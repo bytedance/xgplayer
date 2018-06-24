@@ -1,6 +1,6 @@
 {
   "name": "xgplayer-flv.js",
-  "version": "0.1.1",
+  "version": "1.0.1",
   "description": "web video player",
   "main": "./dist/index.js",
   "scripts": {
