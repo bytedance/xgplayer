@@ -1,6 +1,6 @@
 {
   "name": "byted-player-shaka",
-  "version": "1.0.1",
+  "version": "1.0.2",
   "description": "byted-player plugin for shaka-player",
   "main": "./dist/index.js",
   "scripts": {
@@ -23,7 +23,7 @@
     "video"
   ],
   "author": "zhangxin.frontend@bytedance.com",
-  "license": "GPL-3.0",
+  "license": "MIT",
   "dependencies": {
     "babel-plugin-add-module-exports": "^0.2.1",
     "shaka-player": "^2.4.0"
