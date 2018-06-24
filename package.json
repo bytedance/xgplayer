@@ -26,7 +26,7 @@
     "webworkify-webpack-dropin": "^1.1.9"
   },
   "name": "xgplayer",
-  "version": "1.0.0",
+  "version": "0.0.1",
   "description": "xgplayer for video player",
   "main": "index.js",
   "scripts": {
