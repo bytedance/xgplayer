@@ -1,12 +1,12 @@
 {
   "name": "xgplayer-hls.js",
-  "version": "0.1.1",
+  "version": "0.1.0",
   "description": "xgplayer plugin for hls",
   "main": "./dist/index.js",
   "scripts": {
-    "build": "webpack",
-    "prepublish": "npm run build",
-    "watch": "webpack -w"
+    "prepare": "npm run build",
+    "build": "webpack --progress --display-chunks -p",
+    "watch": "webpack --progress --display-chunks -p --watch"
   },
   "repository": {
     "type": "git",

@@ -1,12 +1,12 @@
 {
     "name": "xgplayer",
-    "version": "0.1.1",
+    "version": "0.1.0",
     "description": "video player",
     "main": "./dist/index.js",
     "scripts": {
-        "build": "webpack",
         "prepare": "npm run build",
-        "watch": "webpack -w"
+        "build": "webpack --progress --display-chunks -p",
+        "watch": "webpack --progress --display-chunks -p --watch"
     },
     "keywords": [
         "video",

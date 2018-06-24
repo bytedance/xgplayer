@@ -1,12 +1,14 @@
 {
   "name": "xgplayer-flv.js",
-  "version": "0.1.1",
+  "version": "0.1.0",
   "description": "web video player",
   "main": "./dist/index.js",
   "scripts": {
-    "build": "webpack",
     "init": "npm install",
-    "clean": "rm -rf dist browser"
+    "clean": "rm -rf dist browser",
+    "prepare": "npm run build",
+    "build": "webpack --progress --display-chunks -p",
+    "watch": "webpack --progress --display-chunks -p --watch"
   },
   "babel": {
     "presets": [
@@ -20,7 +22,7 @@
   "author": "cuc_ygh@163.com",
   "license": "ISC",
   "devDependencies": {
-    "babel-core": "^6.26.0",
+    "babel-core": "^6.26.3",
     "babel-loader": "^7.1.4",
     "babel-plugin-add-module-exports": "^0.2.1",
     "babel-plugin-bulk-import": "^1.0.2",
