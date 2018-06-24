@@ -1,0 +1,46 @@
+{
+  "name": "byted-player-shaka",
+  "version": "1.0.2",
+  "description": "byted-player plugin for shaka-player",
+  "main": "./dist/index.js",
+  "scripts": {
+    "prepare": "npm run build",
+    "build": "webpack --progress --display-chunks -p",
+    "watch": "webpack --progress --display-chunks -p --watch"
+  },
+  "babel": {
+    "presets": [
+      "es2015"
+    ],
+    "plugins": [
+      "add-module-exports"
+    ]
+  },
+  "keywords": [
+    "mpeg-dash",
+    "shaka-player",
+    "player",
+    "video"
+  ],
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/bytedance/xgplayer.git"
+  },
+  "author": "zhangxin.frontend@bytedance.com",
+  "license": "MIT",
+  "dependencies": {
+    "babel-plugin-add-module-exports": "^0.2.1",
+    "shaka-player": "^2.4.0"
+  },
+  "peerDependency": {
+    "xgplayer": "^0.1.0"
+  },
+  "devDependencies": {
+    "babel-cli": "^6.26.0",
+    "babel-loader": "^7.1.4",
+    "babel-preset-env": "^1.6.1",
+    "babel-preset-es2015": "^6.24.1",
+    "postcss-cssnext": "^3.1.0",
+    "postcss-loader": "^2.1.5"
+  }
+}

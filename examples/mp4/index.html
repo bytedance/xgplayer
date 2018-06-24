@@ -1,0 +1,29 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,minimum-scale=1,user-scalable=no,minimal-ui">
+    <meta name="referrer" content="no-referrer">
+    <meta name="renderer" content="webkit">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1" />
+    <title>西瓜播放器-MP4视频</title>
+    <link rel="stylesheet" href="../layout.css">
+</head>
+<body>
+    <section id="wrapper">
+        <div id="vs"></div>
+    </section>
+    <script src="../../packages/xgplayer/browser/xgplayer.js" charset="utf-8"></script>
+    <script src="../../packages/xgplayer-mp4/browser/xgplayer-mp4.js" charset="utf-8"></script>
+    <script type="text/javascript">
+        var player=new Player({
+            id:'vs',
+            url:'./xgplayer-demo.mp4',
+            poster:'./poster.png'
+        })
+    </script>
+
+
+</body>
+
+</html>
