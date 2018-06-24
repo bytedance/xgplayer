@@ -33,11 +33,7 @@ bower_components
 build/Release
 
 # Dependency directories
-<<<<<<< HEAD
 node_modules/
-=======
-node_modules
->>>>>>> d8ce877... init first version
 jspm_packages/
 
 # TypeScript v1 declaration files
@@ -66,3 +62,4 @@ typings/
 
 #lerna-changelog
 .changelog
+.DS_Store
