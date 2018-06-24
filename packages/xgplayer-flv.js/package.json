@@ -1,0 +1,38 @@
+{
+  "name": "xgplayer-flv.js",
+  "version": "2.0.0",
+  "description": "web video player",
+  "main": "./dist/index.js",
+  "scripts": {
+    "build": "webpack",
+    "init": "npm install",
+    "clean": "rm -rf dist browser"
+  },
+  "babel": {
+    "presets": [
+      "es2015"
+    ],
+    "plugins": [
+      "add-module-exports",
+      "babel-plugin-bulk-import"
+    ]
+  },
+  "author": "cuc_ygh@163.com",
+  "license": "ISC",
+  "devDependencies": {
+    "babel-core": "^6.26.0",
+    "babel-loader": "^7.1.4",
+    "babel-plugin-add-module-exports": "^0.2.1",
+    "babel-plugin-bulk-import": "^1.0.2",
+    "babel-preset-es2015": "^6.24.1",
+    "webpack": "^4.8.3"
+  },
+  "peerDependency": {
+    "xgplayer": "^0.1.0"
+  },
+  "dependencies": {
+    "es6-promise": "^4.2.4",
+    "glob": "^7.1.2",
+    "webworkify": "^1.5.0"
+  }
+}

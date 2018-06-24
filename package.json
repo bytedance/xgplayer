@@ -1,0 +1,65 @@
+{
+  "devDependencies": {
+    "@koa/cors": "^2.2.1",
+    "babel-core": "^6.26.3",
+    "babel-loader": "^7.1.4",
+    "babel-plugin-add-module-exports": "^0.2.1",
+    "babel-preset-env": "^1.7.0",
+    "babel-preset-es2015": "^6.24.1",
+    "css-loader": "^0.28.11",
+    "cz-conventional-changelog": "^2.1.0",
+    "eslint": "^4.19.1",
+    "eslint-config-standard": "^11.0.0",
+    "eslint-plugin-import": "^2.12.0",
+    "eslint-plugin-node": "^6.0.1",
+    "eslint-plugin-promise": "^3.8.0",
+    "eslint-plugin-standard": "^3.1.0",
+    "koa": "^2.5.1",
+    "koa-range": "^0.3.0",
+    "koa-static": "^4.0.3",
+    "lerna": "^3.0.0-alpha.1",
+    "lerna-changelog": "^0.8.0",
+    "lint-staged": "^7.2.0",
+    "style-loader": "^0.21.0",
+    "webpack": "^4.12.0",
+    "webpack-cli": "^3.0.8",
+    "webworkify-webpack-dropin": "^1.1.9"
+  },
+  "name": "xgplayer",
+  "version": "1.0.0",
+  "description": "xgplayer for video player",
+  "main": "index.js",
+  "scripts": {
+    "test": "node_modules/.bin/lerna-changelog",
+    "dev": "babel-node app.js",
+    "publish": "lerna publish",
+    "cz": "git cz",
+    "precz": "lint-staged",
+    "remove": "lerna run clean",
+    "clean": "lerna clean"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/bytedance/xgplayer.git"
+  },
+  "keywords": [
+    "xgplayer",
+    "mp4",
+    "hls",
+    "flv",
+    "dash"
+  ],
+  "lint-staged": {
+    "src/**/*.js": [
+      "eslint -c .eslintrc --fix",
+      "git add"
+    ]
+  },
+  "author": "yinguohui@bytedance.com",
+  "license": "MIT",
+  "bugs": {
+    "url": "https://github.com/bytedance/xgplayer/issues"
+  },
+  "homepage": "https://github.com/bytedance/xgplayer#readme",
+  "dependencies": {}
+}

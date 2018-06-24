@@ -1,0 +1,14 @@
+{
+  "packages": [
+    "packages/*"
+  ],
+  "changelog": {
+    "repo": "cucygh/xgplayer",
+    "labels": {
+      "mp4": "xgplayer-mp4",
+      "hls": "xgplayer-hls"
+    },
+    "cacheDir": ".changelog"
+  },
+  "version": "1.0.0"
+}
