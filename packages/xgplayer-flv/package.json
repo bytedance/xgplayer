@@ -1,0 +1,42 @@
+{
+  "name": "xgplayer-flv",
+  "version": "1.0.2",
+  "description": "flv demuxer for xgplayer",
+  "main": "./dist/index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "prepare": "npm run build",
+    "build": "webpack --progress --display-chunks -p",
+    "watch": "webpack --progress --display-chunks -p --watch"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/bytedance/xgplayer.git"
+  },
+  "keywords": [],
+  "author": "leo",
+  "license": "MIT",
+  "devDependencies": {
+    "babel": "^6.23.0",
+    "babel-env": "^2.4.1",
+    "babel-eslint": "^8.2.2",
+    "babel-loader": "^7.1.2",
+    "babel-plugin-transform-react-constant-elements": "^6.23.0",
+    "babel-preset-es2015": "^6.24.1",
+    "clean-webpack-plugin": "^0.1.17",
+    "css-loader": "^0.28.10",
+    "extract-text-webpack-plugin": "^3.0.2",
+    "html-loader": "^0.5.5",
+    "html-webpack-plugin": "^2.30.1",
+    "style-loader": "^0.20.2",
+    "webpack": "^4.12.0",
+    "webpack-dev-server": "^2.11.1"
+  },
+  "peerDependency": {
+    "xgplayer": "^0.1.0"
+  },
+  "dependencies": {
+    "concat-typed-array": "^1.0.2",
+    "event-emitter": "^0.3.5"
+  }
+}
