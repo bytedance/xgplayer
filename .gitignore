@@ -1,9 +1,10 @@
 #ide
-.DS_Store
+*.DS_Store
 .idea
 
 #npm
 package-lock.json
+
 
 # Logs
 logs
@@ -69,3 +70,4 @@ typings/
 
 #lerna-changelog
 .changelog
+.DS_Store
