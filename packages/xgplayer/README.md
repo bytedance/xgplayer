@@ -1,5 +1,5 @@
 <div align="center">
-    <img src="./xgplayer.png" width="384" height="96">
+    <img src="../../xgplayer.png" width="384" height="96">
 </div>
 <div align="center">
     <a href="https://www.npmjs.com/package/xgplayer" target="_blank">
@@ -40,11 +40,11 @@ it can be staged loading for that does not support streaming mp4. This means sea
     Step 2:
 
     ```js
-    import Player from 'xgplayer'
+    import Player from 'xgplayer';
 
-    let player=new Player({
-        id:'vs',
-        url:'http://s2.pstatp.com/cdn/expire-1-M/byted-player-videos/1.0.0/xgplayer-demo.mp4'
+    const player = new Player({
+        id: 'vs',
+        url: 'http://s2.pstatp.com/cdn/expire-1-M/byted-player-videos/1.0.0/xgplayer-demo.mp4'
     })
     ```
 
@@ -60,12 +60,12 @@ xgplayer provides more plugins, plugins are divided into two categories: one is 
 The following is how to use a self-starting plug-in：
 
 ```js
-import Player from 'xgplayer'
-import 'xgplyaer-mp4'
+import Player from 'xgplayer';
+import 'xgplyaer-mp4';
 
-let player=new Player({
-    id:'video',
-    url:'//abc.com/test.mp4'
+const player = new Player({
+    id: 'video',
+    url: '//abc.com/test.mp4'
 })
 ```
 
