@@ -1,41 +1,50 @@
-import VodTask from '../VodTask';
+import VodTask from '../VodTask'
 export default class FetchLoader {
-    constructor(url, range, config = {}) {
-        this.url = url;
-        this.on = false;
-        const _config = {
-            headers: {
-                Range: `bytes=${range[0]}-${range[1]}`,
-            },
-            method: 'GET',
-            cache: 'default',
-            mode: 'cors',
-        };
-        this.request = () => {
-            this.on = true;
-            return fetch(url, Object.assign({}, _config, config)).then(res => {
-                VodTask.remove(this);
-                return res.arrayBuffer();
-            }).catch(e => {
-                VodTask.remove(this);
-                return e;
-            });
-        };
+  constructor (url, range, config = {}) {
+    this.url = url
+    this.on = false
+    this.complete = false
+    this.isStopped = false
+    this.timeStamp = Date.now()
+    const _config = {
+      headers: {
+        Range: `bytes=${range[0]}-${range[1]}`
+      },
+      method: 'GET',
+      cache: 'default',
+      mode: 'cors'
     }
+    this.request = () => {
+      this.on = true
+      return window.fetch(url, Object.assign({}, _config, config)).then(res => res.arrayBuffer()).then(buffer => {
+        this.complete = true
+        this.byteLength = buffer.byteLength
+        VodTask.remove(this)
+        return {
+          buffer,
+          timeStamp: this.timeStamp
+        }
+      }).catch(e => {
+        this.complete = true
+        VodTask.remove(this)
+        return e
+      })
+    }
+  }
 
-    run () {
-        this._promise = this.request();
-    }
+  run () {
+    this._promise = this.request()
+  }
 
-    get readyState () {
-        return 1;
-    }
+  get readyState () {
+    return 1
+  }
 
-    cancel () {
-        // TODO
-    }
+  cancel () {
+    this.isStopped = true
+  }
 
-    get promise () {
-        return this.on ? this._promise : this.request();
-    }
+  get promise () {
+    return this.on ? this._promise : this.request()
+  }
 }

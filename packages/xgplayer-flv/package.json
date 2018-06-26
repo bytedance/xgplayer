@@ -1,11 +1,12 @@
 {
   "name": "xgplayer-flv",
-  "version": "1.0.2",
+  "version": "1.0.3",
   "description": "flv demuxer for xgplayer",
   "main": "./dist/index.js",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",
     "prepare": "npm run build",
+    "dev": "webpack --progress --display-chunks --watch --config ./webpack.config.dev.js",
     "build": "webpack --progress --display-chunks -p",
     "watch": "webpack --progress --display-chunks -p --watch"
   },
@@ -14,7 +15,7 @@
     "url": "git+https://github.com/bytedance/xgplayer.git"
   },
   "keywords": [],
-  "author": "leo",
+  "author": "fuyuhao",
   "license": "MIT",
   "devDependencies": {
     "babel": "^6.23.0",
