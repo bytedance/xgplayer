@@ -66,3 +66,6 @@ typings/
 
 #lerna-changelog
 .changelog
+
+#editor workspace file
+.idea/
