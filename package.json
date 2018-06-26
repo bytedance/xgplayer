@@ -50,15 +50,23 @@
     "dash"
   ],
   "lint-staged": {
-    "src/**/*.js": [
-      "eslint -c .eslintrc --fix",
-      "git add"
-    ]
+    "linters": {
+      "packages/**/*.js": [
+        "eslint -c .eslintrc.js --fix",
+        "git add"
+      ]
+    },
+    "ignore": ["**/browser/*.js", "**/dist/*.js"]
   },
   "author": "yinguohui@bytedance.com",
   "license": "MIT",
   "bugs": {
     "url": "https://github.com/bytedance/xgplayer/issues"
+  },
+  "config": {
+    "commitizen": {
+      "path": "./node_modules/cz-conventional-changelog"
+    }
   },
   "homepage": "https://github.com/bytedance/xgplayer#readme",
   "dependencies": {}
