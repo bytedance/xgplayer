@@ -62,7 +62,6 @@ export default class MainParser extends Demuxer {
 
   initMeta () {
     const self = this
-
     const Resolver = {
       resolveChunk ({timeStamp, buffer}) {
         if (timeStamp !== self.loadTask.timeStamp) return
