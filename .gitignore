@@ -70,4 +70,11 @@ typings/
 
 #lerna-changelog
 .changelog
+
+
+#editor workspace file
+.idea/
+
+
 .DS_Store
+
