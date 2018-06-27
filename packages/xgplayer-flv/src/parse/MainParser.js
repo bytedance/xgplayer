@@ -31,6 +31,7 @@ export default class MainParser extends Demuxer {
     this._isNewSegmentsArrival = false
     this.isSeeking = false
     this.loadTask = null
+    this.mse = null
     this.range = {
       start: -1,
       end: -1
@@ -39,12 +40,16 @@ export default class MainParser extends Demuxer {
     this._pendingFragments = []
     this._pendingRemoveRange = []
     this.err_cnt = 0
-    if (!config.isLive) {
+
+    this.initEventBind()
+  }
+
+  startLoadData () {
+    if (!this._config.isLive) {
       this.initMeta()
     } else {
       this.initLiveStream()
     }
-    this.initEventBind()
   }
 
   initLiveStream () {
@@ -260,9 +265,10 @@ export default class MainParser extends Demuxer {
     this.on(`${prefix}media_info_ready`, handleMediaInfoReady.bind(this))
   }
   replay () {
+    this.isSourceOpen = false
     this.range = {
       start: this._store.metaEndPosition,
-      end: this.getNextRangeEnd(0, this._config.preloadTime)
+      end: this.getNextRangeEnd(0, this._config.preloadTime) - 1
     }
     // this.firstFlag = true;
     this._mp4remuxer.seek()
