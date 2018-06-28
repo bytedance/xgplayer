@@ -40,7 +40,9 @@ export default class MainParser extends Demuxer {
     this._pendingFragments = []
     this._pendingRemoveRange = []
     this.err_cnt = 0
-
+    this.requestConfig = {
+      mode: this._config.cors ? 'cors' : 'same-origin'
+    }
     this.initEventBind()
   }
 
@@ -53,7 +55,7 @@ export default class MainParser extends Demuxer {
   }
 
   initLiveStream () {
-    new LiveTask(this._config.url, {}).run(this.loadLiveData.bind(this))
+    new LiveTask(this._config.url, this.requestConfig).run(this.loadLiveData.bind(this))
   }
 
   loadLiveData (buffer) {
@@ -171,12 +173,12 @@ export default class MainParser extends Demuxer {
   }
 
   _loadSegmentsData (start = 0, end = start + this.CHUNK_SIZE) {
-    this.loadTask = new VodTask(this._config.url, [start, end])
+    this.loadTask = new VodTask(this._config.url, [start, end], this.requestConfig)
     return this.loadTask.promise
   }
 
   loadMetaData (start = 0, end = start + this.META_CHUNK_SIZE) {
-    this.loadTask = new VodTask(this._config.url, [start, end])
+    this.loadTask = new VodTask(this._config.url, [start, end], this.requestConfig)
     return this.loadTask.promise
   }
   setFlvFirst (arrayBuff, baseTime) {

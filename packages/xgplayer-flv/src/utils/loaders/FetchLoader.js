@@ -14,6 +14,7 @@ export default class FetchLoader {
       cache: 'default',
       mode: 'cors'
     }
+
     this.request = () => {
       this.on = true
       return window.fetch(url, Object.assign({}, _config, config)).then(res => res.arrayBuffer()).then(buffer => {
