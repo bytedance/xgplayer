@@ -7,6 +7,7 @@
     "init": "npm install",
     "clean": "rm -rf dist browser",
     "prepare": "npm run build",
+    "dev": "webpack --config ./webpack.config.dev.js",
     "build": "webpack --progress --display-chunks -p",
     "watch": "webpack --progress --display-chunks -p --watch"
   },
