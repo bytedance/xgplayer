@@ -5,7 +5,7 @@ const umd = {
   output: {
     path: `${__dirname}/dist`,
     filename: 'index.js',
-    library: 'xgplayer-flv',
+    library: 'xgplayer-flv.js',
     libraryTarget: 'umd'
   },
   mode: 'development',
@@ -30,7 +30,7 @@ const umd = {
     }]
   },
   externals: {
-    xgplayer: 'xgplayer'
+    'xgplayer': 'xgplayer'
   }
 }
 
@@ -38,8 +38,8 @@ const client = {
   entry: polyfill.concat(['./src/index.js']),
   output: {
     path: `${__dirname}/browser`,
-    filename: 'xgplayer-flv.js',
-    library: 'FlvPlayer',
+    filename: 'xgplayer-flvjs.js',
+    library: 'FlvJsPlayer',
     libraryTarget: 'window'
   },
   module: {
@@ -63,7 +63,7 @@ const client = {
     }]
   },
   externals: {
-    xgplayer: 'Player'
+    'xgplayer': 'Player'
   },
   mode: 'development'
 }
