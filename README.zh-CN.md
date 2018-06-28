@@ -45,9 +45,9 @@
     ```js
     import Player from 'xgplayer'
 
-    let player=new Player({
-        id:'vs',
-        url:'http://s2.pstatp.com/cdn/expire-1-M/byted-player-videos/1.0.0/xgplayer-demo.mp4'
+    let player = new Player({
+        id: 'vs',
+        url: 'http://s2.pstatp.com/cdn/expire-1-M/byted-player-videos/1.0.0/xgplayer-demo.mp4'
     })
     ```
 
@@ -62,11 +62,11 @@
 
 ```js
 import Player from 'xgplayer'
-import 'xgplyaer-mp4'
+import 'xgplayer-mp4'
 
-let player=new Player({
-    id:'video',
-    url:'//abc.com/test.mp4'
+let player = new Player({
+    id: 'video',
+    url: '//abc.com/test.mp4'
 })
 ```
 
@@ -75,7 +75,7 @@ let player=new Player({
 
 ### Mobile Support
 
-西瓜播放器支持移动端，不过安卓设备品牌和系统众多，兼容性问题很多，播放器提供白名单机制保证在移动端完美的运行。[白名单机制](http://h5player/bytedance.com/config/#白名单)
+西瓜播放器支持移动端，不过安卓设备品牌和系统众多，兼容性问题很多，播放器提供白名单机制保证在移动端完美的运行。[白名单机制](http://h5player.bytedance.com/config/#%E7%99%BD%E5%90%8D%E5%8D%95)
 
 
 ### Dev
@@ -92,4 +92,3 @@ $ npm run dev
 ### License
 
 [MIT](http://opensource.org/licenses/MIT)
-

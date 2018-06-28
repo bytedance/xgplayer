@@ -19,7 +19,20 @@
         var player=new Player({
             id:'vs',
             url:'./xgplayer-demo.mp4',
-            poster:'./poster.png'
+            poster:'./poster.png',
+            thumbnail: {
+                pic_num: 44,
+                width: 160,
+                height: 90,
+                col: 10,
+                row: 10,
+                urls: ['./xgplayer-demo-thumbnail.jpg'],
+            },
+            bullet: {
+                switch: 'on',
+                url: './danmu.json',
+                method: 'get',
+            },
         })
     </script>
 
