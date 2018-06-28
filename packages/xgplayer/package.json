@@ -29,8 +29,10 @@
     "license": "MIT",
     "dependencies": {
         "babel-plugin-add-module-exports": "^0.2.1",
+        "deepmerge": "^1.5.0",
         "event-emitter": "^0.3.5",
-        "pasition": "^1.0.1"
+        "pasition": "^1.0.1",
+        "request-frame": "^1.5.3"
     },
     "browserslist": [
         "> 5%",
