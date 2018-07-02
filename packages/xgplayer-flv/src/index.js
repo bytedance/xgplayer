@@ -1,5 +1,5 @@
 import Player from 'xgplayer'
-import VodTask from './utils/VodTask'
+import VodTask from './tasks/VodTask'
 import Flv from './Flv'
 
 class FlvPlayer extends Player {

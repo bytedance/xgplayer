@@ -3,7 +3,7 @@
  */
 import MainParser from './parse/MainParser'
 import MSE from './parse/MSE'
-import VodTask from './utils/VodTask'
+import VodTask from './tasks/VodTask'
 import getDefaultConf from './constants/config'
 /* eslint-disable no-unused-vars */
 export default class Flv {
