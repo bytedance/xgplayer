@@ -186,6 +186,31 @@ class Channel {
             self.channelHeight = fontSize;
         }, 200);
     }
+    resetWithCb (cb) {
+        let root = this.player.root;
+        let self = this;
+        let container = root.querySelector('.xgplayer-bullet');
+        let size = container.getBoundingClientRect();
+        self.width = size.width;
+        self.height = size.height;
+        self.container = container;
+        let fontSize = /mobile/ig.test(navigator.userAgent) ? 10 : 12;
+        let channelSize = Math.floor(self.height / fontSize);
+        let channels = [];
+        for (let i = 0; i < channelSize; i++) {
+            channels[i] = {
+                id: i,
+                queue: [],
+                step: 99999,
+                surplus: 0,
+            };
+        }
+        self.channels = channels;
+        self.channelHeight = fontSize;
+        if (cb) {
+            cb(true);
+        }
+    }
 }
 
 /**
@@ -209,7 +234,7 @@ class Bullet {
         this.status = 'waiting';// waiting,start,end
         let playerPos = this.player.root.getBoundingClientRect();
         this.left = playerPos.width;
-        this.step = Math.ceil((playerPos.width + this.width) / this.duration / 60);
+        this.step = (playerPos.width + this.width) / this.duration / 60;
         this.end = -this.width;
     }
     attach () {
@@ -290,12 +315,16 @@ class Main {
             }
         });
     }
-    // 启动弹幕渲染主进程
-    start () {
+    init () {
         let self = this;
-        self.status = 'playing';
-        self.channel.reset();
         if (self.data) {
+            if (self.player.paused) {
+                self.status = 'paused';
+                return;
+            } else if (self.player.ended) {
+                self.status = 'ended';
+                return;
+            }
             self.readData();
             self.retryTimer = setInterval(function () {
                 self.readData();
@@ -331,6 +360,14 @@ class Main {
                         });
                         self.data.sort((a, b)=>a.start - b.start);
                         document.body.removeChild(el);
+                        if (self.player.paused) {
+                            self.status = 'paused';
+                            return;
+                        } else if (self.player.ended) {
+                            self.status = 'ended';
+                            return;
+                        }
+                        // self.status = 'playing';
                         self.readData();
                         self.retryTimer = setInterval(function () {
                             self.readData();
@@ -344,6 +381,13 @@ class Main {
             console.log('Fetch错误:' + err);
         });
     }
+    // 启动弹幕渲染主进程
+    start () {
+        let self = this;
+        self.status = 'playing';
+        self.channel.reset();
+        self.init();
+    }
     stop () {
         let self = this;
         self.status = 'closed';
@@ -354,16 +398,17 @@ class Main {
         self.container.innerHTML = '';
     }
     play () {
-        let self = this, util = Player.util, root = this.player.root;
+        let self = this, util = Player.util;
         if (self.status === 'idle' || self.status === 'ended') {
-            if (util.hasClass(root, 'xgplayer-has-bullet')) {
+            if (util.hasClass(self.container, 'xgplayer-has-bullet')) {
                 self.start();
             }
-        } else if (self.status === 'paused' && util.hasClass(root, 'xgplayer-has-bullet')) {
+        } else if (self.status === 'paused' && util.hasClass(self.container, 'xgplayer-has-bullet')) {
             self.status = 'playing';
             self.dataHandle();
             self.retryTimer = setInterval(function () {
                 self.readData();
+                self.dataHandle();
             }, self.interval - 1000);
         }
     }
@@ -414,16 +459,20 @@ class Main {
         }
     }
     seekHandle () {
-        let self = this, util = Player.util, root = this.player.root;
+        let self = this, util = Player.util;
+
+        self.stop();
         if (!self.player.paused) {
-            self.stop();
-            self.start();
-            if (util.hasClass(root, 'xgplayer-has-bullet')) {
-                self.readData();
-                self.dataHandle();
-            }
+            // self.start();
+            self.status = 'playing';
+            self.channel.resetWithCb();
+            self.init();
+            // if (util.hasClass(self.container, 'xgplayer-has-bullet')) {
+            //     self.readData();
+            //     self.dataHandle();
+            // }
         } else {
-            self.stop();
+            self.status = 'idle'
         }
     }
     formatTime (time) {
@@ -442,6 +491,7 @@ class BulletBtn {
         let self = this;
         this.player = player;
         this.el_ = this.createEl();
+        this.onceFlag = false;
 
         let ev = ['click', 'touchstart'];
         ev.forEach(item=>{
@@ -454,7 +504,7 @@ class BulletBtn {
 
         this.main = new Main(player, option);
         if (option.switch === 'on') {
-            this.player.on('play', function () {
+            this.player.once('play', function () {
                 self.onChange(true);
             });
         }
@@ -468,17 +518,30 @@ class BulletBtn {
         let self = this, util = Player.util;
         util.toggleClass(self.el_, 'xgplayer-bullet-btn-active');
         let isActive = util.hasClass(self.el_, 'xgplayer-bullet-btn-active') ? true : false;
-        // this.player_.trigger('bulletChange', isActive);
-        this.onChange(isActive);
+        function resetCb () {
+            self.onceFlag = false;
+            self.main.channel.resetWithCb(self.onChange.bind(self));
+        }
+        if (isActive) {
+            if (self.player.paused || self.player.ended) {
+                if (!this.onceFlag) {
+                    this.onceFlag = true;
+                    this.player.once('play', resetCb);
+                }
+            } else {
+                resetCb();
+            }
+        } else {
+            this.player.off('play', resetCb);
+            this.onChange(isActive);
+        }
     }
     onChange (isActive) {
         let self = this, util = Player.util, root = this.player.root;
         let container = root.querySelector('.xgplayer-bullet');
         if (isActive) {
             util.addClass(container, 'xgplayer-has-bullet');
-            if (!self.player.paused) {
-                self.main.start();
-            }
+            self.main.start();
         } else {
             util.removeClass(container, 'xgplayer-has-bullet');
             self.main.stop();
@@ -494,6 +557,19 @@ let makeBullet = function () {
     let bullet = util.createDom('xg-bullet', '', {}, 'xgplayer-bullet'), root = player.root;
     root.appendChild(bullet);
     let bulletBtn = new BulletBtn(player, player.config.bullet);
+
+    ['touchstart', 'click'].forEach(item=>{
+        bullet.addEventListener(item, function (e) {
+            e.preventDefault();
+            e.stopPropagation();
+            if (player.paused) {
+                player.play();
+            } else {
+                player.pause();
+            }
+        }, false);
+    });
+
     player.controls.appendChild(bulletBtn.el_);
 };
 

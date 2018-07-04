@@ -126,6 +126,7 @@
     margin-top: 8.5px;
     width: 100%;
     position: relative;
+    cursor: pointer;
 }
 .xgplayer-progress-cache,.xgplayer-progress-played{
     display: block;
@@ -188,6 +189,7 @@
     position: relative;
     order: 0;
     display: block;
+    cursor: pointer;
     .xgplayer-icon{
         margin-top: 3px;
     }
@@ -234,6 +236,7 @@
     order: 4;
     display: inline-block;
     position: relative;
+    cursor: pointer;
     .xgplayer-icon{
         margin-top: 8px;
     }
@@ -309,6 +312,7 @@
     top: 50%;
     z-index: 1000;
     margin: -55px auto auto -35px;
+    cursor: pointer;
     @at-root .xgplayer-nostart &{
         margin: -35px auto auto -35px;
     }
@@ -408,6 +412,7 @@
     order: 10;
     position: relative;
     display: inline-block;
+    cursor: pointer;
     .xgplayer-icon{
         margin: 4px -4px 0 0;
     }
@@ -472,11 +477,13 @@
     overflow: hidden;
     z-index: 9;
     outline: none;
+    cursor: pointer;
     span{
       position: absolute;
       padding: 5px;
       white-space: nowrap;
       z-index: 9;
+      cursor: pointer;
     }
 
     @at-root .xgplayer-has-bullet {
