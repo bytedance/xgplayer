@@ -96,7 +96,9 @@ export default class Flv {
         mse.appendBuffer(ftypMoov.buffer)
       }
     })
-
+    flvPlayer.handleSeekEnd = () => {
+      this.isSeeking = false
+    }
     flvPlayer.handleError = function (e) {
       this._player.emit('error', e)
     }

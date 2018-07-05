@@ -149,7 +149,7 @@ export default class MainParser extends Demuxer {
     start *= videoTimeScale
 
     let expectEnd = start + (preloadTime * videoTimeScale)
-    if (expectEnd > times[times.length - 1]) { return times[times.length - 1] }
+    if (expectEnd > times[times.length - 1]) { return filePositions[filePositions.length - 1] }
     let left = 0
     let right = times.length - 1
     let index
@@ -169,7 +169,7 @@ export default class MainParser extends Demuxer {
       }
     }
 
-    return index ? filePositions[index] : ''
+    return index ? filePositions[index] : undefined
   }
 
   _loadSegmentsData (start = 0, end = start + this.CHUNK_SIZE) {
@@ -257,6 +257,7 @@ export default class MainParser extends Demuxer {
         if (!this.mse.appendBuffer(fragment.data)) {
           this._pendingFragments.unshift(fragment)
         } else {
+          this.handleSeekEnd()
           this._player.emit('cacheupdate', this._player)
         }
       }
