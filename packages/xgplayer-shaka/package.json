@@ -1,6 +1,6 @@
 {
   "name": "byted-player-shaka",
-  "version": "1.0.2",
+  "version": "1.0.3",
   "description": "byted-player plugin for shaka-player",
   "main": "./dist/index.js",
   "scripts": {
