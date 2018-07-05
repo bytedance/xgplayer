@@ -38,7 +38,7 @@ const client = {
   entry: polyfill.concat(['./src/index.js']),
   output: {
     path: `${__dirname}/browser`,
-    filename: 'xgplayer-flvjs.js',
+    filename: 'index.js',
     library: 'FlvJsPlayer',
     libraryTarget: 'window'
   },

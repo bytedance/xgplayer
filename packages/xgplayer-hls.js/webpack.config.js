@@ -42,7 +42,7 @@ const client = {
   entry: polyfill.concat(['./src/index.js']),
   output: {
     path: `${__dirname}/browser`,
-    filename: 'xgplayer-hlsjs.js',
+    filename: 'index.js',
     library: 'HlsJsPlayer',
     libraryTarget: 'window'
   },

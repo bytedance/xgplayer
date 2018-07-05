@@ -1,5 +1,4 @@
-const polyfill = [];
-
+const polyfill = []
 
 const umd = {
   entry: polyfill.concat(['./src/index.js']),
@@ -7,13 +6,13 @@ const umd = {
     path: `${__dirname}/dist`,
     filename: 'index.js',
     library: 'xgplayer-hls',
-    libraryTarget: 'umd',
+    libraryTarget: 'umd'
   },
   mode: 'production',
   module: {
     rules: [{
       test: /\.js$/,
-      loader: 'babel-loader',
+      loader: 'babel-loader'
     }, {
       test: /\.scss$/,
       use: [
@@ -22,32 +21,32 @@ const umd = {
           loader: 'css-loader',
           options: {
             importLoaders: 1,
-            minimize: true,
-          },
+            minimize: true
+          }
         },
         'postcss-loader',
-        'sass-loader',
-      ],
-    }],
+        'sass-loader'
+      ]
+    }]
   },
   externals: {
-    xgplayer: 'xgplayer',
+    xgplayer: 'xgplayer'
   },
   optimization: {
-    minimize: true,
-  },
-};
+    minimize: true
+  }
+}
 
 const client = {
   entry: polyfill.concat(['./src/index.js']),
   output: {
     path: `${__dirname}/browser`,
-    filename: 'xgplayer-hls.js',
+    filename: 'index.js'
   },
   module: {
     rules: [{
       test: /\.js$/,
-      loader: 'babel-loader',
+      loader: 'babel-loader'
     }, {
       test: /\.scss$/,
       use: [
@@ -56,21 +55,21 @@ const client = {
           loader: 'css-loader',
           options: {
             importLoaders: 1,
-            minimize: true,
-          },
+            minimize: true
+          }
         },
         'postcss-loader',
-        'sass-loader',
-      ],
-    }],
+        'sass-loader'
+      ]
+    }]
   },
   externals: {
-    xgplayer: 'Player',
+    xgplayer: 'Player'
   },
   mode: 'production',
   optimization: {
-    minimize: true,
-  },
-};
+    minimize: true
+  }
+}
 
-module.exports = [umd, client];
+module.exports = [umd, client]

@@ -41,7 +41,7 @@ const client = {
   entry: polyfill.concat(['./src/index.js']),
   output: {
     path: `${__dirname}/browser`,
-    filename: 'xgplayer-shaka.js',
+    filename: 'index.js',
     library: 'ShakaJsPlayer',
     libraryTarget: 'window'
   },
