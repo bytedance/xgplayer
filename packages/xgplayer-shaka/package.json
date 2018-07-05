@@ -1,7 +1,7 @@
 {
-  "name": "byted-player-shaka",
+  "name": "xgplayer-shaka",
   "version": "1.0.4",
-  "description": "byted-player plugin for shaka-player",
+  "description": "xgplayer plugin for shaka-player",
   "main": "./dist/index.js",
   "scripts": {
     "prepare": "npm run build",
