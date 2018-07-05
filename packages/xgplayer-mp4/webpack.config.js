@@ -41,7 +41,7 @@ const client = {
   entry: polyfill.concat(['./src/index.js']),
   output: {
     path: `${__dirname}/browser`,
-    filename: 'xgplayer-mp4.js'
+    filename: 'index.js'
   },
   module: {
     rules: [{
