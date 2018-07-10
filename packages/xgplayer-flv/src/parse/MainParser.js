@@ -5,12 +5,14 @@ import TagDemuxer from './demux/TagDemuxer'
 import Store from '../models/Store'
 import VodTask from '../tasks/VodTask'
 import LiveTask from '../tasks/LiveTask'
-import { EventTypes } from '../constants/types'
+import {EventTypes} from '../constants/types'
 import Buffer from '../write/Buffer'
 
+let id = 0
 export default class MainParser extends Demuxer {
   constructor (config, player) {
     super()
+    this.uid = id++
     this.CLASS_NAME = this.constructor.name
     this._config = config
     this._player = player
@@ -26,12 +28,11 @@ export default class MainParser extends Demuxer {
     this.bufferKeyframes = new Set()
     this.META_CHUNK_SIZE = 2 * Math.pow(10, 5)
     this.CHUNK_SIZE = Math.pow(10, 6)
-    this.ftyp_moof = null
+    this.ftyp_moov = null
     this.isSourceOpen = false
     this._isNewSegmentsArrival = false
     this.isSeeking = false
     this.loadTask = null
-    this.mse = null
     this.range = {
       start: -1,
       end: -1
@@ -87,6 +88,7 @@ export default class MainParser extends Demuxer {
     }
     const loadData = () => {
       return this.loadMetaData(this.range.start, this.range.end).then(Resolver.resolveChunk).catch((e) => {
+        this.log(e.message)
         if (this.err_cnt >= 3) {
           this._player.emit('error', '加载视频失败')
           return
@@ -101,11 +103,16 @@ export default class MainParser extends Demuxer {
   loadSegments (changeRange, currentTime = 0, preloadTime) {
     this._isNewSegmentsArrival = false
     const resolveChunk = ({timeStamp, buffer}) => {
+      if (this.isTempPlayer) {
+        this.isTempPlayer = false
+      }
       if (timeStamp !== this.loadTask.timeStamp) return
       this.err_cnt = 0
       this.buffer.write(new Uint8Array(buffer))
+      if (this.isSeeking) {
+        this._pendingFragments = []
+      }
       let offset = this.setFlv(this.buffer.buffer)
-
       this.buffer.buffer = this.buffer.buffer.slice(offset)
       if (!this._isNewSegmentsArrival) {
         this.loadSegments(true)
@@ -131,6 +138,7 @@ export default class MainParser extends Demuxer {
       }
     }
     const loadData = () => {
+      if (this.stop) return
       return this._loadSegmentsData(this.range.start, this.range.end).then(resolveChunk).catch(e => {
         if (this.err_cnt >= 3) {
           this._player.emit('error', '加载视频失败')
@@ -144,12 +152,16 @@ export default class MainParser extends Demuxer {
   }
 
   getNextRangeEnd (start, preloadTime) {
-    const { keyframes: { times, filePositions }, videoTimeScale } = this._store
-    if (!times || !filePositions) { return this.range.end + this.CHUNK_SIZE }
+    const {keyframes: {times, filePositions}, videoTimeScale} = this._store
+    if (!times || !filePositions) {
+      return this.range.end + this.CHUNK_SIZE
+    }
     start *= videoTimeScale
 
     let expectEnd = start + (preloadTime * videoTimeScale)
-    if (expectEnd > times[times.length - 1]) { return filePositions[filePositions.length - 1] }
+    if (expectEnd > times[times.length - 1]) {
+      return filePositions[filePositions.length - 1]
+    }
     let left = 0
     let right = times.length - 1
     let index
@@ -157,7 +169,7 @@ export default class MainParser extends Demuxer {
     while (left <= right) {
       let mid = Math.floor((right + left) / 2)
       if (times[mid] <= expectEnd && expectEnd <= times[mid + 1]) {
-        index = mid
+        index = mid + 1
         break
       } else if (left === right) {
         index = mid
@@ -181,9 +193,10 @@ export default class MainParser extends Demuxer {
     this.loadTask = new VodTask(this._config.url, [start, end], this.requestConfig)
     return this.loadTask.promise
   }
+
   setFlvFirst (arrayBuff, baseTime) {
     const offset = this.flvParser.setFlv(new Uint8Array(arrayBuff))
-    const { tags } = this._store.state
+    const {tags} = this._store.state
 
     if (tags.length) {
       if (tags[0].tagType !== 18) {
@@ -204,7 +217,7 @@ export default class MainParser extends Demuxer {
   setFlvUsually (arrayBuff, baseTime) {
     this.isParsing = true
     const offset = this.flvParser.setFlv(new Uint8Array(arrayBuff))
-    const { tags } = this._store.state
+    const {tags} = this._store.state
     if (tags.length) {
       this.tagDemuxer.resolveTags(tags)
     }
@@ -212,6 +225,7 @@ export default class MainParser extends Demuxer {
   }
 
   handleDataReady (audioTrack, videoTrack) {
+    // if (this.isTempPlayer) return
     this._mp4remuxer.remux(audioTrack, videoTrack)
   }
 
@@ -223,50 +237,60 @@ export default class MainParser extends Demuxer {
     this.error(e)
   }
 
-  handleMediaInfoReady (mediaInfo) {
-    if (this._isMediaInfoInited) { return }
+  handleNewMediaFragment (newFrag) {
+    // if (this.isTempPlayer) return
+    this._isNewSegmentsArrival = true
+    this._pendingFragments.push(newFrag)
+    const {randomAccessPoints} = newFrag.fragment
+    if (randomAccessPoints && randomAccessPoints.length) {
+      randomAccessPoints.forEach(rap => {
+        this.bufferKeyframes.add(rap.dts)
+      })
+    }
+    if (!this.isSourceOpen) {
+      return
+    }
+    if (this._pendingFragments.length) {
+      const fragment = this._pendingFragments.shift()
+      if (!this.handleMediaFragment(fragment)) {
+        this._pendingFragments.unshift(fragment)
+      } else {
+        console.log(fragment)
+        this.handleSeekEnd()
+        this._player.emit('cacheupdate', this._player)
+      }
+    }
+  }
 
-    const FTYP_MOOF = this._mp4remuxer.onMediaInfoReady(mediaInfo)
-    if (!this.ftyp_moof) {
-      this.ftyp_moof = FTYP_MOOF
-      this.emit('ready', FTYP_MOOF)
+  handleMediaInfoReady (mediaInfo) {
+    if (this._isMediaInfoInited) {
+      return
+    }
+
+    const FTYP_MOOV = this._mp4remuxer.onMediaInfoReady(mediaInfo)
+    if (!this.ftyp_moov) {
+      this.ftyp_moov = FTYP_MOOV
+      this.emit('ready', FTYP_MOOV)
     }
     this._isMediaInfoInited = true
   }
+
   initEventBind () {
     const prefix = 'demuxer_'
     const {
       handleError,
       handleDataReady,
       handleMetaDataReady,
-      handleMediaInfoReady
+      handleMediaInfoReady,
+      handleNewMediaFragment
     } = this
-
-    this.on('mediaFragment', (newFrag) => {
-      this._isNewSegmentsArrival = true
-      this._pendingFragments.push(newFrag)
-      const { randomAccessPoints } = newFrag.fragment
-      if (randomAccessPoints && randomAccessPoints.length) {
-        randomAccessPoints.forEach(rap => {
-          this.bufferKeyframes.add(rap.dts)
-        })
-      }
-      if (!this.isSourceOpen) { return }
-      if (this._pendingFragments.length) {
-        const fragment = this._pendingFragments.shift()
-        if (!this.mse.appendBuffer(fragment.data)) {
-          this._pendingFragments.unshift(fragment)
-        } else {
-          this.handleSeekEnd()
-          this._player.emit('cacheupdate', this._player)
-        }
-      }
-    })
+    this.on('mediaFragment', handleNewMediaFragment.bind(this))
     this.on(EventTypes.ERROR, handleError.bind(this))
     this.on(`${prefix}data_ready`, handleDataReady.bind(this))
     this.on(`${prefix}meta_data_ready`, handleMetaDataReady.bind(this))
     this.on(`${prefix}media_info_ready`, handleMediaInfoReady.bind(this))
   }
+
   replay () {
     this.isSourceOpen = false
     this.range = {
@@ -279,19 +303,45 @@ export default class MainParser extends Demuxer {
     this.clearBuffer()
     this.loadSegments(false)
   }
+
   clearBuffer () {
     this._pendingFragments = []
     this._pendingRemoveRange = []
   }
+  unbindEvents () {
+    const prefix = 'demuxer_'
+    this.removeAllListeners(EventTypes.ERROR)
+    this.removeAllListeners(`${prefix}data_ready`)
+    this.removeAllListeners(`${prefix}meta_data_ready`)
+    this.removeAllListeners(`${prefix}media_info_ready`)
+    this.removeAllListeners('mediaFragment')
+    this.handleNewMediaFragment = () => null
+    this.handleDataReady = () => null
+    this.handleMetaDataReady = () => null
+    this.handleMediaInfoReady = () => null
+    this.handleNewMediaFragment = () => null
+  }
+  destroy () {
+    this._mp4remuxer.destroy()
+    this.flvParser.destroy()
+    this.tagDemuxer.destroy()
+    this._mp4remuxer = null
+    this.flvParser = null
+    this.tagDemuxer = null
+    this.loadSegments = () => null
+    this.clearBuffer()
+    this.stop = true
+  }
 
   seek (target) {
+    console.log(this.uid)
     this.loadTask.cancel()
-    const { keyframes = {}, videoTimeScale } = this._store
+    const {keyframes = {}, videoTimeScale} = this._store
     let seekStart = target * videoTimeScale
     let startFilePos
     let endFilePos
     const length = Math.min(keyframes.filePositions.length, keyframes.times.length)
-    let { preloadTime } = this._config
+    let {preloadTime} = this._config
 
     function getEndFilePos (time, idx) {
       if (idx === keyframes.times.length) {
@@ -305,6 +355,7 @@ export default class MainParser extends Demuxer {
       }
       return true
     }
+
     let lo = 0
     let hi = length - 2
     while (lo <= hi) {
@@ -333,7 +384,7 @@ export default class MainParser extends Demuxer {
     this._pendingFragments = []
     this._mp4remuxer.seek()
     this.flvParser.seek()
-    // VodTask.clear();
+    VodTask.clear()
     this.range = {
       start: keyframes.filePositions[startFilePos],
       end: keyframes.filePositions[endFilePos] - 1 || ''
@@ -341,6 +392,7 @@ export default class MainParser extends Demuxer {
     this.buffer = new Buffer()
     this.loadSegments(false)
   }
+
   get setFlv () {
     return this.firstFlag ? this.setFlvFirst : this.setFlvUsually
   }
@@ -352,6 +404,7 @@ export default class MainParser extends Demuxer {
   get videoDuration () {
     return this._store.mediaInfo.duration
   }
+
   get hasPendingFragments () {
     return !!this._pendingFragments.length
   }
@@ -363,6 +416,7 @@ export default class MainParser extends Demuxer {
   get videoTimeScale () {
     return this._store.videoTimeScale
   }
+
   get hasPendingRemoveRanges () {
     return this._pendingRemoveRange.length
   }
