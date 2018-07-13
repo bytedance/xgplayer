@@ -43,26 +43,19 @@ const ErrorTypes = {
 }
 
 class Errors {
-  constructor (type, vid, errd = {line: '', handle: '', msg: '', version: ''}, vd = 0, vu = []) {
+  constructor (type, currentTime, duration, networkState, readyState, src, currentSrc,
+ended, errd = {line: '', handle: '', msg: '', version: ''}) {
     let r = {}
-    r.pv = version // 播放器版本
-    r.errt = type
-    r.v = vid // 视频id
-    r.uid = /tt_webid=(\d+)/gi.test(document.cookie) ? RegExp.$1 : '' // user_id
-    r.dm = document.domain // domain
-    r.sv = 1 // 统计接口的服务器端版本号
-    r.pt = 0 // 启动本次播放的时间戳
-    r.at = 0 // 在 complete 时默认完成，如果在之前数据已经上报获取到，则不需要在设置
-    r.lt = 0 // QUESTION: 没有点播就离开，目前只是在 beforeunload 中做了监听，数据不准确
-    r.bft = 0 // 结束时监听，在开始时置零
-    r.br = 0 // 如果是 timeout 事件触发，意味着播放中断
-    r.lc = 0 // TODO: 需要获得重播的事件，目前不敢对 beforeReplay 进行赋值操作
-    r.vu = vu // 视频地址列表
-    r.vd = 0 // 视频时长
-    r.vs = 0 // TODO：video_size 视频总大小，从APi获取不到，建议可以从API获取，在complete中即可获取
-    r.ps = 0 // TODO：parsed_size 已经解码的大小
-    r.rs = 0 // TODO：requested_size 已经请求的大小
-    r.errt = type // 错误类型
+    r.playerVersion = version // 播放器版本
+    r.errorType = type
+    r.domain = document.domain // domain
+    r.duration = duration // 视频时长
+    r.currentTime = currentTime
+    r.networkState = networkState
+    r.readyState = readyState
+    r.currentSrc = currentSrc
+    r.src = src
+    r.ended = ended
     r.errd = errd // 错误详情
     r.ex = (ErrorTypes[type] || {}).msg // 补充信息
     return r
