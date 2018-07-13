@@ -16,10 +16,11 @@
     <script src="../../packages/xgplayer/browser/index.js" charset="utf-8"></script>
     <script src="../../packages/xgplayer-mp4/browser/index.js" charset="utf-8"></script>
     <script type="text/javascript">
-        var player=new Player({
+        let player=new Player({
             id:'vs',
             url:'./xgplayer-demo.mp4',
             poster:'./poster.png',
+            playbackRate: [0.5, 0.75, 1, 1.5, 2],
             thumbnail: {
                 pic_num: 44,
                 width: 160,
@@ -28,12 +29,10 @@
                 row: 10,
                 urls: ['./xgplayer-demo-thumbnail.jpg'],
             },
-            bullet: {
-                switch: 'on',
-                url: './danmu.json',
-                method: 'get',
-            },
         })
+        player.on('error', function (err) {
+            console.log(JSON.stringify(err));
+        });
     </script>
 
 
