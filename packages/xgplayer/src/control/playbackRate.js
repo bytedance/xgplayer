@@ -16,6 +16,8 @@ let playbackRate = function () {
         return false;
     }
     let ul = util.createDom('xg-playback', '<p class="name"><span>1x</span></p>', {}, 'xgplayer-playback'), root = player.controls;
+    let tips = util.createDom('xg-tips', '倍速', {}, 'xgplayer-tips')
+    ul.appendChild(tips)
     root.appendChild(ul);
     ['touchstart', 'click'].forEach(item=>{
         ul.addEventListener(item, function (e) {

@@ -438,6 +438,11 @@
             vertical-align:middle;
         }
     }
+    &:hover {
+        .xgplayer-tips {
+            display: block;
+        }
+    }
 }
 
 .xgplayer-fullscreen{
