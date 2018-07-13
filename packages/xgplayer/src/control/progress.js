@@ -72,7 +72,7 @@ let progress = function () {
     let compute = function (e) {
       let now = (e.clientX - containerLeft) / containerWidth * player.duration
       point.textContent = util.format(now)
-
+      let pointWidth = point.getBoundingClientRect().width
       if (player.config.thumbnail) {
           interval = player.duration / tnail_pic_num
           let index = Math.floor(now / interval)
@@ -87,11 +87,11 @@ let progress = function () {
           thumbnail.style.left = `${left}px`
           thumbnail.style.top = `${ -10 - tnail_height}px`
           thumbnail.style.display = 'block'
-          point.style.left = `${left + tnail_width / 2 - 15}px`
+          point.style.left = `${left + tnail_width / 2 - pointWidth/2}px`
       } else {
-          let left = e.clientX - containerLeft - 15
+          let left = e.clientX - containerLeft - pointWidth/2
           left = left > 0 ? left : 0
-          left = left < containerWidth - 30 ? left : containerWidth - 30
+          left = left > containerWidth - pointWidth ? containerWidth - pointWidth : left
           point.style.left = `${left}px`
       }
       point.style.display = 'block'
