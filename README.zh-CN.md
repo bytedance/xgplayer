@@ -1,5 +1,5 @@
 <div align="center">
-    <img src="./xgplayer.png" width="384" height="96">
+    <img src="https://github.com/bytedance/xgplayer/master/xgplayer.png" width="384" height="96">
 </div>
 <div align="center">
     <a href="https://www.npmjs.com/package/xgplayer" target="_blank">
