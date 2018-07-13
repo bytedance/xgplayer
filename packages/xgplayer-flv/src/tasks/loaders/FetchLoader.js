@@ -21,6 +21,7 @@ export default class FetchLoader {
         this.complete = true
         this.byteLength = buffer.byteLength
         VodTask.remove(this)
+        if (this.isStopped) return {}
         return {
           buffer,
           timeStamp: this.timeStamp

@@ -11,10 +11,11 @@ export default class Flv {
     this._player = player
     this._options = Object.assign({}, getDefaultConf(), options)
     this.flvPlayer = new MainParser(this._options, player)
-    this.flvPlayer.mse = this.mse = new MSE()
+    this.mse = new MSE()
     this.isSeeking = false
     this.isDataLoading = false
     this.tempCurrentTime = 0
+    this.tempFlvPlayer = null
     this.initPlayerEvents(player, this._options)
     this.initFlvPlayerEvents(this.flvPlayer, this.mse)
     this.initMseEvents(this.mse, this.flvPlayer)
@@ -25,7 +26,7 @@ export default class Flv {
   }
 
   initPlayerEvents (player, options) {
-    const { flvPlayer, mse } = this
+    const { mse } = this
     player.mse = mse
     if (!options.isLive) {
       player.on('seeking', () => {
@@ -47,31 +48,32 @@ export default class Flv {
           this._player.currentTime = this.tempCurrentTime
           return
         }
-        flvPlayer.seek(player.currentTime, options.preloadTime, player)
+        this.flvPlayer.seek(player.currentTime)
         this.isSeeking = true
       })
     }
     player.on('timeupdate', () => {
       this.tempCurrentTime = player.currentTime
-      if (!this.isSeeking && flvPlayer.isMediaInfoReady) {
-        this.progressChecker(player, flvPlayer)
+      if (!this.isSeeking && this.flvPlayer.isMediaInfoReady && !this.tempFlvPlayer) {
+        this.progressChecker(player)
       }
-      this.isEnded(player, flvPlayer)
+      this.isEnded(player, this.flvPlayer)
     })
     player._replay = () => {
-      flvPlayer.mse.destroy()
+      player.mse.destroy()
       VodTask.clear()
       const _mse = new MSE()
-      flvPlayer.replay()
+      this.flvPlayer.replay()
 
       mse.on('sourceopen', () => {
-        flvPlayer.isSourceOpen = true
-        mse.appendBuffer(flvPlayer.ftyp_moof.buffer)
+        this.flvPlayer.isSourceOpen = true
+        mse.appendBuffer(this.flvPlayer.ftyp_moov.buffer)
         mse.on('updateend', () => {
-          const {pendingFragments, hasPendingFragments} = flvPlayer
+          const {pendingFragments, hasPendingFragments} = this.flvPlayer
           this.isSeeking = false
           if (hasPendingFragments) {
             const fragment = pendingFragments.shift()
+            console.log(fragment)
             if (!mse.appendBuffer(fragment.data)) {
               pendingFragments.unshift(fragment)
             } else {
@@ -88,40 +90,80 @@ export default class Flv {
       player.src = this.mse.url
       return true
     }
-  }
+    player.switchURL = (url) => {
+      this._options.url = url
+      this.flvPlayer.unbindEvents()
+      VodTask.clear()
+      if (!player.config.isLive) {
+        const tempFlvPlayer = this.tempFlvPlayer = new MainParser(this._options, player)
 
-  initFlvPlayerEvents (flvPlayer, mse) {
-    flvPlayer.on('ready', (ftypMoov) => {
-      if (flvPlayer.isSourceOpen) {
-        mse.appendBuffer(ftypMoov.buffer)
+        tempFlvPlayer.isSourceOpen = true
+        tempFlvPlayer.isTempPlayer = true
+        this.initFlvPlayerEvents(tempFlvPlayer, mse)
+        tempFlvPlayer.handleMediaFragment = () => {
+          this.isSeeking = false
+          this.unbindFlvPlayerEvents(this.flvPlayer)
+          this.flvPlayer.destroy()
+          this.flvPlayer = tempFlvPlayer
+          this.tempFlvPlayer = null
+
+          mse.appendBuffer(tempFlvPlayer.ftyp_moov)
+          tempFlvPlayer.handleMediaFragment = (fragment) => {
+            return mse.appendBuffer(fragment.data)
+          }
+          return false
+        }
+        tempFlvPlayer.startLoadData()
       }
-    })
+    }
+  }
+  unbindFlvPlayerEvents (flvPlayer) {
+    flvPlayer.handleSeekEnd = () => null
+    flvPlayer.handleError = () => null
+    flvPlayer.handleMediaFragment = () => null
+  }
+  initFlvPlayerEvents (flvPlayer, mse) {
+    const handleFtypMoov = (ftypMoov) => {
+      if (flvPlayer.isSourceOpen && !this.tempFlvPlayer) {
+        mse.appendBuffer(ftypMoov.buffer)
+      } else {
+        this.isSeeking = true
+        flvPlayer.seek(this._player.currentTime)
+      }
+    }
+    flvPlayer.once('ready', handleFtypMoov)
     flvPlayer.handleSeekEnd = () => {
       this.isSeeking = false
     }
     flvPlayer.handleError = function (e) {
       this._player.emit('error', e)
     }
+    if (!this.tempFlvPlayer) {
+      flvPlayer.handleMediaFragment = (fragment) => {
+        return this.tempFlvPlayer ? false : mse.appendBuffer(fragment.data)
+      }
+    }
   }
 
-  initMseEvents (mse, flvPlayer) {
+  initMseEvents (mse) {
     mse.on('error', (e) => {
       this._player.emit('error', e)
     })
     const onSourceOpen = () => {
-      flvPlayer.isSourceOpen = true
-      if (flvPlayer.ftyp_moof !== null) {
-        mse.appendBuffer(this.flvPlayer.ftyp_moof.buffer)
+      this.flvPlayer.isSourceOpen = true
+      if (this.flvPlayer.ftyp_moov !== null) {
+        mse.appendBuffer(this.flvPlayer.ftyp_moov.buffer)
       }
 
       mse.on('updateend', () => {
-        const { pendingFragments, hasPendingFragments } = flvPlayer
+        const { pendingFragments, hasPendingFragments } = this.flvPlayer
 
         if (hasPendingFragments) {
           const fragment = pendingFragments.shift()
-          if (!flvPlayer.mse.appendBuffer(fragment.data)) {
+          if (!mse.appendBuffer(fragment.data)) {
             pendingFragments.unshift(fragment)
           } else {
+            console.log(fragment)
             this._player.emit('cacheupdate', this._player)
           }
         }
@@ -134,13 +176,13 @@ export default class Flv {
     return this.flvPlayer.loadSegments(true, currentTime, this._options.preloadTime)
   }
 
-  progressChecker (player, flvPlayer) {
+  progressChecker (player) {
     const { minCachedTime, preloadTime } = this._options
     const range = player.getBufferedRange()
-    if (flvPlayer.videoDuration - range[1] * flvPlayer.videoTimeScale < 0.1 * flvPlayer.videoTimeScale) { return }
+    if (this.flvPlayer.videoDuration - range[1] * this.flvPlayer.videoTimeScale < 0.1 * this.flvPlayer.videoTimeScale) { return }
     if (range[1] - player.currentTime < minCachedTime && !this.isDataLoading) {
       this.isDataLoading = true
-      flvPlayer.loadSegments(true, player.currentTime, preloadTime).then(() => {
+      this.flvPlayer.loadSegments(true, player.currentTime, preloadTime).then(() => {
         this.isDataLoading = false
       })
     }
