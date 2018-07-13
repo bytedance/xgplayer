@@ -1,37 +1,40 @@
-import Log from '../../utils/Log';
-import emitter from '../../utils/EventEmitter';
+import Log from '../../utils/Log'
+import emitter from '../../utils/EventEmitter'
 export default class Demuxer {
-    constructor (store) {
-        if (store) {
-            this._store = store;
-        }
-
-        this._emitter = emitter;
-        this.on = emitter.on.bind(emitter);
-        this.emit = emitter.emit.bind(emitter);
+  constructor (store) {
+    if (store) {
+      this._store = store
     }
 
-    dispatch (type, ...payload) {
-        const prefix = 'demuxer_';
-        this._emitter.emit(`${prefix}${type}`, ...payload);
-    }
-    error (message) {
-        const { CLASS_NAME = 'Demuxer' } = this;
-        Log.error(`[${CLASS_NAME} error] `, message);
-    }
+    this._emitter = emitter
+    this.on = emitter.on.bind(emitter)
+    this.once = emitter.once.bind(emitter)
+    this.removeListener = emitter.removeListener.bind(emitter)
+    this.removeAllListeners = emitter.removeAllListeners.bind(emitter)
+    this.emit = emitter.emit.bind(emitter)
+  }
 
-    info (message) {
-        const { CLASS_NAME = 'Demuxer' } = this;
-        Log.info(`[${CLASS_NAME} info] `, message);
-    }
+  dispatch (type, ...payload) {
+    const prefix = 'demuxer_'
+    this._emitter.emit(`${prefix}${type}`, ...payload)
+  }
+  error (message) {
+    const { CLASS_NAME = 'Demuxer' } = this
+    Log.error(`[${CLASS_NAME} error] `, message)
+  }
 
-    log (message) {
-        const { CLASS_NAME = 'Demuxer' } = this;
-        Log.log(`[${CLASS_NAME} log] `, message);
-    }
+  info (message) {
+    const { CLASS_NAME = 'Demuxer' } = this
+    Log.info(`[${CLASS_NAME} info] `, message)
+  }
 
-    warn (message) {
-        const { CLASS_NAME = 'Demuxer' } = this;
-        Log.warn(`[${CLASS_NAME} warn] `, message);
-    }
+  log (message) {
+    const { CLASS_NAME = 'Demuxer' } = this
+    Log.log(`[${CLASS_NAME} log] `, message)
+  }
+
+  warn (message) {
+    const { CLASS_NAME = 'Demuxer' } = this
+    Log.warn(`[${CLASS_NAME} warn] `, message)
+  }
 }
