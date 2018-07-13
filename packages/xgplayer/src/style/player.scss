@@ -341,6 +341,7 @@
     outline: none;
     display: none;
     cursor: pointer;
+    margin-left: 10px;
     .xgplayer-tips{
         margin-left: -20px;
     }
@@ -398,13 +399,44 @@
         line-height: 40px;
         color: $definitionNameColor;
         em{
-            padding: 1px 10px;
+            width: 60px;
+            height: 20px;
+            line-height: 20px;
+            padding: 1px 0px;
             background: $definitionNameBgColor;
             border-radius: 10px;
+            display:inline-block;
+            vertical-align:middle;
         }
     }
     @at-root .xgplayer-is-definition &{
         display: block;
+    }
+}
+
+.xgplayer-playback{
+    order: 8;
+    position: relative;
+    outline: none;
+    display: block;
+    cursor: pointer;
+    margin-left: 10px;
+    .name {
+        text-align: center;
+        font-family: PingFangSC-Regular;
+        font-size: 13px;
+        line-height: 40px;
+        color: $definitionNameColor;
+        span{
+            width: 40px;
+            height: 20px;
+            line-height: 20px;
+            padding: 1px 10px;
+            background: $definitionNameBgColor;
+            border-radius: 10px;
+            display:inline-block;
+            vertical-align:middle;
+        }
     }
 }
 

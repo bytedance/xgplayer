@@ -37,7 +37,8 @@ class Proxy {
         }
         if (name === 'error') {
           if (self.video.error) {
-            self.emit(name, new Errors('other', videoConfig.vid, {
+            self.emit(name, new Errors('other', self.currentTime, self.duration, self.networkState, self.readyState, self.currentSrc, self.src,
+self.ended, {
               line: 41,
               msg: self.error,
               handle: 'Constructor'
