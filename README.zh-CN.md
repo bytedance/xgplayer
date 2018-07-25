@@ -89,6 +89,10 @@ $ npm run dev
 
 访问 [http://localhost:9090/examples/index.html](http://localhost:9090/examples/index.html)
 
+### Note
+
+如果你只对源码感兴趣可以使用 Git 的稀疏检出功能忽略 examples 目录，里面有比较大的视频文件。[如何使用 Git 的sparse checkout](https://gist.github.com/sumardi/5559896)
+
 ### License
 
 [MIT](http://opensource.org/licenses/MIT)

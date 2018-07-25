@@ -47,6 +47,8 @@ const hlsplayer = function () {
               }
             }
           }, 200)
+        } else {
+          clearTimeout(hls.m3u8.timer)
         }
       })
       _start.call(player, hls.mse.url)
@@ -77,9 +79,7 @@ const hlsplayer = function () {
     player.on('waiting', () => {
       if (hls.type === 'live') {
         let buffered = player.buffered
-
         let length = buffered.length
-
         let currentTime = player.currentTime
         for (let i = 0; i < length; i++) {
           if (buffered.start(i) > currentTime) {
@@ -90,6 +90,10 @@ const hlsplayer = function () {
       } else {
         hls.seek()
       }
+    })
+
+    player.once('destroy', () => {
+      clearTimeout(hls.m3u8.timer)
     })
   }
 }

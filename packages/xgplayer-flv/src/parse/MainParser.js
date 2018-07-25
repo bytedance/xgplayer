@@ -255,7 +255,6 @@ export default class MainParser extends Demuxer {
       if (!this.handleMediaFragment(fragment)) {
         this._pendingFragments.unshift(fragment)
       } else {
-        console.log(fragment)
         this.handleSeekEnd()
         this._player.emit('cacheupdate', this._player)
       }
@@ -334,7 +333,6 @@ export default class MainParser extends Demuxer {
   }
 
   seek (target) {
-    console.log(this.uid)
     this.loadTask.cancel()
     const {keyframes = {}, videoTimeScale} = this._store
     let seekStart = target * videoTimeScale
