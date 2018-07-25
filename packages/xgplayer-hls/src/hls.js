@@ -6,7 +6,6 @@ import Buffer from './fmp4/buffer'
 import MP4 from './fmp4/mp4'
 import Task from './media/task'
 import MSE from './media/mse'
-import Download from './util/download'
 
 class HLS {
   constructor (url) {
@@ -50,7 +49,7 @@ class HLS {
   seek (time) {
     let segment = this.m3u8.seek(time)
     if (segment.length && !segment[0].downloaded) {
-      new Task(segment[0].url, (res) => {
+      const tasker = new Task(segment[0].url, (res) => {
         let ts = new Parser(res)
         this.parse(ts)
         let url = segment[0].url
@@ -208,10 +207,6 @@ class HLS {
         }
       }
     }
-  }
-
-  download () {
-    new Download('ts.mp4', this.cache.buffer)
   }
 }
 

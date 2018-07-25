@@ -10,6 +10,7 @@ class HlsJsPlayer extends Player {
     let url = player.config.url
     let hls
     hls = new Hls(this.hlsOpts)
+    this.hls = hls
     hls.on(Hls.Events.MEDIA_ATTACHED, () => {
       hls.loadSource(url)
     })
@@ -39,6 +40,9 @@ class HlsJsPlayer extends Player {
     })
     this.once('complete', () => {
       hls.attachMedia(player.video)
+    })
+    this.once('destroy', () => {
+      hls.stopLoad()
     })
   }
 }

@@ -46,7 +46,6 @@ class ShakaJsPlayer extends Player {
 
       this.once('complete', () => {
         this.player_.load(this.url).then(function () {
-          console.log('The video has now been loaded!') // eslint-disable-line no-console
           self.onTracksChanged_()
         }).catch(function (event) {
           console.error('Error code', event.detail.code, 'object', event.detail) // eslint-disable-line no-console

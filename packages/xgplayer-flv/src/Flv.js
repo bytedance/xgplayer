@@ -73,7 +73,6 @@ export default class Flv {
           this.isSeeking = false
           if (hasPendingFragments) {
             const fragment = pendingFragments.shift()
-            console.log(fragment)
             if (!mse.appendBuffer(fragment.data)) {
               pendingFragments.unshift(fragment)
             } else {
@@ -163,7 +162,6 @@ export default class Flv {
           if (!mse.appendBuffer(fragment.data)) {
             pendingFragments.unshift(fragment)
           } else {
-            console.log(fragment)
             this._player.emit('cacheupdate', this._player)
           }
         }

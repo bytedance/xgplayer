@@ -87,6 +87,10 @@ $ npm run dev
 
 please visit [http://localhost:9090/examples/index.html](http://localhost:9090/examples/index.html)
 
+### Note
+
+you can sparse checout the source code without examples that include large video files. [how to sparse checkout git project](https://gist.github.com/sumardi/5559896)
+
 ### License
 
 [MIT](http://opensource.org/licenses/MIT)
