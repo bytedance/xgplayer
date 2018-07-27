@@ -69,7 +69,12 @@ let mobile = function () {
   enter.querySelector('.xgplayer-enter-tips').style.display = 'block'
   player.start()
   if (pass) {
-    enterLogo.src = util.getBgImage(logo)
+    if (player.config.enterLogo) {
+        enterLogo.src = player.config.enterLogo;
+        logo.style.backgroundImage = `url("${player.config.enterLogo}")`
+    } else {
+        enterLogo.src = util.getBgImage(logo);
+    }
     player.video.addEventListener('touchstart', (e) => {
       e.preventDefault()
       player.emit('focus')
