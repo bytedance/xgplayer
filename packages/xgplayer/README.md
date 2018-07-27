@@ -1,5 +1,5 @@
 <div align="center">
-    <img src="../../xgplayer.png" width="384" height="96">
+    <img src="https://raw.githubusercontent.com/bytedance/xgplayer/master/xgplayer.png" width="384" height="96">
 </div>
 <div align="center">
     <a href="https://www.npmjs.com/package/xgplayer" target="_blank">
@@ -30,7 +30,7 @@ it can be staged loading for that does not support streaming mp4. This means sea
     $ npm install xgplayer
     ```
 
-2. Usage 
+2. Usage
 
     Step 1:
 
@@ -93,4 +93,3 @@ please visit [http://localhost:9090/examples/index.html](http://localhost:9090/e
 ### License
 
 [MIT](http://opensource.org/licenses/MIT)
-

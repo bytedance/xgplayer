@@ -10,14 +10,16 @@ let fullscreen = function () {
   let btn = util.createDom('xg-fullscreen', `<xg-icon class="xgplayer-icon"><svg xmlns="http://www.w3.org/2000/svg" width="1024" height="1024" viewBox="0 0 1024 1024">
             <path transform="scale(${scale} ${scale})" d="${iconPath.default}"></path>
         </svg></xg-icon>`, {}, 'xgplayer-fullscreen')
+  let tipsFull = player.config.lang && player.config.lang === "zh-cn" ? "全屏" : "Full screen"
+  let tipsExitFull = player.config.lang && player.config.lang === "zh-cn" ? "退出全屏" : "Exit full screen"
   let root = player.controls; let container = player.root
-  let tips = util.createDom('xg-tips', '全屏', {}, 'xgplayer-tips')
+  let tips = util.createDom('xg-tips', tipsFull, {}, 'xgplayer-tips')
   let path = btn.querySelector('path')
   btn.appendChild(tips)
   let getFullscreen = function (el) {
     let fullscreeSupport = document.fullscreenEnabled || document.webkitFullscreenEnabled || document.mozFullScreenEnabled || document.msFullscreenEnabled
     path.setAttribute('d', iconPath.active)
-    tips.textContent = '退出全屏'
+    tips.textContent = tipsExitFull
     if (fullscreeSupport) {
       if (el.requestFullscreen) {
         el.requestFullscreen()
@@ -37,7 +39,7 @@ let fullscreen = function () {
   let exitFullscreen = function (el) {
     let fullscreeSupport = document.fullscreenEnabled || document.webkitFullscreenEnabled || document.mozFullScreenEnabled || document.msFullscreenEnabled
     path.setAttribute('d', iconPath.default)
-    tips.textContent = '全屏'
+    tips.textContent = tipsFull
     if (fullscreeSupport) {
       if (document.exitFullscreen) {
         document.exitFullscreen()
@@ -70,13 +72,24 @@ let fullscreen = function () {
     if (fullscreenEl && fullscreenEl === container) {
       util.addClass(container, 'xgplayer-is-fullscreen')
       path.setAttribute('d', iconPath.active)
-      tips.textContent = '退出全屏'
+      tips.textContent = tipsExitFull
     } else {
       util.removeClass(container, 'xgplayer-is-fullscreen')
       path.setAttribute('d', iconPath.default)
-      tips.textContent = '全屏'
+      tips.textContent = tipsFull
     }
   };
+
+  btn.addEventListener('mouseenter', (e)=>{
+      e.preventDefault();
+      e.stopPropagation();
+      tips.style.left = "50%"
+      let rect = tips.getBoundingClientRect()
+      let rootRect = container.getBoundingClientRect()
+      if(rect.right > rootRect.right)  {
+          tips.style.left = `${- rect.right + rootRect.right + 16}px`
+      }
+  });
 
   ['fullscreenchange', 'webkitfullscreenchange', 'mozfullscreenchange', 'MSFullscreenChange'].forEach(item => {
     document.addEventListener(item, handle)

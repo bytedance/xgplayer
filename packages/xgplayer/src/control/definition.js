@@ -31,10 +31,11 @@ let definition = function () {
                 let cursrc = list.filter(item=>{ a.href = item.url; return a.href === src; });
                 tmp.push(`</ul><p class="name"><em>${(cursrc[0] || {name: ''}).name}</em></p>`);
                 let urlInRoot = root.querySelector('.xgplayer-definition');
+                let tipsText = player.config.lang && player.config.lang === "zh-cn" ? "清晰度" : "Quality"
                 if (urlInRoot) {
-                    urlInRoot.innerHTML = '<xg-tips class="xgplayer-tips">清晰度</xg-tips>' + tmp.join('');
+                    urlInRoot.innerHTML = `<xg-tips class="xgplayer-tips">${tipsText}</xg-tips>` + tmp.join('');
                 } else {
-                    ul.innerHTML = '<xg-tips class="xgplayer-tips">清晰度</xg-tips>' + tmp.join('');
+                    ul.innerHTML = `<xg-tips class="xgplayer-tips">${tipsText}</xg-tips>` + tmp.join('');
                     root.appendChild(ul);
                 }
             });
@@ -92,6 +93,18 @@ let definition = function () {
         e.preventDefault();
         e.stopPropagation();
         util.removeClass(ul, 'xgplayer-definition-active');
+    });
+
+    ul.addEventListener('mouseenter', (e)=>{
+        e.preventDefault();
+        e.stopPropagation();
+        let tips = ul.querySelector('.xgplayer-tips');
+        tips.style.left = "50%"
+        let rect = tips.getBoundingClientRect()
+        let rootRect = player.root.getBoundingClientRect()
+        if(rect.right > rootRect.right)  {
+            tips.style.left = `${- rect.right + rootRect.right + 16}px`
+        }
     });
 
     player.once('destroy', ()=>{
