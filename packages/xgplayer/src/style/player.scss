@@ -342,12 +342,15 @@
     display: none;
     cursor: pointer;
     margin-left: 10px;
+    margin-top: 9px;
+    margin-bottom: 11px;
     .xgplayer-tips{
         margin-left: -20px;
     }
     &:hover{
         .xgplayer-tips{
             display: block;
+            top: -40px;
         }
     }
     &.xgplayer-definition-active{
@@ -365,7 +368,7 @@
         background: $definitionUlBgColor;
         border-radius: 1px;
         position: absolute;
-        bottom: 50px;
+        bottom: 30px;
         left: 0;
         text-align: center;
         white-space: nowrap;
@@ -396,13 +399,13 @@
         text-align: center;
         font-family: PingFangSC-Regular;
         font-size: 13px;
-        line-height: 40px;
+        line-height: 20px;
+        height: 20px;
         color: $definitionNameColor;
         em{
             width: 60px;
             height: 20px;
             line-height: 20px;
-            padding: 1px 0px;
             background: $definitionNameBgColor;
             border-radius: 10px;
             display:inline-block;
@@ -421,17 +424,20 @@
     display: block;
     cursor: pointer;
     margin-left: 10px;
+    margin-top: 9px;
+    margin-bottom: 11px;
+    height: 20px;
     .name {
         text-align: center;
         font-family: PingFangSC-Regular;
         font-size: 13px;
-        line-height: 40px;
+        line-height: 20px;
+        height: 20px;
         color: $definitionNameColor;
         span{
             width: 40px;
             height: 20px;
             line-height: 20px;
-            padding: 1px 10px;
             background: $definitionNameBgColor;
             border-radius: 10px;
             display:inline-block;
@@ -441,6 +447,7 @@
     &:hover {
         .xgplayer-tips {
             display: block;
+            top: -40px;
         }
     }
 }
@@ -457,9 +464,6 @@
         .xgplayer-tips {
             display: block;
         }
-    }
-    @at-root .xgplayer-is-fullscreen .xgplayer-fullscreen .xgplayer-tips{
-        left: -30%;
     }
     @at-root .xgplayer.xgplayer-fullscreen-active{
         position: fixed !important;

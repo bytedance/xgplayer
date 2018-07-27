@@ -67,8 +67,8 @@ self.ended, {
   pause () {
     this.video.pause()
   }
-  canPlayType () {
-    this.video.canPlayType()
+  canPlayType (type) {
+    this.video.canPlayType(type)
   }
   getBufferedRange () {
     let range = [0, 0]; let video = this.video; let buffered = video.buffered

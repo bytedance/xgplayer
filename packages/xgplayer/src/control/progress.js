@@ -112,7 +112,7 @@ let progress = function () {
   }, false)
 
   player.on('timeupdate', function () {
-    if (!containerWidth) {
+    if (!containerWidth && container) {
       containerWidth = container.getBoundingClientRect().width
     }
     progress.style.width = `${player.currentTime * 100 / player.duration}%`

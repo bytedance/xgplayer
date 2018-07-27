@@ -21,7 +21,13 @@ let pc = function () {
   enterLogo.onload = () => {
     enter.querySelector('.xgplayer-enter-tips').style.display = 'block'
   }
-  enterLogo.src = util.getBgImage(logo);
+  if (player.config.enterLogo) {
+      enterLogo.src = player.config.enterLogo;
+      logo.style.backgroundImage = `url("${player.config.enterLogo}")`
+  } else {
+      enterLogo.src = util.getBgImage(logo);
+  }
+
   ['click', 'touchstart'].forEach(item => {
     btn.addEventListener(item, function (e) {
       e.preventDefault()
