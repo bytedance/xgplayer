@@ -15,8 +15,9 @@ let playbackRate = function () {
     } else {
         return false;
     }
+    let tipsSpeed = player.config.lang && player.config.lang === "zh-cn" ? "倍速" : "Speed"
     let ul = util.createDom('xg-playback', '<p class="name"><span>1x</span></p>', {}, 'xgplayer-playback'), root = player.controls;
-    let tips = util.createDom('xg-tips', '倍速', {}, 'xgplayer-tips')
+    let tips = util.createDom('xg-tips', tipsSpeed, {}, 'xgplayer-tips')
     ul.appendChild(tips)
     root.appendChild(ul);
     ['touchstart', 'click'].forEach(item=>{
@@ -30,6 +31,17 @@ let playbackRate = function () {
                 player.video.playbackRate = rateTpl[selected].replace(/x$/g, '') * 1;
             }
         }, false);
+    });
+
+    ul.addEventListener('mouseenter', (e)=>{
+        e.preventDefault();
+        e.stopPropagation();
+        tips.style.left = "50%"
+        let rect = tips.getBoundingClientRect()
+        let rootRect = player.root.getBoundingClientRect()
+        if(rect.right > rootRect.right)  {
+            tips.style.left = `${- rect.right + rootRect.right + 16}px`
+        }
     });
 
     player.once('destroy', ()=>{

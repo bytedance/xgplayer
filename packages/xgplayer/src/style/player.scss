@@ -342,14 +342,15 @@
     display: none;
     cursor: pointer;
     margin-left: 10px;
-    margin-top: 8px;
-    margin-bottom: 12px;
+    margin-top: 9px;
+    margin-bottom: 11px;
     .xgplayer-tips{
         margin-left: -20px;
     }
     &:hover{
         .xgplayer-tips{
             display: block;
+            top: -40px;
         }
     }
     &.xgplayer-definition-active{
@@ -423,8 +424,8 @@
     display: block;
     cursor: pointer;
     margin-left: 10px;
-    margin-top: 8px;
-    margin-bottom: 12px;
+    margin-top: 9px;
+    margin-bottom: 11px;
     height: 20px;
     .name {
         text-align: center;
@@ -446,6 +447,7 @@
     &:hover {
         .xgplayer-tips {
             display: block;
+            top: -40px;
         }
     }
 }
@@ -462,9 +464,6 @@
         .xgplayer-tips {
             display: block;
         }
-    }
-    @at-root .xgplayer-is-fullscreen .xgplayer-fullscreen .xgplayer-tips{
-        left: -30%;
     }
     @at-root .xgplayer.xgplayer-fullscreen-active{
         position: fixed !important;
