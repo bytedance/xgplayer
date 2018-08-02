@@ -1,6 +1,6 @@
 {
     "name": "xgplayer",
-    "version": "1.0.5",
+    "version": "1.0.7",
     "description": "video player",
     "main": "./dist/index.js",
     "scripts": {
