@@ -1,18 +1,16 @@
 import Mp4Remuxer from './remux/Mp4remux'
-import Demuxer from './demux/Demuxer'
 import FlvParser from './FlvParser'
 import TagDemuxer from './demux/TagDemuxer'
 import Store from '../models/Store'
 import VodTask from '../tasks/VodTask'
 import LiveTask from '../tasks/LiveTask'
-import {EventTypes} from '../constants/types'
 import Buffer from '../write/Buffer'
+import TransCoder from './TransCoder'
 
-let id = 0
-export default class MainParser extends Demuxer {
+const NOOP = () => {}
+export default class MainParser extends TransCoder {
   constructor (config, player) {
     super()
-    this.uid = id++
     this.CLASS_NAME = this.constructor.name
     this._config = config
     this._player = player
@@ -20,10 +18,10 @@ export default class MainParser extends Demuxer {
     this.firstFlag = true
     this._store = new Store()
     this._store.isLive = config.isLive || false
+    this._store.player = player
     this.flvParser = new FlvParser(this._store)
     this.tagDemuxer = new TagDemuxer(this._store)
-    this._mp4remuxer = new Mp4Remuxer()
-    this._mp4remuxer.isLive = config.isLive || false
+    this.mp4remuxer = new Mp4Remuxer(this._store)
     this.buffer = new Buffer()
     this.bufferKeyframes = new Set()
     this.META_CHUNK_SIZE = 2 * Math.pow(10, 5)
@@ -37,7 +35,6 @@ export default class MainParser extends Demuxer {
       start: -1,
       end: -1
     }
-    this._isMediaInfoInited = false
     this._pendingFragments = []
     this._pendingRemoveRange = []
     this.err_cnt = 0
@@ -88,7 +85,7 @@ export default class MainParser extends Demuxer {
     }
     const loadData = () => {
       return this.loadMetaData(this.range.start, this.range.end).then(Resolver.resolveChunk).catch((e) => {
-        this.log(e.message)
+        console.log(e)
         if (this.err_cnt >= 3) {
           this._player.emit('error', '加载视频失败')
           return
@@ -225,12 +222,11 @@ export default class MainParser extends Demuxer {
   }
 
   handleDataReady (audioTrack, videoTrack) {
-    // if (this.isTempPlayer) return
-    this._mp4remuxer.remux(audioTrack, videoTrack)
+    this.mp4remuxer.remux(audioTrack, videoTrack)
   }
 
   handleMetaDataReady (type, meta) {
-    this._mp4remuxer.onMetaDataReady(type, meta)
+    this.mp4remuxer.onMetaDataReady(type, meta)
   }
 
   handleError (e) {
@@ -238,7 +234,6 @@ export default class MainParser extends Demuxer {
   }
 
   handleNewMediaFragment (newFrag) {
-    // if (this.isTempPlayer) return
     this._isNewSegmentsArrival = true
     this._pendingFragments.push(newFrag)
     const {randomAccessPoints} = newFrag.fragment
@@ -262,32 +257,19 @@ export default class MainParser extends Demuxer {
   }
 
   handleMediaInfoReady (mediaInfo) {
-    if (this._isMediaInfoInited) {
-      return
-    }
-
-    const FTYP_MOOV = this._mp4remuxer.onMediaInfoReady(mediaInfo)
+    const FTYP_MOOV = this.mp4remuxer.onMediaInfoReady(mediaInfo)
     if (!this.ftyp_moov) {
       this.ftyp_moov = FTYP_MOOV
       this.emit('ready', FTYP_MOOV)
     }
-    this._isMediaInfoInited = true
   }
 
   initEventBind () {
-    const prefix = 'demuxer_'
-    const {
-      handleError,
-      handleDataReady,
-      handleMetaDataReady,
-      handleMediaInfoReady,
-      handleNewMediaFragment
-    } = this
-    this.on('mediaFragment', handleNewMediaFragment.bind(this))
-    this.on(EventTypes.ERROR, handleError.bind(this))
-    this.on(`${prefix}data_ready`, handleDataReady.bind(this))
-    this.on(`${prefix}meta_data_ready`, handleMetaDataReady.bind(this))
-    this.on(`${prefix}media_info_ready`, handleMediaInfoReady.bind(this))
+    this.tagDemuxer.handleDataReady = this.handleDataReady.bind(this)
+    this.tagDemuxer.handleMediaInfoReady = this.handleMediaInfoReady.bind(this)
+    this.tagDemuxer.handleMetaDataReady = this.handleMetaDataReady.bind(this)
+    this.tagDemuxer.setEventBind()
+    this.mp4remuxer.handleMediaFragment = this.handleNewMediaFragment.bind(this)
   }
 
   replay () {
@@ -296,8 +278,7 @@ export default class MainParser extends Demuxer {
       start: this._store.metaEndPosition,
       end: this.getNextRangeEnd(0, this._config.preloadTime) - 1
     }
-    // this.firstFlag = true;
-    this._mp4remuxer.seek()
+    this.mp4remuxer.seek()
     this.flvParser.seek()
     this.clearBuffer()
     this.loadSegments(false)
@@ -308,26 +289,21 @@ export default class MainParser extends Demuxer {
     this._pendingRemoveRange = []
   }
   unbindEvents () {
-    const prefix = 'demuxer_'
-    this.removeAllListeners(EventTypes.ERROR)
-    this.removeAllListeners(`${prefix}data_ready`)
-    this.removeAllListeners(`${prefix}meta_data_ready`)
-    this.removeAllListeners(`${prefix}media_info_ready`)
-    this.removeAllListeners('mediaFragment')
-    this.handleNewMediaFragment = () => null
-    this.handleDataReady = () => null
-    this.handleMetaDataReady = () => null
-    this.handleMediaInfoReady = () => null
-    this.handleNewMediaFragment = () => null
+    this.tagDemuxer.handleDataReady = NOOP
+    this.tagDemuxer.handleMediaInfoReady = NOOP
+    this.tagDemuxer.handleMetaDataReady = NOOP
+    this.tagDemuxer.setEventBind()
+    this.mp4remuxer.handleMediaFragment = NOOP
   }
   destroy () {
-    this._mp4remuxer.destroy()
+    this.mp4remuxer.destroy()
     this.flvParser.destroy()
     this.tagDemuxer.destroy()
-    this._mp4remuxer = null
+    this.mp4remuxer = null
     this.flvParser = null
     this.tagDemuxer = null
     this.loadSegments = () => null
+    this._store = null
     this.clearBuffer()
     this.stop = true
   }
@@ -375,14 +351,17 @@ export default class MainParser extends Demuxer {
     if (!this.isSeeking) {
       this.isSeeking = true
     } else {
-      // this.tagDemuxer = new tagDemuxer(this._store);
       this._store.clearTags()
-      // return;
     }
     this._pendingFragments = []
-    this._mp4remuxer.seek()
+    this.mp4remuxer.seek()
     this.flvParser.seek()
     VodTask.clear()
+    const _range = this.range
+    if (keyframes.filePositions[startFilePos] < _range.end) {
+      startFilePos += 1
+      endFilePos += 1
+    }
     this.range = {
       start: keyframes.filePositions[startFilePos],
       end: keyframes.filePositions[endFilePos] - 1 || ''

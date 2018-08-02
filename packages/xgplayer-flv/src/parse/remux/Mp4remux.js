@@ -4,12 +4,12 @@ import MediaSample from '../../models/MediaSample'
 import sniffer from '../../utils/sniffer'
 import Buffer from '../../write/Buffer'
 import FMP4 from './Fmp4'
-import emitter from '../../utils/EventEmitter'
+import Remuxer from './Remuxer'
 
-export default class Mp4Remuxer {
-  constructor () {
+export default class Mp4Remuxer extends Remuxer {
+  constructor (store) {
+    super(store)
     this._dtsBase = 0
-    this.isLive = false
     this._isDtsBaseInited = false
     this._videoMeta = null
     this._audioMeta = null
@@ -18,8 +18,8 @@ export default class Mp4Remuxer {
     this._videoSegmentList = new MediaSegmentList('video')
     this._audioSegmentList = new MediaSegmentList('audio')
     const {browser} = sniffer
-    this._emitter = emitter
     this._fillSilenceFrame = browser === 'ie'
+    this.handleMediaFragment = () => {}
   }
 
   destroy () {
@@ -211,14 +211,14 @@ export default class Mp4Remuxer {
     const mdat = FMP4.mdat(mdatBox)
     moofMdat.write(moof, mdat)
 
-    if (!this.isLive) {
+    if (!this._store.isLive) {
       this._videoSegmentList.append(videoSegment)
     }
 
     track.samples = []
     track.length = 0
 
-    this._emitter.emit('mediaFragment', {
+    this.handleMediaFragment({
       type: 'video',
       data: moofMdat.buffer.buffer,
       sampleCount: mp4Samples.length,
@@ -374,12 +374,12 @@ export default class Mp4Remuxer {
     const mdat = FMP4.mdat(mdatBox)
     moofMdat.write(moof, mdat)
 
-    if (!this.isLive) {
+    if (!this._store.isLive) {
       this._audioSegmentList.append(audioSegment)
     }
     track.samples = []
     track.length = 0
-    this._emitter.emit('mediaFragment', {
+    this.handleMediaFragment({
       type: 'audio',
       data: moofMdat.buffer.buffer,
       sampleCount: mp4Samples.length,

@@ -4,7 +4,6 @@ import VideoDemuxer from './VideoDemuxer'
 import AudioDemuxer from './AudioDemuxer'
 import Logger from '../../utils/Log'
 import metaFields from '../../constants/metaFields'
-import {EventTypes} from '../../constants/types'
 
 const nativeHasProp = Object.prototype.hasOwnProperty
 
@@ -17,8 +16,18 @@ export default class Tagdemux extends Demuxer {
     this._audioDemuxer = new AudioDemuxer(store)
     this._firstParse = true
     this._dataOffset = 0
+    this.handleMediaInfoReady = () => {}
+    this.handleDataReady = () => {}
+    this.handleMetaDataReady = () => {}
   }
-
+  setEventBind () {
+    this._videoDemuxer.handleDataReady = this.handleDataReady
+    this._videoDemuxer.handleMetaDataReady = this.handleMetaDataReady
+    this._videoDemuxer.handleMediaInfoReady = this.handleMediaInfoReady
+    this._audioDemuxer.handleDataReady = this.handleDataReady
+    this._audioDemuxer.handleMetaDataReady = this.handleMetaDataReady
+    this._audioDemuxer.handleMediaInfoReady = this.handleMediaInfoReady
+  }
   destroy () {
     this._metaDemuxer = null
     this._videoDemuxer = null
@@ -37,7 +46,7 @@ export default class Tagdemux extends Demuxer {
 
     if (this._store.hasInitialMetaDispatched) {
       if (videoTrack.length || audioTrack.length) {
-        this.dispatch(EventTypes.DATA_READY, audioTrack, videoTrack)
+        this.handleDataReady(audioTrack, videoTrack)
       }
     }
 
@@ -101,7 +110,7 @@ export default class Tagdemux extends Demuxer {
       this._store.mediaInfo._metaData = metaData
       // 同步到共享store
       if (this._store.mediaInfo.isComplete) {
-        this.dispatch(EventTypes.MEDIA_INFO_READY, this._store.mediaInfo)
+        this.handleMediaInfoReady(this._store.mediaInfo)
       }
     }
   }
