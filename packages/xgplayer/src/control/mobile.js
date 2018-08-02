@@ -79,7 +79,7 @@ let mobile = function () {
       e.preventDefault()
       player.emit('focus')
     }, false)
-    btn.addEventListener('touchstart', (e) => {
+    btn.addEventListener('touchend', (e) => {
       e.preventDefault()
       if (util.hasClass(root, 'xgplayer-nostart')) {
         util.removeClass(root, 'xgplayer-nostart')

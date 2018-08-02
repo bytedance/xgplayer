@@ -1,3 +1,14 @@
+// order:
+// xgplayer-play  0
+// xgplayer-time  2
+// xgplayer-placeholder 3
+// xgplayer-volume 4
+// xgplayer-definition 5
+// xgplayer-bullet-btn 6
+// xgplayer-textTrack 7
+// xgplayer-playback 8
+// xgplayer-fullscreen 10
+
 @keyframes playPause {
     0% {
         transform: scale(1,1);
@@ -334,6 +345,77 @@
     }
 }
 
+.xgplayer-textTrack{
+    order: 7;
+    width: 60px;
+    position: relative;
+    outline: none;
+    display: none;
+    cursor: pointer;
+    margin-left: 10px;
+    margin-top: 9px;
+    margin-bottom: 11px;
+    &.xgplayer-textTrack-active{
+        ul{
+            display: block;
+        }
+    }
+    ul{
+        display: none;
+        list-style: none;
+        width: 78px;
+        background: $definitionUlBgColor;
+        border-radius: 1px;
+        position: absolute;
+        bottom: 30px;
+        left: 0;
+        text-align: center;
+        white-space: nowrap;
+        margin-left: -10px;
+        z-index: 26;
+        li{
+            opacity: 0.7;
+            font-family: PingFangSC-Regular;
+            font-size: 11px;
+            color: $definitionLiColor;
+            padding: 6px 13px;
+            &.textTrack{
+                color: $definitionLiActiveColor;
+                opacity: 1;
+            }
+        }
+        &::after{
+            content: " ";
+            display: inline-block;
+            height: 30px;
+            width: 100%;
+            position: absolute;
+            bottom: -20px;
+            left: 0;
+        }
+    }
+    .name {
+        text-align: center;
+        font-family: PingFangSC-Regular;
+        font-size: 13px;
+        line-height: 20px;
+        height: 20px;
+        color: $definitionNameColor;
+        em{
+            width: 60px;
+            height: 20px;
+            line-height: 20px;
+            background: $definitionNameBgColor;
+            border-radius: 10px;
+            display:inline-block;
+            vertical-align:middle;
+        }
+    }
+    @at-root .xgplayer-is-textTrack &{
+        display: block;
+    }
+}
+
 .xgplayer-definition{
     order: 5;
     width: 60px;
@@ -483,7 +565,7 @@
     box-sizing: border-box;
     outline: none;
     cursor: pointer;
-    order: 5;
+    order: 6;
     z-index: 26;
     position: relative;
     text-align: center;
