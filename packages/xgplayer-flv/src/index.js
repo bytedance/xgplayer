@@ -8,6 +8,25 @@ class FlvPlayer extends Player {
     this._options = options
     this.__flv__ = null
     this.init(options)
+    Object.defineProperty(this, 'src', {
+      set: (val) => {
+        if (typeof val === 'string' && val.startsWith('blob:')) {
+          return
+        }
+        this._options.url = val
+        this.__flv__.destroy()
+        this.__flv__ = new Flv(this._options, this)
+        this.__flv__.load()
+        this.video.src = this.__flv__.mse.url
+        this.currentTime = 0
+        setTimeout(() => {
+          this.play()
+        }, 0)
+      },
+      get: () => {
+        return this._options.url
+      }
+    })
   }
   init (options) {
     const player = this
@@ -18,6 +37,11 @@ class FlvPlayer extends Player {
     })
     player.on('pause', () => {
       !isLive && VodTask.clear()
+    })
+    this.once('destroy', () => {
+      VodTask.clear()
+      player.__flv__.destroy()
+      player.__flv__ = null
     })
   }
 

@@ -16,6 +16,7 @@ export default class Flv {
     this.isDataLoading = false
     this.tempCurrentTime = 0
     this.tempFlvPlayer = null
+    this.isChangingSrc = false
     this.initPlayerEvents(player, this._options)
     this.initFlvPlayerEvents(this.flvPlayer, this.mse)
     this.initMseEvents(this.mse, this.flvPlayer)
@@ -28,36 +29,46 @@ export default class Flv {
   initPlayerEvents (player, options) {
     const { mse } = this
     player.mse = mse
-    if (!options.isLive) {
-      player.on('seeking', () => {
-        const { buffered, currentTime } = player
-        let isBuffered = false
-        if (buffered.length) {
-          for (let i = 0, len = buffered.length; i < len; i++) {
-            if (currentTime > buffered.start(i) && currentTime < buffered.end(i)) {
-              isBuffered = true
-              break
-            }
+    this.handleSeeking = () => {
+      if (this.isChangingSrc) {
+        this.isChangingSrc = false
+        return
+      }
+      const { buffered, currentTime } = player
+      let isBuffered = false
+      if (buffered.length) {
+        for (let i = 0, len = buffered.length; i < len; i++) {
+          if (currentTime > buffered.start(i) && currentTime < buffered.end(i)) {
+            isBuffered = true
+            break
           }
         }
-        if (isBuffered) {
-          return
-        }
-        VodTask.clear()
-        if (!this.isSeekable) {
-          this._player.currentTime = this.tempCurrentTime
-          return
-        }
-        this.flvPlayer.seek(player.currentTime)
-        this.isSeeking = true
+      }
+      if (isBuffered) {
+        return
+      }
+      VodTask.clear()
+      if (!this.isSeekable) {
+        this._player.currentTime = this.tempCurrentTime
+        return
+      }
+      this.flvPlayer.seek(player.currentTime)
+      this.isSeeking = true
+    }
+    if (!options.isLive) {
+      player.on('seeking', () => {
+        this.handleSeeking()
       })
     }
-    player.on('timeupdate', () => {
+    this.handleTimeUpdate = () => {
       this.tempCurrentTime = player.currentTime
       if (!this.isSeeking && this.flvPlayer.isMediaInfoReady && !this.tempFlvPlayer) {
         this.progressChecker(player)
       }
       this.isEnded(player, this.flvPlayer)
+    }
+    player.on('timeupdate', () => {
+      this.handleTimeUpdate()
     })
     player._replay = () => {
       player.mse.destroy()
@@ -68,6 +79,9 @@ export default class Flv {
       mse.on('sourceopen', () => {
         this.flvPlayer.isSourceOpen = true
         mse.appendBuffer(this.flvPlayer.ftyp_moov.buffer)
+        setTimeout(() => {
+          player.play()
+        }, 0)
         mse.on('updateend', () => {
           const {pendingFragments, hasPendingFragments} = this.flvPlayer
           this.isSeeking = false
@@ -86,14 +100,16 @@ export default class Flv {
       })
 
       player.mse = mse
-      player.src = this.mse.url
+      player.video.src = this.mse.url
       return true
     }
+
     player.switchURL = (url) => {
       this._options.url = url
-      this.flvPlayer.unbindEvents()
-      VodTask.clear()
+      // this.flvPlayer.unbindEvents()
+
       if (!player.config.isLive) {
+        VodTask.clear()
         const tempFlvPlayer = this.tempFlvPlayer = new MainParser(this._options, player)
 
         tempFlvPlayer.isSourceOpen = true
@@ -125,7 +141,7 @@ export default class Flv {
     const handleFtypMoov = (ftypMoov) => {
       if (flvPlayer.isSourceOpen && !this.tempFlvPlayer) {
         mse.appendBuffer(ftypMoov.buffer)
-      } else {
+      } else if (!this.isChangingSrc) {
         this.isSeeking = true
         flvPlayer.seek(this._player.currentTime)
       }
@@ -185,7 +201,12 @@ export default class Flv {
       })
     }
   }
-
+  clearPlayerCache () {
+    const range = this._player.getBufferedRange()
+    if (range.length === 2) {
+      // this.mse.removeBuffer(range[0], range[1])
+    }
+  }
   isEnded (player, flv) {
     if (flv.videoDuration - player.currentTime * flv.videoTimeScale < 2 * flv.videoTimeScale) {
       const range = player.getBufferedRange()
@@ -193,6 +214,18 @@ export default class Flv {
         this.mse.endOfStream()
       }
     }
+  }
+  destroy () {
+    VodTask.clear()
+    this._options = {}
+    this.mse = null
+    this.isSeeking = false
+    this.isDataLoading = false
+    this.tempCurrentTime = 0
+    this.tempFlvPlayer = null
+    this.isChangingSrc = false
+    this.handleTimeUpdate = () => {}
+    this.handleSeeking = () => {}
   }
   get isSeekable () {
     return this.flvPlayer.isSeekable
