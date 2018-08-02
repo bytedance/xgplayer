@@ -21,7 +21,35 @@ class Proxy {
     if (options.loop) {
       videoConfig.loop = 'loop'
     }
-    this.video = util.createDom(videoConfig.mediaType, '', videoConfig, '')
+    let textTrackDom = ''
+    if (options.textTrack && options.textTrack instanceof Array) {
+      options.textTrack.some(track => {
+        if (track.src && track.label && track.default) {
+          textTrackDom += `<track src="${track.src}" `
+          if (track.kind) {
+            textTrackDom += `kind="${track.kind}" `
+          }
+          textTrackDom += `label="${track.label}" `
+          if (track.srclang) {
+            textTrackDom += `srclang="${track.srclang}" `
+          }
+          textTrackDom += `${track.default ? 'default' : ''}>`
+          return true
+        }
+      })
+    }
+    if (options.textTrackStyle) {
+      let style = document.createElement('style')
+      document.head.appendChild(style)
+      let styleStr = ''
+      for (let index in options.textTrackStyle) {
+        styleStr += `${index}: ${options.textTrackStyle[index]};`
+      }
+      let wrap = options.id ? `#${options.id}` : (options.el.id ? `#${options.el.id}` : `.${options.el.className}`)
+      style.sheet.addRule(`${wrap} video::cue`, styleStr)
+      style.sheet.insertRule(`${wrap} video::cue { ${styleStr} }`, 0)
+    }
+    this.video = util.createDom(videoConfig.mediaType, textTrackDom, videoConfig, '')
     this.ev = ['play', 'playing', 'pause', 'ended', 'error', 'seeking', 'seeked',
       'timeupdate', 'waiting', 'canplay', 'canplaythrough', 'durationchange', 'volumechange', 'loadeddata'
     ].map((item) => {
