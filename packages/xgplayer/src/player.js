@@ -2,7 +2,9 @@ import Proxy from './proxy'
 import util from './utils/util'
 import sniffer from './utils/sniffer'
 import Errors from './error'
-import {version} from '../package.json'
+import {
+  version
+} from '../package.json'
 class Player extends Proxy {
   constructor (options) {
     super(options)
@@ -22,7 +24,10 @@ class Player extends Proxy {
     this.waitTimer = null
     this.history = []
     this.root = util.findDom(document, `#${this.config.id}`)
-    this.controls = util.createDom('xg-controls', '', {unselectable: 'on', onselectstart: 'return false'}, 'xgplayer-controls')
+    this.controls = util.createDom('xg-controls', '', {
+      unselectable: 'on',
+      onselectstart: 'return false'
+    }, 'xgplayer-controls')
     if (!this.root) {
       let el = this.config.el
       if (el && el.nodeType === 1) {
@@ -36,7 +41,7 @@ class Player extends Proxy {
         return false
       }
     }
-
+    this.rootBackup = util.copyDom(this.root)
     util.addClass(this.root, `xgplayer xgplayer-${sniffer.device} xgplayer-nostart ${this.config.controls ? '' : 'no-controls'}`)
     this.root.appendChild(this.controls)
     this.root.style.width = `${this.config.width}px`
@@ -57,7 +62,8 @@ class Player extends Proxy {
       })
     }
     this.ev.forEach((item) => {
-      let evName = Object.keys(item)[0]; let evFunc = this[item[evName]]
+      let evName = Object.keys(item)[0]
+      let evFunc = this[item[evName]]
       if (evFunc) {
         this.on(evName, evFunc)
       }
@@ -75,12 +81,16 @@ class Player extends Proxy {
   }
 
   start (url = this.config.url) {
-    let root = this.root; let player = this
+    let root = this.root
+    let player = this
     if (util.typeOf(url) === 'String') {
       this.video.src = url
     } else {
       url.forEach(item => {
-        this.video.appendChild(util.createDom('source', '', {src: `${item.src}`, type: `${item.type || ''}`}))
+        this.video.appendChild(util.createDom('source', '', {
+          src: `${item.src}`,
+          type: `${item.type || ''}`
+        }))
       })
     }
     root.insertBefore(this.video, root.firstChild)
@@ -100,16 +110,26 @@ class Player extends Proxy {
   }
 
   destroy () {
+    let parentNode = this.root.parentNode
     if (!this.paused) {
       this.pause()
       this.once('pause', () => {
         this.emit('destroy')
-        this.root.parentNode.removeChild(this.root)
+        parentNode.removeChild(this.root)
+        parentNode.appendChild(this.rootBackup)
       })
     } else {
       this.emit('destroy')
-      this.root.parentNode.removeChild(this.root)
+      parentNode.removeChild(this.root)
+      parentNode.appendChild(this.rootBackup)
     }
+    setTimeout(function () {
+      for (let k in this) {
+        if (k !== 'config') {
+          delete this[k]
+        }
+      }
+    }, 200)
   }
 
   replay () {

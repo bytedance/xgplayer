@@ -7,12 +7,58 @@ class HlsJsPlayer extends Player {
     this.hlsOpts = options.hlsOpts || {}
     let util = Player.util
     let player = this
-    let url = player.config.url
     let hls
     hls = new Hls(this.hlsOpts)
     this.hls = hls
+
+    Object.defineProperty(player, 'src', {
+      get () {
+        return player.currentSrc
+      },
+      set (url) {
+        util.removeClass(player.root, 'xgplayer-is-live')
+        const liveDom = document.querySelector('.xgplayer-live')
+        if (liveDom) {
+          liveDom.parentNode.removeChild(liveDom)
+        }
+        player.config.url = url
+        const paused = player.paused
+        player.hls.stopLoad()
+        player.hls.detachMedia()
+        player.hls.destroy()
+        player.hls = new Hls(player.hlsOpts)
+        player.register()
+        if (!paused) {
+          player.pause()
+          player.once('pause', () => {
+            player.hls.loadSource(url)
+          })
+          player.once('canplay', () => {
+            player.play()
+          })
+        } else {
+          player.hls.loadSource(url)
+        }
+        player.hls.attachMedia(player.video)
+        player.once('canplay', () => {
+          player.currentTime = 0
+        })
+      }
+    })
+    this.register()
+    this.once('complete', () => {
+      hls.attachMedia(player.video)
+    })
+    this.once('destroy', () => {
+      hls.stopLoad()
+    })
+  }
+  register () {
+    let hls = this.hls
+    let util = Player.util
+    let player = this
     hls.on(Hls.Events.MEDIA_ATTACHED, () => {
-      hls.loadSource(url)
+      hls.loadSource(player.config.url)
     })
     hls.on(Hls.Events.LEVEL_LOADED, (name, e) => {
       if (!hls.inited) {
@@ -37,12 +83,6 @@ class HlsJsPlayer extends Player {
             player.emit('error', data)
         }
       }
-    })
-    this.once('complete', () => {
-      hls.attachMedia(player.video)
-    })
-    this.once('destroy', () => {
-      hls.stopLoad()
     })
   }
 }

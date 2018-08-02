@@ -5,7 +5,8 @@ util.createDom = function (el = 'div', tpl = '', attrs = {}, cname = '') {
   dom.className = cname
   dom.innerHTML = tpl
   Object.keys(attrs).forEach(item => {
-    let key = item; let value = attrs[item]
+    let key = item
+    let value = attrs[item]
     if (el === 'video' || el === 'audio') {
       if (value) {
         dom.setAttribute(key, value)
@@ -63,8 +64,11 @@ util.findDom = function (el = document, sel) {
 }
 
 util.padStart = function (str, length, pad) {
-  let charstr = String(pad); let len = length >> 0; let maxlen = Math.ceil(len / charstr.length)
-  let chars = []; let r = String(str)
+  let charstr = String(pad)
+  let len = length >> 0
+  let maxlen = Math.ceil(len / charstr.length)
+  let chars = []
+  let r = String(str)
   while (maxlen--) {
     chars.push(charstr)
   }
@@ -117,6 +121,18 @@ util.getBgImage = function (el) {
   let url = (el.currentStyle || window.getComputedStyle(el, null)).backgroundImage
   a.href = url.replace(/url\("|"\)/g, '')
   return a.href
+}
+
+util.copyDom = function (dom) {
+  if (dom && dom.nodeType === 1) {
+    let back = document.createElement(dom.tagName)
+    Array.prototype.forEach.call(dom.attributes, (node) => {
+      back.setAttribute(node.name, node.value)
+    })
+    return back
+  } else {
+    return ''
+  }
 }
 
 export default util

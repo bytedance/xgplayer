@@ -23,6 +23,28 @@ const hlsplayer = function () {
   if (['chrome', 'firfox', 'safari'].some(item => item === sniffer.browser) && MSE.isSupported('video/mp4; codecs="avc1.64001E, mp4a.40.5"')) {
     const _start = player.start
     let hls
+    Object.defineProperty(player, 'src', {
+      get () {
+        return player.currentSrc
+      },
+      set (url) {
+        player.config.url = url
+        if (!player.paused) {
+          player.pause()
+          player.once('pause', () => {
+            player.start(url)
+          })
+          player.once('canplay', () => {
+            player.play()
+          })
+        } else {
+          player.start(url)
+        }
+        player.once('canplay', () => {
+          player.currentTime = 0
+        })
+      }
+    })
     player.start = function (url = player.config.url) {
       if (!url) { return }
       hls = new HLS(url)

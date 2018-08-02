@@ -56,7 +56,10 @@
         "git add"
       ]
     },
-    "ignore": ["**/browser/*.js", "**/dist/*.js"]
+    "ignore": [
+      "**/browser/*.js",
+      "**/dist/*.js"
+    ]
   },
   "author": "yinguohui@bytedance.com",
   "license": "MIT",

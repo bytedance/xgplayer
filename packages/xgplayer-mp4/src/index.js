@@ -102,6 +102,28 @@ let mp4player = function () {
     if (!rule.call(player)) {
       return false
     }
+    Object.defineProperty(player, 'src', {
+      get () {
+        return player.currentSrc
+      },
+      set (url) {
+        player.config.url = url
+        if (!player.paused) {
+          player.pause()
+          player.once('pause', () => {
+            player.start(url)
+          })
+          player.once('canplay', () => {
+            player.play()
+          })
+        } else {
+          player.start(url)
+        }
+        player.once('canplay', () => {
+          player.currentTime = 0
+        })
+      }
+    })
     player.start = function (url = mainURL) {
       init(url).then((result) => {
         let mp4 = result[0]; let mse = result[1]
@@ -115,9 +137,6 @@ let mp4player = function () {
         _start.call(player, url)
         errorHandle(player, err)
       })
-      player.download = () => {
-        player.mp4.download()
-      }
       player.once('canplay', () => {
         // safari decoder time offset
         if (sniffer.browser === 'safari' && player.buffered) {
