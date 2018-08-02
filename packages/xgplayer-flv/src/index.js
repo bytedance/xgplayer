@@ -38,6 +38,11 @@ class FlvPlayer extends Player {
     player.on('pause', () => {
       !isLive && VodTask.clear()
     })
+    this.once('destroy', () => {
+      VodTask.clear()
+      player.__flv__.destroy()
+      player.__flv__ = null
+    })
   }
 
   createInstance (flv) {
