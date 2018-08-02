@@ -15,14 +15,16 @@ class Proxy {
       'x5-video-orientation': options['x5-video-orientation'],
       airplay: options['airplay'],
       'webkit-airplay': options['airplay'],
-      tabindex: 2
+      tabindex: 2,
+      mediaType: options.mediaType || 'video'
     }
     if (options.loop) {
       videoConfig.loop = 'loop'
     }
-    this.video = util.createDom('video', '', videoConfig, '')
+    this.video = util.createDom(videoConfig.mediaType, '', videoConfig, '')
     this.ev = ['play', 'playing', 'pause', 'ended', 'error', 'seeking', 'seeked',
-      'timeupdate', 'waiting', 'canplay', 'canplaythrough', 'durationchange', 'volumechange', 'loadeddata'].map((item) => {
+      'timeupdate', 'waiting', 'canplay', 'canplaythrough', 'durationchange', 'volumechange', 'loadeddata'
+    ].map((item) => {
       return {
         [item]: `on${item.charAt(0).toUpperCase()}${item.slice(1)}`
       }
@@ -30,7 +32,8 @@ class Proxy {
     EventEmitter(this)
 
     this.ev.forEach(item => {
-      let self = this; let name = Object.keys(item)[0]
+      let self = this
+      let name = Object.keys(item)[0]
       self.video.addEventListener(name, function () {
         if (name === 'play') {
           self.hasStart = true
@@ -38,11 +41,11 @@ class Proxy {
         if (name === 'error') {
           if (self.video.error) {
             self.emit(name, new Errors('other', self.currentTime, self.duration, self.networkState, self.readyState, self.currentSrc, self.src,
-self.ended, {
-              line: 41,
-              msg: self.error,
-              handle: 'Constructor'
-            }))
+              self.ended, {
+                line: 41,
+                msg: self.error,
+                handle: 'Constructor'
+              }))
           }
         } else {
           self.emit(name, self)
@@ -67,11 +70,13 @@ self.ended, {
   pause () {
     this.video.pause()
   }
-  canPlayType (type) {
-    this.video.canPlayType(type)
+  canPlayType () {
+    this.video.canPlayType()
   }
   getBufferedRange () {
-    let range = [0, 0]; let video = this.video; let buffered = video.buffered
+    let range = [0, 0]
+    let video = this.video
+    let buffered = video.buffered
     let currentTime = video.currentTime
     if (buffered) {
       for (let i = 0, len = buffered.length; i < len; i++) {
