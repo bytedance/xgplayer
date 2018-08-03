@@ -37,6 +37,7 @@ class Proxy {
           return true
         }
       })
+      videoConfig.crossorigin = 'anomymous'
     }
     if (options.textTrackStyle) {
       let style = document.createElement('style')
