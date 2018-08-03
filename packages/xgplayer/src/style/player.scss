@@ -782,6 +782,10 @@
     @at-root .xgplayer-is-error &{
         display: flex;
     }
+    .xgplayer-error-text{
+        line-height: 18px;
+        margin: auto 6px;
+    }
 }
 .xgplayer-mobile{
     &.xgplayer-ended{
