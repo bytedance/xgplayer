@@ -80,8 +80,10 @@ let player = new Player({
 
 ### Dev
 
+为了方便开发者调试，我们提供了示例视频资源。示例文件较大，可使用 git clone --recurse-submodules -j8 命令完整拉取源码和示例文件；如果你只对源码感兴趣可以使用 git clone 命令仅拉取源码部分。
+
 ```
-$ git clone git@github.com:bytedance/xgplayer.git
+$ git clone --recurse-submodules -j8 git@github.com:bytedance/xgplayer.git # 或者：git clone git@github.com:bytedance/xgplayer.git
 $ cd xgplayer
 $ npm install
 $ npm run dev
@@ -89,9 +91,6 @@ $ npm run dev
 
 访问 [http://localhost:9090/examples/index.html](http://localhost:9090/examples/index.html)
 
-### Note
-
-如果你只对源码感兴趣可以使用 Git 的稀疏检出功能忽略 examples 目录，里面有比较大的视频文件。[如何使用 Git 的sparse checkout](https://gist.github.com/sumardi/5559896)
 
 ### License
 
