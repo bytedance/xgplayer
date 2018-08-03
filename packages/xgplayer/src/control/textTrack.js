@@ -1,10 +1,13 @@
 import Player from '../player';
 
 let textTrack = function () {
+    if(navigator.userAgent.indexOf('Chrome') === -1) {
+      return
+    }
     let player = this, util = Player.util, sniffer = Player.sniffer;
     let ul = util.createDom('xg-textTrack', '', {tabindex: 7}, 'xgplayer-textTrack'), root = player.controls;
     let list = player.config.textTrack
-    if (list && list instanceof Array && list.length > 1) {
+    if (list && Array.isArray(list) && list.length > 1) {
         util.addClass(player.root, 'xgplayer-is-textTrack');
         player.on('canplay', function () {
             let tmp = ['<ul>'];
@@ -14,7 +17,6 @@ let textTrack = function () {
             });
             let controlText = player.config.lang && player.config.lang === "zh-cn" ? "字幕" : "Caption"
             tmp.push(`</ul><p class="name"><em>${controlText}</em></p>`);
-
             let urlInRoot = root.querySelector('.xgplayer-textTrack');
             if (urlInRoot) {
                 urlInRoot.innerHTML = tmp.join('');
@@ -40,7 +42,7 @@ let textTrack = function () {
                     trackDoms[0].track.mode = 'hidden'
                 } else {
                     trackDoms[0].track.mode = 'showing'
-                    
+
                     list.some(item => {
                         if(item.label === li.innerHTML) {
                             trackDoms[0].src = item.src;

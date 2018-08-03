@@ -22,7 +22,7 @@ class Proxy {
       videoConfig.loop = 'loop'
     }
     let textTrackDom = ''
-    if (options.textTrack && options.textTrack instanceof Array) {
+    if (options.textTrack && Array.isArray(options.textTrack) && (navigator.userAgent.indexOf('Chrome') > -1 || navigator.userAgent.indexOf('Firefox') > -1)) {
       options.textTrack.some(track => {
         if (track.src && track.label && track.default) {
           textTrackDom += `<track src="${track.src}" `
@@ -47,8 +47,11 @@ class Proxy {
         styleStr += `${index}: ${options.textTrackStyle[index]};`
       }
       let wrap = options.id ? `#${options.id}` : (options.el.id ? `#${options.el.id}` : `.${options.el.className}`)
-      style.sheet.addRule(`${wrap} video::cue`, styleStr)
-      style.sheet.insertRule(`${wrap} video::cue { ${styleStr} }`, 0)
+      if (style.sheet.insertRule) {
+        style.sheet.insertRule(`${wrap} video::cue { ${styleStr} }`, 0)
+      } else if (style.sheet.addRule) {
+        style.sheet.addRule(`${wrap} video::cue`, styleStr)
+      }
     }
     this.video = util.createDom(videoConfig.mediaType, textTrackDom, videoConfig, '')
     this.ev = ['play', 'playing', 'pause', 'ended', 'error', 'seeking', 'seeked',
