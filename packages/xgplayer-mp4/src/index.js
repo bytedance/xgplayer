@@ -242,6 +242,13 @@ let mp4player = function () {
       }
     })
 
+    player.once('destroy', () => {
+      Task.clear()
+      if (player.timer) {
+        clearTimeout(player.timer)
+      }
+    })
+
     player._replay = function () {
       Task.clear()
       player.mp4.bufferCache.clear()

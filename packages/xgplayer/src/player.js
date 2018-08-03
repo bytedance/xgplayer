@@ -111,25 +111,38 @@ class Player extends Proxy {
 
   destroy () {
     let parentNode = this.root.parentNode
+    this.ev.forEach((item) => {
+      let evName = Object.keys(item)[0]
+      let evFunc = this[item[evName]]
+      if (evFunc) {
+        this.off(evName, evFunc)
+      }
+    });
+    ['focus', 'blur'].forEach(item => {
+      this.off(item, this['on' + item.charAt(0).toUpperCase() + item.slice(1)])
+    })
     if (!this.paused) {
       this.pause()
       this.once('pause', () => {
         this.emit('destroy')
         parentNode.removeChild(this.root)
         parentNode.appendChild(this.rootBackup)
+        for (let k in this) {
+          if (k !== 'config') {
+            delete this[k]
+          }
+        }
       })
     } else {
       this.emit('destroy')
       parentNode.removeChild(this.root)
       parentNode.appendChild(this.rootBackup)
-    }
-    setTimeout(function () {
       for (let k in this) {
         if (k !== 'config') {
           delete this[k]
         }
       }
-    }, 200)
+    }
   }
 
   replay () {
