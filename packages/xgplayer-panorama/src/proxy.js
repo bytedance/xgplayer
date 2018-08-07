@@ -1,0 +1,240 @@
+import EventEmitter from 'event-emitter'
+import util from './utils/util'
+import Errors from './error'
+class Proxy {
+  constructor (options) {
+    this._hasStart = false
+    let videoConfig = {
+      controls: false,
+      autoplay: options.autoplay,
+      playsinline: options.playsinline,
+      'webkit-playsinline': options.playsinline,
+      'x5-video-player-type': options['x5-video-player-type'],
+      'x5-video-player-fullscreen': options['x5-video-player-fullscreen'],
+      'x5-video-orientation': options['x5-video-orientation'],
+      airplay: options['airplay'],
+      'webkit-airplay': options['airplay'],
+      tabindex: 2
+    }
+    if (options.loop) {
+      videoConfig.loop = 'loop'
+    }
+    this.video = util.createDom('video', '', videoConfig, '')
+
+    this.ev = ['play', 'playing', 'pause', 'ended', 'error', 'seeking', 'seeked',
+      'timeupdate', 'waiting', 'canplay', 'canplaythrough', 'durationchange', 'volumechange', 'loadeddata'].map((item) => {
+      return {
+        [item]: `on${item.charAt(0).toUpperCase()}${item.slice(1)}`
+      }
+    })
+    EventEmitter(this)
+
+    this.ev.forEach(item => {
+      let self = this; let name = Object.keys(item)[0]
+      self.video.addEventListener(name, function () {
+        if (name === 'play') {
+          self.hasStart = true
+        }
+        if (name === 'error') {
+          if (self.video.error) {
+            self.emit(name, new Errors('other', self.currentTime, self.duration, self.networkState, self.readyState, self.currentSrc, self.src,
+              self.ended, {
+                line: 41,
+                msg: self.error,
+                handle: 'Constructor'
+              }))
+          }
+        } else {
+          self.emit(name, self)
+        }
+      }, false)
+    })
+  }
+
+  get hasStart () {
+    return this._hasStart
+  }
+  set hasStart (bool) {
+    if (typeof bool === 'boolean' && bool === true && !this._hasStart) {
+      this._hasStart = true
+      this.emit('hasstart')
+    }
+  }
+
+  play () {
+    this.panoramic.start()
+    this.video.play()
+  }
+  pause () {
+    // this.panoramic.stop()
+    this.video.pause()
+  }
+  canPlayType () {
+    this.video.canPlayType()
+  }
+  getBufferedRange () {
+    let range = [0, 0]; let video = this.video; let buffered = video.buffered
+    let currentTime = video.currentTime
+    if (buffered) {
+      for (let i = 0, len = buffered.length; i < len; i++) {
+        range[0] = buffered.start(i)
+        range[1] = buffered.end(i)
+        if (range[0] <= currentTime && currentTime <= range[1]) {
+          break
+        }
+      }
+    }
+    if (range[0] - currentTime <= 0 && currentTime - range[1] <= 0) {
+      return range
+    } else {
+      return [0, 0]
+    }
+  }
+  set autoplay (isTrue) {
+    this.video.autoplay = isTrue
+  }
+  get autoplay () {
+    return this.video.autoplay
+  }
+  get buffered () {
+    return this.video.buffered
+  }
+  get crossOrigin () {
+    return this.video.crossOrigin
+  }
+  set crossOrigin (isTrue) {
+    this.video.crossOrigin = isTrue
+  }
+  get currentSrc () {
+    return this.video.currentSrc
+  }
+  set currentSrc (src) {
+    this.video.currentSrc = src
+  }
+  get currentTime () {
+    return this.video.currentTime
+  }
+  set currentTime (time) {
+    this.video.currentTime = time
+  }
+  get defaultMuted () {
+    return this.video.defaultMuted
+  }
+  set defaultMuted (isTrue) {
+    this.video.defaultMuted = isTrue
+  }
+  get duration () {
+    return this.video.duration
+  }
+  get ended () {
+    return this.video.ended
+  }
+  get error () {
+    let err = this.video.error
+    if (!err) {
+      return null
+    }
+    let status = [{
+      en: 'MEDIA_ERR_ABORTED',
+      cn: '取回过程被用户中止'
+    }, {
+      en: 'MEDIA_ERR_NETWORK',
+      cn: '当下载时发生错误'
+    }, {
+      en: 'MEDIA_ERR_DECODE',
+      cn: '当解码时发生错误'
+    }, {
+      en: 'MEDIA_ERR_SRC_NOT_SUPPORTED',
+      cn: '不支持音频/视频'
+    }]
+    return this.lang ? this.lang[status[err.code - 1].en] : status[err.code - 1].en
+  }
+  get loop () {
+    return this.video.loop
+  }
+  set loop (isTrue) {
+    this.video.loop = isTrue
+  }
+  get muted () {
+    return this.video.muted
+  }
+  set muted (isTrue) {
+    this.video.muted = isTrue
+  }
+  get networkState () {
+    let status = [{
+      en: 'NETWORK_EMPTY',
+      cn: '音频/视频尚未初始化'
+    }, {
+      en: 'NETWORK_IDLE',
+      cn: '音频/视频是活动的且已选取资源，但并未使用网络'
+    }, {
+      en: 'NETWORK_LOADING',
+      cn: '浏览器正在下载数据'
+    }, {
+      en: 'NETWORK_NO_SOURCE',
+      cn: '未找到音频/视频来源'
+    }]
+    return this.lang ? this.lang[status[this.video.networkState].en] : status[this.video.networkState].en
+  }
+  get paused () {
+    return this.video.paused
+  }
+  get playbackRate () {
+    return this.video.playbackRate
+  }
+  set playbackRate (rate) {
+    this.video.playbackRate = rate
+  }
+  get played () {
+    return this.video.played
+  }
+  get preload () {
+    return this.video.preload
+  }
+  set preload (isTrue) {
+    this.video.preload = isTrue
+  }
+  get readyState () {
+    let status = [{
+      en: 'HAVE_NOTHING',
+      cn: '没有关于音频/视频是否就绪的信息'
+    }, {
+      en: 'HAVE_METADATA',
+      cn: '关于音频/视频就绪的元数据'
+    }, {
+      en: 'HAVE_CURRENT_DATA',
+      cn: '关于当前播放位置的数据是可用的，但没有足够的数据来播放下一帧/毫秒'
+    }, {
+      en: 'HAVE_FUTURE_DATA',
+      cn: '当前及至少下一帧的数据是可用的'
+    }, {
+      en: 'HAVE_ENOUGH_DATA',
+      cn: '可用数据足以开始播放'
+    }]
+    return this.lang ? this.lang[status[this.video.readyState].en] : status[this.video.readyState]
+  }
+  get seekable () {
+    return this.video.seekable
+  }
+  get seeking () {
+    return this.video.seeking
+  }
+  get src () {
+    return this.video.src
+  }
+  set src (url) {
+    this.video.src = url
+  }
+  get volume () {
+    return this.video.volume
+  }
+  set volume (vol) {
+    this.video.volume = vol
+  }
+  cameraMove (options) {
+    this.panoramic.cameraMove(options)
+  }
+}
+
+export default Proxy
