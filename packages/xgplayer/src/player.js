@@ -93,6 +93,15 @@ class Player extends Proxy {
         }))
       })
     }
+    if (player.config.autoplay) {
+      this.video.addEventListener('canplay', () => {
+        player.video.play().then(() => {
+          // 支持自动播放
+        }).catch(err => {
+          // 不支持自动播放
+        });
+      });
+    }
     root.insertBefore(this.video, root.firstChild)
     player.userTimer = setTimeout(function () {
       player.emit('blur')

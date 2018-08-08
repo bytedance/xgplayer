@@ -54,6 +54,10 @@ class Proxy {
       }
     }
     this.video = util.createDom(videoConfig.mediaType, textTrackDom, videoConfig, '')
+    if (options.autoplay) {
+      this.video.autoplay = true
+      this.video.muted = true
+    }
     this.ev = ['play', 'playing', 'pause', 'ended', 'error', 'seeking', 'seeked',
       'timeupdate', 'waiting', 'canplay', 'canplaythrough', 'durationchange', 'volumechange', 'loadeddata'
     ].map((item) => {
