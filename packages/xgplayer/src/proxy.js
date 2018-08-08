@@ -67,6 +67,8 @@ class Proxy {
     })
     EventEmitter(this)
 
+    this._interval = {}
+    this.lastBufferEnd = 0
     this.ev.forEach(item => {
       let self = this
       let name = Object.keys(item)[0]
@@ -85,6 +87,21 @@ class Proxy {
           }
         } else {
           self.emit(name, self)
+        }
+
+        if (['ended', 'error'].indexOf(name) < 0) {
+          util.setInterval(self, 'bufferedChange', function () {
+            let curBuffer = []
+            for (let i = 0, len = self.video.buffered.length; i < len; i++) {
+              curBuffer.push([self.video.buffered.start(i), self.video.buffered.end(i)])
+            }
+            if (curBuffer.toString() !== this.lastBuffer) {
+              this.lastBuffer = curBuffer.toString()
+              this.emit('bufferedChange', curBuffer)
+            }
+          }, 200)
+        } else {
+          util.clearInterval(self, 'bufferedChange')
         }
       }, false)
     })
