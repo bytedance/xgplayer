@@ -8,6 +8,7 @@ class FlvPlayer extends Player {
     this._options = options
     this.__flv__ = null
     this.init(options)
+
     Object.defineProperty(this, 'src', {
       set: (val) => {
         if (typeof val === 'string' && val.startsWith('blob:')) {
@@ -41,6 +42,8 @@ class FlvPlayer extends Player {
     this.once('destroy', () => {
       VodTask.clear()
       player.__flv__.destroy()
+      player.__flv__.mse = null
+      player.video.src = ''
       player.__flv__ = null
     })
   }
