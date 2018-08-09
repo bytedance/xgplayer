@@ -122,7 +122,8 @@ let mp4player = function () {
         player.once('canplay', () => {
           player.currentTime = 0
         })
-      }
+      },
+      configurable: true
     })
     player.start = function (url = mainURL) {
       init(url).then((result) => {
@@ -239,6 +240,13 @@ let mp4player = function () {
             }
           }
         }, 1500)
+      }
+    })
+
+    player.once('destroy', () => {
+      Task.clear()
+      if (player.timer) {
+        clearTimeout(player.timer)
       }
     })
 

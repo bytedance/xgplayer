@@ -43,7 +43,8 @@ class HlsJsPlayer extends Player {
         player.once('canplay', () => {
           player.currentTime = 0
         })
-      }
+      },
+      configurable: true
     })
     this.register()
     this.once('complete', () => {
