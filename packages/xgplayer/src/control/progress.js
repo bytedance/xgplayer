@@ -12,16 +12,22 @@ progress = function () {
   let cache = container.querySelector('.xgplayer-progress-cache')
   let point = container.querySelector('.xgplayer-progress-point')
   let thumbnail = container.querySelector('.xgplayer-progress-thumbnail')
-  let tnail_pic_num = 0, tnail_width = 0, tnail_height = 0, tnail_col = 0, tnail_row = 0, interval = 0, tnail_urls = []
+  let tnailPicNum = 0
+  let tnailWidth = 0
+  let tnailHeight = 0
+  let tnailCol = 0
+  let tnailRow = 0
+  let interval = 0
+  let tnailUrls = []
   if (player.config.thumbnail) {
-    tnail_pic_num = player.config.thumbnail.pic_num
-    tnail_width = player.config.thumbnail.width
-    tnail_height = player.config.thumbnail.height
-    tnail_col = player.config.thumbnail.col
-    tnail_row = player.config.thumbnail.row
-    tnail_urls = player.config.thumbnail.urls
-    thumbnail.style.width = `${tnail_width}px`
-    thumbnail.style.height = `${tnail_height}px`
+    tnailPicNum = player.config.thumbnail.pic_num
+    tnailWidth = player.config.thumbnail.width
+    tnailHeight = player.config.thumbnail.height
+    tnailCol = player.config.thumbnail.col
+    tnailRow = player.config.thumbnail.row
+    tnailUrls = player.config.thumbnail.urls
+    thumbnail.style.width = `${tnailWidth}px`
+    thumbnail.style.height = `${tnailHeight}px`
   }
   ['touchstart', 'mousedown'].forEach(item => {
     container.addEventListener(item, function (e) {
@@ -81,20 +87,20 @@ progress = function () {
       point.textContent = util.format(now)
       let pointWidth = point.getBoundingClientRect().width
       if (player.config.thumbnail) {
-        interval = player.duration / tnail_pic_num
+        interval = player.duration / tnailPicNum
         let index = Math.floor(now / interval)
-        thumbnail.style.backgroundImage = `url(${tnail_urls[Math.ceil((index + 1) / (tnail_col * tnail_row)) - 1]})`
-        let index_in_page = index + 1 - (tnail_col * tnail_row) * (Math.ceil((index + 1) / (tnail_col * tnail_row)) - 1)
-        let tnai_row_index = Math.ceil(index_in_page / tnail_row) - 1
-        let tnai_col_index = index_in_page - tnai_row_index * tnail_row - 1
-        thumbnail.style['background-position'] = `-${tnai_col_index * tnail_width}px -${tnai_row_index * tnail_height}px`
-        let left = e.clientX - containerLeft - tnail_width / 2
+        thumbnail.style.backgroundImage = `url(${tnailUrls[Math.ceil((index + 1) / (tnailCol * tnailRow)) - 1]})`
+        let indexInPage = index + 1 - (tnailCol * tnailRow) * (Math.ceil((index + 1) / (tnailCol * tnailRow)) - 1)
+        let tnaiRowIndex = Math.ceil(indexInPage / tnailRow) - 1
+        let tnaiColIndex = indexInPage - tnaiRowIndex * tnailRow - 1
+        thumbnail.style['background-position'] = `-${tnaiColIndex * tnailWidth}px -${tnaiRowIndex * tnailHeight}px`
+        let left = e.clientX - containerLeft - tnailWidth / 2
         left = left > 0 ? left : 0
-        left = left < containerWidth - tnail_width ? left : containerWidth - tnail_width
+        left = left < containerWidth - tnailWidth ? left : containerWidth - tnailWidth
         thumbnail.style.left = `${left}px`
-        thumbnail.style.top = `${-10 - tnail_height}px`
+        thumbnail.style.top = `${-10 - tnailHeight}px`
         thumbnail.style.display = 'block'
-        point.style.left = `${left + tnail_width / 2 - pointWidth / 2}px`
+        point.style.left = `${left + tnailWidth / 2 - pointWidth / 2}px`
       } else {
         let left = e.clientX - containerLeft - pointWidth / 2
         left = left > 0 ? left : 0
