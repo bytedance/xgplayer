@@ -17,7 +17,14 @@ export default class FetchLoader {
 
     this.request = () => {
       this.on = true
-      return window.fetch(url, Object.assign({}, _config, config)).then(res => res.arrayBuffer()).then(buffer => {
+      return window.fetch(url, Object.assign({}, _config, config)).then(res => {
+        if (res.status > 299 || res.status < 200 || !res.ok) {
+          this.complete = true
+          VodTask.remove(this)
+          return Promise.reject(new Error(`url ${res.status} ${res.statusText}`))
+        }
+        return Promise.resolve(res)
+      }).then(res => res.arrayBuffer()).then(buffer => {
         this.complete = true
         this.byteLength = buffer.byteLength
         VodTask.remove(this)
@@ -26,10 +33,6 @@ export default class FetchLoader {
           buffer,
           timeStamp: this.timeStamp
         }
-      }).catch(e => {
-        this.complete = true
-        VodTask.remove(this)
-        return e
       })
     }
   }

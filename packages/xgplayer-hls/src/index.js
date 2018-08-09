@@ -43,7 +43,8 @@ const hlsplayer = function () {
         player.once('canplay', () => {
           player.currentTime = 0
         })
-      }
+      },
+      configurable: true
     })
     player.start = function (url = player.config.url) {
       if (!url) { return }
