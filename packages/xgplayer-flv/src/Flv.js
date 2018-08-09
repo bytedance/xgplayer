@@ -226,6 +226,8 @@ export default class Flv {
     this.isChangingSrc = false
     this.handleTimeUpdate = () => {}
     this.handleSeeking = () => {}
+    this.flvPlayer.destroy()
+    this._player.pause()
   }
   get isSeekable () {
     return this.flvPlayer.isSeekable
