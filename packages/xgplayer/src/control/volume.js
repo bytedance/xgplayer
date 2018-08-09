@@ -131,7 +131,12 @@ let volume = function () {
   })
 
   let _changeTimer = null
+  let firstVolChanged = 0;
   player.on('volumechange', function () {
+    if (firstVolChanged === 1) {
+      player.video.muted = false
+      firstVolChanged = 2
+    }
     if (_changeTimer) {
       clearTimeout(_changeTimer)
     }
@@ -145,8 +150,18 @@ let volume = function () {
     }, 50)
   })
 
+  player.once('volumechange', function () {
+    if (player.config.autoplay) {
+      firstVolChanged = 1
+    }
+  })
+
   player.once('canplay', function () {
-    player.volume = player.config.volume
+    if (player.config.autoplay) {
+      player.volume = 0
+    } else {
+      player.volume = player.config.volume
+    }
   })
 
   player.once('destroy', () => {

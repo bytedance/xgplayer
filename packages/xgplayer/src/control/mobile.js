@@ -40,7 +40,7 @@ let mobile = function () {
   let player = this
 
   let util = Player.util; let root = player.root
-  player.config.autoplay = false
+  // player.config.autoplay = false
   let whitelist = player.config.whitelist
   let pass = whitelistPass(whitelist)
   player.mobilePass = pass
