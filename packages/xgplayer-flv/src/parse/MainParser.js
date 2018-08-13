@@ -24,7 +24,7 @@ export default class MainParser extends TransCoder {
     this.mp4remuxer = new Mp4Remuxer(this._store)
     this.buffer = new Buffer()
     this.bufferKeyframes = new Set()
-    this.META_CHUNK_SIZE = 2 * Math.pow(10, 5)
+    this.META_CHUNK_SIZE = Math.pow(10, 6)
     this.CHUNK_SIZE = Math.pow(10, 6)
     this.ftyp_moov = null
     this.isSourceOpen = false
@@ -87,7 +87,8 @@ export default class MainParser extends TransCoder {
       return this.loadMetaData(this.range.start, this.range.end).then(Resolver.resolveChunk).catch((e) => {
         console.log(e)
         if (this.err_cnt >= 3) {
-          this._player.emit('error', '加载视频失败')
+          this._player.emit('error', e)
+          this.destroy()
           return
         }
         this.err_cnt += 1
@@ -139,6 +140,7 @@ export default class MainParser extends TransCoder {
       return this._loadSegmentsData(this.range.start, this.range.end).then(resolveChunk).catch(e => {
         if (this.err_cnt >= 3) {
           this._player.emit('error', '加载视频失败')
+          this.destroy()
           return
         }
         this.err_cnt += 1

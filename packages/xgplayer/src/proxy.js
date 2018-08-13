@@ -54,6 +54,10 @@ class Proxy {
       }
     }
     this.video = util.createDom(videoConfig.mediaType, textTrackDom, videoConfig, '')
+    if (options.autoplay) {
+      this.video.autoplay = true
+      this.video.muted = true
+    }
     this.ev = ['play', 'playing', 'pause', 'ended', 'error', 'seeking', 'seeked',
       'timeupdate', 'waiting', 'canplay', 'canplaythrough', 'durationchange', 'volumechange', 'loadeddata'
     ].map((item) => {
@@ -63,6 +67,8 @@ class Proxy {
     })
     EventEmitter(this)
 
+    this._interval = {}
+    let lastBuffer = '0,0'
     this.ev.forEach(item => {
       let self = this
       let name = Object.keys(item)[0]
@@ -81,6 +87,25 @@ class Proxy {
           }
         } else {
           self.emit(name, self)
+        }
+
+        if (self.hasOwnProperty('_interval')) {
+          if (['ended', 'error', 'timeupdate'].indexOf(name) < 0) {
+            util.setInterval(self, 'bufferedChange', function () {
+              let curBuffer = []
+              for (let i = 0, len = this.video.buffered.length; i < len; i++) {
+                curBuffer.push([this.video.buffered.start(i), this.video.buffered.end(i)])
+              }
+              if (curBuffer.toString() !== lastBuffer) {
+                lastBuffer = curBuffer.toString()
+                this.emit('bufferedChange', curBuffer)
+              }
+            }, 200)
+          } else {
+            if (name !== 'timeupdate') {
+              util.clearInterval(self, 'bufferedChange')
+            }
+          }
         }
       }, false)
     })

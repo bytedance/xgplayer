@@ -83,6 +83,12 @@ class Player extends Proxy {
   start (url = this.config.url) {
     let root = this.root
     let player = this
+    function autoFunc () {
+      player.video.play().then(() => {
+        // 支持自动播放
+      })
+      player.video.removeEventListener('canplay', autoFunc)
+    }
     if (util.typeOf(url) === 'String') {
       this.video.src = url
     } else {
@@ -92,6 +98,9 @@ class Player extends Proxy {
           type: `${item.type || ''}`
         }))
       })
+    }
+    if (player.config.autoplay) {
+      this.video.addEventListener('canplay', autoFunc)
     }
     root.insertBefore(this.video, root.firstChild)
     player.userTimer = setTimeout(function () {
@@ -111,6 +120,10 @@ class Player extends Proxy {
 
   destroy () {
     let parentNode = this.root.parentNode
+    for (let k in this._interval) {
+      clearInterval(this._interval[k])
+      this._interval[k] = null
+    }
     this.ev.forEach((item) => {
       let evName = Object.keys(item)[0]
       let evFunc = this[item[evName]]
@@ -125,8 +138,9 @@ class Player extends Proxy {
       this.pause()
       this.once('pause', () => {
         this.emit('destroy')
+        this.root.id = this.root.id + '_del'
+        parentNode.insertBefore(this.rootBackup, this.root)
         parentNode.removeChild(this.root)
-        parentNode.appendChild(this.rootBackup)
         for (let k in this) {
           if (k !== 'config') {
             delete this[k]
@@ -135,8 +149,9 @@ class Player extends Proxy {
       })
     } else {
       this.emit('destroy')
+      this.root.id = this.root.id + '_del'
+      parentNode.insertBefore(this.rootBackup, this.root)
       parentNode.removeChild(this.root)
-      parentNode.appendChild(this.rootBackup)
       for (let k in this) {
         if (k !== 'config') {
           delete this[k]

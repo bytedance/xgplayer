@@ -135,4 +135,15 @@ util.copyDom = function (dom) {
   }
 }
 
+util.setInterval = function (context, eventName, intervalFunc, frequency) {
+  if (!context._interval[eventName]) {
+    context._interval[eventName] = setInterval(intervalFunc.bind(context), frequency)
+  }
+}
+
+util.clearInterval = function (context, eventName) {
+  clearInterval(context._interval[eventName])
+  context._interval[eventName] = null
+}
+
 export default util

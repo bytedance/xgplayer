@@ -26,7 +26,8 @@ class FlvPlayer extends Player {
       },
       get: () => {
         return this._options.url
-      }
+      },
+      configurable: true
     })
   }
   init (options) {
@@ -59,9 +60,9 @@ class FlvPlayer extends Player {
   }
 
   start () {
-    const { __flv__ } = this
-    super.start(__flv__.mse.url)
-    this.src = __flv__.mse.url
+    const flvPlayer = this.__flv__
+    super.start(flvPlayer.mse.url)
+    this.src = flvPlayer.mse.url
     return true
   }
 }
