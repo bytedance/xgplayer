@@ -49,7 +49,8 @@ class Lyric {
     const list = this.list
     const interval = this.animateInterval
     return list.filter(({time}, idx) => {
-      return curTime >= time && list[idx++] && curTime * 1 + interval * 1 <= list[idx++].time
+      let idxy = idx + 1
+      return curTime >= time && list[idxy] && curTime * 1 + interval * 1 <= list[idxy].time
     })
   }
   bind (player) {
@@ -57,7 +58,7 @@ class Lyric {
     if (self.isDynamic) {
       self.__handle__ = (() => {
         const f = this.find(player.currentTime)[0]
-        if (f.idx !== this.line) {
+        if (f && f.idx !== this.line) {
           this.line = f.idx
           player.emit('lyricUpdate', f)
         }

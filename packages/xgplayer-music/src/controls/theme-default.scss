@@ -76,4 +76,7 @@
             color: #ddd;
         }
     }
+    &.xgplayer-ended .xgplayer-controls{
+        display: flex;
+    }
 }

@@ -1,6 +1,8 @@
 import Player from 'xgplayer'
 import Lyric from './lyric'
+import Analyze from './analyze'
 let mode
+
 const util = Player.util
 
 class Music extends Player {
@@ -34,6 +36,13 @@ class Music extends Player {
         this.video.src = cur.src
       },
       configurable: true
+    })
+    this.once('canplay', function () {
+      if (opts.autoplay) {
+        this.volume = 0
+      } else {
+        this.volume = opts.volume
+      }
     })
     this.start()
   }
@@ -73,8 +82,18 @@ class Music extends Player {
     }
   }
 
-  add () {}
-  remove () {}
+  add (meta) {
+    this.list.push({
+      src: meta.src,
+      name: meta.name
+    })
+  }
+  remove (url) {
+    let idx = this.list.findIndex(item => item.src === url || item.name === url)
+    if (idx > -1) {
+      this.list.splice(idx, 1)
+    }
+  }
   random () {
     const len = this.list.length
     this.index = Math.ceil(Math.random() * len)
@@ -117,6 +136,12 @@ class Music extends Player {
         }
         break
     }
+  }
+  analyze (canvas) {
+    return new Analyze(this, canvas)
+  }
+  static get AudioCtx () {
+    return window.AudioContext || window.webkitAudioContext
   }
   static get ModeType () {
     return ['order', 'random', 'loop']
