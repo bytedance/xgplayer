@@ -49,8 +49,38 @@ let isSqrt = function (num, base) {
   }
 }
 
+class Color {
+  constructor (color, opacity = 1) {
+    this.color = Color.Valid.test(color) ? color : '#ffffff'
+    this.opacity = opacity
+  }
+  toArray () {
+    let color = this.color.slice(1)
+    let rgb = []
+    if (color.length === 6) {
+      color = color.match(/\d{2}/g)
+      rgb = color.map((item) => {
+        return Number(`0x${item}`)
+      })
+    }
+    return rgb
+  }
+  toRGB () {
+    let rgb = this.toArray()
+    return rgb.length === 3 ? `rgb(${rgb[0]},${rgb[1]},${rgb[2]})` : ''
+  }
+  toGRBA () {
+    let rgb = this.toArray()
+    return rgb.length === 3 ? `rgba(${rgb[0]},${rgb[1]},${rgb[2]},${this.opacity})` : ''
+  }
+  static get Valid () {
+    return /^#[0-9A-F]{6}$|^#[0-9A-F]{3}$/i
+  }
+}
+
 export default {
   requestAnimationFrame,
   cancelAnimationFrame,
-  isSqrt
+  isSqrt,
+  Color
 }

@@ -7,7 +7,6 @@ const util = Player.util
 
 class Music extends Player {
   constructor (options) {
-    let util = Player.util
     let opts = util.deepCopy({
       controls: true,
       mediaType: 'audio',
@@ -21,10 +20,6 @@ class Music extends Player {
     }]
     this.history = []
     this.index = 0
-    if (opts.lyric) {
-      this.__lyric__ = new Lyric(opts.lyric, opts.animateInterval)
-      this.__lyric__.bind(this)
-    }
     util.addClass(this.root, 'xgplayer-music')
     Object.defineProperty(this, 'src', {
       get () {
@@ -37,39 +32,29 @@ class Music extends Player {
       },
       configurable: true
     })
-    this.once('canplay', function () {
+    this.once('canplay', () => {
       if (opts.autoplay) {
         this.volume = 0
       } else {
         this.volume = opts.volume
       }
     })
+    this.on('ended', () => {
+      if (this.ended) {
+        this.currentTime = 0
+      }
+    })
     this.start()
   }
-  set lyric (lyricTxt) {
-    if (util.typeOf(lyricTxt) === 'Array') {
-      if (this.__lyric__) {
-        this.__lyric__.unbind(this)
-      }
-      this.__lyric__ = new Lyric(lyricTxt[0], lyricTxt[1])
-      this.__lyric__.bind(this)
-    } else if (util.typeOf(lyricTxt) === 'String') {
-      if (this.__lyric__) {
-        this.__lyric__.unbind(this)
-      }
-      this.__lyric__ = new Lyric(lyricTxt)
-      this.__lyric__.bind(this)
+  lyric (lyricTxt, Dom) {
+    if (this.__lyric__) {
+      this.__lyric__.unbind(this)
     }
+    this.__lyric__ = new Lyric(lyricTxt, Dom)
+    this.__lyric__.bind(this)
+    return this.__lyric__
   }
-  get lyric () {
-    return this.__lyric__ ? this.__lyric__.rawTxt : ''
-  }
-  get lyricLine () {
-    return this.__lyric__ ? this.__lyric__.line : -1
-  }
-  get lyricList () {
-    return this.__lyric__ ? this.__lyric__.list : []
-  }
+
   get mode () {
     return mode || Music.ModeType[0]
   }
@@ -89,7 +74,15 @@ class Music extends Player {
     })
   }
   remove (url) {
-    let idx = this.list.findIndex(item => item.src === url || item.name === url)
+    let idx = -1
+    this.list.every((item, index) => {
+      if (item.src === url || item.name === url) {
+        idx = index
+        return false
+      } else {
+        return true
+      }
+    })
     if (idx > -1) {
       this.list.splice(idx, 1)
     }

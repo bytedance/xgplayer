@@ -12,11 +12,12 @@ class LyricTime {
 export {LyricTime}
 
 class Lyric {
-  constructor (txt, interval = 0) {
+  constructor (txt, dom) {
     this.rawTxt = txt
     this.txt = txt.replace(/^[\r\n]|[\r\n]$/g, '').match(/(\[.*\])[^[]+/g)
     this.isDynamic = [].concat(txt.match(/\[\d{2}:\d{2}\.\d{2,3}\]/g)).length === this.txt.length && this.txt.length > 1
-    this.animateInterval = interval
+    this.__ainimateInterval__ = 0
+    this.dom = dom
     this.list = this.txt.map((item, idx) => {
       const reg = /(\[[\d:\S]+\])([^[]+)/g.test(item)
       const time = RegExp.$1
@@ -28,6 +29,12 @@ class Lyric {
       }
     })
     this.line = 0
+  }
+  set interval (val) {
+    this.__ainimateInterval__ = val
+  }
+  get interval () {
+    return this.__ainimateInterval__
   }
   adjust () {
     let list = this.list
@@ -47,7 +54,7 @@ class Lyric {
   }
   find (curTime) {
     const list = this.list
-    const interval = this.animateInterval
+    const interval = this.__ainimateInterval__
     return list.filter(({time}, idx) => {
       let idxy = idx + 1
       return curTime >= time && list[idxy] && curTime * 1 + interval * 1 <= list[idxy].time
@@ -55,6 +62,7 @@ class Lyric {
   }
   bind (player) {
     let self = this
+    this.__player__ = player
     if (self.isDynamic) {
       self.__handle__ = (() => {
         const f = this.find(player.currentTime)[0]
@@ -70,10 +78,44 @@ class Lyric {
     }
   }
   unbind (player) {
+    delete this.__player__
     if (this.__handle__) {
-      player.off('lybricUpdate', this.__handle__)
+      player.off('lyricUpdate', this.__handle__)
       delete this.__handle__
     }
+  }
+  show () {
+    let dom = this.dom
+    let lyrbicTxts = []
+    if (dom && dom.nodeType === 1) {
+      this.list.forEach(item => {
+        lyrbicTxts.push(`<xg-lyric-item class="xgplayer-lyric-item" data-idx="${item.idx}">${item.lyric.replace(/[\r\n]/g, '')}</xg-lyric-item>`)
+      })
+      dom.innerHTML = lyrbicTxts.join('')
+      this.__updateHandle__ = (item) => {
+        let dom = this.dom
+        let activeDom = dom.querySelector('.xgplayer-lyric-item-active')
+        let offsetHeight = dom.offsetHeight
+        let activeTop
+        if (activeDom) {
+          activeDom.className = 'xgplayer-lyric-item'
+        }
+        activeDom = dom.querySelector(`.xgplayer-lyric-item[data-idx="${item.idx}"]`)
+        if (activeDom) {
+          activeDom.className = 'xgplayer-lyric-item xgplayer-lyric-item-active'
+          activeTop = (activeDom.getBoundingClientRect().top - dom.getBoundingClientRect().top + dom.scrollTop - offsetHeight / 2)
+          if (activeTop) {
+            dom.scrollTop = activeTop
+          }
+        }
+      }
+      this.__player__.on('lyricUpdate', this.__updateHandle__)
+    } else {
+      this.__player__.emit('error', 'lyric container can not be empty')
+    }
+  }
+  hide () {
+    this.__updateHandle__.off('lyricUpdate', this.__updateHandle__)
   }
 }
 

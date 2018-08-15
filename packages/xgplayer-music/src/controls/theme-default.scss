@@ -80,3 +80,12 @@
         display: flex;
     }
 }
+.xgplayer-lyric-item {
+    display: block;
+    line-height: 22px;
+    font-size: 14px;
+    color: black;
+    &.xgplayer-lyric-item-active {
+        color: aquamarine;
+    }
+}

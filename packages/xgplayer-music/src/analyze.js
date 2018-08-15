@@ -1,5 +1,5 @@
 import {
-  requestAnimationFrame as req, cancelAnimationFrame as cancel, isSqrt
+  requestAnimationFrame as req, cancelAnimationFrame as cancel, isSqrt, Color
 } from './util'
 
 class Analyze {
@@ -31,7 +31,7 @@ class Analyze {
     };
     ['play', 'playing', 'seeked'].forEach(name => {
       player.on(name, () => {
-        this[this.__type__]()
+        this[`__${this.__type__}__`]()
       })
     });
     ['seeking', 'waiting', 'pause', 'ended'].forEach(name => {
@@ -40,20 +40,12 @@ class Analyze {
     player.on('volumechange', () => {
       gainNode.gain.setValueAtTime(player.volume, player.currentTime)
     })
+    player.on('destroy', () => {
+      audioCtx.close()
+    })
   }
 
-  wave () {
-    cancel(this.__status__['wave'])
-    cancel(this.__status__['bars'])
-    if (this.__status__.switch === 'off') {
-      return
-    }
-    const draw = () => {
-
-    }
-    this.__status__['wave'] = req(draw)
-  }
-  bars () {
+  __wave__ () {
     cancel(this.__status__['wave'])
     cancel(this.__status__['bars'])
     if (this.__status__.switch === 'off') {
@@ -66,21 +58,63 @@ class Analyze {
     let dataArray = new Uint8Array(bufferLen)
     const WIDTH = canvas.width
     const HEIGHT = canvas.height
+    const color = new Color(this.style.color).toRGB()
+    const bgColor = new Color(this.style.color).toRGB()
     analyser.fftSize = this.__size__
-    console.log(analyser.fftSize, this.__size__)
+    const draw = () => {
+      this.__status__['wave'] = req(draw)
+      analyser.getByteTimeDomainData(dataArray)
+      ctx.clearRect(0, 0, WIDTH, HEIGHT)
+      ctx.fillStyle = bgColor
+      ctx.lineWidth = 2
+      ctx.strokeStyle = color
+      ctx.beginPath()
+      const sliceWidth = WIDTH * 1.0 / bufferLen
+      let x = 0
+      for (let i = 0; i < bufferLen; i++) {
+        let v = dataArray[i] / 128.0
+        let y = v * HEIGHT / 2
+        if (i === 0) {
+          ctx.moveTo(x, y)
+        } else {
+          ctx.lineTo(x, y)
+        }
+        x += sliceWidth
+      }
+      ctx.lineTo(canvas.width, canvas.height / 2)
+      ctx.stroke()
+    }
+    draw()
+  }
+  __bars__ () {
+    cancel(this.__status__['wave'])
+    cancel(this.__status__['bars'])
+    if (this.__status__.switch === 'off') {
+      return
+    }
+    let analyser = this.analyser
+    let canvas = this.canvas
+    let ctx = this.ctx
+    let bufferLen = analyser.frequencyBinCount
+    let dataArray = new Uint8Array(bufferLen)
+    const WIDTH = canvas.width
+    const HEIGHT = canvas.height
+    const color = new Color(this.style.color).toArray()
+    const bgColor = new Color(this.style.color).toRGB()
+    analyser.fftSize = this.__size__
 
     const draw = () => {
       this.__status__['bars'] = req(draw)
       analyser.getByteFrequencyData(dataArray)
       ctx.clearRect(0, 0, WIDTH, HEIGHT)
-      ctx.fillStyle = 'rgb(0, 0, 0)'
+      ctx.fillStyle = bgColor
       ctx.fillRect(0, 0, WIDTH, HEIGHT)
       const barWidth = (WIDTH / bufferLen) * 2.5
       let barHeight
       let x = 0
       for (var i = 0; i < bufferLen; i++) {
         barHeight = dataArray[i]
-        ctx.fillStyle = 'rgb(' + (barHeight + 100) + ',50,50)'
+        ctx.fillStyle = `rgb(${barHeight + color[0]},${color[1]},${color[2]})`
         ctx.fillRect(x, HEIGHT - barHeight / 2, barWidth, barHeight / 2)
         x += barWidth + 1
       }
@@ -89,7 +123,7 @@ class Analyze {
   }
   on () {
     this.__status__.switch = 'on'
-    this[this.__type__]()
+    this[`__${this.__type__}__`]()
   }
   off () {
     this.__status__.switch = 'off'
@@ -97,10 +131,10 @@ class Analyze {
     cancel(this.__status__['bars'])
   }
   set mode (mode) {
-    if (Analyze.Mode.find(item => item === mode)) {
+    if (Analyze.Mode.filter(item => item === mode).length) {
       this.__type__ = mode
       if (this.__status__.switch === 'on') {
-        this[mode]()
+        this[`__${mode}__`]()
       }
     }
   }
@@ -108,10 +142,10 @@ class Analyze {
     return this.__type__
   }
   set size (num) {
-    if (isSqrt(num, 2)) {
+    if (num < 65536 && isSqrt(num, 2)) {
       this.__size__ = num
       this.analyser.fftSize = num
-      this[this.__type__]()
+      this[`__${this.__type__}__`]()
     }
   }
   get size () {
@@ -123,7 +157,7 @@ class Analyze {
   static get AudioCtx () {
     return window.AudioContext || window.webkitAudioContext
   }
-  static Mode () {
+  static get Mode () {
     return ['wave', 'bars']
   }
 }
