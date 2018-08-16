@@ -55,6 +55,40 @@ player.emit('DATA_REPORT' [, reportData])
 
 与tea对接后，设计的事件: [自研播放器上报tea](https://wiki.bytedance.net/pages/viewpage.action?pageId=179412453)
 
+
+## 使用方式:
+
+关于category、action、label和value的定义，可以参见 cnzz、baidu和gtag自定义事件的说明
+const player = new Player({
+  ...otherConfig,
+  loggers: [{
+    type: 'cnzz' | 'baidu' | 'gtag' | 'raven',
+    options: { //以下为默认值，可以传入以覆盖
+        category: 'video',
+        actions: { // 覆盖事件触发时的action
+            error: 'error',
+            complete: 'complete',
+            play: 'play',
+            pause: 'pause',
+            end: 'end',
+            ready: 'ready',
+            seek: 'seek',
+            unload: 'unload'
+        },
+        label: player.config.url, // label 的值
+        value: { // label 的值
+            error: (player) => player.currentTime,
+            complete: (player) => player.currentTime,
+            play: (player) => player.currentTime,
+            pause: (player) => player.currentTime,
+            end: (player) => player.currentTime,
+            unload: (player) => player.currentTime,
+            seek: (player) => player.currentTime,
+            ready: (player) => player.currentTime
+        }
+    }
+  }]
+})
 ## ChangeLog:
 
 ### v1.0:
