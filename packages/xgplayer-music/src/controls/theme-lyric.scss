@@ -1,0 +1,56 @@
+@import './theme-default.scss';
+
+$lrc-height: 200px;
+
+.xgplayer-music{
+    font-size: 14px;
+}
+.xgplayer-music{
+    .xgplayer-controls {
+        position: relative;
+    }
+    .xgplayer-lyric {
+        width: 100%;
+        height: $lrc-height;
+        background: #ffffff;
+        display: block;
+
+        margin: 50px 0;
+        overflow: hidden;
+    }
+}
+
+.xgplayer-lyric-contents {
+    position: relative;
+    text-align: center;
+    overflow: hidden;
+
+    width: 100%;
+    transition: all 0.5s ease-out;
+    user-select: text;
+    cursor: default;
+
+    p {
+        font-size: 12px;
+        color: #666;
+        line-height: 16px !important;
+        height: 16px !important;
+        padding: 0 !important;
+        margin: 0 !important;
+        transition: all 0.5s ease-out;
+        opacity: 0.4;
+        overflow: hidden;
+
+        &.xgplayer-lyric-current {
+            opacity: 1;
+            overflow: visible;
+            height: initial !important;
+            min-height: 16px;
+        }
+    }
+
+    &.xgplayer-lyric-hide {
+        display: none;
+    }
+
+}

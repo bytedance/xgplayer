@@ -35,6 +35,8 @@
     "publish": "lerna publish",
     "cz": "git cz",
     "precz": "lint-staged",
+    "init-submodules": "git submodule init",
+    "update-submodules": "git submodule update --recursive --remote",
     "remove": "lerna run clean",
     "clean": "lerna clean"
   },

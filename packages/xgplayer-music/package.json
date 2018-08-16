@@ -5,8 +5,9 @@
   "main": "./dist/index.js",
   "scripts": {
     "prepare": "npm run build",
-    "build": "webpack --progress --display-chunks -p",
-    "watch": "webpack --progress --display-chunks -p --watch"
+    "build": "webpack --progress --display-chunks -p --config build/webpack.prod.config.js",
+    "build:watch": "webpack --progress --display-chunks -p --config build/webpack.prod.config.js --watch",
+    "dev": "webpack-dev-server --colors --progress --config build/webpack.dev.config.js --port 9090"
   },
   "repository": {
     "type": "git",
@@ -46,6 +47,7 @@
   },
   "devDependencies": {
     "babel-preset-es2015": "^6.24.1",
-    "webpack-cli": "^3.0.2"
+    "webpack-cli": "^3.0.2",
+    "webpack-dev-server": "^3.1.5"
   }
 }

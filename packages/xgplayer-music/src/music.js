@@ -5,11 +5,17 @@ let mode
 
 const util = Player.util
 
+export const EMusicEvents = {
+  MUSIC_CHANGE: 'change', // 歌曲内容切换
+  LYRIC_CHANGE: 'lyric-change'
+}
+
 class Music extends Player {
   constructor (options) {
     let opts = util.deepCopy({
       controls: true,
       mediaType: 'audio',
+      theme: 'lyric',
       ignores: ['fullscreen', 'start', 'definition', 'makeBullet', 'textTrack', 'loading', 'pc', 'mobile', 'playbackRate', 'replay', 'volume', 'error', 'poster']
     }, options)
     super(opts)
@@ -52,6 +58,7 @@ class Music extends Player {
     }
     this.__lyric__ = new Lyric(lyricTxt, Dom)
     this.__lyric__.bind(this)
+    this.emit(EMusicEvents.LYRIC_CHANGE)
     return this.__lyric__
   }
 
@@ -98,14 +105,14 @@ class Music extends Player {
       case 'loop':
         if (this.index + 1 < this.list.length) {
           this.index++
-          this.emit('change', this.list[this.index])
+          this.emit(EMusicEvents.MUSIC_CHANGE, this.list[this.index])
           this.src = this.list[this.index].src
         }
         break
       default:
         const next = this.random()
         if (next) {
-          this.emit('change', next)
+          this.emit(EMusicEvents.MUSIC_CHANGE, next)
           this.src = next.src
         }
         break
@@ -117,14 +124,14 @@ class Music extends Player {
       case 'loop':
         if (this.index - 1 > -1 && this.list.length > 0) {
           this.index--
-          this.emit('change', this.list[this.index])
+          this.emit(EMusicEvents.MUSIC_CHANGE, this.list[this.index])
           this.src = this.list[this.index].src
         }
         break
       default:
         const pre = this.random()
         if (pre) {
-          this.emit('change', pre)
+          this.emit(EMusicEvents.MUSIC_CHANGE, pre)
           this.src = pre.src
         }
         break
