@@ -36,7 +36,6 @@ export const getDefaultOpts = (player) => ({
     seek: currentTime,
     ready: currentTime
   }
-
 })
 
 /**
