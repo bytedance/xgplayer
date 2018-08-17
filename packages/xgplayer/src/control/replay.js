@@ -10,8 +10,12 @@ let replay = function () {
     `, {}, 'xgplayer-replay'); let root = player.root
   let btn = container.querySelector('.xgplayer-replay-svg')
   root.appendChild(container)
+
   player.on('ended', function () {
     container.querySelector('.xgplayer-replay-txt').textContent = player.lang.REPLAY
+    let path = container.querySelector('path')
+    let transform = window.getComputedStyle(path).getPropertyValue('transform')
+    path.setAttribute('transform', transform)
     if (!player.config.loop) {
       util.addClass(root, 'replay')
     }
