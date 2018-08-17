@@ -40,7 +40,11 @@ let textTrack = function () {
                 let trackDoms = player.root.getElementsByTagName('Track');
                 if(li.innerHTML === '关闭') {
                     trackDoms[0].track.mode = 'hidden'
+                    util.removeClass(player.root, 'xgplayer-is-textTrack');
                 } else {
+                    if(!util.hasClass(player.root, 'xgplayer-is-textTrack')) {
+                      util.addClass(player.root, 'xgplayer-is-textTrack');
+                    }
                     trackDoms[0].track.mode = 'showing'
 
                     list.some(item => {
