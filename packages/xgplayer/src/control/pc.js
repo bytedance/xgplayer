@@ -4,9 +4,10 @@ let pc = function () {
   let player = this
   let util = Player.util; let controls = player.controls; let root = player.root
   let clk = 0; let _click_
+  let centerBtn = player.config.centerBtn
   let iconPath = {
-    pause: 'M576,363L810,512L576,661zM342,214L576,363L576,661L342,810z',
-    play: 'M598,214h170v596h-170v-596zM256 810v-596h170v596h-170z'
+    pause: centerBtn.pausePath ? centerBtn.pausePath : 'M576,363L810,512L576,661zM342,214L576,363L576,661L342,810z',
+    play: centerBtn.playPath ? centerBtn.playPath : 'M598,214h170v596h-170v-596zM256 810v-596h170v596h-170z'
   }
   let btn = util.createDom('xg-start', `
         <svg xmlns="http://www.w3.org/2000/svg" width="1024" height="1024" viewBox="0 0 1024 1024">

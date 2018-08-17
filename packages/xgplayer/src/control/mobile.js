@@ -44,9 +44,10 @@ let mobile = function () {
   let whitelist = player.config.whitelist
   let pass = whitelistPass(whitelist)
   player.mobilePass = pass
+  let centerBtn = player.config.centerBtn
   let iconPath = {
-    pause: 'M576,363L810,512L576,661zM342,214L576,363L576,661L342,810z',
-    play: 'M598,214h170v596h-170v-596zM256 810v-596h170v596h-170z'
+    pause: centerBtn.pausePath ? centerBtn.pausePath : 'M576,363L810,512L576,661zM342,214L576,363L576,661L342,810z',
+    play: centerBtn.playPath ? centerBtn.playPath : 'M598,214h170v596h-170v-596zM256 810v-596h170v596h-170z'
   }
 
   let btn = util.createDom('xg-start', `
