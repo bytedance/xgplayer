@@ -228,6 +228,9 @@ class FlvPlayer {
     this._tempMds = Object.assign({}, this._mediaDataSource, {url})
 
     this._tempTransmuxer = new Transmuxer(this._tempMds, this._config)
+    this._tempTransmuxer._emitter.on('metadata_arrived', onMetaData => {
+      this._emitter.emit('metadata_arrived', onMetaData);
+    })
 
     this._tempTransmuxer.on(TransmuxingEvents.INIT_SEGMENT, (type, is) => {
       if (!this._config.isLive) {
@@ -340,6 +343,9 @@ class FlvPlayer {
     }
 
     this._transmuxer = new Transmuxer(this._mediaDataSource, this._config)
+    this._transmuxer._emitter.on('metadata_arrived', onMetaData => {
+      this._emitter.emit('metadata_arrived', onMetaData);
+    })
 
     this._transmuxer.on(TransmuxingEvents.INIT_SEGMENT, (type, is) => {
       this._msectl.appendInitSegment(is)

@@ -246,6 +246,10 @@ class TransmuxingController {
             // Always create new FLVDemuxer
             this._demuxer = new FLVDemuxer(probeData, this._config);
 
+            this._demuxer._emitter.on('metadata_arrived', onMetaData => {
+              this._emitter.emit('metadata_arrived', onMetaData);
+            })
+            
             if (!this._remuxer) {
                 this._remuxer = new MP4Remuxer(this._config);
             }
