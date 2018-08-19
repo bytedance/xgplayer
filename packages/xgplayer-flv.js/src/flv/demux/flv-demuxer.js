@@ -22,6 +22,7 @@ import SPSParser from './sps-parser.js';
 import DemuxErrors from './demux-errors.js';
 import MediaInfo from '../core/media-info.js';
 import {IllegalStateException} from '../utils/exception.js';
+import EventEmitter from 'events';
 
 function Swap16(src) {
     return (((src >>> 8) & 0xFF) |
@@ -47,6 +48,8 @@ class FLVDemuxer {
 
     constructor(probeData, config) {
         this.TAG = 'FLVDemuxer';
+
+        this._emitter = new EventEmitter();
 
         this._config = config;
 
@@ -124,7 +127,18 @@ class FLVDemuxer {
         this._onMediaInfo = null;
         this._onTrackMetadata = null;
         this._onDataAvailable = null;
+
+        this._emitter.removeAllListeners();
+        this._emitter = null;
     }
+
+    // on(event, listener) {
+    //     this._emitter.addListener(event, listener);
+    // }
+    //
+    // off(event, listener) {
+    //     this._emitter.removeListener(event, listener);
+    // }
 
     static probe(buffer) {
         let data = new Uint8Array(buffer);
@@ -358,6 +372,7 @@ class FLVDemuxer {
             }
             this._metadata = scriptData;
             let onMetaData = this._metadata.onMetaData;
+            this._emitter.emit('metadata_arrived', onMetaData);
 
             if (typeof onMetaData.hasAudio === 'boolean') {  // hasAudio
                 if (this._hasAudioFlagOverrided === false) {
