@@ -132,14 +132,6 @@ class FLVDemuxer {
         this._emitter = null;
     }
 
-    // on(event, listener) {
-    //     this._emitter.addListener(event, listener);
-    // }
-    //
-    // off(event, listener) {
-    //     this._emitter.removeListener(event, listener);
-    // }
-
     static probe(buffer) {
         let data = new Uint8Array(buffer);
         let mismatch = {match: false};
