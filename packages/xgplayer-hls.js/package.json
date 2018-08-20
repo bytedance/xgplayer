@@ -34,7 +34,7 @@
     "babel-plugin-add-module-exports": "^0.2.1",
     "deepmerge": "^2.0.1",
     "event-emitter": "^0.3.5",
-    "hls.js": "^0.8.9",
+    "hls.js": "^0.11.0",
     "webpack": "^4.11.0"
   },
   "peerDependency": {

@@ -350,7 +350,7 @@
     width: 60px;
     position: relative;
     outline: none;
-    display: none;
+    display: block;
     cursor: pointer;
     margin-left: 10px;
     margin-top: 9px;
@@ -410,9 +410,6 @@
             display:inline-block;
             vertical-align:middle;
         }
-    }
-    @at-root .xgplayer-is-textTrack &{
-        display: block;
     }
 }
 
@@ -569,6 +566,9 @@
         height: 180px!important;
         z-index: 999 !important;
         .xgplayer-controls {
+            display: none;
+        }
+        xg-bullet {
             display: none;
         }
         .xgplayer-pip-lay{

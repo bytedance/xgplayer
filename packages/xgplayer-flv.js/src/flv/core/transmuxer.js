@@ -51,6 +51,10 @@ class Transmuxer {
             this._controller = new TransmuxingController(mediaDataSource, config);
         }
 
+        this._controller._emitter.on('metadata_arrived', onMetaData => {
+          this._emitter.emit('metadata_arrived', onMetaData);
+        })
+
         if (this._controller) {
             let ctl = this._controller;
             ctl.on(TransmuxingEvents.IO_ERROR, this._onIOError.bind(this));
