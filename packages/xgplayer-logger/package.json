@@ -1,6 +1,6 @@
 {
-  "name": "xg-player-logger",
-  "version": "1.0.8",
+  "name": "xgplayer-logger",
+  "version": "1.0.9",
   "description": "视频监控",
   "main": "./dist/index.js",
   "directories": {
