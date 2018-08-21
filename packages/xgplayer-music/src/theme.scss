@@ -1,0 +1,91 @@
+.xgplayer-music{
+    .xgplayer-controls {
+        display: flex;
+        height: 50px;
+        cursor: default;
+        .xgplayer-prev {
+            order: 0;
+            cursor: pointer;
+        }
+        .xgplayer-play {
+            order: 1;
+            .xgplayer-tips {
+                display: none;
+            }
+        }
+        .xgplayer-next {
+            order: 2;
+            cursor: pointer;
+        }
+        .xgplayer-poster {
+            position: static;
+            order: 3;
+            width: 40px;
+            height: 40px;
+            text-align: center;
+            vertical-align: middle;
+            position: relative;
+            top: 50%;
+            margin-top: -17px;
+            img {
+                max-width: 100%;
+                max-height: 100%;
+            }
+        }
+        .xgplayer-progress {
+            position: relative;
+            order: 4;
+            top: 70%;
+            left: 20px;
+            margin-top: -11px;
+            flex: 99;
+            >* {
+                height: 3px;
+                margin-top: 8.5px;
+            }
+            .xgplayer-progress-played:after {
+                top: -4px;
+                width: 10px;
+                height: 10px;
+                content: " ";
+                display: block;
+            }
+            .xgplayer-tips {
+                display: none !important;
+            }
+        }
+        .xgplayer-time {
+            order: 5;
+            margin-left: 30px;
+            line-height: 1;
+            position: relative;
+            top: 55%;
+        }
+        .xgplayer-placeholder {
+            order: 999;
+            width: 0;
+        }
+        .xgplayer-icon {
+            padding-top: 5px;
+        }
+        .xgplayer-name {
+            position: absolute;
+            left: 175px;
+            bottom: 50%;
+            font-size: 12px;
+            color: #ddd;
+        }
+    }
+    &.xgplayer-ended .xgplayer-controls{
+        display: flex;
+    }
+}
+.xgplayer-lyric-item {
+    display: block;
+    line-height: 22px;
+    font-size: 14px;
+    color: black;
+    &.xgplayer-lyric-item-active {
+        color: aquamarine;
+    }
+}

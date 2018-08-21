@@ -26,7 +26,7 @@ let pip = function () {
 
     util.addClass(el, 'xgplayer-pip-active')
     player.root.style.right = 0
-    player.root.style.bottom = '200px';
+    player.root.style.bottom = '200px'
     player.root.style.top = ''
     player.root.style.left = '';
     ['click', 'touchstart'].forEach(item => {

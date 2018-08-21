@@ -109,6 +109,8 @@ util.deepCopy = function (dst, src) {
         } else {
           util.deepCopy(dst[key], src[key])
         }
+      } else if (util.typeOf(src[key]) === 'Array') {
+        dst[key] = util.typeOf(dst[key]) === 'Array' ? dst[key].concat(src[key]) : []
       } else {
         dst[key] = src[key]
       }

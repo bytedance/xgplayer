@@ -5,7 +5,7 @@ const umd = {
   output: {
     path: `${__dirname}/dist`,
     filename: 'index.js',
-    library: 'xgplayer-flv.js',
+    library: 'xgplayer-music.js',
     libraryTarget: 'umd'
   },
   mode: 'production',
@@ -13,7 +13,7 @@ const umd = {
     rules: [{
       test: /\.js$/,
       loader: 'babel-loader',
-      exclude: [/node_modules/]
+      exclude: /node_modules/
     }, {
       test: /\.scss$/,
       use: [
@@ -43,14 +43,14 @@ const client = {
   output: {
     path: `${__dirname}/browser`,
     filename: 'index.js',
-    library: 'FlvJsPlayer',
+    library: 'Music',
     libraryTarget: 'window'
   },
   module: {
     rules: [{
       test: /\.js$/,
       loader: 'babel-loader',
-      exclude: [/node_modules/]
+      exclude: /node_modules/
     }, {
       test: /\.scss$/,
       use: [

@@ -37,6 +37,9 @@
     "xgplayer": "^0.1.0"
   },
   "dependencies": {
+    "babel-plugin-transform-class-properties": "^6.24.1",
+    "babel-plugin-transform-decorators": "^6.24.1",
+    "babel-plugin-transform-react-inline-elements": "^6.22.0",
     "concat-typed-array": "^1.0.2",
     "event-emitter": "^0.3.5"
   }
