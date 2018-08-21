@@ -72,6 +72,9 @@ class Player extends Proxy {
     ['focus', 'blur'].forEach(item => {
       this.on(item, this['on' + item.charAt(0).toUpperCase() + item.slice(1)])
     })
+    let player = this
+    this.root.addEventListener('mousemove', () => { player.onFocus() })
+
     setTimeout(() => {
       this.emit('ready')
     }, 0)
