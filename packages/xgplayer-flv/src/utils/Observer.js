@@ -32,11 +32,14 @@ class Observer {
   once (key, fn) {
     const fnId = this.fnId++
     const listeners = this._getListenersByKey(key)
-    this._listenerIdMap[fnId] = () => {
+    const _this = this
+
+    function onceFunc () {
       const args = nativeSlice.call(arguments)
       fn.apply(null, args)
-      this.off(key, fnId)
+      _this.off(key, fnId)
     }
+    this._listenerIdMap[fnId] = onceFunc
     if (listeners) {
       listeners.unshift(fnId)
       return fnId
