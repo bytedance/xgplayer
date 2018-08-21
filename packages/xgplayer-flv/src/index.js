@@ -29,7 +29,12 @@ class FlvPlayer extends Player {
       },
       configurable: true
     })
+
+    if (options.autoplay) {
+      this.start()
+    }
   }
+
   init (options) {
     const player = this
     const { isLive } = options
@@ -60,10 +65,17 @@ class FlvPlayer extends Player {
   }
 
   start () {
+    if (!this.inited) {
+      return
+    }
     const flvPlayer = this.__flv__
     super.start(flvPlayer.mse.url)
     this.src = flvPlayer.mse.url
     return true
+  }
+
+  get inited () {
+    return this.__flv__ !== undefined
   }
 }
 
