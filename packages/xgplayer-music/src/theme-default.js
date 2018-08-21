@@ -1,5 +1,4 @@
 import Player from '../music'
-import './theme-default.scss'
 
 const defualtTheme = function (player) {
   const config = player.config

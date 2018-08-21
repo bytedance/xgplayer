@@ -21,6 +21,21 @@ class Music extends Player {
     this.history = []
     this.index = 0
     util.addClass(this.root, 'xgplayer-music')
+    if (!opts.controls) {
+      this.root.style.display = 'none'
+      return
+    }
+    util.addClass(this.root, 'xgplayer-music-default')
+    if (!opts.theme || opts.theme === 'default') {
+      if (!opts.width) {
+        this.config.width = '100%'
+        this.root.style.width = '100%'
+      }
+      if (!opts.height) {
+        this.config.height = '50px'
+        this.root.style.height = '50px'
+      }
+    }
     Object.defineProperty(this, 'src', {
       get () {
         return this.video.currentSrc
@@ -142,3 +157,7 @@ class Music extends Player {
 }
 
 export default Music
+export {
+  Lyric,
+  Analyze
+}

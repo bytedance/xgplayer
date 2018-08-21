@@ -6,6 +6,9 @@ class Analyze {
   constructor (player, canvas) {
     this.canvas = canvas
     this.player = player
+    if (!Analyze.AudioCtx) {
+      return
+    }
     const audioCtx = new Analyze.AudioCtx()
     let analyser = audioCtx.createAnalyser()
     let gainNode = audioCtx.createGain()
