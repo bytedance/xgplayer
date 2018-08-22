@@ -2,7 +2,11 @@ import Player from '../player'
 import SVG from '../utils/svg'
 
 let volume = function () {
-  let player = this; let util = Player.util; let scale = 0.0220625
+  let player = this; let util = Player.util; let sniffer = Player.sniffer; let scale = 0.0220625
+  if (sniffer.device === 'mobile') {
+    return
+  }
+  player.config.volume = player.config.autoplay ? 0 : player.config.volume
   let volume = player.config.volume
   let iconPath = {
     muted: 'M920.4 439.808l-108.544-109.056-72.704 72.704 109.568 108.544-109.056 108.544 72.704 72.704 108.032-109.568 108.544 109.056 72.704-72.704-109.568-108.032 109.056-108.544-72.704-72.704-108.032 109.568z',
@@ -41,7 +45,7 @@ let volume = function () {
   let selected = container.querySelector('.xgplayer-drag')
   let icon = container.querySelector('.xgplayer-icon')
   selected.style.height = `${player.config.volume * 100}%`
-  let path = root.querySelectorAll('path')[1]
+  let path = container.querySelectorAll('path')[1]
   let svg = new SVG({
     progress: (shape, percent) => {
       let _p = svg.toSVGString(shape)
@@ -54,10 +58,11 @@ let volume = function () {
   let barSize = null
   slider.volume = player.config.volume;
 
-  ['touchstart', 'mousedown'].forEach(item => {
+  ['touchend', 'mousedown'].forEach(item => {
     bar.addEventListener(item, function (e) {
       e.preventDefault()
       e.stopPropagation()
+      player.video.muted = false
       slider.focus()
       util.event(e)
       containerHeight = bar.getBoundingClientRect().height
@@ -107,10 +112,11 @@ let volume = function () {
     })
   });
 
-  ['touchstart', 'mousedown'].forEach((item) => {
+  ['touchend', 'mousedown'].forEach((item) => {
     icon.addEventListener(item, function (e) {
       e.preventDefault()
       e.stopPropagation()
+      player.video.muted = false
       if (util.hasClass(slider, 'xgplayer-none')) {
         util.removeClass(slider, 'xgplayer-none')
         slider.focus()
@@ -131,12 +137,7 @@ let volume = function () {
   })
 
   let _changeTimer = null
-  let firstVolChanged = 0;
   player.on('volumechange', function () {
-    if (firstVolChanged === 1) {
-      player.video.muted = false
-      firstVolChanged = 2
-    }
     if (_changeTimer) {
       clearTimeout(_changeTimer)
     }
@@ -148,12 +149,6 @@ let volume = function () {
       }
       selected.style.height = `${player.volume * containerHeight}px`
     }, 50)
-  })
-
-  player.once('volumechange', function () {
-    if (player.config.autoplay) {
-      firstVolChanged = 1
-    }
   })
 
   player.once('canplay', function () {
