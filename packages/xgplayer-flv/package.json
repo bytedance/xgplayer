@@ -1,6 +1,6 @@
 {
   "name": "xgplayer-flv",
-  "version": "1.1.0-beta",
+  "version": "1.1.0",
   "description": "flv demuxer for xgplayer",
   "main": "./dist/index.js",
   "scripts": {
