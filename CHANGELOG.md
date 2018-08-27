@@ -1,10 +1,10 @@
 <a name="1.1.0"></a>
-## [1.1.0](https://github.com/bytedance/xgplayer/compare/v1.1.0-beta...v1.1.0) (2018-08-27)
+# [1.1.0](https://github.com/bytedance/xgplayer/compare/v1.1.0-beta...v1.1.0) (2018-08-27)
 
 
 
 <a name="1.1.0-beta"></a>
-# [1.1.0-beta](https://github.com/bytedance/xgplayer/compare/v1.0.9...v1.1.0-beta) (2018-08-24)
+## [1.1.0-beta](https://github.com/bytedance/xgplayer/compare/v1.0.9...v1.1.0-beta) (2018-08-24)
 
 
 ### Bug Fixes
