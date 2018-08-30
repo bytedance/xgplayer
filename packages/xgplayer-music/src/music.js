@@ -2,6 +2,7 @@ import Player from 'xgplayer'
 import Lyric from './lyric'
 import Analyze from './analyze'
 let mode
+let timeScale = 15
 
 const util = Player.util
 
@@ -61,11 +62,14 @@ class Music extends Player {
     })
     this.start()
   }
-  lyric (lyricTxt, Dom) {
+  lyric (lyricTxts, Dom) {
     if (this.__lyric__) {
       this.__lyric__.unbind(this)
     }
-    this.__lyric__ = new Lyric(lyricTxt, Dom)
+    if (Player.util.typeOf(lyricTxts) !== 'Array') {
+      lyricTxts = [].concat(lyricTxts)
+    }
+    this.__lyric__ = new Lyric(lyricTxts, Dom)
     this.__lyric__.bind(this)
     return this.__lyric__
   }
@@ -80,6 +84,13 @@ class Music extends Player {
       case 2:
         mode = Music.ModeType[idx]
     }
+  }
+
+  get timeScale () {
+    return timeScale || 15
+  }
+  set timeScale (scale) {
+    timeScale = scale
   }
 
   add (meta) {
@@ -144,6 +155,14 @@ class Music extends Player {
         }
         break
     }
+  }
+  forward () {
+    console.log(`music go forward ${timeScale}s`)
+    this.currentTime = this.currentTime + timeScale < this.duration ? this.currentTime + timeScale : this.duration - 0.1
+  }
+  backward () {
+    console.log(`music go backward ${timeScale}s`)
+    this.currentTime = this.currentTime - timeScale > 0 ? this.currentTime - timeScale : 0
   }
   analyze (canvas) {
     return new Analyze(this, canvas)

@@ -5,7 +5,7 @@ import Errors from './error'
 class Proxy {
   constructor (options) {
     this._hasStart = false
-    let videoConfig = {
+    this.videoConfig = {
       controls: false,
       autoplay: options.autoplay,
       playsinline: options.playsinline,
@@ -19,7 +19,7 @@ class Proxy {
       mediaType: options.mediaType || 'video'
     }
     if (options.loop) {
-      videoConfig.loop = 'loop'
+      this.videoConfig.loop = 'loop'
     }
     let textTrackDom = ''
     if (options.textTrack && Array.isArray(options.textTrack) && (navigator.userAgent.indexOf('Chrome') > -1 || navigator.userAgent.indexOf('Firefox') > -1)) {
@@ -37,7 +37,7 @@ class Proxy {
           return true
         }
       })
-      videoConfig.crossorigin = 'anonymous'
+      this.videoConfig.crossorigin = 'anonymous'
     }
     if (options.textTrackStyle) {
       let style = document.createElement('style')
@@ -53,7 +53,7 @@ class Proxy {
         style.sheet.addRule(`${wrap} video::cue`, styleStr)
       }
     }
-    this.video = util.createDom(videoConfig.mediaType, textTrackDom, videoConfig, '')
+    this.video = util.createDom(this.videoConfig.mediaType, textTrackDom, this.videoConfig, '')
     if (options.autoplay) {
       this.video.autoplay = true
       this.video.muted = true

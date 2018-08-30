@@ -1,6 +1,6 @@
 import Player from '../music'
 
-const defualtTheme = function (player) {
+const defaultTheme = function (player) {
   const config = player.config
   const util = player.constructor.util
   const controlEl = player.controls
@@ -20,6 +20,19 @@ const defualtTheme = function (player) {
       player.root.style.height = '50px'
     }
   }
+  const backward = util.createDom('xg-backward', `<xg-icon class="xgplayer-icon"><svg xmlns="http://www.w3.org/2000/svg" width="1024" height="1024" viewBox="0 0 1024 1024">
+            <path transform = "scale(1.5 1.5) translate(8 4.5)"
+            d="m 14,2.99996 0,10 -7,-5 7,-5 z m -7,5 0,5 -7,-5 7,-5 0,5 z m -7,0 0,0 z"></path>
+        </svg></xg-icon>`, {}, 'xgplayer-backward')
+  controlEl.appendChild(backward)
+  const ev = ['click', 'touchstart']
+  ev.forEach(item => {
+    backward.addEventListener(item, function (e) {
+      e.preventDefault()
+      e.stopPropagation()
+      player.backward()
+    }, false)
+  })
   const prev = util.createDom('xg-prev', `<xg-icon class="xgplayer-icon"><svg xmlns="http://www.w3.org/2000/svg" width="1024" height="1024" viewBox="0 0 1024 1024">
             <path transform = "scale(0.025 0.025)"
             d="M600 1140v-768h128v352l320-320v704l-320-320v352zz"></path>
@@ -45,6 +58,19 @@ const defualtTheme = function (player) {
       player.next()
     }, false)
   })
+  const forward = util.createDom('xg-forward', `<xg-icon class="xgplayer-icon"><svg xmlns="http://www.w3.org/2000/svg" width="1024" height="1024" viewBox="0 0 1024 1024">
+            <path transform = "scale(1.5 1.5) translate(-2 4.5)"
+            d="m 2,2.99996 0,10 7,-5 -7,-5 z m 7,5 0,5 7,-5 -7,-5 0,5 z m 7,0 0,0 z"></path>
+        </svg></xg-icon>`, {}, 'xgplayer-forward')
+  controlEl.appendChild(forward)
+  const ev = ['click', 'touchstart']
+  ev.forEach(item => {
+    forward.addEventListener(item, function (e) {
+      e.preventDefault()
+      e.stopPropagation()
+      player.forward()
+    }, false)
+  })
 
   const name = util.createDom('xg-name', `${player.config.name}`, {}, 'xgplayer-name')
   controlEl.appendChild(name)
@@ -53,4 +79,4 @@ const defualtTheme = function (player) {
   controlEl.appendChild(poster)
 }
 
-Player.install('theme-default', defualtTheme)
+Player.install('theme-default', defaultTheme)
