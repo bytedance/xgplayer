@@ -40,16 +40,23 @@ progress = function () {
       container.focus()
       containerWidth = container.getBoundingClientRect().width
       let {left} = progress.getBoundingClientRect()
-      let isMove = false
+      // let isMove = false
       let move = function (e) {
         e.preventDefault()
         e.stopPropagation()
         util.event(e)
-        isMove = true
-        let w = e.clientX - left
+        player.isProgressMoving = true
+        let w = e.clientX - left > containerWidth ? containerWidth : e.clientX - left
         let now = w / containerWidth * player.duration
         progress.style.width = `${w * 100 / containerWidth}%`
-        player.currentTime = Number(now).toFixed(1)
+        if (player.videoConfig.mediaType === 'video') {
+          player.currentTime = Number(now).toFixed(1)
+        } else {
+          let time = util.findDom(root, '.xgplayer-time')
+          if (time) {
+            time.innerHTML = `<span>${util.format(now || 0)}</span><em>${util.format(player.duration)}`
+          }
+        }
       }
       let up = function (e) {
         e.preventDefault()
@@ -60,13 +67,13 @@ progress = function () {
         window.removeEventListener('mouseup', up)
         window.removeEventListener('touchend', up)
         container.blur()
-        if (!isMove) {
+        if (!player.isProgressMoving || player.videoConfig.mediaType === 'audio') {
           let w = e.clientX - left
           let now = w / containerWidth * player.duration
           progress.style.width = `${w * 100 / containerWidth}%`
           player.currentTime = Number(now).toFixed(1)
         }
-        isMove = false
+        player.isProgressMoving = false
       }
       window.addEventListener('mousemove', move)
       window.addEventListener('touchmove', move)
@@ -127,7 +134,9 @@ progress = function () {
     if (!containerWidth && container) {
       containerWidth = container.getBoundingClientRect().width
     }
-    progress.style.width = `${player.currentTime * 100 / player.duration}%`
+    if (player.videoConfig.mediaType !== 'audio' || !player.isProgressMoving) {
+      progress.style.width = `${player.currentTime * 100 / player.duration}%`
+    }
   }
   player.on('timeupdate', handleTimeUpdate)
 

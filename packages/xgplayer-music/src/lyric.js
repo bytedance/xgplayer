@@ -1,3 +1,5 @@
+import Player from 'xgplayer'
+
 class LyricTime {
   constructor (timeTxt) {
     this.regRule = /(\d{2}(?=:)):(\d{2}(?=\.))\.(\d{2,3})/g
@@ -12,21 +14,44 @@ class LyricTime {
 export {LyricTime}
 
 class Lyric {
-  constructor (txt, dom) {
-    this.rawTxt = txt
-    this.txt = txt.replace(/^[\r\n]|[\r\n]$/g, '').match(/(\[.*\])[^[]+/g)
-    this.isDynamic = [].concat(txt.match(/\[\d{2}:\d{2}\.\d{2,3}\]/g)).length === this.txt.length && this.txt.length > 1
+  constructor (txts, dom) {
+    this.rawTxts = txts
+    this.txts = txts.map((item) => { return item.replace(/^[\r\n]|[\r\n]$/g, '').match(/(\[.*\])[^[]+/g) })
+    this.isDynamics = txts.map((item, idx) => {
+      return [].concat(item.match(/\[\d{2}:\d{2}\.\d{2,3}\]/g)).length === this.txts[idx].length && this.txts[idx].length === this.txts[0].length && this.txts[idx].length > 1
+    })
+    this.isDynamic = this.isDynamics.some((item) => {
+      return item
+    })
     this.__ainimateInterval__ = 0
+    this.__offset__ = 0
+    this.__offsetScale__ = 0.5
     this.dom = dom
-    this.list = this.txt.map((item, idx) => {
-      const reg = /(\[[\d:\S]+\])([^[]+)/g.test(item)
-      const time = RegExp.$1
-      const lyric = RegExp.$2
-      return {
-        time: reg ? new LyricTime(time).time : -1,
-        lyric,
-        idx
+    this.lists = []
+    this.isDynamics.map((item, idx) => {
+      if (item) {
+        this.lists.push(
+          this.txts[idx].map((txt, index) => {
+            const reg = /(\[[\d:\S]+\])([^[]+)/g.test(txt)
+            const time = RegExp.$1
+            const lyric = RegExp.$2
+            return {
+              time: reg ? new LyricTime(time).time : -1,
+              lyric,
+              idx
+            }
+          })
+        )
       }
+    })
+    this.list = this.lists.reduce((pre, cur) => {
+      return pre.map((item, idx) => {
+        return {
+          time: item.time,
+          lyric: item.lyric === '\n' ? `${item.lyric}${cur[idx].lyric}` : `${item.lyric}<br/>${cur[idx].lyric}`,
+          idx
+        }
+      })
     })
     this.line = 0
   }
@@ -35,6 +60,18 @@ class Lyric {
   }
   get interval () {
     return this.__ainimateInterval__
+  }
+  set offset (val) {
+    this.__offset__ = val
+  }
+  get offset () {
+    return this.__offset__
+  }
+  set offsetScale (val) {
+    this.__offsetScale__ = val
+  }
+  get offsetScale () {
+    return this.__offsetScale__
   }
   adjust () {
     let list = this.list
@@ -55,6 +92,8 @@ class Lyric {
   find (curTime) {
     const list = this.list
     const interval = this.__ainimateInterval__
+    const offset = this.__offset__
+    curTime = curTime + offset > 0 ? curTime + offset : 0
     return list.filter(({time}, idx) => {
       let idxy = idx + 1
       return curTime >= time && list[idxy] && curTime * 1 + interval * 1 <= list[idxy].time
@@ -87,25 +126,50 @@ class Lyric {
   show () {
     let dom = this.dom
     let lyrbicTxts = []
+    let self = this
+    const ev = ['click', 'touchstart']
     if (dom && dom.nodeType === 1) {
+      const lrcWrap = Player.util.createDom('div', `<div></div>`, {}, 'xgplayer-lrcWrap')
+      dom.appendChild(lrcWrap)
       this.list.forEach(item => {
         lyrbicTxts.push(`<xg-lyric-item class="xgplayer-lyric-item" data-idx="${item.idx}">${item.lyric.replace(/[\r\n]/g, '')}</xg-lyric-item>`)
       })
-      dom.innerHTML = lyrbicTxts.join('')
+      lrcWrap.innerHTML = lyrbicTxts.join('')
+      const lrcForward = Player.util.createDom('xg-lrcForward', `<div></div>`, {}, 'xgplayer-lrcForward')
+      dom.appendChild(lrcForward)
+      ev.forEach(item => {
+        lrcForward.addEventListener(item, function (e) {
+          e.preventDefault()
+          e.stopPropagation()
+          self.offset -= self.offsetScale
+          console.log(`lyric go forward ${self.offsetScale}s`)
+        }, false)
+      })
+
+      const lrcBack = Player.util.createDom('xg-lrcBack', `<div></div>`, {}, 'xgplayer-lrcBack')
+      dom.appendChild(lrcBack)
+      ev.forEach(item => {
+        lrcBack.addEventListener(item, function (e) {
+          e.preventDefault()
+          e.stopPropagation()
+          self.offset += self.offsetScale
+          console.log(`lyric go back ${self.offsetScale}s`)
+        }, false)
+      })
       this.__updateHandle__ = (item) => {
-        let dom = this.dom
-        let activeDom = dom.querySelector('.xgplayer-lyric-item-active')
-        let offsetHeight = dom.offsetHeight
+        let domWrap = this.dom.querySelector('.xgplayer-lrcWrap')
+        let activeDom = domWrap.querySelector('.xgplayer-lyric-item-active')
+        let offsetHeight = domWrap.offsetHeight
         let activeTop
         if (activeDom) {
           activeDom.className = 'xgplayer-lyric-item'
         }
-        activeDom = dom.querySelector(`.xgplayer-lyric-item[data-idx="${item.idx}"]`)
+        activeDom = domWrap.querySelector(`.xgplayer-lyric-item[data-idx="${item.idx}"]`)
         if (activeDom) {
           activeDom.className = 'xgplayer-lyric-item xgplayer-lyric-item-active'
-          activeTop = (activeDom.getBoundingClientRect().top - dom.getBoundingClientRect().top + dom.scrollTop - offsetHeight / 2)
+          activeTop = (activeDom.getBoundingClientRect().top - domWrap.getBoundingClientRect().top + domWrap.scrollTop - offsetHeight / 2)
           if (activeTop) {
-            dom.scrollTop = activeTop
+            domWrap.scrollTop = activeTop
           }
         }
       }

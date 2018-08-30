@@ -23,6 +23,7 @@ class Player extends Proxy {
     this.userTimer = null
     this.waitTimer = null
     this.history = []
+    this.isProgressMoving = false
     this.root = util.findDom(document, `#${this.config.id}`)
     this.controls = util.createDom('xg-controls', '', {
       unselectable: 'on',

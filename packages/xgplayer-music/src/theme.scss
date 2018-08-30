@@ -3,23 +3,31 @@
         display: flex;
         height: 50px;
         cursor: default;
-        .xgplayer-prev {
+        .xgplayer-backward {
             order: 0;
             cursor: pointer;
         }
-        .xgplayer-play {
+        .xgplayer-prev {
             order: 1;
+            cursor: pointer;
+        }
+        .xgplayer-play {
+            order: 2;
             .xgplayer-tips {
                 display: none;
             }
         }
         .xgplayer-next {
-            order: 2;
+            order: 3;
+            cursor: pointer;
+        }
+        .xgplayer-forward {
+            order: 4;
             cursor: pointer;
         }
         .xgplayer-poster {
             position: static;
-            order: 3;
+            order: 5;
             width: 40px;
             height: 40px;
             text-align: center;
@@ -34,7 +42,7 @@
         }
         .xgplayer-progress {
             position: relative;
-            order: 4;
+            order: 6;
             top: 70%;
             left: 20px;
             margin-top: -11px;
@@ -55,7 +63,7 @@
             }
         }
         .xgplayer-time {
-            order: 5;
+            order: 7;
             margin-left: 30px;
             line-height: 1;
             position: relative;
@@ -70,7 +78,7 @@
         }
         .xgplayer-name {
             position: absolute;
-            left: 175px;
+            left: 255px;
             bottom: 50%;
             font-size: 12px;
             color: #ddd;
@@ -88,4 +96,32 @@
     &.xgplayer-lyric-item-active {
         color: aquamarine;
     }
+}
+.xgplayer-lrcWrap {
+    overflow: auto;
+    height:300px;
+    border: 1px solid #ddd;
+    padding: 20px;
+}
+.xgplayer-lrcForward {
+    position: absolute;
+    top: 20%;
+    left: 300px;
+    cursor: pointer;
+    width:0;
+    height:0;
+    border-width:0 10px 10px;
+    border-style:solid;
+    border-color:transparent transparent #333;/*透明 透明  灰*/
+}
+.xgplayer-lrcBack {
+    position: absolute;
+    top: 80%;
+    left: 300px;
+    cursor: pointer;
+    width:0;
+    height:0;
+    border-width:10px 10px 0;
+    border-style:solid;
+    border-color:#333 transparent transparent;/*透明 透明  灰*/
 }
