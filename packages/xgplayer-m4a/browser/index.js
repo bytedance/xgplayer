@@ -1434,13 +1434,14 @@ var m4aplayer = function m4aplayer() {
     var i = arguments.length > 0 && arguments[0] !== undefined ? arguments[0] : 0;
     var time = arguments.length > 1 && arguments[1] !== undefined ? arguments[1] : player.currentTime;
     var order = arguments.length > 2 && arguments[2] !== undefined ? arguments[2] : null;
+    var nextOrder = arguments.length > 3 && arguments[3] !== undefined ? arguments[3] : null;
 
     if (player.timer) {
       clearTimeout(player.timer);
     }
     time = Math.max(time, player.currentTime);
     player.timer = setTimeout(function () {
-      player.mp4.seek(time + i * 0.1, order).then(function (buffer) {
+      player.mp4.seek(time, order, nextOrder).then(function (buffer) {
         if (buffer) {
           var mse = player.mse;
           mse.updating = true;
@@ -1460,6 +1461,7 @@ var m4aplayer = function m4aplayer() {
   };
   var init = function init(url) {
     var mp4 = new _mp2.default(url);
+    mp4.reqTimeLength = player.config.reqTimeLength || 5;
     var mse = void 0;
     return new Promise(function (resolve, reject) {
       mp4.once('mdatReady', function () {
@@ -1553,7 +1555,6 @@ var m4aplayer = function m4aplayer() {
         errorHandle(player, err);
       });
     };
-    var lastLoadSample = -1;
     player.on('timeupdate', function () {
       var mse = player.mse;var mp4 = player.mp4;
       if (mse && !mse.updating && mp4.canDownload) {
@@ -1563,17 +1564,12 @@ var m4aplayer = function m4aplayer() {
           return;
         }
         timeRage.every(function (item, idx) {
-          var start = item[0].time;
           if (range[1] === 0) {
             loadData(5);
             return false;
           } else {
-            if (item[0].time > range[1] && !mp4.bufferCache.has(idx)) {
-              if (lastLoadSample === item[0].order) {
-                return false;
-              }
-              lastLoadSample = item[0].order;
-              loadData(0, start, item[0].order);
+            if (item[0].time >= range[1] && !mp4.bufferCache.has(idx)) {
+              loadData(0, item[0].time, item[0].order, item[1].order);
             } else {
               return true;
             }
@@ -1597,7 +1593,7 @@ var m4aplayer = function m4aplayer() {
         if (!hasBuffered) {
           timeRage.every(function (item, idx) {
             if (item[0].time <= curTime && item[1].time > curTime) {
-              loadData(0, curTime, item[0].order);
+              loadData(0, item[0].time, item[0].order, item[1].order);
               return false;
             } else {
               return true;
@@ -1607,7 +1603,7 @@ var m4aplayer = function m4aplayer() {
       } else {
         timeRage.every(function (item, idx) {
           if (item[0].time <= curTime && item[1].time > curTime) {
-            loadData(0, curTime, item[0].order);
+            loadData(0, item[0].time, item[0].order, item[1].order);
             return false;
           } else {
             return true;
@@ -2522,7 +2518,7 @@ var MP4 = function () {
     (0, _eventEmitter2.default)(this);
     this.url = url;
     this.CHUNK_SIZE = chunkSize;
-    this.reqOrderLength = 100;
+    this.reqTimeLength = 5;
     this.init(url);
     this.once('mdatReady', this.moovParse.bind(this));
     this.cache = new _buffer2.default();
@@ -2617,15 +2613,18 @@ var MP4 = function () {
 
       var audioFrame = void 0,
           audioNextFrame = void 0;
-      for (var i = 0; i < this.sampleCount; i += this.reqOrderLength) {
-        audioFrame = this.getSamplesByOrders('audio', i, 0);
-        if (i + this.reqOrderLength < this.sampleCount) {
-          audioNextFrame = this.getSamplesByOrders('audio', i + this.reqOrderLength, 0);
-          this.timeRage.push([{ time: audioFrame.time.time / audioTimeScale, order: i }, { time: audioNextFrame.time.time / audioTimeScale, order: i + this.reqOrderLength - 1 }]);
+      var stts = _util2.default.findBox(this.audioTrak, 'stts').entry;
+      for (var i = 0; i < audioDuration; i += this.reqTimeLength) {
+        audioFrame = _util2.default.seekOrderSampleByTime(stts, audioTimeScale, i);
+        if (i + this.reqTimeLength < audioDuration) {
+          audioNextFrame = _util2.default.seekOrderSampleByTime(stts, audioTimeScale, i + this.reqTimeLength);
+          this.timeRage.push([{ time: audioFrame.startTime, order: audioFrame.order }, { time: audioNextFrame.startTime, order: audioNextFrame.order }]);
         } else {
-          this.timeRage.push([{ time: audioFrame.time.time / audioTimeScale, order: i }, { time: audioDuration, order: this.sampleCount - 1 }]);
+          this.timeRage.push([{ time: audioFrame.startTime, order: audioFrame.order }, { time: audioDuration, order: this.sampleCount - 1 }]);
         }
       }
+      // console.log('this.timeRage')
+      // console.log(this.timeRage)
       this.meta = {
         audioCodec: audioCodec,
         createTime: mvhd.createTime,
@@ -2793,45 +2792,54 @@ var MP4 = function () {
     key: 'seek',
     value: function seek(time) {
       var audioIndexOrder = arguments.length > 1 && arguments[1] !== undefined ? arguments[1] : null;
+      var audioNextIndexOrder = arguments.length > 2 && arguments[2] !== undefined ? arguments[2] : null;
 
+      var audioStts = _util2.default.findBox(this.audioTrak, 'stts').entry;
       if (!audioIndexOrder) {
-        var audioStts = _util2.default.findBox(this.audioTrak, 'stts').entry;
         audioIndexOrder = _util2.default.seekOrderSampleByTime(audioStts, this.meta.audioTimeScale, time).order;
+      }
+      if (!audioIndexOrder) {
+        if (time + this.reqTimeLength < this.meta.audioDuration) {
+          audioNextIndexOrder = _util2.default.seekOrderSampleByTime(audioStts, this.meta.audioTimeScale, time + this.reqTimeLength).order;
+        }
       }
       if (this.bufferCache.has(audioIndexOrder)) {
         return Promise.resolve(null);
       } else {
-        return this.loadFragment(audioIndexOrder);
+        return this.loadFragment(audioIndexOrder, audioNextIndexOrder);
       }
     }
   }, {
     key: 'loadFragment',
-    value: function loadFragment(audioIndexOrder) {
+    value: function loadFragment(audioIndexOrder, audioNextIndexOrder) {
       var start = void 0,
           end = void 0;
       var self = this;
       var audioFrame = this.getSamplesByOrders('audio', audioIndexOrder, 0);
       start = audioFrame.offset;
       var audioNextFrame = void 0;
-      if (audioIndexOrder + this.reqOrderLength < this.sampleCount) {
-        audioNextFrame = this.getSamplesByOrders('audio', audioIndexOrder + this.reqOrderLength, 0);
+      if (audioNextIndexOrder) {
+        audioNextFrame = this.getSamplesByOrders('audio', audioNextIndexOrder, 0);
         end = audioNextFrame.offset - 1;
-      } else if (audioIndexOrder < this.sampleCount) {
+      } else {
         audioNextFrame = this.getSamplesByOrders('audio', this.sampleCount - 1, 0);
         end = audioNextFrame.offset + audioNextFrame.size - 1;
       }
-
+      // console.log('start order')
+      // console.log(audioIndexOrder)
+      // console.log('start')
+      // console.log(start + self.mdatStart)
+      // console.log('end order')
+      // console.log(audioNextIndexOrder)
+      // console.log('end')
+      // console.log(self.mdatStart + end)
       if (window.isNaN(start) || end !== undefined && window.isNaN(end)) {
         self.emit('error', new _error2.default('parse', '', { line: 366, handle: '[MP4] loadFragment', url: self.url }));
         return false;
       }
-      if (this.bufferCache.has(audioIndexOrder)) {
-        return Promise.resolve(null);
-      } else {
-        return this.getData(start + self.mdatStart, end ? self.mdatStart + end : '').then(function (dat) {
-          return self.createFragment(new Uint8Array(dat), start, audioIndexOrder);
-        });
-      }
+      return this.getData(start + self.mdatStart, end ? self.mdatStart + end : '').then(function (dat) {
+        return self.createFragment(new Uint8Array(dat), start, audioIndexOrder, audioNextIndexOrder);
+      });
     }
   }, {
     key: 'addFragment',
@@ -2844,10 +2852,10 @@ var MP4 = function () {
     }
   }, {
     key: 'createFragment',
-    value: function createFragment(mdatData, start, audioIndexOrder) {
+    value: function createFragment(mdatData, start, audioIndexOrder, audioNextIndexOrder) {
       var resBuffers = [];
       this.bufferCache.add(audioIndexOrder);
-      var _samples = this.getSamplesByOrders('audio', audioIndexOrder, audioIndexOrder + this.reqOrderLength < this.sampleCount ? audioIndexOrder + this.reqOrderLength : undefined);
+      var _samples = this.getSamplesByOrders('audio', audioIndexOrder, audioNextIndexOrder);
       var samples = _samples.map(function (item, idx) {
         return {
           size: item.size,
@@ -3591,7 +3599,7 @@ module.exports = exports['default'];
 /* 79 */
 /***/ (function(module) {
 
-module.exports = {"name":"xgplayer-m4a","version":"1.1.0","description":"xgplayer plugin for m4a transform to fmp4","main":"./dist/index.js","scripts":{"prepare":"npm run build","build":"webpack --progress --display-chunks -p","watch":"webpack --progress --display-chunks -p --watch"},"repository":{"type":"git","url":"git@github.com:bytedance/xgplayer.git"},"babel":{"presets":["es2015"],"plugins":["add-module-exports","babel-plugin-bulk-import"]},"keywords":["mp4","fmp4","player","audio"],"author":"yinguohui@bytedance.com","license":"MIT","dependencies":{"babel-loader":"^7.1.4","babel-plugin-add-module-exports":"^0.2.1","babel-plugin-bulk-import":"^1.0.2","babel-preset-es2015":"^6.24.1","concat-typed-array":"^1.0.2","deepmerge":"^2.0.1","event-emitter":"^0.3.5","json-loader":"^0.5.7","webpack":"^4.11.0"},"peerDependency":{"xgplayer":"^0.1.0"},"devDependencies":{"babel-core":"^6.26.3"}};
+module.exports = {"name":"xgplayer-m4a","version":"1.1.0","description":"xgplayer plugin for m4a transform to fmp4","main":"./dist/index.js","scripts":{"prepare":"npm run build","build":"webpack --progress --display-chunks -p","watch":"webpack --progress --display-chunks -p --watch"},"repository":{"type":"git","url":"git@github.com:bytedance/xgplayer.git"},"babel":{"presets":["es2015"],"plugins":["add-module-exports","babel-plugin-bulk-import"]},"keywords":["mp4","fmp4","player","audio"],"author":"yinguohui@bytedance.com","license":"MIT","dependencies":{"babel-loader":"^7.1.4","babel-plugin-add-module-exports":"^0.2.1","babel-plugin-bulk-import":"^1.0.2","babel-preset-es2015":"^6.24.1","concat-typed-array":"^1.0.2","deepmerge":"^2.0.1","event-emitter":"^0.3.5","import-local":"^2.0.0","json-loader":"^0.5.7","webpack":"^4.11.0"},"peerDependency":{"xgplayer":"^0.1.0"},"devDependencies":{"babel-core":"^6.26.3"}};
 
 /***/ }),
 /* 80 */

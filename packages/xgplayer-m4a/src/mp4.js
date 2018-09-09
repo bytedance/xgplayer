@@ -19,7 +19,7 @@ class MP4 {
     EventEmitter(this)
     this.url = url
     this.CHUNK_SIZE = chunkSize
-    this.reqOrderLength = 100
+    this.reqTimeLength = 5
     this.init(url)
     this.once('mdatReady', this.moovParse.bind(this))
     this.cache = new Buffer()
@@ -99,21 +99,24 @@ class MP4 {
     this.sampleCount = util.sampleCount(util.findBox(this.audioTrak, 'stts').entry)
 
     let audioFrame, audioNextFrame
-    for (let i = 0; i < this.sampleCount; i += this.reqOrderLength) {
-      audioFrame = this.getSamplesByOrders('audio', i, 0)
-      if (i + this.reqOrderLength < this.sampleCount) {
-        audioNextFrame = this.getSamplesByOrders('audio', i + this.reqOrderLength, 0)
+    let stts = util.findBox(this.audioTrak, 'stts').entry
+    for (let i = 0; i < audioDuration; i += this.reqTimeLength) {
+      audioFrame = util.seekOrderSampleByTime(stts, audioTimeScale, i)
+      if (i + this.reqTimeLength < audioDuration) {
+        audioNextFrame = util.seekOrderSampleByTime(stts, audioTimeScale, i + this.reqTimeLength)
         this.timeRage.push([
-          {time: audioFrame.time.time / audioTimeScale, order: i},
-          {time: audioNextFrame.time.time / audioTimeScale, order: i + this.reqOrderLength - 1}
+          {time: audioFrame.startTime, order: audioFrame.order},
+          {time: audioNextFrame.startTime, order: audioNextFrame.order}
         ])
       } else {
         this.timeRage.push([
-          {time: audioFrame.time.time / audioTimeScale, order: i},
+          {time: audioFrame.startTime, order: audioFrame.order},
           {time: audioDuration, order: this.sampleCount - 1}
         ])
       }
     }
+    // console.log('this.timeRage')
+    // console.log(this.timeRage)
     this.meta = {
       audioCodec,
       createTime: mvhd.createTime,
@@ -270,47 +273,55 @@ class MP4 {
     return buffer.buffer
   }
 
-  seek (time, audioIndexOrder = null) {
+  seek (time, audioIndexOrder = null, audioNextIndexOrder = null) {
+    let audioStts = util.findBox(this.audioTrak, 'stts').entry
     if (!audioIndexOrder) {
-      let audioStts = util.findBox(this.audioTrak, 'stts').entry
       audioIndexOrder = util.seekOrderSampleByTime(audioStts, this.meta.audioTimeScale, time).order
+    }
+    if (!audioIndexOrder) {
+      if (time + this.reqTimeLength < this.meta.audioDuration) {
+        audioNextIndexOrder = util.seekOrderSampleByTime(audioStts, this.meta.audioTimeScale, time + this.reqTimeLength).order
+      }
     }
     if (this.bufferCache.has(audioIndexOrder)) {
       return Promise.resolve(null)
     } else {
-      return this.loadFragment(audioIndexOrder)
+      return this.loadFragment(audioIndexOrder, audioNextIndexOrder)
     }
   }
 
-  loadFragment (audioIndexOrder) {
+  loadFragment (audioIndexOrder, audioNextIndexOrder) {
     let start,
       end
     let self = this
     let audioFrame = this.getSamplesByOrders('audio', audioIndexOrder, 0)
     start = audioFrame.offset
     let audioNextFrame
-    if (audioIndexOrder + this.reqOrderLength < this.sampleCount) {
-      audioNextFrame = this.getSamplesByOrders('audio', audioIndexOrder + this.reqOrderLength, 0)
+    if (audioNextIndexOrder) {
+      audioNextFrame = this.getSamplesByOrders('audio', audioNextIndexOrder, 0)
       end = audioNextFrame.offset - 1
-    } else if (audioIndexOrder < this.sampleCount) {
+    } else {
       audioNextFrame = this.getSamplesByOrders('audio', this.sampleCount - 1, 0)
       end = audioNextFrame.offset + audioNextFrame.size - 1
     }
-
+    // console.log('start order')
+    // console.log(audioIndexOrder)
+    // console.log('start')
+    // console.log(start + self.mdatStart)
+    // console.log('end order')
+    // console.log(audioNextIndexOrder)
+    // console.log('end')
+    // console.log(self.mdatStart + end)
     if (window.isNaN(start) || (end !== undefined && window.isNaN(end))) {
       self.emit('error', new Errors('parse', '', { line: 366, handle: '[MP4] loadFragment', url: self.url }))
       return false
     }
-    if (this.bufferCache.has(audioIndexOrder)) {
-      return Promise.resolve(null)
-    } else {
-      return this.getData(
-        start + self.mdatStart, end
-          ? self.mdatStart + end
-          : '').then((dat) => {
-        return self.createFragment(new Uint8Array(dat), start, audioIndexOrder)
-      })
-    }
+    return this.getData(
+      start + self.mdatStart, end
+        ? self.mdatStart + end
+        : '').then((dat) => {
+      return self.createFragment(new Uint8Array(dat), start, audioIndexOrder, audioNextIndexOrder)
+    })
   }
   addFragment (data) {
     let buffer = new Buffer()
@@ -319,13 +330,11 @@ class MP4 {
     this.cache.write(buffer.buffer)
     return buffer.buffer
   }
-  createFragment (mdatData, start, audioIndexOrder) {
+  createFragment (mdatData, start, audioIndexOrder, audioNextIndexOrder) {
     let resBuffers = []
     this.bufferCache.add(audioIndexOrder)
     let _samples = this.getSamplesByOrders(
-      'audio', audioIndexOrder, audioIndexOrder + this.reqOrderLength < this.sampleCount
-        ? audioIndexOrder + this.reqOrderLength
-        : undefined)
+      'audio', audioIndexOrder, audioNextIndexOrder)
     let samples = _samples.map((item, idx) => {
       return {
         size: item.size,

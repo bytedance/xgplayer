@@ -53,13 +53,13 @@ let m4aplayer = function () {
   }
   player.config._mainURL = mainURL
   player.config._backupURL = backupURL
-  let loadData = (i = 0, time = player.currentTime, order = null) => {
+  let loadData = (i = 0, time = player.currentTime, order = null, nextOrder = null) => {
     if (player.timer) {
       clearTimeout(player.timer)
     }
     time = Math.max(time, player.currentTime)
     player.timer = setTimeout(function () {
-      player.mp4.seek(time + i * 0.1, order).then(buffer => {
+      player.mp4.seek(time, order, nextOrder).then(buffer => {
         if (buffer) {
           let mse = player.mse
           mse.updating = true
@@ -79,6 +79,7 @@ let m4aplayer = function () {
   }
   let init = (url) => {
     let mp4 = new MP4(url)
+    mp4.reqTimeLength = player.config.reqTimeLength || 5
     let mse
     return new Promise((resolve, reject) => {
       mp4.once('mdatReady', () => {
@@ -165,7 +166,6 @@ let m4aplayer = function () {
         errorHandle(player, err)
       })
     }
-    let lastLoadSample = -1
     player.on('timeupdate', function () {
       let mse = player.mse; let mp4 = player.mp4
       if (mse && !mse.updating && mp4.canDownload) {
@@ -175,17 +175,12 @@ let m4aplayer = function () {
           return
         }
         timeRage.every((item, idx) => {
-          let start = item[0].time
           if (range[1] === 0) {
             loadData(5)
             return false
           } else {
-            if (item[0].time > range[1] && !mp4.bufferCache.has(idx)) {
-              if (lastLoadSample === item[0].order) {
-                return false
-              }
-              lastLoadSample = item[0].order
-              loadData(0, start, item[0].order)
+            if (item[0].time >= range[1] && !mp4.bufferCache.has(idx)) {
+              loadData(0, item[0].time, item[0].order, item[1].order)
             } else {
               return true
             }
@@ -209,7 +204,7 @@ let m4aplayer = function () {
         if (!hasBuffered) {
           timeRage.every((item, idx) => {
             if (item[0].time <= curTime && item[1].time > curTime) {
-              loadData(0, curTime, item[0].order)
+              loadData(0, item[0].time, item[0].order, item[1].order)
               return false
             } else {
               return true
@@ -219,7 +214,7 @@ let m4aplayer = function () {
       } else {
         timeRage.every((item, idx) => {
           if (item[0].time <= curTime && item[1].time > curTime) {
-            loadData(0, curTime, item[0].order)
+            loadData(0, item[0].time, item[0].order, item[1].order)
             return false
           } else {
             return true
