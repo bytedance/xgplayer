@@ -73,6 +73,7 @@ class Proxy {
       let self = this
       let name = Object.keys(item)[0]
       self.video.addEventListener(name, function () {
+        // console.log(name)
         if (name === 'play') {
           self.hasStart = true
         }

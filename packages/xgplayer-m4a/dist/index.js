@@ -375,7 +375,7 @@ if (typeof __g == 'number') __g = global; // eslint-disable-line no-undef
 
 
 var store = __webpack_require__(39)('wks');
-var uid = __webpack_require__(19);
+var uid = __webpack_require__(20);
 var _Symbol = __webpack_require__(2).Symbol;
 var USE_SYMBOL = typeof _Symbol == 'function';
 
@@ -520,7 +520,7 @@ module.exports = function (it) {
 
 
 // Thank's IE8 for his funny defineProperty
-module.exports = !__webpack_require__(22)(function () {
+module.exports = !__webpack_require__(23)(function () {
   return Object.defineProperty({}, 'a', { get: function get() {
       return 7;
     } }).a != 7;
@@ -773,10 +773,68 @@ module.exports = exports["default"];
 "use strict";
 
 
-module.exports = false;
+Object.defineProperty(exports, "__esModule", {
+  value: true
+});
+
+var _createClass = function () { function defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ("value" in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } } return function (Constructor, protoProps, staticProps) { if (protoProps) defineProperties(Constructor.prototype, protoProps); if (staticProps) defineProperties(Constructor, staticProps); return Constructor; }; }();
+
+var _concatTypedArray = __webpack_require__(34);
+
+var _concatTypedArray2 = _interopRequireDefault(_concatTypedArray);
+
+function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
+
+function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } }
+
+var Buffer = function () {
+  function Buffer() {
+    _classCallCheck(this, Buffer);
+
+    this.buffer = new Uint8Array(0);
+  }
+
+  _createClass(Buffer, [{
+    key: 'write',
+    value: function write() {
+      var self = this;
+
+      for (var _len = arguments.length, buffer = Array(_len), _key = 0; _key < _len; _key++) {
+        buffer[_key] = arguments[_key];
+      }
+
+      buffer.forEach(function (item) {
+        if (item) {
+          self.buffer = (0, _concatTypedArray2.default)(Uint8Array, self.buffer, item);
+        } else {
+          window.console.error(item);
+        }
+      });
+    }
+  }], [{
+    key: 'writeUint32',
+    value: function writeUint32(value) {
+      return new Uint8Array([value >> 24, value >> 16 & 0xff, value >> 8 & 0xff, value & 0xff]);
+    }
+  }]);
+
+  return Buffer;
+}();
+
+exports.default = Buffer;
+module.exports = exports['default'];
 
 /***/ }),
 /* 18 */
+/***/ (function(module, exports, __webpack_require__) {
+
+"use strict";
+
+
+module.exports = false;
+
+/***/ }),
+/* 19 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
@@ -809,7 +867,7 @@ module.exports = function (it) {
 };
 
 /***/ }),
-/* 19 */
+/* 20 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
@@ -822,7 +880,7 @@ module.exports = function (key) {
 };
 
 /***/ }),
-/* 20 */
+/* 21 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
@@ -830,8 +888,8 @@ module.exports = function (key) {
 
 var global = __webpack_require__(2);
 var core = __webpack_require__(4);
-var hide = __webpack_require__(21);
-var redefine = __webpack_require__(24);
+var hide = __webpack_require__(22);
+var redefine = __webpack_require__(25);
 var ctx = __webpack_require__(8);
 var PROTOTYPE = 'prototype';
 
@@ -873,7 +931,7 @@ $export.R = 128; // real proto method for `library`
 module.exports = $export;
 
 /***/ }),
-/* 21 */
+/* 22 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
@@ -889,7 +947,7 @@ module.exports = __webpack_require__(10) ? function (object, key, value) {
 };
 
 /***/ }),
-/* 22 */
+/* 23 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
@@ -904,7 +962,7 @@ module.exports = function (exec) {
 };
 
 /***/ }),
-/* 23 */
+/* 24 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
@@ -919,16 +977,16 @@ module.exports = function (it) {
 };
 
 /***/ }),
-/* 24 */
+/* 25 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
 
 
 var global = __webpack_require__(2);
-var hide = __webpack_require__(21);
-var has = __webpack_require__(25);
-var SRC = __webpack_require__(19)('src');
+var hide = __webpack_require__(22);
+var has = __webpack_require__(26);
+var SRC = __webpack_require__(20)('src');
 var TO_STRING = 'toString';
 var $toString = Function[TO_STRING];
 var TPL = ('' + $toString).split(TO_STRING);
@@ -958,7 +1016,7 @@ __webpack_require__(4).inspectSource = function (it) {
 });
 
 /***/ }),
-/* 25 */
+/* 26 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
@@ -970,7 +1028,7 @@ module.exports = function (it, key) {
 };
 
 /***/ }),
-/* 26 */
+/* 27 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
@@ -979,21 +1037,21 @@ module.exports = function (it, key) {
 module.exports = {};
 
 /***/ }),
-/* 27 */
+/* 28 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
 
 
 // 7.1.15 ToLength
-var toInteger = __webpack_require__(28);
+var toInteger = __webpack_require__(29);
 var min = Math.min;
 module.exports = function (it) {
   return it > 0 ? min(toInteger(it), 0x1fffffffffffff) : 0; // pow(2, 53) - 1 == 9007199254740991
 };
 
 /***/ }),
-/* 28 */
+/* 29 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
@@ -1007,7 +1065,7 @@ module.exports = function (it) {
 };
 
 /***/ }),
-/* 29 */
+/* 30 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
@@ -1016,7 +1074,7 @@ module.exports = function (it) {
 var ctx = __webpack_require__(8);
 var invoke = __webpack_require__(49);
 var html = __webpack_require__(50);
-var cel = __webpack_require__(23);
+var cel = __webpack_require__(24);
 var global = __webpack_require__(2);
 var process = global.process;
 var setTask = global.setImmediate;
@@ -1100,7 +1158,7 @@ module.exports = {
 };
 
 /***/ }),
-/* 30 */
+/* 31 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
@@ -1125,7 +1183,7 @@ module.exports.f = function (C) {
 };
 
 /***/ }),
-/* 31 */
+/* 32 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
@@ -1137,7 +1195,7 @@ var navigator = global.navigator;
 module.exports = navigator && navigator.userAgent || '';
 
 /***/ }),
-/* 32 */
+/* 33 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
@@ -1150,7 +1208,7 @@ module.exports = function (it) {
 };
 
 /***/ }),
-/* 33 */
+/* 34 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
@@ -1165,64 +1223,6 @@ function _interopRequireDefault(obj) {
 }
 
 module.exports = _concat2.default;
-
-/***/ }),
-/* 34 */
-/***/ (function(module, exports, __webpack_require__) {
-
-"use strict";
-
-
-Object.defineProperty(exports, "__esModule", {
-  value: true
-});
-
-var _createClass = function () { function defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ("value" in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } } return function (Constructor, protoProps, staticProps) { if (protoProps) defineProperties(Constructor.prototype, protoProps); if (staticProps) defineProperties(Constructor, staticProps); return Constructor; }; }();
-
-var _concatTypedArray = __webpack_require__(33);
-
-var _concatTypedArray2 = _interopRequireDefault(_concatTypedArray);
-
-function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
-
-function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } }
-
-var Buffer = function () {
-  function Buffer() {
-    _classCallCheck(this, Buffer);
-
-    this.buffer = new Uint8Array(0);
-  }
-
-  _createClass(Buffer, [{
-    key: 'write',
-    value: function write() {
-      var self = this;
-
-      for (var _len = arguments.length, buffer = Array(_len), _key = 0; _key < _len; _key++) {
-        buffer[_key] = arguments[_key];
-      }
-
-      buffer.forEach(function (item) {
-        if (item) {
-          self.buffer = (0, _concatTypedArray2.default)(Uint8Array, self.buffer, item);
-        } else {
-          window.console.error(item);
-        }
-      });
-    }
-  }], [{
-    key: 'writeUint32',
-    value: function writeUint32(value) {
-      return new Uint8Array([value >> 24, value >> 16 & 0xff, value >> 8 & 0xff, value & 0xff]);
-    }
-  }]);
-
-  return Buffer;
-}();
-
-exports.default = Buffer;
-module.exports = exports['default'];
 
 /***/ }),
 /* 35 */
@@ -1388,6 +1388,10 @@ var _task = __webpack_require__(35);
 
 var _task2 = _interopRequireDefault(_task);
 
+var _buffer = __webpack_require__(17);
+
+var _buffer2 = _interopRequireDefault(_buffer);
+
 function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
 
 var isEnded = function isEnded(player, mp4) {
@@ -1424,7 +1428,13 @@ var m4aplayer = function m4aplayer() {
   var Errors = _xgplayer2.default.Errors;var mainURL = void 0;var backupURL = void 0;
   var preloadTime = player.config.preloadTime || 15;
   var waiterTimer = void 0;
-  var url = player.config.url;
+  _xgplayer2.default.m4a = true;
+  player.hasEnded = false;
+  var list = util.typeOf(player.config.url) === 'Array' ? player.config.url : [{
+    src: player.config.url,
+    name: player.config.name
+  }];
+  var url = list[0].src;
   var rule = player.config.pluginRule || function () {
     return true;
   };
@@ -1470,14 +1480,19 @@ var m4aplayer = function m4aplayer() {
     }, 50);
   };
   var init = function init(url) {
+    var replaying = arguments.length > 1 && arguments[1] !== undefined ? arguments[1] : false;
+
     var mp4 = new _mp2.default(url);
     mp4.reqTimeLength = player.config.reqTimeLength || 5;
     var mse = void 0;
     return new Promise(function (resolve, reject) {
       mp4.once('mdatReady', function () {
         mse = new _mse2.default();
+        if (replaying) {
+          mse.replaying = true;
+        }
         mse.on('sourceopen', function () {
-          mse.appendBuffer(mp4.packMeta());
+          mse.appendBuffer(mp4.packMeta(mp4.meta));
           mse.once('updateend', loadData.bind(player));
         });
         mse.on('error', function (e) {
@@ -1544,6 +1559,43 @@ var m4aplayer = function m4aplayer() {
         }
       });
     };
+    player.cut = function () {
+      var start = arguments.length > 0 && arguments[0] !== undefined ? arguments[0] : 0;
+      var end = arguments[1];
+
+      var segment = new _buffer2.default();
+      return new Promise(function (resolve, reject) {
+        var mp4 = new _mp2.default(url);
+        mp4.once('mdatReady', function () {
+          if (!end || end <= start) {
+            end = start + 15;
+          }
+          if (end > mp4.meta.audioDuration) {
+            start = mp4.meta.audioDuration - (end - start);
+            end = mp4.meta.audioDuration;
+          }
+          mp4.reqTimeLength = end - start;
+          mp4.cut = true;
+          mp4.seek(start).then(function (buffer) {
+            if (buffer) {
+              var meta = _xgplayer2.default.util.deepCopy({
+                duration: mp4.reqTimeLength,
+                audioDuration: mp4.reqTimeLength,
+                endTime: mp4.reqTimeLength
+              }, mp4.meta);
+              meta.duration = mp4.reqTimeLength;
+              meta.audioDuration = mp4.reqTimeLength;
+              meta.endTime = mp4.reqTimeLength;
+              segment.write(mp4.packMeta(meta), buffer);
+              resolve(new Blob([segment.buffer], { type: 'audio/mp4; codecs="mp4a.40.5"' }));
+            }
+          });
+        });
+        mp4.on('error', function (e) {
+          reject(e);
+        });
+      });
+    };
 
     player.switchURL = function (url) {
       var mp5 = new _mp2.default(url);
@@ -1559,7 +1611,7 @@ var m4aplayer = function m4aplayer() {
           player.mse.removeBuffer(start, end);
         }
         player.mp4 = mp5;
-        player.mse.appendBuffer(mp5.packMeta());
+        player.mse.appendBuffer(mp5.packMeta(mp5.meta));
       });
       mp5.on('error', function (err) {
         errorHandle(player, err);
@@ -1632,33 +1684,38 @@ var m4aplayer = function m4aplayer() {
       }
     });
 
-    // player.on('waiting', function () {
-    //   console.log('waiting')
-    //   let mp4 = player.mp4
-    //   if (!mp4 || !mp4.meta) {
-    //     return
-    //   }
-    //   let range = player.getBufferedRange()
-    //   let timeRage = mp4.timeRage
-    //   timeRage.every((item, idx) => {
-    //     if (item[1].time > range[1] + 0.1 && item[0].time < range[1] + 0.1) {
-    //       loadData(0, item[0].time, item[0].order)
-    //       return false
-    //     } else {
-    //       return true
-    //     }
-    //   })
-    //   waiterTimer = setTimeout(function () {
-    //     let buffered = player.buffered; let start
-    //     for (let i = 0, len = buffered.length; i < len; i++) {
-    //       start = buffered.start(i)
-    //       if (start >= player.currentTime) {
-    //         player.currentTime = start
-    //         break
-    //       }
-    //     }
-    //   }, 1500)
-    // })
+    player.on('waiting', function () {
+      var buffered = player.buffered;var hasBuffered = false;var curTime = player.currentTime;
+      _task2.default.clear();
+      var timeRage = player.mp4.timeRage;
+      if (buffered.length) {
+        for (var i = 0, len = buffered.length; i < len; i++) {
+          if (curTime >= buffered.start(i) && curTime <= buffered.end(i)) {
+            hasBuffered = true;
+            break;
+          }
+        }
+        if (!hasBuffered) {
+          timeRage.every(function (item, idx) {
+            if (item[0].time <= curTime && item[1].time > curTime) {
+              loadData(0, item[0].time, item[0].order, item[1].order);
+              return false;
+            } else {
+              return true;
+            }
+          });
+        }
+      } else {
+        timeRage.every(function (item, idx) {
+          if (item[0].time <= curTime && item[1].time > curTime) {
+            loadData(0, item[0].time, item[0].order, item[1].order);
+            return false;
+          } else {
+            return true;
+          }
+        });
+      }
+    });
 
     player.once('destroy', function () {
       _task2.default.clear();
@@ -1667,20 +1724,76 @@ var m4aplayer = function m4aplayer() {
       }
     });
 
-    player._replay = function () {
+    // let playBtn = util.findDom(player.root, '.xgplayer-play');
+    // ['click', 'touchstart'].forEach(item => {
+    //   playBtn.addEventListener(item, function (e) {
+    //     e.preventDefault()
+    //     e.stopPropagation()
+    //     if (player.hasEnded) {
+    //       player.hasEnded = false
+    //       Task.clear()
+    //       player.mp4.bufferCache.clear()
+    //       // player.currentTime = 0
+    //       init(player.mp4.url, true).then((result) => {
+    //         let mp4 = result[0]; let mse = result[1]
+    //         player.src = mse.url
+    //         player.mp4 = mp4
+    //         player.mse = mse
+    //         player.mse.replaying = true
+    //         player.currentTime = 0
+    //         player.video.play().then(() => {
+    //
+    //           // player.pause()
+    //           // player.currentTime = 0
+    //         })
+    //       }, err => {
+    //         errorHandle(player, err)
+    //       })
+    //     }
+    //   })
+    // })
+
+    player.on('change', function (nextItem) {
+      player.newMusic(nextItem.src);
+    });
+
+    player.newMusic = function (url) {
       _task2.default.clear();
       player.mp4.bufferCache.clear();
-      init(player.mp4.url).then(function (result) {
+      init(url, true).then(function (result) {
         var mp4 = result[0];var mse = result[1];
         player.src = mse.url;
         player.mp4 = mp4;
         player.mse = mse;
+        player.mse.replaying = true;
         player.currentTime = 0;
-        player.play();
+        player.video.play();
       }, function (err) {
         errorHandle(player, err);
       });
     };
+
+    player.on('ended', function () {
+      player.hasEnded = true;
+      // Task.clear()
+      // player.mp4.bufferCache.clear()
+      // // player.currentTime = 0
+      // init(player.mp4.url, true).then((result) => {
+      //   let mp4 = result[0]; let mse = result[1]
+      //   player.src = mse.url
+      //   player.mp4 = mp4
+      //   player.mse = mse
+      //   player.mse.replaying = true
+      //   // player.currentTime = 0
+      //   // player.video.play().then(() => {
+      //   //
+      //   //   player.pause()
+      //   //   player.currentTime = 0
+      //   // })
+      // }, err => {
+      //   errorHandle(player, err)
+      // })
+    });
   }
 };
 
@@ -1693,21 +1806,21 @@ _xgplayer2.default.install('m4aplayer', m4aplayer);
 "use strict";
 
 
-var LIBRARY = __webpack_require__(17);
+var LIBRARY = __webpack_require__(18);
 var global = __webpack_require__(2);
 var ctx = __webpack_require__(8);
-var classof = __webpack_require__(18);
-var $export = __webpack_require__(20);
+var classof = __webpack_require__(19);
+var $export = __webpack_require__(21);
 var isObject = __webpack_require__(6);
 var aFunction = __webpack_require__(9);
 var anInstance = __webpack_require__(43);
 var forOf = __webpack_require__(44);
 var speciesConstructor = __webpack_require__(48);
-var task = __webpack_require__(29).set;
+var task = __webpack_require__(30).set;
 var microtask = __webpack_require__(51)();
-var newPromiseCapabilityModule = __webpack_require__(30);
+var newPromiseCapabilityModule = __webpack_require__(31);
 var perform = __webpack_require__(52);
-var userAgent = __webpack_require__(31);
+var userAgent = __webpack_require__(32);
 var promiseResolve = __webpack_require__(53);
 var PROMISE = 'Promise';
 var TypeError = global.TypeError;
@@ -1992,7 +2105,7 @@ var store = global[SHARED] || (global[SHARED] = {});
   return store[key] || (store[key] = value !== undefined ? value : {});
 })('versions', []).push({
   version: core.version,
-  mode: __webpack_require__(17) ? 'pure' : 'global',
+  mode: __webpack_require__(18) ? 'pure' : 'global',
   copyright: '© 2018 Denis Pushkarev (zloirock.ru)'
 });
 
@@ -2003,8 +2116,8 @@ var store = global[SHARED] || (global[SHARED] = {});
 "use strict";
 
 
-module.exports = !__webpack_require__(10) && !__webpack_require__(22)(function () {
-  return Object.defineProperty(__webpack_require__(23)('div'), 'a', { get: function get() {
+module.exports = !__webpack_require__(10) && !__webpack_require__(23)(function () {
+  return Object.defineProperty(__webpack_require__(24)('div'), 'a', { get: function get() {
       return 7;
     } }).a != 7;
 });
@@ -2069,7 +2182,7 @@ var ctx = __webpack_require__(8);
 var call = __webpack_require__(45);
 var isArrayIter = __webpack_require__(46);
 var anObject = __webpack_require__(5);
-var toLength = __webpack_require__(27);
+var toLength = __webpack_require__(28);
 var getIterFn = __webpack_require__(47);
 var BREAK = {};
 var RETURN = {};
@@ -2121,7 +2234,7 @@ module.exports = function (iterator, fn, value, entries) {
 
 
 // check on default Array iterator
-var Iterators = __webpack_require__(26);
+var Iterators = __webpack_require__(27);
 var ITERATOR = __webpack_require__(3)('iterator');
 var ArrayProto = Array.prototype;
 
@@ -2136,9 +2249,9 @@ module.exports = function (it) {
 "use strict";
 
 
-var classof = __webpack_require__(18);
+var classof = __webpack_require__(19);
 var ITERATOR = __webpack_require__(3)('iterator');
-var Iterators = __webpack_require__(26);
+var Iterators = __webpack_require__(27);
 module.exports = __webpack_require__(4).getIteratorMethod = function (it) {
   if (it != undefined) return it[ITERATOR] || it['@@iterator'] || Iterators[classof(it)];
 };
@@ -2202,7 +2315,7 @@ module.exports = document && document.documentElement;
 
 
 var global = __webpack_require__(2);
-var macrotask = __webpack_require__(29).set;
+var macrotask = __webpack_require__(30).set;
 var Observer = global.MutationObserver || global.WebKitMutationObserver;
 var process = global.process;
 var Promise = global.Promise;
@@ -2294,7 +2407,7 @@ module.exports = function (exec) {
 
 var anObject = __webpack_require__(5);
 var isObject = __webpack_require__(6);
-var newPromiseCapability = __webpack_require__(30);
+var newPromiseCapability = __webpack_require__(31);
 
 module.exports = function (C, x) {
   anObject(C);
@@ -2312,7 +2425,7 @@ module.exports = function (C, x) {
 "use strict";
 
 
-var redefine = __webpack_require__(24);
+var redefine = __webpack_require__(25);
 module.exports = function (target, src, safe) {
   for (var key in src) {
     redefine(target, key, src[key], safe);
@@ -2327,7 +2440,7 @@ module.exports = function (target, src, safe) {
 
 
 var def = __webpack_require__(12).f;
-var has = __webpack_require__(25);
+var has = __webpack_require__(26);
 var TAG = __webpack_require__(3)('toStringTag');
 
 module.exports = function (it, tag, stat) {
@@ -2402,9 +2515,9 @@ module.exports = function (exec, skipClosing) {
 
 // https://github.com/tc39/proposal-string-pad-start-end
 
-var $export = __webpack_require__(20);
+var $export = __webpack_require__(21);
 var $pad = __webpack_require__(59);
-var userAgent = __webpack_require__(31);
+var userAgent = __webpack_require__(32);
 
 // https://github.com/zloirock/core-js/issues/280
 $export($export.P + $export.F * /Version\/10\.\d+(\.\d+)? Safari\//.test(userAgent), 'String', {
@@ -2421,9 +2534,9 @@ $export($export.P + $export.F * /Version\/10\.\d+(\.\d+)? Safari\//.test(userAge
 
 
 // https://github.com/tc39/proposal-string-pad-start-end
-var toLength = __webpack_require__(27);
+var toLength = __webpack_require__(28);
 var repeat = __webpack_require__(60);
-var defined = __webpack_require__(32);
+var defined = __webpack_require__(33);
 
 module.exports = function (that, maxLength, fillString, left) {
   var S = String(defined(that));
@@ -2444,8 +2557,8 @@ module.exports = function (that, maxLength, fillString, left) {
 "use strict";
 
 
-var toInteger = __webpack_require__(28);
-var defined = __webpack_require__(32);
+var toInteger = __webpack_require__(29);
+var defined = __webpack_require__(33);
 
 module.exports = function repeat(count) {
   var str = String(defined(this));
@@ -2482,7 +2595,7 @@ var _parse = __webpack_require__(78);
 
 var _parse2 = _interopRequireDefault(_parse);
 
-var _buffer = __webpack_require__(34);
+var _buffer = __webpack_require__(17);
 
 var _buffer2 = _interopRequireDefault(_buffer);
 
@@ -2535,6 +2648,7 @@ var MP4 = function () {
     this.bufferCache = new Set();
     this.timeRage = [];
     this.canDownload = true;
+    this.cut = false;
   }
 
   /**
@@ -2660,7 +2774,6 @@ var MP4 = function () {
       var self = this;
       self.getData().then(function (resFir) {
         var parsedFir = void 0;
-
         var mdatStart = 0;
 
         var mdat = void 0,
@@ -2787,14 +2900,13 @@ var MP4 = function () {
     }
   }, {
     key: 'packMeta',
-    value: function packMeta() {
-      if (!this.meta) {
+    value: function packMeta(meta) {
+      if (!meta) {
         return;
       }
-      var self = this;
       var buffer = new _buffer2.default();
       buffer.write(_mp2.default.ftyp());
-      buffer.write(_mp2.default.moov(self.meta));
+      buffer.write(_mp2.default.moov(meta));
       this.cache.write(buffer.buffer);
       return buffer.buffer;
     }
@@ -2808,7 +2920,7 @@ var MP4 = function () {
       if (!audioIndexOrder) {
         audioIndexOrder = _util2.default.seekOrderSampleByTime(audioStts, this.meta.audioTimeScale, time).order;
       }
-      if (!audioIndexOrder) {
+      if (!audioNextIndexOrder) {
         if (time + this.reqTimeLength < this.meta.audioDuration) {
           audioNextIndexOrder = _util2.default.seekOrderSampleByTime(audioStts, this.meta.audioTimeScale, time + this.reqTimeLength).order;
         }
@@ -2875,7 +2987,7 @@ var MP4 = function () {
           key: idx === 0
         };
       });
-      resBuffers.push(this.addFragment({ id: 2, time: _samples[0].time.time, firstFlags: 0x00, flags: 0x701, samples: samples }));
+      resBuffers.push(this.addFragment({ id: 2, time: this.cut ? 0 : _samples[0].time.time, firstFlags: 0x00, flags: 0x701, samples: samples }));
       var bufferSize = 0;
       resBuffers.every(function (item) {
         bufferSize += item.byteLength;
@@ -3298,7 +3410,7 @@ var _box = __webpack_require__(0);
 
 var _box2 = _interopRequireDefault(_box);
 
-var _concatTypedArray = __webpack_require__(33);
+var _concatTypedArray = __webpack_require__(34);
 
 var _concatTypedArray2 = _interopRequireDefault(_concatTypedArray);
 
@@ -4848,7 +4960,7 @@ Object.defineProperty(exports, "__esModule", {
 
 var _createClass = function () { function defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ("value" in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } } return function (Constructor, protoProps, staticProps) { if (protoProps) defineProperties(Constructor.prototype, protoProps); if (staticProps) defineProperties(Constructor, staticProps); return Constructor; }; }();
 
-var _buffer = __webpack_require__(34);
+var _buffer = __webpack_require__(17);
 
 var _buffer2 = _interopRequireDefault(_buffer);
 
@@ -5672,6 +5784,7 @@ var MSE = function () {
     var self = this;
     (0, _eventEmitter2.default)(this);
     this.codecs = codecs;
+    this.replaying = false;
     this.mediaSource = new window.MediaSource();
     this.url = window.URL.createObjectURL(this.mediaSource);
     this.queue = [];
@@ -5679,21 +5792,18 @@ var MSE = function () {
     this.mediaSource.addEventListener('sourceopen', function () {
       self.sourceBuffer = self.mediaSource.addSourceBuffer(self.codecs);
       self.sourceBuffer.addEventListener('error', function (e) {
-        console.log('mse error');
         self.emit('error', new _error2.default('mse', '', { line: 16, handle: '[MSE] constructor sourceopen', msg: e.message }));
       });
       self.sourceBuffer.addEventListener('updateend', function (e) {
         self.emit('updateend');
         var buffer = self.queue.shift();
         if (buffer) {
-          console.log('updateend appendBuffer');
           self.sourceBuffer.appendBuffer(buffer);
         }
       });
       self.emit('sourceopen');
     });
     this.mediaSource.addEventListener('sourceclose', function () {
-      console.log('sourceclose');
       self.emit('sourceclose');
     });
   }
@@ -5718,14 +5828,18 @@ var MSE = function () {
   }, {
     key: 'endOfStream',
     value: function endOfStream() {
-      if (this.state === 'open') {
+      if (this.mediaSource.readyState === 'open') {
         this.mediaSource.endOfStream();
       }
     }
   }, {
     key: 'state',
     get: function get() {
-      return this.mediaSource.readyState;
+      if (this.replaying) {
+        return 'open';
+      } else {
+        return this.mediaSource.readyState;
+      }
     }
   }, {
     key: 'duration',

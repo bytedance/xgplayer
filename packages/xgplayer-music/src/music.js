@@ -19,6 +19,7 @@ class Music extends Player {
       src: opts.url,
       name: opts.name
     }]
+    this.name = this.list[0].name
     this.history = []
     this.index = 0
     util.addClass(this.root, 'xgplayer-music')
@@ -56,8 +57,15 @@ class Music extends Player {
       }
     })
     this.on('ended', () => {
-      if (this.ended) {
-        this.currentTime = 0
+      if (this.mode === 'order' && this.index + 1 >= this.list.length) {
+        return
+      }
+      switch (this.mode) {
+        case 'order':
+        case 'loop':
+        default:
+          this.next()
+          break
       }
     })
     this.start()
@@ -116,7 +124,23 @@ class Music extends Player {
   random () {
     const len = this.list.length
     this.index = Math.ceil(Math.random() * len)
-    return this.list[this.index]
+  }
+  change () {
+    if (Player.m4a) {
+      this.video.load()
+      this.name = this.list[this.index].name
+      this.emit('change', this.list[this.index])
+    } else {
+      this.video.pause()
+      this.currentTime = 0
+      this.src = this.list[this.index].src
+      this.name = this.list[this.index].name
+      setTimeout(() => {
+        this.video.play().then(() => {
+          this.emit('change', this.list[this.index])
+        })
+      }, 60)
+    }
   }
   next () {
     switch (this.mode) {
@@ -124,37 +148,31 @@ class Music extends Player {
       case 'loop':
         if (this.index + 1 < this.list.length) {
           this.index++
-          this.emit('change', this.list[this.index])
-          this.src = this.list[this.index].src
+        } else {
+          this.index = 0
         }
         break
       default:
-        const next = this.random()
-        if (next) {
-          this.emit('change', next)
-          this.src = next.src
-        }
+        this.random()
         break
     }
+    this.change()
   }
   prev () {
     switch (this.mode) {
       case 'order':
       case 'loop':
-        if (this.index - 1 > -1 && this.list.length > 0) {
+        if (this.index - 1 >= 0) {
           this.index--
-          this.emit('change', this.list[this.index])
-          this.src = this.list[this.index].src
+        } else {
+          this.index = this.list.length - 1
         }
         break
       default:
-        const pre = this.random()
-        if (pre) {
-          this.emit('change', pre)
-          this.src = pre.src
-        }
+        this.random()
         break
     }
+    this.change()
   }
   forward () {
     console.log(`music go forward ${timeScale}s`)

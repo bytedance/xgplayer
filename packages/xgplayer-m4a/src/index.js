@@ -4,6 +4,7 @@ import Player from 'xgplayer'
 import MP4 from './mp4'
 import MSE from './media/mse'
 import Task from './media/task'
+import Buffer from './fmp4/buffer'
 
 let isEnded = (player, mp4) => {
   if (mp4.meta.endTime - player.currentTime < 2) {
@@ -39,7 +40,13 @@ let m4aplayer = function () {
   let Errors = Player.Errors; let mainURL; let backupURL
   let preloadTime = player.config.preloadTime || 15
   let waiterTimer
-  let url = player.config.url
+  Player.m4a = true
+  player.hasEnded = false
+  let list = util.typeOf(player.config.url) === 'Array' ? player.config.url : [{
+    src: player.config.url,
+    name: player.config.name
+  }]
+  let url = list[0].src
   let rule = player.config.pluginRule || function () { return true }
   if (!url) {
     player.emit('error', new Errors('other', player.config.vid))
@@ -77,15 +84,18 @@ let m4aplayer = function () {
       })
     }, 50)
   }
-  let init = (url) => {
+  let init = (url, replaying = false) => {
     let mp4 = new MP4(url)
     mp4.reqTimeLength = player.config.reqTimeLength || 5
     let mse
     return new Promise((resolve, reject) => {
       mp4.once('mdatReady', () => {
         mse = new MSE()
+        if (replaying) {
+          mse.replaying = true
+        }
         mse.on('sourceopen', function () {
-          mse.appendBuffer(mp4.packMeta())
+          mse.appendBuffer(mp4.packMeta(mp4.meta))
           mse.once('updateend', loadData.bind(player))
         })
         mse.on('error', function (e) {
@@ -147,6 +157,40 @@ let m4aplayer = function () {
         }
       })
     }
+    player.cut = function (start = 0, end) {
+      let segment = new Buffer()
+      return new Promise((resolve, reject) => {
+        let mp4 = new MP4(url)
+        mp4.once('mdatReady', () => {
+          if (!end || end <= start) {
+            end = start + 15
+          }
+          if (end > mp4.meta.audioDuration) {
+            start = mp4.meta.audioDuration - (end - start)
+            end = mp4.meta.audioDuration
+          }
+          mp4.reqTimeLength = end - start
+          mp4.cut = true
+          mp4.seek(start).then(buffer => {
+            if (buffer) {
+              let meta = Player.util.deepCopy({
+                duration: mp4.reqTimeLength,
+                audioDuration: mp4.reqTimeLength,
+                endTime: mp4.reqTimeLength
+              }, mp4.meta)
+              meta.duration = mp4.reqTimeLength
+              meta.audioDuration = mp4.reqTimeLength
+              meta.endTime = mp4.reqTimeLength
+              segment.write(mp4.packMeta(meta), buffer)
+              resolve(new Blob([segment.buffer], {type: 'audio/mp4; codecs="mp4a.40.5"'}))
+            }
+          })
+        })
+        mp4.on('error', (e) => {
+          reject(e)
+        })
+      })
+    }
 
     player.switchURL = (url) => {
       let mp5 = new MP4(url)
@@ -160,7 +204,7 @@ let m4aplayer = function () {
           player.mse.removeBuffer(start, end)
         }
         player.mp4 = mp5
-        player.mse.appendBuffer(mp5.packMeta())
+        player.mse.appendBuffer(mp5.packMeta(mp5.meta))
       })
       mp5.on('error', err => {
         errorHandle(player, err)
@@ -233,33 +277,38 @@ let m4aplayer = function () {
       }
     })
 
-    // player.on('waiting', function () {
-    //   console.log('waiting')
-    //   let mp4 = player.mp4
-    //   if (!mp4 || !mp4.meta) {
-    //     return
-    //   }
-    //   let range = player.getBufferedRange()
-    //   let timeRage = mp4.timeRage
-    //   timeRage.every((item, idx) => {
-    //     if (item[1].time > range[1] + 0.1 && item[0].time < range[1] + 0.1) {
-    //       loadData(0, item[0].time, item[0].order)
-    //       return false
-    //     } else {
-    //       return true
-    //     }
-    //   })
-    //   waiterTimer = setTimeout(function () {
-    //     let buffered = player.buffered; let start
-    //     for (let i = 0, len = buffered.length; i < len; i++) {
-    //       start = buffered.start(i)
-    //       if (start >= player.currentTime) {
-    //         player.currentTime = start
-    //         break
-    //       }
-    //     }
-    //   }, 1500)
-    // })
+    player.on('waiting', function () {
+      let buffered = player.buffered; let hasBuffered = false; let curTime = player.currentTime
+      Task.clear()
+      let timeRage = player.mp4.timeRage
+      if (buffered.length) {
+        for (let i = 0, len = buffered.length; i < len; i++) {
+          if (curTime >= buffered.start(i) && curTime <= buffered.end(i)) {
+            hasBuffered = true
+            break
+          }
+        }
+        if (!hasBuffered) {
+          timeRage.every((item, idx) => {
+            if (item[0].time <= curTime && item[1].time > curTime) {
+              loadData(0, item[0].time, item[0].order, item[1].order)
+              return false
+            } else {
+              return true
+            }
+          })
+        }
+      } else {
+        timeRage.every((item, idx) => {
+          if (item[0].time <= curTime && item[1].time > curTime) {
+            loadData(0, item[0].time, item[0].order, item[1].order)
+            return false
+          } else {
+            return true
+          }
+        })
+      }
+    })
 
     player.once('destroy', () => {
       Task.clear()
@@ -268,20 +317,76 @@ let m4aplayer = function () {
       }
     })
 
-    player._replay = function () {
+    // let playBtn = util.findDom(player.root, '.xgplayer-play');
+    // ['click', 'touchstart'].forEach(item => {
+    //   playBtn.addEventListener(item, function (e) {
+    //     e.preventDefault()
+    //     e.stopPropagation()
+    //     if (player.hasEnded) {
+    //       player.hasEnded = false
+    //       Task.clear()
+    //       player.mp4.bufferCache.clear()
+    //       // player.currentTime = 0
+    //       init(player.mp4.url, true).then((result) => {
+    //         let mp4 = result[0]; let mse = result[1]
+    //         player.src = mse.url
+    //         player.mp4 = mp4
+    //         player.mse = mse
+    //         player.mse.replaying = true
+    //         player.currentTime = 0
+    //         player.video.play().then(() => {
+    //
+    //           // player.pause()
+    //           // player.currentTime = 0
+    //         })
+    //       }, err => {
+    //         errorHandle(player, err)
+    //       })
+    //     }
+    //   })
+    // })
+
+    player.on('change', (nextItem) => {
+      player.newMusic(nextItem.src)
+    })
+
+    player.newMusic = (url) => {
       Task.clear()
       player.mp4.bufferCache.clear()
-      init(player.mp4.url).then((result) => {
+      init(url, true).then((result) => {
         let mp4 = result[0]; let mse = result[1]
         player.src = mse.url
         player.mp4 = mp4
         player.mse = mse
+        player.mse.replaying = true
         player.currentTime = 0
-        player.play()
+        player.video.play()
       }, err => {
         errorHandle(player, err)
       })
     }
+
+    player.on('ended', () => {
+      player.hasEnded = true
+      // Task.clear()
+      // player.mp4.bufferCache.clear()
+      // // player.currentTime = 0
+      // init(player.mp4.url, true).then((result) => {
+      //   let mp4 = result[0]; let mse = result[1]
+      //   player.src = mse.url
+      //   player.mp4 = mp4
+      //   player.mse = mse
+      //   player.mse.replaying = true
+      //   // player.currentTime = 0
+      //   // player.video.play().then(() => {
+      //   //
+      //   //   player.pause()
+      //   //   player.currentTime = 0
+      //   // })
+      // }, err => {
+      //   errorHandle(player, err)
+      // })
+    })
   }
 }
 

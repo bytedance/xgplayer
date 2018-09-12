@@ -26,6 +26,7 @@ class MP4 {
     this.bufferCache = new Set()
     this.timeRage = []
     this.canDownload = true
+    this.cut = false
   }
 
   /**
@@ -139,7 +140,6 @@ class MP4 {
     let self = this
     self.getData().then((resFir) => {
       let parsedFir
-
       let mdatStart = 0
 
       let mdat, moov
@@ -261,14 +261,13 @@ class MP4 {
     return samples
   }
 
-  packMeta () {
-    if (!this.meta) {
+  packMeta (meta) {
+    if (!meta) {
       return
     }
-    let self = this
     let buffer = new Buffer()
     buffer.write(FMP4.ftyp())
-    buffer.write(FMP4.moov(self.meta))
+    buffer.write(FMP4.moov(meta))
     this.cache.write(buffer.buffer)
     return buffer.buffer
   }
@@ -278,7 +277,7 @@ class MP4 {
     if (!audioIndexOrder) {
       audioIndexOrder = util.seekOrderSampleByTime(audioStts, this.meta.audioTimeScale, time).order
     }
-    if (!audioIndexOrder) {
+    if (!audioNextIndexOrder) {
       if (time + this.reqTimeLength < this.meta.audioDuration) {
         audioNextIndexOrder = util.seekOrderSampleByTime(audioStts, this.meta.audioTimeScale, time + this.reqTimeLength).order
       }
@@ -344,7 +343,7 @@ class MP4 {
         key: idx === 0
       }
     })
-    resBuffers.push(this.addFragment({id: 2, time: _samples[0].time.time, firstFlags: 0x00, flags: 0x701, samples: samples}))
+    resBuffers.push(this.addFragment({id: 2, time: this.cut ? 0 : _samples[0].time.time, firstFlags: 0x00, flags: 0x701, samples: samples}))
     let bufferSize = 0
     resBuffers.every(item => {
       bufferSize += item.byteLength

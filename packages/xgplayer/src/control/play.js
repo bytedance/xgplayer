@@ -22,7 +22,8 @@ let play = function () {
       path.setAttribute('d', svg.toSVGString(shape))
     },
     from: iconPath.pause,
-    to: iconPath.play
+    to: iconPath.play,
+    duration: 50
   })
 
   let ev = ['click', 'touchstart']

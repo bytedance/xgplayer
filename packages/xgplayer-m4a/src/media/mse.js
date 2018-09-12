@@ -6,6 +6,7 @@ class MSE {
     let self = this
     EventEmitter(this)
     this.codecs = codecs
+    this.replaying = false
     this.mediaSource = new window.MediaSource()
     this.url = window.URL.createObjectURL(this.mediaSource)
     this.queue = []
@@ -13,27 +14,28 @@ class MSE {
     this.mediaSource.addEventListener('sourceopen', function () {
       self.sourceBuffer = self.mediaSource.addSourceBuffer(self.codecs)
       self.sourceBuffer.addEventListener('error', function (e) {
-        console.log('mse error')
         self.emit('error', new Errors('mse', '', {line: 16, handle: '[MSE] constructor sourceopen', msg: e.message}))
       })
       self.sourceBuffer.addEventListener('updateend', function (e) {
         self.emit('updateend')
         let buffer = self.queue.shift()
         if (buffer) {
-          console.log('updateend appendBuffer')
           self.sourceBuffer.appendBuffer(buffer)
         }
       })
       self.emit('sourceopen')
     })
     this.mediaSource.addEventListener('sourceclose', function () {
-      console.log('sourceclose')
       self.emit('sourceclose')
     })
   }
 
   get state () {
-    return this.mediaSource.readyState
+    if (this.replaying) {
+      return 'open'
+    } else {
+      return this.mediaSource.readyState
+    }
   }
 
   get duration () {
@@ -60,7 +62,7 @@ class MSE {
   }
 
   endOfStream () {
-    if (this.state === 'open') {
+    if (this.mediaSource.readyState === 'open') {
       this.mediaSource.endOfStream()
     }
   }
