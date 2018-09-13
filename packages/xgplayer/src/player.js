@@ -84,6 +84,43 @@ class Player extends Proxy {
     if (options.autoplay) {
       this.start()
     }
+
+    document.onkeydown = event => {
+      var e = event || window.event
+      if (e && e.keyCode === 37) { // 按 left
+        player.onFocus()
+        if (player.currentTime - 10 >= 0) {
+          player.currentTime -= 10
+        } else {
+          player.currentTime = 0
+        }
+      } else if (e && e.keyCode === 38) { // 按 up
+        if (player.volume + 0.1 <= 1) {
+          player.volume += 0.1
+        } else {
+          player.volume = 1
+        }
+      } else if (e && e.keyCode === 39) { // 按 right
+        player.onFocus()
+        if (player.currentTime + 10 <= player.duration) {
+          player.currentTime += 10
+        } else {
+          player.currentTime = player.duration - 1
+        }
+      } else if (e && e.keyCode === 40) { // 按 down
+        if (player.volume - 0.1 >= 0) {
+          player.volume -= 0.1
+        } else {
+          player.volume = 0
+        }
+      } else if (e && e.keyCode === 32) { // 按 spacebar
+        if (player.paused) {
+          player.play()
+        } else {
+          player.pause()
+        }
+      }
+    }
   }
 
   start (url = this.config.url) {
