@@ -57,8 +57,8 @@ class FlvPlayer extends Player {
   createInstance (flv) {
     const player = this
     if (this._options.isLive) {
-      player.util.addClass(player.root, 'xgplayer-is-live')
-      const live = player.util.createDom('xg-live', '正在直播', {}, 'xgplayer-live')
+      Player.util.addClass(player.root, 'xgplayer-is-live')
+      const live = Player.util.createDom('xg-live', '正在直播', {}, 'xgplayer-live')
       player.controls.appendChild(live)
     }
     flv.load()

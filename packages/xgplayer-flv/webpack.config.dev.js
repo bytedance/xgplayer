@@ -8,6 +8,7 @@ const umd = {
     library: 'xgplayer-flv',
     libraryTarget: 'umd'
   },
+  devtool: 'inline-source-map',
   mode: 'development',
   module: {
     rules: [{
@@ -42,6 +43,7 @@ const client = {
     library: 'FlvPlayer',
     libraryTarget: 'window'
   },
+  devtool: 'inline-source-map',
   module: {
     rules: [{
       test: /\.js$/,

@@ -60,9 +60,13 @@ export default class MainParser extends TransCoder {
     if (buffer === undefined) {
       this.emit('live-end')
     }
-    this.buffer.write(new Uint8Array(buffer))
-    let offset = this.setFlv(this.buffer.buffer)
-    this.buffer.buffer = this.buffer.buffer.slice(offset)
+    try {
+      this.buffer.write(new Uint8Array(buffer))
+      let offset = this.setFlv(this.buffer.buffer)
+      this.buffer.buffer = this.buffer.buffer.slice(offset)
+    } catch (e) {
+      console.log(e.message)
+    }
   }
 
   initMeta () {
