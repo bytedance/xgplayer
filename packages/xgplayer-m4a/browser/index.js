@@ -81,7 +81,7 @@
 /******/
 /******/
 /******/ 	// Load entry module and return exports
-/******/ 	return __webpack_require__(__webpack_require__.s = 36);
+/******/ 	return __webpack_require__(__webpack_require__.s = 37);
 /******/ })
 /************************************************************************/
 /******/ ([
@@ -364,7 +364,7 @@ if (typeof __g == 'number') __g = global; // eslint-disable-line no-undef
 "use strict";
 
 
-var store = __webpack_require__(39)('wks');
+var store = __webpack_require__(40)('wks');
 var uid = __webpack_require__(20);
 var _Symbol = __webpack_require__(2).Symbol;
 var USE_SYMBOL = typeof _Symbol == 'function';
@@ -426,7 +426,7 @@ var _xgplayer = __webpack_require__(13);
 
 var _xgplayer2 = _interopRequireDefault(_xgplayer);
 
-var _package = __webpack_require__(79);
+var _package = __webpack_require__(80);
 
 function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
 
@@ -537,8 +537,8 @@ module.exports = function (it) {
 
 
 var anObject = __webpack_require__(5);
-var IE8_DOM_DEFINE = __webpack_require__(40);
-var toPrimitive = __webpack_require__(41);
+var IE8_DOM_DEFINE = __webpack_require__(41);
+var toPrimitive = __webpack_require__(42);
 var dP = Object.defineProperty;
 
 exports.f = __webpack_require__(10) ? Object.defineProperty : function defineProperty(O, P, Attributes) {
@@ -568,8 +568,8 @@ module.exports = Player;
 
 var _typeof = typeof Symbol === "function" && typeof Symbol.iterator === "symbol" ? function (obj) { return typeof obj; } : function (obj) { return obj && typeof Symbol === "function" && obj.constructor === Symbol && obj !== Symbol.prototype ? "symbol" : typeof obj; };
 
-var d = __webpack_require__(62),
-    callable = __webpack_require__(76),
+var d = __webpack_require__(63),
+    callable = __webpack_require__(77),
     apply = Function.prototype.apply,
     call = Function.prototype.call,
     create = Object.create,
@@ -707,7 +707,7 @@ exports.methods = methods;
 "use strict";
 
 
-var _undefined = __webpack_require__(69)(); // Support ES3 engines
+var _undefined = __webpack_require__(70)(); // Support ES3 engines
 
 module.exports = function (val) {
   return val !== _undefined && val !== null;
@@ -928,7 +928,7 @@ module.exports = $export;
 
 
 var dP = __webpack_require__(12);
-var createDesc = __webpack_require__(42);
+var createDesc = __webpack_require__(43);
 module.exports = __webpack_require__(10) ? function (object, key, value) {
   return dP.f(object, key, createDesc(1, value));
 } : function (object, key, value) {
@@ -1062,8 +1062,8 @@ module.exports = function (it) {
 
 
 var ctx = __webpack_require__(8);
-var invoke = __webpack_require__(49);
-var html = __webpack_require__(50);
+var invoke = __webpack_require__(50);
+var html = __webpack_require__(51);
 var cel = __webpack_require__(24);
 var global = __webpack_require__(2);
 var process = global.process;
@@ -1204,7 +1204,7 @@ module.exports = function (it) {
 "use strict";
 
 
-var _concat = __webpack_require__(80);
+var _concat = __webpack_require__(81);
 
 var _concat2 = _interopRequireDefault(_concat);
 
@@ -1216,3729 +1216,6 @@ module.exports = _concat2.default;
 
 /***/ }),
 /* 35 */
-/***/ (function(module, exports, __webpack_require__) {
-
-"use strict";
-
-
-Object.defineProperty(exports, "__esModule", {
-  value: true
-});
-
-var _createClass = function () { function defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ("value" in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } } return function (Constructor, protoProps, staticProps) { if (protoProps) defineProperties(Constructor.prototype, protoProps); if (staticProps) defineProperties(Constructor, staticProps); return Constructor; }; }();
-
-var _eventEmitter = __webpack_require__(14);
-
-var _eventEmitter2 = _interopRequireDefault(_eventEmitter);
-
-var _error = __webpack_require__(7);
-
-var _error2 = _interopRequireDefault(_error);
-
-function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
-
-function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } }
-
-var Task = function () {
-  function Task(url, range, callback) {
-    _classCallCheck(this, Task);
-
-    (0, _eventEmitter2.default)(this);
-    this.url = url;
-    this.range = range;
-    this.id = range.join('-');
-    this.on = false;
-    var xhr = new window.XMLHttpRequest();
-    xhr.target = this;
-    xhr.responseType = 'arraybuffer';
-    xhr.open('get', url);
-    xhr.setRequestHeader('Range', 'bytes=' + range[0] + '-' + range[1]);
-    xhr.onload = function () {
-      if (xhr.status === 200 || xhr.status === 206) {
-        if (callback && callback instanceof Function) {
-          callback(xhr.response);
-        }
-      }
-      xhr.target.remove();
-    };
-    xhr.onerror = function (e) {
-      xhr.target.emit('error', new _error2.default('network', '', { line: 25, handle: '[Task] constructor', msg: e.message, url: url }));
-      xhr.target.remove();
-    };
-    xhr.onabort = function () {
-      xhr.target.remove();
-    };
-    this.xhr = xhr;
-    Task.queue.push(this);
-    this.update();
-  }
-
-  _createClass(Task, [{
-    key: 'cancel',
-    value: function cancel() {
-      this.xhr.abort();
-    }
-  }, {
-    key: 'remove',
-    value: function remove() {
-      var _this = this;
-
-      Task.queue.filter(function (item, idx) {
-        if (item.url === _this.url && item.id === _this.id) {
-          Task.queue.splice(idx, 1);
-          return true;
-        } else {
-          return false;
-        }
-      });
-      this.update();
-    }
-  }, {
-    key: 'update',
-    value: function update() {
-      var Queue = Task.queue;
-      var sended = Queue.filter(function (item) {
-        return item.on;
-      });
-      var wait = Queue.filter(function (item) {
-        return !item.on;
-      });
-      var max = Task.limit - sended.length;
-      wait.forEach(function (item, idx) {
-        if (idx < max) {
-          item.run();
-        }
-      });
-    }
-  }, {
-    key: 'run',
-    value: function run() {
-      if (this.xhr.readyState === 1) {
-        this.on = true;
-        this.xhr.send();
-      } else {
-        this.remove();
-      }
-    }
-  }], [{
-    key: 'clear',
-    value: function clear() {
-      Task.queue.forEach(function (item) {
-        if (item.on) {
-          item.cancel();
-        }
-      });
-      Task.queue.length = 0;
-    }
-  }]);
-
-  return Task;
-}();
-
-Task.queue = [];
-Task.limit = 2;
-window.Task = Task;
-
-exports.default = Task;
-module.exports = exports['default'];
-
-/***/ }),
-/* 36 */
-/***/ (function(module, exports, __webpack_require__) {
-
-module.exports = __webpack_require__(37);
-
-
-/***/ }),
-/* 37 */
-/***/ (function(module, exports, __webpack_require__) {
-
-"use strict";
-
-
-var _typeof = typeof Symbol === "function" && typeof Symbol.iterator === "symbol" ? function (obj) { return typeof obj; } : function (obj) { return obj && typeof Symbol === "function" && obj.constructor === Symbol && obj !== Symbol.prototype ? "symbol" : typeof obj; };
-
-__webpack_require__(38);
-
-__webpack_require__(58);
-
-var _xgplayer = __webpack_require__(13);
-
-var _xgplayer2 = _interopRequireDefault(_xgplayer);
-
-var _mp = __webpack_require__(61);
-
-var _mp2 = _interopRequireDefault(_mp);
-
-var _mse = __webpack_require__(125);
-
-var _mse2 = _interopRequireDefault(_mse);
-
-var _task = __webpack_require__(35);
-
-var _task2 = _interopRequireDefault(_task);
-
-var _buffer = __webpack_require__(17);
-
-var _buffer2 = _interopRequireDefault(_buffer);
-
-function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
-
-var isEnded = function isEnded(player, mp4) {
-  if (mp4.meta.endTime - player.currentTime < 2) {
-    var range = player.getBufferedRange();
-    if (player.currentTime - range[1] < 0.1) {
-      player.mse.endOfStream();
-    }
-  }
-};
-
-var errorHandle = function errorHandle(player, err) {
-  err.vid = player.config.vid;
-  err.url = player.src;
-  if (err.errd && _typeof(err.errd) === 'object') {
-    if (player.mp4) {
-      err.errd.url = player.mp4.url;
-      err.url = player.mp4.url;
-      player.mp4.canDownload = false;
-    }
-  }
-  player.emit('DATA_REPORT', err);
-  if (err.errt === 'network' && player.config._backupURL) {
-    player.src = player.config._backupURL;
-  } else {
-    player.src = player.config._mainURL;
-  }
-  player.switchURL = null;
-  player._replay = null;
-};
-
-var m4aplayer = function m4aplayer() {
-  var player = this;var sniffer = _xgplayer2.default.sniffer;var util = _xgplayer2.default.util;
-  var Errors = _xgplayer2.default.Errors;var mainURL = void 0;var backupURL = void 0;
-  var preloadTime = player.config.preloadTime || 15;
-  var waiterTimer = void 0;
-  _xgplayer2.default.m4a = true;
-  player.hasEnded = false;
-  var list = util.typeOf(player.config.url) === 'Array' ? player.config.url : [{
-    src: player.config.url,
-    name: player.config.name
-  }];
-  var url = list[0].src;
-  var rule = player.config.pluginRule || function () {
-    return true;
-  };
-  if (!url) {
-    player.emit('error', new Errors('other', player.config.vid));
-    return;
-  }
-  if (util.typeOf(url) === 'String') {
-    mainURL = url;
-  } else if (util.typeOf(url) === 'Array' && url.length) {
-    mainURL = url[0].src;
-    backupURL = url[1].src;
-  }
-  player.config._mainURL = mainURL;
-  player.config._backupURL = backupURL;
-  var loadData = function loadData() {
-    var i = arguments.length > 0 && arguments[0] !== undefined ? arguments[0] : 0;
-    var time = arguments.length > 1 && arguments[1] !== undefined ? arguments[1] : player.currentTime;
-    var order = arguments.length > 2 && arguments[2] !== undefined ? arguments[2] : null;
-    var nextOrder = arguments.length > 3 && arguments[3] !== undefined ? arguments[3] : null;
-
-    if (player.timer) {
-      clearTimeout(player.timer);
-    }
-    time = Math.max(time, player.currentTime);
-    player.timer = setTimeout(function () {
-      player.mp4.seek(time, order, nextOrder).then(function (buffer) {
-        if (buffer) {
-          var mse = player.mse;
-          mse.updating = true;
-          mse.appendBuffer(buffer);
-          mse.once('updateend', function () {
-            mse.updating = false;
-          });
-        }
-      }, function () {
-        if (i < 10) {
-          setTimeout(function () {
-            loadData(i + 1);
-          }, 2000);
-        }
-      });
-    }, 50);
-  };
-  var init = function init(url) {
-    var replaying = arguments.length > 1 && arguments[1] !== undefined ? arguments[1] : false;
-
-    var mp4 = new _mp2.default(url);
-    mp4.reqTimeLength = player.config.reqTimeLength || 5;
-    var mse = void 0;
-    return new Promise(function (resolve, reject) {
-      mp4.once('mdatReady', function () {
-        mse = new _mse2.default();
-        if (replaying) {
-          mse.replaying = true;
-        }
-        mse.on('sourceopen', function () {
-          mse.appendBuffer(mp4.packMeta(mp4.meta));
-          mse.once('updateend', loadData.bind(player));
-        });
-        mse.on('error', function (e) {
-          reject(e);
-        });
-        resolve([mp4, mse]);
-      });
-      mp4.on('error', function (e) {
-        reject(e);
-      });
-    });
-  };
-  if (['chrome', 'firfox', 'safari'].some(function (item) {
-    return item === sniffer.browser;
-  }) && _mse2.default.isSupported('audio/mp4; codecs="mp4a.40.5"')) {
-    var _start = player.start;
-    if (!rule.call(player)) {
-      return false;
-    }
-    Object.defineProperty(player, 'src', {
-      get: function get() {
-        return player.currentSrc;
-      },
-      set: function set(url) {
-        player.config.url = url;
-        if (!player.paused) {
-          player.pause();
-          player.once('pause', function () {
-            player.start(url);
-          });
-          player.once('canplay', function () {
-            player.play();
-          });
-        } else {
-          player.start(url);
-        }
-        player.once('canplay', function () {
-          player.currentTime = 0;
-        });
-      },
-
-      configurable: true
-    });
-    player.start = function () {
-      var url = arguments.length > 0 && arguments[0] !== undefined ? arguments[0] : mainURL;
-
-      init(url).then(function (result) {
-        var mp4 = result[0];var mse = result[1];
-        _start.call(player, mse.url);
-        player.mp4 = mp4;
-        player.mse = mse;
-        mp4.on('error', function (err) {
-          errorHandle(player, err);
-        });
-      }, function (err) {
-        _start.call(player, url);
-        errorHandle(player, err);
-      });
-      player.once('canplay', function () {
-        // safari decoder time offset
-        if (sniffer.browser === 'safari' && player.buffered) {
-          var start = player.buffered.start(0);
-          player.currentTime = start + 0.1;
-        }
-      });
-    };
-    player.cut = function () {
-      var start = arguments.length > 0 && arguments[0] !== undefined ? arguments[0] : 0;
-      var end = arguments[1];
-
-      var segment = new _buffer2.default();
-      return new Promise(function (resolve, reject) {
-        var mp4 = new _mp2.default(url);
-        mp4.once('mdatReady', function () {
-          if (!end || end <= start) {
-            end = start + 15;
-          }
-          if (end > mp4.meta.audioDuration) {
-            start = mp4.meta.audioDuration - (end - start);
-            end = mp4.meta.audioDuration;
-          }
-          mp4.reqTimeLength = end - start;
-          mp4.cut = true;
-          mp4.seek(start).then(function (buffer) {
-            if (buffer) {
-              var meta = _xgplayer2.default.util.deepCopy({
-                duration: mp4.reqTimeLength,
-                audioDuration: mp4.reqTimeLength,
-                endTime: mp4.reqTimeLength
-              }, mp4.meta);
-              meta.duration = mp4.reqTimeLength;
-              meta.audioDuration = mp4.reqTimeLength;
-              meta.endTime = mp4.reqTimeLength;
-              segment.write(mp4.packMeta(meta), buffer);
-              resolve(new Blob([segment.buffer], { type: 'audio/mp4; codecs="mp4a.40.5"' }));
-            }
-          });
-        });
-        mp4.on('error', function (e) {
-          reject(e);
-        });
-      });
-    };
-
-    player.switchURL = function (url) {
-      var mp5 = new _mp2.default(url);
-      var mp4 = player.mp4;
-      mp5.on('mdatReady', function () {
-        var timeRange = mp4.timeRage;var curTime = player.currentTime;
-        timeRange = mp4.timeRage;
-        var start = timeRange.find(function (item) {
-          return item[0] - curTime > 2;
-        })[0];
-        var end = player.getBufferedRange()[1];
-        if (end - start > 0 && sniffer.browser !== 'safari') {
-          player.mse.removeBuffer(start, end);
-        }
-        player.mp4 = mp5;
-        player.mse.appendBuffer(mp5.packMeta(mp5.meta));
-      });
-      mp5.on('error', function (err) {
-        errorHandle(player, err);
-      });
-    };
-    player.on('timeupdate', function () {
-      var mse = player.mse;var mp4 = player.mp4;
-      if (mse && !mse.updating && mp4.canDownload) {
-        var timeRage = mp4.timeRage;
-        var range = player.getBufferedRange();var cacheMaxTime = player.currentTime + preloadTime;
-        if (range[1] - cacheMaxTime > 0) {
-          return;
-        }
-        timeRage.every(function (item, idx) {
-          if (range[1] === 0) {
-            loadData(5);
-            return false;
-          } else {
-            if (item[0].time >= range[1] && !mp4.bufferCache.has(idx)) {
-              loadData(0, item[0].time, item[0].order, item[1].order);
-            } else {
-              return true;
-            }
-          }
-        });
-        isEnded(player, mp4); // hack for older webkit
-      }
-    });
-
-    player.on('seeking', function () {
-      var buffered = player.buffered;var hasBuffered = false;var curTime = player.currentTime;
-      _task2.default.clear();
-      var timeRage = player.mp4.timeRage;
-      if (buffered.length) {
-        for (var i = 0, len = buffered.length; i < len; i++) {
-          if (curTime >= buffered.start(i) && curTime <= buffered.end(i)) {
-            hasBuffered = true;
-            break;
-          }
-        }
-        if (!hasBuffered) {
-          timeRage.every(function (item, idx) {
-            if (item[0].time <= curTime && item[1].time > curTime) {
-              loadData(0, item[0].time, item[0].order, item[1].order);
-              return false;
-            } else {
-              return true;
-            }
-          });
-        }
-      } else {
-        timeRage.every(function (item, idx) {
-          if (item[0].time <= curTime && item[1].time > curTime) {
-            loadData(0, item[0].time, item[0].order, item[1].order);
-            return false;
-          } else {
-            return true;
-          }
-        });
-      }
-    });
-
-    player.on('pause', function () {
-      _task2.default.clear();
-    });
-
-    player.on('playing', function () {
-      if (waiterTimer) {
-        clearTimeout(waiterTimer);
-      }
-    });
-
-    player.on('waiting', function () {
-      var buffered = player.buffered;var hasBuffered = false;var curTime = player.currentTime;
-      _task2.default.clear();
-      var timeRage = player.mp4.timeRage;
-      if (buffered.length) {
-        for (var i = 0, len = buffered.length; i < len; i++) {
-          if (curTime >= buffered.start(i) && curTime <= buffered.end(i)) {
-            hasBuffered = true;
-            break;
-          }
-        }
-        if (!hasBuffered) {
-          timeRage.every(function (item, idx) {
-            if (item[0].time <= curTime && item[1].time > curTime) {
-              loadData(0, item[0].time, item[0].order, item[1].order);
-              return false;
-            } else {
-              return true;
-            }
-          });
-        }
-      } else {
-        timeRage.every(function (item, idx) {
-          if (item[0].time <= curTime && item[1].time > curTime) {
-            loadData(0, item[0].time, item[0].order, item[1].order);
-            return false;
-          } else {
-            return true;
-          }
-        });
-      }
-    });
-
-    player.once('destroy', function () {
-      _task2.default.clear();
-      if (player.timer) {
-        clearTimeout(player.timer);
-      }
-    });
-
-    // let playBtn = util.findDom(player.root, '.xgplayer-play');
-    // ['click', 'touchstart'].forEach(item => {
-    //   playBtn.addEventListener(item, function (e) {
-    //     e.preventDefault()
-    //     e.stopPropagation()
-    //     if (player.hasEnded) {
-    //       player.hasEnded = false
-    //       Task.clear()
-    //       player.mp4.bufferCache.clear()
-    //       // player.currentTime = 0
-    //       init(player.mp4.url, true).then((result) => {
-    //         let mp4 = result[0]; let mse = result[1]
-    //         player.src = mse.url
-    //         player.mp4 = mp4
-    //         player.mse = mse
-    //         player.mse.replaying = true
-    //         player.currentTime = 0
-    //         player.video.play().then(() => {
-    //
-    //           // player.pause()
-    //           // player.currentTime = 0
-    //         })
-    //       }, err => {
-    //         errorHandle(player, err)
-    //       })
-    //     }
-    //   })
-    // })
-
-    player.on('change', function (nextItem) {
-      player.newMusic(nextItem.src);
-    });
-
-    player.newMusic = function (url) {
-      _task2.default.clear();
-      player.mp4.bufferCache.clear();
-      init(url, true).then(function (result) {
-        var mp4 = result[0];var mse = result[1];
-        player.src = mse.url;
-        player.mp4 = mp4;
-        player.mse = mse;
-        player.mse.replaying = true;
-        player.currentTime = 0;
-        player.video.play();
-      }, function (err) {
-        errorHandle(player, err);
-      });
-    };
-
-    player.on('ended', function () {
-      player.hasEnded = true;
-      // Task.clear()
-      // player.mp4.bufferCache.clear()
-      // // player.currentTime = 0
-      // init(player.mp4.url, true).then((result) => {
-      //   let mp4 = result[0]; let mse = result[1]
-      //   player.src = mse.url
-      //   player.mp4 = mp4
-      //   player.mse = mse
-      //   player.mse.replaying = true
-      //   // player.currentTime = 0
-      //   // player.video.play().then(() => {
-      //   //
-      //   //   player.pause()
-      //   //   player.currentTime = 0
-      //   // })
-      // }, err => {
-      //   errorHandle(player, err)
-      // })
-    });
-  }
-};
-
-_xgplayer2.default.install('m4aplayer', m4aplayer);
-
-/***/ }),
-/* 38 */
-/***/ (function(module, exports, __webpack_require__) {
-
-"use strict";
-
-
-var LIBRARY = __webpack_require__(18);
-var global = __webpack_require__(2);
-var ctx = __webpack_require__(8);
-var classof = __webpack_require__(19);
-var $export = __webpack_require__(21);
-var isObject = __webpack_require__(6);
-var aFunction = __webpack_require__(9);
-var anInstance = __webpack_require__(43);
-var forOf = __webpack_require__(44);
-var speciesConstructor = __webpack_require__(48);
-var task = __webpack_require__(30).set;
-var microtask = __webpack_require__(51)();
-var newPromiseCapabilityModule = __webpack_require__(31);
-var perform = __webpack_require__(52);
-var userAgent = __webpack_require__(32);
-var promiseResolve = __webpack_require__(53);
-var PROMISE = 'Promise';
-var TypeError = global.TypeError;
-var process = global.process;
-var versions = process && process.versions;
-var v8 = versions && versions.v8 || '';
-var $Promise = global[PROMISE];
-var isNode = classof(process) == 'process';
-var empty = function empty() {/* empty */};
-var Internal, newGenericPromiseCapability, OwnPromiseCapability, Wrapper;
-var newPromiseCapability = newGenericPromiseCapability = newPromiseCapabilityModule.f;
-
-var USE_NATIVE = !!function () {
-  try {
-    // correct subclassing with @@species support
-    var promise = $Promise.resolve(1);
-    var FakePromise = (promise.constructor = {})[__webpack_require__(3)('species')] = function (exec) {
-      exec(empty, empty);
-    };
-    // unhandled rejections tracking support, NodeJS Promise without it fails @@species test
-    return (isNode || typeof PromiseRejectionEvent == 'function') && promise.then(empty) instanceof FakePromise
-    // v8 6.6 (Node 10 and Chrome 66) have a bug with resolving custom thenables
-    // https://bugs.chromium.org/p/chromium/issues/detail?id=830565
-    // we can't detect it synchronously, so just check versions
-    && v8.indexOf('6.6') !== 0 && userAgent.indexOf('Chrome/66') === -1;
-  } catch (e) {/* empty */}
-}();
-
-// helpers
-var isThenable = function isThenable(it) {
-  var then;
-  return isObject(it) && typeof (then = it.then) == 'function' ? then : false;
-};
-var notify = function notify(promise, isReject) {
-  if (promise._n) return;
-  promise._n = true;
-  var chain = promise._c;
-  microtask(function () {
-    var value = promise._v;
-    var ok = promise._s == 1;
-    var i = 0;
-    var run = function run(reaction) {
-      var handler = ok ? reaction.ok : reaction.fail;
-      var resolve = reaction.resolve;
-      var reject = reaction.reject;
-      var domain = reaction.domain;
-      var result, then, exited;
-      try {
-        if (handler) {
-          if (!ok) {
-            if (promise._h == 2) onHandleUnhandled(promise);
-            promise._h = 1;
-          }
-          if (handler === true) result = value;else {
-            if (domain) domain.enter();
-            result = handler(value); // may throw
-            if (domain) {
-              domain.exit();
-              exited = true;
-            }
-          }
-          if (result === reaction.promise) {
-            reject(TypeError('Promise-chain cycle'));
-          } else if (then = isThenable(result)) {
-            then.call(result, resolve, reject);
-          } else resolve(result);
-        } else reject(value);
-      } catch (e) {
-        if (domain && !exited) domain.exit();
-        reject(e);
-      }
-    };
-    while (chain.length > i) {
-      run(chain[i++]);
-    } // variable length - can't use forEach
-    promise._c = [];
-    promise._n = false;
-    if (isReject && !promise._h) onUnhandled(promise);
-  });
-};
-var onUnhandled = function onUnhandled(promise) {
-  task.call(global, function () {
-    var value = promise._v;
-    var unhandled = isUnhandled(promise);
-    var result, handler, console;
-    if (unhandled) {
-      result = perform(function () {
-        if (isNode) {
-          process.emit('unhandledRejection', value, promise);
-        } else if (handler = global.onunhandledrejection) {
-          handler({ promise: promise, reason: value });
-        } else if ((console = global.console) && console.error) {
-          console.error('Unhandled promise rejection', value);
-        }
-      });
-      // Browsers should not trigger `rejectionHandled` event if it was handled here, NodeJS - should
-      promise._h = isNode || isUnhandled(promise) ? 2 : 1;
-    }promise._a = undefined;
-    if (unhandled && result.e) throw result.v;
-  });
-};
-var isUnhandled = function isUnhandled(promise) {
-  return promise._h !== 1 && (promise._a || promise._c).length === 0;
-};
-var onHandleUnhandled = function onHandleUnhandled(promise) {
-  task.call(global, function () {
-    var handler;
-    if (isNode) {
-      process.emit('rejectionHandled', promise);
-    } else if (handler = global.onrejectionhandled) {
-      handler({ promise: promise, reason: promise._v });
-    }
-  });
-};
-var $reject = function $reject(value) {
-  var promise = this;
-  if (promise._d) return;
-  promise._d = true;
-  promise = promise._w || promise; // unwrap
-  promise._v = value;
-  promise._s = 2;
-  if (!promise._a) promise._a = promise._c.slice();
-  notify(promise, true);
-};
-var $resolve = function $resolve(value) {
-  var promise = this;
-  var then;
-  if (promise._d) return;
-  promise._d = true;
-  promise = promise._w || promise; // unwrap
-  try {
-    if (promise === value) throw TypeError("Promise can't be resolved itself");
-    if (then = isThenable(value)) {
-      microtask(function () {
-        var wrapper = { _w: promise, _d: false }; // wrap
-        try {
-          then.call(value, ctx($resolve, wrapper, 1), ctx($reject, wrapper, 1));
-        } catch (e) {
-          $reject.call(wrapper, e);
-        }
-      });
-    } else {
-      promise._v = value;
-      promise._s = 1;
-      notify(promise, false);
-    }
-  } catch (e) {
-    $reject.call({ _w: promise, _d: false }, e); // wrap
-  }
-};
-
-// constructor polyfill
-if (!USE_NATIVE) {
-  // 25.4.3.1 Promise(executor)
-  $Promise = function Promise(executor) {
-    anInstance(this, $Promise, PROMISE, '_h');
-    aFunction(executor);
-    Internal.call(this);
-    try {
-      executor(ctx($resolve, this, 1), ctx($reject, this, 1));
-    } catch (err) {
-      $reject.call(this, err);
-    }
-  };
-  // eslint-disable-next-line no-unused-vars
-  Internal = function Promise(executor) {
-    this._c = []; // <- awaiting reactions
-    this._a = undefined; // <- checked in isUnhandled reactions
-    this._s = 0; // <- state
-    this._d = false; // <- done
-    this._v = undefined; // <- value
-    this._h = 0; // <- rejection state, 0 - default, 1 - handled, 2 - unhandled
-    this._n = false; // <- notify
-  };
-  Internal.prototype = __webpack_require__(54)($Promise.prototype, {
-    // 25.4.5.3 Promise.prototype.then(onFulfilled, onRejected)
-    then: function then(onFulfilled, onRejected) {
-      var reaction = newPromiseCapability(speciesConstructor(this, $Promise));
-      reaction.ok = typeof onFulfilled == 'function' ? onFulfilled : true;
-      reaction.fail = typeof onRejected == 'function' && onRejected;
-      reaction.domain = isNode ? process.domain : undefined;
-      this._c.push(reaction);
-      if (this._a) this._a.push(reaction);
-      if (this._s) notify(this, false);
-      return reaction.promise;
-    },
-    // 25.4.5.1 Promise.prototype.catch(onRejected)
-    'catch': function _catch(onRejected) {
-      return this.then(undefined, onRejected);
-    }
-  });
-  OwnPromiseCapability = function OwnPromiseCapability() {
-    var promise = new Internal();
-    this.promise = promise;
-    this.resolve = ctx($resolve, promise, 1);
-    this.reject = ctx($reject, promise, 1);
-  };
-  newPromiseCapabilityModule.f = newPromiseCapability = function newPromiseCapability(C) {
-    return C === $Promise || C === Wrapper ? new OwnPromiseCapability(C) : newGenericPromiseCapability(C);
-  };
-}
-
-$export($export.G + $export.W + $export.F * !USE_NATIVE, { Promise: $Promise });
-__webpack_require__(55)($Promise, PROMISE);
-__webpack_require__(56)(PROMISE);
-Wrapper = __webpack_require__(4)[PROMISE];
-
-// statics
-$export($export.S + $export.F * !USE_NATIVE, PROMISE, {
-  // 25.4.4.5 Promise.reject(r)
-  reject: function reject(r) {
-    var capability = newPromiseCapability(this);
-    var $$reject = capability.reject;
-    $$reject(r);
-    return capability.promise;
-  }
-});
-$export($export.S + $export.F * (LIBRARY || !USE_NATIVE), PROMISE, {
-  // 25.4.4.6 Promise.resolve(x)
-  resolve: function resolve(x) {
-    return promiseResolve(LIBRARY && this === Wrapper ? $Promise : this, x);
-  }
-});
-$export($export.S + $export.F * !(USE_NATIVE && __webpack_require__(57)(function (iter) {
-  $Promise.all(iter)['catch'](empty);
-})), PROMISE, {
-  // 25.4.4.1 Promise.all(iterable)
-  all: function all(iterable) {
-    var C = this;
-    var capability = newPromiseCapability(C);
-    var resolve = capability.resolve;
-    var reject = capability.reject;
-    var result = perform(function () {
-      var values = [];
-      var index = 0;
-      var remaining = 1;
-      forOf(iterable, false, function (promise) {
-        var $index = index++;
-        var alreadyCalled = false;
-        values.push(undefined);
-        remaining++;
-        C.resolve(promise).then(function (value) {
-          if (alreadyCalled) return;
-          alreadyCalled = true;
-          values[$index] = value;
-          --remaining || resolve(values);
-        }, reject);
-      });
-      --remaining || resolve(values);
-    });
-    if (result.e) reject(result.v);
-    return capability.promise;
-  },
-  // 25.4.4.4 Promise.race(iterable)
-  race: function race(iterable) {
-    var C = this;
-    var capability = newPromiseCapability(C);
-    var reject = capability.reject;
-    var result = perform(function () {
-      forOf(iterable, false, function (promise) {
-        C.resolve(promise).then(capability.resolve, reject);
-      });
-    });
-    if (result.e) reject(result.v);
-    return capability.promise;
-  }
-});
-
-/***/ }),
-/* 39 */
-/***/ (function(module, exports, __webpack_require__) {
-
-"use strict";
-
-
-var core = __webpack_require__(4);
-var global = __webpack_require__(2);
-var SHARED = '__core-js_shared__';
-var store = global[SHARED] || (global[SHARED] = {});
-
-(module.exports = function (key, value) {
-  return store[key] || (store[key] = value !== undefined ? value : {});
-})('versions', []).push({
-  version: core.version,
-  mode: __webpack_require__(18) ? 'pure' : 'global',
-  copyright: '© 2018 Denis Pushkarev (zloirock.ru)'
-});
-
-/***/ }),
-/* 40 */
-/***/ (function(module, exports, __webpack_require__) {
-
-"use strict";
-
-
-module.exports = !__webpack_require__(10) && !__webpack_require__(23)(function () {
-  return Object.defineProperty(__webpack_require__(24)('div'), 'a', { get: function get() {
-      return 7;
-    } }).a != 7;
-});
-
-/***/ }),
-/* 41 */
-/***/ (function(module, exports, __webpack_require__) {
-
-"use strict";
-
-
-// 7.1.1 ToPrimitive(input [, PreferredType])
-var isObject = __webpack_require__(6);
-// instead of the ES6 spec version, we didn't implement @@toPrimitive case
-// and the second argument - flag - preferred type is a string
-module.exports = function (it, S) {
-  if (!isObject(it)) return it;
-  var fn, val;
-  if (S && typeof (fn = it.toString) == 'function' && !isObject(val = fn.call(it))) return val;
-  if (typeof (fn = it.valueOf) == 'function' && !isObject(val = fn.call(it))) return val;
-  if (!S && typeof (fn = it.toString) == 'function' && !isObject(val = fn.call(it))) return val;
-  throw TypeError("Can't convert object to primitive value");
-};
-
-/***/ }),
-/* 42 */
-/***/ (function(module, exports, __webpack_require__) {
-
-"use strict";
-
-
-module.exports = function (bitmap, value) {
-  return {
-    enumerable: !(bitmap & 1),
-    configurable: !(bitmap & 2),
-    writable: !(bitmap & 4),
-    value: value
-  };
-};
-
-/***/ }),
-/* 43 */
-/***/ (function(module, exports, __webpack_require__) {
-
-"use strict";
-
-
-module.exports = function (it, Constructor, name, forbiddenField) {
-  if (!(it instanceof Constructor) || forbiddenField !== undefined && forbiddenField in it) {
-    throw TypeError(name + ': incorrect invocation!');
-  }return it;
-};
-
-/***/ }),
-/* 44 */
-/***/ (function(module, exports, __webpack_require__) {
-
-"use strict";
-
-
-var ctx = __webpack_require__(8);
-var call = __webpack_require__(45);
-var isArrayIter = __webpack_require__(46);
-var anObject = __webpack_require__(5);
-var toLength = __webpack_require__(28);
-var getIterFn = __webpack_require__(47);
-var BREAK = {};
-var RETURN = {};
-var _exports = module.exports = function (iterable, entries, fn, that, ITERATOR) {
-  var iterFn = ITERATOR ? function () {
-    return iterable;
-  } : getIterFn(iterable);
-  var f = ctx(fn, that, entries ? 2 : 1);
-  var index = 0;
-  var length, step, iterator, result;
-  if (typeof iterFn != 'function') throw TypeError(iterable + ' is not iterable!');
-  // fast case for arrays with default iterator
-  if (isArrayIter(iterFn)) for (length = toLength(iterable.length); length > index; index++) {
-    result = entries ? f(anObject(step = iterable[index])[0], step[1]) : f(iterable[index]);
-    if (result === BREAK || result === RETURN) return result;
-  } else for (iterator = iterFn.call(iterable); !(step = iterator.next()).done;) {
-    result = call(iterator, f, step.value, entries);
-    if (result === BREAK || result === RETURN) return result;
-  }
-};
-_exports.BREAK = BREAK;
-_exports.RETURN = RETURN;
-
-/***/ }),
-/* 45 */
-/***/ (function(module, exports, __webpack_require__) {
-
-"use strict";
-
-
-// call something on iterator step with safe closing on error
-var anObject = __webpack_require__(5);
-module.exports = function (iterator, fn, value, entries) {
-  try {
-    return entries ? fn(anObject(value)[0], value[1]) : fn(value);
-    // 7.4.6 IteratorClose(iterator, completion)
-  } catch (e) {
-    var ret = iterator['return'];
-    if (ret !== undefined) anObject(ret.call(iterator));
-    throw e;
-  }
-};
-
-/***/ }),
-/* 46 */
-/***/ (function(module, exports, __webpack_require__) {
-
-"use strict";
-
-
-// check on default Array iterator
-var Iterators = __webpack_require__(27);
-var ITERATOR = __webpack_require__(3)('iterator');
-var ArrayProto = Array.prototype;
-
-module.exports = function (it) {
-  return it !== undefined && (Iterators.Array === it || ArrayProto[ITERATOR] === it);
-};
-
-/***/ }),
-/* 47 */
-/***/ (function(module, exports, __webpack_require__) {
-
-"use strict";
-
-
-var classof = __webpack_require__(19);
-var ITERATOR = __webpack_require__(3)('iterator');
-var Iterators = __webpack_require__(27);
-module.exports = __webpack_require__(4).getIteratorMethod = function (it) {
-  if (it != undefined) return it[ITERATOR] || it['@@iterator'] || Iterators[classof(it)];
-};
-
-/***/ }),
-/* 48 */
-/***/ (function(module, exports, __webpack_require__) {
-
-"use strict";
-
-
-// 7.3.20 SpeciesConstructor(O, defaultConstructor)
-var anObject = __webpack_require__(5);
-var aFunction = __webpack_require__(9);
-var SPECIES = __webpack_require__(3)('species');
-module.exports = function (O, D) {
-  var C = anObject(O).constructor;
-  var S;
-  return C === undefined || (S = anObject(C)[SPECIES]) == undefined ? D : aFunction(S);
-};
-
-/***/ }),
-/* 49 */
-/***/ (function(module, exports, __webpack_require__) {
-
-"use strict";
-
-
-// fast apply, http://jsperf.lnkit.com/fast-apply/5
-module.exports = function (fn, args, that) {
-                  var un = that === undefined;
-                  switch (args.length) {
-                                    case 0:
-                                                      return un ? fn() : fn.call(that);
-                                    case 1:
-                                                      return un ? fn(args[0]) : fn.call(that, args[0]);
-                                    case 2:
-                                                      return un ? fn(args[0], args[1]) : fn.call(that, args[0], args[1]);
-                                    case 3:
-                                                      return un ? fn(args[0], args[1], args[2]) : fn.call(that, args[0], args[1], args[2]);
-                                    case 4:
-                                                      return un ? fn(args[0], args[1], args[2], args[3]) : fn.call(that, args[0], args[1], args[2], args[3]);
-                  }return fn.apply(that, args);
-};
-
-/***/ }),
-/* 50 */
-/***/ (function(module, exports, __webpack_require__) {
-
-"use strict";
-
-
-var document = __webpack_require__(2).document;
-module.exports = document && document.documentElement;
-
-/***/ }),
-/* 51 */
-/***/ (function(module, exports, __webpack_require__) {
-
-"use strict";
-
-
-var global = __webpack_require__(2);
-var macrotask = __webpack_require__(30).set;
-var Observer = global.MutationObserver || global.WebKitMutationObserver;
-var process = global.process;
-var Promise = global.Promise;
-var isNode = __webpack_require__(11)(process) == 'process';
-
-module.exports = function () {
-  var head, last, notify;
-
-  var flush = function flush() {
-    var parent, fn;
-    if (isNode && (parent = process.domain)) parent.exit();
-    while (head) {
-      fn = head.fn;
-      head = head.next;
-      try {
-        fn();
-      } catch (e) {
-        if (head) notify();else last = undefined;
-        throw e;
-      }
-    }last = undefined;
-    if (parent) parent.enter();
-  };
-
-  // Node.js
-  if (isNode) {
-    notify = function notify() {
-      process.nextTick(flush);
-    };
-    // browsers with MutationObserver, except iOS Safari - https://github.com/zloirock/core-js/issues/339
-  } else if (Observer && !(global.navigator && global.navigator.standalone)) {
-    var toggle = true;
-    var node = document.createTextNode('');
-    new Observer(flush).observe(node, { characterData: true }); // eslint-disable-line no-new
-    notify = function notify() {
-      node.data = toggle = !toggle;
-    };
-    // environments with maybe non-completely correct, but existent Promise
-  } else if (Promise && Promise.resolve) {
-    // Promise.resolve without an argument throws an error in LG WebOS 2
-    var promise = Promise.resolve(undefined);
-    notify = function notify() {
-      promise.then(flush);
-    };
-    // for other environments - macrotask based on:
-    // - setImmediate
-    // - MessageChannel
-    // - window.postMessag
-    // - onreadystatechange
-    // - setTimeout
-  } else {
-    notify = function notify() {
-      // strange IE + webpack dev server bug - use .call(global)
-      macrotask.call(global, flush);
-    };
-  }
-
-  return function (fn) {
-    var task = { fn: fn, next: undefined };
-    if (last) last.next = task;
-    if (!head) {
-      head = task;
-      notify();
-    }last = task;
-  };
-};
-
-/***/ }),
-/* 52 */
-/***/ (function(module, exports, __webpack_require__) {
-
-"use strict";
-
-
-module.exports = function (exec) {
-  try {
-    return { e: false, v: exec() };
-  } catch (e) {
-    return { e: true, v: e };
-  }
-};
-
-/***/ }),
-/* 53 */
-/***/ (function(module, exports, __webpack_require__) {
-
-"use strict";
-
-
-var anObject = __webpack_require__(5);
-var isObject = __webpack_require__(6);
-var newPromiseCapability = __webpack_require__(31);
-
-module.exports = function (C, x) {
-  anObject(C);
-  if (isObject(x) && x.constructor === C) return x;
-  var promiseCapability = newPromiseCapability.f(C);
-  var resolve = promiseCapability.resolve;
-  resolve(x);
-  return promiseCapability.promise;
-};
-
-/***/ }),
-/* 54 */
-/***/ (function(module, exports, __webpack_require__) {
-
-"use strict";
-
-
-var redefine = __webpack_require__(25);
-module.exports = function (target, src, safe) {
-  for (var key in src) {
-    redefine(target, key, src[key], safe);
-  }return target;
-};
-
-/***/ }),
-/* 55 */
-/***/ (function(module, exports, __webpack_require__) {
-
-"use strict";
-
-
-var def = __webpack_require__(12).f;
-var has = __webpack_require__(26);
-var TAG = __webpack_require__(3)('toStringTag');
-
-module.exports = function (it, tag, stat) {
-  if (it && !has(it = stat ? it : it.prototype, TAG)) def(it, TAG, { configurable: true, value: tag });
-};
-
-/***/ }),
-/* 56 */
-/***/ (function(module, exports, __webpack_require__) {
-
-"use strict";
-
-
-var global = __webpack_require__(2);
-var dP = __webpack_require__(12);
-var DESCRIPTORS = __webpack_require__(10);
-var SPECIES = __webpack_require__(3)('species');
-
-module.exports = function (KEY) {
-  var C = global[KEY];
-  if (DESCRIPTORS && C && !C[SPECIES]) dP.f(C, SPECIES, {
-    configurable: true,
-    get: function get() {
-      return this;
-    }
-  });
-};
-
-/***/ }),
-/* 57 */
-/***/ (function(module, exports, __webpack_require__) {
-
-"use strict";
-
-
-var ITERATOR = __webpack_require__(3)('iterator');
-var SAFE_CLOSING = false;
-
-try {
-  var riter = [7][ITERATOR]();
-  riter['return'] = function () {
-    SAFE_CLOSING = true;
-  };
-  // eslint-disable-next-line no-throw-literal
-  Array.from(riter, function () {
-    throw 2;
-  });
-} catch (e) {/* empty */}
-
-module.exports = function (exec, skipClosing) {
-  if (!skipClosing && !SAFE_CLOSING) return false;
-  var safe = false;
-  try {
-    var arr = [7];
-    var iter = arr[ITERATOR]();
-    iter.next = function () {
-      return { done: safe = true };
-    };
-    arr[ITERATOR] = function () {
-      return iter;
-    };
-    exec(arr);
-  } catch (e) {/* empty */}
-  return safe;
-};
-
-/***/ }),
-/* 58 */
-/***/ (function(module, exports, __webpack_require__) {
-
-"use strict";
-
-// https://github.com/tc39/proposal-string-pad-start-end
-
-var $export = __webpack_require__(21);
-var $pad = __webpack_require__(59);
-var userAgent = __webpack_require__(32);
-
-// https://github.com/zloirock/core-js/issues/280
-$export($export.P + $export.F * /Version\/10\.\d+(\.\d+)? Safari\//.test(userAgent), 'String', {
-  padStart: function padStart(maxLength /* , fillString = ' ' */) {
-    return $pad(this, maxLength, arguments.length > 1 ? arguments[1] : undefined, true);
-  }
-});
-
-/***/ }),
-/* 59 */
-/***/ (function(module, exports, __webpack_require__) {
-
-"use strict";
-
-
-// https://github.com/tc39/proposal-string-pad-start-end
-var toLength = __webpack_require__(28);
-var repeat = __webpack_require__(60);
-var defined = __webpack_require__(33);
-
-module.exports = function (that, maxLength, fillString, left) {
-  var S = String(defined(that));
-  var stringLength = S.length;
-  var fillStr = fillString === undefined ? ' ' : String(fillString);
-  var intMaxLength = toLength(maxLength);
-  if (intMaxLength <= stringLength || fillStr == '') return S;
-  var fillLen = intMaxLength - stringLength;
-  var stringFiller = repeat.call(fillStr, Math.ceil(fillLen / fillStr.length));
-  if (stringFiller.length > fillLen) stringFiller = stringFiller.slice(0, fillLen);
-  return left ? stringFiller + S : S + stringFiller;
-};
-
-/***/ }),
-/* 60 */
-/***/ (function(module, exports, __webpack_require__) {
-
-"use strict";
-
-
-var toInteger = __webpack_require__(29);
-var defined = __webpack_require__(33);
-
-module.exports = function repeat(count) {
-  var str = String(defined(this));
-  var res = '';
-  var n = toInteger(count);
-  if (n < 0 || n == Infinity) throw RangeError("Count can't be negative");
-  for (; n > 0; (n >>>= 1) && (str += str)) {
-    if (n & 1) res += str;
-  }return res;
-};
-
-/***/ }),
-/* 61 */
-/***/ (function(module, exports, __webpack_require__) {
-
-"use strict";
-
-
-Object.defineProperty(exports, "__esModule", {
-  value: true
-});
-
-var _createClass = function () { function defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ("value" in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } } return function (Constructor, protoProps, staticProps) { if (protoProps) defineProperties(Constructor.prototype, protoProps); if (staticProps) defineProperties(Constructor, staticProps); return Constructor; }; }();
-
-var _eventEmitter = __webpack_require__(14);
-
-var _eventEmitter2 = _interopRequireDefault(_eventEmitter);
-
-var _deepmerge = __webpack_require__(77);
-
-var _deepmerge2 = _interopRequireDefault(_deepmerge);
-
-var _parse = __webpack_require__(78);
-
-var _parse2 = _interopRequireDefault(_parse);
-
-var _buffer = __webpack_require__(17);
-
-var _buffer2 = _interopRequireDefault(_buffer);
-
-var _mp = __webpack_require__(122);
-
-var _mp2 = _interopRequireDefault(_mp);
-
-var _task = __webpack_require__(35);
-
-var _task2 = _interopRequireDefault(_task);
-
-var _download = __webpack_require__(123);
-
-var _download2 = _interopRequireDefault(_download);
-
-var _util = __webpack_require__(124);
-
-var _util2 = _interopRequireDefault(_util);
-
-var _xgplayer = __webpack_require__(13);
-
-var _xgplayer2 = _interopRequireDefault(_xgplayer);
-
-var _error = __webpack_require__(7);
-
-var _error2 = _interopRequireDefault(_error);
-
-function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
-
-function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } }
-
-var MP4 = function () {
-  /**
-     * [constructor 构造函数]
-     * @param {String} url                      [视频地址]
-     * @param {Number} [chunk_size=Math.pow(25, 4)]           [请求的数据块大小，对于长视频设置的较大些可以避免二次请求]
-     */
-  function MP4(url) {
-    var chunkSize = arguments.length > 1 && arguments[1] !== undefined ? arguments[1] : 1024;
-
-    _classCallCheck(this, MP4);
-
-    (0, _eventEmitter2.default)(this);
-    this.url = url;
-    this.CHUNK_SIZE = chunkSize;
-    this.reqTimeLength = 5;
-    this.init(url);
-    this.once('mdatReady', this.moovParse.bind(this));
-    this.cache = new _buffer2.default();
-    this.bufferCache = new Set();
-    this.timeRage = [];
-    this.canDownload = true;
-    this.cut = false;
-  }
-
-  /**
-     * [getData 根据字节区间下载二进制数据]
-     * @param  {Number} [start=0]  [起始字节]
-     * @param  {Number} [end=start + this.CHUNK_SIZE] [截止字节]
-     */
-
-
-  _createClass(MP4, [{
-    key: 'getData',
-    value: function getData() {
-      var _this = this;
-
-      var start = arguments.length > 0 && arguments[0] !== undefined ? arguments[0] : 0;
-      var end = arguments.length > 1 && arguments[1] !== undefined ? arguments[1] : start + this.CHUNK_SIZE;
-
-      var self = this;
-      return new Promise(function (resolve, reject) {
-        var task = new _task2.default(_this.url, [start, end], resolve);
-        task.once('error', function (err) {
-          self.emit('error', err);
-        });
-      });
-    }
-
-    /**
-       * [moovParse 解析视频信息]
-       * @return {[type]} [description]
-       */
-
-  }, {
-    key: 'moovParse',
-    value: function moovParse() {
-      var self = this;
-      var moov = this.moovBox;
-      var mvhd = _util2.default.findBox(moov, 'mvhd');
-      var traks = _util2.default.findBox(moov, 'trak');
-      var audioTrak = void 0;
-      var audioCodec = void 0;
-      var audioTimeScale = void 0;
-      var channelCount = void 0,
-          sampleRate = void 0,
-          decoderConfig = void 0;
-      if (_xgplayer2.default.util.typeOf(traks) !== 'Array') {
-        traks = [traks];
-      }
-      traks.forEach(function (trak) {
-        var hdlr = _util2.default.findBox(trak, 'hdlr');
-        var mdhd = _util2.default.findBox(trak, 'mdhd');
-        if (!hdlr || !mdhd) {
-          self.emit('error', new _error2.default('parse', '', { line: 72, handle: '[MP4] moovParse', url: self.url }));
-          return;
-        }
-        var stsd = _util2.default.findBox(trak, 'stsd');
-        var codecBox = stsd.subBox[0];
-        if (hdlr.handleType === 'soun') {
-          audioTrak = trak;
-          var esds = _util2.default.findBox(trak, 'esds');
-          var mp4a = _util2.default.findBox(trak, 'mp4a');
-          var ESDescriptor = _util2.default.findBox(trak, 5);
-          audioTimeScale = mdhd.timescale;
-          if (esds) {
-            audioCodec = codecBox.type + '.' + _util2.default.toHex(esds.subBox[0].subBox[0].typeID) + ('.' + esds.subBox[0].subBox[0].subBox[0].type);
-          } else {
-            audioCodec = '' + codecBox.type;
-          }
-          if (ESDescriptor && ESDescriptor.EScode) {
-            decoderConfig = ESDescriptor.EScode.map(function (item) {
-              return Number('0x' + item);
-            });
-          }
-          if (mp4a) {
-            channelCount = mp4a.channelCount;
-            sampleRate = mp4a.sampleRate;
-          }
-        }
-      });
-      this.audioTrak = (0, _deepmerge2.default)({}, audioTrak);
-      var mdat = this._boxes.find(function (item) {
-        return item.type === 'mdat';
-      });
-      var audioDuration = parseFloat(_util2.default.seekTrakDuration(audioTrak, audioTimeScale));
-      this.mdatStart = mdat.start;
-      this.sampleCount = _util2.default.sampleCount(_util2.default.findBox(this.audioTrak, 'stts').entry);
-
-      var audioFrame = void 0,
-          audioNextFrame = void 0;
-      var stts = _util2.default.findBox(this.audioTrak, 'stts').entry;
-      for (var i = 0; i < audioDuration; i += this.reqTimeLength) {
-        audioFrame = _util2.default.seekOrderSampleByTime(stts, audioTimeScale, i);
-        if (i + this.reqTimeLength < audioDuration) {
-          audioNextFrame = _util2.default.seekOrderSampleByTime(stts, audioTimeScale, i + this.reqTimeLength);
-          this.timeRage.push([{ time: audioFrame.startTime, order: audioFrame.order }, { time: audioNextFrame.startTime, order: audioNextFrame.order }]);
-        } else {
-          this.timeRage.push([{ time: audioFrame.startTime, order: audioFrame.order }, { time: audioDuration, order: this.sampleCount - 1 }]);
-        }
-      }
-      // console.log('this.timeRage')
-      // console.log(this.timeRage)
-      this.meta = {
-        audioCodec: audioCodec,
-        createTime: mvhd.createTime,
-        modifyTime: mvhd.modifyTime,
-        duration: mvhd.duration / mvhd.timeScale,
-        timeScale: mvhd.timeScale,
-        audioDuration: audioDuration,
-        audioTimeScale: audioTimeScale,
-        endTime: audioDuration,
-        channelCount: channelCount,
-        sampleRate: sampleRate,
-        audioConfig: decoderConfig
-      };
-    }
-
-    /**
-       * [init 实例的初始化，主要是获取视频的MOOV元信息]
-       */
-
-  }, {
-    key: 'init',
-    value: function init() {
-      var self = this;
-      self.getData().then(function (resFir) {
-        var parsedFir = void 0;
-        var mdatStart = 0;
-
-        var mdat = void 0,
-            moov = void 0;
-
-        var boxes = void 0;
-        try {
-          parsedFir = new _parse2.default(resFir);
-        } catch (e) {
-          self.emit('error', e.type ? e : new _error2.default('parse', '', { line: 176, handle: '[MP4] init', msg: e.message }));
-          return false;
-        }
-        self._boxes = boxes = parsedFir.boxes;
-        boxes.every(function (item) {
-          mdatStart += item.size;
-          return true;
-        });
-        if (!mdat) {
-          var nextBox = parsedFir.nextBox;
-          if (nextBox) {
-            if (nextBox.type === 'moov' || nextBox.type === 'free') {
-              self.getData(mdatStart, mdatStart + nextBox.size + 1024).then(function (resSec) {
-                var parsedSec = new _parse2.default(resSec);
-                self._boxes = self._boxes.concat(parsedSec.boxes);
-                parsedSec.boxes.every(function (item) {
-                  mdatStart += item.size;
-                  if (item.type === 'moov') {
-                    moov = item;
-                    self.moovBox = moov;
-                    return true;
-                  } else {
-                    return true;
-                  }
-                });
-                if (!mdat) {
-                  var nextBoxSec = parsedSec.nextBox;
-                  if (nextBoxSec) {
-                    if (nextBoxSec.type === 'free') {
-                      self.getData(mdatStart, mdatStart + nextBoxSec.size + 1024).then(function (resThi) {
-                        var parsedThi = new _parse2.default(resThi);
-                        self._boxes = self._boxes.concat(parsedThi.boxes);
-                        parsedThi.boxes.every(function (item) {
-                          if (item.type === 'mdat') {
-                            mdat = item;
-                            mdat.start = mdatStart;
-                            self.mdatBox = mdat;
-                            self.emit('mdatReady', moov);
-                            return false;
-                          } else {
-                            mdatStart += item.size;
-                            return true;
-                          }
-                        });
-                        if (!mdat) {
-                          self.emit('error', new _error2.default('parse', '', { line: 207, handle: '[MP4] init', msg: 'not find mdat box' }));
-                        }
-                      }).catch(function () {
-                        self.emit('error', new _error2.default('network', '', { line: 210, handle: '[MP4] getData', msg: 'getData failed' }));
-                      });
-                    } else {
-                      self.emit('error', new _error2.default('parse', '', { line: 213, handle: '[MP4] init', msg: 'not find mdat box' }));
-                    }
-                  } else {
-                    self.emit('error', new _error2.default('parse', '', { line: 216, handle: '[MP4] init', msg: 'not find mdat box' }));
-                  }
-                }
-              }).catch(function () {
-                self.emit('error', new _error2.default('network', '', { line: 220, handle: '[MP4] getData', msg: 'getData failed' }));
-              });
-            } else {
-              self.emit('error', new _error2.default('parse', '', { line: 223, handle: '[MP4] init', msg: 'not find mdat box' }));
-            }
-          } else {
-            self.emit('error', new _error2.default('parse', '', { line: 226, handle: '[MP4] init', msg: 'not find mdat box' }));
-          }
-        }
-      }).catch(function () {
-        self.emit('error', new _error2.default('network', '', { line: 230, handle: '[MP4] getData', msg: 'getData failed' }));
-      });
-    }
-  }, {
-    key: 'getSamplesByOrders',
-    value: function getSamplesByOrders() {
-      var type = arguments.length > 0 && arguments[0] !== undefined ? arguments[0] : 'audio';
-      var start = arguments[1];
-      var end = arguments[2];
-
-      var trak = this.audioTrak;
-      var stsc = _util2.default.findBox(trak, 'stsc'); // chunk~samples
-      var stsz = _util2.default.findBox(trak, 'stsz'); // sample-size
-      var stts = _util2.default.findBox(trak, 'stts'); // sample-time
-      var stco = _util2.default.findBox(trak, 'stco'); // chunk-offset
-      var ctts = _util2.default.findBox(trak, 'ctts'); // offset-compositime
-      var mdatStart = this.mdatStart;
-      var samples = [];
-      end = end !== undefined ? end : stsz.entries.length;
-      if (start instanceof Array) {
-        start.forEach(function (item, idx) {
-          samples.push({
-            idx: item,
-            size: stsz.entries[item],
-            time: _util2.default.seekSampleTime(stts, ctts, item),
-            offset: _util2.default.seekSampleOffset(stsc, stco, stsz, item, mdatStart)
-          });
-        });
-      } else if (end !== 0) {
-        for (var i = start; i < end; i++) {
-          samples.push({
-            idx: i,
-            size: stsz.entries[i],
-            time: _util2.default.seekSampleTime(stts, ctts, i),
-            offset: _util2.default.seekSampleOffset(stsc, stco, stsz, i, mdatStart)
-          });
-        }
-      } else {
-        samples = {
-          idx: start,
-          size: stsz.entries[start],
-          time: _util2.default.seekSampleTime(stts, ctts, start),
-          offset: _util2.default.seekSampleOffset(stsc, stco, stsz, start, mdatStart)
-        };
-      }
-      return samples;
-    }
-  }, {
-    key: 'packMeta',
-    value: function packMeta(meta) {
-      if (!meta) {
-        return;
-      }
-      var buffer = new _buffer2.default();
-      buffer.write(_mp2.default.ftyp());
-      buffer.write(_mp2.default.moov(meta));
-      this.cache.write(buffer.buffer);
-      return buffer.buffer;
-    }
-  }, {
-    key: 'seek',
-    value: function seek(time) {
-      var audioIndexOrder = arguments.length > 1 && arguments[1] !== undefined ? arguments[1] : null;
-      var audioNextIndexOrder = arguments.length > 2 && arguments[2] !== undefined ? arguments[2] : null;
-
-      var audioStts = _util2.default.findBox(this.audioTrak, 'stts').entry;
-      if (!audioIndexOrder) {
-        audioIndexOrder = _util2.default.seekOrderSampleByTime(audioStts, this.meta.audioTimeScale, time).order;
-      }
-      if (!audioNextIndexOrder) {
-        if (time + this.reqTimeLength < this.meta.audioDuration) {
-          audioNextIndexOrder = _util2.default.seekOrderSampleByTime(audioStts, this.meta.audioTimeScale, time + this.reqTimeLength).order;
-        }
-      }
-      if (this.bufferCache.has(audioIndexOrder)) {
-        return Promise.resolve(null);
-      } else {
-        return this.loadFragment(audioIndexOrder, audioNextIndexOrder);
-      }
-    }
-  }, {
-    key: 'loadFragment',
-    value: function loadFragment(audioIndexOrder, audioNextIndexOrder) {
-      var start = void 0,
-          end = void 0;
-      var self = this;
-      var audioFrame = this.getSamplesByOrders('audio', audioIndexOrder, 0);
-      start = audioFrame.offset;
-      var audioNextFrame = void 0;
-      if (audioNextIndexOrder) {
-        audioNextFrame = this.getSamplesByOrders('audio', audioNextIndexOrder, 0);
-        end = audioNextFrame.offset - 1;
-      } else {
-        audioNextFrame = this.getSamplesByOrders('audio', this.sampleCount - 1, 0);
-        end = audioNextFrame.offset + audioNextFrame.size - 1;
-      }
-      // console.log('start order')
-      // console.log(audioIndexOrder)
-      // console.log('start')
-      // console.log(start + self.mdatStart)
-      // console.log('end order')
-      // console.log(audioNextIndexOrder)
-      // console.log('end')
-      // console.log(self.mdatStart + end)
-      if (window.isNaN(start) || end !== undefined && window.isNaN(end)) {
-        self.emit('error', new _error2.default('parse', '', { line: 366, handle: '[MP4] loadFragment', url: self.url }));
-        return false;
-      }
-      return this.getData(start + self.mdatStart, end ? self.mdatStart + end : '').then(function (dat) {
-        return self.createFragment(new Uint8Array(dat), start, audioIndexOrder, audioNextIndexOrder);
-      });
-    }
-  }, {
-    key: 'addFragment',
-    value: function addFragment(data) {
-      var buffer = new _buffer2.default();
-      buffer.write(_mp2.default.moof(data));
-      buffer.write(_mp2.default.mdat(data));
-      this.cache.write(buffer.buffer);
-      return buffer.buffer;
-    }
-  }, {
-    key: 'createFragment',
-    value: function createFragment(mdatData, start, audioIndexOrder, audioNextIndexOrder) {
-      var resBuffers = [];
-      this.bufferCache.add(audioIndexOrder);
-      var _samples = this.getSamplesByOrders('audio', audioIndexOrder, audioNextIndexOrder);
-      var samples = _samples.map(function (item, idx) {
-        return {
-          size: item.size,
-          duration: item.time.duration,
-          offset: item.time.offset,
-          buffer: new Uint8Array(mdatData.slice(item.offset - start, item.offset - start + item.size)),
-          key: idx === 0
-        };
-      });
-      resBuffers.push(this.addFragment({ id: 2, time: this.cut ? 0 : _samples[0].time.time, firstFlags: 0x00, flags: 0x701, samples: samples }));
-      var bufferSize = 0;
-      resBuffers.every(function (item) {
-        bufferSize += item.byteLength;
-        return true;
-      });
-      var buffer = new Uint8Array(bufferSize);
-
-      var offset = 0;
-      resBuffers.every(function (item) {
-        buffer.set(item, offset);
-        offset += item.byteLength;
-        return true;
-      });
-      return Promise.resolve(buffer);
-    }
-  }, {
-    key: 'download',
-    value: function download() {
-      // new Download('fmp4.mp4', this.cache.buffer)
-    }
-  }]);
-
-  return MP4;
-}();
-
-exports.default = MP4;
-module.exports = exports['default'];
-
-/***/ }),
-/* 62 */
-/***/ (function(module, exports, __webpack_require__) {
-
-"use strict";
-
-
-var assign = __webpack_require__(63),
-    normalizeOpts = __webpack_require__(71),
-    isCallable = __webpack_require__(72),
-    contains = __webpack_require__(73),
-    d;
-
-d = module.exports = function (dscr, value /*, options*/) {
-	var c, e, w, options, desc;
-	if (arguments.length < 2 || typeof dscr !== 'string') {
-		options = value;
-		value = dscr;
-		dscr = null;
-	} else {
-		options = arguments[2];
-	}
-	if (dscr == null) {
-		c = w = true;
-		e = false;
-	} else {
-		c = contains.call(dscr, 'c');
-		e = contains.call(dscr, 'e');
-		w = contains.call(dscr, 'w');
-	}
-
-	desc = { value: value, configurable: c, enumerable: e, writable: w };
-	return !options ? desc : assign(normalizeOpts(options), desc);
-};
-
-d.gs = function (dscr, get, set /*, options*/) {
-	var c, e, options, desc;
-	if (typeof dscr !== 'string') {
-		options = set;
-		set = get;
-		get = dscr;
-		dscr = null;
-	} else {
-		options = arguments[3];
-	}
-	if (get == null) {
-		get = undefined;
-	} else if (!isCallable(get)) {
-		options = get;
-		get = set = undefined;
-	} else if (set == null) {
-		set = undefined;
-	} else if (!isCallable(set)) {
-		options = set;
-		set = undefined;
-	}
-	if (dscr == null) {
-		c = true;
-		e = false;
-	} else {
-		c = contains.call(dscr, 'c');
-		e = contains.call(dscr, 'e');
-	}
-
-	desc = { get: get, set: set, configurable: c, enumerable: e };
-	return !options ? desc : assign(normalizeOpts(options), desc);
-};
-
-/***/ }),
-/* 63 */
-/***/ (function(module, exports, __webpack_require__) {
-
-"use strict";
-
-
-module.exports = __webpack_require__(64)() ? Object.assign : __webpack_require__(65);
-
-/***/ }),
-/* 64 */
-/***/ (function(module, exports, __webpack_require__) {
-
-"use strict";
-
-
-module.exports = function () {
-	var assign = Object.assign,
-	    obj;
-	if (typeof assign !== "function") return false;
-	obj = { foo: "raz" };
-	assign(obj, { bar: "dwa" }, { trzy: "trzy" });
-	return obj.foo + obj.bar + obj.trzy === "razdwatrzy";
-};
-
-/***/ }),
-/* 65 */
-/***/ (function(module, exports, __webpack_require__) {
-
-"use strict";
-
-
-var keys = __webpack_require__(66),
-    value = __webpack_require__(70),
-    max = Math.max;
-
-module.exports = function (dest, src /*, …srcn*/) {
-	var error,
-	    i,
-	    length = max(arguments.length, 2),
-	    assign;
-	dest = Object(value(dest));
-	assign = function assign(key) {
-		try {
-			dest[key] = src[key];
-		} catch (e) {
-			if (!error) error = e;
-		}
-	};
-	for (i = 1; i < length; ++i) {
-		src = arguments[i];
-		keys(src).forEach(assign);
-	}
-	if (error !== undefined) throw error;
-	return dest;
-};
-
-/***/ }),
-/* 66 */
-/***/ (function(module, exports, __webpack_require__) {
-
-"use strict";
-
-
-module.exports = __webpack_require__(67)() ? Object.keys : __webpack_require__(68);
-
-/***/ }),
-/* 67 */
-/***/ (function(module, exports, __webpack_require__) {
-
-"use strict";
-
-
-module.exports = function () {
-	try {
-		Object.keys("primitive");
-		return true;
-	} catch (e) {
-		return false;
-	}
-};
-
-/***/ }),
-/* 68 */
-/***/ (function(module, exports, __webpack_require__) {
-
-"use strict";
-
-
-var isValue = __webpack_require__(15);
-
-var keys = Object.keys;
-
-module.exports = function (object) {
-  return keys(isValue(object) ? Object(object) : object);
-};
-
-/***/ }),
-/* 69 */
-/***/ (function(module, exports, __webpack_require__) {
-
-"use strict";
-
-
-// eslint-disable-next-line no-empty-function
-
-module.exports = function () {};
-
-/***/ }),
-/* 70 */
-/***/ (function(module, exports, __webpack_require__) {
-
-"use strict";
-
-
-var isValue = __webpack_require__(15);
-
-module.exports = function (value) {
-	if (!isValue(value)) throw new TypeError("Cannot use null or undefined");
-	return value;
-};
-
-/***/ }),
-/* 71 */
-/***/ (function(module, exports, __webpack_require__) {
-
-"use strict";
-
-
-var isValue = __webpack_require__(15);
-
-var forEach = Array.prototype.forEach,
-    create = Object.create;
-
-var process = function process(src, obj) {
-	var key;
-	for (key in src) {
-		obj[key] = src[key];
-	}
-};
-
-// eslint-disable-next-line no-unused-vars
-module.exports = function (opts1 /*, …options*/) {
-	var result = create(null);
-	forEach.call(arguments, function (options) {
-		if (!isValue(options)) return;
-		process(Object(options), result);
-	});
-	return result;
-};
-
-/***/ }),
-/* 72 */
-/***/ (function(module, exports, __webpack_require__) {
-
-"use strict";
-// Deprecated
-
-
-
-module.exports = function (obj) {
-  return typeof obj === "function";
-};
-
-/***/ }),
-/* 73 */
-/***/ (function(module, exports, __webpack_require__) {
-
-"use strict";
-
-
-module.exports = __webpack_require__(74)() ? String.prototype.contains : __webpack_require__(75);
-
-/***/ }),
-/* 74 */
-/***/ (function(module, exports, __webpack_require__) {
-
-"use strict";
-
-
-var str = "razdwatrzy";
-
-module.exports = function () {
-	if (typeof str.contains !== "function") return false;
-	return str.contains("dwa") === true && str.contains("foo") === false;
-};
-
-/***/ }),
-/* 75 */
-/***/ (function(module, exports, __webpack_require__) {
-
-"use strict";
-
-
-var indexOf = String.prototype.indexOf;
-
-module.exports = function (searchString /*, position*/) {
-	return indexOf.call(this, searchString, arguments[1]) > -1;
-};
-
-/***/ }),
-/* 76 */
-/***/ (function(module, exports, __webpack_require__) {
-
-"use strict";
-
-
-module.exports = function (fn) {
-	if (typeof fn !== "function") throw new TypeError(fn + " is not a function");
-	return fn;
-};
-
-/***/ }),
-/* 77 */
-/***/ (function(module, exports, __webpack_require__) {
-
-"use strict";
-
-
-Object.defineProperty(exports, "__esModule", {
-	value: true
-});
-
-var _typeof = typeof Symbol === "function" && typeof Symbol.iterator === "symbol" ? function (obj) { return typeof obj; } : function (obj) { return obj && typeof Symbol === "function" && obj.constructor === Symbol && obj !== Symbol.prototype ? "symbol" : typeof obj; };
-
-var isMergeableObject = function isMergeableObject(value) {
-	return isNonNullObject(value) && !isSpecial(value);
-};
-
-function isNonNullObject(value) {
-	return !!value && (typeof value === 'undefined' ? 'undefined' : _typeof(value)) === 'object';
-}
-
-function isSpecial(value) {
-	var stringValue = Object.prototype.toString.call(value);
-
-	return stringValue === '[object RegExp]' || stringValue === '[object Date]' || isReactElement(value);
-}
-
-// see https://github.com/facebook/react/blob/b5ac963fb791d1298e7f396236383bc955f916c1/src/isomorphic/classic/element/ReactElement.js#L21-L25
-var canUseSymbol = typeof Symbol === 'function' && Symbol.for;
-var REACT_ELEMENT_TYPE = canUseSymbol ? Symbol.for('react.element') : 0xeac7;
-
-function isReactElement(value) {
-	return value.$$typeof === REACT_ELEMENT_TYPE;
-}
-
-function emptyTarget(val) {
-	return Array.isArray(val) ? [] : {};
-}
-
-function cloneUnlessOtherwiseSpecified(value, options) {
-	return options.clone !== false && options.isMergeableObject(value) ? deepmerge(emptyTarget(value), value, options) : value;
-}
-
-function defaultArrayMerge(target, source, options) {
-	return target.concat(source).map(function (element) {
-		return cloneUnlessOtherwiseSpecified(element, options);
-	});
-}
-
-function mergeObject(target, source, options) {
-	var destination = {};
-	if (options.isMergeableObject(target)) {
-		Object.keys(target).forEach(function (key) {
-			destination[key] = cloneUnlessOtherwiseSpecified(target[key], options);
-		});
-	}
-	Object.keys(source).forEach(function (key) {
-		if (!options.isMergeableObject(source[key]) || !target[key]) {
-			destination[key] = cloneUnlessOtherwiseSpecified(source[key], options);
-		} else {
-			destination[key] = deepmerge(target[key], source[key], options);
-		}
-	});
-	return destination;
-}
-
-function deepmerge(target, source, options) {
-	options = options || {};
-	options.arrayMerge = options.arrayMerge || defaultArrayMerge;
-	options.isMergeableObject = options.isMergeableObject || isMergeableObject;
-
-	var sourceIsArray = Array.isArray(source);
-	var targetIsArray = Array.isArray(target);
-	var sourceAndTargetTypesMatch = sourceIsArray === targetIsArray;
-
-	if (!sourceAndTargetTypesMatch) {
-		return cloneUnlessOtherwiseSpecified(source, options);
-	} else if (sourceIsArray) {
-		return options.arrayMerge(target, source, options);
-	} else {
-		return mergeObject(target, source, options);
-	}
-}
-
-deepmerge.all = function deepmergeAll(array, options) {
-	if (!Array.isArray(array)) {
-		throw new Error('first argument should be an array');
-	}
-
-	return array.reduce(function (prev, next) {
-		return deepmerge(prev, next, options);
-	}, {});
-};
-
-var deepmerge_1 = deepmerge;
-
-exports.default = deepmerge_1;
-module.exports = exports['default'];
-
-/***/ }),
-/* 78 */
-/***/ (function(module, exports, __webpack_require__) {
-
-"use strict";
-
-
-Object.defineProperty(exports, "__esModule", {
-  value: true
-});
-
-var _box = __webpack_require__(0);
-
-var _box2 = _interopRequireDefault(_box);
-
-var _concatTypedArray = __webpack_require__(34);
-
-var _concatTypedArray2 = _interopRequireDefault(_concatTypedArray);
-
-var _stream = __webpack_require__(1);
-
-var _stream2 = _interopRequireDefault(_stream);
-
-var _vmhd = __webpack_require__(81);
-
-var _vmhd2 = _interopRequireDefault(_vmhd);
-
-var _url = __webpack_require__(82);
-
-var _url2 = _interopRequireDefault(_url);
-
-var _udta = __webpack_require__(83);
-
-var _udta2 = _interopRequireDefault(_udta);
-
-var _trun = __webpack_require__(84);
-
-var _trun2 = _interopRequireDefault(_trun);
-
-var _traf = __webpack_require__(85);
-
-var _traf2 = _interopRequireDefault(_traf);
-
-var _tkhd = __webpack_require__(86);
-
-var _tkhd2 = _interopRequireDefault(_tkhd);
-
-var _tfhd = __webpack_require__(87);
-
-var _tfhd2 = _interopRequireDefault(_tfhd);
-
-var _stz = __webpack_require__(88);
-
-var _stz2 = _interopRequireDefault(_stz);
-
-var _stts = __webpack_require__(89);
-
-var _stts2 = _interopRequireDefault(_stts);
-
-var _stsz = __webpack_require__(90);
-
-var _stsz2 = _interopRequireDefault(_stsz);
-
-var _stss = __webpack_require__(91);
-
-var _stss2 = _interopRequireDefault(_stss);
-
-var _stsh = __webpack_require__(92);
-
-var _stsh2 = _interopRequireDefault(_stsh);
-
-var _stsd = __webpack_require__(93);
-
-var _stsd2 = _interopRequireDefault(_stsd);
-
-var _stsc = __webpack_require__(94);
-
-var _stsc2 = _interopRequireDefault(_stsc);
-
-var _stco = __webpack_require__(95);
-
-var _stco2 = _interopRequireDefault(_stco);
-
-var _smhd = __webpack_require__(96);
-
-var _smhd2 = _interopRequireDefault(_smhd);
-
-var _SLConfigDescriptor = __webpack_require__(97);
-
-var _SLConfigDescriptor2 = _interopRequireDefault(_SLConfigDescriptor);
-
-var _sdtp = __webpack_require__(98);
-
-var _sdtp2 = _interopRequireDefault(_sdtp);
-
-var _sbgp = __webpack_require__(99);
-
-var _sbgp2 = _interopRequireDefault(_sbgp);
-
-var _pasp = __webpack_require__(100);
-
-var _pasp2 = _interopRequireDefault(_pasp);
-
-var _nmhd = __webpack_require__(101);
-
-var _nmhd2 = _interopRequireDefault(_nmhd);
-
-var _mvhd = __webpack_require__(102);
-
-var _mvhd2 = _interopRequireDefault(_mvhd);
-
-var _MP4ESDescrTag = __webpack_require__(103);
-
-var _MP4ESDescrTag2 = _interopRequireDefault(_MP4ESDescrTag);
-
-var _MP4DecSpecificDescrTag = __webpack_require__(104);
-
-var _MP4DecSpecificDescrTag2 = _interopRequireDefault(_MP4DecSpecificDescrTag);
-
-var _MP4DecConfigDescrTag = __webpack_require__(105);
-
-var _MP4DecConfigDescrTag2 = _interopRequireDefault(_MP4DecConfigDescrTag);
-
-var _mp4a = __webpack_require__(106);
-
-var _mp4a2 = _interopRequireDefault(_mp4a);
-
-var _mfhd = __webpack_require__(107);
-
-var _mfhd2 = _interopRequireDefault(_mfhd);
-
-var _mdhd = __webpack_require__(108);
-
-var _mdhd2 = _interopRequireDefault(_mdhd);
-
-var _mdat = __webpack_require__(109);
-
-var _mdat2 = _interopRequireDefault(_mdat);
-
-var _iods = __webpack_require__(110);
-
-var _iods2 = _interopRequireDefault(_iods);
-
-var _hmhd = __webpack_require__(111);
-
-var _hmhd2 = _interopRequireDefault(_hmhd);
-
-var _hdlr = __webpack_require__(112);
-
-var _hdlr2 = _interopRequireDefault(_hdlr);
-
-var _ftyp = __webpack_require__(113);
-
-var _ftyp2 = _interopRequireDefault(_ftyp);
-
-var _esds = __webpack_require__(114);
-
-var _esds2 = _interopRequireDefault(_esds);
-
-var _elst = __webpack_require__(115);
-
-var _elst2 = _interopRequireDefault(_elst);
-
-var _dref = __webpack_require__(116);
-
-var _dref2 = _interopRequireDefault(_dref);
-
-var _ctts = __webpack_require__(117);
-
-var _ctts2 = _interopRequireDefault(_ctts);
-
-var _co = __webpack_require__(118);
-
-var _co2 = _interopRequireDefault(_co);
-
-var _btrt = __webpack_require__(119);
-
-var _btrt2 = _interopRequireDefault(_btrt);
-
-var _avcC = __webpack_require__(120);
-
-var _avcC2 = _interopRequireDefault(_avcC);
-
-var _avc = __webpack_require__(121);
-
-var _avc2 = _interopRequireDefault(_avc);
-
-function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
-
-function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } }
-
-var SubBox = {};
-
-function _buildTree(v, p, a) {
-  var o = v;
-  p.map(function (_, i) {
-    o[_] = i == p.length - 1 ? a : o[_] || {};
-    o = o[_];
-  });
-}
-
-_buildTree(SubBox, ['box', 'avc1'], _avc2.default);
-
-_buildTree(SubBox, ['box', 'avcC'], _avcC2.default);
-
-_buildTree(SubBox, ['box', 'btrt'], _btrt2.default);
-
-_buildTree(SubBox, ['box', 'co64'], _co2.default);
-
-_buildTree(SubBox, ['box', 'ctts'], _ctts2.default);
-
-_buildTree(SubBox, ['box', 'dref'], _dref2.default);
-
-_buildTree(SubBox, ['box', 'elst'], _elst2.default);
-
-_buildTree(SubBox, ['box', 'esds'], _esds2.default);
-
-_buildTree(SubBox, ['box', 'ftyp'], _ftyp2.default);
-
-_buildTree(SubBox, ['box', 'hdlr'], _hdlr2.default);
-
-_buildTree(SubBox, ['box', 'hmhd'], _hmhd2.default);
-
-_buildTree(SubBox, ['box', 'iods'], _iods2.default);
-
-_buildTree(SubBox, ['box', 'mdat'], _mdat2.default);
-
-_buildTree(SubBox, ['box', 'mdhd'], _mdhd2.default);
-
-_buildTree(SubBox, ['box', 'mfhd'], _mfhd2.default);
-
-_buildTree(SubBox, ['box', 'mp4a'], _mp4a2.default);
-
-_buildTree(SubBox, ['box', 'MP4DecConfigDescrTag'], _MP4DecConfigDescrTag2.default);
-
-_buildTree(SubBox, ['box', 'MP4DecSpecificDescrTag'], _MP4DecSpecificDescrTag2.default);
-
-_buildTree(SubBox, ['box', 'MP4ESDescrTag'], _MP4ESDescrTag2.default);
-
-_buildTree(SubBox, ['box', 'mvhd'], _mvhd2.default);
-
-_buildTree(SubBox, ['box', 'nmhd'], _nmhd2.default);
-
-_buildTree(SubBox, ['box', 'pasp'], _pasp2.default);
-
-_buildTree(SubBox, ['box', 'sbgp'], _sbgp2.default);
-
-_buildTree(SubBox, ['box', 'sdtp'], _sdtp2.default);
-
-_buildTree(SubBox, ['box', 'SLConfigDescriptor'], _SLConfigDescriptor2.default);
-
-_buildTree(SubBox, ['box', 'smhd'], _smhd2.default);
-
-_buildTree(SubBox, ['box', 'stco'], _stco2.default);
-
-_buildTree(SubBox, ['box', 'stsc'], _stsc2.default);
-
-_buildTree(SubBox, ['box', 'stsd'], _stsd2.default);
-
-_buildTree(SubBox, ['box', 'stsh'], _stsh2.default);
-
-_buildTree(SubBox, ['box', 'stss'], _stss2.default);
-
-_buildTree(SubBox, ['box', 'stsz'], _stsz2.default);
-
-_buildTree(SubBox, ['box', 'stts'], _stts2.default);
-
-_buildTree(SubBox, ['box', 'stz2'], _stz2.default);
-
-_buildTree(SubBox, ['box', 'tfhd'], _tfhd2.default);
-
-_buildTree(SubBox, ['box', 'tkhd'], _tkhd2.default);
-
-_buildTree(SubBox, ['box', 'traf'], _traf2.default);
-
-_buildTree(SubBox, ['box', 'trun'], _trun2.default);
-
-_buildTree(SubBox, ['box', 'udta'], _udta2.default);
-
-_buildTree(SubBox, ['box', 'url'], _url2.default);
-
-_buildTree(SubBox, ['box', 'vmhd'], _vmhd2.default);
-
-var Parse = function Parse(buffer) {
-  _classCallCheck(this, Parse);
-
-  this.buffer = null;
-  this.boxes = [];
-  this.nextBox = null;
-  this.start = 0;
-  var self = this;
-  if (self.buffer) {
-    (0, _concatTypedArray2.default)(Uint8Array, self.buffer, buffer);
-  } else {
-    self.buffer = buffer;
-  }
-  var bufferLength = buffer.byteLength;
-  buffer.position = 0;
-  var stream = new _stream2.default(buffer);
-  while (bufferLength - stream.position >= 8) {
-    var box = new _box2.default();
-    box.readHeader(stream);
-    if (box.size - 8 <= bufferLength - stream.position) {
-      box.readBody(stream);
-      self.boxes.push(box);
-    } else {
-      if (box.type === 'mdat') {
-        box.readBody(stream);
-        self.boxes.push(box);
-      } else {
-        self.nextBox = box;
-        stream.position -= 8;
-        break;
-      }
-    }
-  }
-  self.buffer = new Uint8Array(self.buffer.slice(stream.position));
-};
-
-exports.default = Parse;
-module.exports = exports['default'];
-
-/***/ }),
-/* 79 */
-/***/ (function(module) {
-
-module.exports = {"name":"xgplayer-m4a","version":"1.1.0","description":"xgplayer plugin for m4a transform to fmp4","main":"./dist/index.js","scripts":{"prepare":"npm run build","build":"webpack --progress --display-chunks -p","watch":"webpack --progress --display-chunks -p --watch"},"repository":{"type":"git","url":"git@github.com:bytedance/xgplayer.git"},"babel":{"presets":["es2015"],"plugins":["add-module-exports","babel-plugin-bulk-import"]},"keywords":["mp4","fmp4","player","audio"],"author":"yinguohui@bytedance.com","license":"MIT","dependencies":{"babel-loader":"^7.1.4","babel-plugin-add-module-exports":"^0.2.1","babel-plugin-bulk-import":"^1.0.2","babel-preset-es2015":"^6.24.1","concat-typed-array":"^1.0.2","deepmerge":"^2.0.1","event-emitter":"^0.3.5","import-local":"^2.0.0","json-loader":"^0.5.7","webpack":"^4.11.0"},"peerDependency":{"xgplayer":"^0.1.0"},"devDependencies":{"babel-core":"^6.26.3"}};
-
-/***/ }),
-/* 80 */
-/***/ (function(module, exports, __webpack_require__) {
-
-"use strict";
-
-
-Object.defineProperty(exports, "__esModule", {
-  value: true
-});
-
-exports.default = function (ResultConstructor) {
-  var totalLength = 0;
-
-  for (var _len = arguments.length, arrays = Array(_len > 1 ? _len - 1 : 0), _key = 1; _key < _len; _key++) {
-    arrays[_key - 1] = arguments[_key];
-  }
-
-  var _iteratorNormalCompletion = true;
-  var _didIteratorError = false;
-  var _iteratorError = undefined;
-
-  try {
-    for (var _iterator = arrays[Symbol.iterator](), _step; !(_iteratorNormalCompletion = (_step = _iterator.next()).done); _iteratorNormalCompletion = true) {
-      var arr = _step.value;
-
-      totalLength += arr.length;
-    }
-  } catch (err) {
-    _didIteratorError = true;
-    _iteratorError = err;
-  } finally {
-    try {
-      if (!_iteratorNormalCompletion && _iterator.return) {
-        _iterator.return();
-      }
-    } finally {
-      if (_didIteratorError) {
-        throw _iteratorError;
-      }
-    }
-  }
-
-  var result = new ResultConstructor(totalLength);
-  var offset = 0;
-  var _iteratorNormalCompletion2 = true;
-  var _didIteratorError2 = false;
-  var _iteratorError2 = undefined;
-
-  try {
-    for (var _iterator2 = arrays[Symbol.iterator](), _step2; !(_iteratorNormalCompletion2 = (_step2 = _iterator2.next()).done); _iteratorNormalCompletion2 = true) {
-      var _arr = _step2.value;
-
-      result.set(_arr, offset);
-      offset += _arr.length;
-    }
-  } catch (err) {
-    _didIteratorError2 = true;
-    _iteratorError2 = err;
-  } finally {
-    try {
-      if (!_iteratorNormalCompletion2 && _iterator2.return) {
-        _iterator2.return();
-      }
-    } finally {
-      if (_didIteratorError2) {
-        throw _iteratorError2;
-      }
-    }
-  }
-
-  return result;
-};
-
-/***/ }),
-/* 81 */
-/***/ (function(module, exports, __webpack_require__) {
-
-"use strict";
-
-
-var _box = __webpack_require__(0);
-
-var _box2 = _interopRequireDefault(_box);
-
-var _stream = __webpack_require__(1);
-
-var _stream2 = _interopRequireDefault(_stream);
-
-function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
-
-_box2.default.vmhd = function () {
-  var stream = new _stream2.default(this.data);
-  this.version = stream.readUint8();
-  this.flag = [stream.readUint8(), stream.readUint8(), stream.readUint8()];
-  this.graphicsmode = stream.readUint16();
-  this.opcolor = [stream.readUint16(), stream.readUint16(), stream.readUint16()];
-  delete this.subBox;
-  delete this.data;
-  stream = null;
-};
-
-/***/ }),
-/* 82 */
-/***/ (function(module, exports, __webpack_require__) {
-
-"use strict";
-
-
-var _box = __webpack_require__(0);
-
-var _box2 = _interopRequireDefault(_box);
-
-var _stream = __webpack_require__(1);
-
-var _stream2 = _interopRequireDefault(_stream);
-
-function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
-
-_box2.default['url '] = function () {
-  var stream = new _stream2.default(this.data);
-  this.version = stream.readUint8();
-  this.flag = [stream.readUint8(), stream.readUint8(), stream.readUint8()];
-  var location = [];var length = stream.buffer.byteLength;
-  while (stream.position < length) {
-    location.push(stream.readUint8());
-  }
-  this.location = location;
-  delete this.subBox;
-  delete this.data;
-  stream = null;
-};
-
-/***/ }),
-/* 83 */
-/***/ (function(module, exports, __webpack_require__) {
-
-"use strict";
-
-
-var _box = __webpack_require__(0);
-
-var _box2 = _interopRequireDefault(_box);
-
-function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
-
-_box2.default.udta = function () {
-  delete this.subBox;
-};
-
-/***/ }),
-/* 84 */
-/***/ (function(module, exports, __webpack_require__) {
-
-"use strict";
-
-
-/***/ }),
-/* 85 */
-/***/ (function(module, exports, __webpack_require__) {
-
-"use strict";
-
-
-/***/ }),
-/* 86 */
-/***/ (function(module, exports, __webpack_require__) {
-
-"use strict";
-
-
-var _box = __webpack_require__(0);
-
-var _box2 = _interopRequireDefault(_box);
-
-var _stream = __webpack_require__(1);
-
-var _stream2 = _interopRequireDefault(_stream);
-
-var _date = __webpack_require__(16);
-
-var _date2 = _interopRequireDefault(_date);
-
-function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
-
-_box2.default.tkhd = function () {
-  var stream = new _stream2.default(this.data);
-  this.version = stream.readUint8();
-  this.flag = _stream2.default.readByte(stream.dataview, 3, 0);
-  if (this.version === 1) {
-    this.create = stream.readUint64();
-    this.modify = stream.readUint64();
-    this.createTime = new _date2.default().setTime(this.create * 1000);
-    this.modifyTime = new _date2.default().setTime(this.modify * 1000);
-    this.trackID = stream.readUint32();
-    this.reserverd = stream.readUint32();
-    this.duration = stream.readUint64();
-  } else {
-    this.create = stream.readUint32();
-    this.modify = stream.readUint32();
-    this.createTime = new _date2.default().setTime(this.create * 1000);
-    this.modifyTime = new _date2.default().setTime(this.modify * 1000);
-    this.trackID = stream.readUint32();
-    this.reserverd = stream.readUint32();
-    this.duration = stream.readUint32();
-  }
-  stream.readUint64();
-  this.layer = stream.readInt16();
-  this.alternate_group = stream.readInt16();
-  this.volume = stream.readInt16() >> 8;
-  stream.readUint16();
-  // 视频转换矩阵
-  var matrix = [];
-  for (var i = 0; i < 9; i++) {
-    matrix.push(stream.readUint16() + '.' + stream.readUint16());
-  }
-  this.matrix = matrix;
-  this.width = stream.readUint16() + '.' + stream.readUint16();
-  this.height = stream.readUint16() + '.' + stream.readUint16();
-  delete this.data;
-  delete this.subBox;
-  stream = null;
-};
-
-/***/ }),
-/* 87 */
-/***/ (function(module, exports, __webpack_require__) {
-
-"use strict";
-
-
-/***/ }),
-/* 88 */
-/***/ (function(module, exports, __webpack_require__) {
-
-"use strict";
-
-
-/***/ }),
-/* 89 */
-/***/ (function(module, exports, __webpack_require__) {
-
-"use strict";
-
-
-var _box = __webpack_require__(0);
-
-var _box2 = _interopRequireDefault(_box);
-
-var _stream = __webpack_require__(1);
-
-var _stream2 = _interopRequireDefault(_stream);
-
-function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
-
-_box2.default.stts = function () {
-  var stream = new _stream2.default(this.data);
-  this.version = stream.readUint8();
-  this.flag = _stream2.default.readByte(stream.dataview, 3);
-  this.count = stream.readUint32();
-  var entry = [];
-  for (var i = 0, count = this.count; i < count; i++) {
-    entry.push({
-      sampleCount: stream.readUint32(),
-      sampleDuration: stream.readUint32()
-    });
-  }
-  this.entry = entry;
-  delete this.subBox;
-  delete this.data;
-  stream = null;
-};
-
-/***/ }),
-/* 90 */
-/***/ (function(module, exports, __webpack_require__) {
-
-"use strict";
-
-
-var _box = __webpack_require__(0);
-
-var _box2 = _interopRequireDefault(_box);
-
-var _stream = __webpack_require__(1);
-
-var _stream2 = _interopRequireDefault(_stream);
-
-function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
-
-_box2.default.stsz = function () {
-  var stream = new _stream2.default(this.data);
-  this.version = stream.readUint8();
-  this.flag = _stream2.default.readByte(stream.dataview, 3);
-  this.sampleSize = stream.readUint32();
-  this.count = stream.readUint32();
-  var entries = [];
-  this.entries = entries;
-  for (var i = 0, count = this.count; i < count; i++) {
-    entries.push(stream.readUint32());
-  }
-  delete this.subBox;
-  delete this.data;
-  stream = null;
-};
-
-/***/ }),
-/* 91 */
-/***/ (function(module, exports, __webpack_require__) {
-
-"use strict";
-
-
-var _box = __webpack_require__(0);
-
-var _box2 = _interopRequireDefault(_box);
-
-var _stream = __webpack_require__(1);
-
-var _stream2 = _interopRequireDefault(_stream);
-
-function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
-
-_box2.default.stss = function () {
-  var stream = new _stream2.default(this.data);
-  this.version = stream.readUint8();
-  this.flag = _stream2.default.readByte(stream.dataview, 3);
-  this.count = stream.readUint32();
-  var entries = [];
-  this.entries = entries;
-  for (var i = 0, count = this.count; i < count; i++) {
-    entries.push(stream.readUint32());
-  }
-  delete this.subBox;
-  delete this.data;
-  stream = null;
-};
-
-/***/ }),
-/* 92 */
-/***/ (function(module, exports, __webpack_require__) {
-
-"use strict";
-
-
-/***/ }),
-/* 93 */
-/***/ (function(module, exports, __webpack_require__) {
-
-"use strict";
-
-
-var _box = __webpack_require__(0);
-
-var _box2 = _interopRequireDefault(_box);
-
-var _stream = __webpack_require__(1);
-
-var _stream2 = _interopRequireDefault(_stream);
-
-function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
-
-_box2.default.stsd = function () {
-  var stream = new _stream2.default(this.data);
-  this.version = stream.readUint8();
-  this.flag = _stream2.default.readByte(stream.dataview, 3);
-  this.entryCount = stream.readUint32();
-  var box = new _box2.default();
-  box.readHeader(stream);
-  this.subBox.push(box);
-  box.readBody(stream);
-  delete this.data;
-  stream = null;
-};
-
-/***/ }),
-/* 94 */
-/***/ (function(module, exports, __webpack_require__) {
-
-"use strict";
-
-
-var _box = __webpack_require__(0);
-
-var _box2 = _interopRequireDefault(_box);
-
-var _stream = __webpack_require__(1);
-
-var _stream2 = _interopRequireDefault(_stream);
-
-function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
-
-_box2.default.stsc = function () {
-  var stream = new _stream2.default(this.data);
-  this.version = stream.readUint8();
-  this.flag = _stream2.default.readByte(stream.dataview, 3);
-  this.count = stream.readUint32();
-  var entries = [];
-  this.entries = entries;
-  for (var i = 0, count = this.count; i < count; i++) {
-    entries.push({
-      first_chunk: stream.readUint32(),
-      samples_per_chunk: stream.readUint32(),
-      sample_desc_index: stream.readUint32()
-    });
-  }
-  for (var _i = 0, _count = this.count, entry, preEntry; _i < _count - 1; _i++) {
-    entry = entries[_i];
-    preEntry = entries[_i - 1];
-    entry.chunk_count = entries[_i + 1].first_chunk - entry.first_chunk;
-    entry.first_sample = _i === 0 ? 1 : preEntry.first_sample + preEntry.chunk_count * preEntry.samples_per_chunk;
-  }
-  if (this.count === 1) {
-    var _entry = entries[0];
-    _entry.first_sample = 1;
-    _entry.chunk_count = 0;
-  } else if (this.count > 1) {
-    var last = entries[this.count - 1];var pre = entries[this.count - 2];
-    last.first_sample = pre.first_sample + pre.chunk_count * pre.samples_per_chunk;
-    last.chunk_count = 0;
-  }
-  delete this.subBox;
-  delete this.data;
-  stream = null;
-};
-
-/***/ }),
-/* 95 */
-/***/ (function(module, exports, __webpack_require__) {
-
-"use strict";
-
-
-var _box = __webpack_require__(0);
-
-var _box2 = _interopRequireDefault(_box);
-
-var _stream = __webpack_require__(1);
-
-var _stream2 = _interopRequireDefault(_stream);
-
-function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
-
-_box2.default.stco = function () {
-  var stream = new _stream2.default(this.data);
-  this.version = stream.readUint8();
-  this.flag = _stream2.default.readByte(stream.dataview, 3);
-  this.count = stream.readUint32();
-  var entries = [];
-  this.entries = entries;
-  for (var i = 0, count = this.count; i < count; i++) {
-    entries.push(stream.readUint32());
-  }
-  delete this.subBox;
-  delete this.data;
-  stream = null;
-};
-
-/***/ }),
-/* 96 */
-/***/ (function(module, exports, __webpack_require__) {
-
-"use strict";
-
-
-var _box = __webpack_require__(0);
-
-var _box2 = _interopRequireDefault(_box);
-
-var _stream = __webpack_require__(1);
-
-var _stream2 = _interopRequireDefault(_stream);
-
-function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
-
-_box2.default.smhd = function () {
-  var stream = new _stream2.default(this.data);
-  this.version = stream.readUint8();
-  this.flag = _stream2.default.readByte(stream.dataview, 3);
-  this.balance = stream.readInt8() + '.' + stream.readInt8();
-  delete this.subBox;
-  delete this.data;
-  stream = null;
-};
-
-/***/ }),
-/* 97 */
-/***/ (function(module, exports, __webpack_require__) {
-
-"use strict";
-
-
-var _box = __webpack_require__(0);
-
-var _box2 = _interopRequireDefault(_box);
-
-function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
-
-_box2.default.SLConfigDescriptor = function (stream) {
-  var box = new _box2.default();
-  var size = void 0;
-  box.type = stream.readUint8();
-  size = stream.readUint8();
-  if (size === 0x80) {
-    box.extend = true;
-    stream.skip(2);
-    size = stream.readUint8() + 5;
-  } else {
-    size += 2;
-  }
-  box.size = size;
-  box.SL = stream.readUint8();
-  delete box.subBox;
-  return box;
-};
-
-/***/ }),
-/* 98 */
-/***/ (function(module, exports, __webpack_require__) {
-
-"use strict";
-
-
-/***/ }),
-/* 99 */
-/***/ (function(module, exports, __webpack_require__) {
-
-"use strict";
-
-
-/***/ }),
-/* 100 */
-/***/ (function(module, exports, __webpack_require__) {
-
-"use strict";
-
-
-var _box = __webpack_require__(0);
-
-var _box2 = _interopRequireDefault(_box);
-
-var _stream = __webpack_require__(1);
-
-var _stream2 = _interopRequireDefault(_stream);
-
-function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
-
-_box2.default.pasp = function () {
-  var stream = new _stream2.default(this.data);
-  this.content = stream.buffer.slice(0, this.size - 8);
-  delete this.subBox;
-  delete this.data;
-  stream = null;
-};
-
-/***/ }),
-/* 101 */
-/***/ (function(module, exports, __webpack_require__) {
-
-"use strict";
-
-
-/***/ }),
-/* 102 */
-/***/ (function(module, exports, __webpack_require__) {
-
-"use strict";
-
-
-var _box = __webpack_require__(0);
-
-var _box2 = _interopRequireDefault(_box);
-
-var _stream = __webpack_require__(1);
-
-var _stream2 = _interopRequireDefault(_stream);
-
-var _date = __webpack_require__(16);
-
-var _date2 = _interopRequireDefault(_date);
-
-function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
-
-_box2.default.mvhd = function () {
-  var stream = new _stream2.default(this.data);
-
-  this.version = stream.readUint8();
-  this.flag = _stream2.default.readByte(stream.dataview, 3);
-  this.create = stream.readUint32();
-  this.modify = stream.readUint32();
-  this.createTime = new _date2.default().setTime(this.create * 1000);
-  this.modifyTime = new _date2.default().setTime(this.modify * 1000);
-  this.timeScale = stream.readUint32();
-  this.duration = stream.readUint32();
-  this.rate = stream.readUint16() + '.' + stream.readUint16();
-  this.volume = stream.readUint8() + '.' + stream.readUint8();
-  // 越过保留的10字节
-  _stream2.default.readByte(stream.dataview, 8);
-  _stream2.default.readByte(stream.dataview, 2);
-  // 视频转换矩阵
-  var matrix = [];
-  for (var i = 0; i < 9; i++) {
-    matrix.push(stream.readUint16() + '.' + stream.readUint16());
-  }
-  this.matrix = matrix;
-  _stream2.default.readByte(stream.dataview, 24);
-  this.nextTrackID = stream.readUint32();
-  delete this.subBox;
-  delete this.data;
-};
-
-/***/ }),
-/* 103 */
-/***/ (function(module, exports, __webpack_require__) {
-
-"use strict";
-
-
-var _box = __webpack_require__(0);
-
-var _box2 = _interopRequireDefault(_box);
-
-function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
-
-_box2.default.MP4ESDescrTag = function (stream) {
-  var box = new _box2.default();
-  var size = void 0;
-  box.type = stream.readUint8();
-  size = stream.readUint8();
-  if (size === 0x80) {
-    box.extend = true;
-    stream.skip(2);
-    size = stream.readUint8() + 5;
-  } else {
-    size += 2;
-  }
-  box.size = size;
-  box.esID = stream.readUint16();
-  box.priority = stream.readUint8();
-  box.subBox.push(_box2.default.MP4DecConfigDescrTag(stream));
-  box.subBox.push(_box2.default.SLConfigDescriptor(stream));
-  return box;
-};
-
-/***/ }),
-/* 104 */
-/***/ (function(module, exports, __webpack_require__) {
-
-"use strict";
-
-
-var _box = __webpack_require__(0);
-
-var _box2 = _interopRequireDefault(_box);
-
-function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
-
-_box2.default.MP4DecSpecificDescrTag = function (stream) {
-  var box = new _box2.default();
-  var size = void 0,
-      dataSize = void 0;
-  box.type = stream.readUint8();
-  size = stream.readUint8();
-  if (size === 0x80) {
-    box.extend = true;
-    stream.skip(2);
-    size = stream.readUint8() + 5;
-    dataSize = size - 5;
-  } else {
-    dataSize = size;
-    size += 2;
-  }
-  box.size = size;
-  var EScode = [];
-  for (var i = 0; i < dataSize; i++) {
-    EScode.push(Number(stream.readUint8()).toString(16).padStart(2, '0'));
-  }
-  box.EScode = EScode;
-  delete box.subBox;
-  return box;
-};
-
-/***/ }),
-/* 105 */
-/***/ (function(module, exports, __webpack_require__) {
-
-"use strict";
-
-
-var _box = __webpack_require__(0);
-
-var _box2 = _interopRequireDefault(_box);
-
-var _stream = __webpack_require__(1);
-
-var _stream2 = _interopRequireDefault(_stream);
-
-function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
-
-_box2.default.MP4DecConfigDescrTag = function (stream) {
-  var box = new _box2.default();
-  var size = void 0;
-  box.type = stream.readUint8();
-  size = stream.readUint8();
-  if (size === 0x80) {
-    box.extend = true;
-    stream.skip(2);
-    size = stream.readUint8() + 5;
-  } else {
-    size += 2;
-  }
-  box.size = size;
-  box.typeID = stream.readUint8();
-  // 6 bits stream type,1 bit upstream flag,1 bit reserved flag
-  box.streamUint = stream.readUint8();
-  box.bufferSize = _stream2.default.readByte(stream.dataview, 3);
-  box.maximum = stream.readUint32();
-  box.average = stream.readUint32();
-  box.subBox.push(_box2.default.MP4DecSpecificDescrTag(stream));
-  return box;
-};
-
-/***/ }),
-/* 106 */
-/***/ (function(module, exports, __webpack_require__) {
-
-"use strict";
-
-
-var _box = __webpack_require__(0);
-
-var _box2 = _interopRequireDefault(_box);
-
-var _stream = __webpack_require__(1);
-
-var _stream2 = _interopRequireDefault(_stream);
-
-function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
-
-_box2.default.mp4a = function () {
-  var stream = new _stream2.default(this.data);
-  stream.skip(6);
-  this.dataReferenceIndex = stream.readUint16();
-  stream.skip(8);
-  this.channelCount = stream.readUint16();
-  this.sampleSize = stream.readUint16();
-  stream.skip(4);
-  this.sampleRate = stream.readUint32() / 65536;
-  var box = new _box2.default();
-  box.readHeader(stream);
-  this.subBox.push(box);
-  box.readBody(stream);
-  delete this.data;
-  stream = null;
-};
-
-/***/ }),
-/* 107 */
-/***/ (function(module, exports, __webpack_require__) {
-
-"use strict";
-
-
-/***/ }),
-/* 108 */
-/***/ (function(module, exports, __webpack_require__) {
-
-"use strict";
-
-
-var _box = __webpack_require__(0);
-
-var _box2 = _interopRequireDefault(_box);
-
-var _stream = __webpack_require__(1);
-
-var _stream2 = _interopRequireDefault(_stream);
-
-var _date = __webpack_require__(16);
-
-var _date2 = _interopRequireDefault(_date);
-
-function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
-
-_box2.default.mdhd = function () {
-  var stream = new _stream2.default(this.data);
-  this.version = stream.readUint8();
-  this.flag = _stream2.default.readByte(stream.dataview, 3);
-  if (this.version === 1) {
-    this.create = stream.readUint64();
-    this.modify = stream.readUint64();
-    this.createTime = new _date2.default().setTime(this.create * 1000);
-    this.modifyTime = new _date2.default().setTime(this.modify * 1000);
-    this.timescale = stream.readUint32();
-    this.duration = stream.readUint64();
-  } else {
-    this.create = stream.readUint32();
-    this.modify = stream.readUint32();
-    this.createTime = new _date2.default().setTime(this.create * 1000);
-    this.modifyTime = new _date2.default().setTime(this.modify * 1000);
-    this.timescale = stream.readUint32();
-    this.duration = stream.readUint32();
-  }
-  this.language = stream.readUint16();
-  stream.readUint16();
-  delete this.subBox;
-  delete this.data;
-  stream = null;
-};
-
-/***/ }),
-/* 109 */
-/***/ (function(module, exports, __webpack_require__) {
-
-"use strict";
-
-
-var _box = __webpack_require__(0);
-
-var _box2 = _interopRequireDefault(_box);
-
-function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
-
-_box2.default.mdat = function () {
-  delete this.subBox;
-};
-
-/***/ }),
-/* 110 */
-/***/ (function(module, exports, __webpack_require__) {
-
-"use strict";
-
-
-var _box = __webpack_require__(0);
-
-var _box2 = _interopRequireDefault(_box);
-
-var _stream = __webpack_require__(1);
-
-var _stream2 = _interopRequireDefault(_stream);
-
-function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
-
-_box2.default.iods = function () {
-  var stream = new _stream2.default(this.data);
-  this.version = stream.readUint8();
-  this.flag = _stream2.default.readByte(stream.dataview, 3);
-  var content = [];
-  var length = stream.buffer.byteLength;
-  while (stream.position < length) {
-    content.push(stream.readUint8());
-  }
-  this.content = content;
-  delete this.subBox;
-  delete this.data;
-  stream = null;
-};
-
-/***/ }),
-/* 111 */
-/***/ (function(module, exports, __webpack_require__) {
-
-"use strict";
-
-
-/***/ }),
-/* 112 */
-/***/ (function(module, exports, __webpack_require__) {
-
-"use strict";
-
-
-var _box = __webpack_require__(0);
-
-var _box2 = _interopRequireDefault(_box);
-
-var _stream = __webpack_require__(1);
-
-var _stream2 = _interopRequireDefault(_stream);
-
-function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
-
-_box2.default.hdlr = function () {
-  var stream = new _stream2.default(this.data);
-  this.version = stream.readUint8();
-  this.flag = _stream2.default.readByte(stream.dataview, 3);
-  stream.skip(4);
-  this.handleType = '' + String.fromCharCode(stream.readUint8()) + String.fromCharCode(stream.readUint8()) + String.fromCharCode(stream.readUint8()) + String.fromCharCode(stream.readUint8());
-  stream.skip(12);
-  var name = [];
-  while (stream.position < this.size - 8) {
-    name.push(String.fromCharCode(stream.readUint8()));
-  }
-  this.name = name.join('');
-  delete this.subBox;
-  delete this.data;
-  stream = null;
-};
-
-/***/ }),
-/* 113 */
-/***/ (function(module, exports, __webpack_require__) {
-
-"use strict";
-
-
-var _box = __webpack_require__(0);
-
-var _box2 = _interopRequireDefault(_box);
-
-var _stream = __webpack_require__(1);
-
-var _stream2 = _interopRequireDefault(_stream);
-
-function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
-
-_box2.default.ftyp = function () {
-  var stream = new _stream2.default(this.data);
-  this.major_brand = String.fromCharCode(stream.readUint8(), stream.readUint8(), stream.readUint8(), stream.readUint8());
-  this.minor_version = stream.readUint32();
-  var compatibleBrands = [];
-  for (var i = 0, len = Math.floor((stream.buffer.byteLength - 8) / 4); i < len; i++) {
-    compatibleBrands.push(String.fromCharCode(stream.readUint8(), stream.readUint8(), stream.readUint8(), stream.readUint8()));
-  }
-  this.compatible_brands = compatibleBrands;
-  stream = null;
-  delete this.subBox;
-  delete this.data;
-};
-
-/***/ }),
-/* 114 */
-/***/ (function(module, exports, __webpack_require__) {
-
-"use strict";
-
-
-var _box = __webpack_require__(0);
-
-var _box2 = _interopRequireDefault(_box);
-
-var _stream = __webpack_require__(1);
-
-var _stream2 = _interopRequireDefault(_stream);
-
-function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
-
-_box2.default.esds = function () {
-  var stream = new _stream2.default(this.data);
-  this.version = stream.readUint8();
-  this.flag = _stream2.default.readByte(stream.dataview, 3);
-  var box = _box2.default.MP4ESDescrTag(stream);
-  this.subBox.push(box);
-  delete this.data;
-  stream = null;
-};
-
-/***/ }),
-/* 115 */
-/***/ (function(module, exports, __webpack_require__) {
-
-"use strict";
-
-
-var _box = __webpack_require__(0);
-
-var _box2 = _interopRequireDefault(_box);
-
-var _stream = __webpack_require__(1);
-
-var _stream2 = _interopRequireDefault(_stream);
-
-function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
-
-_box2.default.elst = function () {
-  var stream = new _stream2.default(this.data);
-  this.version = stream.readUint8();
-  this.flag = _stream2.default.readByte(stream.dataview, 3);
-  var entries = [];
-  var entry_count = stream.readUint32();
-  this.entries = entries;
-  for (var i = 0; i < entry_count; i++) {
-    var entry = {};
-    entries.push(entry);
-    if (this.version === 1) {
-      entry.segment_duration = stream.readUint64();
-      entry.media_time = stream.readUint64();
-    } else {
-      entry.segment_duration = stream.readUint32();
-      entry.media_time = stream.readInt32();
-    }
-    entry.media_rate_integer = stream.readInt16();
-    entry.media_rate_fraction = stream.readInt16();
-  }
-  delete this.subBox;
-  delete this.data;
-  stream = null;
-};
-
-/***/ }),
-/* 116 */
-/***/ (function(module, exports, __webpack_require__) {
-
-"use strict";
-
-
-var _box = __webpack_require__(0);
-
-var _box2 = _interopRequireDefault(_box);
-
-var _stream = __webpack_require__(1);
-
-var _stream2 = _interopRequireDefault(_stream);
-
-function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
-
-_box2.default.dref = function () {
-  var stream = new _stream2.default(this.data);
-  this.version = stream.readUint8();
-  this.flag = _stream2.default.readByte(stream.dataview, 3);
-  var entryCount = stream.readUint32();
-  this.entryCount = entryCount;
-  var self = this;
-  // 暂时不支持离散视频，视频的部分内容由url指定
-  for (var i = 0; i < entryCount; i++) {
-    var box = new _box2.default();
-    self.subBox.push(box);
-    box.read(stream);
-  }
-  delete this.data;
-  stream = null;
-};
-
-/***/ }),
-/* 117 */
-/***/ (function(module, exports, __webpack_require__) {
-
-"use strict";
-
-
-var _box = __webpack_require__(0);
-
-var _box2 = _interopRequireDefault(_box);
-
-var _stream = __webpack_require__(1);
-
-var _stream2 = _interopRequireDefault(_stream);
-
-function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
-
-_box2.default.ctts = function () {
-  var stream = new _stream2.default(this.data);
-  this.version = stream.readUint8();
-  this.flag = _stream2.default.readByte(stream.dataview, 3);
-
-  this.entryCount = stream.readUint32();
-  var entry = [];
-  this.entry = entry;
-  for (var i = 0, count = this.entryCount; i < count; i++) {
-    entry.push({
-      count: stream.readUint32(),
-      offset: stream.readUint32()
-    });
-  }
-  delete this.subBox;
-  delete this.data;
-  stream = null;
-};
-
-/***/ }),
-/* 118 */
-/***/ (function(module, exports, __webpack_require__) {
-
-"use strict";
-
-
-var _box = __webpack_require__(0);
-
-var _box2 = _interopRequireDefault(_box);
-
-var _stream = __webpack_require__(1);
-
-var _stream2 = _interopRequireDefault(_stream);
-
-function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
-
-_box2.default.co64 = function () {
-  var stream = new _stream2.default(this.data);
-  this.version = stream.readUint8();
-  this.flag = _stream2.default.readByte(stream.dataview, 3);
-  this.count = stream.readUint32();
-  var entries = [];
-  this.entries = entries;
-  for (var i = 0, count = this.count; i < count; i++) {
-    entries.push(stream.readUint64());
-  }
-  delete this.subBox;
-  delete this.data;
-  stream = null;
-};
-
-/***/ }),
-/* 119 */
-/***/ (function(module, exports, __webpack_require__) {
-
-"use strict";
-
-
-var _box = __webpack_require__(0);
-
-var _box2 = _interopRequireDefault(_box);
-
-var _stream = __webpack_require__(1);
-
-var _stream2 = _interopRequireDefault(_stream);
-
-function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
-
-_box2.default.btrt = function () {
-  var stream = new _stream2.default(this.data);
-  this.bufferSizeDB = stream.readUint32();
-  this.maxBitrate = stream.readUint32();
-  this.avgBitrate = stream.readUint32();
-  delete this.subBox;
-  delete this.data;
-  stream = null;
-};
-
-/***/ }),
-/* 120 */
-/***/ (function(module, exports, __webpack_require__) {
-
-"use strict";
-
-
-var _box = __webpack_require__(0);
-
-var _box2 = _interopRequireDefault(_box);
-
-var _stream = __webpack_require__(1);
-
-var _stream2 = _interopRequireDefault(_stream);
-
-function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
-
-_box2.default.avcC = function () {
-  var stream = new _stream2.default(this.data);
-  this.configVersion = stream.readUint8();
-  this.profile = stream.readUint8();
-  this.profileCompatibility = stream.readUint8();
-  this.AVCLevelIndication = stream.readUint8();
-  this.lengthSizeMinusOne = (stream.readUint8() & 3) + 1;
-  this.numOfSequenceParameterSets = stream.readUint8() & 31;
-  var sequenceLength = stream.readUint16();
-  this.sequenceLength = sequenceLength;
-  var sequence = [];
-  for (var i = 0; i < sequenceLength; i++) {
-    sequence.push(Number(stream.readUint8()).toString(16));
-  }
-  this.ppsCount = stream.readUint8();
-  var ppsLength = stream.readUint16();
-  this.ppsLength = ppsLength;
-  var pps = [];
-  for (var _i = 0; _i < ppsLength; _i++) {
-    pps.push(Number(stream.readUint8()).toString(16));
-  }
-  this.pps = pps;
-  this.sequence = sequence;
-  var last = [];var dataviewLength = stream.dataview.byteLength;
-  while (stream.position < dataviewLength) {
-    last.push(stream.readUint8());
-  }
-  this.last = last;
-  delete this.subBox;
-  delete this.data;
-  stream = null;
-};
-
-/***/ }),
-/* 121 */
-/***/ (function(module, exports, __webpack_require__) {
-
-"use strict";
-
-
-var _box = __webpack_require__(0);
-
-var _box2 = _interopRequireDefault(_box);
-
-var _stream = __webpack_require__(1);
-
-var _stream2 = _interopRequireDefault(_stream);
-
-function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
-
-_box2.default.avc1 = function () {
-  var stream = new _stream2.default(this.data);
-  var self = this;
-  stream.skip(6);
-  this.dataReferenceIndex = stream.readUint16();
-  stream.skip(16);
-  this.width = stream.readUint16();
-  this.height = stream.readUint16();
-  this.horizresolution = stream.readUint32();
-  this.vertresolution = stream.readUint32();
-  stream.skip(4);
-  this.frameCount = stream.readUint16();
-  stream.skip(1);
-  for (var i = 0; i < 31; i++) {
-    String.fromCharCode(stream.readUint8());
-  }
-  this.depth = stream.readUint16();
-  stream.skip(2);
-  while (stream.position < stream.buffer.byteLength) {
-    var box = new _box2.default();
-    box.readHeader(stream);
-    self.subBox.push(box);
-    box.readBody(stream);
-  }
-  delete this.data;
-  stream = null;
-};
-
-/***/ }),
-/* 122 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
@@ -5510,6 +1787,3773 @@ FMP4.sequence = 1;
 
 exports.default = FMP4;
 module.exports = exports['default'];
+
+/***/ }),
+/* 36 */
+/***/ (function(module, exports, __webpack_require__) {
+
+"use strict";
+
+
+Object.defineProperty(exports, "__esModule", {
+  value: true
+});
+
+var _createClass = function () { function defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ("value" in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } } return function (Constructor, protoProps, staticProps) { if (protoProps) defineProperties(Constructor.prototype, protoProps); if (staticProps) defineProperties(Constructor, staticProps); return Constructor; }; }();
+
+var _eventEmitter = __webpack_require__(14);
+
+var _eventEmitter2 = _interopRequireDefault(_eventEmitter);
+
+var _error = __webpack_require__(7);
+
+var _error2 = _interopRequireDefault(_error);
+
+function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
+
+function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } }
+
+var Task = function () {
+  function Task(url, range, callback) {
+    _classCallCheck(this, Task);
+
+    (0, _eventEmitter2.default)(this);
+    this.url = url;
+    this.range = range;
+    this.id = range.join('-');
+    this.on = false;
+    var xhr = new window.XMLHttpRequest();
+    xhr.target = this;
+    xhr.responseType = 'arraybuffer';
+    xhr.open('get', url);
+    xhr.setRequestHeader('Range', 'bytes=' + range[0] + '-' + range[1]);
+    xhr.onload = function () {
+      if (xhr.status === 200 || xhr.status === 206) {
+        if (callback && callback instanceof Function) {
+          callback(xhr.response);
+        }
+      }
+      xhr.target.remove();
+    };
+    xhr.onerror = function (e) {
+      xhr.target.emit('error', new _error2.default('network', '', { line: 25, handle: '[Task] constructor', msg: e.message, url: url }));
+      xhr.target.remove();
+    };
+    xhr.onabort = function () {
+      xhr.target.remove();
+    };
+    this.xhr = xhr;
+    Task.queue.push(this);
+    this.update();
+  }
+
+  _createClass(Task, [{
+    key: 'cancel',
+    value: function cancel() {
+      this.xhr.abort();
+    }
+  }, {
+    key: 'remove',
+    value: function remove() {
+      var _this = this;
+
+      Task.queue.filter(function (item, idx) {
+        if (item.url === _this.url && item.id === _this.id) {
+          Task.queue.splice(idx, 1);
+          return true;
+        } else {
+          return false;
+        }
+      });
+      this.update();
+    }
+  }, {
+    key: 'update',
+    value: function update() {
+      var Queue = Task.queue;
+      var sended = Queue.filter(function (item) {
+        return item.on;
+      });
+      var wait = Queue.filter(function (item) {
+        return !item.on;
+      });
+      var max = Task.limit - sended.length;
+      wait.forEach(function (item, idx) {
+        if (idx < max) {
+          item.run();
+        }
+      });
+    }
+  }, {
+    key: 'run',
+    value: function run() {
+      if (this.xhr.readyState === 1) {
+        this.on = true;
+        this.xhr.send();
+      } else {
+        this.remove();
+      }
+    }
+  }], [{
+    key: 'clear',
+    value: function clear() {
+      Task.queue.forEach(function (item) {
+        if (item.on) {
+          item.cancel();
+        }
+      });
+      Task.queue.length = 0;
+    }
+  }]);
+
+  return Task;
+}();
+
+Task.queue = [];
+Task.limit = 2;
+window.Task = Task;
+
+exports.default = Task;
+module.exports = exports['default'];
+
+/***/ }),
+/* 37 */
+/***/ (function(module, exports, __webpack_require__) {
+
+module.exports = __webpack_require__(38);
+
+
+/***/ }),
+/* 38 */
+/***/ (function(module, exports, __webpack_require__) {
+
+"use strict";
+
+
+var _typeof = typeof Symbol === "function" && typeof Symbol.iterator === "symbol" ? function (obj) { return typeof obj; } : function (obj) { return obj && typeof Symbol === "function" && obj.constructor === Symbol && obj !== Symbol.prototype ? "symbol" : typeof obj; };
+
+__webpack_require__(39);
+
+__webpack_require__(59);
+
+var _xgplayer = __webpack_require__(13);
+
+var _xgplayer2 = _interopRequireDefault(_xgplayer);
+
+var _mp = __webpack_require__(62);
+
+var _mp2 = _interopRequireDefault(_mp);
+
+var _mse = __webpack_require__(125);
+
+var _mse2 = _interopRequireDefault(_mse);
+
+var _task = __webpack_require__(36);
+
+var _task2 = _interopRequireDefault(_task);
+
+var _buffer = __webpack_require__(17);
+
+var _buffer2 = _interopRequireDefault(_buffer);
+
+var _mp3 = __webpack_require__(35);
+
+var _mp4 = _interopRequireDefault(_mp3);
+
+function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
+
+var isEnded = function isEnded(player, mp4) {
+  if (mp4.meta.endTime - player.currentTime < 2) {
+    var range = player.getBufferedRange();
+    if (player.currentTime - range[1] < 0.1) {
+      player.mse.endOfStream();
+    }
+  }
+};
+
+var errorHandle = function errorHandle(player, err) {
+  err.vid = player.config.vid;
+  err.url = player.src;
+  if (err.errd && _typeof(err.errd) === 'object') {
+    if (player.mp4) {
+      err.errd.url = player.mp4.url;
+      err.url = player.mp4.url;
+      player.mp4.canDownload = false;
+    }
+  }
+  player.emit('DATA_REPORT', err);
+  if (err.errt === 'network' && player.config._backupURL) {
+    player.src = player.config._backupURL;
+  } else {
+    player.src = player.config._mainURL;
+  }
+  player.switchURL = null;
+  player._replay = null;
+};
+
+var m4aplayer = function m4aplayer() {
+  var player = this;var sniffer = _xgplayer2.default.sniffer;var util = _xgplayer2.default.util;
+  var Errors = _xgplayer2.default.Errors;var mainURL = void 0;var backupURL = void 0;
+  var preloadTime = player.config.preloadTime || 15;
+  var waiterTimer = void 0;
+  _xgplayer2.default.m4a = true;
+  player.hasEnded = false;
+  var list = util.typeOf(player.config.url) === 'Array' ? player.config.url : [{
+    src: player.config.url,
+    name: player.config.name,
+    vid: player.config.vid,
+    poster: player.config.poster
+  }];
+  var url = list[0].src;
+  var name = list[0].name;
+  var vid = list[0].vid;
+  var poster = list[0].poster;
+  var rule = player.config.pluginRule || function () {
+    return true;
+  };
+  if (!url) {
+    player.emit('error', new Errors('other', player.config.vid));
+    return;
+  }
+  if (util.typeOf(url) === 'String') {
+    mainURL = url;
+  } else if (util.typeOf(url) === 'Array' && url.length) {
+    mainURL = url[0].src;
+    backupURL = url[1].src;
+  }
+  player.config._mainURL = mainURL;
+  player.config._backupURL = backupURL;
+  var loadData = function loadData() {
+    var i = arguments.length > 0 && arguments[0] !== undefined ? arguments[0] : 0;
+    var time = arguments.length > 1 && arguments[1] !== undefined ? arguments[1] : player.currentTime;
+    var order = arguments.length > 2 && arguments[2] !== undefined ? arguments[2] : null;
+    var nextOrder = arguments.length > 3 && arguments[3] !== undefined ? arguments[3] : null;
+
+    if (player.timer) {
+      clearTimeout(player.timer);
+    }
+    time = Math.max(time, player.currentTime);
+    player.timer = setTimeout(function () {
+      player.mp4.seek(time, order, nextOrder).then(function (buffer) {
+        if (buffer) {
+          var mse = player.mse;
+          mse.updating = true;
+          mse.appendBuffer(buffer);
+          mse.once('updateend', function () {
+            mse.updating = false;
+          });
+        }
+      }, function () {
+        if (i < 10) {
+          setTimeout(function () {
+            loadData(i + 1);
+          }, 2000);
+        }
+      });
+    }, 50);
+  };
+  var init = function init(url) {
+    var replaying = arguments.length > 1 && arguments[1] !== undefined ? arguments[1] : false;
+
+    var mp4 = new _mp2.default(url);
+    mp4.reqTimeLength = player.config.reqTimeLength || 5;
+    var mse = void 0;
+    return new Promise(function (resolve, reject) {
+      mp4.once('mdatReady', function () {
+        mse = new _mse2.default();
+        if (replaying) {
+          mse.replaying = true;
+        }
+        mse.on('sourceopen', function () {
+          mse.appendBuffer(mp4.packMeta(mp4.meta));
+          mse.once('updateend', loadData.bind(player));
+        });
+        mse.on('error', function (e) {
+          reject(e);
+        });
+        resolve([mp4, mse]);
+      });
+      mp4.on('error', function (e) {
+        reject(e);
+      });
+    });
+  };
+  if (['chrome', 'firfox', 'safari'].some(function (item) {
+    return item === sniffer.browser;
+  }) && _mse2.default.isSupported('audio/mp4; codecs="mp4a.40.5"')) {
+    var _start = player.start;
+    if (!rule.call(player)) {
+      return false;
+    }
+    Object.defineProperty(player, 'src', {
+      get: function get() {
+        return player.currentSrc;
+      },
+      set: function set(url) {
+        player.config.url = url;
+        if (!player.paused) {
+          player.pause();
+          player.once('pause', function () {
+            player.start(url);
+          });
+          player.once('canplay', function () {
+            player.play();
+          });
+        } else {
+          player.start(url);
+        }
+        player.once('canplay', function () {
+          player.currentTime = 0;
+        });
+      },
+
+      configurable: true
+    });
+    player.start = function () {
+      var url = arguments.length > 0 && arguments[0] !== undefined ? arguments[0] : mainURL;
+
+      init(url).then(function (result) {
+        var mp4 = result[0];var mse = result[1];
+        _start.call(player, mse.url);
+        player.mp4 = mp4;
+        player.mse = mse;
+        mp4.on('error', function (err) {
+          errorHandle(player, err);
+        });
+      }, function (err) {
+        _start.call(player, url);
+        errorHandle(player, err);
+      });
+      player.once('canplay', function () {
+        // safari decoder time offset
+        if (sniffer.browser === 'safari' && player.buffered) {
+          var start = player.buffered.start(0);
+          player.currentTime = start + 0.1;
+        }
+      });
+    };
+    player.cut = function () {
+      var start = arguments.length > 0 && arguments[0] !== undefined ? arguments[0] : 0;
+      var end = arguments[1];
+
+      var segment = new _buffer2.default();
+      return new Promise(function (resolve, reject) {
+        var mp4 = new _mp2.default(url);
+        mp4.once('mdatReady', function () {
+          if (!end || end <= start) {
+            end = start + 15;
+          }
+          if (end > mp4.meta.audioDuration) {
+            start = mp4.meta.audioDuration - (end - start);
+            end = mp4.meta.audioDuration;
+          }
+          mp4.reqTimeLength = end - start;
+          mp4.cut = true;
+          mp4.seek(start).then(function (buffer) {
+            if (buffer) {
+              var meta = _xgplayer2.default.util.deepCopy({
+                duration: mp4.reqTimeLength,
+                audioDuration: mp4.reqTimeLength,
+                endTime: mp4.reqTimeLength
+              }, mp4.meta);
+              meta.duration = mp4.reqTimeLength;
+              meta.audioDuration = mp4.reqTimeLength;
+              meta.endTime = mp4.reqTimeLength;
+              segment.write(mp4.packMeta(meta), buffer);
+              resolve(new Blob([segment.buffer], { type: 'audio/mp4; codecs="mp4a.40.5"' }));
+            }
+          });
+        });
+        mp4.on('error', function (e) {
+          reject(e);
+        });
+      });
+    };
+
+    player.switchURL = function (url) {
+      var mp5 = new _mp2.default(url);
+      var mp4 = player.mp4;
+      mp5.on('mdatReady', function () {
+        var timeRange = mp4.timeRage;var curTime = player.currentTime;
+        timeRange = mp4.timeRage;
+        var start = timeRange.find(function (item) {
+          return item[0] - curTime > 2;
+        })[0];
+        var end = player.getBufferedRange()[1];
+        if (end - start > 0 && sniffer.browser !== 'safari') {
+          player.mse.removeBuffer(start, end);
+        }
+        player.mp4 = mp5;
+        player.mse.appendBuffer(mp5.packMeta(mp5.meta));
+      });
+      mp5.on('error', function (err) {
+        errorHandle(player, err);
+      });
+    };
+    player.on('timeupdate', function () {
+      var mse = player.mse;var mp4 = player.mp4;
+      if (mse && !mse.updating && mp4.canDownload) {
+        var timeRage = mp4.timeRage;
+        var range = player.getBufferedRange();var cacheMaxTime = player.currentTime + preloadTime;
+        if (range[1] - cacheMaxTime > 0) {
+          return;
+        }
+        timeRage.every(function (item, idx) {
+          if (range[1] === 0) {
+            loadData(5);
+            return false;
+          } else {
+            if (item[0].time >= range[1] && !mp4.bufferCache.has(idx)) {
+              loadData(0, item[0].time, item[0].order, item[1].order);
+            } else {
+              return true;
+            }
+          }
+        });
+        isEnded(player, mp4); // hack for older webkit
+      }
+    });
+
+    player.on('seeking', function () {
+      var buffered = player.buffered;var hasBuffered = false;var curTime = player.currentTime;
+      _task2.default.clear();
+      var timeRage = player.mp4.timeRage;
+      if (buffered.length) {
+        for (var i = 0, len = buffered.length; i < len; i++) {
+          if (curTime >= buffered.start(i) && curTime <= buffered.end(i)) {
+            hasBuffered = true;
+            break;
+          }
+        }
+        if (!hasBuffered) {
+          timeRage.every(function (item, idx) {
+            if (item[0].time <= curTime && item[1].time > curTime) {
+              loadData(0, item[0].time, item[0].order, item[1].order);
+              return false;
+            } else {
+              return true;
+            }
+          });
+        }
+      } else {
+        timeRage.every(function (item, idx) {
+          if (item[0].time <= curTime && item[1].time > curTime) {
+            loadData(0, item[0].time, item[0].order, item[1].order);
+            return false;
+          } else {
+            return true;
+          }
+        });
+      }
+    });
+
+    player.on('pause', function () {
+      _task2.default.clear();
+    });
+
+    player.on('playing', function () {
+      if (waiterTimer) {
+        clearTimeout(waiterTimer);
+      }
+    });
+
+    player.on('waiting', function () {
+      var buffered = player.buffered;var hasBuffered = false;var curTime = player.currentTime;
+      _task2.default.clear();
+      var timeRage = player.mp4.timeRage;
+      if (buffered.length) {
+        for (var i = 0, len = buffered.length; i < len; i++) {
+          if (curTime >= buffered.start(i) && curTime <= buffered.end(i)) {
+            hasBuffered = true;
+            break;
+          }
+        }
+        if (!hasBuffered) {
+          timeRage.every(function (item, idx) {
+            if (item[0].time <= curTime && item[1].time > curTime) {
+              loadData(0, item[0].time, item[0].order, item[1].order);
+              return false;
+            } else {
+              return true;
+            }
+          });
+        }
+      } else {
+        timeRage.every(function (item, idx) {
+          if (item[0].time <= curTime && item[1].time > curTime) {
+            loadData(0, item[0].time, item[0].order, item[1].order);
+            return false;
+          } else {
+            return true;
+          }
+        });
+      }
+    });
+
+    player.once('destroy', function () {
+      _task2.default.clear();
+      if (player.timer) {
+        clearTimeout(player.timer);
+      }
+    });
+
+    // let playBtn = util.findDom(player.root, '.xgplayer-play');
+    // ['click', 'touchstart'].forEach(item => {
+    //   playBtn.addEventListener(item, function (e) {
+    //     e.preventDefault()
+    //     e.stopPropagation()
+    //     if (player.hasEnded) {
+    //       player.hasEnded = false
+    //       Task.clear()
+    //       player.mp4.bufferCache.clear()
+    //       // player.currentTime = 0
+    //       init(player.mp4.url, true).then((result) => {
+    //         let mp4 = result[0]; let mse = result[1]
+    //         player.src = mse.url
+    //         player.mp4 = mp4
+    //         player.mse = mse
+    //         player.mse.replaying = true
+    //         player.currentTime = 0
+    //         player.video.play().then(() => {
+    //
+    //           // player.pause()
+    //           // player.currentTime = 0
+    //         })
+    //       }, err => {
+    //         errorHandle(player, err)
+    //       })
+    //     }
+    //   })
+    // })
+
+    player.on('change', function (nextItem) {
+      player.newMusic(nextItem.src);
+      name = '' + nextItem.name;
+      vid = '' + nextItem.vid;
+      poster = '' + nextItem.poster;
+    });
+
+    player.newMusic = function (url) {
+      _task2.default.clear();
+      player.mp4.bufferCache.clear();
+      init(url, true).then(function (result) {
+        var mp4 = result[0];var mse = result[1];
+        player.src = mse.url;
+        player.mp4 = mp4;
+        player.mse = mse;
+        player.mse.replaying = true;
+        player.currentTime = 0;
+        setTimeout(function () {
+          player.video.play();
+        }, 60);
+      }, function (err) {
+        errorHandle(player, err);
+      });
+    };
+
+    player.on('ended', function () {
+      player.hasEnded = true;
+      if (player.config.offline) {
+        var mdatCache = new _buffer2.default();
+        mdatCache.write(_mp4.default.size(player.mp4.mdatBox.size), _mp4.default.type('mdat'));
+        player.mp4.mdatCache.sort(function (a, b) {
+          return a.start - b.start;
+        });
+        var end = player.mp4.mdatCache[0].start - 1;
+        player.mp4.mdatCache.forEach(function (item, index) {
+          if (item.start === end + 1) {
+            mdatCache.write(item.buffer);
+            end = item.end;
+          }
+        });
+        if (end !== player.mp4.mdatCache[player.mp4.mdatCache.length - 1].end) {
+          return;
+        }
+        var m4aCache = new _buffer2.default();
+        m4aCache.write(new Uint8Array(player.mp4.ftypBuffer), new Uint8Array(player.mp4.moovBuffer), new Uint8Array(player.mp4.freeBuffer), mdatCache.buffer);
+        var offlineVid = vid || name;
+        player.database.openDB(function () {
+          player.database.addData(player.database.myDB.ojstore.name, [{ vid: offlineVid, blob: new Blob([m4aCache.buffer], { type: 'audio/mp4; codecs="mp4a.40.5"' }) }]);
+          setTimeout(function () {
+            player.database.closeDB();
+          }, 5000);
+        });
+      }
+    });
+  }
+};
+
+_xgplayer2.default.install('m4aplayer', m4aplayer);
+
+/***/ }),
+/* 39 */
+/***/ (function(module, exports, __webpack_require__) {
+
+"use strict";
+
+
+var LIBRARY = __webpack_require__(18);
+var global = __webpack_require__(2);
+var ctx = __webpack_require__(8);
+var classof = __webpack_require__(19);
+var $export = __webpack_require__(21);
+var isObject = __webpack_require__(6);
+var aFunction = __webpack_require__(9);
+var anInstance = __webpack_require__(44);
+var forOf = __webpack_require__(45);
+var speciesConstructor = __webpack_require__(49);
+var task = __webpack_require__(30).set;
+var microtask = __webpack_require__(52)();
+var newPromiseCapabilityModule = __webpack_require__(31);
+var perform = __webpack_require__(53);
+var userAgent = __webpack_require__(32);
+var promiseResolve = __webpack_require__(54);
+var PROMISE = 'Promise';
+var TypeError = global.TypeError;
+var process = global.process;
+var versions = process && process.versions;
+var v8 = versions && versions.v8 || '';
+var $Promise = global[PROMISE];
+var isNode = classof(process) == 'process';
+var empty = function empty() {/* empty */};
+var Internal, newGenericPromiseCapability, OwnPromiseCapability, Wrapper;
+var newPromiseCapability = newGenericPromiseCapability = newPromiseCapabilityModule.f;
+
+var USE_NATIVE = !!function () {
+  try {
+    // correct subclassing with @@species support
+    var promise = $Promise.resolve(1);
+    var FakePromise = (promise.constructor = {})[__webpack_require__(3)('species')] = function (exec) {
+      exec(empty, empty);
+    };
+    // unhandled rejections tracking support, NodeJS Promise without it fails @@species test
+    return (isNode || typeof PromiseRejectionEvent == 'function') && promise.then(empty) instanceof FakePromise
+    // v8 6.6 (Node 10 and Chrome 66) have a bug with resolving custom thenables
+    // https://bugs.chromium.org/p/chromium/issues/detail?id=830565
+    // we can't detect it synchronously, so just check versions
+    && v8.indexOf('6.6') !== 0 && userAgent.indexOf('Chrome/66') === -1;
+  } catch (e) {/* empty */}
+}();
+
+// helpers
+var isThenable = function isThenable(it) {
+  var then;
+  return isObject(it) && typeof (then = it.then) == 'function' ? then : false;
+};
+var notify = function notify(promise, isReject) {
+  if (promise._n) return;
+  promise._n = true;
+  var chain = promise._c;
+  microtask(function () {
+    var value = promise._v;
+    var ok = promise._s == 1;
+    var i = 0;
+    var run = function run(reaction) {
+      var handler = ok ? reaction.ok : reaction.fail;
+      var resolve = reaction.resolve;
+      var reject = reaction.reject;
+      var domain = reaction.domain;
+      var result, then, exited;
+      try {
+        if (handler) {
+          if (!ok) {
+            if (promise._h == 2) onHandleUnhandled(promise);
+            promise._h = 1;
+          }
+          if (handler === true) result = value;else {
+            if (domain) domain.enter();
+            result = handler(value); // may throw
+            if (domain) {
+              domain.exit();
+              exited = true;
+            }
+          }
+          if (result === reaction.promise) {
+            reject(TypeError('Promise-chain cycle'));
+          } else if (then = isThenable(result)) {
+            then.call(result, resolve, reject);
+          } else resolve(result);
+        } else reject(value);
+      } catch (e) {
+        if (domain && !exited) domain.exit();
+        reject(e);
+      }
+    };
+    while (chain.length > i) {
+      run(chain[i++]);
+    } // variable length - can't use forEach
+    promise._c = [];
+    promise._n = false;
+    if (isReject && !promise._h) onUnhandled(promise);
+  });
+};
+var onUnhandled = function onUnhandled(promise) {
+  task.call(global, function () {
+    var value = promise._v;
+    var unhandled = isUnhandled(promise);
+    var result, handler, console;
+    if (unhandled) {
+      result = perform(function () {
+        if (isNode) {
+          process.emit('unhandledRejection', value, promise);
+        } else if (handler = global.onunhandledrejection) {
+          handler({ promise: promise, reason: value });
+        } else if ((console = global.console) && console.error) {
+          console.error('Unhandled promise rejection', value);
+        }
+      });
+      // Browsers should not trigger `rejectionHandled` event if it was handled here, NodeJS - should
+      promise._h = isNode || isUnhandled(promise) ? 2 : 1;
+    }promise._a = undefined;
+    if (unhandled && result.e) throw result.v;
+  });
+};
+var isUnhandled = function isUnhandled(promise) {
+  return promise._h !== 1 && (promise._a || promise._c).length === 0;
+};
+var onHandleUnhandled = function onHandleUnhandled(promise) {
+  task.call(global, function () {
+    var handler;
+    if (isNode) {
+      process.emit('rejectionHandled', promise);
+    } else if (handler = global.onrejectionhandled) {
+      handler({ promise: promise, reason: promise._v });
+    }
+  });
+};
+var $reject = function $reject(value) {
+  var promise = this;
+  if (promise._d) return;
+  promise._d = true;
+  promise = promise._w || promise; // unwrap
+  promise._v = value;
+  promise._s = 2;
+  if (!promise._a) promise._a = promise._c.slice();
+  notify(promise, true);
+};
+var $resolve = function $resolve(value) {
+  var promise = this;
+  var then;
+  if (promise._d) return;
+  promise._d = true;
+  promise = promise._w || promise; // unwrap
+  try {
+    if (promise === value) throw TypeError("Promise can't be resolved itself");
+    if (then = isThenable(value)) {
+      microtask(function () {
+        var wrapper = { _w: promise, _d: false }; // wrap
+        try {
+          then.call(value, ctx($resolve, wrapper, 1), ctx($reject, wrapper, 1));
+        } catch (e) {
+          $reject.call(wrapper, e);
+        }
+      });
+    } else {
+      promise._v = value;
+      promise._s = 1;
+      notify(promise, false);
+    }
+  } catch (e) {
+    $reject.call({ _w: promise, _d: false }, e); // wrap
+  }
+};
+
+// constructor polyfill
+if (!USE_NATIVE) {
+  // 25.4.3.1 Promise(executor)
+  $Promise = function Promise(executor) {
+    anInstance(this, $Promise, PROMISE, '_h');
+    aFunction(executor);
+    Internal.call(this);
+    try {
+      executor(ctx($resolve, this, 1), ctx($reject, this, 1));
+    } catch (err) {
+      $reject.call(this, err);
+    }
+  };
+  // eslint-disable-next-line no-unused-vars
+  Internal = function Promise(executor) {
+    this._c = []; // <- awaiting reactions
+    this._a = undefined; // <- checked in isUnhandled reactions
+    this._s = 0; // <- state
+    this._d = false; // <- done
+    this._v = undefined; // <- value
+    this._h = 0; // <- rejection state, 0 - default, 1 - handled, 2 - unhandled
+    this._n = false; // <- notify
+  };
+  Internal.prototype = __webpack_require__(55)($Promise.prototype, {
+    // 25.4.5.3 Promise.prototype.then(onFulfilled, onRejected)
+    then: function then(onFulfilled, onRejected) {
+      var reaction = newPromiseCapability(speciesConstructor(this, $Promise));
+      reaction.ok = typeof onFulfilled == 'function' ? onFulfilled : true;
+      reaction.fail = typeof onRejected == 'function' && onRejected;
+      reaction.domain = isNode ? process.domain : undefined;
+      this._c.push(reaction);
+      if (this._a) this._a.push(reaction);
+      if (this._s) notify(this, false);
+      return reaction.promise;
+    },
+    // 25.4.5.1 Promise.prototype.catch(onRejected)
+    'catch': function _catch(onRejected) {
+      return this.then(undefined, onRejected);
+    }
+  });
+  OwnPromiseCapability = function OwnPromiseCapability() {
+    var promise = new Internal();
+    this.promise = promise;
+    this.resolve = ctx($resolve, promise, 1);
+    this.reject = ctx($reject, promise, 1);
+  };
+  newPromiseCapabilityModule.f = newPromiseCapability = function newPromiseCapability(C) {
+    return C === $Promise || C === Wrapper ? new OwnPromiseCapability(C) : newGenericPromiseCapability(C);
+  };
+}
+
+$export($export.G + $export.W + $export.F * !USE_NATIVE, { Promise: $Promise });
+__webpack_require__(56)($Promise, PROMISE);
+__webpack_require__(57)(PROMISE);
+Wrapper = __webpack_require__(4)[PROMISE];
+
+// statics
+$export($export.S + $export.F * !USE_NATIVE, PROMISE, {
+  // 25.4.4.5 Promise.reject(r)
+  reject: function reject(r) {
+    var capability = newPromiseCapability(this);
+    var $$reject = capability.reject;
+    $$reject(r);
+    return capability.promise;
+  }
+});
+$export($export.S + $export.F * (LIBRARY || !USE_NATIVE), PROMISE, {
+  // 25.4.4.6 Promise.resolve(x)
+  resolve: function resolve(x) {
+    return promiseResolve(LIBRARY && this === Wrapper ? $Promise : this, x);
+  }
+});
+$export($export.S + $export.F * !(USE_NATIVE && __webpack_require__(58)(function (iter) {
+  $Promise.all(iter)['catch'](empty);
+})), PROMISE, {
+  // 25.4.4.1 Promise.all(iterable)
+  all: function all(iterable) {
+    var C = this;
+    var capability = newPromiseCapability(C);
+    var resolve = capability.resolve;
+    var reject = capability.reject;
+    var result = perform(function () {
+      var values = [];
+      var index = 0;
+      var remaining = 1;
+      forOf(iterable, false, function (promise) {
+        var $index = index++;
+        var alreadyCalled = false;
+        values.push(undefined);
+        remaining++;
+        C.resolve(promise).then(function (value) {
+          if (alreadyCalled) return;
+          alreadyCalled = true;
+          values[$index] = value;
+          --remaining || resolve(values);
+        }, reject);
+      });
+      --remaining || resolve(values);
+    });
+    if (result.e) reject(result.v);
+    return capability.promise;
+  },
+  // 25.4.4.4 Promise.race(iterable)
+  race: function race(iterable) {
+    var C = this;
+    var capability = newPromiseCapability(C);
+    var reject = capability.reject;
+    var result = perform(function () {
+      forOf(iterable, false, function (promise) {
+        C.resolve(promise).then(capability.resolve, reject);
+      });
+    });
+    if (result.e) reject(result.v);
+    return capability.promise;
+  }
+});
+
+/***/ }),
+/* 40 */
+/***/ (function(module, exports, __webpack_require__) {
+
+"use strict";
+
+
+var core = __webpack_require__(4);
+var global = __webpack_require__(2);
+var SHARED = '__core-js_shared__';
+var store = global[SHARED] || (global[SHARED] = {});
+
+(module.exports = function (key, value) {
+  return store[key] || (store[key] = value !== undefined ? value : {});
+})('versions', []).push({
+  version: core.version,
+  mode: __webpack_require__(18) ? 'pure' : 'global',
+  copyright: '© 2018 Denis Pushkarev (zloirock.ru)'
+});
+
+/***/ }),
+/* 41 */
+/***/ (function(module, exports, __webpack_require__) {
+
+"use strict";
+
+
+module.exports = !__webpack_require__(10) && !__webpack_require__(23)(function () {
+  return Object.defineProperty(__webpack_require__(24)('div'), 'a', { get: function get() {
+      return 7;
+    } }).a != 7;
+});
+
+/***/ }),
+/* 42 */
+/***/ (function(module, exports, __webpack_require__) {
+
+"use strict";
+
+
+// 7.1.1 ToPrimitive(input [, PreferredType])
+var isObject = __webpack_require__(6);
+// instead of the ES6 spec version, we didn't implement @@toPrimitive case
+// and the second argument - flag - preferred type is a string
+module.exports = function (it, S) {
+  if (!isObject(it)) return it;
+  var fn, val;
+  if (S && typeof (fn = it.toString) == 'function' && !isObject(val = fn.call(it))) return val;
+  if (typeof (fn = it.valueOf) == 'function' && !isObject(val = fn.call(it))) return val;
+  if (!S && typeof (fn = it.toString) == 'function' && !isObject(val = fn.call(it))) return val;
+  throw TypeError("Can't convert object to primitive value");
+};
+
+/***/ }),
+/* 43 */
+/***/ (function(module, exports, __webpack_require__) {
+
+"use strict";
+
+
+module.exports = function (bitmap, value) {
+  return {
+    enumerable: !(bitmap & 1),
+    configurable: !(bitmap & 2),
+    writable: !(bitmap & 4),
+    value: value
+  };
+};
+
+/***/ }),
+/* 44 */
+/***/ (function(module, exports, __webpack_require__) {
+
+"use strict";
+
+
+module.exports = function (it, Constructor, name, forbiddenField) {
+  if (!(it instanceof Constructor) || forbiddenField !== undefined && forbiddenField in it) {
+    throw TypeError(name + ': incorrect invocation!');
+  }return it;
+};
+
+/***/ }),
+/* 45 */
+/***/ (function(module, exports, __webpack_require__) {
+
+"use strict";
+
+
+var ctx = __webpack_require__(8);
+var call = __webpack_require__(46);
+var isArrayIter = __webpack_require__(47);
+var anObject = __webpack_require__(5);
+var toLength = __webpack_require__(28);
+var getIterFn = __webpack_require__(48);
+var BREAK = {};
+var RETURN = {};
+var _exports = module.exports = function (iterable, entries, fn, that, ITERATOR) {
+  var iterFn = ITERATOR ? function () {
+    return iterable;
+  } : getIterFn(iterable);
+  var f = ctx(fn, that, entries ? 2 : 1);
+  var index = 0;
+  var length, step, iterator, result;
+  if (typeof iterFn != 'function') throw TypeError(iterable + ' is not iterable!');
+  // fast case for arrays with default iterator
+  if (isArrayIter(iterFn)) for (length = toLength(iterable.length); length > index; index++) {
+    result = entries ? f(anObject(step = iterable[index])[0], step[1]) : f(iterable[index]);
+    if (result === BREAK || result === RETURN) return result;
+  } else for (iterator = iterFn.call(iterable); !(step = iterator.next()).done;) {
+    result = call(iterator, f, step.value, entries);
+    if (result === BREAK || result === RETURN) return result;
+  }
+};
+_exports.BREAK = BREAK;
+_exports.RETURN = RETURN;
+
+/***/ }),
+/* 46 */
+/***/ (function(module, exports, __webpack_require__) {
+
+"use strict";
+
+
+// call something on iterator step with safe closing on error
+var anObject = __webpack_require__(5);
+module.exports = function (iterator, fn, value, entries) {
+  try {
+    return entries ? fn(anObject(value)[0], value[1]) : fn(value);
+    // 7.4.6 IteratorClose(iterator, completion)
+  } catch (e) {
+    var ret = iterator['return'];
+    if (ret !== undefined) anObject(ret.call(iterator));
+    throw e;
+  }
+};
+
+/***/ }),
+/* 47 */
+/***/ (function(module, exports, __webpack_require__) {
+
+"use strict";
+
+
+// check on default Array iterator
+var Iterators = __webpack_require__(27);
+var ITERATOR = __webpack_require__(3)('iterator');
+var ArrayProto = Array.prototype;
+
+module.exports = function (it) {
+  return it !== undefined && (Iterators.Array === it || ArrayProto[ITERATOR] === it);
+};
+
+/***/ }),
+/* 48 */
+/***/ (function(module, exports, __webpack_require__) {
+
+"use strict";
+
+
+var classof = __webpack_require__(19);
+var ITERATOR = __webpack_require__(3)('iterator');
+var Iterators = __webpack_require__(27);
+module.exports = __webpack_require__(4).getIteratorMethod = function (it) {
+  if (it != undefined) return it[ITERATOR] || it['@@iterator'] || Iterators[classof(it)];
+};
+
+/***/ }),
+/* 49 */
+/***/ (function(module, exports, __webpack_require__) {
+
+"use strict";
+
+
+// 7.3.20 SpeciesConstructor(O, defaultConstructor)
+var anObject = __webpack_require__(5);
+var aFunction = __webpack_require__(9);
+var SPECIES = __webpack_require__(3)('species');
+module.exports = function (O, D) {
+  var C = anObject(O).constructor;
+  var S;
+  return C === undefined || (S = anObject(C)[SPECIES]) == undefined ? D : aFunction(S);
+};
+
+/***/ }),
+/* 50 */
+/***/ (function(module, exports, __webpack_require__) {
+
+"use strict";
+
+
+// fast apply, http://jsperf.lnkit.com/fast-apply/5
+module.exports = function (fn, args, that) {
+                  var un = that === undefined;
+                  switch (args.length) {
+                                    case 0:
+                                                      return un ? fn() : fn.call(that);
+                                    case 1:
+                                                      return un ? fn(args[0]) : fn.call(that, args[0]);
+                                    case 2:
+                                                      return un ? fn(args[0], args[1]) : fn.call(that, args[0], args[1]);
+                                    case 3:
+                                                      return un ? fn(args[0], args[1], args[2]) : fn.call(that, args[0], args[1], args[2]);
+                                    case 4:
+                                                      return un ? fn(args[0], args[1], args[2], args[3]) : fn.call(that, args[0], args[1], args[2], args[3]);
+                  }return fn.apply(that, args);
+};
+
+/***/ }),
+/* 51 */
+/***/ (function(module, exports, __webpack_require__) {
+
+"use strict";
+
+
+var document = __webpack_require__(2).document;
+module.exports = document && document.documentElement;
+
+/***/ }),
+/* 52 */
+/***/ (function(module, exports, __webpack_require__) {
+
+"use strict";
+
+
+var global = __webpack_require__(2);
+var macrotask = __webpack_require__(30).set;
+var Observer = global.MutationObserver || global.WebKitMutationObserver;
+var process = global.process;
+var Promise = global.Promise;
+var isNode = __webpack_require__(11)(process) == 'process';
+
+module.exports = function () {
+  var head, last, notify;
+
+  var flush = function flush() {
+    var parent, fn;
+    if (isNode && (parent = process.domain)) parent.exit();
+    while (head) {
+      fn = head.fn;
+      head = head.next;
+      try {
+        fn();
+      } catch (e) {
+        if (head) notify();else last = undefined;
+        throw e;
+      }
+    }last = undefined;
+    if (parent) parent.enter();
+  };
+
+  // Node.js
+  if (isNode) {
+    notify = function notify() {
+      process.nextTick(flush);
+    };
+    // browsers with MutationObserver, except iOS Safari - https://github.com/zloirock/core-js/issues/339
+  } else if (Observer && !(global.navigator && global.navigator.standalone)) {
+    var toggle = true;
+    var node = document.createTextNode('');
+    new Observer(flush).observe(node, { characterData: true }); // eslint-disable-line no-new
+    notify = function notify() {
+      node.data = toggle = !toggle;
+    };
+    // environments with maybe non-completely correct, but existent Promise
+  } else if (Promise && Promise.resolve) {
+    // Promise.resolve without an argument throws an error in LG WebOS 2
+    var promise = Promise.resolve(undefined);
+    notify = function notify() {
+      promise.then(flush);
+    };
+    // for other environments - macrotask based on:
+    // - setImmediate
+    // - MessageChannel
+    // - window.postMessag
+    // - onreadystatechange
+    // - setTimeout
+  } else {
+    notify = function notify() {
+      // strange IE + webpack dev server bug - use .call(global)
+      macrotask.call(global, flush);
+    };
+  }
+
+  return function (fn) {
+    var task = { fn: fn, next: undefined };
+    if (last) last.next = task;
+    if (!head) {
+      head = task;
+      notify();
+    }last = task;
+  };
+};
+
+/***/ }),
+/* 53 */
+/***/ (function(module, exports, __webpack_require__) {
+
+"use strict";
+
+
+module.exports = function (exec) {
+  try {
+    return { e: false, v: exec() };
+  } catch (e) {
+    return { e: true, v: e };
+  }
+};
+
+/***/ }),
+/* 54 */
+/***/ (function(module, exports, __webpack_require__) {
+
+"use strict";
+
+
+var anObject = __webpack_require__(5);
+var isObject = __webpack_require__(6);
+var newPromiseCapability = __webpack_require__(31);
+
+module.exports = function (C, x) {
+  anObject(C);
+  if (isObject(x) && x.constructor === C) return x;
+  var promiseCapability = newPromiseCapability.f(C);
+  var resolve = promiseCapability.resolve;
+  resolve(x);
+  return promiseCapability.promise;
+};
+
+/***/ }),
+/* 55 */
+/***/ (function(module, exports, __webpack_require__) {
+
+"use strict";
+
+
+var redefine = __webpack_require__(25);
+module.exports = function (target, src, safe) {
+  for (var key in src) {
+    redefine(target, key, src[key], safe);
+  }return target;
+};
+
+/***/ }),
+/* 56 */
+/***/ (function(module, exports, __webpack_require__) {
+
+"use strict";
+
+
+var def = __webpack_require__(12).f;
+var has = __webpack_require__(26);
+var TAG = __webpack_require__(3)('toStringTag');
+
+module.exports = function (it, tag, stat) {
+  if (it && !has(it = stat ? it : it.prototype, TAG)) def(it, TAG, { configurable: true, value: tag });
+};
+
+/***/ }),
+/* 57 */
+/***/ (function(module, exports, __webpack_require__) {
+
+"use strict";
+
+
+var global = __webpack_require__(2);
+var dP = __webpack_require__(12);
+var DESCRIPTORS = __webpack_require__(10);
+var SPECIES = __webpack_require__(3)('species');
+
+module.exports = function (KEY) {
+  var C = global[KEY];
+  if (DESCRIPTORS && C && !C[SPECIES]) dP.f(C, SPECIES, {
+    configurable: true,
+    get: function get() {
+      return this;
+    }
+  });
+};
+
+/***/ }),
+/* 58 */
+/***/ (function(module, exports, __webpack_require__) {
+
+"use strict";
+
+
+var ITERATOR = __webpack_require__(3)('iterator');
+var SAFE_CLOSING = false;
+
+try {
+  var riter = [7][ITERATOR]();
+  riter['return'] = function () {
+    SAFE_CLOSING = true;
+  };
+  // eslint-disable-next-line no-throw-literal
+  Array.from(riter, function () {
+    throw 2;
+  });
+} catch (e) {/* empty */}
+
+module.exports = function (exec, skipClosing) {
+  if (!skipClosing && !SAFE_CLOSING) return false;
+  var safe = false;
+  try {
+    var arr = [7];
+    var iter = arr[ITERATOR]();
+    iter.next = function () {
+      return { done: safe = true };
+    };
+    arr[ITERATOR] = function () {
+      return iter;
+    };
+    exec(arr);
+  } catch (e) {/* empty */}
+  return safe;
+};
+
+/***/ }),
+/* 59 */
+/***/ (function(module, exports, __webpack_require__) {
+
+"use strict";
+
+// https://github.com/tc39/proposal-string-pad-start-end
+
+var $export = __webpack_require__(21);
+var $pad = __webpack_require__(60);
+var userAgent = __webpack_require__(32);
+
+// https://github.com/zloirock/core-js/issues/280
+$export($export.P + $export.F * /Version\/10\.\d+(\.\d+)? Safari\//.test(userAgent), 'String', {
+  padStart: function padStart(maxLength /* , fillString = ' ' */) {
+    return $pad(this, maxLength, arguments.length > 1 ? arguments[1] : undefined, true);
+  }
+});
+
+/***/ }),
+/* 60 */
+/***/ (function(module, exports, __webpack_require__) {
+
+"use strict";
+
+
+// https://github.com/tc39/proposal-string-pad-start-end
+var toLength = __webpack_require__(28);
+var repeat = __webpack_require__(61);
+var defined = __webpack_require__(33);
+
+module.exports = function (that, maxLength, fillString, left) {
+  var S = String(defined(that));
+  var stringLength = S.length;
+  var fillStr = fillString === undefined ? ' ' : String(fillString);
+  var intMaxLength = toLength(maxLength);
+  if (intMaxLength <= stringLength || fillStr == '') return S;
+  var fillLen = intMaxLength - stringLength;
+  var stringFiller = repeat.call(fillStr, Math.ceil(fillLen / fillStr.length));
+  if (stringFiller.length > fillLen) stringFiller = stringFiller.slice(0, fillLen);
+  return left ? stringFiller + S : S + stringFiller;
+};
+
+/***/ }),
+/* 61 */
+/***/ (function(module, exports, __webpack_require__) {
+
+"use strict";
+
+
+var toInteger = __webpack_require__(29);
+var defined = __webpack_require__(33);
+
+module.exports = function repeat(count) {
+  var str = String(defined(this));
+  var res = '';
+  var n = toInteger(count);
+  if (n < 0 || n == Infinity) throw RangeError("Count can't be negative");
+  for (; n > 0; (n >>>= 1) && (str += str)) {
+    if (n & 1) res += str;
+  }return res;
+};
+
+/***/ }),
+/* 62 */
+/***/ (function(module, exports, __webpack_require__) {
+
+"use strict";
+
+
+Object.defineProperty(exports, "__esModule", {
+  value: true
+});
+
+var _createClass = function () { function defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ("value" in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } } return function (Constructor, protoProps, staticProps) { if (protoProps) defineProperties(Constructor.prototype, protoProps); if (staticProps) defineProperties(Constructor, staticProps); return Constructor; }; }();
+
+var _eventEmitter = __webpack_require__(14);
+
+var _eventEmitter2 = _interopRequireDefault(_eventEmitter);
+
+var _deepmerge = __webpack_require__(78);
+
+var _deepmerge2 = _interopRequireDefault(_deepmerge);
+
+var _parse = __webpack_require__(79);
+
+var _parse2 = _interopRequireDefault(_parse);
+
+var _buffer = __webpack_require__(17);
+
+var _buffer2 = _interopRequireDefault(_buffer);
+
+var _mp = __webpack_require__(35);
+
+var _mp2 = _interopRequireDefault(_mp);
+
+var _task = __webpack_require__(36);
+
+var _task2 = _interopRequireDefault(_task);
+
+var _download = __webpack_require__(123);
+
+var _download2 = _interopRequireDefault(_download);
+
+var _util = __webpack_require__(124);
+
+var _util2 = _interopRequireDefault(_util);
+
+var _xgplayer = __webpack_require__(13);
+
+var _xgplayer2 = _interopRequireDefault(_xgplayer);
+
+var _error = __webpack_require__(7);
+
+var _error2 = _interopRequireDefault(_error);
+
+function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
+
+function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } }
+
+var MP4 = function () {
+  /**
+     * [constructor 构造函数]
+     * @param {String} url                      [视频地址]
+     * @param {Number} [chunk_size=Math.pow(25, 4)]           [请求的数据块大小，对于长视频设置的较大些可以避免二次请求]
+     */
+  function MP4(url) {
+    var chunkSize = arguments.length > 1 && arguments[1] !== undefined ? arguments[1] : 1024;
+
+    _classCallCheck(this, MP4);
+
+    (0, _eventEmitter2.default)(this);
+    this.url = url;
+    this.CHUNK_SIZE = chunkSize;
+    this.reqTimeLength = 5;
+    this.init(url);
+    this.once('mdatReady', this.moovParse.bind(this));
+    this.cache = new _buffer2.default();
+    this.bufferCache = new Set();
+    this.mdatCache = [];
+    this.timeRage = [];
+    this.canDownload = true;
+    this.cut = false;
+  }
+
+  /**
+     * [getData 根据字节区间下载二进制数据]
+     * @param  {Number} [start=0]  [起始字节]
+     * @param  {Number} [end=start + this.CHUNK_SIZE] [截止字节]
+     */
+
+
+  _createClass(MP4, [{
+    key: 'getData',
+    value: function getData() {
+      var _this = this;
+
+      var start = arguments.length > 0 && arguments[0] !== undefined ? arguments[0] : 0;
+      var end = arguments.length > 1 && arguments[1] !== undefined ? arguments[1] : start + this.CHUNK_SIZE;
+
+      var self = this;
+      return new Promise(function (resolve, reject) {
+        var task = new _task2.default(_this.url, [start, end], resolve);
+        task.once('error', function (err) {
+          self.emit('error', err);
+        });
+      });
+    }
+
+    /**
+       * [moovParse 解析视频信息]
+       * @return {[type]} [description]
+       */
+
+  }, {
+    key: 'moovParse',
+    value: function moovParse() {
+      var self = this;
+      var moov = this.moovBox;
+      var mvhd = _util2.default.findBox(moov, 'mvhd');
+      var traks = _util2.default.findBox(moov, 'trak');
+      var audioTrak = void 0;
+      var audioCodec = void 0;
+      var audioTimeScale = void 0;
+      var channelCount = void 0,
+          sampleRate = void 0,
+          decoderConfig = void 0;
+      if (_xgplayer2.default.util.typeOf(traks) !== 'Array') {
+        traks = [traks];
+      }
+      traks.forEach(function (trak) {
+        var hdlr = _util2.default.findBox(trak, 'hdlr');
+        var mdhd = _util2.default.findBox(trak, 'mdhd');
+        if (!hdlr || !mdhd) {
+          self.emit('error', new _error2.default('parse', '', { line: 72, handle: '[MP4] moovParse', url: self.url }));
+          return;
+        }
+        var stsd = _util2.default.findBox(trak, 'stsd');
+        var codecBox = stsd.subBox[0];
+        if (hdlr.handleType === 'soun') {
+          audioTrak = trak;
+          var esds = _util2.default.findBox(trak, 'esds');
+          var mp4a = _util2.default.findBox(trak, 'mp4a');
+          var ESDescriptor = _util2.default.findBox(trak, 5);
+          audioTimeScale = mdhd.timescale;
+          if (esds) {
+            audioCodec = codecBox.type + '.' + _util2.default.toHex(esds.subBox[0].subBox[0].typeID) + ('.' + esds.subBox[0].subBox[0].subBox[0].type);
+          } else {
+            audioCodec = '' + codecBox.type;
+          }
+          if (ESDescriptor && ESDescriptor.EScode) {
+            decoderConfig = ESDescriptor.EScode.map(function (item) {
+              return Number('0x' + item);
+            });
+          }
+          if (mp4a) {
+            channelCount = mp4a.channelCount;
+            sampleRate = mp4a.sampleRate;
+          }
+        }
+      });
+      this.audioTrak = (0, _deepmerge2.default)({}, audioTrak);
+      var mdat = this._boxes.find(function (item) {
+        return item.type === 'mdat';
+      });
+      var audioDuration = parseFloat(_util2.default.seekTrakDuration(audioTrak, audioTimeScale));
+      this.mdatStart = mdat.start;
+      this.sampleCount = _util2.default.sampleCount(_util2.default.findBox(this.audioTrak, 'stts').entry);
+
+      var audioFrame = void 0,
+          audioNextFrame = void 0;
+      var stts = _util2.default.findBox(this.audioTrak, 'stts').entry;
+      for (var i = 0; i < audioDuration; i += this.reqTimeLength) {
+        audioFrame = _util2.default.seekOrderSampleByTime(stts, audioTimeScale, i);
+        if (i + this.reqTimeLength < audioDuration) {
+          audioNextFrame = _util2.default.seekOrderSampleByTime(stts, audioTimeScale, i + this.reqTimeLength);
+          this.timeRage.push([{ time: audioFrame.startTime, order: audioFrame.order }, { time: audioNextFrame.startTime, order: audioNextFrame.order }]);
+        } else {
+          this.timeRage.push([{ time: audioFrame.startTime, order: audioFrame.order }, { time: audioDuration, order: this.sampleCount - 1 }]);
+        }
+      }
+      // console.log('this.timeRage')
+      // console.log(this.timeRage)
+      this.meta = {
+        audioCodec: audioCodec,
+        createTime: mvhd.createTime,
+        modifyTime: mvhd.modifyTime,
+        duration: mvhd.duration / mvhd.timeScale,
+        timeScale: mvhd.timeScale,
+        audioDuration: audioDuration,
+        audioTimeScale: audioTimeScale,
+        endTime: audioDuration,
+        channelCount: channelCount,
+        sampleRate: sampleRate,
+        audioConfig: decoderConfig
+      };
+    }
+
+    /**
+       * [init 实例的初始化，主要是获取视频的MOOV元信息]
+       */
+
+  }, {
+    key: 'init',
+    value: function init() {
+      var self = this;
+      self.getData().then(function (resFir) {
+        var parsedFir = void 0;
+        var mdatStart = 0;
+
+        var mdat = void 0,
+            moov = void 0,
+            ftyp = void 0;
+
+        var boxes = void 0;
+        try {
+          parsedFir = new _parse2.default(resFir);
+        } catch (e) {
+          self.emit('error', e.type ? e : new _error2.default('parse', '', { line: 176, handle: '[MP4] init', msg: e.message }));
+          return false;
+        }
+        self._boxes = boxes = parsedFir.boxes;
+        boxes.every(function (item) {
+          mdatStart += item.size;
+          if (item.type === 'ftyp') {
+            ftyp = item;
+            self.ftypBox = ftyp;
+            self.ftypBuffer = resFir.slice(0, ftyp.size);
+            return true;
+          }
+          return true;
+        });
+        if (!mdat) {
+          var nextBox = parsedFir.nextBox;
+          if (nextBox) {
+            if (nextBox.type === 'moov' || nextBox.type === 'free') {
+              self.getData(mdatStart, mdatStart + nextBox.size + 1024).then(function (resSec) {
+                var parsedSec = new _parse2.default(resSec);
+                self._boxes = self._boxes.concat(parsedSec.boxes);
+                parsedSec.boxes.every(function (item) {
+                  mdatStart += item.size;
+                  if (item.type === 'moov') {
+                    moov = item;
+                    self.moovBox = moov;
+                    self.moovBuffer = resSec.slice(0, moov.size);
+                    return true;
+                  } else {
+                    return true;
+                  }
+                });
+                if (!mdat) {
+                  var nextBoxSec = parsedSec.nextBox;
+                  if (nextBoxSec) {
+                    if (nextBoxSec.type === 'free') {
+                      self.getData(mdatStart, mdatStart + nextBoxSec.size + 1024).then(function (resThi) {
+                        var parsedThi = new _parse2.default(resThi);
+                        self._boxes = self._boxes.concat(parsedThi.boxes);
+                        parsedThi.boxes.every(function (item) {
+                          if (item.type === 'mdat') {
+                            mdat = item;
+                            mdat.start = mdatStart;
+                            self.mdatBox = mdat;
+                            self.emit('mdatReady', moov);
+                            return false;
+                          } else if (item.type === 'free') {
+                            self.freeBuffer = resThi.slice(0, item.size);
+                            mdatStart += item.size;
+                            return true;
+                          } else {
+                            mdatStart += item.size;
+                            return true;
+                          }
+                        });
+                        if (!mdat) {
+                          self.emit('error', new _error2.default('parse', '', { line: 207, handle: '[MP4] init', msg: 'not find mdat box' }));
+                        }
+                      }).catch(function () {
+                        self.emit('error', new _error2.default('network', '', { line: 210, handle: '[MP4] getData', msg: 'getData failed' }));
+                      });
+                    } else {
+                      self.emit('error', new _error2.default('parse', '', { line: 213, handle: '[MP4] init', msg: 'not find mdat box' }));
+                    }
+                  } else {
+                    self.emit('error', new _error2.default('parse', '', { line: 216, handle: '[MP4] init', msg: 'not find mdat box' }));
+                  }
+                }
+              }).catch(function () {
+                self.emit('error', new _error2.default('network', '', { line: 220, handle: '[MP4] getData', msg: 'getData failed' }));
+              });
+            } else {
+              self.emit('error', new _error2.default('parse', '', { line: 223, handle: '[MP4] init', msg: 'not find mdat box' }));
+            }
+          } else {
+            self.emit('error', new _error2.default('parse', '', { line: 226, handle: '[MP4] init', msg: 'not find mdat box' }));
+          }
+        }
+      }).catch(function () {
+        self.emit('error', new _error2.default('network', '', { line: 230, handle: '[MP4] getData', msg: 'getData failed' }));
+      });
+    }
+  }, {
+    key: 'getSamplesByOrders',
+    value: function getSamplesByOrders() {
+      var type = arguments.length > 0 && arguments[0] !== undefined ? arguments[0] : 'audio';
+      var start = arguments[1];
+      var end = arguments[2];
+
+      var trak = this.audioTrak;
+      var stsc = _util2.default.findBox(trak, 'stsc'); // chunk~samples
+      var stsz = _util2.default.findBox(trak, 'stsz'); // sample-size
+      var stts = _util2.default.findBox(trak, 'stts'); // sample-time
+      var stco = _util2.default.findBox(trak, 'stco'); // chunk-offset
+      var ctts = _util2.default.findBox(trak, 'ctts'); // offset-compositime
+      var mdatStart = this.mdatStart;
+      var samples = [];
+      end = end !== undefined ? end : stsz.entries.length;
+      if (start instanceof Array) {
+        start.forEach(function (item, idx) {
+          samples.push({
+            idx: item,
+            size: stsz.entries[item],
+            time: _util2.default.seekSampleTime(stts, ctts, item),
+            offset: _util2.default.seekSampleOffset(stsc, stco, stsz, item, mdatStart)
+          });
+        });
+      } else if (end !== 0) {
+        for (var i = start; i < end; i++) {
+          samples.push({
+            idx: i,
+            size: stsz.entries[i],
+            time: _util2.default.seekSampleTime(stts, ctts, i),
+            offset: _util2.default.seekSampleOffset(stsc, stco, stsz, i, mdatStart)
+          });
+        }
+      } else {
+        samples = {
+          idx: start,
+          size: stsz.entries[start],
+          time: _util2.default.seekSampleTime(stts, ctts, start),
+          offset: _util2.default.seekSampleOffset(stsc, stco, stsz, start, mdatStart)
+        };
+      }
+      return samples;
+    }
+  }, {
+    key: 'packMeta',
+    value: function packMeta(meta) {
+      if (!meta) {
+        return;
+      }
+      var buffer = new _buffer2.default();
+      buffer.write(_mp2.default.ftyp());
+      buffer.write(_mp2.default.moov(meta));
+      this.cache.write(buffer.buffer);
+      return buffer.buffer;
+    }
+  }, {
+    key: 'seek',
+    value: function seek(time) {
+      var audioIndexOrder = arguments.length > 1 && arguments[1] !== undefined ? arguments[1] : null;
+      var audioNextIndexOrder = arguments.length > 2 && arguments[2] !== undefined ? arguments[2] : null;
+
+      var audioStts = _util2.default.findBox(this.audioTrak, 'stts').entry;
+      if (!audioIndexOrder) {
+        audioIndexOrder = _util2.default.seekOrderSampleByTime(audioStts, this.meta.audioTimeScale, time).order;
+      }
+      if (!audioNextIndexOrder) {
+        if (time + this.reqTimeLength < this.meta.audioDuration) {
+          audioNextIndexOrder = _util2.default.seekOrderSampleByTime(audioStts, this.meta.audioTimeScale, time + this.reqTimeLength).order;
+        }
+      }
+      if (this.bufferCache.has(audioIndexOrder)) {
+        return Promise.resolve(null);
+      } else {
+        return this.loadFragment(audioIndexOrder, audioNextIndexOrder);
+      }
+    }
+  }, {
+    key: 'loadFragment',
+    value: function loadFragment(audioIndexOrder, audioNextIndexOrder) {
+      var _this2 = this;
+
+      var start = void 0,
+          end = void 0;
+      var self = this;
+      var audioFrame = this.getSamplesByOrders('audio', audioIndexOrder, 0);
+      start = audioFrame.offset;
+      var audioNextFrame = void 0;
+      if (audioNextIndexOrder) {
+        audioNextFrame = this.getSamplesByOrders('audio', audioNextIndexOrder, 0);
+        end = audioNextFrame.offset - 1;
+      } else {
+        audioNextFrame = this.getSamplesByOrders('audio', this.sampleCount - 1, 0);
+        end = audioNextFrame.offset + audioNextFrame.size - 1;
+      }
+      // console.log('start order')
+      // console.log(audioIndexOrder)
+      // console.log('start')
+      // console.log(start + self.mdatStart)
+      // console.log('end order')
+      // console.log(audioNextIndexOrder)
+      // console.log('end')
+      // console.log(self.mdatStart + end)
+      if (window.isNaN(start) || end !== undefined && window.isNaN(end)) {
+        self.emit('error', new _error2.default('parse', '', { line: 366, handle: '[MP4] loadFragment', url: self.url }));
+        return false;
+      }
+      return this.getData(start + self.mdatStart, end ? self.mdatStart + end : '').then(function (dat) {
+        if (end) {
+          _this2.mdatCache.push({
+            start: start + self.mdatStart,
+            end: self.mdatStart + end,
+            buffer: new Uint8Array(dat)
+          });
+        }
+        return self.createFragment(new Uint8Array(dat), start, audioIndexOrder, audioNextIndexOrder);
+      });
+    }
+  }, {
+    key: 'addFragment',
+    value: function addFragment(data) {
+      var buffer = new _buffer2.default();
+      buffer.write(_mp2.default.moof(data));
+      buffer.write(_mp2.default.mdat(data));
+      this.cache.write(buffer.buffer);
+      return buffer.buffer;
+    }
+  }, {
+    key: 'createFragment',
+    value: function createFragment(mdatData, start, audioIndexOrder, audioNextIndexOrder) {
+      var resBuffers = [];
+      this.bufferCache.add(audioIndexOrder);
+      var _samples = this.getSamplesByOrders('audio', audioIndexOrder, audioNextIndexOrder);
+      var samples = _samples.map(function (item, idx) {
+        return {
+          size: item.size,
+          duration: item.time.duration,
+          offset: item.time.offset,
+          buffer: new Uint8Array(mdatData.slice(item.offset - start, item.offset - start + item.size)),
+          key: idx === 0
+        };
+      });
+      resBuffers.push(this.addFragment({ id: 2, time: this.cut ? 0 : _samples[0].time.time, firstFlags: 0x00, flags: 0x701, samples: samples }));
+      var bufferSize = 0;
+      resBuffers.every(function (item) {
+        bufferSize += item.byteLength;
+        return true;
+      });
+      var buffer = new Uint8Array(bufferSize);
+
+      var offset = 0;
+      resBuffers.every(function (item) {
+        buffer.set(item, offset);
+        offset += item.byteLength;
+        return true;
+      });
+      return Promise.resolve(buffer);
+    }
+  }, {
+    key: 'download',
+    value: function download() {
+      // new Download('fmp4.mp4', this.cache.buffer)
+    }
+  }]);
+
+  return MP4;
+}();
+
+exports.default = MP4;
+module.exports = exports['default'];
+
+/***/ }),
+/* 63 */
+/***/ (function(module, exports, __webpack_require__) {
+
+"use strict";
+
+
+var assign = __webpack_require__(64),
+    normalizeOpts = __webpack_require__(72),
+    isCallable = __webpack_require__(73),
+    contains = __webpack_require__(74),
+    d;
+
+d = module.exports = function (dscr, value /*, options*/) {
+	var c, e, w, options, desc;
+	if (arguments.length < 2 || typeof dscr !== 'string') {
+		options = value;
+		value = dscr;
+		dscr = null;
+	} else {
+		options = arguments[2];
+	}
+	if (dscr == null) {
+		c = w = true;
+		e = false;
+	} else {
+		c = contains.call(dscr, 'c');
+		e = contains.call(dscr, 'e');
+		w = contains.call(dscr, 'w');
+	}
+
+	desc = { value: value, configurable: c, enumerable: e, writable: w };
+	return !options ? desc : assign(normalizeOpts(options), desc);
+};
+
+d.gs = function (dscr, get, set /*, options*/) {
+	var c, e, options, desc;
+	if (typeof dscr !== 'string') {
+		options = set;
+		set = get;
+		get = dscr;
+		dscr = null;
+	} else {
+		options = arguments[3];
+	}
+	if (get == null) {
+		get = undefined;
+	} else if (!isCallable(get)) {
+		options = get;
+		get = set = undefined;
+	} else if (set == null) {
+		set = undefined;
+	} else if (!isCallable(set)) {
+		options = set;
+		set = undefined;
+	}
+	if (dscr == null) {
+		c = true;
+		e = false;
+	} else {
+		c = contains.call(dscr, 'c');
+		e = contains.call(dscr, 'e');
+	}
+
+	desc = { get: get, set: set, configurable: c, enumerable: e };
+	return !options ? desc : assign(normalizeOpts(options), desc);
+};
+
+/***/ }),
+/* 64 */
+/***/ (function(module, exports, __webpack_require__) {
+
+"use strict";
+
+
+module.exports = __webpack_require__(65)() ? Object.assign : __webpack_require__(66);
+
+/***/ }),
+/* 65 */
+/***/ (function(module, exports, __webpack_require__) {
+
+"use strict";
+
+
+module.exports = function () {
+	var assign = Object.assign,
+	    obj;
+	if (typeof assign !== "function") return false;
+	obj = { foo: "raz" };
+	assign(obj, { bar: "dwa" }, { trzy: "trzy" });
+	return obj.foo + obj.bar + obj.trzy === "razdwatrzy";
+};
+
+/***/ }),
+/* 66 */
+/***/ (function(module, exports, __webpack_require__) {
+
+"use strict";
+
+
+var keys = __webpack_require__(67),
+    value = __webpack_require__(71),
+    max = Math.max;
+
+module.exports = function (dest, src /*, …srcn*/) {
+	var error,
+	    i,
+	    length = max(arguments.length, 2),
+	    assign;
+	dest = Object(value(dest));
+	assign = function assign(key) {
+		try {
+			dest[key] = src[key];
+		} catch (e) {
+			if (!error) error = e;
+		}
+	};
+	for (i = 1; i < length; ++i) {
+		src = arguments[i];
+		keys(src).forEach(assign);
+	}
+	if (error !== undefined) throw error;
+	return dest;
+};
+
+/***/ }),
+/* 67 */
+/***/ (function(module, exports, __webpack_require__) {
+
+"use strict";
+
+
+module.exports = __webpack_require__(68)() ? Object.keys : __webpack_require__(69);
+
+/***/ }),
+/* 68 */
+/***/ (function(module, exports, __webpack_require__) {
+
+"use strict";
+
+
+module.exports = function () {
+	try {
+		Object.keys("primitive");
+		return true;
+	} catch (e) {
+		return false;
+	}
+};
+
+/***/ }),
+/* 69 */
+/***/ (function(module, exports, __webpack_require__) {
+
+"use strict";
+
+
+var isValue = __webpack_require__(15);
+
+var keys = Object.keys;
+
+module.exports = function (object) {
+  return keys(isValue(object) ? Object(object) : object);
+};
+
+/***/ }),
+/* 70 */
+/***/ (function(module, exports, __webpack_require__) {
+
+"use strict";
+
+
+// eslint-disable-next-line no-empty-function
+
+module.exports = function () {};
+
+/***/ }),
+/* 71 */
+/***/ (function(module, exports, __webpack_require__) {
+
+"use strict";
+
+
+var isValue = __webpack_require__(15);
+
+module.exports = function (value) {
+	if (!isValue(value)) throw new TypeError("Cannot use null or undefined");
+	return value;
+};
+
+/***/ }),
+/* 72 */
+/***/ (function(module, exports, __webpack_require__) {
+
+"use strict";
+
+
+var isValue = __webpack_require__(15);
+
+var forEach = Array.prototype.forEach,
+    create = Object.create;
+
+var process = function process(src, obj) {
+	var key;
+	for (key in src) {
+		obj[key] = src[key];
+	}
+};
+
+// eslint-disable-next-line no-unused-vars
+module.exports = function (opts1 /*, …options*/) {
+	var result = create(null);
+	forEach.call(arguments, function (options) {
+		if (!isValue(options)) return;
+		process(Object(options), result);
+	});
+	return result;
+};
+
+/***/ }),
+/* 73 */
+/***/ (function(module, exports, __webpack_require__) {
+
+"use strict";
+// Deprecated
+
+
+
+module.exports = function (obj) {
+  return typeof obj === "function";
+};
+
+/***/ }),
+/* 74 */
+/***/ (function(module, exports, __webpack_require__) {
+
+"use strict";
+
+
+module.exports = __webpack_require__(75)() ? String.prototype.contains : __webpack_require__(76);
+
+/***/ }),
+/* 75 */
+/***/ (function(module, exports, __webpack_require__) {
+
+"use strict";
+
+
+var str = "razdwatrzy";
+
+module.exports = function () {
+	if (typeof str.contains !== "function") return false;
+	return str.contains("dwa") === true && str.contains("foo") === false;
+};
+
+/***/ }),
+/* 76 */
+/***/ (function(module, exports, __webpack_require__) {
+
+"use strict";
+
+
+var indexOf = String.prototype.indexOf;
+
+module.exports = function (searchString /*, position*/) {
+	return indexOf.call(this, searchString, arguments[1]) > -1;
+};
+
+/***/ }),
+/* 77 */
+/***/ (function(module, exports, __webpack_require__) {
+
+"use strict";
+
+
+module.exports = function (fn) {
+	if (typeof fn !== "function") throw new TypeError(fn + " is not a function");
+	return fn;
+};
+
+/***/ }),
+/* 78 */
+/***/ (function(module, exports, __webpack_require__) {
+
+"use strict";
+
+
+Object.defineProperty(exports, "__esModule", {
+	value: true
+});
+
+var _typeof = typeof Symbol === "function" && typeof Symbol.iterator === "symbol" ? function (obj) { return typeof obj; } : function (obj) { return obj && typeof Symbol === "function" && obj.constructor === Symbol && obj !== Symbol.prototype ? "symbol" : typeof obj; };
+
+var isMergeableObject = function isMergeableObject(value) {
+	return isNonNullObject(value) && !isSpecial(value);
+};
+
+function isNonNullObject(value) {
+	return !!value && (typeof value === 'undefined' ? 'undefined' : _typeof(value)) === 'object';
+}
+
+function isSpecial(value) {
+	var stringValue = Object.prototype.toString.call(value);
+
+	return stringValue === '[object RegExp]' || stringValue === '[object Date]' || isReactElement(value);
+}
+
+// see https://github.com/facebook/react/blob/b5ac963fb791d1298e7f396236383bc955f916c1/src/isomorphic/classic/element/ReactElement.js#L21-L25
+var canUseSymbol = typeof Symbol === 'function' && Symbol.for;
+var REACT_ELEMENT_TYPE = canUseSymbol ? Symbol.for('react.element') : 0xeac7;
+
+function isReactElement(value) {
+	return value.$$typeof === REACT_ELEMENT_TYPE;
+}
+
+function emptyTarget(val) {
+	return Array.isArray(val) ? [] : {};
+}
+
+function cloneUnlessOtherwiseSpecified(value, options) {
+	return options.clone !== false && options.isMergeableObject(value) ? deepmerge(emptyTarget(value), value, options) : value;
+}
+
+function defaultArrayMerge(target, source, options) {
+	return target.concat(source).map(function (element) {
+		return cloneUnlessOtherwiseSpecified(element, options);
+	});
+}
+
+function mergeObject(target, source, options) {
+	var destination = {};
+	if (options.isMergeableObject(target)) {
+		Object.keys(target).forEach(function (key) {
+			destination[key] = cloneUnlessOtherwiseSpecified(target[key], options);
+		});
+	}
+	Object.keys(source).forEach(function (key) {
+		if (!options.isMergeableObject(source[key]) || !target[key]) {
+			destination[key] = cloneUnlessOtherwiseSpecified(source[key], options);
+		} else {
+			destination[key] = deepmerge(target[key], source[key], options);
+		}
+	});
+	return destination;
+}
+
+function deepmerge(target, source, options) {
+	options = options || {};
+	options.arrayMerge = options.arrayMerge || defaultArrayMerge;
+	options.isMergeableObject = options.isMergeableObject || isMergeableObject;
+
+	var sourceIsArray = Array.isArray(source);
+	var targetIsArray = Array.isArray(target);
+	var sourceAndTargetTypesMatch = sourceIsArray === targetIsArray;
+
+	if (!sourceAndTargetTypesMatch) {
+		return cloneUnlessOtherwiseSpecified(source, options);
+	} else if (sourceIsArray) {
+		return options.arrayMerge(target, source, options);
+	} else {
+		return mergeObject(target, source, options);
+	}
+}
+
+deepmerge.all = function deepmergeAll(array, options) {
+	if (!Array.isArray(array)) {
+		throw new Error('first argument should be an array');
+	}
+
+	return array.reduce(function (prev, next) {
+		return deepmerge(prev, next, options);
+	}, {});
+};
+
+var deepmerge_1 = deepmerge;
+
+exports.default = deepmerge_1;
+module.exports = exports['default'];
+
+/***/ }),
+/* 79 */
+/***/ (function(module, exports, __webpack_require__) {
+
+"use strict";
+
+
+Object.defineProperty(exports, "__esModule", {
+  value: true
+});
+
+var _box = __webpack_require__(0);
+
+var _box2 = _interopRequireDefault(_box);
+
+var _concatTypedArray = __webpack_require__(34);
+
+var _concatTypedArray2 = _interopRequireDefault(_concatTypedArray);
+
+var _stream = __webpack_require__(1);
+
+var _stream2 = _interopRequireDefault(_stream);
+
+var _vmhd = __webpack_require__(82);
+
+var _vmhd2 = _interopRequireDefault(_vmhd);
+
+var _url = __webpack_require__(83);
+
+var _url2 = _interopRequireDefault(_url);
+
+var _udta = __webpack_require__(84);
+
+var _udta2 = _interopRequireDefault(_udta);
+
+var _trun = __webpack_require__(85);
+
+var _trun2 = _interopRequireDefault(_trun);
+
+var _traf = __webpack_require__(86);
+
+var _traf2 = _interopRequireDefault(_traf);
+
+var _tkhd = __webpack_require__(87);
+
+var _tkhd2 = _interopRequireDefault(_tkhd);
+
+var _tfhd = __webpack_require__(88);
+
+var _tfhd2 = _interopRequireDefault(_tfhd);
+
+var _stz = __webpack_require__(89);
+
+var _stz2 = _interopRequireDefault(_stz);
+
+var _stts = __webpack_require__(90);
+
+var _stts2 = _interopRequireDefault(_stts);
+
+var _stsz = __webpack_require__(91);
+
+var _stsz2 = _interopRequireDefault(_stsz);
+
+var _stss = __webpack_require__(92);
+
+var _stss2 = _interopRequireDefault(_stss);
+
+var _stsh = __webpack_require__(93);
+
+var _stsh2 = _interopRequireDefault(_stsh);
+
+var _stsd = __webpack_require__(94);
+
+var _stsd2 = _interopRequireDefault(_stsd);
+
+var _stsc = __webpack_require__(95);
+
+var _stsc2 = _interopRequireDefault(_stsc);
+
+var _stco = __webpack_require__(96);
+
+var _stco2 = _interopRequireDefault(_stco);
+
+var _smhd = __webpack_require__(97);
+
+var _smhd2 = _interopRequireDefault(_smhd);
+
+var _SLConfigDescriptor = __webpack_require__(98);
+
+var _SLConfigDescriptor2 = _interopRequireDefault(_SLConfigDescriptor);
+
+var _sdtp = __webpack_require__(99);
+
+var _sdtp2 = _interopRequireDefault(_sdtp);
+
+var _sbgp = __webpack_require__(100);
+
+var _sbgp2 = _interopRequireDefault(_sbgp);
+
+var _pasp = __webpack_require__(101);
+
+var _pasp2 = _interopRequireDefault(_pasp);
+
+var _nmhd = __webpack_require__(102);
+
+var _nmhd2 = _interopRequireDefault(_nmhd);
+
+var _mvhd = __webpack_require__(103);
+
+var _mvhd2 = _interopRequireDefault(_mvhd);
+
+var _MP4ESDescrTag = __webpack_require__(104);
+
+var _MP4ESDescrTag2 = _interopRequireDefault(_MP4ESDescrTag);
+
+var _MP4DecSpecificDescrTag = __webpack_require__(105);
+
+var _MP4DecSpecificDescrTag2 = _interopRequireDefault(_MP4DecSpecificDescrTag);
+
+var _MP4DecConfigDescrTag = __webpack_require__(106);
+
+var _MP4DecConfigDescrTag2 = _interopRequireDefault(_MP4DecConfigDescrTag);
+
+var _mp4a = __webpack_require__(107);
+
+var _mp4a2 = _interopRequireDefault(_mp4a);
+
+var _mfhd = __webpack_require__(108);
+
+var _mfhd2 = _interopRequireDefault(_mfhd);
+
+var _mdhd = __webpack_require__(109);
+
+var _mdhd2 = _interopRequireDefault(_mdhd);
+
+var _mdat = __webpack_require__(110);
+
+var _mdat2 = _interopRequireDefault(_mdat);
+
+var _iods = __webpack_require__(111);
+
+var _iods2 = _interopRequireDefault(_iods);
+
+var _hmhd = __webpack_require__(112);
+
+var _hmhd2 = _interopRequireDefault(_hmhd);
+
+var _hdlr = __webpack_require__(113);
+
+var _hdlr2 = _interopRequireDefault(_hdlr);
+
+var _ftyp = __webpack_require__(114);
+
+var _ftyp2 = _interopRequireDefault(_ftyp);
+
+var _esds = __webpack_require__(115);
+
+var _esds2 = _interopRequireDefault(_esds);
+
+var _elst = __webpack_require__(116);
+
+var _elst2 = _interopRequireDefault(_elst);
+
+var _dref = __webpack_require__(117);
+
+var _dref2 = _interopRequireDefault(_dref);
+
+var _ctts = __webpack_require__(118);
+
+var _ctts2 = _interopRequireDefault(_ctts);
+
+var _co = __webpack_require__(119);
+
+var _co2 = _interopRequireDefault(_co);
+
+var _btrt = __webpack_require__(120);
+
+var _btrt2 = _interopRequireDefault(_btrt);
+
+var _avcC = __webpack_require__(121);
+
+var _avcC2 = _interopRequireDefault(_avcC);
+
+var _avc = __webpack_require__(122);
+
+var _avc2 = _interopRequireDefault(_avc);
+
+function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
+
+function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } }
+
+var SubBox = {};
+
+function _buildTree(v, p, a) {
+  var o = v;
+  p.map(function (_, i) {
+    o[_] = i == p.length - 1 ? a : o[_] || {};
+    o = o[_];
+  });
+}
+
+_buildTree(SubBox, ['box', 'avc1'], _avc2.default);
+
+_buildTree(SubBox, ['box', 'avcC'], _avcC2.default);
+
+_buildTree(SubBox, ['box', 'btrt'], _btrt2.default);
+
+_buildTree(SubBox, ['box', 'co64'], _co2.default);
+
+_buildTree(SubBox, ['box', 'ctts'], _ctts2.default);
+
+_buildTree(SubBox, ['box', 'dref'], _dref2.default);
+
+_buildTree(SubBox, ['box', 'elst'], _elst2.default);
+
+_buildTree(SubBox, ['box', 'esds'], _esds2.default);
+
+_buildTree(SubBox, ['box', 'ftyp'], _ftyp2.default);
+
+_buildTree(SubBox, ['box', 'hdlr'], _hdlr2.default);
+
+_buildTree(SubBox, ['box', 'hmhd'], _hmhd2.default);
+
+_buildTree(SubBox, ['box', 'iods'], _iods2.default);
+
+_buildTree(SubBox, ['box', 'mdat'], _mdat2.default);
+
+_buildTree(SubBox, ['box', 'mdhd'], _mdhd2.default);
+
+_buildTree(SubBox, ['box', 'mfhd'], _mfhd2.default);
+
+_buildTree(SubBox, ['box', 'mp4a'], _mp4a2.default);
+
+_buildTree(SubBox, ['box', 'MP4DecConfigDescrTag'], _MP4DecConfigDescrTag2.default);
+
+_buildTree(SubBox, ['box', 'MP4DecSpecificDescrTag'], _MP4DecSpecificDescrTag2.default);
+
+_buildTree(SubBox, ['box', 'MP4ESDescrTag'], _MP4ESDescrTag2.default);
+
+_buildTree(SubBox, ['box', 'mvhd'], _mvhd2.default);
+
+_buildTree(SubBox, ['box', 'nmhd'], _nmhd2.default);
+
+_buildTree(SubBox, ['box', 'pasp'], _pasp2.default);
+
+_buildTree(SubBox, ['box', 'sbgp'], _sbgp2.default);
+
+_buildTree(SubBox, ['box', 'sdtp'], _sdtp2.default);
+
+_buildTree(SubBox, ['box', 'SLConfigDescriptor'], _SLConfigDescriptor2.default);
+
+_buildTree(SubBox, ['box', 'smhd'], _smhd2.default);
+
+_buildTree(SubBox, ['box', 'stco'], _stco2.default);
+
+_buildTree(SubBox, ['box', 'stsc'], _stsc2.default);
+
+_buildTree(SubBox, ['box', 'stsd'], _stsd2.default);
+
+_buildTree(SubBox, ['box', 'stsh'], _stsh2.default);
+
+_buildTree(SubBox, ['box', 'stss'], _stss2.default);
+
+_buildTree(SubBox, ['box', 'stsz'], _stsz2.default);
+
+_buildTree(SubBox, ['box', 'stts'], _stts2.default);
+
+_buildTree(SubBox, ['box', 'stz2'], _stz2.default);
+
+_buildTree(SubBox, ['box', 'tfhd'], _tfhd2.default);
+
+_buildTree(SubBox, ['box', 'tkhd'], _tkhd2.default);
+
+_buildTree(SubBox, ['box', 'traf'], _traf2.default);
+
+_buildTree(SubBox, ['box', 'trun'], _trun2.default);
+
+_buildTree(SubBox, ['box', 'udta'], _udta2.default);
+
+_buildTree(SubBox, ['box', 'url'], _url2.default);
+
+_buildTree(SubBox, ['box', 'vmhd'], _vmhd2.default);
+
+var Parse = function Parse(buffer) {
+  _classCallCheck(this, Parse);
+
+  this.buffer = null;
+  this.boxes = [];
+  this.nextBox = null;
+  this.start = 0;
+  var self = this;
+  if (self.buffer) {
+    (0, _concatTypedArray2.default)(Uint8Array, self.buffer, buffer);
+  } else {
+    self.buffer = buffer;
+  }
+  var bufferLength = buffer.byteLength;
+  buffer.position = 0;
+  var stream = new _stream2.default(buffer);
+  while (bufferLength - stream.position >= 8) {
+    var box = new _box2.default();
+    box.readHeader(stream);
+    if (box.size - 8 <= bufferLength - stream.position) {
+      box.readBody(stream);
+      self.boxes.push(box);
+    } else {
+      if (box.type === 'mdat') {
+        box.readBody(stream);
+        self.boxes.push(box);
+      } else {
+        self.nextBox = box;
+        stream.position -= 8;
+        break;
+      }
+    }
+  }
+  self.buffer = new Uint8Array(self.buffer.slice(stream.position));
+};
+
+exports.default = Parse;
+module.exports = exports['default'];
+
+/***/ }),
+/* 80 */
+/***/ (function(module) {
+
+module.exports = {"name":"xgplayer-m4a","version":"1.1.0","description":"xgplayer plugin for m4a transform to fmp4","main":"./dist/index.js","scripts":{"prepare":"npm run build","build":"webpack --progress --display-chunks -p","watch":"webpack --progress --display-chunks -p --watch"},"repository":{"type":"git","url":"git@github.com:bytedance/xgplayer.git"},"babel":{"presets":["es2015"],"plugins":["add-module-exports","babel-plugin-bulk-import"]},"keywords":["mp4","fmp4","player","audio"],"author":"yinguohui@bytedance.com","license":"MIT","dependencies":{"babel-loader":"^7.1.4","babel-plugin-add-module-exports":"^0.2.1","babel-plugin-bulk-import":"^1.0.2","babel-preset-es2015":"^6.24.1","concat-typed-array":"^1.0.2","deepmerge":"^2.0.1","event-emitter":"^0.3.5","import-local":"^2.0.0","json-loader":"^0.5.7","webpack":"^4.11.0"},"peerDependency":{"xgplayer":"^0.1.0"},"devDependencies":{"babel-core":"^6.26.3"}};
+
+/***/ }),
+/* 81 */
+/***/ (function(module, exports, __webpack_require__) {
+
+"use strict";
+
+
+Object.defineProperty(exports, "__esModule", {
+  value: true
+});
+
+exports.default = function (ResultConstructor) {
+  var totalLength = 0;
+
+  for (var _len = arguments.length, arrays = Array(_len > 1 ? _len - 1 : 0), _key = 1; _key < _len; _key++) {
+    arrays[_key - 1] = arguments[_key];
+  }
+
+  var _iteratorNormalCompletion = true;
+  var _didIteratorError = false;
+  var _iteratorError = undefined;
+
+  try {
+    for (var _iterator = arrays[Symbol.iterator](), _step; !(_iteratorNormalCompletion = (_step = _iterator.next()).done); _iteratorNormalCompletion = true) {
+      var arr = _step.value;
+
+      totalLength += arr.length;
+    }
+  } catch (err) {
+    _didIteratorError = true;
+    _iteratorError = err;
+  } finally {
+    try {
+      if (!_iteratorNormalCompletion && _iterator.return) {
+        _iterator.return();
+      }
+    } finally {
+      if (_didIteratorError) {
+        throw _iteratorError;
+      }
+    }
+  }
+
+  var result = new ResultConstructor(totalLength);
+  var offset = 0;
+  var _iteratorNormalCompletion2 = true;
+  var _didIteratorError2 = false;
+  var _iteratorError2 = undefined;
+
+  try {
+    for (var _iterator2 = arrays[Symbol.iterator](), _step2; !(_iteratorNormalCompletion2 = (_step2 = _iterator2.next()).done); _iteratorNormalCompletion2 = true) {
+      var _arr = _step2.value;
+
+      result.set(_arr, offset);
+      offset += _arr.length;
+    }
+  } catch (err) {
+    _didIteratorError2 = true;
+    _iteratorError2 = err;
+  } finally {
+    try {
+      if (!_iteratorNormalCompletion2 && _iterator2.return) {
+        _iterator2.return();
+      }
+    } finally {
+      if (_didIteratorError2) {
+        throw _iteratorError2;
+      }
+    }
+  }
+
+  return result;
+};
+
+/***/ }),
+/* 82 */
+/***/ (function(module, exports, __webpack_require__) {
+
+"use strict";
+
+
+var _box = __webpack_require__(0);
+
+var _box2 = _interopRequireDefault(_box);
+
+var _stream = __webpack_require__(1);
+
+var _stream2 = _interopRequireDefault(_stream);
+
+function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
+
+_box2.default.vmhd = function () {
+  var stream = new _stream2.default(this.data);
+  this.version = stream.readUint8();
+  this.flag = [stream.readUint8(), stream.readUint8(), stream.readUint8()];
+  this.graphicsmode = stream.readUint16();
+  this.opcolor = [stream.readUint16(), stream.readUint16(), stream.readUint16()];
+  delete this.subBox;
+  delete this.data;
+  stream = null;
+};
+
+/***/ }),
+/* 83 */
+/***/ (function(module, exports, __webpack_require__) {
+
+"use strict";
+
+
+var _box = __webpack_require__(0);
+
+var _box2 = _interopRequireDefault(_box);
+
+var _stream = __webpack_require__(1);
+
+var _stream2 = _interopRequireDefault(_stream);
+
+function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
+
+_box2.default['url '] = function () {
+  var stream = new _stream2.default(this.data);
+  this.version = stream.readUint8();
+  this.flag = [stream.readUint8(), stream.readUint8(), stream.readUint8()];
+  var location = [];var length = stream.buffer.byteLength;
+  while (stream.position < length) {
+    location.push(stream.readUint8());
+  }
+  this.location = location;
+  delete this.subBox;
+  delete this.data;
+  stream = null;
+};
+
+/***/ }),
+/* 84 */
+/***/ (function(module, exports, __webpack_require__) {
+
+"use strict";
+
+
+var _box = __webpack_require__(0);
+
+var _box2 = _interopRequireDefault(_box);
+
+function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
+
+_box2.default.udta = function () {
+  delete this.subBox;
+};
+
+/***/ }),
+/* 85 */
+/***/ (function(module, exports, __webpack_require__) {
+
+"use strict";
+
+
+/***/ }),
+/* 86 */
+/***/ (function(module, exports, __webpack_require__) {
+
+"use strict";
+
+
+/***/ }),
+/* 87 */
+/***/ (function(module, exports, __webpack_require__) {
+
+"use strict";
+
+
+var _box = __webpack_require__(0);
+
+var _box2 = _interopRequireDefault(_box);
+
+var _stream = __webpack_require__(1);
+
+var _stream2 = _interopRequireDefault(_stream);
+
+var _date = __webpack_require__(16);
+
+var _date2 = _interopRequireDefault(_date);
+
+function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
+
+_box2.default.tkhd = function () {
+  var stream = new _stream2.default(this.data);
+  this.version = stream.readUint8();
+  this.flag = _stream2.default.readByte(stream.dataview, 3, 0);
+  if (this.version === 1) {
+    this.create = stream.readUint64();
+    this.modify = stream.readUint64();
+    this.createTime = new _date2.default().setTime(this.create * 1000);
+    this.modifyTime = new _date2.default().setTime(this.modify * 1000);
+    this.trackID = stream.readUint32();
+    this.reserverd = stream.readUint32();
+    this.duration = stream.readUint64();
+  } else {
+    this.create = stream.readUint32();
+    this.modify = stream.readUint32();
+    this.createTime = new _date2.default().setTime(this.create * 1000);
+    this.modifyTime = new _date2.default().setTime(this.modify * 1000);
+    this.trackID = stream.readUint32();
+    this.reserverd = stream.readUint32();
+    this.duration = stream.readUint32();
+  }
+  stream.readUint64();
+  this.layer = stream.readInt16();
+  this.alternate_group = stream.readInt16();
+  this.volume = stream.readInt16() >> 8;
+  stream.readUint16();
+  // 视频转换矩阵
+  var matrix = [];
+  for (var i = 0; i < 9; i++) {
+    matrix.push(stream.readUint16() + '.' + stream.readUint16());
+  }
+  this.matrix = matrix;
+  this.width = stream.readUint16() + '.' + stream.readUint16();
+  this.height = stream.readUint16() + '.' + stream.readUint16();
+  delete this.data;
+  delete this.subBox;
+  stream = null;
+};
+
+/***/ }),
+/* 88 */
+/***/ (function(module, exports, __webpack_require__) {
+
+"use strict";
+
+
+/***/ }),
+/* 89 */
+/***/ (function(module, exports, __webpack_require__) {
+
+"use strict";
+
+
+/***/ }),
+/* 90 */
+/***/ (function(module, exports, __webpack_require__) {
+
+"use strict";
+
+
+var _box = __webpack_require__(0);
+
+var _box2 = _interopRequireDefault(_box);
+
+var _stream = __webpack_require__(1);
+
+var _stream2 = _interopRequireDefault(_stream);
+
+function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
+
+_box2.default.stts = function () {
+  var stream = new _stream2.default(this.data);
+  this.version = stream.readUint8();
+  this.flag = _stream2.default.readByte(stream.dataview, 3);
+  this.count = stream.readUint32();
+  var entry = [];
+  for (var i = 0, count = this.count; i < count; i++) {
+    entry.push({
+      sampleCount: stream.readUint32(),
+      sampleDuration: stream.readUint32()
+    });
+  }
+  this.entry = entry;
+  delete this.subBox;
+  delete this.data;
+  stream = null;
+};
+
+/***/ }),
+/* 91 */
+/***/ (function(module, exports, __webpack_require__) {
+
+"use strict";
+
+
+var _box = __webpack_require__(0);
+
+var _box2 = _interopRequireDefault(_box);
+
+var _stream = __webpack_require__(1);
+
+var _stream2 = _interopRequireDefault(_stream);
+
+function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
+
+_box2.default.stsz = function () {
+  var stream = new _stream2.default(this.data);
+  this.version = stream.readUint8();
+  this.flag = _stream2.default.readByte(stream.dataview, 3);
+  this.sampleSize = stream.readUint32();
+  this.count = stream.readUint32();
+  var entries = [];
+  this.entries = entries;
+  for (var i = 0, count = this.count; i < count; i++) {
+    entries.push(stream.readUint32());
+  }
+  delete this.subBox;
+  delete this.data;
+  stream = null;
+};
+
+/***/ }),
+/* 92 */
+/***/ (function(module, exports, __webpack_require__) {
+
+"use strict";
+
+
+var _box = __webpack_require__(0);
+
+var _box2 = _interopRequireDefault(_box);
+
+var _stream = __webpack_require__(1);
+
+var _stream2 = _interopRequireDefault(_stream);
+
+function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
+
+_box2.default.stss = function () {
+  var stream = new _stream2.default(this.data);
+  this.version = stream.readUint8();
+  this.flag = _stream2.default.readByte(stream.dataview, 3);
+  this.count = stream.readUint32();
+  var entries = [];
+  this.entries = entries;
+  for (var i = 0, count = this.count; i < count; i++) {
+    entries.push(stream.readUint32());
+  }
+  delete this.subBox;
+  delete this.data;
+  stream = null;
+};
+
+/***/ }),
+/* 93 */
+/***/ (function(module, exports, __webpack_require__) {
+
+"use strict";
+
+
+/***/ }),
+/* 94 */
+/***/ (function(module, exports, __webpack_require__) {
+
+"use strict";
+
+
+var _box = __webpack_require__(0);
+
+var _box2 = _interopRequireDefault(_box);
+
+var _stream = __webpack_require__(1);
+
+var _stream2 = _interopRequireDefault(_stream);
+
+function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
+
+_box2.default.stsd = function () {
+  var stream = new _stream2.default(this.data);
+  this.version = stream.readUint8();
+  this.flag = _stream2.default.readByte(stream.dataview, 3);
+  this.entryCount = stream.readUint32();
+  var box = new _box2.default();
+  box.readHeader(stream);
+  this.subBox.push(box);
+  box.readBody(stream);
+  delete this.data;
+  stream = null;
+};
+
+/***/ }),
+/* 95 */
+/***/ (function(module, exports, __webpack_require__) {
+
+"use strict";
+
+
+var _box = __webpack_require__(0);
+
+var _box2 = _interopRequireDefault(_box);
+
+var _stream = __webpack_require__(1);
+
+var _stream2 = _interopRequireDefault(_stream);
+
+function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
+
+_box2.default.stsc = function () {
+  var stream = new _stream2.default(this.data);
+  this.version = stream.readUint8();
+  this.flag = _stream2.default.readByte(stream.dataview, 3);
+  this.count = stream.readUint32();
+  var entries = [];
+  this.entries = entries;
+  for (var i = 0, count = this.count; i < count; i++) {
+    entries.push({
+      first_chunk: stream.readUint32(),
+      samples_per_chunk: stream.readUint32(),
+      sample_desc_index: stream.readUint32()
+    });
+  }
+  for (var _i = 0, _count = this.count, entry, preEntry; _i < _count - 1; _i++) {
+    entry = entries[_i];
+    preEntry = entries[_i - 1];
+    entry.chunk_count = entries[_i + 1].first_chunk - entry.first_chunk;
+    entry.first_sample = _i === 0 ? 1 : preEntry.first_sample + preEntry.chunk_count * preEntry.samples_per_chunk;
+  }
+  if (this.count === 1) {
+    var _entry = entries[0];
+    _entry.first_sample = 1;
+    _entry.chunk_count = 0;
+  } else if (this.count > 1) {
+    var last = entries[this.count - 1];var pre = entries[this.count - 2];
+    last.first_sample = pre.first_sample + pre.chunk_count * pre.samples_per_chunk;
+    last.chunk_count = 0;
+  }
+  delete this.subBox;
+  delete this.data;
+  stream = null;
+};
+
+/***/ }),
+/* 96 */
+/***/ (function(module, exports, __webpack_require__) {
+
+"use strict";
+
+
+var _box = __webpack_require__(0);
+
+var _box2 = _interopRequireDefault(_box);
+
+var _stream = __webpack_require__(1);
+
+var _stream2 = _interopRequireDefault(_stream);
+
+function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
+
+_box2.default.stco = function () {
+  var stream = new _stream2.default(this.data);
+  this.version = stream.readUint8();
+  this.flag = _stream2.default.readByte(stream.dataview, 3);
+  this.count = stream.readUint32();
+  var entries = [];
+  this.entries = entries;
+  for (var i = 0, count = this.count; i < count; i++) {
+    entries.push(stream.readUint32());
+  }
+  delete this.subBox;
+  delete this.data;
+  stream = null;
+};
+
+/***/ }),
+/* 97 */
+/***/ (function(module, exports, __webpack_require__) {
+
+"use strict";
+
+
+var _box = __webpack_require__(0);
+
+var _box2 = _interopRequireDefault(_box);
+
+var _stream = __webpack_require__(1);
+
+var _stream2 = _interopRequireDefault(_stream);
+
+function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
+
+_box2.default.smhd = function () {
+  var stream = new _stream2.default(this.data);
+  this.version = stream.readUint8();
+  this.flag = _stream2.default.readByte(stream.dataview, 3);
+  this.balance = stream.readInt8() + '.' + stream.readInt8();
+  delete this.subBox;
+  delete this.data;
+  stream = null;
+};
+
+/***/ }),
+/* 98 */
+/***/ (function(module, exports, __webpack_require__) {
+
+"use strict";
+
+
+var _box = __webpack_require__(0);
+
+var _box2 = _interopRequireDefault(_box);
+
+function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
+
+_box2.default.SLConfigDescriptor = function (stream) {
+  var box = new _box2.default();
+  var size = void 0;
+  box.type = stream.readUint8();
+  size = stream.readUint8();
+  if (size === 0x80) {
+    box.extend = true;
+    stream.skip(2);
+    size = stream.readUint8() + 5;
+  } else {
+    size += 2;
+  }
+  box.size = size;
+  box.SL = stream.readUint8();
+  delete box.subBox;
+  return box;
+};
+
+/***/ }),
+/* 99 */
+/***/ (function(module, exports, __webpack_require__) {
+
+"use strict";
+
+
+/***/ }),
+/* 100 */
+/***/ (function(module, exports, __webpack_require__) {
+
+"use strict";
+
+
+/***/ }),
+/* 101 */
+/***/ (function(module, exports, __webpack_require__) {
+
+"use strict";
+
+
+var _box = __webpack_require__(0);
+
+var _box2 = _interopRequireDefault(_box);
+
+var _stream = __webpack_require__(1);
+
+var _stream2 = _interopRequireDefault(_stream);
+
+function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
+
+_box2.default.pasp = function () {
+  var stream = new _stream2.default(this.data);
+  this.content = stream.buffer.slice(0, this.size - 8);
+  delete this.subBox;
+  delete this.data;
+  stream = null;
+};
+
+/***/ }),
+/* 102 */
+/***/ (function(module, exports, __webpack_require__) {
+
+"use strict";
+
+
+/***/ }),
+/* 103 */
+/***/ (function(module, exports, __webpack_require__) {
+
+"use strict";
+
+
+var _box = __webpack_require__(0);
+
+var _box2 = _interopRequireDefault(_box);
+
+var _stream = __webpack_require__(1);
+
+var _stream2 = _interopRequireDefault(_stream);
+
+var _date = __webpack_require__(16);
+
+var _date2 = _interopRequireDefault(_date);
+
+function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
+
+_box2.default.mvhd = function () {
+  var stream = new _stream2.default(this.data);
+
+  this.version = stream.readUint8();
+  this.flag = _stream2.default.readByte(stream.dataview, 3);
+  this.create = stream.readUint32();
+  this.modify = stream.readUint32();
+  this.createTime = new _date2.default().setTime(this.create * 1000);
+  this.modifyTime = new _date2.default().setTime(this.modify * 1000);
+  this.timeScale = stream.readUint32();
+  this.duration = stream.readUint32();
+  this.rate = stream.readUint16() + '.' + stream.readUint16();
+  this.volume = stream.readUint8() + '.' + stream.readUint8();
+  // 越过保留的10字节
+  _stream2.default.readByte(stream.dataview, 8);
+  _stream2.default.readByte(stream.dataview, 2);
+  // 视频转换矩阵
+  var matrix = [];
+  for (var i = 0; i < 9; i++) {
+    matrix.push(stream.readUint16() + '.' + stream.readUint16());
+  }
+  this.matrix = matrix;
+  _stream2.default.readByte(stream.dataview, 24);
+  this.nextTrackID = stream.readUint32();
+  delete this.subBox;
+  delete this.data;
+};
+
+/***/ }),
+/* 104 */
+/***/ (function(module, exports, __webpack_require__) {
+
+"use strict";
+
+
+var _box = __webpack_require__(0);
+
+var _box2 = _interopRequireDefault(_box);
+
+function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
+
+_box2.default.MP4ESDescrTag = function (stream) {
+  var box = new _box2.default();
+  var size = void 0;
+  box.type = stream.readUint8();
+  size = stream.readUint8();
+  if (size === 0x80) {
+    box.extend = true;
+    stream.skip(2);
+    size = stream.readUint8() + 5;
+  } else {
+    size += 2;
+  }
+  box.size = size;
+  box.esID = stream.readUint16();
+  box.priority = stream.readUint8();
+  box.subBox.push(_box2.default.MP4DecConfigDescrTag(stream));
+  box.subBox.push(_box2.default.SLConfigDescriptor(stream));
+  return box;
+};
+
+/***/ }),
+/* 105 */
+/***/ (function(module, exports, __webpack_require__) {
+
+"use strict";
+
+
+var _box = __webpack_require__(0);
+
+var _box2 = _interopRequireDefault(_box);
+
+function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
+
+_box2.default.MP4DecSpecificDescrTag = function (stream) {
+  var box = new _box2.default();
+  var size = void 0,
+      dataSize = void 0;
+  box.type = stream.readUint8();
+  size = stream.readUint8();
+  if (size === 0x80) {
+    box.extend = true;
+    stream.skip(2);
+    size = stream.readUint8() + 5;
+    dataSize = size - 5;
+  } else {
+    dataSize = size;
+    size += 2;
+  }
+  box.size = size;
+  var EScode = [];
+  for (var i = 0; i < dataSize; i++) {
+    EScode.push(Number(stream.readUint8()).toString(16).padStart(2, '0'));
+  }
+  box.EScode = EScode;
+  delete box.subBox;
+  return box;
+};
+
+/***/ }),
+/* 106 */
+/***/ (function(module, exports, __webpack_require__) {
+
+"use strict";
+
+
+var _box = __webpack_require__(0);
+
+var _box2 = _interopRequireDefault(_box);
+
+var _stream = __webpack_require__(1);
+
+var _stream2 = _interopRequireDefault(_stream);
+
+function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
+
+_box2.default.MP4DecConfigDescrTag = function (stream) {
+  var box = new _box2.default();
+  var size = void 0;
+  box.type = stream.readUint8();
+  size = stream.readUint8();
+  if (size === 0x80) {
+    box.extend = true;
+    stream.skip(2);
+    size = stream.readUint8() + 5;
+  } else {
+    size += 2;
+  }
+  box.size = size;
+  box.typeID = stream.readUint8();
+  // 6 bits stream type,1 bit upstream flag,1 bit reserved flag
+  box.streamUint = stream.readUint8();
+  box.bufferSize = _stream2.default.readByte(stream.dataview, 3);
+  box.maximum = stream.readUint32();
+  box.average = stream.readUint32();
+  box.subBox.push(_box2.default.MP4DecSpecificDescrTag(stream));
+  return box;
+};
+
+/***/ }),
+/* 107 */
+/***/ (function(module, exports, __webpack_require__) {
+
+"use strict";
+
+
+var _box = __webpack_require__(0);
+
+var _box2 = _interopRequireDefault(_box);
+
+var _stream = __webpack_require__(1);
+
+var _stream2 = _interopRequireDefault(_stream);
+
+function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
+
+_box2.default.mp4a = function () {
+  var stream = new _stream2.default(this.data);
+  stream.skip(6);
+  this.dataReferenceIndex = stream.readUint16();
+  stream.skip(8);
+  this.channelCount = stream.readUint16();
+  this.sampleSize = stream.readUint16();
+  stream.skip(4);
+  this.sampleRate = stream.readUint32() / 65536;
+  var box = new _box2.default();
+  box.readHeader(stream);
+  this.subBox.push(box);
+  box.readBody(stream);
+  delete this.data;
+  stream = null;
+};
+
+/***/ }),
+/* 108 */
+/***/ (function(module, exports, __webpack_require__) {
+
+"use strict";
+
+
+/***/ }),
+/* 109 */
+/***/ (function(module, exports, __webpack_require__) {
+
+"use strict";
+
+
+var _box = __webpack_require__(0);
+
+var _box2 = _interopRequireDefault(_box);
+
+var _stream = __webpack_require__(1);
+
+var _stream2 = _interopRequireDefault(_stream);
+
+var _date = __webpack_require__(16);
+
+var _date2 = _interopRequireDefault(_date);
+
+function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
+
+_box2.default.mdhd = function () {
+  var stream = new _stream2.default(this.data);
+  this.version = stream.readUint8();
+  this.flag = _stream2.default.readByte(stream.dataview, 3);
+  if (this.version === 1) {
+    this.create = stream.readUint64();
+    this.modify = stream.readUint64();
+    this.createTime = new _date2.default().setTime(this.create * 1000);
+    this.modifyTime = new _date2.default().setTime(this.modify * 1000);
+    this.timescale = stream.readUint32();
+    this.duration = stream.readUint64();
+  } else {
+    this.create = stream.readUint32();
+    this.modify = stream.readUint32();
+    this.createTime = new _date2.default().setTime(this.create * 1000);
+    this.modifyTime = new _date2.default().setTime(this.modify * 1000);
+    this.timescale = stream.readUint32();
+    this.duration = stream.readUint32();
+  }
+  this.language = stream.readUint16();
+  stream.readUint16();
+  delete this.subBox;
+  delete this.data;
+  stream = null;
+};
+
+/***/ }),
+/* 110 */
+/***/ (function(module, exports, __webpack_require__) {
+
+"use strict";
+
+
+var _box = __webpack_require__(0);
+
+var _box2 = _interopRequireDefault(_box);
+
+function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
+
+_box2.default.mdat = function () {
+  delete this.subBox;
+};
+
+/***/ }),
+/* 111 */
+/***/ (function(module, exports, __webpack_require__) {
+
+"use strict";
+
+
+var _box = __webpack_require__(0);
+
+var _box2 = _interopRequireDefault(_box);
+
+var _stream = __webpack_require__(1);
+
+var _stream2 = _interopRequireDefault(_stream);
+
+function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
+
+_box2.default.iods = function () {
+  var stream = new _stream2.default(this.data);
+  this.version = stream.readUint8();
+  this.flag = _stream2.default.readByte(stream.dataview, 3);
+  var content = [];
+  var length = stream.buffer.byteLength;
+  while (stream.position < length) {
+    content.push(stream.readUint8());
+  }
+  this.content = content;
+  delete this.subBox;
+  delete this.data;
+  stream = null;
+};
+
+/***/ }),
+/* 112 */
+/***/ (function(module, exports, __webpack_require__) {
+
+"use strict";
+
+
+/***/ }),
+/* 113 */
+/***/ (function(module, exports, __webpack_require__) {
+
+"use strict";
+
+
+var _box = __webpack_require__(0);
+
+var _box2 = _interopRequireDefault(_box);
+
+var _stream = __webpack_require__(1);
+
+var _stream2 = _interopRequireDefault(_stream);
+
+function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
+
+_box2.default.hdlr = function () {
+  var stream = new _stream2.default(this.data);
+  this.version = stream.readUint8();
+  this.flag = _stream2.default.readByte(stream.dataview, 3);
+  stream.skip(4);
+  this.handleType = '' + String.fromCharCode(stream.readUint8()) + String.fromCharCode(stream.readUint8()) + String.fromCharCode(stream.readUint8()) + String.fromCharCode(stream.readUint8());
+  stream.skip(12);
+  var name = [];
+  while (stream.position < this.size - 8) {
+    name.push(String.fromCharCode(stream.readUint8()));
+  }
+  this.name = name.join('');
+  delete this.subBox;
+  delete this.data;
+  stream = null;
+};
+
+/***/ }),
+/* 114 */
+/***/ (function(module, exports, __webpack_require__) {
+
+"use strict";
+
+
+var _box = __webpack_require__(0);
+
+var _box2 = _interopRequireDefault(_box);
+
+var _stream = __webpack_require__(1);
+
+var _stream2 = _interopRequireDefault(_stream);
+
+function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
+
+_box2.default.ftyp = function () {
+  var stream = new _stream2.default(this.data);
+  this.major_brand = String.fromCharCode(stream.readUint8(), stream.readUint8(), stream.readUint8(), stream.readUint8());
+  this.minor_version = stream.readUint32();
+  var compatibleBrands = [];
+  for (var i = 0, len = Math.floor((stream.buffer.byteLength - 8) / 4); i < len; i++) {
+    compatibleBrands.push(String.fromCharCode(stream.readUint8(), stream.readUint8(), stream.readUint8(), stream.readUint8()));
+  }
+  this.compatible_brands = compatibleBrands;
+  stream = null;
+  delete this.subBox;
+  delete this.data;
+};
+
+/***/ }),
+/* 115 */
+/***/ (function(module, exports, __webpack_require__) {
+
+"use strict";
+
+
+var _box = __webpack_require__(0);
+
+var _box2 = _interopRequireDefault(_box);
+
+var _stream = __webpack_require__(1);
+
+var _stream2 = _interopRequireDefault(_stream);
+
+function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
+
+_box2.default.esds = function () {
+  var stream = new _stream2.default(this.data);
+  this.version = stream.readUint8();
+  this.flag = _stream2.default.readByte(stream.dataview, 3);
+  var box = _box2.default.MP4ESDescrTag(stream);
+  this.subBox.push(box);
+  delete this.data;
+  stream = null;
+};
+
+/***/ }),
+/* 116 */
+/***/ (function(module, exports, __webpack_require__) {
+
+"use strict";
+
+
+var _box = __webpack_require__(0);
+
+var _box2 = _interopRequireDefault(_box);
+
+var _stream = __webpack_require__(1);
+
+var _stream2 = _interopRequireDefault(_stream);
+
+function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
+
+_box2.default.elst = function () {
+  var stream = new _stream2.default(this.data);
+  this.version = stream.readUint8();
+  this.flag = _stream2.default.readByte(stream.dataview, 3);
+  var entries = [];
+  var entry_count = stream.readUint32();
+  this.entries = entries;
+  for (var i = 0; i < entry_count; i++) {
+    var entry = {};
+    entries.push(entry);
+    if (this.version === 1) {
+      entry.segment_duration = stream.readUint64();
+      entry.media_time = stream.readUint64();
+    } else {
+      entry.segment_duration = stream.readUint32();
+      entry.media_time = stream.readInt32();
+    }
+    entry.media_rate_integer = stream.readInt16();
+    entry.media_rate_fraction = stream.readInt16();
+  }
+  delete this.subBox;
+  delete this.data;
+  stream = null;
+};
+
+/***/ }),
+/* 117 */
+/***/ (function(module, exports, __webpack_require__) {
+
+"use strict";
+
+
+var _box = __webpack_require__(0);
+
+var _box2 = _interopRequireDefault(_box);
+
+var _stream = __webpack_require__(1);
+
+var _stream2 = _interopRequireDefault(_stream);
+
+function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
+
+_box2.default.dref = function () {
+  var stream = new _stream2.default(this.data);
+  this.version = stream.readUint8();
+  this.flag = _stream2.default.readByte(stream.dataview, 3);
+  var entryCount = stream.readUint32();
+  this.entryCount = entryCount;
+  var self = this;
+  // 暂时不支持离散视频，视频的部分内容由url指定
+  for (var i = 0; i < entryCount; i++) {
+    var box = new _box2.default();
+    self.subBox.push(box);
+    box.read(stream);
+  }
+  delete this.data;
+  stream = null;
+};
+
+/***/ }),
+/* 118 */
+/***/ (function(module, exports, __webpack_require__) {
+
+"use strict";
+
+
+var _box = __webpack_require__(0);
+
+var _box2 = _interopRequireDefault(_box);
+
+var _stream = __webpack_require__(1);
+
+var _stream2 = _interopRequireDefault(_stream);
+
+function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
+
+_box2.default.ctts = function () {
+  var stream = new _stream2.default(this.data);
+  this.version = stream.readUint8();
+  this.flag = _stream2.default.readByte(stream.dataview, 3);
+
+  this.entryCount = stream.readUint32();
+  var entry = [];
+  this.entry = entry;
+  for (var i = 0, count = this.entryCount; i < count; i++) {
+    entry.push({
+      count: stream.readUint32(),
+      offset: stream.readUint32()
+    });
+  }
+  delete this.subBox;
+  delete this.data;
+  stream = null;
+};
+
+/***/ }),
+/* 119 */
+/***/ (function(module, exports, __webpack_require__) {
+
+"use strict";
+
+
+var _box = __webpack_require__(0);
+
+var _box2 = _interopRequireDefault(_box);
+
+var _stream = __webpack_require__(1);
+
+var _stream2 = _interopRequireDefault(_stream);
+
+function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
+
+_box2.default.co64 = function () {
+  var stream = new _stream2.default(this.data);
+  this.version = stream.readUint8();
+  this.flag = _stream2.default.readByte(stream.dataview, 3);
+  this.count = stream.readUint32();
+  var entries = [];
+  this.entries = entries;
+  for (var i = 0, count = this.count; i < count; i++) {
+    entries.push(stream.readUint64());
+  }
+  delete this.subBox;
+  delete this.data;
+  stream = null;
+};
+
+/***/ }),
+/* 120 */
+/***/ (function(module, exports, __webpack_require__) {
+
+"use strict";
+
+
+var _box = __webpack_require__(0);
+
+var _box2 = _interopRequireDefault(_box);
+
+var _stream = __webpack_require__(1);
+
+var _stream2 = _interopRequireDefault(_stream);
+
+function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
+
+_box2.default.btrt = function () {
+  var stream = new _stream2.default(this.data);
+  this.bufferSizeDB = stream.readUint32();
+  this.maxBitrate = stream.readUint32();
+  this.avgBitrate = stream.readUint32();
+  delete this.subBox;
+  delete this.data;
+  stream = null;
+};
+
+/***/ }),
+/* 121 */
+/***/ (function(module, exports, __webpack_require__) {
+
+"use strict";
+
+
+var _box = __webpack_require__(0);
+
+var _box2 = _interopRequireDefault(_box);
+
+var _stream = __webpack_require__(1);
+
+var _stream2 = _interopRequireDefault(_stream);
+
+function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
+
+_box2.default.avcC = function () {
+  var stream = new _stream2.default(this.data);
+  this.configVersion = stream.readUint8();
+  this.profile = stream.readUint8();
+  this.profileCompatibility = stream.readUint8();
+  this.AVCLevelIndication = stream.readUint8();
+  this.lengthSizeMinusOne = (stream.readUint8() & 3) + 1;
+  this.numOfSequenceParameterSets = stream.readUint8() & 31;
+  var sequenceLength = stream.readUint16();
+  this.sequenceLength = sequenceLength;
+  var sequence = [];
+  for (var i = 0; i < sequenceLength; i++) {
+    sequence.push(Number(stream.readUint8()).toString(16));
+  }
+  this.ppsCount = stream.readUint8();
+  var ppsLength = stream.readUint16();
+  this.ppsLength = ppsLength;
+  var pps = [];
+  for (var _i = 0; _i < ppsLength; _i++) {
+    pps.push(Number(stream.readUint8()).toString(16));
+  }
+  this.pps = pps;
+  this.sequence = sequence;
+  var last = [];var dataviewLength = stream.dataview.byteLength;
+  while (stream.position < dataviewLength) {
+    last.push(stream.readUint8());
+  }
+  this.last = last;
+  delete this.subBox;
+  delete this.data;
+  stream = null;
+};
+
+/***/ }),
+/* 122 */
+/***/ (function(module, exports, __webpack_require__) {
+
+"use strict";
+
+
+var _box = __webpack_require__(0);
+
+var _box2 = _interopRequireDefault(_box);
+
+var _stream = __webpack_require__(1);
+
+var _stream2 = _interopRequireDefault(_stream);
+
+function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
+
+_box2.default.avc1 = function () {
+  var stream = new _stream2.default(this.data);
+  var self = this;
+  stream.skip(6);
+  this.dataReferenceIndex = stream.readUint16();
+  stream.skip(16);
+  this.width = stream.readUint16();
+  this.height = stream.readUint16();
+  this.horizresolution = stream.readUint32();
+  this.vertresolution = stream.readUint32();
+  stream.skip(4);
+  this.frameCount = stream.readUint16();
+  stream.skip(1);
+  for (var i = 0; i < 31; i++) {
+    String.fromCharCode(stream.readUint8());
+  }
+  this.depth = stream.readUint16();
+  stream.skip(2);
+  while (stream.position < stream.buffer.byteLength) {
+    var box = new _box2.default();
+    box.readHeader(stream);
+    self.subBox.push(box);
+    box.readBody(stream);
+  }
+  delete this.data;
+  stream = null;
+};
 
 /***/ }),
 /* 123 */

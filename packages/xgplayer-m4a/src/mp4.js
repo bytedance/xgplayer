@@ -24,6 +24,7 @@ class MP4 {
     this.once('mdatReady', this.moovParse.bind(this))
     this.cache = new Buffer()
     this.bufferCache = new Set()
+    this.mdatCache = []
     this.timeRage = []
     this.canDownload = true
     this.cut = false
@@ -142,7 +143,7 @@ class MP4 {
       let parsedFir
       let mdatStart = 0
 
-      let mdat, moov
+      let mdat, moov, ftyp
 
       let boxes
       try {
@@ -154,6 +155,12 @@ class MP4 {
       self._boxes = boxes = parsedFir.boxes
       boxes.every(item => {
         mdatStart += item.size
+        if (item.type === 'ftyp') {
+          ftyp = item
+          self.ftypBox = ftyp
+          self.ftypBuffer = resFir.slice(0, ftyp.size)
+          return true
+        }
         return true
       })
       if (!mdat) {
@@ -168,6 +175,7 @@ class MP4 {
                 if (item.type === 'moov') {
                   moov = item
                   self.moovBox = moov
+                  self.moovBuffer = resSec.slice(0, moov.size)
                   return true
                 } else {
                   return true
@@ -187,6 +195,10 @@ class MP4 {
                           self.mdatBox = mdat
                           self.emit('mdatReady', moov)
                           return false
+                        } else if (item.type === 'free') {
+                          self.freeBuffer = resThi.slice(0, item.size)
+                          mdatStart += item.size
+                          return true
                         } else {
                           mdatStart += item.size
                           return true
@@ -319,6 +331,13 @@ class MP4 {
       start + self.mdatStart, end
         ? self.mdatStart + end
         : '').then((dat) => {
+      if (end) {
+        this.mdatCache.push({
+          start: start + self.mdatStart,
+          end: self.mdatStart + end,
+          buffer: new Uint8Array(dat)
+        })
+      }
       return self.createFragment(new Uint8Array(dat), start, audioIndexOrder, audioNextIndexOrder)
     })
   }

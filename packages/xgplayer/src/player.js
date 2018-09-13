@@ -1,5 +1,6 @@
 import Proxy from './proxy'
 import util from './utils/util'
+import Database from './utils/database'
 import sniffer from './utils/sniffer'
 import Errors from './error'
 import {
@@ -22,6 +23,7 @@ class Player extends Proxy {
     this.version = version
     this.userTimer = null
     this.waitTimer = null
+    this.database = new Database()
     this.history = []
     this.isProgressMoving = false
     this.root = util.findDom(document, `#${this.config.id}`)

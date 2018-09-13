@@ -5,6 +5,7 @@ import MP4 from './mp4'
 import MSE from './media/mse'
 import Task from './media/task'
 import Buffer from './fmp4/buffer'
+import FMP4 from './fmp4/mp4'
 
 let isEnded = (player, mp4) => {
   if (mp4.meta.endTime - player.currentTime < 2) {
@@ -44,9 +45,14 @@ let m4aplayer = function () {
   player.hasEnded = false
   let list = util.typeOf(player.config.url) === 'Array' ? player.config.url : [{
     src: player.config.url,
-    name: player.config.name
+    name: player.config.name,
+    vid: player.config.vid,
+    poster: player.config.poster
   }]
   let url = list[0].src
+  let name = list[0].name
+  let vid = list[0].vid
+  let poster = list[0].poster
   let rule = player.config.pluginRule || function () { return true }
   if (!url) {
     player.emit('error', new Errors('other', player.config.vid))
@@ -348,6 +354,9 @@ let m4aplayer = function () {
 
     player.on('change', (nextItem) => {
       player.newMusic(nextItem.src)
+      name = `${nextItem.name}`
+      vid = `${nextItem.vid}`
+      poster = `${nextItem.poster}`
     })
 
     player.newMusic = (url) => {
@@ -360,7 +369,9 @@ let m4aplayer = function () {
         player.mse = mse
         player.mse.replaying = true
         player.currentTime = 0
-        player.video.play()
+        setTimeout(() => {
+          player.video.play()
+        }, 60)
       }, err => {
         errorHandle(player, err)
       })
@@ -368,24 +379,32 @@ let m4aplayer = function () {
 
     player.on('ended', () => {
       player.hasEnded = true
-      // Task.clear()
-      // player.mp4.bufferCache.clear()
-      // // player.currentTime = 0
-      // init(player.mp4.url, true).then((result) => {
-      //   let mp4 = result[0]; let mse = result[1]
-      //   player.src = mse.url
-      //   player.mp4 = mp4
-      //   player.mse = mse
-      //   player.mse.replaying = true
-      //   // player.currentTime = 0
-      //   // player.video.play().then(() => {
-      //   //
-      //   //   player.pause()
-      //   //   player.currentTime = 0
-      //   // })
-      // }, err => {
-      //   errorHandle(player, err)
-      // })
+      if (player.config.offline) {
+        let mdatCache = new Buffer()
+        mdatCache.write(FMP4.size(player.mp4.mdatBox.size), FMP4.type('mdat'))
+        player.mp4.mdatCache.sort((a, b) => {
+          return a.start - b.start
+        })
+        let end = player.mp4.mdatCache[0].start - 1
+        player.mp4.mdatCache.forEach((item, index) => {
+          if (item.start === end + 1) {
+            mdatCache.write(item.buffer)
+            end = item.end
+          }
+        })
+        if (end !== player.mp4.mdatCache[player.mp4.mdatCache.length - 1].end) {
+          return
+        }
+        let m4aCache = new Buffer()
+        m4aCache.write(new Uint8Array(player.mp4.ftypBuffer), new Uint8Array(player.mp4.moovBuffer), new Uint8Array(player.mp4.freeBuffer), mdatCache.buffer)
+        let offlineVid = vid || name
+        player.database.openDB(() => {
+          player.database.addData(player.database.myDB.ojstore.name, [{vid: offlineVid, blob: new Blob([m4aCache.buffer], {type: 'audio/mp4; codecs="mp4a.40.5"'})}])
+          setTimeout(() => {
+            player.database.closeDB()
+          }, 5000)
+        })
+      }
     })
   }
 }
