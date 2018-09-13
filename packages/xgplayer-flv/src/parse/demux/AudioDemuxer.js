@@ -23,6 +23,7 @@ export default class AudioDemuxer extends Demuxer {
     this.handleMediaInfoReady = () => {}
   }
   resolve (tag) {
+    this.readOffset = 0
     const { _store: store } = this
     const { audioTrack: track } = store
     this.currentTag = tag

@@ -26,6 +26,11 @@ class FlvJsPlayer extends Player {
     flv.on(Flv.Events.ERROR, (e) => {
       player.emit('error', new Player.Errors('other', player.config.url))
     })
+
+    player.once('destroy', () => {
+      flv.destroy()
+      player.__flv__ = null
+    })
   }
   switchURL (url) {
     const player = this
