@@ -73,6 +73,7 @@ class Proxy {
       let self = this
       let name = Object.keys(item)[0]
       self.video.addEventListener(name, function () {
+        // console.log(name)
         if (name === 'play') {
           self.hasStart = true
         }
@@ -293,7 +294,7 @@ class Proxy {
     this.video.volume = vol
   }
   get fullscreen () {
-    return util.hasClass(this.root, 'xgplayer-is-fullscreen')
+    return util.hasClass(this.root, 'xgplayer-is-fullscreen') || util.hasClass(this.root, 'xgplayer-fullscreen-active')
   }
   get bullet () {
     return util.findDom(this.root, 'xg-bullet') ? util.hasClass(util.findDom(this.root, 'xg-bullet'), 'xgplayer-has-bullet') : false

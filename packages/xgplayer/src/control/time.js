@@ -6,7 +6,6 @@ let time = function () {
   let curtime = util.createDom('xg-time', `<span>${player.currentTime || format(0)}</span><em>${player.duration || format(0)}</em>`, {}, 'xgplayer-time'); let root = player.controls
   root.appendChild(curtime)
   let handle = function () {
-    console.log(player.isProgressMoving)
     if (player.videoConfig.mediaType !== 'audio' || !player.isProgressMoving) {
       curtime.innerHTML = `<span>${format(player.currentTime || 0)}</span><em>${format(player.duration)}`
     }
