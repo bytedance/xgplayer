@@ -17,7 +17,7 @@
     "koa": "^2.5.1",
     "koa-range": "^0.3.0",
     "koa-static": "^4.0.3",
-    "lerna": "^3.0.0-alpha.1",
+    "lerna": "^3.3.2",
     "lerna-changelog": "^0.8.0",
     "lint-staged": "^7.2.0",
     "style-loader": "^0.21.0",
