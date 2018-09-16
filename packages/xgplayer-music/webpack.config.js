@@ -28,6 +28,12 @@ const umd = {
         'postcss-loader',
         'sass-loader'
       ]
+    }, {
+      test: /\.(png|jpg)$/,
+      loader: 'url-loader',
+      options: {
+        limit: 40000
+      }
     }]
   },
   externals: {
@@ -65,6 +71,12 @@ const client = {
         'postcss-loader',
         'sass-loader'
       ]
+    }, {
+      test: /\.(png|jpg)$/,
+      loader: 'url-loader',
+      options: {
+        limit: 40000
+      }
     }]
   },
   externals: {

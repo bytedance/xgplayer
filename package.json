@@ -72,5 +72,7 @@
     }
   },
   "homepage": "https://github.com/bytedance/xgplayer#readme",
-  "dependencies": {}
+  "dependencies": {
+    "yuefu-template-compiler": "^1.1.2"
+  }
 }

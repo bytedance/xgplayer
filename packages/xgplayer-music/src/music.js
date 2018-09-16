@@ -2,6 +2,9 @@ import Player from 'xgplayer'
 import Lyric from './lyric'
 import Analyze from './analyze'
 import Xhr from './xhr'
+import Template from './template'
+import learningTemplate from './templateExamples/learning'
+
 let mode
 let timeScale = 15
 
@@ -87,6 +90,51 @@ class Music extends Player {
       player.config.url = url
       this.start(url)
     })
+    // template demo
+    const self = this
+    this.template = new Template('div.template-demo', learningTemplate, this, {
+      data: {
+        title: '如何练就逻辑清晰的好口才',
+        duration: '02:00',
+        playState: 'paused',
+        playingClass: 'play'
+      },
+      mounted () {
+        this.$player = self
+        this.$player.on('progress', () => {
+          console.log('player progress')
+        })
+      },
+      methods: {
+        togglePlayState: function () {
+          console.log('click toggle')
+          if (this.playState === 'playing') {
+            this.$player.pause()
+          } else {
+            this.$player.play()
+          }
+          this.playState = this.playState === 'playing' ? 'paused' : 'playing'
+          this.playingClass = this.playingClass === 'play' ? 'pause' : 'play'
+        },
+        seekNext: function () {
+          this.$player.forward()
+        },
+        seekPrev: function () {
+          this.$player.backward()
+        },
+        prev: function () {
+          this.$player.prev()
+        },
+        next: function () {
+          this.$player.next()
+        }
+      }
+    }, {
+      test (node, directiveMeta) {
+
+      }
+    })
+    this.template.render()
   }
   lyric (lyricTxts, Dom) {
     if (this.__lyric__) {
