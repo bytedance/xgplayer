@@ -77,7 +77,7 @@ class MP4 {
       let codecBox = stsd.subBox[0]
       if (hdlr.handleType === 'vide') {
         let avcC = util.findBox(trak, 'avcC')
-        let avc1 = util.findBox(trak, 'avc1')
+        let tkhd = util.findBox(trak, 'tkhd')
         videoTrak = trak
         videoTimeScale = mdhd.timescale
         if (avcC) {
@@ -88,9 +88,9 @@ class MP4 {
         } else {
           videoCodec = `${codecBox.type}`
         }
-        if (avc1) {
-          width = avc1.width
-          height = avc1.height
+        if (tkhd) {
+          width = tkhd.width
+          height = tkhd.height
         }
       }
       if (hdlr.handleType === 'soun') {
