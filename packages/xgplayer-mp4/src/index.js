@@ -4,6 +4,8 @@ import Player from 'xgplayer'
 import MP4 from './mp4'
 import MSE from './media/mse'
 import Task from './media/task'
+import Buffer from './fmp4/buffer'
+import FMP4 from './fmp4/mp4'
 
 let isEnded = (player, mp4) => {
   if (mp4.meta.endTime - player.currentTime < 2) {
@@ -144,6 +146,40 @@ let mp4player = function () {
           let start = player.buffered.start(0)
           player.currentTime = start + 0.1
         }
+      })
+    }
+
+    player.cut = function (start = 0, end) {
+      let segment = new Buffer()
+      let mp4 = new MP4(url)
+      return new Promise((resolve, reject) => {
+        mp4.once('moovReady', () => {
+          if (!end || end <= start) {
+            end = start + 15
+          }
+          if (end > mp4.meta.duration) {
+            start = mp4.meta.duration - (end - start)
+            end = mp4.meta.duration
+          }
+          mp4.cut(start, end).then(buffer => {
+            if (buffer) {
+              let meta = Player.util.deepCopy({
+                duration: end - start,
+                audioDuration: end - start,
+                endTime: end - start
+              }, mp4.meta)
+              meta.duration = end - start
+              meta.videoDuration = end - start
+              meta.audioDuration = end - start
+              meta.endTime = end - start
+              segment.write(mp4.packMeta(meta), buffer)
+              resolve(new Blob([segment.buffer], {type: 'video/mp4; codecs="avc1.64001E, mp4a.40.5"'}))
+            }
+          })
+        })
+        mp4.on('error', (e) => {
+          reject(e)
+        })
       })
     }
 
