@@ -56,7 +56,9 @@ class Proxy {
     this.video = util.createDom(this.videoConfig.mediaType, textTrackDom, this.videoConfig, '')
     if (options.autoplay) {
       this.video.autoplay = true
-      this.video.muted = true
+      if (options.autoplayMuted) {
+        this.video.muted = true
+      }
     }
     this.ev = ['play', 'playing', 'pause', 'ended', 'error', 'seeking', 'seeked',
       'timeupdate', 'waiting', 'canplay', 'canplaythrough', 'durationchange', 'volumechange', 'loadeddata'
@@ -73,7 +75,6 @@ class Proxy {
       let self = this
       let name = Object.keys(item)[0]
       self.video.addEventListener(name, function () {
-        // console.log(name)
         if (name === 'play') {
           self.hasStart = true
         }

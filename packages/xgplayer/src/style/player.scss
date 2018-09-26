@@ -809,8 +809,11 @@
             animation: enterTips 1.6s linear infinite;
             background: #fff;
         }
+        @at-root .xgplayer-is-enter & {
+            display: block;
+        }
     }
-    @at-root .xgplayer-is-enter &{
+    @at-root .xgplayer-is-enter & {
         display: block;
     }
 }
