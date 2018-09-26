@@ -6,7 +6,9 @@ let volume = function () {
   if (sniffer.device === 'mobile') {
     return
   }
-  player.config.volume = player.config.autoplay ? 0 : player.config.volume
+  if (player.config.autoplayMuted) {
+    player.config.volume = player.config.autoplay ? 0 : player.config.volume
+  }
   let volume = player.config.volume
   let iconPath = {
     muted: 'M920.4 439.808l-108.544-109.056-72.704 72.704 109.568 108.544-109.056 108.544 72.704 72.704 108.032-109.568 108.544 109.056 72.704-72.704-109.568-108.032 109.056-108.544-72.704-72.704-108.032 109.568z',
@@ -152,7 +154,7 @@ let volume = function () {
   })
 
   player.once('canplay', function () {
-    if (player.config.autoplay) {
+    if (player.config.autoplay && player.config.autoplayMuted) {
       player.volume = 0
     } else {
       player.volume = player.config.volume
