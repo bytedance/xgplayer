@@ -1,6 +1,6 @@
 {
   "name": "xgplayer-mp4",
-  "version": "1.1.2-a",
+  "version": "1.1.2",
   "description": "xgplayer plugin for mp4 transform to fmp4",
   "main": "./dist/index.js",
   "scripts": {
