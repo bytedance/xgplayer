@@ -6,7 +6,7 @@ const templatePlugin = function (player) {
   // TODO: 模版可配置化
   // TODO: 异步加载模版
   // TODO: 组件化机制
-  const template = new Template('#wrapper', learningTemplate, this)
+  const template = new Template(`#${player.config.id}`, learningTemplate, this)
   template.render()
 }
 

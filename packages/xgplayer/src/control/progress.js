@@ -144,6 +144,12 @@ progress = function () {
     let buffered = player.buffered
     if (buffered && buffered.length > 0) {
       let end = buffered.end(buffered.length - 1)
+      for (let i = 0, len = buffered.length; i < len; i++) {
+        if (player.currentTime >= buffered.start(i) && player.currentTime <= buffered.end(i)) {
+          end = buffered.end(i)
+          break
+        }
+      }
       cache.style.width = `${end / player.duration * 100}%`
     }
   }

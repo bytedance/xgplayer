@@ -14,13 +14,13 @@ class Template {
     this.element = element
   }
   render () {
-    console.log('[template]render:')
+    // console.log('[template]render:')
     if (!this.template) {
       throw new Error('未设置template')
     }
     const compiled = compile(this.template, this.options)
 
-    console.log('[template]compiled:', compiled)
+    // console.log('[template]compiled:', compiled)
 
     const astCompiler = new ASTCompiler(this.element, compiled, this.model, {
       inject: {
@@ -39,7 +39,7 @@ class Template {
     // 插入template的css
     // TODO: 考虑会影响其他样式，考虑加入scoped
     const style = insertCss(this.style)
-    console.log('[template]css injected:', compiled)
+    // console.log('[template]css injected:', compiled)
   }
 }
 Template.DEFAULTS = {}
