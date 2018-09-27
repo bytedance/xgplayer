@@ -65,6 +65,9 @@ export default class Flv {
       if (!this.isSeeking && this.flvPlayer.isMediaInfoReady && !this.tempFlvPlayer) {
         this.progressChecker(player)
       }
+      if (this._options.isLive) {
+        return
+      }
       this.isEnded(player, this.flvPlayer)
     }
     player.on('timeupdate', () => {
