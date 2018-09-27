@@ -1,6 +1,6 @@
 {
   "name": "xgplayer-shaka",
-  "version": "1.1.1",
+  "version": "1.1.2",
   "description": "xgplayer plugin for shaka-player",
   "main": "./dist/index.js",
   "scripts": {
