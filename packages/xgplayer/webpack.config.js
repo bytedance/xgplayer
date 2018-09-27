@@ -4,7 +4,7 @@ const umd = {
   entry: polyfill.concat(['./src/index.js']),
   output: {
     path: `${__dirname}/dist`,
-    filename: '[name].js',
+    filename: 'index.js',
     library: 'xgplayer',
     libraryTarget: 'umd'
   },
@@ -38,7 +38,7 @@ const client = {
   entry: polyfill.concat(['./src/index.js']),
   output: {
     path: `${__dirname}/browser`,
-    filename: '[name].js',
+    filename: 'index.js',
     library: 'Player',
     libraryTarget: 'window'
   },

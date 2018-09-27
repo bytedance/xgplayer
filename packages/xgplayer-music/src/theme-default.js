@@ -72,11 +72,17 @@ const defaultTheme = function (player) {
     }, false)
   })
 
-  const name = util.createDom('xg-name', `${player.config.name}`, {}, 'xgplayer-name')
+  const name = util.createDom('xg-name', `${player.config.name || player.config.url[0].name}`, {}, 'xgplayer-name')
   controlEl.appendChild(name)
+  player.on('change', item => {
+    name.innerHTML = `${item.name}`
+  })
 
-  const poster = util.createDom('xg-poster', `<img src="${player.config.poster}">`, {}, 'xgplayer-poster')
+  const poster = util.createDom('xg-poster', `<img src="${player.config.poster || player.config.url[0].poster}">`, {}, 'xgplayer-poster')
   controlEl.appendChild(poster)
+  player.on('change', item => {
+    poster.innerHTML = `<img src="${item.poster}">`
+  })
 }
 
 Player.install('theme-default', defaultTheme)

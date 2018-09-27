@@ -49,7 +49,7 @@ class SVG {
     }).join('')
   }
   start () {
-    self.animate()
+    this.animate()
   }
   stop () {
     if (this.state !== 0) {

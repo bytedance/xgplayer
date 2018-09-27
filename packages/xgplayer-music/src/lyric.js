@@ -38,7 +38,7 @@ class Lyric {
             return {
               time: reg ? new LyricTime(time).time : -1,
               lyric,
-              idx
+              idx: index
             }
           })
         )
