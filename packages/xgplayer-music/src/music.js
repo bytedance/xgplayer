@@ -15,6 +15,9 @@ class Music extends Player {
       mediaType: 'audio',
       ignores: ['fullscreen', 'start', 'definition', 'makeBullet', 'textTrack', 'loading', 'pc', 'mobile', 'playbackRate', 'replay', 'volume', 'error', 'poster']
     }, options)
+    if (!opts.theme || opts.theme === 'default') {
+      opts.ignores.push('template')
+    }
     super(opts)
     let player = this
     this.rawConfig = options
@@ -47,6 +50,8 @@ class Music extends Player {
         this.config.height = '50px'
         this.root.style.height = '50px'
       }
+    } else {
+      player.controls.style.display = 'none'
     }
     Object.defineProperty(this, 'src', {
       get () {
@@ -84,7 +89,6 @@ class Music extends Player {
       }
     })
     this.checkOffline(player.list[0].src, player.list[0].vid || player.list[0].name).then(url => {
-      console.log(url)
       player.config.url = url
       this.start(url)
     })
@@ -257,11 +261,11 @@ class Music extends Player {
     this.change()
   }
   forward () {
-    console.log(`music go forward ${timeScale}s`)
+    // console.log(`music go forward ${timeScale}s`)
     this.currentTime = this.currentTime + timeScale < this.duration ? this.currentTime + timeScale : this.duration - 0.1
   }
   backward () {
-    console.log(`music go backward ${timeScale}s`)
+    // console.log(`music go backward ${timeScale}s`)
     this.currentTime = this.currentTime - timeScale > 0 ? this.currentTime - timeScale : 0
   }
   analyze (canvas) {

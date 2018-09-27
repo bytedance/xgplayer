@@ -197,11 +197,11 @@ export default {
     width: 100%;
   }
   .progress-loaded {
-    color: #ffda43; 
+    color: #ffda43;
   }
   .progress-played {
     background: rgb(68, 68, 68);
-    color: #ffda43; 
+    color: #ffda43;
   }
   `,
   model: {
@@ -214,10 +214,10 @@ export default {
     },
     mounted () {
       this.$player.on('timeupdate', (player) => {
-        console.log('player progress')
+        // console.log('player progress')
         const progressPlayed = document.querySelector('.progress-played')
         const playedPercentage = (player.currentTime / player.duration * 100).toFixed(2)
-        console.log('playedPercentage:', playedPercentage)
+        // console.log('playedPercentage:', playedPercentage)
         if (!this.disableTimeupdate) {
           progressPlayed.setAttribute('style', `width: ${playedPercentage}%`)
         }
@@ -225,7 +225,7 @@ export default {
     },
     methods: {
       togglePlayState: function () {
-        console.log('click toggle')
+        // console.log('click toggle')
         if (this.playState === 'playing') {
           this.$player.pause()
           // 是不是可以考虑模版里面加个ref
@@ -260,7 +260,7 @@ export default {
           percentage = Math.max(percentage, 0)
           percentage = Math.min(percentage, 100)
           // this.playedTimeNode.innerHTML = utils.secondToTime(percentage * this.$player.duration)
-          console.log('[progress] seek mousemove: ', percentage, '%')
+          // console.log('[progress] seek mousemove: ', percentage, '%')
           progressPlayed.setAttribute('style', `width: ${percentage}%`)
         }
 
@@ -274,7 +274,7 @@ export default {
           percentage = Math.min(percentage, 100)
           this.$player.currentTime = percentage / 100 * this.$player.duration
           this.disableTimeupdate = false
-          console.log(`[progress] seek time into ${percentage * this.$player.duration}`)
+          // console.log(`[progress] seek time into ${percentage * this.$player.duration}`)
         }
         this.disableTimeupdate = true
         document.addEventListener('mousemove', thumbMove)
