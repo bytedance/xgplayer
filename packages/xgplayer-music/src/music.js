@@ -1,5 +1,6 @@
 import Player from 'xgplayer'
 import Lyric from './lyric'
+import Template from './template'
 import Analyze from './analyze'
 import Xhr from './xhr'
 let mode
@@ -277,5 +278,6 @@ class Music extends Player {
 export default Music
 export {
   Lyric,
-  Analyze
+  Analyze,
+  Template
 }
