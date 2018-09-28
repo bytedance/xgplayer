@@ -55,7 +55,7 @@ let fullscreen = function () {
     }
   }
   root.appendChild(btn);
-  ['click', 'touchstart'].forEach(item => {
+  ['click', 'touchend'].forEach(item => {
     btn.addEventListener(item, function (e) {
       e.preventDefault()
       e.stopPropagation()
