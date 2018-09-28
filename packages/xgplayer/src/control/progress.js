@@ -147,13 +147,19 @@ progress = function () {
       for (let i = 0, len = buffered.length; i < len; i++) {
         if (player.currentTime >= buffered.start(i) && player.currentTime <= buffered.end(i)) {
           end = buffered.end(i)
+          for (let j = i + 1; j < buffered.length; j++) {
+            if (buffered.start(j) - buffered.end(j - 1) >= 2) {
+              end = buffered.end(j - 1)
+              break
+            }
+          }
           break
         }
       }
       cache.style.width = `${end / player.duration * 100}%`
     }
   }
-  const cacheUpdateEvents = ['cacheupdate', 'ended', 'timeupdate']
+  const cacheUpdateEvents = ['bufferedChange', 'cacheupdate', 'ended', 'timeupdate']
   cacheUpdateEvents.forEach(item => {
     player.on(item, handleCacheUpdate)
   })
