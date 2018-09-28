@@ -153,7 +153,7 @@ progress = function () {
       cache.style.width = `${end / player.duration * 100}%`
     }
   }
-  const cacheUpdateEvents = ['cacheupdate', 'ended', 'timeupdate']
+  const cacheUpdateEvents = ['bufferedChange', 'cacheupdate', 'ended', 'timeupdate']
   cacheUpdateEvents.forEach(item => {
     player.on(item, handleCacheUpdate)
   })

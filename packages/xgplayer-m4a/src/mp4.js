@@ -171,13 +171,21 @@ class MP4 {
               let parsedSec = new Parser(resSec)
               self._boxes = self._boxes.concat(parsedSec.boxes)
               parsedSec.boxes.every(item => {
-                mdatStart += item.size
                 if (item.type === 'moov') {
+                  mdatStart += item.size
                   moov = item
                   self.moovBox = moov
                   self.moovBuffer = resSec.slice(0, moov.size)
                   return true
+                } else if (item.type === 'mdat') {
+                  mdat = item
+                  mdat.start = mdatStart
+                  mdatStart += item.size
+                  self.mdatBox = mdat
+                  self.emit('mdatReady', moov)
+                  return false
                 } else {
+                  mdatStart += item.size
                   return true
                 }
               })

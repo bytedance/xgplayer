@@ -396,7 +396,11 @@ let m4aplayer = function () {
           return
         }
         let m4aCache = new Buffer()
-        m4aCache.write(new Uint8Array(player.mp4.ftypBuffer), new Uint8Array(player.mp4.moovBuffer), new Uint8Array(player.mp4.freeBuffer), mdatCache.buffer)
+        if (player.mp4.freeBuffer) {
+          m4aCache.write(new Uint8Array(player.mp4.ftypBuffer), new Uint8Array(player.mp4.moovBuffer), new Uint8Array(player.mp4.freeBuffer), mdatCache.buffer)
+        } else {
+          m4aCache.write(new Uint8Array(player.mp4.ftypBuffer), new Uint8Array(player.mp4.moovBuffer), mdatCache.buffer)
+        }
         let offlineVid = vid || name
         player.database.openDB(() => {
           player.database.addData(player.database.myDB.ojstore.name, [{vid: offlineVid, blob: new Blob([m4aCache.buffer], {type: 'audio/mp4; codecs="mp4a.40.5"'})}])
