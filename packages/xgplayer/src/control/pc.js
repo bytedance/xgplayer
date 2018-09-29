@@ -65,6 +65,7 @@ let pc = function () {
         })
         player.once('playing', () => {
           util.removeClass(root, 'xgplayer-is-enter')
+          player.controls.style.display = 'flex'
         })
         if (!root.querySelector('video')) {
           player.start()
