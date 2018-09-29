@@ -60,15 +60,15 @@ let pc = function () {
       if (util.hasClass(root, 'xgplayer-nostart')) {
         util.removeClass(root, 'xgplayer-nostart') // for ie quick switch
         util.addClass(root, 'xgplayer-is-enter')
-        if (!root.querySelector('video')) {
-          player.start()
-        }
         player.on('canplay', () => {
           util.removeClass(root, 'xgplayer-is-enter')
         })
         player.once('playing', () => {
           util.removeClass(root, 'xgplayer-is-enter')
         })
+        if (!root.querySelector('video')) {
+          player.start()
+        }
         player.play()
         setTimeout(() => {
           player.play()
