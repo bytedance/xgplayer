@@ -28,7 +28,10 @@ let pip = function () {
     player.root.style.right = 0
     player.root.style.bottom = '200px'
     player.root.style.top = ''
-    player.root.style.left = '';
+    player.root.style.left = ''
+    if (player.config.fluid) {
+      player.root.style['padding-top'] = ''
+    }
     ['click', 'touchstart'].forEach(item => {
       dragLay.addEventListener(item, function (e) {
         e.preventDefault()
@@ -41,6 +44,9 @@ let pip = function () {
   }
   let exitPIP = function (el) {
     util.removeClass(el, 'xgplayer-pip-active')
+    if (player.config.fluid) {
+      player.root.style['padding-top'] = `${player.config.height * 100 / player.config.width}%`
+    }
   };
 
   ['click', 'touchstart'].forEach(item => {

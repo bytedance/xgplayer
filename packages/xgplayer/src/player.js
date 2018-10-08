@@ -47,22 +47,42 @@ class Player extends Proxy {
     this.rootBackup = util.copyDom(this.root)
     util.addClass(this.root, `xgplayer xgplayer-${sniffer.device} xgplayer-nostart ${this.config.controls ? '' : 'no-controls'}`)
     this.root.appendChild(this.controls)
-    this.root.style.width = `${this.config.width}px`
-    this.root.style.height = `${this.config.height}px`
-    if (Player.plugins) {
-      let ignores = this.config.ignores
-      Object.keys(Player.plugins).forEach(name => {
-        let descriptor = Player.plugins[name]
-        if (!ignores.some(item => name === item)) {
-          if (['pc', 'tablet', 'mobile'].some(type => type === name)) {
-            if (name === sniffer.device) {
-              descriptor.call(this, this)
-            }
-          } else {
-            descriptor.call(this, this)
-          }
+    if (this.config.fluid) {
+      this.root.style['max-width'] = '100%'
+      this.root.style['width'] = '100%'
+      this.root.style['height'] = '0'
+      this.root.style['padding-top'] = `${this.config.height * 100 / this.config.width}%`
+
+      this.video.style['position'] = 'absolute'
+      this.video.style['top'] = '0'
+      this.video.style['left'] = '0'
+    } else {
+      this.root.style.width = `${this.config.width}px`
+      this.root.style.height = `${this.config.height}px`
+    }
+    if (this.config.controlStyle && util.typeOf(this.config.controlStyle) === 'String') {
+      let self = this
+      fetch(self.config.controlStyle, {
+        method: 'GET',
+        headers: {
+          Accept: 'application/json'
         }
+      }).then(function (res) {
+        if (res.ok) {
+          res.json().then(function (obj) {
+            for (var prop in obj) {
+              if (obj.hasOwnProperty(prop)) {
+                self.config[prop] = obj[prop]
+              }
+            }
+            self.pluginsCall()
+          })
+        }
+      }).catch(function (err) {
+        console.log('Fetch错误:' + err)
       })
+    } else {
+      this.pluginsCall()
     }
     this.ev.forEach((item) => {
       let evName = Object.keys(item)[0]
@@ -214,6 +234,24 @@ class Player extends Proxy {
     } else {
       this.currentTime = 0
       this.play()
+    }
+  }
+
+  pluginsCall () {
+    if (Player.plugins) {
+      let ignores = this.config.ignores
+      Object.keys(Player.plugins).forEach(name => {
+        let descriptor = Player.plugins[name]
+        if (!ignores.some(item => name === item)) {
+          if (['pc', 'tablet', 'mobile'].some(type => type === name)) {
+            if (name === sniffer.device) {
+              descriptor.call(this, this)
+            }
+          } else {
+            descriptor.call(this, this)
+          }
+        }
+      })
     }
   }
 
