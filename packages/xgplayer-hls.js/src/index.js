@@ -7,6 +7,9 @@ class HlsJsPlayer extends Player {
     this.hlsOpts = options.hlsOpts || {}
     let util = Player.util
     let player = this
+    if (Player.sniffer.device === 'mobile') {
+      return
+    }
     let hls
     hls = new Hls(this.hlsOpts)
     this.hls = hls
