@@ -199,6 +199,9 @@ class Player extends Proxy {
     ['focus', 'blur'].forEach(item => {
       this.off(item, this['on' + item.charAt(0).toUpperCase() + item.slice(1)])
     })
+    if (!this.config.keyShortcut || this.config.keyShortcut === 'on') {
+      document.onkeydown = undefined
+    }
     if (!this.paused) {
       this.pause()
       this.once('pause', () => {
