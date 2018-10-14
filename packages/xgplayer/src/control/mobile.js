@@ -59,7 +59,37 @@ let mobile = function () {
   root.appendChild(btn)
   root.appendChild(enter)
   let path = btn.querySelector('path')
+  let enterTips = enter.querySelector('.xgplayer-enter-tips')
   let enterLogo = new Image()
+  enterLogo.onload = () => {
+    enterTips.style.display = 'block'
+  }
+  if (player.config.enterLogo && player.config.enterLogo.url && player.config.enterLogo.width && player.config.enterLogo.height) {
+    enterLogo.src = player.config.enterLogo.url
+
+    logo.style.backgroundImage = `url("${player.config.enterLogo.url}")`
+    logo.style.width = `${player.config.enterLogo.width}px`
+    logo.style.height = `${player.config.enterLogo.height}px`
+
+    logo.style.backgroundSize = `${player.config.enterLogo.width}px ${player.config.enterLogo.height}px`
+    logo.style.margin = `-${player.config.enterLogo.height/2}px auto auto -${player.config.enterLogo.width/2}px`
+
+    enterTips.style.margin = `${player.config.enterLogo.height-6}px auto auto -62px`
+  } else {
+    enterLogo.src = util.getBgImage(logo)
+  }
+
+  if (player.config.enterTips && player.config.enterTips.background) {
+    enterTips.style.background = `${player.config.enterTips.background}`
+  }
+
+  if (player.config.enterBg) {
+    if (player.config.enterBg.url) {
+      enter.style.backgroundImage = `url("${player.config.enterBg.url}")`
+    } else if (player.config.enterBg.color) {
+      enter.style.background = player.config.enterBg.color
+    }
+  }
   let svg = new SVG({
     from: iconPath.play,
     to: iconPath.pause,
@@ -67,15 +97,8 @@ let mobile = function () {
       path.setAttribute('d', svg.toSVGString(shape))
     }
   })
-  enter.querySelector('.xgplayer-enter-tips').style.display = 'block'
   player.start()
   if (pass) {
-    if (player.config.enterLogo) {
-      enterLogo.src = player.config.enterLogo
-      logo.style.backgroundImage = `url("${player.config.enterLogo}")`
-    } else {
-      enterLogo.src = util.getBgImage(logo)
-    }
     player.video.addEventListener('touchstart', (e) => {
       e.preventDefault()
       player.emit('focus')
