@@ -54,9 +54,9 @@ let pc = function () {
     btn.addEventListener(item, function (e) {
       e.preventDefault()
       e.stopPropagation()
-      if (!player.config.url) {
-        return
-      }
+      // if (!player.config.url) {
+      //   return
+      // }
       if (util.hasClass(root, 'xgplayer-nostart')) {
         util.removeClass(root, 'xgplayer-nostart') // for ie quick switch
         util.addClass(root, 'xgplayer-is-enter')

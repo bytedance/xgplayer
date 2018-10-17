@@ -15,18 +15,20 @@ let error = function () {
     }
 
     util.addClass(player.root, 'xgplayer-is-error')
-    refresh = error.querySelector('.xgplayer-error-refresh');
-    ['touchstart', 'click'].forEach(item => {
-      refresh.addEventListener(item, function (e) {
-        e.preventDefault()
-        e.stopPropagation()
-        let p = e.target || e.srcElement
-        if (p && p.tagName.toLocaleLowerCase() === 'span') {
-          player.controls.style.display = 'flex'
-          player.reload()
-        }
+    refresh = error.querySelector('.xgplayer-error-refresh')
+    if (refresh) {
+      ['touchstart', 'click'].forEach(item => {
+        refresh.addEventListener(item, function (e) {
+          e.preventDefault()
+          e.stopPropagation()
+          let p = e.target || e.srcElement
+          if (p && p.tagName.toLocaleLowerCase() === 'span') {
+            player.controls.style.display = 'flex'
+            player.reload()
+          }
+        })
       })
-    })
+    }
   })
 
   player.once('destroy', () => {
