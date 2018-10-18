@@ -49,7 +49,7 @@ progress = function () {
         let w = e.clientX - left > containerWidth ? containerWidth : e.clientX - left
         let now = w / containerWidth * player.duration
         progress.style.width = `${w * 100 / containerWidth}%`
-        if (player.videoConfig.mediaType === 'video') {
+        if (player.videoConfig.mediaType === 'video' && !player.dash) {
           player.currentTime = Number(now).toFixed(1)
         } else {
           let time = util.findDom(root, '.xgplayer-time')
@@ -67,7 +67,7 @@ progress = function () {
         window.removeEventListener('mouseup', up)
         window.removeEventListener('touchend', up)
         container.blur()
-        if (!player.isProgressMoving || player.videoConfig.mediaType === 'audio') {
+        if (!player.isProgressMoving || player.videoConfig.mediaType === 'audio' || player.dash) {
           let w = e.clientX - left
           let now = w / containerWidth * player.duration
           progress.style.width = `${w * 100 / containerWidth}%`
@@ -134,7 +134,7 @@ progress = function () {
     if (!containerWidth && container) {
       containerWidth = container.getBoundingClientRect().width
     }
-    if (player.videoConfig.mediaType !== 'audio' || !player.isProgressMoving) {
+    if (player.videoConfig.mediaType !== 'audio' || !player.isProgressMoving || !player.dash) {
       progress.style.width = `${player.currentTime * 100 / player.duration}%`
     }
   }
