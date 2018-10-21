@@ -345,6 +345,24 @@
     }
 }
 
+.xgplayer-start-img{
+    display: none;
+    position: absolute;
+    left: 50%;
+    top: 50%;
+    z-index: 1000;
+    cursor: pointer;
+    @at-root .xgplayer-nostart &{
+        display: block;
+    }
+    &.xgplayer-start-interact{
+        animation: playPause 0.4s ease-out forwards;
+    }
+    &:hover{
+        opacity: 0.85;
+    }
+}
+
 .xgplayer-textTrack{
     order: 7;
     width: 60px;
@@ -884,9 +902,15 @@
         .xgplayer-start{
             display: none;
         }
+        .xgplayer-start-img{
+            display: none;
+        }
     }
     &.xgplayer-inactive{
         .xgplayer-start{
+            display: none;
+        }
+        .xgplayer-start-img{
             display: none;
         }
     }
@@ -900,9 +924,15 @@
             margin: 10px;
         }
     }
+    .xgplayer-start-img{
+        display: none;
+    }
     &.xgplayer-nostart{
         .xgplayer-start{
             margin: -30px auto auto -30px;
+            display: block;
+        }
+        .xgplayer-start-img{
             display: block;
         }
     }
@@ -917,6 +947,9 @@
             display: none;
         }
         .xgplayer-start{
+            display: none;
+        }
+        .xgplayer-start-img{
             display: none;
         }
     }

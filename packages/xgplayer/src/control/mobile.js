@@ -45,20 +45,39 @@ let mobile = function () {
   let pass = whitelistPass(whitelist)
   player.mobilePass = pass
   let centerBtn = player.config.centerBtn ? player.config.centerBtn : {}
-  let iconPath = {
-    pause: centerBtn.pausePath ? centerBtn.pausePath : 'M576,363L810,512L576,661zM342,214L576,363L576,661L342,810z',
-    play: centerBtn.playPath ? centerBtn.playPath : 'M598,214h170v596h-170v-596zM256 810v-596h170v596h-170z'
+  let iconPath, btn, path, svg
+  if (centerBtn.type === 'img') {
+    btn = util.createDom('xg-start', '', {}, 'xgplayer-start-img')
+    btn.style.backgroundImage = `url("${centerBtn.url.play}")`
+    if (centerBtn.width && centerBtn.height) {
+      btn.style.width = `${centerBtn.width}px`
+      btn.style.height = `${centerBtn.height}px`
+      btn.style.backgroundSize = `${centerBtn.width}px ${centerBtn.height}px`
+      btn.style.margin = `-${centerBtn.height/2}px auto auto -${centerBtn.width/2}px`
+    }
+  } else {
+    iconPath = {
+      pause: centerBtn.pausePath ? centerBtn.pausePath : 'M576,363L810,512L576,661zM342,214L576,363L576,661L342,810z',
+      play: centerBtn.playPath ? centerBtn.playPath : 'M598,214h170v596h-170v-596zM256 810v-596h170v596h-170z'
+    }
+    btn = util.createDom('xg-start', `
+          <svg xmlns="http://www.w3.org/2000/svg" width="1024" height="1024" viewBox="0 0 1024 1024">
+              <path transform="scale(0.04,0.04)" d="${iconPath.pause}"></path>
+          </svg>`, {}, 'xgplayer-start')
+    path = btn.querySelector('path')
+    svg = new SVG({
+      from: iconPath.play,
+      to: iconPath.pause,
+      progress: (shape, percent) => {
+        path.setAttribute('d', svg.toSVGString(shape))
+      }
+    })
   }
 
-  let btn = util.createDom('xg-start', `
-        <svg xmlns="http://www.w3.org/2000/svg" width="1024" height="1024" viewBox="0 0 1024 1024">
-            <path transform="scale(0.04,0.04)" d="${iconPath.pause}"></path>
-        </svg>`, {}, 'xgplayer-start')
   let enter = util.createDom('xg-enter', '<xg-enter-logo class="xgplayer-enter-logo"></xg-enter-logo><xg-enter-tips class="xgplayer-enter-tips"></xg-player-tips>', {}, 'xgplayer-enter')
   let logo = enter.querySelector('.xgplayer-enter-logo')
   root.appendChild(btn)
   root.appendChild(enter)
-  let path = btn.querySelector('path')
   let enterTips = enter.querySelector('.xgplayer-enter-tips')
   let enterLogo = new Image()
   enterLogo.onload = () => {
@@ -90,16 +109,9 @@ let mobile = function () {
       enter.style.background = player.config.enterBg.color
     }
   }
-  let svg = new SVG({
-    from: iconPath.play,
-    to: iconPath.pause,
-    progress: (shape, percent) => {
-      path.setAttribute('d', svg.toSVGString(shape))
-    }
-  })
   player.start()
   if (pass) {
-    player.video.addEventListener('touchstart', (e) => {
+    player.video.addEventListener('touchend', (e) => {
       e.preventDefault()
       player.emit('focus')
     }, false)
@@ -124,10 +136,18 @@ let mobile = function () {
       }
     })
     player.on('play', () => {
-      svg.reset(iconPath.play, iconPath.pause)
+      if (centerBtn.type === 'img') {
+        btn.style.backgroundImage = `url("${centerBtn.url.play}")`
+      } else {
+        svg.reset(iconPath.play, iconPath.pause)
+      }
     })
     player.on('pause', () => {
-      svg.reset(iconPath.pause, iconPath.play)
+      if (centerBtn.type === 'img') {
+        btn.style.backgroundImage = `url("${centerBtn.url.play}")`
+      } else {
+        svg.reset(iconPath.pause, iconPath.play)
+      }
     })
 
     player.config.volume = player.config.autoplay ? 0 : (player.config.volume !== null ? player.config.volume : 1)
