@@ -5,19 +5,43 @@ let pc = function () {
   let util = Player.util; let controls = player.controls; let root = player.root
   let clk = 0; let _click_
   let centerBtn = player.config.centerBtn ? player.config.centerBtn : {}
-  let iconPath = {
-    pause: centerBtn.pausePath ? centerBtn.pausePath : 'M576,363L810,512L576,661zM342,214L576,363L576,661L342,810z',
-    play: centerBtn.playPath ? centerBtn.playPath : 'M598,214h170v596h-170v-596zM256 810v-596h170v596h-170z'
+  let iconPath, btn, path
+  if (centerBtn.type === 'img') {
+    btn = util.createDom('xg-start', '', {}, 'xgplayer-start-img')
+    btn.style.backgroundImage = `url("${centerBtn.url.play}")`
+    if (centerBtn.width && centerBtn.height) {
+      let width, height, unit
+      ['px', 'rem', 'em', 'pt', 'dp', 'vw', 'vh', 'vm', '%'].every((item) => {
+        if (centerBtn.width.indexOf(item) > -1 && centerBtn.height.indexOf(item) > -1) {
+          width = parseFloat(centerBtn.width.slice(0, centerBtn.width.indexOf(item)).trim())
+          height = parseFloat(centerBtn.height.slice(0, centerBtn.height.indexOf(item)).trim())
+          unit = item
+          return false
+        } else {
+          return true
+        }
+      })
+      btn.style.width = `${width}${unit}`
+      btn.style.height = `${height}${unit}`
+      btn.style.backgroundSize = `${width}${unit} ${height}${unit}`
+      btn.style.margin = `-${height/2}${unit} auto auto -${width/2}${unit}`
+    }
+  } else {
+    iconPath = {
+      pause: centerBtn.pausePath ? centerBtn.pausePath : 'M576,363L810,512L576,661zM342,214L576,363L576,661L342,810z',
+      play: centerBtn.playPath ? centerBtn.playPath : 'M598,214h170v596h-170v-596zM256 810v-596h170v596h-170z'
+    }
+    btn = util.createDom('xg-start', `
+          <svg xmlns="http://www.w3.org/2000/svg" width="1024" height="1024" viewBox="0 0 1024 1024">
+              <path transform="scale(0.04,0.04)" d="${iconPath.pause}"></path>
+          </svg>`, {}, 'xgplayer-start')
+    path = btn.querySelector('path')
   }
-  let btn = util.createDom('xg-start', `
-        <svg xmlns="http://www.w3.org/2000/svg" width="1024" height="1024" viewBox="0 0 1024 1024">
-            <path transform="scale(0.04,0.04)" d="${iconPath.pause}"></path>
-        </svg>`, {}, 'xgplayer-start')
+
   let enter = util.createDom('xg-enter', '<xg-enter-logo class="xgplayer-enter-logo"></xg-enter-logo><xg-enter-tips class="xgplayer-enter-tips"></xg-player-tips>', {}, 'xgplayer-enter')
   let logo = enter.querySelector('.xgplayer-enter-logo')
   root.appendChild(btn)
   root.appendChild(enter)
-  let path = btn.querySelector('path')
   let enterTips = enter.querySelector('.xgplayer-enter-tips')
   let enterLogo = new Image()
   enterLogo.onload = () => {
@@ -89,12 +113,20 @@ let pc = function () {
     btn.style.display = 'none'
   })
   player.on('play', () => {
-    path.setAttribute('d', iconPath.pause)
+    if (centerBtn.type === 'img') {
+      btn.style.backgroundImage = `url("${centerBtn.url.play}")`
+    } else {
+      path.setAttribute('d', iconPath.pause)
+    }
     btn.style.display = 'inline-block'
     util.addClass(btn, 'xgplayer-start-interact')
   })
   player.on('pause', () => {
-    path.setAttribute('d', iconPath.play)
+    if (centerBtn.type === 'img') {
+      btn.style.backgroundImage = `url("${centerBtn.url.pause}")`
+    } else {
+      path.setAttribute('d', iconPath.play)
+    }
     btn.style.display = 'inline-block'
     util.addClass(btn, 'xgplayer-start-interact')
   })
