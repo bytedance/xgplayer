@@ -35,6 +35,7 @@ let fullscreen = function () {
     } else {
       util.addClass(el, 'xgplayer-fullscreen-active')
     }
+    player.emit('requestFullscreen')
   }
   let exitFullscreen = function (el) {
     let fullscreeSupport = document.fullscreenEnabled || document.webkitFullscreenEnabled || document.mozFullScreenEnabled || document.msFullscreenEnabled
@@ -53,6 +54,7 @@ let fullscreen = function () {
     } else {
       util.removeClass(el, 'xgplayer-fullscreen-active')
     }
+    player.emit('exitFullscreen')
   }
   root.appendChild(btn);
   ['click', 'touchend'].forEach(item => {

@@ -10,10 +10,21 @@ let pc = function () {
     btn = util.createDom('xg-start', '', {}, 'xgplayer-start-img')
     btn.style.backgroundImage = `url("${centerBtn.url.play}")`
     if (centerBtn.width && centerBtn.height) {
-      btn.style.width = `${centerBtn.width}px`
-      btn.style.height = `${centerBtn.height}px`
-      btn.style.backgroundSize = `${centerBtn.width}px ${centerBtn.height}px`
-      btn.style.margin = `-${centerBtn.height/2}px auto auto -${centerBtn.width/2}px`
+      let width, height, unit
+      ['px', 'rem', 'em', 'pt', 'dp', 'vw', 'vh', 'vm', '%'].every((item) => {
+        if (centerBtn.width.indexOf(item) > -1 && centerBtn.height.indexOf(item) > -1) {
+          width = parseFloat(centerBtn.width.slice(0, centerBtn.width.indexOf(item)).trim())
+          height = parseFloat(centerBtn.height.slice(0, centerBtn.height.indexOf(item)).trim())
+          unit = item
+          return false
+        } else {
+          return true
+        }
+      })
+      btn.style.width = `${width}${unit}`
+      btn.style.height = `${height}${unit}`
+      btn.style.backgroundSize = `${width}${unit} ${height}${unit}`
+      btn.style.margin = `-${height/2}${unit} auto auto -${width/2}${unit}`
     }
   } else {
     iconPath = {
