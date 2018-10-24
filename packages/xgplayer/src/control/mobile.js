@@ -124,7 +124,11 @@ let mobile = function () {
   if (pass) {
     player.video.addEventListener('touchend', (e) => {
       e.preventDefault()
-      player.emit('focus')
+      if (util.hasClass(root, 'xgplayer-inactive')) {
+        player.emit('focus')
+      } else {
+        player.emit('blur')
+      }
     }, false)
     btn.addEventListener('touchend', (e) => {
       e.preventDefault()
