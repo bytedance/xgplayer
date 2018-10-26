@@ -1,3 +1,35 @@
+<a name="1.1.3"></a>
+## [1.1.3](https://github.com/bytedance/xgplayer/compare/v1.1.2...v1.1.3) (2018-10-26)
+
+
+### Bug Fixes
+
+* **examples:** fix examples ([1382e95](https://github.com/bytedance/xgplayer/commit/1382e95))
+* **flv/[Flv.js, index.js. tasks/liveTask.js, parse/mainParser.js]:** fix flv multi player instance a ([bfb7be7](https://github.com/bytedance/xgplayer/commit/bfb7be7))
+* **xgplayer:** add enter config support in mobile ([b059edc](https://github.com/bytedance/xgplayer/commit/b059edc))
+* **xgplayer:** change centerBtn img config; add requestFullscreen and exitFullscreen event ([d1ba2d1](https://github.com/bytedance/xgplayer/commit/d1ba2d1))
+* **xgplayer:** emit error when have no url; fix progress problem in mobile ([f86fd8d](https://github.com/bytedance/xgplayer/commit/f86fd8d))
+* **xgplayer:** fix controls display none after switch new src from error ([fc3ef9a](https://github.com/bytedance/xgplayer/commit/fc3ef9a))
+* **xgplayer:** fix defination compatibility ([106c17f](https://github.com/bytedance/xgplayer/commit/106c17f))
+* **xgplayer:** fix enter class removing order ([2de869e](https://github.com/bytedance/xgplayer/commit/2de869e))
+* **xgplayer:** fix fullscreen problem in Android Chrome ([4c6d3ba](https://github.com/bytedance/xgplayer/commit/4c6d3ba))
+* **xgplayer:** fix ipad treated as PC problem; fix ios fullscreen behavior ([e9234ac](https://github.com/bytedance/xgplayer/commit/e9234ac))
+* **xgplayer:** fix progress cache update ([fcdcc30](https://github.com/bytedance/xgplayer/commit/fcdcc30))
+* **xgplayer:** fix xgplayer-poster style ([c0a6595](https://github.com/bytedance/xgplayer/commit/c0a6595))
+* **xgplayer:** remove keydown event in destroy method ([33eaac6](https://github.com/bytedance/xgplayer/commit/33eaac6))
+* **xgplayer-hls.js:** play m3u8 with native video in mobile device ([b99a2ac](https://github.com/bytedance/xgplayer/commit/b99a2ac))
+* **xgplayer, xgplayer-m4a:** fix xgplayer-m4a compatibility; add bufferedChange eventListener for ca ([559da3d](https://github.com/bytedance/xgplayer/commit/559da3d))
+
+
+### Features
+
+* **xgplayer:** add centerBtn img config ([8f4883f](https://github.com/bytedance/xgplayer/commit/8f4883f))
+* **xgplayer:** add controlStyle config ([e5565f0](https://github.com/bytedance/xgplayer/commit/e5565f0))
+* **xgplayer:** add fluid layout config ([ec6c3c7](https://github.com/bytedance/xgplayer/commit/ec6c3c7))
+* **xgplayer:** add preview local file function; publish v1.1.3 version ([bbe167e](https://github.com/bytedance/xgplayer/commit/bbe167e))
+
+
+
 <a name="1.1.2"></a>
 ## [1.1.2](https://github.com/bytedance/xgplayer/compare/v1.1.1...v1.1.2) (2018-09-27)
 
