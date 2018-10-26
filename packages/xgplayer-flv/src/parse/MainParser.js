@@ -53,12 +53,14 @@ export default class MainParser extends TransCoder {
   }
 
   initLiveStream () {
-    new LiveTask(this._config.url, this.requestConfig).run(this.loadLiveData.bind(this))
+    this.loadTask = new LiveTask(this._config.url, this.requestConfig).run(this.loadLiveData.bind(this))
   }
 
   loadLiveData (buffer) {
     if (buffer === undefined) {
       this.emit('live-end')
+      this._player.mse.endOfStream()
+      this.destroy()
     }
     try {
       this.buffer.write(new Uint8Array(buffer))
@@ -312,6 +314,7 @@ export default class MainParser extends TransCoder {
     this._store = null
     this.clearBuffer()
     this.stop = true
+    this.loadTask && this.loadTask.cancel()
   }
 
   seek (target) {

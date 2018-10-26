@@ -220,10 +220,6 @@ export default class VideoDemuxer extends Demuxer {
         mi.mimeType = `video/x-flv; codecs="${mi.videoCodec}"`
         mi.codec = mi.mimeType.replace('x-flv', 'mp4')
       }
-
-      if (mi.isComplete) {
-        this.handleMediaInfoReady(mi)
-      }
     }
     let pps
     const ppsCount = dv.getUint8()
@@ -252,6 +248,10 @@ export default class VideoDemuxer extends Demuxer {
 
     mi.sps = meta.sps = sps
     mi.pps = meta.pps = pps
+
+    if (mi.isComplete) {
+      this.handleMediaInfoReady(mi)
+    }
     if (store.hasInitialMetaDispatched) {
       if (store.videoTrack.length || store.audioTrack.length) {
         this.handleDataReady(store.videoTrack, store.audioTrack)
