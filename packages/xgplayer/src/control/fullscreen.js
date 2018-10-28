@@ -32,7 +32,6 @@ let fullscreen = function () {
     } else {
       util.addClass(el, 'xgplayer-fullscreen-active')
     }
-    player.emit('requestFullscreen')
   }
   let exitFullscreen = function (el) {
     path.setAttribute('d', iconPath.default)
@@ -48,7 +47,6 @@ let fullscreen = function () {
     } else {
       util.removeClass(el, 'xgplayer-fullscreen-active')
     }
-    player.emit('exitFullscreen')
   }
   root.appendChild(btn);
   ['click', 'touchend'].forEach(item => {
@@ -73,10 +71,12 @@ let fullscreen = function () {
       util.addClass(container, 'xgplayer-is-fullscreen')
       path.setAttribute('d', iconPath.active)
       tips.textContent = tipsExitFull
+      player.emit('requestFullscreen')
     } else {
       util.removeClass(container, 'xgplayer-is-fullscreen')
       path.setAttribute('d', iconPath.default)
       tips.textContent = tipsFull
+      player.emit('exitFullscreen')
     }
   }
 
