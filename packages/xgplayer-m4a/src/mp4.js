@@ -154,12 +154,17 @@ class MP4 {
       }
       self._boxes = boxes = parsedFir.boxes
       boxes.every(item => {
-        mdatStart += item.size
         if (item.type === 'ftyp') {
+          mdatStart += item.size
           ftyp = item
           self.ftypBox = ftyp
           self.ftypBuffer = resFir.slice(0, ftyp.size)
-          return true
+        } else if (item.type === 'mdat') {
+          mdat = item
+          mdat.start = mdatStart
+          mdatStart += item.size
+          self.mdatBox = mdat
+          // self.emit('mdatReady', moov)
         }
         return true
       })
@@ -233,6 +238,64 @@ class MP4 {
           }
         } else {
           self.emit('error', new Errors('parse', '', {line: 226, handle: '[MP4] init', msg: 'not find mdat box'}))
+        }
+      } else {
+        let nextBox = parsedFir.nextBox
+        if (nextBox) {
+          self.emit('error', new Errors('parse', '', {line: 223, handle: '[MP4] init', msg: 'not find moov box'}))
+        } else {
+          self.getData(mdatStart, mdatStart + 1024).then(resSec => {
+            let parsedSec = new Parser(resSec)
+            self._boxes = self._boxes.concat(parsedSec.boxes)
+            parsedSec.boxes.every(item => {
+              if (item.type === 'moov') {
+                mdatStart += item.size
+                moov = item
+                self.moovBox = moov
+                self.moovBuffer = resSec.slice(0, moov.size)
+                self.emit('mdatReady', moov)
+                return false
+              } else {
+                mdatStart += item.size
+                return true
+              }
+            })
+            if (!moov) {
+              let nextBoxSec = parsedSec.nextBox
+              if (nextBoxSec) {
+                if (nextBoxSec.type === 'moov') {
+                  self.getData(mdatStart, mdatStart + nextBoxSec.size - 1).then(resThi => {
+                    let parsedThi = new Parser(resThi)
+                    self._boxes = self._boxes.concat(parsedThi.boxes)
+                    parsedThi.boxes.every(item => {
+                      if (item.type === 'moov') {
+                        mdatStart += item.size
+                        moov = item
+                        self.moovBox = moov
+                        self.moovBuffer = resSec.slice(0, moov.size)
+                        self.emit('mdatReady', moov)
+                        return false
+                      } else {
+                        mdatStart += item.size
+                        return true
+                      }
+                    })
+                    if (!moov) {
+                      self.emit('error', new Errors('parse', '', {line: 207, handle: '[MP4] init', msg: 'not find moov box'}))
+                    }
+                  }).catch(() => {
+                    self.emit('error', new Errors('network', '', {line: 210, handle: '[MP4] getData', msg: 'getData failed'}))
+                  })
+                } else {
+                  self.emit('error', new Errors('parse', '', {line: 213, handle: '[MP4] init', msg: 'not find moov box'}))
+                }
+              } else {
+                self.emit('error', new Errors('parse', '', {line: 216, handle: '[MP4] init', msg: 'not find moov box'}))
+              }
+            }
+          }).catch(() => {
+            self.emit('error', new Errors('network', '', {line: 220, handle: '[MP4] getData', msg: 'getData failed'}))
+          })
         }
       }
     }).catch(() => {
