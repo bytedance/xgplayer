@@ -82,6 +82,12 @@ let player = new Player({
 
 为了方便开发者调试，我们提供了示例视频资源。示例文件较大，可使用 git clone --recurse-submodules -j8 命令完整拉取源码和示例文件；如果你只对源码感兴趣可以使用 git clone 命令仅拉取源码部分。
 
+开发前请确保已经全局安装 babel-cli
+
+```
+$ npm install --global babel-cli
+```
+
 ```
 $ git clone --recurse-submodules -j8 git@github.com:bytedance/xgplayer.git # 或者：git clone git@github.com:bytedance/xgplayer.git
 $ cd xgplayer
