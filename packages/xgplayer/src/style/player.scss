@@ -102,6 +102,9 @@
     @at-root .xgplayer-nostart &{
         display: none;
     }
+    @at-root .no-controls &{
+        display: none !important;
+    }
     @at-root .xgplayer-inactive & {
         display: none;
     }
@@ -342,6 +345,24 @@
         svg {
             fill: $startHoverFillColor;
         }
+    }
+}
+
+.xgplayer-start-img{
+    display: none;
+    position: absolute;
+    left: 50%;
+    top: 50%;
+    z-index: 1000;
+    cursor: pointer;
+    @at-root .xgplayer-nostart &{
+        display: block;
+    }
+    &.xgplayer-start-interact{
+        animation: playPause 0.4s ease-out forwards;
+    }
+    &:hover{
+        opacity: 0.85;
     }
 }
 
@@ -735,6 +756,7 @@
     align-items: center;
     background: $replayBgColor;
     flex-direction: column;
+    cursor: pointer;
     svg{
         background: $replaySvgBgColor;
         border-radius: 100%;
@@ -748,6 +770,15 @@
             path {
                 fill: $replaySvgHoverFillColor;
             }
+        }
+    }
+    .xgplayer-replay-img{
+        position: absolute;
+        left: 50%;
+        top: 50%;
+        cursor: pointer;
+        &:hover{
+            opacity: 0.85;
         }
     }
     .xgplayer-replay-txt{
@@ -769,6 +800,24 @@
     }
 }
 
+.xgplayer-replay-img{
+    display: none;
+    position: absolute;
+    left: 50%;
+    top: 50%;
+    z-index: 500;
+    cursor: pointer;
+    &:hover{
+        opacity: 0.85;
+    }
+
+    @at-root .xgplayer.xgplayer-ended{
+        .xgplayer-replay-img{
+            display: block;
+        }
+    }
+}
+
 .xgplayer-enter{
     display: none;
     position: absolute;
@@ -784,9 +833,10 @@
         left: 50%;
         top: 50%;
         width: 130px;
-        height: 38px;
-        margin: -19px auto auto -69px;
-        background: url($enterLogo) no-repeat center center / cover;
+        height: 44px;
+        margin: -22px auto auto -65px;
+        background-size: 130px 44px;
+        background-image: url($enterLogo);
     }
     .xgplayer-enter-tips{
         display: none;
@@ -809,8 +859,11 @@
             animation: enterTips 1.6s linear infinite;
             background: #fff;
         }
+        @at-root .xgplayer-is-enter & {
+            display: block;
+        }
     }
-    @at-root .xgplayer-is-enter &{
+    @at-root .xgplayer-is-enter & {
         display: block;
     }
 }
@@ -823,6 +876,7 @@
     height: 100%;
     z-index: 100;
     background-size: cover;
+    background-position: center center;
 }
 .xgplayer-live{
     display: block;
@@ -866,13 +920,29 @@
     }
 }
 .xgplayer-mobile{
+    .xgplayer-progress-played:after{
+        display: block;
+        top: -5px;
+    }
+    .xgplayer-progress:hover,.xgplayer-progress:focus{
+        .xgplayer-progress-outer{
+            height: 3px;
+            margin-top: 8.5px;
+        }
+    }
     &.xgplayer-ended{
         .xgplayer-start{
+            display: none;
+        }
+        .xgplayer-start-img{
             display: none;
         }
     }
     &.xgplayer-inactive{
         .xgplayer-start{
+            display: none;
+        }
+        .xgplayer-start-img{
             display: none;
         }
     }
@@ -886,9 +956,15 @@
             margin: 10px;
         }
     }
+    .xgplayer-start-img{
+        display: none;
+    }
     &.xgplayer-nostart{
         .xgplayer-start{
             margin: -30px auto auto -30px;
+            display: block;
+        }
+        .xgplayer-start-img{
             display: block;
         }
     }
@@ -903,6 +979,9 @@
             display: none;
         }
         .xgplayer-start{
+            display: none;
+        }
+        .xgplayer-start-img{
             display: none;
         }
     }

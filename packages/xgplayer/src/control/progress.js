@@ -49,7 +49,7 @@ progress = function () {
         let w = e.clientX - left > containerWidth ? containerWidth : e.clientX - left
         let now = w / containerWidth * player.duration
         progress.style.width = `${w * 100 / containerWidth}%`
-        if (player.videoConfig.mediaType === 'video') {
+        if (player.videoConfig.mediaType === 'video' && !player.dash) {
           player.currentTime = Number(now).toFixed(1)
         } else {
           let time = util.findDom(root, '.xgplayer-time')
@@ -67,7 +67,7 @@ progress = function () {
         window.removeEventListener('mouseup', up)
         window.removeEventListener('touchend', up)
         container.blur()
-        if (!player.isProgressMoving || player.videoConfig.mediaType === 'audio') {
+        if (!player.isProgressMoving || player.videoConfig.mediaType === 'audio' || player.dash) {
           let w = e.clientX - left
           let now = w / containerWidth * player.duration
           progress.style.width = `${w * 100 / containerWidth}%`
@@ -134,7 +134,7 @@ progress = function () {
     if (!containerWidth && container) {
       containerWidth = container.getBoundingClientRect().width
     }
-    if (player.videoConfig.mediaType !== 'audio' || !player.isProgressMoving) {
+    if (player.videoConfig.mediaType !== 'audio' || !player.isProgressMoving || !player.dash) {
       progress.style.width = `${player.currentTime * 100 / player.duration}%`
     }
   }
@@ -144,10 +144,22 @@ progress = function () {
     let buffered = player.buffered
     if (buffered && buffered.length > 0) {
       let end = buffered.end(buffered.length - 1)
+      for (let i = 0, len = buffered.length; i < len; i++) {
+        if (player.currentTime >= buffered.start(i) && player.currentTime <= buffered.end(i)) {
+          end = buffered.end(i)
+          for (let j = i + 1; j < buffered.length; j++) {
+            if (buffered.start(j) - buffered.end(j - 1) >= 2) {
+              end = buffered.end(j - 1)
+              break
+            }
+          }
+          break
+        }
+      }
       cache.style.width = `${end / player.duration * 100}%`
     }
   }
-  const cacheUpdateEvents = ['cacheupdate', 'ended', 'timeupdate']
+  const cacheUpdateEvents = ['bufferedChange', 'cacheupdate', 'ended', 'timeupdate']
   cacheUpdateEvents.forEach(item => {
     player.on(item, handleCacheUpdate)
   })

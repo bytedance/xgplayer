@@ -10,52 +10,46 @@ let fullscreen = function () {
   let btn = util.createDom('xg-fullscreen', `<xg-icon class="xgplayer-icon"><svg xmlns="http://www.w3.org/2000/svg" width="1024" height="1024" viewBox="0 0 1024 1024">
             <path transform="scale(${scale} ${scale})" d="${iconPath.default}"></path>
         </svg></xg-icon>`, {}, 'xgplayer-fullscreen')
-  let tipsFull = player.config.lang && player.config.lang === "zh-cn" ? "全屏" : "Full screen"
-  let tipsExitFull = player.config.lang && player.config.lang === "zh-cn" ? "退出全屏" : "Exit full screen"
+  let tipsFull = player.config.lang && player.config.lang === 'zh-cn' ? '全屏' : 'Full screen'
+  let tipsExitFull = player.config.lang && player.config.lang === 'zh-cn' ? '退出全屏' : 'Exit full screen'
   let root = player.controls; let container = player.root
   let tips = util.createDom('xg-tips', tipsFull, {}, 'xgplayer-tips')
   let path = btn.querySelector('path')
   btn.appendChild(tips)
   let getFullscreen = function (el) {
-    let fullscreeSupport = document.fullscreenEnabled || document.webkitFullscreenEnabled || document.mozFullScreenEnabled || document.msFullscreenEnabled
     path.setAttribute('d', iconPath.active)
     tips.textContent = tipsExitFull
-    if (fullscreeSupport) {
-      if (el.requestFullscreen) {
-        el.requestFullscreen()
-      } else if (el.mozRequestFullScreen) {
-        el.mozRequestFullScreen()
-      } else if (el.webkitRequestFullScreen) {
-        el.webkitRequestFullScreen(Element.ALLOW_KEYBOARD_INPUT)
-      } else if (el.msRequestFullscreen) {
-        el.msRequestFullscreen()
-      } else {
-        util.addClass(el, 'xgplayer-fullscreen-active')
-      }
+    if (el.requestFullscreen) {
+      el.requestFullscreen()
+    } else if (el.mozRequestFullScreen) {
+      el.mozRequestFullScreen()
+    } else if (el.webkitRequestFullscreen) {
+      el.webkitRequestFullscreen(Element.ALLOW_KEYBOARD_INPUT)
+    } else if (player.video.webkitSupportsFullscreen) {
+      player.video.webkitEnterFullscreen()
+    } else if (el.msRequestFullscreen) {
+      el.msRequestFullscreen()
     } else {
       util.addClass(el, 'xgplayer-fullscreen-active')
     }
   }
   let exitFullscreen = function (el) {
-    let fullscreeSupport = document.fullscreenEnabled || document.webkitFullscreenEnabled || document.mozFullScreenEnabled || document.msFullscreenEnabled
     path.setAttribute('d', iconPath.default)
     tips.textContent = tipsFull
-    if (fullscreeSupport) {
-      if (document.exitFullscreen) {
-        document.exitFullscreen()
-      } else if (document.webkitExitFullscreen) {
-        document.webkitExitFullscreen()
-      } else if (document.mozCancelFullScreen) {
-        document.mozCancelFullScreen()
-      } else if (document.msExitFullscreen) {
-        document.msExitFullscreen()
-      }
+    if (document.exitFullscreen) {
+      document.exitFullscreen()
+    } else if (document.webkitExitFullscreen) {
+      document.webkitExitFullscreen()
+    } else if (document.mozCancelFullScreen) {
+      document.mozCancelFullScreen()
+    } else if (document.msExitFullscreen) {
+      document.msExitFullscreen()
     } else {
       util.removeClass(el, 'xgplayer-fullscreen-active')
     }
   }
   root.appendChild(btn);
-  ['click', 'touchstart'].forEach(item => {
+  ['click', 'touchend'].forEach(item => {
     btn.addEventListener(item, function (e) {
       e.preventDefault()
       e.stopPropagation()
@@ -66,6 +60,10 @@ let fullscreen = function () {
       }
     })
   })
+  player.video.addEventListener('webkitendfullscreen', () => {
+    player.emit('exitFullscreen')
+    path.setAttribute('d', iconPath.default)
+  })
 
   let handle = function (e) {
     let fullscreenEl = document.fullscreenElement || document.webkitFullscreenElement || document.mozFullScreenElement || document.msFullscreenElement
@@ -73,22 +71,24 @@ let fullscreen = function () {
       util.addClass(container, 'xgplayer-is-fullscreen')
       path.setAttribute('d', iconPath.active)
       tips.textContent = tipsExitFull
+      player.emit('requestFullscreen')
     } else {
       util.removeClass(container, 'xgplayer-is-fullscreen')
       path.setAttribute('d', iconPath.default)
       tips.textContent = tipsFull
+      player.emit('exitFullscreen')
     }
-  };
+  }
 
-  btn.addEventListener('mouseenter', (e)=>{
-      e.preventDefault();
-      e.stopPropagation();
-      tips.style.left = "50%"
-      let rect = tips.getBoundingClientRect()
-      let rootRect = container.getBoundingClientRect()
-      if(rect.right > rootRect.right)  {
-          tips.style.left = `${- rect.right + rootRect.right + 16}px`
-      }
+  btn.addEventListener('mouseenter', (e) => {
+    e.preventDefault()
+    e.stopPropagation()
+    tips.style.left = '50%'
+    let rect = tips.getBoundingClientRect()
+    let rootRect = container.getBoundingClientRect()
+    if (rect.right > rootRect.right) {
+      tips.style.left = `${-rect.right + rootRect.right + 16}px`
+    }
   });
 
   ['fullscreenchange', 'webkitfullscreenchange', 'mozfullscreenchange', 'MSFullscreenChange'].forEach(item => {

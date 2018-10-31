@@ -102,14 +102,18 @@ export default class Mp4Remuxer extends Remuxer {
 
       if (dtsCorrection === undefined) {
         if (!this._videoNextDts) {
-          const lastSegment = this._videoSegmentList.getLastSegmentBefore(dts)
-          if (lastSegment) {
-            let gap
-            const {lastDts, gap: lastGap} = lastSegment
-            gap = dts - (lastDts + lastGap) > 3 ? dts - (lastDts + lastGap) : 0
-            dtsCorrection = dts - (lastDts + gap)
-          } else {
+          if (this._videoSegmentList.isEmpty()) {
             dtsCorrection = 0
+          } else {
+            const lastSegment = this._videoSegmentList.getLastSegmentBefore(dts)
+            if (lastSegment) {
+              let gap
+              const {lastDts, gap: lastGap} = lastSegment
+              gap = dts - (lastDts + lastGap) > 3 ? dts - (lastDts + lastGap) : 0
+              dtsCorrection = dts - (lastDts + gap)
+            } else {
+              dtsCorrection = 0
+            }
           }
         } else {
           dtsCorrection = dts - this._videoNextDts >= 1000 ? 0 : dts - this._videoNextDts
@@ -254,15 +258,19 @@ export default class Mp4Remuxer extends Remuxer {
       let needSilentFrame = false
       if (dtsCorrection === undefined) {
         if (!this._audioNextDts) {
-          const lastSegment = this._audioSegmentList.getLastSegmentBefore(dts)
-          if (lastSegment) {
-            let gap
-            const {lastDts, gap: lastGap} = lastSegment
-            gap = dts - (lastDts + lastGap) > 3 ? dts - (lastDts + lastGap) : 0
-            dtsCorrection = dts - (lastDts + gap)
-          } else {
-            needSilentFrame = this._fillSilenceFrame && !this._videoSegmentList.isEmpty()
+          if (this._audioSegmentList.isEmpty()) {
             dtsCorrection = 0
+          } else {
+            const lastSegment = this._audioSegmentList.getLastSegmentBefore(dts)
+            if (lastSegment) {
+              let gap
+              const {lastDts, gap: lastGap} = lastSegment
+              gap = dts - (lastDts + lastGap) > 3 ? dts - (lastDts + lastGap) : 0
+              dtsCorrection = dts - (lastDts + gap)
+            } else {
+              needSilentFrame = this._fillSilenceFrame && !this._videoSegmentList.isEmpty()
+              dtsCorrection = 0
+            }
           }
         } else {
           dtsCorrection = dts - this._audioNextDts >= 1000 ? 0 : dts - this._audioNextDts

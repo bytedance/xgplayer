@@ -65,6 +65,9 @@ export default class Flv {
       if (!this.isSeeking && this.flvPlayer.isMediaInfoReady && !this.tempFlvPlayer) {
         this.progressChecker(player)
       }
+      if (this._options.isLive) {
+        return
+      }
       this.isEnded(player, this.flvPlayer)
     }
     player.on('timeupdate', () => {
@@ -141,7 +144,7 @@ export default class Flv {
     const handleFtypMoov = (ftypMoov) => {
       if (flvPlayer.isSourceOpen && !this.tempFlvPlayer) {
         mse.appendBuffer(ftypMoov.buffer)
-      } else if (!this.isChangingSrc) {
+      } else if (!this.isChangingSrc && !this._options.isLive) {
         this.isSeeking = true
         flvPlayer.seek(this._player.currentTime)
       }

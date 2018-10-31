@@ -2380,7 +2380,11 @@ var m4aplayer = function m4aplayer() {
           return;
         }
         var m4aCache = new _buffer2.default();
-        m4aCache.write(new Uint8Array(player.mp4.ftypBuffer), new Uint8Array(player.mp4.moovBuffer), new Uint8Array(player.mp4.freeBuffer), mdatCache.buffer);
+        if (player.mp4.freeBuffer) {
+          m4aCache.write(new Uint8Array(player.mp4.ftypBuffer), new Uint8Array(player.mp4.moovBuffer), new Uint8Array(player.mp4.freeBuffer), mdatCache.buffer);
+        } else {
+          m4aCache.write(new Uint8Array(player.mp4.ftypBuffer), new Uint8Array(player.mp4.moovBuffer), mdatCache.buffer);
+        }
         var offlineVid = vid || name;
         player.database.openDB(function () {
           player.database.addData(player.database.myDB.ojstore.name, [{ vid: offlineVid, blob: new Blob([m4aCache.buffer], { type: 'audio/mp4; codecs="mp4a.40.5"' }) }]);
@@ -3386,12 +3390,17 @@ var MP4 = function () {
         }
         self._boxes = boxes = parsedFir.boxes;
         boxes.every(function (item) {
-          mdatStart += item.size;
           if (item.type === 'ftyp') {
+            mdatStart += item.size;
             ftyp = item;
             self.ftypBox = ftyp;
             self.ftypBuffer = resFir.slice(0, ftyp.size);
-            return true;
+          } else if (item.type === 'mdat') {
+            mdat = item;
+            mdat.start = mdatStart;
+            mdatStart += item.size;
+            self.mdatBox = mdat;
+            // self.emit('mdatReady', moov)
           }
           return true;
         });
@@ -3403,13 +3412,21 @@ var MP4 = function () {
                 var parsedSec = new _parse2.default(resSec);
                 self._boxes = self._boxes.concat(parsedSec.boxes);
                 parsedSec.boxes.every(function (item) {
-                  mdatStart += item.size;
                   if (item.type === 'moov') {
+                    mdatStart += item.size;
                     moov = item;
                     self.moovBox = moov;
                     self.moovBuffer = resSec.slice(0, moov.size);
                     return true;
+                  } else if (item.type === 'mdat') {
+                    mdat = item;
+                    mdat.start = mdatStart;
+                    mdatStart += item.size;
+                    self.mdatBox = mdat;
+                    self.emit('mdatReady', moov);
+                    return false;
                   } else {
+                    mdatStart += item.size;
                     return true;
                   }
                 });
@@ -3457,6 +3474,64 @@ var MP4 = function () {
             }
           } else {
             self.emit('error', new _error2.default('parse', '', { line: 226, handle: '[MP4] init', msg: 'not find mdat box' }));
+          }
+        } else {
+          var _nextBox = parsedFir.nextBox;
+          if (_nextBox) {
+            self.emit('error', new _error2.default('parse', '', { line: 223, handle: '[MP4] init', msg: 'not find moov box' }));
+          } else {
+            self.getData(mdatStart, mdatStart + 1024).then(function (resSec) {
+              var parsedSec = new _parse2.default(resSec);
+              self._boxes = self._boxes.concat(parsedSec.boxes);
+              parsedSec.boxes.every(function (item) {
+                if (item.type === 'moov') {
+                  mdatStart += item.size;
+                  moov = item;
+                  self.moovBox = moov;
+                  self.moovBuffer = resSec.slice(0, moov.size);
+                  self.emit('mdatReady', moov);
+                  return false;
+                } else {
+                  mdatStart += item.size;
+                  return true;
+                }
+              });
+              if (!moov) {
+                var nextBoxSec = parsedSec.nextBox;
+                if (nextBoxSec) {
+                  if (nextBoxSec.type === 'moov') {
+                    self.getData(mdatStart, mdatStart + nextBoxSec.size - 1).then(function (resThi) {
+                      var parsedThi = new _parse2.default(resThi);
+                      self._boxes = self._boxes.concat(parsedThi.boxes);
+                      parsedThi.boxes.every(function (item) {
+                        if (item.type === 'moov') {
+                          mdatStart += item.size;
+                          moov = item;
+                          self.moovBox = moov;
+                          self.moovBuffer = resSec.slice(0, moov.size);
+                          self.emit('mdatReady', moov);
+                          return false;
+                        } else {
+                          mdatStart += item.size;
+                          return true;
+                        }
+                      });
+                      if (!moov) {
+                        self.emit('error', new _error2.default('parse', '', { line: 207, handle: '[MP4] init', msg: 'not find moov box' }));
+                      }
+                    }).catch(function () {
+                      self.emit('error', new _error2.default('network', '', { line: 210, handle: '[MP4] getData', msg: 'getData failed' }));
+                    });
+                  } else {
+                    self.emit('error', new _error2.default('parse', '', { line: 213, handle: '[MP4] init', msg: 'not find moov box' }));
+                  }
+                } else {
+                  self.emit('error', new _error2.default('parse', '', { line: 216, handle: '[MP4] init', msg: 'not find moov box' }));
+                }
+              }
+            }).catch(function () {
+              self.emit('error', new _error2.default('network', '', { line: 220, handle: '[MP4] getData', msg: 'getData failed' }));
+            });
           }
         }
       }).catch(function () {
@@ -4339,7 +4414,7 @@ module.exports = exports['default'];
 /* 80 */
 /***/ (function(module) {
 
-module.exports = {"name":"xgplayer-m4a","version":"1.1.0","description":"xgplayer plugin for m4a transform to fmp4","main":"./dist/index.js","scripts":{"prepare":"npm run build","build":"webpack --progress --display-chunks -p","watch":"webpack --progress --display-chunks -p --watch"},"repository":{"type":"git","url":"git@github.com:bytedance/xgplayer.git"},"babel":{"presets":["es2015"],"plugins":["add-module-exports","babel-plugin-bulk-import"]},"keywords":["mp4","fmp4","player","audio"],"author":"yinguohui@bytedance.com","license":"MIT","dependencies":{"babel-loader":"^7.1.4","babel-plugin-add-module-exports":"^0.2.1","babel-plugin-bulk-import":"^1.0.2","babel-preset-es2015":"^6.24.1","concat-typed-array":"^1.0.2","deepmerge":"^2.0.1","event-emitter":"^0.3.5","import-local":"^2.0.0","json-loader":"^0.5.7","webpack":"^4.11.0"},"peerDependency":{"xgplayer":"^0.1.0"},"devDependencies":{"babel-core":"^6.26.3"}};
+module.exports = {"name":"xgplayer-m4a","version":"1.1.4-alpha.1","description":"xgplayer plugin for m4a transform to fmp4","main":"./dist/index.js","scripts":{"prepare":"npm run build","build":"webpack --progress --display-chunks -p","watch":"webpack --progress --display-chunks -p --watch"},"repository":{"type":"git","url":"git@github.com:bytedance/xgplayer.git"},"babel":{"presets":["es2015"],"plugins":["add-module-exports","babel-plugin-bulk-import"]},"keywords":["mp4","fmp4","player","audio"],"author":"yinguohui@bytedance.com","license":"MIT","dependencies":{"babel-loader":"^7.1.4","babel-plugin-add-module-exports":"^0.2.1","babel-plugin-bulk-import":"^1.0.2","babel-preset-es2015":"^6.24.1","concat-typed-array":"^1.0.2","deepmerge":"^2.0.1","event-emitter":"^0.3.5","import-local":"^2.0.0","json-loader":"^0.5.7","webpack":"^4.11.0"},"peerDependency":{"xgplayer":"^0.1.0"},"devDependencies":{"babel-core":"^6.26.3"}};
 
 /***/ }),
 /* 81 */
