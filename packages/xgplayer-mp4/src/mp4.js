@@ -355,7 +355,6 @@ class MP4 {
       return this.loadFragment(fragIndex)
     }
   }
-
   loadFragment (fragIndex) {
     let start,
       end
@@ -441,6 +440,122 @@ class MP4 {
 
   download () {
     // new Download('fmp4.mp4', this.cache.buffer)
+  }
+
+  cut (start, end) {
+    let self = this
+    this.bufferCache.clear()
+    let timeStart = start * this.meta.videoTimeScale
+    let timeEnd = end * this.meta.videoTimeScale
+    let fragIndexStart
+    let fragIndexEnd
+
+    let videoFrames = this.videoKeyFrames
+    let audioFrames = this.audioKeyFrames
+    videoFrames.every((item, idx) => {
+      let nowTime = item.time.time
+
+      let nextTime = videoFrames[idx + 1]
+        ? videoFrames[idx + 1].time.time
+        : Number.MAX_SAFE_INTEGER
+      if (nowTime <= timeStart && timeStart < nextTime) {
+        fragIndexStart = idx
+        return true
+      } else if (nowTime <= timeEnd && timeEnd < nextTime) {
+        fragIndexEnd = idx
+        return false
+      } else {
+        return true
+      }
+    })
+    audioFrames.every((item, idx) => {
+      let nowTime = item.startTime
+
+      let nextTime = audioFrames[idx + 1]
+        ? audioFrames[idx + 1].startTime
+        : Number.MAX_SAFE_INTEGER
+      if (nowTime <= timeStart && timeStart < nextTime) {
+        fragIndexStart = Math.min(idx, fragIndexStart)
+        return true
+      } else if (nowTime <= timeEnd && timeEnd < nextTime) {
+        fragIndexEnd = Math.min(idx, fragIndexEnd)
+        return false
+      } else {
+        return true
+      }
+    })
+    if (!fragIndexEnd) {
+      fragIndexEnd = videoFrames.length
+    }
+    return self.loadFragmentForCut(fragIndexStart, fragIndexEnd)
+  }
+  loadFragmentForCut (fragIndexStart, fragIndexEnd) {
+    let start,
+      end
+    let videoStartFrame = this.videoKeyFrames[fragIndexStart]
+    let audioStartFrame = this.getSamplesByOrders('audio', this.audioKeyFrames[fragIndexStart].order, 0)
+    start = Math.min(videoStartFrame.offset, audioStartFrame.offset)
+    let videoEndFrame = this.videoKeyFrames[fragIndexEnd]
+    let audioEndFrame = this.getSamplesByOrders('audio', this.audioKeyFrames[fragIndexEnd].order, 0)
+    end = Math.max(videoEndFrame.offset, audioEndFrame.offset)
+    let self = this
+    if (window.isNaN(start) || (end !== undefined && window.isNaN(end))) {
+      self.emit('error', new Errors('parse', '', { line: 366, handle: '[MP4] loadFragment', url: self.url }))
+      return false
+    }
+    return this.getData(
+      start + self.mdatStart, end
+        ? self.mdatStart + end
+        : '').then((dat) => {
+      return self.createFragmentForCut(new Uint8Array(dat), start, fragIndexStart, end, fragIndexEnd)
+    })
+  }
+  createFragmentForCut (mdatData, start, fragIndexStart, end, fragIndexEnd) {
+    let self = this
+    let resBuffers = []
+    {
+      let framesIndex = self.videoKeyFrames.map((item) => item.idx)
+      let _samples = self.getSamplesByOrders('video', framesIndex[fragIndexStart], framesIndex[fragIndexEnd])
+      let samples = _samples.map((item, idx) => {
+        return {
+          size: item.size,
+          duration: item.time.duration,
+          offset: item.time.offset,
+          buffer: new Uint8Array(mdatData.slice(item.offset - start, item.offset - start + item.size)),
+          key: idx === 0
+        }
+      })
+      resBuffers.push(this.addFragment({id: 1, time: 0, firstFlags: 0x2000000, flags: 0xf01, samples}))
+    }
+    let _samples = this.getSamplesByOrders(
+      'audio', this.audioKeyFrames[fragIndexStart].order, this.audioKeyFrames[fragIndexEnd]
+        ? this.audioKeyFrames[fragIndexEnd].order
+        : undefined)
+    let samples = _samples.map((item, idx) => {
+      return {
+        size: item.size,
+        duration: item.time.duration,
+        offset: item.time.offset,
+        buffer: new Uint8Array(mdatData.slice(item.offset - start, item.offset - start + item.size)),
+        key: idx === 0
+      }
+    })
+    resBuffers.push(this.addFragment({id: 2, time: 0, firstFlags: 0x00, flags: 0x701, samples: samples}))
+
+    let bufferSize = 0
+    resBuffers.every(item => {
+      bufferSize += item.byteLength
+      return true
+    })
+    let buffer = new Uint8Array(bufferSize)
+
+    let offset = 0
+    resBuffers.every(item => {
+      buffer.set(item, offset)
+      offset += item.byteLength
+      return true
+    })
+    return Promise.resolve(buffer)
   }
 }
 
