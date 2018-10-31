@@ -102,6 +102,9 @@
     @at-root .xgplayer-nostart &{
         display: none;
     }
+    @at-root .no-controls &{
+        display: none !important;
+    }
     @at-root .xgplayer-inactive & {
         display: none;
     }
