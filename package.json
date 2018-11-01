@@ -71,6 +71,5 @@
       "path": "./node_modules/cz-conventional-changelog"
     }
   },
-  "homepage": "https://github.com/bytedance/xgplayer#readme",
-  "dependencies": {}
+  "homepage": "https://github.com/bytedance/xgplayer#readme"
 }

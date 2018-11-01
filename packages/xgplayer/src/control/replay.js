@@ -23,7 +23,7 @@ let replay = function () {
       img.style.width = `${width}${unit}`
       img.style.height = `${height}${unit}`
       img.style.backgroundSize = `${width}${unit} ${height}${unit}`
-      img.style.margin = `-${height/2}${unit} auto auto -${width/2}${unit}`
+      img.style.margin = `-${height / 2}${unit} auto auto -${width / 2}${unit}`
     }
   } else {
     iconPath = {
