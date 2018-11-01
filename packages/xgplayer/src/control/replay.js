@@ -4,6 +4,9 @@ let replay = function () {
   let player = this; let util = Player.util
   let centerBtn = player.config.centerBtn ? player.config.centerBtn : {}
   let iconPath, btn, img, svg
+  if (navigator.userAgent.indexOf('iPhone OS 9') > -1) {
+    return
+  }
   if (centerBtn.type === 'img') {
     btn = util.createDom('xg-replay', '<div class="xgplayer-replay-img"></div>', {}, 'xgplayer-replay')
     img = btn.querySelector('.xgplayer-replay-img')

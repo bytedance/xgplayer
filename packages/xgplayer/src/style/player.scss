@@ -752,6 +752,9 @@
     @at-root .xgplayer-inactive & {
         display: none;
     }
+    @at-root .xgplayer-nostart & {
+        display: none;
+    }
 }
 .xgplayer-replay{
     position: absolute;
