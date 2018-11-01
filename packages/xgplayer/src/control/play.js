@@ -11,8 +11,8 @@ let play = function () {
   let btn = util.createDom('xg-play', `<xg-icon class="xgplayer-icon"><svg xmlns="http://www.w3.org/2000/svg" width="1024" height="1024" viewBox="0 0 1024 1024">
             <path transform="scale(${scale} ${scale})" d="${iconPath.play}"></path>
         </svg></xg-icon>`)
-  let tipsPlay = player.config.lang && player.config.lang === "zh-cn" ? "播放" : "Play"
-  let tipsPause = player.config.lang && player.config.lang === "zh-cn" ? "暂停" : "Pause"
+  let tipsPlay = player.config.lang && player.config.lang === 'zh-cn' ? '播放' : 'Play'
+  let tipsPause = player.config.lang && player.config.lang === 'zh-cn' ? '暂停' : 'Pause'
   let tips = util.createDom('xg-tips', tipsPlay, {}, 'xgplayer-tips')
   let path = btn.querySelector('path')
   btn.appendChild(tips)
@@ -45,17 +45,21 @@ let play = function () {
   })
 
   player.on('play', () => {
-    tips.textContent = tipsPause
-    if (svg.to !== iconPath.pause) {
-      svg.reset(iconPath.pause, iconPath.play)
-    }
+    setTimeout(() => {
+      tips.textContent = tipsPause
+      if (svg.to !== iconPath.pause) {
+        svg.reset(iconPath.pause, iconPath.play)
+      }
+    }, 80)
   })
 
   player.on('pause', () => {
-    tips.textContent = tipsPlay
-    if (svg.to !== iconPath.play) {
-      svg.reset(iconPath.play, iconPath.pause)
-    }
+    setTimeout(() => {
+      tips.textContent = tipsPlay
+      if (svg.to !== iconPath.play) {
+        svg.reset(iconPath.play, iconPath.pause)
+      }
+    }, 80)
   })
   player.once('destroy', () => {
     btn = null

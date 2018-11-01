@@ -96,7 +96,11 @@ class Player extends Proxy {
       this.on(item, this['on' + item.charAt(0).toUpperCase() + item.slice(1)])
     })
     let player = this
-    this.root.addEventListener('mousemove', () => { player.onFocus() })
+    this.root.addEventListener('mousemove', () => { player.emit('focus') })
+    player.once('play', () => {
+      player.emit('focus')
+      player.video.focus()
+    })
 
     setTimeout(() => {
       this.emit('ready')
@@ -106,42 +110,61 @@ class Player extends Proxy {
     }
 
     if (!this.config.keyShortcut || this.config.keyShortcut === 'on') {
-      document.onkeydown = event => {
-        var e = event || window.event
-        if (e && e.keyCode === 37) { // 按 left
-          player.onFocus()
-          if (player.currentTime - 10 >= 0) {
-            player.currentTime -= 10
-          } else {
-            player.currentTime = 0
+      ['video', 'controls'].forEach(item => {
+        player[item].onkeydown = event => {
+          var e = event || window.event
+          if (e && (e.keyCode === 37 || e.keyCode === 38 || e.keyCode === 39 || e.keyCode === 40 || e.keyCode === 32)) {
+            player.emit('focus')
           }
-        } else if (e && e.keyCode === 38) { // 按 up
-          if (player.volume + 0.1 <= 1) {
-            player.volume += 0.1
-          } else {
-            player.volume = 1
-          }
-        } else if (e && e.keyCode === 39) { // 按 right
-          player.onFocus()
-          if (player.currentTime + 10 <= player.duration) {
-            player.currentTime += 10
-          } else {
-            player.currentTime = player.duration - 1
-          }
-        } else if (e && e.keyCode === 40) { // 按 down
-          if (player.volume - 0.1 >= 0) {
-            player.volume -= 0.1
-          } else {
-            player.volume = 0
-          }
-        } else if (e && e.keyCode === 32) { // 按 spacebar
-          if (player.paused) {
-            player.play()
-          } else {
-            player.pause()
+          if (e && (e.keyCode === 40 || e.keyCode === 38)) {
+            if (player.controls) {
+              let volumeSlider = player.controls.querySelector('.xgplayer-slider')
+              if (volumeSlider) {
+                if (util.hasClass(volumeSlider, 'xgplayer-none')) {
+                  util.removeClass(volumeSlider, 'xgplayer-none')
+                }
+                if (player.sliderTimer) {
+                  clearTimeout(player.sliderTimer)
+                }
+                player.sliderTimer = setTimeout(function () {
+                  util.addClass(volumeSlider, 'xgplayer-none')
+                }, player.config.inactive)
+              }
+            }
+            if (e && e.keyCode === 40) { // 按 down
+              if (player.volume - 0.1 >= 0) {
+                player.volume -= 0.1
+              } else {
+                player.volume = 0
+              }
+            } else if (e && e.keyCode === 38) { // 按 up
+              if (player.volume + 0.1 <= 1) {
+                player.volume += 0.1
+              } else {
+                player.volume = 1
+              }
+            }
+          } else if (e && e.keyCode === 39) { // 按 right
+            if (player.currentTime + 10 <= player.duration) {
+              player.currentTime += 10
+            } else {
+              player.currentTime = player.duration - 1
+            }
+          } else if (e && e.keyCode === 37) { // 按 left
+            if (player.currentTime - 10 >= 0) {
+              player.currentTime -= 10
+            } else {
+              player.currentTime = 0
+            }
+          } else if (e && e.keyCode === 32) { // 按 spacebar
+            if (player.paused) {
+              player.play()
+            } else {
+              player.pause()
+            }
           }
         }
-      }
+      })
     }
   }
 
@@ -168,9 +191,6 @@ class Player extends Proxy {
       this.video.addEventListener('canplay', autoFunc)
     }
     root.insertBefore(this.video, root.firstChild)
-    player.userTimer = setTimeout(function () {
-      player.emit('blur')
-    }, player.config.inactive)
     setTimeout(() => {
       this.emit('complete')
     }, 1)
@@ -200,7 +220,11 @@ class Player extends Proxy {
       this.off(item, this['on' + item.charAt(0).toUpperCase() + item.slice(1)])
     })
     if (!this.config.keyShortcut || this.config.keyShortcut === 'on') {
-      document.onkeydown = undefined
+      ['video', 'controls'].forEach(item => {
+        if (this[item]) {
+          this[item].onkeydown = undefined
+        }
+      })
     }
     if (!this.paused) {
       this.pause()
@@ -270,6 +294,7 @@ class Player extends Proxy {
   }
 
   onBlur () {
+    // this.video.blur()
     if (!this.paused && !this.ended) {
       util.addClass(this.root, 'xgplayer-inactive')
     }

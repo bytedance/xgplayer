@@ -197,7 +197,7 @@ let mobile = function () {
     let pathVolume = container.querySelectorAll('path')[1]
     let svgVolume = new SVG({
       progress: (shape, percent) => {
-        let _p = svg.toSVGString(shape)
+        let _p = svgVolume.toSVGString(shape)
         pathVolume.setAttribute('d', _p)
         curIocnPath = _p
       },
