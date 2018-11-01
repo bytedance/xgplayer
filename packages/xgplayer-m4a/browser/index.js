@@ -2085,6 +2085,55 @@ var m4aplayer = function m4aplayer() {
     if (!rule.call(player)) {
       return false;
     }
+    player.cut = function () {
+      var start = arguments.length > 0 && arguments[0] !== undefined ? arguments[0] : 0;
+      var end = arguments[1];
+
+      var segment = new _buffer2.default();
+      return new Promise(function (resolve, reject) {
+        var mp4 = new _mp2.default(url);
+        mp4.once('mdatReady', function () {
+          if (!end || end <= start) {
+            end = start + 15;
+          }
+          if (end > mp4.meta.audioDuration) {
+            start = mp4.meta.audioDuration - (end - start);
+            end = mp4.meta.audioDuration;
+          }
+          mp4.reqTimeLength = end - start;
+          mp4.cut = true;
+          mp4.seek(start).then(function (buffer) {
+            if (buffer) {
+              var meta = _xgplayer2.default.util.deepCopy({
+                duration: mp4.reqTimeLength,
+                audioDuration: mp4.reqTimeLength,
+                endTime: mp4.reqTimeLength
+              }, mp4.meta);
+              meta.duration = mp4.reqTimeLength;
+              meta.audioDuration = mp4.reqTimeLength;
+              meta.endTime = mp4.reqTimeLength;
+              segment.write(mp4.packMeta(meta), buffer);
+              resolve(new Blob([segment.buffer], { type: 'audio/mp4; codecs="mp4a.40.5"' }));
+            }
+          });
+        });
+        mp4.on('error', function (e) {
+          reject(e);
+        });
+      });
+    };
+    if (player.config.segPlay) {
+      var sp = player.config.segPlay;
+      player.cut(sp.start, sp.end).then(function (blob) {
+        if (blob) {
+          player.config.url = URL.createObjectURL(blob);
+          player.start(player.config.url);
+        }
+      }, function () {
+        console.log('error');
+      });
+      return;
+    }
     Object.defineProperty(player, 'src', {
       get: function get() {
         return player.currentSrc;
@@ -2130,43 +2179,6 @@ var m4aplayer = function m4aplayer() {
           var start = player.buffered.start(0);
           player.currentTime = start + 0.1;
         }
-      });
-    };
-    player.cut = function () {
-      var start = arguments.length > 0 && arguments[0] !== undefined ? arguments[0] : 0;
-      var end = arguments[1];
-
-      var segment = new _buffer2.default();
-      return new Promise(function (resolve, reject) {
-        var mp4 = new _mp2.default(url);
-        mp4.once('mdatReady', function () {
-          if (!end || end <= start) {
-            end = start + 15;
-          }
-          if (end > mp4.meta.audioDuration) {
-            start = mp4.meta.audioDuration - (end - start);
-            end = mp4.meta.audioDuration;
-          }
-          mp4.reqTimeLength = end - start;
-          mp4.cut = true;
-          mp4.seek(start).then(function (buffer) {
-            if (buffer) {
-              var meta = _xgplayer2.default.util.deepCopy({
-                duration: mp4.reqTimeLength,
-                audioDuration: mp4.reqTimeLength,
-                endTime: mp4.reqTimeLength
-              }, mp4.meta);
-              meta.duration = mp4.reqTimeLength;
-              meta.audioDuration = mp4.reqTimeLength;
-              meta.endTime = mp4.reqTimeLength;
-              segment.write(mp4.packMeta(meta), buffer);
-              resolve(new Blob([segment.buffer], { type: 'audio/mp4; codecs="mp4a.40.5"' }));
-            }
-          });
-        });
-        mp4.on('error', function (e) {
-          reject(e);
-        });
       });
     };
 
@@ -4404,7 +4416,7 @@ module.exports = exports['default'];
 /* 80 */
 /***/ (function(module) {
 
-module.exports = {"name":"xgplayer-m4a","version":"1.1.4-alpha.1","description":"xgplayer plugin for m4a transform to fmp4","main":"./dist/index.js","scripts":{"prepare":"npm run build","build":"webpack --progress --display-chunks -p","watch":"webpack --progress --display-chunks -p --watch"},"repository":{"type":"git","url":"git@github.com:bytedance/xgplayer.git"},"babel":{"presets":["es2015"],"plugins":["add-module-exports","babel-plugin-bulk-import"]},"keywords":["mp4","fmp4","player","audio"],"author":"yinguohui@bytedance.com","license":"MIT","dependencies":{"babel-loader":"^7.1.4","babel-plugin-add-module-exports":"^0.2.1","babel-plugin-bulk-import":"^1.0.2","babel-preset-es2015":"^6.24.1","concat-typed-array":"^1.0.2","deepmerge":"^2.0.1","event-emitter":"^0.3.5","import-local":"^2.0.0","json-loader":"^0.5.7","webpack":"^4.11.0"},"peerDependency":{"xgplayer":"^0.1.0"},"devDependencies":{"babel-core":"^6.26.3"}};
+module.exports = {"name":"xgplayer-m4a","version":"1.1.4-alpha.2","description":"xgplayer plugin for m4a transform to fmp4","main":"./dist/index.js","scripts":{"prepare":"npm run build","build":"webpack --progress --display-chunks -p","watch":"webpack --progress --display-chunks -p --watch"},"repository":{"type":"git","url":"git@github.com:bytedance/xgplayer.git"},"babel":{"presets":["es2015"],"plugins":["add-module-exports","babel-plugin-bulk-import"]},"keywords":["mp4","fmp4","player","audio"],"author":"yinguohui@bytedance.com","license":"MIT","dependencies":{"babel-loader":"^7.1.4","babel-plugin-add-module-exports":"^0.2.1","babel-plugin-bulk-import":"^1.0.2","babel-preset-es2015":"^6.24.1","concat-typed-array":"^1.0.2","deepmerge":"^2.0.1","event-emitter":"^0.3.5","import-local":"^2.0.0","json-loader":"^0.5.7","webpack":"^4.11.0"},"peerDependency":{"xgplayer":"^0.1.0"},"devDependencies":{"babel-core":"^6.26.3"}};
 
 /***/ }),
 /* 81 */

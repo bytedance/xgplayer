@@ -959,6 +959,9 @@
     .xgplayer-start-img{
         display: none;
     }
+    .xgplayer-tips{
+        display: none !important;
+    }
     &.xgplayer-nostart{
         .xgplayer-start{
             margin: -30px auto auto -30px;
