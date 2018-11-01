@@ -96,7 +96,7 @@ class Player extends Proxy {
       this.on(item, this['on' + item.charAt(0).toUpperCase() + item.slice(1)])
     })
     let player = this
-    this.root.addEventListener('mousemove', () => { player.emit('focus'); player.video.focus() })
+    this.root.addEventListener('mousemove', () => { player.emit('focus') })
     player.once('play', () => {
       player.emit('focus')
       player.video.focus()
@@ -110,59 +110,61 @@ class Player extends Proxy {
     }
 
     if (!this.config.keyShortcut || this.config.keyShortcut === 'on') {
-      this.video.onkeydown = event => {
-        var e = event || window.event
-        if (e && (e.keyCode === 37 || e.keyCode === 38 || e.keyCode === 39 || e.keyCode === 40 || e.keyCode === 32)) {
-          player.emit('focus')
-        }
-        if (e && (e.keyCode === 40 || e.keyCode === 38)) {
-          if (player.controls) {
-            let volumeSlider = player.controls.querySelector('.xgplayer-slider')
-            if (volumeSlider) {
-              if (util.hasClass(volumeSlider, 'xgplayer-none')) {
-                util.removeClass(volumeSlider, 'xgplayer-none')
+      ['video', 'controls'].forEach(item => {
+        player[item].onkeydown = event => {
+          var e = event || window.event
+          if (e && (e.keyCode === 37 || e.keyCode === 38 || e.keyCode === 39 || e.keyCode === 40 || e.keyCode === 32)) {
+            player.emit('focus')
+          }
+          if (e && (e.keyCode === 40 || e.keyCode === 38)) {
+            if (player.controls) {
+              let volumeSlider = player.controls.querySelector('.xgplayer-slider')
+              if (volumeSlider) {
+                if (util.hasClass(volumeSlider, 'xgplayer-none')) {
+                  util.removeClass(volumeSlider, 'xgplayer-none')
+                }
+                if (player.sliderTimer) {
+                  clearTimeout(player.sliderTimer)
+                }
+                player.sliderTimer = setTimeout(function () {
+                  util.addClass(volumeSlider, 'xgplayer-none')
+                }, player.config.inactive)
               }
-              if (player.sliderTimer) {
-                clearTimeout(player.sliderTimer)
+            }
+            if (e && e.keyCode === 40) { // 按 down
+              if (player.volume - 0.1 >= 0) {
+                player.volume -= 0.1
+              } else {
+                player.volume = 0
               }
-              player.sliderTimer = setTimeout(function () {
-                util.addClass(volumeSlider, 'xgplayer-none')
-              }, player.config.inactive)
+            } else if (e && e.keyCode === 38) { // 按 up
+              if (player.volume + 0.1 <= 1) {
+                player.volume += 0.1
+              } else {
+                player.volume = 1
+              }
             }
-          }
-          if (e && e.keyCode === 40) { // 按 down
-            if (player.volume - 0.1 >= 0) {
-              player.volume -= 0.1
+          } else if (e && e.keyCode === 39) { // 按 right
+            if (player.currentTime + 10 <= player.duration) {
+              player.currentTime += 10
             } else {
-              player.volume = 0
+              player.currentTime = player.duration - 1
             }
-          } else if (e && e.keyCode === 38) { // 按 up
-            if (player.volume + 0.1 <= 1) {
-              player.volume += 0.1
+          } else if (e && e.keyCode === 37) { // 按 left
+            if (player.currentTime - 10 >= 0) {
+              player.currentTime -= 10
             } else {
-              player.volume = 1
+              player.currentTime = 0
             }
-          }
-        } else if (e && e.keyCode === 39) { // 按 right
-          if (player.currentTime + 10 <= player.duration) {
-            player.currentTime += 10
-          } else {
-            player.currentTime = player.duration - 1
-          }
-        } else if (e && e.keyCode === 37) { // 按 left
-          if (player.currentTime - 10 >= 0) {
-            player.currentTime -= 10
-          } else {
-            player.currentTime = 0
-          }
-        } else if (e && e.keyCode === 32) { // 按 spacebar
-          if (player.paused) {
-            player.play()
-          } else {
-            player.pause()
+          } else if (e && e.keyCode === 32) { // 按 spacebar
+            if (player.paused) {
+              player.play()
+            } else {
+              player.pause()
+            }
           }
         }
-      }
+      })
     }
   }
 
@@ -217,8 +219,12 @@ class Player extends Proxy {
     ['focus', 'blur'].forEach(item => {
       this.off(item, this['on' + item.charAt(0).toUpperCase() + item.slice(1)])
     })
-    if (this.video && (!this.config.keyShortcut || this.config.keyShortcut === 'on')) {
-      this.video.onkeydown = undefined
+    if (!this.config.keyShortcut || this.config.keyShortcut === 'on') {
+      ['video', 'controls'].forEach(item => {
+        if (this[item]) {
+          this[item].onkeydown = undefined
+        }
+      })
     }
     if (!this.paused) {
       this.pause()

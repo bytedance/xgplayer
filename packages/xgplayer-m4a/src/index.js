@@ -119,6 +119,52 @@ let m4aplayer = function () {
     if (!rule.call(player)) {
       return false
     }
+    player.cut = function (start = 0, end) {
+      let segment = new Buffer()
+      return new Promise((resolve, reject) => {
+        let mp4 = new MP4(url)
+        mp4.once('mdatReady', () => {
+          if (!end || end <= start) {
+            end = start + 15
+          }
+          if (end > mp4.meta.audioDuration) {
+            start = mp4.meta.audioDuration - (end - start)
+            end = mp4.meta.audioDuration
+          }
+          mp4.reqTimeLength = end - start
+          mp4.cut = true
+          mp4.seek(start).then(buffer => {
+            if (buffer) {
+              let meta = Player.util.deepCopy({
+                duration: mp4.reqTimeLength,
+                audioDuration: mp4.reqTimeLength,
+                endTime: mp4.reqTimeLength
+              }, mp4.meta)
+              meta.duration = mp4.reqTimeLength
+              meta.audioDuration = mp4.reqTimeLength
+              meta.endTime = mp4.reqTimeLength
+              segment.write(mp4.packMeta(meta), buffer)
+              resolve(new Blob([segment.buffer], {type: 'audio/mp4; codecs="mp4a.40.5"'}))
+            }
+          })
+        })
+        mp4.on('error', (e) => {
+          reject(e)
+        })
+      })
+    }
+    if (player.config.segPlay) {
+      let sp = player.config.segPlay
+      player.cut(sp.start, sp.end).then(blob => {
+        if (blob) {
+          player.config.url = URL.createObjectURL(blob)
+          player.start(player.config.url)
+        }
+      }, () => {
+        console.log('error')
+      })
+      return
+    }
     Object.defineProperty(player, 'src', {
       get () {
         return player.currentSrc
@@ -161,40 +207,6 @@ let m4aplayer = function () {
           let start = player.buffered.start(0)
           player.currentTime = start + 0.1
         }
-      })
-    }
-    player.cut = function (start = 0, end) {
-      let segment = new Buffer()
-      return new Promise((resolve, reject) => {
-        let mp4 = new MP4(url)
-        mp4.once('mdatReady', () => {
-          if (!end || end <= start) {
-            end = start + 15
-          }
-          if (end > mp4.meta.audioDuration) {
-            start = mp4.meta.audioDuration - (end - start)
-            end = mp4.meta.audioDuration
-          }
-          mp4.reqTimeLength = end - start
-          mp4.cut = true
-          mp4.seek(start).then(buffer => {
-            if (buffer) {
-              let meta = Player.util.deepCopy({
-                duration: mp4.reqTimeLength,
-                audioDuration: mp4.reqTimeLength,
-                endTime: mp4.reqTimeLength
-              }, mp4.meta)
-              meta.duration = mp4.reqTimeLength
-              meta.audioDuration = mp4.reqTimeLength
-              meta.endTime = mp4.reqTimeLength
-              segment.write(mp4.packMeta(meta), buffer)
-              resolve(new Blob([segment.buffer], {type: 'audio/mp4; codecs="mp4a.40.5"'}))
-            }
-          })
-        })
-        mp4.on('error', (e) => {
-          reject(e)
-        })
       })
     }
 

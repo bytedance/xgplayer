@@ -78,9 +78,14 @@ class Music extends Player {
     })
     this.on('ended', () => {
       if (this.mode === 'order' && this.index + 1 >= this.list.length) {
+        this.pause()
+        this.currentTime = 0
         return
       }
       switch (this.mode) {
+        case 'sloop':
+          this.change()
+          break
         case 'order':
         case 'loop':
         default:
@@ -88,10 +93,12 @@ class Music extends Player {
           break
       }
     })
-    this.checkOffline(player.list[0].src, player.list[0].vid || player.list[0].name).then(url => {
-      player.config.url = url
-      this.start(url)
-    })
+    if (!this.config.segPlay) {
+      this.checkOffline(player.list[0].src, player.list[0].vid || player.list[0].name).then(url => {
+        player.config.url = url
+        player.start(url)
+      })
+    }
   }
   lyric (lyricTxts, Dom) {
     if (this.__lyric__) {
@@ -127,13 +134,14 @@ class Music extends Player {
   }
 
   get mode () {
-    return mode || Music.ModeType[0]
+    return mode || Music.ModeType[2]
   }
   set mode (idx) {
     switch (idx) {
       case 0:
       case 1:
       case 2:
+      case 3:
         mode = Music.ModeType[idx]
     }
     this.confirmOrder()
@@ -141,6 +149,7 @@ class Music extends Player {
 
   nextComput () {
     switch (this.mode) {
+      case 'sloop':
       case 'order':
       case 'loop':
         if (this.index + 1 < this.list.length) {
@@ -156,6 +165,7 @@ class Music extends Player {
   }
   prevComput () {
     switch (this.mode) {
+      case 'sloop':
       case 'order':
       case 'loop':
         if (this.index - 1 >= 0) {
@@ -275,7 +285,7 @@ class Music extends Player {
     return window.AudioContext || window.webkitAudioContext
   }
   static get ModeType () {
-    return ['order', 'random', 'loop']
+    return ['order', 'random', 'loop', 'sloop']
   }
 }
 

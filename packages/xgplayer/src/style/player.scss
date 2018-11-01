@@ -102,6 +102,9 @@
     @at-root .xgplayer-nostart &{
         display: none;
     }
+    @at-root .no-controls &{
+        display: none !important;
+    }
     @at-root .xgplayer-inactive & {
         display: none;
     }
@@ -964,6 +967,9 @@
     }
     .xgplayer-start-img{
         display: none;
+    }
+    .xgplayer-tips{
+        display: none !important;
     }
     &.xgplayer-nostart{
         .xgplayer-start{
