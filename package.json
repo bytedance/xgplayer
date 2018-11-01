@@ -14,6 +14,7 @@
     "eslint-plugin-node": "^6.0.1",
     "eslint-plugin-promise": "^3.8.0",
     "eslint-plugin-standard": "^3.1.0",
+    "file-loader": "^2.0.0",
     "koa": "^2.5.1",
     "koa-range": "^0.3.0",
     "koa-static": "^4.0.3",
@@ -21,6 +22,7 @@
     "lerna-changelog": "^0.8.0",
     "lint-staged": "^7.2.0",
     "style-loader": "^0.21.0",
+    "svg-url-loader": "^2.3.2",
     "webpack": "^4.12.0",
     "webpack-cli": "^3.0.8",
     "webworkify-webpack-dropin": "^1.1.9"
@@ -72,5 +74,7 @@
     }
   },
   "homepage": "https://github.com/bytedance/xgplayer#readme",
-  "dependencies": {}
+  "dependencies": {
+    "svg-inline-loader": "^0.8.0"
+  }
 }

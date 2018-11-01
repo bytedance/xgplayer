@@ -362,7 +362,6 @@
         opacity: 0.85;
     }
 }
-
 .xgplayer-textTrack{
     order: 7;
     width: 60px;
@@ -520,9 +519,7 @@
     outline: none;
     display: block;
     cursor: pointer;
-    margin-left: 10px;
-    margin-top: 9px;
-    margin-bottom: 11px;
+    margin: 10px;
     height: 20px;
     .name {
         text-align: center;
@@ -740,7 +737,19 @@
         display: block;
     }
 }
-
+.xgplayer-rotate-img {
+    position: absolute;
+    top: 0;
+    right: 0;
+    width: 35px;
+    height: 35px;
+    cursor: pointer;
+    border-radius: 100%;
+    background-color: rgba(0,0,0,.58);
+    @at-root .xgplayer-inactive & {
+        display: none;
+    }
+}
 .xgplayer-replay{
     position: absolute;
     left: 0;
