@@ -113,6 +113,7 @@
             display: none;
         }
         .xgplayer-play,
+        .xgplayer-play-img,
         .xgplayer-placeholder,
         .xgplayer-volume,
         .xgplayer-live,
@@ -199,7 +200,7 @@
         display: block
     }
 }
-.xgplayer-play{
+.xgplayer-play, .xgplayer-play-img{
     position: relative;
     order: 0;
     display: block;
@@ -208,6 +209,7 @@
         margin-top: 3px;
     }
     &:hover{
+        opacity: 0.85;
         .xgplayer-tips{
             display: block;
         }

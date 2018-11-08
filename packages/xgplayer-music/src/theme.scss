@@ -3,27 +3,39 @@
         display: flex;
         height: 50px;
         cursor: default;
-        .xgplayer-backward {
+        .xgplayer-backward, .xgplayer-backward-img {
             order: 0;
             cursor: pointer;
+            &:hover{
+                opacity: 0.85;
+            }
         }
-        .xgplayer-prev {
+        .xgplayer-prev, .xgplayer-prev-img {
             order: 1;
             cursor: pointer;
+            &:hover{
+                opacity: 0.85;
+            }
         }
-        .xgplayer-play {
+        .xgplayer-play, .xgplayer-play-img {
             order: 2;
             .xgplayer-tips {
                 display: none;
             }
         }
-        .xgplayer-next {
+        .xgplayer-next, .xgplayer-next-img {
             order: 3;
             cursor: pointer;
+            &:hover{
+                opacity: 0.85;
+            }
         }
-        .xgplayer-forward {
+        .xgplayer-forward, .xgplayer-forward-img {
             order: 4;
             cursor: pointer;
+            &:hover{
+                opacity: 0.85;
+            }
         }
         .xgplayer-poster {
             position: static;
