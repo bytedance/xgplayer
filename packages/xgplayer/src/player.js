@@ -171,6 +171,7 @@ class Player extends Proxy {
   start (url = this.config.url) {
     let root = this.root
     let player = this
+    this.logParams.pt = new Date().getTime()
     function autoFunc () {
       player.video.play().then(() => {
         // 支持自动播放

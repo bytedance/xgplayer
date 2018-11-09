@@ -4,6 +4,10 @@ import Errors from './error'
 
 class Proxy {
   constructor (options) {
+    this.logParams = {
+      bc: 0,
+      bu_acu_t: 0
+    }
     this._hasStart = false
     this.videoConfig = {
       controls: false,
@@ -77,6 +81,14 @@ class Proxy {
       self.video.addEventListener(name, function () {
         if (name === 'play') {
           self.hasStart = true
+        } else if (name === 'waiting') {
+          self.logParams.bc++
+          self.inWaitingStart = new Date().getTime()
+        } else if (name === 'playing') {
+          if (self.inWaitingStart) {
+            self.logParams.bu_acu_t += new Date().getTime() - self.inWaitingStart
+            self.inWaitingStart = undefined
+          }
         }
         if (name === 'error') {
           if (self.video.error) {
@@ -110,6 +122,10 @@ class Proxy {
           }
         }
       }, false)
+    })
+    this.once('timeupdate', function () {
+      this.logParams.vt = new Date().getTime()
+      this.logParams.vd = this.video.duration
     })
   }
 
