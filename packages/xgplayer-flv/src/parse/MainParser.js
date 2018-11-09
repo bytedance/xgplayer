@@ -346,7 +346,10 @@ export default class MainParser extends TransCoder {
       let currentTime = keyframes.times[mid]
       let nextTime = keyframes.times[mid + 1] ? keyframes.times[mid + 1] : Number.MAX_SAFE_INTEGER
       if ((currentTime <= seekStart && seekStart <= nextTime) || lo === hi) {
-        startFilePos = mid
+        while (keyframes.times[mid] >= seekStart) {
+          mid -= 1
+        }
+        startFilePos = mid - 1
         preloadTime = preloadTime * videoTimeScale + seekStart
         keyframes.times.every(getEndFilePos)
         break
