@@ -171,6 +171,9 @@ class Player extends Proxy {
   start (url = this.config.url) {
     let root = this.root
     let player = this
+    if (!url || url === '') {
+      this.emit('urlNull')
+    }
     this.logParams.pt = new Date().getTime()
     function autoFunc () {
       player.video.play().then(() => {
