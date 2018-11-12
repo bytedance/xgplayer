@@ -47,25 +47,7 @@ let mobile = function () {
   let centerBtn = player.config.centerBtn ? player.config.centerBtn : {}
   let iconPath, btn, path, svg
   if (centerBtn.type === 'img') {
-    btn = util.createDom('xg-start', '', {}, 'xgplayer-start-img')
-    btn.style.backgroundImage = `url("${centerBtn.url.play}")`
-    if (centerBtn.width && centerBtn.height) {
-      let width, height, unit
-      ['px', 'rem', 'em', 'pt', 'dp', 'vw', 'vh', 'vm', '%'].every((item) => {
-        if (centerBtn.width.indexOf(item) > -1 && centerBtn.height.indexOf(item) > -1) {
-          width = parseFloat(centerBtn.width.slice(0, centerBtn.width.indexOf(item)).trim())
-          height = parseFloat(centerBtn.height.slice(0, centerBtn.height.indexOf(item)).trim())
-          unit = item
-          return false
-        } else {
-          return true
-        }
-      })
-      btn.style.width = `${width}${unit}`
-      btn.style.height = `${height}${unit}`
-      btn.style.backgroundSize = `${width}${unit} ${height}${unit}`
-      btn.style.margin = `-${height/2}${unit} auto auto -${width/2}${unit}`
-    }
+    btn = Player.util.createImgBtn('start', centerBtn.url.play, centerBtn.width, centerBtn.height)
   } else {
     iconPath = {
       pause: centerBtn.pausePath ? centerBtn.pausePath : 'M576,363L810,512L576,661zM342,214L576,363L576,661L342,810z',
@@ -164,12 +146,18 @@ let mobile = function () {
         svg.reset(iconPath.pause, iconPath.play)
       }
     })
-
-    player.config.volume = player.config.autoplay ? 0 : (player.config.volume !== null ? player.config.volume : 1)
-    let volume = player.config.volume !== 0 && player.config.volume !== 1 ? 1 : player.config.volume; let scale = 0.0220625
-    if (volume === 0) {
-      player.video.muted = true
+    if (player.config.autoplayMuted) {
+      player.config.volume = player.config.autoplay ? 0 : player.config.volume
     }
+    player.once('canplay', function () {
+      if (player.config.autoplay && player.config.autoplayMuted) {
+        player.volume = 0
+      } else {
+        player.volume = player.config.volume
+      }
+    })
+    let volume = player.config.volume
+    let scale = 0.0220625
     let volumePath = {
       muted: 'M920.4 439.808l-108.544-109.056-72.704 72.704 109.568 108.544-109.056 108.544 72.704 72.704 108.032-109.568 108.544 109.056 72.704-72.704-109.568-108.032 109.056-108.544-72.704-72.704-108.032 109.568z',
       large: 'M940.632 837.632l-72.192-72.192c65.114-64.745 105.412-154.386 105.412-253.44s-40.299-188.695-105.396-253.424l-0.016-0.016 72.192-72.192c83.639 83.197 135.401 198.37 135.401 325.632s-51.762 242.434-135.381 325.612l-0.020 0.020zM795.648 693.248l-72.704-72.704c27.756-27.789 44.921-66.162 44.921-108.544s-17.165-80.755-44.922-108.546l0.002 0.002 72.704-72.704c46.713 46.235 75.639 110.363 75.639 181.248s-28.926 135.013-75.617 181.227l-0.021 0.021z'

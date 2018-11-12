@@ -59,6 +59,7 @@ let definition = function () {
       e.stopPropagation()
       let li = e.target || e.srcElement, a = document.createElement('a')
       if (li && li.tagName.toLocaleLowerCase() === 'li') {
+        player.emit('beforeDefinitionchange', a.href)
         Array.prototype.forEach.call(li.parentNode.childNodes, item => {
           util.removeClass(item, 'definition')
         })

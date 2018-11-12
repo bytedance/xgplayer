@@ -148,4 +148,31 @@ util.clearInterval = function (context, eventName) {
   context._interval[eventName] = null
 }
 
+util.createImgBtn = function (name, imgUrl, width, height) {
+  let btn = util.createDom(`xg-${name}`, '', {}, `xgplayer-${name}-img`)
+  btn.style.backgroundImage = `url("${imgUrl}")`
+  if (width && height) {
+    let w, h, unit
+    ['px', 'rem', 'em', 'pt', 'dp', 'vw', 'vh', 'vm', '%'].every((item) => {
+      if (width.indexOf(item) > -1 && height.indexOf(item) > -1) {
+        w = parseFloat(width.slice(0, width.indexOf(item)).trim())
+        h = parseFloat(height.slice(0, height.indexOf(item)).trim())
+        unit = item
+        return false
+      } else {
+        return true
+      }
+    })
+    btn.style.width = `${w}${unit}`
+    btn.style.height = `${h}${unit}`
+    btn.style.backgroundSize = `${w}${unit} ${h}${unit}`
+    if (name === 'start') {
+      btn.style.margin = `-${h/2}${unit} auto auto -${w/2}${unit}`
+    } else {
+      btn.style.margin = 'auto 5px auto 5px'
+    }
+  }
+  return btn
+}
+
 export default util

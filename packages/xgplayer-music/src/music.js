@@ -13,9 +13,9 @@ class Music extends Player {
     let opts = util.deepCopy({
       controls: true,
       mediaType: 'audio',
-      ignores: ['fullscreen', 'start', 'definition', 'makeBullet', 'textTrack', 'loading', 'pc', 'mobile', 'playbackRate', 'replay', 'volume', 'error', 'poster']
+      ignores: ['fullscreen', 'start', 'definition', 'makeBullet', 'textTrack', 'loading', 'pc', 'mobile', 'playbackRate', 'replay', 'error', 'poster']
     }, options)
-    if (!opts.theme || opts.theme === 'default') {
+    if (opts.theme !== 'template') {
       opts.ignores.push('template')
     }
     super(opts)
@@ -35,13 +35,17 @@ class Music extends Player {
     this.halfPass = false
     this.history = []
     this.index = 0
-    util.addClass(this.root, 'xgplayer-music')
     if (!opts.controls) {
       this.root.style.display = 'none'
       return
     }
-    util.addClass(this.root, 'xgplayer-music-default')
-    if (!opts.theme || opts.theme === 'default') {
+
+    if (opts.theme === 'template') {
+      player.controls.style.display = 'none'
+    } else if (opts.theme === 'fire') {
+      util.addClass(this.root, 'xgplayer-music-fire')
+    } else {
+      util.addClass(this.root, 'xgplayer-music')
       if (!opts.width) {
         this.config.width = '100%'
         this.root.style.width = '100%'
@@ -50,8 +54,6 @@ class Music extends Player {
         this.config.height = '50px'
         this.root.style.height = '50px'
       }
-    } else {
-      player.controls.style.display = 'none'
     }
     Object.defineProperty(this, 'src', {
       get () {
@@ -64,11 +66,14 @@ class Music extends Player {
       },
       configurable: true
     })
-    this.once('canplay', () => {
-      if (opts.autoplay) {
+    if (this.config.autoplayMuted) {
+      this.config.volume = this.config.autoplay ? 0 : this.config.volume
+    }
+    this.once('canplay', function () {
+      if (this.config.autoplay && this.config.autoplayMuted) {
         this.volume = 0
       } else {
-        this.volume = opts.volume
+        this.volume = this.config.volume
       }
     })
     this.on('timeupdate', () => {

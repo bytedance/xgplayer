@@ -7,25 +7,7 @@ let pc = function () {
   let centerBtn = player.config.centerBtn ? player.config.centerBtn : {}
   let iconPath, btn, path
   if (centerBtn.type === 'img') {
-    btn = util.createDom('xg-start', '', {}, 'xgplayer-start-img')
-    btn.style.backgroundImage = `url("${centerBtn.url.play}")`
-    if (centerBtn.width && centerBtn.height) {
-      let width, height, unit
-      ['px', 'rem', 'em', 'pt', 'dp', 'vw', 'vh', 'vm', '%'].every((item) => {
-        if (centerBtn.width.indexOf(item) > -1 && centerBtn.height.indexOf(item) > -1) {
-          width = parseFloat(centerBtn.width.slice(0, centerBtn.width.indexOf(item)).trim())
-          height = parseFloat(centerBtn.height.slice(0, centerBtn.height.indexOf(item)).trim())
-          unit = item
-          return false
-        } else {
-          return true
-        }
-      })
-      btn.style.width = `${width}${unit}`
-      btn.style.height = `${height}${unit}`
-      btn.style.backgroundSize = `${width}${unit} ${height}${unit}`
-      btn.style.margin = `-${height/2}${unit} auto auto -${width/2}${unit}`
-    }
+    btn = Player.util.createImgBtn('start', centerBtn.url.play, centerBtn.width, centerBtn.height)
   } else {
     iconPath = {
       pause: centerBtn.pausePath ? centerBtn.pausePath : 'M576,363L810,512L576,661zM342,214L576,363L576,661L342,810z',
