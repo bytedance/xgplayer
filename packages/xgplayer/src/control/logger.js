@@ -1,50 +1,99 @@
+/* eslint-disable */
 import Player from '../player'
 import sniffer from '../utils/sniffer'
-
-const SERVER = ''
 
 let logger = function () {
   let player = this
   let util = Player.util
   if (player.config.noLog !== true) {
-    let img = new Image()
-    let baseObj = {
-      type: 'logger',
-      page_url: document.URL,
-      domain: window.location.host,
-      ver: player.version,
-      ua: navigator.userAgent.toLowerCase()
+    // 1. 加载异步初始化代码
+    (function(win, export_obj) {
+      win['TeaAnalyticsObject'] = export_obj
+      if (!win[export_obj]) {
+        function _collect() {
+          _collect.q.push(arguments)
+          return _collect
+        }
+
+        _collect.q = _collect.q || []
+        win[export_obj] = _collect
+      }
+      win[export_obj].l = +new Date()
+    })(window, 'collectEvent')
+
+    // 2. 初始化SDK，必须。
+    window.collectEvent('init', {
+      app_id: 1300, // 申请的app_id。
+      channel: 'cn'
+    })
+
+    // 3. 按需配置
+    window.collectEvent('config', {
+      log: false, // 开启调试日志
+      // disable_ssid: true, // 是否停止使用ssid。
+      // _staging_flag: 1, // 是否发到测试库
+      evtParams: { // 设置公共属性
+        log_type: 'logger',
+        page_url: document.URL,
+        domain: window.location.host,
+        pver: player.version,
+        ua: navigator.userAgent.toLowerCase()
+      }
+    })
+
+    // 3. 按需配置，可多次调用。
+    if(player.config.uid) {
+      window.collectEvent('config', {
+        user_unique_id: player.config.uid
+      })
     }
-    let xv
+
+    // 4. 配置完毕
+    window.collectEvent('send')
+
+    // 5. 发送事件。在3、4步之前调用也可以，事件会等到Tea.send()调用后，才真正发出。
+    window.collectEvent('enter_page', {
+      'from': 'index'
+    })
+
+    // let img = new Image()
+    // let baseObj = {
+    //   type: 'logger',
+    //   page_url: document.URL,
+    //   domain: window.location.host,
+    //   ver: player.version,
+    //   ua: navigator.userAgent.toLowerCase()
+    // }
+    // let xv
 
     if (player.config.allowLogParams) {
       let userLeave = function (event) {
         if (util.hasClass(player.root, 'xgplayer-is-enter')) {
-          img = new Image()
+          // img = new Image()
           let lt = new Date().getTime()
-          let obj = util.deepCopy({
-            ev: 'b',
+          let obj = {
+            // ev: 'b',
             vid: player.config.vid,
-            src: player.config.url,
+            url: player.config.url,
             pt: player.logParams.pt,
             lt
-          }, baseObj)
-          console.log('onbeforeunload enter')
-          console.log(obj)
-          xv = encodeURIComponent(JSON.stringify([ obj ]))
+          }
+          // console.log('onbeforeunload enter')
+          // console.log(obj)
+          window.collectEvent('b', obj)
+          // xv = encodeURIComponent(JSON.stringify([ obj ]))
           // img.src = `${SERVER}?xv=${xv}`
         } else if (util.hasClass(player.root, 'xgplayer-playing')) {
-          img = new Image()
+          // img = new Image()
           let played = player.video.played
           let watch_dur = 0
           for (let i = 0; i < played.length; i++) {
             watch_dur += played.end(i) - played.start(i)
           }
           let lt = new Date().getTime()
-          let obj = util.deepCopy({
-            ev: 'd',
+          let obj = {
             vid: player.config.vid,
-            src: player.config.url,
+            url: player.config.url,
             bc: player.logParams.bc,
             bb: player.logParams.bc > 0 ? 1 : 0,
             bu_acu_t: player.logParams.bu_acu_t,
@@ -54,13 +103,13 @@ let logger = function () {
             watch_dur: parseFloat((watch_dur * 1000).toFixed(3)),
             cur_play_pos: parseFloat((player.currentTime * 1000).toFixed(3)),
             lt
-          }, baseObj)
-          console.log('onbeforeunload playing')
-          console.log(obj)
-          xv = encodeURIComponent(JSON.stringify([ obj ]))
+          }
+          // console.log('onbeforeunload playing')
+          // console.log(obj)
+          window.collectEvent('d', obj)
+          // xv = encodeURIComponent(JSON.stringify([ obj ]))
           // img.src = `${SERVER}?xv=${xv}`
         }
-        // event.returnValue = '123'
       }
       if (sniffer.device === 'pc') {
         window.addEventListener('beforeunload', userLeave, false)
@@ -69,17 +118,16 @@ let logger = function () {
       }
 
       player.on('ended', function () {
-        img = new Image()
+        // img = new Image()
         let played = player.video.played
         let watch_dur = 0
         for (let i = 0; i < played.length; i++) {
           watch_dur += played.end(i) - played.start(i)
         }
         let et = new Date().getTime()
-        let obj = util.deepCopy({
-          ev: 'c',
+        let obj = {
           vid: player.config.vid,
-          src: player.config.url,
+          url: player.config.url,
           bc: player.logParams.bc,
           bb: player.logParams.bc > 0 ? 1 : 0,
           bu_acu_t: player.logParams.bu_acu_t,
@@ -89,24 +137,25 @@ let logger = function () {
           watch_dur: parseFloat((watch_dur * 1000).toFixed(3)),
           cur_play_pos: parseFloat((player.currentTime * 1000).toFixed(3)),
           et
-        }, baseObj)
-        console.log('ended')
-        console.log(obj)
-        xv = encodeURIComponent(JSON.stringify([ obj ]))
+        }
+        // console.log('ended')
+        // console.log(obj)
+        window.collectEvent('c', obj)
+        // xv = encodeURIComponent(JSON.stringify([ obj ]))
         // img.src = `${SERVER}?xv=${xv}`
       })
       player.on('beforeDefinitionchange', function () {
-        img = new Image()
+        // img = new Image()
         let played = player.video.played
         let watch_dur = 0
         for (let i = 0; i < played.length; i++) {
           watch_dur += played.end(i) - played.start(i)
         }
         let lt = new Date().getTime()
-        let obj = util.deepCopy({
-          ev: 'd',
+        let obj = {
+          // ev: 'd',
           vid: player.config.vid,
-          src: player.config.url,
+          url: player.config.url,
           bc: player.logParams.bc,
           bb: player.logParams.bc > 0 ? 1 : 0,
           bu_acu_t: player.logParams.bu_acu_t,
@@ -116,24 +165,25 @@ let logger = function () {
           watch_dur: parseFloat((watch_dur * 1000).toFixed(3)),
           cur_play_pos: parseFloat((player.currentTime * 1000).toFixed(3)),
           lt
-        }, baseObj)
-        console.log('beforeDefinitionchange')
-        console.log(obj)
-        xv = encodeURIComponent(JSON.stringify([ obj ]))
+        }
+        // console.log('beforeDefinitionchange')
+        // console.log(obj)
+        window.collectEvent('d', obj)
+        // xv = encodeURIComponent(JSON.stringify([ obj ]))
         // img.src = `${SERVER}?xv=${xv}`
       })
       player.on('error', function (err) {
-        img = new Image()
+        // img = new Image()
         let played = player.video.played
         let watch_dur = 0
         for (let i = 0; i < played.length; i++) {
           watch_dur += played.end(i) - played.start(i)
         }
         let et = new Date().getTime()
-        let obj = util.deepCopy({
-          ev: 'e',
+        let obj = {
+          // ev: 'e',
           vid: player.config.vid,
-          src: player.config.url,
+          url: player.config.url,
           bc: player.logParams.bc,
           bb: player.logParams.bc > 0 ? 1 : 0,
           bu_acu_t: player.logParams.bu_acu_t,
@@ -145,17 +195,19 @@ let logger = function () {
           line: err.errd.line,
           et,
           cur_play_pos: parseFloat((player.currentTime * 1000).toFixed(3))
-        }, baseObj)
-        console.log('error')
-        console.log(obj)
-        xv = encodeURIComponent(JSON.stringify([ obj ]))
+        }
+        // console.log('error')
+        // console.log(obj)
+        window.collectEvent('e', obj)
+        // xv = encodeURIComponent(JSON.stringify([ obj ]))
         // img.src = `${SERVER}?xv=${xv}`
       })
     } else {
-      img = new Image()
-      xv = encodeURIComponent(JSON.stringify([ baseObj ]))
-      console.log('not allowLogParams')
-      console.log(baseObj)
+      // img = new Image()
+      // xv = encodeURIComponent(JSON.stringify([ baseObj ]))
+      // console.log('not allowLogParams')
+      // console.log(baseObj)
+      window.collectEvent('base', {})
       // img.src = `${SERVER}?xv=${xv}`
     }
   }

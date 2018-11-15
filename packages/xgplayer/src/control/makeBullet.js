@@ -1,5 +1,5 @@
 import Player from '../player'
-import requestFrame from 'request-frame'
+// import requestFrame from 'request-frame'
 import merge from 'deepmerge'
 
 /**
@@ -222,7 +222,7 @@ class Bullet {
     this.id = options.id
     this.container = container
     this.start = options.start
-    let el = document.createElement('span')
+    let el = document.createElement('div')
     el.textContent = options.txt
     el.style.color = options.color
     el.style.fontSize = `${options.scale}em`
@@ -230,26 +230,39 @@ class Bullet {
     this.width = options.width
     this.height = options.height
     this.status = 'waiting'// waiting,start,end
-    let playerPos = this.player.root.getBoundingClientRect()
-    this.left = playerPos.width
-    this.step = (playerPos.width + this.width) / this.duration / 60
+    this.playerPos = this.player.root.getBoundingClientRect()
+    this.left = this.playerPos.width
+    this.step = (this.playerPos.width + this.width) / this.duration / 60
     this.end = -this.width
   }
   attach () {
+    let self = this
     this.container.appendChild(this.el)
+    this.player.on('timeupdate', function () {
+      if (self.el.getBoundingClientRect().right <= self.playerPos.left) {
+        self.status = 'end'
+        self.remove()
+      }
+    })
   }
   reset () {
     let el = this.el
     el.style.left = `${this.left}px`
     el.style.top = `${this.top}px`
   }
-  move () {
-    this.left -= this.step
-    this.el.style.left = `${this.left}px`
-    if (this.left <= this.end) {
-      this.status = 'end'
-      this.remove()
-    }
+  pauseMove () {
+    this.el.style.left = `${this.el.getBoundingClientRect().left - this.playerPos.left}px`
+    this.el.style.transform = 'translateX(0px) translateY(0px) translateZ(0px)'
+    this.el.style.transition = '-webkit-transform 0s linear 0s'
+  }
+  startMove () {
+    let self = this
+    let leftDuration = (self.el.getBoundingClientRect().right - self.playerPos.left) / ((this.playerPos.width + this.width) / this.duration)
+    this.el.style.transition = `-webkit-transform ${leftDuration}s linear 0s`
+    setTimeout(function () {
+      self.el.style.transform = `translateX(-${self.el.getBoundingClientRect().right - self.playerPos.left}px) translateY(0px) translateZ(0px)`
+    }, 20)
+
   }
   remove () {
     let self = this
@@ -343,7 +356,7 @@ class Main {
           let data = self.options.dataMap.call(null, obj.data)
           if (data.length) {
             self.data = data
-            let el = document.createElement('span')
+            let el = document.createElement('div')
             el.style.padding = `${self.options.padding}||'0px'`
             el.style.position = 'absolute'
             el.style.left = '-99999px'
@@ -390,8 +403,8 @@ class Main {
     let self = this
     self.status = 'closed'
     clearTimeout(self.retryTimer)
-    let cancel = requestFrame('cancel')
-    cancel(self.timer)
+    // let cancel = requestFrame('cancel')
+    // cancel(self.timer)
     self.queue.length = 0
     self.container.innerHTML = ''
   }
@@ -414,28 +427,40 @@ class Main {
     let self = this
     if (self.status === 'playing') {
       self.status = 'paused'
+      if (self.queue.length) {
+        self.queue.forEach(item => {
+          // if (item.status === 'waiting' || item.status === 'start') {
+          if (item.status === 'start') {
+            item.status = 'paused'
+            item.pauseMove()
+          }
+        })
+        // let request = requestFrame('request')
+        // self.timer = request(self.dataHandle.bind(self))
+      }
       clearTimeout(self.retryTimer)
-      let cancel = requestFrame('cancel')
-      cancel(self.timer)
+      // let cancel = requestFrame('cancel')
+      // cancel(self.timer)
     } else if (self.status === 'ended') {
       self.stop()
     }
   }
   dataHandle () {
     let self = this
-    let cancel = requestFrame('cancel')
-    cancel(self.timer)
+    // let cancel = requestFrame('cancel')
+    // cancel(self.timer)
     if (self.queue.length) {
       self.queue.forEach(item => {
-        if (item.status === 'waiting' || item.status === 'start') {
+        // if (item.status === 'waiting' || item.status === 'start') {
+        if (item.status === 'waiting' || item.status === 'paused') {
           item.status = 'start'
-          item.move()
+          item.startMove()
         }
       })
-      let request = requestFrame('request')
-      self.timer = request(self.dataHandle.bind(self))
+      // let request = requestFrame('request')
+      // self.timer = request(self.dataHandle.bind(self))
     } else {
-      cancel(self.timer)
+      // cancel(self.timer)
     }
   }
   readData () {
