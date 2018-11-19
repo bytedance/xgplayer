@@ -257,9 +257,23 @@ class Player extends Proxy {
   }
 
   replay () {
+    let self = this
     let _replay = this._replay
     // ie9 bugfix
     util.removeClass(this.root, 'xgplayer-ended')
+    this.logParams = {
+      bc: 0,
+      bu_acu_t: 0,
+      pt: new Date().getTime(),
+      vt: 0,
+      vd: 0
+    }
+    this.once('canplay', function () {
+      self.once('timeupdate', function () {
+        self.logParams.vt = new Date().getTime()
+        self.logParams.vd = self.video.duration
+      })
+    })
     if (_replay && _replay instanceof Function) {
       _replay()
     } else {
