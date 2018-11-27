@@ -238,12 +238,12 @@ class Bullet {
   attach () {
     let self = this
     this.container.appendChild(this.el)
-    this.player.on('timeupdate', function () {
+    this.removeTimer = setInterval(function () {
       if (self.el.getBoundingClientRect().right <= self.playerPos.left) {
         self.status = 'end'
         self.remove()
       }
-    })
+    }, 500)
   }
   reset () {
     let el = this.el
@@ -262,11 +262,11 @@ class Bullet {
     setTimeout(function () {
       self.el.style.transform = `translateX(-${self.el.getBoundingClientRect().right - self.playerPos.left}px) translateY(0px) translateZ(0px)`
     }, 20)
-
   }
   remove () {
     let self = this
-    if (self.el) {
+    clearInterval(this.removeTimer)
+    if (self.el && self.el.parentNode) {
       let parent = self.el.parentNode
       parent.removeChild(self.el)
       self.el = null
@@ -344,53 +344,60 @@ class Main {
       self.player.emit('dataIncoming')
       return
     }
-
-    fetch(self.options.url, {
-      method: self.options.method,
-      headers: {
-        Accept: 'application/json'
-      }
-    }).then(function (res) {
-      if (res.ok) {
-        res.json().then(function (obj) {
-          let data = self.options.dataMap.call(null, obj.data)
-          if (data.length) {
-            self.data = data
-            let el = document.createElement('div')
-            el.style.padding = `${self.options.padding}||'0px'`
-            el.style.position = 'absolute'
-            el.style.left = '-99999px'
-            document.body.appendChild(el)
-            let size
-            self.data.forEach(item => {
-              el.textContent = item.txt
-              el.style.fontSize = `${20 * item.scale}px`
-              size = el.getBoundingClientRect()
-              item.width = size.width
-              item.height = size.height
-            })
-            self.data.sort((a, b) => a.start - b.start)
-            document.body.removeChild(el)
-            if (self.player.paused) {
-              self.status = 'paused'
-              return
-            } else if (self.player.ended) {
-              self.status = 'ended'
-              return
-            }
-            // self.status = 'playing';
-            self.readData()
-            self.retryTimer = setInterval(function () {
+    if (self.options.url) {
+      fetch(self.options.url, {
+        method: self.options.method,
+        headers: {
+          Accept: 'application/json'
+        }
+      }).then(function (res) {
+        if (res.ok) {
+          res.json().then(function (obj) {
+            let data = self.options.dataMap.call(null, obj.data)
+            if (data.length) {
+              self.data = data
+              let el = document.createElement('div')
+              el.style.padding = `${self.options.padding}||'0px'`
+              el.style.position = 'absolute'
+              el.style.left = '-99999px'
+              document.body.appendChild(el)
+              let size
+              self.data.forEach(item => {
+                el.textContent = item.txt
+                el.style.fontSize = `${20 * item.scale}px`
+                size = el.getBoundingClientRect()
+                item.width = size.width
+                item.height = size.height
+              })
+              self.data.sort((a, b) => a.start - b.start)
+              document.body.removeChild(el)
+              if (self.player.paused) {
+                self.status = 'paused'
+                return
+              } else if (self.player.ended) {
+                self.status = 'ended'
+                return
+              }
+              // self.status = 'playing';
               self.readData()
-              self.dataHandle()
-            }, self.interval - 1000)
-            self.player.emit('dataIncoming')
-          }
-        })
-      }
-    }).catch(function (err) {
-      console.log('Fetch错误:' + err)
-    })
+              self.retryTimer = setInterval(function () {
+                self.readData()
+                self.dataHandle()
+              }, self.interval - 1000)
+              self.player.emit('dataIncoming')
+            }
+          })
+        }
+      }).catch(function (err) {
+        console.log('Fetch错误:' + err)
+      })
+    } else {
+      self.data = []
+      self.retryTimer = setInterval(function () {
+        self.readData()
+        self.dataHandle()
+      }, self.interval - 1000)
+    }
   }
   // 启动弹幕渲染主进程
   start () {
@@ -579,6 +586,10 @@ let makeBullet = function () {
   }
   let bullet = util.createDom('xg-bullet', '', {}, 'xgplayer-bullet'), root = player.root
   root.appendChild(bullet)
+  if (player.config.bullet.heightRatio) {
+    let playerHeight = player.root.getBoundingClientRect().height
+    bullet.style.height = playerHeight * player.config.bullet.heightRatio + 'px'
+  }
   let bulletBtn = new BulletBtn(player, player.config.bullet);
 
   ['touchstart', 'click'].forEach(item => {
@@ -592,6 +603,7 @@ let makeBullet = function () {
       }
     }, false)
   })
+  player.bulletBtn = bulletBtn
 
   player.controls.appendChild(bulletBtn.el_)
 }

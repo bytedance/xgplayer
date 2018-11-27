@@ -77,6 +77,9 @@
         height: 100%!important;
         z-index: 9999;
     }
+    &.xgplayer-is-fullscreen.xgplayer-inactive{
+        cursor: none;
+    }
     video{
         width:100%;
         height: 100%;
@@ -694,7 +697,7 @@
     top:0;
     left: 0;
     right: 0;
-    bottom: 3em;
+    height: 100%;
     overflow: hidden;
     z-index: 9;
     outline: none;

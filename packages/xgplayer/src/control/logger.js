@@ -65,10 +65,10 @@ let logger = function () {
         let lt = new Date().getTime()
         let obj = {
           vid: player.config.vid,
-          bc: player.logParams.bc - 1,
+          bc: player.logParams.bc - 1 > 0 ? player.logParams.bc - 1 : 0,
           bb: player.logParams.bc - 1 > 0 ? 1 : 0,
           bu_acu_t: player.logParams.bu_acu_t,
-          pt: player.logParams.pt,
+          pt: player.logParams.vt < player.logParams.pt ? 0 : player.logParams.pt,
           vt: player.logParams.vt,
           vd: player.logParams.vd * 1000,
           watch_dur: parseFloat((watch_dur * 1000).toFixed(3)),
@@ -83,6 +83,7 @@ let logger = function () {
     } else if (sniffer.device === 'mobile') {
       window.addEventListener('pagehide', userLeave, false)
     }
+    player.on('routechange', userLeave)
 
     player.on('ended', function () {
       let played = player.video.played
@@ -93,10 +94,10 @@ let logger = function () {
       let et = new Date().getTime()
       let obj = {
         vid: player.config.vid,
-        bc: player.logParams.bc - 1,
+        bc: player.logParams.bc - 1 > 0 ? player.logParams.bc - 1 : 0,
         bb: player.logParams.bc - 1 > 0 ? 1 : 0,
         bu_acu_t: player.logParams.bu_acu_t,
-        pt: player.logParams.pt,
+        pt: player.logParams.vt < player.logParams.pt ? 0 : player.logParams.pt,
         vt: player.logParams.vt,
         vd: player.logParams.vd * 1000,
         watch_dur: parseFloat((watch_dur * 1000).toFixed(3)),
@@ -114,10 +115,10 @@ let logger = function () {
       let lt = new Date().getTime()
       let obj = {
         vid: player.config.vid,
-        bc: player.logParams.bc - 1,
+        bc: player.logParams.bc - 1 > 0 ? player.logParams.bc - 1 : 0,
         bb: player.logParams.bc - 1 > 0 ? 1 : 0,
         bu_acu_t: player.logParams.bu_acu_t,
-        pt: player.logParams.pt,
+        pt: player.logParams.vt < player.logParams.pt ? 0 : player.logParams.pt,
         vt: player.logParams.vt,
         vd: player.logParams.vd * 1000,
         watch_dur: parseFloat((watch_dur * 1000).toFixed(3)),
@@ -135,10 +136,10 @@ let logger = function () {
       let et = new Date().getTime()
       let obj = {
         vid: player.config.vid,
-        bc: player.logParams.bc - 1,
+        bc: player.logParams.bc - 1 > 0 ? player.logParams.bc - 1 : 0,
         bb: player.logParams.bc - 1 > 0 ? 1 : 0,
         bu_acu_t: player.logParams.bu_acu_t,
-        pt: player.logParams.pt,
+        pt: player.logParams.vt < player.logParams.pt ? 0 : player.logParams.pt,
         vt: player.logParams.vt,
         vd: player.logParams.vd * 1000,
         watch_dur: parseFloat((watch_dur * 1000).toFixed(3)),
