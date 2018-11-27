@@ -1,6 +1,6 @@
 {
   "name": "xgplayer-flv",
-  "version": "1.1.3",
+  "version": "1.1.4-beta",
   "description": "flv demuxer for xgplayer",
   "main": "./dist/index.js",
   "scripts": {
@@ -31,6 +31,7 @@
     "html-webpack-plugin": "^2.30.1",
     "style-loader": "^0.20.2",
     "webpack": "^4.12.0",
+    "webpack-cli": "^3.1.2",
     "webpack-dev-server": "^2.11.1"
   },
   "peerDependency": {

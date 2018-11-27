@@ -123,9 +123,10 @@ class Proxy {
         }
       }, false)
     })
+    let self = this
     this.once('timeupdate', function () {
-      this.logParams.vt = new Date().getTime()
-      this.logParams.vd = this.video.duration
+      self.logParams.vt = new Date().getTime()
+      self.logParams.vd = self.video.duration
     })
   }
 
@@ -302,7 +303,25 @@ class Proxy {
     return this.video.src
   }
   set src (url) {
+    let self = this
+    if (!util.hasClass(this.root, 'xgplayer-ended')) {
+      this.emit('urlchange', JSON.parse(JSON.stringify(self.logParams)))
+    }
+    this.logParams = {
+      bc: 0,
+      bu_acu_t: 0,
+      pt: new Date().getTime(),
+      vt: 0,
+      vd: 0
+    }
+    this.video.pause()
     this.video.src = url
+    this.once('canplay', function () {
+      self.once('timeupdate', function () {
+        self.logParams.vt = new Date().getTime()
+        self.logParams.vd = self.video.duration
+      })
+    })
   }
   get volume () {
     return this.video.volume

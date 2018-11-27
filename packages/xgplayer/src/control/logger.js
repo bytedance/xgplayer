@@ -1,163 +1,155 @@
+/* eslint-disable */
 import Player from '../player'
 import sniffer from '../utils/sniffer'
-
-const SERVER = ''
 
 let logger = function () {
   let player = this
   let util = Player.util
   if (player.config.noLog !== true) {
-    let img = new Image()
-    let baseObj = {
-      type: 'logger',
-      page_url: document.URL,
-      domain: window.location.host,
-      ver: player.version,
-      ua: navigator.userAgent.toLowerCase()
-    }
-    let xv
-
-    if (player.config.allowLogParams) {
-      let userLeave = function (event) {
-        if (util.hasClass(player.root, 'xgplayer-is-enter')) {
-          img = new Image()
-          let lt = new Date().getTime()
-          let obj = util.deepCopy({
-            ev: 'b',
-            vid: player.config.vid,
-            src: player.config.url,
-            pt: player.logParams.pt,
-            lt
-          }, baseObj)
-          console.log('onbeforeunload enter')
-          console.log(obj)
-          xv = encodeURIComponent(JSON.stringify([ obj ]))
-          // img.src = `${SERVER}?xv=${xv}`
-        } else if (util.hasClass(player.root, 'xgplayer-playing')) {
-          img = new Image()
-          let played = player.video.played
-          let watch_dur = 0
-          for (let i = 0; i < played.length; i++) {
-            watch_dur += played.end(i) - played.start(i)
-          }
-          let lt = new Date().getTime()
-          let obj = util.deepCopy({
-            ev: 'd',
-            vid: player.config.vid,
-            src: player.config.url,
-            bc: player.logParams.bc,
-            bb: player.logParams.bc > 0 ? 1 : 0,
-            bu_acu_t: player.logParams.bu_acu_t,
-            pt: player.logParams.pt,
-            vt: player.logParams.vt,
-            vd: player.logParams.vd * 1000,
-            watch_dur: parseFloat((watch_dur * 1000).toFixed(3)),
-            cur_play_pos: parseFloat((player.currentTime * 1000).toFixed(3)),
-            lt
-          }, baseObj)
-          console.log('onbeforeunload playing')
-          console.log(obj)
-          xv = encodeURIComponent(JSON.stringify([ obj ]))
-          // img.src = `${SERVER}?xv=${xv}`
+    (function(win, export_obj) {
+      win['TeaAnalyticsObject'] = export_obj
+      if (!win[export_obj]) {
+        function _collect() {
+          _collect.q.push(arguments)
+          return _collect
         }
-        // event.returnValue = '123'
+        _collect.q = _collect.q || []
+        win[export_obj] = _collect
       }
-      if (sniffer.device === 'pc') {
-        window.addEventListener('beforeunload', userLeave, false)
-      } else if (sniffer.device === 'mobile') {
-        window.addEventListener('pagehide', userLeave, false)
-      }
+      win[export_obj].l = +new Date()
+    })(window, 'collectEvent')
 
-      player.on('ended', function () {
-        img = new Image()
-        let played = player.video.played
-        let watch_dur = 0
-        for (let i = 0; i < played.length; i++) {
-          watch_dur += played.end(i) - played.start(i)
-        }
-        let et = new Date().getTime()
-        let obj = util.deepCopy({
-          ev: 'c',
-          vid: player.config.vid,
-          src: player.config.url,
-          bc: player.logParams.bc,
-          bb: player.logParams.bc > 0 ? 1 : 0,
-          bu_acu_t: player.logParams.bu_acu_t,
-          pt: player.logParams.pt,
-          vt: player.logParams.vt,
-          vd: player.logParams.vd * 1000,
-          watch_dur: parseFloat((watch_dur * 1000).toFixed(3)),
-          cur_play_pos: parseFloat((player.currentTime * 1000).toFixed(3)),
-          et
-        }, baseObj)
-        console.log('ended')
-        console.log(obj)
-        xv = encodeURIComponent(JSON.stringify([ obj ]))
-        // img.src = `${SERVER}?xv=${xv}`
+    window.collectEvent('init', {
+      app_id: 1300,
+      channel: 'cn'
+    })
+
+    window.collectEvent('config', {
+      log: false,
+      evtParams: {
+        log_type: 'logger',
+        page_url: document.URL,
+        domain: window.location.host,
+        pver: player.version,
+        ua: navigator.userAgent.toLowerCase()
+      }
+    })
+
+    if(player.config.uid) {
+      window.collectEvent('config', {
+        user_unique_id: player.config.uid
       })
-      player.on('beforeDefinitionchange', function () {
-        img = new Image()
+    }
+
+    window.collectEvent('send')
+
+    window.collectEvent('enter_page', {
+      'from': 'index'
+    })
+
+    let userLeave = function (event) {
+      if (util.hasClass(player.root, 'xgplayer-is-enter')) {
+        let lt = new Date().getTime()
+        let obj = {
+          vid: player.config.vid,
+          pt: player.logParams.pt,
+          lt
+        }
+        window.collectEvent('b', obj)
+      } else if (util.hasClass(player.root, 'xgplayer-playing')) {
         let played = player.video.played
         let watch_dur = 0
         for (let i = 0; i < played.length; i++) {
           watch_dur += played.end(i) - played.start(i)
         }
         let lt = new Date().getTime()
-        let obj = util.deepCopy({
-          ev: 'd',
+        let obj = {
           vid: player.config.vid,
-          src: player.config.url,
-          bc: player.logParams.bc,
-          bb: player.logParams.bc > 0 ? 1 : 0,
+          bc: player.logParams.bc - 1 > 0 ? player.logParams.bc - 1 : 0,
+          bb: player.logParams.bc - 1 > 0 ? 1 : 0,
           bu_acu_t: player.logParams.bu_acu_t,
-          pt: player.logParams.pt,
+          pt: player.logParams.vt < player.logParams.pt ? 0 : player.logParams.pt,
           vt: player.logParams.vt,
           vd: player.logParams.vd * 1000,
           watch_dur: parseFloat((watch_dur * 1000).toFixed(3)),
           cur_play_pos: parseFloat((player.currentTime * 1000).toFixed(3)),
           lt
-        }, baseObj)
-        console.log('beforeDefinitionchange')
-        console.log(obj)
-        xv = encodeURIComponent(JSON.stringify([ obj ]))
-        // img.src = `${SERVER}?xv=${xv}`
-      })
-      player.on('error', function (err) {
-        img = new Image()
-        let played = player.video.played
-        let watch_dur = 0
-        for (let i = 0; i < played.length; i++) {
-          watch_dur += played.end(i) - played.start(i)
         }
-        let et = new Date().getTime()
-        let obj = util.deepCopy({
-          ev: 'e',
-          vid: player.config.vid,
-          src: player.config.url,
-          bc: player.logParams.bc,
-          bb: player.logParams.bc > 0 ? 1 : 0,
-          bu_acu_t: player.logParams.bu_acu_t,
-          pt: player.logParams.pt,
-          vt: player.logParams.vt,
-          vd: player.logParams.vd * 1000,
-          watch_dur: parseFloat((watch_dur * 1000).toFixed(3)),
-          err_msg: err.errd.msg,
-          line: err.errd.line,
-          et,
-          cur_play_pos: parseFloat((player.currentTime * 1000).toFixed(3))
-        }, baseObj)
-        console.log('error')
-        console.log(obj)
-        xv = encodeURIComponent(JSON.stringify([ obj ]))
-        // img.src = `${SERVER}?xv=${xv}`
-      })
-    } else {
-      img = new Image()
-      xv = encodeURIComponent(JSON.stringify([ baseObj ]))
-      console.log('not allowLogParams')
-      console.log(baseObj)
-      // img.src = `${SERVER}?xv=${xv}`
+        window.collectEvent('d', obj)
+      }
     }
+    if (sniffer.device === 'pc') {
+      window.addEventListener('beforeunload', userLeave, false)
+    } else if (sniffer.device === 'mobile') {
+      window.addEventListener('pagehide', userLeave, false)
+    }
+    player.on('routechange', userLeave)
+
+    player.on('ended', function () {
+      let played = player.video.played
+      let watch_dur = 0
+      for (let i = 0; i < played.length; i++) {
+        watch_dur += played.end(i) - played.start(i)
+      }
+      let et = new Date().getTime()
+      let obj = {
+        vid: player.config.vid,
+        bc: player.logParams.bc - 1 > 0 ? player.logParams.bc - 1 : 0,
+        bb: player.logParams.bc - 1 > 0 ? 1 : 0,
+        bu_acu_t: player.logParams.bu_acu_t,
+        pt: player.logParams.vt < player.logParams.pt ? 0 : player.logParams.pt,
+        vt: player.logParams.vt,
+        vd: player.logParams.vd * 1000,
+        watch_dur: parseFloat((watch_dur * 1000).toFixed(3)),
+        cur_play_pos: parseFloat((player.currentTime * 1000).toFixed(3)),
+        et
+      }
+      window.collectEvent('c', obj)
+    })
+    player.on('urlchange', function () {
+      let played = player.video.played
+      let watch_dur = 0
+      for (let i = 0; i < played.length; i++) {
+        watch_dur += played.end(i) - played.start(i)
+      }
+      let lt = new Date().getTime()
+      let obj = {
+        vid: player.config.vid,
+        bc: player.logParams.bc - 1 > 0 ? player.logParams.bc - 1 : 0,
+        bb: player.logParams.bc - 1 > 0 ? 1 : 0,
+        bu_acu_t: player.logParams.bu_acu_t,
+        pt: player.logParams.vt < player.logParams.pt ? 0 : player.logParams.pt,
+        vt: player.logParams.vt,
+        vd: player.logParams.vd * 1000,
+        watch_dur: parseFloat((watch_dur * 1000).toFixed(3)),
+        cur_play_pos: parseFloat((player.currentTime * 1000).toFixed(3)),
+        lt
+      }
+      window.collectEvent('d', obj)
+    })
+    player.on('error', function (err) {
+      let played = player.video.played
+      let watch_dur = 0
+      for (let i = 0; i < played.length; i++) {
+        watch_dur += played.end(i) - played.start(i)
+      }
+      let et = new Date().getTime()
+      let obj = {
+        vid: player.config.vid,
+        bc: player.logParams.bc - 1 > 0 ? player.logParams.bc - 1 : 0,
+        bb: player.logParams.bc - 1 > 0 ? 1 : 0,
+        bu_acu_t: player.logParams.bu_acu_t,
+        pt: player.logParams.vt < player.logParams.pt ? 0 : player.logParams.pt,
+        vt: player.logParams.vt,
+        vd: player.logParams.vd * 1000,
+        watch_dur: parseFloat((watch_dur * 1000).toFixed(3)),
+        err_msg: err.errd.msg,
+        line: err.errd.line,
+        et,
+        cur_play_pos: parseFloat((player.currentTime * 1000).toFixed(3))
+      }
+      window.collectEvent('e', obj)
+    })
   }
 }
 
