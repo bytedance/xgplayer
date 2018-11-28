@@ -101,7 +101,10 @@ class Channel {
             let curS = curBullet.el.getBoundingClientRect().left - curBullet.playerPos.left + curBullet.el.getBoundingClientRect().width
             let curV = curBullet.playerPos.width / curBullet.duration
             let curT = curS / curV
-            if (curT > bullet.duration) {
+            if (!player.config.bOffset) {
+              player.config.bOffset = 0
+            }
+            if (curT + player.config.bOffset > bullet.duration) {
               flag = false
               break
             }
