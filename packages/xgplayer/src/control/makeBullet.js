@@ -236,7 +236,7 @@ class Bullet {
     let el = document.createElement('div')
     el.textContent = options.txt
     el.style.color = options.color
-    el.style.fontSize = `${options.scale}em`
+    el.style.fontSize = `${20 * options.scale}px`
     this.el = el
     this.width = options.width
     this.height = options.height
