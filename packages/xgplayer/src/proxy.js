@@ -14,6 +14,7 @@ class Proxy {
       autoplay: options.autoplay,
       playsinline: options.playsinline,
       'webkit-playsinline': options.playsinline,
+      'x5-playsinline': options.playsinline,
       'x5-video-player-type': options['x5-video-player-type'],
       'x5-video-player-fullscreen': options['x5-video-player-fullscreen'],
       'x5-video-orientation': options['x5-video-orientation'],
