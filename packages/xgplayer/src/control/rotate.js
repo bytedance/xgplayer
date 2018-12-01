@@ -16,7 +16,11 @@ const rotate = function () {
     rotateDeg = (rotateDeg + 0.25) % 1
     let scale
     if (rotateDeg === 0.25 || rotateDeg === 0.75) {
-      scale = (width / height).toFixed(2)
+      if (width >= height) {
+        scale = (width / height).toFixed(2)
+      } else {
+        scale = (height / width).toFixed(2)
+      }
     } else {
       scale = 1
     }
