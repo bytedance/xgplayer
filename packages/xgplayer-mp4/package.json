@@ -6,7 +6,9 @@
   "scripts": {
     "prepare": "npm run build",
     "build": "webpack --progress --display-chunks -p",
-    "watch": "webpack --progress --display-chunks -p --watch"
+    "watch": "webpack --progress --display-chunks -p --watch",
+    "test": "karma start --single-run",
+    "test:watch": "karma start"
   },
   "repository": {
     "type": "git",
