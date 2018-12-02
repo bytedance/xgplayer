@@ -1,4 +1,4 @@
-import chai, {expect} from 'chai'
+import {expect} from 'chai'
 import Player from '../src/index'
 
 describe('Player', () => {
