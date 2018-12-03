@@ -13,10 +13,20 @@ class Channel {
     let self = this
     this.player.on('bullet_remove', function (r) {
       self.removeBullet(r.bullet)
+    })
+    let playerPos = this.player.root.getBoundingClientRect()
+    this.playerWidth = playerPos.width
+    this.playerHeight = playerPos.height
+    this.player.on('timeupdate', function () {
+      playerPos = self.player.root.getBoundingClientRect()
+      if (playerPos.width !== self.playerWidth || playerPos.height !== self.playerHeight) {
+        self.playerWidth = playerPos.width
+        self.playerHeight = playerPos.height
+        self.resize()
+      }
     });
-
     ['fullscreenchange', 'webkitfullscreenchange', 'mozfullscreenchange', 'MSFullscreenChange'].forEach(item => {
-      document.addEventListener(item, self.resize.bind(self))
+      document.addEventListener(item, self.resize())
     })
   }
   resize () {
@@ -27,6 +37,9 @@ class Channel {
       let size = container.getBoundingClientRect()
       self.width = size.width
       self.height = size.height
+      if (self.player.config.bullet.heightRatio) {
+        self.height = size.height * self.player.config.bullet.heightRatio
+      }
       self.container = container
       let fontSize = /mobile/ig.test(navigator.userAgent) ? 10 : 12
       let channelSize = Math.floor(self.height / fontSize)
@@ -35,32 +48,38 @@ class Channel {
         channels[i] = {
           id: i,
           queue: [],
-          step: 99999,
-          surplus: 0
+          operating: false
         }
       }
       if (self.channels && self.channels.length <= channels.length) {
         for (let i = 0; i < self.channels.length; i++) {
           channels[i] = {
             id: i,
-            queue: [],
-            step: self.channels[i].step,
-            surplus: self.channels[i].surplus
+            queue: []
           }
-          self.channels[i].queue.forEach(item => channels[i].queue.push(item))
+          self.channels[i].queue.forEach(item => {
+            channels[i].queue.push(item)
+            item.pauseMove()
+            item.startMove()
+          })
         }
       } else if (self.channels && self.channels.length > channels.length) {
         for (let i = 0; i < channels.length; i++) {
           channels[i] = {
             id: i,
-            queue: [],
-            step: self.channels[i].step,
-            surplus: self.channels[i].surplus
+            queue: []
           }
-          self.channels[i].queue.forEach(item => channels[i].queue.push(item))
+          self.channels[i].queue.forEach(item => {
+            channels[i].queue.push(item)
+            item.pauseMove()
+            item.startMove()
+          })
         }
         for (let i = channels.length; i < self.channels.length; i++) {
-          self.channels[i].queue.forEach(item => item.remove())
+          self.channels[i].queue.forEach(item => {
+            // item.pauseMove()
+            // item.remove()
+          })
         }
       }
       self.channels = channels
@@ -69,7 +88,6 @@ class Channel {
   }
   addBullet (bullet) {
     let player = this.player
-    let left = this.width
     let channels = this.channels
     let channelHeight = this.channelHeight
     let occupy = Math.ceil(bullet.height / channelHeight)
@@ -92,23 +110,42 @@ class Channel {
         flag = true
         for (let j = i; j < i + occupy; j++) {
           channel = channels[j]
+          if (channel.operating) {
+            flag = false
+            break
+          }
+          channel.operating = true
           let curBullet = channel.queue[0]
           if (curBullet) {
-            if (curBullet.el.getBoundingClientRect().right > curBullet.playerPos.right) {
+            let playerPos = player.root.getBoundingClientRect()
+            let curBulletPos = curBullet.el.getBoundingClientRect()
+            if (curBulletPos.right > playerPos.right) {
               flag = false
+              channel.operating = false
               break
             }
-            let curS = curBullet.el.getBoundingClientRect().left - curBullet.playerPos.left + curBullet.el.getBoundingClientRect().width
-            let curV = curBullet.playerPos.width / curBullet.duration
+
+            // Vcur * t + Scur已走 - Widthcur = Vnew * t
+            // t = (Scur已走 - Widthcur) / (Vnew - Vcur)
+            // Vnew * t < Widthplayer
+            let curS = curBulletPos.left - playerPos.left + curBulletPos.width
+            let curV = (playerPos.width + curBulletPos.width) / curBullet.duration
             let curT = curS / curV
+
+            let newS = playerPos.width
+            let newV = (playerPos.width + bullet.width) / bullet.duration
+            let newT = newS / newV
+
             if (!player.config.bOffset) {
               player.config.bOffset = 0
             }
-            if (curT + player.config.bOffset > bullet.duration) {
+            if (curV < newV && curT + player.config.bOffset > newT) {
               flag = false
+              channel.operating = false
               break
             }
           }
+          channel.operating = false
         }
         if (flag) {
           pos = i
@@ -118,13 +155,12 @@ class Channel {
       if (pos !== -1) {
         for (let i = pos, max = pos + occupy; i < max; i++) {
           channel = channels[i]
+          channel.operating = true
           channel.queue.unshift(bullet)
-          channel.step = bullet.step
-          channel.surplus -= bullet.width
+          channel.operating = false
         }
         bullet.channel_id = [pos, occupy]
         bullet.top = pos * channelHeight
-        bullet.left = left
         return {
           result: bullet,
           message: 'success'
@@ -132,18 +168,19 @@ class Channel {
       } else {
         return {
           result: false,
-          message: 'no step or surplus will right'
+          message: 'no surplus will right'
         }
       }
     }
   }
   removeBullet (bullet) {
     let channels = this.channels
-    let channel_id = bullet.channel_id
+    let channelId = bullet.channel_id
     let channel
-    for (let i = channel_id[0], max = channel_id[0] + channel_id[1]; i < max; i++) {
+    for (let i = channelId[0], max = channelId[0] + channelId[1]; i < max; i++) {
       channel = channels[i]
       if (channel) {
+        channel.operating = true
         let i = -1
         channel.queue.some((item, index) => {
           if (item.id === bullet.id) {
@@ -153,35 +190,30 @@ class Channel {
         })
         if (i > -1) {
           channel.queue.splice(i, 1)
-          if (i === 0) {
-            channel.step = 9999
-            channel.surplus = 0
-          }
         }
+        channel.operating = false
       }
     }
-  }
-  update () {
-    let channels = this.channels
-    let width = this.width
-    channels.forEach(item => {
-      let head = item.queue[0]
-      if (head) {
-        item.surplus = (width - head.left) - head.width
-      } else {
-        item.step = 9999
-        item.surplus = 0
-      }
-    })
   }
   reset () {
     let root = this.player.root
     let self = this
+    if (self.channels && self.channels.length > 0) {
+      for (let i = 0; i < self.channels.length; i++) {
+        self.channels[i].queue.forEach(item => {
+          item.pauseMove()
+          item.remove()
+        })
+      }
+    }
     setTimeout(function () {
       let container = root.querySelector('.xgplayer-bullet')
       let size = container.getBoundingClientRect()
       self.width = size.width
       self.height = size.height
+      if (self.player.config.bullet.heightRatio) {
+        self.height = size.height * self.player.config.bullet.heightRatio
+      }
       self.container = container
       let fontSize = /mobile/ig.test(navigator.userAgent) ? 10 : 12
       let channelSize = Math.floor(self.height / fontSize)
@@ -190,21 +222,31 @@ class Channel {
         channels[i] = {
           id: i,
           queue: [],
-          step: 99999,
-          surplus: 0
+          operating: false
         }
       }
       self.channels = channels
       self.channelHeight = fontSize
     }, 200)
   }
-  resetWithCb (cb) {
+  resetWithCb (cb, main) {
     let root = this.player.root
     let self = this
+    if (self.channels && self.channels.length > 0) {
+      for (let i = 0; i < self.channels.length; i++) {
+        self.channels[i].queue.forEach(item => {
+          item.pauseMove()
+          item.remove()
+        })
+      }
+    }
     let container = root.querySelector('.xgplayer-bullet')
     let size = container.getBoundingClientRect()
     self.width = size.width
     self.height = size.height
+    if (self.player.config.bullet.heightRatio) {
+      self.height = size.height * self.player.config.bullet.heightRatio
+    }
     self.container = container
     let fontSize = /mobile/ig.test(navigator.userAgent) ? 10 : 12
     let channelSize = Math.floor(self.height / fontSize)
@@ -213,14 +255,13 @@ class Channel {
       channels[i] = {
         id: i,
         queue: [],
-        step: 99999,
-        surplus: 0
+        operating: false
       }
     }
     self.channels = channels
     self.channelHeight = fontSize
     if (cb) {
-      cb(true)
+      cb(true, main)
     }
   }
 }
@@ -244,16 +285,14 @@ class Bullet {
     this.width = options.width
     this.height = options.height
     this.status = 'waiting'// waiting,start,end
-    this.playerPos = this.player.root.getBoundingClientRect()
-    this.left = this.playerPos.width
-    this.step = (this.playerPos.width + this.width) / this.duration / 60
     this.end = -this.width
   }
   attach () {
     let self = this
     this.container.appendChild(this.el)
     this.removeTimer = setInterval(function () {
-      if (self.el.getBoundingClientRect().right <= self.playerPos.left) {
+      let playerPos = self.player.root.getBoundingClientRect()
+      if (self.el.getBoundingClientRect().right <= playerPos.left) {
         self.status = 'end'
         self.remove()
       }
@@ -261,20 +300,25 @@ class Bullet {
   }
   reset () {
     let el = this.el
-    el.style.left = `${this.left}px`
+    let playerPos = this.player.root.getBoundingClientRect()
+    el.style.left = `${playerPos.width}px`
     el.style.top = `${this.top}px`
   }
   pauseMove () {
-    this.el.style.left = `${this.el.getBoundingClientRect().left - this.playerPos.left}px`
+    let playerPos = this.player.root.getBoundingClientRect()
+    this.el.style.left = `${this.el.getBoundingClientRect().left - playerPos.left}px`
     this.el.style.transform = 'translateX(0px) translateY(0px) translateZ(0px)'
     this.el.style.transition = '-webkit-transform 0s linear 0s'
   }
   startMove () {
     let self = this
-    let leftDuration = (self.el.getBoundingClientRect().right - self.playerPos.left) / ((this.playerPos.width + this.width) / this.duration)
+    let playerPos = this.player.root.getBoundingClientRect()
+    let leftDuration = (self.el.getBoundingClientRect().right - playerPos.left) / ((playerPos.width + this.width) / this.duration)
     this.el.style.transition = `-webkit-transform ${leftDuration}s linear 0s`
     setTimeout(function () {
-      self.el.style.transform = `translateX(-${self.el.getBoundingClientRect().right - self.playerPos.left}px) translateY(0px) translateZ(0px)`
+      if (self.el) {
+        self.el.style.transform = `translateX(-${self.el.getBoundingClientRect().right - playerPos.left}px) translateY(0px) translateZ(0px)`
+      }
     }, 20)
   }
   remove () {
@@ -340,8 +384,11 @@ class Main {
       }
     })
   }
-  init () {
-    let self = this
+  init (bol, self) {
+    if (!self) {
+      self = this
+    }
+    self.data = []
     if (self.data) {
       if (self.player.paused) {
         self.status = 'paused'
@@ -351,10 +398,16 @@ class Main {
         return
       }
       self.readData()
-      self.retryTimer = setInterval(function () {
-        self.readData()
-        self.dataHandle()
-      }, self.interval - 1000)
+      if (!self.retryTimer) {
+        self.retryTimer = setInterval(function () {
+          if (self.status === 'closed') {
+            clearInterval(self.retryTimer)
+          } else {
+            self.readData()
+            self.dataHandle()
+          }
+        }, self.interval - 1000)
+      }
       self.player.emit('dataIncoming')
       return
     }
@@ -394,10 +447,12 @@ class Main {
               }
               // self.status = 'playing';
               self.readData()
-              self.retryTimer = setInterval(function () {
-                self.readData()
-                self.dataHandle()
-              }, self.interval - 1000)
+              if (!self.retryTimer) {
+                self.retryTimer = setInterval(function () {
+                  self.readData()
+                  self.dataHandle()
+                }, self.interval - 1000)
+              }
               self.player.emit('dataIncoming')
             }
           })
@@ -407,25 +462,34 @@ class Main {
       })
     } else {
       self.data = []
-      self.retryTimer = setInterval(function () {
-        self.readData()
-        self.dataHandle()
-      }, self.interval - 1000)
+      if (!self.retryTimer) {
+        self.retryTimer = setInterval(function () {
+          self.readData()
+          self.dataHandle()
+        }, self.interval - 1000)
+      }
     }
   }
   // 启动弹幕渲染主进程
   start () {
     let self = this
     self.status = 'playing'
-    self.channel.reset()
-    self.init()
+    self.queue.length = 0
+    self.container.innerHTML = ''
+    self.channel.resetWithCb(self.init, self)
+    // self.init()
   }
   stop () {
     let self = this
     self.status = 'closed'
-    clearTimeout(self.retryTimer)
+    clearInterval(self.retryTimer)
+    self.retryTimer = null
+    self.channel.reset()
     // let cancel = requestFrame('cancel')
     // cancel(self.timer)
+    // self.queue.forEach(item => {
+    //   item.remove
+    // })
     self.queue.length = 0
     self.container.innerHTML = ''
   }
@@ -438,33 +502,16 @@ class Main {
     } else if (self.status === 'paused' && util.hasClass(self.container, 'xgplayer-has-bullet')) {
       self.status = 'playing'
       self.dataHandle()
-      self.retryTimer = setInterval(function () {
-        self.readData()
-        self.dataHandle()
-      }, self.interval - 1000)
+      if (!self.retryTimer) {
+        self.retryTimer = setInterval(function () {
+          self.readData()
+          self.dataHandle()
+        }, self.interval - 1000)
+      }
     }
   }
   pause () {
-    let self = this
-    if (self.status === 'playing') {
-      self.status = 'paused'
-      if (self.queue.length) {
-        self.queue.forEach(item => {
-          // if (item.status === 'waiting' || item.status === 'start') {
-          if (item.status === 'start') {
-            item.status = 'paused'
-            item.pauseMove()
-          }
-        })
-        // let request = requestFrame('request')
-        // self.timer = request(self.dataHandle.bind(self))
-      }
-      clearTimeout(self.retryTimer)
-      // let cancel = requestFrame('cancel')
-      // cancel(self.timer)
-    } else if (self.status === 'ended') {
-      self.stop()
-    }
+    this.stop()
   }
   dataHandle () {
     let self = this
@@ -537,7 +584,7 @@ class BulletBtn {
     this.el_ = this.createEl()
     this.onceFlag = false
 
-    let ev = ['click', 'touchstart']
+    let ev = ['click', 'touchend']
     ev.forEach(item => {
       self.el_.addEventListener(item, function (e) {
         e.preventDefault()
@@ -600,23 +647,23 @@ let makeBullet = function () {
   }
   let bullet = util.createDom('xg-bullet', '', {}, 'xgplayer-bullet'), root = player.root
   root.appendChild(bullet)
-  if (player.config.bullet.heightRatio) {
-    let playerHeight = player.root.getBoundingClientRect().height
-    bullet.style.height = playerHeight * player.config.bullet.heightRatio + 'px'
+  let playerHeight = player.root.getBoundingClientRect().height
+  bullet.style.height = '100%'
+  let bulletBtn = new BulletBtn(player, player.config.bullet)
+  if (!player.config.closeBulletClick) {
+    ['touchend', 'click'].forEach(item => {
+      bullet.addEventListener(item, function (e) {
+        e.preventDefault()
+        e.stopPropagation()
+        if (player.paused) {
+          player.play()
+        } else {
+          player.pause()
+        }
+      }, false)
+    })
   }
-  let bulletBtn = new BulletBtn(player, player.config.bullet);
 
-  ['touchstart', 'click'].forEach(item => {
-    bullet.addEventListener(item, function (e) {
-      e.preventDefault()
-      e.stopPropagation()
-      if (player.paused) {
-        player.play()
-      } else {
-        player.pause()
-      }
-    }, false)
-  })
   player.bulletBtn = bulletBtn
 
   player.controls.appendChild(bulletBtn.el_)
