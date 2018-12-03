@@ -68,6 +68,7 @@ class Channel {
     }, 10)
   }
   addBullet (bullet) {
+    let player = this.player
     let left = this.width
     let channels = this.channels
     let channelHeight = this.channelHeight
@@ -91,9 +92,22 @@ class Channel {
         flag = true
         for (let j = i; j < i + occupy; j++) {
           channel = channels[j]
-          if (channel.step < bullet.step || channel.surplus < 0) {
-            flag = false
-            break
+          let curBullet = channel.queue[0]
+          if (curBullet) {
+            if (curBullet.el.getBoundingClientRect().right > curBullet.playerPos.right) {
+              flag = false
+              break
+            }
+            let curS = curBullet.el.getBoundingClientRect().left - curBullet.playerPos.left + curBullet.el.getBoundingClientRect().width
+            let curV = curBullet.playerPos.width / curBullet.duration
+            let curT = curS / curV
+            if (!player.config.bOffset) {
+              player.config.bOffset = 0
+            }
+            if (curT + player.config.bOffset > bullet.duration) {
+              flag = false
+              break
+            }
           }
         }
         if (flag) {
@@ -225,7 +239,7 @@ class Bullet {
     let el = document.createElement('div')
     el.textContent = options.txt
     el.style.color = options.color
-    el.style.fontSize = `${options.scale}em`
+    el.style.fontSize = `${20 * options.scale}px`
     this.el = el
     this.width = options.width
     this.height = options.height
