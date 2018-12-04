@@ -14,14 +14,14 @@ class Channel {
     this.player.on('bullet_remove', function (r) {
       self.removeBullet(r.bullet)
     })
-    let playerPos = this.player.root.getBoundingClientRect()
-    this.playerWidth = playerPos.width
-    this.playerHeight = playerPos.height
+    this.playerPos = this.player.root.getBoundingClientRect()
+    this.playerWidth = this.playerPos.width
+    this.playerHeight = this.playerPos.height
     this.player.on('timeupdate', function () {
-      playerPos = self.player.root.getBoundingClientRect()
-      if (playerPos.width !== self.playerWidth || playerPos.height !== self.playerHeight) {
-        self.playerWidth = playerPos.width
-        self.playerHeight = playerPos.height
+      self.playerPos = self.player.root.getBoundingClientRect()
+      if (self.playerPos.width !== self.playerWidth || self.playerPos.height !== self.playerHeight) {
+        self.playerWidth = self.playerPos.width
+        self.playerHeight = self.playerPos.height
         self.resize()
       }
     });
@@ -59,8 +59,8 @@ class Channel {
           }
           self.channels[i].queue.forEach(item => {
             channels[i].queue.push(item)
-            item.pauseMove()
-            item.startMove()
+            // item.pauseMove(self.playerPos)
+            item.startMove(self.playerPos)
           })
         }
       } else if (self.channels && self.channels.length > channels.length) {
@@ -71,8 +71,8 @@ class Channel {
           }
           self.channels[i].queue.forEach(item => {
             channels[i].queue.push(item)
-            item.pauseMove()
-            item.startMove()
+            // item.pauseMove(self.playerPos)
+            item.startMove(self.playerPos)
           })
         }
         for (let i = channels.length; i < self.channels.length; i++) {
@@ -201,7 +201,7 @@ class Channel {
     if (self.channels && self.channels.length > 0) {
       for (let i = 0; i < self.channels.length; i++) {
         self.channels[i].queue.forEach(item => {
-          item.pauseMove()
+          // item.pauseMove(self.playerPos)
           item.remove()
         })
       }
@@ -235,7 +235,7 @@ class Channel {
     if (self.channels && self.channels.length > 0) {
       for (let i = 0; i < self.channels.length; i++) {
         self.channels[i].queue.forEach(item => {
-          item.pauseMove()
+          // item.pauseMove(self.playerPos)
           item.remove()
         })
       }
@@ -287,16 +287,9 @@ class Bullet {
     this.status = 'waiting'// waiting,start,end
     this.end = -this.width
   }
-  attach () {
-    let self = this
+  attach (playerPos) {
+    // let self = this
     this.container.appendChild(this.el)
-    this.removeTimer = setInterval(function () {
-      let playerPos = self.player.root.getBoundingClientRect()
-      if (self.el.getBoundingClientRect().right <= playerPos.left) {
-        self.status = 'end'
-        self.remove()
-      }
-    }, 500)
   }
   reset () {
     let el = this.el
@@ -304,26 +297,40 @@ class Bullet {
     el.style.left = `${playerPos.width}px`
     el.style.top = `${this.top}px`
   }
-  pauseMove () {
-    let playerPos = this.player.root.getBoundingClientRect()
+  pauseMove (playerPos) {
+    let self = this
+    // let playerPos = this.player.root.getBoundingClientRect()
+    clearTimeout(self.removeTimer)
     this.el.style.left = `${this.el.getBoundingClientRect().left - playerPos.left}px`
     this.el.style.transform = 'translateX(0px) translateY(0px) translateZ(0px)'
-    this.el.style.transition = '-webkit-transform 0s linear 0s'
+    this.el.style.transition = 'transform 0s linear 0s'
   }
-  startMove () {
+  startMove (playerPos) {
     let self = this
-    let playerPos = this.player.root.getBoundingClientRect()
+    // let playerPos = this.player.root.getBoundingClientRect()
     let leftDuration = (self.el.getBoundingClientRect().right - playerPos.left) / ((playerPos.width + this.width) / this.duration)
-    this.el.style.transition = `-webkit-transform ${leftDuration}s linear 0s`
+    this.el.style.transition = `transform ${leftDuration}s linear 0s`
+    function func () {
+      if (self.el) {
+        let bulletPos = self.el.getBoundingClientRect()
+        if (bulletPos && bulletPos.right <= playerPos.left) {
+          self.status = 'end'
+          self.remove()
+        }
+      }
+    }
     setTimeout(function () {
       if (self.el) {
         self.el.style.transform = `translateX(-${self.el.getBoundingClientRect().right - playerPos.left}px) translateY(0px) translateZ(0px)`
+        self.removeTimer = setTimeout(func, leftDuration + 1000)
       }
     }, 20)
   }
   remove () {
     let self = this
-    clearInterval(this.removeTimer)
+    if (this.removeTimer) {
+      clearTimeout(this.removeTimer)
+    }
     if (self.el && self.el.parentNode) {
       let parent = self.el.parentNode
       parent.removeChild(self.el)
@@ -522,7 +529,7 @@ class Main {
         // if (item.status === 'waiting' || item.status === 'start') {
         if (item.status === 'waiting' || item.status === 'paused') {
           item.status = 'start'
-          item.startMove()
+          item.startMove(self.channel.playerPos)
         }
       })
       // let request = requestFrame('request')
@@ -544,7 +551,7 @@ class Main {
         if (result.result) {
           self.queue.push(bullet)
           bullet.reset()
-          bullet.attach()
+          bullet.attach(self.channel.playerPos)
         }
       })
     }
