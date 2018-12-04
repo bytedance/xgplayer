@@ -9,20 +9,18 @@ Box.tkhd = function () {
   if (this.version === 1) {
     this.create = stream.readUint64()
     this.modify = stream.readUint64()
-    this.createTime = new UTC().setTime(this.create * 1000)
-    this.modifyTime = new UTC().setTime(this.modify * 1000)
     this.trackID = stream.readUint32()
     this.reserverd = stream.readUint32()
     this.duration = stream.readUint64()
   } else {
     this.create = stream.readUint32()
     this.modify = stream.readUint32()
-    this.createTime = new UTC().setTime(this.create * 1000)
-    this.modifyTime = new UTC().setTime(this.modify * 1000)
     this.trackID = stream.readUint32()
     this.reserverd = stream.readUint32()
     this.duration = stream.readUint32()
   }
+  this.createTime = new UTC().setTime(this.create * 1000)
+  this.modifyTime = new UTC().setTime(this.modify * 1000)
   stream.readUint64()
   this.layer = stream.readInt16()
   this.alternate_group = stream.readInt16()
