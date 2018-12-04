@@ -7,12 +7,19 @@ Box.mvhd = function () {
 
   this.version = stream.readUint8()
   this.flag = Stream.readByte(stream.dataview, 3)
-  this.create = stream.readUint32()
-  this.modify = stream.readUint32()
+  if (this.version === 1) {
+    this.create = stream.readUint64()
+    this.modify = stream.readUint64()
+    this.timeScale = stream.readUint32()
+    this.duration = stream.readUint64()
+  } else {
+    this.create = stream.readUint32()
+    this.modify = stream.readUint32()
+    this.timeScale = stream.readUint32()
+    this.duration = stream.readUint32()
+  }
   this.createTime = new UTC().setTime(this.create * 1000)
   this.modifyTime = new UTC().setTime(this.modify * 1000)
-  this.timeScale = stream.readUint32()
-  this.duration = stream.readUint32()
   this.rate = stream.readUint16() + '.' + stream.readUint16()
   this.volume = stream.readUint8() + '.' + stream.readUint8()
   // 越过保留的10字节
