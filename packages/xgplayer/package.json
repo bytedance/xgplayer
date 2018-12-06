@@ -6,7 +6,7 @@
     "scripts": {
         "prepare": "npm run build",
         "build": "webpack --progress --display-chunks -p",
-        "watch": "webpack --progress --display-chunks -p --watch",
+        "watch": "webpack --progress --display-chunks -p --watch --mode development",
         "test": "karma start --single-run",
         "test:watch": "karma start"
     },
@@ -35,7 +35,8 @@
         "draggabilly": "^2.2.0",
         "event-emitter": "^0.3.5",
         "pasition": "^1.0.1",
-        "request-frame": "^1.5.3"
+        "request-frame": "^1.5.3",
+        "downloadjs": "1.4.7"
     },
     "browserslist": [
         "> 5%",
