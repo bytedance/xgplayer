@@ -175,4 +175,23 @@ util.createImgBtn = function (name, imgUrl, width, height) {
   return btn
 }
 
+util.Hex2RGBA = function (hex, alpha) {
+  let rgb = [] // 定义rgb数组
+  if (/^\#[0-9A-F]{3}$/i.test(hex)) {
+    let sixHex = '#'
+    hex.replace(/[0-9A-F]/ig, function (kw) {
+      sixHex += kw + kw
+    })
+    hex = sixHex
+  }
+  if (/^#[0-9A-F]{6}$/i.test(hex)) {
+    hex.replace(/[0-9A-F]{2}/ig, function (kw) {
+      rgb.push(eval('0x' + kw))
+    })
+    return `rgba(${rgb.join(',')}, ${alpha})`
+  } else {
+    return 'rgba(255, 255, 255, 0.1)'
+  }
+}
+
 export default util

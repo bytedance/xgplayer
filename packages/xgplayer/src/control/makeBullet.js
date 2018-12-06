@@ -281,6 +281,11 @@ class Bullet {
     el.textContent = options.txt
     el.style.color = options.color
     el.style.fontSize = `${20 * options.scale}px`
+    if (options.self) {
+      el.style.border = `solid 1px ${options.color}`
+      el.style.borderRadius = '18px'
+      el.style.backgroundColor = Player.util.Hex2RGBA(options.color, 0.1)
+    }
     this.el = el
     this.width = options.width
     this.height = options.height

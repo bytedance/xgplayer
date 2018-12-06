@@ -257,9 +257,9 @@
     order: 4;
     display: inline-block;
     position: relative;
-    cursor: pointer;
     .xgplayer-icon{
         margin-top: 8px;
+        cursor: pointer;
     }
 }
 .xgplayer-slider{
@@ -293,6 +293,7 @@
     width: 4px;
     height: 76px;
     outline: none;
+    cursor: pointer;
 }
 .xgplayer-drag{
     bottom: 0;
