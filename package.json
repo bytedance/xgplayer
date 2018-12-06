@@ -72,7 +72,4 @@
     }
   },
   "homepage": "https://github.com/bytedance/xgplayer#readme",
-  "dependencies": {
-    "downloadjs": "1.4.7"
-  }
 }
