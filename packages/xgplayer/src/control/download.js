@@ -1,4 +1,5 @@
 import Player from '../player'
+import {getAbsoluteURL} from '../utils/url'
 import downloadUtil from 'downloadjs'
 
 const download = function () {
@@ -16,9 +17,9 @@ const download = function () {
   downloadEl.appendChild(tips)
 
   downloadEl.addEventListener('click', (e) => {
-    // e.preventDefault();
     e.stopPropagation()
-    const url = player.config.url
+    // must pass an absolute url for download
+    const url = getAbsoluteURL(player.config.url)
     downloadUtil(url)
   })
 
