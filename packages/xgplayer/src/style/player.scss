@@ -19,6 +19,7 @@
     height: 100%;
     position: relative;
     overflow: hidden;
+    user-select: none;
     *{
         margin: 0;
         padding: 0;
@@ -51,6 +52,7 @@
     overflow: hidden;
     fill:$playerIconColor;
 }
+
 @import "player/controls";
 @import "player/progress";
 @import "player/play";

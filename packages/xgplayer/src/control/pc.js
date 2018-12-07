@@ -120,25 +120,27 @@ let pc = function () {
       player.video.focus()
       return
     }
-    clk++
-    if (_click_) {
-      clearTimeout(_click_)
-    }
-    if (clk === 1) {
-      _click_ = setTimeout(function () {
-        if (util.hasClass(player.root, 'xgplayer-nostart')) {
-          return false
-        } else if (!player.ended) {
-          if (player.paused) {
-            player.play()
-          } else {
-            player.pause()
+    if (!player.config.closeVideoClick) {
+      clk++
+      if (_click_) {
+        clearTimeout(_click_)
+      }
+      if (clk === 1) {
+        _click_ = setTimeout(function () {
+          if (util.hasClass(player.root, 'xgplayer-nostart')) {
+            return false
+          } else if (!player.ended) {
+            if (player.paused) {
+              player.play()
+            } else {
+              player.pause()
+            }
           }
-        }
+          clk = 0
+        }, 200)
+      } else {
         clk = 0
-      }, 200)
-    } else {
-      clk = 0
+      }
     }
   }, false)
 
@@ -149,16 +151,18 @@ let pc = function () {
       player.video.focus()
       return
     }
-    let fullscreen = controls.querySelector('.xgplayer-fullscreen')
-    if (fullscreen) {
-      let clk
-      if (document.createEvent) {
-        clk = document.createEvent('Event')
-        clk.initEvent('click', true, true)
-      } else {
-        clk = new Event('click')
+    if (!player.config.closeVideoDblclick) {
+      let fullscreen = controls.querySelector('.xgplayer-fullscreen')
+      if (fullscreen) {
+        let clk
+        if (document.createEvent) {
+          clk = document.createEvent('Event')
+          clk.initEvent('click', true, true)
+        } else {
+          clk = new Event('click')
+        }
+        fullscreen.dispatchEvent(clk)
       }
-      fullscreen.dispatchEvent(clk)
     }
   }, false)
 

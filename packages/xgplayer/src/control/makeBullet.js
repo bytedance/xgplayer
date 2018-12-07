@@ -17,22 +17,37 @@ class Channel {
     this.playerPos = this.player.root.getBoundingClientRect()
     this.playerWidth = this.playerPos.width
     this.playerHeight = this.playerPos.height
-    this.player.on('timeupdate', function () {
+    this.playerLeft = this.playerPos.left
+    this.playerRight = this.playerPos.right
+    // this.player.on('timeupdate', function () {
+    this.player.bulletResizeTimer = setInterval(function () {
       self.playerPos = self.player.root.getBoundingClientRect()
-      if (self.playerPos.width !== self.playerWidth || self.playerPos.height !== self.playerHeight) {
+      if (self.playerPos.width !== self.playerWidth || self.playerPos.height !== self.playerHeight || self.playerPos.left !== self.playerLeft || self.playerPos.right !== self.playerRight) {
         self.playerWidth = self.playerPos.width
         self.playerHeight = self.playerPos.height
+        self.playerLeft = self.playerPos.left
+        self.playerRight = self.playerPos.right
         self.resize()
       }
-    });
+    }, 50);
     ['fullscreenchange', 'webkitfullscreenchange', 'mozfullscreenchange', 'MSFullscreenChange'].forEach(item => {
       document.addEventListener(item, self.resize())
     })
   }
   resize () {
+    // console.log('resize')
     let root = this.player.root
     let self = this
     setTimeout(function () {
+      if (self.player.bulletBtn.main.data) {
+        self.player.bulletBtn.main.data.forEach(item => {
+          if (item.bookChannelId) {
+            item.bookChannelId = undefined
+            // console.log('resize导致' + item.id + '号优先弹幕预定取消')
+          }
+        })
+      }
+      // console.log('resize导致所有轨道恢复正常使用')
       let container = root.querySelector('.xgplayer-bullet')
       let size = container.getBoundingClientRect()
       self.width = size.width
@@ -58,9 +73,17 @@ class Channel {
             queue: []
           }
           self.channels[i].queue.forEach(item => {
-            channels[i].queue.push(item)
-            // item.pauseMove(self.playerPos)
-            item.startMove(self.playerPos)
+            if (item.el) {
+              let pos = item.el.getBoundingClientRect()
+              if (pos.left <= self.playerPos.right && pos.right >= self.playerPos.right) {
+                item.pauseMove(self.playerPos)
+                item.remove()
+              } else {
+                channels[i].queue.push(item)
+                item.pauseMove(self.playerPos)
+                item.startMove(self.playerPos)
+              }
+            }
           })
         }
       } else if (self.channels && self.channels.length > channels.length) {
@@ -70,15 +93,23 @@ class Channel {
             queue: []
           }
           self.channels[i].queue.forEach(item => {
-            channels[i].queue.push(item)
-            // item.pauseMove(self.playerPos)
-            item.startMove(self.playerPos)
+            if (item.el) {
+              let pos = item.el.getBoundingClientRect()
+              if (pos.left <= self.playerPos.right && pos.right >= self.playerPos.right) {
+                item.pauseMove(self.playerPos)
+                item.remove()
+              } else {
+                channels[i].queue.push(item)
+                item.pauseMove(self.playerPos)
+                item.startMove(self.playerPos)
+              }
+            }
           })
         }
         for (let i = channels.length; i < self.channels.length; i++) {
           self.channels[i].queue.forEach(item => {
-            // item.pauseMove()
-            // item.remove()
+            item.pauseMove(self.playerPos)
+            item.remove()
           })
         }
       }
@@ -87,6 +118,10 @@ class Channel {
     }, 10)
   }
   addBullet (bullet) {
+    // if (bullet.prior) {
+    //   console.log(bullet.id + '号优先弹幕请求注册')
+    // }
+    let self = this
     let player = this.player
     let channels = this.channels
     let channelHeight = this.channelHeight
@@ -114,12 +149,16 @@ class Channel {
             flag = false
             break
           }
+          if ((channel.bookId || bullet.prior) && (channel.bookId !== bullet.id)) {
+            flag = false
+            break
+          }
           channel.operating = true
           let curBullet = channel.queue[0]
           if (curBullet) {
-            let playerPos = player.root.getBoundingClientRect()
+            // let playerPos = player.root.getBoundingClientRect()
             let curBulletPos = curBullet.el.getBoundingClientRect()
-            if (curBulletPos.right > playerPos.right) {
+            if (curBulletPos.right > self.playerPos.right) {
               flag = false
               channel.operating = false
               break
@@ -128,12 +167,12 @@ class Channel {
             // Vcur * t + Scur已走 - Widthcur = Vnew * t
             // t = (Scur已走 - Widthcur) / (Vnew - Vcur)
             // Vnew * t < Widthplayer
-            let curS = curBulletPos.left - playerPos.left + curBulletPos.width
-            let curV = (playerPos.width + curBulletPos.width) / curBullet.duration
+            let curS = curBulletPos.left - self.playerPos.left + curBulletPos.width
+            let curV = (self.playerPos.width + curBulletPos.width) / curBullet.duration
             let curT = curS / curV
 
-            let newS = playerPos.width
-            let newV = (playerPos.width + bullet.width) / bullet.duration
+            let newS = self.playerPos.width
+            let newV = (self.playerPos.width + bullet.width) / bullet.duration
             let newT = newS / newV
 
             if (!player.config.bOffset) {
@@ -157,7 +196,15 @@ class Channel {
           channel = channels[i]
           channel.operating = true
           channel.queue.unshift(bullet)
+          if (bullet.prior) {
+            channel.bookId = undefined
+            // console.log(i + '号轨道恢复正常使用')
+          }
           channel.operating = false
+        }
+        if (bullet.prior) {
+          // console.log(bullet.id + '号优先弹幕运行完毕')
+          bullet.bookChannelId = undefined
         }
         bullet.channel_id = [pos, occupy]
         bullet.top = pos * channelHeight
@@ -166,6 +213,54 @@ class Channel {
           message: 'success'
         }
       } else {
+        if (bullet.prior) {
+          if (!bullet.bookChannelId) {
+            pos = -1
+            for (let i = 0, max = channels.length - occupy; i <= max; i++) {
+              flag = true
+              for (let j = i; j < i + occupy; j++) {
+                if (channels[j].bookId) {
+                  flag = false
+                  break
+                }
+              }
+              if (flag) {
+                pos = i
+                break
+              }
+            }
+            if (pos !== -1) {
+              for (let j = pos; j < pos + occupy; j++) {
+                channels[j].bookId = bullet.id
+                // console.log(j + '号轨道被' + bullet.id + '号优先弹幕预定')
+              }
+              let nextAddTime = 2
+              let dataList = player.bulletBtn.main.data
+              dataList.some(function (item, index) {
+                if (item.id === bullet.id) {
+                  // console.log(bullet.id + '号优先弹幕将于' + nextAddTime + '秒后再次请求注册')
+                  item.start += nextAddTime * 1000
+                  item.bookChannelId = [pos, occupy]
+                  return true
+                } else {
+                  return false
+                }
+              })
+            }
+          } else {
+            let nextAddTime = 2
+            let dataList = player.bulletBtn.main.data
+            dataList.some(function (item, index) {
+              if (item.id === bullet.id) {
+                // console.log(bullet.id + '号优先弹幕将于' + nextAddTime + '秒后再次请求注册')
+                item.start += nextAddTime * 1000
+                return true
+              } else {
+                return false
+              }
+            })
+          }
+        }
         return {
           result: false,
           message: 'no surplus will right'
@@ -201,7 +296,7 @@ class Channel {
     if (self.channels && self.channels.length > 0) {
       for (let i = 0; i < self.channels.length; i++) {
         self.channels[i].queue.forEach(item => {
-          // item.pauseMove(self.playerPos)
+          item.pauseMove(self.playerPos)
           item.remove()
         })
       }
@@ -235,7 +330,7 @@ class Channel {
     if (self.channels && self.channels.length > 0) {
       for (let i = 0; i < self.channels.length; i++) {
         self.channels[i].queue.forEach(item => {
-          // item.pauseMove(self.playerPos)
+          item.pauseMove(self.playerPos)
           item.remove()
         })
       }
@@ -277,12 +372,23 @@ class Bullet {
     this.id = options.id
     this.container = container
     this.start = options.start
+    this.prior = options.prior
+    this.bookChannelId = options.bookChannelId
     let el = document.createElement('div')
     el.textContent = options.txt
     el.style.color = options.color
     el.style.fontSize = `${20 * options.scale}px`
+    if (options.self) {
+      el.style.border = `solid 1px ${options.color}`
+      el.style.borderRadius = '50px'
+      el.style.padding = '5px 11px'
+      el.style.backgroundColor = Player.util.Hex2RGBA(options.color, 0.1)
+    }
+    if (Player.util.Hex2RGBA(options.color, 0.1) === 'rgba(255,255,255, 0.1)') {
+      el.style.textShadow = '0 1px rgba(0,0,0,0.5), 1px 0 rgba(0,0,0,0.5), -1px 0 rgba(0,0,0,0.5), 0 -1px rgba(0,0,0,0.5)'
+    }
     this.el = el
-    this.width = options.width
+    this.width = options.self ? options.width + 22 : options.width + 10
     this.height = options.height
     this.status = 'waiting'// waiting,start,end
     this.end = -this.width
@@ -298,31 +404,42 @@ class Bullet {
     el.style.top = `${this.top}px`
   }
   pauseMove (playerPos) {
+    // console.log('pauseMove')
     let self = this
     // let playerPos = this.player.root.getBoundingClientRect()
     clearTimeout(self.removeTimer)
+    if (!this.el) {
+      return
+    }
     this.el.style.left = `${this.el.getBoundingClientRect().left - playerPos.left}px`
     this.el.style.transform = 'translateX(0px) translateY(0px) translateZ(0px)'
     this.el.style.transition = 'transform 0s linear 0s'
   }
   startMove (playerPos) {
     let self = this
+    if (!this.el) {
+      return
+    }
     // let playerPos = this.player.root.getBoundingClientRect()
     let leftDuration = (self.el.getBoundingClientRect().right - playerPos.left) / ((playerPos.width + this.width) / this.duration)
     this.el.style.transition = `transform ${leftDuration}s linear 0s`
     function func () {
       if (self.el) {
+        let playerPos_ = self.player.root.getBoundingClientRect()
         let bulletPos = self.el.getBoundingClientRect()
-        if (bulletPos && bulletPos.right <= playerPos.left) {
+        if (bulletPos && bulletPos.right <= playerPos_.left) {
           self.status = 'end'
           self.remove()
+        } else {
+          self.pauseMove(playerPos_)
+          self.startMove(playerPos_)
         }
       }
     }
     setTimeout(function () {
       if (self.el) {
         self.el.style.transform = `translateX(-${self.el.getBoundingClientRect().right - playerPos.left}px) translateY(0px) translateZ(0px)`
-        self.removeTimer = setTimeout(func, leftDuration + 1000)
+        self.removeTimer = setTimeout(func, leftDuration * 1000 + 1000)
       }
     }, 20)
   }
