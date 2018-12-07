@@ -209,6 +209,7 @@ class Player extends Proxy {
 
   destroy () {
     let parentNode = this.root.parentNode
+    clearInterval(this.bulletResizeTimer)
     for (let k in this._interval) {
       clearInterval(this._interval[k])
       this._interval[k] = null
@@ -235,7 +236,7 @@ class Player extends Proxy {
       this.once('pause', () => {
         this.emit('destroy')
         this.root.id = this.root.id + '_del'
-        parentNode.insertBefore(this.rootBackup, this.root)
+        // parentNode.insertBefore(this.rootBackup, this.root)
         parentNode.removeChild(this.root)
         for (let k in this) {
           if (k !== 'config') {
@@ -246,7 +247,7 @@ class Player extends Proxy {
     } else {
       this.emit('destroy')
       this.root.id = this.root.id + '_del'
-      parentNode.insertBefore(this.rootBackup, this.root)
+      // parentNode.insertBefore(this.rootBackup, this.root)
       parentNode.removeChild(this.root)
       for (let k in this) {
         if (k !== 'config') {
