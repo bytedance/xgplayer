@@ -1,0 +1,78 @@
+.xgplayer-progress{
+  display: block;
+  position: absolute;
+  height: 20px;
+  line-height: 20px;
+  left: 0;
+  right: 0;
+  outline: none;
+  top: -10px;
+  z-index: 15;
+}
+.xgplayer-progress-outer{
+  background: $progressOuterBgColor;
+  display: block;
+  height: 3px;
+  line-height: 3px;
+  margin-top: 8.5px;
+  width: 100%;
+  position: relative;
+  cursor: pointer;
+}
+.xgplayer-progress-cache,.xgplayer-progress-played{
+  display: block;
+  height: 100%;
+  line-height: 1;
+  position: absolute;
+  left: 0;
+  top: 0;
+}
+.xgplayer-progress-cache{
+  width: 0;
+  background: $progressCacheBgColor;
+}
+.xgplayer-progress-played{
+  display: block;
+  width: 0;
+  background-image: $progressPlayedBgImage;
+  border-radius: 0 1.5px 1.5px 0;
+  &:after{
+    content:" ";
+    display: none;
+    position: absolute;
+    right: -4px;
+    top: -4px;
+    width: 14px;
+    height: 14px;
+    border-radius: 50%;
+    background: #FFFFFF;
+    box-shadow: $progressPlayedShadow;
+  }
+}
+.xgplayer-progress-point{
+  position: absolute;
+  &.xgplayer-tips{
+    margin-left: 0;
+    top: -25px;
+    display: none;
+    z-index: 100;
+  }
+}
+.xgplayer-progress-thumbnail{
+  position: absolute;
+  box-sizing: border-box;
+  &.xgplayer-tips{
+    margin-left: 0;
+    display: none;
+    z-index: 99;
+  }
+}
+.xgplayer-progress:hover,.xgplayer-progress:focus{
+  .xgplayer-progress-outer{
+    height: 6px;
+    margin-top: 7px;
+  }
+  .xgplayer-progress-played:after{
+    display: block
+  }
+}

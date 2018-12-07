@@ -1,0 +1,34 @@
+.xgplayer-bar,.xgplayer-drag{
+  display: block;
+  position: absolute;
+  bottom: 6px;
+  left: 12px;
+  background: $sliderBarBgColor;
+  border-radius: 100px;
+  width: 4px;
+  height: 76px;
+  outline: none;
+}
+.xgplayer-drag{
+  bottom: 0;
+  left: 0;
+  background: $sliderDragBgColor;
+  max-height: 76px;
+  &:after{
+    content: " ";
+    display: inline-block;
+    width: 8px;
+    height: 8px;
+    background: $sliderDragAfterBgColor;
+    box-shadow: $sliderDragAfterShadow;
+    position: absolute;
+    border-radius: 50%;
+    left: -2px;
+    top: -6px;
+  }
+}
+.xgplayer-placeholder{
+  flex:1;
+  order: 3;
+  display: block;
+}
