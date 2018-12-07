@@ -1,0 +1,47 @@
+@keyframes playPause {
+  0% {
+    transform: scale(1,1);
+    opacity: 1;
+  }
+  99% {
+    transform: scale(1.3, 1.3);
+    opacity: 0;
+  }
+  100% {
+    transform: scale(0,0);
+    opacity: 0;
+  }
+}
+@keyframes loadingRotate {
+  0% {
+    transform: rotate(0);
+  }
+  100% {
+    transform: rotate(360deg);
+  }
+}
+@keyframes loadingDashOffset {
+  0% {
+    stroke-dashoffset: 236;
+  }
+  100% {
+    stroke-dashoffset: 0;
+  }
+}
+@keyframes enterTips{
+  0% {
+    opacity: 0;
+    left: 0;
+    width: 3px;
+  }
+  50% {
+    opacity: 1;
+    left: 50%;
+    width: 5px;
+  }
+  100% {
+    opacity: 0;
+    left: 100%;
+    width: 3px;
+  }
+}
