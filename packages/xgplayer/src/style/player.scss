@@ -20,6 +20,7 @@
     position: relative;
     overflow: hidden;
     user-select: none;
+    -ms-user-select: none;
     *{
         margin: 0;
         padding: 0;

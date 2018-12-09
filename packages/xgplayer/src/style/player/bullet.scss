@@ -41,13 +41,11 @@
   overflow: hidden;
   z-index: 9;
   outline: none;
-  cursor: pointer;
   div {
     position: absolute;
     padding: 5px;
     white-space: nowrap;
     z-index: 9;
-    cursor: pointer;
   }
 
   @at-root .xgplayer-has-bullet {
