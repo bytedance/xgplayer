@@ -771,22 +771,24 @@ let makeBullet = function () {
   }
   let bullet = util.createDom('xg-bullet', '', {}, 'xgplayer-bullet'), root = player.root
   root.appendChild(bullet)
-  let playerHeight = player.root.getBoundingClientRect().height
+  // if (!player.config.keyShortcut || player.config.keyShortcut === 'on') {
+  //   bullet.onkeydown = player.onKeydown.bind(player)
+  // }
   bullet.style.height = '100%'
-  let bulletBtn = new BulletBtn(player, player.config.bullet)
-  if (!player.config.closeBulletClick) {
-    ['touchend', 'click'].forEach(item => {
-      bullet.addEventListener(item, function (e) {
-        e.preventDefault()
-        e.stopPropagation()
-        if (player.paused) {
-          player.play()
-        } else {
-          player.pause()
-        }
-      }, false)
-    })
-  }
+  let bulletBtn = new BulletBtn(player, player.config.bullet);
+  ['touchend', 'click'].forEach(item => {
+    bullet.addEventListener(item, function (e) {
+      player.video.focus()
+      let clk
+      if (document.createEvent) {
+        clk = document.createEvent('Event')
+        clk.initEvent(item, true, true)
+      } else {
+        clk = new Event(item)
+      }
+      player.video.dispatchEvent(clk)
+    }, false)
+  })
 
   player.bulletBtn = bulletBtn
 
