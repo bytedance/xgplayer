@@ -22,7 +22,15 @@ class Channel {
     // this.player.on('timeupdate', function () {
     this.player.bulletResizeTimer = setInterval(function () {
       self.playerPos = self.player.root.getBoundingClientRect()
-      if (self.playerPos.width !== self.playerWidth || self.playerPos.height !== self.playerHeight || self.playerPos.left !== self.playerLeft || self.playerPos.right !== self.playerRight) {
+      if (Math.abs(self.playerPos.width - self.playerWidth) >= 2 || Math.abs(self.playerPos.height - self.playerHeight) >= 2 || Math.abs(self.playerPos.left - self.playerLeft) >= 2 || Math.abs(self.playerPos.right - self.playerRight) >= 2) {
+        // console.log('新播放器宽度：' + self.playerPos.width)
+        // console.log('旧播放器宽度：' + self.playerWidth)
+        // console.log('新播放器高度：' + self.playerPos.height)
+        // console.log('旧播放器高度：' + self.playerHeight)
+        // console.log('新播放器左：' + self.playerPos.left)
+        // console.log('旧播放器左：' + self.playerLeft)
+        // console.log('新播放器右：' + self.playerPos.right)
+        // console.log('旧播放器右：' + self.playerRight)
         self.playerWidth = self.playerPos.width
         self.playerHeight = self.playerPos.height
         self.playerLeft = self.playerPos.left
@@ -386,6 +394,9 @@ class Bullet {
     }
     if (Player.util.Hex2RGBA(options.color, 0.1) === 'rgba(255,255,255, 0.1)') {
       el.style.textShadow = '0 1px rgba(0,0,0,0.5), 1px 0 rgba(0,0,0,0.5), -1px 0 rgba(0,0,0,0.5), 0 -1px rgba(0,0,0,0.5)'
+      if (options.self) {
+        el.style.boxShadow = 'rgba(0,0,0,0.5) 0px 0px 1px 1px'
+      }
     }
     this.el = el
     this.width = options.self ? options.width + 22 : options.width + 10
@@ -776,7 +787,7 @@ let makeBullet = function () {
   // }
   bullet.style.height = '100%'
   let bulletBtn = new BulletBtn(player, player.config.bullet);
-  ['touchend', 'click'].forEach(item => {
+  ['touchend', 'click', 'dblclick'].forEach(item => {
     bullet.addEventListener(item, function (e) {
       player.video.focus()
       let clk

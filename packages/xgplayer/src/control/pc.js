@@ -183,6 +183,10 @@ let pc = function () {
   controls.addEventListener('mouseleave', function (e) {
     player.emit('focus', player)
   }, false)
+
+  if (player.config.autoplay) {
+    player.start()
+  }
 }
 
 Player.install('pc', pc)

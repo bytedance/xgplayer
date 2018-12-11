@@ -40,20 +40,33 @@ let definition = function () {
             return a.href === src
           }
         })
-        tmp.push(`</ul><p class='name'><em>${(cursrc[0] || {name: ''}).name}</em></p>`)
+        tmp.push(`</ul><p class='name'>${(cursrc[0] || {name: ''}).name}</p>`)
         let urlInRoot = root.querySelector('.xgplayer-definition')
-        let tipsText = player.config.lang && player.config.lang === 'zh-cn' ? '清晰度' : 'Quality'
         if (urlInRoot) {
-          urlInRoot.innerHTML = `<xg-tips class='xgplayer-tips'>${tipsText}</xg-tips>` + tmp.join('')
+          urlInRoot.innerHTML = tmp.join('')
+          let cur = urlInRoot.querySelector('.name')
+          cur.addEventListener('mouseenter', (e) => {
+            e.preventDefault()
+            e.stopPropagation()
+            util.addClass(ul, 'xgplayer-definition-active')
+            urlInRoot.focus()
+          })
         } else {
-          ul.innerHTML = `<xg-tips class='xgplayer-tips'>${tipsText}</xg-tips>` + tmp.join('')
+          ul.innerHTML = tmp.join('')
+          let cur = ul.querySelector('.name')
+          cur.addEventListener('mouseenter', (e) => {
+            e.preventDefault()
+            e.stopPropagation()
+            util.addClass(ul, 'xgplayer-definition-active')
+            ul.focus()
+          })
           root.appendChild(ul)
         }
       })
     }
   });
 
-  ['touchstart', 'click'].forEach(item => {
+  ['touchend', 'click'].forEach(item => {
     ul.addEventListener(item, function (e) {
       e.preventDefault()
       e.stopPropagation()
@@ -64,7 +77,7 @@ let definition = function () {
           util.removeClass(item, 'definition')
         })
         util.addClass(li, 'definition')
-        li.parentNode.nextSibling.innerHTML = `<em>${li.getAttribute('cname')}</em>`
+        li.parentNode.nextSibling.innerHTML = `${li.getAttribute('cname')}`
         a.href = li.getAttribute('url')
         if (player.switchURL) {
           let curRUL = document.createElement('a');
@@ -94,29 +107,14 @@ let definition = function () {
           }
         }
         player.emit('definitionchange', a.href)
-      } else if (li && (li.tagName.toLocaleLowerCase() === 'p' || li.tagName.toLocaleLowerCase() === 'em')) {
-        util.addClass(ul, 'xgplayer-definition-active')
-        ul.focus()
       }
     }, false)
   })
 
-  ul.addEventListener('blur', (e) => {
+  ul.addEventListener('mouseleave', (e) => {
     e.preventDefault()
     e.stopPropagation()
     util.removeClass(ul, 'xgplayer-definition-active')
-  })
-
-  ul.addEventListener('mouseenter', (e) => {
-    e.preventDefault()
-    e.stopPropagation()
-    let tips = ul.querySelector('.xgplayer-tips')
-    tips.style.left = '50%'
-    let rect = tips.getBoundingClientRect()
-    let rootRect = player.root.getBoundingClientRect()
-    if (rect.right > rootRect.right) {
-      tips.style.left = `${-rect.right + rootRect.right + 16}px`
-    }
   })
 
   player.once('destroy', () => {

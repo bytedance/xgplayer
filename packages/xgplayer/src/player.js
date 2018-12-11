@@ -108,9 +108,6 @@ class Player extends Proxy {
     setTimeout(() => {
       this.emit('ready')
     }, 0)
-    if (options.autoplay) {
-      this.start()
-    }
 
     if (!this.config.keyShortcut || this.config.keyShortcut === 'on') {
       ['video', 'controls'].forEach(item => {
@@ -127,9 +124,16 @@ class Player extends Proxy {
     }
     this.logParams.pt = new Date().getTime()
     function autoFunc () {
-      player.video.play().then(() => {
-        // 支持自动播放
-      })
+      let playPromise = player.video.play()
+      if (playPromise !== undefined) {
+        playPromise.then(function () {
+          player.emit('autoplay started')
+        }).catch(function (error) {
+          player.emit('autoplay was prevented')
+          Player.util.addClass(player.root, 'xgplayer-is-autoplay')
+          console.log(error)
+        })
+      }
       player.video.removeEventListener('canplay', autoFunc)
     }
     if (util.typeOf(url) === 'String') {

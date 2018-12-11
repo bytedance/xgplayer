@@ -119,20 +119,29 @@ let volume = function () {
       e.preventDefault()
       e.stopPropagation()
       player.video.muted = false
-      if (util.hasClass(slider, 'xgplayer-none')) {
-        util.removeClass(slider, 'xgplayer-none')
-        slider.focus()
+
+      if (player.volume === 0) {
+        player.volume = slider.volume
       } else {
-        if (player.volume === 0) {
-          player.volume = slider.volume
-        } else {
-          player.volume = 0
-        }
+        player.volume = 0
       }
     })
   })
 
-  slider.addEventListener('blur', function (e) {
+  icon.addEventListener('mouseenter', (e) => {
+    e.preventDefault()
+    e.stopPropagation()
+    util.removeClass(slider, 'xgplayer-none')
+    container.focus()
+  })
+
+  container.addEventListener('blur', (e) => {
+    e.preventDefault()
+    e.stopPropagation()
+    util.addClass(slider, 'xgplayer-none')
+  })
+
+  container.addEventListener('mouseleave', (e) => {
     e.preventDefault()
     e.stopPropagation()
     util.addClass(slider, 'xgplayer-none')
