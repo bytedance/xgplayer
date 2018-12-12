@@ -19,7 +19,7 @@ Box.avc1 = function () {
   }
   this.depth = stream.readUint16()
   stream.skip(2)
-  while (stream.position < stream.buffer.byteLength) {
+  while (stream.position < stream.buffer.byteLength - 8) {
     let box = new Box()
     box.readHeader(stream)
     self.subBox.push(box)
