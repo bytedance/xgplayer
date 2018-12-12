@@ -66,6 +66,7 @@ class MP4 {
     let channelCount,
       sampleRate,
       decoderConfig
+    traks = [].concat(traks)
     traks.forEach(trak => {
       let hdlr = util.findBox(trak, 'hdlr')
       let mdhd = util.findBox(trak, 'mdhd')
