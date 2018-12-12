@@ -8,6 +8,7 @@ const umd = {
     library: 'xgplayer-mp4',
     libraryTarget: 'umd'
   },
+  devtool: 'sourcemap',
   mode: 'production',
   module: {
     rules: [{
@@ -66,6 +67,7 @@ const client = {
   externals: {
     'xgplayer': 'Player'
   },
+  devtool: 'sourcemap',
   mode: 'production',
   optimization: {
     minimize: true
