@@ -184,9 +184,11 @@ let pc = function () {
     player.emit('focus', player)
   }, false)
 
-  if (player.config.autoplay) {
-    player.start()
-  }
+  player.once('ready', () => {
+    if (player.config.autoplay) {
+      player.start()
+    }
+  })
 }
 
 Player.install('pc', pc)

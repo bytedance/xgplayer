@@ -202,6 +202,52 @@ let mp4player = function () {
       })
     }
 
+    player.playNext = (url) => {
+      let mp5 = new MP4(url)
+      let mp4 = player.mp4
+      mp5.on('moovReady', () => {
+        let range = [0, 0]
+        let buffered = player.video.buffered
+        let currentTime = player.video.currentTime
+        let max = 0
+        if (buffered) {
+          for (let i = 0, len = buffered.length; i < len; i++) {
+            range[0] = buffered.start(i)
+            range[1] = buffered.end(i)
+            if (range[0] <= currentTime && range[1] <= currentTime) {
+              max = range[1] > max ? range[1] : max
+              player.mse.removeBuffer(range[0], range[1])
+            }
+          }
+        }
+        player.mp4 = mp5
+        player.mse.appendBuffer(mp5.packMeta())
+        let flag = true
+        player.on('timeupdate', function () {
+          if (flag && mp4.meta.endTime - player.currentTime < 2) {
+            let range = player.getBufferedRange()
+            if (player.currentTime - range[1] < 0.1) {
+              flag = false
+              player.currentTime = 0
+              buffered = player.video.buffered
+              if (buffered) {
+                for (let i = 0, len = buffered.length; i < len; i++) {
+                  range[0] = buffered.start(i)
+                  range[1] = buffered.end(i)
+                  if (range[0] >= max) {
+                    player.mse.removeBuffer(range[0], range[1])
+                  }
+                }
+              }
+            }
+          }
+        })
+      })
+      mp5.on('error', err => {
+        errorHandle(player, err)
+      })
+    }
+
     player.on('timeupdate', function () {
       let mse = player.mse; let mp4 = player.mp4
       if (mse && !mse.updating && mp4.canDownload) {
