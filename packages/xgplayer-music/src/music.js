@@ -18,6 +18,9 @@ class Music extends Player {
     if (opts.theme !== 'template') {
       opts.ignores.push('template')
     }
+    if (!opts.volumeShow) {
+      opts.ignores.push('volume')
+    }
     super(opts)
     let player = this
     this.rawConfig = options

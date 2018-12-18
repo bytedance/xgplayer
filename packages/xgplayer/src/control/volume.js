@@ -3,13 +3,76 @@ import SVG from '../utils/svg'
 
 let volume = function () {
   let player = this; let util = Player.util; let sniffer = Player.sniffer; let scale = 0.0220625
-  if (sniffer.device === 'mobile') {
-    return
-  }
   if (player.config.autoplayMuted) {
     player.config.volume = player.config.autoplay ? 0 : player.config.volume
   }
+  player.once('canplay', function () {
+    if (player.config.autoplay && player.config.autoplayMuted) {
+      player.volume = 0
+    } else {
+      player.volume = player.config.volume
+    }
+  })
   let volume = player.config.volume
+  if (sniffer.device === 'mobile') {
+    let scale = 0.0220625
+    let volumePath = {
+      muted: 'M920.4 439.808l-108.544-109.056-72.704 72.704 109.568 108.544-109.056 108.544 72.704 72.704 108.032-109.568 108.544 109.056 72.704-72.704-109.568-108.032 109.056-108.544-72.704-72.704-108.032 109.568z',
+      large: 'M940.632 837.632l-72.192-72.192c65.114-64.745 105.412-154.386 105.412-253.44s-40.299-188.695-105.396-253.424l-0.016-0.016 72.192-72.192c83.639 83.197 135.401 198.37 135.401 325.632s-51.762 242.434-135.381 325.612l-0.020 0.020zM795.648 693.248l-72.704-72.704c27.756-27.789 44.921-66.162 44.921-108.544s-17.165-80.755-44.922-108.546l0.002 0.002 72.704-72.704c46.713 46.235 75.639 110.363 75.639 181.248s-28.926 135.013-75.617 181.227l-0.021 0.021z'
+    }
+    let v2s = (vol) => {
+      let s = ''
+      if (vol === 0) {
+        s = 'muted'
+      } else {
+        s = 'large'
+      }
+      return s
+    }
+    let curIocnPath = volumePath[v2s(volume)]
+    let defaultPath = volumePath[v2s(volume)]
+    let container = util.createDom('xg-volume', `<xg-icon class="xgplayer-icon">
+                                                      <svg xmlns="http://www.w3.org/2000/svg" width="1024" height="1024" viewBox="0 0 1024 1024">
+                                                          <path transform="scale(${scale} ${scale})" d="M358.4 358.4h-204.8v307.2h204.8l256 256v-819.2l-256 256z"></path>
+                                                          <path transform="scale(${scale} ${scale})" d="${defaultPath}"></path>
+                                                      </svg>
+                                                  </xg-icon>`,
+    {}, 'xgplayer-volume')
+    player.controls.appendChild(container)
+    let icon = container.querySelector('.xgplayer-icon')
+    let pathVolume = container.querySelectorAll('path')[1]
+    let svgVolume = new SVG({
+      progress: (shape, percent) => {
+        let _p = svgVolume.toSVGString(shape)
+        pathVolume.setAttribute('d', _p)
+        curIocnPath = _p
+      },
+      from: curIocnPath,
+      to: volumePath['large']
+    });
+    ['touchend', 'mousedown'].forEach((item) => {
+      icon.addEventListener(item, function (e) {
+        e.preventDefault()
+        e.stopPropagation()
+        if (player.video.muted) {
+          player.video.muted = false
+          player.volume = 1
+          svgVolume.reset(volumePath['large'], volumePath['muted'])
+          curIocnPath = volumePath['large']
+        } else {
+          player.volume = 0
+          player.video.muted = true
+          svgVolume.reset(volumePath['muted'], volumePath['large'])
+          curIocnPath = volumePath['muted']
+        }
+      })
+    })
+    player.once('destroy', () => {
+      container = null
+    })
+    return
+  }
+
   let iconPath = {
     muted: 'M920.4 439.808l-108.544-109.056-72.704 72.704 109.568 108.544-109.056 108.544 72.704 72.704 108.032-109.568 108.544 109.056 72.704-72.704-109.568-108.032 109.056-108.544-72.704-72.704-108.032 109.568z',
     small: 'M795.648 693.248l-72.704-72.704c27.756-27.789 44.921-66.162 44.921-108.544s-17.165-80.755-44.922-108.546l0.002 0.002 72.704-72.704c46.713 46.235 75.639 110.363 75.639 181.248s-28.926 135.013-75.617 181.227l-0.021 0.021zM795.648 693.248l-72.704-72.704c27.756-27.789 44.921-66.162 44.921-108.544s-17.165-80.755-44.922-108.546l0.002 0.002 72.704-72.704c46.713 46.235 75.639 110.363 75.639 181.248s-28.926 135.013-75.617 181.227l-0.021 0.021z',
@@ -160,14 +223,6 @@ let volume = function () {
       }
       selected.style.height = `${player.volume * containerHeight}px`
     }, 50)
-  })
-
-  player.once('canplay', function () {
-    if (player.config.autoplay && player.config.autoplayMuted) {
-      player.volume = 0
-    } else {
-      player.volume = player.config.volume
-    }
   })
 
   player.once('destroy', () => {

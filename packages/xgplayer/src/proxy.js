@@ -126,6 +126,7 @@ class Proxy {
     })
     let self = this
     this.once('timeupdate', function () {
+      // console.log('vt')
       self.logParams.vt = new Date().getTime()
       self.logParams.vd = self.video.duration
     })

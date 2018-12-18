@@ -123,7 +123,7 @@ class Player extends Proxy {
       this.emit('urlNull')
     }
     this.logParams.pt = new Date().getTime()
-    function autoFunc () {
+    function playFunc () {
       let playPromise = player.video.play()
       if (playPromise !== undefined) {
         playPromise.then(function () {
@@ -134,7 +134,7 @@ class Player extends Proxy {
           console.log(error)
         })
       }
-      player.video.removeEventListener('canplay', autoFunc)
+      player.video.removeEventListener('canplay', playFunc)
     }
     if (util.typeOf(url) === 'String') {
       this.video.src = url
@@ -146,9 +146,7 @@ class Player extends Proxy {
         }))
       })
     }
-    if (player.config.autoplay) {
-      this.video.addEventListener('canplay', autoFunc)
-    }
+    this.video.addEventListener('canplay', playFunc)
     root.insertBefore(this.video, root.firstChild)
     setTimeout(() => {
       this.emit('complete')
