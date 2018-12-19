@@ -35,6 +35,8 @@
     &.xgplayer-is-fullscreen{
         width: 100%!important;
         height: 100%!important;
+        // Undo any aspect ratio padding for fluid layouts
+        padding-top: 0 !important;
         z-index: 9999;
     }
     &.xgplayer-is-fullscreen.xgplayer-inactive{

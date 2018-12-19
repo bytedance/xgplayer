@@ -60,7 +60,18 @@ util.toggleClass = function (el, className) {
 }
 
 util.findDom = function (el = document, sel) {
-  return el.querySelector(sel)
+  let dom
+  // fix querySelector IDs that start with a digit
+  // https://stackoverflow.com/questions/37270787/uncaught-syntaxerror-failed-to-execute-queryselector-on-document
+  try {
+    dom = el.querySelector(sel)
+  } catch (e) {
+    console.log(e)
+    if (sel.startsWith('#')) {
+      dom = el.getElementById(sel.slice(1))
+    }
+  }
+  return dom
 }
 
 util.padStart = function (str, length, pad) {
@@ -167,7 +178,7 @@ util.createImgBtn = function (name, imgUrl, width, height) {
     btn.style.height = `${h}${unit}`
     btn.style.backgroundSize = `${w}${unit} ${h}${unit}`
     if (name === 'start') {
-      btn.style.margin = `-${h/2}${unit} auto auto -${w/2}${unit}`
+      btn.style.margin = `-${h / 2}${unit} auto auto -${w / 2}${unit}`
     } else {
       btn.style.margin = 'auto 5px auto 5px'
     }
