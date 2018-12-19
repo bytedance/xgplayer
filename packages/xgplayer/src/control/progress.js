@@ -91,6 +91,7 @@ progress = function () {
     let containerWidth = container.getBoundingClientRect().width
     let compute = function (e) {
       let now = (e.clientX - containerLeft) / containerWidth * player.duration
+      now = now < 0 ? 0 : now
       point.textContent = util.format(now)
       let pointWidth = point.getBoundingClientRect().width
       if (player.config.thumbnail) {
