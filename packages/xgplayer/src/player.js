@@ -122,7 +122,7 @@ class Player extends Proxy {
     if (!url || url === '') {
       this.emit('urlNull')
     }
-    this.logParams.pt = new Date().getTime()
+
     function playFunc () {
       let playPromise = player.video.play()
       if (playPromise !== undefined) {
@@ -146,6 +146,13 @@ class Player extends Proxy {
         }))
       })
     }
+    player.logParams.pt = new Date().getTime()
+    // console.log('pt: ' + player.logParams.pt)
+    this.once('loadeddata', function () {
+      player.logParams.vt = new Date().getTime()
+      // console.log('vt: ' + player.logParams.vt)
+      player.logParams.vd = player.video.duration
+    })
     this.video.addEventListener('canplay', playFunc)
     root.insertBefore(this.video, root.firstChild)
     setTimeout(() => {
@@ -222,11 +229,12 @@ class Player extends Proxy {
       vt: 0,
       vd: 0
     }
-    this.once('canplay', function () {
-      self.once('timeupdate', function () {
-        self.logParams.vt = new Date().getTime()
-        self.logParams.vd = self.video.duration
-      })
+    this.logParams.pt = new Date().getTime()
+    // console.log('pt: ' + this.logParams.pt)
+    this.once('play', function () {
+      self.logParams.vt = new Date().getTime()
+      // console.log('vt: ' + self.logParams.vt)
+      self.logParams.vd = self.video.duration
     })
     if (_replay && _replay instanceof Function) {
       _replay()

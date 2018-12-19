@@ -4,7 +4,6 @@ import Parser from './parse'
 import Buffer from './fmp4/buffer'
 import FMP4 from './fmp4/mp4'
 import Task from './media/task'
-import Download from './util/download'
 import util from './util'
 import Errors from './error'
 

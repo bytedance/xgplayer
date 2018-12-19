@@ -80,6 +80,7 @@ class Proxy {
       let self = this
       let name = Object.keys(item)[0]
       self.video.addEventListener(name, function () {
+        // console.log(name)
         if (name === 'play') {
           self.hasStart = true
         } else if (name === 'waiting') {
@@ -123,12 +124,6 @@ class Proxy {
           }
         }
       }, false)
-    })
-    let self = this
-    this.once('timeupdate', function () {
-      // console.log('vt')
-      self.logParams.vt = new Date().getTime()
-      self.logParams.vd = self.video.duration
     })
   }
 
@@ -318,11 +313,12 @@ class Proxy {
     }
     this.video.pause()
     this.video.src = url
-    this.once('canplay', function () {
-      self.once('timeupdate', function () {
-        self.logParams.vt = new Date().getTime()
-        self.logParams.vd = self.video.duration
-      })
+    this.logParams.pt = new Date().getTime()
+    // console.log('pt: ' + this.logParams.pt)
+    self.once('loadeddata', function () {
+      self.logParams.vt = new Date().getTime()
+      // console.log('vt: ' + self.logParams.vt)
+      self.logParams.vd = self.video.duration
     })
   }
   get volume () {

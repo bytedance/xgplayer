@@ -72,7 +72,7 @@ let definition = function () {
       e.stopPropagation()
       let li = e.target || e.srcElement, a = document.createElement('a')
       if (li && li.tagName.toLocaleLowerCase() === 'li') {
-        player.emit('beforeDefinitionchange', a.href)
+        player.emit('beforeDefinitionChange', a.href)
         Array.prototype.forEach.call(li.parentNode.childNodes, item => {
           util.removeClass(item, 'definition')
         })
@@ -106,7 +106,7 @@ let definition = function () {
             }
           }
         }
-        player.emit('definitionchange', a.href)
+        player.emit('definitionChange', a.href)
       }
     }, false)
   })
