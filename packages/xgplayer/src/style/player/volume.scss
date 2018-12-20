@@ -16,7 +16,7 @@
 }
 
 .xgplayer-slider{
-  display: block;
+  display: none;
   position: absolute;
   width: 28px;
   height: 88px;
@@ -25,6 +25,9 @@
   bottom: 50px;
   outline: none;
   left: 0;
+  @at-root .xgplayer.xgplayer-volume-active &{
+    display: block;
+  }
   &:after{
     content:" ";
     display:block;

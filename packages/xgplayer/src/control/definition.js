@@ -48,7 +48,7 @@ let definition = function () {
           cur.addEventListener('mouseenter', (e) => {
             e.preventDefault()
             e.stopPropagation()
-            util.addClass(ul, 'xgplayer-definition-active')
+            util.addClass(player.root, 'xgplayer-definition-active')
             urlInRoot.focus()
           })
         } else {
@@ -57,7 +57,7 @@ let definition = function () {
           cur.addEventListener('mouseenter', (e) => {
             e.preventDefault()
             e.stopPropagation()
-            util.addClass(ul, 'xgplayer-definition-active')
+            util.addClass(player.root, 'xgplayer-definition-active')
             ul.focus()
           })
           root.appendChild(ul)
@@ -114,7 +114,7 @@ let definition = function () {
   ul.addEventListener('mouseleave', (e) => {
     e.preventDefault()
     e.stopPropagation()
-    util.removeClass(ul, 'xgplayer-definition-active')
+    util.removeClass(player.root, 'xgplayer-definition-active')
   })
 
   player.once('destroy', () => {

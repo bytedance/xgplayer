@@ -7,7 +7,13 @@
   right: 0;
   outline: none;
   top: -10px;
-  z-index: 15;
+  z-index: 35;
+  @at-root .xgplayer.xgplayer-volume-active &{
+    z-index: 15;
+  }
+  @at-root .xgplayer.xgplayer-definition-active &{
+    z-index: 15;
+  }
 }
 .xgplayer-progress-outer{
   background: $progressOuterBgColor;

@@ -56,7 +56,7 @@ let pc = function () {
     }
   }
 
-  ['click', 'touchstart'].forEach(item => {
+  ['click', 'touchend'].forEach(item => {
     btn.addEventListener(item, function (e) {
       e.preventDefault()
       e.stopPropagation()
@@ -76,9 +76,6 @@ let pc = function () {
           player.start()
         }
         player.play()
-        setTimeout(() => {
-          player.play()
-        }, 10)
       } else {
         if (player.paused) {
           util.removeClass(root, 'xgplayer-nostart xgplayer-isloading')

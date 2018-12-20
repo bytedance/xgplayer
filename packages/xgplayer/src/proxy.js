@@ -6,7 +6,8 @@ class Proxy {
   constructor (options) {
     this.logParams = {
       bc: 0,
-      bu_acu_t: 0
+      bu_acu_t: 0,
+      played: []
     }
     this._hasStart = false
     this.videoConfig = {
@@ -80,7 +81,6 @@ class Proxy {
       let self = this
       let name = Object.keys(item)[0]
       self.video.addEventListener(name, function () {
-        // console.log(name)
         if (name === 'play') {
           self.hasStart = true
         } else if (name === 'waiting') {
@@ -91,6 +91,24 @@ class Proxy {
             self.logParams.bu_acu_t += new Date().getTime() - self.inWaitingStart
             self.inWaitingStart = undefined
           }
+        } else if (name === 'loadeddata') {
+          self.logParams.played.push({
+            begin: 0,
+            end: -1
+          })
+        } else if (name === 'seeking') {
+          self.logParams.played.push({
+            begin: self.video.currentTime,
+            end: -1
+          })
+        } else if (name === 'timeupdate') {
+          if (self.logParams.played.length < 1) {
+            self.logParams.played.push({
+              begin: self.video.currentTime,
+              end: -1
+            })
+          }
+          self.logParams.played[self.logParams.played.length - 1].end = self.video.currentTime
         }
         if (name === 'error') {
           if (self.video.error) {
@@ -307,17 +325,17 @@ class Proxy {
     this.logParams = {
       bc: 0,
       bu_acu_t: 0,
+      played: [],
       pt: new Date().getTime(),
       vt: 0,
       vd: 0
     }
     this.video.pause()
     this.video.src = url
+    this.logParams.playSrc = url
     this.logParams.pt = new Date().getTime()
-    // console.log('pt: ' + this.logParams.pt)
     self.once('loadeddata', function () {
       self.logParams.vt = new Date().getTime()
-      // console.log('vt: ' + self.logParams.vt)
       self.logParams.vd = self.video.duration
     })
   }

@@ -97,7 +97,7 @@ let volume = function () {
                                                         <path transform="scale(${scale} ${scale})" d="${defaultPath}"></path>
                                                     </svg>
                                                 </xg-icon>
-                                                <xg-slider class="xgplayer-slider xgplayer-none" tabindex="2">
+                                                <xg-slider class="xgplayer-slider" tabindex="2">
                                                     <xg-bar class="xgplayer-bar">
                                                         <xg-drag class="xgplayer-drag"></xg-drag>
                                                     </xg-bar>
@@ -123,7 +123,7 @@ let volume = function () {
   let barSize = null
   slider.volume = player.config.volume;
 
-  ['touchend', 'mousedown'].forEach(item => {
+  ['touchstart', 'mousedown'].forEach(item => {
     bar.addEventListener(item, function (e) {
       e.preventDefault()
       e.stopPropagation()
@@ -177,7 +177,7 @@ let volume = function () {
     })
   });
 
-  ['touchend', 'mousedown'].forEach((item) => {
+  ['touchstart', 'mousedown'].forEach((item) => {
     icon.addEventListener(item, function (e) {
       e.preventDefault()
       e.stopPropagation()
@@ -194,20 +194,20 @@ let volume = function () {
   icon.addEventListener('mouseenter', (e) => {
     e.preventDefault()
     e.stopPropagation()
-    util.removeClass(slider, 'xgplayer-none')
+    util.addClass(player.root, 'xgplayer-volume-active')
     container.focus()
   })
 
   container.addEventListener('blur', (e) => {
     e.preventDefault()
     e.stopPropagation()
-    util.addClass(slider, 'xgplayer-none')
+    util.removeClass(player.root, 'xgplayer-volume-active')
   })
 
   container.addEventListener('mouseleave', (e) => {
     e.preventDefault()
     e.stopPropagation()
-    util.addClass(slider, 'xgplayer-none')
+    util.removeClass(player.root, 'xgplayer-volume-active')
   })
 
   let _changeTimer = null

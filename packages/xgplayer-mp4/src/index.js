@@ -130,6 +130,7 @@ let mp4player = function () {
       init(url).then((result) => {
         let mp4 = result[0]; let mse = result[1]
         _start.call(player, mse.url)
+        player.logParams.pluginSrc = url
         player.mp4 = mp4
         player.mse = mse
         mp4.on('error', err => {
@@ -193,6 +194,20 @@ let mp4player = function () {
         if (end - start > 0 && sniffer.browser !== 'safari') {
           player.mse.removeBuffer(start, end)
         }
+        if (!Player.util.hasClass(player.root, 'xgplayer-ended')) {
+          player.emit('urlchange', JSON.parse(JSON.stringify(player.logParams)))
+        }
+        player.logParams = {
+          bc: 0,
+          bu_acu_t: 0,
+          played: [{
+            begin: player.video.currentTime,
+            end: -1
+          }],
+          pt: new Date().getTime(),
+          vt: 0,
+          vd: 0
+        }
         player.mp4 = mp5
         player.mse.appendBuffer(mp5.packMeta())
 
@@ -201,6 +216,7 @@ let mp4player = function () {
         player.logParams.vt = new Date().getTime()
         // console.log('vt: ' + player.logParams.vt)
         player.logParams.vd = player.video.duration
+        player.logParams.pluginSrc = url
       })
       mp5.on('error', err => {
         errorHandle(player, err)
