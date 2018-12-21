@@ -205,7 +205,7 @@ let mp4player = function () {
             end: -1
           }],
           pt: new Date().getTime(),
-          vt: 0,
+          vt: new Date().getTime(),
           vd: 0
         }
         player.mp4 = mp5

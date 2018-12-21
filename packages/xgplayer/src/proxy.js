@@ -327,15 +327,19 @@ class Proxy {
       bu_acu_t: 0,
       played: [],
       pt: new Date().getTime(),
-      vt: 0,
+      vt: new Date().getTime(),
       vd: 0
     }
     this.video.pause()
     this.video.src = url
     this.logParams.playSrc = url
     this.logParams.pt = new Date().getTime()
+    this.logParams.vt = this.logParams.pt
     self.once('loadeddata', function () {
       self.logParams.vt = new Date().getTime()
+      if (self.logParams.pt > self.logParams.vt) {
+        self.logParams.pt = self.logParams.vt
+      }
       self.logParams.vd = self.video.duration
     })
   }

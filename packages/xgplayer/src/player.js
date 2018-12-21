@@ -147,8 +147,12 @@ class Player extends Proxy {
       })
     }
     this.logParams.pt = new Date().getTime()
+    this.logParams.vt = this.logParams.pt
     this.once('loadeddata', function () {
       player.logParams.vt = new Date().getTime()
+      if (player.logParams.pt > player.logParams.vt) {
+        player.logParams.pt = player.logParams.vt
+      }
       player.logParams.vd = player.video.duration
     })
     if (this.config.autoplay) {
@@ -227,12 +231,16 @@ class Player extends Proxy {
       bu_acu_t: 0,
       played: [],
       pt: new Date().getTime(),
-      vt: 0,
+      vt: new Date().getTime(),
       vd: 0
     }
     this.logParams.pt = new Date().getTime()
+    this.logParams.vt = this.logParams.pt
     this.once('play', function () {
       self.logParams.vt = new Date().getTime()
+      if (self.logParams.pt > self.logParams.vt) {
+        self.logParams.pt = self.logParams.vt
+      }
       self.logParams.vd = self.video.duration
     })
     this.logParams.playSrc = this.video.currentSrc

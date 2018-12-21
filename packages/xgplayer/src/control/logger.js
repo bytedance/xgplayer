@@ -76,6 +76,16 @@ let logger = function () {
       return watch_dur
     }
 
+    let judgePtVt = function () {
+      if(!player.logParams.pt || !player.logParams.vt) {
+        player.logParams.pt = new Date().getTime()
+        player.logParams.vt = player.logParams.pt
+      }
+      if(player.logParams.pt > player.logParams.vt) {
+        player.logParams.pt = player.logParams.vt
+      }
+    }
+
     let userLeave = function (event) {
       if (util.hasClass(player.root, 'xgplayer-is-enter')) {
         let lt = new Date().getTime()
@@ -89,13 +99,14 @@ let logger = function () {
       } else if (util.hasClass(player.root, 'xgplayer-playing')) {
         let watch_dur = computeWatchDur(player.logParams.played)
         let lt = new Date().getTime()
+        judgePtVt()
         let obj = {
           url: player.logParams.pluginSrc ? player.logParams.pluginSrc : player.logParams.playSrc,
           vid: player.config.vid,
           bc: player.logParams.bc - 1 > 0 ? player.logParams.bc - 1 : 0,
           bb: player.logParams.bc - 1 > 0 ? 1 : 0,
           bu_acu_t: player.logParams.bu_acu_t,
-          pt: player.logParams.vt < player.logParams.pt ? player.logParams.vt : player.logParams.pt,
+          pt: player.logParams.pt,
           vt: player.logParams.vt,
           vd: player.logParams.vd * 1000,
           watch_dur: parseFloat((watch_dur * 1000).toFixed(3)),
@@ -116,13 +127,14 @@ let logger = function () {
       let played = player.video.played
       let watch_dur = computeWatchDur(player.logParams.played)
       let et = new Date().getTime()
+      judgePtVt()
       let obj = {
         url: player.logParams.pluginSrc ? player.logParams.pluginSrc : player.logParams.playSrc,
         vid: player.config.vid,
         bc: player.logParams.bc - 1 > 0 ? player.logParams.bc - 1 : 0,
         bb: player.logParams.bc - 1 > 0 ? 1 : 0,
         bu_acu_t: player.logParams.bu_acu_t,
-        pt: player.logParams.vt < player.logParams.pt ? player.logParams.vt : player.logParams.pt,
+        pt: player.logParams.pt,
         vt: player.logParams.vt,
         vd: player.logParams.vd * 1000,
         watch_dur: parseFloat((watch_dur * 1000).toFixed(3)),
@@ -135,13 +147,14 @@ let logger = function () {
       let played = player.video.played
       let watch_dur = computeWatchDur(player.logParams.played)
       let lt = new Date().getTime()
+      judgePtVt()
       let obj = {
         url: player.logParams.pluginSrc ? player.logParams.pluginSrc : player.logParams.playSrc,
         vid: player.config.vid,
         bc: player.logParams.bc - 1 > 0 ? player.logParams.bc - 1 : 0,
         bb: player.logParams.bc - 1 > 0 ? 1 : 0,
         bu_acu_t: player.logParams.bu_acu_t,
-        pt: player.logParams.vt < player.logParams.pt ? player.logParams.vt : player.logParams.pt,
+        pt: player.logParams.pt,
         vt: player.logParams.vt,
         vd: player.logParams.vd * 1000,
         watch_dur: parseFloat((watch_dur * 1000).toFixed(3)),
@@ -153,6 +166,7 @@ let logger = function () {
     player.on('error', function (err) {
       let played = player.video.played
       let watch_dur = computeWatchDur(player.logParams.played)
+      judgePtVt()
       let et = new Date().getTime()
       let obj = {
         url: player.logParams.pluginSrc ? player.logParams.pluginSrc : player.logParams.playSrc,
@@ -160,7 +174,7 @@ let logger = function () {
         bc: player.logParams.bc - 1 > 0 ? player.logParams.bc - 1 : 0,
         bb: player.logParams.bc - 1 > 0 ? 1 : 0,
         bu_acu_t: player.logParams.bu_acu_t,
-        pt: player.logParams.vt < player.logParams.pt ? player.logParams.vt : player.logParams.pt,
+        pt: player.logParams.pt,
         vt: player.logParams.vt,
         vd: player.logParams.vd * 1000,
         watch_dur: parseFloat((watch_dur * 1000).toFixed(3)),
