@@ -64,6 +64,16 @@
     z-index: 100;
   }
 }
+.xgplayer-progress-dot{
+  display: inline-block;
+  position: absolute;
+  height: 3px;
+  width: 5px;
+  top: 0px;
+  background: white;
+  border-radius: 6px;
+  z-index: 16;
+}
 .xgplayer-progress-thumbnail{
   position: absolute;
   box-sizing: border-box;
@@ -77,6 +87,9 @@
   .xgplayer-progress-outer{
     height: 6px;
     margin-top: 7px;
+  }
+  .xgplayer-progress-dot{
+    height: 6px;
   }
   .xgplayer-progress-played:after{
     display: block
