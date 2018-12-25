@@ -5,7 +5,6 @@ import MP4 from './mp4'
 import MSE from './media/mse'
 import Task from './media/task'
 import Buffer from './fmp4/buffer'
-import FMP4 from './fmp4/mp4'
 
 let isEnded = (player, mp4) => {
   if (mp4.meta.endTime - player.currentTime < 2) {
@@ -131,6 +130,7 @@ let mp4player = function () {
       init(url).then((result) => {
         let mp4 = result[0]; let mse = result[1]
         _start.call(player, mse.url)
+        player.logParams.pluginSrc = url
         player.mp4 = mp4
         player.mse = mse
         mp4.on('error', err => {
@@ -194,8 +194,29 @@ let mp4player = function () {
         if (end - start > 0 && sniffer.browser !== 'safari') {
           player.mse.removeBuffer(start, end)
         }
+        if (!Player.util.hasClass(player.root, 'xgplayer-ended')) {
+          player.emit('urlchange', JSON.parse(JSON.stringify(player.logParams)))
+        }
+        player.logParams = {
+          bc: 0,
+          bu_acu_t: 0,
+          played: [{
+            begin: player.video.currentTime,
+            end: -1
+          }],
+          pt: new Date().getTime(),
+          vt: new Date().getTime(),
+          vd: 0
+        }
         player.mp4 = mp5
         player.mse.appendBuffer(mp5.packMeta())
+
+        player.logParams.pt = new Date().getTime()
+        // console.log('pt: ' + player.logParams.pt)
+        player.logParams.vt = new Date().getTime()
+        // console.log('vt: ' + player.logParams.vt)
+        player.logParams.vd = player.video.duration
+        player.logParams.pluginSrc = url
       })
       mp5.on('error', err => {
         errorHandle(player, err)
@@ -248,7 +269,7 @@ let mp4player = function () {
       })
     }
 
-    player.on('timeupdate', function () {
+    let timeupdateFunc = function () {
       let mse = player.mse; let mp4 = player.mp4
       if (mse && !mse.updating && mp4.canDownload) {
         let timeRage = mp4.timeRage
@@ -259,7 +280,6 @@ let mp4player = function () {
         timeRage.every((item, idx) => {
           let start = item[0]; let end = item[1]; let center = (start + end) / 2
           if (range[1] === 0) {
-            loadData(5)
             return false
           } else {
             if (center > range[1] && !mp4.bufferCache.has(idx)) {
@@ -271,7 +291,9 @@ let mp4player = function () {
         })
         isEnded(player, mp4)// hack for older webkit
       }
-    })
+    }
+
+    player.on('timeupdate', timeupdateFunc)
 
     player.on('seeking', function () {
       let buffered = player.buffered; let hasBuffered = false; let curTime = player.currentTime
@@ -301,7 +323,7 @@ let mp4player = function () {
       }
     })
 
-    player.on('waiting', function () {
+    let waitingFunc = function () {
       let mp4 = player.mp4
       if (!mp4 || !mp4.meta) {
         return
@@ -323,6 +345,13 @@ let mp4player = function () {
           }
         }, 1500)
       }
+    }
+
+    player.on('waiting', waitingFunc)
+
+    player.on('ended', () => {
+      player.off('waiting', waitingFunc)
+      player.off('timeupdate', timeupdateFunc)
     })
 
     player.once('destroy', () => {
@@ -337,11 +366,15 @@ let mp4player = function () {
       player.mp4.bufferCache.clear()
       init(player.mp4.url).then((result) => {
         let mp4 = result[0]; let mse = result[1]
-        player.src = mse.url
+        _start.call(player, mse.url)
         player.mp4 = mp4
         player.mse = mse
         player.currentTime = 0
         player.play()
+        player.once('canplay', () => {
+          player.on('waiting', waitingFunc)
+          player.on('timeupdate', timeupdateFunc)
+        })
       }, err => {
         errorHandle(player, err)
       })

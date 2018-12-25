@@ -6,7 +6,8 @@ class Proxy {
   constructor (options) {
     this.logParams = {
       bc: 0,
-      bu_acu_t: 0
+      bu_acu_t: 0,
+      played: []
     }
     this._hasStart = false
     this.videoConfig = {
@@ -90,6 +91,24 @@ class Proxy {
             self.logParams.bu_acu_t += new Date().getTime() - self.inWaitingStart
             self.inWaitingStart = undefined
           }
+        } else if (name === 'loadeddata') {
+          self.logParams.played.push({
+            begin: 0,
+            end: -1
+          })
+        } else if (name === 'seeking') {
+          self.logParams.played.push({
+            begin: self.video.currentTime,
+            end: -1
+          })
+        } else if (name === 'timeupdate') {
+          if (self.logParams.played.length < 1) {
+            self.logParams.played.push({
+              begin: self.video.currentTime,
+              end: -1
+            })
+          }
+          self.logParams.played[self.logParams.played.length - 1].end = self.video.currentTime
         }
         if (name === 'error') {
           if (self.video.error) {
@@ -123,12 +142,6 @@ class Proxy {
           }
         }
       }, false)
-    })
-    let self = this
-    this.once('timeupdate', function () {
-      // console.log('vt')
-      self.logParams.vt = new Date().getTime()
-      self.logParams.vd = self.video.duration
     })
   }
 
@@ -312,17 +325,22 @@ class Proxy {
     this.logParams = {
       bc: 0,
       bu_acu_t: 0,
+      played: [],
       pt: new Date().getTime(),
-      vt: 0,
+      vt: new Date().getTime(),
       vd: 0
     }
     this.video.pause()
     this.video.src = url
-    this.once('canplay', function () {
-      self.once('timeupdate', function () {
-        self.logParams.vt = new Date().getTime()
-        self.logParams.vd = self.video.duration
-      })
+    this.logParams.playSrc = url
+    this.logParams.pt = new Date().getTime()
+    this.logParams.vt = this.logParams.pt
+    self.once('loadeddata', function () {
+      self.logParams.vt = new Date().getTime()
+      if (self.logParams.pt > self.logParams.vt) {
+        self.logParams.pt = self.logParams.vt
+      }
+      self.logParams.vd = self.video.duration
     })
   }
   get volume () {

@@ -122,7 +122,7 @@ class Player extends Proxy {
     if (!url || url === '') {
       this.emit('urlNull')
     }
-    this.logParams.pt = new Date().getTime()
+    this.logParams.playSrc = url
     function playFunc () {
       let playPromise = player.video.play()
       if (playPromise !== undefined) {
@@ -131,7 +131,7 @@ class Player extends Proxy {
         }).catch(function (error) {
           player.emit('autoplay was prevented')
           Player.util.addClass(player.root, 'xgplayer-is-autoplay')
-          console.log(error)
+          // console.log(error)
         })
       }
       player.video.removeEventListener('canplay', playFunc)
@@ -146,7 +146,18 @@ class Player extends Proxy {
         }))
       })
     }
-    this.video.addEventListener('canplay', playFunc)
+    this.logParams.pt = new Date().getTime()
+    this.logParams.vt = this.logParams.pt
+    this.once('loadeddata', function () {
+      player.logParams.vt = new Date().getTime()
+      if (player.logParams.pt > player.logParams.vt) {
+        player.logParams.pt = player.logParams.vt
+      }
+      player.logParams.vd = player.video.duration
+    })
+    if (this.config.autoplay) {
+      this.video.addEventListener('canplay', playFunc)
+    }
     root.insertBefore(this.video, root.firstChild)
     setTimeout(() => {
       this.emit('complete')
@@ -218,16 +229,21 @@ class Player extends Proxy {
     this.logParams = {
       bc: 0,
       bu_acu_t: 0,
+      played: [],
       pt: new Date().getTime(),
-      vt: 0,
+      vt: new Date().getTime(),
       vd: 0
     }
-    this.once('canplay', function () {
-      self.once('timeupdate', function () {
-        self.logParams.vt = new Date().getTime()
-        self.logParams.vd = self.video.duration
-      })
+    this.logParams.pt = new Date().getTime()
+    this.logParams.vt = this.logParams.pt
+    this.once('play', function () {
+      self.logParams.vt = new Date().getTime()
+      if (self.logParams.pt > self.logParams.vt) {
+        self.logParams.pt = self.logParams.vt
+      }
+      self.logParams.vd = self.video.duration
     })
+    this.logParams.playSrc = this.video.currentSrc
     if (_replay && _replay instanceof Function) {
       _replay()
     } else {

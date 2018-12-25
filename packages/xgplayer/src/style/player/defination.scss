@@ -2,7 +2,7 @@
   order: 5;
   width: 60px;
   height: 150px;
-  z-index: 16;
+  z-index: 18;
   position: relative;
   outline: none;
   display: none;
@@ -10,11 +10,6 @@
   margin-left: 10px;
   margin-top: -119px;
   margin-bottom: 11px;
-  &.xgplayer-definition-active{
-    ul{
-      display: block!important;
-    }
-  }
   ul{
     display: none;
     list-style: none;
@@ -29,6 +24,9 @@
     margin-left: -10px;
     z-index: 26;
     cursor: pointer;
+    @at-root .xgplayer.xgplayer-definition-active &{
+      display: block;
+    }
     li{
       opacity: 0.7;
       font-family: PingFangSC-Regular;
