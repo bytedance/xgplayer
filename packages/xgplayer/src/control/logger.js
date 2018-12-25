@@ -168,6 +168,10 @@ let logger = function () {
       let watch_dur = computeWatchDur(player.logParams.played)
       judgePtVt()
       let et = new Date().getTime()
+      if (player.logParams.lastErrLog && et - player.logParams.lastErrLog <= 1000 * 3 ) {
+        return
+      }
+      player.logParams.lastErrLog = et
       let obj = {
         url: player.logParams.pluginSrc ? player.logParams.pluginSrc : player.logParams.playSrc,
         vid: player.config.vid,
@@ -183,7 +187,11 @@ let logger = function () {
         et,
         cur_play_pos: parseFloat((player.currentTime * 1000).toFixed(3))
       }
-      tracker('e', obj)
+      if(player.logParams.nologFunc && player.logParams.nologFunc(player)) {
+        return true
+      } else {
+        tracker('e', obj)
+      }
     })
   }
 }
