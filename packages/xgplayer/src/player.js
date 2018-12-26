@@ -195,6 +195,9 @@ class Player extends Proxy {
         }
       })
     }
+    if(this.root.video) {
+      this.root.video = null
+    }
     if (!this.paused) {
       this.pause()
       this.once('pause', () => {
