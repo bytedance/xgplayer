@@ -7,7 +7,7 @@ const download = function () {
   if (!this.config.download) { return }
   let container = player.root
   let util = Player.util
-  const downloadEl = util.createDom('xgplayer-download', `<xg-icon class="xgplayer-download-img"></xg-icon>`, {}, 'xgplayer-download')
+  let downloadEl = util.createDom('xgplayer-download', `<xg-icon class="xgplayer-download-img"></xg-icon>`, {}, 'xgplayer-download')
 
   let root = player.controls
   root.appendChild(downloadEl)
@@ -16,11 +16,14 @@ const download = function () {
   let tips = util.createDom('xg-tips', tipsDownload, {}, 'xgplayer-tips')
   downloadEl.appendChild(tips)
 
+  player.download = function() {
+    const url = getAbsoluteURL(player.config.url)
+    downloadUtil(url)
+  }
   downloadEl.addEventListener('click', (e) => {
     e.stopPropagation()
     // must pass an absolute url for download
-    const url = getAbsoluteURL(player.config.url)
-    downloadUtil(url)
+    player.download();
   })
 
   downloadEl.addEventListener('mouseenter', (e) => {
@@ -32,6 +35,11 @@ const download = function () {
     if (rect.right > rootRect.right) {
       tips.style.left = `${-rect.right + rootRect.right + 16}px`
     }
+  })
+
+  player.once('destroy', function () {
+    player.download = null
+    downloadEl = null
   })
 }
 
