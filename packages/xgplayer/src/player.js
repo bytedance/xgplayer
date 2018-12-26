@@ -44,7 +44,7 @@ class Player extends Proxy {
         return false
       }
     }
-    this.rootBackup = util.copyDom(this.root)
+    // this.rootBackup = util.copyDom(this.root)
     util.addClass(this.root, `xgplayer xgplayer-${sniffer.device} xgplayer-nostart ${this.config.controls ? '' : 'no-controls'}`)
     this.root.appendChild(this.controls)
     if (this.config.fluid) {
@@ -96,14 +96,16 @@ class Player extends Proxy {
       this.on(item, this['on' + item.charAt(0).toUpperCase() + item.slice(1)])
     })
     let player = this
-    this.root.addEventListener('mousemove', () => {
+    this.mousemoveFunc = function () {
       player.emit('focus')
       player.video.focus()
-    })
-    player.once('play', () => {
+    }
+    this.root.addEventListener('mousemove', this.mousemoveFunc)
+    function playFunc () {
       player.emit('focus')
       player.video.focus()
-    })
+    }
+    player.once('play', playFunc)
 
     setTimeout(() => {
       this.emit('ready')
@@ -111,9 +113,28 @@ class Player extends Proxy {
 
     if (!this.config.keyShortcut || this.config.keyShortcut === 'on') {
       ['video', 'controls'].forEach(item => {
-        player[item].onkeydown = player.onKeydown.bind(player)
+        player[item].addEventListener('keydown', player.onKeydown)
       })
     }
+    this.on('destroy', () => {
+      if (this.mousemoveFunc) {
+        this.root.removeEventListener('mousemove', this.mousemoveFunc)
+      }
+      if (this.playFunc) {
+        this.off('canplay', this.playFunc)
+      }
+      if (this.loadeddataFunc) {
+        this.off('loadeddata', this.loadeddataFunc)
+      }
+      if (this.reloadFunc) {
+        this.off('loadeddata', this.reloadFunc)
+      }
+      if (this.replayFunc) {
+        this.once('play', this.replayFunc)
+      }
+      this.off('play', playFunc)
+      player = null
+    })
   }
 
   start (url = this.config.url) {
@@ -123,18 +144,18 @@ class Player extends Proxy {
       this.emit('urlNull')
     }
     this.logParams.playSrc = url
-    function playFunc () {
+    this.playFunc = function () {
       let playPromise = player.video.play()
       if (playPromise !== undefined) {
         playPromise.then(function () {
           player.emit('autoplay started')
-        }).catch(function (error) {
+        }).catch(function () {
           player.emit('autoplay was prevented')
           Player.util.addClass(player.root, 'xgplayer-is-autoplay')
           // console.log(error)
         })
       }
-      player.video.removeEventListener('canplay', playFunc)
+      player.off('canplay', player.playFunc)
     }
     if (util.typeOf(url) === 'String') {
       this.video.src = url
@@ -148,15 +169,16 @@ class Player extends Proxy {
     }
     this.logParams.pt = new Date().getTime()
     this.logParams.vt = this.logParams.pt
-    this.once('loadeddata', function () {
+    this.loadeddataFunc = function () {
       player.logParams.vt = new Date().getTime()
       if (player.logParams.pt > player.logParams.vt) {
         player.logParams.pt = player.logParams.vt
       }
       player.logParams.vd = player.video.duration
-    })
+    }
+    this.once('loadeddata', this.loadeddataFunc)
     if (this.config.autoplay) {
-      this.video.addEventListener('canplay', playFunc)
+      this.on('canplay', this.playFunc)
     }
     root.insertBefore(this.video, root.firstChild)
     setTimeout(() => {
@@ -166,9 +188,10 @@ class Player extends Proxy {
 
   reload () {
     this.video.load()
-    this.once('loadeddata', function () {
+    this.reloadFunc = function () {
       this.play()
-    })
+    }
+    this.once('loadeddata', this.reloadFunc)
   }
 
   destroy () {
@@ -191,26 +214,30 @@ class Player extends Proxy {
     if (!this.config.keyShortcut || this.config.keyShortcut === 'on') {
       ['video', 'controls'].forEach(item => {
         if (this[item]) {
-          this[item].onkeydown = undefined
+          this[item].removeEventListener('keydown', this.onKeydown)
         }
       })
     }
+
+    function pauseFunc () {
+      this.emit('destroy')
+      // this.root.id = this.root.id + '_del'
+      // parentNode.insertBefore(this.rootBackup, this.root)
+      // this.video = null
+      parentNode.removeChild(this.root)
+      for (let k in this) {
+        if (k !== 'config') {
+          delete this[k]
+        }
+      }
+      this.off('pause', pauseFunc)
+    }
     if (!this.paused) {
       this.pause()
-      this.once('pause', () => {
-        this.emit('destroy')
-        this.root.id = this.root.id + '_del'
-        // parentNode.insertBefore(this.rootBackup, this.root)
-        parentNode.removeChild(this.root)
-        for (let k in this) {
-          if (k !== 'config') {
-            delete this[k]
-          }
-        }
-      })
+      this.once('pause', pauseFunc)
     } else {
       this.emit('destroy')
-      this.root.id = this.root.id + '_del'
+      // this.root.id = this.root.id + '_del'
       // parentNode.insertBefore(this.rootBackup, this.root)
       parentNode.removeChild(this.root)
       for (let k in this) {
@@ -236,13 +263,14 @@ class Player extends Proxy {
     }
     this.logParams.pt = new Date().getTime()
     this.logParams.vt = this.logParams.pt
-    this.once('play', function () {
+    this.replayFunc = function () {
       self.logParams.vt = new Date().getTime()
       if (self.logParams.pt > self.logParams.vt) {
         self.logParams.pt = self.logParams.vt
       }
       self.logParams.vd = self.video.duration
-    })
+    }
+    this.once('play', this.replayFunc)
     this.logParams.playSrc = this.video.currentSrc
     if (_replay && _replay instanceof Function) {
       _replay()
