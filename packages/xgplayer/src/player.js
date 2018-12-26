@@ -235,7 +235,8 @@ class Player extends Proxy {
         }
       }
       this.off('pause', pauseFunc)
-
+    }
+    
     if (!this.paused) {
       this.pause()
       this.once('pause', pauseFunc)
