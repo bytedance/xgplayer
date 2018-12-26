@@ -82,15 +82,15 @@ class Channel {
           }
           self.channels[i].queue.forEach(item => {
             if (item.el) {
-              let pos = item.el.getBoundingClientRect()
-              if (pos.left <= self.playerPos.right && pos.right >= self.playerPos.right) {
-                item.pauseMove(self.playerPos)
-                item.remove()
-              } else {
-                channels[i].queue.push(item)
-                item.pauseMove(self.playerPos)
-                item.startMove(self.playerPos)
-              }
+              // let pos = item.el.getBoundingClientRect()
+              // if (pos.left <= self.playerPos.right && pos.right >= self.playerPos.right) {
+              //   item.pauseMove(self.playerPos)
+              //   item.remove()
+              // } else {
+              channels[i].queue.push(item)
+              item.pauseMove(self.playerPos)
+              item.startMove(self.playerPos)
+              // }
             }
           })
         }
@@ -102,15 +102,15 @@ class Channel {
           }
           self.channels[i].queue.forEach(item => {
             if (item.el) {
-              let pos = item.el.getBoundingClientRect()
-              if (pos.left <= self.playerPos.right && pos.right >= self.playerPos.right) {
-                item.pauseMove(self.playerPos)
-                item.remove()
-              } else {
-                channels[i].queue.push(item)
-                item.pauseMove(self.playerPos)
-                item.startMove(self.playerPos)
-              }
+              // let pos = item.el.getBoundingClientRect()
+              // if (pos.left <= self.playerPos.right && pos.right >= self.playerPos.right) {
+              //   item.pauseMove(self.playerPos)
+              //   item.remove()
+              // } else {
+              channels[i].queue.push(item)
+              item.pauseMove(self.playerPos)
+              item.startMove(self.playerPos)
+              // }
             }
           })
         }
