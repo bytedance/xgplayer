@@ -55,6 +55,10 @@ const rotate = function () {
   })
 
   btn.addEventListener('click', player.rotate)
+  player.once('destroy', function () {
+    player.rotate = null
+    btn = null
+  })
 }
 
 Player.install('rotate', rotate)
