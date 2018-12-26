@@ -218,7 +218,11 @@ class Player extends Proxy {
         }
       })
     }
-
+    
+    if(this.root.video) {
+      this.root.video = null
+    }
+    
     function pauseFunc () {
       this.emit('destroy')
       // this.root.id = this.root.id + '_del'
@@ -231,7 +235,7 @@ class Player extends Proxy {
         }
       }
       this.off('pause', pauseFunc)
-    }
+
     if (!this.paused) {
       this.pause()
       this.once('pause', pauseFunc)
