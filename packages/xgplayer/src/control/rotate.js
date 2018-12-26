@@ -37,6 +37,7 @@ const rotate = function () {
     } else {
       scale = 1
     }
+    
     player.video.style.transformOrigin = 'center center'
     player.video.style.transform = `rotate(${rotateDeg}turn) scale(${scale})`
     player.video.style.webKitTransform = `rotate(${rotateDeg}turn) scale(${scale})`

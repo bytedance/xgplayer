@@ -7,7 +7,7 @@ const download = function () {
   if (!this.config.download) { return }
   let container = player.root
   let util = Player.util
-  const downloadEl = util.createDom('xgplayer-download', `<xg-icon class="xgplayer-download-img"></xg-icon>`, {}, 'xgplayer-download')
+  let downloadEl = util.createDom('xgplayer-download', `<xg-icon class="xgplayer-download-img"></xg-icon>`, {}, 'xgplayer-download')
 
   let root = player.controls
   root.appendChild(downloadEl)
