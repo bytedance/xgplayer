@@ -56,42 +56,50 @@ let pc = function () {
     }
   }
 
-  ['click', 'touchend'].forEach(item => {
-    btn.addEventListener(item, function (e) {
-      e.preventDefault()
-      e.stopPropagation()
-      // if (!player.config.url) {
-      //   return
-      // }
-      if (util.hasClass(root, 'xgplayer-nostart')) {
-        util.removeClass(root, 'xgplayer-nostart') // for ie quick switch
-        util.addClass(root, 'xgplayer-is-enter')
-        player.on('canplay', () => {
-          util.removeClass(root, 'xgplayer-is-enter')
-        })
-        player.once('playing', () => {
-          util.removeClass(root, 'xgplayer-is-enter')
-        })
-        if (!root.querySelector('video')) {
-          player.start()
-        }
-        player.play()
-      } else {
-        if (player.paused) {
-          util.removeClass(root, 'xgplayer-nostart xgplayer-isloading')
-          setTimeout(() => {
-            player.play()
-          }, 10)
-        }
+  function startClcCanplay () {
+    util.removeClass(root, 'xgplayer-is-enter')
+  }
+
+  function startClcPlaying () {
+    util.removeClass(root, 'xgplayer-is-enter')
+  }
+
+  function startClc (e) {
+    e.preventDefault()
+    e.stopPropagation()
+    // if (!player.config.url) {
+    //   return
+    // }
+    if (util.hasClass(root, 'xgplayer-nostart')) {
+      util.removeClass(root, 'xgplayer-nostart') // for ie quick switch
+      util.addClass(root, 'xgplayer-is-enter')
+      player.on('canplay', startClcCanplay)
+      player.once('playing', startClcPlaying)
+      if (!root.querySelector('video')) {
+        player.start()
       }
-    })
+      player.play()
+    } else {
+      if (player.paused) {
+        util.removeClass(root, 'xgplayer-nostart xgplayer-isloading')
+        setTimeout(() => {
+          player.play()
+        }, 10)
+      }
+    }
+  };
+  ['click', 'touchend'].forEach(item => {
+    btn.addEventListener(item, function (e) { startClc(e) }, false)
   })
-  btn.addEventListener('animationend', (e) => {
+
+  function startAniEnd (e) {
     e.preventDefault()
     util.removeClass(btn, 'xgplayer-start-interact')
     btn.style.display = 'none'
-  })
-  player.on('play', () => {
+  }
+  btn.addEventListener('animationend', function (e) { startAniEnd(e) })
+
+  function playFunc () {
     if (centerBtn.type === 'img') {
       btn.style.backgroundImage = `url("${centerBtn.url.play}")`
     } else {
@@ -99,8 +107,10 @@ let pc = function () {
     }
     btn.style.display = 'inline-block'
     util.addClass(btn, 'xgplayer-start-interact')
-  })
-  player.on('pause', () => {
+  }
+  player.on('play', playFunc)
+
+  function pauseFunc () {
     if (centerBtn.type === 'img') {
       btn.style.backgroundImage = `url("${centerBtn.url.pause}")`
     } else {
@@ -108,9 +118,10 @@ let pc = function () {
     }
     btn.style.display = 'inline-block'
     util.addClass(btn, 'xgplayer-start-interact')
-  })
+  }
+  player.on('pause', pauseFunc)
 
-  player.video.addEventListener('click', function (e) {
+  function videoClc (e) {
     e.preventDefault()
     e.stopPropagation()
     if (document.activeElement !== player.video) {
@@ -139,9 +150,10 @@ let pc = function () {
         clk = 0
       }
     }
-  }, false)
+  }
+  player.video.addEventListener('click', function (e) { videoClc(e) }, false)
 
-  player.video.addEventListener('dblclick', function (e) {
+  function videoDbClc (e) {
     e.preventDefault()
     e.stopPropagation()
     if (document.activeElement !== player.video) {
@@ -161,31 +173,71 @@ let pc = function () {
         fullscreen.dispatchEvent(clk)
       }
     }
-  }, false)
+  }
+  player.video.addEventListener('dblclick', function (e) { videoDbClc(e) }, false)
 
-  root.addEventListener('mouseenter', function (e) {
+  function mouseenterFunc () {
     player.emit('focus', player)
-  }, false)
+  }
+  root.addEventListener('mouseenter', mouseenterFunc, false)
 
-  root.addEventListener('mouseleave', function (e) {
+  function mouseleaveFunc () {
     player.emit('blur', player)
-  }, false)
+  }
+  root.addEventListener('mouseleave', mouseleaveFunc, false)
 
-  controls.addEventListener('mouseenter', function (e) {
+  function cmouseenterFunc (e) {
     if (player.userTimer) {
       clearTimeout(player.userTimer)
     }
-  }, false)
+  }
+  controls.addEventListener('mouseenter', cmouseenterFunc, false)
 
-  controls.addEventListener('mouseleave', function (e) {
+  function cmouseleaveFunc (e) {
     player.emit('focus', player)
-  }, false)
+  }
+  controls.addEventListener('mouseleave', cmouseleaveFunc, false)
 
-  player.once('ready', () => {
+  function readyFunc (e) {
     if (player.config.autoplay) {
       player.start()
     }
-  })
+  }
+  player.once('ready', readyFunc)
+
+  function destroyFunc () {
+    this.off('destroy', destroyFunc);
+    ['click', 'touchend'].forEach(item => {
+      btn.removeEventListener(item, function (e) { startClc(e) }, false)
+    })
+    btn.removeEventListener('animationend', function (e) { startAniEnd(e) })
+    player.video.removeEventListener('click', function (e) { videoClc(e) }, false)
+    player.video.removeEventListener('dblclick', function (e) { videoDbClc(e) }, false)
+    root.removeEventListener('mouseenter', mouseenterFunc, false)
+    root.removeEventListener('mouseleave', mouseleaveFunc, false)
+    controls.removeEventListener('mouseenter', cmouseenterFunc, false)
+    controls.removeEventListener('mouseleave', cmouseleaveFunc, false)
+    player.off('ready', readyFunc)
+    player.off('canplay', startClcCanplay)
+    player.off('playing', startClcPlaying)
+    player.off('play', playFunc)
+    player.off('pause', pauseFunc)
+    enterLogo.onload = null
+    util = null
+    controls = null
+    root = null
+    clk = null
+    _click_ = null
+    centerBtn = null
+    iconPath = null
+    btn = null
+    path = null
+    enter = null
+    logo = null
+    enterTips = null
+    enterLogo = null
+  }
+  player.on('destroy', destroyFunc)
 }
 
 Player.install('pc', pc)

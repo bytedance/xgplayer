@@ -9,9 +9,31 @@ progress = function () {
   let containerWidth
   root.appendChild(container)
   let progress = container.querySelector('.xgplayer-progress-played')
+  let outer = container.querySelector('.xgplayer-progress-outer')
   let cache = container.querySelector('.xgplayer-progress-cache')
   let point = container.querySelector('.xgplayer-progress-point')
   let thumbnail = container.querySelector('.xgplayer-progress-thumbnail')
+  player.once('canplay', () => {
+    if (player.config.progressDot && util.typeOf(player.config.progressDot) === 'Array') {
+      player.config.progressDot.forEach(item => {
+        if (item.time >= 0 && item.time <= player.duration) {
+          let dot = util.createDom('xg-progress-dot', item.text ? `<span class="xgplayer-progress-tip">${item.text}</span>` : '', {}, 'xgplayer-progress-dot')
+          dot.style.left = (item.time / player.duration) * 100 + '%'
+          outer.appendChild(dot)
+          dot.addEventListener('mouseenter', function (e) {
+            if (item.text) {
+              util.addClass(container, 'xgplayer-progress-dot-active')
+            }
+          })
+          dot.addEventListener('mouseleave', function (e) {
+            if (item.text) {
+              util.removeClass(container, 'xgplayer-progress-dot-active')
+            }
+          })
+        }
+      })
+    }
+  })
   let tnailPicNum = 0
   let tnailWidth = 0
   let tnailHeight = 0
@@ -115,7 +137,11 @@ progress = function () {
         left = left > containerWidth - pointWidth ? containerWidth - pointWidth : left
         point.style.left = `${left}px`
       }
-      point.style.display = 'block'
+      if (util.hasClass(container, 'xgplayer-progress-dot-active')) {
+        point.style.display = 'none'
+      } else {
+        point.style.display = 'block'
+      }
     }
     let move = function (e) {
       compute(e)
