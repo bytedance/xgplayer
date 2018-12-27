@@ -13,9 +13,8 @@ let logger = function () {
       app_id: 1300,
       channel: 'cn',
       log: false,
+      disable_sdk_monitor: true
     })
-
-    tracker.start()
 
     tracker('config', {
       evtParams: {
@@ -24,18 +23,17 @@ let logger = function () {
         domain: window.location.host,
         pver: player.version,
         ua: navigator.userAgent.toLowerCase()
-      }
+      },
+      disable_auto_pv: true
     })
+
+    tracker.start()
 
     if(player.config.uid) {
       tracker('config', {
         user_unique_id: player.config.uid
       })
     }
-
-    tracker('enter_page', {
-      'from': 'index'
-    })
 
     let computeWatchDur = function (played = []) {
       let minBegin = 0
