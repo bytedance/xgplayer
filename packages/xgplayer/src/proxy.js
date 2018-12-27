@@ -79,77 +79,73 @@ class Proxy {
     let lastBuffer = '0,0'
     let self = this
 
-    function videoFunc () {
-      let self = this
-      let name = self.evItem
-      if (name === 'play') {
-        self.hasStart = true
-      } else if (name === 'waiting') {
-        self.logParams.bc++
-        self.inWaitingStart = new Date().getTime()
-      } else if (name === 'playing') {
-        if (self.inWaitingStart) {
-          self.logParams.bu_acu_t += new Date().getTime() - self.inWaitingStart
-          self.inWaitingStart = undefined
-        }
-      } else if (name === 'loadeddata') {
-        self.logParams.played.push({
-          begin: 0,
-          end: -1
-        })
-      } else if (name === 'seeking') {
-        self.logParams.played.push({
-          begin: self.video.currentTime,
-          end: -1
-        })
-      } else if (name === 'timeupdate') {
-        if (self.logParams.played.length < 1) {
+    this.ev.forEach(item => {
+      self.evItem = Object.keys(item)[0]
+      let name = Object.keys(item)[0]
+      self.video.addEventListener(Object.keys(item)[0], function () {
+        if (name === 'play') {
+          self.hasStart = true
+        } else if (name === 'waiting') {
+          self.logParams.bc++
+          self.inWaitingStart = new Date().getTime()
+        } else if (name === 'playing') {
+          if (self.inWaitingStart) {
+            self.logParams.bu_acu_t += new Date().getTime() - self.inWaitingStart
+            self.inWaitingStart = undefined
+          }
+        } else if (name === 'loadeddata') {
+          self.logParams.played.push({
+            begin: 0,
+            end: -1
+          })
+        } else if (name === 'seeking') {
           self.logParams.played.push({
             begin: self.video.currentTime,
             end: -1
           })
+        } else if (name === 'timeupdate') {
+          if (self.logParams.played.length < 1) {
+            self.logParams.played.push({
+              begin: self.video.currentTime,
+              end: -1
+            })
+          }
+          self.logParams.played[self.logParams.played.length - 1].end = self.video.currentTime
         }
-        self.logParams.played[self.logParams.played.length - 1].end = self.video.currentTime
-      }
-      if (name === 'error') {
-        if (self.video.error) {
-          self.emit(name, new Errors('other', self.currentTime, self.duration, self.networkState, self.readyState, self.currentSrc, self.src,
-            self.ended, {
-              line: 41,
-              msg: self.error,
-              handle: 'Constructor'
-            }))
-        }
-      } else {
-        self.emit(name, self)
-      }
-
-      if (self.hasOwnProperty('_interval')) {
-        if (['ended', 'error', 'timeupdate'].indexOf(name) < 0) {
-          util.setInterval(self, 'bufferedChange', function () {
-            let curBuffer = []
-            for (let i = 0, len = self.video.buffered.length; i < len; i++) {
-              curBuffer.push([self.video.buffered.start(i), self.video.buffered.end(i)])
-            }
-            if (curBuffer.toString() !== lastBuffer) {
-              lastBuffer = curBuffer.toString()
-              self.emit('bufferedChange', curBuffer)
-            }
-          }, 200)
+        if (name === 'error') {
+          if (self.video.error) {
+            self.emit(name, new Errors('other', self.currentTime, self.duration, self.networkState, self.readyState, self.currentSrc, self.src,
+              self.ended, {
+                line: 41,
+                msg: self.error,
+                handle: 'Constructor'
+              }))
+          }
         } else {
-          if (name !== 'timeupdate') {
-            util.clearInterval(self, 'bufferedChange')
+          self.emit(name, self)
+        }
+
+        if (self.hasOwnProperty('_interval')) {
+          if (['ended', 'error', 'timeupdate'].indexOf(name) < 0) {
+            util.setInterval(self, 'bufferedChange', function () {
+              let curBuffer = []
+              for (let i = 0, len = self.video.buffered.length; i < len; i++) {
+                curBuffer.push([self.video.buffered.start(i), self.video.buffered.end(i)])
+              }
+              if (curBuffer.toString() !== lastBuffer) {
+                lastBuffer = curBuffer.toString()
+                self.emit('bufferedChange', curBuffer)
+              }
+            }, 200)
+          } else {
+            if (name !== 'timeupdate') {
+              util.clearInterval(self, 'bufferedChange')
+            }
           }
         }
-      }
-    }
-    this.ev.forEach(item => {
-      self.on(Object.keys(item)[0], videoFunc)
+      }, false)
     })
     this.once('destroy', () => {
-      self.ev.forEach(item => {
-        self.off(Object.keys(item)[0], videoFunc)
-      })
       textTrackDom = null
       lastBuffer = null
     })
