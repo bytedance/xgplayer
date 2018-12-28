@@ -15,26 +15,6 @@ let isEnded = (player, mp4) => {
   }
 }
 
-let errorHandle = (player, err) => {
-  err.vid = player.config.vid
-  err.url = player.src
-  if (err.errd && typeof err.errd === 'object') {
-    if (player.mp4) {
-      err.errd.url = player.mp4.url
-      err.url = player.mp4.url
-      player.mp4.canDownload = false
-    }
-  }
-  player.emit('DATA_REPORT', err)
-  if (err.errt === 'network' && player.config._backupURL) {
-    player.src = player.config._backupURL
-  } else {
-    player.src = player.config._mainURL
-  }
-  player.switchURL = null
-  player._replay = null
-}
-
 let mp4player = function () {
   let player = this; let sniffer = Player.sniffer; let util = Player.util
   let Errors = Player.Errors; let mainURL; let backupURL
@@ -99,37 +79,61 @@ let mp4player = function () {
     })
   }
   if (['chrome', 'firfox', 'safari'].some(item => item === sniffer.browser) && MSE.isSupported('video/mp4; codecs="avc1.64001E, mp4a.40.5"')) {
-    let _start = player.start
+    player._start = player.start
     if (!rule.call(player)) {
       return false
     }
-    Object.defineProperty(player, 'src', {
-      get () {
-        return player.currentSrc
-      },
-      set (url) {
-        player.config.url = url
-        if (!player.paused) {
-          player.pause()
-          player.once('pause', () => {
-            player.start(url)
-          })
-          player.once('canplay', () => {
-            player.play()
-          })
-        } else {
-          player.start(url)
+
+    let errorHandle = (player, err) => {
+      err.vid = player.config.vid
+      err.url = player.src
+      if (err.errd && typeof err.errd === 'object') {
+        if (player.mp4) {
+          err.errd.url = player.mp4.url
+          err.url = player.mp4.url
+          player.mp4.canDownload = false
         }
-        player.once('canplay', () => {
-          player.currentTime = 0
-        })
-      },
-      configurable: true
-    })
+      }
+      player.emit('DATA_REPORT', err)
+      Task.clear()
+      if (player.mp4 && player.mp4.bufferCache) {
+        player.mp4.bufferCache.clear()
+      }
+      if (player.currentTime) {
+        player._currentTime = player.currentTime
+      }
+      if (player._start) {
+        player.start = player._start
+        player._start = null
+      }
+      player.switchURL = null
+      player._replay = null
+
+      player.off('timeupdate', timeupdateFunc)
+      player.off('seeking', seekingFunc)
+      player.off('pause', pauseFunc)
+      player.off('playing', playingFunc)
+      player.off('waiting', waitingFunc)
+      player.off('ended', endedFunc)
+      player.off('destroy', destroyFunc)
+
+      if (err.errt === 'network' && player.config._backupURL) {
+        player.src = player.config._backupURL
+      } else {
+        player.src = player.config._mainURL
+      }
+      player.once('canplay', () => {
+        if (player._currentTime) {
+          player.currentTime = player._currentTime
+        }
+        player.play()
+      })
+    }
+
     player.start = function (url = mainURL) {
       init(url).then((result) => {
         let mp4 = result[0]; let mse = result[1]
-        _start.call(player, mse.url)
+        player._start(mse.url)
         player.logParams.pluginSrc = url
         player.mp4 = mp4
         player.mse = mse
@@ -137,7 +141,7 @@ let mp4player = function () {
           errorHandle(player, err)
         })
       }, err => {
-        _start.call(player, url)
+        player._start(url)
         errorHandle(player, err)
       })
       player.once('canplay', () => {
@@ -295,7 +299,7 @@ let mp4player = function () {
 
     player.on('timeupdate', timeupdateFunc)
 
-    player.on('seeking', function () {
+    let seekingFunc = function () {
       let buffered = player.buffered; let hasBuffered = false; let curTime = player.currentTime
       Task.clear()
       if (buffered.length) {
@@ -311,17 +315,20 @@ let mp4player = function () {
       } else {
         loadData(0, player.currentTime)
       }
-    })
+    }
+    player.on('seeking', seekingFunc)
 
-    player.on('pause', function () {
+    let pauseFunc = function () {
       Task.clear()
-    })
+    }
+    player.on('pause', pauseFunc)
 
-    player.on('playing', function () {
+    let playingFunc = function () {
       if (waiterTimer) {
         clearTimeout(waiterTimer)
       }
-    })
+    }
+    player.on('playing', playingFunc)
 
     let waitingFunc = function () {
       let mp4 = player.mp4
@@ -346,27 +353,28 @@ let mp4player = function () {
         }, 1500)
       }
     }
-
     player.on('waiting', waitingFunc)
 
-    player.on('ended', () => {
+    let endedFunc = function () {
       player.off('waiting', waitingFunc)
       player.off('timeupdate', timeupdateFunc)
-    })
+    }
+    player.on('ended', endedFunc)
 
-    player.once('destroy', () => {
+    let destroyFunc = function () {
       Task.clear()
       if (player.timer) {
         clearTimeout(player.timer)
       }
-    })
+    }
+    player.once('destroy', destroyFunc)
 
     player._replay = function () {
       Task.clear()
       player.mp4.bufferCache.clear()
       init(player.mp4.url).then((result) => {
         let mp4 = result[0]; let mse = result[1]
-        _start.call(player, mse.url)
+        player._start(mse.url)
         player.mp4 = mp4
         player.mse = mse
         player.currentTime = 0
