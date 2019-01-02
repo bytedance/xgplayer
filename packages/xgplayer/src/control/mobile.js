@@ -5,7 +5,7 @@ let whitelistPass = (list) => {
   let util = Player.util
   return list.some(item => {
     if (util.typeOf(item) === 'Function') {
-      return item.call(navigator.userAgent)
+      return item.call(this, navigator.userAgent)
     } else if (util.typeOf(item) === 'RegExp') {
       return item.test(navigator.userAgent)
     } else if (util.typeOf(item) === 'String') {
