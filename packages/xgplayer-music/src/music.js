@@ -1,6 +1,5 @@
 import Player from 'xgplayer'
 import Lyric from './lyric'
-import Template from './template'
 import Analyze from './analyze'
 import Xhr from './xhr'
 let mode
@@ -15,9 +14,6 @@ class Music extends Player {
       mediaType: 'audio',
       ignores: ['fullscreen', 'start', 'definition', 'makeBullet', 'textTrack', 'loading', 'pc', 'mobile', 'playbackRate', 'replay', 'error', 'poster']
     }, options)
-    if (opts.theme !== 'template') {
-      opts.ignores.push('template')
-    }
     if (!opts.volumeShow) {
       opts.ignores.push('volume')
     }
@@ -43,20 +39,14 @@ class Music extends Player {
       return
     }
 
-    if (opts.theme === 'template') {
-      player.controls.style.display = 'none'
-    } else if (opts.theme === 'fire') {
-      util.addClass(this.root, 'xgplayer-music-fire')
-    } else {
-      util.addClass(this.root, 'xgplayer-music')
-      if (!opts.width) {
-        this.config.width = '100%'
-        this.root.style.width = '100%'
-      }
-      if (!opts.height) {
-        this.config.height = '50px'
-        this.root.style.height = '50px'
-      }
+    util.addClass(this.root, 'xgplayer-music')
+    if (!opts.width) {
+      this.config.width = '100%'
+      this.root.style.width = '100%'
+    }
+    if (!opts.height) {
+      this.config.height = '50px'
+      this.root.style.height = '50px'
     }
     Object.defineProperty(this, 'src', {
       get () {
@@ -300,6 +290,5 @@ class Music extends Player {
 export default Music
 export {
   Lyric,
-  Analyze,
-  Template
+  Analyze
 }

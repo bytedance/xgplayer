@@ -13,6 +13,7 @@ progress = function () {
   let cache = container.querySelector('.xgplayer-progress-cache')
   let point = container.querySelector('.xgplayer-progress-point')
   let thumbnail = container.querySelector('.xgplayer-progress-thumbnail')
+  player.dotArr = {}
   player.once('canplay', () => {
     if (player.config.progressDot && util.typeOf(player.config.progressDot) === 'Array') {
       player.config.progressDot.forEach(item => {
@@ -20,6 +21,7 @@ progress = function () {
           let dot = util.createDom('xg-progress-dot', item.text ? `<span class="xgplayer-progress-tip">${item.text}</span>` : '', {}, 'xgplayer-progress-dot')
           dot.style.left = (item.time / player.duration) * 100 + '%'
           outer.appendChild(dot)
+          player.dotArr[item.time] = dot
           dot.addEventListener('mouseenter', function (e) {
             if (item.text) {
               util.addClass(container, 'xgplayer-progress-dot-active')
@@ -34,6 +36,35 @@ progress = function () {
       })
     }
   })
+  player.addProgressDot = function (time) {
+    if (player.dotArr[time]) {
+      return
+    }
+    if (time >= 0 && time <= player.duration) {
+      let dot = util.createDom('xg-progress-dot', '', {}, 'xgplayer-progress-dot')
+      dot.style.left = (time / player.duration) * 100 + '%'
+      outer.appendChild(dot)
+      player.dotArr[time] = dot
+    }
+  }
+  player.removeProgressDot = function (time) {
+    if (time >= 0 && time <= player.duration && player.dotArr[time]) {
+      let dot = player.dotArr[time]
+      dot.parentNode.removeChild(dot)
+      dot = null
+      player.dotArr[time] = null
+    }
+  }
+  player.removeAllProgressDot = function () {
+    Object.keys(player.dotArr).forEach(function (key) {
+      if (player.dotArr[key]) {
+        let dot = player.dotArr[key]
+        dot.parentNode.removeChild(dot)
+        dot = null
+        player.dotArr[key] = null
+      }
+    })
+  }
   let tnailPicNum = 0
   let tnailWidth = 0
   let tnailHeight = 0
@@ -191,6 +222,7 @@ progress = function () {
     player.on(item, handleCacheUpdate)
   })
   player.once('destroy', () => {
+    player.removeAllProgressDot()
     cacheUpdateEvents.forEach(item => {
       player.off(item, handleCacheUpdate)
     })
