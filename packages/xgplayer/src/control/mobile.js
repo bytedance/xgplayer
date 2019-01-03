@@ -143,7 +143,7 @@ let mobile = function () {
     })
     player.on('play', () => {
       if (centerBtn.type === 'img') {
-        btn.style.backgroundImage = `url("${centerBtn.url.play}")`
+        btn.style.backgroundImage = `url("${centerBtn.url.pause}")`
       } else {
         svg.reset(iconPath.play, iconPath.pause)
       }
