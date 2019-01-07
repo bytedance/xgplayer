@@ -7,30 +7,30 @@ let logger = function () {
   let player = this
   let util = Player.util
   if (player.config.noLog !== true) {
-    const tracker = new Collector('tracker');
-
-    tracker.init({
-      app_id: 1300,
-      channel: 'cn',
-      log: false,
-      disable_sdk_monitor: true
-    })
-
-    tracker('config', {
-      evtParams: {
-        log_type: 'logger',
-        page_url: document.URL,
-        domain: window.location.host,
-        pver: player.version,
-        ua: navigator.userAgent.toLowerCase()
-      },
-      disable_auto_pv: true
-    })
-
-    tracker.start()
+    if(!window.__xigua_log_sdk__) {
+      window.__xigua_log_sdk__ = new Collector('tracker');
+      window.__xigua_log_sdk__.init({
+        app_id: 1300,
+        channel: 'cn',
+        log: false,
+        disable_sdk_monitor: true
+      })
+  
+      window.__xigua_log_sdk__('config', {
+        evtParams: {
+          log_type: 'logger',
+          page_url: document.URL,
+          domain: window.location.host,
+          pver: player.version,
+          ua: navigator.userAgent.toLowerCase()
+        },
+        disable_auto_pv: true
+      })
+      window.__xigua_log_sdk__.start()
+    }
 
     if(player.config.uid) {
-      tracker('config', {
+      window.__xigua_log_sdk__('config', {
         user_unique_id: player.config.uid
       })
     }
@@ -93,7 +93,7 @@ let logger = function () {
           pt: player.logParams.pt,
           lt
         }
-        tracker('b', obj)
+        window.__xigua_log_sdk__('b', obj)
       } else if (util.hasClass(player.root, 'xgplayer-playing')) {
         let watch_dur = computeWatchDur(player.logParams.played)
         let lt = new Date().getTime()
@@ -111,7 +111,7 @@ let logger = function () {
           cur_play_pos: parseFloat((player.currentTime * 1000).toFixed(3)),
           lt
         }
-        tracker('d', obj)
+        window.__xigua_log_sdk__('d', obj)
       }
     }
     if (sniffer.device === 'pc') {
@@ -120,6 +120,13 @@ let logger = function () {
       window.addEventListener('pagehide', userLeave, false)
     }
     player.on('routechange', userLeave)
+    player.on('destroy', function(){
+      if (sniffer.device === 'pc') {
+        window.removeEventListener('beforeunload', userLeave)
+      } else if (sniffer.device === 'mobile') {
+        window.removeEventListener('pagehide', userLeave)
+      }
+    })
 
     player.on('ended', function () {
       let played = player.video.played
@@ -139,7 +146,7 @@ let logger = function () {
         cur_play_pos: parseFloat((player.currentTime * 1000).toFixed(3)),
         et
       }
-      tracker('c', obj)
+      window.__xigua_log_sdk__('c', obj)
     })
     player.on('urlchange', function () {
       let played = player.video.played
@@ -159,7 +166,7 @@ let logger = function () {
         cur_play_pos: parseFloat((player.currentTime * 1000).toFixed(3)),
         lt
       }
-      tracker('d', obj)
+      window.__xigua_log_sdk__('d', obj)
     })
     player.on('error', function (err) {
       let played = player.video.played
@@ -188,7 +195,7 @@ let logger = function () {
       if(player.logParams.nologFunc && player.logParams.nologFunc(player)) {
         return true
       } else {
-        tracker('e', obj)
+        window.__xigua_log_sdk__('e', obj)
       }
     })
   }
