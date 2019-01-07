@@ -1,6 +1,7 @@
 import EventEmitter from 'event-emitter'
 import util from './utils/util'
 import Errors from './error'
+// import allOff from 'event-emitter/all-off'
 
 class Proxy {
   constructor (options) {
@@ -47,6 +48,7 @@ class Proxy {
     }
     if (options.textTrackStyle) {
       let style = document.createElement('style')
+      this.textTrackStyle = style
       document.head.appendChild(style)
       let styleStr = ''
       for (let index in options.textTrackStyle) {
@@ -83,6 +85,10 @@ class Proxy {
       self.evItem = Object.keys(item)[0]
       let name = Object.keys(item)[0]
       self.video.addEventListener(Object.keys(item)[0], function () {
+        // fix when video destroy called and video reload
+        if (!self.logParams) {
+          return
+        }
         if (name === 'play') {
           self.hasStart = true
         } else if (name === 'waiting') {
@@ -160,7 +166,12 @@ class Proxy {
       this.emit('hasstart')
     }
   }
-
+  destroy () {
+    // allOff(this)
+    if (this.textTrackStyle) {
+      this.textTrackStyle.parentNode.removeChild(this.textTrackStyle)
+    }
+  }
   play () {
     this.video.play()
   }

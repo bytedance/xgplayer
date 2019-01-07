@@ -129,10 +129,10 @@ util.deepCopy = function (dst, src) {
   }
 }
 util.getBgImage = function (el) {
-  //fix: return current page url when url is none
+  // fix: return current page url when url is none
   let url = (el.currentStyle || window.getComputedStyle(el, null)).backgroundImage
-  if(!url || url == 'none') {
-    return '';
+  if (!url || url === 'none') {
+    return ''
   }
   let a = document.createElement('a')
   a.href = url.replace(/url\("|"\)/g, '')

@@ -116,25 +116,6 @@ class Player extends Proxy {
         player[item].addEventListener('keydown', player.onKeydown)
       })
     }
-    this.on('destroy', () => {
-      if (this.mousemoveFunc) {
-        this.root.removeEventListener('mousemove', this.mousemoveFunc)
-      }
-      if (this.playFunc) {
-        this.off('canplay', this.playFunc)
-      }
-      if (this.loadeddataFunc) {
-        this.off('loadeddata', this.loadeddataFunc)
-      }
-      if (this.reloadFunc) {
-        this.off('loadeddata', this.reloadFunc)
-      }
-      if (this.replayFunc) {
-        this.once('play', this.replayFunc)
-      }
-      this.off('play', playFunc)
-      player = null
-    })
   }
 
   start (url = this.config.url) {
@@ -218,39 +199,32 @@ class Player extends Proxy {
         }
       })
     }
-    
-    if(this.root.video) {
-      this.root.video = null
-    }
-    
-    function pauseFunc () {
+
+    function destroyFunc () {
       this.emit('destroy')
       // this.root.id = this.root.id + '_del'
       // parentNode.insertBefore(this.rootBackup, this.root)
-      // this.video = null
+
+      // fix video destroy https://stackoverflow.com/questions/3258587/how-to-properly-unload-destroy-a-video-element
+      this.video.removeAttribute('src') // empty source
+      this.video.load()
+
       parentNode.removeChild(this.root)
       for (let k in this) {
         if (k !== 'config') {
           delete this[k]
         }
       }
-      this.off('pause', pauseFunc)
+      this.off('pause', destroyFunc)
     }
-    
+
     if (!this.paused) {
       this.pause()
-      this.once('pause', pauseFunc)
+      this.once('pause', destroyFunc)
     } else {
-      this.emit('destroy')
-      // this.root.id = this.root.id + '_del'
-      // parentNode.insertBefore(this.rootBackup, this.root)
-      parentNode.removeChild(this.root)
-      for (let k in this) {
-        if (k !== 'config') {
-          delete this[k]
-        }
-      }
+      destroyFunc.call(this)
     }
+    super.destroy()
   }
 
   replay () {
