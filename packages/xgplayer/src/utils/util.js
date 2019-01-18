@@ -145,6 +145,9 @@ util.copyDom = function (dom) {
     Array.prototype.forEach.call(dom.attributes, (node) => {
       back.setAttribute(node.name, node.value)
     })
+    if (dom.innerHTML) {
+      back.innerHTML = dom.innerHTML
+    }
     return back
   } else {
     return ''

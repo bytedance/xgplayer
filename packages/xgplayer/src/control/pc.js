@@ -101,7 +101,7 @@ let pc = function () {
 
   function playFunc () {
     if (centerBtn.type === 'img') {
-      btn.style.backgroundImage = `url("${centerBtn.url.play}")`
+      btn.style.backgroundImage = `url("${centerBtn.url.pause}")`
     } else {
       path.setAttribute('d', iconPath.pause)
     }
@@ -112,7 +112,7 @@ let pc = function () {
 
   function pauseFunc () {
     if (centerBtn.type === 'img') {
-      btn.style.backgroundImage = `url("${centerBtn.url.pause}")`
+      btn.style.backgroundImage = `url("${centerBtn.url.play}")`
     } else {
       path.setAttribute('d', iconPath.play)
     }

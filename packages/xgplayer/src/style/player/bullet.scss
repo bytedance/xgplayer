@@ -1,34 +1,7 @@
-.xgplayer-bullet-btn{
-  width: 32px;
-  height: 20px;
-  border-radius: 100px;
-  background-color: #ccc;
-  box-sizing: border-box;
-  outline: none;
-  cursor: pointer;
+.danmu-switch{
   order: 6;
   z-index: 26;
-  position: relative;
-  text-align: center;
   margin: 10px auto;
-  &.xgplayer-bullet-btn-active{
-    padding-left: 12px;
-    background-color: #f85959;
-  }
-  span.txt{
-    width: 20px;
-    height: 20px;
-    line-height: 20px;
-    text-align: center;
-    display: block;
-    border-radius: 100px;
-    background-color: #ffffff;
-    box-shadow: -2px 0 0 0 rgba(0, 0, 0, 0.04);
-    font-family: PingFangSC;
-    font-size: 10px;
-    font-weight: 500;
-    color: #f44336;
-  }
 }
 
 .xgplayer-bullet{
@@ -41,9 +14,8 @@
   overflow: hidden;
   z-index: 9;
   outline: none;
-  div {
+  > * {
     position: absolute;
-    padding: 5px;
     white-space: nowrap;
     z-index: 9;
   }
