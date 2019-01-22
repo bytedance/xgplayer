@@ -14,6 +14,9 @@
   @at-root .xgplayer.xgplayer-definition-active &{
     z-index: 15;
   }
+  @at-root .xgplayer.xgplayer-textTrack-active &{
+    z-index: 15;
+  }
 }
 .xgplayer-progress-outer{
   background: $progressOuterBgColor;

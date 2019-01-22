@@ -116,10 +116,6 @@ let definition = function () {
     e.stopPropagation()
     util.removeClass(player.root, 'xgplayer-definition-active')
   })
-
-  player.once('destroy', () => {
-    ul = null
-  })
 }
 
 Player.install('definition', definition)

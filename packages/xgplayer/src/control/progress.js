@@ -223,15 +223,6 @@ progress = function () {
   })
   player.once('destroy', () => {
     player.removeAllProgressDot()
-    cacheUpdateEvents.forEach(item => {
-      player.off(item, handleCacheUpdate)
-    })
-    player.off('timeupdate', handleTimeUpdate)
-    container = null
-    progress = null
-    point = null
-    thumbnail = null
-    cache = null
   })
 }
 

@@ -204,40 +204,6 @@ let pc = function () {
     }
   }
   player.once('ready', readyFunc)
-
-  function destroyFunc () {
-    this.off('destroy', destroyFunc);
-    ['click', 'touchend'].forEach(item => {
-      btn.removeEventListener(item, function (e) { startClc(e) }, false)
-    })
-    btn.removeEventListener('animationend', function (e) { startAniEnd(e) })
-    player.video.removeEventListener('click', function (e) { videoClc(e) }, false)
-    player.video.removeEventListener('dblclick', function (e) { videoDbClc(e) }, false)
-    root.removeEventListener('mouseenter', mouseenterFunc, false)
-    root.removeEventListener('mouseleave', mouseleaveFunc, false)
-    controls.removeEventListener('mouseenter', cmouseenterFunc, false)
-    controls.removeEventListener('mouseleave', cmouseleaveFunc, false)
-    player.off('ready', readyFunc)
-    player.off('canplay', startClcCanplay)
-    player.off('playing', startClcPlaying)
-    player.off('play', playFunc)
-    player.off('pause', pauseFunc)
-    enterLogo.onload = null
-    util = null
-    controls = null
-    root = null
-    clk = null
-    _click_ = null
-    centerBtn = null
-    iconPath = null
-    btn = null
-    path = null
-    enter = null
-    logo = null
-    enterTips = null
-    enterLogo = null
-  }
-  player.on('destroy', destroyFunc)
 }
 
 Player.install('pc', pc)

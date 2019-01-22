@@ -17,17 +17,32 @@ let textTrack = function () {
       })
       let controlText = player.config.lang && player.config.lang === 'zh-cn' ? '字幕' : 'Caption'
       tmp.push(`</ul><p class="name"><em>${controlText}</em></p>`)
+
       let urlInRoot = root.querySelector('.xgplayer-textTrack')
       if (urlInRoot) {
         urlInRoot.innerHTML = tmp.join('')
+        let cur = urlInRoot.querySelector('.name')
+        cur.addEventListener('mouseenter', (e) => {
+          e.preventDefault()
+          e.stopPropagation()
+          util.addClass(player.root, 'xgplayer-textTrack-active')
+          urlInRoot.focus()
+        })
       } else {
         ul.innerHTML = tmp.join('')
+        let cur = ul.querySelector('.name')
+        cur.addEventListener('mouseenter', (e) => {
+          e.preventDefault()
+          e.stopPropagation()
+          util.addClass(player.root, 'xgplayer-textTrack-active')
+          ul.focus()
+        })
         root.appendChild(ul)
       }
     })
   }
 
-  ['touchstart', 'click'].forEach(item => {
+  ['touchend', 'click'].forEach(item => {
     ul.addEventListener(item, function (e) {
       e.preventDefault()
       e.stopPropagation()
@@ -40,10 +55,10 @@ let textTrack = function () {
         let trackDoms = player.root.getElementsByTagName('Track')
         if (li.innerHTML === '关闭') {
           trackDoms[0].track.mode = 'hidden'
-          util.removeClass(player.root, 'xgplayer-is-textTrack')
+          util.removeClass(player.root, 'xgplayer-textTrack-active')
         } else {
-          if (!util.hasClass(player.root, 'xgplayer-is-textTrack')) {
-            util.addClass(player.root, 'xgplayer-is-textTrack')
+          if (!util.hasClass(player.root, 'xgplayer-textTrack-active')) {
+            util.addClass(player.root, 'xgplayer-textTrack-active')
           }
           trackDoms[0].track.mode = 'showing'
 
@@ -62,21 +77,14 @@ let textTrack = function () {
           })
           player.emit('textTrackChange', li.innerHTML)
         }
-      } else if (li && (li.tagName.toLocaleLowerCase() === 'p' || li.tagName.toLocaleLowerCase() === 'em')) {
-        util.addClass(ul, 'xgplayer-textTrack-active')
-        ul.focus()
       }
     }, false)
   })
 
-  ul.addEventListener('blur', (e) => {
+  ul.addEventListener('mouseleave', (e) => {
     e.preventDefault()
     e.stopPropagation()
-    util.removeClass(ul, 'xgplayer-textTrack-active')
-  })
-
-  player.once('destroy', () => {
-    ul = null
+    util.removeClass(player.root, 'xgplayer-textTrack-active')
   })
 }
 

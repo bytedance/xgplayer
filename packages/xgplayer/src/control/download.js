@@ -36,11 +36,6 @@ const download = function () {
       tips.style.left = `${-rect.right + rootRect.right + 16}px`
     }
   })
-
-  player.once('destroy', function () {
-    player.download = null
-    downloadEl = null
-  })
 }
 
 Player.install('download', download)

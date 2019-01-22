@@ -7,9 +7,6 @@ let loading = function () {
     </svg>
     `, {}, 'xgplayer-loading')
   player.root.appendChild(container)
-  player.once('destroy', () => {
-    container = null
-  })
 }
 
 Player.install('loading', loading)

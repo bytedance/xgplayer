@@ -37,7 +37,7 @@ const rotate = function () {
     } else {
       scale = 1
     }
-    
+
     player.video.style.transformOrigin = 'center center'
     player.video.style.transform = `rotate(${rotateDeg}turn) scale(${scale})`
     player.video.style.webKitTransform = `rotate(${rotateDeg}turn) scale(${scale})`
@@ -56,10 +56,6 @@ const rotate = function () {
   })
 
   btn.addEventListener('click', player.rotate)
-  player.once('destroy', function () {
-    player.rotate = null
-    btn = null
-  })
 }
 
 Player.install('rotate', rotate)

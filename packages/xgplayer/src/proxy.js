@@ -152,10 +152,6 @@ class Proxy {
         }
       }, false)
     })
-    this.once('destroy', () => {
-      textTrackDom = null
-      lastBuffer = null
-    })
   }
 
   get hasStart () {

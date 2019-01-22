@@ -133,7 +133,6 @@ class Player extends Proxy {
         }).catch(function () {
           player.emit('autoplay was prevented')
           Player.util.addClass(player.root, 'xgplayer-is-autoplay')
-          // console.log(error)
         })
       }
       player.off('canplay', player.playFunc)
@@ -175,7 +174,7 @@ class Player extends Proxy {
     this.once('loadeddata', this.reloadFunc)
   }
 
-  destroy () {
+  destroy (isDelDom = true) {
     let parentNode = this.root.parentNode
     clearInterval(this.bulletResizeTimer)
     for (let k in this._interval) {
@@ -208,8 +207,9 @@ class Player extends Proxy {
       // fix video destroy https://stackoverflow.com/questions/3258587/how-to-properly-unload-destroy-a-video-element
       this.video.removeAttribute('src') // empty source
       this.video.load()
-
-      parentNode.removeChild(this.root)
+      if (isDelDom) {
+        parentNode.removeChild(this.root)
+      }
       for (let k in this) {
         if (k !== 'config') {
           delete this[k]

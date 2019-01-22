@@ -67,9 +67,6 @@ let volume = function () {
         }
       })
     })
-    player.once('destroy', () => {
-      container = null
-    })
     return
   }
 
@@ -223,11 +220,6 @@ let volume = function () {
       }
       selected.style.height = `${player.volume * containerHeight}px`
     }, 50)
-  })
-
-  player.once('destroy', () => {
-    container = null
-    selected = null
   })
 }
 
