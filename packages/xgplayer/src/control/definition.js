@@ -6,7 +6,9 @@ let definition = function () {
   if (sniffer.device === 'mobile') {
     return
   }
-  player.on('resourceReady', function (list) {
+  let list = []
+  player.on('resourceReady', function (listArr) {
+    list = listArr
     if (list && list instanceof Array && list.length > 1) {
       util.addClass(player.root, 'xgplayer-is-definition')
       player.on('canplay', function () {
@@ -35,7 +37,7 @@ let definition = function () {
         let cursrc = list.filter(item => {
           a.href = item.url
           if (player.dash) {
-            return item.selected
+            return item.selected === true
           } else {
             return a.href === src
           }
@@ -76,6 +78,15 @@ let definition = function () {
         Array.prototype.forEach.call(li.parentNode.childNodes, item => {
           util.removeClass(item, 'definition')
         })
+        if (player.dash) {
+          list.forEach(item => {
+            item.selected = false
+            if (item.name === li.innerHTML) {
+              item.selected = true
+            }
+          })
+        }
+
         util.addClass(li, 'definition')
         li.parentNode.nextSibling.innerHTML = `${li.getAttribute('cname')}`
         a.href = li.getAttribute('url')

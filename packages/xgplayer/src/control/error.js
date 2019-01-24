@@ -21,7 +21,7 @@ let error = function () {
     util.addClass(player.root, 'xgplayer-is-error')
     refresh = error.querySelector('.xgplayer-error-refresh')
     if (refresh) {
-      ['touchstart', 'click'].forEach(item => {
+      ['touchend', 'click'].forEach(item => {
         refresh.addEventListener(item, function (e) {
           e.preventDefault()
           e.stopPropagation()
