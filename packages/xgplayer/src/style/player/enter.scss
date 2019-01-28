@@ -1,0 +1,51 @@
+@import "./animation";
+.xgplayer-enter{
+  display: none;
+  position: absolute;
+  left: 0;
+  top: 0;
+  width: 100%;
+  height: 100%;
+  background: url($enterBgImage) no-repeat center center / cover;
+  z-index: 1100;
+  .xgplayer-enter-logo{
+    display: block;
+    position: absolute;
+    left: 50%;
+    top: 50%;
+    width: 130px;
+    height: 44px;
+    margin: -22px auto auto -65px;
+    background-size: 130px 44px;
+    background-image: url($enterLogo);
+  }
+  .xgplayer-enter-tips{
+    display: none;
+    position: absolute;
+    left: 50%;
+    top: 50%;
+    width: 120px;
+    height: 1px;
+    background: $enterTipsBgColor;
+    background: $ieEnterTipsBgColor;
+    margin: 32px auto auto -62px;
+    &:before{
+      content: " ";
+      display: block;
+      width: 5px;
+      height: 1px;
+      border-radius: 50%;
+      position: absolute;
+      left: 0;
+      top: 0;
+      animation: enterTips 1.6s linear infinite;
+      background: #fff;
+    }
+    @at-root .xgplayer-is-enter & {
+      display: block;
+    }
+  }
+  @at-root .xgplayer-is-enter & {
+    display: block;
+  }
+}

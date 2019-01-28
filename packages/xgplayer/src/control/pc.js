@@ -56,129 +56,154 @@ let pc = function () {
     }
   }
 
-  ['click', 'touchstart'].forEach(item => {
-    btn.addEventListener(item, function (e) {
-      e.preventDefault()
-      e.stopPropagation()
-      // if (!player.config.url) {
-      //   return
-      // }
-      if (util.hasClass(root, 'xgplayer-nostart')) {
-        util.removeClass(root, 'xgplayer-nostart') // for ie quick switch
-        util.addClass(root, 'xgplayer-is-enter')
-        player.on('canplay', () => {
-          util.removeClass(root, 'xgplayer-is-enter')
-        })
-        player.once('playing', () => {
-          util.removeClass(root, 'xgplayer-is-enter')
-        })
-        if (!root.querySelector('video')) {
-          player.start()
-        }
-        player.play()
+  function startClcCanplay () {
+    util.removeClass(root, 'xgplayer-is-enter')
+  }
+
+  function startClcPlaying () {
+    util.removeClass(root, 'xgplayer-is-enter')
+  }
+
+  function startClc (e) {
+    e.preventDefault()
+    e.stopPropagation()
+    // if (!player.config.url) {
+    //   return
+    // }
+    if (util.hasClass(root, 'xgplayer-nostart')) {
+      util.removeClass(root, 'xgplayer-nostart') // for ie quick switch
+      util.addClass(root, 'xgplayer-is-enter')
+      player.on('canplay', startClcCanplay)
+      player.once('playing', startClcPlaying)
+      if (!root.querySelector('video')) {
+        player.start()
+      }
+      player.play()
+    } else {
+      if (player.paused) {
+        util.removeClass(root, 'xgplayer-nostart xgplayer-isloading')
         setTimeout(() => {
           player.play()
         }, 10)
-      } else {
-        if (player.paused) {
-          util.removeClass(root, 'xgplayer-nostart xgplayer-isloading')
-          setTimeout(() => {
-            player.play()
-          }, 10)
-        }
       }
-    })
+    }
+  };
+  ['click', 'touchend'].forEach(item => {
+    btn.addEventListener(item, function (e) { startClc(e) }, false)
   })
-  btn.addEventListener('animationend', (e) => {
+
+  function startAniEnd (e) {
     e.preventDefault()
     util.removeClass(btn, 'xgplayer-start-interact')
     btn.style.display = 'none'
-  })
-  player.on('play', () => {
+  }
+  btn.addEventListener('animationend', function (e) { startAniEnd(e) })
+
+  function playFunc () {
     if (centerBtn.type === 'img') {
-      btn.style.backgroundImage = `url("${centerBtn.url.play}")`
+      btn.style.backgroundImage = `url("${centerBtn.url.pause}")`
     } else {
       path.setAttribute('d', iconPath.pause)
     }
     btn.style.display = 'inline-block'
     util.addClass(btn, 'xgplayer-start-interact')
-  })
-  player.on('pause', () => {
+  }
+  player.on('play', playFunc)
+
+  function pauseFunc () {
     if (centerBtn.type === 'img') {
-      btn.style.backgroundImage = `url("${centerBtn.url.pause}")`
+      btn.style.backgroundImage = `url("${centerBtn.url.play}")`
     } else {
       path.setAttribute('d', iconPath.play)
     }
     btn.style.display = 'inline-block'
     util.addClass(btn, 'xgplayer-start-interact')
-  })
+  }
+  player.on('pause', pauseFunc)
 
-  player.video.addEventListener('click', function (e) {
+  function videoClc (e) {
     e.preventDefault()
     e.stopPropagation()
     if (document.activeElement !== player.video) {
       player.video.focus()
       return
     }
-    clk++
-    if (_click_) {
-      clearTimeout(_click_)
-    }
-    if (clk === 1) {
-      _click_ = setTimeout(function () {
-        if (util.hasClass(player.root, 'xgplayer-nostart')) {
-          return false
-        } else if (!player.ended) {
-          if (player.paused) {
-            player.play()
-          } else {
-            player.pause()
-          }
-        }
-        clk = 0
-      }, 200)
-    } else {
-      clk = 0
-    }
-  }, false)
-
-  player.video.addEventListener('dblclick', function (e) {
-    e.preventDefault()
-    e.stopPropagation()
-    if (document.activeElement !== player.video) {
-      player.video.focus()
-      return
-    }
-    let fullscreen = controls.querySelector('.xgplayer-fullscreen')
-    if (fullscreen) {
-      let clk
-      if (document.createEvent) {
-        clk = document.createEvent('Event')
-        clk.initEvent('click', true, true)
-      } else {
-        clk = new Event('click')
+    if (!player.config.closeVideoClick) {
+      clk++
+      if (_click_) {
+        clearTimeout(_click_)
       }
-      fullscreen.dispatchEvent(clk)
+      if (clk === 1) {
+        _click_ = setTimeout(function () {
+          if (util.hasClass(player.root, 'xgplayer-nostart')) {
+            return false
+          } else if (!player.ended) {
+            if (player.paused) {
+              player.play()
+            } else {
+              player.pause()
+            }
+          }
+          clk = 0
+        }, 200)
+      } else {
+        clk = 0
+      }
     }
-  }, false)
+  }
+  player.video.addEventListener('click', function (e) { videoClc(e) }, false)
 
-  root.addEventListener('mouseenter', function (e) {
+  function videoDbClc (e) {
+    e.preventDefault()
+    e.stopPropagation()
+    if (document.activeElement !== player.video) {
+      player.video.focus()
+      return
+    }
+    if (!player.config.closeVideoDblclick) {
+      let fullscreen = controls.querySelector('.xgplayer-fullscreen')
+      if (fullscreen) {
+        let clk
+        if (document.createEvent) {
+          clk = document.createEvent('Event')
+          clk.initEvent('click', true, true)
+        } else {
+          clk = new Event('click')
+        }
+        fullscreen.dispatchEvent(clk)
+      }
+    }
+  }
+  player.video.addEventListener('dblclick', function (e) { videoDbClc(e) }, false)
+
+  function mouseenterFunc () {
     player.emit('focus', player)
-  }, false)
+  }
+  root.addEventListener('mouseenter', mouseenterFunc, false)
 
-  root.addEventListener('mouseleave', function (e) {
+  function mouseleaveFunc () {
     player.emit('blur', player)
-  }, false)
+  }
+  root.addEventListener('mouseleave', mouseleaveFunc, false)
 
-  controls.addEventListener('mouseenter', function (e) {
+  function cmouseenterFunc (e) {
     if (player.userTimer) {
       clearTimeout(player.userTimer)
     }
-  }, false)
+  }
+  controls.addEventListener('mouseenter', cmouseenterFunc, false)
 
-  controls.addEventListener('mouseleave', function (e) {
+  function cmouseleaveFunc (e) {
     player.emit('focus', player)
-  }, false)
+  }
+  controls.addEventListener('mouseleave', cmouseleaveFunc, false)
+
+  function readyFunc (e) {
+    if (player.config.autoplay) {
+      player.start()
+    }
+  }
+  player.once('ready', readyFunc)
 }
 
 Player.install('pc', pc)

@@ -1,12 +1,14 @@
 import EventEmitter from 'event-emitter'
 import util from './utils/util'
 import Errors from './error'
+// import allOff from 'event-emitter/all-off'
 
 class Proxy {
   constructor (options) {
     this.logParams = {
       bc: 0,
-      bu_acu_t: 0
+      bu_acu_t: 0,
+      played: []
     }
     this._hasStart = false
     this.videoConfig = {
@@ -46,6 +48,7 @@ class Proxy {
     }
     if (options.textTrackStyle) {
       let style = document.createElement('style')
+      this.textTrackStyle = style
       document.head.appendChild(style)
       let styleStr = ''
       for (let index in options.textTrackStyle) {
@@ -76,10 +79,16 @@ class Proxy {
 
     this._interval = {}
     let lastBuffer = '0,0'
+    let self = this
+
     this.ev.forEach(item => {
-      let self = this
+      self.evItem = Object.keys(item)[0]
       let name = Object.keys(item)[0]
-      self.video.addEventListener(name, function () {
+      self.video.addEventListener(Object.keys(item)[0], function () {
+        // fix when video destroy called and video reload
+        if (!self.logParams) {
+          return
+        }
         if (name === 'play') {
           self.hasStart = true
         } else if (name === 'waiting') {
@@ -90,6 +99,24 @@ class Proxy {
             self.logParams.bu_acu_t += new Date().getTime() - self.inWaitingStart
             self.inWaitingStart = undefined
           }
+        } else if (name === 'loadeddata') {
+          self.logParams.played.push({
+            begin: 0,
+            end: -1
+          })
+        } else if (name === 'seeking') {
+          self.logParams.played.push({
+            begin: self.video.currentTime,
+            end: -1
+          })
+        } else if (name === 'timeupdate') {
+          if (self.logParams.played.length < 1) {
+            self.logParams.played.push({
+              begin: self.video.currentTime,
+              end: -1
+            })
+          }
+          self.logParams.played[self.logParams.played.length - 1].end = self.video.currentTime
         }
         if (name === 'error') {
           if (self.video.error) {
@@ -106,14 +133,15 @@ class Proxy {
 
         if (self.hasOwnProperty('_interval')) {
           if (['ended', 'error', 'timeupdate'].indexOf(name) < 0) {
+            clearInterval(self._interval['bufferedChange'])
             util.setInterval(self, 'bufferedChange', function () {
               let curBuffer = []
-              for (let i = 0, len = this.video.buffered.length; i < len; i++) {
-                curBuffer.push([this.video.buffered.start(i), this.video.buffered.end(i)])
+              for (let i = 0, len = self.video.buffered.length; i < len; i++) {
+                curBuffer.push([self.video.buffered.start(i), self.video.buffered.end(i)])
               }
               if (curBuffer.toString() !== lastBuffer) {
                 lastBuffer = curBuffer.toString()
-                this.emit('bufferedChange', curBuffer)
+                self.emit('bufferedChange', curBuffer)
               }
             }, 200)
           } else {
@@ -123,11 +151,6 @@ class Proxy {
           }
         }
       }, false)
-    })
-    let self = this
-    this.once('timeupdate', function () {
-      self.logParams.vt = new Date().getTime()
-      self.logParams.vd = self.video.duration
     })
   }
 
@@ -140,7 +163,12 @@ class Proxy {
       this.emit('hasstart')
     }
   }
-
+  destroy () {
+    // allOff(this)
+    if (this.textTrackStyle) {
+      this.textTrackStyle.parentNode.removeChild(this.textTrackStyle)
+    }
+  }
   play () {
     this.video.play()
   }
@@ -311,17 +339,22 @@ class Proxy {
     this.logParams = {
       bc: 0,
       bu_acu_t: 0,
+      played: [],
       pt: new Date().getTime(),
-      vt: 0,
+      vt: new Date().getTime(),
       vd: 0
     }
     this.video.pause()
     this.video.src = url
-    this.once('canplay', function () {
-      self.once('timeupdate', function () {
-        self.logParams.vt = new Date().getTime()
-        self.logParams.vd = self.video.duration
-      })
+    this.logParams.playSrc = url
+    this.logParams.pt = new Date().getTime()
+    this.logParams.vt = this.logParams.pt
+    self.once('loadeddata', function () {
+      self.logParams.vt = new Date().getTime()
+      if (self.logParams.pt > self.logParams.vt) {
+        self.logParams.pt = self.logParams.vt
+      }
+      self.logParams.vd = self.video.duration
     })
   }
   get volume () {

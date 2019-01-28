@@ -1,0 +1,73 @@
+.xgplayer-replay{
+  position: absolute;
+  left: 0;
+  top: 0;
+  width: 100%;
+  height: 100%;
+  z-index: 500;
+  display: none;
+  justify-content: center;
+  align-items: center;
+  background: $replayBgColor;
+  flex-direction: column;
+  cursor: pointer;
+  svg{
+    background: $replaySvgBgColor;
+    border-radius: 100%;
+    cursor: pointer;
+    path{
+      transform: translate(20px, 21px);
+      fill: $replaySvgPathFillColor;
+    }
+    &:hover{
+      background: $replaySvgHoverBgColor;
+      path {
+        fill: $replaySvgHoverFillColor;
+      }
+    }
+  }
+  .xgplayer-replay-img{
+    position: absolute;
+    left: 50%;
+    top: 50%;
+    cursor: pointer;
+    &:hover{
+      opacity: 0.85;
+    }
+  }
+  .xgplayer-replay-txt{
+    display: inline-block;
+    font-family: PingFangSC-Regular;
+    font-size: 14px;
+    color: $replayTxtColor;
+    line-height: 34px;
+    cursor: pointer;
+  }
+
+  @at-root .xgplayer.xgplayer-ended{
+    .xgplayer-controls {
+      display: none;
+    }
+    .xgplayer-replay{
+      display: flex;
+    }
+  }
+}
+
+.xgplayer-replay-img{
+  display: none;
+  position: absolute;
+  left: 50%;
+  top: 50%;
+  z-index: 500;
+  cursor: pointer;
+  &:hover{
+    opacity: 0.85;
+  }
+
+  @at-root .xgplayer.xgplayer-ended{
+    .xgplayer-replay-img{
+      display: block;
+    }
+  }
+}

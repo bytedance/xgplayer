@@ -60,7 +60,17 @@ util.toggleClass = function (el, className) {
 }
 
 util.findDom = function (el = document, sel) {
-  return el.querySelector(sel)
+  let dom
+  // fix querySelector IDs that start with a digit
+  // https://stackoverflow.com/questions/37270787/uncaught-syntaxerror-failed-to-execute-queryselector-on-document
+  try {
+    dom = el.querySelector(sel)
+  } catch (e) {
+    if (sel.startsWith('#')) {
+      dom = el.getElementById(sel.slice(1))
+    }
+  }
+  return dom
 }
 
 util.padStart = function (str, length, pad) {
@@ -119,8 +129,12 @@ util.deepCopy = function (dst, src) {
   }
 }
 util.getBgImage = function (el) {
-  let a = document.createElement('a')
+  // fix: return current page url when url is none
   let url = (el.currentStyle || window.getComputedStyle(el, null)).backgroundImage
+  if (!url || url === 'none') {
+    return ''
+  }
+  let a = document.createElement('a')
   a.href = url.replace(/url\("|"\)/g, '')
   return a.href
 }
@@ -131,6 +145,9 @@ util.copyDom = function (dom) {
     Array.prototype.forEach.call(dom.attributes, (node) => {
       back.setAttribute(node.name, node.value)
     })
+    if (dom.innerHTML) {
+      back.innerHTML = dom.innerHTML
+    }
     return back
   } else {
     return ''
@@ -167,12 +184,31 @@ util.createImgBtn = function (name, imgUrl, width, height) {
     btn.style.height = `${h}${unit}`
     btn.style.backgroundSize = `${w}${unit} ${h}${unit}`
     if (name === 'start') {
-      btn.style.margin = `-${h/2}${unit} auto auto -${w/2}${unit}`
+      btn.style.margin = `-${h / 2}${unit} auto auto -${w / 2}${unit}`
     } else {
       btn.style.margin = 'auto 5px auto 5px'
     }
   }
   return btn
+}
+
+util.Hex2RGBA = function (hex, alpha) {
+  let rgb = [] // 定义rgb数组
+  if (/^\#[0-9A-F]{3}$/i.test(hex)) {
+    let sixHex = '#'
+    hex.replace(/[0-9A-F]/ig, function (kw) {
+      sixHex += kw + kw
+    })
+    hex = sixHex
+  }
+  if (/^#[0-9A-F]{6}$/i.test(hex)) {
+    hex.replace(/[0-9A-F]{2}/ig, function (kw) {
+      rgb.push(eval('0x' + kw))
+    })
+    return `rgba(${rgb.join(',')}, ${alpha})`
+  } else {
+    return 'rgba(255, 255, 255, 0.1)'
+  }
 }
 
 export default util

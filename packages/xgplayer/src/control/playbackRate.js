@@ -45,10 +45,6 @@ let playbackRate = function () {
       tips.style.left = `${-rect.right + rootRect.right + 16}px`
     }
   })
-
-  player.once('destroy', () => {
-    ul = null
-  })
 }
 
 Player.install('playbackRate', playbackRate)
