@@ -1,0 +1,30 @@
+.xgplayer-screenShot{
+  order: 10;
+  position: relative;
+  outline: none;
+  display: block;
+  cursor: pointer;
+  margin-left: 10px;
+  margin-top: 9px;
+  margin-bottom: 11px;
+  height: 20px;
+  .name{
+    text-align: center;
+    font: {
+      family: PingFangSC-Regular;
+      size: 13px;
+    }
+    line-height: 20px;
+    height: 20px;
+    color: $definitionNameColor;
+    span{
+      width: 60px;
+      height: 20px;
+      line-height: 20px;
+      background: $definitionNameBgColor;
+      border-radius: 10px;
+      display: inline-block;
+      vertical-align: middle;
+    }
+  }
+}
