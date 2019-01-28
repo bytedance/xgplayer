@@ -99,7 +99,6 @@ let fullscreen = function () {
     ['fullscreenchange', 'webkitfullscreenchange', 'mozfullscreenchange', 'MSFullscreenChange'].forEach(item => {
       document.removeEventListener(item, handle)
     })
-    btn = null
   })
 }
 

@@ -12,11 +12,6 @@ let time = function () {
   }
   player.on('durationchange', handle)
   player.on('timeupdate', handle)
-  player.once('destroy', () => {
-    player.off('durationchange', handle)
-    player.off('timeupdate', handle)
-    curtime = null
-  })
 }
 
 Player.install('time', time)

@@ -22,7 +22,10 @@
     "babel-env": "^2.4.1",
     "babel-eslint": "^8.2.2",
     "babel-loader": "^7.1.2",
+    "babel-plugin-transform-class-properties": "^6.24.1",
+    "babel-plugin-transform-decorators": "^6.24.1",
     "babel-plugin-transform-react-constant-elements": "^6.23.0",
+    "babel-plugin-transform-react-inline-elements": "^6.22.0",
     "babel-preset-es2015": "^6.24.1",
     "clean-webpack-plugin": "^0.1.17",
     "css-loader": "^0.28.10",
@@ -38,9 +41,6 @@
     "xgplayer": "^0.1.0"
   },
   "dependencies": {
-    "babel-plugin-transform-class-properties": "^6.24.1",
-    "babel-plugin-transform-decorators": "^6.24.1",
-    "babel-plugin-transform-react-inline-elements": "^6.22.0",
     "concat-typed-array": "^1.0.2",
     "event-emitter": "^0.3.5"
   }

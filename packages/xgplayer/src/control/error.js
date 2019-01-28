@@ -8,16 +8,20 @@ let error = function () {
 
   player.on('error', function () {
     player.controls.style.display = 'none'
-    if (player.config.lang && player.config.lang === 'zh-cn') {
-      text.innerHTML = `${player.lang[player.video.error.message] || player.lang.ERROR}，请<span class="xgplayer-error-refresh">刷新</span>试试`
+    if (player.error) {
+      text.innerHTML = player.error
     } else {
-      text.innerHTML = `${player.lang[player.video.error.message] || player.lang.ERROR}，please try to <span class="xgplayer-error-refresh">refresh</span>`
+      if (player.config.lang && player.config.lang === 'zh-cn') {
+        text.innerHTML = `${player.lang.ERROR}，请<span class="xgplayer-error-refresh">刷新</span>试试`
+      } else {
+        text.innerHTML = `${player.lang.ERROR}，please try to <span class="xgplayer-error-refresh">refresh</span>`
+      }
     }
 
     util.addClass(player.root, 'xgplayer-is-error')
     refresh = error.querySelector('.xgplayer-error-refresh')
     if (refresh) {
-      ['touchstart', 'click'].forEach(item => {
+      ['touchend', 'click'].forEach(item => {
         refresh.addEventListener(item, function (e) {
           e.preventDefault()
           e.stopPropagation()
@@ -29,11 +33,6 @@ let error = function () {
         })
       })
     }
-  })
-
-  player.once('destroy', () => {
-    refresh = null
-    error = null
   })
 }
 
