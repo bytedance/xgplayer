@@ -8,8 +8,8 @@ let error = function () {
 
   player.on('error', function () {
     player.controls.style.display = 'none'
-    if (player.lang[player.video.error.message] || player.error) {
-      text.innerHTML = player.lang[player.video.error.message] || player.error
+    if (player.error) {
+      text.innerHTML = player.error
     } else {
       if (player.config.lang && player.config.lang === 'zh-cn') {
         text.innerHTML = `${player.lang.ERROR}，请<span class="xgplayer-error-refresh">刷新</span>试试`

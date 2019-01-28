@@ -18,7 +18,7 @@ class MSE {
       self.sourceBuffer.addEventListener('updateend', function (e) {
         self.emit('updateend')
         let buffer = self.queue.shift()
-        if (buffer) {
+        if (buffer && self.sourceBuffer && !self.sourceBuffer.updating && self.state === 'open') {
           self.sourceBuffer.appendBuffer(buffer)
         }
       })
@@ -43,7 +43,7 @@ class MSE {
 
   appendBuffer (buffer) {
     let sourceBuffer = this.sourceBuffer
-    if (sourceBuffer.updating === false && this.state === 'open') {
+    if (sourceBuffer && !sourceBuffer.updating && this.state === 'open') {
       sourceBuffer.appendBuffer(buffer)
       return true
     } else {

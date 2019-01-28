@@ -40,6 +40,9 @@
         .xgplayer-volume {
             order: 5;
             cursor: pointer;
+            .xgplayer-icon {
+                bottom: -13px;
+            }
         }
         .xgplayer-poster {
             position: static;
