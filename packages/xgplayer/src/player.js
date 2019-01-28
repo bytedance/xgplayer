@@ -127,7 +127,7 @@ class Player extends Proxy {
     this.logParams.playSrc = url
     this.playFunc = function () {
       let playPromise = player.video.play()
-      if (playPromise !== undefined) {
+      if (playPromise !== undefined && playPromise) {
         playPromise.then(function () {
           player.emit('autoplay started')
         }).catch(function () {
