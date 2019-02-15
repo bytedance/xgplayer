@@ -45,18 +45,17 @@
   width: 0;
   background-image: $progressPlayedBgImage;
   border-radius: 0 1.5px 1.5px 0;
-  &:after{
-    content:" ";
-    display: none;
-    position: absolute;
-    right: -4px;
-    top: -4px;
-    width: 14px;
-    height: 14px;
-    border-radius: 50%;
-    background: #FFFFFF;
-    box-shadow: $progressPlayedShadow;
-  }
+}
+.xgplayer-progress-btn{
+  display: none;
+  position: absolute;
+  left: 0px;
+  top: -6px;
+  width: 14px;
+  height: 16px;
+  border-radius: 6px;
+  background: #FFFFFF;
+  box-shadow: $progressPlayedShadow;
 }
 .xgplayer-progress-point{
   position: absolute;
@@ -114,7 +113,7 @@
   .xgplayer-progress-dot{
     height: 6px;
   }
-  .xgplayer-progress-played:after{
+  .xgplayer-progress-btn{
     display: block
   }
 }

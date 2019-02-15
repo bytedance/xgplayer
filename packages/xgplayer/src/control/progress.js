@@ -4,11 +4,13 @@ let progress
 progress = function () {
   let player = this
   let util = Player.util
-  let container = util.createDom('xg-progress', '<xg-outer class="xgplayer-progress-outer"><xg-cache class="xgplayer-progress-cache"></xg-cache><xg-played class="xgplayer-progress-played"></xgplayer-played><xg-point class="xgplayer-progress-point xgplayer-tips"></xg-point><xg-thumbnail class="xgplayer-progress-thumbnail xgplayer-tips"></xg-thumbnail></xg-outer>', {tabindex: 1}, 'xgplayer-progress')
+  let container = util.createDom('xg-progress', '<xg-outer class="xgplayer-progress-outer"><xg-cache class="xgplayer-progress-cache"></xg-cache><xg-played class="xgplayer-progress-played"></xgplayer-played><xg-progress-btn class="xgplayer-progress-btn"></xg-progress-btn><xg-point class="xgplayer-progress-point xgplayer-tips"></xg-point><xg-thumbnail class="xgplayer-progress-thumbnail xgplayer-tips"></xg-thumbnail></xg-outer>', {tabindex: 1}, 'xgplayer-progress')
   let root = player.controls
   let containerWidth
   root.appendChild(container)
   let progress = container.querySelector('.xgplayer-progress-played')
+  let btn = container.querySelector('.xgplayer-progress-btn')
+  let btnWidth = 14 // btn.getBoundingClientRect().width
   let outer = container.querySelector('.xgplayer-progress-outer')
   let cache = container.querySelector('.xgplayer-progress-cache')
   let point = container.querySelector('.xgplayer-progress-point')
@@ -102,6 +104,14 @@ progress = function () {
         let w = e.clientX - left > containerWidth ? containerWidth : e.clientX - left
         let now = w / containerWidth * player.duration
         progress.style.width = `${w * 100 / containerWidth}%`
+        if (w - btnWidth / 2 < 0) {
+          btn.style.left = '0px'
+        } else if (w + btnWidth / 2 > containerWidth) {
+          btn.style.left = `${containerWidth - btnWidth}px`
+        } else {
+          btn.style.left = `${w - btnWidth / 2}px`
+        }
+
         if (player.videoConfig.mediaType === 'video' && !player.dash) {
           player.currentTime = Number(now).toFixed(1)
         } else {
@@ -124,6 +134,13 @@ progress = function () {
           let w = e.clientX - left
           let now = w / containerWidth * player.duration
           progress.style.width = `${w * 100 / containerWidth}%`
+          if (w - btnWidth / 2 < 0) {
+            btn.style.left = '0px'
+          } else if (w + btnWidth / 2 > containerWidth) {
+            btn.style.left = `${containerWidth - btnWidth}px`
+          } else {
+            btn.style.left = `${w - btnWidth / 2}px`
+          }
           player.currentTime = Number(now).toFixed(1)
         }
         player.isProgressMoving = false
@@ -194,7 +211,21 @@ progress = function () {
     }
     if (player.videoConfig.mediaType !== 'audio' || !player.isProgressMoving || !player.dash) {
       progress.style.width = `${player.currentTime * 100 / player.duration}%`
+      let left = player.currentTime / player.duration * containerWidth - btnWidth / 2
+      if (left < 0) {
+        btn.style.left = '0px'
+      } else if (left + btnWidth > containerWidth) {
+        btn.style.left = `${containerWidth - btnWidth}px`
+      } else {
+        btn.style.left = `${left}px`
+      }
     }
+    // let {width} = progress.getBoundingClientRect()
+    // if (width < 14) {
+    //   Player.util.addClass(progress, 'start')
+    // } else {
+    //   Player.util.removeClass(progress, 'start')
+    // }
   }
   player.on('timeupdate', handleTimeUpdate)
 

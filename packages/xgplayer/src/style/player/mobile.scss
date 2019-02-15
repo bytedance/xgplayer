@@ -1,12 +1,14 @@
 .xgplayer-mobile{
-  .xgplayer-progress-played:after{
-    display: block;
-    top: -5px;
+  .xgplayer-progress-btn{
+    display: block
   }
   .xgplayer-progress:hover,.xgplayer-progress:focus{
     .xgplayer-progress-outer{
       height: 3px;
       margin-top: 8.5px;
+    }
+    .xgplayer-progress-dot{
+      height: 3px;
     }
   }
   &.xgplayer-ended{

@@ -7,7 +7,7 @@ class HlsJsPlayer extends Player {
     this.hlsOpts = options.hlsOpts || {}
     let util = Player.util
     let player = this
-    if (Player.sniffer.device === 'mobile') {
+    if (Player.sniffer.device === 'mobile' && navigator.platform !== 'MacIntel' && navigator.platform !== 'Win32') {
       return
     }
     let hls
