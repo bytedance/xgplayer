@@ -47,21 +47,25 @@ let definition = function () {
         if (urlInRoot) {
           urlInRoot.innerHTML = tmp.join('')
           let cur = urlInRoot.querySelector('.name')
-          cur.addEventListener('mouseenter', (e) => {
-            e.preventDefault()
-            e.stopPropagation()
-            util.addClass(player.root, 'xgplayer-definition-active')
-            urlInRoot.focus()
-          })
+          if (!player.config.definitionActive || player.config.definitionActive === 'hover') {
+            cur.addEventListener('mouseenter', (e) => {
+              e.preventDefault()
+              e.stopPropagation()
+              util.addClass(player.root, 'xgplayer-definition-active')
+              urlInRoot.focus()
+            })
+          }
         } else {
           ul.innerHTML = tmp.join('')
           let cur = ul.querySelector('.name')
-          cur.addEventListener('mouseenter', (e) => {
-            e.preventDefault()
-            e.stopPropagation()
-            util.addClass(player.root, 'xgplayer-definition-active')
-            ul.focus()
-          })
+          if (!player.config.definitionActive || player.config.definitionActive === 'hover') {
+            cur.addEventListener('mouseenter', (e) => {
+              e.preventDefault()
+              e.stopPropagation()
+              util.addClass(player.root, 'xgplayer-definition-active')
+              ul.focus()
+            })
+          }
           root.appendChild(ul)
         }
       })
@@ -118,15 +122,26 @@ let definition = function () {
           }
         }
         player.emit('definitionChange', a.href)
+      } else if (player.config.definitionActive === 'click' && li && (li.tagName.toLocaleLowerCase() === 'p' || li.tagName.toLocaleLowerCase() === 'em')) {
+        util.addClass(player.root, 'xgplayer-definition-active')
+        ul.focus()
       }
     }, false)
   })
 
-  ul.addEventListener('mouseleave', (e) => {
-    e.preventDefault()
-    e.stopPropagation()
-    util.removeClass(player.root, 'xgplayer-definition-active')
-  })
+  // if (player.config.definitionActive === 'click') {
+  //   ul.addEventListener('blur', (e) => {
+  //     e.preventDefault()
+  //     e.stopPropagation()
+  //     util.removeClass(player.root, 'xgplayer-definition-active')
+  //   })
+  // } else {
+    ul.addEventListener('mouseleave', (e) => {
+      e.preventDefault()
+      e.stopPropagation()
+      util.removeClass(player.root, 'xgplayer-definition-active')
+    })
+  // }
 }
 
 Player.install('definition', definition)
