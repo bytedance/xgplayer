@@ -90,10 +90,10 @@
     white-space: nowrap;
     display: none;
   }
-  &:hover {
-    .xgplayer-progress-tip{
-      display: block;
-    }
+}
+.xgplayer-progress-dot-show{
+  .xgplayer-progress-tip{
+    display: block;
   }
 }
 .xgplayer-progress-thumbnail{

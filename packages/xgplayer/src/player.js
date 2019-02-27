@@ -113,7 +113,7 @@ class Player extends Proxy {
 
     if (!this.config.keyShortcut || this.config.keyShortcut === 'on') {
       ['video', 'controls'].forEach(item => {
-        player[item].addEventListener('keydown', player.onKeydown)
+        player[item].addEventListener('keydown', function(e) {player.onKeydown(e, player)})
       })
     }
   }
@@ -175,6 +175,7 @@ class Player extends Proxy {
   }
 
   destroy (isDelDom = true) {
+    let player = this
     let parentNode = this.root.parentNode
     clearInterval(this.bulletResizeTimer)
     for (let k in this._interval) {
@@ -194,7 +195,7 @@ class Player extends Proxy {
     if (!this.config.keyShortcut || this.config.keyShortcut === 'on') {
       ['video', 'controls'].forEach(item => {
         if (this[item]) {
-          this[item].removeEventListener('keydown', this.onKeydown)
+          this[item].removeEventListener('keydown', function(e) {player.onKeydown(e, player)})
         }
       })
     }
@@ -343,8 +344,8 @@ class Player extends Proxy {
     util.addClass(this.root, 'xgplayer-playing')
   }
 
-  onKeydown (event) {
-    let player = this
+  onKeydown (event, player) {
+    // let player = this
     let e = event || window.event
     if (e && (e.keyCode === 37 || e.keyCode === 38 || e.keyCode === 39 || e.keyCode === 40 || e.keyCode === 32)) {
       player.emit('focus')

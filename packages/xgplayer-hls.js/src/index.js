@@ -1,5 +1,6 @@
 import Player from 'xgplayer'
 import Hls from 'hls.js'
+import utils from './utils'
 
 class HlsJsPlayer extends Player {
   constructor (options) {
@@ -7,7 +8,8 @@ class HlsJsPlayer extends Player {
     this.hlsOpts = options.hlsOpts || {}
     let util = Player.util
     let player = this
-    if (Player.sniffer.device === 'mobile' && navigator.platform !== 'MacIntel' && navigator.platform !== 'Win32') {
+    this.browser = utils.getBrowserVersion()
+    if ((Player.sniffer.device === 'mobile' && navigator.platform !== 'MacIntel' && navigator.platform !== 'Win32') || this.browser.indexOf('Safari') > -1) {
       return
     }
     let hls

@@ -1,6 +1,6 @@
 {
   "name": "xgplayer-dash",
-  "version": "1.1.4-beta.2",
+  "version": "1.1.4",
   "description": "xgplayer plugin for MPEG-DASH",
   "main": "./dist/index.js",
   "scripts": {

@@ -16,6 +16,35 @@ progress = function () {
   let point = container.querySelector('.xgplayer-progress-point')
   let thumbnail = container.querySelector('.xgplayer-progress-thumbnail')
   player.dotArr = {}
+  function dotEvent (dotItem, text) {
+    dotItem.addEventListener('mouseenter', function (e) {
+      if (text) {
+        util.addClass(dotItem, 'xgplayer-progress-dot-show')
+        util.addClass(container, 'xgplayer-progress-dot-active')
+      }
+    })
+    dotItem.addEventListener('mouseleave', function (e) {
+      if (text) {
+        util.removeClass(dotItem, 'xgplayer-progress-dot-show')
+        util.removeClass(container, 'xgplayer-progress-dot-active')
+      }
+    })
+    dotItem.addEventListener('touchend', function (e) {
+      e.preventDefault()
+      e.stopPropagation()
+      if (text) {
+        if(!util.hasClass(dotItem, 'xgplayer-progress-dot-show')) {
+          Object.keys(player.dotArr).forEach(function (key) {
+            if (player.dotArr[key]) {
+              util.removeClass(player.dotArr[key], 'xgplayer-progress-dot-show')
+            }
+          })
+        }
+        util.toggleClass(dotItem, 'xgplayer-progress-dot-show')
+        util.toggleClass(container, 'xgplayer-progress-dot-active')
+      }
+    })
+  }
   player.once('canplay', () => {
     if (player.config.progressDot && util.typeOf(player.config.progressDot) === 'Array') {
       player.config.progressDot.forEach(item => {
@@ -24,21 +53,22 @@ progress = function () {
           dot.style.left = (item.time / player.duration) * 100 + '%'
           outer.appendChild(dot)
           player.dotArr[item.time] = dot
-          dot.addEventListener('mouseenter', function (e) {
-            if (item.text) {
-              util.addClass(container, 'xgplayer-progress-dot-active')
-            }
-          })
-          dot.addEventListener('mouseleave', function (e) {
-            if (item.text) {
-              util.removeClass(container, 'xgplayer-progress-dot-active')
-            }
-          })
+          dotEvent(dot, item.text)
+          // dot.addEventListener('mouseenter', function (e) {
+          //   if (item.text) {
+          //     util.addClass(container, 'xgplayer-progress-dot-active')
+          //   }
+          // })
+          // dot.addEventListener('mouseleave', function (e) {
+          //   if (item.text) {
+          //     util.removeClass(container, 'xgplayer-progress-dot-active')
+          //   }
+          // })
         }
       })
     }
   })
-  player.addProgressDot = function (time) {
+  player.addProgressDot = function (time, text) {
     if (player.dotArr[time]) {
       return
     }
@@ -47,6 +77,7 @@ progress = function () {
       dot.style.left = (time / player.duration) * 100 + '%'
       outer.appendChild(dot)
       player.dotArr[time] = dot
+      dotEvent(dot, text)
     }
   }
   player.removeProgressDot = function (time) {
@@ -120,6 +151,7 @@ progress = function () {
             time.innerHTML = `<span>${util.format(now || 0)}</span><em>${util.format(player.duration)}`
           }
         }
+        player.emit('focus')
       }
       let up = function (e) {
         e.preventDefault()
@@ -143,6 +175,7 @@ progress = function () {
           }
           player.currentTime = Number(now).toFixed(1)
         }
+        player.emit('focus')
         player.isProgressMoving = false
       }
       window.addEventListener('mousemove', move)

@@ -4,7 +4,7 @@ let definition = function () {
   let player = this, util = Player.util, sniffer = Player.sniffer
   let ul = util.createDom('xg-definition', '', {tabindex: 3}, 'xgplayer-definition'), root = player.controls
   if (sniffer.device === 'mobile') {
-    return
+    player.config.definitionActive = 'click'
   }
   let list = []
   player.on('resourceReady', function (listArr) {
@@ -122,10 +122,14 @@ let definition = function () {
           }
         }
         player.emit('definitionChange', a.href)
+        if (sniffer.device === 'mobile') {
+          util.removeClass(player.root, 'xgplayer-definition-active')
+        }
       } else if (player.config.definitionActive === 'click' && li && (li.tagName.toLocaleLowerCase() === 'p' || li.tagName.toLocaleLowerCase() === 'em')) {
         util.addClass(player.root, 'xgplayer-definition-active')
         ul.focus()
       }
+      player.emit('focus')
     }, false)
   })
 
