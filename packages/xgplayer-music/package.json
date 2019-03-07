@@ -1,6 +1,6 @@
 {
   "name": "xgplayer-music",
-  "version": "1.1.4-alpha.2",
+  "version": "1.1.4-beta.2",
   "description": "xgplayer plugin for music",
   "main": "./dist/index.js",
   "scripts": {
@@ -30,26 +30,24 @@
   "author": "yinguohui@bytedance.com",
   "license": "MIT",
   "dependencies": {
-    "babel-core": "^6.26.3",
-    "babel-loader": "^7.1.4",
-    "babel-plugin-add-module-exports": "^0.2.1",
-    "babel-plugin-bulk-import": "^1.0.2",
     "deepmerge": "^2.0.1",
-    "event-emitter": "^0.3.5",
-    "hls.js": "^0.8.9",
-    "node-sass": "^4.9.2",
-    "postcss-cssnext": "^3.1.0",
-    "postcss-loader": "^3.0.0",
-    "sass-loader": "^7.1.0",
-    "webpack": "^4.11.0",
-    "yuefu-template-compiler": "^1.1.3"
+    "event-emitter": "^0.3.5"
   },
   "peerDependency": {
     "xgplayer": "^0.1.0"
   },
   "devDependencies": {
+    "babel-core": "^6.26.3",
+    "babel-loader": "^7.1.4",
+    "babel-plugin-add-module-exports": "^0.2.1",
+    "babel-plugin-bulk-import": "^1.0.2",
     "babel-preset-es2015": "^6.24.1",
+    "node-sass": "^4.9.2",
+    "postcss-cssnext": "^3.1.0",
+    "postcss-loader": "^3.0.0",
+    "sass-loader": "^7.1.0",
     "url-loader": "^1.1.1",
+    "webpack": "^4.11.0",
     "webpack-cli": "^3.0.2"
   }
 }

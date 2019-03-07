@@ -74,9 +74,6 @@ let play = function () {
       }, 80)
     }
   })
-  player.once('destroy', () => {
-    btn = null
-  })
 }
 
 Player.install('play', play)

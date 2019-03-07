@@ -5,7 +5,8 @@ let util = {}
  * var mimeCodec = 'video/mp4; codecs="avc1.42E01E, mp4a.40.2"';
  * @param  {Object} root [JSON对象]
  * @param  {String} type [box的类型]
- * @return {Object}      [box]
+ * @param  {?Array} type [box]
+ * @return {Object|Array<Object>|undefined} [box]
  */
 util.findBox = function (root, type, result = []) {
   if (root.type !== type) {

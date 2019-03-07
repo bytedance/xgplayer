@@ -11,10 +11,6 @@ let poster = function () {
   player.on('play', () => {
     poster.style.display = 'none'
   })
-
-  player.once('destroy', () => {
-    poster = null
-  })
 }
 
 Player.install('poster', poster)

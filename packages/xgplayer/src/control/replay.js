@@ -64,9 +64,6 @@ let replay = function () {
     util.removeClass(root, 'replay')
     player.replay()
   })
-  player.once('destroy', () => {
-    svg = null
-  })
 }
 
 Player.install('replay', replay)

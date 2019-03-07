@@ -2,6 +2,7 @@ const polyfill = []
 
 const umd = {
   entry: polyfill.concat(['./src/index.js']),
+  devtool: 'source-map',
   output: {
     path: `${__dirname}/dist`,
     filename: 'index.js',
@@ -40,6 +41,7 @@ const umd = {
 
 const client = {
   entry: polyfill.concat(['./src/index.js']),
+  devtool: 'source-map',
   output: {
     path: `${__dirname}/browser`,
     filename: 'index.js'
