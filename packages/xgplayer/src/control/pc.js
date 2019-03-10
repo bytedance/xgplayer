@@ -177,12 +177,17 @@ let pc = function () {
   player.video.addEventListener('dblclick', function (e) { videoDbClc(e) }, false)
 
   function mouseenterFunc () {
+    clearTimeout(player.leavePlayerTimer)
     player.emit('focus', player)
   }
   root.addEventListener('mouseenter', mouseenterFunc, false)
 
   function mouseleaveFunc () {
-    player.emit('blur', player)
+    if(!player.config.closePlayerBlur) {
+      player.leavePlayerTimer = setTimeout(function () {
+        player.emit('blur', player)
+      }, player.config.leavePlayerTime || 0)
+    }
   }
   root.addEventListener('mouseleave', mouseleaveFunc, false)
 
@@ -194,7 +199,9 @@ let pc = function () {
   controls.addEventListener('mouseenter', cmouseenterFunc, false)
 
   function cmouseleaveFunc (e) {
-    player.emit('focus', player)
+    if(!player.config.closeControlsBlur) {
+      player.emit('focus', player)
+    }
   }
   controls.addEventListener('mouseleave', cmouseleaveFunc, false)
 

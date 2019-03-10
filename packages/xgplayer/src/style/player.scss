@@ -1,5 +1,6 @@
 // order:
 // xgplayer-play  0
+// xgplayer-playNext  1
 // xgplayer-time  2
 // xgplayer-placeholder 3
 // xgplayer-volume 4
@@ -60,6 +61,7 @@
 @import "player/controls";
 @import "player/progress";
 @import "player/play";
+@import "player/playNext";
 @import "player/time";
 @import "player/tips";
 @import "player/volume";
