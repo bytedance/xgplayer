@@ -1,6 +1,6 @@
 {
     "name": "xgplayer",
-    "version": "1.1.5-beta.8",
+    "version": "1.1.5-beta.9",
     "description": "video player",
     "main": "./dist/index.js",
     "scripts": {
@@ -30,7 +30,7 @@
     "author": "yinguohui@bytedance.com",
     "license": "MIT",
     "dependencies": {
-        "danmu.js": "0.0.11",
+        "danmu.js": "0.0.12",
         "deepmerge": "^1.5.0",
         "downloadjs": "1.4.7",
         "draggabilly": "^2.2.0",
