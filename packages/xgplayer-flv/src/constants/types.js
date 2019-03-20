@@ -23,7 +23,7 @@ export const soundRateTypes = [
   5500,
   11000,
   22000,
-  4400
+  44000
 ]
 
 export const AudioObjectTypes = {
