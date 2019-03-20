@@ -1,7 +1,6 @@
 import Player from '../player'
 
-let progress
-progress = function () {
+let progress = function () {
   let player = this
   let util = Player.util
   let container = util.createDom('xg-progress', '<xg-outer class="xgplayer-progress-outer"><xg-cache class="xgplayer-progress-cache"></xg-cache><xg-played class="xgplayer-progress-played"></xgplayer-played><xg-progress-btn class="xgplayer-progress-btn"></xg-progress-btn><xg-point class="xgplayer-progress-point xgplayer-tips"></xg-point><xg-thumbnail class="xgplayer-progress-thumbnail xgplayer-tips"></xg-thumbnail></xg-outer>', {tabindex: 1}, 'xgplayer-progress')
@@ -45,7 +44,7 @@ progress = function () {
       }
     })
   }
-  player.once('canplay', () => {
+  function canplayProgFunc () {
     if (player.config.progressDot && util.typeOf(player.config.progressDot) === 'Array') {
       player.config.progressDot.forEach(item => {
         if (item.time >= 0 && item.time <= player.duration) {
@@ -54,20 +53,11 @@ progress = function () {
           outer.appendChild(dot)
           player.dotArr[item.time] = dot
           dotEvent(dot, item.text)
-          // dot.addEventListener('mouseenter', function (e) {
-          //   if (item.text) {
-          //     util.addClass(container, 'xgplayer-progress-dot-active')
-          //   }
-          // })
-          // dot.addEventListener('mouseleave', function (e) {
-          //   if (item.text) {
-          //     util.removeClass(container, 'xgplayer-progress-dot-active')
-          //   }
-          // })
         }
       })
     }
-  })
+  }
+  player.once('canplay', canplayProgFunc)
   player.addProgressDot = function (time, text) {
     if (player.dotArr[time]) {
       return
@@ -114,7 +104,7 @@ progress = function () {
     tnailUrls = player.config.thumbnail.urls
     thumbnail.style.width = `${tnailWidth}px`
     thumbnail.style.height = `${tnailHeight}px`
-  }
+  };
   ['touchstart', 'mousedown'].forEach(item => {
     container.addEventListener(item, function (e) {
       e.preventDefault()
@@ -126,7 +116,7 @@ progress = function () {
       container.focus()
       containerWidth = container.getBoundingClientRect().width
       let {left} = progress.getBoundingClientRect()
-      // let isMove = false
+
       let move = function (e) {
         e.preventDefault()
         e.stopPropagation()
@@ -143,7 +133,7 @@ progress = function () {
           btn.style.left = `${w - btnWidth / 2}px`
         }
 
-        if (player.videoConfig.mediaType === 'video' && !player.dash) {
+        if (player.videoConfig.mediaType === 'video' && !player.dash && !player.config.closeMoveSeek) {
           player.currentTime = Number(now).toFixed(1)
         } else {
           let time = util.findDom(root, '.xgplayer-time')
@@ -162,7 +152,7 @@ progress = function () {
         window.removeEventListener('mouseup', up)
         window.removeEventListener('touchend', up)
         container.blur()
-        if (!player.isProgressMoving || player.videoConfig.mediaType === 'audio' || player.dash) {
+        if (!player.isProgressMoving || player.videoConfig.mediaType === 'audio' || player.dash || player.config.closeMoveSeek) {
           let w = e.clientX - left
           let now = w / containerWidth * player.duration
           progress.style.width = `${w * 100 / containerWidth}%`
@@ -285,9 +275,17 @@ progress = function () {
   cacheUpdateEvents.forEach(item => {
     player.on(item, handleCacheUpdate)
   })
-  player.once('destroy', () => {
+
+  function destroyFunc () {
     player.removeAllProgressDot()
-  })
+    player.off('canplay', canplayProgFunc)
+    player.off('timeupdate', handleTimeUpdate)
+    cacheUpdateEvents.forEach(item => {
+      player.off(item, handleCacheUpdate)
+    })
+    player.off('destroy', destroyFunc)
+  }
+  player.once('destroy', destroyFunc)
 }
 
 Player.install('progress', progress)

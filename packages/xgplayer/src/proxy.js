@@ -349,13 +349,15 @@ class Proxy {
     this.logParams.playSrc = url
     this.logParams.pt = new Date().getTime()
     this.logParams.vt = this.logParams.pt
-    self.once('loadeddata', function () {
+    function ldFunc () {
       self.logParams.vt = new Date().getTime()
       if (self.logParams.pt > self.logParams.vt) {
         self.logParams.pt = self.logParams.vt
       }
       self.logParams.vd = self.video.duration
-    })
+      self.off('loadeddata', ldFunc)
+    }
+    this.once('loadeddata', ldFunc)
   }
   get volume () {
     return this.video.volume

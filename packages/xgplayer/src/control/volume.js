@@ -6,13 +6,16 @@ let volume = function () {
   if (player.config.autoplayMuted) {
     player.config.volume = player.config.autoplay ? 0 : player.config.volume
   }
-  player.once('canplay', function () {
+
+  function canplayVolFunc () {
     if (player.config.autoplay && player.config.autoplayMuted) {
       player.volume = 0
     } else {
       player.volume = player.config.volume
     }
-  })
+  }
+  player.once('canplay', canplayVolFunc)
+
   let volume = player.config.volume
   if (sniffer.device === 'mobile') {
     let scale = 0.0220625
@@ -208,7 +211,7 @@ let volume = function () {
   })
 
   let _changeTimer = null
-  player.on('volumechange', function () {
+  function volumechangeFunc () {
     if (_changeTimer) {
       clearTimeout(_changeTimer)
     }
@@ -220,7 +223,15 @@ let volume = function () {
       }
       selected.style.height = `${player.volume * containerHeight}px`
     }, 50)
-  })
+  }
+  player.on('volumechange', volumechangeFunc)
+
+  function destroyFunc () {
+    player.off('canplay', canplayVolFunc)
+    player.off('volumechange', volumechangeFunc)
+    player.off('destroy', destroyFunc)
+  }
+  player.once('destroy', destroyFunc)
 }
 
 Player.install('volume', volume)

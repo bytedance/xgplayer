@@ -101,11 +101,11 @@ class Player extends Proxy {
       player.video.focus()
     }
     this.root.addEventListener('mousemove', this.mousemoveFunc)
-    function playFunc () {
+    this.playFunc = function () {
       player.emit('focus')
       player.video.focus()
     }
-    player.once('play', playFunc)
+    player.once('play', this.playFunc)
 
     setTimeout(() => {
       this.emit('ready')
@@ -125,7 +125,7 @@ class Player extends Proxy {
       this.emit('urlNull')
     }
     this.logParams.playSrc = url
-    this.playFunc = function () {
+    this.canPlayFunc = function () {
       let playPromise = player.video.play()
       if (playPromise !== undefined && playPromise) {
         playPromise.then(function () {
@@ -135,7 +135,7 @@ class Player extends Proxy {
           Player.util.addClass(player.root, 'xgplayer-is-autoplay')
         })
       }
-      player.off('canplay', player.playFunc)
+      player.off('canplay', player.canPlayFunc)
     }
     if (util.typeOf(url) === 'String') {
       this.video.src = url
@@ -158,7 +158,7 @@ class Player extends Proxy {
     }
     this.once('loadeddata', this.loadeddataFunc)
     if (this.config.autoplay) {
-      this.on('canplay', this.playFunc)
+      this.on('canplay', this.canPlayFunc)
     }
     root.insertBefore(this.video, root.firstChild)
     setTimeout(() => {
@@ -189,6 +189,18 @@ class Player extends Proxy {
         this.off(evName, evFunc)
       }
     });
+    if(this.loadeddataFunc) {
+      this.off('loadeddata', this.loadeddataFunc)
+    }
+    if(this.reloadFunc) {
+      this.off('loadeddata', this.reloadFunc)
+    }
+    if(this.replayFunc) {
+      this.off('play', this.replayFunc)
+    }
+    if(this.playFunc) {
+      this.off('play', this.playFunc)
+    }
     ['focus', 'blur'].forEach(item => {
       this.off(item, this['on' + item.charAt(0).toUpperCase() + item.slice(1)])
     })
@@ -212,9 +224,9 @@ class Player extends Proxy {
         parentNode.removeChild(this.root)
       }
       for (let k in this) {
-        if (k !== 'config') {
+        // if (k !== 'config') {
           delete this[k]
-        }
+        // }
       }
       this.off('pause', destroyFunc)
     }

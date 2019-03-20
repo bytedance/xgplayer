@@ -6,7 +6,7 @@ let error = function () {
   let text = error.querySelector('.xgplayer-error-text')
   let refresh = null
 
-  player.on('error', function () {
+  function errorFunc () {
     player.controls.style.display = 'none'
     if (player.error) {
       text.innerHTML = player.error
@@ -33,7 +33,14 @@ let error = function () {
         })
       })
     }
-  })
+  }
+  player.on('error', errorFunc)
+
+  function destroyFunc () {
+    player.off('error', errorFunc)
+    player.off('destroy', destroyFunc)
+  }
+  player.once('destroy', destroyFunc)
 }
 
 Player.install('error', error)

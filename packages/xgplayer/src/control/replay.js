@@ -43,7 +43,7 @@ let replay = function () {
   let root = player.root
   root.appendChild(btn)
 
-  player.on('ended', function () {
+  function endedFunc () {
     if (centerBtn.type === 'img') {
       img.style.backgroundImage = `url("${centerBtn.url.replay}")`
     } else {
@@ -57,13 +57,21 @@ let replay = function () {
     if (!player.config.loop) {
       util.addClass(root, 'replay')
     }
-  })
+  }
+
+  player.on('ended', endedFunc)
   let dom = svg || img
   dom.addEventListener('click', function (e) {
     e.preventDefault()
     util.removeClass(root, 'replay')
     player.replay()
   })
+
+  function destroyFunc () {
+    player.off('ended', endedFunc)
+    player.off('destroy', destroyFunc)
+  }
+  player.once('destroy', destroyFunc)
 }
 
 Player.install('replay', replay)

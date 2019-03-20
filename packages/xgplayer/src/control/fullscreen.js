@@ -95,11 +95,13 @@ let fullscreen = function () {
     document.addEventListener(item, handle)
   })
 
-  player.once('destroy', function () {
+  function destroyFunc () {
     ['fullscreenchange', 'webkitfullscreenchange', 'mozfullscreenchange', 'MSFullscreenChange'].forEach(item => {
       document.removeEventListener(item, handle)
     })
-  })
+    player.off('destroy', destroyFunc)
+  }
+  player.once('destroy', destroyFunc)
 }
 
 Player.install('fullscreen', fullscreen)

@@ -49,7 +49,7 @@ let play = function () {
     }, false)
   })
 
-  player.on('play', () => {
+  function playFunc () {
     if (playBtn.type === 'img') {
       btn.style.backgroundImage = `url("${playBtn.url.pause}")`
     } else {
@@ -60,9 +60,10 @@ let play = function () {
         }
       }, 80)
     }
-  })
+  }
+  player.on('play', playFunc)
 
-  player.on('pause', () => {
+  function pauseFunc () {
     if (playBtn.type === 'img') {
       btn.style.backgroundImage = `url("${playBtn.url.play}")`
     } else {
@@ -73,7 +74,15 @@ let play = function () {
         }
       }, 80)
     }
-  })
+  }
+  player.on('pause', pauseFunc)
+
+  function destroyFunc () {
+    player.off('play', playFunc)
+    player.off('pause', pauseFunc)
+    player.off('destroy', destroyFunc)
+  }
+  player.once('destroy', destroyFunc)
 }
 
 Player.install('play', play)

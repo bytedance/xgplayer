@@ -211,6 +211,16 @@ let pc = function () {
     }
   }
   player.once('ready', readyFunc)
+
+  function destroyFunc () {
+    player.off('canplay', startClcCanplay)
+    player.off('playing', startClcPlaying)
+    player.off('play', playFunc)
+    player.off('pause', pauseFunc)
+    player.off('ready', readyFunc)
+    player.off('destroy', destroyFunc)
+  }
+  player.once('destroy', destroyFunc)
 }
 
 Player.install('pc', pc)

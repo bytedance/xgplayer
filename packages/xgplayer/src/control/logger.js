@@ -15,7 +15,7 @@ let logger = function () {
         log: false,
         disable_sdk_monitor: true
       })
-  
+
       window.__xigua_log_sdk__('config', {
         evtParams: {
           log_type: 'logger',
@@ -120,15 +120,8 @@ let logger = function () {
       window.addEventListener('pagehide', userLeave, false)
     }
     player.on('routechange', userLeave)
-    player.on('destroy', function(){
-      if (sniffer.device === 'pc') {
-        window.removeEventListener('beforeunload', userLeave)
-      } else if (sniffer.device === 'mobile') {
-        window.removeEventListener('pagehide', userLeave)
-      }
-    })
 
-    player.on('ended', function () {
+    function endedFunc () {
       let played = player.video.played
       let watch_dur = computeWatchDur(player.logParams.played)
       let et = new Date().getTime()
@@ -147,8 +140,10 @@ let logger = function () {
         et
       }
       window.__xigua_log_sdk__('c', obj)
-    })
-    player.on('urlchange', function () {
+    }
+    player.on('ended', endedFunc)
+
+    function urlchangeFunc () {
       let played = player.video.played
       let watch_dur = computeWatchDur(player.logParams.played)
       let lt = new Date().getTime()
@@ -167,8 +162,10 @@ let logger = function () {
         lt
       }
       window.__xigua_log_sdk__('d', obj)
-    })
-    player.on('error', function (err) {
+    }
+    player.on('urlchange', urlchangeFunc)
+
+    function errorFunc (err) {
       let played = player.video.played
       let watch_dur = computeWatchDur(player.logParams.played)
       judgePtVt()
@@ -197,7 +194,22 @@ let logger = function () {
       } else {
         window.__xigua_log_sdk__('e', obj)
       }
-    })
+    }
+    player.on('error', errorFunc)
+
+    function destroyFunc () {
+      if (sniffer.device === 'pc') {
+        window.removeEventListener('beforeunload', userLeave)
+      } else if (sniffer.device === 'mobile') {
+        window.removeEventListener('pagehide', userLeave)
+      }
+      player.off('routechange', userLeave)
+      player.off('ended', endedFunc)
+      player.off('urlchange', urlchangeFunc)
+      player.off('error', errorFunc)
+      player.off('destroy', destroyFunc)
+    }
+    player.once('destroy', destroyFunc)
   }
 }
 

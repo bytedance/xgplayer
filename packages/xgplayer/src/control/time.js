@@ -12,6 +12,13 @@ let time = function () {
   }
   player.on('durationchange', handle)
   player.on('timeupdate', handle)
+
+  function destroyFunc () {
+    player.off('durationchange', handle)
+    player.off('timeupdate', handle)
+    player.off('destroy', destroyFunc)
+  }
+  player.once('destroy', destroyFunc)
 }
 
 Player.install('time', time)

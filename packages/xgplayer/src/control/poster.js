@@ -8,9 +8,17 @@ let poster = function () {
     poster.style.backgroundImage = `url(${player.config.poster})`
     root.appendChild(poster)
   }
-  player.on('play', () => {
+
+  function playFunc () {
     poster.style.display = 'none'
-  })
+  }
+  player.on('play', playFunc)
+
+  function destroyFunc () {
+    player.off('play', playFunc)
+    player.off('destroy', destroyFunc)
+  }
+  player.once('destroy', destroyFunc)
 }
 
 Player.install('poster', poster)
