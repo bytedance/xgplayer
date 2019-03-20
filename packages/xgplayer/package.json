@@ -46,6 +46,7 @@
     ],
     "devDependencies": {
         "autoprefixer": "^9.1.5",
+        "babel-core": "^6.26.3",
         "babel-loader": "^7.1.4",
         "babel-plugin-add-module-exports": "^0.2.1",
         "babel-plugin-bulk-import": "^1.0.2",
