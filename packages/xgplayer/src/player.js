@@ -3,6 +3,7 @@ import util from './utils/util'
 import Database from './utils/database'
 import sniffer from './utils/sniffer'
 import Errors from './error'
+import Draggabilly from 'draggabilly'
 import {
   version
 } from '../package.json'
@@ -287,6 +288,47 @@ class Player extends Proxy {
           }
         }
       })
+    }
+  }
+
+  getPIP (player) {
+    let ro = player.root.getBoundingClientRect()
+    let Top = ro.top
+    let Left = ro.left
+    let dragLay = util.createDom('xg-pip-lay', '<div></div>', {}, 'xgplayer-pip-lay')
+    player.root.appendChild(dragLay)
+    let dragHandle = util.createDom('xg-pip-drag', '<div class="drag-handle"><span>点击按住可拖动视频</span></div>', {tabindex: 9}, 'xgplayer-pip-drag')
+    player.root.appendChild(dragHandle)
+    let draggie = new Draggabilly('.xgplayer', {
+      handle: '.drag-handle'
+    })
+    util.addClass(player.root, 'xgplayer-pip-active')
+    player.root.style.right = 0
+    player.root.style.bottom = '200px'
+    player.root.style.top = ''
+    player.root.style.left = ''
+    if (player.config.fluid) {
+      player.root.style['padding-top'] = ''
+    }
+    ['click', 'touchstart'].forEach(item => {
+      dragLay.addEventListener(item, function (e) {
+        e.preventDefault()
+        e.stopPropagation()
+        player.exitPIP(player)
+        player.root.style.top = `${Top}px`
+        player.root.style.left = `${Left}px`
+      })
+    })
+  }
+
+  exitPIP (player) {
+    util.removeClass(player.root, 'xgplayer-pip-active')
+    player.root.style.right = ''
+    player.root.style.bottom = ''
+    player.root.style.top = ''
+    player.root.style.left = ''
+    if (player.config.fluid) {
+      player.root.style['padding-top'] = `${player.config.height * 100 / player.config.width}%`
     }
   }
 
