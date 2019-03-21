@@ -1,14 +1,13 @@
 import EventEmitter from 'event-emitter'
 let count = 0
 class MSE {
-  constructor (codecs = 'video/mp4; codecs="avc1.64001E, mp4a.40.5"') {
-    this.count = count++
+  constructor (mediaElement) {
+    this.codecs = 'video/mp4; codecs="avc1.64001E, mp4a.40.5"'
     let self = this
     EventEmitter(this)
-    this.codecs = codecs
     this.mediaSource = new window.MediaSource()
-    this.url = window.URL.createObjectURL(this.mediaSource)
-
+    mediaElement.src = window.URL.createObjectURL(this.mediaSource)
+    this.url = mediaElement.src
     this.handleSourceOpen = this.onSourceOpen.bind(this)
     this.mediaSource.addEventListener('sourceopen', this.handleSourceOpen)
 

@@ -29,7 +29,6 @@ class FlvPlayer extends Player {
       },
       configurable: true
     })
-
     if (options.autoplay) {
       this.start()
     }
