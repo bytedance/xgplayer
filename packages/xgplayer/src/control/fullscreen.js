@@ -17,6 +17,10 @@ let fullscreen = function () {
   let path = btn.querySelector('path')
   btn.appendChild(tips)
   let getFullscreen = function (el) {
+    let cssfullscreenDom = util.findDom(player.controls, 'xg-cssfullscreen')
+    if(cssfullscreenDom) {
+      cssfullscreenDom.style.display = 'none'
+    }
     path.setAttribute('d', iconPath.active)
     tips.textContent = tipsExitFull
     if (el.requestFullscreen) {
@@ -34,6 +38,13 @@ let fullscreen = function () {
     }
   }
   let exitFullscreen = function (el) {
+    let cssfullscreenDom = util.findDom(player.controls, 'xg-cssfullscreen')
+    let cssfullscreentTip = util.findDom(cssfullscreenDom, 'xg-tips')
+    if(cssfullscreenDom) {
+      cssfullscreenDom.style.display = 'block'
+      cssfullscreentTip.textContent = player.config.lang && player.config.lang === 'zh-cn' ? '样式全屏' : 'Full screen'
+    }
+    util.removeClass(el, 'xgplayer-cssfullscreen-active')
     path.setAttribute('d', iconPath.default)
     tips.textContent = tipsFull
     if (document.exitFullscreen) {
