@@ -1,8 +1,9 @@
-.xgplayer-fullscreen{
-  order: 12;
+.xgplayer-cssfullscreen{
+  order: 11;
   position: relative;
   display: inline-block;
   cursor: pointer;
+  left: 6px;
   .xgplayer-icon{
     margin: 4px -4px 0 0;
   }
@@ -11,7 +12,7 @@
       display: block;
     }
   }
-  @at-root .xgplayer.xgplayer-fullscreen-active{
+  @at-root .xgplayer.xgplayer-cssfullscreen-active{
     position: fixed !important;
     left: 0 !important;
     top: 0 !important;
