@@ -2,7 +2,9 @@ let util = {}
 
 util.getBrowserVersion = function () {
   let userAgent = navigator.userAgent //取得浏览器的userAgent字符串
-
+  if(userAgent.toLowerCase().indexOf("mobile") > -1) {
+    return "Unknown"
+  }
   if (userAgent.indexOf("Firefox") > -1) {
     let version = userAgent.match(/firefox\/[\d.]+/gi)[0].match(/[\d]+/)[0]
     return "Firefox "+version

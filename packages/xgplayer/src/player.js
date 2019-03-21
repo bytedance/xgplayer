@@ -291,44 +291,45 @@ class Player extends Proxy {
     }
   }
 
-  getPIP (player) {
-    let ro = player.root.getBoundingClientRect()
+  getPIP () {
+    let ro = this.root.getBoundingClientRect()
     let Top = ro.top
     let Left = ro.left
     let dragLay = util.createDom('xg-pip-lay', '<div></div>', {}, 'xgplayer-pip-lay')
-    player.root.appendChild(dragLay)
+    this.root.appendChild(dragLay)
     let dragHandle = util.createDom('xg-pip-drag', '<div class="drag-handle"><span>点击按住可拖动视频</span></div>', {tabindex: 9}, 'xgplayer-pip-drag')
-    player.root.appendChild(dragHandle)
+    this.root.appendChild(dragHandle)
     let draggie = new Draggabilly('.xgplayer', {
       handle: '.drag-handle'
     })
-    util.addClass(player.root, 'xgplayer-pip-active')
-    player.root.style.right = 0
-    player.root.style.bottom = '200px'
-    player.root.style.top = ''
-    player.root.style.left = ''
-    if (player.config.fluid) {
-      player.root.style['padding-top'] = ''
+    util.addClass(this.root, 'xgplayer-pip-active')
+    this.root.style.right = 0
+    this.root.style.bottom = '200px'
+    this.root.style.top = ''
+    this.root.style.left = ''
+    if (this.config.fluid) {
+      this.root.style['padding-top'] = ''
     }
+    let player = this;
     ['click', 'touchstart'].forEach(item => {
       dragLay.addEventListener(item, function (e) {
         e.preventDefault()
         e.stopPropagation()
-        player.exitPIP(player)
+        player.exitPIP()
         player.root.style.top = `${Top}px`
         player.root.style.left = `${Left}px`
       })
     })
   }
 
-  exitPIP (player) {
-    util.removeClass(player.root, 'xgplayer-pip-active')
-    player.root.style.right = ''
-    player.root.style.bottom = ''
-    player.root.style.top = ''
-    player.root.style.left = ''
-    if (player.config.fluid) {
-      player.root.style['padding-top'] = `${player.config.height * 100 / player.config.width}%`
+  exitPIP () {
+    util.removeClass(this.root, 'xgplayer-pip-active')
+    this.root.style.right = ''
+    this.root.style.bottom = ''
+    this.root.style.top = ''
+    this.root.style.left = ''
+    if (this.config.fluid) {
+      this.root.style['padding-top'] = `${this.config.height * 100 / this.config.width}%`
     }
   }
 
