@@ -54,6 +54,14 @@ class HlsJsPlayer extends Player {
     this.register()
     this.once('complete', () => {
       hls.attachMedia(player.video)
+      player.once('canplay', () => {
+        player.play()
+      })
+      if(player.config.isLive) {
+        Player.util.addClass(player.root, 'xgplayer-is-live')
+        const live = Player.util.createDom('xg-live', '正在直播', {}, 'xgplayer-live')
+        player.controls.appendChild(live)
+      }
     })
     this.once('destroy', () => {
       hls.stopLoad()
