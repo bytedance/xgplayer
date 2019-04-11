@@ -99,12 +99,16 @@ class Player extends Proxy {
     let player = this
     this.mousemoveFunc = function () {
       player.emit('focus')
-      player.video.focus()
+      if (!player.config.closeFocusVideoFocus) {
+        player.video.focus()
+      }
     }
     this.root.addEventListener('mousemove', this.mousemoveFunc)
     this.playFunc = function () {
       player.emit('focus')
-      player.video.focus()
+      if (!player.config.closePlayVideoFocus) {
+        player.video.focus()
+      }
     }
     player.once('play', this.playFunc)
 
