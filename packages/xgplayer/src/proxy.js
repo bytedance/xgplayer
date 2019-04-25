@@ -109,7 +109,7 @@ class Proxy {
             begin: self.video.currentTime,
             end: -1
           })
-        } else if (name === 'timeupdate') {
+        } else if (self && self.logParams && self.logParams.played && name === 'timeupdate') {
           if (self.logParams.played.length < 1) {
             self.logParams.played.push({
               begin: self.video.currentTime,

@@ -151,7 +151,7 @@ let progress = function () {
         e.stopPropagation()
         util.event(e)
         window.removeEventListener('mousemove', move)
-        window.removeEventListener('touchmove', move)
+        window.removeEventListener('touchmove', move, { passive: false })
         window.removeEventListener('mouseup', up)
         window.removeEventListener('touchend', up)
         container.blur()
@@ -175,7 +175,7 @@ let progress = function () {
         player.isProgressMoving = false
       }
       window.addEventListener('mousemove', move)
-      window.addEventListener('touchmove', move)
+      window.addEventListener('touchmove', move, { passive: false })
       window.addEventListener('mouseup', up)
       window.addEventListener('touchend', up)
       return false

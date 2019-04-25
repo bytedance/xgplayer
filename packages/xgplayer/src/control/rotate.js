@@ -15,7 +15,7 @@ const rotate = function () {
   root.appendChild(btn)
 
   let rotateDeg = 0
-  player.rotate = function () {
+  player.rotate = function (times = 1) {
     let width = player.root.offsetWidth
     let height = player.root.offsetHeight
 
@@ -26,7 +26,7 @@ const rotate = function () {
 
     let factor = player.config.rotate.clockwise ? 1 : -1
 
-    rotateDeg = (rotateDeg + 1 + factor * 0.25) % 1
+    rotateDeg = (rotateDeg + 1 + factor * 0.25 * times) % 1
     let scale
     if (rotateDeg === 0.25 || rotateDeg === 0.75) {
       if (player.config.rotate.innerRotate) {

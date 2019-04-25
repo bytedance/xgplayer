@@ -4,11 +4,16 @@ let playbackRate = function () {
   let player = this
   let util = Player.util
   let selected = 0
+  let selectedSpeed = 1
   let rateTpl = []
   if (player.config.playbackRate) {
     player.config.playbackRate.sort((a, b) => a - b)
     player.config.playbackRate.forEach((item, index) => {
-      if (item === 1 || item === '1') {
+      if(player.config.defaultPlaybackRate && player.config.defaultPlaybackRate === item) {
+        selected = index
+        selectedSpeed = item
+        player.once('playing', () => { player.video.playbackRate = item})
+      } else if (item === 1 || item === '1') {
         selected = index
       }
       rateTpl.push(`${item}x`)
@@ -17,7 +22,7 @@ let playbackRate = function () {
     return false
   }
   let tipsSpeed = player.config.lang && player.config.lang === 'zh-cn' ? '倍速' : 'Speed'
-  let ul = util.createDom('xg-playback', "<p class='name'><span>1x</span></p>", {}, 'xgplayer-playback')
+  let ul = util.createDom('xg-playback', `<p class='name'><span>${selectedSpeed}x</span></p>`, {}, 'xgplayer-playback')
   let root = player.controls
   let tips = util.createDom('xg-tips', tipsSpeed, {}, 'xgplayer-tips')
   ul.appendChild(tips)
