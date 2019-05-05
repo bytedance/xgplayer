@@ -278,6 +278,7 @@ class Player extends Proxy {
   }
 
   pluginsCall () {
+    let self = this
     if (Player.plugins) {
       let ignores = this.config.ignores
       Object.keys(Player.plugins).forEach(name => {
@@ -285,7 +286,9 @@ class Player extends Proxy {
         if (!ignores.some(item => name === item)) {
           if (['pc', 'tablet', 'mobile'].some(type => type === name)) {
             if (name === sniffer.device) {
-              descriptor.call(this, this)
+              setTimeout(() => {
+                descriptor.call(self, self)
+              }, 0)
             }
           } else {
             descriptor.call(this, this)
