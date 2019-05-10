@@ -107,32 +107,32 @@ export default class Flv {
       return true
     }
 
-    // player.switchURL = (url) => {
-    //   this._options.url = url
-    //   // this.flvPlayer.unbindEvents()
-    //   if (!player.config.isLive) {
-    //     VodTask.clear()
-    //     const tempFlvPlayer = this.tempFlvPlayer = new MainParser(this._options, player)
+    player.switchURL = (url) => {
+      this._options.url = url
+      // this.flvPlayer.unbindEvents()
+      if (!player.config.isLive) {
+        VodTask.clear()
+        const tempFlvPlayer = this.tempFlvPlayer = new MainParser(this._options, player)
 
-    //     tempFlvPlayer.isSourceOpen = true
-    //     tempFlvPlayer.isTempPlayer = true
-    //     this.initFlvPlayerEvents(tempFlvPlayer, mse)
-    //     tempFlvPlayer.handleMediaFragment = () => {
-    //       this.isSeeking = false
-    //       this.unbindFlvPlayerEvents(this.flvPlayer)
-    //       this.flvPlayer.destroy()
-    //       this.flvPlayer = tempFlvPlayer
-    //       this.tempFlvPlayer = null
+        tempFlvPlayer.isSourceOpen = true
+        tempFlvPlayer.isTempPlayer = true
+        this.initFlvPlayerEvents(tempFlvPlayer, mse)
+        tempFlvPlayer.handleMediaFragment = () => {
+          this.isSeeking = false
+          this.unbindFlvPlayerEvents(this.flvPlayer)
+          this.flvPlayer.destroy()
+          this.flvPlayer = tempFlvPlayer
+          this.tempFlvPlayer = null
 
-    //       mse.appendBuffer(tempFlvPlayer.ftyp_moov)
-    //       tempFlvPlayer.handleMediaFragment = (fragment) => {
-    //         return mse.appendBuffer(fragment.data)
-    //       }
-    //       return false
-    //     }
-    //     tempFlvPlayer.startLoadData()
-    //   }
-    // }
+          mse.appendBuffer(tempFlvPlayer.ftyp_moov)
+          tempFlvPlayer.handleMediaFragment = (fragment) => {
+            return mse.appendBuffer(fragment.data)
+          }
+          return false
+        }
+        tempFlvPlayer.startLoadData()
+      }
+    }
   }
   unbindFlvPlayerEvents (flvPlayer) {
     flvPlayer.handleSeekEnd = () => null
