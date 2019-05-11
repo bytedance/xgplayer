@@ -1,6 +1,6 @@
 {
   "name": "xgplayer-flv.js",
-  "version": "1.1.4",
+  "version": "1.1.5",
   "description": "web video player",
   "main": "./dist/index.js",
   "scripts": {
@@ -32,7 +32,8 @@
     "babel-plugin-add-module-exports": "^0.2.1",
     "babel-plugin-bulk-import": "^1.0.2",
     "babel-preset-es2015": "^6.24.1",
-    "webpack": "^4.8.3"
+    "webpack": "^4.8.3",
+    "webpack-cli": "^3.3.2"
   },
   "peerDependency": {
     "xgplayer": "^0.1.0"

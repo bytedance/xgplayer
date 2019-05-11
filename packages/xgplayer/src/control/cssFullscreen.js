@@ -41,25 +41,6 @@ let cssFullscreen = function () {
       }
     })
   })
-  // player.video.addEventListener('webkitendfullscreen', () => {
-  //   player.emit('exitFullscreen')
-  //   path.setAttribute('d', iconPath.default)
-  // })
-
-  // let handle = function (e) {
-  //   let fullscreenEl = document.fullscreenElement || document.webkitFullscreenElement || document.mozFullScreenElement || document.msFullscreenElement
-  //   if (fullscreenEl && fullscreenEl === container) {
-  //     util.addClass(container, 'xgplayer-is-fullscreen')
-  //     path.setAttribute('d', iconPath.active)
-  //     tips.textContent = tipsExitFull
-  //     player.emit('requestFullscreen')
-  //   } else {
-  //     util.removeClass(container, 'xgplayer-is-fullscreen')
-  //     path.setAttribute('d', iconPath.default)
-  //     tips.textContent = tipsFull
-  //     player.emit('exitFullscreen')
-  //   }
-  // }
 
   btn.addEventListener('mouseenter', (e) => {
     e.preventDefault()
@@ -71,18 +52,6 @@ let cssFullscreen = function () {
       tips.style.left = `${-rect.right + rootRect.right + 16}px`
     }
   });
-
-  // ['fullscreenchange', 'webkitfullscreenchange', 'mozfullscreenchange', 'MSFullscreenChange'].forEach(item => {
-  //   document.addEventListener(item, handle)
-  // })
-
-  // function destroyFunc () {
-  //   ['fullscreenchange', 'webkitfullscreenchange', 'mozfullscreenchange', 'MSFullscreenChange'].forEach(item => {
-  //     document.removeEventListener(item, handle)
-  //   })
-  //   player.off('destroy', destroyFunc)
-  // }
-  // player.once('destroy', destroyFunc)
 }
 
 Player.install('cssFullscreen', cssFullscreen)

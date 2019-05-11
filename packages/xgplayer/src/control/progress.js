@@ -127,10 +127,13 @@ let progress = function () {
         progress.style.width = `${w * 100 / containerWidth}%`
         if (w - btnWidth / 2 < 0) {
           btn.style.left = '0px'
+          btn.style.transform = ''
         } else if (w + btnWidth / 2 > containerWidth) {
           btn.style.left = `${containerWidth - btnWidth}px`
+          btn.style.transform = ''
         } else {
-          btn.style.left = `${w - btnWidth / 2}px`
+          btn.style.left = '100%'
+          btn.style.transform = 'translate(-50%, 0)'
         }
 
         if (player.videoConfig.mediaType === 'video' && !player.dash && !player.config.closeMoveSeek) {
@@ -148,7 +151,7 @@ let progress = function () {
         e.stopPropagation()
         util.event(e)
         window.removeEventListener('mousemove', move)
-        window.removeEventListener('touchmove', move)
+        window.removeEventListener('touchmove', move, { passive: false })
         window.removeEventListener('mouseup', up)
         window.removeEventListener('touchend', up)
         container.blur()
@@ -158,10 +161,13 @@ let progress = function () {
           progress.style.width = `${w * 100 / containerWidth}%`
           if (w - btnWidth / 2 < 0) {
             btn.style.left = '0px'
+            btn.style.transform = ''
           } else if (w + btnWidth / 2 > containerWidth) {
             btn.style.left = `${containerWidth - btnWidth}px`
+            btn.style.transform = ''
           } else {
-            btn.style.left = `${w - btnWidth / 2}px`
+            btn.style.left = '100%'
+            btn.style.transform = 'translate(-50%, 0)'
           }
           player.currentTime = Number(now).toFixed(1)
         }
@@ -169,7 +175,7 @@ let progress = function () {
         player.isProgressMoving = false
       }
       window.addEventListener('mousemove', move)
-      window.addEventListener('touchmove', move)
+      window.addEventListener('touchmove', move, { passive: false })
       window.addEventListener('mouseup', up)
       window.addEventListener('touchend', up)
       return false
@@ -228,6 +234,8 @@ let progress = function () {
     container.addEventListener('mouseleave', leave, false)
     compute(e)
   }, false)
+
+  let lastBtnLeft = false
   const handleTimeUpdate = function () {
     if (!containerWidth && container) {
       containerWidth = container.getBoundingClientRect().width
@@ -237,18 +245,21 @@ let progress = function () {
       let left = player.currentTime / player.duration * containerWidth - btnWidth / 2
       if (left < 0) {
         btn.style.left = '0px'
+        btn.style.transform = ''
+        lastBtnLeft = false
       } else if (left + btnWidth > containerWidth) {
         btn.style.left = `${containerWidth - btnWidth}px`
+        btn.style.transform = ''
+        lastBtnLeft = false
       } else {
-        btn.style.left = `${left}px`
+        if(lastBtnLeft) {
+          return
+        }
+        btn.style.left = '100%'
+        btn.style.transform = 'translate(-50%, 0)'
+        lastBtnLeft = true
       }
     }
-    // let {width} = progress.getBoundingClientRect()
-    // if (width < 14) {
-    //   Player.util.addClass(progress, 'start')
-    // } else {
-    //   Player.util.removeClass(progress, 'start')
-    // }
   }
   player.on('timeupdate', handleTimeUpdate)
 

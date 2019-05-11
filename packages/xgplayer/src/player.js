@@ -99,12 +99,16 @@ class Player extends Proxy {
     let player = this
     this.mousemoveFunc = function () {
       player.emit('focus')
-      player.video.focus()
+      if (!player.config.closeFocusVideoFocus) {
+        player.video.focus()
+      }
     }
     this.root.addEventListener('mousemove', this.mousemoveFunc)
     this.playFunc = function () {
       player.emit('focus')
-      player.video.focus()
+      if (!player.config.closePlayVideoFocus) {
+        player.video.focus()
+      }
     }
     player.once('play', this.playFunc)
 
@@ -274,6 +278,7 @@ class Player extends Proxy {
   }
 
   pluginsCall () {
+    let self = this
     if (Player.plugins) {
       let ignores = this.config.ignores
       Object.keys(Player.plugins).forEach(name => {
@@ -281,7 +286,9 @@ class Player extends Proxy {
         if (!ignores.some(item => name === item)) {
           if (['pc', 'tablet', 'mobile'].some(type => type === name)) {
             if (name === sniffer.device) {
-              descriptor.call(this, this)
+              setTimeout(() => {
+                descriptor.call(self, self)
+              }, 0)
             }
           } else {
             descriptor.call(this, this)
