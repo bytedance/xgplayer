@@ -10,9 +10,18 @@ let definition = function () {
   function canplayDefiFunc () {
     let tmp = ['<ul>'], src = player.config.url, a = document.createElement('a')
     if (player.switchURL) {
-      ['mp4', 'hls', 'flv', 'dash'].every(item => {
+      ['mp4', 'hls', '__flv__', 'dash'].every(item => {
         if (player[item]) {
-          a.href = player[item].url
+          if(player[item].url) {
+            a.href = player[item].url
+          }
+          if(item === '__flv__') {
+            if(player[item]._options) {
+              a.href = player[item]._options.url
+            } else {
+              a.href = player[item]._mediaDataSource.url
+            }
+          }
           src = a.href
           return false
         } else {
@@ -21,6 +30,10 @@ let definition = function () {
       })
     } else {
       src = player.currentSrc || player.src
+    }
+    if(player['hls']) {
+      a.href = player['hls'].url
+      src = a.href
     }
     list.forEach(item => {
       a.href = item.url
@@ -98,9 +111,18 @@ let definition = function () {
         a.href = li.getAttribute('url')
         if (player.switchURL) {
           let curRUL = document.createElement('a');
-          ['mp4', 'hls', 'flv', 'dash'].every(item => {
+          ['mp4', 'hls', '__flv__', 'dash'].every(item => {
             if (player[item]) {
-              curRUL = player[item].url
+              if(player[item].url) {
+                curRUL.href = player[item].url
+              }
+              if(item === '__flv__') {
+                if(player[item]._options) {
+                  curRUL.href = player[item]._options.url
+                } else {
+                  curRUL.href = player[item]._mediaDataSource.url
+                }
+              }
               return false
             } else {
               return true
@@ -110,6 +132,10 @@ let definition = function () {
             player.switchURL(a.href)
           }
         } else {
+          if (player['hls']) {
+            let curRUL = document.createElement('a')
+            curRUL = player['hls'].url
+          }
           if (a.href !== player.currentSrc) {
             let curTime = player.currentTime, paused = player.paused
             if (!player.ended) {
