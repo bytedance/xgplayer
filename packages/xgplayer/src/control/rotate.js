@@ -30,14 +30,15 @@ const rotate = function () {
     let scale
     if (rotateDeg === 0.25 || rotateDeg === 0.75) {
       if (player.config.rotate.innerRotate) {
-        if (width >= height) { scale = (height / width).toFixed(2) } else { scale = (width / height).toFixed(2) }
+        scale = (height / width).toFixed(2)
+        // if (width >= height) { scale = (height / width).toFixed(2) } else { scale = (width / height).toFixed(2) }
       } else {
-        if (width >= height) { scale = (width / height).toFixed(2) } else { scale = (height / width).toFixed(2) }
+        scale = (height / width).toFixed(2)
+        // if (width >= height) { scale = (width / height).toFixed(2) } else { scale = (height / width).toFixed(2) }
       }
     } else {
       scale = 1
     }
-
     player.video.style.transformOrigin = 'center center'
     player.video.style.transform = `rotate(${rotateDeg}turn) scale(${scale})`
     player.video.style.webKitTransform = `rotate(${rotateDeg}turn) scale(${scale})`
@@ -55,7 +56,7 @@ const rotate = function () {
     }
   })
 
-  btn.addEventListener('click', player.rotate)
+  btn.addEventListener('click',() => { player.rotate() })
 }
 
 Player.install('rotate', rotate)

@@ -173,6 +173,13 @@ let progress = function () {
         }
         player.emit('focus')
         player.isProgressMoving = false
+        if (cache.style.width < progress.style.width) {
+          player.video.addEventListener('waiting', function () {
+            setTimeout(function () {
+              player.currentTime = player.currentTime + 0.01
+            }, 2000)
+          })
+        }
       }
       window.addEventListener('mousemove', move)
       window.addEventListener('touchmove', move, { passive: false })

@@ -121,6 +121,11 @@ class Player extends Proxy {
         player[item].addEventListener('keydown', function(e) {player.onKeydown(e, player)})
       })
     }
+    if (this.config.videoInit) {
+      if(util.hasClass(this.root, 'xgplayer-nostart')) {
+        this.start()
+      }
+    }
   }
 
   start (url = this.config.url) {
