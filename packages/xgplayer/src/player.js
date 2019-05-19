@@ -61,9 +61,11 @@ class Player extends Proxy {
       this.root.style.width = `${this.config.width}px`
       this.root.style.height = `${this.config.height}px`
     }
-    this.config.execBeforePluginsCall.forEach(item => {
-      item.call(this, this)
-    })
+    if(this.config.execBeforePluginsCall) {
+      this.config.execBeforePluginsCall.forEach(item => {
+        item.call(this, this)
+      })
+    }
     if (this.config.controlStyle && util.typeOf(this.config.controlStyle) === 'String') {
       let self = this
       fetch(self.config.controlStyle, {
