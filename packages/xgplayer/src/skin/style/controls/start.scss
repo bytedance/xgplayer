@@ -1,0 +1,69 @@
+.xgplayer-skin-default {
+  .xgplayer-start {
+    border-radius: 50%;
+    display: inline-block;
+    width: 70px;
+    height: 70px;
+    background: $startBgColor;
+    overflow: hidden;
+    text-align: center;
+    line-height: 70px;
+    vertical-align: middle;
+    position: absolute;
+    left: 50%;
+    top: 50%;
+    z-index: 1000;
+    margin: -35px auto auto -35px;
+    cursor: pointer;
+    div{
+      position: absolute;
+      svg{
+        fill: $startSvgFill;
+        margin: 14px;
+      }
+    }
+    .xgplayer-icon-play{
+      display: block;
+    }
+    .xgplayer-icon-pause{
+      display: none;
+    }
+    &:hover{
+      opacity: 0.85;
+    }
+  }
+}
+
+.xgplayer-skin-default.xgplayer-playing {
+  .xgplayer-start {
+    display: none;
+    .xgplayer-icon-play{
+      display: none;
+    }
+    .xgplayer-icon-pause{
+      display: block;
+    }
+  }
+}
+.xgplayer-skin-default.xgplayer-pause {
+  .xgplayer-start {
+    display: inline-block;
+    .xgplayer-icon-play{
+      display: block;
+    }
+    .xgplayer-icon-pause{
+      display: none;
+    }
+  }
+}
+.xgplayer-skin-default.replay {
+  .xgplayer-start {
+    display: none;
+    .xgplayer-icon-play{
+      display: block;
+    }
+    .xgplayer-icon-pause{
+      display: none;
+    }
+  }
+}

@@ -4,6 +4,9 @@ import Database from './utils/database'
 import sniffer from './utils/sniffer'
 import Errors from './error'
 import Draggabilly from 'draggabilly'
+import {getAbsoluteURL} from './utils/url'
+import downloadUtil from 'downloadjs'
+
 import {
   version
 } from '../package.json'
@@ -60,6 +63,11 @@ class Player extends Proxy {
     } else {
       this.root.style.width = `${this.config.width}px`
       this.root.style.height = `${this.config.height}px`
+    }
+    if(this.config.execBeforePluginsCall) {
+      this.config.execBeforePluginsCall.forEach(item => {
+        item.call(this, this)
+      })
     }
     if (this.config.controlStyle && util.typeOf(this.config.controlStyle) === 'String') {
       let self = this
@@ -120,6 +128,15 @@ class Player extends Proxy {
       ['video', 'controls'].forEach(item => {
         player[item].addEventListener('keydown', function(e) {player.onKeydown(e, player)})
       })
+    }
+    if (this.config.videoInit) {
+      if(util.hasClass(this.root, 'xgplayer-nostart')) {
+        this.start()
+      }
+    }
+    if (player.config.rotate) {
+      player.on('requestFullscreen', this.updateRotateDeg)
+      player.on('exitFullscreen', this.updateRotateDeg)
     }
   }
 
@@ -277,6 +294,41 @@ class Player extends Proxy {
     }
   }
 
+  getFullscreen (el) {
+    if (el.requestFullscreen) {
+      el.requestFullscreen()
+    } else if (el.mozRequestFullScreen) {
+      el.mozRequestFullScreen()
+    } else if (el.webkitRequestFullscreen) {
+      el.webkitRequestFullscreen(Element.ALLOW_KEYBOARD_INPUT)
+    } else if (player.video.webkitSupportsFullscreen) {
+      player.video.webkitEnterFullscreen()
+    } else if (el.msRequestFullscreen) {
+      el.msRequestFullscreen()
+    } else {
+      util.addClass(el, 'xgplayer-is-cssfullscreen')
+    }
+  }
+
+  exitFullscreen (el) {
+    if (document.exitFullscreen) {
+      document.exitFullscreen()
+    } else if (document.webkitExitFullscreen) {
+      document.webkitExitFullscreen()
+    } else if (document.mozCancelFullScreen) {
+      document.mozCancelFullScreen()
+    } else if (document.msExitFullscreen) {
+      document.msExitFullscreen()
+    }
+    util.removeClass(el, 'xgplayer-is-cssfullscreen')
+  }
+
+  download () {
+    const url = getAbsoluteURL(player.config.url)
+    console.log(url)
+    downloadUtil(url)
+  }
+
   pluginsCall () {
     let self = this
     if (Player.plugins) {
@@ -304,7 +356,16 @@ class Player extends Proxy {
     let Left = ro.left
     let dragLay = util.createDom('xg-pip-lay', '<div></div>', {}, 'xgplayer-pip-lay')
     this.root.appendChild(dragLay)
-    let dragHandle = util.createDom('xg-pip-drag', '<div class="drag-handle"><span>点击按住可拖动视频</span></div>', {tabindex: 9}, 'xgplayer-pip-drag')
+    let langType = this.config.lang
+    let dragTips
+    if(langType === 'en') {
+      dragTips = 'Tap and hold to drag the video'
+    } else if(langType === 'jp') {
+      dragTips = '長押ししてビデオをドラッグ'
+    } else {
+      dragTips = '点击按住可拖动视频'
+    }
+    let dragHandle = util.createDom('xg-pip-drag', `<div class="drag-handle"><span>${dragTips}</span></div>`, {tabindex: 9}, 'xgplayer-pip-drag')
     this.root.appendChild(dragHandle)
     let draggie = new Draggabilly('.xgplayer', {
       handle: '.drag-handle'
@@ -338,6 +399,81 @@ class Player extends Proxy {
     if (this.config.fluid) {
       this.root.style['padding-top'] = `${this.config.height * 100 / this.config.width}%`
     }
+  }
+
+  updateRotateDeg () {
+    if(!player.rotateDeg) {
+      player.rotateDeg = 0
+    }
+
+    let width = player.root.offsetWidth
+    let height = player.root.offsetHeight
+
+    let targetWidth = player.video.videoWidth
+    let targetHeight = player.video.videoHeight
+
+    if (!player.config.rotate.innerRotate) {
+      player.root.style.width = height + 'px'
+      player.root.style.height = width + 'px'
+    }
+
+    let scale
+    if (player.rotateDeg === 0.25 || player.rotateDeg === 0.75) {
+      if (player.config.rotate.innerRotate) {
+        if((targetWidth / targetHeight) > (height / width) ) { //旋转后纵向撑满
+          // console.log('纵向撑满')
+          let videoWidth = 0
+          if((targetHeight / targetWidth) > (height / width)) { //旋转前是纵向撑满
+            videoWidth = height * targetWidth / targetHeight
+          } else { //旋转前是横向撑满
+            videoWidth = width
+          }
+          if(videoWidth > height) { //缩小
+            scale = height > width ? width / height : height / width
+          } else { //放大
+            scale = height > width ? height / width : width / height
+          }
+        } else { //旋转后横向撑满
+          // console.log('横向撑满')
+          let videoHeight = 0
+          if((targetHeight / targetWidth) > (height / width)) { //旋转前是纵向撑满
+            videoHeight = height
+          } else { //旋转前是横向撑满
+            videoHeight = width * targetHeight / targetWidth
+          }
+          if(videoHeight > width) { //缩小
+            scale = height > width ? width / height : height / width
+          } else { //放大
+            scale = height > width ? height / width : width / height
+          }
+        }
+      } else {
+        if (width >= height) {
+          scale = (width / height).toFixed(2)
+        } else {
+          scale = (height / width).toFixed(2)
+        }
+      }
+      scale = parseFloat(scale.toFixed(5))
+    } else {
+      scale = 1
+    }
+
+    player.video.style.transformOrigin = 'center center'
+    player.video.style.transform = `rotate(${player.rotateDeg}turn) scale(${scale})`
+    player.video.style.webKitTransform = `rotate(${player.rotateDeg}turn) scale(${scale})`
+  }
+
+  rotate (clockwise = false, innerRotate = true, times = 1) {
+    if(!player.rotateDeg) {
+      player.rotateDeg = 0
+    }
+    let factor = clockwise ? 1 : -1
+
+    player.rotateDeg = (player.rotateDeg + 1 + factor * 0.25 * times) % 1
+    this.updateRotateDeg ()
+
+    player.emit('rotate', player.rotateDeg * 360)
   }
 
   onFocus () {
@@ -462,6 +598,15 @@ class Player extends Proxy {
   }
 
   static install (name, descriptor) {
+    if (!Player.plugins) {
+      Player.plugins = {}
+    }
+    if(!Player.plugins[name]) {
+      Player.plugins[name] = descriptor
+    }
+  }
+
+  static use (name, descriptor) {
     if (!Player.plugins) {
       Player.plugins = {}
     }
