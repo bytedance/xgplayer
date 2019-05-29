@@ -9,9 +9,14 @@ class HlsJsPlayer extends Player {
     let util = Player.util
     let player = this
     this.browser = utils.getBrowserVersion()
-    if ((Player.sniffer.device === 'mobile' && navigator.platform !== 'MacIntel' && navigator.platform !== 'Win32') || this.browser.indexOf('Safari') > -1) {
+    if(player.config.useHls === undefined) {
+      if ((Player.sniffer.device === 'mobile' && navigator.platform !== 'MacIntel' && navigator.platform !== 'Win32') || this.browser.indexOf('Safari') > -1) {
+        return
+      }
+    } else if(!player.config.useHls) {
       return
     }
+
     let hls
     hls = new Hls(this.hlsOpts)
     this.hls = hls
