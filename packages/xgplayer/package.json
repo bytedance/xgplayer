@@ -30,7 +30,7 @@
     "author": "yinguohui@bytedance.com",
     "license": "MIT",
     "dependencies": {
-        "danmu.js": "0.0.12",
+        "danmu.js": "0.1.0",
         "deepmerge": "^1.5.0",
         "downloadjs": "1.4.7",
         "draggabilly": "^2.2.0",

@@ -121,13 +121,10 @@ let pc = function () {
   }
   player.on('pause', pauseFunc)
 
-  function videoClc (e) {
+  player.onElementClick = function (e, element) {
     e.preventDefault()
     e.stopPropagation()
-    if (document.activeElement !== player.video) {
-      player.video.focus()
-      return
-    }
+    let player = this
     if (!player.config.closeVideoClick) {
       clk++
       if (_click_) {
@@ -151,15 +148,12 @@ let pc = function () {
       }
     }
   }
-  player.video.addEventListener('click', function (e) { videoClc(e) }, false)
+  player.video.addEventListener('click', function (e) { player.onElementClick(e, player.video) }, false)
 
-  function videoDbClc (e) {
+  player.onElementDblclick = function (e, element) {
     e.preventDefault()
     e.stopPropagation()
-    if (document.activeElement !== player.video) {
-      player.video.focus()
-      return
-    }
+    let player = this
     if (!player.config.closeVideoDblclick) {
       let fullscreen = controls.querySelector('.xgplayer-fullscreen')
       if (fullscreen) {
@@ -174,7 +168,7 @@ let pc = function () {
       }
     }
   }
-  player.video.addEventListener('dblclick', function (e) { videoDbClc(e) }, false)
+  player.video.addEventListener('dblclick', function (e) { player.onElementDblclick(e, player.video) }, false)
 
   function mouseenterFunc () {
     clearTimeout(player.leavePlayerTimer)

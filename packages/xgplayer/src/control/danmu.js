@@ -19,6 +19,7 @@ let danmu = function () {
         end: 1
       }
     }, player.config.danmu)
+
     player.once('complete', () => {
       let danmujs = new DanmuJs(config)
       Player.util.addClass(container, 'xgplayer-has-bullet')
@@ -42,6 +43,9 @@ let danmu = function () {
             }
           }, false)
         })
+
+        player.onElementClick && container.addEventListener('click', function (e) { player.onElementClick(e, container) }, false)
+        player.onElementDblclick && container.addEventListener('dblclick', function (e) { player.onElementDblclick(e, container) }, false)
 
         player.on('pause', () => {
           if (Player.util.hasClass(player.bulletBtn, 'danmu-switch-active')) {
