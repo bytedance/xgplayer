@@ -50,6 +50,13 @@ let playbackRate = function () {
       tips.style.left = `${-rect.right + rootRect.right + 16}px`
     }
   })
+
+  player.on('play', () => {
+    let rateNow = parseFloat(rateTpl[selected].substring(0, rateTpl[selected].length - 1))
+    if(player.video.playbackRate.toFixed(1) !== rateNow.toFixed(1) ) {
+      player.video.playbackRate = rateNow
+    }
+  })
 }
 
 Player.install('playbackRate', playbackRate)
