@@ -30,6 +30,9 @@ let danmu = function () {
         })
       })
 
+      player.onElementClick && container.addEventListener('click', function (e) { player.onElementClick(e, container) }, false)
+      player.onElementDblclick && container.addEventListener('dblclick', function (e) { player.onElementDblclick(e, container) }, false)
+
       function onPause () {
         if (util.hasClass(player.danmuBtn, 'danmu-switch-active')) {
           danmujs.pause()

@@ -5,13 +5,10 @@ let pc = function () {
   let util = Player.util; let controls = player.controls; let root = player.root
   let clk = 0; let _click_
 
-  function onVideoClick (e) {
+  player.onElementClick = function (e, element) {
     e.preventDefault()
     e.stopPropagation()
-    if (document.activeElement !== player.video) {
-      player.video.focus()
-      return
-    }
+    let player = this
     if (!player.config.closeVideoClick) {
       clk++
       if (_click_) {
@@ -35,15 +32,12 @@ let pc = function () {
       }
     }
   }
-  player.video.addEventListener('click', e => { onVideoClick(e) })
+  player.video.addEventListener('click', function (e) { player.onElementClick(e, player.video) }, false)
 
-  function onVideoDoubleClick (e) {
+  player.onElementDblclick = function (e, element) {
     e.preventDefault()
     e.stopPropagation()
-    if (document.activeElement !== player.video) {
-      player.video.focus()
-      return
-    }
+    let player = this
     if (!player.config.closeVideoDblclick) {
       let fullscreen = controls.querySelector('.xgplayer-fullscreen')
       if (fullscreen) {
@@ -58,7 +52,7 @@ let pc = function () {
       }
     }
   }
-  player.video.addEventListener('dblclick', e => { onVideoDoubleClick(e) })
+  player.video.addEventListener('dblclick', function (e) { player.onElementDblclick(e, player.video) }, false)
 
   function onMouseEnter () {
     clearTimeout(player.leavePlayerTimer)

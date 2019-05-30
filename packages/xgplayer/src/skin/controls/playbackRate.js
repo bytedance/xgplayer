@@ -77,9 +77,9 @@ let s_playbackRate = function () {
             })
             item.selected = true
             player.video.playbackRate = item.name * 1
+            selectedSpeed = item.name * 1
           }
         })
-        selectedSpeed = item.name * 1
         util.addClass(li, 'selected')
         to = parseFloat(li.getAttribute('cname'))
         li.parentNode.nextSibling.innerHTML = `${li.getAttribute('cname')}x`
@@ -95,6 +95,11 @@ let s_playbackRate = function () {
     e.preventDefault()
     e.stopPropagation()
     util.removeClass(player.root, 'xgplayer-playbackrate-active')
+  })
+  player.on('play', () => {
+    if(player.video.playbackRate.toFixed(1) !== selectedSpeed.toFixed(1) ) {
+      player.video.playbackRate = selectedSpeed
+    }
   })
 }
 
