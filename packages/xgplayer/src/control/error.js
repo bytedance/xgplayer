@@ -7,7 +7,7 @@ let error = function () {
   let refresh = null
 
   function errorFunc () {
-    player.controls.style.display = 'none'
+    // player.controls.style.display = 'none'
     if (player.error) {
       text.innerHTML = player.error
     } else {
