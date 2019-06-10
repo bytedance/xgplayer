@@ -14,6 +14,19 @@
 // xgplayer-cssFullscreen 12
 // xgplayer-fullscreen 13
 
+// z-index:
+// xgplayer-poster 100
+// xgplayer-progress-point 100
+// xgplayer-replay 105
+// xgplayer-pip-active 110
+// xgplayer-start 115
+// xgplayer-enter 120
+// xgplayer-error 125
+// xgplayer-pip-lay 130
+// xgplayer-pip-drag 135
+// xgplayer-is-fullscreen 9999
+// xgplayer-is-cssfullscreen 99999
+
 .xgplayer-skin-default{
     background: $playerBgColor;
     width: 100%;
@@ -77,3 +90,4 @@
 @import "controls/textTrack";
 @import "controls/icon";
 @import "controls/tips";
+@import "controls/error";

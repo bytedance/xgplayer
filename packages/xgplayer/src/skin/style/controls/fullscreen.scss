@@ -17,7 +17,9 @@
       }
     }
     .xgplayer-tips {
-      margin-left: -38px;
+      position: absolute;
+      right: 0;
+      left: auto;
       .xgplayer-tip-requestfull {
         display: block;
       }
@@ -45,41 +47,12 @@
       }
     }
     .xgplayer-tips {
-      margin-left: -35px;
       .xgplayer-tip-requestfull {
         display: none;
       }
       .xgplayer-tip-exitfull {
         display: block;
       }
-    }
-  }
-}
-.lang-is-en {
-  .xgplayer-fullscreen, .xgplayer-fullscreen-img {
-    .xgplayer-tips {
-      margin-left: -45px;
-    }
-  }
-}
-.lang-is-en.xgplayer-is-fullscreen {
-  .xgplayer-fullscreen, .xgplayer-fullscreen-img {
-    .xgplayer-tips {
-      margin-left: -65px;
-    }
-  }
-}
-.lang-is-jp {
-  .xgplayer-fullscreen, .xgplayer-fullscreen-img {
-    .xgplayer-tips {
-      margin-left: -60px;
-    }
-  }
-}
-.lang-is-jp.xgplayer-is-fullscreen {
-  .xgplayer-fullscreen, .xgplayer-fullscreen-img {
-    .xgplayer-tips {
-      margin-left: -60px;
     }
   }
 }

@@ -115,7 +115,7 @@ let s_progress = function () {
       e.preventDefault()
       e.stopPropagation()
       util.event(e)
-      if (e._target === point || player.ended) {
+      if (e._target === point || (!player.config.allowSeekAfterEnded && player.ended)) {
         return false
       }
       container.focus()
@@ -188,7 +188,7 @@ let s_progress = function () {
   })
 
   container.addEventListener('mouseenter', function (e) {
-    if (player.ended) {
+    if (!player.config.allowSeekAfterEnded && player.ended) {
       return false
     }
     let containerLeft = container.getBoundingClientRect().left

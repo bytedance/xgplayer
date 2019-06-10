@@ -35,7 +35,7 @@
     left: 0;
     width: 100%;
     height: 100%;
-    z-index: 1450;
+    z-index: 130;
     cursor: pointer;
     background-color: transparent;
     display: none;
@@ -54,7 +54,7 @@
     height: 26px;
     line-height: 26px;
     background-image: linear-gradient(rgba(0, 0, 0, 0.3), rgba(0, 0, 0, 0));
-    z-index: 1500;
+    z-index: 130;
     display: none;
   }
 }
@@ -65,7 +65,7 @@
   bottom: 200px;
   width: 320px !important;
   height: 180px !important;
-  z-index: 999 !important;
+  z-index: 110 !important;
   .xgplayer-controls {
     display: none;
   }
