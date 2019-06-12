@@ -294,7 +294,7 @@ let s_progress = function () {
 
   function destroyFunc () {
     player.removeAllProgressDot()
-    player.off('canplay', conCanplay)
+    player.off('canplay', onCanplay)
     player.off('timeupdate', onTimeupdate)
     cacheUpdateEvents.forEach(item => {
       player.off(item, onCacheUpdate)
