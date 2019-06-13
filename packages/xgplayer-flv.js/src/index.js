@@ -5,10 +5,12 @@ class FlvJsPlayer extends Player {
   constructor (options) {
     super(options)
     this.flvOpts = { type: 'flv' }
+    this.optionalConfig = {}
     Player.util.deepCopy(this.flvOpts, options)
+    Player.util.deepCopy(this.optionalConfig, options.flvOptionalConfig)
     const player = this
     player.once('complete', () => {
-      player.__flv__ = Flv.createPlayer(this.flvOpts)
+      player.__flv__ = Flv.createPlayer(this.flvOpts, this.optionalConfig)
       player.createInstance(player.__flv__)
     })
   }

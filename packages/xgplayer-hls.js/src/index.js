@@ -9,9 +9,14 @@ class HlsJsPlayer extends Player {
     let util = Player.util
     let player = this
     this.browser = utils.getBrowserVersion()
-    if ((Player.sniffer.device === 'mobile' && navigator.platform !== 'MacIntel' && navigator.platform !== 'Win32') || this.browser.indexOf('Safari') > -1) {
+    if(player.config.useHls === undefined) {
+      if ((Player.sniffer.device === 'mobile' && navigator.platform !== 'MacIntel' && navigator.platform !== 'Win32') || this.browser.indexOf('Safari') > -1) {
+        return
+      }
+    } else if(!player.config.useHls) {
       return
     }
+
     let hls
     hls = new Hls(this.hlsOpts)
     this.hls = hls
@@ -26,13 +31,13 @@ class HlsJsPlayer extends Player {
         if (liveDom) {
           liveDom.parentNode.removeChild(liveDom)
         }
-        player.config.url = url
+        // player.config.url = url
         const paused = player.paused
         player.hls.stopLoad()
         player.hls.detachMedia()
         player.hls.destroy()
         player.hls = new Hls(player.hlsOpts)
-        player.register()
+        player.register(url)
         if (!paused) {
           player.pause()
           player.once('pause', () => {
@@ -51,7 +56,7 @@ class HlsJsPlayer extends Player {
       },
       configurable: true
     })
-    this.register()
+    this.register(this.config.url)
     this.once('complete', () => {
       hls.attachMedia(player.video)
       player.once('canplay', () => {
@@ -67,12 +72,12 @@ class HlsJsPlayer extends Player {
       hls.stopLoad()
     })
   }
-  register () {
+  register (url) {
     let hls = this.hls
     let util = Player.util
     let player = this
     hls.on(Hls.Events.MEDIA_ATTACHED, () => {
-      hls.loadSource(player.config.url)
+      hls.loadSource(url)
     })
     hls.on(Hls.Events.LEVEL_LOADED, (name, e) => {
       if (!hls.inited) {

@@ -27,6 +27,7 @@ class MPD {
         let ctx = res.responseText
         if (ctx) {
           let parseString = xml2js.parseString
+          let repID = []
           parseString(ctx, function (err, result) {
             if (err) {
               console.log('MPD解析错误:' + err)
@@ -42,6 +43,10 @@ class MPD {
             }
             if (result.MPD['$'].mediaPresentationDuration) {
               self.duration = util.durationConvert(result.MPD['$'].mediaPresentationDuration)
+            }
+            let MpdBaseURL = ''
+            if(result.MPD.BaseURL) {
+              MpdBaseURL = result.MPD.BaseURL[0]
             }
             let Period = result.MPD.Period[0]
             if (!self.duration && Period['$'] && Period['$'].duration) {
@@ -78,11 +83,15 @@ class MPD {
                 }
               }
               asItem.Representation.forEach((rItem, rIndex) => {
+                if(repID.indexOf(rItem['$'].id) > -1) {
+                  rItem['$'].id = (parseInt(repID[repID.length - 1]) + 1).toString()
+                }
+                repID.push(rItem['$'].id)
                 let initSegment = ''
                 let mediaSegments = []
                 let timescale = 0
                 let duration = 0
-                let baseURL = url.slice(0, url.lastIndexOf('/') + 1)
+                let baseURL = url.slice(0, url.lastIndexOf('/') + 1) + MpdBaseURL
                 if (rItem['$'].mimeType) {
                   mimeType = rItem['$'].mimeType
                 }
