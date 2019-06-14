@@ -102,6 +102,7 @@ let s_definition = function () {
     container.addEventListener(item, function (e) {
       e.preventDefault()
       e.stopPropagation()
+      let list = player.definitionList
       let li = e.target || e.srcElement, a = document.createElement('a')
       if (li && li.tagName.toLocaleLowerCase() === 'li') {
         player.emit('beforeDefinitionChange', a.href)
