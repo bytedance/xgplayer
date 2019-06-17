@@ -12,13 +12,11 @@ let s_start = function () {
     root.appendChild(btn)
   });
 
-  ['click', 'touchend'].forEach(item => {
-    btn.addEventListener(item, e => {
-      e.preventDefault()
-      e.stopPropagation()
-      player.emit('startBtnClick')
-    })
-  })
+  btn.onclick = e => {
+    e.preventDefault()
+    e.stopPropagation()
+    player.emit('startBtnClick')
+  }
 
   player.once('ready', () => {
     // if(!Object.keys(Player.plugins).some(item => { return item.indexOf('xgplayer-skin-') > -1 })) {
