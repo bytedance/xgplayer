@@ -109,7 +109,8 @@ let mp4player = function () {
       player.switchURL = null
       player._replay = null
 
-      player.off('timeupdate', timeupdateFunc)
+      // player.off('timeupdate', timeupdateFunc)
+      clearInterval(player.mp4ProgressTimer)
       player.off('seeking', seekingFunc)
       player.off('pause', pauseFunc)
       player.off('playing', playingFunc)
@@ -297,7 +298,8 @@ let mp4player = function () {
       }
     }
 
-    player.on('timeupdate', timeupdateFunc)
+    // player.on('timeupdate', timeupdateFunc)
+    player.mp4ProgressTimer = setInterval(timeupdateFunc, player.config.mp4ProgressTimer || 300)
 
     let seekingFunc = function () {
       let buffered = player.buffered; let hasBuffered = false; let curTime = player.currentTime
@@ -357,7 +359,8 @@ let mp4player = function () {
 
     let endedFunc = function () {
       player.off('waiting', waitingFunc)
-      player.off('timeupdate', timeupdateFunc)
+      // player.off('timeupdate', timeupdateFunc)
+      clearInterval(player.mp4ProgressTimer)
     }
     player.on('ended', endedFunc)
 
@@ -381,7 +384,8 @@ let mp4player = function () {
         player.play()
         player.once('canplay', () => {
           player.on('waiting', waitingFunc)
-          player.on('timeupdate', timeupdateFunc)
+          // player.on('timeupdate', timeupdateFunc)
+          player.mp4ProgressTimer = setInterval(timeupdateFunc, player.config.mp4ProgressTimer || 300)
         })
       }, err => {
         errorHandle(player, err)
