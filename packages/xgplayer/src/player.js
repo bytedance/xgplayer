@@ -138,6 +138,12 @@ class Player extends Proxy {
       player.on('requestFullscreen', this.updateRotateDeg)
       player.on('exitFullscreen', this.updateRotateDeg)
     }
+
+    function onDestroy () {
+      player.root.removeEventListener('mousemove', player.mousemoveFunc)
+      player.off('destroy', onDestroy)
+    }
+    player.once('destroy', onDestroy)
   }
 
   start (url = this.config.url) {
@@ -243,7 +249,9 @@ class Player extends Proxy {
       this.video.removeAttribute('src') // empty source
       this.video.load()
       if (isDelDom) {
-        parentNode.removeChild(this.root)
+        // parentNode.removeChild(this.root)
+        this.root.innerHTML = ''
+        this.root.className = ''
       }
       for (let k in this) {
         // if (k !== 'config') {

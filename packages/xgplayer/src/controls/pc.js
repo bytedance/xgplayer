@@ -67,7 +67,7 @@ let pc = function () {
       }, player.config.leavePlayerTime || 0)
     }
   }
-  root.addEventListener('mouseleave', onMouseLeave, false)
+  root.addEventListener('mouseleave', onMouseLeave)
 
   function onControlMouseEnter (e) {
     if (player.userTimer) {
@@ -91,6 +91,8 @@ let pc = function () {
   player.once('ready', onReady)
 
   function onDestroy () {
+    root.removeEventListener('mouseenter', onMouseEnter)
+    root.removeEventListener('mouseleave', onMouseLeave)
     player.off('ready', onReady)
     player.off('destroy', onDestroy)
   }
