@@ -183,21 +183,21 @@ let pc = function () {
       }, player.config.leavePlayerTime || 0)
     }
   }
-  root.addEventListener('mouseleave', mouseleaveFunc, false)
+  root.addEventListener('mouseleave', mouseleaveFunc)
 
   function cmouseenterFunc (e) {
     if (player.userTimer) {
       clearTimeout(player.userTimer)
     }
   }
-  controls.addEventListener('mouseenter', cmouseenterFunc, false)
+  controls.addEventListener('mouseenter', cmouseenterFunc)
 
   function cmouseleaveFunc (e) {
     if(!player.config.closeControlsBlur) {
       player.emit('focus', player)
     }
   }
-  controls.addEventListener('mouseleave', cmouseleaveFunc, false)
+  controls.addEventListener('mouseleave', cmouseleaveFunc)
 
   function readyFunc (e) {
     if (player.config.autoplay) {
@@ -207,6 +207,8 @@ let pc = function () {
   player.once('ready', readyFunc)
 
   function destroyFunc () {
+    root.removeEventListener('mouseenter', mouseenterFunc)
+    root.removeEventListener('mouseleave', mouseleaveFunc)
     player.off('canplay', startClcCanplay)
     player.off('playing', startClcPlaying)
     player.off('play', playFunc)
