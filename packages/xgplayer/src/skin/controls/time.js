@@ -11,7 +11,7 @@ let s_time = function () {
   })
   let onTimeChange = function () {
     if (player.videoConfig.mediaType !== 'audio' || !player.isProgressMoving || !player.dash) {
-      container.innerHTML = `<span>${util.format(player.currentTime || 0)}</span><em>${util.format(player.duration)}`
+      container.innerHTML = `<span>${util.format(player.currentTime || 0)}</span>` + `<em>${util.format(player.duration)}</em>`
     }
   }
   player.on('durationchange', onTimeChange)
