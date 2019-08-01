@@ -465,6 +465,7 @@ class Player extends Proxy {
   }
 
   updateRotateDeg () {
+    let player = this;
     if(!player.rotateDeg) {
       player.rotateDeg = 0
     }
@@ -528,6 +529,7 @@ class Player extends Proxy {
   }
 
   rotate (clockwise = false, innerRotate = true, times = 1) {
+    let player = this;
     if(!player.rotateDeg) {
       player.rotateDeg = 0
     }
