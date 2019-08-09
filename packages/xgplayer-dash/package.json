@@ -31,6 +31,7 @@
   "author": "zhangxin.frontend@bytedance.com",
   "license": "MIT",
   "dependencies": {
+    "concat-typed-array": "^1.0.2",
     "deepmerge": "^2.0.1",
     "event-emitter": "^0.3.5",
     "xml2js": "^0.4.19"
