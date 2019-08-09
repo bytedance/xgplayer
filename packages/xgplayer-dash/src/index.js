@@ -12,6 +12,10 @@ const isEnded = (player, dash) => {
       if (player.currentTime - range[1] < 0.1) {
         // console.log('player.mse.endOfStream')
         player.mse.endOfStream()
+        if(player.dash.mse.progressTimer) {
+          clearInterval(player.dash.mse.progressTimer)
+          player.dash.mse.progressTimer = null
+        }
       }
     }
   }
@@ -100,6 +104,26 @@ class DashPlayer extends Player {
             errorHandle(player, err)
           })
 
+
+          function timeupdateFunc () {
+            loadData(player.currentTime + 1)
+            isEnded(player, dash)
+          }
+
+          dash.once('startPlay', () => {
+            player.dash.mse.progressTimer = setInterval(
+              timeupdateFunc, 
+              player.config.progressTimer || 300
+            )
+          })
+
+          player.on('error', () => {
+            if(player.dash.mse.progressTimer) {
+              clearInterval(player.dash.mse.progressTimer)
+              player.dash.mse.progressTimer = null
+            }
+          })
+
           player.switchURL = (Idx) => {
             Idx = Idx.split('/')[Idx.split('/').length - 1]
             let vl = dash.mpd.mediaList['video']
@@ -108,7 +132,7 @@ class DashPlayer extends Player {
             vl.every((item, index) => {
               if (item.id === Idx) {
                 newIdx = index
-                dash.getData(vl[newIdx].initSegment).then(function (videoInitRes) {
+                dash.getData(vl[newIdx].initSegment, vl[newIdx].initSegmentRange).then(function (videoInitRes) {
                   switchBW(videoInitRes)
                 })
                 return false
@@ -138,49 +162,16 @@ class DashPlayer extends Player {
             }
           }
 
-          function timeupdateFunc () {
-            loadData(player.currentTime + 1)
-            isEnded(player, dash)
-          }
-
-          player.on('timeupdate', timeupdateFunc)
-
-          player.on('seeking', () => {
-            loadData()
-          })
-
-          function waitingFunc () {
-            if (dash.type === 'live') {
-              // let buffered = player.buffered
-              // let length = buffered.length
-              // let currentTime = player.currentTime
-              // for (let i = 0; i < length; i++) {
-              //   if (buffered.start(i) > currentTime) {
-              //     player.currentTime = buffered.start(i) + 0.1
-              //     break
-              //   }
-              // }
-            } else {
-              loadData()
-            }
-          }
-
-          player.on('waiting', waitingFunc)
-
-          player.on('ended', () => {
-            player.off('waiting', waitingFunc)
-            player.off('timeupdate', timeupdateFunc)
-          })
-
           player.once('destroy', () => {
             clearTimeout(dash.mpd.timer)
           })
 
           player._replay = function () {
             Task.clear()
+            let selectedIdx = dash.mpd.mediaList['video'].selectedIdx
             dash = new DASH(url, player.config, player.video)
             dash.init(url).then((result) => {
-              definations[0].selected = true
+              definations[ selectedIdx ].selected = true
               player.emit('resourceReady', definations)
               let mse = result
               _start.call(player, mse.url)
@@ -188,10 +179,21 @@ class DashPlayer extends Player {
               player.mse = mse
               player.currentTime = 0
               player.play()
-              player.once('canplay', () => {
-                player.on('waiting', waitingFunc)
-                player.on('timeupdate', timeupdateFunc)
+              
+              player.on('error', () => {
+                if(player.dash.mse.progressTimer) {
+                  clearInterval(player.dash.mse.progressTimer)
+                  player.dash.mse.progressTimer = null
+                }
               })
+
+              dash.once('startPlay', () => {
+                player.dash.mse.progressTimer = setInterval(
+                  timeupdateFunc, 
+                  player.config.progressTimer || 300
+                )
+              })
+
             }, err => {
               errorHandle(player, err)
             })
@@ -205,17 +207,24 @@ class DashPlayer extends Player {
         }
       }
 
-      const loadData = (time = player.currentTime) => {
-        const range = player.getBufferedRange()
-        if (time < range[1]) {
-          if (dash.type === 'vod') {
-            if (range[1] - time < preloadTime) {
-              dash.seek(range[1] + 1)
+      const findRangeForPlaybackTime = time => {
+        let ranges = player.buffered
+        if(!ranges) return
+        for (let i = 0; i < ranges.length; i++) {
+          if (ranges.start(i) <= time && ranges.end(i) >= time) {
+            return {
+              start: ranges.start(i), 
+              end: ranges.end(i)
             }
           }
-        } else {
-          dash.seek(time)
         }
+      }
+
+      const loadData = (time = player.currentTime) => {
+        let range = findRangeForPlaybackTime(time)
+        let append_time = (range && range.end) || time
+        if (append_time > time + 15) return
+        dash.seek(append_time)
       }
     }
   }

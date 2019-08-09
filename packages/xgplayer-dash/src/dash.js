@@ -17,10 +17,9 @@ class DASH {
       this.eme = new EME(options.dashOpts.drm)
     }
   }
-  getData (url) {
-    let self = this
+  getData (url, range = []) {
     return new Promise((resolve, reject) => {
-      let task = new Task(url, resolve)
+      let task = new Task(url, resolve, range)
       task.once('error', err => {
         self.emit('error', err)
       })
@@ -46,11 +45,13 @@ class DASH {
         }
         mse = new MSE()
         mse.on('sourceopen', function () {
-          // console.log('sourceopen');
           ['video', 'audio'].forEach(mediaType => {
             let ml = mpd.mediaList[mediaType]
             mse.addSourceBuffer(`${ml[ml.selectedIdx].mimeType};codecs="${ml[ml.selectedIdx].codecs}"`)
-            dash.getData(ml[ml.selectedIdx].initSegment).then(function (initRes) {
+            dash.getData(
+              ml[ml.selectedIdx].initSegment,
+              ml[ml.selectedIdx].initSegmentRange
+            ).then(function (initRes) {
               // console.log('get initSegment');
               mse.appendBuffer(`${ml[0].mimeType};codecs="${ml[0].codecs}"`, initRes)
               mse.once(`${ml[ml.selectedIdx].mimeType};codecs="${ml[ml.selectedIdx].codecs}" updateend`, function () {
@@ -70,6 +71,7 @@ class DASH {
             if (dash.type === 'vod') {
               // console.log('vod dash.seek(0)')
               dash.seek(0)
+              dash.emit('startPlay')
             }
           }
         })
@@ -124,7 +126,7 @@ class DASH {
                 return false
               }
             })
-          })
+          }, item.range)
           return true
         })
       }
