@@ -4,8 +4,8 @@
     position: absolute;
     height: 20px;
     line-height: 20px;
-    left: 0;
-    right: 0;
+    left: 12px;
+    right: 12px;
     outline: none;
     top: -10px;
     z-index: 35;
@@ -42,12 +42,14 @@
     display: none;
     position: absolute;
     left: 0px;
-    top: -6px;
-    width: 14px;
-    height: 16px;
-    border-radius: 5px;
+    top: -5px;
+    width: 13px;
+    height: 13px;
+    border-radius: 30px;
     background: #FFFFFF;
     box-shadow: $progressPlayedShadow;
+    left: 100%;
+    transform: translate(-50%, 0);
   }
   .xgplayer-progress-point {
     position: absolute;
@@ -106,7 +108,8 @@
       height: 6px;
     }
     .xgplayer-progress-btn {
-      display: block
+      display: block;
+      top: -3px;
     }
   }
 }
