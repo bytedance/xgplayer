@@ -1,6 +1,6 @@
 {
   "name": "xgplayer-music",
-  "version": "1.1.5",
+  "version": "2.0.0-beta.1",
   "description": "xgplayer plugin for music",
   "main": "./dist/index.js",
   "scripts": {
