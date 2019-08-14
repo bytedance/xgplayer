@@ -13,7 +13,7 @@ let mobile = function () {
     } else {
       player.emit('blur')
     }
-    if (!player.config.closeVideoTouch) {
+    if (!player.config.closeVideoTouch && !player.isTouchMove) {
       if (util.hasClass(player.root, 'xgplayer-nostart')) {
         return false
       } else if (!player.ended) {
@@ -26,6 +26,14 @@ let mobile = function () {
     }
   }
   player.video.addEventListener('touchend', function (e) { player.onElementTouchend(e, player.video) }, false)
+
+  player.video.addEventListener('touchstart', () => {
+    player.isTouchMove = false
+  })
+
+  player.video.addEventListener('touchmove', () => {
+    player.isTouchMove = true
+  })
 
   function onReady (e) {
     if (player.config.autoplay) {

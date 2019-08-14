@@ -134,3 +134,19 @@
     z-index: 15;
   }
 }
+
+.xgplayer-skin-default.xgplayer-mobile {
+  .xgplayer-progress-btn {
+    display: block !important;
+  }
+  .xgplayer-progress:hover,.xgplayer-progress:focus{
+    .xgplayer-progress-outer{
+      height: 3px !important;
+      margin-top: 8.5px !important;
+    }
+    .xgplayer-progress-btn {
+      display: block !important;
+      top: -5px !important;
+    }
+  }
+}
