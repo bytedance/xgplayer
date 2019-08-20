@@ -33,7 +33,7 @@ let s_progress = function () {
       }
     })
     dotItem.addEventListener('touchend', function (e) {
-      e.preventDefault()
+      // e.preventDefault()
       e.stopPropagation()
       if (text) {
         if(!util.hasClass(dotItem, 'xgplayer-progress-dot-show')) {
@@ -111,18 +111,18 @@ let s_progress = function () {
   };
   ['touchstart', 'mousedown'].forEach(item => {
     container.addEventListener(item, function (e) {
-      e.preventDefault()
+      // e.preventDefault()
       e.stopPropagation()
       util.event(e)
       if (e._target === point || (!player.config.allowSeekAfterEnded && player.ended)) {
-        return false
+        return true
       }
       container.focus()
       containerWidth = container.getBoundingClientRect().width
       let {left} = progress.getBoundingClientRect()
 
       let move = function (e) {
-        e.preventDefault()
+        // e.preventDefault()
         e.stopPropagation()
         util.event(e)
         player.isProgressMoving = true
@@ -141,7 +141,7 @@ let s_progress = function () {
         player.emit('focus')
       }
       let up = function (e) {
-        e.preventDefault()
+        // e.preventDefault()
         e.stopPropagation()
         util.event(e)
         window.removeEventListener('mousemove', move)
@@ -162,13 +162,13 @@ let s_progress = function () {
       window.addEventListener('touchmove', move, { passive: false })
       window.addEventListener('mouseup', up)
       window.addEventListener('touchend', up)
-      return false
+      return true
     })
   })
 
   container.addEventListener('mouseenter', function (e) {
     if (!player.config.allowSeekAfterEnded && player.ended) {
-      return false
+      return true
     }
     let containerLeft = container.getBoundingClientRect().left
     let containerWidth = container.getBoundingClientRect().width

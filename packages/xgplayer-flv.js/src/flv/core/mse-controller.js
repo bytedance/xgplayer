@@ -36,7 +36,7 @@ class MSEController {
             // For live stream, do auto cleanup by default
             this._config.autoCleanupSourceBuffer = true;
         }
-        this.definitionChange = false;
+
         this.e = {
             onSourceOpen: this._onSourceOpen.bind(this),
             onSourceEnded: this._onSourceEnded.bind(this),
@@ -159,29 +159,6 @@ class MSEController {
             this._mediaSourceObjectURL = null;
         }
     }
-    newSourceInitSegment (initSegment) {
-        let is = initSegment;
-        let mimeType = `${is.container}`;
-        if (is.codec && is.codec.length > 0) {
-            mimeType += `;codecs=${is.codec}`;
-        }
-
-        let ps = this._pendingSegments[is.type];
-        ps.splice(0, ps.length);
-        this._pendingSegments[is.type] = [];
-        this._pendingRemoveRanges[is.type] = [];
-        this._lastInitSegments[is.type] = [];
-        let ms = this._mediaSource;
-        this.definitionChange = true;
-        if (this._sourceBuffers[is.type]) {
-            ms.removeSourceBuffer(this._sourceBuffers[is.type]);
-            let sb = this._sourceBuffers[is.type] = this._mediaSource.addSourceBuffer(mimeType);
-            sb.addEventListener('error', this.e.onSourceBufferError);
-            sb.addEventListener('updateend', this.e.onSourceBufferUpdateEnd);
-        }
-        // this.definitionChange = false;
-
-    }
 
     appendInitSegment(initSegment, deferred) {
         if (!this._mediaSource || this._mediaSource.readyState !== 'open') {
@@ -249,7 +226,7 @@ class MSEController {
         }
 
         let sb = this._sourceBuffers[ms.type];
-        if (sb && !sb.updating && !this._hasPendingRemoveRanges() && this.definitionChange === false) {
+        if (sb && !sb.updating && !this._hasPendingRemoveRanges()) {
             this._doAppendSegments();
         }
     }
@@ -431,6 +408,7 @@ class MSEController {
 
     _doAppendSegments() {
         let pendingSegments = this._pendingSegments;
+
         for (let type in pendingSegments) {
             if (!this._sourceBuffers[type] || this._sourceBuffers[type].updating) {
                 continue;
