@@ -472,13 +472,12 @@ class Player extends Proxy {
 
     let width = player.root.offsetWidth
     let height = player.root.offsetHeight
-
     let targetWidth = player.video.videoWidth
     let targetHeight = player.video.videoHeight
 
     if (!player.config.rotate.innerRotate) {
-      player.root.style.width = height + 'px'
-      player.root.style.height = width + 'px'
+      // player.root.style.width = height + 'px'
+      // player.root.style.height = width + 'px'
     }
 
     let scale
@@ -513,9 +512,9 @@ class Player extends Proxy {
         }
       } else {
         if (width >= height) {
-          scale = (width / height).toFixed(2)
+          scale = width / height
         } else {
-          scale = (height / width).toFixed(2)
+          scale = height / width
         }
       }
       scale = parseFloat(scale.toFixed(5))
@@ -523,9 +522,15 @@ class Player extends Proxy {
       scale = 1
     }
 
-    player.video.style.transformOrigin = 'center center'
-    player.video.style.transform = `rotate(${player.rotateDeg}turn) scale(${scale})`
-    player.video.style.webKitTransform = `rotate(${player.rotateDeg}turn) scale(${scale})`
+    if (player.config.rotate.innerRotate) {
+      player.video.style.transformOrigin = 'center center'
+      player.video.style.transform = `rotate(${player.rotateDeg}turn) scale(${scale})`
+      player.video.style.webKitTransform = `rotate(${player.rotateDeg}turn) scale(${scale})`
+    } else {
+      player.root.style.transformOrigin = 'center center'
+      player.root.style.transform = `rotate(${player.rotateDeg}turn) scale(${1})`
+      player.root.style.webKitTransform = `rotate(${player.rotateDeg}turn) scale(${1})`
+    }
   }
 
   rotate (clockwise = false, innerRotate = true, times = 1) {

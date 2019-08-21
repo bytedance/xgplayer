@@ -59,9 +59,7 @@ class FlvJsPlayer extends Player {
     })
   }
   flv_load (newUrl) {
-    let mediaDataSource = {
-      type: 'flv'
-    }
+    let mediaDataSource = this.flvOpts
     mediaDataSource.segments = [
       {
         cors: true,
@@ -90,11 +88,8 @@ class FlvJsPlayer extends Player {
         player.__flv__ = null
       }
     }
-    player.__flv__ = Flv.createPlayer(mediaDataSource, {
-      enableWorker: false,
-      lazyLoadMaxDuration: 3 * 60,
-      seekType: 'range'
-    })
+    player.__flv__ = Flv.createPlayer(mediaDataSource, this.optionalConfig)
+
     player.__flv__.attachMediaElement(player.video)
     player.__flv__.load()
   }
