@@ -15,6 +15,16 @@ let s_replay = function () {
   player.once('ready', () => {
     root.appendChild(btn)
   })
+
+  function onEnded () {
+    let path = btn.querySelector('path')
+    if(path) {
+      let transform = window.getComputedStyle(path).getPropertyValue('transform')
+      path.setAttribute('transform', transform)
+    }
+  }
+  player.on('ended', onEnded)
+
   let svg = btn.querySelector('svg');
 
   ['click', 'touchend'].forEach(item => {
@@ -24,6 +34,12 @@ let s_replay = function () {
       player.emit('replayBtnClick')
     })
   })
+
+  function destroyFunc () {
+    player.off('ended', onEnded)
+    player.off('destroy', destroyFunc)
+  }
+  player.once('destroy', destroyFunc)
 }
 
 Player.install('s_replay', s_replay)
