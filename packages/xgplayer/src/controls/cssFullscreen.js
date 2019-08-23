@@ -8,8 +8,10 @@ let cssFullscreen = function () {
   function onCssFullscreenBtnClick () {
     if (util.hasClass(root, 'xgplayer-is-cssfullscreen')) {
       util.removeClass(root, 'xgplayer-is-cssfullscreen')
+      player.emit('exitCssFullscreen')
     } else {
       util.addClass(root, 'xgplayer-is-cssfullscreen')
+      player.emit('requestCssFullscreen')
     }
   }
   player.on('cssFullscreenBtnClick', onCssFullscreenBtnClick)
