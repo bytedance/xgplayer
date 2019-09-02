@@ -317,6 +317,7 @@ class Player extends Proxy {
   }
 
   getFullscreen (el) {
+    let player = this
     if (el.requestFullscreen) {
       el.requestFullscreen()
     } else if (el.mozRequestFullScreen) {
@@ -346,8 +347,7 @@ class Player extends Proxy {
   }
 
   download () {
-    const url = getAbsoluteURL(player.config.url)
-    console.log(url)
+    const url = getAbsoluteURL(this.config.url)
     downloadUtil(url)
   }
 

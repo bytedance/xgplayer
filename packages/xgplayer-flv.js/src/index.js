@@ -70,12 +70,12 @@ class FlvJsPlayer extends Player {
         withCredentials: false
       }
     ]
-    mediaDataSource.cors = true
-    mediaDataSource.hasAudio = true
-    mediaDataSource.hasVideo = true
-    mediaDataSource.isLive = true
+    // mediaDataSource.cors = true
+    // mediaDataSource.hasAudio = true
+    // mediaDataSource.hasVideo = true
+    // mediaDataSource.isLive = true
     mediaDataSource.url = newUrl
-    mediaDataSource.withCredentials = false
+    // mediaDataSource.withCredentials = false
     this.flv_load_mds(mediaDataSource)
   }
   flv_load_mds (mediaDataSource) {
