@@ -253,6 +253,10 @@ class FlvPlayer {
             }
         });
 
+        this._transmuxer.on(TransmuxingEvents.LOADED_SEI, (timestamp, data) => {
+            this._emitter.emit(PlayerEvents.LOADED_SEI, timestamp, data);
+        });
+
         this._transmuxer.open();
     }
 

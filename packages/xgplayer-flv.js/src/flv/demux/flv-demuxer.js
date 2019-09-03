@@ -110,6 +110,8 @@ class FLVDemuxer {
             (new DataView(buf)).setInt16(0, 256, true);  // little-endian write
             return (new Int16Array(buf))[0] === 256;  // platform-spec read, if equal then LE
         })();
+
+        this._onLoadedSei = null;
     }
 
     destroy() {
@@ -225,6 +227,14 @@ class FLVDemuxer {
         this._hasVideoFlagOverrided = true;
         this._hasVideo = hasVideo;
         this._mediaInfo.hasVideo = hasVideo;
+    }
+
+    set onLoadedSei(callback) {
+        this._onLoadedSei = callback;
+    }
+
+    get onLoadedSei() {
+        return this._onLoadedSei;
     }
 
     resetMediaInfo() {
@@ -1042,6 +1052,11 @@ class FLVDemuxer {
 
             let data = new Uint8Array(arrayBuffer, dataOffset + offset, lengthSize + naluSize);
             let unit = {type: unitType, data: data};
+
+            if (unitType === 6) {  // SEI TODO: change to 6
+                this._onLoadedSei && this._onLoadedSei(tagTimestamp, data);
+            }
+
             units.push(unit);
             length += data.byteLength;
 
