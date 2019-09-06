@@ -128,6 +128,9 @@ let s_progress = function () {
         util.event(e)
         player.isProgressMoving = true
         let w = e.clientX - left
+        if(w > containerWidth) {
+          w = containerWidth
+        }
         let now = w / containerWidth * player.duration
         progress.style.width = `${w * 100 / containerWidth}%`
 
@@ -152,6 +155,9 @@ let s_progress = function () {
         container.blur()
         if (!player.isProgressMoving || player.videoConfig.mediaType === 'audio' || player.dash || player.config.closeMoveSeek) {
           let w = e.clientX - left
+          if(w > containerWidth) {
+            w = containerWidth
+          }
           let now = w / containerWidth * player.duration
           progress.style.width = `${w * 100 / containerWidth}%`
           player.currentTime = Number(now).toFixed(1)

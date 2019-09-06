@@ -20,7 +20,11 @@ let s_replay = function () {
     let path = btn.querySelector('path')
     if(path) {
       let transform = window.getComputedStyle(path).getPropertyValue('transform')
-      path.setAttribute('transform', transform)
+      if(typeof transform === 'string' && transform.indexOf('none') > -1) {
+        return
+      } else {
+        path.setAttribute('transform', transform)
+      }
     }
   }
   player.on('ended', onEnded)
