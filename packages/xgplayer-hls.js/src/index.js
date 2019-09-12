@@ -1,5 +1,5 @@
 import Player from 'xgplayer'
-import Hls from 'hls.js'
+import Hls from './hls.js/hls'
 import utils from './utils'
 
 class HlsJsPlayer extends Player {
