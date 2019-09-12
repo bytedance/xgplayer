@@ -26,12 +26,10 @@ let s_volume = function () {
   selected.style.height = `${player.config.volume * 100}%`
   slider.volume = player.config.volume;
 
-  ['mousedown', 'touchstart'].forEach(item => {
-    bar.addEventListener(item, e => {
-      e.preventDefault()
-      e.stopPropagation()
-      player.emit('volumeBarClick', e)
-    })
+  bar.addEventListener('mousedown', e => {
+    e.preventDefault()
+    e.stopPropagation()
+    player.emit('volumeBarClick', e)
   });
 
   ['click', 'touchend'].forEach(item => {
