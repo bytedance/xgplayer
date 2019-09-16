@@ -1,4 +1,4 @@
-import Context from "../../xgplayer-utils/Context";
+import Context from "../../xgplayer-utils/src/Context";
 
 class FetchLoader {
   
@@ -8,7 +8,7 @@ class FetchLoader {
     this.status = 0;
     this.errir = null;
     this._reader = null;
-    this.buffer = null;
+    this.buffer = this.configs.buffer || 'LOADER_BUFFER';
   }
 
   static get type () {
@@ -20,7 +20,6 @@ class FetchLoader {
     this.url = url;
     
     //TODO: Add Ranges
-
     let params = this.getParams(opts);
     self.fetch(this.url, params).then(function(response){
       _this.status = response.status;
@@ -38,7 +37,11 @@ class FetchLoader {
   }
 
   _onReader(reader) {
-    let buffer = this._context.getInstance(this.configs.buffer || 'LOADER_BUFFER');
+    let buffer = this._context.getInstance(this.buffer || 'LOADER_BUFFER');
+
+    if(!buffer) {
+      this._reader.cancel();
+    }
 
     this._reader = reader;
     if (this.loading === false) {
@@ -49,7 +52,17 @@ class FetchLoader {
     // reader read function returns a Promise. get data when callback and has value.done when disconnected.
     // read方法返回一个Promise. 回调中可以获取到数据。当value.done存在时，说明链接断开。
     this._reader && this._reader.read().then(function(val) {
-      console.log(val);
+      if(val.done) {
+        //TODO: 完成处理
+        this.loading = false;
+        this.status = 0;
+        _this.emit(_this.tag, "LOADER_COMPLETE", buffer);
+        return;
+      }
+      buffer.push(val.value);
+
+      // TODO: 需要统一事件！梳理一哈子哈？！
+      _this.emit(_this.tag, "LOADER_DATALOADED", buffer);
       return _this._onReader(reader);
     }).catch(function(error) {
       console.log(error);
@@ -90,7 +103,6 @@ class FetchLoader {
     }
 
     //TODO: Add ranges;
-
     return params;
   }
 }

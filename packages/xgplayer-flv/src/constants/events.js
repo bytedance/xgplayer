@@ -1,4 +1,5 @@
 export const LOADER_EVENTS = {
+  LOADER_DATALOADED: 'loader_dataloaded',
   LOADER_COMPLETE: 'loader_complete',
   LOADER_ERROR: 'loader_error'
 }

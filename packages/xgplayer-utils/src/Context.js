@@ -72,6 +72,7 @@ class Context {
       constructor (...args) {
         super(...args)
         this.listeners = {}
+        this.tag = tag;
         this._context = self
       }
       on (messageName, callback) {
