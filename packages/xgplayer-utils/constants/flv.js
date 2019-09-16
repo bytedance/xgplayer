@@ -11,7 +11,3 @@ export const TransmuxingEvents = {
   STATISTICS_INFO: 'statistics_info',
   RECOMMEND_SEEKPOINT: 'recommend_seekpoint'
 }
-
-export default {
-  ...TransmuxingEvents
-}
