@@ -72,7 +72,7 @@ class Context {
       constructor (...args) {
         super(...args)
         this.listeners = {}
-        this.tag = tag;
+        this.tag = tag
         this._context = self
       }
       on (messageName, callback) {
@@ -115,6 +115,11 @@ class Context {
       }
     }
     this._clsMap[tag] = enhanced
+
+    // support for: const instance = context.registry(tag, Cls)(config)
+    return (...args) => {
+      return this.initInstance(tag, ...args)
+    }
   }
 
   /**
