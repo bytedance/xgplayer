@@ -1,4 +1,4 @@
-import Context from "../../xgplayer-utils/Context";
+import Context from "../../xgplayer-utils/src/Context";
 
 class FetchLoader {
   
@@ -8,7 +8,7 @@ class FetchLoader {
     this.status = 0;
     this.errir = null;
     this._reader = null;
-    this.buffer = null;
+    this.buffer = this.configs.buffer || 'LOADER_BUFFER';
   }
 
   static get type () {
@@ -37,8 +37,7 @@ class FetchLoader {
   }
 
   _onReader(reader) {
-    let buffer = this.buffer;
-    //let buffer = this._context.getInstance(this.configs.buffer || 'LOADER_BUFFER');
+    let buffer = this._context.getInstance(this.buffer || 'LOADER_BUFFER');
 
     if(!buffer) {
       this._reader.cancel();
@@ -55,8 +54,15 @@ class FetchLoader {
     this._reader && this._reader.read().then(function(val) {
       if(val.done) {
         //TODO: 完成处理
+        this.loading = false;
+        this.status = 0;
+        _this.emit(_this.tag, "LOADER_COMPLETE", buffer);
+        return;
       }
-      _this.buffer.push(val.value);
+      buffer.push(val.value);
+
+      // TODO: 需要统一事件！梳理一哈子哈？！
+      _this.emit(_this.tag, "LOADER_DATALOADED", buffer);
       return _this._onReader(reader);
     }).catch(function(error) {
       console.log(error);
@@ -97,7 +103,6 @@ class FetchLoader {
     }
 
     //TODO: Add ranges;
-
     return params;
   }
 }

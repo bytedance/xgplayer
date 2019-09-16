@@ -1,4 +1,4 @@
-import flvEvents from './constants/flv'
+import flvEvents from '../../xgplayer-flv/src/constants/events'
 const events = require('events')
 
 // 根据解码器类型对通信信道进行划分
@@ -11,12 +11,7 @@ class Context {
     this._emitter = new events.EventEmitter()
     this._instanceMap = {} // 所有的解码流程实例
     this._clsMap = {} // 构造函数的map
-    this.state = {
-      common: {
-        loaderBuffer: null,
-        remuxBuffer: null
-      }
-    }
+    this._inited = false
     this.allEvents = eventMap[type] || []
   }
 
@@ -50,6 +45,21 @@ class Context {
   }
 
   /**
+   * 避免大量的initInstance调用，初始化所有的组件
+   * @param config
+   */
+  init (config) {
+    if (this._inited) {
+      return
+    }
+    for (let tag in this._clsMap) {
+      if (this._clsMap.hasOwnProperty(tag)) {
+        this.initInstance(tag, config)
+      }
+    }
+  }
+
+  /**
    * 注册一个上下文流程，提供安全的事件发送机制
    * @param tag
    * @param cls
@@ -62,6 +72,8 @@ class Context {
       constructor (...args) {
         super(...args)
         this.listeners = {}
+        this.tag = tag;
+        this._context = self
       }
       on (messageName, callback) {
         checkMessageName(messageName)

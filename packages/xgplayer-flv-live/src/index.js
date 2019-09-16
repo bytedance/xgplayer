@@ -1,4 +1,3 @@
-
 const Tag = 'FLVLiveController'
 
 class FlvLiveController {

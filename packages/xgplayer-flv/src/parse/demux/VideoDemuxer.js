@@ -1,5 +1,5 @@
 import Demuxer from './Demuxer'
-import SPSParser from '../SPSParser'
+import SPSParser from './SPSParser'
 import DataView4Read from '../../utils/DataView4Read'
 import { EventTypes } from '../../constants/types'
 import Buffer from '../../write/Buffer'
