@@ -1,6 +1,9 @@
 import { LOADER_EVENTS, DEMUX_EVENTS } from '../../constants/events'
 import AMFParser from './AMFParser'
 import SPSParser from './SPSParser'
+import { getDefaultAudioTrackMeta, getDefaultVideoTrackMeta } from './defaults'
+import {VideoTrack, AudioTrack} from '../../../../xgplayer-buffer/src'
+
 const tag = 'FlvDemuxer'
 
 class FlvDemuxer {
@@ -251,6 +254,19 @@ class FlvDemuxer {
         }
       }
     }
+  }
+
+  _aacSequenceHeaderParser (data) {
+    let ret = {}
+    ret.hasSpecificConfig = true
+    ret.objectType = data[1] >>> 3
+    ret.sampleRateIndex = ((data[1] & 7) << 1) | (data[2] >>> 7)
+    ret.audiosamplerate = this._switchAudioSampleRate(ret.sampleRateIndex)
+    ret.channelCount = (data[2] & 120) >>> 3
+    ret.frameLength = (data[2] & 4) >>> 2
+    ret.dependsOnCoreCoder = (data[2] & 2) >>> 1
+    ret.extensionFlagIndex = data[2] & 1
+    return ret
   }
 
   _parseAACData (chunk) {
@@ -516,6 +532,17 @@ class FlvDemuxer {
     meta.avcc = new Uint8Array(data.length)
     meta.avcc.set(data)
     track.meta = meta
+  }
+
+  /**
+   * choose audio sample rate
+   * @param samplingFrequencyIndex
+   * @returns {number}
+   * @private
+   */
+  _switchAudioSampleRate (samplingFrequencyIndex) {
+    let samplingFrequencyList = [96000, 88200, 64000, 48000, 44100, 32000, 24000, 22050, 16000, 12000, 11025, 8000, 7350]
+    return samplingFrequencyList[samplingFrequencyIndex]
   }
 
   /**

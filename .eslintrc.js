@@ -1,3 +1,6 @@
 module.exports = {
-    "extends": "standard"
+    "extends": "standard",
+    "rules": {
+        "semi": 2
+    }
 };
