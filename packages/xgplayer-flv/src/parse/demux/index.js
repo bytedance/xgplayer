@@ -6,10 +6,13 @@ import {VideoTrack, AudioTrack} from '../../../../xgplayer-buffer/src'
 
 class FlvDemuxer {
   constructor () {
-    this.on(LOADER_EVENTS.LOADER_COMPLETE, this.handleLoaderComplete)
     this._firstFragmentLoaded = false
     this._trackNum = 0
     this._hasScript = false
+  }
+
+  init () {
+    this.on(LOADER_EVENTS.LOADER_COMPLETE, this.handleLoaderComplete)
   }
 
   /**

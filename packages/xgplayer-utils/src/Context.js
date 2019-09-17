@@ -32,6 +32,9 @@ class Context {
     if (this._clsMap[tag]) {
       const newInstance = new this._clsMap[tag](...args)
       this._instanceMap[tag] = newInstance
+      if (newInstance.init) {
+        newInstance.init() // TODO: lifecircle
+      }
       return newInstance
     } else {
       throw new Error(`${tag}未在context中注册`)
@@ -47,10 +50,12 @@ class Context {
       return
     }
     for (let tag in this._clsMap) {
-      if (this._clsMap.hasOwnProperty(tag)) {
+      // if not inited, init an instance
+      if (this._clsMap.hasOwnProperty(tag) && !this._instanceMap[tag]) {
         this.initInstance(tag, config)
       }
     }
+    this._inited = true
   }
 
   /**

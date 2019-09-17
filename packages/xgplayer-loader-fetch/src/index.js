@@ -105,6 +105,13 @@ class FetchLoader {
     //TODO: Add ranges;
     return params;
   }
+
+  cancel () {
+    if (this._reader) {
+      this._reader.cancel()
+      this._reader = null
+    }
+  }
 }
 
 // 用于调试

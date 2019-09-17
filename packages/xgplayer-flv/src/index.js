@@ -50,6 +50,7 @@ const flvPlayer = function () {
   player.start = function (url = player.config.url) {
     if (!url) { return }
     flv = context.registry('FLV_CONTROLLER', FLV)(player)
+    flv.init()
     context.init()
     player.mse = flv.mse
     player.flv = flv

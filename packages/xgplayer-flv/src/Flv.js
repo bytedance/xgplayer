@@ -25,6 +25,14 @@ class FlvController {
     this.TAG = Tag
     this._player = player
     this.mse = new MSE(this._player.video)
+
+    this.state = {
+      initSegmentArrived: false,
+      range: {
+        start: 0,
+        end: 0
+      }
+    }
   }
 
   init () {
@@ -68,6 +76,7 @@ class FlvController {
   }
 
   handleAppendInitSegment (initSegment) {
+    this.state.initSegmentArrived = true
     this.mse.appendBuffer(initSegment)
   }
 
@@ -75,12 +84,18 @@ class FlvController {
     if (this._player.isLive || !this.isSeekable) {
       return
     }
+    if (!this.state.initSegmentArrived) {
+      this.loadMeta()
+      return
+    }
     const { preloadTime = 15 } = this._player.config
     const range = this.getRange(time, preloadTime)
-    this.loadData(range)
+    this.state.range = range
+    this.loadData()
   }
 
-  loadData ({ start, end }) {
+  loadData () {
+    const { start, end } = this.state
     const loader = this._context.getInstance('FETCH_LOADER')
     loader.load(this._player.config.url, {
       Range: `bytes=${start}-${end}`
@@ -89,7 +104,7 @@ class FlvController {
 
   loadMeta () {
     const loader = this._context.getInstance('FETCH_LOADER')
-    loader.load(this._player.config.url)
+    loader.load(this._player.config.url) // 采用直播的模式，一直往后读取数据
   }
 
   getRange (time, preloadTime) {
@@ -119,6 +134,9 @@ class FlvController {
   destroy () {}
 
   get isSeekable () {
+    if (!this.context) {
+      return true
+    }
     return this._context.mediaInfo.keyframes !== null && this._context.mediaInfo.keyframes !== undefined
   }
 }
