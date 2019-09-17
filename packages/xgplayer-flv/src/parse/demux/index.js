@@ -4,11 +4,8 @@ import SPSParser from './SPSParser'
 import { getDefaultAudioTrackMeta, getDefaultVideoTrackMeta } from './defaults'
 import {VideoTrack, AudioTrack} from '../../../../xgplayer-buffer/src'
 
-const tag = 'FlvDemuxer'
-
 class FlvDemuxer {
   constructor () {
-    this.TAG = tag
     this.on(LOADER_EVENTS.LOADER_COMPLETE, this.handleLoaderComplete)
     this._firstFragmentLoaded = false
     this._trackNum = 0
@@ -598,6 +595,4 @@ class FlvDemuxer {
   }
 }
 
-export default (context) => {
-  context.registry(tag, FlvDemuxer)
-}
+export default FlvDemuxer
