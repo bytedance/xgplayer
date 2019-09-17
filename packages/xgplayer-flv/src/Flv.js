@@ -75,7 +75,7 @@ class FlvController {
     if (this._player.isLive || !this.isSeekable) {
       return
     }
-    const { preloadTime } = this._player.config
+    const { preloadTime = 15 } = this._player.config
     const range = this.getRange(time, preloadTime)
     this.loadData(range)
   }
@@ -85,6 +85,11 @@ class FlvController {
     loader.load(this._player.config.url, {
       Range: `bytes=${start}-${end}`
     })
+  }
+
+  loadMeta () {
+    const loader = this._context.getInstance('FETCH_LOADER')
+    loader.load(this._player.config.url)
   }
 
   getRange (time, preloadTime) {

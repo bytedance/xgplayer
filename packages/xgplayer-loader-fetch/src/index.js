@@ -1,7 +1,7 @@
-import Context from "../../xgplayer-utils/src/Context";
+import Context from '../../xgplayer-utils/src/Context';
 
 class FetchLoader {
-  
+
   constructor (configs) {
     this.configs = Object.assign({},configs);
     this.url = null;
@@ -18,10 +18,10 @@ class FetchLoader {
   load(url, opts) {
     let _this = this;
     this.url = url;
-    
+
     //TODO: Add Ranges
     let params = this.getParams(opts);
-    self.fetch(this.url, params).then(function(response){
+    return self.fetch(this.url, params).then(function(response){
       _this.status = response.status;
       _this.loading = true;
       return _this._onFetchResponse.call(_this, response);
@@ -31,7 +31,7 @@ class FetchLoader {
   _onFetchResponse(response) {
     if (response.ok === true) {
       return this._onReader.call(this, response.body.getReader());
-    } 
+    }
 
     //TODO: Exceptions!
   }

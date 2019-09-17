@@ -1,7 +1,7 @@
 import Player from 'xgplayer'
 import Context from '../../xgplayer-utils/src/Context'
 import FLV from './Flv'
-import allEvents from './constants/events'
+import allEvents, { flvAllowedEvents } from './constants/events'
 
 const isEnded = (player, hls) => {
   if (hls.type === 'vod') {
@@ -18,7 +18,7 @@ const flvPlayer = function () {
   let player = this
 
   let util = Player.util
-  const context = new Context(allEvents)
+  const context = new Context(flvAllowedEvents)
   const preloadTime = player.config.preloadTime || 15
   const _start = player.start
   let flv
@@ -50,6 +50,7 @@ const flvPlayer = function () {
   player.start = function (url = player.config.url) {
     if (!url) { return }
     flv = context.registry('FLV_CONTROLLER', FLV)(player)
+    context.init()
     player.mse = flv.mse
     player.flv = flv
     flv.once(allEvents.INIT_SEGMENT, () => {
@@ -76,6 +77,7 @@ const flvPlayer = function () {
   }
 
   const loadData = (time = player.currentTime) => {
+    const loader = context.getInstance('FETCH_LOADER')
     const range = player.getBufferedRange()
     if (time < range[1]) {
       if (flv.type === 'vod') {

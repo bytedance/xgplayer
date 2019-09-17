@@ -6,7 +6,7 @@ class Context {
     this._instanceMap = {} // 所有的解码流程实例
     this._clsMap = {} // 构造函数的map
     this._inited = false
-    this.allEvents = Object.keys(allowedEvents)
+    this.allowedEvents = allowedEvents
   }
 
   /**
@@ -147,7 +147,7 @@ class Context {
    */
   destroy () {
     this._emitter = null
-    this.allEvents = null
+    this.allowedEvents = null
     this._clsMap = null
     this.destroyInstances()
   }
@@ -158,7 +158,7 @@ class Context {
    * @private
    */
   _isMessageNameValid (messageName) {
-    if (!this.allEvents[messageName]) {
+    if (!this.allowedEvents.indexOf(messageName) < 0) {
       throw new Error(`unregistered message name: ${messageName}`)
     }
   }
