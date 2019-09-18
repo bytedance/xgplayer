@@ -3,6 +3,7 @@
     "version": "1.1.7",
     "description": "video player",
     "main": "./dist/index.js",
+    "types": "./src/index.d.ts",
     "scripts": {
         "prepare": "npm run build",
         "build": "webpack --progress --display-chunks -p",
@@ -45,6 +46,7 @@
         "Firefox > 20"
     ],
     "devDependencies": {
+        "@types/event-emitter": "^0.3.3",
         "autoprefixer": "^9.1.5",
         "babel-core": "^6.26.3",
         "babel-loader": "^7.1.4",
@@ -56,6 +58,7 @@
         "chai": "^4.1.2",
         "core-js": "^2.5.4",
         "css-loader": "^0.28.11",
+        "csstype": "^2.6.6",
         "json-loader": "^0.5.7",
         "karma": "^3.0.0",
         "karma-chrome-launcher": "^2.2.0",
