@@ -1,4 +1,5 @@
-import Stream from "../stream";
+import Stream from '../stream';
+import Nalunit from './nalunit';
 const StreamType = {
   0x01: ['video', 'MPEG-1'],
   0x02: ['video', 'MPEG-2'],
@@ -17,52 +18,87 @@ const StreamType = {
   0x85: ['audio', 'DTS-HD'],
   0x86: ['audio', 'DTS-MA'],
   0xa1: ['audio', 'AC3-Plus-SEC'],
-  0xa2: ['audio', 'DTS-HD-SEC'],
+  0xa2: ['audio', 'DTS-HD-SEC']
 };
 
 class TsDemuxer {
-  constructor(configs) {
+  constructor (configs) {
     this.configs = Object.assign({}, configs);
     this.demuxing = false;
     this.pat = [];
     this.pmt = [];
   }
 
-  init() {
+  init () {
     this.inputbuffer = this._context.getInstance(this.configs.inputbuffer)
   }
 
-  demux() {
+  demux () {
     if (this.demuxing) {
       return
     }
 
     let buffer = this.inputbuffer;
     let frags = { pat: [], pmt: [] };
+    let peses = {};
 
+    // Read TS segment
     while (buffer.length >= 188) {
       let buf = buffer.shift(188);
       let tsstream = new Stream(buf.buffer);
       let ts = {};
       TsDemuxer.read(tsstream, ts, frags);
+      if (ts.pes) {
+        if (!peses[ts.header.pid]) {
+          peses[ts.header.pid] = [];
+        }
+        peses[ts.header.pid].push(ts.pes);
+        ts.pes.ES.buffer = [ts.pes.ES.buffer];
+      } else if (peses[ts.header.pid]) {
+        peses[ts.header.pid][peses[ts.header.pid].length - 1].ES.buffer.push(ts.payload.stream);
+      }
+    }
+
+    // Get Frames data
+    for (let i = 0; i < Object.keys(peses).length; i++) {
+      let epeses = peses[Object.keys(peses)[i]];
+      for (let j = 0; j < epeses.length; j++) {
+        epeses[j].ES.buffer = TsDemuxer.Merge(epeses[j].ES.buffer);
+      }
+      if (epeses[0].type === 'video') {
+        Nalunit.getNalunits(epeses[0].ES.buffer);
+      }
     }
   }
 
-  static read(stream, ts, frags) {
+  static Merge (buffers) {
+    let data;
+    let length = 0;
+    let offset = 0;
+    for (let i = 0; i < buffers.length; i++) {
+      length += (buffers[i].length - buffers[i].position);
+    }
+
+    data = new Uint8Array(length);
+    for (let i = 0; i < buffers.length; i++) {
+      let buffer = buffers[i];
+      data.set(new Uint8Array(buffer.buffer, buffer.position), offset);
+      offset += buffer.length - buffer.position;
+    }
+    return new Stream(data.buffer);
+  }
+
+  static read (stream, ts, frags) {
     TsDemuxer.readHeader(stream, ts);
     TsDemuxer.readPayload(stream, ts, frags);
-    if(ts.header.packet === "MEDIA" && ts.header.payload === 1) {
-      let pes = TsDemuxer.PES(ts);
-      console.log(pes)
-    } else if(ts.header.packet === "MEDIA" ) {
-      console.log(ts);
+    if (ts.header.packet === 'MEDIA' && ts.header.payload === 1) {
+      ts.pes = TsDemuxer.PES(ts);
     }
-    
   }
 
-  static readPayload(stream, ts, frags) {
-    let header = ts.header, pid = header.pid;
-    let r = null;
+  static readPayload (stream, ts, frags) {
+    let header = ts.header
+    let pid = header.pid;
     switch (pid) {
       case 0:
         TsDemuxer.PAT(stream, ts, frags);
@@ -71,7 +107,7 @@ class TsDemuxer {
       case 1:
         r = TsDemuxer.CAT(buffer);
         break;
-       
+
       case 2:
         r = TsDemuxer.TSDT(buffer);
         break;
@@ -79,7 +115,7 @@ class TsDemuxer {
       case 0x1fff:
         break;
       default:
-        //TODO: some的写法不太好，得改
+        // TODO: some的写法不太好，得改
         if (frags.pat.some((item) => { return item.pid === pid; })) {
           TsDemuxer.PMT(stream, ts, frags);
         } else {
@@ -89,7 +125,7 @@ class TsDemuxer {
     }
   }
 
-  static readHeader(stream, ts) {
+  static readHeader (stream, ts) {
     let header = {};
     header.sync = stream.readUint8();
     let next = stream.readUint16();
@@ -114,7 +150,7 @@ class TsDemuxer {
     ts.header = header;
   }
 
-  static PAT(stream, ts, frags) {
+  static PAT (stream, ts, frags) {
     let ret = {};
     let next = stream.readUint8();
     stream.skip(next);
@@ -128,14 +164,15 @@ class TsDemuxer {
     ret.current = stream.readUint8() & 1;
     ret.sectionNumber = stream.readUint8();
     ret.lastSectionNumber = stream.readUint8();
-    let N = (ret.sectionLength - 9) / 4, list = [];
+    let N = (ret.sectionLength - 9) / 4;
+    let list = [];
     for (let i = 0; i < N; i++) {
       let programNumber = stream.readUint16();
       let pid = stream.readUint16() & 0x1fff;
       list.push({
         program: programNumber,
         pid,
-        type: programNumber === 0 ? 'network' : 'mapPID',
+        type: programNumber === 0 ? 'network' : 'mapPID'
       });
     }
     if (list.length > 0) {
@@ -148,8 +185,9 @@ class TsDemuxer {
     // TODO CRC
   }
 
-  static PMT(stream, ts, frags) {
-    let ret = {}, header = ts.header;
+  static PMT (stream, ts, frags) {
+    let ret = {};
+    let header = ts.header;
     header.packet = 'PMT';
     let next = stream.readUint8();
     stream.skip(next);
@@ -163,12 +201,13 @@ class TsDemuxer {
     ret.lastOrder = stream.readUint8();
     ret.PCR_PID = stream.readUint16() & 0x1fff;
     ret.programLength = stream.readUint16() & 0xfff;
-    let N = (ret.sectionLength - 13) / 5, list = [];
+    let N = (ret.sectionLength - 13) / 5;
+    let list = [];
     for (let i = 0; i < N; i++) {
       list.push({
         streamType: stream.readUint8(),
         pid: stream.readUint16() & 0x1fff, // 0x07e5 视频，0x07e6
-        es: stream.readUint16() & 0xfff,
+        es: stream.readUint16() & 0xfff
       });
     }
     ret.list = list;
@@ -180,14 +219,15 @@ class TsDemuxer {
         pid: item.pid,
         es: item.es,
         streamType: item.streamType,
-        program: ret.program,
+        program: ret.program
       };
     }));
     ts.payload = ret;
   }
 
-  static Media(stream, ts, type) {
-    let header = ts.header, payload = {};
+  static Media (stream, ts, type) {
+    let header = ts.header;
+    let payload = {};
     header.type = type;
     if (header.adaptation === 0x03) {
       payload.adaptationLength = stream.readUint8();
@@ -218,14 +258,19 @@ class TsDemuxer {
           payload.spliceCountdown = stream.readUint8();
         }
         if (payload.transportPrivate === 1) {
-          let length = stream.readUint8(), transportPrivateData = [];
+          let length = stream.readUint8();
+          let transportPrivateData = [];
           for (let i = 0; i < length; i++) {
             transportPrivateData.push(stream.readUint8());
           }
         }
         if (payload.adaptationField === 1) {
-          let length = stream.readUint8(), next = stream.readUint8(), start = stream.position;
-          let ltw = next >>> 7, piecewise = next >>> 6 & 0x1, seamless = next >>> 5 & 0x1;
+          let length = stream.readUint8()
+          let next = stream.readUint8()
+          let start = stream.position;
+          let ltw = next >>> 7;
+          let piecewise = next >>> 6 & 0x1;
+          let seamless = next >>> 5 & 0x1;
           if (ltw === 1) {
             next = stream.readUint16();
             payload.ltwValid = next >>> 15;
@@ -256,7 +301,7 @@ class TsDemuxer {
     ts.payload = payload;
   }
 
-  static PES(ts) {
+  static PES (ts) {
     let ret = {};
     let buffer = ts.payload.stream;
     let next = buffer.readUint24();
@@ -325,7 +370,8 @@ class TsDemuxer {
           N1 -= 10;
         }
         if (ret.escrFlag === 1) {
-          let escr = [], ex = [];
+          let escr = []
+          let ex = [];
           next = buffer.readUint8();
           escr.push(next >>> 3 & 0x07);
           escr.push(next & 0x03);
@@ -372,74 +418,77 @@ class TsDemuxer {
   }
 
   static ES (buffer, type) {
-    let next, ret = {};
+    let next;
+    let ret = {};
     if (type === 'video') {
-        next = buffer.readUint32();
+      next = buffer.readUint32();
+      if (next !== 1) {
+        buffer.back(4);
+        next = buffer.readUint24();
         if (next !== 1) {
-            buffer.back(4);
-            next = buffer.readUint24();
-            if (next !== 1) {
-                throw new Error('h264 nal header parse failed');
-            }
+          throw new Error('h264 nal header parse failed');
         }
-        buffer.skip(2);// 09 F0
-        // TODO readnalu
-        ret.buffer = buffer;
+      }
+      buffer.skip(2);// 09 F0
+      // TODO readnalu
+      ret.buffer = buffer;
     } else if (type === 'audio') {
-        next = buffer.readUint16();
-        // adts的同步字节，12位
-        if (next >>> 4 !== 0xfff) {
-            throw new Error('aac ES parse Error');
-        }
-        const fq = [96000, 88200, 64000, 48000, 44100, 32000, 24000, 22050, 16000, 12000, 11025, 8000, 7350];
-        ret.id = (next >>> 3 & 0x01) === 0 ? 'MPEG-4' : 'MPEG-2';
-        ret.layer = next >>> 1 & 0x03;
-        ret.absent = next & 0x01;
-        next = buffer.readUint16();
-        ret.audioObjectType = (next >>> 14 & 0x03) + 1;
-        ret.profile = ret.audioObjectType - 1;
-        ret.frequencyIndex = next >>> 10 & 0x0f;
-        ret.frequence = fq[ret.frequencyIndex];
-        ret.channel = next >>> 6 & 0x07;
-        ret.frameLength = (next & 0x03) << 11 | (buffer.readUint16() >>> 5);
-        ret.audioConfig = TsDemuxer.getAudioConfig(ret.audioObjectType, ret.channel, ret.frequencyIndex);
-        buffer.skip(1);
-        ret.buffer = buffer;
+      next = buffer.readUint16();
+      // adts的同步字节，12位
+      if (next >>> 4 !== 0xfff) {
+        throw new Error('aac ES parse Error');
+      }
+      const fq = [96000, 88200, 64000, 48000, 44100, 32000, 24000, 22050, 16000, 12000, 11025, 8000, 7350];
+      ret.id = (next >>> 3 & 0x01) === 0 ? 'MPEG-4' : 'MPEG-2';
+      ret.layer = next >>> 1 & 0x03;
+      ret.absent = next & 0x01;
+      next = buffer.readUint16();
+      ret.audioObjectType = (next >>> 14 & 0x03) + 1;
+      ret.profile = ret.audioObjectType - 1;
+      ret.frequencyIndex = next >>> 10 & 0x0f;
+      ret.frequence = fq[ret.frequencyIndex];
+      ret.channel = next >>> 6 & 0x07;
+      ret.frameLength = (next & 0x03) << 11 | (buffer.readUint16() >>> 5);
+      ret.audioConfig = TsDemuxer.getAudioConfig(ret.audioObjectType, ret.channel, ret.frequencyIndex);
+      buffer.skip(1);
+      ret.buffer = buffer;
     } else {
-        throw `ES ${type} is not supported`;
+      throw new Error(`ES ${type} is not supported`);
     }
 
     return ret;
   }
 
   static getAudioConfig (audioObjectType, channel, sampleIndex) {
-    let userAgent = navigator.userAgent.toLowerCase(), config, extensionSampleIndex;
+    let userAgent = navigator.userAgent.toLowerCase()
+    let config;
+    let extensionSampleIndex;
     if (/firefox/i.test(userAgent)) {
-        if (sampleIndex >= 6) {
-            audioObjectType = 5;
-            config = new Array(4);
-            extensionSampleIndex = sampleIndex - 3;
-        } else {
-            audioObjectType = 2;
-            config = new Array(2);
-            extensionSampleIndex = sampleIndex;
-        }
-    } else if (userAgent.indexOf('android') !== -1) {
+      if (sampleIndex >= 6) {
+        audioObjectType = 5;
+        config = new Array(4);
+        extensionSampleIndex = sampleIndex - 3;
+      } else {
         audioObjectType = 2;
         config = new Array(2);
         extensionSampleIndex = sampleIndex;
+      }
+    } else if (userAgent.indexOf('android') !== -1) {
+      audioObjectType = 2;
+      config = new Array(2);
+      extensionSampleIndex = sampleIndex;
     } else {
-        audioObjectType = 5;
-        config = new Array(4);
-        if (sampleIndex >= 6) {
-            extensionSampleIndex = sampleIndex - 3;
-        } else {
-            if (channel === 1) {
-                audioObjectType = 2;
-                config = new Array(2);
-            }
-            extensionSampleIndex = sampleIndex;
+      audioObjectType = 5;
+      config = new Array(4);
+      if (sampleIndex >= 6) {
+        extensionSampleIndex = sampleIndex - 3;
+      } else {
+        if (channel === 1) {
+          audioObjectType = 2;
+          config = new Array(2);
         }
+        extensionSampleIndex = sampleIndex;
+      }
     }
 
     config[0] = audioObjectType << 3;
@@ -447,10 +496,10 @@ class TsDemuxer {
     config[1] = (sampleIndex & 0x01) << 7;
     config[1] |= channel << 3;
     if (audioObjectType === 5) {
-        config[1] |= (extensionSampleIndex & 0x0e) >> 1;
-        config[2] = (extensionSampleIndex & 0x01) << 7;
-        config[2] |= 2 << 2;
-        config[3] = 0;
+      config[1] |= (extensionSampleIndex & 0x0e) >> 1;
+      config[2] = (extensionSampleIndex & 0x01) << 7;
+      config[2] |= 2 << 2;
+      config[3] = 0;
     }
     return config;
   }

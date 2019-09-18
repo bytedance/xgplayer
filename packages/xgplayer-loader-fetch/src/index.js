@@ -1,19 +1,19 @@
-import Context from "../../xgplayer-utils/src/Context";
+import Context from '../../xgplayer-utils/src/Context';
 const READ_STREAM = 0;
 const READ_TEXT = 1;
 const READ_JSON = 2;
 class FetchLoader {
   /**
    * The constructior of FetchLoader.
-   * @param {*} configs 
+   * @param {*} configs
    */
 
   constructor (configs) {
-    this.configs = Object.assign({},configs);
+    this.configs = Object.assign({}, configs);
     this.url = null;
     this.status = 0;
     this.errir = null;
-    
+
     this.buffer = this.configs.buffer;
     this.readtype = this.configs.readtype || READ_STREAM;
     this._reader = null;
@@ -23,56 +23,58 @@ class FetchLoader {
     return 'loader';
   }
 
-  load(url, opts) {
+  load (url, opts) {
     let _this = this;
     this.url = url;
 
-    //TODO: Add Ranges
+    // TODO: Add Ranges
     let params = this.getParams(opts);
 
-    return self.fetch(this.url, params).then(function(response){
+    // eslint-disable-next-line no-undef
+    return self.fetch(this.url, params).then(function (response) {
       _this.status = response.status;
       _this.loading = true;
-      return _this._onFetchResponse.call(_this, response);
+      return _this._onFetchResponse(response);
     })
   }
 
-  _onFetchResponse(response) {
+  _onFetchResponse (response) {
     let _this = this;
     let buffer = this._context.getInstance(this.buffer);
     if (response.ok === true) {
-      switch(this.readtype) {
+      switch (this.readtype) {
         case READ_JSON:
-          response.json().then((data)=>{
-            if(buffer) {
+          response.json().then((data) => {
+            if (buffer) {
               buffer.push(data);
-              _this.emit(_this.tag, "LOADER_COMPLETE", buffer);
+              _this.emit(_this.tag, 'loader_complete', buffer);
             } else {
-              _this.emit(_this.tag, "LOADER_COMPLETE", data);
+              _this.emit(_this.tag, 'loader_complete', data);
             }
           });
           break;
         case READ_TEXT:
-          response.text().then((data)=>{
-            if(buffer) {
+          response.text().then((data) => {
+            if (buffer) {
               buffer.push(data);
-              _this.emit(_this.tag, "LOADER_COMPLETE", buffer);
+              console.log(_this)
+              _this.emit(_this.tag, 'loader_complete', buffer);
             } else {
-              _this.emit(_this.tag, "LOADER_COMPLETE", data);
+              _this.emit(_this.tag, 'loader_complete', data);
             }
           });
           break;
         case READ_STREAM:
         default:
-          return this._onReader.call(this, response.body.getReader());
+          return this._onReader(response.body.getReader());
       }
     }
   }
 
-  _onReader(reader) {
+  _onReader (reader) {
     let buffer = this._context.getInstance(this.buffer);
 
-    if(!buffer) {
+    if (!buffer) {
       this._reader.cancel();
     }
 
@@ -84,28 +86,28 @@ class FetchLoader {
     let _this = this;
     // reader read function returns a Promise. get data when callback and has value.done when disconnected.
     // read方法返回一个Promise. 回调中可以获取到数据。当value.done存在时，说明链接断开。
-    this._reader && this._reader.read().then(function(val) {
-      if(val.done) {
-        //TODO: 完成处理
+    this._reader && this._reader.read().then(function (val) {
+      if (val.done) {
+        // TODO: 完成处理
         _this.loading = false;
         _this.status = 0;
-        _this.emit(_this.tag, "LOADER_COMPLETE", buffer);
+        _this.emit(_this.tag, 'loader_complete', buffer);
         return;
       }
 
       buffer.push(val.value);
 
       // TODO: 需要统一事件！梳理一哈子哈？！
-      _this.emit(_this.tag, "LOADER_DATALOADED", buffer);
+      _this.emit(_this.tag, 'loader_dataloaded', buffer);
       return _this._onReader(reader);
-    }).catch(function(error) {
+    }).catch(function (error) {
       console.log(error);
     });
   }
 
-
-  getParams(opts) {
+  getParams (opts) {
     let options = Object.assign({}, opts);
+    // eslint-disable-next-line no-undef
     let headers = new self.Headers();
 
     let params = {
@@ -136,7 +138,7 @@ class FetchLoader {
       params.credentials = 'include';
     }
 
-    //TODO: Add ranges;
+    // TODO: Add ranges;
     return params;
   }
 
