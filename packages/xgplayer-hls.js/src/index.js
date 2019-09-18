@@ -1,6 +1,7 @@
 import Player from 'xgplayer'
 import Hls from './hls.js/hls'
 import utils from './utils'
+import { SSL_OP_SSLEAY_080_CLIENT_DH_BUG } from 'constants'
 
 class HlsJsPlayer extends Player {
   constructor (options) {
@@ -79,6 +80,7 @@ class HlsJsPlayer extends Player {
     hls.on(Hls.Events.MEDIA_ATTACHED, () => {
       hls.loadSource(url)
     })
+
     hls.on(Hls.Events.LEVEL_LOADED, (name, e) => {
       if (!hls.inited) {
         hls.inited = true
@@ -103,6 +105,66 @@ class HlsJsPlayer extends Player {
         }
       }
     })
+    this._statistics();
+  }
+
+  _statistics() {
+    let statsInfo = {
+      speed:0,
+      playerType: "HlsPlayer"
+    };
+
+    let mediainfo = {
+      videoDataRate:0,
+      audioDataRate:0
+    };
+    let hls = this.hls;
+    let player = this;
+
+    hls.on(Hls.Events.FRAG_LOAD_PROGRESS, (flag,payload) =>{
+      statsInfo.speed = payload.stats.loaded / 1000;
+    });
+    hls.on(Hls.Events.FRAG_PARSING_DATA, (flag,payload) =>{
+      if (payload.type === 'video') {
+        mediainfo.fps = parseInt(payload.nb/(payload.endPTS -payload.startPTS));
+      }
+    })
+
+    hls.on(Hls.Events.FRAG_PARSING_INIT_SEGMENT, (flag,payload) =>{
+      mediainfo.hasAudio = (payload.tracks && payload.tracks.audio)? true: false;
+      mediainfo.hasVideo = (payload.tracks && payload.tracks.audio)? true: false;
+      
+      if(mediainfo.hasAudio) {
+        let track = payload.tracks.audio;
+        mediainfo.audioChannelCount = (track.metadata && track.metadata.channelCount) ? track.metadata.channelCount:0;
+        mediainfo.audioCodec = track.codec;
+      } 
+      
+      if(mediainfo.hasVideo) {
+        let track = payload.tracks.video;
+        mediainfo.videoCodec = track.codec;
+        mediainfo.width = (track.metadata && track.metadata.width) ? track.metadata.width:0;
+        mediainfo.height = (track.metadata && track.metadata.height) ? track.metadata.height:0;
+      }
+      mediainfo.duration = (payload.frag && payload.frag.duration) ? payload.frag.duration:0
+      mediainfo.level =(payload.frag && payload.frag.level) ? payload.frag.level:0;
+      if(mediainfo.videoCodec || mediainfo.audioCodec) {
+        mediainfo.mimeType = `video/hls; codecs="${mediainfo.videoCodec};${mediainfo.audioCodec}"` 
+      }
+
+      player.mediainfo = mediainfo;
+      player.emit("media_info", mediainfo);
+    });
+
+    this._statisticsTimmer = setInterval(()=>{
+      player.emit("statistics_info", statsInfo);
+      statsInfo.speed = 0;
+    }, 1000)
+  }
+
+  destroy() {
+    super.destroy();
+    clearInterval(this._statisticsTimmer);
   }
 }
 

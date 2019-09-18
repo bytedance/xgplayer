@@ -49,11 +49,19 @@ class FlvJsPlayer extends Player {
     flv.attachMediaElement(player.video)
     flv.load()
     flv.play()
+     
     flv.on(Flv.Events.ERROR, (e) => {
       player.emit('error', new Player.Errors('other', player.config.url))
     })
     flv.on(Flv.Events.LOADED_SEI, (timestamp, data) => {
       player.emit('loaded_sei', timestamp, data);
+    })
+    flv.on(Flv.Events.STATISTICS_INFO, (data) => {
+      player.emit("statistics_info",data);
+    })
+    flv.on(Flv.Events.MEDIA_INFO, (data)=>{
+      player.mediainfo = data;
+      player.emit("MEDIA_INFO",data);
     })
     player.once('destroy', () => {
       flv.destroy()
