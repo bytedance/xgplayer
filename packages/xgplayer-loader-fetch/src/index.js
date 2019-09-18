@@ -1,26 +1,20 @@
-import Context from '../../xgplayer-utils/src/Context';
+import Context from '../../xgplayer-utils/src/Context'
+import { LOADER_EVENTS } from '../../xgplayer-flv/src/constants/events'
 const READ_STREAM = 0;
 const READ_TEXT = 1;
 const READ_JSON = 2;
 class FetchLoader {
-  /**
-   * The constructior of FetchLoader.
-   * @param {*} configs
-   */
-
   constructor (configs) {
-    this.configs = Object.assign({}, configs);
-    this.url = null;
-    this.status = 0;
-    this.errir = null;
-
-    this.buffer = this.configs.buffer;
-    this.readtype = this.configs.readtype || READ_STREAM;
-    this._reader = null;
+    this.configs = Object.assign({}, configs)
+    this.url = null
+    this.status = 0
+    this.errir = null
+    this._reader = null
+    this.buffer = this.configs.buffer || 'LOADER_BUFFER'
   }
 
   static get type () {
-    return 'loader';
+    return 'loader'
   }
 
   load (url, opts) {
@@ -78,64 +72,63 @@ class FetchLoader {
       this._reader.cancel();
     }
 
-    this._reader = reader;
+    this._reader = reader
     if (this.loading === false) {
-      return;
+      return
     }
 
-    let _this = this;
+    let _this = this
     // reader read function returns a Promise. get data when callback and has value.done when disconnected.
     // read方法返回一个Promise. 回调中可以获取到数据。当value.done存在时，说明链接断开。
     this._reader && this._reader.read().then(function (val) {
       if (val.done) {
         // TODO: 完成处理
-        _this.loading = false;
-        _this.status = 0;
-        _this.emit(_this.tag, 'loader_complete', buffer);
-        return;
-      }
 
-      buffer.push(val.value);
+        _this.loading = false
+        _this.status = 0
+        _this.emit(_this.tag, LOADER_EVENTS.LOADER_COMPLETE, buffer)
+        return
+      }
+      buffer.push(val.value)
 
       // TODO: 需要统一事件！梳理一哈子哈？！
-      _this.emit(_this.tag, 'loader_dataloaded', buffer);
-      return _this._onReader(reader);
+      _this.emit(_this.tag, LOADER_EVENTS.LOADER_DATALOADED, buffer)
+      return _this._onReader(reader)
     }).catch(function (error) {
-      console.log(error);
-    });
+      console.log(error)
+    })
   }
 
   getParams (opts) {
-    let options = Object.assign({}, opts);
-    // eslint-disable-next-line no-undef
-    let headers = new self.Headers();
+    let options = Object.assign({}, opts)
+    let headers = new this.Headers()
 
     let params = {
       method: 'GET',
       headers: headers,
       mode: 'cors',
       cache: 'default'
-    };
+    }
 
     // add custmor headers
     // 添加自定义头
     if (typeof this.configs.headers === 'object') {
-      let configHeaders = this.configs.headers;
+      let configHeaders = this.configs.headers
       for (let key in configHeaders) {
         if (configHeaders.hasOwnProperty(key)) {
-          headers.append(key, configHeaders[key]);
+          headers.append(key, configHeaders[key])
         }
       }
     }
 
     if (options.cors === false) {
-      params.mode = 'same-origin';
+      params.mode = 'same-origin'
     }
 
     // withCredentials is disabled by default
     // withCredentials 在默认情况下不被使用。
     if (options.withCredentials) {
-      params.credentials = 'include';
+      params.credentials = 'include'
     }
 
     // TODO: Add ranges;
@@ -152,6 +145,6 @@ class FetchLoader {
 
 // 用于调试
 
-window.Context = Context;
+window.Context = Context
 
-export default FetchLoader;
+export default FetchLoader

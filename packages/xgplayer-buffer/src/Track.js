@@ -3,7 +3,6 @@ export default class Track {
    * The constructor.
    */
   constructor () {
-    this.TAG = 'Track'
     this.id = -1
     this.sequenceNumber = 0
     this.samples = []
@@ -24,5 +23,12 @@ export default class Track {
   distroy () {
     this.reset()
     this.id = -1
+  }
+}
+
+export class Tracks {
+  constructor () {
+    this.audioTrack = null
+    this.videoTrack = null
   }
 }

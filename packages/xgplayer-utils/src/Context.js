@@ -91,6 +91,7 @@ class Context {
 
       emit (tag, messageName, ...args) {
         checkMessageName(messageName)
+        console.log(`[${this.TAG}] ${messageName}`, this)
         return emitter.emit(messageName, ...args)
       }
 

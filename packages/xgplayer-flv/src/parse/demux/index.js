@@ -1,6 +1,6 @@
 import { LOADER_EVENTS, DEMUX_EVENTS } from '../../constants/events'
 import AMFParser from './AMFParser'
-import SPSParser from './SPSParser'
+import SPSParser from '../../../../xgplayer-utils/src/h264/spsParser'
 import { getDefaultAudioTrackMeta, getDefaultVideoTrackMeta } from './defaults'
 import {VideoTrack, AudioTrack} from '../../../../xgplayer-buffer/src'
 
@@ -12,7 +12,7 @@ class FlvDemuxer {
   }
 
   init () {
-    this.on(LOADER_EVENTS.LOADER_COMPLETE, this.handleLoaderComplete)
+    this.on(LOADER_EVENTS.LOADER_DATALOADED, this.handleDataLoaded.bind(this))
   }
 
   /**
@@ -21,7 +21,7 @@ class FlvDemuxer {
    * @returns {boolean}
    */
   static isFlvFile (data) {
-    return data[0] !== 0x46 || data[1] !== 0x4C || data[2] !== 0x56 || data[3] !== 0x01
+    return !(data[0] !== 0x46 || data[1] !== 0x4C || data[2] !== 0x56 || data[3] !== 0x01)
   }
 
   /**
@@ -45,7 +45,7 @@ class FlvDemuxer {
     return result
   }
 
-  handleLoaderComplete () {
+  handleDataLoaded () {
     this.parseFlvStream()
   }
 
@@ -61,8 +61,9 @@ class FlvDemuxer {
       if (this.loaderBuffer.length < 11) {
         return
       }
-      this._parseFlvTag()
-      this.parseFlvStream() // 递归调用，继续解析flv流
+      if (this._parseFlvTag()) {
+        this.parseFlvStream() // 递归调用，继续解析flv流
+      }
     }
   }
 
@@ -72,7 +73,7 @@ class FlvDemuxer {
       this.parseFlvStream()
     } else {
       this._firstFragmentLoaded = true
-      const playType = this.getPlayType(header[4])
+      const playType = FlvDemuxer.getPlayType(header[4])
 
       if (playType.hasVideo) {
         this.initVideoTrack()
@@ -82,7 +83,7 @@ class FlvDemuxer {
         this.initAudioTrack()
       }
     }
-    this.handleLoaderComplete()
+    this.handleDataLoaded()
   }
 
   /**
@@ -94,7 +95,7 @@ class FlvDemuxer {
     videoTrack.meta = getDefaultVideoTrackMeta()
     videoTrack.id = videoTrack.meta.id = this._trackNum
 
-    this.tracks.push(videoTrack)
+    this.tracks.videoTrack = videoTrack
   }
 
   /**
@@ -106,7 +107,7 @@ class FlvDemuxer {
     audioTrack.meta = getDefaultAudioTrackMeta()
     audioTrack.id = audioTrack.meta.id = this._trackNum
 
-    this.tracks.push(audioTrack)
+    this.tracks.audioTrack = audioTrack
   }
 
   /**
@@ -126,6 +127,7 @@ class FlvDemuxer {
     if (chunk) {
       this._processChunk(chunk)
     }
+    return chunk
   }
 
   /**
@@ -143,7 +145,7 @@ class FlvDemuxer {
     chunk.tagType = tagType & 31
 
     // 3 Byte datasize
-    chunk.datasize = this.loaderBuffer.toInt(offset + 1, 3)
+    chunk.datasize = this.loaderBuffer.toInt(offset, 3)
     offset += 3
 
     if ((chunk.tagType !== 8 && chunk.tagType !== 9 && chunk.tagType !== 11 && chunk.tagType !== 18) ||
@@ -209,7 +211,8 @@ class FlvDemuxer {
     let videoTrack = this.tracks.videoTrack
 
     let data = this.loaderBuffer.shift(chunk.datasize)
-    let mediaInfo = this._context.mediaInfo = new AMFParser().resolve(data, data.length)
+    const info = new AMFParser().resolve(data, data.length)
+    const mediaInfo = this._context.mediaInfo = info ? info.onMetaData : undefined
     let validate = this._datasizeValidator(chunk.datasize)
     if (validate) {
       this._hasScript = true
@@ -317,16 +320,16 @@ class FlvDemuxer {
       meta.audioSampleRate = audioSampleRate
       meta.sampleRateIndex = audioSampleRateIndex
       meta.refSampleDuration = refSampleDuration
-      if (this._hasScript && !this._hasAudioSequence && (!this.media.tracks.videoTrack || this._hasVideoSequence)) {
-        this.observer.trigger('METADATA_PARSED')
+      if (this._hasScript && !this._hasAudioSequence && (!this.tracks.videoTrack || this._hasVideoSequence)) {
+        this.emit(DEMUX_EVENTS.METADATA_PARSED)
       } else if (this._hasScript && this._hasAudioSequence) {
-        this.observer.trigger('METADATA_CHANGED')
+        this.emit(DEMUX_EVENTS.AUDIO_METADATA_CHANGE)
       }
       ;
       this._hasAudioSequence = true
     } else {
       chunk.data = chunk.data.slice(1, chunk.data.length)
-      this.observer.trigger('AUDIODATA_PARSED')
+      this.emit(DEMUX_EVENTS.DEMUX_COMPLETE)
       track.samples.push(chunk)
     }
 
@@ -486,6 +489,7 @@ class FlvDemuxer {
       meta.codec = codecString
 
       offset += size
+      this.tracks.videoTrack.sps = sps
       config = SPSParser.parseSPS(sps)
     }
 
