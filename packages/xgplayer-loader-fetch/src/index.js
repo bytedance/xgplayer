@@ -8,7 +8,7 @@ class FetchLoader {
     this.configs = Object.assign({}, configs)
     this.url = null
     this.status = 0
-    this.errir = null
+    this.error = null
     this._reader = null
     this.buffer = this.configs.buffer || 'LOADER_BUFFER'
   }
@@ -22,13 +22,11 @@ class FetchLoader {
     this.url = url;
 
     // TODO: Add Ranges
-    let params = this.getParams(opts);
-
-    // eslint-disable-next-line no-undef
-    return self.fetch(this.url, params).then(function (response) {
-      _this.status = response.status;
-      _this.loading = true;
-      return _this._onFetchResponse(response);
+    let params = this.getParams(opts)
+    return fetch(this.url, params).then(function (response) {
+      _this.status = response.status
+      _this.loading = true
+      return _this._onFetchResponse(response)
     })
   }
 
@@ -86,13 +84,13 @@ class FetchLoader {
 
         _this.loading = false
         _this.status = 0
-        _this.emit(_this.tag, LOADER_EVENTS.LOADER_COMPLETE, buffer)
+        _this.emit(LOADER_EVENTS.LOADER_COMPLETE, buffer)
         return
       }
       buffer.push(val.value)
 
       // TODO: 需要统一事件！梳理一哈子哈？！
-      _this.emit(_this.tag, LOADER_EVENTS.LOADER_DATALOADED, buffer)
+      _this.emit(LOADER_EVENTS.LOADER_DATALOADED, buffer)
       return _this._onReader(reader)
     }).catch(function (error) {
       console.log(error)
@@ -101,7 +99,7 @@ class FetchLoader {
 
   getParams (opts) {
     let options = Object.assign({}, opts)
-    let headers = new this.Headers()
+    let headers = new Headers()
 
     let params = {
       method: 'GET',

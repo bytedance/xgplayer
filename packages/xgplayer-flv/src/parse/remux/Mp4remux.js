@@ -1,32 +1,31 @@
+import { DEMUX_EVENTS, REMUX_EVENTS } from '../../constants/events'
 import MediaSegmentList from '../../models/MediaSegmentList'
 import MediaSegment from '../../models/MediaSegment'
 import MediaSample from '../../models/MediaSample'
 import sniffer from '../../utils/sniffer'
 import Buffer from '../../write/Buffer'
 import FMP4 from './Fmp4'
-import Remuxer from './Remuxer'
 
-export default class Mp4Remuxer extends Remuxer {
-  constructor (store) {
-    super(store)
+export default class Mp4Remuxer {
+  constructor () {
     this._dtsBase = 0
     this._isDtsBaseInited = false
-    this._videoMeta = null
-    this._audioMeta = null
     this._audioNextDts = null
     this._videoNextDts = null
     this._videoSegmentList = new MediaSegmentList('video')
     this._audioSegmentList = new MediaSegmentList('audio')
     const {browser} = sniffer
     this._fillSilenceFrame = browser === 'ie'
-    this.handleMediaFragment = () => {}
+  }
+
+  init () {
+    this.on(DEMUX_EVENTS.DEMUX_COMPLETE, this.remux.bind(this))
+    this.on(DEMUX_EVENTS.MEDIA_INFO, this.onMediaInfoReady.bind(this))
   }
 
   destroy () {
     this._dtsBase = -1
     this._dtsBaseInited = false
-    this._audioMeta = null
-    this._videoMeta = null
     this._videoNextDts = null
     this._audioNextDts = null
     this._videoSegmentList.clear()
@@ -35,7 +34,8 @@ export default class Mp4Remuxer extends Remuxer {
     this._audioSegmentList = null
   }
 
-  remux (audioTrack, videoTrack) {
+  remux () {
+    const { audioTrack, videoTrack } = this._context.getInstance('TRACKS')
     !this._isDtsBaseInited && this.calcDtsBase(audioTrack, videoTrack)
 
     this._remuxVideo(videoTrack)
@@ -49,16 +49,16 @@ export default class Mp4Remuxer extends Remuxer {
     this._audioSegmentList.clear()
   }
 
-  onMetaDataReady (type, meta) {
-    this[`_${type}Meta`] = meta
-  }
-
-  onMediaInfoReady (mediaInfo) {
-    let ftypMoov = new Buffer()
+  onMediaInfoReady () {
+    const mediaInfo = this._context.mediaInfo
+    if (!mediaInfo) {
+      this.emit(REMUX_EVENTS.REMUX_ERROR, new Error('failed to get media info'))
+    }
+    let initSegment = new Buffer()
     let ftyp = FMP4.ftyp()
     let moov = FMP4.moov(mediaInfo)
-    ftypMoov.write(ftyp, moov)
-    return ftypMoov.buffer
+    initSegment.write(ftyp, moov)
+    this.emit(REMUX_EVENTS.INIT_SEGMENT, initSegment)
   }
 
   calcDtsBase (audioTrack, videoTrack) {
@@ -76,9 +76,6 @@ export default class Mp4Remuxer extends Remuxer {
   }
 
   _remuxVideo (videoTrack) {
-    if (!this._videoMeta) {
-      return
-    }
     const track = videoTrack
     if (!videoTrack.samples || !videoTrack.samples.length) {
       return
