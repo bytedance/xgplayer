@@ -1,10 +1,10 @@
 export type Util = {
   createDom(el?: string, tpl?: string, attrs?: object, cname?: string): HTMLElement
-  hasClass(el: HTMLElement, className: string): boolean
-  addClass(el: HTMLElement, className: string): void
-  removeClass(el: HTMLElement, className: string): void
-  toggleClass(el: HTMLElement, className: string): void
-  findDom(el: Document | undefined, sel: string): Element | null | undefined
+  hasClass(el: Element, className: string): boolean
+  addClass(el: Element, className: string): void
+  removeClass(el: Element, className: string): void
+  toggleClass(el: Element, className: string): void
+  findDom(el: Element, sel: string): Element | null | undefined
   padStart(str: number, length: number, pad: number): string
   format(time: number): string
   event(e: any): void
