@@ -3,5 +3,14 @@ module.exports = {
     "extends": "standard",
     "rules": {
         "semi": 2
-    }
+    },
+    "overrides": [
+        {
+            "files": ["packages/**/**.js"],
+            "globals": {
+                "fetch": true,
+                "Headers": true
+            }
+        }
+    ]
 };

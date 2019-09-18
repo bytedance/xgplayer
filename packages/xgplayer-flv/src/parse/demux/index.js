@@ -215,6 +215,7 @@ class FlvDemuxer {
     const mediaInfo = this._context.mediaInfo = info ? info.onMetaData : undefined
     let validate = this._datasizeValidator(chunk.datasize)
     if (validate) {
+      this.emit(DEMUX_EVENTS.MEDIA_INFO)
       this._hasScript = true
     }
 

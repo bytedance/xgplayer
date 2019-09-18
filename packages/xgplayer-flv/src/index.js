@@ -3,8 +3,8 @@ import Context from '../../xgplayer-utils/src/Context'
 import FLV from './Flv'
 import allEvents, { flvAllowedEvents } from './constants/events'
 
-const isEnded = (player, hls) => {
-  if (hls.type === 'vod') {
+const isEnded = (player, flv) => {
+  if (!player.config.isLive) {
     if (player.duration - player.currentTime < 2) {
       const range = player.getBufferedRange()
       if (player.currentTime - range[1] < 0.1) {
@@ -49,13 +49,12 @@ const flvPlayer = function () {
 
   player.start = function (url = player.config.url) {
     if (!url) { return }
+
     flv = context.registry('FLV_CONTROLLER', FLV)(player)
-    flv.init()
     context.init()
-    player.mse = flv.mse
-    player.flv = flv
+
     flv.once(allEvents.INIT_SEGMENT, () => {
-      if (flv.type === 'live') {
+      if (player.config.isLive) {
         util.addClass(player.root, 'xgplayer-is-live')
         const live = util.createDom('xg-live', '正在直播', {}, 'xgplayer-live')
         player.controls.appendChild(live)
@@ -78,10 +77,10 @@ const flvPlayer = function () {
   }
 
   const loadData = (time = player.currentTime) => {
-    const loader = context.getInstance('FETCH_LOADER')
     const range = player.getBufferedRange()
     if (time < range[1]) {
-      if (flv.type === 'vod') {
+      if (!player.config.isLive) {
+        // TODO 在迫近preloadTime的时候开始加载
         if (range[1] - time < preloadTime) {
           flv.seek(range[1] + 1)
         }

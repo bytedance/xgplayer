@@ -89,7 +89,7 @@ class Context {
         return emitter.once(messageName, callback)
       }
 
-      emit (tag, messageName, ...args) {
+      emit (messageName, ...args) {
         checkMessageName(messageName)
         console.log(`[${this.TAG}] ${messageName}`, this)
         return emitter.emit(messageName, ...args)

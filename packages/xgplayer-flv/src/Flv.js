@@ -2,7 +2,7 @@ import FlvDemuxer from './parse/demux'
 import FetchLoader from '../../xgplayer-loader-fetch/src/index'
 import { XgBuffer } from '../../xgplayer-buffer/src/index'
 import { Tracks } from '../../xgplayer-buffer/src/track'
-import { REMUX_EVENTS } from './constants/events'
+import { REMUX_EVENTS, DEMUX_EVENTS } from './constants/events'
 import MSE from './parse/MSE'
 
 const Tag = 'FLVController'
@@ -31,7 +31,7 @@ class FlvController {
       initSegmentArrived: false,
       range: {
         start: 0,
-        end: 0
+        end: ''
       }
     }
   }
@@ -42,12 +42,28 @@ class FlvController {
     this._context.registry('LOADER_BUFFER', XgBuffer)
     this._context.registry('TRACKS', Tracks)
 
-    this.initMSE()
+    this.initListeners()
     this.initSourceOpenAndInitSegmentEvent()
   }
 
-  initMSE () {
+  initListeners () {
     this.on(REMUX_EVENTS.MEDIA_SEGMENT, this.handleMediaSegment.bind(this))
+    this.on(DEMUX_EVENTS.MEDIA_INFO, this.handleMediaInfo.bind(this))
+  }
+
+  handleMediaInfo () {
+    if (!this._context.mediaInfo) {
+      this.emit(DEMUX_EVENTS.DEMUX_ERROR, new Error('failed to get mediainfo'))
+    }
+    const buffer = this._context.getInstance('LOADER_BUFFER')
+    const loader = this._context.getInstance('FETCH_LOADER')
+    if (this.isSeekable) {
+      loader.cancel()
+      this.state.range = {
+        start: 0,
+        end: buffer.historyLen - 1
+      }
+    }
   }
 
   handleMediaSegment (buffer) {
@@ -136,7 +152,7 @@ class FlvController {
   destroy () {}
 
   get isSeekable () {
-    if (!this.context) {
+    if (!this._context || !this._context.mediaInfo) {
       return true
     }
     return this._context.mediaInfo.keyframes !== null && this._context.mediaInfo.keyframes !== undefined

@@ -9,6 +9,7 @@ export class XgBuffer {
    */
   constructor (length) {
     this.length = length || 0
+    this.historyLen = length || 0
     this.array = []
     this.offset = 0
   }
@@ -21,6 +22,7 @@ export class XgBuffer {
   push (data) {
     this.array.push(data)
     this.length += data.byteLength
+    this.historyLen += data.byteLength
   }
 
   /**
@@ -81,6 +83,11 @@ export class XgBuffer {
     this.array = []
     this.length = 0
     this.offset = 0
+  }
+
+  destroy () {
+    this.clear()
+    this.historyLen = 0
   }
 
   /**
