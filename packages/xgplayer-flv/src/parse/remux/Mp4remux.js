@@ -212,13 +212,13 @@ export default class Mp4Remuxer {
     const mdat = FMP4.mdat(mdatBox)
     moofMdat.write(moof, mdat)
 
-    if (!this._store.isLive) {
-      this._videoSegmentList.append(videoSegment)
-    }
+    // this._videoSegmentList.append(videoSegment)
+    // if (!this._store.isLive) {
+    // }
 
     track.samples = []
     track.length = 0
-
+    this.emit(REMUX_EVENTS.MEDIA_SEGMENT)
     this.handleMediaFragment({
       type: 'video',
       data: moofMdat.buffer.buffer,
@@ -228,9 +228,6 @@ export default class Mp4Remuxer {
   }
 
   _remuxAudio (track) {
-    if (!this._audioMeta) {
-      return
-    }
     const {samples} = track
     let dtsCorrection
     let firstDts = -1
@@ -384,12 +381,7 @@ export default class Mp4Remuxer {
     }
     track.samples = []
     track.length = 0
-    this.handleMediaFragment({
-      type: 'audio',
-      data: moofMdat.buffer.buffer,
-      sampleCount: mp4Samples.length,
-      fragment: audioSegment
-    })
+    this.emit(REMUX_EVENTS.MEDIA_SEGMENT)
   }
 
   initSilentAudio (dts, duration) {

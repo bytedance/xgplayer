@@ -255,6 +255,34 @@ class SpsParser {
         return 'Unknown'
     }
   }
+
+  static toVideoMeta (spsConfig) {
+    let meta = {}
+    if (spsConfig && spsConfig.codec_size) {
+      meta.codecWidth = spsConfig.codec_size.width
+      meta.codecHeight = spsConfig.codec_size.height
+      meta.presentWidth = spsConfig.present_size.width
+      meta.presentHeight = spsConfig.present_size.height
+    }
+
+    meta.profile = spsConfig.profile_string
+    meta.level = spsConfig.level_string
+    meta.bitDepth = spsConfig.bit_depth
+    meta.chromaFormat = spsConfig.chroma_format
+
+    meta.sarRatio = {
+      width: spsConfig.sar_ratio.width,
+      height: spsConfig.sar_ratio.height
+    }
+
+    if (spsConfig.frame_rate.fixed && spsConfig.frame_rate.fps_num > 0 && spsConfig.frame_rate.fps_den > 0) {
+      meta.frameRate = spsConfig.frame_rate
+    }
+
+    let fpsDen = meta.frameRate.fps_den
+    let fpsNum = meta.frameRate.fps_num
+    meta.refSampleDuration = Math.floor(meta.timescale * (fpsDen / fpsNum))
+  }
 }
 
 export default SpsParser

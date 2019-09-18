@@ -174,7 +174,7 @@ class FlvDemuxer {
       timestamp += timestampExt * 0x1000000
     }
 
-    chunk.timestamp = timestamp
+    chunk.dts = timestamp
 
     // streamId
     this.loaderBuffer.shift(3)
@@ -354,7 +354,7 @@ class FlvDemuxer {
 
     // hevc和avc的header解析方式一样
     chunk.avcPacketType = this.loaderBuffer.shift(1)[0]
-    chunk.compositionTime = this.loaderBuffer.toInt(0, 3)
+    chunk.cts = this.loaderBuffer.toInt(0, 3)
     this.loaderBuffer.shift(3)
 
     // 12 for hevc, 7 for avc
@@ -368,8 +368,8 @@ class FlvDemuxer {
         }
         let nalu = {}
         let r = 0
-        nalu.compositionTime = chunk.compositionTime
-        nalu.timestamp = chunk.timestamp
+        nalu.cts = chunk.cts
+        nalu.dts = chunk.dts
         while (chunk.data.length > r) {
           let sizes = chunk.data.slice(Number.parseInt(r), 4 + r)
           nalu.size = sizes[3]
@@ -509,31 +509,7 @@ class FlvDemuxer {
       this.tracks.videoTrack.pps = pps
     }
 
-    if (config && config.codec_size) {
-      meta.codecWidth = config.codec_size.width
-      meta.codecHeight = config.codec_size.height
-      meta.presentWidth = config.present_size.width
-      meta.presentHeight = config.present_size.height
-    }
-
-    meta.profile = config.profile_string || meta.profile
-    meta.level = config.level_string || meta.level
-    meta.bitDepth = config.bit_depth || meta.bitDepth
-    meta.chromaFormat = config.chroma_format || meta.chromaFormat
-
-    if (meta.sarRatio) {
-      meta.sarRatio.width = config.sar_ratio.width
-      meta.sarRatio.height = config.sar_ratio.height
-    }
-
-    if (meta.frameRate && config.frame_rate.fixed && config.frame_rate.fps_num > 0 && config.frame_rate.fps_den > 0) {
-      meta.frameRate = config.frame_rate
-    }
-
-    let fpsDen = meta.frameRate.fps_den
-    let fpsNum = meta.frameRate.fps_num
-    meta.refSampleDuration = Math.floor(meta.timescale * (fpsDen / fpsNum))
-
+    Object.assign(meta, SPSParser.toVideoMeta(config))
     meta.avcc = new Uint8Array(data.length)
     meta.avcc.set(data)
     track.meta = meta
