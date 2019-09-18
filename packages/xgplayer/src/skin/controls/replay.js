@@ -5,9 +5,7 @@ let s_replay = function () {
   let player = this
   let util = Player.util
   let root = player.root
-  if (navigator.userAgent.indexOf('iPhone OS 9') > -1) {
-    return
-  }
+
   let replayText = player.lang.REPLAY
   let btn = util.createDom('xg-replay', `${ReplayIcon}
                                          <xg-replay-txt class="xgplayer-replay-txt">${replayText}</xg-replay-txt>
