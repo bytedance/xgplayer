@@ -3,12 +3,12 @@ import Proxy, { ProxyOptions } from './proxy'
 import { Sniffer } from './utils/sniffer'
 import { Util } from './utils/util'
 
-declare class Player extends Proxy {
-  public constructor(options: PlayerOptions)
+declare class Player<T = {}> extends Proxy {
+  public constructor(options: PlayerOptions & T)
 
   public readonly root: HTMLElement
   public readonly controls: HTMLElement
-  public config: PlayerOptions
+  public config: PlayerOptions & T
 
   public start(url?: string): void
   public reload(): void
