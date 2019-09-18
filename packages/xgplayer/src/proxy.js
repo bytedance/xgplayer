@@ -173,7 +173,7 @@ class Proxy {
     return this.video.play()
   }
   pause () {
-    return this.video.pause()
+    this.video.pause()
   }
   canPlayType (type) {
     return this.video.canPlayType(type)
