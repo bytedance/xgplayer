@@ -8,6 +8,7 @@ declare class Player extends Proxy {
 
   public readonly root: HTMLElement
   public readonly controls: HTMLElement
+  public config: PlayerOptions
 
   public start(url?: string): void
   public reload(): void
