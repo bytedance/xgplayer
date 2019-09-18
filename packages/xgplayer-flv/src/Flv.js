@@ -1,6 +1,7 @@
 import FlvDemuxer from './parse/demux'
 import FetchLoader from '../../xgplayer-loader-fetch/src/index'
 import { XgBuffer } from '../../xgplayer-buffer/src/index'
+import { Tracks } from '../../xgplayer-buffer/src/track'
 import { REMUX_EVENTS } from './constants/events'
 import MSE from './parse/MSE'
 
@@ -39,6 +40,7 @@ class FlvController {
     this._context.registry('FLV_DEMUXER', FlvDemuxer)
     this._context.registry('FETCH_LOADER', FetchLoader)
     this._context.registry('LOADER_BUFFER', XgBuffer)
+    this._context.registry('TRACKS', Tracks)
 
     this.initMSE()
     this.initSourceOpenAndInitSegmentEvent()
