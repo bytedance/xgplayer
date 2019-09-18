@@ -1,7 +1,6 @@
 import Player from 'xgplayer'
 import Hls from './hls.js/hls'
 import utils from './utils'
-import { SSL_OP_SSLEAY_080_CLIENT_DH_BUG } from 'constants'
 
 class HlsJsPlayer extends Player {
   constructor (options) {
