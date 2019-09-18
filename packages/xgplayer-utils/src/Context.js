@@ -1,18 +1,12 @@
-import flvEvents from '../../xgplayer-flv/src/constants/events'
 const events = require('events')
 
-// 根据解码器类型对通信信道进行划分
-const eventMap = {
-  flv: flvEvents
-}
-
 class Context {
-  constructor (type) {
+  constructor (allowedEvents = []) {
     this._emitter = new events.EventEmitter()
     this._instanceMap = {} // 所有的解码流程实例
     this._clsMap = {} // 构造函数的map
     this._inited = false
-    this.allEvents = eventMap[type] || []
+    this.allowedEvents = allowedEvents
   }
 
   /**
@@ -41,6 +35,9 @@ class Context {
         newInstance.init();
       }
       this._instanceMap[tag] = newInstance
+      if (newInstance.init) {
+        newInstance.init() // TODO: lifecircle
+      }
       return newInstance
     } else {
       throw new Error(`${tag}未在context中注册`)
@@ -56,10 +53,12 @@ class Context {
       return
     }
     for (let tag in this._clsMap) {
-      if (this._clsMap.hasOwnProperty(tag)) {
+      // if not inited, init an instance
+      if (this._clsMap.hasOwnProperty(tag) && !this._instanceMap[tag]) {
         this.initInstance(tag, config)
       }
     }
+    this._inited = true
   }
 
   /**
@@ -75,7 +74,7 @@ class Context {
       constructor (...args) {
         super(...args)
         this.listeners = {}
-        this.tag = tag
+        this.TAG = tag
         this._context = self
       }
       on (messageName, callback) {
@@ -103,23 +102,38 @@ class Context {
         return emitter.off(messageName, callback)
       }
 
+      removeListeners () {
+        const hasOwn = Object.prototype.hasOwnProperty.bind(this.listeners)
+
+        for (let messageName in this.listeners) {
+          if (hasOwn(messageName)) {
+            const callbacks = this.listeners[messageName] || []
+            for (let i = 0; i < callbacks.length; i++) {
+              const callback = callbacks[i]
+              emitter.off(messageName, callback)
+            }
+          }
+        }
+      }
+
       /**
        * 在组件销毁时，默认将它注册的事件全部卸载，确保不会造成内存泄漏
        */
       destroy () {
-        Object.keys(this.listeners).forEach((messageName) => {
-          const callbacks = this.listeners[messageName]
-          callbacks.forEach((callback) => {
-            emitter.off(messageName, callback)
-          })
-        })
+        // step1 unlisten events
+        this.removeListeners()
+
+        // step2 release from context
         delete self._instanceMap[tag]
         super.destroy()
       }
     }
     this._clsMap[tag] = enhanced
 
-    // support for: const instance = context.registry(tag, Cls)(config)
+    /**
+     * get instance immediately
+     * e.g const instance = context.registry(tag, Cls)(config)
+     * */
     return (...args) => {
       return this.initInstance(tag, ...args)
     }
@@ -141,7 +155,7 @@ class Context {
    */
   destroy () {
     this._emitter = null
-    this.allEvents = null
+    this.allowedEvents = null
     this._clsMap = null
     this.destroyInstances()
   }
@@ -152,7 +166,7 @@ class Context {
    * @private
    */
   _isMessageNameValid (messageName) {
-    if (!this.allEvents[messageName]) {
+    if (!this.allowedEvents.indexOf(messageName) < 0) {
       throw new Error(`unregistered message name: ${messageName}`)
     }
   }

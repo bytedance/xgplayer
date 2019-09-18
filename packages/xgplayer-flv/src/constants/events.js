@@ -18,4 +18,14 @@ export const REMUX_EVENTS = {
   INIT_SEGMENT: 'init_segment'
 }
 
-export default Object.assign({}, LOADER_EVENTS, DEMUX_EVENTS, REMUX_EVENTS)
+const eventsObj = Object.assign({}, LOADER_EVENTS, DEMUX_EVENTS, REMUX_EVENTS)
+
+export const flvAllowedEvents = []
+
+for (let key in eventsObj) {
+  if (eventsObj.hasOwnProperty(key)) {
+    flvAllowedEvents.push(eventsObj[key])
+  }
+}
+
+export default eventsObj

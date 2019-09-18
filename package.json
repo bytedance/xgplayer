@@ -71,5 +71,9 @@
       "path": "./node_modules/cz-conventional-changelog"
     }
   },
-  "homepage": "https://github.com/bytedance/xgplayer#readme"
+  "homepage": "https://github.com/bytedance/xgplayer#readme",
+  "dependencies": {
+    "babel-eslint": "^10.0.3",
+    "http-server": "^0.11.1"
+  }
 }

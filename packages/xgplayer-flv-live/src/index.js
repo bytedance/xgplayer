@@ -1,15 +1,18 @@
 import FetchLoader from "xgplayer-loader-fetch";
 import XgBuffer from "xgplayer-buffer";
-import Context from "xgplayer-utils/Context";
 import FlvDemuxer from 'xgplayer-flv/demux'
+import FetchLoader from 'xgplayer-loader-fetch'
 
 const Tag = 'FLVLiveController'
 
 class FlvLiveController {
   constructor () {
     this.TAG = Tag
-    this.context = new Context()
-    FlvDemuxer(this.context)
+  }
+
+  init () {
+    this._context.registry('FLV_DEMUXER', FlvDemuxer)
+    this._context.registry('FETCH_LOADER', FetchLoader)
   }
 
   _init() {
