@@ -112,6 +112,13 @@ export class XgBuffer {
     }
     return retInt
   }
+
+  readUint8() {
+    if(this.length < 1) {
+      return;
+    }
+    return this.array[0][this.offset];
+  }
 }
 
 export class AudioTrack extends Track {

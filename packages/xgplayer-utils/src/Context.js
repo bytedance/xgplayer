@@ -37,6 +37,9 @@ class Context {
   initInstance (tag, ...args) {
     if (this._clsMap[tag]) {
       const newInstance = new this._clsMap[tag](...args)
+      if(newInstance.init) {
+        newInstance.init();
+      }
       this._instanceMap[tag] = newInstance
       return newInstance
     } else {
