@@ -1,5 +1,5 @@
 import Stream from '../stream';
-import Nalunit from './nalunit';
+import Nalunit from '../../../xgplayer-utils/src/h264/nalunit';
 import { AudioTrack, VideoTrack } from '../../../xgplayer-buffer/src/index';
 const StreamType = {
   0x01: ['video', 'MPEG-1'],
@@ -23,18 +23,18 @@ const StreamType = {
 };
 
 class TsDemuxer {
-  constructor(configs) {
+  constructor (configs) {
     this.configs = Object.assign({}, configs);
     this.demuxing = false;
     this.pat = [];
     this.pmt = [];
   }
 
-  init() {
+  init () {
     this.inputbuffer = this._context.getInstance(this.configs.inputbuffer)
   }
 
-  demux() {
+  demux () {
     if (this.demuxing) {
       return
     }
@@ -66,7 +66,7 @@ class TsDemuxer {
       for (let j = 0; j < epeses.length; j++) {
         epeses[j].ES.buffer = TsDemuxer.Merge(epeses[j].ES.buffer);
         if (epeses[j].type === 'audio') {
-          // console.log(epeses[j]);
+          console.log(epeses[j]);
         } else if (epeses[j].type === 'video') {
           this.pushVideoSample(epeses[j]);
         }
@@ -75,6 +75,17 @@ class TsDemuxer {
 
       }
     }
+  }
+
+  pushAudioSample (pes) {
+    let track;
+    if (!this._context._clsMap['AUDIO_TRACK']) {
+      this._context.registry('AUDIO_TRACK', VideoTrack);
+      track = this._context.initInstance('AUDIO_TRACK');
+    } else {
+      track = this._context.getInstance('AUDIO_TRACK');
+    }
+    track.samples.push(pes);
   }
 
   pushVideoSample (pes) {
@@ -100,7 +111,7 @@ class TsDemuxer {
       }
     }
 
-    let sample = { pts: pes.pts / 90, dts: pes.dts / 90, data: new Uint8Array(sampleLength) }
+    let sample = { pts: parseInt(pes.pts / 90), dts: parseInt(pes.dts / 90), data: new Uint8Array(sampleLength) }
     let offset = 0;
     for (let i = 0; i < nals.length; i++) {
       let nal = nals[i];
@@ -117,7 +128,6 @@ class TsDemuxer {
       }
     }
     track.samples.push(sample);
-    console.log(track);
   }
 
   static Merge (buffers) {
@@ -137,7 +147,7 @@ class TsDemuxer {
     return new Stream(data.buffer);
   }
 
-  static read(stream, ts, frags) {
+  static read (stream, ts, frags) {
     TsDemuxer.readHeader(stream, ts);
     TsDemuxer.readPayload(stream, ts, frags);
     if (ts.header.packet === 'MEDIA' && ts.header.payload === 1) {
@@ -145,22 +155,19 @@ class TsDemuxer {
     }
   }
 
-  static readPayload(stream, ts, frags) {
+  static readPayload (stream, ts, frags) {
     let header = ts.header
     let pid = header.pid;
     switch (pid) {
       case 0:
         TsDemuxer.PAT(stream, ts, frags);
         break;
-      /*
       case 1:
-        r = TsDemuxer.CAT(buffer);
+        TsDemuxer.CAT(stream, ts, frags);
         break;
-
       case 2:
-        r = TsDemuxer.TSDT(buffer);
+        TsDemuxer.TSDT(stream, ts, frags);
         break;
-        */
       case 0x1fff:
         break;
       default:
@@ -174,7 +181,7 @@ class TsDemuxer {
     }
   }
 
-  static readHeader(stream, ts) {
+  static readHeader (stream, ts) {
     let header = {};
     header.sync = stream.readUint8();
     let next = stream.readUint16();
@@ -199,7 +206,7 @@ class TsDemuxer {
     ts.header = header;
   }
 
-  static PAT(stream, ts, frags) {
+  static PAT (stream, ts, frags) {
     let ret = {};
     let next = stream.readUint8();
     stream.skip(next);
@@ -234,7 +241,7 @@ class TsDemuxer {
     // TODO CRC
   }
 
-  static PMT(stream, ts, frags) {
+  static PMT (stream, ts, frags) {
     let ret = {};
     let header = ts.header;
     header.packet = 'PMT';
@@ -274,7 +281,7 @@ class TsDemuxer {
     ts.payload = ret;
   }
 
-  static Media(stream, ts, type) {
+  static Media (stream, ts, type) {
     let header = ts.header;
     let payload = {};
     header.type = type;
@@ -350,7 +357,7 @@ class TsDemuxer {
     ts.payload = payload;
   }
 
-  static PES(ts) {
+  static PES (ts) {
     let ret = {};
     let buffer = ts.payload.stream;
     let next = buffer.readUint24();
@@ -466,7 +473,7 @@ class TsDemuxer {
     return ret;
   }
 
-  static ES(buffer, type) {
+  static ES (buffer, type) {
     let next;
     let ret = {};
     if (type === 'video') {
@@ -508,7 +515,33 @@ class TsDemuxer {
     return ret;
   }
 
-  static getAudioConfig(audioObjectType, channel, sampleIndex) {
+  static TSDT (stream, ts, frags) {
+    // TODO
+    ts.payload = {};
+  }
+
+  static CAT (stream, ts, frags) {
+    let ret = {}
+    ret.tableID = stream.readUint8();
+    let next = stream.readUint16();
+    ret.sectionIndicator = next >>> 7;
+    ret.sectionLength = next & 0x0fff;
+    stream.skip(2);
+    next = stream.readUint8();
+    ret.version = next >>> 3;
+    ret.currentNextIndicator = next & 0x01;
+    ret.sectionNumber = stream.readUint8();
+    ret.lastSectionNumber = stream.readUint8();
+    let N = (this.sectionLength - 9) / 4;
+    let list = [];
+    for (let i = 0; i < N; i++) {
+      list.push({});
+    }
+    ret.crc32 = stream.readUint32();
+    ts.payload = ret;
+  }
+
+  static getAudioConfig (audioObjectType, channel, sampleIndex) {
     let userAgent = navigator.userAgent.toLowerCase()
     let config;
     let extensionSampleIndex;

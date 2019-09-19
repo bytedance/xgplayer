@@ -8,7 +8,6 @@ class M3U8Parser {
     let ret = {
       duration: 0
     };
-    console.log(text);
     let refs = text.split(/\r|\n/);
     let ref = refs.shift()
     if (!ref.match('#EXTM3U')) {

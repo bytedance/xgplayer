@@ -1,6 +1,7 @@
 // TODO: Fix引用
 import Context from '../../xgplayer-utils/src/Context';
 import { XgBuffer } from '../../xgplayer-buffer/src/index';
+import Playlist from './playlist';
 import FetchLoader from '../../xgplayer-loader-fetch/src';
 
 import M3U8Parser from './demuxer/m3u8parser';
@@ -12,16 +13,18 @@ class HLSLiveController {
     this.url = '';
     this.baseurl = '';
     this.sequence = 0;
-
     this._playlist = null;
+    this.retrytimes = this.configs.retrytimes || 3;
   }
 
   init () {
-    // 初始化两个Buffer （M3U8/TS)
+    // 初始化Buffer （M3U8/TS/Playlist);
     this._context.registry('M3U8_BUFFER', XgBuffer);
     this._context.registry('TS_BUFFER', XgBuffer);
+    this._context.registry('PLAYLIST', Playlist);
     this._context.initInstance('M3U8_BUFFER');
     this._context.initInstance('TS_BUFFER');
+    this._playlist = this._context.initInstance('PLAYLIST', {autoclear: true});
 
     // 初始化M3U8Loader;
     this._context.registry('M3U8_LOADER', FetchLoader);
@@ -37,27 +40,29 @@ class HLSLiveController {
   }
 
   initEvents () {
-    console.log(this);
     this.on('LOADER_COMPLETE', (buffer) => {
       let tsloader = this._context.getInstance('TS_LOADER')
+      let m3u8loader = this._context.getInstance('M3U8_LOADER');
       if (buffer.TAG === 'M3U8_BUFFER') {
         let mdata = M3U8Parser.parse(buffer.shift(), this.baseurl);
-
-        if (!this._playlist) {
-          this._playlist = mdata;
-        } else {
-          this._playlist = mdata;
-        }
-        if (this._playlist.frags && this._playlist.frags.length > 0) {
-          let frag = this._playlist.frags.shift();
+        this._playlist.pushM3U8(mdata);
+        let frag = this._playlist.getTs();
+        if (frag) {
           tsloader.load(frag.url);
+        } else {
+          if (this.retrytimes > 0) {
+            this.retrytimes--;
+            m3u8loader.load(this.url);
+          }
         }
       } else if (buffer.TAG === 'TS_BUFFER') {
         let td = this._context.getInstance('TS_DEMUXER');
         td.demux();
-        if (this._playlist.frags && this._playlist.frags.length > 0) {
-          // let frag = this._playlist.frags.shift();
-          // tsloader.load(frag.url);
+        let frag = this._playlist.getTs();
+        if (frag) {
+          tsloader.load(frag.url);
+        } else {
+          m3u8loader.load(this.url);
         }
       }
     })
