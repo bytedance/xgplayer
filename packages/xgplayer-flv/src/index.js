@@ -8,7 +8,7 @@ const isEnded = (player, flv) => {
     if (player.duration - player.currentTime < 2) {
       const range = player.getBufferedRange()
       if (player.currentTime - range[1] < 0.1) {
-        player.mse.endOfStream()
+        flv.mse.endOfStream()
       }
     }
   }

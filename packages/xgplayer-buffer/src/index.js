@@ -152,3 +152,15 @@ export class VideoTrack extends Track {
     this.dropped = 0
   }
 }
+
+export class RemuxBuffer {
+  constructor () {
+    this.video = []
+    this.audio = []
+  }
+
+  destroy () {
+    this.video = []
+    this.audio = []
+  }
+}
