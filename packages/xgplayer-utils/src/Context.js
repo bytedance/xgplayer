@@ -1,3 +1,5 @@
+import MediaInfo from './models/MediaInfo'
+
 const events = require('events')
 
 class Context {
@@ -6,6 +8,7 @@ class Context {
     this._instanceMap = {} // 所有的解码流程实例
     this._clsMap = {} // 构造函数的map
     this._inited = false
+    this.mediaInfo = new MediaInfo()
     this.allowedEvents = allowedEvents
   }
 
