@@ -1,7 +1,7 @@
 export class AudioTrackMeta {
   constructor (meta) {
     const _default = {
-      audioSampleRate: 48000,
+      sampleRate: 48000,
       channelCount: 2,
       codec: 'mp4a.40.2',
       config: [41, 401, 136, 0],
@@ -40,7 +40,7 @@ export class VideoTrackMeta {
       presentWidth: 1280,
       profile: 'High',
       refSampleDuration: 40,
-      sarRatio: {
+      parRatio: {
         height: 1,
         width: 1
       },

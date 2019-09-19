@@ -105,22 +105,22 @@ class SPSParser {
       frame_crop_bottom_offset = gb.readUEG()
     }
 
-    let sar_width = 1, sar_height = 1
+    let par_width = 1, par_height = 1
     let fps = 0, fps_fixed = true, fps_num = 0, fps_den = 0
 
     let vui_parameters_present_flag = gb.readBool()
     if (vui_parameters_present_flag) {
       if (gb.readBool()) { // aspect_ratio_info_present_flag
         let aspect_ratio_idc = gb.readByte()
-        let sar_w_table = [1, 12, 10, 16, 40, 24, 20, 32, 80, 18, 15, 64, 160, 4, 3, 2]
-        let sar_h_table = [1, 11, 11, 11, 33, 11, 11, 11, 33, 11, 11, 33, 99, 3, 2, 1]
+        let par_w_table = [1, 12, 10, 16, 40, 24, 20, 32, 80, 18, 15, 64, 160, 4, 3, 2]
+        let par_h_table = [1, 11, 11, 11, 33, 11, 11, 11, 33, 11, 11, 33, 99, 3, 2, 1]
 
         if (aspect_ratio_idc > 0 && aspect_ratio_idc < 16) {
-          sar_width = sar_w_table[aspect_ratio_idc - 1]
-          sar_height = sar_h_table[aspect_ratio_idc - 1]
+          par_width = par_w_table[aspect_ratio_idc - 1]
+          par_height = par_h_table[aspect_ratio_idc - 1]
         } else if (aspect_ratio_idc === 255) {
-          sar_width = gb.readByte() << 8 | gb.readByte()
-          sar_height = gb.readByte() << 8 | gb.readByte()
+          par_width = gb.readByte() << 8 | gb.readByte()
+          par_height = gb.readByte() << 8 | gb.readByte()
         }
       }
 
@@ -148,9 +148,9 @@ class SPSParser {
       }
     }
 
-    let sarScale = 1
-    if (sar_width !== 1 || sar_height !== 1) {
-      sarScale = sar_width / sar_height
+    let parScale = 1
+    if (par_width !== 1 || par_height !== 1) {
+      parScale = par_width / par_height
     }
 
     let crop_unit_x = 0, crop_unit_y = 0
@@ -170,7 +170,7 @@ class SPSParser {
     codec_width -= (frame_crop_left_offset + frame_crop_right_offset) * crop_unit_x
     codec_height -= (frame_crop_top_offset + frame_crop_bottom_offset) * crop_unit_y
 
-    let present_width = Math.ceil(codec_width * sarScale)
+    let present_width = Math.ceil(codec_width * parScale)
 
     gb.destroy()
     gb = null
@@ -189,9 +189,9 @@ class SPSParser {
         fps_num: fps_num
       },
 
-      sar_ratio: {
-        width: sar_width,
-        height: sar_height
+      par_ratio: {
+        width: par_width,
+        height: par_height
       },
 
       codec_size: {
@@ -270,9 +270,9 @@ class SPSParser {
     meta.bitDepth = spsConfig.bit_depth
     meta.chromaFormat = spsConfig.chroma_format
 
-    meta.sarRatio = {
-      width: spsConfig.sar_ratio.width,
-      height: spsConfig.sar_ratio.height
+    meta.parRatio = {
+      width: spsConfig.par_ratio.width,
+      height: spsConfig.par_ratio.height
     }
 
     if (spsConfig.frame_rate.fixed && spsConfig.frame_rate.fps_num > 0 && spsConfig.frame_rate.fps_den > 0) {

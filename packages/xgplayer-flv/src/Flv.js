@@ -1,4 +1,5 @@
 import FlvDemuxer from './parse/demux'
+import Mp4Remuxer from '../../xgplayer-remux/src/mp4'
 import FetchLoader from '../../xgplayer-loader-fetch/src/index'
 import { XgBuffer } from '../../xgplayer-buffer/src/index'
 import { Tracks } from '../../xgplayer-buffer/src/track'
@@ -41,6 +42,7 @@ class FlvController {
     this._context.registry('FETCH_LOADER', FetchLoader)
     this._context.registry('LOADER_BUFFER', XgBuffer)
     this._context.registry('TRACKS', Tracks)
+    this._context.registry('MP4_REMUXER', Mp4Remuxer)
 
     this.initListeners()
     this.initSourceOpenAndInitSegmentEvent()
@@ -76,24 +78,16 @@ class FlvController {
    */
   initSourceOpenAndInitSegmentEvent () {
     const sourceOpentask = createAsyncTask()
-    const initSegmentTask = createAsyncTask()
+    // const initSegmentTask = createAsyncTask()
 
     this.mse.once('sourceopen', sourceOpentask.resolve)
-    this.once(REMUX_EVENTS.INIT_SEGMENT, initSegmentTask.resolve)
-
-    Promise.all([
-      initSegmentTask.promise,
-      sourceOpentask.promise
-    ]).then((result) => {
-      if (result && result[0]) {
-        const initSegment = result[0]
-        // append ftyp and moov
-        this.handleAppendInitSegment(initSegment)
-      }
+    this.on(REMUX_EVENTS.INIT_SEGMENT, (type, segment) => {
+      this.handleAppendInitSegment(type, segment)
     })
+
   }
 
-  handleAppendInitSegment (initSegment) {
+  handleAppendInitSegment (type, initSegment) {
     this.state.initSegmentArrived = true
     this.mse.appendBuffer(initSegment)
   }
@@ -152,7 +146,7 @@ class FlvController {
   destroy () {}
 
   get isSeekable () {
-    if (!this._context || !this._context.mediaInfo) {
+    if (!this._context || !this._context.mediaInfo.isComplete()) {
       return true
     }
     return this._context.mediaInfo.keyframes !== null && this._context.mediaInfo.keyframes !== undefined
