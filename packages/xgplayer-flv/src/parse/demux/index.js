@@ -1,7 +1,7 @@
 import { LOADER_EVENTS, DEMUX_EVENTS } from '../../constants/events'
 import AMFParser from './AMFParser'
-import SPSParser from '../../../../xgplayer-utils/src/h264/spsParser'
-import { getDefaultAudioTrackMeta, getDefaultVideoTrackMeta } from './defaults'
+import SPSParser from '../../../../xgplayer-utils/src/h264/SPSParser'
+import { AudioTrackMeta, VideoTrackMeta } from '../../../../xgplayer-utils/src/models/trackMeta'
 import {VideoTrack, AudioTrack} from '../../../../xgplayer-buffer/src'
 
 class FlvDemuxer {
@@ -92,7 +92,7 @@ class FlvDemuxer {
   initVideoTrack () {
     this._trackNum++
     let videoTrack = new VideoTrack()
-    videoTrack.meta = getDefaultVideoTrackMeta()
+    videoTrack.meta = new VideoTrackMeta()
     videoTrack.id = videoTrack.meta.id = this._trackNum
 
     this.tracks.videoTrack = videoTrack
@@ -104,7 +104,7 @@ class FlvDemuxer {
   initAudioTrack () {
     this._trackNum++
     let audioTrack = new AudioTrack()
-    audioTrack.meta = getDefaultAudioTrackMeta()
+    audioTrack.meta = new AudioTrackMeta()
     audioTrack.id = audioTrack.meta.id = this._trackNum
 
     this.tracks.audioTrack = audioTrack
@@ -211,8 +211,16 @@ class FlvDemuxer {
     let videoTrack = this.tracks.videoTrack
 
     let data = this.loaderBuffer.shift(chunk.datasize)
+
     const info = new AMFParser().resolve(data, data.length)
-    const mediaInfo = this._context.mediaInfo = info ? info.onMetaData : undefined
+
+    const onMetaData = this._context.onMetaData = info ? info.onMetaData : undefined
+
+    // fill mediaInfo
+    this._context.duration = onMetaData.duration
+    this._context.hasVideo = onMetaData.hasVideo
+    this._context.hsaAudio = onMetaData.hsaAudio
+
     let validate = this._datasizeValidator(chunk.datasize)
     if (validate) {
       this.emit(DEMUX_EVENTS.MEDIA_INFO)
@@ -222,15 +230,15 @@ class FlvDemuxer {
     // Edit default meta.
     if (audioTrack && !audioTrack.hasSpecificConfig) {
       let meta = audioTrack.meta
-      if (mediaInfo.audiosamplerate) {
-        meta.audioSampleRate = mediaInfo.audiosamplerate
+      if (onMetaData.audiosamplerate) {
+        meta.audioSampleRate = onMetaData.audiosamplerate
       }
 
-      if (mediaInfo.audiochannels) {
-        meta.channelCount = mediaInfo.audiochannels
+      if (onMetaData.audiochannels) {
+        meta.channelCount = onMetaData.audiochannels
       }
 
-      switch (mediaInfo.audiosamplerate) {
+      switch (onMetaData.audiosamplerate) {
         case 44100:
           meta.sampleRateIndex = 4
           break
@@ -244,8 +252,8 @@ class FlvDemuxer {
     }
     if (videoTrack && !videoTrack.hasSpecificConfig) {
       let meta = videoTrack.meta
-      if (typeof mediaInfo.framerate === 'number') {
-        let fpsNum = Math.floor(mediaInfo.framerate * 1000)
+      if (typeof onMetaData.framerate === 'number') {
+        let fpsNum = Math.floor(onMetaData.framerate * 1000)
         if (fpsNum > 0) {
           let fps = fpsNum / 1000
           if (!meta.frameRate) {
@@ -270,6 +278,8 @@ class FlvDemuxer {
     ret.frameLength = (data[2] & 4) >>> 2
     ret.dependsOnCoreCoder = (data[2] & 2) >>> 1
     ret.extensionFlagIndex = data[2] & 1
+
+    ret.codec = `mp4a.40.${ret.objectType}`
     return ret
   }
 
@@ -282,7 +292,7 @@ class FlvDemuxer {
     let meta = track.meta
 
     if (!meta) {
-      meta = getDefaultAudioTrackMeta()
+      meta = new AudioTrackMeta()
     }
 
     let info = this.loaderBuffer.shift(1)[0]
@@ -312,15 +322,24 @@ class FlvDemuxer {
     delete chunk.tagType
     let validate = this._datasizeValidator(chunk.datasize)
 
-    if (chunk.data[0] === 0) {
-      let ret = this._aacSequenceHeaderParser(chunk.data)
-      audioSampleRate = ret.audiosamplerate || meta.audioSampleRate
-      audioSampleRateIndex = ret.sampleRateIndex || meta.sampleRateIndex
+    if (chunk.data[0] === 0) { // AAC Sequence Header
+      let aacHeader = this._aacSequenceHeaderParser(chunk.data)
+      audioSampleRate = aacHeader.audiosamplerate || meta.audioSampleRate
+      audioSampleRateIndex = aacHeader.sampleRateIndex || meta.sampleRateIndex
       refSampleDuration = Math.floor(1024 / audioSampleRate * meta.timescale)
-      meta.channelCount = ret.channelCount
+      meta.channelCount = aacHeader.channelCount
       meta.audioSampleRate = audioSampleRate
       meta.sampleRateIndex = audioSampleRateIndex
       meta.refSampleDuration = refSampleDuration
+
+      const audioMedia = this._context.mediaInfo.audio
+
+      // fill audio media info
+      audioMedia.codec = aacHeader.codec
+      audioMedia.channelCount = aacHeader.channelCount
+      audioMedia.sampleRate = aacHeader.audioSampleRate
+      audioMedia.sampleRateIndex = aacHeader.audioSampleRateIndex
+
       if (this._hasScript && !this._hasAudioSequence && (!this.tracks.videoTrack || this._hasVideoSequence)) {
         this.emit(DEMUX_EVENTS.METADATA_PARSED)
       } else if (this._hasScript && this._hasAudioSequence) {
@@ -453,7 +472,7 @@ class FlvDemuxer {
     let offset = 0
 
     if (!track.meta) {
-      track.meta = getDefaultVideoTrackMeta()
+      track.meta = new VideoTrackMeta()
     }
     let meta = track.meta
 
@@ -510,6 +529,19 @@ class FlvDemuxer {
     }
 
     Object.assign(meta, SPSParser.toVideoMeta(config))
+
+    // fill video media info
+    const videoMedia = this._context.mediaInfo.video
+
+    videoMedia.codec = meta.codec
+    videoMedia.profile = meta.profile
+    videoMedia.level = meta.level
+    videoMedia.chromaFormat = meta.chromaFormat
+    videoMedia.frameRate = meta.frameRate
+    videoMedia.sarRatio = meta.sarRatio
+    videoMedia.width = videoMedia.width === meta.presentWidth ? videoMedia.width : meta.presentWidth
+    videoMedia.height = videoMedia.height === meta.presentHeight ? videoMedia.width : meta.presentHeight
+
     meta.avcc = new Uint8Array(data.length)
     meta.avcc.set(data)
     track.meta = meta
