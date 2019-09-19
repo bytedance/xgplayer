@@ -17,7 +17,6 @@ class HLSLiveController {
   }
 
   init () {
-    console.log('init');
     // 初始化两个Buffer （M3U8/TS)
     this._context.registry('M3U8_BUFFER', XgBuffer);
     this._context.registry('TS_BUFFER', XgBuffer);
@@ -38,10 +37,10 @@ class HLSLiveController {
   }
 
   initEvents () {
-    this.on('loader_complete', (buffer) => {
+    console.log(this);
+    this.on('LOADER_COMPLETE', (buffer) => {
       let tsloader = this._context.getInstance('TS_LOADER')
       if (buffer.TAG === 'M3U8_BUFFER') {
-        console.log(buffer);
         let mdata = M3U8Parser.parse(buffer.shift(), this.baseurl);
 
         if (!this._playlist) {

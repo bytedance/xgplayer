@@ -1,5 +1,6 @@
 import Stream from '../stream';
 import Nalunit from './nalunit';
+import { AudioTrack, VideoTrack } from '../../../xgplayer-buffer/src/index';
 const StreamType = {
   0x01: ['video', 'MPEG-1'],
   0x02: ['video', 'MPEG-2'],
@@ -22,18 +23,18 @@ const StreamType = {
 };
 
 class TsDemuxer {
-  constructor (configs) {
+  constructor(configs) {
     this.configs = Object.assign({}, configs);
     this.demuxing = false;
     this.pat = [];
     this.pmt = [];
   }
 
-  init () {
+  init() {
     this.inputbuffer = this._context.getInstance(this.configs.inputbuffer)
   }
 
-  demux () {
+  demux() {
     if (this.demuxing) {
       return
     }
@@ -64,11 +65,59 @@ class TsDemuxer {
       let epeses = peses[Object.keys(peses)[i]];
       for (let j = 0; j < epeses.length; j++) {
         epeses[j].ES.buffer = TsDemuxer.Merge(epeses[j].ES.buffer);
+        if (epeses[j].type === 'audio') {
+          // console.log(epeses[j]);
+        } else if (epeses[j].type === 'video') {
+          this.pushVideoSample(epeses[j]);
+        }
       }
       if (epeses[0].type === 'video') {
-        Nalunit.getNalunits(epeses[0].ES.buffer);
+
       }
     }
+  }
+
+  pushVideoSample (pes) {
+    let nals = Nalunit.getNalunits(pes.ES.buffer);
+    let track;
+    if (!this._context._clsMap['VIDEO_TRACK']) {
+      this._context.registry('VIDEO_TRACK', VideoTrack);
+      track = this._context.initInstance('VIDEO_TRACK');
+    } else {
+      track = this._context.getInstance('VIDEO_TRACK');
+    }
+
+    let sampleLength = 0;
+    for (let i = 0; i < nals.length; i++) {
+      let nal = nals[i];
+      if (nal.sps) {
+        track.meta = nal.sps;
+        track.sps = nal.body;
+      } else if (nal.pps) {
+        track.pps = nal.body;
+      } else {
+        sampleLength += (4 + nal.body.byteLength);
+      }
+    }
+
+    let sample = { pts: pes.pts / 90, dts: pes.dts / 90, data: new Uint8Array(sampleLength) }
+    let offset = 0;
+    for (let i = 0; i < nals.length; i++) {
+      let nal = nals[i];
+      let length = nal.body.byteLength;
+      if (!nal.pps && !nal.sps) {
+        sample.data.set(new Uint8Array([length >>> 24 & 0xff,
+          length >>> 16 & 0xff,
+          length >>> 8 & 0xff,
+          length & 0xff
+        ]), offset);
+        offset += 4;
+        sample.data.set(nal.body, offset);
+        offset += length;
+      }
+    }
+    track.samples.push(sample);
+    console.log(track);
   }
 
   static Merge (buffers) {
@@ -88,7 +137,7 @@ class TsDemuxer {
     return new Stream(data.buffer);
   }
 
-  static read (stream, ts, frags) {
+  static read(stream, ts, frags) {
     TsDemuxer.readHeader(stream, ts);
     TsDemuxer.readPayload(stream, ts, frags);
     if (ts.header.packet === 'MEDIA' && ts.header.payload === 1) {
@@ -96,7 +145,7 @@ class TsDemuxer {
     }
   }
 
-  static readPayload (stream, ts, frags) {
+  static readPayload(stream, ts, frags) {
     let header = ts.header
     let pid = header.pid;
     switch (pid) {
@@ -125,7 +174,7 @@ class TsDemuxer {
     }
   }
 
-  static readHeader (stream, ts) {
+  static readHeader(stream, ts) {
     let header = {};
     header.sync = stream.readUint8();
     let next = stream.readUint16();
@@ -150,7 +199,7 @@ class TsDemuxer {
     ts.header = header;
   }
 
-  static PAT (stream, ts, frags) {
+  static PAT(stream, ts, frags) {
     let ret = {};
     let next = stream.readUint8();
     stream.skip(next);
@@ -185,7 +234,7 @@ class TsDemuxer {
     // TODO CRC
   }
 
-  static PMT (stream, ts, frags) {
+  static PMT(stream, ts, frags) {
     let ret = {};
     let header = ts.header;
     header.packet = 'PMT';
@@ -225,7 +274,7 @@ class TsDemuxer {
     ts.payload = ret;
   }
 
-  static Media (stream, ts, type) {
+  static Media(stream, ts, type) {
     let header = ts.header;
     let payload = {};
     header.type = type;
@@ -301,7 +350,7 @@ class TsDemuxer {
     ts.payload = payload;
   }
 
-  static PES (ts) {
+  static PES(ts) {
     let ret = {};
     let buffer = ts.payload.stream;
     let next = buffer.readUint24();
@@ -347,7 +396,7 @@ class TsDemuxer {
           N1 -= 5;
           // 视频如果没有dts用pts
           if (ret.type === 'video') {
-            ret.dts = this.pts;
+            ret.dts = ret.pts;
           }
         }
         if (ret.ptsDTSFlag === 3) {
@@ -417,7 +466,7 @@ class TsDemuxer {
     return ret;
   }
 
-  static ES (buffer, type) {
+  static ES(buffer, type) {
     let next;
     let ret = {};
     if (type === 'video') {
@@ -459,7 +508,7 @@ class TsDemuxer {
     return ret;
   }
 
-  static getAudioConfig (audioObjectType, channel, sampleIndex) {
+  static getAudioConfig(audioObjectType, channel, sampleIndex) {
     let userAgent = navigator.userAgent.toLowerCase()
     let config;
     let extensionSampleIndex;

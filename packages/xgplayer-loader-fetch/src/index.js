@@ -9,7 +9,8 @@ class FetchLoader {
     this.url = null
     this.status = 0
     this.error = null
-    this._reader = null
+    this._reader = null;
+    this.readtype = this.configs.readtype;
     this.buffer = this.configs.buffer || 'LOADER_BUFFER'
   }
 
@@ -26,7 +27,7 @@ class FetchLoader {
     return fetch(this.url, params).then(function (response) {
       _this.status = response.status
       _this.loading = true
-      return _this._onFetchResponse(response)
+      return _this._onFetchResponse(response);
     })
   }
 
@@ -39,9 +40,9 @@ class FetchLoader {
           response.json().then((data) => {
             if (buffer) {
               buffer.push(data);
-              _this.emit(_this.tag, 'loader_complete', buffer);
+              _this.emit(LOADER_EVENTS.LOADER_COMPLETE, buffer);
             } else {
-              _this.emit(_this.tag, 'loader_complete', data);
+              _this.emit(LOADER_EVENTS.LOADER_COMPLETE, data);
             }
           });
           break;
@@ -49,10 +50,9 @@ class FetchLoader {
           response.text().then((data) => {
             if (buffer) {
               buffer.push(data);
-              console.log(_this)
-              _this.emit(_this.tag, 'loader_complete', buffer);
+              _this.emit(LOADER_EVENTS.LOADER_COMPLETE, buffer);
             } else {
-              _this.emit(_this.tag, 'loader_complete', data);
+              _this.emit(LOADER_EVENTS.LOADER_COMPLETE, data);
             }
           });
           break;
