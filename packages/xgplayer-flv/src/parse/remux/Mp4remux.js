@@ -20,7 +20,7 @@ export default class Mp4Remuxer {
 
   init () {
     this.on(DEMUX_EVENTS.DEMUX_COMPLETE, this.remux.bind(this))
-    this.on(DEMUX_EVENTS.MEDIA_INFO, this.onMediaInfoReady.bind(this))
+    this.on(DEMUX_EVENTS.METADATA_PARSED, this.onMetaDataReady.bind(this))
   }
 
   destroy () {
@@ -49,7 +49,7 @@ export default class Mp4Remuxer {
     this._audioSegmentList.clear()
   }
 
-  onMediaInfoReady () {
+  onMetaDataReady (type) {
     const mediaInfo = this._context.mediaInfo
     if (!mediaInfo) {
       this.emit(REMUX_EVENTS.REMUX_ERROR, new Error('failed to get media info'))
