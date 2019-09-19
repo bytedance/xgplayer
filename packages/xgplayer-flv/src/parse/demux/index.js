@@ -1,7 +1,7 @@
 import { LOADER_EVENTS, DEMUX_EVENTS } from '../../constants/events'
 import AMFParser from './AMFParser'
-import SPSParser from '../../../../xgplayer-utils/src/h264/spsParser'
-import { getDefaultAudioTrackMeta, getDefaultVideoTrackMeta } from './defaults'
+import SPSParser from '../../../../xgplayer-utils/src/h264/SPSParser'
+import { AudioTrackMeta, VideoTrackMeta } from '../../../../xgplayer-utils/src/models/trackMeta'
 import {VideoTrack, AudioTrack} from '../../../../xgplayer-buffer/src'
 
 class FlvDemuxer {
@@ -92,7 +92,7 @@ class FlvDemuxer {
   initVideoTrack () {
     this._trackNum++
     let videoTrack = new VideoTrack()
-    videoTrack.meta = getDefaultVideoTrackMeta()
+    videoTrack.meta = new VideoTrackMeta()
     videoTrack.id = videoTrack.meta.id = this._trackNum
 
     this.tracks.videoTrack = videoTrack
@@ -104,7 +104,7 @@ class FlvDemuxer {
   initAudioTrack () {
     this._trackNum++
     let audioTrack = new AudioTrack()
-    audioTrack.meta = getDefaultAudioTrackMeta()
+    audioTrack.meta = new AudioTrackMeta()
     audioTrack.id = audioTrack.meta.id = this._trackNum
 
     this.tracks.audioTrack = audioTrack
@@ -292,7 +292,7 @@ class FlvDemuxer {
     let meta = track.meta
 
     if (!meta) {
-      meta = getDefaultAudioTrackMeta()
+      meta = new AudioTrackMeta()
     }
 
     let info = this.loaderBuffer.shift(1)[0]
@@ -472,7 +472,7 @@ class FlvDemuxer {
     let offset = 0
 
     if (!track.meta) {
-      track.meta = getDefaultVideoTrackMeta()
+      track.meta = new VideoTrackMeta()
     }
     let meta = track.meta
 
@@ -531,10 +531,16 @@ class FlvDemuxer {
     Object.assign(meta, SPSParser.toVideoMeta(config))
 
     // fill video media info
-    const videoMedia = this._context.mediaInfo
+    const videoMedia = this._context.mediaInfo.video
 
     videoMedia.codec = meta.codec
-    // videoMedia.width = meta.
+    videoMedia.profile = meta.profile
+    videoMedia.level = meta.level
+    videoMedia.chromaFormat = meta.chromaFormat
+    videoMedia.frameRate = meta.frameRate
+    videoMedia.sarRatio = meta.sarRatio
+    videoMedia.width = videoMedia.width === meta.presentWidth ? videoMedia.width : meta.presentWidth
+    videoMedia.height = videoMedia.height === meta.presentHeight ? videoMedia.width : meta.presentHeight
 
     meta.avcc = new Uint8Array(data.length)
     meta.avcc.set(data)

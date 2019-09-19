@@ -2,7 +2,7 @@
 /* eslint-disable one-var  */
 import Golomb from './golomb'
 
-class SpsParser {
+class SPSParser {
   static _ebsp2rbsp (uint8array) {
     let src = uint8array
     let srcLength = src.byteLength
@@ -23,7 +23,7 @@ class SpsParser {
   }
 
   static parseSPS (uint8array) {
-    let rbsp = SpsParser._ebsp2rbsp(uint8array)
+    let rbsp = SPSParser._ebsp2rbsp(uint8array)
     let gb = new Golomb(rbsp)
 
     gb.readByte()
@@ -32,8 +32,8 @@ class SpsParser {
     let levelIdc = gb.readByte()
     gb.readUEG()
 
-    let profile_string = SpsParser.getProfileString(profileIdc)
-    let level_string = SpsParser.getLevelString(levelIdc)
+    let profile_string = SPSParser.getProfileString(profileIdc)
+    let level_string = SPSParser.getLevelString(levelIdc)
     let chroma_format_idc = 1
     let chroma_format = 420
     let chroma_format_table = [0, 420, 422, 444]
@@ -59,9 +59,9 @@ class SpsParser {
         for (let i = 0; i < scaling_list_count; i++) {
           if (gb.readBool()) {
             if (i < 6) {
-              SpsParser._skipScalingList(gb, 16)
+              SPSParser._skipScalingList(gb, 16)
             } else {
-              SpsParser._skipScalingList(gb, 64)
+              SPSParser._skipScalingList(gb, 64)
             }
           }
         }
@@ -180,7 +180,7 @@ class SpsParser {
       level_string: level_string,
       bit_depth: bit_depth,
       chroma_format: chroma_format,
-      chroma_format_string: SpsParser.getChromaFormatString(chroma_format),
+      chroma_format_string: SPSParser.getChromaFormatString(chroma_format),
 
       frame_rate: {
         fixed: fps_fixed,
@@ -285,4 +285,4 @@ class SpsParser {
   }
 }
 
-export default SpsParser
+export default SPSParser
