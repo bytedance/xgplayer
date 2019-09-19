@@ -1,7 +1,7 @@
 import * as CSS from 'csstype'
 import { Emitter, EmitterMethod } from 'event-emitter'
 
-declare class Proxy implements Emitter {
+declare abstract class Proxy implements Emitter {
   public constructor(options: ProxyOptions)
 
   public hasStart: boolean
@@ -43,23 +43,45 @@ declare class Proxy implements Emitter {
   public on: EmitterMethod
   public once: EmitterMethod
   public emit(type: string, ...args: any[]): void
+
+  private video: HTMLMediaElement
+  private videoConfig: VideoConfig
+  private lang?: Record<string, string>
 }
 
 export default Proxy
 
 export interface ProxyOptions {
   'id'?: string
-  'el'?: HTMLElement
+  'el'?: Element
   'airplay'?: boolean
   'autoplay'?: boolean
   'autoplayMuted'?: boolean
   'loop'?: boolean
+  'mediaType'?: 'video' | 'audio'
   'playsinline'?: boolean
   'textTrack'?: TextTrack[]
   'textTrackStyle'?: CSS.PropertiesHyphen
   'x5-video-orientation'?: 'landscape' | 'portraint'
   'x5-video-player-fullscreen'?: boolean
-  'x5-video-player-type'?: 'h5' | ''
+  'x5-video-player-type'?: 'h5'
+}
+
+export interface VideoConfig {
+  'controls': boolean
+  'autoplay': ProxyOptions['autoplay']
+  'playsinline': ProxyOptions['playsinline']
+  'webkit-playsinline': ProxyOptions['playsinline']
+  'x5-playsinline': ProxyOptions['playsinline']
+  'x5-video-player-type': ProxyOptions['x5-video-player-type']
+  'x5-video-player-fullscreen': ProxyOptions['x5-video-player-fullscreen']
+  'x5-video-orientation': ProxyOptions['x5-video-orientation']
+  'airplay': ProxyOptions['airplay']
+  'webkit-airplay': ProxyOptions['airplay']
+  'tabindex': number
+  'mediaType': 'video' | 'audio'
+  'loop'?: string
+  'crossorigin'?: string
 }
 
 export type TextTrack = {

@@ -6,8 +6,8 @@ import { Util } from './utils/util'
 declare class Player<T = {}> extends Proxy {
   public constructor(options: PlayerOptions & T)
 
-  public readonly root: HTMLElement
-  public readonly controls: HTMLElement
+  public readonly root: Element
+  public readonly controls: Element
   public config: PlayerOptions & T
 
   public start(url?: string): void
@@ -74,7 +74,7 @@ export interface PlayerOptions extends ProxyOptions {
   cssFullscreen?: boolean
   screenShot?: boolean
   preview?: {
-    uploadEl: HTMLElement
+    uploadEl: Element
   }
   progressDot?: {
     time: number
