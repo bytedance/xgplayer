@@ -1,6 +1,6 @@
-export class TrackSample {
+export class AudioTrackSample {
   constructor (info) {
-    let _default = TrackSample.getDefault()
+    let _default = AudioTrackSample.getDefault()
     if (!info) {
       return _default
     }

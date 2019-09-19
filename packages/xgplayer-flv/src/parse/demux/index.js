@@ -341,7 +341,7 @@ class FlvDemuxer {
       audioMedia.sampleRateIndex = aacHeader.audioSampleRateIndex
 
       if (this._hasScript && !this._hasAudioSequence && (!this.tracks.videoTrack || this._hasVideoSequence)) {
-        this.emit(DEMUX_EVENTS.METADATA_PARSED)
+        this.emit(DEMUX_EVENTS.METADATA_PARSED, 'audio')
       } else if (this._hasScript && this._hasAudioSequence) {
         this.emit(DEMUX_EVENTS.AUDIO_METADATA_CHANGE)
       }
@@ -399,13 +399,13 @@ class FlvDemuxer {
           nalu.data = chunk.data.slice(Number.parseInt(r), nalu.size + r)
           r += nalu.size
           this.tracks.videoTrack.samples.push(nalu)
-          this.emit(DEMUX_EVENTS.METADATA_PARSED)
+          this.emit(DEMUX_EVENTS.METADATA_PARSED, 'video')
         }
       } else if (Number.parseInt(chunk.avcPacketType) === 0) {
         if (!this._datasizeValidator(chunk.datasize)) {
           this.logger.warn(this.TAG, `invalid video tag datasize: ${chunk.datasize}`)
         } else {
-          this.emit(DEMUX_EVENTS.METADATA_PARSED)
+          this.emit(DEMUX_EVENTS.METADATA_PARSED, 'video')
         }
       }
     } else if (codecID === 7) {
@@ -432,7 +432,7 @@ class FlvDemuxer {
         let validate = this._datasizeValidator(chunk.datasize)
         if (validate) {
           if (this._hasScript && !this._hasVideoSequence && (!this.tracks.audioTrack || this._hasAudioSequence)) {
-            this.emit(DEMUX_EVENTS.METADATA_PARSED)
+            this.emit(DEMUX_EVENTS.METADATA_PARSED, 'video')
           } else if (this._hasScript && this._hasVideoSequence) {
             this.emit(DEMUX_EVENTS.VIDEO_METADATA_CHANGE)
           }
