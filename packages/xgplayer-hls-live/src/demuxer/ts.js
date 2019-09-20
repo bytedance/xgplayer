@@ -1,6 +1,9 @@
 import Stream from '../stream';
 import Nalunit from '../../../xgplayer-utils/src/h264/nalunit';
 import { AudioTrack, VideoTrack } from '../../../xgplayer-buffer/src/index';
+import { AudioTrackSample, VideoTrackSample } from '../../../xgplayer-utils/src/models/trackSample';
+import { AudioTrackMeta, VideoTrackMeta } from '../../../xgplayer-utils/src/models/trackMeta';
+
 const StreamType = {
   0x01: ['video', 'MPEG-1'],
   0x02: ['video', 'MPEG-2'],
@@ -64,9 +67,10 @@ class TsDemuxer {
     for (let i = 0; i < Object.keys(peses).length; i++) {
       let epeses = peses[Object.keys(peses)[i]];
       for (let j = 0; j < epeses.length; j++) {
+        epeses[j].id = Object.keys(peses)[i];
         epeses[j].ES.buffer = TsDemuxer.Merge(epeses[j].ES.buffer);
         if (epeses[j].type === 'audio') {
-          console.log(epeses[j]);
+          this.pushAudioSample(epeses[j]);
         } else if (epeses[j].type === 'video') {
           this.pushVideoSample(epeses[j]);
         }
@@ -80,12 +84,25 @@ class TsDemuxer {
   pushAudioSample (pes) {
     let track;
     if (!this._context._clsMap['AUDIO_TRACK']) {
-      this._context.registry('AUDIO_TRACK', VideoTrack);
+      this._context.registry('AUDIO_TRACK', AudioTrack);
       track = this._context.initInstance('AUDIO_TRACK');
+      track.meta = new AudioTrackMeta({
+        audioSampleRate: pes.ES.frequence,
+        channelCount: pes.ES.channel,
+        codec: 'mp4a.40.' + pes.ES.audioObjectType,
+        config: pes.ES.audioConfig,
+        id: pes.id,
+        sampleRateIndex: pes.ES.frequencyIndex
+      });
+      track.meta.refSampleDuration = Math.floor(1024 / track.meta.audioSampleRate * track.meta.timescale);
     } else {
       track = this._context.getInstance('AUDIO_TRACK');
     }
-    track.samples.push(pes);
+    let data = pes.ES.buffer;
+    let dts = pes.pts;
+    let pts = pes.pts;
+    let sample = new AudioTrackSample({dts, pts, data});
+    track.samples.push(sample);
   }
 
   pushVideoSample (pes) {
@@ -94,39 +111,80 @@ class TsDemuxer {
     if (!this._context._clsMap['VIDEO_TRACK']) {
       this._context.registry('VIDEO_TRACK', VideoTrack);
       track = this._context.initInstance('VIDEO_TRACK');
+      track.meta = new VideoTrackMeta();
+      console.log(pes);
     } else {
       track = this._context.getInstance('VIDEO_TRACK');
     }
-
+    
     let sampleLength = 0;
+    let sps = false;
+    let pps = false;
     for (let i = 0; i < nals.length; i++) {
       let nal = nals[i];
       if (nal.sps) {
-        track.meta = nal.sps;
+        // TODO：VideoTrack信息 和 Meta 信息
         track.sps = nal.body;
+        sps = nal;
+        track.meta.chromaFormat = sps.sps.chroma_format_string
+        track.meta.codec = 'avc1.';
+        for (var j = 1; j < 4; j++) {
+          var h = sps.body[j].toString(16);
+          if (h.length < 2) {
+            h = '0' + h;
+          }
+          track.meta.codec += h;
+        }
+        track.meta.codecHeight = sps.sps.codec_size.height;
+        track.meta.codecWidth = sps.sps.codec_size.width;
+        track.meta.frameRate = sps.sps.frame_rate;
+        track.meta.id = pes.id;
+        track.meta.level = sps.sps.level_string;
+        track.meta.presentHeight = sps.sps.present_size.height;
+        track.meta.presentWidth = sps.sps.present_size.width;
+        track.meta.profile = sps.sps.profile_string;
+        track.meta.refSampleDuration = Math.floor(track.meta.timescale * (sps.sps.frame_rate.fps_den / sps.sps.frame_rate.fps_num));
+        track.meta.sarRatio = sps.sps.sar_ratio;
       } else if (nal.pps) {
         track.pps = nal.body;
+        pps = nal;
       } else {
         sampleLength += (4 + nal.body.byteLength);
       }
     }
 
-    let sample = { pts: parseInt(pes.pts / 90), dts: parseInt(pes.dts / 90), data: new Uint8Array(sampleLength) }
+    if (sps && pps) {
+      track.meta.avcc = Nalunit.getAvcc(sps.body, pps.body);
+      console.log(track);
+    }
+
+    let data = new Uint8Array(sampleLength);
     let offset = 0;
+    let isKeyframe = false;
     for (let i = 0; i < nals.length; i++) {
       let nal = nals[i];
       let length = nal.body.byteLength;
+      if (nal.idr) {
+        isKeyframe = true;
+      }
       if (!nal.pps && !nal.sps) {
-        sample.data.set(new Uint8Array([length >>> 24 & 0xff,
+        data.set(new Uint8Array([length >>> 24 & 0xff,
           length >>> 16 & 0xff,
           length >>> 8 & 0xff,
           length & 0xff
         ]), offset);
         offset += 4;
-        sample.data.set(nal.body, offset);
+        data.set(nal.body, offset);
         offset += length;
       }
     }
+    let sample = new VideoTrackSample({
+      dts: pes.dts,
+      pts: pes.pts,
+      originDts: pes.dts,
+      isKeyframe,
+      data
+    })
     track.samples.push(sample);
   }
 
