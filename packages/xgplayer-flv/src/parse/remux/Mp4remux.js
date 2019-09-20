@@ -1,4 +1,4 @@
-import { DEMUX_EVENTS, REMUX_EVENTS } from '../../constants/events'
+import { DEMUX_EVENTS, REMUX_EVENTS } from '../../../../xgplayer-utils/src/constants/events'
 import MediaSegmentList from '../../models/MediaSegmentList'
 import MediaSegment from '../../models/MediaSegment'
 import MediaSample from '../../models/MediaSample'

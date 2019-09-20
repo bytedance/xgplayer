@@ -1,8 +1,9 @@
 import Context from '../../xgplayer-utils/src/Context'
-import { LOADER_EVENTS } from '../../xgplayer-flv/src/constants/events'
+import { LOADER_EVENTS } from '../../xgplayer-utils/src/constants/events'
 const READ_STREAM = 0;
 const READ_TEXT = 1;
 const READ_JSON = 2;
+
 class FetchLoader {
   constructor (configs) {
     this.configs = Object.assign({}, configs)

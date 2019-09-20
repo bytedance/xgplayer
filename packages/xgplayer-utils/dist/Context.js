@@ -4,7 +4,7 @@ Object.defineProperty(exports, "__esModule", {
   value: true
 });
 
-var _events = require("../../xgplayer-flv/src/constants/events");
+var _events = require("../src/constants/events");
 
 var _events2 = _interopRequireDefault(_events);
 
