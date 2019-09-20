@@ -2,6 +2,7 @@
   "name": "xgplayer-buffer",
   "version": "1.0.0",
   "dependencies": {
-
+    "@babel/cli": "^7.6.0",
+    "@babel/core": "^7.6.0"
   }
 }
