@@ -28,7 +28,7 @@ export default class MediaInfo {
         fps_den: 1000
       },
       chromaFormat: null,
-      sarRatio: {
+      parRatio: {
         width: 1,
         height: 1
       }

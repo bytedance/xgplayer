@@ -217,9 +217,9 @@ class FlvDemuxer {
     const onMetaData = this._context.onMetaData = info ? info.onMetaData : undefined
 
     // fill mediaInfo
-    this._context.duration = onMetaData.duration
-    this._context.hasVideo = onMetaData.hasVideo
-    this._context.hsaAudio = onMetaData.hsaAudio
+    this._context.mediaInfo.duration = onMetaData.duration
+    this._context.mediaInfo.hasVideo = onMetaData.hasVideo
+    this._context.mediaInfo.hsaAudio = onMetaData.hsaAudio
 
     let validate = this._datasizeValidator(chunk.datasize)
     if (validate) {
@@ -231,7 +231,7 @@ class FlvDemuxer {
     if (audioTrack && !audioTrack.hasSpecificConfig) {
       let meta = audioTrack.meta
       if (onMetaData.audiosamplerate) {
-        meta.audioSampleRate = onMetaData.audiosamplerate
+        meta.sampleRate = onMetaData.audiosamplerate
       }
 
       if (onMetaData.audiochannels) {
@@ -308,7 +308,7 @@ class FlvDemuxer {
     }
 
     if (format === 10 && !this._hasAudioSequence) {
-      meta.audioSampleRate = this._switchAudioSamplingFrequency(info)
+      meta.sampleRate = this._switchAudioSamplingFrequency(info)
       meta.sampleRateIndex = (info & 12) >>> 2
       meta.frameLenth = (info & 2) >>> 1
       meta.channelCount = info & 1
@@ -327,17 +327,19 @@ class FlvDemuxer {
       audioSampleRate = aacHeader.audiosamplerate || meta.audioSampleRate
       audioSampleRateIndex = aacHeader.sampleRateIndex || meta.sampleRateIndex
       refSampleDuration = Math.floor(1024 / audioSampleRate * meta.timescale)
+
       meta.channelCount = aacHeader.channelCount
-      meta.audioSampleRate = audioSampleRate
+      meta.sampleRate = audioSampleRate
       meta.sampleRateIndex = audioSampleRateIndex
       meta.refSampleDuration = refSampleDuration
+      meta.duration = this._context.mediaInfo.duration
 
       const audioMedia = this._context.mediaInfo.audio
 
       // fill audio media info
       audioMedia.codec = aacHeader.codec
       audioMedia.channelCount = aacHeader.channelCount
-      audioMedia.sampleRate = aacHeader.audioSampleRate
+      audioMedia.sampleRate = audioSampleRate
       audioMedia.sampleRateIndex = aacHeader.audioSampleRateIndex
 
       if (this._hasScript && !this._hasAudioSequence && (!this.tracks.videoTrack || this._hasVideoSequence)) {
@@ -349,8 +351,8 @@ class FlvDemuxer {
       this._hasAudioSequence = true
     } else {
       chunk.data = chunk.data.slice(1, chunk.data.length)
-      this.emit(DEMUX_EVENTS.DEMUX_COMPLETE)
       track.samples.push(chunk)
+      this.emit(DEMUX_EVENTS.DEMUX_COMPLETE)
     }
 
     if (!validate) {
@@ -367,6 +369,7 @@ class FlvDemuxer {
     // header
     let info = this.loaderBuffer.shift(1)[0]
     chunk.frameType = (info & 0xf0) >>> 4
+    chunk.isKeyframe = chunk.frameType === 5
     // let tempCodecID = this.tracks.videoTrack.codecID
     let codecID = info & 0x0f
     this.tracks.videoTrack.codecID = codecID
@@ -431,7 +434,7 @@ class FlvDemuxer {
         this._avcSequenceHeaderParser(chunk.data)
         let validate = this._datasizeValidator(chunk.datasize)
         if (validate) {
-          if (this._hasScript && !this._hasVideoSequence && (!this.tracks.audioTrack || this._hasAudioSequence)) {
+          if (this._hasScript && !this._hasVideoSequence) {
             this.emit(DEMUX_EVENTS.METADATA_PARSED, 'video')
           } else if (this._hasScript && this._hasVideoSequence) {
             this.emit(DEMUX_EVENTS.VIDEO_METADATA_CHANGE)
@@ -442,8 +445,8 @@ class FlvDemuxer {
         if (!this._datasizeValidator(chunk.datasize)) {
           this.logger.warn(this.TAG, `invalid video tag datasize: ${chunk.datasize}`)
         }
-        this.emit(DEMUX_EVENTS.DEMUX_COMPLETE)
         this.tracks.videoTrack.samples.push(chunk)
+        this.emit(DEMUX_EVENTS.DEMUX_COMPLETE)
       }
     } else {
       this.logger.warn(this.TAG, `video codeid is ${codecID}`)
@@ -451,8 +454,8 @@ class FlvDemuxer {
       if (!this._datasizeValidator(chunk.datasize)) {
         this.logger.warn(this.TAG, `invalid video tag datasize: ${chunk.datasize}`)
       }
-      this.emit(DEMUX_EVENTS.DEMUX_COMPLETE)
       this.tracks.videoTrack.samples.push(chunk)
+      this.emit(DEMUX_EVENTS.DEMUX_COMPLETE)
     }
     delete chunk.tagType
   }
@@ -538,10 +541,11 @@ class FlvDemuxer {
     videoMedia.level = meta.level
     videoMedia.chromaFormat = meta.chromaFormat
     videoMedia.frameRate = meta.frameRate
-    videoMedia.sarRatio = meta.sarRatio
+    videoMedia.parRatio = meta.parRatio
     videoMedia.width = videoMedia.width === meta.presentWidth ? videoMedia.width : meta.presentWidth
     videoMedia.height = videoMedia.height === meta.presentHeight ? videoMedia.width : meta.presentHeight
 
+    meta.duration = this._context.mediaInfo.duration
     meta.avcc = new Uint8Array(data.length)
     meta.avcc.set(data)
     track.meta = meta
@@ -566,7 +570,7 @@ class FlvDemuxer {
    */
   _switchAudioSamplingFrequency (info) {
     let samplingFrequencyIndex = (info & 12) >>> 2
-    let samplingFrequencyList = [5500, 11025, 22050, 44100]
+    let samplingFrequencyList = [5500, 11025, 22050, 44100, 48000]
     return samplingFrequencyList[samplingFrequencyIndex]
   }
 

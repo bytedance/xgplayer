@@ -34,7 +34,8 @@ class TsDemuxer {
   }
 
   init () {
-    this.inputbuffer = this._context.getInstance(this.configs.inputbuffer)
+    this.inputbuffer = this._context.getInstance(this.configs.inputbuffer);
+    this._tracks = this._context.getInstance('TRACKS');
   }
 
   demux () {
@@ -83,9 +84,9 @@ class TsDemuxer {
 
   pushAudioSample (pes) {
     let track;
-    if (!this._context._clsMap['AUDIO_TRACK']) {
-      this._context.registry('AUDIO_TRACK', AudioTrack);
-      track = this._context.initInstance('AUDIO_TRACK');
+    if (!this._tracks.audioTrack) {
+      this._tracks.audioTrack = new AudioTrack();
+      track = this._tracks.audioTrack;
       track.meta = new AudioTrackMeta({
         audioSampleRate: pes.ES.frequence,
         channelCount: pes.ES.channel,
@@ -96,7 +97,7 @@ class TsDemuxer {
       });
       track.meta.refSampleDuration = Math.floor(1024 / track.meta.audioSampleRate * track.meta.timescale);
     } else {
-      track = this._context.getInstance('AUDIO_TRACK');
+      track = this._tracks.audioTrack;
     }
     let data = pes.ES.buffer;
     let dts = pes.pts;
@@ -108,15 +109,12 @@ class TsDemuxer {
   pushVideoSample (pes) {
     let nals = Nalunit.getNalunits(pes.ES.buffer);
     let track;
-    if (!this._context._clsMap['VIDEO_TRACK']) {
-      this._context.registry('VIDEO_TRACK', VideoTrack);
-      track = this._context.initInstance('VIDEO_TRACK');
+    if (!this._tracks.videoTrack) {
+      this._tracks.videoTrack = new VideoTrack();
       track.meta = new VideoTrackMeta();
-      console.log(pes);
     } else {
-      track = this._context.getInstance('VIDEO_TRACK');
+      track = this._tracks.videoTrack;
     }
-    
     let sampleLength = 0;
     let sps = false;
     let pps = false;
@@ -124,8 +122,8 @@ class TsDemuxer {
       let nal = nals[i];
       if (nal.sps) {
         // TODO：VideoTrack信息 和 Meta 信息
-        track.sps = nal.body;
         sps = nal;
+        track.meta.sps = nal.body;
         track.meta.chromaFormat = sps.sps.chroma_format_string
         track.meta.codec = 'avc1.';
         for (var j = 1; j < 4; j++) {

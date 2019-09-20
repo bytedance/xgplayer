@@ -1,9 +1,9 @@
 // TODO: Fix引用
 import Context from '../../xgplayer-utils/src/Context';
 import { XgBuffer } from '../../xgplayer-buffer/src/index';
+import Track from '../../xgplayer-utils/src/models';
 import Playlist from './playlist';
 import FetchLoader from '../../xgplayer-loader-fetch/src';
-
 import M3U8Parser from './demuxer/m3u8parser';
 import TsDemuxer from './demuxer/ts';
 
@@ -22,10 +22,12 @@ class HLSLiveController {
     this._context.registry('M3U8_BUFFER', XgBuffer);
     this._context.registry('TS_BUFFER', XgBuffer);
     this._context.registry('PLAYLIST', Playlist);
+    this._context.registry('TRACKS', Track);
+
     this._context.initInstance('M3U8_BUFFER');
     this._context.initInstance('TS_BUFFER');
     this._playlist = this._context.initInstance('PLAYLIST', {autoclear: true});
-
+    this._tracks = this._context.initInstance('TRACKS');
     // 初始化M3U8Loader;
     this._context.registry('M3U8_LOADER', FetchLoader);
     this._context.registry('TS_LOADER', FetchLoader);

@@ -4,7 +4,7 @@ import MediaSegment from '../../models/MediaSegment'
 import MediaSample from '../../models/MediaSample'
 import sniffer from '../../utils/sniffer'
 import Buffer from '../../write/Buffer'
-import FMP4 from './Fmp4'
+import Index from './index'
 
 export default class Mp4Remuxer {
   constructor () {
@@ -51,15 +51,15 @@ export default class Mp4Remuxer {
 
   onMetaDataReady (type) {
     let initSegment = new Buffer()
-    let ftyp = FMP4.ftyp()
+    let ftyp = Index.ftyp()
     let moov
 
     if (type === 'audio') {
       const { audioTrack } = this._context.getInstance('TRACKS')
-      moov = FMP4.moov({ type, meta: audioTrack.meta })
+      moov = Index.moov({ type, meta: audioTrack.meta })
     } else {
       const { videoTrack } = this._context.getInstance('TRACKS')
-      moov = FMP4.moov({ type, meta: videoTrack.meta })
+      moov = Index.moov({ type, meta: videoTrack.meta })
     }
 
     initSegment.write(ftyp, moov)
@@ -220,8 +220,8 @@ export default class Mp4Remuxer {
 
     // track.samples = mp4Samples
     // track.time = firstDts
-    const moof = FMP4.moof(track)
-    const mdat = FMP4.mdat(mdatBox)
+    const moof = Index.moof(track)
+    const mdat = Index.mdat(mdatBox)
     moofMdat.write(moof, mdat)
 
     // this._videoSegmentList.append(videoSegment)
@@ -384,8 +384,8 @@ export default class Mp4Remuxer {
     track.samples = mp4Samples
     const moofMdat = new Buffer()
     track.time = firstDts
-    const moof = FMP4.moof(track, firstDts)
-    const mdat = FMP4.mdat(mdatBox)
+    const moof = Index.moof(track, firstDts)
+    const mdat = Index.mdat(mdatBox)
     moofMdat.write(moof, mdat)
 
     // if (!this._store.isLive) {
