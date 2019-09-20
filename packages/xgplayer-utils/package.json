@@ -1,6 +1,6 @@
 {
   "name": "xgplayer-utils",
-  "version": "1.1.6-alpha.0",
+  "version": "1.0.0",
   "description": "",
   "main": "dist/index.js",
   "scripts": {
