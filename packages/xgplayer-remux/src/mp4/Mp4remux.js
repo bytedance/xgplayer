@@ -1,8 +1,8 @@
-import { DEMUX_EVENTS, REMUX_EVENTS } from '../../constants/events'
-import MediaSegmentList from '../../models/MediaSegmentList'
-import MediaSegment from '../../models/MediaSegment'
-import MediaSample from '../../models/MediaSample'
-import sniffer from '../../utils/sniffer'
+import { DEMUX_EVENTS, REMUX_EVENTS } from 'xgplayer-utils/constants/events' 
+import MediaSegmentList from 'xgplayer-utils/models/MediaSegmentList'
+import MediaSegment from 'xgplayer-utils/models/MediaSegment'
+import MediaSample from 'xgplayer-utils/models/MediaSample'
+import sniffer from 'xgplayer-utils/sniffer'
 import Buffer from '../../write/Buffer'
 import Index from './index'
 

@@ -3,7 +3,7 @@ import Nalunit from '../../../xgplayer-utils/src/h264/nalunit';
 import { AudioTrack, VideoTrack } from '../../../xgplayer-buffer/src/index';
 import { AudioTrackSample, VideoTrackSample } from '../../../xgplayer-utils/src/models/trackSample';
 import { AudioTrackMeta, VideoTrackMeta } from '../../../xgplayer-utils/src/models/trackMeta';
-
+import { DEMUX_EVENTS } from '../../../xgplayer-utils/src/constants/events'
 const StreamType = {
   0x01: ['video', 'MPEG-1'],
   0x02: ['video', 'MPEG-2'],
@@ -31,6 +31,8 @@ class TsDemuxer {
     this.demuxing = false;
     this.pat = [];
     this.pmt = [];
+    this._hasVideoMeta = false;
+    this._hasAudioMeta = false;
   }
 
   init () {
@@ -76,9 +78,6 @@ class TsDemuxer {
           this.pushVideoSample(epeses[j]);
         }
       }
-      if (epeses[0].type === 'video') {
-
-      }
     }
   }
 
@@ -96,6 +95,8 @@ class TsDemuxer {
         sampleRateIndex: pes.ES.frequencyIndex
       });
       track.meta.refSampleDuration = Math.floor(1024 / track.meta.audioSampleRate * track.meta.timescale);
+      this._hasAudioMeta = true;
+      this.emit(DEMUX_EVENTS.METADATA_PARSED, 'video');
     } else {
       track = this._tracks.audioTrack;
     }
@@ -153,7 +154,8 @@ class TsDemuxer {
 
     if (sps && pps) {
       track.meta.avcc = Nalunit.getAvcc(sps.body, pps.body);
-      console.log(track);
+      this._hasVideoMeta = true;
+      this.emit(DEMUX_EVENTS.METADATA_PARSED, 'audio');
     }
 
     let data = new Uint8Array(sampleLength);

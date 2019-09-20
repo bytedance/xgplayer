@@ -1,11 +1,13 @@
 // TODO: Fix引用
 import Context from '../../xgplayer-utils/src/Context';
 import { XgBuffer } from '../../xgplayer-buffer/src/index';
-import Track from '../../xgplayer-utils/src/models';
+import { LOADER_EVENTS } from '../../xgplayer-utils/src/constants/events'
+import Track from '../../xgplayer-utils/src/models/trackSample';
 import Playlist from './playlist';
 import FetchLoader from '../../xgplayer-loader-fetch/src';
 import M3U8Parser from './demuxer/m3u8parser';
 import TsDemuxer from './demuxer/ts';
+import Mp4Remuxer from 'xgplayer-remux/src/mp4/Mp4remux';
 
 class HLSLiveController {
   constructor (configs) {
@@ -38,11 +40,13 @@ class HLSLiveController {
     this._context.registry('TS_DEMUXER', TsDemuxer);
     this._context.initInstance('TS_DEMUXER', { inputbuffer: 'TS_BUFFER' });
 
+    this._context.registry('MP4_REMUXER', Mp4Remuxer);
+    this._context.initInstance('MP4_REMUXER');
     this.initEvents();
   }
 
   initEvents () {
-    this.on('LOADER_COMPLETE', (buffer) => {
+    this.on(LOADER_EVENTS.LOADER_COMPLETE, (buffer) => {
       let tsloader = this._context.getInstance('TS_LOADER')
       let m3u8loader = this._context.getInstance('M3U8_LOADER');
       if (buffer.TAG === 'M3U8_BUFFER') {

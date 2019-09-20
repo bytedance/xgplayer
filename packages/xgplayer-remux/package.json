@@ -10,6 +10,7 @@
   "author": "",
   "license": "ISC",
   "dependencies": {
-    "concat-typed-array": "^1.0.2"
+    "concat-typed-array": "^1.0.2",
+    "xgplayer-utils":"^1.1.6-alpha.0"
   }
 }
