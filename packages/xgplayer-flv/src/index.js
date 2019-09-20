@@ -1,7 +1,7 @@
 import Player from 'xgplayer'
 import Context from '../../xgplayer-utils/src/Context'
 import FLV from './Flv'
-import allEvents, { flvAllowedEvents } from './constants/events'
+import allEvents, { flvAllowedEvents } from '../../xgplayer-utils/src/constants/events'
 
 const isEnded = (player, flv) => {
   if (!player.config.isLive) {

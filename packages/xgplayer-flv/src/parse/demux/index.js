@@ -1,4 +1,4 @@
-import { LOADER_EVENTS, DEMUX_EVENTS } from '../../constants/events'
+import { LOADER_EVENTS, DEMUX_EVENTS } from '../../../../xgplayer-utils/src/constants/events'
 import AMFParser from './AMFParser'
 import SPSParser from '../../../../xgplayer-utils/src/h264/SPSParser'
 import { AudioTrackMeta, VideoTrackMeta } from '../../../../xgplayer-utils/src/models/trackMeta'

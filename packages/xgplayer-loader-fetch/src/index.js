@@ -1,5 +1,5 @@
 import Context from '../../xgplayer-utils/src/Context'
-import { LOADER_EVENTS } from '../../xgplayer-flv/src/constants/events'
+import { LOADER_EVENTS } from '../../xgplayer-utils/src/constants/events'
 
 class FetchLoader {
   constructor (configs) {
