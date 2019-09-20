@@ -4,28 +4,24 @@ Object.defineProperty(exports, "__esModule", {
   value: true
 });
 
-var _events = require("../src/constants/events");
+var _MediaInfo = require("./models/MediaInfo");
 
-var _events2 = _interopRequireDefault(_events);
+var _MediaInfo2 = _interopRequireDefault(_MediaInfo);
 
 function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
 
-const events = require('events'); // 根据解码器类型对通信信道进行划分
-
-
-const eventMap = {
-  flv: _events2.default
-};
+const events = require('events');
 
 class Context {
-  constructor(type) {
+  constructor(allowedEvents = []) {
     this._emitter = new events.EventEmitter();
     this._instanceMap = {}; // 所有的解码流程实例
 
     this._clsMap = {}; // 构造函数的map
 
     this._inited = false;
-    this.allEvents = eventMap[type] || [];
+    this.mediaInfo = new _MediaInfo2.default();
+    this.allowedEvents = allowedEvents;
   }
   /**
    * 从上下文中获取解码流程实例，如果没有实例，构造一个
@@ -38,8 +34,9 @@ class Context {
   getInstance(tag) {
     if (this._instanceMap[tag]) {
       return this._instanceMap[tag];
+    } else {
+      throw new Error(`${tag}实例尚未初始化`);
     }
-    return null
   }
   /**
    * 初始化具体实例
@@ -52,6 +49,11 @@ class Context {
     if (this._clsMap[tag]) {
       const newInstance = new this._clsMap[tag](...args);
       this._instanceMap[tag] = newInstance;
+
+      if (newInstance.init) {
+        newInstance.init(); // TODO: lifecircle
+      }
+
       return newInstance;
     } else {
       throw new Error(`${tag}未在context中注册`);
@@ -69,10 +71,13 @@ class Context {
     }
 
     for (let tag in this._clsMap) {
-      if (this._clsMap.hasOwnProperty(tag)) {
+      // if not inited, init an instance
+      if (this._clsMap.hasOwnProperty(tag) && !this._instanceMap[tag]) {
         this.initInstance(tag, config);
       }
     }
+
+    this._inited = true;
   }
   /**
    * 注册一个上下文流程，提供安全的事件发送机制
@@ -112,8 +117,9 @@ class Context {
         return emitter.once(messageName, callback);
       }
 
-      emit(tag, messageName, ...args) {
+      emit(messageName, ...args) {
         checkMessageName(messageName);
+        console.log(`[${this.TAG}] ${messageName}`, this);
         return emitter.emit(messageName, ...args);
       }
 
@@ -179,7 +185,7 @@ class Context {
 
   destroy() {
     this._emitter = null;
-    this.allEvents = null;
+    this.allowedEvents = null;
     this._clsMap = null;
     this.destroyInstances();
   }
@@ -191,7 +197,7 @@ class Context {
 
 
   _isMessageNameValid(messageName) {
-    if (!this.allEvents[messageName]) {
+    if (!this.allowedEvents.indexOf(messageName) < 0) {
       throw new Error(`unregistered message name: ${messageName}`);
     }
   }

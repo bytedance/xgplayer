@@ -51,15 +51,15 @@ export default class Mp4Remuxer {
 
   onMetaDataReady (type) {
     let initSegment = new Buffer()
-    let ftyp = Index.ftyp()
+    let ftyp = Fmp4.ftyp()
     let moov
 
     if (type === 'audio') {
       const { audioTrack } = this._context.getInstance('TRACKS')
-      moov = Index.moov({ type, meta: audioTrack.meta })
+      moov = Fmp4.moov({ type, meta: audioTrack.meta })
     } else {
       const { videoTrack } = this._context.getInstance('TRACKS')
-      moov = Index.moov({ type, meta: videoTrack.meta })
+      moov = Fmp4.moov({ type, meta: videoTrack.meta })
     }
 
     initSegment.write(ftyp, moov)
@@ -220,8 +220,8 @@ export default class Mp4Remuxer {
 
     // track.samples = mp4Samples
     // track.time = firstDts
-    const moof = Index.moof(track)
-    const mdat = Index.mdat(mdatBox)
+    const moof = Fmp4.moof(track)
+    const mdat = Fmp4.mdat(mdatBox)
     moofMdat.write(moof, mdat)
 
     // this._videoSegmentList.append(videoSegment)
@@ -384,8 +384,8 @@ export default class Mp4Remuxer {
     track.samples = mp4Samples
     const moofMdat = new Buffer()
     track.time = firstDts
-    const moof = Index.moof(track, firstDts)
-    const mdat = Index.mdat(mdatBox)
+    const moof = Fmp4.moof(track, firstDts)
+    const mdat = Fmp4.mdat(mdatBox)
     moofMdat.write(moof, mdat)
 
     // if (!this._store.isLive) {
