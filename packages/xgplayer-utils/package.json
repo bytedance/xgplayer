@@ -1,0 +1,19 @@
+{
+  "name": "xgplayer-utils",
+  "version": "1.1.6-alpha.0",
+  "description": "",
+  "main": "dist/index.js",
+  "scripts": {
+    "build": "babel src --out-dir dist"
+  },
+  "author": "",
+  "license": "ISC",
+  "devDependencies": {
+    "@babel/cli": "^7.6.0",
+    "@babel/core": "^7.6.0",
+    "@babel/plugin-proposal-export-default-from": "^7.5.2"
+  },
+  "dependencies": {
+    "concat-typed-array": "^1.0.2"
+  }
+}

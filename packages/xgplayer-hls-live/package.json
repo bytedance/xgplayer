@@ -1,0 +1,15 @@
+{
+  "name": "xgplayer-hls-live",
+  "version": "1.0.0",
+  "description": "",
+  "main": "webpack.config.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "author": "",
+  "license": "ISC",
+  "dependencies": {
+    "xgplayer-remux": "1.0.0",
+    "xgplayer-utils": "1.1.6-alpha.0"
+  }
+}

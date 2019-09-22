@@ -1,5 +1,4 @@
 import EventEmitter from 'event-emitter'
-let count = 0
 class MSE {
   constructor (mediaElement) {
     this.codecs = 'video/mp4; codecs="avc1.64001E, mp4a.40.5"'
@@ -8,6 +7,8 @@ class MSE {
     this.mediaSource = new window.MediaSource()
     mediaElement.src = window.URL.createObjectURL(this.mediaSource)
     this.url = mediaElement.src
+
+    this.sourceOpened = false
     this.handleSourceOpen = this.onSourceOpen.bind(this)
     this.mediaSource.addEventListener('sourceopen', this.handleSourceOpen)
 
@@ -18,6 +19,7 @@ class MSE {
 
   onSourceOpen () {
     const self = this
+    this.sourceOpened = true
     self.sourceBuffer = self.mediaSource.addSourceBuffer(self.codecs)
     self.sourceBuffer.addEventListener('error', function (e) {
       self.emit('error', {
@@ -48,7 +50,15 @@ class MSE {
     this.mediaSource.duration = value
   }
 
+  /**
+   * return is append successful
+   * @param buffer
+   * @returns {boolean}
+   */
   appendBuffer (buffer) {
+    if (!this.sourceOpened) {
+      return false
+    }
     let sourceBuffer = this.sourceBuffer
     if (sourceBuffer.updating === false && this.state === 'open') {
       sourceBuffer.appendBuffer(buffer)
