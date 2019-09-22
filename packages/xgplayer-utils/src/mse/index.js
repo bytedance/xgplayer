@@ -6,22 +6,18 @@ class MSE {
     this.sourceBuffers = {};
   }
 
-  createPlayer () {
+  init () {
     let _this = this;
-    if (this.mediaSource) {
-      // TODO: destroy MediaSource;
-    }
-    console.log(this);
     // eslint-disable-next-line no-undef
     this.mediaSource = new self.MediaSource();
     this.mediaSource.addEventListener('sourceopen', (e) => {
       _this.addSourceBuffers();
     });
     this.container.src = URL.createObjectURL(this.mediaSource);
+    this.url = this.container.src
   }
 
   addSourceBuffers () {
-    // TODO 判断mediaSource的状态！
     let sources = this._context.getInstance('PRE_SOURCE_BUFFER');
     if (sources.sources.audio && sources.sources.video) {
       for (let i = 0, k = Object.keys(sources.sources).length; i < k; i++) {
@@ -46,6 +42,7 @@ class MSE {
         if (!sourceBuffer.updating) {
           let source = sources.sources[type];
           if (source && !source.inited) {
+            console.log(`${type}`, source.init.buffer)
             sourceBuffer.appendBuffer(source.init.buffer.buffer);
             source.inited = true;
           } else {

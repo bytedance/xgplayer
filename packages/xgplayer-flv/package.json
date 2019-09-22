@@ -39,7 +39,7 @@
     "webpack-merge": "^4.2.2",
     "xgplayer-buffer": "^1.0.0",
     "xgplayer-loader-fetch": "^1.0.0",
-    "xgplayer-utils": "^1.0.0",
+    "xgplayer-utils": "^1.1.6-alpha.0",
     "xgplayer-remux": "^1.0.0"
   },
   "peerDependency": {

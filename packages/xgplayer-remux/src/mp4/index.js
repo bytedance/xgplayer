@@ -4,7 +4,7 @@ import MediaSegment from 'xgplayer-utils/src/models/MediaSegment'
 import MediaSample from 'xgplayer-utils/src/models/MediaSample'
 import sniffer from 'xgplayer-utils/src/env/sniffer'
 import Buffer from 'xgplayer-utils/src/write/Buffer'
-import Fmp4 from './fmp41'
+import Fmp4 from './fmp4'
 
 export default class Mp4Remuxer {
   constructor () {
@@ -19,7 +19,6 @@ export default class Mp4Remuxer {
   }
 
   init () {
-    Fmp4.init();
     this.on(DEMUX_EVENTS.DEMUX_COMPLETE, this.remux.bind(this))
     this.on(DEMUX_EVENTS.METADATA_PARSED, this.onMetaDataReady.bind(this))
   }
@@ -52,7 +51,7 @@ export default class Mp4Remuxer {
 
   onMetaDataReady (type) {
     let initSegment = new Buffer()
-    //let ftyp = Fmp4.ftyp()
+    let ftyp = Fmp4.ftyp()
     let moov
     let track
 
@@ -66,7 +65,7 @@ export default class Mp4Remuxer {
 
     moov = Fmp4.moov({ type, meta: track.meta })
 
-    initSegment.write(moov)
+    initSegment.write(ftyp, moov)
 
     let presourcebuffer = this._context.getInstance('PRE_SOURCE_BUFFER');
     let source = presourcebuffer.getSource(type);
@@ -114,7 +113,7 @@ export default class Mp4Remuxer {
       const avcSample = samples.shift()
       const { isKeyframe } = avcSample
       let dts = avcSample.dts - this._dtsBase
-      const cts = avcSample.pts - avcSample.dts
+      const cts = avcSample.cts
 
       if (dtsCorrection === undefined) {
         if (!this._videoNextDts) {
@@ -196,7 +195,7 @@ export default class Mp4Remuxer {
         cts,
         pts,
         data: avcSample.data,
-        size: avcSample.length,
+        size: avcSample.data.byteLength,
         isKeyframe,
         duration: sampleDuration,
         originDts
@@ -236,7 +235,11 @@ export default class Mp4Remuxer {
 
     // track.samples = mp4Samples
     // track.time = firstDts
-    const moof = Fmp4.moof(track.meta.id, this._dtsBase, track)
+    const moof = Fmp4.moof({
+      id: track.meta.id,
+      time: this._dtsBase,
+      samples: mp4Samples
+    })
     const mdat = Fmp4.mdat(mdatBox)
     moofMdat.write(moof, mdat)
 
@@ -407,7 +410,11 @@ export default class Mp4Remuxer {
     track.samples = mp4Samples
     const moofMdat = new Buffer()
     track.time = firstDts
-    const moof = Fmp4.moof(track, firstDts)
+    const moof = Fmp4.moof({
+      id: track.meta.id,
+      time: firstDts,
+      samples: mp4Samples
+    })
     const mdat = Fmp4.mdat(mdatBox)
     moofMdat.write(moof, mdat)
 

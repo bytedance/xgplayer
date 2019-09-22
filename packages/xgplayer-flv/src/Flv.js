@@ -1,9 +1,10 @@
 import FlvDemuxer from './parse/demux'
 import Mp4Remuxer from 'xgplayer-remux/src/mp4'
+import MSE from 'xgplayer-utils/src/mse'
 import FetchLoader from 'xgplayer-loader-fetch'
+import Presource from 'xgplayer-buffer/src/presouce'
 import { Tracks, XgBuffer } from 'xgplayer-buffer/src/index'
 import { REMUX_EVENTS, DEMUX_EVENTS } from 'xgplayer-utils/dist/constants/events'
-import MSE from './parse/MSE'
 
 const Tag = 'FLVController'
 
@@ -25,7 +26,6 @@ class FlvController {
   constructor (player) {
     this.TAG = Tag
     this._player = player
-    this.mse = new MSE(this._player.video)
 
     this.state = {
       initSegmentArrived: false,
@@ -34,6 +34,7 @@ class FlvController {
         end: ''
       }
     }
+
   }
 
   init () {
@@ -42,14 +43,17 @@ class FlvController {
     this._context.registry('LOADER_BUFFER', XgBuffer)
     this._context.registry('TRACKS', Tracks)
     this._context.registry('MP4_REMUXER', Mp4Remuxer)
+    this._context.registry('PRE_SOURCE_BUFFER', Presource)
+    this.mse = this._context.registry('MSE', MSE)({ container: this._player })
+
 
     this.initListeners()
-    this.initSourceOpenAndInitSegmentEvent()
   }
 
   initListeners () {
     this.on(REMUX_EVENTS.MEDIA_SEGMENT, this.handleMediaSegment.bind(this))
     this.on(DEMUX_EVENTS.MEDIA_INFO, this.handleMediaInfo.bind(this))
+    this.on(REMUX_EVENTS.INIT_SEGMENT, this.handleAppendInitSegment.bind(this))
   }
 
   handleMediaInfo () {
@@ -67,28 +71,13 @@ class FlvController {
     }
   }
 
-  handleMediaSegment (buffer) {
-    if (!this.mse.appendBuffer(buffer)) {
-      // TODO 找个地方存起来，可能是MSEController
-    }
-  }
-  /**
-   * 简化sourceopen和initSegment的相互依赖模型
-   */
-  initSourceOpenAndInitSegmentEvent () {
-    const sourceOpentask = createAsyncTask()
-    // const initSegmentTask = createAsyncTask()
-
-    this.mse.once('sourceopen', sourceOpentask.resolve)
-    this.on(REMUX_EVENTS.INIT_SEGMENT, (type, segment) => {
-      this.handleAppendInitSegment(type, segment)
-    })
-
+  handleMediaSegment () {
+    this.mse.doAppend();
   }
 
-  handleAppendInitSegment (type, initSegment) {
+  handleAppendInitSegment () {
     this.state.initSegmentArrived = true
-    this.mse.appendBuffer(initSegment)
+    this.mse.addSourceBuffers()
   }
 
   seek (time) {
@@ -119,8 +108,9 @@ class FlvController {
   }
 
   getRange (time, preloadTime) {
-    const { timeScale, keyframes } = this._context.mediaInfo
-    const seekStart = time * timeScale
+    const { keyframes } = this._context.onMetaData
+    const { timescale } = this._context.getInstance('TRACKS').videoTrack.meta
+    const seekStart = time * timescale
     const findFilePosition = (time) => {
       for (let i = 0, len = keyframes.times.length; i < len; i++) {
         const currentKeyframeTime = keyframes.times[i]
@@ -135,7 +125,7 @@ class FlvController {
     }
 
     const seekStartFilePos = findFilePosition(seekStart)
-    const seekEndFilePos = findFilePosition((time + preloadTime) * timeScale)
+    const seekEndFilePos = findFilePosition((time + preloadTime) * timescale)
     return {
       start: seekStartFilePos,
       end: seekEndFilePos

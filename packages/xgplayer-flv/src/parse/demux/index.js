@@ -219,7 +219,7 @@ class FlvDemuxer {
     // fill mediaInfo
     this._context.mediaInfo.duration = onMetaData.duration
     this._context.mediaInfo.hasVideo = onMetaData.hasVideo
-    this._context.mediaInfo.hsaAudio = onMetaData.hsaAudio
+    this._context.mediaInfo.hsaAudio = onMetaData.hasAudio
 
     let validate = this._datasizeValidator(chunk.datasize)
     if (validate) {
@@ -332,7 +332,7 @@ class FlvDemuxer {
       meta.sampleRate = audioSampleRate
       meta.sampleRateIndex = audioSampleRateIndex
       meta.refSampleDuration = refSampleDuration
-      meta.duration = this._context.mediaInfo.duration
+      meta.duration = this._context.mediaInfo.duration * meta.timescale
 
       const audioMedia = this._context.mediaInfo.audio
 
@@ -545,7 +545,7 @@ class FlvDemuxer {
     videoMedia.width = videoMedia.width === meta.presentWidth ? videoMedia.width : meta.presentWidth
     videoMedia.height = videoMedia.height === meta.presentHeight ? videoMedia.width : meta.presentHeight
 
-    meta.duration = this._context.mediaInfo.duration
+    meta.duration = this._context.mediaInfo.duration * meta.timescale
     meta.avcc = new Uint8Array(data.length)
     meta.avcc.set(data)
     track.meta = meta

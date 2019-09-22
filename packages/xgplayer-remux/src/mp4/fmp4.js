@@ -36,15 +36,13 @@ class Fmp4 {
       trak = Fmp4.audioTrak(meta)
     }
 
-    let mvex = Fmp4.mvex(meta.duration, meta.timescale, meta.id);
+    let mvex = Fmp4.mvex(meta.duration, meta.timescale || 1000, meta.id);
     [mvhd, trak, mvex].forEach(item => {
       size += item.byteLength
     })
-    console.log("moov", Fmp4.initBox(size, 'moov', mvhd, trak, mvex));
     return Fmp4.initBox(size, 'moov', mvhd, trak, mvex)
   }
-  static mvhd (duration, timeScale) {
-    let timescale = timeScale || 1000
+  static mvhd (duration, timescale = 1000) {
     // duration *= timescale;
     let bytes = new Uint8Array([
       0x00, 0x00, 0x00, 0x00, // version(0) + flags     1位的box版本+3位flags   box版本，0或1，一般为0。（以下字节数均按version=0）
@@ -100,14 +98,14 @@ class Fmp4 {
     let tkhd = Fmp4.tkhd({
       id: 1,
       duration: data.duration,
-      timescale: data.timescale,
+      timescale: data.timescale || 1000,
       width: data.presentWidth,
       height: data.presentHeight,
       type: 'video'
     })
     let mdia = Fmp4.mdia({
       type: 'video',
-      timescale: data.timescale,
+      timescale: data.timescale || 1000,
       duration: data.duration,
       avcc: data.avcc,
       parRatio: data.parRatio,
@@ -124,14 +122,14 @@ class Fmp4 {
     let tkhd = Fmp4.tkhd({
       id: 2,
       duration: data.duration,
-      timescale: data.timescale,
+      timescale: data.timescale || 1000,
       width: 0,
       height: 0,
       type: 'audio'
     })
     let mdia = Fmp4.mdia({
       type: 'audio',
-      timescale: data.timescale,
+      timescale: data.timescale || 1000,
       duration: data.duration,
       channelCount: data.channelCount,
       samplerate: data.sampleRate,
@@ -212,7 +210,7 @@ class Fmp4 {
     })
     return Fmp4.initBox(size, 'mdia', mdhd, hdlr, minf)
   }
-  static mdhd (timescale, duration) {
+  static mdhd (timescale = 1000, duration) {
     let content = new Uint8Array([
       0x00, 0x00, 0x00, 0x00, // creation_time    创建时间
       0x00, 0x00, 0x00, 0x00, // modification_time修改时间
@@ -430,7 +428,6 @@ class Fmp4 {
       Fmp4.size(20), Fmp4.type('btrt'), btrt,
       Fmp4.size(16), Fmp4.type('pasp'), pasp
     )
-    console.log(buffer);
     return buffer.buffer
   }
   static stts () {
@@ -466,10 +463,10 @@ class Fmp4 {
     ])
     return Fmp4.initBox(20, 'stsz', content)
   }
-  static mvex (duration, timescale, trackID) {
+  static mvex (duration, timescale = 1000, trackID) {
     let buffer = new Buffer()
     let mehd = Buffer.writeUint32(duration)
-    buffer.write(Fmp4.size(40), Fmp4.type('mvex'), Fmp4.trex(trackID))
+    buffer.write(Fmp4.size(56), Fmp4.type('mvex'), Fmp4.size(16), Fmp4.type('mehd'), Fmp4.extension(0, 0), mehd, Fmp4.trex(trackID))
     return buffer.buffer
   }
   static trex (id) {
@@ -507,6 +504,8 @@ class Fmp4 {
     let tfdt = Fmp4.tfdt(data.time)
     let sdtp = Fmp4.sdtp(data)
     let trun = Fmp4.trun(data, sdtp.byteLength);
+    console.log(trun);
+
     [tfhd, tfdt, sdtp, trun].forEach(item => {
       size += item.byteLength
     })

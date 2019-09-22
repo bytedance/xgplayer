@@ -190,6 +190,7 @@ class MSEController {
             this._pendingSourceBufferInit.push(initSegment);
             // make sure that this InitSegment is in the front of pending segments queue
             this._pendingSegments[initSegment.type].push(initSegment);
+            console.log(`${initSegment.type}`, initSegment)
             return;
         }
 
