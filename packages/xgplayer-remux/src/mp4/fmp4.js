@@ -40,6 +40,7 @@ class Fmp4 {
     [mvhd, trak, mvex].forEach(item => {
       size += item.byteLength
     })
+    console.log("moov", Fmp4.initBox(size, 'moov', mvhd, trak, mvex));
     return Fmp4.initBox(size, 'moov', mvhd, trak, mvex)
   }
   static mvhd (duration, timeScale) {
@@ -429,6 +430,7 @@ class Fmp4 {
       Fmp4.size(20), Fmp4.type('btrt'), btrt,
       Fmp4.size(16), Fmp4.type('pasp'), pasp
     )
+    console.log(buffer);
     return buffer.buffer
   }
   static stts () {

@@ -1,8 +1,7 @@
 import FlvDemuxer from './parse/demux'
 import Mp4Remuxer from 'xgplayer-remux/src/mp4'
 import FetchLoader from 'xgplayer-loader-fetch'
-import { XgBuffer } from 'xgplayer-buffer/dist/index'
-import { Tracks } from 'xgplayer-buffer/dist/track'
+import { Tracks, XgBuffer } from 'xgplayer-buffer/src/index'
 import { REMUX_EVENTS, DEMUX_EVENTS } from 'xgplayer-utils/dist/constants/events'
 import MSE from './parse/MSE'
 

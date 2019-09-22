@@ -7,7 +7,7 @@ import Playlist from './playlist';
 import FetchLoader from '../../xgplayer-loader-fetch/src';
 import M3U8Parser from './demuxer/m3u8parser';
 import TsDemuxer from './demuxer/ts';
-import Mp4Remuxer from 'xgplayer-remux/src/mp4/Mp4remux';
+import Mp4Remuxer from 'xgplayer-remux/src/mp4/index';
 import PreSource from '../../xgplayer-buffer/src/presouce';
 import MSE from 'xgplayer-utils/src/mse';
 

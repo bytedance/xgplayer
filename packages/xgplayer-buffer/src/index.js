@@ -153,6 +153,13 @@ export class VideoTrack extends Track {
   }
 }
 
+export class Tracks {
+  constructor () {
+    this.audioTrack = null
+    this.videoTrack = null
+  }
+}
+
 export class RemuxBuffer {
   constructor () {
     this.video = []
