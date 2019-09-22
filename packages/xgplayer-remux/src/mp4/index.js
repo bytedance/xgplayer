@@ -51,7 +51,7 @@ export default class Mp4Remuxer {
 
   onMetaDataReady (type) {
     let initSegment = new Buffer()
-    let ftyp = Fmp4.ftyp()
+    //let ftyp = Fmp4.ftyp()
     let moov
     let track
 
@@ -65,7 +65,7 @@ export default class Mp4Remuxer {
 
     moov = Fmp4.moov({ type, meta: track.meta })
 
-    initSegment.write(ftyp, moov)
+    initSegment.write(moov)
 
     let presourcebuffer = this._context.getInstance('PRE_SOURCE_BUFFER');
     let source = presourcebuffer.getSource(type);

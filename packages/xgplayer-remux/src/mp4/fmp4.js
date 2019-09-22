@@ -469,7 +469,7 @@ class Fmp4 {
   static mvex (duration, timescale, trackID) {
     let buffer = new Buffer()
     let mehd = Buffer.writeUint32(duration)
-    buffer.write(Fmp4.size(56), Fmp4.type('mvex'), Fmp4.size(16), Fmp4.type('mehd'), Fmp4.extension(0, 0), mehd, Fmp4.trex(trackID))
+    buffer.write(Fmp4.size(40), Fmp4.type('mvex'), Fmp4.trex(trackID))
     return buffer.buffer
   }
   static trex (id) {
