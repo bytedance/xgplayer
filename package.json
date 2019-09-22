@@ -3,7 +3,7 @@
     "@koa/cors": "^2.2.1",
     "babel-core": "^6.26.3",
     "babel-loader": "^7.1.4",
-    "babel-node": "^0.0.1-security",
+    "babel-plugin-add-module-exports": "^0.2.1",
     "babel-preset-env": "^1.7.0",
     "babel-preset-es2015": "^6.24.1",
     "css-loader": "^0.28.11",
@@ -71,9 +71,5 @@
       "path": "./node_modules/cz-conventional-changelog"
     }
   },
-  "homepage": "https://github.com/bytedance/xgplayer#readme",
-  "dependencies": {
-    "babel-eslint": "^10.0.3",
-    "http-server": "^0.11.1"
-  }
+  "homepage": "https://github.com/bytedance/xgplayer#readme"
 }
