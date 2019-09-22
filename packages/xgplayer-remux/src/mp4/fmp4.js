@@ -36,7 +36,7 @@ class Fmp4 {
       trak = Fmp4.audioTrak(meta)
     }
 
-    let mvex = Fmp4.mvex(meta.duration, meta.timescale);
+    let mvex = Fmp4.mvex(meta.duration, meta.timescale, meta.id);
     [mvhd, trak, mvex].forEach(item => {
       size += item.byteLength
     })
@@ -466,10 +466,10 @@ class Fmp4 {
     ])
     return Fmp4.initBox(20, 'stsz', content)
   }
-  static mvex (duration) {
+  static mvex (duration, timescale, trackID) {
     let buffer = new Buffer()
     let mehd = Buffer.writeUint32(duration)
-    buffer.write(Fmp4.size(88), Fmp4.type('mvex'), Fmp4.size(16), Fmp4.type('mehd'), Fmp4.extension(0, 0), mehd, Fmp4.trex(1), Fmp4.trex(2))
+    buffer.write(Fmp4.size(56), Fmp4.type('mvex'), Fmp4.size(16), Fmp4.type('mehd'), Fmp4.extension(0, 0), mehd, Fmp4.trex(trackID))
     return buffer.buffer
   }
   static trex (id) {
