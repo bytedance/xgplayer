@@ -1,16 +1,15 @@
 {
-  "name": "xgplayer-buffer",
+  "name": "xgplayer-hls-live",
   "version": "1.0.0",
   "description": "",
-  "main": "index.js",
-  "devDependencies": {},
+  "main": "webpack.config.js",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1"
   },
   "author": "",
   "license": "ISC",
   "dependencies": {
-    "@babel/cli": "^7.6.0",
-    "@babel/core": "^7.6.0"
+    "xgplayer-remux": "1.0.0",
+    "xgplayer-utils": "1.1.6-alpha.0"
   }
 }

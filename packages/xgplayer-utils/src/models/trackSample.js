@@ -9,7 +9,7 @@ export class AudioTrackSample {
     return sample
   }
 
-  static getDefaultInf () {
+  static getDefault () {
     return {
       dts: null,
       pts: null,
@@ -30,7 +30,7 @@ export class VideoTrackSample {
     return sample
   }
 
-  static getDefaultInf () {
+  static getDefault () {
     return {
       dts: null,
       pts: null,

@@ -40,6 +40,7 @@ class Fmp4 {
     [mvhd, trak, mvex].forEach(item => {
       size += item.byteLength
     })
+    console.log("moov", Fmp4.initBox(size, 'moov', mvhd, trak, mvex));
     return Fmp4.initBox(size, 'moov', mvhd, trak, mvex)
   }
   static mvhd (duration, timeScale) {
@@ -429,6 +430,7 @@ class Fmp4 {
       Fmp4.size(20), Fmp4.type('btrt'), btrt,
       Fmp4.size(16), Fmp4.type('pasp'), pasp
     )
+    console.log(buffer);
     return buffer.buffer
   }
   static stts () {
@@ -467,7 +469,7 @@ class Fmp4 {
   static mvex (duration, timescale, trackID) {
     let buffer = new Buffer()
     let mehd = Buffer.writeUint32(duration)
-    buffer.write(Fmp4.size(56), Fmp4.type('mvex'), Fmp4.size(16), Fmp4.type('mehd'), Fmp4.extension(0, 0), mehd, Fmp4.trex(trackID))
+    buffer.write(Fmp4.size(40), Fmp4.type('mvex'), Fmp4.trex(trackID))
     return buffer.buffer
   }
   static trex (id) {

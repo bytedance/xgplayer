@@ -1,5 +1,8 @@
 import Context from '../../xgplayer-utils/src/Context'
 import { LOADER_EVENTS } from '../../xgplayer-utils/src/constants/events'
+const READ_STREAM = 0;
+const READ_TEXT = 1;
+const READ_JSON = 2;
 
 class FetchLoader {
   constructor (configs) {
@@ -7,7 +10,8 @@ class FetchLoader {
     this.url = null
     this.status = 0
     this.error = null
-    this._reader = null
+    this._reader = null;
+    this.readtype = this.configs.readtype;
     this.buffer = this.configs.buffer || 'LOADER_BUFFER'
   }
 
@@ -16,31 +20,55 @@ class FetchLoader {
   }
 
   load (url, opts) {
-    let _this = this
-    this.url = url
+    let _this = this;
+    this.url = url;
 
     // TODO: Add Ranges
     let params = this.getParams(opts)
     return fetch(this.url, params).then(function (response) {
       _this.status = response.status
       _this.loading = true
-      return _this._onFetchResponse(response)
+      return _this._onFetchResponse(response);
     })
   }
 
   _onFetchResponse (response) {
+    let _this = this;
+    let buffer = this._context.getInstance(this.buffer);
     if (response.ok === true) {
-      return this._onReader(response.body.getReader())
+      switch (this.readtype) {
+        case READ_JSON:
+          response.json().then((data) => {
+            if (buffer) {
+              buffer.push(data);
+              _this.emit(LOADER_EVENTS.LOADER_COMPLETE, buffer);
+            } else {
+              _this.emit(LOADER_EVENTS.LOADER_COMPLETE, data);
+            }
+          });
+          break;
+        case READ_TEXT:
+          response.text().then((data) => {
+            if (buffer) {
+              buffer.push(data);
+              _this.emit(LOADER_EVENTS.LOADER_COMPLETE, buffer);
+            } else {
+              _this.emit(LOADER_EVENTS.LOADER_COMPLETE, data);
+            }
+          });
+          break;
+        case READ_STREAM:
+        default:
+          return this._onReader(response.body.getReader());
+      }
     }
-
-    // TODO: Exceptions!
   }
 
   _onReader (reader) {
-    let buffer = this._context.getInstance(this.buffer || 'LOADER_BUFFER')
+    let buffer = this._context.getInstance(this.buffer);
 
     if (!buffer) {
-      this._reader.cancel()
+      this._reader.cancel();
     }
 
     this._reader = reader
@@ -54,6 +82,7 @@ class FetchLoader {
     this._reader && this._reader.read().then(function (val) {
       if (val.done) {
         // TODO: 完成处理
+
         _this.loading = false
         _this.status = 0
         _this.emit(LOADER_EVENTS.LOADER_COMPLETE, buffer)
@@ -102,7 +131,7 @@ class FetchLoader {
     }
 
     // TODO: Add ranges;
-    return params
+    return params;
   }
 
   cancel () {

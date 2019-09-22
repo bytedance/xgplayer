@@ -1,9 +1,9 @@
-import { DEMUX_EVENTS, REMUX_EVENTS } from 'xgplayer-utils/dist/constants/events'
-import MediaSegmentList from 'xgplayer-utils/dist/models/MediaSegmentList'
-import MediaSegment from 'xgplayer-utils/dist/models/MediaSegment'
-import MediaSample from 'xgplayer-utils/dist/models/MediaSample'
-import sniffer from 'xgplayer-utils/dist/env/sniffer'
-import Buffer from 'xgplayer-utils/dist/write/Buffer'
+import { DEMUX_EVENTS, REMUX_EVENTS } from 'xgplayer-utils/src/constants/events'
+import MediaSegmentList from 'xgplayer-utils/src/models/MediaSegmentList'
+import MediaSegment from 'xgplayer-utils/src/models/MediaSegment'
+import MediaSample from 'xgplayer-utils/src/models/MediaSample'
+import sniffer from 'xgplayer-utils/src/env/sniffer'
+import Buffer from 'xgplayer-utils/src/write/Buffer'
 import Fmp4 from './fmp4'
 
 export default class Mp4Remuxer {
@@ -51,19 +51,32 @@ export default class Mp4Remuxer {
 
   onMetaDataReady (type) {
     let initSegment = new Buffer()
-    let ftyp = Fmp4.ftyp()
+    //let ftyp = Fmp4.ftyp()
     let moov
+    let track
 
     if (type === 'audio') {
       const { audioTrack } = this._context.getInstance('TRACKS')
-      moov = Fmp4.moov({ type, meta: audioTrack.meta })
+      track = audioTrack;
     } else {
       const { videoTrack } = this._context.getInstance('TRACKS')
-      moov = Fmp4.mo∂ov({ type, meta: videoTrack.meta })
+      track = videoTrack;
     }
 
-    initSegment.write(ftyp, moov)
-    this.emit(REMUX_EVENTS.INIT_SEGMENT, type, initSegment)
+    moov = Fmp4.moov({ type, meta: track.meta })
+
+    initSegment.write(moov)
+
+    let presourcebuffer = this._context.getInstance('PRE_SOURCE_BUFFER');
+    let source = presourcebuffer.getSource(type);
+    if (!source) {
+      source = presourcebuffer.createSource(type);
+    }
+
+    source.mimetype = track.meta.codec;
+    source.init = initSegment;
+
+    this.emit(REMUX_EVENTS.INIT_SEGMENT, type)
   }
 
   calcDtsBase (audioTrack, videoTrack) {
@@ -147,8 +160,10 @@ export default class Mp4Remuxer {
         buffer: [],
         size: 0
       }
+      mdatBox.samples.push(mdatSample)
       mdatSample.buffer.push(avcSample.data)
       mdatSample.size += avcSample.data.byteLength
+
       mdatBox.samples.push(mdatSample)
 
       let sampleDuration = 0
@@ -231,7 +246,16 @@ export default class Mp4Remuxer {
 
     track.samples = []
     track.length = 0
-    this.emit(REMUX_EVENTS.MEDIA_SEGMENT, 'video', moofMdat)
+
+    let presourcebuffer = this._context.getInstance('PRE_SOURCE_BUFFER');
+    let source = presourcebuffer.getSource('video');
+    if (!source) {
+      source = presourcebuffer.createSource('video');
+    }
+
+    source.data.push(moofMdat);
+
+    this.emit(REMUX_EVENTS.MEDIA_SEGMENT, 'video')
     // this.handleMediaFragment({
     //   type: 'video',
     //   data: moofMdat.buffer.buffer,
@@ -392,6 +416,13 @@ export default class Mp4Remuxer {
     // }
     track.samples = []
     track.length = 0
+
+    let presourcebuffer = this._context.getInstance('PRE_SOURCE_BUFFER');
+    let source = presourcebuffer.getSource('audio');
+    if (!source) {
+      source = presourcebuffer.createSource('audio');
+    }
+    source.data.push(moofMdat);
     this.emit(REMUX_EVENTS.MEDIA_SEGMENT, 'audio', moofMdat)
   }
 
