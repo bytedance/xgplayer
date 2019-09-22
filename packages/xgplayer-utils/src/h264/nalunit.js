@@ -73,7 +73,6 @@ class Nalunit {
       case 7:
         // SPS
         unit.sps = SpsParser.parseSPS(unit.body);
-        console.log(unit);
         break;
       case 8:
         // PPS

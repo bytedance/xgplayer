@@ -1,13 +1,15 @@
 // TODO: Fix引用
 import Context from '../../xgplayer-utils/src/Context';
 import { XgBuffer } from '../../xgplayer-buffer/src/index';
-import { LOADER_EVENTS } from '../../xgplayer-utils/src/constants/events'
-import Track from '../../xgplayer-utils/src/models/trackSample';
+import { LOADER_EVENTS, REMUX_EVENTS } from 'xgplayer-utils/src/constants/events';
+import Track from '../../xgplayer-buffer/src/Track';
 import Playlist from './playlist';
 import FetchLoader from '../../xgplayer-loader-fetch/src';
 import M3U8Parser from './demuxer/m3u8parser';
 import TsDemuxer from './demuxer/ts';
 import Mp4Remuxer from 'xgplayer-remux/src/mp4/Mp4remux';
+import PreSource from '../../xgplayer-buffer/src/presouce';
+import MSE from 'xgplayer-utils/src/mse';
 
 class HLSLiveController {
   constructor (configs) {
@@ -17,6 +19,7 @@ class HLSLiveController {
     this.sequence = 0;
     this._playlist = null;
     this.retrytimes = this.configs.retrytimes || 3;
+    this.container = this.configs.container;
   }
 
   init () {
@@ -25,11 +28,14 @@ class HLSLiveController {
     this._context.registry('TS_BUFFER', XgBuffer);
     this._context.registry('PLAYLIST', Playlist);
     this._context.registry('TRACKS', Track);
+    this._context.registry('PRE_SOURCE_BUFFER', PreSource);
 
     this._context.initInstance('M3U8_BUFFER');
     this._context.initInstance('TS_BUFFER');
     this._playlist = this._context.initInstance('PLAYLIST', {autoclear: true});
     this._tracks = this._context.initInstance('TRACKS');
+    this._context.initInstance('PRE_SOURCE_BUFFER');
+
     // 初始化M3U8Loader;
     this._context.registry('M3U8_LOADER', FetchLoader);
     this._context.registry('TS_LOADER', FetchLoader);
@@ -42,6 +48,10 @@ class HLSLiveController {
 
     this._context.registry('MP4_REMUXER', Mp4Remuxer);
     this._context.initInstance('MP4_REMUXER');
+
+    this._context.registry('MSE', MSE);
+    this.mse = this._context.initInstance('MSE', {container: this.container});
+    this.mse.createPlayer();
     this.initEvents();
   }
 
@@ -71,6 +81,17 @@ class HLSLiveController {
           m3u8loader.load(this.url);
         }
       }
+    })
+
+    this.on(REMUX_EVENTS.INIT_SEGMENT, (type) => {
+      this.mse.addSourceBuffers();
+    });
+
+    this.on(REMUX_EVENTS.MEDIA_SEGMENT, (type) => {
+      this.mse.doAppend();
+    })
+    this.on(REMUX_EVENTS.REMUX_ERROR, (err) => {
+      console.log(err)
     })
   }
 

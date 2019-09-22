@@ -9,6 +9,7 @@
   "author": "",
   "license": "ISC",
   "dependencies": {
-    "xgplayer-remux": "1.0.0"
+    "xgplayer-remux": "1.0.0",
+    "xgplayer-utils": "1.1.6-alpha.0"
   }
 }

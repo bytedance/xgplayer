@@ -95,16 +95,23 @@ class TsDemuxer {
         sampleRateIndex: pes.ES.frequencyIndex
       });
       track.meta.refSampleDuration = Math.floor(1024 / track.meta.audioSampleRate * track.meta.timescale);
-      this._hasAudioMeta = true;
-      this.emit(DEMUX_EVENTS.METADATA_PARSED, 'video');
+      if (!this._hasAudioMeta) {
+        this._hasAudioMeta = true
+        this.emit(DEMUX_EVENTS.METADATA_PARSED, 'audio');
+      }
     } else {
       track = this._tracks.audioTrack;
     }
-    let data = pes.ES.buffer;
+    let data = pes.ES.buffer.buffer.slice(pes.ES.buffer.position, pes.ES.buffer.length);
     let dts = pes.pts;
     let pts = pes.pts;
     let sample = new AudioTrackSample({dts, pts, data});
+
     track.samples.push(sample);
+
+    if (this._hasVideoMeta && this._hasAudioMeta) {
+      this.emit(DEMUX_EVENTS.DEMUX_COMPLETE, 'audio');
+    }
   }
 
   pushVideoSample (pes) {
@@ -112,6 +119,7 @@ class TsDemuxer {
     let track;
     if (!this._tracks.videoTrack) {
       this._tracks.videoTrack = new VideoTrack();
+      track = this._tracks.videoTrack;
       track.meta = new VideoTrackMeta();
     } else {
       track = this._tracks.videoTrack;
@@ -154,8 +162,10 @@ class TsDemuxer {
 
     if (sps && pps) {
       track.meta.avcc = Nalunit.getAvcc(sps.body, pps.body);
-      this._hasVideoMeta = true;
-      this.emit(DEMUX_EVENTS.METADATA_PARSED, 'audio');
+      if (!this._hasVideoMeta) {
+        this._hasVideoMeta = true
+        this.emit(DEMUX_EVENTS.METADATA_PARSED, 'video');
+      }
     }
 
     let data = new Uint8Array(sampleLength);
@@ -178,6 +188,7 @@ class TsDemuxer {
         offset += length;
       }
     }
+
     let sample = new VideoTrackSample({
       dts: pes.dts,
       pts: pes.pts,
@@ -186,6 +197,9 @@ class TsDemuxer {
       data
     })
     track.samples.push(sample);
+    if (this._hasVideoMeta && this._hasAudioMeta) {
+      this.emit(DEMUX_EVENTS.DEMUX_COMPLETE, 'video');
+    }
   }
 
   static Merge (buffers) {

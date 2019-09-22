@@ -1,11 +1,6 @@
 {
   "name": "xgplayer-utils",
-<<<<<<< HEAD
-
   "version": "1.1.6-alpha.0",
-=======
-  "version": "1.0.0",
->>>>>>> 6e528d3e91b41daca41f50be8fa561054ff8be37
   "description": "",
   "main": "dist/index.js",
   "scripts": {

@@ -590,8 +590,8 @@ class Fmp4 {
     offset += 8
     data.samples.forEach(item => {
       item.buffer.forEach((unit) => {
-        mdatBox.set(unit.data, offset)
-        offset += unit.data.byteLength
+        mdatBox.set(unit, offset)
+        offset += unit.byteLength
         // buffer.write(unit.data);
       })
     })
