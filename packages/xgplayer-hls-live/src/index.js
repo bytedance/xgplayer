@@ -51,7 +51,6 @@ class HLSLiveController {
 
     this._context.registry('MSE', MSE);
     this.mse = this._context.initInstance('MSE', {container: this.container});
-    this.mse.createPlayer();
     this.initEvents();
   }
 
