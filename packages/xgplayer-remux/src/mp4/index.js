@@ -141,7 +141,7 @@ export default class Mp4Remuxer {
       //   mdatSample.buffer.push(unit)
       //   mdatSample.size += unit.data.byteLength
       //
-      //   mdatBox.samples.push(mdatSample)
+      //
       // }
       let mdatSample = {
         buffer: [],
@@ -149,6 +149,7 @@ export default class Mp4Remuxer {
       }
       mdatSample.buffer.push(avcSample.data)
       mdatSample.size += avcSample.data.byteLength
+      mdatBox.samples.push(mdatSample)
 
       let sampleDuration = 0
 
@@ -345,9 +346,7 @@ export default class Mp4Remuxer {
         buffer: [],
         size: 0
       }
-      mdatSample.buffer.push({
-        data
-      })
+      mdatSample.buffer.push(data)
       mdatSample.size += data.byteLength
 
       mdatBox.samples.push(mdatSample)
