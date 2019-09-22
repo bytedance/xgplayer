@@ -59,7 +59,7 @@ export default class Mp4Remuxer {
       moov = Fmp4.moov({ type, meta: audioTrack.meta })
     } else {
       const { videoTrack } = this._context.getInstance('TRACKS')
-      moov = Fmp4.moov({ type, meta: videoTrack.meta })
+      moov = Fmp4.mo∂ov({ type, meta: videoTrack.meta })
     }
 
     initSegment.write(ftyp, moov)
