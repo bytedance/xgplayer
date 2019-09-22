@@ -4,7 +4,7 @@ import MediaSegment from 'xgplayer-utils/src/models/MediaSegment'
 import MediaSample from 'xgplayer-utils/src/models/MediaSample'
 import sniffer from 'xgplayer-utils/src/env/sniffer'
 import Buffer from 'xgplayer-utils/src/write/Buffer'
-import Fmp4 from './fmp4'
+import Fmp4 from './fmp41'
 
 export default class Mp4Remuxer {
   constructor () {
@@ -19,6 +19,7 @@ export default class Mp4Remuxer {
   }
 
   init () {
+    Fmp4.init();
     this.on(DEMUX_EVENTS.DEMUX_COMPLETE, this.remux.bind(this))
     this.on(DEMUX_EVENTS.METADATA_PARSED, this.onMetaDataReady.bind(this))
   }
@@ -75,7 +76,6 @@ export default class Mp4Remuxer {
 
     source.mimetype = track.meta.codec;
     source.init = initSegment;
-
     this.emit(REMUX_EVENTS.INIT_SEGMENT, type)
   }
 
@@ -236,7 +236,7 @@ export default class Mp4Remuxer {
 
     // track.samples = mp4Samples
     // track.time = firstDts
-    const moof = Fmp4.moof(track)
+    const moof = Fmp4.moof(track.meta.id, this._dtsBase, track)
     const mdat = Fmp4.mdat(mdatBox)
     moofMdat.write(moof, mdat)
 
