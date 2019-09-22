@@ -1,121 +1,81 @@
 import Player from 'xgplayer'
-import Context from 'xgplayer-utils/dist/Context'
-import FLV from './Flv'
-import allEvents, { flvAllowedEvents } from 'xgplayer-utils/dist/constants/events'
+import VodTask from './tasks/VodTask'
+import Flv from './Flv'
 
-const isEnded = (player, flv) => {
-  if (!player.config.isLive) {
-    if (player.duration - player.currentTime < 2) {
-      const range = player.getBufferedRange()
-      if (player.currentTime - range[1] < 0.1) {
-        flv.mse.endOfStream()
-      }
-    }
-  }
-}
+class FlvPlayer extends Player {
+  constructor (options) {
+    super(options)
+    this._options = options
+    this.__flv__ = null
+    this.init(options)
 
-const flvPlayer = function () {
-  let player = this
-
-  let util = Player.util
-  const context = new Context(flvAllowedEvents)
-  const preloadTime = player.config.preloadTime || 15
-  const _start = player.start
-  let flv
-
-  Object.defineProperty(player, 'src', {
-    get () {
-      return player.currentSrc
-    },
-    set (url) {
-      player.config.url = url
-      if (!player.paused) {
-        player.pause()
-        player.once('pause', () => {
-          player.start(url)
-        })
-        player.once('canplay', () => {
-          player.play()
-        })
-      } else {
-        player.start(url)
-      }
-      player.once('canplay', () => {
-        player.currentTime = 0
-      })
-    },
-    configurable: true
-  })
-
-  player.start = function (url = player.config.url) {
-    if (!url) { return }
-
-    flv = context.registry('FLV_CONTROLLER', FLV)(player)
-    context.init()
-
-    flv.once(allEvents.INIT_SEGMENT, () => {
-      if (player.config.isLive) {
-        util.addClass(player.root, 'xgplayer-is-live')
-        const live = util.createDom('xg-live', '正在直播', {}, 'xgplayer-live')
-        player.controls.appendChild(live)
-        const timer = setInterval(() => {
-          if (player.paused && player.buffered.length) {
-            for (let i = 0, len = player.buffered.length; i < len; i++) {
-              if (player.buffered.start(i) > player.currentTime) {
-                player.currentTime = player.buffered.start(i)
-                clearInterval(timer)
-                break
-              }
-            }
-          }
-        }, 200)
-      } else {
-        clearTimeout(flv.timer)
-      }
+    Object.defineProperty(this, 'src', {
+      set: (val) => {
+        if (typeof val === 'string' && val.startsWith('blob:')) {
+          return
+        }
+        this._options.url = val
+        this.__flv__.destroy()
+        this.__flv__ = new Flv(this._options, this)
+        this.__flv__.load()
+        this.video.src = this.__flv__.mse.url
+        this.currentTime = 0
+        setTimeout(() => {
+          this.play()
+        }, 0)
+      },
+      get: () => {
+        return this._options.url
+      },
+      configurable: true
     })
-    _start.call(player, flv.mse.url)
-  }
-
-  const loadData = (time = player.currentTime) => {
-    const range = player.getBufferedRange()
-    if (time < range[1]) {
-      if (!player.config.isLive) {
-        // TODO 在迫近preloadTime的时候开始加载
-        if (range[1] - time < preloadTime) {
-          flv.seek(range[1] + 1)
-        }
-      }
-    } else {
-      flv.seek(time)
+    if (options.autoplay) {
+      this.start()
     }
   }
 
-  player.on('timeupdate', () => {
-    loadData(player.currentTime + 1)
-    isEnded(player, flv)
-  })
+  init (options) {
+    const player = this
+    const { isLive } = options
+    player.__flv__ = new Flv(options, player)
+    player.once('complete', () => {
+      player.createInstance(player.__flv__)
+    })
+    player.on('pause', () => {
+      !isLive && VodTask.clear()
+    })
+    this.once('destroy', () => {
+      VodTask.clear()
+      player.__flv__.destroy()
+      player.__flv__.mse = null
+      player.video.src = ''
+      player.__flv__ = null
+    })
+  }
 
-  player.on('seeking', () => {
-    loadData()
-  })
-
-  player.on('waiting', () => {
-    if (flv.type === 'live') {
-      let buffered = player.buffered
-      let length = buffered.length
-      let currentTime = player.currentTime
-      for (let i = 0; i < length; i++) {
-        if (buffered.start(i) > currentTime) {
-          player.currentTime = buffered.start(i) + 0.1
-          break
-        }
-      }
+  createInstance (flv) {
+    const player = this
+    if (this._options.isLive) {
+      Player.util.addClass(player.root, 'xgplayer-is-live')
+      const live = Player.util.createDom('xg-live', '正在直播', {}, 'xgplayer-live')
+      player.controls.appendChild(live)
     }
-  })
+    flv.load()
+  }
 
-  player.once('destroy', () => {
-    flv.destroy()
-  })
+  start () {
+    if (!this.inited) {
+      return
+    }
+    const flvPlayer = this.__flv__
+    super.start(flvPlayer.mse.url)
+    this.src = flvPlayer.mse.url
+    return true
+  }
+
+  get inited () {
+    return this.__flv__ !== undefined
+  }
 }
 
-Player.install('flvplayer', flvPlayer)
+module.exports = FlvPlayer

@@ -97,7 +97,6 @@ class TS {
         let buffer = new Stream(ctx);
         this.header = new TS.Header(buffer);
         this.body = new TS.Payload(buffer, this);
-        console.log(this);
     }
     static Header (buffer) {
         this.sync = buffer.readUint8();
