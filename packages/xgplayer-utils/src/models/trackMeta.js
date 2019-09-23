@@ -23,6 +23,8 @@ export class VideoTrackMeta {
   constructor (meta) {
     const _default = {
       avcc: null,
+      sps: new Uint8Array(0),
+      pps: new Uint8Array(0),
       chromaFormat: 420,
       codec: 'avc1.640020',
       codecHeight: 720,

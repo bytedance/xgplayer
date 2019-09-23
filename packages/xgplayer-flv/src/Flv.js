@@ -8,6 +8,10 @@ import { REMUX_EVENTS, DEMUX_EVENTS } from 'xgplayer-utils/dist/constants/events
 
 const Tag = 'FLVController'
 
+class Logger {
+  warn () {}
+}
+
 const createAsyncTask = () => {
   let res, rej
   const promise = new Promise((resolve, reject) => {
@@ -44,8 +48,8 @@ class FlvController {
     this._context.registry('TRACKS', Tracks)
     this._context.registry('MP4_REMUXER', Mp4Remuxer)
     this._context.registry('PRE_SOURCE_BUFFER', Presource)
+    this._context.registry('LOGGER', Logger)
     this.mse = this._context.registry('MSE', MSE)({ container: this._player })
-
 
     this.initListeners()
   }

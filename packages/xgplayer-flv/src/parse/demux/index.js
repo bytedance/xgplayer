@@ -354,7 +354,6 @@ class FlvDemuxer {
       track.samples.push(chunk)
       this.emit(DEMUX_EVENTS.DEMUX_COMPLETE)
     }
-
     if (!validate) {
       this.logger.warn(this.TAG, 'TAG length error at ' + chunk.datasize)
     }
@@ -369,7 +368,7 @@ class FlvDemuxer {
     // header
     let info = this.loaderBuffer.shift(1)[0]
     chunk.frameType = (info & 0xf0) >>> 4
-    chunk.isKeyframe = chunk.frameType === 5
+    chunk.isKeyframe = chunk.frameType === 1
     // let tempCodecID = this.tracks.videoTrack.codecID
     let codecID = info & 0x0f
     this.tracks.videoTrack.codecID = codecID
@@ -444,6 +443,7 @@ class FlvDemuxer {
       } else {
         if (!this._datasizeValidator(chunk.datasize)) {
           this.logger.warn(this.TAG, `invalid video tag datasize: ${chunk.datasize}`)
+          return;
         }
         this.tracks.videoTrack.samples.push(chunk)
         this.emit(DEMUX_EVENTS.DEMUX_COMPLETE)
@@ -455,6 +455,7 @@ class FlvDemuxer {
         this.logger.warn(this.TAG, `invalid video tag datasize: ${chunk.datasize}`)
       }
       this.tracks.videoTrack.samples.push(chunk)
+      debugger;
       this.emit(DEMUX_EVENTS.DEMUX_COMPLETE)
     }
     delete chunk.tagType
@@ -512,7 +513,7 @@ class FlvDemuxer {
       meta.codec = codecString
 
       offset += size
-      this.tracks.videoTrack.sps = sps
+      this.tracks.videoTrack.meta.sps = sps
       config = SPSParser.parseSPS(sps)
     }
 
@@ -528,7 +529,7 @@ class FlvDemuxer {
         pps[j] = data[offset + j]
       }
       offset += size
-      this.tracks.videoTrack.pps = pps
+      this.tracks.videoTrack.meta.pps = pps
     }
 
     Object.assign(meta, SPSParser.toVideoMeta(config))

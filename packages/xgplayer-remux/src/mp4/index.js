@@ -163,8 +163,6 @@ export default class Mp4Remuxer {
       mdatSample.buffer.push(avcSample.data)
       mdatSample.size += avcSample.data.byteLength
 
-      mdatBox.samples.push(mdatSample)
-
       let sampleDuration = 0
 
       if (samples.length >= 1) {
@@ -198,6 +196,13 @@ export default class Mp4Remuxer {
         size: avcSample.data.byteLength,
         isKeyframe,
         duration: sampleDuration,
+        flags: {
+          isLeading: 0,
+          dependsOn: isKeyframe ? 2 : 1,
+          isDependedOn: isKeyframe ? 1 : 0,
+          hasRedundancy: 0,
+          isNonSync: isKeyframe ? 0 : 1
+        },
         originDts
       })
     }
@@ -366,6 +371,14 @@ export default class Mp4Remuxer {
         cts: 0,
         size: data.byteLength,
         duration: sampleDuration,
+        flags: {
+          isLeading: 0,
+          dependsOn: 1,
+          isDependedOn: 0,
+          hasRedundancy: 0,
+          isNonSync: 1
+        },
+        isKeyframe: true,
         originDts
       }
 
