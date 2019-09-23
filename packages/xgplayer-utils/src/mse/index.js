@@ -26,9 +26,9 @@ class MSE {
       for (let i = 0, k = Object.keys(sources.sources).length; i < k; i++) {
         let source = sources.sources[Object.keys(sources.sources)[i]]
         let mime = (Object.keys(sources.sources)[i] === 'video') ? 'video/mp4;codecs=' + source.mimetype : 'audio/mp4;codecs=' + source.mimetype
-        // if (Object.keys(sources.sources)[i] === 'video') {
-        //   continue
-        // }
+        if (Object.keys(sources.sources)[i] === 'audio') {
+          continue
+        }
         let sourceBuffer = this.mediaSource.addSourceBuffer(mime);
         this.sourceBuffers[Object.keys(sources.sources)[i]] = sourceBuffer;
         sourceBuffer.addEventListener('updateend', () => {
@@ -54,7 +54,7 @@ class MSE {
 
             sourceBuffer.appendBuffer(source.init.buffer.buffer);
             source.inited = true;
-          } else {
+          } else if (source) {
             let data = source.data.shift()
             console.log(`${type}`, data)
             if (data) {
