@@ -53,7 +53,7 @@ class MSE {
           if (source && !source.inited) {
             sourceBuffer.appendBuffer(source.init.buffer.buffer);
             source.inited = true;
-          } else {
+          } else if (source) {
             let data = source.data.shift()
             if (data) {
               sourceBuffer.appendBuffer(data.buffer.buffer);

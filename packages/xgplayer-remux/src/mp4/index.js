@@ -242,7 +242,7 @@ export default class Mp4Remuxer {
     // track.time = firstDts
     const moof = Fmp4.moof({
       id: track.meta.id,
-      time: this._dtsBase,
+      time: firstDts,
       samples: mp4Samples
     })
     const mdat = Fmp4.mdat(mdatBox)
@@ -373,10 +373,10 @@ export default class Mp4Remuxer {
         duration: sampleDuration,
         flags: {
           isLeading: 0,
-          dependsOn: 1,
-          isDependedOn: 0,
+          dependsOn: 2,
+          isDependedOn: 1,
           hasRedundancy: 0,
-          isNonSync: 1
+          isNonSync: 0
         },
         isKeyframe: true,
         originDts
@@ -422,7 +422,6 @@ export default class Mp4Remuxer {
 
     track.samples = mp4Samples
     const moofMdat = new Buffer()
-    track.time = firstDts
     const moof = Fmp4.moof({
       id: track.meta.id,
       time: firstDts,
