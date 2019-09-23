@@ -127,9 +127,9 @@ class Nalunit {
   static getAvcc (sps, pps) {
     let ret = new Uint8Array(sps.byteLength + pps.byteLength + 11);
     ret[0] = 0x01;
-    ret[1] = sps[3];
-    ret[2] = sps[4];
-    ret[3] = sps[5];
+    ret[1] = sps[1];
+    ret[2] = sps[2];
+    ret[3] = sps[3];
     ret[4] = 255;
     ret[5] = 225;
 

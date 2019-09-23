@@ -51,7 +51,6 @@ class HLSLiveController {
 
     this._context.registry('MSE', MSE);
     this.mse = this._context.initInstance('MSE', {container: this.container});
-    this.mse.createPlayer();
     this.initEvents();
   }
 
@@ -97,6 +96,7 @@ class HLSLiveController {
 
   load (url) {
     this.baseurl = M3U8Parser.parseURL(url);
+    console.log(this._playlist);
     this.url = url;
     let m3u8loader = this._context.getInstance('M3U8_LOADER');
     m3u8loader.load(url);
