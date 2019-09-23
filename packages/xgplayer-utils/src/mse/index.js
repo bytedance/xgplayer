@@ -42,12 +42,13 @@ class MSE {
         if (!sourceBuffer.updating) {
           let source = sources.sources[type];
           if (source && !source.inited) {
-            console.log(`${type}`, source.init.buffer)
+            console.log(`${type} init`, source.init.buffer)
             sourceBuffer.appendBuffer(source.init.buffer.buffer);
             source.inited = true;
           } else {
             let data = source.data.shift()
             if (data) {
+              console.log(`${type} data`, data.buffer)
               sourceBuffer.appendBuffer(data.buffer.buffer);
             }
           }

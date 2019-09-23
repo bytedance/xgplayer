@@ -504,7 +504,6 @@ class Fmp4 {
     let tfdt = Fmp4.tfdt(data.time)
     let sdtp = Fmp4.sdtp(data)
     let trun = Fmp4.trun(data, sdtp.byteLength);
-    console.log(trun);
 
     [tfhd, tfdt, sdtp, trun].forEach(item => {
       size += item.byteLength

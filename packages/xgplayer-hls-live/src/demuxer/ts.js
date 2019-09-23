@@ -91,7 +91,7 @@ class TsDemuxer {
         channelCount: pes.ES.channel,
         codec: 'mp4a.40.' + pes.ES.audioObjectType,
         config: pes.ES.audioConfig,
-        id: pes.id,
+        id: 2,
         sampleRateIndex: pes.ES.frequencyIndex
       });
       track.meta.refSampleDuration = Math.floor(1024 / track.meta.audioSampleRate * track.meta.timescale);
@@ -103,8 +103,8 @@ class TsDemuxer {
       track = this._tracks.audioTrack;
     }
     let data = pes.ES.buffer.buffer.slice(pes.ES.buffer.position, pes.ES.buffer.length);
-    let dts = pes.pts;
-    let pts = pes.pts;
+    let dts = parseInt(pes.pts / 90);
+    let pts = parseInt(pes.pts / 90);
     let sample = new AudioTrackSample({dts, pts, data});
 
     track.samples.push(sample);
@@ -132,8 +132,8 @@ class TsDemuxer {
       if (nal.sps) {
         // TODO：VideoTrack信息 和 Meta 信息
         sps = nal;
-        track.meta.sps = nal.body;
-        track.meta.chromaFormat = sps.sps.chroma_format_string
+        track.sps = nal.body;
+        track.meta.chromaFormat = sps.sps.chroma_format
         track.meta.codec = 'avc1.';
         for (var j = 1; j < 4; j++) {
           var h = sps.body[j].toString(16);
@@ -145,13 +145,13 @@ class TsDemuxer {
         track.meta.codecHeight = sps.sps.codec_size.height;
         track.meta.codecWidth = sps.sps.codec_size.width;
         track.meta.frameRate = sps.sps.frame_rate;
-        track.meta.id = pes.id;
+        track.meta.id = 1;
         track.meta.level = sps.sps.level_string;
         track.meta.presentHeight = sps.sps.present_size.height;
         track.meta.presentWidth = sps.sps.present_size.width;
         track.meta.profile = sps.sps.profile_string;
         track.meta.refSampleDuration = Math.floor(track.meta.timescale * (sps.sps.frame_rate.fps_den / sps.sps.frame_rate.fps_num));
-        track.meta.sarRatio = sps.sps.sar_ratio;
+        track.meta.sarRatio = sps.sps.sar_ratio ? sps.sps.sar_ratio : sps.sps.par_ratio;
       } else if (nal.pps) {
         track.pps = nal.body;
         pps = nal;
@@ -188,14 +188,15 @@ class TsDemuxer {
         offset += length;
       }
     }
-
     let sample = new VideoTrackSample({
-      dts: pes.dts,
-      pts: pes.pts,
+      dts: parseInt(pes.dts / 90),
+      pts: parseInt(pes.pts / 90),
+      cts: (pes.pts - pes.dts) / 90,
       originDts: pes.dts,
       isKeyframe,
       data
     })
+
     track.samples.push(sample);
     if (this._hasVideoMeta && this._hasAudioMeta) {
       this.emit(DEMUX_EVENTS.DEMUX_COMPLETE, 'video');

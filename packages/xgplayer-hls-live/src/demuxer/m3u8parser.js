@@ -5,17 +5,22 @@
 // TODO: Support More
 class M3U8Parser {
   static parse (text, baseurl = '') {
+    console.log(text);
     let ret = {
       duration: 0
     };
     let refs = text.split(/\r|\n/);
+    refs = refs.filter((ref) => {
+      return ref;
+    })
     let ref = refs.shift()
     if (!ref.match('#EXTM3U')) {
       // TODO:M3U格式错误。
       return null;
     }
+    console.log(refs);
     ref = refs.shift()
-    while (ref !== undefined) {
+    while (ref) {
       let refm = ref.match(/#(.*):(.*)/);
       if (refm && refm.length > 2) {
         switch (refm[1]) {
@@ -46,6 +51,7 @@ class M3U8Parser {
       }
       ref = refs.shift()
     }
+    console.log(ret);
     return ret;
   }
 
