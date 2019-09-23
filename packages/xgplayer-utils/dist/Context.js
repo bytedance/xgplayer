@@ -119,7 +119,7 @@ class Context {
 
       emit(messageName, ...args) {
         checkMessageName(messageName);
-        console.log(`[${this.TAG}] ${messageName}`, this);
+        // console.log(`[${this.TAG}] ${messageName}`, this);
         return emitter.emit(messageName, ...args);
       }
 
