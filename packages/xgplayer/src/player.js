@@ -484,31 +484,21 @@ class Player extends Proxy {
     if (player.rotateDeg === 0.25 || player.rotateDeg === 0.75) {
       if (player.config.rotate.innerRotate) {
         if((targetWidth / targetHeight) > (height / width) ) { //旋转后纵向撑满
-          // console.log('纵向撑满')
           let videoWidth = 0
           if((targetHeight / targetWidth) > (height / width)) { //旋转前是纵向撑满
             videoWidth = height * targetWidth / targetHeight
           } else { //旋转前是横向撑满
             videoWidth = width
           }
-          if(videoWidth > height) { //缩小
-            scale = height > width ? width / height : height / width
-          } else { //放大
-            scale = height > width ? height / width : width / height
-          }
+          scale = height / videoWidth
         } else { //旋转后横向撑满
-          // console.log('横向撑满')
           let videoHeight = 0
           if((targetHeight / targetWidth) > (height / width)) { //旋转前是纵向撑满
             videoHeight = height
           } else { //旋转前是横向撑满
             videoHeight = width * targetHeight / targetWidth
           }
-          if(videoHeight > width) { //缩小
-            scale = height > width ? width / height : height / width
-          } else { //放大
-            scale = height > width ? height / width : width / height
-          }
+          scale = width / videoHeight
         }
       } else {
         if (width >= height) {
@@ -635,13 +625,13 @@ class Player extends Proxy {
       }
       if (e && e.keyCode === 40) { // 按 down
         if (player.volume - 0.1 >= 0) {
-          player.volume -= 0.1
+          player.volume = parseFloat((player.volume - 0.1).toFixed(1))
         } else {
           player.volume = 0
         }
       } else if (e && e.keyCode === 38) { // 按 up
         if (player.volume + 0.1 <= 1) {
-          player.volume += 0.1
+          player.volume = parseFloat((player.volume + 0.1).toFixed(1))
         } else {
           player.volume = 1
         }
