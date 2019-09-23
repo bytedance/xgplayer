@@ -67,7 +67,7 @@ class FlvController {
     const buffer = this._context.getInstance('LOADER_BUFFER')
     const loader = this._context.getInstance('FETCH_LOADER')
     if (this.isSeekable) {
-      loader.cancel()
+      // loader.cancel()
       this.state.range = {
         start: 0,
         end: buffer.historyLen - 1
