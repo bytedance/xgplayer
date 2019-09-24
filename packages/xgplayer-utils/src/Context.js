@@ -1,6 +1,8 @@
 import MediaInfo from './models/media-info'
 import { EventEmitter } from 'events'
 
+const DIRECT_EMIT_FLAG = '__TO__'
+
 class Context {
   constructor (allowedEvents = []) {
     this._emitter = new EventEmitter()
@@ -77,13 +79,17 @@ class Context {
         this.TAG = tag
         this._context = self
       }
+
       on (messageName, callback) {
         checkMessageName(messageName)
+
         if (this.listeners[messageName]) {
           this.listeners[messageName].push(callback)
         } else {
           this.listeners[messageName] = [callback]
         }
+
+        emitter.on(`${messageName}${DIRECT_EMIT_FLAG}${tag}`, callback) // 建立定向通信监听
         return emitter.on(messageName, callback)
       }
 
@@ -103,6 +109,8 @@ class Context {
 
       once (messageName, callback) {
         checkMessageName(messageName)
+
+        emitter.on(`${messageName}${DIRECT_EMIT_FLAG}${tag}`, callback)
         return emitter.once(messageName, callback)
       }
 
@@ -117,6 +125,17 @@ class Context {
           }
         }
         return emitter.emit(messageName, ...args)
+      }
+
+      /**
+       * 定向发送给某个组件单例的消息
+       * @param messageName
+       * @param args
+       */
+      emitTo (tag, messageName, ...args) {
+        checkMessageName(messageName)
+
+        return emitter.emit(`${messageName}${DIRECT_EMIT_FLAG}${tag}`, ...args)
       }
 
       off (messageName, callback) {
