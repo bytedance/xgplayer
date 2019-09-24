@@ -7,5 +7,5 @@ module.exports = {
   XgBuffer: require('./src/buffer').XgBuffer,
   RemuxBuffer: require('./src/buffer').RemuxBuffer,
 
-  PreSource: require('./src/presouce').PreSource
+  PreSource: require('./src/presouce').default
 };

@@ -45,8 +45,6 @@ const flvPlayer = function () {
             }
           }
         }, 200)
-      } else {
-        clearTimeout(flv.timer)
       }
     })
     _start.call(player, flv.mse.url)

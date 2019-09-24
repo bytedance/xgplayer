@@ -16,6 +16,10 @@ class FetchLoader {
     this.buffer = this.configs.buffer || 'LOADER_BUFFER'
   }
 
+  init () {
+    this.on(LOADER_EVENTS.LADER_START, this.load.bind(this))
+  }
+
   static get type () {
     return 'loader'
   }
