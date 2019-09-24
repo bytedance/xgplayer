@@ -1,8 +1,6 @@
 /**
  * Reference: https://tools.ietf.org/html/rfc8216#section-4.3
  */
-
-// TODO: Support More
 class M3U8Parser {
   static parse (text, baseurl = '') {
     console.log(text);
@@ -18,7 +16,6 @@ class M3U8Parser {
       // TODO:M3U格式错误。
       return null;
     }
-    console.log(refs);
     ref = refs.shift()
     while (ref) {
       let refm = ref.match(/#(.*):(.*)/);
@@ -34,16 +31,7 @@ class M3U8Parser {
             ret.targetduration = parseFloat(refm[2]);
             break;
           case 'EXTINF':
-            if (!ret.frags) {
-              ret.frags = []
-            }
-            let freg = {
-              start: ret.duration,
-              duration: parseFloat(refm[2]) * 1000
-            }
-            ret.duration += freg.duration;
-            freg.url = baseurl + refs.shift();
-            ret.frags.push(freg);
+            M3U8Parser.parseFrag(refm, refs, ret, baseurl);
             break;
           default:
             break;
@@ -51,8 +39,24 @@ class M3U8Parser {
       }
       ref = refs.shift()
     }
-    console.log(ret);
     return ret;
+  }
+
+  static parseFrag (refm, refs, ret, baseurl) {
+    if (!ret.frags) {
+      ret.frags = []
+    }
+    let freg = {
+      start: ret.duration,
+      duration: parseFloat(refm[2]) * 1000
+    }
+    ret.duration += freg.duration;
+    let nextline = refs.shift();
+    if (nextline.match(/#(.*):(.*)/)) {
+      nextline = refs.shift();
+    }
+    freg.url = baseurl + nextline;
+    ret.frags.push(freg);
   }
 
   static parseURL (url) {

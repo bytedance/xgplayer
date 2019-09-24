@@ -2,9 +2,9 @@
   "name": "xgplayer-utils",
   "version": "1.1.6-alpha.0",
   "description": "",
-  "main": "dist/index.js",
+  "main": "index.js",
   "scripts": {
-    "build": "babel src --out-dir dist"
+    "build": "babel src --out-dir dest"
   },
   "author": "",
   "license": "ISC",

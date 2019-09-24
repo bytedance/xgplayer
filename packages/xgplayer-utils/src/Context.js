@@ -1,10 +1,9 @@
-import MediaInfo from './models/MediaInfo'
-
-const events = require('events')
+import MediaInfo from './models/media-info'
+import { EventEmitter } from 'events'
 
 class Context {
   constructor (allowedEvents = []) {
-    this._emitter = new events.EventEmitter()
+    this._emitter = new EventEmitter()
     this._instanceMap = {} // 所有的解码流程实例
     this._clsMap = {} // 构造函数的map
     this._inited = false

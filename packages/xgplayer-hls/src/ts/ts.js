@@ -97,7 +97,6 @@ class TS {
         let buffer = new Stream(ctx);
         this.header = new TS.Header(buffer);
         this.body = new TS.Payload(buffer, this);
-        console.log(this);
     }
     static Header (buffer) {
         this.sync = buffer.readUint8();
@@ -445,6 +444,7 @@ class TS {
             this.audioConfig = TS.getAudioConfig(this.audioObjectType, this.channel, this.frequencyIndex);
             buffer.skip(1);
             this.buffer = TS.Merge(buffer, ts);
+            console.log(this.buffer);
         } else {
             throw `ES ${type} is not supported`;
         }

@@ -1,10 +1,10 @@
-export const LOADER_EVENTS = {
+const LOADER_EVENTS = {
   LOADER_DATALOADED: 'LOADER_DATALOADED',
   LOADER_COMPLETE: 'LOADER_COMPLETE',
   LOADER_ERROR: 'LOADER_ERROR'
 }
 
-export const DEMUX_EVENTS = {
+const DEMUX_EVENTS = {
   DEMUX_COMPLETE: 'DEMUX_COMPLETE',
   DEMUX_ERROR: 'DEMUX_ERROR',
   METADATA_PARSED: 'METADATA_PARSED',
@@ -13,20 +13,34 @@ export const DEMUX_EVENTS = {
   MEDIA_INFO: 'MEDIA_INFO'
 }
 
-export const REMUX_EVENTS = {
+const REMUX_EVENTS = {
   MEDIA_SEGMENT: 'MEDIA_SEGMENT',
   REMUX_ERROR: 'REMUX_ERROR',
   INIT_SEGMENT: 'INIT_SEGMENT'
 }
 
-const eventsObj = Object.assign({}, LOADER_EVENTS, DEMUX_EVENTS, REMUX_EVENTS)
+const ALLEVENTS = Object.assign({}, LOADER_EVENTS, DEMUX_EVENTS, REMUX_EVENTS)
 
-export const flvAllowedEvents = []
+const FlvAllowedEvents = []
+const HlsAllowedEvents = []
 
-for (let key in eventsObj) {
-  if (eventsObj.hasOwnProperty(key)) {
-    flvAllowedEvents.push(eventsObj[key])
+for (let key in ALLEVENTS) {
+  if (ALLEVENTS.hasOwnProperty(key)) {
+    FlvAllowedEvents.push(ALLEVENTS[key])
   }
 }
 
-export default eventsObj
+for (let key in ALLEVENTS) {
+  if (ALLEVENTS.hasOwnProperty(key)) {
+    HlsAllowedEvents.push(ALLEVENTS[key])
+  }
+}
+
+export default {
+  ALLEVENTS,
+  REMUX_EVENTS,
+  DEMUX_EVENTS,
+  LOADER_EVENTS,
+  FlvAllowedEvents,
+  HlsAllowedEvents
+};

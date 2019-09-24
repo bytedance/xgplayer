@@ -1,29 +1,16 @@
-import FlvDemuxer from './parse/demux'
-import Mp4Remuxer from 'xgplayer-remux/src/mp4'
-import MSE from 'xgplayer-utils/src/mse'
-import FetchLoader from 'xgplayer-loader-fetch'
-import Presource from 'xgplayer-buffer/src/presouce'
-import { Tracks, XgBuffer } from 'xgplayer-buffer/src/index'
-import { REMUX_EVENTS, DEMUX_EVENTS } from 'xgplayer-utils/dist/constants/events'
+import FlvDemuxer from './demux'
+import Mp4Remuxer from 'xgplayer-remux'
+import { FetchLoader } from 'xgplayer-loader'
+import { Tracks, XgBuffer, Presource } from 'xgplayer-buffer'
+import { Mse, EVENTS } from 'xgplayer-utils'
+
+const REMUX_EVENTS = EVENTS.REMUX_EVENTS;
+const DEMUX_EVENTS = EVENTS.DEMUX_EVENTS;
 
 const Tag = 'FLVController'
 
 class Logger {
   warn () {}
-}
-
-const createAsyncTask = () => {
-  let res, rej
-  const promise = new Promise((resolve, reject) => {
-    res = resolve
-    rej = reject
-  })
-
-  return {
-    promise,
-    resolve: res,
-    reject: rej
-  }
 }
 
 class FlvController {
@@ -38,7 +25,6 @@ class FlvController {
         end: ''
       }
     }
-
   }
 
   init () {
@@ -49,7 +35,7 @@ class FlvController {
     this._context.registry('MP4_REMUXER', Mp4Remuxer)
     this._context.registry('PRE_SOURCE_BUFFER', Presource)
     this._context.registry('LOGGER', Logger)
-    this.mse = this._context.registry('MSE', MSE)({ container: this._player })
+    this.mse = this._context.registry('MSE', Mse)({ container: this._player })
 
     this.initListeners()
   }
@@ -65,7 +51,7 @@ class FlvController {
       this.emit(DEMUX_EVENTS.DEMUX_ERROR, new Error('failed to get mediainfo'))
     }
     const buffer = this._context.getInstance('LOADER_BUFFER')
-    const loader = this._context.getInstance('FETCH_LOADER')
+    // const loader = this._context.getInstance('FETCH_LOADER')
     if (this.isSeekable) {
       // loader.cancel()
       this.state.range = {

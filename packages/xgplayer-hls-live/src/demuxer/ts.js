@@ -1,9 +1,15 @@
-import Stream from '../stream';
-import Nalunit from '../../../xgplayer-utils/src/h264/nalunit';
-import { AudioTrack, VideoTrack } from '../../../xgplayer-buffer/src/index';
-import { AudioTrackSample, VideoTrackSample } from '../../../xgplayer-utils/src/models/trackSample';
-import { AudioTrackMeta, VideoTrackMeta } from '../../../xgplayer-utils/src/models/trackMeta';
-import { DEMUX_EVENTS } from '../../../xgplayer-utils/src/constants/events'
+import { Nalunit } from 'xgplayer-codec';
+import { AudioTrack, VideoTrack } from 'xgplayer-buffer';
+import {
+  AudioTrackMeta,
+  VideoTrackMeta,
+  AudioTrackSample,
+  VideoTrackSample,
+  EVENTS,
+  Stream
+} from 'xgplayer-utils';
+
+const DEMUX_EVENTS = EVENTS.DEMUX_EVENTS;
 const StreamType = {
   0x01: ['video', 'MPEG-1'],
   0x02: ['video', 'MPEG-2'],
@@ -88,6 +94,7 @@ class TsDemuxer {
       track = this._tracks.audioTrack;
       track.meta = new AudioTrackMeta({
         audioSampleRate: pes.ES.frequence,
+        sampleRate: pes.ES.frequence,
         channelCount: pes.ES.channel,
         codec: 'mp4a.40.' + pes.ES.audioObjectType,
         config: pes.ES.audioConfig,
@@ -102,13 +109,12 @@ class TsDemuxer {
     } else {
       track = this._tracks.audioTrack;
     }
-    let data = pes.ES.buffer.buffer.slice(pes.ES.buffer.position, pes.ES.buffer.length);
+    let data = new Uint8Array(pes.ES.buffer.buffer.slice(pes.ES.buffer.position, pes.ES.buffer.length));
     let dts = parseInt(pes.pts / 90);
     let pts = parseInt(pes.pts / 90);
     let sample = new AudioTrackSample({dts, pts, data});
-
+    console.log(pts);
     track.samples.push(sample);
-
     if (this._hasVideoMeta && this._hasAudioMeta) {
       this.emit(DEMUX_EVENTS.DEMUX_COMPLETE, 'audio');
     }
@@ -223,7 +229,7 @@ class TsDemuxer {
   static read (stream, ts, frags) {
     TsDemuxer.readHeader(stream, ts);
     TsDemuxer.readPayload(stream, ts, frags);
-    if (ts.header.packet === 'MEDIA' && ts.header.payload === 1) {
+    if (ts.header.packet === 'MEDIA' && ts.header.payload === 1 && !ts.unknownPIDs) {
       ts.pes = TsDemuxer.PES(ts);
     }
   }
@@ -249,7 +255,11 @@ class TsDemuxer {
           TsDemuxer.PMT(stream, ts, frags);
         } else {
           let sts = frags.pmt ? frags.pmt.filter((item) => item.pid === pid) : [];
-          if (sts.length > 0) TsDemuxer.Media(stream, ts, StreamType[sts[0].streamType][0]);
+          if (sts.length > 0) {
+            TsDemuxer.Media(stream, ts, StreamType[sts[0].streamType][0])
+          } else {
+            ts.unknownPIDs = true;
+          };
         }
     }
   }

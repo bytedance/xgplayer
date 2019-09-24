@@ -1,7 +1,7 @@
 import Player from 'xgplayer'
-import Context from 'xgplayer-utils/dist/Context'
+import { Context, EVENTS } from 'xgplayer-utils';
 import FLV from './Flv'
-import allEvents, { flvAllowedEvents } from 'xgplayer-utils/dist/constants/events'
+const flvAllowedEvents = EVENTS.FlvAllowedEvents;
 
 const isEnded = (player, flv) => {
   if (!player.config.isLive) {
@@ -24,13 +24,12 @@ const flvPlayer = function () {
   let flv
 
   player.start = function (url = player.config.url) {
-    debugger;
     if (!url) { return }
 
     flv = context.registry('FLV_CONTROLLER', FLV)(player)
     context.init()
 
-    flv.once(allEvents.INIT_SEGMENT, () => {
+    flv.once(EVENTS.INIT_SEGMENT, () => {
       if (player.config.isLive) {
         util.addClass(player.root, 'xgplayer-is-live')
         const live = util.createDom('xg-live', '正在直播', {}, 'xgplayer-live')
