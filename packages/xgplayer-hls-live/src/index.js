@@ -92,6 +92,12 @@ class HLSLiveController {
     this.on(REMUX_EVENTS.REMUX_ERROR, (err) => {
       console.log(err)
     })
+    this.on('TIME_UPDATE', (container)=>{
+      console.log((this._playlist.duration / 1000), container.currentTime)
+      if (container.currentTime > (this._playlist.duration / 1000) - 5) {
+        this.load(this.url);
+      }
+    })
   }
 
   load (url) {
