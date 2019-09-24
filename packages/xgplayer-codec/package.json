@@ -1,0 +1,11 @@
+{
+  "name": "xgplayer-codec",
+  "version": "1.0.0",
+  "description": "",
+  "main": "index.js",
+  "scripts": {
+    "build": "babel src --out-dir dest"
+  },
+  "author": "",
+  "license": "ISC"
+}

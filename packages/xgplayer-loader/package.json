@@ -1,0 +1,14 @@
+{
+  "name": "xgplayer-loader",
+  "version": "1.0.0",
+  "description": "",
+  "main": "index.js",
+  "scripts": {
+    "build": "babel src --out-dir dest"
+  },
+  "dependencies": {
+    "xgplayer-utils": "1.1.6-alpha.0"
+  },
+  "author": "",
+  "license": "ISC"
+}
