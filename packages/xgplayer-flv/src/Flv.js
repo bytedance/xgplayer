@@ -51,9 +51,9 @@ class FlvController {
       this.emit(DEMUX_EVENTS.DEMUX_ERROR, new Error('failed to get mediainfo'))
     }
     const buffer = this._context.getInstance('LOADER_BUFFER')
-    const loader = this._context.getInstance('FETCH_LOADER')
+    // const loader = this._context.getInstance('FETCH_LOADER')
     if (this.isSeekable) {
-      loader.cancel()
+      // loader.cancel()
       this.state.range = {
         start: 0,
         end: buffer.historyLen - 1

@@ -6,6 +6,7 @@
   "scripts": {
     "prepare": "npm run build",
     "build": "webpack --progress --display-chunks -p",
+    "development": "webpack --progress --display-chunks --config webpack.config.dev.js",
     "watch": "webpack --progress --display-chunks -p --watch"
   },
   "repository": {
@@ -41,6 +42,7 @@
     "babel-loader": "^7.1.4",
     "babel-plugin-add-module-exports": "^0.2.1",
     "babel-preset-es2015": "^6.24.1",
-    "webpack": "^4.10.2"
+    "webpack": "^4.10.2",
+    "webpack-merge": "^4.2.2"
   }
 }

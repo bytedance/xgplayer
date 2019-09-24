@@ -283,6 +283,56 @@ class FlvDemuxer {
     ret.extensionFlagIndex = data[2] & 1
 
     ret.codec = `mp4a.40.${ret.objectType}`
+    let userAgent = window.navigator.userAgent.toLowerCase();
+    let extensionSamplingIndex;
+
+    let config;
+    let samplingIndex = ret.sampleRateIndex;
+
+    if (userAgent.indexOf('firefox') !== -1) {
+      // firefox: use SBR (HE-AAC) if freq less than 24kHz
+      if (ret.sampleRateIndex >= 6) {
+        ret.objectType = 5;
+        config = new Array(4);
+        extensionSamplingIndex = samplingIndex - 3;
+      } else { // use LC-AAC
+        ret.objectType = 2;
+        config = new Array(2);
+        extensionSamplingIndex = samplingIndex;
+      }
+    } else if (userAgent.indexOf('android') !== -1) {
+      // android: always use LC-AAC
+      ret.objectType = 2;
+      config = new Array(2);
+      extensionSamplingIndex = samplingIndex;
+    } else {
+      // for other browsers, e.g. chrome...
+      // Always use HE-AAC to make it easier to switch aac codec profile
+      ret.objectType = 5;
+      extensionSamplingIndex = ret.sampleRateIndex;
+      config = new Array(4);
+
+      if (ret.sampleRateIndex >= 6) {
+        extensionSamplingIndex = ret.sampleRateIndex - 3;
+      } else if (ret.channelCount === 1) { // Mono channel
+        ret.objectType = 2;
+        config = new Array(2);
+        extensionSamplingIndex = ret.sampleRateIndex;
+      }
+    }
+
+    config[0] = ret.objectType << 3;
+    config[0] |= (ret.sampleRateIndex & 0x0F) >>> 1;
+    config[1] = (ret.sampleRateIndex & 0x0F) << 7;
+    config[1] |= (ret.channelCount & 0x0F) << 3;
+    if (ret.objectType === 5) {
+      config[1] |= ((extensionSamplingIndex & 0x0F) >>> 1);
+      config[2] = (extensionSamplingIndex & 0x01) << 7;
+      // extended audio object type: force to 2 (LC-AAC)
+      config[2] |= (2 << 2);
+      config[3] = 0;
+    }
+    ret.config = config
     return ret
   }
 
@@ -336,6 +386,7 @@ class FlvDemuxer {
       meta.sampleRateIndex = audioSampleRateIndex
       meta.refSampleDuration = refSampleDuration
       meta.duration = this._context.mediaInfo.duration * meta.timescale
+      meta.config = aacHeader.config
 
       const audioMedia = this._context.mediaInfo.audio
 
