@@ -5,11 +5,13 @@
   "main": "webpack.config.js",
   "scripts": {
     "build": "webpack",
-    "development": "webpack --config webpack.config.dev.js"
+    "development": "webpack --config webpack.config.dev.js",
+    "watch": "webpack --config webpack.config.dev.js --watch"
   },
   "author": "",
   "license": "ISC",
   "dependencies": {
+    "xgplayer": "1.1.6-alpha.0",
     "xgplayer-loader": "1.0.0",
     "xgplayer-buffer": "1.0.0",
     "xgplayer-codec": "1.0.0",

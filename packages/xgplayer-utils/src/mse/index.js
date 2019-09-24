@@ -14,14 +14,17 @@ class MSE {
       _this.addSourceBuffers();
     });
     this.container.src = URL.createObjectURL(this.mediaSource);
-    this.url = this.container.src
-
+    this.url = this.container.src;
     this.container.addEventListener('timeupdate', () => {
       this.emit('TIME_UPDATE', this.container);
     })
   }
 
   addSourceBuffers () {
+    if (this.mediaSource.readyState !== 'open') {
+      return;
+    }
+
     let sources = this._context.getInstance('PRE_SOURCE_BUFFER');
     if (sources.sources.audio && sources.sources.video) {
       if (Object.keys(this.sourceBuffers).length >= 2) {
