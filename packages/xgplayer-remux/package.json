@@ -2,9 +2,9 @@
   "name": "xgplayer-remux",
   "version": "1.0.0",
   "description": "",
-  "main": "./dist",
+  "main": "index.js",
   "scripts": {
-    "build": "babel src --out-dir dist"
+    "build": "babel src --out-dir dest"
   },
   "keywords": [],
   "author": "",

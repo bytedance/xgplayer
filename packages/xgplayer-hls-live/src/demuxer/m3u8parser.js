@@ -1,8 +1,6 @@
 /**
  * Reference: https://tools.ietf.org/html/rfc8216#section-4.3
  */
-
-// TODO: Support More
 class M3U8Parser {
   static parse (text, baseurl = '') {
     console.log(text);

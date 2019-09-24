@@ -38,7 +38,7 @@
     "webpack-dev-server": "^2.11.1",
     "webpack-merge": "^4.2.2",
     "xgplayer-buffer": "^1.0.0",
-    "xgplayer-loader-fetch": "^1.0.0",
+    "xgplayer-loader": "^1.0.0",
     "xgplayer-utils": "^1.1.6-alpha.0",
     "xgplayer-remux": "^1.0.0"
   },
@@ -47,6 +47,7 @@
   },
   "dependencies": {
     "concat-typed-array": "^1.0.2",
-    "event-emitter": "^0.3.5"
+    "event-emitter": "^0.3.5",
+    "xgplayer-codec": "^1.0.0"
   }
 }

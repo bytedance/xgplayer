@@ -1,10 +1,15 @@
-import { DEMUX_EVENTS, REMUX_EVENTS } from 'xgplayer-utils/src/constants/events'
-import MediaSegmentList from 'xgplayer-utils/src/models/MediaSegmentList'
-import MediaSegment from 'xgplayer-utils/src/models/MediaSegment'
-import MediaSample from 'xgplayer-utils/src/models/MediaSample'
-import sniffer from 'xgplayer-utils/src/env/sniffer'
-import Buffer from 'xgplayer-utils/src/write/Buffer'
+import {
+  EVENTS,
+  sniffer,
+  MediaSegmentList,
+  MediaSegment,
+  MediaSample,
+  Buffer
+} from 'xgplayer-utils';
 import Fmp4 from './fmp4'
+
+const DEMUX_EVENTS = EVENTS.DEMUX_EVENTS
+const REMUX_EVENTS = EVENTS.REMUX_EVENTS
 
 export default class Mp4Remuxer {
   constructor () {

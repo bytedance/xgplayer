@@ -1,4 +1,5 @@
-import Buffer from 'xgplayer-utils/dist/write/Buffer'
+import { Buffer } from 'xgplayer-utils';
+
 // const UINT32_MAX = Math.pow(2, 32) - 1;
 class Fmp4 {
   static size (value) {

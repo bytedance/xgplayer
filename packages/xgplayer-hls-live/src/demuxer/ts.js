@@ -1,9 +1,15 @@
-import Stream from '../stream';
-import Nalunit from '../../../xgplayer-utils/src/h264/nalunit';
-import { AudioTrack, VideoTrack } from '../../../xgplayer-buffer/src/index';
-import { AudioTrackSample, VideoTrackSample } from '../../../xgplayer-utils/src/models/trackSample';
-import { AudioTrackMeta, VideoTrackMeta } from '../../../xgplayer-utils/src/models/trackMeta';
-import { DEMUX_EVENTS } from '../../../xgplayer-utils/src/constants/events'
+import { Nalunit } from 'xgplayer-codec';
+import { AudioTrack, VideoTrack } from 'xgplayer-buffer';
+import {
+  AudioTrackMeta,
+  VideoTrackMeta,
+  AudioTrackSample,
+  VideoTrackSample,
+  EVENTS,
+  Stream
+} from 'xgplayer-utils';
+
+const DEMUX_EVENTS = EVENTS.DEMUX_EVENTS;
 const StreamType = {
   0x01: ['video', 'MPEG-1'],
   0x02: ['video', 'MPEG-2'],

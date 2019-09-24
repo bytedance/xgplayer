@@ -1,15 +1,15 @@
 // TODO: Fix引用
-import Context from '../../xgplayer-utils/src/Context';
-import { XgBuffer } from '../../xgplayer-buffer/src/index';
-import { LOADER_EVENTS, REMUX_EVENTS } from 'xgplayer-utils/src/constants/events';
-import Track from '../../xgplayer-buffer/src/Track';
+import { EVENTS, Mse } from 'xgplayer-utils';
+import { XgBuffer, Track, PreSource } from 'xgplayer-buffer';
+import { FetchLoader } from 'xgplayer-loader';
+import Mp4Remuxer from 'xgplayer-remux/src/mp4/index';
+
 import Playlist from './playlist';
-import FetchLoader from '../../xgplayer-loader-fetch/src';
 import M3U8Parser from './demuxer/m3u8parser';
 import TsDemuxer from './demuxer/ts';
-import Mp4Remuxer from 'xgplayer-remux/src/mp4/index';
-import PreSource from '../../xgplayer-buffer/src/presouce';
-import MSE from 'xgplayer-utils/src/mse';
+
+const LOADER_EVENTS = EVENTS.LOADER_EVENTS;
+const REMUX_EVENTS = EVENTS.REMUX_EVENTS;
 
 class HLSLiveController {
   constructor (configs) {
@@ -49,7 +49,7 @@ class HLSLiveController {
     this._context.registry('MP4_REMUXER', Mp4Remuxer);
     this._context.initInstance('MP4_REMUXER');
 
-    this._context.registry('MSE', MSE);
+    this._context.registry('MSE', Mse);
     this.mse = this._context.initInstance('MSE', {container: this.container});
     this.initEvents();
   }
@@ -92,7 +92,7 @@ class HLSLiveController {
     this.on(REMUX_EVENTS.REMUX_ERROR, (err) => {
       console.log(err)
     })
-    this.on('TIME_UPDATE', (container)=>{
+    this.on('TIME_UPDATE', (container) => {
       console.log((this._playlist.duration / 1000), container.currentTime)
       if (container.currentTime > (this._playlist.duration / 1000) - 5) {
         this.load(this.url);
@@ -108,5 +108,4 @@ class HLSLiveController {
     m3u8loader.load(url);
   }
 }
-window.Context = Context;
 export default HLSLiveController;

@@ -9,6 +9,9 @@
   "author": "",
   "license": "ISC",
   "dependencies": {
+    "xgplayer-loader": "1.0.0",
+    "xgplayer-buffer": "1.0.0",
+    "xgplayer-codec": "1.0.0",
     "xgplayer-remux": "1.0.0",
     "xgplayer-utils": "1.1.6-alpha.0"
   }
