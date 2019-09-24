@@ -45,13 +45,20 @@ class Compatibility {
 
     const silentFrame = AAC.getSilentFrame(meta.codec, meta.channelCount)
 
+    // step0. 首帧pts太大、与video首帧间距大的问题
     if (!this._firstAudioSample) {
       const firstSample = Compatibility.findFirstAudioSample(audioSamples) // 寻找dts最小的帧作为首个音频帧
 
       this._firstAudioSample = firstSample // record first audio frame for fill
 
+      // 修复与视频首帧距离太大的问题
       if (this._firstVideoSample) {
         const videoFirstPts = this._firstVideoSample.pts ? this._firstVideoSample.pts : this._firstVideoSample.dts + this._firstVideoSample.cts
+
+        if (firstSample.dts - videoFirstPts < 2 * meta.refSampleDuration) {
+          return;
+        }
+
         const silentSampleCount = (firstSample.dts - videoFirstPts) / meta.refSampleDuration - 1
 
         for (let i = 0; i < silentSampleCount; i++) {
@@ -64,10 +71,8 @@ class Compatibility {
 
           audioSamples.shift(silentSample)
         }
-      }
-
-      if (firstSample.dts > 2 * meta.refSampleDuration) {
-        // 如果音频首帧远大于0，需要补帧
+      } else if (firstSample.dts > 2 * meta.refSampleDuration) {
+        // 在没有视频数据到来之前，如果音频首帧本身太大，需要补帧到0
         let silentSampleCount = Math.floor(firstSample.dts / meta.refSampleDuration - 1)
         for (let i = 0; i < silentSampleCount; i++) {
           const silentSample = {
@@ -114,6 +119,7 @@ class Compatibility {
       audioSamples.shift()
     }
 
+    // step3. 修复samples段内部的dts异常问题
     const droppedIdxArr = []
     let current = null// 当前用于比较的基准帧
     for (let i = 0, len = audioSamples.length; i < len; i++) {
