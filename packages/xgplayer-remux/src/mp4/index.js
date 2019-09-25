@@ -295,7 +295,6 @@ export default class Mp4Remuxer {
       const { data } = sample
       let dts = sample.dts - this._dtsBase
       const originDts = dts
-      console.log(dts);
       if (!isFirstDtsInited) {
         firstDts = dts
         isFirstDtsInited = true

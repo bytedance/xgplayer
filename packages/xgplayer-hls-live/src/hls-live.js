@@ -4,9 +4,7 @@ import { FetchLoader } from 'xgplayer-loader';
 import { Compatibility } from 'xgplayer-codec';
 import Mp4Remuxer from 'xgplayer-remux/src/mp4/index';
 
-import Playlist from './playlist';
-import M3U8Parser from './demuxer/m3u8parser';
-import TsDemuxer from './demuxer/ts';
+import {Playlist, M3U8Parser, TsDemuxer} from 'xgplayer-demux';
 
 const LOADER_EVENTS = EVENTS.LOADER_EVENTS;
 const REMUX_EVENTS = EVENTS.REMUX_EVENTS;
@@ -31,7 +29,7 @@ class HlsLiveController {
 
     this._playlist = this._context.registry('PLAYLIST', Playlist)({autoclear: true});
     this._context.registry('PRE_SOURCE_BUFFER', PreSource);
-    
+
     this._context.registry('COMPATIBILITY', Compatibility);
 
     // 初始化M3U8Loader;
@@ -43,7 +41,7 @@ class HlsLiveController {
 
     // 初始化MP4 Remuxer
     this._context.registry('MP4_REMUXER', Mp4Remuxer);
-    
+
     // 初始化MSE
     this.mse = this._context.registry('MSE', Mse)({container: this.container});
     this.initEvents();
