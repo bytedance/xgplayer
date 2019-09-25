@@ -42,8 +42,7 @@ class TsDemuxer {
   }
 
   init () {
-    this.inputbuffer = this._context.getInstance(this.configs.inputbuffer);
-    this._tracks = this._context.getInstance('TRACKS');
+    this.on(DEMUX_EVENTS.DEMUX_START, this.demux.bind(this))
   }
 
   demux () {
@@ -51,16 +50,16 @@ class TsDemuxer {
       return
     }
 
-    let buffer = this.inputbuffer;
+    let buffer = this.inputBuffer;
     let frags = { pat: [], pmt: [] };
     let peses = {};
 
     // Read TS segment
     while (buffer.length >= 188) {
       let buf = buffer.shift(188);
-      let tsstream = new Stream(buf.buffer);
+      let tsStream = new Stream(buf.buffer);
       let ts = {};
-      TsDemuxer.read(tsstream, ts, frags);
+      TsDemuxer.read(tsStream, ts, frags);
       if (ts.pes) {
         if (!peses[ts.header.pid]) {
           peses[ts.header.pid] = [];
@@ -113,7 +112,6 @@ class TsDemuxer {
     let dts = parseInt(pes.pts / 90);
     let pts = parseInt(pes.pts / 90);
     let sample = new AudioTrackSample({dts, pts, data});
-    console.log(pts);
     track.samples.push(sample);
     if (this._hasVideoMeta && this._hasAudioMeta) {
       this.emit(DEMUX_EVENTS.DEMUX_COMPLETE, 'audio');
@@ -667,6 +665,14 @@ class TsDemuxer {
       config[3] = 0;
     }
     return config;
+  }
+
+  get inputBuffer () {
+    return this._context.getInstance(this.configs.inputbuffer);
+  }
+
+  get _tracks () {
+    return this._context.getInstance('TRACKS');
   }
 }
 

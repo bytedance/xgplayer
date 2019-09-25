@@ -4,7 +4,6 @@ import { VideoTrack, AudioTrack } from 'xgplayer-buffer'
 
 import AMFParser from './amf-parser'
 
-const LOADER_EVENTS = EVENTS.LOADER_EVENTS;
 const DEMUX_EVENTS = EVENTS.DEMUX_EVENTS;
 
 class FlvDemuxer {
@@ -15,7 +14,7 @@ class FlvDemuxer {
   }
 
   init () {
-    this.on(LOADER_EVENTS.LOADER_DATALOADED, this.handleDataLoaded.bind(this))
+    this.on(DEMUX_EVENTS.DEMUX_START, this.doParseFlv.bind(this))
   }
 
   /**
@@ -48,24 +47,20 @@ class FlvDemuxer {
     return result
   }
 
-  handleDataLoaded () {
-    this.parseFlvStream()
-  }
-
-  parseFlvStream () {
+  doParseFlv () {
     if (!this._firstFragmentLoaded) {
       if (this.loaderBuffer.length < 13) {
         return
       }
       const header = this.loaderBuffer.shift(13)
       this.parseFlvHeader(header)
-      this.parseFlvStream() // 递归调用，继续解析flv流
+      this.doParseFlv() // 递归调用，继续解析flv流
     } else {
       if (this.loaderBuffer.length < 11) {
         return
       }
       if (this._parseFlvTag()) {
-        this.parseFlvStream() // 递归调用，继续解析flv流
+        this.doParseFlv() // 递归调用，继续解析flv流
       }
     }
   }
@@ -73,7 +68,7 @@ class FlvDemuxer {
   parseFlvHeader (header) {
     if (!FlvDemuxer.isFlvFile(header)) {
       this.emit(DEMUX_EVENTS.DEMUX_ERROR, new Error('invalid flv file'))
-      this.parseFlvStream()
+      this.doParseFlv()
     } else {
       this._firstFragmentLoaded = true
       const playType = FlvDemuxer.getPlayType(header[4])
@@ -86,7 +81,7 @@ class FlvDemuxer {
         this.initAudioTrack()
       }
     }
-    this.handleDataLoaded()
+    this.doParseFlv()
   }
 
   /**

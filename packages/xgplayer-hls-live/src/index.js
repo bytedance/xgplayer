@@ -3,6 +3,7 @@ import { Context, EVENTS } from 'xgplayer-utils';
 import HlsLiveController from './hls-live';
 const HlsAllowedEvents = EVENTS.HlsAllowedEvents;
 const REMUX_EVENTS = EVENTS.REMUX_EVENTS;
+
 export class HlsLivePlayer extends Player {
   constructor (options) {
     super(options)
@@ -58,6 +59,7 @@ export class HlsLivePlayer extends Player {
       return;
     }
     this.__core__ = this._context.registry('HLS_LIVE_CONTROLLER', HlsLiveController)({container: this.video});
+    this._context.init();
     this.__core__.load(url);
     this._initEvents();
     this._initSrcChangeHandler();

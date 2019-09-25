@@ -8,7 +8,6 @@ import {
 } from 'xgplayer-utils';
 import Fmp4 from './fmp4'
 
-const DEMUX_EVENTS = EVENTS.DEMUX_EVENTS
 const REMUX_EVENTS = EVENTS.REMUX_EVENTS
 
 export default class Mp4Remuxer {
@@ -24,8 +23,8 @@ export default class Mp4Remuxer {
   }
 
   init () {
-    this.on(DEMUX_EVENTS.DEMUX_COMPLETE, this.remux.bind(this))
-    this.on(DEMUX_EVENTS.METADATA_PARSED, this.onMetaDataReady.bind(this))
+    this.on(REMUX_EVENTS.REMUX_MEDIA, this.remux.bind(this))
+    this.on(REMUX_EVENTS.REMUX_METADATA, this.onMetaDataReady.bind(this))
   }
 
   destroy () {
@@ -211,6 +210,7 @@ export default class Mp4Remuxer {
         originDts
       })
     }
+
     const first = mp4Samples[0]
     const last = mp4Samples[mp4Samples.length - 1]
     lastDts = last.dts + last.duration

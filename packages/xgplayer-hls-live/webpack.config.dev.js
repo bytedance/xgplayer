@@ -16,7 +16,7 @@ const developClient = webpackMerge(client, {
   output: {
     path: `${__dirname}/browser`,
     filename: 'index.js',
-    library: 'Player',
+    library: 'HlsLivePlayer',
     libraryTarget: 'window'
   },
   devtool: 'inline-source-map',
