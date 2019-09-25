@@ -6,6 +6,7 @@ export default class Track {
     this.id = -1
     this.sequenceNumber = 0
     this.samples = []
+    this.droppedSamples = []
     this.length = 0
   }
 
