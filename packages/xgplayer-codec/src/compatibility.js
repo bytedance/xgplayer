@@ -37,9 +37,8 @@ class Compatibility {
     this.doFixAudio(isFirstAudioSamples)
   }
 
-  doFixVideo (first) {
+  doFixVideo () {
     let {samples: videoSamples, meta} = this.videoTrack
-    let {samples: audioSamples} = this.audioTrack
 
     if (!videoSamples || !videoSamples.length || !this._firstVideoSample) {
       return
@@ -48,15 +47,6 @@ class Compatibility {
     const firstSample = this._firstVideoSample
     const firstDts = firstSample && firstSample.pts ? firstSample.pts : firstSample.dts + firstSample.cts
     const audioFirstDts = this._firstAudioSample.dts
-
-    // step0. 修复视频首帧为非关键帧的问题
-    if (first) {
-      const firstSampleIdx = firstSample ? videoSamples.indexOf(firstSample) : 0
-
-      if (firstSampleIdx) {
-        videoSamples.splice(0, firstSampleIdx)
-      }
-    }
 
     // step1. 修复与audio首帧差距太大的问题
     if (this._firstAudioSample) {
@@ -103,13 +93,8 @@ class Compatibility {
 
     // step2. 修复sample段之内的间距问题
     // step3. 修复samples段内部的dts异常问题
-    const droppedIdxArr = []
-    let current = null// 当前用于比较的基准帧
     for (let i = 0, len = videoSamples.length; i < len; i++) {
-      if (droppedIdxArr.indexOf(i) < 0 && !current) {
-        // 对于将要丢弃的帧，不进行比较
-        current = videoSamples[i]
-      }
+      const current = videoSamples[i]
       const next = videoSamples[i + 1]
 
       if (!next) {
@@ -124,29 +109,19 @@ class Compatibility {
 
         let fillFrameIdx = 0
         while (fillFrameIdx < fillFrameCount) {
-          const fillFrame = Object.assign({}, videoSamples[i] + 1)
+          const fillFrame = Object.assign({}, next)
           fillFrame.dts = current.dts + fillFrameIdx * meta.refSampleDuration
           fillFrame.pts = fillFrame.dts + fillFrame.cts
           fillFrameIdx++
           videoSamples.splice(i, 0, fillFrame)
         }
-      } else if (duration < 0) {
-        // 将下一帧标记为丢弃
-        this.videoTrack.droppedSamples.push({
-          dts: next.dts,
-          datasize: next.datasize
-        })
-
-        droppedIdxArr.push(i + 1)
-      } else {
-        current = null
       }
     }
 
     this.videoTrack.samples = videoSamples;
   }
 
-  doFixAudio (first) {
+  doFixAudio () {
     let {samples: audioSamples, meta} = this.audioTrack
 
     if (!audioSamples || !audioSamples.length || !this._firstVideoSample) {
@@ -160,18 +135,12 @@ class Compatibility {
 
     const silentFrame = AAC.getSilentFrame(meta.codec, meta.channelCount)
 
-    // step0. 首帧pts太大、与video首帧间距大的问题
     const firstSample = this._firstAudioSample
 
-    if (first) {
-      const firstSampleIdx = firstSample ? audioSamples.indexOf(firstSample) : 0
+    // 对audioSamples按照dts做排序
+    audioSamples = Compatibility.sortAudioSamples(audioSamples)
 
-      if (firstSampleIdx) {
-        audioSamples.splice(0, firstSampleIdx)
-      }
-    }
-
-    // 修复与视频首帧距离太大的问题
+    // step0. 首帧与video首帧间距大的问题
     if (this._firstVideoSample) {
       const videoFirstPts = this._firstVideoSample.pts ? this._firstVideoSample.pts : this._firstVideoSample.dts + this._firstVideoSample.cts
 
@@ -196,7 +165,7 @@ class Compatibility {
 
     if (this.nextAudioDts) {
       // step1. 处理samples段之间的丢帧情况
-      // 当发现duration差距大于2帧时进行补帧
+      // 当发现duration差距大于1帧时进行补帧
       gap = firstDts - this.nextAudioDts
       if (gap > meta.refSampleDuration) {
         const silentFrameCount = Math.floor(gap / meta.refSampleDuration)
@@ -212,7 +181,7 @@ class Compatibility {
           this.audioTrack.samples.unshift(silentSample)
         }
       } else if (Math.abs(gap) < meta.refSampleDuration) {
-        // 当差距在+-一帧之间时将第一帧的dts强行定位到期望位置
+        // 当差距在+-1帧之间时将第1帧的dts强行定位到期望位置
         audioSamples[0].dts = this.nextAudioDts
       } else if (gap < -1 * meta.refSampleDuration) {
         // 发生了dts的倒退，丢帧
@@ -225,14 +194,8 @@ class Compatibility {
     this.nextAudioDts = lastDts + lastSampleDuration
 
     // step3. 修复samples段内部的dts异常问题
-    const droppedIdxArr = []
-    let current = null; // 当前用于比较的基准帧
     for (let i = 0, len = audioSamples.length; i < len; i++) {
-      if (droppedIdxArr.indexOf(i) > 0 || audioSamples[0]._isSilent) {
-        continue;
-      }
-
-      current = audioSamples[i]
+      const current = audioSamples[i]
       const next = audioSamples[i + 1]
 
       if (!next) {
@@ -241,7 +204,7 @@ class Compatibility {
 
       const duration = next.dts - current.dts;
 
-      if (duration > 2 * meta.refSampleDuration) {
+      if (duration > meta.refSampleDuration) {
         // 两帧之间间隔太大，需要补空白帧
         let silentFrameCount = Math.floor(duration / meta.refSampleDuration)
         let frameIdx = 0
@@ -252,26 +215,22 @@ class Compatibility {
             datasize: silentFrame.byteLength,
             dts: current.dts + (frameIdx + 1) * meta.refSampleDuration,
             filtered: 0,
-            _isSilent: true
+            isSilent: true
           }
-          frameIdx++
 
+          frameIdx++
           audioSamples.splice(i, 0, silentSample)
         }
-      } else if (duration < 0) {
-        // 将下一帧标记为丢弃
-        this.audioTrack.droppedSamples.push({
-          dts: next.dts,
-          datasize: next.datasize
-        })
-
-        droppedIdxArr.push(i + 1)
-      } else {
-        current = null
       }
     }
 
     this.audioTrack.samples = audioSamples
+  }
+
+  static sortAudioSamples (samples) {
+    return samples.sort((a, b) => {
+      return a.dts - b.dts
+    })
   }
 
   /**
@@ -282,9 +241,8 @@ class Compatibility {
     if (!samples.length) {
       return null
     }
-    return samples.sort((a, b) => {
-      return a.dts - b.dts
-    })[0]
+
+    return Compatibility.sortAudioSamples(samples)[0]
   }
 
   static findFirstVideoSample (samples) {
