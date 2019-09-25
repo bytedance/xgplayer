@@ -29,7 +29,7 @@ const flvPlayer = function () {
     flv = context.registry('FLV_CONTROLLER', FLV)(player)
     context.init()
 
-    flv.once(EVENTS.INIT_SEGMENT, () => {
+    flv.once(EVENTS.REMUX_EVENTS.INIT_SEGMENT, () => {
       if (player.config.isLive) {
         util.addClass(player.root, 'xgplayer-is-live')
         const live = util.createDom('xg-live', '正在直播', {}, 'xgplayer-live')
