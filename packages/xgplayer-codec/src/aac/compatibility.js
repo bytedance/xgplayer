@@ -1,16 +1,16 @@
-import { EVENTS } from 'xgplayer-utils'
+import {EVENTS} from 'xgplayer-utils'
 import AAC from './aac-helper'
 
-const { REMUX_EVENTS } = EVENTS
+const {REMUX_EVENTS} = EVENTS
 
 class Compatibility {
-  constructor () {
+  constructor() {
     this.nextDts = 0
     this._firstAudioSample = null
     this._firstVideoSample = null
   }
 
-  init () {
+  init() {
     this.before(REMUX_EVENTS.REMUX_MEDIA, this.doFix.bind(this))
   }
 
@@ -18,9 +18,9 @@ class Compatibility {
     this.doFixAudio()
   }
 
-  doFixVideo () {
-    let { samples: videoSamples, meta } = this.videoTrack
-    let { samples: audioSamples } = this.audioTrack
+  doFixVideo() {
+    let {samples: videoSamples, meta} = this.videoTrack
+    let {samples: audioSamples} = this.audioTrack
 
     if (!videoSamples || !videoSamples.length) {
       return
@@ -32,7 +32,7 @@ class Compatibility {
   }
 
   doFixAudio () {
-    let { samples: audioSamples, meta } = this.audioTrack
+    let {samples: audioSamples, meta} = this.audioTrack
 
     if (!audioSamples || !audioSamples.length) {
       return
@@ -48,6 +48,9 @@ class Compatibility {
     // step0. 首帧pts太大、与video首帧间距大的问题
     if (!this._firstAudioSample) {
       const firstSample = Compatibility.findFirstAudioSample(audioSamples) // 寻找dts最小的帧作为首个音频帧
+      const firstSampleIdx = audioSamples.indexOf(firstSample)
+
+      audioSamples = audioSamples.splice(0, firstSampleIdx)
 
       this._firstAudioSample = firstSample // record first audio frame for fill
 
@@ -55,21 +58,19 @@ class Compatibility {
       if (this._firstVideoSample) {
         const videoFirstPts = this._firstVideoSample.pts ? this._firstVideoSample.pts : this._firstVideoSample.dts + this._firstVideoSample.cts
 
-        if (firstSample.dts - videoFirstPts < 2 * meta.refSampleDuration) {
-          return;
-        }
+        if (firstSample.dts - videoFirstPts > 2 * meta.refSampleDuration) {
+          const silentSampleCount = (firstSample.dts - videoFirstPts) / meta.refSampleDuration - 1
 
-        const silentSampleCount = (firstSample.dts - videoFirstPts) / meta.refSampleDuration - 1
+          for (let i = 0; i < silentSampleCount; i++) {
+            const silentSample = {
+              data: silentFrame,
+              datasize: silentFrame.byteLength,
+              dts: videoFirstPts + i * meta.refSampleDuration,
+              filtered: 0
+            }
 
-        for (let i = 0; i < silentSampleCount; i++) {
-          const silentSample = {
-            data: silentFrame,
-            datasize: silentFrame.byteLength,
-            dts: videoFirstPts + i * meta.refSampleDuration,
-            filtered: 0
+            audioSamples.unshift(silentSample)
           }
-
-          audioSamples.shift(silentSample)
         }
       } else if (firstSample.dts > 2 * meta.refSampleDuration) {
         // 在没有视频数据到来之前，如果音频首帧本身太大，需要补帧到0
@@ -82,7 +83,7 @@ class Compatibility {
             filtered: 0
           }
 
-          audioSamples.shift(silentSample)
+          audioSamples.unshift(silentSample)
         }
       }
     }
@@ -160,13 +161,15 @@ class Compatibility {
         current = null
       }
     }
+
+    this.audioTrack.samples = audioSamples
   }
 
   /**
    * 寻找dts最小的sample
    * @param samples
    */
-  static findFirstAudioSample (samples) {
+  static findFirstAudioSample(samples) {
     if (!samples.length) {
       return null
     }
@@ -175,18 +178,18 @@ class Compatibility {
     })[0]
   }
 
-  get tracks () {
+  get tracks() {
     return this._context.getInstance('TRACKS')
   }
 
-  get audioTrack () {
+  get audioTrack() {
     if (this.tracks) {
       return this.tracks.audioTrack
     }
     return null
   }
 
-  get videoTrack () {
+  get videoTrack() {
     if (this.tracks) {
       return this.tracks.videoTrack
     }
