@@ -1,108 +1,68 @@
-// TODO: Fix引用
-import { EVENTS, Mse } from 'xgplayer-utils';
-import { XgBuffer, PreSource } from 'xgplayer-buffer';
-import { FetchLoader } from 'xgplayer-loader';
-import Mp4Remuxer from 'xgplayer-remux/src/mp4/index';
-
-import Playlist from './playlist';
-import M3U8Parser from './demuxer/m3u8parser';
-import TsDemuxer from './demuxer/ts';
-
-const LOADER_EVENTS = EVENTS.LOADER_EVENTS;
+import Player from 'xgplayer'
+import { Context, EVENTS } from 'xgplayer-utils';
+import HlsLiveController from './hls-live';
+const HlsAllowedEvents = EVENTS.HlsAllowedEvents;
 const REMUX_EVENTS = EVENTS.REMUX_EVENTS;
-const DEMUX_EVENTS = EVENTS.DEMUX_EVENTS;
 
-class HLSLiveController {
-  constructor (configs) {
-    this.configs = Object.assign({}, configs);
-    this.url = '';
-    this.baseurl = '';
-    this.sequence = 0;
-    this._playlist = null;
-    this.retrytimes = this.configs.retrytimes || 3;
-    this.container = this.configs.container;
+export class HlsLivePlayer extends Player {
+  constructor (options) {
+    super(options)
+    this.hlsOps = {};
+    this.util = Player.util;
+    this.util.deepCopy(this.hlsOps, options);
+    this._context = new Context(HlsAllowedEvents);
   }
 
-  init () {
-    // 初始化Buffer （M3U8/TS/Playlist);
-    this._context.registry('M3U8_BUFFER', XgBuffer);
-    this._context.registry('TS_BUFFER', XgBuffer);
-    this._playlist = this._context.registry('PLAYLIST', Playlist)({autoclear: true});
-    this._context.registry('PRE_SOURCE_BUFFER', PreSource);
-
-    // 初始化M3U8Loader;
-    this._context.registry('M3U8_LOADER', FetchLoader)({ buffer: 'M3U8_BUFFER', readtype: 1 });
-    this._context.registry('TS_LOADER', FetchLoader)({ buffer: 'TS_BUFFER', readtype: 0 });
-
-    // 初始化TS Demuxer
-    this._context.registry('TS_DEMUXER', TsDemuxer)({ inputbuffer: 'TS_BUFFER' });
-
-    // 初始化MP4 Remuxer
-    this._context.registry('MP4_REMUXER', Mp4Remuxer);
-
-    // 初始化MSE
-    this.mse = this._context.registry('MSE', Mse)({container: this.container});
-    this.initEvents();
-  }
-
-  initEvents () {
-    this.on(LOADER_EVENTS.LOADER_COMPLETE, (buffer) => {
-      if (buffer.TAG === 'M3U8_BUFFER') {
-        let mdata = M3U8Parser.parse(buffer.shift(), this.baseurl);
-        this._playlist.pushM3U8(mdata);
-        let frag = this._playlist.getTs();
-        if (frag) {
-          this.emitTo('TS_LOADER', LOADER_EVENTS.LADER_START, frag.url)
-        } else {
-          if (this.retrytimes > 0) {
-            this.retrytimes--;
-            this.emitTo('M3U8_LOADER', LOADER_EVENTS.LADER_START, this.url)
-          }
-        }
-      } else if (buffer.TAG === 'TS_BUFFER') {
-        this.emit(DEMUX_EVENTS.DEMUX_START)
-        let frag = this._playlist.getTs();
-        if (frag) {
-          this.emitTo('TS_LOADER', LOADER_EVENTS.LADER_START, frag.url)
-        } else {
-          this.emitTo('M3U8_LOADER', LOADER_EVENTS.LADER_START, this.url)
-        }
-      }
-    })
-
-    this.on(REMUX_EVENTS.INIT_SEGMENT, (type) => {
-      this.mse.addSourceBuffers();
+  _initEvents () {
+    this.__core__.once(REMUX_EVENTS.INIT_SEGMENT, () => {
+      const live = this.util.createDom('xg-live', '正在直播', {}, 'xgplayer-live');
+      const mse = this._context.getInstance('MSE');
+      this.util.addClass(this.root, 'xgplayer-is-live');
+      this.controls.appendChild(live);
+      super.start(mse.url);
     });
 
-    this.on(REMUX_EVENTS.MEDIA_SEGMENT, (type) => {
-      this.mse.doAppend();
-    })
-    this.on(REMUX_EVENTS.REMUX_ERROR, (err) => {
-      console.log(err)
-    })
+    this.once('canplay', () => {
+      this.play()
+    });
+  }
 
-    this.on(DEMUX_EVENTS.METADATA_PARSED, () => {
-      this.emit(REMUX_EVENTS.REMUX_METADATA)
-    })
-
-    this.on(DEMUX_EVENTS.DEMUX_COMPLETE, () => {
-      this.emit(REMUX_EVENTS.REMUX_MEDIA)
-    })
-
-    this.on('TIME_UPDATE', (container) => {
-      // console.log((this._playlist.duration / 1000), container.currentTime)
-      if (container.currentTime > (this._playlist.duration / 1000) - 5) {
-        this.load(this.url);
-      }
+  _initSrcChangeHandler () {
+    let _this = this;
+    Object.defineProperty(this, 'src', {
+      get () {
+        return _this.currentSrc
+      },
+      set (url) {
+        _this.config.url = url
+        if (!_this.paused) {
+          _this.pause()
+          _this.once('pause', () => {
+            _this.start(url)
+          })
+          _this.once('canplay', () => {
+            _this.play()
+          })
+        } else {
+          _this.start(url)
+        }
+        _this.once('canplay', () => {
+          _this.currentTime = 0
+        })
+      },
+      configurable: true
     })
   }
 
-  load (url) {
-    this.baseurl = M3U8Parser.parseURL(url);
-    // console.log(this._playlist);
-    this.url = url;
-    this.emitTo('M3U8_LOADER', LOADER_EVENTS.LADER_START, url)
+  start (url = this.config.url) {
+    if (!url) {
+      return;
+    }
+    this.__core__ = this._context.registry('HLS_LIVE_CONTROLLER', HlsLiveController)({container: this.video});
+    this._context.init();
+    this.__core__.load(url);
+    this._initEvents();
+    this._initSrcChangeHandler();
   }
-
 }
-export default HLSLiveController;
+module.exports = HlsLivePlayer;

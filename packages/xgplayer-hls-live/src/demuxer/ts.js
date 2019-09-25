@@ -112,7 +112,6 @@ class TsDemuxer {
     let dts = parseInt(pes.pts / 90);
     let pts = parseInt(pes.pts / 90);
     let sample = new AudioTrackSample({dts, pts, data});
-    console.log(pts);
     track.samples.push(sample);
     if (this._hasVideoMeta && this._hasAudioMeta) {
       this.emit(DEMUX_EVENTS.DEMUX_COMPLETE, 'audio');
@@ -669,7 +668,7 @@ class TsDemuxer {
   }
 
   get inputBuffer () {
-    return this._context.getInstance(this.configs.inputBuffer);
+    return this._context.getInstance(this.configs.inputbuffer);
   }
 
   get _tracks () {

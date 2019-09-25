@@ -3,7 +3,6 @@
  */
 class M3U8Parser {
   static parse (text, baseurl = '') {
-    console.log(text);
     let ret = {
       duration: 0
     };

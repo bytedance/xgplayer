@@ -210,6 +210,7 @@ export default class Mp4Remuxer {
         originDts
       })
     }
+
     const first = mp4Samples[0]
     const last = mp4Samples[mp4Samples.length - 1]
     lastDts = last.dts + last.duration
@@ -278,12 +279,8 @@ export default class Mp4Remuxer {
 
   _remuxAudio (track) {
     const {samples} = track
-    let dtsCorrection
     let firstDts = -1
     let lastDts = -1
-    // let firstPts = -1
-    // let lastPts = -1
-    let silentDuration
     let mp4Samples = []
 
     const mdatBox = {
@@ -297,69 +294,17 @@ export default class Mp4Remuxer {
       let sample = samples.shift()
       const { data } = sample
       let dts = sample.dts - this._dtsBase
-
-      let needSilentFrame = false
-      if (dtsCorrection === undefined) {
-        if (!this._audioNextDts) {
-          if (this._audioSegmentList.isEmpty()) {
-            dtsCorrection = 0
-          } else {
-            const lastSegment = this._audioSegmentList.getLastSegmentBefore(dts)
-            if (lastSegment) {
-              let gap
-              const {lastDts, gap: lastGap} = lastSegment
-              gap = dts - (lastDts + lastGap) > 3 ? dts - (lastDts + lastGap) : 0
-              dtsCorrection = dts - (lastDts + gap)
-            } else {
-              needSilentFrame = this._fillSilenceFrame && !this._videoSegmentList.isEmpty()
-              dtsCorrection = 0
-            }
-          }
-        } else {
-          dtsCorrection = dts - this._audioNextDts >= 1000 ? 0 : dts - this._audioNextDts
-        }
-      }
       const originDts = dts
-      dts -= dtsCorrection
-
-      if (needSilentFrame) {
-        const videoSegment = this._videoSegmentList.getLastSampleBefore(originDts)
-
-        if (videoSegment && videoSegment.startDts < dts) {
-          silentDuration = dts - videoSegment.startDts
-          dts = videoSegment.startDts
-        } else {
-          needSilentFrame = false
-        }
-      }
-
+      console.log(dts);
       if (!isFirstDtsInited) {
         firstDts = dts
         isFirstDtsInited = true
       }
 
-      if (needSilentFrame) {
-        samples.unshift(sample)
-        const silentFrame = this.initSilentAudio(dts, silentDuration)
-        mp4Samples.push(silentFrame)
-
-        let mdatSample = {
-          buffer: [],
-          size: 0
-        }
-        mdatSample.buffer.push({
-          data: silentFrame.unit
-        })
-        mdatSample.size += silentFrame.unit.byteLength
-
-        mdatBox.samples.push(mdatSample)
-        continue
-      }
-
       let sampleDuration = 0
 
       if (samples.length >= 1) {
-        const nextDts = samples[0].dts - this._dtsBase - dtsCorrection
+        const nextDts = samples[0].dts - this._dtsBase;
         sampleDuration = nextDts - dts
       } else {
         if (mp4Samples.length >= 1) { // use second last sample duration
@@ -410,7 +355,7 @@ export default class Mp4Remuxer {
     audioSegment.endPts = lastDts
     audioSegment.originStartDts = mp4Samples[0].originDts
     audioSegment.originEndDts = last.originDts + last.duration
-    audioSegment.gap = dtsCorrection
+    audioSegment.gap = 0;
     audioSegment.firstSample = new MediaSample({
       dts: mp4Samples[0].dts,
       pts: mp4Samples[0].pts,

@@ -3,13 +3,13 @@ const { umd, client } = require('../../webpack.config')
 
 const developUMD = webpackMerge(umd, {
   output: {
-    path: `${__dirname}/dist`,
+    path: `${__dirname}/dest`,
     filename: 'index.js',
     library: 'xgplayer-hls-live',
     libraryTarget: 'umd'
   },
   devtool: 'inline-source-map',
-  mode: 'development',
+  mode: 'development'
 })
 
 const developClient = webpackMerge(client, {
@@ -22,6 +22,5 @@ const developClient = webpackMerge(client, {
   devtool: 'inline-source-map',
   mode: 'development'
 })
-
 
 module.exports = [developUMD, developClient]
