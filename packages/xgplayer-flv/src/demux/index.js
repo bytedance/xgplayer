@@ -59,9 +59,12 @@ class FlvDemuxer {
       if (this.loaderBuffer.length < 11) {
         return
       }
-      if (this._parseFlvTag()) {
-        this.doParseFlv() // 递归调用，继续解析flv流
-      }
+      let chunk;
+      do {
+        chunk = this._parseFlvTag()
+      } while (chunk)
+
+      this.emit(DEMUX_EVENTS.DEMUX_COMPLETE)
     }
   }
 
@@ -401,7 +404,6 @@ class FlvDemuxer {
     } else {
       chunk.data = chunk.data.slice(1, chunk.data.length)
       track.samples.push(chunk)
-      this.emit(DEMUX_EVENTS.DEMUX_COMPLETE)
     }
     if (!validate) {
       this.logger.warn(this.TAG, 'TAG length error at ' + chunk.datasize)
@@ -495,7 +497,7 @@ class FlvDemuxer {
           return;
         }
         this.tracks.videoTrack.samples.push(chunk)
-        this.emit(DEMUX_EVENTS.DEMUX_COMPLETE)
+        // this.emit(DEMUX_EVENTS.DEMUX_COMPLETE)
       }
     } else {
       this.logger.warn(this.TAG, `video codeid is ${codecID}`)

@@ -11,6 +11,7 @@ class Context {
     this._inited = false
     this.mediaInfo = new MediaInfo()
     this.allowedEvents = allowedEvents
+    this._hooks = {} // 注册在事件前/后的钩子，例如 before('DEMUX_COMPLETE')
   }
 
   /**
@@ -92,6 +93,20 @@ class Context {
         return emitter.on(messageName, callback)
       }
 
+      /**
+       * 在某个事件触发前执行
+       * @param messageName
+       * @param callback
+       */
+      before (messageName, callback) {
+        checkMessageName(messageName)
+        if (self._hooks[messageName]) {
+          self._hooks[messageName].push(callback)
+        } else {
+          self._hooks[messageName] = [callback]
+        }
+      }
+
       once (messageName, callback) {
         checkMessageName(messageName)
 
@@ -102,6 +117,13 @@ class Context {
       emit (messageName, ...args) {
         checkMessageName(messageName)
 
+        const beforeList = self._hooks[messageName]
+        if (beforeList) {
+          for (let i = 0, len = beforeList.length; i < len; i++) {
+            const callback = beforeList[i]
+            callback()
+          }
+        }
         return emitter.emit(messageName, ...args)
       }
 
