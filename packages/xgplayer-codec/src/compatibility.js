@@ -39,12 +39,12 @@ class Compatibility {
     let {samples: videoSamples, meta} = this.videoTrack
     let {samples: audioSamples} = this.audioTrack
 
-    if (!videoSamples || !videoSamples.length) {
+    if (!videoSamples || !videoSamples.length || !this._firstVideoSample) {
       return
     }
 
-    const firstSample = this._firstAudioSample
-    const firstDts = firstSample.pts ? firstSample.pts : firstSample.dts + firstSample.cts
+    const firstSample = this._firstVideoSample
+    const firstDts = firstSample && firstSample.pts ? firstSample.pts : firstSample.dts + firstSample.cts
     const audioFirstDts = this._firstAudioSample.dts
 
     // step0. 修复视频首帧为非关键帧的问题
@@ -67,6 +67,7 @@ class Compatibility {
           // 重新计算sample的dts和pts
           clonedFirstSample.dts = i * meta.refSampleDuration
           clonedFirstSample.pts = clonedFirstSample.dts + clonedFirstSample.cts
+
         }
 
       }
@@ -78,7 +79,7 @@ class Compatibility {
   doFixAudio (first) {
     let {samples: audioSamples, meta} = this.audioTrack
 
-    if (!audioSamples || !audioSamples.length) {
+    if (!audioSamples || !audioSamples.length || !this._firstVideoSample) {
       return
     }
 
@@ -117,19 +118,6 @@ class Compatibility {
 
           audioSamples.unshift(silentSample)
         }
-      }
-    } else if (firstSample.dts > meta.refSampleDuration) {
-      // 在没有视频数据到来之前，如果音频首帧本身太大，需要补帧到0
-      let silentSampleCount = Math.floor(firstSample.dts / meta.refSampleDuration)
-      for (let i = 0; i < silentSampleCount; i++) {
-        const silentSample = {
-          data: silentFrame,
-          datasize: silentFrame.byteLength,
-          dts: i * meta.refSampleDuration,
-          filtered: 0
-        }
-
-        audioSamples.unshift(silentSample)
       }
     }
 
