@@ -60,7 +60,7 @@ class M3U8Parser {
 
   static parseURL (url) {
     let baseurl = '';
-    let urls = url.match(/(.*\/).*\.m3u8$/);
+    let urls = url.match(/(.*\/).*\.m3u8/);
     if (urls && urls.length > 0) {
       for (let i = 0; i < urls.length; i++) {
         if (urls[i].match(/.*\/$/g) && urls[i].length > baseurl.length) {

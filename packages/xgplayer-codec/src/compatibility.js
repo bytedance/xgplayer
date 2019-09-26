@@ -19,21 +19,10 @@ class Compatibility {
   }
 
   doFix () {
-    let {samples: videoSamples} = this.videoTrack
-    let {samples: audioSamples} = this.audioTrack
+    const { isFirstAudioSamples, isFirstVideoSamples } = this.getFirstSample()
 
-    let isFirstVideoSamples = false;
-    let isFirstAudioSamples = false;
-
-    if (!this._firstVideoSample && videoSamples.length) {
-      this._firstVideoSample = Compatibility.findFirstVideoSample(videoSamples)
-      isFirstVideoSamples = true
-    }
-
-    if (!this._firstAudioSample && audioSamples.length) {
-      this._firstAudioSample = Compatibility.findFirstAudioSample(audioSamples) // 寻找dts最小的帧作为首个音频帧
-      isFirstAudioSamples = true
-    }
+    this.fixRefSampleDuration(this.videoTrack.meta, this.videoTrack.samples)
+    this.fixRefSampleDuration(this.audioTrack.meta, this.audioTrack.samples)
 
     this.doFixVideo(isFirstVideoSamples)
     this.doFixAudio(isFirstAudioSamples)
@@ -239,6 +228,43 @@ class Compatibility {
     }
 
     this.audioTrack.samples = Compatibility.sortAudioSamples(audioSamples)
+  }
+
+  getFirstSample () {
+    // 获取video和audio的首帧数据
+    let {samples: videoSamples} = this.videoTrack
+    let {samples: audioSamples} = this.audioTrack
+
+    let isFirstVideoSamples = false;
+    let isFirstAudioSamples = false;
+
+    if (!this._firstVideoSample && videoSamples.length) {
+      this._firstVideoSample = Compatibility.findFirstVideoSample(videoSamples)
+      isFirstVideoSamples = true
+    }
+
+    if (!this._firstAudioSample && audioSamples.length) {
+      this._firstAudioSample = Compatibility.findFirstAudioSample(audioSamples) // 寻找dts最小的帧作为首个音频帧
+      isFirstAudioSamples = true
+    }
+    return {
+      isFirstVideoSamples,
+      isFirstAudioSamples
+    }
+  }
+
+  /**
+   * 在没有refSampleDuration的问题流中，
+   */
+  fixRefSampleDuration (meta, samples) {
+    if (!meta.refSampleDuration || Number.isNaN(meta.refSampleDuration)) {
+      if (samples.length >= 1) {
+        const firstDts = samples[0].dts
+        const lastDts = samples[samples.length - 1].dts
+
+        meta.refSampleDuration = Math.floor((lastDts - firstDts) / samples.length - 1); // 将refSampleDuration重置为计算后的平均值
+      }
+    }
   }
 
   static sortAudioSamples (samples) {
