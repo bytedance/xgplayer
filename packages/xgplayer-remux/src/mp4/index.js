@@ -96,9 +96,11 @@ export default class Mp4Remuxer {
 
   _remuxVideo (videoTrack) {
     const track = videoTrack
+
     if (!videoTrack.samples || !videoTrack.samples.length) {
       return
     }
+
     let {samples} = track
     let firstDts = -1
 
@@ -147,7 +149,7 @@ export default class Mp4Remuxer {
           sampleDuration = this.videoMeta.refSampleDuration
         }
       }
-
+      console.log('remux video ', dts)
       mp4Samples.push({
         dts,
         cts,
@@ -227,6 +229,7 @@ export default class Mp4Remuxer {
           sampleDuration = this.audioMeta.refSampleDuration
         }
       }
+
       const mp4Sample = {
         dts,
         pts: dts,
