@@ -17,8 +17,8 @@ class MSE {
     this.container.src = URL.createObjectURL(this.mediaSource);
     this.url = this.container.src;
     this.container.addEventListener('timeupdate', () => {
-      this.emit('TIME_UPDATE', this.container);
-    })
+      _this.emit('TIME_UPDATE', this.container);
+    });
   }
 
   addSourceBuffers () {
@@ -56,6 +56,9 @@ class MSE {
         let type = Object.keys(sources)[i];
         let source = sources[type]
         let mime = (type === 'video') ? 'video/mp4;codecs=' + source.mimetype : 'audio/mp4;codecs=' + source.mimetype
+        if (type === 'audio') {
+          continue;
+        }
         let sourceBuffer = this.mediaSource.addSourceBuffer(mime);
         this.sourceBuffers[type] = sourceBuffer;
         sourceBuffer.addEventListener('updateend', () => {

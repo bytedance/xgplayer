@@ -78,31 +78,31 @@ class HlsVodController {
       let sources = this._context.getInstance('PRE_SOURCE_BUFFER');
       sources = sources.sources;
       let track;
+
+      for (let i = 0, k = Object.keys(sources).length; i < k; i++) {
+        let type = Object.keys(sources)[i];
+        if (type === 'audio') {
+          track = this._tracks.audioTrack;
+        } else if (type === 'audio') {
+          track = this._tracks.audioTrack;
+        }
+        if (track) {
+          let dur = type === 'audio' ? 21 : 40;
+          if (track.meta && track.meta.refSampleDuration) dur = track.meta.refSampleDuration;
+          if (sources[type].data.length > (this.preloadTime / dur)) {
+            enough = true;
+          }
+        }
+      }
+
+      if (!enough) {
+        let frag = this._playlist.getTs();
+        if (frag && !this._tsloader.loading && !frag.downloading) {
+          this._playlist.downloading(frag.url, true);
+          this.emitTo('TS_LOADER', LOADER_EVENTS.LADER_START, frag.url)
+        }
+      }
       if (Object.keys(this.mse.sourceBuffers).length < 1) {
-        for (let i = 0, k = Object.keys(sources).length; i < k; i++) {
-          let type = Object.keys(sources)[i];
-          if (type === 'audio') {
-            track = this._tracks.audioTrack;
-          } else if (type === 'audio') {
-            track = this._tracks.audioTrack;
-          }
-          if (track) {
-            let dur = type === 'audio' ? 21 : 40;
-            if (track.meta && track.meta.refSampleDuration) dur = track.meta.refSampleDuration;
-            if (sources[type].data.length > (this.preloadTime / dur)) {
-              enough = true;
-            }
-          }
-        }
-      
-        if (!enough) {
-          let frag = this._playlist.getTs();
-          console.log(frag);
-          if (frag && !this._tsloader.loading && !frag.downloading) {
-            this._playlist.downloading(frag.url, true);
-            this.emitTo('TS_LOADER', LOADER_EVENTS.LADER_START, frag.url)
-          }
-        }
         this.mse.addSourceBuffers();
       }
       this.mse.doAppend();
@@ -139,8 +139,9 @@ class HlsVodController {
       if (currentbuffer >= 0) {
         time = buffered.end(currentbuffer);
       }
-      let frag = this._playlist.getTs((time + 1) * 1000);
-      if (frag && !this._tsloader.loading && !frag.downloading && frag && currentTime > time - 5) {
+      let frag = this._playlist.getTs(time * 1000 + 1);
+
+      if (frag && !this._tsloader.loading && !frag.downloading && frag && (currentTime > time - this.preloadTime || container.readyState < 4)) {
         this._playlist.downloading(frag.url, true);
         this.emitTo('TS_LOADER', LOADER_EVENTS.LADER_START, frag.url);
       }

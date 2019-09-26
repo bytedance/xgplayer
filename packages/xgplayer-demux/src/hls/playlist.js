@@ -82,9 +82,13 @@ class Playlist {
     if (timelist.length < 1 || time >= this.duration) {
       return undefined;
     }
-
+    timelist.sort((a, b) => {
+      return parseFloat(a) - parseFloat(b)
+    });
     for (let i = 0; i < timelist.length; i++) {
-      if (time >= timelist[i]) {
+      console.log(timelist[i]);
+      if (time >= parseInt(timelist[i])) {
+        console.log(parseInt(timelist[i]));
         let url = this._list[timelist[i]];
         let downloaded = this._ts[url].downloaded;
         let downloading = this._ts[url].downloading;
@@ -95,10 +99,10 @@ class Playlist {
         }
         this._lastget = ts;
       } else {
+        console.log(this._lastget);
         break;
       }
     }
-
     return ts;
   }
 

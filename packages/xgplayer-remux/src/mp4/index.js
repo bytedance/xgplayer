@@ -106,7 +106,7 @@ export default class Mp4Remuxer {
     const mdatBox = {
       samples: []
     }
-    
+
     while (samples.length) {
       const avcSample = samples.shift()
       const { isKeyframe } = avcSample
@@ -217,7 +217,9 @@ export default class Mp4Remuxer {
 
       let sampleDuration = 0
 
-      if (samples.length >= 1) {
+      if (this.audioMeta.refSampleDurationFixed) {
+        sampleDuration = this.audioMeta.refSampleDurationFixed
+      } else if (samples.length >= 1) {
         const nextDts = samples[0].dts - this._dtsBase;
         sampleDuration = nextDts - dts
       } else {
