@@ -5,8 +5,10 @@ const {REMUX_EVENTS} = EVENTS
 
 class Compatibility {
   constructor () {
-    this.nextAudioDts = 0
-    this.nextVideoDts = 0
+    this.nextAudioDts = 0 // 估计下一个audio sample数组的dts
+    this.nextVideoDts = 0 // 估计下一个video sample数组的dts
+    this.lastAudioSamplesLen = 0
+    this.lastVideoSamplesLen = 0
 
     this._firstAudioSample = null
     this._firstVideoSample = null
@@ -47,6 +49,8 @@ class Compatibility {
     const firstSample = videoSamples[0]
     const firstDts = firstSample && firstSample.pts ? firstSample.pts : firstSample.dts + firstSample.cts
 
+    const samplesLen = videoSamples.length;
+
     // step1. 修复与audio首帧差距太大的问题
     if (first && this._firstAudioSample) {
       const videoFirstDts = this._firstVideoSample.dts
@@ -74,9 +78,9 @@ class Compatibility {
       gap = firstDts - this.nextVideoDts
       if (gap > (2 * meta.refSampleDuration)) {
         const fillFrameCount = Math.floor(gap / meta.refSampleDuration)
-        const clonedSample = Object.assign({}, videoSamples[0])
 
         for (let i = 0; i < fillFrameCount; i++) {
+          const clonedSample = Object.assign({}, videoSamples[0])
           const computed = firstDts - (i + 1) * meta.refSampleDuration
 
           clonedSample.dts = computed > this.nextVideoDts ? computed : this.nextVideoDts // 补的第一帧一定要是nextVideoDts
@@ -87,12 +91,17 @@ class Compatibility {
       } else if (Math.abs(gap) < meta.refSampleDuration) {
         // 当差距在+-一帧之间时将第一帧的dts强行定位到期望位置
         videoSamples[0].dts = this.nextVideoDts
+        videoSamples[0].cts = videoSamples[0].cts || videoSamples[0].pts - videoSamples[0].dts
         videoSamples[0].pts = videoSamples[0].dts + videoSamples[0].cts
-      } else if (gap < -1 * meta.refSampleDuration) {
-        // 发生了dts的倒退，丢帧
-        videoSamples.shift()
       }
     }
+
+    const lastDts = videoSamples[videoSamples.length - 1].dts;
+
+    const lastSampleDuration = videoSamples.length >= 2 ? lastDts - videoSamples[videoSamples.length - 2].dts : meta.refSampleDuration
+
+    this.lastVideoSamplesLen = samplesLen
+    this.nextVideoDts = lastDts + lastSampleDuration
 
     // step2. 修复sample段之内的间距问题
     // step3. 修复samples段内部的dts异常问题
@@ -133,6 +142,7 @@ class Compatibility {
       return
     }
 
+    const samplesLen = audioSamples.length;
     const silentFrame = AAC.getSilentFrame(meta.codec, meta.channelCount)
 
     const firstSample = this._firstAudioSample
@@ -167,32 +177,33 @@ class Compatibility {
       // step1. 处理samples段之间的丢帧情况
       // 当发现duration差距大于1帧时进行补帧
       gap = firstDts - this.nextAudioDts
-      if (gap > meta.refSampleDuration) {
-        const silentFrameCount = Math.floor(gap / meta.refSampleDuration)
 
-        for (let i = 0; i < silentFrameCount; i++) {
-          const computed = firstDts - (i + 1) * meta.refSampleDuration
-          const silentSample = {
-            data: silentFrame,
-            datasize: silentFrame.byteLength,
-            dts: computed > this.nextAudioDts ? computed : this.nextAudioDts,
-            filtered: 0
+      if (gap > (2 * meta.refSampleDuration)) {
+        if (gap && samplesLen === 1 && this.lastAudioSamplesLen === 1) {
+          // 如果sample的length一直是1，而且一直不符合refSampleDuration，需要动态修改refSampleDuration
+          meta.refSampleDurationFixed = meta.refSampleDuration + gap
+        } else {
+          const silentFrameCount = Math.floor(gap / meta.refSampleDuration)
+
+          for (let i = 0; i < silentFrameCount; i++) {
+            const computed = firstDts - (i + 1) * meta.refSampleDuration
+            const silentSample = Object.assign({}, audioSamples[0], {
+              dts: computed > this.nextAudioDts ? computed : this.nextAudioDts
+            })
+            this.audioTrack.samples.unshift(silentSample)
           }
-
-          this.audioTrack.samples.unshift(silentSample)
         }
-      } else if (Math.abs(gap) < meta.refSampleDuration) {
+      } else {
         // 当差距在+-1帧之间时将第1帧的dts强行定位到期望位置
         audioSamples[0].dts = this.nextAudioDts
-      } else if (gap < -1 * meta.refSampleDuration) {
-        // 发生了dts的倒退，丢帧
-        audioSamples.shift()
+        audioSamples[0].pts = this.nextAudioDts
       }
     }
     const lastDts = audioSamples[audioSamples.length - 1].dts;
     const lastSampleDuration = audioSamples.length >= 2 ? lastDts - audioSamples[audioSamples.length - 2].dts : meta.refSampleDuration
 
-    this.nextAudioDts = lastDts + lastSampleDuration
+    this.lastAudioSamplesLen = samplesLen;
+    this.nextAudioDts = meta.refSampleDurationFixed ? lastDts + meta.refSampleDurationFixed : lastDts + lastSampleDuration
 
     // step3. 修复samples段内部的dts异常问题
     for (let i = 0, len = audioSamples.length; i < len; i++) {
@@ -205,7 +216,7 @@ class Compatibility {
 
       const duration = next.dts - current.dts;
 
-      if (duration > meta.refSampleDuration) {
+      if (duration > (2 * meta.refSampleDuration)) {
         // 两帧之间间隔太大，需要补空白帧
         let silentFrameCount = Math.floor(duration / meta.refSampleDuration)
         let frameIdx = 0

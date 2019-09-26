@@ -31,6 +31,9 @@ class MSE {
         return;
       }
       for (let i = 0, k = Object.keys(sources.sources).length; i < k; i++) {
+        // if (Object.keys(sources.sources)[i] === 'audio') {
+        //   return
+        // }
         let source = sources.sources[Object.keys(sources.sources)[i]]
         let mime = (Object.keys(sources.sources)[i] === 'video') ? 'video/mp4;codecs=' + source.mimetype : 'audio/mp4;codecs=' + source.mimetype
         let sourceBuffer = this.mediaSource.addSourceBuffer(mime);
@@ -48,6 +51,9 @@ class MSE {
     if (sources) {
       for (let i = 0; i < Object.keys(this.sourceBuffers).length; i++) {
         let type = Object.keys(this.sourceBuffers)[i]
+        // if (type === 'audio') {
+        //   return
+        // }
         let sourceBuffer = this.sourceBuffers[type];
         if (!sourceBuffer.updating) {
           let source = sources.sources[type];

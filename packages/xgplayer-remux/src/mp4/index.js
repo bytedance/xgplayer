@@ -113,7 +113,11 @@ export default class Mp4Remuxer {
       const avcSample = samples.shift()
       const { isKeyframe } = avcSample
       let dts = avcSample.dts - this._dtsBase
-      console.log('videodts', dts);
+
+      if (firstDts === -1) {
+        firstDts = dts
+      }
+
       const cts = avcSample.cts || avcSample.pts - avcSample.dts
       const pts = avcSample.pts || avcSample.dts + avcSample.cts
 
@@ -199,7 +203,6 @@ export default class Mp4Remuxer {
       const { data } = sample
       let dts = sample.dts - this._dtsBase
       const originDts = dts
-      console.log('audiodts', dts);
       if (!isFirstDtsInited) {
         firstDts = dts
         isFirstDtsInited = true
@@ -207,7 +210,9 @@ export default class Mp4Remuxer {
 
       let sampleDuration = 0
 
-      if (samples.length >= 1) {
+      if (this.audioMeta.refSampleDurationFixed){
+        sampleDuration = this.audioMeta.refSampleDurationFixed
+      } else if (samples.length >= 1) {
         const nextDts = samples[0].dts - this._dtsBase;
         sampleDuration = nextDts - dts
       } else {
