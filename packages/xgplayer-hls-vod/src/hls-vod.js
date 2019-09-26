@@ -19,6 +19,7 @@ class HlsVodController {
     this._playlist = null;
     this.retrytimes = this.configs.retrytimes || 3;
     this.container = this.configs.container;
+    this.preloadTime = this.configs.preloadTime || 1;
   }
 
   init () {
@@ -43,7 +44,7 @@ class HlsVodController {
     this._context.registry('MP4_REMUXER', Mp4Remuxer);
 
     // 初始化MSE
-    this.mse = this._context.registry('MSE', Mse)({container: this.container});
+    this.mse = this._context.registry('MSE', Mse)({container: this.container, preloadTime: this.preloadTime});
     this.initEvents();
   }
 
@@ -54,6 +55,7 @@ class HlsVodController {
         this._playlist.pushM3U8(mdata);
         let frag = this._playlist.getTs();
         if (frag) {
+          this._playlist.downloading(frag.url, true);
           this.emitTo('TS_LOADER', LOADER_EVENTS.LADER_START, frag.url)
         } else {
           if (this.retrytimes > 0) {
@@ -62,7 +64,7 @@ class HlsVodController {
           }
         }
       } else if (buffer.TAG === 'TS_BUFFER') {
-        this._playlist.download(this._tsloader.url, true);
+        this._playlist.downloaded(this._tsloader.url, true);
         this.emit(DEMUX_EVENTS.DEMUX_START)
       }
     })
@@ -72,6 +74,37 @@ class HlsVodController {
     });
 
     this.on(REMUX_EVENTS.MEDIA_SEGMENT, (type) => {
+      let enough = false;
+      let sources = this._context.getInstance('PRE_SOURCE_BUFFER');
+      sources = sources.sources;
+      let track;
+      if (Object.keys(this.mse.sourceBuffers).length < 1) {
+        for (let i = 0, k = Object.keys(sources).length; i < k; i++) {
+          let type = Object.keys(sources)[i];
+          if (type === 'audio') {
+            track = this._tracks.audioTrack;
+          } else if (type === 'audio') {
+            track = this._tracks.audioTrack;
+          }
+          if (track) {
+            let dur = type === 'audio' ? 21 : 40;
+            if (track.meta && track.meta.refSampleDuration) dur = track.meta.refSampleDuration;
+            if (sources[type].data.length > (this.preloadTime / dur)) {
+              enough = true;
+            }
+          }
+        }
+      
+        if (!enough) {
+          let frag = this._playlist.getTs();
+          console.log(frag);
+          if (frag && !this._tsloader.loading && !frag.downloading) {
+            this._playlist.downloading(frag.url, true);
+            this.emitTo('TS_LOADER', LOADER_EVENTS.LADER_START, frag.url)
+          }
+        }
+        this.mse.addSourceBuffers();
+      }
       this.mse.doAppend();
     })
     this.on(REMUX_EVENTS.REMUX_ERROR, (err) => {
@@ -79,6 +112,7 @@ class HlsVodController {
     })
 
     this.on(DEMUX_EVENTS.METADATA_PARSED, (type) => {
+      
       let duration = this._playlist.duration;
       if (type === 'video') {
         this._tracks.videoTrack.meta.duration = duration;
@@ -105,9 +139,9 @@ class HlsVodController {
       if (currentbuffer >= 0) {
         time = buffered.end(currentbuffer);
       }
-      let frag = this._playlist.getTs(time * 1000 + 1);
-
-      if (frag && !this._tsloader.loading && !frag.downloaded && frag && currentTime > time - 5) {
+      let frag = this._playlist.getTs((time + 1) * 1000);
+      if (frag && !this._tsloader.loading && !frag.downloading && frag && currentTime > time - 5) {
+        this._playlist.downloading(frag.url, true);
         this.emitTo('TS_LOADER', LOADER_EVENTS.LADER_START, frag.url);
       }
     });

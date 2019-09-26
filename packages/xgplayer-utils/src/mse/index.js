@@ -4,6 +4,7 @@ class MSE {
     this.container = this.configs.container;
     this.mediaSource = null;
     this.sourceBuffers = {};
+    this.preloadTime = this.configs.preloadTime || 1;
   }
 
   init () {
@@ -24,17 +25,39 @@ class MSE {
     if (this.mediaSource.readyState !== 'open') {
       return;
     }
-
     let sources = this._context.getInstance('PRE_SOURCE_BUFFER');
-    if (sources.sources.audio && sources.sources.video) {
-      if (Object.keys(this.sourceBuffers).length >= 2) {
+    let tracks = this._context.getInstance('TRACKS');
+    let track;
+
+    sources = sources.sources;
+    let add = false;
+    for (let i = 0, k = Object.keys(sources).length; i < k; i++) {
+      let type = Object.keys(sources)[i];
+      if (type === 'audio') {
+        track = tracks.audioTrack;
+      } else if (type === 'audio') {
+        track = tracks.audioTrack;
+      }
+
+      if (track) {
+        let dur = type === 'audio' ? 21 : 40;
+        if (track.meta && track.meta.refSampleDuration) dur = track.meta.refSampleDuration;
+        if (sources[type].data.length >= (this.preloadTime / dur)) {
+          add = true;
+        }
+      }
+    }
+
+    if (add) {
+      if (Object.keys(this.sourceBuffers).length > 0) {
         return;
       }
-      for (let i = 0, k = Object.keys(sources.sources).length; i < k; i++) {
-        let source = sources.sources[Object.keys(sources.sources)[i]]
-        let mime = (Object.keys(sources.sources)[i] === 'video') ? 'video/mp4;codecs=' + source.mimetype : 'audio/mp4;codecs=' + source.mimetype
+      for (let i = 0, k = Object.keys(sources).length; i < k; i++) {
+        let type = Object.keys(sources)[i];
+        let source = sources[type]
+        let mime = (type === 'video') ? 'video/mp4;codecs=' + source.mimetype : 'audio/mp4;codecs=' + source.mimetype
         let sourceBuffer = this.mediaSource.addSourceBuffer(mime);
-        this.sourceBuffers[Object.keys(sources.sources)[i]] = sourceBuffer;
+        this.sourceBuffers[type] = sourceBuffer;
         sourceBuffer.addEventListener('updateend', () => {
           this.doAppend()
         });

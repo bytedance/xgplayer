@@ -27,7 +27,7 @@ class Playlist {
   }
 
   push (ts, duration) {
-    this._ts[ts] = {duration: duration, downloaded: false, start: this.duration};
+    this._ts[ts] = {duration: duration, downloaded: false, downloading: false, start: this.duration};
     this._list[this.duration] = ts;
     this.duration += duration;
   }
@@ -49,10 +49,17 @@ class Playlist {
     }
   }
 
-  download (tsname, isloaded) {
+  downloaded (tsname, isloaded) {
     let ts = this._ts[tsname];
     if (ts) {
       ts.downloaded = isloaded
+    }
+  }
+
+  downloading (tsname, loading) {
+    let ts = this._ts[tsname];
+    if (ts) {
+      ts.downloading = loading
     }
   }
 
@@ -80,7 +87,8 @@ class Playlist {
       if (time >= timelist[i]) {
         let url = this._list[timelist[i]];
         let downloaded = this._ts[url].downloaded;
-        ts = {url, downloaded, time: parseInt(timelist[i]), duration: parseInt(this._ts[url].duration)};
+        let downloading = this._ts[url].downloading;
+        ts = {url, downloaded, downloading, time: parseInt(timelist[i]), duration: parseInt(this._ts[url].duration)};
         if (this.autoclear) {
           delete this._ts[this._lastget.url];
           delete this._list[this._lastget.time];

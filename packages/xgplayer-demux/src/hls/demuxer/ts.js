@@ -200,7 +200,6 @@ class TsDemuxer {
       isKeyframe,
       data
     })
-
     track.samples.push(sample);
     if (this._hasVideoMeta && this._hasAudioMeta) {
       this.emit(DEMUX_EVENTS.DEMUX_COMPLETE, 'video');
