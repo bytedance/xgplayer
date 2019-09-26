@@ -28,7 +28,7 @@ class Compatibility {
       isFirstVideoSamples = true
     }
 
-    if (!this._firstVideoSample && audioSamples.length) {
+    if (!this._firstAudioSample && audioSamples.length) {
       this._firstAudioSample = Compatibility.findFirstAudioSample(audioSamples) // 寻找dts最小的帧作为首个音频帧
       isFirstAudioSamples = true
     }
@@ -37,27 +37,28 @@ class Compatibility {
     this.doFixAudio(isFirstAudioSamples)
   }
 
-  doFixVideo () {
+  doFixVideo (first) {
     let {samples: videoSamples, meta} = this.videoTrack
 
     if (!videoSamples || !videoSamples.length || !this._firstVideoSample) {
       return
     }
 
-    const firstSample = this._firstVideoSample
+    const firstSample = videoSamples[0]
     const firstDts = firstSample && firstSample.pts ? firstSample.pts : firstSample.dts + firstSample.cts
-    const audioFirstDts = this._firstAudioSample.dts
 
     // step1. 修复与audio首帧差距太大的问题
-    if (this._firstAudioSample) {
-      const gap = firstDts - audioFirstDts
-      if (gap > meta.refSampleDuration) {
-        const fillCount = gap / meta.refSampleDuration
+    if (first && this._firstAudioSample) {
+      const videoFirstDts = this._firstVideoSample.dts
+      const audioFirstDts = this._firstAudioSample.dts
+      const gap = videoFirstDts - audioFirstDts
+      if (gap > (2 * meta.refSampleDuration)) {
+        const fillCount = Math.floor(gap / meta.refSampleDuration)
 
         for (let i = 0; i < fillCount; i++) {
           const clonedFirstSample = Object.assign({}, firstSample) // 视频头部帧缺失需要复制第一帧
           // 重新计算sample的dts和pts
-          clonedFirstSample.dts = i * meta.refSampleDuration
+          clonedFirstSample.dts = videoFirstDts - (i + 1) * meta.refSampleDuration
           clonedFirstSample.pts = clonedFirstSample.dts + clonedFirstSample.cts
 
           videoSamples.unshift(clonedFirstSample)
@@ -71,12 +72,14 @@ class Compatibility {
       // step1. 处理samples段之间的丢帧情况
       // 当发现duration差距大于2帧时进行补帧
       gap = firstDts - this.nextVideoDts
-      if (gap > meta.refSampleDuration) {
+      if (gap > (2 * meta.refSampleDuration)) {
         const fillFrameCount = Math.floor(gap / meta.refSampleDuration)
         const clonedSample = Object.assign({}, videoSamples[0])
 
         for (let i = 0; i < fillFrameCount; i++) {
-          clonedSample.dts = this.nextVideoDts + i * meta.refSampleDuration
+          const computed = firstDts - (i + 1) * meta.refSampleDuration
+
+          clonedSample.dts = computed > this.nextVideoDts ? computed : this.nextVideoDts // 补的第一帧一定要是nextVideoDts
           clonedSample.pts = clonedSample.dts + clonedSample.cts
 
           this.videoTrack.samples.unshift(clonedSample)
@@ -103,17 +106,19 @@ class Compatibility {
 
       const duration = next.dts - current.dts;
 
-      if (duration > meta.refSampleDuration) {
+      if (duration > (2 * meta.refSampleDuration)) {
         // 两帧之间间隔太大，需要补空白帧
         let fillFrameCount = Math.floor(duration / meta.refSampleDuration)
 
         let fillFrameIdx = 0
         while (fillFrameIdx < fillFrameCount) {
           const fillFrame = Object.assign({}, next)
-          fillFrame.dts = current.dts + fillFrameIdx * meta.refSampleDuration
+          fillFrame.dts = current.dts + (fillFrameIdx + 1) * meta.refSampleDuration
           fillFrame.pts = fillFrame.dts + fillFrame.cts
           fillFrameIdx++
           videoSamples.splice(i, 0, fillFrame)
+
+          i++;
         }
       }
     }
@@ -121,15 +126,10 @@ class Compatibility {
     this.videoTrack.samples = videoSamples;
   }
 
-  doFixAudio () {
+  doFixAudio (first) {
     let {samples: audioSamples, meta} = this.audioTrack
 
-    if (!audioSamples || !audioSamples.length || !this._firstVideoSample) {
-      return
-    }
-
-    audioSamples = audioSamples.filter(sample => sample.dts >= 0)
-    if (audioSamples.length === 0) {
+    if (!audioSamples || !audioSamples.length) {
       return
     }
 
@@ -141,7 +141,7 @@ class Compatibility {
     audioSamples = Compatibility.sortAudioSamples(audioSamples)
 
     // step0. 首帧与video首帧间距大的问题
-    if (this._firstVideoSample) {
+    if (this._firstVideoSample && first) {
       const videoFirstPts = this._firstVideoSample.pts ? this._firstVideoSample.pts : this._firstVideoSample.dts + this._firstVideoSample.cts
 
       if (firstSample.dts - videoFirstPts > meta.refSampleDuration) {
@@ -151,7 +151,7 @@ class Compatibility {
           const silentSample = {
             data: silentFrame,
             datasize: silentFrame.byteLength,
-            dts: videoFirstPts + i * meta.refSampleDuration,
+            dts: firstSample.dts - (i + 1) * meta.refSampleDuration,
             filtered: 0
           }
 
@@ -171,10 +171,11 @@ class Compatibility {
         const silentFrameCount = Math.floor(gap / meta.refSampleDuration)
 
         for (let i = 0; i < silentFrameCount; i++) {
+          const computed = firstDts - (i + 1) * meta.refSampleDuration
           const silentSample = {
             data: silentFrame,
             datasize: silentFrame.byteLength,
-            dts: this.nextAudioDts + i * meta.refSampleDuration,
+            dts: computed > this.nextAudioDts ? computed : this.nextAudioDts,
             filtered: 0
           }
 
@@ -218,16 +219,22 @@ class Compatibility {
             isSilent: true
           }
 
-          frameIdx++
           audioSamples.splice(i, 0, silentSample)
+
+          frameIdx++
+          i++ // 不对静音帧做比较
         }
       }
     }
 
-    this.audioTrack.samples = audioSamples
+    this.audioTrack.samples = Compatibility.sortAudioSamples(audioSamples)
   }
 
   static sortAudioSamples (samples) {
+    if (samples.length === 1) {
+      return samples
+    }
+
     return samples.sort((a, b) => {
       return a.dts - b.dts
     })
@@ -238,7 +245,7 @@ class Compatibility {
    * @param samples
    */
   static findFirstAudioSample (samples) {
-    if (!samples.length) {
+    if (!samples || samples.length === 0) {
       return null
     }
 

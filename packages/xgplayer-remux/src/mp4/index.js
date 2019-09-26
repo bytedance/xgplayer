@@ -102,63 +102,21 @@ export default class Mp4Remuxer {
       return
     }
     let {samples} = track
-    let dtsCorrection
     let firstDts = -1
-    let lastDts = -1
-    let firstPts = -1
-    let lastPts = -1
 
     const mp4Samples = []
     const mdatBox = {
       samples: []
     }
-    const videoSegment = new MediaSegment()
+
     while (samples.length) {
       const avcSample = samples.shift()
       const { isKeyframe } = avcSample
       let dts = avcSample.dts - this._dtsBase
-      const cts = avcSample.cts
+      console.log('videodts', dts);
+      const cts = avcSample.cts || avcSample.pts - avcSample.dts
+      const pts = avcSample.pts || avcSample.dts + avcSample.cts
 
-      if (dtsCorrection === undefined) {
-        if (!this._videoNextDts) {
-          if (this._videoSegmentList.isEmpty()) {
-            dtsCorrection = 0
-          } else {
-            const lastSegment = this._videoSegmentList.getLastSegmentBefore(dts)
-            if (lastSegment) {
-              let gap
-              const {lastDts, gap: lastGap} = lastSegment
-              gap = dts - (lastDts + lastGap) > 3 ? dts - (lastDts + lastGap) : 0
-              dtsCorrection = dts - (lastDts + gap)
-            } else {
-              dtsCorrection = 0
-            }
-          }
-        } else {
-          dtsCorrection = dts - this._videoNextDts >= 1000 ? 0 : dts - this._videoNextDts
-        }
-      }
-      const originDts = dts
-      dts -= dtsCorrection
-      const pts = dts + cts
-
-      if (firstDts === -1) {
-        firstDts = dts
-        firstPts = pts
-      }
-      // let _units = []
-      // while (avcSample.units.length) {
-      //   let mdatSample = {
-      //     buffer: [],
-      //     size: 0
-      //   }
-      //   const unit = avcSample.units.shift()
-      //   _units.push(unit)
-      //   mdatSample.buffer.push(unit)
-      //   mdatSample.size += unit.data.byteLength
-      //
-      //
-      // }
       let mdatSample = {
         buffer: [],
         size: 0
@@ -170,7 +128,7 @@ export default class Mp4Remuxer {
       let sampleDuration = 0
 
       if (samples.length >= 1) {
-        const nextDts = samples[0].dts - this._dtsBase - dtsCorrection
+        const nextDts = samples[0].dts - this._dtsBase
         sampleDuration = nextDts - dts
       } else {
         if (mp4Samples.length >= 1) { // lastest sample, use second last duration
@@ -178,18 +136,6 @@ export default class Mp4Remuxer {
         } else { // the only one sample, use reference duration
           sampleDuration = this.videoMeta.refSampleDuration
         }
-      }
-
-      if (isKeyframe) {
-        const rap = new MediaSample({
-          dts,
-          pts,
-          duration: sampleDuration,
-          originDts: avcSample.dts,
-          // position: avcSample.position,
-          isRAP: true
-        })
-        videoSegment.addRAP(rap)
       }
 
       mp4Samples.push({
@@ -207,44 +153,12 @@ export default class Mp4Remuxer {
           hasRedundancy: 0,
           isNonSync: isKeyframe ? 0 : 1
         },
-        originDts
+        originDts: dts
       })
     }
 
-    const first = mp4Samples[0]
-    const last = mp4Samples[mp4Samples.length - 1]
-    lastDts = last.dts + last.duration
-    lastPts = last.pts + last.duration
-
-    this._videoNextDts = lastDts
-
-    videoSegment.startDts = firstDts
-    videoSegment.endDts = lastDts
-    videoSegment.startPts = firstPts
-    videoSegment.endPts = lastPts
-    videoSegment.originStartDts = first.originDts
-    videoSegment.originEndDts = last.originDts + last.duration
-    videoSegment.gap = dtsCorrection
-    const firstSample = new MediaSample({
-      dts: first.dts,
-      pts: first.pts,
-      duration: first.duration,
-      isKeyframe: first.isKeyframe,
-      originDts: first.originDts
-    })
-    const lastSample = new MediaSample({
-      dts: last.dts,
-      pts: last.pts,
-      duration: last.duration,
-      isKeyframe: last.isKeyframe,
-      originDts: last.originDts
-    })
-    videoSegment.firstSample = firstSample
-    videoSegment.lastSample = lastSample
     let moofMdat = new Buffer()
 
-    // track.samples = mp4Samples
-    // track.time = firstDts
     const moof = Fmp4.moof({
       id: track.meta.id,
       time: firstDts,
@@ -253,9 +167,6 @@ export default class Mp4Remuxer {
     const mdat = Fmp4.mdat(mdatBox)
     moofMdat.write(moof, mdat)
 
-    // this._videoSegmentList.append(videoSegment)
-    // if (!this._store.isLive) {
-    // }
 
     track.samples = []
     track.length = 0
@@ -269,18 +180,11 @@ export default class Mp4Remuxer {
     source.data.push(moofMdat);
 
     this.emit(REMUX_EVENTS.MEDIA_SEGMENT, 'video')
-    // this.handleMediaFragment({
-    //   type: 'video',
-    //   data: moofMdat.buffer.buffer,
-    //   sampleCount: mp4Samples.length,
-    //   fragment: videoSegment
-    // })
   }
 
   _remuxAudio (track) {
     const {samples} = track
     let firstDts = -1
-    let lastDts = -1
     let mp4Samples = []
 
     const mdatBox = {
@@ -295,7 +199,7 @@ export default class Mp4Remuxer {
       const { data } = sample
       let dts = sample.dts - this._dtsBase
       const originDts = dts
-      console.log(dts);
+      console.log('audiodts', dts);
       if (!isFirstDtsInited) {
         firstDts = dts
         isFirstDtsInited = true
