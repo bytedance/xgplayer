@@ -2,6 +2,8 @@ import {
   EVENTS,
   sniffer,
   MediaSegmentList,
+  MediaSegment,
+  MediaSample,
   Buffer
 } from 'xgplayer-utils';
 import Fmp4 from './fmp4'
@@ -110,17 +112,21 @@ export default class Mp4Remuxer {
     while (samples.length) {
       const avcSample = samples.shift()
       const { isKeyframe } = avcSample
-      let isFirstDtsInited = false;
-      avcSample.dts = avcSample.dts - this._dtsBase
-      if (avcSample.cts) {
-        avcSample.pts = avcSample.dts + avcSample.cts
-      } else if (avcSample.pts) {
-        avcSample.pts = avcSample.pts - this._dtsBase;
+      let dts = avcSample.dts - this._dtsBase
+
+      if (firstDts === -1) {
+        firstDts = dts
       }
 
-      if (!isFirstDtsInited) {
-        firstDts = avcSample.dts
-        isFirstDtsInited = true
+      let cts
+      let pts
+      if (avcSample.pts) {
+        pts = avcSample.pts - this._dtsBase
+        cts = pts - dts
+      }
+      if (avcSample.cts) {
+        pts = avcSample.cts + dts
+        cts = avcSample.cts
       }
 
       let mdatSample = {
@@ -135,7 +141,7 @@ export default class Mp4Remuxer {
 
       if (samples.length >= 1) {
         const nextDts = samples[0].dts - this._dtsBase
-        sampleDuration = nextDts - avcSample.dts
+        sampleDuration = nextDts - dts
       } else {
         if (mp4Samples.length >= 1) { // lastest sample, use second last duration
           sampleDuration = mp4Samples[mp4Samples.length - 1].duration
@@ -144,16 +150,10 @@ export default class Mp4Remuxer {
         }
       }
 
-      if (sampleDuration) {
-        this._lastVideoSampleDuration = sampleDuration;
-      } else {
-        sampleDuration = this._lastVideoSampleDuration;
-      }
-
       mp4Samples.push({
-        dts: avcSample.dts,
-        cts: avcSample.cts,
-        pts: avcSample.pts,
+        dts,
+        cts,
+        pts,
         data: avcSample.data,
         size: avcSample.data.byteLength,
         isKeyframe,
@@ -165,7 +165,7 @@ export default class Mp4Remuxer {
           hasRedundancy: 0,
           isNonSync: isKeyframe ? 0 : 1
         },
-        originDts: avcSample.dts
+        originDts: dts
       })
     }
 
@@ -178,6 +178,7 @@ export default class Mp4Remuxer {
     })
     const mdat = Fmp4.mdat(mdatBox)
     moofMdat.write(moof, mdat)
+
 
     track.samples = []
     track.length = 0
@@ -217,7 +218,7 @@ export default class Mp4Remuxer {
 
       let sampleDuration = 0
 
-      if (this.audioMeta.refSampleDurationFixed) {
+      if (this.audioMeta.refSampleDurationFixed){
         sampleDuration = this.audioMeta.refSampleDurationFixed
       } else if (samples.length >= 1) {
         const nextDts = samples[0].dts - this._dtsBase;

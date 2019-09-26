@@ -56,9 +56,9 @@ class MSE {
         let type = Object.keys(sources)[i];
         let source = sources[type]
         let mime = (type === 'video') ? 'video/mp4;codecs=' + source.mimetype : 'audio/mp4;codecs=' + source.mimetype
-        if (type === 'audio') {
-          continue;
-        }
+        // if (type === 'audio') {
+        //   continue;
+        // }
         let sourceBuffer = this.mediaSource.addSourceBuffer(mime);
         this.sourceBuffers[type] = sourceBuffer;
         sourceBuffer.addEventListener('updateend', () => {
