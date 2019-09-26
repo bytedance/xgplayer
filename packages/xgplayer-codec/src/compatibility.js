@@ -326,4 +326,4 @@ class Compatibility {
     return null
   }
 }
-export default Compatibility
+export default Compatibility;

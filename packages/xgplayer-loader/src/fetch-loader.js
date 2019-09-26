@@ -44,6 +44,7 @@ class FetchLoader {
       switch (this.readtype) {
         case READ_JSON:
           response.json().then((data) => {
+            _this.loading = false
             if (buffer) {
               buffer.push(data);
               _this.emit(LOADER_EVENTS.LOADER_COMPLETE, buffer);
@@ -54,6 +55,7 @@ class FetchLoader {
           break;
         case READ_TEXT:
           response.text().then((data) => {
+            _this.loading = false
             if (buffer) {
               buffer.push(data);
               _this.emit(LOADER_EVENTS.LOADER_COMPLETE, buffer);
