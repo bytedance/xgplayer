@@ -19,6 +19,10 @@ class MSE {
     this.container.addEventListener('timeupdate', () => {
       _this.emit('TIME_UPDATE', this.container);
     });
+
+    this.container.addEventListener('waiting', () => {
+      _this.emit('WAITING', this.container);
+    });
   }
 
   addSourceBuffers () {

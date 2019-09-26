@@ -29,9 +29,9 @@ class HlsVodController {
     this._tracks = this._context.registry('TRACKS', Tracks)();
 
     this._playlist = this._context.registry('PLAYLIST', Playlist)({autoclear: true});
-    this._context.registry('PRE_SOURCE_BUFFER', PreSource);
+    this._presource = this._context.registry('PRE_SOURCE_BUFFER', PreSource)();
 
-    this._context.registry('COMPATIBILITY', Compatibility);
+    // this._context.registry('COMPATIBILITY', Compatibility);
 
     // 初始化M3U8Loader;
     this._context.registry('M3U8_LOADER', FetchLoader)({ buffer: 'M3U8_BUFFER', readtype: 1 });
@@ -79,6 +79,7 @@ class HlsVodController {
       if (Object.keys(this.mse.sourceBuffers).length < 1) {
         this.mse.addSourceBuffers();
       }
+
       this.mse.doAppend();
     })
     this.on(REMUX_EVENTS.REMUX_ERROR, (err) => {
@@ -100,15 +101,34 @@ class HlsVodController {
     })
 
     this.on('TIME_UPDATE', (container) => {
-      console.log(container.currentTime);
       this._preload(container.currentTime);
     });
+
     this.on('SOURCE_UPDATE_END', () => {
       if (!_this.mse.container.currentTime) {
         this._preload()
       } else {
         this._preload(_this.mse.container.currentTime)
       }
+    })
+
+    this.on('WAITING', () => {
+      if (this._tsloader.loading) {
+        this._tsloader.cancel();
+      }
+      if (this._presource.sources.video) {
+        this._presource.sources.video.data = [];
+      }
+      if (this._presource.sources.audio) {
+        this._presource.sources.audio.data = []
+      }
+      if (this._tracks.audioTrack) {
+        this._tracks.audioTrack.samples = [];
+      }
+      if (this._tracks.audioTrack) {
+        this._tracks.videoTrack.samples = [];
+      }
+      this._preload(this.mse.container.currentTime);
     })
   }
 
@@ -125,8 +145,8 @@ class HlsVodController {
     let video = this.mse.container;
     if (video.buffered.length < 1) {
       let frag = this._playlist.getTs(0);
-      this._playlist.downloading(frag.url, true);
       if (frag && !frag.downloading && !frag.downloaded) {
+        this._playlist.downloading(frag.url, true);
         this.emitTo('TS_LOADER', LOADER_EVENTS.LADER_START, frag.url)
       }
     } else {
