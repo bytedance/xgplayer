@@ -5,6 +5,7 @@ let error = function () {
   player.root.appendChild(error)
   let text = error.querySelector('.xgplayer-error-text')
   let refresh = null
+  let refreshListener = false
 
   function errorFunc () {
     // player.controls.style.display = 'none'
@@ -20,7 +21,7 @@ let error = function () {
 
     util.addClass(player.root, 'xgplayer-is-error')
     refresh = error.querySelector('.xgplayer-error-refresh')
-    if (refresh) {
+    if (refresh && !refreshListener) {
       ['touchend', 'click'].forEach(item => {
         refresh.addEventListener(item, function (e) {
           e.preventDefault()
@@ -32,6 +33,7 @@ let error = function () {
           }
         })
       })
+      refreshListener = true
     }
   }
   player.on('error', errorFunc)
