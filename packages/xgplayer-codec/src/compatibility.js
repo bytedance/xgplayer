@@ -36,7 +36,7 @@ class Compatibility {
     }
 
     const firstSample = videoSamples[0]
-    const firstDts = firstSample && firstSample.pts ? firstSample.pts : firstSample.dts + firstSample.cts
+    const firstDts = firstSample.dts
 
     const samplesLen = videoSamples.length;
 
