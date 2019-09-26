@@ -2,8 +2,6 @@ import {
   EVENTS,
   sniffer,
   MediaSegmentList,
-  MediaSegment,
-  MediaSample,
   Buffer
 } from 'xgplayer-utils';
 import Fmp4 from './fmp4'
@@ -179,7 +177,6 @@ export default class Mp4Remuxer {
     const mdat = Fmp4.mdat(mdatBox)
     moofMdat.write(moof, mdat)
 
-
     track.samples = []
     track.length = 0
 
@@ -218,7 +215,7 @@ export default class Mp4Remuxer {
 
       let sampleDuration = 0
 
-      if (this.audioMeta.refSampleDurationFixed){
+      if (this.audioMeta.refSampleDurationFixed) {
         sampleDuration = this.audioMeta.refSampleDurationFixed
       } else if (samples.length >= 1) {
         const nextDts = samples[0].dts - this._dtsBase;
@@ -230,7 +227,6 @@ export default class Mp4Remuxer {
           sampleDuration = this.audioMeta.refSampleDuration
         }
       }
-
       const mp4Sample = {
         dts,
         pts: dts,

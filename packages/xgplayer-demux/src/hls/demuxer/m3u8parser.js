@@ -50,7 +50,7 @@ class M3U8Parser {
       start: ret.duration,
       duration: parseFloat(refm[2]) * 1000
     }
-    console.log(freg);
+
     ret.duration += freg.duration;
     let nextline = refs.shift();
     if (nextline.match(/#(.*):(.*)/)) {

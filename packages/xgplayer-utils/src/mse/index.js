@@ -19,6 +19,10 @@ class MSE {
     this.container.addEventListener('timeupdate', () => {
       _this.emit('TIME_UPDATE', this.container);
     });
+
+    this.container.addEventListener('waiting', () => {
+      _this.emit('WAITING', this.container);
+    });
   }
 
   addSourceBuffers () {
@@ -56,12 +60,10 @@ class MSE {
         let type = Object.keys(sources)[i];
         let source = sources[type]
         let mime = (type === 'video') ? 'video/mp4;codecs=' + source.mimetype : 'audio/mp4;codecs=' + source.mimetype
-        // if (type === 'audio') {
-        //   continue;
-        // }
         let sourceBuffer = this.mediaSource.addSourceBuffer(mime);
         this.sourceBuffers[type] = sourceBuffer;
         sourceBuffer.addEventListener('updateend', () => {
+          this.emit('SOURCE_UPDATE_END');
           this.doAppend()
         });
         this.doAppend();
