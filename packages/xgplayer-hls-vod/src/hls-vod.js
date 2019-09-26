@@ -19,7 +19,7 @@ class HlsVodController {
     this._playlist = null;
     this.retrytimes = this.configs.retrytimes || 3;
     this.container = this.configs.container;
-    this.preloadTime = this.configs.preloadTime || 1;
+    this.preloadTime = this.configs.preloadTime || 5;
   }
 
   init () {
@@ -49,6 +49,7 @@ class HlsVodController {
   }
 
   initEvents () {
+    let _this = this;
     this.on(LOADER_EVENTS.LOADER_COMPLETE, (buffer) => {
       if (buffer.TAG === 'M3U8_BUFFER') {
         let mdata = M3U8Parser.parse(buffer.shift(), this.baseurl);
@@ -74,34 +75,7 @@ class HlsVodController {
     });
 
     this.on(REMUX_EVENTS.MEDIA_SEGMENT, (type) => {
-      let enough = false;
-      let sources = this._context.getInstance('PRE_SOURCE_BUFFER');
-      sources = sources.sources;
-      let track;
-
-      for (let i = 0, k = Object.keys(sources).length; i < k; i++) {
-        let type = Object.keys(sources)[i];
-        if (type === 'audio') {
-          track = this._tracks.audioTrack;
-        } else if (type === 'audio') {
-          track = this._tracks.audioTrack;
-        }
-        if (track) {
-          let dur = type === 'audio' ? 21 : 40;
-          if (track.meta && track.meta.refSampleDuration) dur = track.meta.refSampleDuration;
-          if (sources[type].data.length > (this.preloadTime / dur)) {
-            enough = true;
-          }
-        }
-      }
-
-      if (!enough) {
-        let frag = this._playlist.getTs();
-        if (frag && !this._tsloader.loading && !frag.downloading) {
-          this._playlist.downloading(frag.url, true);
-          this.emitTo('TS_LOADER', LOADER_EVENTS.LADER_START, frag.url)
-        }
-      }
+      this._preload(0);
       if (Object.keys(this.mse.sourceBuffers).length < 1) {
         this.mse.addSourceBuffers();
       }
@@ -112,8 +86,7 @@ class HlsVodController {
     })
 
     this.on(DEMUX_EVENTS.METADATA_PARSED, (type) => {
-      
-      let duration = this._playlist.duration;
+      let duration = parseInt(this._playlist.duration);
       if (type === 'video') {
         this._tracks.videoTrack.meta.duration = duration;
       } else if (type === 'audio') {
@@ -127,31 +100,62 @@ class HlsVodController {
     })
 
     this.on('TIME_UPDATE', (container) => {
-      let buffered = container.buffered;
-      let currentTime = container.currentTime;
-      let currentbuffer = -1;
-      let time = currentTime;
-      for (let i = 0; i < buffered.length; i++) {
-        if (currentTime < buffered.end(i) && currentTime > buffered.start(i)) {
-          currentbuffer = i;
-        }
-      }
-      if (currentbuffer >= 0) {
-        time = buffered.end(currentbuffer);
-      }
-      let frag = this._playlist.getTs(time * 1000 + 1);
-
-      if (frag && !this._tsloader.loading && !frag.downloading && frag && (currentTime > time - this.preloadTime || container.readyState < 4)) {
-        this._playlist.downloading(frag.url, true);
-        this.emitTo('TS_LOADER', LOADER_EVENTS.LADER_START, frag.url);
-      }
+      console.log(container.currentTime);
+      this._preload(container.currentTime);
     });
+    this.on('SOURCE_UPDATE_END', () => {
+      if (!_this.mse.container.currentTime) {
+        this._preload()
+      } else {
+        this._preload(_this.mse.container.currentTime)
+      }
+    })
   }
 
   load (url) {
     this.baseurl = M3U8Parser.parseURL(url);
     this.url = url;
     this.emitTo('M3U8_LOADER', LOADER_EVENTS.LADER_START, url)
+  }
+
+  _preload (time) {
+    if (this._tsloader.loading) {
+      return;
+    }
+    let video = this.mse.container;
+    if (video.buffered.length < 1) {
+      let frag = this._playlist.getTs(0);
+      this._playlist.downloading(frag.url, true);
+      if (frag && !frag.downloading && !frag.downloaded) {
+        this.emitTo('TS_LOADER', LOADER_EVENTS.LADER_START, frag.url)
+      }
+    } else {
+      // Get current time range
+      let currentbufferend = -1;
+      if (!time) {
+        time = video.buffered.end(0);
+      }
+
+      for (let i = 0; i < video.buffered.length; i++) {
+        if (time >= video.buffered.start(i) && time < video.buffered.end(i)) {
+          currentbufferend = video.buffered.end(i)
+        }
+      }
+
+      if (currentbufferend < 0) {
+        let frag = this._playlist.getTs(time * 1000 + 1);
+        if (frag && !frag.downloading && !frag.downloaded) {
+          this._playlist.downloading(frag.url, true);
+          this.emitTo('TS_LOADER', LOADER_EVENTS.LADER_START, frag.url)
+        }
+      } else if (currentbufferend < time + this.preloadTime) {
+        let frag = this._playlist.getTs(currentbufferend * 1000 +1);
+        if (frag && !frag.downloading && !frag.downloaded) {
+          this._playlist.downloading(frag.url, true);
+          this.emitTo('TS_LOADER', LOADER_EVENTS.LADER_START, frag.url)
+        }
+      }
+    }
   }
 }
 export default HlsVodController;

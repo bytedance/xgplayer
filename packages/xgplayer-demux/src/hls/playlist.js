@@ -86,9 +86,7 @@ class Playlist {
       return parseFloat(a) - parseFloat(b)
     });
     for (let i = 0; i < timelist.length; i++) {
-      console.log(timelist[i]);
       if (time >= parseInt(timelist[i])) {
-        console.log(parseInt(timelist[i]));
         let url = this._list[timelist[i]];
         let downloaded = this._ts[url].downloaded;
         let downloading = this._ts[url].downloading;
@@ -99,7 +97,6 @@ class Playlist {
         }
         this._lastget = ts;
       } else {
-        console.log(this._lastget);
         break;
       }
     }

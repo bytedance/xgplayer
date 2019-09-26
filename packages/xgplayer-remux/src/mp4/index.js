@@ -149,7 +149,6 @@ export default class Mp4Remuxer {
       } else {
         sampleDuration = this._lastVideoSampleDuration;
       }
-
       mp4Samples.push({
         dts: avcSample.dts,
         cts: avcSample.cts,
@@ -229,7 +228,6 @@ export default class Mp4Remuxer {
           sampleDuration = this.audioMeta.refSampleDuration
         }
       }
-
       const mp4Sample = {
         dts,
         pts: dts,
