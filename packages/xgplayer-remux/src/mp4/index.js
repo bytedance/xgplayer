@@ -342,33 +342,6 @@ export default class Mp4Remuxer {
       mp4Samples.push(mp4Sample)
     }
 
-    const last = mp4Samples[mp4Samples.length - 1]
-    lastDts = last.dts + last.duration
-
-    this._audioNextDts = lastDts
-
-    const audioSegment = new MediaSegment()
-    audioSegment.startDts = firstDts
-    audioSegment.endDts = lastDts
-    audioSegment.startPts = firstDts
-    audioSegment.endPts = lastDts
-    audioSegment.originStartDts = mp4Samples[0].originDts
-    audioSegment.originEndDts = last.originDts + last.duration
-    audioSegment.gap = 0;
-    audioSegment.firstSample = new MediaSample({
-      dts: mp4Samples[0].dts,
-      pts: mp4Samples[0].pts,
-      duration: mp4Samples[0].duration,
-      originDts: mp4Samples[0].originDts
-    })
-    audioSegment.lastSample = new MediaSample({
-      dts: last.dts,
-      pts: last.pts,
-      duration: last.duration,
-      originDts: last.originDts
-    })
-
-    track.samples = mp4Samples
     const moofMdat = new Buffer()
     const moof = Fmp4.moof({
       id: track.meta.id,
@@ -378,9 +351,6 @@ export default class Mp4Remuxer {
     const mdat = Fmp4.mdat(mdatBox)
     moofMdat.write(moof, mdat)
 
-    // if (!this._store.isLive) {
-    //   this._audioSegmentList.append(audioSegment)
-    // }
     track.samples = []
     track.length = 0
 
