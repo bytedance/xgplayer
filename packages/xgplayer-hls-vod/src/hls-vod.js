@@ -19,7 +19,7 @@ class HlsVodController {
     this._playlist = null;
     this.retrytimes = this.configs.retrytimes || 3;
     this.container = this.configs.container;
-    this.preloadTime = this.configs.preloadTime || 5;
+    this.preloadTime = this.configs.preloadTime || 2;
   }
 
   init () {
