@@ -149,7 +149,7 @@ export default class Mp4Remuxer {
           sampleDuration = this.videoMeta.refSampleDuration
         }
       }
-      console.log('remux video ', dts)
+
       mp4Samples.push({
         dts,
         cts,
@@ -230,12 +230,15 @@ export default class Mp4Remuxer {
         }
       }
 
+
+      let duration = sample.duration ? sample.duration : sampleDuration
+      
       const mp4Sample = {
         dts,
         pts: dts,
         cts: 0,
         size: data.byteLength,
-        duration: sampleDuration,
+        duration: duration,
         flags: {
           isLeading: 0,
           dependsOn: 2,

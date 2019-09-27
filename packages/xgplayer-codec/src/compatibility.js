@@ -5,50 +5,21 @@ const {REMUX_EVENTS} = EVENTS
 
 class Compatibility {
   constructor () {
-    this.nextAudioDts = 0 // 模拟下一段音频数据的dts
-    this.nextVideoDts = 0 // 模拟下一段视频数据的dts
-
-    this.lastAudioSamplesLen = 0 // 上一段音频数据的长度
-    this.lastVideoSamplesLen = 0 // 上一段视频数据的长度
-
-    this.allAudioSamplesCount = 0 // 音频总数据量(原始帧)
-    this.allVideoSamplesCount = 0 // 视频总数据量(原始帧)
+    this.nextAudioDts = 0 // 估计下一个audio sample数组的dts
+    this.nextVideoDts = 0 // 估计下一个video sample数组的dts
+    this.lastAudioSamplesLen = 0
+    this.lastVideoSamplesLen = 0
 
     this._firstAudioSample = null
     this._firstVideoSample = null
-
-    this.filledAudioSamples = [] // 补充音频帧（）
-    this.filledVideoSamples = [] // 补充视频帧（）
   }
 
   init () {
     this.before(REMUX_EVENTS.REMUX_MEDIA, this.doFix.bind(this))
   }
 
-  reset () {
-    this.nextAudioDts = 0 // 模拟下一段音频数据的dts
-    this.nextVideoDts = 0 // 模拟下一段视频数据的dts
-
-    this.lastAudioSamplesLen = 0 // 上一段音频数据的长度
-    this.lastVideoSamplesLen = 0 // 上一段视频数据的长度
-
-    this.allAudioSamplesCount = 0 // 音频总数据量(原始帧)
-    this.allVideoSamplesCount = 0 // 视频总数据量(原始帧)
-
-    this._firstAudioSample = null
-    this._firstVideoSample = null
-
-    this.filledAudioSamples = [] // 补充音频帧（）
-    this.filledVideoSamples = [] // 补充视频帧（）
-  }
-
   doFix () {
     const { isFirstAudioSamples, isFirstVideoSamples } = this.getFirstSample()
-
-    this.filtInvalidSamples()
-
-    this.recordSamplesCount()
-
 
     this.fixRefSampleDuration(this.videoTrack.meta, this.videoTrack.samples)
     this.fixRefSampleDuration(this.audioTrack.meta, this.audioTrack.samples)
@@ -84,11 +55,6 @@ class Compatibility {
           clonedFirstSample.pts = clonedFirstSample.dts + clonedFirstSample.cts
 
           videoSamples.unshift(clonedFirstSample)
-
-          this.filledVideoSamples.push({
-            dts: clonedFirstSample.dts,
-            size: clonedFirstSample.data.byteLength
-          })
         }
       }
     }
@@ -110,15 +76,9 @@ class Compatibility {
           clonedSample.pts = clonedSample.dts + clonedSample.cts
 
           this.videoTrack.samples.unshift(clonedSample)
-
-          this.filledVideoSamples.push({
-            dts: clonedSample.dts,
-            size: clonedSample.data.byteLength
-          })
         }
       } else if (Math.abs(gap) < meta.refSampleDuration) {
         // 当差距在+-一帧之间时将第一帧的dts强行定位到期望位置
-        // console.log('重定位视频帧dts', videoSamples[0].dts, this.nextVideoDts)
         videoSamples[0].dts = this.nextVideoDts
         videoSamples[0].cts = videoSamples[0].cts || videoSamples[0].pts - videoSamples[0].dts
         videoSamples[0].pts = videoSamples[0].dts + videoSamples[0].cts
@@ -153,15 +113,9 @@ class Compatibility {
           const fillFrame = Object.assign({}, next)
           fillFrame.dts = current.dts + (fillFrameIdx + 1) * meta.refSampleDuration
           fillFrame.pts = fillFrame.dts + fillFrame.cts
-
+          fillFrameIdx++
           videoSamples.splice(i, 0, fillFrame)
 
-          this.filledVideoSamples.push({
-            dts: fillFrame.dts,
-            size: fillFrame.data.byteLength
-          })
-
-          fillFrameIdx++
           i++;
         }
       }
@@ -201,11 +155,6 @@ class Compatibility {
           }
 
           audioSamples.unshift(silentSample)
-
-          this.filledAudioSamples.push({
-            dts: silentSample.dts,
-            size: silentSample.data.byteLength
-          })
         }
       }
     }
@@ -218,12 +167,8 @@ class Compatibility {
       // 当发现duration差距大于1帧时进行补帧
       gap = firstDts - this.nextAudioDts
 
-      if (gap < (-1 * meta.refSampleDuration) && samplesLen === 1 && this.lastAudioSamplesLen === 1) {
-        meta.refSampleDurationFixed = undefined
-      }
-
       if (gap > (2 * meta.refSampleDuration)) {
-        if (samplesLen === 1 && this.lastAudioSamplesLen === 1) {
+        if (gap && samplesLen === 1 && this.lastAudioSamplesLen === 1) {
           // 如果sample的length一直是1，而且一直不符合refSampleDuration，需要动态修改refSampleDuration
           meta.refSampleDurationFixed = meta.refSampleDuration + gap
         } else {
@@ -234,17 +179,11 @@ class Compatibility {
             const silentSample = Object.assign({}, audioSamples[0], {
               dts: computed > this.nextAudioDts ? computed : this.nextAudioDts
             })
-
-            this.filledAudioSamples.push({
-              dts: silentSample.dts,
-              size: silentSample.data.byteLength
-            })
             this.audioTrack.samples.unshift(silentSample)
           }
         }
-      } else if (gap) {
+      } else {
         // 当差距在+-1帧之间时将第1帧的dts强行定位到期望位置
-        // console.log('重定位音频帧dts', audioSamples[0].dts, this.nextAudioDts)
         audioSamples[0].dts = this.nextAudioDts
         audioSamples[0].pts = this.nextAudioDts
       }
@@ -282,18 +221,12 @@ class Compatibility {
 
           audioSamples.splice(i, 0, silentSample)
 
-          this.filledAudioSamples.push({
-            dts: silentSample.dts,
-            size: silentSample.data.byteLength
-          })
-
           frameIdx++
           i++ // 不对静音帧做比较
         }
       }
     }
 
-    console.log('audiosamples after compat', audioSamples.map(sample => sample.dts).join(','))
     this.audioTrack.samples = Compatibility.sortAudioSamples(audioSamples)
   }
 
@@ -324,42 +257,14 @@ class Compatibility {
    * 在没有refSampleDuration的问题流中，
    */
   fixRefSampleDuration (meta, samples) {
-    const isVideo = meta.type === 'video'
-
-    const allSamplesCount = isVideo ? this.allVideoSamplesCount : this.allAudioSamplesCount
-    const firstDts = isVideo ? this._firstVideoSample : this._firstAudioSample
-    const filledSamplesCount = isVideo ? this.filledVideoSamples.length : this.filledAudioSamples.length
-
-    if (!meta.refSampleDuration || meta.refSampleDuration <= 0 || Number.isNaN(meta.refSampleDuration)) {
+    if (!meta.refSampleDuration || Number.isNaN(meta.refSampleDuration)) {
       if (samples.length >= 1) {
+        const firstDts = samples[0].dts
         const lastDts = samples[samples.length - 1].dts
 
-        meta.refSampleDuration = Math.floor((lastDts - firstDts) / ((allSamplesCount + filledSamplesCount) - 1)); // 将refSampleDuration重置为计算后的平均值
+        meta.refSampleDuration = Math.floor((lastDts - firstDts) / samples.length - 1); // 将refSampleDuration重置为计算后的平均值
       }
     }
-  }
-
-  /**
-   * 记录截止目前一共播放了多少帧
-   */
-  recordSamplesCount () {
-    const { audioTrack, videoTrack } = this
-
-    this.allAudioSamplesCount += audioTrack.samples.length
-    this.allVideoSamplesCount += videoTrack.samples.length
-  }
-
-  filtInvalidSamples () {
-    const { _firstVideoSample, _firstAudioSample } = this
-
-    this.audioTrack.samples = this.audioTrack.samples.filter((sample) => {
-      console.log('audiosamples before compat', sample.dts)
-      return sample.dts >= _firstAudioSample.dts
-    })
-
-    this.videoTrack.samples = this.videoTrack.samples.filter((sample) => {
-      return sample.dts >= _firstVideoSample.dts
-    })
   }
 
   static sortAudioSamples (samples) {

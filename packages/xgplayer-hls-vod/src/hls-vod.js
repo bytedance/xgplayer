@@ -19,7 +19,7 @@ class HlsVodController {
     this._playlist = null;
     this.retrytimes = this.configs.retrytimes || 3;
     this.container = this.configs.container;
-    this.preloadTime = this.configs.preloadTime || 2;
+    this.preloadTime = this.configs.preloadTime || 5;
   }
 
   init () {
@@ -31,11 +31,7 @@ class HlsVodController {
     this._playlist = this._context.registry('PLAYLIST', Playlist)({autoclear: true});
     this._presource = this._context.registry('PRE_SOURCE_BUFFER', PreSource)();
 
-<<<<<<< HEAD
-    this._context.registry('COMPATIBILITY', Compatibility);
-=======
     this._compat = this._context.registry('COMPATIBILITY', Compatibility)();
->>>>>>> f44394875aee24c6e45d583594fc591ae7b7dcca
 
     // 初始化M3U8Loader;
     this._context.registry('M3U8_LOADER', FetchLoader)({ buffer: 'M3U8_BUFFER', readtype: 1 });
@@ -58,6 +54,16 @@ class HlsVodController {
       if (buffer.TAG === 'M3U8_BUFFER') {
         let mdata = M3U8Parser.parse(buffer.shift(), this.baseurl);
         this._playlist.pushM3U8(mdata);
+        if (!this.preloadTime) {
+          if (this._playlist.targetduration) {
+            this.preloadTime = this._playlist.targetduration;
+            this.mse.preloadTime = this._playlist.targetduration;
+          } else {
+            this.preloadTime = 5;
+            this.mse.preloadTime = 5;
+          }
+        }
+
         let frag = this._playlist.getTs();
         if (frag) {
           this._playlist.downloading(frag.url, true);
@@ -105,6 +111,7 @@ class HlsVodController {
     })
 
     this.on('TIME_UPDATE', (container) => {
+      console.log(container.currentTime);
       this._preload(container.currentTime);
     });
 
@@ -133,16 +140,7 @@ class HlsVodController {
       if (this._tracks.audioTrack) {
         this._tracks.videoTrack.samples = [];
       }
-<<<<<<< HEAD
       this._preload(this.mse.container.currentTime);**/
-=======
-      if (this._compat) {
-        console.log('reset')
-        this._compat.reset()
-      }
-
-      this._preload(this.mse.container.currentTime);
->>>>>>> f44394875aee24c6e45d583594fc591ae7b7dcca
     })
   }
 
