@@ -5,6 +5,14 @@ class MSE {
     this.mediaSource = null;
     this.sourceBuffers = {};
     this.preloadTime = this.configs.preloadTime || 1;
+    this._redefineSeek();
+  }
+
+  _redefineSeek () {
+    if (!this.container) {
+      return;
+    }
+    let _this = this;
   }
 
   init () {
@@ -62,7 +70,7 @@ class MSE {
         let mime = (type === 'video') ? 'video/mp4;codecs=' + source.mimetype : 'audio/mp4;codecs=' + source.mimetype
         let sourceBuffer = this.mediaSource.addSourceBuffer(mime);
         this.sourceBuffers[type] = sourceBuffer;
-        sourceBuffer.addEventListener('updateend', () => {
+        sourceBuffer.addEventListener('updateend', (e) => {
           this.emit('SOURCE_UPDATE_END');
           this.doAppend()
         });

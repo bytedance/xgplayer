@@ -54,6 +54,16 @@ class HlsVodController {
       if (buffer.TAG === 'M3U8_BUFFER') {
         let mdata = M3U8Parser.parse(buffer.shift(), this.baseurl);
         this._playlist.pushM3U8(mdata);
+        if (!this.preloadTime) {
+          if (this._playlist.targetduration) {
+            this.preloadTime = this._playlist.targetduration;
+            this.mse.preloadTime = this._playlist.targetduration;
+          } else {
+            this.preloadTime = 5;
+            this.mse.preloadTime = 5;
+          }
+        }
+
         let frag = this._playlist.getTs();
         if (frag) {
           this._playlist.downloading(frag.url, true);
@@ -105,14 +115,16 @@ class HlsVodController {
     });
 
     this.on('SOURCE_UPDATE_END', () => {
+      /** 
       if (!_this.mse.container.currentTime) {
         this._preload()
       } else {
         this._preload(_this.mse.container.currentTime)
-      }
+      }*/
     })
 
     this.on('WAITING', () => {
+      /** 
       if (this._tsloader.loading) {
         this._tsloader.cancel();
       }
@@ -128,12 +140,7 @@ class HlsVodController {
       if (this._tracks.audioTrack) {
         this._tracks.videoTrack.samples = [];
       }
-      if (this._compat) {
-        console.log('reset')
-        this._compat.reset()
-      }
-
-      this._preload(this.mse.container.currentTime);
+      this._preload(this.mse.container.currentTime);**/
     })
   }
 
@@ -147,12 +154,14 @@ class HlsVodController {
     if (this._tsloader.loading) {
       return;
     }
+
     let video = this.mse.container;
     if (video.buffered.length < 1) {
       let frag = this._playlist.getTs(0);
       if (frag && !frag.downloading && !frag.downloaded) {
         this._playlist.downloading(frag.url, true);
         this.emitTo('TS_LOADER', LOADER_EVENTS.LADER_START, frag.url)
+        this._preload(this.mse.container.currentTime);
       }
     } else {
       // Get current time range
@@ -174,7 +183,12 @@ class HlsVodController {
           this.emitTo('TS_LOADER', LOADER_EVENTS.LADER_START, frag.url)
         }
       } else if (currentbufferend < time + this.preloadTime) {
-        let frag = this._playlist.getTs(currentbufferend * 1000 + 100 ); // FIXME: 这里用 + 1太严格了，在compat内一经偏移修正，就无法正确获取到下一个ts的地址
+        let frag = this._playlist.getTs(currentbufferend * 1000 + 1); // FIXME: 这里用 + 1太严格了，在compat内一经偏移修正，就无法正确获取到下一个ts的地址
+        let fragend = frag ? (frag.time + frag.duration) / 1000 : 0;
+        while (frag && frag.downloaded && fragend < (time + this.preloadTime)) {
+          frag = this._playlist.getTs(fragend * 1000 + 1);
+          fragend = frag ? (frag.time + frag.duration) / 1000 : 0;
+        }
         if (frag && !frag.downloading && !frag.downloaded) {
           this._playlist.downloading(frag.url, true);
           this.emitTo('TS_LOADER', LOADER_EVENTS.LADER_START, frag.url)
