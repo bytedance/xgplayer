@@ -1,6 +1,6 @@
-import FlvDemuxer from './demux'
 import Remuxer from 'xgplayer-remux'
 import { FetchLoader } from 'xgplayer-loader'
+import { FlvDemuxer } from 'xgplayer-demux'
 import { Tracks, XgBuffer, PreSource } from 'xgplayer-buffer'
 import { Mse, EVENTS } from 'xgplayer-utils'
 import { Compatibility } from 'xgplayer-codec'
@@ -62,15 +62,6 @@ class FlvController {
     if (!this._context.mediaInfo) {
       this.emit(DEMUX_EVENTS.DEMUX_ERROR, new Error('failed to get mediainfo'))
     }
-    const buffer = this._context.getInstance('LOADER_BUFFER')
-    // const loader = this._context.getInstance('FETCH_LOADER')
-    if (this.isSeekable) {
-      // loader.cancel()
-      this.state.range = {
-        start: 0,
-        end: buffer.historyLen - 1
-      }
-    }
   }
 
   _handleLoaderDataLoaded () {
@@ -90,69 +81,23 @@ class FlvController {
   }
 
   _handleMediaSegment () {
+    this.mse.addSourceBuffers()
     this.mse.doAppend();
   }
 
-  seek (time) {
+  seek () {
     if (!this.state.initSegmentArrived) {
-      this.loadMeta()
-      return
+      this.loadData()
     }
-    if (this._player.config.isLive || !this.isSeekable) {
-      return
-    }
-    const { preloadTime = 15 } = this._player.config
-    const range = this.getRange(time, preloadTime)
-    this.state.range = range
-    this.loadData()
   }
 
   loadData () {
-    const { start, end } = this.state
-    this.emit(LOADER_EVENTS.LADER_START, this._player.config.url, {
-      Range: `bytes=${start}-${end}`
-    })
-  }
-
-  loadMeta () {
     this.emit(LOADER_EVENTS.LADER_START, this._player.config.url)
-  }
-
-  getRange (time, preloadTime) {
-    const { keyframes } = this._context.onMetaData
-    const { timescale } = this._context.getInstance('TRACKS').videoTrack.meta
-    const seekStart = time * timescale
-    const findFilePosition = (time) => {
-      for (let i = 0, len = keyframes.times.length; i < len; i++) {
-        const currentKeyframeTime = keyframes.times[i]
-        const nextKeyframeTime = i + 1 < len ? keyframes.times[i + 1] : Number.MAX_SAFE_INTEGER
-
-        if (currentKeyframeTime <= time && time <= nextKeyframeTime) {
-          return i
-        }
-      }
-
-      return ''
-    }
-
-    const seekStartFilePos = findFilePosition(seekStart)
-    const seekEndFilePos = findFilePosition((time + preloadTime) * timescale)
-    return {
-      start: seekStartFilePos,
-      end: seekEndFilePos
-    }
   }
 
   destroy () {
     this._context.destroy()
     this._context = null
-  }
-
-  get isSeekable () {
-    if (!this._context || !this._context.mediaInfo.isComplete()) {
-      return true
-    }
-    return this._context.mediaInfo.keyframes !== null && this._context.mediaInfo.keyframes !== undefined
   }
 }
 
