@@ -31,7 +31,11 @@ class HlsVodController {
     this._playlist = this._context.registry('PLAYLIST', Playlist)({autoclear: true});
     this._presource = this._context.registry('PRE_SOURCE_BUFFER', PreSource)();
 
+<<<<<<< HEAD
     this._context.registry('COMPATIBILITY', Compatibility);
+=======
+    this._compat = this._context.registry('COMPATIBILITY', Compatibility)();
+>>>>>>> f44394875aee24c6e45d583594fc591ae7b7dcca
 
     // 初始化M3U8Loader;
     this._context.registry('M3U8_LOADER', FetchLoader)({ buffer: 'M3U8_BUFFER', readtype: 1 });
@@ -129,7 +133,16 @@ class HlsVodController {
       if (this._tracks.audioTrack) {
         this._tracks.videoTrack.samples = [];
       }
+<<<<<<< HEAD
       this._preload(this.mse.container.currentTime);**/
+=======
+      if (this._compat) {
+        console.log('reset')
+        this._compat.reset()
+      }
+
+      this._preload(this.mse.container.currentTime);
+>>>>>>> f44394875aee24c6e45d583594fc591ae7b7dcca
     })
   }
 
@@ -170,7 +183,7 @@ class HlsVodController {
           this.emitTo('TS_LOADER', LOADER_EVENTS.LADER_START, frag.url)
         }
       } else if (currentbufferend < time + this.preloadTime) {
-        let frag = this._playlist.getTs(currentbufferend * 1000 +1);
+        let frag = this._playlist.getTs(currentbufferend * 1000 + 1000); // FIXME: 这里用 + 1太严格了，在compat内一经偏移修正，就无法正确获取到下一个ts的地址
         if (frag && !frag.downloading && !frag.downloaded) {
           this._playlist.downloading(frag.url, true);
           this.emitTo('TS_LOADER', LOADER_EVENTS.LADER_START, frag.url)
