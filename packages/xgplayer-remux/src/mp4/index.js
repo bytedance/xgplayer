@@ -18,6 +18,9 @@ export default class Mp4Remuxer {
     this._audioSegmentList = new MediaSegmentList('audio')
     const {browser} = sniffer
     this._fillSilenceFrame = browser === 'ie'
+
+    this.videoAllDuration = 0
+    this.audioAllDuration = 0
   }
 
   init () {
@@ -149,7 +152,8 @@ export default class Mp4Remuxer {
           sampleDuration = this.videoMeta.refSampleDuration
         }
       }
-
+      // console.log('remux video ', dts)
+      this.videoAllDuration += sampleDuration
       mp4Samples.push({
         dts,
         cts,
@@ -165,7 +169,8 @@ export default class Mp4Remuxer {
           hasRedundancy: 0,
           isNonSync: isKeyframe ? 0 : 1
         },
-        originDts: dts
+        originDts: dts,
+        type: 'video'
       })
     }
 
@@ -230,15 +235,14 @@ export default class Mp4Remuxer {
         }
       }
 
-
-      let duration = sample.duration ? sample.duration : sampleDuration
-      
+      // console.log('remux audio ', dts)
+      this.audioAllDuration += sampleDuration
       const mp4Sample = {
         dts,
         pts: dts,
         cts: 0,
         size: data.byteLength,
-        duration: duration,
+        duration: sampleDuration,
         flags: {
           isLeading: 0,
           dependsOn: 2,
@@ -247,7 +251,8 @@ export default class Mp4Remuxer {
           isNonSync: 0
         },
         isKeyframe: true,
-        originDts
+        originDts,
+        type: 'audio'
       }
 
       let mdatSample = {
@@ -292,7 +297,8 @@ export default class Mp4Remuxer {
       duration,
       unit,
       size: unit.byteLength,
-      originDts: dts
+      originDts: dts,
+      type: 'video'
     }
   }
 

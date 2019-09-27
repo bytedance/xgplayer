@@ -550,6 +550,8 @@ class Fmp4 {
 
     data.samples.forEach((item) => {
       const flags = item.flags
+      // console.log(item.type, item.dts, item.duration)
+
       buffer.write(new Uint8Array([
         (item.duration >>> 24) & 0xFF, // sample_duration
         (item.duration >>> 16) & 0xFF,
