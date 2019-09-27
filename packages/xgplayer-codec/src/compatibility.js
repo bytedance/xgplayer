@@ -11,6 +11,9 @@ class Compatibility {
     this.lastAudioSamplesLen = 0 // 上一段音频数据的长度
     this.lastVideoSamplesLen = 0 // 上一段视频数据的长度
 
+    this.lastVideoDts = 0 // 上一段音频数据的长度
+    this.lastAudioDts = 0 // 上一段视频数据的长度
+
     this.allAudioSamplesCount = 0 // 音频总数据量(原始帧)
     this.allVideoSamplesCount = 0 // 视频总数据量(原始帧)
 
@@ -49,10 +52,12 @@ class Compatibility {
 
     this.recordSamplesCount()
 
-
-    this.fixRefSampleDuration(this.videoTrack.meta, this.videoTrack.samples)
-    this.fixRefSampleDuration(this.audioTrack.meta, this.audioTrack.samples)
-
+    if (this._firstVideoSample) {
+      this.fixRefSampleDuration(this.videoTrack.meta, this.videoTrack.samples)
+    }
+    if (this._firstAudioSample) {
+      this.fixRefSampleDuration(this.audioTrack.meta, this.audioTrack.samples)
+    }
     this.doFixVideo(isFirstVideoSamples)
     this.doFixAudio(isFirstAudioSamples)
   }
@@ -63,6 +68,8 @@ class Compatibility {
     if (!videoSamples || !videoSamples.length || !this._firstVideoSample) {
       return
     }
+
+    // console.log(`video lastSample, ${videoSamples[videoSamples.length - 1].dts}`)
 
     const firstSample = videoSamples[0]
     const firstDts = firstSample.dts
@@ -131,6 +138,7 @@ class Compatibility {
 
     this.lastVideoSamplesLen = samplesLen
     this.nextVideoDts = lastDts + lastSampleDuration
+    this.lastVideoDts = lastDts
 
     // step2. 修复sample段之内的间距问题
     // step3. 修复samples段内部的dts异常问题
@@ -176,6 +184,7 @@ class Compatibility {
     if (!audioSamples || !audioSamples.length) {
       return
     }
+    // console.log(`audio lastSample, ${audioSamples[audioSamples.length - 1].dts}`)
 
     const samplesLen = audioSamples.length;
     const silentFrame = AAC.getSilentFrame(meta.codec, meta.channelCount)
@@ -218,14 +227,14 @@ class Compatibility {
       // 当发现duration差距大于1帧时进行补帧
       gap = firstDts - this.nextAudioDts
 
-      if (gap < (-1 * meta.refSampleDuration) && samplesLen === 1 && this.lastAudioSamplesLen === 1) {
+      if (Math.abs(gap) > meta.refSampleDuration && samplesLen === 1 && this.lastAudioSamplesLen === 1) {
         meta.refSampleDurationFixed = undefined
       }
 
       if (gap > (2 * meta.refSampleDuration)) {
         if (samplesLen === 1 && this.lastAudioSamplesLen === 1) {
           // 如果sample的length一直是1，而且一直不符合refSampleDuration，需要动态修改refSampleDuration
-          meta.refSampleDurationFixed = meta.refSampleDuration + gap
+          meta.refSampleDurationFixed = meta.refSampleDurationFixed !== undefined ? meta.refSampleDurationFixed + gap : meta.refSampleDuration + gap
         } else {
           const silentFrameCount = Math.floor(gap / meta.refSampleDuration)
 
@@ -254,6 +263,7 @@ class Compatibility {
 
     this.lastAudioSamplesLen = samplesLen;
     this.nextAudioDts = meta.refSampleDurationFixed ? lastDts + meta.refSampleDurationFixed : lastDts + lastSampleDuration
+    this.lastAudioDts = lastDts
 
     // step3. 修复samples段内部的dts异常问题
     for (let i = 0, len = audioSamples.length; i < len; i++) {
@@ -293,7 +303,6 @@ class Compatibility {
       }
     }
 
-    console.log('audiosamples after compat', audioSamples.map(sample => sample.dts).join(','))
     this.audioTrack.samples = Compatibility.sortAudioSamples(audioSamples)
   }
 
@@ -314,6 +323,7 @@ class Compatibility {
       this._firstAudioSample = Compatibility.findFirstAudioSample(audioSamples) // 寻找dts最小的帧作为首个音频帧
       isFirstAudioSamples = true
     }
+
     return {
       isFirstVideoSamples,
       isFirstAudioSamples
@@ -325,9 +335,8 @@ class Compatibility {
    */
   fixRefSampleDuration (meta, samples) {
     const isVideo = meta.type === 'video'
-
     const allSamplesCount = isVideo ? this.allVideoSamplesCount : this.allAudioSamplesCount
-    const firstDts = isVideo ? this._firstVideoSample : this._firstAudioSample
+    const firstDts = isVideo ? this._firstVideoSample.dts : this._firstAudioSample.dts
     const filledSamplesCount = isVideo ? this.filledVideoSamples.length : this.filledAudioSamples.length
 
     if (!meta.refSampleDuration || meta.refSampleDuration <= 0 || Number.isNaN(meta.refSampleDuration)) {
@@ -349,16 +358,18 @@ class Compatibility {
     this.allVideoSamplesCount += videoTrack.samples.length
   }
 
+  /**
+   * 去除不合法的帧（倒退、重复帧）
+   */
   filtInvalidSamples () {
     const { _firstVideoSample, _firstAudioSample } = this
 
     this.audioTrack.samples = this.audioTrack.samples.filter((sample) => {
-      console.log('audiosamples before compat', sample.dts)
-      return sample.dts >= _firstAudioSample.dts
+      return sample.dts >= _firstAudioSample.dts && sample.dts > this.lastAudioDts
     })
 
     this.videoTrack.samples = this.videoTrack.samples.filter((sample) => {
-      return sample.dts >= _firstVideoSample.dts
+      return sample.dts >= _firstVideoSample.dts && sample.dts > this.lastVideoDts
     })
   }
 
