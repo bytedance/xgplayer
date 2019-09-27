@@ -31,7 +31,7 @@ class HlsVodController {
     this._playlist = this._context.registry('PLAYLIST', Playlist)({autoclear: true});
     this._presource = this._context.registry('PRE_SOURCE_BUFFER', PreSource)();
 
-    // this._context.registry('COMPATIBILITY', Compatibility);
+    this._context.registry('COMPATIBILITY', Compatibility);
 
     // 初始化M3U8Loader;
     this._context.registry('M3U8_LOADER', FetchLoader)({ buffer: 'M3U8_BUFFER', readtype: 1 });
@@ -113,6 +113,7 @@ class HlsVodController {
     })
 
     this.on('WAITING', () => {
+      /** 
       if (this._tsloader.loading) {
         this._tsloader.cancel();
       }
@@ -128,7 +129,7 @@ class HlsVodController {
       if (this._tracks.audioTrack) {
         this._tracks.videoTrack.samples = [];
       }
-      this._preload(this.mse.container.currentTime);
+      this._preload(this.mse.container.currentTime);**/
     })
   }
 

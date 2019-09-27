@@ -227,6 +227,7 @@ export default class Mp4Remuxer {
           sampleDuration = this.audioMeta.refSampleDuration
         }
       }
+
       const mp4Sample = {
         dts,
         pts: dts,
