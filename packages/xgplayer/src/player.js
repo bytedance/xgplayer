@@ -61,7 +61,7 @@ class Player extends Proxy {
       this.root.style.width = `${this.config.width}px`
       this.root.style.height = `${this.config.height}px`
     }
-    if(this.config.execBeforePluginsCall) {
+    if (this.config.execBeforePluginsCall) {
       this.config.execBeforePluginsCall.forEach(item => {
         item.call(this, this)
       })
