@@ -35,6 +35,9 @@ class Compatibility {
     this.lastAudioSamplesLen = 0 // 上一段音频数据的长度
     this.lastVideoSamplesLen = 0 // 上一段视频数据的长度
 
+    this.lastVideoDts = 0 // 上一段音频数据的长度
+    this.lastAudioDts = 0 // 上一段视频数据的长度
+
     this.allAudioSamplesCount = 0 // 音频总数据量(原始帧)
     this.allVideoSamplesCount = 0 // 视频总数据量(原始帧)
 

@@ -20,6 +20,7 @@ class HlsVodController {
     this.retrytimes = this.configs.retrytimes || 3;
     this.container = this.configs.container;
     this.preloadTime = this.configs.preloadTime || 5;
+    this._lastSeekTime = 0;
   }
 
   init () {
@@ -49,7 +50,6 @@ class HlsVodController {
   }
 
   initEvents () {
-    let _this = this;
     this.on(LOADER_EVENTS.LOADER_COMPLETE, (buffer) => {
       if (buffer.TAG === 'M3U8_BUFFER') {
         let mdata = M3U8Parser.parse(buffer.shift(), this.baseurl);
@@ -75,6 +75,9 @@ class HlsVodController {
           }
         }
       } else if (buffer.TAG === 'TS_BUFFER') {
+        let frag = this._playlist._ts[this._tsloader.url];
+        console.log(frag);
+        this._preload(this.mse.container.currentTime);
         this._playlist.downloaded(this._tsloader.url, true);
         this.emit(DEMUX_EVENTS.DEMUX_START)
       }
@@ -85,7 +88,6 @@ class HlsVodController {
     });
 
     this.on(REMUX_EVENTS.MEDIA_SEGMENT, (type) => {
-      this._preload(0);
       if (Object.keys(this.mse.sourceBuffers).length < 1) {
         this.mse.addSourceBuffers();
       }
@@ -113,35 +115,28 @@ class HlsVodController {
     this.on('TIME_UPDATE', (container) => {
       this._preload(container.currentTime);
     });
+  }
 
-    this.on('SOURCE_UPDATE_END', () => {
-      /** 
-      if (!_this.mse.container.currentTime) {
-        this._preload()
-      } else {
-        this._preload(_this.mse.container.currentTime)
-      }*/
-    })
+  seek (time) {
+    this._lastSeekTime = time;
+    this._tsloader.cancel();
+    if (this._presource.sources.video) {
+      this._presource.sources.video.data = [];
+    }
+    if (this._presource.sources.audio) {
+      this._presource.sources.audio.data = []
+    }
+    if (this._tracks.audioTrack) {
+      this._tracks.audioTrack.samples = [];
+    }
+    if (this._tracks.audioTrack) {
+      this._tracks.videoTrack.samples = [];
+    }
 
-    this.on('WAITING', () => {
-      /** 
-      if (this._tsloader.loading) {
-        this._tsloader.cancel();
-      }
-      if (this._presource.sources.video) {
-        this._presource.sources.video.data = [];
-      }
-      if (this._presource.sources.audio) {
-        this._presource.sources.audio.data = []
-      }
-      if (this._tracks.audioTrack) {
-        this._tracks.audioTrack.samples = [];
-      }
-      if (this._tracks.audioTrack) {
-        this._tracks.videoTrack.samples = [];
-      }
-      this._preload(this.mse.container.currentTime);**/
-    })
+    if (this._compat) {
+      this._compat.reset();
+    }
+    this._preload(time);
   }
 
   load (url) {
@@ -151,6 +146,7 @@ class HlsVodController {
   }
 
   _preload (time) {
+    console.log(time);
     if (this._tsloader.loading) {
       return;
     }

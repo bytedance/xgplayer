@@ -11,6 +11,18 @@ export class HlsVodPlayer extends Player {
     this.util = Player.util;
     this.util.deepCopy(this.hlsOps, options);
     this._context = new Context(HlsAllowedEvents);
+    console.log(this);
+  }
+
+  get currentTime () {
+    return super.currentTime;
+  }
+
+  set currentTime (time) {
+    super.currentTime = time;
+    if (this._context) {
+      this.__core__.seek(time);
+    }
   }
 
   _initEvents () {

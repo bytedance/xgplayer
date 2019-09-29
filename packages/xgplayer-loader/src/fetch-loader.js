@@ -7,13 +7,15 @@ const READ_JSON = 2;
 
 class FetchLoader {
   constructor (configs) {
-    this.configs = Object.assign({}, configs)
+    this.configs = Object.assign({}, configs);
     this.url = null
     this.status = 0
     this.error = null
     this._reader = null;
+    this._canceled = false;
     this.readtype = this.configs.readtype;
-    this.buffer = this.configs.buffer || 'LOADER_BUFFER'
+    this.buffer = this.configs.buffer || 'LOADER_BUFFER';
+    this._loaderTaskNo = 0;
   }
 
   init () {
@@ -27,6 +29,7 @@ class FetchLoader {
   load (url, opts) {
     let _this = this;
     this.url = url;
+    this._canceled = false;
 
     // TODO: Add Ranges
     let params = this.getParams(opts)
@@ -40,38 +43,44 @@ class FetchLoader {
   _onFetchResponse (response) {
     let _this = this;
     let buffer = this._context.getInstance(this.buffer);
+    this._loaderTaskNo++;
+    let taskno = this._loaderTaskNo;
     if (response.ok === true) {
       switch (this.readtype) {
         case READ_JSON:
           response.json().then((data) => {
             _this.loading = false
-            if (buffer) {
-              buffer.push(data);
-              _this.emit(LOADER_EVENTS.LOADER_COMPLETE, buffer);
-            } else {
-              _this.emit(LOADER_EVENTS.LOADER_COMPLETE, data);
+            if (!_this._canceled) {
+              if (buffer) {
+                buffer.push(data);
+                _this.emit(LOADER_EVENTS.LOADER_COMPLETE, buffer);
+              } else {
+                _this.emit(LOADER_EVENTS.LOADER_COMPLETE, data);
+              }
             }
           });
           break;
         case READ_TEXT:
           response.text().then((data) => {
             _this.loading = false
-            if (buffer) {
-              buffer.push(data);
-              _this.emit(LOADER_EVENTS.LOADER_COMPLETE, buffer);
-            } else {
-              _this.emit(LOADER_EVENTS.LOADER_COMPLETE, data);
+            if (!_this._canceled) {
+              if (buffer) {
+                buffer.push(data);
+                _this.emit(LOADER_EVENTS.LOADER_COMPLETE, buffer);
+              } else {
+                _this.emit(LOADER_EVENTS.LOADER_COMPLETE, data);
+              }
             }
           });
           break;
         case READ_STREAM:
         default:
-          return this._onReader(response.body.getReader());
+          return this._onReader(response.body.getReader(), taskno);
       }
     }
   }
 
-  _onReader (reader) {
+  _onReader (reader, taskno) {
     let buffer = this._context.getInstance(this.buffer);
 
     if (!buffer) {
@@ -89,17 +98,20 @@ class FetchLoader {
     this._reader && this._reader.read().then(function (val) {
       if (val.done) {
         // TODO: 完成处理
-
         _this.loading = false
         _this.status = 0
         _this.emit(LOADER_EVENTS.LOADER_COMPLETE, buffer)
         return
       }
-      buffer.push(val.value)
 
-      // TODO: 需要统一事件！梳理一哈子哈？！
+      if (_this._canceled) {
+        _this._reader.cancel()
+        return;
+      }
+
+      buffer.push(val.value)
       _this.emit(LOADER_EVENTS.LOADER_DATALOADED, buffer)
-      return _this._onReader(reader)
+      return _this._onReader(reader, taskno)
     }).catch(function (error) {
       console.log(error)
     })
@@ -145,6 +157,7 @@ class FetchLoader {
     if (this._reader) {
       this._reader.cancel()
       this._reader = null
+      this._canceled = true;
     }
   }
 }
