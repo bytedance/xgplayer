@@ -19,7 +19,8 @@ export class HlsVodPlayer extends Player {
   }
 
   set currentTime (time) {
-    super.currentTime = time;
+    time = parseFloat(time);
+    super.currentTime = parseInt(time);
     if (this._context) {
       this.__core__.seek(time);
     }

@@ -7,6 +7,7 @@ class Playlist {
     this.sequence = -1;
     this.targetduration = 0;
     this.duration = 0;
+    this.fragLength = 0;
     this._lastget = undefined;
     this._audoclear = configs.autoclear || false;
   }
@@ -27,9 +28,20 @@ class Playlist {
   }
 
   push (ts, duration) {
-    this._ts[ts] = {duration: duration, downloaded: false, downloading: false, start: this.duration};
-    this._list[this.duration] = ts;
-    this.duration += duration;
+    if (!this._ts[ts]) {
+      this._ts[ts] = {duration: duration, downloaded: false, downloading: false, start: this.duration};
+      this._list[this.duration] = ts;
+      this.duration += duration;
+      this.fragLength += 1;
+    }
+  }
+
+  deleteFrag (url) {
+    if (!this._ts[url]) {
+      delete this._list[this._ts[url].start];
+      delete this._ts[url];
+      this.fragLength -= 1;
+    }
   }
 
   pushM3U8 (data) {

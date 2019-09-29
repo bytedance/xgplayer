@@ -4,7 +4,7 @@ const LOADER_EVENTS = EVENTS.LOADER_EVENTS;
 const READ_STREAM = 0;
 const READ_TEXT = 1;
 const READ_JSON = 2;
-
+const READ_BUFFER = 3;
 class FetchLoader {
   constructor (configs) {
     this.configs = Object.assign({}, configs);
@@ -73,6 +73,19 @@ class FetchLoader {
             }
           });
           break;
+        case READ_BUFFER:
+          response.arrayBuffer().then((data) => {
+            _this.loading = false
+            if (!_this._canceled) {
+              if (buffer) {
+                buffer.push(new Uint8Array(data));
+                _this.emit(LOADER_EVENTS.LOADER_COMPLETE, buffer);
+              } else {
+                _this.emit(LOADER_EVENTS.LOADER_COMPLETE, data);
+              }
+            }
+          });
+          break;
         case READ_STREAM:
         default:
           return this._onReader(response.body.getReader(), taskno);
@@ -99,7 +112,7 @@ class FetchLoader {
       if (val.done) {
         // TODO: 完成处理
         _this.loading = false
-        _this.status = 0
+        _this.status = 0;
         _this.emit(LOADER_EVENTS.LOADER_COMPLETE, buffer)
         return
       }
@@ -108,7 +121,6 @@ class FetchLoader {
         _this._reader.cancel()
         return;
       }
-
       buffer.push(val.value)
       _this.emit(LOADER_EVENTS.LOADER_DATALOADED, buffer)
       return _this._onReader(reader, taskno)

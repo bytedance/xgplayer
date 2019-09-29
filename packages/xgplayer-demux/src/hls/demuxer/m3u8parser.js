@@ -70,7 +70,6 @@ class M3U8Parser {
         }
       }
     }
-    console.log(baseurl);
     return baseurl;
   }
 }

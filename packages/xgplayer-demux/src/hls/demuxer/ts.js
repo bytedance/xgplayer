@@ -56,7 +56,11 @@ class TsDemuxer {
 
     // Read TS segment
     while (buffer.length >= 188) {
+      while (buffer.length >= 1 && buffer.array[0][buffer.offset] !== 71) {
+        buffer.shift(1);
+      }
       let buf = buffer.shift(188);
+      // console.log(buf);
       let tsStream = new Stream(buf.buffer);
       let ts = {};
       TsDemuxer.read(tsStream, ts, frags);
@@ -83,6 +87,13 @@ class TsDemuxer {
           this.pushVideoSample(epeses[j]);
         }
       }
+    }
+
+    if (this._hasAudioMeta) {
+      this.emit(DEMUX_EVENTS.DEMUX_COMPLETE, 'audio');
+    }
+    if (this._hasVideoMeta) {
+      this.emit(DEMUX_EVENTS.DEMUX_COMPLETE, 'video');
     }
   }
 
@@ -113,9 +124,6 @@ class TsDemuxer {
     let pts = parseInt(pes.pts / 90);
     let sample = new AudioTrackSample({dts, pts, data});
     track.samples.push(sample);
-    if (this._hasVideoMeta && this._hasAudioMeta) {
-      this.emit(DEMUX_EVENTS.DEMUX_COMPLETE, 'audio');
-    }
   }
 
   pushVideoSample (pes) {
@@ -135,6 +143,10 @@ class TsDemuxer {
       let nal = nals[i];
       if (nal.sps) {
         // TODO：VideoTrack信息 和 Meta 信息
+        if (track.sps && TsDemuxer.compaireUint8(nal.body, track.sps)) {
+          continue;
+        }
+
         sps = nal;
         track.sps = nal.body;
         track.meta.chromaFormat = sps.sps.chroma_format
@@ -201,11 +213,20 @@ class TsDemuxer {
       data
     })
     track.samples.push(sample);
-    if (this._hasVideoMeta && this._hasAudioMeta) {
-      this.emit(DEMUX_EVENTS.DEMUX_COMPLETE, 'video');
-    }
   }
 
+  static compaireUint8 (a, b) {
+    if (a.byteLength !== b.byteLength) {
+      return false;
+    }
+    let ret = true;
+    for (let i = 0; i < a.byteLength; i++) {
+      if (a[i] !== b[i]) {
+        ret = false;
+      }
+    }
+    return ret;
+  }
   static Merge (buffers) {
     let data;
     let length = 0;
@@ -440,6 +461,7 @@ class TsDemuxer {
   static PES (ts) {
     let ret = {};
     let buffer = ts.payload.stream;
+    
     let next = buffer.readUint24();
     if (next !== 1) {
       ret.ES = {};
