@@ -17,6 +17,8 @@ const flvPlayer = function () {
     flv = context.registry('FLV_CONTROLLER', FLV)(player)
     context.init()
 
+    player.__core__ = flv
+
     flv.once(EVENTS.REMUX_EVENTS.INIT_SEGMENT, () => {
       util.addClass(player.root, 'xgplayer-is-live')
       const live = util.createDom('xg-live', '正在直播', {}, 'xgplayer-live')
@@ -35,7 +37,14 @@ const flvPlayer = function () {
     })
 
     flv.once(EVENTS.LOADER_EVENTS.LOADER_COMPLETE, () => {
-      player.emit('ended')
+      // 直播完成，待播放器播完缓存后发送关闭事件
+      const timer = setInterval(() => {
+        const end = player.getBufferedRange()[1]
+        if (Math.abs(player.currentTime - end) < 0.5) {
+          player.emit('ended')
+          clearInterval(timer)
+        }
+      }, 200)
     })
 
     _start.call(player, flv.mse.url)
@@ -96,6 +105,7 @@ const flvPlayer = function () {
   player.once('destroy', () => {
     flv.destroy()
   })
+
 }
 
 Player.install('flvplayer', flvPlayer)

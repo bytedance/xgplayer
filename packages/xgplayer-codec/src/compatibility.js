@@ -404,10 +404,7 @@ class Compatibility {
     }
 
     const sorted = samples.sort((a, b) => {
-      const aPts = a.pts ? a.pts : a.dts + a.cts;
-      const bPts = b.pts ? b.pts : b.dts + b.cts;
-
-      return aPts - bPts;
+      return a.dts - b.dts;
     })
 
     for (let i = 0, len = sorted.length; i < len; i++) {

@@ -1,6 +1,6 @@
 {
   "name": "xgplayer-hls-vod",
-  "version": "1.0.0",
+  "version": "1.1.6-alpha.0",
   "description": "",
   "main": "webpack.config.js",
   "scripts": {
@@ -12,11 +12,11 @@
   "license": "ISC",
   "dependencies": {
     "xgplayer": "1.1.6-alpha.0",
-    "xgplayer-loader": "1.0.0",
-    "xgplayer-buffer": "1.0.0",
-    "xgplayer-codec": "1.0.0",
-    "xgplayer-demux": "1.0.0",
-    "xgplayer-remux": "1.0.0",
+    "xgplayer-loader": "1.1.6-alpha.0",
+    "xgplayer-buffer": "1.1.6-alpha.0",
+    "xgplayer-codec": "1.1.6-alpha.0",
+    "xgplayer-demux": "1.1.6-alpha.0",
+    "xgplayer-remux": "1.1.6-alpha.0",
     "xgplayer-utils": "1.1.6-alpha.0"
   },
   "devDependencies": {
