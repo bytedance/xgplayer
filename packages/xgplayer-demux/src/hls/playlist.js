@@ -37,14 +37,14 @@ class Playlist {
   }
 
   deleteFrag (url) {
-    if (!this._ts[url]) {
+    if (this._ts[url]) {
       delete this._list[this._ts[url].start];
       delete this._ts[url];
       this.fragLength -= 1;
     }
   }
 
-  pushM3U8 (data) {
+  pushM3U8 (data, deletepre) {
     // 常规信息替换
     this.version = data.version;
     this.targetduration = data.targetduration;
@@ -52,13 +52,27 @@ class Playlist {
     // 新分片信息
     if (data.sequence > this.sequence) {
       this.sequence = data.sequence;
+      let newfraglist = []
       for (let i = 0; i < data.frags.length; i++) {
         let frag = data.frags[i];
         if (!this._ts[frag.url]) {
+          newfraglist.push(frag.url)
           this.push(frag.url, frag.duration);
         }
       }
+      if (deletepre) {
+        let tslist = this.getTsList();
+        for (let i = 0; i < tslist.length; i++) {
+          if (newfraglist.indexOf(tslist[i]) < 0) {
+            this.deleteFrag(tslist[i]);
+          }
+        }
+      }
     }
+  }
+
+  getTsList () {
+    return Object.keys(this._ts);
   }
 
   downloaded (tsname, isloaded) {

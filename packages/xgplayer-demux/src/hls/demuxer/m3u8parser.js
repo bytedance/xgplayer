@@ -45,7 +45,7 @@ class M3U8Parser {
     if (!ret.frags) {
       ret.frags = []
     }
-    
+
     let freg = {
       start: ret.duration,
       duration: parseFloat(refm[2]) * 1000

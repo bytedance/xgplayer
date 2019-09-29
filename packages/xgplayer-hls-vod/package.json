@@ -2,7 +2,7 @@
   "name": "xgplayer-hls-vod",
   "version": "1.1.6-alpha.0",
   "description": "",
-  "main": "webpack.config.js",
+  "main": "index.js",
   "scripts": {
     "build": "webpack",
     "development": "webpack --config webpack.config.dev.js",

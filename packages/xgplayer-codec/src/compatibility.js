@@ -110,6 +110,7 @@ class Compatibility {
       // 当发现duration差距大于2帧时进行补帧
       gap = firstDts - this.nextVideoDts
       if (gap > (2 * meta.refSampleDuration)) {
+        
         const fillFrameCount = Math.floor(gap / meta.refSampleDuration)
 
         for (let i = 0; i < fillFrameCount; i++) {
@@ -156,6 +157,7 @@ class Compatibility {
       const duration = next.dts - current.dts;
 
       if (duration > (2 * meta.refSampleDuration)) {
+        
         // 两帧之间间隔太大，需要补空白帧
         let fillFrameCount = Math.floor(duration / meta.refSampleDuration)
 
@@ -278,9 +280,11 @@ class Compatibility {
       }
 
       const duration = next.dts - current.dts;
-
+      audioSamples[i].duration = duration;
+      /*
       if (duration > (2 * meta.refSampleDuration)) {
         // 两帧之间间隔太大，需要补空白帧
+        /** 
         let silentFrameCount = Math.floor(duration / meta.refSampleDuration)
         let frameIdx = 0
 
@@ -303,7 +307,7 @@ class Compatibility {
           frameIdx++
           i++ // 不对静音帧做比较
         }
-      }
+      }*/
     }
 
     this.audioTrack.samples = Compatibility.sortAudioSamples(audioSamples)

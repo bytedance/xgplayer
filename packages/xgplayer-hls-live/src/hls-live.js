@@ -54,7 +54,7 @@ class HlsLiveController {
     this.on(LOADER_EVENTS.LOADER_COMPLETE, (buffer) => {
       if (buffer.TAG === 'M3U8_BUFFER') {
         let mdata = M3U8Parser.parse(buffer.shift(), this.baseurl);
-        this._playlist.pushM3U8(mdata);
+        this._playlist.pushM3U8(mdata, true);
         if (!this.preloadTime) {
           this.preloadTime = this._playlist.targetduration ? this._playlist.targetduration : 3;
         }

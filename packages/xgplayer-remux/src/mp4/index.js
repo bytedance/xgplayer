@@ -245,7 +245,7 @@ export default class Mp4Remuxer {
         pts: dts,
         cts: 0,
         size: data.byteLength,
-        duration: sampleDuration,
+        duration: sample.duration ? sample.duration : sampleDuration,
         flags: {
           isLeading: 0,
           dependsOn: 2,

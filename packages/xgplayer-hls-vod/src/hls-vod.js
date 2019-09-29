@@ -54,6 +54,7 @@ class HlsVodController {
       if (buffer.TAG === 'M3U8_BUFFER') {
         let mdata = M3U8Parser.parse(buffer.shift(), this.baseurl);
         this._playlist.pushM3U8(mdata);
+        
         if (!this.preloadTime) {
           if (this._playlist.targetduration) {
             this.preloadTime = this._playlist.targetduration;
