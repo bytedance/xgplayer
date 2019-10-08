@@ -5,7 +5,7 @@ const umd = {
   output: {
     path: `${__dirname}/dist`,
     filename: 'index.js',
-    library: 'xgplayer-loader-buffer',
+    library: 'xgplayer-flv',
     libraryTarget: 'umd'
   },
   mode: 'production',
@@ -42,7 +42,7 @@ const client = {
   output: {
     path: `${__dirname}/browser`,
     filename: 'index.js',
-    library: 'FetchLoader',
+    library: 'FlvPlayer',
     libraryTarget: 'window'
   },
   module: {

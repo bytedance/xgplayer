@@ -51,7 +51,7 @@ class Compatibility {
   doFix () {
     const { isFirstAudioSamples, isFirstVideoSamples } = this.getFirstSample()
 
-    this.filtInvalidSamples()
+    this.removeInvalidSamples()
 
     this.recordSamplesCount()
 
@@ -61,6 +61,7 @@ class Compatibility {
     if (this._firstAudioSample) {
       this.fixRefSampleDuration(this.audioTrack.meta, this.audioTrack.samples)
     }
+
     this.doFixVideo(isFirstVideoSamples)
     this.doFixAudio(isFirstAudioSamples)
   }
@@ -114,7 +115,6 @@ class Compatibility {
       // 当发现duration差距大于2帧时进行补帧
       gap = firstDts - this.nextVideoDts
       if (gap > (2 * meta.refSampleDuration)) {
-        
         const fillFrameCount = Math.floor(gap / meta.refSampleDuration)
 
         for (let i = 0; i < fillFrameCount; i++) {
@@ -131,10 +131,11 @@ class Compatibility {
             size: clonedSample.data.byteLength
           })
         }
-      } else if (Math.abs(gap) < meta.refSampleDuration) {
+      } else if (Math.abs(gap) < 10) {
         // 当差距在+-一帧之间时将第一帧的dts强行定位到期望位置
-        // console.log('重定位视频帧dts', videoSamples[0].dts, this.nextVideoDts)
+        console.log('重定位视频帧dts', videoSamples[0].dts, this.nextVideoDts)
         videoSamples[0].dts = this.nextVideoDts
+        videoSamples[0].originDts = videoSamples[0].dts
         videoSamples[0].cts = videoSamples[0].cts || videoSamples[0].pts - videoSamples[0].dts
         videoSamples[0].pts = videoSamples[0].dts + videoSamples[0].cts
       }
@@ -161,7 +162,6 @@ class Compatibility {
       const duration = next.dts - current.dts;
 
       if (duration > (2 * meta.refSampleDuration)) {
-        
         // 两帧之间间隔太大，需要补空白帧
         let fillFrameCount = Math.floor(duration / meta.refSampleDuration)
 
@@ -170,13 +170,14 @@ class Compatibility {
           const fillFrame = Object.assign({}, next)
           fillFrame.dts = current.dts + (fillFrameIdx + 1) * meta.refSampleDuration
           fillFrame.pts = fillFrame.dts + fillFrame.cts
+          if (fillFrame < next.dts) {
+            videoSamples.splice(i, 0, fillFrame)
 
-          videoSamples.splice(i, 0, fillFrame)
-
-          this.filledVideoSamples.push({
-            dts: fillFrame.dts,
-            size: fillFrame.data.byteLength
-          })
+            this.filledVideoSamples.push({
+              dts: fillFrame.dts,
+              size: fillFrame.data.byteLength
+            })
+          }
 
           fillFrameIdx++
           i++;
@@ -288,7 +289,7 @@ class Compatibility {
       /*
       if (duration > (2 * meta.refSampleDuration)) {
         // 两帧之间间隔太大，需要补空白帧
-        /** 
+        /**
         let silentFrameCount = Math.floor(duration / meta.refSampleDuration)
         let frameIdx = 0
 
@@ -311,7 +312,7 @@ class Compatibility {
           frameIdx++
           i++ // 不对静音帧做比较
         }
-      }*/
+      } */
     }
 
     this.audioTrack.samples = Compatibility.sortAudioSamples(audioSamples)
@@ -356,6 +357,14 @@ class Compatibility {
 
         meta.refSampleDuration = Math.floor((lastDts - firstDts) / ((allSamplesCount + filledSamplesCount) - 1)); // 将refSampleDuration重置为计算后的平均值
       }
+    } else if (meta.refSampleDuration) {
+      if (samples.length >= 3) {
+        const lastDts = samples[samples.length - 1].dts
+        const firstDts = samples[0].dts
+        const durationAvg = (lastDts - firstDts) / samples.length
+
+        meta.refSampleDuration = Math.abs(meta.refSampleDuration - durationAvg) <= 10 ? meta.refSampleDuration : durationAvg; // 将refSampleDuration重置为计算后的平均值
+      }
     }
   }
 
@@ -372,7 +381,7 @@ class Compatibility {
   /**
    * 去除不合法的帧（倒退、重复帧）
    */
-  filtInvalidSamples () {
+  removeInvalidSamples () {
     const { _firstVideoSample, _firstAudioSample } = this
 
     this.audioTrack.samples = this.audioTrack.samples.filter((sample) => {
