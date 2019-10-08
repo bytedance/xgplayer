@@ -8,7 +8,7 @@
     "prepare": "npm run build",
     "dev": "webpack --progress --display-chunks --watch --config ./webpack.config.dev.js",
     "build": "webpack --progress --display-chunks -p",
-    "watch": "webpack --progress --display-chunks -p --watch"
+    "watch": "webpack --config webpack.config.dev.js --progress --display-chunks --watch"
   },
   "repository": {
     "type": "git",

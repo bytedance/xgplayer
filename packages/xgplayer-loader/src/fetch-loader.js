@@ -30,9 +30,9 @@ class FetchLoader {
 
     // TODO: Add Ranges
     let params = this.getParams(opts)
+    _this.loading = true
     return fetch(this.url, params).then(function (response) {
       _this.status = response.status
-      _this.loading = true
       return _this._onFetchResponse(response);
     })
   }
@@ -127,6 +127,15 @@ class FetchLoader {
       }
     }
 
+    if (typeof options.headers === 'object') {
+      let optHeaders = options.headers
+      for (let key in optHeaders) {
+        if (optHeaders.hasOwnProperty(key)) {
+          headers.append(key, optHeaders[key])
+        }
+      }
+    }
+
     if (options.cors === false) {
       params.mode = 'same-origin'
     }
@@ -145,6 +154,7 @@ class FetchLoader {
     if (this._reader) {
       this._reader.cancel()
       this._reader = null
+      this.loading = false
     }
   }
 }
