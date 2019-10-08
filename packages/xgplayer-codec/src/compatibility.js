@@ -263,7 +263,7 @@ class Compatibility {
         }
       } else if (gap) {
         // 当差距在+-1帧之间时将第1帧的dts强行定位到期望位置
-        // console.log('重定位音频帧dts', audioSamples[0].dts, this.nextAudioDts)
+        console.log('重定位音频帧dts', audioSamples[0].dts, this.nextAudioDts)
         audioSamples[0].dts = this.nextAudioDts
         audioSamples[0].pts = this.nextAudioDts
       }

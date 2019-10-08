@@ -23,7 +23,11 @@ const REMUX_EVENTS = {
   INIT_SEGMENT: 'INIT_SEGMENT'
 }
 
-const ALLEVENTS = Object.assign({}, LOADER_EVENTS, DEMUX_EVENTS, REMUX_EVENTS)
+const MSE_EVENTS = {
+  SOURCE_UPDATE_END: 'SOURCE_UPDATE_END'
+}
+
+const ALLEVENTS = Object.assign({}, LOADER_EVENTS, DEMUX_EVENTS, REMUX_EVENTS, MSE_EVENTS)
 
 const FlvAllowedEvents = []
 const HlsAllowedEvents = []
@@ -44,6 +48,7 @@ export default {
   ALLEVENTS,
   REMUX_EVENTS,
   DEMUX_EVENTS,
+  MSE_EVENTS,
   LOADER_EVENTS,
   FlvAllowedEvents,
   HlsAllowedEvents
