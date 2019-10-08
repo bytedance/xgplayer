@@ -56,7 +56,7 @@ class HlsLiveController {
         let mdata = M3U8Parser.parse(buffer.shift(), this.baseurl);
         this._playlist.pushM3U8(mdata, true);
         if (!this.preloadTime) {
-          this.preloadTime = this._playlist.targetduration ? this._playlist.targetduration : 3;
+          this.preloadTime = this._playlist.targetduration ? this._playlist.targetduration : 5;
         }
         if (this._playlist.fragLength > 0) {
           this.retrytimes = this.configs.retrytimes || 3;
@@ -95,6 +95,7 @@ class HlsLiveController {
     if (this.container.buffered.length < 1) {
       this._preload()
     } else {
+      // Check for load.
       let currentTime = this.container.currentTime;
       let bufferstart = this.container.buffered.start(this.container.buffered.length - 1);
       if (this.container.readyState <= 2) {
@@ -106,6 +107,9 @@ class HlsLiveController {
         }
       }
       let bufferend = this.container.buffered.end(this.container.buffered.length - 1);
+      if (currentTime < bufferend - (this.preloadTime * 2)) {
+        this.container.currentTime = bufferend - (this.preloadTime * 2);
+      }
       if (currentTime > bufferend - this.preloadTime) {
         this._preload();
       }

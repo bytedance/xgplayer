@@ -85,4 +85,5 @@ export class HlsPlayer extends Player {
     this._initSrcChangeHandler();
   }
 }
+
 module.exports = HlsPlayer;

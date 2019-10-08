@@ -41,7 +41,9 @@ const client = {
   entry: polyfill.concat(['./src/index.js']),
   output: {
     path: `${__dirname}/browser`,
-    filename: 'index.js'
+    filename: 'index.js',
+    library: 'HlsPlayer',
+    libraryTarget: 'window'
   },
   module: {
     rules: [{

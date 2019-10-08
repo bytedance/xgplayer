@@ -33,9 +33,9 @@ class FetchLoader {
 
     // TODO: Add Ranges
     let params = this.getParams(opts)
+    this.loading = true
     return fetch(this.url, params).then(function (response) {
       _this.status = response.status
-      _this.loading = true
       return _this._onFetchResponse(response);
     })
   }
