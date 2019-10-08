@@ -64,7 +64,7 @@ const client = {
     }]
   },
   externals: {
-    xgplayer: 'Player'
+    xgplayer: 'HlsPlayer'
   },
   mode: 'production',
   optimization: {

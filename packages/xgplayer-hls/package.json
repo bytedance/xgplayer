@@ -30,6 +30,9 @@
   "author": "yinguohui@bytedance.com",
   "license": "MIT",
   "dependencies": {
+    "xgplayer-utils": "1.1.6-alpha.0",
+    "xgplayer-hls-live": "1.1.6-alpha.0",
+    "xgplayer-hls-vod": "1.1.6-alpha.0",
     "concat-typed-array": "^1.0.2",
     "deepmerge": "^2.0.1",
     "event-emitter": "^0.3.5"
