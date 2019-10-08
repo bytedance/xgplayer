@@ -346,6 +346,18 @@ class Player extends Proxy {
     util.removeClass(el, 'xgplayer-is-cssfullscreen')
   }
 
+  getCssFullscreen () {
+    let player = this
+    util.addClass(player.root, 'xgplayer-is-cssfullscreen')
+    player.emit('requestCssFullscreen')
+  }
+
+  exitCssFullscreen () {
+    let player = this
+    util.removeClass(player.root, 'xgplayer-is-cssfullscreen')
+    player.emit('exitCssFullscreen')
+  }
+
   download () {
     const url = getAbsoluteURL(this.config.url)
     downloadUtil(url)
