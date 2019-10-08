@@ -96,6 +96,7 @@ class FlvController {
   }
 
   destroy () {
+    super.destroy()
     this._context.destroy()
     this._context = null
   }
