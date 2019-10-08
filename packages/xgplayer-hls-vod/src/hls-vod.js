@@ -20,12 +20,13 @@ class HlsVodController {
     this.retrytimes = this.configs.retrytimes || 3;
     this.container = this.configs.container;
     this.preloadTime = this.configs.preloadTime || 5;
+    this._lastSeekTime = 0;
   }
 
   init () {
     // 初始化Buffer （M3U8/TS/Playlist);
     this._context.registry('M3U8_BUFFER', XgBuffer);
-    this._context.registry('TS_BUFFER', XgBuffer);
+    this._tsBuffer = this._context.registry('TS_BUFFER', XgBuffer)();
     this._tracks = this._context.registry('TRACKS', Tracks)();
 
     this._playlist = this._context.registry('PLAYLIST', Playlist)({autoclear: true});
@@ -35,7 +36,7 @@ class HlsVodController {
 
     // 初始化M3U8Loader;
     this._context.registry('M3U8_LOADER', FetchLoader)({ buffer: 'M3U8_BUFFER', readtype: 1 });
-    this._tsloader = this._context.registry('TS_LOADER', FetchLoader)({ buffer: 'TS_BUFFER', readtype: 0 });
+    this._tsloader = this._context.registry('TS_LOADER', FetchLoader)({ buffer: 'TS_BUFFER', readtype: 3 });
 
     // 初始化TS Demuxer
     this._context.registry('TS_DEMUXER', TsDemuxer)({ inputbuffer: 'TS_BUFFER' });
@@ -49,11 +50,11 @@ class HlsVodController {
   }
 
   initEvents () {
-    let _this = this;
     this.on(LOADER_EVENTS.LOADER_COMPLETE, (buffer) => {
       if (buffer.TAG === 'M3U8_BUFFER') {
         let mdata = M3U8Parser.parse(buffer.shift(), this.baseurl);
         this._playlist.pushM3U8(mdata);
+        
         if (!this.preloadTime) {
           if (this._playlist.targetduration) {
             this.preloadTime = this._playlist.targetduration;
@@ -75,6 +76,8 @@ class HlsVodController {
           }
         }
       } else if (buffer.TAG === 'TS_BUFFER') {
+        console.log('loaded')
+        this._preload(this.mse.container.currentTime);
         this._playlist.downloaded(this._tsloader.url, true);
         this.emit(DEMUX_EVENTS.DEMUX_START)
       }
@@ -85,7 +88,6 @@ class HlsVodController {
     });
 
     this.on(REMUX_EVENTS.MEDIA_SEGMENT, (type) => {
-      this._preload(0);
       if (Object.keys(this.mse.sourceBuffers).length < 1) {
         this.mse.addSourceBuffers();
       }
@@ -113,35 +115,35 @@ class HlsVodController {
     this.on('TIME_UPDATE', (container) => {
       this._preload(container.currentTime);
     });
+  }
 
-    this.on('SOURCE_UPDATE_END', () => {
-      /** 
-      if (!_this.mse.container.currentTime) {
-        this._preload()
-      } else {
-        this._preload(_this.mse.container.currentTime)
-      }*/
-    })
+  seek (time) {
+    this._lastSeekTime = time;
+    this._tsloader.cancel();
+    if (this._presource.sources.video) {
+      this._presource.sources.video.data = [];
+    }
+    if (this._presource.sources.audio) {
+      this._presource.sources.audio.data = []
+    }
+    if (this._tracks.audioTrack) {
+      this._tracks.audioTrack.samples = [];
+    }
+    if (this._tracks.audioTrack) {
+      this._tracks.videoTrack.samples = [];
+    }
 
-    this.on('WAITING', () => {
-      /** 
-      if (this._tsloader.loading) {
-        this._tsloader.cancel();
-      }
-      if (this._presource.sources.video) {
-        this._presource.sources.video.data = [];
-      }
-      if (this._presource.sources.audio) {
-        this._presource.sources.audio.data = []
-      }
-      if (this._tracks.audioTrack) {
-        this._tracks.audioTrack.samples = [];
-      }
-      if (this._tracks.audioTrack) {
-        this._tracks.videoTrack.samples = [];
-      }
-      this._preload(this.mse.container.currentTime);**/
-    })
+    if (this._compat) {
+      this._compat.reset();
+    }
+
+    if (this._tsBuffer) {
+      this._tsBuffer.array = [];
+      this._tsBuffer.length = 0;
+      this._tsBuffer.offset = 0;
+    }
+
+    this._preload(time);
   }
 
   load (url) {
@@ -154,14 +156,12 @@ class HlsVodController {
     if (this._tsloader.loading) {
       return;
     }
-
     let video = this.mse.container;
     if (video.buffered.length < 1) {
       let frag = this._playlist.getTs(0);
       if (frag && !frag.downloading && !frag.downloaded) {
         this._playlist.downloading(frag.url, true);
         this.emitTo('TS_LOADER', LOADER_EVENTS.LADER_START, frag.url)
-        this._preload(this.mse.container.currentTime);
       }
     } else {
       // Get current time range

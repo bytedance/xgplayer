@@ -146,7 +146,6 @@ export default class Mp4Remuxer {
       mdatSample.size += avcSample.data.byteLength
 
       let sampleDuration = 0
-
       if (samples.length >= 1) {
         const nextDts = samples[0].dts - this._dtsBase
         sampleDuration = nextDts - dts
@@ -157,7 +156,6 @@ export default class Mp4Remuxer {
           sampleDuration = this.videoMeta.refSampleDuration
         }
       }
-      console.log('remux video ', dts)
       this.videoAllDuration += sampleDuration
       mp4Samples.push({
         dts,
@@ -247,7 +245,7 @@ export default class Mp4Remuxer {
         pts: dts,
         cts: 0,
         size: data.byteLength,
-        duration: sampleDuration,
+        duration: sample.duration ? sample.duration : sampleDuration,
         flags: {
           isLeading: 0,
           dependsOn: 2,

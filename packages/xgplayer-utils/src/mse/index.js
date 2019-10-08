@@ -5,14 +5,6 @@ class MSE {
     this.mediaSource = null;
     this.sourceBuffers = {};
     this.preloadTime = this.configs.preloadTime || 1;
-    this._redefineSeek();
-  }
-
-  _redefineSeek () {
-    if (!this.container) {
-      return;
-    }
-    let _this = this;
   }
 
   init () {
