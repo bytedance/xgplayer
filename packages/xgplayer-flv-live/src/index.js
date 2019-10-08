@@ -12,13 +12,9 @@ class FlvPlayer extends Player {
   }
 
   start () {
-
-    const flv = this.context.registry('FLV_CONTROLLER', FLV)(this)
-    this.initFlvEvents(flv)
-    this.flv = flv
+    this.initFlv()
     this.context.init()
-
-    super.start(flv.mse.url)
+    super.start(this.flv.mse.url)
   }
 
   initFlvEvents (flv) {
@@ -67,13 +63,49 @@ class FlvPlayer extends Player {
 
     this.once('destroy', () => {
       super.destroy()
-      this.context.destroy()
-      this.flv.destroy()
+      this._destroy()
     })
   }
 
+  initFlv () {
+    const flv = this.context.registry('FLV_CONTROLLER', FLV)(this)
+    this.initFlvEvents(flv)
+    this.flv = flv
+  }
+
+  play() {
+    if (this._hasStart) {
+      this._destroy()
+      this.context = new Context(flvAllowedEvents)
+      const flv = this.context.registry('FLV_CONTROLLER', FLV)(this)
+      this.initFlvEvents(flv)
+      this.flv = flv
+      this.context.init()
+      super.start(flv.mse.url)
+      super.play()
+    } else {
+      super.play()
+    }
+  }
+
+  pause () {
+    super.pause()
+    if (this.flv) {
+      this.flv.pause()
+    }
+  }
+
   loadData (time = this.currentTime) {
-    this.flv.seek(time)
+    if (this.flv) {
+      this.flv.seek(time)
+    }
+  }
+
+  _destroy () {
+    this.flv.destroy()
+    this.context.destroy()
+    this.flv = null
+    this.context = null
   }
 
   get src () {

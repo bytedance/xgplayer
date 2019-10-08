@@ -166,7 +166,9 @@ class Context {
 
         // step2 release from context
         delete self._instanceMap[tag]
-        super.destroy()
+        if (super.destroy) {
+          super.destroy()
+        }
       }
     }
     this._clsMap[tag] = enhanced

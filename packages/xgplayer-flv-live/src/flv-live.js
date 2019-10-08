@@ -16,7 +16,7 @@ class Logger {
   warn () {}
 }
 
-class FlvController {
+export default class FlvController {
   constructor (player) {
     this.TAG = Tag
     this._player = player
@@ -118,6 +118,12 @@ class FlvController {
   destroy () {
     this._context = null
   }
-}
 
-export default FlvController
+  pause () {
+    const loader = this._context.getInstance('FETCH_LOADER')
+
+    if (loader) {
+      loader.cancel()
+    }
+  }
+}
