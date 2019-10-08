@@ -39,10 +39,9 @@ class MSE {
       let type = Object.keys(sources)[i];
       if (type === 'audio') {
         track = tracks.audioTrack;
-      } else if (type === 'audio') {
-        track = tracks.audioTrack;
+      } else if (type === 'video') {
+        track = tracks.videoTrack;
       }
-
       if (track) {
         let dur = type === 'audio' ? 21 : 40;
         if (track.meta && track.meta.refSampleDuration) dur = track.meta.refSampleDuration;

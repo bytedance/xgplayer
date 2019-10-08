@@ -8,6 +8,7 @@ import { Compatibility } from 'xgplayer-codec'
 const REMUX_EVENTS = EVENTS.REMUX_EVENTS;
 const DEMUX_EVENTS = EVENTS.DEMUX_EVENTS;
 const LOADER_EVENTS = EVENTS.LOADER_EVENTS
+const MSE_EVENTS = EVENTS.MSE_EVENTS
 
 const Tag = 'FLVController'
 
@@ -56,6 +57,8 @@ class FlvController {
 
     this.on(REMUX_EVENTS.INIT_SEGMENT, this._handleAppendInitSegment.bind(this))
     this.on(REMUX_EVENTS.MEDIA_SEGMENT, this._handleMediaSegment.bind(this))
+
+    this.on(MSE_EVENTS.SOURCE_UPDATE_END, this._handleSourceUpdateEnd.bind(this))
   }
 
   _handleMediaInfo () {
@@ -85,6 +88,23 @@ class FlvController {
     this.mse.doAppend();
   }
 
+  _handleSourceUpdateEnd () {
+    const time = this._player.currentTime;
+    const video = this._player.video;
+    const preloadTime = this._player.config.preloadTime || 4
+
+    const { length } = video.buffered;
+
+    if (length === 0) {
+      return;
+    }
+
+    const bufferEnd = video.buffered.end(length - 1);
+    if (bufferEnd - time > preloadTime) {
+      this._player.currentTime = bufferEnd - preloadTime
+    }
+  }
+
   seek () {
     if (!this.state.initSegmentArrived) {
       this.loadData()
@@ -96,8 +116,6 @@ class FlvController {
   }
 
   destroy () {
-    super.destroy()
-    this._context.destroy()
     this._context = null
   }
 }

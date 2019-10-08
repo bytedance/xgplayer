@@ -66,6 +66,8 @@ class FlvPlayer extends Player {
     })
 
     this.once('destroy', () => {
+      super.destroy()
+      this.context.destroy()
       this.flv.destroy()
     })
   }
