@@ -275,9 +275,7 @@ class SPSParser {
       height: spsConfig.par_ratio.height
     }
 
-    if (spsConfig.frame_rate.fixed && spsConfig.frame_rate.fps_num > 0 && spsConfig.frame_rate.fps_den > 0) {
-      meta.frameRate = spsConfig.frame_rate
-    }
+    meta.frameRate = spsConfig.frame_rate
 
     let fpsDen = meta.frameRate.fps_den
     let fpsNum = meta.frameRate.fps_num

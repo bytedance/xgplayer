@@ -394,7 +394,7 @@ class FlvDemuxer {
       audioMedia.sampleRate = audioSampleRate
       audioMedia.sampleRateIndex = aacHeader.audioSampleRateIndex
 
-      if (this._hasScript && !this._hasAudioSequence && (!this.tracks.videoTrack || this._hasVideoSequence)) {
+      if (this._hasScript && !this._hasAudioSequence) {
         this.emit(DEMUX_EVENTS.METADATA_PARSED, 'audio')
       } else if (this._hasScript && this._hasAudioSequence) {
         this.emit(DEMUX_EVENTS.AUDIO_METADATA_CHANGE)
