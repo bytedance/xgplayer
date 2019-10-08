@@ -1,0 +1,24 @@
+{
+  "name": "xgplayer-flv-vod",
+  "version": "1.1.6-alpha.0",
+  "description": "",
+  "main": "dist/index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "build": "webpack --progress --display-chunks -p",
+    "watch": "webpack --config webpack.config.dev.js --progress --display-chunks --watch"
+  },
+  "author": "",
+  "license": "ISC",
+  "dependencies": {},
+  "devDependencies": {
+    "webpack": "^4.41.0",
+    "webpack-merge": "^4.2.2",
+    "xgplayer-buffer": "^1.1.6-alpha.0",
+    "xgplayer-codec": "^1.1.6-alpha.0",
+    "xgplayer-demux": "^1.1.6-alpha.0",
+    "xgplayer-loader": "^1.1.6-alpha.0",
+    "xgplayer-remux": "^1.1.6-alpha.0",
+    "xgplayer-utils": "1.1.6-alpha.0"
+  }
+}

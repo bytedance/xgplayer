@@ -93,6 +93,10 @@ class MSE {
     }
   }
 
-
+  endOfStream() {
+    if (this.mediaSource.readyState === 'open') {
+      this.mediaSource.endOfStream()
+    }
+  }
 }
 export default MSE;
