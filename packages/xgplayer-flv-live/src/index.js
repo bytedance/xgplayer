@@ -21,8 +21,11 @@ class FlvPlayer extends Player {
     const player = this;
     flv.once(EVENTS.REMUX_EVENTS.INIT_SEGMENT, () => {
       Player.util.addClass(player.root, 'xgplayer-is-live')
-      const live = Player.util.createDom('xg-live', '正在直播', {}, 'xgplayer-live')
-      player.controls.appendChild(live)
+      if (!Player.util.findDom(this.root, 'xg-live')) {
+        const live = Player.util.createDom('xg-live', '正在直播', {}, 'xgplayer-live')
+        player.controls.appendChild(live)
+      }
+
       const timer = setInterval(() => {
         if (player.paused && player.buffered.length) {
           for (let i = 0, len = player.buffered.length; i < len; i++) {

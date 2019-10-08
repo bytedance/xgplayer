@@ -198,7 +198,7 @@ class Context {
    */
   destroy () {
     this._emitter = null
-    this.allowedEvents = null
+    this.allowedEvents = []
     this._clsMap = null
     this.destroyInstances()
   }
