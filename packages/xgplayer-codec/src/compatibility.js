@@ -68,6 +68,10 @@ class Compatibility {
   doFixVideo (first) {
     let {samples: videoSamples, meta} = this.videoTrack
 
+    if (meta.frameRate && meta.frameRate.fixed === false) {
+      return;
+    }
+
     if (!videoSamples || !videoSamples.length || !this._firstVideoSample) {
       return
     }

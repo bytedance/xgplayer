@@ -18,10 +18,10 @@ const developClient = webpackMerge(client, {
     filename: 'index.js',
     library: 'FlvPlayer',
     libraryTarget: 'window'
-
   },
   devtool: 'inline-source-map',
   mode: 'development'
 })
+
 
 module.exports = [developUMD, developClient]

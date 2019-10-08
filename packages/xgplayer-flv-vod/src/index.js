@@ -1,7 +1,20 @@
 import Player from 'xgplayer'
 import { Context, EVENTS } from 'xgplayer-utils';
-import FLV from './flv-live'
+import FLV from './flv-vod'
+
 const flvAllowedEvents = EVENTS.FlvAllowedEvents;
+
+const isEnded = (player, flv) => {
+  if (!player.config.isLive) {
+    if (player.duration - player.currentTime < 2) {
+      const range = player.getBufferedRange()
+      if (player.currentTime - range[1] < 0.1) {
+        player.emit('ended')
+        flv.mse.endOfStream()
+      }
+    }
+  }
+}
 
 class FlvPlayer extends Player {
   constructor (config) {
@@ -14,47 +27,15 @@ class FlvPlayer extends Player {
   start () {
 
     const flv = this.context.registry('FLV_CONTROLLER', FLV)(this)
-    this.initFlvEvents(flv)
     this.flv = flv
     this.context.init()
-
     super.start(flv.mse.url)
-  }
-
-  initFlvEvents (flv) {
-    const player = this;
-    flv.once(EVENTS.REMUX_EVENTS.INIT_SEGMENT, () => {
-      Player.util.addClass(player.root, 'xgplayer-is-live')
-      const live = Player.util.createDom('xg-live', '正在直播', {}, 'xgplayer-live')
-      player.controls.appendChild(live)
-      const timer = setInterval(() => {
-        if (player.paused && player.buffered.length) {
-          for (let i = 0, len = player.buffered.length; i < len; i++) {
-            if (player.buffered.start(i) > player.currentTime) {
-              player.currentTime = player.buffered.start(i)
-              clearInterval(timer)
-              break
-            }
-          }
-        }
-      }, 200)
-    })
-
-    flv.once(EVENTS.LOADER_EVENTS.LOADER_COMPLETE, () => {
-      // 直播完成，待播放器播完缓存后发送关闭事件
-      const timer = setInterval(() => {
-        const end = player.getBufferedRange()[1]
-        if (Math.abs(player.currentTime - end) < 0.5) {
-          player.emit('ended')
-          clearInterval(timer)
-        }
-      }, 200)
-    })
   }
 
   initEvents () {
     this.on('timeupdate', () => {
       this.loadData()
+      isEnded(this, this.flv)
     })
 
     this.on('seeking', () => {
@@ -71,7 +52,10 @@ class FlvPlayer extends Player {
   }
 
   loadData (time = this.currentTime) {
-    this.flv.seek(time)
+    const range = this.getBufferedRange()
+    if (range[1] - time < (this.config.preloadTime || 15) - 5) {
+      this.flv.loadNext(range[1] + 1)
+    }
   }
 
   get src () {

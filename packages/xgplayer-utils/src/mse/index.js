@@ -8,23 +8,31 @@ class MSE {
   }
 
   init () {
-    let _this = this;
     // eslint-disable-next-line no-undef
     this.mediaSource = new self.MediaSource();
-    this.mediaSource.addEventListener('sourceopen', (e) => {
-      _this.addSourceBuffers();
-    });
+    this.mediaSource.addEventListener('sourceopen', this.onSourceOpen.bind(this));
     this.container.src = URL.createObjectURL(this.mediaSource);
     this.url = this.container.src;
-    this.container.addEventListener('timeupdate', () => {
-      _this.emit('TIME_UPDATE', this.container);
-    });
-
-    this.container.addEventListener('waiting', () => {
-      _this.emit('WAITING', this.container);
-    });
+    this.container.addEventListener('timeupdate', this.onTimeUpdate.bind(this));
+    this.container.addEventListener('waiting', this.onWaiting.bind(this));
   }
 
+  onTimeUpdate () {
+    this.emit('TIME_UPDATE', this.container);
+  }
+
+  onWaiting () {
+    this.emit('WAITING', this.container);
+  }
+
+  onSourceOpen () {
+    this.addSourceBuffers();
+  }
+
+  onUpdateEnd () {
+    this.emit('SOURCE_UPDATE_END');
+    this.doAppend()
+  }
   addSourceBuffers () {
     if (this.mediaSource.readyState !== 'open') {
       return;
@@ -62,10 +70,7 @@ class MSE {
         let mime = (type === 'video') ? 'video/mp4;codecs=' + source.mimetype : 'audio/mp4;codecs=' + source.mimetype
         let sourceBuffer = this.mediaSource.addSourceBuffer(mime);
         this.sourceBuffers[type] = sourceBuffer;
-        sourceBuffer.addEventListener('updateend', (e) => {
-          this.emit('SOURCE_UPDATE_END');
-          this.doAppend()
-        });
+        sourceBuffer.addEventListener('updateend', this.onUpdateEnd.bind(this));
         this.doAppend();
       }
     }
@@ -90,6 +95,33 @@ class MSE {
           }
         }
       }
+    }
+  }
+
+  endOfStream () {
+    if (this.mediaSource.readyState === 'open') {
+      this.mediaSource.endOfStream()
+    }
+  }
+
+  remove (end) {
+    for (let i = 0; i < Object.keys(this.sourceBuffers).length; i++) {
+      let buffer = this.sourceBuffers[Object.keys(this.sourceBuffers)[i]];
+      if (!buffer.updating) {
+        buffer.remove(0, end);
+      }
+    }
+  }
+
+  destroy () {
+    this.container.removeEventListener('timeupdate', this.onTimeUpdate);
+    this.container.removeEventListener('waiting', this.onWaiting);
+    this.mediaSource.removeEventListener('sourceopen', this.onSourceOpen);
+    for (let i = 0; i < Object.keys(this.sourceBuffers).length; i++) {
+      let buffer = this.sourceBuffers[Object.keys(this.sourceBuffers)[i]];
+      buffer.removeEventListener('updateend', this.onUpdateEnd);
+      this.mediaSource.removeSourceBuffer(buffer);
+      delete this.sourceBuffers[Object.keys(this.sourceBuffers)[i]];
     }
   }
 }

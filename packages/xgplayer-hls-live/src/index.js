@@ -64,5 +64,10 @@ export class HlsLivePlayer extends Player {
     this._initEvents();
     this._initSrcChangeHandler();
   }
+
+  destroy () {
+    this._context.destroy();
+    super.destroy();
+  }
 }
 module.exports = HlsLivePlayer;

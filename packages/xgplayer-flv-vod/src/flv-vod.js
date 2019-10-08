@@ -29,6 +29,19 @@ class FlvController {
     }
   }
 
+  static findFilePosition (time, keyframes) {
+    for (let i = 0, len = keyframes.times.length; i < len; i++) {
+      const currentKeyframeTime = keyframes.times[i]
+      const nextKeyframeTime = i + 1 < len ? keyframes.times[i + 1] : Number.MAX_SAFE_INTEGER
+
+      if (currentKeyframeTime <= time && time <= nextKeyframeTime) {
+        return keyframes.filepositions[i]
+      }
+    }
+
+    return ''
+  }
+
   init () {
     this._context.registry('FETCH_LOADER', FetchLoader)
     this._context.registry('LOADER_BUFFER', XgBuffer)
@@ -45,6 +58,10 @@ class FlvController {
     this.mse = this._context.registry('MSE', Mse)({ container: this._player.video })
 
     this.initListeners()
+
+    setTimeout(() => {
+      this.loadMeta()
+    }, 0)
   }
 
   initListeners () {
@@ -59,17 +76,21 @@ class FlvController {
   }
 
   _handleMediaInfo () {
-    if (!this._context.mediaInfo) {
+    if (!this._context.onMetaData) {
       this.emit(DEMUX_EVENTS.DEMUX_ERROR, new Error('failed to get mediainfo'))
     }
     const buffer = this._context.getInstance('LOADER_BUFFER')
-    // const loader = this._context.getInstance('FETCH_LOADER')
+    const loader = this._context.getInstance('FETCH_LOADER')
     if (this.isSeekable) {
-      // loader.cancel()
+      loader.cancel()
+      // 初始化点播的range
       this.state.range = {
         start: 0,
         end: buffer.historyLen - 1
       }
+      setTimeout(() => {
+        this.loadNext(0)
+      })
     }
   }
 
@@ -80,6 +101,7 @@ class FlvController {
   _handleMetadataParsed (type) {
     this.emit(REMUX_EVENTS.REMUX_METADATA, type)
   }
+
   _handleDemuxComplete () {
     this.emit(REMUX_EVENTS.REMUX_MEDIA)
   }
@@ -90,27 +112,48 @@ class FlvController {
   }
 
   _handleMediaSegment () {
+    this.mse.addSourceBuffers()
     this.mse.doAppend();
   }
 
   seek (time) {
-    if (!this.state.initSegmentArrived) {
+    if (!this._context.onMetaData) {
       this.loadMeta()
       return
     }
-    if (this._player.config.isLive || !this.isSeekable) {
+    if (!this.isSeekable) {
       return
     }
+
+    const buffer = this._context.getInstance('LOADER_BUFFER')
+    buffer.clear()
+
     const { preloadTime = 15 } = this._player.config
-    const range = this.getRange(time, preloadTime)
+    const range = this.getSeekRange(time, preloadTime)
     this.state.range = range
     this.loadData()
   }
 
+  loadNext (curTime) {
+    if (!this._context.onMetaData) {
+      return
+    }
+
+    if (this.loader.loading) {
+      return;
+    }
+
+    if (this.getNextRange(curTime)) {
+      this.loadData()
+    }
+  }
+
   loadData () {
-    const { start, end } = this.state
+    const { start, end } = this.state.range
     this.emit(LOADER_EVENTS.LADER_START, this._player.config.url, {
-      Range: `bytes=${start}-${end}`
+      headers: {
+        Range: `bytes=${start}-${end}`
+      }
     })
   }
 
@@ -118,29 +161,43 @@ class FlvController {
     this.emit(LOADER_EVENTS.LADER_START, this._player.config.url)
   }
 
-  getRange (time, preloadTime) {
+  getSeekRange (time, preloadTime) {
     const { keyframes } = this._context.onMetaData
-    const { timescale } = this._context.getInstance('TRACKS').videoTrack.meta
-    const seekStart = time * timescale
-    const findFilePosition = (time) => {
-      for (let i = 0, len = keyframes.times.length; i < len; i++) {
-        const currentKeyframeTime = keyframes.times[i]
-        const nextKeyframeTime = i + 1 < len ? keyframes.times[i + 1] : Number.MAX_SAFE_INTEGER
+    const duration = this._context.mediaInfo.duration
+    const seekStartTime = time
+    const seekEndTime = time + preloadTime
 
-        if (currentKeyframeTime <= time && time <= nextKeyframeTime) {
-          return i
-        }
+    const seekStartFilePos = FlvController.findFilePosition(seekStartTime, keyframes)
+
+    if (seekEndTime >= duration || seekStartTime >= duration) {
+      return {
+        start: seekStartFilePos,
+        end: ''
       }
-
-      return ''
     }
+    const seekEndFilePos = FlvController.findFilePosition(seekEndTime, keyframes)
 
-    const seekStartFilePos = findFilePosition(seekStart)
-    const seekEndFilePos = findFilePosition((time + preloadTime) * timescale)
     return {
       start: seekStartFilePos,
       end: seekEndFilePos
     }
+  }
+
+  getNextRange (time) {
+    if (this.state.range.end === '') {
+      return;
+    }
+
+    const { end } = this.getSeekRange(time, this.config.preloadTime || 15)
+    if (end <= this.state.range.end && end !== '') {
+      return;
+    }
+
+    this.state.range = {
+      start: this.state.range.end + 1,
+      end
+    }
+    return true;
   }
 
   destroy () {
@@ -153,6 +210,14 @@ class FlvController {
       return true
     }
     return this._context.mediaInfo.keyframes !== null && this._context.mediaInfo.keyframes !== undefined
+  }
+
+  get config () {
+    return this._player.config
+  }
+
+  get loader () {
+    return this._context.getInstance('FETCH_LOADER')
   }
 }
 

@@ -51,45 +51,44 @@ class HlsLiveController {
   }
 
   initEvents () {
-    this.on(LOADER_EVENTS.LOADER_COMPLETE, (buffer) => {
-      if (buffer.TAG === 'M3U8_BUFFER') {
-        let mdata = M3U8Parser.parse(buffer.shift(), this.baseurl);
-        this._playlist.pushM3U8(mdata, true);
-        if (!this.preloadTime) {
-          this.preloadTime = this._playlist.targetduration ? this._playlist.targetduration : 5;
-        }
-        if (this._playlist.fragLength > 0) {
-          this.retrytimes = this.configs.retrytimes || 3;
-        } else {
-          if (this.retrytimes > 0) {
-            this.retrytimes--;
-            this.emitTo('M3U8_LOADER', LOADER_EVENTS.LADER_START, this.url)
-          }
-        }
-      } else if (buffer.TAG === 'TS_BUFFER') {
-        this._playlist.downloaded(this._tsloader.url, true);
-        this.emit(DEMUX_EVENTS.DEMUX_START)
+    this.on(LOADER_EVENTS.LOADER_COMPLETE, this._onLoadComplete.bind(this));
+
+    this.on(REMUX_EVENTS.INIT_SEGMENT, this.mse.addSourceBuffers.bind(this.mse));
+
+    this.on(REMUX_EVENTS.MEDIA_SEGMENT, this.mse.doAppend.bind(this.mse));
+
+    // this.on(REMUX_EVENTS.REMUX_ERROR, (err) => {console.log(err)})
+
+    this.on(DEMUX_EVENTS.METADATA_PARSED, this._onMetadataParsed.bind(this));
+
+    this.on(DEMUX_EVENTS.DEMUX_COMPLETE, this._onDemuxComplete.bind(this))
+  }
+
+  _onDemuxComplete () {
+    this.emit(REMUX_EVENTS.REMUX_MEDIA)
+  }
+  _onMetadataParsed (type) {
+    this.emit(REMUX_EVENTS.REMUX_METADATA, type)
+  }
+  _onLoadComplete (buffer) {
+    if (buffer.TAG === 'M3U8_BUFFER') {
+      let mdata = M3U8Parser.parse(buffer.shift(), this.baseurl);
+      this._playlist.pushM3U8(mdata, true);
+      if (!this.preloadTime) {
+        this.preloadTime = this._playlist.targetduration ? this._playlist.targetduration : 5;
       }
-    })
-
-    this.on(REMUX_EVENTS.INIT_SEGMENT, (type) => {
-      this.mse.addSourceBuffers();
-    });
-
-    this.on(REMUX_EVENTS.MEDIA_SEGMENT, (type) => {
-      this.mse.doAppend();
-    })
-    this.on(REMUX_EVENTS.REMUX_ERROR, (err) => {
-      console.log(err)
-    })
-
-    this.on(DEMUX_EVENTS.METADATA_PARSED, (type) => {
-      this.emit(REMUX_EVENTS.REMUX_METADATA, type)
-    })
-
-    this.on(DEMUX_EVENTS.DEMUX_COMPLETE, () => {
-      this.emit(REMUX_EVENTS.REMUX_MEDIA)
-    })
+      if (this._playlist.fragLength > 0) {
+        this.retrytimes = this.configs.retrytimes || 3;
+      } else {
+        if (this.retrytimes > 0) {
+          this.retrytimes--;
+          this.emitTo('M3U8_LOADER', LOADER_EVENTS.LADER_START, this.url)
+        }
+      }
+    } else if (buffer.TAG === 'TS_BUFFER') {
+      this._playlist.downloaded(this._tsloader.url, true);
+      this.emit(DEMUX_EVENTS.DEMUX_START)
+    }
   }
   _checkStatus () {
     if (this.container.buffered.length < 1) {
@@ -109,6 +108,9 @@ class HlsLiveController {
       let bufferend = this.container.buffered.end(this.container.buffered.length - 1);
       if (currentTime < bufferend - (this.preloadTime * 2)) {
         this.container.currentTime = bufferend - (this.preloadTime * 2);
+      }
+      if (bufferend > this.preloadTime * 2) {
+        this.mse.remove(bufferend - (this.preloadTime * 2));
       }
       if (currentTime > bufferend - this.preloadTime) {
         this._preload();
@@ -138,6 +140,16 @@ class HlsLiveController {
     this.baseurl = M3U8Parser.parseURL(url);
     this.url = url;
     this.emitTo('M3U8_LOADER', LOADER_EVENTS.LADER_START, url)
+  }
+
+  destroy () {
+    clearInterval(this._timmer);
+    this.off(LOADER_EVENTS.LOADER_COMPLETE, this._onLoadComplete);
+    this.off(REMUX_EVENTS.INIT_SEGMENT, this.mse.addSourceBuffers);
+    this.off(REMUX_EVENTS.MEDIA_SEGMENT, this.mse.doAppend);
+    // this.off(REMUX_EVENTS.REMUX_ERROR);
+    this.off(DEMUX_EVENTS.METADATA_PARSED, this._onMetadataParsed);
+    this.off(DEMUX_EVENTS.DEMUX_COMPLETE, this._onDemuxComplete);
   }
 }
 export default HlsLiveController;

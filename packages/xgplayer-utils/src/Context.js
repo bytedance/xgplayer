@@ -166,7 +166,7 @@ class Context {
 
         // step2 release from context
         delete self._instanceMap[tag]
-        super.destroy()
+        super.destroy && super.destroy()
       }
     }
     this._clsMap[tag] = enhanced
@@ -195,10 +195,10 @@ class Context {
    * 编解码流程无需关注事件的解绑
    */
   destroy () {
-    this._emitter = null
-    this.allowedEvents = null
-    this._clsMap = null
     this.destroyInstances()
+    this._emitter = null
+    this.allowedEvents = []
+    this._clsMap = null
   }
 
   /**
