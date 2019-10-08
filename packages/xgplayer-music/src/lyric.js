@@ -111,6 +111,16 @@ class Lyric {
         }
       }).bind(self, player)
       player.on('timeupdate', self.__handle__)
+
+      self.__startHandle__ = (() => {
+        player.emit('lyricUpdate', self.list[0])
+      }).bind(self, player)
+      player.once('canplay', self.__startHandle__)
+
+      self.__endHandle__ = (() => {
+        player.emit('lyricUpdate', self.list[self.list.length - 1])
+      }).bind(self, player)
+      player.on('ended', self.__endHandle__)
       return true
     } else {
       return false

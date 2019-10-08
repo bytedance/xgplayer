@@ -91,6 +91,11 @@ class HlsJsPlayer extends Player {
       }
     })
     hls.on(Hls.Events.ERROR, (event, data) => {
+      player.emit('HLS_ERROR', {
+        errorType: data.type,
+        errorDetails: data.details,
+        errorFatal: data.fatal,
+      })
       if (data.fatal) {
         switch (data.type) {
           case Hls.ErrorTypes.NETWORK_ERROR:
@@ -132,13 +137,13 @@ class HlsJsPlayer extends Player {
     hls.on(Hls.Events.FRAG_PARSING_INIT_SEGMENT, (flag,payload) =>{
       mediainfo.hasAudio = (payload.tracks && payload.tracks.audio)? true: false;
       mediainfo.hasVideo = (payload.tracks && payload.tracks.audio)? true: false;
-      
+
       if(mediainfo.hasAudio) {
         let track = payload.tracks.audio;
         mediainfo.audioChannelCount = (track.metadata && track.metadata.channelCount) ? track.metadata.channelCount:0;
         mediainfo.audioCodec = track.codec;
-      } 
-      
+      }
+
       if(mediainfo.hasVideo) {
         let track = payload.tracks.video;
         mediainfo.videoCodec = track.codec;
@@ -148,7 +153,7 @@ class HlsJsPlayer extends Player {
       mediainfo.duration = (payload.frag && payload.frag.duration) ? payload.frag.duration:0
       mediainfo.level =(payload.frag && payload.frag.level) ? payload.frag.level:0;
       if(mediainfo.videoCodec || mediainfo.audioCodec) {
-        mediainfo.mimeType = `video/hls; codecs="${mediainfo.videoCodec};${mediainfo.audioCodec}"` 
+        mediainfo.mimeType = `video/hls; codecs="${mediainfo.videoCodec};${mediainfo.audioCodec}"`
       }
 
       player.mediainfo = mediainfo;
