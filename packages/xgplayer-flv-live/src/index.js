@@ -3,25 +3,29 @@ import { Context, EVENTS } from 'xgplayer-utils';
 import FLV from './flv-live'
 const flvAllowedEvents = EVENTS.FlvAllowedEvents;
 
-const flvPlayer = function () {
-  let player = this
+class FlvPlayer extends Player {
+  constructor (config) {
+    super(config)
+    this.context = new Context(flvAllowedEvents)
+    this.initEvents()
+    // const preloadTime = player.config.preloadTime || 15
+  }
 
-  let util = Player.util
-  const context = new Context(flvAllowedEvents)
-  const _start = player.start
-  let flv
+  start () {
 
-  player.start = function (url = player.config.url) {
-    if (!url) { return }
+    const flv = this.context.registry('FLV_CONTROLLER', FLV)(this)
+    this.initFlvEvents(flv)
+    this.flv = flv
+    this.context.init()
 
-    flv = context.registry('FLV_CONTROLLER', FLV)(player)
-    context.init()
+    super.start(flv.mse.url)
+  }
 
-    player.__core__ = flv
-
+  initFlvEvents (flv) {
+    const player = this;
     flv.once(EVENTS.REMUX_EVENTS.INIT_SEGMENT, () => {
-      util.addClass(player.root, 'xgplayer-is-live')
-      const live = util.createDom('xg-live', '正在直播', {}, 'xgplayer-live')
+      Player.util.addClass(player.root, 'xgplayer-is-live')
+      const live = Player.util.createDom('xg-live', '正在直播', {}, 'xgplayer-live')
       player.controls.appendChild(live)
       const timer = setInterval(() => {
         if (player.paused && player.buffered.length) {
@@ -46,66 +50,51 @@ const flvPlayer = function () {
         }
       }, 200)
     })
-
-    _start.call(player, flv.mse.url)
-
-    initSrcChangeHandler()
   }
 
-  const initSrcChangeHandler = () => {
-    Object.defineProperty(player, 'src', {
-      get () {
-        return player.currentSrc
-      },
-      set (url) {
-        player.config.url = url
-        if (!player.paused) {
-          player.pause()
-          player.once('pause', () => {
-            player.start(url)
-          })
-          player.once('canplay', () => {
-            player.play()
-          })
-        } else {
-          player.start(url)
-        }
-        player.once('canplay', () => {
-          player.currentTime = 0
-        })
-      },
-      configurable: true
+  initEvents () {
+    this.on('timeupdate', () => {
+      this.loadData()
+    })
+
+    this.on('seeking', () => {
+      const time = this.currentTime
+      const range = this.getBufferedRange()
+      if (time > range[1] || time < range[0]) {
+        this.flv.seek(this.currentTime)
+      }
+    })
+
+    this.once('destroy', () => {
+      this.flv.destroy()
     })
   }
 
-  const loadData = (time = player.currentTime) => {
-    flv.seek(time)
+  loadData (time = this.currentTime) {
+    this.flv.seek(time)
   }
 
-  player.on('timeupdate', () => {
-    loadData(player.currentTime + 1)
-  })
+  get src () {
+    return this.currentSrc
+  }
 
-  player.on('seeking', () => {
-    loadData()
-  })
-
-  player.on('waiting', () => {
-    let buffered = player.buffered
-    let length = buffered.length
-    let currentTime = player.currentTime
-    for (let i = 0; i < length; i++) {
-      if (buffered.start(i) > currentTime) {
-        player.currentTime = buffered.start(i) + 0.1
-        break
-      }
+  set src (url) {
+    this.player.config.url = url
+    if (!this.paused) {
+      this.pause()
+      this.once('pause', () => {
+        this.start(url)
+      })
+      this.once('canplay', () => {
+        this.play()
+      })
+    } else {
+      this.start(url)
     }
-  })
-
-  player.once('destroy', () => {
-    flv.destroy()
-  })
-
+    this.once('canplay', () => {
+      this.currentTime = 0
+    })
+  }
 }
 
-Player.install('flvplayer', flvPlayer)
+module.exports = FlvPlayer

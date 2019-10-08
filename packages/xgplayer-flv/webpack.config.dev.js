@@ -4,7 +4,7 @@ const { umd, client } = require('../../webpack.config')
 const developUMD = webpackMerge(umd, {
   output: {
     path: `${__dirname}/dist`,
-    filename: 'index.dev.js',
+    filename: 'index.js',
     library: 'xgplayer-flv',
     libraryTarget: 'umd'
   },
@@ -15,13 +15,13 @@ const developUMD = webpackMerge(umd, {
 const developClient = webpackMerge(client, {
   output: {
     path: `${__dirname}/browser`,
-    filename: 'index.dev.js',
+    filename: 'index.js',
     library: 'FlvPlayer',
     libraryTarget: 'window'
+
   },
   devtool: 'inline-source-map',
   mode: 'development'
 })
-
 
 module.exports = [developUMD, developClient]

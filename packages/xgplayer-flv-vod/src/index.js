@@ -1,6 +1,7 @@
 import Player from 'xgplayer'
 import { Context, EVENTS } from 'xgplayer-utils';
-import FLV from './Flv'
+import FLV from './flv-vod'
+
 const flvAllowedEvents = EVENTS.FlvAllowedEvents;
 
 const isEnded = (player, flv) => {
@@ -15,75 +16,69 @@ const isEnded = (player, flv) => {
   }
 }
 
-const flvPlayer = function () {
-  let player = this
-
-  const context = new Context(flvAllowedEvents)
-  const preloadTime = player.config.preloadTime || 15
-  const _start = player.start
-  let flv
-
-  player.start = function (url = player.config.url) {
-    if (!url) { return }
-
-    flv = context.registry('FLV_CONTROLLER', FLV)(player)
-    player.flv = flv
-    context.init()
-
-    _start.call(player, flv.mse.url)
-
-    initSrcChangeHandler()
+class FlvPlayer extends Player {
+  constructor (config) {
+    super(config)
+    this.context = new Context(flvAllowedEvents)
+    this.initEvents()
+    // const preloadTime = player.config.preloadTime || 15
   }
 
-  const initSrcChangeHandler = () => {
-    Object.defineProperty(player, 'src', {
-      get () {
-        return player.currentSrc
-      },
-      set (url) {
-        player.config.url = url
-        if (!player.paused) {
-          player.pause()
-          player.once('pause', () => {
-            player.start(url)
-          })
-          player.once('canplay', () => {
-            player.play()
-          })
-        } else {
-          player.start(url)
-        }
-        player.once('canplay', () => {
-          player.currentTime = 0
-        })
-      },
-      configurable: true
+  start () {
+
+    const flv = this.context.registry('FLV_CONTROLLER', FLV)(this)
+    this.flv = flv
+    this.context.init()
+    super.start(flv.mse.url)
+  }
+
+  initEvents () {
+    this.on('timeupdate', () => {
+      this.loadData()
+      isEnded(this, this.flv)
+    })
+
+    this.on('seeking', () => {
+      const time = this.currentTime
+      const range = this.getBufferedRange()
+      if (time > range[1] || time < range[0]) {
+        this.flv.seek(this.currentTime)
+      }
+    })
+
+    this.once('destroy', () => {
+      this.flv.destroy()
     })
   }
 
-  const loadData = (time = player.currentTime) => {
-    const range = player.getBufferedRange()
-    if (range[1] - time < preloadTime - 5) {
-      flv.loadNext(range[1] + 1)
+  loadData (time = this.currentTime) {
+    const range = this.getBufferedRange()
+    if (range[1] - time < (this.config.preloadTime || 15) - 5) {
+      this.flv.loadNext(range[1] + 1)
     }
   }
 
-  player.on('timeupdate', () => {
-    loadData()
-    isEnded(player, flv)
-  })
+  get src () {
+    return this.currentSrc
+  }
 
-  player.on('seeking', () => {
-    const time = player.currentTime
-    const range = player.getBufferedRange()
-    if (time > range[1] || time < range[0]) {
-      flv.seek(player.currentTime)
+  set src (url) {
+    this.player.config.url = url
+    if (!this.paused) {
+      this.pause()
+      this.once('pause', () => {
+        this.start(url)
+      })
+      this.once('canplay', () => {
+        this.play()
+      })
+    } else {
+      this.start(url)
     }
-  })
-
-  player.once('destroy', () => {
-    flv.destroy()
-  })
+    this.once('canplay', () => {
+      this.currentTime = 0
+    })
+  }
 }
 
-Player.install('flvplayer', flvPlayer)
+module.exports = FlvPlayer

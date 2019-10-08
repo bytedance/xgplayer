@@ -29,6 +29,19 @@ class FlvController {
     }
   }
 
+  static findFilePosition (time, keyframes) {
+    for (let i = 0, len = keyframes.times.length; i < len; i++) {
+      const currentKeyframeTime = keyframes.times[i]
+      const nextKeyframeTime = i + 1 < len ? keyframes.times[i + 1] : Number.MAX_SAFE_INTEGER
+
+      if (currentKeyframeTime <= time && time <= nextKeyframeTime) {
+        return keyframes.filepositions[i]
+      }
+    }
+
+    return ''
+  }
+
   init () {
     this._context.registry('FETCH_LOADER', FetchLoader)
     this._context.registry('LOADER_BUFFER', XgBuffer)
@@ -205,19 +218,6 @@ class FlvController {
 
   get loader () {
     return this._context.getInstance('FETCH_LOADER')
-  }
-
-  static findFilePosition = (time, keyframes) => {
-    for (let i = 0, len = keyframes.times.length; i < len; i++) {
-      const currentKeyframeTime = keyframes.times[i]
-      const nextKeyframeTime = i + 1 < len ? keyframes.times[i + 1] : Number.MAX_SAFE_INTEGER
-
-      if (currentKeyframeTime <= time && time <= nextKeyframeTime) {
-        return keyframes.filepositions[i]
-      }
-    }
-
-    return ''
   }
 }
 

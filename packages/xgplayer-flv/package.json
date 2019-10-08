@@ -45,8 +45,10 @@
     "xgplayer-loader": "^1.1.6-alpha.0",
     "xgplayer-utils": "^1.1.6-alpha.0",
     "xgplayer-remux": "^1.1.6-alpha.0",
+    "xgplayer-flv-vod": "^1.1.6-alpha.0",
+    "xgplayer-flv-live": "^1.1.6-alpha.0",
+    "xgplayer-codec": "^1.1.6-alpha.0",
     "concat-typed-array": "^1.0.2",
-    "event-emitter": "^0.3.5",
-    "xgplayer-codec": "^1.1.6-alpha.0"
+    "event-emitter": "^0.3.5"
   }
 }
