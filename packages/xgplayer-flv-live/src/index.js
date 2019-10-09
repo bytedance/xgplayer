@@ -25,29 +25,19 @@ class FlvPlayer extends Player {
         const live = Player.util.createDom('xg-live', '正在直播', {}, 'xgplayer-live')
         player.controls.appendChild(live)
       }
-
-      const timer = setInterval(() => {
-        if (player.paused && player.buffered.length) {
-          for (let i = 0, len = player.buffered.length; i < len; i++) {
-            if (player.buffered.start(i) > player.currentTime) {
-              player.currentTime = player.buffered.start(i)
-              clearInterval(timer)
-              break
-            }
-          }
-        }
-      }, 200)
     })
 
     flv.once(EVENTS.LOADER_EVENTS.LOADER_COMPLETE, () => {
       // 直播完成，待播放器播完缓存后发送关闭事件
-      const timer = setInterval(() => {
-        const end = player.getBufferedRange()[1]
-        if (Math.abs(player.currentTime - end) < 0.5) {
-          player.emit('ended')
-          clearInterval(timer)
-        }
-      }, 200)
+      if (!player.paused) {
+        const timer = setInterval(() => {
+          const end = player.getBufferedRange()[1]
+          if (Math.abs(player.currentTime - end) < 0.5) {
+            player.emit('ended')
+            window.clearInterval(timer)
+          }
+        }, 200)
+      }
     })
   }
 
