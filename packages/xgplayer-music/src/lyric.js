@@ -96,7 +96,7 @@ class Lyric {
     curTime = curTime + offset > 0 ? curTime + offset : 0
     return list.filter(({time}, idx) => {
       let idxy = idx + 1
-      return curTime >= time && list[idxy] && curTime * 1 + interval * 1 <= list[idxy].time
+      return curTime >= time && ((list[idxy] && curTime * 1 + interval * 1 <= list[idxy].time) || (idxy >= list.length))
     })
   }
   bind (player) {
@@ -115,12 +115,12 @@ class Lyric {
       self.__startHandle__ = (() => {
         player.emit('lyricUpdate', self.list[0])
       }).bind(self, player)
-      player.once('canplay', self.__startHandle__)
-
-      self.__endHandle__ = (() => {
-        player.emit('lyricUpdate', self.list[self.list.length - 1])
-      }).bind(self, player)
-      player.on('ended', self.__endHandle__)
+      player.once('playing', self.__startHandle__)
+      //
+      // self.__endHandle__ = (() => {
+      //   player.emit('lyricUpdate', self.list[self.list.length - 1])
+      // }).bind(self, player)
+      // player.on('ended', self.__endHandle__)
       return true
     } else {
       return false
