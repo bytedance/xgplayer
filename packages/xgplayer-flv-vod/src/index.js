@@ -25,7 +25,6 @@ class FlvPlayer extends Player {
   }
 
   start () {
-
     const flv = this.context.registry('FLV_CONTROLLER', FLV)(this)
     this.flv = flv
     this.context.init()
@@ -33,22 +32,30 @@ class FlvPlayer extends Player {
   }
 
   initEvents () {
-    this.on('timeupdate', () => {
-      this.loadData()
-      isEnded(this, this.flv)
-    })
+    this.on('timeupdate', this.handleTimeUpdate.bind(this))
 
-    this.on('seeking', () => {
-      const time = this.currentTime
-      const range = this.getBufferedRange()
-      if (time > range[1] || time < range[0]) {
-        this.flv.seek(this.currentTime)
-      }
-    })
+    this.on('seeking', this.handleSeek.bind(this))
 
-    this.once('destroy', () => {
-      this.flv.destroy()
-    })
+    this.once('destroy', this._destroy.bind(this))
+  }
+
+  handleTimeUpdate () {
+    this.loadData()
+    isEnded(this, this.flv)
+  }
+
+  handleSeek () {
+    const time = this.currentTime
+    const range = this.getBufferedRange()
+    if (time > range[1] || time < range[0]) {
+      this.flv.seek(this.currentTime)
+    }
+  }
+
+  _destroy () {
+    this.context.destroy()
+    this.context = null
+    this.flv = null
   }
 
   loadData (time = this.currentTime) {

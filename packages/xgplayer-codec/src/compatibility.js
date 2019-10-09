@@ -110,6 +110,7 @@ class Compatibility {
       // step1. 处理samples段之间的丢帧情况
       // 当发现duration差距大于2帧时进行补帧
       gap = firstDts - this.nextVideoDts
+      const absGap = Math.abs(gap)
       if (gap > (2 * meta.refSampleDuration)) {
         const fillFrameCount = Math.floor(gap / meta.refSampleDuration)
 
@@ -127,9 +128,9 @@ class Compatibility {
             size: clonedSample.data.byteLength
           })
         }
-      } else if (Math.abs(gap) < 10 && Math.abs(gap) > 1) {
+      } else if (absGap < meta.refSampleDuration && absGap > 0) {
         // 当差距在+-一帧之间时将第一帧的dts强行定位到期望位置
-        console.log('重定位视频帧dts', videoSamples[0].dts, this.nextVideoDts)
+        // console.log('重定位视频帧dts', videoSamples[0].dts, this.nextVideoDts)
         videoSamples[0].dts = this.nextVideoDts
         videoSamples[0].originDts = videoSamples[0].dts
         videoSamples[0].cts = videoSamples[0].cts || videoSamples[0].pts - videoSamples[0].dts
@@ -232,8 +233,9 @@ class Compatibility {
       // step1. 处理samples段之间的丢帧情况
       // 当发现duration差距大于1帧时进行补帧
       gap = firstDts - this.nextAudioDts
+      const absGap = Math.abs(gap)
 
-      if (Math.abs(gap) > meta.refSampleDuration && samplesLen === 1 && this.lastAudioSamplesLen === 1) {
+      if (absGap > meta.refSampleDuration && samplesLen === 1 && this.lastAudioSamplesLen === 1) {
         meta.refSampleDurationFixed = undefined
       }
 
@@ -257,9 +259,9 @@ class Compatibility {
             this.audioTrack.samples.unshift(silentSample)
           }
         }
-      } else if (Math.abs(gap) < 8 && Math.abs(gap) > 1) {
-        // 当差距在+-1帧之间时将第1帧的dts强行定位到期望位置
-        console.log('重定位音频帧dts', audioSamples[0].dts, this.nextAudioDts)
+      } else if (absGap < meta.refSampleDuration && absGap > 0) {
+        // 当差距比较小的时候将音频帧重定位
+        // console.log('重定位音频帧dts', audioSamples[0].dts, this.nextAudioDts)
         audioSamples[0].dts = this.nextAudioDts
         audioSamples[0].pts = this.nextAudioDts
       }

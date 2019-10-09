@@ -105,7 +105,6 @@ class FlvPlayer extends Player {
   }
 
   _destroy () {
-    this.flv.destroy()
     this.context.destroy()
     this.flv = null
     this.context = null

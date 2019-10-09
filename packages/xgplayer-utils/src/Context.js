@@ -200,6 +200,7 @@ class Context {
     this._emitter = null
     this.allowedEvents = []
     this._clsMap = null
+    this._context = null
     this.destroyInstances()
   }
 

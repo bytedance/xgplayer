@@ -91,7 +91,7 @@ export default class FlvController {
   _handleSourceUpdateEnd () {
     const time = this._player.currentTime;
     const video = this._player.video;
-    const preloadTime = this._player.config.preloadTime || 4
+    const preloadTime = this._player.config.preloadTime || 5
 
     const { length } = video.buffered;
 
@@ -100,7 +100,7 @@ export default class FlvController {
     }
 
     const bufferEnd = video.buffered.end(length - 1);
-    if (bufferEnd - time > preloadTime) {
+    if (bufferEnd - time > preloadTime + 3) {
       this._player.currentTime = bufferEnd - preloadTime
     }
   }
@@ -113,10 +113,6 @@ export default class FlvController {
 
   loadData () {
     this.emit(LOADER_EVENTS.LADER_START, this._player.config.url)
-  }
-
-  destroy () {
-    this._context = null
   }
 
   pause () {
