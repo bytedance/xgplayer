@@ -128,7 +128,7 @@ class Compatibility {
             size: clonedSample.data.byteLength
           })
         }
-      } else if (absGap < meta.refSampleDuration && absGap > 0) {
+      } else if (absGap <= 10 && absGap > 0) {
         // 当差距在+-一帧之间时将第一帧的dts强行定位到期望位置
         // console.log('重定位视频帧dts', videoSamples[0].dts, this.nextVideoDts)
         videoSamples[0].dts = this.nextVideoDts
@@ -137,7 +137,6 @@ class Compatibility {
         videoSamples[0].pts = videoSamples[0].dts + videoSamples[0].cts
       }
     }
-
     const lastDts = videoSamples[videoSamples.length - 1].dts;
 
     const lastSampleDuration = videoSamples.length >= 2 ? lastDts - videoSamples[videoSamples.length - 2].dts : meta.refSampleDuration
@@ -259,7 +258,7 @@ class Compatibility {
             this.audioTrack.samples.unshift(silentSample)
           }
         }
-      } else if (absGap < meta.refSampleDuration && absGap > 0) {
+      } else if (absGap <= 10 && absGap > 0) {
         // 当差距比较小的时候将音频帧重定位
         // console.log('重定位音频帧dts', audioSamples[0].dts, this.nextAudioDts)
         audioSamples[0].dts = this.nextAudioDts
