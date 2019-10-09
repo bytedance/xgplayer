@@ -12,43 +12,32 @@ class FlvPlayer extends Player {
   }
 
   start () {
-
-    const flv = this.context.registry('FLV_CONTROLLER', FLV)(this)
-    this.initFlvEvents(flv)
-    this.flv = flv
+    this.initFlv()
     this.context.init()
-
-    super.start(flv.mse.url)
+    super.start(this.flv.mse.url)
   }
 
   initFlvEvents (flv) {
     const player = this;
     flv.once(EVENTS.REMUX_EVENTS.INIT_SEGMENT, () => {
       Player.util.addClass(player.root, 'xgplayer-is-live')
-      const live = Player.util.createDom('xg-live', '正在直播', {}, 'xgplayer-live')
-      player.controls.appendChild(live)
-      const timer = setInterval(() => {
-        if (player.paused && player.buffered.length) {
-          for (let i = 0, len = player.buffered.length; i < len; i++) {
-            if (player.buffered.start(i) > player.currentTime) {
-              player.currentTime = player.buffered.start(i)
-              clearInterval(timer)
-              break
-            }
-          }
-        }
-      }, 200)
+      if (!Player.util.findDom(this.root, 'xg-live')) {
+        const live = Player.util.createDom('xg-live', '正在直播', {}, 'xgplayer-live')
+        player.controls.appendChild(live)
+      }
     })
 
     flv.once(EVENTS.LOADER_EVENTS.LOADER_COMPLETE, () => {
       // 直播完成，待播放器播完缓存后发送关闭事件
-      const timer = setInterval(() => {
-        const end = player.getBufferedRange()[1]
-        if (Math.abs(player.currentTime - end) < 0.5) {
-          player.emit('ended')
-          clearInterval(timer)
-        }
-      }, 200)
+      if (!player.paused) {
+        const timer = setInterval(() => {
+          const end = player.getBufferedRange()[1]
+          if (Math.abs(player.currentTime - end) < 0.5) {
+            player.emit('ended')
+            window.clearInterval(timer)
+          }
+        }, 200)
+      }
     })
   }
 
@@ -67,13 +56,48 @@ class FlvPlayer extends Player {
 
     this.once('destroy', () => {
       super.destroy()
-      this.context.destroy()
-      this.flv.destroy()
+      this._destroy()
     })
   }
 
+  initFlv () {
+    const flv = this.context.registry('FLV_CONTROLLER', FLV)(this)
+    this.initFlvEvents(flv)
+    this.flv = flv
+  }
+
+  play() {
+    if (this._hasStart) {
+      this._destroy()
+      this.context = new Context(flvAllowedEvents)
+      const flv = this.context.registry('FLV_CONTROLLER', FLV)(this)
+      this.initFlvEvents(flv)
+      this.flv = flv
+      this.context.init()
+      super.start(flv.mse.url)
+      super.play()
+    } else {
+      super.play()
+    }
+  }
+
+  pause () {
+    super.pause()
+    if (this.flv) {
+      this.flv.pause()
+    }
+  }
+
   loadData (time = this.currentTime) {
-    this.flv.seek(time)
+    if (this.flv) {
+      this.flv.seek(time)
+    }
+  }
+
+  _destroy () {
+    this.context.destroy()
+    this.flv = null
+    this.context = null
   }
 
   get src () {

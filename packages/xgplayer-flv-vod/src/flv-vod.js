@@ -200,12 +200,6 @@ class FlvController {
     return true;
   }
 
-  destroy () {
-    super.destroy()
-    this._context.destroy()
-    this._context = null
-  }
-
   get isSeekable () {
     if (!this._context || !this._context.mediaInfo.isComplete()) {
       return true
