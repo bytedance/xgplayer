@@ -215,6 +215,16 @@ class TsDemuxer {
     track.samples.push(sample);
   }
 
+  destory () {
+    this.off(DEMUX_EVENTS.DEMUX_START, this.demux);
+    this.configs = {};
+    this.demuxing = false;
+    this.pat = [];
+    this.pmt = [];
+    this._hasVideoMeta = false;
+    this._hasAudioMeta = false;
+  }
+
   static compaireUint8 (a, b) {
     if (a.byteLength !== b.byteLength) {
       return false;

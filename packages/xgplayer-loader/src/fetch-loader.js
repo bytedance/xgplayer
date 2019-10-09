@@ -182,6 +182,10 @@ class FetchLoader {
       this._canceled = true;
     }
   }
+
+  destroy () {
+    this.cancel();
+  }
 }
 
 export default FetchLoader
