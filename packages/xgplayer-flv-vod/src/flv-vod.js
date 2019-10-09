@@ -25,7 +25,8 @@ class FlvController {
       range: {
         start: 0,
         end: ''
-      }
+      },
+      rangeSupport: true
     }
   }
 
@@ -158,6 +159,19 @@ class FlvController {
   }
 
   loadMeta () {
+    this.loader.load(this._player.config.url, {
+      headers: {
+        Range: 'bytes=0-'
+      }
+    }).catch(() => {
+      // 在尝试获取视频数据失败时，尝试使用直播方式加载整个视频
+      this.state.rangeSupport = false
+      this.loadFallback()
+    })
+
+  }
+
+  loadFallback () {
     this.emit(LOADER_EVENTS.LADER_START, this._player.config.url)
   }
 
@@ -200,7 +214,23 @@ class FlvController {
     return true;
   }
 
+  destroy () {
+    this._player = null
+    this.state = {
+      initSegmentArrived: false,
+      range: {
+        start: 0,
+        end: ''
+      },
+      rangeSupport: true
+    }
+  }
+
   get isSeekable () {
+    if (!this.state.rangeSupport) {
+      return false
+    }
+
     if (!this._context || !this._context.mediaInfo.isComplete()) {
       return true
     }

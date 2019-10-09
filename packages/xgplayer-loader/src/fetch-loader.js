@@ -35,8 +35,11 @@ class FetchLoader {
     let params = this.getParams(opts)
     _this.loading = true
     return fetch(this.url, params).then(function (response) {
-      _this.status = response.status
-      return _this._onFetchResponse(response);
+      if (response.ok) {
+        _this.status = response.status
+        return _this._onFetchResponse(response);
+      }
+      throw new Error(`fail to fetch data: ${response.status}`)
     })
   }
 
