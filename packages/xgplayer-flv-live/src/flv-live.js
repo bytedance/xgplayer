@@ -22,11 +22,7 @@ export default class FlvController {
     this._player = player
 
     this.state = {
-      initSegmentArrived: false,
-      range: {
-        start: 0,
-        end: ''
-      }
+      initSegmentArrived: false
     }
   }
 
@@ -59,6 +55,8 @@ export default class FlvController {
     this.on(REMUX_EVENTS.MEDIA_SEGMENT, this._handleMediaSegment.bind(this))
 
     this.on(MSE_EVENTS.SOURCE_UPDATE_END, this._handleSourceUpdateEnd.bind(this))
+
+    this._player.on('timeupdate', this._handleTimeUpdate.bind(this))
   }
 
   _handleMediaInfo () {
@@ -102,6 +100,14 @@ export default class FlvController {
     const bufferEnd = video.buffered.end(length - 1);
     if (bufferEnd - time > preloadTime * 2) {
       this._player.currentTime = bufferEnd - preloadTime
+    }
+  }
+
+  _handleTimeUpdate () {
+    const time = this._player.currentTime
+    if (time > 2) {
+      // 在直播时及时清空buffer，降低直播内存占用
+      this.mse.remove(time - 2)
     }
   }
 

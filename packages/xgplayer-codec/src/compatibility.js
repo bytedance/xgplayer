@@ -265,7 +265,6 @@ class Compatibility {
       } else if (absGap <= 10 && absGap > 0) {
         // 当差距比较小的时候将音频帧重定位
         // console.log('重定位音频帧dts', audioSamples[0].dts, this.nextAudioDts)
-        console.log(gap)
         audioSamples[0].dts = this.nextAudioDts
         audioSamples[0].pts = this.nextAudioDts
       }
