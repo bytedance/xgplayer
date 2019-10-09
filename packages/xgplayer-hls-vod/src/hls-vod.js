@@ -54,30 +54,36 @@ class HlsVodController {
 
     this.on(REMUX_EVENTS.INIT_SEGMENT, this._onInitSegment.bind(this));
 
-    this.on(REMUX_EVENTS.MEDIA_SEGMENT, this._onMediaSegment.bind());
+    this.on(REMUX_EVENTS.MEDIA_SEGMENT, this._onMediaSegment.bind(this));
+
     // this.on(REMUX_EVENTS.REMUX_ERROR, (err) => {console.log(err)})
 
-    this.on(DEMUX_EVENTS.METADATA_PARSED, this._onMetadataParsed.bind());
+    this.on(DEMUX_EVENTS.METADATA_PARSED, this._onMetadataParsed.bind(this));
 
-    this.on(DEMUX_EVENTS.DEMUX_COMPLETE, () => {
-      this.emit(REMUX_EVENTS.REMUX_MEDIA)
-    })
+    this.on(DEMUX_EVENTS.DEMUX_COMPLETE, this._onDemuxComplete.bind(this))
 
-    this.on('TIME_UPDATE', (container) => {
-      this._preload(container.currentTime);
-    });
+    this.on('TIME_UPDATE', this._onTimeUpdate.bind(this));
 
-    this.on('WAITING', (container) => {
-      let end = true;
-      for (let i = 0; i < Object.keys(this._playlist.list).length; i++) {
-        if (this.container.currentTime * 1000 < parseInt(Object.keys(this._playlist.list)[i])) {
-          end = false;
-        }
+    this.on('WAITING', this._onWaiting.bind(this));
+  }
+
+  _onWaiting (container) {
+    let end = true;
+    for (let i = 0; i < Object.keys(this._playlist.list).length; i++) {
+      if (this.container.currentTime * 1000 < parseInt(Object.keys(this._playlist.list)[i])) {
+        end = false;
       }
-      if (end) {
-        this.mse.endOfStream();
-      }
-    });
+    }
+    if (end) {
+      this.mse.endOfStream();
+    }
+  }
+
+  _onTimeUpdate (container) {
+    this._preload(container.currentTime);
+  }
+  _onDemuxComplete () {
+    this.emit(REMUX_EVENTS.REMUX_MEDIA)
   }
 
   _onMetadataParsed (type) {
@@ -214,6 +220,32 @@ class HlsVodController {
         }
       }
     }
+  }
+
+  destory () {
+    this.configs = {};
+    this.url = '';
+    this.baseurl = '';
+    this.sequence = 0;
+    this._playlist = null;
+    this.retrytimes = 3;
+    this.container = undefined;
+    this.preloadTime = 5;
+    this._lastSeekTime = 0;
+
+    this.off(LOADER_EVENTS.LOADER_COMPLETE, this._onLoaderCompete);
+
+    this.off(REMUX_EVENTS.INIT_SEGMENT, this._onInitSegment);
+
+    this.off(REMUX_EVENTS.MEDIA_SEGMENT, this._onMediaSegment);
+    
+    this.off(DEMUX_EVENTS.METADATA_PARSED, this._onMetadataParsed);
+
+    this.off(DEMUX_EVENTS.DEMUX_COMPLETE, this._onDemuxComplete)
+
+    this.off('TIME_UPDATE', this._onTimeUpdate);
+
+    this.off('WAITING', this._onWaiting);
   }
 }
 export default HlsVodController;
