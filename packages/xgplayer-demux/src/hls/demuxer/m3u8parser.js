@@ -6,6 +6,9 @@ class M3U8Parser {
     let ret = {
       duration: 0
     };
+    if (!text || !text.split) {
+      return;
+    }
     let refs = text.split(/\r|\n/);
     refs = refs.filter((ref) => {
       return ref;

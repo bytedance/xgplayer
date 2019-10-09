@@ -23,6 +23,10 @@ class PreSource {
   clear () {
     this.sources = {};
   }
+
+  destroy () {
+    this.sources = {};
+  }
 }
 
 export default PreSource;

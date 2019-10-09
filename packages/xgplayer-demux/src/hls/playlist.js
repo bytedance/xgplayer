@@ -50,7 +50,7 @@ class Playlist {
     this.targetduration = data.targetduration;
 
     // 新分片信息
-    if (data.sequence > this.sequence) {
+    if (data.sequence >= this.sequence) {
       this.sequence = data.sequence;
       let newfraglist = []
       for (let i = 0; i < data.frags.length; i++) {
@@ -137,6 +137,27 @@ class Playlist {
     this.sequence = -1;
     this.targetduration = 0;
     this.duration = 0;
+  }
+
+  clearDownloaded () {
+    for (let i = 0, l = Object.keys(this._ts).length; i < l; i++) {
+      let ts = this._ts[Object.keys(this._ts)[i]];
+      ts.downloaded = false;
+      ts.downloading = false;
+    }
+  }
+
+  destroy () {
+    this._baseURL = '';
+    this._list = {};
+    this._ts = {};
+    this.version = 0;
+    this.sequence = -1;
+    this.targetduration = 0;
+    this.duration = 0;
+    this.fragLength = 0;
+    this._lastget = undefined;
+    this._audoclear = false;
   }
 }
 
