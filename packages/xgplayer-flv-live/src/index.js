@@ -54,10 +54,6 @@ class FlvPlayer extends Player {
       }
     })
 
-    this.once('destroy', () => {
-      super.destroy()
-      this._destroy()
-    })
   }
 
   initFlv () {
@@ -92,6 +88,11 @@ class FlvPlayer extends Player {
     if (this.flv) {
       this.flv.seek(time)
     }
+  }
+
+  destroy() {
+    this._destroy()
+    super.destroy();
   }
 
   _destroy () {
