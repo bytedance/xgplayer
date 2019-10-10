@@ -75,7 +75,14 @@ class HlsVodController {
       }
     }
     if (end) {
-      this.mse.endOfStream();
+      let ts = this._playlist.getTs(this.container.currentTime * 1000);
+      if (!ts) {
+        this.mse.endOfStream();
+      } else {
+        if (ts.downloaded) {
+          this.mse.endOfStream();
+        }
+      }
     }
   }
 
@@ -112,7 +119,6 @@ class HlsVodController {
     if (buffer.TAG === 'M3U8_BUFFER') {
       let mdata = M3U8Parser.parse(buffer.shift(), this.baseurl);
       this._playlist.pushM3U8(mdata);
-
       if (!this.preloadTime) {
         if (this._playlist.targetduration) {
           this.preloadTime = this._playlist.targetduration;

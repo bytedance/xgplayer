@@ -100,7 +100,7 @@ export default class FlvController {
     }
 
     const bufferEnd = video.buffered.end(length - 1);
-    if (bufferEnd - time > preloadTime + 3) {
+    if (bufferEnd - time > preloadTime * 2) {
       this._player.currentTime = bufferEnd - preloadTime
     }
   }

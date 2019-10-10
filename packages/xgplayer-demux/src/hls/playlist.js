@@ -38,6 +38,15 @@ class Playlist {
 
   deleteFrag (url) {
     if (this._ts[url]) {
+      if (this._ts[url].start > this._lastget.time) {
+        this._lastget = {
+          duration: this._ts[url].duration,
+          time: this._ts[url].start,
+          downloaded: false,
+          downloading: false,
+          url: url
+        }
+      }
       delete this._list[this._ts[url].start];
       delete this._ts[url];
       this.fragLength -= 1;
@@ -46,11 +55,14 @@ class Playlist {
 
   pushM3U8 (data, deletepre) {
     // 常规信息替换
+    if (!data) {
+      return;
+    }
     this.version = data.version;
     this.targetduration = data.targetduration;
 
     // 新分片信息
-    if (data.sequence >= this.sequence) {
+    if (data.sequence > this.sequence) {
       this.sequence = data.sequence;
       let newfraglist = []
       for (let i = 0; i < data.frags.length; i++) {

@@ -20,7 +20,7 @@ class MSE {
   onTimeUpdate () {
     this.emit('TIME_UPDATE', this.container);
   }
-
+   
   onWaiting () {
     this.emit('WAITING', this.container);
   }
@@ -116,6 +116,11 @@ class MSE {
     this.container.removeEventListener('timeupdate', this.onTimeUpdate);
     this.container.removeEventListener('waiting', this.onWaiting);
     this.mediaSource.removeEventListener('sourceopen', this.onSourceOpen);
+    this.configs = {};
+    this.container = null;
+    this.mediaSource = null;
+    this.sourceBuffers = {};
+    this.preloadTime = 1;
     for (let i = 0; i < Object.keys(this.sourceBuffers).length; i++) {
       let buffer = this.sourceBuffers[Object.keys(this.sourceBuffers)[i]];
       buffer.removeEventListener('updateend', this.onUpdateEnd);

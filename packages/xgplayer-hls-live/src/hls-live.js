@@ -21,7 +21,8 @@ class HlsLiveController {
     this.preloadTime = this.configs.preloadTime;
     this.container = this.configs.container;
     this._m3u8lasttime = 0;
-    this._timmer = setInterval(this._checkStatus.bind(this), 200);
+    this._timmer = setInterval(this._checkStatus.bind(this), 50);
+    this._lastCheck = 0;
   }
 
   init () {
@@ -57,7 +58,7 @@ class HlsLiveController {
 
     this.on(REMUX_EVENTS.MEDIA_SEGMENT, this.mse.doAppend.bind(this.mse));
 
-    // this.on(REMUX_EVENTS.REMUX_ERROR, (err) => {console.log(err)})
+    this.on(LOADER_EVENTS.LOADER_ERROR, this._onLoadError.bind(this));
 
     this.on(DEMUX_EVENTS.METADATA_PARSED, this._onMetadataParsed.bind(this));
 
@@ -70,6 +71,15 @@ class HlsLiveController {
   _onMetadataParsed (type) {
     this.emit(REMUX_EVENTS.REMUX_METADATA, type)
   }
+
+  _onLoadError (loader, error) {
+    if (!this._tsloader.loading && !this._m3u8loader.loading && this.retrytimes > 0) {
+      this.retrytimes--;
+    } else if (this.retrytimes < 1) {
+      this.mse.endOfStream();
+    }
+  }
+
   _onLoadComplete (buffer) {
     if (buffer.TAG === 'M3U8_BUFFER') {
       let mdata = M3U8Parser.parse(buffer.shift(), this.baseurl);
@@ -77,20 +87,28 @@ class HlsLiveController {
       if (!this.preloadTime) {
         this.preloadTime = this._playlist.targetduration ? this._playlist.targetduration : 5;
       }
-      if (this._playlist.fragLength > 0) {
+      if (this._playlist.fragLength > 0 && this._playlist.sequence < mdata.sequence) {
         this.retrytimes = this.configs.retrytimes || 3;
       } else {
         if (this.retrytimes > 0) {
           this.retrytimes--;
-          this.emitTo('M3U8_LOADER', LOADER_EVENTS.LADER_START, this.url)
+          this._preload();
+        } else {
+          console.log('end');
+          this.mse.endOfStream();
         }
       }
     } else if (buffer.TAG === 'TS_BUFFER') {
+      this.retrytimes = this.configs.retrytimes || 3;
       this._playlist.downloaded(this._tsloader.url, true);
       this.emit(DEMUX_EVENTS.DEMUX_START)
     }
   }
   _checkStatus () {
+    if (this.retrytimes < 1 && (new Date().getTime() - this._lastCheck < 10000)) {
+      return;
+    }
+    this._lastCheck = new Date().getTime();
     if (this.container.buffered.length < 1) {
       this._preload()
     } else {
@@ -119,17 +137,19 @@ class HlsLiveController {
   }
 
   _preload () {
-    if (this._tsloader.loading) {
+    if (this._tsloader.loading || this._m3u8loader.loading) {
       return;
     }
     let frag = this._playlist.getTs();
-    if (frag && !this._m3u8loader.loading && !this._tsloader.loading && !frag.downloaded && !frag.downloading) {
+
+    if (frag && !frag.downloaded && !frag.downloading) {
       this._playlist.downloading(frag.url, true);
       this.emitTo('TS_LOADER', LOADER_EVENTS.LADER_START, frag.url)
-    } else if (!this._m3u8loader.loading && !this._tsloader.loading) {
+    } else {
+      let preloadTime = this.preloadTime ? this.preloadTime : 0;
       let current = new Date().getTime();
       if ((!frag || frag.downloaded) &&
-        (current - this._m3u8lasttime) / 1000 > this.preloadTime) {
+        (current - this._m3u8lasttime) / 1000 > preloadTime) {
         this._m3u8lasttime = current
         this.emitTo('M3U8_LOADER', LOADER_EVENTS.LADER_START, this.url);
       }
@@ -139,7 +159,7 @@ class HlsLiveController {
   load (url) {
     this.baseurl = M3U8Parser.parseURL(url);
     this.url = url;
-    this.emitTo('M3U8_LOADER', LOADER_EVENTS.LADER_START, url)
+    this._preload();
   }
 
   destroy () {
