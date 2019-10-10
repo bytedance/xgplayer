@@ -70,7 +70,6 @@ class HlsVodController {
 
   _onLoadError () {
     this.emit(HLS_EVENTS.RETRY_TIME_EXCEEDED)
-    this.mse.endOfStream();
   }
 
 

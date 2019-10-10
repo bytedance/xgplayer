@@ -41,8 +41,7 @@ class FetchLoader {
       }
       _this.emit(LOADER_EVENTS.LOADER_ERROR, _this, response);
       _this.loading = false;
-      throw new Error(`fail to fetch data: ${response.status}`)
-    }).catch((error) => {
+    }).catch(function (error)  {
       _this.emit(LOADER_EVENTS.LOADER_ERROR, _this, error);
       _this.loading = false;
       throw new Error(error.message)

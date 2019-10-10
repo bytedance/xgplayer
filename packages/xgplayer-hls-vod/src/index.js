@@ -33,7 +33,7 @@ export class HlsVodPlayer extends Player {
     });
 
     this.__core__.once(HLS_EVENTS.RETRY_TIME_EXCEEDED, () => {
-      super.emit('error', new Player.Errors('network', this.config.url))
+      this.emit('error', new Player.Errors('network', this.config.url))
     })
 
     this.once('canplay', () => {
