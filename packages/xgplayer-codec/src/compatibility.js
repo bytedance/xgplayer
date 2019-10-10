@@ -11,8 +11,8 @@ class Compatibility {
     this.lastAudioSamplesLen = 0 // 上一段音频数据的长度
     this.lastVideoSamplesLen = 0 // 上一段视频数据的长度
 
-    this.lastVideoDts = 0 // 上一段音频数据的长度
-    this.lastAudioDts = 0 // 上一段视频数据的长度
+    this.lastVideoDts = undefined // 上一段音频数据的长度
+    this.lastAudioDts = undefined // 上一段视频数据的长度
 
     this.allAudioSamplesCount = 0 // 音频总数据量(原始帧)
     this.allVideoSamplesCount = 0 // 视频总数据量(原始帧)
@@ -35,8 +35,8 @@ class Compatibility {
     this.lastAudioSamplesLen = 0 // 上一段音频数据的长度
     this.lastVideoSamplesLen = 0 // 上一段视频数据的长度
 
-    this.lastVideoDts = 0 // 上一段音频数据的长度
-    this.lastAudioDts = 0 // 上一段视频数据的长度
+    this.lastVideoDts = undefined // 上一段音频数据的长度
+    this.lastAudioDts = undefined // 上一段视频数据的长度
 
     this.allAudioSamplesCount = 0 // 音频总数据量(原始帧)
     this.allVideoSamplesCount = 0 // 视频总数据量(原始帧)
@@ -386,11 +386,11 @@ class Compatibility {
     const { _firstVideoSample, _firstAudioSample } = this
 
     this.audioTrack.samples = this.audioTrack.samples.filter((sample) => {
-      return sample.dts >= _firstAudioSample.dts && sample.dts > this.lastAudioDts
+      return sample.dts >= _firstAudioSample.dts && (this.lastAudioDts === undefined || sample.dts > this.lastAudioDts)
     })
 
     this.videoTrack.samples = this.videoTrack.samples.filter((sample) => {
-      return sample.dts >= _firstVideoSample.dts && sample.dts > this.lastVideoDts
+      return sample.dts >= _firstVideoSample.dts && (this.lastVideoDts === undefined || sample.dts > this.lastVideoDts)
     })
   }
 

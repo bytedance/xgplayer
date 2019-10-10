@@ -39,7 +39,8 @@ class FetchLoader {
         _this.status = response.status
         return _this._onFetchResponse(response);
       }
-      throw new Error(`fail to fetch data: ${response.status}`)
+      _this.emit(LOADER_EVENTS.LOADER_ERROR, _this, response);
+      _this.loading = false;
     })
   }
 
@@ -127,8 +128,9 @@ class FetchLoader {
       buffer.push(val.value)
       _this.emit(LOADER_EVENTS.LOADER_DATALOADED, buffer)
       return _this._onReader(reader, taskno)
-    }).catch(function (error) {
-      console.log(error)
+    }).catch((error) => {
+      _this.emit(LOADER_EVENTS.LOADER_ERROR, _this, error);
+      _this.loading = false;
     })
   }
 

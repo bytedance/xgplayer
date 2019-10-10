@@ -59,7 +59,15 @@ class M3U8Parser {
     if (nextline.match(/#(.*):(.*)/)) {
       nextline = refs.shift();
     }
-    freg.url = baseurl + nextline;
+    if (nextline.length > 0 && nextline.charAt(0) === '/' && baseurl.match(/.*\/\/.*\.\w+/g)) {
+      baseurl = baseurl.match(/.*\/\/.*\.\w+/g)[0];
+    }
+    if (nextline.match(/.*:\/\/.*/)) {
+      freg.url = nextline;
+    } else {
+      freg.url = baseurl + nextline;
+    }
+    
     ret.frags.push(freg);
   }
 
