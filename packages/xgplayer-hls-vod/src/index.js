@@ -3,6 +3,7 @@ import { Context, EVENTS } from 'xgplayer-utils';
 import HlsVodController from './hls-vod';
 const HlsAllowedEvents = EVENTS.HlsAllowedEvents;
 const REMUX_EVENTS = EVENTS.REMUX_EVENTS;
+const HLS_EVENTS = EVENTS.HLS_EVENTS;
 
 export class HlsVodPlayer extends Player {
   constructor (options) {
@@ -30,6 +31,10 @@ export class HlsVodPlayer extends Player {
       const mse = this._context.getInstance('MSE');
       super.start(mse.url);
     });
+
+    this.__core__.once(HLS_EVENTS.RETRY_TIME_EXCEEDED, () => {
+      super.emit('error', new Player.Errors('network', this.config.url))
+    })
 
     this.once('canplay', () => {
       this.play()

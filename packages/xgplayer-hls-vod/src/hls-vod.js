@@ -9,6 +9,7 @@ import {Playlist, M3U8Parser, TsDemuxer} from 'xgplayer-demux';
 const LOADER_EVENTS = EVENTS.LOADER_EVENTS;
 const REMUX_EVENTS = EVENTS.REMUX_EVENTS;
 const DEMUX_EVENTS = EVENTS.DEMUX_EVENTS;
+const HLS_EVENTS = EVENTS.HLS_EVENTS
 
 class HlsVodController {
   constructor (configs) {
@@ -51,12 +52,12 @@ class HlsVodController {
 
   initEvents () {
     this.on(LOADER_EVENTS.LOADER_COMPLETE, this._onLoaderCompete.bind(this));
+    this.on(LOADER_EVENTS.LOADER_ERROR, this._onLoadError.bind(this))
 
     this.on(REMUX_EVENTS.INIT_SEGMENT, this._onInitSegment.bind(this));
 
     this.on(REMUX_EVENTS.MEDIA_SEGMENT, this._onMediaSegment.bind(this));
 
-    // this.on(REMUX_EVENTS.REMUX_ERROR, (err) => {console.log(err)})
 
     this.on(DEMUX_EVENTS.METADATA_PARSED, this._onMetadataParsed.bind(this));
 
@@ -66,6 +67,12 @@ class HlsVodController {
 
     this.on('WAITING', this._onWaiting.bind(this));
   }
+
+  _onLoadError () {
+    this.emit(HLS_EVENTS.RETRY_TIME_EXCEEDED)
+    this.mse.endOfStream();
+  }
+
 
   _onWaiting (container) {
     let end = true;
@@ -244,7 +251,7 @@ class HlsVodController {
     this.off(REMUX_EVENTS.INIT_SEGMENT, this._onInitSegment);
 
     this.off(REMUX_EVENTS.MEDIA_SEGMENT, this._onMediaSegment);
-    
+
     this.off(DEMUX_EVENTS.METADATA_PARSED, this._onMetadataParsed);
 
     this.off(DEMUX_EVENTS.DEMUX_COMPLETE, this._onDemuxComplete)

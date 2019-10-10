@@ -24,7 +24,8 @@ class Context {
     if (this._instanceMap[tag]) {
       return this._instanceMap[tag]
     } else {
-      throw new Error(`${tag}实例尚未初始化`)
+      // throw new Error(`${tag}实例尚未初始化`)
+      return null
     }
   }
 

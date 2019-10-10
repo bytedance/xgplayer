@@ -4,6 +4,7 @@ import { FetchLoader } from 'xgplayer-loader'
 import { Tracks, XgBuffer, PreSource } from 'xgplayer-buffer'
 import { Mse, EVENTS } from 'xgplayer-utils'
 import { Compatibility } from 'xgplayer-codec'
+import Player from 'xgplayer'
 
 const REMUX_EVENTS = EVENTS.REMUX_EVENTS;
 const DEMUX_EVENTS = EVENTS.DEMUX_EVENTS;
@@ -71,6 +72,7 @@ class FlvController {
     this.on(DEMUX_EVENTS.MEDIA_INFO, this._handleMediaInfo.bind(this))
     this.on(DEMUX_EVENTS.METADATA_PARSED, this._handleMetadataParsed.bind(this))
     this.on(DEMUX_EVENTS.DEMUX_COMPLETE, this._handleDemuxComplete.bind(this))
+    this.on(DEMUX_EVENTS.DEMUX_ERROR, this._handleDemuxError.bind(this))
 
     this.on(REMUX_EVENTS.INIT_SEGMENT, this._handleAppendInitSegment.bind(this))
     this.on(REMUX_EVENTS.MEDIA_SEGMENT, this._handleMediaSegment.bind(this))
@@ -115,6 +117,10 @@ class FlvController {
   _handleMediaSegment () {
     this.mse.addSourceBuffers()
     this.mse.doAppend();
+  }
+
+  _handleDemuxError() {
+    this._player.emit('error', new Player.Errors('parse', this._player.config.url))
   }
 
   seek (time) {
@@ -173,7 +179,10 @@ class FlvController {
   }
 
   loadFallback () {
-    this.emit(LOADER_EVENTS.LADER_START, this._player.config.url)
+    this.loader.load(this._player.config.url).catch(() => {
+      // 在尝试获取视频数据失败时，尝试使用直播方式加载整个视频
+      this._player.emit('error', new Player.Errors('network', this._player.config.url))
+    })
   }
 
   getSeekRange (time, preloadTime) {

@@ -27,7 +27,12 @@ const MSE_EVENTS = {
   SOURCE_UPDATE_END: 'SOURCE_UPDATE_END'
 }
 
-const ALLEVENTS = Object.assign({}, LOADER_EVENTS, DEMUX_EVENTS, REMUX_EVENTS, MSE_EVENTS)
+// hls专有events
+const HLS_EVENTS = {
+  RETRY_TIME_EXCEEDED: 'RETRY_TIME_EXCEEDED'
+}
+
+const ALLEVENTS = Object.assign({}, LOADER_EVENTS, DEMUX_EVENTS, REMUX_EVENTS, MSE_EVENTS, HLS_EVENTS)
 
 const FlvAllowedEvents = []
 const HlsAllowedEvents = []
@@ -46,6 +51,7 @@ for (let key in ALLEVENTS) {
 
 export default {
   ALLEVENTS,
+  HLS_EVENTS,
   REMUX_EVENTS,
   DEMUX_EVENTS,
   MSE_EVENTS,

@@ -104,6 +104,7 @@ class HlsLiveController {
       this.emit(DEMUX_EVENTS.DEMUX_START)
     }
   }
+
   _checkStatus () {
     if (this.retrytimes < 1 && (new Date().getTime() - this._lastCheck < 10000)) {
       return;

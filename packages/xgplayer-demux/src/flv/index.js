@@ -406,7 +406,9 @@ class FlvDemuxer {
       track.samples.push(chunk)
     }
     if (!validate) {
-      this.logger.warn(this.TAG, 'TAG length error at ' + chunk.datasize)
+      const error = new Error('TAG length error at ' + chunk.datasize)
+      this.emit(DEMUX_EVENTS.DEMUX_ERROR, error.message)
+      this.logger.warn(this.TAG, error.message)
     }
   }
 
