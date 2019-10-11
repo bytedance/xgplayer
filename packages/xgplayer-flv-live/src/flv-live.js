@@ -139,4 +139,9 @@ export default class FlvController {
       loader.cancel()
     }
   }
+
+  destroy () {
+    this._player = null
+    this.mse = null
+  }
 }

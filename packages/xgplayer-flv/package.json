@@ -6,7 +6,7 @@
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",
     "prepare": "npm run build",
-    "dev": "webpack --progress --display-chunks --watch --config ./webpack.config.dev.js",
+    "dev": "webpack --progress --display-chunks --config ./webpack.config.dev.js",
     "build": "webpack --progress --display-chunks -p",
     "watch": "webpack --config webpack.config.dev.js --progress --display-chunks --watch"
   },

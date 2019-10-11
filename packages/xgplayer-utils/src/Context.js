@@ -221,6 +221,7 @@ class Context {
     this.allowedEvents = []
     this._clsMap = null
     this._context = null
+    this._hooks = null
     this.destroyInstances()
   }
 

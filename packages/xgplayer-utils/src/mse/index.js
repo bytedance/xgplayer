@@ -5,22 +5,25 @@ class MSE {
     this.mediaSource = null;
     this.sourceBuffers = {};
     this.preloadTime = this.configs.preloadTime || 1;
+    this.onSourceOpen = this.onSourceOpen.bind(this)
+    this.onTimeUpdate = this.onTimeUpdate.bind(this)
+    this.onWaiting = this.onWaiting.bind(this)
   }
 
   init () {
     // eslint-disable-next-line no-undef
     this.mediaSource = new self.MediaSource();
-    this.mediaSource.addEventListener('sourceopen', this.onSourceOpen.bind(this));
+    this.mediaSource.addEventListener('sourceopen', this.onSourceOpen);
     this.container.src = URL.createObjectURL(this.mediaSource);
     this.url = this.container.src;
-    this.container.addEventListener('timeupdate', this.onTimeUpdate.bind(this));
-    this.container.addEventListener('waiting', this.onWaiting.bind(this));
+    this.container.addEventListener('timeupdate', this.onTimeUpdate);
+    this.container.addEventListener('waiting', this.onWaiting);
   }
 
   onTimeUpdate () {
     this.emit('TIME_UPDATE', this.container);
   }
-   
+
   onWaiting () {
     this.emit('WAITING', this.container);
   }

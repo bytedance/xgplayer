@@ -244,6 +244,7 @@ class HlsVodController {
     this.container = undefined;
     this.preloadTime = 5;
     this._lastSeekTime = 0;
+    this.mse = null
 
     this.off(LOADER_EVENTS.LOADER_COMPLETE, this._onLoaderCompete);
 

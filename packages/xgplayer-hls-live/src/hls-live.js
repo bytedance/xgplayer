@@ -171,6 +171,8 @@ class HlsLiveController {
     // this.off(REMUX_EVENTS.REMUX_ERROR);
     this.off(DEMUX_EVENTS.METADATA_PARSED, this._onMetadataParsed);
     this.off(DEMUX_EVENTS.DEMUX_COMPLETE, this._onDemuxComplete);
+
+    this.mse = null
   }
 }
 export default HlsLiveController;

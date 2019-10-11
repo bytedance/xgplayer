@@ -226,6 +226,7 @@ class FlvController {
 
   destroy () {
     this._player = null
+    this.mse = null
     this.state = {
       initSegmentArrived: false,
       range: {
