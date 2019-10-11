@@ -292,7 +292,7 @@ export default class Mp4Remuxer {
   }
 
   initSilentAudio (dts, duration) {
-    const unit = Mp4Remuxer.getSilentFrame(this._audioMeta.channelCount)
+    const unit = Mp4Remuxer.getSilentFrame(this.audioMeta.channelCount)
     return {
       dts,
       pts: dts,
