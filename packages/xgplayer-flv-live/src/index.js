@@ -53,7 +53,6 @@ class FlvPlayer extends Player {
         this.flv.seek(this.currentTime)
       }
     })
-
   }
 
   initFlv () {
@@ -62,7 +61,7 @@ class FlvPlayer extends Player {
     this.flv = flv
   }
 
-  play() {
+  play () {
     if (this._hasStart) {
       this._destroy()
       this.context = new Context(flvAllowedEvents)
@@ -90,7 +89,7 @@ class FlvPlayer extends Player {
     }
   }
 
-  destroy() {
+  destroy () {
     this._destroy()
     super.destroy();
   }
