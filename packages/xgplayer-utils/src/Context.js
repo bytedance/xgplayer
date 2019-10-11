@@ -77,6 +77,7 @@ class Context {
       constructor (...args) {
         super(...args)
         this.listeners = {}
+        this.onceListeners = {}
         this.TAG = tag
         this._context = self
       }
@@ -111,7 +112,13 @@ class Context {
       once (messageName, callback) {
         checkMessageName(messageName)
 
-        emitter.on(`${messageName}${DIRECT_EMIT_FLAG}${tag}`, callback)
+        if (this.onceListeners[messageName]) {
+          this.onceListeners[messageName].push(callback)
+        } else {
+          this.onceListeners[messageName] = [callback]
+        }
+
+        emitter.once(`${messageName}${DIRECT_EMIT_FLAG}${tag}`, callback)
         return emitter.once(messageName, callback)
       }
 
@@ -153,6 +160,18 @@ class Context {
             for (let i = 0; i < callbacks.length; i++) {
               const callback = callbacks[i]
               emitter.off(messageName, callback)
+              emitter.off(`${messageName}${DIRECT_EMIT_FLAG}${tag}`, callback)
+            }
+          }
+        }
+
+        for (let messageName in this.onceListeners) {
+          if (hasOwn(messageName)) {
+            const callbacks = this.onceListeners[messageName] || []
+            for (let i = 0; i < callbacks.length; i++) {
+              const callback = callbacks[i]
+              emitter.off(messageName, callback)
+              emitter.off(`${messageName}${DIRECT_EMIT_FLAG}${tag}`, callback)
             }
           }
         }
