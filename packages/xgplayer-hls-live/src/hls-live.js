@@ -9,6 +9,7 @@ import {Playlist, M3U8Parser, TsDemuxer} from 'xgplayer-demux';
 const LOADER_EVENTS = EVENTS.LOADER_EVENTS;
 const REMUX_EVENTS = EVENTS.REMUX_EVENTS;
 const DEMUX_EVENTS = EVENTS.DEMUX_EVENTS;
+const HLS_EVENTS = EVENTS.HLS_EVENTS;
 
 class HlsLiveController {
   constructor (configs) {
@@ -73,9 +74,10 @@ class HlsLiveController {
   }
 
   _onLoadError (loader, error) {
-    if (!this._tsloader.loading && !this._m3u8loader.loading && this.retrytimes > 0) {
+    if (!this._tsloader.loading && !this._m3u8loader.loading && this.retrytimes > 1) {
       this.retrytimes--;
-    } else if (this.retrytimes < 1) {
+    } else if (this.retrytimes <= 1) {
+      this.emit(HLS_EVENTS.RETRY_TIME_EXCEEDED);
       this.mse.endOfStream();
     }
   }
@@ -94,7 +96,7 @@ class HlsLiveController {
           this.retrytimes--;
           this._preload();
         } else {
-          console.log('end');
+          this.emit(HLS_EVENTS.RETRY_TIME_EXCEEDED);
           this.mse.endOfStream();
         }
       }

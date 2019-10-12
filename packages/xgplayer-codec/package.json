@@ -8,7 +8,7 @@
   },
   "author": "",
   "license": "ISC",
-  "dependencies": {
+  "devDependencies": {
     "xgplayer-utils": "1.1.6-alpha.0"
   }
 }
