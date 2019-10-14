@@ -185,7 +185,11 @@ class FetchLoader {
 
   cancel () {
     if (this._reader) {
-      this._reader.cancel()
+      try {
+        this._reader.cancel()
+      } catch (e) {
+        // 防止failed: 200错误被打印到控制台上
+      }
       this._reader = null
       this.loading = false
       this._canceled = true;

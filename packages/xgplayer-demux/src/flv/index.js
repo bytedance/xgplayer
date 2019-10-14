@@ -60,9 +60,11 @@ class FlvDemuxer {
         return
       }
       let chunk;
+
+      let loopMax = 100000 // 防止死循环产生
       do {
         chunk = this._parseFlvTag()
-      } while (chunk)
+      } while (chunk && loopMax-- > 0)
 
       this.emit(DEMUX_EVENTS.DEMUX_COMPLETE)
     }
@@ -652,8 +654,9 @@ class FlvDemuxer {
   }
 
   get loaderBuffer () {
-    if (this._context.getInstance('LOADER_BUFFER')) {
-      return this._context.getInstance('LOADER_BUFFER')
+    const buffer = this._context.getInstance('LOADER_BUFFER')
+    if (buffer) {
+      return buffer
     } else {
       this.emit(DEMUX_EVENTS.DEMUX_ERROR, new Error('找不到 loaderBuffer 实例'))
     }
