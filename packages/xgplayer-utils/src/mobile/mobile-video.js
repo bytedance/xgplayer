@@ -6,6 +6,17 @@ class MobileVideo extends HTMLElement {
     super();
     this.vCtx = new VideoCtx();
     this.aCtx = new AudioCtx();
+
+    this.historyTime = 0;
+    this.curVideo =
+  }
+
+  destroy () {
+
+  }
+
+  get currentTime () {
+
   }
 }
 
