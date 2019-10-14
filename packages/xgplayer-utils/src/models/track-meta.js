@@ -17,6 +17,10 @@ export class AudioTrackMeta {
     }
     return _default
   }
+
+  destroy () {
+    this.init = null
+  }
 }
 
 export class VideoTrackMeta {
@@ -54,5 +58,11 @@ export class VideoTrackMeta {
       return Object.assign({}, _default, meta)
     }
     return _default
+  }
+
+  destroy () {
+    this.init = null
+    this.sps = null
+    this.pps = null
   }
 }

@@ -202,7 +202,7 @@ class Compatibility {
     const firstSample = this._firstAudioSample
 
     // 对audioSamples按照dts做排序
-    audioSamples = Compatibility.sortAudioSamples(audioSamples)
+    // audioSamples = Compatibility.sortAudioSamples(audioSamples)
 
     // step0. 首帧与video首帧间距大的问题
     if (this._firstVideoSample && first) {
@@ -362,7 +362,7 @@ class Compatibility {
       if (samples.length >= 3) {
         const lastDts = samples[samples.length - 1].dts
         const firstDts = samples[0].dts
-        const durationAvg = (lastDts - firstDts) / samples.length
+        const durationAvg = (lastDts - firstDts) / (samples.length - 1)
 
         meta.refSampleDuration = Math.abs(meta.refSampleDuration - durationAvg) <= meta.refSampleDuration ? meta.refSampleDuration : durationAvg; // 将refSampleDuration重置为计算后的平均值
       }

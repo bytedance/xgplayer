@@ -37,11 +37,14 @@ export default class FlvController {
     this._context.registry('MP4_REMUXER', Remuxer.Mp4Remuxer)
     this._context.registry('PRE_SOURCE_BUFFER', PreSource)
 
-    this._context.registry('COMPATIBILITY', Compatibility)
+    if (this._player.config.compatibility !== false) {
+      this._context.registry('COMPATIBILITY', Compatibility)
+    }
 
     this._context.registry('LOGGER', Logger)
     this.mse = this._context.registry('MSE', Mse)({ container: this._player.video })
 
+    this._handleTimeUpdate = this._handleTimeUpdate.bind(this)
     this.initListeners()
   }
 
@@ -59,7 +62,7 @@ export default class FlvController {
 
     this.on(MSE_EVENTS.SOURCE_UPDATE_END, this._handleSourceUpdateEnd.bind(this))
 
-    this._player.on('timeupdate', this._handleTimeUpdate.bind(this))
+    this._player.on('timeupdate', this._handleTimeUpdate)
   }
 
   _handleMediaInfo () {
@@ -141,6 +144,7 @@ export default class FlvController {
   }
 
   destroy () {
+    this._player.off('timeupdate', this._handleTimeUpdate)
     this._player = null
     this.mse = null
   }

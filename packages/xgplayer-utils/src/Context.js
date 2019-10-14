@@ -21,8 +21,9 @@ class Context {
    * @returns {*}
    */
   getInstance (tag) {
-    if (this._instanceMap[tag]) {
-      return this._instanceMap[tag]
+    const instance = this._instanceMap[tag]
+    if (instance) {
+      return instance
     } else {
       // throw new Error(`${tag}实例尚未初始化`)
       return null
@@ -125,7 +126,8 @@ class Context {
       emit (messageName, ...args) {
         checkMessageName(messageName)
 
-        const beforeList = self._hooks[messageName]
+        const beforeList = self._hooks ? self._hooks[messageName] : null
+
         if (beforeList) {
           for (let i = 0, len = beforeList.length; i < len; i++) {
             const callback = beforeList[i]
@@ -183,11 +185,12 @@ class Context {
       destroy () {
         // step1 unlisten events
         this.removeListeners()
+        this.listeners = {}
 
         // step2 release from context
         delete self._instanceMap[tag]
         if (super.destroy) {
-          super.destroy()
+          return super.destroy()
         }
       }
     }

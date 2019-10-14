@@ -7,6 +7,7 @@ class MSE {
     this.preloadTime = this.configs.preloadTime || 1;
     this.onSourceOpen = this.onSourceOpen.bind(this)
     this.onTimeUpdate = this.onTimeUpdate.bind(this)
+    this.onUpdateEnd = this.onUpdateEnd.bind(this)
     this.onWaiting = this.onWaiting.bind(this)
   }
 
@@ -72,7 +73,7 @@ class MSE {
         let mime = (type === 'video') ? 'video/mp4;codecs=' + source.mimetype : 'audio/mp4;codecs=' + source.mimetype
         let sourceBuffer = this.mediaSource.addSourceBuffer(mime);
         this.sourceBuffers[type] = sourceBuffer;
-        sourceBuffer.addEventListener('updateend', this.onUpdateEnd.bind(this));
+        sourceBuffer.addEventListener('updateend', this.onUpdateEnd);
         this.doAppend();
       }
     }
@@ -101,34 +102,98 @@ class MSE {
   }
 
   endOfStream () {
-    if (this.mediaSource.readyState === 'open') {
-      this.mediaSource.endOfStream()
-    }
-  }
-
-  remove (end) {
-    for (let i = 0; i < Object.keys(this.sourceBuffers).length; i++) {
-      let buffer = this.sourceBuffers[Object.keys(this.sourceBuffers)[i]];
-      if (!buffer.updating) {
-        buffer.remove(0, end);
+    const { readyState, activeSourceBuffers } = this.mediaSource;
+    if (readyState === 'open' && activeSourceBuffers.length === 0) {
+      try {
+        this.mediaSource.endOfStream()
+      } catch (e) {
+        // log
       }
     }
   }
 
-  destroy () {
-    this.container.removeEventListener('timeupdate', this.onTimeUpdate);
-    this.container.removeEventListener('waiting', this.onWaiting);
-    this.mediaSource.removeEventListener('sourceopen', this.onSourceOpen);
-    this.configs = {};
-    this.container = null;
-    this.mediaSource = null;
-    this.sourceBuffers = {};
-    this.preloadTime = 1;
+  remove (end, start = 0) {
+    for (let i = 0; i < Object.keys(this.sourceBuffers).length; i++) {
+      let buffer = this.sourceBuffers[Object.keys(this.sourceBuffers)[i]];
+      if (!buffer.updating) {
+        buffer.remove(start, end);
+      }
+    }
+  }
+  removeBuffers () {
+    const taskList = []
     for (let i = 0; i < Object.keys(this.sourceBuffers).length; i++) {
       let buffer = this.sourceBuffers[Object.keys(this.sourceBuffers)[i]];
       buffer.removeEventListener('updateend', this.onUpdateEnd);
-      this.mediaSource.removeSourceBuffer(buffer);
-      delete this.sourceBuffers[Object.keys(this.sourceBuffers)[i]];
+
+      let task;
+      if (buffer.updating) {
+        task = new Promise((resolve) => {
+          const doCleanBuffer = function () {
+            let retryTime = 3
+
+            const clean = () => {
+              if (!buffer.updating) {
+                MSE.clearBuffer(buffer)
+                resolve()
+              } else if (retryTime > 0){
+                setTimeout(clean, 200)
+                retryTime--
+              } else {
+                resolve()
+              }
+            }
+
+            setTimeout(clean, 200)
+            buffer.removeEventListener('updateend', doCleanBuffer)
+          }
+          buffer.addEventListener('updateend', doCleanBuffer)
+        })
+      } else {
+        MSE.clearBuffer(buffer)
+        task = Promise.resolve()
+      }
+
+      taskList.push(task)
+    }
+
+    return Promise.all(taskList)
+  }
+
+  destroy () {
+    return this.removeBuffers().then(() => {
+      for (let i = 0; i < Object.keys(this.sourceBuffers).length; i++) {
+        let buffer = this.sourceBuffers[Object.keys(this.sourceBuffers)[i]];
+        this.mediaSource.removeSourceBuffer(buffer);
+        delete this.sourceBuffers[Object.keys(this.sourceBuffers)[i]];
+      }
+
+      this.container.removeEventListener('timeupdate', this.onTimeUpdate);
+      this.container.removeEventListener('waiting', this.onWaiting);
+      this.mediaSource.removeEventListener('sourceopen', this.onSourceOpen);
+
+      this.endOfStream()
+      window.URL.revokeObjectURL(this.url);
+
+      this.url = null
+      this.configs = {};
+      this.container = null;
+      this.mediaSource = null;
+      this.sourceBuffers = {};
+      this.preloadTime = 1;
+    })
+  }
+
+  static clearBuffer (buffer) {
+    const buffered = buffer.buffered;
+    let bEnd = 0.1
+    for (let i = 0, len = buffered.length; i < len; i++) {
+      bEnd = buffered.end(i)
+    }
+    try {
+      buffer.remove(0, bEnd)
+    } catch (e) {
+      // DO NOTHING
     }
   }
 }

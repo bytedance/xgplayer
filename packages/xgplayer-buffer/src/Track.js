@@ -64,4 +64,9 @@ export class Tracks {
     this.audioTrack = null
     this.videoTrack = null
   }
+
+  destroy () {
+    this.audioTrack = null
+    this.videoTrack = null
+  }
 }
