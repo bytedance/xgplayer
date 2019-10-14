@@ -25,5 +25,8 @@ module.exports = {
 
   // Modules from write
   Stream: require('./src/write/stream').default,
-  Buffer: require('./src/write/buffer').default
+  Buffer: require('./src/write/buffer').default,
+
+  // Crypto
+  Crypto: require('./src/crypto').default
 };

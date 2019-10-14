@@ -1,4 +1,4 @@
-import { EVENTS, Mse } from 'xgplayer-utils';
+import { EVENTS, Mse, Crypto} from 'xgplayer-utils';
 import { XgBuffer, PreSource, Tracks } from 'xgplayer-buffer';
 import { FetchLoader } from 'xgplayer-loader';
 import { Compatibility } from 'xgplayer-codec';
@@ -10,6 +10,7 @@ const LOADER_EVENTS = EVENTS.LOADER_EVENTS;
 const REMUX_EVENTS = EVENTS.REMUX_EVENTS;
 const DEMUX_EVENTS = EVENTS.DEMUX_EVENTS;
 const HLS_EVENTS = EVENTS.HLS_EVENTS;
+const CRYTO_EVENTS = EVENTS.CRYTO_EVENTS;
 
 class HlsLiveController {
   constructor (configs) {
@@ -85,13 +86,7 @@ class HlsLiveController {
   _onLoadComplete (buffer) {
     if (buffer.TAG === 'M3U8_BUFFER') {
       let mdata = M3U8Parser.parse(buffer.shift(), this.baseurl);
-      this._playlist.pushM3U8(mdata, true);
-      if (!this.preloadTime) {
-        this.preloadTime = this._playlist.targetduration ? this._playlist.targetduration : 5;
-      }
-      if (this._playlist.fragLength > 0 && this._playlist.sequence < mdata.sequence) {
-        this.retrytimes = this.configs.retrytimes || 3;
-      } else {
+      if(!mdata) {
         if (this.retrytimes > 0) {
           this.retrytimes--;
           this._preload();
@@ -99,14 +94,60 @@ class HlsLiveController {
           this.emit(HLS_EVENTS.RETRY_TIME_EXCEEDED);
           this.mse.endOfStream();
         }
+        return;
+      }
+      this._playlist.pushM3U8(mdata, true);
+      if (this._playlist.encrypt && this._playlist.encrypt.uri && !this._playlist.encrypt.key) {
+        this._context.registry('DECRYPT_BUFFER', XgBuffer)();
+        this._context.registry('KEY_BUFFER', XgBuffer)();
+        this._tsloader.buffer = 'DECRYPT_BUFFER';
+        this._keyLoader = this._context.registry('KEY_LOADER', FetchLoader)({buffer:'KEY_BUFFER',readtype: 3});
+        this.emitTo('KEY_LOADER', LOADER_EVENTS.LADER_START, this._playlist.encrypt.uri);
+      } else {
+        this._m3u8Loaded(mdata);
       }
     } else if (buffer.TAG === 'TS_BUFFER') {
       this.retrytimes = this.configs.retrytimes || 3;
       this._playlist.downloaded(this._tsloader.url, true);
-      this.emit(DEMUX_EVENTS.DEMUX_START)
+      this.emit(DEMUX_EVENTS.DEMUX_START);
+    }  else if (buffer.TAG === 'DECRYPT_BUFFER') {
+      this.retrytimes = this.configs.retrytimes || 3;
+      this._playlist.downloaded(this._tsloader.url, true);
+      this.emitTo('CRYPTO', CRYTO_EVENTS.START_DECRYPT);
+    } else if (buffer.TAG == 'KEY_BUFFER') {
+      this.retrytimes = this.configs.retrytimes || 3;
+      this._playlist.encrypt.key = buffer.shift();
+      this._crypto = this._context.registry('CRYPTO', Crypto)({
+        key: this._playlist.encrypt.key,
+        iv: this._playlist.encrypt.ivb,
+        method: this._playlist.encrypt.method,
+        inputbuffer:'DECRYPT_BUFFER',
+        outputbuffer:'TS_BUFFER'
+      });
+      this._crypto.on(CRYTO_EVENTS.DECRYPTED, this._onDcripted.bind(this));
     }
   }
 
+  _onDcripted() {
+    this.emit(DEMUX_EVENTS.DEMUX_START);
+  }
+
+  _m3u8Loaded(mdata) {
+    if (!this.preloadTime) {
+      this.preloadTime = this._playlist.targetduration ? this._playlist.targetduration : 5;
+    }
+    if (this._playlist.fragLength > 0 && this._playlist.sequence < mdata.sequence) {
+      this.retrytimes = this.configs.retrytimes || 3;
+    } else {
+      if (this.retrytimes > 0) {
+        this.retrytimes--;
+        this._preload();
+      } else {
+        this.emit(HLS_EVENTS.RETRY_TIME_EXCEEDED);
+        this.mse.endOfStream();
+      }
+    }
+  }
   _checkStatus () {
     if (this.retrytimes < 1 && (new Date().getTime() - this._lastCheck < 10000)) {
       return;

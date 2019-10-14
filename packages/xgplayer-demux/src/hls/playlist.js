@@ -60,7 +60,9 @@ class Playlist {
     }
     this.version = data.version;
     this.targetduration = data.targetduration;
-
+    if(data.encrypt && !this.encrypt) {
+      this.encrypt = data.encrypt;
+    }
     // 新分片信息
     if (data.sequence > this.sequence) {
       this.sequence = data.sequence;

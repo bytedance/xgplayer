@@ -32,6 +32,10 @@ const HLS_EVENTS = {
   RETRY_TIME_EXCEEDED: 'RETRY_TIME_EXCEEDED'
 }
 
+const CRYTO_EVENTS = {
+  START_DECRYPT: 'START_DECRYPT',
+  DECRYPTED: 'DECRYPTED'
+}
 const ALLEVENTS = Object.assign({}, LOADER_EVENTS, DEMUX_EVENTS, REMUX_EVENTS, MSE_EVENTS, HLS_EVENTS)
 
 const FlvAllowedEvents = []
@@ -57,5 +61,6 @@ export default {
   MSE_EVENTS,
   LOADER_EVENTS,
   FlvAllowedEvents,
-  HlsAllowedEvents
+  HlsAllowedEvents,
+  CRYTO_EVENTS
 };
