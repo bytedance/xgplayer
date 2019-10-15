@@ -70,7 +70,7 @@ export default class FlvController {
     // 处理视频gop
     FlvController.resolveVideoGOP(videoTrack)
 
-    // 将音频交给audioContext
+    // 将音频帧交给audioContext，不走remux封装
     const audioSamples = audioTrack.samples;
     audioTrack.samples = [];
 
