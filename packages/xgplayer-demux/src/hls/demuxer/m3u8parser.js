@@ -20,7 +20,7 @@ class M3U8Parser {
     }
     ref = refs.shift()
     while (ref) {
-      let refm = ref.match(/#(.*):(.*)/);
+      let refm = ref.match(/#(.[A-Z|-]*):(.*)/);
       if (refm && refm.length > 2) {
         switch (refm[1]) {
           case 'EXT-X-VERSION':
@@ -34,6 +34,9 @@ class M3U8Parser {
             break;
           case 'EXTINF':
             M3U8Parser.parseFrag(refm, refs, ret, baseurl);
+            break;
+          case 'EXT-X-KEY':
+            M3U8Parser.parseDecrypt(refm[2],ret);
             break;
           default:
             break;
@@ -82,6 +85,31 @@ class M3U8Parser {
       }
     }
     return baseurl;
+  }
+
+  static parseDecrypt(refm, ret) {
+    ret.encrypt = {};
+    let refs = refm.split(',');
+    for (let i in refs) { 
+      let cmd = refs[i];
+      if(cmd.match(/METHOD=(.*)/)) {
+        ret.encrypt.method = cmd.match(/METHOD=(.*)/)[1];
+      }
+      if(cmd.match(/URI="(.*)"/)) {
+        ret.encrypt.uri = cmd.match(/URI="(.*)"/)[1];
+      }
+
+      if(cmd.match(/IV=0x(.*)/)) {
+        let iv = cmd.match(/IV=0x(.*)/)[1];
+        let length = Math.ceil(iv.length / 2);
+        ret.encrypt.ivb = new Uint8Array(length);
+        for(let i = length - 1; i >=0; i--) {
+          let im = parseInt(iv.substr(i * 2, 2), 16);
+          ret.encrypt.ivb[i] = im;
+        } 
+        ret.encrypt.iv = iv;
+      }
+    };
   }
 }
 
