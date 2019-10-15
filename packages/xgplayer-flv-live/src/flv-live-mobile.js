@@ -64,6 +64,10 @@ export default class FlvController {
     this.emitTo('FLV_DEMUXER', DEMUX_EVENTS.DEMUX_START)
   }
 
+  _handleMetadataParsed (type) {
+    
+  }
+
   _handleDemuxComplete () {
     const { videoTrack, audioTrack } = this._context.getInstance('TRACKS')
 
@@ -72,6 +76,8 @@ export default class FlvController {
 
     // 将音频帧交给audioContext，不走remux封装
     const audioSamples = audioTrack.samples;
+    FlvController.resolveAudio(audioSamples);
+    
     audioTrack.samples = [];
 
     this.emit(REMUX_EVENTS.REMUX_MEDIA)

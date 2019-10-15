@@ -1,10 +1,10 @@
 const polyfill = []
 
 const umd = {
-  entry: polyfill.concat(['./src/index.js']),
+  entry:  {index:polyfill.concat(['./src/index.js']), mobile:polyfill.concat(['./src/mobile.js'])},
   output: {
     path: `${__dirname}/dist`,
-    filename: 'index.js',
+    filename: '[name].js',
     library: 'xgplayer-flv',
     libraryTarget: 'umd'
   },
@@ -38,10 +38,10 @@ const umd = {
 }
 
 const client = {
-  entry: polyfill.concat(['./src/index.js']),
+  entry: {index:polyfill.concat(['./src/index.js']), mobile:polyfill.concat(['./src/mobile.js'])},
   output: {
     path: `${__dirname}/browser`,
-    filename: 'index.js',
+    filename: '[name].js',
     library: 'FlvPlayer',
     libraryTarget: 'window'
   },
