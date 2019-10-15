@@ -64,6 +64,18 @@ export default class FlvController {
     this.emitTo('FLV_DEMUXER', DEMUX_EVENTS.DEMUX_START)
   }
 
+  _handleMetadataParsed (type) {
+    if (type === 'audio') {
+      // 将音频meta信息交给audioContext，不走remux封装
+      const { audioTrack } = this._context.getInstance('TRACKS')
+      if (audioTrack && audioTrack.meta) {
+        this._setMetaToAudio(audioTrack.meta)
+      }
+    } else {
+      this.emit(REMUX_EVENTS.REMUX_METADATA, type)
+    }
+  }
+
   _handleDemuxComplete () {
     const { videoTrack, audioTrack } = this._context.getInstance('TRACKS')
 
@@ -73,6 +85,8 @@ export default class FlvController {
     // 将音频帧交给audioContext，不走remux封装
     const audioSamples = audioTrack.samples;
     audioTrack.samples = [];
+
+    this._setAACToAudio(audioSamples)
 
     this.emit(REMUX_EVENTS.REMUX_MEDIA)
   }
@@ -86,31 +100,6 @@ export default class FlvController {
 
   }
 
-  _handleSourceUpdateEnd () {
-    const time = this._player.currentTime;
-    const video = this._player.video;
-    const preloadTime = this._player.config.preloadTime || 5
-
-    const { length } = video.buffered;
-
-    if (length === 0) {
-      return;
-    }
-
-    const bufferEnd = video.buffered.end(length - 1);
-    if (bufferEnd - time > preloadTime * 2) {
-      this._player.currentTime = bufferEnd - preloadTime
-    }
-  }
-
-  _handleTimeUpdate () {
-    const time = this._player.currentTime
-    if (time > 2) {
-      // 在直播时及时清空buffer，降低直播内存占用
-      this.mse.remove(time - 2)
-    }
-  }
-
   _handleNetworkError () {
     this._player.emit('error', new Player.Errors('network', this._player.config.url))
   }
@@ -119,14 +108,22 @@ export default class FlvController {
     this._player.emit('error', new Player.Errors('parse', this._player.config.url))
   }
 
-  _setMp4ToVideo (mp4) {
-    const { video } = this._player;
+  _setMp4ToVideo (mp4Segment) {
+    if (this._player.video) {
+      this._player.video._setVideoSegment(mp4Segment);
+    }
+  }
 
-    video.setVideo(mp4)
+  _setMetaToAudio (audioMeta) {
+    if (this._player.video) {
+      this._player.video._setAudioMeta(audioMeta);
+    }
   }
 
   _setAACToAudio (aacSamples) {
-    const { video } = this._player;
+    if (this._player.video) {
+      this._player.video._setAudioSamples(aacSamples);
+    }
   }
 
   seek () {

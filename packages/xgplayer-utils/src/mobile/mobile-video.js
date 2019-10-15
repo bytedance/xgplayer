@@ -8,10 +8,22 @@ class MobileVideo extends HTMLElement {
     this.aCtx = new AudioCtx();
 
     this.historyTime = 0;
-    this.curVideo =
+
   }
 
   destroy () {
+
+  }
+
+  _setAudioSamples (samples) {
+
+  }
+
+  _setAudioMeta (meta) {
+
+  }
+
+  _setVideoSegment (segment) {
 
   }
 
