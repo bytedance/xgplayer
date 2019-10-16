@@ -128,11 +128,11 @@ export default class Mp4Remuxer {
 
       let cts
       let pts
-      if (avcSample.pts) {
+      if (avcSample.pts !== undefined) {
         pts = avcSample.pts - this._dtsBase
         cts = pts - dts
       }
-      if (avcSample.cts) {
+      if (avcSample.cts !== undefined) {
         pts = avcSample.cts + dts
         cts = avcSample.cts
       }
@@ -157,6 +157,7 @@ export default class Mp4Remuxer {
         }
       }
       this.videoAllDuration += sampleDuration
+      // console.log(`dts ${dts}`, `pts ${pts}`, `cts: ${cts}`)
       mp4Samples.push({
         dts,
         cts,
