@@ -15,7 +15,7 @@ class M3U8Parser {
     })
     let ref = refs.shift()
     if (!ref.match('#EXTM3U')) {
-      // TODO:M3U格式错误。
+      throw new Error(`Invalid m3u8 file: not "#EXTM3U"`);
       return null;
     }
     ref = refs.shift()

@@ -409,7 +409,7 @@ class FlvDemuxer {
     }
     if (!validate) {
       const error = new Error('TAG length error at ' + chunk.datasize)
-      this.emit(DEMUX_EVENTS.DEMUX_ERROR, error.message)
+      this.emit(DEMUX_EVENTS.DEMUX_ERROR, error)
       this.logger.warn(this.TAG, error.message)
     }
   }

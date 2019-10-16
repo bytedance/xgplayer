@@ -40,10 +40,10 @@ class FetchLoader {
         return _this._onFetchResponse(response);
       }
       _this.loading = false;
-      _this.emit(LOADER_EVENTS.LOADER_ERROR, _this, response);
+      _this.emit(LOADER_EVENTS.LOADER_ERROR, _this.TAG, new Error(`invalid response.`));
     }).catch(function (error)  {
       _this.loading = false;
-      _this.emit(LOADER_EVENTS.LOADER_ERROR, _this, error);
+      _this.emit(LOADER_EVENTS.LOADER_ERROR, _this.TAG, error);
       throw new Error(error.message)
     })
   }
@@ -134,7 +134,7 @@ class FetchLoader {
       return _this._onReader(reader, taskno)
     }).catch((error) => {
       _this.loading = false;
-      _this.emit(LOADER_EVENTS.LOADER_ERROR, _this, error);
+      _this.emit(LOADER_EVENTS.LOADER_ERROR, _this.TAG, error);
     })
   }
 
