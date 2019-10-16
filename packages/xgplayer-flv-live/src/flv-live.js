@@ -25,6 +25,8 @@ export default class FlvController {
     this.state = {
       initSegmentArrived: false
     }
+
+    this.bufferClearTimer = null;
   }
 
   init () {
@@ -45,6 +47,7 @@ export default class FlvController {
     this.mse = this._context.registry('MSE', Mse)({ container: this._player.video })
 
     this._handleTimeUpdate = this._handleTimeUpdate.bind(this)
+
     this.initListeners()
   }
 
@@ -107,13 +110,21 @@ export default class FlvController {
     if (bufferEnd - time > preloadTime * 2) {
       this._player.currentTime = bufferEnd - preloadTime
     }
+    this.mse.doAppend();
   }
 
   _handleTimeUpdate () {
     const time = this._player.currentTime
-    if (time > 2) {
+    const bufferStart = this._player.getBufferedRange()[0]
+    if (time - bufferStart > 15) {
       // 在直播时及时清空buffer，降低直播内存占用
-      this.mse.remove(time - 2)
+      if (this.bufferClearTimer) {
+        return;
+      }
+      this.mse.remove(time - 1, bufferStart)
+      this.bufferClearTimer = setTimeout(() => {
+        this.bufferClearTimer = null
+      }, 5000)
     }
   }
 
