@@ -1,7 +1,7 @@
 import { FetchLoader } from 'xgplayer-loader'
 import { FlvDemuxer } from 'xgplayer-demux'
 import { Mp4Remuxer } from 'xgplayer-remux'
-import { Tracks, XgBuffer } from 'xgplayer-buffer'
+import { Tracks, XgBuffer, PreSource } from 'xgplayer-buffer'
 import { EVENTS } from 'xgplayer-utils'
 import { Compatibility } from 'xgplayer-codec'
 import Player from 'xgplayer'
@@ -29,6 +29,7 @@ export default class FlvController {
   init () {
     this._context.registry('FETCH_LOADER', FetchLoader)
     this._context.registry('LOADER_BUFFER', XgBuffer)
+    this._context.registry('PRE_SOURCE_BUFFER', PreSource)
 
     this._context.registry('FLV_DEMUXER', FlvDemuxer)
 
@@ -51,7 +52,6 @@ export default class FlvController {
     this.on(DEMUX_EVENTS.DEMUX_COMPLETE, this._handleDemuxComplete.bind(this))
     this.on(DEMUX_EVENTS.DEMUX_ERROR, this._handleDemuxError.bind(this))
 
-    this._player.on('timeupdate', this._handleTimeUpdate.bind(this))
   }
 
   _handleMediaInfo () {
