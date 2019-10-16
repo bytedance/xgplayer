@@ -1,6 +1,6 @@
 {
   "name": "xgplayer-hls-live",
-  "version": "1.1.6-alpha.0",
+  "version": "2.2.0-alpha.0",
   "description": "",
   "main": "index.js",
   "scripts": {
@@ -12,13 +12,12 @@
   "author": "",
   "license": "ISC",
   "dependencies": {
-    "xgplayer": "1.1.6-alpha.0",
-    "xgplayer-demux": "1.1.6-alpha.0",
-    "xgplayer-loader": "1.1.6-alpha.0",
-    "xgplayer-buffer": "1.1.6-alpha.0",
-    "xgplayer-codec": "1.1.6-alpha.0",
-    "xgplayer-remux": "1.1.6-alpha.0",
-    "xgplayer-utils": "1.1.6-alpha.0"
+    "xgplayer-demux": "^2.2.0-alpha.0",
+    "xgplayer-loader": "^2.2.0-alpha.0",
+    "xgplayer-buffer": "^2.2.0-alpha.0",
+    "xgplayer-codec": "^2.2.0-alpha.0",
+    "xgplayer-remux": "^2.2.0-alpha.0",
+    "xgplayer-utils": "^2.2.0-alpha.0"
   },
   "devDependencies": {
     "babel-core": "^6.26.3",

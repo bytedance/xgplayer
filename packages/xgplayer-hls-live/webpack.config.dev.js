@@ -3,7 +3,7 @@ const { umd, client } = require('../../webpack.config')
 
 const developUMD = webpackMerge(umd, {
   output: {
-    path: `${__dirname}/dest`,
+    path: `${__dirname}/dist`,
     filename: 'index.js',
     library: 'xgplayer-hls-live',
     libraryTarget: 'umd'
