@@ -1,0 +1,95 @@
+// order:
+// xgplayer-play  0
+// xgplayer-playNext  1
+// xgplayer-time  2
+// xgplayer-placeholder 3
+// xgplayer-volume 4
+// xgplayer-definition 5
+// xgplayer-bullet-btn 6
+// xgplayer-textTrack 7
+// xgplayer-playback 8
+// xgplayer-download 9
+// xgplayer-rotate 10
+// xgplayer-screenShot 11
+// xgplayer-cssFullscreen 12
+// xgplayer-fullscreen 13
+
+// z-index:
+// xgplayer-poster 100
+// xgplayer-progress-point 100
+// xgplayer-replay 105
+// xgplayer-pip-active 110
+// xgplayer-start 115
+// xgplayer-enter 120
+// xgplayer-error 125
+// xgplayer-pip-lay 130
+// xgplayer-pip-drag 135
+// xgplayer-is-fullscreen 9999
+// xgplayer-is-cssfullscreen 99999
+
+.xgplayer-skin-default{
+    background: $playerBgColor;
+    width: 100%;
+    height: 100%;
+    position: relative;
+    user-select: none;
+    -ms-user-select: none;
+    *{
+        margin: 0;
+        padding: 0;
+        border: 0;
+        font-size: 100%;
+        font: inherit;
+        vertical-align: baseline;
+    }
+    .xgplayer-none{
+        display: none
+    }
+    &.xgplayer-is-fullscreen{
+        width: 100%!important;
+        height: 100%!important;
+        // Undo any aspect ratio padding for fluid layouts
+        padding-top: 0 !important;
+        z-index: 9999;
+    }
+    &.xgplayer-is-fullscreen.xgplayer-inactive{
+        cursor: none;
+    }
+    video{
+        width:100%;
+        height: 100%;
+        outline: none;
+    }
+}
+
+.xgplayer-skin-default .xgplayer-none{
+    display: none;
+}
+
+@import "common/animation";
+@import "controls/play";
+@import "controls/start";
+@import "controls/enter";
+@import "controls/poster";
+@import "controls/placeholder";
+@import "controls/fullscreen";
+@import "controls/cssfullscreen";
+@import "controls/volume";
+@import "controls/definition";
+@import "controls/time";
+@import "controls/controls";
+@import "controls/live";
+@import "controls/loading";
+@import "controls/progress";
+@import "controls/replay";
+@import "controls/playbackRate";
+@import "controls/download";
+@import "controls/danmu";
+@import "controls/playNext";
+@import "controls/pip";
+@import "controls/rotate";
+@import "controls/screenShot";
+@import "controls/textTrack";
+@import "controls/icon";
+@import "controls/tips";
+@import "controls/error";

@@ -66,7 +66,7 @@ util.findDom = function (el = document, sel) {
   try {
     dom = el.querySelector(sel)
   } catch (e) {
-    if (sel.startsWith('#')) {
+    if (sel.indexOf('#') === 0) {
       dom = el.getElementById(sel.slice(1))
     }
   }

@@ -59,7 +59,7 @@ let mp4player = function () {
     }, 50)
   }
   let init = (url) => {
-    let mp4 = new MP4(url)
+    let mp4 = new MP4(url, player.config.withCredentials)
     let mse
     return new Promise((resolve, reject) => {
       mp4.once('moovReady', () => {
@@ -109,7 +109,8 @@ let mp4player = function () {
       player.switchURL = null
       player._replay = null
 
-      player.off('timeupdate', timeupdateFunc)
+      // player.off('timeupdate', timeupdateFunc)
+      clearInterval(player.mp4ProgressTimer)
       player.off('seeking', seekingFunc)
       player.off('pause', pauseFunc)
       player.off('playing', playingFunc)
@@ -155,7 +156,7 @@ let mp4player = function () {
 
     player.cut = function (start = 0, end) {
       let segment = new Buffer()
-      let mp4 = new MP4(url)
+      let mp4 = new MP4(url, player.config.withCredentials)
       return new Promise((resolve, reject) => {
         mp4.once('moovReady', () => {
           if (!end || end <= start) {
@@ -188,7 +189,7 @@ let mp4player = function () {
     }
 
     player.switchURL = (url) => {
-      let mp5 = new MP4(url)
+      let mp5 = new MP4(url, player.config.withCredentials)
       let mp4 = player.mp4
       mp5.on('moovReady', () => {
         let timeRange = mp4.timeRage; let curTime = player.currentTime
@@ -228,7 +229,7 @@ let mp4player = function () {
     }
 
     player.playNext = (url) => {
-      let mp5 = new MP4(url)
+      let mp5 = new MP4(url, player.config.withCredentials)
       let mp4 = player.mp4
       mp5.on('moovReady', () => {
         let range = [0, 0]
@@ -297,7 +298,8 @@ let mp4player = function () {
       }
     }
 
-    player.on('timeupdate', timeupdateFunc)
+    // player.on('timeupdate', timeupdateFunc)
+    player.mp4ProgressTimer = setInterval(timeupdateFunc, player.config.mp4ProgressTimer || 300)
 
     let seekingFunc = function () {
       let buffered = player.buffered; let hasBuffered = false; let curTime = player.currentTime
@@ -357,7 +359,8 @@ let mp4player = function () {
 
     let endedFunc = function () {
       player.off('waiting', waitingFunc)
-      player.off('timeupdate', timeupdateFunc)
+      // player.off('timeupdate', timeupdateFunc)
+      clearInterval(player.mp4ProgressTimer)
     }
     player.on('ended', endedFunc)
 
@@ -381,7 +384,8 @@ let mp4player = function () {
         player.play()
         player.once('canplay', () => {
           player.on('waiting', waitingFunc)
-          player.on('timeupdate', timeupdateFunc)
+          // player.on('timeupdate', timeupdateFunc)
+          player.mp4ProgressTimer = setInterval(timeupdateFunc, player.config.mp4ProgressTimer || 300)
         })
       }, err => {
         errorHandle(player, err)
