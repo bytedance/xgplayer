@@ -265,7 +265,12 @@ class Player extends Proxy {
       if (isDelDom) {
         // parentNode.removeChild(this.root)
         this.root.innerHTML = ''
-        this.root.className = ''
+        let classNameList = this.root.className.split(' ')
+        if(classNameList.length > 0) {
+          this.root.className = classNameList.filter(name => name.indexOf('xgplayer') < 0).join(' ')
+        } else {
+          this.root.className = ''
+        }
       }
       for (let k in this) {
         // if (k !== 'config') {
