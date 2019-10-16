@@ -56,6 +56,7 @@ class Playlist {
   pushM3U8 (data, deletepre) {
     // 常规信息替换
     if (!data) {
+      throw new Error(`No m3u8 data received.`);
       return;
     }
     this.version = data.version;
@@ -74,6 +75,11 @@ class Playlist {
           this.push(frag.url, frag.duration);
         }
       }
+
+      if(newfraglist.length < 1) {
+        throw new Error(`Can not read ts file list.`);
+      }
+      
       if (deletepre) {
         let tslist = this.getTsList();
         for (let i = 0; i < tslist.length; i++) {
@@ -82,6 +88,8 @@ class Playlist {
           }
         }
       }
+    } else {
+      throw new Error(`Old m3u8 file received, ${data.sequence}`);
     }
   }
 

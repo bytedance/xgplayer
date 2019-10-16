@@ -12,7 +12,6 @@
   "author": "",
   "license": "ISC",
   "dependencies": {
-    "xgplayer": "1.1.6-alpha.0",
     "xgplayer-demux": "1.1.6-alpha.0",
     "xgplayer-loader": "1.1.6-alpha.0",
     "xgplayer-buffer": "1.1.6-alpha.0",

@@ -194,7 +194,7 @@ class Compatibility {
     }
 
     this.videoTrack.samples.forEach((sample) => {
-      console.log(sample.dts)
+//      console.log(sample.dts)
     })
 
     this.videoTrack.samples = videoSamples;

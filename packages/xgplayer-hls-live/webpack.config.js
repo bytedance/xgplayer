@@ -3,7 +3,7 @@ const polyfill = []
 const umd = {
   entry: polyfill.concat(['./src/index.js']),
   output: {
-    path: `${__dirname}/dest`,
+    path: `${__dirname}/dist`,
     filename: 'index.js',
     library: 'xgplayer-hls-live',
     libraryTarget: 'umd'
