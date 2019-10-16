@@ -116,7 +116,6 @@ class MSE {
     for (let i = 0; i < Object.keys(this.sourceBuffers).length; i++) {
       let buffer = this.sourceBuffers[Object.keys(this.sourceBuffers)[i]];
       if (!buffer.updating) {
-        console.log('remove', Date.now())
         buffer.remove(start, end);
       }
     }
