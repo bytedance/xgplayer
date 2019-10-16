@@ -2,7 +2,7 @@ import { FetchLoader } from 'xgplayer-loader'
 import { FlvDemuxer } from 'xgplayer-demux'
 import { Mp4Remuxer } from 'xgplayer-remux'
 import { Tracks, XgBuffer } from 'xgplayer-buffer'
-import { EVENTS } from 'xgplayer-utils'
+import { EVENTS, MobileVideo } from 'xgplayer-utils'
 import { Compatibility } from 'xgplayer-codec'
 import Player from 'xgplayer'
 
@@ -20,6 +20,9 @@ export default class FlvController {
   constructor (player) {
     this.TAG = Tag
     this._player = player
+
+    // TODO 临时挂的 需要处理到Player层
+    this.video = document.createElement('mobile-video');
 
     this.state = {
       initSegmentArrived: false
@@ -51,7 +54,6 @@ export default class FlvController {
     this.on(DEMUX_EVENTS.DEMUX_COMPLETE, this._handleDemuxComplete.bind(this))
     this.on(DEMUX_EVENTS.DEMUX_ERROR, this._handleDemuxError.bind(this))
 
-    this._player.on('timeupdate', this._handleTimeUpdate.bind(this))
   }
 
   _handleMediaInfo () {
@@ -65,56 +67,38 @@ export default class FlvController {
   }
 
   _handleMetadataParsed (type) {
-    
+    if (type === 'audio') {
+      // 将音频meta信息交给audioContext，不走remux封装
+      const { audioTrack } = this._context.getInstance('TRACKS')
+      if (audioTrack && audioTrack.meta) {
+        this._setMetaToAudio(audioTrack.meta)
+      }
+    } else {
+      // this.emit(REMUX_EVENTS.REMUX_METADATA, type)
+    }
   }
 
   _handleDemuxComplete () {
     const { videoTrack, audioTrack } = this._context.getInstance('TRACKS')
-
     // 处理视频gop
-    FlvController.resolveVideoGOP(videoTrack)
-
+//    FlvController.resolveVideoGOP(videoTrack)
     // 将音频帧交给audioContext，不走remux封装
     const audioSamples = audioTrack.samples;
-    FlvController.resolveAudio(audioSamples);
     
     audioTrack.samples = [];
+    
+    this._setAACToAudio(audioSamples)
 
-    this.emit(REMUX_EVENTS.REMUX_MEDIA)
+    //this.emit(REMUX_EVENTS.REMUX_MEDIA)
   }
 
   _handleAppendInitSegment () {
     this.state.initSegmentArrived = true
-    this.mse.addSourceBuffers()
+  //  this.mse.addSourceBuffers()
   }
 
   _handleMediaSegment (type) {
 
-  }
-
-  _handleSourceUpdateEnd () {
-    const time = this._player.currentTime;
-    const video = this._player.video;
-    const preloadTime = this._player.config.preloadTime || 5
-
-    const { length } = video.buffered;
-
-    if (length === 0) {
-      return;
-    }
-
-    const bufferEnd = video.buffered.end(length - 1);
-    if (bufferEnd - time > preloadTime * 2) {
-      this._player.currentTime = bufferEnd - preloadTime
-    }
-  }
-
-  _handleTimeUpdate () {
-    const time = this._player.currentTime
-    if (time > 2) {
-      // 在直播时及时清空buffer，降低直播内存占用
-      this.mse.remove(time - 2)
-    }
   }
 
   _handleNetworkError () {
@@ -125,14 +109,27 @@ export default class FlvController {
     this._player.emit('error', new Player.Errors('parse', this._player.config.url))
   }
 
-  _setMp4ToVideo (mp4) {
-    const { video } = this._player;
+  _setMp4ToVideo (mp4Segment) {
+    if (this._player.video) {
+      this._player.video._setVideoSegment(mp4Segment);
+    }
+  }
 
-    video.setVideo(mp4)
+  _setMetaToAudio (audioMeta) {
+    // if (this._player.video) {
+    //   this._player.video._setAudioMeta(audioMeta);
+    // }
+
+    this.video._setAudioMeta(audioMeta);
+
   }
 
   _setAACToAudio (aacSamples) {
-    const { video } = this._player;
+    // if (this._player.video) {
+      //this._player.video._setAudioSamples(aacSamples);
+    //  this.video._setAudioSamples(aacSamples);
+    //}
+    this.video._setAudioSamples(aacSamples);
   }
 
   seek () {

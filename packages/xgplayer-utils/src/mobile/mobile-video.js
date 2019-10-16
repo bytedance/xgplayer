@@ -5,13 +5,25 @@ class MobileVideo extends HTMLElement {
   constructor (config) {
     super();
     this.vCtx = new VideoCtx();
-    this.aCtx = new AudioCtx();
+    this.aCtx = new AudioCtx(config);
 
     this.historyTime = 0;
-    this.curVideo =
+
   }
 
   destroy () {
+
+  }
+
+  _setAudioSamples (samples) {
+    this.aCtx.setAudioData(samples);
+  }
+
+  _setAudioMeta (meta) {
+    this.aCtx.setAudioMetaData(meta);
+  }
+
+  _setVideoSegment (segment) {
 
   }
 
@@ -19,6 +31,4 @@ class MobileVideo extends HTMLElement {
 
   }
 }
-
-
-export default MobileVideo;
+customElements.define('mobile-video', MobileVideo);

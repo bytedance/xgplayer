@@ -4,6 +4,5 @@ class VideoCanvas {
     this.backupvideo = document.createElement('video'); // 替换播放video
     this.canvas = document.createElement('canvas');
   }
-
-
 }
+export default VideoCanvas;
