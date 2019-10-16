@@ -156,7 +156,7 @@ class FlvDemuxer {
       if (this.loaderBuffer && this.loaderBuffer.length > 0) {
         this.loaderBuffer.shift(1)
       }
-      this.logger.warn(this.TAG, 'tagType ' + chunk.tagType)
+      this.emit(DEMUX_EVENTS.DEMUX_ERROR, this.TAG, new Error('tagType ' + chunk.tagType), false)
       return null
     }
 
@@ -408,9 +408,8 @@ class FlvDemuxer {
       track.samples.push(chunk)
     }
     if (!validate) {
-      const error = new Error('TAG length error at ' + chunk.datasize)
-      this.emit(DEMUX_EVENTS.DEMUX_ERROR, error.message)
-      this.logger.warn(this.TAG, error.message)
+      this.emit(DEMUX_EVENTS.DEMUX_ERROR, this.TAG, new Error('TAG length error at ' + chunk.datasize), false)
+      // this.logger.warn(this.TAG, error.message)
     }
   }
 
@@ -440,7 +439,7 @@ class FlvDemuxer {
 
       if (Number.parseInt(chunk.avcPacketType) !== 0) {
         if (!this._datasizeValidator(chunk.datasize)) {
-          this.logger.warn(this.TAG, `invalid video tag datasize: ${chunk.datasize}`)
+          this.emit(DEMUX_EVENTS.DEMUX_ERROR, this.TAG, new Error(`invalid video tag datasize: ${chunk.datasize}`), false)
         }
         let nalu = {}
         let r = 0
@@ -460,7 +459,7 @@ class FlvDemuxer {
         }
       } else if (Number.parseInt(chunk.avcPacketType) === 0) {
         if (!this._datasizeValidator(chunk.datasize)) {
-          this.logger.warn(this.TAG, `invalid video tag datasize: ${chunk.datasize}`)
+          this.emit(DEMUX_EVENTS.DEMUX_ERROR, this.TAG, new Error(`invalid video tag datasize: ${chunk.datasize}`), false)
         } else {
           this.emit(DEMUX_EVENTS.METADATA_PARSED, 'video')
         }
@@ -497,17 +496,17 @@ class FlvDemuxer {
         }
       } else {
         if (!this._datasizeValidator(chunk.datasize)) {
-          this.logger.warn(this.TAG, `invalid video tag datasize: ${chunk.datasize}`)
+          this.emit(DEMUX_EVENTS.DEMUX_ERROR, this.TAG, new Error(`invalid video tag datasize: ${chunk.datasize}`), false)
           return;
         }
         this.tracks.videoTrack.samples.push(chunk)
         // this.emit(DEMUX_EVENTS.DEMUX_COMPLETE)
       }
     } else {
-      this.logger.warn(this.TAG, `video codeid is ${codecID}`)
+      this.emit(DEMUX_EVENTS.DEMUX_ERROR, this.TAG, new Error(`video codeid is ${codecID}`), false)
       chunk.data = this.loaderBuffer.shift(chunk.datasize - 1)
       if (!this._datasizeValidator(chunk.datasize)) {
-        this.logger.warn(this.TAG, `invalid video tag datasize: ${chunk.datasize}`)
+        this.emit(DEMUX_EVENTS.DEMUX_ERROR, this.TAG, new Error(`invalid video tag datasize: ${chunk.datasize}`), false)
       }
       this.tracks.videoTrack.samples.push(chunk)
       this.emit(DEMUX_EVENTS.DEMUX_COMPLETE)

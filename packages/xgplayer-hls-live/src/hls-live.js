@@ -11,7 +11,7 @@ const REMUX_EVENTS = EVENTS.REMUX_EVENTS;
 const DEMUX_EVENTS = EVENTS.DEMUX_EVENTS;
 const HLS_EVENTS = EVENTS.HLS_EVENTS;
 const CRYTO_EVENTS = EVENTS.CRYTO_EVENTS;
-
+const HLS_ERROR = 'HLS_ERROR';
 class HlsLiveController {
   constructor (configs) {
     this.configs = Object.assign({}, configs);
@@ -25,6 +25,7 @@ class HlsLiveController {
     this._m3u8lasttime = 0;
     this._timmer = setInterval(this._checkStatus.bind(this), 50);
     this._lastCheck = 0;
+    this._player = this.configs.player;
   }
 
   init () {
@@ -60,11 +61,24 @@ class HlsLiveController {
 
     this.on(REMUX_EVENTS.MEDIA_SEGMENT, this.mse.doAppend.bind(this.mse));
 
-    this.on(LOADER_EVENTS.LOADER_ERROR, this._onLoadError.bind(this));
-
     this.on(DEMUX_EVENTS.METADATA_PARSED, this._onMetadataParsed.bind(this));
 
-    this.on(DEMUX_EVENTS.DEMUX_COMPLETE, this._onDemuxComplete.bind(this))
+    this.on(DEMUX_EVENTS.DEMUX_COMPLETE, this._onDemuxComplete.bind(this));
+
+    this.on(LOADER_EVENTS.LOADER_ERROR, this._onLoadError.bind(this));
+
+    this.on(DEMUX_EVENTS.DEMUX_ERROR, this._onDemuxError.bind(this));
+
+    this.on(REMUX_EVENTS.REMUX_ERROR, this._onRemuxError.bind(this));
+  }
+
+  _onError(type, mod, err, fatal) {
+    let error = {
+      errorType: type,
+      errorDetails: `[${mod}]: ${err.message}`,
+      errorFatal: fatal
+    }
+    this._player.emit(HLS_ERROR, error);
   }
 
   _onDemuxComplete () {
@@ -77,15 +91,37 @@ class HlsLiveController {
   _onLoadError (loader, error) {
     if (!this._tsloader.loading && !this._m3u8loader.loading && this.retrytimes > 1) {
       this.retrytimes--;
+      this._onError(LOADER_EVENTS.LOADER_ERROR, loader, error, false);
     } else if (this.retrytimes <= 1) {
+      this._onError(LOADER_EVENTS.LOADER_ERROR, loader, error, true);
       this.emit(HLS_EVENTS.RETRY_TIME_EXCEEDED);
       this.mse.endOfStream();
     }
   }
 
+  _onDemuxError (mod, error, fatal) {
+    if(fatal === undefined) {
+      fatal = true;
+    }
+    this._onError(LOADER_EVENTS.LOADER_ERROR, mod, error, fatal);
+  }
+
+  _onRemuxError (mod, error, fatal) {
+    if(fatal === undefined) {
+      fatal = true;
+    }
+    this._onError(REMUX_EVENTS.REMUX_ERROR, mod, error, fatal);
+  }
+
   _onLoadComplete (buffer) {
     if (buffer.TAG === 'M3U8_BUFFER') {
-      let mdata = M3U8Parser.parse(buffer.shift(), this.baseurl);
+      let mdata;
+      try {
+        mdata = M3U8Parser.parse(buffer.shift(), this.baseurl);
+      } catch (error) {
+        this._onError('M3U8_PARSER_ERROR', 'M3U8_PARSER', error, false);
+      }
+
       if(!mdata) {
         if (this.retrytimes > 0) {
           this.retrytimes--;
@@ -96,7 +132,13 @@ class HlsLiveController {
         }
         return;
       }
-      this._playlist.pushM3U8(mdata, true);
+
+      try {
+        this._playlist.pushM3U8(mdata, true);
+      } catch (error) {
+        this._onError('M3U8_PARSER_ERROR', 'PLAYLIST', error, false);
+      }
+
       if (this._playlist.encrypt && this._playlist.encrypt.uri && !this._playlist.encrypt.key) {
         this._context.registry('DECRYPT_BUFFER', XgBuffer)();
         this._context.registry('KEY_BUFFER', XgBuffer)();

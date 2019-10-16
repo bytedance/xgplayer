@@ -56,6 +56,9 @@ class TsDemuxer {
 
     // Read TS segment
     while (buffer.length >= 188) {
+      if(buffer.length >= 1 && buffer.array[0][buffer.offset] !== 71) {
+        this.emit(DEMUX_EVENTS.DEMUX_ERROR, this.TAG, new Error(`Untrust sync code: ${buffer.array[0][buffer.offset]}, try to recover;`), false);
+      }
       while (buffer.length >= 1 && buffer.array[0][buffer.offset] !== 71) {
         buffer.shift(1);
       }

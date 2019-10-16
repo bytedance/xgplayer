@@ -11,7 +11,7 @@ const REMUX_EVENTS = EVENTS.REMUX_EVENTS;
 const DEMUX_EVENTS = EVENTS.DEMUX_EVENTS;
 const HLS_EVENTS = EVENTS.HLS_EVENTS;
 const CRYTO_EVENTS = EVENTS.CRYTO_EVENTS;
-
+const HLS_ERROR = 'HLS_ERROR';
 class HlsVodController {
   constructor (configs) {
     this.configs = Object.assign({}, configs);
@@ -23,6 +23,7 @@ class HlsVodController {
     this.container = this.configs.container;
     this.preloadTime = this.configs.preloadTime || 5;
     this._lastSeekTime = 0;
+    this._player = this.configs.player;
   }
 
   init () {
@@ -53,6 +54,7 @@ class HlsVodController {
 
   initEvents () {
     this.on(LOADER_EVENTS.LOADER_COMPLETE, this._onLoaderCompete.bind(this));
+    
     this.on(LOADER_EVENTS.LOADER_ERROR, this._onLoadError.bind(this))
 
     this.on(REMUX_EVENTS.INIT_SEGMENT, this._onInitSegment.bind(this));
@@ -62,17 +64,44 @@ class HlsVodController {
 
     this.on(DEMUX_EVENTS.METADATA_PARSED, this._onMetadataParsed.bind(this));
 
-    this.on(DEMUX_EVENTS.DEMUX_COMPLETE, this._onDemuxComplete.bind(this))
+    this.on(DEMUX_EVENTS.DEMUX_COMPLETE, this._onDemuxComplete.bind(this));
+
+    this.on(DEMUX_EVENTS.DEMUX_ERROR, this._onDemuxError.bind(this));
+
+    this.on(REMUX_EVENTS.REMUX_ERROR, this._onRemuxError.bind(this));
 
     this.on('TIME_UPDATE', this._onTimeUpdate.bind(this));
 
     this.on('WAITING', this._onWaiting.bind(this));
   }
 
-  _onLoadError () {
+  _onError(type, mod, err, fatal) {
+    let error = {
+      errorType: type,
+      errorDetails: `[${mod}]: ${err.message}`,
+      errorFatal: fatal
+    }
+    this._player && this._player.emit(HLS_ERROR, error);
+  }
+  
+  _onLoadError (mod, error) {
+    this._onError(LOADER_EVENTS.LOADER_ERROR, mod, error, true);
     this.emit(HLS_EVENTS.RETRY_TIME_EXCEEDED)
   }
 
+  _onDemuxError (mod, error, fatal) {
+    if(fatal === undefined) {
+      fatal = true;
+    }
+    this._onError(LOADER_EVENTS.LOADER_ERROR, mod, error, fatal);
+  }
+
+  _onRemuxError (mod, error, fatal) {
+    if(fatal === undefined) {
+      fatal = true;
+    }
+    this._onError(REMUX_EVENTS.REMUX_ERROR, mod, error, fatal);
+  }
 
   _onWaiting (container) {
     let end = true;
@@ -125,7 +154,11 @@ class HlsVodController {
   _onLoaderCompete (buffer) {
     if (buffer.TAG === 'M3U8_BUFFER') {
       let mdata = M3U8Parser.parse(buffer.shift(), this.baseurl);
-      this._playlist.pushM3U8(mdata);
+      try {
+        this._playlist.pushM3U8(mdata);
+      } catch (error) {
+        this._onError('M3U8_PARSER_ERROR', 'PLAYLIST', error, true);
+      }
       if (this._playlist.encrypt && this._playlist.encrypt.uri && !this._playlist.encrypt.key) {
         this._context.registry('DECRYPT_BUFFER', XgBuffer)();
         this._context.registry('KEY_BUFFER', XgBuffer)();
