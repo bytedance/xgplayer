@@ -17,6 +17,8 @@ class Logger {
   warn () {}
 }
 
+const FLV_ERROR = 'FLV_ERROR'
+
 export default class FlvController {
   constructor (player) {
     this.TAG = Tag
@@ -128,12 +130,26 @@ export default class FlvController {
     }
   }
 
-  _handleNetworkError () {
+  _handleNetworkError (tag, err) {
     this._player.emit('error', new Player.Errors('network', this._player.config.url))
+    this._onError(LOADER_EVENTS.LOADER_ERROR, tag, err, true)
   }
 
-  _handleDemuxError() {
+  _handleDemuxError(tag, err, fatal) {
+    if (fatal === undefined) {
+      fatal = false;
+    }
     this._player.emit('error', new Player.Errors('parse', this._player.config.url))
+    this._onError(LOADER_EVENTS.LOADER_ERROR, tag, err, fatal)
+  }
+
+  _onError(type, mod, err, fatal) {
+    let error = {
+      errorType: type,
+      errorDetails: `[${mod}]: ${err.message}`,
+      errorFatal: fatal || false
+    }
+    this._player.emit(FLV_ERROR, error);
   }
 
   seek () {

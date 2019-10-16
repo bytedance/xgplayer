@@ -78,7 +78,6 @@ class HlsLiveController {
       errorDetails: `[${mod}]: ${err.message}`,
       errorFatal: fatal
     }
-    console.log(error);
     this._player.emit(HLS_ERROR, error);
   }
 
