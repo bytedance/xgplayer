@@ -1,7 +1,7 @@
 import EventEmitter from 'event-emitter'
 
 class Task {
-  constructor (url, callback) {
+  constructor (url, callback, range) {
     EventEmitter(this)
     this.url = url
     this.on = false
@@ -12,6 +12,11 @@ class Task {
     xhr.target = this
     xhr.responseType = 'arraybuffer'
     xhr.open('get', url)
+    if(range) {
+      this.range = range
+      this.id = range.join('-')
+      xhr.setRequestHeader('Range', `bytes=${range.join('-')}`)
+    }
     xhr.onload = function () {
       if (xhr.status === 200 || xhr.status === 206) {
         if (callback && callback instanceof Function) {

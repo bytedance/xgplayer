@@ -1,0 +1,16 @@
+{
+  "name": "xgplayer-buffer",
+  "version": "1.1.6-alpha.0",
+  "description": "",
+  "main": "index.js",
+  "devDependencies": {},
+  "scripts": {
+    "build": "babel src --out-dir dest"
+  },
+  "author": "",
+  "license": "ISC",
+  "dependencies": {
+    "@babel/cli": "^7.6.0",
+    "@babel/core": "^7.6.0"
+  }
+}
