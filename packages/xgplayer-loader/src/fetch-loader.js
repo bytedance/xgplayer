@@ -104,8 +104,12 @@ class FetchLoader {
   _onReader (reader, taskno) {
     let buffer = this._context.getInstance(this.buffer);
 
-    if (!buffer) {
-      this._reader.cancel();
+    if (!buffer && this._reader) {
+      try {
+        this._reader.cancel()
+      } catch (e) {
+        // DO NOTHING
+      }
     }
 
     this._reader = reader
@@ -126,7 +130,14 @@ class FetchLoader {
       }
 
       if (_this._canceled) {
-        _this._reader.cancel()
+        if  (_this._reader) {
+          try {
+            _this._reader.cancel()
+          } catch (e) {
+            // DO NOTHING
+          }
+        }
+
         return;
       }
       buffer.push(val.value)
