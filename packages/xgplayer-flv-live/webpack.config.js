@@ -1,77 +1,46 @@
-const polyfill = []
+const webpackMerge = require('webpack-merge')
+const { umd, client } = require('../../webpack.config')
 
-const umd = {
-  entry:  {index:polyfill.concat(['./src/index.js']), mobile:polyfill.concat(['./src/mobile.js'])},
+const buildUMD = webpackMerge(umd, {
   output: {
     path: `${__dirname}/dist`,
     filename: '[name].js',
     library: 'xgplayer-flv',
     libraryTarget: 'umd'
   },
-  mode: 'production',
-  module: {
-    rules: [{
-      test: /\.js$/,
-      loader: 'babel-loader'
-    }, {
-      test: /\.scss$/,
-      use: [
-        'style-loader',
-        {
-          loader: 'css-loader',
-          options: {
-            importLoaders: 1,
-            minimize: true
-          }
-        },
-        'postcss-loader',
-        'sass-loader'
-      ]
-    }]
-  },
-  externals: {
-    'xgplayer': 'xgplayer'
-  },
-  optimization: {
-    minimize: true
-  }
-}
+  mode: 'production'
+})
 
-const client = {
-  entry: {index:polyfill.concat(['./src/index.js']), mobile:polyfill.concat(['./src/mobile.js'])},
+const buildClient = webpackMerge(client, {
   output: {
     path: `${__dirname}/browser`,
     filename: '[name].js',
     library: 'FlvPlayer',
     libraryTarget: 'window'
   },
-  module: {
-    rules: [{
-      test: /\.js$/,
-      loader: 'babel-loader'
-    }, {
-      test: /\.scss$/,
-      use: [
-        'style-loader',
-        {
-          loader: 'css-loader',
-          options: {
-            importLoaders: 1,
-            minimize: true
-          }
-        },
-        'postcss-loader',
-        'sass-loader'
-      ]
-    }]
-  },
-  externals: {
-    'xgplayer': 'Player'
-  },
-  mode: 'production',
-  optimization: {
-    minimize: true
-  }
-}
+  mode: 'production'
+})
 
-module.exports = [umd, client]
+const buildMobileUMD = webpackMerge(umd, {
+  entry: ['./src/mobile.js'],
+  output: {
+    path: `${__dirname}/dist`,
+    filename: 'index.umd.js',
+    library: 'xgplayer-flv',
+    libraryTarget: 'umd'
+  },
+  mode: 'production'
+})
+
+const buildMobileClient = webpackMerge(client, {
+  entry: ['./src/mobile.js'],
+  output: {
+    path: `${__dirname}/browser`,
+    filename: 'index.js',
+    library: 'FlvPlayer',
+    libraryTarget: 'window'
+  },
+  mode: 'production'
+})
+
+module.exports = [buildUMD, buildClient, buildMobileUMD, buildMobileClient]

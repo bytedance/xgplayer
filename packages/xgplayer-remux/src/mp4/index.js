@@ -12,12 +12,6 @@ export default class Mp4Remuxer {
   constructor () {
     this._dtsBase = 0
     this._isDtsBaseInited = false
-    this._audioNextDts = null
-    this._videoNextDts = null
-    this._videoSegmentList = new MediaSegmentList('video')
-    this._audioSegmentList = new MediaSegmentList('audio')
-    const {browser} = sniffer
-    this._fillSilenceFrame = browser === 'ie'
 
     this.videoAllDuration = 0
     this.audioAllDuration = 0
@@ -31,12 +25,11 @@ export default class Mp4Remuxer {
   destroy () {
     this._dtsBase = -1
     this._dtsBaseInited = false
-    this._videoNextDts = null
-    this._audioNextDts = null
-    this._videoSegmentList.clear()
-    this._audioSegmentList.clear()
-    this._videoSegmentList = null
-    this._audioSegmentList = null
+  }
+
+  reset () {
+    this._dtsBase = 0
+    this._isDtsBaseInited = false
   }
 
   remux () {
@@ -48,10 +41,7 @@ export default class Mp4Remuxer {
   }
 
   seek () {
-    this._videoNextDts = null
-    this._audioNextDts = null
-    this._videoSegmentList.clear()
-    this._audioSegmentList.clear()
+
   }
 
   onMetaDataReady (type) {
