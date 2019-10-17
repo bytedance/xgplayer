@@ -1,5 +1,5 @@
-import workerify from 'webworkerify'
-import commands from 'xgplayer-utils/constants/workerCommands'
+import workerify from 'webworkify'
+import commands from '../constants/worker-commands'
 
 class WorkerWrapper {
   constructor (Wrapped) {

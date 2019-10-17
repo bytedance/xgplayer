@@ -30,5 +30,10 @@ class MobileVideo extends HTMLElement {
   get currentTime () {
 
   }
+
+  play() {
+    this.aCtx.play();
+    this.vCtx.play();
+  }
 }
 customElements.define('mobile-video', MobileVideo);

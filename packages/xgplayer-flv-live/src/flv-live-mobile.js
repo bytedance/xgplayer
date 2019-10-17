@@ -22,8 +22,9 @@ export default class FlvController {
     this._player = player
 
     // TODO 临时挂的 需要处理到Player层
-    this.video = document.createElement('mobile-video');
-
+    // this.video = document.createElement('mobile-video');
+    this._player.video = document.createElement('mobile-video');
+    this.video = this._player.video;
     this.state = {
       initSegmentArrived: false
     }

@@ -15,6 +15,9 @@ class AudioCtx {
     this._preDecode = [];
     this._currentTime = 0;
     this._decoding = false;
+    
+    // 记录外部传输的状态
+    this._played = false;
   }
 
   get currentTime() {
@@ -68,6 +71,10 @@ class AudioCtx {
 
         if(!_this._currentBuffer) {
           _this._currentBuffer = _this.getTimeBuffer(_this.currentTime);
+
+          if(_this._played) {
+            _this.play();
+          }
         }
 
         if(!_this._nextBuffer && _this._currentBuffer) {
@@ -85,7 +92,7 @@ class AudioCtx {
   }
 
   onSourceEnded() {
-    if(!this._nextBuffer) {
+    if(!this._nextBuffer || !this._played) {
       return;
     }
     let audioSource = this._nextBuffer.data;
@@ -100,6 +107,10 @@ class AudioCtx {
   }
 
   play() {
+    this._played = true;
+    if(!this._currentBuffer) {
+      return;
+    }
     let audioSource = this._currentBuffer.data;
     audioSource.connect(this.gainNode);
     audioSource.start();
