@@ -13,6 +13,7 @@ class FetchLoader {
     this.error = null
     this._reader = null;
     this._canceled = false;
+    this._destroyed = false;
     this.readtype = this.configs.readtype;
     this.buffer = this.configs.buffer || 'LOADER_BUFFER';
     this._loaderTaskNo = 0;
@@ -58,7 +59,7 @@ class FetchLoader {
         case READ_JSON:
           response.json().then((data) => {
             _this.loading = false
-            if (!_this._canceled) {
+            if (!_this._canceled && !_this._destroyed) {
               if (buffer) {
                 buffer.push(data);
                 _this.emit(LOADER_EVENTS.LOADER_COMPLETE, buffer);
@@ -71,7 +72,7 @@ class FetchLoader {
         case READ_TEXT:
           response.text().then((data) => {
             _this.loading = false
-            if (!_this._canceled) {
+            if (!_this._canceled && !_this._destroyed) {
               if (buffer) {
                 buffer.push(data);
                 _this.emit(LOADER_EVENTS.LOADER_COMPLETE, buffer);
@@ -84,7 +85,7 @@ class FetchLoader {
         case READ_BUFFER:
           response.arrayBuffer().then((data) => {
             _this.loading = false
-            if (!_this._canceled) {
+            if (!_this._canceled && !_this._destroyed) {
               if (buffer) {
                 buffer.push(new Uint8Array(data));
                 _this.emit(LOADER_EVENTS.LOADER_COMPLETE, buffer);
@@ -103,8 +104,7 @@ class FetchLoader {
 
   _onReader (reader, taskno) {
     let buffer = this._context.getInstance(this.buffer);
-
-    if (!buffer && this._reader) {
+    if ((!buffer && this._reader) || this._destroyed) {
       try {
         this._reader.cancel()
       } catch (e) {
@@ -129,7 +129,7 @@ class FetchLoader {
         return
       }
 
-      if (_this._canceled) {
+      if (_this._canceled || _this._destroyed) {
         if  (_this._reader) {
           try {
             _this._reader.cancel()
@@ -208,6 +208,7 @@ class FetchLoader {
   }
 
   destroy () {
+    this._destroyed = true
     this.cancel();
   }
 }
