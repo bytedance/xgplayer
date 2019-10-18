@@ -1381,7 +1381,7 @@ function isDataURI(filename) {
 
 
 
-var wasmBinaryFile = 'decoder_em.wasm';
+var wasmBinaryFile = 'http://sf1-ttcdn-tos.pstatp.com/obj/ttfe/media/decoder_em.wasm';
 if (!isDataURI(wasmBinaryFile)) {
   wasmBinaryFile = locateFile(wasmBinaryFile);
 }
@@ -2821,7 +2821,7 @@ if(Module['asm'] && Object.keys(Module['asm']).length > 0){
 
 function decode(data) {
   var byteArray = new Uint8Array(data);
-  decode_h264nal(h, byteArray, byteArray.length);
+  decode_h264nal(decoder, byteArray, byteArray.length);
 }
 
 function frame_callback(a,b,c,width,height,stride1,stride2)
@@ -2855,7 +2855,8 @@ module.exports = function (self){
     });
   }
 
-  xgprops.onFrameDecoded = function(Module) {
+  xgprops.onFrameDecoded = function(data) {
+    console.log(data);
     self.postMessage({
       msg: 'DECODED',
       data: data
@@ -2864,9 +2865,9 @@ module.exports = function (self){
 
   self.addEventListener('message', function(e) {
     var message = e.data;
-    switch(message.type) {
+    switch(message.msg) {
       case 'close':
-        close_decoder(h);
+        close_decoder(decoder);
       case 'decode':
         decode(message.data);
       case 'inited':
