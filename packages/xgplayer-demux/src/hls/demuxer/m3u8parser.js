@@ -21,7 +21,8 @@ class M3U8Parser {
     ref = refs.shift()
     while (ref) {
       let refm = ref.match(/#(.[A-Z|-]*):(.*)/);
-      if (refm && refm.length > 2) {
+      let refd = ref.match(/#(.[A-Z|-]*)/);
+      if (refd && refm && refm.length > 2) {
         switch (refm[1]) {
           case 'EXT-X-VERSION':
             ret.version = parseInt(refm[2]);
@@ -41,13 +42,25 @@ class M3U8Parser {
           default:
             break;
         }
+      } if(refd && refd.length > 1) {
+        switch(refd[1]) {
+          case 'EXT-X-DISCONTINUITY':
+            ref = refs.shift();
+            let refm = ref.match(/#(.[A-Z|-]*):(.*)/);
+            if(refm.length >2 && refm[1] === 'EXTINF') {
+              M3U8Parser.parseFrag(refm, refs, ret, baseurl, true);
+            }
+            break;
+          default:
+            break;
+        }
       }
       ref = refs.shift()
     }
     return ret;
   }
 
-  static parseFrag (refm, refs, ret, baseurl) {
+  static parseFrag (refm, refs, ret, baseurl, discontinue) {
     if (!ret.frags) {
       ret.frags = []
     }
@@ -70,7 +83,7 @@ class M3U8Parser {
     } else {
       freg.url = baseurl + nextline;
     }
-    
+    freg.discontinue = discontinue;
     ret.frags.push(freg);
   }
 

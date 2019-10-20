@@ -27,9 +27,14 @@ class Playlist {
     return this._baseURL;
   }
 
-  push (ts, duration) {
+  push (ts, duration, discontinue) {
     if (!this._ts[ts]) {
-      this._ts[ts] = {duration: duration, downloaded: false, downloading: false, start: this.duration};
+      this._ts[ts] = {duration: duration, 
+        downloaded: false, 
+        downloading: false, 
+        start: this.duration, 
+        discontinue: discontinue ? true: false
+      };
       this._list[this.duration] = ts;
       this.duration += duration;
       this.fragLength += 1;
@@ -72,7 +77,7 @@ class Playlist {
         let frag = data.frags[i];
         if (!this._ts[frag.url]) {
           newfraglist.push(frag.url)
-          this.push(frag.url, frag.duration);
+          this.push(frag.url, frag.duration, frag.discontinue);
         }
       }
 

@@ -190,11 +190,11 @@ class HlsVodController {
     } else if (buffer.TAG === 'TS_BUFFER') {
       this._preload(this.mse.container.currentTime);
       this._playlist.downloaded(this._tsloader.url, true);
-      this.emit(DEMUX_EVENTS.DEMUX_START)
+      this.emit(DEMUX_EVENTS.DEMUX_START, Object.assign({url:this._tsloader.url},this._playlist._ts[this._tsloader.url]));
     } else if (buffer.TAG === 'DECRYPT_BUFFER') {
       this.retrytimes = this.configs.retrytimes || 3;
       this._playlist.downloaded(this._tsloader.url, true);
-      this.emitTo('CRYPTO', CRYTO_EVENTS.START_DECRYPT);
+      this.emitTo('CRYPTO', CRYTO_EVENTS.START_DECRYPT, Object.assign({url:this._tsloader.url},this._playlist._ts[this._tsloader.url]));
     } else if (buffer.TAG == 'KEY_BUFFER') {
       this.retrytimes = this.configs.retrytimes || 3;
       this._playlist.encrypt.key = buffer.shift();
@@ -205,6 +205,7 @@ class HlsVodController {
         inputbuffer:'DECRYPT_BUFFER',
         outputbuffer:'TS_BUFFER'
       });
+
       this._crypto.on(CRYTO_EVENTS.DECRYPTED, this._onDcripted.bind(this));
 
       let frag = this._playlist.getTs();
