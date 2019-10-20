@@ -57,7 +57,6 @@ class M3U8Parser {
       }
       ref = refs.shift()
     }
-    console.log(ret);
     return ret;
   }
 

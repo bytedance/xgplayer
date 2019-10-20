@@ -80,6 +80,7 @@ export default class Mp4Remuxer {
 
     source.mimetype = track.meta.codec;
     source.init = initSegment;
+    source.inited = false;
     this.emit(REMUX_EVENTS.INIT_SEGMENT, type)
   }
 

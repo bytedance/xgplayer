@@ -91,7 +91,7 @@ class Compatibility {
     if (this._videoLargeGap > 0) {
       Compatibility.doFixLargeGap(videoSamples, this._videoLargeGap)
     }
-    if (firstSample.dts !== this._firstVideoSample.dts && Compatibility.detectLargeGap(this.nextVideoDts, firstSample.dts)) {
+    if (firstSample.dts !== this._firstVideoSample.dts && Compatibility.detectLargeGap(this.nextVideoDts, firstSample)) {
       this._videoLargeGap = this.nextVideoDts - firstSample.dts
       console.log(`nextDts`, this.nextVideoDts, 'firstSampleDts', firstSample.dts)
       Compatibility.doFixLargeGap(videoSamples, this._videoLargeGap)
@@ -223,7 +223,7 @@ class Compatibility {
       Compatibility.doFixLargeGap(audioSamples, this._audioLargeGap)
     }
 
-    if (_firstSample.dts !== this._firstAudioSample.dts && Compatibility.detectLargeGap(this.nextAudioDts, _firstSample.dts)) {
+    if (_firstSample.dts !== this._firstAudioSample.dts && Compatibility.detectLargeGap(this.nextAudioDts, _firstSample)) {
       this._audioLargeGap = this.nextAudioDts - _firstSample.dts
       Compatibility.doFixLargeGap(audioSamples, this._audioLargeGap)
     }
@@ -455,8 +455,12 @@ class Compatibility {
     }
   }
 
-  static detectLargeGap (nextDts, curDts) {
-    return nextDts - curDts >= 1000 || curDts - nextDts >= 200 // fix hls流出现大量流dts间距问题
+  static detectLargeGap (nextDts, firstSample) {
+    const curDts = firstSample.dts || 0
+    const cond1 = nextDts - curDts >= 1000 || curDts - nextDts >= 200 // fix hls流出现大量流dts间距问题
+    const cond2 = firstSample.options && firstSample.options.discontinue
+
+    return cond1 || cond2
   }
 
   static doFixLargeGap (samples, gap) {

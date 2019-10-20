@@ -246,13 +246,11 @@ class TsDemuxer {
       bl = b.length;
     }
     if (al !== bl) {
-      console.log(al, bl);
       return false;
     }
 
     for (let i = 0; i < al; i++) {
       if (a[i] !== b[i]) {
-        console.log(i, a[i], b[i]);
         return false;
       }
     }
@@ -269,25 +267,20 @@ class TsDemuxer {
       let itemb = b[Object.keys(b)[i]];
       if(typeof itema !== "object") {
         if(itema !== itemb) {
-          console.log("None Object",  Object.keys(a)[i], itema, itemb);
           return false;
         }
       } else if (itema.byteLength !== undefined){
         if(itemb.byteLength === undefined) {
-          console.log("Uint8 false byteLength", Object.keys(a)[i], itema, itemb);
           return false;
         }
         if(!TsDemuxer.compaireArray(itema, itemb, 'Uint8Array')) {
-          console.log("Uint8 false", Object.keys(a)[i],itema, itemb);
           return false;
         }
       } else if (itema.length !== undefined){
         if(itemb.length === undefined) {
-          console.log("Array false",  Object.keys(a)[i],itema, itemb);
           return false;
         }
         if(!TsDemuxer.compaireArray(itema, itemb, 'Array')) {
-          console.log("Array false",  Object.keys(a)[i], itema, itemb);
           return false;
         }
       } else {

@@ -345,7 +345,7 @@ class FlvDemuxer {
     let meta = track.meta
 
     if (!meta) {
-      meta = new AudioTrackMeta()
+      track.meta = new AudioTrackMeta()
     }
 
     let info = this.loaderBuffer.shift(1)[0]
@@ -400,6 +400,7 @@ class FlvDemuxer {
         this.emit(DEMUX_EVENTS.METADATA_PARSED, 'audio')
       } else if (this._hasScript && this._hasAudioSequence) {
         this.emit(DEMUX_EVENTS.AUDIO_METADATA_CHANGE)
+        this.emit(DEMUX_EVENTS.METADATA_PARSED, 'audio')
       }
       ;
       this._hasAudioSequence = true
@@ -491,6 +492,7 @@ class FlvDemuxer {
             this.emit(DEMUX_EVENTS.METADATA_PARSED, 'video')
           } else if (this._hasScript && this._hasVideoSequence) {
             this.emit(DEMUX_EVENTS.VIDEO_METADATA_CHANGE)
+            this.emit(DEMUX_EVENTS.METADATA_PARSED, 'video')
           }
           this._hasVideoSequence = true
         }
