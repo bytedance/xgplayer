@@ -23,6 +23,8 @@ class Compatibility {
     this.filledAudioSamples = [] // 补充音频帧（）
     this.filledVideoSamples = [] // 补充视频帧（）
 
+    this._videoLargeGap = 0
+    this._audioLargeGap = 0
   }
 
   init () {
@@ -52,8 +54,6 @@ class Compatibility {
   doFix () {
     const { isFirstAudioSamples, isFirstVideoSamples } = this.getFirstSample()
 
-    this.removeInvalidSamples()
-
     this.recordSamplesCount()
 
     if (this._firstVideoSample) {
@@ -65,6 +65,9 @@ class Compatibility {
 
     this.doFixVideo(isFirstVideoSamples)
     this.doFixAudio(isFirstAudioSamples)
+
+    // this.removeInvalidSamples()
+
   }
 
   doFixVideo (first) {
@@ -81,9 +84,20 @@ class Compatibility {
     // console.log(`video lastSample, ${videoSamples[videoSamples.length - 1].dts}`)
 
     const firstSample = videoSamples[0]
-    const firstDts = firstSample.dts
 
     const samplesLen = videoSamples.length;
+
+    // step0.修复hls流出现巨大gap，需要强制重定位的问题
+    if (this._videoLargeGap > 0) {
+      Compatibility.doFixLargeGap(videoSamples, this._videoLargeGap)
+    }
+    if (firstSample.dts !== this._firstVideoSample.dts && Compatibility.detectLargeGap(this.nextVideoDts, firstSample.dts)) {
+      this._videoLargeGap = this.nextVideoDts - firstSample.dts
+      console.log(`nextDts`, this.nextVideoDts, 'firstSampleDts', firstSample.dts)
+      Compatibility.doFixLargeGap(videoSamples, this._videoLargeGap)
+    }
+
+    const firstDts = firstSample.dts
 
     // step1. 修复与audio首帧差距太大的问题
     if (first && this._firstAudioSample) {
@@ -202,9 +216,17 @@ class Compatibility {
 
     const firstSample = this._firstAudioSample
 
+    const _firstSample = audioSamples[0]
     // 对audioSamples按照dts做排序
     // audioSamples = Compatibility.sortAudioSamples(audioSamples)
+    if (this._audioLargeGap > 0) {
+      Compatibility.doFixLargeGap(audioSamples, this._audioLargeGap)
+    }
 
+    if (_firstSample.dts !== this._firstAudioSample.dts && Compatibility.detectLargeGap(this.nextAudioDts, _firstSample.dts)) {
+      this._audioLargeGap = this.nextAudioDts - _firstSample.dts
+      Compatibility.doFixLargeGap(audioSamples, this._audioLargeGap)
+    }
     // step0. 首帧与video首帧间距大的问题
     if (this._firstVideoSample && first) {
       const videoFirstPts = this._firstVideoSample.pts ? this._firstVideoSample.pts : this._firstVideoSample.dts + this._firstVideoSample.cts
@@ -429,6 +451,20 @@ class Compatibility {
     for (let i = 0, len = sorted.length; i < len; i++) {
       if (sorted[i].isKeyframe) {
         return sorted[i]
+      }
+    }
+  }
+
+  static detectLargeGap (nextDts, curDts) {
+    return nextDts - curDts >= 1000 || curDts - nextDts >= 200 // fix hls流出现大量流dts间距问题
+  }
+
+  static doFixLargeGap (samples, gap) {
+    for (let i = 0, len = samples.length; i < len; i++) {
+      const sample = samples[i];
+      sample.dts += gap
+      if (sample.pts) {
+        sample.pts += gap
       }
     }
   }

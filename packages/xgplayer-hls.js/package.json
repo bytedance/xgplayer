@@ -6,7 +6,8 @@
   "scripts": {
     "prepare": "npm run build",
     "build": "webpack --progress --display-chunks -p",
-    "watch": "webpack --progress --display-chunks -p --watch"
+    "watch": "webpack --progress --display-chunks -p --watch",
+    "dev": "webpack --progress --display-chunks --mode development"
   },
   "repository": {
     "type": "git",

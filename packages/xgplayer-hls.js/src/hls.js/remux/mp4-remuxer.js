@@ -375,6 +375,7 @@ class MP4Remuxer {
       }
 
       // console.log('PTS/DTS/initDTS/normPTS/normDTS/relative PTS : ${avcSample.pts}/${avcSample.dts}/${initDTS}/${ptsnorm}/${dtsnorm}/${(avcSample.pts/4294967296).toFixed(3)}');
+      console.log(`avcSample.dts: ${avcSample.dts / 90}, avcSample.pts: ${avcSample.pts / 90}, mp4SampleDuration: ${mp4SampleDuration / 90}`, avcSample)
       outputSamples.push({
         size: mp4SampleLength,
         // constant duration
