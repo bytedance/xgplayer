@@ -47,6 +47,11 @@ export default class Mp4Remuxer {
     this._remuxAudio(audioTrack)
   }
 
+  resetDtsBase () {
+    // for hls 中途切换 meta后seek
+    this._dtsBase = 0
+  }
+
   seek () {
     this._videoNextDts = null
     this._audioNextDts = null
@@ -81,6 +86,8 @@ export default class Mp4Remuxer {
     source.mimetype = track.meta.codec;
     source.init = initSegment;
     source.inited = false;
+
+    this.resetDtsBase()
     this.emit(REMUX_EVENTS.INIT_SEGMENT, type)
   }
 

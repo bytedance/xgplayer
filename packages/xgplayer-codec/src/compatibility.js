@@ -32,8 +32,8 @@ class Compatibility {
   }
 
   reset () {
-    this.nextAudioDts = 0 // 模拟下一段音频数据的dts
-    this.nextVideoDts = 0 // 模拟下一段视频数据的dts
+    this.nextAudioDts = 0 // 估算下一段音频数据的dts
+    this.nextVideoDts = 0 // 估算下一段视频数据的dts
 
     this.lastAudioSamplesLen = 0 // 上一段音频数据的长度
     this.lastVideoSamplesLen = 0 // 上一段视频数据的长度
@@ -41,11 +41,11 @@ class Compatibility {
     this.lastVideoDts = undefined // 上一段音频数据的长度
     this.lastAudioDts = undefined // 上一段视频数据的长度
 
-    this.allAudioSamplesCount = 0 // 音频总数据量(原始帧)
-    this.allVideoSamplesCount = 0 // 视频总数据量(原始帧)
+    // this.allAudioSamplesCount = 0 // 音频总数据量(原始帧)
+    // this.allVideoSamplesCount = 0 // 视频总数据量(原始帧)
 
-    this._firstAudioSample = null
-    this._firstVideoSample = null
+    // this._firstAudioSample = null
+    // this._firstVideoSample = null
 
     this.filledAudioSamples = [] // 补充音频帧（）
     this.filledVideoSamples = [] // 补充视频帧（）
@@ -67,7 +67,6 @@ class Compatibility {
     this.doFixAudio(isFirstAudioSamples)
 
     // this.removeInvalidSamples()
-
   }
 
   doFixVideo (first) {
@@ -90,6 +89,10 @@ class Compatibility {
     // step0.修复hls流出现巨大gap，需要强制重定位的问题
     if (this._videoLargeGap > 0) {
       Compatibility.doFixLargeGap(videoSamples, this._videoLargeGap)
+    }
+
+    if (this.nextVideoDts === 0 && firstSample.options && firstSample.options.start) {
+      this.nextVideoDts = firstSample.options.start // FIX: Hls中途切codec，在如果直接seek到后面的点会导致largeGap计算失败
     }
     if (firstSample.dts !== this._firstVideoSample.dts && Compatibility.detectLargeGap(this.nextVideoDts, firstSample)) {
       this._videoLargeGap = this.nextVideoDts - firstSample.dts
@@ -223,6 +226,9 @@ class Compatibility {
       Compatibility.doFixLargeGap(audioSamples, this._audioLargeGap)
     }
 
+    if (this.nextAudioDts === 0 && _firstSample.options && _firstSample.options.start) {
+      this.nextAudioDts = _firstSample.options.start // FIX: Hls中途切codec，在如果直接seek到后面的点会导致largeGap计算失败
+    }
     if (_firstSample.dts !== this._firstAudioSample.dts && Compatibility.detectLargeGap(this.nextAudioDts, _firstSample)) {
       this._audioLargeGap = this.nextAudioDts - _firstSample.dts
       Compatibility.doFixLargeGap(audioSamples, this._audioLargeGap)
