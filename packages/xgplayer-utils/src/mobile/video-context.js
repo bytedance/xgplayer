@@ -16,20 +16,24 @@ class VideoCanvas {
 
   initWasmWorker() {
     let _this = this;
-    this.wasmworker = Workerify(require.resolve('./decoder_em.js'));
+    this.wasmworker = Workerify(require.resolve('./decoder.js'));
+    this.wasmworker.postMessage({
+      msg: 'init'
+    })
     this.wasmworker.addEventListener('message', msg => {
       switch(msg.data.msg) {
-        case 'WASM_LOADED':
+        case 'DECODER_READY':
           _this._decoderInited = true;
           break;
         case 'DECODED':
-          console.log('decoded', msg.data);
+          console.log('decoded', msg.data.data, msg.data.width, msg.data.height, msg.data.info);
           break;
       }
     });
   }
 
   setVideoMetaData(meta) {
+    console.log(meta);
     this.meta = meta;
     if(!this._decoderInited) {
       return
@@ -40,7 +44,7 @@ class VideoCanvas {
     data.set(meta.sps, 4);
     this.wasmworker.postMessage({
       msg: 'decode',
-      data: data.buffer
+      data: data
     })
 
     data = new Uint8Array(meta.pps.byteLength + 4);
@@ -48,7 +52,7 @@ class VideoCanvas {
     data.set(meta.pps, 4);
     this.wasmworker.postMessage({
       msg: 'decode',
-      data: data.buffer
+      data: data
     })
   }
 
@@ -86,7 +90,11 @@ class VideoCanvas {
     }
     this.wasmworker.postMessage({
       msg: 'decode',
-      data: data.buffer
+      data: data,
+      info: {
+        dts: sample.dts,
+        pts: sample.pts
+      }
     })
   }
   

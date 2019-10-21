@@ -23,7 +23,6 @@ class MobileVideo extends HTMLElement {
   }
   
   setVideoMeta (meta) {
-    console.log(meta);
     this.vCtx.setVideoMetaData(meta);
   }
 
