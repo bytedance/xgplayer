@@ -133,6 +133,7 @@ class FetchLoader {
       _this.emit(LOADER_EVENTS.LOADER_DATALOADED, buffer)
       return _this._onReader(reader, taskno)
     }).catch((error) => {
+      console.error(error);
       _this.emit(LOADER_EVENTS.LOADER_ERROR, _this, error);
       _this.loading = false;
     })

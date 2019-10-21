@@ -25,5 +25,7 @@ module.exports = {
 
   // Modules from write
   Stream: require('./src/write/stream').default,
-  Buffer: require('./src/write/buffer').default
+  Buffer: require('./src/write/buffer').default,
+
+  MobileVideo: require('./src/mobile/mobile-video')
 };

@@ -1,46 +1,77 @@
-const webpackMerge = require('webpack-merge')
-const { umd, client } = require('../../webpack.config')
+const polyfill = []
 
-const buildUMD = webpackMerge(umd, {
+const umd = {
+  entry:  {index:polyfill.concat(['./src/index.js']), mobile:polyfill.concat(['./src/mobile.js'])},
   output: {
     path: `${__dirname}/dist`,
-    filename: 'index.js',
+    filename: '[name].js',
     library: 'xgplayer-flv',
     libraryTarget: 'umd'
   },
-  mode: 'production'
-})
+  mode: 'production',
+  module: {
+    rules: [{
+      test: /\.js$/,
+      loader: 'babel-loader'
+    }, {
+      test: /\.scss$/,
+      use: [
+        'style-loader',
+        {
+          loader: 'css-loader',
+          options: {
+            importLoaders: 1,
+            minimize: true
+          }
+        },
+        'postcss-loader',
+        'sass-loader'
+      ]
+    }]
+  },
+  externals: {
+    'xgplayer': 'xgplayer'
+  },
+  optimization: {
+    minimize: true
+  }
+}
 
-const buildClient = webpackMerge(client, {
+const client = {
+  entry: {index:polyfill.concat(['./src/index.js']), mobile:polyfill.concat(['./src/mobile.js'])},
   output: {
     path: `${__dirname}/browser`,
-    filename: 'index.js',
+    filename: '[name].js',
     library: 'FlvPlayer',
     libraryTarget: 'window'
   },
-  mode: 'production'
-})
-
-const buildMobileUMD = webpackMerge(umd, {
-  entry: ['./src/mobile.js'],
-  output: {
-    path: `${__dirname}/dist`,
-    filename: 'index.umd.js',
-    library: 'xgplayer-flv',
-    libraryTarget: 'umd'
+  module: {
+    rules: [{
+      test: /\.js$/,
+      loader: 'babel-loader'
+    }, {
+      test: /\.scss$/,
+      use: [
+        'style-loader',
+        {
+          loader: 'css-loader',
+          options: {
+            importLoaders: 1,
+            minimize: true
+          }
+        },
+        'postcss-loader',
+        'sass-loader'
+      ]
+    }]
   },
-  mode: 'production'
-})
-
-const buildMobileClient = webpackMerge(client, {
-  entry: ['./src/mobile.js'],
-  output: {
-    path: `${__dirname}/browser`,
-    filename: 'index.js',
-    library: 'FlvPlayer',
-    libraryTarget: 'window'
+  externals: {
+    'xgplayer': 'Player'
   },
-  mode: 'production'
-})
+  mode: 'production',
+  optimization: {
+    minimize: true
+  }
+}
 
-module.exports = [buildUMD, buildClient, buildMobileUMD, buildMobileClient]
+module.exports = [umd, client]

@@ -15,6 +15,7 @@
   "devDependencies": {
     "webpack": "^4.41.0",
     "webpack-merge": "^4.2.2",
+    "xgplayer": "^1.1.6-alpha.0",
     "xgplayer-buffer": "^1.1.6-alpha.0",
     "xgplayer-codec": "^1.1.6-alpha.0",
     "xgplayer-demux": "^1.1.6-alpha.0",

@@ -13,7 +13,8 @@ class FlvPlayer extends Player {
   start () {
     this.initFlv()
     this.context.init()
-    super.start()
+    this.flv.seek(0);
+    //super.start()
   }
 
   initFlvEvents (flv) {
@@ -87,7 +88,6 @@ class FlvPlayer extends Player {
       this.flv.seek(time)
     }
   }
-
   destroy () {
     this._destroy()
     super.destroy();

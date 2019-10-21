@@ -2,7 +2,7 @@ import { FetchLoader } from 'xgplayer-loader'
 import { FlvDemuxer } from 'xgplayer-demux'
 import { Mp4Remuxer } from 'xgplayer-remux'
 import { Tracks, XgBuffer, PreSource } from 'xgplayer-buffer'
-import { EVENTS } from 'xgplayer-utils'
+import { EVENTS, MobileVideo } from 'xgplayer-utils'
 import { Compatibility } from 'xgplayer-codec'
 import Player from 'xgplayer'
 
@@ -21,6 +21,10 @@ export default class FlvController {
     this.TAG = Tag
     this._player = player
 
+    // TODO 临时挂的 需要处理到Player层
+    // this.video = document.createElement('mobile-video');
+    this._player.video = document.createElement('mobile-video');
+    this.video = this._player.video;
     this.state = {
       initSegmentArrived: false
     }
@@ -72,33 +76,25 @@ export default class FlvController {
         this._setMetaToAudio(audioTrack.meta)
       }
     } else {
-      this.emit(REMUX_EVENTS.REMUX_METADATA, type)
+      const { videoTrack } = this._context.getInstance('TRACKS')
+      if (videoTrack && videoTrack.meta) {
+        this._setMetaToVideo(videoTrack.meta)
+      }
     }
   }
 
   _handleDemuxComplete () {
-    const { videoTrack, audioTrack } = this._context.getInstance('TRACKS')
-
-    // 处理视频gop
-    FlvController.resolveVideoGOP(videoTrack)
-
-    // 将音频帧交给audioContext，不走remux封装
-    const audioSamples = audioTrack.samples;
-    audioTrack.samples = [];
-
-    this._setAACToAudio(audioSamples)
-
-    this.emit(REMUX_EVENTS.REMUX_MEDIA)
+    if(this._player.video) {
+      const { videoTrack, audioTrack } = this._context.getInstance('TRACKS');
+      this._player.video.onDemuxComplete(videoTrack, audioTrack);
+    }
   }
 
   _handleAppendInitSegment () {
     this.state.initSegmentArrived = true
-    this.mse.addSourceBuffers()
+  //  this.mse.addSourceBuffers()
   }
 
-  _handleMediaSegment (type) {
-
-  }
 
   _handleNetworkError () {
     this._player.emit('error', new Player.Errors('network', this._player.config.url))
@@ -108,21 +104,16 @@ export default class FlvController {
     this._player.emit('error', new Player.Errors('parse', this._player.config.url))
   }
 
-  _setMp4ToVideo (mp4Segment) {
-    if (this._player.video) {
-      this._player.video._setVideoSegment(mp4Segment);
-    }
-  }
-
+ 
   _setMetaToAudio (audioMeta) {
     if (this._player.video) {
-      this._player.video._setAudioMeta(audioMeta);
+      this._player.video.setAudioMeta(audioMeta);
     }
   }
 
-  _setAACToAudio (aacSamples) {
+  _setMetaToVideo (videoMeta) {
     if (this._player.video) {
-      this._player.video._setAudioSamples(aacSamples);
+      this._player.video.setVideoMeta(videoMeta);
     }
   }
 

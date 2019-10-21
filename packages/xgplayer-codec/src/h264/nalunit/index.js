@@ -40,7 +40,7 @@ class Nalunit {
   static getAvccNals (buffer) {
     let nals = [];
     while (buffer.position < buffer.length - 4) {
-      let length = buffer.dataview.getInt32();
+      let length = buffer.dataview.getInt32(buffer.position);
       if (buffer.length - buffer.position >= length) {
         let header = buffer.buffer.slice(buffer.position, buffer.position + 4);
         buffer.skip(4)

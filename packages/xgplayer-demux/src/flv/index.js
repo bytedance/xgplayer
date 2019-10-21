@@ -385,6 +385,7 @@ class FlvDemuxer {
       meta.refSampleDuration = refSampleDuration
       meta.duration = this._context.mediaInfo.duration * meta.timescale
       meta.config = aacHeader.config
+      meta.objectType = aacHeader.objectType;
 
       const audioMedia = this._context.mediaInfo.audio
 
