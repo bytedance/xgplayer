@@ -125,9 +125,9 @@ class TsDemuxer {
     });
     meta.refSampleDuration = Math.floor(1024 / meta.audioSampleRate * meta.timescale);
 
-    let metachanged = TsDemuxer.compaireMeta(track.meta, meta, true);
+    let metaEqual = TsDemuxer.compaireMeta(track.meta, meta, true);
 
-    if (!this._hasAudioMeta || metachanged) {
+    if (!this._hasAudioMeta || !metaEqual) {
       track.meta = meta;
       this._hasAudioMeta = true
       this.emit(DEMUX_EVENTS.METADATA_PARSED, 'audio');
@@ -187,9 +187,9 @@ class TsDemuxer {
 
     if (sps && pps) {
       meta.avcc = Nalunit.getAvcc(sps.body, pps.body);
-      track.meta = meta;
-      let metachanged = TsDemuxer.compaireMeta(track.meta, meta, true);
-      if (!this._hasVideoMeta || metachanged) {
+      let metaEqual = TsDemuxer.compaireMeta(track.meta, meta, true);
+      if (!this._hasVideoMeta || !metaEqual) {
+        track.meta = meta;
         this._hasVideoMeta = true
         this.emit(DEMUX_EVENTS.METADATA_PARSED, 'video');
       }
@@ -528,7 +528,7 @@ class TsDemuxer {
   static PES (ts) {
     let ret = {};
     let buffer = ts.payload.stream;
-    
+
     let next = buffer.readUint24();
     if (next !== 1) {
       ret.ES = {};

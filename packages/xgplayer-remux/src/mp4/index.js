@@ -50,6 +50,7 @@ export default class Mp4Remuxer {
   resetDtsBase () {
     // for hls 中途切换 meta后seek
     this._dtsBase = 0
+    this._dtsBaseInited = false
   }
 
   seek () {

@@ -1,7 +1,7 @@
 import {EVENTS} from 'xgplayer-utils'
 import AAC from './aac/aac-helper'
 
-const {REMUX_EVENTS} = EVENTS
+const {REMUX_EVENTS, DEMUX_EVENTS} = EVENTS
 
 class Compatibility {
   constructor () {
@@ -29,11 +29,15 @@ class Compatibility {
 
   init () {
     this.before(REMUX_EVENTS.REMUX_MEDIA, this.doFix.bind(this))
+    this.on(DEMUX_EVENTS.METADATA_PARSED, () => {
+      this.nextAudioDts = 0
+      this.nextVideoDts = 0
+    })
   }
 
   reset () {
-    this.nextAudioDts = 0 // 估算下一段音频数据的dts
-    this.nextVideoDts = 0 // 估算下一段视频数据的dts
+    this.nextAudioDts = null // 估算下一段音频数据的dts
+    this.nextVideoDts = null // 估算下一段视频数据的dts
 
     this.lastAudioSamplesLen = 0 // 上一段音频数据的长度
     this.lastVideoSamplesLen = 0 // 上一段视频数据的长度
@@ -91,10 +95,10 @@ class Compatibility {
       Compatibility.doFixLargeGap(videoSamples, this._videoLargeGap)
     }
 
-    if (this.nextVideoDts === 0 && firstSample.options && firstSample.options.start) {
-      this.nextVideoDts = firstSample.options.start // FIX: Hls中途切codec，在如果直接seek到后面的点会导致largeGap计算失败
-    }
     if (firstSample.dts !== this._firstVideoSample.dts && Compatibility.detectLargeGap(this.nextVideoDts, firstSample)) {
+      if (firstSample.options && firstSample.options.start) {
+        this.nextVideoDts = firstSample.options.start // FIX: Hls中途切codec，在如果直接seek到后面的点会导致largeGap计算失败
+      }
       this._videoLargeGap = this.nextVideoDts - firstSample.dts
       console.log(`nextDts`, this.nextVideoDts, 'firstSampleDts', firstSample.dts)
       Compatibility.doFixLargeGap(videoSamples, this._videoLargeGap)
@@ -226,10 +230,10 @@ class Compatibility {
       Compatibility.doFixLargeGap(audioSamples, this._audioLargeGap)
     }
 
-    if (this.nextAudioDts === 0 && _firstSample.options && _firstSample.options.start) {
-      this.nextAudioDts = _firstSample.options.start // FIX: Hls中途切codec，在如果直接seek到后面的点会导致largeGap计算失败
-    }
     if (_firstSample.dts !== this._firstAudioSample.dts && Compatibility.detectLargeGap(this.nextAudioDts, _firstSample)) {
+      if (_firstSample.options && _firstSample.options.start) {
+        this.nextAudioDts = _firstSample.options.start // FIX: Hls中途切codec，在如果直接seek到后面的点会导致largeGap计算失败
+      }
       this._audioLargeGap = this.nextAudioDts - _firstSample.dts
       Compatibility.doFixLargeGap(audioSamples, this._audioLargeGap)
     }
@@ -462,6 +466,9 @@ class Compatibility {
   }
 
   static detectLargeGap (nextDts, firstSample) {
+    if (nextDts === null) {
+      return;
+    }
     const curDts = firstSample.dts || 0
     const cond1 = nextDts - curDts >= 1000 || curDts - nextDts >= 200 // fix hls流出现大量流dts间距问题
     const cond2 = firstSample.options && firstSample.options.discontinue
