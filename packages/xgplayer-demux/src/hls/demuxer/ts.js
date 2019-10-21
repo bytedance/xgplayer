@@ -96,6 +96,7 @@ class TsDemuxer {
         }
       }
     }
+
     if (this._hasAudioMeta) {
       this.emit(DEMUX_EVENTS.DEMUX_COMPLETE, 'audio');
     }
@@ -124,7 +125,8 @@ class TsDemuxer {
     });
     meta.refSampleDuration = Math.floor(1024 / meta.audioSampleRate * meta.timescale);
 
-    let metachanged = TsDemuxer.compaireMeta(track.meta, meta);
+    let metachanged = TsDemuxer.compaireMeta(track.meta, meta, true);
+
     if (!this._hasAudioMeta || metachanged) {
       track.meta = meta;
       this._hasAudioMeta = true
@@ -186,7 +188,7 @@ class TsDemuxer {
     if (sps && pps) {
       meta.avcc = Nalunit.getAvcc(sps.body, pps.body);
       track.meta = meta;
-      let metachanged = TsDemuxer.compaireMeta(track.meta, meta);
+      let metachanged = TsDemuxer.compaireMeta(track.meta, meta, true);
       if (!this._hasVideoMeta || metachanged) {
         this._hasVideoMeta = true
         this.emit(DEMUX_EVENTS.METADATA_PARSED, 'video');
@@ -257,16 +259,16 @@ class TsDemuxer {
     return true;
   }
 
-  static compaireMeta(a, b) {
+  static compaireMeta(a, b, ignoreDuration) {
     if(!a || !b) {
       return false;
     }
 
     for(let i=0, k=Object.keys(a).length;i<k;i++) {
       let itema = a[Object.keys(a)[i]];
-      let itemb = b[Object.keys(b)[i]];
+      let itemb = b[Object.keys(a)[i]];
       if(typeof itema !== "object") {
-        if(itema !== itemb) {
+        if((ignoreDuration && Object.keys(a)[i] !== 'duration') && itema !== itemb ) {
           return false;
         }
       } else if (itema.byteLength !== undefined){
