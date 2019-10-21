@@ -100,7 +100,6 @@ class Compatibility {
         this.nextVideoDts = firstSample.options.start // FIX: Hls中途切codec，在如果直接seek到后面的点会导致largeGap计算失败
       }
       this._videoLargeGap = this.nextVideoDts - firstSample.dts
-      console.log(`nextDts`, this.nextVideoDts, 'firstSampleDts', firstSample.dts)
       Compatibility.doFixLargeGap(videoSamples, this._videoLargeGap)
     }
 
