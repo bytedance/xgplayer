@@ -56,7 +56,7 @@ class TsDemuxer {
 
     // Read TS segment
     while (buffer.length >= 188) {
-      if(buffer.length >= 1 && buffer.array[0][buffer.offset] !== 71) {
+      if (buffer.length >= 1 && buffer.array[0][buffer.offset] !== 71) {
         this.emit(DEMUX_EVENTS.DEMUX_ERROR, this.TAG, new Error(`Untrust sync code: ${buffer.array[0][buffer.offset]}, try to recover;`), false);
       }
       while (buffer.length >= 1 && buffer.array[0][buffer.offset] !== 71) {
@@ -240,10 +240,10 @@ class TsDemuxer {
   static compaireArray (a, b, type) {
     let al = 0;
     let bl = 0;
-    if(type === 'Uint8Array') {
+    if (type === 'Uint8Array') {
       al = a.byteLength;
       bl = b.byteLength;
-    } else if(type === 'Array') {
+    } else if (type === 'Array') {
       al = a.length;
       bl = b.length;
     }
@@ -259,34 +259,34 @@ class TsDemuxer {
     return true;
   }
 
-  static compaireMeta(a, b, ignoreDuration) {
-    if(!a || !b) {
+  static compaireMeta (a, b, ignoreDuration) {
+    if (!a || !b) {
       return false;
     }
 
-    for(let i=0, k=Object.keys(a).length;i<k;i++) {
+    for (let i = 0, k = Object.keys(a).length; i < k; i++) {
       let itema = a[Object.keys(a)[i]];
       let itemb = b[Object.keys(a)[i]];
-      if(typeof itema !== "object") {
-        if((ignoreDuration && Object.keys(a)[i] !== 'duration') && itema !== itemb ) {
+      if (typeof itema !== 'object') {
+        if ((ignoreDuration && Object.keys(a)[i] !== 'duration' && Object.keys(a)[i] !== 'refSampleDuration' && Object.keys(a)[i] !== 'refSampleDurationFixed') && itema !== itemb) {
           return false;
         }
-      } else if (itema.byteLength !== undefined){
-        if(itemb.byteLength === undefined) {
+      } else if (itema.byteLength !== undefined) {
+        if (itemb.byteLength === undefined) {
           return false;
         }
-        if(!TsDemuxer.compaireArray(itema, itemb, 'Uint8Array')) {
+        if (!TsDemuxer.compaireArray(itema, itemb, 'Uint8Array')) {
           return false;
         }
-      } else if (itema.length !== undefined){
-        if(itemb.length === undefined) {
+      } else if (itema.length !== undefined) {
+        if (itemb.length === undefined) {
           return false;
         }
-        if(!TsDemuxer.compaireArray(itema, itemb, 'Array')) {
+        if (!TsDemuxer.compaireArray(itema, itemb, 'Array')) {
           return false;
         }
       } else {
-        if(!TsDemuxer.compaireMeta(itema, itemb)) {
+        if (!TsDemuxer.compaireMeta(itema, itemb)) {
           return false;
         }
       }
@@ -718,27 +718,27 @@ class TsDemuxer {
       if (sampleIndex >= 6) {
         ret.audioObjectType = 5;
         config = new Array(4);
-        extensionSampleIndex =  ret.frequencyIndex - 3;
+        extensionSampleIndex = ret.frequencyIndex - 3;
       } else {
         audioObjectType = 2;
         config = new Array(2);
-        extensionSampleIndex =  ret.frequencyIndex;
+        extensionSampleIndex = ret.frequencyIndex;
       }
     } else if (userAgent.indexOf('android') !== -1) {
       ret.audioObjectType = 2;
       config = new Array(2);
-      extensionSampleIndex =  ret.frequencyIndex;
+      extensionSampleIndex = ret.frequencyIndex;
     } else {
       ret.audioObjectType = 5;
       config = new Array(4);
       if (ret.frequencyIndex >= 6) {
-        extensionSampleIndex =  ret.frequencyIndex - 3;
+        extensionSampleIndex = ret.frequencyIndex - 3;
       } else {
         if (ret.channel === 1) {
           ret.audioObjectType = 2;
           config = new Array(2);
         }
-        extensionSampleIndex =  ret.frequencyIndex;
+        extensionSampleIndex = ret.frequencyIndex;
       }
     }
 

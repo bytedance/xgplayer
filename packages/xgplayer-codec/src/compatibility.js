@@ -96,7 +96,7 @@ class Compatibility {
     }
 
     if (firstSample.dts !== this._firstVideoSample.dts && Compatibility.detectLargeGap(this.nextVideoDts, firstSample)) {
-      if (firstSample.options && firstSample.options.start) {
+      if (!this.nextVideoDts && firstSample.options && firstSample.options.start) {
         this.nextVideoDts = firstSample.options.start // FIX: Hls中途切codec，在如果直接seek到后面的点会导致largeGap计算失败
       }
       this._videoLargeGap = this.nextVideoDts - firstSample.dts
@@ -160,6 +160,9 @@ class Compatibility {
         videoSamples[0].originDts = videoSamples[0].dts
         videoSamples[0].cts = videoSamples[0].cts !== undefined ? videoSamples[0].cts : videoSamples[0].pts - videoSamples[0].dts
         videoSamples[0].pts = videoSamples[0].dts + videoSamples[0].cts
+      } else if (gap < 0) {
+        // 出现
+        Compatibility.doFixLargeGap(videoSamples, (-1 * gap))
       }
     }
     const lastDts = videoSamples[videoSamples.length - 1].dts;
@@ -230,7 +233,7 @@ class Compatibility {
     }
 
     if (_firstSample.dts !== this._firstAudioSample.dts && Compatibility.detectLargeGap(this.nextAudioDts, _firstSample)) {
-      if (_firstSample.options && _firstSample.options.start) {
+      if (!this.nextAudioDts && _firstSample.options && _firstSample.options.start) {
         this.nextAudioDts = _firstSample.options.start // FIX: Hls中途切codec，在如果直接seek到后面的点会导致largeGap计算失败
       }
       this._audioLargeGap = this.nextAudioDts - _firstSample.dts
@@ -299,6 +302,8 @@ class Compatibility {
         // console.log('重定位音频帧dts', audioSamples[0].dts, this.nextAudioDts)
         audioSamples[0].dts = this.nextAudioDts
         audioSamples[0].pts = this.nextAudioDts
+      } else if (gap < 0) {
+        Compatibility.doFixLargeGap(audioSamples, (-1 * gap))
       }
     }
     const lastDts = audioSamples[audioSamples.length - 1].dts;
@@ -469,7 +474,7 @@ class Compatibility {
       return;
     }
     const curDts = firstSample.dts || 0
-    const cond1 = nextDts - curDts >= 1000 || curDts - nextDts >= 200 // fix hls流出现大量流dts间距问题
+    const cond1 = nextDts - curDts >= 1000 || curDts - nextDts >= 1000 // fix hls流出现大量流dts间距问题
     const cond2 = firstSample.options && firstSample.options.discontinue
 
     return cond1 || cond2
