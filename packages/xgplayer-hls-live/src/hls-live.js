@@ -26,6 +26,7 @@ class HlsLiveController {
     this._timmer = setInterval(this._checkStatus.bind(this), 50);
     this._lastCheck = 0;
     this._player = this.configs.player;
+    this.m3u8Text = null
   }
 
   init () {
@@ -117,7 +118,8 @@ class HlsLiveController {
     if (buffer.TAG === 'M3U8_BUFFER') {
       let mdata;
       try {
-        mdata = M3U8Parser.parse(buffer.shift(), this.baseurl);
+        this.m3u8Text = buffer.shift();
+        mdata = M3U8Parser.parse(this.m3u8, this.baseurl);
       } catch (error) {
         this._onError('M3U8_PARSER_ERROR', 'M3U8_PARSER', error, false);
       }
@@ -258,6 +260,7 @@ class HlsLiveController {
     this.off(DEMUX_EVENTS.DEMUX_COMPLETE, this._onDemuxComplete);
 
     this.mse = null
+    this.m3u8Text = null
   }
 }
 export default HlsLiveController;

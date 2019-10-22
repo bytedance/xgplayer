@@ -24,6 +24,7 @@ class HlsVodController {
     this.preloadTime = this.configs.preloadTime || 5;
     this._lastSeekTime = 0;
     this._player = this.configs.player;
+    this.m3u8Text = null
   }
 
   init () {
@@ -54,7 +55,7 @@ class HlsVodController {
 
   initEvents () {
     this.on(LOADER_EVENTS.LOADER_COMPLETE, this._onLoaderCompete.bind(this));
-    
+
     this.on(LOADER_EVENTS.LOADER_ERROR, this._onLoadError.bind(this))
 
     this.on(REMUX_EVENTS.INIT_SEGMENT, this._onInitSegment.bind(this));
@@ -83,7 +84,7 @@ class HlsVodController {
     }
     this._player && this._player.emit(HLS_ERROR, error);
   }
-  
+
   _onLoadError (mod, error) {
     this._onError(LOADER_EVENTS.LOADER_ERROR, mod, error, true);
     this.emit(HLS_EVENTS.RETRY_TIME_EXCEEDED)
@@ -153,7 +154,8 @@ class HlsVodController {
 
   _onLoaderCompete (buffer) {
     if (buffer.TAG === 'M3U8_BUFFER') {
-      let mdata = M3U8Parser.parse(buffer.shift(), this.baseurl);
+      this.m3u8Text = buffer.shift()
+      let mdata = M3U8Parser.parse(this.m3u8Text, this.baseurl);
       try {
         this._playlist.pushM3U8(mdata);
       } catch (error) {
@@ -316,7 +318,8 @@ class HlsVodController {
     this.retrytimes = 3;
     this.container = undefined;
     this.preloadTime = 5;
-    this._lastSeekTime = 0;
+    this._lastSeekTime = 0
+    this.m3u8Text = null;
     this.mse = null
 
     this.off(LOADER_EVENTS.LOADER_COMPLETE, this._onLoaderCompete);
