@@ -134,6 +134,24 @@ class Player extends Proxy {
     }
     player.once('play', this.playFunc)
 
+    this.getVideoSize = function () {
+      if(this.video.videoWidth && this.video.videoHeight) {
+        let containerSize = player.root.getBoundingClientRect()
+        if (player.config.fitVideoSize === 'auto') {
+          if(containerSize.width / containerSize.height > this.video.videoWidth / this.video.videoHeight) {
+            player.root.style.height = `${this.video.videoHeight / this.video.videoWidth * containerSize.width}px`
+          } else {
+            player.root.style.width = `${this.video.videoWidth / this.video.videoHeight * containerSize.height}px`
+          }
+        } else if (player.config.fitVideoSize === 'fixWidth') {
+          player.root.style.height = `${this.video.videoHeight / this.video.videoWidth * containerSize.width}px`
+        } else if (player.config.fitVideoSize === 'fixHeight') {
+          player.root.style.width = `${this.video.videoWidth / this.video.videoHeight * containerSize.height}px`
+        }
+      }
+    }
+    player.once('loadeddata', this.getVideoSize)
+
     setTimeout(() => {
       this.emit('ready')
     }, 0)
@@ -243,6 +261,9 @@ class Player extends Proxy {
     if(this.playFunc) {
       this.off('play', this.playFunc)
     }
+    if(this.getVideoSize) {
+      this.off('loadeddata', this.getVideoSize)
+    };
     ['focus', 'blur'].forEach(item => {
       this.off(item, this['on' + item.charAt(0).toUpperCase() + item.slice(1)])
     })
