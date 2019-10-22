@@ -249,7 +249,6 @@ export default class Mp4Remuxer {
       }
 
       // console.log('remux audio ', dts)
-      console.log(`dts ${dts}`, `duration: ${sampleDuration}`, sample)
       this.audioAllDuration += sampleDuration
       const mp4Sample = {
         dts,

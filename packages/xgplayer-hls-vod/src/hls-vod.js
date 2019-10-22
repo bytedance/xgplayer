@@ -114,9 +114,11 @@ class HlsVodController {
     if (end) {
       let ts = this._playlist.getTs(this.container.currentTime * 1000);
       if (!ts) {
+        this._player.emit('ended')
         this.mse.endOfStream();
       } else {
         if (ts.downloaded) {
+          this._player.emit('ended')
           this.mse.endOfStream();
         }
       }
