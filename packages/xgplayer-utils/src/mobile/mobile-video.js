@@ -4,8 +4,16 @@ import AudioCtx from './audio-context';
 class MobileVideo extends HTMLElement {
   constructor (config) {
     super();
+    let _this = this;
     this.vCtx = new VideoCtx();
     this.aCtx = new AudioCtx(config);
+
+    this.vCtx.oncanplay = function () {
+      _this.appendChild(_this.vCtx.canvas);
+      console.log('canplay', _this);
+      // eslint-disable-next-line no-undef
+      _this.dispatchEvent(new Event('canplay'));
+    }
     this.historyTime = 0;
   }
 
@@ -13,15 +21,15 @@ class MobileVideo extends HTMLElement {
 
   }
 
-  onDemuxComplete(videoTrack, audioTrack) {
-    // this.aCtx.decodeAudio(audioTrack);
+  onDemuxComplete (videoTrack, audioTrack) {
+    this.aCtx.decodeAudio(audioTrack);
     this.vCtx.decodeVideo(videoTrack);
   }
 
   setAudioMeta (meta) {
     this.aCtx.setAudioMetaData(meta);
   }
-  
+
   setVideoMeta (meta) {
     this.vCtx.setVideoMetaData(meta);
   }
@@ -30,9 +38,10 @@ class MobileVideo extends HTMLElement {
 
   }
 
-  play() {
+  play () {
     this.aCtx.play();
     this.vCtx.play();
   }
 }
+// eslint-disable-next-line no-undef
 customElements.define('mobile-video', MobileVideo);

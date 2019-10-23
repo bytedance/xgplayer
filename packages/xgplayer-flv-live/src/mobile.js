@@ -14,7 +14,8 @@ class FlvPlayer extends Player {
     this.initFlv()
     this.context.init()
     this.flv.seek(0);
-    //super.start()
+    super.start(this.config.url);
+    this.play();
   }
 
   initFlvEvents (flv) {
@@ -62,6 +63,7 @@ class FlvPlayer extends Player {
   }
 
   play () {
+    console.log('play');
     if (this._hasStart) {
       this._destroy()
       this.context = new Context(flvAllowedEvents)
