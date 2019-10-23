@@ -1,6 +1,7 @@
 class AudioCtx {
   constructor (config) {
-    this.config = Object.assign({},config);
+    this.config = Object.assign({}, config);
+    let AudioContext =  window.AudioContext || window.webkitAudioContext;
     this.context = new AudioContext();
     this.gainNode = this.context.createGain();
     this.gainNode.connect(this.context.destination);
@@ -24,7 +25,12 @@ class AudioCtx {
     return this._currentTime;
   }
 
-
+  decodeAudio (audioTrack) {
+    let {samples} = audioTrack;
+    let data = samples;
+    audioTrack.samples = [];
+    this.setAudioData(data); 
+  }
   setAudioData (data) {
     for(let i = 0;i < data.length; i++) {
       data[i].pts = (data[i].pts === undefined) ? data[i].dts : data[i].pts;
