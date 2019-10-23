@@ -715,12 +715,12 @@ class TsDemuxer {
     let config;
     let extensionSampleIndex;
     if (/firefox/i.test(userAgent)) {
-      if (sampleIndex >= 6) {
+      if (ret.frequencyIndex >= 6) {
         ret.audioObjectType = 5;
         config = new Array(4);
         extensionSampleIndex = ret.frequencyIndex - 3;
       } else {
-        audioObjectType = 2;
+        ret.audioObjectType = 2;
         config = new Array(2);
         extensionSampleIndex = ret.frequencyIndex;
       }
