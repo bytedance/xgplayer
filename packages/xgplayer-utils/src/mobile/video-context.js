@@ -16,7 +16,7 @@ class VideoCanvas {
 
   initWasmWorker() {
     let _this = this;
-    this.wasmworker = Workerify(require.resolve('./decoder.js'));
+    this.wasmworker = Workerify(require.resolve('./worker.js'));
     this.wasmworker.postMessage({
       msg: 'init'
     })
@@ -26,7 +26,7 @@ class VideoCanvas {
           _this._decoderInited = true;
           break;
         case 'DECODED':
-          console.log('decoded', msg.data.data, msg.data.width, msg.data.height, msg.data.info);
+          console.log('decoded', msg, msg.data.width, msg.data.height, msg.data.info);
           break;
       }
     });
@@ -67,11 +67,13 @@ class VideoCanvas {
     let { samples } = videoTrack;
     let sample =  samples.shift();
 
-    if(!sample) {
-      return;
+    while(sample) {
+      this._analyseNal(sample);
+      sample =  samples.shift();
     }
+  }
 
-    
+  _analyseNal(sample) {
     let nals = Nalunit.getAvccNals(new Stream(sample.data.buffer));
     
     let length = 0;
@@ -93,7 +95,7 @@ class VideoCanvas {
       data: data,
       info: {
         dts: sample.dts,
-        pts: sample.pts
+        pts: sample.pts ? sample.pts : sample.dts + sample.cts
       }
     })
   }

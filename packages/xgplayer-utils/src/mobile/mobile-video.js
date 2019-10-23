@@ -14,7 +14,7 @@ class MobileVideo extends HTMLElement {
   }
 
   onDemuxComplete(videoTrack, audioTrack) {
-    // this.aCtx.decodeAudio(audioTrack);
+    audioTrack.samples = [];
     this.vCtx.decodeVideo(videoTrack);
   }
 
