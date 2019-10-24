@@ -22,38 +22,31 @@ class Golomb {
     let bytesRead = Math.min(4, bufferBytesLeft)
     let word = new Uint8Array(4)
     word.set(this._buffer.subarray(this._bufferIndex, this._bufferIndex + bytesRead))
-    this._currentWord = new DataView(word.buffer).getUint32(0, false)
+    this._currentWord = new DataView(word.buffer).getUint32(0)
 
     this._bufferIndex += bytesRead
     this._currentWordBitsLeft = bytesRead * 8
   }
 
-  readBits (bits) {
-    if (bits > 32) {
-      // TODO
+  readBits (size) {
+    let bits = Math.min(this._currentWordBitsLeft, size);// :uint
+    let valu = this._currentWord >>> (32 - bits);
+    if (size > 32) {
+      throw new Error('Cannot read more than 32 bits at a time');
+    }
+    this._currentWordBitsLeft -= bits;
+    if (this._currentWordBitsLeft > 0) {
+      this._currentWord <<= bits;
+    } else if (this._totalBytes - this._bufferIndex > 0) {
+      this._fillCurrentWord();
     }
 
-    if (bits <= this._currentWordBitsLeft) {
-      let result = this._currentWord >>> (32 - bits)
-      this._currentWord <<= bits
-      this._currentWordBitsLeft -= bits
-      return result
+    bits = size - bits;
+    if (bits > 0 && this._currentWordBitsLeft) {
+      return valu << bits | this.readBits(bits);
+    } else {
+      return valu;
     }
-
-    let result = this._currentWordBitsLeft ? this._currentWord : 0
-    // eslint-disable-next-line
-    result >>> (32 - this._currentWordBitsLeft)
-    let bitsNeedLeft = bits - this._currentWordBitsLeft
-
-    this._fillCurrentWord()
-    let bitsReadNext = Math.min(bitsNeedLeft, this._currentWordBitsLeft)
-
-    let result2 = this._currentWord >>> (32 - bitsReadNext)
-    this._currentWord <<= bitsReadNext
-    this._currentWordBitsLeft -= bitsReadNext
-
-    result = (result << bitsReadNext) | result2
-    return result
   }
 
   readBool () {
