@@ -18,7 +18,8 @@ class M3U8Parser {
       throw new Error(`Invalid m3u8 file: not "#EXTM3U"`);
       return null;
     }
-    ref = refs.shift()
+    ref = refs.shift();
+    let nextDiscontinue = false;
     while (ref) {
       let refm = ref.match(/#(.[A-Z|-]*):(.*)/);
       let refd = ref.match(/#(.[A-Z|-]*)/);
@@ -34,7 +35,8 @@ class M3U8Parser {
             ret.targetduration = parseFloat(refm[2]);
             break;
           case 'EXTINF':
-            M3U8Parser.parseFrag(refm, refs, ret, baseurl);
+            M3U8Parser.parseFrag(refm, refs, ret, baseurl, nextDiscontinue);
+            nextDiscontinue = false;
             break;
           case 'EXT-X-KEY':
             M3U8Parser.parseDecrypt(refm[2],ret);
@@ -42,14 +44,10 @@ class M3U8Parser {
           default:
             break;
         }
-      } if(refd && refd.length > 1) {
-        switch(refd[1]) {
+      } if (refd && refd.length > 1) {
+        switch (refd[1]) {
           case 'EXT-X-DISCONTINUITY':
-            ref = refs.shift();
-            let refm = ref.match(/#(.[A-Z|-]*):(.*)/);
-            if(refm.length >2 && refm[1] === 'EXTINF') {
-              M3U8Parser.parseFrag(refm, refs, ret, baseurl, true);
-            }
+            nextDiscontinue = true;
             break;
           default:
             break;
