@@ -16,7 +16,6 @@ class AudioCtx {
     this._preDecode = [];
     this._currentTime = 0;
     this._decoding = false;
-    
     // 记录外部传输的状态
     this._played = false;
   }
@@ -29,7 +28,7 @@ class AudioCtx {
     let {samples} = audioTrack;
     let data = samples;
     audioTrack.samples = [];
-    this.setAudioData(data); 
+    this.setAudioData(data);
   }
   setAudioData (data) {
     for(let i = 0;i < data.length; i++) {
@@ -152,7 +151,7 @@ class AudioCtx {
     for(let i = 0,k = samples.length; i < k; i++) {
       length += samples[i].byteLength;
     }
-    
+
     let ret = new Uint8Array(length);
     let offset = 0;
     // combile data;
@@ -165,14 +164,14 @@ class AudioCtx {
 
   static getAdts(meta, data) {
     let adts = new Uint8Array(7);
-    
-    // 设置同步位 0xfff 12bit 
+
+    // 设置同步位 0xfff 12bit
     adts[0] = 0xff;
     adts[1] = 0xf0;
 
-    // Object data (没什么人用MPEG-2了，HLS和FLV也全是MPEG-4，这里直接0)  1bit 
-    // Level always 00 2bit 
-    // CRC always 1 1bit 
+    // Object data (没什么人用MPEG-2了，HLS和FLV也全是MPEG-4，这里直接0)  1bit
+    // Level always 00 2bit
+    // CRC always 1 1bit
     adts[1] = adts[1] | 0x01;
 
     // profile 2bit

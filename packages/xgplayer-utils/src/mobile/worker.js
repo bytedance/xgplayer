@@ -53,7 +53,7 @@ function onPostRun () {
 }
 
 function init () {
-  self.importScripts('http://10.95.49.41:9090/examples/flv/decoder.js');
+  self.importScripts('http://10.95.45.202:9090/examples/flv/decoder.js');
   addOnPostRun(onPostRun.bind(self));
 }
 

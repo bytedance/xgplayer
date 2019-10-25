@@ -10,6 +10,7 @@ class VideoCanvas {
     this.source = new SourceBuffer({type: 'video'});
     this.preloadTime = this.config.preloadTime || 3;
     this.oncanplay = undefined;
+    this.onFirstFrame = undefined;
     this.meta = undefined;
     this.readyStatus = 0;
     this.paused = true;
@@ -82,7 +83,7 @@ class VideoCanvas {
     }
     let { samples } = videoTrack;
     let sample = samples.shift();
-    
+
     while (sample) {
       if (!this._baseDts) {
         this._baseDts = sample.dts;
@@ -151,6 +152,8 @@ class VideoCanvas {
   }
 
   _onTimer () {
+    let renderCost = 0;
+    const renderStart = Date.now()
     if (this.paused) {
       return;
     }
@@ -173,13 +176,15 @@ class VideoCanvas {
             this.oncanplay();
             this.readyStatus = 4;
           }
+          console.log('video time', this.currentTime)
           this.yuvCanvas.render(frame.buffer, frame.width, frame.height);
+          renderCost = Date.now() - renderStart;
           delete this._decodedFrames[frameTime];
         }
       }
     }
     this._cleanBuffer();
-    setTimeout(this._onTimer.bind(this), nextTime);
+    setTimeout(this._onTimer.bind(this), nextTime - renderCost);
   }
 
   _cleanBuffer () {

@@ -26,12 +26,11 @@ const devMobileClient = webpackMerge(client, {
   entry: ['./src/mobile.js'],
   output: {
     path: `${__dirname}/mobile`,
-    filename: 'index.js',
+    filename: '[name].js',
     library: 'FlvPlayer',
     libraryTarget: 'window'
   },
   mode: 'development'
 })
-
 
 module.exports = [developUMD, developClient, devMobileUMD, devMobileClient]

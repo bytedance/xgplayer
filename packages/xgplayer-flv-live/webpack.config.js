@@ -1,7 +1,7 @@
 const polyfill = []
 
 const umd = {
-  entry:  {index:polyfill.concat(['./src/index.js']), mobile:polyfill.concat(['./src/mobile.js'])},
+  entry:  {index: ['./src/index.js'], mobile: ['./src/mobile.js']},
   output: {
     path: `${__dirname}/dist`,
     filename: '[name].js',
@@ -68,10 +68,8 @@ const client = {
   externals: {
     'xgplayer': 'Player'
   },
-  mode: 'production',
-  optimization: {
-    minimize: true
-  }
+  mode: 'development',
+  devtool: 'inline-source-map'
 }
 
 module.exports = [umd, client]

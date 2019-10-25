@@ -1,5 +1,43 @@
 import VideoCtx from './video-context';
 import AudioCtx from './audio-context';
+import { getTicker } from './ticker';
+
+/**
+ * 音画同步调和器
+ */
+class AVReconciler {
+  constructor (props) {
+    this.aCtx = props.aCtx;
+    this.vCtx = props.vCtx;
+
+    this.timeoutId = null
+  }
+
+  doReconcile () {
+    const vCurTime = this.vCtx.currentTime || 0;
+    const aCurTime = (this.aCtx.currentTime || 0) * 1000;
+
+    const gap = vCurTime - aCurTime;
+    if (this.timeoutId) {
+      return;
+    }
+    if (gap > 2000) { // audio delayed for more than 100ms
+      // this.vCtx.pause()
+      // this.timeoutId = setTimeout(() => {
+      //   this.vCtx.play()
+      //   this.timeoutId = null
+      // }, gap)
+    } else if (gap < -200) {
+      this.vCtx.currentTime = this.vCtx.currentTime + Math.abs(gap);
+    }
+  }
+
+  destroy () {
+    this.aCtx = null
+    this.vCtx = null
+  }
+}
+
 // eslint-disable-next-line no-undef
 class MobileVideo extends HTMLElement {
   constructor (config) {
@@ -7,18 +45,32 @@ class MobileVideo extends HTMLElement {
     let _this = this;
     this.vCtx = new VideoCtx();
     this.aCtx = new AudioCtx(config);
-
-    this.vCtx.oncanplay = function () {
-      _this.appendChild(_this.vCtx.canvas);
-      console.log('canplay', _this);
-      // eslint-disable-next-line no-undef
-      _this.dispatchEvent(new Event('canplay'));
-    }
+    this.ticker = new (getTicker())()
     this.historyTime = 0;
+    this.reconciler = new AVReconciler({
+      vCtx: this.vCtx,
+      aCtx: this.aCtx
+    })
+
+    this.init()
+  }
+
+  init () {
+    this.vCtx.oncanplay = () => {
+      this.appendChild(this.vCtx.canvas);
+      // eslint-disable-next-line no-undef
+      this.dispatchEvent(new Event('canplay'));
+    }
+
+    this.ticker.start(() => {
+      // this.reconciler.doReconcile()
+      console.log(this.aCtx.currentTime)
+
+    })
   }
 
   destroy () {
-
+    this.reconciler.destroy()
   }
 
   onDemuxComplete (videoTrack, audioTrack) {
@@ -39,8 +91,9 @@ class MobileVideo extends HTMLElement {
   }
 
   play () {
-    this.aCtx.play();
+    // if (!this.vCtx.)
     this.vCtx.play();
+    this.aCtx.play();
   }
 }
 // eslint-disable-next-line no-undef
