@@ -53,6 +53,7 @@ class MSE {
         track = tracks.audioTrack;
       } else if (type === 'video') {
         track = tracks.videoTrack;
+        // return;
       }
       if (track) {
         let dur = type === 'audio' ? 21 : 40;
@@ -88,6 +89,7 @@ class MSE {
         if (!sourceBuffer.updating) {
           let source = sources.sources[type];
           if (source && !source.inited) {
+            console.log('append initial segment')
             sourceBuffer.appendBuffer(source.init.buffer.buffer);
             source.inited = true;
           } else if (source) {

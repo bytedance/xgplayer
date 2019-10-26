@@ -119,7 +119,7 @@ class HlsLiveController {
       let mdata;
       try {
         this.m3u8Text = buffer.shift();
-        mdata = M3U8Parser.parse(this.m3u8, this.baseurl);
+        mdata = M3U8Parser.parse(this.m3u8Text, this.baseurl);
       } catch (error) {
         this._onError('M3U8_PARSER_ERROR', 'M3U8_PARSER', error, false);
       }
