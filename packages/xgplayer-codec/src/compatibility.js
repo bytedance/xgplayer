@@ -77,11 +77,10 @@ class Compatibility {
       this.doFixAudio(isFirstAudioSamples)
     }
 
-
     // this.removeInvalidSamples()
   }
 
-  doFixVideo (first) {
+  doFixVideo (first, streamChangeStart) {
     let {samples: videoSamples, meta} = this.videoTrack
 
     if (meta.frameRate && meta.frameRate.fixed === false) {
@@ -103,9 +102,9 @@ class Compatibility {
       Compatibility.doFixLargeGap(videoSamples, this._videoLargeGap)
     }
 
-    if (firstSample.dts !== this._firstVideoSample.dts && Compatibility.detectLargeGap(this.nextVideoDts, firstSample)) {
-      if (!this.nextVideoDts && firstSample.options && firstSample.options.start) {
-        this.nextVideoDts = firstSample.options.start // FIX: Hls中途切codec，在如果直接seek到后面的点会导致largeGap计算失败
+    if (firstSample.dts !== this._firstVideoSample.dts && (streamChangeStart || Compatibility.detectLargeGap(this.nextVideoDts, firstSample))) {
+      if (streamChangeStart) {
+        this.nextVideoDts = streamChangeStart // FIX: Hls中途切codec，在如果直接seek到后面的点会导致largeGap计算失败
       }
 
       this._videoLargeGap = this.nextVideoDts - firstSample.dts
@@ -221,7 +220,7 @@ class Compatibility {
     this.videoTrack.samples = videoSamples;
   }
 
-  doFixAudio (first) {
+  doFixAudio (first, streamChangeStart) {
     let {samples: audioSamples, meta} = this.audioTrack
 
     if (!audioSamples || !audioSamples.length) {
@@ -241,9 +240,9 @@ class Compatibility {
       Compatibility.doFixLargeGap(audioSamples, this._audioLargeGap)
     }
 
-    if (_firstSample.dts !== this._firstAudioSample.dts && Compatibility.detectLargeGap(this.nextAudioDts, _firstSample)) {
-      if (!this.nextAudioDts && _firstSample.options && _firstSample.options.start) {
-        this.nextAudioDts = _firstSample.options.start // FIX: Hls中途切codec，在如果直接seek到后面的点会导致largeGap计算失败
+    if (_firstSample.dts !== this._firstAudioSample.dts && (streamChangeStart || Compatibility.detectLargeGap(this.nextAudioDts, _firstSample))) {
+      if (streamChangeStart) {
+        this.nextAudioDts = streamChangeStart // FIX: Hls中途切codec，在如果直接seek到后面的点会导致largeGap计算失败
       }
       this._audioLargeGap = this.nextAudioDts - _firstSample.dts
       Compatibility.doFixLargeGap(audioSamples, this._audioLargeGap)
@@ -366,35 +365,76 @@ class Compatibility {
   }
 
   fixChangeStreamVideo (changeIdx) {
-    const { samples } = this.videoTrack;
+    const { samples, meta } = this.videoTrack;
+    const prevDts = changeIdx === 0 ? this.getStreamChangeStart(samples[0]) : samples[changeIdx - 1].dts;
+    const curDts = samples[changeIdx].dts;
+    const isContinue = Math.abs(prevDts - curDts) <= 2 * meta.refSampleDuration;
+
+    if (isContinue) {
+      if (!samples[changeIdx].options) {
+        samples[changeIdx].options = {
+          isContinue: true
+        }
+      } else {
+        samples[changeIdx].options.isContinue = true;
+      }
+      return this.doFixVideo(false)
+    }
+
+    const firstPartSamples = samples.slice(0, changeIdx);
+    const secondPartSamples = samples.slice(changeIdx);
+    const firstSample = samples[0]
+
+    const changeSample = secondPartSamples[0]
+    const firstPartDuration = changeSample.dts - firstSample.dts
+    const streamChangeStart = firstSample.options && firstSample.options.start + firstPartDuration ? firstSample.options.start : null
 
     this.videoTrack.samples = samples.slice(0, changeIdx);
 
     this.doFixVideo(false);
-    const firstPart = this.videoTrack.samples;
 
     this.videoTrack.samples = samples.slice(changeIdx);
 
-    this.doFixVideo(false);
-    const secondPart = this.videoTrack.samples;
+    this.doFixVideo(false, streamChangeStart);
 
-    this.videoTrack.samples = firstPart.concat(secondPart)
+    this.videoTrack.samples = firstPartSamples.concat(secondPartSamples)
   }
 
   fixChangeStreamAudio (changeIdx) {
-    const { samples } = this.audioTrack;
+    const { samples, meta } = this.audioTrack;
 
-    this.audioTrack.samples = samples.slice(0, changeIdx);
+    const prevDts = changeIdx === 0 ? this.getStreamChangeStart(samples[0]) : samples[changeIdx - 1].dts;
+    const curDts = samples[changeIdx].dts;
+    const isContinue = Math.abs(prevDts - curDts) <= 2 * meta.refSampleDuration;
+
+    if (isContinue) {
+      if (!samples[changeIdx].options) {
+        samples[changeIdx].options = {
+          isContinue: true
+        }
+      } else {
+        samples[changeIdx].options.isContinue = true;
+      }
+      return this.doFixAudio(false)
+    }
+
+    const firstPartSamples = samples.slice(0, changeIdx);
+    const secondPartSamples = samples.slice(changeIdx);
+    const firstSample = samples[0]
+
+    const changeSample = secondPartSamples[0]
+    const firstPartDuration = changeSample.dts - firstSample.dts
+    const streamChangeStart = firstSample.options && firstSample.options.start + firstPartDuration ? firstSample.options.start : null
+
+    this.audioTrack.samples = firstPartSamples;
 
     this.doFixAudio(false);
-    const firstPart = this.audioTrack.samples;
 
-    this.audioTrack.samples = samples.slice(changeIdx);
+    this.audioTrack.samples = secondPartSamples;
 
-    this.doFixAudio(false);
-    const secondPart = this.audioTrack.samples;
+    this.doFixAudio(false, streamChangeStart);
 
-    this.audioTrack.samples = firstPart.concat(secondPart)
+    this.audioTrack.samples = firstPartSamples.concat(secondPartSamples)
   }
 
   getFirstSample () {
@@ -470,6 +510,13 @@ class Compatibility {
     this.videoTrack.samples = this.videoTrack.samples.filter((sample) => {
       return sample.dts >= _firstVideoSample.dts && (this.lastVideoDts === undefined || sample.dts > this.lastVideoDts)
     })
+  }
+
+  getStreamChangeStart (sample) {
+    if (sample.options && sample.options.start) {
+      return sample.options.start - this.dtsBase;
+    }
+    return Infinity
   }
 
   static sortAudioSamples (samples) {
@@ -568,6 +615,14 @@ class Compatibility {
       return this.tracks.videoTrack
     }
     return null
+  }
+
+  get dtsBase () {
+    const remuxer = this._context.getInstance('MP4_REMUXER');
+    if (remuxer) {
+      return remuxer._dtsBase
+    }
+    return 0
   }
 }
 export default Compatibility;

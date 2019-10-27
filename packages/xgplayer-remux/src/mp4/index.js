@@ -29,6 +29,7 @@ export default class Mp4Remuxer {
   init () {
     this.on(REMUX_EVENTS.REMUX_MEDIA, this.remux.bind(this))
     this.on(REMUX_EVENTS.REMUX_METADATA, this.onMetaDataReady.bind(this))
+    this.on(REMUX_EVENTS.DETECT_CHANGE_STREAM, this.resetDtsBase.bind(this))
   }
 
   destroy () {
@@ -138,6 +139,12 @@ export default class Mp4Remuxer {
       const { isKeyframe, options } = avcSample
       if (!this.isFirstAudio && options && options.meta) {
         initSegment = this.remuxInitSegment('video', options.meta)
+        options.meta = null
+        samples.unshift(avcSample)
+        if (!options.isContinue) {
+          this.resetDtsBase()
+        }
+        break;
       }
 
       let dts = avcSample.dts - this._dtsBase
@@ -196,23 +203,20 @@ export default class Mp4Remuxer {
         originDts: dts,
         type: 'video'
       })
-
-      if (initSegment) {
-        break;
-      }
     }
 
     let moofMdat = new Buffer()
+    if (mp4Samples.length) {
+      const moof = Fmp4.moof({
+        id: track.meta.id,
+        time: firstDts,
+        samples: mp4Samples
+      })
+      const mdat = Fmp4.mdat(mdatBox)
+      moofMdat.write(moof, mdat)
 
-    const moof = Fmp4.moof({
-      id: track.meta.id,
-      time: firstDts,
-      samples: mp4Samples
-    })
-    const mdat = Fmp4.mdat(mdatBox)
-    moofMdat.write(moof, mdat)
-
-    this.writeToSource('video', moofMdat)
+      this.writeToSource('video', moofMdat)
+    }
 
     if (initSegment) {
       this.writeToSource('video', initSegment)
@@ -227,6 +231,8 @@ export default class Mp4Remuxer {
     this.isFirstVideo = false
     this.emit(REMUX_EVENTS.MEDIA_SEGMENT, 'video')
 
+    const lastSample = mp4Samples[mp4Samples.length - 1]
+    this._videoNextDts = lastSample.dts + lastSample.duration;
     track.samples = []
     track.length = 0
   }
@@ -249,6 +255,12 @@ export default class Mp4Remuxer {
       const { data, options } = sample
       if (!this.isFirstAudio && !options && options.meta) {
         initSegment = this.remuxInitSegment('audio', options.meta)
+        options.meta = null;
+        samples.unshift(sample)
+        if (!options.isContinue) {
+          this.resetDtsBase()
+        }
+        break;
       }
 
       let dts = sample.dts - this._dtsBase
@@ -303,22 +315,21 @@ export default class Mp4Remuxer {
       mdatBox.samples.push(mdatSample)
 
       mp4Samples.push(mp4Sample)
-
-      if (initSegment) {
-        break;
-      }
     }
 
     const moofMdat = new Buffer()
-    const moof = Fmp4.moof({
-      id: track.meta.id,
-      time: firstDts,
-      samples: mp4Samples
-    })
-    const mdat = Fmp4.mdat(mdatBox)
-    moofMdat.write(moof, mdat)
 
-    this.writeToSource('audio', moofMdat)
+    if (mp4Samples.length) {
+      const moof = Fmp4.moof({
+        id: track.meta.id,
+        time: firstDts,
+        samples: mp4Samples
+      })
+      const mdat = Fmp4.mdat(mdatBox)
+      moofMdat.write(moof, mdat)
+
+      this.writeToSource('audio', moofMdat)
+    }
 
     if (initSegment) {
       this.writeToSource('audio', initSegment)
@@ -332,6 +343,8 @@ export default class Mp4Remuxer {
     this.isFirstAudio = false
     this.emit(REMUX_EVENTS.MEDIA_SEGMENT, 'audio', moofMdat)
 
+    const lastSample = mp4Samples[mp4Samples.length - 1]
+    this._videoNextDts = lastSample.dts + lastSample.duration;
     track.samples = []
     track.length = 0
   }

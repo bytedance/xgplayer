@@ -159,6 +159,10 @@ class FlvController {
     const { preloadTime = 15 } = this._player.config
     const range = this.getSeekRange(time, preloadTime)
     this.state.range = range
+
+    if (this.compat) {
+      this.compat.reset()
+    }
     this.loadData()
   }
 
@@ -274,6 +278,10 @@ class FlvController {
 
   get loader () {
     return this._context.getInstance('FETCH_LOADER')
+  }
+
+  get compat () {
+    return this._context.getInstance('COMPATIBILITY')
   }
 }
 
