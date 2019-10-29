@@ -184,7 +184,7 @@ export default class Mp4Remuxer {
         }
       }
       this.videoAllDuration += sampleDuration
-      console.log(`dts ${dts}`, `pts ${pts}`, `cts: ${cts}`, `duration: ${sampleDuration}`, avcSample)
+      // console.log(`dts ${dts}`, `pts ${pts}`, `cts: ${cts}`, `duration: ${sampleDuration}`, avcSample)
       mp4Samples.push({
         dts,
         cts,
@@ -253,7 +253,7 @@ export default class Mp4Remuxer {
     while (samples.length) {
       let sample = samples.shift()
       const { data, options } = sample
-      if (!this.isFirstAudio && !options && options.meta) {
+      if (!this.isFirstAudio && options && options.meta) {
         initSegment = this.remuxInitSegment('audio', options.meta)
         options.meta = null;
         samples.unshift(sample)
@@ -285,7 +285,7 @@ export default class Mp4Remuxer {
         }
       }
 
-      console.log('remux audio ', dts)
+      // console.log('remux audio ', dts)
       this.audioAllDuration += sampleDuration
       const mp4Sample = {
         dts,
