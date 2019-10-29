@@ -39,7 +39,7 @@ Decoder.prototype.broadwayOnBroadwayInited = function () {
 
 Decoder.prototype.decode = function (data, info) {
   let time = parseInt(new Date().getTime());
-  let infoid = time - (Math.floor(time / 10e9) * 10e9);
+  let infoid = time - (Math.floor(time / 10e8) * 10e8);
   this.infolist[infoid] = info;
   this.streamBuffer.set(data);
   Module._broadwayPlayStream(data.length, infoid);
