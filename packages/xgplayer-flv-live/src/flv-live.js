@@ -25,7 +25,8 @@ export default class FlvController {
     this._player = player
 
     this.state = {
-      initSegmentArrived: false
+      initSegmentArrived: false,
+      randomAccessPoints: []
     }
 
     this.bufferClearTimer = null;
@@ -64,6 +65,7 @@ export default class FlvController {
 
     this.on(REMUX_EVENTS.INIT_SEGMENT, this._handleAppendInitSegment.bind(this))
     this.on(REMUX_EVENTS.MEDIA_SEGMENT, this._handleMediaSegment.bind(this))
+    this.on(REMUX_EVENTS.RANDOM_ACCESS_POINT, this._handleAddRAP.bind(this))
 
     this.on(MSE_EVENTS.SOURCE_UPDATE_END, this._handleSourceUpdateEnd.bind(this))
 
@@ -125,15 +127,23 @@ export default class FlvController {
       return;
     }
 
-    const bufferStart = buffered.start(buffered.length - 1)
-    // const bufferStart = this._player.getBufferedRange()[0]
-    if (time - bufferStart > 20) {
+    const bufferStart = this._player.getBufferedRange()[0]
+    if (time - bufferStart > 10) {
       // 在直播时及时清空buffer，降低直播内存占用
-      if (this.bufferClearTimer) {
+      if (this.bufferClearTimer || !this.state.randomAccessPoints.length) {
         return;
       }
+      let rap;
+      for (let i = 0; i < this.state.randomAccessPoints.length; i++) {
+        const temp = Math.ceil(this.state.randomAccessPoints[i] / 1000)
+        if (temp > time - 2) {
+          break;
+        } else {
+          rap = temp;
+        }
+      }
 
-      this.mse.remove(time - 10, 0)
+      this.mse.remove(rap, 0)
       this.bufferClearTimer = setTimeout(() => {
         this.bufferClearTimer = null
       }, 5000)
@@ -151,6 +161,12 @@ export default class FlvController {
     }
     this._player.emit('error', new Player.Errors('parse', this._player.config.url))
     this._onError(LOADER_EVENTS.LOADER_ERROR, tag, err, fatal)
+  }
+
+  _handleAddRAP (rap) {
+    if (this.state.randomAccessPoints) {
+      this.state.randomAccessPoints.push(rap)
+    }
   }
 
   _onError(type, mod, err, fatal) {
@@ -184,5 +200,6 @@ export default class FlvController {
     this._player.off('timeupdate', this._handleTimeUpdate)
     this._player = null
     this.mse = null
+    this.state.randomAccessPoints = []
   }
 }

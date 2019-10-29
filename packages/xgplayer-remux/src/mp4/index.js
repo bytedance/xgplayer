@@ -203,6 +203,10 @@ export default class Mp4Remuxer {
         originDts: dts,
         type: 'video'
       })
+
+      if (isKeyframe) {
+        this.emit(REMUX_EVENTS.RANDOM_ACCESS_POINT, pts)
+      }
     }
 
     let moofMdat = new Buffer()
