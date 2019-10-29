@@ -127,13 +127,13 @@ export default class FlvController {
 
     const bufferStart = buffered.start(buffered.length - 1)
     // const bufferStart = this._player.getBufferedRange()[0]
-    if (time - bufferStart > 10) {
+    if (time - bufferStart > 20) {
       // 在直播时及时清空buffer，降低直播内存占用
       if (this.bufferClearTimer) {
         return;
       }
 
-      this.mse.remove(time - 1, bufferStart)
+      this.mse.remove(time - 10, 0)
       this.bufferClearTimer = setTimeout(() => {
         this.bufferClearTimer = null
       }, 5000)
