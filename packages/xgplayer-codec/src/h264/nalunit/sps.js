@@ -280,6 +280,8 @@ class SPSParser {
     let fpsDen = meta.frameRate.fps_den
     let fpsNum = meta.frameRate.fps_num
     meta.refSampleDuration = Math.floor(meta.timescale * (fpsDen / fpsNum))
+
+    return meta;
   }
 }
 

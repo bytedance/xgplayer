@@ -11,6 +11,7 @@ class AVReconciler {
     this.vCtx = props.vCtx;
 
     this.timeoutId = null
+    this.start = null
   }
 
   doReconcile () {
@@ -21,13 +22,14 @@ class AVReconciler {
     if (this.timeoutId) {
       return;
     }
-    if (gap > 2000) { // audio delayed for more than 100ms
-      // this.vCtx.pause()
-      // this.timeoutId = setTimeout(() => {
-      //   this.vCtx.play()
-      //   this.timeoutId = null
-      // }, gap)
-    } else if (gap < -200) {
+    if (gap > 200) { // audio delayed for more than 100ms
+      this.start += gap
+      this.vCtx.pause()
+      this.timeoutId = setTimeout(() => {
+        this.vCtx.play()
+        this.timeoutId = null
+      }, gap)
+    } else if (gap < -120) {
       this.vCtx.currentTime = this.vCtx.currentTime + Math.abs(gap);
     }
   }
@@ -51,7 +53,7 @@ class MobileVideo extends HTMLElement {
       vCtx: this.vCtx,
       aCtx: this.aCtx
     })
-
+    this.handleAudioSourceEnd = this.handleAudioSourceEnd.bind(this)
     this.init()
   }
 
@@ -63,10 +65,23 @@ class MobileVideo extends HTMLElement {
     }
 
     this.ticker.start(() => {
-      // this.reconciler.doReconcile()
-      console.log(this.aCtx.currentTime)
-
+      //
+      // console.log(this.aCtx.currentTime)
+      if (!this.start) {
+        this.start = Date.now()
+      }
+      this.vCtx._onTimer(Date.now() - this.start)
     })
+
+    this.aCtx.on('AUDIO_SOURCE_END', this.handleAudioSourceEnd)
+  }
+
+  handleAudioSourceEnd () {
+    this.reconciler.doReconcile()
+  }
+
+  _cleanBuffer () {
+    this.vCtx.cleanBuffer()
   }
 
   destroy () {

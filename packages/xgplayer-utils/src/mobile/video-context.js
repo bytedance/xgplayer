@@ -23,7 +23,12 @@ class VideoCanvas {
     this._decodedFrames = {};
     this._lastSampleDts = undefined;
     this._baseDts = undefined;
+    this._lastRenderTime = null
     this.initWasmWorker();
+  }
+
+  pause() {
+    this.paused = true;
   }
 
   initWasmWorker () {
@@ -151,43 +156,41 @@ class VideoCanvas {
     this._onTimer();
   }
 
-  _onTimer () {
-    let renderCost = 0;
-    const renderStart = Date.now()
+  _onTimer (currentTime) {
     if (this.paused) {
       return;
     }
-    let nextTime = 1000 / 60;
     if (this.meta) {
       if (this.meta.frameRate && this.meta.frameRate.fixed && this.meta.frameRate.fps) {
-        nextTime = Math.ceil(1000 / this.meta.frameRate.fps);
       }
       let frameTimes = Object.keys(this._decodedFrames);
       if (frameTimes.length > 0) {
-        this.currentTime += nextTime;
+        this.currentTime = currentTime;
         let frameTime = -1;
-        for (let i = 0; i < frameTimes.length && frameTimes[i] - this._baseDts <= this.currentTime; i++) {
-          frameTime = frameTimes[i];
-          break;
+        let currentIdx = 0
+        for (let i = 0; i < frameTimes.length && Number.parseInt(frameTimes[i]) - this._baseDts <= this.currentTime; i++) {
+          frameTime = Number.parseInt(frameTimes[i - 1]);
+          currentIdx = i;
         }
+
         let frame = this._decodedFrames[frameTime];
         if (frame) {
           if (this.oncanplay && this.readyStatus < 4) {
             this.oncanplay();
             this.readyStatus = 4;
           }
-          console.log('video time', this.currentTime)
+          console.log(frameTime)
           this.yuvCanvas.render(frame.buffer, frame.width, frame.height);
-          renderCost = Date.now() - renderStart;
-          delete this._decodedFrames[frameTime];
+          for (let i = 0; i < currentIdx; i++) {
+            delete this._decodedFrames[i];
+          }
         }
       }
     }
-    this._cleanBuffer();
-    setTimeout(this._onTimer.bind(this), nextTime - renderCost);
+    this._lastRenderTime = Date.now()
   }
 
-  _cleanBuffer () {
+  cleanBuffer () {
     this.source.remove(0, this.currentTime);
   }
 }
