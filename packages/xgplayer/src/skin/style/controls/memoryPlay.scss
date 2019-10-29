@@ -2,8 +2,7 @@
     .xgplayer-memoryplay-spot{
         position: absolute;
         height: 32px;
-        margin-left: 50%;
-        transform: translateX(-50%);
+        left:10px;
         bottom: 46px;
         background: rgba(0,0,0,.5);
         border-radius: 32px;
@@ -25,10 +24,5 @@
             color: #fff;
             font-size: 16px;
         }
-    }
-    &.xgplayer-inactive{
-       .xgplayer-memoryplay-spot{
-           bottom:5px;
-       } 
     }
 }
