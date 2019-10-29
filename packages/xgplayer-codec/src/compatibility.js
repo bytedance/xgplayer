@@ -54,6 +54,8 @@ class Compatibility {
   doFix () {
     const { isFirstAudioSamples, isFirstVideoSamples } = this.getFirstSample()
 
+    // this.removeInvalidSamples()
+
     this.recordSamplesCount()
 
     if (this._firstVideoSample) {

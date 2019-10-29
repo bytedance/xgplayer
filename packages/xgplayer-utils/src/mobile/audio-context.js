@@ -1,5 +1,7 @@
-class AudioCtx {
+import EventEmitter from 'events'
+class AudioCtx extends EventEmitter{
   constructor (config) {
+    super();
     this.config = Object.assign({}, config);
     let AudioContext =  window.AudioContext || window.webkitAudioContext;
     this.context = new AudioContext();
@@ -97,7 +99,7 @@ class AudioCtx {
   }
 
   onSourceEnded() {
-    if(!this._nextBuffer || !this._played) {
+    if (!this._nextBuffer || !this._played) {
       return;
     }
     let audioSource = this._nextBuffer.data;
@@ -106,9 +108,10 @@ class AudioCtx {
     this._currentBuffer = this._nextBuffer;
     this._currentTime = this._currentBuffer.time;
     this._nextBuffer = this.getTimeBuffer(this.currentTime);
-    if(this._currentBuffer) {
+    if (this._currentBuffer) {
       this._nextBuffer = this.getTimeBuffer(this.currentTime + this._currentBuffer.duration);
     }
+    this.emit('AUDIO_SOURCE_END')
   }
 
   play() {

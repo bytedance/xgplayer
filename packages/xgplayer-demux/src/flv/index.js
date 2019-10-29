@@ -401,6 +401,7 @@ class FlvDemuxer {
       if (this._hasScript && !this._hasAudioSequence) {
         this.emit(DEMUX_EVENTS.METADATA_PARSED, 'audio')
       } else if (this._hasScript && this._hasAudioSequence) {
+        this.emit(DEMUX_EVENTS.METADATA_PARSED, 'audio')
         this.emit(DEMUX_EVENTS.AUDIO_METADATA_CHANGE)
         // this.emit(DEMUX_EVENTS.METADATA_PARSED, 'audio')
       }
@@ -501,6 +502,7 @@ class FlvDemuxer {
           if (this._hasScript && !this._hasVideoSequence) {
             this.emit(DEMUX_EVENTS.METADATA_PARSED, 'video')
           } else if (this._hasScript && this._hasVideoSequence) {
+            this.emit(DEMUX_EVENTS.METADATA_PARSED, 'audio')
             this.emit(DEMUX_EVENTS.VIDEO_METADATA_CHANGE)
             // this.emit(DEMUX_EVENTS.METADATA_PARSED, 'video')
           }
