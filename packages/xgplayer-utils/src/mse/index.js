@@ -89,7 +89,7 @@ class MSE {
         if (!sourceBuffer.updating) {
           let source = sources.sources[type];
           if (source && !source.inited) {
-            console.log('append initial segment')
+            // console.log('append initial segment')
             sourceBuffer.appendBuffer(source.init.buffer.buffer);
             source.inited = true;
           } else if (source) {
@@ -118,7 +118,7 @@ class MSE {
     for (let i = 0; i < Object.keys(this.sourceBuffers).length; i++) {
       let buffer = this.sourceBuffers[Object.keys(this.sourceBuffers)[i]];
       if (!buffer.updating) {
-        console.log(start, end)
+        // console.log(start, end)
         buffer.remove(start, end);
       }
     }
