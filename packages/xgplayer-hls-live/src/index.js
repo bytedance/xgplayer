@@ -11,17 +11,18 @@ export class HlsLivePlayer extends Player {
     this.util = Player.util;
     this.util.deepCopy(this.hlsOps, options);
     this._context = new Context(HlsAllowedEvents);
-    this._hasStart = false;
+    this._hasStarted = false;
   }
 
   _initEvents () {
     this.__core__.once(REMUX_EVENTS.INIT_SEGMENT, () => {
       const mse = this._context.getInstance('MSE');
-      if (!this._hasStart) {
+      if (!this._hasStarted) {
         const live = this.util.createDom('xg-live', '正在直播', {}, 'xgplayer-live');
         this.util.addClass(this.root, 'xgplayer-is-live');
         this.controls.appendChild(live);
       }
+      this._hasStarted = true;
       super.start(mse.url);
     });
 
@@ -61,7 +62,7 @@ export class HlsLivePlayer extends Player {
     if (!url) {
       return;
     }
-    this.__core__ = this._context.registry('HLS_LIVE_CONTROLLER', HlsLiveController)({container: this.video});
+    this.__core__ = this._context.registry('HLS_LIVE_CONTROLLER', HlsLiveController)({player:this, container: this.video});
     this._context.init();
     this.url = url;
     this.__core__.load(url);
@@ -70,7 +71,7 @@ export class HlsLivePlayer extends Player {
   }
 
   play () {
-    if (this._hasStart) {
+    if (this._hasStarted) {
       this._context.destroy();
       this._context = new Context(HlsAllowedEvents);
       this.__core__ = this._context.registry('HLS_LIVE_CONTROLLER', HlsLiveController)({container: this.video});

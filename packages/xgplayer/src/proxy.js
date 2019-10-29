@@ -1,7 +1,6 @@
 import EventEmitter from 'event-emitter'
 import util from './utils/util'
 import Errors from './error'
-// import allOff from 'event-emitter/all-off'
 
 class Proxy {
   constructor (options) {
@@ -164,7 +163,6 @@ class Proxy {
     }
   }
   destroy () {
-    // allOff(this)
     if (this.textTrackStyle) {
       this.textTrackStyle.parentNode.removeChild(this.textTrackStyle)
     }

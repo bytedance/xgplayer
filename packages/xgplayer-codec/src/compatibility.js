@@ -1,7 +1,7 @@
 import {EVENTS} from 'xgplayer-utils'
 import AAC from './aac/aac-helper'
 
-const {REMUX_EVENTS} = EVENTS
+const {REMUX_EVENTS, DEMUX_EVENTS} = EVENTS
 
 class Compatibility {
   constructor () {
@@ -22,6 +22,9 @@ class Compatibility {
 
     this.filledAudioSamples = [] // 补充音频帧（）
     this.filledVideoSamples = [] // 补充视频帧（）
+
+    this._videoLargeGap = 0
+    this._audioLargeGap = 0
   }
 
   init () {
@@ -29,8 +32,8 @@ class Compatibility {
   }
 
   reset () {
-    this.nextAudioDts = 0 // 模拟下一段音频数据的dts
-    this.nextVideoDts = 0 // 模拟下一段视频数据的dts
+    this.nextAudioDts = null // 估算下一段音频数据的dts
+    this.nextVideoDts = null // 估算下一段视频数据的dts
 
     this.lastAudioSamplesLen = 0 // 上一段音频数据的长度
     this.lastVideoSamplesLen = 0 // 上一段视频数据的长度
@@ -38,11 +41,11 @@ class Compatibility {
     this.lastVideoDts = undefined // 上一段音频数据的长度
     this.lastAudioDts = undefined // 上一段视频数据的长度
 
-    this.allAudioSamplesCount = 0 // 音频总数据量(原始帧)
-    this.allVideoSamplesCount = 0 // 视频总数据量(原始帧)
+    // this.allAudioSamplesCount = 0 // 音频总数据量(原始帧)
+    // this.allVideoSamplesCount = 0 // 视频总数据量(原始帧)
 
-    this._firstAudioSample = null
-    this._firstVideoSample = null
+    // this._firstAudioSample = null
+    // this._firstVideoSample = null
 
     this.filledAudioSamples = [] // 补充音频帧（）
     this.filledVideoSamples = [] // 补充视频帧（）
@@ -50,8 +53,6 @@ class Compatibility {
 
   doFix () {
     const { isFirstAudioSamples, isFirstVideoSamples } = this.getFirstSample()
-
-    this.removeInvalidSamples()
 
     this.recordSamplesCount()
 
@@ -62,11 +63,24 @@ class Compatibility {
       this.fixRefSampleDuration(this.audioTrack.meta, this.audioTrack.samples)
     }
 
-    this.doFixVideo(isFirstVideoSamples)
-    this.doFixAudio(isFirstAudioSamples)
+    const { changed: videoChanged, changedIdx: videoChangedIdx } = Compatibility.detactChangeStream(this.videoTrack.samples)
+    if (videoChanged && !isFirstAudioSamples) {
+      this.fixChangeStreamVideo(videoChangedIdx)
+    } else {
+      this.doFixVideo(isFirstVideoSamples)
+    }
+
+    const { changed: audioChanged, changedIdx: audioChangedIdx } = Compatibility.detactChangeStream(this.audioTrack.samples)
+    if (audioChanged) {
+      this.fixChangeStreamAudio(audioChangedIdx)
+    } else {
+      this.doFixAudio(isFirstAudioSamples)
+    }
+
+    // this.removeInvalidSamples()
   }
 
-  doFixVideo (first) {
+  doFixVideo (first, streamChangeStart) {
     let {samples: videoSamples, meta} = this.videoTrack
 
     if (meta.frameRate && meta.frameRate.fixed === false) {
@@ -80,9 +94,24 @@ class Compatibility {
     // console.log(`video lastSample, ${videoSamples[videoSamples.length - 1].dts}`)
 
     const firstSample = videoSamples[0]
-    const firstDts = firstSample.dts
 
     const samplesLen = videoSamples.length;
+
+    // step0.修复hls流出现巨大gap，需要强制重定位的问题
+    if (this._videoLargeGap > 0) {
+      Compatibility.doFixLargeGap(videoSamples, this._videoLargeGap)
+    }
+
+    if (firstSample.dts !== this._firstVideoSample.dts && (streamChangeStart || Compatibility.detectLargeGap(this.nextVideoDts, firstSample))) {
+      if (streamChangeStart) {
+        this.nextVideoDts = streamChangeStart // FIX: Hls中途切codec，在如果直接seek到后面的点会导致largeGap计算失败
+      }
+
+      this._videoLargeGap = this.nextVideoDts - firstSample.dts
+      Compatibility.doFixLargeGap(videoSamples, this._videoLargeGap)
+    }
+
+    const firstDts = firstSample.dts
 
     // step1. 修复与audio首帧差距太大的问题
     if (first && this._firstAudioSample) {
@@ -132,13 +161,16 @@ class Compatibility {
             size: clonedSample.data.byteLength
           })
         }
-      } else if (absGap <= 10 && absGap > 0) {
+      } else if (absGap <= meta.refSampleDuration && absGap > 0) {
         // 当差距在+-一帧之间时将第一帧的dts强行定位到期望位置
         // console.log('重定位视频帧dts', videoSamples[0].dts, this.nextVideoDts)
         videoSamples[0].dts = this.nextVideoDts
         videoSamples[0].originDts = videoSamples[0].dts
-        videoSamples[0].cts = videoSamples[0].cts || videoSamples[0].pts - videoSamples[0].dts
+        videoSamples[0].cts = videoSamples[0].cts !== undefined ? videoSamples[0].cts : videoSamples[0].pts - videoSamples[0].dts
         videoSamples[0].pts = videoSamples[0].dts + videoSamples[0].cts
+      } else if (gap < 0) {
+        // 出现大的gap
+        Compatibility.doFixLargeGap(videoSamples, (-1 * gap))
       }
     }
     const lastDts = videoSamples[videoSamples.length - 1].dts;
@@ -188,7 +220,7 @@ class Compatibility {
     this.videoTrack.samples = videoSamples;
   }
 
-  doFixAudio (first) {
+  doFixAudio (first, streamChangeStart) {
     let {samples: audioSamples, meta} = this.audioTrack
 
     if (!audioSamples || !audioSamples.length) {
@@ -201,9 +233,20 @@ class Compatibility {
 
     const firstSample = this._firstAudioSample
 
+    const _firstSample = audioSamples[0]
     // 对audioSamples按照dts做排序
-    audioSamples = Compatibility.sortAudioSamples(audioSamples)
+    // audioSamples = Compatibility.sortAudioSamples(audioSamples)
+    if (this._audioLargeGap > 0) {
+      Compatibility.doFixLargeGap(audioSamples, this._audioLargeGap)
+    }
 
+    if (_firstSample.dts !== this._firstAudioSample.dts && (streamChangeStart || Compatibility.detectLargeGap(this.nextAudioDts, _firstSample))) {
+      if (streamChangeStart) {
+        this.nextAudioDts = streamChangeStart // FIX: Hls中途切codec，在如果直接seek到后面的点会导致largeGap计算失败
+      }
+      this._audioLargeGap = this.nextAudioDts - _firstSample.dts
+      Compatibility.doFixLargeGap(audioSamples, this._audioLargeGap)
+    }
     // step0. 首帧与video首帧间距大的问题
     if (this._firstVideoSample && first) {
       const videoFirstPts = this._firstVideoSample.pts ? this._firstVideoSample.pts : this._firstVideoSample.dts + this._firstVideoSample.cts
@@ -262,11 +305,13 @@ class Compatibility {
             this.audioTrack.samples.unshift(silentSample)
           }
         }
-      } else if (absGap <= 10 && absGap > 0) {
+      } else if (absGap <= meta.refSampleDuration && absGap > 0) {
         // 当差距比较小的时候将音频帧重定位
         // console.log('重定位音频帧dts', audioSamples[0].dts, this.nextAudioDts)
         audioSamples[0].dts = this.nextAudioDts
         audioSamples[0].pts = this.nextAudioDts
+      } else if (gap < 0) {
+        Compatibility.doFixLargeGap(audioSamples, (-1 * gap))
       }
     }
     const lastDts = audioSamples[audioSamples.length - 1].dts;
@@ -319,6 +364,79 @@ class Compatibility {
     this.audioTrack.samples = Compatibility.sortAudioSamples(audioSamples)
   }
 
+  fixChangeStreamVideo (changeIdx) {
+    const { samples, meta } = this.videoTrack;
+    const prevDts = changeIdx === 0 ? this.getStreamChangeStart(samples[0]) : samples[changeIdx - 1].dts;
+    const curDts = samples[changeIdx].dts;
+    const isContinue = Math.abs(prevDts - curDts) <= 2 * meta.refSampleDuration;
+
+    if (isContinue) {
+      if (!samples[changeIdx].options) {
+        samples[changeIdx].options = {
+          isContinue: true
+        }
+      } else {
+        samples[changeIdx].options.isContinue = true;
+      }
+      return this.doFixVideo(false)
+    }
+
+    const firstPartSamples = samples.slice(0, changeIdx);
+    const secondPartSamples = samples.slice(changeIdx);
+    const firstSample = samples[0]
+
+    const changeSample = secondPartSamples[0]
+    const firstPartDuration = changeSample.dts - firstSample.dts
+    const streamChangeStart = firstSample.options && firstSample.options.start + firstPartDuration ? firstSample.options.start : null
+
+    this.videoTrack.samples = samples.slice(0, changeIdx);
+
+    this.doFixVideo(false);
+
+    this.videoTrack.samples = samples.slice(changeIdx);
+
+    this.doFixVideo(false, streamChangeStart);
+
+    this.videoTrack.samples = firstPartSamples.concat(secondPartSamples)
+  }
+
+  fixChangeStreamAudio (changeIdx) {
+    const { samples, meta } = this.audioTrack;
+
+    const prevDts = changeIdx === 0 ? this.getStreamChangeStart(samples[0]) : samples[changeIdx - 1].dts;
+    const curDts = samples[changeIdx].dts;
+    const isContinue = Math.abs(prevDts - curDts) <= 2 * meta.refSampleDuration;
+
+    if (isContinue) {
+      if (!samples[changeIdx].options) {
+        samples[changeIdx].options = {
+          isContinue: true
+        }
+      } else {
+        samples[changeIdx].options.isContinue = true;
+      }
+      return this.doFixAudio(false)
+    }
+
+    const firstPartSamples = samples.slice(0, changeIdx);
+    const secondPartSamples = samples.slice(changeIdx);
+    const firstSample = samples[0]
+
+    const changeSample = secondPartSamples[0]
+    const firstPartDuration = changeSample.dts - firstSample.dts
+    const streamChangeStart = firstSample.options && firstSample.options.start + firstPartDuration ? firstSample.options.start : null
+
+    this.audioTrack.samples = firstPartSamples;
+
+    this.doFixAudio(false);
+
+    this.audioTrack.samples = secondPartSamples;
+
+    this.doFixAudio(false, streamChangeStart);
+
+    this.audioTrack.samples = firstPartSamples.concat(secondPartSamples)
+  }
+
   getFirstSample () {
     // 获取video和audio的首帧数据
     let {samples: videoSamples} = this.videoTrack
@@ -359,12 +477,12 @@ class Compatibility {
         meta.refSampleDuration = Math.floor((lastDts - firstDts) / ((allSamplesCount + filledSamplesCount) - 1)); // 将refSampleDuration重置为计算后的平均值
       }
     } else if (meta.refSampleDuration) {
-      if (samples.length >= 3) {
+      if (samples.length >= 5) {
         const lastDts = samples[samples.length - 1].dts
         const firstDts = samples[0].dts
-        const durationAvg = (lastDts - firstDts) / samples.length
+        const durationAvg = (lastDts - firstDts) / (samples.length - 1)
 
-        meta.refSampleDuration = Math.abs(meta.refSampleDuration - durationAvg) <= meta.refSampleDuration ? meta.refSampleDuration : durationAvg; // 将refSampleDuration重置为计算后的平均值
+        meta.refSampleDuration = Math.floor(Math.abs(meta.refSampleDuration - durationAvg) <= 5 ? meta.refSampleDuration : durationAvg); // 将refSampleDuration重置为计算后的平均值
       }
     }
   }
@@ -392,6 +510,13 @@ class Compatibility {
     this.videoTrack.samples = this.videoTrack.samples.filter((sample) => {
       return sample.dts >= _firstVideoSample.dts && (this.lastVideoDts === undefined || sample.dts > this.lastVideoDts)
     })
+  }
+
+  getStreamChangeStart (sample) {
+    if (sample.options && sample.options.start) {
+      return sample.options.start - this.dtsBase;
+    }
+    return Infinity
   }
 
   static sortAudioSamples (samples) {
@@ -432,6 +557,48 @@ class Compatibility {
     }
   }
 
+  static detectLargeGap (nextDts, firstSample) {
+    if (nextDts === null) {
+      return;
+    }
+    const curDts = firstSample.dts || 0
+    const cond1 = nextDts - curDts >= 1000 || curDts - nextDts >= 1000 // fix hls流出现大量流dts间距问题
+    const cond2 = firstSample.options && firstSample.options.discontinue
+
+    return cond1 || cond2
+  }
+
+  static doFixLargeGap (samples, gap) {
+    console.log('fix large gap')
+    for (let i = 0, len = samples.length; i < len; i++) {
+      const sample = samples[i];
+      sample.dts += gap
+      if (sample.pts) {
+        sample.pts += gap
+      }
+    }
+  }
+
+  /**
+   * 中途换流
+   */
+  static detactChangeStream (samples) {
+    let changed = false;
+    let changedIdx = -1;
+    for (let i = 0, len = samples.length; i < len; i++) {
+      if (samples[i].options && samples[i].options.meta) {
+        changed = true
+        changedIdx = i;
+        break;
+      }
+    }
+
+    return {
+      changed,
+      changedIdx
+    }
+  }
+
   get tracks () {
     return this._context.getInstance('TRACKS')
   }
@@ -448,6 +615,14 @@ class Compatibility {
       return this.tracks.videoTrack
     }
     return null
+  }
+
+  get dtsBase () {
+    const remuxer = this._context.getInstance('MP4_REMUXER');
+    if (remuxer) {
+      return remuxer._dtsBase
+    }
+    return 0
   }
 }
 export default Compatibility;

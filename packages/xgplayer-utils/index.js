@@ -27,5 +27,7 @@ module.exports = {
   Stream: require('./src/write/stream').default,
   Buffer: require('./src/write/buffer').default,
 
-  MobileVideo: require('./src/mobile/mobile-video')
+  MobileVideo: require('./src/mobile/mobile-video'),
+  // Crypto
+  Crypto: require('./src/crypto').default
 };

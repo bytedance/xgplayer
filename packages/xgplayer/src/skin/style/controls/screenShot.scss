@@ -1,0 +1,41 @@
+.xgplayer-skin-default {
+  .xgplayer-screenshot {
+    order: 11;
+    position: relative;
+    outline: none;
+    display: block;
+    cursor: pointer;
+    // margin-left: 10px;
+    // margin-top: 9px;
+    // margin-bottom: 11px;
+    height: 20px;
+    top: 8px;
+    .name {
+      text-align: center;
+      font-family: PingFangSC-Regular;
+      font-size: 13px;
+      line-height: 20px;
+      height: 20px;
+      color: $definitionNameColor;
+      span{
+        width: 60px;
+        height: 20px;
+        line-height: 20px;
+        background: $definitionNameBgColor;
+        border-radius: 10px;
+        display:inline-block;
+        vertical-align:middle;
+      }
+    }
+  }
+}
+.lang-is-en, .lang-is-jp{
+  .xgplayer-screenshot {
+    .name {
+      span{
+        width: 75px;
+        height: 20px;
+      }
+    }
+  }
+}

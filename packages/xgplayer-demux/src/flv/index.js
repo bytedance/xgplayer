@@ -60,9 +60,11 @@ class FlvDemuxer {
         return
       }
       let chunk;
+
+      let loopMax = 100000 // 防止死循环产生
       do {
         chunk = this._parseFlvTag()
-      } while (chunk)
+      } while (chunk && loopMax-- > 0)
 
       this.emit(DEMUX_EVENTS.DEMUX_COMPLETE)
     }
@@ -154,7 +156,7 @@ class FlvDemuxer {
       if (this.loaderBuffer && this.loaderBuffer.length > 0) {
         this.loaderBuffer.shift(1)
       }
-      this.logger.warn(this.TAG, 'tagType ' + chunk.tagType)
+      this.emit(DEMUX_EVENTS.DEMUX_ERROR, this.TAG, new Error('tagType ' + chunk.tagType), false)
       return null
     }
 
@@ -343,7 +345,8 @@ class FlvDemuxer {
     let meta = track.meta
 
     if (!meta) {
-      meta = new AudioTrackMeta()
+      track.meta = new AudioTrackMeta()
+      meta = track.meta;
     }
 
     let info = this.loaderBuffer.shift(1)[0]
@@ -399,17 +402,25 @@ class FlvDemuxer {
         this.emit(DEMUX_EVENTS.METADATA_PARSED, 'audio')
       } else if (this._hasScript && this._hasAudioSequence) {
         this.emit(DEMUX_EVENTS.AUDIO_METADATA_CHANGE)
+        // this.emit(DEMUX_EVENTS.METADATA_PARSED, 'audio')
       }
-      ;
       this._hasAudioSequence = true
+
+      this._metaChange = true
     } else {
+      if (this._metaChange) {
+        chunk.options = {
+          meta: track.meta
+        };
+        this._metaChange = false
+      }
+
       chunk.data = chunk.data.slice(1, chunk.data.length)
       track.samples.push(chunk)
     }
     if (!validate) {
-      const error = new Error('TAG length error at ' + chunk.datasize)
-      this.emit(DEMUX_EVENTS.DEMUX_ERROR, error.message)
-      this.logger.warn(this.TAG, error.message)
+      this.emit(DEMUX_EVENTS.DEMUX_ERROR, this.TAG, new Error('TAG length error at ' + chunk.datasize), false)
+      // this.logger.warn(this.TAG, error.message)
     }
   }
 
@@ -439,7 +450,7 @@ class FlvDemuxer {
 
       if (Number.parseInt(chunk.avcPacketType) !== 0) {
         if (!this._datasizeValidator(chunk.datasize)) {
-          this.logger.warn(this.TAG, `invalid video tag datasize: ${chunk.datasize}`)
+          this.emit(DEMUX_EVENTS.DEMUX_ERROR, this.TAG, new Error(`invalid video tag datasize: ${chunk.datasize}`), false)
         }
         let nalu = {}
         let r = 0
@@ -459,7 +470,7 @@ class FlvDemuxer {
         }
       } else if (Number.parseInt(chunk.avcPacketType) === 0) {
         if (!this._datasizeValidator(chunk.datasize)) {
-          this.logger.warn(this.TAG, `invalid video tag datasize: ${chunk.datasize}`)
+          this.emit(DEMUX_EVENTS.DEMUX_ERROR, this.TAG, new Error(`invalid video tag datasize: ${chunk.datasize}`), false)
         } else {
           this.emit(DEMUX_EVENTS.METADATA_PARSED, 'video')
         }
@@ -491,22 +502,30 @@ class FlvDemuxer {
             this.emit(DEMUX_EVENTS.METADATA_PARSED, 'video')
           } else if (this._hasScript && this._hasVideoSequence) {
             this.emit(DEMUX_EVENTS.VIDEO_METADATA_CHANGE)
+            // this.emit(DEMUX_EVENTS.METADATA_PARSED, 'video')
           }
           this._hasVideoSequence = true
         }
+        this._metaChange = true
       } else {
         if (!this._datasizeValidator(chunk.datasize)) {
-          this.logger.warn(this.TAG, `invalid video tag datasize: ${chunk.datasize}`)
+          this.emit(DEMUX_EVENTS.DEMUX_ERROR, this.TAG, new Error(`invalid video tag datasize: ${chunk.datasize}`), false)
           return;
+        }
+        if (this._metaChange) {
+          chunk.options = {
+            meta: Object.assign({}, this.tracks.videoTrack.meta)
+          }
+          this._metaChange = false
         }
         this.tracks.videoTrack.samples.push(chunk)
         // this.emit(DEMUX_EVENTS.DEMUX_COMPLETE)
       }
     } else {
-      this.logger.warn(this.TAG, `video codeid is ${codecID}`)
+      this.emit(DEMUX_EVENTS.DEMUX_ERROR, this.TAG, new Error(`video codeid is ${codecID}`), false)
       chunk.data = this.loaderBuffer.shift(chunk.datasize - 1)
       if (!this._datasizeValidator(chunk.datasize)) {
-        this.logger.warn(this.TAG, `invalid video tag datasize: ${chunk.datasize}`)
+        this.emit(DEMUX_EVENTS.DEMUX_ERROR, this.TAG, new Error(`invalid video tag datasize: ${chunk.datasize}`), false)
       }
       this.tracks.videoTrack.samples.push(chunk)
       this.emit(DEMUX_EVENTS.DEMUX_COMPLETE)
@@ -653,8 +672,9 @@ class FlvDemuxer {
   }
 
   get loaderBuffer () {
-    if (this._context.getInstance('LOADER_BUFFER')) {
-      return this._context.getInstance('LOADER_BUFFER')
+    const buffer = this._context.getInstance('LOADER_BUFFER')
+    if (buffer) {
+      return buffer
     } else {
       this.emit(DEMUX_EVENTS.DEMUX_ERROR, new Error('找不到 loaderBuffer 实例'))
     }

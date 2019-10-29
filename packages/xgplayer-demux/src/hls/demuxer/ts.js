@@ -45,7 +45,7 @@ class TsDemuxer {
     this.on(DEMUX_EVENTS.DEMUX_START, this.demux.bind(this))
   }
 
-  demux () {
+  demux (frag) {
     if (this.demuxing) {
       return
     }
@@ -56,6 +56,9 @@ class TsDemuxer {
 
     // Read TS segment
     while (buffer.length >= 188) {
+      if (buffer.length >= 1 && buffer.array[0][buffer.offset] !== 71) {
+        this.emit(DEMUX_EVENTS.DEMUX_ERROR, this.TAG, new Error(`Untrust sync code: ${buffer.array[0][buffer.offset]}, try to recover;`), false);
+      }
       while (buffer.length >= 1 && buffer.array[0][buffer.offset] !== 71) {
         buffer.shift(1);
       }
@@ -75,6 +78,9 @@ class TsDemuxer {
       }
     }
 
+    let AudioOptions = frag;
+    let VideoOptions = frag;
+
     // Get Frames data
     for (let i = 0; i < Object.keys(peses).length; i++) {
       let epeses = peses[Object.keys(peses)[i]];
@@ -82,9 +88,11 @@ class TsDemuxer {
         epeses[j].id = Object.keys(peses)[i];
         epeses[j].ES.buffer = TsDemuxer.Merge(epeses[j].ES.buffer);
         if (epeses[j].type === 'audio') {
-          this.pushAudioSample(epeses[j]);
+          this.pushAudioSample(epeses[j], AudioOptions);
+          AudioOptions = {};
         } else if (epeses[j].type === 'video') {
-          this.pushVideoSample(epeses[j]);
+          this.pushVideoSample(epeses[j], VideoOptions);
+          VideoOptions = {};
         }
       }
     }
@@ -97,42 +105,47 @@ class TsDemuxer {
     }
   }
 
-  pushAudioSample (pes) {
+  pushAudioSample (pes, options) {
     let track;
     if (!this._tracks.audioTrack) {
       this._tracks.audioTrack = new AudioTrack();
       track = this._tracks.audioTrack;
-      track.meta = new AudioTrackMeta({
-        audioSampleRate: pes.ES.frequence,
-        sampleRate: pes.ES.frequence,
-        channelCount: pes.ES.channel,
-        codec: 'mp4a.40.' + pes.ES.audioObjectType,
-        config: pes.ES.audioConfig,
-        id: 2,
-        sampleRateIndex: pes.ES.frequencyIndex
-      });
-      track.meta.refSampleDuration = Math.floor(1024 / track.meta.audioSampleRate * track.meta.timescale);
-      if (!this._hasAudioMeta) {
-        this._hasAudioMeta = true
-        this.emit(DEMUX_EVENTS.METADATA_PARSED, 'audio');
-      }
     } else {
       track = this._tracks.audioTrack;
     }
+    let meta = new AudioTrackMeta({
+      audioSampleRate: pes.ES.frequence,
+      sampleRate: pes.ES.frequence,
+      channelCount: pes.ES.channel,
+      codec: 'mp4a.40.' + pes.ES.audioObjectType,
+      config: pes.ES.audioConfig,
+      id: 2,
+      sampleRateIndex: pes.ES.frequencyIndex
+    });
+    meta.refSampleDuration = Math.floor(1024 / meta.audioSampleRate * meta.timescale);
+
+    let metaEqual = TsDemuxer.compaireMeta(track.meta, meta, true);
+
+    if (!this._hasAudioMeta || !metaEqual) {
+      track.meta = meta;
+      this._hasAudioMeta = true
+      this.emit(DEMUX_EVENTS.METADATA_PARSED, 'audio');
+    }
+
     let data = new Uint8Array(pes.ES.buffer.buffer.slice(pes.ES.buffer.position, pes.ES.buffer.length));
     let dts = parseInt(pes.pts / 90);
     let pts = parseInt(pes.pts / 90);
-    let sample = new AudioTrackSample({dts, pts, data});
+    let sample = new AudioTrackSample({dts, pts, data, options});
     track.samples.push(sample);
   }
 
-  pushVideoSample (pes) {
+  pushVideoSample (pes, options) {
     let nals = Nalunit.getNalunits(pes.ES.buffer);
     let track;
+    let meta = new VideoTrackMeta();
     if (!this._tracks.videoTrack) {
       this._tracks.videoTrack = new VideoTrack();
       track = this._tracks.videoTrack;
-      track.meta = new VideoTrackMeta();
     } else {
       track = this._tracks.videoTrack;
     }
@@ -142,32 +155,27 @@ class TsDemuxer {
     for (let i = 0; i < nals.length; i++) {
       let nal = nals[i];
       if (nal.sps) {
-        // TODO：VideoTrack信息 和 Meta 信息
-        if (track.sps && TsDemuxer.compaireUint8(nal.body, track.sps)) {
-          continue;
-        }
-
         sps = nal;
         track.sps = nal.body;
-        track.meta.chromaFormat = sps.sps.chroma_format
-        track.meta.codec = 'avc1.';
+        meta.chromaFormat = sps.sps.chroma_format
+        meta.codec = 'avc1.';
         for (var j = 1; j < 4; j++) {
           var h = sps.body[j].toString(16);
           if (h.length < 2) {
             h = '0' + h;
           }
-          track.meta.codec += h;
+          meta.codec += h;
         }
-        track.meta.codecHeight = sps.sps.codec_size.height;
-        track.meta.codecWidth = sps.sps.codec_size.width;
-        track.meta.frameRate = sps.sps.frame_rate;
-        track.meta.id = 1;
-        track.meta.level = sps.sps.level_string;
-        track.meta.presentHeight = sps.sps.present_size.height;
-        track.meta.presentWidth = sps.sps.present_size.width;
-        track.meta.profile = sps.sps.profile_string;
-        track.meta.refSampleDuration = Math.floor(track.meta.timescale * (sps.sps.frame_rate.fps_den / sps.sps.frame_rate.fps_num));
-        track.meta.sarRatio = sps.sps.sar_ratio ? sps.sps.sar_ratio : sps.sps.par_ratio;
+        meta.codecHeight = sps.sps.codec_size.height;
+        meta.codecWidth = sps.sps.codec_size.width;
+        meta.frameRate = sps.sps.frame_rate;
+        meta.id = 1;
+        meta.level = sps.sps.level_string;
+        meta.presentHeight = sps.sps.present_size.height;
+        meta.presentWidth = sps.sps.present_size.width;
+        meta.profile = sps.sps.profile_string;
+        meta.refSampleDuration = Math.floor(meta.timescale * (sps.sps.frame_rate.fps_den / sps.sps.frame_rate.fps_num));
+        meta.sarRatio = sps.sps.sar_ratio ? sps.sps.sar_ratio : sps.sps.par_ratio;
       } else if (nal.pps) {
         track.pps = nal.body;
         pps = nal;
@@ -177,8 +185,17 @@ class TsDemuxer {
     }
 
     if (sps && pps) {
-      track.meta.avcc = Nalunit.getAvcc(sps.body, pps.body);
-      if (!this._hasVideoMeta) {
+      meta.avcc = Nalunit.getAvcc(sps.body, pps.body);
+      let metaEqual = TsDemuxer.compaireMeta(track.meta, meta, true);
+      if (!this._hasVideoMeta || !metaEqual) {
+        if (options) {
+          options.meta = Object.assign({}, meta);
+        } else {
+          options = {
+            meta: Object.assign({}, meta)
+          }
+        }
+        track.meta = meta;
         this._hasVideoMeta = true
         this.emit(DEMUX_EVENTS.METADATA_PARSED, 'video');
       }
@@ -210,7 +227,8 @@ class TsDemuxer {
       cts: (pes.pts - pes.dts) / 90,
       originDts: pes.dts,
       isKeyframe,
-      data
+      data,
+      options
     })
     track.samples.push(sample);
   }
@@ -225,18 +243,63 @@ class TsDemuxer {
     this._hasAudioMeta = false;
   }
 
-  static compaireUint8 (a, b) {
-    if (a.byteLength !== b.byteLength) {
+  static compaireArray (a, b, type) {
+    let al = 0;
+    let bl = 0;
+    if (type === 'Uint8Array') {
+      al = a.byteLength;
+      bl = b.byteLength;
+    } else if (type === 'Array') {
+      al = a.length;
+      bl = b.length;
+    }
+    if (al !== bl) {
       return false;
     }
-    let ret = true;
-    for (let i = 0; i < a.byteLength; i++) {
+
+    for (let i = 0; i < al; i++) {
       if (a[i] !== b[i]) {
-        ret = false;
+        return false;
       }
     }
-    return ret;
+    return true;
   }
+
+  static compaireMeta (a, b, ignoreDuration) {
+    if (!a || !b) {
+      return false;
+    }
+
+    for (let i = 0, k = Object.keys(a).length; i < k; i++) {
+      let itema = a[Object.keys(a)[i]];
+      let itemb = b[Object.keys(a)[i]];
+      if (typeof itema !== 'object') {
+        if ((ignoreDuration && Object.keys(a)[i] !== 'duration' && Object.keys(a)[i] !== 'refSampleDuration' && Object.keys(a)[i] !== 'refSampleDurationFixed') && itema !== itemb) {
+          return false;
+        }
+      } else if (itema.byteLength !== undefined) {
+        if (itemb.byteLength === undefined) {
+          return false;
+        }
+        if (!TsDemuxer.compaireArray(itema, itemb, 'Uint8Array')) {
+          return false;
+        }
+      } else if (itema.length !== undefined) {
+        if (itemb.length === undefined) {
+          return false;
+        }
+        if (!TsDemuxer.compaireArray(itema, itemb, 'Array')) {
+          return false;
+        }
+      } else {
+        if (!TsDemuxer.compaireMeta(itema, itemb)) {
+          return false;
+        }
+      }
+    }
+    return true;
+  }
+
   static Merge (buffers) {
     let data;
     let length = 0;
@@ -471,7 +534,7 @@ class TsDemuxer {
   static PES (ts) {
     let ret = {};
     let buffer = ts.payload.stream;
-    
+
     let next = buffer.readUint24();
     if (next !== 1) {
       ret.ES = {};
@@ -617,7 +680,7 @@ class TsDemuxer {
       ret.frequence = fq[ret.frequencyIndex];
       ret.channel = next >>> 6 & 0x07;
       ret.frameLength = (next & 0x03) << 11 | (buffer.readUint16() >>> 5);
-      ret.audioConfig = TsDemuxer.getAudioConfig(ret.audioObjectType, ret.channel, ret.frequencyIndex);
+      TsDemuxer.getAudioConfig(ret);
       buffer.skip(1);
       ret.buffer = buffer;
     } else {
@@ -653,49 +716,49 @@ class TsDemuxer {
     ts.payload = ret;
   }
 
-  static getAudioConfig (audioObjectType, channel, sampleIndex) {
+  static getAudioConfig (ret) {
     let userAgent = navigator.userAgent.toLowerCase()
     let config;
     let extensionSampleIndex;
     if (/firefox/i.test(userAgent)) {
-      if (sampleIndex >= 6) {
-        audioObjectType = 5;
+      if (ret.frequencyIndex >= 6) {
+        ret.audioObjectType = 5;
         config = new Array(4);
-        extensionSampleIndex = sampleIndex - 3;
+        extensionSampleIndex = ret.frequencyIndex - 3;
       } else {
-        audioObjectType = 2;
+        ret.audioObjectType = 2;
         config = new Array(2);
-        extensionSampleIndex = sampleIndex;
+        extensionSampleIndex = ret.frequencyIndex;
       }
     } else if (userAgent.indexOf('android') !== -1) {
-      audioObjectType = 2;
+      ret.audioObjectType = 2;
       config = new Array(2);
-      extensionSampleIndex = sampleIndex;
+      extensionSampleIndex = ret.frequencyIndex;
     } else {
-      audioObjectType = 5;
+      ret.audioObjectType = 5;
       config = new Array(4);
-      if (sampleIndex >= 6) {
-        extensionSampleIndex = sampleIndex - 3;
+      if (ret.frequencyIndex >= 6) {
+        extensionSampleIndex = ret.frequencyIndex - 3;
       } else {
-        if (channel === 1) {
-          audioObjectType = 2;
+        if (ret.channel === 1) {
+          ret.audioObjectType = 2;
           config = new Array(2);
         }
-        extensionSampleIndex = sampleIndex;
+        extensionSampleIndex = ret.frequencyIndex;
       }
     }
 
-    config[0] = audioObjectType << 3;
-    config[0] |= (sampleIndex & 0x0e) >> 1;
-    config[1] = (sampleIndex & 0x01) << 7;
-    config[1] |= channel << 3;
-    if (audioObjectType === 5) {
+    config[0] = ret.audioObjectType << 3;
+    config[0] |= (ret.frequencyIndex & 0x0e) >> 1;
+    config[1] = (ret.frequencyIndex & 0x01) << 7;
+    config[1] |= ret.channel << 3;
+    if (ret.audioObjectType === 5) {
       config[1] |= (extensionSampleIndex & 0x0e) >> 1;
       config[2] = (extensionSampleIndex & 0x01) << 7;
       config[2] |= 2 << 2;
       config[3] = 0;
     }
-    return config;
+    ret.audioConfig = config;
   }
 
   get inputBuffer () {

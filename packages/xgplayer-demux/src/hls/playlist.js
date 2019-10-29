@@ -27,9 +27,14 @@ class Playlist {
     return this._baseURL;
   }
 
-  push (ts, duration) {
+  push (ts, duration, discontinue) {
     if (!this._ts[ts]) {
-      this._ts[ts] = {duration: duration, downloaded: false, downloading: false, start: this.duration};
+      this._ts[ts] = {duration: duration, 
+        downloaded: false, 
+        downloading: false, 
+        start: this.duration, 
+        discontinue: discontinue ? true: false
+      };
       this._list[this.duration] = ts;
       this.duration += duration;
       this.fragLength += 1;
@@ -56,11 +61,14 @@ class Playlist {
   pushM3U8 (data, deletepre) {
     // 常规信息替换
     if (!data) {
+      throw new Error(`No m3u8 data received.`);
       return;
     }
     this.version = data.version;
     this.targetduration = data.targetduration;
-
+    if(data.encrypt && !this.encrypt) {
+      this.encrypt = data.encrypt;
+    }
     // 新分片信息
     if (data.sequence > this.sequence) {
       this.sequence = data.sequence;
@@ -69,9 +77,14 @@ class Playlist {
         let frag = data.frags[i];
         if (!this._ts[frag.url]) {
           newfraglist.push(frag.url)
-          this.push(frag.url, frag.duration);
+          this.push(frag.url, frag.duration, frag.discontinue);
         }
       }
+
+      if(newfraglist.length < 1) {
+        throw new Error(`Can not read ts file list.`);
+      }
+      
       if (deletepre) {
         let tslist = this.getTsList();
         for (let i = 0; i < tslist.length; i++) {
@@ -80,6 +93,8 @@ class Playlist {
           }
         }
       }
+    } else {
+      throw new Error(`Old m3u8 file received, ${data.sequence}`);
     }
   }
 

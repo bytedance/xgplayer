@@ -15,13 +15,14 @@ class M3U8Parser {
     })
     let ref = refs.shift()
     if (!ref.match('#EXTM3U')) {
-      // TODO:M3U格式错误。
+      throw new Error(`Invalid m3u8 file: not "#EXTM3U"`);
       return null;
     }
     ref = refs.shift()
     while (ref) {
-      let refm = ref.match(/#(.*):(.*)/);
-      if (refm && refm.length > 2) {
+      let refm = ref.match(/#(.[A-Z|-]*):(.*)/);
+      let refd = ref.match(/#(.[A-Z|-]*)/);
+      if (refd && refm && refm.length > 2) {
         switch (refm[1]) {
           case 'EXT-X-VERSION':
             ret.version = parseInt(refm[2]);
@@ -35,6 +36,21 @@ class M3U8Parser {
           case 'EXTINF':
             M3U8Parser.parseFrag(refm, refs, ret, baseurl);
             break;
+          case 'EXT-X-KEY':
+            M3U8Parser.parseDecrypt(refm[2],ret);
+            break;
+          default:
+            break;
+        }
+      } if(refd && refd.length > 1) {
+        switch(refd[1]) {
+          case 'EXT-X-DISCONTINUITY':
+            ref = refs.shift();
+            let refm = ref.match(/#(.[A-Z|-]*):(.*)/);
+            if(refm.length >2 && refm[1] === 'EXTINF') {
+              M3U8Parser.parseFrag(refm, refs, ret, baseurl, true);
+            }
+            break;
           default:
             break;
         }
@@ -44,7 +60,7 @@ class M3U8Parser {
     return ret;
   }
 
-  static parseFrag (refm, refs, ret, baseurl) {
+  static parseFrag (refm, refs, ret, baseurl, discontinue) {
     if (!ret.frags) {
       ret.frags = []
     }
@@ -67,7 +83,7 @@ class M3U8Parser {
     } else {
       freg.url = baseurl + nextline;
     }
-    
+    freg.discontinue = discontinue;
     ret.frags.push(freg);
   }
 
@@ -82,6 +98,31 @@ class M3U8Parser {
       }
     }
     return baseurl;
+  }
+
+  static parseDecrypt(refm, ret) {
+    ret.encrypt = {};
+    let refs = refm.split(',');
+    for (let i in refs) { 
+      let cmd = refs[i];
+      if(cmd.match(/METHOD=(.*)/)) {
+        ret.encrypt.method = cmd.match(/METHOD=(.*)/)[1];
+      }
+      if(cmd.match(/URI="(.*)"/)) {
+        ret.encrypt.uri = cmd.match(/URI="(.*)"/)[1];
+      }
+
+      if(cmd.match(/IV=0x(.*)/)) {
+        let iv = cmd.match(/IV=0x(.*)/)[1];
+        let length = Math.ceil(iv.length / 2);
+        ret.encrypt.ivb = new Uint8Array(length);
+        for(let i = length - 1; i >=0; i--) {
+          let im = parseInt(iv.substr(i * 2, 2), 16);
+          ret.encrypt.ivb[i] = im;
+        } 
+        ret.encrypt.iv = iv;
+      }
+    };
   }
 }
 

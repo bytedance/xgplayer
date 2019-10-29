@@ -13,9 +13,10 @@ class MP4 {
      * @param {String} url                      [视频地址]
      * @param {Number} [chunk_size=Math.pow(25, 4)]           [请求的数据块大小，对于长视频设置的较大些可以避免二次请求]
      */
-  constructor (url, chunkSize = Math.pow(25, 4)) {
+  constructor (url, withCredentials, chunkSize = Math.pow(25, 4)) {
     EventEmitter(this)
     this.url = url
+    this.withCredentials = withCredentials
     this.CHUNK_SIZE = chunkSize
     this.init(url)
     this.once('moovReady', this.moovParse.bind(this))
@@ -35,7 +36,7 @@ class MP4 {
     return new Promise((resolve, reject) => {
       let task = new Task(this.url, [
         start, end
-      ], resolve)
+      ], this.withCredentials, resolve)
       task.once('error', err => {
         self.emit('error', err)
       })

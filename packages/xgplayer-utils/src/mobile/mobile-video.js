@@ -64,7 +64,7 @@ class MobileVideo extends HTMLElement {
 
     this.ticker.start(() => {
       // this.reconciler.doReconcile()
-      console.log(this.aCtx.currentTime)
+      // console.log(this.aCtx.currentTime)
 
     })
   }

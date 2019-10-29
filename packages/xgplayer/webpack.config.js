@@ -28,6 +28,9 @@ const umd = {
         'postcss-loader',
         'sass-loader'
       ]
+    },{
+      test: /\.svg/,
+      loader: 'raw-loader'
     }]
   },
   optimization: {
@@ -62,6 +65,9 @@ const client = {
         'postcss-loader',
         'sass-loader'
       ]
+    },{
+      test: /\.svg/,
+      loader: 'raw-loader'
     }]
   },
   mode: 'production',

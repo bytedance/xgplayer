@@ -6,8 +6,8 @@ class YUVCanvas {
     this.chroma = this.meta.chromaFormat;
     this.height = this.meta.presentHeight;
     this.width = this.meta.presentWidth;
-    this.canvas.width = this.width;
-    this.canvas.height = this.height;
+    this.canvas.width = 1280;
+    this.canvas.height = 720;
     this.canvas.style.width = '100%';
     this.canvas.style.height = '100%';
     this._initContextGL();
@@ -54,79 +54,41 @@ class YUVCanvas {
     // vertex shader is the same for all types
     var vertexShaderScript;
     var fragmentShaderScript;
-    if (this.chroma === 420) {
-      vertexShaderScript = [
-        'attribute vec4 vertexPos;',
-        'attribute vec4 texturePos;',
-        'attribute vec4 uTexturePos;',
-        'attribute vec4 vTexturePos;',
-        'varying vec2 textureCoord;',
-        'varying vec2 uTextureCoord;',
-        'varying vec2 vTextureCoord;',
+    vertexShaderScript = [
+      'attribute vec4 vertexPos;',
+      'attribute vec4 texturePos;',
+      'attribute vec4 uTexturePos;',
+      'attribute vec4 vTexturePos;',
+      'varying vec2 textureCoord;',
+      'varying vec2 uTextureCoord;',
+      'varying vec2 vTextureCoord;',
 
-        'void main()',
-        '{',
-        '  gl_Position = vertexPos;',
-        '  textureCoord = texturePos.xy;',
-        '  uTextureCoord = uTexturePos.xy;',
-        '  vTextureCoord = vTexturePos.xy;',
-        '}'
-      ].join('\n');
+      'void main()',
+      '{',
+      '  gl_Position = vertexPos;',
+      '  textureCoord = texturePos.xy;',
+      '  uTextureCoord = uTexturePos.xy;',
+      '  vTextureCoord = vTexturePos.xy;',
+      '}'
+    ].join('\n');
 
-      fragmentShaderScript = [
-        'precision highp float;',
-        'varying highp vec2 textureCoord;',
-        'varying highp vec2 uTextureCoord;',
-        'varying highp vec2 vTextureCoord;',
-        'uniform sampler2D ySampler;',
-        'uniform sampler2D uSampler;',
-        'uniform sampler2D vSampler;',
-        'uniform mat4 YUV2RGB;',
+    fragmentShaderScript = [
+      'precision highp float;',
+      'varying highp vec2 textureCoord;',
+      'varying highp vec2 uTextureCoord;',
+      'varying highp vec2 vTextureCoord;',
+      'uniform sampler2D ySampler;',
+      'uniform sampler2D uSampler;',
+      'uniform sampler2D vSampler;',
+      'uniform mat4 YUV2RGB;',
 
-        'void main(void) {',
-        '  highp float y = texture2D(ySampler,  textureCoord).r;',
-        '  highp float u = texture2D(uSampler,  uTextureCoord).r;',
-        '  highp float v = texture2D(vSampler,  vTextureCoord).r;',
-        '  gl_FragColor = vec4(y, u, v, 1) * YUV2RGB;',
-        '}'
-      ].join('\n');
-    } else if (this.chroma === 422) {
-      vertexShaderScript = [
-        'attribute vec4 vertexPos;',
-        'attribute vec4 texturePos;',
-        'varying vec2 textureCoord;',
-
-        'void main()',
-        '{',
-        '  gl_Position = vertexPos;',
-        '  textureCoord = texturePos.xy;',
-        '}'
-      ].join('\n');
-
-      fragmentShaderScript = [
-        'precision highp float;',
-        'varying highp vec2 textureCoord;',
-        'uniform sampler2D sampler;',
-        'uniform highp vec2 resolution;',
-        'uniform mat4 YUV2RGB;',
-
-        'void main(void) {',
-
-        '  highp float texPixX = 1.0 / resolution.x;',
-        '  highp float logPixX = 2.0 / resolution.x;', // half the resolution of the texture
-        '  highp float logHalfPixX = 4.0 / resolution.x;', // half of the logical resolution so every 4th pixel
-        '  highp float steps = floor(textureCoord.x / logPixX);',
-        '  highp float uvSteps = floor(textureCoord.x / logHalfPixX);',
-        '  highp float y = texture2D(sampler, vec2((logPixX * steps) + texPixX, textureCoord.y)).r;',
-        '  highp float u = texture2D(sampler, vec2((logHalfPixX * uvSteps), textureCoord.y)).r;',
-        '  highp float v = texture2D(sampler, vec2((logHalfPixX * uvSteps) + texPixX + texPixX, textureCoord.y)).r;',
-
-        // '  highp float y = texture2D(sampler,  textureCoord).r;',
-        // '  gl_FragColor = vec4(y, u, v, 1) * YUV2RGB;',
-        '  gl_FragColor = vec4(y, u, v, 1.0) * YUV2RGB;',
-        '}'
-      ].join('\n');
-    };
+      'void main(void) {',
+      '  highp float y = texture2D(ySampler,  textureCoord).r;',
+      '  highp float u = texture2D(uSampler,  uTextureCoord).r;',
+      '  highp float v = texture2D(vSampler,  vTextureCoord).r;',
+      '  gl_FragColor = vec4(y, u, v, 1) * YUV2RGB;',
+      '}'
+    ].join('\n');
 
     var YUV2RGB = [
       1.16438, 0.00000, 1.59603, -0.87079,
@@ -186,55 +148,44 @@ class YUVCanvas {
 
     this.texturePosBuffer = texturePosBuffer;
 
-    if (this.chroma === 420) {
-      var uTexturePosBuffer = gl.createBuffer();
-      gl.bindBuffer(gl.ARRAY_BUFFER, uTexturePosBuffer);
-      gl.bufferData(gl.ARRAY_BUFFER, new Float32Array([1, 0, 0, 0, 1, 1, 0, 1]), gl.STATIC_DRAW);
+    var uTexturePosBuffer = gl.createBuffer();
+    gl.bindBuffer(gl.ARRAY_BUFFER, uTexturePosBuffer);
+    gl.bufferData(gl.ARRAY_BUFFER, new Float32Array([1, 0, 0, 0, 1, 1, 0, 1]), gl.STATIC_DRAW);
 
-      var uTexturePosRef = gl.getAttribLocation(program, 'uTexturePos');
-      gl.enableVertexAttribArray(uTexturePosRef);
-      gl.vertexAttribPointer(uTexturePosRef, 2, gl.FLOAT, false, 0, 0);
+    var uTexturePosRef = gl.getAttribLocation(program, 'uTexturePos');
+    gl.enableVertexAttribArray(uTexturePosRef);
+    gl.vertexAttribPointer(uTexturePosRef, 2, gl.FLOAT, false, 0, 0);
 
-      this.uTexturePosBuffer = uTexturePosBuffer;
+    this.uTexturePosBuffer = uTexturePosBuffer;
 
-      var vTexturePosBuffer = gl.createBuffer();
-      gl.bindBuffer(gl.ARRAY_BUFFER, vTexturePosBuffer);
-      gl.bufferData(gl.ARRAY_BUFFER, new Float32Array([1, 0, 0, 0, 1, 1, 0, 1]), gl.STATIC_DRAW);
+    var vTexturePosBuffer = gl.createBuffer();
+    gl.bindBuffer(gl.ARRAY_BUFFER, vTexturePosBuffer);
+    gl.bufferData(gl.ARRAY_BUFFER, new Float32Array([1, 0, 0, 0, 1, 1, 0, 1]), gl.STATIC_DRAW);
 
-      var vTexturePosRef = gl.getAttribLocation(program, 'vTexturePos');
-      gl.enableVertexAttribArray(vTexturePosRef);
-      gl.vertexAttribPointer(vTexturePosRef, 2, gl.FLOAT, false, 0, 0);
+    var vTexturePosRef = gl.getAttribLocation(program, 'vTexturePos');
+    gl.enableVertexAttribArray(vTexturePosRef);
+    gl.vertexAttribPointer(vTexturePosRef, 2, gl.FLOAT, false, 0, 0);
 
-      this.vTexturePosBuffer = vTexturePosBuffer;
-    };
+    this.vTexturePosBuffer = vTexturePosBuffer;
   };
 
   _initTextures () {
     var gl = this.contextGL;
     var program = this.shaderProgram;
+    var yTextureRef = this._initTexture();
+    var ySamplerRef = gl.getUniformLocation(program, 'ySampler');
+    gl.uniform1i(ySamplerRef, 0);
+    this.yTextureRef = yTextureRef;
 
-    if (this.chroma === 420) {
-      var yTextureRef = this._initTexture();
-      var ySamplerRef = gl.getUniformLocation(program, 'ySampler');
-      gl.uniform1i(ySamplerRef, 0);
-      this.yTextureRef = yTextureRef;
+    var uTextureRef = this._initTexture();
+    var uSamplerRef = gl.getUniformLocation(program, 'uSampler');
+    gl.uniform1i(uSamplerRef, 1);
+    this.uTextureRef = uTextureRef;
 
-      var uTextureRef = this._initTexture();
-      var uSamplerRef = gl.getUniformLocation(program, 'uSampler');
-      gl.uniform1i(uSamplerRef, 1);
-      this.uTextureRef = uTextureRef;
-
-      var vTextureRef = this._initTexture();
-      var vSamplerRef = gl.getUniformLocation(program, 'vSampler');
-      gl.uniform1i(vSamplerRef, 2);
-      this.vTextureRef = vTextureRef;
-    } else if (this.chroma === 422) {
-      // only one texture for 422
-      var textureRef = this._initTexture();
-      var samplerRef = gl.getUniformLocation(program, 'sampler');
-      gl.uniform1i(samplerRef, 0);
-      this.textureRef = textureRef;
-    };
+    var vTextureRef = this._initTexture();
+    var vSamplerRef = gl.getUniformLocation(program, 'vSampler');
+    gl.uniform1i(vSamplerRef, 2);
+    this.vTextureRef = vTextureRef;
   }
 
   _initTexture () {
@@ -252,70 +203,41 @@ class YUVCanvas {
   }
 
   _drawPictureGL (data, width, height) {
-    if (this.chroma === 420) {
-      let nWidth = width;
-      var ylen = width * height;
-      var uvlen = (width / 2) * (height / 2);
-      data = new Uint8Array(data);
-      let renderData = {
-        yData: data.subarray(0, ylen),
-        uData: data.subarray(ylen, ylen + uvlen),
-        vData: data.subarray(ylen + uvlen, ylen + uvlen + uvlen)
-      }
-      if (width % 4 > 0) {
-        nWidth = width + 4 - (width % 4);
-        let yArray = new Uint8Array(nWidth * height);
-        for (let i = 0; i < height; i++) {
-          yArray.set(renderData.yData.subarray(i * width, (i + 1) * width), i * nWidth);
-        }
-        renderData.yData = yArray;
-      }
-
-      if ((width / 2) % 4 > 0) {
-        nWidth = (width / 2) + 4 - ((width / 2) % 4);
-        let uArray = new Uint8Array(nWidth * height / 2);
-        let vArray = new Uint8Array(nWidth * height / 2);
-        for (let i = 0; i < height / 2; i++) {
-          uArray.set(renderData.uData.subarray(i * width / 2, (i + 1) * width / 2), i * nWidth);
-          vArray.set(renderData.vData.subarray(i * width / 2, (i + 1) * width / 2), i * nWidth);
-        }
-        renderData.uData = uArray;
-        renderData.vData = vArray;
-      }
-      this._drawPictureGL420(renderData, width, height);
-    } else if (this.chroma === 422) {
-      data = new Uint8Array(data);
-      this._drawPictureGL422(width, height, data);
+    let nWidth = width;
+    var ylen = width * height;
+    var uvlen = ylen / 4;
+    if (this.chroma === 422) {
+      uvlen = ylen / 2
+    } else if (this.chroma === 444) {
+      uvlen = ylen;
     }
-  }
+    data = new Uint8Array(data);
+    let renderData = {
+      yData: data.subarray(0, ylen),
+      uData: data.subarray(ylen, ylen + uvlen),
+      vData: data.subarray(ylen + uvlen, ylen + uvlen + uvlen)
+    }
+    if (width % 4 > 0) {
+      nWidth = width + 4 - (width % 4);
+      let yArray = new Uint8Array(nWidth * height);
+      for (let i = 0; i < height; i++) {
+        yArray.set(renderData.yData.subarray(i * width, (i + 1) * width), i * nWidth);
+      }
+      renderData.yData = yArray;
+    }
 
-  _drawPictureGL422 (data, width, height) {
-    var gl = this.contextGL;
-    var texturePosBuffer = this.texturePosBuffer;
-
-    var textureRef = this.textureRef;
-
-    var dataPerRow = width * 2;
-    var rowCnt = height;
-
-    gl.viewport(0, 0, width, height);
-
-    var tTop = 0;
-    var tLeft = 0;
-    var tBottom = height / rowCnt;
-    var tRight = width / (dataPerRow / 2);
-    var texturePosValues = new Float32Array([tRight, tTop, tLeft, tTop, tRight, tBottom, tLeft, tBottom]);
-
-    gl.bindBuffer(gl.ARRAY_BUFFER, texturePosBuffer);
-    gl.bufferData(gl.ARRAY_BUFFER, texturePosValues, gl.DYNAMIC_DRAW);
-
-    gl.uniform2f(gl.getUniformLocation(this.shaderProgram, 'resolution'), dataPerRow, height);
-
-    gl.activeTexture(gl.TEXTURE0);
-    gl.bindTexture(gl.TEXTURE_2D, textureRef);
-    gl.texImage2D(gl.TEXTURE_2D, 0, gl.LUMINANCE, dataPerRow, rowCnt, 0, gl.LUMINANCE, gl.UNSIGNED_BYTE, data);
-
-    gl.drawArrays(gl.TRIANGLE_STRIP, 0, 4);
+    if ((width / 2) % 4 > 0) {
+      nWidth = (width / 2) + 4 - ((width / 2) % 4);
+      let uArray = new Uint8Array(nWidth * height / 2);
+      let vArray = new Uint8Array(nWidth * height / 2);
+      for (let i = 0; i < height / 2; i++) {
+        uArray.set(renderData.uData.subarray(i * width / 2, (i + 1) * width / 2), i * nWidth);
+        vArray.set(renderData.vData.subarray(i * width / 2, (i + 1) * width / 2), i * nWidth);
+      }
+      renderData.uData = uArray;
+      renderData.vData = vArray;
+    }
+    this._drawPictureGL420(renderData, width, height);
   }
 
   _drawPictureGL420 (data, width, height) {
@@ -338,32 +260,39 @@ class YUVCanvas {
     var uDataPerRow = width / 2;
     var uRowCnt = height / 2;
 
+    if (this.chroma === 422 || this.chroma === 444) {
+      uRowCnt = height;
+    }
+    if (this.chroma === 444) {
+      uDataPerRow = width;
+    }
     var vDataPerRow = uDataPerRow;
     var vRowCnt = uRowCnt;
-    gl.viewport(0, 0, this.width, this.height);
+    
+    let ratiow = this.canvas.width / this.width;
+    let ratioh = this.canvas.height / this.height;
+    let left = 0;
+    let top = 0;
+    let w = this.canvas.width;
+    let h = this.canvas.height;
+    if (ratiow < ratioh) {
+      h = (this.height * this.canvas.width / this.width);
+      top = parseInt((this.canvas.height - (this.height * this.canvas.width / this.width)) / 2);
+    } else {
+      w = (this.width * this.canvas.height / this.height);
+      left = parseInt((this.canvas.width - (this.width * this.canvas.height / this.height)) / 2);
+    }
+    gl.viewport(left, top, w, h);
 
-    var tTop = 0;
-    var tLeft = 0;
-    var tBottom = height / yRowCnt;
-    var tRight = width / yDataPerRow;
-    var texturePosValues = new Float32Array([tRight, tTop, tLeft, tTop, tRight, tBottom, tLeft, tBottom]);
-
+    var texturePosValues = new Float32Array([1, 0, 0, 0, 1, 1, 0, 1]);
     gl.bindBuffer(gl.ARRAY_BUFFER, texturePosBuffer);
     gl.bufferData(gl.ARRAY_BUFFER, texturePosValues, gl.DYNAMIC_DRAW);
 
-
-    tBottom = (height / 2) / uRowCnt;
-    tRight = (width / 2) / uDataPerRow;
-    var uTexturePosValues = new Float32Array([tRight, tTop, tLeft, tTop, tRight, tBottom, tLeft, tBottom]);
-
+    var uTexturePosValues = new Float32Array([1, 0, 0, 0, 1, 1, 0, 1]);
     gl.bindBuffer(gl.ARRAY_BUFFER, uTexturePosBuffer);
     gl.bufferData(gl.ARRAY_BUFFER, uTexturePosValues, gl.DYNAMIC_DRAW);
 
-    tBottom = (height / 2) / vRowCnt;
-    tRight = (width / 2) / vDataPerRow;
-
-    var vTexturePosValues = new Float32Array([tRight, tTop, tLeft, tTop, tRight, tBottom, tLeft, tBottom]);
-
+    var vTexturePosValues = new Float32Array([1, 0, 0, 0, 1, 1, 0, 1]);
     gl.bindBuffer(gl.ARRAY_BUFFER, vTexturePosBuffer);
     gl.bufferData(gl.ARRAY_BUFFER, vTexturePosValues, gl.DYNAMIC_DRAW);
     

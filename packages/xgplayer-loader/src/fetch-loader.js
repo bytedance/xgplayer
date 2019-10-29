@@ -13,6 +13,7 @@ class FetchLoader {
     this.error = null
     this._reader = null;
     this._canceled = false;
+    this._destroyed = false;
     this.readtype = this.configs.readtype;
     this.buffer = this.configs.buffer || 'LOADER_BUFFER';
     this._loaderTaskNo = 0;
@@ -39,11 +40,11 @@ class FetchLoader {
         _this.status = response.status
         return _this._onFetchResponse(response);
       }
-      _this.emit(LOADER_EVENTS.LOADER_ERROR, _this, response);
       _this.loading = false;
+      _this.emit(LOADER_EVENTS.LOADER_ERROR, _this.TAG, new Error(`invalid response.`));
     }).catch(function (error)  {
-      _this.emit(LOADER_EVENTS.LOADER_ERROR, _this, error);
       _this.loading = false;
+      _this.emit(LOADER_EVENTS.LOADER_ERROR, _this.TAG, error);
       throw new Error(error.message)
     })
   }
@@ -58,7 +59,7 @@ class FetchLoader {
         case READ_JSON:
           response.json().then((data) => {
             _this.loading = false
-            if (!_this._canceled) {
+            if (!_this._canceled && !_this._destroyed) {
               if (buffer) {
                 buffer.push(data);
                 _this.emit(LOADER_EVENTS.LOADER_COMPLETE, buffer);
@@ -71,7 +72,7 @@ class FetchLoader {
         case READ_TEXT:
           response.text().then((data) => {
             _this.loading = false
-            if (!_this._canceled) {
+            if (!_this._canceled && !_this._destroyed) {
               if (buffer) {
                 buffer.push(data);
                 _this.emit(LOADER_EVENTS.LOADER_COMPLETE, buffer);
@@ -84,7 +85,7 @@ class FetchLoader {
         case READ_BUFFER:
           response.arrayBuffer().then((data) => {
             _this.loading = false
-            if (!_this._canceled) {
+            if (!_this._canceled && !_this._destroyed) {
               if (buffer) {
                 buffer.push(new Uint8Array(data));
                 _this.emit(LOADER_EVENTS.LOADER_COMPLETE, buffer);
@@ -103,9 +104,12 @@ class FetchLoader {
 
   _onReader (reader, taskno) {
     let buffer = this._context.getInstance(this.buffer);
-
-    if (!buffer) {
-      this._reader.cancel();
+    if ((!buffer && this._reader) || this._destroyed) {
+      try {
+        this._reader.cancel()
+      } catch (e) {
+        // DO NOTHING
+      }
     }
 
     this._reader = reader
@@ -125,17 +129,23 @@ class FetchLoader {
         return
       }
 
-      if (_this._canceled) {
-        _this._reader.cancel()
+      if (_this._canceled || _this._destroyed) {
+        if  (_this._reader) {
+          try {
+            _this._reader.cancel()
+          } catch (e) {
+            // DO NOTHING
+          }
+        }
+
         return;
       }
       buffer.push(val.value)
       _this.emit(LOADER_EVENTS.LOADER_DATALOADED, buffer)
       return _this._onReader(reader, taskno)
     }).catch((error) => {
-      console.error(error);
-      _this.emit(LOADER_EVENTS.LOADER_ERROR, _this, error);
       _this.loading = false;
+      _this.emit(LOADER_EVENTS.LOADER_ERROR, _this.TAG, error);
     })
   }
 
@@ -186,7 +196,11 @@ class FetchLoader {
 
   cancel () {
     if (this._reader) {
-      this._reader.cancel()
+      try {
+        this._reader.cancel()
+      } catch (e) {
+        // 防止failed: 200错误被打印到控制台上
+      }
       this._reader = null
       this.loading = false
       this._canceled = true;
@@ -194,6 +208,7 @@ class FetchLoader {
   }
 
   destroy () {
+    this._destroyed = true
     this.cancel();
   }
 }
