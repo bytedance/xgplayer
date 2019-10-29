@@ -81,7 +81,6 @@ class VideoCanvas {
 
   decodeVideo (videoTrack) {
     if (!this._decoderInited) {
-      this.initWasmWorker();
       return
     }
 
