@@ -138,7 +138,9 @@ class MSE {
             const clean = () => {
               if (!buffer.updating) {
                 MSE.clearBuffer(buffer)
-                resolve()
+                buffer.addEventListener('updateend', () => {
+                  resolve();
+                })
               } else if (retryTime > 0){
                 setTimeout(clean, 200)
                 retryTime--
@@ -153,8 +155,17 @@ class MSE {
           buffer.addEventListener('updateend', doCleanBuffer)
         })
       } else {
-        MSE.clearBuffer(buffer)
-        task = Promise.resolve()
+        task = new Promise((resolve) => {
+          MSE.clearBuffer(buffer)
+          buffer.addEventListener('updateend', () => {
+            if (buffer.buffered.length) {
+              console.log(buffer.buffered.start(0), `  ${buffer.buffered.end(0)}`)
+            }
+            resolve()
+          })
+        })
+
+        // task = Promise.resolve()
       }
 
       taskList.push(task)

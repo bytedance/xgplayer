@@ -133,7 +133,7 @@ export default class FlvController {
       if (this.bufferClearTimer || !this.state.randomAccessPoints.length) {
         return;
       }
-      let rap;
+      let rap = Infinity;
       for (let i = 0; i < this.state.randomAccessPoints.length; i++) {
         const temp = Math.ceil(this.state.randomAccessPoints[i] / 1000)
         if (temp > time - 2) {
@@ -143,7 +143,8 @@ export default class FlvController {
         }
       }
 
-      this.mse.remove(rap, 0)
+      this.mse.remove(Math.min(rap, time - 3), bufferStart)
+
       this.bufferClearTimer = setTimeout(() => {
         this.bufferClearTimer = null
       }, 5000)
@@ -155,7 +156,7 @@ export default class FlvController {
     this._onError(LOADER_EVENTS.LOADER_ERROR, tag, err, true)
   }
 
-  _handleDemuxError(tag, err, fatal) {
+  _handleDemuxError (tag, err, fatal) {
     if (fatal === undefined) {
       fatal = false;
     }
@@ -169,7 +170,7 @@ export default class FlvController {
     }
   }
 
-  _onError(type, mod, err, fatal) {
+  _onError (type, mod, err, fatal) {
     let error = {
       errorType: type,
       errorDetails: `[${mod}]: ${err.message}`,

@@ -38,6 +38,8 @@ class FlvPlayer extends Player {
             window.clearInterval(this.loaderCompleteTimer)
           }
         }, 200)
+      } else {
+        player.emit('ended')
       }
     })
   }
