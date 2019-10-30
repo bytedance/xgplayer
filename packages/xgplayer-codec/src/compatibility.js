@@ -571,7 +571,6 @@ class Compatibility {
   }
 
   static doFixLargeGap (samples, gap) {
-    console.log('fix large gap')
     for (let i = 0, len = samples.length; i < len; i++) {
       const sample = samples[i];
       sample.dts += gap

@@ -180,7 +180,6 @@ class VideoCanvas {
             this.oncanplay();
             this.readyStatus = 4;
           }
-          console.log(frameTime)
           this.yuvCanvas.render(frame.buffer, frame.width, frame.height);
           for (let i = 0; i < currentIdx; i++) {
             delete this._decodedFrames[i];
