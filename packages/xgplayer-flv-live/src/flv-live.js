@@ -136,14 +136,14 @@ export default class FlvController {
       let rap = Infinity;
       for (let i = 0; i < this.state.randomAccessPoints.length; i++) {
         const temp = Math.ceil(this.state.randomAccessPoints[i] / 1000)
-        if (temp > time - 2) {
+        if (temp > time - 10) {
           break;
         } else {
           rap = temp;
         }
       }
 
-      this.mse.remove(Math.min(rap, time - 3), bufferStart)
+      this.mse.remove(Math.min(rap, time - 10), 0)
 
       this.bufferClearTimer = setTimeout(() => {
         this.bufferClearTimer = null

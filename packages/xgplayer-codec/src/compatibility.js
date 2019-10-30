@@ -83,6 +83,12 @@ class Compatibility {
   doFixVideo (first, streamChangeStart) {
     let {samples: videoSamples, meta} = this.videoTrack
 
+    // console.log('next video', this.nextVideoDts)
+    for (let i = 0, len = videoSamples.length; i < len; i++) {
+      const sample = videoSamples[i]
+      sample.originDts = sample.dts
+    }
+
     if (meta.frameRate && meta.frameRate.fixed === false) {
       return;
     }
@@ -165,7 +171,6 @@ class Compatibility {
         // 当差距在+-一帧之间时将第一帧的dts强行定位到期望位置
         // console.log('重定位视频帧dts', videoSamples[0].dts, this.nextVideoDts)
         videoSamples[0].dts = this.nextVideoDts
-        videoSamples[0].originDts = videoSamples[0].dts
         videoSamples[0].cts = videoSamples[0].cts !== undefined ? videoSamples[0].cts : videoSamples[0].pts - videoSamples[0].dts
         videoSamples[0].pts = videoSamples[0].dts + videoSamples[0].cts
       } else if (gap < 0) {
@@ -173,13 +178,16 @@ class Compatibility {
         Compatibility.doFixLargeGap(videoSamples, (-1 * gap))
       }
     }
+    const lastOriginDts = videoSamples[videoSamples.length - 1].originDts;
     const lastDts = videoSamples[videoSamples.length - 1].dts;
 
-    const lastSampleDuration = videoSamples.length >= 2 ? lastDts - videoSamples[videoSamples.length - 2].dts : meta.refSampleDuration
+    const lastSampleDuration = videoSamples.length >= 2 ? lastOriginDts - videoSamples[videoSamples.length - 2].originDts : meta.refSampleDuration
 
     this.lastVideoSamplesLen = samplesLen
     this.nextVideoDts = lastDts + lastSampleDuration
     this.lastVideoDts = lastDts
+
+    videoSamples[videoSamples.length - 1].duration = lastSampleDuration
 
     // step2. 修复sample段之内的间距问题
     // step3. 修复samples段内部的dts异常问题
@@ -226,6 +234,13 @@ class Compatibility {
     if (!audioSamples || !audioSamples.length) {
       return
     }
+
+    // console.log('next audio', this.nextAudioDts)
+    for (let i = 0, len = audioSamples.length; i < len; i++) {
+      const sample = audioSamples[i]
+      sample.originDts = sample.dts
+    }
+
     // console.log(`audio lastSample, ${audioSamples[audioSamples.length - 1].dts}`)
 
     const samplesLen = audioSamples.length;
@@ -314,12 +329,15 @@ class Compatibility {
         Compatibility.doFixLargeGap(audioSamples, (-1 * gap))
       }
     }
-    const lastDts = audioSamples[audioSamples.length - 1].dts;
-    const lastSampleDuration = audioSamples.length >= 2 ? lastDts - audioSamples[audioSamples.length - 2].dts : meta.refSampleDuration
+    const lastOriginDts = audioSamples[audioSamples.length - 1].originDts;
+    const lastDts = audioSamples[audioSamples.length - 1].originDts;
+    const lastSampleDuration = audioSamples.length >= 2 ? lastOriginDts - audioSamples[audioSamples.length - 2].originDts : meta.refSampleDuration
 
     this.lastAudioSamplesLen = samplesLen;
     this.nextAudioDts = meta.refSampleDurationFixed ? lastDts + meta.refSampleDurationFixed : lastDts + lastSampleDuration
     this.lastAudioDts = lastDts
+
+    audioSamples[audioSamples.length - 1].duration = lastSampleDuration
 
     // step3. 修复samples段内部的dts异常问题
     for (let i = 0, len = audioSamples.length; i < len; i++) {
@@ -569,7 +587,7 @@ class Compatibility {
   }
 
   static doFixLargeGap (samples, gap) {
-    console.log('fix large gap')
+    // console.log('fix large gap ', gap)
     for (let i = 0, len = samples.length; i < len; i++) {
       const sample = samples[i];
       sample.dts += gap

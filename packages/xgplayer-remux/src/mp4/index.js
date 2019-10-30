@@ -135,7 +135,7 @@ export default class Mp4Remuxer {
 
     let maxLoop = 10000
     while (samples.length && maxLoop-- > 0) {
-      console.log('mark2')
+      // console.log('mark2')
       const avcSample = samples.shift()
 
       const { isKeyframe, options } = avcSample
@@ -175,7 +175,9 @@ export default class Mp4Remuxer {
       mdatSample.size += avcSample.data.byteLength
 
       let sampleDuration = 0
-      if (samples.length >= 1) {
+      if (avcSample.duration) {
+        sampleDuration = avcSample.duration;
+      } else if (samples.length >= 1) {
         const nextDts = samples[0].dts - this._dtsBase
         sampleDuration = nextDts - dts
       } else {
@@ -186,7 +188,7 @@ export default class Mp4Remuxer {
         }
       }
       this.videoAllDuration += sampleDuration
-      // console.log(`dts ${dts}`, `pts ${pts}`, `cts: ${cts}`, `duration: ${sampleDuration}`, avcSample)
+      console.log(`dts ${dts}`,`pts ${pts}`, `duration ${sampleDuration}`)
       mp4Samples.push({
         dts,
         cts,
@@ -259,7 +261,7 @@ export default class Mp4Remuxer {
     let maxLoop = 10000
     let isFirstDtsInited = false
     while (samples.length && maxLoop-- > 0) {
-      console.log('mark3')
+      // console.log('mark3')
       let sample = samples.shift()
       const { data, options } = sample
       if (!this.isFirstAudio && options && options.meta) {
@@ -280,8 +282,9 @@ export default class Mp4Remuxer {
       }
 
       let sampleDuration = 0
-
-      if (this.audioMeta.refSampleDurationFixed) {
+      if (sample.duration) {
+        sampleDuration = sample.duration;
+      } else if (this.audioMeta.refSampleDurationFixed) {
         sampleDuration = this.audioMeta.refSampleDurationFixed
       } else if (samples.length >= 1) {
         const nextDts = samples[0].dts - this._dtsBase;

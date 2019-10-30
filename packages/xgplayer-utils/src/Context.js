@@ -124,6 +124,7 @@ class Context {
       }
 
       emit (messageName, ...args) {
+        // console.log('invoke ', messageName)
         checkMessageName(messageName)
 
         const beforeList = self._hooks ? self._hooks[messageName] : null
