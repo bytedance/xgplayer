@@ -275,7 +275,10 @@ class FlvPlayer {
     }
 
     play() {
-        return this._mediaElement.play().catch(function() {});
+        let playPromise = this._mediaElement.play()
+        if (playPromise !== undefined && playPromise) {
+            return playPromise.catch(function() {});
+        } else return undefined;
     }
 
     pause() {

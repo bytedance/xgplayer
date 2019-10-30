@@ -30,7 +30,9 @@ let mp4player = function () {
     mainURL = url
   } else if (util.typeOf(url) === 'Array' && url.length) {
     mainURL = url[0].src
-    backupURL = url[1].src
+    if(url.length > 1) {
+      backupURL = url[1].src
+    }
   }
   player.config._mainURL = mainURL
   player.config._backupURL = backupURL
