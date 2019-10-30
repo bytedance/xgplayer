@@ -16,6 +16,8 @@ class Logger {
   warn () {}
 }
 
+const FLV_ERROR = 'FLV_ERROR'
+
 class FlvController {
   constructor (player) {
     this.TAG = Tag
@@ -68,6 +70,7 @@ class FlvController {
 
   initListeners () {
     this.on(LOADER_EVENTS.LOADER_DATALOADED, this._handleLoaderDataLoaded.bind(this))
+    this.on(LOADER_EVENTS.LOADER_ERROR, this._handleNetworkError.bind(this))
 
     this.on(DEMUX_EVENTS.MEDIA_INFO, this._handleMediaInfo.bind(this))
     this.on(DEMUX_EVENTS.METADATA_PARSED, this._handleMetadataParsed.bind(this))
@@ -119,8 +122,26 @@ class FlvController {
     this.mse.doAppend();
   }
 
-  _handleDemuxError() {
+  _handleNetworkError (tag, err) {
+    this._player.emit('error', new Player.Errors('network', this._player.config.url))
+    this._onError(LOADER_EVENTS.LOADER_ERROR, tag, err, true)
+  }
+
+  _handleDemuxError (tag, err, fatal) {
+    if (fatal === undefined) {
+      fatal = false;
+    }
     this._player.emit('error', new Player.Errors('parse', this._player.config.url))
+    this._onError(LOADER_EVENTS.LOADER_ERROR, tag, err, fatal)
+  }
+
+  _onError (type, mod, err, fatal) {
+    let error = {
+      errorType: type,
+      errorDetails: `[${mod}]: ${err.message}`,
+      errorFatal: fatal || false
+    }
+    this._player.emit(FLV_ERROR, error);
   }
 
   seek (time) {
@@ -138,6 +159,10 @@ class FlvController {
     const { preloadTime = 15 } = this._player.config
     const range = this.getSeekRange(time, preloadTime)
     this.state.range = range
+
+    if (this.compat) {
+      this.compat.reset()
+    }
     this.loadData()
   }
 
@@ -175,7 +200,6 @@ class FlvController {
       this.state.rangeSupport = false
       this.loadFallback()
     })
-
   }
 
   loadFallback () {
@@ -226,6 +250,7 @@ class FlvController {
 
   destroy () {
     this._player = null
+    this.mse = null
     this.state = {
       initSegmentArrived: false,
       range: {
@@ -253,6 +278,10 @@ class FlvController {
 
   get loader () {
     return this._context.getInstance('FETCH_LOADER')
+  }
+
+  get compat () {
+    return this._context.getInstance('COMPATIBILITY')
   }
 }
 

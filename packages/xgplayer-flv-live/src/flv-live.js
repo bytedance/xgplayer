@@ -17,6 +17,8 @@ class Logger {
   warn () {}
 }
 
+const FLV_ERROR = 'FLV_ERROR'
+
 export default class FlvController {
   constructor (player) {
     this.TAG = Tag
@@ -25,6 +27,8 @@ export default class FlvController {
     this.state = {
       initSegmentArrived: false
     }
+
+    this.bufferClearTimer = null;
   }
 
   init () {
@@ -37,10 +41,14 @@ export default class FlvController {
     this._context.registry('MP4_REMUXER', Remuxer.Mp4Remuxer)
     this._context.registry('PRE_SOURCE_BUFFER', PreSource)
 
-    this._context.registry('COMPATIBILITY', Compatibility)
+    if (this._player.config.compatibility !== false) {
+      this._context.registry('COMPATIBILITY', Compatibility)
+    }
 
     this._context.registry('LOGGER', Logger)
     this.mse = this._context.registry('MSE', Mse)({ container: this._player.video })
+
+    this._handleTimeUpdate = this._handleTimeUpdate.bind(this)
 
     this.initListeners()
   }
@@ -59,7 +67,7 @@ export default class FlvController {
 
     this.on(MSE_EVENTS.SOURCE_UPDATE_END, this._handleSourceUpdateEnd.bind(this))
 
-    this._player.on('timeupdate', this._handleTimeUpdate.bind(this))
+    this._player.on('timeupdate', this._handleTimeUpdate)
   }
 
   _handleMediaInfo () {
@@ -104,22 +112,54 @@ export default class FlvController {
     if (bufferEnd - time > preloadTime * 2) {
       this._player.currentTime = bufferEnd - preloadTime
     }
+    this.mse.doAppend();
   }
 
   _handleTimeUpdate () {
     const time = this._player.currentTime
-    if (time > 2) {
+
+    const video = this._player.video;
+    let buffered = video.buffered
+
+    if (!buffered || !buffered.length) {
+      return;
+    }
+
+    const bufferStart = buffered.start(buffered.length - 1)
+    // const bufferStart = this._player.getBufferedRange()[0]
+    if (time - bufferStart > 10) {
       // 在直播时及时清空buffer，降低直播内存占用
-      this.mse.remove(time - 2)
+      if (this.bufferClearTimer) {
+        return;
+      }
+
+      this.mse.remove(time - 1, bufferStart)
+      this.bufferClearTimer = setTimeout(() => {
+        this.bufferClearTimer = null
+      }, 5000)
     }
   }
 
-  _handleNetworkError () {
+  _handleNetworkError (tag, err) {
     this._player.emit('error', new Player.Errors('network', this._player.config.url))
+    this._onError(LOADER_EVENTS.LOADER_ERROR, tag, err, true)
   }
 
-  _handleDemuxError() {
+  _handleDemuxError(tag, err, fatal) {
+    if (fatal === undefined) {
+      fatal = false;
+    }
     this._player.emit('error', new Player.Errors('parse', this._player.config.url))
+    this._onError(LOADER_EVENTS.LOADER_ERROR, tag, err, fatal)
+  }
+
+  _onError(type, mod, err, fatal) {
+    let error = {
+      errorType: type,
+      errorDetails: `[${mod}]: ${err.message}`,
+      errorFatal: fatal || false
+    }
+    this._player.emit(FLV_ERROR, error);
   }
 
   seek () {
@@ -138,5 +178,11 @@ export default class FlvController {
     if (loader) {
       loader.cancel()
     }
+  }
+
+  destroy () {
+    this._player.off('timeupdate', this._handleTimeUpdate)
+    this._player = null
+    this.mse = null
   }
 }

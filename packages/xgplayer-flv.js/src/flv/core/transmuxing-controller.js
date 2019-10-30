@@ -246,10 +246,6 @@ class TransmuxingController {
             // Always create new FLVDemuxer
             this._demuxer = new FLVDemuxer(probeData, this._config);
 
-            this._demuxer._emitter.on('metadata_arrived', onMetaData => {
-              this._emitter.emit('metadata_arrived', onMetaData);
-            })
-            
             if (!this._remuxer) {
                 this._remuxer = new MP4Remuxer(this._config);
             }
@@ -269,6 +265,8 @@ class TransmuxingController {
 
             this._demuxer.onError = this._onDemuxException.bind(this);
             this._demuxer.onMediaInfo = this._onMediaInfo.bind(this);
+
+            this._demuxer.onLoadedSei = this._onLoadedSei.bind(this);
 
             this._remuxer.bindDataSource(this._demuxer
                          .bindDataSource(this._ioctl
@@ -318,6 +316,10 @@ class TransmuxingController {
         }
     }
 
+    _onLoadedSei(timestamp, data) {
+        this._emitter.emit(TransmuxingEvents.LOADED_SEI,timestamp,data);
+    }
+
     _onIOSeeked() {
         this._remuxer.insertDiscontinuity();
     }
@@ -328,6 +330,7 @@ class TransmuxingController {
 
         if (nextSegmentIndex < this._mediaDataSource.segments.length) {
             this._internalAbort();
+            this._remuxer.flushStashedSamples();
             this._loadSegment(nextSegmentIndex);
         } else {
             this._remuxer.flushStashedSamples();

@@ -8,6 +8,7 @@ class FlvPlayer extends Player {
     super(config)
     this.context = new Context(flvAllowedEvents)
     this.initEvents()
+    this.loaderCompleteTimer = null
     // const preloadTime = player.config.preloadTime || 15
   }
 
@@ -30,11 +31,11 @@ class FlvPlayer extends Player {
     flv.once(EVENTS.LOADER_EVENTS.LOADER_COMPLETE, () => {
       // 直播完成，待播放器播完缓存后发送关闭事件
       if (!player.paused) {
-        const timer = setInterval(() => {
+        this.loaderCompleteTimer = setInterval(() => {
           const end = player.getBufferedRange()[1]
           if (Math.abs(player.currentTime - end) < 0.5) {
             player.emit('ended')
-            window.clearInterval(timer)
+            window.clearInterval(this.loaderCompleteTimer)
           }
         }, 200)
       }
@@ -63,14 +64,16 @@ class FlvPlayer extends Player {
 
   play () {
     if (this._hasStart) {
-      this._destroy()
-      this.context = new Context(flvAllowedEvents)
-      const flv = this.context.registry('FLV_CONTROLLER', FLV)(this)
-      this.initFlvEvents(flv)
-      this.flv = flv
-      this.context.init()
-      super.start(flv.mse.url)
-      super.play()
+      this._destroy().then(() => {
+        this.context = new Context(flvAllowedEvents)
+        const flv = this.context.registry('FLV_CONTROLLER', FLV)(this)
+        this.initFlvEvents(flv)
+        this.flv = flv
+        this.context.init()
+        super.start(flv.mse.url)
+        super.play()
+      })
+
     } else {
       super.play()
     }
@@ -90,14 +93,20 @@ class FlvPlayer extends Player {
   }
 
   destroy () {
-    this._destroy()
-    super.destroy();
+    this._destroy().then(() => {
+      super.destroy();
+    })
   }
 
   _destroy () {
-    this.context.destroy()
-    this.flv = null
-    this.context = null
+    return this.flv.mse.destroy().then(() => {
+      this.context.destroy()
+      this.flv = null
+      this.context = null
+      if (this.loaderCompleteTimer) {
+        window.clearInterval(this.loaderCompleteTimer)
+      }
+    })
   }
 
   get src () {

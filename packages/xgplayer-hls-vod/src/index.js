@@ -72,7 +72,7 @@ export class HlsVodPlayer extends Player {
     if (!url) {
       return;
     }
-    this.__core__ = this._context.registry('HLS_LIVE_CONTROLLER', HlsVodController)({container: this.video});
+    this.__core__ = this._context.registry('HLS_LIVE_CONTROLLER', HlsVodController)({player:this, container: this.video});
     this._context.init();
     this.__core__.load(url);
     this._initEvents();

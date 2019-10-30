@@ -1,4 +1,4 @@
-import { EVENTS, Mse } from 'xgplayer-utils';
+import { EVENTS, Mse, Crypto} from 'xgplayer-utils';
 import { XgBuffer, PreSource, Tracks } from 'xgplayer-buffer';
 import { FetchLoader } from 'xgplayer-loader';
 import { Compatibility } from 'xgplayer-codec';
@@ -9,7 +9,9 @@ import {Playlist, M3U8Parser, TsDemuxer} from 'xgplayer-demux';
 const LOADER_EVENTS = EVENTS.LOADER_EVENTS;
 const REMUX_EVENTS = EVENTS.REMUX_EVENTS;
 const DEMUX_EVENTS = EVENTS.DEMUX_EVENTS;
-
+const HLS_EVENTS = EVENTS.HLS_EVENTS;
+const CRYTO_EVENTS = EVENTS.CRYTO_EVENTS;
+const HLS_ERROR = 'HLS_ERROR';
 class HlsLiveController {
   constructor (configs) {
     this.configs = Object.assign({}, configs);
@@ -23,6 +25,8 @@ class HlsLiveController {
     this._m3u8lasttime = 0;
     this._timmer = setInterval(this._checkStatus.bind(this), 50);
     this._lastCheck = 0;
+    this._player = this.configs.player;
+    this.m3u8Text = null
   }
 
   init () {
@@ -58,11 +62,24 @@ class HlsLiveController {
 
     this.on(REMUX_EVENTS.MEDIA_SEGMENT, this.mse.doAppend.bind(this.mse));
 
-    this.on(LOADER_EVENTS.LOADER_ERROR, this._onLoadError.bind(this));
-
     this.on(DEMUX_EVENTS.METADATA_PARSED, this._onMetadataParsed.bind(this));
 
-    this.on(DEMUX_EVENTS.DEMUX_COMPLETE, this._onDemuxComplete.bind(this))
+    this.on(DEMUX_EVENTS.DEMUX_COMPLETE, this._onDemuxComplete.bind(this));
+
+    this.on(LOADER_EVENTS.LOADER_ERROR, this._onLoadError.bind(this));
+
+    this.on(DEMUX_EVENTS.DEMUX_ERROR, this._onDemuxError.bind(this));
+
+    this.on(REMUX_EVENTS.REMUX_ERROR, this._onRemuxError.bind(this));
+  }
+
+  _onError(type, mod, err, fatal) {
+    let error = {
+      errorType: type,
+      errorDetails: `[${mod}]: ${err.message}`,
+      errorFatal: fatal
+    }
+    this._player.emit(HLS_ERROR, error);
   }
 
   _onDemuxComplete () {
@@ -73,38 +90,108 @@ class HlsLiveController {
   }
 
   _onLoadError (loader, error) {
-    if (!this._tsloader.loading && !this._m3u8loader.loading && this.retrytimes > 0) {
+    if (!this._tsloader.loading && !this._m3u8loader.loading && this.retrytimes > 1) {
       this.retrytimes--;
-    } else if (this.retrytimes < 1) {
+      this._onError(LOADER_EVENTS.LOADER_ERROR, loader, error, false);
+    } else if (this.retrytimes <= 1) {
+      this._onError(LOADER_EVENTS.LOADER_ERROR, loader, error, true);
+      this.emit(HLS_EVENTS.RETRY_TIME_EXCEEDED);
       this.mse.endOfStream();
     }
   }
 
+  _onDemuxError (mod, error, fatal) {
+    if(fatal === undefined) {
+      fatal = true;
+    }
+    this._onError(LOADER_EVENTS.LOADER_ERROR, mod, error, fatal);
+  }
+
+  _onRemuxError (mod, error, fatal) {
+    if(fatal === undefined) {
+      fatal = true;
+    }
+    this._onError(REMUX_EVENTS.REMUX_ERROR, mod, error, fatal);
+  }
+
   _onLoadComplete (buffer) {
     if (buffer.TAG === 'M3U8_BUFFER') {
-      let mdata = M3U8Parser.parse(buffer.shift(), this.baseurl);
-      this._playlist.pushM3U8(mdata, true);
-      if (!this.preloadTime) {
-        this.preloadTime = this._playlist.targetduration ? this._playlist.targetduration : 5;
+      let mdata;
+      try {
+        this.m3u8Text = buffer.shift();
+        mdata = M3U8Parser.parse(this.m3u8Text, this.baseurl);
+      } catch (error) {
+        this._onError('M3U8_PARSER_ERROR', 'M3U8_PARSER', error, false);
       }
-      if (this._playlist.fragLength > 0 && this._playlist.sequence < mdata.sequence) {
-        this.retrytimes = this.configs.retrytimes || 3;
-      } else {
+
+      if(!mdata) {
         if (this.retrytimes > 0) {
           this.retrytimes--;
           this._preload();
         } else {
-          console.log('end');
+          this.emit(HLS_EVENTS.RETRY_TIME_EXCEEDED);
           this.mse.endOfStream();
         }
+        return;
+      }
+
+      try {
+        this._playlist.pushM3U8(mdata, true);
+      } catch (error) {
+        this._onError('M3U8_PARSER_ERROR', 'PLAYLIST', error, false);
+      }
+
+      if (this._playlist.encrypt && this._playlist.encrypt.uri && !this._playlist.encrypt.key) {
+        this._context.registry('DECRYPT_BUFFER', XgBuffer)();
+        this._context.registry('KEY_BUFFER', XgBuffer)();
+        this._tsloader.buffer = 'DECRYPT_BUFFER';
+        this._keyLoader = this._context.registry('KEY_LOADER', FetchLoader)({buffer:'KEY_BUFFER',readtype: 3});
+        this.emitTo('KEY_LOADER', LOADER_EVENTS.LADER_START, this._playlist.encrypt.uri);
+      } else {
+        this._m3u8Loaded(mdata);
       }
     } else if (buffer.TAG === 'TS_BUFFER') {
       this.retrytimes = this.configs.retrytimes || 3;
       this._playlist.downloaded(this._tsloader.url, true);
-      this.emit(DEMUX_EVENTS.DEMUX_START)
+      this.emit(DEMUX_EVENTS.DEMUX_START);
+    }  else if (buffer.TAG === 'DECRYPT_BUFFER') {
+      this.retrytimes = this.configs.retrytimes || 3;
+      this._playlist.downloaded(this._tsloader.url, true);
+      this.emitTo('CRYPTO', CRYTO_EVENTS.START_DECRYPT);
+    } else if (buffer.TAG == 'KEY_BUFFER') {
+      this.retrytimes = this.configs.retrytimes || 3;
+      this._playlist.encrypt.key = buffer.shift();
+      this._crypto = this._context.registry('CRYPTO', Crypto)({
+        key: this._playlist.encrypt.key,
+        iv: this._playlist.encrypt.ivb,
+        method: this._playlist.encrypt.method,
+        inputbuffer:'DECRYPT_BUFFER',
+        outputbuffer:'TS_BUFFER'
+      });
+      this._crypto.on(CRYTO_EVENTS.DECRYPTED, this._onDcripted.bind(this));
     }
   }
 
+  _onDcripted() {
+    this.emit(DEMUX_EVENTS.DEMUX_START);
+  }
+
+  _m3u8Loaded(mdata) {
+    if (!this.preloadTime) {
+      this.preloadTime = this._playlist.targetduration ? this._playlist.targetduration : 5;
+    }
+    if (this._playlist.fragLength > 0 && this._playlist.sequence < mdata.sequence) {
+      this.retrytimes = this.configs.retrytimes || 3;
+    } else {
+      if (this.retrytimes > 0) {
+        this.retrytimes--;
+        this._preload();
+      } else {
+        this.emit(HLS_EVENTS.RETRY_TIME_EXCEEDED);
+        this.mse.endOfStream();
+      }
+    }
+  }
   _checkStatus () {
     if (this.retrytimes < 1 && (new Date().getTime() - this._lastCheck < 10000)) {
       return;
@@ -171,6 +258,9 @@ class HlsLiveController {
     // this.off(REMUX_EVENTS.REMUX_ERROR);
     this.off(DEMUX_EVENTS.METADATA_PARSED, this._onMetadataParsed);
     this.off(DEMUX_EVENTS.DEMUX_COMPLETE, this._onDemuxComplete);
+
+    this.mse = null
+    this.m3u8Text = null
   }
 }
 export default HlsLiveController;

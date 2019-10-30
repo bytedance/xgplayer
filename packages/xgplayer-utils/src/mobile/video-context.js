@@ -24,10 +24,9 @@ class VideoCanvas {
     this._lastSampleDts = undefined;
     this._baseDts = undefined;
     this._lastRenderTime = null
-    this.initWasmWorker();
   }
 
-  pause() {
+  pause () {
     this.paused = true;
   }
 
@@ -35,7 +34,8 @@ class VideoCanvas {
     let _this = this;
     this.wasmworker = Workerify(require.resolve('./worker.js'));
     this.wasmworker.postMessage({
-      msg: 'init'
+      msg: 'init',
+      meta: this.meta
     })
     this.wasmworker.addEventListener('message', msg => {
       switch (msg.data.msg) {
@@ -52,6 +52,7 @@ class VideoCanvas {
   setVideoMetaData (meta) {
     this.meta = meta;
     if (!this._decoderInited) {
+      this.initWasmWorker();
       return
     }
     this._avccpushed = true;

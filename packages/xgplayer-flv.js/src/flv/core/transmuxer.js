@@ -29,7 +29,7 @@ class Transmuxer {
     constructor(mediaDataSource, config) {
         this.TAG = 'Transmuxer';
         this._emitter = new EventEmitter();
-        this.isDefinitionChanging = false;
+
         if (config.enableWorker && typeof (Worker) !== 'undefined') {
             try {
                 let work = require('webworkify');
@@ -51,10 +51,6 @@ class Transmuxer {
             this._controller = new TransmuxingController(mediaDataSource, config);
         }
 
-        this._controller._emitter.on('metadata_arrived', onMetaData => {
-          this._emitter.emit('metadata_arrived', onMetaData);
-        })
-
         if (this._controller) {
             let ctl = this._controller;
             ctl.on(TransmuxingEvents.IO_ERROR, this._onIOError.bind(this));
@@ -66,6 +62,7 @@ class Transmuxer {
             ctl.on(TransmuxingEvents.MEDIA_INFO, this._onMediaInfo.bind(this));
             ctl.on(TransmuxingEvents.STATISTICS_INFO, this._onStatisticsInfo.bind(this));
             ctl.on(TransmuxingEvents.RECOMMEND_SEEKPOINT, this._onRecommendSeekpoint.bind(this));
+            ctl.on(TransmuxingEvents.LOADED_SEI, this._onLoadedSei.bind(this));
         }
     }
 
@@ -86,11 +83,11 @@ class Transmuxer {
     }
 
     on(event, listener) {
-        this._emitter && this._emitter.addListener(event, listener);
+        this._emitter.addListener(event, listener);
     }
 
     off(event, listener) {
-        this._emitter && this._emitter.removeListener(event, listener);
+        this._emitter.removeListener(event, listener);
     }
 
     hasWorker() {
@@ -140,55 +137,61 @@ class Transmuxer {
     _onInitSegment(type, initSegment) {
         // do async invoke
         Promise.resolve().then(() => {
-            this._emitter && this._emitter.emit(TransmuxingEvents.INIT_SEGMENT, type, initSegment);
+            this._emitter.emit(TransmuxingEvents.INIT_SEGMENT, type, initSegment);
         });
     }
 
     _onMediaSegment(type, mediaSegment) {
         Promise.resolve().then(() => {
-            this._emitter && this._emitter.emit(TransmuxingEvents.MEDIA_SEGMENT, type, mediaSegment);
+            this._emitter.emit(TransmuxingEvents.MEDIA_SEGMENT, type, mediaSegment);
         });
     }
 
     _onLoadingComplete() {
         Promise.resolve().then(() => {
-            this._emitter && this._emitter.emit(TransmuxingEvents.LOADING_COMPLETE);
+            this._emitter.emit(TransmuxingEvents.LOADING_COMPLETE);
         });
     }
 
     _onRecoveredEarlyEof() {
         Promise.resolve().then(() => {
-            this._emitter && this._emitter.emit(TransmuxingEvents.RECOVERED_EARLY_EOF);
+            this._emitter.emit(TransmuxingEvents.RECOVERED_EARLY_EOF);
         });
     }
 
     _onMediaInfo(mediaInfo) {
         Promise.resolve().then(() => {
-            this._emitter && this._emitter.emit(TransmuxingEvents.MEDIA_INFO, mediaInfo);
+            this._emitter.emit(TransmuxingEvents.MEDIA_INFO, mediaInfo);
         });
     }
 
     _onStatisticsInfo(statisticsInfo) {
         Promise.resolve().then(() => {
-            this._emitter && this._emitter.emit(TransmuxingEvents.STATISTICS_INFO, statisticsInfo);
+            this._emitter.emit(TransmuxingEvents.STATISTICS_INFO, statisticsInfo);
         });
     }
 
     _onIOError(type, info) {
         Promise.resolve().then(() => {
-            this._emitter && this._emitter.emit(TransmuxingEvents.IO_ERROR, type, info);
+            this._emitter.emit(TransmuxingEvents.IO_ERROR, type, info);
         });
     }
 
     _onDemuxError(type, info) {
         Promise.resolve().then(() => {
-            this._emitter && this._emitter.emit(TransmuxingEvents.DEMUX_ERROR, type, info);
+            this._emitter.emit(TransmuxingEvents.DEMUX_ERROR, type, info);
         });
     }
 
     _onRecommendSeekpoint(milliseconds) {
         Promise.resolve().then(() => {
-            this._emitter && this._emitter.emit(TransmuxingEvents.RECOMMEND_SEEKPOINT, milliseconds);
+            this._emitter.emit(TransmuxingEvents.RECOMMEND_SEEKPOINT, milliseconds);
+        });
+    }
+
+    _onLoadedSei(timestamp,data) {
+        Promise.resolve().then(() => {
+            this._emitter.emit(TransmuxingEvents.LOADED_SEI, timestamp, data);
         });
     }
 
