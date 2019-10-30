@@ -25,7 +25,8 @@ export default class FlvController {
     this._player = player
 
     this.state = {
-      initSegmentArrived: false
+      initSegmentArrived: false,
+      randomAccessPoints: []
     }
 
     this.bufferClearTimer = null;
@@ -64,6 +65,7 @@ export default class FlvController {
 
     this.on(REMUX_EVENTS.INIT_SEGMENT, this._handleAppendInitSegment.bind(this))
     this.on(REMUX_EVENTS.MEDIA_SEGMENT, this._handleMediaSegment.bind(this))
+    this.on(REMUX_EVENTS.RANDOM_ACCESS_POINT, this._handleAddRAP.bind(this))
 
     this.on(MSE_EVENTS.SOURCE_UPDATE_END, this._handleSourceUpdateEnd.bind(this))
 
@@ -117,13 +119,32 @@ export default class FlvController {
 
   _handleTimeUpdate () {
     const time = this._player.currentTime
+
+    const video = this._player.video;
+    let buffered = video.buffered
+
+    if (!buffered || !buffered.length) {
+      return;
+    }
+
     const bufferStart = this._player.getBufferedRange()[0]
-    if (time - bufferStart > 15) {
+    if (time - bufferStart > 10) {
       // 在直播时及时清空buffer，降低直播内存占用
-      if (this.bufferClearTimer) {
+      if (this.bufferClearTimer || !this.state.randomAccessPoints.length) {
         return;
       }
-      this.mse.remove(time - 1, bufferStart)
+      let rap = Infinity;
+      for (let i = 0; i < this.state.randomAccessPoints.length; i++) {
+        const temp = Math.ceil(this.state.randomAccessPoints[i] / 1000)
+        if (temp > time - 2) {
+          break;
+        } else {
+          rap = temp;
+        }
+      }
+
+      this.mse.remove(Math.min(rap, time - 3), bufferStart)
+
       this.bufferClearTimer = setTimeout(() => {
         this.bufferClearTimer = null
       }, 5000)
@@ -135,7 +156,7 @@ export default class FlvController {
     this._onError(LOADER_EVENTS.LOADER_ERROR, tag, err, true)
   }
 
-  _handleDemuxError(tag, err, fatal) {
+  _handleDemuxError (tag, err, fatal) {
     if (fatal === undefined) {
       fatal = false;
     }
@@ -143,7 +164,13 @@ export default class FlvController {
     this._onError(LOADER_EVENTS.LOADER_ERROR, tag, err, fatal)
   }
 
-  _onError(type, mod, err, fatal) {
+  _handleAddRAP (rap) {
+    if (this.state.randomAccessPoints) {
+      this.state.randomAccessPoints.push(rap)
+    }
+  }
+
+  _onError (type, mod, err, fatal) {
     let error = {
       errorType: type,
       errorDetails: `[${mod}]: ${err.message}`,
@@ -174,5 +201,6 @@ export default class FlvController {
     this._player.off('timeupdate', this._handleTimeUpdate)
     this._player = null
     this.mse = null
+    this.state.randomAccessPoints = []
   }
 }

@@ -53,6 +53,7 @@ class MSE {
         track = tracks.audioTrack;
       } else if (type === 'video') {
         track = tracks.videoTrack;
+        // return;
       }
       if (track) {
         let dur = type === 'audio' ? 21 : 40;
@@ -88,6 +89,7 @@ class MSE {
         if (!sourceBuffer.updating) {
           let source = sources.sources[type];
           if (source && !source.inited) {
+            // console.log('append initial segment')
             sourceBuffer.appendBuffer(source.init.buffer.buffer);
             source.inited = true;
           } else if (source) {
@@ -116,6 +118,7 @@ class MSE {
     for (let i = 0; i < Object.keys(this.sourceBuffers).length; i++) {
       let buffer = this.sourceBuffers[Object.keys(this.sourceBuffers)[i]];
       if (!buffer.updating) {
+        // console.log('remove', start, end)
         buffer.remove(start, end);
       }
     }
@@ -135,7 +138,9 @@ class MSE {
             const clean = () => {
               if (!buffer.updating) {
                 MSE.clearBuffer(buffer)
-                resolve()
+                buffer.addEventListener('updateend', () => {
+                  resolve();
+                })
               } else if (retryTime > 0){
                 setTimeout(clean, 200)
                 retryTime--
@@ -150,8 +155,17 @@ class MSE {
           buffer.addEventListener('updateend', doCleanBuffer)
         })
       } else {
-        MSE.clearBuffer(buffer)
-        task = Promise.resolve()
+        task = new Promise((resolve) => {
+          MSE.clearBuffer(buffer)
+          buffer.addEventListener('updateend', () => {
+            if (buffer.buffered.length) {
+              console.log(buffer.buffered.start(0), `  ${buffer.buffered.end(0)}`)
+            }
+            resolve()
+          })
+        })
+
+        // task = Promise.resolve()
       }
 
       taskList.push(task)

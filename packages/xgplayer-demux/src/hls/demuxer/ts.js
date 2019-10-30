@@ -113,7 +113,6 @@ class TsDemuxer {
     } else {
       track = this._tracks.audioTrack;
     }
-
     let meta = new AudioTrackMeta({
       audioSampleRate: pes.ES.frequence,
       sampleRate: pes.ES.frequence,
@@ -189,6 +188,13 @@ class TsDemuxer {
       meta.avcc = Nalunit.getAvcc(sps.body, pps.body);
       let metaEqual = TsDemuxer.compaireMeta(track.meta, meta, true);
       if (!this._hasVideoMeta || !metaEqual) {
+        if (options) {
+          options.meta = Object.assign({}, meta);
+        } else {
+          options = {
+            meta: Object.assign({}, meta)
+          }
+        }
         track.meta = meta;
         this._hasVideoMeta = true
         this.emit(DEMUX_EVENTS.METADATA_PARSED, 'video');
