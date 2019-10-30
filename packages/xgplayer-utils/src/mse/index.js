@@ -158,9 +158,6 @@ class MSE {
         task = new Promise((resolve) => {
           MSE.clearBuffer(buffer)
           buffer.addEventListener('updateend', () => {
-            if (buffer.buffered.length) {
-              console.log(buffer.buffered.start(0), `  ${buffer.buffered.end(0)}`)
-            }
             resolve()
           })
         })

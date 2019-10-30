@@ -62,7 +62,7 @@ class FlvDemuxer {
       }
 
       let chunk;
-      let loopMax = 100000; // 防止死循环产生
+      let loopMax = 10000; // 防止死循环产生
 
       do {
         chunk = this._parseFlvTag();

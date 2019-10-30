@@ -156,7 +156,8 @@ class AMF {
                     if ((v.getUint32(dataSize - 4, !le) & 0x00FFFFFF) === 9) {
                         terminal = 3;
                     }
-                    while (offset < dataSize - 4) {  // 4 === type(UI8) + ScriptDataObjectEnd(UI24)
+                    let maxLoop = 10000
+                    while (offset < dataSize - 4 && maxLoop-- > 0) {  // 4 === type(UI8) + ScriptDataObjectEnd(UI24)
                         let amfobj = AMF.parseObject(arrayBuffer, dataOffset + offset, dataSize - offset - terminal);
                         if (amfobj.objectEnd)
                             break;
@@ -178,7 +179,9 @@ class AMF {
                     if ((v.getUint32(dataSize - 4, !le) & 0x00FFFFFF) === 9) {
                         terminal = 3;
                     }
-                    while (offset < dataSize - 8) {  // 8 === type(UI8) + ECMAArrayLength(UI32) + ScriptDataVariableEnd(UI24)
+
+                    let maxLoop = 10000
+                    while (offset < dataSize - 8 && maxLoop-- > 0) {  // 8 === type(UI8) + ECMAArrayLength(UI32) + ScriptDataVariableEnd(UI24)
                         let amfvar = AMF.parseVariable(arrayBuffer, dataOffset + offset, dataSize - offset - terminal);
                         if (amfvar.objectEnd)
                             break;

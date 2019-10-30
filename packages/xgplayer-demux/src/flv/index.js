@@ -61,8 +61,9 @@ class FlvDemuxer {
       }
       let chunk;
 
-      let loopMax = 100000 // 防止死循环产生
+      let loopMax = 10000 // 防止死循环产生
       do {
+        console.log('mark4')
         chunk = this._parseFlvTag()
       } while (chunk && loopMax-- > 0)
 

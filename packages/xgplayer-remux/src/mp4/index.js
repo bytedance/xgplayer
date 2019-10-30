@@ -133,7 +133,9 @@ export default class Mp4Remuxer {
       samples: []
     }
 
-    while (samples.length) {
+    let maxLoop = 10000
+    while (samples.length && maxLoop-- > 0) {
+      console.log('mark2')
       const avcSample = samples.shift()
 
       const { isKeyframe, options } = avcSample
@@ -253,8 +255,11 @@ export default class Mp4Remuxer {
     if (!samples || !samples.length) {
       return
     }
+
+    let maxLoop = 10000
     let isFirstDtsInited = false
-    while (samples.length) {
+    while (samples.length && maxLoop-- > 0) {
+      console.log('mark3')
       let sample = samples.shift()
       const { data, options } = sample
       if (!this.isFirstAudio && options && options.meta) {
