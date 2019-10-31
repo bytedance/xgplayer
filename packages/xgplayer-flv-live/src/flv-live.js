@@ -127,7 +127,26 @@ export default class FlvController {
       return;
     }
 
-    const bufferStart = this._player.getBufferedRange()[0]
+    let range = [0, 0]
+    let currentTime = video.currentTime
+    if (buffered) {
+      for (let i = 0, len = buffered.length; i < len; i++) {
+        range[0] = buffered.start(i)
+        range[1] = buffered.end(i)
+        if (range[0] <= currentTime && currentTime <= range[1]) {
+          break
+        }
+      }
+    }
+
+    const bufferStart = range[0]
+    const bufferEnd = range[1]
+
+    if (currentTime > bufferEnd) {
+      video.currentTime = bufferStart + 1;
+      return;
+    }
+
     if (time - bufferStart > 10) {
       // 在直播时及时清空buffer，降低直播内存占用
       if (this.bufferClearTimer || !this.state.randomAccessPoints.length) {
@@ -143,7 +162,8 @@ export default class FlvController {
         }
       }
 
-      this.mse.remove(Math.min(rap, time - 10), 0)
+      console.log('rap', rap, `time ${time}`, `bufferEnd ${bufferEnd}`,`clean ${Math.min(rap, time - 10, bufferEnd - 10)}`)
+      this.mse.remove(Math.min(rap, time - 10, bufferEnd - 10), 0)
 
       this.bufferClearTimer = setTimeout(() => {
         this.bufferClearTimer = null
