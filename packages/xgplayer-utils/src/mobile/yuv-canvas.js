@@ -202,14 +202,11 @@ class YUVCanvas {
     return textureRef;
   }
 
-  _drawPictureGL (data, width, height) {
-    let nWidth = width;
-    var ylen = width * height;
-    var uvlen = ylen / 4;
-    if (this.chroma === 422) {
-      uvlen = ylen / 2
-    } else if (this.chroma === 444) {
-      uvlen = ylen;
+  _drawPictureGL (data, width, height, yLinesize, uvLinesize) {
+    var ylen = yLinesize * height;
+    var uvlen = uvLinesize * height / 2;
+    if (this.chroma === 444 || this.chroma === 422) {
+      uvlen *= 2;
     }
     data = new Uint8Array(data);
     let renderData = {
@@ -217,30 +214,10 @@ class YUVCanvas {
       uData: data.subarray(ylen, ylen + uvlen),
       vData: data.subarray(ylen + uvlen, ylen + uvlen + uvlen)
     }
-    if (width % 4 > 0) {
-      nWidth = width + 4 - (width % 4);
-      let yArray = new Uint8Array(nWidth * height);
-      for (let i = 0; i < height; i++) {
-        yArray.set(renderData.yData.subarray(i * width, (i + 1) * width), i * nWidth);
-      }
-      renderData.yData = yArray;
-    }
-
-    if ((width / 2) % 4 > 0) {
-      nWidth = (width / 2) + 4 - ((width / 2) % 4);
-      let uArray = new Uint8Array(nWidth * height / 2);
-      let vArray = new Uint8Array(nWidth * height / 2);
-      for (let i = 0; i < height / 2; i++) {
-        uArray.set(renderData.uData.subarray(i * width / 2, (i + 1) * width / 2), i * nWidth);
-        vArray.set(renderData.vData.subarray(i * width / 2, (i + 1) * width / 2), i * nWidth);
-      }
-      renderData.uData = uArray;
-      renderData.vData = vArray;
-    }
-    this._drawPictureGL420(renderData, width, height);
+    this._drawPictureGL420(renderData, width, height, yLinesize, uvLinesize);
   }
 
-  _drawPictureGL420 (data, width, height) {
+  _drawPictureGL420 (data, width, height, yLinesize, uvLinesize) {
     var gl = this.contextGL;
     var texturePosBuffer = this.texturePosBuffer;
     var uTexturePosBuffer = this.uTexturePosBuffer;
@@ -254,7 +231,7 @@ class YUVCanvas {
     var uData = data.uData;
     var vData = data.vData;
 
-    var yDataPerRow = width;
+    var yDataPerRow = yLinesize;
     var yRowCnt = height;
 
     var uDataPerRow = width / 2;
@@ -263,10 +240,8 @@ class YUVCanvas {
     if (this.chroma === 422 || this.chroma === 444) {
       uRowCnt = height;
     }
-    if (this.chroma === 444) {
-      uDataPerRow = width;
-    }
-    var vDataPerRow = uDataPerRow;
+    
+    var vDataPerRow = uvLinesize;
     var vRowCnt = uRowCnt;
     
     let ratiow = this.canvas.width / this.width;
@@ -315,10 +290,10 @@ class YUVCanvas {
 
   }
 
-  render (data, width, height) {
+  render (data, width, height, yLinesize, uvLinesize) {
     var gl = this.contextGL;
     if (gl) {
-      this._drawPictureGL(data, width, height);
+      this._drawPictureGL(data, width, height, yLinesize, uvLinesize);
     } else {
       this._drawPictureRGB(data);
     }
