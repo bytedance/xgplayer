@@ -17,15 +17,14 @@ Decoder.prototype.init = function () {
   this.streamBuffer = this.toU8Array(Module._broadwayCreateStream(MAX_STREAM_BUFFER_LENGTH), MAX_STREAM_BUFFER_LENGTH);
 }
 
-Decoder.prototype.broadwayOnPictureDecoded = function (offset, width, height, infoid) {
+Decoder.prototype.broadwayOnPictureDecoded = function (offset, width, height, yLinesize, uvLinesize, infoid) {
   let info = Object.assign({}, this.infolist[infoid]);
-  let ref = 3;
-  if (this.meta.chromaFormat === 420) {
-    ref = 1.5;
-  } else if (this.meta.chromaFormat === 422) {
-    ref = 2;
+  let yRowcount = height;
+  let uvRowcount = height / 2;
+  if (this.meta.chromaFormat === 444 || this.meta.chromaFormat === 422) {
+    uvRowcount = height;
   }
-  let data = this.toU8Array(offset, width * height * ref);
+  let data = this.toU8Array(offset, (yLinesize * yRowcount) + 2 * (uvLinesize * uvRowcount));
   this.infolist[infoid] = null;
   let datetemp = new Uint8Array(data.length);
   datetemp.set(data);
@@ -34,6 +33,8 @@ Decoder.prototype.broadwayOnPictureDecoded = function (offset, width, height, in
     msg: 'DECODED',
     width,
     height,
+    yLinesize,
+    uvLinesize,
     info,
     buffer
   }, [buffer]);
@@ -60,7 +61,7 @@ function onPostRun () {
 }
 
 function init (meta) {
-  self.importScripts('https://sf6-vcloudcdn.pstatp.com/obj/ttfe/media/decoder/h264/decoder.js');
+  self.importScripts('https://sf1-vcloudcdn.pstatp.com/obj/ttfe/media/decoder/h264/decoder.js');
   addOnPostRun(onPostRun.bind(self));
 }
 
