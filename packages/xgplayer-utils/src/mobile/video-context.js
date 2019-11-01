@@ -24,6 +24,7 @@ class VideoCanvas {
     this._lastSampleDts = undefined;
     this._baseDts = undefined;
     this._lastRenderTime = null
+    this.playFinish = null
   }
 
   pause () {
@@ -154,7 +155,9 @@ class VideoCanvas {
 
   play () {
     this.paused = false;
-    this._onTimer();
+    return new Promise((resolve) => {
+      this.playFinish = resolve
+    })
   }
 
   _onTimer (currentTime) {
@@ -176,11 +179,16 @@ class VideoCanvas {
 
         let frame = this._decodedFrames[frameTime];
         if (frame) {
+
           if (this.oncanplay && this.readyStatus < 4) {
             this.oncanplay();
             this.readyStatus = 4;
           }
           this.yuvCanvas.render(frame.buffer, frame.width, frame.height, frame.yLinesize, frame.uvLinesize);
+
+          if (this.playFinish) {
+            this.playFinish()
+          }
           for (let i = 0; i < currentIdx; i++) {
             delete this._decodedFrames[i];
           }
@@ -191,7 +199,9 @@ class VideoCanvas {
   }
 
   cleanBuffer () {
-    this.source.remove(0, this.currentTime);
+    if (this.currentTime > 1) {
+      this.source.remove(0, this.currentTime - 1);
+    }
   }
 }
 export default VideoCanvas;

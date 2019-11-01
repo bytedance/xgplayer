@@ -23,7 +23,7 @@ export default class FlvController {
 
     // TODO 临时挂的 需要处理到Player层
     // this.video = document.createElement('mobile-video');
-    this._player.video = document.createElement('mobile-video');
+    // this._player.video = document.createElement('mobile-video');
     this.video = this._player.video;
     this.state = {
       initSegmentArrived: false
@@ -104,7 +104,7 @@ export default class FlvController {
     this._player.emit('error', new Player.Errors('parse', this._player.config.url))
   }
 
- 
+
   _setMetaToAudio (audioMeta) {
     if (this._player.video) {
       this._player.video.setAudioMeta(audioMeta);

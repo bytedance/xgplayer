@@ -5,6 +5,9 @@ const flvAllowedEvents = EVENTS.FlvAllowedEvents;
 
 class FlvPlayer extends Player {
   constructor (config) {
+    if (!config.mediaType) {
+      config.mediaType = 'mobile-video'
+    }
     super(config)
     this.context = new Context(flvAllowedEvents)
     this.initEvents()
