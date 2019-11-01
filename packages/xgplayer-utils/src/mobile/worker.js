@@ -61,7 +61,7 @@ function onPostRun () {
 }
 
 function init (meta) {
-  self.importScripts('http://localhost:9090/examples/flv/decoder.js');
+  self.importScripts('https://sf1-vcloudcdn.pstatp.com/obj/ttfe/media/decoder/h264/decoder.js');
   addOnPostRun(onPostRun.bind(self));
 }
 
