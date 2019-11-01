@@ -142,12 +142,12 @@ export default class FlvController {
     const bufferStart = range[0]
     const bufferEnd = range[1]
 
-    if (currentTime > bufferEnd) {
-      video.currentTime = bufferStart + 1;
+    if (currentTime > bufferEnd || currentTime < bufferStart) {
+      video.currentTime = bufferStart;
       return;
     }
 
-    if (time - bufferStart > 10) {
+    if (time - bufferStart > 10 || buffered.length > 1) {
       // 在直播时及时清空buffer，降低直播内存占用
       if (this.bufferClearTimer || !this.state.randomAccessPoints.length) {
         return;
