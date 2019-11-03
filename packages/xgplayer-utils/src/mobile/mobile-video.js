@@ -1,7 +1,6 @@
 import VideoCtx from './video-context';
 import AudioCtx from './audio-context';
 import { getTicker } from './ticker';
-import TimeRanges from '../models/TimeRanges';
 /**
  * 音画同步调和器
  */
@@ -23,7 +22,6 @@ class AVReconciler {
       return;
     }
     if (gap > 200) { // audio delayed for more than 100ms
-      console.log(gap)
       this.video.start += gap
       this.vCtx.pause()
       this.timeoutId = setTimeout(() => {
@@ -36,6 +34,7 @@ class AVReconciler {
   }
 
   destroy () {
+    this.start = null
     this.aCtx = null
     this.vCtx = null
   }
@@ -45,22 +44,28 @@ class AVReconciler {
 class MobileVideo extends HTMLElement {
   constructor (config) {
     super();
-    this.vCtx = new VideoCtx();
+    this._canvas = document.createElement('canvas')
+    this.handleAudioSourceEnd = this.handleAudioSourceEnd.bind(this)
+    this.init(config)
+    this.played = false;
+    this._paused = true;
+  }
+
+  init (config) {
+    this.vCtx = new VideoCtx({
+      canvas: this._canvas
+    });
     this.aCtx = new AudioCtx(config);
     this.ticker = new (getTicker())()
-    this.historyTime = 0;
     this.reconciler = new AVReconciler({
       vCtx: this.vCtx,
       aCtx: this.aCtx,
       video: this
     })
-    this.handleAudioSourceEnd = this.handleAudioSourceEnd.bind(this)
-    this.init()
-  }
-
-  init () {
     this.vCtx.oncanplay = () => {
-      this.appendChild(this.vCtx.canvas);
+      if (!this.played) {
+        this.appendChild(this._canvas);
+      }
       this.dispatchEvent(new Event('canplay'));
     }
 
@@ -86,7 +91,14 @@ class MobileVideo extends HTMLElement {
   }
 
   destroy () {
+    this.aCtx.destroy()
+    this.vCtx.destroy()
+    this.ticker.stop()
+    this.start = null;
     this.reconciler.destroy()
+    this.aCtx = null;
+    this.vCtx = null;
+    this.ticker = null;
   }
 
   onDemuxComplete (videoTrack, audioTrack) {
@@ -143,7 +155,7 @@ class MobileVideo extends HTMLElement {
   }
 
   get paused () {
-    return this.aCtx.paused
+    return this._paused
   }
 
   get playbackRate () {
@@ -175,14 +187,21 @@ class MobileVideo extends HTMLElement {
   }
 
   play () {
-    this.vCtx.play().then(() => {
-      this.aCtx.play()
-    })
+    if (this.played) {
+      this.destroy()
+      this.init()
+    }
 
-    this.dispatchEvent(new Event('play'))
+    this.vCtx.play().then(() => {
+      this.played = true;
+      this.aCtx.play()
+      this.dispatchEvent(new Event('play'))
+      this._paused = false
+    })
   }
 
   pause () {
+    this._paused = true;
     this.aCtx.pause()
     this.vCtx.pause()
 

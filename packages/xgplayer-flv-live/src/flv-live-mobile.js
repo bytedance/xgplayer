@@ -2,13 +2,13 @@ import { FetchLoader } from 'xgplayer-loader'
 import { FlvDemuxer } from 'xgplayer-demux'
 import { Mp4Remuxer } from 'xgplayer-remux'
 import { Tracks, XgBuffer, PreSource } from 'xgplayer-buffer'
-import { EVENTS, MobileVideo } from 'xgplayer-utils'
+import { EVENTS, PageVisibility } from 'xgplayer-utils'
 import { Compatibility } from 'xgplayer-codec'
 import Player from 'xgplayer'
 
 const DEMUX_EVENTS = EVENTS.DEMUX_EVENTS;
 const LOADER_EVENTS = EVENTS.LOADER_EVENTS
-const REMUX_EVENTS = EVENTS.REMUX_EVENTS
+const BROWSER_EVENTS = EVENTS.BROWSER_EVENTS
 
 const Tag = 'FLVController'
 
@@ -21,9 +21,6 @@ export default class FlvController {
     this.TAG = Tag
     this._player = player
 
-    // TODO 临时挂的 需要处理到Player层
-    // this.video = document.createElement('mobile-video');
-    // this._player.video = document.createElement('mobile-video');
     this.video = this._player.video;
     this.state = {
       initSegmentArrived: false
@@ -41,6 +38,7 @@ export default class FlvController {
     this._context.registry('TRACKS', Tracks)
 
     this._context.registry('COMPATIBILITY', Compatibility)
+    this._context.registry('PAGE_VISIBILITY', PageVisibility)
 
     this._context.registry('LOGGER', Logger)
 

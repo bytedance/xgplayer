@@ -37,7 +37,12 @@ const CRYTO_EVENTS = {
   START_DECRYPT: 'START_DECRYPT',
   DECRYPTED: 'DECRYPTED'
 }
-const ALLEVENTS = Object.assign({}, LOADER_EVENTS, DEMUX_EVENTS, REMUX_EVENTS, MSE_EVENTS, HLS_EVENTS)
+
+const BROWSER_EVENTS = {
+  VISIBILITY_CHANGE: 'VISIBILITY_CHANGE'
+}
+
+const ALLEVENTS = Object.assign({}, LOADER_EVENTS, DEMUX_EVENTS, REMUX_EVENTS, MSE_EVENTS, HLS_EVENTS, BROWSER_EVENTS)
 
 const FlvAllowedEvents = []
 const HlsAllowedEvents = []
@@ -63,5 +68,6 @@ export default {
   LOADER_EVENTS,
   FlvAllowedEvents,
   HlsAllowedEvents,
-  CRYTO_EVENTS
+  CRYTO_EVENTS,
+  BROWSER_EVENTS
 };

@@ -152,6 +152,7 @@ class VideoCanvas {
 
   _onDecoded (data) {
     let {dts} = data.info
+    console.log('decoded dts ', dts)
     this._decodedFrames[dts] = data;
   }
 
@@ -173,10 +174,8 @@ class VideoCanvas {
       if (frameTimes.length > 0) {
         this.currentTime = currentTime;
         let frameTime = -1;
-        let currentIdx = 0
         for (let i = 0; i < frameTimes.length && Number.parseInt(frameTimes[i]) - this._baseDts <= this.currentTime; i++) {
           frameTime = Number.parseInt(frameTimes[i - 1]);
-          currentIdx = i;
         }
 
         let frame = this._decodedFrames[frameTime];
@@ -193,7 +192,7 @@ class VideoCanvas {
           }
         }
 
-        for (let i = 0; i < currentIdx; i++) {
+        for (let i = 0; i < frameTime; i++) {
           delete this._decodedFrames[i];
         }
       }
@@ -205,6 +204,13 @@ class VideoCanvas {
     if (this.currentTime > 1) {
       this.source.remove(0, this.currentTime - 1);
     }
+  }
+
+  destroy () {
+    this.wasmworker = null;
+    this.canvas = null
+    this.source = null
+    this._decoderInited = false;
   }
 
   get buffered () {
