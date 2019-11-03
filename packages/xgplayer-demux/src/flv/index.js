@@ -1,7 +1,6 @@
-import { EVENTS, AudioTrackMeta, VideoTrackMeta } from 'xgplayer-utils';
+import { EVENTS, AudioTrackMeta, VideoTrackMeta, sniffer } from 'xgplayer-utils';
 import { SpsParser } from 'xgplayer-codec';
 import { VideoTrack, AudioTrack } from 'xgplayer-buffer'
-
 import AMFParser from './amf-parser'
 
 const DEMUX_EVENTS = EVENTS.DEMUX_EVENTS;
@@ -300,7 +299,7 @@ class FlvDemuxer {
         config = new Array(2);
         extensionSamplingIndex = samplingIndex;
       }
-    } else if (userAgent.indexOf('android') !== -1) {
+    } else if (userAgent.indexOf('android') !== -1 || sniffer.browser === 'safari') {
       // android: always use LC-AAC
       ret.objectType = 2;
       config = new Array(2);

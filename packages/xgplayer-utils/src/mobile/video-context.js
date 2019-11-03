@@ -3,6 +3,8 @@ import Stream from '../write/stream';
 import Nalunit from '../../../xgplayer-codec/src/h264/nalunit';
 import YUVCanvas from './yuv-canvas';
 import SourceBuffer from './sourcebuffer';
+import TimeRanges from '../models/TimeRanges';
+
 class VideoCanvas {
   constructor (config) {
     this.config = Object.assign({}, config);
@@ -179,19 +181,20 @@ class VideoCanvas {
 
         let frame = this._decodedFrames[frameTime];
         if (frame) {
-
           if (this.oncanplay && this.readyStatus < 4) {
             this.oncanplay();
             this.readyStatus = 4;
           }
+          console.log(frame.info.dts, ' ', currentTime)
           this.yuvCanvas.render(frame.buffer, frame.width, frame.height, frame.yLinesize, frame.uvLinesize);
 
           if (this.playFinish) {
             this.playFinish()
           }
-          for (let i = 0; i < currentIdx; i++) {
-            delete this._decodedFrames[i];
-          }
+        }
+
+        for (let i = 0; i < currentIdx; i++) {
+          delete this._decodedFrames[i];
         }
       }
     }
@@ -202,6 +205,42 @@ class VideoCanvas {
     if (this.currentTime > 1) {
       this.source.remove(0, this.currentTime - 1);
     }
+  }
+
+  get buffered () {
+    const ranges = []
+    let currentRange = {
+      start: null,
+      end: null
+    }
+    for (let i = 0; i < this.source.buffer.length; i++) {
+      const { start, end } = this.source.buffer[i];
+      if (!currentRange.start) {
+        currentRange.start = start;
+      }
+      if (!currentRange.end) {
+        currentRange.end = end;
+      }
+
+      if (start - currentRange.end > 1000) {
+        currentRange.start = currentRange.start / 1000
+        currentRange.end = currentRange.end / 1000
+        currentRange = {
+          start,
+          end
+        }
+      } else {
+        currentRange.end = end
+      }
+    }
+
+    if (currentRange.start !== null && currentRange.end !== null) {
+      currentRange.start = currentRange.start / 1000
+      currentRange.end = currentRange.end / 1000
+      ranges.push(currentRange)
+    }
+
+    return new TimeRanges(ranges)
   }
 }
 export default VideoCanvas;
