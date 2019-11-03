@@ -12,6 +12,7 @@ class Context {
     this.mediaInfo = new MediaInfo()
     this.allowedEvents = allowedEvents
     this._hooks = {} // 注册在事件前/后的钩子，例如 before('DEMUX_COMPLETE')
+    this._emitCounter = {}
   }
 
   /**
@@ -124,8 +125,15 @@ class Context {
       }
 
       emit (messageName, ...args) {
-        // console.log('invoke ', messageName)
         checkMessageName(messageName)
+        if (self._emitCounter[messageName]) {
+          self._emitCounter[messageName] += 1;
+          if (self._emitCounter[messageName] > 10000) {
+            console.log(`invoke: `, messageName)
+          }
+        } else {
+          self._emitCounter[messageName] = 1;
+        }
 
         const beforeList = self._hooks ? self._hooks[messageName] : null
 
@@ -226,6 +234,7 @@ class Context {
     this._clsMap = null
     this._context = null
     this._hooks = null
+    this._emitCounter = {}
     this.destroyInstances()
   }
 
