@@ -3,6 +3,7 @@
     "version": "1.1.7",
     "description": "video player",
     "main": "./dist/index.js",
+    "typings": "./types/index.d.ts",
     "scripts": {
         "prepare": "npm run build",
         "build": "webpack --progress --display-chunks -p",
