@@ -14,7 +14,7 @@ class AVReconciler {
   }
 
   doReconcile () {
-    const vCurTime = (this.video.currentTime || 0) * 1000;
+    const vCurTime = (this.vCtx.currentTime || 0);
     const aCurTime = (this.aCtx.currentTime || 0) * 1000;
 
     const gap = vCurTime - aCurTime;
@@ -70,7 +70,6 @@ class MobileVideo extends HTMLElement {
     }
 
     this.ticker.start(() => {
-      //
       if (!this.start) {
         this.start = Date.now()
       }
@@ -192,9 +191,9 @@ class MobileVideo extends HTMLElement {
       this.init()
     }
 
+    this.aCtx.play()
     this.vCtx.play().then(() => {
       this.played = true;
-      this.aCtx.play()
       this.dispatchEvent(new Event('play'))
       this._paused = false
     })
@@ -215,7 +214,6 @@ class MobileVideo extends HTMLElement {
   set volume (vol) {
     this.setAttribute('volume', vol);
     this.aCtx.volume = vol
-    this.vCtx.volume = vol
   }
 
   get muted () {
@@ -229,10 +227,11 @@ class MobileVideo extends HTMLElement {
   }
 
   set muted (val) {
-    this.setAttribute('muted ', val);
+    this.setAttribute('muted', val);
     if (!val) {
       this.aCtx.muted = false
-      this.vCtx.muted = false
+    } else {
+      this.aCtx.muted = true
     }
   }
 

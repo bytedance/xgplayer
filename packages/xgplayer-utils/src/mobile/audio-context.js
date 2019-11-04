@@ -18,6 +18,7 @@ class AudioCtx extends EventEmitter {
     this._preDecode = [];
     this._currentTime = 0;
     this._decoding = false;
+    this._volume = this.config.volume || 0.6
     // 记录外部传输的状态
     this._played = false;
   }
@@ -92,6 +93,8 @@ class AudioCtx extends EventEmitter {
         if ((_this._preDecode.length > 0 && _this._preDecode[_this._preDecode.length - 1].pts - _this._lastpts) / 1000 >= _this.preloadTime) {
           _this.decodeAAC();
         }
+      }, (e) => {
+        console.error(e)
       })
     } catch (err) {
       console.error(err);
@@ -149,6 +152,33 @@ class AudioCtx extends EventEmitter {
 
   setAudioMetaData (meta) {
     this.meta = meta;
+  }
+
+  set muted(val) {
+    if (val) {
+      this.gainNode.gain.value = 0
+    } else {
+      this.gainNode.gain.value = this._volume
+    }
+  }
+
+  get volume () {
+    return this._volume
+  }
+
+  set volume (val) {
+    if (val < 0) {
+      this._volume = 0;
+      this.gainNode.gain.value = 0
+      return;
+    } else if (val > 1) {
+      this._volume = 1;
+      this.gainNode.gain.value = 1
+      return;
+    }
+
+    this._volume = val;
+    this.gainNode.gain.value = val
   }
 
   static getAACData (meta, sample) {

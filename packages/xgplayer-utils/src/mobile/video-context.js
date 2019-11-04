@@ -152,7 +152,6 @@ class VideoCanvas {
 
   _onDecoded (data) {
     let {dts} = data.info
-    console.log('decoded dts ', dts)
     this._decodedFrames[dts] = data;
   }
 
@@ -184,16 +183,16 @@ class VideoCanvas {
             this.oncanplay();
             this.readyStatus = 4;
           }
-          console.log(frame.info.dts, ' ', currentTime)
           this.yuvCanvas.render(frame.buffer, frame.width, frame.height, frame.yLinesize, frame.uvLinesize);
 
           if (this.playFinish) {
             this.playFinish()
           }
         }
-
-        for (let i = 0; i < frameTime; i++) {
-          delete this._decodedFrames[i];
+        for (let i = 0; i < frameTimes.length; i++) {
+          if (Number.parseInt(frameTimes[i]) < frameTime) {
+            delete this._decodedFrames[frameTimes[i]];
+          }
         }
       }
     }
