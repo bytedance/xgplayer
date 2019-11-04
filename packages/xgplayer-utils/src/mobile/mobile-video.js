@@ -109,6 +109,7 @@ class MobileVideo extends HTMLElement {
   }
 
   play () {
+    
     // if (!this.vCtx.)
     this.vCtx.play();
     this.aCtx.play();

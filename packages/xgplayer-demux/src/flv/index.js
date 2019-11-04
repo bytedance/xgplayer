@@ -275,6 +275,7 @@ class FlvDemuxer {
     let ret = {}
     ret.hasSpecificConfig = true
     ret.objectType = data[1] >>> 3
+    ret.originObjectType = ret.objectType
     ret.sampleRateIndex = ((data[1] & 7) << 1) | (data[2] >>> 7)
     ret.audiosamplerate = this._switchAudioSampleRate(ret.sampleRateIndex)
     ret.channelCount = (data[2] & 120) >>> 3
@@ -389,6 +390,7 @@ class FlvDemuxer {
       meta.duration = this._context.mediaInfo.duration * meta.timescale
       meta.config = aacHeader.config
       meta.objectType = aacHeader.objectType;
+      meta.originObjectType = aacHeader.originObjectType;
 
       const audioMedia = this._context.mediaInfo.audio
 

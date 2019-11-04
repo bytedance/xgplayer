@@ -240,7 +240,7 @@ class YUVCanvas {
     if (this.chroma === 422 || this.chroma === 444) {
       uRowCnt = height;
     }
-    
+
     var vDataPerRow = uvLinesize;
     var vRowCnt = uRowCnt;
     
@@ -278,7 +278,7 @@ class YUVCanvas {
     gl.activeTexture(gl.TEXTURE1);
     gl.bindTexture(gl.TEXTURE_2D, uTextureRef);
     gl.texImage2D(gl.TEXTURE_2D, 0, gl.LUMINANCE, uDataPerRow, uRowCnt, 0, gl.LUMINANCE, gl.UNSIGNED_BYTE, uData);
-
+    
     gl.activeTexture(gl.TEXTURE2);
     gl.bindTexture(gl.TEXTURE_2D, vTextureRef);
     gl.texImage2D(gl.TEXTURE_2D, 0, gl.LUMINANCE, vDataPerRow, vRowCnt, 0, gl.LUMINANCE, gl.UNSIGNED_BYTE, vData);

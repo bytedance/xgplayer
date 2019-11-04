@@ -1,15 +1,15 @@
 import EventEmitter from 'events'
-class AudioCtx extends EventEmitter{
+class AudioCtx extends EventEmitter {
   constructor (config) {
     super();
     this.config = Object.assign({}, config);
-    let AudioContext =  window.AudioContext || window.webkitAudioContext;
+    let AudioContext = window.AudioContext || window.webkitAudioContext;
     this.context = new AudioContext();
     this.gainNode = this.context.createGain();
     this.gainNode.connect(this.context.destination);
     this.meta = undefined;
     this.samples = [];
-    this.preloadTime = this.config.preloadTime || 3;
+    this.preloadTime = this.config.preloadTime || 0.5;
     this.duration = 0;
 
     this._currentBuffer = undefined;
@@ -22,7 +22,7 @@ class AudioCtx extends EventEmitter{
     this._played = false;
   }
 
-  get currentTime() {
+  get currentTime () {
     return this._currentTime;
   }
 
@@ -33,22 +33,22 @@ class AudioCtx extends EventEmitter{
     this.setAudioData(data);
   }
   setAudioData (data) {
-    for(let i = 0;i < data.length; i++) {
+    for (let i = 0; i < data.length; i++) {
       data[i].pts = (data[i].pts === undefined) ? data[i].dts : data[i].pts;
       this._preDecode.push(data[i]);
     }
-    if(this._preDecode.length > 0) {
-      if(this._lastpts === undefined) {
+    if (this._preDecode.length > 0) {
+      if (this._lastpts === undefined) {
         this._lastpts = this._preDecode[0].pts;
       }
-      if((this._preDecode[this._preDecode.length - 1].pts - this._lastpts) / 1000 > this.preloadTime) {
+      if ((this._preDecode[this._preDecode.length - 1].pts - this._lastpts) / 1000 > this.preloadTime) {
         this.decodeAAC();
       }
     }
   }
 
-  decodeAAC() {
-    if(this._decoding) {
+  decodeAAC () {
+    if (this._decoding) {
       return;
     }
     this._decoding = true;
@@ -56,15 +56,18 @@ class AudioCtx extends EventEmitter{
     let samples = [];
     let _this = this;
     let sample = data.shift();
-    while(sample) {
+    let sampleCount = 0;
+    
+    while (sample && sampleCount < 40) {
       let sampleData = AudioCtx.getAACData(this.meta, sample)
       samples.push(sampleData);
       this._lastpts = sample.pts;
       sample = data.shift()
+      sampleCount++;
     }
     let buffer = AudioCtx.combileData(samples);
     try {
-      this.context.decodeAudioData(buffer.buffer, function(buffer) {
+      this.context.decodeAudioData(buffer.buffer, function (buffer) {
         let audioSource = _this.context.createBufferSource();
         audioSource.buffer = buffer;
         audioSource.onended = _this.onSourceEnded.bind(_this);
@@ -76,29 +79,32 @@ class AudioCtx extends EventEmitter{
 
         _this.duration += buffer.duration;
 
-        if(!_this._currentBuffer) {
+        if (!_this._currentBuffer) {
           _this._currentBuffer = _this.getTimeBuffer(_this.currentTime);
 
-          if(_this._played) {
+          if (_this._played) {
             _this.play();
           }
         }
 
-        if(!_this._nextBuffer && _this._currentBuffer) {
+        if (!_this._nextBuffer && _this._currentBuffer) {
           _this._nextBuffer = _this.getTimeBuffer(_this.currentTime + _this._currentBuffer.duration);
         }
         _this._decoding = false;
 
-        if((_this._preDecode.length > 0 && _this._preDecode[_this._preDecode.length - 1].pts - _this._lastpts) / 1000 >= _this.preloadTime) {
+        if ((_this._preDecode.length > 0 && _this._preDecode[_this._preDecode.length - 1].pts - _this._lastpts) / 1000 >= _this.preloadTime) {
           _this.decodeAAC();
         }
+      }, function (error) {
+        _this._decoding = false;
+        console.error(error);
       })
-    } catch(err) {
+    } catch (err) {
       console.error(err);
     }
   }
 
-  onSourceEnded() {
+  onSourceEnded () {
     if (!this._nextBuffer || !this._played) {
       return;
     }
@@ -114,21 +120,23 @@ class AudioCtx extends EventEmitter{
     this.emit('AUDIO_SOURCE_END')
   }
 
-  play() {
+  play () {
     this._played = true;
-    if(!this._currentBuffer) {
+    console.log('aaplay', this._currentBuffer);
+    if (!this._currentBuffer) {
       return;
     }
+
     let audioSource = this._currentBuffer.data;
     audioSource.connect(this.gainNode);
     audioSource.start();
   }
 
-  getTimeBuffer(time) {
+  getTimeBuffer (time) {
     let ret;
-    for(let i = 0; i < this.samples.length; i++) {
+    for (let i = 0; i < this.samples.length; i++) {
       let sample = this.samples[i]
-      if(sample.time <= time && (sample.time + sample.duration) > time) {
+      if (sample.time <= time && (sample.time + sample.duration) > time) {
         ret = sample;
         break;
       }
@@ -136,11 +144,11 @@ class AudioCtx extends EventEmitter{
     return ret;
   }
 
-  setAudioMetaData(meta) {
+  setAudioMetaData (meta) {
     this.meta = meta;
   }
 
-  static getAACData(meta, sample) {
+  static getAACData (meta, sample) {
     let buffer = new Uint8Array(sample.data.byteLength + 7);
     let adts = AudioCtx.getAdts(meta, sample.data);
     buffer.set(adts);
@@ -148,24 +156,24 @@ class AudioCtx extends EventEmitter{
     return buffer;
   }
 
-  static combileData(samples) {
+  static combileData (samples) {
     // get length
     let length = 0;
-    for(let i = 0,k = samples.length; i < k; i++) {
+    for (let i = 0, k = samples.length; i < k; i++) {
       length += samples[i].byteLength;
     }
 
     let ret = new Uint8Array(length);
     let offset = 0;
     // combile data;
-    for(let i = 0,k = samples.length; i < k; i++) {
+    for (let i = 0, k = samples.length; i < k; i++) {
       ret.set(samples[i], offset);
       offset += samples[i].byteLength;
     }
     return ret;
   }
 
-  static getAdts(meta, data) {
+  static getAdts (meta, data) {
     let adts = new Uint8Array(7);
 
     // 设置同步位 0xfff 12bit
@@ -178,12 +186,12 @@ class AudioCtx extends EventEmitter{
     adts[1] = adts[1] | 0x01;
 
     // profile 2bit
-    adts[2] = 0xc0 & ((meta.objectType-1) << 6);
+    adts[2] = 0xc0 & ((meta.originObjectType - 1) << 6);
 
-    //sampleFrequencyIndex
+    // sampleFrequencyIndex
     adts[2] = adts[2] | (0x3c & (meta.sampleRateIndex << 2))
 
-    //private bit 0 1bit
+    // private bit 0 1bit
     // chanel configuration 3bit
     adts[2] = adts[2] | (0x01 & meta.channelCount >> 2);
     adts[3] = 0xc0 & (meta.channelCount << 6);
