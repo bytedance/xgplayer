@@ -191,12 +191,12 @@ class MobileVideo extends HTMLElement {
       this.init()
     }
 
-    this.aCtx.play()
     this.vCtx.play().then(() => {
       this.played = true;
       this.dispatchEvent(new Event('play'))
       this._paused = false
     })
+    this.aCtx.play()
   }
 
   pause () {
