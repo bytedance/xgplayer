@@ -18,6 +18,7 @@ class AudioCtx extends EventEmitter {
     this._preDecode = [];
     this._currentTime = 0;
     this._decoding = false;
+    this._volume = this.config.volume || 0.6
     // 记录外部传输的状态
     this._played = false;
   }
@@ -56,9 +57,13 @@ class AudioCtx extends EventEmitter {
     let samples = [];
     let _this = this;
     let sample = data.shift();
+<<<<<<< HEAD
     let sampleCount = 0;
     
     while (sample && sampleCount < 40) {
+=======
+    while (sample) {
+>>>>>>> 942ec45aadb2fe11e3ef58323d8c409536dc43d9
       let sampleData = AudioCtx.getAACData(this.meta, sample)
       samples.push(sampleData);
       this._lastpts = sample.pts;
@@ -95,9 +100,14 @@ class AudioCtx extends EventEmitter {
         if ((_this._preDecode.length > 0 && _this._preDecode[_this._preDecode.length - 1].pts - _this._lastpts) / 1000 >= _this.preloadTime) {
           _this.decodeAAC();
         }
+<<<<<<< HEAD
       }, function (error) {
         _this._decoding = false;
         console.error(error);
+=======
+      }, (e) => {
+        console.error(e)
+>>>>>>> 942ec45aadb2fe11e3ef58323d8c409536dc43d9
       })
     } catch (err) {
       console.error(err);
@@ -122,7 +132,10 @@ class AudioCtx extends EventEmitter {
 
   play () {
     this._played = true;
+<<<<<<< HEAD
     console.log('aaplay', this._currentBuffer);
+=======
+>>>>>>> 942ec45aadb2fe11e3ef58323d8c409536dc43d9
     if (!this._currentBuffer) {
       return;
     }
@@ -132,6 +145,20 @@ class AudioCtx extends EventEmitter {
     audioSource.start();
   }
 
+<<<<<<< HEAD
+=======
+  pause () {
+    const audioCtx = this.context;
+    if (audioCtx.state === 'running') {
+      audioCtx.suspend()
+    }
+  }
+
+  destroy () {
+    this.context.close();
+  }
+
+>>>>>>> 942ec45aadb2fe11e3ef58323d8c409536dc43d9
   getTimeBuffer (time) {
     let ret;
     for (let i = 0; i < this.samples.length; i++) {
@@ -148,6 +175,36 @@ class AudioCtx extends EventEmitter {
     this.meta = meta;
   }
 
+<<<<<<< HEAD
+=======
+  set muted(val) {
+    if (val) {
+      this.gainNode.gain.value = 0
+    } else {
+      this.gainNode.gain.value = this._volume
+    }
+  }
+
+  get volume () {
+    return this._volume
+  }
+
+  set volume (val) {
+    if (val < 0) {
+      this._volume = 0;
+      this.gainNode.gain.value = 0
+      return;
+    } else if (val > 1) {
+      this._volume = 1;
+      this.gainNode.gain.value = 1
+      return;
+    }
+
+    this._volume = val;
+    this.gainNode.gain.value = val
+  }
+
+>>>>>>> 942ec45aadb2fe11e3ef58323d8c409536dc43d9
   static getAACData (meta, sample) {
     let buffer = new Uint8Array(sample.data.byteLength + 7);
     let adts = AudioCtx.getAdts(meta, sample.data);
@@ -186,7 +243,11 @@ class AudioCtx extends EventEmitter {
     adts[1] = adts[1] | 0x01;
 
     // profile 2bit
+<<<<<<< HEAD
     adts[2] = 0xc0 & ((meta.originObjectType - 1) << 6);
+=======
+    adts[2] = 0xc0 & ((meta.objectType - 1) << 6);
+>>>>>>> 942ec45aadb2fe11e3ef58323d8c409536dc43d9
 
     // sampleFrequencyIndex
     adts[2] = adts[2] | (0x3c & (meta.sampleRateIndex << 2))

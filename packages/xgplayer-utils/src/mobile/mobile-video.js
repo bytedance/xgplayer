@@ -1,7 +1,6 @@
 import VideoCtx from './video-context';
 import AudioCtx from './audio-context';
 import { getTicker } from './ticker';
-
 /**
  * 音画同步调和器
  */
@@ -15,7 +14,7 @@ class AVReconciler {
   }
 
   doReconcile () {
-    const vCurTime = (this.video.currentTime || 0) * 1000;
+    const vCurTime = (this.vCtx.currentTime || 0);
     const aCurTime = (this.aCtx.currentTime || 0) * 1000;
 
     const gap = vCurTime - aCurTime;
@@ -23,7 +22,6 @@ class AVReconciler {
       return;
     }
     if (gap > 200) { // audio delayed for more than 100ms
-      console.log(gap)
       this.video.start += gap
       this.vCtx.pause()
       this.timeoutId = setTimeout(() => {
@@ -36,6 +34,7 @@ class AVReconciler {
   }
 
   destroy () {
+    this.start = null
     this.aCtx = null
     this.vCtx = null
   }
@@ -45,29 +44,32 @@ class AVReconciler {
 class MobileVideo extends HTMLElement {
   constructor (config) {
     super();
-    let _this = this;
-    this.vCtx = new VideoCtx();
+    this._canvas = document.createElement('canvas')
+    this.handleAudioSourceEnd = this.handleAudioSourceEnd.bind(this)
+    this.init(config)
+    this.played = false;
+    this._paused = true;
+  }
+
+  init (config) {
+    this.vCtx = new VideoCtx({
+      canvas: this._canvas
+    });
     this.aCtx = new AudioCtx(config);
     this.ticker = new (getTicker())()
-    this.historyTime = 0;
     this.reconciler = new AVReconciler({
       vCtx: this.vCtx,
       aCtx: this.aCtx,
       video: this
     })
-    this.handleAudioSourceEnd = this.handleAudioSourceEnd.bind(this)
-    this.init()
-  }
-
-  init () {
     this.vCtx.oncanplay = () => {
-      this.appendChild(this.vCtx.canvas);
-      // eslint-disable-next-line no-undef
+      if (!this.played) {
+        this.appendChild(this._canvas);
+      }
       this.dispatchEvent(new Event('canplay'));
     }
 
     this.ticker.start(() => {
-      //
       if (!this.start) {
         this.start = Date.now()
       }
@@ -79,8 +81,8 @@ class MobileVideo extends HTMLElement {
   }
 
   handleAudioSourceEnd () {
-    console.log(this.aCtx.currentTime)
     this.reconciler.doReconcile()
+    this.vCtx.cleanBuffer();
   }
 
   _cleanBuffer () {
@@ -88,7 +90,14 @@ class MobileVideo extends HTMLElement {
   }
 
   destroy () {
+    this.aCtx.destroy()
+    this.vCtx.destroy()
+    this.ticker.stop()
+    this.start = null;
     this.reconciler.destroy()
+    this.aCtx = null;
+    this.vCtx = null;
+    this.ticker = null;
   }
 
   onDemuxComplete (videoTrack, audioTrack) {
@@ -104,15 +113,134 @@ class MobileVideo extends HTMLElement {
     this.vCtx.setVideoMetaData(meta);
   }
 
+  get width () {
+    return this.vCtx.width
+  }
+
+  get height () {
+    return this.vCtx.height
+  }
+
+  get videoWidth () {
+    return this.vCtx.videoWidth
+  }
+
+  get videoHeight () {
+    return this.vCtx.videoHeight
+  }
+
+  get src () {
+    return this.getAttribute('src');
+  }
+
+  set src (val) {
+    // do nothing
+  }
+
+  get readyState () {
+    return this.vCtx.readyState
+  }
+
+  get seeking () {
+    return this.vCtx.seeking
+  }
+
   get currentTime () {
-    return this._currentTime / 1000
+    return this.aCtx.currentTime
+  }
+
+  get duration () {
+    return this.aCtx.duration
+  }
+
+  get paused () {
+    return this._paused
+  }
+
+  get playbackRate () {
+    if (this.hasAttribute('playbackRate')) {
+      return this.getAttribute('playbackRate')
+    } else {
+      return 1.0
+    }
+  }
+
+  set playbackRate (val) {
+    this.setAttribute('playbackrate', val);
+    this.aCtx.playbackRate = val;
+    this.vCtx.playbackRate = val;
+
+    this.dispatchEvent(new Event('ratechange'))
+  }
+
+  get ended () {
+    return this.aCtx.ended;
+  }
+
+  get autoplay () {
+    if (this.hasAttribute('autoplay')) {
+      return this.getAttribute('autoplay')
+    } else {
+      return false
+    }
   }
 
   play () {
-    
-    // if (!this.vCtx.)
-    this.vCtx.play();
-    this.aCtx.play();
+    if (this.played) {
+      this.destroy()
+      this.init()
+    }
+
+    this.aCtx.play()
+    this.vCtx.play().then(() => {
+      this.played = true;
+      this.dispatchEvent(new Event('play'))
+      this._paused = false
+    })
+  }
+
+  pause () {
+    this._paused = true;
+    this.aCtx.pause()
+    this.vCtx.pause()
+
+    this.dispatchEvent(new Event('pause'))
+  }
+
+  get volume () {
+    return this.aCtx.volume
+  }
+
+  set volume (vol) {
+    this.setAttribute('volume', vol);
+    this.aCtx.volume = vol
+  }
+
+  get muted () {
+    if (this.getAttribute('muted')) {
+      return this.getAttribute('muted')
+    } else if (this.getAttribute('volume')) {
+      return Number.parseInt(this.getAttribute('volume')) === 0
+    } else {
+      return false
+    }
+  }
+
+  set muted (val) {
+    this.setAttribute('muted', val);
+    if (!val) {
+      this.aCtx.muted = false
+    } else {
+      this.aCtx.muted = true
+    }
+  }
+
+  get error () {
+    return this.vCtx.error;
+  }
+
+  get buffered () {
+    return this.vCtx.buffered
   }
 }
 // eslint-disable-next-line no-undef

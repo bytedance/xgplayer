@@ -9,7 +9,9 @@ module.exports = {
             "files": ["packages/**/**.js"],
             "globals": {
                 "fetch": true,
-                "Headers": true
+                "Headers": true,
+                "Event": true,
+                "HTMLElement": true
             }
         }
     ]

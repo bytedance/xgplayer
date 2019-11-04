@@ -9,6 +9,7 @@ module.exports = {
   sniffer: require('./src/env/sniffer').default,
   isLe: require('./src/env/isle').default,
   UTF8: require('./src/env/utf8').default,
+  PageVisibility: require('./src/env/PageVisibility').default,
 
   // Models
   MediaInfo: require('./src/models/media-info').default,

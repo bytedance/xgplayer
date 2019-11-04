@@ -5,6 +5,9 @@ const flvAllowedEvents = EVENTS.FlvAllowedEvents;
 
 class FlvPlayer extends Player {
   constructor (config) {
+    if (!config.mediaType) {
+      config.mediaType = 'mobile-video'
+    }
     super(config)
     this.context = new Context(flvAllowedEvents)
     this.initEvents()
@@ -40,6 +43,13 @@ class FlvPlayer extends Player {
         }, 200)
       }
     })
+    flv.on(EVENTS.BROWSER_EVENTS.VISIBILITY_CHANGE, (hidden) => {
+      if (hidden) {
+        this.pause()
+      } else {
+        this.play()
+      }
+    })
   }
 
   initEvents () {
@@ -63,15 +73,15 @@ class FlvPlayer extends Player {
   }
 
   play () {
-    console.log('play');
-    if (this._hasStart) {
+    if (this._hasStart && this.paused) {
       this._destroy()
       this.context = new Context(flvAllowedEvents)
       const flv = this.context.registry('FLV_CONTROLLER', FLV)(this)
       this.initFlvEvents(flv)
       this.flv = flv
       this.context.init()
-      super.start(flv.mse.url)
+      this.loadData()
+      super.start()
       super.play()
     } else {
       super.play()

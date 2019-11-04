@@ -3,6 +3,8 @@ import Stream from '../write/stream';
 import Nalunit from '../../../xgplayer-codec/src/h264/nalunit';
 import YUVCanvas from './yuv-canvas';
 import SourceBuffer from './sourcebuffer';
+import TimeRanges from '../models/TimeRanges';
+
 class VideoCanvas {
   constructor (config) {
     this.config = Object.assign({}, config);
@@ -24,6 +26,7 @@ class VideoCanvas {
     this._lastSampleDts = undefined;
     this._baseDts = undefined;
     this._lastRenderTime = null
+    this.playFinish = null
   }
 
   pause () {
@@ -154,7 +157,9 @@ class VideoCanvas {
 
   play () {
     this.paused = false;
-    this._onTimer();
+    return new Promise((resolve) => {
+      this.playFinish = resolve
+    })
   }
 
   _onTimer (currentTime) {
@@ -168,10 +173,8 @@ class VideoCanvas {
       if (frameTimes.length > 0) {
         this.currentTime = currentTime;
         let frameTime = -1;
-        let currentIdx = 0
         for (let i = 0; i < frameTimes.length && Number.parseInt(frameTimes[i]) - this._baseDts <= this.currentTime; i++) {
           frameTime = Number.parseInt(frameTimes[i - 1]);
-          currentIdx = i;
         }
 
         let frame = this._decodedFrames[frameTime];
@@ -181,8 +184,14 @@ class VideoCanvas {
             this.readyStatus = 4;
           }
           this.yuvCanvas.render(frame.buffer, frame.width, frame.height, frame.yLinesize, frame.uvLinesize);
-          for (let i = 0; i < currentIdx; i++) {
-            delete this._decodedFrames[i];
+
+          if (this.playFinish) {
+            this.playFinish()
+          }
+        }
+        for (let i = 0; i < frameTimes.length; i++) {
+          if (Number.parseInt(frameTimes[i]) < frameTime) {
+            delete this._decodedFrames[frameTimes[i]];
           }
         }
       }
@@ -191,7 +200,52 @@ class VideoCanvas {
   }
 
   cleanBuffer () {
-    this.source.remove(0, this.currentTime);
+    if (this.currentTime > 1) {
+      this.source.remove(0, this.currentTime - 1);
+    }
+  }
+
+  destroy () {
+    this.wasmworker = null;
+    this.canvas = null
+    this.source = null
+    this._decoderInited = false;
+  }
+
+  get buffered () {
+    const ranges = []
+    let currentRange = {
+      start: null,
+      end: null
+    }
+    for (let i = 0; i < this.source.buffer.length; i++) {
+      const { start, end } = this.source.buffer[i];
+      if (!currentRange.start) {
+        currentRange.start = start;
+      }
+      if (!currentRange.end) {
+        currentRange.end = end;
+      }
+
+      if (start - currentRange.end > 1000) {
+        currentRange.start = currentRange.start / 1000
+        currentRange.end = currentRange.end / 1000
+        currentRange = {
+          start,
+          end
+        }
+      } else {
+        currentRange.end = end
+      }
+    }
+
+    if (currentRange.start !== null && currentRange.end !== null) {
+      currentRange.start = currentRange.start / 1000
+      currentRange.end = currentRange.end / 1000
+      ranges.push(currentRange)
+    }
+
+    return new TimeRanges(ranges)
   }
 }
 export default VideoCanvas;

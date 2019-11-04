@@ -92,7 +92,7 @@ class SourceBuffer {
     let gop = this.buffer[0];
     while (gop) {
       if (gop.end < end && gop.start >= start) {
-        delete this.buffer[i];
+        this.buffer.splice(i, 1)
         gop = this.buffer[i];
       } else {
         i += 1;
