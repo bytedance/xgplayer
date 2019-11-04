@@ -27,6 +27,7 @@ class VideoCanvas {
     this._baseDts = undefined;
     this._lastRenderTime = null
     this.playFinish = null
+
   }
 
   pause () {
@@ -153,12 +154,22 @@ class VideoCanvas {
   _onDecoded (data) {
     let {dts} = data.info
     this._decodedFrames[dts] = data;
+    if (Object.keys(this._decodedFrames).length > 10) {
+      if (this.playFinish) {
+        this.playFinish()
+      }
+      if (this.oncanplay) {
+        this.oncanplay();
+      }
+    }
   }
 
   play () {
     this.paused = false;
     return new Promise((resolve) => {
       this.playFinish = resolve
+    }).then(() => {
+      this.playFinish = null
     })
   }
 
@@ -179,15 +190,7 @@ class VideoCanvas {
 
         let frame = this._decodedFrames[frameTime];
         if (frame) {
-          if (this.oncanplay && this.readyStatus < 4) {
-            this.oncanplay();
-            this.readyStatus = 4;
-          }
           this.yuvCanvas.render(frame.buffer, frame.width, frame.height, frame.yLinesize, frame.uvLinesize);
-
-          if (this.playFinish) {
-            this.playFinish()
-          }
         }
         for (let i = 0; i < frameTimes.length; i++) {
           if (Number.parseInt(frameTimes[i]) < frameTime) {
@@ -247,5 +250,6 @@ class VideoCanvas {
 
     return new TimeRanges(ranges)
   }
+
 }
 export default VideoCanvas;

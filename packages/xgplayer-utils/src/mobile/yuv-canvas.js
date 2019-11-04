@@ -6,10 +6,10 @@ class YUVCanvas {
     this.chroma = this.meta.chromaFormat;
     this.height = this.meta.presentHeight;
     this.width = this.meta.presentWidth;
-    this.canvas.width = 1280;
-    this.canvas.height = 720;
-    this.canvas.style.width = '100%';
-    this.canvas.style.height = '100%';
+    // this.canvas.width = this.meta.presentWidth;
+    // this.canvas.height = this.meta.presentHeight;
+    // this.canvas.style.width = configs.style.width;
+    // this.canvas.style.height = configs.style.height;
     this._initContextGL();
     if (this.contextGL) {
       this._initProgram();
@@ -240,10 +240,10 @@ class YUVCanvas {
     if (this.chroma === 422 || this.chroma === 444) {
       uRowCnt = height;
     }
-    
+
     var vDataPerRow = uvLinesize;
     var vRowCnt = uRowCnt;
-    
+
     let ratiow = this.canvas.width / this.width;
     let ratioh = this.canvas.height / this.height;
     let left = 0;
@@ -270,7 +270,7 @@ class YUVCanvas {
     var vTexturePosValues = new Float32Array([1, 0, 0, 0, 1, 1, 0, 1]);
     gl.bindBuffer(gl.ARRAY_BUFFER, vTexturePosBuffer);
     gl.bufferData(gl.ARRAY_BUFFER, vTexturePosValues, gl.DYNAMIC_DRAW);
-    
+
     gl.activeTexture(gl.TEXTURE0);
     gl.bindTexture(gl.TEXTURE_2D, yTextureRef);
     gl.texImage2D(gl.TEXTURE_2D, 0, gl.LUMINANCE, yDataPerRow, yRowCnt, 0, gl.LUMINANCE, gl.UNSIGNED_BYTE, yData);

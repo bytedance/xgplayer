@@ -42,20 +42,23 @@ class AVReconciler {
 
 // eslint-disable-next-line no-undef
 class MobileVideo extends HTMLElement {
-  constructor (config) {
+  constructor () {
     super();
     this._canvas = document.createElement('canvas')
     this.handleAudioSourceEnd = this.handleAudioSourceEnd.bind(this)
-    this.init(config)
     this.played = false;
+    this.pendingPlayTask = null
     this._paused = true;
+    this.videoMetaInited = false;
+    this.audioMetaInited = false;
+    this.init()
   }
 
-  init (config) {
-    this.vCtx = new VideoCtx({
+  init () {
+    this.vCtx = new VideoCtx(Object.assign({
       canvas: this._canvas
-    });
-    this.aCtx = new AudioCtx(config);
+    }, { style: { width: this.width, height: this.height } }));
+    this.aCtx = new AudioCtx({});
     this.ticker = new (getTicker())()
     this.reconciler = new AVReconciler({
       vCtx: this.vCtx,
@@ -68,14 +71,6 @@ class MobileVideo extends HTMLElement {
       }
       this.dispatchEvent(new Event('canplay'));
     }
-
-    this.ticker.start(() => {
-      if (!this.start) {
-        this.start = Date.now()
-      }
-      this._currentTime = Date.now() - this.start
-      this.vCtx._onTimer(this._currentTime)
-    })
 
     this.aCtx.on('AUDIO_SOURCE_END', this.handleAudioSourceEnd)
   }
@@ -107,26 +102,52 @@ class MobileVideo extends HTMLElement {
 
   setAudioMeta (meta) {
     this.aCtx.setAudioMetaData(meta);
+    this.audioMetaInited = true;
   }
 
   setVideoMeta (meta) {
     this.vCtx.setVideoMetaData(meta);
+    this.videoMetaInited = true;
   }
 
   get width () {
-    return this.vCtx.width
+    return this.getAttribute('width') || this.videoWidth
+  }
+
+  set width (val) {
+    this.style.display = 'inline-block'
+    const pxVal = typeof val === 'number' ? `${val}px` : val
+    this.setAttribute('width', pxVal)
+    this.style.width = pxVal
+    this._canvas.style.width = pxVal;
+    this._canvas.width = val;
   }
 
   get height () {
-    return this.vCtx.height
+    return this.getAttribute('height')
+  }
+
+  set height (val) {
+    this.style.display = 'inline-block'
+    const pxVal = typeof val === 'number' ? `${val}px` : val
+    this.setAttribute('height', pxVal)
+    this.style.height = pxVal
+    this._canvas.style.height = pxVal;
+    this._canvas.height = val;
   }
 
   get videoWidth () {
-    return this.vCtx.videoWidth
+    if (this.vCtx && this.vCtx.videoWidth) {
+      return this.vCtx.videoWidth
+    }
+    return 0
   }
 
   get videoHeight () {
-    return this.vCtx.videoHeight
+    if (this.vCtx && this.vCtx.videoHeight) {
+      return this.vCtx.videoHeight
+    }
+    return 0
   }
 
   get src () {
@@ -138,19 +159,19 @@ class MobileVideo extends HTMLElement {
   }
 
   get readyState () {
-    return this.vCtx.readyState
+    return this.videoMetaInited ? this.vCtx.readyState : 0
   }
 
   get seeking () {
-    return this.vCtx.seeking
+    return this.videoMetaInited ? this.vCtx.seeking : false
   }
 
   get currentTime () {
-    return this.aCtx.currentTime
+    return this.videoMetaInited ? this.vCtx.currentTime / 1000 : 0
   }
 
   get duration () {
-    return this.aCtx.duration
+    return this.audioMetaInited ? this.aCtx.duration : 0
   }
 
   get paused () {
@@ -174,7 +195,10 @@ class MobileVideo extends HTMLElement {
   }
 
   get ended () {
-    return this.aCtx.ended;
+    if (this.audioMetaInited) {
+      return this.aCtx.ended;
+    }
+    return false;
   }
 
   get autoplay () {
@@ -186,17 +210,31 @@ class MobileVideo extends HTMLElement {
   }
 
   play () {
+    if (this.pendingPlayTask) {
+      return;
+    }
+
     if (this.played) {
       this.destroy()
       this.init()
     }
+    this.pendingPlayTask = Promise.all([
+      this.vCtx.play(),
+      this.aCtx.play()
+    ]).then(() => {
+      this.ticker.start(() => {
+        if (!this.start) {
+          this.start = Date.now()
+        }
+        this._currentTime = Date.now() - this.start
+        this.vCtx._onTimer(this._currentTime)
+      })
 
-    this.vCtx.play().then(() => {
+      this.pendingPlayTask = null
       this.played = true;
       this.dispatchEvent(new Event('play'))
       this._paused = false
     })
-    this.aCtx.play()
   }
 
   pause () {
@@ -236,7 +274,7 @@ class MobileVideo extends HTMLElement {
   }
 
   get error () {
-    return this.vCtx.error;
+    return this.vCtx.error || this.aCtx.error;
   }
 
   get buffered () {

@@ -5,6 +5,7 @@ class AudioCtx extends EventEmitter {
     this.config = Object.assign({}, config);
     let AudioContext = window.AudioContext || window.webkitAudioContext;
     this.context = new AudioContext();
+    this.context.onstatechange = console.log
     this.gainNode = this.context.createGain();
     this.gainNode.connect(this.context.destination);
     this.meta = undefined;
@@ -21,6 +22,8 @@ class AudioCtx extends EventEmitter {
     this._volume = this.config.volume || 0.6
     // 记录外部传输的状态
     this._played = false;
+    this.playFinish = null; // pending play task
+    this.waitNextID = null; // audio source end and next source not loaded
   }
 
   get currentTime () {
@@ -79,10 +82,6 @@ class AudioCtx extends EventEmitter {
 
         if (!_this._currentBuffer) {
           _this._currentBuffer = _this.getTimeBuffer(_this.currentTime);
-
-          if (_this._played) {
-            _this.play();
-          }
         }
 
         if (!_this._nextBuffer && _this._currentBuffer) {
@@ -92,6 +91,10 @@ class AudioCtx extends EventEmitter {
 
         if ((_this._preDecode.length > 0 && _this._preDecode[_this._preDecode.length - 1].pts - _this._lastpts) / 1000 >= _this.preloadTime) {
           _this.decodeAAC();
+        }
+
+        if (_this.playFinish) {
+          _this.playFinish()
         }
       }, (e) => {
         console.error(e)
@@ -103,6 +106,9 @@ class AudioCtx extends EventEmitter {
 
   onSourceEnded () {
     if (!this._nextBuffer || !this._played) {
+      this.waitNextID = setTimeout(() => {
+        this.onSourceEnded()
+      }, 200);
       return;
     }
     let audioSource = this._nextBuffer.data;
@@ -118,13 +124,31 @@ class AudioCtx extends EventEmitter {
   }
 
   play () {
-    this._played = true;
-    if (!this._currentBuffer) {
+    if (this.playFinish) {
       return;
     }
-    let audioSource = this._currentBuffer.data;
-    audioSource.connect(this.gainNode);
-    audioSource.start();
+    this._played = true;
+    if (this.context.state === 'suspended') {
+      this.context.resume()
+    }
+
+    const playStart = () => {
+      let audioSource = this._currentBuffer.data;
+      audioSource.connect(this.gainNode);
+      audioSource.start();
+    }
+
+    if (!this._currentBuffer) {
+      return new Promise((resolve) => {
+        this.playFinish = resolve;
+      }).then(() => {
+        this.playFinish = null;
+        playStart()
+      });
+    } else {
+      playStart();
+      return Promise.resolve()
+    }
   }
 
   pause () {
@@ -154,7 +178,13 @@ class AudioCtx extends EventEmitter {
     this.meta = meta;
   }
 
-  set muted(val) {
+  destroy () {
+    if (this.waitNextID) {
+      window.clearTimeout(this.waitNextID)
+    }
+  }
+
+  set muted (val) {
     if (val) {
       this.gainNode.gain.value = 0
     } else {
