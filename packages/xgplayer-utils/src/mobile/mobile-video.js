@@ -29,7 +29,7 @@ class AVReconciler {
         this.timeoutId = null
       }, gap)
     } else if (gap < -120) {
-      this.vCtx.currentTime = this.vCtx.currentTime + Math.abs(gap);
+      this.video.start += gap
     }
   }
 

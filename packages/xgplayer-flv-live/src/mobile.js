@@ -11,6 +11,7 @@ class FlvPlayer extends Player {
     super(config)
     this.video.width = Number.parseInt(config.width || 600)
     this.video.height = Number.parseInt(config.height || 337.5)
+    this.video.style.outline = 'none';
     this.context = new Context(flvAllowedEvents)
     this.initEvents()
   }
