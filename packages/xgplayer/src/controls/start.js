@@ -22,12 +22,12 @@ let start = function () {
       if (!root.querySelector('video')) {
         player.start()
       }
-      player.play()
+      player.play().catch(err => {})
     } else {
       if (player.paused) {
         util.removeClass(root, 'xgplayer-nostart xgplayer-isloading')
         setTimeout(() => {
-          player.play()
+          player.play().catch(err => {})
         }, 10)
       }
     }

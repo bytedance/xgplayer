@@ -20,7 +20,7 @@ let pc = function () {
             return false
           } else if (!player.ended) {
             if (player.paused) {
-              player.play()
+              player.play().catch(err => {})
             } else {
               player.pause()
             }
