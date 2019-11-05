@@ -11,7 +11,7 @@ let localPreview = function () {
       player.start()
     } else {
       player.src = url
-      player.play()
+      player.play().catch(err => {})
     }
   }
   player.on('upload', onUpload)

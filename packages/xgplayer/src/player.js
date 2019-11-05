@@ -229,7 +229,7 @@ class Player extends Proxy {
   reload () {
     this.video.load()
     this.reloadFunc = function () {
-      this.play()
+      this.play().catch(err => {})
     }
     this.once('loadeddata', this.reloadFunc)
   }
@@ -338,7 +338,7 @@ class Player extends Proxy {
       _replay()
     } else {
       this.currentTime = 0
-      this.play()
+      this.play().catch(err => {})
     }
   }
 
@@ -688,7 +688,7 @@ class Player extends Proxy {
       }
     } else if (e && e.keyCode === 32) { // 按 spacebar
       if (player.paused) {
-        player.play()
+        player.play().catch(err => {})
       } else {
         player.pause()
       }
