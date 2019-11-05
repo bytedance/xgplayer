@@ -1,4 +1,6 @@
 const { umd, client } = require('../../webpack.config')
+const polyfill = []
+
 umd.output = {
   path: `${__dirname}/dist`,
   filename: 'index.js',

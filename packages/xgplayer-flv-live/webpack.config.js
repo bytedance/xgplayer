@@ -1,4 +1,3 @@
-const UglifyJSPlugin = require('uglifyjs-webpack-plugin');
 const polyfill = []
 
 const umd = {
@@ -34,16 +33,7 @@ const umd = {
     'xgplayer': 'xgplayer'
   },
   optimization: {
-    minimize: true,
-    minimizer: [
-      new UglifyJSPlugin({
-        uglifyOptions: {
-          compress: {
-            drop_console: true
-          }
-        }
-      })
-    ]
+    minimize: true
   }
 }
 
@@ -80,16 +70,7 @@ const client = {
   },
   mode: 'production',
   optimization: {
-    minimize: true,
-    minimizer: [
-      new UglifyJSPlugin({
-        uglifyOptions: {
-          compress: {
-            drop_console: true,
-          }
-        }
-      })
-    ]
+    minimize: true
   }
 }
 

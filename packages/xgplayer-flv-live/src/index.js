@@ -65,20 +65,20 @@ class FlvPlayer extends Player {
     this.flv = flv
   }
 
-  play() {
+  play () {
     if (this._hasStart) {
-      this._destroy().then(() => {
+      return this._destroy().then(() => {
         this.context = new Context(flvAllowedEvents)
         const flv = this.context.registry('FLV_CONTROLLER', FLV)(this)
         this.initFlvEvents(flv)
         this.flv = flv
         this.context.init()
         super.start(flv.mse.url)
-        super.play()
+        return super.play()
       })
 
     } else {
-      super.play()
+      return super.play()
     }
   }
 

@@ -2,10 +2,12 @@
     "presets": [
         ["env", {
             "targets": {
-                "node": true,
-                "chrome": "55",
-                "ie": "8"
+                "node": true
             }
         }]
+    ],
+    "plugins": [
+        "transform-es2015-parameters",
+        "transform-es2015-spread"
     ]
 }

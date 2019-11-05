@@ -76,8 +76,8 @@ class Context {
     const checkMessageName = this._isMessageNameValid.bind(this)
     const self = this
     const enhanced = class extends cls {
-      constructor (...args) {
-        super(...args)
+      constructor (a, b, c) {
+        super(a, b, c)
         this.listeners = {}
         this.onceListeners = {}
         this.TAG = tag
