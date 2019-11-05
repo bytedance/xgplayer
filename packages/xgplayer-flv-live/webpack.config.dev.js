@@ -9,7 +9,7 @@ const developUMD = webpackMerge(umd, {
     libraryTarget: 'umd'
   },
   devtool: 'inline-source-map',
-  mode: 'development',
+  mode: 'development'
 })
 
 const developClient = webpackMerge(client, {

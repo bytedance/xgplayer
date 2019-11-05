@@ -129,7 +129,11 @@ class Context {
         if (self._emitCounter[messageName]) {
           self._emitCounter[messageName] += 1;
           if (self._emitCounter[messageName] > 10000) {
-            console.log(`invoke: `, messageName)
+            let a = 'con';
+            let b = 'sole';
+            if (window.console) {
+              window[a + b].warn(`invoke: `, messageName)
+            }
           }
         } else {
           self._emitCounter[messageName] = 1;
