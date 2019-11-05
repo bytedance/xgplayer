@@ -517,7 +517,9 @@ class MP4 {
     ]))
     let sdtp = MP4.sdtp(track)
     let trun = MP4.trun(track, sdtp.byteLength + 16 + 16 + 8 + 16 + 8 + 8)
-
+    if (trackId === 1) {
+      // console.log(trun)
+    }
     return MP4.box(MP4.types.traf, tfhd, tfdt, trun, sdtp)
   }
 

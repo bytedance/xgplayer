@@ -134,6 +134,24 @@ class Player extends Proxy {
     }
     player.once('play', this.playFunc)
 
+    this.getVideoSize = function () {
+      if(this.video.videoWidth && this.video.videoHeight) {
+        let containerSize = player.root.getBoundingClientRect()
+        if (player.config.fitVideoSize === 'auto') {
+          if(containerSize.width / containerSize.height > this.video.videoWidth / this.video.videoHeight) {
+            player.root.style.height = `${this.video.videoHeight / this.video.videoWidth * containerSize.width}px`
+          } else {
+            player.root.style.width = `${this.video.videoWidth / this.video.videoHeight * containerSize.height}px`
+          }
+        } else if (player.config.fitVideoSize === 'fixWidth') {
+          player.root.style.height = `${this.video.videoHeight / this.video.videoWidth * containerSize.width}px`
+        } else if (player.config.fitVideoSize === 'fixHeight') {
+          player.root.style.width = `${this.video.videoWidth / this.video.videoHeight * containerSize.height}px`
+        }
+      }
+    }
+    player.once('loadeddata', this.getVideoSize)
+
     setTimeout(() => {
       this.emit('ready')
     }, 0)
@@ -211,7 +229,7 @@ class Player extends Proxy {
   reload () {
     this.video.load()
     this.reloadFunc = function () {
-      this.play()
+      this.play().catch(err => {})
     }
     this.once('loadeddata', this.reloadFunc)
   }
@@ -243,6 +261,9 @@ class Player extends Proxy {
     if(this.playFunc) {
       this.off('play', this.playFunc)
     }
+    if(this.getVideoSize) {
+      this.off('loadeddata', this.getVideoSize)
+    };
     ['focus', 'blur'].forEach(item => {
       this.off(item, this['on' + item.charAt(0).toUpperCase() + item.slice(1)])
     })
@@ -265,7 +286,12 @@ class Player extends Proxy {
       if (isDelDom) {
         // parentNode.removeChild(this.root)
         this.root.innerHTML = ''
-        this.root.className = ''
+        let classNameList = this.root.className.split(' ')
+        if(classNameList.length > 0) {
+          this.root.className = classNameList.filter(name => name.indexOf('xgplayer') < 0).join(' ')
+        } else {
+          this.root.className = ''
+        }
       }
       for (let k in this) {
         // if (k !== 'config') {
@@ -312,11 +338,12 @@ class Player extends Proxy {
       _replay()
     } else {
       this.currentTime = 0
-      this.play()
+      this.play().catch(err => {})
     }
   }
 
   getFullscreen (el) {
+    let player = this
     if (el.requestFullscreen) {
       el.requestFullscreen()
     } else if (el.mozRequestFullScreen) {
@@ -345,9 +372,20 @@ class Player extends Proxy {
     util.removeClass(el, 'xgplayer-is-cssfullscreen')
   }
 
+  getCssFullscreen () {
+    let player = this
+    util.addClass(player.root, 'xgplayer-is-cssfullscreen')
+    player.emit('requestCssFullscreen')
+  }
+
+  exitCssFullscreen () {
+    let player = this
+    util.removeClass(player.root, 'xgplayer-is-cssfullscreen')
+    player.emit('exitCssFullscreen')
+  }
+
   download () {
-    const url = getAbsoluteURL(player.config.url)
-    console.log(url)
+    const url = getAbsoluteURL(this.config.url)
     downloadUtil(url)
   }
 
@@ -472,50 +510,39 @@ class Player extends Proxy {
 
     let width = player.root.offsetWidth
     let height = player.root.offsetHeight
-
     let targetWidth = player.video.videoWidth
     let targetHeight = player.video.videoHeight
 
     if (!player.config.rotate.innerRotate) {
-      player.root.style.width = height + 'px'
-      player.root.style.height = width + 'px'
+      // player.root.style.width = height + 'px'
+      // player.root.style.height = width + 'px'
     }
 
     let scale
     if (player.rotateDeg === 0.25 || player.rotateDeg === 0.75) {
       if (player.config.rotate.innerRotate) {
         if((targetWidth / targetHeight) > (height / width) ) { //旋转后纵向撑满
-          // console.log('纵向撑满')
           let videoWidth = 0
           if((targetHeight / targetWidth) > (height / width)) { //旋转前是纵向撑满
             videoWidth = height * targetWidth / targetHeight
           } else { //旋转前是横向撑满
             videoWidth = width
           }
-          if(videoWidth > height) { //缩小
-            scale = height > width ? width / height : height / width
-          } else { //放大
-            scale = height > width ? height / width : width / height
-          }
+          scale = height / videoWidth
         } else { //旋转后横向撑满
-          // console.log('横向撑满')
           let videoHeight = 0
           if((targetHeight / targetWidth) > (height / width)) { //旋转前是纵向撑满
             videoHeight = height
           } else { //旋转前是横向撑满
             videoHeight = width * targetHeight / targetWidth
           }
-          if(videoHeight > width) { //缩小
-            scale = height > width ? width / height : height / width
-          } else { //放大
-            scale = height > width ? height / width : width / height
-          }
+          scale = width / videoHeight
         }
       } else {
         if (width >= height) {
-          scale = (width / height).toFixed(2)
+          scale = width / height
         } else {
-          scale = (height / width).toFixed(2)
+          scale = height / width
         }
       }
       scale = parseFloat(scale.toFixed(5))
@@ -523,9 +550,15 @@ class Player extends Proxy {
       scale = 1
     }
 
-    player.video.style.transformOrigin = 'center center'
-    player.video.style.transform = `rotate(${player.rotateDeg}turn) scale(${scale})`
-    player.video.style.webKitTransform = `rotate(${player.rotateDeg}turn) scale(${scale})`
+    if (player.config.rotate.innerRotate) {
+      player.video.style.transformOrigin = 'center center'
+      player.video.style.transform = `rotate(${player.rotateDeg}turn) scale(${scale})`
+      player.video.style.webKitTransform = `rotate(${player.rotateDeg}turn) scale(${scale})`
+    } else {
+      player.root.style.transformOrigin = 'center center'
+      player.root.style.transform = `rotate(${player.rotateDeg}turn) scale(${1})`
+      player.root.style.webKitTransform = `rotate(${player.rotateDeg}turn) scale(${1})`
+    }
   }
 
   rotate (clockwise = false, innerRotate = true, times = 1) {
@@ -630,13 +663,13 @@ class Player extends Proxy {
       }
       if (e && e.keyCode === 40) { // 按 down
         if (player.volume - 0.1 >= 0) {
-          player.volume -= 0.1
+          player.volume = parseFloat((player.volume - 0.1).toFixed(1))
         } else {
           player.volume = 0
         }
       } else if (e && e.keyCode === 38) { // 按 up
         if (player.volume + 0.1 <= 1) {
-          player.volume += 0.1
+          player.volume = parseFloat((player.volume + 0.1).toFixed(1))
         } else {
           player.volume = 1
         }
@@ -655,7 +688,7 @@ class Player extends Proxy {
       }
     } else if (e && e.keyCode === 32) { // 按 spacebar
       if (player.paused) {
-        player.play()
+        player.play().catch(err => {})
       } else {
         player.pause()
       }

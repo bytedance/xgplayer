@@ -168,7 +168,7 @@ class Proxy {
     }
   }
   play () {
-    this.video.play()
+    return this.video.play()
   }
   pause () {
     this.video.pause()

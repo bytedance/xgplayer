@@ -1,12 +1,14 @@
 {
   "name": "xgplayer-hls",
-  "version": "1.1.5",
+  "version": "2.2.0-alpha.6",
   "description": "xgplayer plugin for hls",
   "main": "./dist/index.js",
   "scripts": {
     "prepare": "npm run build",
     "build": "webpack --progress --display-chunks -p",
-    "watch": "webpack --progress --display-chunks -p --watch"
+    "development": "webpack --progress --display-chunks --config webpack.config.dev.js",
+    "watch": "webpack --config webpack.config.dev.js --watch --progress",
+    "dev": "webpack --config webpack.config.dev.js"
   },
   "repository": {
     "type": "git",
@@ -29,6 +31,9 @@
   "author": "yinguohui@bytedance.com",
   "license": "MIT",
   "dependencies": {
+    "xgplayer-utils": "^2.2.0-alpha.0",
+    "xgplayer-hls-live": "^2.2.0-alpha.0",
+    "xgplayer-hls-vod": "^2.2.0-alpha.0",
     "concat-typed-array": "^1.0.2",
     "deepmerge": "^2.0.1",
     "event-emitter": "^0.3.5"
@@ -38,9 +43,11 @@
   },
   "devDependencies": {
     "babel-core": "^6.26.3",
-    "babel-loader": "^7.1.4",
+    "babel-loader": "^7.1.5",
     "babel-plugin-add-module-exports": "^0.2.1",
     "babel-preset-es2015": "^6.24.1",
-    "webpack": "^4.10.2"
+    "webpack": "^4.10.2",
+    "webpack-cli": "^3.3.9",
+    "webpack-merge": "^4.2.2"
   }
 }

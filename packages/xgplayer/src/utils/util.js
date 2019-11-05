@@ -19,6 +19,10 @@ util.createDom = function (el = 'div', tpl = '', attrs = {}, cname = '') {
 }
 
 util.hasClass = function (el, className) {
+  if (!el) {
+    return false;
+  }
+
   if (el.classList) {
     return Array.prototype.some.call(el.classList, item => item === className)
   } else {
@@ -27,6 +31,10 @@ util.hasClass = function (el, className) {
 }
 
 util.addClass = function (el, className) {
+  if (!el) {
+    return;
+  }
+
   if (el.classList) {
     className.replace(/(^\s+|\s+$)/g, '').split(/\s+/g).forEach(item => {
       item && el.classList.add(item)
@@ -37,6 +45,10 @@ util.addClass = function (el, className) {
 }
 
 util.removeClass = function (el, className) {
+  if (!el) {
+    return;
+  }
+
   if (el.classList) {
     className.split(/\s+/g).forEach(item => {
       el.classList.remove(item)
@@ -50,6 +62,10 @@ util.removeClass = function (el, className) {
 }
 
 util.toggleClass = function (el, className) {
+  if (!el) {
+    return;
+  }
+
   className.split(/\s+/g).forEach(item => {
     if (util.hasClass(el, item)) {
       util.removeClass(el, item)

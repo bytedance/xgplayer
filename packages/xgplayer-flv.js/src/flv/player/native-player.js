@@ -21,7 +21,7 @@ import PlayerEvents from './player-events.js';
 import {createDefaultConfig} from '../config.js';
 import {InvalidArgumentException, IllegalStateException} from '../utils/exception.js';
 
-// Player wrapper for browser's native player (HTMLVideoElement) without MediaSource src. 
+// Player wrapper for browser's native player (HTMLVideoElement) without MediaSource src.
 class NativePlayer {
 
     constructor(mediaDataSource, config) {
@@ -141,7 +141,10 @@ class NativePlayer {
     }
 
     play() {
-        return this._mediaElement.play();
+        let playPromise = this._mediaElement.play()
+        if (playPromise !== undefined && playPromise) {
+            return playPromise.catch(function() {});
+        } else return undefined;
     }
 
     pause() {
@@ -235,7 +238,7 @@ class NativePlayer {
             info.decodedFrames = decoded;
             info.droppedFrames = dropped;
         }
-        
+
         return info;
     }
 

@@ -7,6 +7,7 @@
     display: block;
     position: relative;
     margin-top: -100px;
+    overflow: hidden;
     z-index: 18;
     .xgplayer-icon {
       margin-top: 8px;
@@ -32,7 +33,7 @@
     display: none;
     position: absolute;
     width: 28px;
-    height: 88px;
+    height: 92px;
     background: $sliderBgColor;
     border-radius: 1px;
     bottom: 42px;
@@ -131,6 +132,14 @@
       .xgplayer-icon-muted {
         display: block;
       }
+    }
+  }
+}
+
+.xgplayer-skin-default.xgplayer-mobile {
+  .xgplayer-volume {
+    .xgplayer-slider {
+      display: none;
     }
   }
 }

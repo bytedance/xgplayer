@@ -6,7 +6,7 @@ let volume = function () {
   let util = Player.util
   let container, slider, bar, selected, icon
   function onCanplay () {
-    player.volume = player.config.volume
+    player.volume = Player.sniffer.device === 'mobile' ? 1 : player.config.volume
     container = player.controls.querySelector('.xgplayer-volume')
     slider = container.querySelector('.xgplayer-slider')
     bar = container.querySelector('.xgplayer-bar')
@@ -68,12 +68,25 @@ let volume = function () {
   player.on('volumeBarClick', onVolumeBarClick)
 
   function onVolumeIconClick () {
-    player.video.muted = false
-    if (player.volume === 0) {
-      player.volume = slider.volume
+    if(Player.sniffer.device === 'mobile') {
+      // util.removeClass(root, 'xgplayer-volume-muted')
+      // util.removeClass(root, 'xgplayer-volume-large')
+      if(player.video.muted) {
+        player.video.muted = false
+        // util.addClass(root, 'xgplayer-volume-large')
+      } else {
+        player.video.muted = true
+        // util.addClass(root, 'xgplayer-volume-muted')
+      }
     } else {
-      player.volume = 0
+      player.video.muted = false
+      if (player.volume < 0.1) {
+        player.volume = slider.volume
+      } else {
+        player.volume = 0
+      }
     }
+    // onVolumeChange ()
   }
   player.on('volumeIconClick', onVolumeIconClick)
 
@@ -96,18 +109,28 @@ let volume = function () {
       clearTimeout(_changeTimer)
     }
     _changeTimer = setTimeout(() => {
-      util.removeClass(root, 'xgplayer-volume-muted')
-      util.removeClass(root, 'xgplayer-volume-small')
-      util.removeClass(root, 'xgplayer-volume-large')
-      if (player.volume === 0) {
-        util.addClass(root, 'xgplayer-volume-muted')
-      } else if (player.volume < 0.5) {
-        util.addClass(root, 'xgplayer-volume-small')
+      if(Player.sniffer.device === 'mobile') {
+        util.removeClass(root, 'xgplayer-volume-muted')
+        util.removeClass(root, 'xgplayer-volume-large')
+        if(player.video.muted) {
+          util.addClass(root, 'xgplayer-volume-muted')
+        } else {
+          util.addClass(root, 'xgplayer-volume-large')
+        }
       } else {
-        util.addClass(root, 'xgplayer-volume-large')
+        util.removeClass(root, 'xgplayer-volume-muted')
+        util.removeClass(root, 'xgplayer-volume-small')
+        util.removeClass(root, 'xgplayer-volume-large')
+        if (player.volume === 0) {
+          util.addClass(root, 'xgplayer-volume-muted')
+        } else if (player.volume < 0.5) {
+          util.addClass(root, 'xgplayer-volume-small')
+        } else {
+          util.addClass(root, 'xgplayer-volume-large')
+        }
+        let containerHeight = bar.getBoundingClientRect().height || 76
+        selected.style.height = `${player.volume * containerHeight}px`
       }
-      let containerHeight = bar.getBoundingClientRect().height || 76
-      selected.style.height = `${player.volume * containerHeight}px`
     }, 50)
   }
   player.on('volumechange', onVolumeChange)

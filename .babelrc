@@ -2,7 +2,9 @@
     "presets": [
         ["env", {
             "targets": {
-                "node": true
+                "node": true,
+                "chrome": "55",
+                "ie": "8"
             }
         }]
     ]

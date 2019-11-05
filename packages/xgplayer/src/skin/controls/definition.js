@@ -95,7 +95,7 @@ let s_definition = function () {
   function onCanplayChangeDefinition () {
     player.currentTime = player.curTime
     if (!paused) {
-      player.play()
+      player.play().catch(err => {})
     }
   };
   ['touchend', 'click'].forEach(item => {

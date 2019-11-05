@@ -16,3 +16,9 @@
       white-space: nowrap;
     }
 }
+
+.xgplayer-skin-default.xgplayer-mobile {
+  .xgplayer-tips{
+    display: none !important;
+  }
+}

@@ -62,6 +62,14 @@ class Music extends Player {
     if (this.config.autoplayMuted) {
       this.config.volume = this.config.autoplay ? 0 : this.config.volume
     }
+    player.once('ready', () => {
+      util.addClass(player.root, 'xgplayer-skin-default')
+      if(player.config.lang && player.config.lang === 'en') {
+        util.addClass(player.root, 'lang-is-en')
+      } else if(player.config.lang === 'jp') {
+        util.addClass(player.root, 'lang-is-jp')
+      }
+    })
     this.once('canplay', function () {
       if (this.config.autoplay && this.config.autoplayMuted) {
         this.volume = 0

@@ -30,7 +30,9 @@ let mp4player = function () {
     mainURL = url
   } else if (util.typeOf(url) === 'Array' && url.length) {
     mainURL = url[0].src
-    backupURL = url[1].src
+    if(url.length > 1) {
+      backupURL = url[1].src
+    }
   }
   player.config._mainURL = mainURL
   player.config._backupURL = backupURL
@@ -59,7 +61,7 @@ let mp4player = function () {
     }, 50)
   }
   let init = (url) => {
-    let mp4 = new MP4(url)
+    let mp4 = new MP4(url, player.config.withCredentials)
     let mse
     return new Promise((resolve, reject) => {
       mp4.once('moovReady', () => {
@@ -156,7 +158,7 @@ let mp4player = function () {
 
     player.cut = function (start = 0, end) {
       let segment = new Buffer()
-      let mp4 = new MP4(url)
+      let mp4 = new MP4(url, player.config.withCredentials)
       return new Promise((resolve, reject) => {
         mp4.once('moovReady', () => {
           if (!end || end <= start) {
@@ -189,7 +191,7 @@ let mp4player = function () {
     }
 
     player.switchURL = (url) => {
-      let mp5 = new MP4(url)
+      let mp5 = new MP4(url, player.config.withCredentials)
       let mp4 = player.mp4
       mp5.on('moovReady', () => {
         let timeRange = mp4.timeRage; let curTime = player.currentTime
@@ -229,7 +231,7 @@ let mp4player = function () {
     }
 
     player.playNext = (url) => {
-      let mp5 = new MP4(url)
+      let mp5 = new MP4(url, player.config.withCredentials)
       let mp4 = player.mp4
       mp5.on('moovReady', () => {
         let range = [0, 0]

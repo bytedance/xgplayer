@@ -8,7 +8,7 @@ let play = function () {
       return
     }
     if (player.paused) {
-      player.play()
+      player.play().catch(err => {})
     } else {
       player.pause()
     }

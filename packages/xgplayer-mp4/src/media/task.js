@@ -2,15 +2,17 @@ import EventEmitter from 'event-emitter'
 import Errors from '../error'
 
 class Task {
-  constructor (url, range, callback) {
+  constructor (url, range, withCredentials, callback) {
     EventEmitter(this)
     this.url = url
     this.range = range
+    this.withCredentials = withCredentials
     this.id = range.join('-')
     this.on = false
     let xhr = new window.XMLHttpRequest()
     xhr.target = this
     xhr.responseType = 'arraybuffer'
+    xhr.withCredentials = this.withCredentials || false
     xhr.open('get', url)
     xhr.setRequestHeader('Range', `bytes=${range[0]}-${range[1]}`)
     xhr.onload = function () {

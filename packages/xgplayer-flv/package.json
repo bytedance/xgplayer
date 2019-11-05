@@ -1,14 +1,14 @@
 {
   "name": "xgplayer-flv",
-  "version": "1.1.5",
+  "version": "2.2.0-alpha.10",
   "description": "flv demuxer for xgplayer",
   "main": "./dist/index.js",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",
     "prepare": "npm run build",
-    "dev": "webpack --progress --display-chunks --watch --config ./webpack.config.dev.js",
+    "dev": "webpack --progress --display-chunks --config ./webpack.config.dev.js",
     "build": "webpack --progress --display-chunks -p",
-    "watch": "webpack --progress --display-chunks -p --watch"
+    "watch": "webpack --config webpack.config.dev.js --progress --display-chunks --watch"
   },
   "repository": {
     "type": "git",
@@ -33,15 +33,23 @@
     "html-loader": "^0.5.5",
     "html-webpack-plugin": "^2.30.1",
     "style-loader": "^0.20.2",
-    "webpack": "^4.12.0",
+    "uglifyjs-webpack-plugin": "^2.2.0",
+    "webpack": "^4.41.0",
     "webpack-cli": "^3.1.2",
-    "webpack-dev-server": "^2.11.1"
+    "webpack-merge": "^4.2.2"
   },
   "peerDependency": {
     "xgplayer": "^0.1.0"
   },
   "dependencies": {
     "concat-typed-array": "^1.0.2",
-    "event-emitter": "^0.3.5"
+    "event-emitter": "^0.3.5",
+    "xgplayer-buffer": "^2.2.0-alpha.0",
+    "xgplayer-codec": "^2.2.0-alpha.0",
+    "xgplayer-flv-live": "^2.2.0-alpha.0",
+    "xgplayer-flv-vod": "^2.2.0-alpha.0",
+    "xgplayer-loader": "^2.2.0-alpha.0",
+    "xgplayer-remux": "^2.2.0-alpha.0",
+    "xgplayer-utils": "^2.2.0-alpha.0"
   }
 }

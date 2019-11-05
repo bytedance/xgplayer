@@ -92,7 +92,11 @@ let i18n = function () {
 
   Object.defineProperty(player, 'lang', {
     get: function () {
-      return lang[player.config.lang] || lang['en']
+      if (player.config) {
+        return lang[player.config.lang] || lang['en']
+      } else {
+        return lang['en']
+      }
     },
     set: function (value) {
       if (util.typeOf(value) === 'Object') {

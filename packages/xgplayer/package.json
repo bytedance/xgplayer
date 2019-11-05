@@ -1,6 +1,6 @@
 {
     "name": "xgplayer",
-    "version": "2.1.4",
+    "version": "2.2.1",
     "description": "video player",
     "main": "./dist/index.js",
     "typings": "./types/index.d.ts",
@@ -50,6 +50,7 @@
         "Firefox > 20"
     ],
     "devDependencies": {
+        "@types/events": "^3.0.0",
         "autoprefixer": "^9.1.5",
         "babel-core": "^6.26.3",
         "babel-loader": "^7.1.4",
