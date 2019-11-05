@@ -204,11 +204,11 @@ declare module 'xgplayer' {
         pluginRule?: () => boolean;
 
         // 国际化
-        lang: 'zh-cn' | 'en' | 'jp';
+        lang?: 'zh-cn' | 'en' | 'jp';
 
         // 白名单
         // 手机上video表现各异，自定义UI会有意想不到的情况发生，为了安全起见，播放器在手机上会关掉自定义UI功能，开发者可以通过白名单的方式开启此项功能
-        whitelist: [string | RegExp | ((ua: string) => boolean)];
+        whitelist?: [string | RegExp | ((ua: string) => boolean)];
 
         // 内联模式 https://webkit.org/blog/6784/new-video-policies-for-ios/
         // 该选项在手机观看时，开启ios和微信的内联模式
