@@ -3,6 +3,7 @@
     "version": "2.1.4",
     "description": "video player",
     "main": "./dist/index.js",
+    "typings": "./types/index.d.ts",
     "bin": {
         "xgplayer": "bin/xgplayer.js"
     },
