@@ -7,33 +7,28 @@ declare module 'xgplayer' {
 
     import {EventEmitter} from 'events';
 
-    interface Danmu {
-        comments: DanmuComment[]
-        panel?: boolean
+    type DanmuModelType = 'top' | 'bottom' | 'scroll' | string;
+
+    interface DanmuOptions {
+        comments: DanmuCommentOptions[];
+        panel?: boolean;
         area?: {
-            start: number
-            end: number
-        }
-        closeDefaultBtn?: boolean
-        defaultOff?: boolean
+            start: number;
+            end: number;
+        };
+        closeDefaultBtn?: boolean;
+        defaultOff?: boolean;
     }
 
-    interface DanmuComment {
-        duration: number
-        id: unknown
-        start: number
-        prior?: boolean
-        color?: boolean
-        txt: string
-        style?: {
-            color?: string
-            fontSize?: string
-            border?: string
-            borderRadius?: string
-            padding?: string
-            backgroundColor?: string
-        }
-        mode?: 'top' | 'bottom' | 'scroll'
+    interface DanmuCommentOptions {
+        duration: number;
+        id: unknown;
+        start: number;
+        prior?: boolean;
+        color?: boolean;
+        txt: string;
+        style?: Record<string, string | number>;
+        mode?: DanmuModelType;
     }
 
     export interface TextTrack {
@@ -53,7 +48,7 @@ declare module 'xgplayer' {
         el?: HTMLElement;
 
         // 视频源
-        url: string | Array<{src: string, type?: string}>;
+        url: string | Array<{src: string; type?: string}>;
 
         // 宽度(默认600)
         width?: number;
@@ -99,7 +94,7 @@ declare module 'xgplayer' {
 
             // 旋转方向是否为顺时针(默认false)
             clockwise?: boolean;
-        }
+        };
 
         // 预览
         thumbnail?: {
@@ -121,22 +116,27 @@ declare module 'xgplayer' {
 
             // sprite图的源地址数组
             urls: string[];
-        }
+        };
 
         // 下一集
         playNext?: {
             urlList: string[];
-        }
+        };
 
         // 视频下载(默认false)
-        download?: boolean
+        download?: boolean;
 
         // 弹幕（具体用法参考https://github.com/bytedance/danmu.js）
-        // todo 方法
-        danmu?: Danmu;
+        danmu?: DanmuOptions;
 
         // 外挂字幕（参考https://developer.mozilla.org/en-US/docs/Web/API/WebVTT_API）
         textTrack?: TextTrack[];
+
+        // 外挂字幕样式
+        textTrackStyle?: Record<string, string | number>;
+
+        // 配置项修改外挂字幕控件的触发方式
+        textTrackActive?: 'hover' | 'click';
 
         // 画中画
         pip?: boolean;
@@ -151,7 +151,6 @@ declare module 'xgplayer' {
         preview?: {uploadEl?: HTMLElement};
 
         // 进度条特殊点标记
-        // todo 方法
         progressDot?: Array<{time: number}>;
 
         // 键盘快捷键 默认值：'on'
@@ -188,6 +187,7 @@ declare module 'xgplayer' {
         definitionActive?: 'hover' | 'click';
 
         // 关闭内置控件
+        // eslint-disable-next-line max-len
         ignores?: Array<'time' | 'definition' | 'error' | 'fullscreen' | 'i18n' | 'loading' | 'mobile' | 'pc' | 'play' | 'poster' | 'progress' | 'replay' | 'start' | 'volume'>;
 
         // 关闭控制条， 默认true
@@ -343,9 +343,40 @@ declare module 'xgplayer' {
         public replay(): void;
     }
 
-    class Player extends Proxy {
+    class Danmu {
 
-        constructor(options: IPlayerOptions);
+        // 弹幕初始化并播放(内部默认已调用)
+        public start(): void;
+
+        // 弹幕暂停
+        public pause(): void;
+
+        // 弹幕继续播放
+        public play(): void;
+
+        // 弹幕停止并消失
+        public stop(): void;
+
+        // 发一条弹幕
+        public sendComment(option: DanmuCommentOptions): void;
+
+        // 按照id改变某一个弹幕的持续显示时间
+        public setCommentDuration(id: string, duration: number): void;
+
+        // 改变所有已加入队列弹幕的持续显示时间
+        public setAllDuration(mode: DanmuModelType, duration: number): void
+
+        // 改变某一个弹幕的id
+        public setCommentID(oldID: string, newID: string): void
+
+        // 屏蔽某一类弹幕(参数可选值 scroll | top | bottom | color)
+        public hide(mode: DanmuModelType): void
+
+        // 显示某一类弹幕(参数可选值 scroll | top | bottom | color)
+        public show(mode: DanmuModelType): void;
+    }
+
+    class Player extends Proxy {
 
         /**
          * 插件的安装方法
@@ -353,7 +384,11 @@ declare module 'xgplayer' {
          * @param name 插件的名字
          * @param descriptor 插件函数
          */
-        static install(name: string, descriptor: (this: Player, player: Player) => void): void;
+        public static install(name: string, descriptor: (this: Player, player: Player) => void): void;
+
+        public danmu: Danmu;
+
+        constructor(options: IPlayerOptions);
 
         /**
          * 启动播放器，start一般都是播放器内部隐式调用，主要功能是将video添加到DOM
@@ -380,7 +415,6 @@ declare module 'xgplayer' {
          *
          */
         public replay(): void;
-
 
         /**
          * 播放器进入全屏
@@ -427,6 +461,26 @@ declare module 'xgplayer' {
          * @param times 旋转次数（一次旋转90度），默认1
          */
         public rotate(clockwise?: boolean, innerRotate?: boolean, times?: number): void;
+
+
+        /**
+         * 添加标记
+         *
+         * @param time 标记时间
+         */
+        public addProgressDot(time: number): void;
+
+        /**
+         * 删除标记
+         * @param time 标记时间
+         */
+        public removeProgressDot(time: number): void;
+
+        /**
+         * 删除所有标记
+         *
+         */
+        public removeAllProgressDot(): void;
     }
 
     export default Player;
