@@ -9,6 +9,9 @@ class FlvPlayer extends Player {
       config.mediaType = 'mobile-video'
     }
     super(config)
+    this.video.width = Number.parseInt(config.width || 600)
+    this.video.height = Number.parseInt(config.height || 337.5)
+    this.video.style.outline = 'none';
     this.context = new Context(flvAllowedEvents)
     this.initEvents()
   }
@@ -46,8 +49,6 @@ class FlvPlayer extends Player {
     flv.on(EVENTS.BROWSER_EVENTS.VISIBILITY_CHANGE, (hidden) => {
       if (hidden) {
         this.pause()
-      } else {
-        this.play()
       }
     })
   }
@@ -85,6 +86,7 @@ class FlvPlayer extends Player {
       super.play()
     } else {
       super.play()
+      this.addLiveFlag();
     }
   }
 
@@ -103,6 +105,15 @@ class FlvPlayer extends Player {
   destroy () {
     this._destroy()
     super.destroy();
+  }
+
+  addLiveFlag () {
+    const player = this;
+    Player.util.addClass(player.root, 'xgplayer-is-live')
+    if (!Player.util.findDom(this.root, 'xg-live')) {
+      const live = Player.util.createDom('xg-live', '正在直播', {}, 'xgplayer-live')
+      player.controls.appendChild(live)
+    }
   }
 
   _destroy () {

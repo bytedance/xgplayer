@@ -47,7 +47,7 @@ class RafTicker extends Ticker {
     this.tick()
   }
 
-  tick (timestamp) {
+  tick () {
     this.nextTick();
     this.onTick()
   }
@@ -63,6 +63,10 @@ class RafTicker extends Ticker {
 
       cancelFunc(this.timerId)
     }
+  }
+
+  resume() {
+    this.nextTick();
   }
 
   static getTickFunc () {

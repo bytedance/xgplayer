@@ -53,6 +53,10 @@ Decoder.prototype.decode = function (data, info) {
   Module._broadwayPlayStream(data.length, infoid);
 }
 
+Decoder.prototype.destroy = function () {
+  Module._broadwayExit();
+}
+
 var decoder;
 
 function onPostRun () {
@@ -82,6 +86,9 @@ module.exports = function (self) {
         case 'decode':
           decoder.decode(data.data, data.info);
           break;
+        case 'destory':
+          decoder.destroy();
+          break
         default:
           break;
       }
