@@ -222,8 +222,11 @@ class MobileVideo extends HTMLElement {
     }
     this.pendingPlayTask = Promise.all([
       this.vCtx.play(),
-      this.aCtx.play()
+      this.aCtx.play().then(() => {
+        this.aCtx.muted = true
+      })
     ]).then(() => {
+      this.aCtx.muted = false
       this.ticker.start(() => {
         if (!this.start) {
           this.start = Date.now()
