@@ -255,8 +255,9 @@ class MobileVideo extends HTMLElement {
   }
 
   get muted () {
-    if (this.getAttribute('muted')) {
-      return this.getAttribute('muted')
+    const attrMuted = this.getAttribute('muted') === 'true'
+    if (attrMuted !== undefined) {
+      return attrMuted;
     } else if (this.getAttribute('volume')) {
       return Number.parseInt(this.getAttribute('volume')) === 0
     } else {

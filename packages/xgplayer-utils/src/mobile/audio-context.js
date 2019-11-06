@@ -5,7 +5,6 @@ class AudioCtx extends EventEmitter {
     this.config = Object.assign({}, config);
     let AudioContext = window.AudioContext || window.webkitAudioContext;
     this.context = new AudioContext();
-    this.context.onstatechange = console.log
     this.gainNode = this.context.createGain();
     this.gainNode.connect(this.context.destination);
     this.meta = undefined;
