@@ -208,7 +208,9 @@ class MobileVideo extends HTMLElement {
       return false
     }
   }
+  set autoplay (value) {
 
+  }
   play () {
     if (this.pendingPlayTask) {
       return;

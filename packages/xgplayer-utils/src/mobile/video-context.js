@@ -209,6 +209,7 @@ class VideoCanvas {
   }
 
   destroy () {
+    this.wasmworker.postMessage({msg: 'destroy'})
     this.wasmworker = null;
     this.canvas = null
     this.source = null

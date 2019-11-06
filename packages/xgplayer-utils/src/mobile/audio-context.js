@@ -70,7 +70,7 @@ class AudioCtx extends EventEmitter {
       this.context.decodeAudioData(buffer.buffer, function (buffer) {
         let audioSource = _this.context.createBufferSource();
         audioSource.buffer = buffer;
-        audioSource.onended = _this.onSourceEnded.bind(_this);
+        // audioSource.onended = _this.onSourceEnded.bind(_this);
         _this.samples.push({
           time: _this.duration,
           duration: buffer.duration,
@@ -106,13 +106,17 @@ class AudioCtx extends EventEmitter {
   onSourceEnded () {
     if (!this._nextBuffer || !this._played) {
       this.waitNextID = setTimeout(() => {
-        this.onSourceEnded()
+        this.onSourceEnded();
       }, 200);
       return;
     }
     let audioSource = this._nextBuffer.data;
     audioSource.start();
     audioSource.connect(this.gainNode);
+    let _this = this;
+    setTimeout(() => {
+      _this.onSourceEnded.call(this);
+    }, audioSource.buffer.duration * 1000 - 10);
     this._currentBuffer = this._nextBuffer;
     this._currentTime = this._currentBuffer.time;
     this._nextBuffer = this.getTimeBuffer(this.currentTime);
@@ -130,11 +134,14 @@ class AudioCtx extends EventEmitter {
     if (this.context.state === 'suspended') {
       this.context.resume()
     }
-
+    let _this = this;
     const playStart = () => {
       let audioSource = this._currentBuffer.data;
       audioSource.connect(this.gainNode);
       audioSource.start();
+      setTimeout(() => {
+        _this.onSourceEnded.call(this);
+      }, audioSource.buffer.duration * 1000 - 10);
     }
 
     if (!this._currentBuffer) {
@@ -157,10 +164,6 @@ class AudioCtx extends EventEmitter {
     }
   }
 
-  destroy () {
-    this.context.close();
-  }
-
   getTimeBuffer (time) {
     let ret;
     for (let i = 0; i < this.samples.length; i++) {
@@ -181,6 +184,7 @@ class AudioCtx extends EventEmitter {
     if (this.waitNextID) {
       window.clearTimeout(this.waitNextID)
     }
+    this.context.close();
   }
 
   set muted (val) {
