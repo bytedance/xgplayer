@@ -48,8 +48,8 @@ class RafTicker extends Ticker {
   }
 
   tick (timestamp) {
-    this.onTick()
     this.nextTick();
+    this.onTick()
   }
 
   nextTick () {
