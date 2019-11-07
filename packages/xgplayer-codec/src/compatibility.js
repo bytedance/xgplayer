@@ -54,6 +54,8 @@ class Compatibility {
 
     // this._firstAudioSample = null
     // this._firstVideoSample = null
+    this.videoLastSample = null
+    this.audioLastSample = null
 
     this.filledAudioSamples = [] // 补充音频帧（）
     this.filledVideoSamples = [] // 补充视频帧（）
