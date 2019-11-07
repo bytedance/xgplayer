@@ -32,11 +32,11 @@ class Compatibility {
 
   init () {
     this.before(REMUX_EVENTS.REMUX_MEDIA, this.doFix.bind(this))
-    this.on(LOADER_EVENTS.LOADER_COMPLETE, () => {
-      if (this.videoLastSample) {
-        this.videoTrack.samples.unshift(this.videoLastSample)
-      }
-    })
+    // this.on(LOADER_EVENTS.LOADER_COMPLETE, () => {
+    //   if (this.videoLastSample) {
+    //     this.videoTrack.samples.unshift(this.videoLastSample)
+    //   }
+    // })
   }
 
   reset () {
@@ -109,8 +109,6 @@ class Compatibility {
 
     const firstSample = videoSamples[0]
 
-    const samplesLen = videoSamples.length;
-
     // step0.修复hls流出现巨大gap，需要强制重定位的问题
     if (this._videoLargeGap > 0) {
       Compatibility.doFixLargeGap(videoSamples, this._videoLargeGap)
@@ -124,8 +122,6 @@ class Compatibility {
       this._videoLargeGap = this.nextVideoDts - firstSample.dts
       Compatibility.doFixLargeGap(videoSamples, this._videoLargeGap)
     }
-
-    const firstDts = firstSample.dts
 
     // step1. 修复与audio首帧差距太大的问题
     if (first && this._firstAudioSample) {
@@ -148,8 +144,12 @@ class Compatibility {
             size: clonedFirstSample.data.byteLength
           })
         }
+      } else if (gap < (-2 * meta.refSampleDuration)) {
+        this._videoLargeGap = -1 * gap
+        Compatibility.doFixLargeGap(videoSamples, -1 * gap)
       }
     }
+
     const curLastSample = videoSamples.pop();
     if (videoSamples.length) {
       videoSamples[videoSamples.length - 1].duration = curLastSample.dts - videoSamples[videoSamples.length - 1].dts
@@ -203,8 +203,8 @@ class Compatibility {
     // step0. 首帧与video首帧间距大的问题
     if (this._firstVideoSample && first) {
       const videoFirstPts = this._firstVideoSample.pts ? this._firstVideoSample.pts : this._firstVideoSample.dts + this._firstVideoSample.cts
-
-      if (firstSample.dts - videoFirstPts > meta.refSampleDuration) {
+      const gap = firstSample.dts - videoFirstPts
+      if (gap > meta.refSampleDuration) {
         const silentSampleCount = Math.floor((firstSample.dts - videoFirstPts) / meta.refSampleDuration)
 
         for (let i = 0; i < silentSampleCount; i++) {
@@ -222,6 +222,9 @@ class Compatibility {
             size: silentSample.data.byteLength
           })
         }
+      } else if (gap < -1 * meta.refSampleDuration) {
+        this._audioLargeGap = -1 * gap
+        Compatibility.doFixLargeGap(audioSamples, -1 * gap)
       }
     }
 
