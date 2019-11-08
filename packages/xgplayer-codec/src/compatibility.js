@@ -32,11 +32,11 @@ class Compatibility {
 
   init () {
     this.before(REMUX_EVENTS.REMUX_MEDIA, this.doFix.bind(this))
-    // this.on(LOADER_EVENTS.LOADER_COMPLETE, () => {
-    //   if (this.videoLastSample) {
-    //     this.videoTrack.samples.unshift(this.videoLastSample)
-    //   }
-    // })
+    this.on(LOADER_EVENTS.LOADER_COMPLETE, () => {
+      if (this.videoLastSample) {
+        this.videoTrack.samples.unshift(this.videoLastSample)
+      }
+    })
   }
 
   reset () {
@@ -159,8 +159,11 @@ class Compatibility {
 
     if (this.videoLastSample) {
       const videoLastSample = this.videoLastSample;
-      videoLastSample.duration = firstSample.dts - videoLastSample.dts;
-      videoSamples.unshift(this.videoLastSample)
+      const calcDuration = firstSample.dts - videoLastSample.dts;
+      if (videoLastSample.duration > 0) {
+        videoLastSample.duration = calcDuration
+        videoSamples.unshift(videoLastSample)
+      }
     }
 
     this.videoLastSample = curLastSample;
@@ -571,17 +574,23 @@ class Compatibility {
   }
 
   get audioTrack () {
-    if (this.tracks) {
+    if (this.tracks && this.tracks.audioTrack) {
       return this.tracks.audioTrack
     }
-    return null
+    return {
+      samples: [],
+      meta: {}
+    }
   }
 
   get videoTrack () {
-    if (this.tracks) {
+    if (this.tracks && this.tracks.videoTrack) {
       return this.tracks.videoTrack
     }
-    return null
+    return {
+      samples: [],
+      meta: {}
+    }
   }
 
   get dtsBase () {

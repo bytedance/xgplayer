@@ -30,6 +30,7 @@ class FetchLoader {
   load (url, opts) {
     let _this = this;
     this.url = url;
+
     this._canceled = false;
 
     // TODO: Add Ranges
@@ -121,25 +122,23 @@ class FetchLoader {
     // reader read function returns a Promise. get data when callback and has value.done when disconnected.
     // read方法返回一个Promise. 回调中可以获取到数据。当value.done存在时，说明链接断开。
     this._reader && this._reader.read().then(function (val) {
-      if (val.done) {
-        // TODO: 完成处理
-        _this.loading = false
-        _this.status = 0;
-        _this.emit(LOADER_EVENTS.LOADER_COMPLETE, buffer)
-        return
-      }
-
       if (_this._canceled || _this._destroyed) {
-        if  (_this._reader) {
+        if (_this._reader) {
           try {
             _this._reader.cancel()
           } catch (e) {
             // DO NOTHING
           }
         }
-
         return;
       }
+      if (val.done) {
+        _this.loading = false
+        _this.status = 0;
+        _this.emit(LOADER_EVENTS.LOADER_COMPLETE, buffer)
+        return
+      }
+
       buffer.push(val.value)
       _this.emit(LOADER_EVENTS.LOADER_DATALOADED, buffer)
       return _this._onReader(reader, taskno)
@@ -203,8 +202,8 @@ class FetchLoader {
       }
       this._reader = null
       this.loading = false
-      this._canceled = true;
     }
+    this._canceled = true;
   }
 
   destroy () {

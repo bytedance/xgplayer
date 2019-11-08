@@ -231,7 +231,8 @@ class HlsVodController {
 
   seek (time) {
     this._lastSeekTime = time;
-    this._tsloader.cancel();
+    this._tsloader.destroy();
+    this._tsloader = this._context.registry('TS_LOADER', FetchLoader)({ buffer: 'TS_BUFFER', readtype: 3 });
     if (this._presource.sources.video) {
       this._presource.sources.video.data = [];
     }
@@ -256,7 +257,6 @@ class HlsVodController {
     }
 
     this._playlist.clearDownloaded();
-
     this._preload(time);
   }
 

@@ -99,6 +99,10 @@ export default class Mp4Remuxer {
   }
 
   calcDtsBase (audioTrack, videoTrack) {
+    if (!audioTrack && videoTrack.samples.length) {
+      return videoTrack.samples[0].dts
+    }
+
     if (!audioTrack.samples.length && !videoTrack.samples.length) {
       return;
     }
@@ -118,7 +122,7 @@ export default class Mp4Remuxer {
   }
 
   _remuxVideo (videoTrack) {
-    const track = videoTrack
+    const track = videoTrack || {}
 
     if (!videoTrack.samples || !videoTrack.samples.length) {
       return
@@ -188,7 +192,7 @@ export default class Mp4Remuxer {
         }
       }
       this.videoAllDuration += sampleDuration
-      console.log(`dts ${dts}`, `pts ${pts}`, isKeyframe, `duration ${sampleDuration}`)
+      // console.log(`dts ${dts}`, `pts ${pts}`, isKeyframe, `duration ${sampleDuration}`)
       mp4Samples.push({
         dts,
         cts,
@@ -246,7 +250,7 @@ export default class Mp4Remuxer {
   }
 
   _remuxAudio (track) {
-    const {samples} = track
+    const {samples} = (track || {})
     let firstDts = -1
     let mp4Samples = []
 
