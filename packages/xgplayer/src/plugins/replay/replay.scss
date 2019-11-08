@@ -1,0 +1,46 @@
+.xgplayer-skin-default {
+  .xgplayer-replay {
+    position: absolute;
+    left: 0;
+    top: 0;
+    width: 100%;
+    height: 100%;
+    z-index: 105;
+    display: none;
+    justify-content: center;
+    align-items: center;
+    background: rgba(0, 0, 0, 0.54);
+    flex-direction: column;
+    svg{
+      background: rgba(0,0,0,0.58);
+      border-radius: 100%;
+      cursor: pointer;
+      path{
+        transform: translate(20px, 21px);
+        fill: #ddd;
+      }
+      &:hover{
+        background: rgba(0, 0, 0, .38);
+        path {
+          fill: #fff;
+        }
+      }
+    }
+    .xgplayer-replay-txt{
+      display: inline-block;
+      font-family: PingFangSC-Regular;
+      font-size: 14px;
+      color: #fff;
+      line-height: 34px;
+    }
+  }
+}
+
+.xgplayer-skin-default.xgplayer.xgplayer-ended {
+  .xgplayer-controls {
+    display: none;
+  }
+  .xgplayer-replay{
+    display: flex;
+  }
+}
