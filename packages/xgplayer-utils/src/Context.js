@@ -128,11 +128,12 @@ class Context {
         checkMessageName(messageName)
         if (self._emitCounter[messageName]) {
           self._emitCounter[messageName] += 1;
-          if (self._emitCounter[messageName] > 10000) {
+          if (self._emitCounter[messageName] % 1000 === 0) {
             let a = 'con';
             let b = 'sole';
             if (window.console) {
-              window[a + b].warn(`invoke: `, messageName)
+              window[a + b].warn(`invoke: `, messageName);
+              window.localStorage.setItem(`xgplayer_invoke_${messageName}`, self._emitCounter[messageName])
             }
           }
         } else {

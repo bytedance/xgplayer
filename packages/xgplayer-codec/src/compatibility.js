@@ -127,10 +127,10 @@ class Compatibility {
 
     // step1. 修复与audio首帧差距太大的问题
     if (first && this._firstAudioSample) {
-      const videoFirstDts = this._firstVideoSample.dts
-      const audioFirstDts = this._firstAudioSample.dts
+      const videoFirstDts = this._firstVideoSample.originDts
+      const audioFirstDts = this._firstAudioSample.originDts || this._firstAudioSample.dts
       const gap = videoFirstDts - audioFirstDts
-      if (gap > (2 * meta.refSampleDuration)) {
+      if (gap > (2 * meta.refSampleDuration) && gap < (10 * meta.refSampleDuration)) {
         const fillCount = Math.floor(gap / meta.refSampleDuration)
 
         for (let i = 0; i < fillCount; i++) {
@@ -146,6 +146,7 @@ class Compatibility {
             size: clonedFirstSample.data.byteLength
           })
         }
+        this._firstVideoSample = this.filledVideoSamples[0] || this._firstVideoSample
       } else if (gap < (-2 * meta.refSampleDuration)) {
         this._videoLargeGap = -1 * gap
         Compatibility.doFixLargeGap(videoSamples, -1 * gap)
@@ -159,11 +160,8 @@ class Compatibility {
 
     if (this.videoLastSample) {
       const videoLastSample = this.videoLastSample;
-      const calcDuration = firstSample.dts - videoLastSample.dts;
-      if (videoLastSample.duration > 0) {
-        videoLastSample.duration = calcDuration
-        videoSamples.unshift(videoLastSample)
-      }
+      videoLastSample.duration = firstSample.dts - videoLastSample.dts;
+      videoSamples.unshift(this.videoLastSample)
     }
 
     this.videoLastSample = curLastSample;
@@ -207,9 +205,9 @@ class Compatibility {
     }
     // step0. 首帧与video首帧间距大的问题
     if (this._firstVideoSample && first) {
-      const videoFirstPts = this._firstVideoSample.pts ? this._firstVideoSample.pts : this._firstVideoSample.dts + this._firstVideoSample.cts
+      const videoFirstPts = this._firstVideoSample.originDts || this._firstVideoSample.dts
       const gap = firstSample.dts - videoFirstPts
-      if (gap > meta.refSampleDuration) {
+      if (gap > meta.refSampleDuration && gap < (10 * meta.refSampleDuration)) {
         const silentSampleCount = Math.floor((firstSample.dts - videoFirstPts) / meta.refSampleDuration)
 
         for (let i = 0; i < silentSampleCount; i++) {
@@ -227,6 +225,7 @@ class Compatibility {
             size: silentSample.data.byteLength
           })
         }
+        this._firstAudioSample = this.filledAudioSamples[0] || this._firstAudioSample
       } else if (gap < -1 * meta.refSampleDuration) {
         this._audioLargeGap = -1 * gap
         Compatibility.doFixLargeGap(audioSamples, -1 * gap)
@@ -246,7 +245,7 @@ class Compatibility {
         meta.refSampleDurationFixed = undefined
       }
 
-      if (gap > (2 * meta.refSampleDuration)) {
+      if (gap > (2 * meta.refSampleDuration) && gap < (10 * meta.refSampleDuration)) {
         if (samplesLen === 1 && this.lastAudioSamplesLen === 1) {
           // 如果sample的length一直是1，而且一直不符合refSampleDuration，需要动态修改refSampleDuration
           meta.refSampleDurationFixed = meta.refSampleDurationFixed !== undefined ? meta.refSampleDurationFixed + gap : meta.refSampleDuration + gap
