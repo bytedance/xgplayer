@@ -357,6 +357,12 @@ class Proxy {
     }
     this.once('loadeddata', ldFunc)
   }
+  set poster (posterUrl) {
+    let poster = util.findDom(this.root, '.xgplayer-poster')
+    if(poster) {
+      poster.style.backgroundImage = `url(${posterUrl})`
+    }
+  }
   get volume () {
     return this.video.volume
   }
