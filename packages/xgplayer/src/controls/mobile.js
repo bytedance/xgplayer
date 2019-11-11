@@ -2,7 +2,7 @@ import Player from '../player'
 
 let mobile = function () {
   let player = this
-  let util = Player.util; let controls = player.controls; let root = player.root
+  let util = Player.util; let root = player.root
 
   player.onElementTouchend = function (e, element) {
     e.preventDefault()

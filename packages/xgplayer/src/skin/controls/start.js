@@ -8,7 +8,7 @@ let s_start = function () {
   let util = Player.util
   let btn = util.createDom('xg-start', `<div class="xgplayer-icon-play">${StartPlayIcon}</div>
                                       <div class="xgplayer-icon-pause">${StartPauseIcon}</div>`, {}, 'xgplayer-start')
-  function onPlayerReady(player) {
+  function onPlayerReady (player) {
     util.addClass(player.root, 'xgplayer-skin-default')
     if (player.config) {
       if (player.config.lang && player.config.lang === 'en') {

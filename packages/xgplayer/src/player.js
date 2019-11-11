@@ -598,11 +598,15 @@ class Player extends Proxy {
   onPlay () {
     util.addClass(this.root, 'xgplayer-playing')
     util.removeClass(this.root, 'xgplayer-pause')
+    if (!this.userTimer) {
+      this.onFocus();
+    }
   }
 
   onPause () {
     util.addClass(this.root, 'xgplayer-pause')
     if (this.userTimer) {
+      util.removeClass(this.root, 'xgplayer-inactive')
       clearTimeout(this.userTimer)
     }
     this.emit('focus')
