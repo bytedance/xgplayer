@@ -1,4 +1,4 @@
 import Player from './player'
 import * as Controls from './controls/*.js'
-import Skin from './skin'
+import './skin'
 export default Player

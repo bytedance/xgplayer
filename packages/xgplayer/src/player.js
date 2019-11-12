@@ -3,15 +3,19 @@ import util from './utils/util'
 import Database from './utils/database'
 import sniffer from './utils/sniffer'
 import Errors from './error'
-import Draggabilly from 'draggabilly'
 import {getAbsoluteURL} from './utils/url'
 import downloadUtil from 'downloadjs'
-
+import pluginsManager, {Plugin, BasePlugin} from './pluginsManager'
+import getDefaultPlugins from './plugins'
 import {
   version
 } from '../package.json'
+
 class Player extends Proxy {
   constructor (options) {
+    // const plugins = options.plugins || []
+    const defaultPlugin = getDefaultPlugins(options)
+    options.plugins = defaultPlugin
     super(options)
     this.config = util.deepCopy({
       width: 600,
@@ -64,21 +68,21 @@ class Player extends Proxy {
       // this.root.style.width = `${this.config.width}px`
       // this.root.style.height = `${this.config.height}px`
       if (this.config.width) {
-        if(typeof this.config.width !== 'number') {
+        if (typeof this.config.width !== 'number') {
           this.root.style.width = this.config.width
         } else {
           this.root.style.width = `${this.config.width}px`
         }
       }
       if (this.config.height) {
-        if(typeof this.config.height !== 'number') {
+        if (typeof this.config.height !== 'number') {
           this.root.style.height = this.config.height
         } else {
           this.root.style.height = `${this.config.height}px`
         }
       }
     }
-    if(this.config.execBeforePluginsCall) {
+    if (this.config.execBeforePluginsCall) {
       this.config.execBeforePluginsCall.forEach(item => {
         item.call(this, this)
       })
@@ -107,6 +111,7 @@ class Player extends Proxy {
     } else {
       this.pluginsCall()
     }
+    this._registerPlugins()
     this.ev.forEach((item) => {
       let evName = Object.keys(item)[0]
       let evFunc = this[item[evName]]
@@ -135,10 +140,10 @@ class Player extends Proxy {
     player.once('play', this.playFunc)
 
     this.getVideoSize = function () {
-      if(this.video.videoWidth && this.video.videoHeight) {
+      if (this.video.videoWidth && this.video.videoHeight) {
         let containerSize = player.root.getBoundingClientRect()
         if (player.config.fitVideoSize === 'auto') {
-          if(containerSize.width / containerSize.height > this.video.videoWidth / this.video.videoHeight) {
+          if (containerSize.width / containerSize.height > this.video.videoWidth / this.video.videoHeight) {
             player.root.style.height = `${this.video.videoHeight / this.video.videoWidth * containerSize.width}px`
           } else {
             player.root.style.width = `${this.video.videoWidth / this.video.videoHeight * containerSize.height}px`
@@ -154,15 +159,17 @@ class Player extends Proxy {
 
     setTimeout(() => {
       this.emit('ready')
+      this.isReady = true
     }, 0)
 
     if (!this.config.keyShortcut || this.config.keyShortcut === 'on') {
       ['video', 'controls'].forEach(item => {
-        player[item].addEventListener('keydown', function(e) {player.onKeydown(e, player)})
+        player[item].addEventListener('keydown', (e) => { player.onKeydown(e, player) })
       })
     }
+    pluginsManager.beforeInit(this)
     if (this.config.videoInit) {
-      if(util.hasClass(this.root, 'xgplayer-nostart')) {
+      if (util.hasClass(this.root, 'xgplayer-nostart')) {
         this.start()
       }
     }
@@ -176,6 +183,21 @@ class Player extends Proxy {
       player.off('destroy', onDestroy)
     }
     player.once('destroy', onDestroy)
+  }
+
+  /**
+   * 注册组件 组件列表config.plugins
+   */
+  _registerPlugins () {
+    const ignores = this.config.ignores || []
+    const plugins = this.config.plugins || []
+    const ignoresStr = ignores.join('||')
+    plugins.map(plugin => {
+      if (plugin.ignoreKey && ignoresStr.indexOf(plugin.ignoreKey.toLowerCase()) > -1) {
+        return null
+      }
+      return pluginsManager.register(this, plugin)
+    })
   }
 
   start (url = this.config.url) {
@@ -224,19 +246,19 @@ class Player extends Proxy {
     setTimeout(() => {
       this.emit('complete')
     }, 1)
+    pluginsManager.afterInit(this)
   }
 
   reload () {
     this.video.load()
     this.reloadFunc = function () {
-      this.play().catch(err => {})
+      this.play().catch(err => { console.log(err) })
     }
     this.once('loadeddata', this.reloadFunc)
   }
 
   destroy (isDelDom = true) {
     let player = this
-    let parentNode = this.root.parentNode
     clearInterval(this.bulletResizeTimer)
     for (let k in this._interval) {
       clearInterval(this._interval[k])
@@ -249,19 +271,19 @@ class Player extends Proxy {
         this.off(evName, evFunc)
       }
     });
-    if(this.loadeddataFunc) {
+    if (this.loadeddataFunc) {
       this.off('loadeddata', this.loadeddataFunc)
     }
-    if(this.reloadFunc) {
+    if (this.reloadFunc) {
       this.off('loadeddata', this.reloadFunc)
     }
-    if(this.replayFunc) {
+    if (this.replayFunc) {
       this.off('play', this.replayFunc)
     }
-    if(this.playFunc) {
+    if (this.playFunc) {
       this.off('play', this.playFunc)
     }
-    if(this.getVideoSize) {
+    if (this.getVideoSize) {
       this.off('loadeddata', this.getVideoSize)
     };
     ['focus', 'blur'].forEach(item => {
@@ -270,7 +292,7 @@ class Player extends Proxy {
     if (!this.config.keyShortcut || this.config.keyShortcut === 'on') {
       ['video', 'controls'].forEach(item => {
         if (this[item]) {
-          this[item].removeEventListener('keydown', function(e) {player.onKeydown(e, player)})
+          this[item].removeEventListener('keydown', (e) => { player.onKeydown(e, player) })
         }
       })
     }
@@ -287,7 +309,7 @@ class Player extends Proxy {
         // parentNode.removeChild(this.root)
         this.root.innerHTML = ''
         let classNameList = this.root.className.split(' ')
-        if(classNameList.length > 0) {
+        if (classNameList.length > 0) {
           this.root.className = classNameList.filter(name => name.indexOf('xgplayer') < 0).join(' ')
         } else {
           this.root.className = ''
@@ -295,7 +317,7 @@ class Player extends Proxy {
       }
       for (let k in this) {
         // if (k !== 'config') {
-          delete this[k]
+        delete this[k]
         // }
       }
       this.off('pause', destroyFunc)
@@ -307,6 +329,7 @@ class Player extends Proxy {
     } else {
       destroyFunc.call(this)
     }
+    pluginsManager.destroy(this)
     super.destroy()
   }
 
@@ -338,7 +361,9 @@ class Player extends Proxy {
       _replay()
     } else {
       this.currentTime = 0
-      this.play().catch(err => {})
+      this.play().catch(err => {
+        console.log(err)
+      })
     }
   }
 
@@ -349,7 +374,7 @@ class Player extends Proxy {
     } else if (el.mozRequestFullScreen) {
       el.mozRequestFullScreen()
     } else if (el.webkitRequestFullscreen) {
-      el.webkitRequestFullscreen(Element.ALLOW_KEYBOARD_INPUT)
+      el.webkitRequestFullscreen(window.Element.ALLOW_KEYBOARD_INPUT)
     } else if (player.video.webkitSupportsFullscreen) {
       player.video.webkitEnterFullscreen()
     } else if (el.msRequestFullscreen) {
@@ -418,9 +443,6 @@ class Player extends Proxy {
     this.root.appendChild(dragLay)
     let dragHandle = util.createDom('xg-pip-drag', '<div class="drag-handle"><span>点击按住可拖动视频</span></div>', {tabindex: 9}, 'xgplayer-pip-drag')
     this.root.appendChild(dragHandle)
-    let draggie = new Draggabilly('.xgplayer', {
-      handle: '.drag-handle'
-    })
     util.addClass(this.root, 'xgplayer-pip-active')
     this.root.style.right = 0
     this.root.style.bottom = '200px'
@@ -428,25 +450,25 @@ class Player extends Proxy {
     this.root.style.left = ''
     this.root.style.width = '320px'
     this.root.style.height = '180px'
-    if(this.config.pipConfig) {
-      if(this.config.pipConfig.top !== undefined) {
+    if (this.config.pipConfig) {
+      if (this.config.pipConfig.top !== undefined) {
         this.root.style.top = this.config.pipConfig.top + 'px'
         this.root.style.bottom = ''
       }
-      if(this.config.pipConfig.bottom !== undefined) {
+      if (this.config.pipConfig.bottom !== undefined) {
         this.root.style.bottom = this.config.pipConfig.bottom + 'px'
       }
-      if(this.config.pipConfig.left !== undefined) {
+      if (this.config.pipConfig.left !== undefined) {
         this.root.style.left = this.config.pipConfig.left + 'px'
         this.root.style.right = ''
       }
-      if(this.config.pipConfig.right !== undefined) {
+      if (this.config.pipConfig.right !== undefined) {
         this.root.style.right = this.config.pipConfig.right + 'px'
       }
-      if(this.config.pipConfig.width !== undefined) {
+      if (this.config.pipConfig.width !== undefined) {
         this.root.style.width = this.config.pipConfig.width + 'px'
       }
-      if(this.config.pipConfig.height !== undefined) {
+      if (this.config.pipConfig.height !== undefined) {
         this.root.style.height = this.config.pipConfig.height + 'px'
       }
     }
@@ -477,14 +499,14 @@ class Player extends Proxy {
       this.root.style['padding-top'] = `${this.config.height * 100 / this.config.width}%`
     } else {
       if (this.config.width) {
-        if(typeof this.config.width !== 'number') {
+        if (typeof this.config.width !== 'number') {
           this.root.style.width = this.config.width
         } else {
           this.root.style.width = `${this.config.width}px`
         }
       }
       if (this.config.height) {
-        if(typeof this.config.height !== 'number') {
+        if (typeof this.config.height !== 'number') {
           this.root.style.height = this.config.height
         } else {
           this.root.style.height = `${this.config.height}px`
@@ -493,18 +515,18 @@ class Player extends Proxy {
     }
 
     let dragLay = util.findDom(this.root, '.xgplayer-pip-lay')
-    if(dragLay && dragLay.parentNode) {
+    if (dragLay && dragLay.parentNode) {
       dragLay.parentNode.removeChild(dragLay)
     }
     let dragHandle = util.findDom(this.root, '.xgplayer-pip-drag')
-    if(dragHandle && dragHandle.parentNode) {
+    if (dragHandle && dragHandle.parentNode) {
       dragHandle.parentNode.removeChild(dragHandle)
     }
   }
 
   updateRotateDeg () {
     let player = this;
-    if(!player.rotateDeg) {
+    if (!player.rotateDeg) {
       player.rotateDeg = 0
     }
 
@@ -521,19 +543,20 @@ class Player extends Proxy {
     let scale
     if (player.rotateDeg === 0.25 || player.rotateDeg === 0.75) {
       if (player.config.rotate.innerRotate) {
-        if((targetWidth / targetHeight) > (height / width) ) { //旋转后纵向撑满
+        if ((targetWidth / targetHeight) > (height / width)) { // 旋转后纵向撑满
           let videoWidth = 0
-          if((targetHeight / targetWidth) > (height / width)) { //旋转前是纵向撑满
+          if ((targetHeight / targetWidth) > (height / width)) { // 旋转前是纵向撑满
             videoWidth = height * targetWidth / targetHeight
-          } else { //旋转前是横向撑满
+          } else {
+            // 旋转前是横向撑满
             videoWidth = width
           }
           scale = height / videoWidth
-        } else { //旋转后横向撑满
+        } else { // 旋转后横向撑满
           let videoHeight = 0
-          if((targetHeight / targetWidth) > (height / width)) { //旋转前是纵向撑满
+          if ((targetHeight / targetWidth) > (height / width)) { // 旋转前是纵向撑满
             videoHeight = height
-          } else { //旋转前是横向撑满
+          } else { // 旋转前是横向撑满
             videoHeight = width * targetHeight / targetWidth
           }
           scale = width / videoHeight
@@ -563,13 +586,13 @@ class Player extends Proxy {
 
   rotate (clockwise = false, innerRotate = true, times = 1) {
     let player = this;
-    if(!player.rotateDeg) {
+    if (!player.rotateDeg) {
       player.rotateDeg = 0
     }
     let factor = clockwise ? 1 : -1
 
     player.rotateDeg = (player.rotateDeg + 1 + factor * 0.25 * times) % 1
-    this.updateRotateDeg ()
+    this.updateRotateDeg()
 
     player.emit('rotate', player.rotateDeg * 360)
   }
@@ -688,6 +711,7 @@ class Player extends Proxy {
       }
     } else if (e && e.keyCode === 32) { // 按 spacebar
       if (player.paused) {
+        // eslint-disable-next-line handle-callback-err
         player.play().catch(err => {})
       } else {
         player.pause()
@@ -699,7 +723,7 @@ class Player extends Proxy {
     if (!Player.plugins) {
       Player.plugins = {}
     }
-    if(!Player.plugins[name]) {
+    if (!Player.plugins[name]) {
       Player.plugins[name] = descriptor
     }
   }
@@ -715,5 +739,6 @@ class Player extends Proxy {
 Player.util = util
 Player.sniffer = sniffer
 Player.Errors = Errors
-
+Player.Plugin = Plugin
+Player.BasePlugin = BasePlugin
 export default Player
