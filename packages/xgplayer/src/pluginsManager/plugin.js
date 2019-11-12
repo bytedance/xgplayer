@@ -17,7 +17,6 @@ export default class Plugin extends BasePlugin {
 
   __init (args) {
     super.__init(args)
-    console.log('Plugin.PluginType', Plugin.PluginType)
     if (Plugin.PluginType !== 'ui') {
       return
     }

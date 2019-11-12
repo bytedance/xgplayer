@@ -70,18 +70,21 @@ const pluginsManager = {
   },
 
   findPlugin (player, name) {
+    if (!this.pluginGroup) {
+      return null;
+    }
     const cgid = player._pluginInfoId
     const cName = name.toLowerCase()
-    console.log(this.pluginGroup)
     return this.pluginGroup[cgid]._plugins[cName]
   },
 
   beforeInit (player) {
-    console.log('beforeInited')
+    if (!this.pluginGroup) {
+      return;
+    }
     const cgid = player._pluginInfoId
     const plugins = this.pluginGroup[cgid]._plugins
     for (const item of Object.keys(plugins)) {
-      console.log(plugins[item])
       if (plugins[item] && plugins[item].beforePlayerInit) {
         plugins[item].beforePlayerInit()
       }
@@ -89,11 +92,12 @@ const pluginsManager = {
   },
 
   afterInit (player) {
-    console.log('afterInited')
+    if (!this.pluginGroup) {
+      return;
+    }
     const cgid = player._pluginInfoId
     const plugins = this.pluginGroup[cgid]._plugins
     for (const item of Object.keys(plugins)) {
-      console.log(plugins[item])
       if (plugins[item] && plugins[item].afterPlayerInit) {
         plugins[item].afterPlayerInit()
       }
@@ -125,5 +129,5 @@ const pluginsManager = {
     delete this.pluginGroup[cgid]
   }
 }
-
+window.pluginsManager = pluginsManager;
 export default pluginsManager

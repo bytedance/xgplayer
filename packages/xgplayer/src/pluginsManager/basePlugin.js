@@ -10,6 +10,10 @@ class BasePlugin {
     return type
   }
 
+  static get Name () {
+    return 'BasePlugin'
+  }
+
   constructor (args) {
     this.__args = args
     this.__events = {} // 对player的事件监听缓存
@@ -40,11 +44,9 @@ class BasePlugin {
   afterCreate () {}
 
   beforePlayerInit () {
-    console.log('beforePlayerInit')
   }
 
   afterPlayerInit () {
-    console.log('afterPlayerInit')
   }
 
   on (event, callback) {

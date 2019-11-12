@@ -5,9 +5,8 @@ import sniffer from './utils/sniffer'
 import Errors from './error'
 import {getAbsoluteURL} from './utils/url'
 import downloadUtil from 'downloadjs'
-import pluginsManager from './pluginsManager'
+import pluginsManager, {Plugin, BasePlugin} from './pluginsManager'
 import getDefaultPlugins from './plugins'
-
 import {
   version
 } from '../package.json'
@@ -16,7 +15,6 @@ class Player extends Proxy {
   constructor (options) {
     // const plugins = options.plugins || []
     const defaultPlugin = getDefaultPlugins(options)
-    console.log('defaultPlugin', defaultPlugin)
     options.plugins = defaultPlugin
     super(options)
     this.config = util.deepCopy({
@@ -104,8 +102,6 @@ class Player extends Proxy {
                 self.config[prop] = obj[prop]
               }
             }
-            self._registerPlugins()
-            console.log('self pluginsCall')
             self.pluginsCall()
           })
         }
@@ -113,10 +109,9 @@ class Player extends Proxy {
         console.log('Fetch错误:' + err)
       })
     } else {
-      console.log('this pluginsCall')
       this.pluginsCall()
-      this._registerPlugins()
     }
+    this._registerPlugins()
     this.ev.forEach((item) => {
       let evName = Object.keys(item)[0]
       let evFunc = this[item[evName]]
@@ -163,7 +158,6 @@ class Player extends Proxy {
     player.once('loadeddata', this.getVideoSize)
 
     setTimeout(() => {
-      console.log('this.emit ready >>>>')
       this.emit('ready')
       this.isReady = true
     }, 0)
@@ -195,12 +189,17 @@ class Player extends Proxy {
    * 注册组件 组件列表config.plugins
    */
   _registerPlugins () {
+    const ignores = this.config.ignores || []
     const plugins = this.config.plugins || []
+    const ignoresStr = ignores.join('||')
     plugins.map(plugin => {
-      pluginsManager.register(this, plugin)
-      return null
+      if (plugin.ignoreKey && ignoresStr.indexOf(plugin.ignoreKey.toLowerCase()) > -1) {
+        return null
+      }
+      return pluginsManager.register(this, plugin)
     })
   }
+
   start (url = this.config.url) {
     let root = this.root
     let player = this
@@ -740,5 +739,6 @@ class Player extends Proxy {
 Player.util = util
 Player.sniffer = sniffer
 Player.Errors = Errors
-
+Player.Plugin = Plugin
+Player.BasePlugin = BasePlugin
 export default Player

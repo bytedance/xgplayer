@@ -1,5 +1,6 @@
 export const PLAY = 'play'
 export const PLAYING = 'playing'
+export const ENDED = 'ended'
 export const PAUSE = 'pause'
 export const ERROR = 'error'
 export const SEEKING = 'seeking'

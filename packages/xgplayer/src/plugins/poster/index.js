@@ -1,18 +1,13 @@
-import {UIPlugin} from '../../pluginsManager'
+import {Plugin} from '../../pluginsManager'
 import './poster.scss'
 
-class Poster extends UIPlugin {
-  constructor (args) {
-    args.config.pluginType = 'ui'
-    super(args)
+class Poster extends Plugin {
+  static get name () {
+    return 'Poster'
   }
 
-  afterCreate () {
-    if (this.el) {
-      this.on(UIPlugin.PLAY, () => {
-        this.hide()
-      })
-    }
+  static get ignoreKey () {
+    return 'poster'
   }
 
   render () {
