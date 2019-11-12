@@ -410,11 +410,13 @@ class Compatibility {
 
     if (!this._firstVideoSample && videoSamples.length) {
       this._firstVideoSample = Compatibility.findFirstVideoSample(videoSamples)
+      this.removeInvalidSamples()
       isFirstVideoSamples = true
     }
 
     if (!this._firstAudioSample && audioSamples.length) {
       this._firstAudioSample = Compatibility.findFirstAudioSample(audioSamples) // 寻找dts最小的帧作为首个音频帧
+      this.removeInvalidSamples()
       isFirstAudioSamples = true
     }
 
@@ -466,19 +468,23 @@ class Compatibility {
   removeInvalidSamples () {
     const { _firstVideoSample, _firstAudioSample } = this
 
-    this.audioTrack.samples = this.audioTrack.samples.filter((sample, index) => {
-      if (sample === _firstAudioSample) {
-        return true;
-      }
-      return sample.dts > _firstAudioSample.dts
-    })
+    if (_firstAudioSample) {
+      this.audioTrack.samples = this.audioTrack.samples.filter((sample, index) => {
+        if (sample === _firstAudioSample) {
+          return true;
+        }
+        return sample.dts > _firstAudioSample.dts
+      })
+    }
 
-    this.videoTrack.samples = this.videoTrack.samples.filter((sample, index) => {
-      if (sample === _firstVideoSample) {
-        return true;
-      }
-      return sample.dts > _firstVideoSample.dts
-    })
+    if (_firstVideoSample) {
+      this.videoTrack.samples = this.videoTrack.samples.filter((sample, index) => {
+        if (sample === _firstVideoSample) {
+          return true;
+        }
+        return sample.dts > _firstVideoSample.dts
+      })
+    }
   }
 
   getStreamChangeStart (sample) {

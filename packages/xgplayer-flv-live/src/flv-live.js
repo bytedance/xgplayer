@@ -163,7 +163,7 @@ export default class FlvController {
       }
 
       // console.log('rap', rap, `time ${time}`, `bufferEnd ${bufferEnd}`,`clean ${Math.min(rap, time - 10, bufferEnd - 10)}`)
-      this.mse.remove(Math.min(rap, time - 10, bufferEnd - 10, 0.1), 0)
+      this.mse.remove(Math.max(Math.min(rap, time - 10, bufferEnd - 10), 0.1), 0)
 
       this.bufferClearTimer = setTimeout(() => {
         this.bufferClearTimer = null
@@ -181,7 +181,7 @@ export default class FlvController {
       fatal = false;
     }
     this._player.emit('error', new Player.Errors('parse', this._player.config.url))
-    this._onError(LOADER_EVENTS.LOADER_ERROR, tag, err, fatal)
+    this._onError(DEMUX_EVENTS.DEMUX_ERROR, tag, err, fatal)
   }
 
   _handleAddRAP (rap) {
