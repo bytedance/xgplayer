@@ -55,6 +55,9 @@ let s_progress = function () {
         if (item.time >= 0 && item.time <= player.duration) {
           let dot = util.createDom('xg-progress-dot', item.text ? `<span class="xgplayer-progress-tip">${item.text}</span>` : '', {}, 'xgplayer-progress-dot')
           dot.style.left = (item.time / player.duration) * 100 + '%'
+          if(item.duration >= 0) {
+            dot.style.width = (Math.min(item.duration, player.duration - item.time) / player.duration) * 100 + '%'
+          }
           outer.appendChild(dot)
           player.dotArr[item.time] = dot
           dotEvent(dot, item.text)
@@ -63,13 +66,16 @@ let s_progress = function () {
     }
   }
   player.once('canplay', onCanplay)
-  player.addProgressDot = function (time, text) {
+  player.addProgressDot = function (time, text, duration) {
     if (player.dotArr[time]) {
       return
     }
     if (time >= 0 && time <= player.duration) {
       let dot = util.createDom('xg-progress-dot', '', {}, 'xgplayer-progress-dot')
       dot.style.left = (time / player.duration) * 100 + '%'
+      if(duration >= 0) {
+        dot.style.width = (Math.min(duration, player.duration - time) / player.duration) * 100 + '%'
+      }
       outer.appendChild(dot)
       player.dotArr[time] = dot
       dotEvent(dot, text)
