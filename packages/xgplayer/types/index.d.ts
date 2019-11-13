@@ -51,10 +51,10 @@ declare module 'xgplayer' {
         url: string | Array<{src: string; type?: string}>;
 
         // 宽度(默认600)
-        width?: number;
+        width?: number | string;
 
         // 高度（默认337.5）
-        height?: number;
+        height?: number | string;
 
         // 流式布局（默认false）
         // 设置为流式布局，可使播放器宽度跟随父元素的宽度大小变化，且高度按照配置项中的高度和宽度的比例来变化
@@ -151,7 +151,7 @@ declare module 'xgplayer' {
         preview?: {uploadEl?: HTMLElement};
 
         // 进度条特殊点标记
-        progressDot?: Array<{time: number}>;
+        progressDot?: Array<{time: number; text?: string; duration?: number}>;
 
         // 键盘快捷键 默认值：'on'
         keyShortcut?: 'on' | 'off';
@@ -468,7 +468,7 @@ declare module 'xgplayer' {
          *
          * @param time 标记时间
          */
-        public addProgressDot(time: number): void;
+        public addProgressDot(time: number, text?: string, duration?: number): void;
 
         /**
          * 删除标记
@@ -485,4 +485,3 @@ declare module 'xgplayer' {
 
     export default Player;
 }
-
