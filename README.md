@@ -90,6 +90,9 @@ $ npm run dev
 please visit [http://localhost:9090/examples/index.html](http://localhost:9090/examples/index.html)
 
 
-### License
+### Agreement
 
-[MIT](http://opensource.org/licenses/MIT)
+Welcome to use xgplayer! Please read the following terms carefully. Using xgplayer means that you accept and agree to the terms.
+1. Xgplayer is licensed under the [MIT](http://opensource.org/licenses/MIT) License. You comply with its obligations by default.
+2. By default, you authorize us to place your logo in xgplayer website, which using xgplayer.
+If you have any problem, please let us know.
