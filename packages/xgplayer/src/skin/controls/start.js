@@ -25,7 +25,7 @@ let s_start = function () {
   } else {
     player.once('ready', () => {
       root.appendChild(btn)
-      onPlayerReady()
+      onPlayerReady(player)
     });
   }
 
