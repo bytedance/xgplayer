@@ -60,7 +60,9 @@ class HlsJsPlayer extends Player {
     this.once('complete', () => {
       hls.attachMedia(player.video)
       player.once('canplay', () => {
-        player.play().catch(err => {})
+        if(player.config.autoplay) {
+          player.play().catch(err => {})
+        }
       })
       if(player.config.isLive) {
         util.addClass(player.root, 'xgplayer-is-live')
