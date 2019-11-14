@@ -8,19 +8,7 @@ let s_start = function () {
   let util = Player.util
   let btn = util.createDom('xg-start', `<div class="xgplayer-icon-play">${StartPlayIcon}</div>
                                       <div class="xgplayer-icon-pause">${StartPauseIcon}</div>`, {}, 'xgplayer-start')
-  player.once('ready', () => {
-    root.appendChild(btn)
-  });
-
-  btn.onclick = e => {
-    e.preventDefault()
-    e.stopPropagation()
-    player.emit('startBtnClick')
-  }
-
-  player.once('ready', () => {
-    // if(!Object.keys(Player.plugins).some(item => { return item.indexOf('xgplayer-skin-') > -1 })) {
-    // }
+  function onPlayerReady(player) {
     util.addClass(player.root, 'xgplayer-skin-default')
     if (player.config) {
       if (player.config.lang && player.config.lang === 'en') {
@@ -29,7 +17,23 @@ let s_start = function () {
         util.addClass(player.root, 'lang-is-jp')
       }
     }
-  })
+  }
+
+  if (player.isReady) {
+    root.appendChild(btn)
+    onPlayerReady(player)
+  } else {
+    player.once('ready', () => {
+      root.appendChild(btn)
+      onPlayerReady(player)
+    });
+  }
+
+  btn.onclick = e => {
+    e.preventDefault()
+    e.stopPropagation()
+    player.emit('startBtnClick')
+  }
 }
 
 Player.install('s_start', s_start)
