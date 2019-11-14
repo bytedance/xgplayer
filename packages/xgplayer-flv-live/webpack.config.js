@@ -67,9 +67,7 @@ const client = {
   },
   externals: {
     'xgplayer': 'Player'
-  },
-  mode: 'development',
-  devtool: 'inline-source-map'
+  }
 }
 
 module.exports = [umd, client]
