@@ -275,7 +275,7 @@ class Compatibility {
       }
     }
     const lastOriginDts = audioSamples[audioSamples.length - 1].originDts;
-    const lastDts = audioSamples[audioSamples.length - 1].originDts;
+    const lastDts = audioSamples[audioSamples.length - 1].dts;
     const lastSampleDuration = audioSamples.length >= 2 ? lastOriginDts - audioSamples[audioSamples.length - 2].originDts : meta.refSampleDuration
 
     this.lastAudioSamplesLen = samplesLen;
