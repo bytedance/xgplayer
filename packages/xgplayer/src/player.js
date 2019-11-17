@@ -376,12 +376,20 @@ class Player extends Proxy {
 
   getCssFullscreen () {
     let player = this
+    if (player.config.fluid) {
+      player.root.style['padding-top'] = ''
+    }
     util.addClass(player.root, 'xgplayer-is-cssfullscreen')
     player.emit('requestCssFullscreen')
   }
 
   exitCssFullscreen () {
     let player = this
+    if (player.config.fluid) {
+      player.root.style['width'] = '100%'
+      player.root.style['height'] = '0'
+      player.root.style['padding-top'] = `${player.config.height * 100 / player.config.width}%`
+    }
     util.removeClass(player.root, 'xgplayer-is-cssfullscreen')
     player.emit('exitCssFullscreen')
   }
