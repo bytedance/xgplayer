@@ -1,7 +1,7 @@
-const polyfill = []
+const polyfill = ['./src/polyfills/custom-elements.min.js', './src/polyfills/native-element.js']
 
 const umd = {
-  entry:  {index: ['./src/index.js'], mobile: ['./src/mobile.js']},
+  entry: {index: ['./src/index.js'], mobile: polyfill.concat(['./src/mobile.js'])},
   output: {
     path: `${__dirname}/dist`,
     filename: '[name].js',
@@ -38,7 +38,7 @@ const umd = {
 }
 
 const client = {
-  entry: {index:polyfill.concat(['./src/index.js']), mobile:polyfill.concat(['./src/mobile.js'])},
+  entry: {index: './src/index.js', mobile: polyfill.concat(['./src/mobile.js'])},
   output: {
     path: `${__dirname}/browser`,
     filename: '[name].js',

@@ -155,7 +155,7 @@ class MobileVideo extends HTMLElement {
   }
 
   set src (val) {
-    // do nothing
+    this.setAttribute('src', val);
   }
 
   get readyState () {
@@ -209,7 +209,7 @@ class MobileVideo extends HTMLElement {
     }
   }
   set autoplay (value) {
-
+    this.setAttribute('autoplay', value)
   }
   play () {
     if (this.pendingPlayTask) {
