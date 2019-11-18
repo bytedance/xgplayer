@@ -18,7 +18,10 @@ let mobile = function () {
         return false
       } else if (!player.ended) {
         if (player.paused) {
-          player.play().catch(err => {})
+          let playPromise = player.play()
+          if (playPromise !== undefined && playPromise) {
+            playPromise.catch(err => {})
+          }
         } else {
           player.pause()
         }

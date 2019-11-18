@@ -231,7 +231,10 @@ class Player extends Proxy {
     this.video.load()
     this.reloadFunc = function () {
       // eslint-disable-next-line handle-callback-err
-      this.play().catch(err => {})
+      let playPromise = this.play()
+      if (playPromise !== undefined && playPromise) {
+        playPromise.catch(err => {})
+      }
     }
     this.once('loadeddata', this.reloadFunc)
   }
@@ -340,7 +343,10 @@ class Player extends Proxy {
     } else {
       this.currentTime = 0
       // eslint-disable-next-line handle-callback-err
-      this.play().catch(err => {})
+      let playPromise = this.play()
+      if (playPromise !== undefined && playPromise) {
+        playPromise.catch(err => {})
+      }
     }
   }
 
@@ -700,7 +706,10 @@ class Player extends Proxy {
     } else if (e && e.keyCode === 32) { // 按 spacebar
       if (player.paused) {
         // eslint-disable-next-line handle-callback-err
-        player.play().catch(err => {})
+        let playPromise = player.play()
+        if (playPromise !== undefined && playPromise) {
+          playPromise.catch(err => {})
+        }
       } else {
         player.pause()
       }
