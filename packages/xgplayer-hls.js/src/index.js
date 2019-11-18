@@ -16,6 +16,9 @@ class HlsJsPlayer extends Player {
     } else if(!player.config.useHls) {
       return
     }
+    Number.isFinite = Number.isFinite || function(value) {
+      return typeof value === "number" && isFinite(value);
+    }
 
     let hls
     hls = new Hls(this.hlsOpts)
