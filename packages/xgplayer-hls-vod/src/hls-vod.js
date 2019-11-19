@@ -267,6 +267,7 @@ class HlsVodController {
   }
 
   _preload (time) {
+    time = Math.floor(time);
     if (this._tsloader.loading) {
       return;
     }
@@ -294,25 +295,33 @@ class HlsVodController {
         let frag = this._playlist.getTs(time * 1000);
         if (frag && !frag.downloading && !frag.downloaded) {
           this._playlist.downloading(frag.url, true);
+          console.log(frag)
           this.emitTo('TS_LOADER', LOADER_EVENTS.LADER_START, frag.url)
         }
       } else if (currentbufferend < time + this.preloadTime) {
-        let frag = this._playlist.getTs(currentbufferend * 1000); // FIXME: 这里用 + 1太严格了，在compat内一经偏移修正，就无法正确获取到下一个ts的地址
-        let fragend = frag ? (frag.time + frag.duration) / 1000 : 0;
+        let frag = this._playlist.getTs(currentbufferend * 1000);
+
+        if (!frag) {
+          return;
+        }
+
+        // let fragend = frag ? (frag.time + frag.duration) / 1000 : 0;
 
         let curTime = frag.time;
+        const curFragTime = frag.time;
+
         let loopMax = 1000
         while (loopMax-- > 0) {
           curTime += 50
           frag = this._playlist.getTs(curTime);
-          fragend = frag ? (frag.time + frag.duration) / 1000 : 0
-          if (fragend > time + this.preloadTime) {
+          if (frag.time > curFragTime) {
             break;
           }
         }
 
         if (frag && !frag.downloading && !frag.downloaded) {
           this._playlist.downloading(frag.url, true);
+          console.log(frag)
           this.emitTo('TS_LOADER', LOADER_EVENTS.LADER_START, frag.url)
         }
       }
