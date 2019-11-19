@@ -329,7 +329,7 @@ class Compatibility {
 
   fixChangeStreamVideo (changeIdx) {
     const { samples, meta } = this.videoTrack;
-    const prevDts = changeIdx === 0 ? this.getStreamChangeStart(samples[0]) : samples[changeIdx - 1].dts;
+    const prevDts = changeIdx === 0 ? this.videoLastSample ? this.videoLastSample.dts : this.getStreamChangeStart(samples[0]) : samples[changeIdx - 1].dts;
     const curDts = samples[changeIdx].dts;
     const isContinue = Math.abs(prevDts - curDts) <= 2 * meta.refSampleDuration;
 
@@ -350,7 +350,13 @@ class Compatibility {
 
     const changeSample = secondPartSamples[0]
     const firstPartDuration = changeSample.dts - firstSample.dts
-    const streamChangeStart = firstSample.options && firstSample.options.start + firstPartDuration ? firstSample.options.start : null
+    let streamChangeStart
+
+    if (this.videoLastSample) {
+      streamChangeStart = this.videoLastSample.dts + meta.refSampleDuration
+    } else {
+      streamChangeStart = firstSample.options && firstSample.options.start + firstPartDuration ? firstSample.options.start : null
+    }
 
     this.videoTrack.samples = samples.slice(0, changeIdx);
 
@@ -387,7 +393,12 @@ class Compatibility {
 
     const changeSample = secondPartSamples[0]
     const firstPartDuration = changeSample.dts - firstSample.dts
-    const streamChangeStart = firstSample.options && firstSample.options.start + firstPartDuration ? firstSample.options.start : null
+    let streamChangeStart;
+    if (this.nextAudioDts) {
+      streamChangeStart = this.nextAudioDts
+    } else {
+      streamChangeStart = firstSample.options && firstSample.options.start + firstPartDuration ? firstSample.options.start : null
+    }
 
     this.audioTrack.samples = firstPartSamples;
 
