@@ -57,7 +57,7 @@ const commonRollup = function (config = {}) {
         include: '**/*.svg'
       }),
       commonjs({
-        include: ['node_modules/**']
+        include: ['node_modules/**', 'node_modules/xmlbuilder']
       }),
       builtins()
     ]
