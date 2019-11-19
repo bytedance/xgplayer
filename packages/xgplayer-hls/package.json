@@ -1,6 +1,6 @@
 {
   "name": "xgplayer-hls",
-  "version": "2.2.0-alpha.12",
+  "version": "2.2.0-alpha.13",
   "description": "xgplayer plugin for hls",
   "main": "./dist/index.js",
   "scripts": {
