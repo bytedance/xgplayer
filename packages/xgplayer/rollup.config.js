@@ -1,2 +1,4 @@
-const baseConfig = require('../../rollup.config');
-module.exports = baseConfig;
+const commonRollup = require('../../rollup.config');
+const uglify = process.env.NODE_ENV === 'production';
+
+module.exports = commonRollup({uglify: uglify})

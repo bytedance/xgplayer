@@ -5,41 +5,62 @@ const babel = require('rollup-plugin-babel')
 const resolve = require('rollup-plugin-node-resolve')
 const commonjs = require('rollup-plugin-commonjs')
 const { string } = require('rollup-plugin-string')
+const builtins = require('rollup-plugin-node-builtins')
 
-module.exports = {
+const defaultRollup = {
   input: 'src/index.js',
-  output: [
-    {
-      file: 'es/index.min.js',
-      format: 'esm'
-    }, {
-      file: 'dist/index.min.js',
-      name: 'Player',
-      format: 'umd'
-    }
-  ],
-  plugins: [
-    uglify(),
-    json({
-      compact: true
-    }),
-    postcss({
-      extensions: ['.css', '.scss', '.sass'],
-      'postcss-cssnext': {
-        browserslist: ['cover 99.5%']
+  name: 'Player',
+  sourcemap: true,
+  production: false,
+  external: [],
+  globals: {}
+}
+
+const commonRollup = function (config = {}) {
+  const rollupConfig = Object.assign({}, defaultRollup, config);
+  return {
+    input: rollupConfig.input,
+    output: [
+      {
+        file: rollupConfig.uglify ? 'es/index.min.js' : 'es/index.js',
+        format: 'esm',
+        sourcemap: rollupConfig.sourcemap,
+        globals: rollupConfig.globals
+      }, {
+        file: rollupConfig.uglify ? 'dist/index.min.js' : 'dist/index.js',
+        name: rollupConfig.name,
+        format: 'umd',
+        sourcemap: rollupConfig.sourcemap,
+        globals: rollupConfig.globals
       }
-    }),
-    babel({
-      exclude: ['node_modules/**', '**/*.svg']
-    }),
-    resolve({
-      extensions: [ '.mjs', '.js', '.jsx', '.json' ]
-    }),
-    string({
-      include: '**/*.svg'
-    }),
-    commonjs({
-      include: ['node_modules/**']
-    })
-  ]
-};
+    ],
+    external: rollupConfig.external,
+    plugins: [
+      rollupConfig.uglify ? uglify(rollupConfig.uglify) : undefined,
+      json({
+        compact: true
+      }),
+      postcss({
+        extensions: ['.css', '.scss', '.sass'],
+        'postcss-cssnext': {
+          browserslist: ['cover 99.5%']
+        }
+      }),
+      babel({
+        exclude: ['node_modules/**', '**/*.svg']
+      }),
+      resolve({
+        preferBuiltins: true,
+        extensions: [ '.mjs', '.js', '.jsx', '.json' ]
+      }),
+      string({
+        include: '**/*.svg'
+      }),
+      commonjs({
+        include: ['node_modules/**']
+      }),
+      builtins()
+    ]
+  }
+}
+module.exports = commonRollup;
