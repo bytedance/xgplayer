@@ -42,6 +42,12 @@ class FlvPlayer extends Player {
         player.emit('ended')
       }
     })
+
+    flv.once(EVENTS.REMUX_EVENTS.DETECT_CHANGE_STREAM_DISCONTINUE, () => {
+      // to fix CDN non-standard stream change
+      this.pause();
+      this.play();
+    })
   }
 
   initEvents () {

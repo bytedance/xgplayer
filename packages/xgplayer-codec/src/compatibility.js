@@ -343,7 +343,7 @@ class Compatibility {
       }
       return this.doFixVideo(false)
     }
-
+    this.emit(REMUX_EVENTS.DETECT_CHANGE_STREAM_DISCONTINUE)
     const firstPartSamples = samples.slice(0, changeIdx);
     const secondPartSamples = samples.slice(changeIdx);
     const firstSample = samples[0]
@@ -386,6 +386,7 @@ class Compatibility {
       }
       return this.doFixAudio(false)
     }
+    this.emit(REMUX_EVENTS.DETECT_CHANGE_STREAM_DISCONTINUE)
 
     const firstPartSamples = samples.slice(0, changeIdx);
     const secondPartSamples = samples.slice(changeIdx);

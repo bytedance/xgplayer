@@ -192,7 +192,7 @@ export default class Mp4Remuxer {
         }
       }
       this.videoAllDuration += sampleDuration
-      console.log(`video dts ${dts}`, `pts ${pts}`, isKeyframe, `duration ${sampleDuration}`)
+      // console.log(`video dts ${dts}`, `pts ${pts}`, isKeyframe, `duration ${sampleDuration}`)
       mp4Samples.push({
         dts,
         cts,
@@ -301,7 +301,7 @@ export default class Mp4Remuxer {
         }
       }
 
-      console.log(`audio dts ${dts}`, `pts ${dts}`, `duration ${sampleDuration}`)
+      // console.log(`audio dts ${dts}`, `pts ${dts}`, `duration ${sampleDuration}`)
       this.audioAllDuration += sampleDuration
       const mp4Sample = {
         dts,

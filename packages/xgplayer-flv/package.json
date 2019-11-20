@@ -1,6 +1,6 @@
 {
   "name": "xgplayer-flv",
-  "version": "2.2.0-alpha.20",
+  "version": "2.2.0-alpha.21",
   "description": "flv demuxer for xgplayer",
   "main": "./dist/index.js",
   "scripts": {
