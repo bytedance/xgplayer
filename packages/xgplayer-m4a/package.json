@@ -5,8 +5,8 @@
   "main": "./dist/index.js",
   "scripts": {
     "prepare": "npm run build",
-    "build": "webpack --progress --display-chunks -p",
-    "watch": "webpack --progress --display-chunks -p --watch"
+    "build": "cross-env NODE_ENV=production rollup -c rollup.config.js",
+    "watch": "cross-env NODE_ENV=development rollup -c rollup.config.js --watch"
   },
   "repository": {
     "type": "git",
@@ -14,11 +14,21 @@
   },
   "babel": {
     "presets": [
-      "es2015"
+      [
+        "env",
+        {
+          "targets": {
+            "chrome": 58,
+            "ie": 10
+          },
+          "modules": false,
+          "useBuiltIns": "usage",
+          "corejs": 3
+        }
+      ]
     ],
     "plugins": [
-      "add-module-exports",
-      "babel-plugin-bulk-import"
+      "external-helpers"
     ]
   },
   "keywords": [
