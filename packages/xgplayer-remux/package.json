@@ -2,15 +2,27 @@
   "name": "xgplayer-remux",
   "version": "2.2.0-alpha.0",
   "description": "",
-  "main": "index.js",
+  "main": "es/index.js",
+  "module": "es/index.js",
   "scripts": {
-    "build": "babel src --out-dir dist"
+    "build": "babel src --out-dir es"
   },
-  "keywords": [],
   "author": "",
   "license": "ISC",
+  "babel": {
+    "presets": [
+      [
+        "es2015",
+        {
+          "modules": false
+        }
+      ]
+    ]
+  },
+  "devDependencies": {
+    "babel-cli": "^6.22.0"
+  },
   "dependencies": {
-    "concat-typed-array": "^1.0.2",
     "xgplayer-utils": "^2.2.0-alpha.0"
   }
 }

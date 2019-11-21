@@ -2,17 +2,27 @@
   "name": "xgplayer-buffer",
   "version": "2.2.0-alpha.0",
   "description": "",
-  "main": "index.js",
-  "devDependencies": {
-    "@babel/plugin-proposal-export-default-from": "^7.5.2"
-  },
+  "main": "es/index.js",
+  "module": "es/index.js",
   "scripts": {
-    "build": "babel src --out-dir dist"
+    "build": "babel src --out-dir es"
   },
   "author": "",
   "license": "ISC",
+  "babel": {
+    "presets": [
+      [
+        "es2015",
+        {
+          "modules": false
+        }
+      ]
+    ]
+  },
+  "devDependencies": {
+    "babel-cli": "^6.22.0"
+  },
   "dependencies": {
-    "@babel/cli": "^7.6.0",
-    "@babel/core": "^7.6.0"
+    "xgplayer-utils": "^2.2.0-alpha.0"
   }
 }

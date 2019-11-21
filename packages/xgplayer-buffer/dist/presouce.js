@@ -1,9 +1,3 @@
-"use strict";
-
-Object.defineProperty(exports, "__esModule", {
-  value: true
-});
-
 class Source {
   constructor() {
     this.mimetype = '';
@@ -37,4 +31,4 @@ class PreSource {
 
 }
 
-exports.default = PreSource;
+export default PreSource;

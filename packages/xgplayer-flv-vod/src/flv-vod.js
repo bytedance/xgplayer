@@ -1,7 +1,7 @@
 import FlvDemuxer from '../../xgplayer-demux/src/flv'
 import Remuxer from 'xgplayer-remux'
-import { FetchLoader } from 'xgplayer-loader'
 import { Tracks, XgBuffer, PreSource } from 'xgplayer-buffer'
+import { FetchLoader } from 'xgplayer-loader'
 import { Mse, EVENTS } from 'xgplayer-utils'
 import { Compatibility } from 'xgplayer-codec'
 import Player from 'xgplayer'

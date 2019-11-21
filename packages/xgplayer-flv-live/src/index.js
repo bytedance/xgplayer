@@ -135,4 +135,4 @@ class FlvPlayer extends Player {
   }
 }
 
-module.exports = FlvPlayer
+export default FlvPlayer

@@ -1,10 +1,4 @@
-"use strict";
-
-Object.defineProperty(exports, "__esModule", {
-  value: true
-});
-
-class Track {
+export default class Track {
   /**
    * The constructor.
    */
@@ -36,10 +30,7 @@ class Track {
   }
 
 }
-
-exports.default = Track;
-
-class AudioTrack extends Track {
+export class AudioTrack extends Track {
   /**
    * The constructor for audio track.
    */
@@ -50,10 +41,7 @@ class AudioTrack extends Track {
   }
 
 }
-
-exports.AudioTrack = AudioTrack;
-
-class VideoTrack extends Track {
+export class VideoTrack extends Track {
   /**
    * The constructor for video track.
    */
@@ -76,10 +64,7 @@ class VideoTrack extends Track {
   }
 
 }
-
-exports.VideoTrack = VideoTrack;
-
-class Tracks {
+export class Tracks {
   constructor() {
     this.audioTrack = null;
     this.videoTrack = null;
@@ -91,5 +76,3 @@ class Tracks {
   }
 
 }
-
-exports.Tracks = Tracks;

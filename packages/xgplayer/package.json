@@ -19,15 +19,21 @@
     "babel": {
         "presets": [
             [
-                "es2015",
+                "env",
                 {
-                    "modules": false
+                    "targets": {
+                        "chrome": 58,
+                        "ie": 10
+                    },
+                    "modules": false,
+                    "useBuiltIns": "usage",
+                    "corejs": 3
                 }
             ]
         ],
         "plugins": [
             "external-helpers",
-            "babel-plugin-bulk-import"
+            "bulk-import"
         ]
     },
     "repository": {

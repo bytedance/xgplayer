@@ -5,6 +5,7 @@ const babel = require('rollup-plugin-babel')
 const resolve = require('rollup-plugin-node-resolve')
 const commonjs = require('rollup-plugin-commonjs')
 const { string } = require('rollup-plugin-string')
+const context = require('rollup-plugin-require-context')
 const builtins = require('rollup-plugin-node-builtins')
 
 const defaultRollup = {
@@ -13,7 +14,10 @@ const defaultRollup = {
   sourcemap: true,
   production: false,
   external: [],
-  globals: {}
+  globals: {},
+  commonjs: {},
+  resolve: {},
+  babel: {}
 }
 
 const commonRollup = function (config = {}) {
@@ -47,19 +51,24 @@ const commonRollup = function (config = {}) {
         }
       }),
       babel({
-        exclude: ['node_modules/**', '**/*.svg']
+        exclude: ['node_modules/**', '**/*.svg'],
+        plugins: ['external-helpers'],
+        ...rollupConfig.babel
       }),
       resolve({
         preferBuiltins: true,
-        extensions: [ '.mjs', '.js', '.jsx', '.json' ]
+        extensions: [ '.mjs', '.js', '.jsx', '.json' ],
+        ...rollupConfig.resolve
       }),
       string({
         include: '**/*.svg'
       }),
       commonjs({
-        include: ['node_modules/**', 'node_modules/xmlbuilder']
+        include: [/node_modules/],
+        ...rollupConfig.commonjs
       }),
-      builtins()
+      builtins(),
+      context()
     ]
   }
 }

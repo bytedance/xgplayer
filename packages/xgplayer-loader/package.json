@@ -2,13 +2,26 @@
   "name": "xgplayer-loader",
   "version": "2.2.0-alpha.0",
   "description": "",
-  "main": "index.js",
+  "main": "es/index.js",
   "scripts": {
-    "build": "babel src --out-dir dist"
+    "build": "babel src --out-dir es"
+  },
+  "author": "",
+  "license": "ISC",
+  "babel": {
+    "presets": [
+      [
+        "es2015",
+        {
+          "modules": false
+        }
+      ]
+    ]
+  },
+  "devDependencies": {
+    "babel-cli": "^6.22.0"
   },
   "dependencies": {
     "xgplayer-utils": "^2.2.0-alpha.0"
-  },
-  "author": "",
-  "license": "ISC"
+  }
 }

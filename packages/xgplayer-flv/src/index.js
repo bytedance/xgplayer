@@ -11,4 +11,4 @@ class FlvPlayer{
   }
 }
 
-module.exports = FlvPlayer
+export default FlvPlayer

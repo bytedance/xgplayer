@@ -1,6 +1,7 @@
 import Player from 'xgplayer'
 import { Context, EVENTS } from 'xgplayer-utils';
 import FLV from './flv-vod'
+console.log(Context)
 
 const flvAllowedEvents = EVENTS.FlvAllowedEvents;
 
@@ -16,7 +17,7 @@ const isEnded = (player, flv) => {
   }
 }
 
-class FlvPlayer extends Player {
+class FlvVodPlayer extends Player {
   constructor (config) {
     super(config)
     this.context = new Context(flvAllowedEvents)
@@ -88,4 +89,4 @@ class FlvPlayer extends Player {
   }
 }
 
-module.exports = FlvPlayer
+export default FlvVodPlayer
