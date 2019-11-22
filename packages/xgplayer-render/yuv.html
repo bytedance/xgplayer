@@ -1,0 +1,75 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta http-equiv="X-UA-Compatible" content="ie=edge">
+    <script src="dist/index.js"></script>
+    <style>
+        table {
+        border-collapse: collapse;
+        width: 100%;
+        }
+
+        td, th {
+        border: 1px solid #dddddd;
+        text-align: left;
+        padding: 8px;
+        }
+
+        tr:nth-child(even) {
+        background-color: #dddddd;
+        }
+    </style>
+    <title>Document</title>
+</head>
+<body>
+    <h1>视频测试</h1>
+    <video width="400px" src="https://sf6-ttcdn-tos.pstatp.com/obj/ttfe/media/download.mp4"></video>
+    <canvas id="cv" width="400" height="240"></canvas>
+    <br>
+    <canvas id="c6" width="320" height="240"></canvas>
+    <table>
+        <thead>
+            <tr>
+                <td>FMT</td>
+                <td>canvas</td>
+            </tr>
+        </thead>
+        <tbody>
+            <tr>
+                <td>YUY2</td>
+                <td>
+                    <canvas id="c1" width="1280" height="720" style="width: 360px;"></canvas>
+                </td>
+            </tr>
+            <tr>
+                <td>rgb32</td>
+                <td>
+                    <canvas id="c2" style="width: 360px;"></canvas>
+                </td>
+            </tr>
+
+            <tr>
+                    <td>rgb24</td>
+                    <td>
+                        <canvas id="c3" width="1194" height="668" style="width: 360px;"></canvas>
+                    </td>
+                </tr>
+            <tr>
+                <td>nv12</td>
+                    <td>
+                        <canvas id="c4" width="1194" height="668" style="width: 360px;"></canvas>
+                    </td>
+                </tr>
+                <tr>
+                <td>YUV420</td>
+                    <td>
+                        <canvas id="c5" width="1194" height="668" style="width: 360px;"></canvas>
+                    </td>
+                </tr>
+        </tbody>
+    </table>
+    <script src="index.js"></script>
+</body>
+</html>
