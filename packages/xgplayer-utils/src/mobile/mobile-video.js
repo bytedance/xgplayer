@@ -101,11 +101,21 @@ class MobileVideo extends HTMLElement {
   }
 
   setAudioMeta (meta) {
+    if (this.audioMetaInited) {
+      this.aCtx.destroy();
+      this.aCtx = new AudioCtx({});
+    }
     this.aCtx.setAudioMetaData(meta);
     this.audioMetaInited = true;
   }
 
   setVideoMeta (meta) {
+    if (this.videoMetaInited) {
+      this.vCtx.destroy();
+      this.vCtx = new VideoCtx(Object.assign({
+        canvas: this._canvas
+      }, { style: { width: this.width, height: this.height } }));
+    }
     this.vCtx.setVideoMetaData(meta);
     this.videoMetaInited = true;
   }
