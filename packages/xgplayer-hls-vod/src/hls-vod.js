@@ -106,6 +106,12 @@ class HlsVodController {
 
   _onWaiting (container) {
     let end = true;
+
+    const playListLen = Object.keys(this._playlist.list).length
+    if (!playListLen) {
+      return;
+    }
+
     for (let i = 0; i < Object.keys(this._playlist.list).length; i++) {
       if (this.container.currentTime * 1000 < parseInt(Object.keys(this._playlist.list)[i])) {
         end = false;
@@ -309,12 +315,14 @@ class HlsVodController {
         let curTime = frag.time;
         const curFragTime = frag.time;
 
-        let loopMax = 1000
-        while (loopMax-- > 0) {
-          curTime += 50
-          frag = this._playlist.getTs(curTime);
-          if (!frag || frag.time > curFragTime) {
-            break;
+        if (frag.downloaded) {
+          let loopMax = 1000
+          while (loopMax-- > 0) {
+            curTime += 50
+            frag = this._playlist.getTs(curTime);
+            if (!frag || frag.time > curFragTime) {
+              break;
+            }
           }
         }
 
