@@ -179,7 +179,6 @@ var Render = (function () {
       _this = _possibleConstructorReturn(this, _getPrototypeOf(Basic).call(this));
       _this.vShader = ['attribute vec4 vertexPos;', 'attribute vec2 texturePos;', 'varying vec2 textureCoord;', 'void main()', '{', '  gl_Position = vertexPos;', '  textureCoord = texturePos;', '}'].join('\n');
       _this.fShader = ['precision highp float;', 'varying highp vec2 textureCoord;', 'uniform highp float opacity;', 'uniform sampler2D sampler;', 'uniform highp float flipx;', 'uniform highp float flipy;', 'void main(void) {', '  float cordx = textureCoord.x;', '  if(flipx > 0.5) {', '     cordx = 1.0 - textureCoord.x;', '  }', '  float cordy = 1.0 - textureCoord.y;', '  if(flipy > 0.5) {', '    cordy = textureCoord.y;', '  }', '  vec4 color = texture2D(sampler,vec2(cordx, cordy));', '  gl_FragColor = vec4(color[0],color[1],color[2],opacity);', '}'].join('\n');
-      _this.rend = render;
       _this.canvas = render.canvas;
       _this.opacity = config.opacity === undefined ? 1 : config.opacity;
       _this.flip = config.flip;
@@ -188,7 +187,8 @@ var Render = (function () {
 
     _createClass(Basic, [{
       key: "init",
-      value: function init(gl) {
+      value: function init(render, gl) {
+        this.rend = render;
         this.gl = gl;
         this.pw = GLUtil.createProgram(gl, this.vShader, this.fShader);
         this.program = this.pw.program;
@@ -243,14 +243,14 @@ var Render = (function () {
       _this = _possibleConstructorReturn(this, _getPrototypeOf(Yuyv422).call(this));
       _this.vShader = ['attribute vec4 vertexPos;', 'attribute vec2 texturePos;', 'varying vec2 textureCoord;', 'void main()', '{', '  gl_Position = vertexPos;', '  textureCoord = texturePos;', '}'].join('\n');
       _this.fShader = ['precision highp float;', 'varying highp vec2 textureCoord;', 'uniform sampler2D sampler;', 'uniform vec2 outerSize;', 'uniform mat4 yuv2rgb;', 'void main(void) {', '  float cx = 1.0 / outerSize.x;', '  float odd = floor(mod(textureCoord.x * outerSize.x, 2.0));', '  float x = textureCoord.x + 0.5 * cx - odd * cx;', '  vec4 color = texture2D(sampler, vec2(x, textureCoord.y));', '  float ydata = odd < 0.5?color[0]:color[2];', '  float udata = color[1];', '  float vdata = color[3];', '  gl_FragColor = vec4(ydata, udata, vdata, 1) * yuv2rgb;', '}'].join('\n');
-      _this.rend = render;
       _this.canvas = render.canvas;
       return _this;
     }
 
     _createClass(Yuyv422, [{
       key: "init",
-      value: function init(gl) {
+      value: function init(render, gl) {
+        this.rend = render;
         this.gl = gl;
         this.pw = GLUtil.createProgram(gl, this.vShader, this.fShader);
         this.program = this.pw.program;
@@ -300,14 +300,14 @@ var Render = (function () {
       _this = _possibleConstructorReturn(this, _getPrototypeOf(Rgb32).call(this));
       _this.vShader = ['attribute vec4 vertexPos;', 'attribute vec2 texturePos;', 'varying vec2 textureCoord;', 'void main()', '{', '  gl_Position = vertexPos;', '  textureCoord = texturePos;', '}'].join('\n');
       _this.fShader = ['precision highp float;', 'varying highp vec2 textureCoord;', 'uniform sampler2D sampler;', 'void main(void) {', '  vec4 color = texture2D(sampler, textureCoord);', '  gl_FragColor = vec4(color[2],color[1],color[0],color[3]);', '}'].join('\n');
-      _this.rend = render;
       _this.canvas = render.canvas;
       return _this;
     }
 
     _createClass(Rgb32, [{
       key: "init",
-      value: function init(gl) {
+      value: function init(render, gl) {
+        this.rend = render;
         this.gl = gl;
         this.pw = GLUtil.createProgram(gl, this.vShader, this.fShader);
         this.program = this.pw.program;
@@ -354,14 +354,14 @@ var Render = (function () {
       _this = _possibleConstructorReturn(this, _getPrototypeOf(Rgb24).call(this));
       _this.vShader = ['attribute vec4 vertexPos;', 'attribute vec2 texturePos;', 'varying vec2 textureCoord;', 'void main()', '{', '  gl_Position = vertexPos;', '  textureCoord = texturePos;', '}'].join('\n');
       _this.fShader = ['precision highp float;', 'varying highp vec2 textureCoord;', 'uniform sampler2D sampler;', 'uniform vec2 outerSize;', 'uniform mat4 YUV2RGB;', 'void main(void) {', '  float my = floor(mod(textureCoord.y * outerSize.y, 4.0));', '  float cy = 1.0 / outerSize.y;', '  float mx = floor(mod(outerSize.x, 4.0));', '  float cx = 1.0 / outerSize.x;', '  float width =  outerSize.x + mx;', '  float x = textureCoord.x + (mx * cx * textureCoord.y * outerSize.y);', '  x = cx * mod(x * outerSize.x, width);', '  float bdata, gdata, rdata;', '  vec4 color = texture2D(sampler, vec2(x, textureCoord.y));', '  rdata = color[0];', '  gdata = color[1];', '  bdata = color[2];', '  gl_FragColor = vec4(bdata, gdata, rdata, 1);', '}'].join('\n');
-      _this.rend = render;
       _this.canvas = render.canvas;
       return _this;
     }
 
     _createClass(Rgb24, [{
       key: "init",
-      value: function init(gl) {
+      value: function init(render, gl) {
+        this.rend = render;
         this.gl = gl;
         this.pw = GLUtil.createProgram(gl, this.vShader, this.fShader);
         this.program = this.pw.program;
@@ -411,14 +411,14 @@ var Render = (function () {
       _this = _possibleConstructorReturn(this, _getPrototypeOf(Nv12).call(this));
       _this.vShader = ['attribute vec4 vertexPos;', 'attribute vec2 yTexturePos;', 'attribute vec2 uvTexturePos;', 'varying vec2 yTextureCoord;', 'varying vec2 uvTextureCoord;', 'void main()', '{', '  gl_Position = vertexPos;', '  yTextureCoord = yTexturePos;', '  uvTextureCoord = uvTexturePos;', '}'].join('\n');
       _this.fShader = ['precision highp float;', 'varying highp vec2 yTextureCoord;', 'varying highp vec2 uvTextureCoord;', 'uniform sampler2D ySampler;', 'uniform sampler2D uvSampler;', 'uniform mat4 yuv2rgb;', 'void main(void) {', '  vec4 colory = texture2D(ySampler, vec2(yTextureCoord.x / 2.0, yTextureCoord.y));', '  vec4 coloruv = texture2D(uvSampler, vec2(uvTextureCoord.x / 2.0, uvTextureCoord.y));', '  gl_FragColor = vec4(colory[0], coloruv[0], coloruv[1], 1) * yuv2rgb;', '}'].join('\n');
-      _this.rend = render;
       _this.canvas = render.canvas;
       return _this;
     }
 
     _createClass(Nv12, [{
       key: "init",
-      value: function init(gl) {
+      value: function init(render, gl) {
+        this.rend = render;
         this.gl = gl;
         this.pw = GLUtil.createProgram(gl, this.vShader, this.fShader);
         this.program = this.pw.program;
@@ -477,14 +477,14 @@ var Render = (function () {
       _this = _possibleConstructorReturn(this, _getPrototypeOf(Yuv420).call(this));
       _this.vShader = ['attribute vec4 vertexPos;', 'attribute vec2 yTexturePos;', 'attribute vec2 uTexturePos;', 'attribute vec2 vTexturePos;', 'varying vec2 yTextureCoord;', 'varying vec2 uTextureCoord;', 'varying vec2 vTextureCoord;', 'void main()', '{', '  gl_Position = vertexPos;', '  yTextureCoord = yTexturePos;', '  uTextureCoord = uTexturePos;', '  vTextureCoord = vTexturePos;', '}'].join('\n');
       _this.fShader = ['precision highp float;', 'varying highp vec2 yTextureCoord;', 'varying highp vec2 uTextureCoord;', 'varying highp vec2 vTextureCoord;', 'uniform sampler2D ySampler;', 'uniform sampler2D uSampler;', 'uniform sampler2D vSampler;', 'uniform mat4 yuv2rgb;', 'void main(void) {', '  vec4 colory = texture2D(ySampler, vec2(yTextureCoord.x / 2.0, yTextureCoord.y));', '  vec4 coloru = texture2D(uSampler, vec2(uTextureCoord.x / 4.0, uTextureCoord.y));', '  vec4 colorv = texture2D(vSampler, vec2(vTextureCoord.x / 4.0, vTextureCoord.y));', '  gl_FragColor = vec4(colory[0], coloru[0], colorv[0], 1) * yuv2rgb;', '}'].join('\n');
-      _this.rend = render;
       _this.canvas = render.canvas;
       return _this;
     }
 
     _createClass(Yuv420, [{
       key: "init",
-      value: function init(gl) {
+      value: function init(render, gl) {
+        this.rend = render;
         this.gl = gl;
         this.pw = GLUtil.createProgram(gl, this.vShader, this.fShader);
         this.program = this.pw.program;
@@ -517,7 +517,6 @@ var Render = (function () {
         var ydata = data[0];
         var udata = data[1];
         var vdata = data[2];
-        console.log(data);
         var gl = this.gl;
         var program = this.program;
         var yTextureRef = this.inputTextures[0];

@@ -26,11 +26,11 @@ class Yuyv422 extends Filter {
       '  float vdata = color[3];',
       '  gl_FragColor = vec4(ydata, udata, vdata, 1) * yuv2rgb;',
       '}'].join('\n');
-    this.rend = render;
     this.canvas = render.canvas;
   }
 
-  init (gl) {
+  init (render, gl) {
+    this.rend = render;
     this.gl = gl;
     this.pw = GLUtil.createProgram(gl, this.vShader, this.fShader);
     this.program = this.pw.program;

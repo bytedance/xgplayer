@@ -20,11 +20,11 @@ class Rgb32 extends Filter {
       '  vec4 color = texture2D(sampler, textureCoord);',
       '  gl_FragColor = vec4(color[2],color[1],color[0],color[3]);',
       '}'].join('\n');
-    this.rend = render;
     this.canvas = render.canvas;
   }
 
-  init (gl) {
+  init (render, gl) {
+    this.rend = render;
     this.gl = gl;
     this.pw = GLUtil.createProgram(gl, this.vShader, this.fShader);
     this.program = this.pw.program;

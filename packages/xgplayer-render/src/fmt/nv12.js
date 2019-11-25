@@ -25,11 +25,11 @@ class Nv12 extends Filter {
       '  vec4 coloruv = texture2D(uvSampler, vec2(uvTextureCoord.x / 2.0, uvTextureCoord.y));',
       '  gl_FragColor = vec4(colory[0], coloruv[0], coloruv[1], 1) * yuv2rgb;',
       '}'].join('\n');
-    this.rend = render;
     this.canvas = render.canvas;
   }
 
-  init (gl) {
+  init (render, gl) {
+    this.rend = render;
     this.gl = gl;
     this.pw = GLUtil.createProgram(gl, this.vShader, this.fShader);
     this.program = this.pw.program;

@@ -35,11 +35,11 @@ class Rgb24 extends Filter {
       '  bdata = color[2];',
       '  gl_FragColor = vec4(bdata, gdata, rdata, 1);',
       '}'].join('\n');
-    this.rend = render;
     this.canvas = render.canvas;
   }
 
-  init (gl) {
+  init (render, gl) {
+    this.rend = render;
     this.gl = gl;
     this.pw = GLUtil.createProgram(gl, this.vShader, this.fShader);
     this.program = this.pw.program;
