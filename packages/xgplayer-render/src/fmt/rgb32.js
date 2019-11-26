@@ -1,7 +1,7 @@
 import Filter from '../filter';
 import GLUtil from '../glutil';
 class Rgb32 extends Filter {
-  constructor (render, config) {
+  constructor (config) {
     super();
     this.vShader = [
       'attribute vec4 vertexPos;',
@@ -20,12 +20,13 @@ class Rgb32 extends Filter {
       '  vec4 color = texture2D(sampler, textureCoord);',
       '  gl_FragColor = vec4(color[2],color[1],color[0],color[3]);',
       '}'].join('\n');
-    this.canvas = render.canvas;
+    
   }
 
-  init (render, gl) {
+  init (render) {
     this.rend = render;
-    this.gl = gl;
+    this.canvas = render.canvas;
+    let gl = this.gl = render.gl;
     this.pw = GLUtil.createProgram(gl, this.vShader, this.fShader);
     this.program = this.pw.program;
     gl.useProgram(this.program);

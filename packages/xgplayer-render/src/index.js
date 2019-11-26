@@ -13,6 +13,7 @@ class Render {
     // input
     if (config.video) {
       this.video = config.video;
+      config.flip = 'y';
     } else if (config.image) {
       this.image = config.image;
     } else {
@@ -20,16 +21,19 @@ class Render {
     }
 
     this.filters = [];
+
     if (config.opacity !== undefined ||
        !!config.flip) {
-      let filter = new Basic(this, {opacity: config.opacity, flip: config.flip});
-      this.filters.push(filter);
+      this.basicFilter = new Basic({opacity: config.opacity, flip: config.flip});
+    } else {
+      this.basicFilter = new Basic({opacity: 1});
     }
 
-    if (config.flip !== undefined) {
-
+    if (config.filters) {
+      for (let i = 0; i < config.filters.length; i++) {
+        this.filters.push(config.filters[i]);
+      }
     }
-
     this._init();
   }
 
@@ -55,13 +59,9 @@ class Render {
     }
   }
 
-  _initFilter () {
-
-  }
   _initVideo () {
-    let gl = this.contextGL;
+    let gl = this.gl;
     this.inputTexture = GLUtil.createTexture(gl, gl.LINEAR, this.video);
-    console.log(this.filters);
   }
   _initImage () {
 
@@ -69,22 +69,27 @@ class Render {
 
   _init () {
     this._initContextGL();
-    if (!this.contextGL) {
+
+    if (!this.gl) {
       throw new Error(`fail to init gl`)
     }
 
-    let gl = this.contextGL;
+    let gl = this.gl;
     this.fb = gl.createFramebuffer();
 
     if (this.fmt) {
-      this.fmt.init(this.contextGL);
+      this.fmt.init(this);
     } else {
-      // TODO
+      const width = this.video.videoWidth;
+      const height = this.video.videoHeight;
+      let emptyPixels = new Uint8Array(width * height * 4);
+      this.videoTexture = GLUtil.createTexture(gl, gl.LINEAR, emptyPixels, width, height);
     }
+    this.basicFilter.init(this)
 
     for (let i = 0; i < this.filters.length; i++) {
       let filter = this.filters[i];
-      filter.init(gl);
+      filter.init(this);
     }
   }
 
@@ -111,45 +116,50 @@ class Render {
       ++nameIndex;
     };
 
-    this.contextGL = gl;
+    this.gl = gl;
   };
 
   _drawPicture (data, width, height) {
-    let gl = this.contextGL;
-    let tempTexture, inputTexture;
-    if (this.fmt) {
-      if (this.filters.length < 1) {
-        gl.bindFramebuffer(gl.FRAMEBUFFER, null);
-      } else {
-        tempTexture = GLUtil.createTexture(gl, gl.LINEAR, new Uint8Array(width * height * 4), width, height);
-        gl.bindFramebuffer(gl.FRAMEBUFFER, this.fb);
-        gl.framebufferTexture2D(gl.FRAMEBUFFER, gl.COLOR_ATTACHMENT0, gl.TEXTURE_2D, tempTexture, 0);
-      }
+    let gl = this.gl;
+    let tempTexture = GLUtil.createTexture(gl, gl.LINEAR, new Uint8Array(width * height * 4), width, height);
+    gl.bindFramebuffer(gl.FRAMEBUFFER, this.fb);
+    gl.framebufferTexture2D(gl.FRAMEBUFFER, gl.COLOR_ATTACHMENT0, gl.TEXTURE_2D, tempTexture, 0);
 
-      this.fmt.render(data, width, height);
-    }
+    this.fmt.render(data, width, height);
 
-    for (let i = 0; i < this.filters.length - 1; i++) {
-      // TODO
+    this._applyFilters(tempTexture, width, height);
+  }
+
+  _drawVideo () {
+    let gl = this.gl;
+    gl.bindTexture(gl.TEXTURE_2D, this.videoTexture);
+    gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA, gl.RGBA, gl.UNSIGNED_BYTE, this.video);
+    this._applyFilters(this.videoTexture, this.video.videoWidth, this.video.videoHeight)
+  }
+
+  _applyFilters (texture, width, height) {
+    let gl = this.gl;
+    for (let i = 0; i < this.filters.length; i++) {
       let filter = this.filters[i];
-      let inputTexture = tempTexture;
-      tempTexture = GLUtil.createTexture(gl, gl.LINEAR, new Uint8Array(width * height * 4), width, height)
-      gl.bindFramebuffer(gl.FRAMEBUFFER, this.fb);
-      gl.framebufferTexture2D(gl.FRAMEBUFFER, gl.COLOR_ATTACHMENT0, gl.TEXTURE_2D, tempTexture, 0);
-      filter.render(inputTexture, width, height);
+      texture = filter.render(texture, width, height);
     }
 
-    if (this.filters.length > 0) {
-      gl.bindFramebuffer(gl.FRAMEBUFFER, null);
-      let lastFilter = this.filters[this.filters.length - 1];
-      lastFilter.render(tempTexture, width, height);
-    }
+    gl.bindFramebuffer(gl.FRAMEBUFFER, null);
+    this.basicFilter.render(texture, width, height);
   }
 
   render (data, width, height) {
-    this.canvas.width = width;
-    this.canvas.height = height;
-    this._drawPicture(data, width, height)
+    if (this.fmt) {
+      this.canvas.width = width;
+      this.canvas.height = height;
+      this.gl.viewport(0, 0, this.canvas.width, this.canvas.height);
+      this._drawPicture(data, width, height)
+    } else if (this.video) {
+      this.canvas.width = this.video.videoWidth;
+      this.canvas.height = this.video.videoHeight;
+      this.gl.viewport(0, 0, this.canvas.width, this.canvas.height);
+      this._drawVideo();
+    }
   }
 }
 

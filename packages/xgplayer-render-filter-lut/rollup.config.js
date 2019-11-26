@@ -10,11 +10,11 @@ export default {
   output: [{
     file: 'browser/index.js',
     format: 'iife',
-    name: 'Render'
+    name: 'LutFilter'
   },
   {
     file: 'dist/index.js',
     format: 'esm',
-    name: 'Render'
+    name: 'LutFilter'
   }]
 };
