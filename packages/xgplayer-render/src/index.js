@@ -6,7 +6,8 @@ import Rgb32 from './fmt/rgb32';
 import Rgb24 from './fmt/rgb24';
 import Nv12 from './fmt/nv12';
 import Yuv420 from './fmt/yuv420';
-
+import Rgba from './fmt/rgba';
+import Rgb from './fmt/rgb';
 class Render {
   constructor (config) {
     this.canvas = config.canvas;
@@ -22,7 +23,7 @@ class Render {
 
     this.filters = [];
 
-    if (config.opacity !== undefined ||
+    if (config.opacity !== undefined &&
        !!config.flip) {
       this.basicFilter = new Basic({opacity: config.opacity, flip: config.flip});
     } else {
@@ -42,6 +43,12 @@ class Render {
       case 'YUY2':
         this.fmt = new Yuyv422(this);
         break;
+      case 'RGBA':
+        this.fmt = new Rgba(this);
+        break;
+      case 'RGB':
+        this.fmt = new Rgb(this);
+        break;
       case 'RGB32':
         this.fmt = new Rgb32(this);
         break;
@@ -59,10 +66,6 @@ class Render {
     }
   }
 
-  _initVideo () {
-    let gl = this.gl;
-    this.inputTexture = GLUtil.createTexture(gl, gl.LINEAR, this.video);
-  }
   _initImage () {
 
   }
@@ -79,7 +82,7 @@ class Render {
 
     if (this.fmt) {
       this.fmt.init(this);
-    } else {
+    } else if (this.video) {
       const width = this.video.videoWidth;
       const height = this.video.videoHeight;
       let emptyPixels = new Uint8Array(width * height * 4);
@@ -120,14 +123,8 @@ class Render {
   };
 
   _drawPicture (data, width, height) {
-    let gl = this.gl;
-    let tempTexture = GLUtil.createTexture(gl, gl.LINEAR, new Uint8Array(width * height * 4), width, height);
-    gl.bindFramebuffer(gl.FRAMEBUFFER, this.fb);
-    gl.framebufferTexture2D(gl.FRAMEBUFFER, gl.COLOR_ATTACHMENT0, gl.TEXTURE_2D, tempTexture, 0);
-
-    this.fmt.render(data, width, height);
-
-    this._applyFilters(tempTexture, width, height);
+    let texture = this.fmt.render(data, width, height);
+    this._applyFilters(texture, width, height);
   }
 
   _drawVideo () {

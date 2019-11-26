@@ -19,8 +19,7 @@ class Rgb32 extends Filter {
       'void main(void) {',
       '  vec4 color = texture2D(sampler, textureCoord);',
       '  gl_FragColor = vec4(color[2],color[1],color[0],color[3]);',
-      '}'].join('\n');
-    
+      '}'].join('\n'); 
   }
 
   init (render) {
@@ -29,6 +28,7 @@ class Rgb32 extends Filter {
     let gl = this.gl = render.gl;
     this.pw = GLUtil.createProgram(gl, this.vShader, this.fShader);
     this.program = this.pw.program;
+
     gl.useProgram(this.program);
     // vertexPos
     let vertexPosBuffer = GLUtil.createBuffer(gl, new Float32Array([1, 1, -1, 1, 1, -1, -1, -1]));
@@ -50,6 +50,10 @@ class Rgb32 extends Filter {
     let program = this.program;
     let textureRef = this.inputTextures[0];
 
+    this.outputTexuture = GLUtil.createTexture(gl, gl.LINEAR, new Uint8Array(width * height * 4), width, height);
+    gl.bindFramebuffer(gl.FRAMEBUFFER, this.rend.fb);
+    gl.framebufferTexture2D(gl.FRAMEBUFFER, gl.COLOR_ATTACHMENT0, gl.TEXTURE_2D, this.outputTexuture, 0);
+    
     gl.useProgram(program);
     gl.viewport(0, 0, this.canvas.width, this.canvas.height);
 
@@ -57,6 +61,8 @@ class Rgb32 extends Filter {
     gl.bindTexture(gl.TEXTURE_2D, textureRef);
     gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA, width, height, 0, gl.RGBA, gl.UNSIGNED_BYTE, data);
     gl.drawArrays(gl.TRIANGLE_STRIP, 0, 4);
+
+    return this.outputTexuture;
   }
 }
 

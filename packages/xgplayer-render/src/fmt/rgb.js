@@ -1,9 +1,10 @@
 import Filter from '../filter';
 import GLUtil from '../glutil';
-class Yuyv422 extends Filter {
+class Rgb extends Filter {
   constructor (config) {
     super();
-    this.vShader = ['attribute vec4 vertexPos;',
+    this.vShader = [
+      'attribute vec4 vertexPos;',
       'attribute vec2 texturePos;',
       'varying vec2 textureCoord;',
       'void main()',
@@ -11,21 +12,30 @@ class Yuyv422 extends Filter {
       '  gl_Position = vertexPos;',
       '  textureCoord = texturePos;',
       '}'].join('\n');
-    this.fShader = ['precision highp float;',
+    this.fShader = [
+      'precision highp float;',
       'varying highp vec2 textureCoord;',
       'uniform sampler2D sampler;',
       'uniform vec2 outerSize;',
-      'uniform mat4 yuv2rgb;',
+      'uniform mat4 YUV2RGB;',
       'void main(void) {',
+      '  float my = floor(mod(textureCoord.y * outerSize.y, 4.0));',
+      '  float cy = 1.0 / outerSize.y;',
+
+      '  float mx = floor(mod(outerSize.x, 4.0));',
       '  float cx = 1.0 / outerSize.x;',
-      '  float odd = floor(mod(textureCoord.x * outerSize.x, 2.0));',
-      '  float x = textureCoord.x + 0.5 * cx - odd * cx;',
+      '  float width =  outerSize.x + mx;',
+      '  float x = textureCoord.x + (mx * cx * textureCoord.y * outerSize.y);',
+      '  x = cx * mod(x * outerSize.x, width);',
+      '  float bdata, gdata, rdata;',
+
       '  vec4 color = texture2D(sampler, vec2(x, textureCoord.y));',
-      '  float ydata = odd < 0.5?color[0]:color[2];',
-      '  float udata = color[1];',
-      '  float vdata = color[3];',
-      '  gl_FragColor = vec4(ydata, udata, vdata, 1) * yuv2rgb;',
+      '  rdata = color[0];',
+      '  gdata = color[1];',
+      '  bdata = color[2];',
+      '  gl_FragColor = vec4(rdata, gdata, bdata, 1);',
       '}'].join('\n');
+    
   }
 
   init (render) {
@@ -45,16 +55,7 @@ class Yuyv422 extends Filter {
 
     let textureRef = GLUtil.createTexture(gl, gl.LINEAR);
     gl.uniform1i(this.pw.sampler, 0);
-
     this.inputTextures.push(textureRef);
-
-    let yuv2rgb = [
-      1.16438, 0.00000, 1.59603, -0.87079,
-      1.16438, -0.39176, -0.81297, 0.52959,
-      1.16438, 2.01723, 0.00000, -1.08139,
-      0, 0, 0, 1
-    ];
-    gl.uniformMatrix4fv(this.pw.yuv2rgb, false, yuv2rgb);
   }
 
   render (data, width, height) {
@@ -62,23 +63,23 @@ class Yuyv422 extends Filter {
     let gl = this.gl;
     let program = this.program;
     let textureRef = this.inputTextures[0];
-
+    
     this.outputTexuture = GLUtil.createTexture(gl, gl.LINEAR, new Uint8Array(width * height * 4), width, height);
     gl.bindFramebuffer(gl.FRAMEBUFFER, this.rend.fb);
     gl.framebufferTexture2D(gl.FRAMEBUFFER, gl.COLOR_ATTACHMENT0, gl.TEXTURE_2D, this.outputTexuture, 0);
-    
+
     gl.useProgram(program);
     gl.viewport(0, 0, this.canvas.width, this.canvas.height);
 
-    gl.uniform2fv(this.pw.outerSize, [width, height]);
+    let outerSizeRef = gl.getUniformLocation(program, 'outerSize');
+    gl.uniform2fv(outerSizeRef, [width, height]);
 
     gl.activeTexture(gl.TEXTURE0);
     gl.bindTexture(gl.TEXTURE_2D, textureRef);
-    gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA, width / 2, height, 0, gl.RGBA, gl.UNSIGNED_BYTE, data);
+    let inputx = width - (width % 4);
+    gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGB, inputx, height, 0, gl.RGB, gl.UNSIGNED_BYTE, data);
     gl.drawArrays(gl.TRIANGLE_STRIP, 0, 4);
-
-    return this.outputTexuture;
   }
 }
 
-export default Yuyv422;
+export default Rgb;
