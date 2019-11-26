@@ -31,12 +31,12 @@ class Yuv420 extends Filter {
       '  vec4 colorv = texture2D(vSampler, vec2(vTextureCoord.x / 4.0, vTextureCoord.y));',
       '  gl_FragColor = vec4(colory[0], coloru[0], colorv[0], 1) * yuv2rgb;',
       '}'].join('\n');
-    this.rend = render;
-    this.canvas = render.canvas;
   }
 
-  init (gl) {
-    this.gl = gl;
+  init (render) {
+    this.rend = render;
+    this.canvas = render.canvas;
+    let gl = this.gl = render.gl;
     this.pw = GLUtil.createProgram(gl, this.vShader, this.fShader);
     this.program = this.pw.program;
     gl.useProgram(this.program);
@@ -82,7 +82,6 @@ class Yuv420 extends Filter {
     let ydata = data[0];
     let udata = data[1];
     let vdata = data[2];
-    console.log(data);
     let gl = this.gl;
     let program = this.program;
     let yTextureRef = this.inputTextures[0];

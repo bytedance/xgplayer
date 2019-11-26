@@ -1,7 +1,7 @@
 import Filter from '../filter';
 import GLUtil from '../glutil';
 class Nv12 extends Filter {
-  constructor (render, config) {
+  constructor (config) {
     super();
     this.vShader = ['attribute vec4 vertexPos;',
       'attribute vec2 yTexturePos;',
@@ -21,16 +21,16 @@ class Nv12 extends Filter {
       'uniform sampler2D uvSampler;',
       'uniform mat4 yuv2rgb;',
       'void main(void) {',
-      '  vec4 colory = texture2D(ySampler, vec2(yTextureCoord.x / 2.0, yTextureCoord.y));',
+      '  vec4 colory = texture2D(ySampler, vec2(yTextureCoord.x / 2.0, yTextureCoord.y));', 
       '  vec4 coloruv = texture2D(uvSampler, vec2(uvTextureCoord.x / 2.0, uvTextureCoord.y));',
       '  gl_FragColor = vec4(colory[0], coloruv[0], coloruv[1], 1) * yuv2rgb;',
       '}'].join('\n');
-    this.rend = render;
-    this.canvas = render.canvas;
   }
 
-  init (gl) {
-    this.gl = gl;
+  init (render) {
+    this.rend = render;
+    this.canvas = render.canvas;
+    let gl = this.gl = render.gl;
     this.pw = GLUtil.createProgram(gl, this.vShader, this.fShader);
     this.program = this.pw.program;
     gl.useProgram(this.program);

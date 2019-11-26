@@ -1,7 +1,7 @@
 import Filter from '../filter';
 import GLUtil from '../glutil';
 class Basic extends Filter {
-  constructor (render, config) {
+  constructor (config) {
     super();
     this.vShader = [
       'attribute vec4 vertexPos;',
@@ -31,14 +31,15 @@ class Basic extends Filter {
       '  vec4 color = texture2D(sampler,vec2(cordx, cordy));',
       '  gl_FragColor = vec4(color[0],color[1],color[2],opacity);',
       '}'].join('\n');
-    this.rend = render;
-    this.canvas = render.canvas;
+    
     this.opacity = config.opacity === undefined ? 1 : config.opacity;
     this.flip = config.flip;
   }
 
-  init (gl) {
-    this.gl = gl;
+  init (render) {
+    this.rend = render;
+    this.canvas = render.canvas;
+    let gl = this.gl = render.gl;
     this.pw = GLUtil.createProgram(gl, this.vShader, this.fShader);
     this.program = this.pw.program;
     gl.useProgram(this.program);
@@ -70,10 +71,26 @@ class Basic extends Filter {
     gl.uniform1f(this.pw.flipy, flipy);
   }
 
+  setFlip (flip) {
+    let flipx = 0;
+    let flipy = 0;
+    this.flip = flip;
+    if (this.flip === 'x' || this.flip === 'xy') {
+      flipx = 1;
+    }
+
+    if (this.flip === 'y' || this.flip === 'xy') {
+      flipy = 1;
+    }
+
+    this.gl.uniform1f(this.pw.flipx, flipx);
+    this.gl.uniform1f(this.pw.flipy, flipy);
+  }
+
   render (texture, width, height) {
+    debugger;
     let gl = this.gl;
     let program = this.program;
-
     gl.useProgram(program);
     gl.activeTexture(gl.TEXTURE0);
     gl.bindTexture(gl.TEXTURE_2D, texture);

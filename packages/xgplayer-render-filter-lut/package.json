@@ -1,5 +1,5 @@
 {
-  "name": "xgplayer-render",
+  "name": "xgplayer-render-filter-lut",
   "version": "1.0.0",
   "description": "",
   "main": "index.js",
@@ -11,6 +11,7 @@
   "devDependencies": {
     "@babel/core": "^7.7.2",
     "@babel/preset-env": "^7.7.1",
-    "rollup-plugin-babel": "^4.3.3"
+    "rollup-plugin-babel": "^4.3.3",
+    "xgplayer-render":"1.0.0"
   }
 }
