@@ -1,6 +1,10 @@
 /* eslint-disable no-undef */
 const width = 1194;
 const height = 668;
+let lut = new LutFilter({
+  lut: 'https://sf6-ttcdn-tos.pstatp.com/obj/ttfe/media/lut/lut_119.png',
+  opacity: 0.5
+});
 
 function fetchdata (file, cb) {
   fetch(file).then(res => {
@@ -79,8 +83,8 @@ fetchdata(`data/123.yuv`, function (data) {
     r: new Render({
       format: 'YUY2',
       canvas: document.querySelector('#c6'),
-      opacity: 0.5,
-      flip: 'xy'
+      filters: [lut],
+      opacity: 1
     }),
     data,
     frameCount: 0,

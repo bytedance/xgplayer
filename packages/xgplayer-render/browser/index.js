@@ -204,6 +204,7 @@ var Render = (function () {
         var texturePosBuffer = GLUtil.createBuffer(gl, new Float32Array([1, 0, 0, 0, 1, 1, 0, 1]));
         GLUtil.bindAttribute(gl, texturePosBuffer, this.pw.texturePos, 2);
         GLUtil.createTexture(gl, gl.LINEAR);
+        gl.uniform1i(this.pw.sampler, 0);
         gl.uniform1f(this.pw.opacity, this.opacity);
         var flipx = 0;
         var flipy = 0;
@@ -240,7 +241,6 @@ var Render = (function () {
     }, {
       key: "render",
       value: function render(texture, width, height) {
-        debugger;
         var gl = this.gl;
         var program = this.program;
         gl.useProgram(program);
@@ -297,6 +297,9 @@ var Render = (function () {
         var gl = this.gl;
         var program = this.program;
         var textureRef = this.inputTextures[0];
+        this.outputTexuture = GLUtil.createTexture(gl, gl.LINEAR, new Uint8Array(width * height * 4), width, height);
+        gl.bindFramebuffer(gl.FRAMEBUFFER, this.rend.fb);
+        gl.framebufferTexture2D(gl.FRAMEBUFFER, gl.COLOR_ATTACHMENT0, gl.TEXTURE_2D, this.outputTexuture, 0);
         gl.useProgram(program);
         gl.viewport(0, 0, this.canvas.width, this.canvas.height);
         gl.uniform2fv(this.pw.outerSize, [width, height]);
@@ -304,6 +307,7 @@ var Render = (function () {
         gl.bindTexture(gl.TEXTURE_2D, textureRef);
         gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA, width / 2, height, 0, gl.RGBA, gl.UNSIGNED_BYTE, data);
         gl.drawArrays(gl.TRIANGLE_STRIP, 0, 4);
+        return this.outputTexuture;
       }
     }]);
 
@@ -352,12 +356,16 @@ var Render = (function () {
         var gl = this.gl;
         var program = this.program;
         var textureRef = this.inputTextures[0];
+        this.outputTexuture = GLUtil.createTexture(gl, gl.LINEAR, new Uint8Array(width * height * 4), width, height);
+        gl.bindFramebuffer(gl.FRAMEBUFFER, this.rend.fb);
+        gl.framebufferTexture2D(gl.FRAMEBUFFER, gl.COLOR_ATTACHMENT0, gl.TEXTURE_2D, this.outputTexuture, 0);
         gl.useProgram(program);
         gl.viewport(0, 0, this.canvas.width, this.canvas.height);
         gl.activeTexture(gl.TEXTURE0);
         gl.bindTexture(gl.TEXTURE_2D, textureRef);
         gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA, width, height, 0, gl.RGBA, gl.UNSIGNED_BYTE, data);
         gl.drawArrays(gl.TRIANGLE_STRIP, 0, 4);
+        return this.outputTexuture;
       }
     }]);
 
@@ -472,6 +480,9 @@ var Render = (function () {
         var program = this.program;
         var yTextureRef = this.inputTextures[0];
         var uvTextureRef = this.inputTextures[1];
+        this.outputTexuture = GLUtil.createTexture(gl, gl.LINEAR, new Uint8Array(width * height * 4), width, height);
+        gl.bindFramebuffer(gl.FRAMEBUFFER, this.fb);
+        gl.framebufferTexture2D(gl.FRAMEBUFFER, gl.COLOR_ATTACHMENT0, gl.TEXTURE_2D, this.outputTexuture, 0);
         gl.useProgram(program);
         gl.viewport(0, 0, this.canvas.width, this.canvas.height);
         gl.activeTexture(gl.TEXTURE0);
@@ -481,6 +492,7 @@ var Render = (function () {
         gl.bindTexture(gl.TEXTURE_2D, uvTextureRef);
         gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA, width / 2, height / 4, 0, gl.RGBA, gl.UNSIGNED_BYTE, uvdata);
         gl.drawArrays(gl.TRIANGLE_STRIP, 0, 4);
+        return this.outputTexuture;
       }
     }]);
 
@@ -545,6 +557,9 @@ var Render = (function () {
         var yTextureRef = this.inputTextures[0];
         var uTextureRef = this.inputTextures[1];
         var vTextureRef = this.inputTextures[2];
+        this.outputTexuture = GLUtil.createTexture(gl, gl.LINEAR, new Uint8Array(width * height * 4), width, height);
+        gl.bindFramebuffer(gl.FRAMEBUFFER, this.rend.fb);
+        gl.framebufferTexture2D(gl.FRAMEBUFFER, gl.COLOR_ATTACHMENT0, gl.TEXTURE_2D, this.outputTexuture, 0);
         gl.useProgram(program);
         gl.viewport(0, 0, this.canvas.width, this.canvas.height);
         gl.activeTexture(gl.TEXTURE0);
@@ -557,10 +572,129 @@ var Render = (function () {
         gl.bindTexture(gl.TEXTURE_2D, vTextureRef);
         gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA, width / 2, height / 8, 0, gl.RGBA, gl.UNSIGNED_BYTE, vdata);
         gl.drawArrays(gl.TRIANGLE_STRIP, 0, 4);
+        return this.outputTexuture;
       }
     }]);
 
     return Yuv420;
+  }(Filter);
+
+  var Rgba =
+  /*#__PURE__*/
+  function (_Filter) {
+    _inherits(Rgba, _Filter);
+
+    function Rgba(config) {
+      var _this;
+
+      _classCallCheck(this, Rgba);
+
+      _this = _possibleConstructorReturn(this, _getPrototypeOf(Rgba).call(this));
+      _this.vShader = ['attribute vec4 vertexPos;', 'attribute vec2 texturePos;', 'varying vec2 textureCoord;', 'void main()', '{', '  gl_Position = vertexPos;', '  textureCoord = texturePos;', '}'].join('\n');
+      _this.fShader = ['precision highp float;', 'varying highp vec2 textureCoord;', 'uniform sampler2D sampler;', 'void main(void) {', '  vec4 color = texture2D(sampler, textureCoord);', '  gl_FragColor = vec4(color[0],color[1],color[2],color[3]);', '}'].join('\n');
+      return _this;
+    }
+
+    _createClass(Rgba, [{
+      key: "init",
+      value: function init(render) {
+        this.rend = render;
+        this.canvas = render.canvas;
+        var gl = this.gl = render.gl;
+        this.pw = GLUtil.createProgram(gl, this.vShader, this.fShader);
+        this.program = this.pw.program;
+        gl.useProgram(this.program); // vertexPos
+
+        var vertexPosBuffer = GLUtil.createBuffer(gl, new Float32Array([1, 1, -1, 1, 1, -1, -1, -1]));
+        GLUtil.bindAttribute(gl, vertexPosBuffer, this.pw.vertexPos, 2); // texturePos
+
+        this.texturePosBuffer = GLUtil.createBuffer(gl, new Float32Array([1, 0, 0, 0, 1, 1, 0, 1]));
+        GLUtil.bindAttribute(gl, this.texturePosBuffer, this.pw.texturePos, 2);
+        var textureRef = GLUtil.createTexture(gl, gl.LINEAR);
+        gl.uniform1i(this.pw.sampler, 0);
+        this.inputTextures.push(textureRef);
+      }
+    }, {
+      key: "render",
+      value: function render(data, width, height) {
+        data = data[0];
+        var gl = this.gl;
+        var program = this.program;
+        var textureRef = this.inputTextures[0];
+        this.outputTexuture = GLUtil.createTexture(gl, gl.LINEAR, new Uint8Array(width * height * 4), width, height);
+        gl.bindFramebuffer(gl.FRAMEBUFFER, this.rend.fb);
+        gl.framebufferTexture2D(gl.FRAMEBUFFER, gl.COLOR_ATTACHMENT0, gl.TEXTURE_2D, this.outputTexuture, 0);
+        gl.useProgram(program);
+        gl.viewport(0, 0, this.canvas.width, this.canvas.height);
+        gl.activeTexture(gl.TEXTURE0);
+        gl.bindTexture(gl.TEXTURE_2D, textureRef);
+        gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA, width, height, 0, gl.RGBA, gl.UNSIGNED_BYTE, data);
+        gl.drawArrays(gl.TRIANGLE_STRIP, 0, 4);
+        return this.outputTexuture;
+      }
+    }]);
+
+    return Rgba;
+  }(Filter);
+
+  var Rgb =
+  /*#__PURE__*/
+  function (_Filter) {
+    _inherits(Rgb, _Filter);
+
+    function Rgb(config) {
+      var _this;
+
+      _classCallCheck(this, Rgb);
+
+      _this = _possibleConstructorReturn(this, _getPrototypeOf(Rgb).call(this));
+      _this.vShader = ['attribute vec4 vertexPos;', 'attribute vec2 texturePos;', 'varying vec2 textureCoord;', 'void main()', '{', '  gl_Position = vertexPos;', '  textureCoord = texturePos;', '}'].join('\n');
+      _this.fShader = ['precision highp float;', 'varying highp vec2 textureCoord;', 'uniform sampler2D sampler;', 'uniform vec2 outerSize;', 'uniform mat4 YUV2RGB;', 'void main(void) {', '  float my = floor(mod(textureCoord.y * outerSize.y, 4.0));', '  float cy = 1.0 / outerSize.y;', '  float mx = floor(mod(outerSize.x, 4.0));', '  float cx = 1.0 / outerSize.x;', '  float width =  outerSize.x + mx;', '  float x = textureCoord.x + (mx * cx * textureCoord.y * outerSize.y);', '  x = cx * mod(x * outerSize.x, width);', '  float bdata, gdata, rdata;', '  vec4 color = texture2D(sampler, vec2(x, textureCoord.y));', '  rdata = color[0];', '  gdata = color[1];', '  bdata = color[2];', '  gl_FragColor = vec4(rdata, gdata, bdata, 1);', '}'].join('\n');
+      return _this;
+    }
+
+    _createClass(Rgb, [{
+      key: "init",
+      value: function init(render) {
+        this.rend = render;
+        this.canvas = render.canvas;
+        var gl = this.gl = render.gl;
+        this.pw = GLUtil.createProgram(gl, this.vShader, this.fShader);
+        this.program = this.pw.program;
+        gl.useProgram(this.program); // vertexPos
+
+        var vertexPosBuffer = GLUtil.createBuffer(gl, new Float32Array([1, 1, -1, 1, 1, -1, -1, -1]));
+        GLUtil.bindAttribute(gl, vertexPosBuffer, this.pw.vertexPos, 2); // texturePos
+
+        this.texturePosBuffer = GLUtil.createBuffer(gl, new Float32Array([1, 0, 0, 0, 1, 1, 0, 1]));
+        GLUtil.bindAttribute(gl, this.texturePosBuffer, this.pw.texturePos, 2);
+        var textureRef = GLUtil.createTexture(gl, gl.LINEAR);
+        gl.uniform1i(this.pw.sampler, 0);
+        this.inputTextures.push(textureRef);
+      }
+    }, {
+      key: "render",
+      value: function render(data, width, height) {
+        data = data[0];
+        var gl = this.gl;
+        var program = this.program;
+        var textureRef = this.inputTextures[0];
+        this.outputTexuture = GLUtil.createTexture(gl, gl.LINEAR, new Uint8Array(width * height * 4), width, height);
+        gl.bindFramebuffer(gl.FRAMEBUFFER, this.rend.fb);
+        gl.framebufferTexture2D(gl.FRAMEBUFFER, gl.COLOR_ATTACHMENT0, gl.TEXTURE_2D, this.outputTexuture, 0);
+        gl.useProgram(program);
+        gl.viewport(0, 0, this.canvas.width, this.canvas.height);
+        var outerSizeRef = gl.getUniformLocation(program, 'outerSize');
+        gl.uniform2fv(outerSizeRef, [width, height]);
+        gl.activeTexture(gl.TEXTURE0);
+        gl.bindTexture(gl.TEXTURE_2D, textureRef);
+        var inputx = width - width % 4;
+        gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGB, inputx, height, 0, gl.RGB, gl.UNSIGNED_BYTE, data);
+        gl.drawArrays(gl.TRIANGLE_STRIP, 0, 4);
+      }
+    }]);
+
+    return Rgb;
   }(Filter);
 
   var Render =
@@ -582,7 +716,7 @@ var Render = (function () {
 
       this.filters = [];
 
-      if (config.opacity !== undefined || !!config.flip) {
+      if (config.opacity !== undefined && !!config.flip) {
         this.basicFilter = new Basic({
           opacity: config.opacity,
           flip: config.flip
@@ -610,6 +744,14 @@ var Render = (function () {
             this.fmt = new Yuyv422(this);
             break;
 
+          case 'RGBA':
+            this.fmt = new Rgba(this);
+            break;
+
+          case 'RGB':
+            this.fmt = new Rgb(this);
+            break;
+
           case 'RGB32':
             this.fmt = new Rgb32(this);
             break;
@@ -628,12 +770,6 @@ var Render = (function () {
         }
       }
     }, {
-      key: "_initVideo",
-      value: function _initVideo() {
-        var gl = this.gl;
-        this.inputTexture = GLUtil.createTexture(gl, gl.LINEAR, this.video);
-      }
-    }, {
       key: "_initImage",
       value: function _initImage() {}
     }, {
@@ -650,7 +786,7 @@ var Render = (function () {
 
         if (this.fmt) {
           this.fmt.init(this);
-        } else {
+        } else if (this.video) {
           var width = this.video.videoWidth;
           var height = this.video.videoHeight;
           var emptyPixels = new Uint8Array(width * height * 4);
@@ -692,13 +828,9 @@ var Render = (function () {
     }, {
       key: "_drawPicture",
       value: function _drawPicture(data, width, height) {
-        var gl = this.gl;
-        var tempTexture = GLUtil.createTexture(gl, gl.LINEAR, new Uint8Array(width * height * 4), width, height);
-        gl.bindFramebuffer(gl.FRAMEBUFFER, this.fb);
-        gl.framebufferTexture2D(gl.FRAMEBUFFER, gl.COLOR_ATTACHMENT0, gl.TEXTURE_2D, tempTexture, 0);
-        this.fmt.render(data, width, height);
+        var texture = this.fmt.render(data, width, height);
 
-        this._applyFilters(tempTexture, width, height);
+        this._applyFilters(texture, width, height);
       }
     }, {
       key: "_drawVideo",

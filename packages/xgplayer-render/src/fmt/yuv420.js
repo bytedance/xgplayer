@@ -17,7 +17,8 @@ class Yuv420 extends Filter {
       '  uTextureCoord = uTexturePos;',
       '  vTextureCoord = vTexturePos;',
       '}'].join('\n');
-    this.fShader = ['precision highp float;',
+    this.fShader = [
+      'precision highp float;',
       'varying highp vec2 yTextureCoord;',
       'varying highp vec2 uTextureCoord;',
       'varying highp vec2 vTextureCoord;',
@@ -87,6 +88,10 @@ class Yuv420 extends Filter {
     let yTextureRef = this.inputTextures[0];
     let uTextureRef = this.inputTextures[1];
     let vTextureRef = this.inputTextures[2];
+  
+    this.outputTexuture = GLUtil.createTexture(gl, gl.LINEAR, new Uint8Array(width * height * 4), width, height);
+    gl.bindFramebuffer(gl.FRAMEBUFFER, this.rend.fb);
+    gl.framebufferTexture2D(gl.FRAMEBUFFER, gl.COLOR_ATTACHMENT0, gl.TEXTURE_2D, this.outputTexuture, 0);
 
     gl.useProgram(program);
     gl.viewport(0, 0, this.canvas.width, this.canvas.height);
@@ -104,6 +109,8 @@ class Yuv420 extends Filter {
     gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA, width / 2, height / 8, 0, gl.RGBA, gl.UNSIGNED_BYTE, vdata);
 
     gl.drawArrays(gl.TRIANGLE_STRIP, 0, 4);
+
+    return this.outputTexuture;
   }
 }
 

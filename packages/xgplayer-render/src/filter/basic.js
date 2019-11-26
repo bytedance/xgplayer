@@ -53,7 +53,8 @@ class Basic extends Filter {
     GLUtil.bindAttribute(gl, texturePosBuffer, this.pw.texturePos, 2);
 
     GLUtil.createTexture(gl, gl.LINEAR);
-
+    gl.uniform1i(this.pw.sampler, 0);
+    
     gl.uniform1f(this.pw.opacity, this.opacity);
 
     let flipx = 0;
@@ -88,7 +89,6 @@ class Basic extends Filter {
   }
 
   render (texture, width, height) {
-    debugger;
     let gl = this.gl;
     let program = this.program;
     gl.useProgram(program);
