@@ -188,6 +188,11 @@ export default class Mp4Remuxer {
           sampleDuration = this.videoMeta.refSampleDuration
         }
       }
+
+      if (sampleDuration < 0) {
+        continue;
+      }
+
       this.videoAllDuration += sampleDuration
       // console.log(`video dts ${dts}`, `originDts ${avcSample.originDts}`, `pts ${pts}`, isKeyframe, `duration ${sampleDuration}`)
       mp4Samples.push({
@@ -293,6 +298,10 @@ export default class Mp4Remuxer {
         } else { // the only one sample, use reference sample duration
           sampleDuration = this.audioMeta.refSampleDuration
         }
+      }
+
+      if (sampleDuration < 0) {
+        continue;
       }
 
       // console.log(`audio dts ${dts}`, `pts ${dts}`, `originDts ${sample.originDts}`, `duration ${sampleDuration}`)
