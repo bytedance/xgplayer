@@ -2,7 +2,8 @@
     "name": "xgplayer",
     "version": "2.3.5-beta.0",
     "description": "video player",
-    "main": "./dist/index.js",
+    "main": "./dist/index.min.js",
+    "module": "./es/index.min.js",
     "typings": "./types/index.d.ts",
     "bin": {
         "xgplayer": "bin/xgplayer.js"

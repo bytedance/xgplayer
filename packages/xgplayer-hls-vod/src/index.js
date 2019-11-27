@@ -5,7 +5,7 @@ const HlsAllowedEvents = EVENTS.HlsAllowedEvents;
 const REMUX_EVENTS = EVENTS.REMUX_EVENTS;
 const HLS_EVENTS = EVENTS.HLS_EVENTS;
 
-export class HlsVodPlayer extends Player {
+export default class HlsVodPlayer extends Player {
   constructor (options) {
     super(options)
     this.hlsOps = {};
@@ -84,4 +84,3 @@ export class HlsVodPlayer extends Player {
     super.destroy();
   }
 }
-module.exports = HlsVodPlayer;

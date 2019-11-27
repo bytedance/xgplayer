@@ -1,6 +1,7 @@
-import {
-  requestAnimationFrame as req, cancelAnimationFrame as cancel, isSqrt, Color
-} from './util'
+import util from './util'
+const {
+  requestAnimationFrame: req, cancelAnimationFrame: cancel, isSqrt, Color
+} = util
 
 class Analyze {
   constructor (player, canvas) {

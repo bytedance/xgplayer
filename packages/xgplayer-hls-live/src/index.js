@@ -4,7 +4,7 @@ import HlsLiveController from './hls-live';
 const HlsAllowedEvents = EVENTS.HlsAllowedEvents;
 const REMUX_EVENTS = EVENTS.REMUX_EVENTS;
 
-export class HlsLivePlayer extends Player {
+export default class HlsLivePlayer extends Player {
   constructor (options) {
     super(options)
     this.hlsOps = {};
@@ -87,4 +87,3 @@ export class HlsLivePlayer extends Player {
     super.destroy();
   }
 }
-module.exports = HlsLivePlayer;

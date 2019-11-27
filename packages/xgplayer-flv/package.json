@@ -2,7 +2,8 @@
   "name": "xgplayer-flv",
   "version": "2.2.0-alpha.19",
   "description": "xgplayer transmuxer for FLV",
-  "main": "./dist/index.js",
+  "main": "./dist/index.min.js",
+  "module": "./es/index.min.js",
   "scripts": {
     "prepare": "npm run build",
     "build": "cross-env NODE_ENV=production rollup -c rollup.config.js",

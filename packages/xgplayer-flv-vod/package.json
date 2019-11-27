@@ -1,5 +1,5 @@
 {
-  "name": "xgplayer-flv-live",
+  "name": "xgplayer-flv-vod",
   "version": "2.2.0-alpha.0",
   "description": "",
   "main": "dist/index.min.js",

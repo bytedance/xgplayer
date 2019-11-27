@@ -2,14 +2,33 @@
   "name": "xgplayer-hls-vod",
   "version": "2.2.0-alpha.0",
   "description": "",
-  "main": "index.js",
+  "main": "dist/index.min.js",
+  "module": "es/index.min.js",
   "scripts": {
-    "build": "webpack",
-    "development": "webpack --config webpack.config.dev.js",
-    "watch": "webpack --config webpack.config.dev.js --watch",
-    "dev": "webpack --config webpack.config.dev.js"
+    "prepare": "npm run build",
+    "build": "cross-env NODE_ENV=production rollup -c rollup.config.js",
+    "watch": "cross-env NODE_ENV=development rollup -c rollup.config.js --watch"
   },
   "author": "",
+  "babel": {
+    "presets": [
+      [
+        "env",
+        {
+          "targets": {
+            "chrome": 58,
+            "ie": 10
+          },
+          "modules": false,
+          "useBuiltIns": "entry",
+          "corejs": 3
+        }
+      ]
+    ],
+    "plugins": [
+      "external-helpers"
+    ]
+  },
   "license": "ISC",
   "dependencies": {
     "xgplayer-loader": "^2.2.0-alpha.0",
@@ -19,8 +38,5 @@
     "xgplayer-remux": "^2.2.0-alpha.0",
     "xgplayer-utils": "^2.2.0-alpha.0"
   },
-  "devDependencies": {
-    "webpack": "^4.10.2",
-    "webpack-merge": "^4.2.2"
-  }
+  "devDependencies": {}
 }
