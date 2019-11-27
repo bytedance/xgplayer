@@ -23,12 +23,11 @@ class Render {
 
     this.filters = [];
 
-    if (config.opacity !== undefined &&
-       !!config.flip) {
-      this.basicFilter = new Basic({opacity: config.opacity, flip: config.flip});
-    } else {
-      this.basicFilter = new Basic({opacity: 1});
-    }
+
+    this.basicFilter = new Basic({
+      opacity: config.opacity !== undefined ? config.opacity : 1,
+      flip : config.flip || undefined
+    });
 
     if (config.filters) {
       for (let i = 0; i < config.filters.length; i++) {
