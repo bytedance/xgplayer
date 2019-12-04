@@ -1,13 +1,9 @@
-var _createClass = function () { function defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ("value" in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } } return function (Constructor, protoProps, staticProps) { if (protoProps) defineProperties(Constructor.prototype, protoProps); if (staticProps) defineProperties(Constructor, staticProps); return Constructor; }; }();
-
-function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } }
-
 import EVENTS from '../constants/events';
 var CRYTO_EVENTS = EVENTS.CRYTO_EVENTS;
 
 var Crypto = function () {
     function Crypto(config) {
-        _classCallCheck(this, Crypto);
+        babelHelpers.classCallCheck(this, Crypto);
 
         this.inputBuffer = config.inputbuffer;
         this.outputBuffer = config.outputbuffer;
@@ -18,7 +14,7 @@ var Crypto = function () {
         this.crypto = window.crypto || window.msCrypto;
     }
 
-    _createClass(Crypto, [{
+    babelHelpers.createClass(Crypto, [{
         key: 'init',
         value: function init() {
             this.on(CRYTO_EVENTS.START_DECRYPT, this.decript.bind(this));
@@ -55,7 +51,6 @@ var Crypto = function () {
             }
         }
     }]);
-
     return Crypto;
 }();
 

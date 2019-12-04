@@ -20,26 +20,39 @@ class Logger {
 const FLV_ERROR = 'FLV_ERROR'
 
 export default class FlvController {
-  constructor (player) {
+  constructor (player, mse) {
     this.TAG = Tag
     this._player = player
-
     this.state = {
       initSegmentArrived: false,
       randomAccessPoints: []
     }
 
+    this.mse = mse;
+
     this.bufferClearTimer = null;
+
+    this._handleTimeUpdate = this._handleTimeUpdate.bind(this)
   }
 
   init () {
+    if (!this.mse) {
+      this.mse = new Mse({ container: this._player.video }, this._context);
+      this.mse.init();
+    }
+
+    this.initComponents();
+    this.initListeners()
+  }
+
+  initComponents () {
     this._context.registry('FETCH_LOADER', FetchLoader)
     this._context.registry('LOADER_BUFFER', XgBuffer)
 
     this._context.registry('FLV_DEMUXER', FlvDemuxer)
     this._context.registry('TRACKS', Tracks)
 
-    this._context.registry('MP4_REMUXER', Remuxer.Mp4Remuxer)
+    this._context.registry('MP4_REMUXER', Remuxer.Mp4Remuxer)(this._player.currentTime)
     this._context.registry('PRE_SOURCE_BUFFER', PreSource)
 
     if (this._player.config.compatibility !== false) {
@@ -47,11 +60,6 @@ export default class FlvController {
     }
 
     this._context.registry('LOGGER', Logger)
-    this.mse = this._context.registry('MSE', Mse)({ container: this._player.video })
-
-    this._handleTimeUpdate = this._handleTimeUpdate.bind(this)
-
-    this.initListeners()
   }
 
   initListeners () {
@@ -205,8 +213,8 @@ export default class FlvController {
     }
   }
 
-  loadData () {
-    this.emit(LOADER_EVENTS.LADER_START, this._player.config.url)
+  loadData (url = this._player.config.url) {
+    this.emit(LOADER_EVENTS.LADER_START, url)
   }
 
   pause () {

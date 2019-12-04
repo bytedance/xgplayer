@@ -1,7 +1,3 @@
-var _createClass = function () { function defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ("value" in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } } return function (Constructor, protoProps, staticProps) { if (protoProps) defineProperties(Constructor.prototype, protoProps); if (staticProps) defineProperties(Constructor, staticProps); return Constructor; }; }();
-
-function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } }
-
 import { EVENTS, AudioTrackMeta, VideoTrackMeta } from 'xgplayer-utils';
 import { SpsParser } from 'xgplayer-codec';
 import { VideoTrack, AudioTrack } from 'xgplayer-buffer';
@@ -12,14 +8,14 @@ var DEMUX_EVENTS = EVENTS.DEMUX_EVENTS;
 
 var FlvDemuxer = function () {
   function FlvDemuxer() {
-    _classCallCheck(this, FlvDemuxer);
+    babelHelpers.classCallCheck(this, FlvDemuxer);
 
     this._firstFragmentLoaded = false;
     this._trackNum = 0;
     this._hasScript = false;
   }
 
-  _createClass(FlvDemuxer, [{
+  babelHelpers.createClass(FlvDemuxer, [{
     key: 'init',
     value: function init() {
       this.on(DEMUX_EVENTS.DEMUX_START, this.doParseFlv.bind(this));
@@ -64,15 +60,10 @@ var FlvDemuxer = function () {
         this.doParseFlv();
       } else {
         this._firstFragmentLoaded = true;
-        var playType = FlvDemuxer.getPlayType(header[4]);
+        // const playType = FlvDemuxer.getPlayType(header[4])
 
-        if (playType.hasVideo) {
-          this.initVideoTrack();
-        }
-
-        if (playType.hasAudio) {
-          this.initAudioTrack();
-        }
+        this.initVideoTrack();
+        this.initAudioTrack();
       }
       this.doParseFlv();
     }
@@ -405,9 +396,9 @@ var FlvDemuxer = function () {
         audioMedia.sampleRate = audioSampleRate;
         audioMedia.sampleRateIndex = aacHeader.audioSampleRateIndex;
 
-        if (this._hasScript && !this._hasAudioSequence) {
+        if (!this._hasAudioSequence) {
           this.emit(DEMUX_EVENTS.METADATA_PARSED, 'audio');
-        } else if (this._hasScript && this._hasAudioSequence) {
+        } else {
           this.emit(DEMUX_EVENTS.AUDIO_METADATA_CHANGE);
           // this.emit(DEMUX_EVENTS.METADATA_PARSED, 'audio')
         }
@@ -508,9 +499,9 @@ var FlvDemuxer = function () {
           this._avcSequenceHeaderParser(chunk.data);
           var validate = this._datasizeValidator(chunk.datasize);
           if (validate) {
-            if (this._hasScript && !this._hasVideoSequence) {
+            if (!this._hasVideoSequence) {
               this.emit(DEMUX_EVENTS.METADATA_PARSED, 'video');
-            } else if (this._hasScript && this._hasVideoSequence) {
+            } else {
               this.emit(DEMUX_EVENTS.VIDEO_METADATA_CHANGE);
               // this.emit(DEMUX_EVENTS.METADATA_PARSED, 'video')
             }
@@ -745,7 +736,6 @@ var FlvDemuxer = function () {
       return result;
     }
   }]);
-
   return FlvDemuxer;
 }();
 

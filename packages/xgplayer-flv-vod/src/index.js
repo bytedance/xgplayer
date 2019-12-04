@@ -1,3 +1,4 @@
+import 'xgplayer-polyfills/babel/external-helpers';
 import Player from 'xgplayer'
 import { Context, EVENTS } from 'xgplayer-utils';
 import FLV from './flv-vod'
@@ -26,10 +27,38 @@ class FlvVodPlayer extends Player {
   }
 
   start () {
-    const flv = this.context.registry('FLV_CONTROLLER', FLV)(this)
-    this.flv = flv
-    this.context.init()
+    const flv = this.initFlv();
+
+    flv.loadMeta()
     super.start(flv.mse.url)
+  }
+
+  initFlv () {
+    const flv = this.context.registry('FLV_CONTROLLER', FLV)(this)
+    this.context.init();
+    this.flv = flv
+    this.mse = flv.mse;
+    return flv;
+  }
+
+  initFlvBackupEvents (flv, ctx) {
+    flv.once(EVENTS.REMUX_EVENTS.INIT_SEGMENT, () => {
+      let mediaLength = 3;
+      flv.on(EVENTS.REMUX_EVENTS.MEDIA_SEGMENT, () => {
+        mediaLength -= 1;
+        if (mediaLength === 0) {
+          // ensure switch smoothly
+          this.flv = flv;
+          this.mse.resetContext(ctx);
+          this.context.destroy();
+          this.context = ctx;
+        }
+      })
+    });
+
+    flv.once(EVENTS.LOADER_EVENTS.LOADER_ERROR, () => {
+      ctx.destroy()
+    })
   }
 
   initEvents () {
@@ -66,26 +95,32 @@ class FlvVodPlayer extends Player {
     }
   }
 
+  swithURL (url) {
+    this.config.url = url;
+    const context = new Context(flvAllowedEvents);
+    const flv = context.registry('FLV_CONTROLLER', FLV)(this, this.mse)
+    context.init()
+    const remuxer = context.getInstance('MP4_REMUXER');
+    remuxer._dtsBase = 0;
+    this.initFlvBackupEvents(flv, context);
+    flv.loadMeta();
+  }
+
+  get remuxer () {
+    return this.context.getInstance('MP4_REMUXER');
+  }
+
   get src () {
     return this.currentSrc
   }
 
   set src (url) {
-    this.player.config.url = url
-    if (!this.paused) {
-      this.pause()
-      this.once('pause', () => {
-        this.start(url)
-      })
-      this.once('canplay', () => {
-        this.play()
-      })
-    } else {
-      this.start(url)
-    }
-    this.once('canplay', () => {
-      this.currentTime = 0
-    })
+    return this.swithURL(url)
+  }
+
+  static isSupported () {
+    return window.MediaSource &&
+      window.MediaSource.isTypeSupported('video/mp4; codecs="avc1.42E01E,mp4a.40.2"');
   }
 }
 

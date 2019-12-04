@@ -1,3 +1,4 @@
+import 'xgplayer-polyfills/babel/external-helpers';
 import Player from 'xgplayer'
 import { Context, EVENTS } from 'xgplayer-utils';
 import FLV from './flv-live'
@@ -44,6 +45,40 @@ class FlvPlayer extends Player {
     })
   }
 
+  initFlvBackupEvents (flv, ctx) {
+    let mediaLength = 3;
+    flv.on(EVENTS.REMUX_EVENTS.MEDIA_SEGMENT, () => {
+      mediaLength -= 1;
+      if (mediaLength === 0) {
+        // ensure switch smoothly
+        this.flv = flv;
+        this.mse.resetContext(ctx);
+        this.context.destroy();
+        this.context = ctx;
+      }
+
+    })
+
+    flv.once(EVENTS.LOADER_EVENTS.LOADER_COMPLETE, () => {
+      // 直播完成，待播放器播完缓存后发送关闭事件
+      if (!this.paused) {
+        this.loaderCompleteTimer = setInterval(() => {
+          const end = this.getBufferedRange()[1]
+          if (Math.abs(this.currentTime - end) < 0.5) {
+            this.emit('ended')
+            window.clearInterval(this.loaderCompleteTimer)
+          }
+        }, 200)
+      } else {
+        this.emit('ended')
+      }
+    })
+
+    flv.once(EVENTS.LOADER_EVENTS.LOADER_ERROR, () => {
+      ctx.destroy()
+    })
+  }
+
   initEvents () {
     this.on('timeupdate', () => {
       this.loadData()
@@ -63,17 +98,17 @@ class FlvPlayer extends Player {
     const flv = this.context.registry('FLV_CONTROLLER', FLV)(this)
     this.initFlvEvents(flv)
     this.flv = flv
+    this.mse = flv.mse;
+    return flv;
   }
 
   play () {
     if (this._hasStart) {
       return this._destroy().then(() => {
         this.context = new Context(flvAllowedEvents)
-        const flv = this.context.registry('FLV_CONTROLLER', FLV)(this)
-        this.initFlvEvents(flv)
-        this.flv = flv
+        this.initFlv();
         this.context.init()
-        super.start(flv.mse.url)
+        super.start(this.mse.url)
         return super.play()
       })
 
@@ -117,21 +152,20 @@ class FlvPlayer extends Player {
   }
 
   set src (url) {
-    this.player.config.url = url
-    if (!this.paused) {
-      this.pause()
-      this.once('pause', () => {
-        this.start(url)
-      })
-      this.once('canplay', () => {
-        this.play()
-      })
-    } else {
-      this.start(url)
-    }
-    this.once('canplay', () => {
-      this.currentTime = 0
-    })
+    this.switchURL(url)
+  }
+
+  switchURL (url) {
+    const context = new Context(flvAllowedEvents);
+    const flv = context.registry('FLV_CONTROLLER', FLV)(this, this.mse)
+    context.init()
+    this.initFlvBackupEvents(flv, context);
+    flv.loadData(url);
+  }
+
+  static isSupported () {
+    return window.MediaSource &&
+      window.MediaSource.isTypeSupported('video/mp4; codecs="avc1.42E01E,mp4a.40.2"');
   }
 }
 

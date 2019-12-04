@@ -179,7 +179,7 @@ class TsDemuxer {
       } else if (nal.pps) {
         track.pps = nal.body;
         pps = nal;
-      } else {
+      } else if (nal.type < 9){
         sampleLength += (4 + nal.body.byteLength);
       }
     }
@@ -206,6 +206,9 @@ class TsDemuxer {
     let isKeyframe = false;
     for (let i = 0; i < nals.length; i++) {
       let nal = nals[i];
+      if (nal.type && nal.type >= 9) {
+        continue;
+      }
       let length = nal.body.byteLength;
       if (nal.idr) {
         isKeyframe = true;

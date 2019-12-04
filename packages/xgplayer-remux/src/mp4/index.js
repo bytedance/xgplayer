@@ -9,8 +9,8 @@ import Fmp4 from './fmp4'
 const REMUX_EVENTS = EVENTS.REMUX_EVENTS
 
 export default class Mp4Remuxer {
-  constructor () {
-    this._dtsBase = 0
+  constructor (curTime = 0) {
+    this._dtsBase = curTime * 1000
     this._isDtsBaseInited = false
     this._audioNextDts = null
     this._videoNextDts = null
@@ -117,7 +117,7 @@ export default class Mp4Remuxer {
       videoBase = videoTrack.samples[0].dts
     }
 
-    this._dtsBase = Math.min(audioBase, videoBase)
+    this._dtsBase = Math.min(audioBase, videoBase) - this._dtsBase; // 兼容播放器切换清晰度
     this._isDtsBaseInited = true
   }
 
@@ -143,7 +143,7 @@ export default class Mp4Remuxer {
       const avcSample = samples.shift()
 
       const { isKeyframe, options } = avcSample
-      if (!this.isFirstAudio && options && options.meta) {
+      if (!this.isFirstVideo && options && options.meta) {
         initSegment = this.remuxInitSegment('video', options.meta)
         options.meta = null
         samples.unshift(avcSample)
@@ -193,24 +193,26 @@ export default class Mp4Remuxer {
       }
       this.videoAllDuration += sampleDuration
       // console.log(`video dts ${dts}`, `pts ${pts}`, isKeyframe, `duration ${sampleDuration}`)
-      mp4Samples.push({
-        dts,
-        cts,
-        pts,
-        data: avcSample.data,
-        size: avcSample.data.byteLength,
-        isKeyframe,
-        duration: sampleDuration,
-        flags: {
-          isLeading: 0,
-          dependsOn: isKeyframe ? 2 : 1,
-          isDependedOn: isKeyframe ? 1 : 0,
-          hasRedundancy: 0,
-          isNonSync: isKeyframe ? 0 : 1
-        },
-        originDts: dts,
-        type: 'video'
-      })
+      if (sampleDuration >= 0) {
+        mp4Samples.push({
+          dts,
+          cts,
+          pts,
+          data: avcSample.data,
+          size: avcSample.data.byteLength,
+          isKeyframe,
+          duration: sampleDuration,
+          flags: {
+            isLeading: 0,
+            dependsOn: isKeyframe ? 2 : 1,
+            isDependedOn: isKeyframe ? 1 : 0,
+            hasRedundancy: 0,
+            isNonSync: isKeyframe ? 0 : 1
+          },
+          originDts: dts,
+          type: 'video'
+        })
+      }
 
       if (isKeyframe) {
         this.emit(REMUX_EVENTS.RANDOM_ACCESS_POINT, pts)
@@ -329,8 +331,9 @@ export default class Mp4Remuxer {
       mdatSample.size += data.byteLength
 
       mdatBox.samples.push(mdatSample)
-
-      mp4Samples.push(mp4Sample)
+      if (sampleDuration >= 0) {
+        mp4Samples.push(mp4Sample)
+      }
     }
 
     const moofMdat = new Buffer()
@@ -411,5 +414,9 @@ export default class Mp4Remuxer {
       return new Uint8Array([0x00, 0xc8, 0x00, 0x80, 0x20, 0x84, 0x01, 0x26, 0x40, 0x08, 0x64, 0x00, 0x82, 0x30, 0x04, 0x99, 0x00, 0x21, 0x90, 0x02, 0x00, 0xb2, 0x00, 0x20, 0x08, 0xe0])
     }
     return null
+  }
+
+  destroy () {
+    this._player = null;
   }
 }

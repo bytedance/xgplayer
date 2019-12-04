@@ -21,13 +21,10 @@
             "ie": 10
           },
           "modules": false,
-          "useBuiltIns": "entry",
+          "useBuiltIns": "usage",
           "corejs": 3
         }
       ]
-    ],
-    "plugins": [
-      "external-helpers"
     ]
   },
   "dependencies": {
@@ -36,7 +33,8 @@
     "xgplayer-demux": "^2.2.0-alpha.0",
     "xgplayer-loader": "^2.2.0-alpha.0",
     "xgplayer-remux": "^2.2.0-alpha.0",
-    "xgplayer-utils": "^2.2.0-alpha.0"
+    "xgplayer-utils": "^2.2.0-alpha.0",
+    "xgplayer-polyfills": "^2.2.0-alpha.0"
 },
   "devDependencies": {}
 }

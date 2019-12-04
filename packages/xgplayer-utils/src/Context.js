@@ -6,6 +6,9 @@ const DIRECT_EMIT_FLAG = '__TO__'
 class Context {
   constructor (allowedEvents = []) {
     this._emitter = new EventEmitter()
+    if (!this._emitter.off) {
+      this._emitter.off = this._emitter.removeListener;
+    }
     this._instanceMap = {} // 所有的解码流程实例
     this._clsMap = {} // 构造函数的map
     this._inited = false

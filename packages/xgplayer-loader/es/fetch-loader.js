@@ -1,9 +1,3 @@
-var _typeof = typeof Symbol === "function" && typeof Symbol.iterator === "symbol" ? function (obj) { return typeof obj; } : function (obj) { return obj && typeof Symbol === "function" && obj.constructor === Symbol && obj !== Symbol.prototype ? "symbol" : typeof obj; };
-
-var _createClass = function () { function defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ("value" in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } } return function (Constructor, protoProps, staticProps) { if (protoProps) defineProperties(Constructor.prototype, protoProps); if (staticProps) defineProperties(Constructor, staticProps); return Constructor; }; }();
-
-function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } }
-
 import { EVENTS } from 'xgplayer-utils';
 
 var LOADER_EVENTS = EVENTS.LOADER_EVENTS;
@@ -14,7 +8,7 @@ var READ_BUFFER = 3;
 
 var FetchLoader = function () {
   function FetchLoader(configs) {
-    _classCallCheck(this, FetchLoader);
+    babelHelpers.classCallCheck(this, FetchLoader);
 
     this.configs = Object.assign({}, configs);
     this.url = null;
@@ -28,7 +22,7 @@ var FetchLoader = function () {
     this._loaderTaskNo = 0;
   }
 
-  _createClass(FetchLoader, [{
+  babelHelpers.createClass(FetchLoader, [{
     key: 'init',
     value: function init() {
       this.on(LOADER_EVENTS.LADER_START, this.load.bind(this));
@@ -171,7 +165,7 @@ var FetchLoader = function () {
 
         // add custmor headers
         // 添加自定义头
-      };if (_typeof(this.configs.headers) === 'object') {
+      };if (babelHelpers.typeof(this.configs.headers) === 'object') {
         var configHeaders = this.configs.headers;
         for (var key in configHeaders) {
           if (configHeaders.hasOwnProperty(key)) {
@@ -180,7 +174,7 @@ var FetchLoader = function () {
         }
       }
 
-      if (_typeof(options.headers) === 'object') {
+      if (babelHelpers.typeof(options.headers) === 'object') {
         var optHeaders = options.headers;
         for (var _key in optHeaders) {
           if (optHeaders.hasOwnProperty(_key)) {
@@ -228,7 +222,6 @@ var FetchLoader = function () {
       return 'loader';
     }
   }]);
-
   return FetchLoader;
 }();
 

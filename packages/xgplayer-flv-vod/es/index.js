@@ -639,6 +639,9 @@ var Context = function () {
     _classCallCheck$1(this, Context);
 
     this._emitter = new EventEmitter();
+    if (!this._emitter.off) {
+      this._emitter.off = this._emitter.removeListener;
+    }
     this._instanceMap = {}; // 所有的解码流程实例
     this._clsMap = {}; // 构造函数的map
     this._inited = false;
@@ -1624,8 +1627,13 @@ function _classCallCheck$8(instance, Constructor) {
 }
 
 var MSE = function () {
-  function MSE(configs) {
+  function MSE(configs, context) {
     _classCallCheck$8(this, MSE);
+
+    if (context) {
+      this._context = context;
+      this.emit = context._emitter.emit.bind(context._emitter);
+    }
 
     this.configs = Object.assign({}, configs);
     this.container = this.configs.container;
@@ -1648,6 +1656,11 @@ var MSE = function () {
       this.url = this.container.src;
       this.container.addEventListener('timeupdate', this.onTimeUpdate);
       this.container.addEventListener('waiting', this.onWaiting);
+    }
+  }, {
+    key: 'resetContext',
+    value: function resetContext(newCtx) {
+      this._context = newCtx;
     }
   }, {
     key: 'onTimeUpdate',
@@ -2758,7 +2771,9 @@ var Nalunit = function () {
         var body = new Uint8Array(buffer.buffer.slice(start + header.byteLength, end));
         var unit = { header: header, body: body };
         Nalunit.analyseNal(unit);
-        nals.push(unit);
+        if (unit.type <= 9 && unit.type !== 0) {
+          nals.push(unit);
+        }
         buffer.skip(end - buffer.position);
         start = end;
       }
@@ -2777,7 +2792,9 @@ var Nalunit = function () {
           buffer.skip(length);
           var unit = { header: header, body: body };
           Nalunit.analyseNal(unit);
-          nals.push(unit);
+          if (unit.type <= 9 && unit.type !== 0) {
+            nals.push(unit);
+          }
         } else {
           break;
         }
@@ -2788,6 +2805,7 @@ var Nalunit = function () {
     key: 'analyseNal',
     value: function analyseNal(unit) {
       var type = unit.body[0] & 0x1f;
+      unit.type = type;
       switch (type) {
         case 1:
           // NDR
@@ -2955,8 +2973,7 @@ function _classCallCheck$g(instance, Constructor) {
   }
 }
 
-var REMUX_EVENTS$1 = EVENTS.REMUX_EVENTS,
-    LOADER_EVENTS$1 = EVENTS.LOADER_EVENTS;
+var REMUX_EVENTS$1 = EVENTS.REMUX_EVENTS;
 
 var Compatibility = function () {
   function Compatibility() {
@@ -2990,14 +3007,7 @@ var Compatibility = function () {
   _createClass$g(Compatibility, [{
     key: 'init',
     value: function init() {
-      var _this = this;
-
       this.before(REMUX_EVENTS$1.REMUX_MEDIA, this.doFix.bind(this));
-      this.on(LOADER_EVENTS$1.LOADER_COMPLETE, function () {
-        if (_this.videoLastSample) {
-          _this.videoTrack.samples.unshift(_this.videoLastSample);
-        }
-      });
     }
   }, {
     key: 'reset',
@@ -3462,19 +3472,28 @@ var Compatibility = function () {
           _firstAudioSample = this._firstAudioSample;
 
       if (_firstAudioSample) {
-        this.audioTrack.samples = this.audioTrack.samples.filter(function (sample, index) {
+        this.audioTrack.samples = this.audioTrack.samples.filter(function (sample) {
           if (sample === _firstAudioSample) {
             return true;
+          }
+
+          if (sample.duration !== undefined && sample.duration <= 0) {
+            return false;
           }
           return sample.dts > _firstAudioSample.dts;
         });
       }
 
       if (_firstVideoSample) {
-        this.videoTrack.samples = this.videoTrack.samples.filter(function (sample, index) {
+        this.videoTrack.samples = this.videoTrack.samples.filter(function (sample) {
           if (sample === _firstVideoSample) {
             return true;
           }
+
+          if (sample.duration !== undefined && sample.duration <= 0) {
+            return false;
+          }
+
           return sample.dts > _firstVideoSample.dts;
         });
       }
@@ -4324,15 +4343,10 @@ var FlvDemuxer = function () {
         this.doParseFlv();
       } else {
         this._firstFragmentLoaded = true;
-        var playType = FlvDemuxer.getPlayType(header[4]);
+        // const playType = FlvDemuxer.getPlayType(header[4])
 
-        if (playType.hasVideo) {
-          this.initVideoTrack();
-        }
-
-        if (playType.hasAudio) {
-          this.initAudioTrack();
-        }
+        this.initVideoTrack();
+        this.initAudioTrack();
       }
       this.doParseFlv();
     }
@@ -4665,9 +4679,9 @@ var FlvDemuxer = function () {
         audioMedia.sampleRate = audioSampleRate;
         audioMedia.sampleRateIndex = aacHeader.audioSampleRateIndex;
 
-        if (this._hasScript && !this._hasAudioSequence) {
+        if (!this._hasAudioSequence) {
           this.emit(DEMUX_EVENTS$1.METADATA_PARSED, 'audio');
-        } else if (this._hasScript && this._hasAudioSequence) {
+        } else {
           this.emit(DEMUX_EVENTS$1.AUDIO_METADATA_CHANGE);
           // this.emit(DEMUX_EVENTS.METADATA_PARSED, 'audio')
         }
@@ -4768,9 +4782,9 @@ var FlvDemuxer = function () {
           this._avcSequenceHeaderParser(chunk.data);
           var validate = this._datasizeValidator(chunk.datasize);
           if (validate) {
-            if (this._hasScript && !this._hasVideoSequence) {
+            if (!this._hasVideoSequence) {
               this.emit(DEMUX_EVENTS$1.METADATA_PARSED, 'video');
-            } else if (this._hasScript && this._hasVideoSequence) {
+            } else {
               this.emit(DEMUX_EVENTS$1.VIDEO_METADATA_CHANGE);
               // this.emit(DEMUX_EVENTS.METADATA_PARSED, 'video')
             }
@@ -5645,10 +5659,10 @@ function _classCallCheck$l(instance, Constructor) {
 var REMUX_EVENTS$2 = EVENTS.REMUX_EVENTS;
 
 var Mp4Remuxer = function () {
-  function Mp4Remuxer() {
+  function Mp4Remuxer(curTime) {
     _classCallCheck$l(this, Mp4Remuxer);
 
-    this._dtsBase = 0;
+    this._dtsBase = curTime * 1000;
     this._isDtsBaseInited = false;
     this._audioNextDts = null;
     this._videoNextDts = null;
@@ -5772,7 +5786,7 @@ var Mp4Remuxer = function () {
         videoBase = videoTrack.samples[0].dts;
       }
 
-      this._dtsBase = Math.min(audioBase, videoBase);
+      this._dtsBase = Math.min(audioBase, videoBase) - this._dtsBase; // 兼容播放器切换清晰度
       this._isDtsBaseInited = true;
     }
   }, {
@@ -5802,7 +5816,7 @@ var Mp4Remuxer = function () {
         var isKeyframe = avcSample.isKeyframe,
             options = avcSample.options;
 
-        if (!this.isFirstAudio && options && options.meta) {
+        if (!this.isFirstVideo && options && options.meta) {
           initSegment = this.remuxInitSegment('video', options.meta);
           options.meta = null;
           samples.unshift(avcSample);
@@ -5853,25 +5867,27 @@ var Mp4Remuxer = function () {
           }
         }
         this.videoAllDuration += sampleDuration;
-        // console.log(`video dts ${dts}`, `pts ${pts}`, isKeyframe, `duration ${sampleDuration}`)
-        mp4Samples.push({
-          dts: dts,
-          cts: cts,
-          pts: pts,
-          data: avcSample.data,
-          size: avcSample.data.byteLength,
-          isKeyframe: isKeyframe,
-          duration: sampleDuration,
-          flags: {
-            isLeading: 0,
-            dependsOn: isKeyframe ? 2 : 1,
-            isDependedOn: isKeyframe ? 1 : 0,
-            hasRedundancy: 0,
-            isNonSync: isKeyframe ? 0 : 1
-          },
-          originDts: dts,
-          type: 'video'
-        });
+        console.log('video dts ' + dts, 'pts ' + pts, isKeyframe, 'duration ' + sampleDuration);
+        if (sampleDuration >= 0) {
+          mp4Samples.push({
+            dts: dts,
+            cts: cts,
+            pts: pts,
+            data: avcSample.data,
+            size: avcSample.data.byteLength,
+            isKeyframe: isKeyframe,
+            duration: sampleDuration,
+            flags: {
+              isLeading: 0,
+              dependsOn: isKeyframe ? 2 : 1,
+              isDependedOn: isKeyframe ? 1 : 0,
+              hasRedundancy: 0,
+              isNonSync: isKeyframe ? 0 : 1
+            },
+            originDts: dts,
+            type: 'video'
+          });
+        }
 
         if (isKeyframe) {
           this.emit(REMUX_EVENTS$2.RANDOM_ACCESS_POINT, pts);
@@ -5997,8 +6013,9 @@ var Mp4Remuxer = function () {
         mdatSample.size += data.byteLength;
 
         mdatBox.samples.push(mdatSample);
-
-        mp4Samples.push(mp4Sample);
+        if (sampleDuration >= 0) {
+          mp4Samples.push(mp4Sample);
+        }
       }
 
       var moofMdat = new Buffer$1();
@@ -6059,6 +6076,11 @@ var Mp4Remuxer = function () {
       };
     }
   }, {
+    key: 'destroy',
+    value: function destroy() {
+      this._player = null;
+    }
+  }, {
     key: 'videoMeta',
     get: function get() {
       return this._context.getInstance('TRACKS').videoTrack.meta;
@@ -6117,7 +6139,7 @@ function _classCallCheck$m(instance, Constructor) {
   }
 }
 
-var LOADER_EVENTS$2 = EVENTS.LOADER_EVENTS;
+var LOADER_EVENTS$1 = EVENTS.LOADER_EVENTS;
 var READ_STREAM = 0;
 var READ_TEXT = 1;
 var READ_JSON = 2;
@@ -6142,7 +6164,7 @@ var FetchLoader = function () {
   _createClass$m(FetchLoader, [{
     key: 'init',
     value: function init() {
-      this.on(LOADER_EVENTS$2.LADER_START, this.load.bind(this));
+      this.on(LOADER_EVENTS$1.LADER_START, this.load.bind(this));
     }
   }, {
     key: 'load',
@@ -6161,10 +6183,10 @@ var FetchLoader = function () {
           return _this._onFetchResponse(response);
         }
         _this.loading = false;
-        _this.emit(LOADER_EVENTS$2.LOADER_ERROR, _this.TAG, new Error('invalid response.'));
+        _this.emit(LOADER_EVENTS$1.LOADER_ERROR, _this.TAG, new Error('invalid response.'));
       }).catch(function (error) {
         _this.loading = false;
-        _this.emit(LOADER_EVENTS$2.LOADER_ERROR, _this.TAG, error);
+        _this.emit(LOADER_EVENTS$1.LOADER_ERROR, _this.TAG, error);
         throw new Error(error.message);
       });
     }
@@ -6183,9 +6205,9 @@ var FetchLoader = function () {
               if (!_this._canceled && !_this._destroyed) {
                 if (buffer) {
                   buffer.push(data);
-                  _this.emit(LOADER_EVENTS$2.LOADER_COMPLETE, buffer);
+                  _this.emit(LOADER_EVENTS$1.LOADER_COMPLETE, buffer);
                 } else {
-                  _this.emit(LOADER_EVENTS$2.LOADER_COMPLETE, data);
+                  _this.emit(LOADER_EVENTS$1.LOADER_COMPLETE, data);
                 }
               }
             });
@@ -6196,9 +6218,9 @@ var FetchLoader = function () {
               if (!_this._canceled && !_this._destroyed) {
                 if (buffer) {
                   buffer.push(data);
-                  _this.emit(LOADER_EVENTS$2.LOADER_COMPLETE, buffer);
+                  _this.emit(LOADER_EVENTS$1.LOADER_COMPLETE, buffer);
                 } else {
-                  _this.emit(LOADER_EVENTS$2.LOADER_COMPLETE, data);
+                  _this.emit(LOADER_EVENTS$1.LOADER_COMPLETE, data);
                 }
               }
             });
@@ -6209,9 +6231,9 @@ var FetchLoader = function () {
               if (!_this._canceled && !_this._destroyed) {
                 if (buffer) {
                   buffer.push(new Uint8Array(data));
-                  _this.emit(LOADER_EVENTS$2.LOADER_COMPLETE, buffer);
+                  _this.emit(LOADER_EVENTS$1.LOADER_COMPLETE, buffer);
                 } else {
-                  _this.emit(LOADER_EVENTS$2.LOADER_COMPLETE, data);
+                  _this.emit(LOADER_EVENTS$1.LOADER_COMPLETE, data);
                 }
               }
             });
@@ -6256,16 +6278,16 @@ var FetchLoader = function () {
         if (val.done) {
           _this.loading = false;
           _this.status = 0;
-          _this.emit(LOADER_EVENTS$2.LOADER_COMPLETE, buffer);
+          _this.emit(LOADER_EVENTS$1.LOADER_COMPLETE, buffer);
           return;
         }
 
         buffer.push(val.value);
-        _this.emit(LOADER_EVENTS$2.LOADER_DATALOADED, buffer);
+        _this.emit(LOADER_EVENTS$1.LOADER_DATALOADED, buffer);
         return _this._onReader(reader, taskno);
       }).catch(function (error) {
         _this.loading = false;
-        _this.emit(LOADER_EVENTS$2.LOADER_ERROR, _this.TAG, error);
+        _this.emit(LOADER_EVENTS$1.LOADER_ERROR, _this.TAG, error);
       });
     }
   }, {
@@ -6347,7 +6369,7 @@ var FetchLoader$1 = FetchLoader;
 
 var REMUX_EVENTS$3 = EVENTS.REMUX_EVENTS;
 var DEMUX_EVENTS$2 = EVENTS.DEMUX_EVENTS;
-var LOADER_EVENTS$3 = EVENTS.LOADER_EVENTS;
+var LOADER_EVENTS$2 = EVENTS.LOADER_EVENTS;
 
 var Tag = 'FLVController';
 
@@ -6366,12 +6388,13 @@ var Logger = function () {
 var FLV_ERROR = 'FLV_ERROR';
 
 var FlvController = function () {
-  function FlvController(player) {
+  function FlvController(player, mse) {
     classCallCheck(this, FlvController);
 
     this.TAG = Tag;
     this._player = player;
 
+    this.mse = mse;
     this.state = {
       initSegmentArrived: false,
       range: {
@@ -6385,33 +6408,30 @@ var FlvController = function () {
   createClass(FlvController, [{
     key: 'init',
     value: function init() {
-      var _this = this;
-
       this._context.registry('FETCH_LOADER', FetchLoader$1);
       this._context.registry('LOADER_BUFFER', XgBuffer$1);
 
       this._context.registry('FLV_DEMUXER', FlvDemuxer);
       this._context.registry('TRACKS', Tracks$1);
 
-      this._context.registry('MP4_REMUXER', Remuxer.Mp4Remuxer);
+      this._context.registry('MP4_REMUXER', Remuxer.Mp4Remuxer)(this._player.currentTime);
       this._context.registry('PRE_SOURCE_BUFFER', PreSource$1);
 
       this._context.registry('COMPATIBILITY', Compatibility$1);
 
       this._context.registry('LOGGER', Logger);
-      this.mse = this._context.registry('MSE', Mse)({ container: this._player.video });
+      if (!this.mse) {
+        this.mse = new Mse({ container: this._player.video }, this._context);
+        this.mse.init();
+      }
 
       this.initListeners();
-
-      setTimeout(function () {
-        _this.loadMeta();
-      }, 0);
     }
   }, {
     key: 'initListeners',
     value: function initListeners() {
-      this.on(LOADER_EVENTS$3.LOADER_DATALOADED, this._handleLoaderDataLoaded.bind(this));
-      this.on(LOADER_EVENTS$3.LOADER_ERROR, this._handleNetworkError.bind(this));
+      this.on(LOADER_EVENTS$2.LOADER_DATALOADED, this._handleLoaderDataLoaded.bind(this));
+      this.on(LOADER_EVENTS$2.LOADER_ERROR, this._handleNetworkError.bind(this));
 
       this.on(DEMUX_EVENTS$2.MEDIA_INFO, this._handleMediaInfo.bind(this));
       this.on(DEMUX_EVENTS$2.METADATA_PARSED, this._handleMetadataParsed.bind(this));
@@ -6424,7 +6444,7 @@ var FlvController = function () {
   }, {
     key: '_handleMediaInfo',
     value: function _handleMediaInfo() {
-      var _this2 = this;
+      var _this = this;
 
       if (!this._context.onMetaData) {
         this.emit(DEMUX_EVENTS$2.DEMUX_ERROR, new Error('failed to get mediainfo'));
@@ -6439,7 +6459,7 @@ var FlvController = function () {
           end: buffer.historyLen - 1
         };
         setTimeout(function () {
-          _this2.loadNext(0);
+          _this.loadNext(0);
         });
       }
     }
@@ -6474,7 +6494,7 @@ var FlvController = function () {
     key: '_handleNetworkError',
     value: function _handleNetworkError(tag, err) {
       this._player.emit('error', new Player.Errors('network', this._player.config.url));
-      this._onError(LOADER_EVENTS$3.LOADER_ERROR, tag, err, true);
+      this._onError(LOADER_EVENTS$2.LOADER_ERROR, tag, err, true);
     }
   }, {
     key: '_handleDemuxError',
@@ -6483,7 +6503,7 @@ var FlvController = function () {
         fatal = false;
       }
       this._player.emit('error', new Player.Errors('parse', this._player.config.url));
-      this._onError(LOADER_EVENTS$3.LOADER_ERROR, tag, err, fatal);
+      this._onError(LOADER_EVENTS$2.LOADER_ERROR, tag, err, fatal);
     }
   }, {
     key: '_onError',
@@ -6518,6 +6538,7 @@ var FlvController = function () {
       if (this.compat) {
         this.compat.reset();
       }
+
       this.loadData();
     }
   }, {
@@ -6542,7 +6563,7 @@ var FlvController = function () {
           start = _state$range.start,
           end = _state$range.end;
 
-      this.emit(LOADER_EVENTS$3.LADER_START, this._player.config.url, {
+      this.emit(LOADER_EVENTS$2.LADER_START, this._player.config.url, {
         headers: {
           method: 'get',
           Range: 'bytes=' + start + '-' + end
@@ -6552,7 +6573,7 @@ var FlvController = function () {
   }, {
     key: 'loadMeta',
     value: function loadMeta() {
-      var _this3 = this;
+      var _this2 = this;
 
       this.loader.load(this._player.config.url, {
         headers: {
@@ -6560,18 +6581,18 @@ var FlvController = function () {
         }
       }).catch(function () {
         // 在尝试获取视频数据失败时，尝试使用直播方式加载整个视频
-        _this3.state.rangeSupport = false;
-        _this3.loadFallback();
+        _this2.state.rangeSupport = false;
+        _this2.loadFallback();
       });
     }
   }, {
     key: 'loadFallback',
     value: function loadFallback() {
-      var _this4 = this;
+      var _this3 = this;
 
       this.loader.load(this._player.config.url).catch(function () {
         // 在尝试获取视频数据失败时，尝试使用直播方式加载整个视频
-        _this4._player.emit('error', new Player.Errors('network', _this4._player.config.url));
+        _this3._player.emit('error', new Player.Errors('network', _this3._player.config.url));
       });
     }
   }, {
@@ -6635,14 +6656,11 @@ var FlvController = function () {
   }, {
     key: 'isSeekable',
     get: function get() {
-      if (!this.state.rangeSupport) {
+      if (!this.state.rangeSupport || !this._context) {
         return false;
       }
 
-      if (!this._context || !this._context.mediaInfo.isComplete()) {
-        return true;
-      }
-      return this._context.mediaInfo.keyframes !== null && this._context.mediaInfo.keyframes !== undefined;
+      return this._context.onMetaData.keyframes !== null && this._context.onMetaData.keyframes !== undefined;
     }
   }, {
     key: 'config',
@@ -6658,6 +6676,11 @@ var FlvController = function () {
     key: 'compat',
     get: function get() {
       return this._context.getInstance('COMPATIBILITY');
+    }
+  }, {
+    key: 'loadBuffer',
+    get: function get() {
+      return this_context.getInstance('LOADER_BUFFER');
     }
   }], [{
     key: 'findFilePosition',
@@ -6710,10 +6733,42 @@ var FlvVodPlayer = function (_Player) {
   createClass(FlvVodPlayer, [{
     key: 'start',
     value: function start() {
-      var flv = this.context.registry('FLV_CONTROLLER', FlvController)(this);
-      this.flv = flv;
-      this.context.init();
+      var flv = this.initFlv();
+
+      flv.loadMeta();
       get(FlvVodPlayer.prototype.__proto__ || Object.getPrototypeOf(FlvVodPlayer.prototype), 'start', this).call(this, flv.mse.url);
+    }
+  }, {
+    key: 'initFlv',
+    value: function initFlv() {
+      var flv = this.context.registry('FLV_CONTROLLER', FlvController)(this);
+      this.context.init();
+      this.flv = flv;
+      this.mse = flv.mse;
+      return flv;
+    }
+  }, {
+    key: 'initFlvBackupEvents',
+    value: function initFlvBackupEvents(flv, ctx) {
+      var _this2 = this;
+
+      flv.once(EVENTS.REMUX_EVENTS.INIT_SEGMENT, function () {
+        var mediaLength = 3;
+        flv.on(EVENTS.REMUX_EVENTS.MEDIA_SEGMENT, function () {
+          mediaLength -= 1;
+          if (mediaLength === 0) {
+            // ensure switch smoothly
+            _this2.flv = flv;
+            _this2.mse.resetContext(ctx);
+            _this2.context.destroy();
+            _this2.context = ctx;
+          }
+        });
+      });
+
+      flv.once(EVENTS.LOADER_EVENTS.LOADER_ERROR, function () {
+        ctx.destroy();
+      });
     }
   }, {
     key: 'initEvents',
@@ -6757,28 +6812,34 @@ var FlvVodPlayer = function (_Player) {
       }
     }
   }, {
+    key: 'swithURL',
+    value: function swithURL(url) {
+      this.config.url = url;
+      var context = new Context$1(flvAllowedEvents);
+      var flv = context.registry('FLV_CONTROLLER', FlvController)(this, this.mse);
+      context.init();
+      var remuxer = context.getInstance('MP4_REMUXER');
+      remuxer._dtsBase = 0;
+      this.initFlvBackupEvents(flv, context);
+      flv.loadMeta();
+    }
+  }, {
+    key: 'remuxer',
+    get: function get() {
+      return this.context.getInstance('MP4_REMUXER');
+    }
+  }, {
     key: 'src',
     get: function get() {
       return this.currentSrc;
     },
     set: function set(url) {
-      var _this2 = this;
-
-      this.player.config.url = url;
-      if (!this.paused) {
-        this.pause();
-        this.once('pause', function () {
-          _this2.start(url);
-        });
-        this.once('canplay', function () {
-          _this2.play();
-        });
-      } else {
-        this.start(url);
-      }
-      this.once('canplay', function () {
-        _this2.currentTime = 0;
-      });
+      return this.swithURL(url);
+    }
+  }], [{
+    key: 'isSupported',
+    value: function isSupported() {
+      return window.MediaSource && window.MediaSource.isTypeSupported('video/mp4; codecs="avc1.42E01E,mp4a.40.2"');
     }
   }]);
   return FlvVodPlayer;

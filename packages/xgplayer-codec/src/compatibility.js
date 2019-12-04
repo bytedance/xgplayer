@@ -32,11 +32,6 @@ class Compatibility {
 
   init () {
     this.before(REMUX_EVENTS.REMUX_MEDIA, this.doFix.bind(this))
-    this.on(LOADER_EVENTS.LOADER_COMPLETE, () => {
-      if (this.videoLastSample) {
-        this.videoTrack.samples.unshift(this.videoLastSample)
-      }
-    })
   }
 
   reset () {
@@ -469,19 +464,28 @@ class Compatibility {
     const { _firstVideoSample, _firstAudioSample } = this
 
     if (_firstAudioSample) {
-      this.audioTrack.samples = this.audioTrack.samples.filter((sample, index) => {
+      this.audioTrack.samples = this.audioTrack.samples.filter((sample) => {
         if (sample === _firstAudioSample) {
           return true;
+        }
+
+        if (sample.duration !== undefined && sample.duration <= 0) {
+          return false;
         }
         return sample.dts > _firstAudioSample.dts
       })
     }
 
     if (_firstVideoSample) {
-      this.videoTrack.samples = this.videoTrack.samples.filter((sample, index) => {
+      this.videoTrack.samples = this.videoTrack.samples.filter((sample) => {
         if (sample === _firstVideoSample) {
           return true;
         }
+
+        if (sample.duration !== undefined && sample.duration <= 0) {
+          return false;
+        }
+
         return sample.dts > _firstVideoSample.dts
       })
     }

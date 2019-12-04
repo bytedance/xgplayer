@@ -1,3 +1,4 @@
+import 'xgplayer-polyfills/babel/external-helpers';
 import Player from 'xgplayer'
 import { Context, EVENTS } from 'xgplayer-utils';
 import HlsVodController from './hls-vod';

@@ -19,10 +19,11 @@ class Logger {
 const FLV_ERROR = 'FLV_ERROR'
 
 class FlvController {
-  constructor (player) {
+  constructor (player, mse) {
     this.TAG = Tag
     this._player = player
 
+    this.mse = mse;
     this.state = {
       initSegmentArrived: false,
       range: {
@@ -53,19 +54,19 @@ class FlvController {
     this._context.registry('FLV_DEMUXER', FlvDemuxer)
     this._context.registry('TRACKS', Tracks)
 
-    this._context.registry('MP4_REMUXER', Remuxer.Mp4Remuxer)
+    this._context.registry('MP4_REMUXER', Remuxer.Mp4Remuxer)(this._player.currentTime)
     this._context.registry('PRE_SOURCE_BUFFER', PreSource)
 
     this._context.registry('COMPATIBILITY', Compatibility)
 
     this._context.registry('LOGGER', Logger)
-    this.mse = this._context.registry('MSE', Mse)({ container: this._player.video })
+    if (!this.mse) {
+      this.mse = new Mse({ container: this._player.video }, this._context);
+      this.mse.init();
+    }
 
     this.initListeners()
 
-    setTimeout(() => {
-      this.loadMeta()
-    }, 0)
   }
 
   initListeners () {
@@ -163,6 +164,7 @@ class FlvController {
     if (this.compat) {
       this.compat.reset()
     }
+
     this.loadData()
   }
 
@@ -235,7 +237,6 @@ class FlvController {
     if (this.state.range.end === '') {
       return;
     }
-
     const { end } = this.getSeekRange(time, this.config.preloadTime || 15)
     if (end <= this.state.range.end && end !== '') {
       return;
@@ -262,14 +263,11 @@ class FlvController {
   }
 
   get isSeekable () {
-    if (!this.state.rangeSupport) {
+    if (!this.state.rangeSupport || !this._context) {
       return false
     }
 
-    if (!this._context || !this._context.mediaInfo.isComplete()) {
-      return true
-    }
-    return this._context.mediaInfo.keyframes !== null && this._context.mediaInfo.keyframes !== undefined
+    return this._context.onMetaData.keyframes !== null && this._context.onMetaData.keyframes !== undefined
   }
 
   get config () {
@@ -282,6 +280,10 @@ class FlvController {
 
   get compat () {
     return this._context.getInstance('COMPATIBILITY')
+  }
+
+  get loadBuffer () {
+    return this_context.getInstance('LOADER_BUFFER')
   }
 }
 

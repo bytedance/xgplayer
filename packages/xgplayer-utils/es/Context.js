@@ -1,13 +1,3 @@
-var _get = function get(object, property, receiver) { if (object === null) object = Function.prototype; var desc = Object.getOwnPropertyDescriptor(object, property); if (desc === undefined) { var parent = Object.getPrototypeOf(object); if (parent === null) { return undefined; } else { return get(parent, property, receiver); } } else if ("value" in desc) { return desc.value; } else { var getter = desc.get; if (getter === undefined) { return undefined; } return getter.call(receiver); } };
-
-var _createClass = function () { function defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ("value" in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } } return function (Constructor, protoProps, staticProps) { if (protoProps) defineProperties(Constructor.prototype, protoProps); if (staticProps) defineProperties(Constructor, staticProps); return Constructor; }; }();
-
-function _possibleConstructorReturn(self, call) { if (!self) { throw new ReferenceError("this hasn't been initialised - super() hasn't been called"); } return call && (typeof call === "object" || typeof call === "function") ? call : self; }
-
-function _inherits(subClass, superClass) { if (typeof superClass !== "function" && superClass !== null) { throw new TypeError("Super expression must either be null or a function, not " + typeof superClass); } subClass.prototype = Object.create(superClass && superClass.prototype, { constructor: { value: subClass, enumerable: false, writable: true, configurable: true } }); if (superClass) Object.setPrototypeOf ? Object.setPrototypeOf(subClass, superClass) : subClass.__proto__ = superClass; }
-
-function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } }
-
 import MediaInfo from './models/media-info';
 import { EventEmitter } from 'events';
 
@@ -16,10 +6,12 @@ var DIRECT_EMIT_FLAG = '__TO__';
 var Context = function () {
   function Context() {
     var allowedEvents = arguments.length > 0 && arguments[0] !== undefined ? arguments[0] : [];
-
-    _classCallCheck(this, Context);
+    babelHelpers.classCallCheck(this, Context);
 
     this._emitter = new EventEmitter();
+    if (!this._emitter.off) {
+      this._emitter.off = this._emitter.removeListener;
+    }
     this._instanceMap = {}; // 所有的解码流程实例
     this._clsMap = {}; // 构造函数的map
     this._inited = false;
@@ -37,7 +29,7 @@ var Context = function () {
    */
 
 
-  _createClass(Context, [{
+  babelHelpers.createClass(Context, [{
     key: 'getInstance',
     value: function getInstance(tag) {
       var instance = this._instanceMap[tag];
@@ -109,12 +101,12 @@ var Context = function () {
       var checkMessageName = this._isMessageNameValid.bind(this);
       var self = this;
       var enhanced = function (_cls) {
-        _inherits(enhanced, _cls);
+        babelHelpers.inherits(enhanced, _cls);
 
         function enhanced(a, b, c) {
-          _classCallCheck(this, enhanced);
+          babelHelpers.classCallCheck(this, enhanced);
 
-          var _this = _possibleConstructorReturn(this, (enhanced.__proto__ || Object.getPrototypeOf(enhanced)).call(this, a, b, c));
+          var _this = babelHelpers.possibleConstructorReturn(this, (enhanced.__proto__ || Object.getPrototypeOf(enhanced)).call(this, a, b, c));
 
           _this.listeners = {};
           _this.onceListeners = {};
@@ -123,7 +115,7 @@ var Context = function () {
           return _this;
         }
 
-        _createClass(enhanced, [{
+        babelHelpers.createClass(enhanced, [{
           key: 'on',
           value: function on(messageName, callback) {
             checkMessageName(messageName);
@@ -266,12 +258,11 @@ var Context = function () {
 
             // step2 release from context
             delete self._instanceMap[tag];
-            if (_get(enhanced.prototype.__proto__ || Object.getPrototypeOf(enhanced.prototype), 'destroy', this)) {
-              return _get(enhanced.prototype.__proto__ || Object.getPrototypeOf(enhanced.prototype), 'destroy', this).call(this);
+            if (babelHelpers.get(enhanced.prototype.__proto__ || Object.getPrototypeOf(enhanced.prototype), 'destroy', this)) {
+              return babelHelpers.get(enhanced.prototype.__proto__ || Object.getPrototypeOf(enhanced.prototype), 'destroy', this).call(this);
             }
           }
         }]);
-
         return enhanced;
       }(cls);
       this._clsMap[tag] = enhanced;
@@ -335,7 +326,6 @@ var Context = function () {
       }
     }
   }]);
-
   return Context;
 }();
 

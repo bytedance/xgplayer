@@ -77,15 +77,10 @@ class FlvDemuxer {
       this.doParseFlv()
     } else {
       this._firstFragmentLoaded = true
-      const playType = FlvDemuxer.getPlayType(header[4])
+      // const playType = FlvDemuxer.getPlayType(header[4])
 
-      if (playType.hasVideo) {
-        this.initVideoTrack()
-      }
-
-      if (playType.hasAudio) {
-        this.initAudioTrack()
-      }
+      this.initVideoTrack()
+      this.initAudioTrack()
     }
     this.doParseFlv()
   }
@@ -398,9 +393,9 @@ class FlvDemuxer {
       audioMedia.sampleRate = audioSampleRate
       audioMedia.sampleRateIndex = aacHeader.audioSampleRateIndex
 
-      if (this._hasScript && !this._hasAudioSequence) {
+      if (!this._hasAudioSequence) {
         this.emit(DEMUX_EVENTS.METADATA_PARSED, 'audio')
-      } else if (this._hasScript && this._hasAudioSequence) {
+      } else {
         this.emit(DEMUX_EVENTS.AUDIO_METADATA_CHANGE)
         // this.emit(DEMUX_EVENTS.METADATA_PARSED, 'audio')
       }
@@ -498,9 +493,9 @@ class FlvDemuxer {
         this._avcSequenceHeaderParser(chunk.data)
         let validate = this._datasizeValidator(chunk.datasize)
         if (validate) {
-          if (this._hasScript && !this._hasVideoSequence) {
+          if (!this._hasVideoSequence) {
             this.emit(DEMUX_EVENTS.METADATA_PARSED, 'video')
-          } else if (this._hasScript && this._hasVideoSequence) {
+          } else {
             this.emit(DEMUX_EVENTS.VIDEO_METADATA_CHANGE)
             // this.emit(DEMUX_EVENTS.METADATA_PARSED, 'video')
           }

@@ -1,8 +1,8 @@
 (function (global, factory) {
-  typeof exports === 'object' && typeof module !== 'undefined' ? factory(exports, require('xgplayer')) :
-  typeof define === 'function' && define.amd ? define(['exports', 'xgplayer'], factory) :
-  (global = global || self, factory(global.HlsVodPlayer = {}, global.Player));
-}(this, (function (exports, Player) { 'use strict';
+  typeof exports === 'object' && typeof module !== 'undefined' ? module.exports = factory(require('xgplayer')) :
+  typeof define === 'function' && define.amd ? define(['xgplayer'], factory) :
+  (global = global || self, global.HlsVodPlayer = factory(global.Player));
+}(this, (function (Player) { 'use strict';
 
   Player = Player && Player.hasOwnProperty('default') ? Player['default'] : Player;
 
@@ -667,6 +667,9 @@
       _classCallCheck$1(this, Context);
 
       this._emitter = new EventEmitter();
+      if (!this._emitter.off) {
+        this._emitter.off = this._emitter.removeListener;
+      }
       this._instanceMap = {}; // 所有的解码流程实例
       this._clsMap = {}; // 构造函数的map
       this._inited = false;
@@ -3420,7 +3423,9 @@
           var body = new Uint8Array(buffer.buffer.slice(start + header.byteLength, end));
           var unit = { header: header, body: body };
           Nalunit.analyseNal(unit);
-          nals.push(unit);
+          if (unit.type <= 9 && unit.type !== 0) {
+            nals.push(unit);
+          }
           buffer.skip(end - buffer.position);
           start = end;
         }
@@ -3439,7 +3444,9 @@
             buffer.skip(length);
             var unit = { header: header, body: body };
             Nalunit.analyseNal(unit);
-            nals.push(unit);
+            if (unit.type <= 9 && unit.type !== 0) {
+              nals.push(unit);
+            }
           } else {
             break;
           }
@@ -3450,6 +3457,7 @@
       key: 'analyseNal',
       value: function analyseNal(unit) {
         var type = unit.body[0] & 0x1f;
+        unit.type = type;
         switch (type) {
           case 1:
             // NDR
@@ -5682,7 +5690,7 @@
           } else if (nal.pps) {
             track.pps = nal.body;
             pps = nal;
-          } else {
+          } else if (nal.type < 9) {
             sampleLength += 4 + nal.body.byteLength;
           }
         }
@@ -5709,6 +5717,9 @@
         var isKeyframe = false;
         for (var _i = 0; _i < nals.length; _i++) {
           var _nal = nals[_i];
+          if (_nal.type && _nal.type >= 9) {
+            continue;
+          }
           var length = _nal.body.byteLength;
           if (_nal.idr) {
             isKeyframe = true;
@@ -6867,15 +6878,10 @@
           this.doParseFlv();
         } else {
           this._firstFragmentLoaded = true;
-          var playType = FlvDemuxer.getPlayType(header[4]);
+          // const playType = FlvDemuxer.getPlayType(header[4])
 
-          if (playType.hasVideo) {
-            this.initVideoTrack();
-          }
-
-          if (playType.hasAudio) {
-            this.initAudioTrack();
-          }
+          this.initVideoTrack();
+          this.initAudioTrack();
         }
         this.doParseFlv();
       }
@@ -7208,9 +7214,9 @@
           audioMedia.sampleRate = audioSampleRate;
           audioMedia.sampleRateIndex = aacHeader.audioSampleRateIndex;
 
-          if (this._hasScript && !this._hasAudioSequence) {
+          if (!this._hasAudioSequence) {
             this.emit(DEMUX_EVENTS$2.METADATA_PARSED, 'audio');
-          } else if (this._hasScript && this._hasAudioSequence) {
+          } else {
             this.emit(DEMUX_EVENTS$2.AUDIO_METADATA_CHANGE);
             // this.emit(DEMUX_EVENTS.METADATA_PARSED, 'audio')
           }
@@ -7311,9 +7317,9 @@
             this._avcSequenceHeaderParser(chunk.data);
             var validate = this._datasizeValidator(chunk.datasize);
             if (validate) {
-              if (this._hasScript && !this._hasVideoSequence) {
+              if (!this._hasVideoSequence) {
                 this.emit(DEMUX_EVENTS$2.METADATA_PARSED, 'video');
-              } else if (this._hasScript && this._hasVideoSequence) {
+              } else {
                 this.emit(DEMUX_EVENTS$2.VIDEO_METADATA_CHANGE);
                 // this.emit(DEMUX_EVENTS.METADATA_PARSED, 'video')
               }
@@ -8015,11 +8021,8 @@
     }]);
     return HlsVodPlayer;
   }(Player);
-  module.exports = HlsVodPlayer;
 
-  exports.HlsVodPlayer = HlsVodPlayer;
-
-  Object.defineProperty(exports, '__esModule', { value: true });
+  return HlsVodPlayer;
 
 })));
 //# sourceMappingURL=index.js.map

@@ -1,7 +1,3 @@
-var _createClass = function () { function defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ("value" in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } } return function (Constructor, protoProps, staticProps) { if (protoProps) defineProperties(Constructor.prototype, protoProps); if (staticProps) defineProperties(Constructor, staticProps); return Constructor; }; }();
-
-function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } }
-
 var isObjectFilled = function isObjectFilled(obj) {
   for (var key in obj) {
     if (obj.hasOwnProperty(key)) {
@@ -15,7 +11,7 @@ var isObjectFilled = function isObjectFilled(obj) {
 
 var MediaInfo = function () {
   function MediaInfo() {
-    _classCallCheck(this, MediaInfo);
+    babelHelpers.classCallCheck(this, MediaInfo);
 
     this.mimeType = null;
     this.duration = null;
@@ -50,7 +46,7 @@ var MediaInfo = function () {
     };
   }
 
-  _createClass(MediaInfo, [{
+  babelHelpers.createClass(MediaInfo, [{
     key: "isComplete",
     value: function isComplete() {
       return MediaInfo.isBaseInfoReady(this) && MediaInfo.isVideoReady(this) && MediaInfo.isAudioReady(this);
@@ -79,7 +75,6 @@ var MediaInfo = function () {
       return isObjectFilled(mediaInfo.video);
     }
   }]);
-
   return MediaInfo;
 }();
 

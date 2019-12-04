@@ -36,7 +36,8 @@
     "xgplayer-codec": "^2.2.0-alpha.0",
     "xgplayer-demux": "^2.2.0-alpha.0",
     "xgplayer-remux": "^2.2.0-alpha.0",
-    "xgplayer-utils": "^2.2.0-alpha.0"
+    "xgplayer-utils": "^2.2.0-alpha.0",
+    "xgplayer-polyfills": "^2.2.0-alpha.0"
   },
   "devDependencies": {}
 }

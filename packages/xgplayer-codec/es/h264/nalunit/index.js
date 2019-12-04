@@ -1,15 +1,11 @@
-var _createClass = function () { function defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ("value" in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } } return function (Constructor, protoProps, staticProps) { if (protoProps) defineProperties(Constructor.prototype, protoProps); if (staticProps) defineProperties(Constructor, staticProps); return Constructor; }; }();
-
-function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } }
-
 import SpsParser from './sps';
 
 var Nalunit = function () {
   function Nalunit() {
-    _classCallCheck(this, Nalunit);
+    babelHelpers.classCallCheck(this, Nalunit);
   }
 
-  _createClass(Nalunit, null, [{
+  babelHelpers.createClass(Nalunit, null, [{
     key: 'getNalunits',
     value: function getNalunits(buffer) {
       if (buffer.length - buffer.position < 4) {
@@ -41,7 +37,9 @@ var Nalunit = function () {
         var body = new Uint8Array(buffer.buffer.slice(start + header.byteLength, end));
         var unit = { header: header, body: body };
         Nalunit.analyseNal(unit);
-        nals.push(unit);
+        if (unit.type <= 9 && unit.type !== 0) {
+          nals.push(unit);
+        }
         buffer.skip(end - buffer.position);
         start = end;
       }
@@ -60,7 +58,9 @@ var Nalunit = function () {
           buffer.skip(length);
           var unit = { header: header, body: body };
           Nalunit.analyseNal(unit);
-          nals.push(unit);
+          if (unit.type <= 9 && unit.type !== 0) {
+            nals.push(unit);
+          }
         } else {
           break;
         }
@@ -71,6 +71,7 @@ var Nalunit = function () {
     key: 'analyseNal',
     value: function analyseNal(unit) {
       var type = unit.body[0] & 0x1f;
+      unit.type = type;
       switch (type) {
         case 1:
           // NDR
@@ -164,7 +165,6 @@ var Nalunit = function () {
       return ret;
     }
   }]);
-
   return Nalunit;
 }();
 

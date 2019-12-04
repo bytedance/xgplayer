@@ -30,7 +30,9 @@ class Nalunit {
       let body = new Uint8Array(buffer.buffer.slice(start + header.byteLength, end));
       let unit = {header, body};
       Nalunit.analyseNal(unit);
-      nals.push(unit);
+      if (unit.type <= 9 && unit.type !== 0) {
+        nals.push(unit);
+      }
       buffer.skip(end - buffer.position);
       start = end;
     }
@@ -48,7 +50,9 @@ class Nalunit {
         buffer.skip(length);
         let unit = {header, body};
         Nalunit.analyseNal(unit);
-        nals.push(unit);
+        if (unit.type <= 9 && unit.type !== 0) {
+          nals.push(unit);
+        }
       } else {
         break;
       }
@@ -58,6 +62,7 @@ class Nalunit {
 
   static analyseNal (unit) {
     let type = unit.body[0] & 0x1f;
+    unit.type = type;
     switch (type) {
       case 1:
         // NDR

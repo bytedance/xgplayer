@@ -1,10 +1,6 @@
-var _createClass = function () { function defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ("value" in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } } return function (Constructor, protoProps, staticProps) { if (protoProps) defineProperties(Constructor.prototype, protoProps); if (staticProps) defineProperties(Constructor, staticProps); return Constructor; }; }();
-
-function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } }
-
 export var AudioTrackMeta = function () {
   function AudioTrackMeta(meta) {
-    _classCallCheck(this, AudioTrackMeta);
+    babelHelpers.classCallCheck(this, AudioTrackMeta);
 
     var _default = {
       sampleRate: 48000,
@@ -24,19 +20,18 @@ export var AudioTrackMeta = function () {
     return _default;
   }
 
-  _createClass(AudioTrackMeta, [{
+  babelHelpers.createClass(AudioTrackMeta, [{
     key: 'destroy',
     value: function destroy() {
       this.init = null;
     }
   }]);
-
   return AudioTrackMeta;
 }();
 
 export var VideoTrackMeta = function () {
   function VideoTrackMeta(meta) {
-    _classCallCheck(this, VideoTrackMeta);
+    babelHelpers.classCallCheck(this, VideoTrackMeta);
 
     var _default = {
       avcc: null,
@@ -73,7 +68,7 @@ export var VideoTrackMeta = function () {
     return _default;
   }
 
-  _createClass(VideoTrackMeta, [{
+  babelHelpers.createClass(VideoTrackMeta, [{
     key: 'destroy',
     value: function destroy() {
       this.init = null;
@@ -81,6 +76,5 @@ export var VideoTrackMeta = function () {
       this.pps = null;
     }
   }]);
-
   return VideoTrackMeta;
 }();

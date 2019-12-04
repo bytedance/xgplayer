@@ -1,7 +1,3 @@
-var _createClass = function () { function defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ("value" in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } } return function (Constructor, protoProps, staticProps) { if (protoProps) defineProperties(Constructor.prototype, protoProps); if (staticProps) defineProperties(Constructor, staticProps); return Constructor; }; }();
-
-function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } }
-
 import { EVENTS } from 'xgplayer-utils';
 import AAC from './aac/aac-helper';
 
@@ -10,7 +6,7 @@ var REMUX_EVENTS = EVENTS.REMUX_EVENTS,
 
 var Compatibility = function () {
   function Compatibility() {
-    _classCallCheck(this, Compatibility);
+    babelHelpers.classCallCheck(this, Compatibility);
 
     this.nextAudioDts = 0; // 模拟下一段音频数据的dts
     this.nextVideoDts = 0; // 模拟下一段视频数据的dts
@@ -37,17 +33,10 @@ var Compatibility = function () {
     this._audioLargeGap = 0;
   }
 
-  _createClass(Compatibility, [{
+  babelHelpers.createClass(Compatibility, [{
     key: 'init',
     value: function init() {
-      var _this = this;
-
       this.before(REMUX_EVENTS.REMUX_MEDIA, this.doFix.bind(this));
-      this.on(LOADER_EVENTS.LOADER_COMPLETE, function () {
-        if (_this.videoLastSample) {
-          _this.videoTrack.samples.unshift(_this.videoLastSample);
-        }
-      });
     }
   }, {
     key: 'reset',
@@ -517,19 +506,28 @@ var Compatibility = function () {
 
 
       if (_firstAudioSample) {
-        this.audioTrack.samples = this.audioTrack.samples.filter(function (sample, index) {
+        this.audioTrack.samples = this.audioTrack.samples.filter(function (sample) {
           if (sample === _firstAudioSample) {
             return true;
+          }
+
+          if (sample.duration !== undefined && sample.duration <= 0) {
+            return false;
           }
           return sample.dts > _firstAudioSample.dts;
         });
       }
 
       if (_firstVideoSample) {
-        this.videoTrack.samples = this.videoTrack.samples.filter(function (sample, index) {
+        this.videoTrack.samples = this.videoTrack.samples.filter(function (sample) {
           if (sample === _firstVideoSample) {
             return true;
           }
+
+          if (sample.duration !== undefined && sample.duration <= 0) {
+            return false;
+          }
+
           return sample.dts > _firstVideoSample.dts;
         });
       }
@@ -669,7 +667,6 @@ var Compatibility = function () {
       };
     }
   }]);
-
   return Compatibility;
 }();
 

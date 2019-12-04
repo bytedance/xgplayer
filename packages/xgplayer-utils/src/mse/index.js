@@ -1,5 +1,10 @@
 class MSE {
-  constructor (configs) {
+  constructor (configs, context) {
+    if (context) {
+      this._context = context;
+      this.emit = context._emitter.emit.bind(context._emitter);
+    }
+
     this.configs = Object.assign({}, configs);
     this.container = this.configs.container;
     this.mediaSource = null;
@@ -19,6 +24,10 @@ class MSE {
     this.url = this.container.src;
     this.container.addEventListener('timeupdate', this.onTimeUpdate);
     this.container.addEventListener('waiting', this.onWaiting);
+  }
+
+  resetContext (newCtx) {
+    this._context = newCtx;
   }
 
   onTimeUpdate () {
