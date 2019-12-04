@@ -19,7 +19,7 @@ class Rgba extends Filter {
       'void main(void) {',
       '  vec4 color = texture2D(sampler, textureCoord);',
       '  gl_FragColor = vec4(color[0],color[1],color[2],color[3]);',
-      '}'].join('\n'); 
+      '}'].join('\n');
   }
 
   init (render) {
@@ -45,7 +45,11 @@ class Rgba extends Filter {
   }
 
   render (data, width, height) {
-    data = data.data;
+    if (data instanceof ImageData){
+      data = data.data;
+    } else {
+      data = data[0];
+    }
     let gl = this.gl;
     let program = this.program;
     let textureRef = this.inputTextures[0];
@@ -53,7 +57,7 @@ class Rgba extends Filter {
     this.outputTexuture = GLUtil.createTexture(gl, gl.LINEAR, new Uint8Array(width * height * 4), width, height);
     gl.bindFramebuffer(gl.FRAMEBUFFER, this.rend.fb);
     gl.framebufferTexture2D(gl.FRAMEBUFFER, gl.COLOR_ATTACHMENT0, gl.TEXTURE_2D, this.outputTexuture, 0);
-    
+
     gl.useProgram(program);
     gl.viewport(0, 0, this.canvas.width, this.canvas.height);
 
