@@ -8,6 +8,9 @@ import Nv12 from './fmt/nv12';
 import Yuv420 from './fmt/yuv420';
 import Rgba from './fmt/rgba';
 import Rgb from './fmt/rgb';
+
+import {Kernel} from "./filter/Kernel";
+
 class Render {
   constructor (config) {
     this.canvas = config.canvas;
@@ -23,12 +26,11 @@ class Render {
 
     this.filters = [];
 
-    if (config.opacity !== undefined &&
-       !!config.flip) {
-      this.basicFilter = new Basic({opacity: config.opacity, flip: config.flip});
-    } else {
-      this.basicFilter = new Basic({opacity: 1});
-    }
+
+    this.basicFilter = new Basic({
+      opacity: config.opacity !== undefined ? config.opacity : 1,
+      flip : config.flip || undefined
+    });
 
     if (config.filters) {
       for (let i = 0; i < config.filters.length; i++) {
@@ -36,6 +38,10 @@ class Render {
       }
     }
     this._init();
+  }
+
+  static getFilterInstanceFromKernels (opt){
+    return new Kernel(opt)
   }
 
   _initFmt (config) {
