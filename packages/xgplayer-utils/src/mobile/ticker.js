@@ -11,7 +11,7 @@ class Ticker {
     this.callbacks = []
   }
 
-  start(...callbacks) {
+  start (...callbacks) {
     this.callbacks = callbacks
   }
 
@@ -65,7 +65,7 @@ class RafTicker extends Ticker {
     }
   }
 
-  resume() {
+  resume () {
     this.nextTick();
   }
 
@@ -86,10 +86,9 @@ class RafTicker extends Ticker {
  * use setTimeout for browsers without raf support
  */
 class TimeoutTicker extends Ticker {
-  constructor(config) {
+  constructor (config) {
     super(config)
     this.timeoutId = null
-
   }
 
   start (...callbacks) {
@@ -104,7 +103,6 @@ class TimeoutTicker extends Ticker {
       window.clearInterval(this.timeoutId)
     }
   }
-
 }
 
 /**

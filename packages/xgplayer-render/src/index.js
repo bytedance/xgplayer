@@ -23,7 +23,7 @@ class Render {
 
     this.filters = [];
 
-    if (config.opacity !== undefined &&
+    if (config.opacity !== undefined ||
        !!config.flip) {
       this.basicFilter = new Basic({opacity: config.opacity, flip: config.flip});
     } else {

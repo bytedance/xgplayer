@@ -63,7 +63,7 @@ class MSE {
       if (type === 'audio') {
         track = tracks.audioTrack;
       } else if (type === 'video') {
-        track = tracks.videoTrack;
+        track = tracks.videoTrack; // return;
       }
 
       if (track) {
@@ -105,6 +105,7 @@ class MSE {
           let source = sources.sources[type];
 
           if (source && !source.inited) {
+            // console.log('append initial segment')
             sourceBuffer.appendBuffer(source.init.buffer.buffer);
             source.inited = true;
           } else if (source) {
@@ -138,6 +139,7 @@ class MSE {
       let buffer = this.sourceBuffers[Object.keys(this.sourceBuffers)[i]];
 
       if (!buffer.updating) {
+        // console.log(start, end)
         buffer.remove(start, end);
       }
     }

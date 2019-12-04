@@ -1,16 +1,16 @@
 {
   "name": "xgplayer-render",
-  "version": "1.0.0-beta.0",
+  "version": "2.2.0-alpha.0",
   "description": "",
-  "main": "index.js",
+  "main": "dist/index.js",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1"
   },
   "author": "",
   "license": "ISC",
   "devDependencies": {
-    "@babel/core": "^7.7.2",
-    "@babel/preset-env": "^7.7.1",
+    "babel": "^6.23.0",
+    "babel-env": "^2.4.1",
     "rollup-plugin-babel": "^4.3.3"
   }
 }

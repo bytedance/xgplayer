@@ -4,11 +4,11 @@ Object.defineProperty(exports, "__esModule", {
   value: true
 });
 
-var _webworkerify = require("webworkerify");
+var _webworkify = require("webworkify");
 
-var _webworkerify2 = _interopRequireDefault(_webworkerify);
+var _webworkify2 = _interopRequireDefault(_webworkify);
 
-var _workerCommands = require("xgplayer-utils/constants/workerCommands");
+var _workerCommands = require("../constants/worker-commands");
 
 var _workerCommands2 = _interopRequireDefault(_workerCommands);
 
@@ -20,7 +20,7 @@ class WorkerWrapper {
       throw new Error('No Worker Provided');
     }
 
-    this._worker = (0, _webworkerify2.default)(Wrapped);
+    this._worker = (0, _webworkify2.default)(Wrapped);
 
     this._worker.addEventListener('message', this.handleWorkerMessage);
 

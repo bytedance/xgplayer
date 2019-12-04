@@ -1,11 +1,12 @@
 /* eslint-disable no-undef */
 const width = 1194;
 const height = 668;
+/*
 let lut = new LutFilter({
   lut: 'https://sf6-ttcdn-tos.pstatp.com/obj/ttfe/media/lut/lut_119.png',
   opacity: 0.5
 });
-
+*/
 function fetchdata (file, cb) {
   fetch(file).then(res => {
     return res.arrayBuffer()
@@ -69,21 +70,27 @@ function rendervideo () {
   if (new Date().getTime() - lastRenderTime < 33) {
     requestAnimationFrame(rendervideo);
   } else {
-    let start = frameCount * 320 * 240 * 2;
-    let end = start + (320 * 240 * 2);
-    r.render([data.slice(start, end)], 320, 240);
-    window.vdata.lastRenderTime = new Date().getTime();
+    
+//    let end = start + (320 * 240 * 2);
+    let width = 1280;
+    let height = 704;
+    let start = frameCount * width * height * 1.5;
+    let ydata = data.slice(start, start + (width * height));
+    let udata = data.slice(start + (width * height), start + (1.25 * width * height));
+    let vdata = data.slice(start + (1.25 * width * height), start + (1.5 * width * height));
+
+    r.render([ydata, udata, vdata], 1280, 704);
+    // window.vdata.lastRenderTime = new Date().getTime();
     window.vdata.frameCount++;
     requestAnimationFrame(rendervideo);
   }
 }
 
-fetchdata(`data/123.yuv`, function (data) {
+fetchdata(`data/I420-1.yuv`, function (data) {
   window.vdata = {
     r: new Render({
-      format: 'YUY2',
+      format: 'YUV420',
       canvas: document.querySelector('#c6'),
-      filters: [lut],
       opacity: 1
     }),
     data,
