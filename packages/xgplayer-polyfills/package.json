@@ -4,7 +4,7 @@
   "description": "",
   "main": "index.js",
   "scripts": {
-    "generate:babel": "babel-external-helpers -l classCallCheck,createClass,inherits,possibleConstructorReturn > babel/external-helpers.js"
+    "generate:babel": "babel-external-helpers -l classCallCheck,createClass,inherits,possibleConstructorReturn,typeof > babel/external-helpers.js"
   },
   "author": "",
   "license": "ISC",

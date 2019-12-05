@@ -6,12 +6,6 @@
 
   Player = Player && Player.hasOwnProperty('default') ? Player['default'] : Player;
 
-  var _typeof = typeof Symbol === "function" && typeof Symbol.iterator === "symbol" ? function (obj) {
-    return typeof obj;
-  } : function (obj) {
-    return obj && typeof Symbol === "function" && obj.constructor === Symbol && obj !== Symbol.prototype ? "symbol" : typeof obj;
-  };
-
   var classCallCheck = function (instance, Constructor) {
     if (!(instance instanceof Constructor)) {
       throw new TypeError("Cannot call a class as a function");
@@ -87,6 +81,9 @@
 
   (function (global) {
     var babelHelpers = global.babelHelpers = {};
+    babelHelpers.typeof = function (obj) {
+      return typeof obj === "undefined" ? "undefined" : babelHelpers.typeof(obj);
+    };
 
     babelHelpers.classCallCheck = function (instance, Constructor) {
       if (!(instance instanceof Constructor)) {
@@ -6862,28 +6859,6 @@
 
   var FlvDemuxer$1 = FlvDemuxer;
 
-  var _typeof$1 = typeof Symbol === "function" && _typeof(Symbol.iterator) === "symbol" ? function (obj) {
-    return typeof obj === "undefined" ? "undefined" : _typeof(obj);
-  } : function (obj) {
-    return obj && typeof Symbol === "function" && obj.constructor === Symbol && obj !== Symbol.prototype ? "symbol" : typeof obj === "undefined" ? "undefined" : _typeof(obj);
-  };
-
-  var _createClass = function () {
-    function defineProperties(target, props) {
-      for (var i = 0; i < props.length; i++) {
-        var descriptor = props[i];descriptor.enumerable = descriptor.enumerable || false;descriptor.configurable = true;if ("value" in descriptor) descriptor.writable = true;Object.defineProperty(target, descriptor.key, descriptor);
-      }
-    }return function (Constructor, protoProps, staticProps) {
-      if (protoProps) defineProperties(Constructor.prototype, protoProps);if (staticProps) defineProperties(Constructor, staticProps);return Constructor;
-    };
-  }();
-
-  function _classCallCheck(instance, Constructor) {
-    if (!(instance instanceof Constructor)) {
-      throw new TypeError("Cannot call a class as a function");
-    }
-  }
-
   var LOADER_EVENTS$1 = EVENTS.LOADER_EVENTS;
   var READ_STREAM = 0;
   var READ_TEXT = 1;
@@ -6892,7 +6867,7 @@
 
   var FetchLoader = function () {
     function FetchLoader(configs) {
-      _classCallCheck(this, FetchLoader);
+      babelHelpers.classCallCheck(this, FetchLoader);
 
       this.configs = Object.assign({}, configs);
       this.url = null;
@@ -6906,7 +6881,7 @@
       this._loaderTaskNo = 0;
     }
 
-    _createClass(FetchLoader, [{
+    babelHelpers.createClass(FetchLoader, [{
       key: 'init',
       value: function init() {
         this.on(LOADER_EVENTS$1.LADER_START, this.load.bind(this));
@@ -7049,7 +7024,7 @@
 
           // add custmor headers
           // 添加自定义头
-        };if (_typeof$1(this.configs.headers) === 'object') {
+        };if (babelHelpers.typeof(this.configs.headers) === 'object') {
           var configHeaders = this.configs.headers;
           for (var key in configHeaders) {
             if (configHeaders.hasOwnProperty(key)) {
@@ -7058,7 +7033,7 @@
           }
         }
 
-        if (_typeof$1(options.headers) === 'object') {
+        if (babelHelpers.typeof(options.headers) === 'object') {
           var optHeaders = options.headers;
           for (var _key in optHeaders) {
             if (optHeaders.hasOwnProperty(_key)) {
@@ -7106,7 +7081,6 @@
         return 'loader';
       }
     }]);
-
     return FetchLoader;
   }();
 
@@ -7400,6 +7374,7 @@
         this.initFlv();
         this.context.init();
         get(FlvPlayer.prototype.__proto__ || Object.getPrototypeOf(FlvPlayer.prototype), 'start', this).call(this, this.flv.mse.url);
+        this.loadData();
       }
     }, {
       key: 'initFlvEvents',
@@ -7470,10 +7445,6 @@
       key: 'initEvents',
       value: function initEvents() {
         var _this4 = this;
-
-        this.on('timeupdate', function () {
-          _this4.loadData();
-        });
 
         this.on('seeking', function () {
           var time = _this4.currentTime;

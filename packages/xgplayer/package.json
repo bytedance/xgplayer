@@ -31,10 +31,6 @@
                     "corejs": 3
                 }
             ]
-        ],
-        "plugins": [
-            "external-helpers",
-            "bulk-import"
         ]
     },
     "repository": {

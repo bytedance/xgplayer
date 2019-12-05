@@ -1,5 +1,8 @@
 (function (global) {
   var babelHelpers = global.babelHelpers = {};
+  babelHelpers.typeof = function (obj) {
+    return typeof obj;
+  }
 
   babelHelpers.classCallCheck = function (instance, Constructor) {
     if (!(instance instanceof Constructor)) {

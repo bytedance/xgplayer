@@ -17,6 +17,7 @@ class FlvPlayer extends Player {
     this.initFlv()
     this.context.init()
     super.start(this.flv.mse.url)
+    this.loadData()
   }
 
   initFlvEvents (flv) {
@@ -80,9 +81,6 @@ class FlvPlayer extends Player {
   }
 
   initEvents () {
-    this.on('timeupdate', () => {
-      this.loadData()
-    })
 
     this.on('seeking', () => {
       const time = this.currentTime
