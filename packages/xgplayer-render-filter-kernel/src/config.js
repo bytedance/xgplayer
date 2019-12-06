@@ -56,4 +56,4 @@ export const kernel = {
         gl_FragColor = vec4( (colorSum / u_kernelWeight).rgb, 1.0);
     }
 `
-}
+};
