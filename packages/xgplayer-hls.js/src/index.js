@@ -47,7 +47,10 @@ class HlsJsPlayer extends Player {
             player.hls.loadSource(url)
           })
           player.once('canplay', () => {
-            player.play().catch(err => {})
+            let playPromise = player.video.play()
+            if (playPromise !== undefined && playPromise) {
+              playPromise.catch(err => {})
+            }
           })
         } else {
           player.hls.loadSource(url)
@@ -63,7 +66,10 @@ class HlsJsPlayer extends Player {
     this.once('complete', () => {
       hls.attachMedia(player.video)
       player.once('canplay', () => {
-        player.play().catch(err => {})
+        let playPromise = player.video.play()
+        if (playPromise !== undefined && playPromise) {
+          playPromise.catch(err => {})
+        }
       })
       if(player.config.isLive) {
         util.addClass(player.root, 'xgplayer-is-live')
