@@ -1,4 +1,4 @@
-import GLUtil from "../glutil";
+import GLUtil from "../../xgplayer-render/src/glutil";
 import {template} from "./config";
 
 let gl = null;
@@ -56,7 +56,6 @@ export class Template {
 
         gl.activeTexture(gl.TEXTURE0);
         gl.bindTexture(gl.TEXTURE_2D, this.pipelineState.sourceTexture);
-        // gl.texImage2D(gl.TEXTURE_2D,0,gl.RGBA,width,height,0,gl.RGBA,gl.UNSIGNED_BYTE,this.imageData.data);
         gl.drawArrays(gl.TRIANGLE_STRIP,0,4);
 
         this.pipelineState.targetTexture.__width = width;

@@ -30,18 +30,16 @@ export class Kernel extends Template{
         };
         this.props.sendUniformData = (gl,locations) => {
             gl.uniform1f(locations.u_kernelWeight, this._getKernelWeight(this.kernel));
-            console.log(this.kernel,locations['u_kernel[0]'])
             gl.uniform1fv(locations['u_kernel[0]'],this.kernel);
             //this.pipelineState from super
             gl.uniform2f(locations.u_textureSize, this.pipelineState.sourceWidth, this.pipelineState.sourceHeight);
-        }
+        };
 
         this._getKernelWeight = (kernel) => {
             let w = kernel.reduce((p,c) => p + c);
             w = w <= 0 ? 1 : w;
             return w;
         }
-
     }
 
     init(render) {

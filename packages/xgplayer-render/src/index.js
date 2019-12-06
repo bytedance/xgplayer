@@ -9,8 +9,6 @@ import Yuv420 from './fmt/yuv420';
 import Rgba from './fmt/rgba';
 import Rgb from './fmt/rgb';
 
-import {Kernel} from "./filter/Kernel";
-
 class Render {
   constructor (config) {
     this.canvas = config.canvas;
@@ -38,10 +36,6 @@ class Render {
       }
     }
     this._init();
-  }
-
-  static getFilterInstanceFromKernels (opt){
-    return new Kernel(opt)
   }
 
   _initFmt (config) {
