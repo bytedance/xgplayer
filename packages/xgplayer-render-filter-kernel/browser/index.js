@@ -1,5 +1,8 @@
-var KernelFilter = (function (GLUtil) {
-  'use strict';
+(function (global, factory) {
+  typeof exports === 'object' && typeof module !== 'undefined' ? module.exports = factory(require('xgplayer-render/src/glutil')) :
+  typeof define === 'function' && define.amd ? define(['xgplayer-render/src/glutil'], factory) :
+  (global = global || self, global.KernelFilter = factory(global.GLUtil));
+}(this, (function (GLUtil) { 'use strict';
 
   GLUtil = GLUtil && GLUtil.hasOwnProperty('default') ? GLUtil['default'] : GLUtil;
 
@@ -243,4 +246,4 @@ var KernelFilter = (function (GLUtil) {
 
   return Kernel;
 
-}(GLUtil));
+})));

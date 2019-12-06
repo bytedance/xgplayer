@@ -4,7 +4,7 @@
   "description": "",
   "main": "es/index.js",
   "scripts": {
-    "prepare": "babel src --out-file es/index.js",
+    "prepare": "rollup -c rollup.config.js",
     "test": "echo \"Error: no test specified\" && exit 1"
   },
   "author": "",
@@ -22,7 +22,12 @@
   "babel": {
     "presets": [
       [
-        "@babel/preset-env"
+        "@babel/preset-env", {
+        "targets": {
+          "chrome": "60",
+          "ie": "11"
+        }
+      }
       ]
     ]
   }
