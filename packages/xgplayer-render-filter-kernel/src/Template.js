@@ -1,4 +1,4 @@
-import GLUtil from "../../xgplayer-render/src/glutil";
+import GLUtil from "xgplayer-render/src/glutil";
 import {template} from "./config";
 
 let gl = null;

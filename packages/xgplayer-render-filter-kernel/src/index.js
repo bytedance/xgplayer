@@ -2,7 +2,7 @@ import {Template} from "./Template";
 import {kernel} from "./config";
 
 
-export class Kernel extends Template{
+export default class Kernel extends Template{
     constructor(props) {
         super(props);
         this.kernel = props.kernel;
@@ -49,6 +49,4 @@ export class Kernel extends Template{
     render(originTexture, width, height) {
         return super.render(originTexture, width, height);
     }
-
-
 }
