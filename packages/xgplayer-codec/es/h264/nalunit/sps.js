@@ -296,6 +296,7 @@ var SPSParser = function () {
       var fpsDen = meta.frameRate.fps_den;
       var fpsNum = meta.frameRate.fps_num;
       meta.refSampleDuration = Math.floor(meta.timescale * (fpsDen / fpsNum));
+      return meta;
     }
   }]);
   return SPSParser;

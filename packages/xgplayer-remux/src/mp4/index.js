@@ -12,8 +12,6 @@ export default class Mp4Remuxer {
   constructor (curTime = 0) {
     this._dtsBase = curTime * 1000
     this._isDtsBaseInited = false
-    this._audioNextDts = null
-    this._videoNextDts = null
     this._videoSegmentList = new MediaSegmentList('video')
     this._audioSegmentList = new MediaSegmentList('audio')
     const {browser} = sniffer
@@ -35,8 +33,6 @@ export default class Mp4Remuxer {
   destroy () {
     this._dtsBase = -1
     this._dtsBaseInited = false
-    this._videoNextDts = null
-    this._audioNextDts = null
     this._videoSegmentList.clear()
     this._audioSegmentList.clear()
     this._videoSegmentList = null
@@ -58,8 +54,6 @@ export default class Mp4Remuxer {
   }
 
   seek () {
-    this._videoNextDts = null
-    this._audioNextDts = null
     this._videoSegmentList.clear()
     this._audioSegmentList.clear()
   }
@@ -245,8 +239,6 @@ export default class Mp4Remuxer {
     this.isFirstVideo = false
     this.emit(REMUX_EVENTS.MEDIA_SEGMENT, 'video')
 
-    const lastSample = mp4Samples[mp4Samples.length - 1]
-    this._videoNextDts = lastSample.dts + lastSample.duration;
     track.samples = []
     track.length = 0
   }
@@ -362,8 +354,6 @@ export default class Mp4Remuxer {
     this.isFirstAudio = false
     this.emit(REMUX_EVENTS.MEDIA_SEGMENT, 'audio', moofMdat)
 
-    const lastSample = mp4Samples[mp4Samples.length - 1]
-    this._videoNextDts = lastSample.dts + lastSample.duration;
     track.samples = []
     track.length = 0
   }

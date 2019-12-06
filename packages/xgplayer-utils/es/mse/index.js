@@ -107,16 +107,22 @@ var MSE = function () {
         for (var i = 0; i < Object.keys(this.sourceBuffers).length; i++) {
           var type = Object.keys(this.sourceBuffers)[i];
           var sourceBuffer = this.sourceBuffers[type];
-          if (!sourceBuffer.updating) {
-            var source = sources.sources[type];
-            if (source && !source.inited) {
-              // console.log('append initial segment')
+          var source = sources.sources[type];
+          if (source && !source.inited) {
+            // console.log('append initial segment')
+            try {
               sourceBuffer.appendBuffer(source.init.buffer.buffer);
               source.inited = true;
-            } else if (source) {
-              var data = source.data.shift();
-              if (data) {
+            } catch (e) {
+              // DO NOTHING
+            }
+          } else if (source) {
+            var data = source.data.shift();
+            if (data) {
+              try {
                 sourceBuffer.appendBuffer(data.buffer.buffer);
+              } catch (e) {
+                source.data.unshift(data);
               }
             }
           }

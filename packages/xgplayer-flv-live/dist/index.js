@@ -1580,16 +1580,22 @@
           for (var i = 0; i < Object.keys(this.sourceBuffers).length; i++) {
             var type = Object.keys(this.sourceBuffers)[i];
             var sourceBuffer = this.sourceBuffers[type];
-            if (!sourceBuffer.updating) {
-              var source = sources.sources[type];
-              if (source && !source.inited) {
-                // console.log('append initial segment')
+            var source = sources.sources[type];
+            if (source && !source.inited) {
+              // console.log('append initial segment')
+              try {
                 sourceBuffer.appendBuffer(source.init.buffer.buffer);
                 source.inited = true;
-              } else if (source) {
-                var data = source.data.shift();
-                if (data) {
+              } catch (e) {
+                // DO NOTHING
+              }
+            } else if (source) {
+              var data = source.data.shift();
+              if (data) {
+                try {
                   sourceBuffer.appendBuffer(data.buffer.buffer);
+                } catch (e) {
+                  source.data.unshift(data);
                 }
               }
             }
@@ -2693,8 +2699,6 @@
 
       this._dtsBase = curTime * 1000;
       this._isDtsBaseInited = false;
-      this._audioNextDts = null;
-      this._videoNextDts = null;
       this._videoSegmentList = new MediaSegmentList$1('video');
       this._audioSegmentList = new MediaSegmentList$1('audio');
       var browser = sniffer$1.browser;
@@ -2720,8 +2724,6 @@
       value: function destroy() {
         this._dtsBase = -1;
         this._dtsBaseInited = false;
-        this._videoNextDts = null;
-        this._audioNextDts = null;
         this._videoSegmentList.clear();
         this._audioSegmentList.clear();
         this._videoSegmentList = null;
@@ -2749,8 +2751,6 @@
     }, {
       key: 'seek',
       value: function seek() {
-        this._videoNextDts = null;
-        this._audioNextDts = null;
         this._videoSegmentList.clear();
         this._audioSegmentList.clear();
       }
@@ -2949,8 +2949,6 @@
         this.isFirstVideo = false;
         this.emit(REMUX_EVENTS$1.MEDIA_SEGMENT, 'video');
 
-        var lastSample = mp4Samples[mp4Samples.length - 1];
-        this._videoNextDts = lastSample.dts + lastSample.duration;
         track.samples = [];
         track.length = 0;
       }
@@ -3073,8 +3071,6 @@
         this.isFirstAudio = false;
         this.emit(REMUX_EVENTS$1.MEDIA_SEGMENT, 'audio', moofMdat);
 
-        var lastSample = mp4Samples[mp4Samples.length - 1];
-        this._videoNextDts = lastSample.dts + lastSample.duration;
         track.samples = [];
         track.length = 0;
       }
@@ -3673,6 +3669,7 @@
         var fpsDen = meta.frameRate.fps_den;
         var fpsNum = meta.frameRate.fps_num;
         meta.refSampleDuration = Math.floor(meta.timescale * (fpsDen / fpsNum));
+        return meta;
       }
     }]);
     return SPSParser;

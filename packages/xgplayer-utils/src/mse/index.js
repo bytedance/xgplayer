@@ -95,16 +95,22 @@ class MSE {
       for (let i = 0; i < Object.keys(this.sourceBuffers).length; i++) {
         let type = Object.keys(this.sourceBuffers)[i]
         let sourceBuffer = this.sourceBuffers[type];
-        if (!sourceBuffer.updating) {
-          let source = sources.sources[type];
-          if (source && !source.inited) {
-            // console.log('append initial segment')
+        let source = sources.sources[type];
+        if (source && !source.inited) {
+          // console.log('append initial segment')
+          try {
             sourceBuffer.appendBuffer(source.init.buffer.buffer);
             source.inited = true;
-          } else if (source) {
-            let data = source.data.shift()
-            if (data) {
+          } catch (e) {
+            // DO NOTHING
+          }
+        } else if (source) {
+          let data = source.data.shift();
+          if (data) {
+            try {
               sourceBuffer.appendBuffer(data.buffer.buffer);
+            } catch (e) {
+              source.data.unshift(data);
             }
           }
         }

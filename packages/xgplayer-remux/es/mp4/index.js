@@ -10,8 +10,6 @@ var Mp4Remuxer = function () {
 
     this._dtsBase = curTime * 1000;
     this._isDtsBaseInited = false;
-    this._audioNextDts = null;
-    this._videoNextDts = null;
     this._videoSegmentList = new MediaSegmentList('video');
     this._audioSegmentList = new MediaSegmentList('audio');
     var browser = sniffer.browser;
@@ -37,8 +35,6 @@ var Mp4Remuxer = function () {
     value: function destroy() {
       this._dtsBase = -1;
       this._dtsBaseInited = false;
-      this._videoNextDts = null;
-      this._audioNextDts = null;
       this._videoSegmentList.clear();
       this._audioSegmentList.clear();
       this._videoSegmentList = null;
@@ -66,8 +62,6 @@ var Mp4Remuxer = function () {
   }, {
     key: 'seek',
     value: function seek() {
-      this._videoNextDts = null;
-      this._audioNextDts = null;
       this._videoSegmentList.clear();
       this._audioSegmentList.clear();
     }
@@ -266,8 +260,6 @@ var Mp4Remuxer = function () {
       this.isFirstVideo = false;
       this.emit(REMUX_EVENTS.MEDIA_SEGMENT, 'video');
 
-      var lastSample = mp4Samples[mp4Samples.length - 1];
-      this._videoNextDts = lastSample.dts + lastSample.duration;
       track.samples = [];
       track.length = 0;
     }
@@ -390,8 +382,6 @@ var Mp4Remuxer = function () {
       this.isFirstAudio = false;
       this.emit(REMUX_EVENTS.MEDIA_SEGMENT, 'audio', moofMdat);
 
-      var lastSample = mp4Samples[mp4Samples.length - 1];
-      this._videoNextDts = lastSample.dts + lastSample.duration;
       track.samples = [];
       track.length = 0;
     }
