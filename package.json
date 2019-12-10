@@ -83,6 +83,7 @@
     "rollup-plugin-uglify": "^6.0.3",
     "rollup-plugin-uglify-es": "^0.0.1",
     "rollup-plugin-url": "^3.0.0",
+    "rollup-plugin-visualizer": "^3.3.0",
     "style-loader": "^0.21.0",
     "uglifyjs-webpack-plugin": "^2.2.0",
     "webpack": "^4.12.0",
