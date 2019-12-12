@@ -65,6 +65,8 @@ class MobileVideo extends HTMLElement {
       aCtx: this.aCtx,
       video: this
     })
+
+    this.dispatchEvent(new Event('waiting'));
     this.vCtx.oncanplay = () => {
       if (!this.played) {
         this.appendChild(this._canvas);
@@ -247,6 +249,7 @@ class MobileVideo extends HTMLElement {
 
       this.pendingPlayTask = null
       this.played = true;
+      this.dispatchEvent(new Event('playing'))
       this.dispatchEvent(new Event('play'))
       this._paused = false
     })
