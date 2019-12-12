@@ -1,6 +1,6 @@
 {
   "name": "xgplayer-flv",
-  "version": "2.2.0-beta.6",
+  "version": "2.2.0-beta.19",
   "description": "xgplayer transmuxer for FLV",
   "main": "./dist/index.min.js",
   "module": "./es/index.min.js",

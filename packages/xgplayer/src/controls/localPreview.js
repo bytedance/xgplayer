@@ -11,7 +11,10 @@ let localPreview = function () {
       player.start()
     } else {
       player.src = url
-      player.play().catch(err => {})
+      let playPromise = player.play()
+      if (playPromise !== undefined && playPromise) {
+        playPromise.catch(err => {})
+      }
     }
   }
   player.on('upload', onUpload)

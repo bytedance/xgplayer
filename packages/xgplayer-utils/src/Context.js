@@ -15,7 +15,6 @@ class Context {
     this.mediaInfo = new MediaInfo()
     this.allowedEvents = allowedEvents
     this._hooks = {} // 注册在事件前/后的钩子，例如 before('DEMUX_COMPLETE')
-    this._emitCounter = {}
   }
 
   /**
@@ -129,19 +128,7 @@ class Context {
 
       emit (messageName, ...args) {
         checkMessageName(messageName)
-        if (self._emitCounter[messageName]) {
-          self._emitCounter[messageName] += 1;
-          if (self._emitCounter[messageName] % 1000 === 0) {
-            let a = 'con';
-            let b = 'sole';
-            if (window.console) {
-              window[a + b].warn(`invoke: `, messageName);
-              window.localStorage.setItem(`xgplayer_invoke_${messageName}`, self._emitCounter[messageName])
-            }
-          }
-        } else {
-          self._emitCounter[messageName] = 1;
-        }
+        // console.log('emit ', messageName);
 
         const beforeList = self._hooks ? self._hooks[messageName] : null
 
@@ -242,7 +229,6 @@ class Context {
     this._clsMap = null
     this._context = null
     this._hooks = null
-    this._emitCounter = {}
     this.destroyInstances()
   }
 
