@@ -13,6 +13,8 @@ class GLUtil {
       gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA, gl.RGBA, gl.UNSIGNED_BYTE, data);
     } else if (data instanceof HTMLImageElement) {
       gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA, gl.RGBA, gl.UNSIGNED_BYTE, data);
+    } else if (data instanceof ImageData) {
+      gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA, gl.RGBA, gl.UNSIGNED_BYTE, data);
     }
 
     gl.bindTexture(gl.TEXTURE_2D, null);
@@ -147,10 +149,14 @@ class LutFilter {
     let gl = this.gl;
     let program = this.program;
 
-    if (!this.width || !this.height || this.height !== height || this.width !== width) {
+    if (this.width !== width || this.height !== height) {
       this.width = width;
       this.height = height;
-      this.outputTexture = GLUtil.createTexture(gl, gl.LINEAR, new Uint8Array(this.width * this.height * 4), this.width, this.height);
+      this.outputTexture = GLUtil.createTexture(gl, gl.LINEAR, new Uint8Array(width * height * 4), width, height);
+    }
+
+    if (!this.outputTexuture) {
+      this.outputTexture = GLUtil.createTexture(gl, gl.LINEAR, new Uint8Array(width * height * 4), width, height);
     }
 
     gl.bindFramebuffer(gl.FRAMEBUFFER, this.rend.fb);
@@ -163,7 +169,11 @@ class LutFilter {
     this.gl.uniform1i(this.pw.lut, 1);
     gl.bindTexture(gl.TEXTURE_2D, this.lutTexture);
     gl.drawArrays(gl.TRIANGLE_STRIP, 0, 4);
-    return this.outputTexture;
+    return {
+      texture: this.outputTexture,
+      width: width,
+      height: height
+    };
   }
 
 }

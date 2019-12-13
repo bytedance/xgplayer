@@ -102,13 +102,14 @@ class LutFilter {
     let gl = this.gl;
     let program = this.program;
 
-    if (!this.width ||
-       !this.height ||
-       this.height !== height ||
-       this.width !== width) {
+    if (this.width !== width || this.height !== height) {
       this.width = width;
       this.height = height;
-      this.outputTexture = GLUtil.createTexture(gl, gl.LINEAR, new Uint8Array(this.width * this.height * 4), this.width, this.height);
+      this.outputTexture = GLUtil.createTexture(gl, gl.LINEAR, new Uint8Array(width * height * 4), width, height);
+    }
+
+    if (!this.outputTexuture) {
+      this.outputTexture = GLUtil.createTexture(gl, gl.LINEAR, new Uint8Array(width * height * 4), width, height);
     }
     gl.bindFramebuffer(gl.FRAMEBUFFER, this.rend.fb);
     gl.framebufferTexture2D(gl.FRAMEBUFFER, gl.COLOR_ATTACHMENT0, gl.TEXTURE_2D, this.outputTexture, 0);
@@ -124,7 +125,11 @@ class LutFilter {
 
     gl.drawArrays(gl.TRIANGLE_STRIP, 0, 4);
 
-    return this.outputTexture;
+    return {
+      texture: this.outputTexture,
+      width: width,
+      height: height
+    };
   }
 }
 

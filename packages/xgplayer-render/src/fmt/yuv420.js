@@ -90,8 +90,17 @@ class Yuv420 extends Filter {
     let yTextureRef = this.inputTextures[0];
     let uTextureRef = this.inputTextures[1];
     let vTextureRef = this.inputTextures[2];
-  
-    this.outputTexuture = GLUtil.createTexture(gl, gl.LINEAR, new Uint8Array(width * height * 4), width, height);
+
+    if (this.width !== width || this.height !== height) {
+      this.width = width;
+      this.height = height;
+      this.outputTexuture = GLUtil.createTexture(gl, gl.LINEAR, new Uint8Array(width * height * 4), width, height);
+    }
+
+    if (!this.outputTexuture) {
+      this.outputTexuture = GLUtil.createTexture(gl, gl.LINEAR, new Uint8Array(width * height * 4), width, height);
+    }
+
     gl.bindFramebuffer(gl.FRAMEBUFFER, this.rend.fb);
     gl.framebufferTexture2D(gl.FRAMEBUFFER, gl.COLOR_ATTACHMENT0, gl.TEXTURE_2D, this.outputTexuture, 0);
 
@@ -113,7 +122,11 @@ class Yuv420 extends Filter {
 
     gl.drawArrays(gl.TRIANGLE_STRIP, 0, 4);
 
-    return this.outputTexuture;
+    return {
+      texture: this.outputTexuture,
+      width: width,
+      height: height
+    };
   }
 }
 

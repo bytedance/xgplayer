@@ -34,8 +34,7 @@ class Rgb24 extends Filter {
       '  gdata = color[1];',
       '  bdata = color[2];',
       '  gl_FragColor = vec4(bdata, gdata, rdata, 1);',
-      '}'].join('\n');
-    
+      '}'].join('\n'); 
   }
 
   init (render) {
@@ -64,6 +63,19 @@ class Rgb24 extends Filter {
     let program = this.program;
     let textureRef = this.inputTextures[0];
 
+    if (this.width !== width || this.height !== height) {
+      this.width = width;
+      this.height = height;
+      this.outputTexuture = GLUtil.createTexture(gl, gl.LINEAR, new Uint8Array(width * height * 4), width, height);
+    }
+
+    if (!this.outputTexuture) {
+      this.outputTexuture = GLUtil.createTexture(gl, gl.LINEAR, new Uint8Array(width * height * 4), width, height);
+    }
+
+    gl.bindFramebuffer(gl.FRAMEBUFFER, this.rend.fb);
+    gl.framebufferTexture2D(gl.FRAMEBUFFER, gl.COLOR_ATTACHMENT0, gl.TEXTURE_2D, this.outputTexuture, 0);
+
     gl.useProgram(program);
     gl.viewport(0, 0, this.canvas.width, this.canvas.height);
 
@@ -75,6 +87,12 @@ class Rgb24 extends Filter {
     let inputx = width - (width % 4);
     gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGB, inputx, height, 0, gl.RGB, gl.UNSIGNED_BYTE, data);
     gl.drawArrays(gl.TRIANGLE_STRIP, 0, 4);
+
+    return {
+      texture: this.outputTexuture,
+      width,
+      height
+    };
   }
 }
 

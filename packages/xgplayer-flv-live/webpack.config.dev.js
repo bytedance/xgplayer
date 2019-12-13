@@ -4,11 +4,17 @@ const { umd, client } = require('./webpack.config')
 const developUMD = webpackMerge(umd, {
   devtool: 'inline-source-map',
   mode: 'development',
+  externals: {
+    'xgplayer': 'xgplayer'
+  }
 })
 
 const developClient = webpackMerge(client, {
   devtool: 'inline-source-map',
-  mode: 'development'
+  mode: 'development',
+  externals: {
+    'xgplayer': 'xgplayer'
+  }
 })
 
 const devMobileUMD = webpackMerge(umd, {
@@ -18,6 +24,9 @@ const devMobileUMD = webpackMerge(umd, {
     filename: 'index.umd.js',
     library: 'xgplayer',
     libraryTarget: 'umd'
+  },
+  externals: {
+    'xgplayer': 'xgplayer'
   },
   mode: 'development'
 })
@@ -29,6 +38,9 @@ const devMobileClient = webpackMerge(client, {
     filename: '[name].js',
     library: 'FlvPlayer',
     libraryTarget: 'window'
+  },
+  externals: {
+    'xgplayer': 'xgplayer'
   },
   mode: 'development'
 })

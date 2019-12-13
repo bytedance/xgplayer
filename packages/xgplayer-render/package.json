@@ -12,5 +12,8 @@
     "babel": "^6.23.0",
     "babel-env": "^2.4.1",
     "rollup-plugin-babel": "^4.3.3"
+  },
+  "dependencies": {
+    "@babel/core": "^7.7.5"
   }
 }

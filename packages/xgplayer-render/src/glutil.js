@@ -12,6 +12,8 @@ class GLUtil {
       gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA, gl.RGBA, gl.UNSIGNED_BYTE, data);
     } else if (data instanceof HTMLImageElement) {
       gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA, gl.RGBA, gl.UNSIGNED_BYTE, data);
+    } else if (data instanceof ImageData) {
+      gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA, gl.RGBA, gl.UNSIGNED_BYTE, data);
     }
     gl.bindTexture(gl.TEXTURE_2D, null);
     return textureRef;

@@ -8,6 +8,7 @@ import Nv12 from './fmt/nv12';
 import Yuv420 from './fmt/yuv420';
 import Rgba from './fmt/rgba';
 import Rgb from './fmt/rgb';
+
 class Render {
   constructor (config) {
     this.canvas = config.canvas;
@@ -23,12 +24,11 @@ class Render {
 
     this.filters = [];
 
-    if (config.opacity !== undefined ||
-       !!config.flip) {
-      this.basicFilter = new Basic({opacity: config.opacity, flip: config.flip});
-    } else {
-      this.basicFilter = new Basic({opacity: 1});
-    }
+
+    this.basicFilter = new Basic({
+      opacity: config.opacity !== undefined ? config.opacity : 1,
+      flip : config.flip || undefined
+    });
 
     if (config.filters) {
       for (let i = 0; i < config.filters.length; i++) {
@@ -122,38 +122,48 @@ class Render {
     this.gl = gl;
   };
 
-  _drawPicture (data, width, height) {
-    let texture = this.fmt.render(data, width, height);
+  _drawPicture (data, iWidth, iHeight) {
+    let { texture, width, height } = this.fmt.render(data, iWidth, iHeight);
     this._applyFilters(texture, width, height);
   }
 
   _drawVideo () {
     let gl = this.gl;
     gl.bindTexture(gl.TEXTURE_2D, this.videoTexture);
+    // gl.pixelStorei(gl.UNPACK_FLIP_Y_WEBGL, true);
     gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA, gl.RGBA, gl.UNSIGNED_BYTE, this.video);
     this._applyFilters(this.videoTexture, this.video.videoWidth, this.video.videoHeight)
   }
 
   _applyFilters (texture, width, height) {
     let gl = this.gl;
+
     for (let i = 0; i < this.filters.length; i++) {
       let filter = this.filters[i];
-      texture = filter.render(texture, width, height);
+      let data = filter.render(texture, width, height);
+      texture = data.texture;
+      width = data.width;
+      height = data.height;
     }
 
     gl.bindFramebuffer(gl.FRAMEBUFFER, null);
+    if (this.width !== width || this.height !== height) {
+      this.width = this.canvas.width = width;
+      this.height = this.canvas.height = height;
+    }
     this.basicFilter.render(texture, width, height);
   }
 
   render (data, width, height) {
     if (this.fmt) {
-      this.canvas.width = width;
-      this.canvas.height = height;
+      if (this.width !== width || this.height !== height) {
+        this.width = this.canvas.width = width;
+        this.height = this.canvas.height = height;
+      }
+
       this.gl.viewport(0, 0, this.canvas.width, this.canvas.height);
       this._drawPicture(data, width, height)
     } else if (this.video) {
-      this.canvas.width = this.video.videoWidth;
-      this.canvas.height = this.video.videoHeight;
       this.gl.viewport(0, 0, this.canvas.width, this.canvas.height);
       this._drawVideo();
     }

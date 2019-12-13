@@ -1,11 +1,17 @@
-"use strict";
+'use strict';
 
 Object.defineProperty(exports, "__esModule", {
   value: true
 });
 
-class AudioTrackMeta {
-  constructor(meta) {
+var _createClass = function () { function defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ("value" in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } } return function (Constructor, protoProps, staticProps) { if (protoProps) defineProperties(Constructor.prototype, protoProps); if (staticProps) defineProperties(Constructor, staticProps); return Constructor; }; }();
+
+function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } }
+
+let AudioTrackMeta = exports.AudioTrackMeta = function () {
+  function AudioTrackMeta(meta) {
+    _classCallCheck(this, AudioTrackMeta);
+
     const _default = {
       sampleRate: 48000,
       channelCount: 2,
@@ -18,24 +24,26 @@ class AudioTrackMeta {
       timescale: 1000,
       type: 'audio'
     };
-
     if (meta) {
       return Object.assign({}, _default, meta);
     }
-
     return _default;
   }
 
-  destroy() {
-    this.init = null;
-  }
+  _createClass(AudioTrackMeta, [{
+    key: 'destroy',
+    value: function destroy() {
+      this.init = null;
+    }
+  }]);
 
-}
+  return AudioTrackMeta;
+}();
 
-exports.AudioTrackMeta = AudioTrackMeta;
+let VideoTrackMeta = exports.VideoTrackMeta = function () {
+  function VideoTrackMeta(meta) {
+    _classCallCheck(this, VideoTrackMeta);
 
-class VideoTrackMeta {
-  constructor(meta) {
     const _default = {
       avcc: null,
       sps: new Uint8Array(0),
@@ -68,16 +76,17 @@ class VideoTrackMeta {
     if (meta) {
       return Object.assign({}, _default, meta);
     }
-
     return _default;
   }
 
-  destroy() {
-    this.init = null;
-    this.sps = null;
-    this.pps = null;
-  }
+  _createClass(VideoTrackMeta, [{
+    key: 'destroy',
+    value: function destroy() {
+      this.init = null;
+      this.sps = null;
+      this.pps = null;
+    }
+  }]);
 
-}
-
-exports.VideoTrackMeta = VideoTrackMeta;
+  return VideoTrackMeta;
+}();
