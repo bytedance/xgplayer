@@ -131,7 +131,6 @@ class MobileVideo extends HTMLElement {
     const pxVal = typeof val === 'number' ? `${val}px` : val
     this.setAttribute('width', pxVal)
     this.style.width = pxVal
-    this._canvas.style.width = pxVal;
     this._canvas.width = val;
   }
 
@@ -144,7 +143,6 @@ class MobileVideo extends HTMLElement {
     const pxVal = typeof val === 'number' ? `${val}px` : val
     this.setAttribute('height', pxVal)
     this.style.height = pxVal
-    this._canvas.style.height = pxVal;
     this._canvas.height = val;
   }
 

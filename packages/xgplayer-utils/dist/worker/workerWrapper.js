@@ -4,6 +4,13 @@ Object.defineProperty(exports, "__esModule", {
   value: true
 });
 
+<<<<<<< HEAD
+var _webworkify = require("webworkify");
+
+var _webworkify2 = _interopRequireDefault(_webworkify);
+
+var _workerCommands = require("../constants/worker-commands");
+=======
 var _createClass = function () { function defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ("value" in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } } return function (Constructor, protoProps, staticProps) { if (protoProps) defineProperties(Constructor.prototype, protoProps); if (staticProps) defineProperties(Constructor, staticProps); return Constructor; }; }();
 
 var _webworkify = require('webworkify');
@@ -11,6 +18,7 @@ var _webworkify = require('webworkify');
 var _webworkify2 = _interopRequireDefault(_webworkify);
 
 var _workerCommands = require('../constants/worker-commands');
+>>>>>>> 6568d0dd7c2d795ab5b1bd65773d4c1f5f98fc06
 
 var _workerCommands2 = _interopRequireDefault(_workerCommands);
 
@@ -25,7 +33,13 @@ let WorkerWrapper = function () {
     if (!Wrapped) {
       throw new Error('No Worker Provided');
     }
+<<<<<<< HEAD
+
     this._worker = (0, _webworkify2.default)(Wrapped);
+
+=======
+    this._worker = (0, _webworkify2.default)(Wrapped);
+>>>>>>> 6568d0dd7c2d795ab5b1bd65773d4c1f5f98fc06
     this._worker.addEventListener('message', this.handleWorkerMessage);
     this.commandMap = {
       [_workerCommands2.default.EMIT]: this.handleCommandEmit.bind(this),

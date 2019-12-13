@@ -1,7 +1,7 @@
 import Workerify from 'webworkify-webpack'
 import Stream from '../write/stream';
-import Nalunit from '../../../xgplayer-codec/src/h264/nalunit';
-import YUVCanvas from './yuv-canvas';
+import Nalunit from 'xgplayer-codec/src/h264/nalunit';
+import Render from 'xgplayer-render/src/index';
 import SourceBuffer from './sourcebuffer';
 import TimeRanges from '../models/TimeRanges';
 
@@ -28,6 +28,14 @@ class VideoCanvas {
     this._lastRenderTime = null
     this.playFinish = null
 
+    this.canvas.style.maxWidth = '100%';
+    this.canvas.style.maxHeight = '100%';
+    this.canvas.style.top = 0;
+    this.canvas.style.bottom = 0;
+    this.canvas.style.left = 0;
+    this.canvas.style.right = 0;
+    this.canvas.style.margin = 'auto';
+    this.canvas.style.position = 'absolute';
   }
 
   pause () {
@@ -77,8 +85,12 @@ class VideoCanvas {
     })
 
     if (!this.yuvCanvas) {
-      let config = Object.assign({meta, canvas: this.canvas}, this.config);
-      this.yuvCanvas = new YUVCanvas(config);
+      let format = 'YUV420';
+      if (meta.chromaFormat === 422) {
+        format = 'YUV422P'
+      }
+      let config = Object.assign({format, canvas: this.canvas}, this.config);
+      this.yuvCanvas = new Render(config);
     }
     this.readyStatus = 1;
   }
@@ -177,6 +189,7 @@ class VideoCanvas {
     if (this.paused) {
       return;
     }
+    
     if (this.meta) {
       if (this.meta.frameRate && this.meta.frameRate.fixed && this.meta.frameRate.fps) {
       }
@@ -190,7 +203,15 @@ class VideoCanvas {
 
         let frame = this._decodedFrames[frameTime];
         if (frame) {
-          this.yuvCanvas.render(frame.buffer, frame.width, frame.height, frame.yLinesize, frame.uvLinesize);
+          let buf = []
+          if (this.meta.chromaFormat === 420) {
+            
+            let buf0 = frame.buffer.slice(0, frame.yLinesize * frame.height);
+            let buf1 = frame.buffer.slice(frame.yLinesize * frame.height, frame.yLinesize * frame.height * 1.25);
+            let buf2 = frame.buffer.slice(frame.yLinesize * frame.height * 1.25, frame.yLinesize * frame.height * 1.5);
+            buf = [new Uint8Array(buf0), new Uint8Array(buf1), new Uint8Array(buf2)];
+          }
+          this.yuvCanvas.render(buf, frame.yLinesize, frame.height);
         }
         for (let i = 0; i < frameTimes.length; i++) {
           if (Number.parseInt(frameTimes[i]) < frameTime) {

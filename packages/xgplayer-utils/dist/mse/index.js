@@ -34,10 +34,39 @@ let MSE = function () {
       this.container.addEventListener('timeupdate', this.onTimeUpdate);
       this.container.addEventListener('waiting', this.onWaiting);
     }
+<<<<<<< HEAD
+
+    let sources = this._context.getInstance('PRE_SOURCE_BUFFER');
+
+    let tracks = this._context.getInstance('TRACKS');
+
+    let track;
+    sources = sources.sources;
+    let add = false;
+
+    for (let i = 0, k = Object.keys(sources).length; i < k; i++) {
+      let type = Object.keys(sources)[i];
+
+      if (type === 'audio') {
+        track = tracks.audioTrack;
+      } else if (type === 'video') {
+        track = tracks.videoTrack; // return;
+      }
+
+      if (track) {
+        let dur = type === 'audio' ? 21 : 40;
+        if (track.meta && track.meta.refSampleDuration) dur = track.meta.refSampleDuration;
+
+        if (sources[type].data.length >= this.preloadTime / dur) {
+          add = true;
+        }
+      }
+=======
   }, {
     key: 'onTimeUpdate',
     value: function onTimeUpdate() {
       this.emit('TIME_UPDATE', this.container);
+>>>>>>> 6568d0dd7c2d795ab5b1bd65773d4c1f5f98fc06
     }
   }, {
     key: 'onWaiting',
@@ -84,6 +113,17 @@ let MSE = function () {
         }
       }
 
+<<<<<<< HEAD
+          if (source && !source.inited) {
+            // console.log('append initial segment')
+            sourceBuffer.appendBuffer(source.init.buffer.buffer);
+            source.inited = true;
+          } else if (source) {
+            let data = source.data.shift();
+
+            if (data) {
+              sourceBuffer.appendBuffer(data.buffer.buffer);
+=======
       if (add) {
         if (Object.keys(this.sourceBuffers).length > 0) {
           return;
@@ -118,6 +158,7 @@ let MSE = function () {
               if (data) {
                 sourceBuffer.appendBuffer(data.buffer.buffer);
               }
+>>>>>>> 6568d0dd7c2d795ab5b1bd65773d4c1f5f98fc06
             }
           }
         }
@@ -140,12 +181,22 @@ let MSE = function () {
     value: function remove(end) {
       let start = arguments.length > 1 && arguments[1] !== undefined ? arguments[1] : 0;
 
+<<<<<<< HEAD
+  remove(end, start = 0) {
+    for (let i = 0; i < Object.keys(this.sourceBuffers).length; i++) {
+      let buffer = this.sourceBuffers[Object.keys(this.sourceBuffers)[i]];
+
+      if (!buffer.updating) {
+        // console.log(start, end)
+        buffer.remove(start, end);
+=======
       for (let i = 0; i < Object.keys(this.sourceBuffers).length; i++) {
         let buffer = this.sourceBuffers[Object.keys(this.sourceBuffers)[i]];
         if (!buffer.updating) {
           // console.log(start, end)
           buffer.remove(start, end);
         }
+>>>>>>> 6568d0dd7c2d795ab5b1bd65773d4c1f5f98fc06
       }
     }
   }, {

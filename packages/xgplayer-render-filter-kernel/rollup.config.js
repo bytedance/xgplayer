@@ -1,6 +1,4 @@
-const babel  = require('rollup-plugin-babel');
-
-
+const babel = require('rollup-plugin-babel');
 module.exports = {
   input: 'src/index.js',
   plugins: [
@@ -10,7 +8,7 @@ module.exports = {
   ],
   output: [{
     file: 'browser/index.js',
-    format: 'umd',
+    format: 'iife',
     name: 'KernelFilter'
   },
   {
