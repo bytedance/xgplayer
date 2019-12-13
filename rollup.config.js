@@ -37,6 +37,13 @@ const commonRollup = function (config = {}) {
         format: 'umd',
         sourcemap: rollupConfig.sourcemap,
         globals: rollupConfig.globals
+      },
+      {
+        file: rollupConfig.uglify ? 'dist/index.min.js' : 'dist/index.js',
+        name: rollupConfig.name,
+        format: 'umd',
+        sourcemap: rollupConfig.sourcemap,
+        globals: rollupConfig.globals
       }
     ],
     external: rollupConfig.external,

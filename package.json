@@ -72,6 +72,7 @@
     "lerna": "^3.17.0",
     "lerna-changelog": "^0.8.0",
     "lint-staged": "^7.2.0",
+    "rollup": "^1.27.0",
     "rollup-plugin-babel": "3",
     "rollup-plugin-commonjs": "^10.1.0",
     "rollup-plugin-json": "^4.0.0",

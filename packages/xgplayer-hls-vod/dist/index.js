@@ -30,81 +30,12 @@
     };
   }();
 
-  var get = function get(object, property, receiver) {
-    if (object === null) object = Function.prototype;
-    var desc = Object.getOwnPropertyDescriptor(object, property);
-
-    if (desc === undefined) {
-      var parent = Object.getPrototypeOf(object);
-
-      if (parent === null) {
-        return undefined;
-      } else {
-        return get(parent, property, receiver);
-      }
-    } else if ("value" in desc) {
-      return desc.value;
-    } else {
-      var getter = desc.get;
-
-      if (getter === undefined) {
-        return undefined;
-      }
-
-      return getter.call(receiver);
-    }
-  };
-
-  var inherits = function (subClass, superClass) {
-    if (typeof superClass !== "function" && superClass !== null) {
-      throw new TypeError("Super expression must either be null or a function, not " + typeof superClass);
-    }
-
-    subClass.prototype = Object.create(superClass && superClass.prototype, {
-      constructor: {
-        value: subClass,
-        enumerable: false,
-        writable: true,
-        configurable: true
-      }
-    });
-    if (superClass) Object.setPrototypeOf ? Object.setPrototypeOf(subClass, superClass) : subClass.__proto__ = superClass;
-  };
-
-  var possibleConstructorReturn = function (self, call) {
-    if (!self) {
-      throw new ReferenceError("this hasn't been initialised - super() hasn't been called");
-    }
-
-    return call && (typeof call === "object" || typeof call === "function") ? call : self;
-  };
-
-  var set = function set(object, property, value, receiver) {
-    var desc = Object.getOwnPropertyDescriptor(object, property);
-
-    if (desc === undefined) {
-      var parent = Object.getPrototypeOf(object);
-
-      if (parent !== null) {
-        set(parent, property, value, receiver);
-      }
-    } else if ("value" in desc && desc.writable) {
-      desc.value = value;
-    } else {
-      var setter = desc.set;
-
-      if (setter !== undefined) {
-        setter.call(receiver, value);
-      }
-    }
-
-    return value;
-  };
+  var _typeof = typeof Symbol === "function" && typeof Symbol.iterator === "symbol" ? function (obj) { return typeof obj; } : function (obj) { return obj && typeof Symbol === "function" && obj.constructor === Symbol && obj !== Symbol.prototype ? "symbol" : typeof obj; };
 
   (function (global) {
     var babelHelpers = global.babelHelpers = {};
     babelHelpers.typeof = function (obj) {
-      return typeof obj === "undefined" ? "undefined" : babelHelpers.typeof(obj);
+      return typeof obj === "undefined" ? "undefined" : _typeof(obj);
     };
 
     babelHelpers.classCallCheck = function (instance, Constructor) {
@@ -133,7 +64,7 @@
 
     babelHelpers.inherits = function (subClass, superClass) {
       if (typeof superClass !== "function" && superClass !== null) {
-        throw new TypeError("Super expression must either be null or a function, not " + (typeof superClass === "undefined" ? "undefined" : babelHelpers.typeof(superClass)));
+        throw new TypeError("Super expression must either be null or a function, not " + (typeof superClass === "undefined" ? "undefined" : _typeof(superClass)));
       }
 
       subClass.prototype = Object.create(superClass && superClass.prototype, {
@@ -152,7 +83,7 @@
         throw new ReferenceError("this hasn't been initialised - super() hasn't been called");
       }
 
-      return call && ((typeof call === "undefined" ? "undefined" : babelHelpers.typeof(call)) === "object" || typeof call === "function") ? call : self;
+      return call && ((typeof call === "undefined" ? "undefined" : _typeof(call)) === "object" || typeof call === "function") ? call : self;
     };
   })(typeof global === "undefined" ? self : global);
 
@@ -7105,7 +7036,7 @@
 
   var HlsVodController = function () {
     function HlsVodController(configs) {
-      classCallCheck(this, HlsVodController);
+      babelHelpers.classCallCheck(this, HlsVodController);
 
       this.configs = Object.assign({}, configs);
       this.url = '';
@@ -7120,7 +7051,7 @@
       this.m3u8Text = null;
     }
 
-    createClass(HlsVodController, [{
+    babelHelpers.createClass(HlsVodController, [{
       key: 'init',
       value: function init() {
         // 初始化Buffer （M3U8/TS/Playlist);
@@ -7482,12 +7413,12 @@
   var HLS_EVENTS$2 = EVENTS.HLS_EVENTS;
 
   var HlsVodPlayer = function (_Player) {
-    inherits(HlsVodPlayer, _Player);
+    babelHelpers.inherits(HlsVodPlayer, _Player);
 
     function HlsVodPlayer(options) {
-      classCallCheck(this, HlsVodPlayer);
+      babelHelpers.classCallCheck(this, HlsVodPlayer);
 
-      var _this2 = possibleConstructorReturn(this, (HlsVodPlayer.__proto__ || Object.getPrototypeOf(HlsVodPlayer)).call(this, options));
+      var _this2 = babelHelpers.possibleConstructorReturn(this, (HlsVodPlayer.__proto__ || Object.getPrototypeOf(HlsVodPlayer)).call(this, options));
 
       _this2.hlsOps = {};
       _this2.util = Player.util;
@@ -7496,14 +7427,14 @@
       return _this2;
     }
 
-    createClass(HlsVodPlayer, [{
+    babelHelpers.createClass(HlsVodPlayer, [{
       key: '_initEvents',
       value: function _initEvents() {
         var _this3 = this;
 
         this.__core__.once(REMUX_EVENTS$4.INIT_SEGMENT, function () {
           var mse = _this3._context.getInstance('MSE');
-          get(HlsVodPlayer.prototype.__proto__ || Object.getPrototypeOf(HlsVodPlayer.prototype), 'start', _this3).call(_this3, mse.url);
+          babelHelpers.get(HlsVodPlayer.prototype.__proto__ || Object.getPrototypeOf(HlsVodPlayer.prototype), 'start', _this3).call(_this3, mse.url);
         });
 
         this.__core__.once(HLS_EVENTS$2.RETRY_TIME_EXCEEDED, function () {
@@ -7561,16 +7492,16 @@
       key: 'destroy',
       value: function destroy() {
         this._context.destroy();
-        get(HlsVodPlayer.prototype.__proto__ || Object.getPrototypeOf(HlsVodPlayer.prototype), 'destroy', this).call(this);
+        babelHelpers.get(HlsVodPlayer.prototype.__proto__ || Object.getPrototypeOf(HlsVodPlayer.prototype), 'destroy', this).call(this);
       }
     }, {
       key: 'currentTime',
-      get: function get$1() {
-        return get(HlsVodPlayer.prototype.__proto__ || Object.getPrototypeOf(HlsVodPlayer.prototype), 'currentTime', this);
+      get: function get() {
+        return babelHelpers.get(HlsVodPlayer.prototype.__proto__ || Object.getPrototypeOf(HlsVodPlayer.prototype), 'currentTime', this);
       },
-      set: function set$1(time) {
+      set: function set(time) {
         time = parseFloat(time);
-        set(HlsVodPlayer.prototype.__proto__ || Object.getPrototypeOf(HlsVodPlayer.prototype), 'currentTime', parseInt(time), this);
+        babelHelpers.set(HlsVodPlayer.prototype.__proto__ || Object.getPrototypeOf(HlsVodPlayer.prototype), 'currentTime', parseInt(time), this);
         if (this._context) {
           this.__core__.seek(time);
         }
