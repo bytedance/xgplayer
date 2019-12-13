@@ -60,6 +60,9 @@ var TsDemuxer = function () {
         while (buffer.length >= 1 && buffer.array[0][buffer.offset] !== 71) {
           buffer.shift(1);
         }
+        if (buffer.length < 188) {
+          continue;
+        }
         var buf = buffer.shift(188);
         // console.log(buf);
         var tsStream = new Stream(buf.buffer);

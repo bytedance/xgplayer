@@ -79,7 +79,7 @@ var M3U8Parser = function () {
 
       ret.duration += freg.duration;
       var nextline = refs.shift();
-      if (nextline.match(/#(.*):(.*)/)) {
+      if (nextline.match(/#(.*):(.*)/) || nextline.match(/^#/)) {
         nextline = refs.shift();
       }
       if (nextline.length > 0 && nextline.charAt(0) === '/' && baseurl.match(/.*\/\/.*\.\w+/g)) {

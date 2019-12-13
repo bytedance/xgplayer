@@ -7,6 +7,7 @@ const commonjs = require('rollup-plugin-commonjs')
 const { string } = require('rollup-plugin-string')
 const context = require('rollup-plugin-require-context')
 const builtins = require('rollup-plugin-node-builtins')
+const multiEntry = require('rollup-plugin-multi-entry')
 
 const defaultRollup = {
   input: 'src/index.js',
@@ -51,7 +52,7 @@ const commonRollup = function (config = {}) {
         }
       }),
       babel({
-        exclude: ['node_modules/**', '**/*.svg'],
+        exclude: ['node_modules/**/**', '**/*.svg', 'xgplayer-polyfills'],
         plugins: ['external-helpers'],
         ...rollupConfig.babel
       }),
@@ -68,7 +69,8 @@ const commonRollup = function (config = {}) {
         ...rollupConfig.commonjs
       }),
       builtins(),
-      context()
+      context(),
+      multiEntry()
     ]
   }
 }

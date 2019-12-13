@@ -70,7 +70,7 @@ class M3U8Parser {
 
     ret.duration += freg.duration;
     let nextline = refs.shift();
-    if (nextline.match(/#(.*):(.*)/)) {
+    if (nextline.match(/#(.*):(.*)/) || nextline.match(/^#/)) {
       nextline = refs.shift();
     }
     if (nextline.length > 0 && nextline.charAt(0) === '/' && baseurl.match(/.*\/\/.*\.\w+/g)) {
@@ -101,7 +101,7 @@ class M3U8Parser {
   static parseDecrypt(refm, ret) {
     ret.encrypt = {};
     let refs = refm.split(',');
-    for (let i in refs) { 
+    for (let i in refs) {
       let cmd = refs[i];
       if(cmd.match(/METHOD=(.*)/)) {
         ret.encrypt.method = cmd.match(/METHOD=(.*)/)[1];
@@ -117,7 +117,7 @@ class M3U8Parser {
         for(let i = length - 1; i >=0; i--) {
           let im = parseInt(iv.substr(i * 2, 2), 16);
           ret.encrypt.ivb[i] = im;
-        } 
+        }
         ret.encrypt.iv = iv;
       }
     };
