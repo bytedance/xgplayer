@@ -6,7 +6,7 @@ let localPreview = function () {
   function onUpload (upload) {
     player.uploadFile = upload.files[0]
     let url = URL.createObjectURL(player.uploadFile)
-    if (util.hasClass(root, 'xgplayer-nostart')) {
+    if (Player.util.hasClass(root, 'xgplayer-nostart')) {
       player.config.url = url
       player.start()
     } else {
