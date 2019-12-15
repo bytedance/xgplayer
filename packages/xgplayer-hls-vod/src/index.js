@@ -2,11 +2,12 @@ import 'xgplayer-polyfills/babel/external-helpers';
 import Player from 'xgplayer'
 import { Context, EVENTS } from 'xgplayer-utils';
 import HlsVodController from './hls-vod';
+
 const HlsAllowedEvents = EVENTS.HlsAllowedEvents;
 const REMUX_EVENTS = EVENTS.REMUX_EVENTS;
 const HLS_EVENTS = EVENTS.HLS_EVENTS;
 
-export default class HlsVodPlayer extends Player {
+class HlsVodPlayer extends Player {
   constructor (options) {
     super(options)
     this.hlsOps = {};
@@ -85,3 +86,5 @@ export default class HlsVodPlayer extends Player {
     super.destroy();
   }
 }
+
+export default HlsVodPlayer;

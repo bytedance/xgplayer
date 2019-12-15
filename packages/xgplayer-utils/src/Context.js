@@ -39,8 +39,9 @@ class Context {
    * @param args
    */
   initInstance (tag, ...args) {
+    const [a, b, c, d] = args;
     if (this._clsMap[tag]) {
-      const newInstance = new this._clsMap[tag](...args)
+      const newInstance = new this._clsMap[tag](a, b, c, d)
       this._instanceMap[tag] = newInstance
       if (newInstance.init) {
         newInstance.init() // TODO: lifecircle

@@ -3,6 +3,7 @@
   "version": "0.0.1",
   "description": "xgplayer for video player",
   "main": "index.js",
+  "private": true,
   "scripts": {
     "test": "node_modules/.bin/lerna-changelog",
     "dev": "npx babel-node app.js",

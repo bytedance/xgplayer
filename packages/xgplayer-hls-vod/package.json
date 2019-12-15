@@ -23,9 +23,6 @@
           "useBuiltIns": "usage"
         }
       ]
-    ],
-    "plugins": [
-      "external-helpers"
     ]
   },
   "license": "ISC",
@@ -38,5 +35,7 @@
     "xgplayer-utils": "^2.2.0-alpha.0",
     "xgplayer-polyfills": "^2.2.0-alpha.0"
   },
-  "devDependencies": {}
+  "devDependencies": {
+    "cross-env": "^6.0.3"
+  }
 }

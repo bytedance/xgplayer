@@ -7,7 +7,6 @@ const commonjs = require('rollup-plugin-commonjs')
 const { string } = require('rollup-plugin-string')
 const context = require('rollup-plugin-require-context')
 const builtins = require('rollup-plugin-node-builtins')
-const multiEntry = require('rollup-plugin-multi-entry')
 
 const defaultRollup = {
   input: 'src/index.js',
@@ -37,13 +36,6 @@ const commonRollup = function (config = {}) {
         format: 'umd',
         sourcemap: rollupConfig.sourcemap,
         globals: rollupConfig.globals
-      },
-      {
-        file: rollupConfig.uglify ? 'dist/index.min.js' : 'dist/index.js',
-        name: rollupConfig.name,
-        format: 'umd',
-        sourcemap: rollupConfig.sourcemap,
-        globals: rollupConfig.globals
       }
     ],
     external: rollupConfig.external,
@@ -59,7 +51,7 @@ const commonRollup = function (config = {}) {
         }
       }),
       babel({
-        exclude: ['node_modules/**/**', '**/*.svg', 'xgplayer-polyfills'],
+        exclude: ['node_modules/**', '**/*.svg'],
         plugins: ['external-helpers'],
         ...rollupConfig.babel
       }),
@@ -76,8 +68,7 @@ const commonRollup = function (config = {}) {
         ...rollupConfig.commonjs
       }),
       builtins(),
-      context(),
-      multiEntry()
+      context()
     ]
   }
 }

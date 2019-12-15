@@ -1,5 +1,11 @@
 import Player from 'xgplayer';
 
+var _typeof = typeof Symbol === "function" && typeof Symbol.iterator === "symbol" ? function (obj) {
+  return typeof obj;
+} : function (obj) {
+  return obj && typeof Symbol === "function" && obj.constructor === Symbol && obj !== Symbol.prototype ? "symbol" : typeof obj;
+};
+
 var classCallCheck = function (instance, Constructor) {
   if (!(instance instanceof Constructor)) {
     throw new TypeError("Cannot call a class as a function");
@@ -24,21 +30,90 @@ var createClass = function () {
   };
 }();
 
-var _typeof = typeof Symbol === "function" && typeof Symbol.iterator === "symbol" ? function (obj) { return typeof obj; } : function (obj) { return obj && typeof Symbol === "function" && obj.constructor === Symbol && obj !== Symbol.prototype ? "symbol" : typeof obj; };
+var get = function get(object, property, receiver) {
+  if (object === null) object = Function.prototype;
+  var desc = Object.getOwnPropertyDescriptor(object, property);
+
+  if (desc === undefined) {
+    var parent = Object.getPrototypeOf(object);
+
+    if (parent === null) {
+      return undefined;
+    } else {
+      return get(parent, property, receiver);
+    }
+  } else if ("value" in desc) {
+    return desc.value;
+  } else {
+    var getter = desc.get;
+
+    if (getter === undefined) {
+      return undefined;
+    }
+
+    return getter.call(receiver);
+  }
+};
+
+var inherits = function (subClass, superClass) {
+  if (typeof superClass !== "function" && superClass !== null) {
+    throw new TypeError("Super expression must either be null or a function, not " + typeof superClass);
+  }
+
+  subClass.prototype = Object.create(superClass && superClass.prototype, {
+    constructor: {
+      value: subClass,
+      enumerable: false,
+      writable: true,
+      configurable: true
+    }
+  });
+  if (superClass) Object.setPrototypeOf ? Object.setPrototypeOf(subClass, superClass) : subClass.__proto__ = superClass;
+};
+
+var possibleConstructorReturn = function (self, call) {
+  if (!self) {
+    throw new ReferenceError("this hasn't been initialised - super() hasn't been called");
+  }
+
+  return call && (typeof call === "object" || typeof call === "function") ? call : self;
+};
+
+var set = function set(object, property, value, receiver) {
+  var desc = Object.getOwnPropertyDescriptor(object, property);
+
+  if (desc === undefined) {
+    var parent = Object.getPrototypeOf(object);
+
+    if (parent !== null) {
+      set(parent, property, value, receiver);
+    }
+  } else if ("value" in desc && desc.writable) {
+    desc.value = value;
+  } else {
+    var setter = desc.set;
+
+    if (setter !== undefined) {
+      setter.call(receiver, value);
+    }
+  }
+
+  return value;
+};
 
 (function (global) {
-  var babelHelpers = global.babelHelpers = {};
-  babelHelpers.typeof = function (obj) {
+  var _babelHelpers = global.babelHelpers = {};
+  _babelHelpers.typeof = function (obj) {
     return typeof obj === "undefined" ? "undefined" : _typeof(obj);
   };
 
-  babelHelpers.classCallCheck = function (instance, Constructor) {
+  _babelHelpers.classCallCheck = function (instance, Constructor) {
     if (!(instance instanceof Constructor)) {
       throw new TypeError("Cannot call a class as a function");
     }
   };
 
-  babelHelpers.createClass = function () {
+  _babelHelpers.createClass = function () {
     function defineProperties(target, props) {
       for (var i = 0; i < props.length; i++) {
         var descriptor = props[i];
@@ -56,7 +131,7 @@ var _typeof = typeof Symbol === "function" && typeof Symbol.iterator === "symbol
     };
   }();
 
-  babelHelpers.inherits = function (subClass, superClass) {
+  _babelHelpers.inherits = function (subClass, superClass) {
     if (typeof superClass !== "function" && superClass !== null) {
       throw new TypeError("Super expression must either be null or a function, not " + (typeof superClass === "undefined" ? "undefined" : _typeof(superClass)));
     }
@@ -72,7 +147,7 @@ var _typeof = typeof Symbol === "function" && typeof Symbol.iterator === "symbol
     if (superClass) Object.setPrototypeOf ? Object.setPrototypeOf(subClass, superClass) : subClass.__proto__ = superClass;
   };
 
-  babelHelpers.possibleConstructorReturn = function (self, call) {
+  _babelHelpers.possibleConstructorReturn = function (self, call) {
     if (!self) {
       throw new ReferenceError("this hasn't been initialised - super() hasn't been called");
     }
@@ -618,12 +693,17 @@ var Context = function () {
   }, {
     key: 'initInstance',
     value: function initInstance(tag) {
-      if (this._clsMap[tag]) {
-        for (var _len = arguments.length, args = Array(_len > 1 ? _len - 1 : 0), _key = 1; _key < _len; _key++) {
-          args[_key - 1] = arguments[_key];
-        }
+      for (var _len = arguments.length, args = Array(_len > 1 ? _len - 1 : 0), _key = 1; _key < _len; _key++) {
+        args[_key - 1] = arguments[_key];
+      }
 
-        var newInstance = new (Function.prototype.bind.apply(this._clsMap[tag], [null].concat(args)))();
+      var a = args[0],
+          b = args[1],
+          c = args[2],
+          d = args[3];
+
+      if (this._clsMap[tag]) {
+        var newInstance = new this._clsMap[tag](a, b, c, d);
         this._instanceMap[tag] = newInstance;
         if (newInstance.init) {
           newInstance.init(); // TODO: lifecircle
@@ -4627,9 +4707,6 @@ var Mp4Remuxer = function () {
           buffer: [],
           size: 0
         };
-        mdatBox.samples.push(mdatSample);
-        mdatSample.buffer.push(avcSample.data);
-        mdatSample.size += avcSample.data.byteLength;
 
         var sampleDuration = 0;
         if (avcSample.duration) {
@@ -4649,6 +4726,10 @@ var Mp4Remuxer = function () {
         this.videoAllDuration += sampleDuration;
         // console.log(`video dts ${dts}`, `pts ${pts}`, isKeyframe, `duration ${sampleDuration}`)
         if (sampleDuration >= 0) {
+          mdatBox.samples.push(mdatSample);
+          mdatSample.buffer.push(avcSample.data);
+          mdatSample.size += avcSample.data.byteLength;
+
           mp4Samples.push({
             dts: dts,
             cts: cts,
@@ -4763,7 +4844,7 @@ var Mp4Remuxer = function () {
           }
         }
 
-        // console.log(`audio dts ${dts}`, `pts ${dts}`, `duration ${sampleDuration}`)
+        console.log('audio dts ' + dts, 'pts ' + dts, 'duration ' + sampleDuration);
         this.audioAllDuration += sampleDuration;
         var mp4Sample = {
           dts: dts,
@@ -4787,11 +4868,12 @@ var Mp4Remuxer = function () {
           buffer: [],
           size: 0
         };
-        mdatSample.buffer.push(data);
-        mdatSample.size += data.byteLength;
 
-        mdatBox.samples.push(mdatSample);
         if (sampleDuration >= 0) {
+          mdatSample.buffer.push(data);
+          mdatSample.size += data.byteLength;
+
+          mdatBox.samples.push(mdatSample);
           mp4Samples.push(mp4Sample);
         }
       }
@@ -7030,7 +7112,7 @@ var HLS_ERROR = 'HLS_ERROR';
 
 var HlsVodController = function () {
   function HlsVodController(configs) {
-    babelHelpers.classCallCheck(this, HlsVodController);
+    classCallCheck(this, HlsVodController);
 
     this.configs = Object.assign({}, configs);
     this.url = '';
@@ -7045,7 +7127,7 @@ var HlsVodController = function () {
     this.m3u8Text = null;
   }
 
-  babelHelpers.createClass(HlsVodController, [{
+  createClass(HlsVodController, [{
     key: 'init',
     value: function init() {
       // 初始化Buffer （M3U8/TS/Playlist);
@@ -7407,12 +7489,12 @@ var REMUX_EVENTS$4 = EVENTS.REMUX_EVENTS;
 var HLS_EVENTS$2 = EVENTS.HLS_EVENTS;
 
 var HlsVodPlayer = function (_Player) {
-  babelHelpers.inherits(HlsVodPlayer, _Player);
+  inherits(HlsVodPlayer, _Player);
 
   function HlsVodPlayer(options) {
-    babelHelpers.classCallCheck(this, HlsVodPlayer);
+    classCallCheck(this, HlsVodPlayer);
 
-    var _this2 = babelHelpers.possibleConstructorReturn(this, (HlsVodPlayer.__proto__ || Object.getPrototypeOf(HlsVodPlayer)).call(this, options));
+    var _this2 = possibleConstructorReturn(this, (HlsVodPlayer.__proto__ || Object.getPrototypeOf(HlsVodPlayer)).call(this, options));
 
     _this2.hlsOps = {};
     _this2.util = Player.util;
@@ -7421,14 +7503,14 @@ var HlsVodPlayer = function (_Player) {
     return _this2;
   }
 
-  babelHelpers.createClass(HlsVodPlayer, [{
+  createClass(HlsVodPlayer, [{
     key: '_initEvents',
     value: function _initEvents() {
       var _this3 = this;
 
       this.__core__.once(REMUX_EVENTS$4.INIT_SEGMENT, function () {
         var mse = _this3._context.getInstance('MSE');
-        babelHelpers.get(HlsVodPlayer.prototype.__proto__ || Object.getPrototypeOf(HlsVodPlayer.prototype), 'start', _this3).call(_this3, mse.url);
+        get(HlsVodPlayer.prototype.__proto__ || Object.getPrototypeOf(HlsVodPlayer.prototype), 'start', _this3).call(_this3, mse.url);
       });
 
       this.__core__.once(HLS_EVENTS$2.RETRY_TIME_EXCEEDED, function () {
@@ -7486,16 +7568,16 @@ var HlsVodPlayer = function (_Player) {
     key: 'destroy',
     value: function destroy() {
       this._context.destroy();
-      babelHelpers.get(HlsVodPlayer.prototype.__proto__ || Object.getPrototypeOf(HlsVodPlayer.prototype), 'destroy', this).call(this);
+      get(HlsVodPlayer.prototype.__proto__ || Object.getPrototypeOf(HlsVodPlayer.prototype), 'destroy', this).call(this);
     }
   }, {
     key: 'currentTime',
-    get: function get() {
-      return babelHelpers.get(HlsVodPlayer.prototype.__proto__ || Object.getPrototypeOf(HlsVodPlayer.prototype), 'currentTime', this);
+    get: function get$1() {
+      return get(HlsVodPlayer.prototype.__proto__ || Object.getPrototypeOf(HlsVodPlayer.prototype), 'currentTime', this);
     },
-    set: function set(time) {
+    set: function set$1(time) {
       time = parseFloat(time);
-      babelHelpers.set(HlsVodPlayer.prototype.__proto__ || Object.getPrototypeOf(HlsVodPlayer.prototype), 'currentTime', parseInt(time), this);
+      set(HlsVodPlayer.prototype.__proto__ || Object.getPrototypeOf(HlsVodPlayer.prototype), 'currentTime', parseInt(time), this);
       if (this._context) {
         this.__core__.seek(time);
       }
@@ -7503,4 +7585,6 @@ var HlsVodPlayer = function (_Player) {
   }]);
   return HlsVodPlayer;
 }(Player);
+
+export default HlsVodPlayer;
 //# sourceMappingURL=index.js.map

@@ -168,9 +168,6 @@ export default class Mp4Remuxer {
         buffer: [],
         size: 0
       }
-      mdatBox.samples.push(mdatSample)
-      mdatSample.buffer.push(avcSample.data)
-      mdatSample.size += avcSample.data.byteLength
 
       let sampleDuration = 0
       if (avcSample.duration) {
@@ -188,6 +185,10 @@ export default class Mp4Remuxer {
       this.videoAllDuration += sampleDuration
       // console.log(`video dts ${dts}`, `pts ${pts}`, isKeyframe, `duration ${sampleDuration}`)
       if (sampleDuration >= 0) {
+        mdatBox.samples.push(mdatSample)
+        mdatSample.buffer.push(avcSample.data)
+        mdatSample.size += avcSample.data.byteLength
+
         mp4Samples.push({
           dts,
           cts,
@@ -295,7 +296,7 @@ export default class Mp4Remuxer {
         }
       }
 
-      // console.log(`audio dts ${dts}`, `pts ${dts}`, `duration ${sampleDuration}`)
+      console.log(`audio dts ${dts}`, `pts ${dts}`, `duration ${sampleDuration}`)
       this.audioAllDuration += sampleDuration
       const mp4Sample = {
         dts,
@@ -319,11 +320,12 @@ export default class Mp4Remuxer {
         buffer: [],
         size: 0
       }
-      mdatSample.buffer.push(data)
-      mdatSample.size += data.byteLength
 
-      mdatBox.samples.push(mdatSample)
       if (sampleDuration >= 0) {
+        mdatSample.buffer.push(data)
+        mdatSample.size += data.byteLength
+
+        mdatBox.samples.push(mdatSample)
         mp4Samples.push(mp4Sample)
       }
     }

@@ -1,16 +1,16 @@
 (function (global) {
-  var babelHelpers = global.babelHelpers = {};
-  babelHelpers.typeof = function (obj) {
+  var _babelHelpers = global.babelHelpers = {};
+  _babelHelpers.typeof = function (obj) {
     return typeof obj;
   }
 
-  babelHelpers.classCallCheck = function (instance, Constructor) {
+  _babelHelpers.classCallCheck = function (instance, Constructor) {
     if (!(instance instanceof Constructor)) {
       throw new TypeError("Cannot call a class as a function");
     }
   };
 
-  babelHelpers.createClass = function () {
+  _babelHelpers.createClass = function () {
     function defineProperties(target, props) {
       for (var i = 0; i < props.length; i++) {
         var descriptor = props[i];
@@ -28,7 +28,7 @@
     };
   }();
 
-  babelHelpers.inherits = function (subClass, superClass) {
+  _babelHelpers.inherits = function (subClass, superClass) {
     if (typeof superClass !== "function" && superClass !== null) {
       throw new TypeError("Super expression must either be null or a function, not " + typeof superClass);
     }
@@ -44,7 +44,7 @@
     if (superClass) Object.setPrototypeOf ? Object.setPrototypeOf(subClass, superClass) : subClass.__proto__ = superClass;
   };
 
-  babelHelpers.possibleConstructorReturn = function (self, call) {
+  _babelHelpers.possibleConstructorReturn = function (self, call) {
     if (!self) {
       throw new ReferenceError("this hasn't been initialised - super() hasn't been called");
     }

@@ -187,9 +187,6 @@ var Mp4Remuxer = function () {
           buffer: [],
           size: 0
         };
-        mdatBox.samples.push(mdatSample);
-        mdatSample.buffer.push(avcSample.data);
-        mdatSample.size += avcSample.data.byteLength;
 
         var sampleDuration = 0;
         if (avcSample.duration) {
@@ -209,6 +206,10 @@ var Mp4Remuxer = function () {
         this.videoAllDuration += sampleDuration;
         // console.log(`video dts ${dts}`, `pts ${pts}`, isKeyframe, `duration ${sampleDuration}`)
         if (sampleDuration >= 0) {
+          mdatBox.samples.push(mdatSample);
+          mdatSample.buffer.push(avcSample.data);
+          mdatSample.size += avcSample.data.byteLength;
+
           mp4Samples.push({
             dts: dts,
             cts: cts,
@@ -323,7 +324,7 @@ var Mp4Remuxer = function () {
           }
         }
 
-        // console.log(`audio dts ${dts}`, `pts ${dts}`, `duration ${sampleDuration}`)
+        console.log('audio dts ' + dts, 'pts ' + dts, 'duration ' + sampleDuration);
         this.audioAllDuration += sampleDuration;
         var mp4Sample = {
           dts: dts,
@@ -347,11 +348,12 @@ var Mp4Remuxer = function () {
           buffer: [],
           size: 0
         };
-        mdatSample.buffer.push(data);
-        mdatSample.size += data.byteLength;
 
-        mdatBox.samples.push(mdatSample);
         if (sampleDuration >= 0) {
+          mdatSample.buffer.push(data);
+          mdatSample.size += data.byteLength;
+
+          mdatBox.samples.push(mdatSample);
           mp4Samples.push(mp4Sample);
         }
       }

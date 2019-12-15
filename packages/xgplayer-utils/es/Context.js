@@ -49,12 +49,17 @@ var Context = function () {
   }, {
     key: 'initInstance',
     value: function initInstance(tag) {
-      if (this._clsMap[tag]) {
-        for (var _len = arguments.length, args = Array(_len > 1 ? _len - 1 : 0), _key = 1; _key < _len; _key++) {
-          args[_key - 1] = arguments[_key];
-        }
+      for (var _len = arguments.length, args = Array(_len > 1 ? _len - 1 : 0), _key = 1; _key < _len; _key++) {
+        args[_key - 1] = arguments[_key];
+      }
 
-        var newInstance = new (Function.prototype.bind.apply(this._clsMap[tag], [null].concat(args)))();
+      var a = args[0],
+          b = args[1],
+          c = args[2],
+          d = args[3];
+
+      if (this._clsMap[tag]) {
+        var newInstance = new this._clsMap[tag](a, b, c, d);
         this._instanceMap[tag] = newInstance;
         if (newInstance.init) {
           newInstance.init(); // TODO: lifecircle

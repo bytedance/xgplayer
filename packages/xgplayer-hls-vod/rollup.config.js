@@ -5,6 +5,7 @@ const config = {
   input: './src/index.js',
   name: 'HlsVodPlayer',
   uglify: uglify,
+  babel: {},
   external: ['xgplayer'],
   globals: {
     'xgplayer': 'Player'

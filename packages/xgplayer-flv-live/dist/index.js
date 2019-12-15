@@ -6,6 +6,12 @@
 
   Player = Player && Player.hasOwnProperty('default') ? Player['default'] : Player;
 
+  var _typeof = typeof Symbol === "function" && typeof Symbol.iterator === "symbol" ? function (obj) {
+    return typeof obj;
+  } : function (obj) {
+    return obj && typeof Symbol === "function" && obj.constructor === Symbol && obj !== Symbol.prototype ? "symbol" : typeof obj;
+  };
+
   var classCallCheck = function (instance, Constructor) {
     if (!(instance instanceof Constructor)) {
       throw new TypeError("Cannot call a class as a function");
@@ -80,18 +86,18 @@
   };
 
   (function (global) {
-    var babelHelpers = global.babelHelpers = {};
-    babelHelpers.typeof = function (obj) {
-      return typeof obj === "undefined" ? "undefined" : babelHelpers.typeof(obj);
+    var _babelHelpers = global.babelHelpers = {};
+    _babelHelpers.typeof = function (obj) {
+      return typeof obj === "undefined" ? "undefined" : _typeof(obj);
     };
 
-    babelHelpers.classCallCheck = function (instance, Constructor) {
+    _babelHelpers.classCallCheck = function (instance, Constructor) {
       if (!(instance instanceof Constructor)) {
         throw new TypeError("Cannot call a class as a function");
       }
     };
 
-    babelHelpers.createClass = function () {
+    _babelHelpers.createClass = function () {
       function defineProperties(target, props) {
         for (var i = 0; i < props.length; i++) {
           var descriptor = props[i];
@@ -109,9 +115,9 @@
       };
     }();
 
-    babelHelpers.inherits = function (subClass, superClass) {
+    _babelHelpers.inherits = function (subClass, superClass) {
       if (typeof superClass !== "function" && superClass !== null) {
-        throw new TypeError("Super expression must either be null or a function, not " + (typeof superClass === "undefined" ? "undefined" : babelHelpers.typeof(superClass)));
+        throw new TypeError("Super expression must either be null or a function, not " + (typeof superClass === "undefined" ? "undefined" : _typeof(superClass)));
       }
 
       subClass.prototype = Object.create(superClass && superClass.prototype, {
@@ -125,12 +131,12 @@
       if (superClass) Object.setPrototypeOf ? Object.setPrototypeOf(subClass, superClass) : subClass.__proto__ = superClass;
     };
 
-    babelHelpers.possibleConstructorReturn = function (self, call) {
+    _babelHelpers.possibleConstructorReturn = function (self, call) {
       if (!self) {
         throw new ReferenceError("this hasn't been initialised - super() hasn't been called");
       }
 
-      return call && ((typeof call === "undefined" ? "undefined" : babelHelpers.typeof(call)) === "object" || typeof call === "function") ? call : self;
+      return call && ((typeof call === "undefined" ? "undefined" : _typeof(call)) === "object" || typeof call === "function") ? call : self;
     };
   })(typeof global === "undefined" ? self : global);
 
@@ -641,7 +647,6 @@
       this.mediaInfo = new MediaInfo();
       this.allowedEvents = allowedEvents;
       this._hooks = {}; // 注册在事件前/后的钩子，例如 before('DEMUX_COMPLETE')
-      this._emitCounter = {};
     }
 
     /**
@@ -786,19 +791,7 @@
             key: 'emit',
             value: function emit(messageName) {
               checkMessageName(messageName);
-              if (self._emitCounter[messageName]) {
-                self._emitCounter[messageName] += 1;
-                if (self._emitCounter[messageName] % 1000 === 0) {
-                  var a = 'con';
-                  var b = 'sole';
-                  if (window.console) {
-                    window[a + b].warn('invoke: ', messageName);
-                    window.localStorage.setItem('xgplayer_invoke_' + messageName, self._emitCounter[messageName]);
-                  }
-                }
-              } else {
-                self._emitCounter[messageName] = 1;
-              }
+              // console.log('emit ', messageName);
 
               var beforeList = self._hooks ? self._hooks[messageName] : null;
 
@@ -930,7 +923,6 @@
         this._clsMap = null;
         this._context = null;
         this._hooks = null;
-        this._emitCounter = {};
         this.destroyInstances();
       }
 
@@ -975,6 +967,7 @@
     REMUX_ERROR: 'REMUX_ERROR',
     INIT_SEGMENT: 'INIT_SEGMENT',
     DETECT_CHANGE_STREAM: 'DETECT_CHANGE_STREAM',
+    DETECT_CHANGE_STREAM_DISCONTINUE: 'DETECT_CHANGE_STREAM_DISCONTINUE',
     RANDOM_ACCESS_POINT: 'RANDOM_ACCESS_POINT'
   };
 
@@ -3217,7 +3210,7 @@
 
         ret.duration += freg.duration;
         var nextline = refs.shift();
-        if (nextline.match(/#(.*):(.*)/)) {
+        if (nextline.match(/#(.*):(.*)/) || nextline.match(/^#/)) {
           nextline = refs.shift();
         }
         if (nextline.length > 0 && nextline.charAt(0) === '/' && baseurl.match(/.*\/\/.*\.\w+/g)) {
@@ -4004,13 +3997,15 @@
         var firstSample = videoSamples[0];
 
         // step0.修复hls流出现巨大gap，需要强制重定位的问题
-        if (this._videoLargeGap > 0) {
+        if (this._videoLargeGap !== 0) {
           Compatibility.doFixLargeGap(videoSamples, this._videoLargeGap);
         }
 
-        if (firstSample.dts !== this._firstVideoSample.dts && streamChangeStart) {
+        if (firstSample.dts !== this._firstVideoSample.dts && (streamChangeStart || this.videoLastSample && Compatibility.detectLargeGap(this.videoLastSample.dts, firstSample))) {
           if (streamChangeStart) {
             this.nextVideoDts = streamChangeStart; // FIX: Hls中途切codec，在如果直接seek到后面的点会导致largeGap计算失败
+          } else {
+            this.nextVideoDts = this.videoLastSample.dts;
           }
 
           this._videoLargeGap = this.nextVideoDts - firstSample.dts;
@@ -4087,7 +4082,7 @@
         var _firstSample = audioSamples[0];
         // 对audioSamples按照dts做排序
         // audioSamples = Compatibility.sortAudioSamples(audioSamples)
-        if (this._audioLargeGap > 0) {
+        if (this._audioLargeGap !== 0) {
           Compatibility.doFixLargeGap(audioSamples, this._audioLargeGap);
         }
 
@@ -4214,7 +4209,6 @@
             }
           } */
         }
-
         this.audioTrack.samples = Compatibility.sortAudioSamples(audioSamples);
       }
     }, {
@@ -4224,7 +4218,7 @@
             samples = _videoTrack2.samples,
             meta = _videoTrack2.meta;
 
-        var prevDts = changeIdx === 0 ? this.getStreamChangeStart(samples[0]) : samples[changeIdx - 1].dts;
+        var prevDts = changeIdx === 0 ? this.videoLastSample ? this.videoLastSample.dts : this.getStreamChangeStart(samples[0]) : samples[changeIdx - 1].dts;
         var curDts = samples[changeIdx].dts;
         var isContinue = Math.abs(prevDts - curDts) <= 2 * meta.refSampleDuration;
 
@@ -4239,13 +4233,18 @@
           return this.doFixVideo(false);
         }
 
+        this.emit(REMUX_EVENTS$2.DETECT_CHANGE_STREAM_DISCONTINUE);
         var firstPartSamples = samples.slice(0, changeIdx);
         var secondPartSamples = samples.slice(changeIdx);
         var firstSample = samples[0];
 
-        var changeSample = secondPartSamples[0];
-        var firstPartDuration = changeSample.dts - firstSample.dts;
-        var streamChangeStart = firstSample.options && firstSample.options.start + firstPartDuration ? firstSample.options.start : null;
+        var streamChangeStart = void 0;
+
+        if (this.videoLastSample) {
+          streamChangeStart = this.videoLastSample.dts + meta.refSampleDuration;
+        } else {
+          streamChangeStart = firstSample.options && firstSample.options.start ? firstSample.options.start + this.dtsBase : null;
+        }
 
         this.videoTrack.samples = samples.slice(0, changeIdx);
 
@@ -4278,14 +4277,18 @@
           }
           return this.doFixAudio(false);
         }
+        this.emit(REMUX_EVENTS$2.DETECT_CHANGE_STREAM_DISCONTINUE);
 
         var firstPartSamples = samples.slice(0, changeIdx);
         var secondPartSamples = samples.slice(changeIdx);
         var firstSample = samples[0];
 
-        var changeSample = secondPartSamples[0];
-        var firstPartDuration = changeSample.dts - firstSample.dts;
-        var streamChangeStart = firstSample.options && firstSample.options.start + firstPartDuration ? firstSample.options.start : null;
+        var streamChangeStart = void 0;
+        if (this.nextAudioDts) {
+          streamChangeStart = this.nextAudioDts;
+        } else {
+          streamChangeStart = firstSample.options && firstSample.options.start ? firstSample.options.start + this.dtsBase : null;
+        }
 
         this.audioTrack.samples = firstPartSamples;
 
@@ -4348,8 +4351,9 @@
             var _lastDts = samples[samples.length - 1].dts;
             var _firstDts = samples[0].dts;
             var durationAvg = (_lastDts - _firstDts) / (samples.length - 1);
-
-            meta.refSampleDuration = Math.floor(Math.abs(meta.refSampleDuration - durationAvg) <= 5 ? meta.refSampleDuration : durationAvg); // 将refSampleDuration重置为计算后的平均值
+            if (durationAvg > 0 && durationAvg < 1000) {
+              meta.refSampleDuration = Math.floor(Math.abs(meta.refSampleDuration - durationAvg) <= 5 ? meta.refSampleDuration : durationAvg); // 将refSampleDuration重置为计算后的平均值
+            }
           }
         }
       }
@@ -4379,28 +4383,19 @@
             _firstAudioSample = this._firstAudioSample;
 
         if (_firstAudioSample) {
-          this.audioTrack.samples = this.audioTrack.samples.filter(function (sample) {
+          this.audioTrack.samples = this.audioTrack.samples.filter(function (sample, index) {
             if (sample === _firstAudioSample) {
               return true;
-            }
-
-            if (sample.duration !== undefined && sample.duration <= 0) {
-              return false;
             }
             return sample.dts > _firstAudioSample.dts;
           });
         }
 
         if (_firstVideoSample) {
-          this.videoTrack.samples = this.videoTrack.samples.filter(function (sample) {
+          this.videoTrack.samples = this.videoTrack.samples.filter(function (sample, index) {
             if (sample === _firstVideoSample) {
               return true;
             }
-
-            if (sample.duration !== undefined && sample.duration <= 0) {
-              return false;
-            }
-
             return sample.dts > _firstVideoSample.dts;
           });
         }
@@ -4918,6 +4913,9 @@
           }
           while (buffer.length >= 1 && buffer.array[0][buffer.offset] !== 71) {
             buffer.shift(1);
+          }
+          if (buffer.length < 188) {
+            continue;
           }
           var buf = buffer.shift(188);
           // console.log(buf);
