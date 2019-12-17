@@ -28,6 +28,7 @@ let screenShot = function () {
       img.setAttribute('crossOrigin', 'anonymous')
       img.src = canvas.toDataURL('image/png').replace('image/png', 'image/octet-stream')
       let screenShotImg = img.src.replace(/^data:image\/[^;]+/, 'data:application/octet-stream')
+      player.emit('screenShot', screenShotImg)
       saveScreenShot(screenShotImg, '截图.png')
     })()
   }
