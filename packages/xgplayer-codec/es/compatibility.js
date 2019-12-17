@@ -350,7 +350,7 @@ var Compatibility = function () {
 
       var prevDts = changeIdx === 0 ? this.videoLastSample ? this.videoLastSample.dts : this.getStreamChangeStart(samples[0]) : samples[changeIdx - 1].dts;
       var curDts = samples[changeIdx].dts;
-      var isContinue = Math.abs(prevDts - curDts) <= 2 * meta.refSampleDuration;
+      var isContinue = Math.abs(prevDts - curDts) <= 2 * 1000;
 
       if (isContinue) {
         if (!samples[changeIdx].options) {
@@ -364,16 +364,17 @@ var Compatibility = function () {
       }
 
       this.emit(REMUX_EVENTS.DETECT_CHANGE_STREAM_DISCONTINUE);
+      this._videoLargeGap = 0;
       var firstPartSamples = samples.slice(0, changeIdx);
       var secondPartSamples = samples.slice(changeIdx);
       var firstSample = samples[0];
 
       var streamChangeStart = void 0;
 
-      if (this.videoLastSample) {
-        streamChangeStart = this.videoLastSample.dts + meta.refSampleDuration;
-      } else {
-        streamChangeStart = firstSample.options && firstSample.options.start ? firstSample.options.start + this.dtsBase : null;
+      if (firstSample.options && firstSample.options.start) {
+        streamChangeStart = firstSample.options && firstSample.options.start ? firstSample.options.start : null;
+      } else if (this.videoLastSample) {
+        streamChangeStart = this.videoLastSample.dts - this.dtsBase + meta.refSampleDuration;
       }
 
       this.videoTrack.samples = samples.slice(0, changeIdx);
@@ -396,7 +397,7 @@ var Compatibility = function () {
 
       var prevDts = changeIdx === 0 ? this.getStreamChangeStart(samples[0]) : samples[changeIdx - 1].dts;
       var curDts = samples[changeIdx].dts;
-      var isContinue = Math.abs(prevDts - curDts) <= 2 * meta.refSampleDuration;
+      var isContinue = Math.abs(prevDts - curDts) <= 2 * 1000;
 
       if (isContinue) {
         if (!samples[changeIdx].options) {
@@ -409,16 +410,17 @@ var Compatibility = function () {
         return this.doFixAudio(false);
       }
       this.emit(REMUX_EVENTS.DETECT_CHANGE_STREAM_DISCONTINUE);
+      this._audioLargeGap = 0;
 
       var firstPartSamples = samples.slice(0, changeIdx);
       var secondPartSamples = samples.slice(changeIdx);
       var firstSample = samples[0];
 
       var streamChangeStart = void 0;
-      if (this.nextAudioDts) {
-        streamChangeStart = this.nextAudioDts;
+      if (firstSample.options && firstSample.options.start) {
+        streamChangeStart = firstSample.options && firstSample.options.start ? firstSample.options.start : null;
       } else {
-        streamChangeStart = firstSample.options && firstSample.options.start ? firstSample.options.start + this.dtsBase : null;
+        streamChangeStart = this.lastAudioDts - this.dtsBase + meta.refSampleDuration;
       }
 
       this.audioTrack.samples = firstPartSamples;

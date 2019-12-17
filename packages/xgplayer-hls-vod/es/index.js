@@ -131,6 +131,86 @@ var set = function set(object, property, value, receiver) {
     };
   }();
 
+  _babelHelpers.defineEnumerableProperties = function (obj, descs) {
+    for (var key in descs) {
+      var desc = descs[key];
+      desc.configurable = desc.enumerable = true;
+      if ("value" in desc) desc.writable = true;
+      Object.defineProperty(obj, key, desc);
+    }
+
+    return obj;
+  };
+
+  _babelHelpers.defaults = function (obj, defaults) {
+    var keys = Object.getOwnPropertyNames(defaults);
+
+    for (var i = 0; i < keys.length; i++) {
+      var key = keys[i];
+      var value = Object.getOwnPropertyDescriptor(defaults, key);
+
+      if (value && value.configurable && obj[key] === undefined) {
+        Object.defineProperty(obj, key, value);
+      }
+    }
+
+    return obj;
+  };
+
+  _babelHelpers.defineProperty = function (obj, key, value) {
+    if (key in obj) {
+      Object.defineProperty(obj, key, {
+        value: value,
+        enumerable: true,
+        configurable: true,
+        writable: true
+      });
+    } else {
+      obj[key] = value;
+    }
+
+    return obj;
+  };
+
+  _babelHelpers.extends = Object.assign || function (target) {
+    for (var i = 1; i < arguments.length; i++) {
+      var source = arguments[i];
+
+      for (var key in source) {
+        if (Object.prototype.hasOwnProperty.call(source, key)) {
+          target[key] = source[key];
+        }
+      }
+    }
+
+    return target;
+  };
+
+  _babelHelpers.get = function get(object, property, receiver) {
+    if (object === null) object = Function.prototype;
+    var desc = Object.getOwnPropertyDescriptor(object, property);
+
+    if (desc === undefined) {
+      var parent = Object.getPrototypeOf(object);
+
+      if (parent === null) {
+        return undefined;
+      } else {
+        return get(parent, property, receiver);
+      }
+    } else if ("value" in desc) {
+      return desc.value;
+    } else {
+      var getter = desc.get;
+
+      if (getter === undefined) {
+        return undefined;
+      }
+
+      return getter.call(receiver);
+    }
+  };
+
   _babelHelpers.inherits = function (subClass, superClass) {
     if (typeof superClass !== "function" && superClass !== null) {
       throw new TypeError("Super expression must either be null or a function, not " + (typeof superClass === "undefined" ? "undefined" : _typeof(superClass)));
@@ -147,12 +227,182 @@ var set = function set(object, property, value, receiver) {
     if (superClass) Object.setPrototypeOf ? Object.setPrototypeOf(subClass, superClass) : subClass.__proto__ = superClass;
   };
 
+  _babelHelpers.instanceof = function (left, right) {
+    if (right != null && typeof Symbol !== "undefined" && right[Symbol.hasInstance]) {
+      return right[Symbol.hasInstance](left);
+    } else {
+      return left instanceof right;
+    }
+  };
+
+  _babelHelpers.interopRequireDefault = function (obj) {
+    return obj && obj.__esModule ? obj : {
+      default: obj
+    };
+  };
+
+  _babelHelpers.interopRequireWildcard = function (obj) {
+    if (obj && obj.__esModule) {
+      return obj;
+    } else {
+      var newObj = {};
+
+      if (obj != null) {
+        for (var key in obj) {
+          if (Object.prototype.hasOwnProperty.call(obj, key)) newObj[key] = obj[key];
+        }
+      }
+
+      newObj.default = obj;
+      return newObj;
+    }
+  };
+
+  _babelHelpers.newArrowCheck = function (innerThis, boundThis) {
+    if (innerThis !== boundThis) {
+      throw new TypeError("Cannot instantiate an arrow function");
+    }
+  };
+
+  _babelHelpers.objectDestructuringEmpty = function (obj) {
+    if (obj == null) throw new TypeError("Cannot destructure undefined");
+  };
+
+  _babelHelpers.objectWithoutProperties = function (obj, keys) {
+    var target = {};
+
+    for (var i in obj) {
+      if (keys.indexOf(i) >= 0) continue;
+      if (!Object.prototype.hasOwnProperty.call(obj, i)) continue;
+      target[i] = obj[i];
+    }
+
+    return target;
+  };
+
   _babelHelpers.possibleConstructorReturn = function (self, call) {
     if (!self) {
       throw new ReferenceError("this hasn't been initialised - super() hasn't been called");
     }
 
     return call && ((typeof call === "undefined" ? "undefined" : _typeof(call)) === "object" || typeof call === "function") ? call : self;
+  };
+
+  _babelHelpers.selfGlobal = typeof global === "undefined" ? self : global;
+
+  _babelHelpers.set = function set(object, property, value, receiver) {
+    var desc = Object.getOwnPropertyDescriptor(object, property);
+
+    if (desc === undefined) {
+      var parent = Object.getPrototypeOf(object);
+
+      if (parent !== null) {
+        set(parent, property, value, receiver);
+      }
+    } else if ("value" in desc && desc.writable) {
+      desc.value = value;
+    } else {
+      var setter = desc.set;
+
+      if (setter !== undefined) {
+        setter.call(receiver, value);
+      }
+    }
+
+    return value;
+  };
+
+  _babelHelpers.slicedToArray = function () {
+    function sliceIterator(arr, i) {
+      var _arr = [];
+      var _n = true;
+      var _d = false;
+      var _e = undefined;
+
+      try {
+        for (var _i = arr[Symbol.iterator](), _s; !(_n = (_s = _i.next()).done); _n = true) {
+          _arr.push(_s.value);
+
+          if (i && _arr.length === i) break;
+        }
+      } catch (err) {
+        _d = true;
+        _e = err;
+      } finally {
+        try {
+          if (!_n && _i["return"]) _i["return"]();
+        } finally {
+          if (_d) throw _e;
+        }
+      }
+
+      return _arr;
+    }
+
+    return function (arr, i) {
+      if (Array.isArray(arr)) {
+        return arr;
+      } else if (Symbol.iterator in Object(arr)) {
+        return sliceIterator(arr, i);
+      } else {
+        throw new TypeError("Invalid attempt to destructure non-iterable instance");
+      }
+    };
+  }();
+
+  _babelHelpers.slicedToArrayLoose = function (arr, i) {
+    if (Array.isArray(arr)) {
+      return arr;
+    } else if (Symbol.iterator in Object(arr)) {
+      var _arr = [];
+
+      for (var _iterator = arr[Symbol.iterator](), _step; !(_step = _iterator.next()).done;) {
+        _arr.push(_step.value);
+
+        if (i && _arr.length === i) break;
+      }
+
+      return _arr;
+    } else {
+      throw new TypeError("Invalid attempt to destructure non-iterable instance");
+    }
+  };
+
+  _babelHelpers.taggedTemplateLiteral = function (strings, raw) {
+    return Object.freeze(Object.defineProperties(strings, {
+      raw: {
+        value: Object.freeze(raw)
+      }
+    }));
+  };
+
+  _babelHelpers.taggedTemplateLiteralLoose = function (strings, raw) {
+    strings.raw = raw;
+    return strings;
+  };
+
+  _babelHelpers.temporalRef = function (val, name, undef) {
+    if (val === undef) {
+      throw new ReferenceError(name + " is not defined - temporal dead zone");
+    } else {
+      return val;
+    }
+  };
+
+  _babelHelpers.temporalUndefined = {};
+
+  _babelHelpers.toArray = function (arr) {
+    return Array.isArray(arr) ? arr : Array.from(arr);
+  };
+
+  _babelHelpers.toConsumableArray = function (arr) {
+    if (Array.isArray(arr)) {
+      for (var i = 0, arr2 = Array(arr.length); i < arr.length; i++) {
+        arr2[i] = arr[i];
+      }return arr2;
+    } else {
+      return Array.from(arr);
+    }
   };
 })(typeof global === "undefined" ? self : global);
 
@@ -2448,25 +2698,30 @@ var FetchLoader = function () {
   }, {
     key: 'load',
     value: function load(url, opts) {
-      var _this = this;
+      var _this2 = this;
+
       this.url = url;
 
       this._canceled = false;
 
       // TODO: Add Ranges
       var params = this.getParams(opts);
-      _this.loading = true;
+      this.loading = true;
       return fetch(this.url, params).then(function (response) {
         if (response.ok) {
-          _this.status = response.status;
-          return _this._onFetchResponse(response);
+          _this2.status = response.status;
+          Promise.resolve().then(function () {
+            _this2._onFetchResponse(response);
+          });
+
+          return Promise.resolve(response);
         }
-        _this.loading = false;
-        _this.emit(LOADER_EVENTS$1.LOADER_ERROR, _this.TAG, new Error('invalid response.'));
+        _this2.loading = false;
+        _this2.emit(LOADER_EVENTS$1.LOADER_ERROR, _this2.TAG, new Error(response.status + ' (' + response.statusText + ')'));
       }).catch(function (error) {
-        _this.loading = false;
-        _this.emit(LOADER_EVENTS$1.LOADER_ERROR, _this.TAG, error);
-        throw new Error(error.message);
+        _this2.loading = false;
+        _this2.emit(LOADER_EVENTS$1.LOADER_ERROR, _this2.TAG, error);
+        throw error;
       });
     }
   }, {
@@ -2526,6 +2781,8 @@ var FetchLoader = function () {
   }, {
     key: '_onReader',
     value: function _onReader(reader, taskno) {
+      var _this3 = this;
+
       var buffer = this._context.getInstance(this.buffer);
       if (!buffer && this._reader || this._destroyed) {
         try {
@@ -2540,14 +2797,13 @@ var FetchLoader = function () {
         return;
       }
 
-      var _this = this;
       // reader read function returns a Promise. get data when callback and has value.done when disconnected.
       // read方法返回一个Promise. 回调中可以获取到数据。当value.done存在时，说明链接断开。
       this._reader && this._reader.read().then(function (val) {
-        if (_this._canceled || _this._destroyed) {
-          if (_this._reader) {
+        if (_this3._canceled || _this3._destroyed) {
+          if (_this3._reader) {
             try {
-              _this._reader.cancel();
+              _this3._reader.cancel();
             } catch (e) {
               // DO NOTHING
             }
@@ -2555,18 +2811,23 @@ var FetchLoader = function () {
           return;
         }
         if (val.done) {
-          _this.loading = false;
-          _this.status = 0;
-          _this.emit(LOADER_EVENTS$1.LOADER_COMPLETE, buffer);
+          _this3.loading = false;
+          _this3.status = 0;
+          Promise.resolve().then(function () {
+            _this3.emit(LOADER_EVENTS$1.LOADER_COMPLETE, buffer);
+          });
           return;
         }
 
         buffer.push(val.value);
-        _this.emit(LOADER_EVENTS$1.LOADER_DATALOADED, buffer);
-        return _this._onReader(reader, taskno);
+        Promise.resolve().then(function () {
+          _this3.emit(LOADER_EVENTS$1.LOADER_DATALOADED, buffer);
+        });
+        return _this3._onReader(reader, taskno);
       }).catch(function (error) {
-        _this.loading = false;
-        _this.emit(LOADER_EVENTS$1.LOADER_ERROR, _this.TAG, error);
+        _this3.loading = false;
+        _this3.emit(LOADER_EVENTS$1.LOADER_ERROR, _this3.TAG, error);
+        throw error;
       });
     }
   }, {
@@ -3598,7 +3859,7 @@ var Compatibility = function () {
 
       var prevDts = changeIdx === 0 ? this.videoLastSample ? this.videoLastSample.dts : this.getStreamChangeStart(samples[0]) : samples[changeIdx - 1].dts;
       var curDts = samples[changeIdx].dts;
-      var isContinue = Math.abs(prevDts - curDts) <= 2 * meta.refSampleDuration;
+      var isContinue = Math.abs(prevDts - curDts) <= 2 * 1000;
 
       if (isContinue) {
         if (!samples[changeIdx].options) {
@@ -3612,16 +3873,17 @@ var Compatibility = function () {
       }
 
       this.emit(REMUX_EVENTS$1.DETECT_CHANGE_STREAM_DISCONTINUE);
+      this._videoLargeGap = 0;
       var firstPartSamples = samples.slice(0, changeIdx);
       var secondPartSamples = samples.slice(changeIdx);
       var firstSample = samples[0];
 
       var streamChangeStart = void 0;
 
-      if (this.videoLastSample) {
-        streamChangeStart = this.videoLastSample.dts + meta.refSampleDuration;
-      } else {
-        streamChangeStart = firstSample.options && firstSample.options.start ? firstSample.options.start + this.dtsBase : null;
+      if (firstSample.options && firstSample.options.start) {
+        streamChangeStart = firstSample.options && firstSample.options.start ? firstSample.options.start : null;
+      } else if (this.videoLastSample) {
+        streamChangeStart = this.videoLastSample.dts - this.dtsBase + meta.refSampleDuration;
       }
 
       this.videoTrack.samples = samples.slice(0, changeIdx);
@@ -3643,7 +3905,7 @@ var Compatibility = function () {
 
       var prevDts = changeIdx === 0 ? this.getStreamChangeStart(samples[0]) : samples[changeIdx - 1].dts;
       var curDts = samples[changeIdx].dts;
-      var isContinue = Math.abs(prevDts - curDts) <= 2 * meta.refSampleDuration;
+      var isContinue = Math.abs(prevDts - curDts) <= 2 * 1000;
 
       if (isContinue) {
         if (!samples[changeIdx].options) {
@@ -3656,16 +3918,17 @@ var Compatibility = function () {
         return this.doFixAudio(false);
       }
       this.emit(REMUX_EVENTS$1.DETECT_CHANGE_STREAM_DISCONTINUE);
+      this._audioLargeGap = 0;
 
       var firstPartSamples = samples.slice(0, changeIdx);
       var secondPartSamples = samples.slice(changeIdx);
       var firstSample = samples[0];
 
       var streamChangeStart = void 0;
-      if (this.nextAudioDts) {
-        streamChangeStart = this.nextAudioDts;
+      if (firstSample.options && firstSample.options.start) {
+        streamChangeStart = firstSample.options && firstSample.options.start ? firstSample.options.start : null;
       } else {
-        streamChangeStart = firstSample.options && firstSample.options.start ? firstSample.options.start + this.dtsBase : null;
+        streamChangeStart = this.lastAudioDts - this.dtsBase + meta.refSampleDuration;
       }
 
       this.audioTrack.samples = firstPartSamples;
@@ -4724,7 +4987,7 @@ var Mp4Remuxer = function () {
           }
         }
         this.videoAllDuration += sampleDuration;
-        // console.log(`video dts ${dts}`, `pts ${pts}`, isKeyframe, `duration ${sampleDuration}`)
+        console.log('video dts ' + dts, 'pts ' + pts, isKeyframe, 'duration ' + sampleDuration);
         if (sampleDuration >= 0) {
           mdatBox.samples.push(mdatSample);
           mdatSample.buffer.push(avcSample.data);
@@ -7352,6 +7615,14 @@ var HlsVodController = function () {
   }, {
     key: 'seek',
     value: function seek(time) {
+      var video = this._player.video;
+
+      for (var i = 0; i < video.buffered.length; i++) {
+        if (time >= video.buffered.start(i) && time < video.buffered.end(i)) {
+          return;
+        }
+      }
+
       this._lastSeekTime = time;
       this._tsloader.destroy();
       this._tsloader = this._context.registry('TS_LOADER', FetchLoader$1)({ buffer: 'TS_BUFFER', readtype: 3 });
@@ -7522,6 +7793,19 @@ var HlsVodPlayer = function (_Player) {
       });
     }
   }, {
+    key: 'onWaiting',
+    value: function onWaiting() {
+      get(HlsVodPlayer.prototype.__proto__ || Object.getPrototypeOf(HlsVodPlayer.prototype), 'onWaiting', this).call(this);
+
+      var _detectBufferGap = this.detectBufferGap(),
+          gap = _detectBufferGap.gap,
+          start = _detectBufferGap.start;
+
+      if (gap) {
+        this.currentTime = Math.ceil(start);
+      }
+    }
+  }, {
     key: '_initSrcChangeHandler',
     value: function _initSrcChangeHandler() {
       var _this = this;
@@ -7569,6 +7853,27 @@ var HlsVodPlayer = function (_Player) {
     value: function destroy() {
       this._context.destroy();
       get(HlsVodPlayer.prototype.__proto__ || Object.getPrototypeOf(HlsVodPlayer.prototype), 'destroy', this).call(this);
+    }
+  }, {
+    key: 'detectBufferGap',
+    value: function detectBufferGap() {
+      var video = this.video;
+
+      for (var i = 0; i < video.buffered.length; i++) {
+        var bufferStart = video.buffered.start(i);
+        var gap = bufferStart - this.currentTime;
+        if (gap > 0.1 && gap <= 2) {
+          return {
+            gap: true,
+            start: bufferStart
+          };
+        }
+      }
+
+      return {
+        gap: false,
+        start: -1
+      };
     }
   }, {
     key: 'currentTime',

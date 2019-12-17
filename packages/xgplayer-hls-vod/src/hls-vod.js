@@ -236,6 +236,13 @@ class HlsVodController {
   }
 
   seek (time) {
+    const { video } = this._player;
+    for (let i = 0; i < video.buffered.length; i++) {
+      if (time >= video.buffered.start(i) && time < video.buffered.end(i)) {
+        return;
+      }
+    }
+
     this._lastSeekTime = time;
     this._tsloader.destroy();
     this._tsloader = this._context.registry('TS_LOADER', FetchLoader)({ buffer: 'TS_BUFFER', readtype: 3 });

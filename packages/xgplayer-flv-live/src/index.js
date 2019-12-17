@@ -104,9 +104,7 @@ class FlvPlayer extends Player {
     if (this._hasStart) {
       return this._destroy().then(() => {
         this.context = new Context(flvAllowedEvents)
-        this.initFlv();
-        this.context.init()
-        super.start(this.mse.url)
+        this.start()
         return super.play()
       })
 

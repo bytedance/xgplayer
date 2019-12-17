@@ -115,6 +115,86 @@
       };
     }();
 
+    _babelHelpers.defineEnumerableProperties = function (obj, descs) {
+      for (var key in descs) {
+        var desc = descs[key];
+        desc.configurable = desc.enumerable = true;
+        if ("value" in desc) desc.writable = true;
+        Object.defineProperty(obj, key, desc);
+      }
+
+      return obj;
+    };
+
+    _babelHelpers.defaults = function (obj, defaults) {
+      var keys = Object.getOwnPropertyNames(defaults);
+
+      for (var i = 0; i < keys.length; i++) {
+        var key = keys[i];
+        var value = Object.getOwnPropertyDescriptor(defaults, key);
+
+        if (value && value.configurable && obj[key] === undefined) {
+          Object.defineProperty(obj, key, value);
+        }
+      }
+
+      return obj;
+    };
+
+    _babelHelpers.defineProperty = function (obj, key, value) {
+      if (key in obj) {
+        Object.defineProperty(obj, key, {
+          value: value,
+          enumerable: true,
+          configurable: true,
+          writable: true
+        });
+      } else {
+        obj[key] = value;
+      }
+
+      return obj;
+    };
+
+    _babelHelpers.extends = Object.assign || function (target) {
+      for (var i = 1; i < arguments.length; i++) {
+        var source = arguments[i];
+
+        for (var key in source) {
+          if (Object.prototype.hasOwnProperty.call(source, key)) {
+            target[key] = source[key];
+          }
+        }
+      }
+
+      return target;
+    };
+
+    _babelHelpers.get = function get(object, property, receiver) {
+      if (object === null) object = Function.prototype;
+      var desc = Object.getOwnPropertyDescriptor(object, property);
+
+      if (desc === undefined) {
+        var parent = Object.getPrototypeOf(object);
+
+        if (parent === null) {
+          return undefined;
+        } else {
+          return get(parent, property, receiver);
+        }
+      } else if ("value" in desc) {
+        return desc.value;
+      } else {
+        var getter = desc.get;
+
+        if (getter === undefined) {
+          return undefined;
+        }
+
+        return getter.call(receiver);
+      }
+    };
+
     _babelHelpers.inherits = function (subClass, superClass) {
       if (typeof superClass !== "function" && superClass !== null) {
         throw new TypeError("Super expression must either be null or a function, not " + (typeof superClass === "undefined" ? "undefined" : _typeof(superClass)));
@@ -131,12 +211,182 @@
       if (superClass) Object.setPrototypeOf ? Object.setPrototypeOf(subClass, superClass) : subClass.__proto__ = superClass;
     };
 
+    _babelHelpers.instanceof = function (left, right) {
+      if (right != null && typeof Symbol !== "undefined" && right[Symbol.hasInstance]) {
+        return right[Symbol.hasInstance](left);
+      } else {
+        return left instanceof right;
+      }
+    };
+
+    _babelHelpers.interopRequireDefault = function (obj) {
+      return obj && obj.__esModule ? obj : {
+        default: obj
+      };
+    };
+
+    _babelHelpers.interopRequireWildcard = function (obj) {
+      if (obj && obj.__esModule) {
+        return obj;
+      } else {
+        var newObj = {};
+
+        if (obj != null) {
+          for (var key in obj) {
+            if (Object.prototype.hasOwnProperty.call(obj, key)) newObj[key] = obj[key];
+          }
+        }
+
+        newObj.default = obj;
+        return newObj;
+      }
+    };
+
+    _babelHelpers.newArrowCheck = function (innerThis, boundThis) {
+      if (innerThis !== boundThis) {
+        throw new TypeError("Cannot instantiate an arrow function");
+      }
+    };
+
+    _babelHelpers.objectDestructuringEmpty = function (obj) {
+      if (obj == null) throw new TypeError("Cannot destructure undefined");
+    };
+
+    _babelHelpers.objectWithoutProperties = function (obj, keys) {
+      var target = {};
+
+      for (var i in obj) {
+        if (keys.indexOf(i) >= 0) continue;
+        if (!Object.prototype.hasOwnProperty.call(obj, i)) continue;
+        target[i] = obj[i];
+      }
+
+      return target;
+    };
+
     _babelHelpers.possibleConstructorReturn = function (self, call) {
       if (!self) {
         throw new ReferenceError("this hasn't been initialised - super() hasn't been called");
       }
 
       return call && ((typeof call === "undefined" ? "undefined" : _typeof(call)) === "object" || typeof call === "function") ? call : self;
+    };
+
+    _babelHelpers.selfGlobal = typeof global === "undefined" ? self : global;
+
+    _babelHelpers.set = function set(object, property, value, receiver) {
+      var desc = Object.getOwnPropertyDescriptor(object, property);
+
+      if (desc === undefined) {
+        var parent = Object.getPrototypeOf(object);
+
+        if (parent !== null) {
+          set(parent, property, value, receiver);
+        }
+      } else if ("value" in desc && desc.writable) {
+        desc.value = value;
+      } else {
+        var setter = desc.set;
+
+        if (setter !== undefined) {
+          setter.call(receiver, value);
+        }
+      }
+
+      return value;
+    };
+
+    _babelHelpers.slicedToArray = function () {
+      function sliceIterator(arr, i) {
+        var _arr = [];
+        var _n = true;
+        var _d = false;
+        var _e = undefined;
+
+        try {
+          for (var _i = arr[Symbol.iterator](), _s; !(_n = (_s = _i.next()).done); _n = true) {
+            _arr.push(_s.value);
+
+            if (i && _arr.length === i) break;
+          }
+        } catch (err) {
+          _d = true;
+          _e = err;
+        } finally {
+          try {
+            if (!_n && _i["return"]) _i["return"]();
+          } finally {
+            if (_d) throw _e;
+          }
+        }
+
+        return _arr;
+      }
+
+      return function (arr, i) {
+        if (Array.isArray(arr)) {
+          return arr;
+        } else if (Symbol.iterator in Object(arr)) {
+          return sliceIterator(arr, i);
+        } else {
+          throw new TypeError("Invalid attempt to destructure non-iterable instance");
+        }
+      };
+    }();
+
+    _babelHelpers.slicedToArrayLoose = function (arr, i) {
+      if (Array.isArray(arr)) {
+        return arr;
+      } else if (Symbol.iterator in Object(arr)) {
+        var _arr = [];
+
+        for (var _iterator = arr[Symbol.iterator](), _step; !(_step = _iterator.next()).done;) {
+          _arr.push(_step.value);
+
+          if (i && _arr.length === i) break;
+        }
+
+        return _arr;
+      } else {
+        throw new TypeError("Invalid attempt to destructure non-iterable instance");
+      }
+    };
+
+    _babelHelpers.taggedTemplateLiteral = function (strings, raw) {
+      return Object.freeze(Object.defineProperties(strings, {
+        raw: {
+          value: Object.freeze(raw)
+        }
+      }));
+    };
+
+    _babelHelpers.taggedTemplateLiteralLoose = function (strings, raw) {
+      strings.raw = raw;
+      return strings;
+    };
+
+    _babelHelpers.temporalRef = function (val, name, undef) {
+      if (val === undef) {
+        throw new ReferenceError(name + " is not defined - temporal dead zone");
+      } else {
+        return val;
+      }
+    };
+
+    _babelHelpers.temporalUndefined = {};
+
+    _babelHelpers.toArray = function (arr) {
+      return Array.isArray(arr) ? arr : Array.from(arr);
+    };
+
+    _babelHelpers.toConsumableArray = function (arr) {
+      if (Array.isArray(arr)) {
+        for (var i = 0, arr2 = Array(arr.length); i < arr.length; i++) {
+          arr2[i] = arr[i];
+        }return arr2;
+      } else {
+        return Array.from(arr);
+      }
     };
   })(typeof global === "undefined" ? self : global);
 
@@ -677,12 +927,17 @@
     }, {
       key: 'initInstance',
       value: function initInstance(tag) {
-        if (this._clsMap[tag]) {
-          for (var _len = arguments.length, args = Array(_len > 1 ? _len - 1 : 0), _key = 1; _key < _len; _key++) {
-            args[_key - 1] = arguments[_key];
-          }
+        for (var _len = arguments.length, args = Array(_len > 1 ? _len - 1 : 0), _key = 1; _key < _len; _key++) {
+          args[_key - 1] = arguments[_key];
+        }
 
-          var newInstance = new (Function.prototype.bind.apply(this._clsMap[tag], [null].concat(args)))();
+        var a = args[0],
+            b = args[1],
+            c = args[2],
+            d = args[3];
+
+        if (this._clsMap[tag]) {
+          var newInstance = new this._clsMap[tag](a, b, c, d);
           this._instanceMap[tag] = newInstance;
           if (newInstance.init) {
             newInstance.init(); // TODO: lifecircle
@@ -2869,9 +3124,6 @@
             buffer: [],
             size: 0
           };
-          mdatBox.samples.push(mdatSample);
-          mdatSample.buffer.push(avcSample.data);
-          mdatSample.size += avcSample.data.byteLength;
 
           var sampleDuration = 0;
           if (avcSample.duration) {
@@ -2891,6 +3143,10 @@
           this.videoAllDuration += sampleDuration;
           // console.log(`video dts ${dts}`, `pts ${pts}`, isKeyframe, `duration ${sampleDuration}`)
           if (sampleDuration >= 0) {
+            mdatBox.samples.push(mdatSample);
+            mdatSample.buffer.push(avcSample.data);
+            mdatSample.size += avcSample.data.byteLength;
+
             mp4Samples.push({
               dts: dts,
               cts: cts,
@@ -3005,7 +3261,7 @@
             }
           }
 
-          // console.log(`audio dts ${dts}`, `pts ${dts}`, `duration ${sampleDuration}`)
+          console.log('audio dts ' + dts, 'pts ' + dts, 'duration ' + sampleDuration);
           this.audioAllDuration += sampleDuration;
           var mp4Sample = {
             dts: dts,
@@ -3029,11 +3285,12 @@
             buffer: [],
             size: 0
           };
-          mdatSample.buffer.push(data);
-          mdatSample.size += data.byteLength;
 
-          mdatBox.samples.push(mdatSample);
           if (sampleDuration >= 0) {
+            mdatSample.buffer.push(data);
+            mdatSample.size += data.byteLength;
+
+            mdatBox.samples.push(mdatSample);
             mp4Samples.push(mp4Sample);
           }
         }
@@ -6884,25 +7141,30 @@
     }, {
       key: 'load',
       value: function load(url, opts) {
-        var _this = this;
+        var _this2 = this;
+
         this.url = url;
 
         this._canceled = false;
 
         // TODO: Add Ranges
         var params = this.getParams(opts);
-        _this.loading = true;
+        this.loading = true;
         return fetch(this.url, params).then(function (response) {
           if (response.ok) {
-            _this.status = response.status;
-            return _this._onFetchResponse(response);
+            _this2.status = response.status;
+            Promise.resolve().then(function () {
+              _this2._onFetchResponse(response);
+            });
+
+            return Promise.resolve(response);
           }
-          _this.loading = false;
-          _this.emit(LOADER_EVENTS$1.LOADER_ERROR, _this.TAG, new Error('invalid response.'));
+          _this2.loading = false;
+          _this2.emit(LOADER_EVENTS$1.LOADER_ERROR, _this2.TAG, new Error(response.status + ' (' + response.statusText + ')'));
         }).catch(function (error) {
-          _this.loading = false;
-          _this.emit(LOADER_EVENTS$1.LOADER_ERROR, _this.TAG, error);
-          throw new Error(error.message);
+          _this2.loading = false;
+          _this2.emit(LOADER_EVENTS$1.LOADER_ERROR, _this2.TAG, error);
+          throw error;
         });
       }
     }, {
@@ -6962,6 +7224,8 @@
     }, {
       key: '_onReader',
       value: function _onReader(reader, taskno) {
+        var _this3 = this;
+
         var buffer = this._context.getInstance(this.buffer);
         if (!buffer && this._reader || this._destroyed) {
           try {
@@ -6976,14 +7240,13 @@
           return;
         }
 
-        var _this = this;
         // reader read function returns a Promise. get data when callback and has value.done when disconnected.
         // read方法返回一个Promise. 回调中可以获取到数据。当value.done存在时，说明链接断开。
         this._reader && this._reader.read().then(function (val) {
-          if (_this._canceled || _this._destroyed) {
-            if (_this._reader) {
+          if (_this3._canceled || _this3._destroyed) {
+            if (_this3._reader) {
               try {
-                _this._reader.cancel();
+                _this3._reader.cancel();
               } catch (e) {
                 // DO NOTHING
               }
@@ -6991,18 +7254,23 @@
             return;
           }
           if (val.done) {
-            _this.loading = false;
-            _this.status = 0;
-            _this.emit(LOADER_EVENTS$1.LOADER_COMPLETE, buffer);
+            _this3.loading = false;
+            _this3.status = 0;
+            Promise.resolve().then(function () {
+              _this3.emit(LOADER_EVENTS$1.LOADER_COMPLETE, buffer);
+            });
             return;
           }
 
           buffer.push(val.value);
-          _this.emit(LOADER_EVENTS$1.LOADER_DATALOADED, buffer);
-          return _this._onReader(reader, taskno);
+          Promise.resolve().then(function () {
+            _this3.emit(LOADER_EVENTS$1.LOADER_DATALOADED, buffer);
+          });
+          return _this3._onReader(reader, taskno);
         }).catch(function (error) {
-          _this.loading = false;
-          _this.emit(LOADER_EVENTS$1.LOADER_ERROR, _this.TAG, error);
+          _this3.loading = false;
+          _this3.emit(LOADER_EVENTS$1.LOADER_ERROR, _this3.TAG, error);
+          throw error;
         });
       }
     }, {
@@ -7466,9 +7734,7 @@
         if (this._hasStart) {
           return this._destroy().then(function () {
             _this5.context = new Context$1(flvAllowedEvents);
-            _this5.initFlv();
-            _this5.context.init();
-            get(FlvPlayer.prototype.__proto__ || Object.getPrototypeOf(FlvPlayer.prototype), 'start', _this5).call(_this5, _this5.mse.url);
+            _this5.start();
             return get(FlvPlayer.prototype.__proto__ || Object.getPrototypeOf(FlvPlayer.prototype), 'play', _this5).call(_this5);
           });
         } else {

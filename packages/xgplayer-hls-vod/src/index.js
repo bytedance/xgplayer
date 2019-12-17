@@ -7,6 +7,7 @@ const HlsAllowedEvents = EVENTS.HlsAllowedEvents;
 const REMUX_EVENTS = EVENTS.REMUX_EVENTS;
 const HLS_EVENTS = EVENTS.HLS_EVENTS;
 
+let waitTimer = null;
 class HlsVodPlayer extends Player {
   constructor (options) {
     super(options)
@@ -43,6 +44,14 @@ class HlsVodPlayer extends Player {
     });
   }
 
+  onWaiting () {
+    super.onWaiting();
+    const { gap, start } = this.detectBufferGap()
+    if (gap) {
+      this.currentTime = Math.ceil(start);
+    }
+  }
+
   _initSrcChangeHandler () {
     let _this = this;
     Object.defineProperty(this, 'src', {
@@ -74,7 +83,7 @@ class HlsVodPlayer extends Player {
     if (!url) {
       return;
     }
-    this.__core__ = this._context.registry('HLS_LIVE_CONTROLLER', HlsVodController)({player:this, container: this.video});
+    this.__core__ = this._context.registry('HLS_LIVE_CONTROLLER', HlsVodController)({player: this, container: this.video});
     this._context.init();
     this.__core__.load(url);
     this._initEvents();
@@ -84,6 +93,25 @@ class HlsVodPlayer extends Player {
   destroy () {
     this._context.destroy();
     super.destroy();
+  }
+
+  detectBufferGap () {
+    const { video } = this;
+    for (let i = 0; i < video.buffered.length; i++) {
+      const bufferStart = video.buffered.start(i)
+      const gap = bufferStart - this.currentTime;
+      if (gap > 0.1 && gap <= 2) {
+        return {
+          gap: true,
+          start: bufferStart
+        }
+      }
+    }
+
+    return {
+      gap: false,
+      start: -1
+    }
   }
 }
 

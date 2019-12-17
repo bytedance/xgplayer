@@ -327,7 +327,7 @@ class Compatibility {
     const { samples, meta } = this.videoTrack;
     const prevDts = changeIdx === 0 ? this.videoLastSample ? this.videoLastSample.dts : this.getStreamChangeStart(samples[0]) : samples[changeIdx - 1].dts;
     const curDts = samples[changeIdx].dts;
-    const isContinue = Math.abs(prevDts - curDts) <= 2 * meta.refSampleDuration;
+    const isContinue = Math.abs(prevDts - curDts) <= 2 * 1000;
 
     if (isContinue) {
       if (!samples[changeIdx].options) {
@@ -341,16 +341,17 @@ class Compatibility {
     }
 
     this.emit(REMUX_EVENTS.DETECT_CHANGE_STREAM_DISCONTINUE)
+    this._videoLargeGap = 0;
     const firstPartSamples = samples.slice(0, changeIdx);
     const secondPartSamples = samples.slice(changeIdx);
     const firstSample = samples[0]
 
     let streamChangeStart
 
-    if (this.videoLastSample) {
-      streamChangeStart = this.videoLastSample.dts + meta.refSampleDuration
-    } else {
-      streamChangeStart = firstSample.options && firstSample.options.start ? firstSample.options.start + this.dtsBase : null
+    if (firstSample.options && firstSample.options.start) {
+      streamChangeStart = firstSample.options && firstSample.options.start ? firstSample.options.start : null
+    } else if (this.videoLastSample){
+      streamChangeStart = this.videoLastSample.dts - this.dtsBase + meta.refSampleDuration
     }
 
     this.videoTrack.samples = samples.slice(0, changeIdx);
@@ -369,7 +370,7 @@ class Compatibility {
 
     const prevDts = changeIdx === 0 ? this.getStreamChangeStart(samples[0]) : samples[changeIdx - 1].dts;
     const curDts = samples[changeIdx].dts;
-    const isContinue = Math.abs(prevDts - curDts) <= 2 * meta.refSampleDuration;
+    const isContinue = Math.abs(prevDts - curDts) <= 2 * 1000;
 
     if (isContinue) {
       if (!samples[changeIdx].options) {
@@ -382,16 +383,17 @@ class Compatibility {
       return this.doFixAudio(false)
     }
     this.emit(REMUX_EVENTS.DETECT_CHANGE_STREAM_DISCONTINUE)
+    this._audioLargeGap = 0;
 
     const firstPartSamples = samples.slice(0, changeIdx);
     const secondPartSamples = samples.slice(changeIdx);
     const firstSample = samples[0]
 
     let streamChangeStart;
-    if (this.nextAudioDts) {
-      streamChangeStart = this.nextAudioDts
+    if (firstSample.options && firstSample.options.start) {
+      streamChangeStart = firstSample.options && firstSample.options.start ? firstSample.options.start : null
     } else {
-      streamChangeStart = firstSample.options && firstSample.options.start ? firstSample.options.start + this.dtsBase : null
+      streamChangeStart = this.lastAudioDts - this.dtsBase + meta.refSampleDuration
     }
 
     this.audioTrack.samples = firstPartSamples;

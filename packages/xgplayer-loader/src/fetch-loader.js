@@ -28,25 +28,28 @@ class FetchLoader {
   }
 
   load (url, opts) {
-    let _this = this;
     this.url = url;
 
     this._canceled = false;
 
     // TODO: Add Ranges
     let params = this.getParams(opts)
-    _this.loading = true
-    return fetch(this.url, params).then(function (response) {
+    this.loading = true
+    return fetch(this.url, params).then((response) => {
       if (response.ok) {
-        _this.status = response.status
-        return _this._onFetchResponse(response);
+        this.status = response.status
+        Promise.resolve().then(() => {
+          this._onFetchResponse(response);
+        })
+
+        return Promise.resolve(response)
       }
-      _this.loading = false;
-      _this.emit(LOADER_EVENTS.LOADER_ERROR, _this.TAG, new Error(`invalid response.`));
-    }).catch(function (error)  {
-      _this.loading = false;
-      _this.emit(LOADER_EVENTS.LOADER_ERROR, _this.TAG, error);
-      throw new Error(error.message)
+      this.loading = false;
+      this.emit(LOADER_EVENTS.LOADER_ERROR, this.TAG, new Error(`${response.status} (${response.statusText})`));
+    }).catch((error) => {
+      this.loading = false;
+      this.emit(LOADER_EVENTS.LOADER_ERROR, this.TAG, error);
+      throw error;
     })
   }
 
@@ -118,14 +121,13 @@ class FetchLoader {
       return
     }
 
-    let _this = this
     // reader read function returns a Promise. get data when callback and has value.done when disconnected.
     // read方法返回一个Promise. 回调中可以获取到数据。当value.done存在时，说明链接断开。
-    this._reader && this._reader.read().then(function (val) {
-      if (_this._canceled || _this._destroyed) {
-        if (_this._reader) {
+    this._reader && this._reader.read().then((val) => {
+      if (this._canceled || this._destroyed) {
+        if (this._reader) {
           try {
-            _this._reader.cancel()
+            this._reader.cancel()
           } catch (e) {
             // DO NOTHING
           }
@@ -133,18 +135,23 @@ class FetchLoader {
         return;
       }
       if (val.done) {
-        _this.loading = false
-        _this.status = 0;
-        _this.emit(LOADER_EVENTS.LOADER_COMPLETE, buffer)
-        return
+        this.loading = false
+        this.status = 0;
+        Promise.resolve().then(() => {
+          this.emit(LOADER_EVENTS.LOADER_COMPLETE, buffer)
+        })
+        return;
       }
 
       buffer.push(val.value)
-      _this.emit(LOADER_EVENTS.LOADER_DATALOADED, buffer)
-      return _this._onReader(reader, taskno)
+      Promise.resolve().then(() => {
+        this.emit(LOADER_EVENTS.LOADER_DATALOADED, buffer)
+      })
+      return this._onReader(reader, taskno)
     }).catch((error) => {
-      _this.loading = false;
-      _this.emit(LOADER_EVENTS.LOADER_ERROR, _this.TAG, error);
+      this.loading = false;
+      this.emit(LOADER_EVENTS.LOADER_ERROR, this.TAG, error);
+      throw error;
     })
   }
 

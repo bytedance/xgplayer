@@ -30,25 +30,30 @@ var FetchLoader = function () {
   }, {
     key: 'load',
     value: function load(url, opts) {
-      var _this = this;
+      var _this2 = this;
+
       this.url = url;
 
       this._canceled = false;
 
       // TODO: Add Ranges
       var params = this.getParams(opts);
-      _this.loading = true;
+      this.loading = true;
       return fetch(this.url, params).then(function (response) {
         if (response.ok) {
-          _this.status = response.status;
-          return _this._onFetchResponse(response);
+          _this2.status = response.status;
+          Promise.resolve().then(function () {
+            _this2._onFetchResponse(response);
+          });
+
+          return Promise.resolve(response);
         }
-        _this.loading = false;
-        _this.emit(LOADER_EVENTS.LOADER_ERROR, _this.TAG, new Error('invalid response.'));
+        _this2.loading = false;
+        _this2.emit(LOADER_EVENTS.LOADER_ERROR, _this2.TAG, new Error(response.status + ' (' + response.statusText + ')'));
       }).catch(function (error) {
-        _this.loading = false;
-        _this.emit(LOADER_EVENTS.LOADER_ERROR, _this.TAG, error);
-        throw new Error(error.message);
+        _this2.loading = false;
+        _this2.emit(LOADER_EVENTS.LOADER_ERROR, _this2.TAG, error);
+        throw error;
       });
     }
   }, {
@@ -108,6 +113,8 @@ var FetchLoader = function () {
   }, {
     key: '_onReader',
     value: function _onReader(reader, taskno) {
+      var _this3 = this;
+
       var buffer = this._context.getInstance(this.buffer);
       if (!buffer && this._reader || this._destroyed) {
         try {
@@ -122,14 +129,13 @@ var FetchLoader = function () {
         return;
       }
 
-      var _this = this;
       // reader read function returns a Promise. get data when callback and has value.done when disconnected.
       // read方法返回一个Promise. 回调中可以获取到数据。当value.done存在时，说明链接断开。
       this._reader && this._reader.read().then(function (val) {
-        if (_this._canceled || _this._destroyed) {
-          if (_this._reader) {
+        if (_this3._canceled || _this3._destroyed) {
+          if (_this3._reader) {
             try {
-              _this._reader.cancel();
+              _this3._reader.cancel();
             } catch (e) {
               // DO NOTHING
             }
@@ -137,18 +143,23 @@ var FetchLoader = function () {
           return;
         }
         if (val.done) {
-          _this.loading = false;
-          _this.status = 0;
-          _this.emit(LOADER_EVENTS.LOADER_COMPLETE, buffer);
+          _this3.loading = false;
+          _this3.status = 0;
+          Promise.resolve().then(function () {
+            _this3.emit(LOADER_EVENTS.LOADER_COMPLETE, buffer);
+          });
           return;
         }
 
         buffer.push(val.value);
-        _this.emit(LOADER_EVENTS.LOADER_DATALOADED, buffer);
-        return _this._onReader(reader, taskno);
+        Promise.resolve().then(function () {
+          _this3.emit(LOADER_EVENTS.LOADER_DATALOADED, buffer);
+        });
+        return _this3._onReader(reader, taskno);
       }).catch(function (error) {
-        _this.loading = false;
-        _this.emit(LOADER_EVENTS.LOADER_ERROR, _this.TAG, error);
+        _this3.loading = false;
+        _this3.emit(LOADER_EVENTS.LOADER_ERROR, _this3.TAG, error);
+        throw error;
       });
     }
   }, {
