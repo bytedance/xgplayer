@@ -70,6 +70,13 @@ let progress = function () {
       dotEvent(dot, text)
     }
   }
+  player.addProgressDots = function (arr) {
+    if (!Array.isArray(arr)) return;
+    arr.forEach(item => {
+      const { time, text, duration } = item;
+      player.addProgressDot(time, text, duration);
+    })
+  }
   player.removeProgressDot = function (time) {
     if (time >= 0 && time <= player.duration && player.dotArr[time]) {
       let dot = player.dotArr[time]
