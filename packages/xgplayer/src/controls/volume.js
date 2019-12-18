@@ -81,7 +81,11 @@ let volume = function () {
     } else {
       player.video.muted = false
       if (player.volume < 0.1) {
-        player.volume = slider.volume
+        if(slider.volume < 0.1) {
+          player.volume = 0.6
+        } else {
+          player.volume = slider.volume
+        }
       } else {
         player.volume = 0
       }
