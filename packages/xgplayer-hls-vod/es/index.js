@@ -7687,7 +7687,7 @@ var HlsVodController = function () {
         }
 
         if (currentbufferend < 0) {
-          var _frag2 = this._playlist.getTs(time * 1000);
+          var _frag2 = this._playlist.getTs((time + 0.5) * 1000); // FIXME: Last frame buffer shortens duration
           if (_frag2 && !_frag2.downloading && !_frag2.downloaded) {
             this._playlist.downloading(_frag2.url, true);
             this.emitTo('TS_LOADER', LOADER_EVENTS$2.LADER_START, _frag2.url);
@@ -7799,10 +7799,11 @@ var HlsVodPlayer = function (_Player) {
 
       var _detectBufferGap = this.detectBufferGap(),
           gap = _detectBufferGap.gap,
-          start = _detectBufferGap.start;
+          start = _detectBufferGap.start,
+          method = _detectBufferGap.method;
 
       if (gap) {
-        this.currentTime = Math.ceil(start);
+        this.currentTime = Math[method](start);
       }
     }
   }, {
@@ -7859,21 +7860,23 @@ var HlsVodPlayer = function (_Player) {
     value: function detectBufferGap() {
       var video = this.video;
 
+      var result = {
+        gap: false,
+        start: -1
+      };
       for (var i = 0; i < video.buffered.length; i++) {
         var bufferStart = video.buffered.start(i);
-        var gap = bufferStart - this.currentTime;
-        if (gap > 0.1 && gap <= 2) {
-          return {
+        var startGap = bufferStart - this.currentTime;
+        if (startGap > 0.1 && startGap <= 2) {
+          result = {
             gap: true,
-            start: bufferStart
+            start: bufferStart,
+            method: 'ceil'
           };
         }
       }
 
-      return {
-        gap: false,
-        start: -1
-      };
+      return result;
     }
   }, {
     key: 'currentTime',

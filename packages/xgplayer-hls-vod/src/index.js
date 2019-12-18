@@ -7,7 +7,6 @@ const HlsAllowedEvents = EVENTS.HlsAllowedEvents;
 const REMUX_EVENTS = EVENTS.REMUX_EVENTS;
 const HLS_EVENTS = EVENTS.HLS_EVENTS;
 
-let waitTimer = null;
 class HlsVodPlayer extends Player {
   constructor (options) {
     super(options)
@@ -46,9 +45,9 @@ class HlsVodPlayer extends Player {
 
   onWaiting () {
     super.onWaiting();
-    const { gap, start } = this.detectBufferGap()
+    const { gap, start, method } = this.detectBufferGap()
     if (gap) {
-      this.currentTime = Math.ceil(start);
+      this.currentTime = Math[method](start);
     }
   }
 
@@ -97,21 +96,23 @@ class HlsVodPlayer extends Player {
 
   detectBufferGap () {
     const { video } = this;
-    for (let i = 0; i < video.buffered.length; i++) {
-      const bufferStart = video.buffered.start(i)
-      const gap = bufferStart - this.currentTime;
-      if (gap > 0.1 && gap <= 2) {
-        return {
-          gap: true,
-          start: bufferStart
-        }
-      }
-    }
-
-    return {
+    let result = {
       gap: false,
       start: -1
     }
+    for (let i = 0; i < video.buffered.length; i++) {
+      const bufferStart = video.buffered.start(i)
+      const startGap = bufferStart - this.currentTime;
+      if (startGap > 0.1 && startGap <= 2) {
+        result = {
+          gap: true,
+          start: bufferStart,
+          method: 'ceil'
+        };
+      }
+    }
+
+    return result;
   }
 }
 
