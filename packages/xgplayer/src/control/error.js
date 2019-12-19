@@ -38,11 +38,17 @@ let error = function () {
   }
   player.on('error', errorFunc)
 
-  function destroyFunc () {
-    player.off('error', errorFunc)
-    player.off('destroy', destroyFunc)
+  function onCanplay () {
+    util.removeClass(player.root, 'xgplayer-is-error')
   }
-  player.once('destroy', destroyFunc)
+  player.on('canplay', onCanplay)
+  player.on('error', onError)
+  function onDestroy () {
+    player.off('error', onError)
+    player.off('destroy', onDestroy)
+    player.off('canplay', onCanplay)
+  }
+  player.once('destroy', onDestroy)
 }
 
 Player.install('error', error)
