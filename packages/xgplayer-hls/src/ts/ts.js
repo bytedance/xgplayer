@@ -6,6 +6,7 @@ const StreamType = {
     0x01: ['video', 'MPEG-1'],
     0x02: ['video', 'MPEG-2'],
     0x1b: ['video', 'AVC.H264'],
+    0x24: ['video', 'HEVC'],
     0xea: ['video', 'VC-1'],
     0x03: ['audio', 'MPEG-1'],
     0x04: ['audio', 'MPEG-2'],
@@ -138,7 +139,7 @@ class TS {
                     r = new TS.PMT(buffer, root);
                 } else {
                     let ts = TS.PMTSpace ? TS.PMTSpace.filter((item) => item.pid === pid) : [];
-                    r = ts.length ? new TS.Media(buffer, root, StreamType[ts[0].streamType][0]) : false;
+                    r = ts.length ? new TS.Media(buffer, root, StreamType[ts[0].streamType][0], StreamType[ts[0].streamType][1]) : false;
                 }
         }
         return r;
@@ -213,10 +214,11 @@ class TS {
             this.crc32 = buffer.readUint32();
         }
     }
-    static Media (buffer, it, type) {
+    static Media (buffer, it, type, codec) {
         let header = it.header;
         this.start = buffer.position;
         this.type = type;
+        this.codec = codec;
         if (header.adaptation === 0x03) {
             this.adaptationLength = buffer.readUint8();
             if (this.adaptationLength > 0) {
@@ -283,7 +285,7 @@ class TS {
         this.buffer = new Stream(buffer.buffer.slice(buffer.position));
     }
     static PES (ts) {
-        let it = ts[0], buffer = it.body.buffer;
+        let it = ts[0], buffer = it.body.buffer, codec = it.body.codec;
         let next = buffer.readUint24();
         this.header = it.header;
         if (next !== 1) {
@@ -388,41 +390,72 @@ class TS {
                 if (N1 > 0) {
                     buffer.skip(N1);
                 }
-                this.ES = new TS.ES(buffer, this.type, ts.slice(1));
+                this.ES = new TS.ES(buffer, this.type, ts.slice(1), this.codec);
             } else {
                 throw new Error('format is not supported');
             }
         }
     }
-    static ES (buffer, type, ts) {
+    static ES (buffer, type, ts, codec) {
         let next;
         if (type === 'video') {
-            next = buffer.readUint32();
-            if (next !== 1) {
-                buffer.back(4);
-                next = buffer.readUint24();
+            if(codec === 'HEVC') {
+                next = buffer.readUint32();
                 if (next !== 1) {
-                    throw new Error('h264 nal header parse failed');
+                    buffer.back(4);
+                    next = buffer.readUint24();
+                    if (next !== 1) {
+                        throw new Error('h265 nal header parse failed');
+                    }
                 }
-            }
-            buffer.skip(2);// 09 F0
-            this.sps = readSPS(buffer);
-            this.pps = readPPS(buffer);
-            let nal;
-            if (this.sps.length) {
-                this.info = new ExpGolomb(new Uint8Array(this.sps)).readSPS();
-                nal = buffer.readUint24();
-            } else {
-                nal = buffer.readUint24();
-                if (nal === 0) {
-                    nal = buffer.readUint8();
+                this.vps = readVPS(buffer);
+                this.sps = readSPS(buffer);
+                this.pps = readPPS(buffer);
+                this.sei = readSEI(buffer);
+                let nal;
+                if (this.sps.length) {
+                    this.info = new ExpGolomb(new Uint8Array(this.sps)).readSPS();
+                    nal = buffer.readUint24();
+                } else {
+                    nal = buffer.readUint24();
+                    if (nal === 0) {
+                        nal = buffer.readUint8();
+                    }
                 }
-            }
-            if (nal === 1) {
-                let vdata = TS.Merge(buffer, ts);
-                this.buffer = Concat(Uint8Array, buffer.writeUint32(vdata.byteLength), vdata);
+                if (nal === 1) {
+                    let vdata = TS.Merge(buffer, ts);
+                    this.buffer = Concat(Uint8Array, buffer.writeUint32(vdata.byteLength), vdata);
+                } else {
+                    throw new Error('h264 convert to avcc error');
+                }
             } else {
-                throw new Error('h264 convert to avcc error');
+                next = buffer.readUint32();
+                if (next !== 1) {
+                    buffer.back(4);
+                    next = buffer.readUint24();
+                    if (next !== 1) {
+                        throw new Error('h264 nal header parse failed');
+                    }
+                }
+                buffer.skip(2);// 09 F0
+                this.sps = readSPS(buffer);
+                this.pps = readPPS(buffer);
+                let nal;
+                if (this.sps.length) {
+                    this.info = new ExpGolomb(new Uint8Array(this.sps)).readSPS();
+                    nal = buffer.readUint24();
+                } else {
+                    nal = buffer.readUint24();
+                    if (nal === 0) {
+                        nal = buffer.readUint8();
+                    }
+                }
+                if (nal === 1) {
+                    let vdata = TS.Merge(buffer, ts);
+                    this.buffer = Concat(Uint8Array, buffer.writeUint32(vdata.byteLength), vdata);
+                } else {
+                    throw new Error('h264 convert to avcc error');
+                }
             }
         } else if (type === 'audio') {
             next = buffer.readUint16();
@@ -444,7 +477,7 @@ class TS {
             this.audioConfig = TS.getAudioConfig(this.audioObjectType, this.channel, this.frequencyIndex);
             buffer.skip(1);
             this.buffer = TS.Merge(buffer, ts);
-            console.log(this.buffer);
+            // console.log(this.buffer);
         } else {
             throw `ES ${type} is not supported`;
         }
