@@ -1,5 +1,9 @@
+var _createClass = function () { function defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ("value" in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } } return function (Constructor, protoProps, staticProps) { if (protoProps) defineProperties(Constructor.prototype, protoProps); if (staticProps) defineProperties(Constructor, staticProps); return Constructor; }; }();
+
+function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } }
+
 var Source = function Source() {
-  babelHelpers.classCallCheck(this, Source);
+  _classCallCheck(this, Source);
 
   this.mimetype = '';
   this.init = null;
@@ -8,12 +12,12 @@ var Source = function Source() {
 
 var PreSource = function () {
   function PreSource() {
-    babelHelpers.classCallCheck(this, PreSource);
+    _classCallCheck(this, PreSource);
 
     this.sources = {};
   }
 
-  babelHelpers.createClass(PreSource, [{
+  _createClass(PreSource, [{
     key: 'getSource',
     value: function getSource(source) {
       return this.sources[source];
@@ -35,6 +39,7 @@ var PreSource = function () {
       this.sources = {};
     }
   }]);
+
   return PreSource;
 }();
 

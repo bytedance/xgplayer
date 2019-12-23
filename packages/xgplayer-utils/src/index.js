@@ -27,6 +27,7 @@ import _Buffer from './write/buffer';
 
 // Crypto
 import _Crypto from './crypto';
+import _debounce from './func/debounce';
 
 export const Context = _Context;
 export const EVENTS = _EVENTS;
@@ -36,6 +37,7 @@ export const WORKER_COMMANDS = {
 export const sniffer = _sniffer
 export const isLe = _isLe
 export const UTF8 = _UTF8
+export const debounce = _debounce;
 export const MediaInfo = _MediaInfo
 export const MediaSample = _MediaSample
 export const MediaSegment = _MediaSegment

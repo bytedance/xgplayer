@@ -6,411 +6,21 @@
 
   Player = Player && Player.hasOwnProperty('default') ? Player['default'] : Player;
 
-  var _typeof = typeof Symbol === "function" && typeof Symbol.iterator === "symbol" ? function (obj) {
-    return typeof obj;
-  } : function (obj) {
-    return obj && typeof Symbol === "function" && obj.constructor === Symbol && obj !== Symbol.prototype ? "symbol" : typeof obj;
-  };
-
-  var classCallCheck = function (instance, Constructor) {
-    if (!(instance instanceof Constructor)) {
-      throw new TypeError("Cannot call a class as a function");
-    }
-  };
-
-  var createClass = function () {
+  var _createClass = function () {
     function defineProperties(target, props) {
       for (var i = 0; i < props.length; i++) {
-        var descriptor = props[i];
-        descriptor.enumerable = descriptor.enumerable || false;
-        descriptor.configurable = true;
-        if ("value" in descriptor) descriptor.writable = true;
-        Object.defineProperty(target, descriptor.key, descriptor);
+        var descriptor = props[i];descriptor.enumerable = descriptor.enumerable || false;descriptor.configurable = true;if ("value" in descriptor) descriptor.writable = true;Object.defineProperty(target, descriptor.key, descriptor);
       }
-    }
-
-    return function (Constructor, protoProps, staticProps) {
-      if (protoProps) defineProperties(Constructor.prototype, protoProps);
-      if (staticProps) defineProperties(Constructor, staticProps);
-      return Constructor;
+    }return function (Constructor, protoProps, staticProps) {
+      if (protoProps) defineProperties(Constructor.prototype, protoProps);if (staticProps) defineProperties(Constructor, staticProps);return Constructor;
     };
   }();
 
-  var get = function get(object, property, receiver) {
-    if (object === null) object = Function.prototype;
-    var desc = Object.getOwnPropertyDescriptor(object, property);
-
-    if (desc === undefined) {
-      var parent = Object.getPrototypeOf(object);
-
-      if (parent === null) {
-        return undefined;
-      } else {
-        return get(parent, property, receiver);
-      }
-    } else if ("value" in desc) {
-      return desc.value;
-    } else {
-      var getter = desc.get;
-
-      if (getter === undefined) {
-        return undefined;
-      }
-
-      return getter.call(receiver);
+  function _classCallCheck(instance, Constructor) {
+    if (!(instance instanceof Constructor)) {
+      throw new TypeError("Cannot call a class as a function");
     }
-  };
-
-  var inherits = function (subClass, superClass) {
-    if (typeof superClass !== "function" && superClass !== null) {
-      throw new TypeError("Super expression must either be null or a function, not " + typeof superClass);
-    }
-
-    subClass.prototype = Object.create(superClass && superClass.prototype, {
-      constructor: {
-        value: subClass,
-        enumerable: false,
-        writable: true,
-        configurable: true
-      }
-    });
-    if (superClass) Object.setPrototypeOf ? Object.setPrototypeOf(subClass, superClass) : subClass.__proto__ = superClass;
-  };
-
-  var possibleConstructorReturn = function (self, call) {
-    if (!self) {
-      throw new ReferenceError("this hasn't been initialised - super() hasn't been called");
-    }
-
-    return call && (typeof call === "object" || typeof call === "function") ? call : self;
-  };
-
-  var set = function set(object, property, value, receiver) {
-    var desc = Object.getOwnPropertyDescriptor(object, property);
-
-    if (desc === undefined) {
-      var parent = Object.getPrototypeOf(object);
-
-      if (parent !== null) {
-        set(parent, property, value, receiver);
-      }
-    } else if ("value" in desc && desc.writable) {
-      desc.value = value;
-    } else {
-      var setter = desc.set;
-
-      if (setter !== undefined) {
-        setter.call(receiver, value);
-      }
-    }
-
-    return value;
-  };
-
-  (function (global) {
-    var _babelHelpers = global.babelHelpers = {};
-    _babelHelpers.typeof = function (obj) {
-      return typeof obj === "undefined" ? "undefined" : _typeof(obj);
-    };
-
-    _babelHelpers.classCallCheck = function (instance, Constructor) {
-      if (!(instance instanceof Constructor)) {
-        throw new TypeError("Cannot call a class as a function");
-      }
-    };
-
-    _babelHelpers.createClass = function () {
-      function defineProperties(target, props) {
-        for (var i = 0; i < props.length; i++) {
-          var descriptor = props[i];
-          descriptor.enumerable = descriptor.enumerable || false;
-          descriptor.configurable = true;
-          if ("value" in descriptor) descriptor.writable = true;
-          Object.defineProperty(target, descriptor.key, descriptor);
-        }
-      }
-
-      return function (Constructor, protoProps, staticProps) {
-        if (protoProps) defineProperties(Constructor.prototype, protoProps);
-        if (staticProps) defineProperties(Constructor, staticProps);
-        return Constructor;
-      };
-    }();
-
-    _babelHelpers.defineEnumerableProperties = function (obj, descs) {
-      for (var key in descs) {
-        var desc = descs[key];
-        desc.configurable = desc.enumerable = true;
-        if ("value" in desc) desc.writable = true;
-        Object.defineProperty(obj, key, desc);
-      }
-
-      return obj;
-    };
-
-    _babelHelpers.defaults = function (obj, defaults) {
-      var keys = Object.getOwnPropertyNames(defaults);
-
-      for (var i = 0; i < keys.length; i++) {
-        var key = keys[i];
-        var value = Object.getOwnPropertyDescriptor(defaults, key);
-
-        if (value && value.configurable && obj[key] === undefined) {
-          Object.defineProperty(obj, key, value);
-        }
-      }
-
-      return obj;
-    };
-
-    _babelHelpers.defineProperty = function (obj, key, value) {
-      if (key in obj) {
-        Object.defineProperty(obj, key, {
-          value: value,
-          enumerable: true,
-          configurable: true,
-          writable: true
-        });
-      } else {
-        obj[key] = value;
-      }
-
-      return obj;
-    };
-
-    _babelHelpers.extends = Object.assign || function (target) {
-      for (var i = 1; i < arguments.length; i++) {
-        var source = arguments[i];
-
-        for (var key in source) {
-          if (Object.prototype.hasOwnProperty.call(source, key)) {
-            target[key] = source[key];
-          }
-        }
-      }
-
-      return target;
-    };
-
-    _babelHelpers.get = function get(object, property, receiver) {
-      if (object === null) object = Function.prototype;
-      var desc = Object.getOwnPropertyDescriptor(object, property);
-
-      if (desc === undefined) {
-        var parent = Object.getPrototypeOf(object);
-
-        if (parent === null) {
-          return undefined;
-        } else {
-          return get(parent, property, receiver);
-        }
-      } else if ("value" in desc) {
-        return desc.value;
-      } else {
-        var getter = desc.get;
-
-        if (getter === undefined) {
-          return undefined;
-        }
-
-        return getter.call(receiver);
-      }
-    };
-
-    _babelHelpers.inherits = function (subClass, superClass) {
-      if (typeof superClass !== "function" && superClass !== null) {
-        throw new TypeError("Super expression must either be null or a function, not " + (typeof superClass === "undefined" ? "undefined" : _typeof(superClass)));
-      }
-
-      subClass.prototype = Object.create(superClass && superClass.prototype, {
-        constructor: {
-          value: subClass,
-          enumerable: false,
-          writable: true,
-          configurable: true
-        }
-      });
-      if (superClass) Object.setPrototypeOf ? Object.setPrototypeOf(subClass, superClass) : subClass.__proto__ = superClass;
-    };
-
-    _babelHelpers.instanceof = function (left, right) {
-      if (right != null && typeof Symbol !== "undefined" && right[Symbol.hasInstance]) {
-        return right[Symbol.hasInstance](left);
-      } else {
-        return left instanceof right;
-      }
-    };
-
-    _babelHelpers.interopRequireDefault = function (obj) {
-      return obj && obj.__esModule ? obj : {
-        default: obj
-      };
-    };
-
-    _babelHelpers.interopRequireWildcard = function (obj) {
-      if (obj && obj.__esModule) {
-        return obj;
-      } else {
-        var newObj = {};
-
-        if (obj != null) {
-          for (var key in obj) {
-            if (Object.prototype.hasOwnProperty.call(obj, key)) newObj[key] = obj[key];
-          }
-        }
-
-        newObj.default = obj;
-        return newObj;
-      }
-    };
-
-    _babelHelpers.newArrowCheck = function (innerThis, boundThis) {
-      if (innerThis !== boundThis) {
-        throw new TypeError("Cannot instantiate an arrow function");
-      }
-    };
-
-    _babelHelpers.objectDestructuringEmpty = function (obj) {
-      if (obj == null) throw new TypeError("Cannot destructure undefined");
-    };
-
-    _babelHelpers.objectWithoutProperties = function (obj, keys) {
-      var target = {};
-
-      for (var i in obj) {
-        if (keys.indexOf(i) >= 0) continue;
-        if (!Object.prototype.hasOwnProperty.call(obj, i)) continue;
-        target[i] = obj[i];
-      }
-
-      return target;
-    };
-
-    _babelHelpers.possibleConstructorReturn = function (self, call) {
-      if (!self) {
-        throw new ReferenceError("this hasn't been initialised - super() hasn't been called");
-      }
-
-      return call && ((typeof call === "undefined" ? "undefined" : _typeof(call)) === "object" || typeof call === "function") ? call : self;
-    };
-
-    _babelHelpers.selfGlobal = typeof global === "undefined" ? self : global;
-
-    _babelHelpers.set = function set(object, property, value, receiver) {
-      var desc = Object.getOwnPropertyDescriptor(object, property);
-
-      if (desc === undefined) {
-        var parent = Object.getPrototypeOf(object);
-
-        if (parent !== null) {
-          set(parent, property, value, receiver);
-        }
-      } else if ("value" in desc && desc.writable) {
-        desc.value = value;
-      } else {
-        var setter = desc.set;
-
-        if (setter !== undefined) {
-          setter.call(receiver, value);
-        }
-      }
-
-      return value;
-    };
-
-    _babelHelpers.slicedToArray = function () {
-      function sliceIterator(arr, i) {
-        var _arr = [];
-        var _n = true;
-        var _d = false;
-        var _e = undefined;
-
-        try {
-          for (var _i = arr[Symbol.iterator](), _s; !(_n = (_s = _i.next()).done); _n = true) {
-            _arr.push(_s.value);
-
-            if (i && _arr.length === i) break;
-          }
-        } catch (err) {
-          _d = true;
-          _e = err;
-        } finally {
-          try {
-            if (!_n && _i["return"]) _i["return"]();
-          } finally {
-            if (_d) throw _e;
-          }
-        }
-
-        return _arr;
-      }
-
-      return function (arr, i) {
-        if (Array.isArray(arr)) {
-          return arr;
-        } else if (Symbol.iterator in Object(arr)) {
-          return sliceIterator(arr, i);
-        } else {
-          throw new TypeError("Invalid attempt to destructure non-iterable instance");
-        }
-      };
-    }();
-
-    _babelHelpers.slicedToArrayLoose = function (arr, i) {
-      if (Array.isArray(arr)) {
-        return arr;
-      } else if (Symbol.iterator in Object(arr)) {
-        var _arr = [];
-
-        for (var _iterator = arr[Symbol.iterator](), _step; !(_step = _iterator.next()).done;) {
-          _arr.push(_step.value);
-
-          if (i && _arr.length === i) break;
-        }
-
-        return _arr;
-      } else {
-        throw new TypeError("Invalid attempt to destructure non-iterable instance");
-      }
-    };
-
-    _babelHelpers.taggedTemplateLiteral = function (strings, raw) {
-      return Object.freeze(Object.defineProperties(strings, {
-        raw: {
-          value: Object.freeze(raw)
-        }
-      }));
-    };
-
-    _babelHelpers.taggedTemplateLiteralLoose = function (strings, raw) {
-      strings.raw = raw;
-      return strings;
-    };
-
-    _babelHelpers.temporalRef = function (val, name, undef) {
-      if (val === undef) {
-        throw new ReferenceError(name + " is not defined - temporal dead zone");
-      } else {
-        return val;
-      }
-    };
-
-    _babelHelpers.temporalUndefined = {};
-
-    _babelHelpers.toArray = function (arr) {
-      return Array.isArray(arr) ? arr : Array.from(arr);
-    };
-
-    _babelHelpers.toConsumableArray = function (arr) {
-      if (Array.isArray(arr)) {
-        for (var i = 0, arr2 = Array(arr.length); i < arr.length; i++) {
-          arr2[i] = arr[i];
-        }return arr2;
-      } else {
-        return Array.from(arr);
-      }
-    };
-  })(typeof global === "undefined" ? self : global);
+  }
 
   var isObjectFilled = function isObjectFilled(obj) {
     for (var key in obj) {
@@ -425,7 +35,7 @@
 
   var MediaInfo = function () {
     function MediaInfo() {
-      babelHelpers.classCallCheck(this, MediaInfo);
+      _classCallCheck(this, MediaInfo);
 
       this.mimeType = null;
       this.duration = null;
@@ -460,7 +70,7 @@
       };
     }
 
-    babelHelpers.createClass(MediaInfo, [{
+    _createClass(MediaInfo, [{
       key: "isComplete",
       value: function isComplete() {
         return MediaInfo.isBaseInfoReady(this) && MediaInfo.isVideoReady(this) && MediaInfo.isAudioReady(this);
@@ -489,6 +99,7 @@
         return isObjectFilled(mediaInfo.video);
       }
     }]);
+
     return MediaInfo;
   }();
 
@@ -902,12 +513,59 @@
     return ret;
   }
 
+  var _typeof = typeof Symbol === "function" && typeof Symbol.iterator === "symbol" ? function (obj) { return typeof obj; } : function (obj) { return obj && typeof Symbol === "function" && obj.constructor === Symbol && obj !== Symbol.prototype ? "symbol" : typeof obj; };
+
+  var _get = function get(object, property, receiver) {
+    if (object === null) object = Function.prototype;var desc = Object.getOwnPropertyDescriptor(object, property);if (desc === undefined) {
+      var parent = Object.getPrototypeOf(object);if (parent === null) {
+        return undefined;
+      } else {
+        return get(parent, property, receiver);
+      }
+    } else if ("value" in desc) {
+      return desc.value;
+    } else {
+      var getter = desc.get;if (getter === undefined) {
+        return undefined;
+      }return getter.call(receiver);
+    }
+  };
+
+  var _createClass$1 = function () {
+    function defineProperties(target, props) {
+      for (var i = 0; i < props.length; i++) {
+        var descriptor = props[i];descriptor.enumerable = descriptor.enumerable || false;descriptor.configurable = true;if ("value" in descriptor) descriptor.writable = true;Object.defineProperty(target, descriptor.key, descriptor);
+      }
+    }return function (Constructor, protoProps, staticProps) {
+      if (protoProps) defineProperties(Constructor.prototype, protoProps);if (staticProps) defineProperties(Constructor, staticProps);return Constructor;
+    };
+  }();
+
+  function _possibleConstructorReturn(self, call) {
+    if (!self) {
+      throw new ReferenceError("this hasn't been initialised - super() hasn't been called");
+    }return call && ((typeof call === "undefined" ? "undefined" : _typeof(call)) === "object" || typeof call === "function") ? call : self;
+  }
+
+  function _inherits(subClass, superClass) {
+    if (typeof superClass !== "function" && superClass !== null) {
+      throw new TypeError("Super expression must either be null or a function, not " + (typeof superClass === "undefined" ? "undefined" : _typeof(superClass)));
+    }subClass.prototype = Object.create(superClass && superClass.prototype, { constructor: { value: subClass, enumerable: false, writable: true, configurable: true } });if (superClass) Object.setPrototypeOf ? Object.setPrototypeOf(subClass, superClass) : subClass.__proto__ = superClass;
+  }
+
+  function _classCallCheck$1(instance, Constructor) {
+    if (!(instance instanceof Constructor)) {
+      throw new TypeError("Cannot call a class as a function");
+    }
+  }
+
   var DIRECT_EMIT_FLAG = '__TO__';
 
   var Context = function () {
     function Context() {
       var allowedEvents = arguments.length > 0 && arguments[0] !== undefined ? arguments[0] : [];
-      babelHelpers.classCallCheck(this, Context);
+
+      _classCallCheck$1(this, Context);
 
       this._emitter = new EventEmitter();
       if (!this._emitter.off) {
@@ -928,7 +586,7 @@
      * @returns {*}
      */
 
-    babelHelpers.createClass(Context, [{
+    _createClass$1(Context, [{
       key: 'getInstance',
       value: function getInstance(tag) {
         var instance = this._instanceMap[tag];
@@ -966,7 +624,7 @@
           }
           return newInstance;
         } else {
-          throw new Error(tag + '\u672A\u5728context\u4E2D\u6CE8\u518C');
+          throw new Error(tag + "\u672A\u5728context\u4E2D\u6CE8\u518C");
         }
       }
 
@@ -1005,12 +663,12 @@
         var checkMessageName = this._isMessageNameValid.bind(this);
         var self = this;
         var enhanced = function (_cls) {
-          babelHelpers.inherits(enhanced, _cls);
+          _inherits(enhanced, _cls);
 
           function enhanced(a, b, c) {
-            babelHelpers.classCallCheck(this, enhanced);
+            _classCallCheck$1(this, enhanced);
 
-            var _this = babelHelpers.possibleConstructorReturn(this, (enhanced.__proto__ || Object.getPrototypeOf(enhanced)).call(this, a, b, c));
+            var _this = _possibleConstructorReturn(this, (enhanced.__proto__ || Object.getPrototypeOf(enhanced)).call(this, a, b, c));
 
             _this.listeners = {};
             _this.onceListeners = {};
@@ -1019,7 +677,7 @@
             return _this;
           }
 
-          babelHelpers.createClass(enhanced, [{
+          _createClass$1(enhanced, [{
             key: 'on',
             value: function on(messageName, callback) {
               checkMessageName(messageName);
@@ -1150,11 +808,12 @@
 
               // step2 release from context
               delete self._instanceMap[tag];
-              if (babelHelpers.get(enhanced.prototype.__proto__ || Object.getPrototypeOf(enhanced.prototype), 'destroy', this)) {
-                return babelHelpers.get(enhanced.prototype.__proto__ || Object.getPrototypeOf(enhanced.prototype), 'destroy', this).call(this);
+              if (_get(enhanced.prototype.__proto__ || Object.getPrototypeOf(enhanced.prototype), 'destroy', this)) {
+                return _get(enhanced.prototype.__proto__ || Object.getPrototypeOf(enhanced.prototype), 'destroy', this).call(this);
               }
             }
           }]);
+
           return enhanced;
         }(cls);
         this._clsMap[tag] = enhanced;
@@ -1217,6 +876,7 @@
         }
       }
     }]);
+
     return Context;
   }();
 
@@ -1344,12 +1004,28 @@
     return new Int16Array(buf)[0] === 256; // platform-spec read, if equal then LE
   }();
 
+  var _createClass$2 = function () {
+    function defineProperties(target, props) {
+      for (var i = 0; i < props.length; i++) {
+        var descriptor = props[i];descriptor.enumerable = descriptor.enumerable || false;descriptor.configurable = true;if ("value" in descriptor) descriptor.writable = true;Object.defineProperty(target, descriptor.key, descriptor);
+      }
+    }return function (Constructor, protoProps, staticProps) {
+      if (protoProps) defineProperties(Constructor.prototype, protoProps);if (staticProps) defineProperties(Constructor, staticProps);return Constructor;
+    };
+  }();
+
+  function _classCallCheck$2(instance, Constructor) {
+    if (!(instance instanceof Constructor)) {
+      throw new TypeError("Cannot call a class as a function");
+    }
+  }
+
   var UTF8 = function () {
     function UTF8() {
-      babelHelpers.classCallCheck(this, UTF8);
+      _classCallCheck$2(this, UTF8);
     }
 
-    babelHelpers.createClass(UTF8, null, [{
+    _createClass$2(UTF8, null, [{
       key: 'decode',
       value: function decode(uint8array) {
         var out = [];
@@ -1414,14 +1090,57 @@
         }
       }
     }]);
+
     return UTF8;
   }();
+
+  var _slicedToArray = function () {
+    function sliceIterator(arr, i) {
+      var _arr = [];var _n = true;var _d = false;var _e = undefined;try {
+        for (var _i = arr[Symbol.iterator](), _s; !(_n = (_s = _i.next()).done); _n = true) {
+          _arr.push(_s.value);if (i && _arr.length === i) break;
+        }
+      } catch (err) {
+        _d = true;_e = err;
+      } finally {
+        try {
+          if (!_n && _i["return"]) _i["return"]();
+        } finally {
+          if (_d) throw _e;
+        }
+      }return _arr;
+    }return function (arr, i) {
+      if (Array.isArray(arr)) {
+        return arr;
+      } else if (Symbol.iterator in Object(arr)) {
+        return sliceIterator(arr, i);
+      } else {
+        throw new TypeError("Invalid attempt to destructure non-iterable instance");
+      }
+    };
+  }();
+
+  var _createClass$3 = function () {
+    function defineProperties(target, props) {
+      for (var i = 0; i < props.length; i++) {
+        var descriptor = props[i];descriptor.enumerable = descriptor.enumerable || false;descriptor.configurable = true;if ("value" in descriptor) descriptor.writable = true;Object.defineProperty(target, descriptor.key, descriptor);
+      }
+    }return function (Constructor, protoProps, staticProps) {
+      if (protoProps) defineProperties(Constructor.prototype, protoProps);if (staticProps) defineProperties(Constructor, staticProps);return Constructor;
+    };
+  }();
+
+  function _classCallCheck$3(instance, Constructor) {
+    if (!(instance instanceof Constructor)) {
+      throw new TypeError("Cannot call a class as a function");
+    }
+  }
 
   var MediaSample = function () {
     function MediaSample(info) {
       var _this = this;
 
-      babelHelpers.classCallCheck(this, MediaSample);
+      _classCallCheck$3(this, MediaSample);
 
       var _default = MediaSample.getDefaultInf();
 
@@ -1431,7 +1150,7 @@
       var sample = Object.assign({}, _default, info);
 
       Object.entries(sample).forEach(function (_ref) {
-        var _ref2 = babelHelpers.slicedToArray(_ref, 2),
+        var _ref2 = _slicedToArray(_ref, 2),
             k = _ref2[0],
             v = _ref2[1];
 
@@ -1439,7 +1158,7 @@
       });
     }
 
-    babelHelpers.createClass(MediaSample, null, [{
+    _createClass$3(MediaSample, null, [{
       key: 'getDefaultInf',
       value: function getDefaultInf() {
         return {
@@ -1452,12 +1171,29 @@
         };
       }
     }]);
+
     return MediaSample;
   }();
 
+  var _createClass$4 = function () {
+      function defineProperties(target, props) {
+          for (var i = 0; i < props.length; i++) {
+              var descriptor = props[i];descriptor.enumerable = descriptor.enumerable || false;descriptor.configurable = true;if ("value" in descriptor) descriptor.writable = true;Object.defineProperty(target, descriptor.key, descriptor);
+          }
+      }return function (Constructor, protoProps, staticProps) {
+          if (protoProps) defineProperties(Constructor.prototype, protoProps);if (staticProps) defineProperties(Constructor, staticProps);return Constructor;
+      };
+  }();
+
+  function _classCallCheck$4(instance, Constructor) {
+      if (!(instance instanceof Constructor)) {
+          throw new TypeError("Cannot call a class as a function");
+      }
+  }
+
   var MediaSegment = function () {
       function MediaSegment() {
-          babelHelpers.classCallCheck(this, MediaSegment);
+          _classCallCheck$4(this, MediaSegment);
 
           this.startDts = -1;
           this.endDts = -1;
@@ -1470,26 +1206,43 @@
           this.lastSample = null;
       }
 
-      babelHelpers.createClass(MediaSegment, [{
+      _createClass$4(MediaSegment, [{
           key: "addRAP",
           value: function addRAP(sample) {
               sample.isRAP = true;
               this.randomAccessPoints.push(sample);
           }
       }]);
+
       return MediaSegment;
   }();
 
+  var _createClass$5 = function () {
+      function defineProperties(target, props) {
+          for (var i = 0; i < props.length; i++) {
+              var descriptor = props[i];descriptor.enumerable = descriptor.enumerable || false;descriptor.configurable = true;if ("value" in descriptor) descriptor.writable = true;Object.defineProperty(target, descriptor.key, descriptor);
+          }
+      }return function (Constructor, protoProps, staticProps) {
+          if (protoProps) defineProperties(Constructor.prototype, protoProps);if (staticProps) defineProperties(Constructor, staticProps);return Constructor;
+      };
+  }();
+
+  function _classCallCheck$5(instance, Constructor) {
+      if (!(instance instanceof Constructor)) {
+          throw new TypeError("Cannot call a class as a function");
+      }
+  }
+
   var MediaSegmentList = function () {
       function MediaSegmentList(type) {
-          babelHelpers.classCallCheck(this, MediaSegmentList);
+          _classCallCheck$5(this, MediaSegmentList);
 
           this._type = type;
           this._list = [];
           this._lastAppendLocation = -1; // cached last insert location
       }
 
-      babelHelpers.createClass(MediaSegmentList, [{
+      _createClass$5(MediaSegmentList, [{
           key: "isEmpty",
           value: function isEmpty() {
               return this._list.length === 0;
@@ -1602,12 +1355,29 @@
               return this._list.length;
           }
       }]);
+
       return MediaSegmentList;
   }();
 
+  var _createClass$6 = function () {
+    function defineProperties(target, props) {
+      for (var i = 0; i < props.length; i++) {
+        var descriptor = props[i];descriptor.enumerable = descriptor.enumerable || false;descriptor.configurable = true;if ("value" in descriptor) descriptor.writable = true;Object.defineProperty(target, descriptor.key, descriptor);
+      }
+    }return function (Constructor, protoProps, staticProps) {
+      if (protoProps) defineProperties(Constructor.prototype, protoProps);if (staticProps) defineProperties(Constructor, staticProps);return Constructor;
+    };
+  }();
+
+  function _classCallCheck$6(instance, Constructor) {
+    if (!(instance instanceof Constructor)) {
+      throw new TypeError("Cannot call a class as a function");
+    }
+  }
+
   var AudioTrackMeta = function () {
     function AudioTrackMeta(meta) {
-      babelHelpers.classCallCheck(this, AudioTrackMeta);
+      _classCallCheck$6(this, AudioTrackMeta);
 
       var _default = {
         sampleRate: 48000,
@@ -1627,18 +1397,19 @@
       return _default;
     }
 
-    babelHelpers.createClass(AudioTrackMeta, [{
+    _createClass$6(AudioTrackMeta, [{
       key: 'destroy',
       value: function destroy() {
         this.init = null;
       }
     }]);
+
     return AudioTrackMeta;
   }();
 
   var VideoTrackMeta = function () {
     function VideoTrackMeta(meta) {
-      babelHelpers.classCallCheck(this, VideoTrackMeta);
+      _classCallCheck$6(this, VideoTrackMeta);
 
       var _default = {
         avcc: null,
@@ -1675,7 +1446,7 @@
       return _default;
     }
 
-    babelHelpers.createClass(VideoTrackMeta, [{
+    _createClass$6(VideoTrackMeta, [{
       key: 'destroy',
       value: function destroy() {
         this.init = null;
@@ -1683,12 +1454,29 @@
         this.pps = null;
       }
     }]);
+
     return VideoTrackMeta;
   }();
 
+  var _createClass$7 = function () {
+    function defineProperties(target, props) {
+      for (var i = 0; i < props.length; i++) {
+        var descriptor = props[i];descriptor.enumerable = descriptor.enumerable || false;descriptor.configurable = true;if ("value" in descriptor) descriptor.writable = true;Object.defineProperty(target, descriptor.key, descriptor);
+      }
+    }return function (Constructor, protoProps, staticProps) {
+      if (protoProps) defineProperties(Constructor.prototype, protoProps);if (staticProps) defineProperties(Constructor, staticProps);return Constructor;
+    };
+  }();
+
+  function _classCallCheck$7(instance, Constructor) {
+    if (!(instance instanceof Constructor)) {
+      throw new TypeError("Cannot call a class as a function");
+    }
+  }
+
   var AudioTrackSample = function () {
     function AudioTrackSample(info) {
-      babelHelpers.classCallCheck(this, AudioTrackSample);
+      _classCallCheck$7(this, AudioTrackSample);
 
       var _default = AudioTrackSample.getDefault();
       if (!info) {
@@ -1699,7 +1487,7 @@
       return sample;
     }
 
-    babelHelpers.createClass(AudioTrackSample, null, [{
+    _createClass$7(AudioTrackSample, null, [{
       key: "getDefault",
       value: function getDefault() {
         return {
@@ -1709,12 +1497,13 @@
         };
       }
     }]);
+
     return AudioTrackSample;
   }();
 
   var VideoTrackSample = function () {
     function VideoTrackSample(info) {
-      babelHelpers.classCallCheck(this, VideoTrackSample);
+      _classCallCheck$7(this, VideoTrackSample);
 
       var _default = VideoTrackSample.getDefault();
 
@@ -1726,7 +1515,7 @@
       return sample;
     }
 
-    babelHelpers.createClass(VideoTrackSample, null, [{
+    _createClass$7(VideoTrackSample, null, [{
       key: "getDefault",
       value: function getDefault() {
         return {
@@ -1738,12 +1527,29 @@
         };
       }
     }]);
+
     return VideoTrackSample;
   }();
 
+  var _createClass$8 = function () {
+    function defineProperties(target, props) {
+      for (var i = 0; i < props.length; i++) {
+        var descriptor = props[i];descriptor.enumerable = descriptor.enumerable || false;descriptor.configurable = true;if ("value" in descriptor) descriptor.writable = true;Object.defineProperty(target, descriptor.key, descriptor);
+      }
+    }return function (Constructor, protoProps, staticProps) {
+      if (protoProps) defineProperties(Constructor.prototype, protoProps);if (staticProps) defineProperties(Constructor, staticProps);return Constructor;
+    };
+  }();
+
+  function _classCallCheck$8(instance, Constructor) {
+    if (!(instance instanceof Constructor)) {
+      throw new TypeError("Cannot call a class as a function");
+    }
+  }
+
   var MSE = function () {
     function MSE(configs, context) {
-      babelHelpers.classCallCheck(this, MSE);
+      _classCallCheck$8(this, MSE);
 
       if (context) {
         this._context = context;
@@ -1761,7 +1567,7 @@
       this.onWaiting = this.onWaiting.bind(this);
     }
 
-    babelHelpers.createClass(MSE, [{
+    _createClass$8(MSE, [{
       key: 'init',
       value: function init() {
         // eslint-disable-next-line no-undef
@@ -1999,12 +1805,29 @@
         }
       }
     }]);
+
     return MSE;
   }();
 
+  var _createClass$9 = function () {
+    function defineProperties(target, props) {
+      for (var i = 0; i < props.length; i++) {
+        var descriptor = props[i];descriptor.enumerable = descriptor.enumerable || false;descriptor.configurable = true;if ("value" in descriptor) descriptor.writable = true;Object.defineProperty(target, descriptor.key, descriptor);
+      }
+    }return function (Constructor, protoProps, staticProps) {
+      if (protoProps) defineProperties(Constructor.prototype, protoProps);if (staticProps) defineProperties(Constructor, staticProps);return Constructor;
+    };
+  }();
+
+  function _classCallCheck$9(instance, Constructor) {
+    if (!(instance instanceof Constructor)) {
+      throw new TypeError("Cannot call a class as a function");
+    }
+  }
+
   var Stream = function () {
     function Stream(buffer) {
-      babelHelpers.classCallCheck(this, Stream);
+      _classCallCheck$9(this, Stream);
 
       if (buffer instanceof ArrayBuffer) {
         this.buffer = buffer;
@@ -2015,7 +1838,7 @@
       }
     }
 
-    babelHelpers.createClass(Stream, [{
+    _createClass$9(Stream, [{
       key: 'back',
       value: function back(count) {
         this.position -= count;
@@ -2148,6 +1971,7 @@
         return res;
       }
     }]);
+
     return Stream;
   }();
 
@@ -2246,14 +2070,30 @@
 
   var Concat = unwrapExports(lib);
 
+  var _createClass$a = function () {
+    function defineProperties(target, props) {
+      for (var i = 0; i < props.length; i++) {
+        var descriptor = props[i];descriptor.enumerable = descriptor.enumerable || false;descriptor.configurable = true;if ("value" in descriptor) descriptor.writable = true;Object.defineProperty(target, descriptor.key, descriptor);
+      }
+    }return function (Constructor, protoProps, staticProps) {
+      if (protoProps) defineProperties(Constructor.prototype, protoProps);if (staticProps) defineProperties(Constructor, staticProps);return Constructor;
+    };
+  }();
+
+  function _classCallCheck$a(instance, Constructor) {
+    if (!(instance instanceof Constructor)) {
+      throw new TypeError("Cannot call a class as a function");
+    }
+  }
+
   var Buffer = function () {
     function Buffer(buffer) {
-      babelHelpers.classCallCheck(this, Buffer);
+      _classCallCheck$a(this, Buffer);
 
       this.buffer = buffer || new Uint8Array(0);
     }
 
-    babelHelpers.createClass(Buffer, [{
+    _createClass$a(Buffer, [{
       key: 'write',
       value: function write() {
         var _this = this;
@@ -2287,14 +2127,30 @@
         return parseInt(temp, 16);
       }
     }]);
+
     return Buffer;
   }();
 
+  var _createClass$b = function () {
+      function defineProperties(target, props) {
+          for (var i = 0; i < props.length; i++) {
+              var descriptor = props[i];descriptor.enumerable = descriptor.enumerable || false;descriptor.configurable = true;if ("value" in descriptor) descriptor.writable = true;Object.defineProperty(target, descriptor.key, descriptor);
+          }
+      }return function (Constructor, protoProps, staticProps) {
+          if (protoProps) defineProperties(Constructor.prototype, protoProps);if (staticProps) defineProperties(Constructor, staticProps);return Constructor;
+      };
+  }();
+
+  function _classCallCheck$b(instance, Constructor) {
+      if (!(instance instanceof Constructor)) {
+          throw new TypeError("Cannot call a class as a function");
+      }
+  }
   var CRYTO_EVENTS$1 = _EVENTS.CRYTO_EVENTS;
 
   var Crypto = function () {
       function Crypto(config) {
-          babelHelpers.classCallCheck(this, Crypto);
+          _classCallCheck$b(this, Crypto);
 
           this.inputBuffer = config.inputbuffer;
           this.outputBuffer = config.outputbuffer;
@@ -2305,7 +2161,7 @@
           this.crypto = window.crypto || window.msCrypto;
       }
 
-      babelHelpers.createClass(Crypto, [{
+      _createClass$b(Crypto, [{
           key: 'init',
           value: function init() {
               this.on(CRYTO_EVENTS$1.START_DECRYPT, this.decript.bind(this));
@@ -2342,14 +2198,46 @@
               }
           }
       }]);
+
       return Crypto;
   }();
+
+  var _debounce = (function (fn, wait) {
+    var lastTime = Date.now();
+    var timer = null;
+    var isFirstTime = true;
+
+    return function () {
+      for (var _len = arguments.length, args = Array(_len), _key = 0; _key < _len; _key++) {
+        args[_key] = arguments[_key];
+      }
+
+      var now = Date.now();
+      if (isFirstTime) {
+        lastTime = Date.now();
+        isFirstTime = false;
+        fn.apply(undefined, args);
+      }
+      if (now - lastTime > wait) {
+        lastTime = now;
+        fn.apply(undefined, args);
+      } else {
+        if (timer) {
+          window.clearTimeout(timer);
+        }
+        timer = setTimeout(function () {
+          fn.apply(undefined, args);
+        }, wait);
+      }
+    };
+  });
 
   var Context$1 = Context;
   var EVENTS = _EVENTS;
   var sniffer$1 = sniffer;
   var isLe = le$1;
   var UTF8$1 = UTF8;
+  var debounce = _debounce;
   var MediaSegmentList$1 = MediaSegmentList;
   var AudioTrackMeta$1 = AudioTrackMeta;
   var VideoTrackMeta$1 = VideoTrackMeta;
@@ -2360,12 +2248,42 @@
   var Buffer$1 = Buffer;
   var Crypto$1 = Crypto;
 
+  var _typeof$1 = typeof Symbol === "function" && typeof Symbol.iterator === "symbol" ? function (obj) { return typeof obj; } : function (obj) { return obj && typeof Symbol === "function" && obj.constructor === Symbol && obj !== Symbol.prototype ? "symbol" : typeof obj; };
+
+  var _createClass$c = function () {
+    function defineProperties(target, props) {
+      for (var i = 0; i < props.length; i++) {
+        var descriptor = props[i];descriptor.enumerable = descriptor.enumerable || false;descriptor.configurable = true;if ("value" in descriptor) descriptor.writable = true;Object.defineProperty(target, descriptor.key, descriptor);
+      }
+    }return function (Constructor, protoProps, staticProps) {
+      if (protoProps) defineProperties(Constructor.prototype, protoProps);if (staticProps) defineProperties(Constructor, staticProps);return Constructor;
+    };
+  }();
+
+  function _possibleConstructorReturn$1(self, call) {
+    if (!self) {
+      throw new ReferenceError("this hasn't been initialised - super() hasn't been called");
+    }return call && ((typeof call === "undefined" ? "undefined" : _typeof$1(call)) === "object" || typeof call === "function") ? call : self;
+  }
+
+  function _inherits$1(subClass, superClass) {
+    if (typeof superClass !== "function" && superClass !== null) {
+      throw new TypeError("Super expression must either be null or a function, not " + (typeof superClass === "undefined" ? "undefined" : _typeof$1(superClass)));
+    }subClass.prototype = Object.create(superClass && superClass.prototype, { constructor: { value: subClass, enumerable: false, writable: true, configurable: true } });if (superClass) Object.setPrototypeOf ? Object.setPrototypeOf(subClass, superClass) : subClass.__proto__ = superClass;
+  }
+
+  function _classCallCheck$c(instance, Constructor) {
+    if (!(instance instanceof Constructor)) {
+      throw new TypeError("Cannot call a class as a function");
+    }
+  }
+
   var Track = function () {
     /**
      * The constructor.
      */
     function Track() {
-      babelHelpers.classCallCheck(this, Track);
+      _classCallCheck$c(this, Track);
 
       this.id = -1;
       this.sequenceNumber = 0;
@@ -2378,7 +2296,7 @@
      * Reset the track.
      */
 
-    babelHelpers.createClass(Track, [{
+    _createClass$c(Track, [{
       key: 'reset',
       value: function reset() {
         this.sequenceNumber = 0;
@@ -2396,19 +2314,20 @@
         this.id = -1;
       }
     }]);
+
     return Track;
   }();
 
   var AudioTrack = function (_Track) {
-    babelHelpers.inherits(AudioTrack, _Track);
+    _inherits$1(AudioTrack, _Track);
 
     /**
      * The constructor for audio track.
      */
     function AudioTrack() {
-      babelHelpers.classCallCheck(this, AudioTrack);
+      _classCallCheck$c(this, AudioTrack);
 
-      var _this = babelHelpers.possibleConstructorReturn(this, (AudioTrack.__proto__ || Object.getPrototypeOf(AudioTrack)).call(this));
+      var _this = _possibleConstructorReturn$1(this, (AudioTrack.__proto__ || Object.getPrototypeOf(AudioTrack)).call(this));
 
       _this.TAG = 'AudioTrack';
       _this.type = 'audio';
@@ -2419,15 +2338,15 @@
   }(Track);
 
   var VideoTrack = function (_Track2) {
-    babelHelpers.inherits(VideoTrack, _Track2);
+    _inherits$1(VideoTrack, _Track2);
 
     /**
      * The constructor for video track.
      */
     function VideoTrack() {
-      babelHelpers.classCallCheck(this, VideoTrack);
+      _classCallCheck$c(this, VideoTrack);
 
-      var _this2 = babelHelpers.possibleConstructorReturn(this, (VideoTrack.__proto__ || Object.getPrototypeOf(VideoTrack)).call(this));
+      var _this2 = _possibleConstructorReturn$1(this, (VideoTrack.__proto__ || Object.getPrototypeOf(VideoTrack)).call(this));
 
       _this2.TAG = 'VideoTrack';
       _this2.type = 'video';
@@ -2438,7 +2357,7 @@
      * reset the video track.
      */
 
-    babelHelpers.createClass(VideoTrack, [{
+    _createClass$c(VideoTrack, [{
       key: 'reset',
       value: function reset() {
         this.sequenceNumber = 0;
@@ -2447,26 +2366,44 @@
         this.dropped = 0;
       }
     }]);
+
     return VideoTrack;
   }(Track);
 
   var Tracks = function () {
     function Tracks() {
-      babelHelpers.classCallCheck(this, Tracks);
+      _classCallCheck$c(this, Tracks);
 
       this.audioTrack = null;
       this.videoTrack = null;
     }
 
-    babelHelpers.createClass(Tracks, [{
+    _createClass$c(Tracks, [{
       key: 'destroy',
       value: function destroy() {
         this.audioTrack = null;
         this.videoTrack = null;
       }
     }]);
+
     return Tracks;
   }();
+
+  var _createClass$d = function () {
+    function defineProperties(target, props) {
+      for (var i = 0; i < props.length; i++) {
+        var descriptor = props[i];descriptor.enumerable = descriptor.enumerable || false;descriptor.configurable = true;if ("value" in descriptor) descriptor.writable = true;Object.defineProperty(target, descriptor.key, descriptor);
+      }
+    }return function (Constructor, protoProps, staticProps) {
+      if (protoProps) defineProperties(Constructor.prototype, protoProps);if (staticProps) defineProperties(Constructor, staticProps);return Constructor;
+    };
+  }();
+
+  function _classCallCheck$d(instance, Constructor) {
+    if (!(instance instanceof Constructor)) {
+      throw new TypeError("Cannot call a class as a function");
+    }
+  }
 
   var XgBuffer = function () {
     /**
@@ -2476,7 +2413,7 @@
      * @param {number} length - Optional the buffer size
      */
     function XgBuffer(length) {
-      babelHelpers.classCallCheck(this, XgBuffer);
+      _classCallCheck$d(this, XgBuffer);
 
       this.length = length || 0;
       this.historyLen = length || 0;
@@ -2490,7 +2427,7 @@
      * @param {number} data - The data to push into the buffer
      */
 
-    babelHelpers.createClass(XgBuffer, [{
+    _createClass$d(XgBuffer, [{
       key: "push",
       value: function push(data) {
         this.array.push(data);
@@ -2607,29 +2544,47 @@
         return retInt;
       }
     }]);
+
     return XgBuffer;
   }();
 
   var RemuxBuffer = function () {
     function RemuxBuffer() {
-      babelHelpers.classCallCheck(this, RemuxBuffer);
+      _classCallCheck$d(this, RemuxBuffer);
 
       this.video = [];
       this.audio = [];
     }
 
-    babelHelpers.createClass(RemuxBuffer, [{
+    _createClass$d(RemuxBuffer, [{
       key: "destroy",
       value: function destroy() {
         this.video = [];
         this.audio = [];
       }
     }]);
+
     return RemuxBuffer;
   }();
 
+  var _createClass$e = function () {
+    function defineProperties(target, props) {
+      for (var i = 0; i < props.length; i++) {
+        var descriptor = props[i];descriptor.enumerable = descriptor.enumerable || false;descriptor.configurable = true;if ("value" in descriptor) descriptor.writable = true;Object.defineProperty(target, descriptor.key, descriptor);
+      }
+    }return function (Constructor, protoProps, staticProps) {
+      if (protoProps) defineProperties(Constructor.prototype, protoProps);if (staticProps) defineProperties(Constructor, staticProps);return Constructor;
+    };
+  }();
+
+  function _classCallCheck$e(instance, Constructor) {
+    if (!(instance instanceof Constructor)) {
+      throw new TypeError("Cannot call a class as a function");
+    }
+  }
+
   var Source = function Source() {
-    babelHelpers.classCallCheck(this, Source);
+    _classCallCheck$e(this, Source);
 
     this.mimetype = '';
     this.init = null;
@@ -2638,12 +2593,12 @@
 
   var PreSource = function () {
     function PreSource() {
-      babelHelpers.classCallCheck(this, PreSource);
+      _classCallCheck$e(this, PreSource);
 
       this.sources = {};
     }
 
-    babelHelpers.createClass(PreSource, [{
+    _createClass$e(PreSource, [{
       key: 'getSource',
       value: function getSource(source) {
         return this.sources[source];
@@ -2665,6 +2620,7 @@
         this.sources = {};
       }
     }]);
+
     return PreSource;
   }();
 
@@ -2674,6 +2630,30 @@
   var XgBuffer$1 = XgBuffer;
   var PreSource$1 = PreSource;
 
+  var _typeof2 = typeof Symbol === "function" && typeof Symbol.iterator === "symbol" ? function (obj) { return typeof obj; } : function (obj) { return obj && typeof Symbol === "function" && obj.constructor === Symbol && obj !== Symbol.prototype ? "symbol" : typeof obj; };
+
+  var _typeof$2 = typeof Symbol === "function" && _typeof2(Symbol.iterator) === "symbol" ? function (obj) {
+    return typeof obj === "undefined" ? "undefined" : _typeof2(obj);
+  } : function (obj) {
+    return obj && typeof Symbol === "function" && obj.constructor === Symbol && obj !== Symbol.prototype ? "symbol" : typeof obj === "undefined" ? "undefined" : _typeof2(obj);
+  };
+
+  var _createClass$f = function () {
+    function defineProperties(target, props) {
+      for (var i = 0; i < props.length; i++) {
+        var descriptor = props[i];descriptor.enumerable = descriptor.enumerable || false;descriptor.configurable = true;if ("value" in descriptor) descriptor.writable = true;Object.defineProperty(target, descriptor.key, descriptor);
+      }
+    }return function (Constructor, protoProps, staticProps) {
+      if (protoProps) defineProperties(Constructor.prototype, protoProps);if (staticProps) defineProperties(Constructor, staticProps);return Constructor;
+    };
+  }();
+
+  function _classCallCheck$f(instance, Constructor) {
+    if (!(instance instanceof Constructor)) {
+      throw new TypeError("Cannot call a class as a function");
+    }
+  }
+
   var LOADER_EVENTS$1 = EVENTS.LOADER_EVENTS;
   var READ_STREAM = 0;
   var READ_TEXT = 1;
@@ -2682,7 +2662,7 @@
 
   var FetchLoader = function () {
     function FetchLoader(configs) {
-      babelHelpers.classCallCheck(this, FetchLoader);
+      _classCallCheck$f(this, FetchLoader);
 
       this.configs = Object.assign({}, configs);
       this.url = null;
@@ -2696,7 +2676,7 @@
       this._loaderTaskNo = 0;
     }
 
-    babelHelpers.createClass(FetchLoader, [{
+    _createClass$f(FetchLoader, [{
       key: 'init',
       value: function init() {
         this.on(LOADER_EVENTS$1.LADER_START, this.load.bind(this));
@@ -2850,7 +2830,7 @@
 
           // add custmor headers
           // 添加自定义头
-        };if (babelHelpers.typeof(this.configs.headers) === 'object') {
+        };if (_typeof$2(this.configs.headers) === 'object') {
           var configHeaders = this.configs.headers;
           for (var key in configHeaders) {
             if (configHeaders.hasOwnProperty(key)) {
@@ -2859,7 +2839,7 @@
           }
         }
 
-        if (babelHelpers.typeof(options.headers) === 'object') {
+        if (_typeof$2(options.headers) === 'object') {
           var optHeaders = options.headers;
           for (var _key in optHeaders) {
             if (optHeaders.hasOwnProperty(_key)) {
@@ -2907,14 +2887,31 @@
         return 'loader';
       }
     }]);
+
     return FetchLoader;
   }();
 
   var FetchLoader$1 = FetchLoader;
 
+  var _createClass$g = function () {
+    function defineProperties(target, props) {
+      for (var i = 0; i < props.length; i++) {
+        var descriptor = props[i];descriptor.enumerable = descriptor.enumerable || false;descriptor.configurable = true;if ("value" in descriptor) descriptor.writable = true;Object.defineProperty(target, descriptor.key, descriptor);
+      }
+    }return function (Constructor, protoProps, staticProps) {
+      if (protoProps) defineProperties(Constructor.prototype, protoProps);if (staticProps) defineProperties(Constructor, staticProps);return Constructor;
+    };
+  }();
+
+  function _classCallCheck$g(instance, Constructor) {
+    if (!(instance instanceof Constructor)) {
+      throw new TypeError("Cannot call a class as a function");
+    }
+  }
+
   var Golomb = function () {
     function Golomb(uint8array) {
-      babelHelpers.classCallCheck(this, Golomb);
+      _classCallCheck$g(this, Golomb);
 
       this.TAG = 'Golomb';
       this._buffer = uint8array;
@@ -2925,7 +2922,7 @@
       this._currentWordBitsLeft = 0;
     }
 
-    babelHelpers.createClass(Golomb, [{
+    _createClass$g(Golomb, [{
       key: 'destroy',
       value: function destroy() {
         this._buffer = null;
@@ -3008,17 +3005,32 @@
         }
       }
     }]);
+
     return Golomb;
   }();
 
-  /* eslint-disable camelcase  */
+  var _createClass$h = function () {
+    function defineProperties(target, props) {
+      for (var i = 0; i < props.length; i++) {
+        var descriptor = props[i];descriptor.enumerable = descriptor.enumerable || false;descriptor.configurable = true;if ("value" in descriptor) descriptor.writable = true;Object.defineProperty(target, descriptor.key, descriptor);
+      }
+    }return function (Constructor, protoProps, staticProps) {
+      if (protoProps) defineProperties(Constructor.prototype, protoProps);if (staticProps) defineProperties(Constructor, staticProps);return Constructor;
+    };
+  }();
+
+  function _classCallCheck$h(instance, Constructor) {
+    if (!(instance instanceof Constructor)) {
+      throw new TypeError("Cannot call a class as a function");
+    }
+  }
 
   var SPSParser = function () {
     function SPSParser() {
-      babelHelpers.classCallCheck(this, SPSParser);
+      _classCallCheck$h(this, SPSParser);
     }
 
-    babelHelpers.createClass(SPSParser, null, [{
+    _createClass$h(SPSParser, null, [{
       key: '_ebsp2rbsp',
       value: function _ebsp2rbsp(uint8array) {
         var src = uint8array;
@@ -3310,15 +3322,32 @@
         return meta;
       }
     }]);
+
     return SPSParser;
   }();
 
+  var _createClass$i = function () {
+    function defineProperties(target, props) {
+      for (var i = 0; i < props.length; i++) {
+        var descriptor = props[i];descriptor.enumerable = descriptor.enumerable || false;descriptor.configurable = true;if ("value" in descriptor) descriptor.writable = true;Object.defineProperty(target, descriptor.key, descriptor);
+      }
+    }return function (Constructor, protoProps, staticProps) {
+      if (protoProps) defineProperties(Constructor.prototype, protoProps);if (staticProps) defineProperties(Constructor, staticProps);return Constructor;
+    };
+  }();
+
+  function _classCallCheck$i(instance, Constructor) {
+    if (!(instance instanceof Constructor)) {
+      throw new TypeError("Cannot call a class as a function");
+    }
+  }
+
   var Nalunit = function () {
     function Nalunit() {
-      babelHelpers.classCallCheck(this, Nalunit);
+      _classCallCheck$i(this, Nalunit);
     }
 
-    babelHelpers.createClass(Nalunit, null, [{
+    _createClass$i(Nalunit, null, [{
       key: 'getNalunits',
       value: function getNalunits(buffer) {
         if (buffer.length - buffer.position < 4) {
@@ -3473,15 +3502,32 @@
         return ret;
       }
     }]);
+
     return Nalunit;
   }();
 
+  var _createClass$j = function () {
+    function defineProperties(target, props) {
+      for (var i = 0; i < props.length; i++) {
+        var descriptor = props[i];descriptor.enumerable = descriptor.enumerable || false;descriptor.configurable = true;if ("value" in descriptor) descriptor.writable = true;Object.defineProperty(target, descriptor.key, descriptor);
+      }
+    }return function (Constructor, protoProps, staticProps) {
+      if (protoProps) defineProperties(Constructor.prototype, protoProps);if (staticProps) defineProperties(Constructor, staticProps);return Constructor;
+    };
+  }();
+
+  function _classCallCheck$j(instance, Constructor) {
+    if (!(instance instanceof Constructor)) {
+      throw new TypeError("Cannot call a class as a function");
+    }
+  }
+
   var AAC = function () {
     function AAC() {
-      babelHelpers.classCallCheck(this, AAC);
+      _classCallCheck$j(this, AAC);
     }
 
-    babelHelpers.createClass(AAC, null, [{
+    _createClass$j(AAC, null, [{
       key: 'getSilentFrame',
       value: function getSilentFrame(codec, channelCount) {
         if (codec === 'mp4a.40.2') {
@@ -3515,14 +3561,31 @@
         return null;
       }
     }]);
+
     return AAC;
   }();
+
+  var _createClass$k = function () {
+    function defineProperties(target, props) {
+      for (var i = 0; i < props.length; i++) {
+        var descriptor = props[i];descriptor.enumerable = descriptor.enumerable || false;descriptor.configurable = true;if ("value" in descriptor) descriptor.writable = true;Object.defineProperty(target, descriptor.key, descriptor);
+      }
+    }return function (Constructor, protoProps, staticProps) {
+      if (protoProps) defineProperties(Constructor.prototype, protoProps);if (staticProps) defineProperties(Constructor, staticProps);return Constructor;
+    };
+  }();
+
+  function _classCallCheck$k(instance, Constructor) {
+    if (!(instance instanceof Constructor)) {
+      throw new TypeError("Cannot call a class as a function");
+    }
+  }
 
   var REMUX_EVENTS$1 = EVENTS.REMUX_EVENTS;
 
   var Compatibility = function () {
     function Compatibility() {
-      babelHelpers.classCallCheck(this, Compatibility);
+      _classCallCheck$k(this, Compatibility);
 
       this.nextAudioDts = 0; // 模拟下一段音频数据的dts
       this.nextVideoDts = 0; // 模拟下一段视频数据的dts
@@ -3549,7 +3612,7 @@
       this._audioLargeGap = 0;
     }
 
-    babelHelpers.createClass(Compatibility, [{
+    _createClass$k(Compatibility, [{
       key: 'init',
       value: function init() {
         this.before(REMUX_EVENTS$1.REMUX_MEDIA, this.doFix.bind(this));
@@ -3569,6 +3632,8 @@
         // this.allAudioSamplesCount = 0 // 音频总数据量(原始帧)
         // this.allVideoSamplesCount = 0 // 视频总数据量(原始帧)
 
+        // this._firstAudioSample = null
+        // this._firstVideoSample = null
         // this._firstAudioSample = null
         // this._firstVideoSample = null
         this.videoLastSample = null;
@@ -4026,24 +4091,25 @@
     }, {
       key: 'removeInvalidSamples',
       value: function removeInvalidSamples() {
-        var _firstVideoSample = this._firstVideoSample,
-            _firstAudioSample = this._firstAudioSample;
+        var firstAudioSample = this.audioTrack.samples[0];
+        var firstVideoSample = this.videoTrack.samples[0];
+        // const { _firstVideoSample, _firstAudioSample } = this
 
-        if (_firstAudioSample) {
+        if (firstAudioSample) {
           this.audioTrack.samples = this.audioTrack.samples.filter(function (sample, index) {
-            if (sample === _firstAudioSample) {
+            if (sample === firstAudioSample) {
               return true;
             }
-            return sample.dts > _firstAudioSample.dts;
+            return sample.dts > firstAudioSample.dts;
           });
         }
 
-        if (_firstVideoSample) {
+        if (firstVideoSample) {
           this.videoTrack.samples = this.videoTrack.samples.filter(function (sample, index) {
-            if (sample === _firstVideoSample) {
+            if (sample === firstVideoSample) {
               return true;
             }
-            return sample.dts > _firstVideoSample.dts;
+            return sample.dts > firstVideoSample.dts;
           });
         }
       }
@@ -4182,6 +4248,7 @@
         };
       }
     }]);
+
     return Compatibility;
   }();
 
@@ -4189,14 +4256,18 @@
   var SpsParser = SPSParser;
   var Compatibility$1 = Compatibility;
 
+  var _createClass$l = function () { function defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ("value" in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } } return function (Constructor, protoProps, staticProps) { if (protoProps) defineProperties(Constructor.prototype, protoProps); if (staticProps) defineProperties(Constructor, staticProps); return Constructor; }; }();
+
+  function _classCallCheck$l(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } }
+
   // const UINT32_MAX = Math.pow(2, 32) - 1;
 
   var Fmp4 = function () {
     function Fmp4() {
-      classCallCheck(this, Fmp4);
+      _classCallCheck$l(this, Fmp4);
     }
 
-    createClass(Fmp4, null, [{
+    _createClass$l(Fmp4, null, [{
       key: 'size',
       value: function size(value) {
         return Buffer$1.writeUint32(value);
@@ -4782,6 +4853,7 @@
         return mdatBox;
       }
     }]);
+
     return Fmp4;
   }();
 
@@ -4790,12 +4862,17 @@
   };
   Fmp4.sequence = 1;
 
+  var _createClass$m = function () { function defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ("value" in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } } return function (Constructor, protoProps, staticProps) { if (protoProps) defineProperties(Constructor.prototype, protoProps); if (staticProps) defineProperties(Constructor, staticProps); return Constructor; }; }();
+
+  function _classCallCheck$m(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } }
+
   var REMUX_EVENTS$2 = EVENTS.REMUX_EVENTS;
 
   var Mp4Remuxer = function () {
     function Mp4Remuxer() {
       var curTime = arguments.length > 0 && arguments[0] !== undefined ? arguments[0] : 0;
-      classCallCheck(this, Mp4Remuxer);
+
+      _classCallCheck$m(this, Mp4Remuxer);
 
       this._dtsBase = curTime * 1000;
       this._isDtsBaseInited = false;
@@ -4812,7 +4889,7 @@
       this.audioAllDuration = 0;
     }
 
-    createClass(Mp4Remuxer, [{
+    _createClass$m(Mp4Remuxer, [{
       key: 'init',
       value: function init() {
         this.on(REMUX_EVENTS$2.REMUX_MEDIA, this.remux.bind(this));
@@ -4993,7 +5070,7 @@
             }
           }
           this.videoAllDuration += sampleDuration;
-          console.log('video dts ' + dts, 'pts ' + pts, isKeyframe, 'duration ' + sampleDuration);
+          // console.log(`video dts ${dts}`, `pts ${pts}`, isKeyframe, `duration ${sampleDuration}`)
           if (sampleDuration >= 0) {
             mdatBox.samples.push(mdatSample);
             mdatSample.buffer.push(avcSample.data);
@@ -5113,7 +5190,7 @@
             }
           }
 
-          console.log('audio dts ' + dts, 'pts ' + dts, 'duration ' + sampleDuration);
+          // console.log(`audio dts ${dts}`, `pts ${dts}`, `duration ${sampleDuration}`)
           this.audioAllDuration += sampleDuration;
           var mp4Sample = {
             dts: dts,
@@ -5236,18 +5313,35 @@
         return null;
       }
     }]);
+
     return Mp4Remuxer;
   }();
+
+  var _createClass$n = function () {
+    function defineProperties(target, props) {
+      for (var i = 0; i < props.length; i++) {
+        var descriptor = props[i];descriptor.enumerable = descriptor.enumerable || false;descriptor.configurable = true;if ("value" in descriptor) descriptor.writable = true;Object.defineProperty(target, descriptor.key, descriptor);
+      }
+    }return function (Constructor, protoProps, staticProps) {
+      if (protoProps) defineProperties(Constructor.prototype, protoProps);if (staticProps) defineProperties(Constructor, staticProps);return Constructor;
+    };
+  }();
+
+  function _classCallCheck$n(instance, Constructor) {
+    if (!(instance instanceof Constructor)) {
+      throw new TypeError("Cannot call a class as a function");
+    }
+  }
 
   /**
    * Reference: https://tools.ietf.org/html/rfc8216#section-4.3
    */
   var M3U8Parser = function () {
     function M3U8Parser() {
-      babelHelpers.classCallCheck(this, M3U8Parser);
+      _classCallCheck$n(this, M3U8Parser);
     }
 
-    babelHelpers.createClass(M3U8Parser, null, [{
+    _createClass$n(M3U8Parser, null, [{
       key: 'parse',
       value: function parse(text) {
         var baseurl = arguments.length > 1 && arguments[1] !== undefined ? arguments[1] : '';
@@ -5369,8 +5463,33 @@
           }
         }    }
     }]);
+
     return M3U8Parser;
   }();
+
+  var _typeof2$1 = typeof Symbol === "function" && typeof Symbol.iterator === "symbol" ? function (obj) { return typeof obj; } : function (obj) { return obj && typeof Symbol === "function" && obj.constructor === Symbol && obj !== Symbol.prototype ? "symbol" : typeof obj; };
+
+  var _typeof$3 = typeof Symbol === "function" && _typeof2$1(Symbol.iterator) === "symbol" ? function (obj) {
+    return typeof obj === "undefined" ? "undefined" : _typeof2$1(obj);
+  } : function (obj) {
+    return obj && typeof Symbol === "function" && obj.constructor === Symbol && obj !== Symbol.prototype ? "symbol" : typeof obj === "undefined" ? "undefined" : _typeof2$1(obj);
+  };
+
+  var _createClass$o = function () {
+    function defineProperties(target, props) {
+      for (var i = 0; i < props.length; i++) {
+        var descriptor = props[i];descriptor.enumerable = descriptor.enumerable || false;descriptor.configurable = true;if ("value" in descriptor) descriptor.writable = true;Object.defineProperty(target, descriptor.key, descriptor);
+      }
+    }return function (Constructor, protoProps, staticProps) {
+      if (protoProps) defineProperties(Constructor.prototype, protoProps);if (staticProps) defineProperties(Constructor, staticProps);return Constructor;
+    };
+  }();
+
+  function _classCallCheck$o(instance, Constructor) {
+    if (!(instance instanceof Constructor)) {
+      throw new TypeError("Cannot call a class as a function");
+    }
+  }
 
   var DEMUX_EVENTS$1 = EVENTS.DEMUX_EVENTS;
   var StreamType = {
@@ -5396,7 +5515,7 @@
 
   var TsDemuxer = function () {
     function TsDemuxer(configs) {
-      babelHelpers.classCallCheck(this, TsDemuxer);
+      _classCallCheck$o(this, TsDemuxer);
 
       this.configs = Object.assign({}, configs);
       this.demuxing = false;
@@ -5406,7 +5525,7 @@
       this._hasAudioMeta = false;
     }
 
-    babelHelpers.createClass(TsDemuxer, [{
+    _createClass$o(TsDemuxer, [{
       key: 'init',
       value: function init() {
         this.on(DEMUX_EVENTS$1.DEMUX_START, this.demux.bind(this));
@@ -5658,7 +5777,7 @@
         for (var i = 0, k = Object.keys(a).length; i < k; i++) {
           var itema = a[Object.keys(a)[i]];
           var itemb = b[Object.keys(a)[i]];
-          if ((typeof itema === 'undefined' ? 'undefined' : babelHelpers.typeof(itema)) !== 'object') {
+          if ((typeof itema === 'undefined' ? 'undefined' : _typeof$3(itema)) !== 'object') {
             if (ignoreDuration && Object.keys(a)[i] !== 'duration' && Object.keys(a)[i] !== 'refSampleDuration' && Object.keys(a)[i] !== 'refSampleDurationFixed' && itema !== itemb) {
               return false;
             }
@@ -6157,12 +6276,29 @@
         ret.audioConfig = config;
       }
     }]);
+
     return TsDemuxer;
   }();
 
+  var _createClass$p = function () {
+    function defineProperties(target, props) {
+      for (var i = 0; i < props.length; i++) {
+        var descriptor = props[i];descriptor.enumerable = descriptor.enumerable || false;descriptor.configurable = true;if ("value" in descriptor) descriptor.writable = true;Object.defineProperty(target, descriptor.key, descriptor);
+      }
+    }return function (Constructor, protoProps, staticProps) {
+      if (protoProps) defineProperties(Constructor.prototype, protoProps);if (staticProps) defineProperties(Constructor, staticProps);return Constructor;
+    };
+  }();
+
+  function _classCallCheck$p(instance, Constructor) {
+    if (!(instance instanceof Constructor)) {
+      throw new TypeError("Cannot call a class as a function");
+    }
+  }
+
   var Playlist = function () {
     function Playlist(configs) {
-      babelHelpers.classCallCheck(this, Playlist);
+      _classCallCheck$p(this, Playlist);
 
       this._baseURL = '';
       this._list = {};
@@ -6176,7 +6312,7 @@
       this._audoclear = configs.autoclear || false;
     }
 
-    babelHelpers.createClass(Playlist, [{
+    _createClass$p(Playlist, [{
       key: 'push',
       value: function push(ts, duration, discontinue) {
         if (!this._ts[ts]) {
@@ -6363,8 +6499,25 @@
         return this._baseURL;
       }
     }]);
+
     return Playlist;
   }();
+
+  var _createClass$q = function () {
+    function defineProperties(target, props) {
+      for (var i = 0; i < props.length; i++) {
+        var descriptor = props[i];descriptor.enumerable = descriptor.enumerable || false;descriptor.configurable = true;if ("value" in descriptor) descriptor.writable = true;Object.defineProperty(target, descriptor.key, descriptor);
+      }
+    }return function (Constructor, protoProps, staticProps) {
+      if (protoProps) defineProperties(Constructor.prototype, protoProps);if (staticProps) defineProperties(Constructor, staticProps);return Constructor;
+    };
+  }();
+
+  function _classCallCheck$q(instance, Constructor) {
+    if (!(instance instanceof Constructor)) {
+      throw new TypeError("Cannot call a class as a function");
+    }
+  }
 
   var DATA_TYPES = {
     NUMBER: 0,
@@ -6383,13 +6536,13 @@
   };
   var AMFParser = function () {
     function AMFParser() {
-      babelHelpers.classCallCheck(this, AMFParser);
+      _classCallCheck$q(this, AMFParser);
 
       this.offset = 0;
       this.readOffset = this.offset;
     }
 
-    babelHelpers.createClass(AMFParser, [{
+    _createClass$q(AMFParser, [{
       key: 'resolve',
       value: function resolve(meta, size) {
         if (size < 3) {
@@ -6630,21 +6783,38 @@
         };
       }
     }]);
+
     return AMFParser;
   }();
+
+  var _createClass$r = function () {
+    function defineProperties(target, props) {
+      for (var i = 0; i < props.length; i++) {
+        var descriptor = props[i];descriptor.enumerable = descriptor.enumerable || false;descriptor.configurable = true;if ("value" in descriptor) descriptor.writable = true;Object.defineProperty(target, descriptor.key, descriptor);
+      }
+    }return function (Constructor, protoProps, staticProps) {
+      if (protoProps) defineProperties(Constructor.prototype, protoProps);if (staticProps) defineProperties(Constructor, staticProps);return Constructor;
+    };
+  }();
+
+  function _classCallCheck$r(instance, Constructor) {
+    if (!(instance instanceof Constructor)) {
+      throw new TypeError("Cannot call a class as a function");
+    }
+  }
 
   var DEMUX_EVENTS$2 = EVENTS.DEMUX_EVENTS;
 
   var FlvDemuxer = function () {
     function FlvDemuxer() {
-      babelHelpers.classCallCheck(this, FlvDemuxer);
+      _classCallCheck$r(this, FlvDemuxer);
 
       this._firstFragmentLoaded = false;
       this._trackNum = 0;
       this._hasScript = false;
     }
 
-    babelHelpers.createClass(FlvDemuxer, [{
+    _createClass$r(FlvDemuxer, [{
       key: 'init',
       value: function init() {
         this.on(DEMUX_EVENTS$2.DEMUX_START, this.doParseFlv.bind(this));
@@ -7365,12 +7535,17 @@
         return result;
       }
     }]);
+
     return FlvDemuxer;
   }();
 
   var M3U8Parser$1 = M3U8Parser;
   var TsDemuxer$1 = TsDemuxer;
   var Playlist$1 = Playlist;
+
+  var _createClass$s = function () { function defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ("value" in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } } return function (Constructor, protoProps, staticProps) { if (protoProps) defineProperties(Constructor.prototype, protoProps); if (staticProps) defineProperties(Constructor, staticProps); return Constructor; }; }();
+
+  function _classCallCheck$s(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } }
 
   var LOADER_EVENTS$2 = EVENTS.LOADER_EVENTS;
   var REMUX_EVENTS$3 = EVENTS.REMUX_EVENTS;
@@ -7381,7 +7556,7 @@
 
   var HlsVodController = function () {
     function HlsVodController(configs) {
-      classCallCheck(this, HlsVodController);
+      _classCallCheck$s(this, HlsVodController);
 
       this.configs = Object.assign({}, configs);
       this.url = '';
@@ -7396,7 +7571,7 @@
       this.m3u8Text = null;
     }
 
-    createClass(HlsVodController, [{
+    _createClass$s(HlsVodController, [{
       key: 'init',
       value: function init() {
         // 初始化Buffer （M3U8/TS/Playlist);
@@ -7758,50 +7933,89 @@
         this.off('WAITING', this._onWaiting);
       }
     }]);
+
     return HlsVodController;
   }();
+
+  var _createClass$t = function () { function defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ("value" in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } } return function (Constructor, protoProps, staticProps) { if (protoProps) defineProperties(Constructor.prototype, protoProps); if (staticProps) defineProperties(Constructor, staticProps); return Constructor; }; }();
+
+  var _set = function set(object, property, value, receiver) { var desc = Object.getOwnPropertyDescriptor(object, property); if (desc === undefined) { var parent = Object.getPrototypeOf(object); if (parent !== null) { set(parent, property, value, receiver); } } else if ("value" in desc && desc.writable) { desc.value = value; } else { var setter = desc.set; if (setter !== undefined) { setter.call(receiver, value); } } return value; };
+
+  var _get$1 = function get(object, property, receiver) { if (object === null) object = Function.prototype; var desc = Object.getOwnPropertyDescriptor(object, property); if (desc === undefined) { var parent = Object.getPrototypeOf(object); if (parent === null) { return undefined; } else { return get(parent, property, receiver); } } else if ("value" in desc) { return desc.value; } else { var getter = desc.get; if (getter === undefined) { return undefined; } return getter.call(receiver); } };
+
+  function _classCallCheck$t(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } }
+
+  function _possibleConstructorReturn$2(self, call) { if (!self) { throw new ReferenceError("this hasn't been initialised - super() hasn't been called"); } return call && (typeof call === "object" || typeof call === "function") ? call : self; }
+
+  function _inherits$2(subClass, superClass) { if (typeof superClass !== "function" && superClass !== null) { throw new TypeError("Super expression must either be null or a function, not " + typeof superClass); } subClass.prototype = Object.create(superClass && superClass.prototype, { constructor: { value: subClass, enumerable: false, writable: true, configurable: true } }); if (superClass) Object.setPrototypeOf ? Object.setPrototypeOf(subClass, superClass) : subClass.__proto__ = superClass; }
 
   var HlsAllowedEvents$1 = EVENTS.HlsAllowedEvents;
   var REMUX_EVENTS$4 = EVENTS.REMUX_EVENTS;
   var HLS_EVENTS$2 = EVENTS.HLS_EVENTS;
 
   var HlsVodPlayer = function (_Player) {
-    inherits(HlsVodPlayer, _Player);
+    _inherits$2(HlsVodPlayer, _Player);
 
     function HlsVodPlayer(options) {
-      classCallCheck(this, HlsVodPlayer);
+      _classCallCheck$t(this, HlsVodPlayer);
 
-      var _this2 = possibleConstructorReturn(this, (HlsVodPlayer.__proto__ || Object.getPrototypeOf(HlsVodPlayer)).call(this, options));
+      var _this2 = _possibleConstructorReturn$2(this, (HlsVodPlayer.__proto__ || Object.getPrototypeOf(HlsVodPlayer)).call(this, options));
 
       _this2.hlsOps = {};
       _this2.util = Player.util;
       _this2.util.deepCopy(_this2.hlsOps, options);
       _this2._context = new Context$1(HlsAllowedEvents$1);
+      _this2._handleSetCurrentTime = debounce(_this2._handleSetCurrentTime.bind(_this2), 500);
       return _this2;
     }
 
-    createClass(HlsVodPlayer, [{
-      key: '_initEvents',
-      value: function _initEvents() {
+    _createClass$t(HlsVodPlayer, [{
+      key: '_handleSetCurrentTime',
+      value: function _handleSetCurrentTime(time) {
+        time = parseFloat(time);
+        _set(HlsVodPlayer.prototype.__proto__ || Object.getPrototypeOf(HlsVodPlayer.prototype), 'currentTime', parseInt(time), this);
+        if (this._context) {
+          this.__core__.seek(time);
+        }
+      }
+    }, {
+      key: 'play',
+      value: function play() {
         var _this3 = this;
 
+        return this.video.play().catch(function (e) {
+          if (e && e.code === 20) {
+            // fix: chrome The play() request was interrupted by a new load request.
+            _this3.once('canplay', function () {
+              _this3.video.play();
+            });
+          }
+        });
+      }
+    }, {
+      key: '_initEvents',
+      value: function _initEvents() {
+        var _this4 = this;
+
         this.__core__.once(REMUX_EVENTS$4.INIT_SEGMENT, function () {
-          var mse = _this3._context.getInstance('MSE');
-          get(HlsVodPlayer.prototype.__proto__ || Object.getPrototypeOf(HlsVodPlayer.prototype), 'start', _this3).call(_this3, mse.url);
+          var mse = _this4._context.getInstance('MSE');
+          _get$1(HlsVodPlayer.prototype.__proto__ || Object.getPrototypeOf(HlsVodPlayer.prototype), 'start', _this4).call(_this4, mse.url);
         });
 
         this.__core__.once(HLS_EVENTS$2.RETRY_TIME_EXCEEDED, function () {
-          _this3.emit('error', new Player.Errors('network', _this3.config.url));
+          _this4.emit('error', new Player.Errors('network', _this4.config.url));
         });
 
         this.once('canplay', function () {
-          _this3.play();
+          if (_this4.config.autoplay) {
+            _this4.play();
+          }
         });
       }
     }, {
       key: 'onWaiting',
       value: function onWaiting() {
-        get(HlsVodPlayer.prototype.__proto__ || Object.getPrototypeOf(HlsVodPlayer.prototype), 'onWaiting', this).call(this);
+        _get$1(HlsVodPlayer.prototype.__proto__ || Object.getPrototypeOf(HlsVodPlayer.prototype), 'onWaiting', this).call(this);
 
         var _detectBufferGap = this.detectBufferGap(),
             gap = _detectBufferGap.gap,
@@ -7859,7 +8073,7 @@
       key: 'destroy',
       value: function destroy() {
         this._context.destroy();
-        get(HlsVodPlayer.prototype.__proto__ || Object.getPrototypeOf(HlsVodPlayer.prototype), 'destroy', this).call(this);
+        _get$1(HlsVodPlayer.prototype.__proto__ || Object.getPrototypeOf(HlsVodPlayer.prototype), 'destroy', this).call(this);
       }
     }, {
       key: 'detectBufferGap',
@@ -7886,17 +8100,14 @@
       }
     }, {
       key: 'currentTime',
-      get: function get$1() {
-        return get(HlsVodPlayer.prototype.__proto__ || Object.getPrototypeOf(HlsVodPlayer.prototype), 'currentTime', this);
+      get: function get() {
+        return _get$1(HlsVodPlayer.prototype.__proto__ || Object.getPrototypeOf(HlsVodPlayer.prototype), 'currentTime', this);
       },
-      set: function set$1(time) {
-        time = parseFloat(time);
-        set(HlsVodPlayer.prototype.__proto__ || Object.getPrototypeOf(HlsVodPlayer.prototype), 'currentTime', parseInt(time), this);
-        if (this._context) {
-          this.__core__.seek(time);
-        }
+      set: function set(time) {
+        this._handleSetCurrentTime(time);
       }
     }]);
+
     return HlsVodPlayer;
   }(Player);
 

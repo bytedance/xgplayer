@@ -1,4 +1,3 @@
-import 'xgplayer-polyfills/babel/external-helpers';
 import Player from 'xgplayer'
 import { Context, EVENTS } from 'xgplayer-utils';
 import HlsLiveController from './hls-live';
@@ -27,9 +26,9 @@ export default class HlsLivePlayer extends Player {
       super.start(mse.url);
     });
 
-    this.once('canplay', () => {
-      this.video.play()
-    });
+    // this.once('canplay', () => {
+    //   this.video.play()
+    // });
   }
 
   _initSrcChangeHandler () {

@@ -1,3 +1,7 @@
+var _createClass = function () { function defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ("value" in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } } return function (Constructor, protoProps, staticProps) { if (protoProps) defineProperties(Constructor.prototype, protoProps); if (staticProps) defineProperties(Constructor, staticProps); return Constructor; }; }();
+
+function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } }
+
 import { EVENTS, sniffer, MediaSegmentList, Buffer } from 'xgplayer-utils';
 import Fmp4 from './fmp4';
 
@@ -6,7 +10,8 @@ var REMUX_EVENTS = EVENTS.REMUX_EVENTS;
 var Mp4Remuxer = function () {
   function Mp4Remuxer() {
     var curTime = arguments.length > 0 && arguments[0] !== undefined ? arguments[0] : 0;
-    babelHelpers.classCallCheck(this, Mp4Remuxer);
+
+    _classCallCheck(this, Mp4Remuxer);
 
     this._dtsBase = curTime * 1000;
     this._isDtsBaseInited = false;
@@ -23,7 +28,7 @@ var Mp4Remuxer = function () {
     this.audioAllDuration = 0;
   }
 
-  babelHelpers.createClass(Mp4Remuxer, [{
+  _createClass(Mp4Remuxer, [{
     key: 'init',
     value: function init() {
       this.on(REMUX_EVENTS.REMUX_MEDIA, this.remux.bind(this));
@@ -447,6 +452,7 @@ var Mp4Remuxer = function () {
       return null;
     }
   }]);
+
   return Mp4Remuxer;
 }();
 

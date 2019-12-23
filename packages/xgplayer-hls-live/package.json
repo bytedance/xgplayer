@@ -2,11 +2,15 @@
   "name": "xgplayer-hls-live",
   "version": "2.2.0-alpha.0",
   "description": "",
-  "main": "dist/index.min.js",
-  "module": "es/index.min.js",
+  "main": "lib/index.js",
+  "module": "es/index.js",
+  "browser": "dist/index.min.js",
   "scripts": {
     "prepare": "npm run build",
-    "build": "cross-env NODE_ENV=production rollup -c rollup.config.js",
+    "build": "npm run build:umd && npm run build:es && npm run build:lib",
+    "build:umd": "cross-env NODE_ENV=production rollup -c rollup.config.js",
+    "build:es": "babel src --out-dir es",
+    "build:lib": "babel src --out-dir lib --presets=env",
     "watch": "cross-env NODE_ENV=development rollup -c rollup.config.js --watch"
   },
   "author": "",
@@ -19,14 +23,9 @@
             "chrome": 58,
             "ie": 10
           },
-          "modules": false,
-          "useBuiltIns": "entry",
-          "corejs": 3
+          "modules": false
         }
       ]
-    ],
-    "plugins": [
-      "external-helpers"
     ]
   },
   "license": "ISC",

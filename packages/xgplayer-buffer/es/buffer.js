@@ -1,3 +1,7 @@
+var _createClass = function () { function defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ("value" in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } } return function (Constructor, protoProps, staticProps) { if (protoProps) defineProperties(Constructor.prototype, protoProps); if (staticProps) defineProperties(Constructor, staticProps); return Constructor; }; }();
+
+function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } }
+
 export var XgBuffer = function () {
   /**
    * A buffer to store loaded data.
@@ -6,7 +10,7 @@ export var XgBuffer = function () {
    * @param {number} length - Optional the buffer size
    */
   function XgBuffer(length) {
-    babelHelpers.classCallCheck(this, XgBuffer);
+    _classCallCheck(this, XgBuffer);
 
     this.length = length || 0;
     this.historyLen = length || 0;
@@ -21,7 +25,7 @@ export var XgBuffer = function () {
    */
 
 
-  babelHelpers.createClass(XgBuffer, [{
+  _createClass(XgBuffer, [{
     key: "push",
     value: function push(data) {
       this.array.push(data);
@@ -138,23 +142,25 @@ export var XgBuffer = function () {
       return retInt;
     }
   }]);
+
   return XgBuffer;
 }();
 
 export var RemuxBuffer = function () {
   function RemuxBuffer() {
-    babelHelpers.classCallCheck(this, RemuxBuffer);
+    _classCallCheck(this, RemuxBuffer);
 
     this.video = [];
     this.audio = [];
   }
 
-  babelHelpers.createClass(RemuxBuffer, [{
+  _createClass(RemuxBuffer, [{
     key: "destroy",
     value: function destroy() {
       this.video = [];
       this.audio = [];
     }
   }]);
+
   return RemuxBuffer;
 }();

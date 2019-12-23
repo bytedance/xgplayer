@@ -1,5 +1,5 @@
-import HlsLivePlayer from 'xgplayer-hls-live';
-import HlsVodPlayer from 'xgplayer-hls-vod';
+import HlsLivePlayer from 'xgplayer-hls-live/es';
+import HlsVodPlayer from 'xgplayer-hls-vod/es';
 
 export default class HlsPlayer {
   constructor (config) {

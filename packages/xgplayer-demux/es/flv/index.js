@@ -1,3 +1,7 @@
+var _createClass = function () { function defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ("value" in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } } return function (Constructor, protoProps, staticProps) { if (protoProps) defineProperties(Constructor.prototype, protoProps); if (staticProps) defineProperties(Constructor, staticProps); return Constructor; }; }();
+
+function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } }
+
 import { EVENTS, AudioTrackMeta, VideoTrackMeta } from 'xgplayer-utils';
 import { SpsParser } from 'xgplayer-codec';
 import { VideoTrack, AudioTrack } from 'xgplayer-buffer';
@@ -8,14 +12,14 @@ var DEMUX_EVENTS = EVENTS.DEMUX_EVENTS;
 
 var FlvDemuxer = function () {
   function FlvDemuxer() {
-    babelHelpers.classCallCheck(this, FlvDemuxer);
+    _classCallCheck(this, FlvDemuxer);
 
     this._firstFragmentLoaded = false;
     this._trackNum = 0;
     this._hasScript = false;
   }
 
-  babelHelpers.createClass(FlvDemuxer, [{
+  _createClass(FlvDemuxer, [{
     key: 'init',
     value: function init() {
       this.on(DEMUX_EVENTS.DEMUX_START, this.doParseFlv.bind(this));
@@ -736,6 +740,7 @@ var FlvDemuxer = function () {
       return result;
     }
   }]);
+
   return FlvDemuxer;
 }();
 

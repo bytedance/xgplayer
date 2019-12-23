@@ -17,9 +17,6 @@
           "modules": false
         }
       ]
-    ],
-    "plugins": [
-      "external-helpers"
     ]
   },
   "devDependencies": {

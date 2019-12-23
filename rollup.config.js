@@ -26,11 +26,6 @@ const commonRollup = function (config = {}) {
     input: rollupConfig.input,
     output: [
       {
-        file: rollupConfig.uglify ? 'es/index.min.js' : 'es/index.js',
-        format: 'esm',
-        sourcemap: rollupConfig.sourcemap,
-        globals: rollupConfig.globals
-      }, {
         file: rollupConfig.uglify ? 'dist/index.min.js' : 'dist/index.js',
         name: rollupConfig.name,
         format: 'umd',
@@ -52,7 +47,12 @@ const commonRollup = function (config = {}) {
       }),
       babel({
         exclude: ['node_modules/**', '**/*.svg'],
-        plugins: ['external-helpers'],
+        // plugins: [['transform-runtime', {
+        //   helpers: true,
+        //   polyfill: true,
+        //   regenerator: false
+        // }]],
+        // runtimeHelpers: true,
         ...rollupConfig.babel
       }),
       resolve({

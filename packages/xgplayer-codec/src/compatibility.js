@@ -49,6 +49,8 @@ class Compatibility {
 
     // this._firstAudioSample = null
     // this._firstVideoSample = null
+    // this._firstAudioSample = null
+    // this._firstVideoSample = null
     this.videoLastSample = null
     this.audioLastSample = null
 
@@ -474,23 +476,25 @@ class Compatibility {
    * 去除不合法的帧（倒退、重复帧）
    */
   removeInvalidSamples () {
-    const { _firstVideoSample, _firstAudioSample } = this
+    const firstAudioSample = this.audioTrack.samples[0]
+    const firstVideoSample = this.videoTrack.samples[0]
+    // const { _firstVideoSample, _firstAudioSample } = this
 
-    if (_firstAudioSample) {
+    if (firstAudioSample) {
       this.audioTrack.samples = this.audioTrack.samples.filter((sample, index) => {
-        if (sample === _firstAudioSample) {
+        if (sample === firstAudioSample) {
           return true;
         }
-        return sample.dts > _firstAudioSample.dts
+        return sample.dts > firstAudioSample.dts
       })
     }
 
-    if (_firstVideoSample) {
+    if (firstVideoSample) {
       this.videoTrack.samples = this.videoTrack.samples.filter((sample, index) => {
-        if (sample === _firstVideoSample) {
+        if (sample === firstVideoSample) {
           return true;
         }
-        return sample.dts > _firstVideoSample.dts
+        return sample.dts > firstVideoSample.dts
       })
     }
   }

@@ -1,11 +1,15 @@
+var _createClass = function () { function defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ("value" in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } } return function (Constructor, protoProps, staticProps) { if (protoProps) defineProperties(Constructor.prototype, protoProps); if (staticProps) defineProperties(Constructor, staticProps); return Constructor; }; }();
+
+function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } }
+
 import SpsParser from './sps';
 
 var Nalunit = function () {
   function Nalunit() {
-    babelHelpers.classCallCheck(this, Nalunit);
+    _classCallCheck(this, Nalunit);
   }
 
-  babelHelpers.createClass(Nalunit, null, [{
+  _createClass(Nalunit, null, [{
     key: 'getNalunits',
     value: function getNalunits(buffer) {
       if (buffer.length - buffer.position < 4) {
@@ -165,6 +169,7 @@ var Nalunit = function () {
       return ret;
     }
   }]);
+
   return Nalunit;
 }();
 

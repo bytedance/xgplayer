@@ -1,6 +1,5 @@
-import 'xgplayer-polyfills/babel/external-helpers';
 import Player from 'xgplayer'
-import { Context, EVENTS } from 'xgplayer-utils';
+import { Context, EVENTS, debounce } from 'xgplayer-utils';
 import HlsVodController from './hls-vod';
 
 const HlsAllowedEvents = EVENTS.HlsAllowedEvents;
@@ -14,6 +13,7 @@ class HlsVodPlayer extends Player {
     this.util = Player.util;
     this.util.deepCopy(this.hlsOps, options);
     this._context = new Context(HlsAllowedEvents);
+    this._handleSetCurrentTime = debounce(this._handleSetCurrentTime.bind(this), 500)
   }
 
   get currentTime () {
@@ -21,11 +21,24 @@ class HlsVodPlayer extends Player {
   }
 
   set currentTime (time) {
+    this._handleSetCurrentTime(time);
+  }
+
+  _handleSetCurrentTime (time) {
     time = parseFloat(time);
     super.currentTime = parseInt(time);
     if (this._context) {
       this.__core__.seek(time);
     }
+  }
+  play () {
+    return this.video.play().catch((e) => {
+      if (e && e.code === 20) { // fix: chrome The play() request was interrupted by a new load request.
+        this.once('canplay', () => {
+          this.video.play()
+        })
+      }
+    })
   }
 
   _initEvents () {
@@ -39,8 +52,11 @@ class HlsVodPlayer extends Player {
     })
 
     this.once('canplay', () => {
-      this.play()
+      if (this.config.autoplay) {
+        this.play()
+      }
     });
+
   }
 
   onWaiting () {
