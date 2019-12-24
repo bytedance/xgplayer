@@ -1,0 +1,33 @@
+{
+  "name": "xgplayer-transmuxer-demux-ts",
+  "version": "2.2.0-alpha.0",
+  "description": "",
+  "main": "es/index.js",
+  "module": "es/index.js",
+  "scripts": {
+    "build": "babel src --out-dir es"
+  },
+  "author": "",
+  "license": "ISC",
+  "babel": {
+    "presets": [
+      [
+        "es2015",
+        {
+          "modules": false
+        }
+      ]
+    ],
+    "plugins": [
+      "external-helpers"
+    ]
+  },
+  "dependencies": {
+    "xgplayer-transmuxer-buffer-stream": "2.2.0-alpha.0",
+    "xgplayer-transmuxer-buffer-track": "2.2.0-alpha.0",
+    "xgplayer-transmuxer-model-tracksample": "2.2.0-alpha.0",
+    "xgplayer-transmuxer-model-trackmeta": "2.2.0-alpha.0",
+    "xgplayer-transmuxer-constant-events": "2.2.0-alpha.0",
+    "xgplayer-transmuxer-codec-h264": "2.2.0-alpha.0"
+  }
+}

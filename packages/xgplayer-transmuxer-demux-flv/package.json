@@ -1,0 +1,34 @@
+{
+  "name": "xgplayer-transmuxer-demux-flv",
+  "version": "2.2.0-alpha.0",
+  "description": "",
+  "main": "es/index.js",
+  "scripts": {
+    "build": "babel src --out-dir es"
+  },
+  "author": "",
+  "license": "ISC",
+  "babel": {
+    "presets": [
+      [
+        "es2015",
+        {
+          "modules": false
+        }
+      ]
+    ],
+    "plugins": ["external-helpers"]
+  },
+  "dependencies": {
+    "xgplayer-utils-utf8": "^2.2.0-alpha.0",
+    "xgplayer-utils-sniffer": "^2.2.0-alpha.0",
+    "xgplayer-transmuxer-constant-events": "^2.2.0-alpha.0",
+    "xgplayer-transmuxer-model-trackmeta": "^2.2.0-alpha.0",
+    "xgplayer-transmuxer-codec-h264": "^2.2.0-alpha.0",
+    "xgplayer-transmuxer-buffer-track": "^2.2.0-alpha.0"
+    
+  },
+  "devDependencies": {
+    "babel-cli": "^6.22.0"
+  }
+}
