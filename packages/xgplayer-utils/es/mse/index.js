@@ -1,4 +1,4 @@
-var MSE = function () {
+var MSE = (function () {
   function MSE(configs, context) {
     babelHelpers.classCallCheck(this, MSE);
 
@@ -257,6 +257,6 @@ var MSE = function () {
     }
   }]);
   return MSE;
-}();
+}());
 
 export default MSE;

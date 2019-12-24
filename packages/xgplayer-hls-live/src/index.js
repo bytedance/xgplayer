@@ -1,6 +1,7 @@
 import 'xgplayer-polyfills/babel/external-helpers';
 import Player from 'xgplayer'
-import { Context, EVENTS } from 'xgplayer-utils';
+import EVENTS from 'xgplayer-transmuxer-constant-events'
+import Context from 'xgplayer-transmuxer-context';
 import HlsLiveController from './hls-live';
 const HlsAllowedEvents = EVENTS.HlsAllowedEvents;
 const REMUX_EVENTS = EVENTS.REMUX_EVENTS;
