@@ -1,11 +1,13 @@
 {
   "name": "xgplayer-utils-sniffer",
-  "version": "2.2.0-alpha.0",
+  "version": "2.2.0-alpha.2",
   "description": "",
-  "main": "es/index.js",
+  "main": "lib/index.js",
   "module": "es/index.js",
   "scripts": {
-    "build": "babel src --out-dir es"
+    "build": "npm run build:es && npm run build:lib",
+    "build:es": "babel src --out-dir es",
+    "build:lib": "babel src --out-dir lib --presets=es2015"
   },
   "author": "",
   "license": "ISC",
@@ -17,10 +19,10 @@
           "modules": false
         }
       ]
-    ],
-    "plugins": [
-      "external-helpers"
     ]
+  },
+  "devDependencies": {
+    "babel-cli": "^6.22.0"
   },
   "dependencies": {
     "xgplayer-transmuxer-constant-events": "2.2.0-alpha.0"

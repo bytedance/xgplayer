@@ -1,7 +1,7 @@
-import 'xgplayer-polyfills/babel/external-helpers';
 import Player from 'xgplayer'
 import EVENTS from 'xgplayer-transmuxer-constant-events'
 import Context from 'xgplayer-transmuxer-context';
+import { Context, EVENTS, debounce } from 'xgplayer-utils';
 import HlsVodController from './hls-vod';
 
 const HlsAllowedEvents = EVENTS.HlsAllowedEvents;
@@ -15,6 +15,8 @@ class HlsVodPlayer extends Player {
     this.util = Player.util;
     this.util.deepCopy(this.hlsOps, options);
     this._context = new Context(HlsAllowedEvents);
+    this._handleSetCurrentTime = debounce(this._handleSetCurrentTime.bind(this), 500)
+    this.onWaiting = this.onWaiting.bind(this)
   }
 
   get currentTime () {
@@ -22,11 +24,24 @@ class HlsVodPlayer extends Player {
   }
 
   set currentTime (time) {
+    this._handleSetCurrentTime(time);
+  }
+
+  _handleSetCurrentTime (time) {
     time = parseFloat(time);
     super.currentTime = parseInt(time);
     if (this._context) {
       this.__core__.seek(time);
     }
+  }
+  play () {
+    return this.video.play().catch((e) => {
+      if (e && e.code === 20) { // fix: chrome The play() request was interrupted by a new load request.
+        this.once('canplay', () => {
+          this.video.play()
+        })
+      }
+    })
   }
 
   _initEvents () {
@@ -40,17 +55,30 @@ class HlsVodPlayer extends Player {
     })
 
     this.once('canplay', () => {
-      this.play()
+      if (this.config.autoplay) {
+        this.play()
+      }
     });
+
   }
 
   onWaiting () {
+    const _self = this;
     super.onWaiting();
-    const { gap, start } = this.detectBufferGap()
-    if (gap) {
-      this.currentTime = Math.ceil(start);
-    }
+    let retryTime = 10
+    let timer = setInterval(() => {
+      if (Player.util.hasClass(_self.root, 'xgplayer-isloading')) {
+        const { gap, start, method } = this.detectBufferGap()
+        if (gap) {
+          this.currentTime = Math[method](start);
+        }
+      }
+      if (retryTime-- <= 0) {
+        clearInterval(timer)
+      }
+    }, 500)
   }
+
 
   _initSrcChangeHandler () {
     let _this = this;
@@ -97,21 +125,23 @@ class HlsVodPlayer extends Player {
 
   detectBufferGap () {
     const { video } = this;
-    for (let i = 0; i < video.buffered.length; i++) {
-      const bufferStart = video.buffered.start(i)
-      const gap = bufferStart - this.currentTime;
-      if (gap > 0.1 && gap <= 2) {
-        return {
-          gap: true,
-          start: bufferStart
-        }
-      }
-    }
-
-    return {
+    let result = {
       gap: false,
       start: -1
     }
+    for (let i = 0; i < video.buffered.length; i++) {
+      const bufferStart = video.buffered.start(i)
+      const startGap = bufferStart - this.currentTime;
+      if (startGap > 0.1 && startGap <= 2) {
+        result = {
+          gap: true,
+          start: bufferStart,
+          method: 'ceil'
+        };
+      }
+    }
+
+    return result;
   }
 }
 

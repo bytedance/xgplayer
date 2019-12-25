@@ -1,4 +1,4 @@
-import _Context from './context';
+import _Context from './Context';
 
 // Modules from constants
 import _EVENTS from './constants/events';
@@ -6,7 +6,7 @@ import { CONTEXT_COMOMANDS } from './constants/worker-commands';
 
 // Modules from env
 import _sniffer from './env/sniffer';
-import _isLe from './env/isle';
+import _isLe from './env/isLE';
 import _UTF8 from './env/utf8';
 
 // Models
@@ -22,10 +22,11 @@ import _Mse from './mse/index';
 
 // Modules from write
 import _Stream from './write/stream';
-import _Buffer from './write/buffer';
+import _Buffer from './write/Buffer';
 
 // Crypto
 import _Crypto from './crypto';
+import _debounce from './func/debounce';
 
 export const Context = _Context;
 export const EVENTS = _EVENTS;
@@ -35,6 +36,7 @@ export const WORKER_COMMANDS = {
 export const sniffer = _sniffer
 export const isLe = _isLe
 export const UTF8 = _UTF8
+export const debounce = _debounce;
 export const MediaInfo = _MediaInfo
 export const MediaSample = _MediaSample
 export const MediaSegment = _MediaSegment

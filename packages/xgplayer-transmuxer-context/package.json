@@ -2,10 +2,12 @@
   "name": "xgplayer-transmuxer-context",
   "version": "2.2.0-alpha.0",
   "description": "",
-  "main": "es/index.js",
+  "main": "lib/index.js",
   "module": "es/index.js",
   "scripts": {
-    "build": "babel src --out-dir es"
+    "build": "npm run build:es && npm run build:lib",
+    "build:es": "babel src --out-dir es",
+    "build:lib": "babel src --out-dir lib --presets=es2015"
   },
   "author": "",
   "license": "ISC",
@@ -17,12 +19,13 @@
           "modules": false
         }
       ]
-    ],
-    "plugins": [
-      "external-helpers"
     ]
   },
+  "devDependencies": {
+    "babel-cli": "^6.22.0",
+    "babel-plugin-external-helpers": "^6.22.0"
+  },
   "dependencies": {
-    "xgplayer-transmuxer-model-mediainfo": "2.2.0-alpha.0"
+    "xgplayer-utils": "^2.2.0-alpha.2"
   }
 }

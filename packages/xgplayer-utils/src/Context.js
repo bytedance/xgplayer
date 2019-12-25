@@ -1,4 +1,5 @@
 import MediaInfo from './models/media-info'
+import EVENTS from './constants/events'
 import { EventEmitter } from 'events'
 
 const DIRECT_EMIT_FLAG = '__TO__'
@@ -208,6 +209,14 @@ class Context {
     return (...args) => {
       return this.initInstance(tag, ...args)
     }
+  }
+
+  /**
+   * 各个模块处理seek
+   * @param time
+   */
+  seek (time) {
+    this._emitter.emit(EVENTS.PLAYER_EVENTS.SEEK, time)
   }
 
   /**

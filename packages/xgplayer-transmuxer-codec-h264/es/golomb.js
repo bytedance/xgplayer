@@ -1,6 +1,10 @@
+var _createClass = function () { function defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ("value" in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } } return function (Constructor, protoProps, staticProps) { if (protoProps) defineProperties(Constructor.prototype, protoProps); if (staticProps) defineProperties(Constructor, staticProps); return Constructor; }; }();
+
+function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } }
+
 var Golomb = function () {
   function Golomb(uint8array) {
-    babelHelpers.classCallCheck(this, Golomb);
+    _classCallCheck(this, Golomb);
 
     this.TAG = 'Golomb';
     this._buffer = uint8array;
@@ -11,7 +15,7 @@ var Golomb = function () {
     this._currentWordBitsLeft = 0;
   }
 
-  babelHelpers.createClass(Golomb, [{
+  _createClass(Golomb, [{
     key: 'destroy',
     value: function destroy() {
       this._buffer = null;
@@ -97,6 +101,7 @@ var Golomb = function () {
       }
     }
   }]);
+
   return Golomb;
 }();
 

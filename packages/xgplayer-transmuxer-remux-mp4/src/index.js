@@ -6,6 +6,7 @@ import Buffer from './buffer';
 import Fmp4 from './fmp4'
 
 const REMUX_EVENTS = EVENTS.REMUX_EVENTS
+const PLAYER_EVENTS = EVENTS.PLAYER_EVENTS
 
 export default class Mp4Remuxer {
   constructor (curTime = 0) {
@@ -27,6 +28,16 @@ export default class Mp4Remuxer {
     this.on(REMUX_EVENTS.REMUX_MEDIA, this.remux.bind(this))
     this.on(REMUX_EVENTS.REMUX_METADATA, this.onMetaDataReady.bind(this))
     this.on(REMUX_EVENTS.DETECT_CHANGE_STREAM, this.resetDtsBase.bind(this))
+    this.on(PLAYER_EVENTS.SEEK, this.seek.bind(this))
+  }
+
+  destroy () {
+    this._dtsBase = -1
+    this._isDtsBaseInited = false
+    this._videoSegmentList.clear()
+    this._audioSegmentList.clear()
+    this._videoSegmentList = null
+    this._audioSegmentList = null
   }
 
   remux () {
@@ -40,12 +51,13 @@ export default class Mp4Remuxer {
   resetDtsBase () {
     // for hls 中途切换 meta后seek
     this._dtsBase = 0
-    this._dtsBaseInited = false
+    // this._isDtsBaseInited = false
   }
 
-  seek () {
-    this._videoSegmentList.clear()
-    this._audioSegmentList.clear()
+  seek (time) {
+    if (!this._isDtsBaseInited) {
+      this._dtsBase = time * 1000
+    }
   }
 
   onMetaDataReady (type) {

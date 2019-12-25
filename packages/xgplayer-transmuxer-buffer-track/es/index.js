@@ -1,9 +1,17 @@
+var _createClass = function () { function defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ("value" in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } } return function (Constructor, protoProps, staticProps) { if (protoProps) defineProperties(Constructor.prototype, protoProps); if (staticProps) defineProperties(Constructor, staticProps); return Constructor; }; }();
+
+function _possibleConstructorReturn(self, call) { if (!self) { throw new ReferenceError("this hasn't been initialised - super() hasn't been called"); } return call && (typeof call === "object" || typeof call === "function") ? call : self; }
+
+function _inherits(subClass, superClass) { if (typeof superClass !== "function" && superClass !== null) { throw new TypeError("Super expression must either be null or a function, not " + typeof superClass); } subClass.prototype = Object.create(superClass && superClass.prototype, { constructor: { value: subClass, enumerable: false, writable: true, configurable: true } }); if (superClass) Object.setPrototypeOf ? Object.setPrototypeOf(subClass, superClass) : subClass.__proto__ = superClass; }
+
+function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } }
+
 var Track = function () {
   /**
    * The constructor.
    */
   function Track() {
-    babelHelpers.classCallCheck(this, Track);
+    _classCallCheck(this, Track);
 
     this.id = -1;
     this.sequenceNumber = 0;
@@ -17,7 +25,7 @@ var Track = function () {
    */
 
 
-  babelHelpers.createClass(Track, [{
+  _createClass(Track, [{
     key: 'reset',
     value: function reset() {
       this.sequenceNumber = 0;
@@ -35,6 +43,7 @@ var Track = function () {
       this.id = -1;
     }
   }]);
+
   return Track;
 }();
 
@@ -42,15 +51,15 @@ export default Track;
 
 
 export var AudioTrack = function (_Track) {
-  babelHelpers.inherits(AudioTrack, _Track);
+  _inherits(AudioTrack, _Track);
 
   /**
    * The constructor for audio track.
    */
   function AudioTrack() {
-    babelHelpers.classCallCheck(this, AudioTrack);
+    _classCallCheck(this, AudioTrack);
 
-    var _this = babelHelpers.possibleConstructorReturn(this, (AudioTrack.__proto__ || Object.getPrototypeOf(AudioTrack)).call(this));
+    var _this = _possibleConstructorReturn(this, (AudioTrack.__proto__ || Object.getPrototypeOf(AudioTrack)).call(this));
 
     _this.TAG = 'AudioTrack';
     _this.type = 'audio';
@@ -61,15 +70,15 @@ export var AudioTrack = function (_Track) {
 }(Track);
 
 export var VideoTrack = function (_Track2) {
-  babelHelpers.inherits(VideoTrack, _Track2);
+  _inherits(VideoTrack, _Track2);
 
   /**
    * The constructor for video track.
    */
   function VideoTrack() {
-    babelHelpers.classCallCheck(this, VideoTrack);
+    _classCallCheck(this, VideoTrack);
 
-    var _this2 = babelHelpers.possibleConstructorReturn(this, (VideoTrack.__proto__ || Object.getPrototypeOf(VideoTrack)).call(this));
+    var _this2 = _possibleConstructorReturn(this, (VideoTrack.__proto__ || Object.getPrototypeOf(VideoTrack)).call(this));
 
     _this2.TAG = 'VideoTrack';
     _this2.type = 'video';
@@ -81,7 +90,7 @@ export var VideoTrack = function (_Track2) {
    */
 
 
-  babelHelpers.createClass(VideoTrack, [{
+  _createClass(VideoTrack, [{
     key: 'reset',
     value: function reset() {
       this.sequenceNumber = 0;
@@ -90,23 +99,25 @@ export var VideoTrack = function (_Track2) {
       this.dropped = 0;
     }
   }]);
+
   return VideoTrack;
 }(Track);
 
 export var Tracks = function () {
   function Tracks() {
-    babelHelpers.classCallCheck(this, Tracks);
+    _classCallCheck(this, Tracks);
 
     this.audioTrack = null;
     this.videoTrack = null;
   }
 
-  babelHelpers.createClass(Tracks, [{
+  _createClass(Tracks, [{
     key: 'destroy',
     value: function destroy() {
       this.audioTrack = null;
       this.videoTrack = null;
     }
   }]);
+
   return Tracks;
 }();

@@ -1,13 +1,17 @@
+var _createClass = function () { function defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ("value" in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } } return function (Constructor, protoProps, staticProps) { if (protoProps) defineProperties(Constructor.prototype, protoProps); if (staticProps) defineProperties(Constructor, staticProps); return Constructor; }; }();
+
+function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } }
+
 import Concat from 'concat-typed-array';
 
 var Buffer = function () {
   function Buffer(buffer) {
-    babelHelpers.classCallCheck(this, Buffer);
+    _classCallCheck(this, Buffer);
 
     this.buffer = buffer || new Uint8Array(0);
   }
 
-  babelHelpers.createClass(Buffer, [{
+  _createClass(Buffer, [{
     key: 'write',
     value: function write() {
       var _this = this;
@@ -41,6 +45,7 @@ var Buffer = function () {
       return parseInt(temp, 16);
     }
   }]);
+
   return Buffer;
 }();
 

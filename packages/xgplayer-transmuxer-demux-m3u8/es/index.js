@@ -1,12 +1,16 @@
+var _createClass = function () { function defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ("value" in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } } return function (Constructor, protoProps, staticProps) { if (protoProps) defineProperties(Constructor.prototype, protoProps); if (staticProps) defineProperties(Constructor, staticProps); return Constructor; }; }();
+
+function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } }
+
 /**
  * Reference: https://tools.ietf.org/html/rfc8216#section-4.3
  */
 var M3U8Parser = function () {
   function M3U8Parser() {
-    babelHelpers.classCallCheck(this, M3U8Parser);
+    _classCallCheck(this, M3U8Parser);
   }
 
-  babelHelpers.createClass(M3U8Parser, null, [{
+  _createClass(M3U8Parser, null, [{
     key: 'parse',
     value: function parse(text) {
       var baseurl = arguments.length > 1 && arguments[1] !== undefined ? arguments[1] : '';
@@ -133,6 +137,7 @@ var M3U8Parser = function () {
       };
     }
   }]);
+
   return M3U8Parser;
 }();
 
