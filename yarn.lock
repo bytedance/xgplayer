@@ -918,6 +918,11 @@
   dependencies:
     any-observable "^0.3.0"
 
+"@types/estree@*":
+  version "0.0.41"
+  resolved "http://bnpm.byted.org/@types/estree/download/@types/estree-0.0.41.tgz#fd90754150b57432b72bf560530500597ff04421"
+  integrity sha1-/ZB1QVC1dDK3K/VgUwUAWX/wRCE=
+
 "@types/estree@0.0.39":
   version "0.0.39"
   resolved "http://bnpm.byted.org/@types/estree/download/@types/estree-0.0.39.tgz#e177e699ee1b8c22d23174caaa7422644389509f"
@@ -1142,6 +1147,13 @@ abbrev@1:
   resolved "http://bnpm.byted.org/abbrev/download/abbrev-1.1.1.tgz#f8f2c887ad10bf67f634f005b6987fed3179aac8"
   integrity sha1-+PLIh60Qv2f2NPAFtph/7TF5qsg=
 
+abstract-leveldown@~0.12.0, abstract-leveldown@~0.12.1:
+  version "0.12.4"
+  resolved "http://bnpm.byted.org/abstract-leveldown/download/abstract-leveldown-0.12.4.tgz#29e18e632e60e4e221d5810247852a63d7b2e410"
+  integrity sha1-KeGOYy5g5OIh1YECR4UqY9ey5BA=
+  dependencies:
+    xtend "~3.0.0"
+
 accepts@^1.3.5:
   version "1.3.7"
   resolved "http://bnpm.byted.org/accepts/download/accepts-1.3.7.tgz#531bc726517a3b2b41f850021c6cc15eaab507cd"
@@ -1150,12 +1162,22 @@ accepts@^1.3.5:
     mime-types "~2.1.24"
     negotiator "0.6.2"
 
+acorn-dynamic-import@^4.0.0:
+  version "4.0.0"
+  resolved "http://bnpm.byted.org/acorn-dynamic-import/download/acorn-dynamic-import-4.0.0.tgz#482210140582a36b83c3e342e1cfebcaa9240948"
+  integrity sha1-SCIQFAWCo2uDw+NC4c/ryqkkCUg=
+
 acorn-jsx@^3.0.0:
   version "3.0.1"
   resolved "http://bnpm.byted.org/acorn-jsx/download/acorn-jsx-3.0.1.tgz#afdf9488fb1ecefc8348f6fb22f464e32a58b36b"
   integrity sha1-r9+UiPsezvyDSPb7IvRk4ypYs2s=
   dependencies:
     acorn "^3.0.4"
+
+acorn-walk@^6.1.1:
+  version "6.2.0"
+  resolved "http://bnpm.byted.org/acorn-walk/download/acorn-walk-6.2.0.tgz#123cb8f3b84c2171f1f7fb252615b1c78a6b1a8c"
+  integrity sha1-Ejy487hMIXHx9/slJhWxx4prGow=
 
 acorn@^3.0.4:
   version "3.3.0"
@@ -1167,10 +1189,20 @@ acorn@^5.5.0:
   resolved "http://bnpm.byted.org/acorn/download/acorn-5.7.3.tgz#67aa231bf8812974b85235a96771eb6bd07ea279"
   integrity sha1-Z6ojG/iBKXS4UjWpZ3Hra9B+onk=
 
+acorn@^6.1.1:
+  version "6.4.0"
+  resolved "http://bnpm.byted.org/acorn/download/acorn-6.4.0.tgz#b659d2ffbafa24baf5db1cdbb2c94a983ecd2784"
+  integrity sha1-tlnS/7r6JLr12xzbsslKmD7NJ4Q=
+
 acorn@^6.2.1:
   version "6.3.0"
   resolved "http://bnpm.byted.org/acorn/download/acorn-6.3.0.tgz#0087509119ffa4fc0a0041d1e93a417e68cb856e"
   integrity sha1-AIdQkRn/pPwKAEHR6TpBfmjLhW4=
+
+acorn@^7.1.0:
+  version "7.1.0"
+  resolved "http://bnpm.byted.org/acorn/download/acorn-7.1.0.tgz#949d36f2c292535da602283586c2477c57eb2d6c"
+  integrity sha1-lJ028sKSU12mAig1hsJHfFfrLWw=
 
 agent-base@4, agent-base@^4.3.0:
   version "4.3.0"
@@ -1406,6 +1438,11 @@ assign-symbols@^1.0.0:
   version "1.0.0"
   resolved "http://bnpm.byted.org/assign-symbols/download/assign-symbols-1.0.0.tgz#59667f41fadd4f20ccbc2bb96b8d4f7f78ec0367"
   integrity sha1-WWZ/QfrdTyDMvCu5a41Pf3jsA2c=
+
+async-array-reduce@^0.2.1:
+  version "0.2.1"
+  resolved "http://bnpm.byted.org/async-array-reduce/download/async-array-reduce-0.2.1.tgz#c8be010a2b5cd00dea96c81116034693dfdd82d1"
+  integrity sha1-yL4BCitc0A3qlsgRFgNGk9/dgtE=
 
 async-each@^1.0.1:
   version "1.0.3"
@@ -1892,6 +1929,13 @@ babel-plugin-transform-regenerator@^6.22.0, babel-plugin-transform-regenerator@^
   dependencies:
     regenerator-transform "^0.10.0"
 
+babel-plugin-transform-runtime@^6.23.0:
+  version "6.23.0"
+  resolved "http://bnpm.byted.org/babel-plugin-transform-runtime/download/babel-plugin-transform-runtime-6.23.0.tgz#88490d446502ea9b8e7efb0fe09ec4d99479b1ee"
+  integrity sha1-iEkNRGUC6puOfvsP4J7E2ZR5se4=
+  dependencies:
+    babel-runtime "^6.22.0"
+
 babel-plugin-transform-strict-mode@^6.24.1:
   version "6.24.1"
   resolved "http://bnpm.byted.org/babel-plugin-transform-strict-mode/download/babel-plugin-transform-strict-mode-6.24.1.tgz#d5faf7aa578a65bbe591cf5edae04a0c67020758"
@@ -2083,6 +2127,13 @@ binary-extensions@^1.0.0:
   resolved "http://bnpm.byted.org/binary-extensions/download/binary-extensions-1.13.1.tgz#598afe54755b2868a5330d2aff9d4ebb53209b65"
   integrity sha1-WYr+VHVbKGilMw0q/51Ou1Mgm2U=
 
+bl@~0.8.1:
+  version "0.8.2"
+  resolved "http://bnpm.byted.org/bl/download/bl-0.8.2.tgz#c9b6bca08d1bc2ea00fc8afb4f1a5fd1e1c66e4e"
+  integrity sha1-yba8oI0bwuoA/Ir7Txpf0eHGbk4=
+  dependencies:
+    readable-stream "~1.0.26"
+
 bluebird@^3.5.1, bluebird@^3.5.3:
   version "3.7.1"
   resolved "http://bnpm.byted.org/bluebird/download/bluebird-3.7.1.tgz#df70e302b471d7473489acf26a93d63b53f874de"
@@ -2163,6 +2214,15 @@ browserify-des@^1.0.0:
     inherits "^2.0.1"
     safe-buffer "^5.1.2"
 
+browserify-fs@^1.0.0:
+  version "1.0.0"
+  resolved "http://bnpm.byted.org/browserify-fs/download/browserify-fs-1.0.0.tgz#f075aa8a729d4d1716d066620e386fcc1311a96f"
+  integrity sha1-8HWqinKdTRcW0GZiDjhvzBMRqW8=
+  dependencies:
+    level-filesystem "^1.0.1"
+    level-js "^2.1.3"
+    levelup "^0.18.2"
+
 browserify-rsa@^4.0.0:
   version "4.0.1"
   resolved "http://bnpm.byted.org/browserify-rsa/download/browserify-rsa-4.0.1.tgz#21e0abfaf6f2029cf2fafb133567a701d4135524"
@@ -2220,6 +2280,11 @@ btoa-lite@^1.0.0:
   version "1.0.0"
   resolved "http://bnpm.byted.org/btoa-lite/download/btoa-lite-1.0.0.tgz#337766da15801210fdd956c22e9c6891ab9d0337"
   integrity sha1-M3dm2hWAEhD92VbCLpxokaudAzc=
+
+buffer-es6@^4.9.2:
+  version "4.9.3"
+  resolved "http://bnpm.byted.org/buffer-es6/download/buffer-es6-4.9.3.tgz#f26347b82df76fd37e18bcb5288c4970cfd5c404"
+  integrity sha1-8mNHuC33b9N+GLy1KIxJcM/VxAQ=
 
 buffer-from@^1.0.0:
   version "1.1.1"
@@ -2592,6 +2657,11 @@ clone@^1.0.2:
   resolved "http://bnpm.byted.org/clone/download/clone-1.0.4.tgz#da309cc263df15994c688ca902179ca3c7cd7c7e"
   integrity sha1-2jCcwmPfFZlMaIypAheco8fNfH4=
 
+clone@~0.1.9:
+  version "0.1.19"
+  resolved "http://bnpm.byted.org/clone/download/clone-0.1.19.tgz#613fb68639b26a494ac53253e15b1a6bd88ada85"
+  integrity sha1-YT+2hjmyaklKxTJT4Vsaa9iK2oU=
+
 co@^4.6.0:
   version "4.6.0"
   resolved "http://bnpm.byted.org/co/download/co-4.6.0.tgz#6ea6bdf3d853ae54ccb8e47bfa0bf3f9031fb184"
@@ -2749,7 +2819,7 @@ concat-map@0.0.1:
   resolved "http://bnpm.byted.org/concat-map/download/concat-map-0.0.1.tgz#d8a96bd77fd68df7793a73036a3ba0d5405d477b"
   integrity sha1-2Klr13/Wjfd5OnMDajug1UBdR3s=
 
-concat-stream@^1.5.0, concat-stream@^1.6.0:
+concat-stream@^1.4.4, concat-stream@^1.5.0, concat-stream@^1.6.0:
   version "1.6.2"
   resolved "http://bnpm.byted.org/concat-stream/download/concat-stream-1.6.2.tgz#904bdf194cd3122fc675c77fc4ac3d4ff0fd1a34"
   integrity sha1-kEvfGUzTEi/Gdcd/xKw9T/D9GjQ=
@@ -3395,6 +3465,13 @@ defaults@^1.0.3:
   dependencies:
     clone "^1.0.2"
 
+deferred-leveldown@~0.2.0:
+  version "0.2.0"
+  resolved "http://bnpm.byted.org/deferred-leveldown/download/deferred-leveldown-0.2.0.tgz#2cef1f111e1c57870d8bbb8af2650e587cd2f5b4"
+  integrity sha1-LO8fER4cV4cNi7uK8mUOWHzS9bQ=
+  dependencies:
+    abstract-leveldown "~0.12.1"
+
 define-properties@^1.1.2, define-properties@^1.1.3:
   version "1.1.3"
   resolved "http://bnpm.byted.org/define-properties/download/define-properties-1.1.3.tgz#cf88da6cbee26fe6db7094f61d870cbd84cee9f1"
@@ -3682,7 +3759,7 @@ err-code@^1.0.0:
   resolved "http://bnpm.byted.org/err-code/download/err-code-1.1.2.tgz#06e0116d3028f6aef4806849eb0ea6a748ae6960"
   integrity sha1-BuARbTAo9q70gGhJ6w6mp0iuaWA=
 
-errno@^0.1.3, errno@~0.1.7:
+errno@^0.1.1, errno@^0.1.3, errno@~0.1.1, errno@~0.1.7:
   version "0.1.7"
   resolved "http://bnpm.byted.org/errno/download/errno-0.1.7.tgz#4684d71779ad39af177e3f007996f7c67c852618"
   integrity sha1-RoTXF3mtOa8Xfj8AeZb3xnyFJhg=
@@ -4256,6 +4333,11 @@ for-in@^1.0.2:
   resolved "http://bnpm.byted.org/for-in/download/for-in-1.0.2.tgz#81068d295a8142ec0ac726c6e2200c30fb6d5e80"
   integrity sha1-gQaNKVqBQuwKxybG4iAMMPttXoA=
 
+foreach@~2.0.1:
+  version "2.0.5"
+  resolved "http://bnpm.byted.org/foreach/download/foreach-2.0.5.tgz#0bee005018aeb260d0a3af3ae658dd0136ec1b99"
+  integrity sha1-C+4AUBiusmDQo6865ljdATbsG5k=
+
 forever-agent@~0.6.1:
   version "0.6.1"
   resolved "http://bnpm.byted.org/forever-agent/download/forever-agent-0.6.1.tgz#fbc71f0c41adeb37f96c577ad1ed42d8fdacca91"
@@ -4338,6 +4420,13 @@ functional-red-black-tree@^1.0.1:
   version "1.0.1"
   resolved "http://bnpm.byted.org/functional-red-black-tree/download/functional-red-black-tree-1.0.1.tgz#1b0ab3bd553b2a0d6399d29c0e3ea0b252078327"
   integrity sha1-GwqzvVU7Kg1jmdKcDj6gslIHgyc=
+
+fwd-stream@^1.0.4:
+  version "1.0.4"
+  resolved "http://bnpm.byted.org/fwd-stream/download/fwd-stream-1.0.4.tgz#ed281cabed46feecf921ee32dc4c50b372ac7cfa"
+  integrity sha1-7Sgcq+1G/uz5Ie4y3ExQs3KsfPo=
+  dependencies:
+    readable-stream "~1.0.26-4"
 
 gauge@~2.7.3:
   version "2.7.4"
@@ -4634,6 +4723,13 @@ has-flag@^3.0.0:
   resolved "http://bnpm.byted.org/has-flag/download/has-flag-3.0.0.tgz#b5d454dc2199ae225699f3467e5a07f3b955bafd"
   integrity sha1-tdRU3CGZriJWmfNGfloH87lVuv0=
 
+has-glob@^1.0.0:
+  version "1.0.0"
+  resolved "http://bnpm.byted.org/has-glob/download/has-glob-1.0.0.tgz#9aaa9eedbffb1ba3990a7b0010fb678ee0081207"
+  integrity sha1-mqqe7b/7G6OZCnsAEPtnjuAIEgc=
+  dependencies:
+    is-glob "^3.0.0"
+
 has-symbols@^1.0.0:
   version "1.0.0"
   resolved "http://bnpm.byted.org/has-symbols/download/has-symbols-1.0.0.tgz#ba1a8f1af2a0fc39650f5c850367704122063b44"
@@ -4883,6 +4979,11 @@ icss-utils@^2.1.0:
   dependencies:
     postcss "^6.0.1"
 
+idb-wrapper@^1.5.0:
+  version "1.7.2"
+  resolved "http://bnpm.byted.org/idb-wrapper/download/idb-wrapper-1.7.2.tgz#8251afd5e77fe95568b1c16152eb44b396767ea2"
+  integrity sha1-glGv1ed/6VVoscFhUutEs5Z2fqI=
+
 ieee754@^1.1.4:
   version "1.1.13"
   resolved "http://bnpm.byted.org/ieee754/download/ieee754-1.1.13.tgz#ec168558e95aa181fd87d37f55c32bbcb6708b84"
@@ -4961,6 +5062,11 @@ indexes-of@^1.0.1:
   version "1.0.1"
   resolved "http://bnpm.byted.org/indexes-of/download/indexes-of-1.0.1.tgz#f30f716c8e2bd346c7b67d3df3915566a7c05607"
   integrity sha1-8w9xbI4r00bHtn0985FVZqfAVgc=
+
+indexof@~0.0.1:
+  version "0.0.1"
+  resolved "http://bnpm.byted.org/indexof/download/indexof-0.0.1.tgz#82dc336d232b9062179d05ab3293a66059fd435d"
+  integrity sha1-gtwzbSMrkGIXnQWrMpOmYFn9Q10=
 
 infer-owner@^1.0.3, infer-owner@^1.0.4:
   version "1.0.4"
@@ -5223,7 +5329,7 @@ is-generator-function@^1.0.7:
   resolved "http://bnpm.byted.org/is-generator-function/download/is-generator-function-1.0.7.tgz#d2132e529bb0000a7f80794d4bdf5cd5e5813522"
   integrity sha1-0hMuUpuwAAp/gHlNS99c1eWBNSI=
 
-is-glob@^3.1.0:
+is-glob@^3.0.0, is-glob@^3.1.0:
   version "3.1.0"
   resolved "http://bnpm.byted.org/is-glob/download/is-glob-3.1.0.tgz#7ba5ae24217804ac70707b96922567486cc3e84a"
   integrity sha1-e6WuJCF4BKxwcHuWkiVnSGzD6Eo=
@@ -5253,6 +5359,11 @@ is-obj@^1.0.0, is-obj@^1.0.1:
   version "1.0.1"
   resolved "http://bnpm.byted.org/is-obj/download/is-obj-1.0.1.tgz#3e4729ac1f5fde025cd7d83a896dab9f4f67db0f"
   integrity sha1-PkcprB9f3gJc19g6iW2rn09n2w8=
+
+is-object@~0.1.2:
+  version "0.1.2"
+  resolved "http://bnpm.byted.org/is-object/download/is-object-0.1.2.tgz#00efbc08816c33cfc4ac8251d132e10dc65098d7"
+  integrity sha1-AO+8CIFsM8/ErIJR0TLhDcZQmNc=
 
 is-observable@^1.1.0:
   version "1.1.0"
@@ -5359,6 +5470,11 @@ is-utf8@^0.2.0:
   resolved "http://bnpm.byted.org/is-utf8/download/is-utf8-0.2.1.tgz#4b0da1442104d1b336340e80797e865cf39f7d72"
   integrity sha1-Sw2hRCEE0bM2NA6AeX6GXPOffXI=
 
+is-valid-glob@^1.0.0:
+  version "1.0.0"
+  resolved "http://bnpm.byted.org/is-valid-glob/download/is-valid-glob-1.0.0.tgz#29bf3eff701be2d4d315dbacc39bc39fe8f601aa"
+  integrity sha1-Kb8+/3Ab4tTTFdusw5vDn+j2Aao=
+
 is-windows@^1.0.0, is-windows@^1.0.1, is-windows@^1.0.2:
   version "1.0.2"
   resolved "http://bnpm.byted.org/is-windows/download/is-windows-1.0.2.tgz#d1850eb9791ecd18e6182ce12a30f396634bb19d"
@@ -5369,10 +5485,25 @@ is-wsl@^1.1.0:
   resolved "http://bnpm.byted.org/is-wsl/download/is-wsl-1.1.0.tgz#1f16e4aa22b04d1336b66188a66af3c600c3a66d"
   integrity sha1-HxbkqiKwTRM2tmGIpmrzxgDDpm0=
 
+is@~0.2.6:
+  version "0.2.7"
+  resolved "http://bnpm.byted.org/is/download/is-0.2.7.tgz#3b34a2c48f359972f35042849193ae7264b63562"
+  integrity sha1-OzSixI81mXLzUEKEkZOucmS2NWI=
+
+isarray@0.0.1:
+  version "0.0.1"
+  resolved "http://bnpm.byted.org/isarray/download/isarray-0.0.1.tgz#8a18acfca9a8f4177e09abfc6038939b05d1eedf"
+  integrity sha1-ihis/Kmo9Bd+Cav8YDiTmwXR7t8=
+
 isarray@1.0.0, isarray@^1.0.0, isarray@~1.0.0:
   version "1.0.0"
   resolved "http://bnpm.byted.org/isarray/download/isarray-1.0.0.tgz#bb935d48582cba168c06834957a54a3e07124f11"
   integrity sha1-u5NdSFgsuhaMBoNJV6VKPgcSTxE=
+
+isbuffer@~0.0.0:
+  version "0.0.0"
+  resolved "http://bnpm.byted.org/isbuffer/download/isbuffer-0.0.0.tgz#38c146d9df528b8bf9b0701c3d43cf12df3fc39b"
+  integrity sha1-OMFG2d9Si4v5sHAcPUPPEt8/w5s=
 
 isexe@^2.0.0:
   version "2.0.0"
@@ -5700,6 +5831,91 @@ lerna@^3.17.0:
     import-local "^2.0.0"
     npmlog "^4.1.2"
 
+level-blobs@^0.1.7:
+  version "0.1.7"
+  resolved "http://bnpm.byted.org/level-blobs/download/level-blobs-0.1.7.tgz#9ab9b97bb99f1edbf9f78a3433e21ed56386bdaf"
+  integrity sha1-mrm5e7mfHtv594o0M+Ie1WOGva8=
+  dependencies:
+    level-peek "1.0.6"
+    once "^1.3.0"
+    readable-stream "^1.0.26-4"
+
+level-filesystem@^1.0.1:
+  version "1.2.0"
+  resolved "http://bnpm.byted.org/level-filesystem/download/level-filesystem-1.2.0.tgz#a00aca9919c4a4dfafdca6a8108d225aadff63b3"
+  integrity sha1-oArKmRnEpN+v3KaoEI0iWq3/Y7M=
+  dependencies:
+    concat-stream "^1.4.4"
+    errno "^0.1.1"
+    fwd-stream "^1.0.4"
+    level-blobs "^0.1.7"
+    level-peek "^1.0.6"
+    level-sublevel "^5.2.0"
+    octal "^1.0.0"
+    once "^1.3.0"
+    xtend "^2.2.0"
+
+level-fix-range@2.0:
+  version "2.0.0"
+  resolved "http://bnpm.byted.org/level-fix-range/download/level-fix-range-2.0.0.tgz#c417d62159442151a19d9a2367868f1724c2d548"
+  integrity sha1-xBfWIVlEIVGhnZojZ4aPFyTC1Ug=
+  dependencies:
+    clone "~0.1.9"
+
+level-fix-range@~1.0.2:
+  version "1.0.2"
+  resolved "http://bnpm.byted.org/level-fix-range/download/level-fix-range-1.0.2.tgz#bf15b915ae36d8470c821e883ddf79cd16420828"
+  integrity sha1-vxW5Fa422EcMgh6IPd95zRZCCCg=
+
+"level-hooks@>=4.4.0 <5":
+  version "4.5.0"
+  resolved "http://bnpm.byted.org/level-hooks/download/level-hooks-4.5.0.tgz#1b9ae61922930f3305d1a61fc4d83c8102c0dd93"
+  integrity sha1-G5rmGSKTDzMF0aYfxNg8gQLA3ZM=
+  dependencies:
+    string-range "~1.2"
+
+level-js@^2.1.3:
+  version "2.2.4"
+  resolved "http://bnpm.byted.org/level-js/download/level-js-2.2.4.tgz#bc055f4180635d4489b561c9486fa370e8c11697"
+  integrity sha1-vAVfQYBjXUSJtWHJSG+jcOjBFpc=
+  dependencies:
+    abstract-leveldown "~0.12.0"
+    idb-wrapper "^1.5.0"
+    isbuffer "~0.0.0"
+    ltgt "^2.1.2"
+    typedarray-to-buffer "~1.0.0"
+    xtend "~2.1.2"
+
+level-peek@1.0.6, level-peek@^1.0.6:
+  version "1.0.6"
+  resolved "http://bnpm.byted.org/level-peek/download/level-peek-1.0.6.tgz#bec51c72a82ee464d336434c7c876c3fcbcce77f"
+  integrity sha1-vsUccqgu5GTTNkNMfIdsP8vM538=
+  dependencies:
+    level-fix-range "~1.0.2"
+
+level-sublevel@^5.2.0:
+  version "5.2.3"
+  resolved "http://bnpm.byted.org/level-sublevel/download/level-sublevel-5.2.3.tgz#744c12c72d2e72be78dde3b9b5cd84d62191413a"
+  integrity sha1-dEwSxy0ucr543eO5tc2E1iGRQTo=
+  dependencies:
+    level-fix-range "2.0"
+    level-hooks ">=4.4.0 <5"
+    string-range "~1.2.1"
+    xtend "~2.0.4"
+
+levelup@^0.18.2:
+  version "0.18.6"
+  resolved "http://bnpm.byted.org/levelup/download/levelup-0.18.6.tgz#e6a01cb089616c8ecc0291c2a9bd3f0c44e3e5eb"
+  integrity sha1-5qAcsIlhbI7MApHCqb0/DETj5es=
+  dependencies:
+    bl "~0.8.1"
+    deferred-leveldown "~0.2.0"
+    errno "~0.1.1"
+    prr "~0.0.0"
+    readable-stream "~1.0.26"
+    semver "~2.3.1"
+    xtend "~3.0.0"
+
 leven@^2.1.0:
   version "2.1.0"
   resolved "http://bnpm.byted.org/leven/download/leven-2.1.0.tgz#c2e7a9f772094dee9d34202ae8acce4687875580"
@@ -5995,6 +6211,11 @@ lru-cache@^5.1.1:
   dependencies:
     yallist "^3.0.2"
 
+ltgt@^2.1.2:
+  version "2.2.1"
+  resolved "http://bnpm.byted.org/ltgt/download/ltgt-2.2.1.tgz#f35ca91c493f7b73da0e07495304f17b31f87ee5"
+  integrity sha1-81ypHEk/e3PaDgdJUwTxezH4fuU=
+
 macos-release@^2.2.0:
   version "2.3.0"
   resolved "http://bnpm.byted.org/macos-release/download/macos-release-2.3.0.tgz#eb1930b036c0800adebccd5f17bc4c12de8bb71f"
@@ -6089,6 +6310,18 @@ map-visit@^1.0.0:
   integrity sha1-7Nyo8TFE5mDxtb1B8S80edmN+48=
   dependencies:
     object-visit "^1.0.0"
+
+matched@^1.0.2:
+  version "1.0.2"
+  resolved "http://bnpm.byted.org/matched/download/matched-1.0.2.tgz#1d95d77dd5f1b5075a9e94acde5462ffd85f317a"
+  integrity sha1-HZXXfdXxtQdanpSs3lRi/9hfMXo=
+  dependencies:
+    arr-union "^3.1.0"
+    async-array-reduce "^0.2.1"
+    glob "^7.1.2"
+    has-glob "^1.0.0"
+    is-valid-glob "^1.0.0"
+    resolve-dir "^1.0.0"
 
 math-expression-evaluator@^1.2.14:
   version "1.2.17"
@@ -6724,6 +6957,20 @@ object-keys@^1.0.12, object-keys@^1.1.1:
   resolved "http://bnpm.byted.org/object-keys/download/object-keys-1.1.1.tgz#1c47f272df277f3b1daf061677d9c82e2322c60e"
   integrity sha1-HEfyct8nfzsdrwYWd9nILiMixg4=
 
+object-keys@~0.2.0:
+  version "0.2.0"
+  resolved "http://bnpm.byted.org/object-keys/download/object-keys-0.2.0.tgz#cddec02998b091be42bf1035ae32e49f1cb6ea67"
+  integrity sha1-zd7AKZiwkb5CvxA1rjLknxy26mc=
+  dependencies:
+    foreach "~2.0.1"
+    indexof "~0.0.1"
+    is "~0.2.6"
+
+object-keys@~0.4.0:
+  version "0.4.0"
+  resolved "http://bnpm.byted.org/object-keys/download/object-keys-0.4.0.tgz#28a6aae7428dd2c3a92f3d95f21335dd204e0336"
+  integrity sha1-KKaq50KN0sOpLz2V8hM13SBOAzY=
+
 object-visit@^1.0.0:
   version "1.0.1"
   resolved "http://bnpm.byted.org/object-visit/download/object-visit-1.0.1.tgz#f79c4493af0c5377b59fe39d395e41042dd045bb"
@@ -6755,6 +7002,11 @@ object.values@^1.1.0:
     es-abstract "^1.12.0"
     function-bind "^1.1.1"
     has "^1.0.3"
+
+octal@^1.0.0:
+  version "1.0.0"
+  resolved "http://bnpm.byted.org/octal/download/octal-1.0.0.tgz#63e7162a68efbeb9e213588d58e989d1e5c4530b"
+  integrity sha1-Y+cWKmjvvrniE1iNWOmJ0eXEUws=
 
 octokit-pagination-methods@^1.1.0:
   version "1.1.0"
@@ -7811,6 +8063,11 @@ private@^0.1.6, private@^0.1.8:
   resolved "http://bnpm.byted.org/private/download/private-0.1.8.tgz#2381edb3689f7a53d653190060fcf822d2f368ff"
   integrity sha1-I4Hts2ifelPWUxkAYPz4ItLzaP8=
 
+process-es6@^0.11.2:
+  version "0.11.6"
+  resolved "http://bnpm.byted.org/process-es6/download/process-es6-0.11.6.tgz#c6bb389f9a951f82bd4eb169600105bd2ff9c778"
+  integrity sha1-xrs4n5qVH4K9TrFpYAEFvS/5x3g=
+
 process-nextick-args@~2.0.0:
   version "2.0.1"
   resolved "http://bnpm.byted.org/process-nextick-args/download/process-nextick-args-2.0.1.tgz#7820d9b16120cc55ca9ae7792680ae7dba6d7fe2"
@@ -7867,6 +8124,11 @@ protoduck@^5.0.1:
   integrity sha1-A8NlnKGAB7aaUP2Cp+vMUWJhFR8=
   dependencies:
     genfun "^5.0.0"
+
+prr@~0.0.0:
+  version "0.0.0"
+  resolved "http://bnpm.byted.org/prr/download/prr-0.0.0.tgz#1a84b85908325501411853d0081ee3fa86e2926a"
+  integrity sha1-GoS4WQgyVQFBGFPQCB7j+obikmo=
 
 prr@~1.0.1:
   version "1.0.1"
@@ -8105,6 +8367,26 @@ read@1, read@~1.0.1:
     inherits "^2.0.3"
     string_decoder "^1.1.1"
     util-deprecate "^1.0.1"
+
+readable-stream@^1.0.26-4:
+  version "1.1.14"
+  resolved "http://bnpm.byted.org/readable-stream/download/readable-stream-1.1.14.tgz#7cf4c54ef648e3813084c636dd2079e166c081d9"
+  integrity sha1-fPTFTvZI44EwhMY23SB54WbAgdk=
+  dependencies:
+    core-util-is "~1.0.0"
+    inherits "~2.0.1"
+    isarray "0.0.1"
+    string_decoder "~0.10.x"
+
+readable-stream@~1.0.26, readable-stream@~1.0.26-4:
+  version "1.0.34"
+  resolved "http://bnpm.byted.org/readable-stream/download/readable-stream-1.0.34.tgz#125820e34bc842d2f2aaafafe4c2916ee32c157c"
+  integrity sha1-Elgg40vIQtLyqq+v5MKRbuMsFXw=
+  dependencies:
+    core-util-is "~1.0.0"
+    inherits "~2.0.1"
+    isarray "0.0.1"
+    string_decoder "~0.10.x"
 
 readdir-scoped-modules@^1.0.0:
   version "1.1.0"
@@ -8430,6 +8712,23 @@ rollup-plugin-json@^4.0.0:
   dependencies:
     rollup-pluginutils "^2.5.0"
 
+rollup-plugin-multi-entry@^2.1.0:
+  version "2.1.0"
+  resolved "http://bnpm.byted.org/rollup-plugin-multi-entry/download/rollup-plugin-multi-entry-2.1.0.tgz#64a7287adfd437cab33bf6364a8d8ab1e7a7725d"
+  integrity sha1-ZKcoet/UN8qzO/Y2So2Kseencl0=
+  dependencies:
+    matched "^1.0.2"
+
+rollup-plugin-node-builtins@^2.1.2:
+  version "2.1.2"
+  resolved "http://bnpm.byted.org/rollup-plugin-node-builtins/download/rollup-plugin-node-builtins-2.1.2.tgz#24a1fed4a43257b6b64371d8abc6ce1ab14597e9"
+  integrity sha1-JKH+1KQyV7a2Q3HYq8bOGrFFl+k=
+  dependencies:
+    browserify-fs "^1.0.0"
+    buffer-es6 "^4.9.2"
+    crypto-browserify "^3.11.0"
+    process-es6 "^0.11.2"
+
 rollup-plugin-node-resolve@^5.2.0:
   version "5.2.0"
   resolved "http://bnpm.byted.org/rollup-plugin-node-resolve/download/rollup-plugin-node-resolve-5.2.0.tgz#730f93d10ed202473b1fb54a5997a7db8c6d8523"
@@ -8460,6 +8759,16 @@ rollup-plugin-postcss@^2.0.3:
     resolve "^1.5.0"
     rollup-pluginutils "^2.0.1"
     style-inject "^0.3.0"
+
+rollup-plugin-require-context@^1.0.0:
+  version "1.0.0"
+  resolved "http://bnpm.byted.org/rollup-plugin-require-context/download/rollup-plugin-require-context-1.0.0.tgz#f2af4999c7531c9bd9bb46b78e029fab3339e0a6"
+  integrity sha1-8q9JmcdTHJvZu0a3jgKfqzM54KY=
+  dependencies:
+    acorn "^6.1.1"
+    acorn-dynamic-import "^4.0.0"
+    acorn-walk "^6.1.1"
+    rollup-pluginutils "^2.5.0"
 
 rollup-plugin-string@^3.0.0:
   version "3.0.0"
@@ -8507,6 +8816,15 @@ rollup-pluginutils@^2.0.1, rollup-pluginutils@^2.4.1, rollup-pluginutils@^2.5.0,
   integrity sha1-cvKvB0i1kjZNvTOJ5gDlqURKNR4=
   dependencies:
     estree-walker "^0.6.1"
+
+rollup@^1.27.0:
+  version "1.27.14"
+  resolved "http://bnpm.byted.org/rollup/download/rollup-1.27.14.tgz#940718d5eec1a6887e399aa0089944bae5c4f377"
+  integrity sha1-lAcY1e7Bpoh+OZqgCJlEuuXE83c=
+  dependencies:
+    "@types/estree" "*"
+    "@types/node" "*"
+    acorn "^7.1.0"
 
 run-async@^2.2.0:
   version "2.3.0"
@@ -8599,6 +8917,11 @@ semver@^6.0.0, semver@^6.2.0, semver@^6.3.0:
   version "6.3.0"
   resolved "http://bnpm.byted.org/semver/download/semver-6.3.0.tgz#ee0a64c8af5e8ceea67687b133761e1becbd1d3d"
   integrity sha1-7gpkyK9ejO6mdoexM3YeG+y9HT0=
+
+semver@~2.3.1:
+  version "2.3.2"
+  resolved "http://bnpm.byted.org/semver/download/semver-2.3.2.tgz#b9848f25d6cf36333073ec9ef8856d42f1233e52"
+  integrity sha1-uYSPJdbPNjMwc+ye+IVtQvEjPlI=
 
 semver@~5.3.0:
   version "5.3.0"
@@ -8976,6 +9299,11 @@ string-hash@^1.1.1:
   resolved "http://bnpm.byted.org/string-hash/download/string-hash-1.1.3.tgz#e8aafc0ac1855b4666929ed7dd1275df5d6c811b"
   integrity sha1-6Kr8CsGFW0Zmkp7X3RJ1311sgRs=
 
+string-range@~1.2, string-range@~1.2.1:
+  version "1.2.2"
+  resolved "http://bnpm.byted.org/string-range/download/string-range-1.2.2.tgz#a893ed347e72299bc83befbbf2a692a8d239d5dd"
+  integrity sha1-qJPtNH5yKZvIO++78qaSqNI51d0=
+
 string-width@^1.0.1:
   version "1.0.2"
   resolved "http://bnpm.byted.org/string-width/download/string-width-1.0.2.tgz#118bdf5b8cdc51a2a7e70d211e07e2b0b9b107d3"
@@ -9033,6 +9361,11 @@ string_decoder@^1.0.0, string_decoder@^1.1.1:
   integrity sha1-QvEUWUpGzxqOMLCoT1bHjD7awh4=
   dependencies:
     safe-buffer "~5.2.0"
+
+string_decoder@~0.10.x:
+  version "0.10.31"
+  resolved "http://bnpm.byted.org/string_decoder/download/string_decoder-0.10.31.tgz#62e203bc41766c6c28c9fc84301dab1c5310fa94"
+  integrity sha1-YuIDvEF2bGwoyfyEMB2rHFMQ+pQ=
 
 string_decoder@~1.1.1:
   version "1.1.1"
@@ -9467,6 +9800,11 @@ type-is@^1.6.16:
   dependencies:
     media-typer "0.3.0"
     mime-types "~2.1.24"
+
+typedarray-to-buffer@~1.0.0:
+  version "1.0.4"
+  resolved "http://bnpm.byted.org/typedarray-to-buffer/download/typedarray-to-buffer-1.0.4.tgz#9bb8ba0e841fb3f4cf1fe7c245e9f3fa8a5fe99c"
+  integrity sha1-m7i6DoQfs/TPH+fCRenz+opf6Zw=
 
 typedarray@^0.0.6:
   version "0.0.6"
@@ -9948,10 +10286,35 @@ write@^0.2.1:
   dependencies:
     mkdirp "^0.5.1"
 
+xtend@^2.2.0:
+  version "2.2.0"
+  resolved "http://bnpm.byted.org/xtend/download/xtend-2.2.0.tgz#eef6b1f198c1c8deafad8b1765a04dad4a01c5a9"
+  integrity sha1-7vax8ZjByN6vrYsXZaBNrUoBxak=
+
 xtend@^4.0.0, xtend@~4.0.1:
   version "4.0.2"
   resolved "http://bnpm.byted.org/xtend/download/xtend-4.0.2.tgz#bb72779f5fa465186b1f438f674fa347fdb5db54"
   integrity sha1-u3J3n1+kZRhrH0OPZ0+jR/2121Q=
+
+xtend@~2.0.4:
+  version "2.0.6"
+  resolved "http://bnpm.byted.org/xtend/download/xtend-2.0.6.tgz#5ea657a6dba447069c2e59c58a1138cb0c5e6cee"
+  integrity sha1-XqZXptukRwacLlnFihE4ywxebO4=
+  dependencies:
+    is-object "~0.1.2"
+    object-keys "~0.2.0"
+
+xtend@~2.1.2:
+  version "2.1.2"
+  resolved "http://bnpm.byted.org/xtend/download/xtend-2.1.2.tgz#6efecc2a4dad8e6962c4901b337ce7ba87b5d28b"
+  integrity sha1-bv7MKk2tjmlixJAbM3znuoe10os=
+  dependencies:
+    object-keys "~0.4.0"
+
+xtend@~3.0.0:
+  version "3.0.0"
+  resolved "http://bnpm.byted.org/xtend/download/xtend-3.0.0.tgz#5cce7407baf642cba7becda568111c493f59665a"
+  integrity sha1-XM50B7r2Qsunvs2laBEcST9ZZlo=
 
 y18n@^3.2.1:
   version "3.2.1"

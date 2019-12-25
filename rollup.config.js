@@ -17,7 +17,8 @@ const defaultRollup = {
   globals: {},
   commonjs: {},
   resolve: {},
-  babel: {}
+  babel: {},
+  watch: {}
 }
 
 const commonRollup = function (config = {}) {
@@ -69,7 +70,10 @@ const commonRollup = function (config = {}) {
       }),
       builtins(),
       context()
-    ]
+    ],
+    watch: {
+      ...config.watch
+    }
   }
 }
 module.exports = commonRollup;

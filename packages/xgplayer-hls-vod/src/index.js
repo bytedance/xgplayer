@@ -14,6 +14,7 @@ class HlsVodPlayer extends Player {
     this.util.deepCopy(this.hlsOps, options);
     this._context = new Context(HlsAllowedEvents);
     this._handleSetCurrentTime = debounce(this._handleSetCurrentTime.bind(this), 500)
+    this.onWaiting = this.onWaiting.bind(this)
   }
 
   get currentTime () {
@@ -60,12 +61,22 @@ class HlsVodPlayer extends Player {
   }
 
   onWaiting () {
+    const _self = this;
     super.onWaiting();
-    const { gap, start, method } = this.detectBufferGap()
-    if (gap) {
-      this.currentTime = Math[method](start);
-    }
+    let retryTime = 10
+    let timer = setInterval(() => {
+      if (Player.util.hasClass(_self.root, 'xgplayer-isloading')) {
+        const { gap, start, method } = this.detectBufferGap()
+        if (gap) {
+          this.currentTime = Math[method](start);
+        }
+      }
+      if (retryTime-- <= 0) {
+        clearInterval(timer)
+      }
+    }, 500)
   }
+
 
   _initSrcChangeHandler () {
     let _this = this;

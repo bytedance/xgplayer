@@ -1,3 +1,7 @@
+const PLAYER_EVENTS = {
+  SEEK: 'SEEK'
+}
+
 const LOADER_EVENTS = {
   LADER_START: 'LOADER_START',
   LOADER_DATALOADED: 'LOADER_DATALOADED',
@@ -39,7 +43,7 @@ const CRYTO_EVENTS = {
   START_DECRYPT: 'START_DECRYPT',
   DECRYPTED: 'DECRYPTED'
 }
-const ALLEVENTS = Object.assign({}, LOADER_EVENTS, DEMUX_EVENTS, REMUX_EVENTS, MSE_EVENTS, HLS_EVENTS)
+const ALLEVENTS = Object.assign({}, LOADER_EVENTS, DEMUX_EVENTS, REMUX_EVENTS, MSE_EVENTS, HLS_EVENTS, PLAYER_EVENTS)
 
 const FlvAllowedEvents = []
 const HlsAllowedEvents = []
@@ -65,5 +69,6 @@ export default {
   LOADER_EVENTS,
   FlvAllowedEvents,
   HlsAllowedEvents,
-  CRYTO_EVENTS
+  CRYTO_EVENTS,
+  PLAYER_EVENTS
 };

@@ -103,6 +103,80 @@
     return MediaInfo;
   }();
 
+  var PLAYER_EVENTS = {
+    SEEK: 'SEEK'
+  };
+
+  var LOADER_EVENTS = {
+    LADER_START: 'LOADER_START',
+    LOADER_DATALOADED: 'LOADER_DATALOADED',
+    LOADER_COMPLETE: 'LOADER_COMPLETE',
+    LOADER_ERROR: 'LOADER_ERROR'
+  };
+
+  var DEMUX_EVENTS = {
+    DEMUX_START: 'DEMUX_START',
+    DEMUX_COMPLETE: 'DEMUX_COMPLETE',
+    DEMUX_ERROR: 'DEMUX_ERROR',
+    METADATA_PARSED: 'METADATA_PARSED',
+    VIDEO_METADATA_CHANGE: 'VIDEO_METADATA_CHANGE',
+    AUDIO_METADATA_CHANGE: 'AUDIO_METADATA_CHANGE',
+    MEDIA_INFO: 'MEDIA_INFO'
+  };
+
+  var REMUX_EVENTS = {
+    REMUX_METADATA: 'REMUX_METADATA',
+    REMUX_MEDIA: 'REMUX_MEDIA',
+    MEDIA_SEGMENT: 'MEDIA_SEGMENT',
+    REMUX_ERROR: 'REMUX_ERROR',
+    INIT_SEGMENT: 'INIT_SEGMENT',
+    DETECT_CHANGE_STREAM: 'DETECT_CHANGE_STREAM',
+    DETECT_CHANGE_STREAM_DISCONTINUE: 'DETECT_CHANGE_STREAM_DISCONTINUE',
+    RANDOM_ACCESS_POINT: 'RANDOM_ACCESS_POINT'
+  };
+
+  var MSE_EVENTS = {
+    SOURCE_UPDATE_END: 'SOURCE_UPDATE_END'
+
+    // hls专有events
+  };var HLS_EVENTS = {
+    RETRY_TIME_EXCEEDED: 'RETRY_TIME_EXCEEDED'
+  };
+
+  var CRYTO_EVENTS = {
+    START_DECRYPT: 'START_DECRYPT',
+    DECRYPTED: 'DECRYPTED'
+  };
+  var ALLEVENTS = Object.assign({}, LOADER_EVENTS, DEMUX_EVENTS, REMUX_EVENTS, MSE_EVENTS, HLS_EVENTS, PLAYER_EVENTS);
+
+  var FlvAllowedEvents = [];
+  var HlsAllowedEvents = [];
+
+  for (var key in ALLEVENTS) {
+    if (ALLEVENTS.hasOwnProperty(key)) {
+      FlvAllowedEvents.push(ALLEVENTS[key]);
+    }
+  }
+
+  for (var _key in ALLEVENTS) {
+    if (ALLEVENTS.hasOwnProperty(_key)) {
+      HlsAllowedEvents.push(ALLEVENTS[_key]);
+    }
+  }
+
+  var _EVENTS = {
+    ALLEVENTS: ALLEVENTS,
+    HLS_EVENTS: HLS_EVENTS,
+    REMUX_EVENTS: REMUX_EVENTS,
+    DEMUX_EVENTS: DEMUX_EVENTS,
+    MSE_EVENTS: MSE_EVENTS,
+    LOADER_EVENTS: LOADER_EVENTS,
+    FlvAllowedEvents: FlvAllowedEvents,
+    HlsAllowedEvents: HlsAllowedEvents,
+    CRYTO_EVENTS: CRYTO_EVENTS,
+    PLAYER_EVENTS: PLAYER_EVENTS
+  };
+
   var domain;
 
   // This constructor is used to store event handlers. Instantiating this is
@@ -832,6 +906,17 @@
       }
 
       /**
+       * 各个模块处理seek
+       * @param time
+       */
+
+    }, {
+      key: 'seek',
+      value: function seek(time) {
+        this._emitter.emit(_EVENTS.PLAYER_EVENTS.SEEK, time);
+      }
+
+      /**
        * 对存在的实例进行
        */
 
@@ -879,75 +964,6 @@
 
     return Context;
   }();
-
-  var LOADER_EVENTS = {
-    LADER_START: 'LOADER_START',
-    LOADER_DATALOADED: 'LOADER_DATALOADED',
-    LOADER_COMPLETE: 'LOADER_COMPLETE',
-    LOADER_ERROR: 'LOADER_ERROR'
-  };
-
-  var DEMUX_EVENTS = {
-    DEMUX_START: 'DEMUX_START',
-    DEMUX_COMPLETE: 'DEMUX_COMPLETE',
-    DEMUX_ERROR: 'DEMUX_ERROR',
-    METADATA_PARSED: 'METADATA_PARSED',
-    VIDEO_METADATA_CHANGE: 'VIDEO_METADATA_CHANGE',
-    AUDIO_METADATA_CHANGE: 'AUDIO_METADATA_CHANGE',
-    MEDIA_INFO: 'MEDIA_INFO'
-  };
-
-  var REMUX_EVENTS = {
-    REMUX_METADATA: 'REMUX_METADATA',
-    REMUX_MEDIA: 'REMUX_MEDIA',
-    MEDIA_SEGMENT: 'MEDIA_SEGMENT',
-    REMUX_ERROR: 'REMUX_ERROR',
-    INIT_SEGMENT: 'INIT_SEGMENT',
-    DETECT_CHANGE_STREAM: 'DETECT_CHANGE_STREAM',
-    DETECT_CHANGE_STREAM_DISCONTINUE: 'DETECT_CHANGE_STREAM_DISCONTINUE',
-    RANDOM_ACCESS_POINT: 'RANDOM_ACCESS_POINT'
-  };
-
-  var MSE_EVENTS = {
-    SOURCE_UPDATE_END: 'SOURCE_UPDATE_END'
-
-    // hls专有events
-  };var HLS_EVENTS = {
-    RETRY_TIME_EXCEEDED: 'RETRY_TIME_EXCEEDED'
-  };
-
-  var CRYTO_EVENTS = {
-    START_DECRYPT: 'START_DECRYPT',
-    DECRYPTED: 'DECRYPTED'
-  };
-  var ALLEVENTS = Object.assign({}, LOADER_EVENTS, DEMUX_EVENTS, REMUX_EVENTS, MSE_EVENTS, HLS_EVENTS);
-
-  var FlvAllowedEvents = [];
-  var HlsAllowedEvents = [];
-
-  for (var key in ALLEVENTS) {
-    if (ALLEVENTS.hasOwnProperty(key)) {
-      FlvAllowedEvents.push(ALLEVENTS[key]);
-    }
-  }
-
-  for (var _key in ALLEVENTS) {
-    if (ALLEVENTS.hasOwnProperty(_key)) {
-      HlsAllowedEvents.push(ALLEVENTS[_key]);
-    }
-  }
-
-  var _EVENTS = {
-    ALLEVENTS: ALLEVENTS,
-    HLS_EVENTS: HLS_EVENTS,
-    REMUX_EVENTS: REMUX_EVENTS,
-    DEMUX_EVENTS: DEMUX_EVENTS,
-    MSE_EVENTS: MSE_EVENTS,
-    LOADER_EVENTS: LOADER_EVENTS,
-    FlvAllowedEvents: FlvAllowedEvents,
-    HlsAllowedEvents: HlsAllowedEvents,
-    CRYTO_EVENTS: CRYTO_EVENTS
-  };
 
   var le = function () {
     var buf = new ArrayBuffer(2);
@@ -4867,6 +4883,7 @@
   function _classCallCheck$m(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } }
 
   var REMUX_EVENTS$2 = EVENTS.REMUX_EVENTS;
+  var PLAYER_EVENTS$1 = EVENTS.PLAYER_EVENTS;
 
   var Mp4Remuxer = function () {
     function Mp4Remuxer() {
@@ -4895,12 +4912,13 @@
         this.on(REMUX_EVENTS$2.REMUX_MEDIA, this.remux.bind(this));
         this.on(REMUX_EVENTS$2.REMUX_METADATA, this.onMetaDataReady.bind(this));
         this.on(REMUX_EVENTS$2.DETECT_CHANGE_STREAM, this.resetDtsBase.bind(this));
+        this.on(PLAYER_EVENTS$1.SEEK, this.seek.bind(this));
       }
     }, {
       key: 'destroy',
       value: function destroy() {
         this._dtsBase = -1;
-        this._dtsBaseInited = false;
+        this._isDtsBaseInited = false;
         this._videoSegmentList.clear();
         this._audioSegmentList.clear();
         this._videoSegmentList = null;
@@ -4923,13 +4941,14 @@
       value: function resetDtsBase() {
         // for hls 中途切换 meta后seek
         this._dtsBase = 0;
-        this._dtsBaseInited = false;
+        // this._isDtsBaseInited = false
       }
     }, {
       key: 'seek',
-      value: function seek() {
-        this._videoSegmentList.clear();
-        this._audioSegmentList.clear();
+      value: function seek(time) {
+        if (!this._isDtsBaseInited) {
+          this._dtsBase = time * 1000;
+        }
       }
     }, {
       key: 'onMetaDataReady',
@@ -5070,7 +5089,7 @@
             }
           }
           this.videoAllDuration += sampleDuration;
-          // console.log(`video dts ${dts}`, `pts ${pts}`, isKeyframe, `duration ${sampleDuration}`)
+          console.log('video dts ' + dts, 'pts ' + pts, isKeyframe, 'duration ' + sampleDuration);
           if (sampleDuration >= 0) {
             mdatBox.samples.push(mdatSample);
             mdatSample.buffer.push(avcSample.data);
@@ -7592,7 +7611,7 @@
         this._context.registry('TS_DEMUXER', TsDemuxer$1)({ inputbuffer: 'TS_BUFFER' });
 
         // 初始化MP4 Remuxer
-        this._context.registry('MP4_REMUXER', Mp4Remuxer);
+        this._context.registry('MP4_REMUXER', Mp4Remuxer)(this._player.currentTime);
 
         // 初始化MSE
         this.mse = this._context.registry('MSE', Mse)({ container: this.container, preloadTime: this.preloadTime });
@@ -7744,7 +7763,7 @@
               }
             }
 
-            var frag = this._playlist.getTs();
+            var frag = this._playlist.getTs(this._player.currentTime * 1000);
             if (frag) {
               this._playlist.downloading(frag.url, true);
               this.emitTo('TS_LOADER', LOADER_EVENTS$2.LADER_START, frag.url);
@@ -7831,6 +7850,7 @@
         }
 
         this._playlist.clearDownloaded();
+        this._context.seek(time);
         this._preload(time);
       }
     }, {
@@ -7848,58 +7868,50 @@
           return;
         }
         var video = this.mse.container;
-        if (video.buffered.length < 1) {
-          var frag = this._playlist.getTs(0);
+        // Get current time range
+        var currentbufferend = -1;
+        if (!time) {
+          time = video.buffered.end(0);
+        }
+
+        for (var i = 0; i < video.buffered.length; i++) {
+          if (time >= video.buffered.start(i) && time < video.buffered.end(i)) {
+            currentbufferend = video.buffered.end(i);
+          }
+        }
+
+        if (currentbufferend < 0) {
+          var frag = this._playlist.getTs((time + 0.5) * 1000); // FIXME: Last frame buffer shortens duration
           if (frag && !frag.downloading && !frag.downloaded) {
             this._playlist.downloading(frag.url, true);
             this.emitTo('TS_LOADER', LOADER_EVENTS$2.LADER_START, frag.url);
           }
-        } else {
-          // Get current time range
-          var currentbufferend = -1;
-          if (!time) {
-            time = video.buffered.end(0);
+        } else if (currentbufferend < time + this.preloadTime) {
+          var _frag2 = this._playlist.getTs(currentbufferend * 1000);
+
+          if (!_frag2) {
+            return;
           }
 
-          for (var i = 0; i < video.buffered.length; i++) {
-            if (time >= video.buffered.start(i) && time < video.buffered.end(i)) {
-              currentbufferend = video.buffered.end(i);
-            }
-          }
+          // let fragend = frag ? (frag.time + frag.duration) / 1000 : 0;
 
-          if (currentbufferend < 0) {
-            var _frag2 = this._playlist.getTs((time + 0.5) * 1000); // FIXME: Last frame buffer shortens duration
-            if (_frag2 && !_frag2.downloading && !_frag2.downloaded) {
-              this._playlist.downloading(_frag2.url, true);
-              this.emitTo('TS_LOADER', LOADER_EVENTS$2.LADER_START, _frag2.url);
-            }
-          } else if (currentbufferend < time + this.preloadTime) {
-            var _frag3 = this._playlist.getTs(currentbufferend * 1000);
+          var curTime = _frag2.time;
+          var curFragTime = _frag2.time;
 
-            if (!_frag3) {
-              return;
-            }
-
-            // let fragend = frag ? (frag.time + frag.duration) / 1000 : 0;
-
-            var curTime = _frag3.time;
-            var curFragTime = _frag3.time;
-
-            if (_frag3.downloaded) {
-              var loopMax = 1000;
-              while (loopMax-- > 0) {
-                curTime += 50;
-                _frag3 = this._playlist.getTs(curTime);
-                if (!_frag3 || _frag3.time > curFragTime) {
-                  break;
-                }
+          if (_frag2.downloaded) {
+            var loopMax = 1000;
+            while (loopMax-- > 0) {
+              curTime += 50;
+              _frag2 = this._playlist.getTs(curTime);
+              if (!_frag2 || _frag2.time > curFragTime) {
+                break;
               }
             }
+          }
 
-            if (_frag3 && !_frag3.downloading && !_frag3.downloaded) {
-              this._playlist.downloading(_frag3.url, true);
-              this.emitTo('TS_LOADER', LOADER_EVENTS$2.LADER_START, _frag3.url);
-            }
+          if (_frag2 && !_frag2.downloading && !_frag2.downloaded) {
+            this._playlist.downloading(_frag2.url, true);
+            this.emitTo('TS_LOADER', LOADER_EVENTS$2.LADER_START, _frag2.url);
           }
         }
       }
@@ -7966,6 +7978,7 @@
       _this2.util.deepCopy(_this2.hlsOps, options);
       _this2._context = new Context$1(HlsAllowedEvents$1);
       _this2._handleSetCurrentTime = debounce(_this2._handleSetCurrentTime.bind(_this2), 500);
+      _this2.onWaiting = _this2.onWaiting.bind(_this2);
       return _this2;
     }
 
@@ -8015,16 +8028,26 @@
     }, {
       key: 'onWaiting',
       value: function onWaiting() {
+        var _this5 = this;
+
+        var _self = this;
         _get$1(HlsVodPlayer.prototype.__proto__ || Object.getPrototypeOf(HlsVodPlayer.prototype), 'onWaiting', this).call(this);
+        var retryTime = 10;
+        var timer = setInterval(function () {
+          if (Player.util.hasClass(_self.root, 'xgplayer-isloading')) {
+            var _detectBufferGap = _this5.detectBufferGap(),
+                gap = _detectBufferGap.gap,
+                start = _detectBufferGap.start,
+                method = _detectBufferGap.method;
 
-        var _detectBufferGap = this.detectBufferGap(),
-            gap = _detectBufferGap.gap,
-            start = _detectBufferGap.start,
-            method = _detectBufferGap.method;
-
-        if (gap) {
-          this.currentTime = Math[method](start);
-        }
+            if (gap) {
+              _this5.currentTime = Math[method](start);
+            }
+          }
+          if (retryTime-- <= 0) {
+            clearInterval(timer);
+          }
+        }, 500);
       }
     }, {
       key: '_initSrcChangeHandler',

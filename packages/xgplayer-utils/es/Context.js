@@ -9,6 +9,7 @@ function _inherits(subClass, superClass) { if (typeof superClass !== "function" 
 function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } }
 
 import MediaInfo from './models/media-info';
+import EVENTS from './constants/events';
 import { EventEmitter } from 'events';
 
 var DIRECT_EMIT_FLAG = '__TO__';
@@ -282,6 +283,17 @@ var Context = function () {
 
         return _this2.initInstance.apply(_this2, [tag].concat(args));
       };
+    }
+
+    /**
+     * 各个模块处理seek
+     * @param time
+     */
+
+  }, {
+    key: 'seek',
+    value: function seek(time) {
+      this._emitter.emit(EVENTS.PLAYER_EVENTS.SEEK, time);
     }
 
     /**

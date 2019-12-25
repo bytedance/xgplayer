@@ -46,7 +46,7 @@ class HlsVodController {
     this._context.registry('TS_DEMUXER', TsDemuxer)({ inputbuffer: 'TS_BUFFER' });
 
     // 初始化MP4 Remuxer
-    this._context.registry('MP4_REMUXER', Mp4Remuxer);
+    this._context.registry('MP4_REMUXER', Mp4Remuxer)(this._player.currentTime);
 
     // 初始化MSE
     this.mse = this._context.registry('MSE', Mse)({container: this.container, preloadTime: this.preloadTime});
@@ -186,7 +186,7 @@ class HlsVodController {
           }
         }
 
-        let frag = this._playlist.getTs();
+        let frag = this._playlist.getTs(this._player.currentTime * 1000);
         if (frag) {
           this._playlist.downloading(frag.url, true);
           this.emitTo('TS_LOADER', LOADER_EVENTS.LADER_START, frag.url)
@@ -270,6 +270,7 @@ class HlsVodController {
     }
 
     this._playlist.clearDownloaded();
+    this._context.seek(time);
     this._preload(time);
   }
 
@@ -285,58 +286,50 @@ class HlsVodController {
       return;
     }
     let video = this.mse.container;
-    if (video.buffered.length < 1) {
-      let frag = this._playlist.getTs(0);
+    // Get current time range
+    let currentbufferend = -1;
+    if (!time) {
+      time = video.buffered.end(0);
+    }
+
+    for (let i = 0; i < video.buffered.length; i++) {
+      if (time >= video.buffered.start(i) && time < video.buffered.end(i)) {
+        currentbufferend = video.buffered.end(i)
+      }
+    }
+
+    if (currentbufferend < 0) {
+      let frag = this._playlist.getTs((time + 0.5) * 1000); // FIXME: Last frame buffer shortens duration
       if (frag && !frag.downloading && !frag.downloaded) {
         this._playlist.downloading(frag.url, true);
         this.emitTo('TS_LOADER', LOADER_EVENTS.LADER_START, frag.url)
       }
-    } else {
-      // Get current time range
-      let currentbufferend = -1;
-      if (!time) {
-        time = video.buffered.end(0);
+    } else if (currentbufferend < time + this.preloadTime) {
+      let frag = this._playlist.getTs(currentbufferend * 1000);
+
+      if (!frag) {
+        return;
       }
 
-      for (let i = 0; i < video.buffered.length; i++) {
-        if (time >= video.buffered.start(i) && time < video.buffered.end(i)) {
-          currentbufferend = video.buffered.end(i)
-        }
-      }
+      // let fragend = frag ? (frag.time + frag.duration) / 1000 : 0;
 
-      if (currentbufferend < 0) {
-        let frag = this._playlist.getTs((time + 0.5) * 1000); // FIXME: Last frame buffer shortens duration
-        if (frag && !frag.downloading && !frag.downloaded) {
-          this._playlist.downloading(frag.url, true);
-          this.emitTo('TS_LOADER', LOADER_EVENTS.LADER_START, frag.url)
-        }
-      } else if (currentbufferend < time + this.preloadTime) {
-        let frag = this._playlist.getTs(currentbufferend * 1000);
+      let curTime = frag.time;
+      const curFragTime = frag.time;
 
-        if (!frag) {
-          return;
-        }
-
-        // let fragend = frag ? (frag.time + frag.duration) / 1000 : 0;
-
-        let curTime = frag.time;
-        const curFragTime = frag.time;
-
-        if (frag.downloaded) {
-          let loopMax = 1000
-          while (loopMax-- > 0) {
-            curTime += 50
-            frag = this._playlist.getTs(curTime);
-            if (!frag || frag.time > curFragTime) {
-              break;
-            }
+      if (frag.downloaded) {
+        let loopMax = 1000
+        while (loopMax-- > 0) {
+          curTime += 50
+          frag = this._playlist.getTs(curTime);
+          if (!frag || frag.time > curFragTime) {
+            break;
           }
         }
+      }
 
-        if (frag && !frag.downloading && !frag.downloaded) {
-          this._playlist.downloading(frag.url, true);
-          this.emitTo('TS_LOADER', LOADER_EVENTS.LADER_START, frag.url)
-        }
+      if (frag && !frag.downloading && !frag.downloaded) {
+        this._playlist.downloading(frag.url, true);
+        this.emitTo('TS_LOADER', LOADER_EVENTS.LADER_START, frag.url)
       }
     }
   }

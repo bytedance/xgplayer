@@ -1,6 +1,6 @@
 {
   "name": "xgplayer-flv",
-  "version": "2.2.0-beta.12",
+  "version": "2.2.0-beta.13",
   "description": "xgplayer transmuxer for FLV",
   "main": "lib/index.js",
   "module": "es/index.js",
@@ -46,12 +46,12 @@
   "dependencies": {
     "concat-typed-array": "^1.0.2",
     "event-emitter": "^0.3.5",
-    "xgplayer-buffer": "^2.2.0-alpha.0",
-    "xgplayer-codec": "^2.2.0-alpha.0",
-    "xgplayer-flv-live": "^2.2.0-alpha.0",
-    "xgplayer-flv-vod": "^2.2.0-alpha.0",
-    "xgplayer-loader": "^2.2.0-alpha.0",
-    "xgplayer-remux": "^2.2.0-alpha.0",
-    "xgplayer-utils": "^2.2.0-alpha.0"
+    "xgplayer-buffer": "^2.2.0-alpha.2",
+    "xgplayer-codec": "^2.2.0-alpha.2",
+    "xgplayer-flv-live": "^2.2.0-alpha.2",
+    "xgplayer-flv-vod": "^2.2.0-alpha.2",
+    "xgplayer-loader": "^2.2.0-alpha.2",
+    "xgplayer-remux": "^2.2.0-alpha.2",
+    "xgplayer-utils": "^2.2.0-alpha.2"
   }
 }

@@ -6,6 +6,7 @@ import { EVENTS, sniffer, MediaSegmentList, Buffer } from 'xgplayer-utils';
 import Fmp4 from './fmp4';
 
 var REMUX_EVENTS = EVENTS.REMUX_EVENTS;
+var PLAYER_EVENTS = EVENTS.PLAYER_EVENTS;
 
 var Mp4Remuxer = function () {
   function Mp4Remuxer() {
@@ -34,12 +35,13 @@ var Mp4Remuxer = function () {
       this.on(REMUX_EVENTS.REMUX_MEDIA, this.remux.bind(this));
       this.on(REMUX_EVENTS.REMUX_METADATA, this.onMetaDataReady.bind(this));
       this.on(REMUX_EVENTS.DETECT_CHANGE_STREAM, this.resetDtsBase.bind(this));
+      this.on(PLAYER_EVENTS.SEEK, this.seek.bind(this));
     }
   }, {
     key: 'destroy',
     value: function destroy() {
       this._dtsBase = -1;
-      this._dtsBaseInited = false;
+      this._isDtsBaseInited = false;
       this._videoSegmentList.clear();
       this._audioSegmentList.clear();
       this._videoSegmentList = null;
@@ -62,13 +64,14 @@ var Mp4Remuxer = function () {
     value: function resetDtsBase() {
       // for hls 中途切换 meta后seek
       this._dtsBase = 0;
-      this._dtsBaseInited = false;
+      // this._isDtsBaseInited = false
     }
   }, {
     key: 'seek',
-    value: function seek() {
-      this._videoSegmentList.clear();
-      this._audioSegmentList.clear();
+    value: function seek(time) {
+      if (!this._isDtsBaseInited) {
+        this._dtsBase = time * 1000;
+      }
     }
   }, {
     key: 'onMetaDataReady',
@@ -209,7 +212,7 @@ var Mp4Remuxer = function () {
           }
         }
         this.videoAllDuration += sampleDuration;
-        // console.log(`video dts ${dts}`, `pts ${pts}`, isKeyframe, `duration ${sampleDuration}`)
+        console.log('video dts ' + dts, 'pts ' + pts, isKeyframe, 'duration ' + sampleDuration);
         if (sampleDuration >= 0) {
           mdatBox.samples.push(mdatSample);
           mdatSample.buffer.push(avcSample.data);

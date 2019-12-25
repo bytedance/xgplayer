@@ -1,6 +1,6 @@
 {
   "name": "xgplayer-loader",
-  "version": "2.2.0-alpha.0",
+  "version": "2.2.0-alpha.2",
   "description": "",
   "main": "lib/index.js",
   "module": "es/index.js",
@@ -25,6 +25,6 @@
     "babel-cli": "^6.22.0"
   },
   "dependencies": {
-    "xgplayer-utils": "^2.2.0-alpha.0"
+    "xgplayer-utils": "^2.2.0-alpha.2"
   }
 }

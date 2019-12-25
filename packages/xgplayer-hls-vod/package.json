@@ -1,6 +1,6 @@
 {
   "name": "xgplayer-hls-vod",
-  "version": "2.2.0-alpha.0",
+  "version": "2.2.0-alpha.2",
   "description": "",
   "main": "lib/index.js",
   "module": "es/index.js",
@@ -31,13 +31,13 @@
   },
   "license": "ISC",
   "dependencies": {
-    "xgplayer-loader": "^2.2.0-alpha.0",
-    "xgplayer-buffer": "^2.2.0-alpha.0",
-    "xgplayer-codec": "^2.2.0-alpha.0",
-    "xgplayer-demux": "^2.2.0-alpha.0",
-    "xgplayer-remux": "^2.2.0-alpha.0",
-    "xgplayer-utils": "^2.2.0-alpha.0",
-    "xgplayer-polyfills": "^2.2.0-alpha.0"
+    "xgplayer-loader": "^2.2.0-alpha.2",
+    "xgplayer-buffer": "^2.2.0-alpha.2",
+    "xgplayer-codec": "^2.2.0-alpha.2",
+    "xgplayer-demux": "^2.2.0-alpha.2",
+    "xgplayer-remux": "^2.2.0-alpha.2",
+    "xgplayer-utils": "^2.2.0-alpha.2",
+    "xgplayer-polyfills": "^2.2.0-alpha.2"
   },
   "devDependencies": {
     "cross-env": "^6.0.3"
