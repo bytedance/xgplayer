@@ -1,6 +1,7 @@
 import 'xgplayer-polyfills/babel/external-helpers';
 import Player from 'xgplayer'
-import { Context, EVENTS } from 'xgplayer-utils';
+import EVENTS from 'xgplayer-transmuxer-constant-events'
+import Context from 'xgplayer-transmuxer-context';
 import FLV from './flv-live'
 const flvAllowedEvents = EVENTS.FlvAllowedEvents;
 
@@ -57,7 +58,6 @@ class FlvPlayer extends Player {
         this.context.destroy();
         this.context = ctx;
       }
-
     })
 
     flv.once(EVENTS.LOADER_EVENTS.LOADER_COMPLETE, () => {
@@ -81,7 +81,6 @@ class FlvPlayer extends Player {
   }
 
   initEvents () {
-
     this.on('seeking', () => {
       const time = this.currentTime
       const range = this.getBufferedRange()
@@ -89,7 +88,6 @@ class FlvPlayer extends Player {
         this.flv.seek(this.currentTime)
       }
     })
-
   }
 
   initFlv () {
@@ -107,7 +105,6 @@ class FlvPlayer extends Player {
         this.start()
         return super.play()
       })
-
     } else {
       return super.play()
     }

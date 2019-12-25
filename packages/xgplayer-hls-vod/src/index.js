@@ -1,13 +1,13 @@
 import 'xgplayer-polyfills/babel/external-helpers';
 import Player from 'xgplayer'
-import { Context, EVENTS } from 'xgplayer-utils';
+import EVENTS from 'xgplayer-transmuxer-constant-events'
+import Context from 'xgplayer-transmuxer-context';
 import HlsVodController from './hls-vod';
 
 const HlsAllowedEvents = EVENTS.HlsAllowedEvents;
 const REMUX_EVENTS = EVENTS.REMUX_EVENTS;
 const HLS_EVENTS = EVENTS.HLS_EVENTS;
 
-let waitTimer = null;
 class HlsVodPlayer extends Player {
   constructor (options) {
     super(options)

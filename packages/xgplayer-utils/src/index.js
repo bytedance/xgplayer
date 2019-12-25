@@ -14,7 +14,6 @@ import _MediaInfo from './models/media-info';
 import _MediaSample from './models/media-sample';
 import _MediaSegment from './models/media-segment';
 import _MediaSegmentList from './models/media-segment-list';
-import { AudioTrackMeta as _AudioTrackMeta, VideoTrackMeta as _VideoTrackMeta } from './models/track-meta'
 
 import { AudioTrackSample as _AudioTrackSample, VideoTrackSample as _VideoTrackSample } from './models/track-sample';
 
@@ -40,8 +39,6 @@ export const MediaInfo = _MediaInfo
 export const MediaSample = _MediaSample
 export const MediaSegment = _MediaSegment
 export const MediaSegmentList = _MediaSegmentList
-export const AudioTrackMeta = _AudioTrackMeta
-export const VideoTrackMeta = _VideoTrackMeta
 export const AudioTrackSample = _AudioTrackSample
 export const VideoTrackSample = _VideoTrackSample
 export const Mse = _Mse

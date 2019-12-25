@@ -1,8 +1,8 @@
 import 'xgplayer-polyfills/babel/external-helpers';
-import Player from 'xgplayer'
-import { Context, EVENTS } from 'xgplayer-utils';
+import Player from 'xgplayer';
+import EVENTS from 'xgplayer-transmuxer-constant-events';
+import Context from 'xgplayer-transmuxer-context';
 import FLV from './flv-vod'
-console.log(Context)
 
 const flvAllowedEvents = EVENTS.FlvAllowedEvents;
 

@@ -1,9 +1,14 @@
-import Remuxer from 'xgplayer-remux'
-import { FlvDemuxer } from 'xgplayer-demux'
-import { FetchLoader } from 'xgplayer-loader'
-import { Tracks, XgBuffer, PreSource } from 'xgplayer-buffer'
-import { Mse, EVENTS } from 'xgplayer-utils'
-import { Compatibility } from 'xgplayer-codec'
+import Remuxer from 'xgplayer-transmuxer-remux-mp4'
+import FlvDemuxer from 'xgplayer-transmuxer-demux-flv'
+import FetchLoader from 'xgplayer-transmuxer-loader-fetch'
+import EVENTS from 'xgplayer-transmuxer-constant-events'
+
+import Tracks from 'xgplayer-transmuxer-buffer-track'
+import PreSource from 'xgplayer-transmuxer-buffer-presource'
+import XgBuffer from 'xgplayer-transmuxer-buffer-xgbuffer'
+import Compatibility from 'xgplayer-transmuxer-codec-compatibility'
+
+import Mse from 'xgplayer-utils-mse'
 import Player from 'xgplayer'
 
 const REMUX_EVENTS = EVENTS.REMUX_EVENTS;
@@ -52,7 +57,7 @@ export default class FlvController {
     this._context.registry('FLV_DEMUXER', FlvDemuxer)
     this._context.registry('TRACKS', Tracks)
 
-    this._context.registry('MP4_REMUXER', Remuxer.Mp4Remuxer)(this._player.currentTime)
+    this._context.registry('MP4_REMUXER', Remuxer)(this._player.currentTime)
     this._context.registry('PRE_SOURCE_BUFFER', PreSource)
 
     if (this._player.config.compatibility !== false) {

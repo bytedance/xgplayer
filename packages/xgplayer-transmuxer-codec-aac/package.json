@@ -1,0 +1,25 @@
+{
+  "name": "xgplayer-transmuxer-codec-aac",
+  "version": "2.2.0-alpha.0",
+  "description": "",
+  "main": "es/index.js",
+  "module": "es/index.js",
+  "scripts": {
+    "build": "babel src --out-dir es"
+  },
+  "author": "",
+  "license": "ISC",
+  "babel": {
+    "presets": [
+      [
+        "es2015",
+        {
+          "modules": false
+        }
+      ]
+    ],
+    "plugins": [
+      "external-helpers"
+    ]
+  }
+}

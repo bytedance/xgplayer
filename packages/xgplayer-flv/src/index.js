@@ -1,7 +1,7 @@
 import FlvLivePlayer from 'xgplayer-flv-live'
 import FlvVodPlayer from 'xgplayer-flv-vod'
 
-class FlvPlayer{
+class FlvPlayer {
   constructor (config) {
     if (config.isLive) {
       return new FlvLivePlayer(config)
