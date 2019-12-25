@@ -28,6 +28,13 @@
     display: none;
   }
 }
+
+.xgplayer-skin-default.xgplayer-mobile.xgplayer-mobile-npassed{
+  .xgplayer-controls {
+    display: none;
+  }
+}
+
 .xgplayer-skin-default.xgplayer-is-live {
   .xgplayer-controls {
     > *{
