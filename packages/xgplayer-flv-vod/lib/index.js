@@ -57,16 +57,22 @@ var FlvVodPlayer = function (_Player) {
     _this.context = new _xgplayerTransmuxerContext2.default(flvAllowedEvents);
     _this.initEvents();
     // const preloadTime = player.config.preloadTime || 15
+    _this.started = false;
     return _this;
   }
 
   _createClass(FlvVodPlayer, [{
     key: 'start',
     value: function start() {
+      if (this.started) {
+        return;
+      }
+      this.started = true;
       var flv = this.initFlv();
 
       flv.loadMeta();
       _get(FlvVodPlayer.prototype.__proto__ || Object.getPrototypeOf(FlvVodPlayer.prototype), 'start', this).call(this, flv.mse.url);
+      this.started = true;
     }
   }, {
     key: 'initFlv',

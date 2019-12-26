@@ -27,3 +27,7 @@ cd ${SRC_DIR}/packages/xgplayer-utils-crypto && npm publish --tag=alpha --regist
 cd ${SRC_DIR}/packages/xgplayer-utils-mse && npm publish --tag=alpha --registry https://registry.npmjs.org
 cd ${SRC_DIR}/packages/xgplayer-utils-sniffer && npm publish --tag=alpha --registry https://registry.npmjs.org
 cd ${SRC_DIR}/packages/xgplayer-utils-utf8 && npm publish --tag=alpha --registry https://registry.npmjs.org
+cd ${SRC_DIR}/packages/xgplayer-flv-vod && npm publish --tag=alpha --registry https://registry.npmjs.org
+cd ${SRC_DIR}/packages/xgplayer-flv-live && npm publish --tag=alpha --registry https://registry.npmjs.org
+cd ${SRC_DIR}/packages/xgplayer-hls-live && npm publish --tag=alpha --registry https://registry.npmjs.org
+cd ${SRC_DIR}/packages/xgplayer-hls-vod && npm publish --tag=alpha --registry https://registry.npmjs.org

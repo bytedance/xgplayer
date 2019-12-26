@@ -47,7 +47,7 @@ var HlsLivePlayer = function (_Player) {
     _this2.util = _xgplayer2.default.util;
     _this2.util.deepCopy(_this2.hlsOps, options);
     _this2._context = new _xgplayerTransmuxerContext2.default(HlsAllowedEvents);
-    _this2._hasStarted = false;
+    _this2.started = false;
     return _this2;
   }
 
@@ -58,12 +58,12 @@ var HlsLivePlayer = function (_Player) {
 
       this.__core__.once(REMUX_EVENTS.INIT_SEGMENT, function () {
         var mse = _this3._context.getInstance('MSE');
-        if (!_this3._hasStarted) {
+        if (!_this3.started) {
           var live = _this3.util.createDom('xg-live', '正在直播', {}, 'xgplayer-live');
           _this3.util.addClass(_this3.root, 'xgplayer-is-live');
           _this3.controls.appendChild(live);
         }
-        _this3._hasStarted = true;
+        _this3.started = true;
         _get(HlsLivePlayer.prototype.__proto__ || Object.getPrototypeOf(HlsLivePlayer.prototype), 'start', _this3).call(_this3, mse.url);
       });
 
@@ -105,7 +105,7 @@ var HlsLivePlayer = function (_Player) {
     value: function start() {
       var url = arguments.length > 0 && arguments[0] !== undefined ? arguments[0] : this.config.url;
 
-      if (!url) {
+      if (!url || this.started) {
         return;
       }
       this.__core__ = this._context.registry('HLS_LIVE_CONTROLLER', _hlsLive2.default)({ player: this, container: this.video });
@@ -118,7 +118,7 @@ var HlsLivePlayer = function (_Player) {
   }, {
     key: 'play',
     value: function play() {
-      if (this._hasStarted) {
+      if (this.started) {
         this._context.destroy();
         this._context = new _xgplayerTransmuxerContext2.default(HlsAllowedEvents);
         this.__core__ = this._context.registry('HLS_LIVE_CONTROLLER', _hlsLive2.default)({ container: this.video });

@@ -14,6 +14,14 @@ var _xgplayer = require('xgplayer');
 
 var _xgplayer2 = _interopRequireDefault(_xgplayer);
 
+var _xgplayerTransmuxerConstantEvents = require('xgplayer-transmuxer-constant-events');
+
+var _xgplayerTransmuxerConstantEvents2 = _interopRequireDefault(_xgplayerTransmuxerConstantEvents);
+
+var _xgplayerTransmuxerContext = require('xgplayer-transmuxer-context');
+
+var _xgplayerTransmuxerContext2 = _interopRequireDefault(_xgplayerTransmuxerContext);
+
 var _xgplayerUtils = require('xgplayer-utils');
 
 var _hlsVod = require('./hls-vod');
@@ -28,9 +36,9 @@ function _possibleConstructorReturn(self, call) { if (!self) { throw new Referen
 
 function _inherits(subClass, superClass) { if (typeof superClass !== "function" && superClass !== null) { throw new TypeError("Super expression must either be null or a function, not " + typeof superClass); } subClass.prototype = Object.create(superClass && superClass.prototype, { constructor: { value: subClass, enumerable: false, writable: true, configurable: true } }); if (superClass) Object.setPrototypeOf ? Object.setPrototypeOf(subClass, superClass) : subClass.__proto__ = superClass; }
 
-var HlsAllowedEvents = _xgplayerUtils.EVENTS.HlsAllowedEvents;
-var REMUX_EVENTS = _xgplayerUtils.EVENTS.REMUX_EVENTS;
-var HLS_EVENTS = _xgplayerUtils.EVENTS.HLS_EVENTS;
+var HlsAllowedEvents = _xgplayerTransmuxerConstantEvents2.default.HlsAllowedEvents;
+var REMUX_EVENTS = _xgplayerTransmuxerConstantEvents2.default.REMUX_EVENTS;
+var HLS_EVENTS = _xgplayerTransmuxerConstantEvents2.default.HLS_EVENTS;
 
 var HlsVodPlayer = function (_Player) {
   _inherits(HlsVodPlayer, _Player);
@@ -43,8 +51,10 @@ var HlsVodPlayer = function (_Player) {
     _this2.hlsOps = {};
     _this2.util = _xgplayer2.default.util;
     _this2.util.deepCopy(_this2.hlsOps, options);
-    _this2._context = new _xgplayerUtils.Context(HlsAllowedEvents);
+    _this2._context = new _xgplayerTransmuxerContext2.default(HlsAllowedEvents);
     _this2._handleSetCurrentTime = (0, _xgplayerUtils.debounce)(_this2._handleSetCurrentTime.bind(_this2), 500);
+    _this2.onWaiting = _this2.onWaiting.bind(_this2);
+    _this2.started = false;
     return _this2;
   }
 
@@ -94,16 +104,26 @@ var HlsVodPlayer = function (_Player) {
   }, {
     key: 'onWaiting',
     value: function onWaiting() {
+      var _this5 = this;
+
+      var _self = this;
       _get(HlsVodPlayer.prototype.__proto__ || Object.getPrototypeOf(HlsVodPlayer.prototype), 'onWaiting', this).call(this);
+      var retryTime = 10;
+      var timer = setInterval(function () {
+        if (_xgplayer2.default.util.hasClass(_self.root, 'xgplayer-isloading')) {
+          var _detectBufferGap = _this5.detectBufferGap(),
+              gap = _detectBufferGap.gap,
+              start = _detectBufferGap.start,
+              method = _detectBufferGap.method;
 
-      var _detectBufferGap = this.detectBufferGap(),
-          gap = _detectBufferGap.gap,
-          start = _detectBufferGap.start,
-          method = _detectBufferGap.method;
-
-      if (gap) {
-        this.currentTime = Math[method](start);
-      }
+          if (gap) {
+            _this5.currentTime = Math[method](start);
+          }
+        }
+        if (retryTime-- <= 0) {
+          clearInterval(timer);
+        }
+      }, 500);
     }
   }, {
     key: '_initSrcChangeHandler',
@@ -139,14 +159,17 @@ var HlsVodPlayer = function (_Player) {
     value: function start() {
       var url = arguments.length > 0 && arguments[0] !== undefined ? arguments[0] : this.config.url;
 
-      if (!url) {
+      if (!url || this.started) {
         return;
       }
+
       this.__core__ = this._context.registry('HLS_LIVE_CONTROLLER', _hlsVod2.default)({ player: this, container: this.video });
       this._context.init();
       this.__core__.load(url);
       this._initEvents();
       this._initSrcChangeHandler();
+
+      this.started = true;
     }
   }, {
     key: 'destroy',

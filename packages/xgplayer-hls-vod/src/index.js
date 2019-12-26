@@ -17,6 +17,7 @@ class HlsVodPlayer extends Player {
     this._context = new Context(HlsAllowedEvents);
     this._handleSetCurrentTime = debounce(this._handleSetCurrentTime.bind(this), 500)
     this.onWaiting = this.onWaiting.bind(this)
+    this.started = false;
   }
 
   get currentTime () {
@@ -79,7 +80,6 @@ class HlsVodPlayer extends Player {
     }, 500)
   }
 
-
   _initSrcChangeHandler () {
     let _this = this;
     Object.defineProperty(this, 'src', {
@@ -108,14 +108,17 @@ class HlsVodPlayer extends Player {
   }
 
   start (url = this.config.url) {
-    if (!url) {
+    if (!url || this.started) {
       return;
     }
+
     this.__core__ = this._context.registry('HLS_LIVE_CONTROLLER', HlsVodController)({player: this, container: this.video});
     this._context.init();
     this.__core__.load(url);
     this._initEvents();
     this._initSrcChangeHandler();
+
+    this.started = true;
   }
 
   destroy () {

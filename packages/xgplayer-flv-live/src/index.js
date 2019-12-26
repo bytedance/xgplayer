@@ -10,14 +10,19 @@ class FlvPlayer extends Player {
     this.context = new Context(flvAllowedEvents)
     this.initEvents()
     this.loaderCompleteTimer = null
+    this.started = false
     // const preloadTime = player.config.preloadTime || 15
   }
 
   start () {
+    if (this.started) {
+      return;
+    }
     this.initFlv()
     this.context.init()
     super.start(this.flv.mse.url)
     this.loadData()
+    this.started = true
   }
 
   initFlvEvents (flv) {

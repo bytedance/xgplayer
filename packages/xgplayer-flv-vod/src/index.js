@@ -23,13 +23,19 @@ class FlvVodPlayer extends Player {
     this.context = new Context(flvAllowedEvents)
     this.initEvents()
     // const preloadTime = player.config.preloadTime || 15
+    this.started = false;
   }
 
   start () {
+    if (this.started) {
+      return;
+    }
+    this.started = true;
     const flv = this.initFlv();
 
     flv.loadMeta()
     super.start(flv.mse.url)
+    this.started = true;
   }
 
   initFlv () {

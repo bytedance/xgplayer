@@ -1,10 +1,11 @@
 {
   "name": "xgplayer-utils",
-  "version": "2.2.0-alpha.3",
+  "version": "2.2.0-alpha.6",
   "description": "",
   "main": "lib/index.js",
   "module": "es/index.js",
   "scripts": {
+    "prepare": "npm run build",
     "build": "npm run build:es && npm run build:lib",
     "build:es": "babel src --out-dir es",
     "build:lib": "babel src --out-dir lib --presets=es2015"
@@ -27,6 +28,6 @@
   },
   "dependencies": {
     "concat-typed-array": "^1.0.2",
-    "xgplayer-transmuxer-constant-events": "^2.2.0-alpha.3"
+    "xgplayer-transmuxer-constant-events": "^2.2.0-alpha.6"
   }
 }

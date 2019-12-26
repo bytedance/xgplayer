@@ -2,13 +2,19 @@ var _createClass = function () { function defineProperties(target, props) { for 
 
 function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } }
 
-import { EVENTS, Mse, Crypto } from 'xgplayer-utils';
-import { XgBuffer, PreSource, Tracks } from 'xgplayer-buffer';
-import { FetchLoader } from 'xgplayer-loader';
-import { Compatibility } from 'xgplayer-codec';
-import Mp4Remuxer from 'xgplayer-remux/src/mp4/index';
+import EVENTS from 'xgplayer-transmuxer-constant-events';
+import Mse from 'xgplayer-utils-mse';
+import Tracks from 'xgplayer-transmuxer-buffer-track';
+import PreSource from 'xgplayer-transmuxer-buffer-presource';
+import XgBuffer from 'xgplayer-transmuxer-buffer-xgbuffer';
+import FetchLoader from 'xgplayer-transmuxer-loader-fetch';
+import Compatibility from 'xgplayer-transmuxer-codec-compatibility';
+import Mp4Remuxer from 'xgplayer-transmuxer-remux-mp4';
+import Crypto from 'xgplayer-utils-crypto';
 
-import { Playlist, M3U8Parser, TsDemuxer } from 'xgplayer-demux';
+import M3U8Parser from 'xgplayer-transmuxer-demux-m3u8';
+import TsDemuxer from 'xgplayer-transmuxer-demux-ts';
+import Playlist from 'xgplayer-transmuxer-buffer-playlist';
 
 var LOADER_EVENTS = EVENTS.LOADER_EVENTS;
 var REMUX_EVENTS = EVENTS.REMUX_EVENTS;
@@ -55,7 +61,7 @@ var HlsVodController = function () {
       this._context.registry('TS_DEMUXER', TsDemuxer)({ inputbuffer: 'TS_BUFFER' });
 
       // 初始化MP4 Remuxer
-      this._context.registry('MP4_REMUXER', Mp4Remuxer);
+      this._context.registry('MP4_REMUXER', Mp4Remuxer)(this._player.currentTime);
 
       // 初始化MSE
       this.mse = this._context.registry('MSE', Mse)({ container: this.container, preloadTime: this.preloadTime });
@@ -207,7 +213,7 @@ var HlsVodController = function () {
             }
           }
 
-          var frag = this._playlist.getTs();
+          var frag = this._playlist.getTs(this._player.currentTime * 1000);
           if (frag) {
             this._playlist.downloading(frag.url, true);
             this.emitTo('TS_LOADER', LOADER_EVENTS.LADER_START, frag.url);
@@ -226,7 +232,7 @@ var HlsVodController = function () {
         this.retrytimes = this.configs.retrytimes || 3;
         this._playlist.downloaded(this._tsloader.url, true);
         this.emitTo('CRYPTO', CRYTO_EVENTS.START_DECRYPT, Object.assign({ url: this._tsloader.url }, this._playlist._ts[this._tsloader.url]));
-      } else if (buffer.TAG == 'KEY_BUFFER') {
+      } else if (buffer.TAG === 'KEY_BUFFER') {
         this.retrytimes = this.configs.retrytimes || 3;
         this._playlist.encrypt.key = buffer.shift();
         this._crypto = this._context.registry('CRYPTO', Crypto)({
@@ -294,6 +300,7 @@ var HlsVodController = function () {
       }
 
       this._playlist.clearDownloaded();
+      this._context.seek(time);
       this._preload(time);
     }
   }, {
@@ -311,58 +318,50 @@ var HlsVodController = function () {
         return;
       }
       var video = this.mse.container;
-      if (video.buffered.length < 1) {
-        var frag = this._playlist.getTs(0);
+      // Get current time range
+      var currentbufferend = -1;
+      if (!time && video.buffered.length) {
+        time = video.buffered.end(0);
+      }
+
+      for (var i = 0; i < video.buffered.length; i++) {
+        if (time >= video.buffered.start(i) && time < video.buffered.end(i)) {
+          currentbufferend = video.buffered.end(i);
+        }
+      }
+
+      if (currentbufferend < 0) {
+        var frag = this._playlist.getTs((time + 0.5) * 1000); // FIXME: Last frame buffer shortens duration
         if (frag && !frag.downloading && !frag.downloaded) {
           this._playlist.downloading(frag.url, true);
           this.emitTo('TS_LOADER', LOADER_EVENTS.LADER_START, frag.url);
         }
-      } else {
-        // Get current time range
-        var currentbufferend = -1;
-        if (!time) {
-          time = video.buffered.end(0);
+      } else if (currentbufferend < time + this.preloadTime) {
+        var _frag2 = this._playlist.getTs(currentbufferend * 1000);
+
+        if (!_frag2) {
+          return;
         }
 
-        for (var i = 0; i < video.buffered.length; i++) {
-          if (time >= video.buffered.start(i) && time < video.buffered.end(i)) {
-            currentbufferend = video.buffered.end(i);
-          }
-        }
+        // let fragend = frag ? (frag.time + frag.duration) / 1000 : 0;
 
-        if (currentbufferend < 0) {
-          var _frag2 = this._playlist.getTs((time + 0.5) * 1000); // FIXME: Last frame buffer shortens duration
-          if (_frag2 && !_frag2.downloading && !_frag2.downloaded) {
-            this._playlist.downloading(_frag2.url, true);
-            this.emitTo('TS_LOADER', LOADER_EVENTS.LADER_START, _frag2.url);
-          }
-        } else if (currentbufferend < time + this.preloadTime) {
-          var _frag3 = this._playlist.getTs(currentbufferend * 1000);
+        var curTime = _frag2.time;
+        var curFragTime = _frag2.time;
 
-          if (!_frag3) {
-            return;
-          }
-
-          // let fragend = frag ? (frag.time + frag.duration) / 1000 : 0;
-
-          var curTime = _frag3.time;
-          var curFragTime = _frag3.time;
-
-          if (_frag3.downloaded) {
-            var loopMax = 1000;
-            while (loopMax-- > 0) {
-              curTime += 50;
-              _frag3 = this._playlist.getTs(curTime);
-              if (!_frag3 || _frag3.time > curFragTime) {
-                break;
-              }
+        if (_frag2.downloaded) {
+          var loopMax = 1000;
+          while (loopMax-- > 0) {
+            curTime += 50;
+            _frag2 = this._playlist.getTs(curTime);
+            if (!_frag2 || _frag2.time > curFragTime) {
+              break;
             }
           }
+        }
 
-          if (_frag3 && !_frag3.downloading && !_frag3.downloaded) {
-            this._playlist.downloading(_frag3.url, true);
-            this.emitTo('TS_LOADER', LOADER_EVENTS.LADER_START, _frag3.url);
-          }
+        if (_frag2 && !_frag2.downloading && !_frag2.downloaded) {
+          this._playlist.downloading(_frag2.url, true);
+          this.emitTo('TS_LOADER', LOADER_EVENTS.LADER_START, _frag2.url);
         }
       }
     }

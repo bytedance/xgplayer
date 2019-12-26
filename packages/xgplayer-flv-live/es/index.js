@@ -25,6 +25,7 @@ var FlvPlayer = function (_Player) {
     _this.context = new Context(flvAllowedEvents);
     _this.initEvents();
     _this.loaderCompleteTimer = null;
+    _this.started = false;
     // const preloadTime = player.config.preloadTime || 15
     return _this;
   }
@@ -32,10 +33,14 @@ var FlvPlayer = function (_Player) {
   _createClass(FlvPlayer, [{
     key: 'start',
     value: function start() {
+      if (this.started) {
+        return;
+      }
       this.initFlv();
       this.context.init();
       _get(FlvPlayer.prototype.__proto__ || Object.getPrototypeOf(FlvPlayer.prototype), 'start', this).call(this, this.flv.mse.url);
       this.loadData();
+      this.started = true;
     }
   }, {
     key: 'initFlvEvents',
