@@ -293,7 +293,7 @@ class HlsVodController {
     let video = this.mse.container;
     // Get current time range
     let currentbufferend = -1;
-    if (!time) {
+    if (!time && video.buffered.length) {
       time = video.buffered.end(0);
     }
 

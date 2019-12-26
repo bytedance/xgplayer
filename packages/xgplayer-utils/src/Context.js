@@ -1,5 +1,5 @@
 import MediaInfo from './models/media-info'
-import EVENTS from './constants/events'
+import EVENTS from 'xgplayer-transmuxer-constant-events'
 import { EventEmitter } from 'events'
 
 const DIRECT_EMIT_FLAG = '__TO__'

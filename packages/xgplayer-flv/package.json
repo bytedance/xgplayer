@@ -44,7 +44,7 @@
     "xgplayer": "^0.1.0"
   },
   "dependencies": {
-    "xgplayer-flv-live": "^2.2.0-alpha.2",
-    "xgplayer-flv-vod": "^2.2.0-alpha.2"
+    "xgplayer-flv-live": "^2.2.0-alpha.3",
+    "xgplayer-flv-vod": "^2.2.0-alpha.3"
   }
 }

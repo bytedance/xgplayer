@@ -6,21 +6,41 @@ Object.defineProperty(exports, "__esModule", {
 
 var _createClass = function () { function defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ("value" in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } } return function (Constructor, protoProps, staticProps) { if (protoProps) defineProperties(Constructor.prototype, protoProps); if (staticProps) defineProperties(Constructor, staticProps); return Constructor; }; }();
 
-var _flv = require('../../xgplayer-demux/src/flv');
+var _xgplayerTransmuxerLoaderFetch = require('xgplayer-transmuxer-loader-fetch');
 
-var _flv2 = _interopRequireDefault(_flv);
+var _xgplayerTransmuxerLoaderFetch2 = _interopRequireDefault(_xgplayerTransmuxerLoaderFetch);
 
-var _xgplayerRemux = require('xgplayer-remux');
+var _xgplayerTransmuxerDemuxFlv = require('xgplayer-transmuxer-demux-flv');
 
-var _xgplayerRemux2 = _interopRequireDefault(_xgplayerRemux);
+var _xgplayerTransmuxerDemuxFlv2 = _interopRequireDefault(_xgplayerTransmuxerDemuxFlv);
 
-var _xgplayerBuffer = require('xgplayer-buffer');
+var _xgplayerTransmuxerRemuxMp = require('xgplayer-transmuxer-remux-mp4');
 
-var _xgplayerLoader = require('xgplayer-loader');
+var _xgplayerTransmuxerRemuxMp2 = _interopRequireDefault(_xgplayerTransmuxerRemuxMp);
 
-var _xgplayerUtils = require('xgplayer-utils');
+var _xgplayerTransmuxerConstantEvents = require('xgplayer-transmuxer-constant-events');
 
-var _xgplayerCodec = require('xgplayer-codec');
+var _xgplayerTransmuxerConstantEvents2 = _interopRequireDefault(_xgplayerTransmuxerConstantEvents);
+
+var _xgplayerTransmuxerBufferTrack = require('xgplayer-transmuxer-buffer-track');
+
+var _xgplayerTransmuxerBufferTrack2 = _interopRequireDefault(_xgplayerTransmuxerBufferTrack);
+
+var _xgplayerTransmuxerBufferPresource = require('xgplayer-transmuxer-buffer-presource');
+
+var _xgplayerTransmuxerBufferPresource2 = _interopRequireDefault(_xgplayerTransmuxerBufferPresource);
+
+var _xgplayerTransmuxerBufferXgbuffer = require('xgplayer-transmuxer-buffer-xgbuffer');
+
+var _xgplayerTransmuxerBufferXgbuffer2 = _interopRequireDefault(_xgplayerTransmuxerBufferXgbuffer);
+
+var _xgplayerTransmuxerCodecCompatibility = require('xgplayer-transmuxer-codec-compatibility');
+
+var _xgplayerTransmuxerCodecCompatibility2 = _interopRequireDefault(_xgplayerTransmuxerCodecCompatibility);
+
+var _xgplayerUtilsMse = require('xgplayer-utils-mse');
+
+var _xgplayerUtilsMse2 = _interopRequireDefault(_xgplayerUtilsMse);
 
 var _xgplayer = require('xgplayer');
 
@@ -30,9 +50,9 @@ function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { de
 
 function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } }
 
-var REMUX_EVENTS = _xgplayerUtils.EVENTS.REMUX_EVENTS;
-var DEMUX_EVENTS = _xgplayerUtils.EVENTS.DEMUX_EVENTS;
-var LOADER_EVENTS = _xgplayerUtils.EVENTS.LOADER_EVENTS;
+var REMUX_EVENTS = _xgplayerTransmuxerConstantEvents2.default.REMUX_EVENTS;
+var DEMUX_EVENTS = _xgplayerTransmuxerConstantEvents2.default.DEMUX_EVENTS;
+var LOADER_EVENTS = _xgplayerTransmuxerConstantEvents2.default.LOADER_EVENTS;
 
 var Tag = 'FLVController';
 
@@ -72,20 +92,20 @@ var FlvController = function () {
   _createClass(FlvController, [{
     key: 'init',
     value: function init() {
-      this._context.registry('FETCH_LOADER', _xgplayerLoader.FetchLoader);
-      this._context.registry('LOADER_BUFFER', _xgplayerBuffer.XgBuffer);
+      this._context.registry('FETCH_LOADER', _xgplayerTransmuxerLoaderFetch2.default);
+      this._context.registry('LOADER_BUFFER', _xgplayerTransmuxerBufferXgbuffer2.default);
 
-      this._context.registry('FLV_DEMUXER', _flv2.default);
-      this._context.registry('TRACKS', _xgplayerBuffer.Tracks);
+      this._context.registry('FLV_DEMUXER', _xgplayerTransmuxerDemuxFlv2.default);
+      this._context.registry('TRACKS', _xgplayerTransmuxerBufferTrack2.default);
 
-      this._context.registry('MP4_REMUXER', _xgplayerRemux2.default.Mp4Remuxer)(this._player.currentTime);
-      this._context.registry('PRE_SOURCE_BUFFER', _xgplayerBuffer.PreSource);
+      this._context.registry('MP4_REMUXER', _xgplayerTransmuxerRemuxMp2.default)(this._player.currentTime);
+      this._context.registry('PRE_SOURCE_BUFFER', _xgplayerTransmuxerBufferPresource2.default);
 
-      // this._context.registry('COMPATIBILITY', Compatibility)
+      this._context.registry('COMPATIBILITY', _xgplayerTransmuxerCodecCompatibility2.default);
 
       this._context.registry('LOGGER', Logger);
       if (!this.mse) {
-        this.mse = new _xgplayerUtils.Mse({ container: this._player.video }, this._context);
+        this.mse = new _xgplayerUtilsMse2.default({ container: this._player.video }, this._context);
         this.mse.init();
       }
 
@@ -344,7 +364,7 @@ var FlvController = function () {
   }, {
     key: 'loadBuffer',
     get: function get() {
-      return this_context.getInstance('LOADER_BUFFER');
+      return this._context.getInstance('LOADER_BUFFER');
     }
   }], [{
     key: 'findFilePosition',

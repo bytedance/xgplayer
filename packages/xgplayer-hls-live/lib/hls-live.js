@@ -6,29 +6,63 @@ Object.defineProperty(exports, "__esModule", {
 
 var _createClass = function () { function defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ("value" in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } } return function (Constructor, protoProps, staticProps) { if (protoProps) defineProperties(Constructor.prototype, protoProps); if (staticProps) defineProperties(Constructor, staticProps); return Constructor; }; }();
 
-var _xgplayerUtils = require('xgplayer-utils');
+var _xgplayerTransmuxerConstantEvents = require('xgplayer-transmuxer-constant-events');
 
-var _xgplayerBuffer = require('xgplayer-buffer');
+var _xgplayerTransmuxerConstantEvents2 = _interopRequireDefault(_xgplayerTransmuxerConstantEvents);
 
-var _xgplayerLoader = require('xgplayer-loader');
+var _xgplayerUtilsMse = require('xgplayer-utils-mse');
 
-var _xgplayerCodec = require('xgplayer-codec');
+var _xgplayerUtilsMse2 = _interopRequireDefault(_xgplayerUtilsMse);
 
-var _index = require('xgplayer-remux/src/mp4/index');
+var _xgplayerTransmuxerBufferTrack = require('xgplayer-transmuxer-buffer-track');
 
-var _index2 = _interopRequireDefault(_index);
+var _xgplayerTransmuxerBufferTrack2 = _interopRequireDefault(_xgplayerTransmuxerBufferTrack);
 
-var _xgplayerDemux = require('xgplayer-demux');
+var _xgplayerTransmuxerBufferPresource = require('xgplayer-transmuxer-buffer-presource');
+
+var _xgplayerTransmuxerBufferPresource2 = _interopRequireDefault(_xgplayerTransmuxerBufferPresource);
+
+var _xgplayerTransmuxerBufferXgbuffer = require('xgplayer-transmuxer-buffer-xgbuffer');
+
+var _xgplayerTransmuxerBufferXgbuffer2 = _interopRequireDefault(_xgplayerTransmuxerBufferXgbuffer);
+
+var _xgplayerTransmuxerLoaderFetch = require('xgplayer-transmuxer-loader-fetch');
+
+var _xgplayerTransmuxerLoaderFetch2 = _interopRequireDefault(_xgplayerTransmuxerLoaderFetch);
+
+var _xgplayerTransmuxerCodecCompatibility = require('xgplayer-transmuxer-codec-compatibility');
+
+var _xgplayerTransmuxerCodecCompatibility2 = _interopRequireDefault(_xgplayerTransmuxerCodecCompatibility);
+
+var _xgplayerTransmuxerRemuxMp = require('xgplayer-transmuxer-remux-mp4');
+
+var _xgplayerTransmuxerRemuxMp2 = _interopRequireDefault(_xgplayerTransmuxerRemuxMp);
+
+var _xgplayerUtilsCrypto = require('xgplayer-utils-crypto');
+
+var _xgplayerUtilsCrypto2 = _interopRequireDefault(_xgplayerUtilsCrypto);
+
+var _xgplayerTransmuxerDemuxM3u = require('xgplayer-transmuxer-demux-m3u8');
+
+var _xgplayerTransmuxerDemuxM3u2 = _interopRequireDefault(_xgplayerTransmuxerDemuxM3u);
+
+var _xgplayerTransmuxerDemuxTs = require('xgplayer-transmuxer-demux-ts');
+
+var _xgplayerTransmuxerDemuxTs2 = _interopRequireDefault(_xgplayerTransmuxerDemuxTs);
+
+var _xgplayerTransmuxerBufferPlaylist = require('xgplayer-transmuxer-buffer-playlist');
+
+var _xgplayerTransmuxerBufferPlaylist2 = _interopRequireDefault(_xgplayerTransmuxerBufferPlaylist);
 
 function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
 
 function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } }
 
-var LOADER_EVENTS = _xgplayerUtils.EVENTS.LOADER_EVENTS;
-var REMUX_EVENTS = _xgplayerUtils.EVENTS.REMUX_EVENTS;
-var DEMUX_EVENTS = _xgplayerUtils.EVENTS.DEMUX_EVENTS;
-var HLS_EVENTS = _xgplayerUtils.EVENTS.HLS_EVENTS;
-var CRYTO_EVENTS = _xgplayerUtils.EVENTS.CRYTO_EVENTS;
+var LOADER_EVENTS = _xgplayerTransmuxerConstantEvents2.default.LOADER_EVENTS;
+var REMUX_EVENTS = _xgplayerTransmuxerConstantEvents2.default.REMUX_EVENTS;
+var DEMUX_EVENTS = _xgplayerTransmuxerConstantEvents2.default.DEMUX_EVENTS;
+var HLS_EVENTS = _xgplayerTransmuxerConstantEvents2.default.HLS_EVENTS;
+var CRYTO_EVENTS = _xgplayerTransmuxerConstantEvents2.default.CRYTO_EVENTS;
 var HLS_ERROR = 'HLS_ERROR';
 
 var HlsLiveController = function () {
@@ -54,27 +88,27 @@ var HlsLiveController = function () {
     key: 'init',
     value: function init() {
       // 初始化Buffer （M3U8/TS/Playlist);
-      this._context.registry('M3U8_BUFFER', _xgplayerBuffer.XgBuffer);
-      this._context.registry('TS_BUFFER', _xgplayerBuffer.XgBuffer);
-      this._context.registry('TRACKS', _xgplayerBuffer.Tracks);
+      this._context.registry('M3U8_BUFFER', _xgplayerTransmuxerBufferXgbuffer2.default);
+      this._context.registry('TS_BUFFER', _xgplayerTransmuxerBufferXgbuffer2.default);
+      this._context.registry('TRACKS', _xgplayerTransmuxerBufferTrack2.default);
 
-      this._playlist = this._context.registry('PLAYLIST', _xgplayerDemux.Playlist)({ autoclear: true });
-      this._context.registry('PRE_SOURCE_BUFFER', _xgplayerBuffer.PreSource);
+      this._playlist = this._context.registry('PLAYLIST', _xgplayerTransmuxerBufferPlaylist2.default)({ autoclear: true });
+      this._context.registry('PRE_SOURCE_BUFFER', _xgplayerTransmuxerBufferPresource2.default);
 
-      this._context.registry('COMPATIBILITY', _xgplayerCodec.Compatibility);
+      this._context.registry('COMPATIBILITY', _xgplayerTransmuxerCodecCompatibility2.default);
 
       // 初始化M3U8Loader;
-      this._m3u8loader = this._context.registry('M3U8_LOADER', _xgplayerLoader.FetchLoader)({ buffer: 'M3U8_BUFFER', readtype: 1 });
-      this._tsloader = this._context.registry('TS_LOADER', _xgplayerLoader.FetchLoader)({ buffer: 'TS_BUFFER', readtype: 3 });
+      this._m3u8loader = this._context.registry('M3U8_LOADER', _xgplayerTransmuxerLoaderFetch2.default)({ buffer: 'M3U8_BUFFER', readtype: 1 });
+      this._tsloader = this._context.registry('TS_LOADER', _xgplayerTransmuxerLoaderFetch2.default)({ buffer: 'TS_BUFFER', readtype: 3 });
 
       // 初始化TS Demuxer
-      this._context.registry('TS_DEMUXER', _xgplayerDemux.TsDemuxer)({ inputbuffer: 'TS_BUFFER' });
+      this._context.registry('TS_DEMUXER', _xgplayerTransmuxerDemuxTs2.default)({ inputbuffer: 'TS_BUFFER' });
 
       // 初始化MP4 Remuxer
-      this._context.registry('MP4_REMUXER', _index2.default);
+      this._context.registry('MP4_REMUXER', _xgplayerTransmuxerRemuxMp2.default);
 
       // 初始化MSE
-      this.mse = this._context.registry('MSE', _xgplayerUtils.Mse)({ container: this.container });
+      this.mse = this._context.registry('MSE', _xgplayerUtilsMse2.default)({ container: this.container });
       this.initEvents();
     }
   }, {
@@ -151,7 +185,7 @@ var HlsLiveController = function () {
         var mdata = void 0;
         try {
           this.m3u8Text = buffer.shift();
-          mdata = _xgplayerDemux.M3U8Parser.parse(this.m3u8Text, this.baseurl);
+          mdata = _xgplayerTransmuxerDemuxM3u2.default.parse(this.m3u8Text, this.baseurl);
         } catch (error) {
           this._onError('M3U8_PARSER_ERROR', 'M3U8_PARSER', error, false);
         }
@@ -174,10 +208,10 @@ var HlsLiveController = function () {
         }
 
         if (this._playlist.encrypt && this._playlist.encrypt.uri && !this._playlist.encrypt.key) {
-          this._context.registry('DECRYPT_BUFFER', _xgplayerBuffer.XgBuffer)();
-          this._context.registry('KEY_BUFFER', _xgplayerBuffer.XgBuffer)();
+          this._context.registry('DECRYPT_BUFFER', _xgplayerTransmuxerBufferXgbuffer2.default)();
+          this._context.registry('KEY_BUFFER', _xgplayerTransmuxerBufferXgbuffer2.default)();
           this._tsloader.buffer = 'DECRYPT_BUFFER';
-          this._keyLoader = this._context.registry('KEY_LOADER', _xgplayerLoader.FetchLoader)({ buffer: 'KEY_BUFFER', readtype: 3 });
+          this._keyLoader = this._context.registry('KEY_LOADER', _xgplayerTransmuxerLoaderFetch2.default)({ buffer: 'KEY_BUFFER', readtype: 3 });
           this.emitTo('KEY_LOADER', LOADER_EVENTS.LADER_START, this._playlist.encrypt.uri);
         } else {
           this._m3u8Loaded(mdata);
@@ -190,10 +224,10 @@ var HlsLiveController = function () {
         this.retrytimes = this.configs.retrytimes || 3;
         this._playlist.downloaded(this._tsloader.url, true);
         this.emitTo('CRYPTO', CRYTO_EVENTS.START_DECRYPT);
-      } else if (buffer.TAG == 'KEY_BUFFER') {
+      } else if (buffer.TAG === 'KEY_BUFFER') {
         this.retrytimes = this.configs.retrytimes || 3;
         this._playlist.encrypt.key = buffer.shift();
-        this._crypto = this._context.registry('CRYPTO', _xgplayerUtils.Crypto)({
+        this._crypto = this._context.registry('CRYPTO', _xgplayerUtilsCrypto2.default)({
           key: this._playlist.encrypt.key,
           iv: this._playlist.encrypt.ivb,
           method: this._playlist.encrypt.method,
@@ -282,7 +316,7 @@ var HlsLiveController = function () {
   }, {
     key: 'load',
     value: function load(url) {
-      this.baseurl = _xgplayerDemux.M3U8Parser.parseURL(url);
+      this.baseurl = _xgplayerTransmuxerDemuxM3u2.default.parseURL(url);
       this.url = url;
       this._preload();
     }

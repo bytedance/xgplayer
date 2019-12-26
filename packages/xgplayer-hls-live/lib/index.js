@@ -12,7 +12,13 @@ var _xgplayer = require('xgplayer');
 
 var _xgplayer2 = _interopRequireDefault(_xgplayer);
 
-var _xgplayerUtils = require('xgplayer-utils');
+var _xgplayerTransmuxerConstantEvents = require('xgplayer-transmuxer-constant-events');
+
+var _xgplayerTransmuxerConstantEvents2 = _interopRequireDefault(_xgplayerTransmuxerConstantEvents);
+
+var _xgplayerTransmuxerContext = require('xgplayer-transmuxer-context');
+
+var _xgplayerTransmuxerContext2 = _interopRequireDefault(_xgplayerTransmuxerContext);
 
 var _hlsLive = require('./hls-live');
 
@@ -26,8 +32,8 @@ function _possibleConstructorReturn(self, call) { if (!self) { throw new Referen
 
 function _inherits(subClass, superClass) { if (typeof superClass !== "function" && superClass !== null) { throw new TypeError("Super expression must either be null or a function, not " + typeof superClass); } subClass.prototype = Object.create(superClass && superClass.prototype, { constructor: { value: subClass, enumerable: false, writable: true, configurable: true } }); if (superClass) Object.setPrototypeOf ? Object.setPrototypeOf(subClass, superClass) : subClass.__proto__ = superClass; }
 
-var HlsAllowedEvents = _xgplayerUtils.EVENTS.HlsAllowedEvents;
-var REMUX_EVENTS = _xgplayerUtils.EVENTS.REMUX_EVENTS;
+var HlsAllowedEvents = _xgplayerTransmuxerConstantEvents2.default.HlsAllowedEvents;
+var REMUX_EVENTS = _xgplayerTransmuxerConstantEvents2.default.REMUX_EVENTS;
 
 var HlsLivePlayer = function (_Player) {
   _inherits(HlsLivePlayer, _Player);
@@ -40,7 +46,7 @@ var HlsLivePlayer = function (_Player) {
     _this2.hlsOps = {};
     _this2.util = _xgplayer2.default.util;
     _this2.util.deepCopy(_this2.hlsOps, options);
-    _this2._context = new _xgplayerUtils.Context(HlsAllowedEvents);
+    _this2._context = new _xgplayerTransmuxerContext2.default(HlsAllowedEvents);
     _this2._hasStarted = false;
     return _this2;
   }
@@ -114,7 +120,7 @@ var HlsLivePlayer = function (_Player) {
     value: function play() {
       if (this._hasStarted) {
         this._context.destroy();
-        this._context = new _xgplayerUtils.Context(HlsAllowedEvents);
+        this._context = new _xgplayerTransmuxerContext2.default(HlsAllowedEvents);
         this.__core__ = this._context.registry('HLS_LIVE_CONTROLLER', _hlsLive2.default)({ container: this.video });
         this._context.init();
         this._initEvents();

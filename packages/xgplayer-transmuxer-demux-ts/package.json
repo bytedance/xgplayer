@@ -1,11 +1,13 @@
 {
   "name": "xgplayer-transmuxer-demux-ts",
-  "version": "2.2.0-alpha.0",
+  "version": "2.2.0-alpha.3",
   "description": "",
-  "main": "es/index.js",
+  "main": "lib/index.js",
   "module": "es/index.js",
   "scripts": {
-    "build": "babel src --out-dir es"
+    "build": "npm run build:es && npm run build:lib",
+    "build:es": "babel src --out-dir es",
+    "build:lib": "babel src --out-dir lib --presets=es2015"
   },
   "author": "",
   "license": "ISC",
@@ -17,17 +19,20 @@
           "modules": false
         }
       ]
-    ],
-    "plugins": [
-      "external-helpers"
     ]
   },
+  "devDependencies": {
+    "babel-cli": "^6.22.0",
+    "babel-plugin-external-helpers": "^6.22.0",
+    "cross-env": "^6.0.3"
+  },
   "dependencies": {
-    "xgplayer-transmuxer-buffer-stream": "2.2.0-alpha.0",
-    "xgplayer-transmuxer-buffer-track": "2.2.0-alpha.0",
-    "xgplayer-transmuxer-model-tracksample": "2.2.0-alpha.0",
-    "xgplayer-transmuxer-model-trackmeta": "2.2.0-alpha.0",
-    "xgplayer-transmuxer-constant-events": "2.2.0-alpha.0",
-    "xgplayer-transmuxer-codec-h264": "2.2.0-alpha.0"
+    "concat-typed-array": "^1.0.2",
+    "xgplayer-transmuxer-constant-events":  "2.2.0-alpha.3",
+    "xgplayer-transmuxer-buffer-stream": "2.2.0-alpha.3",
+    "xgplayer-transmuxer-codec-h264":  "2.2.0-alpha.3",
+    "xgplayer-transmuxer-buffer-track": "2.2.0-alpha.3",
+    "xgplayer-transmuxer-model-trackmeta":  "2.2.0-alpha.3",
+    "xgplayer-transmuxer-model-tracksample": "2.2.0-alpha.3"
   }
 }

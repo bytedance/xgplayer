@@ -1,6 +1,6 @@
 {
   "name": "xgplayer-utils-sniffer",
-  "version": "2.2.0-alpha.2",
+  "version": "2.2.0-alpha.3",
   "description": "",
   "main": "lib/index.js",
   "module": "es/index.js",
@@ -25,6 +25,6 @@
     "babel-cli": "^6.22.0"
   },
   "dependencies": {
-    "xgplayer-transmuxer-constant-events": "2.2.0-alpha.0"
+    "xgplayer-transmuxer-constant-events": "2.2.0-alpha.3"
   }
 }

@@ -1,6 +1,6 @@
 {
   "name": "xgplayer-transmuxer-context",
-  "version": "2.2.0-alpha.0",
+  "version": "2.2.0-alpha.3",
   "description": "",
   "main": "lib/index.js",
   "module": "es/index.js",
@@ -23,9 +23,11 @@
   },
   "devDependencies": {
     "babel-cli": "^6.22.0",
-    "babel-plugin-external-helpers": "^6.22.0"
+    "babel-plugin-external-helpers": "^6.22.0",
+    "cross-env": "^6.0.3"
   },
   "dependencies": {
-    "xgplayer-utils": "^2.2.0-alpha.2"
+    "xgplayer-transmuxer-model-mediainfo": "^2.2.0-alpha.3",
+    "xgplayer-transmuxer-constant-events": "^2.2.0-alpha.3"
   }
 }

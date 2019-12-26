@@ -2,13 +2,19 @@ var _createClass = function () { function defineProperties(target, props) { for 
 
 function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } }
 
-import { EVENTS, Mse, Crypto } from 'xgplayer-utils';
-import { XgBuffer, PreSource, Tracks } from 'xgplayer-buffer';
-import { FetchLoader } from 'xgplayer-loader';
-import { Compatibility } from 'xgplayer-codec';
-import Mp4Remuxer from 'xgplayer-remux/src/mp4/index';
+import EVENTS from 'xgplayer-transmuxer-constant-events';
+import Mse from 'xgplayer-utils-mse';
+import Tracks from 'xgplayer-transmuxer-buffer-track';
+import PreSource from 'xgplayer-transmuxer-buffer-presource';
+import XgBuffer from 'xgplayer-transmuxer-buffer-xgbuffer';
+import FetchLoader from 'xgplayer-transmuxer-loader-fetch';
+import Compatibility from 'xgplayer-transmuxer-codec-compatibility';
+import Mp4Remuxer from 'xgplayer-transmuxer-remux-mp4';
+import Crypto from 'xgplayer-utils-crypto';
 
-import { Playlist, M3U8Parser, TsDemuxer } from 'xgplayer-demux';
+import M3U8Parser from 'xgplayer-transmuxer-demux-m3u8';
+import TsDemuxer from 'xgplayer-transmuxer-demux-ts';
+import Playlist from 'xgplayer-transmuxer-buffer-playlist';
 
 var LOADER_EVENTS = EVENTS.LOADER_EVENTS;
 var REMUX_EVENTS = EVENTS.REMUX_EVENTS;
@@ -176,7 +182,7 @@ var HlsLiveController = function () {
         this.retrytimes = this.configs.retrytimes || 3;
         this._playlist.downloaded(this._tsloader.url, true);
         this.emitTo('CRYPTO', CRYTO_EVENTS.START_DECRYPT);
-      } else if (buffer.TAG == 'KEY_BUFFER') {
+      } else if (buffer.TAG === 'KEY_BUFFER') {
         this.retrytimes = this.configs.retrytimes || 3;
         this._playlist.encrypt.key = buffer.shift();
         this._crypto = this._context.registry('CRYPTO', Crypto)({

@@ -1,4 +1,5 @@
-import MediaInfo from 'xgplayer-transmuxer-model-mediainfo'
+import EVENTS from 'xgplayer-transmuxer-constant-events'
+import MediaInfo from 'xgplayer-transmuxer-model-mediainfo';
 import { EventEmitter } from 'events'
 
 const DIRECT_EMIT_FLAG = '__TO__'
@@ -9,10 +10,11 @@ class Context {
     if (!this._emitter.off) {
       this._emitter.off = this._emitter.removeListener;
     }
+
+    this.mediaInfo = new MediaInfo()
     this._instanceMap = {} // 所有的解码流程实例
     this._clsMap = {} // 构造函数的map
     this._inited = false
-    this.mediaInfo = new MediaInfo()
     this.allowedEvents = allowedEvents
     this._hooks = {} // 注册在事件前/后的钩子，例如 before('DEMUX_COMPLETE')
   }
@@ -208,6 +210,14 @@ class Context {
     return (...args) => {
       return this.initInstance(tag, ...args)
     }
+  }
+
+  /**
+   * 各个模块处理seek
+   * @param time
+   */
+  seek (time) {
+    this._emitter.emit(EVENTS.PLAYER_EVENTS.SEEK, time)
   }
 
   /**

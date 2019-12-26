@@ -12,7 +12,13 @@ var _xgplayer = require('xgplayer');
 
 var _xgplayer2 = _interopRequireDefault(_xgplayer);
 
-var _xgplayerUtils = require('xgplayer-utils');
+var _xgplayerTransmuxerConstantEvents = require('xgplayer-transmuxer-constant-events');
+
+var _xgplayerTransmuxerConstantEvents2 = _interopRequireDefault(_xgplayerTransmuxerConstantEvents);
+
+var _xgplayerTransmuxerContext = require('xgplayer-transmuxer-context');
+
+var _xgplayerTransmuxerContext2 = _interopRequireDefault(_xgplayerTransmuxerContext);
 
 var _flvLive = require('./flv-live');
 
@@ -26,7 +32,7 @@ function _possibleConstructorReturn(self, call) { if (!self) { throw new Referen
 
 function _inherits(subClass, superClass) { if (typeof superClass !== "function" && superClass !== null) { throw new TypeError("Super expression must either be null or a function, not " + typeof superClass); } subClass.prototype = Object.create(superClass && superClass.prototype, { constructor: { value: subClass, enumerable: false, writable: true, configurable: true } }); if (superClass) Object.setPrototypeOf ? Object.setPrototypeOf(subClass, superClass) : subClass.__proto__ = superClass; }
 
-var flvAllowedEvents = _xgplayerUtils.EVENTS.FlvAllowedEvents;
+var flvAllowedEvents = _xgplayerTransmuxerConstantEvents2.default.FlvAllowedEvents;
 
 var FlvPlayer = function (_Player) {
   _inherits(FlvPlayer, _Player);
@@ -36,7 +42,7 @@ var FlvPlayer = function (_Player) {
 
     var _this = _possibleConstructorReturn(this, (FlvPlayer.__proto__ || Object.getPrototypeOf(FlvPlayer)).call(this, config));
 
-    _this.context = new _xgplayerUtils.Context(flvAllowedEvents);
+    _this.context = new _xgplayerTransmuxerContext2.default(flvAllowedEvents);
     _this.initEvents();
     _this.loaderCompleteTimer = null;
     // const preloadTime = player.config.preloadTime || 15
@@ -57,7 +63,7 @@ var FlvPlayer = function (_Player) {
       var _this2 = this;
 
       var player = this;
-      flv.once(_xgplayerUtils.EVENTS.REMUX_EVENTS.INIT_SEGMENT, function () {
+      flv.once(_xgplayerTransmuxerConstantEvents2.default.REMUX_EVENTS.INIT_SEGMENT, function () {
         _xgplayer2.default.util.addClass(player.root, 'xgplayer-is-live');
         if (!_xgplayer2.default.util.findDom(_this2.root, 'xg-live')) {
           var live = _xgplayer2.default.util.createDom('xg-live', '正在直播', {}, 'xgplayer-live');
@@ -65,7 +71,7 @@ var FlvPlayer = function (_Player) {
         }
       });
 
-      flv.once(_xgplayerUtils.EVENTS.LOADER_EVENTS.LOADER_COMPLETE, function () {
+      flv.once(_xgplayerTransmuxerConstantEvents2.default.LOADER_EVENTS.LOADER_COMPLETE, function () {
         // 直播完成，待播放器播完缓存后发送关闭事件
         if (!player.paused) {
           _this2.loaderCompleteTimer = setInterval(function () {
@@ -86,7 +92,7 @@ var FlvPlayer = function (_Player) {
       var _this3 = this;
 
       var mediaLength = 3;
-      flv.on(_xgplayerUtils.EVENTS.REMUX_EVENTS.MEDIA_SEGMENT, function () {
+      flv.on(_xgplayerTransmuxerConstantEvents2.default.REMUX_EVENTS.MEDIA_SEGMENT, function () {
         mediaLength -= 1;
         if (mediaLength === 0) {
           // ensure switch smoothly
@@ -97,7 +103,7 @@ var FlvPlayer = function (_Player) {
         }
       });
 
-      flv.once(_xgplayerUtils.EVENTS.LOADER_EVENTS.LOADER_COMPLETE, function () {
+      flv.once(_xgplayerTransmuxerConstantEvents2.default.LOADER_EVENTS.LOADER_COMPLETE, function () {
         // 直播完成，待播放器播完缓存后发送关闭事件
         if (!_this3.paused) {
           _this3.loaderCompleteTimer = setInterval(function () {
@@ -112,7 +118,7 @@ var FlvPlayer = function (_Player) {
         }
       });
 
-      flv.once(_xgplayerUtils.EVENTS.LOADER_EVENTS.LOADER_ERROR, function () {
+      flv.once(_xgplayerTransmuxerConstantEvents2.default.LOADER_EVENTS.LOADER_ERROR, function () {
         ctx.destroy();
       });
     }
@@ -145,7 +151,7 @@ var FlvPlayer = function (_Player) {
 
       if (this._hasStart) {
         return this._destroy().then(function () {
-          _this5.context = new _xgplayerUtils.Context(flvAllowedEvents);
+          _this5.context = new _xgplayerTransmuxerContext2.default(flvAllowedEvents);
           _this5.start();
           return _get(FlvPlayer.prototype.__proto__ || Object.getPrototypeOf(FlvPlayer.prototype), 'play', _this5).call(_this5);
         });
@@ -196,7 +202,7 @@ var FlvPlayer = function (_Player) {
   }, {
     key: 'switchURL',
     value: function switchURL(url) {
-      var context = new _xgplayerUtils.Context(flvAllowedEvents);
+      var context = new _xgplayerTransmuxerContext2.default(flvAllowedEvents);
       var flv = context.registry('FLV_CONTROLLER', _flvLive2.default)(this, this.mse);
       context.init();
       this.initFlvBackupEvents(flv, context);

@@ -1,6 +1,6 @@
 {
   "name": "xgplayer-flv-live",
-  "version": "2.2.0-alpha.2",
+  "version": "2.2.0-alpha.3",
   "description": "",
   "main": "lib/index.js",
   "module": "es/index.js",
@@ -30,17 +30,17 @@
     ]
   },
   "dependencies": {
-    "xgplayer-utils-mse": "^2.2.0-alpha.0",
-    "xgplayer-transmuxer-buffer-track": "^2.2.0-alpha.0",
-    "xgplayer-transmuxer-buffer-presource":  "^2.2.0-alpha.0",
-    "xgplayer-transmuxer-buffer-xgbuffer":  "^2.2.0-alpha.0",
-    "xgplayer-transmuxer-loader-fetch": "^2.2.0-alpha.0",
-    "xgplayer-transmuxer-demux-flv": "^2.2.0-alpha.0",
-    "xgplayer-transmuxer-remux-mp4": "^2.2.0-alpha.0",
-    "xgplayer-transmuxer-constant-events":  "^2.2.0-alpha.0",
-    "xgplayer-transmuxer-codec-compatibility":  "^2.2.0-alpha.0",
-    "xgplayer-transmuxer-context": "^2.2.0-alpha.0",
-    "xgplayer-polyfills": "^2.2.0-alpha.0"
+    "xgplayer-utils-mse": "^2.2.0-alpha.3",
+    "xgplayer-transmuxer-buffer-track": "^2.2.0-alpha.3",
+    "xgplayer-transmuxer-buffer-presource":  "^2.2.0-alpha.3",
+    "xgplayer-transmuxer-buffer-xgbuffer":  "^2.2.0-alpha.3",
+    "xgplayer-transmuxer-loader-fetch": "^2.2.0-alpha.3",
+    "xgplayer-transmuxer-demux-flv": "^2.2.0-alpha.3",
+    "xgplayer-transmuxer-remux-mp4": "^2.2.0-alpha.3",
+    "xgplayer-transmuxer-constant-events":  "^2.2.0-alpha.3",
+    "xgplayer-transmuxer-codec-compatibility":  "^2.2.0-alpha.3",
+    "xgplayer-utils-sniffer": "^2.2.0-alpha.3",
+    "xgplayer-polyfills": "^2.2.0-alpha.3"
   },
   "devDependencies": {
     "cross-env": "^6.0.3"

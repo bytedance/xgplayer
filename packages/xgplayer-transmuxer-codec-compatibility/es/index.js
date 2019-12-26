@@ -1,3 +1,7 @@
+var _createClass = function () { function defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ("value" in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } } return function (Constructor, protoProps, staticProps) { if (protoProps) defineProperties(Constructor.prototype, protoProps); if (staticProps) defineProperties(Constructor, staticProps); return Constructor; }; }();
+
+function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } }
+
 import EVENTS from 'xgplayer-transmuxer-constant-events';
 import AAC from 'xgplayer-transmuxer-codec-aac';
 
@@ -5,7 +9,7 @@ var REMUX_EVENTS = EVENTS.REMUX_EVENTS;
 
 var Compatibility = function () {
   function Compatibility() {
-    babelHelpers.classCallCheck(this, Compatibility);
+    _classCallCheck(this, Compatibility);
 
     this.nextAudioDts = 0; // 模拟下一段音频数据的dts
     this.nextVideoDts = 0; // 模拟下一段视频数据的dts
@@ -32,7 +36,7 @@ var Compatibility = function () {
     this._audioLargeGap = 0;
   }
 
-  babelHelpers.createClass(Compatibility, [{
+  _createClass(Compatibility, [{
     key: 'init',
     value: function init() {
       this.before(REMUX_EVENTS.REMUX_MEDIA, this.doFix.bind(this));
@@ -52,6 +56,8 @@ var Compatibility = function () {
       // this.allAudioSamplesCount = 0 // 音频总数据量(原始帧)
       // this.allVideoSamplesCount = 0 // 视频总数据量(原始帧)
 
+      // this._firstAudioSample = null
+      // this._firstVideoSample = null
       // this._firstAudioSample = null
       // this._firstVideoSample = null
       this.videoLastSample = null;
@@ -513,25 +519,25 @@ var Compatibility = function () {
   }, {
     key: 'removeInvalidSamples',
     value: function removeInvalidSamples() {
-      var _firstVideoSample = this._firstVideoSample,
-          _firstAudioSample = this._firstAudioSample;
+      var firstAudioSample = this.audioTrack.samples[0];
+      var firstVideoSample = this.videoTrack.samples[0];
+      // const { _firstVideoSample, _firstAudioSample } = this
 
-
-      if (_firstAudioSample) {
+      if (firstAudioSample) {
         this.audioTrack.samples = this.audioTrack.samples.filter(function (sample, index) {
-          if (sample === _firstAudioSample) {
+          if (sample === firstAudioSample) {
             return true;
           }
-          return sample.dts > _firstAudioSample.dts;
+          return sample.dts > firstAudioSample.dts;
         });
       }
 
-      if (_firstVideoSample) {
+      if (firstVideoSample) {
         this.videoTrack.samples = this.videoTrack.samples.filter(function (sample, index) {
-          if (sample === _firstVideoSample) {
+          if (sample === firstVideoSample) {
             return true;
           }
-          return sample.dts > _firstVideoSample.dts;
+          return sample.dts > firstVideoSample.dts;
         });
       }
     }
@@ -670,6 +676,7 @@ var Compatibility = function () {
       };
     }
   }]);
+
   return Compatibility;
 }();
 

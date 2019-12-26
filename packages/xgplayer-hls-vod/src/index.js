@@ -1,7 +1,7 @@
 import Player from 'xgplayer'
 import EVENTS from 'xgplayer-transmuxer-constant-events'
 import Context from 'xgplayer-transmuxer-context';
-import { Context, EVENTS, debounce } from 'xgplayer-utils';
+import { debounce } from 'xgplayer-utils';
 import HlsVodController from './hls-vod';
 
 const HlsAllowedEvents = EVENTS.HlsAllowedEvents;

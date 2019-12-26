@@ -1,3 +1,7 @@
+var _createClass = function () { function defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ("value" in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } } return function (Constructor, protoProps, staticProps) { if (protoProps) defineProperties(Constructor.prototype, protoProps); if (staticProps) defineProperties(Constructor, staticProps); return Constructor; }; }();
+
+function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } }
+
 import sniffer from 'xgplayer-utils-sniffer';
 import EVENTS from 'xgplayer-transmuxer-constant-events';
 import MediaSegmentList from 'xgplayer-transmuxer-model-mediasegmentlist';
@@ -6,11 +10,13 @@ import Buffer from './buffer';
 import Fmp4 from './fmp4';
 
 var REMUX_EVENTS = EVENTS.REMUX_EVENTS;
+var PLAYER_EVENTS = EVENTS.PLAYER_EVENTS;
 
 var Mp4Remuxer = function () {
   function Mp4Remuxer() {
     var curTime = arguments.length > 0 && arguments[0] !== undefined ? arguments[0] : 0;
-    babelHelpers.classCallCheck(this, Mp4Remuxer);
+
+    _classCallCheck(this, Mp4Remuxer);
 
     this._dtsBase = curTime * 1000;
     this._isDtsBaseInited = false;
@@ -27,12 +33,23 @@ var Mp4Remuxer = function () {
     this.audioAllDuration = 0;
   }
 
-  babelHelpers.createClass(Mp4Remuxer, [{
+  _createClass(Mp4Remuxer, [{
     key: 'init',
     value: function init() {
       this.on(REMUX_EVENTS.REMUX_MEDIA, this.remux.bind(this));
       this.on(REMUX_EVENTS.REMUX_METADATA, this.onMetaDataReady.bind(this));
       this.on(REMUX_EVENTS.DETECT_CHANGE_STREAM, this.resetDtsBase.bind(this));
+      this.on(PLAYER_EVENTS.SEEK, this.seek.bind(this));
+    }
+  }, {
+    key: 'destroy',
+    value: function destroy() {
+      this._dtsBase = -1;
+      this._isDtsBaseInited = false;
+      this._videoSegmentList.clear();
+      this._audioSegmentList.clear();
+      this._videoSegmentList = null;
+      this._audioSegmentList = null;
     }
   }, {
     key: 'remux',
@@ -51,13 +68,14 @@ var Mp4Remuxer = function () {
     value: function resetDtsBase() {
       // for hls 中途切换 meta后seek
       this._dtsBase = 0;
-      this._dtsBaseInited = false;
+      // this._isDtsBaseInited = false
     }
   }, {
     key: 'seek',
-    value: function seek() {
-      this._videoSegmentList.clear();
-      this._audioSegmentList.clear();
+    value: function seek(time) {
+      if (!this._isDtsBaseInited) {
+        this._dtsBase = time * 1000;
+      }
     }
   }, {
     key: 'onMetaDataReady',
@@ -441,6 +459,7 @@ var Mp4Remuxer = function () {
       return null;
     }
   }]);
+
   return Mp4Remuxer;
 }();
 

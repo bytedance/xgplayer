@@ -1,6 +1,6 @@
 {
   "name": "xgplayer-utils",
-  "version": "2.2.0-alpha.2",
+  "version": "2.2.0-alpha.3",
   "description": "",
   "main": "lib/index.js",
   "module": "es/index.js",
@@ -23,10 +23,10 @@
   },
   "devDependencies": {
     "babel-cli": "^6.22.0",
-    "babel-plugin-external-helpers": "^6.22.0",
     "cross-env": "^6.0.3"
   },
   "dependencies": {
-    "concat-typed-array": "^1.0.2"
+    "concat-typed-array": "^1.0.2",
+    "xgplayer-transmuxer-constant-events": "^2.2.0-alpha.3"
   }
 }

@@ -12,7 +12,13 @@ var _xgplayer = require('xgplayer');
 
 var _xgplayer2 = _interopRequireDefault(_xgplayer);
 
-var _xgplayerUtils = require('xgplayer-utils');
+var _xgplayerTransmuxerConstantEvents = require('xgplayer-transmuxer-constant-events');
+
+var _xgplayerTransmuxerConstantEvents2 = _interopRequireDefault(_xgplayerTransmuxerConstantEvents);
+
+var _xgplayerTransmuxerContext = require('xgplayer-transmuxer-context');
+
+var _xgplayerTransmuxerContext2 = _interopRequireDefault(_xgplayerTransmuxerContext);
 
 var _flvVod = require('./flv-vod');
 
@@ -26,9 +32,7 @@ function _possibleConstructorReturn(self, call) { if (!self) { throw new Referen
 
 function _inherits(subClass, superClass) { if (typeof superClass !== "function" && superClass !== null) { throw new TypeError("Super expression must either be null or a function, not " + typeof superClass); } subClass.prototype = Object.create(superClass && superClass.prototype, { constructor: { value: subClass, enumerable: false, writable: true, configurable: true } }); if (superClass) Object.setPrototypeOf ? Object.setPrototypeOf(subClass, superClass) : subClass.__proto__ = superClass; }
 
-console.log(_xgplayerUtils.Context);
-
-var flvAllowedEvents = _xgplayerUtils.EVENTS.FlvAllowedEvents;
+var flvAllowedEvents = _xgplayerTransmuxerConstantEvents2.default.FlvAllowedEvents;
 
 var isEnded = function isEnded(player, flv) {
   if (!player.config.isLive) {
@@ -50,7 +54,7 @@ var FlvVodPlayer = function (_Player) {
 
     var _this = _possibleConstructorReturn(this, (FlvVodPlayer.__proto__ || Object.getPrototypeOf(FlvVodPlayer)).call(this, config));
 
-    _this.context = new _xgplayerUtils.Context(flvAllowedEvents);
+    _this.context = new _xgplayerTransmuxerContext2.default(flvAllowedEvents);
     _this.initEvents();
     // const preloadTime = player.config.preloadTime || 15
     return _this;
@@ -78,9 +82,9 @@ var FlvVodPlayer = function (_Player) {
     value: function initFlvBackupEvents(flv, ctx) {
       var _this2 = this;
 
-      flv.once(_xgplayerUtils.EVENTS.REMUX_EVENTS.INIT_SEGMENT, function () {
+      flv.once(_xgplayerTransmuxerConstantEvents2.default.REMUX_EVENTS.INIT_SEGMENT, function () {
         var mediaLength = 3;
-        flv.on(_xgplayerUtils.EVENTS.REMUX_EVENTS.MEDIA_SEGMENT, function () {
+        flv.on(_xgplayerTransmuxerConstantEvents2.default.REMUX_EVENTS.MEDIA_SEGMENT, function () {
           mediaLength -= 1;
           if (mediaLength === 0) {
             // ensure switch smoothly
@@ -92,7 +96,7 @@ var FlvVodPlayer = function (_Player) {
         });
       });
 
-      flv.once(_xgplayerUtils.EVENTS.LOADER_EVENTS.LOADER_ERROR, function () {
+      flv.once(_xgplayerTransmuxerConstantEvents2.default.LOADER_EVENTS.LOADER_ERROR, function () {
         ctx.destroy();
       });
     }
@@ -141,7 +145,7 @@ var FlvVodPlayer = function (_Player) {
     key: 'swithURL',
     value: function swithURL(url) {
       this.config.url = url;
-      var context = new _xgplayerUtils.Context(flvAllowedEvents);
+      var context = new _xgplayerTransmuxerContext2.default(flvAllowedEvents);
       var flv = context.registry('FLV_CONTROLLER', _flvVod2.default)(this, this.mse);
       context.init();
       var remuxer = context.getInstance('MP4_REMUXER');

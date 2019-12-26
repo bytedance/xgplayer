@@ -1,3 +1,9 @@
+var _typeof = typeof Symbol === "function" && typeof Symbol.iterator === "symbol" ? function (obj) { return typeof obj; } : function (obj) { return obj && typeof Symbol === "function" && obj.constructor === Symbol && obj !== Symbol.prototype ? "symbol" : typeof obj; };
+
+var _createClass = function () { function defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ("value" in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } } return function (Constructor, protoProps, staticProps) { if (protoProps) defineProperties(Constructor.prototype, protoProps); if (staticProps) defineProperties(Constructor, staticProps); return Constructor; }; }();
+
+function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } }
+
 import EVENTS from 'xgplayer-transmuxer-constant-events';
 import Stream from 'xgplayer-transmuxer-buffer-stream';
 
@@ -30,7 +36,7 @@ var StreamType = {
 
 var TsDemuxer = function () {
   function TsDemuxer(configs) {
-    babelHelpers.classCallCheck(this, TsDemuxer);
+    _classCallCheck(this, TsDemuxer);
 
     this.configs = Object.assign({}, configs);
     this.demuxing = false;
@@ -40,7 +46,7 @@ var TsDemuxer = function () {
     this._hasAudioMeta = false;
   }
 
-  babelHelpers.createClass(TsDemuxer, [{
+  _createClass(TsDemuxer, [{
     key: 'init',
     value: function init() {
       this.on(DEMUX_EVENTS.DEMUX_START, this.demux.bind(this));
@@ -292,7 +298,7 @@ var TsDemuxer = function () {
       for (var i = 0, k = Object.keys(a).length; i < k; i++) {
         var itema = a[Object.keys(a)[i]];
         var itemb = b[Object.keys(a)[i]];
-        if ((typeof itema === 'undefined' ? 'undefined' : babelHelpers.typeof(itema)) !== 'object') {
+        if ((typeof itema === 'undefined' ? 'undefined' : _typeof(itema)) !== 'object') {
           if (ignoreDuration && Object.keys(a)[i] !== 'duration' && Object.keys(a)[i] !== 'refSampleDuration' && Object.keys(a)[i] !== 'refSampleDurationFixed' && itema !== itemb) {
             return false;
           }
@@ -796,6 +802,7 @@ var TsDemuxer = function () {
       ret.audioConfig = config;
     }
   }]);
+
   return TsDemuxer;
 }();
 
