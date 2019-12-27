@@ -590,100 +590,7 @@
 
 	var version = "2.3.5";
 
-	var _typeof = typeof Symbol === "function" && typeof Symbol.iterator === "symbol" ? function (obj) {
-	  return typeof obj;
-	} : function (obj) {
-	  return obj && typeof Symbol === "function" && obj.constructor === Symbol && obj !== Symbol.prototype ? "symbol" : typeof obj;
-	};
-
-	var classCallCheck = function (instance, Constructor) {
-	  if (!(instance instanceof Constructor)) {
-	    throw new TypeError("Cannot call a class as a function");
-	  }
-	};
-
-	var createClass = function () {
-	  function defineProperties(target, props) {
-	    for (var i = 0; i < props.length; i++) {
-	      var descriptor = props[i];
-	      descriptor.enumerable = descriptor.enumerable || false;
-	      descriptor.configurable = true;
-	      if ("value" in descriptor) descriptor.writable = true;
-	      Object.defineProperty(target, descriptor.key, descriptor);
-	    }
-	  }
-
-	  return function (Constructor, protoProps, staticProps) {
-	    if (protoProps) defineProperties(Constructor.prototype, protoProps);
-	    if (staticProps) defineProperties(Constructor, staticProps);
-	    return Constructor;
-	  };
-	}();
-
-	var defineProperty = function (obj, key, value) {
-	  if (key in obj) {
-	    Object.defineProperty(obj, key, {
-	      value: value,
-	      enumerable: true,
-	      configurable: true,
-	      writable: true
-	    });
-	  } else {
-	    obj[key] = value;
-	  }
-
-	  return obj;
-	};
-
-	var get = function get(object, property, receiver) {
-	  if (object === null) object = Function.prototype;
-	  var desc = Object.getOwnPropertyDescriptor(object, property);
-
-	  if (desc === undefined) {
-	    var parent = Object.getPrototypeOf(object);
-
-	    if (parent === null) {
-	      return undefined;
-	    } else {
-	      return get(parent, property, receiver);
-	    }
-	  } else if ("value" in desc) {
-	    return desc.value;
-	  } else {
-	    var getter = desc.get;
-
-	    if (getter === undefined) {
-	      return undefined;
-	    }
-
-	    return getter.call(receiver);
-	  }
-	};
-
-	var inherits = function (subClass, superClass) {
-	  if (typeof superClass !== "function" && superClass !== null) {
-	    throw new TypeError("Super expression must either be null or a function, not " + typeof superClass);
-	  }
-
-	  subClass.prototype = Object.create(superClass && superClass.prototype, {
-	    constructor: {
-	      value: subClass,
-	      enumerable: false,
-	      writable: true,
-	      configurable: true
-	    }
-	  });
-	  if (superClass) Object.setPrototypeOf ? Object.setPrototypeOf(subClass, superClass) : subClass.__proto__ = superClass;
-	};
-
-	var possibleConstructorReturn = function (self, call) {
-	  if (!self) {
-	    throw new ReferenceError("this hasn't been initialised - super() hasn't been called");
-	  }
-
-	  return call && (typeof call === "object" || typeof call === "function") ? call : self;
-	};
-
+	function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } }
 	var ErrorTypes = {
 	  network: {
 	    code: 1,
@@ -729,7 +636,8 @@
 
 	var Errors = function Errors(type, currentTime, duration, networkState, readyState, src, currentSrc, ended) {
 	  var errd = arguments.length > 8 && arguments[8] !== undefined ? arguments[8] : { line: '', handle: '', msg: '', version: '' };
-	  classCallCheck(this, Errors);
+
+	  _classCallCheck(this, Errors);
 
 	  var r = {};
 	  r.playerVersion = version; // 播放器版本
@@ -747,9 +655,15 @@
 	  return r;
 	};
 
+	var _createClass = function () { function defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ("value" in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } } return function (Constructor, protoProps, staticProps) { if (protoProps) defineProperties(Constructor.prototype, protoProps); if (staticProps) defineProperties(Constructor, staticProps); return Constructor; }; }();
+
+	function _defineProperty(obj, key, value) { if (key in obj) { Object.defineProperty(obj, key, { value: value, enumerable: true, configurable: true, writable: true }); } else { obj[key] = value; } return obj; }
+
+	function _classCallCheck$1(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } }
+
 	var Proxy = function () {
 	  function Proxy(options) {
-	    classCallCheck(this, Proxy);
+	    _classCallCheck$1(this, Proxy);
 
 	    this.logParams = {
 	      bc: 0,
@@ -815,7 +729,7 @@
 	      }
 	    }
 	    this.ev = ['play', 'playing', 'pause', 'ended', 'error', 'seeking', 'seeked', 'timeupdate', 'waiting', 'canplay', 'canplaythrough', 'durationchange', 'volumechange', 'loadeddata'].map(function (item) {
-	      return defineProperty({}, item, 'on' + item.charAt(0).toUpperCase() + item.slice(1));
+	      return _defineProperty({}, item, 'on' + item.charAt(0).toUpperCase() + item.slice(1));
 	    });
 	    eventEmitter(this);
 
@@ -895,7 +809,7 @@
 	    });
 	  }
 
-	  createClass(Proxy, [{
+	  _createClass(Proxy, [{
 	    key: 'destroy',
 	    value: function destroy() {
 	      if (this.textTrackStyle) {
@@ -1188,20 +1102,26 @@
 	      return util$1.hasClass(this.root, 'xgplayer-pip-active');
 	    }
 	  }]);
+
 	  return Proxy;
 	}();
+
+	var _createClass$1 = function () { function defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ("value" in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } } return function (Constructor, protoProps, staticProps) { if (protoProps) defineProperties(Constructor.prototype, protoProps); if (staticProps) defineProperties(Constructor, staticProps); return Constructor; }; }();
+
+	function _classCallCheck$2(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } }
 
 	var INDEXDB = function () {
 	  function INDEXDB() {
 	    var mydb = arguments.length > 0 && arguments[0] !== undefined ? arguments[0] : { name: 'xgplayer', version: 1, db: null, ojstore: { name: 'xg-m4a', keypath: 'vid' } };
-	    classCallCheck(this, INDEXDB);
+
+	    _classCallCheck$2(this, INDEXDB);
 
 	    this.indexedDB = window.indexedDB || window.webkitindexedDB;
 	    this.IDBKeyRange = window.IDBKeyRange || window.webkitIDBKeyRange; // 键范围
 	    this.myDB = mydb;
 	  }
 
-	  createClass(INDEXDB, [{
+	  _createClass$1(INDEXDB, [{
 	    key: 'openDB',
 	    value: function openDB(callback) {
 	      var _this = this;
@@ -1310,6 +1230,7 @@
 	      // console.log('已删除存储空间' + storename + '全部记录')
 	    }
 	  }]);
+
 	  return INDEXDB;
 	}();
 
@@ -2848,13 +2769,23 @@
 	}));
 	});
 
+	var _createClass$2 = function () { function defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ("value" in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } } return function (Constructor, protoProps, staticProps) { if (protoProps) defineProperties(Constructor.prototype, protoProps); if (staticProps) defineProperties(Constructor, staticProps); return Constructor; }; }();
+
+	var _get = function get(object, property, receiver) { if (object === null) object = Function.prototype; var desc = Object.getOwnPropertyDescriptor(object, property); if (desc === undefined) { var parent = Object.getPrototypeOf(object); if (parent === null) { return undefined; } else { return get(parent, property, receiver); } } else if ("value" in desc) { return desc.value; } else { var getter = desc.get; if (getter === undefined) { return undefined; } return getter.call(receiver); } };
+
+	function _classCallCheck$3(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } }
+
+	function _possibleConstructorReturn(self, call) { if (!self) { throw new ReferenceError("this hasn't been initialised - super() hasn't been called"); } return call && (typeof call === "object" || typeof call === "function") ? call : self; }
+
+	function _inherits(subClass, superClass) { if (typeof superClass !== "function" && superClass !== null) { throw new TypeError("Super expression must either be null or a function, not " + typeof superClass); } subClass.prototype = Object.create(superClass && superClass.prototype, { constructor: { value: subClass, enumerable: false, writable: true, configurable: true } }); if (superClass) Object.setPrototypeOf ? Object.setPrototypeOf(subClass, superClass) : subClass.__proto__ = superClass; }
+
 	var Player = function (_Proxy) {
-	  inherits(Player, _Proxy);
+	  _inherits(Player, _Proxy);
 
 	  function Player(options) {
-	    classCallCheck(this, Player);
+	    _classCallCheck$3(this, Player);
 
-	    var _this = possibleConstructorReturn(this, (Player.__proto__ || Object.getPrototypeOf(Player)).call(this, options));
+	    var _this = _possibleConstructorReturn(this, (Player.__proto__ || Object.getPrototypeOf(Player)).call(this, options));
 
 	    _this.config = util$1.deepCopy({
 	      width: 600,
@@ -2890,7 +2821,7 @@
 	          handle: 'Constructor',
 	          msg: 'container id can\'t be empty'
 	        }));
-	        return _ret = false, possibleConstructorReturn(_this, _ret);
+	        return _ret = false, _possibleConstructorReturn(_this, _ret);
 	      }
 	    }
 	    // this.rootBackup = util.copyDom(this.root)
@@ -3027,7 +2958,7 @@
 	    return _this;
 	  }
 
-	  createClass(Player, [{
+	  _createClass$2(Player, [{
 	    key: 'start',
 	    value: function start() {
 	      var _this2 = this;
@@ -3174,7 +3105,7 @@
 	      } else {
 	        destroyFunc.call(this);
 	      }
-	      get(Player.prototype.__proto__ || Object.getPrototypeOf(Player.prototype), 'destroy', this).call(this);
+	      _get(Player.prototype.__proto__ || Object.getPrototypeOf(Player.prototype), 'destroy', this).call(this);
 	    }
 	  }, {
 	    key: 'replay',
@@ -3635,12 +3566,15 @@
 	      Player.plugins[name] = descriptor;
 	    }
 	  }]);
+
 	  return Player;
 	}(Proxy);
 
 	Player.util = util$1;
 	Player.sniffer = sniffer;
 	Player.Errors = Errors;
+
+	var _typeof2 = typeof Symbol === "function" && typeof Symbol.iterator === "symbol" ? function (obj) { return typeof obj; } : function (obj) { return obj && typeof Symbol === "function" && obj.constructor === Symbol && obj !== Symbol.prototype ? "symbol" : typeof obj; };
 
 	/* eslint-disable */
 	var _extends = Object.assign || function (e) {
@@ -3651,12 +3585,12 @@
 	      }
 	    }
 	  }return e;
-	};function _classCallCheck(e, r) {
+	};function _classCallCheck$4(e, r) {
 	  if (!(e instanceof r)) {
 	    throw new TypeError("Cannot call a class as a function");
 	  }
 	}var undef = undefined;var Env = function e() {
-	  var A = this;_classCallCheck(this, e);this.set = function (e, r) {
+	  var A = this;_classCallCheck$4(this, e);this.set = function (e, r) {
 	    var n = e;var t = r;if (t === null) {
 	      return false;
 	    }var i = "";if (n.indexOf(".") > -1) {
@@ -3786,16 +3720,16 @@
 	        localStorage.setItem(r, t);
 	      }
 	    } catch (e) {}
-	  } };var TEA_CACHE_PREFIX = "__tea_cache_";var TEA_LOGGER_PREFIX = "[tea-sdk]";var ERROR_CODE = { NO_URL_PREFIX: 4001, IMG_ON_ERROR: 4e3, IMG_CATCH_ERROR: 4002, BEACON_STATUS_FALSE: 4003, XHR_ON_ERROR: 500, RESPONSE_DATA_ERROR: 5001 };var _typeof$1 = typeof Symbol === "function" && _typeof(Symbol.iterator) === "symbol" ? function (e) {
-	  return typeof e === "undefined" ? "undefined" : _typeof(e);
+	  } };var TEA_CACHE_PREFIX = "__tea_cache_";var TEA_LOGGER_PREFIX = "[tea-sdk]";var ERROR_CODE = { NO_URL_PREFIX: 4001, IMG_ON_ERROR: 4e3, IMG_CATCH_ERROR: 4002, BEACON_STATUS_FALSE: 4003, XHR_ON_ERROR: 500, RESPONSE_DATA_ERROR: 5001 };var _typeof = typeof Symbol === "function" && _typeof2(Symbol.iterator) === "symbol" ? function (e) {
+	  return typeof e === "undefined" ? "undefined" : _typeof2(e);
 	} : function (e) {
-	  return e && typeof Symbol === "function" && e.constructor === Symbol && e !== Symbol.prototype ? "symbol" : typeof e === "undefined" ? "undefined" : _typeof(e);
-	};function _classCallCheck$1(e, r) {
+	  return e && typeof Symbol === "function" && e.constructor === Symbol && e !== Symbol.prototype ? "symbol" : typeof e === "undefined" ? "undefined" : _typeof2(e);
+	};function _classCallCheck$1$1(e, r) {
 	  if (!(e instanceof r)) {
 	    throw new TypeError("Cannot call a class as a function");
 	  }
 	}var Logger = function e() {
-	  var s = this;var r = arguments.length > 0 && arguments[0] !== undefined ? arguments[0] : "";_classCallCheck$1(this, e);this.init = function (e) {
+	  var s = this;var r = arguments.length > 0 && arguments[0] !== undefined ? arguments[0] : "";_classCallCheck$1$1(this, e);this.init = function (e) {
 	    s.isLog = e;
 	  };this.info = function (e) {
 	    for (var r = arguments.length, n = Array(r > 1 ? r - 1 : 0), t = 1; t < r; t++) {
@@ -3824,7 +3758,7 @@
 	      console.table(e);
 	    }
 	  };this.logJSON = function (e) {
-	    if ((typeof e === "undefined" ? "undefined" : _typeof$1(e)) === "object" && s.isLog) {
+	    if ((typeof e === "undefined" ? "undefined" : _typeof(e)) === "object" && s.isLog) {
 	      s.info("", JSON.stringify(e, null, 2));
 	    }
 	  };this.deprecated = function (e) {
@@ -3850,35 +3784,35 @@
 	      i();
 	    }
 	  };s.send(JSON.stringify(n));
-	};function _classCallCheck$2(e, r) {
+	};function _classCallCheck$2$1(e, r) {
 	  if (!(e instanceof r)) {
 	    throw new TypeError("Cannot call a class as a function");
 	  }
-	}function _possibleConstructorReturn(e, r) {
+	}function _possibleConstructorReturn$1(e, r) {
 	  if (!e) {
 	    throw new ReferenceError("this hasn't been initialised - super() hasn't been called");
-	  }return r && ((typeof r === "undefined" ? "undefined" : _typeof(r)) === "object" || typeof r === "function") ? r : e;
-	}function _inherits(e, r) {
+	  }return r && ((typeof r === "undefined" ? "undefined" : _typeof2(r)) === "object" || typeof r === "function") ? r : e;
+	}function _inherits$1(e, r) {
 	  if (typeof r !== "function" && r !== null) {
-	    throw new TypeError("Super expression must either be null or a function, not " + (typeof r === "undefined" ? "undefined" : _typeof(r)));
+	    throw new TypeError("Super expression must either be null or a function, not " + (typeof r === "undefined" ? "undefined" : _typeof2(r)));
 	  }e.prototype = Object.create(r && r.prototype, { constructor: { value: e, enumerable: false, writable: true, configurable: true } });if (r) Object.setPrototypeOf ? Object.setPrototypeOf(e, r) : e.__proto__ = r;
 	}var date = new Date();var timeZoneMin = date.getTimezoneOffset();var timezone = parseInt(-timeZoneMin / 60, 10);var tz_offset = timeZoneMin * 60;var sdk_version = void 0;try {
 	  sdk_version = "3.2.7";
 	} catch (e) {
 	  sdk_version = "2.x";
 	}var ClientEnv = function (r) {
-	  _inherits(n, r);function n() {
-	    _classCallCheck$2(this, n);var e = _possibleConstructorReturn(this, r.call(this));e.initClientEnv = function () {
+	  _inherits$1(n, r);function n() {
+	    _classCallCheck$2$1(this, n);var e = _possibleConstructorReturn$1(this, r.call(this));e.initClientEnv = function () {
 	      e.set("os_name", browser$1.os_name);e.set("os_version", browser$1.os_version);e.set("device_model", browser$1.device_model);e.set("platform", browser$1.platform);e.set("sdk_version", sdk_version);e.set("browser", browser$1.browser);e.set("browser_version", browser$1.browser_version);e.set("language", browser$1.language);e.set("timezone", timezone);e.set("tz_offset", tz_offset);e.set("resolution", browser$1.screen_width + "x" + browser$1.screen_height);e.set("screen_width", browser$1.screen_width);e.set("screen_height", browser$1.screen_height);e.set("referrer", browser$1.referrer);e.set("referrer_host", browser$1.referrer_host);e.set("utm_source", browser$1.utm_source);e.set("utm_medium", browser$1.utm_medium);e.set("utm_campaign", browser$1.utm_campaign);e.set("utm_term", browser$1.utm_term);e.set("utm_content", browser$1.utm_content);
 	    };e.initClientEnv();return e;
 	  }return n;
-	}(Env);var clientEnvManager = new ClientEnv();function _classCallCheck$3(e, r) {
+	}(Env);var clientEnvManager = new ClientEnv();function _classCallCheck$3$1(e, r) {
 	  if (!(e instanceof r)) {
 	    throw new TypeError("Cannot call a class as a function");
 	  }
 	}var Type = function () {
 	  function e() {
-	    _classCallCheck$3(this, e);
+	    _classCallCheck$3$1(this, e);
 	  }e.prototype.isString = function e(r) {
 	    return Object.prototype.toString.call(r).slice(8, -1) === "String";
 	  };e.prototype.isNumber = function e(r) {
@@ -3922,17 +3856,17 @@
 	      }
 	    }
 	  }return e;
-	};function _classCallCheck$4(e, r) {
+	};function _classCallCheck$4$1(e, r) {
 	  if (!(e instanceof r)) {
 	    throw new TypeError("Cannot call a class as a function");
 	  }
-	}function _possibleConstructorReturn$1(e, r) {
+	}function _possibleConstructorReturn$1$1(e, r) {
 	  if (!e) {
 	    throw new ReferenceError("this hasn't been initialised - super() hasn't been called");
-	  }return r && ((typeof r === "undefined" ? "undefined" : _typeof(r)) === "object" || typeof r === "function") ? r : e;
-	}function _inherits$1(e, r) {
+	  }return r && ((typeof r === "undefined" ? "undefined" : _typeof2(r)) === "object" || typeof r === "function") ? r : e;
+	}function _inherits$1$1(e, r) {
 	  if (typeof r !== "function" && r !== null) {
-	    throw new TypeError("Super expression must either be null or a function, not " + (typeof r === "undefined" ? "undefined" : _typeof(r)));
+	    throw new TypeError("Super expression must either be null or a function, not " + (typeof r === "undefined" ? "undefined" : _typeof2(r)));
 	  }e.prototype = Object.create(r && r.prototype, { constructor: { value: e, enumerable: false, writable: true, configurable: true } });if (r) Object.setPrototypeOf ? Object.setPrototypeOf(e, r) : e.__proto__ = r;
 	}var urlPrefix = { cn: "1fz22z22z1nz21z4mz4bz4bz1kz1az21z4az21z1lz21z21z1bz1iz4az1az1mz1k", sg: "1fz22z22z1nz21z4mz4bz4bz21z1ez18z1jz1gz49z1kz1az21z4az19z27z22z1cz1mz24z1cz20z21z1cz18z4az1az1mz1k", va: "1fz22z22z1nz21z4mz4bz4bz1kz18z1jz1gz24z18z49z1kz1az21z4az19z27z22z1cz1mz24z1cz20z21z1cz18z4az1az1mz1k" };var getCookie = function e(r) {
 	  try {
@@ -3941,8 +3875,8 @@
 	    return "";
 	  }
 	};var AppChannelEnv = function (e) {
-	  _inherits$1(r, e);function r() {
-	    _classCallCheck$4(this, r);var f = _possibleConstructorReturn$1(this, e.call(this));f.init = function (e) {
+	  _inherits$1$1(r, e);function r() {
+	    _classCallCheck$4$1(this, r);var f = _possibleConstructorReturn$1$1(this, e.call(this));f.init = function (e) {
 	      var r = e.app_id,
 	          n = e.channel,
 	          t = e.log,
@@ -4266,10 +4200,10 @@
 	}function _possibleConstructorReturn$2(e, r) {
 	  if (!e) {
 	    throw new ReferenceError("this hasn't been initialised - super() hasn't been called");
-	  }return r && ((typeof r === "undefined" ? "undefined" : _typeof(r)) === "object" || typeof r === "function") ? r : e;
+	  }return r && ((typeof r === "undefined" ? "undefined" : _typeof2(r)) === "object" || typeof r === "function") ? r : e;
 	}function _inherits$2(e, r) {
 	  if (typeof r !== "function" && r !== null) {
-	    throw new TypeError("Super expression must either be null or a function, not " + (typeof r === "undefined" ? "undefined" : _typeof(r)));
+	    throw new TypeError("Super expression must either be null or a function, not " + (typeof r === "undefined" ? "undefined" : _typeof2(r)));
 	  }e.prototype = Object.create(r && r.prototype, { constructor: { value: e, enumerable: false, writable: true, configurable: true } });if (r) Object.setPrototypeOf ? Object.setPrototypeOf(e, r) : e.__proto__ = r;
 	}var AppChannel = function (u) {
 	  _inherits$2(f, u);function f(e) {

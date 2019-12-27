@@ -56,7 +56,7 @@
 	};
 
 	var _core = createCommonjsModule(function (module) {
-	var core = module.exports = { version: '2.5.7' };
+	var core = module.exports = { version: '2.6.11' };
 	if (typeof __e == 'number') __e = core; // eslint-disable-line no-undef
 	});
 	var _core_1 = _core.version;
@@ -70,7 +70,7 @@
 	})('versions', []).push({
 	  version: _core.version,
 	  mode:  'global',
-	  copyright: '© 2018 Denis Pushkarev (zloirock.ru)'
+	  copyright: '© 2019 Denis Pushkarev (zloirock.ru)'
 	});
 	});
 
@@ -198,19 +198,21 @@
 	  return object;
 	};
 
-	var hasOwnProperty = {}.hasOwnProperty;
+	var hasOwnProperty$1 = {}.hasOwnProperty;
 	var _has = function (it, key) {
-	  return hasOwnProperty.call(it, key);
+	  return hasOwnProperty$1.call(it, key);
 	};
+
+	var _functionToString = _shared('native-function-to-string', Function.toString);
 
 	var _redefine = createCommonjsModule(function (module) {
 	var SRC = _uid('src');
+
 	var TO_STRING = 'toString';
-	var $toString = Function[TO_STRING];
-	var TPL = ('' + $toString).split(TO_STRING);
+	var TPL = ('' + _functionToString).split(TO_STRING);
 
 	_core.inspectSource = function (it) {
-	  return $toString.call(it);
+	  return _functionToString.call(it);
 	};
 
 	(module.exports = function (O, key, val, safe) {
@@ -230,7 +232,7 @@
 	  }
 	// add fake Function#toString for correct work wrapped methods / constructors with methods like LoDash isNative
 	})(Function.prototype, TO_STRING, function toString() {
-	  return typeof this == 'function' && this[SRC] || $toString.call(this);
+	  return typeof this == 'function' && this[SRC] || _functionToString.call(this);
 	});
 	});
 
@@ -929,18 +931,67 @@
 
 
 	// https://github.com/zloirock/core-js/issues/280
-	_export(_export.P + _export.F * /Version\/10\.\d+(\.\d+)? Safari\//.test(_userAgent), 'String', {
+	var WEBKIT_BUG = /Version\/10\.\d+(\.\d+)?( Mobile\/\w+)? Safari\//.test(_userAgent);
+
+	_export(_export.P + _export.F * WEBKIT_BUG, 'String', {
 	  padStart: function padStart(maxLength /* , fillString = ' ' */) {
 	    return _stringPad(this, maxLength, arguments.length > 1 ? arguments[1] : undefined, true);
 	  }
 	});
+
+	// ES3 safe
+	var _undefined = void 0;
+
+	var is$1 = function (value) { return value !== _undefined && value !== null; };
+
+	// prettier-ignore
+	var possibleTypes = { "object": true, "function": true, "undefined": true /* document.all */ };
+
+	var is$2 = function (value) {
+		if (!is$1(value)) return false;
+		return hasOwnProperty.call(possibleTypes, typeof value);
+	};
+
+	var is$3 = function (value) {
+		if (!is$2(value)) return false;
+		try {
+			if (!value.constructor) return false;
+			return value.constructor.prototype === value;
+		} catch (error) {
+			return false;
+		}
+	};
+
+	var is$4 = function (value) {
+		if (typeof value !== "function") return false;
+
+		if (!hasOwnProperty.call(value, "length")) return false;
+
+		try {
+			if (typeof value.length !== "number") return false;
+			if (typeof value.call !== "function") return false;
+			if (typeof value.apply !== "function") return false;
+		} catch (error) {
+			return false;
+		}
+
+		return !is$3(value);
+	};
+
+	var classRe = /^\s*class[\s{/}]/, functionToString = Function.prototype.toString;
+
+	var is$5 = function (value) {
+		if (!is$4(value)) return false;
+		if (classRe.test(functionToString.call(value))) return false;
+		return true;
+	};
 
 	var isImplemented = function () {
 		var assign = Object.assign, obj;
 		if (typeof assign !== "function") return false;
 		obj = { foo: "raz" };
 		assign(obj, { bar: "dwa" }, { trzy: "trzy" });
-		return (obj.foo + obj.bar + obj.trzy) === "razdwatrzy";
+		return obj.foo + obj.bar + obj.trzy === "razdwatrzy";
 	};
 
 	var isImplemented$1 = function () {
@@ -955,11 +1006,9 @@
 	// eslint-disable-next-line no-empty-function
 	var noop = function () {};
 
-	var _undefined = noop(); // Support ES3 engines
+	var _undefined$1 = noop(); // Support ES3 engines
 
-	var isValue = function (val) {
-	 return (val !== _undefined) && (val !== null);
-	};
+	var isValue = function (val) { return val !== _undefined$1 && val !== null; };
 
 	var keys = Object.keys;
 
@@ -974,7 +1023,7 @@
 
 	var max   = Math.max;
 
-	var shim$1 = function (dest, src /*, …srcn*/) {
+	var shim$1 = function (dest, src/*, …srcn*/) {
 		var error, i, length = max(arguments.length, 2), assign;
 		dest = Object(validValue(dest));
 		assign = function (key) {
@@ -992,9 +1041,7 @@
 		return dest;
 	};
 
-	var assign = isImplemented()
-		? Object.assign
-		: shim$1;
+	var assign = isImplemented() ? Object.assign : shim$1;
 
 	var forEach = Array.prototype.forEach, create = Object.create;
 
@@ -1004,7 +1051,7 @@
 	};
 
 	// eslint-disable-next-line no-unused-vars
-	var normalizeOptions = function (opts1 /*, …options*/) {
+	var normalizeOptions = function (opts1/*, …options*/) {
 		var result = create(null);
 		forEach.call(arguments, function (options) {
 			if (!isValue(options)) return;
@@ -1013,17 +1060,11 @@
 		return result;
 	};
 
-	// Deprecated
-
-	var isCallable = function (obj) {
-	 return typeof obj === "function";
-	};
-
 	var str = "razdwatrzy";
 
 	var isImplemented$2 = function () {
 		if (typeof str.contains !== "function") return false;
-		return (str.contains("dwa") === true) && (str.contains("foo") === false);
+		return str.contains("dwa") === true && str.contains("foo") === false;
 	};
 
 	var indexOf = String.prototype.indexOf;
@@ -1032,39 +1073,37 @@
 		return indexOf.call(this, searchString, arguments[1]) > -1;
 	};
 
-	var contains = isImplemented$2()
-		? String.prototype.contains
-		: shim$2;
+	var contains = isImplemented$2() ? String.prototype.contains : shim$2;
 
 	var d_1 = createCommonjsModule(function (module) {
 
-	var d;
 
-	d = module.exports = function (dscr, value/*, options*/) {
+
+	var d = (module.exports = function (dscr, value/*, options*/) {
 		var c, e, w, options, desc;
-		if ((arguments.length < 2) || (typeof dscr !== 'string')) {
+		if (arguments.length < 2 || typeof dscr !== "string") {
 			options = value;
 			value = dscr;
 			dscr = null;
 		} else {
 			options = arguments[2];
 		}
-		if (dscr == null) {
+		if (is$1(dscr)) {
+			c = contains.call(dscr, "c");
+			e = contains.call(dscr, "e");
+			w = contains.call(dscr, "w");
+		} else {
 			c = w = true;
 			e = false;
-		} else {
-			c = contains.call(dscr, 'c');
-			e = contains.call(dscr, 'e');
-			w = contains.call(dscr, 'w');
 		}
 
 		desc = { value: value, configurable: c, enumerable: e, writable: w };
 		return !options ? desc : assign(normalizeOptions(options), desc);
-	};
+	});
 
 	d.gs = function (dscr, get, set/*, options*/) {
 		var c, e, options, desc;
-		if (typeof dscr !== 'string') {
+		if (typeof dscr !== "string") {
 			options = set;
 			set = get;
 			get = dscr;
@@ -1072,23 +1111,23 @@
 		} else {
 			options = arguments[3];
 		}
-		if (get == null) {
+		if (!is$1(get)) {
 			get = undefined;
-		} else if (!isCallable(get)) {
+		} else if (!is$5(get)) {
 			options = get;
 			get = set = undefined;
-		} else if (set == null) {
+		} else if (!is$1(set)) {
 			set = undefined;
-		} else if (!isCallable(set)) {
+		} else if (!is$5(set)) {
 			options = set;
 			set = undefined;
 		}
-		if (dscr == null) {
+		if (is$1(dscr)) {
+			c = contains.call(dscr, "c");
+			e = contains.call(dscr, "e");
+		} else {
 			c = true;
 			e = false;
-		} else {
-			c = contains.call(dscr, 'c');
-			e = contains.call(dscr, 'e');
 		}
 
 		desc = { get: get, set: set, configurable: c, enumerable: e };

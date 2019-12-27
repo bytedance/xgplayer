@@ -40,8 +40,5 @@
     "xgplayer-transmuxer-constant-events":  "^2.2.0-alpha.12",
     "xgplayer-transmuxer-codec-compatibility":  "^2.2.0-alpha.12",
     "xgplayer-utils-sniffer": "^2.2.0-alpha.12"
-  },
-  "devDependencies": {
-    "cross-env": "^6.0.3"
   }
 }

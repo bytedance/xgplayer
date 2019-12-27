@@ -6,6 +6,7 @@
   "module": "es/index.js",
   "scripts": {
     "prepare": "npm run build",
+    "watch": "babel src --out-dir es --watch & babel src --out-dir lib --presets=es2015 --watch",
     "build": "npm run build:es && npm run build:lib",
     "build:es": "babel src --out-dir es",
     "build:lib": "babel src --out-dir lib --presets=es2015"
@@ -21,11 +22,5 @@
         }
       ]
     ]
-  },
-  "devDependencies": {
-    "babel-cli": "^6.22.0"
-  },
-  "dependencies": {
-    "xgplayer-utils": "^2.2.0-alpha.12"
   }
 }

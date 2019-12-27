@@ -44,8 +44,5 @@
     "xgplayer-transmuxer-demux-m3u8": "^2.2.0-alpha.12",
     "xgplayer-transmuxer-demux-ts": "^2.2.0-alpha.12",
     "xgplayer-transmuxer-buffer-playlist": "^2.2.0-alpha.12"
-  },
-  "devDependencies": {
-    "cross-env": "^6.0.3"
   }
 }

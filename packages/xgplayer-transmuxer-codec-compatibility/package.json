@@ -6,6 +6,7 @@
   "module": "es/index.js",
   "scripts": {
     "prepare": "npm run build",
+    "watch": "babel src --out-dir es --watch & babel src --out-dir lib --presets=es2015 --watch",
     "build": "npm run build:es && npm run build:lib",
     "build:es": "babel src --out-dir es",
     "build:lib": "babel src --out-dir lib --presets=es2015"
@@ -22,13 +23,7 @@
       ]
     ]
   },
-  "devDependencies": {
-    "babel-cli": "^6.22.0",
-    "babel-plugin-external-helpers": "^6.22.0",
-    "cross-env": "^6.0.3"
-  },
   "dependencies": {
-    "concat-typed-array": "^1.0.2",
     "xgplayer-transmuxer-constant-events":  "^2.2.0-alpha.12",
     "xgplayer-transmuxer-codec-aac": "^2.2.0-alpha.12"
   }
