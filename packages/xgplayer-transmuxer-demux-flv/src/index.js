@@ -1,6 +1,6 @@
 import EVENTS from 'xgplayer-transmuxer-constant-events';
 import { AudioTrackMeta, VideoTrackMeta } from 'xgplayer-transmuxer-model-trackmeta';
-import { SpsParser } from 'xgplayer-transmuxer-codec-avc';
+import { SpsParser, NalUnit } from 'xgplayer-transmuxer-codec-avc';
 import { VideoTrack, AudioTrack } from 'xgplayer-transmuxer-buffer-track'
 
 import AMFParser from './amf-parser'
@@ -522,6 +522,14 @@ class FlvDemuxer {
       chunk.data = this.loaderBuffer.shift(chunk.datasize - 1)
       if (!this._datasizeValidator(chunk.datasize)) {
         this.emit(DEMUX_EVENTS.DEMUX_ERROR, this.TAG, new Error(`invalid video tag datasize: ${chunk.datasize}`), false)
+      }
+      const nals = NalUnit.getNalunits(chunk.data)
+      for (let i = 0; i < nals.length; i++) {
+        const unit = nals[i]
+        NalUnit.analyseNal(unit)
+        if (unit.sei) {
+          this.emit(DEMUX_EVENTS.SEI_PARSED, unit.sei)
+        }
       }
       this.tracks.videoTrack.samples.push(chunk)
       this.emit(DEMUX_EVENTS.DEMUX_COMPLETE)

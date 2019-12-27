@@ -1,4 +1,6 @@
 import SpsParser from './sps';
+import SEIParser from './sei';
+import RBSP from './rbsp'
 class Nalunit {
   static getNalunits (buffer) {
     if (buffer.length - buffer.position < 4) {
@@ -74,6 +76,7 @@ class Nalunit {
         break;
       case 6:
         // SEI
+        unit.sei = SEIParser.parse(unit.body)
         break;
       case 7:
         // SPS
