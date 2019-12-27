@@ -30,6 +30,7 @@
     "xgplayer-transmuxer-buffer-track": "2.2.0-alpha.12",
     "xgplayer-utils-utf8": "^2.2.0-alpha.12",
     "xgplayer-utils-sniffer": "^2.2.0-alpha.12",
-    "xgplayer-transmuxer-context": "^2.2.0-alpha.12"
+    "xgplayer-transmuxer-context": "^2.2.0-alpha.12",
+    "xgplayer-transmuxer-buffer-stream": "^2.2.0-alpha.12"
   }
 }

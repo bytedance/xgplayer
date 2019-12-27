@@ -42,13 +42,16 @@ class Nalunit {
   }
 
   static getAvccNals (buffer) {
+    // buffer.buffer = RBSP.EBSP2RBSP(new Uint8Array(buffer.buffer)).buffer;
+    // buffer.dataview = new DataView(buffer.buffer)
+    // buffer.dataview.position = 0;
     let nals = [];
     while (buffer.position < buffer.length - 4) {
-      let length = buffer.dataview.getInt32();
+      let length = buffer.dataview.getInt32(buffer.dataview.position);
       if (buffer.length - buffer.position >= length) {
         let header = buffer.buffer.slice(buffer.position, buffer.position + 4);
         buffer.skip(4)
-        let body = buffer.buffer.slice(buffer.position, buffer.position + length);
+        let body = new Uint8Array(buffer.buffer.slice(buffer.position, buffer.position + length));
         buffer.skip(length);
         let unit = {header, body};
         Nalunit.analyseNal(unit);

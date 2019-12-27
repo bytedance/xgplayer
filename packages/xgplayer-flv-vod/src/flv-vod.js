@@ -81,6 +81,7 @@ class FlvController {
     this.on(DEMUX_EVENTS.METADATA_PARSED, this._handleMetadataParsed.bind(this))
     this.on(DEMUX_EVENTS.DEMUX_COMPLETE, this._handleDemuxComplete.bind(this))
     this.on(DEMUX_EVENTS.DEMUX_ERROR, this._handleDemuxError.bind(this))
+    this.on(DEMUX_EVENTS.SEI_PARSED, this._handleSEIParsed.bind(this))
 
     this.on(REMUX_EVENTS.INIT_SEGMENT, this._handleAppendInitSegment.bind(this))
     this.on(REMUX_EVENTS.MEDIA_SEGMENT, this._handleMediaSegment.bind(this))
@@ -111,6 +112,10 @@ class FlvController {
 
   _handleMetadataParsed (type) {
     this.emit(REMUX_EVENTS.REMUX_METADATA, type)
+  }
+
+  _handleSEIParsed(sei) {
+    this._player.emit('SEI_PARSED', sei)
   }
 
   _handleDemuxComplete () {

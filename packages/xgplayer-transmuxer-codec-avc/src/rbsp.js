@@ -10,7 +10,7 @@ class RBSP {
       if (idx < 2) {
         return true;
       } else {
-        return data[idx - 2] === 0 && data[idx - 1] === 0 && el === 3
+        return !(data[idx - 2] === 0 && data[idx - 1] === 0 && el === 3)
       }
     })
   }

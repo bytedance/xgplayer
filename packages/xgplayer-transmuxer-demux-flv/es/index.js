@@ -4,10 +4,10 @@ function _classCallCheck(instance, Constructor) { if (!(instance instanceof Cons
 
 import EVENTS from 'xgplayer-transmuxer-constant-events';
 import { AudioTrackMeta, VideoTrackMeta } from 'xgplayer-transmuxer-model-trackmeta';
-import { SpsParser } from 'xgplayer-transmuxer-codec-avc';
+import { SpsParser, NalUnit } from 'xgplayer-transmuxer-codec-avc';
 import { VideoTrack, AudioTrack } from 'xgplayer-transmuxer-buffer-track';
-
 import AMFParser from './amf-parser';
+import Stream from 'xgplayer-transmuxer-buffer-stream';
 
 var DEMUX_EVENTS = EVENTS.DEMUX_EVENTS;
 
@@ -518,6 +518,14 @@ var FlvDemuxer = function () {
             this.emit(DEMUX_EVENTS.DEMUX_ERROR, this.TAG, new Error('invalid video tag datasize: ' + chunk.datasize), false);
             return;
           }
+          var nals = NalUnit.getAvccNals(new Stream(chunk.data.buffer));
+          for (var _i = 0; _i < nals.length; _i++) {
+            var unit = nals[_i];
+            NalUnit.analyseNal(unit);
+            if (unit.sei) {
+              this.emit(DEMUX_EVENTS.SEI_PARSED, unit.sei);
+            }
+          }
           if (this._metaChange) {
             chunk.options = {
               meta: Object.assign({}, this.tracks.videoTrack.meta)
@@ -533,6 +541,7 @@ var FlvDemuxer = function () {
         if (!this._datasizeValidator(chunk.datasize)) {
           this.emit(DEMUX_EVENTS.DEMUX_ERROR, this.TAG, new Error('invalid video tag datasize: ' + chunk.datasize), false);
         }
+
         this.tracks.videoTrack.samples.push(chunk);
         this.emit(DEMUX_EVENTS.DEMUX_COMPLETE);
       }
@@ -602,7 +611,7 @@ var FlvDemuxer = function () {
 
       offset++;
 
-      for (var _i = 0; _i < numOfPps; _i++) {
+      for (var _i2 = 0; _i2 < numOfPps; _i2++) {
         var _size = data[offset] * 255 + data[offset + 1];
         offset += 2;
         var pps = new Uint8Array(_size);

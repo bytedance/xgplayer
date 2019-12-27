@@ -46,7 +46,8 @@ class SEIParser {
     const dv = new DataView(data.buffer)
     let payloadType = 0;
     let offset = 0;
-    while (dv.getUint8(offset++) === 0) {
+    while (dv.getUint8(offset) === 0) {
+      offset++
       payloadType += 255
     }
     payloadType += dv.getUint8(offset++);
@@ -67,7 +68,8 @@ class SEIParser {
 
     let payloadLength = 0;
     let offset = 0;
-    while (dv.getUint8(offset++) === 0) {
+    while (dv.getUint8(offset) === 0) {
+      offset++
       payloadLength += 255
     }
     payloadLength += dv.getUint8(offset++);
@@ -94,7 +96,7 @@ class SEIParser {
     const payload = data.slice(offset)
 
     const uuid = u8aToString(payload.slice(0, 16));
-    const content = u8aToString(payload.slice(16, payloadLength + 16));
+    const content = u8aToString(payload.slice(16, payloadLength));
 
     return {
       uuid,

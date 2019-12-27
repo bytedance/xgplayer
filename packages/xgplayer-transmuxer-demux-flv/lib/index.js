@@ -20,6 +20,10 @@ var _amfParser = require('./amf-parser');
 
 var _amfParser2 = _interopRequireDefault(_amfParser);
 
+var _xgplayerTransmuxerBufferStream = require('xgplayer-transmuxer-buffer-stream');
+
+var _xgplayerTransmuxerBufferStream2 = _interopRequireDefault(_xgplayerTransmuxerBufferStream);
+
 function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
 
 function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } }
@@ -533,6 +537,14 @@ var FlvDemuxer = function () {
             this.emit(DEMUX_EVENTS.DEMUX_ERROR, this.TAG, new Error('invalid video tag datasize: ' + chunk.datasize), false);
             return;
           }
+          var nals = _xgplayerTransmuxerCodecAvc.NalUnit.getAvccNals(new _xgplayerTransmuxerBufferStream2.default(chunk.data.buffer));
+          for (var _i = 0; _i < nals.length; _i++) {
+            var unit = nals[_i];
+            _xgplayerTransmuxerCodecAvc.NalUnit.analyseNal(unit);
+            if (unit.sei) {
+              this.emit(DEMUX_EVENTS.SEI_PARSED, unit.sei);
+            }
+          }
           if (this._metaChange) {
             chunk.options = {
               meta: Object.assign({}, this.tracks.videoTrack.meta)
@@ -548,6 +560,7 @@ var FlvDemuxer = function () {
         if (!this._datasizeValidator(chunk.datasize)) {
           this.emit(DEMUX_EVENTS.DEMUX_ERROR, this.TAG, new Error('invalid video tag datasize: ' + chunk.datasize), false);
         }
+
         this.tracks.videoTrack.samples.push(chunk);
         this.emit(DEMUX_EVENTS.DEMUX_COMPLETE);
       }
@@ -617,7 +630,7 @@ var FlvDemuxer = function () {
 
       offset++;
 
-      for (var _i = 0; _i < numOfPps; _i++) {
+      for (var _i2 = 0; _i2 < numOfPps; _i2++) {
         var _size = data[offset] * 255 + data[offset + 1];
         offset += 2;
         var pps = new Uint8Array(_size);

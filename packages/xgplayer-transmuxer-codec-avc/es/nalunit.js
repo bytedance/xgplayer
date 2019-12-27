@@ -3,6 +3,8 @@ var _createClass = function () { function defineProperties(target, props) { for 
 function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } }
 
 import SpsParser from './sps';
+import SEIParser from './sei';
+import RBSP from './rbsp';
 
 var Nalunit = function () {
   function Nalunit() {
@@ -52,13 +54,16 @@ var Nalunit = function () {
   }, {
     key: 'getAvccNals',
     value: function getAvccNals(buffer) {
+      // buffer.buffer = RBSP.EBSP2RBSP(new Uint8Array(buffer.buffer)).buffer;
+      // buffer.dataview = new DataView(buffer.buffer)
+      // buffer.dataview.position = 0;
       var nals = [];
       while (buffer.position < buffer.length - 4) {
-        var length = buffer.dataview.getInt32();
+        var length = buffer.dataview.getInt32(buffer.dataview.position);
         if (buffer.length - buffer.position >= length) {
           var header = buffer.buffer.slice(buffer.position, buffer.position + 4);
           buffer.skip(4);
-          var body = buffer.buffer.slice(buffer.position, buffer.position + length);
+          var body = new Uint8Array(buffer.buffer.slice(buffer.position, buffer.position + length));
           buffer.skip(length);
           var unit = { header: header, body: body };
           Nalunit.analyseNal(unit);
@@ -87,6 +92,7 @@ var Nalunit = function () {
           break;
         case 6:
           // SEI
+          unit.sei = SEIParser.parse(unit.body);
           break;
         case 7:
           // SPS
