@@ -52,7 +52,7 @@ var HlsVodPlayer = function (_Player) {
     _this2.util = _xgplayer2.default.util;
     _this2.util.deepCopy(_this2.hlsOps, options);
     _this2._context = new _xgplayerTransmuxerContext2.default(HlsAllowedEvents);
-    _this2._handleSetCurrentTime = (0, _xgplayerUtils.debounce)(_this2._handleSetCurrentTime.bind(_this2), 500);
+    _this2._handleSetCurrentTime = (0, _xgplayerUtils.debounce)(_this2._handleSetCurrentTime.bind(_this2), 200);
     _this2.onWaiting = _this2.onWaiting.bind(_this2);
     _this2.started = false;
     return _this2;

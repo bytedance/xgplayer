@@ -16,7 +16,7 @@ var _xgplayerTransmuxerBufferStream = require('xgplayer-transmuxer-buffer-stream
 
 var _xgplayerTransmuxerBufferStream2 = _interopRequireDefault(_xgplayerTransmuxerBufferStream);
 
-var _xgplayerTransmuxerCodecH = require('xgplayer-transmuxer-codec-h264');
+var _xgplayerTransmuxerCodecAvc = require('xgplayer-transmuxer-codec-avc');
 
 var _xgplayerTransmuxerBufferTrack = require('xgplayer-transmuxer-buffer-track');
 
@@ -169,7 +169,7 @@ var TsDemuxer = function () {
   }, {
     key: 'pushVideoSample',
     value: function pushVideoSample(pes, options) {
-      var nals = _xgplayerTransmuxerCodecH.NalUnit.getNalunits(pes.ES.buffer);
+      var nals = _xgplayerTransmuxerCodecAvc.NalUnit.getNalunits(pes.ES.buffer);
       var track = void 0;
       var meta = new _xgplayerTransmuxerModelTrackmeta.VideoTrackMeta();
       if (!this._tracks.videoTrack) {
@@ -214,7 +214,7 @@ var TsDemuxer = function () {
       }
 
       if (sps && pps) {
-        meta.avcc = _xgplayerTransmuxerCodecH.NalUnit.getAvcc(sps.body, pps.body);
+        meta.avcc = _xgplayerTransmuxerCodecAvc.NalUnit.getAvcc(sps.body, pps.body);
         var metaEqual = TsDemuxer.compaireMeta(track.meta, meta, true);
         if (!this._hasVideoMeta || !metaEqual) {
           if (options) {

@@ -1,6 +1,6 @@
 {
   "name": "xgplayer-transmuxer-demux-flv",
-  "version": "2.2.0-alpha.6",
+  "version": "2.2.0-alpha.12",
   "description": "",
   "main": "lib/index.js",
   "module": "es/index.js",
@@ -28,12 +28,12 @@
   },
   "dependencies": {
     "concat-typed-array": "^1.0.2",
-    "xgplayer-transmuxer-constant-events":  "2.2.0-alpha.6",
-    "xgplayer-transmuxer-model-trackmeta": "2.2.0-alpha.6",
-    "xgplayer-transmuxer-codec-h264":  "2.2.0-alpha.6",
-    "xgplayer-transmuxer-buffer-track": "2.2.0-alpha.6",
-    "xgplayer-utils-utf8": "^2.2.0-alpha.6",
-    "xgplayer-utils-sniffer": "^2.2.0-alpha.6",
-    "xgplayer-transmuxer-context": "^2.2.0-alpha.6"
+    "xgplayer-transmuxer-constant-events":  "2.2.0-alpha.12",
+    "xgplayer-transmuxer-model-trackmeta": "2.2.0-alpha.12",
+    "xgplayer-transmuxer-codec-avc":  "2.2.0-alpha.12",
+    "xgplayer-transmuxer-buffer-track": "2.2.0-alpha.12",
+    "xgplayer-utils-utf8": "^2.2.0-alpha.12",
+    "xgplayer-utils-sniffer": "^2.2.0-alpha.12",
+    "xgplayer-transmuxer-context": "^2.2.0-alpha.12"
   }
 }

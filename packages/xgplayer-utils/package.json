@@ -1,6 +1,6 @@
 {
   "name": "xgplayer-utils",
-  "version": "2.2.0-alpha.6",
+  "version": "2.2.0-alpha.12",
   "description": "",
   "main": "lib/index.js",
   "module": "es/index.js",
@@ -28,6 +28,6 @@
   },
   "dependencies": {
     "concat-typed-array": "^1.0.2",
-    "xgplayer-transmuxer-constant-events": "^2.2.0-alpha.6"
+    "xgplayer-transmuxer-constant-events": "^2.2.0-alpha.12"
   }
 }

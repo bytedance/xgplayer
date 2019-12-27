@@ -15,7 +15,7 @@ class HlsVodPlayer extends Player {
     this.util = Player.util;
     this.util.deepCopy(this.hlsOps, options);
     this._context = new Context(HlsAllowedEvents);
-    this._handleSetCurrentTime = debounce(this._handleSetCurrentTime.bind(this), 500)
+    this._handleSetCurrentTime = debounce(this._handleSetCurrentTime.bind(this), 200)
     this.onWaiting = this.onWaiting.bind(this)
     this.started = false;
   }

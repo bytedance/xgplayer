@@ -1,6 +1,6 @@
 {
   "name": "xgplayer-transmuxer-remux-mp4",
-  "version": "2.2.0-alpha.6",
+  "version": "2.2.0-alpha.12",
   "description": "",
   "main": "lib/index.js",
   "module": "es/index.js",
@@ -26,9 +26,9 @@
     "babel-cli": "^6.22.0"
   },
   "dependencies": {
-    "xgplayer-transmuxer-model-mediasegmentlist": "^2.2.0-alpha.6",
-    "xgplayer-transmuxer-constant-events": "^2.2.0-alpha.6",
-    "xgplayer-utils-sniffer": "^2.2.0-alpha.6",
+    "xgplayer-transmuxer-model-mediasegmentlist": "^2.2.0-alpha.12",
+    "xgplayer-transmuxer-constant-events": "^2.2.0-alpha.12",
+    "xgplayer-utils-sniffer": "^2.2.0-alpha.12",
     "concat-typed-array": "^1.0.2"
   }
 }

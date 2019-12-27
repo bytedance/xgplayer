@@ -4426,6 +4426,9 @@
       value: function seek(time) {
         if (!this._isDtsBaseInited) {
           this._dtsBase = time * 1000;
+        } else {
+          this._isDtsBaseInited = false;
+          this._dtsBase = time * 1000;
         }
       }
     }, {
@@ -7281,6 +7284,7 @@
 
         for (var i = 0; i < video.buffered.length; i++) {
           if (time >= video.buffered.start(i) && time < video.buffered.end(i)) {
+            this._playlist.clearDownloaded();
             return;
           }
         }
@@ -7357,7 +7361,7 @@
 
           // let fragend = frag ? (frag.time + frag.duration) / 1000 : 0;
 
-          var curTime = _frag2.time;
+          var curTime = _frag2.time + _frag2.duration;
           var curFragTime = _frag2.time;
 
           if (_frag2.downloaded) {
@@ -7439,7 +7443,7 @@
       _this2.util = Player.util;
       _this2.util.deepCopy(_this2.hlsOps, options);
       _this2._context = new Context(HlsAllowedEvents$1);
-      _this2._handleSetCurrentTime = debounce(_this2._handleSetCurrentTime.bind(_this2), 500);
+      _this2._handleSetCurrentTime = debounce(_this2._handleSetCurrentTime.bind(_this2), 200);
       _this2.onWaiting = _this2.onWaiting.bind(_this2);
       _this2.started = false;
       return _this2;

@@ -5712,47 +5712,47 @@ wrappy@1:
   resolved "http://bnpm.byted.org/wrappy/download/wrappy-1.0.2.tgz#b5243d8f3ec1aa35f1364605bc0d1036e30ab69f"
   integrity sha1-tSQ9jz7BqjXxNkYFvA0QNuMKtp8=
 
-xgplayer-buffer@^2.2.0-alpha.6:
-  version "2.2.0-alpha.6"
-  resolved "http://bnpm.byted.org/xgplayer-buffer/download/xgplayer-buffer-2.2.0-alpha.6.tgz#bb37a92dce5e7f254b9ecd06d7723d0899c96c10"
+xgplayer-buffer@^2.2.0-alpha.12:
+  version "2.2.0-alpha.12"
+  resolved "http://bnpm.byted.org/xgplayer-buffer/download/xgplayer-buffer-2.2.0-alpha.12.tgz#bb37a92dce5e7f254b9ecd06d7723d0899c96c10"
   integrity sha1-uzepLc5efyVLns0G13I9CJnJbBA=
   dependencies:
     "@babel/cli" "^7.6.0"
     "@babel/core" "^7.6.0"
 
-xgplayer-codec@^2.2.0-alpha.6:
-  version "2.2.0-alpha.6"
-  resolved "http://bnpm.byted.org/xgplayer-codec/download/xgplayer-codec-2.2.0-alpha.6.tgz#84a2b3f9e24d5585988bc8cdbbbfd101f9d600b7"
+xgplayer-codec@^2.2.0-alpha.12:
+  version "2.2.0-alpha.12"
+  resolved "http://bnpm.byted.org/xgplayer-codec/download/xgplayer-codec-2.2.0-alpha.12.tgz#84a2b3f9e24d5585988bc8cdbbbfd101f9d600b7"
   integrity sha1-hKKz+eJNVYWYi8jNu7/RAfnWALc=
 
-xgplayer-flv-live@^2.2.0-alpha.6:
-  version "2.2.0-alpha.6"
-  resolved "http://bnpm.byted.org/xgplayer-flv-live/download/xgplayer-flv-live-2.2.0-alpha.6.tgz#92f8a1b8360bd2953a1e0d2f02351fa8434e5f32"
+xgplayer-flv-live@^2.2.0-alpha.12:
+  version "2.2.0-alpha.12"
+  resolved "http://bnpm.byted.org/xgplayer-flv-live/download/xgplayer-flv-live-2.2.0-alpha.12.tgz#92f8a1b8360bd2953a1e0d2f02351fa8434e5f32"
   integrity sha1-kvihuDYL0pU6Hg0vAjUfqENOXzI=
 
-xgplayer-flv-vod@^2.2.0-alpha.6:
-  version "2.2.0-alpha.6"
-  resolved "http://bnpm.byted.org/xgplayer-flv-vod/download/xgplayer-flv-vod-2.2.0-alpha.6.tgz#225a534774fa4c7ab0894cab057925520dc54bcd"
+xgplayer-flv-vod@^2.2.0-alpha.12:
+  version "2.2.0-alpha.12"
+  resolved "http://bnpm.byted.org/xgplayer-flv-vod/download/xgplayer-flv-vod-2.2.0-alpha.12.tgz#225a534774fa4c7ab0894cab057925520dc54bcd"
   integrity sha1-IlpTR3T6THqwiUyrBXklUg3FS80=
 
-xgplayer-loader@^2.2.0-alpha.6:
-  version "2.2.0-alpha.6"
-  resolved "http://bnpm.byted.org/xgplayer-loader/download/xgplayer-loader-2.2.0-alpha.6.tgz#c193da0dd93b7e0ab058ab0bd93fc8d49ca9b688"
+xgplayer-loader@^2.2.0-alpha.12:
+  version "2.2.0-alpha.12"
+  resolved "http://bnpm.byted.org/xgplayer-loader/download/xgplayer-loader-2.2.0-alpha.12.tgz#c193da0dd93b7e0ab058ab0bd93fc8d49ca9b688"
   integrity sha1-wZPaDdk7fgqwWKsL2T/I1Jyptog=
   dependencies:
-    xgplayer-utils "^2.2.0-alpha.6"
+    xgplayer-utils "^2.2.0-alpha.12"
 
-xgplayer-remux@^2.2.0-alpha.6:
-  version "2.2.0-alpha.6"
-  resolved "http://bnpm.byted.org/xgplayer-remux/download/xgplayer-remux-2.2.0-alpha.6.tgz#16911677f86a8e9de91578035a2e999abfee2552"
+xgplayer-remux@^2.2.0-alpha.12:
+  version "2.2.0-alpha.12"
+  resolved "http://bnpm.byted.org/xgplayer-remux/download/xgplayer-remux-2.2.0-alpha.12.tgz#16911677f86a8e9de91578035a2e999abfee2552"
   integrity sha1-FpEWd/hqjp3pFXgDWi6Zmr/uJVI=
   dependencies:
     concat-typed-array "^1.0.2"
-    xgplayer-utils "^2.2.0-alpha.6"
+    xgplayer-utils "^2.2.0-alpha.12"
 
-xgplayer-utils@^2.2.0-alpha.6:
-  version "2.2.0-alpha.6"
-  resolved "http://bnpm.byted.org/xgplayer-utils/download/xgplayer-utils-2.2.0-alpha.6.tgz#44a9a410bbe1529870b46be2695a3458bfc2ee50"
+xgplayer-utils@^2.2.0-alpha.12:
+  version "2.2.0-alpha.12"
+  resolved "http://bnpm.byted.org/xgplayer-utils/download/xgplayer-utils-2.2.0-alpha.12.tgz#44a9a410bbe1529870b46be2695a3458bfc2ee50"
   integrity sha1-RKmkELvhUphwtGviaVo0WL/C7lA=
   dependencies:
     concat-typed-array "^1.0.2"

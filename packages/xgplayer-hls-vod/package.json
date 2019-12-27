@@ -1,6 +1,6 @@
 {
   "name": "xgplayer-hls-vod",
-  "version": "2.2.0-alpha.6",
+  "version": "2.2.0-alpha.12",
   "description": "",
   "main": "lib/index.js",
   "module": "es/index.js",
@@ -31,20 +31,20 @@
   },
   "license": "ISC",
   "dependencies": {
-    "xgplayer-utils": "^2.2.0-alpha.6",
-    "xgplayer-utils-crypto": "^2.2.0-alpha.6",
-    "xgplayer-utils-mse": "^2.2.0-alpha.6",
-    "xgplayer-transmuxer-constant-events": "^2.2.0-alpha.6",
-    "xgplayer-transmuxer-context": "^2.2.0-alpha.6",
-    "xgplayer-transmuxer-buffer-track": "^2.2.0-alpha.6",
-    "xgplayer-transmuxer-buffer-presource": "^2.2.0-alpha.6",
-    "xgplayer-transmuxer-buffer-xgbuffer": "^2.2.0-alpha.6",
-    "xgplayer-transmuxer-loader-fetch": "^2.2.0-alpha.6",
-    "xgplayer-transmuxer-remux-mp4": "^2.2.0-alpha.6",
-    "xgplayer-transmuxer-codec-compatibility": "^2.2.0-alpha.6",
-    "xgplayer-transmuxer-demux-m3u8": "^2.2.0-alpha.6",
-    "xgplayer-transmuxer-demux-ts": "^2.2.0-alpha.6",
-    "xgplayer-transmuxer-buffer-playlist": "^2.2.0-alpha.6"
+    "xgplayer-utils": "^2.2.0-alpha.12",
+    "xgplayer-utils-crypto": "^2.2.0-alpha.12",
+    "xgplayer-utils-mse": "^2.2.0-alpha.12",
+    "xgplayer-transmuxer-constant-events": "^2.2.0-alpha.12",
+    "xgplayer-transmuxer-context": "^2.2.0-alpha.12",
+    "xgplayer-transmuxer-buffer-track": "^2.2.0-alpha.12",
+    "xgplayer-transmuxer-buffer-presource": "^2.2.0-alpha.12",
+    "xgplayer-transmuxer-buffer-xgbuffer": "^2.2.0-alpha.12",
+    "xgplayer-transmuxer-loader-fetch": "^2.2.0-alpha.12",
+    "xgplayer-transmuxer-remux-mp4": "^2.2.0-alpha.12",
+    "xgplayer-transmuxer-codec-compatibility": "^2.2.0-alpha.12",
+    "xgplayer-transmuxer-demux-m3u8": "^2.2.0-alpha.12",
+    "xgplayer-transmuxer-demux-ts": "^2.2.0-alpha.12",
+    "xgplayer-transmuxer-buffer-playlist": "^2.2.0-alpha.12"
   },
   "devDependencies": {
     "cross-env": "^6.0.3"

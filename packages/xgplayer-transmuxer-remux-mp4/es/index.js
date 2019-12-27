@@ -75,6 +75,9 @@ var Mp4Remuxer = function () {
     value: function seek(time) {
       if (!this._isDtsBaseInited) {
         this._dtsBase = time * 1000;
+      } else {
+        this._isDtsBaseInited = false;
+        this._dtsBase = time * 1000;
       }
     }
   }, {
@@ -216,7 +219,7 @@ var Mp4Remuxer = function () {
           }
         }
         this.videoAllDuration += sampleDuration;
-        console.log('video dts ' + dts, 'pts ' + pts, isKeyframe, 'duration ' + sampleDuration);
+        // console.log(`video dts ${dts}`, `pts ${pts}`, isKeyframe, `duration ${sampleDuration}`)
         if (sampleDuration >= 0) {
           mdatBox.samples.push(mdatSample);
           mdatSample.buffer.push(avcSample.data);

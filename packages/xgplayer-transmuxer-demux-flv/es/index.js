@@ -4,7 +4,7 @@ function _classCallCheck(instance, Constructor) { if (!(instance instanceof Cons
 
 import EVENTS from 'xgplayer-transmuxer-constant-events';
 import { AudioTrackMeta, VideoTrackMeta } from 'xgplayer-transmuxer-model-trackmeta';
-import { SpsParser } from 'xgplayer-transmuxer-codec-h264';
+import { SpsParser } from 'xgplayer-transmuxer-codec-avc';
 import { VideoTrack, AudioTrack } from 'xgplayer-transmuxer-buffer-track';
 
 import AMFParser from './amf-parser';
