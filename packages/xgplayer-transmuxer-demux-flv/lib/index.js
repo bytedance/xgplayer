@@ -12,7 +12,7 @@ var _xgplayerTransmuxerConstantEvents2 = _interopRequireDefault(_xgplayerTransmu
 
 var _xgplayerTransmuxerModelTrackmeta = require('xgplayer-transmuxer-model-trackmeta');
 
-var _xgplayerTransmuxerCodecH = require('xgplayer-transmuxer-codec-h264');
+var _xgplayerTransmuxerCodecAvc = require('xgplayer-transmuxer-codec-avc');
 
 var _xgplayerTransmuxerBufferTrack = require('xgplayer-transmuxer-buffer-track');
 
@@ -610,7 +610,7 @@ var FlvDemuxer = function () {
 
         offset += size;
         this.tracks.videoTrack.meta.sps = sps;
-        config = _xgplayerTransmuxerCodecH.SpsParser.parseSPS(sps);
+        config = _xgplayerTransmuxerCodecAvc.SpsParser.parseSPS(sps);
       }
 
       var numOfPps = data[offset];
@@ -628,7 +628,7 @@ var FlvDemuxer = function () {
         this.tracks.videoTrack.meta.pps = pps;
       }
 
-      Object.assign(meta, _xgplayerTransmuxerCodecH.SpsParser.toVideoMeta(config));
+      Object.assign(meta, _xgplayerTransmuxerCodecAvc.SpsParser.toVideoMeta(config));
 
       // fill video media info
       var videoMedia = this._context.mediaInfo.video;

@@ -244,6 +244,7 @@ class HlsVodController {
     const { video } = this._player;
     for (let i = 0; i < video.buffered.length; i++) {
       if (time >= video.buffered.start(i) && time < video.buffered.end(i)) {
+        this._playlist.clearDownloaded();
         return;
       }
     }
@@ -318,7 +319,7 @@ class HlsVodController {
 
       // let fragend = frag ? (frag.time + frag.duration) / 1000 : 0;
 
-      let curTime = frag.time;
+      let curTime = frag.time + frag.duration;
       const curFragTime = frag.time;
 
       if (frag.downloaded) {

@@ -311,6 +311,7 @@ var HlsVodController = function () {
 
       for (var i = 0; i < video.buffered.length; i++) {
         if (time >= video.buffered.start(i) && time < video.buffered.end(i)) {
+          this._playlist.clearDownloaded();
           return;
         }
       }
@@ -387,7 +388,7 @@ var HlsVodController = function () {
 
         // let fragend = frag ? (frag.time + frag.duration) / 1000 : 0;
 
-        var curTime = _frag2.time;
+        var curTime = _frag2.time + _frag2.duration;
         var curFragTime = _frag2.time;
 
         if (_frag2.downloaded) {

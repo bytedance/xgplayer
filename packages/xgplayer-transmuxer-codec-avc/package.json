@@ -1,6 +1,6 @@
 {
-  "name": "xgplayer-transmuxer-codec-h264",
-  "version": "2.2.0-alpha.6",
+  "name": "xgplayer-transmuxer-codec-avc",
+  "version": "2.2.0-alpha.12",
   "description": "",
   "main": "lib/index.js",
   "module": "es/index.js",

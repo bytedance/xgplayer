@@ -10,7 +10,7 @@ cd ${SRC_DIR}/packages/xgplayer-transmuxer-buffer-track/ && npm run build
 cd ${SRC_DIR}/packages/xgplayer-transmuxer-buffer-xgbuffer/ && npm run build
 cd ${SRC_DIR}/packages/xgplayer-transmuxer-codec-aac/ && npm run build
 cd ${SRC_DIR}/packages/xgplayer-transmuxer-codec-compatibility/ && npm run build
-cd ${SRC_DIR}/packages/xgplayer-transmuxer-codec-h264/ && npm run build
+cd ${SRC_DIR}/packages/xgplayer-transmuxer-codec-avc/ && npm run build
 cd ${SRC_DIR}/packages/xgplayer-transmuxer-constant-events/ && npm run build
 cd ${SRC_DIR}/packages/xgplayer-transmuxer-context/ && npm run build
 cd ${SRC_DIR}/packages/xgplayer-transmuxer-demux-flv/ && npm run build

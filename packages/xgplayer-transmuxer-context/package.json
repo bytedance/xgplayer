@@ -1,6 +1,6 @@
 {
   "name": "xgplayer-transmuxer-context",
-  "version": "2.2.0-alpha.6",
+  "version": "2.2.0-alpha.12",
   "description": "",
   "main": "lib/index.js",
   "module": "es/index.js",
@@ -23,7 +23,12 @@
     ]
   },
   "dependencies": {
+<<<<<<< HEAD
     "xgplayer-transmuxer-constant-events": "file:../xgplayer-transmuxer-constant-events",
     "xgplayer-transmuxer-model-mediainfo": "file:../xgplayer-transmuxer-model-mediainfo"
+=======
+    "xgplayer-transmuxer-model-mediainfo": "^2.2.0-alpha.12",
+    "xgplayer-transmuxer-constant-events": "^2.2.0-alpha.12"
+>>>>>>> 5644d8e5f980509083f246ad52150a98203c8e15
   }
 }

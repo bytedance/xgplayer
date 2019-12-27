@@ -7,7 +7,7 @@ function _classCallCheck(instance, Constructor) { if (!(instance instanceof Cons
 import EVENTS from 'xgplayer-transmuxer-constant-events';
 import Stream from 'xgplayer-transmuxer-buffer-stream';
 
-import { NalUnit } from 'xgplayer-transmuxer-codec-h264';
+import { NalUnit } from 'xgplayer-transmuxer-codec-avc';
 import { AudioTrack, VideoTrack } from 'xgplayer-transmuxer-buffer-track';
 import { AudioTrackMeta, VideoTrackMeta } from 'xgplayer-transmuxer-model-trackmeta';
 import { AudioTrackSample, VideoTrackSample } from 'xgplayer-transmuxer-model-tracksample';
