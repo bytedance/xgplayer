@@ -32,6 +32,10 @@
   "author": "zhangxin.frontend@bytedance.com",
   "license": "MIT",
   "dependencies": {
+    "cross-env": "^6.0.3",
+    "http-server": "^0.12.0",
+    "rollup": "^1.27.14",
+    "rollup-plugin-uglify-es": "^0.0.1",
     "shaka-player": "^2.4.0"
   },
   "peerDependency": {

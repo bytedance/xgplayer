@@ -23,6 +23,6 @@
     ]
   },
   "dependencies": {
-    "xgplayer-transmuxer-constant-events": "2.2.0-alpha.6"
+    "xgplayer-transmuxer-constant-events": "file:../xgplayer-transmuxer-constant-events"
   }
 }

@@ -35,16 +35,15 @@
       ]
     ]
   },
-  "devDependencies": {
-    "babel-core": "^6.23.0",
-    "babel-preset-es2015": "^6.24.1",
-    "cross-env": "^6.0.3"
-  },
   "peerDependency": {
     "xgplayer": "^0.1.0"
   },
   "dependencies": {
-    "xgplayer-flv-live": "^2.2.0-alpha.6",
-    "xgplayer-flv-vod": "^2.2.0-alpha.6"
+    "cross-env": "^6.0.3",
+    "http-server": "^0.12.0",
+    "rollup": "^1.27.14",
+    "rollup-plugin-uglify-es": "^0.0.1",
+    "xgplayer-flv-live": "file:../xgplayer-flv-live",
+    "xgplayer-flv-vod": "file:../xgplayer-flv-vod"
   }
 }

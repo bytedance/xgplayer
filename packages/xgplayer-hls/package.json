@@ -36,17 +36,18 @@
   "author": "yinguohui@bytedance.com",
   "license": "MIT",
   "dependencies": {
-    "xgplayer-utils": "^2.2.0-alpha.6",
-    "xgplayer-hls-live": "^2.2.0-alpha.6",
-    "xgplayer-hls-vod": "^2.2.0-alpha.6",
     "concat-typed-array": "^1.0.2",
+    "cross-env": "^6.0.3",
     "deepmerge": "^2.0.1",
-    "event-emitter": "^0.3.5"
+    "event-emitter": "^0.3.5",
+    "http-server": "^0.12.0",
+    "rollup": "^1.27.14",
+    "rollup-plugin-uglify-es": "^0.0.1",
+    "xgplayer-hls-live": "file:../xgplayer-hls-live",
+    "xgplayer-hls-vod": "file:../xgplayer-hls-vod",
+    "xgplayer-utils": "file:../xgplayer-utils"
   },
   "peerDependency": {
     "xgplayer": "^0.1.0"
-  },
-  "devDependencies": {
   }
 }
-

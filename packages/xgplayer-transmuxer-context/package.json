@@ -22,13 +22,8 @@
       ]
     ]
   },
-  "devDependencies": {
-    "babel-cli": "^6.22.0",
-    "babel-plugin-external-helpers": "^6.22.0",
-    "cross-env": "^6.0.3"
-  },
   "dependencies": {
-    "xgplayer-transmuxer-model-mediainfo": "^2.2.0-alpha.6",
-    "xgplayer-transmuxer-constant-events": "^2.2.0-alpha.6"
+    "xgplayer-transmuxer-constant-events": "file:../xgplayer-transmuxer-constant-events",
+    "xgplayer-transmuxer-model-mediainfo": "file:../xgplayer-transmuxer-model-mediainfo"
   }
 }

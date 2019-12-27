@@ -22,18 +22,13 @@
       ]
     ]
   },
-  "devDependencies": {
-    "babel-cli": "^6.22.0",
-    "cross-env": "^6.0.3"
-  },
   "dependencies": {
-    "concat-typed-array": "^1.0.2",
-    "xgplayer-transmuxer-constant-events":  "2.2.0-alpha.6",
-    "xgplayer-transmuxer-model-trackmeta": "2.2.0-alpha.6",
-    "xgplayer-transmuxer-codec-h264":  "2.2.0-alpha.6",
-    "xgplayer-transmuxer-buffer-track": "2.2.0-alpha.6",
-    "xgplayer-utils-utf8": "^2.2.0-alpha.6",
-    "xgplayer-utils-sniffer": "^2.2.0-alpha.6",
-    "xgplayer-transmuxer-context": "^2.2.0-alpha.6"
+    "xgplayer-transmuxer-buffer-track": "file:../xgplayer-transmuxer-buffer-track",
+    "xgplayer-transmuxer-codec-h264": "file:../xgplayer-transmuxer-codec-h264",
+    "xgplayer-transmuxer-constant-events": "file:../xgplayer-transmuxer-constant-events",
+    "xgplayer-transmuxer-context": "file:../xgplayer-transmuxer-context",
+    "xgplayer-transmuxer-model-trackmeta": "file:../xgplayer-transmuxer-model-trackmeta",
+    "xgplayer-utils-sniffer": "file:../xgplayer-utils-sniffer",
+    "xgplayer-utils-utf8": "file:../xgplayer-utils-utf8"
   }
 }

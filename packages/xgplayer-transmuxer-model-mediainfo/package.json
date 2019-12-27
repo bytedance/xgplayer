@@ -21,12 +21,5 @@
         }
       ]
     ]
-  },
-  "devDependencies": {
-    "babel-cli": "^6.22.0",
-    "cross-env": "^6.0.3"
-  },
-  "dependencies": {
-    "concat-typed-array": "^1.0.2"
   }
 }

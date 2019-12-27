@@ -30,18 +30,19 @@
     ]
   },
   "dependencies": {
-    "xgplayer-utils-mse": "^2.2.0-alpha.6",
-    "xgplayer-transmuxer-context": "^2.2.0-alpha.6",
-    "xgplayer-transmuxer-buffer-xgbuffer": "^2.2.0-alpha.6",
-    "xgplayer-transmuxer-buffer-track": "^2.2.0-alpha.6",
-    "xgplayer-transmuxer-buffer-presource": "^2.2.0-alpha.6",
-    "xgplayer-transmuxer-demux-flv": "^2.2.0-alpha.6",
-    "xgplayer-transmuxer-loader-fetch": "^2.2.0-alpha.6",
-    "xgplayer-transmuxer-remux-mp4": "^2.2.0-alpha.6",
-    "xgplayer-transmuxer-constant-events": "^2.2.0-alpha.6",
-    "xgplayer-transmuxer-codec-compatibility": "^2.2.0-alpha.6"
-  },
-  "devDependencies": {
-    "cross-env": "^6.0.3"
+    "cross-env": "^6.0.3",
+    "http-server": "^0.12.0",
+    "rollup": "^1.27.14",
+    "rollup-plugin-uglify-es": "^0.0.1",
+    "xgplayer-transmuxer-buffer-presource": "file:../xgplayer-transmuxer-buffer-presource",
+    "xgplayer-transmuxer-buffer-track": "file:../xgplayer-transmuxer-buffer-track",
+    "xgplayer-transmuxer-buffer-xgbuffer": "file:../xgplayer-transmuxer-buffer-xgbuffer",
+    "xgplayer-transmuxer-codec-compatibility": "file:../xgplayer-transmuxer-codec-compatibility",
+    "xgplayer-transmuxer-constant-events": "file:../xgplayer-transmuxer-constant-events",
+    "xgplayer-transmuxer-context": "file:../xgplayer-transmuxer-context",
+    "xgplayer-transmuxer-demux-flv": "file:../xgplayer-transmuxer-demux-flv",
+    "xgplayer-transmuxer-loader-fetch": "file:../xgplayer-transmuxer-loader-fetch",
+    "xgplayer-transmuxer-remux-mp4": "file:../xgplayer-transmuxer-remux-mp4",
+    "xgplayer-utils-mse": "file:../xgplayer-utils-mse"
   }
 }

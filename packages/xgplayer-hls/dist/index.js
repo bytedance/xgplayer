@@ -1,10 +1,23 @@
 (function (global, factory) {
-  typeof exports === 'object' && typeof module !== 'undefined' ? module.exports = factory(require('xgplayer')) :
-  typeof define === 'function' && define.amd ? define(['xgplayer'], factory) :
-  (global = global || self, global.HlsPlayer = factory(global.Player));
-}(this, (function (Player) { 'use strict';
+  typeof exports === 'object' && typeof module !== 'undefined' ? module.exports = factory(require('xgplayer'), require('xgplayer-transmuxer-constant-events'), require('xgplayer-transmuxer-context'), require('xgplayer-utils-mse'), require('xgplayer-transmuxer-buffer-track'), require('xgplayer-transmuxer-buffer-presource'), require('xgplayer-transmuxer-buffer-xgbuffer'), require('xgplayer-transmuxer-loader-fetch'), require('xgplayer-transmuxer-codec-compatibility'), require('xgplayer-transmuxer-remux-mp4'), require('xgplayer-utils-crypto'), require('xgplayer-transmuxer-demux-m3u8'), require('xgplayer-transmuxer-demux-ts'), require('xgplayer-transmuxer-buffer-playlist')) :
+  typeof define === 'function' && define.amd ? define(['xgplayer', 'xgplayer-transmuxer-constant-events', 'xgplayer-transmuxer-context', 'xgplayer-utils-mse', 'xgplayer-transmuxer-buffer-track', 'xgplayer-transmuxer-buffer-presource', 'xgplayer-transmuxer-buffer-xgbuffer', 'xgplayer-transmuxer-loader-fetch', 'xgplayer-transmuxer-codec-compatibility', 'xgplayer-transmuxer-remux-mp4', 'xgplayer-utils-crypto', 'xgplayer-transmuxer-demux-m3u8', 'xgplayer-transmuxer-demux-ts', 'xgplayer-transmuxer-buffer-playlist'], factory) :
+  (global = global || self, global.HlsPlayer = factory(global.Player, global.EVENTS$1, global.Context$2, global.Mse, global.Tracks$1, global.PreSource$1, global.XgBuffer$1, global.FetchLoader$1, global.Compatibility$1, global.Mp4Remuxer$1, global.Crypto$1, global.M3U8Parser$1, global.TsDemuxer$1, global.Playlist$1));
+}(this, (function (Player, EVENTS$1, Context$2, Mse, Tracks$1, PreSource$1, XgBuffer$1, FetchLoader$1, Compatibility$1, Mp4Remuxer$1, Crypto$1, M3U8Parser$1, TsDemuxer$1, Playlist$1) { 'use strict';
 
   Player = Player && Player.hasOwnProperty('default') ? Player['default'] : Player;
+  EVENTS$1 = EVENTS$1 && EVENTS$1.hasOwnProperty('default') ? EVENTS$1['default'] : EVENTS$1;
+  Context$2 = Context$2 && Context$2.hasOwnProperty('default') ? Context$2['default'] : Context$2;
+  Mse = Mse && Mse.hasOwnProperty('default') ? Mse['default'] : Mse;
+  Tracks$1 = Tracks$1 && Tracks$1.hasOwnProperty('default') ? Tracks$1['default'] : Tracks$1;
+  PreSource$1 = PreSource$1 && PreSource$1.hasOwnProperty('default') ? PreSource$1['default'] : PreSource$1;
+  XgBuffer$1 = XgBuffer$1 && XgBuffer$1.hasOwnProperty('default') ? XgBuffer$1['default'] : XgBuffer$1;
+  FetchLoader$1 = FetchLoader$1 && FetchLoader$1.hasOwnProperty('default') ? FetchLoader$1['default'] : FetchLoader$1;
+  Compatibility$1 = Compatibility$1 && Compatibility$1.hasOwnProperty('default') ? Compatibility$1['default'] : Compatibility$1;
+  Mp4Remuxer$1 = Mp4Remuxer$1 && Mp4Remuxer$1.hasOwnProperty('default') ? Mp4Remuxer$1['default'] : Mp4Remuxer$1;
+  Crypto$1 = Crypto$1 && Crypto$1.hasOwnProperty('default') ? Crypto$1['default'] : Crypto$1;
+  M3U8Parser$1 = M3U8Parser$1 && M3U8Parser$1.hasOwnProperty('default') ? M3U8Parser$1['default'] : M3U8Parser$1;
+  TsDemuxer$1 = TsDemuxer$1 && TsDemuxer$1.hasOwnProperty('default') ? TsDemuxer$1['default'] : TsDemuxer$1;
+  Playlist$1 = Playlist$1 && Playlist$1.hasOwnProperty('default') ? Playlist$1['default'] : Playlist$1;
 
   var _createClass = function () {
     function defineProperties(target, props) {
@@ -17,6 +30,529 @@
   }();
 
   function _classCallCheck(instance, Constructor) {
+    if (!(instance instanceof Constructor)) {
+      throw new TypeError("Cannot call a class as a function");
+    }
+  }
+
+  var LOADER_EVENTS = EVENTS$1.LOADER_EVENTS;
+  var REMUX_EVENTS = EVENTS$1.REMUX_EVENTS;
+  var DEMUX_EVENTS = EVENTS$1.DEMUX_EVENTS;
+  var HLS_EVENTS = EVENTS$1.HLS_EVENTS;
+  var CRYTO_EVENTS = EVENTS$1.CRYTO_EVENTS;
+  var HLS_ERROR = 'HLS_ERROR';
+
+  var HlsLiveController = function () {
+    function HlsLiveController(configs) {
+      _classCallCheck(this, HlsLiveController);
+
+      this.configs = Object.assign({}, configs);
+      this.url = '';
+      this.baseurl = '';
+      this.sequence = 0;
+      this._playlist = null;
+      this.retrytimes = this.configs.retrytimes || 3;
+      this.preloadTime = this.configs.preloadTime;
+      this.container = this.configs.container;
+      this._m3u8lasttime = 0;
+      this._timmer = setInterval(this._checkStatus.bind(this), 50);
+      this._lastCheck = 0;
+      this._player = this.configs.player;
+      this.m3u8Text = null;
+    }
+
+    _createClass(HlsLiveController, [{
+      key: 'init',
+      value: function init() {
+        // 初始化Buffer （M3U8/TS/Playlist);
+        this._context.registry('M3U8_BUFFER', XgBuffer$1);
+        this._context.registry('TS_BUFFER', XgBuffer$1);
+        this._context.registry('TRACKS', Tracks$1);
+
+        this._playlist = this._context.registry('PLAYLIST', Playlist$1)({ autoclear: true });
+        this._context.registry('PRE_SOURCE_BUFFER', PreSource$1);
+
+        this._context.registry('COMPATIBILITY', Compatibility$1);
+
+        // 初始化M3U8Loader;
+        this._m3u8loader = this._context.registry('M3U8_LOADER', FetchLoader$1)({ buffer: 'M3U8_BUFFER', readtype: 1 });
+        this._tsloader = this._context.registry('TS_LOADER', FetchLoader$1)({ buffer: 'TS_BUFFER', readtype: 3 });
+
+        // 初始化TS Demuxer
+        this._context.registry('TS_DEMUXER', TsDemuxer$1)({ inputbuffer: 'TS_BUFFER' });
+
+        // 初始化MP4 Remuxer
+        this._context.registry('MP4_REMUXER', Mp4Remuxer$1);
+
+        // 初始化MSE
+        this.mse = this._context.registry('MSE', Mse)({ container: this.container });
+        this.initEvents();
+      }
+    }, {
+      key: 'initEvents',
+      value: function initEvents() {
+        this.on(LOADER_EVENTS.LOADER_COMPLETE, this._onLoadComplete.bind(this));
+
+        this.on(REMUX_EVENTS.INIT_SEGMENT, this.mse.addSourceBuffers.bind(this.mse));
+
+        this.on(REMUX_EVENTS.MEDIA_SEGMENT, this.mse.doAppend.bind(this.mse));
+
+        this.on(DEMUX_EVENTS.METADATA_PARSED, this._onMetadataParsed.bind(this));
+
+        this.on(DEMUX_EVENTS.DEMUX_COMPLETE, this._onDemuxComplete.bind(this));
+
+        this.on(LOADER_EVENTS.LOADER_ERROR, this._onLoadError.bind(this));
+
+        this.on(DEMUX_EVENTS.DEMUX_ERROR, this._onDemuxError.bind(this));
+
+        this.on(REMUX_EVENTS.REMUX_ERROR, this._onRemuxError.bind(this));
+      }
+    }, {
+      key: '_onError',
+      value: function _onError(type, mod, err, fatal) {
+        var error = {
+          errorType: type,
+          errorDetails: '[' + mod + ']: ' + err.message,
+          errorFatal: fatal
+        };
+        this._player.emit(HLS_ERROR, error);
+      }
+    }, {
+      key: '_onDemuxComplete',
+      value: function _onDemuxComplete() {
+        this.emit(REMUX_EVENTS.REMUX_MEDIA);
+      }
+    }, {
+      key: '_onMetadataParsed',
+      value: function _onMetadataParsed(type) {
+        this.emit(REMUX_EVENTS.REMUX_METADATA, type);
+      }
+    }, {
+      key: '_onLoadError',
+      value: function _onLoadError(loader, error) {
+        if (!this._tsloader.loading && !this._m3u8loader.loading && this.retrytimes > 1) {
+          this.retrytimes--;
+          this._onError(LOADER_EVENTS.LOADER_ERROR, loader, error, false);
+        } else if (this.retrytimes <= 1) {
+          this._onError(LOADER_EVENTS.LOADER_ERROR, loader, error, true);
+          this.emit(HLS_EVENTS.RETRY_TIME_EXCEEDED);
+          this.mse.endOfStream();
+        }
+      }
+    }, {
+      key: '_onDemuxError',
+      value: function _onDemuxError(mod, error, fatal) {
+        if (fatal === undefined) {
+          fatal = true;
+        }
+        this._onError(LOADER_EVENTS.LOADER_ERROR, mod, error, fatal);
+      }
+    }, {
+      key: '_onRemuxError',
+      value: function _onRemuxError(mod, error, fatal) {
+        if (fatal === undefined) {
+          fatal = true;
+        }
+        this._onError(REMUX_EVENTS.REMUX_ERROR, mod, error, fatal);
+      }
+    }, {
+      key: '_onLoadComplete',
+      value: function _onLoadComplete(buffer) {
+        if (buffer.TAG === 'M3U8_BUFFER') {
+          var mdata = void 0;
+          try {
+            this.m3u8Text = buffer.shift();
+            mdata = M3U8Parser$1.parse(this.m3u8Text, this.baseurl);
+          } catch (error) {
+            this._onError('M3U8_PARSER_ERROR', 'M3U8_PARSER', error, false);
+          }
+
+          if (!mdata) {
+            if (this.retrytimes > 0) {
+              this.retrytimes--;
+              this._preload();
+            } else {
+              this.emit(HLS_EVENTS.RETRY_TIME_EXCEEDED);
+              this.mse.endOfStream();
+            }
+            return;
+          }
+
+          try {
+            this._playlist.pushM3U8(mdata, true);
+          } catch (error) {
+            this._onError('M3U8_PARSER_ERROR', 'PLAYLIST', error, false);
+          }
+
+          if (this._playlist.encrypt && this._playlist.encrypt.uri && !this._playlist.encrypt.key) {
+            this._context.registry('DECRYPT_BUFFER', XgBuffer$1)();
+            this._context.registry('KEY_BUFFER', XgBuffer$1)();
+            this._tsloader.buffer = 'DECRYPT_BUFFER';
+            this._keyLoader = this._context.registry('KEY_LOADER', FetchLoader$1)({ buffer: 'KEY_BUFFER', readtype: 3 });
+            this.emitTo('KEY_LOADER', LOADER_EVENTS.LADER_START, this._playlist.encrypt.uri);
+          } else {
+            this._m3u8Loaded(mdata);
+          }
+        } else if (buffer.TAG === 'TS_BUFFER') {
+          this.retrytimes = this.configs.retrytimes || 3;
+          this._playlist.downloaded(this._tsloader.url, true);
+          this.emit(DEMUX_EVENTS.DEMUX_START);
+        } else if (buffer.TAG === 'DECRYPT_BUFFER') {
+          this.retrytimes = this.configs.retrytimes || 3;
+          this._playlist.downloaded(this._tsloader.url, true);
+          this.emitTo('CRYPTO', CRYTO_EVENTS.START_DECRYPT);
+        } else if (buffer.TAG === 'KEY_BUFFER') {
+          this.retrytimes = this.configs.retrytimes || 3;
+          this._playlist.encrypt.key = buffer.shift();
+          this._crypto = this._context.registry('CRYPTO', Crypto$1)({
+            key: this._playlist.encrypt.key,
+            iv: this._playlist.encrypt.ivb,
+            method: this._playlist.encrypt.method,
+            inputbuffer: 'DECRYPT_BUFFER',
+            outputbuffer: 'TS_BUFFER'
+          });
+          this._crypto.on(CRYTO_EVENTS.DECRYPTED, this._onDcripted.bind(this));
+        }
+      }
+    }, {
+      key: '_onDcripted',
+      value: function _onDcripted() {
+        this.emit(DEMUX_EVENTS.DEMUX_START);
+      }
+    }, {
+      key: '_m3u8Loaded',
+      value: function _m3u8Loaded(mdata) {
+        if (!this.preloadTime) {
+          this.preloadTime = this._playlist.targetduration ? this._playlist.targetduration : 5;
+        }
+        if (this._playlist.fragLength > 0 && this._playlist.sequence < mdata.sequence) {
+          this.retrytimes = this.configs.retrytimes || 3;
+        } else {
+          if (this.retrytimes > 0) {
+            this.retrytimes--;
+            this._preload();
+          } else {
+            this.emit(HLS_EVENTS.RETRY_TIME_EXCEEDED);
+            this.mse.endOfStream();
+          }
+        }
+      }
+    }, {
+      key: '_checkStatus',
+      value: function _checkStatus() {
+        if (this.retrytimes < 1 && new Date().getTime() - this._lastCheck < 10000) {
+          return;
+        }
+        this._lastCheck = new Date().getTime();
+        if (this.container.buffered.length < 1) {
+          this._preload();
+        } else {
+          // Check for load.
+          var currentTime = this.container.currentTime;
+          var bufferstart = this.container.buffered.start(this.container.buffered.length - 1);
+          if (this.container.readyState <= 2) {
+            if (currentTime < bufferstart) {
+              this.container.currentTime = bufferstart;
+              currentTime = bufferstart;
+            } else {
+              this._preload();
+            }
+          }
+          var bufferend = this.container.buffered.end(this.container.buffered.length - 1);
+          if (currentTime < bufferend - this.preloadTime * 2) {
+            this.container.currentTime = bufferend - this.preloadTime * 2;
+          }
+          if (bufferend > this.preloadTime * 2) {
+            this.mse.remove(bufferend - this.preloadTime * 2);
+          }
+          if (currentTime > bufferend - this.preloadTime) {
+            this._preload();
+          }
+        }
+      }
+    }, {
+      key: '_preload',
+      value: function _preload() {
+        if (this._tsloader.loading || this._m3u8loader.loading) {
+          return;
+        }
+        var frag = this._playlist.getTs();
+
+        if (frag && !frag.downloaded && !frag.downloading) {
+          this._playlist.downloading(frag.url, true);
+          this.emitTo('TS_LOADER', LOADER_EVENTS.LADER_START, frag.url);
+        } else {
+          var preloadTime = this.preloadTime ? this.preloadTime : 0;
+          var current = new Date().getTime();
+          if ((!frag || frag.downloaded) && (current - this._m3u8lasttime) / 1000 > preloadTime) {
+            this._m3u8lasttime = current;
+            this.emitTo('M3U8_LOADER', LOADER_EVENTS.LADER_START, this.url);
+          }
+        }
+      }
+    }, {
+      key: 'load',
+      value: function load(url) {
+        this.baseurl = M3U8Parser$1.parseURL(url);
+        this.url = url;
+        this._preload();
+      }
+    }, {
+      key: 'destroy',
+      value: function destroy() {
+        clearInterval(this._timmer);
+        this.off(LOADER_EVENTS.LOADER_COMPLETE, this._onLoadComplete);
+        this.off(REMUX_EVENTS.INIT_SEGMENT, this.mse.addSourceBuffers);
+        this.off(REMUX_EVENTS.MEDIA_SEGMENT, this.mse.doAppend);
+        // this.off(REMUX_EVENTS.REMUX_ERROR);
+        this.off(DEMUX_EVENTS.METADATA_PARSED, this._onMetadataParsed);
+        this.off(DEMUX_EVENTS.DEMUX_COMPLETE, this._onDemuxComplete);
+
+        this.mse = null;
+        this.m3u8Text = null;
+      }
+    }]);
+
+    return HlsLiveController;
+  }();
+
+  var _typeof = typeof Symbol === "function" && typeof Symbol.iterator === "symbol" ? function (obj) { return typeof obj; } : function (obj) { return obj && typeof Symbol === "function" && obj.constructor === Symbol && obj !== Symbol.prototype ? "symbol" : typeof obj; };
+
+  var _createClass$1 = function () {
+    function defineProperties(target, props) {
+      for (var i = 0; i < props.length; i++) {
+        var descriptor = props[i];descriptor.enumerable = descriptor.enumerable || false;descriptor.configurable = true;if ("value" in descriptor) descriptor.writable = true;Object.defineProperty(target, descriptor.key, descriptor);
+      }
+    }return function (Constructor, protoProps, staticProps) {
+      if (protoProps) defineProperties(Constructor.prototype, protoProps);if (staticProps) defineProperties(Constructor, staticProps);return Constructor;
+    };
+  }();
+
+  var _get = function get(object, property, receiver) {
+    if (object === null) object = Function.prototype;var desc = Object.getOwnPropertyDescriptor(object, property);if (desc === undefined) {
+      var parent = Object.getPrototypeOf(object);if (parent === null) {
+        return undefined;
+      } else {
+        return get(parent, property, receiver);
+      }
+    } else if ("value" in desc) {
+      return desc.value;
+    } else {
+      var getter = desc.get;if (getter === undefined) {
+        return undefined;
+      }return getter.call(receiver);
+    }
+  };
+
+  function _classCallCheck$1(instance, Constructor) {
+    if (!(instance instanceof Constructor)) {
+      throw new TypeError("Cannot call a class as a function");
+    }
+  }
+
+  function _possibleConstructorReturn(self, call) {
+    if (!self) {
+      throw new ReferenceError("this hasn't been initialised - super() hasn't been called");
+    }return call && ((typeof call === "undefined" ? "undefined" : _typeof(call)) === "object" || typeof call === "function") ? call : self;
+  }
+
+  function _inherits(subClass, superClass) {
+    if (typeof superClass !== "function" && superClass !== null) {
+      throw new TypeError("Super expression must either be null or a function, not " + (typeof superClass === "undefined" ? "undefined" : _typeof(superClass)));
+    }subClass.prototype = Object.create(superClass && superClass.prototype, { constructor: { value: subClass, enumerable: false, writable: true, configurable: true } });if (superClass) Object.setPrototypeOf ? Object.setPrototypeOf(subClass, superClass) : subClass.__proto__ = superClass;
+  }
+  var HlsAllowedEvents = EVENTS$1.HlsAllowedEvents;
+  var REMUX_EVENTS$1 = EVENTS$1.REMUX_EVENTS;
+
+  var HlsLivePlayer = function (_Player) {
+    _inherits(HlsLivePlayer, _Player);
+
+    function HlsLivePlayer(options) {
+      _classCallCheck$1(this, HlsLivePlayer);
+
+      var _this2 = _possibleConstructorReturn(this, (HlsLivePlayer.__proto__ || Object.getPrototypeOf(HlsLivePlayer)).call(this, options));
+
+      _this2.hlsOps = {};
+      _this2.util = Player.util;
+      _this2.util.deepCopy(_this2.hlsOps, options);
+      _this2._context = new Context$2(HlsAllowedEvents);
+      _this2.started = false;
+      return _this2;
+    }
+
+    _createClass$1(HlsLivePlayer, [{
+      key: '_initEvents',
+      value: function _initEvents() {
+        var _this3 = this;
+
+        this.__core__.once(REMUX_EVENTS$1.INIT_SEGMENT, function () {
+          var mse = _this3._context.getInstance('MSE');
+          if (!_this3.started) {
+            var live = _this3.util.createDom('xg-live', '正在直播', {}, 'xgplayer-live');
+            _this3.util.addClass(_this3.root, 'xgplayer-is-live');
+            _this3.controls.appendChild(live);
+          }
+          _this3.started = true;
+          _get(HlsLivePlayer.prototype.__proto__ || Object.getPrototypeOf(HlsLivePlayer.prototype), 'start', _this3).call(_this3, mse.url);
+        });
+
+        // this.once('canplay', () => {
+        //   this.video.play()
+        // });
+      }
+    }, {
+      key: '_initSrcChangeHandler',
+      value: function _initSrcChangeHandler() {
+        var _this = this;
+        Object.defineProperty(this, 'src', {
+          get: function get() {
+            return _this.currentSrc;
+          },
+          set: function set(url) {
+            _this.config.url = url;
+            if (!_this.paused) {
+              _this.pause();
+              _this.once('pause', function () {
+                _this.start(url);
+              });
+              _this.once('canplay', function () {
+                _this.play();
+              });
+            } else {
+              _this.start(url);
+            }
+            _this.once('canplay', function () {
+              _this.currentTime = 0;
+            });
+          },
+
+          configurable: true
+        });
+      }
+    }, {
+      key: 'start',
+      value: function start() {
+        var url = arguments.length > 0 && arguments[0] !== undefined ? arguments[0] : this.config.url;
+
+        if (!url || this.started) {
+          return;
+        }
+        this.__core__ = this._context.registry('HLS_LIVE_CONTROLLER', HlsLiveController)({ player: this, container: this.video });
+        this._context.init();
+        this.url = url;
+        this.__core__.load(url);
+        this._initEvents();
+        this._initSrcChangeHandler();
+      }
+    }, {
+      key: 'play',
+      value: function play() {
+        if (this.started) {
+          this._context.destroy();
+          this._context = new Context$2(HlsAllowedEvents);
+          this.__core__ = this._context.registry('HLS_LIVE_CONTROLLER', HlsLiveController)({ container: this.video });
+          this._context.init();
+          this._initEvents();
+          this.__core__.load(this.url);
+        }
+        _get(HlsLivePlayer.prototype.__proto__ || Object.getPrototypeOf(HlsLivePlayer.prototype), 'play', this).call(this);
+      }
+    }, {
+      key: 'destroy',
+      value: function destroy() {
+        this._context.destroy();
+        _get(HlsLivePlayer.prototype.__proto__ || Object.getPrototypeOf(HlsLivePlayer.prototype), 'destroy', this).call(this);
+      }
+    }]);
+
+    return HlsLivePlayer;
+  }(Player);
+
+  var PLAYER_EVENTS = {
+    SEEK: 'SEEK'
+  };
+
+  var LOADER_EVENTS$1 = {
+    LADER_START: 'LOADER_START',
+    LOADER_DATALOADED: 'LOADER_DATALOADED',
+    LOADER_COMPLETE: 'LOADER_COMPLETE',
+    LOADER_ERROR: 'LOADER_ERROR'
+  };
+
+  var DEMUX_EVENTS$1 = {
+    DEMUX_START: 'DEMUX_START',
+    DEMUX_COMPLETE: 'DEMUX_COMPLETE',
+    DEMUX_ERROR: 'DEMUX_ERROR',
+    METADATA_PARSED: 'METADATA_PARSED',
+    VIDEO_METADATA_CHANGE: 'VIDEO_METADATA_CHANGE',
+    AUDIO_METADATA_CHANGE: 'AUDIO_METADATA_CHANGE',
+    MEDIA_INFO: 'MEDIA_INFO'
+  };
+
+  var REMUX_EVENTS$2 = {
+    REMUX_METADATA: 'REMUX_METADATA',
+    REMUX_MEDIA: 'REMUX_MEDIA',
+    MEDIA_SEGMENT: 'MEDIA_SEGMENT',
+    REMUX_ERROR: 'REMUX_ERROR',
+    INIT_SEGMENT: 'INIT_SEGMENT',
+    DETECT_CHANGE_STREAM: 'DETECT_CHANGE_STREAM',
+    DETECT_CHANGE_STREAM_DISCONTINUE: 'DETECT_CHANGE_STREAM_DISCONTINUE',
+    RANDOM_ACCESS_POINT: 'RANDOM_ACCESS_POINT'
+  };
+
+  var MSE_EVENTS = {
+    SOURCE_UPDATE_END: 'SOURCE_UPDATE_END'
+
+    // hls专有events
+  };var HLS_EVENTS$1 = {
+    RETRY_TIME_EXCEEDED: 'RETRY_TIME_EXCEEDED'
+  };
+
+  var CRYTO_EVENTS$1 = {
+    START_DECRYPT: 'START_DECRYPT',
+    DECRYPTED: 'DECRYPTED'
+  };
+  var ALLEVENTS = Object.assign({}, LOADER_EVENTS$1, DEMUX_EVENTS$1, REMUX_EVENTS$2, MSE_EVENTS, HLS_EVENTS$1, PLAYER_EVENTS);
+
+  var FlvAllowedEvents = [];
+  var HlsAllowedEvents$1 = [];
+
+  for (var key in ALLEVENTS) {
+    if (ALLEVENTS.hasOwnProperty(key)) {
+      FlvAllowedEvents.push(ALLEVENTS[key]);
+    }
+  }
+
+  for (var _key in ALLEVENTS) {
+    if (ALLEVENTS.hasOwnProperty(_key)) {
+      HlsAllowedEvents$1.push(ALLEVENTS[_key]);
+    }
+  }
+
+  var EVENTS = {
+    ALLEVENTS: ALLEVENTS,
+    HLS_EVENTS: HLS_EVENTS$1,
+    REMUX_EVENTS: REMUX_EVENTS$2,
+    DEMUX_EVENTS: DEMUX_EVENTS$1,
+    MSE_EVENTS: MSE_EVENTS,
+    LOADER_EVENTS: LOADER_EVENTS$1,
+    FlvAllowedEvents: FlvAllowedEvents,
+    HlsAllowedEvents: HlsAllowedEvents$1,
+    CRYTO_EVENTS: CRYTO_EVENTS$1,
+    PLAYER_EVENTS: PLAYER_EVENTS
+  };
+
+  var _createClass$2 = function () {
+    function defineProperties(target, props) {
+      for (var i = 0; i < props.length; i++) {
+        var descriptor = props[i];descriptor.enumerable = descriptor.enumerable || false;descriptor.configurable = true;if ("value" in descriptor) descriptor.writable = true;Object.defineProperty(target, descriptor.key, descriptor);
+      }
+    }return function (Constructor, protoProps, staticProps) {
+      if (protoProps) defineProperties(Constructor.prototype, protoProps);if (staticProps) defineProperties(Constructor, staticProps);return Constructor;
+    };
+  }();
+
+  function _classCallCheck$2(instance, Constructor) {
     if (!(instance instanceof Constructor)) {
       throw new TypeError("Cannot call a class as a function");
     }
@@ -35,7 +571,7 @@
 
   var MediaInfo = function () {
     function MediaInfo() {
-      _classCallCheck(this, MediaInfo);
+      _classCallCheck$2(this, MediaInfo);
 
       this.mimeType = null;
       this.duration = null;
@@ -70,7 +606,7 @@
       };
     }
 
-    _createClass(MediaInfo, [{
+    _createClass$2(MediaInfo, [{
       key: "isComplete",
       value: function isComplete() {
         return MediaInfo.isBaseInfoReady(this) && MediaInfo.isVideoReady(this) && MediaInfo.isAudioReady(this);
@@ -513,9 +1049,9 @@
     return ret;
   }
 
-  var _typeof = typeof Symbol === "function" && typeof Symbol.iterator === "symbol" ? function (obj) { return typeof obj; } : function (obj) { return obj && typeof Symbol === "function" && obj.constructor === Symbol && obj !== Symbol.prototype ? "symbol" : typeof obj; };
+  var _typeof$1 = typeof Symbol === "function" && typeof Symbol.iterator === "symbol" ? function (obj) { return typeof obj; } : function (obj) { return obj && typeof Symbol === "function" && obj.constructor === Symbol && obj !== Symbol.prototype ? "symbol" : typeof obj; };
 
-  var _get = function get(object, property, receiver) {
+  var _get$1 = function get(object, property, receiver) {
     if (object === null) object = Function.prototype;var desc = Object.getOwnPropertyDescriptor(object, property);if (desc === undefined) {
       var parent = Object.getPrototypeOf(object);if (parent === null) {
         return undefined;
@@ -531,7 +1067,7 @@
     }
   };
 
-  var _createClass$1 = function () {
+  var _createClass$3 = function () {
     function defineProperties(target, props) {
       for (var i = 0; i < props.length; i++) {
         var descriptor = props[i];descriptor.enumerable = descriptor.enumerable || false;descriptor.configurable = true;if ("value" in descriptor) descriptor.writable = true;Object.defineProperty(target, descriptor.key, descriptor);
@@ -541,19 +1077,19 @@
     };
   }();
 
-  function _possibleConstructorReturn(self, call) {
+  function _possibleConstructorReturn$1(self, call) {
     if (!self) {
       throw new ReferenceError("this hasn't been initialised - super() hasn't been called");
-    }return call && ((typeof call === "undefined" ? "undefined" : _typeof(call)) === "object" || typeof call === "function") ? call : self;
+    }return call && ((typeof call === "undefined" ? "undefined" : _typeof$1(call)) === "object" || typeof call === "function") ? call : self;
   }
 
-  function _inherits(subClass, superClass) {
+  function _inherits$1(subClass, superClass) {
     if (typeof superClass !== "function" && superClass !== null) {
-      throw new TypeError("Super expression must either be null or a function, not " + (typeof superClass === "undefined" ? "undefined" : _typeof(superClass)));
+      throw new TypeError("Super expression must either be null or a function, not " + (typeof superClass === "undefined" ? "undefined" : _typeof$1(superClass)));
     }subClass.prototype = Object.create(superClass && superClass.prototype, { constructor: { value: subClass, enumerable: false, writable: true, configurable: true } });if (superClass) Object.setPrototypeOf ? Object.setPrototypeOf(subClass, superClass) : subClass.__proto__ = superClass;
   }
 
-  function _classCallCheck$1(instance, Constructor) {
+  function _classCallCheck$3(instance, Constructor) {
     if (!(instance instanceof Constructor)) {
       throw new TypeError("Cannot call a class as a function");
     }
@@ -565,16 +1101,17 @@
     function Context() {
       var allowedEvents = arguments.length > 0 && arguments[0] !== undefined ? arguments[0] : [];
 
-      _classCallCheck$1(this, Context);
+      _classCallCheck$3(this, Context);
 
       this._emitter = new EventEmitter();
       if (!this._emitter.off) {
         this._emitter.off = this._emitter.removeListener;
       }
+
+      this.mediaInfo = new MediaInfo();
       this._instanceMap = {}; // 所有的解码流程实例
       this._clsMap = {}; // 构造函数的map
       this._inited = false;
-      this.mediaInfo = new MediaInfo();
       this.allowedEvents = allowedEvents;
       this._hooks = {}; // 注册在事件前/后的钩子，例如 before('DEMUX_COMPLETE')
     }
@@ -586,7 +1123,7 @@
      * @returns {*}
      */
 
-    _createClass$1(Context, [{
+    _createClass$3(Context, [{
       key: 'getInstance',
       value: function getInstance(tag) {
         var instance = this._instanceMap[tag];
@@ -663,12 +1200,12 @@
         var checkMessageName = this._isMessageNameValid.bind(this);
         var self = this;
         var enhanced = function (_cls) {
-          _inherits(enhanced, _cls);
+          _inherits$1(enhanced, _cls);
 
           function enhanced(a, b, c) {
-            _classCallCheck$1(this, enhanced);
+            _classCallCheck$3(this, enhanced);
 
-            var _this = _possibleConstructorReturn(this, (enhanced.__proto__ || Object.getPrototypeOf(enhanced)).call(this, a, b, c));
+            var _this = _possibleConstructorReturn$1(this, (enhanced.__proto__ || Object.getPrototypeOf(enhanced)).call(this, a, b, c));
 
             _this.listeners = {};
             _this.onceListeners = {};
@@ -677,7 +1214,7 @@
             return _this;
           }
 
-          _createClass$1(enhanced, [{
+          _createClass$3(enhanced, [{
             key: 'on',
             value: function on(messageName, callback) {
               checkMessageName(messageName);
@@ -808,8 +1345,8 @@
 
               // step2 release from context
               delete self._instanceMap[tag];
-              if (_get(enhanced.prototype.__proto__ || Object.getPrototypeOf(enhanced.prototype), 'destroy', this)) {
-                return _get(enhanced.prototype.__proto__ || Object.getPrototypeOf(enhanced.prototype), 'destroy', this).call(this);
+              if (_get$1(enhanced.prototype.__proto__ || Object.getPrototypeOf(enhanced.prototype), 'destroy', this)) {
+                return _get$1(enhanced.prototype.__proto__ || Object.getPrototypeOf(enhanced.prototype), 'destroy', this).call(this);
               }
             }
           }]);
@@ -829,6 +1366,17 @@
 
           return _this2.initInstance.apply(_this2, [tag].concat(args));
         };
+      }
+
+      /**
+       * 各个模块处理seek
+       * @param time
+       */
+
+    }, {
+      key: 'seek',
+      value: function seek(time) {
+        this._emitter.emit(EVENTS.PLAYER_EVENTS.SEEK, time);
       }
 
       /**
@@ -880,131 +1428,7 @@
     return Context;
   }();
 
-  var LOADER_EVENTS = {
-    LADER_START: 'LOADER_START',
-    LOADER_DATALOADED: 'LOADER_DATALOADED',
-    LOADER_COMPLETE: 'LOADER_COMPLETE',
-    LOADER_ERROR: 'LOADER_ERROR'
-  };
-
-  var DEMUX_EVENTS = {
-    DEMUX_START: 'DEMUX_START',
-    DEMUX_COMPLETE: 'DEMUX_COMPLETE',
-    DEMUX_ERROR: 'DEMUX_ERROR',
-    METADATA_PARSED: 'METADATA_PARSED',
-    VIDEO_METADATA_CHANGE: 'VIDEO_METADATA_CHANGE',
-    AUDIO_METADATA_CHANGE: 'AUDIO_METADATA_CHANGE',
-    MEDIA_INFO: 'MEDIA_INFO'
-  };
-
-  var REMUX_EVENTS = {
-    REMUX_METADATA: 'REMUX_METADATA',
-    REMUX_MEDIA: 'REMUX_MEDIA',
-    MEDIA_SEGMENT: 'MEDIA_SEGMENT',
-    REMUX_ERROR: 'REMUX_ERROR',
-    INIT_SEGMENT: 'INIT_SEGMENT',
-    DETECT_CHANGE_STREAM: 'DETECT_CHANGE_STREAM',
-    DETECT_CHANGE_STREAM_DISCONTINUE: 'DETECT_CHANGE_STREAM_DISCONTINUE',
-    RANDOM_ACCESS_POINT: 'RANDOM_ACCESS_POINT'
-  };
-
-  var MSE_EVENTS = {
-    SOURCE_UPDATE_END: 'SOURCE_UPDATE_END'
-
-    // hls专有events
-  };var HLS_EVENTS = {
-    RETRY_TIME_EXCEEDED: 'RETRY_TIME_EXCEEDED'
-  };
-
-  var CRYTO_EVENTS = {
-    START_DECRYPT: 'START_DECRYPT',
-    DECRYPTED: 'DECRYPTED'
-  };
-  var ALLEVENTS = Object.assign({}, LOADER_EVENTS, DEMUX_EVENTS, REMUX_EVENTS, MSE_EVENTS, HLS_EVENTS);
-
-  var FlvAllowedEvents = [];
-  var HlsAllowedEvents = [];
-
-  for (var key in ALLEVENTS) {
-    if (ALLEVENTS.hasOwnProperty(key)) {
-      FlvAllowedEvents.push(ALLEVENTS[key]);
-    }
-  }
-
-  for (var _key in ALLEVENTS) {
-    if (ALLEVENTS.hasOwnProperty(_key)) {
-      HlsAllowedEvents.push(ALLEVENTS[_key]);
-    }
-  }
-
-  var _EVENTS = {
-    ALLEVENTS: ALLEVENTS,
-    HLS_EVENTS: HLS_EVENTS,
-    REMUX_EVENTS: REMUX_EVENTS,
-    DEMUX_EVENTS: DEMUX_EVENTS,
-    MSE_EVENTS: MSE_EVENTS,
-    LOADER_EVENTS: LOADER_EVENTS,
-    FlvAllowedEvents: FlvAllowedEvents,
-    HlsAllowedEvents: HlsAllowedEvents,
-    CRYTO_EVENTS: CRYTO_EVENTS
-  };
-
-  var le = function () {
-    var buf = new ArrayBuffer(2);
-    new DataView(buf).setInt16(0, 256, true); // little-endian write
-    return new Int16Array(buf)[0] === 256; // platform-spec read, if equal then LE
-  }();
-
-  var sniffer = {
-    get device() {
-      var r = sniffer.os;
-      return r.isPc ? 'pc' : r.isTablet ? 'tablet' : 'mobile';
-    },
-    get browser() {
-      var ua = navigator.userAgent.toLowerCase();
-      var reg = {
-        ie: /rv:([\d.]+)\) like gecko/,
-        firfox: /firefox\/([\d.]+)/,
-        chrome: /chrome\/([\d.]+)/,
-        opera: /opera.([\d.]+)/,
-        safari: /version\/([\d.]+).*safari/
-      };
-      return [].concat(Object.keys(reg).filter(function (key) {
-        return reg[key].test(ua);
-      }))[0];
-    },
-    get os() {
-      var ua = navigator.userAgent;
-      var isWindowsPhone = /(?:Windows Phone)/.test(ua);
-      var isSymbian = /(?:SymbianOS)/.test(ua) || isWindowsPhone;
-      var isAndroid = /(?:Android)/.test(ua);
-      var isFireFox = /(?:Firefox)/.test(ua);
-      var isTablet = /(?:iPad|PlayBook)/.test(ua) || isAndroid && !/(?:Mobile)/.test(ua) || isFireFox && /(?:Tablet)/.test(ua);
-      var isPhone = /(?:iPhone)/.test(ua) && !isTablet;
-      var isPc = !isPhone && !isAndroid && !isSymbian;
-      return {
-        isTablet: isTablet,
-        isPhone: isPhone,
-        isAndroid: isAndroid,
-        isPc: isPc,
-        isSymbian: isSymbian,
-        isWindowsPhone: isWindowsPhone,
-        isFireFox: isFireFox
-      };
-    },
-
-    get isLe() {
-      return le;
-    }
-  };
-
-  var le$1 = function () {
-    var buf = new ArrayBuffer(2);
-    new DataView(buf).setInt16(0, 256, true); // little-endian write
-    return new Int16Array(buf)[0] === 256; // platform-spec read, if equal then LE
-  }();
-
-  var _createClass$2 = function () {
+  var _createClass$4 = function () {
     function defineProperties(target, props) {
       for (var i = 0; i < props.length; i++) {
         var descriptor = props[i];descriptor.enumerable = descriptor.enumerable || false;descriptor.configurable = true;if ("value" in descriptor) descriptor.writable = true;Object.defineProperty(target, descriptor.key, descriptor);
@@ -1014,84 +1438,469 @@
     };
   }();
 
-  function _classCallCheck$2(instance, Constructor) {
+  function _classCallCheck$4(instance, Constructor) {
     if (!(instance instanceof Constructor)) {
       throw new TypeError("Cannot call a class as a function");
     }
   }
 
-  var UTF8 = function () {
-    function UTF8() {
-      _classCallCheck$2(this, UTF8);
+  var isObjectFilled$1 = function isObjectFilled(obj) {
+    for (var key in obj) {
+      if (obj.hasOwnProperty(key)) {
+        if (obj[key] === null) {
+          return false;
+        }
+      }
+    }
+    return true;
+  };
+
+  var MediaInfo$1 = function () {
+    function MediaInfo() {
+      _classCallCheck$4(this, MediaInfo);
+
+      this.mimeType = null;
+      this.duration = null;
+
+      this.hasVideo = null;
+      this.video = {
+        codec: null,
+        width: null,
+        height: null,
+        profile: null,
+        level: null,
+        frameRate: {
+          fixed: true,
+          fps: 25,
+          fps_num: 25000,
+          fps_den: 1000
+        },
+        chromaFormat: null,
+        parRatio: {
+          width: 1,
+          height: 1
+        }
+      };
+
+      this.hasAudio = null;
+
+      this.audio = {
+        codec: null,
+        sampleRate: null,
+        sampleRateIndex: null,
+        channelCount: null
+      };
     }
 
-    _createClass$2(UTF8, null, [{
-      key: 'decode',
-      value: function decode(uint8array) {
-        var out = [];
-        var input = uint8array;
-        var i = 0;
-        var length = uint8array.length;
-
-        while (i < length) {
-          if (input[i] < 0x80) {
-            out.push(String.fromCharCode(input[i]));
-            ++i;
-            continue;
-          } else if (input[i] < 0xC0) ; else if (input[i] < 0xE0) {
-            if (UTF8._checkContinuation(input, i, 1)) {
-              var ucs4 = (input[i] & 0x1F) << 6 | input[i + 1] & 0x3F;
-              if (ucs4 >= 0x80) {
-                out.push(String.fromCharCode(ucs4 & 0xFFFF));
-                i += 2;
-                continue;
-              }
-            }
-          } else if (input[i] < 0xF0) {
-            if (UTF8._checkContinuation(input, i, 2)) {
-              var _ucs = (input[i] & 0xF) << 12 | (input[i + 1] & 0x3F) << 6 | input[i + 2] & 0x3F;
-              if (_ucs >= 0x800 && (_ucs & 0xF800) !== 0xD800) {
-                out.push(String.fromCharCode(_ucs & 0xFFFF));
-                i += 3;
-                continue;
-              }
-            }
-          } else if (input[i] < 0xF8) {
-            if (UTF8._checkContinuation(input, i, 3)) {
-              var _ucs2 = (input[i] & 0x7) << 18 | (input[i + 1] & 0x3F) << 12 | (input[i + 2] & 0x3F) << 6 | input[i + 3] & 0x3F;
-              if (_ucs2 > 0x10000 && _ucs2 < 0x110000) {
-                _ucs2 -= 0x10000;
-                out.push(String.fromCharCode(_ucs2 >>> 10 | 0xD800));
-                out.push(String.fromCharCode(_ucs2 & 0x3FF | 0xDC00));
-                i += 4;
-                continue;
-              }
-            }
-          }
-          out.push(String.fromCharCode(0xFFFD));
-          ++i;
-        }
-
-        return out.join('');
+    _createClass$4(MediaInfo, [{
+      key: "isComplete",
+      value: function isComplete() {
+        return MediaInfo.isBaseInfoReady(this) && MediaInfo.isVideoReady(this) && MediaInfo.isAudioReady(this);
+      }
+    }], [{
+      key: "isBaseInfoReady",
+      value: function isBaseInfoReady(mediaInfo) {
+        return isObjectFilled$1(mediaInfo);
       }
     }, {
-      key: '_checkContinuation',
-      value: function _checkContinuation(uint8array, start, checkLength) {
-        var array = uint8array;
-        if (start + checkLength < array.length) {
-          while (checkLength--) {
-            if ((array[++start] & 0xC0) !== 0x80) {
-              return false;
-            }
-          }
+      key: "isVideoReady",
+      value: function isVideoReady(mediaInfo) {
+        if (!mediaInfo.hasVideo) {
           return true;
+        }
+
+        return isObjectFilled$1(mediaInfo.video);
+      }
+    }, {
+      key: "isAudioReady",
+      value: function isAudioReady(mediaInfo) {
+        if (!mediaInfo.hasAudio) {
+          return true;
+        }
+
+        return isObjectFilled$1(mediaInfo.video);
+      }
+    }]);
+
+    return MediaInfo;
+  }();
+
+  var _typeof$2 = typeof Symbol === "function" && typeof Symbol.iterator === "symbol" ? function (obj) { return typeof obj; } : function (obj) { return obj && typeof Symbol === "function" && obj.constructor === Symbol && obj !== Symbol.prototype ? "symbol" : typeof obj; };
+
+  var _get$2 = function get(object, property, receiver) {
+    if (object === null) object = Function.prototype;var desc = Object.getOwnPropertyDescriptor(object, property);if (desc === undefined) {
+      var parent = Object.getPrototypeOf(object);if (parent === null) {
+        return undefined;
+      } else {
+        return get(parent, property, receiver);
+      }
+    } else if ("value" in desc) {
+      return desc.value;
+    } else {
+      var getter = desc.get;if (getter === undefined) {
+        return undefined;
+      }return getter.call(receiver);
+    }
+  };
+
+  var _createClass$5 = function () {
+    function defineProperties(target, props) {
+      for (var i = 0; i < props.length; i++) {
+        var descriptor = props[i];descriptor.enumerable = descriptor.enumerable || false;descriptor.configurable = true;if ("value" in descriptor) descriptor.writable = true;Object.defineProperty(target, descriptor.key, descriptor);
+      }
+    }return function (Constructor, protoProps, staticProps) {
+      if (protoProps) defineProperties(Constructor.prototype, protoProps);if (staticProps) defineProperties(Constructor, staticProps);return Constructor;
+    };
+  }();
+
+  function _possibleConstructorReturn$2(self, call) {
+    if (!self) {
+      throw new ReferenceError("this hasn't been initialised - super() hasn't been called");
+    }return call && ((typeof call === "undefined" ? "undefined" : _typeof$2(call)) === "object" || typeof call === "function") ? call : self;
+  }
+
+  function _inherits$2(subClass, superClass) {
+    if (typeof superClass !== "function" && superClass !== null) {
+      throw new TypeError("Super expression must either be null or a function, not " + (typeof superClass === "undefined" ? "undefined" : _typeof$2(superClass)));
+    }subClass.prototype = Object.create(superClass && superClass.prototype, { constructor: { value: subClass, enumerable: false, writable: true, configurable: true } });if (superClass) Object.setPrototypeOf ? Object.setPrototypeOf(subClass, superClass) : subClass.__proto__ = superClass;
+  }
+
+  function _classCallCheck$5(instance, Constructor) {
+    if (!(instance instanceof Constructor)) {
+      throw new TypeError("Cannot call a class as a function");
+    }
+  }
+
+  var DIRECT_EMIT_FLAG$1 = '__TO__';
+
+  var Context$1 = function () {
+    function Context() {
+      var allowedEvents = arguments.length > 0 && arguments[0] !== undefined ? arguments[0] : [];
+
+      _classCallCheck$5(this, Context);
+
+      this._emitter = new EventEmitter();
+      if (!this._emitter.off) {
+        this._emitter.off = this._emitter.removeListener;
+      }
+      this._instanceMap = {}; // 所有的解码流程实例
+      this._clsMap = {}; // 构造函数的map
+      this._inited = false;
+      this.mediaInfo = new MediaInfo$1();
+      this.allowedEvents = allowedEvents;
+      this._hooks = {}; // 注册在事件前/后的钩子，例如 before('DEMUX_COMPLETE')
+    }
+
+    /**
+     * 从上下文中获取解码流程实例，如果没有实例，构造一个
+     * @param tag
+     * @param args
+     * @returns {*}
+     */
+
+    _createClass$5(Context, [{
+      key: 'getInstance',
+      value: function getInstance(tag) {
+        var instance = this._instanceMap[tag];
+        if (instance) {
+          return instance;
         } else {
-          return false;
+          // throw new Error(`${tag}实例尚未初始化`)
+          return null;
+        }
+      }
+
+      /**
+       * 初始化具体实例
+       * @param tag
+       * @param args
+       */
+
+    }, {
+      key: 'initInstance',
+      value: function initInstance(tag) {
+        for (var _len = arguments.length, args = Array(_len > 1 ? _len - 1 : 0), _key = 1; _key < _len; _key++) {
+          args[_key - 1] = arguments[_key];
+        }
+
+        var a = args[0],
+            b = args[1],
+            c = args[2],
+            d = args[3];
+
+        if (this._clsMap[tag]) {
+          var newInstance = new this._clsMap[tag](a, b, c, d);
+          this._instanceMap[tag] = newInstance;
+          if (newInstance.init) {
+            newInstance.init(); // TODO: lifecircle
+          }
+          return newInstance;
+        } else {
+          throw new Error(tag + "\u672A\u5728context\u4E2D\u6CE8\u518C");
+        }
+      }
+
+      /**
+       * 避免大量的initInstance调用，初始化所有的组件
+       * @param config
+       */
+
+    }, {
+      key: 'init',
+      value: function init(config) {
+        if (this._inited) {
+          return;
+        }
+        for (var tag in this._clsMap) {
+          // if not inited, init an instance
+          if (this._clsMap.hasOwnProperty(tag) && !this._instanceMap[tag]) {
+            this.initInstance(tag, config);
+          }
+        }
+        this._inited = true;
+      }
+
+      /**
+       * 注册一个上下文流程，提供安全的事件发送机制
+       * @param tag
+       * @param cls
+       */
+
+    }, {
+      key: 'registry',
+      value: function registry(tag, cls) {
+        var _this2 = this;
+
+        var emitter = this._emitter;
+        var checkMessageName = this._isMessageNameValid.bind(this);
+        var self = this;
+        var enhanced = function (_cls) {
+          _inherits$2(enhanced, _cls);
+
+          function enhanced(a, b, c) {
+            _classCallCheck$5(this, enhanced);
+
+            var _this = _possibleConstructorReturn$2(this, (enhanced.__proto__ || Object.getPrototypeOf(enhanced)).call(this, a, b, c));
+
+            _this.listeners = {};
+            _this.onceListeners = {};
+            _this.TAG = tag;
+            _this._context = self;
+            return _this;
+          }
+
+          _createClass$5(enhanced, [{
+            key: 'on',
+            value: function on(messageName, callback) {
+              checkMessageName(messageName);
+
+              if (this.listeners[messageName]) {
+                this.listeners[messageName].push(callback);
+              } else {
+                this.listeners[messageName] = [callback];
+              }
+
+              emitter.on('' + messageName + DIRECT_EMIT_FLAG$1 + tag, callback); // 建立定向通信监听
+              return emitter.on(messageName, callback);
+            }
+
+            /**
+             * 在某个事件触发前执行
+             * @param messageName
+             * @param callback
+             */
+
+          }, {
+            key: 'before',
+            value: function before(messageName, callback) {
+              checkMessageName(messageName);
+              if (self._hooks[messageName]) {
+                self._hooks[messageName].push(callback);
+              } else {
+                self._hooks[messageName] = [callback];
+              }
+            }
+          }, {
+            key: 'once',
+            value: function once(messageName, callback) {
+              checkMessageName(messageName);
+
+              if (this.onceListeners[messageName]) {
+                this.onceListeners[messageName].push(callback);
+              } else {
+                this.onceListeners[messageName] = [callback];
+              }
+
+              emitter.once('' + messageName + DIRECT_EMIT_FLAG$1 + tag, callback);
+              return emitter.once(messageName, callback);
+            }
+          }, {
+            key: 'emit',
+            value: function emit(messageName) {
+              checkMessageName(messageName);
+              // console.log('emit ', messageName);
+
+              var beforeList = self._hooks ? self._hooks[messageName] : null;
+
+              if (beforeList) {
+                for (var i = 0, len = beforeList.length; i < len; i++) {
+                  var callback = beforeList[i];
+                  callback();
+                }
+              }
+
+              for (var _len2 = arguments.length, args = Array(_len2 > 1 ? _len2 - 1 : 0), _key2 = 1; _key2 < _len2; _key2++) {
+                args[_key2 - 1] = arguments[_key2];
+              }
+
+              return emitter.emit.apply(emitter, [messageName].concat(args));
+            }
+
+            /**
+             * 定向发送给某个组件单例的消息
+             * @param messageName
+             * @param args
+             */
+
+          }, {
+            key: 'emitTo',
+            value: function emitTo(tag, messageName) {
+              checkMessageName(messageName);
+
+              for (var _len3 = arguments.length, args = Array(_len3 > 2 ? _len3 - 2 : 0), _key3 = 2; _key3 < _len3; _key3++) {
+                args[_key3 - 2] = arguments[_key3];
+              }
+
+              return emitter.emit.apply(emitter, ['' + messageName + DIRECT_EMIT_FLAG$1 + tag].concat(args));
+            }
+          }, {
+            key: 'off',
+            value: function off(messageName, callback) {
+              checkMessageName(messageName);
+              return emitter.off(messageName, callback);
+            }
+          }, {
+            key: 'removeListeners',
+            value: function removeListeners() {
+              var hasOwn = Object.prototype.hasOwnProperty.bind(this.listeners);
+
+              for (var messageName in this.listeners) {
+                if (hasOwn(messageName)) {
+                  var callbacks = this.listeners[messageName] || [];
+                  for (var i = 0; i < callbacks.length; i++) {
+                    var callback = callbacks[i];
+                    emitter.off(messageName, callback);
+                    emitter.off('' + messageName + DIRECT_EMIT_FLAG$1 + tag, callback);
+                  }
+                }
+              }
+
+              for (var _messageName in this.onceListeners) {
+                if (hasOwn(_messageName)) {
+                  var _callbacks = this.onceListeners[_messageName] || [];
+                  for (var _i = 0; _i < _callbacks.length; _i++) {
+                    var _callback = _callbacks[_i];
+                    emitter.off(_messageName, _callback);
+                    emitter.off('' + _messageName + DIRECT_EMIT_FLAG$1 + tag, _callback);
+                  }
+                }
+              }
+            }
+
+            /**
+             * 在组件销毁时，默认将它注册的事件全部卸载，确保不会造成内存泄漏
+             */
+
+          }, {
+            key: 'destroy',
+            value: function destroy() {
+              // step1 unlisten events
+              this.removeListeners();
+              this.listeners = {};
+
+              // step2 release from context
+              delete self._instanceMap[tag];
+              if (_get$2(enhanced.prototype.__proto__ || Object.getPrototypeOf(enhanced.prototype), 'destroy', this)) {
+                return _get$2(enhanced.prototype.__proto__ || Object.getPrototypeOf(enhanced.prototype), 'destroy', this).call(this);
+              }
+            }
+          }]);
+
+          return enhanced;
+        }(cls);
+        this._clsMap[tag] = enhanced;
+
+        /**
+         * get instance immediately
+         * e.g const instance = context.registry(tag, Cls)(config)
+         * */
+        return function () {
+          for (var _len4 = arguments.length, args = Array(_len4), _key4 = 0; _key4 < _len4; _key4++) {
+            args[_key4] = arguments[_key4];
+          }
+
+          return _this2.initInstance.apply(_this2, [tag].concat(args));
+        };
+      }
+
+      /**
+       * 各个模块处理seek
+       * @param time
+       */
+
+    }, {
+      key: 'seek',
+      value: function seek(time) {
+        this._emitter.emit(EVENTS.PLAYER_EVENTS.SEEK, time);
+      }
+
+      /**
+       * 对存在的实例进行
+       */
+
+    }, {
+      key: 'destroyInstances',
+      value: function destroyInstances() {
+        var _this3 = this;
+
+        Object.keys(this._instanceMap).forEach(function (tag) {
+          if (_this3._instanceMap[tag].destroy) {
+            _this3._instanceMap[tag].destroy();
+          }
+        });
+      }
+
+      /**
+       * 编解码流程无需关注事件的解绑
+       */
+
+    }, {
+      key: 'destroy',
+      value: function destroy() {
+        this._emitter = null;
+        this.allowedEvents = [];
+        this._clsMap = null;
+        this._context = null;
+        this._hooks = null;
+        this.destroyInstances();
+      }
+
+      /**
+       * 对信道进行收拢
+       * @param messageName
+       * @private
+       */
+
+    }, {
+      key: '_isMessageNameValid',
+      value: function _isMessageNameValid(messageName) {
+        if (!this.allowedEvents.indexOf(messageName) < 0) {
+          throw new Error('unregistered message name: ' + messageName);
         }
       }
     }]);
 
-    return UTF8;
+    return Context;
   }();
 
   var _slicedToArray = function () {
@@ -1120,7 +1929,7 @@
     };
   }();
 
-  var _createClass$3 = function () {
+  var _createClass$6 = function () {
     function defineProperties(target, props) {
       for (var i = 0; i < props.length; i++) {
         var descriptor = props[i];descriptor.enumerable = descriptor.enumerable || false;descriptor.configurable = true;if ("value" in descriptor) descriptor.writable = true;Object.defineProperty(target, descriptor.key, descriptor);
@@ -1130,7 +1939,7 @@
     };
   }();
 
-  function _classCallCheck$3(instance, Constructor) {
+  function _classCallCheck$6(instance, Constructor) {
     if (!(instance instanceof Constructor)) {
       throw new TypeError("Cannot call a class as a function");
     }
@@ -1140,7 +1949,7 @@
     function MediaSample(info) {
       var _this = this;
 
-      _classCallCheck$3(this, MediaSample);
+      _classCallCheck$6(this, MediaSample);
 
       var _default = MediaSample.getDefaultInf();
 
@@ -1158,7 +1967,7 @@
       });
     }
 
-    _createClass$3(MediaSample, null, [{
+    _createClass$6(MediaSample, null, [{
       key: 'getDefaultInf',
       value: function getDefaultInf() {
         return {
@@ -1175,7 +1984,7 @@
     return MediaSample;
   }();
 
-  var _createClass$4 = function () {
+  var _createClass$7 = function () {
       function defineProperties(target, props) {
           for (var i = 0; i < props.length; i++) {
               var descriptor = props[i];descriptor.enumerable = descriptor.enumerable || false;descriptor.configurable = true;if ("value" in descriptor) descriptor.writable = true;Object.defineProperty(target, descriptor.key, descriptor);
@@ -1185,7 +1994,7 @@
       };
   }();
 
-  function _classCallCheck$4(instance, Constructor) {
+  function _classCallCheck$7(instance, Constructor) {
       if (!(instance instanceof Constructor)) {
           throw new TypeError("Cannot call a class as a function");
       }
@@ -1193,7 +2002,7 @@
 
   var MediaSegment = function () {
       function MediaSegment() {
-          _classCallCheck$4(this, MediaSegment);
+          _classCallCheck$7(this, MediaSegment);
 
           this.startDts = -1;
           this.endDts = -1;
@@ -1206,7 +2015,7 @@
           this.lastSample = null;
       }
 
-      _createClass$4(MediaSegment, [{
+      _createClass$7(MediaSegment, [{
           key: "addRAP",
           value: function addRAP(sample) {
               sample.isRAP = true;
@@ -1215,320 +2024,6 @@
       }]);
 
       return MediaSegment;
-  }();
-
-  var _createClass$5 = function () {
-      function defineProperties(target, props) {
-          for (var i = 0; i < props.length; i++) {
-              var descriptor = props[i];descriptor.enumerable = descriptor.enumerable || false;descriptor.configurable = true;if ("value" in descriptor) descriptor.writable = true;Object.defineProperty(target, descriptor.key, descriptor);
-          }
-      }return function (Constructor, protoProps, staticProps) {
-          if (protoProps) defineProperties(Constructor.prototype, protoProps);if (staticProps) defineProperties(Constructor, staticProps);return Constructor;
-      };
-  }();
-
-  function _classCallCheck$5(instance, Constructor) {
-      if (!(instance instanceof Constructor)) {
-          throw new TypeError("Cannot call a class as a function");
-      }
-  }
-
-  var MediaSegmentList = function () {
-      function MediaSegmentList(type) {
-          _classCallCheck$5(this, MediaSegmentList);
-
-          this._type = type;
-          this._list = [];
-          this._lastAppendLocation = -1; // cached last insert location
-      }
-
-      _createClass$5(MediaSegmentList, [{
-          key: "isEmpty",
-          value: function isEmpty() {
-              return this._list.length === 0;
-          }
-      }, {
-          key: "clear",
-          value: function clear() {
-              this._list = [];
-              this._lastAppendLocation = -1;
-          }
-      }, {
-          key: "_searchNearestSegmentBefore",
-          value: function _searchNearestSegmentBefore(beginDts) {
-              var list = this._list;
-              if (list.length === 0) {
-                  return -2;
-              }
-              var last = list.length - 1;
-              var mid = 0;
-              var lbound = 0;
-              var ubound = last;
-
-              var idx = 0;
-
-              if (beginDts < list[0].originDts) {
-                  idx = -1;
-                  return idx;
-              }
-
-              while (lbound <= ubound) {
-                  mid = lbound + Math.floor((ubound - lbound) / 2);
-                  if (mid === last || beginDts > list[mid].lastSample.originDts && beginDts < list[mid + 1].originDts) {
-                      idx = mid;
-                      break;
-                  } else if (list[mid].originDts < beginDts) {
-                      lbound = mid + 1;
-                  } else {
-                      ubound = mid - 1;
-                  }
-              }
-              return idx;
-          }
-      }, {
-          key: "_searchNearestSegmentAfter",
-          value: function _searchNearestSegmentAfter(beginDts) {
-              return this._searchNearestSegmentBefore(beginDts) + 1;
-          }
-      }, {
-          key: "append",
-          value: function append(segment) {
-              var list = this._list;
-              var lastAppendIdx = this._lastAppendLocation;
-              var insertIdx = 0;
-
-              if (lastAppendIdx !== -1 && lastAppendIdx < list.length && segment.originStartDts >= list[lastAppendIdx].lastSample.originDts && (lastAppendIdx === list.length - 1 || lastAppendIdx < list.length - 1 && segment.originStartDts < list[lastAppendIdx + 1].originStartDts)) {
-                  insertIdx = lastAppendIdx + 1; // use cached location idx
-              } else {
-                  if (list.length > 0) {
-                      insertIdx = this._searchNearestSegmentBefore(segment.originStartDts) + 1;
-                  }
-              }
-
-              this._lastAppendLocation = insertIdx;
-              this._list.splice(insertIdx, 0, segment);
-          }
-      }, {
-          key: "getLastSegmentBefore",
-          value: function getLastSegmentBefore(beginDts) {
-              var idx = this._searchNearestSegmentBefore(beginDts);
-              if (idx >= 0) {
-                  return this._list[idx];
-              } else {
-                  // -1
-                  return null;
-              }
-          }
-      }, {
-          key: "getLastSampleBefore",
-          value: function getLastSampleBefore(beginDts) {
-              var segment = this.getLastSegmentBefore(beginDts);
-              if (segment !== null) {
-                  return segment.lastSample;
-              } else {
-                  return null;
-              }
-          }
-      }, {
-          key: "getLastRAPBefore",
-          value: function getLastRAPBefore(beginDts) {
-              var segmentIdx = this._searchNearestSegmentBefore(beginDts);
-              var randomAccessPoints = this._list[segmentIdx].randomAccessPoints;
-              while (randomAccessPoints.length === 0 && segmentIdx > 0) {
-                  segmentIdx--;
-                  randomAccessPoints = this._list[segmentIdx].randomAccessPoints;
-              }
-              if (randomAccessPoints.length > 0) {
-                  return randomAccessPoints[randomAccessPoints.length - 1];
-              } else {
-                  return null;
-              }
-          }
-      }, {
-          key: "type",
-          get: function get() {
-              return this._type;
-          }
-      }, {
-          key: "length",
-          get: function get() {
-              return this._list.length;
-          }
-      }]);
-
-      return MediaSegmentList;
-  }();
-
-  var _createClass$6 = function () {
-    function defineProperties(target, props) {
-      for (var i = 0; i < props.length; i++) {
-        var descriptor = props[i];descriptor.enumerable = descriptor.enumerable || false;descriptor.configurable = true;if ("value" in descriptor) descriptor.writable = true;Object.defineProperty(target, descriptor.key, descriptor);
-      }
-    }return function (Constructor, protoProps, staticProps) {
-      if (protoProps) defineProperties(Constructor.prototype, protoProps);if (staticProps) defineProperties(Constructor, staticProps);return Constructor;
-    };
-  }();
-
-  function _classCallCheck$6(instance, Constructor) {
-    if (!(instance instanceof Constructor)) {
-      throw new TypeError("Cannot call a class as a function");
-    }
-  }
-
-  var AudioTrackMeta = function () {
-    function AudioTrackMeta(meta) {
-      _classCallCheck$6(this, AudioTrackMeta);
-
-      var _default = {
-        sampleRate: 48000,
-        channelCount: 2,
-        codec: 'mp4a.40.2',
-        config: [41, 401, 136, 0],
-        duration: 0,
-        id: 2,
-        refSampleDuration: 21,
-        sampleRateIndex: 3,
-        timescale: 1000,
-        type: 'audio'
-      };
-      if (meta) {
-        return Object.assign({}, _default, meta);
-      }
-      return _default;
-    }
-
-    _createClass$6(AudioTrackMeta, [{
-      key: 'destroy',
-      value: function destroy() {
-        this.init = null;
-      }
-    }]);
-
-    return AudioTrackMeta;
-  }();
-
-  var VideoTrackMeta = function () {
-    function VideoTrackMeta(meta) {
-      _classCallCheck$6(this, VideoTrackMeta);
-
-      var _default = {
-        avcc: null,
-        sps: new Uint8Array(0),
-        pps: new Uint8Array(0),
-        chromaFormat: 420,
-        codec: 'avc1.640020',
-        codecHeight: 720,
-        codecWidth: 1280,
-        duration: 0,
-        frameRate: {
-          fixed: true,
-          fps: 25,
-          fps_num: 25000,
-          fps_den: 1000
-        },
-        id: 1,
-        level: '3.2',
-        presentHeight: 720,
-        presentWidth: 1280,
-        profile: 'High',
-        refSampleDuration: 40,
-        parRatio: {
-          height: 1,
-          width: 1
-        },
-        timescale: 1000,
-        type: 'video'
-      };
-
-      if (meta) {
-        return Object.assign({}, _default, meta);
-      }
-      return _default;
-    }
-
-    _createClass$6(VideoTrackMeta, [{
-      key: 'destroy',
-      value: function destroy() {
-        this.init = null;
-        this.sps = null;
-        this.pps = null;
-      }
-    }]);
-
-    return VideoTrackMeta;
-  }();
-
-  var _createClass$7 = function () {
-    function defineProperties(target, props) {
-      for (var i = 0; i < props.length; i++) {
-        var descriptor = props[i];descriptor.enumerable = descriptor.enumerable || false;descriptor.configurable = true;if ("value" in descriptor) descriptor.writable = true;Object.defineProperty(target, descriptor.key, descriptor);
-      }
-    }return function (Constructor, protoProps, staticProps) {
-      if (protoProps) defineProperties(Constructor.prototype, protoProps);if (staticProps) defineProperties(Constructor, staticProps);return Constructor;
-    };
-  }();
-
-  function _classCallCheck$7(instance, Constructor) {
-    if (!(instance instanceof Constructor)) {
-      throw new TypeError("Cannot call a class as a function");
-    }
-  }
-
-  var AudioTrackSample = function () {
-    function AudioTrackSample(info) {
-      _classCallCheck$7(this, AudioTrackSample);
-
-      var _default = AudioTrackSample.getDefault();
-      if (!info) {
-        return _default;
-      }
-      var sample = Object.assign({}, _default, info);
-
-      return sample;
-    }
-
-    _createClass$7(AudioTrackSample, null, [{
-      key: "getDefault",
-      value: function getDefault() {
-        return {
-          dts: null,
-          pts: null,
-          data: new Uint8Array()
-        };
-      }
-    }]);
-
-    return AudioTrackSample;
-  }();
-
-  var VideoTrackSample = function () {
-    function VideoTrackSample(info) {
-      _classCallCheck$7(this, VideoTrackSample);
-
-      var _default = VideoTrackSample.getDefault();
-
-      if (!info) {
-        return _default;
-      }
-      var sample = Object.assign({}, _default, info);
-
-      return sample;
-    }
-
-    _createClass$7(VideoTrackSample, null, [{
-      key: "getDefault",
-      value: function getDefault() {
-        return {
-          dts: null,
-          pts: null,
-          isKeyframe: false, // is Random access point
-          originDts: null,
-          data: new Uint8Array()
-        };
-      }
-    }]);
-
-    return VideoTrackSample;
   }();
 
   var _createClass$8 = function () {
@@ -1547,9 +2042,183 @@
     }
   }
 
+  var MediaSegmentList = function () {
+    function MediaSegmentList(type) {
+      _classCallCheck$8(this, MediaSegmentList);
+
+      this._type = type;
+      this._list = [];
+      this._lastAppendLocation = -1; // cached last insert location
+    }
+
+    _createClass$8(MediaSegmentList, [{
+      key: "isEmpty",
+      value: function isEmpty() {
+        return this._list.length === 0;
+      }
+    }, {
+      key: "clear",
+      value: function clear() {
+        this._list = [];
+        this._lastAppendLocation = -1;
+      }
+    }, {
+      key: "_searchNearestSegmentBefore",
+      value: function _searchNearestSegmentBefore(beginDts) {
+        var list = this._list;
+        if (list.length === 0) {
+          return -2;
+        }
+        var last = list.length - 1;
+        var mid = 0;
+        var lbound = 0;
+        var ubound = last;
+
+        var idx = 0;
+
+        if (beginDts < list[0].originDts) {
+          idx = -1;
+          return idx;
+        }
+
+        while (lbound <= ubound) {
+          mid = lbound + Math.floor((ubound - lbound) / 2);
+          if (mid === last || beginDts > list[mid].lastSample.originDts && beginDts < list[mid + 1].originDts) {
+            idx = mid;
+            break;
+          } else if (list[mid].originDts < beginDts) {
+            lbound = mid + 1;
+          } else {
+            ubound = mid - 1;
+          }
+        }
+        return idx;
+      }
+    }, {
+      key: "_searchNearestSegmentAfter",
+      value: function _searchNearestSegmentAfter(beginDts) {
+        return this._searchNearestSegmentBefore(beginDts) + 1;
+      }
+    }, {
+      key: "append",
+      value: function append(segment) {
+        var list = this._list;
+        var lastAppendIdx = this._lastAppendLocation;
+        var insertIdx = 0;
+
+        if (lastAppendIdx !== -1 && lastAppendIdx < list.length && segment.originStartDts >= list[lastAppendIdx].lastSample.originDts && (lastAppendIdx === list.length - 1 || lastAppendIdx < list.length - 1 && segment.originStartDts < list[lastAppendIdx + 1].originStartDts)) {
+          insertIdx = lastAppendIdx + 1; // use cached location idx
+        } else {
+          if (list.length > 0) {
+            insertIdx = this._searchNearestSegmentBefore(segment.originStartDts) + 1;
+          }
+        }
+
+        this._lastAppendLocation = insertIdx;
+        this._list.splice(insertIdx, 0, segment);
+      }
+    }, {
+      key: "getLastSegmentBefore",
+      value: function getLastSegmentBefore(beginDts) {
+        var idx = this._searchNearestSegmentBefore(beginDts);
+        if (idx >= 0) {
+          return this._list[idx];
+        } else {
+          // -1
+          return null;
+        }
+      }
+    }, {
+      key: "getLastSampleBefore",
+      value: function getLastSampleBefore(beginDts) {
+        var segment = this.getLastSegmentBefore(beginDts);
+        if (segment !== null) {
+          return segment.lastSample;
+        } else {
+          return null;
+        }
+      }
+    }, {
+      key: "getLastRAPBefore",
+      value: function getLastRAPBefore(beginDts) {
+        var segmentIdx = this._searchNearestSegmentBefore(beginDts);
+        var randomAccessPoints = this._list[segmentIdx].randomAccessPoints;
+        while (randomAccessPoints.length === 0 && segmentIdx > 0) {
+          segmentIdx--;
+          randomAccessPoints = this._list[segmentIdx].randomAccessPoints;
+        }
+        if (randomAccessPoints.length > 0) {
+          return randomAccessPoints[randomAccessPoints.length - 1];
+        } else {
+          return null;
+        }
+      }
+    }, {
+      key: "type",
+      get: function get() {
+        return this._type;
+      }
+    }, {
+      key: "length",
+      get: function get() {
+        return this._list.length;
+      }
+    }]);
+
+    return MediaSegmentList;
+  }();
+
+  var _debounce = (function (fn, wait) {
+    var lastTime = Date.now();
+    var timer = null;
+    var isFirstTime = true;
+
+    return function () {
+      for (var _len = arguments.length, args = Array(_len), _key = 0; _key < _len; _key++) {
+        args[_key] = arguments[_key];
+      }
+
+      var now = Date.now();
+      if (isFirstTime) {
+        lastTime = Date.now();
+        isFirstTime = false;
+        fn.apply(undefined, args);
+      }
+      if (now - lastTime > wait) {
+        lastTime = now;
+        fn.apply(undefined, args);
+      } else {
+        if (timer) {
+          window.clearTimeout(timer);
+        }
+        timer = setTimeout(function () {
+          fn.apply(undefined, args);
+        }, wait);
+      }
+    };
+  });
+
+  var debounce = _debounce;
+
+  var _createClass$9 = function () {
+    function defineProperties(target, props) {
+      for (var i = 0; i < props.length; i++) {
+        var descriptor = props[i];descriptor.enumerable = descriptor.enumerable || false;descriptor.configurable = true;if ("value" in descriptor) descriptor.writable = true;Object.defineProperty(target, descriptor.key, descriptor);
+      }
+    }return function (Constructor, protoProps, staticProps) {
+      if (protoProps) defineProperties(Constructor.prototype, protoProps);if (staticProps) defineProperties(Constructor, staticProps);return Constructor;
+    };
+  }();
+
+  function _classCallCheck$9(instance, Constructor) {
+    if (!(instance instanceof Constructor)) {
+      throw new TypeError("Cannot call a class as a function");
+    }
+  }
+
   var MSE = function () {
     function MSE(configs, context) {
-      _classCallCheck$8(this, MSE);
+      _classCallCheck$9(this, MSE);
 
       if (context) {
         this._context = context;
@@ -1567,7 +2236,7 @@
       this.onWaiting = this.onWaiting.bind(this);
     }
 
-    _createClass$8(MSE, [{
+    _createClass$9(MSE, [{
       key: 'init',
       value: function init() {
         // eslint-disable-next-line no-undef
@@ -1701,7 +2370,6 @@
         for (var i = 0; i < Object.keys(this.sourceBuffers).length; i++) {
           var buffer = this.sourceBuffers[Object.keys(this.sourceBuffers)[i]];
           if (!buffer.updating) {
-
             // console.log('remove', start, end)
             buffer.remove(start, end);
           }
@@ -1809,266 +2477,7 @@
     return MSE;
   }();
 
-  var _createClass$9 = function () {
-    function defineProperties(target, props) {
-      for (var i = 0; i < props.length; i++) {
-        var descriptor = props[i];descriptor.enumerable = descriptor.enumerable || false;descriptor.configurable = true;if ("value" in descriptor) descriptor.writable = true;Object.defineProperty(target, descriptor.key, descriptor);
-      }
-    }return function (Constructor, protoProps, staticProps) {
-      if (protoProps) defineProperties(Constructor.prototype, protoProps);if (staticProps) defineProperties(Constructor, staticProps);return Constructor;
-    };
-  }();
-
-  function _classCallCheck$9(instance, Constructor) {
-    if (!(instance instanceof Constructor)) {
-      throw new TypeError("Cannot call a class as a function");
-    }
-  }
-
-  var Stream = function () {
-    function Stream(buffer) {
-      _classCallCheck$9(this, Stream);
-
-      if (buffer instanceof ArrayBuffer) {
-        this.buffer = buffer;
-        this.dataview = new DataView(buffer);
-        this.dataview.position = 0;
-      } else {
-        throw new Error('data is invalid');
-      }
-    }
-
-    _createClass$9(Stream, [{
-      key: 'back',
-      value: function back(count) {
-        this.position -= count;
-      }
-    }, {
-      key: 'skip',
-      value: function skip(count) {
-        var loop = Math.floor(count / 4);
-        var last = count % 4;
-        for (var i = 0; i < loop; i++) {
-          Stream.readByte(this.dataview, 4);
-        }
-        if (last > 0) {
-          Stream.readByte(this.dataview, last);
-        }
-      }
-
-      /**
-       * [readByte 从DataView中读取数据]
-       * @param  {DataView} buffer [DataView实例]
-       * @param  {Number} size   [读取字节数]
-       * @return {Number}        [整数]
-       */
-
-    }, {
-      key: 'readUint8',
-      value: function readUint8() {
-        return Stream.readByte(this.dataview, 1);
-      }
-    }, {
-      key: 'readUint16',
-      value: function readUint16() {
-        return Stream.readByte(this.dataview, 2);
-      }
-    }, {
-      key: 'readUint24',
-      value: function readUint24() {
-        return Stream.readByte(this.dataview, 3);
-      }
-    }, {
-      key: 'readUint32',
-      value: function readUint32() {
-        return Stream.readByte(this.dataview, 4);
-      }
-    }, {
-      key: 'readUint64',
-      value: function readUint64() {
-        return Stream.readByte(this.dataview, 8);
-      }
-    }, {
-      key: 'readInt8',
-      value: function readInt8() {
-        return Stream.readByte(this.dataview, 1, true);
-      }
-    }, {
-      key: 'readInt16',
-      value: function readInt16() {
-        return Stream.readByte(this.dataview, 2, true);
-      }
-    }, {
-      key: 'readInt32',
-      value: function readInt32() {
-        return Stream.readByte(this.dataview, 4, true);
-      }
-    }, {
-      key: 'writeUint32',
-      value: function writeUint32(value) {
-        return new Uint8Array([value >>> 24 & 0xff, value >>> 16 & 0xff, value >>> 8 & 0xff, value & 0xff]);
-      }
-    }, {
-      key: 'length',
-      get: function get() {
-        return this.buffer.byteLength;
-      }
-    }, {
-      key: 'position',
-      set: function set(value) {
-        this.dataview.position = value;
-      },
-      get: function get() {
-        return this.dataview.position;
-      }
-    }], [{
-      key: 'readByte',
-      value: function readByte(buffer, size, sign) {
-        var res = void 0;
-        switch (size) {
-          case 1:
-            if (sign) {
-              res = buffer.getInt8(buffer.position);
-            } else {
-              res = buffer.getUint8(buffer.position);
-            }
-            break;
-          case 2:
-            if (sign) {
-              res = buffer.getInt16(buffer.position);
-            } else {
-              res = buffer.getUint16(buffer.position);
-            }
-            break;
-          case 3:
-            if (sign) {
-              throw new Error('not supported for readByte 3');
-            } else {
-              res = buffer.getUint8(buffer.position) << 16;
-              res |= buffer.getUint8(buffer.position + 1) << 8;
-              res |= buffer.getUint8(buffer.position + 2);
-            }
-            break;
-          case 4:
-            if (sign) {
-              res = buffer.getInt32(buffer.position);
-            } else {
-              res = buffer.getUint32(buffer.position);
-            }
-            break;
-          case 8:
-            if (sign) {
-              throw new Error('not supported for readBody 8');
-            } else {
-              res = buffer.getUint32(buffer.position) << 32;
-              res |= buffer.getUint32(buffer.position + 4);
-            }
-            break;
-          default:
-            res = '';
-        }
-        buffer.position += size;
-        return res;
-      }
-    }]);
-
-    return Stream;
-  }();
-
-  function unwrapExports (x) {
-  	return x && x.__esModule && Object.prototype.hasOwnProperty.call(x, 'default') ? x['default'] : x;
-  }
-
-  function createCommonjsModule(fn, module) {
-  	return module = { exports: {} }, fn(module, module.exports), module.exports;
-  }
-
-  var concat = createCommonjsModule(function (module, exports) {
-
-  Object.defineProperty(exports, "__esModule", {
-    value: true
-  });
-
-  exports.default = function (ResultConstructor) {
-    var totalLength = 0;
-
-    for (var _len = arguments.length, arrays = Array(_len > 1 ? _len - 1 : 0), _key = 1; _key < _len; _key++) {
-      arrays[_key - 1] = arguments[_key];
-    }
-
-    var _iteratorNormalCompletion = true;
-    var _didIteratorError = false;
-    var _iteratorError = undefined;
-
-    try {
-      for (var _iterator = arrays[Symbol.iterator](), _step; !(_iteratorNormalCompletion = (_step = _iterator.next()).done); _iteratorNormalCompletion = true) {
-        var arr = _step.value;
-
-        totalLength += arr.length;
-      }
-    } catch (err) {
-      _didIteratorError = true;
-      _iteratorError = err;
-    } finally {
-      try {
-        if (!_iteratorNormalCompletion && _iterator.return) {
-          _iterator.return();
-        }
-      } finally {
-        if (_didIteratorError) {
-          throw _iteratorError;
-        }
-      }
-    }
-
-    var result = new ResultConstructor(totalLength);
-    var offset = 0;
-    var _iteratorNormalCompletion2 = true;
-    var _didIteratorError2 = false;
-    var _iteratorError2 = undefined;
-
-    try {
-      for (var _iterator2 = arrays[Symbol.iterator](), _step2; !(_iteratorNormalCompletion2 = (_step2 = _iterator2.next()).done); _iteratorNormalCompletion2 = true) {
-        var _arr = _step2.value;
-
-        result.set(_arr, offset);
-        offset += _arr.length;
-      }
-    } catch (err) {
-      _didIteratorError2 = true;
-      _iteratorError2 = err;
-    } finally {
-      try {
-        if (!_iteratorNormalCompletion2 && _iterator2.return) {
-          _iterator2.return();
-        }
-      } finally {
-        if (_didIteratorError2) {
-          throw _iteratorError2;
-        }
-      }
-    }
-
-    return result;
-  };
-  });
-
-  unwrapExports(concat);
-
-  var lib = createCommonjsModule(function (module) {
-
-
-
-  var _concat2 = _interopRequireDefault(concat);
-
-  function _interopRequireDefault(obj) {
-    return obj && obj.__esModule ? obj : { default: obj };
-  }
-
-  module.exports = _concat2.default;
-  });
-
-  var Concat = unwrapExports(lib);
+  var _typeof$3 = typeof Symbol === "function" && typeof Symbol.iterator === "symbol" ? function (obj) { return typeof obj; } : function (obj) { return obj && typeof Symbol === "function" && obj.constructor === Symbol && obj !== Symbol.prototype ? "symbol" : typeof obj; };
 
   var _createClass$a = function () {
     function defineProperties(target, props) {
@@ -2080,199 +2489,19 @@
     };
   }();
 
-  function _classCallCheck$a(instance, Constructor) {
-    if (!(instance instanceof Constructor)) {
-      throw new TypeError("Cannot call a class as a function");
-    }
-  }
-
-  var Buffer = function () {
-    function Buffer(buffer) {
-      _classCallCheck$a(this, Buffer);
-
-      this.buffer = buffer || new Uint8Array(0);
-    }
-
-    _createClass$a(Buffer, [{
-      key: 'write',
-      value: function write() {
-        var _this = this;
-
-        for (var _len = arguments.length, buffer = Array(_len), _key = 0; _key < _len; _key++) {
-          buffer[_key] = arguments[_key];
-        }
-
-        buffer.forEach(function (item) {
-          _this.buffer = Concat(Uint8Array, _this.buffer, item);
-        });
-      }
-    }], [{
-      key: 'writeUint32',
-      value: function writeUint32(value) {
-        return new Uint8Array([value >> 24, value >> 16 & 0xff, value >> 8 & 0xff, value & 0xff]);
-      }
-    }, {
-      key: 'readAsInt',
-      value: function readAsInt(arr) {
-        var temp = '';
-
-        function padStart4Hex(hexNum) {
-          var hexStr = hexNum.toString(16);
-          return hexStr.padStart(2, '0');
-        }
-
-        arr.forEach(function (num) {
-          temp += padStart4Hex(num);
-        });
-        return parseInt(temp, 16);
-      }
-    }]);
-
-    return Buffer;
-  }();
-
-  var _createClass$b = function () {
-      function defineProperties(target, props) {
-          for (var i = 0; i < props.length; i++) {
-              var descriptor = props[i];descriptor.enumerable = descriptor.enumerable || false;descriptor.configurable = true;if ("value" in descriptor) descriptor.writable = true;Object.defineProperty(target, descriptor.key, descriptor);
-          }
-      }return function (Constructor, protoProps, staticProps) {
-          if (protoProps) defineProperties(Constructor.prototype, protoProps);if (staticProps) defineProperties(Constructor, staticProps);return Constructor;
-      };
-  }();
-
-  function _classCallCheck$b(instance, Constructor) {
-      if (!(instance instanceof Constructor)) {
-          throw new TypeError("Cannot call a class as a function");
-      }
-  }
-  var CRYTO_EVENTS$1 = _EVENTS.CRYTO_EVENTS;
-
-  var Crypto = function () {
-      function Crypto(config) {
-          _classCallCheck$b(this, Crypto);
-
-          this.inputBuffer = config.inputbuffer;
-          this.outputBuffer = config.outputbuffer;
-          this.key = config.key;
-          this.iv = config.iv;
-          this.method = config.method;
-
-          this.crypto = window.crypto || window.msCrypto;
-      }
-
-      _createClass$b(Crypto, [{
-          key: 'init',
-          value: function init() {
-              this.on(CRYTO_EVENTS$1.START_DECRYPT, this.decript.bind(this));
-          }
-      }, {
-          key: 'decript',
-          value: function decript() {
-              var _this = this;
-
-              if (!this.aeskey) {
-                  var sbkey = this.crypto.subtle.importKey('raw', this.key.buffer, { name: 'AES-CBC' }, false, ['encrypt', 'decrypt']);
-                  sbkey.then(function (key) {
-                      _this.aeskey = key;
-                      _this.decriptData();
-                  });
-              } else {
-                  this.decriptData();
-              }
-          }
-      }, {
-          key: 'decriptData',
-          value: function decriptData() {
-              var _this2 = this;
-
-              var inputbuffer = this._context.getInstance(this.inputBuffer);
-              var outputbuffer = this._context.getInstance(this.outputBuffer);
-              var data = inputbuffer.shift();
-              if (data) {
-                  this.crypto.subtle.decrypt({ name: 'AES-CBC', iv: this.iv.buffer }, this.aeskey, data).then(function (res) {
-                      outputbuffer.push(new Uint8Array(res));
-                      _this2.emit(CRYTO_EVENTS$1.DECRYPTED);
-                      _this2.decriptData(data);
-                  });
-              }
-          }
-      }]);
-
-      return Crypto;
-  }();
-
-  var _debounce = (function (fn, wait) {
-    var lastTime = Date.now();
-    var timer = null;
-    var isFirstTime = true;
-
-    return function () {
-      for (var _len = arguments.length, args = Array(_len), _key = 0; _key < _len; _key++) {
-        args[_key] = arguments[_key];
-      }
-
-      var now = Date.now();
-      if (isFirstTime) {
-        lastTime = Date.now();
-        isFirstTime = false;
-        fn.apply(undefined, args);
-      }
-      if (now - lastTime > wait) {
-        lastTime = now;
-        fn.apply(undefined, args);
-      } else {
-        if (timer) {
-          window.clearTimeout(timer);
-        }
-        timer = setTimeout(function () {
-          fn.apply(undefined, args);
-        }, wait);
-      }
-    };
-  });
-
-  var Context$1 = Context;
-  var EVENTS = _EVENTS;
-  var sniffer$1 = sniffer;
-  var isLe = le$1;
-  var UTF8$1 = UTF8;
-  var debounce = _debounce;
-  var MediaSegmentList$1 = MediaSegmentList;
-  var AudioTrackMeta$1 = AudioTrackMeta;
-  var VideoTrackMeta$1 = VideoTrackMeta;
-  var AudioTrackSample$1 = AudioTrackSample;
-  var VideoTrackSample$1 = VideoTrackSample;
-  var Mse = MSE;
-  var Stream$1 = Stream;
-  var Buffer$1 = Buffer;
-  var Crypto$1 = Crypto;
-
-  var _typeof$1 = typeof Symbol === "function" && typeof Symbol.iterator === "symbol" ? function (obj) { return typeof obj; } : function (obj) { return obj && typeof Symbol === "function" && obj.constructor === Symbol && obj !== Symbol.prototype ? "symbol" : typeof obj; };
-
-  var _createClass$c = function () {
-    function defineProperties(target, props) {
-      for (var i = 0; i < props.length; i++) {
-        var descriptor = props[i];descriptor.enumerable = descriptor.enumerable || false;descriptor.configurable = true;if ("value" in descriptor) descriptor.writable = true;Object.defineProperty(target, descriptor.key, descriptor);
-      }
-    }return function (Constructor, protoProps, staticProps) {
-      if (protoProps) defineProperties(Constructor.prototype, protoProps);if (staticProps) defineProperties(Constructor, staticProps);return Constructor;
-    };
-  }();
-
-  function _possibleConstructorReturn$1(self, call) {
+  function _possibleConstructorReturn$3(self, call) {
     if (!self) {
       throw new ReferenceError("this hasn't been initialised - super() hasn't been called");
-    }return call && ((typeof call === "undefined" ? "undefined" : _typeof$1(call)) === "object" || typeof call === "function") ? call : self;
+    }return call && ((typeof call === "undefined" ? "undefined" : _typeof$3(call)) === "object" || typeof call === "function") ? call : self;
   }
 
-  function _inherits$1(subClass, superClass) {
+  function _inherits$3(subClass, superClass) {
     if (typeof superClass !== "function" && superClass !== null) {
-      throw new TypeError("Super expression must either be null or a function, not " + (typeof superClass === "undefined" ? "undefined" : _typeof$1(superClass)));
+      throw new TypeError("Super expression must either be null or a function, not " + (typeof superClass === "undefined" ? "undefined" : _typeof$3(superClass)));
     }subClass.prototype = Object.create(superClass && superClass.prototype, { constructor: { value: subClass, enumerable: false, writable: true, configurable: true } });if (superClass) Object.setPrototypeOf ? Object.setPrototypeOf(subClass, superClass) : subClass.__proto__ = superClass;
   }
 
-  function _classCallCheck$c(instance, Constructor) {
+  function _classCallCheck$a(instance, Constructor) {
     if (!(instance instanceof Constructor)) {
       throw new TypeError("Cannot call a class as a function");
     }
@@ -2283,7 +2512,7 @@
      * The constructor.
      */
     function Track() {
-      _classCallCheck$c(this, Track);
+      _classCallCheck$a(this, Track);
 
       this.id = -1;
       this.sequenceNumber = 0;
@@ -2296,7 +2525,7 @@
      * Reset the track.
      */
 
-    _createClass$c(Track, [{
+    _createClass$a(Track, [{
       key: 'reset',
       value: function reset() {
         this.sequenceNumber = 0;
@@ -2319,15 +2548,15 @@
   }();
 
   var AudioTrack = function (_Track) {
-    _inherits$1(AudioTrack, _Track);
+    _inherits$3(AudioTrack, _Track);
 
     /**
      * The constructor for audio track.
      */
     function AudioTrack() {
-      _classCallCheck$c(this, AudioTrack);
+      _classCallCheck$a(this, AudioTrack);
 
-      var _this = _possibleConstructorReturn$1(this, (AudioTrack.__proto__ || Object.getPrototypeOf(AudioTrack)).call(this));
+      var _this = _possibleConstructorReturn$3(this, (AudioTrack.__proto__ || Object.getPrototypeOf(AudioTrack)).call(this));
 
       _this.TAG = 'AudioTrack';
       _this.type = 'audio';
@@ -2338,15 +2567,15 @@
   }(Track);
 
   var VideoTrack = function (_Track2) {
-    _inherits$1(VideoTrack, _Track2);
+    _inherits$3(VideoTrack, _Track2);
 
     /**
      * The constructor for video track.
      */
     function VideoTrack() {
-      _classCallCheck$c(this, VideoTrack);
+      _classCallCheck$a(this, VideoTrack);
 
-      var _this2 = _possibleConstructorReturn$1(this, (VideoTrack.__proto__ || Object.getPrototypeOf(VideoTrack)).call(this));
+      var _this2 = _possibleConstructorReturn$3(this, (VideoTrack.__proto__ || Object.getPrototypeOf(VideoTrack)).call(this));
 
       _this2.TAG = 'VideoTrack';
       _this2.type = 'video';
@@ -2357,7 +2586,7 @@
      * reset the video track.
      */
 
-    _createClass$c(VideoTrack, [{
+    _createClass$a(VideoTrack, [{
       key: 'reset',
       value: function reset() {
         this.sequenceNumber = 0;
@@ -2372,13 +2601,13 @@
 
   var Tracks = function () {
     function Tracks() {
-      _classCallCheck$c(this, Tracks);
+      _classCallCheck$a(this, Tracks);
 
       this.audioTrack = null;
       this.videoTrack = null;
     }
 
-    _createClass$c(Tracks, [{
+    _createClass$a(Tracks, [{
       key: 'destroy',
       value: function destroy() {
         this.audioTrack = null;
@@ -2389,7 +2618,7 @@
     return Tracks;
   }();
 
-  var _createClass$d = function () {
+  var _createClass$b = function () {
     function defineProperties(target, props) {
       for (var i = 0; i < props.length; i++) {
         var descriptor = props[i];descriptor.enumerable = descriptor.enumerable || false;descriptor.configurable = true;if ("value" in descriptor) descriptor.writable = true;Object.defineProperty(target, descriptor.key, descriptor);
@@ -2399,7 +2628,64 @@
     };
   }();
 
-  function _classCallCheck$d(instance, Constructor) {
+  function _classCallCheck$b(instance, Constructor) {
+    if (!(instance instanceof Constructor)) {
+      throw new TypeError("Cannot call a class as a function");
+    }
+  }
+
+  var Source = function Source() {
+    _classCallCheck$b(this, Source);
+
+    this.mimetype = '';
+    this.init = null;
+    this.data = [];
+  };
+
+  var PreSource = function () {
+    function PreSource() {
+      _classCallCheck$b(this, PreSource);
+
+      this.sources = {};
+    }
+
+    _createClass$b(PreSource, [{
+      key: 'getSource',
+      value: function getSource(source) {
+        return this.sources[source];
+      }
+    }, {
+      key: 'createSource',
+      value: function createSource(name) {
+        this.sources[name] = new Source();
+        return this.sources[name];
+      }
+    }, {
+      key: 'clear',
+      value: function clear() {
+        this.sources = {};
+      }
+    }, {
+      key: 'destroy',
+      value: function destroy() {
+        this.sources = {};
+      }
+    }]);
+
+    return PreSource;
+  }();
+
+  var _createClass$c = function () {
+    function defineProperties(target, props) {
+      for (var i = 0; i < props.length; i++) {
+        var descriptor = props[i];descriptor.enumerable = descriptor.enumerable || false;descriptor.configurable = true;if ("value" in descriptor) descriptor.writable = true;Object.defineProperty(target, descriptor.key, descriptor);
+      }
+    }return function (Constructor, protoProps, staticProps) {
+      if (protoProps) defineProperties(Constructor.prototype, protoProps);if (staticProps) defineProperties(Constructor, staticProps);return Constructor;
+    };
+  }();
+
+  function _classCallCheck$c(instance, Constructor) {
     if (!(instance instanceof Constructor)) {
       throw new TypeError("Cannot call a class as a function");
     }
@@ -2413,7 +2699,7 @@
      * @param {number} length - Optional the buffer size
      */
     function XgBuffer(length) {
-      _classCallCheck$d(this, XgBuffer);
+      _classCallCheck$c(this, XgBuffer);
 
       this.length = length || 0;
       this.historyLen = length || 0;
@@ -2427,7 +2713,7 @@
      * @param {number} data - The data to push into the buffer
      */
 
-    _createClass$d(XgBuffer, [{
+    _createClass$c(XgBuffer, [{
       key: "push",
       value: function push(data) {
         this.array.push(data);
@@ -2548,97 +2834,15 @@
     return XgBuffer;
   }();
 
-  var RemuxBuffer = function () {
-    function RemuxBuffer() {
-      _classCallCheck$d(this, RemuxBuffer);
-
-      this.video = [];
-      this.audio = [];
-    }
-
-    _createClass$d(RemuxBuffer, [{
-      key: "destroy",
-      value: function destroy() {
-        this.video = [];
-        this.audio = [];
-      }
-    }]);
-
-    return RemuxBuffer;
-  }();
-
-  var _createClass$e = function () {
-    function defineProperties(target, props) {
-      for (var i = 0; i < props.length; i++) {
-        var descriptor = props[i];descriptor.enumerable = descriptor.enumerable || false;descriptor.configurable = true;if ("value" in descriptor) descriptor.writable = true;Object.defineProperty(target, descriptor.key, descriptor);
-      }
-    }return function (Constructor, protoProps, staticProps) {
-      if (protoProps) defineProperties(Constructor.prototype, protoProps);if (staticProps) defineProperties(Constructor, staticProps);return Constructor;
-    };
-  }();
-
-  function _classCallCheck$e(instance, Constructor) {
-    if (!(instance instanceof Constructor)) {
-      throw new TypeError("Cannot call a class as a function");
-    }
-  }
-
-  var Source = function Source() {
-    _classCallCheck$e(this, Source);
-
-    this.mimetype = '';
-    this.init = null;
-    this.data = [];
-  };
-
-  var PreSource = function () {
-    function PreSource() {
-      _classCallCheck$e(this, PreSource);
-
-      this.sources = {};
-    }
-
-    _createClass$e(PreSource, [{
-      key: 'getSource',
-      value: function getSource(source) {
-        return this.sources[source];
-      }
-    }, {
-      key: 'createSource',
-      value: function createSource(name) {
-        this.sources[name] = new Source();
-        return this.sources[name];
-      }
-    }, {
-      key: 'clear',
-      value: function clear() {
-        this.sources = {};
-      }
-    }, {
-      key: 'destroy',
-      value: function destroy() {
-        this.sources = {};
-      }
-    }]);
-
-    return PreSource;
-  }();
-
-  var Tracks$1 = Tracks;
-  var AudioTrack$1 = AudioTrack;
-  var VideoTrack$1 = VideoTrack;
-  var XgBuffer$1 = XgBuffer;
-  var PreSource$1 = PreSource;
-
   var _typeof2 = typeof Symbol === "function" && typeof Symbol.iterator === "symbol" ? function (obj) { return typeof obj; } : function (obj) { return obj && typeof Symbol === "function" && obj.constructor === Symbol && obj !== Symbol.prototype ? "symbol" : typeof obj; };
 
-  var _typeof$2 = typeof Symbol === "function" && _typeof2(Symbol.iterator) === "symbol" ? function (obj) {
+  var _typeof$4 = typeof Symbol === "function" && _typeof2(Symbol.iterator) === "symbol" ? function (obj) {
     return typeof obj === "undefined" ? "undefined" : _typeof2(obj);
   } : function (obj) {
     return obj && typeof Symbol === "function" && obj.constructor === Symbol && obj !== Symbol.prototype ? "symbol" : typeof obj === "undefined" ? "undefined" : _typeof2(obj);
   };
 
-  var _createClass$f = function () {
+  var _createClass$d = function () {
     function defineProperties(target, props) {
       for (var i = 0; i < props.length; i++) {
         var descriptor = props[i];descriptor.enumerable = descriptor.enumerable || false;descriptor.configurable = true;if ("value" in descriptor) descriptor.writable = true;Object.defineProperty(target, descriptor.key, descriptor);
@@ -2648,13 +2852,13 @@
     };
   }();
 
-  function _classCallCheck$f(instance, Constructor) {
+  function _classCallCheck$d(instance, Constructor) {
     if (!(instance instanceof Constructor)) {
       throw new TypeError("Cannot call a class as a function");
     }
   }
 
-  var LOADER_EVENTS$1 = EVENTS.LOADER_EVENTS;
+  var LOADER_EVENTS$2 = EVENTS.LOADER_EVENTS;
   var READ_STREAM = 0;
   var READ_TEXT = 1;
   var READ_JSON = 2;
@@ -2662,7 +2866,7 @@
 
   var FetchLoader = function () {
     function FetchLoader(configs) {
-      _classCallCheck$f(this, FetchLoader);
+      _classCallCheck$d(this, FetchLoader);
 
       this.configs = Object.assign({}, configs);
       this.url = null;
@@ -2676,10 +2880,10 @@
       this._loaderTaskNo = 0;
     }
 
-    _createClass$f(FetchLoader, [{
+    _createClass$d(FetchLoader, [{
       key: 'init',
       value: function init() {
-        this.on(LOADER_EVENTS$1.LADER_START, this.load.bind(this));
+        this.on(LOADER_EVENTS$2.LADER_START, this.load.bind(this));
       }
     }, {
       key: 'load',
@@ -2703,10 +2907,10 @@
             return Promise.resolve(response);
           }
           _this2.loading = false;
-          _this2.emit(LOADER_EVENTS$1.LOADER_ERROR, _this2.TAG, new Error(response.status + ' (' + response.statusText + ')'));
+          _this2.emit(LOADER_EVENTS$2.LOADER_ERROR, _this2.TAG, new Error(response.status + ' (' + response.statusText + ')'));
         }).catch(function (error) {
           _this2.loading = false;
-          _this2.emit(LOADER_EVENTS$1.LOADER_ERROR, _this2.TAG, error);
+          _this2.emit(LOADER_EVENTS$2.LOADER_ERROR, _this2.TAG, error);
           throw error;
         });
       }
@@ -2725,9 +2929,9 @@
                 if (!_this._canceled && !_this._destroyed) {
                   if (buffer) {
                     buffer.push(data);
-                    _this.emit(LOADER_EVENTS$1.LOADER_COMPLETE, buffer);
+                    _this.emit(LOADER_EVENTS$2.LOADER_COMPLETE, buffer);
                   } else {
-                    _this.emit(LOADER_EVENTS$1.LOADER_COMPLETE, data);
+                    _this.emit(LOADER_EVENTS$2.LOADER_COMPLETE, data);
                   }
                 }
               });
@@ -2738,9 +2942,9 @@
                 if (!_this._canceled && !_this._destroyed) {
                   if (buffer) {
                     buffer.push(data);
-                    _this.emit(LOADER_EVENTS$1.LOADER_COMPLETE, buffer);
+                    _this.emit(LOADER_EVENTS$2.LOADER_COMPLETE, buffer);
                   } else {
-                    _this.emit(LOADER_EVENTS$1.LOADER_COMPLETE, data);
+                    _this.emit(LOADER_EVENTS$2.LOADER_COMPLETE, data);
                   }
                 }
               });
@@ -2751,9 +2955,9 @@
                 if (!_this._canceled && !_this._destroyed) {
                   if (buffer) {
                     buffer.push(new Uint8Array(data));
-                    _this.emit(LOADER_EVENTS$1.LOADER_COMPLETE, buffer);
+                    _this.emit(LOADER_EVENTS$2.LOADER_COMPLETE, buffer);
                   } else {
-                    _this.emit(LOADER_EVENTS$1.LOADER_COMPLETE, data);
+                    _this.emit(LOADER_EVENTS$2.LOADER_COMPLETE, data);
                   }
                 }
               });
@@ -2800,19 +3004,19 @@
             _this3.loading = false;
             _this3.status = 0;
             Promise.resolve().then(function () {
-              _this3.emit(LOADER_EVENTS$1.LOADER_COMPLETE, buffer);
+              _this3.emit(LOADER_EVENTS$2.LOADER_COMPLETE, buffer);
             });
             return;
           }
 
           buffer.push(val.value);
           Promise.resolve().then(function () {
-            _this3.emit(LOADER_EVENTS$1.LOADER_DATALOADED, buffer);
+            _this3.emit(LOADER_EVENTS$2.LOADER_DATALOADED, buffer);
           });
           return _this3._onReader(reader, taskno);
         }).catch(function (error) {
           _this3.loading = false;
-          _this3.emit(LOADER_EVENTS$1.LOADER_ERROR, _this3.TAG, error);
+          _this3.emit(LOADER_EVENTS$2.LOADER_ERROR, _this3.TAG, error);
           throw error;
         });
       }
@@ -2830,7 +3034,7 @@
 
           // add custmor headers
           // 添加自定义头
-        };if (_typeof$2(this.configs.headers) === 'object') {
+        };if (_typeof$4(this.configs.headers) === 'object') {
           var configHeaders = this.configs.headers;
           for (var key in configHeaders) {
             if (configHeaders.hasOwnProperty(key)) {
@@ -2839,7 +3043,7 @@
           }
         }
 
-        if (_typeof$2(options.headers) === 'object') {
+        if (_typeof$4(options.headers) === 'object') {
           var optHeaders = options.headers;
           for (var _key in optHeaders) {
             if (optHeaders.hasOwnProperty(_key)) {
@@ -2891,9 +3095,7 @@
     return FetchLoader;
   }();
 
-  var FetchLoader$1 = FetchLoader;
-
-  var _createClass$g = function () {
+  var _createClass$e = function () {
     function defineProperties(target, props) {
       for (var i = 0; i < props.length; i++) {
         var descriptor = props[i];descriptor.enumerable = descriptor.enumerable || false;descriptor.configurable = true;if ("value" in descriptor) descriptor.writable = true;Object.defineProperty(target, descriptor.key, descriptor);
@@ -2903,620 +3105,7 @@
     };
   }();
 
-  function _classCallCheck$g(instance, Constructor) {
-    if (!(instance instanceof Constructor)) {
-      throw new TypeError("Cannot call a class as a function");
-    }
-  }
-
-  var Golomb = function () {
-    function Golomb(uint8array) {
-      _classCallCheck$g(this, Golomb);
-
-      this.TAG = 'Golomb';
-      this._buffer = uint8array;
-      this._bufferIndex = 0;
-      this._totalBytes = uint8array.byteLength;
-      this._totalBits = uint8array.byteLength * 8;
-      this._currentWord = 0;
-      this._currentWordBitsLeft = 0;
-    }
-
-    _createClass$g(Golomb, [{
-      key: 'destroy',
-      value: function destroy() {
-        this._buffer = null;
-      }
-    }, {
-      key: '_fillCurrentWord',
-      value: function _fillCurrentWord() {
-        var bufferBytesLeft = this._totalBytes - this._bufferIndex;
-
-        var bytesRead = Math.min(4, bufferBytesLeft);
-        var word = new Uint8Array(4);
-        word.set(this._buffer.subarray(this._bufferIndex, this._bufferIndex + bytesRead));
-        this._currentWord = new DataView(word.buffer).getUint32(0);
-
-        this._bufferIndex += bytesRead;
-        this._currentWordBitsLeft = bytesRead * 8;
-      }
-    }, {
-      key: 'readBits',
-      value: function readBits(size) {
-        var bits = Math.min(this._currentWordBitsLeft, size); // :uint
-        var valu = this._currentWord >>> 32 - bits;
-        if (size > 32) {
-          throw new Error('Cannot read more than 32 bits at a time');
-        }
-        this._currentWordBitsLeft -= bits;
-        if (this._currentWordBitsLeft > 0) {
-          this._currentWord <<= bits;
-        } else if (this._totalBytes - this._bufferIndex > 0) {
-          this._fillCurrentWord();
-        }
-
-        bits = size - bits;
-        if (bits > 0 && this._currentWordBitsLeft) {
-          return valu << bits | this.readBits(bits);
-        } else {
-          return valu;
-        }
-      }
-    }, {
-      key: 'readBool',
-      value: function readBool() {
-        return this.readBits(1) === 1;
-      }
-    }, {
-      key: 'readByte',
-      value: function readByte() {
-        return this.readBits(8);
-      }
-    }, {
-      key: '_skipLeadingZero',
-      value: function _skipLeadingZero() {
-        var zeroCount = void 0;
-        for (zeroCount = 0; zeroCount < this._currentWordBitsLeft; zeroCount++) {
-          if ((this._currentWord & 0x80000000 >>> zeroCount) !== 0) {
-            this._currentWord <<= zeroCount;
-            this._currentWordBitsLeft -= zeroCount;
-            return zeroCount;
-          }
-        }
-        this._fillCurrentWord();
-        return zeroCount + this._skipLeadingZero();
-      }
-    }, {
-      key: 'readUEG',
-      value: function readUEG() {
-        // unsigned exponential golomb
-        var leadingZeros = this._skipLeadingZero();
-        return this.readBits(leadingZeros + 1) - 1;
-      }
-    }, {
-      key: 'readSEG',
-      value: function readSEG() {
-        // signed exponential golomb
-        var value = this.readUEG();
-        if (value & 0x01) {
-          return value + 1 >>> 1;
-        } else {
-          return -1 * (value >>> 1);
-        }
-      }
-    }]);
-
-    return Golomb;
-  }();
-
-  var _createClass$h = function () {
-    function defineProperties(target, props) {
-      for (var i = 0; i < props.length; i++) {
-        var descriptor = props[i];descriptor.enumerable = descriptor.enumerable || false;descriptor.configurable = true;if ("value" in descriptor) descriptor.writable = true;Object.defineProperty(target, descriptor.key, descriptor);
-      }
-    }return function (Constructor, protoProps, staticProps) {
-      if (protoProps) defineProperties(Constructor.prototype, protoProps);if (staticProps) defineProperties(Constructor, staticProps);return Constructor;
-    };
-  }();
-
-  function _classCallCheck$h(instance, Constructor) {
-    if (!(instance instanceof Constructor)) {
-      throw new TypeError("Cannot call a class as a function");
-    }
-  }
-
-  var SPSParser = function () {
-    function SPSParser() {
-      _classCallCheck$h(this, SPSParser);
-    }
-
-    _createClass$h(SPSParser, null, [{
-      key: '_ebsp2rbsp',
-      value: function _ebsp2rbsp(uint8array) {
-        var src = uint8array;
-        var srcLength = src.byteLength;
-        var dst = new Uint8Array(srcLength);
-        var dstIdx = 0;
-
-        for (var i = 0; i < srcLength; i++) {
-          if (i >= 2) {
-            if (src[i] === 0x03 && src[i - 1] === 0x00 && src[i - 2] === 0x00) {
-              continue;
-            }
-          }
-          dst[dstIdx] = src[i];
-          dstIdx++;
-        }
-
-        return new Uint8Array(dst.buffer, 0, dstIdx);
-      }
-    }, {
-      key: 'parseSPS',
-      value: function parseSPS(uint8array) {
-        var rbsp = SPSParser._ebsp2rbsp(uint8array);
-        var gb = new Golomb(rbsp);
-
-        gb.readByte();
-        var profileIdc = gb.readByte();
-        gb.readByte();
-        var levelIdc = gb.readByte();
-        gb.readUEG();
-
-        var profile_string = SPSParser.getProfileString(profileIdc);
-        var level_string = SPSParser.getLevelString(levelIdc);
-        var chroma_format_idc = 1;
-        var chroma_format = 420;
-        var chroma_format_table = [0, 420, 422, 444];
-        var bit_depth = 8;
-
-        if (profileIdc === 100 || profileIdc === 110 || profileIdc === 122 || profileIdc === 244 || profileIdc === 44 || profileIdc === 83 || profileIdc === 86 || profileIdc === 118 || profileIdc === 128 || profileIdc === 138 || profileIdc === 144) {
-          chroma_format_idc = gb.readUEG();
-          if (chroma_format_idc === 3) {
-            gb.readBits(1);
-          }
-          if (chroma_format_idc <= 3) {
-            chroma_format = chroma_format_table[chroma_format_idc];
-          }
-
-          bit_depth = gb.readUEG() + 8;
-          gb.readUEG();
-          gb.readBits(1);
-          if (gb.readBool()) {
-            var scaling_list_count = chroma_format_idc !== 3 ? 8 : 12;
-            for (var i = 0; i < scaling_list_count; i++) {
-              if (gb.readBool()) {
-                if (i < 6) {
-                  SPSParser._skipScalingList(gb, 16);
-                } else {
-                  SPSParser._skipScalingList(gb, 64);
-                }
-              }
-            }
-          }
-        }
-        gb.readUEG();
-        var pic_order_cnt_type = gb.readUEG();
-        if (pic_order_cnt_type === 0) {
-          gb.readUEG();
-        } else if (pic_order_cnt_type === 1) {
-          gb.readBits(1);
-          gb.readSEG();
-          gb.readSEG();
-          var num_ref_frames_in_pic_order_cnt_cycle = gb.readUEG();
-          for (var _i = 0; _i < num_ref_frames_in_pic_order_cnt_cycle; _i++) {
-            gb.readSEG();
-          }
-        }
-        gb.readUEG();
-        gb.readBits(1);
-
-        var pic_width_in_mbs_minus1 = gb.readUEG();
-        var pic_height_in_map_units_minus1 = gb.readUEG();
-
-        var frame_mbs_only_flag = gb.readBits(1);
-        if (frame_mbs_only_flag === 0) {
-          gb.readBits(1);
-        }
-        gb.readBits(1);
-
-        var frame_crop_left_offset = 0;
-        var frame_crop_right_offset = 0;
-        var frame_crop_top_offset = 0;
-        var frame_crop_bottom_offset = 0;
-
-        var frame_cropping_flag = gb.readBool();
-        if (frame_cropping_flag) {
-          frame_crop_left_offset = gb.readUEG();
-          frame_crop_right_offset = gb.readUEG();
-          frame_crop_top_offset = gb.readUEG();
-          frame_crop_bottom_offset = gb.readUEG();
-        }
-
-        var par_width = 1,
-            par_height = 1;
-        var fps = 0,
-            fps_fixed = true,
-            fps_num = 0,
-            fps_den = 0;
-
-        var vui_parameters_present_flag = gb.readBool();
-        if (vui_parameters_present_flag) {
-          if (gb.readBool()) {
-            // aspect_ratio_info_present_flag
-            var aspect_ratio_idc = gb.readByte();
-            var par_w_table = [1, 12, 10, 16, 40, 24, 20, 32, 80, 18, 15, 64, 160, 4, 3, 2];
-            var par_h_table = [1, 11, 11, 11, 33, 11, 11, 11, 33, 11, 11, 33, 99, 3, 2, 1];
-
-            if (aspect_ratio_idc > 0 && aspect_ratio_idc < 16) {
-              par_width = par_w_table[aspect_ratio_idc - 1];
-              par_height = par_h_table[aspect_ratio_idc - 1];
-            } else if (aspect_ratio_idc === 255) {
-              par_width = gb.readByte() << 8 | gb.readByte();
-              par_height = gb.readByte() << 8 | gb.readByte();
-            }
-          }
-
-          if (gb.readBool()) {
-            gb.readBool();
-          }
-          if (gb.readBool()) {
-            gb.readBits(4);
-            if (gb.readBool()) {
-              gb.readBits(24);
-            }
-          }
-          if (gb.readBool()) {
-            gb.readUEG();
-            gb.readUEG();
-          }
-          if (gb.readBool()) {
-            var num_units_in_tick = gb.readBits(32);
-            var time_scale = gb.readBits(32);
-            fps_fixed = gb.readBool();
-
-            fps_num = time_scale;
-            fps_den = num_units_in_tick * 2;
-            fps = fps_num / fps_den;
-          }
-        }
-
-        var parScale = 1;
-        if (par_width !== 1 || par_height !== 1) {
-          parScale = par_width / par_height;
-        }
-
-        var crop_unit_x = 0,
-            crop_unit_y = 0;
-        if (chroma_format_idc === 0) {
-          crop_unit_x = 1;
-          crop_unit_y = 2 - frame_mbs_only_flag;
-        } else {
-          var sub_wc = chroma_format_idc === 3 ? 1 : 2;
-          var sub_hc = chroma_format_idc === 1 ? 2 : 1;
-          crop_unit_x = sub_wc;
-          crop_unit_y = sub_hc * (2 - frame_mbs_only_flag);
-        }
-
-        var codec_width = (pic_width_in_mbs_minus1 + 1) * 16;
-        var codec_height = (2 - frame_mbs_only_flag) * ((pic_height_in_map_units_minus1 + 1) * 16);
-
-        codec_width -= (frame_crop_left_offset + frame_crop_right_offset) * crop_unit_x;
-        codec_height -= (frame_crop_top_offset + frame_crop_bottom_offset) * crop_unit_y;
-
-        var present_width = Math.ceil(codec_width * parScale);
-
-        gb.destroy();
-        gb = null;
-
-        return {
-          profile_string: profile_string,
-          level_string: level_string,
-          bit_depth: bit_depth,
-          chroma_format: chroma_format,
-          chroma_format_string: SPSParser.getChromaFormatString(chroma_format),
-
-          frame_rate: {
-            fixed: fps_fixed,
-            fps: fps,
-            fps_den: fps_den,
-            fps_num: fps_num
-          },
-
-          par_ratio: {
-            width: par_width,
-            height: par_height
-          },
-
-          codec_size: {
-            width: codec_width,
-            height: codec_height
-          },
-
-          present_size: {
-            width: present_width,
-            height: codec_height
-          }
-        };
-      }
-    }, {
-      key: '_skipScalingList',
-      value: function _skipScalingList(gb, count) {
-        var last_scale = 8,
-            next_scale = 8;
-        var delta_scale = 0;
-        for (var i = 0; i < count; i++) {
-          if (next_scale !== 0) {
-            delta_scale = gb.readSEG();
-            next_scale = (last_scale + delta_scale + 256) % 256;
-          }
-          last_scale = next_scale === 0 ? last_scale : next_scale;
-        }
-      }
-    }, {
-      key: 'getProfileString',
-      value: function getProfileString(profileIdc) {
-        switch (profileIdc) {
-          case 66:
-            return 'Baseline';
-          case 77:
-            return 'Main';
-          case 88:
-            return 'Extended';
-          case 100:
-            return 'High';
-          case 110:
-            return 'High10';
-          case 122:
-            return 'High422';
-          case 244:
-            return 'High444';
-          default:
-            return 'Unknown';
-        }
-      }
-    }, {
-      key: 'getLevelString',
-      value: function getLevelString(levelIdc) {
-        return (levelIdc / 10).toFixed(1);
-      }
-    }, {
-      key: 'getChromaFormatString',
-      value: function getChromaFormatString(chroma) {
-        switch (chroma) {
-          case 420:
-            return '4:2:0';
-          case 422:
-            return '4:2:2';
-          case 444:
-            return '4:4:4';
-          default:
-            return 'Unknown';
-        }
-      }
-    }, {
-      key: 'toVideoMeta',
-      value: function toVideoMeta(spsConfig) {
-        var meta = {};
-        if (spsConfig && spsConfig.codec_size) {
-          meta.codecWidth = spsConfig.codec_size.width;
-          meta.codecHeight = spsConfig.codec_size.height;
-          meta.presentWidth = spsConfig.present_size.width;
-          meta.presentHeight = spsConfig.present_size.height;
-        }
-
-        meta.profile = spsConfig.profile_string;
-        meta.level = spsConfig.level_string;
-        meta.bitDepth = spsConfig.bit_depth;
-        meta.chromaFormat = spsConfig.chroma_format;
-
-        meta.parRatio = {
-          width: spsConfig.par_ratio.width,
-          height: spsConfig.par_ratio.height
-        };
-
-        meta.frameRate = spsConfig.frame_rate;
-
-        var fpsDen = meta.frameRate.fps_den;
-        var fpsNum = meta.frameRate.fps_num;
-        meta.refSampleDuration = Math.floor(meta.timescale * (fpsDen / fpsNum));
-        return meta;
-      }
-    }]);
-
-    return SPSParser;
-  }();
-
-  var _createClass$i = function () {
-    function defineProperties(target, props) {
-      for (var i = 0; i < props.length; i++) {
-        var descriptor = props[i];descriptor.enumerable = descriptor.enumerable || false;descriptor.configurable = true;if ("value" in descriptor) descriptor.writable = true;Object.defineProperty(target, descriptor.key, descriptor);
-      }
-    }return function (Constructor, protoProps, staticProps) {
-      if (protoProps) defineProperties(Constructor.prototype, protoProps);if (staticProps) defineProperties(Constructor, staticProps);return Constructor;
-    };
-  }();
-
-  function _classCallCheck$i(instance, Constructor) {
-    if (!(instance instanceof Constructor)) {
-      throw new TypeError("Cannot call a class as a function");
-    }
-  }
-
-  var Nalunit = function () {
-    function Nalunit() {
-      _classCallCheck$i(this, Nalunit);
-    }
-
-    _createClass$i(Nalunit, null, [{
-      key: 'getNalunits',
-      value: function getNalunits(buffer) {
-        if (buffer.length - buffer.position < 4) {
-          return [];
-        }
-
-        var buf = buffer.dataview;
-        var position = buffer.position;
-        if (buf.getInt32(position) === 1 || buf.getInt16(position) === 0 && buf.getInt8(position + 2) === 1) {
-          return Nalunit.getAnnexbNals(buffer);
-        } else {
-          return Nalunit.getAvccNals(buffer);
-        }
-      }
-    }, {
-      key: 'getAnnexbNals',
-      value: function getAnnexbNals(buffer) {
-        var nals = [];
-        var position = Nalunit.getHeaderPositionAnnexB(buffer);
-        var start = position.pos;
-        var end = start;
-        while (start < buffer.length - 4) {
-          var header = buffer.buffer.slice(start, start + position.headerLength);
-          if (position.pos === buffer.position) {
-            buffer.skip(position.headerLength);
-          }
-          position = Nalunit.getHeaderPositionAnnexB(buffer);
-          end = position.pos;
-          var body = new Uint8Array(buffer.buffer.slice(start + header.byteLength, end));
-          var unit = { header: header, body: body };
-          Nalunit.analyseNal(unit);
-          if (unit.type <= 9 && unit.type !== 0) {
-            nals.push(unit);
-          }
-          buffer.skip(end - buffer.position);
-          start = end;
-        }
-        return nals;
-      }
-    }, {
-      key: 'getAvccNals',
-      value: function getAvccNals(buffer) {
-        var nals = [];
-        while (buffer.position < buffer.length - 4) {
-          var length = buffer.dataview.getInt32();
-          if (buffer.length - buffer.position >= length) {
-            var header = buffer.buffer.slice(buffer.position, buffer.position + 4);
-            buffer.skip(4);
-            var body = buffer.buffer.slice(buffer.position, buffer.position + length);
-            buffer.skip(length);
-            var unit = { header: header, body: body };
-            Nalunit.analyseNal(unit);
-            if (unit.type <= 9 && unit.type !== 0) {
-              nals.push(unit);
-            }
-          } else {
-            break;
-          }
-        }
-        return nals;
-      }
-    }, {
-      key: 'analyseNal',
-      value: function analyseNal(unit) {
-        var type = unit.body[0] & 0x1f;
-        unit.type = type;
-        switch (type) {
-          case 1:
-            // NDR
-            unit.ndr = true;
-            break;
-          case 5:
-            // IDR
-            unit.idr = true;
-            break;
-          case 6:
-            // SEI
-            break;
-          case 7:
-            // SPS
-            unit.sps = SPSParser.parseSPS(unit.body);
-            break;
-          case 8:
-            // PPS
-            unit.pps = true;
-            break;
-        }
-      }
-    }, {
-      key: 'getHeaderPositionAnnexB',
-      value: function getHeaderPositionAnnexB(buffer) {
-        // seperate
-        var pos = buffer.position;
-        var headerLength = 0;
-        while (headerLength !== 3 && headerLength !== 4 && pos < buffer.length - 4) {
-          if (buffer.dataview.getInt16(pos) === 0) {
-            if (buffer.dataview.getInt16(pos + 2) === 1) {
-              // 0x000001
-              headerLength = 4;
-            } else if (buffer.dataview.getInt8(pos + 2) === 1) {
-              headerLength = 3;
-            } else {
-              pos++;
-            }
-          } else {
-            pos++;
-          }
-        }
-
-        if (pos === buffer.length - 4) {
-          if (buffer.dataview.getInt16(pos) === 0) {
-            if (buffer.dataview.getInt16(pos + 2) === 1) {
-              // 0x000001
-              headerLength = 4;
-            }
-          } else {
-            pos++;
-            if (buffer.dataview.getInt16(pos) === 0 && buffer.dataview.getInt8(pos) === 1) {
-              // 0x0000001
-              headerLength = 3;
-            } else {
-              pos = buffer.length;
-            }
-          }
-        }
-        return { pos: pos, headerLength: headerLength };
-      }
-    }, {
-      key: 'getAvcc',
-      value: function getAvcc(sps, pps) {
-        var ret = new Uint8Array(sps.byteLength + pps.byteLength + 11);
-        ret[0] = 0x01;
-        ret[1] = sps[1];
-        ret[2] = sps[2];
-        ret[3] = sps[3];
-        ret[4] = 255;
-        ret[5] = 225;
-
-        var offset = 6;
-
-        ret.set(new Uint8Array([sps.byteLength >>> 8 & 0xff, sps.byteLength & 0xff]), offset);
-        offset += 2;
-        ret.set(sps, offset);
-        offset += sps.byteLength;
-
-        ret[offset] = 1;
-        offset++;
-
-        ret.set(new Uint8Array([pps.byteLength >>> 8 & 0xff, pps.byteLength & 0xff]), offset);
-        offset += 2;
-        ret.set(pps, offset);
-        return ret;
-      }
-    }]);
-
-    return Nalunit;
-  }();
-
-  var _createClass$j = function () {
-    function defineProperties(target, props) {
-      for (var i = 0; i < props.length; i++) {
-        var descriptor = props[i];descriptor.enumerable = descriptor.enumerable || false;descriptor.configurable = true;if ("value" in descriptor) descriptor.writable = true;Object.defineProperty(target, descriptor.key, descriptor);
-      }
-    }return function (Constructor, protoProps, staticProps) {
-      if (protoProps) defineProperties(Constructor.prototype, protoProps);if (staticProps) defineProperties(Constructor, staticProps);return Constructor;
-    };
-  }();
-
-  function _classCallCheck$j(instance, Constructor) {
+  function _classCallCheck$e(instance, Constructor) {
     if (!(instance instanceof Constructor)) {
       throw new TypeError("Cannot call a class as a function");
     }
@@ -3524,10 +3113,10 @@
 
   var AAC = function () {
     function AAC() {
-      _classCallCheck$j(this, AAC);
+      _classCallCheck$e(this, AAC);
     }
 
-    _createClass$j(AAC, null, [{
+    _createClass$e(AAC, null, [{
       key: 'getSilentFrame',
       value: function getSilentFrame(codec, channelCount) {
         if (codec === 'mp4a.40.2') {
@@ -3565,7 +3154,7 @@
     return AAC;
   }();
 
-  var _createClass$k = function () {
+  var _createClass$f = function () {
     function defineProperties(target, props) {
       for (var i = 0; i < props.length; i++) {
         var descriptor = props[i];descriptor.enumerable = descriptor.enumerable || false;descriptor.configurable = true;if ("value" in descriptor) descriptor.writable = true;Object.defineProperty(target, descriptor.key, descriptor);
@@ -3575,17 +3164,17 @@
     };
   }();
 
-  function _classCallCheck$k(instance, Constructor) {
+  function _classCallCheck$f(instance, Constructor) {
     if (!(instance instanceof Constructor)) {
       throw new TypeError("Cannot call a class as a function");
     }
   }
 
-  var REMUX_EVENTS$1 = EVENTS.REMUX_EVENTS;
+  var REMUX_EVENTS$3 = EVENTS.REMUX_EVENTS;
 
   var Compatibility = function () {
     function Compatibility() {
-      _classCallCheck$k(this, Compatibility);
+      _classCallCheck$f(this, Compatibility);
 
       this.nextAudioDts = 0; // 模拟下一段音频数据的dts
       this.nextVideoDts = 0; // 模拟下一段视频数据的dts
@@ -3612,10 +3201,10 @@
       this._audioLargeGap = 0;
     }
 
-    _createClass$k(Compatibility, [{
+    _createClass$f(Compatibility, [{
       key: 'init',
       value: function init() {
-        this.before(REMUX_EVENTS$1.REMUX_MEDIA, this.doFix.bind(this));
+        this.before(REMUX_EVENTS$3.REMUX_MEDIA, this.doFix.bind(this));
       }
     }, {
       key: 'reset',
@@ -3943,7 +3532,7 @@
           return this.doFixVideo(false);
         }
 
-        this.emit(REMUX_EVENTS$1.DETECT_CHANGE_STREAM_DISCONTINUE);
+        this.emit(REMUX_EVENTS$3.DETECT_CHANGE_STREAM_DISCONTINUE);
         this._videoLargeGap = 0;
         var firstPartSamples = samples.slice(0, changeIdx);
         var secondPartSamples = samples.slice(changeIdx);
@@ -3988,7 +3577,7 @@
           }
           return this.doFixAudio(false);
         }
-        this.emit(REMUX_EVENTS$1.DETECT_CHANGE_STREAM_DISCONTINUE);
+        this.emit(REMUX_EVENTS$3.DETECT_CHANGE_STREAM_DISCONTINUE);
         this._audioLargeGap = 0;
 
         var firstPartSamples = samples.slice(0, changeIdx);
@@ -4252,30 +3841,385 @@
     return Compatibility;
   }();
 
-  var Nalunit$1 = Nalunit;
-  var SpsParser = SPSParser;
-  var Compatibility$1 = Compatibility;
+  var le = function () {
+    var buf = new ArrayBuffer(2);
+    new DataView(buf).setInt16(0, 256, true); // little-endian write
+    return new Int16Array(buf)[0] === 256; // platform-spec read, if equal then LE
+  }();
 
-  var _createClass$l = function () { function defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ("value" in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } } return function (Constructor, protoProps, staticProps) { if (protoProps) defineProperties(Constructor.prototype, protoProps); if (staticProps) defineProperties(Constructor, staticProps); return Constructor; }; }();
+  var sniffer = {
+    get device() {
+      var r = sniffer.os;
+      return r.isPc ? 'pc' : r.isTablet ? 'tablet' : 'mobile';
+    },
+    get browser() {
+      var ua = navigator.userAgent.toLowerCase();
+      var reg = {
+        ie: /rv:([\d.]+)\) like gecko/,
+        firfox: /firefox\/([\d.]+)/,
+        chrome: /chrome\/([\d.]+)/,
+        opera: /opera.([\d.]+)/,
+        safari: /version\/([\d.]+).*safari/
+      };
+      return [].concat(Object.keys(reg).filter(function (key) {
+        return reg[key].test(ua);
+      }))[0];
+    },
+    get os() {
+      var ua = navigator.userAgent;
+      var isWindowsPhone = /(?:Windows Phone)/.test(ua);
+      var isSymbian = /(?:SymbianOS)/.test(ua) || isWindowsPhone;
+      var isAndroid = /(?:Android)/.test(ua);
+      var isFireFox = /(?:Firefox)/.test(ua);
+      var isTablet = /(?:iPad|PlayBook)/.test(ua) || isAndroid && !/(?:Mobile)/.test(ua) || isFireFox && /(?:Tablet)/.test(ua);
+      var isPhone = /(?:iPhone)/.test(ua) && !isTablet;
+      var isPc = !isPhone && !isAndroid && !isSymbian;
+      return {
+        isTablet: isTablet,
+        isPhone: isPhone,
+        isAndroid: isAndroid,
+        isPc: isPc,
+        isSymbian: isSymbian,
+        isWindowsPhone: isWindowsPhone,
+        isFireFox: isFireFox
+      };
+    },
 
-  function _classCallCheck$l(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } }
+    get isLe() {
+      return le;
+    }
+  };
+
+  var _createClass$g = function () {
+    function defineProperties(target, props) {
+      for (var i = 0; i < props.length; i++) {
+        var descriptor = props[i];descriptor.enumerable = descriptor.enumerable || false;descriptor.configurable = true;if ("value" in descriptor) descriptor.writable = true;Object.defineProperty(target, descriptor.key, descriptor);
+      }
+    }return function (Constructor, protoProps, staticProps) {
+      if (protoProps) defineProperties(Constructor.prototype, protoProps);if (staticProps) defineProperties(Constructor, staticProps);return Constructor;
+    };
+  }();
+
+  function _classCallCheck$g(instance, Constructor) {
+    if (!(instance instanceof Constructor)) {
+      throw new TypeError("Cannot call a class as a function");
+    }
+  }
+
+  var MediaSegmentList$1 = function () {
+    function MediaSegmentList(type) {
+      _classCallCheck$g(this, MediaSegmentList);
+
+      this._type = type;
+      this._list = [];
+      this._lastAppendLocation = -1; // cached last insert location
+    }
+
+    _createClass$g(MediaSegmentList, [{
+      key: "isEmpty",
+      value: function isEmpty() {
+        return this._list.length === 0;
+      }
+    }, {
+      key: "clear",
+      value: function clear() {
+        this._list = [];
+        this._lastAppendLocation = -1;
+      }
+    }, {
+      key: "_searchNearestSegmentBefore",
+      value: function _searchNearestSegmentBefore(beginDts) {
+        var list = this._list;
+        if (list.length === 0) {
+          return -2;
+        }
+        var last = list.length - 1;
+        var mid = 0;
+        var lbound = 0;
+        var ubound = last;
+
+        var idx = 0;
+
+        if (beginDts < list[0].originDts) {
+          idx = -1;
+          return idx;
+        }
+
+        while (lbound <= ubound) {
+          mid = lbound + Math.floor((ubound - lbound) / 2);
+          if (mid === last || beginDts > list[mid].lastSample.originDts && beginDts < list[mid + 1].originDts) {
+            idx = mid;
+            break;
+          } else if (list[mid].originDts < beginDts) {
+            lbound = mid + 1;
+          } else {
+            ubound = mid - 1;
+          }
+        }
+        return idx;
+      }
+    }, {
+      key: "_searchNearestSegmentAfter",
+      value: function _searchNearestSegmentAfter(beginDts) {
+        return this._searchNearestSegmentBefore(beginDts) + 1;
+      }
+    }, {
+      key: "append",
+      value: function append(segment) {
+        var list = this._list;
+        var lastAppendIdx = this._lastAppendLocation;
+        var insertIdx = 0;
+
+        if (lastAppendIdx !== -1 && lastAppendIdx < list.length && segment.originStartDts >= list[lastAppendIdx].lastSample.originDts && (lastAppendIdx === list.length - 1 || lastAppendIdx < list.length - 1 && segment.originStartDts < list[lastAppendIdx + 1].originStartDts)) {
+          insertIdx = lastAppendIdx + 1; // use cached location idx
+        } else {
+          if (list.length > 0) {
+            insertIdx = this._searchNearestSegmentBefore(segment.originStartDts) + 1;
+          }
+        }
+
+        this._lastAppendLocation = insertIdx;
+        this._list.splice(insertIdx, 0, segment);
+      }
+    }, {
+      key: "getLastSegmentBefore",
+      value: function getLastSegmentBefore(beginDts) {
+        var idx = this._searchNearestSegmentBefore(beginDts);
+        if (idx >= 0) {
+          return this._list[idx];
+        } else {
+          // -1
+          return null;
+        }
+      }
+    }, {
+      key: "getLastSampleBefore",
+      value: function getLastSampleBefore(beginDts) {
+        var segment = this.getLastSegmentBefore(beginDts);
+        if (segment !== null) {
+          return segment.lastSample;
+        } else {
+          return null;
+        }
+      }
+    }, {
+      key: "getLastRAPBefore",
+      value: function getLastRAPBefore(beginDts) {
+        var segmentIdx = this._searchNearestSegmentBefore(beginDts);
+        var randomAccessPoints = this._list[segmentIdx].randomAccessPoints;
+        while (randomAccessPoints.length === 0 && segmentIdx > 0) {
+          segmentIdx--;
+          randomAccessPoints = this._list[segmentIdx].randomAccessPoints;
+        }
+        if (randomAccessPoints.length > 0) {
+          return randomAccessPoints[randomAccessPoints.length - 1];
+        } else {
+          return null;
+        }
+      }
+    }, {
+      key: "type",
+      get: function get() {
+        return this._type;
+      }
+    }, {
+      key: "length",
+      get: function get() {
+        return this._list.length;
+      }
+    }]);
+
+    return MediaSegmentList;
+  }();
+
+  function unwrapExports (x) {
+  	return x && x.__esModule && Object.prototype.hasOwnProperty.call(x, 'default') ? x['default'] : x;
+  }
+
+  function createCommonjsModule(fn, module) {
+  	return module = { exports: {} }, fn(module, module.exports), module.exports;
+  }
+
+  var concat = createCommonjsModule(function (module, exports) {
+
+  Object.defineProperty(exports, "__esModule", {
+    value: true
+  });
+
+  exports.default = function (ResultConstructor) {
+    var totalLength = 0;
+
+    for (var _len = arguments.length, arrays = Array(_len > 1 ? _len - 1 : 0), _key = 1; _key < _len; _key++) {
+      arrays[_key - 1] = arguments[_key];
+    }
+
+    var _iteratorNormalCompletion = true;
+    var _didIteratorError = false;
+    var _iteratorError = undefined;
+
+    try {
+      for (var _iterator = arrays[Symbol.iterator](), _step; !(_iteratorNormalCompletion = (_step = _iterator.next()).done); _iteratorNormalCompletion = true) {
+        var arr = _step.value;
+
+        totalLength += arr.length;
+      }
+    } catch (err) {
+      _didIteratorError = true;
+      _iteratorError = err;
+    } finally {
+      try {
+        if (!_iteratorNormalCompletion && _iterator.return) {
+          _iterator.return();
+        }
+      } finally {
+        if (_didIteratorError) {
+          throw _iteratorError;
+        }
+      }
+    }
+
+    var result = new ResultConstructor(totalLength);
+    var offset = 0;
+    var _iteratorNormalCompletion2 = true;
+    var _didIteratorError2 = false;
+    var _iteratorError2 = undefined;
+
+    try {
+      for (var _iterator2 = arrays[Symbol.iterator](), _step2; !(_iteratorNormalCompletion2 = (_step2 = _iterator2.next()).done); _iteratorNormalCompletion2 = true) {
+        var _arr = _step2.value;
+
+        result.set(_arr, offset);
+        offset += _arr.length;
+      }
+    } catch (err) {
+      _didIteratorError2 = true;
+      _iteratorError2 = err;
+    } finally {
+      try {
+        if (!_iteratorNormalCompletion2 && _iterator2.return) {
+          _iterator2.return();
+        }
+      } finally {
+        if (_didIteratorError2) {
+          throw _iteratorError2;
+        }
+      }
+    }
+
+    return result;
+  };
+  });
+
+  unwrapExports(concat);
+
+  var lib = createCommonjsModule(function (module) {
+
+
+
+  var _concat2 = _interopRequireDefault(concat);
+
+  function _interopRequireDefault(obj) {
+    return obj && obj.__esModule ? obj : { default: obj };
+  }
+
+  module.exports = _concat2.default;
+  });
+
+  var Concat = unwrapExports(lib);
+
+  var _createClass$h = function () {
+    function defineProperties(target, props) {
+      for (var i = 0; i < props.length; i++) {
+        var descriptor = props[i];descriptor.enumerable = descriptor.enumerable || false;descriptor.configurable = true;if ("value" in descriptor) descriptor.writable = true;Object.defineProperty(target, descriptor.key, descriptor);
+      }
+    }return function (Constructor, protoProps, staticProps) {
+      if (protoProps) defineProperties(Constructor.prototype, protoProps);if (staticProps) defineProperties(Constructor, staticProps);return Constructor;
+    };
+  }();
+
+  function _classCallCheck$h(instance, Constructor) {
+    if (!(instance instanceof Constructor)) {
+      throw new TypeError("Cannot call a class as a function");
+    }
+  }
+
+  var Buffer = function () {
+    function Buffer(buffer) {
+      _classCallCheck$h(this, Buffer);
+
+      this.buffer = buffer || new Uint8Array(0);
+    }
+
+    _createClass$h(Buffer, [{
+      key: 'write',
+      value: function write() {
+        var _this = this;
+
+        for (var _len = arguments.length, buffer = Array(_len), _key = 0; _key < _len; _key++) {
+          buffer[_key] = arguments[_key];
+        }
+
+        buffer.forEach(function (item) {
+          _this.buffer = Concat(Uint8Array, _this.buffer, item);
+        });
+      }
+    }], [{
+      key: 'writeUint32',
+      value: function writeUint32(value) {
+        return new Uint8Array([value >> 24, value >> 16 & 0xff, value >> 8 & 0xff, value & 0xff]);
+      }
+    }, {
+      key: 'readAsInt',
+      value: function readAsInt(arr) {
+        var temp = '';
+
+        function padStart4Hex(hexNum) {
+          var hexStr = hexNum.toString(16);
+          return hexStr.padStart(2, '0');
+        }
+
+        arr.forEach(function (num) {
+          temp += padStart4Hex(num);
+        });
+        return parseInt(temp, 16);
+      }
+    }]);
+
+    return Buffer;
+  }();
+
+  var _createClass$i = function () {
+    function defineProperties(target, props) {
+      for (var i = 0; i < props.length; i++) {
+        var descriptor = props[i];descriptor.enumerable = descriptor.enumerable || false;descriptor.configurable = true;if ("value" in descriptor) descriptor.writable = true;Object.defineProperty(target, descriptor.key, descriptor);
+      }
+    }return function (Constructor, protoProps, staticProps) {
+      if (protoProps) defineProperties(Constructor.prototype, protoProps);if (staticProps) defineProperties(Constructor, staticProps);return Constructor;
+    };
+  }();
+
+  function _classCallCheck$i(instance, Constructor) {
+    if (!(instance instanceof Constructor)) {
+      throw new TypeError("Cannot call a class as a function");
+    }
+  }
 
   // const UINT32_MAX = Math.pow(2, 32) - 1;
 
   var Fmp4 = function () {
     function Fmp4() {
-      _classCallCheck$l(this, Fmp4);
+      _classCallCheck$i(this, Fmp4);
     }
 
-    _createClass$l(Fmp4, null, [{
+    _createClass$i(Fmp4, null, [{
       key: 'size',
       value: function size(value) {
-        return Buffer$1.writeUint32(value);
+        return Buffer.writeUint32(value);
       }
     }, {
       key: 'initBox',
       value: function initBox(size, name) {
-        var buffer = new Buffer$1();
+        var buffer = new Buffer();
 
         for (var _len = arguments.length, content = Array(_len > 2 ? _len - 2 : 0), _key = 2; _key < _len; _key++) {
           content[_key - 2] = arguments[_key];
@@ -4439,7 +4383,7 @@
     }, {
       key: 'edts',
       value: function edts(data) {
-        var buffer = new Buffer$1();
+        var buffer = new Buffer();
         var duration = data.duration;
         var mediaTime = data.mediaTime;
         buffer.write(Fmp4.size(36), Fmp4.type('edts'));
@@ -4528,7 +4472,7 @@
     }, {
       key: 'dinf',
       value: function dinf() {
-        var buffer = new Buffer$1();
+        var buffer = new Buffer();
         var dref = [0x00, // version 0
         0x00, 0x00, 0x00, // flags
         0x00, 0x00, 0x00, 0x01, // entry_count
@@ -4592,7 +4536,7 @@
         var config = arguments.length > 0 && arguments[0] !== undefined ? arguments[0] : [43, 146, 8, 0];
 
         var configlen = config.length;
-        var buffer = new Buffer$1();
+        var buffer = new Buffer();
         var content = new Uint8Array([0x00, // version 0
         0x00, 0x00, 0x00, // flags
 
@@ -4617,7 +4561,7 @@
     }, {
       key: 'avc1',
       value: function avc1(data) {
-        var buffer = new Buffer$1();
+        var buffer = new Buffer();
         var size = 40; // 8(avc1)+8(avcc)+8(btrt)+16(pasp)
         // let sps = data.sps
         // let pps = data.pps
@@ -4706,8 +4650,8 @@
       value: function mvex(duration) {
         var trackID = arguments[2];
 
-        var buffer = new Buffer$1();
-        var mehd = Buffer$1.writeUint32(duration);
+        var buffer = new Buffer();
+        var mehd = Buffer.writeUint32(duration);
         buffer.write(Fmp4.size(56), Fmp4.type('mvex'), Fmp4.size(16), Fmp4.type('mehd'), Fmp4.extension(0, 0), mehd, Fmp4.trex(trackID));
         return buffer.buffer;
       }
@@ -4738,7 +4682,7 @@
     }, {
       key: 'mfhd',
       value: function mfhd() {
-        var content = Buffer$1.writeUint32(Fmp4.sequence);
+        var content = Buffer.writeUint32(Fmp4.sequence);
         Fmp4.sequence += 1;
         return Fmp4.initBox(16, 'mfhd', Fmp4.extension(0, 0), content);
       }
@@ -4759,7 +4703,7 @@
     }, {
       key: 'tfhd',
       value: function tfhd(id) {
-        var content = Buffer$1.writeUint32(id);
+        var content = Buffer.writeUint32(id);
         return Fmp4.initBox(16, 'tfhd', Fmp4.extension(0, 0), content);
       }
     }, {
@@ -4767,15 +4711,15 @@
       value: function tfdt(time) {
         // let upper = Math.floor(time / (UINT32_MAX + 1)),
         //     lower = Math.floor(time % (UINT32_MAX + 1));
-        return Fmp4.initBox(16, 'tfdt', Fmp4.extension(0, 0), Buffer$1.writeUint32(time));
+        return Fmp4.initBox(16, 'tfdt', Fmp4.extension(0, 0), Buffer.writeUint32(time));
       }
     }, {
       key: 'trun',
       value: function trun(data, sdtpLength) {
         // let id = data.id;
         // let ceil = id === 1 ? 16 : 12;
-        var buffer = new Buffer$1();
-        var sampleCount = Buffer$1.writeUint32(data.samples.length);
+        var buffer = new Buffer();
+        var sampleCount = Buffer.writeUint32(data.samples.length);
         // mdat-header 8
         // moof-header 8
         // mfhd 16
@@ -4786,7 +4730,7 @@
         // sampleCount 4
         // data-offset 4
         // samples.length
-        var offset = Buffer$1.writeUint32(8 + 8 + 16 + 8 + 16 + 16 + 12 + 4 + 4 + 16 * data.samples.length + sdtpLength);
+        var offset = Buffer.writeUint32(8 + 8 + 16 + 8 + 16 + 16 + 12 + 4 + 4 + 16 * data.samples.length + sdtpLength);
         buffer.write(Fmp4.size(20 + 16 * data.samples.length), Fmp4.type('trun'), new Uint8Array([0x00, 0x00, 0x0F, 0x01]), sampleCount, offset);
 
         // let size = buffer.buffer.byteLength
@@ -4817,7 +4761,7 @@
     }, {
       key: 'sdtp',
       value: function sdtp(data) {
-        var buffer = new Buffer$1();
+        var buffer = new Buffer();
         buffer.write(Fmp4.size(12 + data.samples.length), Fmp4.type('sdtp'), Fmp4.extension(0, 0));
         data.samples.forEach(function (item) {
           var flags = item.flags;
@@ -4833,7 +4777,7 @@
     }, {
       key: 'mdat',
       value: function mdat(data) {
-        var buffer = new Buffer$1();
+        var buffer = new Buffer();
         var size = 8;
         data.samples.forEach(function (item) {
           size += item.size;
@@ -4862,23 +4806,36 @@
   };
   Fmp4.sequence = 1;
 
-  var _createClass$m = function () { function defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ("value" in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } } return function (Constructor, protoProps, staticProps) { if (protoProps) defineProperties(Constructor.prototype, protoProps); if (staticProps) defineProperties(Constructor, staticProps); return Constructor; }; }();
+  var _createClass$j = function () {
+    function defineProperties(target, props) {
+      for (var i = 0; i < props.length; i++) {
+        var descriptor = props[i];descriptor.enumerable = descriptor.enumerable || false;descriptor.configurable = true;if ("value" in descriptor) descriptor.writable = true;Object.defineProperty(target, descriptor.key, descriptor);
+      }
+    }return function (Constructor, protoProps, staticProps) {
+      if (protoProps) defineProperties(Constructor.prototype, protoProps);if (staticProps) defineProperties(Constructor, staticProps);return Constructor;
+    };
+  }();
 
-  function _classCallCheck$m(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } }
+  function _classCallCheck$j(instance, Constructor) {
+    if (!(instance instanceof Constructor)) {
+      throw new TypeError("Cannot call a class as a function");
+    }
+  }
 
-  var REMUX_EVENTS$2 = EVENTS.REMUX_EVENTS;
+  var REMUX_EVENTS$4 = EVENTS.REMUX_EVENTS;
+  var PLAYER_EVENTS$1 = EVENTS.PLAYER_EVENTS;
 
   var Mp4Remuxer = function () {
     function Mp4Remuxer() {
       var curTime = arguments.length > 0 && arguments[0] !== undefined ? arguments[0] : 0;
 
-      _classCallCheck$m(this, Mp4Remuxer);
+      _classCallCheck$j(this, Mp4Remuxer);
 
       this._dtsBase = curTime * 1000;
       this._isDtsBaseInited = false;
       this._videoSegmentList = new MediaSegmentList$1('video');
       this._audioSegmentList = new MediaSegmentList$1('audio');
-      var browser = sniffer$1.browser;
+      var browser = sniffer.browser;
 
       this._fillSilenceFrame = browser === 'ie';
 
@@ -4889,18 +4846,19 @@
       this.audioAllDuration = 0;
     }
 
-    _createClass$m(Mp4Remuxer, [{
+    _createClass$j(Mp4Remuxer, [{
       key: 'init',
       value: function init() {
-        this.on(REMUX_EVENTS$2.REMUX_MEDIA, this.remux.bind(this));
-        this.on(REMUX_EVENTS$2.REMUX_METADATA, this.onMetaDataReady.bind(this));
-        this.on(REMUX_EVENTS$2.DETECT_CHANGE_STREAM, this.resetDtsBase.bind(this));
+        this.on(REMUX_EVENTS$4.REMUX_MEDIA, this.remux.bind(this));
+        this.on(REMUX_EVENTS$4.REMUX_METADATA, this.onMetaDataReady.bind(this));
+        this.on(REMUX_EVENTS$4.DETECT_CHANGE_STREAM, this.resetDtsBase.bind(this));
+        this.on(PLAYER_EVENTS$1.SEEK, this.seek.bind(this));
       }
     }, {
       key: 'destroy',
       value: function destroy() {
         this._dtsBase = -1;
-        this._dtsBaseInited = false;
+        this._isDtsBaseInited = false;
         this._videoSegmentList.clear();
         this._audioSegmentList.clear();
         this._videoSegmentList = null;
@@ -4923,13 +4881,14 @@
       value: function resetDtsBase() {
         // for hls 中途切换 meta后seek
         this._dtsBase = 0;
-        this._dtsBaseInited = false;
+        // this._isDtsBaseInited = false
       }
     }, {
       key: 'seek',
-      value: function seek() {
-        this._videoSegmentList.clear();
-        this._audioSegmentList.clear();
+      value: function seek(time) {
+        if (!this._isDtsBaseInited) {
+          this._dtsBase = time * 1000;
+        }
       }
     }, {
       key: 'onMetaDataReady',
@@ -4959,12 +4918,12 @@
         // source.inited = false;
 
         // this.resetDtsBase()
-        this.emit(REMUX_EVENTS$2.INIT_SEGMENT, type);
+        this.emit(REMUX_EVENTS$4.INIT_SEGMENT, type);
       }
     }, {
       key: 'remuxInitSegment',
       value: function remuxInitSegment(type, meta) {
-        var initSegment = new Buffer$1();
+        var initSegment = new Buffer();
         var ftyp = Fmp4.ftyp();
         var moov = Fmp4.moov({ type: type, meta: meta });
 
@@ -5070,7 +5029,7 @@
             }
           }
           this.videoAllDuration += sampleDuration;
-          // console.log(`video dts ${dts}`, `pts ${pts}`, isKeyframe, `duration ${sampleDuration}`)
+          console.log('video dts ' + dts, 'pts ' + pts, isKeyframe, 'duration ' + sampleDuration);
           if (sampleDuration >= 0) {
             mdatBox.samples.push(mdatSample);
             mdatSample.buffer.push(avcSample.data);
@@ -5097,11 +5056,11 @@
           }
 
           if (isKeyframe) {
-            this.emit(REMUX_EVENTS$2.RANDOM_ACCESS_POINT, pts);
+            this.emit(REMUX_EVENTS$4.RANDOM_ACCESS_POINT, pts);
           }
         }
 
-        var moofMdat = new Buffer$1();
+        var moofMdat = new Buffer();
         if (mp4Samples.length) {
           var moof = Fmp4.moof({
             id: track.meta.id,
@@ -5125,7 +5084,7 @@
         }
 
         this.isFirstVideo = false;
-        this.emit(REMUX_EVENTS$2.MEDIA_SEGMENT, 'video');
+        this.emit(REMUX_EVENTS$4.MEDIA_SEGMENT, 'video');
 
         track.samples = [];
         track.length = 0;
@@ -5224,7 +5183,7 @@
           }
         }
 
-        var moofMdat = new Buffer$1();
+        var moofMdat = new Buffer();
 
         if (mp4Samples.length) {
           var moof = Fmp4.moof({
@@ -5248,7 +5207,7 @@
         }
 
         this.isFirstAudio = false;
-        this.emit(REMUX_EVENTS$2.MEDIA_SEGMENT, 'audio', moofMdat);
+        this.emit(REMUX_EVENTS$4.MEDIA_SEGMENT, 'audio', moofMdat);
 
         track.samples = [];
         track.length = 0;
@@ -5317,7 +5276,7 @@
     return Mp4Remuxer;
   }();
 
-  var _createClass$n = function () {
+  var _createClass$k = function () {
     function defineProperties(target, props) {
       for (var i = 0; i < props.length; i++) {
         var descriptor = props[i];descriptor.enumerable = descriptor.enumerable || false;descriptor.configurable = true;if ("value" in descriptor) descriptor.writable = true;Object.defineProperty(target, descriptor.key, descriptor);
@@ -5327,7 +5286,78 @@
     };
   }();
 
-  function _classCallCheck$n(instance, Constructor) {
+  function _classCallCheck$k(instance, Constructor) {
+    if (!(instance instanceof Constructor)) {
+      throw new TypeError("Cannot call a class as a function");
+    }
+  }
+  var CRYTO_EVENTS$2 = EVENTS.CRYTO_EVENTS;
+
+  var Crypto = function () {
+    function Crypto(config) {
+      _classCallCheck$k(this, Crypto);
+
+      this.inputBuffer = config.inputbuffer;
+      this.outputBuffer = config.outputbuffer;
+      this.key = config.key;
+      this.iv = config.iv;
+      this.method = config.method;
+
+      this.crypto = window.crypto || window.msCrypto;
+    }
+
+    _createClass$k(Crypto, [{
+      key: 'init',
+      value: function init() {
+        this.on(CRYTO_EVENTS$2.START_DECRYPT, this.decript.bind(this));
+      }
+    }, {
+      key: 'decript',
+      value: function decript() {
+        var _this = this;
+
+        if (!this.aeskey) {
+          var sbkey = this.crypto.subtle.importKey('raw', this.key.buffer, { name: 'AES-CBC' }, false, ['encrypt', 'decrypt']);
+          sbkey.then(function (key) {
+            _this.aeskey = key;
+            _this.decriptData();
+          });
+        } else {
+          this.decriptData();
+        }
+      }
+    }, {
+      key: 'decriptData',
+      value: function decriptData() {
+        var _this2 = this;
+
+        var inputbuffer = this._context.getInstance(this.inputBuffer);
+        var outputbuffer = this._context.getInstance(this.outputBuffer);
+        var data = inputbuffer.shift();
+        if (data) {
+          this.crypto.subtle.decrypt({ name: 'AES-CBC', iv: this.iv.buffer }, this.aeskey, data).then(function (res) {
+            outputbuffer.push(new Uint8Array(res));
+            _this2.emit(CRYTO_EVENTS$2.DECRYPTED);
+            _this2.decriptData(data);
+          });
+        }
+      }
+    }]);
+
+    return Crypto;
+  }();
+
+  var _createClass$l = function () {
+    function defineProperties(target, props) {
+      for (var i = 0; i < props.length; i++) {
+        var descriptor = props[i];descriptor.enumerable = descriptor.enumerable || false;descriptor.configurable = true;if ("value" in descriptor) descriptor.writable = true;Object.defineProperty(target, descriptor.key, descriptor);
+      }
+    }return function (Constructor, protoProps, staticProps) {
+      if (protoProps) defineProperties(Constructor.prototype, protoProps);if (staticProps) defineProperties(Constructor, staticProps);return Constructor;
+    };
+  }();
+
+  function _classCallCheck$l(instance, Constructor) {
     if (!(instance instanceof Constructor)) {
       throw new TypeError("Cannot call a class as a function");
     }
@@ -5338,10 +5368,10 @@
    */
   var M3U8Parser = function () {
     function M3U8Parser() {
-      _classCallCheck$n(this, M3U8Parser);
+      _classCallCheck$l(this, M3U8Parser);
     }
 
-    _createClass$n(M3U8Parser, null, [{
+    _createClass$l(M3U8Parser, null, [{
       key: 'parse',
       value: function parse(text) {
         var baseurl = arguments.length > 1 && arguments[1] !== undefined ? arguments[1] : '';
@@ -5467,13 +5497,287 @@
     return M3U8Parser;
   }();
 
-  var _typeof2$1 = typeof Symbol === "function" && typeof Symbol.iterator === "symbol" ? function (obj) { return typeof obj; } : function (obj) { return obj && typeof Symbol === "function" && obj.constructor === Symbol && obj !== Symbol.prototype ? "symbol" : typeof obj; };
+  var _createClass$m = function () {
+    function defineProperties(target, props) {
+      for (var i = 0; i < props.length; i++) {
+        var descriptor = props[i];descriptor.enumerable = descriptor.enumerable || false;descriptor.configurable = true;if ("value" in descriptor) descriptor.writable = true;Object.defineProperty(target, descriptor.key, descriptor);
+      }
+    }return function (Constructor, protoProps, staticProps) {
+      if (protoProps) defineProperties(Constructor.prototype, protoProps);if (staticProps) defineProperties(Constructor, staticProps);return Constructor;
+    };
+  }();
 
-  var _typeof$3 = typeof Symbol === "function" && _typeof2$1(Symbol.iterator) === "symbol" ? function (obj) {
-    return typeof obj === "undefined" ? "undefined" : _typeof2$1(obj);
-  } : function (obj) {
-    return obj && typeof Symbol === "function" && obj.constructor === Symbol && obj !== Symbol.prototype ? "symbol" : typeof obj === "undefined" ? "undefined" : _typeof2$1(obj);
-  };
+  function _classCallCheck$m(instance, Constructor) {
+    if (!(instance instanceof Constructor)) {
+      throw new TypeError("Cannot call a class as a function");
+    }
+  }
+
+  var Stream = function () {
+    function Stream(buffer) {
+      _classCallCheck$m(this, Stream);
+
+      if (buffer instanceof ArrayBuffer) {
+        this.buffer = buffer;
+        this.dataview = new DataView(buffer);
+        this.dataview.position = 0;
+      } else {
+        throw new Error('data is invalid');
+      }
+    }
+
+    _createClass$m(Stream, [{
+      key: 'back',
+      value: function back(count) {
+        this.position -= count;
+      }
+    }, {
+      key: 'skip',
+      value: function skip(count) {
+        var loop = Math.floor(count / 4);
+        var last = count % 4;
+        for (var i = 0; i < loop; i++) {
+          Stream.readByte(this.dataview, 4);
+        }
+        if (last > 0) {
+          Stream.readByte(this.dataview, last);
+        }
+      }
+
+      /**
+       * [readByte 从DataView中读取数据]
+       * @param  {DataView} buffer [DataView实例]
+       * @param  {Number} size   [读取字节数]
+       * @return {Number}        [整数]
+       */
+
+    }, {
+      key: 'readUint8',
+      value: function readUint8() {
+        return Stream.readByte(this.dataview, 1);
+      }
+    }, {
+      key: 'readUint16',
+      value: function readUint16() {
+        return Stream.readByte(this.dataview, 2);
+      }
+    }, {
+      key: 'readUint24',
+      value: function readUint24() {
+        return Stream.readByte(this.dataview, 3);
+      }
+    }, {
+      key: 'readUint32',
+      value: function readUint32() {
+        return Stream.readByte(this.dataview, 4);
+      }
+    }, {
+      key: 'readUint64',
+      value: function readUint64() {
+        return Stream.readByte(this.dataview, 8);
+      }
+    }, {
+      key: 'readInt8',
+      value: function readInt8() {
+        return Stream.readByte(this.dataview, 1, true);
+      }
+    }, {
+      key: 'readInt16',
+      value: function readInt16() {
+        return Stream.readByte(this.dataview, 2, true);
+      }
+    }, {
+      key: 'readInt32',
+      value: function readInt32() {
+        return Stream.readByte(this.dataview, 4, true);
+      }
+    }, {
+      key: 'writeUint32',
+      value: function writeUint32(value) {
+        return new Uint8Array([value >>> 24 & 0xff, value >>> 16 & 0xff, value >>> 8 & 0xff, value & 0xff]);
+      }
+    }, {
+      key: 'length',
+      get: function get() {
+        return this.buffer.byteLength;
+      }
+    }, {
+      key: 'position',
+      set: function set(value) {
+        this.dataview.position = value;
+      },
+      get: function get() {
+        return this.dataview.position;
+      }
+    }], [{
+      key: 'readByte',
+      value: function readByte(buffer, size, sign) {
+        var res = void 0;
+        switch (size) {
+          case 1:
+            if (sign) {
+              res = buffer.getInt8(buffer.position);
+            } else {
+              res = buffer.getUint8(buffer.position);
+            }
+            break;
+          case 2:
+            if (sign) {
+              res = buffer.getInt16(buffer.position);
+            } else {
+              res = buffer.getUint16(buffer.position);
+            }
+            break;
+          case 3:
+            if (sign) {
+              throw new Error('not supported for readByte 3');
+            } else {
+              res = buffer.getUint8(buffer.position) << 16;
+              res |= buffer.getUint8(buffer.position + 1) << 8;
+              res |= buffer.getUint8(buffer.position + 2);
+            }
+            break;
+          case 4:
+            if (sign) {
+              res = buffer.getInt32(buffer.position);
+            } else {
+              res = buffer.getUint32(buffer.position);
+            }
+            break;
+          case 8:
+            if (sign) {
+              throw new Error('not supported for readBody 8');
+            } else {
+              res = buffer.getUint32(buffer.position) << 32;
+              res |= buffer.getUint32(buffer.position + 4);
+            }
+            break;
+          default:
+            res = '';
+        }
+        buffer.position += size;
+        return res;
+      }
+    }]);
+
+    return Stream;
+  }();
+
+  var _createClass$n = function () {
+    function defineProperties(target, props) {
+      for (var i = 0; i < props.length; i++) {
+        var descriptor = props[i];descriptor.enumerable = descriptor.enumerable || false;descriptor.configurable = true;if ("value" in descriptor) descriptor.writable = true;Object.defineProperty(target, descriptor.key, descriptor);
+      }
+    }return function (Constructor, protoProps, staticProps) {
+      if (protoProps) defineProperties(Constructor.prototype, protoProps);if (staticProps) defineProperties(Constructor, staticProps);return Constructor;
+    };
+  }();
+
+  function _classCallCheck$n(instance, Constructor) {
+    if (!(instance instanceof Constructor)) {
+      throw new TypeError("Cannot call a class as a function");
+    }
+  }
+
+  var Golomb = function () {
+    function Golomb(uint8array) {
+      _classCallCheck$n(this, Golomb);
+
+      this.TAG = 'Golomb';
+      this._buffer = uint8array;
+      this._bufferIndex = 0;
+      this._totalBytes = uint8array.byteLength;
+      this._totalBits = uint8array.byteLength * 8;
+      this._currentWord = 0;
+      this._currentWordBitsLeft = 0;
+    }
+
+    _createClass$n(Golomb, [{
+      key: 'destroy',
+      value: function destroy() {
+        this._buffer = null;
+      }
+    }, {
+      key: '_fillCurrentWord',
+      value: function _fillCurrentWord() {
+        var bufferBytesLeft = this._totalBytes - this._bufferIndex;
+
+        var bytesRead = Math.min(4, bufferBytesLeft);
+        var word = new Uint8Array(4);
+        word.set(this._buffer.subarray(this._bufferIndex, this._bufferIndex + bytesRead));
+        this._currentWord = new DataView(word.buffer).getUint32(0);
+
+        this._bufferIndex += bytesRead;
+        this._currentWordBitsLeft = bytesRead * 8;
+      }
+    }, {
+      key: 'readBits',
+      value: function readBits(size) {
+        var bits = Math.min(this._currentWordBitsLeft, size); // :uint
+        var valu = this._currentWord >>> 32 - bits;
+        if (size > 32) {
+          throw new Error('Cannot read more than 32 bits at a time');
+        }
+        this._currentWordBitsLeft -= bits;
+        if (this._currentWordBitsLeft > 0) {
+          this._currentWord <<= bits;
+        } else if (this._totalBytes - this._bufferIndex > 0) {
+          this._fillCurrentWord();
+        }
+
+        bits = size - bits;
+        if (bits > 0 && this._currentWordBitsLeft) {
+          return valu << bits | this.readBits(bits);
+        } else {
+          return valu;
+        }
+      }
+    }, {
+      key: 'readBool',
+      value: function readBool() {
+        return this.readBits(1) === 1;
+      }
+    }, {
+      key: 'readByte',
+      value: function readByte() {
+        return this.readBits(8);
+      }
+    }, {
+      key: '_skipLeadingZero',
+      value: function _skipLeadingZero() {
+        var zeroCount = void 0;
+        for (zeroCount = 0; zeroCount < this._currentWordBitsLeft; zeroCount++) {
+          if ((this._currentWord & 0x80000000 >>> zeroCount) !== 0) {
+            this._currentWord <<= zeroCount;
+            this._currentWordBitsLeft -= zeroCount;
+            return zeroCount;
+          }
+        }
+        this._fillCurrentWord();
+        return zeroCount + this._skipLeadingZero();
+      }
+    }, {
+      key: 'readUEG',
+      value: function readUEG() {
+        // unsigned exponential golomb
+        var leadingZeros = this._skipLeadingZero();
+        return this.readBits(leadingZeros + 1) - 1;
+      }
+    }, {
+      key: 'readSEG',
+      value: function readSEG() {
+        // signed exponential golomb
+        var value = this.readUEG();
+        if (value & 0x01) {
+          return value + 1 >>> 1;
+        } else {
+          return -1 * (value >>> 1);
+        }
+      }
+    }]);
+
+    return Golomb;
+  }();
 
   var _createClass$o = function () {
     function defineProperties(target, props) {
@@ -5491,7 +5795,686 @@
     }
   }
 
-  var DEMUX_EVENTS$1 = EVENTS.DEMUX_EVENTS;
+  var SPSParser = function () {
+    function SPSParser() {
+      _classCallCheck$o(this, SPSParser);
+    }
+
+    _createClass$o(SPSParser, null, [{
+      key: '_ebsp2rbsp',
+      value: function _ebsp2rbsp(uint8array) {
+        var src = uint8array;
+        var srcLength = src.byteLength;
+        var dst = new Uint8Array(srcLength);
+        var dstIdx = 0;
+
+        for (var i = 0; i < srcLength; i++) {
+          if (i >= 2) {
+            if (src[i] === 0x03 && src[i - 1] === 0x00 && src[i - 2] === 0x00) {
+              continue;
+            }
+          }
+          dst[dstIdx] = src[i];
+          dstIdx++;
+        }
+
+        return new Uint8Array(dst.buffer, 0, dstIdx);
+      }
+    }, {
+      key: 'parseSPS',
+      value: function parseSPS(uint8array) {
+        var rbsp = SPSParser._ebsp2rbsp(uint8array);
+        var gb = new Golomb(rbsp);
+
+        gb.readByte();
+        var profileIdc = gb.readByte();
+        gb.readByte();
+        var levelIdc = gb.readByte();
+        gb.readUEG();
+
+        var profile_string = SPSParser.getProfileString(profileIdc);
+        var level_string = SPSParser.getLevelString(levelIdc);
+        var chroma_format_idc = 1;
+        var chroma_format = 420;
+        var chroma_format_table = [0, 420, 422, 444];
+        var bit_depth = 8;
+
+        if (profileIdc === 100 || profileIdc === 110 || profileIdc === 122 || profileIdc === 244 || profileIdc === 44 || profileIdc === 83 || profileIdc === 86 || profileIdc === 118 || profileIdc === 128 || profileIdc === 138 || profileIdc === 144) {
+          chroma_format_idc = gb.readUEG();
+          if (chroma_format_idc === 3) {
+            gb.readBits(1);
+          }
+          if (chroma_format_idc <= 3) {
+            chroma_format = chroma_format_table[chroma_format_idc];
+          }
+
+          bit_depth = gb.readUEG() + 8;
+          gb.readUEG();
+          gb.readBits(1);
+          if (gb.readBool()) {
+            var scaling_list_count = chroma_format_idc !== 3 ? 8 : 12;
+            for (var i = 0; i < scaling_list_count; i++) {
+              if (gb.readBool()) {
+                if (i < 6) {
+                  SPSParser._skipScalingList(gb, 16);
+                } else {
+                  SPSParser._skipScalingList(gb, 64);
+                }
+              }
+            }
+          }
+        }
+        gb.readUEG();
+        var pic_order_cnt_type = gb.readUEG();
+        if (pic_order_cnt_type === 0) {
+          gb.readUEG();
+        } else if (pic_order_cnt_type === 1) {
+          gb.readBits(1);
+          gb.readSEG();
+          gb.readSEG();
+          var num_ref_frames_in_pic_order_cnt_cycle = gb.readUEG();
+          for (var _i = 0; _i < num_ref_frames_in_pic_order_cnt_cycle; _i++) {
+            gb.readSEG();
+          }
+        }
+        gb.readUEG();
+        gb.readBits(1);
+
+        var pic_width_in_mbs_minus1 = gb.readUEG();
+        var pic_height_in_map_units_minus1 = gb.readUEG();
+
+        var frame_mbs_only_flag = gb.readBits(1);
+        if (frame_mbs_only_flag === 0) {
+          gb.readBits(1);
+        }
+        gb.readBits(1);
+
+        var frame_crop_left_offset = 0;
+        var frame_crop_right_offset = 0;
+        var frame_crop_top_offset = 0;
+        var frame_crop_bottom_offset = 0;
+
+        var frame_cropping_flag = gb.readBool();
+        if (frame_cropping_flag) {
+          frame_crop_left_offset = gb.readUEG();
+          frame_crop_right_offset = gb.readUEG();
+          frame_crop_top_offset = gb.readUEG();
+          frame_crop_bottom_offset = gb.readUEG();
+        }
+
+        var par_width = 1,
+            par_height = 1;
+        var fps = 0,
+            fps_fixed = true,
+            fps_num = 0,
+            fps_den = 0;
+
+        var vui_parameters_present_flag = gb.readBool();
+        if (vui_parameters_present_flag) {
+          if (gb.readBool()) {
+            // aspect_ratio_info_present_flag
+            var aspect_ratio_idc = gb.readByte();
+            var par_w_table = [1, 12, 10, 16, 40, 24, 20, 32, 80, 18, 15, 64, 160, 4, 3, 2];
+            var par_h_table = [1, 11, 11, 11, 33, 11, 11, 11, 33, 11, 11, 33, 99, 3, 2, 1];
+
+            if (aspect_ratio_idc > 0 && aspect_ratio_idc < 16) {
+              par_width = par_w_table[aspect_ratio_idc - 1];
+              par_height = par_h_table[aspect_ratio_idc - 1];
+            } else if (aspect_ratio_idc === 255) {
+              par_width = gb.readByte() << 8 | gb.readByte();
+              par_height = gb.readByte() << 8 | gb.readByte();
+            }
+          }
+
+          if (gb.readBool()) {
+            gb.readBool();
+          }
+          if (gb.readBool()) {
+            gb.readBits(4);
+            if (gb.readBool()) {
+              gb.readBits(24);
+            }
+          }
+          if (gb.readBool()) {
+            gb.readUEG();
+            gb.readUEG();
+          }
+          if (gb.readBool()) {
+            var num_units_in_tick = gb.readBits(32);
+            var time_scale = gb.readBits(32);
+            fps_fixed = gb.readBool();
+
+            fps_num = time_scale;
+            fps_den = num_units_in_tick * 2;
+            fps = fps_num / fps_den;
+          }
+        }
+
+        var parScale = 1;
+        if (par_width !== 1 || par_height !== 1) {
+          parScale = par_width / par_height;
+        }
+
+        var crop_unit_x = 0,
+            crop_unit_y = 0;
+        if (chroma_format_idc === 0) {
+          crop_unit_x = 1;
+          crop_unit_y = 2 - frame_mbs_only_flag;
+        } else {
+          var sub_wc = chroma_format_idc === 3 ? 1 : 2;
+          var sub_hc = chroma_format_idc === 1 ? 2 : 1;
+          crop_unit_x = sub_wc;
+          crop_unit_y = sub_hc * (2 - frame_mbs_only_flag);
+        }
+
+        var codec_width = (pic_width_in_mbs_minus1 + 1) * 16;
+        var codec_height = (2 - frame_mbs_only_flag) * ((pic_height_in_map_units_minus1 + 1) * 16);
+
+        codec_width -= (frame_crop_left_offset + frame_crop_right_offset) * crop_unit_x;
+        codec_height -= (frame_crop_top_offset + frame_crop_bottom_offset) * crop_unit_y;
+
+        var present_width = Math.ceil(codec_width * parScale);
+
+        gb.destroy();
+        gb = null;
+
+        return {
+          profile_string: profile_string,
+          level_string: level_string,
+          bit_depth: bit_depth,
+          chroma_format: chroma_format,
+          chroma_format_string: SPSParser.getChromaFormatString(chroma_format),
+
+          frame_rate: {
+            fixed: fps_fixed,
+            fps: fps,
+            fps_den: fps_den,
+            fps_num: fps_num
+          },
+
+          par_ratio: {
+            width: par_width,
+            height: par_height
+          },
+
+          codec_size: {
+            width: codec_width,
+            height: codec_height
+          },
+
+          present_size: {
+            width: present_width,
+            height: codec_height
+          }
+        };
+      }
+    }, {
+      key: '_skipScalingList',
+      value: function _skipScalingList(gb, count) {
+        var lastScale = 8;
+        var nextScale = 8;
+        var deltaScale = 0;
+        for (var i = 0; i < count; i++) {
+          if (nextScale !== 0) {
+            deltaScale = gb.readSEG();
+            nextScale = (lastScale + deltaScale + 256) % 256;
+          }
+          lastScale = nextScale === 0 ? lastScale : nextScale;
+        }
+      }
+    }, {
+      key: 'getProfileString',
+      value: function getProfileString(profileIdc) {
+        switch (profileIdc) {
+          case 66:
+            return 'Baseline';
+          case 77:
+            return 'Main';
+          case 88:
+            return 'Extended';
+          case 100:
+            return 'High';
+          case 110:
+            return 'High10';
+          case 122:
+            return 'High422';
+          case 244:
+            return 'High444';
+          default:
+            return 'Unknown';
+        }
+      }
+    }, {
+      key: 'getLevelString',
+      value: function getLevelString(levelIdc) {
+        return (levelIdc / 10).toFixed(1);
+      }
+    }, {
+      key: 'getChromaFormatString',
+      value: function getChromaFormatString(chroma) {
+        switch (chroma) {
+          case 420:
+            return '4:2:0';
+          case 422:
+            return '4:2:2';
+          case 444:
+            return '4:4:4';
+          default:
+            return 'Unknown';
+        }
+      }
+    }, {
+      key: 'toVideoMeta',
+      value: function toVideoMeta(spsConfig) {
+        var meta = {};
+        if (spsConfig && spsConfig.codec_size) {
+          meta.codecWidth = spsConfig.codec_size.width;
+          meta.codecHeight = spsConfig.codec_size.height;
+          meta.presentWidth = spsConfig.present_size.width;
+          meta.presentHeight = spsConfig.present_size.height;
+        }
+
+        meta.profile = spsConfig.profile_string;
+        meta.level = spsConfig.level_string;
+        meta.bitDepth = spsConfig.bit_depth;
+        meta.chromaFormat = spsConfig.chroma_format;
+
+        meta.parRatio = {
+          width: spsConfig.par_ratio.width,
+          height: spsConfig.par_ratio.height
+        };
+
+        meta.frameRate = spsConfig.frame_rate;
+
+        var fpsDen = meta.frameRate.fps_den;
+        var fpsNum = meta.frameRate.fps_num;
+        meta.refSampleDuration = Math.floor(meta.timescale * (fpsDen / fpsNum));
+        return meta;
+      }
+    }]);
+
+    return SPSParser;
+  }();
+
+  var _createClass$p = function () {
+    function defineProperties(target, props) {
+      for (var i = 0; i < props.length; i++) {
+        var descriptor = props[i];descriptor.enumerable = descriptor.enumerable || false;descriptor.configurable = true;if ("value" in descriptor) descriptor.writable = true;Object.defineProperty(target, descriptor.key, descriptor);
+      }
+    }return function (Constructor, protoProps, staticProps) {
+      if (protoProps) defineProperties(Constructor.prototype, protoProps);if (staticProps) defineProperties(Constructor, staticProps);return Constructor;
+    };
+  }();
+
+  function _classCallCheck$p(instance, Constructor) {
+    if (!(instance instanceof Constructor)) {
+      throw new TypeError("Cannot call a class as a function");
+    }
+  }
+
+  var Nalunit = function () {
+    function Nalunit() {
+      _classCallCheck$p(this, Nalunit);
+    }
+
+    _createClass$p(Nalunit, null, [{
+      key: 'getNalunits',
+      value: function getNalunits(buffer) {
+        if (buffer.length - buffer.position < 4) {
+          return [];
+        }
+
+        var buf = buffer.dataview;
+        var position = buffer.position;
+        if (buf.getInt32(position) === 1 || buf.getInt16(position) === 0 && buf.getInt8(position + 2) === 1) {
+          return Nalunit.getAnnexbNals(buffer);
+        } else {
+          return Nalunit.getAvccNals(buffer);
+        }
+      }
+    }, {
+      key: 'getAnnexbNals',
+      value: function getAnnexbNals(buffer) {
+        var nals = [];
+        var position = Nalunit.getHeaderPositionAnnexB(buffer);
+        var start = position.pos;
+        var end = start;
+        while (start < buffer.length - 4) {
+          var header = buffer.buffer.slice(start, start + position.headerLength);
+          if (position.pos === buffer.position) {
+            buffer.skip(position.headerLength);
+          }
+          position = Nalunit.getHeaderPositionAnnexB(buffer);
+          end = position.pos;
+          var body = new Uint8Array(buffer.buffer.slice(start + header.byteLength, end));
+          var unit = { header: header, body: body };
+          Nalunit.analyseNal(unit);
+          if (unit.type <= 9 && unit.type !== 0) {
+            nals.push(unit);
+          }
+          buffer.skip(end - buffer.position);
+          start = end;
+        }
+        return nals;
+      }
+    }, {
+      key: 'getAvccNals',
+      value: function getAvccNals(buffer) {
+        var nals = [];
+        while (buffer.position < buffer.length - 4) {
+          var length = buffer.dataview.getInt32();
+          if (buffer.length - buffer.position >= length) {
+            var header = buffer.buffer.slice(buffer.position, buffer.position + 4);
+            buffer.skip(4);
+            var body = buffer.buffer.slice(buffer.position, buffer.position + length);
+            buffer.skip(length);
+            var unit = { header: header, body: body };
+            Nalunit.analyseNal(unit);
+            if (unit.type <= 9 && unit.type !== 0) {
+              nals.push(unit);
+            }
+          } else {
+            break;
+          }
+        }
+        return nals;
+      }
+    }, {
+      key: 'analyseNal',
+      value: function analyseNal(unit) {
+        var type = unit.body[0] & 0x1f;
+        unit.type = type;
+        switch (type) {
+          case 1:
+            // NDR
+            unit.ndr = true;
+            break;
+          case 5:
+            // IDR
+            unit.idr = true;
+            break;
+          case 6:
+            // SEI
+            break;
+          case 7:
+            // SPS
+            unit.sps = SPSParser.parseSPS(unit.body);
+            break;
+          case 8:
+            // PPS
+            unit.pps = true;
+            break;
+        }
+      }
+    }, {
+      key: 'getHeaderPositionAnnexB',
+      value: function getHeaderPositionAnnexB(buffer) {
+        // seperate
+        var pos = buffer.position;
+        var headerLength = 0;
+        while (headerLength !== 3 && headerLength !== 4 && pos < buffer.length - 4) {
+          if (buffer.dataview.getInt16(pos) === 0) {
+            if (buffer.dataview.getInt16(pos + 2) === 1) {
+              // 0x000001
+              headerLength = 4;
+            } else if (buffer.dataview.getInt8(pos + 2) === 1) {
+              headerLength = 3;
+            } else {
+              pos++;
+            }
+          } else {
+            pos++;
+          }
+        }
+
+        if (pos === buffer.length - 4) {
+          if (buffer.dataview.getInt16(pos) === 0) {
+            if (buffer.dataview.getInt16(pos + 2) === 1) {
+              // 0x000001
+              headerLength = 4;
+            }
+          } else {
+            pos++;
+            if (buffer.dataview.getInt16(pos) === 0 && buffer.dataview.getInt8(pos) === 1) {
+              // 0x0000001
+              headerLength = 3;
+            } else {
+              pos = buffer.length;
+            }
+          }
+        }
+        return { pos: pos, headerLength: headerLength };
+      }
+    }, {
+      key: 'getAvcc',
+      value: function getAvcc(sps, pps) {
+        var ret = new Uint8Array(sps.byteLength + pps.byteLength + 11);
+        ret[0] = 0x01;
+        ret[1] = sps[1];
+        ret[2] = sps[2];
+        ret[3] = sps[3];
+        ret[4] = 255;
+        ret[5] = 225;
+
+        var offset = 6;
+
+        ret.set(new Uint8Array([sps.byteLength >>> 8 & 0xff, sps.byteLength & 0xff]), offset);
+        offset += 2;
+        ret.set(sps, offset);
+        offset += sps.byteLength;
+
+        ret[offset] = 1;
+        offset++;
+
+        ret.set(new Uint8Array([pps.byteLength >>> 8 & 0xff, pps.byteLength & 0xff]), offset);
+        offset += 2;
+        ret.set(pps, offset);
+        return ret;
+      }
+    }]);
+
+    return Nalunit;
+  }();
+
+  var NalUnit = Nalunit;
+
+  var _createClass$q = function () {
+    function defineProperties(target, props) {
+      for (var i = 0; i < props.length; i++) {
+        var descriptor = props[i];descriptor.enumerable = descriptor.enumerable || false;descriptor.configurable = true;if ("value" in descriptor) descriptor.writable = true;Object.defineProperty(target, descriptor.key, descriptor);
+      }
+    }return function (Constructor, protoProps, staticProps) {
+      if (protoProps) defineProperties(Constructor.prototype, protoProps);if (staticProps) defineProperties(Constructor, staticProps);return Constructor;
+    };
+  }();
+
+  function _classCallCheck$q(instance, Constructor) {
+    if (!(instance instanceof Constructor)) {
+      throw new TypeError("Cannot call a class as a function");
+    }
+  }
+
+  var AudioTrackMeta = function () {
+    function AudioTrackMeta(meta) {
+      _classCallCheck$q(this, AudioTrackMeta);
+
+      var _default = {
+        sampleRate: 48000,
+        channelCount: 2,
+        codec: 'mp4a.40.2',
+        config: [41, 401, 136, 0],
+        duration: 0,
+        id: 2,
+        refSampleDuration: 21,
+        sampleRateIndex: 3,
+        timescale: 1000,
+        type: 'audio'
+      };
+      if (meta) {
+        return Object.assign({}, _default, meta);
+      }
+      return _default;
+    }
+
+    _createClass$q(AudioTrackMeta, [{
+      key: 'destroy',
+      value: function destroy() {
+        this.init = null;
+      }
+    }]);
+
+    return AudioTrackMeta;
+  }();
+
+  var VideoTrackMeta = function () {
+    function VideoTrackMeta(meta) {
+      _classCallCheck$q(this, VideoTrackMeta);
+
+      var _default = {
+        avcc: null,
+        sps: new Uint8Array(0),
+        pps: new Uint8Array(0),
+        chromaFormat: 420,
+        codec: 'avc1.640020',
+        codecHeight: 720,
+        codecWidth: 1280,
+        duration: 0,
+        frameRate: {
+          fixed: true,
+          fps: 25,
+          fps_num: 25000,
+          fps_den: 1000
+        },
+        id: 1,
+        level: '3.2',
+        presentHeight: 720,
+        presentWidth: 1280,
+        profile: 'High',
+        refSampleDuration: 40,
+        parRatio: {
+          height: 1,
+          width: 1
+        },
+        timescale: 1000,
+        type: 'video'
+      };
+
+      if (meta) {
+        return Object.assign({}, _default, meta);
+      }
+      return _default;
+    }
+
+    _createClass$q(VideoTrackMeta, [{
+      key: 'destroy',
+      value: function destroy() {
+        this.init = null;
+        this.sps = null;
+        this.pps = null;
+      }
+    }]);
+
+    return VideoTrackMeta;
+  }();
+
+  var _createClass$r = function () {
+    function defineProperties(target, props) {
+      for (var i = 0; i < props.length; i++) {
+        var descriptor = props[i];descriptor.enumerable = descriptor.enumerable || false;descriptor.configurable = true;if ("value" in descriptor) descriptor.writable = true;Object.defineProperty(target, descriptor.key, descriptor);
+      }
+    }return function (Constructor, protoProps, staticProps) {
+      if (protoProps) defineProperties(Constructor.prototype, protoProps);if (staticProps) defineProperties(Constructor, staticProps);return Constructor;
+    };
+  }();
+
+  function _classCallCheck$r(instance, Constructor) {
+    if (!(instance instanceof Constructor)) {
+      throw new TypeError("Cannot call a class as a function");
+    }
+  }
+
+  var AudioTrackSample = function () {
+    function AudioTrackSample(info) {
+      _classCallCheck$r(this, AudioTrackSample);
+
+      var _default = AudioTrackSample.getDefault();
+      if (!info) {
+        return _default;
+      }
+      var sample = Object.assign({}, _default, info);
+
+      return sample;
+    }
+
+    _createClass$r(AudioTrackSample, null, [{
+      key: "getDefault",
+      value: function getDefault() {
+        return {
+          dts: null,
+          pts: null,
+          data: new Uint8Array()
+        };
+      }
+    }]);
+
+    return AudioTrackSample;
+  }();
+
+  var VideoTrackSample = function () {
+    function VideoTrackSample(info) {
+      _classCallCheck$r(this, VideoTrackSample);
+
+      var _default = VideoTrackSample.getDefault();
+
+      if (!info) {
+        return _default;
+      }
+      var sample = Object.assign({}, _default, info);
+
+      return sample;
+    }
+
+    _createClass$r(VideoTrackSample, null, [{
+      key: "getDefault",
+      value: function getDefault() {
+        return {
+          dts: null,
+          pts: null,
+          isKeyframe: false, // is Random access point
+          originDts: null,
+          data: new Uint8Array()
+        };
+      }
+    }]);
+
+    return VideoTrackSample;
+  }();
+
+  var _typeof2$1 = typeof Symbol === "function" && typeof Symbol.iterator === "symbol" ? function (obj) { return typeof obj; } : function (obj) { return obj && typeof Symbol === "function" && obj.constructor === Symbol && obj !== Symbol.prototype ? "symbol" : typeof obj; };
+
+  var _typeof$5 = typeof Symbol === "function" && _typeof2$1(Symbol.iterator) === "symbol" ? function (obj) {
+    return typeof obj === "undefined" ? "undefined" : _typeof2$1(obj);
+  } : function (obj) {
+    return obj && typeof Symbol === "function" && obj.constructor === Symbol && obj !== Symbol.prototype ? "symbol" : typeof obj === "undefined" ? "undefined" : _typeof2$1(obj);
+  };
+
+  var _createClass$s = function () {
+    function defineProperties(target, props) {
+      for (var i = 0; i < props.length; i++) {
+        var descriptor = props[i];descriptor.enumerable = descriptor.enumerable || false;descriptor.configurable = true;if ("value" in descriptor) descriptor.writable = true;Object.defineProperty(target, descriptor.key, descriptor);
+      }
+    }return function (Constructor, protoProps, staticProps) {
+      if (protoProps) defineProperties(Constructor.prototype, protoProps);if (staticProps) defineProperties(Constructor, staticProps);return Constructor;
+    };
+  }();
+
+  function _classCallCheck$s(instance, Constructor) {
+    if (!(instance instanceof Constructor)) {
+      throw new TypeError("Cannot call a class as a function");
+    }
+  }
+
+  var DEMUX_EVENTS$2 = EVENTS.DEMUX_EVENTS;
   var StreamType = {
     0x01: ['video', 'MPEG-1'],
     0x02: ['video', 'MPEG-2'],
@@ -5515,7 +6498,7 @@
 
   var TsDemuxer = function () {
     function TsDemuxer(configs) {
-      _classCallCheck$o(this, TsDemuxer);
+      _classCallCheck$s(this, TsDemuxer);
 
       this.configs = Object.assign({}, configs);
       this.demuxing = false;
@@ -5525,10 +6508,10 @@
       this._hasAudioMeta = false;
     }
 
-    _createClass$o(TsDemuxer, [{
+    _createClass$s(TsDemuxer, [{
       key: 'init',
       value: function init() {
-        this.on(DEMUX_EVENTS$1.DEMUX_START, this.demux.bind(this));
+        this.on(DEMUX_EVENTS$2.DEMUX_START, this.demux.bind(this));
       }
     }, {
       key: 'demux',
@@ -5544,7 +6527,7 @@
         // Read TS segment
         while (buffer.length >= 188) {
           if (buffer.length >= 1 && buffer.array[0][buffer.offset] !== 71) {
-            this.emit(DEMUX_EVENTS$1.DEMUX_ERROR, this.TAG, new Error('Untrust sync code: ' + buffer.array[0][buffer.offset] + ', try to recover;'), false);
+            this.emit(DEMUX_EVENTS$2.DEMUX_ERROR, this.TAG, new Error('Untrust sync code: ' + buffer.array[0][buffer.offset] + ', try to recover;'), false);
           }
           while (buffer.length >= 1 && buffer.array[0][buffer.offset] !== 71) {
             buffer.shift(1);
@@ -5554,7 +6537,7 @@
           }
           var buf = buffer.shift(188);
           // console.log(buf);
-          var tsStream = new Stream$1(buf.buffer);
+          var tsStream = new Stream(buf.buffer);
           var ts = {};
           TsDemuxer.read(tsStream, ts, frags);
           if (ts.pes) {
@@ -5588,10 +6571,10 @@
         }
 
         if (this._hasAudioMeta) {
-          this.emit(DEMUX_EVENTS$1.DEMUX_COMPLETE, 'audio');
+          this.emit(DEMUX_EVENTS$2.DEMUX_COMPLETE, 'audio');
         }
         if (this._hasVideoMeta) {
-          this.emit(DEMUX_EVENTS$1.DEMUX_COMPLETE, 'video');
+          this.emit(DEMUX_EVENTS$2.DEMUX_COMPLETE, 'video');
         }
       }
     }, {
@@ -5599,12 +6582,12 @@
       value: function pushAudioSample(pes, options) {
         var track = void 0;
         if (!this._tracks.audioTrack) {
-          this._tracks.audioTrack = new AudioTrack$1();
+          this._tracks.audioTrack = new AudioTrack();
           track = this._tracks.audioTrack;
         } else {
           track = this._tracks.audioTrack;
         }
-        var meta = new AudioTrackMeta$1({
+        var meta = new AudioTrackMeta({
           audioSampleRate: pes.ES.frequence,
           sampleRate: pes.ES.frequence,
           channelCount: pes.ES.channel,
@@ -5620,23 +6603,23 @@
         if (!this._hasAudioMeta || !metaEqual) {
           track.meta = meta;
           this._hasAudioMeta = true;
-          this.emit(DEMUX_EVENTS$1.METADATA_PARSED, 'audio');
+          this.emit(DEMUX_EVENTS$2.METADATA_PARSED, 'audio');
         }
 
         var data = new Uint8Array(pes.ES.buffer.buffer.slice(pes.ES.buffer.position, pes.ES.buffer.length));
         var dts = parseInt(pes.pts / 90);
         var pts = parseInt(pes.pts / 90);
-        var sample = new AudioTrackSample$1({ dts: dts, pts: pts, data: data, options: options });
+        var sample = new AudioTrackSample({ dts: dts, pts: pts, data: data, options: options });
         track.samples.push(sample);
       }
     }, {
       key: 'pushVideoSample',
       value: function pushVideoSample(pes, options) {
-        var nals = Nalunit$1.getNalunits(pes.ES.buffer);
+        var nals = NalUnit.getNalunits(pes.ES.buffer);
         var track = void 0;
-        var meta = new VideoTrackMeta$1();
+        var meta = new VideoTrackMeta();
         if (!this._tracks.videoTrack) {
-          this._tracks.videoTrack = new VideoTrack$1();
+          this._tracks.videoTrack = new VideoTrack();
           track = this._tracks.videoTrack;
         } else {
           track = this._tracks.videoTrack;
@@ -5677,7 +6660,7 @@
         }
 
         if (sps && pps) {
-          meta.avcc = Nalunit$1.getAvcc(sps.body, pps.body);
+          meta.avcc = NalUnit.getAvcc(sps.body, pps.body);
           var metaEqual = TsDemuxer.compaireMeta(track.meta, meta, true);
           if (!this._hasVideoMeta || !metaEqual) {
             if (options) {
@@ -5689,7 +6672,7 @@
             }
             track.meta = meta;
             this._hasVideoMeta = true;
-            this.emit(DEMUX_EVENTS$1.METADATA_PARSED, 'video');
+            this.emit(DEMUX_EVENTS$2.METADATA_PARSED, 'video');
           }
         }
 
@@ -5712,7 +6695,7 @@
             offset += length;
           }
         }
-        var sample = new VideoTrackSample$1({
+        var sample = new VideoTrackSample({
           dts: parseInt(pes.dts / 90),
           pts: parseInt(pes.pts / 90),
           cts: (pes.pts - pes.dts) / 90,
@@ -5726,7 +6709,7 @@
     }, {
       key: 'destory',
       value: function destory() {
-        this.off(DEMUX_EVENTS$1.DEMUX_START, this.demux);
+        this.off(DEMUX_EVENTS$2.DEMUX_START, this.demux);
         this.configs = {};
         this.demuxing = false;
         this.pat = [];
@@ -5777,7 +6760,7 @@
         for (var i = 0, k = Object.keys(a).length; i < k; i++) {
           var itema = a[Object.keys(a)[i]];
           var itemb = b[Object.keys(a)[i]];
-          if ((typeof itema === 'undefined' ? 'undefined' : _typeof$3(itema)) !== 'object') {
+          if ((typeof itema === 'undefined' ? 'undefined' : _typeof$5(itema)) !== 'object') {
             if (ignoreDuration && Object.keys(a)[i] !== 'duration' && Object.keys(a)[i] !== 'refSampleDuration' && Object.keys(a)[i] !== 'refSampleDurationFixed' && itema !== itemb) {
               return false;
             }
@@ -5819,7 +6802,7 @@
           data.set(new Uint8Array(buffer.buffer, buffer.position), offset);
           offset += buffer.length - buffer.position;
         }
-        return new Stream$1(data.buffer);
+        return new Stream(data.buffer);
       }
     }, {
       key: 'read',
@@ -6041,7 +7024,7 @@
             stream.skip(lastStuffing);
           }
         }
-        payload.stream = new Stream$1(stream.buffer.slice(stream.position));
+        payload.stream = new Stream(stream.buffer.slice(stream.position));
         ts.payload = payload;
       }
     }, {
@@ -6280,7 +7263,7 @@
     return TsDemuxer;
   }();
 
-  var _createClass$p = function () {
+  var _createClass$t = function () {
     function defineProperties(target, props) {
       for (var i = 0; i < props.length; i++) {
         var descriptor = props[i];descriptor.enumerable = descriptor.enumerable || false;descriptor.configurable = true;if ("value" in descriptor) descriptor.writable = true;Object.defineProperty(target, descriptor.key, descriptor);
@@ -6290,7 +7273,7 @@
     };
   }();
 
-  function _classCallCheck$p(instance, Constructor) {
+  function _classCallCheck$t(instance, Constructor) {
     if (!(instance instanceof Constructor)) {
       throw new TypeError("Cannot call a class as a function");
     }
@@ -6298,7 +7281,7 @@
 
   var Playlist = function () {
     function Playlist(configs) {
-      _classCallCheck$p(this, Playlist);
+      _classCallCheck$t(this, Playlist);
 
       this._baseURL = '';
       this._list = {};
@@ -6312,7 +7295,7 @@
       this._audoclear = configs.autoclear || false;
     }
 
-    _createClass$p(Playlist, [{
+    _createClass$t(Playlist, [{
       key: 'push',
       value: function push(ts, duration, discontinue) {
         if (!this._ts[ts]) {
@@ -6320,7 +7303,7 @@
             downloaded: false,
             downloading: false,
             start: this.duration,
-            discontinue: discontinue ? true : false
+            discontinue: !!discontinue
           };
           this._list[this.duration] = ts;
           this.duration += duration;
@@ -6503,1495 +7486,6 @@
     return Playlist;
   }();
 
-  var _createClass$q = function () {
-    function defineProperties(target, props) {
-      for (var i = 0; i < props.length; i++) {
-        var descriptor = props[i];descriptor.enumerable = descriptor.enumerable || false;descriptor.configurable = true;if ("value" in descriptor) descriptor.writable = true;Object.defineProperty(target, descriptor.key, descriptor);
-      }
-    }return function (Constructor, protoProps, staticProps) {
-      if (protoProps) defineProperties(Constructor.prototype, protoProps);if (staticProps) defineProperties(Constructor, staticProps);return Constructor;
-    };
-  }();
-
-  function _classCallCheck$q(instance, Constructor) {
-    if (!(instance instanceof Constructor)) {
-      throw new TypeError("Cannot call a class as a function");
-    }
-  }
-
-  var DATA_TYPES = {
-    NUMBER: 0,
-    BOOLEAN: 1,
-    STRING: 2,
-    OBJECT: 3,
-    MIX_ARRAY: 8,
-    OBJECT_END: 9,
-    STRICT_ARRAY: 10,
-    DATE: 11,
-    LONE_STRING: 12
-
-    /**
-     * meta信息解析
-     */
-  };
-  var AMFParser = function () {
-    function AMFParser() {
-      _classCallCheck$q(this, AMFParser);
-
-      this.offset = 0;
-      this.readOffset = this.offset;
-    }
-
-    _createClass$q(AMFParser, [{
-      key: 'resolve',
-      value: function resolve(meta, size) {
-        if (size < 3) {
-          throw new Error('not enough data for metainfo');
-        }
-        var metaData = {};
-        var name = this.parseValue(meta);
-        var value = this.parseValue(meta, size - name.bodySize);
-        metaData[name.data] = value.data;
-
-        this.resetStatus();
-        return metaData;
-      }
-    }, {
-      key: 'resetStatus',
-      value: function resetStatus() {
-        this.offset = 0;
-        this.readOffset = this.offset;
-      }
-    }, {
-      key: 'parseString',
-      value: function parseString(buffer) {
-        var dv = new DataView(buffer, this.readOffset);
-        var strLen = dv.getUint16(0, !isLe);
-        var str = '';
-        if (strLen > 0) {
-          str = UTF8$1.decode(new Uint8Array(buffer, this.readOffset + 2, strLen));
-        } else {
-          str = '';
-        }
-        var size = strLen + 2;
-        this.readOffset += size;
-        return {
-          data: str,
-          bodySize: strLen + 2
-        };
-      }
-    }, {
-      key: 'parseDate',
-      value: function parseDate(buffer, size) {
-        var dv = new DataView(buffer, this.readOffset, size);
-        var ts = dv.getFloat64(0, !isLe);
-        var timeOffset = dv.getInt16(8, !isLe);
-        ts += timeOffset * 60 * 1000;
-
-        this.readOffset += 10;
-        return {
-          data: new Date(ts),
-          bodySize: 10
-        };
-      }
-    }, {
-      key: 'parseObject',
-      value: function parseObject(buffer, size) {
-        var name = this.parseString(buffer, size);
-        var value = this.parseValue(buffer, size - name.bodySize);
-        return {
-          data: {
-            name: name.data,
-            value: value.data
-          },
-          bodySize: name.bodySize + value.bodySize,
-          isObjEnd: value.isObjEnd
-        };
-      }
-    }, {
-      key: 'parseLongString',
-      value: function parseLongString(buffer) {
-        var dv = new DataView(buffer, this.readOffset);
-        var strLen = dv.getUint32(0, !isLe);
-        var str = '';
-        if (strLen > 0) {
-          str = UTF8$1.decode(new Uint8Array(buffer, this.readOffset + 2, strLen));
-        } else {
-          str = '';
-        }
-        // const size = strLen + 4;
-        this.readOffset += strLen + 4;
-        return {
-          data: str,
-          bodySize: strLen + 4
-        };
-      }
-
-      /**
-       * 解析meta中的变量
-       */
-
-    }, {
-      key: 'parseValue',
-      value: function parseValue(data, size) {
-        var buffer = new ArrayBuffer();
-        if (data instanceof ArrayBuffer) {
-          buffer = data;
-        } else {
-          buffer = data.buffer;
-        }
-        var NUMBER = DATA_TYPES.NUMBER,
-            BOOLEAN = DATA_TYPES.BOOLEAN,
-            STRING = DATA_TYPES.STRING,
-            OBJECT = DATA_TYPES.OBJECT,
-            MIX_ARRAY = DATA_TYPES.MIX_ARRAY,
-            OBJECT_END = DATA_TYPES.OBJECT_END,
-            STRICT_ARRAY = DATA_TYPES.STRICT_ARRAY,
-            DATE = DATA_TYPES.DATE,
-            LONE_STRING = DATA_TYPES.LONE_STRING;
-
-        var dataView = new DataView(buffer, this.readOffset, size);
-        var isObjEnd = false;
-        var type = dataView.getUint8(0);
-        var offset = 1;
-        this.readOffset += 1;
-        var value = null;
-
-        switch (type) {
-          case NUMBER:
-            {
-              value = dataView.getFloat64(1, !isLe);
-              this.readOffset += 8;
-              offset += 8;
-              break;
-            }
-          case BOOLEAN:
-            {
-              var boolNum = dataView.getUint8(1);
-              value = !!boolNum;
-              this.readOffset += 1;
-              offset += 1;
-              break;
-            }
-          case STRING:
-            {
-              var str = this.parseString(buffer);
-              value = str.data;
-              offset += str.bodySize;
-              break;
-            }
-          case OBJECT:
-            {
-              value = {};
-              var objEndSize = 0;
-              if (dataView.getUint32(size - 4, !isLe) & 0x00FFFFFF) {
-                objEndSize = 3;
-              }
-              // this.readOffset += offset - 1;
-              while (offset < size - 4) {
-                var amfObj = this.parseObject(buffer, size - offset - objEndSize);
-                if (amfObj.isObjectEnd) {
-                  break;
-                }
-                value[amfObj.data.name] = amfObj.data.value;
-                offset += amfObj.bodySize;
-              }
-              if (offset <= size - 3) {
-                var mark = dataView.getUint32(offset - 1, !isLe) & 0x00FFFFFF;
-                if (mark === 9) {
-                  this.readOffset += 3;
-                  offset += 3;
-                }
-              }
-              break;
-            }
-          case MIX_ARRAY:
-            {
-              value = {};
-              offset += 4;
-              this.readOffset += 4;
-              var _objEndSize = 0;
-              if ((dataView.getUint32(size - 4, !isLe) & 0x00FFFFFF) === 9) {
-                _objEndSize = 3;
-              }
-
-              while (offset < size - 8) {
-                var amfVar = this.parseObject(buffer, size - offset - _objEndSize);
-                if (amfVar.isObjectEnd) {
-                  break;
-                }
-                value[amfVar.data.name] = amfVar.data.value;
-                offset += amfVar.bodySize;
-              }
-              if (offset <= size - 3) {
-                var marker = dataView.getUint32(offset - 1, !isLe) & 0x00FFFFFF;
-                if (marker === 9) {
-                  offset += 3;
-                  this.readOffset += 3;
-                }
-              }
-              break;
-            }
-
-          case OBJECT_END:
-            {
-              value = null;
-              isObjEnd = true;
-              break;
-            }
-
-          case STRICT_ARRAY:
-            {
-              value = [];
-              var arrLength = dataView.getUint32(1, !isLe);
-              offset += 4;
-              this.readOffset += 4;
-              for (var i = 0; i < arrLength; i++) {
-                var script = this.parseValue(buffer, size - offset);
-                value.push(script.data);
-                offset += script.bodySize;
-              }
-              break;
-            }
-
-          case DATE:
-            {
-              var date = this.parseDate(buffer, size - 1);
-              value = date.data;
-              offset += date.bodySize;
-              break;
-            }
-
-          case LONE_STRING:
-            {
-              var longStr = this.parseLongString(buffer, size - 1);
-              value = longStr.data;
-              offset += longStr.bodySize;
-              break;
-            }
-
-          default:
-            {
-              offset = size;
-            }
-        }
-
-        return {
-          data: value,
-          bodySize: offset,
-          isObjEnd: isObjEnd
-        };
-      }
-    }]);
-
-    return AMFParser;
-  }();
-
-  var _createClass$r = function () {
-    function defineProperties(target, props) {
-      for (var i = 0; i < props.length; i++) {
-        var descriptor = props[i];descriptor.enumerable = descriptor.enumerable || false;descriptor.configurable = true;if ("value" in descriptor) descriptor.writable = true;Object.defineProperty(target, descriptor.key, descriptor);
-      }
-    }return function (Constructor, protoProps, staticProps) {
-      if (protoProps) defineProperties(Constructor.prototype, protoProps);if (staticProps) defineProperties(Constructor, staticProps);return Constructor;
-    };
-  }();
-
-  function _classCallCheck$r(instance, Constructor) {
-    if (!(instance instanceof Constructor)) {
-      throw new TypeError("Cannot call a class as a function");
-    }
-  }
-
-  var DEMUX_EVENTS$2 = EVENTS.DEMUX_EVENTS;
-
-  var FlvDemuxer = function () {
-    function FlvDemuxer() {
-      _classCallCheck$r(this, FlvDemuxer);
-
-      this._firstFragmentLoaded = false;
-      this._trackNum = 0;
-      this._hasScript = false;
-    }
-
-    _createClass$r(FlvDemuxer, [{
-      key: 'init',
-      value: function init() {
-        this.on(DEMUX_EVENTS$2.DEMUX_START, this.doParseFlv.bind(this));
-      }
-
-      /**
-       * if the flv head is valid
-       * @param data
-       * @returns {boolean}
-       */
-
-    }, {
-      key: 'doParseFlv',
-      value: function doParseFlv() {
-        if (!this._firstFragmentLoaded) {
-          if (this.loaderBuffer.length < 13) {
-            return;
-          }
-          var header = this.loaderBuffer.shift(13);
-          this.parseFlvHeader(header);
-          this.doParseFlv(); // 递归调用，继续解析flv流
-        } else {
-          if (this.loaderBuffer.length < 11) {
-            return;
-          }
-          var chunk = void 0;
-
-          var loopMax = 10000; // 防止死循环产生
-          do {
-            // console.log('mark4')
-            chunk = this._parseFlvTag();
-          } while (chunk && loopMax-- > 0);
-
-          this.emit(DEMUX_EVENTS$2.DEMUX_COMPLETE);
-        }
-      }
-    }, {
-      key: 'parseFlvHeader',
-      value: function parseFlvHeader(header) {
-        if (!FlvDemuxer.isFlvFile(header)) {
-          this.emit(DEMUX_EVENTS$2.DEMUX_ERROR, new Error('invalid flv file'));
-          this.doParseFlv();
-        } else {
-          this._firstFragmentLoaded = true;
-          // const playType = FlvDemuxer.getPlayType(header[4])
-
-          this.initVideoTrack();
-          this.initAudioTrack();
-        }
-        this.doParseFlv();
-      }
-
-      /**
-       * init default video track configs
-       */
-
-    }, {
-      key: 'initVideoTrack',
-      value: function initVideoTrack() {
-        this._trackNum++;
-        var videoTrack = new VideoTrack$1();
-        videoTrack.meta = new VideoTrackMeta$1();
-        videoTrack.id = videoTrack.meta.id = this._trackNum;
-
-        this.tracks.videoTrack = videoTrack;
-      }
-
-      /**
-       * init default audio track configs
-       */
-
-    }, {
-      key: 'initAudioTrack',
-      value: function initAudioTrack() {
-        this._trackNum++;
-        var audioTrack = new AudioTrack$1();
-        audioTrack.meta = new AudioTrackMeta$1();
-        audioTrack.id = audioTrack.meta.id = this._trackNum;
-
-        this.tracks.audioTrack = audioTrack;
-      }
-
-      /**
-       * Package the data as the following data structure
-       * {
-       *    data: Uint8Array. the Stream data.
-       *    info: The first byte info of the Tag.
-       *    tagType: 8、9、18
-       *    timeStamp: the timestemp
-       * }
-       */
-
-    }, {
-      key: '_parseFlvTag',
-      value: function _parseFlvTag() {
-        if (this.loaderBuffer.length < 11) {
-          return null;
-        }
-        var chunk = this._parseFlvTagHeader();
-        if (chunk) {
-          this._processChunk(chunk);
-        }
-        return chunk;
-      }
-
-      /**
-       * Parse the 11 byte tag Header
-       */
-
-    }, {
-      key: '_parseFlvTagHeader',
-      value: function _parseFlvTagHeader() {
-        var offset = 0;
-        var chunk = {};
-
-        var tagType = this.loaderBuffer.toInt(offset, 1);
-        offset += 1;
-
-        // 2 bit FMS reserved, 1 bit filtered, 5 bit tag type
-        chunk.filtered = (tagType & 32) >>> 5;
-        chunk.tagType = tagType & 31;
-
-        // 3 Byte datasize
-        chunk.datasize = this.loaderBuffer.toInt(offset, 3);
-        offset += 3;
-
-        if (chunk.tagType !== 8 && chunk.tagType !== 9 && chunk.tagType !== 11 && chunk.tagType !== 18 || this.loaderBuffer.toInt(8, 3) !== 0) {
-          if (this.loaderBuffer && this.loaderBuffer.length > 0) {
-            this.loaderBuffer.shift(1);
-          }
-          this.emit(DEMUX_EVENTS$2.DEMUX_ERROR, this.TAG, new Error('tagType ' + chunk.tagType), false);
-          return null;
-        }
-
-        if (this.loaderBuffer.length < chunk.datasize + 15) {
-          return null;
-        }
-
-        // read the data.
-        this.loaderBuffer.shift(4);
-
-        // 3 Byte timestamp
-        var timestamp = this.loaderBuffer.toInt(0, 3);
-        this.loaderBuffer.shift(3);
-
-        // 1 Byte timestampExt
-        var timestampExt = this.loaderBuffer.shift(1)[0];
-        if (timestampExt > 0) {
-          timestamp += timestampExt * 0x1000000;
-        }
-
-        chunk.dts = timestamp;
-
-        // streamId
-        this.loaderBuffer.shift(3);
-        return chunk;
-      }
-    }, {
-      key: '_processChunk',
-      value: function _processChunk(chunk) {
-        switch (chunk.tagType) {
-          case 18:
-            this._parseScriptData(chunk);
-            break;
-          case 8:
-            this._parseAACData(chunk);
-            break;
-          case 9:
-            this._parseHevcData(chunk);
-            break;
-          case 11:
-            // for some CDN that did not process the currect RTMP messages
-            this.loaderBuffer.shift(3);
-            break;
-          default:
-            this.loaderBuffer.shift(1);
-        }
-      }
-
-      /**
-       * parse flv script data
-       * @param chunk
-       * @private
-       */
-
-    }, {
-      key: '_parseScriptData',
-      value: function _parseScriptData(chunk) {
-        var audioTrack = this.tracks.audioTrack;
-        var videoTrack = this.tracks.videoTrack;
-
-        var data = this.loaderBuffer.shift(chunk.datasize);
-
-        var info = new AMFParser().resolve(data, data.length);
-
-        var onMetaData = this._context.onMetaData = info ? info.onMetaData : undefined;
-
-        // fill mediaInfo
-        this._context.mediaInfo.duration = onMetaData.duration;
-        this._context.mediaInfo.hasVideo = onMetaData.hasVideo;
-        this._context.mediaInfo.hsaAudio = onMetaData.hasAudio;
-
-        var validate = this._datasizeValidator(chunk.datasize);
-        if (validate) {
-          this.emit(DEMUX_EVENTS$2.MEDIA_INFO);
-          this._hasScript = true;
-        }
-
-        // Edit default meta.
-        if (audioTrack && !audioTrack.hasSpecificConfig) {
-          var meta = audioTrack.meta;
-          if (onMetaData.audiosamplerate) {
-            meta.sampleRate = onMetaData.audiosamplerate;
-          }
-
-          if (onMetaData.audiochannels) {
-            meta.channelCount = onMetaData.audiochannels;
-          }
-
-          switch (onMetaData.audiosamplerate) {
-            case 44100:
-              meta.sampleRateIndex = 4;
-              break;
-            case 22050:
-              meta.sampleRateIndex = 7;
-              break;
-            case 11025:
-              meta.sampleRateIndex = 10;
-              break;
-          }
-        }
-        if (videoTrack && !videoTrack.hasSpecificConfig) {
-          var _meta = videoTrack.meta;
-          if (typeof onMetaData.framerate === 'number') {
-            var fpsNum = Math.floor(onMetaData.framerate * 1000);
-            if (fpsNum > 0) {
-              var fps = fpsNum / 1000;
-              if (!_meta.frameRate) {
-                _meta.frameRate = {};
-              }
-              _meta.frameRate.fixed = true;
-              _meta.frameRate.fps = fps;
-              _meta.frameRate.fps_num = fpsNum;
-              _meta.frameRate.fps_den = 1000;
-            }
-          }
-        }
-      }
-    }, {
-      key: '_aacSequenceHeaderParser',
-      value: function _aacSequenceHeaderParser(data) {
-        var ret = {};
-        ret.hasSpecificConfig = true;
-        ret.objectType = data[1] >>> 3;
-        ret.sampleRateIndex = (data[1] & 7) << 1 | data[2] >>> 7;
-        ret.audiosamplerate = this._switchAudioSampleRate(ret.sampleRateIndex);
-        ret.channelCount = (data[2] & 120) >>> 3;
-        ret.frameLength = (data[2] & 4) >>> 2;
-        ret.dependsOnCoreCoder = (data[2] & 2) >>> 1;
-        ret.extensionFlagIndex = data[2] & 1;
-
-        ret.codec = 'mp4a.40.' + ret.objectType;
-        var userAgent = window.navigator.userAgent.toLowerCase();
-        var extensionSamplingIndex = void 0;
-
-        var config = void 0;
-        var samplingIndex = ret.sampleRateIndex;
-
-        if (userAgent.indexOf('firefox') !== -1) {
-          // firefox: use SBR (HE-AAC) if freq less than 24kHz
-          if (ret.sampleRateIndex >= 6) {
-            ret.objectType = 5;
-            config = new Array(4);
-            extensionSamplingIndex = samplingIndex - 3;
-          } else {
-            // use LC-AAC
-            ret.objectType = 2;
-            config = new Array(2);
-            extensionSamplingIndex = samplingIndex;
-          }
-        } else if (userAgent.indexOf('android') !== -1) {
-          // android: always use LC-AAC
-          ret.objectType = 2;
-          config = new Array(2);
-          extensionSamplingIndex = samplingIndex;
-        } else {
-          // for other browsers, e.g. chrome...
-          // Always use HE-AAC to make it easier to switch aac codec profile
-          ret.objectType = 5;
-          extensionSamplingIndex = ret.sampleRateIndex;
-          config = new Array(4);
-
-          if (ret.sampleRateIndex >= 6) {
-            extensionSamplingIndex = ret.sampleRateIndex - 3;
-          } else if (ret.channelCount === 1) {
-            // Mono channel
-            ret.objectType = 2;
-            config = new Array(2);
-            extensionSamplingIndex = ret.sampleRateIndex;
-          }
-        }
-
-        config[0] = ret.objectType << 3;
-        config[0] |= (ret.sampleRateIndex & 0x0F) >>> 1;
-        config[1] = (ret.sampleRateIndex & 0x0F) << 7;
-        config[1] |= (ret.channelCount & 0x0F) << 3;
-        if (ret.objectType === 5) {
-          config[1] |= (extensionSamplingIndex & 0x0F) >>> 1;
-          config[2] = (extensionSamplingIndex & 0x01) << 7;
-          // extended audio object type: force to 2 (LC-AAC)
-          config[2] |= 2 << 2;
-          config[3] = 0;
-        }
-        ret.config = config;
-        return ret;
-      }
-    }, {
-      key: '_parseAACData',
-      value: function _parseAACData(chunk) {
-        var track = this.tracks.audioTrack;
-        if (!track) {
-          return;
-        }
-
-        var meta = track.meta;
-
-        if (!meta) {
-          track.meta = new AudioTrackMeta$1();
-          meta = track.meta;
-        }
-
-        var info = this.loaderBuffer.shift(1)[0];
-
-        chunk.data = this.loaderBuffer.shift(chunk.datasize - 1);
-
-        var format = (info & 240) >>> 4;
-
-        track.format = format;
-
-        if (format !== 10) {
-          this.emit(DEMUX_EVENTS$2.DEMUX_ERROR, new Error('invalid audio format: ' + format));
-        }
-
-        if (format === 10 && !this._hasAudioSequence) {
-          meta.sampleRate = this._switchAudioSamplingFrequency(info);
-          meta.sampleRateIndex = (info & 12) >>> 2;
-          meta.frameLenth = (info & 2) >>> 1;
-          meta.channelCount = info & 1;
-          meta.refSampleDuration = Math.floor(1024 / meta.audioSampleRate * meta.timescale);
-        }
-
-        var audioSampleRate = meta.audioSampleRate;
-        var audioSampleRateIndex = meta.sampleRateIndex;
-        var refSampleDuration = meta.refSampleDuration;
-
-        delete chunk.tagType;
-        var validate = this._datasizeValidator(chunk.datasize);
-
-        if (chunk.data[0] === 0) {
-          // AAC Sequence Header
-          var aacHeader = this._aacSequenceHeaderParser(chunk.data);
-          audioSampleRate = aacHeader.audiosamplerate || meta.audioSampleRate;
-          audioSampleRateIndex = aacHeader.sampleRateIndex || meta.sampleRateIndex;
-          refSampleDuration = Math.floor(1024 / audioSampleRate * meta.timescale);
-
-          meta.channelCount = aacHeader.channelCount;
-          meta.sampleRate = audioSampleRate;
-          meta.sampleRateIndex = audioSampleRateIndex;
-          meta.refSampleDuration = refSampleDuration;
-          meta.duration = this._context.mediaInfo.duration * meta.timescale;
-          meta.config = aacHeader.config;
-
-          var audioMedia = this._context.mediaInfo.audio;
-
-          // fill audio media info
-          audioMedia.codec = aacHeader.codec;
-          audioMedia.channelCount = aacHeader.channelCount;
-          audioMedia.sampleRate = audioSampleRate;
-          audioMedia.sampleRateIndex = aacHeader.audioSampleRateIndex;
-
-          if (!this._hasAudioSequence) {
-            this.emit(DEMUX_EVENTS$2.METADATA_PARSED, 'audio');
-          } else {
-            this.emit(DEMUX_EVENTS$2.AUDIO_METADATA_CHANGE);
-            // this.emit(DEMUX_EVENTS.METADATA_PARSED, 'audio')
-          }
-          this._hasAudioSequence = true;
-
-          this._metaChange = true;
-        } else {
-          if (this._metaChange) {
-            chunk.options = {
-              meta: track.meta
-            };
-            this._metaChange = false;
-          }
-
-          chunk.data = chunk.data.slice(1, chunk.data.length);
-          track.samples.push(chunk);
-        }
-        if (!validate) {
-          this.emit(DEMUX_EVENTS$2.DEMUX_ERROR, this.TAG, new Error('TAG length error at ' + chunk.datasize), false);
-          // this.logger.warn(this.TAG, error.message)
-        }
-      }
-
-      /**
-       * parse hevc/avc video data
-       * @param chunk
-       * @private
-       */
-
-    }, {
-      key: '_parseHevcData',
-      value: function _parseHevcData(chunk) {
-        // header
-        var info = this.loaderBuffer.shift(1)[0];
-        chunk.frameType = (info & 0xf0) >>> 4;
-        chunk.isKeyframe = chunk.frameType === 1;
-        // let tempCodecID = this.tracks.videoTrack.codecID
-        var codecID = info & 0x0f;
-        this.tracks.videoTrack.codecID = codecID;
-
-        // hevc和avc的header解析方式一样
-        chunk.avcPacketType = this.loaderBuffer.shift(1)[0];
-        chunk.cts = this.loaderBuffer.toInt(0, 3);
-        this.loaderBuffer.shift(3);
-
-        // 12 for hevc, 7 for avc
-        if (codecID === 12) {
-          var data = this.loaderBuffer.shift(chunk.datasize - 5);
-          chunk.data = data;
-
-          if (Number.parseInt(chunk.avcPacketType) !== 0) {
-            if (!this._datasizeValidator(chunk.datasize)) {
-              this.emit(DEMUX_EVENTS$2.DEMUX_ERROR, this.TAG, new Error('invalid video tag datasize: ' + chunk.datasize), false);
-            }
-            var nalu = {};
-            var r = 0;
-            nalu.cts = chunk.cts;
-            nalu.dts = chunk.dts;
-            while (chunk.data.length > r) {
-              var sizes = chunk.data.slice(Number.parseInt(r), 4 + r);
-              nalu.size = sizes[3];
-              nalu.size += sizes[2] * 256;
-              nalu.size += sizes[1] * 256 * 256;
-              nalu.size += sizes[0] * 256 * 256 * 256;
-              r += 4;
-              nalu.data = chunk.data.slice(Number.parseInt(r), nalu.size + r);
-              r += nalu.size;
-              this.tracks.videoTrack.samples.push(nalu);
-              this.emit(DEMUX_EVENTS$2.METADATA_PARSED, 'video');
-            }
-          } else if (Number.parseInt(chunk.avcPacketType) === 0) {
-            if (!this._datasizeValidator(chunk.datasize)) {
-              this.emit(DEMUX_EVENTS$2.DEMUX_ERROR, this.TAG, new Error('invalid video tag datasize: ' + chunk.datasize), false);
-            } else {
-              this.emit(DEMUX_EVENTS$2.METADATA_PARSED, 'video');
-            }
-          }
-        } else if (codecID === 7) {
-          var _data = this.loaderBuffer.shift(chunk.datasize - 5);
-          if (_data[4] === 0 && _data[5] === 0 && _data[6] === 0 && _data[7] === 1) {
-            var avcclength = 0;
-            for (var i = 0; i < 4; i++) {
-              avcclength = avcclength * 256 + _data[i];
-            }
-            avcclength -= 4;
-            _data = _data.slice(4, _data.length);
-            _data[3] = avcclength % 256;
-            avcclength = (avcclength - _data[3]) / 256;
-            _data[2] = avcclength % 256;
-            avcclength = (avcclength - _data[2]) / 256;
-            _data[1] = avcclength % 256;
-            _data[0] = (avcclength - _data[1]) / 256;
-          }
-
-          chunk.data = _data;
-          // If it is AVC sequece Header.
-          if (chunk.avcPacketType === 0) {
-            this._avcSequenceHeaderParser(chunk.data);
-            var validate = this._datasizeValidator(chunk.datasize);
-            if (validate) {
-              if (!this._hasVideoSequence) {
-                this.emit(DEMUX_EVENTS$2.METADATA_PARSED, 'video');
-              } else {
-                this.emit(DEMUX_EVENTS$2.VIDEO_METADATA_CHANGE);
-                // this.emit(DEMUX_EVENTS.METADATA_PARSED, 'video')
-              }
-              this._hasVideoSequence = true;
-            }
-            this._metaChange = true;
-          } else {
-            if (!this._datasizeValidator(chunk.datasize)) {
-              this.emit(DEMUX_EVENTS$2.DEMUX_ERROR, this.TAG, new Error('invalid video tag datasize: ' + chunk.datasize), false);
-              return;
-            }
-            if (this._metaChange) {
-              chunk.options = {
-                meta: Object.assign({}, this.tracks.videoTrack.meta)
-              };
-              this._metaChange = false;
-            }
-            this.tracks.videoTrack.samples.push(chunk);
-            // this.emit(DEMUX_EVENTS.DEMUX_COMPLETE)
-          }
-        } else {
-          this.emit(DEMUX_EVENTS$2.DEMUX_ERROR, this.TAG, new Error('video codeid is ' + codecID), false);
-          chunk.data = this.loaderBuffer.shift(chunk.datasize - 1);
-          if (!this._datasizeValidator(chunk.datasize)) {
-            this.emit(DEMUX_EVENTS$2.DEMUX_ERROR, this.TAG, new Error('invalid video tag datasize: ' + chunk.datasize), false);
-          }
-          this.tracks.videoTrack.samples.push(chunk);
-          this.emit(DEMUX_EVENTS$2.DEMUX_COMPLETE);
-        }
-        delete chunk.tagType;
-      }
-
-      /**
-       * parse avc metadata
-       * @param data
-       * @private
-       */
-
-    }, {
-      key: '_avcSequenceHeaderParser',
-      value: function _avcSequenceHeaderParser(data) {
-        var track = this.tracks.videoTrack;
-
-        if (!track) {
-          return;
-        }
-
-        var offset = 0;
-
-        if (!track.meta) {
-          track.meta = new VideoTrackMeta$1();
-        }
-        var meta = track.meta;
-
-        meta.configurationVersion = data[0];
-        meta.avcProfileIndication = data[1];
-        meta.profileCompatibility = data[2];
-        meta.avcLevelIndication = data[3] / 10;
-        meta.nalUnitLength = (data[4] & 0x03) + 1;
-
-        var numOfSps = data[5] & 0x1f;
-        offset = 6;
-        var config = {};
-
-        // parse SPS
-        for (var i = 0; i < numOfSps; i++) {
-          var size = data[offset] * 255 + data[offset + 1];
-          offset += 2;
-
-          var sps = new Uint8Array(size);
-          for (var j = 0; j < size; j++) {
-            sps[j] = data[offset + j];
-          }
-
-          // codec string
-          var codecString = 'avc1.';
-          for (var _j = 1; _j < 4; _j++) {
-            var h = sps[_j].toString(16);
-            if (h.length < 2) {
-              h = '0' + h;
-            }
-            codecString += h;
-          }
-
-          meta.codec = codecString;
-
-          offset += size;
-          this.tracks.videoTrack.meta.sps = sps;
-          config = SpsParser.parseSPS(sps);
-        }
-
-        var numOfPps = data[offset];
-
-        offset++;
-
-        for (var _i = 0; _i < numOfPps; _i++) {
-          var _size = data[offset] * 255 + data[offset + 1];
-          offset += 2;
-          var pps = new Uint8Array(_size);
-          for (var _j2 = 0; _j2 < _size; _j2++) {
-            pps[_j2] = data[offset + _j2];
-          }
-          offset += _size;
-          this.tracks.videoTrack.meta.pps = pps;
-        }
-
-        Object.assign(meta, SpsParser.toVideoMeta(config));
-
-        // fill video media info
-        var videoMedia = this._context.mediaInfo.video;
-
-        videoMedia.codec = meta.codec;
-        videoMedia.profile = meta.profile;
-        videoMedia.level = meta.level;
-        videoMedia.chromaFormat = meta.chromaFormat;
-        videoMedia.frameRate = meta.frameRate;
-        videoMedia.parRatio = meta.parRatio;
-        videoMedia.width = videoMedia.width === meta.presentWidth ? videoMedia.width : meta.presentWidth;
-        videoMedia.height = videoMedia.height === meta.presentHeight ? videoMedia.width : meta.presentHeight;
-
-        meta.duration = this._context.mediaInfo.duration * meta.timescale;
-        meta.avcc = new Uint8Array(data.length);
-        meta.avcc.set(data);
-        track.meta = meta;
-      }
-
-      /**
-       * choose audio sample rate
-       * @param samplingFrequencyIndex
-       * @returns {number}
-       * @private
-       */
-
-    }, {
-      key: '_switchAudioSampleRate',
-      value: function _switchAudioSampleRate(samplingFrequencyIndex) {
-        var samplingFrequencyList = [96000, 88200, 64000, 48000, 44100, 32000, 24000, 22050, 16000, 12000, 11025, 8000, 7350];
-        return samplingFrequencyList[samplingFrequencyIndex];
-      }
-
-      /**
-       * choose audio sampling frequence
-       * @param info
-       * @returns {number}
-       * @private
-       */
-
-    }, {
-      key: '_switchAudioSamplingFrequency',
-      value: function _switchAudioSamplingFrequency(info) {
-        var samplingFrequencyIndex = (info & 12) >>> 2;
-        var samplingFrequencyList = [5500, 11025, 22050, 44100, 48000];
-        return samplingFrequencyList[samplingFrequencyIndex];
-      }
-
-      /**
-       * choose audio channel count
-       * @param info
-       * @returns {number}
-       * @private
-       */
-
-    }, {
-      key: '_switchAudioChannel',
-      value: function _switchAudioChannel(info) {
-        var sampleTrackNumIndex = info & 1;
-        var sampleTrackNumList = [1, 2];
-        return sampleTrackNumList[sampleTrackNumIndex];
-      }
-
-      /**
-       * check datasize is valid use 4 Byte after current tag
-       * @param datasize
-       * @returns {boolean}
-       * @private
-       */
-
-    }, {
-      key: '_datasizeValidator',
-      value: function _datasizeValidator(datasize) {
-        var datasizeConfirm = this.loaderBuffer.toInt(0, 4);
-        this.loaderBuffer.shift(4);
-        return datasizeConfirm === datasize + 11;
-      }
-    }, {
-      key: 'loaderBuffer',
-      get: function get() {
-        var buffer = this._context.getInstance('LOADER_BUFFER');
-        if (buffer) {
-          return buffer;
-        } else {
-          this.emit(DEMUX_EVENTS$2.DEMUX_ERROR, new Error('找不到 loaderBuffer 实例'));
-        }
-      }
-    }, {
-      key: 'tracks',
-      get: function get() {
-        return this._context.getInstance('TRACKS');
-      }
-    }, {
-      key: 'logger',
-      get: function get() {
-        return this._context.getInstance('LOGGER');
-      }
-    }], [{
-      key: 'isFlvFile',
-      value: function isFlvFile(data) {
-        return !(data[0] !== 0x46 || data[1] !== 0x4C || data[2] !== 0x56 || data[3] !== 0x01);
-      }
-
-      /**
-       * If the stream has audio or video.
-       * @param {number} streamFlag - Data from the stream which is define whether the audio / video track is exist.
-       */
-
-    }, {
-      key: 'getPlayType',
-      value: function getPlayType(streamFlag) {
-        var result = {
-          hasVideo: false,
-          hasAudio: false
-        };
-
-        if (streamFlag & 0x01 > 0) {
-          result.hasVideo = true;
-        }
-
-        if (streamFlag & 0x04 > 0) {
-          result.hasAudio = true;
-        }
-
-        return result;
-      }
-    }]);
-
-    return FlvDemuxer;
-  }();
-
-  var M3U8Parser$1 = M3U8Parser;
-  var TsDemuxer$1 = TsDemuxer;
-  var Playlist$1 = Playlist;
-
-  var _createClass$s = function () {
-    function defineProperties(target, props) {
-      for (var i = 0; i < props.length; i++) {
-        var descriptor = props[i];descriptor.enumerable = descriptor.enumerable || false;descriptor.configurable = true;if ("value" in descriptor) descriptor.writable = true;Object.defineProperty(target, descriptor.key, descriptor);
-      }
-    }return function (Constructor, protoProps, staticProps) {
-      if (protoProps) defineProperties(Constructor.prototype, protoProps);if (staticProps) defineProperties(Constructor, staticProps);return Constructor;
-    };
-  }();
-
-  function _classCallCheck$s(instance, Constructor) {
-    if (!(instance instanceof Constructor)) {
-      throw new TypeError("Cannot call a class as a function");
-    }
-  }
-
-  var LOADER_EVENTS$2 = EVENTS.LOADER_EVENTS;
-  var REMUX_EVENTS$3 = EVENTS.REMUX_EVENTS;
-  var DEMUX_EVENTS$3 = EVENTS.DEMUX_EVENTS;
-  var HLS_EVENTS$1 = EVENTS.HLS_EVENTS;
-  var CRYTO_EVENTS$2 = EVENTS.CRYTO_EVENTS;
-  var HLS_ERROR = 'HLS_ERROR';
-
-  var HlsLiveController = function () {
-    function HlsLiveController(configs) {
-      _classCallCheck$s(this, HlsLiveController);
-
-      this.configs = Object.assign({}, configs);
-      this.url = '';
-      this.baseurl = '';
-      this.sequence = 0;
-      this._playlist = null;
-      this.retrytimes = this.configs.retrytimes || 3;
-      this.preloadTime = this.configs.preloadTime;
-      this.container = this.configs.container;
-      this._m3u8lasttime = 0;
-      this._timmer = setInterval(this._checkStatus.bind(this), 50);
-      this._lastCheck = 0;
-      this._player = this.configs.player;
-      this.m3u8Text = null;
-    }
-
-    _createClass$s(HlsLiveController, [{
-      key: 'init',
-      value: function init() {
-        // 初始化Buffer （M3U8/TS/Playlist);
-        this._context.registry('M3U8_BUFFER', XgBuffer$1);
-        this._context.registry('TS_BUFFER', XgBuffer$1);
-        this._context.registry('TRACKS', Tracks$1);
-
-        this._playlist = this._context.registry('PLAYLIST', Playlist$1)({ autoclear: true });
-        this._context.registry('PRE_SOURCE_BUFFER', PreSource$1);
-
-        this._context.registry('COMPATIBILITY', Compatibility$1);
-
-        // 初始化M3U8Loader;
-        this._m3u8loader = this._context.registry('M3U8_LOADER', FetchLoader$1)({ buffer: 'M3U8_BUFFER', readtype: 1 });
-        this._tsloader = this._context.registry('TS_LOADER', FetchLoader$1)({ buffer: 'TS_BUFFER', readtype: 3 });
-
-        // 初始化TS Demuxer
-        this._context.registry('TS_DEMUXER', TsDemuxer$1)({ inputbuffer: 'TS_BUFFER' });
-
-        // 初始化MP4 Remuxer
-        this._context.registry('MP4_REMUXER', Mp4Remuxer);
-
-        // 初始化MSE
-        this.mse = this._context.registry('MSE', Mse)({ container: this.container });
-        this.initEvents();
-      }
-    }, {
-      key: 'initEvents',
-      value: function initEvents() {
-        this.on(LOADER_EVENTS$2.LOADER_COMPLETE, this._onLoadComplete.bind(this));
-
-        this.on(REMUX_EVENTS$3.INIT_SEGMENT, this.mse.addSourceBuffers.bind(this.mse));
-
-        this.on(REMUX_EVENTS$3.MEDIA_SEGMENT, this.mse.doAppend.bind(this.mse));
-
-        this.on(DEMUX_EVENTS$3.METADATA_PARSED, this._onMetadataParsed.bind(this));
-
-        this.on(DEMUX_EVENTS$3.DEMUX_COMPLETE, this._onDemuxComplete.bind(this));
-
-        this.on(LOADER_EVENTS$2.LOADER_ERROR, this._onLoadError.bind(this));
-
-        this.on(DEMUX_EVENTS$3.DEMUX_ERROR, this._onDemuxError.bind(this));
-
-        this.on(REMUX_EVENTS$3.REMUX_ERROR, this._onRemuxError.bind(this));
-      }
-    }, {
-      key: '_onError',
-      value: function _onError(type, mod, err, fatal) {
-        var error = {
-          errorType: type,
-          errorDetails: '[' + mod + ']: ' + err.message,
-          errorFatal: fatal
-        };
-        this._player.emit(HLS_ERROR, error);
-      }
-    }, {
-      key: '_onDemuxComplete',
-      value: function _onDemuxComplete() {
-        this.emit(REMUX_EVENTS$3.REMUX_MEDIA);
-      }
-    }, {
-      key: '_onMetadataParsed',
-      value: function _onMetadataParsed(type) {
-        this.emit(REMUX_EVENTS$3.REMUX_METADATA, type);
-      }
-    }, {
-      key: '_onLoadError',
-      value: function _onLoadError(loader, error) {
-        if (!this._tsloader.loading && !this._m3u8loader.loading && this.retrytimes > 1) {
-          this.retrytimes--;
-          this._onError(LOADER_EVENTS$2.LOADER_ERROR, loader, error, false);
-        } else if (this.retrytimes <= 1) {
-          this._onError(LOADER_EVENTS$2.LOADER_ERROR, loader, error, true);
-          this.emit(HLS_EVENTS$1.RETRY_TIME_EXCEEDED);
-          this.mse.endOfStream();
-        }
-      }
-    }, {
-      key: '_onDemuxError',
-      value: function _onDemuxError(mod, error, fatal) {
-        if (fatal === undefined) {
-          fatal = true;
-        }
-        this._onError(LOADER_EVENTS$2.LOADER_ERROR, mod, error, fatal);
-      }
-    }, {
-      key: '_onRemuxError',
-      value: function _onRemuxError(mod, error, fatal) {
-        if (fatal === undefined) {
-          fatal = true;
-        }
-        this._onError(REMUX_EVENTS$3.REMUX_ERROR, mod, error, fatal);
-      }
-    }, {
-      key: '_onLoadComplete',
-      value: function _onLoadComplete(buffer) {
-        if (buffer.TAG === 'M3U8_BUFFER') {
-          var mdata = void 0;
-          try {
-            this.m3u8Text = buffer.shift();
-            mdata = M3U8Parser$1.parse(this.m3u8Text, this.baseurl);
-          } catch (error) {
-            this._onError('M3U8_PARSER_ERROR', 'M3U8_PARSER', error, false);
-          }
-
-          if (!mdata) {
-            if (this.retrytimes > 0) {
-              this.retrytimes--;
-              this._preload();
-            } else {
-              this.emit(HLS_EVENTS$1.RETRY_TIME_EXCEEDED);
-              this.mse.endOfStream();
-            }
-            return;
-          }
-
-          try {
-            this._playlist.pushM3U8(mdata, true);
-          } catch (error) {
-            this._onError('M3U8_PARSER_ERROR', 'PLAYLIST', error, false);
-          }
-
-          if (this._playlist.encrypt && this._playlist.encrypt.uri && !this._playlist.encrypt.key) {
-            this._context.registry('DECRYPT_BUFFER', XgBuffer$1)();
-            this._context.registry('KEY_BUFFER', XgBuffer$1)();
-            this._tsloader.buffer = 'DECRYPT_BUFFER';
-            this._keyLoader = this._context.registry('KEY_LOADER', FetchLoader$1)({ buffer: 'KEY_BUFFER', readtype: 3 });
-            this.emitTo('KEY_LOADER', LOADER_EVENTS$2.LADER_START, this._playlist.encrypt.uri);
-          } else {
-            this._m3u8Loaded(mdata);
-          }
-        } else if (buffer.TAG === 'TS_BUFFER') {
-          this.retrytimes = this.configs.retrytimes || 3;
-          this._playlist.downloaded(this._tsloader.url, true);
-          this.emit(DEMUX_EVENTS$3.DEMUX_START);
-        } else if (buffer.TAG === 'DECRYPT_BUFFER') {
-          this.retrytimes = this.configs.retrytimes || 3;
-          this._playlist.downloaded(this._tsloader.url, true);
-          this.emitTo('CRYPTO', CRYTO_EVENTS$2.START_DECRYPT);
-        } else if (buffer.TAG == 'KEY_BUFFER') {
-          this.retrytimes = this.configs.retrytimes || 3;
-          this._playlist.encrypt.key = buffer.shift();
-          this._crypto = this._context.registry('CRYPTO', Crypto$1)({
-            key: this._playlist.encrypt.key,
-            iv: this._playlist.encrypt.ivb,
-            method: this._playlist.encrypt.method,
-            inputbuffer: 'DECRYPT_BUFFER',
-            outputbuffer: 'TS_BUFFER'
-          });
-          this._crypto.on(CRYTO_EVENTS$2.DECRYPTED, this._onDcripted.bind(this));
-        }
-      }
-    }, {
-      key: '_onDcripted',
-      value: function _onDcripted() {
-        this.emit(DEMUX_EVENTS$3.DEMUX_START);
-      }
-    }, {
-      key: '_m3u8Loaded',
-      value: function _m3u8Loaded(mdata) {
-        if (!this.preloadTime) {
-          this.preloadTime = this._playlist.targetduration ? this._playlist.targetduration : 5;
-        }
-        if (this._playlist.fragLength > 0 && this._playlist.sequence < mdata.sequence) {
-          this.retrytimes = this.configs.retrytimes || 3;
-        } else {
-          if (this.retrytimes > 0) {
-            this.retrytimes--;
-            this._preload();
-          } else {
-            this.emit(HLS_EVENTS$1.RETRY_TIME_EXCEEDED);
-            this.mse.endOfStream();
-          }
-        }
-      }
-    }, {
-      key: '_checkStatus',
-      value: function _checkStatus() {
-        if (this.retrytimes < 1 && new Date().getTime() - this._lastCheck < 10000) {
-          return;
-        }
-        this._lastCheck = new Date().getTime();
-        if (this.container.buffered.length < 1) {
-          this._preload();
-        } else {
-          // Check for load.
-          var currentTime = this.container.currentTime;
-          var bufferstart = this.container.buffered.start(this.container.buffered.length - 1);
-          if (this.container.readyState <= 2) {
-            if (currentTime < bufferstart) {
-              this.container.currentTime = bufferstart;
-              currentTime = bufferstart;
-            } else {
-              this._preload();
-            }
-          }
-          var bufferend = this.container.buffered.end(this.container.buffered.length - 1);
-          if (currentTime < bufferend - this.preloadTime * 2) {
-            this.container.currentTime = bufferend - this.preloadTime * 2;
-          }
-          if (bufferend > this.preloadTime * 2) {
-            this.mse.remove(bufferend - this.preloadTime * 2);
-          }
-          if (currentTime > bufferend - this.preloadTime) {
-            this._preload();
-          }
-        }
-      }
-    }, {
-      key: '_preload',
-      value: function _preload() {
-        if (this._tsloader.loading || this._m3u8loader.loading) {
-          return;
-        }
-        var frag = this._playlist.getTs();
-
-        if (frag && !frag.downloaded && !frag.downloading) {
-          this._playlist.downloading(frag.url, true);
-          this.emitTo('TS_LOADER', LOADER_EVENTS$2.LADER_START, frag.url);
-        } else {
-          var preloadTime = this.preloadTime ? this.preloadTime : 0;
-          var current = new Date().getTime();
-          if ((!frag || frag.downloaded) && (current - this._m3u8lasttime) / 1000 > preloadTime) {
-            this._m3u8lasttime = current;
-            this.emitTo('M3U8_LOADER', LOADER_EVENTS$2.LADER_START, this.url);
-          }
-        }
-      }
-    }, {
-      key: 'load',
-      value: function load(url) {
-        this.baseurl = M3U8Parser$1.parseURL(url);
-        this.url = url;
-        this._preload();
-      }
-    }, {
-      key: 'destroy',
-      value: function destroy() {
-        clearInterval(this._timmer);
-        this.off(LOADER_EVENTS$2.LOADER_COMPLETE, this._onLoadComplete);
-        this.off(REMUX_EVENTS$3.INIT_SEGMENT, this.mse.addSourceBuffers);
-        this.off(REMUX_EVENTS$3.MEDIA_SEGMENT, this.mse.doAppend);
-        // this.off(REMUX_EVENTS.REMUX_ERROR);
-        this.off(DEMUX_EVENTS$3.METADATA_PARSED, this._onMetadataParsed);
-        this.off(DEMUX_EVENTS$3.DEMUX_COMPLETE, this._onDemuxComplete);
-
-        this.mse = null;
-        this.m3u8Text = null;
-      }
-    }]);
-
-    return HlsLiveController;
-  }();
-
-  var _typeof$4 = typeof Symbol === "function" && typeof Symbol.iterator === "symbol" ? function (obj) { return typeof obj; } : function (obj) { return obj && typeof Symbol === "function" && obj.constructor === Symbol && obj !== Symbol.prototype ? "symbol" : typeof obj; };
-
-  var _createClass$t = function () {
-    function defineProperties(target, props) {
-      for (var i = 0; i < props.length; i++) {
-        var descriptor = props[i];descriptor.enumerable = descriptor.enumerable || false;descriptor.configurable = true;if ("value" in descriptor) descriptor.writable = true;Object.defineProperty(target, descriptor.key, descriptor);
-      }
-    }return function (Constructor, protoProps, staticProps) {
-      if (protoProps) defineProperties(Constructor.prototype, protoProps);if (staticProps) defineProperties(Constructor, staticProps);return Constructor;
-    };
-  }();
-
-  var _get$1 = function get(object, property, receiver) {
-    if (object === null) object = Function.prototype;var desc = Object.getOwnPropertyDescriptor(object, property);if (desc === undefined) {
-      var parent = Object.getPrototypeOf(object);if (parent === null) {
-        return undefined;
-      } else {
-        return get(parent, property, receiver);
-      }
-    } else if ("value" in desc) {
-      return desc.value;
-    } else {
-      var getter = desc.get;if (getter === undefined) {
-        return undefined;
-      }return getter.call(receiver);
-    }
-  };
-
-  function _classCallCheck$t(instance, Constructor) {
-    if (!(instance instanceof Constructor)) {
-      throw new TypeError("Cannot call a class as a function");
-    }
-  }
-
-  function _possibleConstructorReturn$2(self, call) {
-    if (!self) {
-      throw new ReferenceError("this hasn't been initialised - super() hasn't been called");
-    }return call && ((typeof call === "undefined" ? "undefined" : _typeof$4(call)) === "object" || typeof call === "function") ? call : self;
-  }
-
-  function _inherits$2(subClass, superClass) {
-    if (typeof superClass !== "function" && superClass !== null) {
-      throw new TypeError("Super expression must either be null or a function, not " + (typeof superClass === "undefined" ? "undefined" : _typeof$4(superClass)));
-    }subClass.prototype = Object.create(superClass && superClass.prototype, { constructor: { value: subClass, enumerable: false, writable: true, configurable: true } });if (superClass) Object.setPrototypeOf ? Object.setPrototypeOf(subClass, superClass) : subClass.__proto__ = superClass;
-  }
-  var HlsAllowedEvents$1 = EVENTS.HlsAllowedEvents;
-  var REMUX_EVENTS$4 = EVENTS.REMUX_EVENTS;
-
-  var HlsLivePlayer = function (_Player) {
-    _inherits$2(HlsLivePlayer, _Player);
-
-    function HlsLivePlayer(options) {
-      _classCallCheck$t(this, HlsLivePlayer);
-
-      var _this2 = _possibleConstructorReturn$2(this, (HlsLivePlayer.__proto__ || Object.getPrototypeOf(HlsLivePlayer)).call(this, options));
-
-      _this2.hlsOps = {};
-      _this2.util = Player.util;
-      _this2.util.deepCopy(_this2.hlsOps, options);
-      _this2._context = new Context$1(HlsAllowedEvents$1);
-      _this2._hasStarted = false;
-      return _this2;
-    }
-
-    _createClass$t(HlsLivePlayer, [{
-      key: '_initEvents',
-      value: function _initEvents() {
-        var _this3 = this;
-
-        this.__core__.once(REMUX_EVENTS$4.INIT_SEGMENT, function () {
-          var mse = _this3._context.getInstance('MSE');
-          if (!_this3._hasStarted) {
-            var live = _this3.util.createDom('xg-live', '正在直播', {}, 'xgplayer-live');
-            _this3.util.addClass(_this3.root, 'xgplayer-is-live');
-            _this3.controls.appendChild(live);
-          }
-          _this3._hasStarted = true;
-          _get$1(HlsLivePlayer.prototype.__proto__ || Object.getPrototypeOf(HlsLivePlayer.prototype), 'start', _this3).call(_this3, mse.url);
-        });
-
-        // this.once('canplay', () => {
-        //   this.video.play()
-        // });
-      }
-    }, {
-      key: '_initSrcChangeHandler',
-      value: function _initSrcChangeHandler() {
-        var _this = this;
-        Object.defineProperty(this, 'src', {
-          get: function get() {
-            return _this.currentSrc;
-          },
-          set: function set(url) {
-            _this.config.url = url;
-            if (!_this.paused) {
-              _this.pause();
-              _this.once('pause', function () {
-                _this.start(url);
-              });
-              _this.once('canplay', function () {
-                _this.play();
-              });
-            } else {
-              _this.start(url);
-            }
-            _this.once('canplay', function () {
-              _this.currentTime = 0;
-            });
-          },
-
-          configurable: true
-        });
-      }
-    }, {
-      key: 'start',
-      value: function start() {
-        var url = arguments.length > 0 && arguments[0] !== undefined ? arguments[0] : this.config.url;
-
-        if (!url) {
-          return;
-        }
-        this.__core__ = this._context.registry('HLS_LIVE_CONTROLLER', HlsLiveController)({ player: this, container: this.video });
-        this._context.init();
-        this.url = url;
-        this.__core__.load(url);
-        this._initEvents();
-        this._initSrcChangeHandler();
-      }
-    }, {
-      key: 'play',
-      value: function play() {
-        if (this._hasStarted) {
-          this._context.destroy();
-          this._context = new Context$1(HlsAllowedEvents$1);
-          this.__core__ = this._context.registry('HLS_LIVE_CONTROLLER', HlsLiveController)({ container: this.video });
-          this._context.init();
-          this._initEvents();
-          this.__core__.load(this.url);
-        }
-        _get$1(HlsLivePlayer.prototype.__proto__ || Object.getPrototypeOf(HlsLivePlayer.prototype), 'play', this).call(this);
-      }
-    }, {
-      key: 'destroy',
-      value: function destroy() {
-        this._context.destroy();
-        _get$1(HlsLivePlayer.prototype.__proto__ || Object.getPrototypeOf(HlsLivePlayer.prototype), 'destroy', this).call(this);
-      }
-    }]);
-
-    return HlsLivePlayer;
-  }(Player);
-
   var _createClass$u = function () {
     function defineProperties(target, props) {
       for (var i = 0; i < props.length; i++) {
@@ -8010,7 +7504,7 @@
 
   var LOADER_EVENTS$3 = EVENTS.LOADER_EVENTS;
   var REMUX_EVENTS$5 = EVENTS.REMUX_EVENTS;
-  var DEMUX_EVENTS$4 = EVENTS.DEMUX_EVENTS;
+  var DEMUX_EVENTS$3 = EVENTS.DEMUX_EVENTS;
   var HLS_EVENTS$2 = EVENTS.HLS_EVENTS;
   var CRYTO_EVENTS$3 = EVENTS.CRYTO_EVENTS;
   var HLS_ERROR$1 = 'HLS_ERROR';
@@ -8036,27 +7530,27 @@
       key: 'init',
       value: function init() {
         // 初始化Buffer （M3U8/TS/Playlist);
-        this._context.registry('M3U8_BUFFER', XgBuffer$1);
-        this._tsBuffer = this._context.registry('TS_BUFFER', XgBuffer$1)();
-        this._tracks = this._context.registry('TRACKS', Tracks$1)();
+        this._context.registry('M3U8_BUFFER', XgBuffer);
+        this._tsBuffer = this._context.registry('TS_BUFFER', XgBuffer)();
+        this._tracks = this._context.registry('TRACKS', Track)();
 
-        this._playlist = this._context.registry('PLAYLIST', Playlist$1)({ autoclear: true });
-        this._presource = this._context.registry('PRE_SOURCE_BUFFER', PreSource$1)();
+        this._playlist = this._context.registry('PLAYLIST', Playlist)({ autoclear: true });
+        this._presource = this._context.registry('PRE_SOURCE_BUFFER', PreSource)();
 
-        this._compat = this._context.registry('COMPATIBILITY', Compatibility$1)();
+        this._compat = this._context.registry('COMPATIBILITY', Compatibility)();
 
         // 初始化M3U8Loader;
-        this._context.registry('M3U8_LOADER', FetchLoader$1)({ buffer: 'M3U8_BUFFER', readtype: 1 });
-        this._tsloader = this._context.registry('TS_LOADER', FetchLoader$1)({ buffer: 'TS_BUFFER', readtype: 3 });
+        this._context.registry('M3U8_LOADER', FetchLoader)({ buffer: 'M3U8_BUFFER', readtype: 1 });
+        this._tsloader = this._context.registry('TS_LOADER', FetchLoader)({ buffer: 'TS_BUFFER', readtype: 3 });
 
         // 初始化TS Demuxer
-        this._context.registry('TS_DEMUXER', TsDemuxer$1)({ inputbuffer: 'TS_BUFFER' });
+        this._context.registry('TS_DEMUXER', TsDemuxer)({ inputbuffer: 'TS_BUFFER' });
 
         // 初始化MP4 Remuxer
-        this._context.registry('MP4_REMUXER', Mp4Remuxer);
+        this._context.registry('MP4_REMUXER', Mp4Remuxer)(this._player.currentTime);
 
         // 初始化MSE
-        this.mse = this._context.registry('MSE', Mse)({ container: this.container, preloadTime: this.preloadTime });
+        this.mse = this._context.registry('MSE', MSE)({ container: this.container, preloadTime: this.preloadTime });
         this.initEvents();
       }
     }, {
@@ -8070,11 +7564,11 @@
 
         this.on(REMUX_EVENTS$5.MEDIA_SEGMENT, this._onMediaSegment.bind(this));
 
-        this.on(DEMUX_EVENTS$4.METADATA_PARSED, this._onMetadataParsed.bind(this));
+        this.on(DEMUX_EVENTS$3.METADATA_PARSED, this._onMetadataParsed.bind(this));
 
-        this.on(DEMUX_EVENTS$4.DEMUX_COMPLETE, this._onDemuxComplete.bind(this));
+        this.on(DEMUX_EVENTS$3.DEMUX_COMPLETE, this._onDemuxComplete.bind(this));
 
-        this.on(DEMUX_EVENTS$4.DEMUX_ERROR, this._onDemuxError.bind(this));
+        this.on(DEMUX_EVENTS$3.DEMUX_ERROR, this._onDemuxError.bind(this));
 
         this.on(REMUX_EVENTS$5.REMUX_ERROR, this._onRemuxError.bind(this));
 
@@ -8182,17 +7676,17 @@
       value: function _onLoaderCompete(buffer) {
         if (buffer.TAG === 'M3U8_BUFFER') {
           this.m3u8Text = buffer.shift();
-          var mdata = M3U8Parser$1.parse(this.m3u8Text, this.baseurl);
+          var mdata = M3U8Parser.parse(this.m3u8Text, this.baseurl);
           try {
             this._playlist.pushM3U8(mdata);
           } catch (error) {
             this._onError('M3U8_PARSER_ERROR', 'PLAYLIST', error, true);
           }
           if (this._playlist.encrypt && this._playlist.encrypt.uri && !this._playlist.encrypt.key) {
-            this._context.registry('DECRYPT_BUFFER', XgBuffer$1)();
-            this._context.registry('KEY_BUFFER', XgBuffer$1)();
+            this._context.registry('DECRYPT_BUFFER', XgBuffer)();
+            this._context.registry('KEY_BUFFER', XgBuffer)();
             this._tsloader.buffer = 'DECRYPT_BUFFER';
-            this._keyLoader = this._context.registry('KEY_LOADER', FetchLoader$1)({ buffer: 'KEY_BUFFER', readtype: 3 });
+            this._keyLoader = this._context.registry('KEY_LOADER', FetchLoader)({ buffer: 'KEY_BUFFER', readtype: 3 });
             this.emitTo('KEY_LOADER', LOADER_EVENTS$3.LADER_START, this._playlist.encrypt.uri);
           } else {
             if (!this.preloadTime) {
@@ -8205,7 +7699,7 @@
               }
             }
 
-            var frag = this._playlist.getTs();
+            var frag = this._playlist.getTs(this._player.currentTime * 1000);
             if (frag) {
               this._playlist.downloading(frag.url, true);
               this.emitTo('TS_LOADER', LOADER_EVENTS$3.LADER_START, frag.url);
@@ -8219,15 +7713,15 @@
         } else if (buffer.TAG === 'TS_BUFFER') {
           this._preload(this.mse.container.currentTime);
           this._playlist.downloaded(this._tsloader.url, true);
-          this.emit(DEMUX_EVENTS$4.DEMUX_START, Object.assign({ url: this._tsloader.url }, this._playlist._ts[this._tsloader.url]));
+          this.emit(DEMUX_EVENTS$3.DEMUX_START, Object.assign({ url: this._tsloader.url }, this._playlist._ts[this._tsloader.url]));
         } else if (buffer.TAG === 'DECRYPT_BUFFER') {
           this.retrytimes = this.configs.retrytimes || 3;
           this._playlist.downloaded(this._tsloader.url, true);
           this.emitTo('CRYPTO', CRYTO_EVENTS$3.START_DECRYPT, Object.assign({ url: this._tsloader.url }, this._playlist._ts[this._tsloader.url]));
-        } else if (buffer.TAG == 'KEY_BUFFER') {
+        } else if (buffer.TAG === 'KEY_BUFFER') {
           this.retrytimes = this.configs.retrytimes || 3;
           this._playlist.encrypt.key = buffer.shift();
-          this._crypto = this._context.registry('CRYPTO', Crypto$1)({
+          this._crypto = this._context.registry('CRYPTO', Crypto)({
             key: this._playlist.encrypt.key,
             iv: this._playlist.encrypt.ivb,
             method: this._playlist.encrypt.method,
@@ -8252,7 +7746,7 @@
     }, {
       key: '_onDcripted',
       value: function _onDcripted() {
-        this.emit(DEMUX_EVENTS$4.DEMUX_START);
+        this.emit(DEMUX_EVENTS$3.DEMUX_START);
       }
     }, {
       key: 'seek',
@@ -8267,7 +7761,7 @@
 
         this._lastSeekTime = time;
         this._tsloader.destroy();
-        this._tsloader = this._context.registry('TS_LOADER', FetchLoader$1)({ buffer: 'TS_BUFFER', readtype: 3 });
+        this._tsloader = this._context.registry('TS_LOADER', FetchLoader)({ buffer: 'TS_BUFFER', readtype: 3 });
         if (this._presource.sources.video) {
           this._presource.sources.video.data = [];
         }
@@ -8292,12 +7786,13 @@
         }
 
         this._playlist.clearDownloaded();
+        this._context.seek(time);
         this._preload(time);
       }
     }, {
       key: 'load',
       value: function load(url) {
-        this.baseurl = M3U8Parser$1.parseURL(url);
+        this.baseurl = M3U8Parser.parseURL(url);
         this.url = url;
         this.emitTo('M3U8_LOADER', LOADER_EVENTS$3.LADER_START, url);
       }
@@ -8309,58 +7804,50 @@
           return;
         }
         var video = this.mse.container;
-        if (video.buffered.length < 1) {
-          var frag = this._playlist.getTs(0);
+        // Get current time range
+        var currentbufferend = -1;
+        if (!time && video.buffered.length) {
+          time = video.buffered.end(0);
+        }
+
+        for (var i = 0; i < video.buffered.length; i++) {
+          if (time >= video.buffered.start(i) && time < video.buffered.end(i)) {
+            currentbufferend = video.buffered.end(i);
+          }
+        }
+
+        if (currentbufferend < 0) {
+          var frag = this._playlist.getTs((time + 0.5) * 1000); // FIXME: Last frame buffer shortens duration
           if (frag && !frag.downloading && !frag.downloaded) {
             this._playlist.downloading(frag.url, true);
             this.emitTo('TS_LOADER', LOADER_EVENTS$3.LADER_START, frag.url);
           }
-        } else {
-          // Get current time range
-          var currentbufferend = -1;
-          if (!time) {
-            time = video.buffered.end(0);
+        } else if (currentbufferend < time + this.preloadTime) {
+          var _frag2 = this._playlist.getTs(currentbufferend * 1000);
+
+          if (!_frag2) {
+            return;
           }
 
-          for (var i = 0; i < video.buffered.length; i++) {
-            if (time >= video.buffered.start(i) && time < video.buffered.end(i)) {
-              currentbufferend = video.buffered.end(i);
-            }
-          }
+          // let fragend = frag ? (frag.time + frag.duration) / 1000 : 0;
 
-          if (currentbufferend < 0) {
-            var _frag2 = this._playlist.getTs((time + 0.5) * 1000); // FIXME: Last frame buffer shortens duration
-            if (_frag2 && !_frag2.downloading && !_frag2.downloaded) {
-              this._playlist.downloading(_frag2.url, true);
-              this.emitTo('TS_LOADER', LOADER_EVENTS$3.LADER_START, _frag2.url);
-            }
-          } else if (currentbufferend < time + this.preloadTime) {
-            var _frag3 = this._playlist.getTs(currentbufferend * 1000);
+          var curTime = _frag2.time;
+          var curFragTime = _frag2.time;
 
-            if (!_frag3) {
-              return;
-            }
-
-            // let fragend = frag ? (frag.time + frag.duration) / 1000 : 0;
-
-            var curTime = _frag3.time;
-            var curFragTime = _frag3.time;
-
-            if (_frag3.downloaded) {
-              var loopMax = 1000;
-              while (loopMax-- > 0) {
-                curTime += 50;
-                _frag3 = this._playlist.getTs(curTime);
-                if (!_frag3 || _frag3.time > curFragTime) {
-                  break;
-                }
+          if (_frag2.downloaded) {
+            var loopMax = 1000;
+            while (loopMax-- > 0) {
+              curTime += 50;
+              _frag2 = this._playlist.getTs(curTime);
+              if (!_frag2 || _frag2.time > curFragTime) {
+                break;
               }
             }
+          }
 
-            if (_frag3 && !_frag3.downloading && !_frag3.downloaded) {
-              this._playlist.downloading(_frag3.url, true);
-              this.emitTo('TS_LOADER', LOADER_EVENTS$3.LADER_START, _frag3.url);
-            }
+          if (_frag2 && !_frag2.downloading && !_frag2.downloaded) {
+            this._playlist.downloading(_frag2.url, true);
+            this.emitTo('TS_LOADER', LOADER_EVENTS$3.LADER_START, _frag2.url);
           }
         }
       }
@@ -8385,9 +7872,9 @@
 
         this.off(REMUX_EVENTS$5.MEDIA_SEGMENT, this._onMediaSegment);
 
-        this.off(DEMUX_EVENTS$4.METADATA_PARSED, this._onMetadataParsed);
+        this.off(DEMUX_EVENTS$3.METADATA_PARSED, this._onMetadataParsed);
 
-        this.off(DEMUX_EVENTS$4.DEMUX_COMPLETE, this._onDemuxComplete);
+        this.off(DEMUX_EVENTS$3.DEMUX_COMPLETE, this._onDemuxComplete);
 
         this.off('TIME_UPDATE', this._onTimeUpdate);
 
@@ -8398,7 +7885,7 @@
     return HlsVodController;
   }();
 
-  var _typeof$5 = typeof Symbol === "function" && typeof Symbol.iterator === "symbol" ? function (obj) { return typeof obj; } : function (obj) { return obj && typeof Symbol === "function" && obj.constructor === Symbol && obj !== Symbol.prototype ? "symbol" : typeof obj; };
+  var _typeof$6 = typeof Symbol === "function" && typeof Symbol.iterator === "symbol" ? function (obj) { return typeof obj; } : function (obj) { return obj && typeof Symbol === "function" && obj.constructor === Symbol && obj !== Symbol.prototype ? "symbol" : typeof obj; };
 
   var _createClass$v = function () {
     function defineProperties(target, props) {
@@ -8424,7 +7911,7 @@
     }return value;
   };
 
-  var _get$2 = function get(object, property, receiver) {
+  var _get$3 = function get(object, property, receiver) {
     if (object === null) object = Function.prototype;var desc = Object.getOwnPropertyDescriptor(object, property);if (desc === undefined) {
       var parent = Object.getPrototypeOf(object);if (parent === null) {
         return undefined;
@@ -8446,15 +7933,15 @@
     }
   }
 
-  function _possibleConstructorReturn$3(self, call) {
+  function _possibleConstructorReturn$4(self, call) {
     if (!self) {
       throw new ReferenceError("this hasn't been initialised - super() hasn't been called");
-    }return call && ((typeof call === "undefined" ? "undefined" : _typeof$5(call)) === "object" || typeof call === "function") ? call : self;
+    }return call && ((typeof call === "undefined" ? "undefined" : _typeof$6(call)) === "object" || typeof call === "function") ? call : self;
   }
 
-  function _inherits$3(subClass, superClass) {
+  function _inherits$4(subClass, superClass) {
     if (typeof superClass !== "function" && superClass !== null) {
-      throw new TypeError("Super expression must either be null or a function, not " + (typeof superClass === "undefined" ? "undefined" : _typeof$5(superClass)));
+      throw new TypeError("Super expression must either be null or a function, not " + (typeof superClass === "undefined" ? "undefined" : _typeof$6(superClass)));
     }subClass.prototype = Object.create(superClass && superClass.prototype, { constructor: { value: subClass, enumerable: false, writable: true, configurable: true } });if (superClass) Object.setPrototypeOf ? Object.setPrototypeOf(subClass, superClass) : subClass.__proto__ = superClass;
   }
 
@@ -8463,18 +7950,20 @@
   var HLS_EVENTS$3 = EVENTS.HLS_EVENTS;
 
   var HlsVodPlayer = function (_Player) {
-    _inherits$3(HlsVodPlayer, _Player);
+    _inherits$4(HlsVodPlayer, _Player);
 
     function HlsVodPlayer(options) {
       _classCallCheck$v(this, HlsVodPlayer);
 
-      var _this2 = _possibleConstructorReturn$3(this, (HlsVodPlayer.__proto__ || Object.getPrototypeOf(HlsVodPlayer)).call(this, options));
+      var _this2 = _possibleConstructorReturn$4(this, (HlsVodPlayer.__proto__ || Object.getPrototypeOf(HlsVodPlayer)).call(this, options));
 
       _this2.hlsOps = {};
       _this2.util = Player.util;
       _this2.util.deepCopy(_this2.hlsOps, options);
-      _this2._context = new Context$1(HlsAllowedEvents$2);
+      _this2._context = new Context(HlsAllowedEvents$2);
       _this2._handleSetCurrentTime = debounce(_this2._handleSetCurrentTime.bind(_this2), 500);
+      _this2.onWaiting = _this2.onWaiting.bind(_this2);
+      _this2.started = false;
       return _this2;
     }
 
@@ -8508,7 +7997,7 @@
 
         this.__core__.once(REMUX_EVENTS$6.INIT_SEGMENT, function () {
           var mse = _this4._context.getInstance('MSE');
-          _get$2(HlsVodPlayer.prototype.__proto__ || Object.getPrototypeOf(HlsVodPlayer.prototype), 'start', _this4).call(_this4, mse.url);
+          _get$3(HlsVodPlayer.prototype.__proto__ || Object.getPrototypeOf(HlsVodPlayer.prototype), 'start', _this4).call(_this4, mse.url);
         });
 
         this.__core__.once(HLS_EVENTS$3.RETRY_TIME_EXCEEDED, function () {
@@ -8524,16 +8013,26 @@
     }, {
       key: 'onWaiting',
       value: function onWaiting() {
-        _get$2(HlsVodPlayer.prototype.__proto__ || Object.getPrototypeOf(HlsVodPlayer.prototype), 'onWaiting', this).call(this);
+        var _this5 = this;
 
-        var _detectBufferGap = this.detectBufferGap(),
-            gap = _detectBufferGap.gap,
-            start = _detectBufferGap.start,
-            method = _detectBufferGap.method;
+        var _self = this;
+        _get$3(HlsVodPlayer.prototype.__proto__ || Object.getPrototypeOf(HlsVodPlayer.prototype), 'onWaiting', this).call(this);
+        var retryTime = 10;
+        var timer = setInterval(function () {
+          if (Player.util.hasClass(_self.root, 'xgplayer-isloading')) {
+            var _detectBufferGap = _this5.detectBufferGap(),
+                gap = _detectBufferGap.gap,
+                start = _detectBufferGap.start,
+                method = _detectBufferGap.method;
 
-        if (gap) {
-          this.currentTime = Math[method](start);
-        }
+            if (gap) {
+              _this5.currentTime = Math[method](start);
+            }
+          }
+          if (retryTime-- <= 0) {
+            clearInterval(timer);
+          }
+        }, 500);
       }
     }, {
       key: '_initSrcChangeHandler',
@@ -8569,20 +8068,23 @@
       value: function start() {
         var url = arguments.length > 0 && arguments[0] !== undefined ? arguments[0] : this.config.url;
 
-        if (!url) {
+        if (!url || this.started) {
           return;
         }
+
         this.__core__ = this._context.registry('HLS_LIVE_CONTROLLER', HlsVodController)({ player: this, container: this.video });
         this._context.init();
         this.__core__.load(url);
         this._initEvents();
         this._initSrcChangeHandler();
+
+        this.started = true;
       }
     }, {
       key: 'destroy',
       value: function destroy() {
         this._context.destroy();
-        _get$2(HlsVodPlayer.prototype.__proto__ || Object.getPrototypeOf(HlsVodPlayer.prototype), 'destroy', this).call(this);
+        _get$3(HlsVodPlayer.prototype.__proto__ || Object.getPrototypeOf(HlsVodPlayer.prototype), 'destroy', this).call(this);
       }
     }, {
       key: 'detectBufferGap',
@@ -8610,7 +8112,7 @@
     }, {
       key: 'currentTime',
       get: function get() {
-        return _get$2(HlsVodPlayer.prototype.__proto__ || Object.getPrototypeOf(HlsVodPlayer.prototype), 'currentTime', this);
+        return _get$3(HlsVodPlayer.prototype.__proto__ || Object.getPrototypeOf(HlsVodPlayer.prototype), 'currentTime', this);
       },
       set: function set(time) {
         this._handleSetCurrentTime(time);
