@@ -613,9 +613,12 @@
   }
 
   // ES3 safe
+
   var _undefined = void 0;
 
-  var is = function (value) { return value !== _undefined && value !== null; };
+  var is = function (value) {
+    return value !== _undefined && value !== null;
+  };
 
   // prettier-ignore
   var possibleTypes = { "object": true, "function": true, "undefined": true /* document.all */ };
@@ -651,7 +654,8 @@
   	return !is$2(value);
   };
 
-  var classRe = /^\s*class[\s{/}]/, functionToString = Function.prototype.toString;
+  var classRe = /^\s*class[\s{/}]/,
+      functionToString = Function.prototype.toString;
 
   var is$4 = function (value) {
   	if (!is$3(value)) return false;
@@ -660,7 +664,8 @@
   };
 
   var isImplemented = function () {
-  	var assign = Object.assign, obj;
+  	var assign = Object.assign,
+  	    obj;
   	if (typeof assign !== "function") return false;
   	obj = { foo: "raz" };
   	assign(obj, { bar: "dwa" }, { trzy: "trzy" });
@@ -677,15 +682,20 @@
   };
 
   // eslint-disable-next-line no-empty-function
+
   var noop = function () {};
 
   var _undefined$1 = noop(); // Support ES3 engines
 
-  var isValue = function (val) { return val !== _undefined$1 && val !== null; };
+  var isValue = function (val) {
+    return val !== _undefined$1 && val !== null;
+  };
 
   var keys = Object.keys;
 
-  var shim = function (object) { return keys(isValue(object) ? Object(object) : object); };
+  var shim = function (object) {
+    return keys(isValue(object) ? Object(object) : object);
+  };
 
   var keys$1 = isImplemented$1() ? Object.keys : shim;
 
@@ -694,10 +704,13 @@
   	return value;
   };
 
-  var max   = Math.max;
+  var max = Math.max;
 
-  var shim$1 = function (dest, src/*, …srcn*/) {
-  	var error, i, length = max(arguments.length, 2), assign;
+  var shim$1 = function (dest, src /*, …srcn*/) {
+  	var error,
+  	    i,
+  	    length = max(arguments.length, 2),
+  	    assign;
   	dest = Object(validValue(dest));
   	assign = function (key) {
   		try {
@@ -716,7 +729,8 @@
 
   var assign = isImplemented() ? Object.assign : shim$1;
 
-  var forEach = Array.prototype.forEach, create = Object.create;
+  var forEach = Array.prototype.forEach,
+      create = Object.create;
 
   var process = function (src, obj) {
   	var key;
@@ -724,7 +738,7 @@
   };
 
   // eslint-disable-next-line no-unused-vars
-  var normalizeOptions = function (opts1/*, …options*/) {
+  var normalizeOptions = function (opts1 /*, …options*/) {
   	var result = create(null);
   	forEach.call(arguments, function (options) {
   		if (!isValue(options)) return;
@@ -742,7 +756,7 @@
 
   var indexOf = String.prototype.indexOf;
 
-  var shim$2 = function (searchString/*, position*/) {
+  var shim$2 = function (searchString /*, position*/) {
   	return indexOf.call(this, searchString, arguments[1]) > -1;
   };
 
@@ -752,7 +766,7 @@
 
 
 
-  var d = (module.exports = function (dscr, value/*, options*/) {
+  var d = module.exports = function (dscr, value /*, options*/) {
   	var c, e, w, options, desc;
   	if (arguments.length < 2 || typeof dscr !== "string") {
   		options = value;
@@ -772,9 +786,9 @@
 
   	desc = { value: value, configurable: c, enumerable: e, writable: w };
   	return !options ? desc : assign(normalizeOptions(options), desc);
-  });
+  };
 
-  d.gs = function (dscr, get, set/*, options*/) {
+  d.gs = function (dscr, get, set /*, options*/) {
   	var c, e, options, desc;
   	if (typeof dscr !== "string") {
   		options = set;
@@ -815,13 +829,20 @@
 
   var eventEmitter = createCommonjsModule(function (module, exports) {
 
-  var apply = Function.prototype.apply, call = Function.prototype.call
-    , create = Object.create, defineProperty = Object.defineProperty
-    , defineProperties = Object.defineProperties
-    , hasOwnProperty = Object.prototype.hasOwnProperty
-    , descriptor = { configurable: true, enumerable: false, writable: true }
-
-    , on, once, off, emit, methods, descriptors, base;
+  var apply = Function.prototype.apply,
+      call = Function.prototype.call,
+      create = Object.create,
+      defineProperty = Object.defineProperty,
+      defineProperties = Object.defineProperties,
+      hasOwnProperty = Object.prototype.hasOwnProperty,
+      descriptor = { configurable: true, enumerable: false, writable: true },
+      on,
+      once,
+      off,
+      emit,
+      methods,
+      descriptors,
+      base;
 
   on = function (type, listener) {
   	var data;
@@ -835,9 +856,7 @@
   	} else {
   		data = this.__ee__;
   	}
-  	if (!data[type]) data[type] = listener;
-  	else if (typeof data[type] === 'object') data[type].push(listener);
-  	else data[type] = [data[type], listener];
+  	if (!data[type]) data[type] = listener;else if (typeof data[type] === 'object') data[type].push(listener);else data[type] = [data[type], listener];
 
   	return this;
   };
@@ -867,16 +886,13 @@
   	listeners = data[type];
 
   	if (typeof listeners === 'object') {
-  		for (i = 0; (candidate = listeners[i]); ++i) {
-  			if ((candidate === listener) ||
-  					(candidate.__eeOnceListener__ === listener)) {
-  				if (listeners.length === 2) data[type] = listeners[i ? 0 : 1];
-  				else listeners.splice(i, 1);
+  		for (i = 0; candidate = listeners[i]; ++i) {
+  			if (candidate === listener || candidate.__eeOnceListener__ === listener) {
+  				if (listeners.length === 2) data[type] = listeners[i ? 0 : 1];else listeners.splice(i, 1);
   			}
   		}
   	} else {
-  		if ((listeners === listener) ||
-  				(listeners.__eeOnceListener__ === listener)) {
+  		if (listeners === listener || listeners.__eeOnceListener__ === listener) {
   			delete data[type];
   		}
   	}
@@ -897,27 +913,27 @@
   		for (i = 1; i < l; ++i) args[i - 1] = arguments[i];
 
   		listeners = listeners.slice();
-  		for (i = 0; (listener = listeners[i]); ++i) {
+  		for (i = 0; listener = listeners[i]; ++i) {
   			apply.call(listener, this, args);
   		}
   	} else {
   		switch (arguments.length) {
-  		case 1:
-  			call.call(listeners, this);
-  			break;
-  		case 2:
-  			call.call(listeners, this, arguments[1]);
-  			break;
-  		case 3:
-  			call.call(listeners, this, arguments[1], arguments[2]);
-  			break;
-  		default:
-  			l = arguments.length;
-  			args = new Array(l - 1);
-  			for (i = 1; i < l; ++i) {
-  				args[i - 1] = arguments[i];
-  			}
-  			apply.call(listeners, this, args);
+  			case 1:
+  				call.call(listeners, this);
+  				break;
+  			case 2:
+  				call.call(listeners, this, arguments[1]);
+  				break;
+  			case 3:
+  				call.call(listeners, this, arguments[1], arguments[2]);
+  				break;
+  			default:
+  				l = arguments.length;
+  				args = new Array(l - 1);
+  				for (i = 1; i < l; ++i) {
+  					args[i - 1] = arguments[i];
+  				}
+  				apply.call(listeners, this, args);
   		}
   	}
   };
@@ -939,7 +955,7 @@
   base = defineProperties({}, descriptors);
 
   module.exports = exports = function (o) {
-  	return (o == null) ? create(base) : defineProperties(Object(o), descriptors);
+  	return o == null ? create(base) : defineProperties(Object(o), descriptors);
   };
   exports.methods = methods;
   });

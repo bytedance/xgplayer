@@ -148,7 +148,6 @@
     "xgplayer-transmuxer-buffer-xgbuffer": "file:packages/xgplayer-transmuxer-buffer-xgbuffer",
     "xgplayer-transmuxer-codec-aac": "file:packages/xgplayer-transmuxer-codec-aac",
     "xgplayer-transmuxer-codec-compatibility": "file:packages/xgplayer-transmuxer-codec-compatibility",
-    "xgplayer-transmuxer-codec-h264": "file:packages/xgplayer-transmuxer-codec-h264",
     "xgplayer-transmuxer-constant-events": "file:packages/xgplayer-transmuxer-constant-events",
     "xgplayer-transmuxer-context": "file:packages/xgplayer-transmuxer-context",
     "xgplayer-transmuxer-demux-flv": "file:packages/xgplayer-transmuxer-demux-flv",

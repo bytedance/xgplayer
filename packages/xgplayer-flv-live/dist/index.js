@@ -1,11 +1,10 @@
 (function (global, factory) {
-  typeof exports === 'object' && typeof module !== 'undefined' ? module.exports = factory(require('xgplayer'), require('xgplayer-transmuxer-context')) :
-  typeof define === 'function' && define.amd ? define(['xgplayer', 'xgplayer-transmuxer-context'], factory) :
-  (global = global || self, global.FlvLivePlayer = factory(global.Player, global.Context));
-}(this, (function (Player, Context) { 'use strict';
+  typeof exports === 'object' && typeof module !== 'undefined' ? module.exports = factory(require('xgplayer')) :
+  typeof define === 'function' && define.amd ? define(['xgplayer'], factory) :
+  (global = global || self, global.FlvLivePlayer = factory(global.Player));
+}(this, (function (Player) { 'use strict';
 
   Player = Player && Player.hasOwnProperty('default') ? Player['default'] : Player;
-  Context = Context && Context.hasOwnProperty('default') ? Context['default'] : Context;
 
   var PLAYER_EVENTS = {
     SEEK: 'SEEK'
@@ -81,6 +80,892 @@
     PLAYER_EVENTS: PLAYER_EVENTS
   };
 
+  var _createClass = function () {
+    function defineProperties(target, props) {
+      for (var i = 0; i < props.length; i++) {
+        var descriptor = props[i];descriptor.enumerable = descriptor.enumerable || false;descriptor.configurable = true;if ("value" in descriptor) descriptor.writable = true;Object.defineProperty(target, descriptor.key, descriptor);
+      }
+    }return function (Constructor, protoProps, staticProps) {
+      if (protoProps) defineProperties(Constructor.prototype, protoProps);if (staticProps) defineProperties(Constructor, staticProps);return Constructor;
+    };
+  }();
+
+  function _classCallCheck(instance, Constructor) {
+    if (!(instance instanceof Constructor)) {
+      throw new TypeError("Cannot call a class as a function");
+    }
+  }
+
+  var isObjectFilled = function isObjectFilled(obj) {
+    for (var key in obj) {
+      if (obj.hasOwnProperty(key)) {
+        if (obj[key] === null) {
+          return false;
+        }
+      }
+    }
+    return true;
+  };
+
+  var MediaInfo = function () {
+    function MediaInfo() {
+      _classCallCheck(this, MediaInfo);
+
+      this.mimeType = null;
+      this.duration = null;
+
+      this.hasVideo = null;
+      this.video = {
+        codec: null,
+        width: null,
+        height: null,
+        profile: null,
+        level: null,
+        frameRate: {
+          fixed: true,
+          fps: 25,
+          fps_num: 25000,
+          fps_den: 1000
+        },
+        chromaFormat: null,
+        parRatio: {
+          width: 1,
+          height: 1
+        }
+      };
+
+      this.hasAudio = null;
+
+      this.audio = {
+        codec: null,
+        sampleRate: null,
+        sampleRateIndex: null,
+        channelCount: null
+      };
+    }
+
+    _createClass(MediaInfo, [{
+      key: "isComplete",
+      value: function isComplete() {
+        return MediaInfo.isBaseInfoReady(this) && MediaInfo.isVideoReady(this) && MediaInfo.isAudioReady(this);
+      }
+    }], [{
+      key: "isBaseInfoReady",
+      value: function isBaseInfoReady(mediaInfo) {
+        return isObjectFilled(mediaInfo);
+      }
+    }, {
+      key: "isVideoReady",
+      value: function isVideoReady(mediaInfo) {
+        if (!mediaInfo.hasVideo) {
+          return true;
+        }
+
+        return isObjectFilled(mediaInfo.video);
+      }
+    }, {
+      key: "isAudioReady",
+      value: function isAudioReady(mediaInfo) {
+        if (!mediaInfo.hasAudio) {
+          return true;
+        }
+
+        return isObjectFilled(mediaInfo.video);
+      }
+    }]);
+
+    return MediaInfo;
+  }();
+
+  var domain;
+
+  // This constructor is used to store event handlers. Instantiating this is
+  // faster than explicitly calling `Object.create(null)` to get a "clean" empty
+  // object (tested with v8 v4.9).
+  function EventHandlers() {}
+  EventHandlers.prototype = Object.create(null);
+
+  function EventEmitter() {
+    EventEmitter.init.call(this);
+  }
+
+  // nodejs oddity
+  // require('events') === require('events').EventEmitter
+  EventEmitter.EventEmitter = EventEmitter;
+
+  EventEmitter.usingDomains = false;
+
+  EventEmitter.prototype.domain = undefined;
+  EventEmitter.prototype._events = undefined;
+  EventEmitter.prototype._maxListeners = undefined;
+
+  // By default EventEmitters will print a warning if more than 10 listeners are
+  // added to it. This is a useful default which helps finding memory leaks.
+  EventEmitter.defaultMaxListeners = 10;
+
+  EventEmitter.init = function () {
+    this.domain = null;
+    if (EventEmitter.usingDomains) {
+      // if there is an active domain, then attach to it.
+      if (domain.active && !(this instanceof domain.Domain)) ;
+    }
+
+    if (!this._events || this._events === Object.getPrototypeOf(this)._events) {
+      this._events = new EventHandlers();
+      this._eventsCount = 0;
+    }
+
+    this._maxListeners = this._maxListeners || undefined;
+  };
+
+  // Obviously not all Emitters should be limited to 10. This function allows
+  // that to be increased. Set to zero for unlimited.
+  EventEmitter.prototype.setMaxListeners = function setMaxListeners(n) {
+    if (typeof n !== 'number' || n < 0 || isNaN(n)) throw new TypeError('"n" argument must be a positive number');
+    this._maxListeners = n;
+    return this;
+  };
+
+  function $getMaxListeners(that) {
+    if (that._maxListeners === undefined) return EventEmitter.defaultMaxListeners;
+    return that._maxListeners;
+  }
+
+  EventEmitter.prototype.getMaxListeners = function getMaxListeners() {
+    return $getMaxListeners(this);
+  };
+
+  // These standalone emit* functions are used to optimize calling of event
+  // handlers for fast cases because emit() itself often has a variable number of
+  // arguments and can be deoptimized because of that. These functions always have
+  // the same number of arguments and thus do not get deoptimized, so the code
+  // inside them can execute faster.
+  function emitNone(handler, isFn, self) {
+    if (isFn) handler.call(self);else {
+      var len = handler.length;
+      var listeners = arrayClone(handler, len);
+      for (var i = 0; i < len; ++i) listeners[i].call(self);
+    }
+  }
+  function emitOne(handler, isFn, self, arg1) {
+    if (isFn) handler.call(self, arg1);else {
+      var len = handler.length;
+      var listeners = arrayClone(handler, len);
+      for (var i = 0; i < len; ++i) listeners[i].call(self, arg1);
+    }
+  }
+  function emitTwo(handler, isFn, self, arg1, arg2) {
+    if (isFn) handler.call(self, arg1, arg2);else {
+      var len = handler.length;
+      var listeners = arrayClone(handler, len);
+      for (var i = 0; i < len; ++i) listeners[i].call(self, arg1, arg2);
+    }
+  }
+  function emitThree(handler, isFn, self, arg1, arg2, arg3) {
+    if (isFn) handler.call(self, arg1, arg2, arg3);else {
+      var len = handler.length;
+      var listeners = arrayClone(handler, len);
+      for (var i = 0; i < len; ++i) listeners[i].call(self, arg1, arg2, arg3);
+    }
+  }
+
+  function emitMany(handler, isFn, self, args) {
+    if (isFn) handler.apply(self, args);else {
+      var len = handler.length;
+      var listeners = arrayClone(handler, len);
+      for (var i = 0; i < len; ++i) listeners[i].apply(self, args);
+    }
+  }
+
+  EventEmitter.prototype.emit = function emit(type) {
+    var er, handler, len, args, i, events, domain;
+    var doError = type === 'error';
+
+    events = this._events;
+    if (events) doError = doError && events.error == null;else if (!doError) return false;
+
+    domain = this.domain;
+
+    // If there is no 'error' event listener then throw.
+    if (doError) {
+      er = arguments[1];
+      if (domain) {
+        if (!er) er = new Error('Uncaught, unspecified "error" event');
+        er.domainEmitter = this;
+        er.domain = domain;
+        er.domainThrown = false;
+        domain.emit('error', er);
+      } else if (er instanceof Error) {
+        throw er; // Unhandled 'error' event
+      } else {
+        // At least give some kind of context to the user
+        var err = new Error('Uncaught, unspecified "error" event. (' + er + ')');
+        err.context = er;
+        throw err;
+      }
+      return false;
+    }
+
+    handler = events[type];
+
+    if (!handler) return false;
+
+    var isFn = typeof handler === 'function';
+    len = arguments.length;
+    switch (len) {
+      // fast cases
+      case 1:
+        emitNone(handler, isFn, this);
+        break;
+      case 2:
+        emitOne(handler, isFn, this, arguments[1]);
+        break;
+      case 3:
+        emitTwo(handler, isFn, this, arguments[1], arguments[2]);
+        break;
+      case 4:
+        emitThree(handler, isFn, this, arguments[1], arguments[2], arguments[3]);
+        break;
+      // slower
+      default:
+        args = new Array(len - 1);
+        for (i = 1; i < len; i++) args[i - 1] = arguments[i];
+        emitMany(handler, isFn, this, args);
+    }
+
+    return true;
+  };
+
+  function _addListener(target, type, listener, prepend) {
+    var m;
+    var events;
+    var existing;
+
+    if (typeof listener !== 'function') throw new TypeError('"listener" argument must be a function');
+
+    events = target._events;
+    if (!events) {
+      events = target._events = new EventHandlers();
+      target._eventsCount = 0;
+    } else {
+      // To avoid recursion in the case that type === "newListener"! Before
+      // adding it to the listeners, first emit "newListener".
+      if (events.newListener) {
+        target.emit('newListener', type, listener.listener ? listener.listener : listener);
+
+        // Re-assign `events` because a newListener handler could have caused the
+        // this._events to be assigned to a new object
+        events = target._events;
+      }
+      existing = events[type];
+    }
+
+    if (!existing) {
+      // Optimize the case of one listener. Don't need the extra array object.
+      existing = events[type] = listener;
+      ++target._eventsCount;
+    } else {
+      if (typeof existing === 'function') {
+        // Adding the second element, need to change to array.
+        existing = events[type] = prepend ? [listener, existing] : [existing, listener];
+      } else {
+        // If we've already got an array, just append.
+        if (prepend) {
+          existing.unshift(listener);
+        } else {
+          existing.push(listener);
+        }
+      }
+
+      // Check for listener leak
+      if (!existing.warned) {
+        m = $getMaxListeners(target);
+        if (m && m > 0 && existing.length > m) {
+          existing.warned = true;
+          var w = new Error('Possible EventEmitter memory leak detected. ' + existing.length + ' ' + type + ' listeners added. ' + 'Use emitter.setMaxListeners() to increase limit');
+          w.name = 'MaxListenersExceededWarning';
+          w.emitter = target;
+          w.type = type;
+          w.count = existing.length;
+          emitWarning(w);
+        }
+      }
+    }
+
+    return target;
+  }
+  function emitWarning(e) {
+    typeof console.warn === 'function' ? console.warn(e) : console.log(e);
+  }
+  EventEmitter.prototype.addListener = function addListener(type, listener) {
+    return _addListener(this, type, listener, false);
+  };
+
+  EventEmitter.prototype.on = EventEmitter.prototype.addListener;
+
+  EventEmitter.prototype.prependListener = function prependListener(type, listener) {
+    return _addListener(this, type, listener, true);
+  };
+
+  function _onceWrap(target, type, listener) {
+    var fired = false;
+    function g() {
+      target.removeListener(type, g);
+      if (!fired) {
+        fired = true;
+        listener.apply(target, arguments);
+      }
+    }
+    g.listener = listener;
+    return g;
+  }
+
+  EventEmitter.prototype.once = function once(type, listener) {
+    if (typeof listener !== 'function') throw new TypeError('"listener" argument must be a function');
+    this.on(type, _onceWrap(this, type, listener));
+    return this;
+  };
+
+  EventEmitter.prototype.prependOnceListener = function prependOnceListener(type, listener) {
+    if (typeof listener !== 'function') throw new TypeError('"listener" argument must be a function');
+    this.prependListener(type, _onceWrap(this, type, listener));
+    return this;
+  };
+
+  // emits a 'removeListener' event iff the listener was removed
+  EventEmitter.prototype.removeListener = function removeListener(type, listener) {
+    var list, events, position, i, originalListener;
+
+    if (typeof listener !== 'function') throw new TypeError('"listener" argument must be a function');
+
+    events = this._events;
+    if (!events) return this;
+
+    list = events[type];
+    if (!list) return this;
+
+    if (list === listener || list.listener && list.listener === listener) {
+      if (--this._eventsCount === 0) this._events = new EventHandlers();else {
+        delete events[type];
+        if (events.removeListener) this.emit('removeListener', type, list.listener || listener);
+      }
+    } else if (typeof list !== 'function') {
+      position = -1;
+
+      for (i = list.length; i-- > 0;) {
+        if (list[i] === listener || list[i].listener && list[i].listener === listener) {
+          originalListener = list[i].listener;
+          position = i;
+          break;
+        }
+      }
+
+      if (position < 0) return this;
+
+      if (list.length === 1) {
+        list[0] = undefined;
+        if (--this._eventsCount === 0) {
+          this._events = new EventHandlers();
+          return this;
+        } else {
+          delete events[type];
+        }
+      } else {
+        spliceOne(list, position);
+      }
+
+      if (events.removeListener) this.emit('removeListener', type, originalListener || listener);
+    }
+
+    return this;
+  };
+
+  EventEmitter.prototype.removeAllListeners = function removeAllListeners(type) {
+    var listeners, events;
+
+    events = this._events;
+    if (!events) return this;
+
+    // not listening for removeListener, no need to emit
+    if (!events.removeListener) {
+      if (arguments.length === 0) {
+        this._events = new EventHandlers();
+        this._eventsCount = 0;
+      } else if (events[type]) {
+        if (--this._eventsCount === 0) this._events = new EventHandlers();else delete events[type];
+      }
+      return this;
+    }
+
+    // emit removeListener for all listeners on all events
+    if (arguments.length === 0) {
+      var keys = Object.keys(events);
+      for (var i = 0, key; i < keys.length; ++i) {
+        key = keys[i];
+        if (key === 'removeListener') continue;
+        this.removeAllListeners(key);
+      }
+      this.removeAllListeners('removeListener');
+      this._events = new EventHandlers();
+      this._eventsCount = 0;
+      return this;
+    }
+
+    listeners = events[type];
+
+    if (typeof listeners === 'function') {
+      this.removeListener(type, listeners);
+    } else if (listeners) {
+      // LIFO order
+      do {
+        this.removeListener(type, listeners[listeners.length - 1]);
+      } while (listeners[0]);
+    }
+
+    return this;
+  };
+
+  EventEmitter.prototype.listeners = function listeners(type) {
+    var evlistener;
+    var ret;
+    var events = this._events;
+
+    if (!events) ret = [];else {
+      evlistener = events[type];
+      if (!evlistener) ret = [];else if (typeof evlistener === 'function') ret = [evlistener.listener || evlistener];else ret = unwrapListeners(evlistener);
+    }
+
+    return ret;
+  };
+
+  EventEmitter.listenerCount = function (emitter, type) {
+    if (typeof emitter.listenerCount === 'function') {
+      return emitter.listenerCount(type);
+    } else {
+      return listenerCount.call(emitter, type);
+    }
+  };
+
+  EventEmitter.prototype.listenerCount = listenerCount;
+  function listenerCount(type) {
+    var events = this._events;
+
+    if (events) {
+      var evlistener = events[type];
+
+      if (typeof evlistener === 'function') {
+        return 1;
+      } else if (evlistener) {
+        return evlistener.length;
+      }
+    }
+
+    return 0;
+  }
+
+  EventEmitter.prototype.eventNames = function eventNames() {
+    return this._eventsCount > 0 ? Reflect.ownKeys(this._events) : [];
+  };
+
+  // About 1.5x faster than the two-arg version of Array#splice().
+  function spliceOne(list, index) {
+    for (var i = index, k = i + 1, n = list.length; k < n; i += 1, k += 1) list[i] = list[k];
+    list.pop();
+  }
+
+  function arrayClone(arr, i) {
+    var copy = new Array(i);
+    while (i--) copy[i] = arr[i];
+    return copy;
+  }
+
+  function unwrapListeners(arr) {
+    var ret = new Array(arr.length);
+    for (var i = 0; i < ret.length; ++i) {
+      ret[i] = arr[i].listener || arr[i];
+    }
+    return ret;
+  }
+
+  var _typeof = typeof Symbol === "function" && typeof Symbol.iterator === "symbol" ? function (obj) { return typeof obj; } : function (obj) { return obj && typeof Symbol === "function" && obj.constructor === Symbol && obj !== Symbol.prototype ? "symbol" : typeof obj; };
+
+  var _get = function get(object, property, receiver) {
+    if (object === null) object = Function.prototype;var desc = Object.getOwnPropertyDescriptor(object, property);if (desc === undefined) {
+      var parent = Object.getPrototypeOf(object);if (parent === null) {
+        return undefined;
+      } else {
+        return get(parent, property, receiver);
+      }
+    } else if ("value" in desc) {
+      return desc.value;
+    } else {
+      var getter = desc.get;if (getter === undefined) {
+        return undefined;
+      }return getter.call(receiver);
+    }
+  };
+
+  var _createClass$1 = function () {
+    function defineProperties(target, props) {
+      for (var i = 0; i < props.length; i++) {
+        var descriptor = props[i];descriptor.enumerable = descriptor.enumerable || false;descriptor.configurable = true;if ("value" in descriptor) descriptor.writable = true;Object.defineProperty(target, descriptor.key, descriptor);
+      }
+    }return function (Constructor, protoProps, staticProps) {
+      if (protoProps) defineProperties(Constructor.prototype, protoProps);if (staticProps) defineProperties(Constructor, staticProps);return Constructor;
+    };
+  }();
+
+  function _possibleConstructorReturn(self, call) {
+    if (!self) {
+      throw new ReferenceError("this hasn't been initialised - super() hasn't been called");
+    }return call && ((typeof call === "undefined" ? "undefined" : _typeof(call)) === "object" || typeof call === "function") ? call : self;
+  }
+
+  function _inherits(subClass, superClass) {
+    if (typeof superClass !== "function" && superClass !== null) {
+      throw new TypeError("Super expression must either be null or a function, not " + (typeof superClass === "undefined" ? "undefined" : _typeof(superClass)));
+    }subClass.prototype = Object.create(superClass && superClass.prototype, { constructor: { value: subClass, enumerable: false, writable: true, configurable: true } });if (superClass) Object.setPrototypeOf ? Object.setPrototypeOf(subClass, superClass) : subClass.__proto__ = superClass;
+  }
+
+  function _classCallCheck$1(instance, Constructor) {
+    if (!(instance instanceof Constructor)) {
+      throw new TypeError("Cannot call a class as a function");
+    }
+  }
+
+  var DIRECT_EMIT_FLAG = '__TO__';
+
+  var Context = function () {
+    function Context() {
+      var allowedEvents = arguments.length > 0 && arguments[0] !== undefined ? arguments[0] : [];
+
+      _classCallCheck$1(this, Context);
+
+      this._emitter = new EventEmitter();
+      if (!this._emitter.off) {
+        this._emitter.off = this._emitter.removeListener;
+      }
+
+      this.mediaInfo = new MediaInfo();
+      this._instanceMap = {}; // 所有的解码流程实例
+      this._clsMap = {}; // 构造函数的map
+      this._inited = false;
+      this.allowedEvents = allowedEvents;
+      this._hooks = {}; // 注册在事件前/后的钩子，例如 before('DEMUX_COMPLETE')
+    }
+
+    /**
+     * 从上下文中获取解码流程实例，如果没有实例，构造一个
+     * @param tag
+     * @param args
+     * @returns {*}
+     */
+
+    _createClass$1(Context, [{
+      key: 'getInstance',
+      value: function getInstance(tag) {
+        var instance = this._instanceMap[tag];
+        if (instance) {
+          return instance;
+        } else {
+          // throw new Error(`${tag}实例尚未初始化`)
+          return null;
+        }
+      }
+
+      /**
+       * 初始化具体实例
+       * @param tag
+       * @param args
+       */
+
+    }, {
+      key: 'initInstance',
+      value: function initInstance(tag) {
+        for (var _len = arguments.length, args = Array(_len > 1 ? _len - 1 : 0), _key = 1; _key < _len; _key++) {
+          args[_key - 1] = arguments[_key];
+        }
+
+        var a = args[0],
+            b = args[1],
+            c = args[2],
+            d = args[3];
+
+        if (this._clsMap[tag]) {
+          var newInstance = new this._clsMap[tag](a, b, c, d);
+          this._instanceMap[tag] = newInstance;
+          if (newInstance.init) {
+            newInstance.init(); // TODO: lifecircle
+          }
+          return newInstance;
+        } else {
+          throw new Error(tag + "\u672A\u5728context\u4E2D\u6CE8\u518C");
+        }
+      }
+
+      /**
+       * 避免大量的initInstance调用，初始化所有的组件
+       * @param config
+       */
+
+    }, {
+      key: 'init',
+      value: function init(config) {
+        if (this._inited) {
+          return;
+        }
+        for (var tag in this._clsMap) {
+          // if not inited, init an instance
+          if (this._clsMap.hasOwnProperty(tag) && !this._instanceMap[tag]) {
+            this.initInstance(tag, config);
+          }
+        }
+        this._inited = true;
+      }
+
+      /**
+       * 注册一个上下文流程，提供安全的事件发送机制
+       * @param tag
+       * @param cls
+       */
+
+    }, {
+      key: 'registry',
+      value: function registry(tag, cls) {
+        var _this2 = this;
+
+        var emitter = this._emitter;
+        var checkMessageName = this._isMessageNameValid.bind(this);
+        var self = this;
+        var enhanced = function (_cls) {
+          _inherits(enhanced, _cls);
+
+          function enhanced(a, b, c) {
+            _classCallCheck$1(this, enhanced);
+
+            var _this = _possibleConstructorReturn(this, (enhanced.__proto__ || Object.getPrototypeOf(enhanced)).call(this, a, b, c));
+
+            _this.listeners = {};
+            _this.onceListeners = {};
+            _this.TAG = tag;
+            _this._context = self;
+            return _this;
+          }
+
+          _createClass$1(enhanced, [{
+            key: 'on',
+            value: function on(messageName, callback) {
+              checkMessageName(messageName);
+
+              if (this.listeners[messageName]) {
+                this.listeners[messageName].push(callback);
+              } else {
+                this.listeners[messageName] = [callback];
+              }
+
+              emitter.on('' + messageName + DIRECT_EMIT_FLAG + tag, callback); // 建立定向通信监听
+              return emitter.on(messageName, callback);
+            }
+
+            /**
+             * 在某个事件触发前执行
+             * @param messageName
+             * @param callback
+             */
+
+          }, {
+            key: 'before',
+            value: function before(messageName, callback) {
+              checkMessageName(messageName);
+              if (self._hooks[messageName]) {
+                self._hooks[messageName].push(callback);
+              } else {
+                self._hooks[messageName] = [callback];
+              }
+            }
+          }, {
+            key: 'once',
+            value: function once(messageName, callback) {
+              checkMessageName(messageName);
+
+              if (this.onceListeners[messageName]) {
+                this.onceListeners[messageName].push(callback);
+              } else {
+                this.onceListeners[messageName] = [callback];
+              }
+
+              emitter.once('' + messageName + DIRECT_EMIT_FLAG + tag, callback);
+              return emitter.once(messageName, callback);
+            }
+          }, {
+            key: 'emit',
+            value: function emit(messageName) {
+              checkMessageName(messageName);
+              // console.log('emit ', messageName);
+
+              var beforeList = self._hooks ? self._hooks[messageName] : null;
+
+              if (beforeList) {
+                for (var i = 0, len = beforeList.length; i < len; i++) {
+                  var callback = beforeList[i];
+                  callback();
+                }
+              }
+
+              for (var _len2 = arguments.length, args = Array(_len2 > 1 ? _len2 - 1 : 0), _key2 = 1; _key2 < _len2; _key2++) {
+                args[_key2 - 1] = arguments[_key2];
+              }
+
+              return emitter.emit.apply(emitter, [messageName].concat(args));
+            }
+
+            /**
+             * 定向发送给某个组件单例的消息
+             * @param messageName
+             * @param args
+             */
+
+          }, {
+            key: 'emitTo',
+            value: function emitTo(tag, messageName) {
+              checkMessageName(messageName);
+
+              for (var _len3 = arguments.length, args = Array(_len3 > 2 ? _len3 - 2 : 0), _key3 = 2; _key3 < _len3; _key3++) {
+                args[_key3 - 2] = arguments[_key3];
+              }
+
+              return emitter.emit.apply(emitter, ['' + messageName + DIRECT_EMIT_FLAG + tag].concat(args));
+            }
+          }, {
+            key: 'off',
+            value: function off(messageName, callback) {
+              checkMessageName(messageName);
+              return emitter.off(messageName, callback);
+            }
+          }, {
+            key: 'removeListeners',
+            value: function removeListeners() {
+              var hasOwn = Object.prototype.hasOwnProperty.bind(this.listeners);
+
+              for (var messageName in this.listeners) {
+                if (hasOwn(messageName)) {
+                  var callbacks = this.listeners[messageName] || [];
+                  for (var i = 0; i < callbacks.length; i++) {
+                    var callback = callbacks[i];
+                    emitter.off(messageName, callback);
+                    emitter.off('' + messageName + DIRECT_EMIT_FLAG + tag, callback);
+                  }
+                }
+              }
+
+              for (var _messageName in this.onceListeners) {
+                if (hasOwn(_messageName)) {
+                  var _callbacks = this.onceListeners[_messageName] || [];
+                  for (var _i = 0; _i < _callbacks.length; _i++) {
+                    var _callback = _callbacks[_i];
+                    emitter.off(_messageName, _callback);
+                    emitter.off('' + _messageName + DIRECT_EMIT_FLAG + tag, _callback);
+                  }
+                }
+              }
+            }
+
+            /**
+             * 在组件销毁时，默认将它注册的事件全部卸载，确保不会造成内存泄漏
+             */
+
+          }, {
+            key: 'destroy',
+            value: function destroy() {
+              // step1 unlisten events
+              this.removeListeners();
+              this.listeners = {};
+
+              // step2 release from context
+              delete self._instanceMap[tag];
+              if (_get(enhanced.prototype.__proto__ || Object.getPrototypeOf(enhanced.prototype), 'destroy', this)) {
+                return _get(enhanced.prototype.__proto__ || Object.getPrototypeOf(enhanced.prototype), 'destroy', this).call(this);
+              }
+            }
+          }]);
+
+          return enhanced;
+        }(cls);
+        this._clsMap[tag] = enhanced;
+
+        /**
+         * get instance immediately
+         * e.g const instance = context.registry(tag, Cls)(config)
+         * */
+        return function () {
+          for (var _len4 = arguments.length, args = Array(_len4), _key4 = 0; _key4 < _len4; _key4++) {
+            args[_key4] = arguments[_key4];
+          }
+
+          return _this2.initInstance.apply(_this2, [tag].concat(args));
+        };
+      }
+
+      /**
+       * 各个模块处理seek
+       * @param time
+       */
+
+    }, {
+      key: 'seek',
+      value: function seek(time) {
+        this._emitter.emit(EVENTS.PLAYER_EVENTS.SEEK, time);
+      }
+
+      /**
+       * 对存在的实例进行
+       */
+
+    }, {
+      key: 'destroyInstances',
+      value: function destroyInstances() {
+        var _this3 = this;
+
+        Object.keys(this._instanceMap).forEach(function (tag) {
+          if (_this3._instanceMap[tag].destroy) {
+            _this3._instanceMap[tag].destroy();
+          }
+        });
+      }
+
+      /**
+       * 编解码流程无需关注事件的解绑
+       */
+
+    }, {
+      key: 'destroy',
+      value: function destroy() {
+        this._emitter = null;
+        this.allowedEvents = [];
+        this._clsMap = null;
+        this._context = null;
+        this._hooks = null;
+        this.destroyInstances();
+      }
+
+      /**
+       * 对信道进行收拢
+       * @param messageName
+       * @private
+       */
+
+    }, {
+      key: '_isMessageNameValid',
+      value: function _isMessageNameValid(messageName) {
+        if (!this.allowedEvents.indexOf(messageName) < 0) {
+          throw new Error('unregistered message name: ' + messageName);
+        }
+      }
+    }]);
+
+    return Context;
+  }();
+
   var le = function () {
     var buf = new ArrayBuffer(2);
     new DataView(buf).setInt16(0, 256, true); // little-endian write
@@ -130,7 +1015,7 @@
     }
   };
 
-  var _createClass = function () {
+  var _createClass$2 = function () {
     function defineProperties(target, props) {
       for (var i = 0; i < props.length; i++) {
         var descriptor = props[i];descriptor.enumerable = descriptor.enumerable || false;descriptor.configurable = true;if ("value" in descriptor) descriptor.writable = true;Object.defineProperty(target, descriptor.key, descriptor);
@@ -140,7 +1025,7 @@
     };
   }();
 
-  function _classCallCheck(instance, Constructor) {
+  function _classCallCheck$2(instance, Constructor) {
     if (!(instance instanceof Constructor)) {
       throw new TypeError("Cannot call a class as a function");
     }
@@ -148,14 +1033,14 @@
 
   var MediaSegmentList = function () {
     function MediaSegmentList(type) {
-      _classCallCheck(this, MediaSegmentList);
+      _classCallCheck$2(this, MediaSegmentList);
 
       this._type = type;
       this._list = [];
       this._lastAppendLocation = -1; // cached last insert location
     }
 
-    _createClass(MediaSegmentList, [{
+    _createClass$2(MediaSegmentList, [{
       key: "isEmpty",
       value: function isEmpty() {
         return this._list.length === 0;
@@ -367,7 +1252,7 @@
 
   var Concat = unwrapExports(lib);
 
-  var _createClass$1 = function () {
+  var _createClass$3 = function () {
     function defineProperties(target, props) {
       for (var i = 0; i < props.length; i++) {
         var descriptor = props[i];descriptor.enumerable = descriptor.enumerable || false;descriptor.configurable = true;if ("value" in descriptor) descriptor.writable = true;Object.defineProperty(target, descriptor.key, descriptor);
@@ -377,7 +1262,7 @@
     };
   }();
 
-  function _classCallCheck$1(instance, Constructor) {
+  function _classCallCheck$3(instance, Constructor) {
     if (!(instance instanceof Constructor)) {
       throw new TypeError("Cannot call a class as a function");
     }
@@ -385,12 +1270,12 @@
 
   var Buffer = function () {
     function Buffer(buffer) {
-      _classCallCheck$1(this, Buffer);
+      _classCallCheck$3(this, Buffer);
 
       this.buffer = buffer || new Uint8Array(0);
     }
 
-    _createClass$1(Buffer, [{
+    _createClass$3(Buffer, [{
       key: 'write',
       value: function write() {
         var _this = this;
@@ -428,7 +1313,7 @@
     return Buffer;
   }();
 
-  var _createClass$2 = function () {
+  var _createClass$4 = function () {
     function defineProperties(target, props) {
       for (var i = 0; i < props.length; i++) {
         var descriptor = props[i];descriptor.enumerable = descriptor.enumerable || false;descriptor.configurable = true;if ("value" in descriptor) descriptor.writable = true;Object.defineProperty(target, descriptor.key, descriptor);
@@ -438,7 +1323,7 @@
     };
   }();
 
-  function _classCallCheck$2(instance, Constructor) {
+  function _classCallCheck$4(instance, Constructor) {
     if (!(instance instanceof Constructor)) {
       throw new TypeError("Cannot call a class as a function");
     }
@@ -448,10 +1333,10 @@
 
   var Fmp4 = function () {
     function Fmp4() {
-      _classCallCheck$2(this, Fmp4);
+      _classCallCheck$4(this, Fmp4);
     }
 
-    _createClass$2(Fmp4, null, [{
+    _createClass$4(Fmp4, null, [{
       key: 'size',
       value: function size(value) {
         return Buffer.writeUint32(value);
@@ -1046,7 +1931,7 @@
   };
   Fmp4.sequence = 1;
 
-  var _createClass$3 = function () {
+  var _createClass$5 = function () {
     function defineProperties(target, props) {
       for (var i = 0; i < props.length; i++) {
         var descriptor = props[i];descriptor.enumerable = descriptor.enumerable || false;descriptor.configurable = true;if ("value" in descriptor) descriptor.writable = true;Object.defineProperty(target, descriptor.key, descriptor);
@@ -1056,7 +1941,7 @@
     };
   }();
 
-  function _classCallCheck$3(instance, Constructor) {
+  function _classCallCheck$5(instance, Constructor) {
     if (!(instance instanceof Constructor)) {
       throw new TypeError("Cannot call a class as a function");
     }
@@ -1069,7 +1954,7 @@
     function Mp4Remuxer() {
       var curTime = arguments.length > 0 && arguments[0] !== undefined ? arguments[0] : 0;
 
-      _classCallCheck$3(this, Mp4Remuxer);
+      _classCallCheck$5(this, Mp4Remuxer);
 
       this._dtsBase = curTime * 1000;
       this._isDtsBaseInited = false;
@@ -1086,7 +1971,7 @@
       this.audioAllDuration = 0;
     }
 
-    _createClass$3(Mp4Remuxer, [{
+    _createClass$5(Mp4Remuxer, [{
       key: 'init',
       value: function init() {
         this.on(REMUX_EVENTS$1.REMUX_MEDIA, this.remux.bind(this));
@@ -1127,6 +2012,9 @@
       key: 'seek',
       value: function seek(time) {
         if (!this._isDtsBaseInited) {
+          this._dtsBase = time * 1000;
+        } else {
+          this._isDtsBaseInited = false;
           this._dtsBase = time * 1000;
         }
       }
@@ -1269,7 +2157,7 @@
             }
           }
           this.videoAllDuration += sampleDuration;
-          console.log('video dts ' + dts, 'pts ' + pts, isKeyframe, 'duration ' + sampleDuration);
+          // console.log(`video dts ${dts}`, `pts ${pts}`, isKeyframe, `duration ${sampleDuration}`)
           if (sampleDuration >= 0) {
             mdatBox.samples.push(mdatSample);
             mdatSample.buffer.push(avcSample.data);
@@ -1516,7 +2404,7 @@
     return Mp4Remuxer;
   }();
 
-  var _createClass$4 = function () {
+  var _createClass$6 = function () {
     function defineProperties(target, props) {
       for (var i = 0; i < props.length; i++) {
         var descriptor = props[i];descriptor.enumerable = descriptor.enumerable || false;descriptor.configurable = true;if ("value" in descriptor) descriptor.writable = true;Object.defineProperty(target, descriptor.key, descriptor);
@@ -1526,7 +2414,7 @@
     };
   }();
 
-  function _classCallCheck$4(instance, Constructor) {
+  function _classCallCheck$6(instance, Constructor) {
     if (!(instance instanceof Constructor)) {
       throw new TypeError("Cannot call a class as a function");
     }
@@ -1534,7 +2422,7 @@
 
   var AudioTrackMeta = function () {
     function AudioTrackMeta(meta) {
-      _classCallCheck$4(this, AudioTrackMeta);
+      _classCallCheck$6(this, AudioTrackMeta);
 
       var _default = {
         sampleRate: 48000,
@@ -1554,7 +2442,7 @@
       return _default;
     }
 
-    _createClass$4(AudioTrackMeta, [{
+    _createClass$6(AudioTrackMeta, [{
       key: 'destroy',
       value: function destroy() {
         this.init = null;
@@ -1566,7 +2454,7 @@
 
   var VideoTrackMeta = function () {
     function VideoTrackMeta(meta) {
-      _classCallCheck$4(this, VideoTrackMeta);
+      _classCallCheck$6(this, VideoTrackMeta);
 
       var _default = {
         avcc: null,
@@ -1603,7 +2491,7 @@
       return _default;
     }
 
-    _createClass$4(VideoTrackMeta, [{
+    _createClass$6(VideoTrackMeta, [{
       key: 'destroy',
       value: function destroy() {
         this.init = null;
@@ -1615,7 +2503,7 @@
     return VideoTrackMeta;
   }();
 
-  var _createClass$5 = function () {
+  var _createClass$7 = function () {
     function defineProperties(target, props) {
       for (var i = 0; i < props.length; i++) {
         var descriptor = props[i];descriptor.enumerable = descriptor.enumerable || false;descriptor.configurable = true;if ("value" in descriptor) descriptor.writable = true;Object.defineProperty(target, descriptor.key, descriptor);
@@ -1625,7 +2513,7 @@
     };
   }();
 
-  function _classCallCheck$5(instance, Constructor) {
+  function _classCallCheck$7(instance, Constructor) {
     if (!(instance instanceof Constructor)) {
       throw new TypeError("Cannot call a class as a function");
     }
@@ -1633,7 +2521,7 @@
 
   var Golomb = function () {
     function Golomb(uint8array) {
-      _classCallCheck$5(this, Golomb);
+      _classCallCheck$7(this, Golomb);
 
       this.TAG = 'Golomb';
       this._buffer = uint8array;
@@ -1644,7 +2532,7 @@
       this._currentWordBitsLeft = 0;
     }
 
-    _createClass$5(Golomb, [{
+    _createClass$7(Golomb, [{
       key: 'destroy',
       value: function destroy() {
         this._buffer = null;
@@ -1731,7 +2619,7 @@
     return Golomb;
   }();
 
-  var _createClass$6 = function () {
+  var _createClass$8 = function () {
     function defineProperties(target, props) {
       for (var i = 0; i < props.length; i++) {
         var descriptor = props[i];descriptor.enumerable = descriptor.enumerable || false;descriptor.configurable = true;if ("value" in descriptor) descriptor.writable = true;Object.defineProperty(target, descriptor.key, descriptor);
@@ -1741,7 +2629,7 @@
     };
   }();
 
-  function _classCallCheck$6(instance, Constructor) {
+  function _classCallCheck$8(instance, Constructor) {
     if (!(instance instanceof Constructor)) {
       throw new TypeError("Cannot call a class as a function");
     }
@@ -1749,10 +2637,10 @@
 
   var SPSParser = function () {
     function SPSParser() {
-      _classCallCheck$6(this, SPSParser);
+      _classCallCheck$8(this, SPSParser);
     }
 
-    _createClass$6(SPSParser, null, [{
+    _createClass$8(SPSParser, null, [{
       key: '_ebsp2rbsp',
       value: function _ebsp2rbsp(uint8array) {
         var src = uint8array;
@@ -2048,7 +2936,7 @@
     return SPSParser;
   }();
 
-  var _createClass$7 = function () {
+  var _createClass$9 = function () {
     function defineProperties(target, props) {
       for (var i = 0; i < props.length; i++) {
         var descriptor = props[i];descriptor.enumerable = descriptor.enumerable || false;descriptor.configurable = true;if ("value" in descriptor) descriptor.writable = true;Object.defineProperty(target, descriptor.key, descriptor);
@@ -2058,7 +2946,7 @@
     };
   }();
 
-  function _classCallCheck$7(instance, Constructor) {
+  function _classCallCheck$9(instance, Constructor) {
     if (!(instance instanceof Constructor)) {
       throw new TypeError("Cannot call a class as a function");
     }
@@ -2066,10 +2954,10 @@
 
   var Nalunit = function () {
     function Nalunit() {
-      _classCallCheck$7(this, Nalunit);
+      _classCallCheck$9(this, Nalunit);
     }
 
-    _createClass$7(Nalunit, null, [{
+    _createClass$9(Nalunit, null, [{
       key: 'getNalunits',
       value: function getNalunits(buffer) {
         if (buffer.length - buffer.position < 4) {
@@ -2230,9 +3118,9 @@
 
   var SpsParser = SPSParser;
 
-  var _typeof = typeof Symbol === "function" && typeof Symbol.iterator === "symbol" ? function (obj) { return typeof obj; } : function (obj) { return obj && typeof Symbol === "function" && obj.constructor === Symbol && obj !== Symbol.prototype ? "symbol" : typeof obj; };
+  var _typeof$1 = typeof Symbol === "function" && typeof Symbol.iterator === "symbol" ? function (obj) { return typeof obj; } : function (obj) { return obj && typeof Symbol === "function" && obj.constructor === Symbol && obj !== Symbol.prototype ? "symbol" : typeof obj; };
 
-  var _createClass$8 = function () {
+  var _createClass$a = function () {
     function defineProperties(target, props) {
       for (var i = 0; i < props.length; i++) {
         var descriptor = props[i];descriptor.enumerable = descriptor.enumerable || false;descriptor.configurable = true;if ("value" in descriptor) descriptor.writable = true;Object.defineProperty(target, descriptor.key, descriptor);
@@ -2242,19 +3130,19 @@
     };
   }();
 
-  function _possibleConstructorReturn(self, call) {
+  function _possibleConstructorReturn$1(self, call) {
     if (!self) {
       throw new ReferenceError("this hasn't been initialised - super() hasn't been called");
-    }return call && ((typeof call === "undefined" ? "undefined" : _typeof(call)) === "object" || typeof call === "function") ? call : self;
+    }return call && ((typeof call === "undefined" ? "undefined" : _typeof$1(call)) === "object" || typeof call === "function") ? call : self;
   }
 
-  function _inherits(subClass, superClass) {
+  function _inherits$1(subClass, superClass) {
     if (typeof superClass !== "function" && superClass !== null) {
-      throw new TypeError("Super expression must either be null or a function, not " + (typeof superClass === "undefined" ? "undefined" : _typeof(superClass)));
+      throw new TypeError("Super expression must either be null or a function, not " + (typeof superClass === "undefined" ? "undefined" : _typeof$1(superClass)));
     }subClass.prototype = Object.create(superClass && superClass.prototype, { constructor: { value: subClass, enumerable: false, writable: true, configurable: true } });if (superClass) Object.setPrototypeOf ? Object.setPrototypeOf(subClass, superClass) : subClass.__proto__ = superClass;
   }
 
-  function _classCallCheck$8(instance, Constructor) {
+  function _classCallCheck$a(instance, Constructor) {
     if (!(instance instanceof Constructor)) {
       throw new TypeError("Cannot call a class as a function");
     }
@@ -2265,7 +3153,7 @@
      * The constructor.
      */
     function Track() {
-      _classCallCheck$8(this, Track);
+      _classCallCheck$a(this, Track);
 
       this.id = -1;
       this.sequenceNumber = 0;
@@ -2278,7 +3166,7 @@
      * Reset the track.
      */
 
-    _createClass$8(Track, [{
+    _createClass$a(Track, [{
       key: 'reset',
       value: function reset() {
         this.sequenceNumber = 0;
@@ -2301,15 +3189,15 @@
   }();
 
   var AudioTrack = function (_Track) {
-    _inherits(AudioTrack, _Track);
+    _inherits$1(AudioTrack, _Track);
 
     /**
      * The constructor for audio track.
      */
     function AudioTrack() {
-      _classCallCheck$8(this, AudioTrack);
+      _classCallCheck$a(this, AudioTrack);
 
-      var _this = _possibleConstructorReturn(this, (AudioTrack.__proto__ || Object.getPrototypeOf(AudioTrack)).call(this));
+      var _this = _possibleConstructorReturn$1(this, (AudioTrack.__proto__ || Object.getPrototypeOf(AudioTrack)).call(this));
 
       _this.TAG = 'AudioTrack';
       _this.type = 'audio';
@@ -2320,15 +3208,15 @@
   }(Track);
 
   var VideoTrack = function (_Track2) {
-    _inherits(VideoTrack, _Track2);
+    _inherits$1(VideoTrack, _Track2);
 
     /**
      * The constructor for video track.
      */
     function VideoTrack() {
-      _classCallCheck$8(this, VideoTrack);
+      _classCallCheck$a(this, VideoTrack);
 
-      var _this2 = _possibleConstructorReturn(this, (VideoTrack.__proto__ || Object.getPrototypeOf(VideoTrack)).call(this));
+      var _this2 = _possibleConstructorReturn$1(this, (VideoTrack.__proto__ || Object.getPrototypeOf(VideoTrack)).call(this));
 
       _this2.TAG = 'VideoTrack';
       _this2.type = 'video';
@@ -2339,7 +3227,7 @@
      * reset the video track.
      */
 
-    _createClass$8(VideoTrack, [{
+    _createClass$a(VideoTrack, [{
       key: 'reset',
       value: function reset() {
         this.sequenceNumber = 0;
@@ -2354,13 +3242,13 @@
 
   var Tracks = function () {
     function Tracks() {
-      _classCallCheck$8(this, Tracks);
+      _classCallCheck$a(this, Tracks);
 
       this.audioTrack = null;
       this.videoTrack = null;
     }
 
-    _createClass$8(Tracks, [{
+    _createClass$a(Tracks, [{
       key: 'destroy',
       value: function destroy() {
         this.audioTrack = null;
@@ -2371,7 +3259,7 @@
     return Tracks;
   }();
 
-  var _createClass$9 = function () {
+  var _createClass$b = function () {
     function defineProperties(target, props) {
       for (var i = 0; i < props.length; i++) {
         var descriptor = props[i];descriptor.enumerable = descriptor.enumerable || false;descriptor.configurable = true;if ("value" in descriptor) descriptor.writable = true;Object.defineProperty(target, descriptor.key, descriptor);
@@ -2381,7 +3269,7 @@
     };
   }();
 
-  function _classCallCheck$9(instance, Constructor) {
+  function _classCallCheck$b(instance, Constructor) {
     if (!(instance instanceof Constructor)) {
       throw new TypeError("Cannot call a class as a function");
     }
@@ -2389,10 +3277,10 @@
 
   var UTF8 = function () {
     function UTF8() {
-      _classCallCheck$9(this, UTF8);
+      _classCallCheck$b(this, UTF8);
     }
 
-    _createClass$9(UTF8, null, [{
+    _createClass$b(UTF8, null, [{
       key: 'decode',
       value: function decode(uint8array) {
         var out = [];
@@ -2461,7 +3349,7 @@
     return UTF8;
   }();
 
-  var _createClass$a = function () {
+  var _createClass$c = function () {
     function defineProperties(target, props) {
       for (var i = 0; i < props.length; i++) {
         var descriptor = props[i];descriptor.enumerable = descriptor.enumerable || false;descriptor.configurable = true;if ("value" in descriptor) descriptor.writable = true;Object.defineProperty(target, descriptor.key, descriptor);
@@ -2471,7 +3359,7 @@
     };
   }();
 
-  function _classCallCheck$a(instance, Constructor) {
+  function _classCallCheck$c(instance, Constructor) {
     if (!(instance instanceof Constructor)) {
       throw new TypeError("Cannot call a class as a function");
     }
@@ -2496,13 +3384,13 @@
   };
   var AMFParser = function () {
     function AMFParser() {
-      _classCallCheck$a(this, AMFParser);
+      _classCallCheck$c(this, AMFParser);
 
       this.offset = 0;
       this.readOffset = this.offset;
     }
 
-    _createClass$a(AMFParser, [{
+    _createClass$c(AMFParser, [{
       key: 'resolve',
       value: function resolve(meta, size) {
         if (size < 3) {
@@ -2747,7 +3635,7 @@
     return AMFParser;
   }();
 
-  var _createClass$b = function () {
+  var _createClass$d = function () {
     function defineProperties(target, props) {
       for (var i = 0; i < props.length; i++) {
         var descriptor = props[i];descriptor.enumerable = descriptor.enumerable || false;descriptor.configurable = true;if ("value" in descriptor) descriptor.writable = true;Object.defineProperty(target, descriptor.key, descriptor);
@@ -2757,7 +3645,7 @@
     };
   }();
 
-  function _classCallCheck$b(instance, Constructor) {
+  function _classCallCheck$d(instance, Constructor) {
     if (!(instance instanceof Constructor)) {
       throw new TypeError("Cannot call a class as a function");
     }
@@ -2767,14 +3655,14 @@
 
   var FlvDemuxer = function () {
     function FlvDemuxer() {
-      _classCallCheck$b(this, FlvDemuxer);
+      _classCallCheck$d(this, FlvDemuxer);
 
       this._firstFragmentLoaded = false;
       this._trackNum = 0;
       this._hasScript = false;
     }
 
-    _createClass$b(FlvDemuxer, [{
+    _createClass$d(FlvDemuxer, [{
       key: 'init',
       value: function init() {
         this.on(DEMUX_EVENTS$1.DEMUX_START, this.doParseFlv.bind(this));
@@ -3501,13 +4389,13 @@
 
   var _typeof2 = typeof Symbol === "function" && typeof Symbol.iterator === "symbol" ? function (obj) { return typeof obj; } : function (obj) { return obj && typeof Symbol === "function" && obj.constructor === Symbol && obj !== Symbol.prototype ? "symbol" : typeof obj; };
 
-  var _typeof$1 = typeof Symbol === "function" && _typeof2(Symbol.iterator) === "symbol" ? function (obj) {
+  var _typeof$2 = typeof Symbol === "function" && _typeof2(Symbol.iterator) === "symbol" ? function (obj) {
     return typeof obj === "undefined" ? "undefined" : _typeof2(obj);
   } : function (obj) {
     return obj && typeof Symbol === "function" && obj.constructor === Symbol && obj !== Symbol.prototype ? "symbol" : typeof obj === "undefined" ? "undefined" : _typeof2(obj);
   };
 
-  var _createClass$c = function () {
+  var _createClass$e = function () {
     function defineProperties(target, props) {
       for (var i = 0; i < props.length; i++) {
         var descriptor = props[i];descriptor.enumerable = descriptor.enumerable || false;descriptor.configurable = true;if ("value" in descriptor) descriptor.writable = true;Object.defineProperty(target, descriptor.key, descriptor);
@@ -3517,7 +4405,7 @@
     };
   }();
 
-  function _classCallCheck$c(instance, Constructor) {
+  function _classCallCheck$e(instance, Constructor) {
     if (!(instance instanceof Constructor)) {
       throw new TypeError("Cannot call a class as a function");
     }
@@ -3531,7 +4419,7 @@
 
   var FetchLoader = function () {
     function FetchLoader(configs) {
-      _classCallCheck$c(this, FetchLoader);
+      _classCallCheck$e(this, FetchLoader);
 
       this.configs = Object.assign({}, configs);
       this.url = null;
@@ -3545,7 +4433,7 @@
       this._loaderTaskNo = 0;
     }
 
-    _createClass$c(FetchLoader, [{
+    _createClass$e(FetchLoader, [{
       key: 'init',
       value: function init() {
         this.on(LOADER_EVENTS$1.LADER_START, this.load.bind(this));
@@ -3699,7 +4587,7 @@
 
           // add custmor headers
           // 添加自定义头
-        };if (_typeof$1(this.configs.headers) === 'object') {
+        };if (_typeof$2(this.configs.headers) === 'object') {
           var configHeaders = this.configs.headers;
           for (var key in configHeaders) {
             if (configHeaders.hasOwnProperty(key)) {
@@ -3708,7 +4596,7 @@
           }
         }
 
-        if (_typeof$1(options.headers) === 'object') {
+        if (_typeof$2(options.headers) === 'object') {
           var optHeaders = options.headers;
           for (var _key in optHeaders) {
             if (optHeaders.hasOwnProperty(_key)) {
@@ -3760,7 +4648,7 @@
     return FetchLoader;
   }();
 
-  var _createClass$d = function () {
+  var _createClass$f = function () {
     function defineProperties(target, props) {
       for (var i = 0; i < props.length; i++) {
         var descriptor = props[i];descriptor.enumerable = descriptor.enumerable || false;descriptor.configurable = true;if ("value" in descriptor) descriptor.writable = true;Object.defineProperty(target, descriptor.key, descriptor);
@@ -3770,14 +4658,14 @@
     };
   }();
 
-  function _classCallCheck$d(instance, Constructor) {
+  function _classCallCheck$f(instance, Constructor) {
     if (!(instance instanceof Constructor)) {
       throw new TypeError("Cannot call a class as a function");
     }
   }
 
   var Source = function Source() {
-    _classCallCheck$d(this, Source);
+    _classCallCheck$f(this, Source);
 
     this.mimetype = '';
     this.init = null;
@@ -3786,12 +4674,12 @@
 
   var PreSource = function () {
     function PreSource() {
-      _classCallCheck$d(this, PreSource);
+      _classCallCheck$f(this, PreSource);
 
       this.sources = {};
     }
 
-    _createClass$d(PreSource, [{
+    _createClass$f(PreSource, [{
       key: 'getSource',
       value: function getSource(source) {
         return this.sources[source];
@@ -3817,7 +4705,7 @@
     return PreSource;
   }();
 
-  var _createClass$e = function () {
+  var _createClass$g = function () {
     function defineProperties(target, props) {
       for (var i = 0; i < props.length; i++) {
         var descriptor = props[i];descriptor.enumerable = descriptor.enumerable || false;descriptor.configurable = true;if ("value" in descriptor) descriptor.writable = true;Object.defineProperty(target, descriptor.key, descriptor);
@@ -3827,7 +4715,7 @@
     };
   }();
 
-  function _classCallCheck$e(instance, Constructor) {
+  function _classCallCheck$g(instance, Constructor) {
     if (!(instance instanceof Constructor)) {
       throw new TypeError("Cannot call a class as a function");
     }
@@ -3841,7 +4729,7 @@
      * @param {number} length - Optional the buffer size
      */
     function XgBuffer(length) {
-      _classCallCheck$e(this, XgBuffer);
+      _classCallCheck$g(this, XgBuffer);
 
       this.length = length || 0;
       this.historyLen = length || 0;
@@ -3855,7 +4743,7 @@
      * @param {number} data - The data to push into the buffer
      */
 
-    _createClass$e(XgBuffer, [{
+    _createClass$g(XgBuffer, [{
       key: "push",
       value: function push(data) {
         this.array.push(data);
@@ -3976,7 +4864,7 @@
     return XgBuffer;
   }();
 
-  var _createClass$f = function () {
+  var _createClass$h = function () {
     function defineProperties(target, props) {
       for (var i = 0; i < props.length; i++) {
         var descriptor = props[i];descriptor.enumerable = descriptor.enumerable || false;descriptor.configurable = true;if ("value" in descriptor) descriptor.writable = true;Object.defineProperty(target, descriptor.key, descriptor);
@@ -3986,7 +4874,7 @@
     };
   }();
 
-  function _classCallCheck$f(instance, Constructor) {
+  function _classCallCheck$h(instance, Constructor) {
     if (!(instance instanceof Constructor)) {
       throw new TypeError("Cannot call a class as a function");
     }
@@ -3994,10 +4882,10 @@
 
   var AAC = function () {
     function AAC() {
-      _classCallCheck$f(this, AAC);
+      _classCallCheck$h(this, AAC);
     }
 
-    _createClass$f(AAC, null, [{
+    _createClass$h(AAC, null, [{
       key: 'getSilentFrame',
       value: function getSilentFrame(codec, channelCount) {
         if (codec === 'mp4a.40.2') {
@@ -4035,7 +4923,7 @@
     return AAC;
   }();
 
-  var _createClass$g = function () {
+  var _createClass$i = function () {
     function defineProperties(target, props) {
       for (var i = 0; i < props.length; i++) {
         var descriptor = props[i];descriptor.enumerable = descriptor.enumerable || false;descriptor.configurable = true;if ("value" in descriptor) descriptor.writable = true;Object.defineProperty(target, descriptor.key, descriptor);
@@ -4045,7 +4933,7 @@
     };
   }();
 
-  function _classCallCheck$g(instance, Constructor) {
+  function _classCallCheck$i(instance, Constructor) {
     if (!(instance instanceof Constructor)) {
       throw new TypeError("Cannot call a class as a function");
     }
@@ -4055,7 +4943,7 @@
 
   var Compatibility = function () {
     function Compatibility() {
-      _classCallCheck$g(this, Compatibility);
+      _classCallCheck$i(this, Compatibility);
 
       this.nextAudioDts = 0; // 模拟下一段音频数据的dts
       this.nextVideoDts = 0; // 模拟下一段视频数据的dts
@@ -4082,7 +4970,7 @@
       this._audioLargeGap = 0;
     }
 
-    _createClass$g(Compatibility, [{
+    _createClass$i(Compatibility, [{
       key: 'init',
       value: function init() {
         this.before(REMUX_EVENTS$2.REMUX_MEDIA, this.doFix.bind(this));
@@ -4722,7 +5610,7 @@
     return Compatibility;
   }();
 
-  var _createClass$h = function () {
+  var _createClass$j = function () {
     function defineProperties(target, props) {
       for (var i = 0; i < props.length; i++) {
         var descriptor = props[i];descriptor.enumerable = descriptor.enumerable || false;descriptor.configurable = true;if ("value" in descriptor) descriptor.writable = true;Object.defineProperty(target, descriptor.key, descriptor);
@@ -4732,7 +5620,7 @@
     };
   }();
 
-  function _classCallCheck$h(instance, Constructor) {
+  function _classCallCheck$j(instance, Constructor) {
     if (!(instance instanceof Constructor)) {
       throw new TypeError("Cannot call a class as a function");
     }
@@ -4740,7 +5628,7 @@
 
   var MSE = function () {
     function MSE(configs, context) {
-      _classCallCheck$h(this, MSE);
+      _classCallCheck$j(this, MSE);
 
       if (context) {
         this._context = context;
@@ -4758,7 +5646,7 @@
       this.onWaiting = this.onWaiting.bind(this);
     }
 
-    _createClass$h(MSE, [{
+    _createClass$j(MSE, [{
       key: 'init',
       value: function init() {
         // eslint-disable-next-line no-undef
@@ -4999,9 +5887,9 @@
     return MSE;
   }();
 
-  var _createClass$i = function () { function defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ("value" in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } } return function (Constructor, protoProps, staticProps) { if (protoProps) defineProperties(Constructor.prototype, protoProps); if (staticProps) defineProperties(Constructor, staticProps); return Constructor; }; }();
+  var _createClass$k = function () { function defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ("value" in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } } return function (Constructor, protoProps, staticProps) { if (protoProps) defineProperties(Constructor.prototype, protoProps); if (staticProps) defineProperties(Constructor, staticProps); return Constructor; }; }();
 
-  function _classCallCheck$i(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } }
+  function _classCallCheck$k(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } }
 
   var REMUX_EVENTS$3 = EVENTS.REMUX_EVENTS;
   var DEMUX_EVENTS$2 = EVENTS.DEMUX_EVENTS;
@@ -5012,10 +5900,10 @@
 
   var Logger = function () {
     function Logger() {
-      _classCallCheck$i(this, Logger);
+      _classCallCheck$k(this, Logger);
     }
 
-    _createClass$i(Logger, [{
+    _createClass$k(Logger, [{
       key: 'warn',
       value: function warn() {}
     }]);
@@ -5027,7 +5915,7 @@
 
   var FlvController = function () {
     function FlvController(player, mse) {
-      _classCallCheck$i(this, FlvController);
+      _classCallCheck$k(this, FlvController);
 
       this.TAG = Tag;
       this._player = player;
@@ -5043,7 +5931,7 @@
       this._handleTimeUpdate = this._handleTimeUpdate.bind(this);
     }
 
-    _createClass$i(FlvController, [{
+    _createClass$k(FlvController, [{
       key: 'init',
       value: function init() {
         if (!this.mse) {
@@ -5270,24 +6158,24 @@
     return FlvController;
   }();
 
-  var _createClass$j = function () { function defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ("value" in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } } return function (Constructor, protoProps, staticProps) { if (protoProps) defineProperties(Constructor.prototype, protoProps); if (staticProps) defineProperties(Constructor, staticProps); return Constructor; }; }();
+  var _createClass$l = function () { function defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ("value" in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } } return function (Constructor, protoProps, staticProps) { if (protoProps) defineProperties(Constructor.prototype, protoProps); if (staticProps) defineProperties(Constructor, staticProps); return Constructor; }; }();
 
-  var _get = function get(object, property, receiver) { if (object === null) object = Function.prototype; var desc = Object.getOwnPropertyDescriptor(object, property); if (desc === undefined) { var parent = Object.getPrototypeOf(object); if (parent === null) { return undefined; } else { return get(parent, property, receiver); } } else if ("value" in desc) { return desc.value; } else { var getter = desc.get; if (getter === undefined) { return undefined; } return getter.call(receiver); } };
+  var _get$1 = function get(object, property, receiver) { if (object === null) object = Function.prototype; var desc = Object.getOwnPropertyDescriptor(object, property); if (desc === undefined) { var parent = Object.getPrototypeOf(object); if (parent === null) { return undefined; } else { return get(parent, property, receiver); } } else if ("value" in desc) { return desc.value; } else { var getter = desc.get; if (getter === undefined) { return undefined; } return getter.call(receiver); } };
 
-  function _classCallCheck$j(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } }
+  function _classCallCheck$l(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } }
 
-  function _possibleConstructorReturn$1(self, call) { if (!self) { throw new ReferenceError("this hasn't been initialised - super() hasn't been called"); } return call && (typeof call === "object" || typeof call === "function") ? call : self; }
+  function _possibleConstructorReturn$2(self, call) { if (!self) { throw new ReferenceError("this hasn't been initialised - super() hasn't been called"); } return call && (typeof call === "object" || typeof call === "function") ? call : self; }
 
-  function _inherits$1(subClass, superClass) { if (typeof superClass !== "function" && superClass !== null) { throw new TypeError("Super expression must either be null or a function, not " + typeof superClass); } subClass.prototype = Object.create(superClass && superClass.prototype, { constructor: { value: subClass, enumerable: false, writable: true, configurable: true } }); if (superClass) Object.setPrototypeOf ? Object.setPrototypeOf(subClass, superClass) : subClass.__proto__ = superClass; }
+  function _inherits$2(subClass, superClass) { if (typeof superClass !== "function" && superClass !== null) { throw new TypeError("Super expression must either be null or a function, not " + typeof superClass); } subClass.prototype = Object.create(superClass && superClass.prototype, { constructor: { value: subClass, enumerable: false, writable: true, configurable: true } }); if (superClass) Object.setPrototypeOf ? Object.setPrototypeOf(subClass, superClass) : subClass.__proto__ = superClass; }
   var flvAllowedEvents = EVENTS.FlvAllowedEvents;
 
   var FlvPlayer = function (_Player) {
-    _inherits$1(FlvPlayer, _Player);
+    _inherits$2(FlvPlayer, _Player);
 
     function FlvPlayer(config) {
-      _classCallCheck$j(this, FlvPlayer);
+      _classCallCheck$l(this, FlvPlayer);
 
-      var _this = _possibleConstructorReturn$1(this, (FlvPlayer.__proto__ || Object.getPrototypeOf(FlvPlayer)).call(this, config));
+      var _this = _possibleConstructorReturn$2(this, (FlvPlayer.__proto__ || Object.getPrototypeOf(FlvPlayer)).call(this, config));
 
       _this.context = new Context(flvAllowedEvents);
       _this.initEvents();
@@ -5297,7 +6185,7 @@
       return _this;
     }
 
-    _createClass$j(FlvPlayer, [{
+    _createClass$l(FlvPlayer, [{
       key: 'start',
       value: function start() {
         if (this.started) {
@@ -5305,7 +6193,7 @@
         }
         this.initFlv();
         this.context.init();
-        _get(FlvPlayer.prototype.__proto__ || Object.getPrototypeOf(FlvPlayer.prototype), 'start', this).call(this, this.flv.mse.url);
+        _get$1(FlvPlayer.prototype.__proto__ || Object.getPrototypeOf(FlvPlayer.prototype), 'start', this).call(this, this.flv.mse.url);
         this.loadData();
         this.started = true;
       }
@@ -5405,16 +6293,16 @@
           return this._destroy().then(function () {
             _this5.context = new Context(flvAllowedEvents);
             _this5.start();
-            return _get(FlvPlayer.prototype.__proto__ || Object.getPrototypeOf(FlvPlayer.prototype), 'play', _this5).call(_this5);
+            return _get$1(FlvPlayer.prototype.__proto__ || Object.getPrototypeOf(FlvPlayer.prototype), 'play', _this5).call(_this5);
           });
         } else {
-          return _get(FlvPlayer.prototype.__proto__ || Object.getPrototypeOf(FlvPlayer.prototype), 'play', this).call(this);
+          return _get$1(FlvPlayer.prototype.__proto__ || Object.getPrototypeOf(FlvPlayer.prototype), 'play', this).call(this);
         }
       }
     }, {
       key: 'pause',
       value: function pause() {
-        _get(FlvPlayer.prototype.__proto__ || Object.getPrototypeOf(FlvPlayer.prototype), 'pause', this).call(this);
+        _get$1(FlvPlayer.prototype.__proto__ || Object.getPrototypeOf(FlvPlayer.prototype), 'pause', this).call(this);
         if (this.flv) {
           this.flv.pause();
         }
@@ -5434,7 +6322,7 @@
         var _this6 = this;
 
         this._destroy().then(function () {
-          _get(FlvPlayer.prototype.__proto__ || Object.getPrototypeOf(FlvPlayer.prototype), 'destroy', _this6).call(_this6);
+          _get$1(FlvPlayer.prototype.__proto__ || Object.getPrototypeOf(FlvPlayer.prototype), 'destroy', _this6).call(_this6);
         });
       }
     }, {

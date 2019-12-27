@@ -37,7 +37,7 @@
   "license": "MIT",
   "dependencies": {
     "xgplayer-hls-live": "file:../xgplayer-hls-live",
-    "xgplayer-hls-vod": "file:../xgplayer-hls-vod",
+    "xgplayer-hls-vod": "file:../xgplayer-hls-vod"
   },
   "peerDependency": {
     "xgplayer": "^0.1.0"

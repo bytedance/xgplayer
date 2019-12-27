@@ -1,485 +1,23 @@
 (function (global, factory) {
-  typeof exports === 'object' && typeof module !== 'undefined' ? module.exports = factory(require('xgplayer'), require('xgplayer-transmuxer-constant-events'), require('xgplayer-transmuxer-context'), require('xgplayer-utils-mse'), require('xgplayer-transmuxer-buffer-track'), require('xgplayer-transmuxer-buffer-presource'), require('xgplayer-transmuxer-buffer-xgbuffer'), require('xgplayer-transmuxer-loader-fetch'), require('xgplayer-transmuxer-codec-compatibility'), require('xgplayer-transmuxer-remux-mp4'), require('xgplayer-utils-crypto'), require('xgplayer-transmuxer-demux-m3u8'), require('xgplayer-transmuxer-demux-ts'), require('xgplayer-transmuxer-buffer-playlist')) :
-  typeof define === 'function' && define.amd ? define(['xgplayer', 'xgplayer-transmuxer-constant-events', 'xgplayer-transmuxer-context', 'xgplayer-utils-mse', 'xgplayer-transmuxer-buffer-track', 'xgplayer-transmuxer-buffer-presource', 'xgplayer-transmuxer-buffer-xgbuffer', 'xgplayer-transmuxer-loader-fetch', 'xgplayer-transmuxer-codec-compatibility', 'xgplayer-transmuxer-remux-mp4', 'xgplayer-utils-crypto', 'xgplayer-transmuxer-demux-m3u8', 'xgplayer-transmuxer-demux-ts', 'xgplayer-transmuxer-buffer-playlist'], factory) :
-  (global = global || self, global.HlsPlayer = factory(global.Player, global.EVENTS$1, global.Context$2, global.Mse, global.Tracks$1, global.PreSource$1, global.XgBuffer$1, global.FetchLoader$1, global.Compatibility$1, global.Mp4Remuxer$1, global.Crypto$1, global.M3U8Parser$1, global.TsDemuxer$1, global.Playlist$1));
-}(this, (function (Player, EVENTS$1, Context$2, Mse, Tracks$1, PreSource$1, XgBuffer$1, FetchLoader$1, Compatibility$1, Mp4Remuxer$1, Crypto$1, M3U8Parser$1, TsDemuxer$1, Playlist$1) { 'use strict';
+  typeof exports === 'object' && typeof module !== 'undefined' ? module.exports = factory(require('xgplayer')) :
+  typeof define === 'function' && define.amd ? define(['xgplayer'], factory) :
+  (global = global || self, global.HlsPlayer = factory(global.Player));
+}(this, (function (Player) { 'use strict';
 
   Player = Player && Player.hasOwnProperty('default') ? Player['default'] : Player;
-  EVENTS$1 = EVENTS$1 && EVENTS$1.hasOwnProperty('default') ? EVENTS$1['default'] : EVENTS$1;
-  Context$2 = Context$2 && Context$2.hasOwnProperty('default') ? Context$2['default'] : Context$2;
-  Mse = Mse && Mse.hasOwnProperty('default') ? Mse['default'] : Mse;
-  Tracks$1 = Tracks$1 && Tracks$1.hasOwnProperty('default') ? Tracks$1['default'] : Tracks$1;
-  PreSource$1 = PreSource$1 && PreSource$1.hasOwnProperty('default') ? PreSource$1['default'] : PreSource$1;
-  XgBuffer$1 = XgBuffer$1 && XgBuffer$1.hasOwnProperty('default') ? XgBuffer$1['default'] : XgBuffer$1;
-  FetchLoader$1 = FetchLoader$1 && FetchLoader$1.hasOwnProperty('default') ? FetchLoader$1['default'] : FetchLoader$1;
-  Compatibility$1 = Compatibility$1 && Compatibility$1.hasOwnProperty('default') ? Compatibility$1['default'] : Compatibility$1;
-  Mp4Remuxer$1 = Mp4Remuxer$1 && Mp4Remuxer$1.hasOwnProperty('default') ? Mp4Remuxer$1['default'] : Mp4Remuxer$1;
-  Crypto$1 = Crypto$1 && Crypto$1.hasOwnProperty('default') ? Crypto$1['default'] : Crypto$1;
-  M3U8Parser$1 = M3U8Parser$1 && M3U8Parser$1.hasOwnProperty('default') ? M3U8Parser$1['default'] : M3U8Parser$1;
-  TsDemuxer$1 = TsDemuxer$1 && TsDemuxer$1.hasOwnProperty('default') ? TsDemuxer$1['default'] : TsDemuxer$1;
-  Playlist$1 = Playlist$1 && Playlist$1.hasOwnProperty('default') ? Playlist$1['default'] : Playlist$1;
-
-  var _createClass = function () {
-    function defineProperties(target, props) {
-      for (var i = 0; i < props.length; i++) {
-        var descriptor = props[i];descriptor.enumerable = descriptor.enumerable || false;descriptor.configurable = true;if ("value" in descriptor) descriptor.writable = true;Object.defineProperty(target, descriptor.key, descriptor);
-      }
-    }return function (Constructor, protoProps, staticProps) {
-      if (protoProps) defineProperties(Constructor.prototype, protoProps);if (staticProps) defineProperties(Constructor, staticProps);return Constructor;
-    };
-  }();
-
-  function _classCallCheck(instance, Constructor) {
-    if (!(instance instanceof Constructor)) {
-      throw new TypeError("Cannot call a class as a function");
-    }
-  }
-
-  var LOADER_EVENTS = EVENTS$1.LOADER_EVENTS;
-  var REMUX_EVENTS = EVENTS$1.REMUX_EVENTS;
-  var DEMUX_EVENTS = EVENTS$1.DEMUX_EVENTS;
-  var HLS_EVENTS = EVENTS$1.HLS_EVENTS;
-  var CRYTO_EVENTS = EVENTS$1.CRYTO_EVENTS;
-  var HLS_ERROR = 'HLS_ERROR';
-
-  var HlsLiveController = function () {
-    function HlsLiveController(configs) {
-      _classCallCheck(this, HlsLiveController);
-
-      this.configs = Object.assign({}, configs);
-      this.url = '';
-      this.baseurl = '';
-      this.sequence = 0;
-      this._playlist = null;
-      this.retrytimes = this.configs.retrytimes || 3;
-      this.preloadTime = this.configs.preloadTime;
-      this.container = this.configs.container;
-      this._m3u8lasttime = 0;
-      this._timmer = setInterval(this._checkStatus.bind(this), 50);
-      this._lastCheck = 0;
-      this._player = this.configs.player;
-      this.m3u8Text = null;
-    }
-
-    _createClass(HlsLiveController, [{
-      key: 'init',
-      value: function init() {
-        // 初始化Buffer （M3U8/TS/Playlist);
-        this._context.registry('M3U8_BUFFER', XgBuffer$1);
-        this._context.registry('TS_BUFFER', XgBuffer$1);
-        this._context.registry('TRACKS', Tracks$1);
-
-        this._playlist = this._context.registry('PLAYLIST', Playlist$1)({ autoclear: true });
-        this._context.registry('PRE_SOURCE_BUFFER', PreSource$1);
-
-        this._context.registry('COMPATIBILITY', Compatibility$1);
-
-        // 初始化M3U8Loader;
-        this._m3u8loader = this._context.registry('M3U8_LOADER', FetchLoader$1)({ buffer: 'M3U8_BUFFER', readtype: 1 });
-        this._tsloader = this._context.registry('TS_LOADER', FetchLoader$1)({ buffer: 'TS_BUFFER', readtype: 3 });
-
-        // 初始化TS Demuxer
-        this._context.registry('TS_DEMUXER', TsDemuxer$1)({ inputbuffer: 'TS_BUFFER' });
-
-        // 初始化MP4 Remuxer
-        this._context.registry('MP4_REMUXER', Mp4Remuxer$1);
-
-        // 初始化MSE
-        this.mse = this._context.registry('MSE', Mse)({ container: this.container });
-        this.initEvents();
-      }
-    }, {
-      key: 'initEvents',
-      value: function initEvents() {
-        this.on(LOADER_EVENTS.LOADER_COMPLETE, this._onLoadComplete.bind(this));
-
-        this.on(REMUX_EVENTS.INIT_SEGMENT, this.mse.addSourceBuffers.bind(this.mse));
-
-        this.on(REMUX_EVENTS.MEDIA_SEGMENT, this.mse.doAppend.bind(this.mse));
-
-        this.on(DEMUX_EVENTS.METADATA_PARSED, this._onMetadataParsed.bind(this));
-
-        this.on(DEMUX_EVENTS.DEMUX_COMPLETE, this._onDemuxComplete.bind(this));
-
-        this.on(LOADER_EVENTS.LOADER_ERROR, this._onLoadError.bind(this));
-
-        this.on(DEMUX_EVENTS.DEMUX_ERROR, this._onDemuxError.bind(this));
-
-        this.on(REMUX_EVENTS.REMUX_ERROR, this._onRemuxError.bind(this));
-      }
-    }, {
-      key: '_onError',
-      value: function _onError(type, mod, err, fatal) {
-        var error = {
-          errorType: type,
-          errorDetails: '[' + mod + ']: ' + err.message,
-          errorFatal: fatal
-        };
-        this._player.emit(HLS_ERROR, error);
-      }
-    }, {
-      key: '_onDemuxComplete',
-      value: function _onDemuxComplete() {
-        this.emit(REMUX_EVENTS.REMUX_MEDIA);
-      }
-    }, {
-      key: '_onMetadataParsed',
-      value: function _onMetadataParsed(type) {
-        this.emit(REMUX_EVENTS.REMUX_METADATA, type);
-      }
-    }, {
-      key: '_onLoadError',
-      value: function _onLoadError(loader, error) {
-        if (!this._tsloader.loading && !this._m3u8loader.loading && this.retrytimes > 1) {
-          this.retrytimes--;
-          this._onError(LOADER_EVENTS.LOADER_ERROR, loader, error, false);
-        } else if (this.retrytimes <= 1) {
-          this._onError(LOADER_EVENTS.LOADER_ERROR, loader, error, true);
-          this.emit(HLS_EVENTS.RETRY_TIME_EXCEEDED);
-          this.mse.endOfStream();
-        }
-      }
-    }, {
-      key: '_onDemuxError',
-      value: function _onDemuxError(mod, error, fatal) {
-        if (fatal === undefined) {
-          fatal = true;
-        }
-        this._onError(LOADER_EVENTS.LOADER_ERROR, mod, error, fatal);
-      }
-    }, {
-      key: '_onRemuxError',
-      value: function _onRemuxError(mod, error, fatal) {
-        if (fatal === undefined) {
-          fatal = true;
-        }
-        this._onError(REMUX_EVENTS.REMUX_ERROR, mod, error, fatal);
-      }
-    }, {
-      key: '_onLoadComplete',
-      value: function _onLoadComplete(buffer) {
-        if (buffer.TAG === 'M3U8_BUFFER') {
-          var mdata = void 0;
-          try {
-            this.m3u8Text = buffer.shift();
-            mdata = M3U8Parser$1.parse(this.m3u8Text, this.baseurl);
-          } catch (error) {
-            this._onError('M3U8_PARSER_ERROR', 'M3U8_PARSER', error, false);
-          }
-
-          if (!mdata) {
-            if (this.retrytimes > 0) {
-              this.retrytimes--;
-              this._preload();
-            } else {
-              this.emit(HLS_EVENTS.RETRY_TIME_EXCEEDED);
-              this.mse.endOfStream();
-            }
-            return;
-          }
-
-          try {
-            this._playlist.pushM3U8(mdata, true);
-          } catch (error) {
-            this._onError('M3U8_PARSER_ERROR', 'PLAYLIST', error, false);
-          }
-
-          if (this._playlist.encrypt && this._playlist.encrypt.uri && !this._playlist.encrypt.key) {
-            this._context.registry('DECRYPT_BUFFER', XgBuffer$1)();
-            this._context.registry('KEY_BUFFER', XgBuffer$1)();
-            this._tsloader.buffer = 'DECRYPT_BUFFER';
-            this._keyLoader = this._context.registry('KEY_LOADER', FetchLoader$1)({ buffer: 'KEY_BUFFER', readtype: 3 });
-            this.emitTo('KEY_LOADER', LOADER_EVENTS.LADER_START, this._playlist.encrypt.uri);
-          } else {
-            this._m3u8Loaded(mdata);
-          }
-        } else if (buffer.TAG === 'TS_BUFFER') {
-          this.retrytimes = this.configs.retrytimes || 3;
-          this._playlist.downloaded(this._tsloader.url, true);
-          this.emit(DEMUX_EVENTS.DEMUX_START);
-        } else if (buffer.TAG === 'DECRYPT_BUFFER') {
-          this.retrytimes = this.configs.retrytimes || 3;
-          this._playlist.downloaded(this._tsloader.url, true);
-          this.emitTo('CRYPTO', CRYTO_EVENTS.START_DECRYPT);
-        } else if (buffer.TAG === 'KEY_BUFFER') {
-          this.retrytimes = this.configs.retrytimes || 3;
-          this._playlist.encrypt.key = buffer.shift();
-          this._crypto = this._context.registry('CRYPTO', Crypto$1)({
-            key: this._playlist.encrypt.key,
-            iv: this._playlist.encrypt.ivb,
-            method: this._playlist.encrypt.method,
-            inputbuffer: 'DECRYPT_BUFFER',
-            outputbuffer: 'TS_BUFFER'
-          });
-          this._crypto.on(CRYTO_EVENTS.DECRYPTED, this._onDcripted.bind(this));
-        }
-      }
-    }, {
-      key: '_onDcripted',
-      value: function _onDcripted() {
-        this.emit(DEMUX_EVENTS.DEMUX_START);
-      }
-    }, {
-      key: '_m3u8Loaded',
-      value: function _m3u8Loaded(mdata) {
-        if (!this.preloadTime) {
-          this.preloadTime = this._playlist.targetduration ? this._playlist.targetduration : 5;
-        }
-        if (this._playlist.fragLength > 0 && this._playlist.sequence < mdata.sequence) {
-          this.retrytimes = this.configs.retrytimes || 3;
-        } else {
-          if (this.retrytimes > 0) {
-            this.retrytimes--;
-            this._preload();
-          } else {
-            this.emit(HLS_EVENTS.RETRY_TIME_EXCEEDED);
-            this.mse.endOfStream();
-          }
-        }
-      }
-    }, {
-      key: '_checkStatus',
-      value: function _checkStatus() {
-        if (this.retrytimes < 1 && new Date().getTime() - this._lastCheck < 10000) {
-          return;
-        }
-        this._lastCheck = new Date().getTime();
-        if (this.container.buffered.length < 1) {
-          this._preload();
-        } else {
-          // Check for load.
-          var currentTime = this.container.currentTime;
-          var bufferstart = this.container.buffered.start(this.container.buffered.length - 1);
-          if (this.container.readyState <= 2) {
-            if (currentTime < bufferstart) {
-              this.container.currentTime = bufferstart;
-              currentTime = bufferstart;
-            } else {
-              this._preload();
-            }
-          }
-          var bufferend = this.container.buffered.end(this.container.buffered.length - 1);
-          if (currentTime < bufferend - this.preloadTime * 2) {
-            this.container.currentTime = bufferend - this.preloadTime * 2;
-          }
-          if (bufferend > this.preloadTime * 2) {
-            this.mse.remove(bufferend - this.preloadTime * 2);
-          }
-          if (currentTime > bufferend - this.preloadTime) {
-            this._preload();
-          }
-        }
-      }
-    }, {
-      key: '_preload',
-      value: function _preload() {
-        if (this._tsloader.loading || this._m3u8loader.loading) {
-          return;
-        }
-        var frag = this._playlist.getTs();
-
-        if (frag && !frag.downloaded && !frag.downloading) {
-          this._playlist.downloading(frag.url, true);
-          this.emitTo('TS_LOADER', LOADER_EVENTS.LADER_START, frag.url);
-        } else {
-          var preloadTime = this.preloadTime ? this.preloadTime : 0;
-          var current = new Date().getTime();
-          if ((!frag || frag.downloaded) && (current - this._m3u8lasttime) / 1000 > preloadTime) {
-            this._m3u8lasttime = current;
-            this.emitTo('M3U8_LOADER', LOADER_EVENTS.LADER_START, this.url);
-          }
-        }
-      }
-    }, {
-      key: 'load',
-      value: function load(url) {
-        this.baseurl = M3U8Parser$1.parseURL(url);
-        this.url = url;
-        this._preload();
-      }
-    }, {
-      key: 'destroy',
-      value: function destroy() {
-        clearInterval(this._timmer);
-        this.off(LOADER_EVENTS.LOADER_COMPLETE, this._onLoadComplete);
-        this.off(REMUX_EVENTS.INIT_SEGMENT, this.mse.addSourceBuffers);
-        this.off(REMUX_EVENTS.MEDIA_SEGMENT, this.mse.doAppend);
-        // this.off(REMUX_EVENTS.REMUX_ERROR);
-        this.off(DEMUX_EVENTS.METADATA_PARSED, this._onMetadataParsed);
-        this.off(DEMUX_EVENTS.DEMUX_COMPLETE, this._onDemuxComplete);
-
-        this.mse = null;
-        this.m3u8Text = null;
-      }
-    }]);
-
-    return HlsLiveController;
-  }();
-
-  var _typeof = typeof Symbol === "function" && typeof Symbol.iterator === "symbol" ? function (obj) { return typeof obj; } : function (obj) { return obj && typeof Symbol === "function" && obj.constructor === Symbol && obj !== Symbol.prototype ? "symbol" : typeof obj; };
-
-  var _createClass$1 = function () {
-    function defineProperties(target, props) {
-      for (var i = 0; i < props.length; i++) {
-        var descriptor = props[i];descriptor.enumerable = descriptor.enumerable || false;descriptor.configurable = true;if ("value" in descriptor) descriptor.writable = true;Object.defineProperty(target, descriptor.key, descriptor);
-      }
-    }return function (Constructor, protoProps, staticProps) {
-      if (protoProps) defineProperties(Constructor.prototype, protoProps);if (staticProps) defineProperties(Constructor, staticProps);return Constructor;
-    };
-  }();
-
-  var _get = function get(object, property, receiver) {
-    if (object === null) object = Function.prototype;var desc = Object.getOwnPropertyDescriptor(object, property);if (desc === undefined) {
-      var parent = Object.getPrototypeOf(object);if (parent === null) {
-        return undefined;
-      } else {
-        return get(parent, property, receiver);
-      }
-    } else if ("value" in desc) {
-      return desc.value;
-    } else {
-      var getter = desc.get;if (getter === undefined) {
-        return undefined;
-      }return getter.call(receiver);
-    }
-  };
-
-  function _classCallCheck$1(instance, Constructor) {
-    if (!(instance instanceof Constructor)) {
-      throw new TypeError("Cannot call a class as a function");
-    }
-  }
-
-  function _possibleConstructorReturn(self, call) {
-    if (!self) {
-      throw new ReferenceError("this hasn't been initialised - super() hasn't been called");
-    }return call && ((typeof call === "undefined" ? "undefined" : _typeof(call)) === "object" || typeof call === "function") ? call : self;
-  }
-
-  function _inherits(subClass, superClass) {
-    if (typeof superClass !== "function" && superClass !== null) {
-      throw new TypeError("Super expression must either be null or a function, not " + (typeof superClass === "undefined" ? "undefined" : _typeof(superClass)));
-    }subClass.prototype = Object.create(superClass && superClass.prototype, { constructor: { value: subClass, enumerable: false, writable: true, configurable: true } });if (superClass) Object.setPrototypeOf ? Object.setPrototypeOf(subClass, superClass) : subClass.__proto__ = superClass;
-  }
-  var HlsAllowedEvents = EVENTS$1.HlsAllowedEvents;
-  var REMUX_EVENTS$1 = EVENTS$1.REMUX_EVENTS;
-
-  var HlsLivePlayer = function (_Player) {
-    _inherits(HlsLivePlayer, _Player);
-
-    function HlsLivePlayer(options) {
-      _classCallCheck$1(this, HlsLivePlayer);
-
-      var _this2 = _possibleConstructorReturn(this, (HlsLivePlayer.__proto__ || Object.getPrototypeOf(HlsLivePlayer)).call(this, options));
-
-      _this2.hlsOps = {};
-      _this2.util = Player.util;
-      _this2.util.deepCopy(_this2.hlsOps, options);
-      _this2._context = new Context$2(HlsAllowedEvents);
-      _this2.started = false;
-      return _this2;
-    }
-
-    _createClass$1(HlsLivePlayer, [{
-      key: '_initEvents',
-      value: function _initEvents() {
-        var _this3 = this;
-
-        this.__core__.once(REMUX_EVENTS$1.INIT_SEGMENT, function () {
-          var mse = _this3._context.getInstance('MSE');
-          if (!_this3.started) {
-            var live = _this3.util.createDom('xg-live', '正在直播', {}, 'xgplayer-live');
-            _this3.util.addClass(_this3.root, 'xgplayer-is-live');
-            _this3.controls.appendChild(live);
-          }
-          _this3.started = true;
-          _get(HlsLivePlayer.prototype.__proto__ || Object.getPrototypeOf(HlsLivePlayer.prototype), 'start', _this3).call(_this3, mse.url);
-        });
-
-        // this.once('canplay', () => {
-        //   this.video.play()
-        // });
-      }
-    }, {
-      key: '_initSrcChangeHandler',
-      value: function _initSrcChangeHandler() {
-        var _this = this;
-        Object.defineProperty(this, 'src', {
-          get: function get() {
-            return _this.currentSrc;
-          },
-          set: function set(url) {
-            _this.config.url = url;
-            if (!_this.paused) {
-              _this.pause();
-              _this.once('pause', function () {
-                _this.start(url);
-              });
-              _this.once('canplay', function () {
-                _this.play();
-              });
-            } else {
-              _this.start(url);
-            }
-            _this.once('canplay', function () {
-              _this.currentTime = 0;
-            });
-          },
-
-          configurable: true
-        });
-      }
-    }, {
-      key: 'start',
-      value: function start() {
-        var url = arguments.length > 0 && arguments[0] !== undefined ? arguments[0] : this.config.url;
-
-        if (!url || this.started) {
-          return;
-        }
-        this.__core__ = this._context.registry('HLS_LIVE_CONTROLLER', HlsLiveController)({ player: this, container: this.video });
-        this._context.init();
-        this.url = url;
-        this.__core__.load(url);
-        this._initEvents();
-        this._initSrcChangeHandler();
-      }
-    }, {
-      key: 'play',
-      value: function play() {
-        if (this.started) {
-          this._context.destroy();
-          this._context = new Context$2(HlsAllowedEvents);
-          this.__core__ = this._context.registry('HLS_LIVE_CONTROLLER', HlsLiveController)({ container: this.video });
-          this._context.init();
-          this._initEvents();
-          this.__core__.load(this.url);
-        }
-        _get(HlsLivePlayer.prototype.__proto__ || Object.getPrototypeOf(HlsLivePlayer.prototype), 'play', this).call(this);
-      }
-    }, {
-      key: 'destroy',
-      value: function destroy() {
-        this._context.destroy();
-        _get(HlsLivePlayer.prototype.__proto__ || Object.getPrototypeOf(HlsLivePlayer.prototype), 'destroy', this).call(this);
-      }
-    }]);
-
-    return HlsLivePlayer;
-  }(Player);
 
   var PLAYER_EVENTS = {
     SEEK: 'SEEK'
   };
 
-  var LOADER_EVENTS$1 = {
+  var LOADER_EVENTS = {
     LADER_START: 'LOADER_START',
     LOADER_DATALOADED: 'LOADER_DATALOADED',
     LOADER_COMPLETE: 'LOADER_COMPLETE',
     LOADER_ERROR: 'LOADER_ERROR'
   };
 
-  var DEMUX_EVENTS$1 = {
+  var DEMUX_EVENTS = {
     DEMUX_START: 'DEMUX_START',
     DEMUX_COMPLETE: 'DEMUX_COMPLETE',
     DEMUX_ERROR: 'DEMUX_ERROR',
@@ -489,7 +27,7 @@
     MEDIA_INFO: 'MEDIA_INFO'
   };
 
-  var REMUX_EVENTS$2 = {
+  var REMUX_EVENTS = {
     REMUX_METADATA: 'REMUX_METADATA',
     REMUX_MEDIA: 'REMUX_MEDIA',
     MEDIA_SEGMENT: 'MEDIA_SEGMENT',
@@ -504,18 +42,18 @@
     SOURCE_UPDATE_END: 'SOURCE_UPDATE_END'
 
     // hls专有events
-  };var HLS_EVENTS$1 = {
+  };var HLS_EVENTS = {
     RETRY_TIME_EXCEEDED: 'RETRY_TIME_EXCEEDED'
   };
 
-  var CRYTO_EVENTS$1 = {
+  var CRYTO_EVENTS = {
     START_DECRYPT: 'START_DECRYPT',
     DECRYPTED: 'DECRYPTED'
   };
-  var ALLEVENTS = Object.assign({}, LOADER_EVENTS$1, DEMUX_EVENTS$1, REMUX_EVENTS$2, MSE_EVENTS, HLS_EVENTS$1, PLAYER_EVENTS);
+  var ALLEVENTS = Object.assign({}, LOADER_EVENTS, DEMUX_EVENTS, REMUX_EVENTS, MSE_EVENTS, HLS_EVENTS, PLAYER_EVENTS);
 
   var FlvAllowedEvents = [];
-  var HlsAllowedEvents$1 = [];
+  var HlsAllowedEvents = [];
 
   for (var key in ALLEVENTS) {
     if (ALLEVENTS.hasOwnProperty(key)) {
@@ -525,24 +63,24 @@
 
   for (var _key in ALLEVENTS) {
     if (ALLEVENTS.hasOwnProperty(_key)) {
-      HlsAllowedEvents$1.push(ALLEVENTS[_key]);
+      HlsAllowedEvents.push(ALLEVENTS[_key]);
     }
   }
 
   var EVENTS = {
     ALLEVENTS: ALLEVENTS,
-    HLS_EVENTS: HLS_EVENTS$1,
-    REMUX_EVENTS: REMUX_EVENTS$2,
-    DEMUX_EVENTS: DEMUX_EVENTS$1,
+    HLS_EVENTS: HLS_EVENTS,
+    REMUX_EVENTS: REMUX_EVENTS,
+    DEMUX_EVENTS: DEMUX_EVENTS,
     MSE_EVENTS: MSE_EVENTS,
-    LOADER_EVENTS: LOADER_EVENTS$1,
+    LOADER_EVENTS: LOADER_EVENTS,
     FlvAllowedEvents: FlvAllowedEvents,
-    HlsAllowedEvents: HlsAllowedEvents$1,
-    CRYTO_EVENTS: CRYTO_EVENTS$1,
+    HlsAllowedEvents: HlsAllowedEvents,
+    CRYTO_EVENTS: CRYTO_EVENTS,
     PLAYER_EVENTS: PLAYER_EVENTS
   };
 
-  var _createClass$2 = function () {
+  var _createClass = function () {
     function defineProperties(target, props) {
       for (var i = 0; i < props.length; i++) {
         var descriptor = props[i];descriptor.enumerable = descriptor.enumerable || false;descriptor.configurable = true;if ("value" in descriptor) descriptor.writable = true;Object.defineProperty(target, descriptor.key, descriptor);
@@ -552,7 +90,7 @@
     };
   }();
 
-  function _classCallCheck$2(instance, Constructor) {
+  function _classCallCheck(instance, Constructor) {
     if (!(instance instanceof Constructor)) {
       throw new TypeError("Cannot call a class as a function");
     }
@@ -571,7 +109,7 @@
 
   var MediaInfo = function () {
     function MediaInfo() {
-      _classCallCheck$2(this, MediaInfo);
+      _classCallCheck(this, MediaInfo);
 
       this.mimeType = null;
       this.duration = null;
@@ -606,7 +144,7 @@
       };
     }
 
-    _createClass$2(MediaInfo, [{
+    _createClass(MediaInfo, [{
       key: "isComplete",
       value: function isComplete() {
         return MediaInfo.isBaseInfoReady(this) && MediaInfo.isVideoReady(this) && MediaInfo.isAudioReady(this);
@@ -1049,9 +587,9 @@
     return ret;
   }
 
-  var _typeof$1 = typeof Symbol === "function" && typeof Symbol.iterator === "symbol" ? function (obj) { return typeof obj; } : function (obj) { return obj && typeof Symbol === "function" && obj.constructor === Symbol && obj !== Symbol.prototype ? "symbol" : typeof obj; };
+  var _typeof = typeof Symbol === "function" && typeof Symbol.iterator === "symbol" ? function (obj) { return typeof obj; } : function (obj) { return obj && typeof Symbol === "function" && obj.constructor === Symbol && obj !== Symbol.prototype ? "symbol" : typeof obj; };
 
-  var _get$1 = function get(object, property, receiver) {
+  var _get = function get(object, property, receiver) {
     if (object === null) object = Function.prototype;var desc = Object.getOwnPropertyDescriptor(object, property);if (desc === undefined) {
       var parent = Object.getPrototypeOf(object);if (parent === null) {
         return undefined;
@@ -1067,7 +605,7 @@
     }
   };
 
-  var _createClass$3 = function () {
+  var _createClass$1 = function () {
     function defineProperties(target, props) {
       for (var i = 0; i < props.length; i++) {
         var descriptor = props[i];descriptor.enumerable = descriptor.enumerable || false;descriptor.configurable = true;if ("value" in descriptor) descriptor.writable = true;Object.defineProperty(target, descriptor.key, descriptor);
@@ -1077,19 +615,19 @@
     };
   }();
 
-  function _possibleConstructorReturn$1(self, call) {
+  function _possibleConstructorReturn(self, call) {
     if (!self) {
       throw new ReferenceError("this hasn't been initialised - super() hasn't been called");
-    }return call && ((typeof call === "undefined" ? "undefined" : _typeof$1(call)) === "object" || typeof call === "function") ? call : self;
+    }return call && ((typeof call === "undefined" ? "undefined" : _typeof(call)) === "object" || typeof call === "function") ? call : self;
   }
 
-  function _inherits$1(subClass, superClass) {
+  function _inherits(subClass, superClass) {
     if (typeof superClass !== "function" && superClass !== null) {
-      throw new TypeError("Super expression must either be null or a function, not " + (typeof superClass === "undefined" ? "undefined" : _typeof$1(superClass)));
+      throw new TypeError("Super expression must either be null or a function, not " + (typeof superClass === "undefined" ? "undefined" : _typeof(superClass)));
     }subClass.prototype = Object.create(superClass && superClass.prototype, { constructor: { value: subClass, enumerable: false, writable: true, configurable: true } });if (superClass) Object.setPrototypeOf ? Object.setPrototypeOf(subClass, superClass) : subClass.__proto__ = superClass;
   }
 
-  function _classCallCheck$3(instance, Constructor) {
+  function _classCallCheck$1(instance, Constructor) {
     if (!(instance instanceof Constructor)) {
       throw new TypeError("Cannot call a class as a function");
     }
@@ -1101,7 +639,7 @@
     function Context() {
       var allowedEvents = arguments.length > 0 && arguments[0] !== undefined ? arguments[0] : [];
 
-      _classCallCheck$3(this, Context);
+      _classCallCheck$1(this, Context);
 
       this._emitter = new EventEmitter();
       if (!this._emitter.off) {
@@ -1123,7 +661,7 @@
      * @returns {*}
      */
 
-    _createClass$3(Context, [{
+    _createClass$1(Context, [{
       key: 'getInstance',
       value: function getInstance(tag) {
         var instance = this._instanceMap[tag];
@@ -1200,12 +738,12 @@
         var checkMessageName = this._isMessageNameValid.bind(this);
         var self = this;
         var enhanced = function (_cls) {
-          _inherits$1(enhanced, _cls);
+          _inherits(enhanced, _cls);
 
           function enhanced(a, b, c) {
-            _classCallCheck$3(this, enhanced);
+            _classCallCheck$1(this, enhanced);
 
-            var _this = _possibleConstructorReturn$1(this, (enhanced.__proto__ || Object.getPrototypeOf(enhanced)).call(this, a, b, c));
+            var _this = _possibleConstructorReturn(this, (enhanced.__proto__ || Object.getPrototypeOf(enhanced)).call(this, a, b, c));
 
             _this.listeners = {};
             _this.onceListeners = {};
@@ -1214,7 +752,7 @@
             return _this;
           }
 
-          _createClass$3(enhanced, [{
+          _createClass$1(enhanced, [{
             key: 'on',
             value: function on(messageName, callback) {
               checkMessageName(messageName);
@@ -1345,8 +883,8 @@
 
               // step2 release from context
               delete self._instanceMap[tag];
-              if (_get$1(enhanced.prototype.__proto__ || Object.getPrototypeOf(enhanced.prototype), 'destroy', this)) {
-                return _get$1(enhanced.prototype.__proto__ || Object.getPrototypeOf(enhanced.prototype), 'destroy', this).call(this);
+              if (_get(enhanced.prototype.__proto__ || Object.getPrototypeOf(enhanced.prototype), 'destroy', this)) {
+                return _get(enhanced.prototype.__proto__ || Object.getPrototypeOf(enhanced.prototype), 'destroy', this).call(this);
               }
             }
           }]);
@@ -1428,7 +966,7 @@
     return Context;
   }();
 
-  var _createClass$4 = function () {
+  var _createClass$2 = function () {
     function defineProperties(target, props) {
       for (var i = 0; i < props.length; i++) {
         var descriptor = props[i];descriptor.enumerable = descriptor.enumerable || false;descriptor.configurable = true;if ("value" in descriptor) descriptor.writable = true;Object.defineProperty(target, descriptor.key, descriptor);
@@ -1438,779 +976,7 @@
     };
   }();
 
-  function _classCallCheck$4(instance, Constructor) {
-    if (!(instance instanceof Constructor)) {
-      throw new TypeError("Cannot call a class as a function");
-    }
-  }
-
-  var isObjectFilled$1 = function isObjectFilled(obj) {
-    for (var key in obj) {
-      if (obj.hasOwnProperty(key)) {
-        if (obj[key] === null) {
-          return false;
-        }
-      }
-    }
-    return true;
-  };
-
-  var MediaInfo$1 = function () {
-    function MediaInfo() {
-      _classCallCheck$4(this, MediaInfo);
-
-      this.mimeType = null;
-      this.duration = null;
-
-      this.hasVideo = null;
-      this.video = {
-        codec: null,
-        width: null,
-        height: null,
-        profile: null,
-        level: null,
-        frameRate: {
-          fixed: true,
-          fps: 25,
-          fps_num: 25000,
-          fps_den: 1000
-        },
-        chromaFormat: null,
-        parRatio: {
-          width: 1,
-          height: 1
-        }
-      };
-
-      this.hasAudio = null;
-
-      this.audio = {
-        codec: null,
-        sampleRate: null,
-        sampleRateIndex: null,
-        channelCount: null
-      };
-    }
-
-    _createClass$4(MediaInfo, [{
-      key: "isComplete",
-      value: function isComplete() {
-        return MediaInfo.isBaseInfoReady(this) && MediaInfo.isVideoReady(this) && MediaInfo.isAudioReady(this);
-      }
-    }], [{
-      key: "isBaseInfoReady",
-      value: function isBaseInfoReady(mediaInfo) {
-        return isObjectFilled$1(mediaInfo);
-      }
-    }, {
-      key: "isVideoReady",
-      value: function isVideoReady(mediaInfo) {
-        if (!mediaInfo.hasVideo) {
-          return true;
-        }
-
-        return isObjectFilled$1(mediaInfo.video);
-      }
-    }, {
-      key: "isAudioReady",
-      value: function isAudioReady(mediaInfo) {
-        if (!mediaInfo.hasAudio) {
-          return true;
-        }
-
-        return isObjectFilled$1(mediaInfo.video);
-      }
-    }]);
-
-    return MediaInfo;
-  }();
-
-  var _typeof$2 = typeof Symbol === "function" && typeof Symbol.iterator === "symbol" ? function (obj) { return typeof obj; } : function (obj) { return obj && typeof Symbol === "function" && obj.constructor === Symbol && obj !== Symbol.prototype ? "symbol" : typeof obj; };
-
-  var _get$2 = function get(object, property, receiver) {
-    if (object === null) object = Function.prototype;var desc = Object.getOwnPropertyDescriptor(object, property);if (desc === undefined) {
-      var parent = Object.getPrototypeOf(object);if (parent === null) {
-        return undefined;
-      } else {
-        return get(parent, property, receiver);
-      }
-    } else if ("value" in desc) {
-      return desc.value;
-    } else {
-      var getter = desc.get;if (getter === undefined) {
-        return undefined;
-      }return getter.call(receiver);
-    }
-  };
-
-  var _createClass$5 = function () {
-    function defineProperties(target, props) {
-      for (var i = 0; i < props.length; i++) {
-        var descriptor = props[i];descriptor.enumerable = descriptor.enumerable || false;descriptor.configurable = true;if ("value" in descriptor) descriptor.writable = true;Object.defineProperty(target, descriptor.key, descriptor);
-      }
-    }return function (Constructor, protoProps, staticProps) {
-      if (protoProps) defineProperties(Constructor.prototype, protoProps);if (staticProps) defineProperties(Constructor, staticProps);return Constructor;
-    };
-  }();
-
-  function _possibleConstructorReturn$2(self, call) {
-    if (!self) {
-      throw new ReferenceError("this hasn't been initialised - super() hasn't been called");
-    }return call && ((typeof call === "undefined" ? "undefined" : _typeof$2(call)) === "object" || typeof call === "function") ? call : self;
-  }
-
-  function _inherits$2(subClass, superClass) {
-    if (typeof superClass !== "function" && superClass !== null) {
-      throw new TypeError("Super expression must either be null or a function, not " + (typeof superClass === "undefined" ? "undefined" : _typeof$2(superClass)));
-    }subClass.prototype = Object.create(superClass && superClass.prototype, { constructor: { value: subClass, enumerable: false, writable: true, configurable: true } });if (superClass) Object.setPrototypeOf ? Object.setPrototypeOf(subClass, superClass) : subClass.__proto__ = superClass;
-  }
-
-  function _classCallCheck$5(instance, Constructor) {
-    if (!(instance instanceof Constructor)) {
-      throw new TypeError("Cannot call a class as a function");
-    }
-  }
-
-  var DIRECT_EMIT_FLAG$1 = '__TO__';
-
-  var Context$1 = function () {
-    function Context() {
-      var allowedEvents = arguments.length > 0 && arguments[0] !== undefined ? arguments[0] : [];
-
-      _classCallCheck$5(this, Context);
-
-      this._emitter = new EventEmitter();
-      if (!this._emitter.off) {
-        this._emitter.off = this._emitter.removeListener;
-      }
-      this._instanceMap = {}; // 所有的解码流程实例
-      this._clsMap = {}; // 构造函数的map
-      this._inited = false;
-      this.mediaInfo = new MediaInfo$1();
-      this.allowedEvents = allowedEvents;
-      this._hooks = {}; // 注册在事件前/后的钩子，例如 before('DEMUX_COMPLETE')
-    }
-
-    /**
-     * 从上下文中获取解码流程实例，如果没有实例，构造一个
-     * @param tag
-     * @param args
-     * @returns {*}
-     */
-
-    _createClass$5(Context, [{
-      key: 'getInstance',
-      value: function getInstance(tag) {
-        var instance = this._instanceMap[tag];
-        if (instance) {
-          return instance;
-        } else {
-          // throw new Error(`${tag}实例尚未初始化`)
-          return null;
-        }
-      }
-
-      /**
-       * 初始化具体实例
-       * @param tag
-       * @param args
-       */
-
-    }, {
-      key: 'initInstance',
-      value: function initInstance(tag) {
-        for (var _len = arguments.length, args = Array(_len > 1 ? _len - 1 : 0), _key = 1; _key < _len; _key++) {
-          args[_key - 1] = arguments[_key];
-        }
-
-        var a = args[0],
-            b = args[1],
-            c = args[2],
-            d = args[3];
-
-        if (this._clsMap[tag]) {
-          var newInstance = new this._clsMap[tag](a, b, c, d);
-          this._instanceMap[tag] = newInstance;
-          if (newInstance.init) {
-            newInstance.init(); // TODO: lifecircle
-          }
-          return newInstance;
-        } else {
-          throw new Error(tag + "\u672A\u5728context\u4E2D\u6CE8\u518C");
-        }
-      }
-
-      /**
-       * 避免大量的initInstance调用，初始化所有的组件
-       * @param config
-       */
-
-    }, {
-      key: 'init',
-      value: function init(config) {
-        if (this._inited) {
-          return;
-        }
-        for (var tag in this._clsMap) {
-          // if not inited, init an instance
-          if (this._clsMap.hasOwnProperty(tag) && !this._instanceMap[tag]) {
-            this.initInstance(tag, config);
-          }
-        }
-        this._inited = true;
-      }
-
-      /**
-       * 注册一个上下文流程，提供安全的事件发送机制
-       * @param tag
-       * @param cls
-       */
-
-    }, {
-      key: 'registry',
-      value: function registry(tag, cls) {
-        var _this2 = this;
-
-        var emitter = this._emitter;
-        var checkMessageName = this._isMessageNameValid.bind(this);
-        var self = this;
-        var enhanced = function (_cls) {
-          _inherits$2(enhanced, _cls);
-
-          function enhanced(a, b, c) {
-            _classCallCheck$5(this, enhanced);
-
-            var _this = _possibleConstructorReturn$2(this, (enhanced.__proto__ || Object.getPrototypeOf(enhanced)).call(this, a, b, c));
-
-            _this.listeners = {};
-            _this.onceListeners = {};
-            _this.TAG = tag;
-            _this._context = self;
-            return _this;
-          }
-
-          _createClass$5(enhanced, [{
-            key: 'on',
-            value: function on(messageName, callback) {
-              checkMessageName(messageName);
-
-              if (this.listeners[messageName]) {
-                this.listeners[messageName].push(callback);
-              } else {
-                this.listeners[messageName] = [callback];
-              }
-
-              emitter.on('' + messageName + DIRECT_EMIT_FLAG$1 + tag, callback); // 建立定向通信监听
-              return emitter.on(messageName, callback);
-            }
-
-            /**
-             * 在某个事件触发前执行
-             * @param messageName
-             * @param callback
-             */
-
-          }, {
-            key: 'before',
-            value: function before(messageName, callback) {
-              checkMessageName(messageName);
-              if (self._hooks[messageName]) {
-                self._hooks[messageName].push(callback);
-              } else {
-                self._hooks[messageName] = [callback];
-              }
-            }
-          }, {
-            key: 'once',
-            value: function once(messageName, callback) {
-              checkMessageName(messageName);
-
-              if (this.onceListeners[messageName]) {
-                this.onceListeners[messageName].push(callback);
-              } else {
-                this.onceListeners[messageName] = [callback];
-              }
-
-              emitter.once('' + messageName + DIRECT_EMIT_FLAG$1 + tag, callback);
-              return emitter.once(messageName, callback);
-            }
-          }, {
-            key: 'emit',
-            value: function emit(messageName) {
-              checkMessageName(messageName);
-              // console.log('emit ', messageName);
-
-              var beforeList = self._hooks ? self._hooks[messageName] : null;
-
-              if (beforeList) {
-                for (var i = 0, len = beforeList.length; i < len; i++) {
-                  var callback = beforeList[i];
-                  callback();
-                }
-              }
-
-              for (var _len2 = arguments.length, args = Array(_len2 > 1 ? _len2 - 1 : 0), _key2 = 1; _key2 < _len2; _key2++) {
-                args[_key2 - 1] = arguments[_key2];
-              }
-
-              return emitter.emit.apply(emitter, [messageName].concat(args));
-            }
-
-            /**
-             * 定向发送给某个组件单例的消息
-             * @param messageName
-             * @param args
-             */
-
-          }, {
-            key: 'emitTo',
-            value: function emitTo(tag, messageName) {
-              checkMessageName(messageName);
-
-              for (var _len3 = arguments.length, args = Array(_len3 > 2 ? _len3 - 2 : 0), _key3 = 2; _key3 < _len3; _key3++) {
-                args[_key3 - 2] = arguments[_key3];
-              }
-
-              return emitter.emit.apply(emitter, ['' + messageName + DIRECT_EMIT_FLAG$1 + tag].concat(args));
-            }
-          }, {
-            key: 'off',
-            value: function off(messageName, callback) {
-              checkMessageName(messageName);
-              return emitter.off(messageName, callback);
-            }
-          }, {
-            key: 'removeListeners',
-            value: function removeListeners() {
-              var hasOwn = Object.prototype.hasOwnProperty.bind(this.listeners);
-
-              for (var messageName in this.listeners) {
-                if (hasOwn(messageName)) {
-                  var callbacks = this.listeners[messageName] || [];
-                  for (var i = 0; i < callbacks.length; i++) {
-                    var callback = callbacks[i];
-                    emitter.off(messageName, callback);
-                    emitter.off('' + messageName + DIRECT_EMIT_FLAG$1 + tag, callback);
-                  }
-                }
-              }
-
-              for (var _messageName in this.onceListeners) {
-                if (hasOwn(_messageName)) {
-                  var _callbacks = this.onceListeners[_messageName] || [];
-                  for (var _i = 0; _i < _callbacks.length; _i++) {
-                    var _callback = _callbacks[_i];
-                    emitter.off(_messageName, _callback);
-                    emitter.off('' + _messageName + DIRECT_EMIT_FLAG$1 + tag, _callback);
-                  }
-                }
-              }
-            }
-
-            /**
-             * 在组件销毁时，默认将它注册的事件全部卸载，确保不会造成内存泄漏
-             */
-
-          }, {
-            key: 'destroy',
-            value: function destroy() {
-              // step1 unlisten events
-              this.removeListeners();
-              this.listeners = {};
-
-              // step2 release from context
-              delete self._instanceMap[tag];
-              if (_get$2(enhanced.prototype.__proto__ || Object.getPrototypeOf(enhanced.prototype), 'destroy', this)) {
-                return _get$2(enhanced.prototype.__proto__ || Object.getPrototypeOf(enhanced.prototype), 'destroy', this).call(this);
-              }
-            }
-          }]);
-
-          return enhanced;
-        }(cls);
-        this._clsMap[tag] = enhanced;
-
-        /**
-         * get instance immediately
-         * e.g const instance = context.registry(tag, Cls)(config)
-         * */
-        return function () {
-          for (var _len4 = arguments.length, args = Array(_len4), _key4 = 0; _key4 < _len4; _key4++) {
-            args[_key4] = arguments[_key4];
-          }
-
-          return _this2.initInstance.apply(_this2, [tag].concat(args));
-        };
-      }
-
-      /**
-       * 各个模块处理seek
-       * @param time
-       */
-
-    }, {
-      key: 'seek',
-      value: function seek(time) {
-        this._emitter.emit(EVENTS.PLAYER_EVENTS.SEEK, time);
-      }
-
-      /**
-       * 对存在的实例进行
-       */
-
-    }, {
-      key: 'destroyInstances',
-      value: function destroyInstances() {
-        var _this3 = this;
-
-        Object.keys(this._instanceMap).forEach(function (tag) {
-          if (_this3._instanceMap[tag].destroy) {
-            _this3._instanceMap[tag].destroy();
-          }
-        });
-      }
-
-      /**
-       * 编解码流程无需关注事件的解绑
-       */
-
-    }, {
-      key: 'destroy',
-      value: function destroy() {
-        this._emitter = null;
-        this.allowedEvents = [];
-        this._clsMap = null;
-        this._context = null;
-        this._hooks = null;
-        this.destroyInstances();
-      }
-
-      /**
-       * 对信道进行收拢
-       * @param messageName
-       * @private
-       */
-
-    }, {
-      key: '_isMessageNameValid',
-      value: function _isMessageNameValid(messageName) {
-        if (!this.allowedEvents.indexOf(messageName) < 0) {
-          throw new Error('unregistered message name: ' + messageName);
-        }
-      }
-    }]);
-
-    return Context;
-  }();
-
-  var _slicedToArray = function () {
-    function sliceIterator(arr, i) {
-      var _arr = [];var _n = true;var _d = false;var _e = undefined;try {
-        for (var _i = arr[Symbol.iterator](), _s; !(_n = (_s = _i.next()).done); _n = true) {
-          _arr.push(_s.value);if (i && _arr.length === i) break;
-        }
-      } catch (err) {
-        _d = true;_e = err;
-      } finally {
-        try {
-          if (!_n && _i["return"]) _i["return"]();
-        } finally {
-          if (_d) throw _e;
-        }
-      }return _arr;
-    }return function (arr, i) {
-      if (Array.isArray(arr)) {
-        return arr;
-      } else if (Symbol.iterator in Object(arr)) {
-        return sliceIterator(arr, i);
-      } else {
-        throw new TypeError("Invalid attempt to destructure non-iterable instance");
-      }
-    };
-  }();
-
-  var _createClass$6 = function () {
-    function defineProperties(target, props) {
-      for (var i = 0; i < props.length; i++) {
-        var descriptor = props[i];descriptor.enumerable = descriptor.enumerable || false;descriptor.configurable = true;if ("value" in descriptor) descriptor.writable = true;Object.defineProperty(target, descriptor.key, descriptor);
-      }
-    }return function (Constructor, protoProps, staticProps) {
-      if (protoProps) defineProperties(Constructor.prototype, protoProps);if (staticProps) defineProperties(Constructor, staticProps);return Constructor;
-    };
-  }();
-
-  function _classCallCheck$6(instance, Constructor) {
-    if (!(instance instanceof Constructor)) {
-      throw new TypeError("Cannot call a class as a function");
-    }
-  }
-
-  var MediaSample = function () {
-    function MediaSample(info) {
-      var _this = this;
-
-      _classCallCheck$6(this, MediaSample);
-
-      var _default = MediaSample.getDefaultInf();
-
-      if (!info || Object.prototype.toString.call(info) !== '[object Object]') {
-        return _default;
-      }
-      var sample = Object.assign({}, _default, info);
-
-      Object.entries(sample).forEach(function (_ref) {
-        var _ref2 = _slicedToArray(_ref, 2),
-            k = _ref2[0],
-            v = _ref2[1];
-
-        _this[k] = v;
-      });
-    }
-
-    _createClass$6(MediaSample, null, [{
-      key: 'getDefaultInf',
-      value: function getDefaultInf() {
-        return {
-          dts: null,
-          pts: null,
-          duration: null,
-          position: null,
-          isRAP: false, // is Random access point
-          originDts: null
-        };
-      }
-    }]);
-
-    return MediaSample;
-  }();
-
-  var _createClass$7 = function () {
-      function defineProperties(target, props) {
-          for (var i = 0; i < props.length; i++) {
-              var descriptor = props[i];descriptor.enumerable = descriptor.enumerable || false;descriptor.configurable = true;if ("value" in descriptor) descriptor.writable = true;Object.defineProperty(target, descriptor.key, descriptor);
-          }
-      }return function (Constructor, protoProps, staticProps) {
-          if (protoProps) defineProperties(Constructor.prototype, protoProps);if (staticProps) defineProperties(Constructor, staticProps);return Constructor;
-      };
-  }();
-
-  function _classCallCheck$7(instance, Constructor) {
-      if (!(instance instanceof Constructor)) {
-          throw new TypeError("Cannot call a class as a function");
-      }
-  }
-
-  var MediaSegment = function () {
-      function MediaSegment() {
-          _classCallCheck$7(this, MediaSegment);
-
-          this.startDts = -1;
-          this.endDts = -1;
-          this.startPts = -1;
-          this.endPts = -1;
-          this.originStartDts = -1;
-          this.originEndDts = -1;
-          this.randomAccessPoints = [];
-          this.firstSample = null;
-          this.lastSample = null;
-      }
-
-      _createClass$7(MediaSegment, [{
-          key: "addRAP",
-          value: function addRAP(sample) {
-              sample.isRAP = true;
-              this.randomAccessPoints.push(sample);
-          }
-      }]);
-
-      return MediaSegment;
-  }();
-
-  var _createClass$8 = function () {
-    function defineProperties(target, props) {
-      for (var i = 0; i < props.length; i++) {
-        var descriptor = props[i];descriptor.enumerable = descriptor.enumerable || false;descriptor.configurable = true;if ("value" in descriptor) descriptor.writable = true;Object.defineProperty(target, descriptor.key, descriptor);
-      }
-    }return function (Constructor, protoProps, staticProps) {
-      if (protoProps) defineProperties(Constructor.prototype, protoProps);if (staticProps) defineProperties(Constructor, staticProps);return Constructor;
-    };
-  }();
-
-  function _classCallCheck$8(instance, Constructor) {
-    if (!(instance instanceof Constructor)) {
-      throw new TypeError("Cannot call a class as a function");
-    }
-  }
-
-  var MediaSegmentList = function () {
-    function MediaSegmentList(type) {
-      _classCallCheck$8(this, MediaSegmentList);
-
-      this._type = type;
-      this._list = [];
-      this._lastAppendLocation = -1; // cached last insert location
-    }
-
-    _createClass$8(MediaSegmentList, [{
-      key: "isEmpty",
-      value: function isEmpty() {
-        return this._list.length === 0;
-      }
-    }, {
-      key: "clear",
-      value: function clear() {
-        this._list = [];
-        this._lastAppendLocation = -1;
-      }
-    }, {
-      key: "_searchNearestSegmentBefore",
-      value: function _searchNearestSegmentBefore(beginDts) {
-        var list = this._list;
-        if (list.length === 0) {
-          return -2;
-        }
-        var last = list.length - 1;
-        var mid = 0;
-        var lbound = 0;
-        var ubound = last;
-
-        var idx = 0;
-
-        if (beginDts < list[0].originDts) {
-          idx = -1;
-          return idx;
-        }
-
-        while (lbound <= ubound) {
-          mid = lbound + Math.floor((ubound - lbound) / 2);
-          if (mid === last || beginDts > list[mid].lastSample.originDts && beginDts < list[mid + 1].originDts) {
-            idx = mid;
-            break;
-          } else if (list[mid].originDts < beginDts) {
-            lbound = mid + 1;
-          } else {
-            ubound = mid - 1;
-          }
-        }
-        return idx;
-      }
-    }, {
-      key: "_searchNearestSegmentAfter",
-      value: function _searchNearestSegmentAfter(beginDts) {
-        return this._searchNearestSegmentBefore(beginDts) + 1;
-      }
-    }, {
-      key: "append",
-      value: function append(segment) {
-        var list = this._list;
-        var lastAppendIdx = this._lastAppendLocation;
-        var insertIdx = 0;
-
-        if (lastAppendIdx !== -1 && lastAppendIdx < list.length && segment.originStartDts >= list[lastAppendIdx].lastSample.originDts && (lastAppendIdx === list.length - 1 || lastAppendIdx < list.length - 1 && segment.originStartDts < list[lastAppendIdx + 1].originStartDts)) {
-          insertIdx = lastAppendIdx + 1; // use cached location idx
-        } else {
-          if (list.length > 0) {
-            insertIdx = this._searchNearestSegmentBefore(segment.originStartDts) + 1;
-          }
-        }
-
-        this._lastAppendLocation = insertIdx;
-        this._list.splice(insertIdx, 0, segment);
-      }
-    }, {
-      key: "getLastSegmentBefore",
-      value: function getLastSegmentBefore(beginDts) {
-        var idx = this._searchNearestSegmentBefore(beginDts);
-        if (idx >= 0) {
-          return this._list[idx];
-        } else {
-          // -1
-          return null;
-        }
-      }
-    }, {
-      key: "getLastSampleBefore",
-      value: function getLastSampleBefore(beginDts) {
-        var segment = this.getLastSegmentBefore(beginDts);
-        if (segment !== null) {
-          return segment.lastSample;
-        } else {
-          return null;
-        }
-      }
-    }, {
-      key: "getLastRAPBefore",
-      value: function getLastRAPBefore(beginDts) {
-        var segmentIdx = this._searchNearestSegmentBefore(beginDts);
-        var randomAccessPoints = this._list[segmentIdx].randomAccessPoints;
-        while (randomAccessPoints.length === 0 && segmentIdx > 0) {
-          segmentIdx--;
-          randomAccessPoints = this._list[segmentIdx].randomAccessPoints;
-        }
-        if (randomAccessPoints.length > 0) {
-          return randomAccessPoints[randomAccessPoints.length - 1];
-        } else {
-          return null;
-        }
-      }
-    }, {
-      key: "type",
-      get: function get() {
-        return this._type;
-      }
-    }, {
-      key: "length",
-      get: function get() {
-        return this._list.length;
-      }
-    }]);
-
-    return MediaSegmentList;
-  }();
-
-  var _debounce = (function (fn, wait) {
-    var lastTime = Date.now();
-    var timer = null;
-    var isFirstTime = true;
-
-    return function () {
-      for (var _len = arguments.length, args = Array(_len), _key = 0; _key < _len; _key++) {
-        args[_key] = arguments[_key];
-      }
-
-      var now = Date.now();
-      if (isFirstTime) {
-        lastTime = Date.now();
-        isFirstTime = false;
-        fn.apply(undefined, args);
-      }
-      if (now - lastTime > wait) {
-        lastTime = now;
-        fn.apply(undefined, args);
-      } else {
-        if (timer) {
-          window.clearTimeout(timer);
-        }
-        timer = setTimeout(function () {
-          fn.apply(undefined, args);
-        }, wait);
-      }
-    };
-  });
-
-  var debounce = _debounce;
-
-  var _createClass$9 = function () {
-    function defineProperties(target, props) {
-      for (var i = 0; i < props.length; i++) {
-        var descriptor = props[i];descriptor.enumerable = descriptor.enumerable || false;descriptor.configurable = true;if ("value" in descriptor) descriptor.writable = true;Object.defineProperty(target, descriptor.key, descriptor);
-      }
-    }return function (Constructor, protoProps, staticProps) {
-      if (protoProps) defineProperties(Constructor.prototype, protoProps);if (staticProps) defineProperties(Constructor, staticProps);return Constructor;
-    };
-  }();
-
-  function _classCallCheck$9(instance, Constructor) {
+  function _classCallCheck$2(instance, Constructor) {
     if (!(instance instanceof Constructor)) {
       throw new TypeError("Cannot call a class as a function");
     }
@@ -2218,7 +984,7 @@
 
   var MSE = function () {
     function MSE(configs, context) {
-      _classCallCheck$9(this, MSE);
+      _classCallCheck$2(this, MSE);
 
       if (context) {
         this._context = context;
@@ -2236,7 +1002,7 @@
       this.onWaiting = this.onWaiting.bind(this);
     }
 
-    _createClass$9(MSE, [{
+    _createClass$2(MSE, [{
       key: 'init',
       value: function init() {
         // eslint-disable-next-line no-undef
@@ -2477,9 +1243,9 @@
     return MSE;
   }();
 
-  var _typeof$3 = typeof Symbol === "function" && typeof Symbol.iterator === "symbol" ? function (obj) { return typeof obj; } : function (obj) { return obj && typeof Symbol === "function" && obj.constructor === Symbol && obj !== Symbol.prototype ? "symbol" : typeof obj; };
+  var _typeof$1 = typeof Symbol === "function" && typeof Symbol.iterator === "symbol" ? function (obj) { return typeof obj; } : function (obj) { return obj && typeof Symbol === "function" && obj.constructor === Symbol && obj !== Symbol.prototype ? "symbol" : typeof obj; };
 
-  var _createClass$a = function () {
+  var _createClass$3 = function () {
     function defineProperties(target, props) {
       for (var i = 0; i < props.length; i++) {
         var descriptor = props[i];descriptor.enumerable = descriptor.enumerable || false;descriptor.configurable = true;if ("value" in descriptor) descriptor.writable = true;Object.defineProperty(target, descriptor.key, descriptor);
@@ -2489,19 +1255,19 @@
     };
   }();
 
-  function _possibleConstructorReturn$3(self, call) {
+  function _possibleConstructorReturn$1(self, call) {
     if (!self) {
       throw new ReferenceError("this hasn't been initialised - super() hasn't been called");
-    }return call && ((typeof call === "undefined" ? "undefined" : _typeof$3(call)) === "object" || typeof call === "function") ? call : self;
+    }return call && ((typeof call === "undefined" ? "undefined" : _typeof$1(call)) === "object" || typeof call === "function") ? call : self;
   }
 
-  function _inherits$3(subClass, superClass) {
+  function _inherits$1(subClass, superClass) {
     if (typeof superClass !== "function" && superClass !== null) {
-      throw new TypeError("Super expression must either be null or a function, not " + (typeof superClass === "undefined" ? "undefined" : _typeof$3(superClass)));
+      throw new TypeError("Super expression must either be null or a function, not " + (typeof superClass === "undefined" ? "undefined" : _typeof$1(superClass)));
     }subClass.prototype = Object.create(superClass && superClass.prototype, { constructor: { value: subClass, enumerable: false, writable: true, configurable: true } });if (superClass) Object.setPrototypeOf ? Object.setPrototypeOf(subClass, superClass) : subClass.__proto__ = superClass;
   }
 
-  function _classCallCheck$a(instance, Constructor) {
+  function _classCallCheck$3(instance, Constructor) {
     if (!(instance instanceof Constructor)) {
       throw new TypeError("Cannot call a class as a function");
     }
@@ -2512,7 +1278,7 @@
      * The constructor.
      */
     function Track() {
-      _classCallCheck$a(this, Track);
+      _classCallCheck$3(this, Track);
 
       this.id = -1;
       this.sequenceNumber = 0;
@@ -2525,7 +1291,7 @@
      * Reset the track.
      */
 
-    _createClass$a(Track, [{
+    _createClass$3(Track, [{
       key: 'reset',
       value: function reset() {
         this.sequenceNumber = 0;
@@ -2548,15 +1314,15 @@
   }();
 
   var AudioTrack = function (_Track) {
-    _inherits$3(AudioTrack, _Track);
+    _inherits$1(AudioTrack, _Track);
 
     /**
      * The constructor for audio track.
      */
     function AudioTrack() {
-      _classCallCheck$a(this, AudioTrack);
+      _classCallCheck$3(this, AudioTrack);
 
-      var _this = _possibleConstructorReturn$3(this, (AudioTrack.__proto__ || Object.getPrototypeOf(AudioTrack)).call(this));
+      var _this = _possibleConstructorReturn$1(this, (AudioTrack.__proto__ || Object.getPrototypeOf(AudioTrack)).call(this));
 
       _this.TAG = 'AudioTrack';
       _this.type = 'audio';
@@ -2567,15 +1333,15 @@
   }(Track);
 
   var VideoTrack = function (_Track2) {
-    _inherits$3(VideoTrack, _Track2);
+    _inherits$1(VideoTrack, _Track2);
 
     /**
      * The constructor for video track.
      */
     function VideoTrack() {
-      _classCallCheck$a(this, VideoTrack);
+      _classCallCheck$3(this, VideoTrack);
 
-      var _this2 = _possibleConstructorReturn$3(this, (VideoTrack.__proto__ || Object.getPrototypeOf(VideoTrack)).call(this));
+      var _this2 = _possibleConstructorReturn$1(this, (VideoTrack.__proto__ || Object.getPrototypeOf(VideoTrack)).call(this));
 
       _this2.TAG = 'VideoTrack';
       _this2.type = 'video';
@@ -2586,7 +1352,7 @@
      * reset the video track.
      */
 
-    _createClass$a(VideoTrack, [{
+    _createClass$3(VideoTrack, [{
       key: 'reset',
       value: function reset() {
         this.sequenceNumber = 0;
@@ -2601,13 +1367,13 @@
 
   var Tracks = function () {
     function Tracks() {
-      _classCallCheck$a(this, Tracks);
+      _classCallCheck$3(this, Tracks);
 
       this.audioTrack = null;
       this.videoTrack = null;
     }
 
-    _createClass$a(Tracks, [{
+    _createClass$3(Tracks, [{
       key: 'destroy',
       value: function destroy() {
         this.audioTrack = null;
@@ -2618,7 +1384,7 @@
     return Tracks;
   }();
 
-  var _createClass$b = function () {
+  var _createClass$4 = function () {
     function defineProperties(target, props) {
       for (var i = 0; i < props.length; i++) {
         var descriptor = props[i];descriptor.enumerable = descriptor.enumerable || false;descriptor.configurable = true;if ("value" in descriptor) descriptor.writable = true;Object.defineProperty(target, descriptor.key, descriptor);
@@ -2628,14 +1394,14 @@
     };
   }();
 
-  function _classCallCheck$b(instance, Constructor) {
+  function _classCallCheck$4(instance, Constructor) {
     if (!(instance instanceof Constructor)) {
       throw new TypeError("Cannot call a class as a function");
     }
   }
 
   var Source = function Source() {
-    _classCallCheck$b(this, Source);
+    _classCallCheck$4(this, Source);
 
     this.mimetype = '';
     this.init = null;
@@ -2644,12 +1410,12 @@
 
   var PreSource = function () {
     function PreSource() {
-      _classCallCheck$b(this, PreSource);
+      _classCallCheck$4(this, PreSource);
 
       this.sources = {};
     }
 
-    _createClass$b(PreSource, [{
+    _createClass$4(PreSource, [{
       key: 'getSource',
       value: function getSource(source) {
         return this.sources[source];
@@ -2675,7 +1441,7 @@
     return PreSource;
   }();
 
-  var _createClass$c = function () {
+  var _createClass$5 = function () {
     function defineProperties(target, props) {
       for (var i = 0; i < props.length; i++) {
         var descriptor = props[i];descriptor.enumerable = descriptor.enumerable || false;descriptor.configurable = true;if ("value" in descriptor) descriptor.writable = true;Object.defineProperty(target, descriptor.key, descriptor);
@@ -2685,7 +1451,7 @@
     };
   }();
 
-  function _classCallCheck$c(instance, Constructor) {
+  function _classCallCheck$5(instance, Constructor) {
     if (!(instance instanceof Constructor)) {
       throw new TypeError("Cannot call a class as a function");
     }
@@ -2699,7 +1465,7 @@
      * @param {number} length - Optional the buffer size
      */
     function XgBuffer(length) {
-      _classCallCheck$c(this, XgBuffer);
+      _classCallCheck$5(this, XgBuffer);
 
       this.length = length || 0;
       this.historyLen = length || 0;
@@ -2713,7 +1479,7 @@
      * @param {number} data - The data to push into the buffer
      */
 
-    _createClass$c(XgBuffer, [{
+    _createClass$5(XgBuffer, [{
       key: "push",
       value: function push(data) {
         this.array.push(data);
@@ -2836,13 +1602,13 @@
 
   var _typeof2 = typeof Symbol === "function" && typeof Symbol.iterator === "symbol" ? function (obj) { return typeof obj; } : function (obj) { return obj && typeof Symbol === "function" && obj.constructor === Symbol && obj !== Symbol.prototype ? "symbol" : typeof obj; };
 
-  var _typeof$4 = typeof Symbol === "function" && _typeof2(Symbol.iterator) === "symbol" ? function (obj) {
+  var _typeof$2 = typeof Symbol === "function" && _typeof2(Symbol.iterator) === "symbol" ? function (obj) {
     return typeof obj === "undefined" ? "undefined" : _typeof2(obj);
   } : function (obj) {
     return obj && typeof Symbol === "function" && obj.constructor === Symbol && obj !== Symbol.prototype ? "symbol" : typeof obj === "undefined" ? "undefined" : _typeof2(obj);
   };
 
-  var _createClass$d = function () {
+  var _createClass$6 = function () {
     function defineProperties(target, props) {
       for (var i = 0; i < props.length; i++) {
         var descriptor = props[i];descriptor.enumerable = descriptor.enumerable || false;descriptor.configurable = true;if ("value" in descriptor) descriptor.writable = true;Object.defineProperty(target, descriptor.key, descriptor);
@@ -2852,13 +1618,13 @@
     };
   }();
 
-  function _classCallCheck$d(instance, Constructor) {
+  function _classCallCheck$6(instance, Constructor) {
     if (!(instance instanceof Constructor)) {
       throw new TypeError("Cannot call a class as a function");
     }
   }
 
-  var LOADER_EVENTS$2 = EVENTS.LOADER_EVENTS;
+  var LOADER_EVENTS$1 = EVENTS.LOADER_EVENTS;
   var READ_STREAM = 0;
   var READ_TEXT = 1;
   var READ_JSON = 2;
@@ -2866,7 +1632,7 @@
 
   var FetchLoader = function () {
     function FetchLoader(configs) {
-      _classCallCheck$d(this, FetchLoader);
+      _classCallCheck$6(this, FetchLoader);
 
       this.configs = Object.assign({}, configs);
       this.url = null;
@@ -2880,10 +1646,10 @@
       this._loaderTaskNo = 0;
     }
 
-    _createClass$d(FetchLoader, [{
+    _createClass$6(FetchLoader, [{
       key: 'init',
       value: function init() {
-        this.on(LOADER_EVENTS$2.LADER_START, this.load.bind(this));
+        this.on(LOADER_EVENTS$1.LADER_START, this.load.bind(this));
       }
     }, {
       key: 'load',
@@ -2907,10 +1673,10 @@
             return Promise.resolve(response);
           }
           _this2.loading = false;
-          _this2.emit(LOADER_EVENTS$2.LOADER_ERROR, _this2.TAG, new Error(response.status + ' (' + response.statusText + ')'));
+          _this2.emit(LOADER_EVENTS$1.LOADER_ERROR, _this2.TAG, new Error(response.status + ' (' + response.statusText + ')'));
         }).catch(function (error) {
           _this2.loading = false;
-          _this2.emit(LOADER_EVENTS$2.LOADER_ERROR, _this2.TAG, error);
+          _this2.emit(LOADER_EVENTS$1.LOADER_ERROR, _this2.TAG, error);
           throw error;
         });
       }
@@ -2929,9 +1695,9 @@
                 if (!_this._canceled && !_this._destroyed) {
                   if (buffer) {
                     buffer.push(data);
-                    _this.emit(LOADER_EVENTS$2.LOADER_COMPLETE, buffer);
+                    _this.emit(LOADER_EVENTS$1.LOADER_COMPLETE, buffer);
                   } else {
-                    _this.emit(LOADER_EVENTS$2.LOADER_COMPLETE, data);
+                    _this.emit(LOADER_EVENTS$1.LOADER_COMPLETE, data);
                   }
                 }
               });
@@ -2942,9 +1708,9 @@
                 if (!_this._canceled && !_this._destroyed) {
                   if (buffer) {
                     buffer.push(data);
-                    _this.emit(LOADER_EVENTS$2.LOADER_COMPLETE, buffer);
+                    _this.emit(LOADER_EVENTS$1.LOADER_COMPLETE, buffer);
                   } else {
-                    _this.emit(LOADER_EVENTS$2.LOADER_COMPLETE, data);
+                    _this.emit(LOADER_EVENTS$1.LOADER_COMPLETE, data);
                   }
                 }
               });
@@ -2955,9 +1721,9 @@
                 if (!_this._canceled && !_this._destroyed) {
                   if (buffer) {
                     buffer.push(new Uint8Array(data));
-                    _this.emit(LOADER_EVENTS$2.LOADER_COMPLETE, buffer);
+                    _this.emit(LOADER_EVENTS$1.LOADER_COMPLETE, buffer);
                   } else {
-                    _this.emit(LOADER_EVENTS$2.LOADER_COMPLETE, data);
+                    _this.emit(LOADER_EVENTS$1.LOADER_COMPLETE, data);
                   }
                 }
               });
@@ -3004,19 +1770,19 @@
             _this3.loading = false;
             _this3.status = 0;
             Promise.resolve().then(function () {
-              _this3.emit(LOADER_EVENTS$2.LOADER_COMPLETE, buffer);
+              _this3.emit(LOADER_EVENTS$1.LOADER_COMPLETE, buffer);
             });
             return;
           }
 
           buffer.push(val.value);
           Promise.resolve().then(function () {
-            _this3.emit(LOADER_EVENTS$2.LOADER_DATALOADED, buffer);
+            _this3.emit(LOADER_EVENTS$1.LOADER_DATALOADED, buffer);
           });
           return _this3._onReader(reader, taskno);
         }).catch(function (error) {
           _this3.loading = false;
-          _this3.emit(LOADER_EVENTS$2.LOADER_ERROR, _this3.TAG, error);
+          _this3.emit(LOADER_EVENTS$1.LOADER_ERROR, _this3.TAG, error);
           throw error;
         });
       }
@@ -3034,7 +1800,7 @@
 
           // add custmor headers
           // 添加自定义头
-        };if (_typeof$4(this.configs.headers) === 'object') {
+        };if (_typeof$2(this.configs.headers) === 'object') {
           var configHeaders = this.configs.headers;
           for (var key in configHeaders) {
             if (configHeaders.hasOwnProperty(key)) {
@@ -3043,7 +1809,7 @@
           }
         }
 
-        if (_typeof$4(options.headers) === 'object') {
+        if (_typeof$2(options.headers) === 'object') {
           var optHeaders = options.headers;
           for (var _key in optHeaders) {
             if (optHeaders.hasOwnProperty(_key)) {
@@ -3095,7 +1861,7 @@
     return FetchLoader;
   }();
 
-  var _createClass$e = function () {
+  var _createClass$7 = function () {
     function defineProperties(target, props) {
       for (var i = 0; i < props.length; i++) {
         var descriptor = props[i];descriptor.enumerable = descriptor.enumerable || false;descriptor.configurable = true;if ("value" in descriptor) descriptor.writable = true;Object.defineProperty(target, descriptor.key, descriptor);
@@ -3105,7 +1871,7 @@
     };
   }();
 
-  function _classCallCheck$e(instance, Constructor) {
+  function _classCallCheck$7(instance, Constructor) {
     if (!(instance instanceof Constructor)) {
       throw new TypeError("Cannot call a class as a function");
     }
@@ -3113,10 +1879,10 @@
 
   var AAC = function () {
     function AAC() {
-      _classCallCheck$e(this, AAC);
+      _classCallCheck$7(this, AAC);
     }
 
-    _createClass$e(AAC, null, [{
+    _createClass$7(AAC, null, [{
       key: 'getSilentFrame',
       value: function getSilentFrame(codec, channelCount) {
         if (codec === 'mp4a.40.2') {
@@ -3154,7 +1920,7 @@
     return AAC;
   }();
 
-  var _createClass$f = function () {
+  var _createClass$8 = function () {
     function defineProperties(target, props) {
       for (var i = 0; i < props.length; i++) {
         var descriptor = props[i];descriptor.enumerable = descriptor.enumerable || false;descriptor.configurable = true;if ("value" in descriptor) descriptor.writable = true;Object.defineProperty(target, descriptor.key, descriptor);
@@ -3164,17 +1930,17 @@
     };
   }();
 
-  function _classCallCheck$f(instance, Constructor) {
+  function _classCallCheck$8(instance, Constructor) {
     if (!(instance instanceof Constructor)) {
       throw new TypeError("Cannot call a class as a function");
     }
   }
 
-  var REMUX_EVENTS$3 = EVENTS.REMUX_EVENTS;
+  var REMUX_EVENTS$1 = EVENTS.REMUX_EVENTS;
 
   var Compatibility = function () {
     function Compatibility() {
-      _classCallCheck$f(this, Compatibility);
+      _classCallCheck$8(this, Compatibility);
 
       this.nextAudioDts = 0; // 模拟下一段音频数据的dts
       this.nextVideoDts = 0; // 模拟下一段视频数据的dts
@@ -3201,10 +1967,10 @@
       this._audioLargeGap = 0;
     }
 
-    _createClass$f(Compatibility, [{
+    _createClass$8(Compatibility, [{
       key: 'init',
       value: function init() {
-        this.before(REMUX_EVENTS$3.REMUX_MEDIA, this.doFix.bind(this));
+        this.before(REMUX_EVENTS$1.REMUX_MEDIA, this.doFix.bind(this));
       }
     }, {
       key: 'reset',
@@ -3532,7 +2298,7 @@
           return this.doFixVideo(false);
         }
 
-        this.emit(REMUX_EVENTS$3.DETECT_CHANGE_STREAM_DISCONTINUE);
+        this.emit(REMUX_EVENTS$1.DETECT_CHANGE_STREAM_DISCONTINUE);
         this._videoLargeGap = 0;
         var firstPartSamples = samples.slice(0, changeIdx);
         var secondPartSamples = samples.slice(changeIdx);
@@ -3577,7 +2343,7 @@
           }
           return this.doFixAudio(false);
         }
-        this.emit(REMUX_EVENTS$3.DETECT_CHANGE_STREAM_DISCONTINUE);
+        this.emit(REMUX_EVENTS$1.DETECT_CHANGE_STREAM_DISCONTINUE);
         this._audioLargeGap = 0;
 
         var firstPartSamples = samples.slice(0, changeIdx);
@@ -3890,7 +2656,7 @@
     }
   };
 
-  var _createClass$g = function () {
+  var _createClass$9 = function () {
     function defineProperties(target, props) {
       for (var i = 0; i < props.length; i++) {
         var descriptor = props[i];descriptor.enumerable = descriptor.enumerable || false;descriptor.configurable = true;if ("value" in descriptor) descriptor.writable = true;Object.defineProperty(target, descriptor.key, descriptor);
@@ -3900,22 +2666,22 @@
     };
   }();
 
-  function _classCallCheck$g(instance, Constructor) {
+  function _classCallCheck$9(instance, Constructor) {
     if (!(instance instanceof Constructor)) {
       throw new TypeError("Cannot call a class as a function");
     }
   }
 
-  var MediaSegmentList$1 = function () {
+  var MediaSegmentList = function () {
     function MediaSegmentList(type) {
-      _classCallCheck$g(this, MediaSegmentList);
+      _classCallCheck$9(this, MediaSegmentList);
 
       this._type = type;
       this._list = [];
       this._lastAppendLocation = -1; // cached last insert location
     }
 
-    _createClass$g(MediaSegmentList, [{
+    _createClass$9(MediaSegmentList, [{
       key: "isEmpty",
       value: function isEmpty() {
         return this._list.length === 0;
@@ -4127,7 +2893,7 @@
 
   var Concat = unwrapExports(lib);
 
-  var _createClass$h = function () {
+  var _createClass$a = function () {
     function defineProperties(target, props) {
       for (var i = 0; i < props.length; i++) {
         var descriptor = props[i];descriptor.enumerable = descriptor.enumerable || false;descriptor.configurable = true;if ("value" in descriptor) descriptor.writable = true;Object.defineProperty(target, descriptor.key, descriptor);
@@ -4137,7 +2903,7 @@
     };
   }();
 
-  function _classCallCheck$h(instance, Constructor) {
+  function _classCallCheck$a(instance, Constructor) {
     if (!(instance instanceof Constructor)) {
       throw new TypeError("Cannot call a class as a function");
     }
@@ -4145,12 +2911,12 @@
 
   var Buffer = function () {
     function Buffer(buffer) {
-      _classCallCheck$h(this, Buffer);
+      _classCallCheck$a(this, Buffer);
 
       this.buffer = buffer || new Uint8Array(0);
     }
 
-    _createClass$h(Buffer, [{
+    _createClass$a(Buffer, [{
       key: 'write',
       value: function write() {
         var _this = this;
@@ -4188,7 +2954,7 @@
     return Buffer;
   }();
 
-  var _createClass$i = function () {
+  var _createClass$b = function () {
     function defineProperties(target, props) {
       for (var i = 0; i < props.length; i++) {
         var descriptor = props[i];descriptor.enumerable = descriptor.enumerable || false;descriptor.configurable = true;if ("value" in descriptor) descriptor.writable = true;Object.defineProperty(target, descriptor.key, descriptor);
@@ -4198,7 +2964,7 @@
     };
   }();
 
-  function _classCallCheck$i(instance, Constructor) {
+  function _classCallCheck$b(instance, Constructor) {
     if (!(instance instanceof Constructor)) {
       throw new TypeError("Cannot call a class as a function");
     }
@@ -4208,10 +2974,10 @@
 
   var Fmp4 = function () {
     function Fmp4() {
-      _classCallCheck$i(this, Fmp4);
+      _classCallCheck$b(this, Fmp4);
     }
 
-    _createClass$i(Fmp4, null, [{
+    _createClass$b(Fmp4, null, [{
       key: 'size',
       value: function size(value) {
         return Buffer.writeUint32(value);
@@ -4806,7 +3572,7 @@
   };
   Fmp4.sequence = 1;
 
-  var _createClass$j = function () {
+  var _createClass$c = function () {
     function defineProperties(target, props) {
       for (var i = 0; i < props.length; i++) {
         var descriptor = props[i];descriptor.enumerable = descriptor.enumerable || false;descriptor.configurable = true;if ("value" in descriptor) descriptor.writable = true;Object.defineProperty(target, descriptor.key, descriptor);
@@ -4816,25 +3582,25 @@
     };
   }();
 
-  function _classCallCheck$j(instance, Constructor) {
+  function _classCallCheck$c(instance, Constructor) {
     if (!(instance instanceof Constructor)) {
       throw new TypeError("Cannot call a class as a function");
     }
   }
 
-  var REMUX_EVENTS$4 = EVENTS.REMUX_EVENTS;
+  var REMUX_EVENTS$2 = EVENTS.REMUX_EVENTS;
   var PLAYER_EVENTS$1 = EVENTS.PLAYER_EVENTS;
 
   var Mp4Remuxer = function () {
     function Mp4Remuxer() {
       var curTime = arguments.length > 0 && arguments[0] !== undefined ? arguments[0] : 0;
 
-      _classCallCheck$j(this, Mp4Remuxer);
+      _classCallCheck$c(this, Mp4Remuxer);
 
       this._dtsBase = curTime * 1000;
       this._isDtsBaseInited = false;
-      this._videoSegmentList = new MediaSegmentList$1('video');
-      this._audioSegmentList = new MediaSegmentList$1('audio');
+      this._videoSegmentList = new MediaSegmentList('video');
+      this._audioSegmentList = new MediaSegmentList('audio');
       var browser = sniffer.browser;
 
       this._fillSilenceFrame = browser === 'ie';
@@ -4846,12 +3612,12 @@
       this.audioAllDuration = 0;
     }
 
-    _createClass$j(Mp4Remuxer, [{
+    _createClass$c(Mp4Remuxer, [{
       key: 'init',
       value: function init() {
-        this.on(REMUX_EVENTS$4.REMUX_MEDIA, this.remux.bind(this));
-        this.on(REMUX_EVENTS$4.REMUX_METADATA, this.onMetaDataReady.bind(this));
-        this.on(REMUX_EVENTS$4.DETECT_CHANGE_STREAM, this.resetDtsBase.bind(this));
+        this.on(REMUX_EVENTS$2.REMUX_MEDIA, this.remux.bind(this));
+        this.on(REMUX_EVENTS$2.REMUX_METADATA, this.onMetaDataReady.bind(this));
+        this.on(REMUX_EVENTS$2.DETECT_CHANGE_STREAM, this.resetDtsBase.bind(this));
         this.on(PLAYER_EVENTS$1.SEEK, this.seek.bind(this));
       }
     }, {
@@ -4888,6 +3654,9 @@
       value: function seek(time) {
         if (!this._isDtsBaseInited) {
           this._dtsBase = time * 1000;
+        } else {
+          this._isDtsBaseInited = false;
+          this._dtsBase = time * 1000;
         }
       }
     }, {
@@ -4918,7 +3687,7 @@
         // source.inited = false;
 
         // this.resetDtsBase()
-        this.emit(REMUX_EVENTS$4.INIT_SEGMENT, type);
+        this.emit(REMUX_EVENTS$2.INIT_SEGMENT, type);
       }
     }, {
       key: 'remuxInitSegment',
@@ -5029,7 +3798,7 @@
             }
           }
           this.videoAllDuration += sampleDuration;
-          console.log('video dts ' + dts, 'pts ' + pts, isKeyframe, 'duration ' + sampleDuration);
+          // console.log(`video dts ${dts}`, `pts ${pts}`, isKeyframe, `duration ${sampleDuration}`)
           if (sampleDuration >= 0) {
             mdatBox.samples.push(mdatSample);
             mdatSample.buffer.push(avcSample.data);
@@ -5056,7 +3825,7 @@
           }
 
           if (isKeyframe) {
-            this.emit(REMUX_EVENTS$4.RANDOM_ACCESS_POINT, pts);
+            this.emit(REMUX_EVENTS$2.RANDOM_ACCESS_POINT, pts);
           }
         }
 
@@ -5084,7 +3853,7 @@
         }
 
         this.isFirstVideo = false;
-        this.emit(REMUX_EVENTS$4.MEDIA_SEGMENT, 'video');
+        this.emit(REMUX_EVENTS$2.MEDIA_SEGMENT, 'video');
 
         track.samples = [];
         track.length = 0;
@@ -5207,7 +3976,7 @@
         }
 
         this.isFirstAudio = false;
-        this.emit(REMUX_EVENTS$4.MEDIA_SEGMENT, 'audio', moofMdat);
+        this.emit(REMUX_EVENTS$2.MEDIA_SEGMENT, 'audio', moofMdat);
 
         track.samples = [];
         track.length = 0;
@@ -5276,7 +4045,7 @@
     return Mp4Remuxer;
   }();
 
-  var _createClass$k = function () {
+  var _createClass$d = function () {
     function defineProperties(target, props) {
       for (var i = 0; i < props.length; i++) {
         var descriptor = props[i];descriptor.enumerable = descriptor.enumerable || false;descriptor.configurable = true;if ("value" in descriptor) descriptor.writable = true;Object.defineProperty(target, descriptor.key, descriptor);
@@ -5286,16 +4055,16 @@
     };
   }();
 
-  function _classCallCheck$k(instance, Constructor) {
+  function _classCallCheck$d(instance, Constructor) {
     if (!(instance instanceof Constructor)) {
       throw new TypeError("Cannot call a class as a function");
     }
   }
-  var CRYTO_EVENTS$2 = EVENTS.CRYTO_EVENTS;
+  var CRYTO_EVENTS$1 = EVENTS.CRYTO_EVENTS;
 
   var Crypto = function () {
     function Crypto(config) {
-      _classCallCheck$k(this, Crypto);
+      _classCallCheck$d(this, Crypto);
 
       this.inputBuffer = config.inputbuffer;
       this.outputBuffer = config.outputbuffer;
@@ -5306,10 +4075,10 @@
       this.crypto = window.crypto || window.msCrypto;
     }
 
-    _createClass$k(Crypto, [{
+    _createClass$d(Crypto, [{
       key: 'init',
       value: function init() {
-        this.on(CRYTO_EVENTS$2.START_DECRYPT, this.decript.bind(this));
+        this.on(CRYTO_EVENTS$1.START_DECRYPT, this.decript.bind(this));
       }
     }, {
       key: 'decript',
@@ -5337,7 +4106,7 @@
         if (data) {
           this.crypto.subtle.decrypt({ name: 'AES-CBC', iv: this.iv.buffer }, this.aeskey, data).then(function (res) {
             outputbuffer.push(new Uint8Array(res));
-            _this2.emit(CRYTO_EVENTS$2.DECRYPTED);
+            _this2.emit(CRYTO_EVENTS$1.DECRYPTED);
             _this2.decriptData(data);
           });
         }
@@ -5347,7 +4116,7 @@
     return Crypto;
   }();
 
-  var _createClass$l = function () {
+  var _createClass$e = function () {
     function defineProperties(target, props) {
       for (var i = 0; i < props.length; i++) {
         var descriptor = props[i];descriptor.enumerable = descriptor.enumerable || false;descriptor.configurable = true;if ("value" in descriptor) descriptor.writable = true;Object.defineProperty(target, descriptor.key, descriptor);
@@ -5357,7 +4126,7 @@
     };
   }();
 
-  function _classCallCheck$l(instance, Constructor) {
+  function _classCallCheck$e(instance, Constructor) {
     if (!(instance instanceof Constructor)) {
       throw new TypeError("Cannot call a class as a function");
     }
@@ -5368,10 +4137,10 @@
    */
   var M3U8Parser = function () {
     function M3U8Parser() {
-      _classCallCheck$l(this, M3U8Parser);
+      _classCallCheck$e(this, M3U8Parser);
     }
 
-    _createClass$l(M3U8Parser, null, [{
+    _createClass$e(M3U8Parser, null, [{
       key: 'parse',
       value: function parse(text) {
         var baseurl = arguments.length > 1 && arguments[1] !== undefined ? arguments[1] : '';
@@ -5497,7 +4266,7 @@
     return M3U8Parser;
   }();
 
-  var _createClass$m = function () {
+  var _createClass$f = function () {
     function defineProperties(target, props) {
       for (var i = 0; i < props.length; i++) {
         var descriptor = props[i];descriptor.enumerable = descriptor.enumerable || false;descriptor.configurable = true;if ("value" in descriptor) descriptor.writable = true;Object.defineProperty(target, descriptor.key, descriptor);
@@ -5507,7 +4276,7 @@
     };
   }();
 
-  function _classCallCheck$m(instance, Constructor) {
+  function _classCallCheck$f(instance, Constructor) {
     if (!(instance instanceof Constructor)) {
       throw new TypeError("Cannot call a class as a function");
     }
@@ -5515,7 +4284,7 @@
 
   var Stream = function () {
     function Stream(buffer) {
-      _classCallCheck$m(this, Stream);
+      _classCallCheck$f(this, Stream);
 
       if (buffer instanceof ArrayBuffer) {
         this.buffer = buffer;
@@ -5526,7 +4295,7 @@
       }
     }
 
-    _createClass$m(Stream, [{
+    _createClass$f(Stream, [{
       key: 'back',
       value: function back(count) {
         this.position -= count;
@@ -5663,7 +4432,7 @@
     return Stream;
   }();
 
-  var _createClass$n = function () {
+  var _createClass$g = function () {
     function defineProperties(target, props) {
       for (var i = 0; i < props.length; i++) {
         var descriptor = props[i];descriptor.enumerable = descriptor.enumerable || false;descriptor.configurable = true;if ("value" in descriptor) descriptor.writable = true;Object.defineProperty(target, descriptor.key, descriptor);
@@ -5673,7 +4442,7 @@
     };
   }();
 
-  function _classCallCheck$n(instance, Constructor) {
+  function _classCallCheck$g(instance, Constructor) {
     if (!(instance instanceof Constructor)) {
       throw new TypeError("Cannot call a class as a function");
     }
@@ -5681,7 +4450,7 @@
 
   var Golomb = function () {
     function Golomb(uint8array) {
-      _classCallCheck$n(this, Golomb);
+      _classCallCheck$g(this, Golomb);
 
       this.TAG = 'Golomb';
       this._buffer = uint8array;
@@ -5692,7 +4461,7 @@
       this._currentWordBitsLeft = 0;
     }
 
-    _createClass$n(Golomb, [{
+    _createClass$g(Golomb, [{
       key: 'destroy',
       value: function destroy() {
         this._buffer = null;
@@ -5779,7 +4548,7 @@
     return Golomb;
   }();
 
-  var _createClass$o = function () {
+  var _createClass$h = function () {
     function defineProperties(target, props) {
       for (var i = 0; i < props.length; i++) {
         var descriptor = props[i];descriptor.enumerable = descriptor.enumerable || false;descriptor.configurable = true;if ("value" in descriptor) descriptor.writable = true;Object.defineProperty(target, descriptor.key, descriptor);
@@ -5789,7 +4558,7 @@
     };
   }();
 
-  function _classCallCheck$o(instance, Constructor) {
+  function _classCallCheck$h(instance, Constructor) {
     if (!(instance instanceof Constructor)) {
       throw new TypeError("Cannot call a class as a function");
     }
@@ -5797,10 +4566,10 @@
 
   var SPSParser = function () {
     function SPSParser() {
-      _classCallCheck$o(this, SPSParser);
+      _classCallCheck$h(this, SPSParser);
     }
 
-    _createClass$o(SPSParser, null, [{
+    _createClass$h(SPSParser, null, [{
       key: '_ebsp2rbsp',
       value: function _ebsp2rbsp(uint8array) {
         var src = uint8array;
@@ -6096,7 +4865,7 @@
     return SPSParser;
   }();
 
-  var _createClass$p = function () {
+  var _createClass$i = function () {
     function defineProperties(target, props) {
       for (var i = 0; i < props.length; i++) {
         var descriptor = props[i];descriptor.enumerable = descriptor.enumerable || false;descriptor.configurable = true;if ("value" in descriptor) descriptor.writable = true;Object.defineProperty(target, descriptor.key, descriptor);
@@ -6106,7 +4875,7 @@
     };
   }();
 
-  function _classCallCheck$p(instance, Constructor) {
+  function _classCallCheck$i(instance, Constructor) {
     if (!(instance instanceof Constructor)) {
       throw new TypeError("Cannot call a class as a function");
     }
@@ -6114,10 +4883,10 @@
 
   var Nalunit = function () {
     function Nalunit() {
-      _classCallCheck$p(this, Nalunit);
+      _classCallCheck$i(this, Nalunit);
     }
 
-    _createClass$p(Nalunit, null, [{
+    _createClass$i(Nalunit, null, [{
       key: 'getNalunits',
       value: function getNalunits(buffer) {
         if (buffer.length - buffer.position < 4) {
@@ -6278,7 +5047,7 @@
 
   var NalUnit = Nalunit;
 
-  var _createClass$q = function () {
+  var _createClass$j = function () {
     function defineProperties(target, props) {
       for (var i = 0; i < props.length; i++) {
         var descriptor = props[i];descriptor.enumerable = descriptor.enumerable || false;descriptor.configurable = true;if ("value" in descriptor) descriptor.writable = true;Object.defineProperty(target, descriptor.key, descriptor);
@@ -6288,7 +5057,7 @@
     };
   }();
 
-  function _classCallCheck$q(instance, Constructor) {
+  function _classCallCheck$j(instance, Constructor) {
     if (!(instance instanceof Constructor)) {
       throw new TypeError("Cannot call a class as a function");
     }
@@ -6296,7 +5065,7 @@
 
   var AudioTrackMeta = function () {
     function AudioTrackMeta(meta) {
-      _classCallCheck$q(this, AudioTrackMeta);
+      _classCallCheck$j(this, AudioTrackMeta);
 
       var _default = {
         sampleRate: 48000,
@@ -6316,7 +5085,7 @@
       return _default;
     }
 
-    _createClass$q(AudioTrackMeta, [{
+    _createClass$j(AudioTrackMeta, [{
       key: 'destroy',
       value: function destroy() {
         this.init = null;
@@ -6328,7 +5097,7 @@
 
   var VideoTrackMeta = function () {
     function VideoTrackMeta(meta) {
-      _classCallCheck$q(this, VideoTrackMeta);
+      _classCallCheck$j(this, VideoTrackMeta);
 
       var _default = {
         avcc: null,
@@ -6365,7 +5134,7 @@
       return _default;
     }
 
-    _createClass$q(VideoTrackMeta, [{
+    _createClass$j(VideoTrackMeta, [{
       key: 'destroy',
       value: function destroy() {
         this.init = null;
@@ -6377,7 +5146,7 @@
     return VideoTrackMeta;
   }();
 
-  var _createClass$r = function () {
+  var _createClass$k = function () {
     function defineProperties(target, props) {
       for (var i = 0; i < props.length; i++) {
         var descriptor = props[i];descriptor.enumerable = descriptor.enumerable || false;descriptor.configurable = true;if ("value" in descriptor) descriptor.writable = true;Object.defineProperty(target, descriptor.key, descriptor);
@@ -6387,7 +5156,7 @@
     };
   }();
 
-  function _classCallCheck$r(instance, Constructor) {
+  function _classCallCheck$k(instance, Constructor) {
     if (!(instance instanceof Constructor)) {
       throw new TypeError("Cannot call a class as a function");
     }
@@ -6395,7 +5164,7 @@
 
   var AudioTrackSample = function () {
     function AudioTrackSample(info) {
-      _classCallCheck$r(this, AudioTrackSample);
+      _classCallCheck$k(this, AudioTrackSample);
 
       var _default = AudioTrackSample.getDefault();
       if (!info) {
@@ -6406,7 +5175,7 @@
       return sample;
     }
 
-    _createClass$r(AudioTrackSample, null, [{
+    _createClass$k(AudioTrackSample, null, [{
       key: "getDefault",
       value: function getDefault() {
         return {
@@ -6422,7 +5191,7 @@
 
   var VideoTrackSample = function () {
     function VideoTrackSample(info) {
-      _classCallCheck$r(this, VideoTrackSample);
+      _classCallCheck$k(this, VideoTrackSample);
 
       var _default = VideoTrackSample.getDefault();
 
@@ -6434,7 +5203,7 @@
       return sample;
     }
 
-    _createClass$r(VideoTrackSample, null, [{
+    _createClass$k(VideoTrackSample, null, [{
       key: "getDefault",
       value: function getDefault() {
         return {
@@ -6452,13 +5221,13 @@
 
   var _typeof2$1 = typeof Symbol === "function" && typeof Symbol.iterator === "symbol" ? function (obj) { return typeof obj; } : function (obj) { return obj && typeof Symbol === "function" && obj.constructor === Symbol && obj !== Symbol.prototype ? "symbol" : typeof obj; };
 
-  var _typeof$5 = typeof Symbol === "function" && _typeof2$1(Symbol.iterator) === "symbol" ? function (obj) {
+  var _typeof$3 = typeof Symbol === "function" && _typeof2$1(Symbol.iterator) === "symbol" ? function (obj) {
     return typeof obj === "undefined" ? "undefined" : _typeof2$1(obj);
   } : function (obj) {
     return obj && typeof Symbol === "function" && obj.constructor === Symbol && obj !== Symbol.prototype ? "symbol" : typeof obj === "undefined" ? "undefined" : _typeof2$1(obj);
   };
 
-  var _createClass$s = function () {
+  var _createClass$l = function () {
     function defineProperties(target, props) {
       for (var i = 0; i < props.length; i++) {
         var descriptor = props[i];descriptor.enumerable = descriptor.enumerable || false;descriptor.configurable = true;if ("value" in descriptor) descriptor.writable = true;Object.defineProperty(target, descriptor.key, descriptor);
@@ -6468,13 +5237,13 @@
     };
   }();
 
-  function _classCallCheck$s(instance, Constructor) {
+  function _classCallCheck$l(instance, Constructor) {
     if (!(instance instanceof Constructor)) {
       throw new TypeError("Cannot call a class as a function");
     }
   }
 
-  var DEMUX_EVENTS$2 = EVENTS.DEMUX_EVENTS;
+  var DEMUX_EVENTS$1 = EVENTS.DEMUX_EVENTS;
   var StreamType = {
     0x01: ['video', 'MPEG-1'],
     0x02: ['video', 'MPEG-2'],
@@ -6498,7 +5267,7 @@
 
   var TsDemuxer = function () {
     function TsDemuxer(configs) {
-      _classCallCheck$s(this, TsDemuxer);
+      _classCallCheck$l(this, TsDemuxer);
 
       this.configs = Object.assign({}, configs);
       this.demuxing = false;
@@ -6508,10 +5277,10 @@
       this._hasAudioMeta = false;
     }
 
-    _createClass$s(TsDemuxer, [{
+    _createClass$l(TsDemuxer, [{
       key: 'init',
       value: function init() {
-        this.on(DEMUX_EVENTS$2.DEMUX_START, this.demux.bind(this));
+        this.on(DEMUX_EVENTS$1.DEMUX_START, this.demux.bind(this));
       }
     }, {
       key: 'demux',
@@ -6527,7 +5296,7 @@
         // Read TS segment
         while (buffer.length >= 188) {
           if (buffer.length >= 1 && buffer.array[0][buffer.offset] !== 71) {
-            this.emit(DEMUX_EVENTS$2.DEMUX_ERROR, this.TAG, new Error('Untrust sync code: ' + buffer.array[0][buffer.offset] + ', try to recover;'), false);
+            this.emit(DEMUX_EVENTS$1.DEMUX_ERROR, this.TAG, new Error('Untrust sync code: ' + buffer.array[0][buffer.offset] + ', try to recover;'), false);
           }
           while (buffer.length >= 1 && buffer.array[0][buffer.offset] !== 71) {
             buffer.shift(1);
@@ -6571,10 +5340,10 @@
         }
 
         if (this._hasAudioMeta) {
-          this.emit(DEMUX_EVENTS$2.DEMUX_COMPLETE, 'audio');
+          this.emit(DEMUX_EVENTS$1.DEMUX_COMPLETE, 'audio');
         }
         if (this._hasVideoMeta) {
-          this.emit(DEMUX_EVENTS$2.DEMUX_COMPLETE, 'video');
+          this.emit(DEMUX_EVENTS$1.DEMUX_COMPLETE, 'video');
         }
       }
     }, {
@@ -6603,7 +5372,7 @@
         if (!this._hasAudioMeta || !metaEqual) {
           track.meta = meta;
           this._hasAudioMeta = true;
-          this.emit(DEMUX_EVENTS$2.METADATA_PARSED, 'audio');
+          this.emit(DEMUX_EVENTS$1.METADATA_PARSED, 'audio');
         }
 
         var data = new Uint8Array(pes.ES.buffer.buffer.slice(pes.ES.buffer.position, pes.ES.buffer.length));
@@ -6672,7 +5441,7 @@
             }
             track.meta = meta;
             this._hasVideoMeta = true;
-            this.emit(DEMUX_EVENTS$2.METADATA_PARSED, 'video');
+            this.emit(DEMUX_EVENTS$1.METADATA_PARSED, 'video');
           }
         }
 
@@ -6709,7 +5478,7 @@
     }, {
       key: 'destory',
       value: function destory() {
-        this.off(DEMUX_EVENTS$2.DEMUX_START, this.demux);
+        this.off(DEMUX_EVENTS$1.DEMUX_START, this.demux);
         this.configs = {};
         this.demuxing = false;
         this.pat = [];
@@ -6760,7 +5529,7 @@
         for (var i = 0, k = Object.keys(a).length; i < k; i++) {
           var itema = a[Object.keys(a)[i]];
           var itemb = b[Object.keys(a)[i]];
-          if ((typeof itema === 'undefined' ? 'undefined' : _typeof$5(itema)) !== 'object') {
+          if ((typeof itema === 'undefined' ? 'undefined' : _typeof$3(itema)) !== 'object') {
             if (ignoreDuration && Object.keys(a)[i] !== 'duration' && Object.keys(a)[i] !== 'refSampleDuration' && Object.keys(a)[i] !== 'refSampleDurationFixed' && itema !== itemb) {
               return false;
             }
@@ -7263,7 +6032,7 @@
     return TsDemuxer;
   }();
 
-  var _createClass$t = function () {
+  var _createClass$m = function () {
     function defineProperties(target, props) {
       for (var i = 0; i < props.length; i++) {
         var descriptor = props[i];descriptor.enumerable = descriptor.enumerable || false;descriptor.configurable = true;if ("value" in descriptor) descriptor.writable = true;Object.defineProperty(target, descriptor.key, descriptor);
@@ -7273,7 +6042,7 @@
     };
   }();
 
-  function _classCallCheck$t(instance, Constructor) {
+  function _classCallCheck$m(instance, Constructor) {
     if (!(instance instanceof Constructor)) {
       throw new TypeError("Cannot call a class as a function");
     }
@@ -7281,7 +6050,7 @@
 
   var Playlist = function () {
     function Playlist(configs) {
-      _classCallCheck$t(this, Playlist);
+      _classCallCheck$m(this, Playlist);
 
       this._baseURL = '';
       this._list = {};
@@ -7295,7 +6064,7 @@
       this._audoclear = configs.autoclear || false;
     }
 
-    _createClass$t(Playlist, [{
+    _createClass$m(Playlist, [{
       key: 'push',
       value: function push(ts, duration, discontinue) {
         if (!this._ts[ts]) {
@@ -7485,6 +6254,1227 @@
 
     return Playlist;
   }();
+
+  var _createClass$n = function () {
+    function defineProperties(target, props) {
+      for (var i = 0; i < props.length; i++) {
+        var descriptor = props[i];descriptor.enumerable = descriptor.enumerable || false;descriptor.configurable = true;if ("value" in descriptor) descriptor.writable = true;Object.defineProperty(target, descriptor.key, descriptor);
+      }
+    }return function (Constructor, protoProps, staticProps) {
+      if (protoProps) defineProperties(Constructor.prototype, protoProps);if (staticProps) defineProperties(Constructor, staticProps);return Constructor;
+    };
+  }();
+
+  function _classCallCheck$n(instance, Constructor) {
+    if (!(instance instanceof Constructor)) {
+      throw new TypeError("Cannot call a class as a function");
+    }
+  }
+
+  var LOADER_EVENTS$2 = EVENTS.LOADER_EVENTS;
+  var REMUX_EVENTS$3 = EVENTS.REMUX_EVENTS;
+  var DEMUX_EVENTS$2 = EVENTS.DEMUX_EVENTS;
+  var HLS_EVENTS$1 = EVENTS.HLS_EVENTS;
+  var CRYTO_EVENTS$2 = EVENTS.CRYTO_EVENTS;
+  var HLS_ERROR = 'HLS_ERROR';
+
+  var HlsLiveController = function () {
+    function HlsLiveController(configs) {
+      _classCallCheck$n(this, HlsLiveController);
+
+      this.configs = Object.assign({}, configs);
+      this.url = '';
+      this.baseurl = '';
+      this.sequence = 0;
+      this._playlist = null;
+      this.retrytimes = this.configs.retrytimes || 3;
+      this.preloadTime = this.configs.preloadTime;
+      this.container = this.configs.container;
+      this._m3u8lasttime = 0;
+      this._timmer = setInterval(this._checkStatus.bind(this), 50);
+      this._lastCheck = 0;
+      this._player = this.configs.player;
+      this.m3u8Text = null;
+    }
+
+    _createClass$n(HlsLiveController, [{
+      key: 'init',
+      value: function init() {
+        // 初始化Buffer （M3U8/TS/Playlist);
+        this._context.registry('M3U8_BUFFER', XgBuffer);
+        this._context.registry('TS_BUFFER', XgBuffer);
+        this._context.registry('TRACKS', Track);
+
+        this._playlist = this._context.registry('PLAYLIST', Playlist)({ autoclear: true });
+        this._context.registry('PRE_SOURCE_BUFFER', PreSource);
+
+        this._context.registry('COMPATIBILITY', Compatibility);
+
+        // 初始化M3U8Loader;
+        this._m3u8loader = this._context.registry('M3U8_LOADER', FetchLoader)({ buffer: 'M3U8_BUFFER', readtype: 1 });
+        this._tsloader = this._context.registry('TS_LOADER', FetchLoader)({ buffer: 'TS_BUFFER', readtype: 3 });
+
+        // 初始化TS Demuxer
+        this._context.registry('TS_DEMUXER', TsDemuxer)({ inputbuffer: 'TS_BUFFER' });
+
+        // 初始化MP4 Remuxer
+        this._context.registry('MP4_REMUXER', Mp4Remuxer);
+
+        // 初始化MSE
+        this.mse = this._context.registry('MSE', MSE)({ container: this.container });
+        this.initEvents();
+      }
+    }, {
+      key: 'initEvents',
+      value: function initEvents() {
+        this.on(LOADER_EVENTS$2.LOADER_COMPLETE, this._onLoadComplete.bind(this));
+
+        this.on(REMUX_EVENTS$3.INIT_SEGMENT, this.mse.addSourceBuffers.bind(this.mse));
+
+        this.on(REMUX_EVENTS$3.MEDIA_SEGMENT, this.mse.doAppend.bind(this.mse));
+
+        this.on(DEMUX_EVENTS$2.METADATA_PARSED, this._onMetadataParsed.bind(this));
+
+        this.on(DEMUX_EVENTS$2.DEMUX_COMPLETE, this._onDemuxComplete.bind(this));
+
+        this.on(LOADER_EVENTS$2.LOADER_ERROR, this._onLoadError.bind(this));
+
+        this.on(DEMUX_EVENTS$2.DEMUX_ERROR, this._onDemuxError.bind(this));
+
+        this.on(REMUX_EVENTS$3.REMUX_ERROR, this._onRemuxError.bind(this));
+      }
+    }, {
+      key: '_onError',
+      value: function _onError(type, mod, err, fatal) {
+        var error = {
+          errorType: type,
+          errorDetails: '[' + mod + ']: ' + err.message,
+          errorFatal: fatal
+        };
+        this._player.emit(HLS_ERROR, error);
+      }
+    }, {
+      key: '_onDemuxComplete',
+      value: function _onDemuxComplete() {
+        this.emit(REMUX_EVENTS$3.REMUX_MEDIA);
+      }
+    }, {
+      key: '_onMetadataParsed',
+      value: function _onMetadataParsed(type) {
+        this.emit(REMUX_EVENTS$3.REMUX_METADATA, type);
+      }
+    }, {
+      key: '_onLoadError',
+      value: function _onLoadError(loader, error) {
+        if (!this._tsloader.loading && !this._m3u8loader.loading && this.retrytimes > 1) {
+          this.retrytimes--;
+          this._onError(LOADER_EVENTS$2.LOADER_ERROR, loader, error, false);
+        } else if (this.retrytimes <= 1) {
+          this._onError(LOADER_EVENTS$2.LOADER_ERROR, loader, error, true);
+          this.emit(HLS_EVENTS$1.RETRY_TIME_EXCEEDED);
+          this.mse.endOfStream();
+        }
+      }
+    }, {
+      key: '_onDemuxError',
+      value: function _onDemuxError(mod, error, fatal) {
+        if (fatal === undefined) {
+          fatal = true;
+        }
+        this._onError(LOADER_EVENTS$2.LOADER_ERROR, mod, error, fatal);
+      }
+    }, {
+      key: '_onRemuxError',
+      value: function _onRemuxError(mod, error, fatal) {
+        if (fatal === undefined) {
+          fatal = true;
+        }
+        this._onError(REMUX_EVENTS$3.REMUX_ERROR, mod, error, fatal);
+      }
+    }, {
+      key: '_onLoadComplete',
+      value: function _onLoadComplete(buffer) {
+        if (buffer.TAG === 'M3U8_BUFFER') {
+          var mdata = void 0;
+          try {
+            this.m3u8Text = buffer.shift();
+            mdata = M3U8Parser.parse(this.m3u8Text, this.baseurl);
+          } catch (error) {
+            this._onError('M3U8_PARSER_ERROR', 'M3U8_PARSER', error, false);
+          }
+
+          if (!mdata) {
+            if (this.retrytimes > 0) {
+              this.retrytimes--;
+              this._preload();
+            } else {
+              this.emit(HLS_EVENTS$1.RETRY_TIME_EXCEEDED);
+              this.mse.endOfStream();
+            }
+            return;
+          }
+
+          try {
+            this._playlist.pushM3U8(mdata, true);
+          } catch (error) {
+            this._onError('M3U8_PARSER_ERROR', 'PLAYLIST', error, false);
+          }
+
+          if (this._playlist.encrypt && this._playlist.encrypt.uri && !this._playlist.encrypt.key) {
+            this._context.registry('DECRYPT_BUFFER', XgBuffer)();
+            this._context.registry('KEY_BUFFER', XgBuffer)();
+            this._tsloader.buffer = 'DECRYPT_BUFFER';
+            this._keyLoader = this._context.registry('KEY_LOADER', FetchLoader)({ buffer: 'KEY_BUFFER', readtype: 3 });
+            this.emitTo('KEY_LOADER', LOADER_EVENTS$2.LADER_START, this._playlist.encrypt.uri);
+          } else {
+            this._m3u8Loaded(mdata);
+          }
+        } else if (buffer.TAG === 'TS_BUFFER') {
+          this.retrytimes = this.configs.retrytimes || 3;
+          this._playlist.downloaded(this._tsloader.url, true);
+          this.emit(DEMUX_EVENTS$2.DEMUX_START);
+        } else if (buffer.TAG === 'DECRYPT_BUFFER') {
+          this.retrytimes = this.configs.retrytimes || 3;
+          this._playlist.downloaded(this._tsloader.url, true);
+          this.emitTo('CRYPTO', CRYTO_EVENTS$2.START_DECRYPT);
+        } else if (buffer.TAG === 'KEY_BUFFER') {
+          this.retrytimes = this.configs.retrytimes || 3;
+          this._playlist.encrypt.key = buffer.shift();
+          this._crypto = this._context.registry('CRYPTO', Crypto)({
+            key: this._playlist.encrypt.key,
+            iv: this._playlist.encrypt.ivb,
+            method: this._playlist.encrypt.method,
+            inputbuffer: 'DECRYPT_BUFFER',
+            outputbuffer: 'TS_BUFFER'
+          });
+          this._crypto.on(CRYTO_EVENTS$2.DECRYPTED, this._onDcripted.bind(this));
+        }
+      }
+    }, {
+      key: '_onDcripted',
+      value: function _onDcripted() {
+        this.emit(DEMUX_EVENTS$2.DEMUX_START);
+      }
+    }, {
+      key: '_m3u8Loaded',
+      value: function _m3u8Loaded(mdata) {
+        if (!this.preloadTime) {
+          this.preloadTime = this._playlist.targetduration ? this._playlist.targetduration : 5;
+        }
+        if (this._playlist.fragLength > 0 && this._playlist.sequence < mdata.sequence) {
+          this.retrytimes = this.configs.retrytimes || 3;
+        } else {
+          if (this.retrytimes > 0) {
+            this.retrytimes--;
+            this._preload();
+          } else {
+            this.emit(HLS_EVENTS$1.RETRY_TIME_EXCEEDED);
+            this.mse.endOfStream();
+          }
+        }
+      }
+    }, {
+      key: '_checkStatus',
+      value: function _checkStatus() {
+        if (this.retrytimes < 1 && new Date().getTime() - this._lastCheck < 10000) {
+          return;
+        }
+        this._lastCheck = new Date().getTime();
+        if (this.container.buffered.length < 1) {
+          this._preload();
+        } else {
+          // Check for load.
+          var currentTime = this.container.currentTime;
+          var bufferstart = this.container.buffered.start(this.container.buffered.length - 1);
+          if (this.container.readyState <= 2) {
+            if (currentTime < bufferstart) {
+              this.container.currentTime = bufferstart;
+              currentTime = bufferstart;
+            } else {
+              this._preload();
+            }
+          }
+          var bufferend = this.container.buffered.end(this.container.buffered.length - 1);
+          if (currentTime < bufferend - this.preloadTime * 2) {
+            this.container.currentTime = bufferend - this.preloadTime * 2;
+          }
+          if (bufferend > this.preloadTime * 2) {
+            this.mse.remove(bufferend - this.preloadTime * 2);
+          }
+          if (currentTime > bufferend - this.preloadTime) {
+            this._preload();
+          }
+        }
+      }
+    }, {
+      key: '_preload',
+      value: function _preload() {
+        if (this._tsloader.loading || this._m3u8loader.loading) {
+          return;
+        }
+        var frag = this._playlist.getTs();
+
+        if (frag && !frag.downloaded && !frag.downloading) {
+          this._playlist.downloading(frag.url, true);
+          this.emitTo('TS_LOADER', LOADER_EVENTS$2.LADER_START, frag.url);
+        } else {
+          var preloadTime = this.preloadTime ? this.preloadTime : 0;
+          var current = new Date().getTime();
+          if ((!frag || frag.downloaded) && (current - this._m3u8lasttime) / 1000 > preloadTime) {
+            this._m3u8lasttime = current;
+            this.emitTo('M3U8_LOADER', LOADER_EVENTS$2.LADER_START, this.url);
+          }
+        }
+      }
+    }, {
+      key: 'load',
+      value: function load(url) {
+        this.baseurl = M3U8Parser.parseURL(url);
+        this.url = url;
+        this._preload();
+      }
+    }, {
+      key: 'destroy',
+      value: function destroy() {
+        clearInterval(this._timmer);
+        this.off(LOADER_EVENTS$2.LOADER_COMPLETE, this._onLoadComplete);
+        this.off(REMUX_EVENTS$3.INIT_SEGMENT, this.mse.addSourceBuffers);
+        this.off(REMUX_EVENTS$3.MEDIA_SEGMENT, this.mse.doAppend);
+        // this.off(REMUX_EVENTS.REMUX_ERROR);
+        this.off(DEMUX_EVENTS$2.METADATA_PARSED, this._onMetadataParsed);
+        this.off(DEMUX_EVENTS$2.DEMUX_COMPLETE, this._onDemuxComplete);
+
+        this.mse = null;
+        this.m3u8Text = null;
+      }
+    }]);
+
+    return HlsLiveController;
+  }();
+
+  var _typeof$4 = typeof Symbol === "function" && typeof Symbol.iterator === "symbol" ? function (obj) { return typeof obj; } : function (obj) { return obj && typeof Symbol === "function" && obj.constructor === Symbol && obj !== Symbol.prototype ? "symbol" : typeof obj; };
+
+  var _createClass$o = function () {
+    function defineProperties(target, props) {
+      for (var i = 0; i < props.length; i++) {
+        var descriptor = props[i];descriptor.enumerable = descriptor.enumerable || false;descriptor.configurable = true;if ("value" in descriptor) descriptor.writable = true;Object.defineProperty(target, descriptor.key, descriptor);
+      }
+    }return function (Constructor, protoProps, staticProps) {
+      if (protoProps) defineProperties(Constructor.prototype, protoProps);if (staticProps) defineProperties(Constructor, staticProps);return Constructor;
+    };
+  }();
+
+  var _get$1 = function get(object, property, receiver) {
+    if (object === null) object = Function.prototype;var desc = Object.getOwnPropertyDescriptor(object, property);if (desc === undefined) {
+      var parent = Object.getPrototypeOf(object);if (parent === null) {
+        return undefined;
+      } else {
+        return get(parent, property, receiver);
+      }
+    } else if ("value" in desc) {
+      return desc.value;
+    } else {
+      var getter = desc.get;if (getter === undefined) {
+        return undefined;
+      }return getter.call(receiver);
+    }
+  };
+
+  function _classCallCheck$o(instance, Constructor) {
+    if (!(instance instanceof Constructor)) {
+      throw new TypeError("Cannot call a class as a function");
+    }
+  }
+
+  function _possibleConstructorReturn$2(self, call) {
+    if (!self) {
+      throw new ReferenceError("this hasn't been initialised - super() hasn't been called");
+    }return call && ((typeof call === "undefined" ? "undefined" : _typeof$4(call)) === "object" || typeof call === "function") ? call : self;
+  }
+
+  function _inherits$2(subClass, superClass) {
+    if (typeof superClass !== "function" && superClass !== null) {
+      throw new TypeError("Super expression must either be null or a function, not " + (typeof superClass === "undefined" ? "undefined" : _typeof$4(superClass)));
+    }subClass.prototype = Object.create(superClass && superClass.prototype, { constructor: { value: subClass, enumerable: false, writable: true, configurable: true } });if (superClass) Object.setPrototypeOf ? Object.setPrototypeOf(subClass, superClass) : subClass.__proto__ = superClass;
+  }
+  var HlsAllowedEvents$1 = EVENTS.HlsAllowedEvents;
+  var REMUX_EVENTS$4 = EVENTS.REMUX_EVENTS;
+
+  var HlsLivePlayer = function (_Player) {
+    _inherits$2(HlsLivePlayer, _Player);
+
+    function HlsLivePlayer(options) {
+      _classCallCheck$o(this, HlsLivePlayer);
+
+      var _this2 = _possibleConstructorReturn$2(this, (HlsLivePlayer.__proto__ || Object.getPrototypeOf(HlsLivePlayer)).call(this, options));
+
+      _this2.hlsOps = {};
+      _this2.util = Player.util;
+      _this2.util.deepCopy(_this2.hlsOps, options);
+      _this2._context = new Context(HlsAllowedEvents$1);
+      _this2.started = false;
+      return _this2;
+    }
+
+    _createClass$o(HlsLivePlayer, [{
+      key: '_initEvents',
+      value: function _initEvents() {
+        var _this3 = this;
+
+        this.__core__.once(REMUX_EVENTS$4.INIT_SEGMENT, function () {
+          var mse = _this3._context.getInstance('MSE');
+          if (!_this3.started) {
+            var live = _this3.util.createDom('xg-live', '正在直播', {}, 'xgplayer-live');
+            _this3.util.addClass(_this3.root, 'xgplayer-is-live');
+            _this3.controls.appendChild(live);
+          }
+          _this3.started = true;
+          _get$1(HlsLivePlayer.prototype.__proto__ || Object.getPrototypeOf(HlsLivePlayer.prototype), 'start', _this3).call(_this3, mse.url);
+        });
+
+        // this.once('canplay', () => {
+        //   this.video.play()
+        // });
+      }
+    }, {
+      key: '_initSrcChangeHandler',
+      value: function _initSrcChangeHandler() {
+        var _this = this;
+        Object.defineProperty(this, 'src', {
+          get: function get() {
+            return _this.currentSrc;
+          },
+          set: function set(url) {
+            _this.config.url = url;
+            if (!_this.paused) {
+              _this.pause();
+              _this.once('pause', function () {
+                _this.start(url);
+              });
+              _this.once('canplay', function () {
+                _this.play();
+              });
+            } else {
+              _this.start(url);
+            }
+            _this.once('canplay', function () {
+              _this.currentTime = 0;
+            });
+          },
+
+          configurable: true
+        });
+      }
+    }, {
+      key: 'start',
+      value: function start() {
+        var url = arguments.length > 0 && arguments[0] !== undefined ? arguments[0] : this.config.url;
+
+        if (!url || this.started) {
+          return;
+        }
+        this.__core__ = this._context.registry('HLS_LIVE_CONTROLLER', HlsLiveController)({ player: this, container: this.video });
+        this._context.init();
+        this.url = url;
+        this.__core__.load(url);
+        this._initEvents();
+        this._initSrcChangeHandler();
+      }
+    }, {
+      key: 'play',
+      value: function play() {
+        if (this.started) {
+          this._context.destroy();
+          this._context = new Context(HlsAllowedEvents$1);
+          this.__core__ = this._context.registry('HLS_LIVE_CONTROLLER', HlsLiveController)({ container: this.video });
+          this._context.init();
+          this._initEvents();
+          this.__core__.load(this.url);
+        }
+        _get$1(HlsLivePlayer.prototype.__proto__ || Object.getPrototypeOf(HlsLivePlayer.prototype), 'play', this).call(this);
+      }
+    }, {
+      key: 'destroy',
+      value: function destroy() {
+        this._context.destroy();
+        _get$1(HlsLivePlayer.prototype.__proto__ || Object.getPrototypeOf(HlsLivePlayer.prototype), 'destroy', this).call(this);
+      }
+    }]);
+
+    return HlsLivePlayer;
+  }(Player);
+
+  var _createClass$p = function () {
+    function defineProperties(target, props) {
+      for (var i = 0; i < props.length; i++) {
+        var descriptor = props[i];descriptor.enumerable = descriptor.enumerable || false;descriptor.configurable = true;if ("value" in descriptor) descriptor.writable = true;Object.defineProperty(target, descriptor.key, descriptor);
+      }
+    }return function (Constructor, protoProps, staticProps) {
+      if (protoProps) defineProperties(Constructor.prototype, protoProps);if (staticProps) defineProperties(Constructor, staticProps);return Constructor;
+    };
+  }();
+
+  function _classCallCheck$p(instance, Constructor) {
+    if (!(instance instanceof Constructor)) {
+      throw new TypeError("Cannot call a class as a function");
+    }
+  }
+
+  var isObjectFilled$1 = function isObjectFilled(obj) {
+    for (var key in obj) {
+      if (obj.hasOwnProperty(key)) {
+        if (obj[key] === null) {
+          return false;
+        }
+      }
+    }
+    return true;
+  };
+
+  var MediaInfo$1 = function () {
+    function MediaInfo() {
+      _classCallCheck$p(this, MediaInfo);
+
+      this.mimeType = null;
+      this.duration = null;
+
+      this.hasVideo = null;
+      this.video = {
+        codec: null,
+        width: null,
+        height: null,
+        profile: null,
+        level: null,
+        frameRate: {
+          fixed: true,
+          fps: 25,
+          fps_num: 25000,
+          fps_den: 1000
+        },
+        chromaFormat: null,
+        parRatio: {
+          width: 1,
+          height: 1
+        }
+      };
+
+      this.hasAudio = null;
+
+      this.audio = {
+        codec: null,
+        sampleRate: null,
+        sampleRateIndex: null,
+        channelCount: null
+      };
+    }
+
+    _createClass$p(MediaInfo, [{
+      key: "isComplete",
+      value: function isComplete() {
+        return MediaInfo.isBaseInfoReady(this) && MediaInfo.isVideoReady(this) && MediaInfo.isAudioReady(this);
+      }
+    }], [{
+      key: "isBaseInfoReady",
+      value: function isBaseInfoReady(mediaInfo) {
+        return isObjectFilled$1(mediaInfo);
+      }
+    }, {
+      key: "isVideoReady",
+      value: function isVideoReady(mediaInfo) {
+        if (!mediaInfo.hasVideo) {
+          return true;
+        }
+
+        return isObjectFilled$1(mediaInfo.video);
+      }
+    }, {
+      key: "isAudioReady",
+      value: function isAudioReady(mediaInfo) {
+        if (!mediaInfo.hasAudio) {
+          return true;
+        }
+
+        return isObjectFilled$1(mediaInfo.video);
+      }
+    }]);
+
+    return MediaInfo;
+  }();
+
+  var _typeof$5 = typeof Symbol === "function" && typeof Symbol.iterator === "symbol" ? function (obj) { return typeof obj; } : function (obj) { return obj && typeof Symbol === "function" && obj.constructor === Symbol && obj !== Symbol.prototype ? "symbol" : typeof obj; };
+
+  var _get$2 = function get(object, property, receiver) {
+    if (object === null) object = Function.prototype;var desc = Object.getOwnPropertyDescriptor(object, property);if (desc === undefined) {
+      var parent = Object.getPrototypeOf(object);if (parent === null) {
+        return undefined;
+      } else {
+        return get(parent, property, receiver);
+      }
+    } else if ("value" in desc) {
+      return desc.value;
+    } else {
+      var getter = desc.get;if (getter === undefined) {
+        return undefined;
+      }return getter.call(receiver);
+    }
+  };
+
+  var _createClass$q = function () {
+    function defineProperties(target, props) {
+      for (var i = 0; i < props.length; i++) {
+        var descriptor = props[i];descriptor.enumerable = descriptor.enumerable || false;descriptor.configurable = true;if ("value" in descriptor) descriptor.writable = true;Object.defineProperty(target, descriptor.key, descriptor);
+      }
+    }return function (Constructor, protoProps, staticProps) {
+      if (protoProps) defineProperties(Constructor.prototype, protoProps);if (staticProps) defineProperties(Constructor, staticProps);return Constructor;
+    };
+  }();
+
+  function _possibleConstructorReturn$3(self, call) {
+    if (!self) {
+      throw new ReferenceError("this hasn't been initialised - super() hasn't been called");
+    }return call && ((typeof call === "undefined" ? "undefined" : _typeof$5(call)) === "object" || typeof call === "function") ? call : self;
+  }
+
+  function _inherits$3(subClass, superClass) {
+    if (typeof superClass !== "function" && superClass !== null) {
+      throw new TypeError("Super expression must either be null or a function, not " + (typeof superClass === "undefined" ? "undefined" : _typeof$5(superClass)));
+    }subClass.prototype = Object.create(superClass && superClass.prototype, { constructor: { value: subClass, enumerable: false, writable: true, configurable: true } });if (superClass) Object.setPrototypeOf ? Object.setPrototypeOf(subClass, superClass) : subClass.__proto__ = superClass;
+  }
+
+  function _classCallCheck$q(instance, Constructor) {
+    if (!(instance instanceof Constructor)) {
+      throw new TypeError("Cannot call a class as a function");
+    }
+  }
+
+  var DIRECT_EMIT_FLAG$1 = '__TO__';
+
+  var Context$1 = function () {
+    function Context() {
+      var allowedEvents = arguments.length > 0 && arguments[0] !== undefined ? arguments[0] : [];
+
+      _classCallCheck$q(this, Context);
+
+      this._emitter = new EventEmitter();
+      if (!this._emitter.off) {
+        this._emitter.off = this._emitter.removeListener;
+      }
+      this._instanceMap = {}; // 所有的解码流程实例
+      this._clsMap = {}; // 构造函数的map
+      this._inited = false;
+      this.mediaInfo = new MediaInfo$1();
+      this.allowedEvents = allowedEvents;
+      this._hooks = {}; // 注册在事件前/后的钩子，例如 before('DEMUX_COMPLETE')
+    }
+
+    /**
+     * 从上下文中获取解码流程实例，如果没有实例，构造一个
+     * @param tag
+     * @param args
+     * @returns {*}
+     */
+
+    _createClass$q(Context, [{
+      key: 'getInstance',
+      value: function getInstance(tag) {
+        var instance = this._instanceMap[tag];
+        if (instance) {
+          return instance;
+        } else {
+          // throw new Error(`${tag}实例尚未初始化`)
+          return null;
+        }
+      }
+
+      /**
+       * 初始化具体实例
+       * @param tag
+       * @param args
+       */
+
+    }, {
+      key: 'initInstance',
+      value: function initInstance(tag) {
+        for (var _len = arguments.length, args = Array(_len > 1 ? _len - 1 : 0), _key = 1; _key < _len; _key++) {
+          args[_key - 1] = arguments[_key];
+        }
+
+        var a = args[0],
+            b = args[1],
+            c = args[2],
+            d = args[3];
+
+        if (this._clsMap[tag]) {
+          var newInstance = new this._clsMap[tag](a, b, c, d);
+          this._instanceMap[tag] = newInstance;
+          if (newInstance.init) {
+            newInstance.init(); // TODO: lifecircle
+          }
+          return newInstance;
+        } else {
+          throw new Error(tag + "\u672A\u5728context\u4E2D\u6CE8\u518C");
+        }
+      }
+
+      /**
+       * 避免大量的initInstance调用，初始化所有的组件
+       * @param config
+       */
+
+    }, {
+      key: 'init',
+      value: function init(config) {
+        if (this._inited) {
+          return;
+        }
+        for (var tag in this._clsMap) {
+          // if not inited, init an instance
+          if (this._clsMap.hasOwnProperty(tag) && !this._instanceMap[tag]) {
+            this.initInstance(tag, config);
+          }
+        }
+        this._inited = true;
+      }
+
+      /**
+       * 注册一个上下文流程，提供安全的事件发送机制
+       * @param tag
+       * @param cls
+       */
+
+    }, {
+      key: 'registry',
+      value: function registry(tag, cls) {
+        var _this2 = this;
+
+        var emitter = this._emitter;
+        var checkMessageName = this._isMessageNameValid.bind(this);
+        var self = this;
+        var enhanced = function (_cls) {
+          _inherits$3(enhanced, _cls);
+
+          function enhanced(a, b, c) {
+            _classCallCheck$q(this, enhanced);
+
+            var _this = _possibleConstructorReturn$3(this, (enhanced.__proto__ || Object.getPrototypeOf(enhanced)).call(this, a, b, c));
+
+            _this.listeners = {};
+            _this.onceListeners = {};
+            _this.TAG = tag;
+            _this._context = self;
+            return _this;
+          }
+
+          _createClass$q(enhanced, [{
+            key: 'on',
+            value: function on(messageName, callback) {
+              checkMessageName(messageName);
+
+              if (this.listeners[messageName]) {
+                this.listeners[messageName].push(callback);
+              } else {
+                this.listeners[messageName] = [callback];
+              }
+
+              emitter.on('' + messageName + DIRECT_EMIT_FLAG$1 + tag, callback); // 建立定向通信监听
+              return emitter.on(messageName, callback);
+            }
+
+            /**
+             * 在某个事件触发前执行
+             * @param messageName
+             * @param callback
+             */
+
+          }, {
+            key: 'before',
+            value: function before(messageName, callback) {
+              checkMessageName(messageName);
+              if (self._hooks[messageName]) {
+                self._hooks[messageName].push(callback);
+              } else {
+                self._hooks[messageName] = [callback];
+              }
+            }
+          }, {
+            key: 'once',
+            value: function once(messageName, callback) {
+              checkMessageName(messageName);
+
+              if (this.onceListeners[messageName]) {
+                this.onceListeners[messageName].push(callback);
+              } else {
+                this.onceListeners[messageName] = [callback];
+              }
+
+              emitter.once('' + messageName + DIRECT_EMIT_FLAG$1 + tag, callback);
+              return emitter.once(messageName, callback);
+            }
+          }, {
+            key: 'emit',
+            value: function emit(messageName) {
+              checkMessageName(messageName);
+              // console.log('emit ', messageName);
+
+              var beforeList = self._hooks ? self._hooks[messageName] : null;
+
+              if (beforeList) {
+                for (var i = 0, len = beforeList.length; i < len; i++) {
+                  var callback = beforeList[i];
+                  callback();
+                }
+              }
+
+              for (var _len2 = arguments.length, args = Array(_len2 > 1 ? _len2 - 1 : 0), _key2 = 1; _key2 < _len2; _key2++) {
+                args[_key2 - 1] = arguments[_key2];
+              }
+
+              return emitter.emit.apply(emitter, [messageName].concat(args));
+            }
+
+            /**
+             * 定向发送给某个组件单例的消息
+             * @param messageName
+             * @param args
+             */
+
+          }, {
+            key: 'emitTo',
+            value: function emitTo(tag, messageName) {
+              checkMessageName(messageName);
+
+              for (var _len3 = arguments.length, args = Array(_len3 > 2 ? _len3 - 2 : 0), _key3 = 2; _key3 < _len3; _key3++) {
+                args[_key3 - 2] = arguments[_key3];
+              }
+
+              return emitter.emit.apply(emitter, ['' + messageName + DIRECT_EMIT_FLAG$1 + tag].concat(args));
+            }
+          }, {
+            key: 'off',
+            value: function off(messageName, callback) {
+              checkMessageName(messageName);
+              return emitter.off(messageName, callback);
+            }
+          }, {
+            key: 'removeListeners',
+            value: function removeListeners() {
+              var hasOwn = Object.prototype.hasOwnProperty.bind(this.listeners);
+
+              for (var messageName in this.listeners) {
+                if (hasOwn(messageName)) {
+                  var callbacks = this.listeners[messageName] || [];
+                  for (var i = 0; i < callbacks.length; i++) {
+                    var callback = callbacks[i];
+                    emitter.off(messageName, callback);
+                    emitter.off('' + messageName + DIRECT_EMIT_FLAG$1 + tag, callback);
+                  }
+                }
+              }
+
+              for (var _messageName in this.onceListeners) {
+                if (hasOwn(_messageName)) {
+                  var _callbacks = this.onceListeners[_messageName] || [];
+                  for (var _i = 0; _i < _callbacks.length; _i++) {
+                    var _callback = _callbacks[_i];
+                    emitter.off(_messageName, _callback);
+                    emitter.off('' + _messageName + DIRECT_EMIT_FLAG$1 + tag, _callback);
+                  }
+                }
+              }
+            }
+
+            /**
+             * 在组件销毁时，默认将它注册的事件全部卸载，确保不会造成内存泄漏
+             */
+
+          }, {
+            key: 'destroy',
+            value: function destroy() {
+              // step1 unlisten events
+              this.removeListeners();
+              this.listeners = {};
+
+              // step2 release from context
+              delete self._instanceMap[tag];
+              if (_get$2(enhanced.prototype.__proto__ || Object.getPrototypeOf(enhanced.prototype), 'destroy', this)) {
+                return _get$2(enhanced.prototype.__proto__ || Object.getPrototypeOf(enhanced.prototype), 'destroy', this).call(this);
+              }
+            }
+          }]);
+
+          return enhanced;
+        }(cls);
+        this._clsMap[tag] = enhanced;
+
+        /**
+         * get instance immediately
+         * e.g const instance = context.registry(tag, Cls)(config)
+         * */
+        return function () {
+          for (var _len4 = arguments.length, args = Array(_len4), _key4 = 0; _key4 < _len4; _key4++) {
+            args[_key4] = arguments[_key4];
+          }
+
+          return _this2.initInstance.apply(_this2, [tag].concat(args));
+        };
+      }
+
+      /**
+       * 各个模块处理seek
+       * @param time
+       */
+
+    }, {
+      key: 'seek',
+      value: function seek(time) {
+        this._emitter.emit(EVENTS.PLAYER_EVENTS.SEEK, time);
+      }
+
+      /**
+       * 对存在的实例进行
+       */
+
+    }, {
+      key: 'destroyInstances',
+      value: function destroyInstances() {
+        var _this3 = this;
+
+        Object.keys(this._instanceMap).forEach(function (tag) {
+          if (_this3._instanceMap[tag].destroy) {
+            _this3._instanceMap[tag].destroy();
+          }
+        });
+      }
+
+      /**
+       * 编解码流程无需关注事件的解绑
+       */
+
+    }, {
+      key: 'destroy',
+      value: function destroy() {
+        this._emitter = null;
+        this.allowedEvents = [];
+        this._clsMap = null;
+        this._context = null;
+        this._hooks = null;
+        this.destroyInstances();
+      }
+
+      /**
+       * 对信道进行收拢
+       * @param messageName
+       * @private
+       */
+
+    }, {
+      key: '_isMessageNameValid',
+      value: function _isMessageNameValid(messageName) {
+        if (!this.allowedEvents.indexOf(messageName) < 0) {
+          throw new Error('unregistered message name: ' + messageName);
+        }
+      }
+    }]);
+
+    return Context;
+  }();
+
+  var _slicedToArray = function () {
+    function sliceIterator(arr, i) {
+      var _arr = [];var _n = true;var _d = false;var _e = undefined;try {
+        for (var _i = arr[Symbol.iterator](), _s; !(_n = (_s = _i.next()).done); _n = true) {
+          _arr.push(_s.value);if (i && _arr.length === i) break;
+        }
+      } catch (err) {
+        _d = true;_e = err;
+      } finally {
+        try {
+          if (!_n && _i["return"]) _i["return"]();
+        } finally {
+          if (_d) throw _e;
+        }
+      }return _arr;
+    }return function (arr, i) {
+      if (Array.isArray(arr)) {
+        return arr;
+      } else if (Symbol.iterator in Object(arr)) {
+        return sliceIterator(arr, i);
+      } else {
+        throw new TypeError("Invalid attempt to destructure non-iterable instance");
+      }
+    };
+  }();
+
+  var _createClass$r = function () {
+    function defineProperties(target, props) {
+      for (var i = 0; i < props.length; i++) {
+        var descriptor = props[i];descriptor.enumerable = descriptor.enumerable || false;descriptor.configurable = true;if ("value" in descriptor) descriptor.writable = true;Object.defineProperty(target, descriptor.key, descriptor);
+      }
+    }return function (Constructor, protoProps, staticProps) {
+      if (protoProps) defineProperties(Constructor.prototype, protoProps);if (staticProps) defineProperties(Constructor, staticProps);return Constructor;
+    };
+  }();
+
+  function _classCallCheck$r(instance, Constructor) {
+    if (!(instance instanceof Constructor)) {
+      throw new TypeError("Cannot call a class as a function");
+    }
+  }
+
+  var MediaSample = function () {
+    function MediaSample(info) {
+      var _this = this;
+
+      _classCallCheck$r(this, MediaSample);
+
+      var _default = MediaSample.getDefaultInf();
+
+      if (!info || Object.prototype.toString.call(info) !== '[object Object]') {
+        return _default;
+      }
+      var sample = Object.assign({}, _default, info);
+
+      Object.entries(sample).forEach(function (_ref) {
+        var _ref2 = _slicedToArray(_ref, 2),
+            k = _ref2[0],
+            v = _ref2[1];
+
+        _this[k] = v;
+      });
+    }
+
+    _createClass$r(MediaSample, null, [{
+      key: 'getDefaultInf',
+      value: function getDefaultInf() {
+        return {
+          dts: null,
+          pts: null,
+          duration: null,
+          position: null,
+          isRAP: false, // is Random access point
+          originDts: null
+        };
+      }
+    }]);
+
+    return MediaSample;
+  }();
+
+  var _createClass$s = function () {
+      function defineProperties(target, props) {
+          for (var i = 0; i < props.length; i++) {
+              var descriptor = props[i];descriptor.enumerable = descriptor.enumerable || false;descriptor.configurable = true;if ("value" in descriptor) descriptor.writable = true;Object.defineProperty(target, descriptor.key, descriptor);
+          }
+      }return function (Constructor, protoProps, staticProps) {
+          if (protoProps) defineProperties(Constructor.prototype, protoProps);if (staticProps) defineProperties(Constructor, staticProps);return Constructor;
+      };
+  }();
+
+  function _classCallCheck$s(instance, Constructor) {
+      if (!(instance instanceof Constructor)) {
+          throw new TypeError("Cannot call a class as a function");
+      }
+  }
+
+  var MediaSegment = function () {
+      function MediaSegment() {
+          _classCallCheck$s(this, MediaSegment);
+
+          this.startDts = -1;
+          this.endDts = -1;
+          this.startPts = -1;
+          this.endPts = -1;
+          this.originStartDts = -1;
+          this.originEndDts = -1;
+          this.randomAccessPoints = [];
+          this.firstSample = null;
+          this.lastSample = null;
+      }
+
+      _createClass$s(MediaSegment, [{
+          key: "addRAP",
+          value: function addRAP(sample) {
+              sample.isRAP = true;
+              this.randomAccessPoints.push(sample);
+          }
+      }]);
+
+      return MediaSegment;
+  }();
+
+  var _createClass$t = function () {
+    function defineProperties(target, props) {
+      for (var i = 0; i < props.length; i++) {
+        var descriptor = props[i];descriptor.enumerable = descriptor.enumerable || false;descriptor.configurable = true;if ("value" in descriptor) descriptor.writable = true;Object.defineProperty(target, descriptor.key, descriptor);
+      }
+    }return function (Constructor, protoProps, staticProps) {
+      if (protoProps) defineProperties(Constructor.prototype, protoProps);if (staticProps) defineProperties(Constructor, staticProps);return Constructor;
+    };
+  }();
+
+  function _classCallCheck$t(instance, Constructor) {
+    if (!(instance instanceof Constructor)) {
+      throw new TypeError("Cannot call a class as a function");
+    }
+  }
+
+  var MediaSegmentList$1 = function () {
+    function MediaSegmentList(type) {
+      _classCallCheck$t(this, MediaSegmentList);
+
+      this._type = type;
+      this._list = [];
+      this._lastAppendLocation = -1; // cached last insert location
+    }
+
+    _createClass$t(MediaSegmentList, [{
+      key: "isEmpty",
+      value: function isEmpty() {
+        return this._list.length === 0;
+      }
+    }, {
+      key: "clear",
+      value: function clear() {
+        this._list = [];
+        this._lastAppendLocation = -1;
+      }
+    }, {
+      key: "_searchNearestSegmentBefore",
+      value: function _searchNearestSegmentBefore(beginDts) {
+        var list = this._list;
+        if (list.length === 0) {
+          return -2;
+        }
+        var last = list.length - 1;
+        var mid = 0;
+        var lbound = 0;
+        var ubound = last;
+
+        var idx = 0;
+
+        if (beginDts < list[0].originDts) {
+          idx = -1;
+          return idx;
+        }
+
+        while (lbound <= ubound) {
+          mid = lbound + Math.floor((ubound - lbound) / 2);
+          if (mid === last || beginDts > list[mid].lastSample.originDts && beginDts < list[mid + 1].originDts) {
+            idx = mid;
+            break;
+          } else if (list[mid].originDts < beginDts) {
+            lbound = mid + 1;
+          } else {
+            ubound = mid - 1;
+          }
+        }
+        return idx;
+      }
+    }, {
+      key: "_searchNearestSegmentAfter",
+      value: function _searchNearestSegmentAfter(beginDts) {
+        return this._searchNearestSegmentBefore(beginDts) + 1;
+      }
+    }, {
+      key: "append",
+      value: function append(segment) {
+        var list = this._list;
+        var lastAppendIdx = this._lastAppendLocation;
+        var insertIdx = 0;
+
+        if (lastAppendIdx !== -1 && lastAppendIdx < list.length && segment.originStartDts >= list[lastAppendIdx].lastSample.originDts && (lastAppendIdx === list.length - 1 || lastAppendIdx < list.length - 1 && segment.originStartDts < list[lastAppendIdx + 1].originStartDts)) {
+          insertIdx = lastAppendIdx + 1; // use cached location idx
+        } else {
+          if (list.length > 0) {
+            insertIdx = this._searchNearestSegmentBefore(segment.originStartDts) + 1;
+          }
+        }
+
+        this._lastAppendLocation = insertIdx;
+        this._list.splice(insertIdx, 0, segment);
+      }
+    }, {
+      key: "getLastSegmentBefore",
+      value: function getLastSegmentBefore(beginDts) {
+        var idx = this._searchNearestSegmentBefore(beginDts);
+        if (idx >= 0) {
+          return this._list[idx];
+        } else {
+          // -1
+          return null;
+        }
+      }
+    }, {
+      key: "getLastSampleBefore",
+      value: function getLastSampleBefore(beginDts) {
+        var segment = this.getLastSegmentBefore(beginDts);
+        if (segment !== null) {
+          return segment.lastSample;
+        } else {
+          return null;
+        }
+      }
+    }, {
+      key: "getLastRAPBefore",
+      value: function getLastRAPBefore(beginDts) {
+        var segmentIdx = this._searchNearestSegmentBefore(beginDts);
+        var randomAccessPoints = this._list[segmentIdx].randomAccessPoints;
+        while (randomAccessPoints.length === 0 && segmentIdx > 0) {
+          segmentIdx--;
+          randomAccessPoints = this._list[segmentIdx].randomAccessPoints;
+        }
+        if (randomAccessPoints.length > 0) {
+          return randomAccessPoints[randomAccessPoints.length - 1];
+        } else {
+          return null;
+        }
+      }
+    }, {
+      key: "type",
+      get: function get() {
+        return this._type;
+      }
+    }, {
+      key: "length",
+      get: function get() {
+        return this._list.length;
+      }
+    }]);
+
+    return MediaSegmentList;
+  }();
+
+  var _debounce = (function (fn, wait) {
+    var lastTime = Date.now();
+    var timer = null;
+    var isFirstTime = true;
+
+    return function () {
+      for (var _len = arguments.length, args = Array(_len), _key = 0; _key < _len; _key++) {
+        args[_key] = arguments[_key];
+      }
+
+      var now = Date.now();
+      if (isFirstTime) {
+        lastTime = Date.now();
+        isFirstTime = false;
+        fn.apply(undefined, args);
+      }
+      if (now - lastTime > wait) {
+        lastTime = now;
+        fn.apply(undefined, args);
+      } else {
+        if (timer) {
+          window.clearTimeout(timer);
+        }
+        timer = setTimeout(function () {
+          fn.apply(undefined, args);
+        }, wait);
+      }
+    };
+  });
+
+  var debounce = _debounce;
 
   var _createClass$u = function () {
     function defineProperties(target, props) {
@@ -7755,6 +7745,7 @@
 
         for (var i = 0; i < video.buffered.length; i++) {
           if (time >= video.buffered.start(i) && time < video.buffered.end(i)) {
+            this._playlist.clearDownloaded();
             return;
           }
         }
@@ -7831,7 +7822,7 @@
 
           // let fragend = frag ? (frag.time + frag.duration) / 1000 : 0;
 
-          var curTime = _frag2.time;
+          var curTime = _frag2.time + _frag2.duration;
           var curFragTime = _frag2.time;
 
           if (_frag2.downloaded) {
@@ -7961,7 +7952,7 @@
       _this2.util = Player.util;
       _this2.util.deepCopy(_this2.hlsOps, options);
       _this2._context = new Context(HlsAllowedEvents$2);
-      _this2._handleSetCurrentTime = debounce(_this2._handleSetCurrentTime.bind(_this2), 500);
+      _this2._handleSetCurrentTime = debounce(_this2._handleSetCurrentTime.bind(_this2), 200);
       _this2.onWaiting = _this2.onWaiting.bind(_this2);
       _this2.started = false;
       return _this2;
