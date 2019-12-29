@@ -4999,7 +4999,7 @@
         var dv = new DataView(data.buffer);
         var payloadType = 0;
         var offset = 0;
-        while (dv.getUint8(offset) === 0) {
+        while (dv.getUint8(offset) === 255) {
           offset++;
           payloadType += 255;
         }
@@ -5024,7 +5024,7 @@
 
         var payloadLength = 0;
         var offset = 0;
-        while (dv.getUint8(offset) === 0) {
+        while (dv.getUint8(offset) === 255) {
           offset++;
           payloadLength += 255;
         }
@@ -5632,6 +5632,8 @@
           } else if (nal.pps) {
             track.pps = nal.body;
             pps = nal;
+          } else if (nal.sei) {
+            this.emit(DEMUX_EVENTS$1.SEI_PARSED, nal.sei);
           } else if (nal.type < 9) {
             sampleLength += 4 + nal.body.byteLength;
           }

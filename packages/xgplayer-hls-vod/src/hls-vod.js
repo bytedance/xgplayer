@@ -66,6 +66,8 @@ class HlsVodController {
 
     this.on(REMUX_EVENTS.INIT_SEGMENT, this._onInitSegment.bind(this));
 
+    this.on(DEMUX_EVENTS.SEI_PARSED, this._handleSEIParsed.bind(this))
+
     this.on(REMUX_EVENTS.MEDIA_SEGMENT, this._onMediaSegment.bind(this));
 
     this.on(DEMUX_EVENTS.METADATA_PARSED, this._onMetadataParsed.bind(this));
@@ -141,6 +143,10 @@ class HlsVodController {
   }
   _onDemuxComplete () {
     this.emit(REMUX_EVENTS.REMUX_MEDIA)
+  }
+
+  _handleSEIParsed (sei) {
+    this._player.emit('SEI_PARSED', sei)
   }
 
   _onMetadataParsed (type) {

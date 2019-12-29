@@ -5673,7 +5673,7 @@
           if (idx < 2) {
             return true;
           } else {
-            return data[idx - 2] === 0 && data[idx - 1] === 0 && el === 3;
+            return !(data[idx - 2] === 0 && data[idx - 1] === 0 && el === 3);
           }
         });
       }
@@ -5771,7 +5771,8 @@
         var dv = new DataView(data.buffer);
         var payloadType = 0;
         var offset = 0;
-        while (dv.getUint8(offset++) === 0) {
+        while (dv.getUint8(offset) === 255) {
+          offset++;
           payloadType += 255;
         }
         payloadType += dv.getUint8(offset++);
@@ -5795,7 +5796,8 @@
 
         var payloadLength = 0;
         var offset = 0;
-        while (dv.getUint8(offset++) === 0) {
+        while (dv.getUint8(offset) === 255) {
+          offset++;
           payloadLength += 255;
         }
         payloadLength += dv.getUint8(offset++);
@@ -5828,7 +5830,7 @@
         var payload = data.slice(offset);
 
         var uuid = u8aToString(payload.slice(0, 16));
-        var content = u8aToString(payload.slice(16, payloadLength + 16));
+        var content = u8aToString(payload.slice(16, payloadLength));
 
         return {
           uuid: uuid,
@@ -5904,13 +5906,16 @@
     }, {
       key: 'getAvccNals',
       value: function getAvccNals(buffer) {
+        // buffer.buffer = RBSP.EBSP2RBSP(new Uint8Array(buffer.buffer)).buffer;
+        // buffer.dataview = new DataView(buffer.buffer)
+        // buffer.dataview.position = 0;
         var nals = [];
         while (buffer.position < buffer.length - 4) {
-          var length = buffer.dataview.getInt32();
+          var length = buffer.dataview.getInt32(buffer.dataview.position);
           if (buffer.length - buffer.position >= length) {
             var header = buffer.buffer.slice(buffer.position, buffer.position + 4);
             buffer.skip(4);
-            var body = buffer.buffer.slice(buffer.position, buffer.position + length);
+            var body = new Uint8Array(buffer.buffer.slice(buffer.position, buffer.position + length));
             buffer.skip(length);
             var unit = { header: header, body: body };
             Nalunit.analyseNal(unit);
@@ -6399,6 +6404,8 @@
           } else if (nal.pps) {
             track.pps = nal.body;
             pps = nal;
+          } else if (nal.sei) {
+            this.emit(DEMUX_EVENTS$1.SEI_PARSED, nal.sei);
           } else if (nal.type < 9) {
             sampleLength += 4 + nal.body.byteLength;
           }
@@ -7295,6 +7302,8 @@
 
         this.on(REMUX_EVENTS$3.INIT_SEGMENT, this._onInitSegment.bind(this));
 
+        this.on(DEMUX_EVENTS$2.SEI_PARSED, this._handleSEIParsed.bind(this));
+
         this.on(REMUX_EVENTS$3.MEDIA_SEGMENT, this._onMediaSegment.bind(this));
 
         this.on(DEMUX_EVENTS$2.METADATA_PARSED, this._onMetadataParsed.bind(this));
@@ -7378,6 +7387,11 @@
       key: '_onDemuxComplete',
       value: function _onDemuxComplete() {
         this.emit(REMUX_EVENTS$3.REMUX_MEDIA);
+      }
+    }, {
+      key: '_handleSEIParsed',
+      value: function _handleSEIParsed(sei) {
+        this._player.emit('SEI_PARSED', sei);
       }
     }, {
       key: '_onMetadataParsed',

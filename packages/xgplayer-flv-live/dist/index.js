@@ -3070,7 +3070,7 @@
         var dv = new DataView(data.buffer);
         var payloadType = 0;
         var offset = 0;
-        while (dv.getUint8(offset) === 0) {
+        while (dv.getUint8(offset) === 255) {
           offset++;
           payloadType += 255;
         }
@@ -3095,7 +3095,7 @@
 
         var payloadLength = 0;
         var offset = 0;
-        while (dv.getUint8(offset) === 0) {
+        while (dv.getUint8(offset) === 255) {
           offset++;
           payloadLength += 255;
         }

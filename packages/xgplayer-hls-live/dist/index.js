@@ -4999,7 +4999,7 @@
         var dv = new DataView(data.buffer);
         var payloadType = 0;
         var offset = 0;
-        while (dv.getUint8(offset) === 0) {
+        while (dv.getUint8(offset) === 255) {
           offset++;
           payloadType += 255;
         }
@@ -5024,7 +5024,7 @@
 
         var payloadLength = 0;
         var offset = 0;
-        while (dv.getUint8(offset) === 0) {
+        while (dv.getUint8(offset) === 255) {
           offset++;
           payloadLength += 255;
         }
@@ -5632,6 +5632,8 @@
           } else if (nal.pps) {
             track.pps = nal.body;
             pps = nal;
+          } else if (nal.sei) {
+            this.emit(DEMUX_EVENTS$1.SEI_PARSED, nal.sei);
           } else if (nal.type < 9) {
             sampleLength += 4 + nal.body.byteLength;
           }
@@ -6532,6 +6534,8 @@
 
         this.on(DEMUX_EVENTS$2.METADATA_PARSED, this._onMetadataParsed.bind(this));
 
+        this.on(DEMUX_EVENTS$2.SEI_PARSED, this._handleSEIParsed.bind(this));
+
         this.on(DEMUX_EVENTS$2.DEMUX_COMPLETE, this._onDemuxComplete.bind(this));
 
         this.on(LOADER_EVENTS$2.LOADER_ERROR, this._onLoadError.bind(this));
@@ -6587,6 +6591,11 @@
           fatal = true;
         }
         this._onError(REMUX_EVENTS$3.REMUX_ERROR, mod, error, fatal);
+      }
+    }, {
+      key: '_handleSEIParsed',
+      value: function _handleSEIParsed(sei) {
+        this._player.emit('SEI_PARSED', sei);
       }
     }, {
       key: '_onLoadComplete',

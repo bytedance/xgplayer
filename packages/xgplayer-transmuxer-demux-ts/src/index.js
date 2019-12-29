@@ -179,7 +179,9 @@ class TsDemuxer {
       } else if (nal.pps) {
         track.pps = nal.body;
         pps = nal;
-      } else if (nal.type < 9) {
+      } else if (nal.sei) {
+        this.emit(DEMUX_EVENTS.SEI_PARSED, nal.sei)
+      }else if (nal.type < 9) {
         sampleLength += (4 + nal.body.byteLength);
       }
     }
