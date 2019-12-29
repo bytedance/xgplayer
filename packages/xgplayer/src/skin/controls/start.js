@@ -10,6 +10,7 @@ let s_start = function () {
                                       <div class="xgplayer-icon-pause">${StartPauseIcon}</div>`, {}, 'xgplayer-start')
   function onPlayerReady(player) {
     util.addClass(player.root, 'xgplayer-skin-default')
+    player.config.autoplay && util.addClass(player.root, 'xgplayer-is-enter')
     if (player.config) {
       if (player.config.lang && player.config.lang === 'en') {
         util.addClass(player.root, 'lang-is-en')
@@ -28,6 +29,15 @@ let s_start = function () {
       onPlayerReady(player)
     });
   }
+
+  player.once('autoplay was prevented', () => {
+    util.removeClass(player.root, 'xgplayer-is-enter')
+    util.addClass(player.root, 'xgplayer-nostart')
+  })
+
+  player.once('canplay', () => {
+    util.removeClass(player.root, 'xgplayer-is-enter')
+  })
 
   btn.onclick = e => {
     e.preventDefault()
