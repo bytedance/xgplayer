@@ -1,5 +1,5 @@
 {
-  "name": "xgplayer-flv-vod",
+  "name": "xgplayer-render",
   "version": "2.2.0-alpha.12",
   "description": "",
   "main": "lib/index.js",
@@ -29,17 +29,5 @@
       ]
     ]
   },
-  "dependencies": {
-    "xgplayer-utils-mse": "^2.2.0-alpha.12",
-    "xgplayer-transmuxer-context": "^2.2.0-alpha.12",
-    "xgplayer-transmuxer-buffer-xgbuffer": "^2.2.0-alpha.12",
-    "xgplayer-transmuxer-buffer-track": "^2.2.0-alpha.12",
-    "xgplayer-transmuxer-buffer-presource": "^2.2.0-alpha.12",
-    "xgplayer-transmuxer-demux-flv": "^2.2.0-alpha.12",
-    "xgplayer-transmuxer-loader-fetch": "^2.2.0-alpha.12",
-    "xgplayer-transmuxer-remux-mp4": "^2.2.0-alpha.12",
-    "xgplayer-transmuxer-constant-events": "^2.2.0-alpha.12",
-    "xgplayer-transmuxer-codec-compatibility": "^2.2.0-alpha.12",
-    "xgplayer-mobilevideo": "^2.2.0-alpha.12"
-  }
+  "dependencies": {}
 }

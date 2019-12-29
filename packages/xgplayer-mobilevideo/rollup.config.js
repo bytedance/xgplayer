@@ -1,8 +1,9 @@
 const commonRollup = require('../../rollup.config');
+const bundleWorker = require('rollup-plugin-bundle-worker');
 const uglify = process.env.NODE_ENV === 'production';
 
 const config = {
-  name: 'FlvVodPlayer',
+  name: 'MobileVideo',
   uglify: uglify,
   external: ['xgplayer'],
   globals: {
@@ -10,7 +11,10 @@ const config = {
   },
   babel: {
     runtimeHelpers: true
-  }
+  },
+  plugins: [
+    bundleWorker()
+  ]
 }
 
 module.exports = commonRollup(config)

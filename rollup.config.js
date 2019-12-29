@@ -14,6 +14,7 @@ const defaultRollup = {
   sourcemap: true,
   production: false,
   external: [],
+  plugins: [],
   globals: {},
   commonjs: {},
   resolve: {},
@@ -25,7 +26,7 @@ const commonRollup = function (config = {}) {
   const rollupConfig = Object.assign({}, defaultRollup, config);
   return {
     input: rollupConfig.input,
-    output: [
+    output: config.output || [
       {
         file: rollupConfig.uglify ? 'dist/index.min.js' : 'dist/index.js',
         name: rollupConfig.name,
@@ -36,6 +37,7 @@ const commonRollup = function (config = {}) {
     ],
     external: rollupConfig.external,
     plugins: [
+      ...rollupConfig.plugins,
       rollupConfig.uglify ? uglify(rollupConfig.uglify) : undefined,
       json({
         compact: true
@@ -69,7 +71,7 @@ const commonRollup = function (config = {}) {
         ...rollupConfig.commonjs
       }),
       builtins(),
-      context()
+      context(),
     ],
     watch: {
       ...config.watch
