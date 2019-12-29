@@ -103,6 +103,9 @@ class MobileVideo extends HTMLElement {
   }
 
   destroy () {
+    this.videoMetaInited = false;
+    this.audioMetaInited = false;
+
     this.aCtx.destroy()
     this.vCtx.destroy()
     this.ticker.stop()
