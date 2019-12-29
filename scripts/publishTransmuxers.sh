@@ -22,6 +22,7 @@ cd ${SRC_DIR}/packages/xgplayer-transmuxer-model-mediasegmentlist && npm publish
 cd ${SRC_DIR}/packages/xgplayer-transmuxer-model-trackmeta && npm publish --tag=alpha --registry https://registry.npmjs.org
 cd ${SRC_DIR}/packages/xgplayer-transmuxer-model-tracksample && npm publish --tag=alpha --registry https://registry.npmjs.org
 cd ${SRC_DIR}/packages/xgplayer-transmuxer-remux-mp4 && npm publish --tag=alpha --registry https://registry.npmjs.org
+cd ${SRC_DIR}/packages/xgplayer-mobilevideo && npm publish --tag=alpha --registry https://registry.npmjs.org
 cd ${SRC_DIR}/packages/xgplayer-utils && npm publish --tag=alpha --registry https://registry.npmjs.org
 cd ${SRC_DIR}/packages/xgplayer-utils-crypto && npm publish --tag=alpha --registry https://registry.npmjs.org
 cd ${SRC_DIR}/packages/xgplayer-utils-mse && npm publish --tag=alpha --registry https://registry.npmjs.org
