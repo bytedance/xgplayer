@@ -118,6 +118,8 @@ var HlsVodController = function () {
 
       this.on(REMUX_EVENTS.INIT_SEGMENT, this._onInitSegment.bind(this));
 
+      this.on(DEMUX_EVENTS.SEI_PARSED, this._handleSEIParsed.bind(this));
+
       this.on(REMUX_EVENTS.MEDIA_SEGMENT, this._onMediaSegment.bind(this));
 
       this.on(DEMUX_EVENTS.METADATA_PARSED, this._onMetadataParsed.bind(this));
@@ -201,6 +203,11 @@ var HlsVodController = function () {
     key: '_onDemuxComplete',
     value: function _onDemuxComplete() {
       this.emit(REMUX_EVENTS.REMUX_MEDIA);
+    }
+  }, {
+    key: '_handleSEIParsed',
+    value: function _handleSEIParsed(sei) {
+      this._player.emit('SEI_PARSED', sei);
     }
   }, {
     key: '_onMetadataParsed',

@@ -18,7 +18,8 @@ const config = {
   external: ['xgplayer'],
   babel: {
     runtimeHelpers: true
-  }
+  },
+  uglify: true
 }
 
 module.exports = commonRollup(config)

@@ -71,29 +71,27 @@ function init(meta) {
   addOnPostRun(onPostRun.bind(self));
 }
 
-module.exports = function (self) {
-  self.addEventListener('message', function (e) {
-    var data = e.data;
-    if (!data.msg) {
-      self.postMessage({
-        msg: 'ERROR:invalid message'
-      });
-    } else {
-      switch (data.msg) {
-        case 'init':
-          console.log(data);
-          self.meta = data.meta;
-          init();
-          break;
-        case 'decode':
-          decoder.decode(data.data, data.info);
-          break;
-        case 'destory':
-          decoder.destroy();
-          break;
-        default:
-          break;
-      }
+self.addEventListener('message', function (e) {
+  var data = e.data;
+  if (!data.msg) {
+    self.postMessage({
+      msg: 'ERROR:invalid message'
+    });
+  } else {
+    switch (data.msg) {
+      case 'init':
+        console.log(data);
+        self.meta = data.meta;
+        init();
+        break;
+      case 'decode':
+        decoder.decode(data.data, data.info);
+        break;
+      case 'destory':
+        decoder.destroy();
+        break;
+      default:
+        break;
     }
-  }, false);
-};
+  }
+}, false);

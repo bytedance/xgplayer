@@ -181,7 +181,7 @@ class TsDemuxer {
         pps = nal;
       } else if (nal.sei) {
         this.emit(DEMUX_EVENTS.SEI_PARSED, nal.sei)
-      }else if (nal.type < 9) {
+      } else if (nal.type < 9) {
         sampleLength += (4 + nal.body.byteLength);
       }
     }
@@ -215,7 +215,7 @@ class TsDemuxer {
       if (nal.idr) {
         isKeyframe = true;
       }
-      if (!nal.pps && !nal.sps) {
+      if (!nal.pps && !nal.sps && !nal.sei) {
         data.set(new Uint8Array([length >>> 24 & 0xff,
           length >>> 16 & 0xff,
           length >>> 8 & 0xff,

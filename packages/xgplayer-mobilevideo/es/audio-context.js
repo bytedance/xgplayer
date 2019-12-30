@@ -43,11 +43,14 @@ var AudioCtx = function (_EventEmitter) {
   _createClass(AudioCtx, [{
     key: 'decodeAudio',
     value: function decodeAudio(audioTrack) {
-      var samples = audioTrack.samples;
+      var samples = audioTrack.samples,
+          meta = audioTrack.meta;
 
       var data = samples;
       audioTrack.samples = [];
-      this.setAudioData(data);
+      if (meta) {
+        this.setAudioData(data);
+      }
     }
   }, {
     key: 'setAudioData',

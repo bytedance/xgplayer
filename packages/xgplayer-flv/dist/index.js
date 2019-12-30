@@ -6367,6 +6367,7 @@
         this.on(DEMUX_EVENTS$2.METADATA_PARSED, this._handleMetadataParsed.bind(this));
         this.on(DEMUX_EVENTS$2.DEMUX_COMPLETE, this._handleDemuxComplete.bind(this));
         this.on(DEMUX_EVENTS$2.DEMUX_ERROR, this._handleDemuxError.bind(this));
+        this.on(DEMUX_EVENTS$2.SEI_PARSED, this._handleSEIParsed.bind(this));
 
         this.on(REMUX_EVENTS$3.INIT_SEGMENT, this._handleAppendInitSegment.bind(this));
         this.on(REMUX_EVENTS$3.MEDIA_SEGMENT, this._handleMediaSegment.bind(this));
@@ -6392,6 +6393,11 @@
       key: '_handleMetadataParsed',
       value: function _handleMetadataParsed(type) {
         this.emit(REMUX_EVENTS$3.REMUX_METADATA, type);
+      }
+    }, {
+      key: '_handleSEIParsed',
+      value: function _handleSEIParsed(sei) {
+        this._player.emit('SEI_PARSED', sei);
       }
     }, {
       key: '_handleDemuxComplete',
@@ -6885,6 +6891,7 @@
         this.on(DEMUX_EVENTS$3.METADATA_PARSED, this._handleMetadataParsed.bind(this));
         this.on(DEMUX_EVENTS$3.DEMUX_COMPLETE, this._handleDemuxComplete.bind(this));
         this.on(DEMUX_EVENTS$3.DEMUX_ERROR, this._handleDemuxError.bind(this));
+        this.on(DEMUX_EVENTS$3.SEI_PARSED, this._handleSEIParsed.bind(this));
 
         this.on(REMUX_EVENTS$4.INIT_SEGMENT, this._handleAppendInitSegment.bind(this));
         this.on(REMUX_EVENTS$4.MEDIA_SEGMENT, this._handleMediaSegment.bind(this));
@@ -6920,6 +6927,11 @@
       key: '_handleMetadataParsed',
       value: function _handleMetadataParsed(type) {
         this.emit(REMUX_EVENTS$4.REMUX_METADATA, type);
+      }
+    }, {
+      key: '_handleSEIParsed',
+      value: function _handleSEIParsed(sei) {
+        this._player.emit('SEI_PARSED', sei);
       }
     }, {
       key: '_handleDemuxComplete',

@@ -5668,7 +5668,7 @@
           if (_nal.idr) {
             isKeyframe = true;
           }
-          if (!_nal.pps && !_nal.sps) {
+          if (!_nal.pps && !_nal.sps && !_nal.sei) {
             data.set(new Uint8Array([length >>> 24 & 0xff, length >>> 16 & 0xff, length >>> 8 & 0xff, length & 0xff]), offset);
             offset += 4;
             data.set(_nal.body, offset);
@@ -6546,6 +6546,8 @@
 
         this.on(DEMUX_EVENTS$2.METADATA_PARSED, this._onMetadataParsed.bind(this));
 
+        this.on(DEMUX_EVENTS$2.SEI_PARSED, this._handleSEIParsed.bind(this));
+
         this.on(DEMUX_EVENTS$2.DEMUX_COMPLETE, this._onDemuxComplete.bind(this));
 
         this.on(LOADER_EVENTS$2.LOADER_ERROR, this._onLoadError.bind(this));
@@ -6601,6 +6603,11 @@
           fatal = true;
         }
         this._onError(REMUX_EVENTS$3.REMUX_ERROR, mod, error, fatal);
+      }
+    }, {
+      key: '_handleSEIParsed',
+      value: function _handleSEIParsed(sei) {
+        this._player.emit('SEI_PARSED', sei);
       }
     }, {
       key: '_onLoadComplete',
@@ -7763,6 +7770,8 @@
 
         this.on(REMUX_EVENTS$5.INIT_SEGMENT, this._onInitSegment.bind(this));
 
+        this.on(DEMUX_EVENTS$3.SEI_PARSED, this._handleSEIParsed.bind(this));
+
         this.on(REMUX_EVENTS$5.MEDIA_SEGMENT, this._onMediaSegment.bind(this));
 
         this.on(DEMUX_EVENTS$3.METADATA_PARSED, this._onMetadataParsed.bind(this));
@@ -7846,6 +7855,11 @@
       key: '_onDemuxComplete',
       value: function _onDemuxComplete() {
         this.emit(REMUX_EVENTS$5.REMUX_MEDIA);
+      }
+    }, {
+      key: '_handleSEIParsed',
+      value: function _handleSEIParsed(sei) {
+        this._player.emit('SEI_PARSED', sei);
       }
     }, {
       key: '_onMetadataParsed',

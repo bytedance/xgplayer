@@ -2,7 +2,9 @@ var _createClass = function () { function defineProperties(target, props) { for 
 
 function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } }
 
-import Workerify from 'webworkify-webpack';
+// import Workerify from 'webworkify-webpack'
+// eslint-disable-next-line import/no-webpack-loader-syntax
+import VideoWorker from 'worker!./worker.js';
 import Stream from 'xgplayer-transmuxer-buffer-stream';
 import { NalUnit } from 'xgplayer-transmuxer-codec-avc';
 import Render from 'xgplayer-render/src/index';
@@ -55,7 +57,8 @@ var VideoCanvas = function () {
       var _this2 = this;
 
       var _this = this;
-      this.wasmworker = Workerify(require.resolve('./worker.js'));
+      // eslint-disable-next-line no-undef
+      this.wasmworker = new VideoWorker();
       this.wasmworker.postMessage({
         msg: 'init',
         meta: this.meta

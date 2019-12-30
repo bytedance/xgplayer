@@ -130,6 +130,9 @@ var MobileVideo = function (_HTMLElement) {
   }, {
     key: 'destroy',
     value: function destroy() {
+      this.videoMetaInited = false;
+      this.audioMetaInited = false;
+
       this.aCtx.destroy();
       this.vCtx.destroy();
       this.ticker.stop();
@@ -142,7 +145,7 @@ var MobileVideo = function (_HTMLElement) {
   }, {
     key: 'onDemuxComplete',
     value: function onDemuxComplete(videoTrack, audioTrack) {
-      Index.resolveVideoGOP(videoTrack);
+      // MobileVideo.resolveVideoGOP(videoTrack)
       this.aCtx.decodeAudio(audioTrack);
       this.vCtx.decodeVideo(videoTrack);
     }

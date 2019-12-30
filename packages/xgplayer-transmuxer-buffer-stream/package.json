@@ -1,6 +1,6 @@
 {
   "name": "xgplayer-transmuxer-buffer-stream",
-  "version": "2.2.0-alpha.12",
+  "version": "2.2.0-alpha.14",
   "description": "",
   "main": "lib/index.js",
   "module": "es/index.js",

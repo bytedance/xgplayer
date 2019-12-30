@@ -121,6 +121,7 @@ var FlvController = function () {
       this.on(DEMUX_EVENTS.METADATA_PARSED, this._handleMetadataParsed.bind(this));
       this.on(DEMUX_EVENTS.DEMUX_COMPLETE, this._handleDemuxComplete.bind(this));
       this.on(DEMUX_EVENTS.DEMUX_ERROR, this._handleDemuxError.bind(this));
+      this.on(DEMUX_EVENTS.SEI_PARSED, this._handleSEIParsed.bind(this));
 
       this.on(REMUX_EVENTS.INIT_SEGMENT, this._handleAppendInitSegment.bind(this));
       this.on(REMUX_EVENTS.MEDIA_SEGMENT, this._handleMediaSegment.bind(this));
@@ -156,6 +157,11 @@ var FlvController = function () {
     key: '_handleMetadataParsed',
     value: function _handleMetadataParsed(type) {
       this.emit(REMUX_EVENTS.REMUX_METADATA, type);
+    }
+  }, {
+    key: '_handleSEIParsed',
+    value: function _handleSEIParsed(sei) {
+      this._player.emit('SEI_PARSED', sei);
     }
   }, {
     key: '_handleDemuxComplete',

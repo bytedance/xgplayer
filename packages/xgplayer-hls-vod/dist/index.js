@@ -6440,7 +6440,7 @@
           if (_nal.idr) {
             isKeyframe = true;
           }
-          if (!_nal.pps && !_nal.sps) {
+          if (!_nal.pps && !_nal.sps && !_nal.sei) {
             data.set(new Uint8Array([length >>> 24 & 0xff, length >>> 16 & 0xff, length >>> 8 & 0xff, length & 0xff]), offset);
             offset += 4;
             data.set(_nal.body, offset);

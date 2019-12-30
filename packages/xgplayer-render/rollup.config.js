@@ -1,20 +1,13 @@
-import babel from 'rollup-plugin-babel';
+const commonRollup = require('../../rollup.config');
+const uglify = process.env.NODE_ENV === 'production';
 
-export default {
-  input: 'src/index.js',
-  plugins: [
-    babel({
-      exclude: 'node_modules/**' // 仅仅转译我们的源码
-    })
-  ],
-  output: [{
-    file: 'browser/index.js',
-    format: 'iife',
-    name: 'Render'
-  },
-  {
-    file: 'dist/index.js',
-    format: 'esm',
-    name: 'Render'
-  }]
-};
+const config = {
+  name: 'HlsLivePlayer',
+  uglify: uglify,
+  external: ['xgplayer'],
+  globals: {
+    'xgplayer': 'Player'
+  }
+}
+
+module.exports = commonRollup(config)

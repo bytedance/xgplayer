@@ -4,11 +4,13 @@ Object.defineProperty(exports, "__esModule", {
   value: true
 });
 
-var _createClass = function () { function defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ("value" in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } } return function (Constructor, protoProps, staticProps) { if (protoProps) defineProperties(Constructor.prototype, protoProps); if (staticProps) defineProperties(Constructor, staticProps); return Constructor; }; }();
+var _createClass = function () { function defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ("value" in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } } return function (Constructor, protoProps, staticProps) { if (protoProps) defineProperties(Constructor.prototype, protoProps); if (staticProps) defineProperties(Constructor, staticProps); return Constructor; }; }(); // import Workerify from 'webworkify-webpack'
+// eslint-disable-next-line import/no-webpack-loader-syntax
 
-var _webworkifyWebpack = require('webworkify-webpack');
 
-var _webworkifyWebpack2 = _interopRequireDefault(_webworkifyWebpack);
+var _worker = require('worker!./worker.js');
+
+var _worker2 = _interopRequireDefault(_worker);
 
 var _xgplayerTransmuxerBufferStream = require('xgplayer-transmuxer-buffer-stream');
 
@@ -78,7 +80,8 @@ var VideoCanvas = function () {
       var _this2 = this;
 
       var _this = this;
-      this.wasmworker = (0, _webworkifyWebpack2.default)(require.resolve('./worker.js'));
+      // eslint-disable-next-line no-undef
+      this.wasmworker = new _worker2.default();
       this.wasmworker.postMessage({
         msg: 'init',
         meta: this.meta

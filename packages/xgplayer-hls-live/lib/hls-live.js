@@ -122,6 +122,8 @@ var HlsLiveController = function () {
 
       this.on(DEMUX_EVENTS.METADATA_PARSED, this._onMetadataParsed.bind(this));
 
+      this.on(DEMUX_EVENTS.SEI_PARSED, this._handleSEIParsed.bind(this));
+
       this.on(DEMUX_EVENTS.DEMUX_COMPLETE, this._onDemuxComplete.bind(this));
 
       this.on(LOADER_EVENTS.LOADER_ERROR, this._onLoadError.bind(this));
@@ -177,6 +179,11 @@ var HlsLiveController = function () {
         fatal = true;
       }
       this._onError(REMUX_EVENTS.REMUX_ERROR, mod, error, fatal);
+    }
+  }, {
+    key: '_handleSEIParsed',
+    value: function _handleSEIParsed(sei) {
+      this._player.emit('SEI_PARSED', sei);
     }
   }, {
     key: '_onLoadComplete',
