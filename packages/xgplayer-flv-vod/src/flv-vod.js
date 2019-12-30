@@ -56,7 +56,7 @@ class FlvController {
     this._context.registry('MP4_REMUXER', Remuxer.Mp4Remuxer)
     this._context.registry('PRE_SOURCE_BUFFER', PreSource)
 
-    this._context.registry('COMPATIBILITY', Compatibility)
+    // this._context.registry('COMPATIBILITY', Compatibility)
 
     this._context.registry('LOGGER', Logger)
     this.mse = this._context.registry('MSE', Mse)({ container: this._player.video })

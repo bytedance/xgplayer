@@ -92,6 +92,9 @@ $ npm run dev
 访问 [http://localhost:9090/examples/index.html](http://localhost:9090/examples/index.html)
 
 
-### License
+### 使用协议
 
-[MIT](http://opensource.org/licenses/MIT)
+欢迎使用西瓜播放器技术团队提供的开源音视频解决方案！请您仔细阅读以下条款。通过使用西瓜播放器，您表示同意接受以下所有条款。
+1. 本开源项目中所有代码基于 [MIT](http://opensource.org/licenses/MIT) 许可协议，您默认遵守许可协议中约定的义务。
+2. 您默认授权我们将您使用西瓜播放器所在业务的Logo放置在本官网展示。
+若您有任何问题，请联系我们。

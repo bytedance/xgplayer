@@ -39,6 +39,7 @@ const umd = {
 
 const client = {
   entry: polyfill.concat(['./src/index.js']),
+  devtool: 'source-map',
   output: {
     path: `${__dirname}/browser`,
     filename: 'index.js',

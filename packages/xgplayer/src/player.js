@@ -252,7 +252,11 @@ class Player extends Proxy {
   reload () {
     this.video.load()
     this.reloadFunc = function () {
-      this.play().catch(err => { console.log(err) })
+      // eslint-disable-next-line handle-callback-err
+      let playPromise = this.play()
+      if (playPromise !== undefined && playPromise) {
+        playPromise.catch(err => {})
+      }
     }
     this.once('loadeddata', this.reloadFunc)
   }
@@ -292,7 +296,7 @@ class Player extends Proxy {
     if (!this.config.keyShortcut || this.config.keyShortcut === 'on') {
       ['video', 'controls'].forEach(item => {
         if (this[item]) {
-          this[item].removeEventListener('keydown', (e) => { player.onKeydown(e, player) })
+          this[item].removeEventListener('keydown', function (e) { player.onKeydown(e, player) })
         }
       })
     }
@@ -361,9 +365,11 @@ class Player extends Proxy {
       _replay()
     } else {
       this.currentTime = 0
-      this.play().catch(err => {
-        console.log(err)
-      })
+      // eslint-disable-next-line handle-callback-err
+      let playPromise = this.play()
+      if (playPromise !== undefined && playPromise) {
+        playPromise.catch(err => {})
+      }
     }
   }
 
@@ -399,12 +405,20 @@ class Player extends Proxy {
 
   getCssFullscreen () {
     let player = this
+    if (player.config.fluid) {
+      player.root.style['padding-top'] = ''
+    }
     util.addClass(player.root, 'xgplayer-is-cssfullscreen')
     player.emit('requestCssFullscreen')
   }
 
   exitCssFullscreen () {
     let player = this
+    if (player.config.fluid) {
+      player.root.style['width'] = '100%'
+      player.root.style['height'] = '0'
+      player.root.style['padding-top'] = `${player.config.height * 100 / player.config.width}%`
+    }
     util.removeClass(player.root, 'xgplayer-is-cssfullscreen')
     player.emit('exitCssFullscreen')
   }
@@ -443,6 +457,10 @@ class Player extends Proxy {
     this.root.appendChild(dragLay)
     let dragHandle = util.createDom('xg-pip-drag', '<div class="drag-handle"><span>点击按住可拖动视频</span></div>', {tabindex: 9}, 'xgplayer-pip-drag')
     this.root.appendChild(dragHandle)
+    // eslint-disable-next-line no-unused-vars
+    let draggie = new Draggabilly('.xgplayer', {
+      handle: '.drag-handle'
+    })
     util.addClass(this.root, 'xgplayer-pip-active')
     this.root.style.right = 0
     this.root.style.bottom = '200px'
@@ -547,8 +565,7 @@ class Player extends Proxy {
           let videoWidth = 0
           if ((targetHeight / targetWidth) > (height / width)) { // 旋转前是纵向撑满
             videoWidth = height * targetWidth / targetHeight
-          } else {
-            // 旋转前是横向撑满
+          } else { // 旋转前是横向撑满
             videoWidth = width
           }
           scale = height / videoWidth
@@ -634,11 +651,15 @@ class Player extends Proxy {
   }
 
   onSeeking () {
+    this.isSeeking = true
+    // 兼容IE下无法触发waiting事件的问题 seeking的时候直接出发waiting
+    this.onWaiting()
     // util.addClass(this.root, 'seeking');
   }
 
   onSeeked () {
     // for ie,playing fired before waiting
+    this.isSeeking = false
     if (this.waitTimer) {
       clearTimeout(this.waitTimer)
     }
@@ -656,6 +677,11 @@ class Player extends Proxy {
   }
 
   onPlaying () {
+    // 兼容safari下无法自动播放会触发该事件的场景
+    if (this.paused) {
+      return
+    }
+    this.isSeeking = false
     if (this.waitTimer) {
       clearTimeout(this.waitTimer)
     }
@@ -712,7 +738,10 @@ class Player extends Proxy {
     } else if (e && e.keyCode === 32) { // 按 spacebar
       if (player.paused) {
         // eslint-disable-next-line handle-callback-err
-        player.play().catch(err => {})
+        let playPromise = player.play()
+        if (playPromise !== undefined && playPromise) {
+          playPromise.catch(err => {})
+        }
       } else {
         player.pause()
       }

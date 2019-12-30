@@ -22,13 +22,14 @@ let screenShot = function () {
     saveLink.dispatchEvent(event)
   }
 
-  function onScreenShotBtnClick () {
+  function onScreenShotBtnClick (save = true) {
     img.onload = (function () {
       canvasCtx.drawImage(player.video, 0, 0, canvas.width, canvas.height)
       img.setAttribute('crossOrigin', 'anonymous')
       img.src = canvas.toDataURL('image/png').replace('image/png', 'image/octet-stream')
       let screenShotImg = img.src.replace(/^data:image\/[^;]+/, 'data:application/octet-stream')
-      saveScreenShot(screenShotImg, '截图.png')
+      player.emit('screenShot', screenShotImg)
+      save && saveScreenShot(screenShotImg, '截图.png')
     })()
   }
   player.on('screenShotBtnClick', onScreenShotBtnClick)

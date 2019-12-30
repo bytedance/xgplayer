@@ -29,7 +29,7 @@ export default class Mp4Remuxer {
   init () {
     this.on(REMUX_EVENTS.REMUX_MEDIA, this.remux.bind(this))
     this.on(REMUX_EVENTS.REMUX_METADATA, this.onMetaDataReady.bind(this))
-    this.on(REMUX_EVENTS.DETECT_CHANGE_STREAM, this.resetDtsBase.bind(this))
+    // this.on(REMUX_EVENTS.DETECT_CHANGE_STREAM, this.resetDtsBase.bind(this))
   }
 
   destroy () {
@@ -99,6 +99,10 @@ export default class Mp4Remuxer {
   }
 
   calcDtsBase (audioTrack, videoTrack) {
+    if (!audioTrack && videoTrack.samples.length) {
+      return videoTrack.samples[0].dts
+    }
+
     if (!audioTrack.samples.length && !videoTrack.samples.length) {
       return;
     }
@@ -118,7 +122,7 @@ export default class Mp4Remuxer {
   }
 
   _remuxVideo (videoTrack) {
-    const track = videoTrack
+    const track = videoTrack || {}
 
     if (!videoTrack.samples || !videoTrack.samples.length) {
       return
@@ -143,9 +147,6 @@ export default class Mp4Remuxer {
         initSegment = this.remuxInitSegment('video', options.meta)
         options.meta = null
         samples.unshift(avcSample)
-        if (!options.isContinue) {
-          this.resetDtsBase()
-        }
         break;
       }
 
@@ -188,7 +189,7 @@ export default class Mp4Remuxer {
         }
       }
       this.videoAllDuration += sampleDuration
-      // console.log(`dts ${dts}`, `pts ${pts}`, isKeyframe, `duration ${sampleDuration}`)
+      // console.log(`video dts ${dts}`, `originDts ${avcSample.originDts}`, `pts ${pts}`, isKeyframe, `duration ${sampleDuration}`)
       mp4Samples.push({
         dts,
         cts,
@@ -246,7 +247,7 @@ export default class Mp4Remuxer {
   }
 
   _remuxAudio (track) {
-    const {samples} = track
+    const {samples} = (track || {})
     let firstDts = -1
     let mp4Samples = []
 
@@ -268,9 +269,6 @@ export default class Mp4Remuxer {
         initSegment = this.remuxInitSegment('audio', options.meta)
         options.meta = null;
         samples.unshift(sample)
-        if (!options.isContinue) {
-          this.resetDtsBase()
-        }
         break;
       }
 
@@ -297,7 +295,7 @@ export default class Mp4Remuxer {
         }
       }
 
-      // console.log(`audio dts ${dts}`, `pts ${dts}`, `duration ${sampleDuration}`)
+      // console.log(`audio dts ${dts}`, `pts ${dts}`, `originDts ${sample.originDts}`, `duration ${sampleDuration}`)
       this.audioAllDuration += sampleDuration
       const mp4Sample = {
         dts,

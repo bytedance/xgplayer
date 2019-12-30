@@ -16,6 +16,9 @@ class HlsJsPlayer extends Player {
     } else if(!player.config.useHls) {
       return
     }
+    Number.isFinite = Number.isFinite || function(value) {
+      return typeof value === "number" && isFinite(value);
+    }
 
     let hls
     hls = new Hls(this.hlsOpts)
@@ -44,7 +47,10 @@ class HlsJsPlayer extends Player {
             player.hls.loadSource(url)
           })
           player.once('canplay', () => {
-            player.play()
+            let playPromise = player.video.play()
+            if (playPromise !== undefined && playPromise) {
+              playPromise.catch(err => {})
+            }
           })
         } else {
           player.hls.loadSource(url)
@@ -60,12 +66,17 @@ class HlsJsPlayer extends Player {
     this.once('complete', () => {
       hls.attachMedia(player.video)
       player.once('canplay', () => {
-        player.play()
+        let playPromise = player.video.play()
+        if (playPromise !== undefined && playPromise) {
+          playPromise.catch(err => {})
+        }
       })
       if(player.config.isLive) {
-        Player.util.addClass(player.root, 'xgplayer-is-live')
-        const live = Player.util.createDom('xg-live', '正在直播', {}, 'xgplayer-live')
-        player.controls.appendChild(live)
+        util.addClass(player.root, 'xgplayer-is-live')
+        if(!util.findDom(player.root, '.xgplayer-live')) {
+          const live = util.createDom('xg-live', '正在直播', {}, 'xgplayer-live')
+          player.controls.appendChild(live)
+        }
       }
     })
     this.once('destroy', () => {
@@ -85,8 +96,10 @@ class HlsJsPlayer extends Player {
         hls.inited = true
         if (e && e.details && e.details.live) {
           util.addClass(player.root, 'xgplayer-is-live')
-          const live = util.createDom('xg-live', '正在直播', {}, 'xgplayer-live')
-          player.controls.appendChild(live)
+          if(!util.findDom(player.root, '.xgplayer-live')) {
+            const live = util.createDom('xg-live', '正在直播', {}, 'xgplayer-live')
+            player.controls.appendChild(live)
+          }
         }
       }
     })

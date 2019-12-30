@@ -16,9 +16,9 @@ class Proxy {
       playsinline: options.playsinline,
       'webkit-playsinline': options.playsinline,
       'x5-playsinline': options.playsinline,
-      'x5-video-player-type': options['x5-video-player-type'],
-      'x5-video-player-fullscreen': options['x5-video-player-fullscreen'],
-      'x5-video-orientation': options['x5-video-orientation'],
+      'x5-video-player-type': options['x5-video-player-type'] || options['x5VideoPlayerType'],
+      'x5-video-player-fullscreen': options['x5-video-player-fullscreen'] || options['x5VideoPlayerFullscreen'],
+      'x5-video-orientation': options['x5-video-orientation'] || options['x5VideoOrientation'],
       airplay: options['airplay'],
       'webkit-airplay': options['airplay'],
       tabindex: 2,
@@ -173,8 +173,8 @@ class Proxy {
   pause () {
     this.video.pause()
   }
-  canPlayType () {
-    this.video.canPlayType()
+  canPlayType (type) {
+    return this.video.canPlayType(type)
   }
   getBufferedRange () {
     let range = [0, 0]
@@ -356,6 +356,12 @@ class Proxy {
       self.off('loadeddata', ldFunc)
     }
     this.once('loadeddata', ldFunc)
+  }
+  set poster (posterUrl) {
+    let poster = util.findDom(this.root, '.xgplayer-poster')
+    if(poster) {
+      poster.style.backgroundImage = `url(${posterUrl})`
+    }
   }
   get volume () {
     return this.video.volume

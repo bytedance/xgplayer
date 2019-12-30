@@ -7,7 +7,9 @@ let pc = function () {
 
   player.onElementClick = function (e, element) {
     e.preventDefault()
-    e.stopPropagation()
+    if(!this.config.closeVideoStopPropagation) {
+      e.stopPropagation()
+    }
     let player = this
     if (!player.config.closeVideoClick) {
       clk++
@@ -20,7 +22,10 @@ let pc = function () {
             return false
           } else if (!player.ended) {
             if (player.paused) {
-              player.play().catch(err => {})
+              let playPromise = player.play()
+              if (playPromise !== undefined && playPromise) {
+                playPromise.catch(err => {})
+              }
             } else {
               player.pause()
             }
