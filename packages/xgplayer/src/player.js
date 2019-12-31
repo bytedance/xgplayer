@@ -628,11 +628,15 @@ class Player extends Proxy {
   }
 
   onSeeking () {
+    this.isSeeking = true
+    // 兼容IE下无法触发waiting事件的问题 seeking的时候直接出发waiting
+    this.onWaiting()
     // util.addClass(this.root, 'seeking');
   }
 
   onSeeked () {
     // for ie,playing fired before waiting
+    this.isSeeking = false
     if (this.waitTimer) {
       clearTimeout(this.waitTimer)
     }
@@ -650,6 +654,11 @@ class Player extends Proxy {
   }
 
   onPlaying () {
+    // 兼容safari下无法自动播放会触发该事件的场景
+    if (this.paused) {
+      return
+    }
+    this.isSeeking = false
     if (this.waitTimer) {
       clearTimeout(this.waitTimer)
     }
