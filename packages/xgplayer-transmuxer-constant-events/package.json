@@ -1,6 +1,6 @@
 {
   "name": "xgplayer-transmuxer-constant-events",
-  "version": "2.2.0-alpha.14",
+  "version": "2.2.0-alpha.15",
   "description": "",
   "main": "lib/index.js",
   "module": "es/index.js",
