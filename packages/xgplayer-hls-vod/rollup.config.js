@@ -9,10 +9,6 @@ const config = {
   external: ['xgplayer'],
   globals: {
     'xgplayer': 'Player'
-  },
-  watch: {
-    chokidar: true,
-    include: ['node_modules/**/**', 'src/**']
   }
 }
 module.exports = commonRollup(config)

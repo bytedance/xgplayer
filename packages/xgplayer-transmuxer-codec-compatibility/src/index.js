@@ -370,7 +370,7 @@ class Compatibility {
   fixChangeStreamAudio (changeIdx) {
     const { samples, meta } = this.audioTrack;
 
-    const prevDts = changeIdx === 0 ? this.getStreamChangeStart(samples[0]) : samples[changeIdx - 1].dts;
+    const prevDts = changeIdx === 0 ? this.lastAudioDts : samples[changeIdx - 1].dts;
     const curDts = samples[changeIdx].dts;
     const isContinue = Math.abs(prevDts - curDts) <= 2 * 1000;
 

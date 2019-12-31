@@ -400,7 +400,7 @@ var Compatibility = function () {
           meta = _audioTrack2.meta;
 
 
-      var prevDts = changeIdx === 0 ? this.getStreamChangeStart(samples[0]) : samples[changeIdx - 1].dts;
+      var prevDts = changeIdx === 0 ? this.lastAudioDts : samples[changeIdx - 1].dts;
       var curDts = samples[changeIdx].dts;
       var isContinue = Math.abs(prevDts - curDts) <= 2 * 1000;
 
