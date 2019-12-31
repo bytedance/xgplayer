@@ -530,9 +530,9 @@ class Player extends Proxy {
     let targetWidth = player.video.videoWidth
     let targetHeight = player.video.videoHeight
 
-    if (!player.config.rotate.innerRotate) {
-      // player.root.style.width = height + 'px'
-      // player.root.style.height = width + 'px'
+    if (player.config.rotate.innerRotate || player.config.rotate.controlsFix) {
+      player.root.style.width = height + 'px'
+      player.root.style.height = width + 'px'
     }
 
     let scale
@@ -567,7 +567,7 @@ class Player extends Proxy {
       scale = 1
     }
 
-    if (player.config.rotate.innerRotate) {
+    if (player.config.rotate.innerRotate || player.config.rotate.controlsFix) {
       player.video.style.transformOrigin = 'center center'
       player.video.style.transform = `rotate(${player.rotateDeg}turn) scale(${scale})`
       player.video.style.webKitTransform = `rotate(${player.rotateDeg}turn) scale(${scale})`

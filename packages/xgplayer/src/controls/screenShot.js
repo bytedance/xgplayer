@@ -23,6 +23,8 @@ let screenShot = function () {
   }
 
   function onScreenShotBtnClick (save = true) {
+    canvas.width = player.video.videoWidth || 600
+    canvas.height = player.video.videoHeight || 337.5
     img.onload = (function () {
       canvasCtx.drawImage(player.video, 0, 0, canvas.width, canvas.height)
       img.setAttribute('crossOrigin', 'anonymous')
