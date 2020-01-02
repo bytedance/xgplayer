@@ -1866,7 +1866,6 @@
             var sourceBuffer = this.sourceBuffers[type];
             var source = sources.sources[type];
             if (source && !source.inited) {
-              // console.log('append initial segment')
               try {
                 sourceBuffer.appendBuffer(source.init.buffer.buffer);
                 source.inited = true;
@@ -1915,15 +1914,14 @@
         }
       }
     }, {
-      key: 'removeBuffers',
-      value: function removeBuffers() {
+      key: 'cleanBuffers',
+      value: function cleanBuffers() {
         var _this = this;
 
         var taskList = [];
 
         var _loop = function _loop(i) {
           var buffer = _this.sourceBuffers[Object.keys(_this.sourceBuffers)[i]];
-          buffer.removeEventListener('updateend', _this.onUpdateEnd);
 
           var task = void 0;
           if (buffer.updating) {
@@ -1971,30 +1969,86 @@
         return Promise.all(taskList);
       }
     }, {
-      key: 'destroy',
-      value: function destroy() {
+      key: 'removeBuffers',
+      value: function removeBuffers() {
         var _this2 = this;
 
-        return this.removeBuffers().then(function () {
-          for (var i = 0; i < Object.keys(_this2.sourceBuffers).length; i++) {
-            var _buffer = _this2.sourceBuffers[Object.keys(_this2.sourceBuffers)[i]];
-            _this2.mediaSource.removeSourceBuffer(_buffer);
-            delete _this2.sourceBuffers[Object.keys(_this2.sourceBuffers)[i]];
+        var taskList = [];
+
+        var _loop2 = function _loop2(i) {
+          var buffer = _this2.sourceBuffers[Object.keys(_this2.sourceBuffers)[i]];
+          buffer.removeEventListener('updateend', _this2.onUpdateEnd);
+
+          var task = void 0;
+          if (buffer.updating) {
+            task = new Promise(function (resolve) {
+              var doCleanBuffer = function doCleanBuffer() {
+                var retryTime = 3;
+
+                var clean = function clean() {
+                  if (!buffer.updating) {
+                    MSE.clearBuffer(buffer);
+                    buffer.addEventListener('updateend', function () {
+                      resolve();
+                    });
+                  } else if (retryTime > 0) {
+                    setTimeout(clean, 200);
+                    retryTime--;
+                  } else {
+                    resolve();
+                  }
+                };
+
+                setTimeout(clean, 200);
+                buffer.removeEventListener('updateend', doCleanBuffer);
+              };
+              buffer.addEventListener('updateend', doCleanBuffer);
+            });
+          } else {
+            task = new Promise(function (resolve) {
+              MSE.clearBuffer(buffer);
+              buffer.addEventListener('updateend', function () {
+                resolve();
+              });
+            });
+
+            // task = Promise.resolve()
           }
 
-          _this2.container.removeEventListener('timeupdate', _this2.onTimeUpdate);
-          _this2.container.removeEventListener('waiting', _this2.onWaiting);
-          _this2.mediaSource.removeEventListener('sourceopen', _this2.onSourceOpen);
+          taskList.push(task);
+        };
 
-          _this2.endOfStream();
-          window.URL.revokeObjectURL(_this2.url);
+        for (var i = 0; i < Object.keys(this.sourceBuffers).length; i++) {
+          _loop2(i);
+        }
 
-          _this2.url = null;
-          _this2.configs = {};
-          _this2.container = null;
-          _this2.mediaSource = null;
-          _this2.sourceBuffers = {};
-          _this2.preloadTime = 1;
+        return Promise.all(taskList);
+      }
+    }, {
+      key: 'destroy',
+      value: function destroy() {
+        var _this3 = this;
+
+        return this.removeBuffers().then(function () {
+          for (var i = 0; i < Object.keys(_this3.sourceBuffers).length; i++) {
+            var _buffer = _this3.sourceBuffers[Object.keys(_this3.sourceBuffers)[i]];
+            _this3.mediaSource.removeSourceBuffer(_buffer);
+            delete _this3.sourceBuffers[Object.keys(_this3.sourceBuffers)[i]];
+          }
+
+          _this3.container.removeEventListener('timeupdate', _this3.onTimeUpdate);
+          _this3.container.removeEventListener('waiting', _this3.onWaiting);
+          _this3.mediaSource.removeEventListener('sourceopen', _this3.onSourceOpen);
+
+          _this3.endOfStream();
+          window.URL.revokeObjectURL(_this3.url);
+
+          _this3.url = null;
+          _this3.configs = {};
+          _this3.container = null;
+          _this3.mediaSource = null;
+          _this3.sourceBuffers = {};
+          _this3.preloadTime = 1;
         });
       }
     }], [{
@@ -6301,8 +6355,8 @@
           }
         }
 
-        var AudioOptions = frag;
-        var VideoOptions = frag;
+        var AudioOptions = Object.assign({}, frag);
+        var VideoOptions = Object.assign({}, frag);
 
         // Get Frames data
         for (var i = 0; i < Object.keys(peses).length; i++) {
@@ -7261,6 +7315,7 @@
       this.retrytimes = this.configs.retrytimes || 3;
       this.container = this.configs.container;
       this.preloadTime = this.configs.preloadTime || 5;
+      this.mse = this.configs.mse;
       this._lastSeekTime = 0;
       this._player = this.configs.player;
       this.m3u8Text = null;
@@ -7290,7 +7345,10 @@
         this._context.registry('MP4_REMUXER', Mp4Remuxer)(this._player.currentTime);
 
         // 初始化MSE
-        this.mse = this._context.registry('MSE', MSE)({ container: this.container, preloadTime: this.preloadTime });
+        if (!this.mse) {
+          this.mse = new MSE({ container: this.container, preloadTime: this.preloadTime }, this._context);
+          this.mse.init();
+        }
         this.initEvents();
       }
     }, {
@@ -7655,16 +7713,16 @@
     function HlsVodPlayer(options) {
       _classCallCheck$v(this, HlsVodPlayer);
 
-      var _this2 = _possibleConstructorReturn$3(this, (HlsVodPlayer.__proto__ || Object.getPrototypeOf(HlsVodPlayer)).call(this, options));
+      var _this = _possibleConstructorReturn$3(this, (HlsVodPlayer.__proto__ || Object.getPrototypeOf(HlsVodPlayer)).call(this, options));
 
-      _this2.hlsOps = {};
-      _this2.util = Player.util;
-      _this2.util.deepCopy(_this2.hlsOps, options);
-      _this2._context = new Context(HlsAllowedEvents$1);
-      _this2._handleSetCurrentTime = debounce(_this2._handleSetCurrentTime.bind(_this2), 200);
-      _this2.onWaiting = _this2.onWaiting.bind(_this2);
-      _this2.started = false;
-      return _this2;
+      _this.hlsOps = {};
+      _this.util = Player.util;
+      _this.util.deepCopy(_this.hlsOps, options);
+      _this._context = new Context(HlsAllowedEvents$1);
+      _this._handleSetCurrentTime = debounce(_this._handleSetCurrentTime.bind(_this), 200);
+      _this.onWaiting = _this.onWaiting.bind(_this);
+      _this.started = false;
+      return _this;
     }
 
     _createClass$v(HlsVodPlayer, [{
@@ -7679,13 +7737,13 @@
     }, {
       key: 'play',
       value: function play() {
-        var _this3 = this;
+        var _this2 = this;
 
         return this.video.play().catch(function (e) {
           if (e && e.code === 20) {
             // fix: chrome The play() request was interrupted by a new load request.
-            _this3.once('canplay', function () {
-              _this3.video.play();
+            _this2.once('canplay', function () {
+              _this2.video.play();
             });
           }
         });
@@ -7693,21 +7751,40 @@
     }, {
       key: '_initEvents',
       value: function _initEvents() {
-        var _this4 = this;
+        var _this3 = this;
 
         this.__core__.once(REMUX_EVENTS$4.INIT_SEGMENT, function () {
-          var mse = _this4._context.getInstance('MSE');
-          _get$2(HlsVodPlayer.prototype.__proto__ || Object.getPrototypeOf(HlsVodPlayer.prototype), 'start', _this4).call(_this4, mse.url);
+          var mse = _this3.__core__.mse;
+          _get$2(HlsVodPlayer.prototype.__proto__ || Object.getPrototypeOf(HlsVodPlayer.prototype), 'start', _this3).call(_this3, mse.url);
         });
 
         this.__core__.once(HLS_EVENTS$2.RETRY_TIME_EXCEEDED, function () {
-          _this4.emit('error', new Player.Errors('network', _this4.config.url));
+          _this3.emit('error', new Player.Errors('network', _this3.config.url));
         });
 
         this.once('canplay', function () {
-          if (_this4.config.autoplay) {
-            _this4.play();
+          if (_this3.config.autoplay) {
+            _this3.play();
           }
+        });
+      }
+    }, {
+      key: 'initHlsBackupEvents',
+      value: function initHlsBackupEvents(hls, ctx) {
+        var _this4 = this;
+
+        hls.once(EVENTS.REMUX_EVENTS.MEDIA_SEGMENT, function () {
+          _this4.__core__ = hls;
+          _this4.__core__.mse.cleanBuffers().then(function () {
+            _this4.__core__.mse.resetContext(ctx);
+            _this4.__core__.mse.doAppend();
+            _this4._context.destroy();
+            _this4._context = ctx;
+          });
+        });
+
+        hls.once(EVENTS.LOADER_EVENTS.LOADER_ERROR, function () {
+          ctx.destroy();
         });
       }
     }, {
@@ -7735,35 +7812,6 @@
         }, 500);
       }
     }, {
-      key: '_initSrcChangeHandler',
-      value: function _initSrcChangeHandler() {
-        var _this = this;
-        Object.defineProperty(this, 'src', {
-          get: function get() {
-            return _this.currentSrc;
-          },
-          set: function set(url) {
-            _this.config.url = url;
-            if (!_this.paused) {
-              _this.pause();
-              _this.once('pause', function () {
-                _this.start(url);
-              });
-              _this.once('canplay', function () {
-                _this.play();
-              });
-            } else {
-              _this.start(url);
-            }
-            _this.once('canplay', function () {
-              _this.currentTime = 0;
-            });
-          },
-
-          configurable: true
-        });
-      }
-    }, {
       key: 'start',
       value: function start() {
         var url = arguments.length > 0 && arguments[0] !== undefined ? arguments[0] : this.config.url;
@@ -7772,13 +7820,26 @@
           return;
         }
 
-        this.__core__ = this._context.registry('HLS_LIVE_CONTROLLER', HlsVodController)({ player: this, container: this.video });
+        this.__core__ = this._context.registry('HLS_VOD_CONTROLLER', HlsVodController)({ player: this, container: this.video });
         this._context.init();
         this.__core__.load(url);
         this._initEvents();
-        this._initSrcChangeHandler();
 
         this.started = true;
+      }
+    }, {
+      key: 'swithURL',
+      value: function swithURL(url) {
+        this.config.url = url;
+        var context = new Context(HlsAllowedEvents$1);
+        var hls = context.registry('HLS_VOD_CONTROLLER', HlsVodController)({
+          player: this,
+          container: this.video,
+          mse: this.__core__.mse
+        });
+        context.init();
+        this.initHlsBackupEvents(hls, context);
+        hls.load(url);
       }
     }, {
       key: 'destroy',
@@ -7816,6 +7877,30 @@
       },
       set: function set(time) {
         this._handleSetCurrentTime(time);
+      }
+    }, {
+      key: 'src',
+      get: function get() {
+        return this.currentSrc;
+      },
+      set: function set(url) {
+        var _this6 = this;
+
+        this.currentTime = 0;
+        this.__core__.destroy();
+        this._context = new Context(HlsAllowedEvents$1);
+        this.onWaiting = this.onWaiting.bind(this);
+        this.started = false;
+        this.start(url);
+        if (!this.paused) {
+          this.pause();
+          this.once('canplay', function () {
+            _this6.play();
+          });
+        } else {
+          this.play();
+        }
+        // this.swithURL(url)
       }
     }]);
 

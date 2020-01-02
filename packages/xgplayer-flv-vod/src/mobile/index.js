@@ -1,7 +1,7 @@
 import Player from 'xgplayer'
 import EVENTS from 'xgplayer-transmuxer-constant-events';
 import Context from 'xgplayer-transmuxer-context';
-import FLV from './flv-vod'
+import FLV from './flv-vod-mobile'
 
 const flvAllowedEvents = EVENTS.FlvAllowedEvents;
 

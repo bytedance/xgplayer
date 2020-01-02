@@ -105,8 +105,8 @@ var TsDemuxer = function () {
         }
       }
 
-      var AudioOptions = frag;
-      var VideoOptions = frag;
+      var AudioOptions = Object.assign({}, frag);
+      var VideoOptions = Object.assign({}, frag);
 
       // Get Frames data
       for (var i = 0; i < Object.keys(peses).length; i++) {

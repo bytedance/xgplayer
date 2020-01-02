@@ -3,9 +3,10 @@
 import VideoWorker from 'worker!./worker.js';
 import Stream from 'xgplayer-transmuxer-buffer-stream';
 import { NalUnit } from 'xgplayer-transmuxer-codec-avc';
-import Render from 'xgplayer-render/src/index';
-import SourceBuffer from './sourcebuffer';
-import TimeRanges from './time-ranges';
+import Render from 'xgplayer-render/src';
+// import Render from './yuv-canvas'
+import SourceBuffer from '../models/sourcebuffer';
+import TimeRanges from '../models/time-ranges';
 
 class VideoCanvas {
   constructor (config) {
@@ -88,11 +89,7 @@ class VideoCanvas {
     })
 
     if (!this.yuvCanvas) {
-      let format = 'YUV420';
-      if (meta.chromaFormat === 422) {
-        format = 'YUV422P'
-      }
-      let config = Object.assign({format, canvas: this.canvas}, this.config);
+      let config = Object.assign({meta, canvas: this.canvas}, this.config);
       this.yuvCanvas = new Render(config);
     }
     this.readyStatus = 1;
@@ -214,7 +211,7 @@ class VideoCanvas {
             let buf2 = frame.buffer.slice(frame.yLinesize * frame.height * 1.25, frame.yLinesize * frame.height * 1.5);
             buf = [new Uint8Array(buf0), new Uint8Array(buf1), new Uint8Array(buf2)];
           }
-          this.yuvCanvas.render(buf, frame.yLinesize, frame.height);
+          this.yuvCanvas.render(frame.buffer, frame.width, frame.height, frame.yLinesize, frame.uvLinesize);
         }
         for (let i = 0; i < frameTimes.length; i++) {
           if (Number.parseInt(frameTimes[i]) < frameTime) {

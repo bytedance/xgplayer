@@ -8,10 +8,10 @@ function _inherits(subClass, superClass) { if (typeof superClass !== "function" 
 
 import './polyfills/custom-elements.min';
 import './polyfills/native-element';
-import { getTicker } from './ticker';
-import VideoCtx from './video-context';
-import AudioCtx from './audio-context';
-import AVReconciler from './reconciler';
+import { getTicker } from './helpers/ticker';
+import VideoCtx from './core/video-context';
+import AudioCtx from './core/audio-context';
+import AVReconciler from './helpers/reconciler';
 
 // eslint-disable-next-line no-undef
 

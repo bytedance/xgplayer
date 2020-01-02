@@ -6,7 +6,7 @@ const config = {
   output: [
     {
       file: uglify ? 'dist/mobile/index.min.js' : 'dist/mobile/index.js',
-      name: 'FlvLiveMobilePlayer',
+      name: 'FlvVodMobilePlayer',
       format: 'umd',
       sourcemap: true,
       globals: {
@@ -14,7 +14,7 @@ const config = {
       }
     }
   ],
-  name: 'FlvLiveMobilePlayer',
+  name: 'FlvVodMobilePlayer',
   external: ['xgplayer'],
   babel: {
     runtimeHelpers: true

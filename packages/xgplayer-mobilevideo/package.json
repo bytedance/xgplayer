@@ -1,6 +1,6 @@
 {
-  "name": "xgplayer-mobilerender",
-  "version": "2.2.0-alpha.15",
+  "name": "xgplayer-mobilevideo",
+  "version": "2.2.0-alpha.16",
   "description": "",
   "main": "lib/index.js",
   "module": "es/index.js",
@@ -30,13 +30,11 @@
     ]
   },
   "dependencies": {
-    "xgplayer-transmuxer-buffer-stream": "^2.2.0-alpha.15",
-    "xgplayer-transmuxer-codec-avc": "^2.2.0-alpha.15",
-    "xgplayer-render": "^2.2.0-alpha.15"
+    "xgplayer-transmuxer-buffer-stream": "^2.2.0-alpha.16",
+    "xgplayer-transmuxer-codec-avc": "^2.2.0-alpha.16",
+    "xgplayer-render": "^2.2.0-alpha.16"
   },
   "devDependencies": {
-    "@surma/rollup-plugin-off-main-thread": "^1.1.1",
-    "rollup-plugin-bundle-worker": "^0.1.0",
-    "rollup-plugin-web-worker-loader": "^0.8.1"
+    "cross-env": "^6.0.3"
   }
 }

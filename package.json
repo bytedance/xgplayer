@@ -124,7 +124,8 @@
     "webpack-cli": "^3.0.2",
     "webworkify-webpack": "2.1.5",
     "webworkify-webpack-dropin": "^1.1.9",
-    "zlib": "^1.0.5"
+    "zlib": "^1.0.5",
+    "rollup-plugin-bundle-worker": "^0.1.0"
   },
   "dependencies": {
     "xgplayer": "file:packages/xgplayer",
@@ -161,6 +162,7 @@
     "xgplayer-transmuxer-model-tracksample": "file:packages/xgplayer-transmuxer-model-tracksample",
     "xgplayer-transmuxer-remux-mp4": "file:packages/xgplayer-transmuxer-remux-mp4",
     "xgplayer-utils": "file:packages/xgplayer-utils",
+    "xgplayer-mobilevideo": "file:packages/xgplayer-mobilevideo",
     "xgplayer-utils-crypto": "file:packages/xgplayer-utils-crypto",
     "xgplayer-utils-mse": "file:packages/xgplayer-utils-mse",
     "xgplayer-utils-sniffer": "file:packages/xgplayer-utils-sniffer",

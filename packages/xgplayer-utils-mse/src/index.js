@@ -97,7 +97,6 @@ class MSE {
         let sourceBuffer = this.sourceBuffers[type];
         let source = sources.sources[type];
         if (source && !source.inited) {
-          // console.log('append initial segment')
           try {
             sourceBuffer.appendBuffer(source.init.buffer.buffer);
             source.inited = true;
@@ -138,6 +137,54 @@ class MSE {
       }
     }
   }
+
+  cleanBuffers () {
+    const taskList = []
+    for (let i = 0; i < Object.keys(this.sourceBuffers).length; i++) {
+      let buffer = this.sourceBuffers[Object.keys(this.sourceBuffers)[i]];
+
+      let task;
+      if (buffer.updating) {
+        task = new Promise((resolve) => {
+          const doCleanBuffer = function () {
+            let retryTime = 3
+
+            const clean = () => {
+              if (!buffer.updating) {
+                MSE.clearBuffer(buffer)
+                buffer.addEventListener('updateend', () => {
+                  resolve();
+                })
+              } else if (retryTime > 0) {
+                setTimeout(clean, 200)
+                retryTime--
+              } else {
+                resolve()
+              }
+            }
+
+            setTimeout(clean, 200)
+            buffer.removeEventListener('updateend', doCleanBuffer)
+          }
+          buffer.addEventListener('updateend', doCleanBuffer)
+        })
+      } else {
+        task = new Promise((resolve) => {
+          MSE.clearBuffer(buffer)
+          buffer.addEventListener('updateend', () => {
+            resolve()
+          })
+        })
+
+        // task = Promise.resolve()
+      }
+
+      taskList.push(task)
+    }
+
+    return Promise.all(taskList)
+  }
+
   removeBuffers () {
     const taskList = []
     for (let i = 0; i < Object.keys(this.sourceBuffers).length; i++) {

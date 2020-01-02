@@ -78,8 +78,8 @@ class TsDemuxer {
       }
     }
 
-    let AudioOptions = frag;
-    let VideoOptions = frag;
+    let AudioOptions = Object.assign({}, frag);
+    let VideoOptions = Object.assign({}, frag);
 
     // Get Frames data
     for (let i = 0; i < Object.keys(peses).length; i++) {

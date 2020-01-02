@@ -279,7 +279,7 @@ class FlvDemuxer {
     ret.dependsOnCoreCoder = (data[2] & 2) >>> 1
     ret.extensionFlagIndex = data[2] & 1
 
-    ret.codec = `mp4a.40.${ret.objectType}`
+
     let userAgent = window.navigator.userAgent.toLowerCase();
     let extensionSamplingIndex;
 
@@ -297,7 +297,7 @@ class FlvDemuxer {
         config = new Array(2);
         extensionSamplingIndex = samplingIndex;
       }
-    } else if (userAgent.indexOf('android') !== -1) {
+    } else if (userAgent.indexOf('android') !== -1 || userAgent.indexOf('safari') !== -1) {
       // android: always use LC-AAC
       ret.objectType = 2;
       config = new Array(2);
@@ -317,7 +317,7 @@ class FlvDemuxer {
         extensionSamplingIndex = ret.sampleRateIndex;
       }
     }
-
+    ret.codec = `mp4a.40.${ret.objectType}`
     config[0] = ret.objectType << 3;
     config[0] |= (ret.sampleRateIndex & 0x0F) >>> 1;
     config[1] = (ret.sampleRateIndex & 0x0F) << 7;
@@ -385,6 +385,7 @@ class FlvDemuxer {
       meta.refSampleDuration = refSampleDuration
       meta.duration = this._context.mediaInfo.duration * meta.timescale
       meta.config = aacHeader.config
+      meta.objectType = aacHeader.objectType
 
       const audioMedia = this._context.mediaInfo.audio
 

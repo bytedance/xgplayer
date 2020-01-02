@@ -39,7 +39,10 @@
     "xgplayer": "^0.1.0"
   },
   "dependencies": {
-    "xgplayer-flv-live": "^2.2.0-alpha.15",
-    "xgplayer-flv-vod": "^2.2.0-alpha.15"
+    "xgplayer-flv-live": "^2.2.0-alpha.16",
+    "xgplayer-flv-vod": "^2.2.0-alpha.16"
+  },
+  "devDependencies": {
+    "cross-env": "^6.0.3"
   }
 }

@@ -7,6 +7,7 @@ const commonjs = require('rollup-plugin-commonjs')
 const { string } = require('rollup-plugin-string')
 const context = require('rollup-plugin-require-context')
 const builtins = require('rollup-plugin-node-builtins')
+const bundleWorker = require('rollup-plugin-bundle-worker');
 
 const defaultRollup = {
   input: 'src/index.js',
@@ -38,6 +39,7 @@ const commonRollup = function (config = {}) {
     external: rollupConfig.external,
     plugins: [
       ...rollupConfig.plugins,
+      bundleWorker(),
       rollupConfig.uglify ? uglify(rollupConfig.uglify) : undefined,
       json({
         compact: true
@@ -71,7 +73,7 @@ const commonRollup = function (config = {}) {
         ...rollupConfig.commonjs
       }),
       builtins(),
-      context(),
+      context()
     ],
     watch: {
       ...config.watch

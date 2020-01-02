@@ -701,30 +701,28 @@
    * @param { String }    filename    The name of the file
    * @param { Function }  fn          Function wrapping the code of the worker
    */
-  function shimWorker (filename, fn) {
-      return function ShimWorker (forceFallback) {
+  function shimWorker(filename, fn) {
+      return function ShimWorker(forceFallback) {
           var o = this;
 
           if (!fn) {
               return new Worker(filename);
-          }
-          else if (Worker && !forceFallback) {
+          } else if (Worker && !forceFallback) {
               // Convert the function's inner code to a string to construct the worker
-              var source = `${ fn }`.replace(/^function.+?{/, '').slice(0, -1),
+              var source = `${fn}`.replace(/^function.+?{/, '').slice(0, -1),
                   objURL = createSourceObject(source);
 
               this[TARGET] = new Worker(objURL);
               URL.revokeObjectURL(objURL);
               return this[TARGET];
-          }
-          else {
+          } else {
               var selfShim = {
-                      postMessage: m => {
-                          if (o.onmessage) {
-                              setTimeout(() => o.onmessage({ data: m, target: selfShim }));
-                          }
+                  postMessage: m => {
+                      if (o.onmessage) {
+                          setTimeout(() => o.onmessage({ data: m, target: selfShim }));
                       }
-                  };
+                  }
+              };
 
               fn.call(selfShim);
               this.postMessage = m => {
@@ -749,11 +747,9 @@
 
           // Native browser on some Samsung devices throws for transferables, let's detect it
           testWorker.postMessage(testArray, [testArray.buffer]);
-      }
-      catch (e) {
+      } catch (e) {
           Worker = null;
-      }
-      finally {
+      } finally {
           URL.revokeObjectURL(objURL);
           if (testWorker) {
               testWorker.terminate();
@@ -764,8 +760,7 @@
   function createSourceObject(str) {
       try {
           return URL.createObjectURL(new Blob([str], { type: SCRIPT_TYPE }));
-      }
-      catch (e) {
+      } catch (e) {
           var blob = new BlobBuilder();
           blob.append(str);
           return URL.createObjectURL(blob.getBlob(type));
@@ -3127,11 +3122,7 @@
         });
 
         if (!this.yuvCanvas) {
-          var format = 'YUV420';
-          if (meta.chromaFormat === 422) {
-            format = 'YUV422P';
-          }
-          var config = Object.assign({ format: format, canvas: this.canvas }, this.config);
+          var config = Object.assign({ meta: meta, canvas: this.canvas }, this.config);
           this.yuvCanvas = new Render(config);
         }
         this.readyStatus = 1;
@@ -3254,15 +3245,13 @@
 
             var frame = this._decodedFrames[frameTime];
             if (frame) {
-              var buf = [];
               if (this.meta.chromaFormat === 420) {
 
                 var buf0 = frame.buffer.slice(0, frame.yLinesize * frame.height);
                 var buf1 = frame.buffer.slice(frame.yLinesize * frame.height, frame.yLinesize * frame.height * 1.25);
                 var buf2 = frame.buffer.slice(frame.yLinesize * frame.height * 1.25, frame.yLinesize * frame.height * 1.5);
-                buf = [new Uint8Array(buf0), new Uint8Array(buf1), new Uint8Array(buf2)];
               }
-              this.yuvCanvas.render(buf, frame.yLinesize, frame.height);
+              this.yuvCanvas.render(frame.buffer, frame.width, frame.height, frame.yLinesize, frame.uvLinesize);
             }
             for (var _i2 = 0; _i2 < frameTimes.length; _i2++) {
               if (Number.parseInt(frameTimes[_i2]) < frameTime) {

@@ -27,55 +27,36 @@ export default class HlsLivePlayer extends Player {
       super.start(mse.url);
     });
 
-    // this.once('canplay', () => {
-    //   this.video.play()
-    // });
+    this.once('canplay', () => {
+      this.video.play()
+    });
   }
 
-  _initSrcChangeHandler () {
-    let _this = this;
-    Object.defineProperty(this, 'src', {
-      get () {
-        return _this.currentSrc
-      },
-      set (url) {
-        _this.config.url = url
-        if (!_this.paused) {
-          _this.pause()
-          _this.once('pause', () => {
-            _this.start(url)
-          })
-          _this.once('canplay', () => {
-            _this.play()
-          })
-        } else {
-          _this.start(url)
-        }
-        _this.once('canplay', () => {
-          _this.currentTime = 0
-        })
-      },
-      configurable: true
-    })
+  set src (url) {
+    this._context.destroy();
+    this._context = new Context(HlsAllowedEvents);
+    this.__core__ = this._context.registry('HLS_LIVE_CONTROLLER', HlsLiveController)({player:this, container: this.video, preloadTime: this.config.preloadTime});
+    this._context.init();
+    this._initEvents();
+    this.__core__.load(url);
   }
 
   start (url = this.config.url) {
     if (!url || this.started) {
       return;
     }
-    this.__core__ = this._context.registry('HLS_LIVE_CONTROLLER', HlsLiveController)({player:this, container: this.video});
+    this.__core__ = this._context.registry('HLS_LIVE_CONTROLLER', HlsLiveController)({player:this, container: this.video, preloadTime: this.config.preloadTime});
     this._context.init();
     this.url = url;
     this.__core__.load(url);
     this._initEvents();
-    this._initSrcChangeHandler();
   }
 
   play () {
     if (this.started) {
       this._context.destroy();
       this._context = new Context(HlsAllowedEvents);
-      this.__core__ = this._context.registry('HLS_LIVE_CONTROLLER', HlsLiveController)({container: this.video});
+      this.__core__ = this._context.registry('HLS_LIVE_CONTROLLER', HlsLiveController)({player:this, container: this.video, preloadTime: this.config.preloadTime});
       this._context.init();
       this._initEvents();
       this.__core__.load(this.url);

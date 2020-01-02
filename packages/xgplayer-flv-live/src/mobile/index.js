@@ -2,6 +2,7 @@ import Player from 'xgplayer'
 import Context from 'xgplayer-transmuxer-context';
 import EVENTS from 'xgplayer-transmuxer-constant-events'
 import FLV from './flv-live-mobile'
+import 'xgplayer-mobilevideo'
 const flvAllowedEvents = EVENTS.FlvAllowedEvents;
 
 class FlvPlayer extends Player {
@@ -27,13 +28,6 @@ class FlvPlayer extends Player {
 
   initFlvEvents (flv) {
     const player = this;
-    flv.once(EVENTS.REMUX_EVENTS.INIT_SEGMENT, () => {
-      Player.util.addClass(player.root, 'xgplayer-is-live')
-      if (!Player.util.findDom(this.root, 'xg-live')) {
-        const live = Player.util.createDom('xg-live', '正在直播', {}, 'xgplayer-live')
-        player.controls.appendChild(live)
-      }
-    })
 
     flv.once(EVENTS.LOADER_EVENTS.LOADER_COMPLETE, () => {
       // 直播完成，待播放器播完缓存后发送关闭事件

@@ -1,6 +1,6 @@
-import VodController from './flv-vod'
+import LiveController from '../flv-vod'
 
-class VodMobileController extends VodController {
+class LiveMobileController extends LiveController {
   _handleDemuxComplete () {
     if(this._player.video) {
       const { videoTrack, audioTrack } = this._context.getInstance('TRACKS');
@@ -36,4 +36,4 @@ class VodMobileController extends VodController {
   }
 }
 
-export default VodMobileController;
+export default LiveMobileController;

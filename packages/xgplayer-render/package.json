@@ -1,6 +1,6 @@
 {
   "name": "xgplayer-render",
-  "version": "2.2.0-alpha.15",
+  "version": "2.2.0-alpha.16",
   "description": "",
   "main": "lib/index.js",
   "module": "es/index.js",
@@ -29,5 +29,8 @@
       ]
     ]
   },
-  "dependencies": {}
+  "dependencies": {},
+  "devDependencies": {
+    "cross-env": "^6.0.3"
+  }
 }

@@ -1094,7 +1094,6 @@
             var sourceBuffer = this.sourceBuffers[type];
             var source = sources.sources[type];
             if (source && !source.inited) {
-              // console.log('append initial segment')
               try {
                 sourceBuffer.appendBuffer(source.init.buffer.buffer);
                 source.inited = true;
@@ -1143,15 +1142,14 @@
         }
       }
     }, {
-      key: 'removeBuffers',
-      value: function removeBuffers() {
+      key: 'cleanBuffers',
+      value: function cleanBuffers() {
         var _this = this;
 
         var taskList = [];
 
         var _loop = function _loop(i) {
           var buffer = _this.sourceBuffers[Object.keys(_this.sourceBuffers)[i]];
-          buffer.removeEventListener('updateend', _this.onUpdateEnd);
 
           var task = void 0;
           if (buffer.updating) {
@@ -1199,30 +1197,86 @@
         return Promise.all(taskList);
       }
     }, {
-      key: 'destroy',
-      value: function destroy() {
+      key: 'removeBuffers',
+      value: function removeBuffers() {
         var _this2 = this;
 
-        return this.removeBuffers().then(function () {
-          for (var i = 0; i < Object.keys(_this2.sourceBuffers).length; i++) {
-            var _buffer = _this2.sourceBuffers[Object.keys(_this2.sourceBuffers)[i]];
-            _this2.mediaSource.removeSourceBuffer(_buffer);
-            delete _this2.sourceBuffers[Object.keys(_this2.sourceBuffers)[i]];
+        var taskList = [];
+
+        var _loop2 = function _loop2(i) {
+          var buffer = _this2.sourceBuffers[Object.keys(_this2.sourceBuffers)[i]];
+          buffer.removeEventListener('updateend', _this2.onUpdateEnd);
+
+          var task = void 0;
+          if (buffer.updating) {
+            task = new Promise(function (resolve) {
+              var doCleanBuffer = function doCleanBuffer() {
+                var retryTime = 3;
+
+                var clean = function clean() {
+                  if (!buffer.updating) {
+                    MSE.clearBuffer(buffer);
+                    buffer.addEventListener('updateend', function () {
+                      resolve();
+                    });
+                  } else if (retryTime > 0) {
+                    setTimeout(clean, 200);
+                    retryTime--;
+                  } else {
+                    resolve();
+                  }
+                };
+
+                setTimeout(clean, 200);
+                buffer.removeEventListener('updateend', doCleanBuffer);
+              };
+              buffer.addEventListener('updateend', doCleanBuffer);
+            });
+          } else {
+            task = new Promise(function (resolve) {
+              MSE.clearBuffer(buffer);
+              buffer.addEventListener('updateend', function () {
+                resolve();
+              });
+            });
+
+            // task = Promise.resolve()
           }
 
-          _this2.container.removeEventListener('timeupdate', _this2.onTimeUpdate);
-          _this2.container.removeEventListener('waiting', _this2.onWaiting);
-          _this2.mediaSource.removeEventListener('sourceopen', _this2.onSourceOpen);
+          taskList.push(task);
+        };
 
-          _this2.endOfStream();
-          window.URL.revokeObjectURL(_this2.url);
+        for (var i = 0; i < Object.keys(this.sourceBuffers).length; i++) {
+          _loop2(i);
+        }
 
-          _this2.url = null;
-          _this2.configs = {};
-          _this2.container = null;
-          _this2.mediaSource = null;
-          _this2.sourceBuffers = {};
-          _this2.preloadTime = 1;
+        return Promise.all(taskList);
+      }
+    }, {
+      key: 'destroy',
+      value: function destroy() {
+        var _this3 = this;
+
+        return this.removeBuffers().then(function () {
+          for (var i = 0; i < Object.keys(_this3.sourceBuffers).length; i++) {
+            var _buffer = _this3.sourceBuffers[Object.keys(_this3.sourceBuffers)[i]];
+            _this3.mediaSource.removeSourceBuffer(_buffer);
+            delete _this3.sourceBuffers[Object.keys(_this3.sourceBuffers)[i]];
+          }
+
+          _this3.container.removeEventListener('timeupdate', _this3.onTimeUpdate);
+          _this3.container.removeEventListener('waiting', _this3.onWaiting);
+          _this3.mediaSource.removeEventListener('sourceopen', _this3.onSourceOpen);
+
+          _this3.endOfStream();
+          window.URL.revokeObjectURL(_this3.url);
+
+          _this3.url = null;
+          _this3.configs = {};
+          _this3.container = null;
+          _this3.mediaSource = null;
+          _this3.sourceBuffers = {};
+          _this3.preloadTime = 1;
         });
       }
     }], [{
@@ -5529,8 +5583,8 @@
           }
         }
 
-        var AudioOptions = frag;
-        var VideoOptions = frag;
+        var AudioOptions = Object.assign({}, frag);
+        var VideoOptions = Object.assign({}, frag);
 
         // Get Frames data
         for (var i = 0; i < Object.keys(peses).length; i++) {

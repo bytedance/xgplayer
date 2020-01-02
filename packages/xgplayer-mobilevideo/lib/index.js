@@ -6,17 +6,17 @@ require('./polyfills/custom-elements.min');
 
 require('./polyfills/native-element');
 
-var _ticker = require('./ticker');
+var _ticker = require('./helpers/ticker');
 
-var _videoContext = require('./video-context');
+var _videoContext = require('./core/video-context');
 
 var _videoContext2 = _interopRequireDefault(_videoContext);
 
-var _audioContext = require('./audio-context');
+var _audioContext = require('./core/audio-context');
 
 var _audioContext2 = _interopRequireDefault(_audioContext);
 
-var _reconciler = require('./reconciler');
+var _reconciler = require('./helpers/reconciler');
 
 var _reconciler2 = _interopRequireDefault(_reconciler);
 
