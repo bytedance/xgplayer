@@ -6,6 +6,9 @@
 
   Player = Player && Player.hasOwnProperty('default') ? Player['default'] : Player;
 
+  var BROWSER_EVENTS = {
+    VISIBILITY_CHANGE: 'VISIBILITY_CHANGE'
+  };
   var PLAYER_EVENTS = {
     SEEK: 'SEEK'
   };
@@ -51,7 +54,7 @@
     START_DECRYPT: 'START_DECRYPT',
     DECRYPTED: 'DECRYPTED'
   };
-  var ALLEVENTS = Object.assign({}, LOADER_EVENTS, DEMUX_EVENTS, REMUX_EVENTS, MSE_EVENTS, HLS_EVENTS, PLAYER_EVENTS);
+  var ALLEVENTS = Object.assign({}, LOADER_EVENTS, DEMUX_EVENTS, REMUX_EVENTS, MSE_EVENTS, HLS_EVENTS, PLAYER_EVENTS, BROWSER_EVENTS);
 
   var FlvAllowedEvents = [];
   var HlsAllowedEvents = [];
@@ -78,7 +81,8 @@
     FlvAllowedEvents: FlvAllowedEvents,
     HlsAllowedEvents: HlsAllowedEvents,
     CRYTO_EVENTS: CRYTO_EVENTS,
-    PLAYER_EVENTS: PLAYER_EVENTS
+    PLAYER_EVENTS: PLAYER_EVENTS,
+    BROWSER_EVENTS: BROWSER_EVENTS
   };
 
   var _createClass = function () {
@@ -2662,6 +2666,70 @@
     return Compatibility;
   }();
 
+  var _createClass$9 = function () {
+    function defineProperties(target, props) {
+      for (var i = 0; i < props.length; i++) {
+        var descriptor = props[i];descriptor.enumerable = descriptor.enumerable || false;descriptor.configurable = true;if ("value" in descriptor) descriptor.writable = true;Object.defineProperty(target, descriptor.key, descriptor);
+      }
+    }return function (Constructor, protoProps, staticProps) {
+      if (protoProps) defineProperties(Constructor.prototype, protoProps);if (staticProps) defineProperties(Constructor, staticProps);return Constructor;
+    };
+  }();
+
+  function _classCallCheck$9(instance, Constructor) {
+    if (!(instance instanceof Constructor)) {
+      throw new TypeError("Cannot call a class as a function");
+    }
+  }
+
+  var BROWSER_EVENTS$1 = EVENTS.BROWSER_EVENTS;
+  var hidden = void 0;
+  var visibilityChange = void 0;
+
+  if (typeof document.hidden !== 'undefined') {
+    // Opera 12.10 and Firefox 18 and later support
+    hidden = 'hidden';
+    visibilityChange = 'visibilitychange';
+  } else if (typeof document.msHidden !== 'undefined') {
+    hidden = 'msHidden';
+    visibilityChange = 'msvisibilitychange';
+  } else if (typeof document.webkitHidden !== 'undefined') {
+    hidden = 'webkitHidden';
+    visibilityChange = 'webkitvisibilitychange';
+  }
+
+  var PageVisibility = function () {
+    function PageVisibility() {
+      _classCallCheck$9(this, PageVisibility);
+
+      this.callbacks = {
+        onShow: [],
+        onHidden: []
+      };
+      this.handleVisibilityChange = this.handleVisibilityChange.bind(this);
+      this.init();
+    }
+
+    _createClass$9(PageVisibility, [{
+      key: 'init',
+      value: function init() {
+        document.addEventListener(visibilityChange, this.handleVisibilityChange, false);
+      }
+    }, {
+      key: 'handleVisibilityChange',
+      value: function handleVisibilityChange() {
+        this.emit(BROWSER_EVENTS$1.VISIBILITY_CHANGE, document[hidden]);
+      }
+    }, {
+      key: 'destroy',
+      value: function destroy() {
+        document.removeEventListener(visibilityChange, this.handleVisibilityChange);
+      }
+    }]);
+
+    return PageVisibility;
+  }();
+
   var le = function () {
     var buf = new ArrayBuffer(2);
     new DataView(buf).setInt16(0, 256, true); // little-endian write
@@ -2711,7 +2779,7 @@
     }
   };
 
-  var _createClass$9 = function () {
+  var _createClass$a = function () {
     function defineProperties(target, props) {
       for (var i = 0; i < props.length; i++) {
         var descriptor = props[i];descriptor.enumerable = descriptor.enumerable || false;descriptor.configurable = true;if ("value" in descriptor) descriptor.writable = true;Object.defineProperty(target, descriptor.key, descriptor);
@@ -2721,7 +2789,7 @@
     };
   }();
 
-  function _classCallCheck$9(instance, Constructor) {
+  function _classCallCheck$a(instance, Constructor) {
     if (!(instance instanceof Constructor)) {
       throw new TypeError("Cannot call a class as a function");
     }
@@ -2729,14 +2797,14 @@
 
   var MediaSegmentList = function () {
     function MediaSegmentList(type) {
-      _classCallCheck$9(this, MediaSegmentList);
+      _classCallCheck$a(this, MediaSegmentList);
 
       this._type = type;
       this._list = [];
       this._lastAppendLocation = -1; // cached last insert location
     }
 
-    _createClass$9(MediaSegmentList, [{
+    _createClass$a(MediaSegmentList, [{
       key: "isEmpty",
       value: function isEmpty() {
         return this._list.length === 0;
@@ -2948,7 +3016,7 @@
 
   var Concat = unwrapExports(lib);
 
-  var _createClass$a = function () {
+  var _createClass$b = function () {
     function defineProperties(target, props) {
       for (var i = 0; i < props.length; i++) {
         var descriptor = props[i];descriptor.enumerable = descriptor.enumerable || false;descriptor.configurable = true;if ("value" in descriptor) descriptor.writable = true;Object.defineProperty(target, descriptor.key, descriptor);
@@ -2958,7 +3026,7 @@
     };
   }();
 
-  function _classCallCheck$a(instance, Constructor) {
+  function _classCallCheck$b(instance, Constructor) {
     if (!(instance instanceof Constructor)) {
       throw new TypeError("Cannot call a class as a function");
     }
@@ -2966,12 +3034,12 @@
 
   var Buffer = function () {
     function Buffer(buffer) {
-      _classCallCheck$a(this, Buffer);
+      _classCallCheck$b(this, Buffer);
 
       this.buffer = buffer || new Uint8Array(0);
     }
 
-    _createClass$a(Buffer, [{
+    _createClass$b(Buffer, [{
       key: 'write',
       value: function write() {
         var _this = this;
@@ -3009,7 +3077,7 @@
     return Buffer;
   }();
 
-  var _createClass$b = function () {
+  var _createClass$c = function () {
     function defineProperties(target, props) {
       for (var i = 0; i < props.length; i++) {
         var descriptor = props[i];descriptor.enumerable = descriptor.enumerable || false;descriptor.configurable = true;if ("value" in descriptor) descriptor.writable = true;Object.defineProperty(target, descriptor.key, descriptor);
@@ -3019,7 +3087,7 @@
     };
   }();
 
-  function _classCallCheck$b(instance, Constructor) {
+  function _classCallCheck$c(instance, Constructor) {
     if (!(instance instanceof Constructor)) {
       throw new TypeError("Cannot call a class as a function");
     }
@@ -3029,10 +3097,10 @@
 
   var Fmp4 = function () {
     function Fmp4() {
-      _classCallCheck$b(this, Fmp4);
+      _classCallCheck$c(this, Fmp4);
     }
 
-    _createClass$b(Fmp4, null, [{
+    _createClass$c(Fmp4, null, [{
       key: 'size',
       value: function size(value) {
         return Buffer.writeUint32(value);
@@ -3627,7 +3695,7 @@
   };
   Fmp4.sequence = 1;
 
-  var _createClass$c = function () {
+  var _createClass$d = function () {
     function defineProperties(target, props) {
       for (var i = 0; i < props.length; i++) {
         var descriptor = props[i];descriptor.enumerable = descriptor.enumerable || false;descriptor.configurable = true;if ("value" in descriptor) descriptor.writable = true;Object.defineProperty(target, descriptor.key, descriptor);
@@ -3637,7 +3705,7 @@
     };
   }();
 
-  function _classCallCheck$c(instance, Constructor) {
+  function _classCallCheck$d(instance, Constructor) {
     if (!(instance instanceof Constructor)) {
       throw new TypeError("Cannot call a class as a function");
     }
@@ -3650,7 +3718,7 @@
     function Mp4Remuxer() {
       var curTime = arguments.length > 0 && arguments[0] !== undefined ? arguments[0] : 0;
 
-      _classCallCheck$c(this, Mp4Remuxer);
+      _classCallCheck$d(this, Mp4Remuxer);
 
       this._dtsBase = curTime * 1000;
       this._isDtsBaseInited = false;
@@ -3667,7 +3735,7 @@
       this.audioAllDuration = 0;
     }
 
-    _createClass$c(Mp4Remuxer, [{
+    _createClass$d(Mp4Remuxer, [{
       key: 'init',
       value: function init() {
         this.on(REMUX_EVENTS$2.REMUX_MEDIA, this.remux.bind(this));
@@ -4100,7 +4168,7 @@
     return Mp4Remuxer;
   }();
 
-  var _createClass$d = function () {
+  var _createClass$e = function () {
     function defineProperties(target, props) {
       for (var i = 0; i < props.length; i++) {
         var descriptor = props[i];descriptor.enumerable = descriptor.enumerable || false;descriptor.configurable = true;if ("value" in descriptor) descriptor.writable = true;Object.defineProperty(target, descriptor.key, descriptor);
@@ -4110,7 +4178,7 @@
     };
   }();
 
-  function _classCallCheck$d(instance, Constructor) {
+  function _classCallCheck$e(instance, Constructor) {
     if (!(instance instanceof Constructor)) {
       throw new TypeError("Cannot call a class as a function");
     }
@@ -4119,7 +4187,7 @@
 
   var Crypto = function () {
     function Crypto(config) {
-      _classCallCheck$d(this, Crypto);
+      _classCallCheck$e(this, Crypto);
 
       this.inputBuffer = config.inputbuffer;
       this.outputBuffer = config.outputbuffer;
@@ -4130,7 +4198,7 @@
       this.crypto = window.crypto || window.msCrypto;
     }
 
-    _createClass$d(Crypto, [{
+    _createClass$e(Crypto, [{
       key: 'init',
       value: function init() {
         this.on(CRYTO_EVENTS$1.START_DECRYPT, this.decript.bind(this));
@@ -4171,7 +4239,7 @@
     return Crypto;
   }();
 
-  var _createClass$e = function () {
+  var _createClass$f = function () {
     function defineProperties(target, props) {
       for (var i = 0; i < props.length; i++) {
         var descriptor = props[i];descriptor.enumerable = descriptor.enumerable || false;descriptor.configurable = true;if ("value" in descriptor) descriptor.writable = true;Object.defineProperty(target, descriptor.key, descriptor);
@@ -4181,7 +4249,7 @@
     };
   }();
 
-  function _classCallCheck$e(instance, Constructor) {
+  function _classCallCheck$f(instance, Constructor) {
     if (!(instance instanceof Constructor)) {
       throw new TypeError("Cannot call a class as a function");
     }
@@ -4192,10 +4260,10 @@
    */
   var M3U8Parser = function () {
     function M3U8Parser() {
-      _classCallCheck$e(this, M3U8Parser);
+      _classCallCheck$f(this, M3U8Parser);
     }
 
-    _createClass$e(M3U8Parser, null, [{
+    _createClass$f(M3U8Parser, null, [{
       key: 'parse',
       value: function parse(text) {
         var baseurl = arguments.length > 1 && arguments[1] !== undefined ? arguments[1] : '';
@@ -4321,7 +4389,7 @@
     return M3U8Parser;
   }();
 
-  var _createClass$f = function () {
+  var _createClass$g = function () {
     function defineProperties(target, props) {
       for (var i = 0; i < props.length; i++) {
         var descriptor = props[i];descriptor.enumerable = descriptor.enumerable || false;descriptor.configurable = true;if ("value" in descriptor) descriptor.writable = true;Object.defineProperty(target, descriptor.key, descriptor);
@@ -4331,7 +4399,7 @@
     };
   }();
 
-  function _classCallCheck$f(instance, Constructor) {
+  function _classCallCheck$g(instance, Constructor) {
     if (!(instance instanceof Constructor)) {
       throw new TypeError("Cannot call a class as a function");
     }
@@ -4339,7 +4407,7 @@
 
   var Stream = function () {
     function Stream(buffer) {
-      _classCallCheck$f(this, Stream);
+      _classCallCheck$g(this, Stream);
 
       if (buffer instanceof ArrayBuffer) {
         this.buffer = buffer;
@@ -4350,7 +4418,7 @@
       }
     }
 
-    _createClass$f(Stream, [{
+    _createClass$g(Stream, [{
       key: 'back',
       value: function back(count) {
         this.position -= count;
@@ -4487,7 +4555,7 @@
     return Stream;
   }();
 
-  var _createClass$g = function () {
+  var _createClass$h = function () {
     function defineProperties(target, props) {
       for (var i = 0; i < props.length; i++) {
         var descriptor = props[i];descriptor.enumerable = descriptor.enumerable || false;descriptor.configurable = true;if ("value" in descriptor) descriptor.writable = true;Object.defineProperty(target, descriptor.key, descriptor);
@@ -4497,7 +4565,7 @@
     };
   }();
 
-  function _classCallCheck$g(instance, Constructor) {
+  function _classCallCheck$h(instance, Constructor) {
     if (!(instance instanceof Constructor)) {
       throw new TypeError("Cannot call a class as a function");
     }
@@ -4505,7 +4573,7 @@
 
   var Golomb = function () {
     function Golomb(uint8array) {
-      _classCallCheck$g(this, Golomb);
+      _classCallCheck$h(this, Golomb);
 
       this.TAG = 'Golomb';
       this._buffer = uint8array;
@@ -4516,7 +4584,7 @@
       this._currentWordBitsLeft = 0;
     }
 
-    _createClass$g(Golomb, [{
+    _createClass$h(Golomb, [{
       key: 'destroy',
       value: function destroy() {
         this._buffer = null;
@@ -4603,7 +4671,7 @@
     return Golomb;
   }();
 
-  var _createClass$h = function () {
+  var _createClass$i = function () {
     function defineProperties(target, props) {
       for (var i = 0; i < props.length; i++) {
         var descriptor = props[i];descriptor.enumerable = descriptor.enumerable || false;descriptor.configurable = true;if ("value" in descriptor) descriptor.writable = true;Object.defineProperty(target, descriptor.key, descriptor);
@@ -4613,7 +4681,7 @@
     };
   }();
 
-  function _classCallCheck$h(instance, Constructor) {
+  function _classCallCheck$i(instance, Constructor) {
     if (!(instance instanceof Constructor)) {
       throw new TypeError("Cannot call a class as a function");
     }
@@ -4621,10 +4689,10 @@
 
   var SPSParser = function () {
     function SPSParser() {
-      _classCallCheck$h(this, SPSParser);
+      _classCallCheck$i(this, SPSParser);
     }
 
-    _createClass$h(SPSParser, null, [{
+    _createClass$i(SPSParser, null, [{
       key: '_ebsp2rbsp',
       value: function _ebsp2rbsp(uint8array) {
         var src = uint8array;
@@ -4920,7 +4988,7 @@
     return SPSParser;
   }();
 
-  var _createClass$i = function () {
+  var _createClass$j = function () {
     function defineProperties(target, props) {
       for (var i = 0; i < props.length; i++) {
         var descriptor = props[i];descriptor.enumerable = descriptor.enumerable || false;descriptor.configurable = true;if ("value" in descriptor) descriptor.writable = true;Object.defineProperty(target, descriptor.key, descriptor);
@@ -4930,7 +4998,7 @@
     };
   }();
 
-  function _classCallCheck$i(instance, Constructor) {
+  function _classCallCheck$j(instance, Constructor) {
     if (!(instance instanceof Constructor)) {
       throw new TypeError("Cannot call a class as a function");
     }
@@ -4938,10 +5006,10 @@
 
   var RBSP = function () {
     function RBSP() {
-      _classCallCheck$i(this, RBSP);
+      _classCallCheck$j(this, RBSP);
     }
 
-    _createClass$i(RBSP, null, [{
+    _createClass$j(RBSP, null, [{
       key: "EBSP2RBSP",
 
       /**
@@ -4980,7 +5048,7 @@
     return RBSP;
   }();
 
-  var _createClass$j = function () {
+  var _createClass$k = function () {
     function defineProperties(target, props) {
       for (var i = 0; i < props.length; i++) {
         var descriptor = props[i];descriptor.enumerable = descriptor.enumerable || false;descriptor.configurable = true;if ("value" in descriptor) descriptor.writable = true;Object.defineProperty(target, descriptor.key, descriptor);
@@ -4990,7 +5058,7 @@
     };
   }();
 
-  function _classCallCheck$j(instance, Constructor) {
+  function _classCallCheck$k(instance, Constructor) {
     if (!(instance instanceof Constructor)) {
       throw new TypeError("Cannot call a class as a function");
     }
@@ -5006,10 +5074,10 @@
 
   var SEIParser = function () {
     function SEIParser() {
-      _classCallCheck$j(this, SEIParser);
+      _classCallCheck$k(this, SEIParser);
     }
 
-    _createClass$j(SEIParser, null, [{
+    _createClass$k(SEIParser, null, [{
       key: '_resolveNalu',
       value: function _resolveNalu(data) {
         if (data.length >= 1) {
@@ -5124,7 +5192,7 @@
     return SEIParser;
   }();
 
-  var _createClass$k = function () {
+  var _createClass$l = function () {
     function defineProperties(target, props) {
       for (var i = 0; i < props.length; i++) {
         var descriptor = props[i];descriptor.enumerable = descriptor.enumerable || false;descriptor.configurable = true;if ("value" in descriptor) descriptor.writable = true;Object.defineProperty(target, descriptor.key, descriptor);
@@ -5134,7 +5202,7 @@
     };
   }();
 
-  function _classCallCheck$k(instance, Constructor) {
+  function _classCallCheck$l(instance, Constructor) {
     if (!(instance instanceof Constructor)) {
       throw new TypeError("Cannot call a class as a function");
     }
@@ -5142,10 +5210,10 @@
 
   var Nalunit = function () {
     function Nalunit() {
-      _classCallCheck$k(this, Nalunit);
+      _classCallCheck$l(this, Nalunit);
     }
 
-    _createClass$k(Nalunit, null, [{
+    _createClass$l(Nalunit, null, [{
       key: 'getNalunits',
       value: function getNalunits(buffer) {
         if (buffer.length - buffer.position < 4) {
@@ -5310,7 +5378,7 @@
 
   var NalUnit = Nalunit;
 
-  var _createClass$l = function () {
+  var _createClass$m = function () {
     function defineProperties(target, props) {
       for (var i = 0; i < props.length; i++) {
         var descriptor = props[i];descriptor.enumerable = descriptor.enumerable || false;descriptor.configurable = true;if ("value" in descriptor) descriptor.writable = true;Object.defineProperty(target, descriptor.key, descriptor);
@@ -5320,7 +5388,7 @@
     };
   }();
 
-  function _classCallCheck$l(instance, Constructor) {
+  function _classCallCheck$m(instance, Constructor) {
     if (!(instance instanceof Constructor)) {
       throw new TypeError("Cannot call a class as a function");
     }
@@ -5328,7 +5396,7 @@
 
   var AudioTrackMeta = function () {
     function AudioTrackMeta(meta) {
-      _classCallCheck$l(this, AudioTrackMeta);
+      _classCallCheck$m(this, AudioTrackMeta);
 
       var _default = {
         sampleRate: 48000,
@@ -5348,7 +5416,7 @@
       return _default;
     }
 
-    _createClass$l(AudioTrackMeta, [{
+    _createClass$m(AudioTrackMeta, [{
       key: 'destroy',
       value: function destroy() {
         this.init = null;
@@ -5360,7 +5428,7 @@
 
   var VideoTrackMeta = function () {
     function VideoTrackMeta(meta) {
-      _classCallCheck$l(this, VideoTrackMeta);
+      _classCallCheck$m(this, VideoTrackMeta);
 
       var _default = {
         avcc: null,
@@ -5397,7 +5465,7 @@
       return _default;
     }
 
-    _createClass$l(VideoTrackMeta, [{
+    _createClass$m(VideoTrackMeta, [{
       key: 'destroy',
       value: function destroy() {
         this.init = null;
@@ -5409,7 +5477,7 @@
     return VideoTrackMeta;
   }();
 
-  var _createClass$m = function () {
+  var _createClass$n = function () {
     function defineProperties(target, props) {
       for (var i = 0; i < props.length; i++) {
         var descriptor = props[i];descriptor.enumerable = descriptor.enumerable || false;descriptor.configurable = true;if ("value" in descriptor) descriptor.writable = true;Object.defineProperty(target, descriptor.key, descriptor);
@@ -5419,7 +5487,7 @@
     };
   }();
 
-  function _classCallCheck$m(instance, Constructor) {
+  function _classCallCheck$n(instance, Constructor) {
     if (!(instance instanceof Constructor)) {
       throw new TypeError("Cannot call a class as a function");
     }
@@ -5427,7 +5495,7 @@
 
   var AudioTrackSample = function () {
     function AudioTrackSample(info) {
-      _classCallCheck$m(this, AudioTrackSample);
+      _classCallCheck$n(this, AudioTrackSample);
 
       var _default = AudioTrackSample.getDefault();
       if (!info) {
@@ -5438,7 +5506,7 @@
       return sample;
     }
 
-    _createClass$m(AudioTrackSample, null, [{
+    _createClass$n(AudioTrackSample, null, [{
       key: "getDefault",
       value: function getDefault() {
         return {
@@ -5454,7 +5522,7 @@
 
   var VideoTrackSample = function () {
     function VideoTrackSample(info) {
-      _classCallCheck$m(this, VideoTrackSample);
+      _classCallCheck$n(this, VideoTrackSample);
 
       var _default = VideoTrackSample.getDefault();
 
@@ -5466,7 +5534,7 @@
       return sample;
     }
 
-    _createClass$m(VideoTrackSample, null, [{
+    _createClass$n(VideoTrackSample, null, [{
       key: "getDefault",
       value: function getDefault() {
         return {
@@ -5490,7 +5558,7 @@
     return obj && typeof Symbol === "function" && obj.constructor === Symbol && obj !== Symbol.prototype ? "symbol" : typeof obj === "undefined" ? "undefined" : _typeof2$1(obj);
   };
 
-  var _createClass$n = function () {
+  var _createClass$o = function () {
     function defineProperties(target, props) {
       for (var i = 0; i < props.length; i++) {
         var descriptor = props[i];descriptor.enumerable = descriptor.enumerable || false;descriptor.configurable = true;if ("value" in descriptor) descriptor.writable = true;Object.defineProperty(target, descriptor.key, descriptor);
@@ -5500,7 +5568,7 @@
     };
   }();
 
-  function _classCallCheck$n(instance, Constructor) {
+  function _classCallCheck$o(instance, Constructor) {
     if (!(instance instanceof Constructor)) {
       throw new TypeError("Cannot call a class as a function");
     }
@@ -5530,7 +5598,7 @@
 
   var TsDemuxer = function () {
     function TsDemuxer(configs) {
-      _classCallCheck$n(this, TsDemuxer);
+      _classCallCheck$o(this, TsDemuxer);
 
       this.configs = Object.assign({}, configs);
       this.demuxing = false;
@@ -5540,7 +5608,7 @@
       this._hasAudioMeta = false;
     }
 
-    _createClass$n(TsDemuxer, [{
+    _createClass$o(TsDemuxer, [{
       key: 'init',
       value: function init() {
         this.on(DEMUX_EVENTS$1.DEMUX_START, this.demux.bind(this));
@@ -6297,7 +6365,7 @@
     return TsDemuxer;
   }();
 
-  var _createClass$o = function () {
+  var _createClass$p = function () {
     function defineProperties(target, props) {
       for (var i = 0; i < props.length; i++) {
         var descriptor = props[i];descriptor.enumerable = descriptor.enumerable || false;descriptor.configurable = true;if ("value" in descriptor) descriptor.writable = true;Object.defineProperty(target, descriptor.key, descriptor);
@@ -6307,7 +6375,7 @@
     };
   }();
 
-  function _classCallCheck$o(instance, Constructor) {
+  function _classCallCheck$p(instance, Constructor) {
     if (!(instance instanceof Constructor)) {
       throw new TypeError("Cannot call a class as a function");
     }
@@ -6315,7 +6383,7 @@
 
   var Playlist = function () {
     function Playlist(configs) {
-      _classCallCheck$o(this, Playlist);
+      _classCallCheck$p(this, Playlist);
 
       this._baseURL = '';
       this._list = {};
@@ -6329,7 +6397,7 @@
       this._audoclear = configs.autoclear || false;
     }
 
-    _createClass$o(Playlist, [{
+    _createClass$p(Playlist, [{
       key: 'push',
       value: function push(ts, duration, discontinue) {
         if (!this._ts[ts]) {
@@ -6520,7 +6588,7 @@
     return Playlist;
   }();
 
-  var _createClass$p = function () {
+  var _createClass$q = function () {
     function defineProperties(target, props) {
       for (var i = 0; i < props.length; i++) {
         var descriptor = props[i];descriptor.enumerable = descriptor.enumerable || false;descriptor.configurable = true;if ("value" in descriptor) descriptor.writable = true;Object.defineProperty(target, descriptor.key, descriptor);
@@ -6530,7 +6598,7 @@
     };
   }();
 
-  function _classCallCheck$p(instance, Constructor) {
+  function _classCallCheck$q(instance, Constructor) {
     if (!(instance instanceof Constructor)) {
       throw new TypeError("Cannot call a class as a function");
     }
@@ -6545,7 +6613,7 @@
 
   var HlsLiveController = function () {
     function HlsLiveController(configs) {
-      _classCallCheck$p(this, HlsLiveController);
+      _classCallCheck$q(this, HlsLiveController);
 
       this.configs = Object.assign({}, configs);
       this.url = '';
@@ -6562,7 +6630,7 @@
       this.m3u8Text = null;
     }
 
-    _createClass$p(HlsLiveController, [{
+    _createClass$q(HlsLiveController, [{
       key: 'init',
       value: function init() {
         // 初始化Buffer （M3U8/TS/Playlist);
@@ -6826,7 +6894,7 @@
 
   var _typeof$4 = typeof Symbol === "function" && typeof Symbol.iterator === "symbol" ? function (obj) { return typeof obj; } : function (obj) { return obj && typeof Symbol === "function" && obj.constructor === Symbol && obj !== Symbol.prototype ? "symbol" : typeof obj; };
 
-  var _createClass$q = function () {
+  var _createClass$r = function () {
     function defineProperties(target, props) {
       for (var i = 0; i < props.length; i++) {
         var descriptor = props[i];descriptor.enumerable = descriptor.enumerable || false;descriptor.configurable = true;if ("value" in descriptor) descriptor.writable = true;Object.defineProperty(target, descriptor.key, descriptor);
@@ -6852,7 +6920,7 @@
     }
   };
 
-  function _classCallCheck$q(instance, Constructor) {
+  function _classCallCheck$r(instance, Constructor) {
     if (!(instance instanceof Constructor)) {
       throw new TypeError("Cannot call a class as a function");
     }
@@ -6876,7 +6944,7 @@
     _inherits$2(HlsLivePlayer, _Player);
 
     function HlsLivePlayer(options) {
-      _classCallCheck$q(this, HlsLivePlayer);
+      _classCallCheck$r(this, HlsLivePlayer);
 
       var _this2 = _possibleConstructorReturn$2(this, (HlsLivePlayer.__proto__ || Object.getPrototypeOf(HlsLivePlayer)).call(this, options));
 
@@ -6888,7 +6956,7 @@
       return _this2;
     }
 
-    _createClass$q(HlsLivePlayer, [{
+    _createClass$r(HlsLivePlayer, [{
       key: '_initEvents',
       value: function _initEvents() {
         var _this3 = this;
@@ -6976,7 +7044,7 @@
     return HlsLivePlayer;
   }(Player);
 
-  var _createClass$r = function () {
+  var _createClass$s = function () {
     function defineProperties(target, props) {
       for (var i = 0; i < props.length; i++) {
         var descriptor = props[i];descriptor.enumerable = descriptor.enumerable || false;descriptor.configurable = true;if ("value" in descriptor) descriptor.writable = true;Object.defineProperty(target, descriptor.key, descriptor);
@@ -6986,7 +7054,7 @@
     };
   }();
 
-  function _classCallCheck$r(instance, Constructor) {
+  function _classCallCheck$s(instance, Constructor) {
     if (!(instance instanceof Constructor)) {
       throw new TypeError("Cannot call a class as a function");
     }
@@ -7005,7 +7073,7 @@
 
   var MediaInfo$1 = function () {
     function MediaInfo() {
-      _classCallCheck$r(this, MediaInfo);
+      _classCallCheck$s(this, MediaInfo);
 
       this.mimeType = null;
       this.duration = null;
@@ -7040,7 +7108,7 @@
       };
     }
 
-    _createClass$r(MediaInfo, [{
+    _createClass$s(MediaInfo, [{
       key: "isComplete",
       value: function isComplete() {
         return MediaInfo.isBaseInfoReady(this) && MediaInfo.isVideoReady(this) && MediaInfo.isAudioReady(this);
@@ -7091,7 +7159,7 @@
     }
   };
 
-  var _createClass$s = function () {
+  var _createClass$t = function () {
     function defineProperties(target, props) {
       for (var i = 0; i < props.length; i++) {
         var descriptor = props[i];descriptor.enumerable = descriptor.enumerable || false;descriptor.configurable = true;if ("value" in descriptor) descriptor.writable = true;Object.defineProperty(target, descriptor.key, descriptor);
@@ -7113,7 +7181,7 @@
     }subClass.prototype = Object.create(superClass && superClass.prototype, { constructor: { value: subClass, enumerable: false, writable: true, configurable: true } });if (superClass) Object.setPrototypeOf ? Object.setPrototypeOf(subClass, superClass) : subClass.__proto__ = superClass;
   }
 
-  function _classCallCheck$s(instance, Constructor) {
+  function _classCallCheck$t(instance, Constructor) {
     if (!(instance instanceof Constructor)) {
       throw new TypeError("Cannot call a class as a function");
     }
@@ -7125,7 +7193,7 @@
     function Context() {
       var allowedEvents = arguments.length > 0 && arguments[0] !== undefined ? arguments[0] : [];
 
-      _classCallCheck$s(this, Context);
+      _classCallCheck$t(this, Context);
 
       this._emitter = new EventEmitter();
       if (!this._emitter.off) {
@@ -7146,7 +7214,7 @@
      * @returns {*}
      */
 
-    _createClass$s(Context, [{
+    _createClass$t(Context, [{
       key: 'getInstance',
       value: function getInstance(tag) {
         var instance = this._instanceMap[tag];
@@ -7226,7 +7294,7 @@
           _inherits$3(enhanced, _cls);
 
           function enhanced(a, b, c) {
-            _classCallCheck$s(this, enhanced);
+            _classCallCheck$t(this, enhanced);
 
             var _this = _possibleConstructorReturn$3(this, (enhanced.__proto__ || Object.getPrototypeOf(enhanced)).call(this, a, b, c));
 
@@ -7237,7 +7305,7 @@
             return _this;
           }
 
-          _createClass$s(enhanced, [{
+          _createClass$t(enhanced, [{
             key: 'on',
             value: function on(messageName, callback) {
               checkMessageName(messageName);
@@ -7477,7 +7545,7 @@
     };
   }();
 
-  var _createClass$t = function () {
+  var _createClass$u = function () {
     function defineProperties(target, props) {
       for (var i = 0; i < props.length; i++) {
         var descriptor = props[i];descriptor.enumerable = descriptor.enumerable || false;descriptor.configurable = true;if ("value" in descriptor) descriptor.writable = true;Object.defineProperty(target, descriptor.key, descriptor);
@@ -7487,7 +7555,7 @@
     };
   }();
 
-  function _classCallCheck$t(instance, Constructor) {
+  function _classCallCheck$u(instance, Constructor) {
     if (!(instance instanceof Constructor)) {
       throw new TypeError("Cannot call a class as a function");
     }
@@ -7497,7 +7565,7 @@
     function MediaSample(info) {
       var _this = this;
 
-      _classCallCheck$t(this, MediaSample);
+      _classCallCheck$u(this, MediaSample);
 
       var _default = MediaSample.getDefaultInf();
 
@@ -7515,7 +7583,7 @@
       });
     }
 
-    _createClass$t(MediaSample, null, [{
+    _createClass$u(MediaSample, null, [{
       key: 'getDefaultInf',
       value: function getDefaultInf() {
         return {
@@ -7532,7 +7600,7 @@
     return MediaSample;
   }();
 
-  var _createClass$u = function () {
+  var _createClass$v = function () {
       function defineProperties(target, props) {
           for (var i = 0; i < props.length; i++) {
               var descriptor = props[i];descriptor.enumerable = descriptor.enumerable || false;descriptor.configurable = true;if ("value" in descriptor) descriptor.writable = true;Object.defineProperty(target, descriptor.key, descriptor);
@@ -7542,7 +7610,7 @@
       };
   }();
 
-  function _classCallCheck$u(instance, Constructor) {
+  function _classCallCheck$v(instance, Constructor) {
       if (!(instance instanceof Constructor)) {
           throw new TypeError("Cannot call a class as a function");
       }
@@ -7550,7 +7618,7 @@
 
   var MediaSegment = function () {
       function MediaSegment() {
-          _classCallCheck$u(this, MediaSegment);
+          _classCallCheck$v(this, MediaSegment);
 
           this.startDts = -1;
           this.endDts = -1;
@@ -7563,7 +7631,7 @@
           this.lastSample = null;
       }
 
-      _createClass$u(MediaSegment, [{
+      _createClass$v(MediaSegment, [{
           key: "addRAP",
           value: function addRAP(sample) {
               sample.isRAP = true;
@@ -7574,7 +7642,7 @@
       return MediaSegment;
   }();
 
-  var _createClass$v = function () {
+  var _createClass$w = function () {
     function defineProperties(target, props) {
       for (var i = 0; i < props.length; i++) {
         var descriptor = props[i];descriptor.enumerable = descriptor.enumerable || false;descriptor.configurable = true;if ("value" in descriptor) descriptor.writable = true;Object.defineProperty(target, descriptor.key, descriptor);
@@ -7584,7 +7652,7 @@
     };
   }();
 
-  function _classCallCheck$v(instance, Constructor) {
+  function _classCallCheck$w(instance, Constructor) {
     if (!(instance instanceof Constructor)) {
       throw new TypeError("Cannot call a class as a function");
     }
@@ -7592,14 +7660,14 @@
 
   var MediaSegmentList$1 = function () {
     function MediaSegmentList(type) {
-      _classCallCheck$v(this, MediaSegmentList);
+      _classCallCheck$w(this, MediaSegmentList);
 
       this._type = type;
       this._list = [];
       this._lastAppendLocation = -1; // cached last insert location
     }
 
-    _createClass$v(MediaSegmentList, [{
+    _createClass$w(MediaSegmentList, [{
       key: "isEmpty",
       value: function isEmpty() {
         return this._list.length === 0;
@@ -7748,7 +7816,7 @@
 
   var debounce = _debounce;
 
-  var _createClass$w = function () {
+  var _createClass$x = function () {
     function defineProperties(target, props) {
       for (var i = 0; i < props.length; i++) {
         var descriptor = props[i];descriptor.enumerable = descriptor.enumerable || false;descriptor.configurable = true;if ("value" in descriptor) descriptor.writable = true;Object.defineProperty(target, descriptor.key, descriptor);
@@ -7758,7 +7826,7 @@
     };
   }();
 
-  function _classCallCheck$w(instance, Constructor) {
+  function _classCallCheck$x(instance, Constructor) {
     if (!(instance instanceof Constructor)) {
       throw new TypeError("Cannot call a class as a function");
     }
@@ -7773,7 +7841,7 @@
 
   var HlsVodController = function () {
     function HlsVodController(configs) {
-      _classCallCheck$w(this, HlsVodController);
+      _classCallCheck$x(this, HlsVodController);
 
       this.configs = Object.assign({}, configs);
       this.url = '';
@@ -7788,7 +7856,7 @@
       this.m3u8Text = null;
     }
 
-    _createClass$w(HlsVodController, [{
+    _createClass$x(HlsVodController, [{
       key: 'init',
       value: function init() {
         // 初始化Buffer （M3U8/TS/Playlist);
@@ -8157,7 +8225,7 @@
 
   var _typeof$6 = typeof Symbol === "function" && typeof Symbol.iterator === "symbol" ? function (obj) { return typeof obj; } : function (obj) { return obj && typeof Symbol === "function" && obj.constructor === Symbol && obj !== Symbol.prototype ? "symbol" : typeof obj; };
 
-  var _createClass$x = function () {
+  var _createClass$y = function () {
     function defineProperties(target, props) {
       for (var i = 0; i < props.length; i++) {
         var descriptor = props[i];descriptor.enumerable = descriptor.enumerable || false;descriptor.configurable = true;if ("value" in descriptor) descriptor.writable = true;Object.defineProperty(target, descriptor.key, descriptor);
@@ -8197,7 +8265,7 @@
     }
   };
 
-  function _classCallCheck$x(instance, Constructor) {
+  function _classCallCheck$y(instance, Constructor) {
     if (!(instance instanceof Constructor)) {
       throw new TypeError("Cannot call a class as a function");
     }
@@ -8223,7 +8291,7 @@
     _inherits$4(HlsVodPlayer, _Player);
 
     function HlsVodPlayer(options) {
-      _classCallCheck$x(this, HlsVodPlayer);
+      _classCallCheck$y(this, HlsVodPlayer);
 
       var _this2 = _possibleConstructorReturn$4(this, (HlsVodPlayer.__proto__ || Object.getPrototypeOf(HlsVodPlayer)).call(this, options));
 
@@ -8237,7 +8305,7 @@
       return _this2;
     }
 
-    _createClass$x(HlsVodPlayer, [{
+    _createClass$y(HlsVodPlayer, [{
       key: '_handleSetCurrentTime',
       value: function _handleSetCurrentTime(time) {
         time = parseFloat(time);
@@ -8392,10 +8460,10 @@
     return HlsVodPlayer;
   }(Player);
 
-  function _classCallCheck$y(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } }
+  function _classCallCheck$z(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } }
 
   var HlsPlayer = function HlsPlayer(config) {
-    _classCallCheck$y(this, HlsPlayer);
+    _classCallCheck$z(this, HlsPlayer);
 
     if (config.isLive) {
       return new HlsLivePlayer(config);

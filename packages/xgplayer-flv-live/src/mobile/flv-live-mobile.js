@@ -1,14 +1,14 @@
 import FlvDemuxer from 'xgplayer-transmuxer-demux-flv'
 import FetchLoader from 'xgplayer-transmuxer-loader-fetch'
 import EVENTS from 'xgplayer-transmuxer-constant-events'
-
 import Tracks from 'xgplayer-transmuxer-buffer-track'
 import XgBuffer from 'xgplayer-transmuxer-buffer-xgbuffer'
-
+import { PageVisibility } from 'xgplayer-utils-sniffer';
 import Player from 'xgplayer'
 
 const DEMUX_EVENTS = EVENTS.DEMUX_EVENTS;
-const LOADER_EVENTS = EVENTS.LOADER_EVENTS
+const LOADER_EVENTS = EVENTS.LOADER_EVENTS;
+const BROWSER_EVENTS = EVENTS.BROWSER_EVENTS
 
 const Tag = 'FLVController'
 
@@ -45,6 +45,7 @@ export default class FlvController {
     this._context.registry('TRACKS', Tracks)
 
     this._context.registry('LOGGER', Logger)
+    this._context.registry('PAGE_VISIBILITY', PageVisibility)
   }
 
   initListeners () {
@@ -56,6 +57,7 @@ export default class FlvController {
     this.on(DEMUX_EVENTS.DEMUX_COMPLETE, this._handleDemuxComplete.bind(this))
     this.on(DEMUX_EVENTS.DEMUX_ERROR, this._handleDemuxError.bind(this))
     this.on(DEMUX_EVENTS.SEI_PARSED, this._handleSEIParsed.bind(this))
+    this.on(BROWSER_EVENTS.VISIBILITY_CHANGE, this._handleVisibilityChange.bind(this))
 
   }
 
@@ -77,6 +79,11 @@ export default class FlvController {
     if (this._player.video) {
       const { videoTrack, audioTrack } = this._context.getInstance('TRACKS');
       this._player.video.onDemuxComplete(videoTrack, audioTrack);
+    }
+  }
+  _handleVisibilityChange (visible) {
+    if (!visible && !this._player.paused) {
+      this._player.pause()
     }
   }
 

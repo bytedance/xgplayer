@@ -1,3 +1,5 @@
+import _PageVisibility from './page-visibility';
+
 const le = (function () {
   const buf = new ArrayBuffer(2);
   (new DataView(buf)).setInt16(0, 256, true) // little-endian write
@@ -45,4 +47,5 @@ const sniffer = {
   }
 };
 
+export const PageVisibility = _PageVisibility
 export default sniffer;

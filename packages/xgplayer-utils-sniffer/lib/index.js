@@ -3,6 +3,14 @@
 Object.defineProperty(exports, "__esModule", {
   value: true
 });
+exports.PageVisibility = undefined;
+
+var _pageVisibility = require('./page-visibility');
+
+var _pageVisibility2 = _interopRequireDefault(_pageVisibility);
+
+function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
+
 var le = function () {
   var buf = new ArrayBuffer(2);
   new DataView(buf).setInt16(0, 256, true); // little-endian write
@@ -52,4 +60,5 @@ var sniffer = {
   }
 };
 
+var PageVisibility = exports.PageVisibility = _pageVisibility2.default;
 exports.default = sniffer;

@@ -3,6 +3,9 @@
 Object.defineProperty(exports, "__esModule", {
   value: true
 });
+var BROWSER_EVENTS = {
+  VISIBILITY_CHANGE: 'VISIBILITY_CHANGE'
+};
 var PLAYER_EVENTS = {
   SEEK: 'SEEK'
 };
@@ -48,7 +51,7 @@ var CRYTO_EVENTS = {
   START_DECRYPT: 'START_DECRYPT',
   DECRYPTED: 'DECRYPTED'
 };
-var ALLEVENTS = Object.assign({}, LOADER_EVENTS, DEMUX_EVENTS, REMUX_EVENTS, MSE_EVENTS, HLS_EVENTS, PLAYER_EVENTS);
+var ALLEVENTS = Object.assign({}, LOADER_EVENTS, DEMUX_EVENTS, REMUX_EVENTS, MSE_EVENTS, HLS_EVENTS, PLAYER_EVENTS, BROWSER_EVENTS);
 
 var FlvAllowedEvents = [];
 var HlsAllowedEvents = [];
@@ -75,5 +78,6 @@ exports.default = {
   FlvAllowedEvents: FlvAllowedEvents,
   HlsAllowedEvents: HlsAllowedEvents,
   CRYTO_EVENTS: CRYTO_EVENTS,
-  PLAYER_EVENTS: PLAYER_EVENTS
+  PLAYER_EVENTS: PLAYER_EVENTS,
+  BROWSER_EVENTS: BROWSER_EVENTS
 };

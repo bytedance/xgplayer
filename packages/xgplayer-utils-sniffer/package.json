@@ -22,5 +22,8 @@
         }
       ]
     ]
+  },
+  "dependencies": {
+    "xgplayer-transmuxer-constant-events": "^2.2.0-alpha.16"
   }
 }
