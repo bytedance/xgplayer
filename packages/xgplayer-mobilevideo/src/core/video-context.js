@@ -3,8 +3,8 @@
 import VideoWorker from 'worker!./worker.js';
 import Stream from 'xgplayer-transmuxer-buffer-stream';
 import { NalUnit } from 'xgplayer-transmuxer-codec-avc';
-import Render from 'xgplayer-render/src';
-// import Render from './yuv-canvas'
+// import Render from 'xgplayer-render/src';
+import Render from './yuv-canvas'
 import SourceBuffer from '../models/sourcebuffer';
 import TimeRanges from '../models/time-ranges';
 
@@ -203,14 +203,14 @@ class VideoCanvas {
 
         let frame = this._decodedFrames[frameTime];
         if (frame) {
-          let buf = []
-          if (this.meta.chromaFormat === 420) {
-
-            let buf0 = frame.buffer.slice(0, frame.yLinesize * frame.height);
-            let buf1 = frame.buffer.slice(frame.yLinesize * frame.height, frame.yLinesize * frame.height * 1.25);
-            let buf2 = frame.buffer.slice(frame.yLinesize * frame.height * 1.25, frame.yLinesize * frame.height * 1.5);
-            buf = [new Uint8Array(buf0), new Uint8Array(buf1), new Uint8Array(buf2)];
-          }
+          // let buf = []
+          // if (this.meta.chromaFormat === 420) {
+          //
+          //   let buf0 = frame.buffer.slice(0, frame.yLinesize * frame.height);
+          //   let buf1 = frame.buffer.slice(frame.yLinesize * frame.height, frame.yLinesize * frame.height * 1.25);
+          //   let buf2 = frame.buffer.slice(frame.yLinesize * frame.height * 1.25, frame.yLinesize * frame.height * 1.5);
+          //   buf = [new Uint8Array(buf0), new Uint8Array(buf1), new Uint8Array(buf2)];
+          // }
           this.yuvCanvas.render(frame.buffer, frame.width, frame.height, frame.yLinesize, frame.uvLinesize);
         }
         for (let i = 0; i < frameTimes.length; i++) {
