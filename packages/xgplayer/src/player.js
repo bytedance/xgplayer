@@ -199,7 +199,11 @@ class Player extends Proxy {
       player.off('canplay', player.canPlayFunc)
     }
     if (util.typeOf(url) === 'String') {
-      this.video.src = url
+      if(url.indexOf('blob:') > -1 && url === this.video.src) {
+        //在Chromium环境下用mse url给video二次赋值会导致错误
+      } else {
+        this.video.src = url
+      }
     } else {
       url.forEach(item => {
         this.video.appendChild(util.createDom('source', '', {
