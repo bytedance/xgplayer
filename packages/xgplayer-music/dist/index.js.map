@@ -1,0 +1,1 @@
+{"version":3,"file":"index.js","sources":["../src/index.js"],"sourcesContent":["import './theme.scss'\nimport Music from './music'\nimport * as Controls from './controls/*.js'\nexport default Music\n"],"names":["Music"],"mappings":";;;;;;;;;EAAA;;EACA;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;oBAEeA;;;;;"}
