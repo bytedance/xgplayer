@@ -146,7 +146,9 @@ class HlsVodPlayer extends Player {
   }
 
   destroy () {
-    this._context.destroy();
+    if (this._context) {
+      this._context.destroy();
+    }
     super.destroy();
   }
 

@@ -153,7 +153,7 @@ export default class Mp4Remuxer {
       }
 
       let dts = avcSample.dts - this._dtsBase
-
+      const originDts = avcSample.originDts
       if (firstDts === -1) {
         firstDts = dts
       }
@@ -188,7 +188,7 @@ export default class Mp4Remuxer {
         }
       }
       this.videoAllDuration += sampleDuration
-      // console.log(`video dts ${dts}`, `pts ${pts}`, isKeyframe, `duration ${sampleDuration}`)
+      // console.log(`video dts ${dts}`, `pts ${pts}`, `originDts ${originDts}`, isKeyframe, `duration ${sampleDuration}`)
       if (sampleDuration >= 0) {
         mdatBox.samples.push(mdatSample)
         mdatSample.buffer.push(avcSample.data)
@@ -233,6 +233,7 @@ export default class Mp4Remuxer {
     }
 
     if (initSegment) {
+      // console.log('write video init segment to presource', initSegment)
       this.writeToSource('video', initSegment)
 
       if (samples.length) {
@@ -279,7 +280,7 @@ export default class Mp4Remuxer {
       }
 
       let dts = sample.dts - this._dtsBase
-      const originDts = dts
+      let originDts = sample.originDts;
       if (!isFirstDtsInited) {
         firstDts = dts
         isFirstDtsInited = true
@@ -301,7 +302,7 @@ export default class Mp4Remuxer {
         }
       }
 
-      // console.log(`audio dts ${dts}`, `pts ${dts}`, `duration ${sampleDuration}`)
+      // console.log(`audio dts ${dts}`, `pts ${dts}`, `originDts ${originDts}` , `duration ${sampleDuration}`)
       this.audioAllDuration += sampleDuration
       const mp4Sample = {
         dts,
@@ -371,7 +372,6 @@ export default class Mp4Remuxer {
     if (!source) {
       source = presourcebuffer.createSource(type);
     }
-
     source.data.push(buffer)
   }
 

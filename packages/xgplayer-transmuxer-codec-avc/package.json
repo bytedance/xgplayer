@@ -1,6 +1,6 @@
 {
   "name": "xgplayer-transmuxer-codec-avc",
-  "version": "2.2.0-alpha.16",
+  "version": "2.2.0-alpha.17",
   "description": "",
   "main": "lib/index.js",
   "module": "es/index.js",

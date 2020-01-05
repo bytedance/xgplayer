@@ -2123,9 +2123,7 @@
         // step0.修复hls流出现巨大gap，需要强制重定位的问题
         if (this._videoLargeGap !== 0) {
           Compatibility.doFixLargeGap(videoSamples, this._videoLargeGap);
-        }
-
-        if (firstSample.dts !== this._firstVideoSample.dts && (streamChangeStart || this.videoLastSample && Compatibility.detectLargeGap(this.videoLastSample.dts, firstSample))) {
+        } else if (firstSample.dts !== this._firstVideoSample.dts && (streamChangeStart || this.videoLastSample && Compatibility.detectLargeGap(this.videoLastSample.dts, firstSample))) {
           if (streamChangeStart) {
             this.nextVideoDts = streamChangeStart; // FIX: Hls中途切codec，在如果直接seek到后面的点会导致largeGap计算失败
           } else {
@@ -2133,6 +2131,7 @@
           }
 
           this._videoLargeGap = this.nextVideoDts - firstSample.dts;
+          this._audioLargeGap = Math.abs(this._audioLargeGap - this._videoLargeGap) > 1000 ? this._videoLargeGap : this._audioLargeGap;
           Compatibility.doFixLargeGap(videoSamples, this._videoLargeGap);
         }
 
@@ -2158,7 +2157,7 @@
               });
             }
             this._firstVideoSample = this.filledVideoSamples[0] || this._firstVideoSample;
-          } else if (gap < -2 * meta.refSampleDuration) {
+          } else if (gap < -2 * meta.refSampleDuration && !this._videoLargeGap) {
             this._videoLargeGap = -1 * gap;
             Compatibility.doFixLargeGap(videoSamples, -1 * gap);
           }
@@ -2208,13 +2207,13 @@
         // audioSamples = Compatibility.sortAudioSamples(audioSamples)
         if (this._audioLargeGap !== 0) {
           Compatibility.doFixLargeGap(audioSamples, this._audioLargeGap);
-        }
-
-        if (_firstSample.dts !== this._firstAudioSample.dts && (streamChangeStart || Compatibility.detectLargeGap(this.nextAudioDts, _firstSample))) {
+        } else if (_firstSample.dts !== this._firstAudioSample.dts && (streamChangeStart || Compatibility.detectLargeGap(this.nextAudioDts, _firstSample))) {
           if (streamChangeStart) {
             this.nextAudioDts = streamChangeStart; // FIX: Hls中途切codec，在如果直接seek到后面的点会导致largeGap计算失败
           }
           this._audioLargeGap = this.nextAudioDts - _firstSample.dts;
+          this._videoLargeGap = Math.abs(this._audioLargeGap - this._videoLargeGap) > 1000 ? this._audioLargeGap : this._videoLargeGap;
+
           Compatibility.doFixLargeGap(audioSamples, this._audioLargeGap);
         }
         // step0. 首帧与video首帧间距大的问题
@@ -2284,7 +2283,7 @@
             // console.log('重定位音频帧dts', audioSamples[0].dts, this.nextAudioDts)
             audioSamples[0].dts = this.nextAudioDts;
             audioSamples[0].pts = this.nextAudioDts;
-          } else if (gap < 0) {
+          } else if (gap < 0 && absGap <= meta.refSampleDuration) {
             Compatibility.doFixLargeGap(audioSamples, -1 * gap);
           }
         }
@@ -3884,7 +3883,7 @@
           }
 
           var dts = avcSample.dts - this._dtsBase;
-
+          var originDts = avcSample.originDts;
           if (firstDts === -1) {
             firstDts = dts;
           }
@@ -3921,7 +3920,7 @@
             }
           }
           this.videoAllDuration += sampleDuration;
-          // console.log(`video dts ${dts}`, `pts ${pts}`, isKeyframe, `duration ${sampleDuration}`)
+          // console.log(`video dts ${dts}`, `pts ${pts}`, `originDts ${originDts}`, isKeyframe, `duration ${sampleDuration}`)
           if (sampleDuration >= 0) {
             mdatBox.samples.push(mdatSample);
             mdatSample.buffer.push(avcSample.data);
@@ -3966,6 +3965,7 @@
         }
 
         if (initSegment) {
+          // console.log('write video init segment to presource', initSegment)
           this.writeToSource('video', initSegment);
 
           if (samples.length) {
@@ -4017,7 +4017,7 @@
           }
 
           var dts = sample.dts - this._dtsBase;
-          var originDts = dts;
+          var originDts = sample.originDts;
           if (!isFirstDtsInited) {
             firstDts = dts;
             isFirstDtsInited = true;
@@ -4041,7 +4041,7 @@
             }
           }
 
-          // console.log(`audio dts ${dts}`, `pts ${dts}`, `duration ${sampleDuration}`)
+          // console.log(`audio dts ${dts}`, `pts ${dts}`, `originDts ${originDts}` , `duration ${sampleDuration}`)
           this.audioAllDuration += sampleDuration;
           var mp4Sample = {
             dts: dts,
@@ -4112,7 +4112,6 @@
         if (!source) {
           source = presourcebuffer.createSource(type);
         }
-
         source.data.push(buffer);
       }
     }, {
@@ -6946,63 +6945,34 @@
     function HlsLivePlayer(options) {
       _classCallCheck$r(this, HlsLivePlayer);
 
-      var _this2 = _possibleConstructorReturn$2(this, (HlsLivePlayer.__proto__ || Object.getPrototypeOf(HlsLivePlayer)).call(this, options));
+      var _this = _possibleConstructorReturn$2(this, (HlsLivePlayer.__proto__ || Object.getPrototypeOf(HlsLivePlayer)).call(this, options));
 
-      _this2.hlsOps = {};
-      _this2.util = Player.util;
-      _this2.util.deepCopy(_this2.hlsOps, options);
-      _this2._context = new Context(HlsAllowedEvents$1);
-      _this2.started = false;
-      return _this2;
+      _this.hlsOps = {};
+      _this.util = Player.util;
+      _this.util.deepCopy(_this.hlsOps, options);
+      _this._context = new Context(HlsAllowedEvents$1);
+      _this.started = false;
+      return _this;
     }
 
     _createClass$r(HlsLivePlayer, [{
       key: '_initEvents',
       value: function _initEvents() {
-        var _this3 = this;
+        var _this2 = this;
 
         this.__core__.once(REMUX_EVENTS$4.INIT_SEGMENT, function () {
-          var mse = _this3._context.getInstance('MSE');
-          if (!_this3.started) {
-            var live = _this3.util.createDom('xg-live', '正在直播', {}, 'xgplayer-live');
-            _this3.util.addClass(_this3.root, 'xgplayer-is-live');
-            _this3.controls.appendChild(live);
+          var mse = _this2._context.getInstance('MSE');
+          if (!_this2.started) {
+            var live = _this2.util.createDom('xg-live', '正在直播', {}, 'xgplayer-live');
+            _this2.util.addClass(_this2.root, 'xgplayer-is-live');
+            _this2.controls.appendChild(live);
           }
-          _this3.started = true;
-          _get$1(HlsLivePlayer.prototype.__proto__ || Object.getPrototypeOf(HlsLivePlayer.prototype), 'start', _this3).call(_this3, mse.url);
+          _this2.started = true;
+          _get$1(HlsLivePlayer.prototype.__proto__ || Object.getPrototypeOf(HlsLivePlayer.prototype), 'start', _this2).call(_this2, mse.url);
         });
 
-        // this.once('canplay', () => {
-        //   this.video.play()
-        // });
-      }
-    }, {
-      key: '_initSrcChangeHandler',
-      value: function _initSrcChangeHandler() {
-        var _this = this;
-        Object.defineProperty(this, 'src', {
-          get: function get() {
-            return _this.currentSrc;
-          },
-          set: function set(url) {
-            _this.config.url = url;
-            if (!_this.paused) {
-              _this.pause();
-              _this.once('pause', function () {
-                _this.start(url);
-              });
-              _this.once('canplay', function () {
-                _this.play();
-              });
-            } else {
-              _this.start(url);
-            }
-            _this.once('canplay', function () {
-              _this.currentTime = 0;
-            });
-          },
-
-          configurable: true
+        this.once('canplay', function () {
+          _this2.video.play();
         });
       }
     }, {
@@ -7013,12 +6983,11 @@
         if (!url || this.started) {
           return;
         }
-        this.__core__ = this._context.registry('HLS_LIVE_CONTROLLER', HlsLiveController)({ player: this, container: this.video });
+        this.__core__ = this._context.registry('HLS_LIVE_CONTROLLER', HlsLiveController)({ player: this, container: this.video, preloadTime: this.config.preloadTime });
         this._context.init();
         this.url = url;
         this.__core__.load(url);
         this._initEvents();
-        this._initSrcChangeHandler();
       }
     }, {
       key: 'play',
@@ -7026,7 +6995,7 @@
         if (this.started) {
           this._context.destroy();
           this._context = new Context(HlsAllowedEvents$1);
-          this.__core__ = this._context.registry('HLS_LIVE_CONTROLLER', HlsLiveController)({ container: this.video });
+          this.__core__ = this._context.registry('HLS_LIVE_CONTROLLER', HlsLiveController)({ player: this, container: this.video, preloadTime: this.config.preloadTime });
           this._context.init();
           this._initEvents();
           this.__core__.load(this.url);
@@ -7038,6 +7007,16 @@
       value: function destroy() {
         this._context.destroy();
         _get$1(HlsLivePlayer.prototype.__proto__ || Object.getPrototypeOf(HlsLivePlayer.prototype), 'destroy', this).call(this);
+      }
+    }, {
+      key: 'src',
+      set: function set(url) {
+        this._context.destroy();
+        this._context = new Context(HlsAllowedEvents$1);
+        this.__core__ = this._context.registry('HLS_LIVE_CONTROLLER', HlsLiveController)({ player: this, container: this.video, preloadTime: this.config.preloadTime });
+        this._context.init();
+        this._initEvents();
+        this.__core__.load(url);
       }
     }]);
 
@@ -7851,6 +7830,7 @@
       this.retrytimes = this.configs.retrytimes || 3;
       this.container = this.configs.container;
       this.preloadTime = this.configs.preloadTime || 5;
+      this.mse = this.configs.mse;
       this._lastSeekTime = 0;
       this._player = this.configs.player;
       this.m3u8Text = null;
@@ -7880,7 +7860,10 @@
         this._context.registry('MP4_REMUXER', Mp4Remuxer)(this._player.currentTime);
 
         // 初始化MSE
-        this.mse = this._context.registry('MSE', MSE)({ container: this.container, preloadTime: this.preloadTime });
+        if (!this.mse) {
+          this.mse = new MSE({ container: this.container, preloadTime: this.preloadTime }, this._context);
+          this.mse.init();
+        }
         this.initEvents();
       }
     }, {
@@ -8293,16 +8276,16 @@
     function HlsVodPlayer(options) {
       _classCallCheck$y(this, HlsVodPlayer);
 
-      var _this2 = _possibleConstructorReturn$4(this, (HlsVodPlayer.__proto__ || Object.getPrototypeOf(HlsVodPlayer)).call(this, options));
+      var _this = _possibleConstructorReturn$4(this, (HlsVodPlayer.__proto__ || Object.getPrototypeOf(HlsVodPlayer)).call(this, options));
 
-      _this2.hlsOps = {};
-      _this2.util = Player.util;
-      _this2.util.deepCopy(_this2.hlsOps, options);
-      _this2._context = new Context(HlsAllowedEvents$2);
-      _this2._handleSetCurrentTime = debounce(_this2._handleSetCurrentTime.bind(_this2), 200);
-      _this2.onWaiting = _this2.onWaiting.bind(_this2);
-      _this2.started = false;
-      return _this2;
+      _this.hlsOps = {};
+      _this.util = Player.util;
+      _this.util.deepCopy(_this.hlsOps, options);
+      _this._context = new Context(HlsAllowedEvents$2);
+      _this._handleSetCurrentTime = debounce(_this._handleSetCurrentTime.bind(_this), 200);
+      _this.onWaiting = _this.onWaiting.bind(_this);
+      _this.started = false;
+      return _this;
     }
 
     _createClass$y(HlsVodPlayer, [{
@@ -8317,13 +8300,13 @@
     }, {
       key: 'play',
       value: function play() {
-        var _this3 = this;
+        var _this2 = this;
 
         return this.video.play().catch(function (e) {
           if (e && e.code === 20) {
             // fix: chrome The play() request was interrupted by a new load request.
-            _this3.once('canplay', function () {
-              _this3.video.play();
+            _this2.once('canplay', function () {
+              _this2.video.play();
             });
           }
         });
@@ -8331,21 +8314,40 @@
     }, {
       key: '_initEvents',
       value: function _initEvents() {
-        var _this4 = this;
+        var _this3 = this;
 
         this.__core__.once(REMUX_EVENTS$6.INIT_SEGMENT, function () {
-          var mse = _this4._context.getInstance('MSE');
-          _get$3(HlsVodPlayer.prototype.__proto__ || Object.getPrototypeOf(HlsVodPlayer.prototype), 'start', _this4).call(_this4, mse.url);
+          var mse = _this3.__core__.mse;
+          _get$3(HlsVodPlayer.prototype.__proto__ || Object.getPrototypeOf(HlsVodPlayer.prototype), 'start', _this3).call(_this3, mse.url);
         });
 
         this.__core__.once(HLS_EVENTS$3.RETRY_TIME_EXCEEDED, function () {
-          _this4.emit('error', new Player.Errors('network', _this4.config.url));
+          _this3.emit('error', new Player.Errors('network', _this3.config.url));
         });
 
         this.once('canplay', function () {
-          if (_this4.config.autoplay) {
-            _this4.play();
+          if (_this3.config.autoplay) {
+            _this3.play();
           }
+        });
+      }
+    }, {
+      key: 'initHlsBackupEvents',
+      value: function initHlsBackupEvents(hls, ctx) {
+        var _this4 = this;
+
+        hls.once(EVENTS.REMUX_EVENTS.MEDIA_SEGMENT, function () {
+          _this4.__core__ = hls;
+          _this4.__core__.mse.cleanBuffers().then(function () {
+            _this4.__core__.mse.resetContext(ctx);
+            _this4.__core__.mse.doAppend();
+            _this4._context.destroy();
+            _this4._context = ctx;
+          });
+        });
+
+        hls.once(EVENTS.LOADER_EVENTS.LOADER_ERROR, function () {
+          ctx.destroy();
         });
       }
     }, {
@@ -8373,35 +8375,6 @@
         }, 500);
       }
     }, {
-      key: '_initSrcChangeHandler',
-      value: function _initSrcChangeHandler() {
-        var _this = this;
-        Object.defineProperty(this, 'src', {
-          get: function get() {
-            return _this.currentSrc;
-          },
-          set: function set(url) {
-            _this.config.url = url;
-            if (!_this.paused) {
-              _this.pause();
-              _this.once('pause', function () {
-                _this.start(url);
-              });
-              _this.once('canplay', function () {
-                _this.play();
-              });
-            } else {
-              _this.start(url);
-            }
-            _this.once('canplay', function () {
-              _this.currentTime = 0;
-            });
-          },
-
-          configurable: true
-        });
-      }
-    }, {
       key: 'start',
       value: function start() {
         var url = arguments.length > 0 && arguments[0] !== undefined ? arguments[0] : this.config.url;
@@ -8410,13 +8383,26 @@
           return;
         }
 
-        this.__core__ = this._context.registry('HLS_LIVE_CONTROLLER', HlsVodController)({ player: this, container: this.video });
+        this.__core__ = this._context.registry('HLS_VOD_CONTROLLER', HlsVodController)({ player: this, container: this.video });
         this._context.init();
         this.__core__.load(url);
         this._initEvents();
-        this._initSrcChangeHandler();
 
         this.started = true;
+      }
+    }, {
+      key: 'swithURL',
+      value: function swithURL(url) {
+        this.config.url = url;
+        var context = new Context(HlsAllowedEvents$2);
+        var hls = context.registry('HLS_VOD_CONTROLLER', HlsVodController)({
+          player: this,
+          container: this.video,
+          mse: this.__core__.mse
+        });
+        context.init();
+        this.initHlsBackupEvents(hls, context);
+        hls.load(url);
       }
     }, {
       key: 'destroy',
@@ -8454,6 +8440,30 @@
       },
       set: function set(time) {
         this._handleSetCurrentTime(time);
+      }
+    }, {
+      key: 'src',
+      get: function get() {
+        return this.currentSrc;
+      },
+      set: function set(url) {
+        var _this6 = this;
+
+        this.currentTime = 0;
+        this.__core__.destroy();
+        this._context = new Context(HlsAllowedEvents$2);
+        this.onWaiting = this.onWaiting.bind(this);
+        this.started = false;
+        this.start(url);
+        if (!this.paused) {
+          this.pause();
+          this.once('canplay', function () {
+            _this6.play();
+          });
+        } else {
+          this.play();
+        }
+        // this.swithURL(url)
       }
     }]);
 

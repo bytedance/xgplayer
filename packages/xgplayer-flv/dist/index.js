@@ -2189,7 +2189,7 @@
           }
 
           var dts = avcSample.dts - this._dtsBase;
-
+          var originDts = avcSample.originDts;
           if (firstDts === -1) {
             firstDts = dts;
           }
@@ -2226,7 +2226,7 @@
             }
           }
           this.videoAllDuration += sampleDuration;
-          // console.log(`video dts ${dts}`, `pts ${pts}`, isKeyframe, `duration ${sampleDuration}`)
+          // console.log(`video dts ${dts}`, `pts ${pts}`, `originDts ${originDts}`, isKeyframe, `duration ${sampleDuration}`)
           if (sampleDuration >= 0) {
             mdatBox.samples.push(mdatSample);
             mdatSample.buffer.push(avcSample.data);
@@ -2271,6 +2271,7 @@
         }
 
         if (initSegment) {
+          // console.log('write video init segment to presource', initSegment)
           this.writeToSource('video', initSegment);
 
           if (samples.length) {
@@ -2322,7 +2323,7 @@
           }
 
           var dts = sample.dts - this._dtsBase;
-          var originDts = dts;
+          var originDts = sample.originDts;
           if (!isFirstDtsInited) {
             firstDts = dts;
             isFirstDtsInited = true;
@@ -2346,7 +2347,7 @@
             }
           }
 
-          // console.log(`audio dts ${dts}`, `pts ${dts}`, `duration ${sampleDuration}`)
+          // console.log(`audio dts ${dts}`, `pts ${dts}`, `originDts ${originDts}` , `duration ${sampleDuration}`)
           this.audioAllDuration += sampleDuration;
           var mp4Sample = {
             dts: dts,
@@ -2417,7 +2418,6 @@
         if (!source) {
           source = presourcebuffer.createSource(type);
         }
-
         source.data.push(buffer);
       }
     }, {
@@ -5520,9 +5520,7 @@
         // step0.修复hls流出现巨大gap，需要强制重定位的问题
         if (this._videoLargeGap !== 0) {
           Compatibility.doFixLargeGap(videoSamples, this._videoLargeGap);
-        }
-
-        if (firstSample.dts !== this._firstVideoSample.dts && (streamChangeStart || this.videoLastSample && Compatibility.detectLargeGap(this.videoLastSample.dts, firstSample))) {
+        } else if (firstSample.dts !== this._firstVideoSample.dts && (streamChangeStart || this.videoLastSample && Compatibility.detectLargeGap(this.videoLastSample.dts, firstSample))) {
           if (streamChangeStart) {
             this.nextVideoDts = streamChangeStart; // FIX: Hls中途切codec，在如果直接seek到后面的点会导致largeGap计算失败
           } else {
@@ -5530,6 +5528,7 @@
           }
 
           this._videoLargeGap = this.nextVideoDts - firstSample.dts;
+          this._audioLargeGap = Math.abs(this._audioLargeGap - this._videoLargeGap) > 1000 ? this._videoLargeGap : this._audioLargeGap;
           Compatibility.doFixLargeGap(videoSamples, this._videoLargeGap);
         }
 
@@ -5555,7 +5554,7 @@
               });
             }
             this._firstVideoSample = this.filledVideoSamples[0] || this._firstVideoSample;
-          } else if (gap < -2 * meta.refSampleDuration) {
+          } else if (gap < -2 * meta.refSampleDuration && !this._videoLargeGap) {
             this._videoLargeGap = -1 * gap;
             Compatibility.doFixLargeGap(videoSamples, -1 * gap);
           }
@@ -5605,13 +5604,13 @@
         // audioSamples = Compatibility.sortAudioSamples(audioSamples)
         if (this._audioLargeGap !== 0) {
           Compatibility.doFixLargeGap(audioSamples, this._audioLargeGap);
-        }
-
-        if (_firstSample.dts !== this._firstAudioSample.dts && (streamChangeStart || Compatibility.detectLargeGap(this.nextAudioDts, _firstSample))) {
+        } else if (_firstSample.dts !== this._firstAudioSample.dts && (streamChangeStart || Compatibility.detectLargeGap(this.nextAudioDts, _firstSample))) {
           if (streamChangeStart) {
             this.nextAudioDts = streamChangeStart; // FIX: Hls中途切codec，在如果直接seek到后面的点会导致largeGap计算失败
           }
           this._audioLargeGap = this.nextAudioDts - _firstSample.dts;
+          this._videoLargeGap = Math.abs(this._audioLargeGap - this._videoLargeGap) > 1000 ? this._audioLargeGap : this._videoLargeGap;
+
           Compatibility.doFixLargeGap(audioSamples, this._audioLargeGap);
         }
         // step0. 首帧与video首帧间距大的问题
@@ -5681,7 +5680,7 @@
             // console.log('重定位音频帧dts', audioSamples[0].dts, this.nextAudioDts)
             audioSamples[0].dts = this.nextAudioDts;
             audioSamples[0].pts = this.nextAudioDts;
-          } else if (gap < 0) {
+          } else if (gap < 0 && absGap <= meta.refSampleDuration) {
             Compatibility.doFixLargeGap(audioSamples, -1 * gap);
           }
         }

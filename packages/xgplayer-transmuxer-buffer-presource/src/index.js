@@ -2,7 +2,7 @@ class Source {
   constructor () {
     this.mimetype = '';
     this.init = null;
-    this.data = [];
+    this.data = []
   }
 }
 

@@ -5,14 +5,14 @@ function _classCallCheck(instance, Constructor) { if (!(instance instanceof Cons
 import FlvDemuxer from 'xgplayer-transmuxer-demux-flv';
 import FetchLoader from 'xgplayer-transmuxer-loader-fetch';
 import EVENTS from 'xgplayer-transmuxer-constant-events';
-
 import Tracks from 'xgplayer-transmuxer-buffer-track';
 import XgBuffer from 'xgplayer-transmuxer-buffer-xgbuffer';
-
+import { PageVisibility } from 'xgplayer-utils-sniffer';
 import Player from 'xgplayer';
 
 var DEMUX_EVENTS = EVENTS.DEMUX_EVENTS;
 var LOADER_EVENTS = EVENTS.LOADER_EVENTS;
+var BROWSER_EVENTS = EVENTS.BROWSER_EVENTS;
 
 var Tag = 'FLVController';
 
@@ -62,6 +62,7 @@ var FlvController = function () {
       this._context.registry('TRACKS', Tracks);
 
       this._context.registry('LOGGER', Logger);
+      this._context.registry('PAGE_VISIBILITY', PageVisibility);
     }
   }, {
     key: 'initListeners',
@@ -74,6 +75,7 @@ var FlvController = function () {
       this.on(DEMUX_EVENTS.DEMUX_COMPLETE, this._handleDemuxComplete.bind(this));
       this.on(DEMUX_EVENTS.DEMUX_ERROR, this._handleDemuxError.bind(this));
       this.on(DEMUX_EVENTS.SEI_PARSED, this._handleSEIParsed.bind(this));
+      this.on(BROWSER_EVENTS.VISIBILITY_CHANGE, this._handleVisibilityChange.bind(this));
     }
   }, {
     key: '_handleMediaInfo',
@@ -101,6 +103,13 @@ var FlvController = function () {
             audioTrack = _context$getInstance.audioTrack;
 
         this._player.video.onDemuxComplete(videoTrack, audioTrack);
+      }
+    }
+  }, {
+    key: '_handleVisibilityChange',
+    value: function _handleVisibilityChange(visible) {
+      if (!visible && !this._player.paused) {
+        this._player.pause();
       }
     }
   }, {

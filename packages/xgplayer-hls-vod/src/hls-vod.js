@@ -254,7 +254,7 @@ class HlsVodController {
     const { video } = this._player;
     for (let i = 0; i < video.buffered.length; i++) {
       if (time >= video.buffered.start(i) && time < video.buffered.end(i)) {
-        this._playlist.clearDownloaded();
+        // this._playlist.clearDownloaded();
         return;
       }
     }

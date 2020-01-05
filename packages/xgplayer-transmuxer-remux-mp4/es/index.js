@@ -182,7 +182,7 @@ var Mp4Remuxer = function () {
         }
 
         var dts = avcSample.dts - this._dtsBase;
-
+        var originDts = avcSample.originDts;
         if (firstDts === -1) {
           firstDts = dts;
         }
@@ -219,7 +219,7 @@ var Mp4Remuxer = function () {
           }
         }
         this.videoAllDuration += sampleDuration;
-        // console.log(`video dts ${dts}`, `pts ${pts}`, isKeyframe, `duration ${sampleDuration}`)
+        // console.log(`video dts ${dts}`, `pts ${pts}`, `originDts ${originDts}`, isKeyframe, `duration ${sampleDuration}`)
         if (sampleDuration >= 0) {
           mdatBox.samples.push(mdatSample);
           mdatSample.buffer.push(avcSample.data);
@@ -264,6 +264,7 @@ var Mp4Remuxer = function () {
       }
 
       if (initSegment) {
+        // console.log('write video init segment to presource', initSegment)
         this.writeToSource('video', initSegment);
 
         if (samples.length) {
@@ -315,7 +316,7 @@ var Mp4Remuxer = function () {
         }
 
         var dts = sample.dts - this._dtsBase;
-        var originDts = dts;
+        var originDts = sample.originDts;
         if (!isFirstDtsInited) {
           firstDts = dts;
           isFirstDtsInited = true;
@@ -339,7 +340,7 @@ var Mp4Remuxer = function () {
           }
         }
 
-        // console.log(`audio dts ${dts}`, `pts ${dts}`, `duration ${sampleDuration}`)
+        // console.log(`audio dts ${dts}`, `pts ${dts}`, `originDts ${originDts}` , `duration ${sampleDuration}`)
         this.audioAllDuration += sampleDuration;
         var mp4Sample = {
           dts: dts,
@@ -410,7 +411,6 @@ var Mp4Remuxer = function () {
       if (!source) {
         source = presourcebuffer.createSource(type);
       }
-
       source.data.push(buffer);
     }
   }, {

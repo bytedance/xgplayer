@@ -111,9 +111,7 @@ class Compatibility {
     // step0.修复hls流出现巨大gap，需要强制重定位的问题
     if (this._videoLargeGap !== 0) {
       Compatibility.doFixLargeGap(videoSamples, this._videoLargeGap)
-    }
-
-    if (firstSample.dts !== this._firstVideoSample.dts && (streamChangeStart || (this.videoLastSample && Compatibility.detectLargeGap(this.videoLastSample.dts, firstSample)))) {
+    } else if (firstSample.dts !== this._firstVideoSample.dts && (streamChangeStart || (this.videoLastSample && Compatibility.detectLargeGap(this.videoLastSample.dts, firstSample)))) {
       if (streamChangeStart) {
         this.nextVideoDts = streamChangeStart // FIX: Hls中途切codec，在如果直接seek到后面的点会导致largeGap计算失败
       } else {
@@ -121,6 +119,7 @@ class Compatibility {
       }
 
       this._videoLargeGap = this.nextVideoDts - firstSample.dts
+      this._audioLargeGap = Math.abs(this._audioLargeGap - this._videoLargeGap) > 1000 ? this._videoLargeGap : this._audioLargeGap;
       Compatibility.doFixLargeGap(videoSamples, this._videoLargeGap)
     }
 
@@ -146,7 +145,7 @@ class Compatibility {
           })
         }
         this._firstVideoSample = this.filledVideoSamples[0] || this._firstVideoSample
-      } else if (gap < (-2 * meta.refSampleDuration)) {
+      } else if (gap < (-2 * meta.refSampleDuration) && !this._videoLargeGap) {
         this._videoLargeGap = -1 * gap
         Compatibility.doFixLargeGap(videoSamples, -1 * gap)
       }
@@ -193,13 +192,13 @@ class Compatibility {
     // audioSamples = Compatibility.sortAudioSamples(audioSamples)
     if (this._audioLargeGap !== 0) {
       Compatibility.doFixLargeGap(audioSamples, this._audioLargeGap)
-    }
-
-    if (_firstSample.dts !== this._firstAudioSample.dts && (streamChangeStart || Compatibility.detectLargeGap(this.nextAudioDts, _firstSample))) {
+    } else if (_firstSample.dts !== this._firstAudioSample.dts && (streamChangeStart || Compatibility.detectLargeGap(this.nextAudioDts, _firstSample))) {
       if (streamChangeStart) {
         this.nextAudioDts = streamChangeStart // FIX: Hls中途切codec，在如果直接seek到后面的点会导致largeGap计算失败
       }
       this._audioLargeGap = this.nextAudioDts - _firstSample.dts
+      this._videoLargeGap = Math.abs(this._audioLargeGap - this._videoLargeGap) > 1000 ? this._audioLargeGap : this._videoLargeGap;
+
       Compatibility.doFixLargeGap(audioSamples, this._audioLargeGap)
     }
     // step0. 首帧与video首帧间距大的问题
@@ -269,7 +268,7 @@ class Compatibility {
         // console.log('重定位音频帧dts', audioSamples[0].dts, this.nextAudioDts)
         audioSamples[0].dts = this.nextAudioDts
         audioSamples[0].pts = this.nextAudioDts
-      } else if (gap < 0) {
+      } else if (gap < 0 && absGap <= meta.refSampleDuration) {
         Compatibility.doFixLargeGap(audioSamples, (-1 * gap))
       }
     }

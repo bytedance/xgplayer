@@ -26,6 +26,8 @@ var _xgplayerTransmuxerBufferXgbuffer = require('xgplayer-transmuxer-buffer-xgbu
 
 var _xgplayerTransmuxerBufferXgbuffer2 = _interopRequireDefault(_xgplayerTransmuxerBufferXgbuffer);
 
+var _xgplayerUtilsSniffer = require('xgplayer-utils-sniffer');
+
 var _xgplayer = require('xgplayer');
 
 var _xgplayer2 = _interopRequireDefault(_xgplayer);
@@ -36,6 +38,7 @@ function _classCallCheck(instance, Constructor) { if (!(instance instanceof Cons
 
 var DEMUX_EVENTS = _xgplayerTransmuxerConstantEvents2.default.DEMUX_EVENTS;
 var LOADER_EVENTS = _xgplayerTransmuxerConstantEvents2.default.LOADER_EVENTS;
+var BROWSER_EVENTS = _xgplayerTransmuxerConstantEvents2.default.BROWSER_EVENTS;
 
 var Tag = 'FLVController';
 
@@ -85,6 +88,7 @@ var FlvController = function () {
       this._context.registry('TRACKS', _xgplayerTransmuxerBufferTrack2.default);
 
       this._context.registry('LOGGER', Logger);
+      this._context.registry('PAGE_VISIBILITY', _xgplayerUtilsSniffer.PageVisibility);
     }
   }, {
     key: 'initListeners',
@@ -97,6 +101,7 @@ var FlvController = function () {
       this.on(DEMUX_EVENTS.DEMUX_COMPLETE, this._handleDemuxComplete.bind(this));
       this.on(DEMUX_EVENTS.DEMUX_ERROR, this._handleDemuxError.bind(this));
       this.on(DEMUX_EVENTS.SEI_PARSED, this._handleSEIParsed.bind(this));
+      this.on(BROWSER_EVENTS.VISIBILITY_CHANGE, this._handleVisibilityChange.bind(this));
     }
   }, {
     key: '_handleMediaInfo',
@@ -124,6 +129,13 @@ var FlvController = function () {
             audioTrack = _context$getInstance.audioTrack;
 
         this._player.video.onDemuxComplete(videoTrack, audioTrack);
+      }
+    }
+  }, {
+    key: '_handleVisibilityChange',
+    value: function _handleVisibilityChange(visible) {
+      if (!visible && !this._player.paused) {
+        this._player.pause();
       }
     }
   }, {

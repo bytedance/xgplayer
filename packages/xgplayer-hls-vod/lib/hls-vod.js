@@ -77,6 +77,7 @@ var HlsVodController = function () {
     this.retrytimes = this.configs.retrytimes || 3;
     this.container = this.configs.container;
     this.preloadTime = this.configs.preloadTime || 5;
+    this.mse = this.configs.mse;
     this._lastSeekTime = 0;
     this._player = this.configs.player;
     this.m3u8Text = null;
@@ -106,7 +107,10 @@ var HlsVodController = function () {
       this._context.registry('MP4_REMUXER', _xgplayerTransmuxerRemuxMp2.default)(this._player.currentTime);
 
       // 初始化MSE
-      this.mse = this._context.registry('MSE', _xgplayerUtilsMse2.default)({ container: this.container, preloadTime: this.preloadTime });
+      if (!this.mse) {
+        this.mse = new _xgplayerUtilsMse2.default({ container: this.container, preloadTime: this.preloadTime }, this._context);
+        this.mse.init();
+      }
       this.initEvents();
     }
   }, {

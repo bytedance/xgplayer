@@ -41,63 +41,34 @@ var HlsLivePlayer = function (_Player) {
   function HlsLivePlayer(options) {
     _classCallCheck(this, HlsLivePlayer);
 
-    var _this2 = _possibleConstructorReturn(this, (HlsLivePlayer.__proto__ || Object.getPrototypeOf(HlsLivePlayer)).call(this, options));
+    var _this = _possibleConstructorReturn(this, (HlsLivePlayer.__proto__ || Object.getPrototypeOf(HlsLivePlayer)).call(this, options));
 
-    _this2.hlsOps = {};
-    _this2.util = _xgplayer2.default.util;
-    _this2.util.deepCopy(_this2.hlsOps, options);
-    _this2._context = new _xgplayerTransmuxerContext2.default(HlsAllowedEvents);
-    _this2.started = false;
-    return _this2;
+    _this.hlsOps = {};
+    _this.util = _xgplayer2.default.util;
+    _this.util.deepCopy(_this.hlsOps, options);
+    _this._context = new _xgplayerTransmuxerContext2.default(HlsAllowedEvents);
+    _this.started = false;
+    return _this;
   }
 
   _createClass(HlsLivePlayer, [{
     key: '_initEvents',
     value: function _initEvents() {
-      var _this3 = this;
+      var _this2 = this;
 
       this.__core__.once(REMUX_EVENTS.INIT_SEGMENT, function () {
-        var mse = _this3._context.getInstance('MSE');
-        if (!_this3.started) {
-          var live = _this3.util.createDom('xg-live', '正在直播', {}, 'xgplayer-live');
-          _this3.util.addClass(_this3.root, 'xgplayer-is-live');
-          _this3.controls.appendChild(live);
+        var mse = _this2._context.getInstance('MSE');
+        if (!_this2.started) {
+          var live = _this2.util.createDom('xg-live', '正在直播', {}, 'xgplayer-live');
+          _this2.util.addClass(_this2.root, 'xgplayer-is-live');
+          _this2.controls.appendChild(live);
         }
-        _this3.started = true;
-        _get(HlsLivePlayer.prototype.__proto__ || Object.getPrototypeOf(HlsLivePlayer.prototype), 'start', _this3).call(_this3, mse.url);
+        _this2.started = true;
+        _get(HlsLivePlayer.prototype.__proto__ || Object.getPrototypeOf(HlsLivePlayer.prototype), 'start', _this2).call(_this2, mse.url);
       });
 
-      // this.once('canplay', () => {
-      //   this.video.play()
-      // });
-    }
-  }, {
-    key: '_initSrcChangeHandler',
-    value: function _initSrcChangeHandler() {
-      var _this = this;
-      Object.defineProperty(this, 'src', {
-        get: function get() {
-          return _this.currentSrc;
-        },
-        set: function set(url) {
-          _this.config.url = url;
-          if (!_this.paused) {
-            _this.pause();
-            _this.once('pause', function () {
-              _this.start(url);
-            });
-            _this.once('canplay', function () {
-              _this.play();
-            });
-          } else {
-            _this.start(url);
-          }
-          _this.once('canplay', function () {
-            _this.currentTime = 0;
-          });
-        },
-
-        configurable: true
+      this.once('canplay', function () {
+        _this2.video.play();
       });
     }
   }, {
@@ -108,12 +79,11 @@ var HlsLivePlayer = function (_Player) {
       if (!url || this.started) {
         return;
       }
-      this.__core__ = this._context.registry('HLS_LIVE_CONTROLLER', _hlsLive2.default)({ player: this, container: this.video });
+      this.__core__ = this._context.registry('HLS_LIVE_CONTROLLER', _hlsLive2.default)({ player: this, container: this.video, preloadTime: this.config.preloadTime });
       this._context.init();
       this.url = url;
       this.__core__.load(url);
       this._initEvents();
-      this._initSrcChangeHandler();
     }
   }, {
     key: 'play',
@@ -121,7 +91,7 @@ var HlsLivePlayer = function (_Player) {
       if (this.started) {
         this._context.destroy();
         this._context = new _xgplayerTransmuxerContext2.default(HlsAllowedEvents);
-        this.__core__ = this._context.registry('HLS_LIVE_CONTROLLER', _hlsLive2.default)({ container: this.video });
+        this.__core__ = this._context.registry('HLS_LIVE_CONTROLLER', _hlsLive2.default)({ player: this, container: this.video, preloadTime: this.config.preloadTime });
         this._context.init();
         this._initEvents();
         this.__core__.load(this.url);
@@ -133,6 +103,16 @@ var HlsLivePlayer = function (_Player) {
     value: function destroy() {
       this._context.destroy();
       _get(HlsLivePlayer.prototype.__proto__ || Object.getPrototypeOf(HlsLivePlayer.prototype), 'destroy', this).call(this);
+    }
+  }, {
+    key: 'src',
+    set: function set(url) {
+      this._context.destroy();
+      this._context = new _xgplayerTransmuxerContext2.default(HlsAllowedEvents);
+      this.__core__ = this._context.registry('HLS_LIVE_CONTROLLER', _hlsLive2.default)({ player: this, container: this.video, preloadTime: this.config.preloadTime });
+      this._context.init();
+      this._initEvents();
+      this.__core__.load(url);
     }
   }]);
 
