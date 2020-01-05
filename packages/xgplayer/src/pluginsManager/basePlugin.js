@@ -5,13 +5,22 @@ import * as event from '../events'
 
 const type = 'base'
 
+
+function checkIsFunction (fun) {
+  return fun && typeof fun === 'function'
+}
+
+function checkIsObj(obj) {
+  return obj && typeof obj === ''
+}
+
 class BasePlugin {
   static get PluginType () {
     return type
   }
 
-  static get Name () {
-    return 'BasePlugin'
+  static get name () {
+    return ''
   }
 
   constructor (args) {
@@ -24,41 +33,19 @@ class BasePlugin {
     this.__parentDom = null
     this.__el = null
     this.config = args.config || {}
-    if (this.beforeCreate && typeof this.beforeCreate === 'function') {
+    if (checkIsFunction(this.beforeCreate)) {
       this.beforeCreate()
     }
     this.__init(args)
-    if (this.afterCreate && typeof this.afterCreate === 'function') {
+    if (checkIsFunction(this.afterCreate)) {
       this.afterCreate()
     }
   }
 
   __init (args) {
     this.__player = args.player
-    this.__playerConfig = args.player.config
+    this.__playerConfig = args.player && args.player.config
     this.__name = args.name
-  }
-
-  beforeCreate () {}
-
-  afterCreate () {}
-
-  beforePlayerInit () {
-  }
-
-  afterPlayerInit () {
-  }
-
-  on (event, callback) {
-    if (typeof event === 'string') {
-      this.__events[event] = callback
-      this.player.on(event, callback)
-    } else if (Array.isArray(event)) {
-      event.forEach((item) => {
-        this.__events[item] = callback
-        this.player.on(item, callback)
-      })
-    }
   }
 
   get player () {
@@ -79,6 +66,18 @@ class BasePlugin {
 
   get el () {
     return this.__el
+  }
+
+  on (event, callback) {
+    if (typeof event === 'string') {
+      this.__events[event] = callback
+      this.player.on(event, callback)
+    } else if (Array.isArray(event)) {
+      event.forEach((item) => {
+        this.__events[item] = callback
+        this.player.on(item, callback)
+      })
+    }
   }
 
   once (event, callback) {
@@ -107,8 +106,11 @@ class BasePlugin {
     this.player.emit(event, res)
   }
 
-  destroy () {
+  _destroy () {
     this.offAll()
+    if (checkIsFunction(this.destroy)) {
+      this.destroy();
+    }
   }
 }
 

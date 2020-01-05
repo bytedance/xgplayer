@@ -29,20 +29,23 @@ const pluginsManager = {
       return
     }
     let cgid = player._pluginInfoId
-    if (!this.pluginGroup || !this.pluginGroup[cgid]) {
+    if (!cgid || !this.pluginGroup || !this.pluginGroup[cgid]) {
       this.init(player)
       cgid = player._pluginInfoId
     }
     if (!this.pluginGroup[cgid]._plugins) {
-      this.pluginGroup[cgid]._plugins = {}
+      this.pluginGroup[cgid]._plugins = []
     }
     const plugins = this.pluginGroup[cgid]._plugins
     const originalOptions = this.pluginGroup[cgid]._originalOptions
     options.player = this.pluginGroup[cgid]._player
-    const name = plugin.name
-    options.name = name
+    console.log('plugin.pluginName', plugin.pluginName)
+    const pluginName = plugin.pluginName
+    if (!pluginName) {
+      throw new Error('The property pluginName is necessary') 
+    }
     for (const item of Object.keys(originalOptions)) {
-      if (name.toLowerCase() === item.toLowerCase()) {
+      if (pluginName.toLowerCase() === item.toLowerCase()) {
         options.config = originalOptions[item]
       } else {
         options.config = {}
@@ -51,22 +54,31 @@ const pluginsManager = {
     if (!options.root) {
       options.root = player.root
     }
-    if (options.disabled && name !== 'dashboard') {
-      return null
+    try { // eslint-disable-next-line new-cap
+      plugins[pluginName.toLowerCase()] = new plugin(options)
+      plugins[pluginName.toLowerCase()].func = plugin
+      return plugins[pluginName.toLowerCase()]
+    } catch (err) {
+      throw(err)
     }
-    // eslint-disable-next-line new-cap
-    plugins[name.toLowerCase()] = new plugin(options)
-    plugins[name.toLowerCase()].func = plugin
-    return plugins[name.toLowerCase()]
   },
 
   unRegister (cgid, name) {
     try {
-      this.pluginGroup[cgid]._plugins[name].destroy()
+      this.pluginGroup[cgid]._plugins[name]._destroy()
       this.pluginGroup[cgid]._plugins[name] = null
     } catch (e) {
       this.pluginGroup[cgid]._plugins[name] = null
     }
+  },
+
+  /**
+   * get all plugin instance of player
+   * @param {*} player 
+   */
+  getPlugins(player) {
+    const cgid = player._pluginInfoId
+    return cgid ? this.pluginGroup[cgid]._plugins : {}
   },
 
   findPlugin (player, name) {
@@ -129,5 +141,5 @@ const pluginsManager = {
     delete this.pluginGroup[cgid]
   }
 }
-window.pluginsManager = pluginsManager;
+
 export default pluginsManager

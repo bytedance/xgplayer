@@ -3,12 +3,8 @@ import ReplayIcon from '../../skin/assets/replay.svg'
 import './replay.scss'
 
 class Replay extends Plugin {
-  static get name () {
+  static get pluginName () {
     return 'Replay'
-  }
-
-  static get ignoreKey () {
-    return 'replay'
   }
 
   afterCreate () {
@@ -33,7 +29,6 @@ class Replay extends Plugin {
       }
     })
   }
-
   render () {
     const replayText = this.player.lang.REPLAY
     return `<xg-replay class="xgplayer-replay">

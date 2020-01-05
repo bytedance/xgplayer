@@ -2,12 +2,8 @@ import {Plugin} from '../../pluginsManager'
 import './poster.scss'
 
 class Poster extends Plugin {
-  static get name () {
+  static get pluginName () {
     return 'Poster'
-  }
-
-  static get ignoreKey () {
-    return 'poster'
   }
 
   render () {

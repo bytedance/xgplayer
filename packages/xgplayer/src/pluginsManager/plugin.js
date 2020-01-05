@@ -143,7 +143,7 @@ export default class Plugin extends BasePlugin {
 
   unbindEL (event, eventHandle, isBubble = false) {
     if (`on${event}` in this.el && typeof eventHandle === 'function') {
-      this._node.removeEventListener(event, eventHandle, isBubble)
+      this.el.removeEventListener(event, eventHandle, isBubble)
     }
   }
 
@@ -164,7 +164,11 @@ export default class Plugin extends BasePlugin {
     return ''
   }
 
-  destroy () {
+  _destroy () {
+    this.offAll()
+    if (checkIsFunction(this.destroy)) {
+      this.destroy();
+    }
     if (this.el) {
       if (this.el.hasOwnProperty('remove')) {
         this.el.remove()
@@ -172,6 +176,5 @@ export default class Plugin extends BasePlugin {
         this.el.parentNode.removeChild(this.el)
       }
     }
-    this.offAll()
   }
 }

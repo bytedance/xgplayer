@@ -103,6 +103,9 @@ class Player extends Proxy {
               }
             }
             self.pluginsCall()
+            self._registerPlugins()
+          }).catch(() => {
+            this._registerPlugins()
           })
         }
       }).catch(function (err) {
@@ -110,8 +113,8 @@ class Player extends Proxy {
       })
     } else {
       this.pluginsCall()
+      this._registerPlugins()
     }
-    this._registerPlugins()
     this.ev.forEach((item) => {
       let evName = Object.keys(item)[0]
       let evFunc = this[item[evName]]
@@ -193,11 +196,32 @@ class Player extends Proxy {
     const plugins = this.config.plugins || []
     const ignoresStr = ignores.join('||')
     plugins.map(plugin => {
-      if (plugin.ignoreKey && ignoresStr.indexOf(plugin.ignoreKey.toLowerCase()) > -1) {
+      try {
+        //在ignores中的不做组装
+        if (plugin.pluginName && ignoresStr.indexOf(plugin.pluginName.toLowerCase()) > -1) {
+          return null
+        }
+        return pluginsManager.register(this, plugin)
+      } catch(err) {
         return null
       }
-      return pluginsManager.register(this, plugin)
     })
+  }
+
+  register(){
+  }
+
+  unRegister(){}
+
+  /**
+   * 当前播放器挂在的插件实例代码
+   */
+  get plugins() {
+    return pluginsManager.getPlugins(this)
+  }
+
+  getPlugin(pluginName) {
+    return pluginsManager.findPlugin(this, pluginName)
   }
 
   start (url = this.config.url) {
