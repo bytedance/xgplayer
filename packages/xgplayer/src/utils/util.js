@@ -227,4 +227,12 @@ util.Hex2RGBA = function (hex, alpha) {
   }
 }
 
+
+util.checkIsFunction = function(fun){
+  return typeof fun === 'function'
+}
+
+util.checkIsObject = function(obj) {
+  return obj !== null && typeof obj === 'object'
+}
 export default util

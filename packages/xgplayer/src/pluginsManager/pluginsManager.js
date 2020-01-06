@@ -40,7 +40,7 @@ const pluginsManager = {
     const originalOptions = this.pluginGroup[cgid]._originalOptions
     options.player = this.pluginGroup[cgid]._player
     console.log('plugin.pluginName', plugin.pluginName)
-    const pluginName = plugin.pluginName
+    const pluginName = options.pluginName || plugin.pluginName
     if (!pluginName) {
       throw new Error('The property pluginName is necessary') 
     }
@@ -59,6 +59,7 @@ const pluginsManager = {
       plugins[pluginName.toLowerCase()].func = plugin
       return plugins[pluginName.toLowerCase()]
     } catch (err) {
+      console.error(err)
       throw(err)
     }
   },
