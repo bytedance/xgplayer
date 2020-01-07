@@ -48,17 +48,28 @@ var FlvPlayer = function (_Player) {
 
     var _this = _possibleConstructorReturn(this, (FlvPlayer.__proto__ || Object.getPrototypeOf(FlvPlayer)).call(this, config));
 
-    _this.video.width = Number.parseInt(config.width || 600);
-    _this.video.height = Number.parseInt(config.height || 337.5);
-    _this.video.style.outline = 'none';
-    _this.context = new _xgplayerTransmuxerContext2.default(flvAllowedEvents);
-    _this.initEvents();
+    if (!_this.playerInited) {
+      _this.initPlayer(config);
+    }
     return _this;
   }
 
   _createClass(FlvPlayer, [{
+    key: 'initPlayer',
+    value: function initPlayer() {
+      this.video.width = Number.parseInt(this.config.width || 600);
+      this.video.height = Number.parseInt(this.config.height || 337.5);
+      this.video.style.outline = 'none';
+      this.context = new _xgplayerTransmuxerContext2.default(flvAllowedEvents);
+      this.initEvents();
+      this.playerInited = true;
+    }
+  }, {
     key: 'start',
     value: function start() {
+      if (!this.playerInited) {
+        this.initPlayer();
+      }
       this.initFlv();
       this.context.init();
       this.flv.seek(0);

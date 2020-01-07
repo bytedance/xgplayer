@@ -10,15 +10,24 @@ class FlvPlayer extends Player {
     if (!config.mediaType) {
       config.mediaType = 'mobile-video'
     }
-    super(config)
-    this.video.width = Number.parseInt(config.width || 600)
-    this.video.height = Number.parseInt(config.height || 337.5)
+    super(config);
+    if (!this.playerInited) {
+      this.initPlayer(config)
+    }
+  }
+
+  initPlayer () {
+    this.video.width = Number.parseInt(this.config.width || 600)
+    this.video.height = Number.parseInt(this.config.height || 337.5)
     this.video.style.outline = 'none';
     this.context = new Context(flvAllowedEvents)
     this.initEvents()
+    this.playerInited = true;
   }
-
   start () {
+    if (!this.playerInited) {
+      this.initPlayer()
+    }
     this.initFlv()
     this.context.init()
     this.flv.seek(0);
