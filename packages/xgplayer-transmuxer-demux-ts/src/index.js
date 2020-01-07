@@ -107,7 +107,7 @@ class TsDemuxer {
 
   pushAudioSample (pes, options) {
     let track;
-    if (!this._tracks.audioTrack) {
+    if (!this._tracks || !this._tracks.audioTrack) {
       this._tracks.audioTrack = new AudioTrack();
       track = this._tracks.audioTrack;
     } else {
@@ -143,7 +143,7 @@ class TsDemuxer {
     let nals = NalUnit.getNalunits(pes.ES.buffer);
     let track;
     let meta = new VideoTrackMeta();
-    if (!this._tracks.videoTrack) {
+    if (!this._tracks || !this._tracks.videoTrack) {
       this._tracks.videoTrack = new VideoTrack();
       track = this._tracks.videoTrack;
     } else {

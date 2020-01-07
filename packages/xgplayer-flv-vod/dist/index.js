@@ -1959,6 +1959,7 @@
         var content = u8aToString(payload.slice(16, payloadLength));
 
         return {
+          code: 5, // for user data unregistered
           uuid: uuid,
           content: content
         };

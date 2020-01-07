@@ -177,7 +177,9 @@ var HlsVodPlayer = function (_Player) {
   }, {
     key: 'destroy',
     value: function destroy() {
-      this._context.destroy();
+      if (this._context) {
+        this._context.destroy();
+      }
       _get(HlsVodPlayer.prototype.__proto__ || Object.getPrototypeOf(HlsVodPlayer.prototype), 'destroy', this).call(this);
     }
   }, {

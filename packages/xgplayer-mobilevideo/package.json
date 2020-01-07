@@ -1,6 +1,6 @@
 {
   "name": "xgplayer-mobilevideo",
-  "version": "2.2.0-alpha.17",
+  "version": "2.2.0-alpha.18",
   "description": "",
   "main": "lib/index.js",
   "module": "es/index.js",
@@ -30,9 +30,9 @@
     ]
   },
   "dependencies": {
-    "xgplayer-transmuxer-buffer-stream": "^2.2.0-alpha.17",
-    "xgplayer-transmuxer-codec-avc": "^2.2.0-alpha.17",
-    "xgplayer-render": "^2.2.0-alpha.17"
+    "xgplayer-transmuxer-buffer-stream": "^2.2.0-alpha.18",
+    "xgplayer-transmuxer-codec-avc": "^2.2.0-alpha.18",
+    "xgplayer-render": "^2.2.0-alpha.18"
   },
   "devDependencies": {
     "cross-env": "^6.0.3"

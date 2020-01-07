@@ -119,7 +119,7 @@ var TsDemuxer = function () {
     key: 'pushAudioSample',
     value: function pushAudioSample(pes, options) {
       var track = void 0;
-      if (!this._tracks.audioTrack) {
+      if (!this._tracks || !this._tracks.audioTrack) {
         this._tracks.audioTrack = new AudioTrack();
         track = this._tracks.audioTrack;
       } else {
@@ -156,7 +156,7 @@ var TsDemuxer = function () {
       var nals = NalUnit.getNalunits(pes.ES.buffer);
       var track = void 0;
       var meta = new VideoTrackMeta();
-      if (!this._tracks.videoTrack) {
+      if (!this._tracks || !this._tracks.videoTrack) {
         this._tracks.videoTrack = new VideoTrack();
         track = this._tracks.videoTrack;
       } else {

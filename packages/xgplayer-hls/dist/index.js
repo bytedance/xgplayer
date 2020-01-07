@@ -5182,6 +5182,7 @@
         var content = u8aToString(payload.slice(16, payloadLength));
 
         return {
+          code: 5, // for user data unregistered
           uuid: uuid,
           content: content
         };
@@ -5680,7 +5681,7 @@
       key: 'pushAudioSample',
       value: function pushAudioSample(pes, options) {
         var track = void 0;
-        if (!this._tracks.audioTrack) {
+        if (!this._tracks || !this._tracks.audioTrack) {
           this._tracks.audioTrack = new AudioTrack();
           track = this._tracks.audioTrack;
         } else {
@@ -5717,7 +5718,7 @@
         var nals = NalUnit.getNalunits(pes.ES.buffer);
         var track = void 0;
         var meta = new VideoTrackMeta();
-        if (!this._tracks.videoTrack) {
+        if (!this._tracks || !this._tracks.videoTrack) {
           this._tracks.videoTrack = new VideoTrack();
           track = this._tracks.videoTrack;
         } else {
@@ -8075,7 +8076,7 @@
 
         for (var i = 0; i < video.buffered.length; i++) {
           if (time >= video.buffered.start(i) && time < video.buffered.end(i)) {
-            this._playlist.clearDownloaded();
+            // this._playlist.clearDownloaded();
             return;
           }
         }
@@ -8407,7 +8408,9 @@
     }, {
       key: 'destroy',
       value: function destroy() {
-        this._context.destroy();
+        if (this._context) {
+          this._context.destroy();
+        }
         _get$3(HlsVodPlayer.prototype.__proto__ || Object.getPrototypeOf(HlsVodPlayer.prototype), 'destroy', this).call(this);
       }
     }, {

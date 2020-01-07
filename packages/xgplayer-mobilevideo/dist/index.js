@@ -449,6 +449,8 @@
     }T && !T.forcePolyfill && "function" == typeof T.define && "function" == typeof T.get || Ja();window.__CE_installPolyfill = Ja;
   }).call(self);
 
+  //# sourceMappingURL=custom-elements.min.js.map
+
   /**
    * @license
    * Copyright (c) 2016 The Polymer Project Authors. All rights reserved.
@@ -1656,6 +1658,7 @@
         var content = u8aToString(payload.slice(16, payloadLength));
 
         return {
+          code: 5, // for user data unregistered
           uuid: uuid,
           content: content
         };
