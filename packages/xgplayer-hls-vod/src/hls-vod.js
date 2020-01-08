@@ -1,10 +1,16 @@
-import { EVENTS, Mse, Crypto } from 'xgplayer-utils';
-import { XgBuffer, PreSource, Tracks } from 'xgplayer-buffer';
-import { FetchLoader } from 'xgplayer-loader';
-import { Compatibility } from 'xgplayer-codec';
-import Mp4Remuxer from 'xgplayer-remux/src/mp4/index';
+import EVENTS from 'xgplayer-transmuxer-constant-events'
+import Mse from 'xgplayer-utils-mse'
+import Tracks from 'xgplayer-transmuxer-buffer-track'
+import PreSource from 'xgplayer-transmuxer-buffer-presource'
+import XgBuffer from 'xgplayer-transmuxer-buffer-xgbuffer'
+import FetchLoader from 'xgplayer-transmuxer-loader-fetch'
+import Compatibility from 'xgplayer-transmuxer-codec-compatibility'
+import Mp4Remuxer from 'xgplayer-transmuxer-remux-mp4'
+import Crypto from 'xgplayer-utils-crypto';
 
-import {Playlist, M3U8Parser, TsDemuxer} from 'xgplayer-demux';
+import M3U8Parser from 'xgplayer-transmuxer-demux-m3u8';
+import TsDemuxer from 'xgplayer-transmuxer-demux-ts';
+import Playlist from 'xgplayer-transmuxer-buffer-playlist';
 
 const LOADER_EVENTS = EVENTS.LOADER_EVENTS;
 const REMUX_EVENTS = EVENTS.REMUX_EVENTS;
@@ -22,6 +28,7 @@ class HlsVodController {
     this.retrytimes = this.configs.retrytimes || 3;
     this.container = this.configs.container;
     this.preloadTime = this.configs.preloadTime || 5;
+    this.mse = this.configs.mse;
     this._lastSeekTime = 0;
     this._player = this.configs.player;
     this.m3u8Text = null
@@ -46,10 +53,13 @@ class HlsVodController {
     this._context.registry('TS_DEMUXER', TsDemuxer)({ inputbuffer: 'TS_BUFFER' });
 
     // 初始化MP4 Remuxer
-    this._context.registry('MP4_REMUXER', Mp4Remuxer);
+    this._context.registry('MP4_REMUXER', Mp4Remuxer)(this._player.currentTime);
 
     // 初始化MSE
-    this.mse = this._context.registry('MSE', Mse)({container: this.container, preloadTime: this.preloadTime});
+    if (!this.mse) {
+      this.mse = new Mse({ container: this.container, preloadTime: this.preloadTime }, this._context);
+      this.mse.init();
+    }
     this.initEvents();
   }
 
@@ -60,8 +70,9 @@ class HlsVodController {
 
     this.on(REMUX_EVENTS.INIT_SEGMENT, this._onInitSegment.bind(this));
 
-    this.on(REMUX_EVENTS.MEDIA_SEGMENT, this._onMediaSegment.bind(this));
+    this.on(DEMUX_EVENTS.SEI_PARSED, this._handleSEIParsed.bind(this))
 
+    this.on(REMUX_EVENTS.MEDIA_SEGMENT, this._onMediaSegment.bind(this));
 
     this.on(DEMUX_EVENTS.METADATA_PARSED, this._onMetadataParsed.bind(this));
 
@@ -76,7 +87,7 @@ class HlsVodController {
     this.on('WAITING', this._onWaiting.bind(this));
   }
 
-  _onError(type, mod, err, fatal) {
+  _onError (type, mod, err, fatal) {
     let error = {
       errorType: type,
       errorDetails: `[${mod}]: ${err.message}`,
@@ -91,14 +102,14 @@ class HlsVodController {
   }
 
   _onDemuxError (mod, error, fatal) {
-    if(fatal === undefined) {
+    if (fatal === undefined) {
       fatal = true;
     }
     this._onError(LOADER_EVENTS.LOADER_ERROR, mod, error, fatal);
   }
 
   _onRemuxError (mod, error, fatal) {
-    if(fatal === undefined) {
+    if (fatal === undefined) {
       fatal = true;
     }
     this._onError(REMUX_EVENTS.REMUX_ERROR, mod, error, fatal);
@@ -106,6 +117,12 @@ class HlsVodController {
 
   _onWaiting (container) {
     let end = true;
+
+    const playListLen = Object.keys(this._playlist.list).length
+    if (!playListLen) {
+      return;
+    }
+
     for (let i = 0; i < Object.keys(this._playlist.list).length; i++) {
       if (this.container.currentTime * 1000 < parseInt(Object.keys(this._playlist.list)[i])) {
         end = false;
@@ -130,6 +147,10 @@ class HlsVodController {
   }
   _onDemuxComplete () {
     this.emit(REMUX_EVENTS.REMUX_MEDIA)
+  }
+
+  _handleSEIParsed (sei) {
+    this._player.emit('SEI_PARSED', sei)
   }
 
   _onMetadataParsed (type) {
@@ -167,7 +188,7 @@ class HlsVodController {
         this._context.registry('DECRYPT_BUFFER', XgBuffer)();
         this._context.registry('KEY_BUFFER', XgBuffer)();
         this._tsloader.buffer = 'DECRYPT_BUFFER';
-        this._keyLoader = this._context.registry('KEY_LOADER', FetchLoader)({buffer:'KEY_BUFFER',readtype: 3});
+        this._keyLoader = this._context.registry('KEY_LOADER', FetchLoader)({buffer: 'KEY_BUFFER', readtype: 3});
         this.emitTo('KEY_LOADER', LOADER_EVENTS.LADER_START, this._playlist.encrypt.uri);
       } else {
         if (!this.preloadTime) {
@@ -180,7 +201,7 @@ class HlsVodController {
           }
         }
 
-        let frag = this._playlist.getTs();
+        let frag = this._playlist.getTs(this._player.currentTime * 1000);
         if (frag) {
           this._playlist.downloading(frag.url, true);
           this.emitTo('TS_LOADER', LOADER_EVENTS.LADER_START, frag.url)
@@ -194,20 +215,20 @@ class HlsVodController {
     } else if (buffer.TAG === 'TS_BUFFER') {
       this._preload(this.mse.container.currentTime);
       this._playlist.downloaded(this._tsloader.url, true);
-      this.emit(DEMUX_EVENTS.DEMUX_START, Object.assign({url:this._tsloader.url},this._playlist._ts[this._tsloader.url]));
+      this.emit(DEMUX_EVENTS.DEMUX_START, Object.assign({url: this._tsloader.url}, this._playlist._ts[this._tsloader.url]));
     } else if (buffer.TAG === 'DECRYPT_BUFFER') {
       this.retrytimes = this.configs.retrytimes || 3;
       this._playlist.downloaded(this._tsloader.url, true);
-      this.emitTo('CRYPTO', CRYTO_EVENTS.START_DECRYPT, Object.assign({url:this._tsloader.url},this._playlist._ts[this._tsloader.url]));
-    } else if (buffer.TAG == 'KEY_BUFFER') {
+      this.emitTo('CRYPTO', CRYTO_EVENTS.START_DECRYPT, Object.assign({url: this._tsloader.url}, this._playlist._ts[this._tsloader.url]));
+    } else if (buffer.TAG === 'KEY_BUFFER') {
       this.retrytimes = this.configs.retrytimes || 3;
       this._playlist.encrypt.key = buffer.shift();
       this._crypto = this._context.registry('CRYPTO', Crypto)({
         key: this._playlist.encrypt.key,
         iv: this._playlist.encrypt.ivb,
         method: this._playlist.encrypt.method,
-        inputbuffer:'DECRYPT_BUFFER',
-        outputbuffer:'TS_BUFFER'
+        inputbuffer: 'DECRYPT_BUFFER',
+        outputbuffer: 'TS_BUFFER'
       });
 
       this._crypto.on(CRYTO_EVENTS.DECRYPTED, this._onDcripted.bind(this));
@@ -225,13 +246,22 @@ class HlsVodController {
     }
   }
 
-  _onDcripted() {
+  _onDcripted () {
     this.emit(DEMUX_EVENTS.DEMUX_START);
   }
 
   seek (time) {
+    const { video } = this._player;
+    for (let i = 0; i < video.buffered.length; i++) {
+      if (time >= video.buffered.start(i) && time < video.buffered.end(i)) {
+        // this._playlist.clearDownloaded();
+        return;
+      }
+    }
+
     this._lastSeekTime = time;
-    this._tsloader.cancel();
+    this._tsloader.destroy();
+    this._tsloader = this._context.registry('TS_LOADER', FetchLoader)({ buffer: 'TS_BUFFER', readtype: 3 });
     if (this._presource.sources.video) {
       this._presource.sources.video.data = [];
     }
@@ -256,7 +286,7 @@ class HlsVodController {
     }
 
     this._playlist.clearDownloaded();
-
+    this._context.seek(time);
     this._preload(time);
   }
 
@@ -267,46 +297,55 @@ class HlsVodController {
   }
 
   _preload (time) {
+    time = Math.floor(time);
     if (this._tsloader.loading) {
       return;
     }
     let video = this.mse.container;
-    if (video.buffered.length < 1) {
-      let frag = this._playlist.getTs(0);
+    // Get current time range
+    let currentbufferend = -1;
+    if (!time && video.buffered.length) {
+      time = video.buffered.end(0);
+    }
+
+    for (let i = 0; i < video.buffered.length; i++) {
+      if (time >= video.buffered.start(i) && time < video.buffered.end(i)) {
+        currentbufferend = video.buffered.end(i)
+      }
+    }
+
+    if (currentbufferend < 0) {
+      let frag = this._playlist.getTs((time + 0.5) * 1000); // FIXME: Last frame buffer shortens duration
       if (frag && !frag.downloading && !frag.downloaded) {
         this._playlist.downloading(frag.url, true);
         this.emitTo('TS_LOADER', LOADER_EVENTS.LADER_START, frag.url)
       }
-    } else {
-      // Get current time range
-      let currentbufferend = -1;
-      if (!time) {
-        time = video.buffered.end(0);
+    } else if (currentbufferend < time + this.preloadTime) {
+      let frag = this._playlist.getTs(currentbufferend * 1000);
+
+      if (!frag) {
+        return;
       }
 
-      for (let i = 0; i < video.buffered.length; i++) {
-        if (time >= video.buffered.start(i) && time < video.buffered.end(i)) {
-          currentbufferend = video.buffered.end(i)
+      // let fragend = frag ? (frag.time + frag.duration) / 1000 : 0;
+
+      let curTime = frag.time + frag.duration;
+      const curFragTime = frag.time;
+
+      if (frag.downloaded) {
+        let loopMax = 1000
+        while (loopMax-- > 0) {
+          curTime += 50
+          frag = this._playlist.getTs(curTime);
+          if (!frag || frag.time > curFragTime) {
+            break;
+          }
         }
       }
 
-      if (currentbufferend < 0) {
-        let frag = this._playlist.getTs(time * 1000 + 1);
-        if (frag && !frag.downloading && !frag.downloaded) {
-          this._playlist.downloading(frag.url, true);
-          this.emitTo('TS_LOADER', LOADER_EVENTS.LADER_START, frag.url)
-        }
-      } else if (currentbufferend < time + this.preloadTime) {
-        let frag = this._playlist.getTs(currentbufferend * 1000 + 1); // FIXME: 这里用 + 1太严格了，在compat内一经偏移修正，就无法正确获取到下一个ts的地址
-        let fragend = frag ? (frag.time + frag.duration) / 1000 : 0;
-        while (frag && frag.downloaded && fragend < (time + this.preloadTime)) {
-          frag = this._playlist.getTs(fragend * 1000 + 1);
-          fragend = frag ? (frag.time + frag.duration) / 1000 : 0;
-        }
-        if (frag && !frag.downloading && !frag.downloaded) {
-          this._playlist.downloading(frag.url, true);
-          this.emitTo('TS_LOADER', LOADER_EVENTS.LADER_START, frag.url)
-        }
+      if (frag && !frag.downloading && !frag.downloaded) {
+        this._playlist.downloading(frag.url, true);
+        this.emitTo('TS_LOADER', LOADER_EVENTS.LADER_START, frag.url)
       }
     }
   }

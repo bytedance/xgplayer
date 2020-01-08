@@ -4,7 +4,7 @@ let smemoryPlay = function () {
   let player = this
   let util = Player.util
   let lastPlayTime = player.config.lastPlayTime || 0
-  let lastPlayTimeHideDelay = player.config.lastPlayTimeHideDelay || 0
+  let lastPlayTimeHideDelay = player.config.lastPlayTimeHideDelay || 3
   let dom = null
   if (lastPlayTime <= 0) {
     return

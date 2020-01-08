@@ -1,0 +1,26 @@
+{
+  "name": "xgplayer-transmuxer-model-trackmeta",
+  "version": "2.2.0-alpha.20",
+  "description": "",
+  "main": "lib/index.js",
+  "module": "es/index.js",
+  "scripts": {
+    "prepare": "npm run build",
+    "watch": "babel src --out-dir es --watch & babel src --out-dir lib --presets=es2015 --watch",
+    "build": "npm run build:es && npm run build:lib",
+    "build:es": "babel src --out-dir es",
+    "build:lib": "babel src --out-dir lib --presets=es2015"
+  },
+  "author": "",
+  "license": "ISC",
+  "babel": {
+    "presets": [
+      [
+        "es2015",
+        {
+          "modules": false
+        }
+      ]
+    ]
+  }
+}

@@ -1,7 +1,7 @@
 import Box from './box'
+import './box/index';
 import Concat from 'concat-typed-array'
 import Stream from './stream'
-import * as SubBox from './box/*.js'
 
 class Parse {
   constructor (buffer) {

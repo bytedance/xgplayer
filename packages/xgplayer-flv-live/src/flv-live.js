@@ -1,9 +1,14 @@
-import Remuxer from 'xgplayer-remux'
-import { FetchLoader } from 'xgplayer-loader'
-import { FlvDemuxer } from 'xgplayer-demux'
-import { Tracks, XgBuffer, PreSource } from 'xgplayer-buffer'
-import { Mse, EVENTS } from 'xgplayer-utils'
-import { Compatibility } from 'xgplayer-codec'
+import Remuxer from 'xgplayer-transmuxer-remux-mp4'
+import FlvDemuxer from 'xgplayer-transmuxer-demux-flv'
+import FetchLoader from 'xgplayer-transmuxer-loader-fetch'
+import EVENTS from 'xgplayer-transmuxer-constant-events'
+
+import Tracks from 'xgplayer-transmuxer-buffer-track'
+import PreSource from 'xgplayer-transmuxer-buffer-presource'
+import XgBuffer from 'xgplayer-transmuxer-buffer-xgbuffer'
+import Compatibility from 'xgplayer-transmuxer-codec-compatibility'
+
+import Mse from 'xgplayer-utils-mse'
 import Player from 'xgplayer'
 
 const REMUX_EVENTS = EVENTS.REMUX_EVENTS;
@@ -20,26 +25,39 @@ class Logger {
 const FLV_ERROR = 'FLV_ERROR'
 
 export default class FlvController {
-  constructor (player) {
+  constructor (player, mse) {
     this.TAG = Tag
     this._player = player
-
     this.state = {
       initSegmentArrived: false,
       randomAccessPoints: []
     }
 
+    this.mse = mse;
+
     this.bufferClearTimer = null;
+
+    this._handleTimeUpdate = this._handleTimeUpdate.bind(this)
   }
 
   init () {
+    if (!this.mse) {
+      this.mse = new Mse({ container: this._player.video }, this._context);
+      this.mse.init();
+    }
+
+    this.initComponents();
+    this.initListeners()
+  }
+
+  initComponents () {
     this._context.registry('FETCH_LOADER', FetchLoader)
     this._context.registry('LOADER_BUFFER', XgBuffer)
 
     this._context.registry('FLV_DEMUXER', FlvDemuxer)
     this._context.registry('TRACKS', Tracks)
 
-    this._context.registry('MP4_REMUXER', Remuxer.Mp4Remuxer)
+    this._context.registry('MP4_REMUXER', Remuxer)(this._player.currentTime)
     this._context.registry('PRE_SOURCE_BUFFER', PreSource)
 
     if (this._player.config.compatibility !== false) {
@@ -47,11 +65,6 @@ export default class FlvController {
     }
 
     this._context.registry('LOGGER', Logger)
-    this.mse = this._context.registry('MSE', Mse)({ container: this._player.video })
-
-    this._handleTimeUpdate = this._handleTimeUpdate.bind(this)
-
-    this.initListeners()
   }
 
   initListeners () {
@@ -62,6 +75,7 @@ export default class FlvController {
     this.on(DEMUX_EVENTS.METADATA_PARSED, this._handleMetadataParsed.bind(this))
     this.on(DEMUX_EVENTS.DEMUX_COMPLETE, this._handleDemuxComplete.bind(this))
     this.on(DEMUX_EVENTS.DEMUX_ERROR, this._handleDemuxError.bind(this))
+    this.on(DEMUX_EVENTS.SEI_PARSED, this._handleSEIParsed.bind(this))
 
     this.on(REMUX_EVENTS.INIT_SEGMENT, this._handleAppendInitSegment.bind(this))
     this.on(REMUX_EVENTS.MEDIA_SEGMENT, this._handleMediaSegment.bind(this))
@@ -85,6 +99,11 @@ export default class FlvController {
   _handleMetadataParsed (type) {
     this.emit(REMUX_EVENTS.REMUX_METADATA, type)
   }
+
+  _handleSEIParsed(sei) {
+    this._player.emit('SEI_PARSED', sei)
+  }
+
   _handleDemuxComplete () {
     this.emit(REMUX_EVENTS.REMUX_MEDIA)
   }
@@ -163,7 +182,7 @@ export default class FlvController {
       }
 
       // console.log('rap', rap, `time ${time}`, `bufferEnd ${bufferEnd}`,`clean ${Math.min(rap, time - 10, bufferEnd - 10)}`)
-      this.mse.remove(Math.min(rap, time - 10, bufferEnd - 10), 0)
+      this.mse.remove(Math.max(Math.min(rap, time - 10, bufferEnd - 10), 0.1), 0)
 
       this.bufferClearTimer = setTimeout(() => {
         this.bufferClearTimer = null
@@ -181,7 +200,7 @@ export default class FlvController {
       fatal = false;
     }
     this._player.emit('error', new Player.Errors('parse', this._player.config.url))
-    this._onError(LOADER_EVENTS.LOADER_ERROR, tag, err, fatal)
+    this._onError(DEMUX_EVENTS.DEMUX_ERROR, tag, err, fatal)
   }
 
   _handleAddRAP (rap) {
@@ -205,8 +224,8 @@ export default class FlvController {
     }
   }
 
-  loadData () {
-    this.emit(LOADER_EVENTS.LADER_START, this._player.config.url)
+  loadData (url = this._player.config.url) {
+    this.emit(LOADER_EVENTS.LADER_START, url)
   }
 
   pause () {

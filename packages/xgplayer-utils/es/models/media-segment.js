@@ -1,10 +1,11 @@
-"use strict";
+var _createClass = function () { function defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ("value" in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } } return function (Constructor, protoProps, staticProps) { if (protoProps) defineProperties(Constructor.prototype, protoProps); if (staticProps) defineProperties(Constructor, staticProps); return Constructor; }; }();
 
-Object.defineProperty(exports, "__esModule", {
-    value: true
-});
-class MediaSegment {
-    constructor() {
+function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } }
+
+var MediaSegment = function () {
+    function MediaSegment() {
+        _classCallCheck(this, MediaSegment);
+
         this.startDts = -1;
         this.endDts = -1;
         this.startPts = -1;
@@ -16,9 +17,15 @@ class MediaSegment {
         this.lastSample = null;
     }
 
-    addRAP(sample) {
-        sample.isRAP = true;
-        this.randomAccessPoints.push(sample);
-    }
-}
-exports.default = MediaSegment;
+    _createClass(MediaSegment, [{
+        key: "addRAP",
+        value: function addRAP(sample) {
+            sample.isRAP = true;
+            this.randomAccessPoints.push(sample);
+        }
+    }]);
+
+    return MediaSegment;
+}();
+
+export default MediaSegment;

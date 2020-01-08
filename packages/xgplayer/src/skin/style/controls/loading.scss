@@ -36,3 +36,9 @@
     display: block;
   }
 }
+
+.xgplayer-skin-default.xgplayer-ended {
+  .xgplayer-loading{
+    display: none;
+  }
+}
