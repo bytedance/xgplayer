@@ -13,4 +13,4 @@ class Controls extends Plugin {
   }
 }
 
-export default PluginTest
+export default Controls
