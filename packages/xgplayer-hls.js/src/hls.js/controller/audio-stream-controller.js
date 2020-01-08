@@ -261,7 +261,7 @@ class AudioStreamController extends BaseStreamController {
             frag = foundFrag;
             start = foundFrag.start;
             // logger.log('find SN matching with pos:' +  bufferEnd + ':' + frag.sn);
-            if (fragPrevious && frag.level === fragPrevious.level && frag.sn === fragPrevious.sn) {
+            if (fragPrevious && frag.levels === fragPrevious.levels && frag.sn === fragPrevious.sn) {
               if (frag.sn < trackDetails.endSN) {
                 frag = fragments[frag.sn + 1 - trackDetails.startSN];
                 logger.log(`SN just loaded, load next one: ${frag.sn}`);
@@ -483,12 +483,12 @@ class AudioStreamController extends BaseStreamController {
     if (this.state === State.FRAG_LOADING &&
         fragCurrent &&
         fragLoaded.type === 'audio' &&
-        fragLoaded.level === fragCurrent.level &&
+        fragLoaded.levels === fragCurrent.levels &&
         fragLoaded.sn === fragCurrent.sn) {
       let track = this.tracks[this.trackId],
         details = track.details,
         duration = details.totalduration,
-        trackId = fragCurrent.level,
+        trackId = fragCurrent.levels,
         sn = fragCurrent.sn,
         cc = fragCurrent.cc,
         audioCodec = this.config.defaultAudioCodec || track.audioCodec || 'mp4a.40.2',
@@ -534,7 +534,7 @@ class AudioStreamController extends BaseStreamController {
     if (fragCurrent &&
         data.id === 'audio' &&
         fragNew.sn === fragCurrent.sn &&
-        fragNew.level === fragCurrent.level &&
+        fragNew.levels === fragCurrent.levels &&
         this.state === State.PARSING) {
       let tracks = data.tracks, track;
 
@@ -575,7 +575,7 @@ class AudioStreamController extends BaseStreamController {
         data.id === 'audio' &&
         data.type === 'audio' &&
         fragNew.sn === fragCurrent.sn &&
-        fragNew.level === fragCurrent.level &&
+        fragNew.levels === fragCurrent.levels &&
         this.state === State.PARSING) {
       let trackId = this.trackId,
         track = this.tracks[trackId],
@@ -652,7 +652,7 @@ class AudioStreamController extends BaseStreamController {
     if (fragCurrent &&
         data.id === 'audio' &&
         fragNew.sn === fragCurrent.sn &&
-        fragNew.level === fragCurrent.level &&
+        fragNew.levels === fragCurrent.levels &&
         this.state === State.PARSING) {
       this.stats.tparsed = performance.now();
       this.state = State.PARSED;

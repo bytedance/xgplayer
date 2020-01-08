@@ -160,7 +160,7 @@ class HlsJsPlayer extends Player {
         mediainfo.height = (track.metadata && track.metadata.height) ? track.metadata.height:0;
       }
       mediainfo.duration = (payload.frag && payload.frag.duration) ? payload.frag.duration:0
-      mediainfo.level =(payload.frag && payload.frag.level) ? payload.frag.level:0;
+      mediainfo.level =(payload.frag && payload.frag.levels) ? payload.frag.levels:0;
       if(mediainfo.videoCodec || mediainfo.audioCodec) {
         mediainfo.mimeType = `video/hls; codecs="${mediainfo.videoCodec};${mediainfo.audioCodec}"`
       }

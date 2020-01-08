@@ -47,6 +47,7 @@ class Player extends Proxy {
     }
   }
 
+
   /**
    * 注册组件 组件列表config.plugins
    */

@@ -153,7 +153,7 @@ class AudioTrackController extends TaskLoop {
     // FIXME: crashes because currentLevel is undefined
     // const levelInfo = this.hls.levels[this.hls.currentLevel];
 
-    const levelInfo = this.hls.levels[data.level];
+    const levelInfo = this.hls.levels[data.levels];
 
     if (!levelInfo.audioGroupIds) {
       return;

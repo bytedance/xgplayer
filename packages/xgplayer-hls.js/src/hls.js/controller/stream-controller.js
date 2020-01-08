@@ -361,7 +361,7 @@ class StreamController extends BaseStreamController {
     }
     if (frag) {
       const curSNIdx = frag.sn - levelDetails.startSN;
-      const sameLevel = fragPrevious && frag.level === fragPrevious.level;
+      const sameLevel = fragPrevious && frag.levels === fragPrevious.levels;
       const prevFrag = fragments[curSNIdx - 1];
       const nextFrag = fragments[curSNIdx + 1];
       // logger.log('find SN matching with pos:' +  bufferEnd + ':' + frag.sn);
@@ -465,7 +465,7 @@ class StreamController extends BaseStreamController {
     if (media) {
       const frag = this.getBufferedFrag(media.currentTime);
       if (frag) {
-        return frag.level;
+        return frag.levels;
       }
     }
     return -1;
@@ -492,7 +492,7 @@ class StreamController extends BaseStreamController {
   get nextLevel () {
     const frag = this.nextBufferedFrag;
     if (frag) {
-      return frag.level;
+      return frag.levels;
     } else {
       return -1;
     }
@@ -526,8 +526,8 @@ class StreamController extends BaseStreamController {
         let fragPlaying = fragPlayingCurrent;
         if (fragPlaying !== this.fragPlaying) {
           this.hls.trigger(Event.FRAG_CHANGED, { frag: fragPlaying });
-          const fragPlayingLevel = fragPlaying.level;
-          if (!this.fragPlaying || this.fragPlaying.level !== fragPlayingLevel) {
+          const fragPlayingLevel = fragPlaying.levels;
+          if (!this.fragPlaying || this.fragPlaying.levels !== fragPlayingLevel) {
             this.hls.trigger(Event.LEVEL_SWITCHED, { level: fragPlayingLevel });
           }
 
@@ -743,7 +743,7 @@ class StreamController extends BaseStreamController {
 
   onLevelLoaded (data) {
     const newDetails = data.details;
-    const newLevelId = data.level;
+    const newLevelId = data.levels;
     const lastLevel = this.levels[this.levelLastLoaded];
     const curLevel = this.levels[newLevelId];
     const duration = newDetails.totalduration;
@@ -824,10 +824,10 @@ class StreamController extends BaseStreamController {
     if (this.state === State.FRAG_LOADING &&
         fragCurrent &&
         fragLoaded.type === 'main' &&
-        fragLoaded.level === fragCurrent.level &&
+        fragLoaded.levels === fragCurrent.levels &&
         fragLoaded.sn === fragCurrent.sn) {
       const stats = data.stats;
-      const currentLevel = levels[fragCurrent.level];
+      const currentLevel = levels[fragCurrent.levels];
       const details = currentLevel.details;
       // reset frag bitrate test in any case after frag loaded event
       // if this frag was loaded to perform a bitrate test AND if hls.nextLoadLevel is greater than 0
@@ -835,7 +835,7 @@ class StreamController extends BaseStreamController {
       this.bitrateTest = false;
       this.stats = stats;
 
-      logger.log(`Loaded ${fragCurrent.sn} of [${details.startSN} ,${details.endSN}],level ${fragCurrent.level}`);
+      logger.log(`Loaded ${fragCurrent.sn} of [${details.startSN} ,${details.endSN}],level ${fragCurrent.levels}`);
       if (fragLoaded.bitrateTest && hls.nextLoadLevel) {
         // switch back to IDLE state ... we just loaded a fragment to determine adequate start bitrate and initialize autoswitch algo
         this.state = State.IDLE;
@@ -850,7 +850,7 @@ class StreamController extends BaseStreamController {
         hls.trigger(Event.FRAG_BUFFERED, { stats: stats, frag: fragCurrent, id: 'main' });
         this.tick();
       } else {
-        logger.log(`Parsing ${fragCurrent.sn} of [${details.startSN} ,${details.endSN}],level ${fragCurrent.level}, cc ${fragCurrent.cc}`);
+        logger.log(`Parsing ${fragCurrent.sn} of [${details.startSN} ,${details.endSN}],level ${fragCurrent.levels}, cc ${fragCurrent.cc}`);
         this.state = State.PARSING;
         this.pendingBuffering = true;
         this.appended = false;
@@ -892,7 +892,7 @@ class StreamController extends BaseStreamController {
     if (fragCurrent &&
         data.id === 'main' &&
         fragNew.sn === fragCurrent.sn &&
-        fragNew.level === fragCurrent.level &&
+        fragNew.levels === fragCurrent.levels &&
         this.state === State.PARSING) {
       let tracks = data.tracks, trackName, track;
 
@@ -963,7 +963,7 @@ class StreamController extends BaseStreamController {
     if (fragCurrent &&
         data.id === 'main' &&
         fragNew.sn === fragCurrent.sn &&
-        fragNew.level === fragCurrent.level &&
+        fragNew.levels === fragCurrent.levels &&
         !(data.type === 'audio' && this.altAudio) && // filter out main audio if audio track is loaded through audio stream controller
         this.state === State.PARSING) {
       let level = this.levels[this.level],
@@ -1038,7 +1038,7 @@ class StreamController extends BaseStreamController {
     if (fragCurrent &&
         data.id === 'main' &&
         fragNew.sn === fragCurrent.sn &&
-        fragNew.level === fragCurrent.level &&
+        fragNew.levels === fragCurrent.levels &&
         this.state === State.PARSING) {
       this.stats.tparsed = window.performance.now();
       this.state = State.PARSED;

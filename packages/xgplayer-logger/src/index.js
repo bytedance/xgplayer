@@ -1,45 +1,55 @@
-import Player from 'xgplayer'
-import CNZZLogger from './loggers/CNZZLogger'
-import BaiduLogger from './loggers/BaiduLogger'
-import GtagLogger from './loggers/GtagLogger'
-import RavenLogger from './loggers/RavenLogger'
+import { BasePlugin } from 'xgplayer-core';
+import levels from './constants/levels'
 
-const LOGGER_TYPE_CLS_MAP = {
-  cnzz: CNZZLogger,
-  baidu: BaiduLogger,
-  gtag: GtagLogger,
-  raven: RavenLogger
-}
+const getDefaultConfigs = () => ({
+  level: 'debug',
+  historyMax: 100
+})
 
-const initLoggerEvents = (player, logger) => {
-  player.on('error', logger.handleError.bind(logger))
-  player.on('seeked', logger.handleSeeked.bind(logger))
-  player.on('DATA_REPORT', logger.handleDataReport.bind(logger))
-  player.on('play', logger.handlePlay.bind(logger))
-  player.on('pause', logger.handlePause.bind(logger))
-  player.on('ended', logger.handleEnded.bind(logger))
-  player.on('ready', logger.handleReady.bind(logger))
-  player.once('complete', logger.handleComplete.bind(logger))
-  window.addEventListener('beforeunload', logger.handleUnload.bind(logger))
-}
+export default class Logger extends BasePlugin{
+  constructor (configs) {
+    super();
+    this._configs = Object.assign({}, getDefaultConfigs(), configs);
+    this._history = [];
+  }
 
-const initLogger = (player) => {
-  const { loggers } = player.config
-  if (Array.isArray(loggers)) {
-    loggers.forEach(({ type, options }) => {
-      const LoggerCls = LOGGER_TYPE_CLS_MAP[type]
-      if (!LoggerCls) { return }
-      let logger = new LoggerCls(player, options || {})
-      initLoggerEvents(player, logger)
-    })
-  } else {
-    throw new Error('player.config.loggers should be an Array')
+  beforeCreate () {
+    Object.keys(levels).forEach((k) => {
+      const levelVal = levels[k];
+      this[k] = this._log.bind(this, levels[levelVal], k)
+    });
+  }
+
+  static isLevelInvalid (level) {
+    const levelType = typeof level
+    const keys = Object.keys(levels)
+    const cond0 = levelType === 'string' && keys.indexOf(level) >= 0;
+    const cond1 = levelType === 'number' && level >= 0 && level <= 4;
+
+    return cond0 && cond1
+  }
+
+  _log (level, levelKey, ...args) {
+    if (level < this.level) {
+      console.log(`[${levelKey}] `, ...args)
+    }
+    if (this._history.length < this._configs.historyMax) {
+      this._history.push([levelKey, ...args])
+      if (this.emit) {
+        this.emit('log', levelKey, ...args)
+      }
+    }
+  }
+
+  destroy () {
+    this._history = []
+  }
+
+  get level () {
+    if (!Logger.isLevelInvalid(this._configs.level)) {
+      return levels.debug;
+    }
+    const levelType = this._configs.level;
+    return levelType === 'string' ? levels[levelType] : this._configs.level
   }
 }
-
-const loggerPlugin = function () {
-  let player = this
-  initLogger(player)
-}
-
-Player.install('Logger', loggerPlugin)

@@ -280,16 +280,16 @@ export default class LevelController extends EventHandler {
     case ErrorDetails.FRAG_LOAD_TIMEOUT:
     case ErrorDetails.KEY_LOAD_ERROR:
     case ErrorDetails.KEY_LOAD_TIMEOUT:
-      levelIndex = data.frag.level;
+      levelIndex = data.frag.levels;
       fragmentError = true;
       break;
     case ErrorDetails.LEVEL_LOAD_ERROR:
     case ErrorDetails.LEVEL_LOAD_TIMEOUT:
-      levelIndex = data.context.level;
+      levelIndex = data.context.levels;
       levelError = true;
       break;
     case ErrorDetails.REMUX_ALLOC_ERROR:
-      levelIndex = data.level;
+      levelIndex = data.levels;
       levelError = true;
       break;
     }
@@ -372,7 +372,7 @@ export default class LevelController extends EventHandler {
   // reset errors on the successful load of a fragment
   onFragLoaded ({ frag }) {
     if (frag !== undefined && frag.type === 'main') {
-      const level = this._levels[frag.level];
+      const level = this._levels[frag.levels];
       if (level !== undefined) {
         level.fragmentError = false;
         level.loadError = 0;
