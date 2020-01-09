@@ -476,6 +476,7 @@ class Player extends Proxy {
     util.addClass(this.root, 'xgplayer-playing')
   }
   /***
+   * TODO
    * 插件全部迁移完成再做删除
    */
   static install (name, descriptor) {
@@ -486,7 +487,11 @@ class Player extends Proxy {
       Player.plugins[name] = descriptor
     }
   }
-
+  
+  /***
+   * TODO
+   * 插件全部迁移完成再做删除
+   */
   static use (name, descriptor) {
     if (!Player.plugins) {
       Player.plugins = {}

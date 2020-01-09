@@ -4,7 +4,7 @@ import Errors from '../error'
 import * as event from '../events'
 
 class BasePlugin {
-  static defineGetterOrSettor(Obj, map){
+  static defineGetterOrSetter(Obj, map){
     for(const key in map) {
        Object.defineProperty(Obj, key, map[key])
     }
@@ -18,14 +18,13 @@ class BasePlugin {
       this.beforeCreate()
     }
     this.__init(args)
-  
     if (Util.checkIsFunction(this.afterCreate)) {
       this.afterCreate()
     }
   }
 
   __init (args) {
-    BasePlugin.defineGetterOrSettor(this, {
+    BasePlugin.defineGetterOrSetter(this, {
       'player': {
         get: () => {
           return args.player

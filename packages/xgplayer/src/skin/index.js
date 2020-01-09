@@ -2,7 +2,7 @@ import './style/index.scss'
 
 import './controls/enter.js'
 import './controls/play.js'
-import './controls/start.js'
+//import './controls/start.js'
 // import './controls/poster.js'
 import './controls/flex.js'
 import './controls/fullscreen.js'

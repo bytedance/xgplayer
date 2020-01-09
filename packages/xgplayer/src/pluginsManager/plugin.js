@@ -34,25 +34,82 @@ function insert(html, parent, index) {
   }
 }
 
-export default class Plugin extends BasePlugin {
 
+function registerIconsObj(iconsConfig, plugin) {
+  Object.keys(iconsConfig).map((iconKey) => {
+    Object.defineProperty(plugin.icons, iconKey, {
+      get: () => {
+        const _icons = plugin.config.icons || plugin.playerConfig.icons
+        if (_icons && _icons[iconKey]) {
+          return _icons[iconKey]
+        } else{
+          return iconsConfig[iconKey]
+        }
+      }
+    })
+  })
+}
+
+function registerTextObj(textConfig, plugin) {
+  Object.keys(textConfig).map((key) => {
+    Object.defineProperty(plugin.text, key, {
+      get: () => {
+        const lang = plugin.playerConfig.lang || 'zh'
+        console.log(textConfig[key][lang])
+        return textConfig[key][lang]
+      }
+    })
+  })
+}
+
+export default class Plugin extends BasePlugin {
   constructor (args = {}) {
     super(args)
-    this.delegate = delegate
   }
 
   __init (args) {
     super.__init(args)
     let _parent = args.root
     let _el = null
-    const renderStr = this.render()
+    this.icons = {}
+    const defaultIcons = this.registerIcons() || {}
+    registerIconsObj(defaultIcons, this)
+    
+    this.text = {}
+    const defaultTexConfig = this.registerLangauageTexts() || {}
+    console.log('registerLangauageTexts', defaultTexConfig)
+    registerTextObj(defaultTexConfig, this)
+    // Object.keys(defaultTexConfig).map((key) => {
+    //   Object.defineProperty(this.text, key, {
+    //     get: () => {
+    //       let lang = this.playerConfig.lang || 'zh-cn'
+    //       lang = lang === 'zh' ? 'zh' : lang
+    //       return defaultTexConfig[lang]
+    //     },
+
+    //     set: (value) => {
+    //       let lang = this.playerConfig.lang || 'zh-cn'
+    //       if (defaultTexConfig[lang]) {
+    //         defaultTexConfig[lang] = value
+    //       }
+    //     }
+    //   })
+    // })
+    let renderStr = ''
+    try {
+      renderStr = this.render()
+    } catch(e) {
+      throw(new Error(`Plugin:${this.pluginName}:render:${e.message}`))
+    }
+
     if (renderStr) {
       _el = insert(renderStr, _parent, args.index)
     } else if (args.tag) {
       _el = _createElement(args.tag, args.name)
       _parent.appendChild(_el)
     }
-    Plugin.defineGetterOrSettor(this, {
+
+    Plugin.defineGetterOrSetter(this, {
       'el': {
         get:() => {
           return _el
@@ -75,7 +132,6 @@ export default class Plugin extends BasePlugin {
 
   __registeChildren () {
     const children = this.children()
-    console.log('children', children)
     if (children && typeof children === 'object') {
       if (!this._children) {
         this._children = []
@@ -98,16 +154,19 @@ export default class Plugin extends BasePlugin {
     return {}
   }
 
-  icons() {
-    return {}
-  }
-
   _registerPlugin (name, item, options) {
     const opts = (typeof options === 'object' ? options : {})
     opts.root = this.el
     opts.pluginName = name
-    console.log('opts', opts)
     return pluginsManager.register(this.player, item, opts)
+  }
+
+  registerIcons() {
+    return {}
+  }
+
+  registerLangauageTexts() {
+    return {}
   }
 
   getPlugin (name) {

@@ -55,9 +55,10 @@ const pluginsManager = {
       options.root = player.root
     }
     try { // eslint-disable-next-line new-cap
-      plugins[pluginName.toLowerCase()] = new plugin(options)
+      const _instance = new plugin(options)
+      plugins[pluginName.toLowerCase()] = _instance
       plugins[pluginName.toLowerCase()].func = plugin
-      return plugins[pluginName.toLowerCase()]
+      return _instance
     } catch (err) {
       console.error(err)
       throw(err)
@@ -142,5 +143,12 @@ const pluginsManager = {
     delete this.pluginGroup[cgid]
   }
 }
+
+
+function registerProxy(player){
+  player.register = function(){}
+}
+
+window.pluginsManager = pluginsManager
 
 export default pluginsManager
