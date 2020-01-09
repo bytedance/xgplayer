@@ -90,7 +90,7 @@ export default class Mp4Remuxer {
 
   remuxInitSegment (type, meta) {
     let initSegment = new Buffer()
-    let ftyp = Fmp4.ftyp()
+    let ftyp = meta.streamType === 0x24 ? Fmp4.ftypHEVC() : Fmp4.ftyp()
     let moov = Fmp4.moov({ type, meta: meta })
 
     initSegment.write(ftyp, moov)

@@ -114,7 +114,7 @@ var Mp4Remuxer = function () {
     key: 'remuxInitSegment',
     value: function remuxInitSegment(type, meta) {
       var initSegment = new Buffer();
-      var ftyp = Fmp4.ftyp();
+      var ftyp = meta.streamType === 0x24 ? Fmp4.ftypHEVC() : Fmp4.ftyp();
       var moov = Fmp4.moov({ type: type, meta: meta });
 
       initSegment.write(ftyp, moov);

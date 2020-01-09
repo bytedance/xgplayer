@@ -26,6 +26,14 @@ class Fmp4 {
       0x61, 0x76, 0x63, 0x31 // avc1
     ]))
   }
+  static ftypHEVC () {
+    return Fmp4.initBox(24, 'ftyp', new Uint8Array([
+      0x69, 0x73, 0x6F, 0x6D, // isom,
+      0x0, 0x0, 0x00, 0x01, // minor_version: 0x01
+      0x69, 0x73, 0x6F, 0x6D, // isom
+      0x64, 0x61, 0x73, 0x68 // hev1
+    ]))
+  }
   static moov ({ type, meta }) {
     let size = 8
     let mvhd = Fmp4.mvhd(meta.duration, meta.timescale)
@@ -111,7 +119,8 @@ class Fmp4 {
       avcc: data.avcc,
       parRatio: data.parRatio,
       width: data.presentWidth,
-      height: data.presentHeight
+      height: data.presentHeight,
+      streamType: data.streamType
     });
     [tkhd, mdia].forEach(item => {
       size += item.byteLength
@@ -309,10 +318,16 @@ class Fmp4 {
       // } else {
       //
       // }
+
       // 支持mp4a
       content = Fmp4.mp4a(data)
     } else {
-      content = Fmp4.avc1(data)
+      if(data.streamType === 0x24)
+      {
+        content = Fmp4.hvc1(data)
+      } else {
+        content = Fmp4.avc1(data)
+      }
     }
     return Fmp4.initBox(16 + content.byteLength, 'stsd', Fmp4.extension(0, 0), new Uint8Array([0x00, 0x00, 0x00, 0x01]), content)
   }
