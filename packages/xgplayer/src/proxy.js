@@ -74,15 +74,19 @@ class Proxy {
         [item]: `on${item.charAt(0).toUpperCase()}${item.slice(1)}`
       }
     })
+
     EventEmitter(this)
 
     this._interval = {}
     let lastBuffer = '0,0'
     let self = this
-
+    function _emitEvent(funName){
+      self[funName] && typeof self[funName] === 'function' && self[funName](self)
+    }
     this.ev.forEach(item => {
       self.evItem = Object.keys(item)[0]
       let name = Object.keys(item)[0]
+      let funName = item[name]
       self.video.addEventListener(Object.keys(item)[0], function () {
         // fix when video destroy called and video reload
         if (!self.logParams) {
@@ -119,6 +123,7 @@ class Proxy {
         }
         if (name === 'error') {
           if (self.video.error) {
+            _emitEvent(funName)
             self.emit(name, new Errors('other', self.currentTime, self.duration, self.networkState, self.readyState, self.currentSrc, self.src,
               self.ended, {
                 line: 41,
@@ -127,6 +132,7 @@ class Proxy {
               }))
           }
         } else {
+          _emitEvent(funName)
           self.emit(name, self)
         }
 
@@ -152,7 +158,6 @@ class Proxy {
       }, false)
     })
   }
-
   get hasStart () {
     return this._hasStart
   }

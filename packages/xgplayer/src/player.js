@@ -108,13 +108,6 @@ class Player extends Proxy {
       this.pluginsCall()
       this._registerPlugins()
     }
-    this.ev.forEach((item) => {
-      let evName = Object.keys(item)[0]
-      let evFunc = this[item[evName]]
-      if (evFunc) {
-        this.on(evName, evFunc)
-      }
-    });
 
     ['focus', 'blur'].forEach(item => {
       this.on(item, this['on' + item.charAt(0).toUpperCase() + item.slice(1)])
@@ -481,6 +474,24 @@ class Player extends Proxy {
     }
     util.removeClass(this.root, 'xgplayer-isloading xgplayer-nostart xgplayer-pause xgplayer-ended xgplayer-is-error xgplayer-replay')
     util.addClass(this.root, 'xgplayer-playing')
+  }
+  /***
+   * 插件全部迁移完成再做删除
+   */
+  static install (name, descriptor) {
+    if (!Player.plugins) {
+      Player.plugins = {}
+    }
+    if (!Player.plugins[name]) {
+      Player.plugins[name] = descriptor
+    }
+  }
+
+  static use (name, descriptor) {
+    if (!Player.plugins) {
+      Player.plugins = {}
+    }
+    Player.plugins[name] = descriptor
   }
 }
 
