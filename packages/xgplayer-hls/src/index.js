@@ -1,7 +1,7 @@
-import { HlsLivePlayer } from 'xgplayer-hls-live';
-import { HlsVodPlayer } from 'xgplayer-hls-vod';
+import HlsLivePlayer from 'xgplayer-hls-live';
+import HlsVodPlayer from 'xgplayer-hls-vod';
 
-export class HlsPlayer {
+export default class HlsPlayer {
   constructor (config) {
     if (config.isLive) {
       return new HlsLivePlayer(config)
@@ -10,5 +10,3 @@ export class HlsPlayer {
     }
   }
 }
-
-module.exports = HlsPlayer;

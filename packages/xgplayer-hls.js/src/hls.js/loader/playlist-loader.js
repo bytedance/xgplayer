@@ -27,7 +27,7 @@ const { performance } = window;
  */
 const ContextType = {
   MANIFEST: 'manifest',
-  LEVEL: 'level',
+  LEVEL: 'levels.js',
   AUDIO_TRACK: 'audioTrack',
   SUBTITLE_TRACK: 'subtitleTrack'
 };
@@ -160,7 +160,7 @@ class PlaylistLoader extends EventHandler {
   }
 
   onLevelLoading (data) {
-    this.load(data.url, { type: ContextType.LEVEL, level: data.level, id: data.id });
+    this.load(data.url, { type: ContextType.LEVEL, level: data.levels, id: data.id });
   }
 
   onAudioTrackLoading (data) {
@@ -174,7 +174,7 @@ class PlaylistLoader extends EventHandler {
   load (url, context) {
     const config = this.hls.config;
 
-    logger.debug(`Loading playlist of type ${context.type}, level: ${context.level}, id: ${context.id}`);
+    logger.debug(`Loading playlist of type ${context.type}, level: ${context.levels}, id: ${context.id}`);
 
     // Check if a loader for this context already exists
     let loader = this.getInternalLoader(context);

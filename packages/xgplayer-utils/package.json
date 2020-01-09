@@ -1,19 +1,29 @@
 {
   "name": "xgplayer-utils",
-  "version": "2.2.0-alpha.0",
+  "version": "2.2.0-alpha.20",
   "description": "",
-  "main": "index.js",
+  "main": "lib/index.js",
+  "module": "es/index.js",
   "scripts": {
-    "build": "babel src --out-dir dist"
+    "prepare": "npm run build",
+    "watch": "babel src --out-dir es --watch & babel src --out-dir lib --presets=es2015 --watch",
+    "build": "npm run build:es && npm run build:lib",
+    "build:es": "babel src --out-dir es",
+    "build:lib": "babel src --out-dir lib --presets=es2015"
   },
   "author": "",
   "license": "ISC",
-  "devDependencies": {
-    "@babel/cli": "^7.6.0",
-    "@babel/core": "^7.6.0",
-    "@babel/plugin-proposal-export-default-from": "^7.5.2"
+  "babel": {
+    "presets": [
+      [
+        "es2015",
+        {
+          "modules": false
+        }
+      ]
+    ]
   },
   "dependencies": {
-    "concat-typed-array": "^1.0.2"
+    "xgplayer-transmuxer-constant-events": "^2.2.0-alpha.20"
   }
 }

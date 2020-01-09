@@ -99,7 +99,7 @@ class Demuxer {
     const decryptdata = frag.decryptdata;
     const lastFrag = this.frag;
     const discontinuity = !(lastFrag && (frag.cc === lastFrag.cc));
-    const trackSwitch = !(lastFrag && (frag.level === lastFrag.level));
+    const trackSwitch = !(lastFrag && (frag.levels === lastFrag.levels));
     const nextSN = lastFrag && (frag.sn === (lastFrag.sn + 1));
     const contiguous = !trackSwitch && nextSN;
     if (discontinuity) {

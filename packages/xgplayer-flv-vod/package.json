@@ -1,25 +1,49 @@
 {
   "name": "xgplayer-flv-vod",
-  "version": "2.2.0-alpha.0",
+  "version": "2.2.0-alpha.20",
   "description": "",
-  "main": "dist/index.js",
+  "main": "lib/index.js",
+  "module": "es/index.js",
+  "browser": "dist/index.min.js",
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1",
-    "build": "webpack --progress --display-chunks -p",
-    "watch": "webpack --config webpack.config.dev.js --progress --display-chunks --watch",
-    "dev": "webpack --config webpack.config.dev.js --progress --display-chunks"
+    "prepare": "npm run build",
+    "build": "npm run build:umd && npm run build:es && npm run build:lib",
+    "build:umd": "cross-env NODE_ENV=production rollup -c rollup.config.js && cross-env NODE_ENV=production rollup -c rollup.config.mobile.js ",
+    "build:es": "babel src --out-dir es",
+    "build:lib": "babel src --out-dir lib --presets=es2015",
+    "watch": "cross-env NODE_ENV=development rollup -c rollup.config.js --watch",
+    "watch:mobile": "cross-env NODE_ENV=development rollup -c rollup.config.mobile.js --watch"
   },
   "author": "",
   "license": "ISC",
-  "dependencies": {},
+  "babel": {
+    "presets": [
+      [
+        "env",
+        {
+          "targets": {
+            "chrome": 58,
+            "ie": 10
+          },
+          "modules": false
+        }
+      ]
+    ]
+  },
+  "dependencies": {
+    "xgplayer-utils-mse": "^2.2.0-alpha.20",
+    "xgplayer-transmuxer-context": "^2.2.0-alpha.20",
+    "xgplayer-transmuxer-buffer-xgbuffer": "^2.2.0-alpha.20",
+    "xgplayer-transmuxer-buffer-track": "^2.2.0-alpha.20",
+    "xgplayer-transmuxer-buffer-presource": "^2.2.0-alpha.20",
+    "xgplayer-transmuxer-demux-flv": "^2.2.0-alpha.20",
+    "xgplayer-transmuxer-loader-fetch": "^2.2.0-alpha.20",
+    "xgplayer-transmuxer-remux-mp4": "^2.2.0-alpha.20",
+    "xgplayer-transmuxer-constant-events": "^2.2.0-alpha.20",
+    "xgplayer-transmuxer-codec-compatibility": "^2.2.0-alpha.20",
+    "xgplayer-mobilevideo": "^2.2.0-alpha.20"
+  },
   "devDependencies": {
-    "webpack": "^4.41.0",
-    "webpack-merge": "^4.2.2",
-    "xgplayer-buffer": "^2.2.0-alpha.0",
-    "xgplayer-codec": "^2.2.0-alpha.0",
-    "xgplayer-demux": "^2.2.0-alpha.0",
-    "xgplayer-loader": "^2.2.0-alpha.0",
-    "xgplayer-remux": "^2.2.0-alpha.0",
-    "xgplayer-utils": "^2.2.0-alpha.0"
+    "cross-env": "^6.0.3"
   }
 }

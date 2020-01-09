@@ -1,4 +1,4 @@
 import './theme.scss'
 import Music from './music'
-import * as Controls from './controls/*.js'
+import './controls'
 export default Music

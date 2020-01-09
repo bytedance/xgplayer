@@ -7,7 +7,7 @@ util.createDom = function (el = 'div', tpl = '', attrs = {}, cname = '') {
   Object.keys(attrs).forEach(item => {
     let key = item
     let value = attrs[item]
-    if (el === 'video' || el === 'audio') {
+    if (el === 'video' || el === 'audio' || el === 'mobile-video') {
       if (value) {
         dom.setAttribute(key, value)
       }
@@ -219,6 +219,7 @@ util.Hex2RGBA = function (hex, alpha) {
   }
   if (/^#[0-9A-F]{6}$/i.test(hex)) {
     hex.replace(/[0-9A-F]{2}/ig, function (kw) {
+      // eslint-disable-next-line no-eval
       rgb.push(eval('0x' + kw))
     })
     return `rgba(${rgb.join(',')}, ${alpha})`
@@ -227,12 +228,11 @@ util.Hex2RGBA = function (hex, alpha) {
   }
 }
 
-
-util.checkIsFunction = function(fun){
+util.checkIsFunction = function (fun) {
   return typeof fun === 'function'
 }
 
-util.checkIsObject = function(obj) {
+util.checkIsObject = function (obj) {
   return obj !== null && typeof obj === 'object'
 }
 export default util

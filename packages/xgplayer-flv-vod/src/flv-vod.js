@@ -1,9 +1,14 @@
-import FlvDemuxer from '../../xgplayer-demux/src/flv'
-import Remuxer from 'xgplayer-remux'
-import { FetchLoader } from 'xgplayer-loader'
-import { Tracks, XgBuffer, PreSource } from 'xgplayer-buffer'
-import { Mse, EVENTS } from 'xgplayer-utils'
-import { Compatibility } from 'xgplayer-codec'
+import FetchLoader from 'xgplayer-transmuxer-loader-fetch';
+import FlvDemuxer from 'xgplayer-transmuxer-demux-flv'
+import Remuxer from 'xgplayer-transmuxer-remux-mp4'
+import EVENTS from 'xgplayer-transmuxer-constant-events'
+import Tracks from 'xgplayer-transmuxer-buffer-track'
+import PreSource from 'xgplayer-transmuxer-buffer-presource'
+import XgBuffer from 'xgplayer-transmuxer-buffer-xgbuffer'
+import Compatibility from 'xgplayer-transmuxer-codec-compatibility'
+
+import Mse from 'xgplayer-utils-mse'
+
 import Player from 'xgplayer'
 
 const REMUX_EVENTS = EVENTS.REMUX_EVENTS;
@@ -19,10 +24,11 @@ class Logger {
 const FLV_ERROR = 'FLV_ERROR'
 
 class FlvController {
-  constructor (player) {
+  constructor (player, mse) {
     this.TAG = Tag
     this._player = player
 
+    this.mse = mse;
     this.state = {
       initSegmentArrived: false,
       range: {
@@ -53,19 +59,18 @@ class FlvController {
     this._context.registry('FLV_DEMUXER', FlvDemuxer)
     this._context.registry('TRACKS', Tracks)
 
-    this._context.registry('MP4_REMUXER', Remuxer.Mp4Remuxer)
+    this._context.registry('MP4_REMUXER', Remuxer)(this._player.currentTime)
     this._context.registry('PRE_SOURCE_BUFFER', PreSource)
 
     this._context.registry('COMPATIBILITY', Compatibility)
 
     this._context.registry('LOGGER', Logger)
-    this.mse = this._context.registry('MSE', Mse)({ container: this._player.video })
+    if (!this.mse) {
+      this.mse = new Mse({ container: this._player.video }, this._context);
+      this.mse.init();
+    }
 
     this.initListeners()
-
-    setTimeout(() => {
-      this.loadMeta()
-    }, 0)
   }
 
   initListeners () {
@@ -76,6 +81,7 @@ class FlvController {
     this.on(DEMUX_EVENTS.METADATA_PARSED, this._handleMetadataParsed.bind(this))
     this.on(DEMUX_EVENTS.DEMUX_COMPLETE, this._handleDemuxComplete.bind(this))
     this.on(DEMUX_EVENTS.DEMUX_ERROR, this._handleDemuxError.bind(this))
+    this.on(DEMUX_EVENTS.SEI_PARSED, this._handleSEIParsed.bind(this))
 
     this.on(REMUX_EVENTS.INIT_SEGMENT, this._handleAppendInitSegment.bind(this))
     this.on(REMUX_EVENTS.MEDIA_SEGMENT, this._handleMediaSegment.bind(this))
@@ -106,6 +112,10 @@ class FlvController {
 
   _handleMetadataParsed (type) {
     this.emit(REMUX_EVENTS.REMUX_METADATA, type)
+  }
+
+  _handleSEIParsed(sei) {
+    this._player.emit('SEI_PARSED', sei)
   }
 
   _handleDemuxComplete () {
@@ -163,6 +173,7 @@ class FlvController {
     if (this.compat) {
       this.compat.reset()
     }
+
     this.loadData()
   }
 
@@ -235,7 +246,6 @@ class FlvController {
     if (this.state.range.end === '') {
       return;
     }
-
     const { end } = this.getSeekRange(time, this.config.preloadTime || 15)
     if (end <= this.state.range.end && end !== '') {
       return;
@@ -262,14 +272,11 @@ class FlvController {
   }
 
   get isSeekable () {
-    if (!this.state.rangeSupport) {
+    if (!this.state.rangeSupport || !this._context) {
       return false
     }
 
-    if (!this._context || !this._context.mediaInfo.isComplete()) {
-      return true
-    }
-    return this._context.mediaInfo.keyframes !== null && this._context.mediaInfo.keyframes !== undefined
+    return this._context.onMetaData.keyframes !== null && this._context.onMetaData.keyframes !== undefined
   }
 
   get config () {
@@ -282,6 +289,10 @@ class FlvController {
 
   get compat () {
     return this._context.getInstance('COMPATIBILITY')
+  }
+
+  get loadBuffer () {
+    return this._context.getInstance('LOADER_BUFFER')
   }
 }
 

@@ -112,7 +112,7 @@ class DashPlayer extends Player {
 
           dash.once('startPlay', () => {
             player.dash.mse.progressTimer = setInterval(
-              timeupdateFunc, 
+              timeupdateFunc,
               player.config.progressTimer || 300
             )
           })
@@ -179,7 +179,7 @@ class DashPlayer extends Player {
               player.mse = mse
               player.currentTime = 0
               player.play()
-              
+
               player.on('error', () => {
                 if(player.dash.mse.progressTimer) {
                   clearInterval(player.dash.mse.progressTimer)
@@ -189,7 +189,7 @@ class DashPlayer extends Player {
 
               dash.once('startPlay', () => {
                 player.dash.mse.progressTimer = setInterval(
-                  timeupdateFunc, 
+                  timeupdateFunc,
                   player.config.progressTimer || 300
                 )
               })
@@ -213,7 +213,7 @@ class DashPlayer extends Player {
         for (let i = 0; i < ranges.length; i++) {
           if (ranges.start(i) <= time && ranges.end(i) >= time) {
             return {
-              start: ranges.start(i), 
+              start: ranges.start(i),
               end: ranges.end(i)
             }
           }
@@ -230,4 +230,4 @@ class DashPlayer extends Player {
   }
 }
 
-module.exports = DashPlayer
+export default DashPlayer

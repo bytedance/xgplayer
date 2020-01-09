@@ -45,7 +45,7 @@ class AbrController extends EventHandler {
       if (!this._bwEstimator) {
         const hls = this.hls;
         const config = hls.config;
-        const level = frag.level;
+        const level = frag.levels;
         const isLive = hls.levels[level].details.live;
 
         let ewmaFast, ewmaSlow;
@@ -89,7 +89,7 @@ class AbrController extends EventHandler {
     let stats = loader.stats;
     /* only monitor frag retrieval time if
     (video not paused OR first fragment being loaded(ready state === HAVE_NOTHING = 0)) AND autoswitching enabled AND not lowest level (=> means that we have several levels) */
-    if (video && stats && ((!video.paused && (video.playbackRate !== 0)) || !video.readyState) && frag.autoLevel && frag.level) {
+    if (video && stats && ((!video.paused && (video.playbackRate !== 0)) || !video.readyState) && frag.autoLevel && frag.levels) {
       let requestDelay = performance.now() - stats.trequest,
         playbackRate = Math.abs(video.playbackRate);
       // monitor fragment load progress after half of expected fragment duration,to stabilize bitrate
@@ -97,7 +97,7 @@ class AbrController extends EventHandler {
         let levels = hls.levels,
           loadRate = Math.max(1, stats.bw ? stats.bw / 8 : stats.loaded * 1000 / requestDelay), // byte/s; at least 1 byte/s to avoid division by zero
           // compute expected fragment length using frag duration and level bitrate. also ensure that expected len is gte than already loaded size
-          level = levels[frag.level],
+          level = levels[frag.levels],
           levelBitrate = level.realBitrate ? Math.max(level.realBitrate, level.bitrate) : level.bitrate,
           expectedLen = stats.total ? stats.total : Math.max(stats.loaded, Math.round(frag.duration * levelBitrate / 8)),
           pos = video.currentTime,
@@ -110,7 +110,7 @@ class AbrController extends EventHandler {
           let fragLevelNextLoadedDelay, nextLoadLevel;
           // lets iterate through lower level and try to find the biggest one that could avoid rebuffering
           // we start from current level - 1 and we step down , until we find a matching level
-          for (nextLoadLevel = frag.level - 1; nextLoadLevel > minAutoLevel; nextLoadLevel--) {
+          for (nextLoadLevel = frag.levels - 1; nextLoadLevel > minAutoLevel; nextLoadLevel--) {
             // compute time to load next fragment at lower level
             // 0.8 : consider only 80% of current bw to be conservative
             // 8 = bits per byte (bps/Bps)
@@ -124,7 +124,7 @@ class AbrController extends EventHandler {
           // only emergency switch down if it takes less time to load new fragment at lowest level instead
           // of finishing loading current one ...
           if (fragLevelNextLoadedDelay < fragLoadedDelay) {
-            logger.warn(`loading too slow, abort fragment loading and switch to level ${nextLoadLevel}:fragLoadedDelay[${nextLoadLevel}]<fragLoadedDelay[${frag.level - 1}];bufferStarvationDelay:${fragLevelNextLoadedDelay.toFixed(1)}<${fragLoadedDelay.toFixed(1)}:${bufferStarvationDelay.toFixed(1)}`);
+            logger.warn(`loading too slow, abort fragment loading and switch to level ${nextLoadLevel}:fragLoadedDelay[${nextLoadLevel}]<fragLoadedDelay[${frag.levels - 1}];bufferStarvationDelay:${fragLevelNextLoadedDelay.toFixed(1)}<${fragLoadedDelay.toFixed(1)}:${bufferStarvationDelay.toFixed(1)}`);
             // force next load level in auto mode
             hls.nextLoadLevel = nextLoadLevel;
             // update bw estimate for this fragment before cancelling load (this will help reducing the bw)
@@ -146,13 +146,13 @@ class AbrController extends EventHandler {
       // stop monitoring bw once frag loaded
       this.clearTimer();
       // store level id after successful fragment load
-      this.lastLoadedFragLevel = frag.level;
+      this.lastLoadedFragLevel = frag.levels;
       // reset forced auto level value so that next level will be selected
       this._nextAutoLevel = -1;
 
       // compute level average bitrate
       if (this.hls.config.abrMaxWithRealBitrate) {
-        const level = this.hls.levels[frag.level];
+        const level = this.hls.levels[frag.levels];
         let loadedBytes = (level.loaded ? level.loaded.bytes : 0) + data.stats.loaded;
         let loadedDuration = (level.loaded ? level.loaded.duration : 0) + data.frag.duration;
         level.loaded = { bytes: loadedBytes, duration: loadedDuration };

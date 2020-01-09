@@ -1,4 +1,5 @@
 import MediaInfo from './models/media-info'
+import EVENTS from 'xgplayer-transmuxer-constant-events'
 import { EventEmitter } from 'events'
 
 const DIRECT_EMIT_FLAG = '__TO__'
@@ -6,13 +7,15 @@ const DIRECT_EMIT_FLAG = '__TO__'
 class Context {
   constructor (allowedEvents = []) {
     this._emitter = new EventEmitter()
+    if (!this._emitter.off) {
+      this._emitter.off = this._emitter.removeListener;
+    }
     this._instanceMap = {} // 所有的解码流程实例
     this._clsMap = {} // 构造函数的map
     this._inited = false
     this.mediaInfo = new MediaInfo()
     this.allowedEvents = allowedEvents
     this._hooks = {} // 注册在事件前/后的钩子，例如 before('DEMUX_COMPLETE')
-    this._emitCounter = {}
   }
 
   /**
@@ -37,8 +40,9 @@ class Context {
    * @param args
    */
   initInstance (tag, ...args) {
+    const [a, b, c, d] = args;
     if (this._clsMap[tag]) {
-      const newInstance = new this._clsMap[tag](...args)
+      const newInstance = new this._clsMap[tag](a, b, c, d)
       this._instanceMap[tag] = newInstance
       if (newInstance.init) {
         newInstance.init() // TODO: lifecircle
@@ -126,18 +130,7 @@ class Context {
 
       emit (messageName, ...args) {
         checkMessageName(messageName)
-        if (self._emitCounter[messageName]) {
-          self._emitCounter[messageName] += 1;
-          if (self._emitCounter[messageName] > 10000) {
-            let a = 'con';
-            let b = 'sole';
-            if (window.console) {
-              window[a + b].warn(`invoke: `, messageName)
-            }
-          }
-        } else {
-          self._emitCounter[messageName] = 1;
-        }
+        // console.log('emit ', messageName);
 
         const beforeList = self._hooks ? self._hooks[messageName] : null
 
@@ -219,6 +212,14 @@ class Context {
   }
 
   /**
+   * 各个模块处理seek
+   * @param time
+   */
+  seek (time) {
+    this._emitter.emit(EVENTS.PLAYER_EVENTS.SEEK, time)
+  }
+
+  /**
    * 对存在的实例进行
    */
   destroyInstances () {
@@ -238,7 +239,6 @@ class Context {
     this._clsMap = null
     this._context = null
     this._hooks = null
-    this._emitCounter = {}
     this.destroyInstances()
   }
 

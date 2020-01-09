@@ -12,6 +12,10 @@ var _mediaInfo = require('./models/media-info');
 
 var _mediaInfo2 = _interopRequireDefault(_mediaInfo);
 
+var _xgplayerTransmuxerConstantEvents = require('xgplayer-transmuxer-constant-events');
+
+var _xgplayerTransmuxerConstantEvents2 = _interopRequireDefault(_xgplayerTransmuxerConstantEvents);
+
 var _events = require('events');
 
 function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
@@ -31,13 +35,15 @@ var Context = function () {
     _classCallCheck(this, Context);
 
     this._emitter = new _events.EventEmitter();
+    if (!this._emitter.off) {
+      this._emitter.off = this._emitter.removeListener;
+    }
     this._instanceMap = {}; // 所有的解码流程实例
     this._clsMap = {}; // 构造函数的map
     this._inited = false;
     this.mediaInfo = new _mediaInfo2.default();
     this.allowedEvents = allowedEvents;
     this._hooks = {}; // 注册在事件前/后的钩子，例如 before('DEMUX_COMPLETE')
-    this._emitCounter = {};
   }
 
   /**
@@ -69,12 +75,17 @@ var Context = function () {
   }, {
     key: 'initInstance',
     value: function initInstance(tag) {
-      if (this._clsMap[tag]) {
-        for (var _len = arguments.length, args = Array(_len > 1 ? _len - 1 : 0), _key = 1; _key < _len; _key++) {
-          args[_key - 1] = arguments[_key];
-        }
+      for (var _len = arguments.length, args = Array(_len > 1 ? _len - 1 : 0), _key = 1; _key < _len; _key++) {
+        args[_key - 1] = arguments[_key];
+      }
 
-        var newInstance = new (Function.prototype.bind.apply(this._clsMap[tag], [null].concat(args)))();
+      var a = args[0],
+          b = args[1],
+          c = args[2],
+          d = args[3];
+
+      if (this._clsMap[tag]) {
+        var newInstance = new this._clsMap[tag](a, b, c, d);
         this._instanceMap[tag] = newInstance;
         if (newInstance.init) {
           newInstance.init(); // TODO: lifecircle
@@ -183,18 +194,7 @@ var Context = function () {
           key: 'emit',
           value: function emit(messageName) {
             checkMessageName(messageName);
-            if (self._emitCounter[messageName]) {
-              self._emitCounter[messageName] += 1;
-              if (self._emitCounter[messageName] > 10000) {
-                var a = 'con';
-                var b = 'sole';
-                if (window.console) {
-                  window[a + b].warn('invoke: ', messageName);
-                }
-              }
-            } else {
-              self._emitCounter[messageName] = 1;
-            }
+            // console.log('emit ', messageName);
 
             var beforeList = self._hooks ? self._hooks[messageName] : null;
 
@@ -300,6 +300,17 @@ var Context = function () {
     }
 
     /**
+     * 各个模块处理seek
+     * @param time
+     */
+
+  }, {
+    key: 'seek',
+    value: function seek(time) {
+      this._emitter.emit(_xgplayerTransmuxerConstantEvents2.default.PLAYER_EVENTS.SEEK, time);
+    }
+
+    /**
      * 对存在的实例进行
      */
 
@@ -327,7 +338,6 @@ var Context = function () {
       this._clsMap = null;
       this._context = null;
       this._hooks = null;
-      this._emitCounter = {};
       this.destroyInstances();
     }
 

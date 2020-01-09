@@ -1,6 +1,5 @@
 import Proxy from './proxy'
 import util from './utils/util'
-import Database from './utils/database'
 import sniffer from './utils/sniffer'
 import Errors from './error'
 import pluginsManager, {Plugin, BasePlugin} from './pluginsManager'
@@ -11,9 +10,7 @@ import {
 
 class Player extends Proxy {
   constructor (options) {
-    // const plugins = options.plugins || []
-    const defaultPlugin = getDefaultPlugins(options)
-    options.plugins = defaultPlugin
+    options.plugins = getDefaultPlugins(options)
     super(options)
     this.config = util.deepCopy({
       width: 600,
@@ -26,12 +23,60 @@ class Player extends Proxy {
       controls: true,
       controlsList: ['nodownload']
     }, options)
-    this.version = version
+
+    // timer and flags
     this.userTimer = null
     this.waitTimer = null
-    this.database = new Database()
-    this.history = []
     this.isProgressMoving = false
+
+    this._initDOM()
+
+    this.pluginsCall()
+    this._registerPlugins()
+
+    setTimeout(() => {
+      this.emit('ready')
+      this.isReady = true
+    }, 0)
+
+    pluginsManager.beforeInit(this)
+    if (this.config.videoInit) {
+      if (util.hasClass(this.root, 'xgplayer-nostart')) {
+        this.start()
+      }
+    }
+  }
+
+  /**
+   * 注册组件 组件列表config.plugins
+   */
+  _registerPlugins () {
+    const ignores = this.config.ignores || []
+    const plugins = this.config.plugins || []
+    const ignoresStr = ignores.join('||')
+    plugins.map(plugin => {
+      try {
+        //在ignores中的不做组装
+        if (plugin.pluginName && ignoresStr.indexOf(plugin.pluginName.toLowerCase()) > -1) {
+          return null
+        }
+        return pluginsManager.register(this, plugin)
+      } catch(err) {
+        return null
+      }
+    })
+  }
+
+  register(){
+  }
+
+  unRegister(){}
+
+  /**
+   * init control bar
+   * @private
+   */
+  _initDOM () {
     this.root = util.findDom(document, `#${this.config.id}`)
     this.controls = util.createDom('xg-controls', '', {
       unselectable: 'on',
@@ -112,7 +157,9 @@ class Player extends Proxy {
     ['focus', 'blur'].forEach(item => {
       this.on(item, this['on' + item.charAt(0).toUpperCase() + item.slice(1)])
     })
+
     let player = this
+    player.once('loadeddata', this.getVideoSize)
     this.mousemoveFunc = function () {
       player.emit('focus')
       if (!player.config.closeFocusVideoFocus) {
@@ -128,40 +175,6 @@ class Player extends Proxy {
     }
     player.once('play', this.playFunc)
 
-    this.getVideoSize = function () {
-      if (this.video.videoWidth && this.video.videoHeight) {
-        let containerSize = player.root.getBoundingClientRect()
-        if (player.config.fitVideoSize === 'auto') {
-          if (containerSize.width / containerSize.height > this.video.videoWidth / this.video.videoHeight) {
-            player.root.style.height = `${this.video.videoHeight / this.video.videoWidth * containerSize.width}px`
-          } else {
-            player.root.style.width = `${this.video.videoWidth / this.video.videoHeight * containerSize.height}px`
-          }
-        } else if (player.config.fitVideoSize === 'fixWidth') {
-          player.root.style.height = `${this.video.videoHeight / this.video.videoWidth * containerSize.width}px`
-        } else if (player.config.fitVideoSize === 'fixHeight') {
-          player.root.style.width = `${this.video.videoWidth / this.video.videoHeight * containerSize.height}px`
-        }
-      }
-    }
-    player.once('loadeddata', this.getVideoSize)
-
-    setTimeout(() => {
-      this.emit('ready')
-      this.isReady = true
-    }, 0)
-
-    pluginsManager.beforeInit(this)
-    if (this.config.videoInit) {
-      if (util.hasClass(this.root, 'xgplayer-nostart')) {
-        this.start()
-      }
-    }
-    if (player.config.rotate) {
-      player.on('requestFullscreen', this.updateRotateDeg)
-      player.on('exitFullscreen', this.updateRotateDeg)
-    }
-
     function onDestroy () {
       player.root.removeEventListener('mousemove', player.mousemoveFunc)
       player.off('destroy', onDestroy)
@@ -170,30 +183,6 @@ class Player extends Proxy {
     player.once('destroy', onDestroy)
   }
 
-  /**
-   * 注册组件 组件列表config.plugins
-   */
-  _registerPlugins () {
-    const ignores = this.config.ignores || []
-    const plugins = this.config.plugins || []
-    const ignoresStr = ignores.join('||')
-    plugins.map(plugin => {
-      try {
-        //在ignores中的不做组装
-        if (plugin.pluginName && ignoresStr.indexOf(plugin.pluginName.toLowerCase()) > -1) {
-          return null
-        }
-        return pluginsManager.register(this, plugin)
-      } catch(err) {
-        return null
-      }
-    })
-  }
-
-  register(){
-  }
-
-  unRegister(){}
 
   /**
    * 当前播放器挂在的插件实例代码
@@ -212,7 +201,6 @@ class Player extends Proxy {
     if (!url || url === '') {
       this.emit('urlNull')
     }
-    this.logParams.playSrc = url
     this.canPlayFunc = function () {
       let playPromise = player.video.play()
       if (playPromise !== undefined && playPromise) {
@@ -234,15 +222,6 @@ class Player extends Proxy {
           type: `${item.type || ''}`
         }))
       })
-    }
-    this.logParams.pt = new Date().getTime()
-    this.logParams.vt = this.logParams.pt
-    this.loadeddataFunc = function () {
-      player.logParams.vt = new Date().getTime()
-      if (player.logParams.pt > player.logParams.vt) {
-        player.logParams.pt = player.logParams.vt
-      }
-      player.logParams.vd = player.video.duration
     }
     this.once('loadeddata', this.loadeddataFunc)
     if (this.config.autoplay) {
@@ -475,6 +454,28 @@ class Player extends Proxy {
     util.removeClass(this.root, 'xgplayer-isloading xgplayer-nostart xgplayer-pause xgplayer-ended xgplayer-is-error xgplayer-replay')
     util.addClass(this.root, 'xgplayer-playing')
   }
+  
+  getVideoSize() {
+    if (this.video.videoWidth && this.video.videoHeight) {
+      let containerSize = this.root.getBoundingClientRect()
+      if (this.config.fitVideoSize === 'auto') {
+        if (containerSize.width / containerSize.height > this.video.videoWidth / this.video.videoHeight) {
+          this.root.style.height = `${this.video.videoHeight / this.video.videoWidth * containerSize.width}px`
+        } else {
+          this.root.style.width = `${this.video.videoWidth / this.video.videoHeight * containerSize.height}px`
+        }
+      } else if (this.config.fitVideoSize === 'fixWidth') {
+        this.root.style.height = `${this.video.videoHeight / this.video.videoWidth * containerSize.width}px`
+      } else if (this.config.fitVideoSize === 'fixHeight') {
+        this.root.style.width = `${this.video.videoWidth / this.video.videoHeight * containerSize.height}px`
+      }
+    }
+  }
+
+  get version () {
+    return version
+  }
+
   /***
    * TODO
    * 插件全部迁移完成再做删除
