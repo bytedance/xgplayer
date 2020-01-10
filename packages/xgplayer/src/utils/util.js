@@ -129,6 +129,7 @@ util.typeOf = function (obj) {
 util.deepCopy = function (dst, src) {
   if (util.typeOf(src) === 'Object' && util.typeOf(dst) === 'Object') {
     Object.keys(src).forEach(key => {
+      // eslint-disable-next-line no-undef
       if (util.typeOf(src[key]) === 'Object' && !(src[key] instanceof Node)) {
         if (!dst[key]) {
           dst[key] = src[key]
@@ -210,6 +211,7 @@ util.createImgBtn = function (name, imgUrl, width, height) {
 
 util.Hex2RGBA = function (hex, alpha) {
   let rgb = [] // 定义rgb数组
+  // eslint-disable-next-line no-useless-escape
   if (/^\#[0-9A-F]{3}$/i.test(hex)) {
     let sixHex = '#'
     hex.replace(/[0-9A-F]/ig, function (kw) {

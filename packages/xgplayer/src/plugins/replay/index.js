@@ -7,13 +7,14 @@ class Replay extends Plugin {
     return 'Replay'
   }
 
-  registerIcons() {
+  registerIcons () {
     return {
       'replay': ReplayIcon
     }
   }
 
-  registerLangauageTexts() {
+  // 扩展语言
+  registerLangauageTexts () {
     return {
       'replay': {
         jp: '日文text',
@@ -47,7 +48,6 @@ class Replay extends Plugin {
   }
 
   render () {
-    const replayText = this.player.lang.REPLAY
     console.log('this.text', this.text)
     return `<xg-replay class="xgplayer-replay">
       ${this.icons.replay}

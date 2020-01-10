@@ -4,9 +4,9 @@ import Errors from '../error'
 import * as event from '../events'
 
 class BasePlugin {
-  static defineGetterOrSetter(Obj, map){
-    for(const key in map) {
-       Object.defineProperty(Obj, key, map[key])
+  static defineGetterOrSetter (Obj, map) {
+    for (const key in map) {
+      Object.defineProperty(Obj, key, map[key])
     }
   }
 

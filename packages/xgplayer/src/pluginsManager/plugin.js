@@ -6,18 +6,18 @@ import delegate from 'delegate-events'
 import pluginsManager from './pluginsManager'
 import BasePlugin from './basePlugin'
 
-function _createElement(tag, name){
-  const dom =  document.createElement(tag)
+function _createElement (tag, name) {
+  const dom = document.createElement(tag)
   dom.name = name
   return dom
 }
 /**
  * 插入dom结构
  * @param {String} html html字符串
- * @param {DocumentElemebt } parent 
- * @param {*} index 
+ * @param {DocumentElemebt } parent
+ * @param {*} index
  */
-function insert(html, parent, index) {
+function insert (html, parent, index) {
   const len = parent.children.length
   const insertIdx = parseInt(index)
   if (typeof index === 'undefined' || len <= insertIdx) {
@@ -34,15 +34,14 @@ function insert(html, parent, index) {
   }
 }
 
-
-function registerIconsObj(iconsConfig, plugin) {
+function registerIconsObj (iconsConfig, plugin) {
   Object.keys(iconsConfig).map((iconKey) => {
     Object.defineProperty(plugin.icons, iconKey, {
       get: () => {
         const _icons = plugin.config.icons || plugin.playerConfig.icons
         if (_icons && _icons[iconKey]) {
           return _icons[iconKey]
-        } else{
+        } else {
           return iconsConfig[iconKey]
         }
       }
@@ -50,7 +49,7 @@ function registerIconsObj(iconsConfig, plugin) {
   })
 }
 
-function registerTextObj(textConfig, plugin) {
+function registerTextObj (textConfig, plugin) {
   Object.keys(textConfig).map((key) => {
     Object.defineProperty(plugin.text, key, {
       get: () => {
@@ -74,32 +73,16 @@ export default class Plugin extends BasePlugin {
     this.icons = {}
     const defaultIcons = this.registerIcons() || {}
     registerIconsObj(defaultIcons, this)
-    
+
     this.text = {}
     const defaultTexConfig = this.registerLangauageTexts() || {}
     console.log('registerLangauageTexts', defaultTexConfig)
     registerTextObj(defaultTexConfig, this)
-    // Object.keys(defaultTexConfig).map((key) => {
-    //   Object.defineProperty(this.text, key, {
-    //     get: () => {
-    //       let lang = this.playerConfig.lang || 'zh-cn'
-    //       lang = lang === 'zh' ? 'zh' : lang
-    //       return defaultTexConfig[lang]
-    //     },
-
-    //     set: (value) => {
-    //       let lang = this.playerConfig.lang || 'zh-cn'
-    //       if (defaultTexConfig[lang]) {
-    //         defaultTexConfig[lang] = value
-    //       }
-    //     }
-    //   })
-    // })
     let renderStr = ''
     try {
       renderStr = this.render()
-    } catch(e) {
-      throw(new Error(`Plugin:${this.pluginName}:render:${e.message}`))
+    } catch (e) {
+      throw (new Error(`Plugin:${this.pluginName}:render:${e.message}`))
     }
 
     if (renderStr) {
@@ -111,7 +94,7 @@ export default class Plugin extends BasePlugin {
 
     Plugin.defineGetterOrSetter(this, {
       'el': {
-        get:() => {
+        get: () => {
           return _el
         }
       },
@@ -146,7 +129,7 @@ export default class Plugin extends BasePlugin {
     }
   }
 
-  plugins() {
+  plugins () {
     return this._children
   }
 
@@ -161,11 +144,11 @@ export default class Plugin extends BasePlugin {
     return pluginsManager.register(this.player, item, opts)
   }
 
-  registerIcons() {
+  registerIcons () {
     return {}
   }
 
-  registerLangauageTexts() {
+  registerLangauageTexts () {
     return {}
   }
 
