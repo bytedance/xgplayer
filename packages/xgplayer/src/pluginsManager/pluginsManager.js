@@ -42,7 +42,7 @@ const pluginsManager = {
     console.log('plugin.pluginName', plugin.pluginName)
     const pluginName = options.pluginName || plugin.pluginName
     if (!pluginName) {
-      throw new Error('The property pluginName is necessary') 
+      throw new Error('The property pluginName is necessary')
     }
     for (const item of Object.keys(originalOptions)) {
       if (pluginName.toLowerCase() === item.toLowerCase()) {
@@ -61,7 +61,7 @@ const pluginsManager = {
       return _instance
     } catch (err) {
       console.error(err)
-      throw(err)
+      throw (err)
     }
   },
 
@@ -76,9 +76,9 @@ const pluginsManager = {
 
   /**
    * get all plugin instance of player
-   * @param {*} player 
+   * @param {*} player
    */
-  getPlugins(player) {
+  getPlugins (player) {
     const cgid = player._pluginInfoId
     return cgid ? this.pluginGroup[cgid]._plugins : {}
   },
@@ -142,11 +142,6 @@ const pluginsManager = {
     }
     delete this.pluginGroup[cgid]
   }
-}
-
-
-function registerProxy(player){
-  player.register = function(){}
 }
 
 window.pluginsManager = pluginsManager
