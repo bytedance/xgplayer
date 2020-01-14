@@ -67,7 +67,9 @@ function onPostRun() {
 }
 
 function init(meta) {
-  self.importScripts('https://sf1-vcloudcdn.pstatp.com/obj/ttfe/media/decoder/h264/decoder.js');
+  if (!decoder) {
+    self.importScripts('https://sf1-vcloudcdn.pstatp.com/obj/ttfe/media/decoder/h264/decoder.js');
+  }
   addOnPostRun(onPostRun.bind(self));
 }
 

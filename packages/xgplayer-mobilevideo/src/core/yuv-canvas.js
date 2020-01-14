@@ -6,8 +6,8 @@ class YUVCanvas {
     this.chroma = this.meta.chromaFormat;
     this.height = this.meta.presentHeight;
     this.width = this.meta.presentWidth;
-    // this.canvas.width = this.meta.presentWidth;
-    // this.canvas.height = this.meta.presentHeight;
+    this.canvas.width = this.meta.presentWidth;
+    this.canvas.height = this.meta.presentHeight;
     // this.canvas.style.width = configs.style.width;
     // this.canvas.style.height = configs.style.height;
     this._initContextGL();
@@ -278,7 +278,7 @@ class YUVCanvas {
     gl.activeTexture(gl.TEXTURE1);
     gl.bindTexture(gl.TEXTURE_2D, uTextureRef);
     gl.texImage2D(gl.TEXTURE_2D, 0, gl.LUMINANCE, uDataPerRow, uRowCnt, 0, gl.LUMINANCE, gl.UNSIGNED_BYTE, uData);
-    
+
     gl.activeTexture(gl.TEXTURE2);
     gl.bindTexture(gl.TEXTURE_2D, vTextureRef);
     gl.texImage2D(gl.TEXTURE_2D, 0, gl.LUMINANCE, vDataPerRow, vRowCnt, 0, gl.LUMINANCE, gl.UNSIGNED_BYTE, vData);

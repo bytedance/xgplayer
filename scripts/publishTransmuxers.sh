@@ -11,6 +11,7 @@ cd ${SRC_DIR}/packages/xgplayer-transmuxer-buffer-xgbuffer && npm publish --tag=
 cd ${SRC_DIR}/packages/xgplayer-transmuxer-codec-aac && npm publish --tag=alpha --registry https://registry.npmjs.org
 cd ${SRC_DIR}/packages/xgplayer-transmuxer-codec-compatibility && npm publish --tag=alpha --registry https://registry.npmjs.org
 cd ${SRC_DIR}/packages/xgplayer-transmuxer-codec-avc && npm publish --tag=alpha --registry https://registry.npmjs.org
+cd ${SRC_DIR}/packages/xgplayer-transmuxer-codec-hevc && npm publish --tag=alpha --registry https://registry.npmjs.org
 cd ${SRC_DIR}/packages/xgplayer-transmuxer-constant-events && npm publish --tag=alpha --registry https://registry.npmjs.org
 cd ${SRC_DIR}/packages/xgplayer-transmuxer-context && npm publish --tag=alpha --registry https://registry.npmjs.org
 cd ${SRC_DIR}/packages/xgplayer-transmuxer-demux-flv && npm publish --tag=alpha --registry https://registry.npmjs.org

@@ -134,7 +134,7 @@ class Playlist {
     if (timelist.length < 1 || time >= this.duration) {
       return undefined;
     }
-    timelist.sort((a, b) => {
+    timelist = timelist.sort((a, b) => {
       return parseFloat(a) - parseFloat(b)
     });
     for (let i = 0; i < timelist.length; i++) {
@@ -153,6 +153,23 @@ class Playlist {
       }
     }
     return ts;
+  }
+
+  getLastDownloadedTs () {
+    let timelist = Object.keys(this._list);
+    let found;
+    for (let i = 0; i < timelist.length; i++) {
+      let url = this._list[timelist[i]];
+      let downloaded = this._ts[url].downloaded;
+      let downloading = this._ts[url].downloading;
+      if (downloaded) {
+        found = {url, downloaded, downloading, time: parseInt(timelist[i]), duration: parseInt(this._ts[url].duration)};
+      } else {
+        break;
+      }
+    }
+
+    return found;
   }
 
   clear () {

@@ -4,7 +4,6 @@ function _classCallCheck(instance, Constructor) { if (!(instance instanceof Cons
 
 import sniffer from 'xgplayer-utils-sniffer';
 import EVENTS from 'xgplayer-transmuxer-constant-events';
-import MediaSegmentList from 'xgplayer-transmuxer-model-mediasegmentlist';
 
 import Buffer from './buffer';
 import Fmp4 from './fmp4';
@@ -19,9 +18,9 @@ var Mp4Remuxer = function () {
     _classCallCheck(this, Mp4Remuxer);
 
     this._dtsBase = curTime * 1000;
+    this._audioDtsBase = null;
+    this._videoDtsBase = null;
     this._isDtsBaseInited = false;
-    this._videoSegmentList = new MediaSegmentList('video');
-    this._audioSegmentList = new MediaSegmentList('audio');
     var browser = sniffer.browser;
 
     this._fillSilenceFrame = browser === 'ie';
@@ -46,10 +45,6 @@ var Mp4Remuxer = function () {
     value: function destroy() {
       this._dtsBase = -1;
       this._isDtsBaseInited = false;
-      this._videoSegmentList.clear();
-      this._audioSegmentList.clear();
-      this._videoSegmentList = null;
-      this._audioSegmentList = null;
     }
   }, {
     key: 'remux',
@@ -79,6 +74,8 @@ var Mp4Remuxer = function () {
         this._isDtsBaseInited = false;
         this._dtsBase = time * 1000;
       }
+
+      this._audioDtsBase = this._videoDtsBase = null;
     }
   }, {
     key: 'onMetaDataReady',
@@ -141,7 +138,9 @@ var Mp4Remuxer = function () {
         videoBase = videoTrack.samples[0].dts;
       }
 
-      this._dtsBase = Math.min(audioBase, videoBase) - this._dtsBase; // 兼容播放器切换清晰度
+      this._dtsBase = Math.min(audioBase, videoBase) - this._dtsBase;
+      this._videoDtsBase = this._dtsBase;
+      this._audioDtsBase = this._dtsBase;
       this._isDtsBaseInited = true;
     }
   }, {
@@ -165,7 +164,6 @@ var Mp4Remuxer = function () {
 
       var maxLoop = 10000;
       while (samples.length && maxLoop-- > 0) {
-        // console.log('mark2')
         var avcSample = samples.shift();
 
         var isKeyframe = avcSample.isKeyframe,
@@ -176,13 +174,12 @@ var Mp4Remuxer = function () {
           options.meta = null;
           samples.unshift(avcSample);
           if (!options.isContinue) {
-            this.resetDtsBase();
+            this._videoDtsBase = 0;
           }
           break;
         }
 
-        var dts = avcSample.dts - this._dtsBase;
-        var originDts = avcSample.originDts;
+        var dts = avcSample.dts - this.videoDtsBase;
         if (firstDts === -1) {
           firstDts = dts;
         }
@@ -207,7 +204,7 @@ var Mp4Remuxer = function () {
         if (avcSample.duration) {
           sampleDuration = avcSample.duration;
         } else if (samples.length >= 1) {
-          var nextDts = samples[0].dts - this._dtsBase;
+          var nextDts = samples[0].dts - this.videoDtsBase;
           sampleDuration = nextDts - dts;
         } else {
           if (mp4Samples.length >= 1) {
@@ -219,7 +216,7 @@ var Mp4Remuxer = function () {
           }
         }
         this.videoAllDuration += sampleDuration;
-        // console.log(`video dts ${dts}`, `pts ${pts}`, `originDts ${originDts}`, isKeyframe, `duration ${sampleDuration}`)
+        // console.log(`video dts ${dts}`, `pts ${pts}`, isKeyframe, `duration ${sampleDuration}`)
         if (sampleDuration >= 0) {
           mdatBox.samples.push(mdatSample);
           mdatSample.buffer.push(avcSample.data);
@@ -264,7 +261,6 @@ var Mp4Remuxer = function () {
       }
 
       if (initSegment) {
-        // console.log('write video init segment to presource', initSegment)
         this.writeToSource('video', initSegment);
 
         if (samples.length) {
@@ -300,7 +296,6 @@ var Mp4Remuxer = function () {
       var maxLoop = 10000;
       var isFirstDtsInited = false;
       while (samples.length && maxLoop-- > 0) {
-        // console.log('mark3')
         var sample = samples.shift();
         var data = sample.data,
             options = sample.options;
@@ -310,12 +305,12 @@ var Mp4Remuxer = function () {
           options.meta = null;
           samples.unshift(sample);
           if (!options.isContinue) {
-            this.resetDtsBase();
+            this._audioDtsBase = 0;
           }
           break;
         }
 
-        var dts = sample.dts - this._dtsBase;
+        var dts = sample.dts - this.audioDtsBase;
         var originDts = sample.originDts;
         if (!isFirstDtsInited) {
           firstDts = dts;
@@ -328,7 +323,7 @@ var Mp4Remuxer = function () {
         } else if (this.audioMeta.refSampleDurationFixed) {
           sampleDuration = this.audioMeta.refSampleDurationFixed;
         } else if (samples.length >= 1) {
-          var nextDts = samples[0].dts - this._dtsBase;
+          var nextDts = samples[0].dts - this.audioDtsBase;
           sampleDuration = nextDts - dts;
         } else {
           if (mp4Samples.length >= 1) {
@@ -340,7 +335,7 @@ var Mp4Remuxer = function () {
           }
         }
 
-        // console.log(`audio dts ${dts}`, `pts ${dts}`, `originDts ${originDts}` , `duration ${sampleDuration}`)
+        // console.log(`audio dts ${dts}`, `pts ${dts}`, `originDts ${originDts}`, `duration ${sampleDuration}`)
         this.audioAllDuration += sampleDuration;
         var mp4Sample = {
           dts: dts,
@@ -350,8 +345,8 @@ var Mp4Remuxer = function () {
           duration: sample.duration ? sample.duration : sampleDuration,
           flags: {
             isLeading: 0,
-            dependsOn: 2,
-            isDependedOn: 1,
+            dependsOn: 1,
+            isDependedOn: 0,
             hasRedundancy: 0,
             isNonSync: 0
           },
@@ -442,6 +437,22 @@ var Mp4Remuxer = function () {
     key: 'audioMeta',
     get: function get() {
       return this._context.getInstance('TRACKS').audioTrack.meta;
+    }
+  }, {
+    key: 'videoDtsBase',
+    get: function get() {
+      if (this._videoDtsBase !== null) {
+        return this._videoDtsBase;
+      }
+      return this._dtsBase;
+    }
+  }, {
+    key: 'audioDtsBase',
+    get: function get() {
+      if (this._audioDtsBase !== null) {
+        return this._audioDtsBase;
+      }
+      return this._dtsBase;
     }
   }], [{
     key: 'getSilentFrame',

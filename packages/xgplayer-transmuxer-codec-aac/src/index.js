@@ -1,3 +1,5 @@
+import _ADTS from './adts';
+
 class AAC {
   static getSilentFrame (codec, channelCount) {
     if (codec === 'mp4a.40.2') {
@@ -31,4 +33,6 @@ class AAC {
     return null;
   }
 }
+
+export const ADTS = _ADTS
 export default AAC;

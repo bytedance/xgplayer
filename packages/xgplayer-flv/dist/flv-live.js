@@ -5401,7 +5401,7 @@
           this.fixRefSampleDuration(this.audioTrack.meta, this.audioTrack.samples);
         }
 
-        var _Compatibility$detact = Compatibility.detactChangeStream(this.videoTrack.samples),
+        var _Compatibility$detact = Compatibility.detectChangeStream(this.videoTrack.samples),
             videoChanged = _Compatibility$detact.changed,
             videoChangedIdx = _Compatibility$detact.changedIdx;
 
@@ -5411,7 +5411,7 @@
           this.doFixVideo(isFirstVideoSamples);
         }
 
-        var _Compatibility$detact2 = Compatibility.detactChangeStream(this.audioTrack.samples),
+        var _Compatibility$detact2 = Compatibility.detectChangeStream(this.audioTrack.samples),
             audioChanged = _Compatibility$detact2.changed,
             audioChangedIdx = _Compatibility$detact2.changedIdx;
 

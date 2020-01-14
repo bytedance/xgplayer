@@ -140,7 +140,7 @@ var Playlist = function () {
       if (timelist.length < 1 || time >= this.duration) {
         return undefined;
       }
-      timelist.sort(function (a, b) {
+      timelist = timelist.sort(function (a, b) {
         return parseFloat(a) - parseFloat(b);
       });
       for (var i = 0; i < timelist.length; i++) {
@@ -159,6 +159,24 @@ var Playlist = function () {
         }
       }
       return ts;
+    }
+  }, {
+    key: 'getLastDownloadedTs',
+    value: function getLastDownloadedTs() {
+      var timelist = Object.keys(this._list);
+      var found = void 0;
+      for (var i = 0; i < timelist.length; i++) {
+        var url = this._list[timelist[i]];
+        var downloaded = this._ts[url].downloaded;
+        var downloading = this._ts[url].downloading;
+        if (downloaded) {
+          found = { url: url, downloaded: downloaded, downloading: downloading, time: parseInt(timelist[i]), duration: parseInt(this._ts[url].duration) };
+        } else {
+          break;
+        }
+      }
+
+      return found;
     }
   }, {
     key: 'clear',
