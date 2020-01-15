@@ -1,6 +1,5 @@
 import sniffer from 'xgplayer-utils-sniffer'
 import EVENTS from 'xgplayer-transmuxer-constant-events';
-import MediaSegmentList from 'xgplayer-transmuxer-model-mediasegmentlist';
 
 import Buffer from './buffer';
 import Fmp4 from './fmp4'
@@ -11,9 +10,9 @@ const PLAYER_EVENTS = EVENTS.PLAYER_EVENTS
 export default class Mp4Remuxer {
   constructor (curTime = 0) {
     this._dtsBase = curTime * 1000
+    this._audioDtsBase = null;
+    this._videoDtsBase = null;
     this._isDtsBaseInited = false
-    this._videoSegmentList = new MediaSegmentList('video')
-    this._audioSegmentList = new MediaSegmentList('audio')
     const {browser} = sniffer
     this._fillSilenceFrame = browser === 'ie'
 
@@ -34,10 +33,6 @@ export default class Mp4Remuxer {
   destroy () {
     this._dtsBase = -1
     this._isDtsBaseInited = false
-    this._videoSegmentList.clear()
-    this._audioSegmentList.clear()
-    this._videoSegmentList = null
-    this._audioSegmentList = null
   }
 
   remux () {
@@ -61,6 +56,8 @@ export default class Mp4Remuxer {
       this._isDtsBaseInited = false
       this._dtsBase = time * 1000
     }
+
+    this._audioDtsBase = this._videoDtsBase = null;
   }
 
   onMetaDataReady (type) {
@@ -90,7 +87,7 @@ export default class Mp4Remuxer {
 
   remuxInitSegment (type, meta) {
     let initSegment = new Buffer()
-    let ftyp = Fmp4.ftyp()
+    let ftyp = meta.streamType === 0x24 ? Fmp4.ftypHEVC() : Fmp4.ftyp()
     let moov = Fmp4.moov({ type, meta: meta })
 
     initSegment.write(ftyp, moov)
@@ -116,7 +113,9 @@ export default class Mp4Remuxer {
       videoBase = videoTrack.samples[0].dts
     }
 
-    this._dtsBase = Math.min(audioBase, videoBase) - this._dtsBase; // 兼容播放器切换清晰度
+    this._dtsBase = Math.min(audioBase, videoBase) - this._dtsBase;
+    this._videoDtsBase = this._dtsBase
+    this._audioDtsBase = this._dtsBase
     this._isDtsBaseInited = true
   }
 
@@ -138,7 +137,6 @@ export default class Mp4Remuxer {
 
     let maxLoop = 10000
     while (samples.length && maxLoop-- > 0) {
-      // console.log('mark2')
       const avcSample = samples.shift()
 
       const { isKeyframe, options } = avcSample
@@ -147,13 +145,12 @@ export default class Mp4Remuxer {
         options.meta = null
         samples.unshift(avcSample)
         if (!options.isContinue) {
-          this.resetDtsBase()
+          this._videoDtsBase = 0
         }
         break;
       }
 
-      let dts = avcSample.dts - this._dtsBase
-      const originDts = avcSample.originDts
+      let dts = avcSample.dts - this.videoDtsBase
       if (firstDts === -1) {
         firstDts = dts
       }
@@ -178,7 +175,7 @@ export default class Mp4Remuxer {
       if (avcSample.duration) {
         sampleDuration = avcSample.duration;
       } else if (samples.length >= 1) {
-        const nextDts = samples[0].dts - this._dtsBase
+        const nextDts = samples[0].dts - this.videoDtsBase
         sampleDuration = nextDts - dts
       } else {
         if (mp4Samples.length >= 1) { // lastest sample, use second last duration
@@ -188,7 +185,7 @@ export default class Mp4Remuxer {
         }
       }
       this.videoAllDuration += sampleDuration
-      // console.log(`video dts ${dts}`, `pts ${pts}`, `originDts ${originDts}`, isKeyframe, `duration ${sampleDuration}`)
+      // console.log(`video dts ${dts}`, `pts ${pts}`, isKeyframe, `duration ${sampleDuration}`)
       if (sampleDuration >= 0) {
         mdatBox.samples.push(mdatSample)
         mdatSample.buffer.push(avcSample.data)
@@ -233,7 +230,6 @@ export default class Mp4Remuxer {
     }
 
     if (initSegment) {
-      // console.log('write video init segment to presource', initSegment)
       this.writeToSource('video', initSegment)
 
       if (samples.length) {
@@ -266,7 +262,6 @@ export default class Mp4Remuxer {
     let maxLoop = 10000
     let isFirstDtsInited = false
     while (samples.length && maxLoop-- > 0) {
-      // console.log('mark3')
       let sample = samples.shift()
       const { data, options } = sample
       if (!this.isFirstAudio && options && options.meta) {
@@ -274,12 +269,12 @@ export default class Mp4Remuxer {
         options.meta = null;
         samples.unshift(sample)
         if (!options.isContinue) {
-          this.resetDtsBase()
+          this._audioDtsBase = 0
         }
         break;
       }
 
-      let dts = sample.dts - this._dtsBase
+      let dts = sample.dts - this.audioDtsBase
       let originDts = sample.originDts;
       if (!isFirstDtsInited) {
         firstDts = dts
@@ -292,7 +287,7 @@ export default class Mp4Remuxer {
       } else if (this.audioMeta.refSampleDurationFixed) {
         sampleDuration = this.audioMeta.refSampleDurationFixed
       } else if (samples.length >= 1) {
-        const nextDts = samples[0].dts - this._dtsBase;
+        const nextDts = samples[0].dts - this.audioDtsBase;
         sampleDuration = nextDts - dts
       } else {
         if (mp4Samples.length >= 1) { // use second last sample duration
@@ -301,8 +296,7 @@ export default class Mp4Remuxer {
           sampleDuration = this.audioMeta.refSampleDuration
         }
       }
-
-      // console.log(`audio dts ${dts}`, `pts ${dts}`, `originDts ${originDts}` , `duration ${sampleDuration}`)
+      // console.log(`audio dts ${dts}`, `pts ${dts}`, `originDts ${originDts}`, `duration ${sampleDuration}`)
       this.audioAllDuration += sampleDuration
       const mp4Sample = {
         dts,
@@ -312,8 +306,8 @@ export default class Mp4Remuxer {
         duration: sample.duration ? sample.duration : sampleDuration,
         flags: {
           isLeading: 0,
-          dependsOn: 2,
-          isDependedOn: 1,
+          dependsOn: 1,
+          isDependedOn: 0,
           hasRedundancy: 0,
           isNonSync: 0
         },
@@ -396,6 +390,20 @@ export default class Mp4Remuxer {
     return this._context.getInstance('TRACKS').audioTrack.meta
   }
 
+  get videoDtsBase () {
+    if (this._videoDtsBase !== null) {
+      return this._videoDtsBase
+    }
+    return this._dtsBase
+  }
+
+  get audioDtsBase () {
+    if (this._audioDtsBase !== null) {
+      return this._audioDtsBase
+    }
+    return this._dtsBase
+  }
+
   static getSilentFrame (channelCount) {
     if (channelCount === 1) {
       return new Uint8Array([0x00, 0xc8, 0x00, 0x80, 0x23, 0x80])
@@ -416,4 +424,5 @@ export default class Mp4Remuxer {
   destroy () {
     this._player = null;
   }
+
 }

@@ -4,9 +4,8 @@
   "description": "xgplayer plugin for hls",
   "main": "./dist/index.js",
   "scripts": {
-    "prepare": "npm run build",
     "build": "webpack --progress --display-chunks -p",
-    "watch": "webpack --progress --display-chunks -p --watch",
+    "watch": "webpack --config webpack.config.dev.js --progress --display-chunks --mode development --watch",
     "dev": "webpack --progress --display-chunks --mode development"
   },
   "repository": {
@@ -35,5 +34,8 @@
   },
   "peerDependency": {
     "xgplayer": "^0.1.0"
+  },
+  "devDependencies": {
+    "webpack-cli": "^3.3.10"
   }
 }

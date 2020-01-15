@@ -12,8 +12,8 @@ var YUVCanvas = function () {
     this.chroma = this.meta.chromaFormat;
     this.height = this.meta.presentHeight;
     this.width = this.meta.presentWidth;
-    // this.canvas.width = this.meta.presentWidth;
-    // this.canvas.height = this.meta.presentHeight;
+    this.canvas.width = this.meta.presentWidth;
+    this.canvas.height = this.meta.presentHeight;
     // this.canvas.style.width = configs.style.width;
     // this.canvas.style.height = configs.style.height;
     this._initContextGL();

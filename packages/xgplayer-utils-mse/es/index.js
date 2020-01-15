@@ -28,8 +28,7 @@ var MSE = function () {
       // eslint-disable-next-line no-undef
       this.mediaSource = new self.MediaSource();
       this.mediaSource.addEventListener('sourceopen', this.onSourceOpen);
-      this.container.src = URL.createObjectURL(this.mediaSource);
-      this.url = this.container.src;
+      this._url = null;
       this.container.addEventListener('timeupdate', this.onTimeUpdate);
       this.container.addEventListener('waiting', this.onWaiting);
     }
@@ -114,6 +113,7 @@ var MSE = function () {
           var source = sources.sources[type];
           if (source && !source.inited) {
             try {
+              // console.log('append buffser init: ', type, source.init)
               sourceBuffer.appendBuffer(source.init.buffer.buffer);
               source.inited = true;
             } catch (e) {
@@ -297,6 +297,17 @@ var MSE = function () {
         _this3.sourceBuffers = {};
         _this3.preloadTime = 1;
       });
+    }
+  }, {
+    key: 'url',
+    set: function set(val) {
+      this._url = val;
+    },
+    get: function get() {
+      if (!this._url) {
+        this._url = window.URL.createObjectURL(this.mediaSource);
+      }
+      return this._url;
     }
   }], [{
     key: 'clearBuffer',

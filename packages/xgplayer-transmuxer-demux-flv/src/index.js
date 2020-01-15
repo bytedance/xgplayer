@@ -1,6 +1,7 @@
 import EVENTS from 'xgplayer-transmuxer-constant-events';
 import { AudioTrackMeta, VideoTrackMeta } from 'xgplayer-transmuxer-model-trackmeta';
 import { SpsParser, NalUnit } from 'xgplayer-transmuxer-codec-avc';
+import { SpsParserHEVC, NalUnitHEVC } from 'xgplayer-transmuxer-codec-hevc';
 import { VideoTrack, AudioTrack } from 'xgplayer-transmuxer-buffer-track'
 import AMFParser from './amf-parser'
 import Stream from 'xgplayer-transmuxer-buffer-stream'
@@ -441,38 +442,7 @@ class FlvDemuxer {
     this.loaderBuffer.shift(3)
 
     // 12 for hevc, 7 for avc
-    if (codecID === 12) {
-      const data = this.loaderBuffer.shift(chunk.datasize - 5)
-      chunk.data = data
-
-      if (Number.parseInt(chunk.avcPacketType) !== 0) {
-        if (!this._datasizeValidator(chunk.datasize)) {
-          this.emit(DEMUX_EVENTS.DEMUX_ERROR, this.TAG, new Error(`invalid video tag datasize: ${chunk.datasize}`), false)
-        }
-        let nalu = {}
-        let r = 0
-        nalu.cts = chunk.cts
-        nalu.dts = chunk.dts
-        while (chunk.data.length > r) {
-          let sizes = chunk.data.slice(Number.parseInt(r), 4 + r)
-          nalu.size = sizes[3]
-          nalu.size += sizes[2] * 256
-          nalu.size += sizes[1] * 256 * 256
-          nalu.size += sizes[0] * 256 * 256 * 256
-          r += 4
-          nalu.data = chunk.data.slice(Number.parseInt(r), nalu.size + r)
-          r += nalu.size
-          this.tracks.videoTrack.samples.push(nalu)
-          this.emit(DEMUX_EVENTS.METADATA_PARSED, 'video')
-        }
-      } else if (Number.parseInt(chunk.avcPacketType) === 0) {
-        if (!this._datasizeValidator(chunk.datasize)) {
-          this.emit(DEMUX_EVENTS.DEMUX_ERROR, this.TAG, new Error(`invalid video tag datasize: ${chunk.datasize}`), false)
-        } else {
-          this.emit(DEMUX_EVENTS.METADATA_PARSED, 'video')
-        }
-      }
-    } else if (codecID === 7) {
+    if (codecID === 7 || codecID === 12) {
       let data = this.loaderBuffer.shift(chunk.datasize - 5)
       if (data[4] === 0 && data[5] === 0 && data[6] === 0 && data[7] === 1) {
         let avcclength = 0
@@ -492,7 +462,11 @@ class FlvDemuxer {
       chunk.data = data
       // If it is AVC sequece Header.
       if (chunk.avcPacketType === 0) {
-        this._avcSequenceHeaderParser(chunk.data)
+        if(codecID === 12) {
+          this._hevcSequenceHeaderParser(chunk.data)
+        } else {
+          this._avcSequenceHeaderParser(chunk.data)
+        }
         let validate = this._datasizeValidator(chunk.datasize)
         if (validate) {
           if (!this._hasVideoSequence) {
@@ -509,14 +483,15 @@ class FlvDemuxer {
           this.emit(DEMUX_EVENTS.DEMUX_ERROR, this.TAG, new Error(`invalid video tag datasize: ${chunk.datasize}`), false)
           return;
         }
-        const nals = NalUnit.getAvccNals(new Stream(chunk.data.buffer))
+        const nals = codecID === 12 ? NalUnitHEVC.getHvccNals(new Stream(chunk.data.buffer)) : NalUnit.getAvccNals(new Stream(chunk.data.buffer))
         for (let i = 0; i < nals.length; i++) {
           const unit = nals[i]
-          NalUnit.analyseNal(unit)
+          codecID === 12 ? NalUnitHEVC.analyseNal(unit) : NalUnit.analyseNal(unit)
           if (unit.sei) {
             this.emit(DEMUX_EVENTS.SEI_PARSED, unit.sei)
           }
         }
+        codecID === 12 ? this.tracks.videoTrack.meta.streamType = 0x24 : this.tracks.videoTrack.meta.streamType = 0x1b
         if (this._metaChange) {
           chunk.options = {
             meta: Object.assign({}, this.tracks.videoTrack.meta)
@@ -627,6 +602,131 @@ class FlvDemuxer {
     meta.duration = this._context.mediaInfo.duration * meta.timescale
     meta.avcc = new Uint8Array(data.length)
     meta.avcc.set(data)
+    meta.streamType = 0x1b
+
+    track.meta = meta
+  }
+
+  /**
+   * parse hevc metadata
+   * @param data
+   * @private
+   */
+  _hevcSequenceHeaderParser (data) {
+    let track = this.tracks.videoTrack
+
+    if (!track) {
+      return
+    }
+
+    let offset = 0
+
+    if (!track.meta) {
+      track.meta = new VideoTrackMeta()
+    }
+    let meta = track.meta
+
+    meta.configurationVersion = data[0]
+    meta.hevcProfileSpace = (data[1] & 0xc0) >>> 6
+    meta.hevcTierFlag = (data[1] & 0x20) >>> 5
+    meta.hevcProfileIdc = data[1] & 0x1f
+    meta.hevcProfileCompatibilityFlags = [
+      data[2],
+      data[3],
+      data[4],
+      data[5]
+    ];
+    meta.hevcConstraintIndicatorFlags = [
+      data[6],
+      data[7],
+      data[8],
+      data[9],
+      data[10],
+      data[11]
+    ];
+    meta.hevcLevelIdc = data[12]
+    meta.minSpatialSegmentationIdc = data[13] & 0x0f + data[14] << 4
+    meta.parallelismType = data[15] & 0x03
+    meta.chromaFormat = data[16] & 0x03
+    meta.bitDepthLumaMinus8 = data[17] & 0x07
+    meta.bitDepthChromaMinus8 = data[18] & 0x07
+    meta.avgFrameRate = data[19] * 256 + data[20]
+    meta.constantFrameRate = (data[21] & 0xc0) >>> 6
+  	meta.numTemporalLayers = (data[21] & 0x38) >>> 3
+  	meta.temporalIdNested = (data[21] & 0x04) >>> 2
+  	meta.lengthSizeMinusOne = data[21] & 0x03
+    let numOfArrays = data[22]
+
+    offset = 23
+    let config = {}
+    let nalUnitType = 0
+    let numNalus = 0
+    let nalUnitSize = 0
+    let hasVPS = false
+    let hasSPS = false
+    let hasPPS = false
+    let vps, sps, pps
+    for (let i = 0; i < numOfArrays; i++) {
+      nalUnitType = data[offset] & 0x3f
+      numNalus = data[offset + 1] * 256 + data[offset + 2]
+      offset += 3
+      for (let j = 0; j < numNalus; j++) {
+        nalUnitSize = data[offset] * 256 + data[offset + 1]
+        switch (nalUnitType) {
+          case 32:
+            if(!hasVPS) {
+              hasVPS = true
+              vps = data.slice(offset + 2, offset + 2 + nalUnitSize)
+              this.tracks.videoTrack.meta.vps = SpsParserHEVC._ebsp2rbsp(vps)
+            }
+            break;
+          case 33:
+            if(!hasSPS) {
+              hasSPS = true
+              sps = data.slice(offset + 2, offset + 2 + nalUnitSize)
+              this.tracks.videoTrack.meta.sps = SpsParserHEVC._ebsp2rbsp(sps)
+              meta.codec = 'hev1.1.6.L93.B0'
+              config = SpsParserHEVC.parseSPS(sps)
+            }
+            break;
+          case 34:
+            if(!hasPPS) {
+              hasPPS = true
+              pps = data.slice(offset + 2, offset + 2 + nalUnitSize)
+              this.tracks.videoTrack.meta.pps = SpsParserHEVC._ebsp2rbsp(pps)
+            }
+            break;
+          case 39:
+            // PREFIX_SEI
+            break;
+          case 40:
+            // SUFFIX_SEI
+            break;
+          default:
+            break;
+        }
+        offset += 2 + nalUnitSize
+      }
+    }
+
+    Object.assign(meta, SpsParserHEVC.toVideoMeta(config))
+
+    // fill video media info
+    const videoMedia = this._context.mediaInfo.video
+
+    videoMedia.codec = meta.codec
+    videoMedia.profile = meta.profile
+    videoMedia.level = meta.level
+    videoMedia.chromaFormat = meta.chromaFormat
+    videoMedia.frameRate = meta.frameRate
+    videoMedia.parRatio = meta.parRatio
+    videoMedia.width = videoMedia.width === meta.presentWidth ? videoMedia.width : meta.presentWidth
+    videoMedia.height = videoMedia.height === meta.presentHeight ? videoMedia.width : meta.presentHeight
+
+    meta.duration = this._context.mediaInfo.duration * meta.timescale
+
+    meta.streamType = 0x24
+
     track.meta = meta
   }
 

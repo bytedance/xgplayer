@@ -836,7 +836,9 @@
     }
 
     function init(meta) {
-      self.importScripts('https://sf1-vcloudcdn.pstatp.com/obj/ttfe/media/decoder/h264/decoder.js');
+      if (!decoder) {
+        self.importScripts('https://sf1-vcloudcdn.pstatp.com/obj/ttfe/media/decoder/h264/decoder.js');
+      }
       addOnPostRun(onPostRun.bind(self));
     }
 
@@ -1868,8 +1870,8 @@
       this.chroma = this.meta.chromaFormat;
       this.height = this.meta.presentHeight;
       this.width = this.meta.presentWidth;
-      // this.canvas.width = this.meta.presentWidth;
-      // this.canvas.height = this.meta.presentHeight;
+      this.canvas.width = this.meta.presentWidth;
+      this.canvas.height = this.meta.presentHeight;
       // this.canvas.style.width = configs.style.width;
       // this.canvas.style.height = configs.style.height;
       this._initContextGL();
@@ -3027,8 +3029,10 @@
       _this2._currentTime = 0;
       _this2._decoding = false;
       _this2._volume = _this2.config.volume || 0.6;
+
       // 记录外部传输的状态
       _this2._played = false;
+      _this2.paused = true;
       _this2.playFinish = null; // pending play task
       _this2.waitNextID = null; // audio source end and next source not loaded
       return _this2;
@@ -3157,11 +3161,12 @@
         var _this = this;
         var playStart = function playStart() {
           var audioSource = _this4._currentBuffer.data;
-          audioSource.connect(_this4.gainNode);
           audioSource.start();
+          audioSource.connect(_this4.gainNode);
+          _this4.paused = false;
           setTimeout(function () {
             _this.onSourceEnded.call(_this4);
-          }, audioSource.buffer.duration * 1000 - 10);
+          }, audioSource.buffer.duration * 1000 - 20);
         };
 
         if (!this._currentBuffer) {
@@ -3183,6 +3188,7 @@
         if (audioCtx.state === 'running') {
           audioCtx.suspend();
         }
+        this.paused = true;
       }
     }, {
       key: 'getTimeBuffer',
@@ -3208,6 +3214,7 @@
         if (this.waitNextID) {
           window.clearTimeout(this.waitNextID);
         }
+        this.paused = true;
         this.context.close();
       }
     }, {
@@ -3223,10 +3230,16 @@
         } else {
           this.gainNode.gain.value = this._volume;
         }
+        if (this.context.state === 'suspended' && !this.paused) {
+          this.context.resume();
+        }
       }
     }, {
       key: 'volume',
       get: function get() {
+        if (this.context.state === 'suspended' || this.paused) {
+          return 0;
+        }
         return this._volume;
       },
       set: function set(val) {
@@ -3555,9 +3568,9 @@
           this.init();
         }
         this.pendingPlayTask = Promise.all([this.vCtx.play(), this.aCtx.play().then(function () {
-          _this3.aCtx.muted = true;
+          // this.aCtx.muted = true
         })]).then(function () {
-          _this3.aCtx.muted = false;
+          // this.aCtx.muted = false
           _this3.ticker.start(function () {
             if (!_this3.start) {
               _this3.start = Date.now();
@@ -3699,6 +3712,7 @@
       set: function set(vol) {
         this.setAttribute('volume', vol);
         this.aCtx.volume = vol;
+        this.dispatchEvent(new Event('volumechange'));
       }
     }, {
       key: 'muted',
@@ -3719,6 +3733,7 @@
         } else {
           this.aCtx.muted = true;
         }
+        this.dispatchEvent(new Event('volumechange'));
       }
     }, {
       key: 'error',

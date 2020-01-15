@@ -20,8 +20,7 @@ class MSE {
     // eslint-disable-next-line no-undef
     this.mediaSource = new self.MediaSource();
     this.mediaSource.addEventListener('sourceopen', this.onSourceOpen);
-    this.container.src = URL.createObjectURL(this.mediaSource);
-    this.url = this.container.src;
+    this._url = null;
     this.container.addEventListener('timeupdate', this.onTimeUpdate);
     this.container.addEventListener('waiting', this.onWaiting);
   }
@@ -98,6 +97,7 @@ class MSE {
         let source = sources.sources[type];
         if (source && !source.inited) {
           try {
+            // console.log('append buffser init: ', type, source.init)
             sourceBuffer.appendBuffer(source.init.buffer.buffer);
             source.inited = true;
           } catch (e) {
@@ -255,6 +255,17 @@ class MSE {
       this.sourceBuffers = {};
       this.preloadTime = 1;
     })
+  }
+
+  set url (val) {
+    this._url = val;
+  }
+
+  get url () {
+    if (!this._url) {
+      this._url = window.URL.createObjectURL(this.mediaSource);
+    }
+    return this._url;
   }
 
   static clearBuffer (buffer) {

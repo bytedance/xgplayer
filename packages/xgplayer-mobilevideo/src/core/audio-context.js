@@ -19,8 +19,10 @@ class AudioCtx extends EventEmitter {
     this._currentTime = 0;
     this._decoding = false;
     this._volume = this.config.volume || 0.6
+
     // 记录外部传输的状态
     this._played = false;
+    this.paused = true;
     this.playFinish = null; // pending play task
     this.waitNextID = null; // audio source end and next source not loaded
   }
@@ -139,11 +141,12 @@ class AudioCtx extends EventEmitter {
     let _this = this;
     const playStart = () => {
       let audioSource = this._currentBuffer.data;
-      audioSource.connect(this.gainNode);
       audioSource.start();
+      audioSource.connect(this.gainNode);
+      this.paused  = false;
       setTimeout(() => {
         _this.onSourceEnded.call(this);
-      }, audioSource.buffer.duration * 1000 - 10);
+      }, audioSource.buffer.duration * 1000 - 20);
     }
 
     if (!this._currentBuffer) {
@@ -164,6 +167,7 @@ class AudioCtx extends EventEmitter {
     if (audioCtx.state === 'running') {
       audioCtx.suspend()
     }
+    this.paused = true;
   }
 
   getTimeBuffer (time) {
@@ -186,6 +190,7 @@ class AudioCtx extends EventEmitter {
     if (this.waitNextID) {
       window.clearTimeout(this.waitNextID)
     }
+    this.paused = true;
     this.context.close();
   }
 
@@ -195,9 +200,15 @@ class AudioCtx extends EventEmitter {
     } else {
       this.gainNode.gain.value = this._volume
     }
+    if (this.context.state === 'suspended' && !this.paused) {
+      this.context.resume()
+    }
   }
 
   get volume () {
+    if (this.context.state === 'suspended' || this.paused) {
+      return 0;
+    }
     return this._volume
   }
 

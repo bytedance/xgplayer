@@ -1084,148 +1084,6 @@
     }
   };
 
-  var _createClass$3 = function () {
-    function defineProperties(target, props) {
-      for (var i = 0; i < props.length; i++) {
-        var descriptor = props[i];descriptor.enumerable = descriptor.enumerable || false;descriptor.configurable = true;if ("value" in descriptor) descriptor.writable = true;Object.defineProperty(target, descriptor.key, descriptor);
-      }
-    }return function (Constructor, protoProps, staticProps) {
-      if (protoProps) defineProperties(Constructor.prototype, protoProps);if (staticProps) defineProperties(Constructor, staticProps);return Constructor;
-    };
-  }();
-
-  function _classCallCheck$3(instance, Constructor) {
-    if (!(instance instanceof Constructor)) {
-      throw new TypeError("Cannot call a class as a function");
-    }
-  }
-
-  var MediaSegmentList = function () {
-    function MediaSegmentList(type) {
-      _classCallCheck$3(this, MediaSegmentList);
-
-      this._type = type;
-      this._list = [];
-      this._lastAppendLocation = -1; // cached last insert location
-    }
-
-    _createClass$3(MediaSegmentList, [{
-      key: "isEmpty",
-      value: function isEmpty() {
-        return this._list.length === 0;
-      }
-    }, {
-      key: "clear",
-      value: function clear() {
-        this._list = [];
-        this._lastAppendLocation = -1;
-      }
-    }, {
-      key: "_searchNearestSegmentBefore",
-      value: function _searchNearestSegmentBefore(beginDts) {
-        var list = this._list;
-        if (list.length === 0) {
-          return -2;
-        }
-        var last = list.length - 1;
-        var mid = 0;
-        var lbound = 0;
-        var ubound = last;
-
-        var idx = 0;
-
-        if (beginDts < list[0].originDts) {
-          idx = -1;
-          return idx;
-        }
-
-        while (lbound <= ubound) {
-          mid = lbound + Math.floor((ubound - lbound) / 2);
-          if (mid === last || beginDts > list[mid].lastSample.originDts && beginDts < list[mid + 1].originDts) {
-            idx = mid;
-            break;
-          } else if (list[mid].originDts < beginDts) {
-            lbound = mid + 1;
-          } else {
-            ubound = mid - 1;
-          }
-        }
-        return idx;
-      }
-    }, {
-      key: "_searchNearestSegmentAfter",
-      value: function _searchNearestSegmentAfter(beginDts) {
-        return this._searchNearestSegmentBefore(beginDts) + 1;
-      }
-    }, {
-      key: "append",
-      value: function append(segment) {
-        var list = this._list;
-        var lastAppendIdx = this._lastAppendLocation;
-        var insertIdx = 0;
-
-        if (lastAppendIdx !== -1 && lastAppendIdx < list.length && segment.originStartDts >= list[lastAppendIdx].lastSample.originDts && (lastAppendIdx === list.length - 1 || lastAppendIdx < list.length - 1 && segment.originStartDts < list[lastAppendIdx + 1].originStartDts)) {
-          insertIdx = lastAppendIdx + 1; // use cached location idx
-        } else {
-          if (list.length > 0) {
-            insertIdx = this._searchNearestSegmentBefore(segment.originStartDts) + 1;
-          }
-        }
-
-        this._lastAppendLocation = insertIdx;
-        this._list.splice(insertIdx, 0, segment);
-      }
-    }, {
-      key: "getLastSegmentBefore",
-      value: function getLastSegmentBefore(beginDts) {
-        var idx = this._searchNearestSegmentBefore(beginDts);
-        if (idx >= 0) {
-          return this._list[idx];
-        } else {
-          // -1
-          return null;
-        }
-      }
-    }, {
-      key: "getLastSampleBefore",
-      value: function getLastSampleBefore(beginDts) {
-        var segment = this.getLastSegmentBefore(beginDts);
-        if (segment !== null) {
-          return segment.lastSample;
-        } else {
-          return null;
-        }
-      }
-    }, {
-      key: "getLastRAPBefore",
-      value: function getLastRAPBefore(beginDts) {
-        var segmentIdx = this._searchNearestSegmentBefore(beginDts);
-        var randomAccessPoints = this._list[segmentIdx].randomAccessPoints;
-        while (randomAccessPoints.length === 0 && segmentIdx > 0) {
-          segmentIdx--;
-          randomAccessPoints = this._list[segmentIdx].randomAccessPoints;
-        }
-        if (randomAccessPoints.length > 0) {
-          return randomAccessPoints[randomAccessPoints.length - 1];
-        } else {
-          return null;
-        }
-      }
-    }, {
-      key: "type",
-      get: function get() {
-        return this._type;
-      }
-    }, {
-      key: "length",
-      get: function get() {
-        return this._list.length;
-      }
-    }]);
-
-    return MediaSegmentList;
-  }();
-
   function unwrapExports (x) {
   	return x && x.__esModule && Object.prototype.hasOwnProperty.call(x, 'default') ? x['default'] : x;
   }
@@ -1321,7 +1179,7 @@
 
   var Concat = unwrapExports(lib);
 
-  var _createClass$4 = function () {
+  var _createClass$3 = function () {
     function defineProperties(target, props) {
       for (var i = 0; i < props.length; i++) {
         var descriptor = props[i];descriptor.enumerable = descriptor.enumerable || false;descriptor.configurable = true;if ("value" in descriptor) descriptor.writable = true;Object.defineProperty(target, descriptor.key, descriptor);
@@ -1331,7 +1189,7 @@
     };
   }();
 
-  function _classCallCheck$4(instance, Constructor) {
+  function _classCallCheck$3(instance, Constructor) {
     if (!(instance instanceof Constructor)) {
       throw new TypeError("Cannot call a class as a function");
     }
@@ -1339,12 +1197,12 @@
 
   var Buffer = function () {
     function Buffer(buffer) {
-      _classCallCheck$4(this, Buffer);
+      _classCallCheck$3(this, Buffer);
 
       this.buffer = buffer || new Uint8Array(0);
     }
 
-    _createClass$4(Buffer, [{
+    _createClass$3(Buffer, [{
       key: 'write',
       value: function write() {
         var _this = this;
@@ -1382,7 +1240,7 @@
     return Buffer;
   }();
 
-  var _createClass$5 = function () {
+  var _createClass$4 = function () {
     function defineProperties(target, props) {
       for (var i = 0; i < props.length; i++) {
         var descriptor = props[i];descriptor.enumerable = descriptor.enumerable || false;descriptor.configurable = true;if ("value" in descriptor) descriptor.writable = true;Object.defineProperty(target, descriptor.key, descriptor);
@@ -1392,7 +1250,7 @@
     };
   }();
 
-  function _classCallCheck$5(instance, Constructor) {
+  function _classCallCheck$4(instance, Constructor) {
     if (!(instance instanceof Constructor)) {
       throw new TypeError("Cannot call a class as a function");
     }
@@ -1402,10 +1260,10 @@
 
   var Fmp4 = function () {
     function Fmp4() {
-      _classCallCheck$5(this, Fmp4);
+      _classCallCheck$4(this, Fmp4);
     }
 
-    _createClass$5(Fmp4, null, [{
+    _createClass$4(Fmp4, null, [{
       key: 'size',
       value: function size(value) {
         return Buffer.writeUint32(value);
@@ -1434,6 +1292,15 @@
         0x0, 0x0, 0x00, 0x01, // minor_version: 0x01
         0x69, 0x73, 0x6F, 0x6D, // isom
         0x61, 0x76, 0x63, 0x31 // avc1
+        ]));
+      }
+    }, {
+      key: 'ftypHEVC',
+      value: function ftypHEVC() {
+        return Fmp4.initBox(24, 'ftyp', new Uint8Array([0x69, 0x73, 0x6F, 0x6D, // isom,
+        0x0, 0x0, 0x00, 0x01, // minor_version: 0x01
+        0x69, 0x73, 0x6F, 0x6D, // isom
+        0x64, 0x61, 0x73, 0x68 // hev1
         ]));
       }
     }, {
@@ -1513,7 +1380,8 @@
           avcc: data.avcc,
           parRatio: data.parRatio,
           width: data.presentWidth,
-          height: data.presentHeight
+          height: data.presentHeight,
+          streamType: data.streamType
         });
         [tkhd, mdia].forEach(function (item) {
           size += item.byteLength;
@@ -1702,10 +1570,15 @@
           // } else {
           //
           // }
+
           // 支持mp4a
           content = Fmp4.mp4a(data);
         } else {
-          content = Fmp4.avc1(data);
+          if (data.streamType === 0x24) {
+            content = Fmp4.hvc1(data);
+          } else {
+            content = Fmp4.avc1(data);
+          }
         }
         return Fmp4.initBox(16 + content.byteLength, 'stsd', Fmp4.extension(0, 0), new Uint8Array([0x00, 0x00, 0x00, 0x01]), content);
       }
@@ -1800,6 +1673,54 @@
         vSpacing >> 16 & 0xff, vSpacing >> 8 & 0xff, vSpacing & 0xff]);
 
         buffer.write(Fmp4.size(size + avc1.byteLength + avcc.byteLength + btrt.byteLength), Fmp4.type('avc1'), avc1, Fmp4.size(8 + avcc.byteLength), Fmp4.type('avcC'), avcc, Fmp4.size(20), Fmp4.type('btrt'), btrt, Fmp4.size(16), Fmp4.type('pasp'), pasp);
+        return buffer.buffer;
+      }
+    }, {
+      key: 'hvc1',
+      value: function hvc1(track) {
+        var buffer = new Buffer();
+        var content = new Uint8Array([0x00, 0x00, 0x00, // reserved
+        0x00, 0x00, 0x00, // reserved
+        0x00, 0x01, // data_reference_index
+        0x00, 0x00, // pre_defined
+        0x00, 0x00, // reserved
+        0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, // pre_defined
+        track.width >> 8 & 0xFF, track.width & 0xff, // width
+        track.height >> 8 & 0xFF, track.height & 0xff, // height
+        0x00, 0x48, 0x00, 0x00, // horizresolution
+        0x00, 0x48, 0x00, 0x00, // vertresolution
+        0x00, 0x00, 0x00, 0x00, // reserved
+        0x00, 0x01, // frame_count
+        0x00, 0x00, 0x00, 0x00, 0x00, //dailymotion/hls.js
+        0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, // compressorname
+        0x00, 0x18, // depth = 24
+        0xFF, 0xFF, 0x00, 0x00, 0x00, 0x7A, 0x68, 0x76, 0x63, 0x43, 0x01, //configurationVersion
+        0x01, //profile_space + tier_flag + profile_idc
+        0x60, 0x00, 0x00, 0x00, //general_profile_compatibility
+        0x90, 0x00, 0x00, 0x00, 0x00, 0x00, //constraint_indicator_flags
+        0x5D, //level_idc=90
+        0xF0, 0x00, 0xFC, 0xFD, //profile_compatibility_indications
+        0xF8, //‘11111’b + bitDepthLumaMinus8
+        0xF8, //‘11111’b + bitDepthChromaMinus8
+        0x00, 0x00, //avgFrameRate
+        0x0F, //constantFrameRate + numTemporalLayers + ‘1’b + lengthSizeMinusOne
+        0x03, //numOfArrays
+
+        //vps
+        0xA0, 0x00, 0x01, //array_completeness + ‘0’b + NAL_unit_type + numNalus
+        0x00, 0x18, //nalUnitLength
+        0x40, 0x01, 0x0C, 0x01, 0xFF, 0xFF, 0x01, 0x60, 0x00, 0x00, 0x03, 0x00, 0x90, 0x00, 0x00, 0x03, 0x00, 0x00, 0x03, 0x00, 0x5D, 0x99, 0x98, 0x09,
+
+        //sps
+        0xA1, 0x00, 0x01, //array_completeness + ‘0’b + NAL_unit_type + numNalus
+        0x00, 0x2D, //nalUnitLength
+        0x42, 0x01, 0x01, 0x01, 0x60, 0x00, 0x00, 0x03, 0x00, 0x90, 0x00, 0x00, 0x03, 0x00, 0x00, 0x03, 0x00, 0x5D, 0xA0, 0x02, 0x80, 0x80, 0x2D, 0x16, 0x59, 0x99, 0xA4, 0x93, 0x2B, 0x9A, 0x80, 0x80, 0x80, 0x82, 0x00, 0x00, 0x03, 0x00, 0x02, 0x00, 0x00, 0x03, 0x00, 0x32, 0x10,
+
+        //pps
+        0xA2, 0x00, 0x01, //array_completeness + ‘0’b + NAL_unit_type + numNalus
+        0x00, 0x07, //nalUnitLength
+        0x44, 0x01, 0xC1, 0x72, 0xB4, 0x62, 0x40]);
+        buffer.write(Fmp4.size(8 + content.byteLength + 10), Fmp4.type('hvc1'), content, Fmp4.size(10), Fmp4.type('fiel'), new Uint8Array([0x01, 0x00]));
         return buffer.buffer;
       }
     }, {
@@ -2000,7 +1921,7 @@
   };
   Fmp4.sequence = 1;
 
-  var _createClass$6 = function () {
+  var _createClass$5 = function () {
     function defineProperties(target, props) {
       for (var i = 0; i < props.length; i++) {
         var descriptor = props[i];descriptor.enumerable = descriptor.enumerable || false;descriptor.configurable = true;if ("value" in descriptor) descriptor.writable = true;Object.defineProperty(target, descriptor.key, descriptor);
@@ -2010,7 +1931,7 @@
     };
   }();
 
-  function _classCallCheck$6(instance, Constructor) {
+  function _classCallCheck$5(instance, Constructor) {
     if (!(instance instanceof Constructor)) {
       throw new TypeError("Cannot call a class as a function");
     }
@@ -2023,12 +1944,12 @@
     function Mp4Remuxer() {
       var curTime = arguments.length > 0 && arguments[0] !== undefined ? arguments[0] : 0;
 
-      _classCallCheck$6(this, Mp4Remuxer);
+      _classCallCheck$5(this, Mp4Remuxer);
 
       this._dtsBase = curTime * 1000;
+      this._audioDtsBase = null;
+      this._videoDtsBase = null;
       this._isDtsBaseInited = false;
-      this._videoSegmentList = new MediaSegmentList('video');
-      this._audioSegmentList = new MediaSegmentList('audio');
       var browser = sniffer.browser;
 
       this._fillSilenceFrame = browser === 'ie';
@@ -2040,7 +1961,7 @@
       this.audioAllDuration = 0;
     }
 
-    _createClass$6(Mp4Remuxer, [{
+    _createClass$5(Mp4Remuxer, [{
       key: 'init',
       value: function init() {
         this.on(REMUX_EVENTS$1.REMUX_MEDIA, this.remux.bind(this));
@@ -2053,10 +1974,6 @@
       value: function destroy() {
         this._dtsBase = -1;
         this._isDtsBaseInited = false;
-        this._videoSegmentList.clear();
-        this._audioSegmentList.clear();
-        this._videoSegmentList = null;
-        this._audioSegmentList = null;
       }
     }, {
       key: 'remux',
@@ -2086,6 +2003,8 @@
           this._isDtsBaseInited = false;
           this._dtsBase = time * 1000;
         }
+
+        this._audioDtsBase = this._videoDtsBase = null;
       }
     }, {
       key: 'onMetaDataReady',
@@ -2121,7 +2040,7 @@
       key: 'remuxInitSegment',
       value: function remuxInitSegment(type, meta) {
         var initSegment = new Buffer();
-        var ftyp = Fmp4.ftyp();
+        var ftyp = meta.streamType === 0x24 ? Fmp4.ftypHEVC() : Fmp4.ftyp();
         var moov = Fmp4.moov({ type: type, meta: meta });
 
         initSegment.write(ftyp, moov);
@@ -2148,7 +2067,9 @@
           videoBase = videoTrack.samples[0].dts;
         }
 
-        this._dtsBase = Math.min(audioBase, videoBase) - this._dtsBase; // 兼容播放器切换清晰度
+        this._dtsBase = Math.min(audioBase, videoBase) - this._dtsBase;
+        this._videoDtsBase = this._dtsBase;
+        this._audioDtsBase = this._dtsBase;
         this._isDtsBaseInited = true;
       }
     }, {
@@ -2172,7 +2093,6 @@
 
         var maxLoop = 10000;
         while (samples.length && maxLoop-- > 0) {
-          // console.log('mark2')
           var avcSample = samples.shift();
 
           var isKeyframe = avcSample.isKeyframe,
@@ -2183,13 +2103,12 @@
             options.meta = null;
             samples.unshift(avcSample);
             if (!options.isContinue) {
-              this.resetDtsBase();
+              this._videoDtsBase = 0;
             }
             break;
           }
 
-          var dts = avcSample.dts - this._dtsBase;
-          var originDts = avcSample.originDts;
+          var dts = avcSample.dts - this.videoDtsBase;
           if (firstDts === -1) {
             firstDts = dts;
           }
@@ -2214,7 +2133,7 @@
           if (avcSample.duration) {
             sampleDuration = avcSample.duration;
           } else if (samples.length >= 1) {
-            var nextDts = samples[0].dts - this._dtsBase;
+            var nextDts = samples[0].dts - this.videoDtsBase;
             sampleDuration = nextDts - dts;
           } else {
             if (mp4Samples.length >= 1) {
@@ -2226,7 +2145,7 @@
             }
           }
           this.videoAllDuration += sampleDuration;
-          // console.log(`video dts ${dts}`, `pts ${pts}`, `originDts ${originDts}`, isKeyframe, `duration ${sampleDuration}`)
+          // console.log(`video dts ${dts}`, `pts ${pts}`, isKeyframe, `duration ${sampleDuration}`)
           if (sampleDuration >= 0) {
             mdatBox.samples.push(mdatSample);
             mdatSample.buffer.push(avcSample.data);
@@ -2271,7 +2190,6 @@
         }
 
         if (initSegment) {
-          // console.log('write video init segment to presource', initSegment)
           this.writeToSource('video', initSegment);
 
           if (samples.length) {
@@ -2307,7 +2225,6 @@
         var maxLoop = 10000;
         var isFirstDtsInited = false;
         while (samples.length && maxLoop-- > 0) {
-          // console.log('mark3')
           var sample = samples.shift();
           var data = sample.data,
               options = sample.options;
@@ -2317,12 +2234,12 @@
             options.meta = null;
             samples.unshift(sample);
             if (!options.isContinue) {
-              this.resetDtsBase();
+              this._audioDtsBase = 0;
             }
             break;
           }
 
-          var dts = sample.dts - this._dtsBase;
+          var dts = sample.dts - this.audioDtsBase;
           var originDts = sample.originDts;
           if (!isFirstDtsInited) {
             firstDts = dts;
@@ -2335,7 +2252,7 @@
           } else if (this.audioMeta.refSampleDurationFixed) {
             sampleDuration = this.audioMeta.refSampleDurationFixed;
           } else if (samples.length >= 1) {
-            var nextDts = samples[0].dts - this._dtsBase;
+            var nextDts = samples[0].dts - this.audioDtsBase;
             sampleDuration = nextDts - dts;
           } else {
             if (mp4Samples.length >= 1) {
@@ -2346,8 +2263,7 @@
               sampleDuration = this.audioMeta.refSampleDuration;
             }
           }
-
-          // console.log(`audio dts ${dts}`, `pts ${dts}`, `originDts ${originDts}` , `duration ${sampleDuration}`)
+          // console.log(`audio dts ${dts}`, `pts ${dts}`, `originDts ${originDts}`, `duration ${sampleDuration}`)
           this.audioAllDuration += sampleDuration;
           var mp4Sample = {
             dts: dts,
@@ -2357,8 +2273,8 @@
             duration: sample.duration ? sample.duration : sampleDuration,
             flags: {
               isLeading: 0,
-              dependsOn: 2,
-              isDependedOn: 1,
+              dependsOn: 1,
+              isDependedOn: 0,
               hasRedundancy: 0,
               isNonSync: 0
             },
@@ -2450,6 +2366,22 @@
       get: function get() {
         return this._context.getInstance('TRACKS').audioTrack.meta;
       }
+    }, {
+      key: 'videoDtsBase',
+      get: function get() {
+        if (this._videoDtsBase !== null) {
+          return this._videoDtsBase;
+        }
+        return this._dtsBase;
+      }
+    }, {
+      key: 'audioDtsBase',
+      get: function get() {
+        if (this._audioDtsBase !== null) {
+          return this._audioDtsBase;
+        }
+        return this._dtsBase;
+      }
     }], [{
       key: 'getSilentFrame',
       value: function getSilentFrame(channelCount) {
@@ -2473,7 +2405,7 @@
     return Mp4Remuxer;
   }();
 
-  var _createClass$7 = function () {
+  var _createClass$6 = function () {
     function defineProperties(target, props) {
       for (var i = 0; i < props.length; i++) {
         var descriptor = props[i];descriptor.enumerable = descriptor.enumerable || false;descriptor.configurable = true;if ("value" in descriptor) descriptor.writable = true;Object.defineProperty(target, descriptor.key, descriptor);
@@ -2483,7 +2415,7 @@
     };
   }();
 
-  function _classCallCheck$7(instance, Constructor) {
+  function _classCallCheck$6(instance, Constructor) {
     if (!(instance instanceof Constructor)) {
       throw new TypeError("Cannot call a class as a function");
     }
@@ -2491,7 +2423,7 @@
 
   var AudioTrackMeta = function () {
     function AudioTrackMeta(meta) {
-      _classCallCheck$7(this, AudioTrackMeta);
+      _classCallCheck$6(this, AudioTrackMeta);
 
       var _default = {
         sampleRate: 48000,
@@ -2511,7 +2443,7 @@
       return _default;
     }
 
-    _createClass$7(AudioTrackMeta, [{
+    _createClass$6(AudioTrackMeta, [{
       key: 'destroy',
       value: function destroy() {
         this.init = null;
@@ -2523,7 +2455,7 @@
 
   var VideoTrackMeta = function () {
     function VideoTrackMeta(meta) {
-      _classCallCheck$7(this, VideoTrackMeta);
+      _classCallCheck$6(this, VideoTrackMeta);
 
       var _default = {
         avcc: null,
@@ -2560,7 +2492,7 @@
       return _default;
     }
 
-    _createClass$7(VideoTrackMeta, [{
+    _createClass$6(VideoTrackMeta, [{
       key: 'destroy',
       value: function destroy() {
         this.init = null;
@@ -2572,7 +2504,7 @@
     return VideoTrackMeta;
   }();
 
-  var _createClass$8 = function () {
+  var _createClass$7 = function () {
     function defineProperties(target, props) {
       for (var i = 0; i < props.length; i++) {
         var descriptor = props[i];descriptor.enumerable = descriptor.enumerable || false;descriptor.configurable = true;if ("value" in descriptor) descriptor.writable = true;Object.defineProperty(target, descriptor.key, descriptor);
@@ -2582,7 +2514,7 @@
     };
   }();
 
-  function _classCallCheck$8(instance, Constructor) {
+  function _classCallCheck$7(instance, Constructor) {
     if (!(instance instanceof Constructor)) {
       throw new TypeError("Cannot call a class as a function");
     }
@@ -2590,7 +2522,7 @@
 
   var Golomb = function () {
     function Golomb(uint8array) {
-      _classCallCheck$8(this, Golomb);
+      _classCallCheck$7(this, Golomb);
 
       this.TAG = 'Golomb';
       this._buffer = uint8array;
@@ -2601,7 +2533,7 @@
       this._currentWordBitsLeft = 0;
     }
 
-    _createClass$8(Golomb, [{
+    _createClass$7(Golomb, [{
       key: 'destroy',
       value: function destroy() {
         this._buffer = null;
@@ -2688,7 +2620,7 @@
     return Golomb;
   }();
 
-  var _createClass$9 = function () {
+  var _createClass$8 = function () {
     function defineProperties(target, props) {
       for (var i = 0; i < props.length; i++) {
         var descriptor = props[i];descriptor.enumerable = descriptor.enumerable || false;descriptor.configurable = true;if ("value" in descriptor) descriptor.writable = true;Object.defineProperty(target, descriptor.key, descriptor);
@@ -2698,7 +2630,7 @@
     };
   }();
 
-  function _classCallCheck$9(instance, Constructor) {
+  function _classCallCheck$8(instance, Constructor) {
     if (!(instance instanceof Constructor)) {
       throw new TypeError("Cannot call a class as a function");
     }
@@ -2706,10 +2638,10 @@
 
   var SPSParser = function () {
     function SPSParser() {
-      _classCallCheck$9(this, SPSParser);
+      _classCallCheck$8(this, SPSParser);
     }
 
-    _createClass$9(SPSParser, null, [{
+    _createClass$8(SPSParser, null, [{
       key: '_ebsp2rbsp',
       value: function _ebsp2rbsp(uint8array) {
         var src = uint8array;
@@ -3005,7 +2937,7 @@
     return SPSParser;
   }();
 
-  var _createClass$a = function () {
+  var _createClass$9 = function () {
     function defineProperties(target, props) {
       for (var i = 0; i < props.length; i++) {
         var descriptor = props[i];descriptor.enumerable = descriptor.enumerable || false;descriptor.configurable = true;if ("value" in descriptor) descriptor.writable = true;Object.defineProperty(target, descriptor.key, descriptor);
@@ -3015,7 +2947,7 @@
     };
   }();
 
-  function _classCallCheck$a(instance, Constructor) {
+  function _classCallCheck$9(instance, Constructor) {
     if (!(instance instanceof Constructor)) {
       throw new TypeError("Cannot call a class as a function");
     }
@@ -3023,10 +2955,10 @@
 
   var RBSP = function () {
     function RBSP() {
-      _classCallCheck$a(this, RBSP);
+      _classCallCheck$9(this, RBSP);
     }
 
-    _createClass$a(RBSP, null, [{
+    _createClass$9(RBSP, null, [{
       key: "EBSP2RBSP",
 
       /**
@@ -3065,7 +2997,7 @@
     return RBSP;
   }();
 
-  var _createClass$b = function () {
+  var _createClass$a = function () {
     function defineProperties(target, props) {
       for (var i = 0; i < props.length; i++) {
         var descriptor = props[i];descriptor.enumerable = descriptor.enumerable || false;descriptor.configurable = true;if ("value" in descriptor) descriptor.writable = true;Object.defineProperty(target, descriptor.key, descriptor);
@@ -3075,7 +3007,7 @@
     };
   }();
 
-  function _classCallCheck$b(instance, Constructor) {
+  function _classCallCheck$a(instance, Constructor) {
     if (!(instance instanceof Constructor)) {
       throw new TypeError("Cannot call a class as a function");
     }
@@ -3091,10 +3023,10 @@
 
   var SEIParser = function () {
     function SEIParser() {
-      _classCallCheck$b(this, SEIParser);
+      _classCallCheck$a(this, SEIParser);
     }
 
-    _createClass$b(SEIParser, null, [{
+    _createClass$a(SEIParser, null, [{
       key: '_resolveNalu',
       value: function _resolveNalu(data) {
         if (data.length >= 1) {
@@ -3210,7 +3142,7 @@
     return SEIParser;
   }();
 
-  var _createClass$c = function () {
+  var _createClass$b = function () {
     function defineProperties(target, props) {
       for (var i = 0; i < props.length; i++) {
         var descriptor = props[i];descriptor.enumerable = descriptor.enumerable || false;descriptor.configurable = true;if ("value" in descriptor) descriptor.writable = true;Object.defineProperty(target, descriptor.key, descriptor);
@@ -3220,7 +3152,7 @@
     };
   }();
 
-  function _classCallCheck$c(instance, Constructor) {
+  function _classCallCheck$b(instance, Constructor) {
     if (!(instance instanceof Constructor)) {
       throw new TypeError("Cannot call a class as a function");
     }
@@ -3228,10 +3160,10 @@
 
   var Nalunit = function () {
     function Nalunit() {
-      _classCallCheck$c(this, Nalunit);
+      _classCallCheck$b(this, Nalunit);
     }
 
-    _createClass$c(Nalunit, null, [{
+    _createClass$b(Nalunit, null, [{
       key: 'getNalunits',
       value: function getNalunits(buffer) {
         if (buffer.length - buffer.position < 4) {
@@ -3397,9 +3329,891 @@
   var SpsParser = SPSParser;
   var NalUnit = Nalunit;
 
-  var _typeof$1 = typeof Symbol === "function" && typeof Symbol.iterator === "symbol" ? function (obj) { return typeof obj; } : function (obj) { return obj && typeof Symbol === "function" && obj.constructor === Symbol && obj !== Symbol.prototype ? "symbol" : typeof obj; };
+  var _createClass$c = function () {
+    function defineProperties(target, props) {
+      for (var i = 0; i < props.length; i++) {
+        var descriptor = props[i];descriptor.enumerable = descriptor.enumerable || false;descriptor.configurable = true;if ("value" in descriptor) descriptor.writable = true;Object.defineProperty(target, descriptor.key, descriptor);
+      }
+    }return function (Constructor, protoProps, staticProps) {
+      if (protoProps) defineProperties(Constructor.prototype, protoProps);if (staticProps) defineProperties(Constructor, staticProps);return Constructor;
+    };
+  }();
+
+  function _classCallCheck$c(instance, Constructor) {
+    if (!(instance instanceof Constructor)) {
+      throw new TypeError("Cannot call a class as a function");
+    }
+  }
+
+  var Golomb$1 = function () {
+    function Golomb(uint8array) {
+      _classCallCheck$c(this, Golomb);
+
+      this.TAG = 'Golomb';
+      this._buffer = uint8array;
+      this._bufferIndex = 0;
+      this._totalBytes = uint8array.byteLength;
+      this._totalBits = uint8array.byteLength * 8;
+      this._currentWord = 0;
+      this._currentWordBitsLeft = 0;
+    }
+
+    _createClass$c(Golomb, [{
+      key: 'destroy',
+      value: function destroy() {
+        this._buffer = null;
+      }
+    }, {
+      key: '_fillCurrentWord',
+      value: function _fillCurrentWord() {
+        var bufferBytesLeft = this._totalBytes - this._bufferIndex;
+
+        var bytesRead = Math.min(4, bufferBytesLeft);
+        var word = new Uint8Array(4);
+        word.set(this._buffer.subarray(this._bufferIndex, this._bufferIndex + bytesRead));
+        this._currentWord = new DataView(word.buffer).getUint32(0);
+
+        this._bufferIndex += bytesRead;
+        this._currentWordBitsLeft = bytesRead * 8;
+      }
+    }, {
+      key: 'readBits',
+      value: function readBits(size) {
+        var bits = Math.min(this._currentWordBitsLeft, size); // :uint
+        var valu = this._currentWord >>> 32 - bits;
+        if (size > 32) {
+          throw new Error('Cannot read more than 32 bits at a time');
+        }
+        this._currentWordBitsLeft -= bits;
+        if (this._currentWordBitsLeft > 0) {
+          this._currentWord <<= bits;
+        } else if (this._totalBytes - this._bufferIndex > 0) {
+          this._fillCurrentWord();
+        }
+
+        bits = size - bits;
+        if (bits > 0 && this._currentWordBitsLeft) {
+          return valu << bits | this.readBits(bits);
+        } else {
+          return valu;
+        }
+      }
+    }, {
+      key: 'readBool',
+      value: function readBool() {
+        return this.readBits(1) === 1;
+      }
+    }, {
+      key: 'readByte',
+      value: function readByte() {
+        return this.readBits(8);
+      }
+    }, {
+      key: '_skipLeadingZero',
+      value: function _skipLeadingZero() {
+        var zeroCount = void 0;
+        for (zeroCount = 0; zeroCount < this._currentWordBitsLeft; zeroCount++) {
+          if ((this._currentWord & 0x80000000 >>> zeroCount) !== 0) {
+            this._currentWord <<= zeroCount;
+            this._currentWordBitsLeft -= zeroCount;
+            return zeroCount;
+          }
+        }
+        this._fillCurrentWord();
+        return zeroCount + this._skipLeadingZero();
+      }
+    }, {
+      key: 'readUEG',
+      value: function readUEG() {
+        // unsigned exponential golomb
+        var leadingZeros = this._skipLeadingZero();
+        return this.readBits(leadingZeros + 1) - 1;
+      }
+    }, {
+      key: 'readSEG',
+      value: function readSEG() {
+        // signed exponential golomb
+        var value = this.readUEG();
+        if (value & 0x01) {
+          return value + 1 >>> 1;
+        } else {
+          return -1 * (value >>> 1);
+        }
+      }
+    }]);
+
+    return Golomb;
+  }();
 
   var _createClass$d = function () {
+    function defineProperties(target, props) {
+      for (var i = 0; i < props.length; i++) {
+        var descriptor = props[i];descriptor.enumerable = descriptor.enumerable || false;descriptor.configurable = true;if ("value" in descriptor) descriptor.writable = true;Object.defineProperty(target, descriptor.key, descriptor);
+      }
+    }return function (Constructor, protoProps, staticProps) {
+      if (protoProps) defineProperties(Constructor.prototype, protoProps);if (staticProps) defineProperties(Constructor, staticProps);return Constructor;
+    };
+  }();
+
+  function _classCallCheck$d(instance, Constructor) {
+    if (!(instance instanceof Constructor)) {
+      throw new TypeError("Cannot call a class as a function");
+    }
+  }
+
+  var SPSParser$1 = function () {
+    function SPSParser() {
+      _classCallCheck$d(this, SPSParser);
+    }
+
+    _createClass$d(SPSParser, null, [{
+      key: '_ebsp2rbsp',
+      value: function _ebsp2rbsp(uint8array) {
+        var src = uint8array;
+        var srcLength = src.byteLength;
+        var dst = new Uint8Array(srcLength);
+        var dstIdx = 0;
+
+        for (var i = 0; i < srcLength; i++) {
+          if (i >= 2) {
+            if (src[i] === 0x03 && src[i - 1] === 0x00 && src[i - 2] === 0x00) {
+              continue;
+            }
+          }
+          dst[dstIdx] = src[i];
+          dstIdx++;
+        }
+
+        return new Uint8Array(dst.buffer, 0, dstIdx);
+      }
+    }, {
+      key: 'parseSPS',
+      value: function parseSPS(uint8array) {
+        var rbsp = SPSParser._ebsp2rbsp(uint8array);
+        var gb = new Golomb$1(rbsp);
+
+        var vpsId = 0,
+            maxSubLayersMinus1 = 0,
+            tINf = 0,
+            spsId = 0,
+            separate_colour_plane_flag = 0,
+            chromaFormatIdc = 0,
+            width = 0,
+            height = 0,
+            conf_win_left_offset = 0,
+            conf_win_right_offset = 0,
+            conf_win_top_offset = 0,
+            conf_win_bottom_offset = 0,
+            conformanceWindowFlag = 0,
+            bitDepthLumaMinus8 = 0,
+            bitDepthChromaMinus8 = 0,
+            sub_width_c = 0,
+            sub_height_c = 0,
+            profileTierLevel = {};
+
+        gb.readByte(); // NAL header
+        gb.readByte();
+
+        vpsId = gb.readBits(4); // vps_id
+        maxSubLayersMinus1 = gb.readBits(3); // max_sub_layers_minus1
+        tINf = gb.readBits(1); // temporal_id_nesting_flag
+
+        profileTierLevel = SPSParser._readProfileTierLevel(gb, maxSubLayersMinus1);
+
+        spsId = gb.readUEG(); // sps id
+        chromaFormatIdc = gb.readUEG();
+        if (chromaFormatIdc === 3) {
+          separate_colour_plane_flag = gb.readBits(1); // separate_colour_plane_flag
+        }
+
+        width = gb.readUEG(); // pic_width_in_luma_samples
+        height = gb.readUEG(); // pic_height_in_luma_samples
+
+        conformanceWindowFlag = gb.readBits(1);
+        if (conformanceWindowFlag === 1) {
+          conf_win_left_offset = gb.readUEG(); // conf_win_left_offset
+          conf_win_right_offset = gb.readUEG(); // conf_win_right_offset
+          conf_win_top_offset = gb.readUEG(); // conf_win_top_offset
+          conf_win_bottom_offset = gb.readUEG(); // conf_win_bottom_offset
+        }
+
+        bitDepthLumaMinus8 = gb.readUEG(); // bit_depth_luma_minus8
+        bitDepthChromaMinus8 = gb.readUEG(); // bit_depth_chroma_minus8
+
+        if (conformanceWindowFlag === 1) {
+          sub_width_c = (1 === chromaFormatIdc || 2 === chromaFormatIdc) && 0 === separate_colour_plane_flag ? 2 : 1;
+          sub_height_c = 1 === chromaFormatIdc && 0 === separate_colour_plane_flag ? 2 : 1;
+          width -= sub_width_c * conf_win_right_offset + sub_width_c * conf_win_left_offset;
+          height -= sub_height_c * conf_win_bottom_offset + sub_height_c * conf_win_top_offset;
+        }
+
+        gb.destroy();
+        gb = null;
+
+        return { width: width, height: height,
+          general_profile_space: profileTierLevel.general_profile_space,
+          general_tier_flag: profileTierLevel.general_tier_flag,
+          general_profile_idc: profileTierLevel.general_profile_idc,
+          general_level_idc: profileTierLevel.general_level_idc,
+          chromaFormatIdc: chromaFormatIdc,
+          bitDepthLumaMinus8: bitDepthLumaMinus8,
+          bitDepthChromaMinus8: bitDepthChromaMinus8 };
+      }
+
+      // static parseSPS (uint8array) {
+      //   let rbsp = SPSParser._ebsp2rbsp(uint8array)
+      //   let gb = new Golomb(rbsp)
+      //
+      //   gb.readByte()
+      //   let profileIdc = gb.readByte()
+      //   gb.readByte()
+      //   let levelIdc = gb.readByte()
+      //   gb.readUEG()
+      //
+      //   let profile_string = SPSParser.getProfileString(profileIdc)
+      //   let level_string = SPSParser.getLevelString(levelIdc)
+      //   let chroma_format_idc = 1
+      //   let chroma_format = 420
+      //   let chroma_format_table = [0, 420, 422, 444]
+      //   let bit_depth = 8
+      //
+      //   if (profileIdc === 100 || profileIdc === 110 || profileIdc === 122 ||
+      //     profileIdc === 244 || profileIdc === 44 || profileIdc === 83 ||
+      //     profileIdc === 86 || profileIdc === 118 || profileIdc === 128 ||
+      //     profileIdc === 138 || profileIdc === 144) {
+      //     chroma_format_idc = gb.readUEG()
+      //     if (chroma_format_idc === 3) {
+      //       gb.readBits(1)
+      //     }
+      //     if (chroma_format_idc <= 3) {
+      //       chroma_format = chroma_format_table[chroma_format_idc]
+      //     }
+      //
+      //     bit_depth = gb.readUEG() + 8
+      //     gb.readUEG()
+      //     gb.readBits(1)
+      //     if (gb.readBool()) {
+      //       let scaling_list_count = (chroma_format_idc !== 3) ? 8 : 12
+      //       for (let i = 0; i < scaling_list_count; i++) {
+      //         if (gb.readBool()) {
+      //           if (i < 6) {
+      //             SPSParser._skipScalingList(gb, 16)
+      //           } else {
+      //             SPSParser._skipScalingList(gb, 64)
+      //           }
+      //         }
+      //       }
+      //     }
+      //   }
+      //   gb.readUEG()
+      //   let pic_order_cnt_type = gb.readUEG()
+      //   if (pic_order_cnt_type === 0) {
+      //     gb.readUEG()
+      //   } else if (pic_order_cnt_type === 1) {
+      //     gb.readBits(1)
+      //     gb.readSEG()
+      //     gb.readSEG()
+      //     let num_ref_frames_in_pic_order_cnt_cycle = gb.readUEG()
+      //     for (let i = 0; i < num_ref_frames_in_pic_order_cnt_cycle; i++) {
+      //       gb.readSEG()
+      //     }
+      //   }
+      //   gb.readUEG()
+      //   gb.readBits(1)
+      //
+      //   let pic_width_in_mbs_minus1 = gb.readUEG()
+      //   let pic_height_in_map_units_minus1 = gb.readUEG()
+      //
+      //   let frame_mbs_only_flag = gb.readBits(1)
+      //   if (frame_mbs_only_flag === 0) {
+      //     gb.readBits(1)
+      //   }
+      //   gb.readBits(1)
+      //
+      //   let frame_crop_left_offset = 0
+      //   let frame_crop_right_offset = 0
+      //   let frame_crop_top_offset = 0
+      //   let frame_crop_bottom_offset = 0
+      //
+      //   let frame_cropping_flag = gb.readBool()
+      //   if (frame_cropping_flag) {
+      //     frame_crop_left_offset = gb.readUEG()
+      //     frame_crop_right_offset = gb.readUEG()
+      //     frame_crop_top_offset = gb.readUEG()
+      //     frame_crop_bottom_offset = gb.readUEG()
+      //   }
+      //
+      //   let par_width = 1, par_height = 1
+      //   let fps = 0, fps_fixed = true, fps_num = 0, fps_den = 0
+      //
+      //   let vui_parameters_present_flag = gb.readBool()
+      //   if (vui_parameters_present_flag) {
+      //     if (gb.readBool()) { // aspect_ratio_info_present_flag
+      //       let aspect_ratio_idc = gb.readByte()
+      //       let par_w_table = [1, 12, 10, 16, 40, 24, 20, 32, 80, 18, 15, 64, 160, 4, 3, 2]
+      //       let par_h_table = [1, 11, 11, 11, 33, 11, 11, 11, 33, 11, 11, 33, 99, 3, 2, 1]
+      //
+      //       if (aspect_ratio_idc > 0 && aspect_ratio_idc < 16) {
+      //         par_width = par_w_table[aspect_ratio_idc - 1]
+      //         par_height = par_h_table[aspect_ratio_idc - 1]
+      //       } else if (aspect_ratio_idc === 255) {
+      //         par_width = gb.readByte() << 8 | gb.readByte()
+      //         par_height = gb.readByte() << 8 | gb.readByte()
+      //       }
+      //     }
+      //
+      //     if (gb.readBool()) {
+      //       gb.readBool()
+      //     }
+      //     if (gb.readBool()) {
+      //       gb.readBits(4)
+      //       if (gb.readBool()) {
+      //         gb.readBits(24)
+      //       }
+      //     }
+      //     if (gb.readBool()) {
+      //       gb.readUEG()
+      //       gb.readUEG()
+      //     }
+      //     if (gb.readBool()) {
+      //       let num_units_in_tick = gb.readBits(32)
+      //       let time_scale = gb.readBits(32)
+      //       fps_fixed = gb.readBool()
+      //
+      //       fps_num = time_scale
+      //       fps_den = num_units_in_tick * 2
+      //       fps = fps_num / fps_den
+      //     }
+      //   }
+      //
+      //   let parScale = 1
+      //   if (par_width !== 1 || par_height !== 1) {
+      //     parScale = par_width / par_height
+      //   }
+      //
+      //   let crop_unit_x = 0, crop_unit_y = 0
+      //   if (chroma_format_idc === 0) {
+      //     crop_unit_x = 1
+      //     crop_unit_y = 2 - frame_mbs_only_flag
+      //   } else {
+      //     let sub_wc = (chroma_format_idc === 3) ? 1 : 2
+      //     let sub_hc = (chroma_format_idc === 1) ? 2 : 1
+      //     crop_unit_x = sub_wc
+      //     crop_unit_y = sub_hc * (2 - frame_mbs_only_flag)
+      //   }
+      //
+      //   let codec_width = (pic_width_in_mbs_minus1 + 1) * 16
+      //   let codec_height = (2 - frame_mbs_only_flag) * ((pic_height_in_map_units_minus1 + 1) * 16)
+      //
+      //   codec_width -= (frame_crop_left_offset + frame_crop_right_offset) * crop_unit_x
+      //   codec_height -= (frame_crop_top_offset + frame_crop_bottom_offset) * crop_unit_y
+      //
+      //   let present_width = Math.ceil(codec_width * parScale)
+      //
+      //   gb.destroy()
+      //   gb = null
+      //
+      //   return {
+      //     profile_string: profile_string,
+      //     level_string: level_string,
+      //     bit_depth: bit_depth,
+      //     chroma_format: chroma_format,
+      //     chroma_format_string: SPSParser.getChromaFormatString(chroma_format),
+      //
+      //     frame_rate: {
+      //       fixed: fps_fixed,
+      //       fps: fps,
+      //       fps_den: fps_den,
+      //       fps_num: fps_num
+      //     },
+      //
+      //     par_ratio: {
+      //       width: par_width,
+      //       height: par_height
+      //     },
+      //
+      //     codec_size: {
+      //       width: codec_width,
+      //       height: codec_height
+      //     },
+      //
+      //     present_size: {
+      //       width: present_width,
+      //       height: codec_height
+      //     }
+      //   }
+      // }
+
+    }, {
+      key: '_readProfileTierLevel',
+      value: function _readProfileTierLevel(gb, maxSubLayersMinus1) {
+        var general_profile_space = 0;
+        var general_tier_flag = 0;
+        var general_profile_idc = 0;
+        var general_level_idc = 0;
+        general_profile_space = gb.readBits(2) || 0; // profile_space
+        general_tier_flag = gb.readBits(1) || 0; // tierFlag
+        general_profile_idc = gb.readBits(5) || 0; // profileIdc
+
+        gb.readBits(16); // some 32bits
+        gb.readBits(16);
+
+        gb.readBits(1); // progressiveSourceFlag
+        gb.readBits(1); // interlacedSourceFlag
+        gb.readBits(1); // nonPackedConstraintFlag
+        gb.readBits(1); // frameOnlyConstraintFlag
+
+
+        gb.readBits(16); // reserved zero bits
+        gb.readBits(16);
+        gb.readBits(12);
+
+        general_level_idc = gb.readBits(8) || 0; // level_idc
+
+        var subLayerProfilePresentFlag = [];
+        var subLayerLevelPresentFlag = [];
+        for (var j = 0; j < maxSubLayersMinus1; j++) {
+          subLayerProfilePresentFlag[j] = gb.readBits(1);
+          subLayerLevelPresentFlag[j] = gb.readBits(1);
+        }
+
+        if (maxSubLayersMinus1 > 0) {
+          gb.readBits((8 - maxSubLayersMinus1) * 2);
+        }
+
+        for (var i = 0; i < maxSubLayersMinus1; i++) {
+          if (subLayerProfilePresentFlag[i] !== 0) {
+            gb.readBits(2);
+            gb.readBits(1);
+            gb.readBits(5);
+
+            gb.readBits(16);
+            gb.readBits(16);
+
+            gb.readBits(4);
+
+            gb.readBits(16);
+            gb.readBits(16);
+            gb.readBits(12);
+          }
+          if (subLayerLevelPresentFlag[i] !== 0) {
+            gb.readBits(8);
+          }
+        }
+
+        return {
+          general_profile_space: general_profile_space,
+          general_tier_flag: general_tier_flag,
+          general_profile_idc: general_profile_idc,
+          general_level_idc: general_level_idc
+        };
+      }
+    }, {
+      key: '_skipScalingList',
+      value: function _skipScalingList(gb, count) {
+        var lastScale = 8;
+        var nextScale = 8;
+        var deltaScale = 0;
+        for (var i = 0; i < count; i++) {
+          if (nextScale !== 0) {
+            deltaScale = gb.readSEG();
+            nextScale = (lastScale + deltaScale + 256) % 256;
+          }
+          lastScale = nextScale === 0 ? lastScale : nextScale;
+        }
+      }
+    }, {
+      key: 'getProfileString',
+      value: function getProfileString(profileIdc) {
+        switch (profileIdc) {
+          case 66:
+            return 'Baseline';
+          case 77:
+            return 'Main';
+          case 88:
+            return 'Extended';
+          case 100:
+            return 'High';
+          case 110:
+            return 'High10';
+          case 122:
+            return 'High422';
+          case 244:
+            return 'High444';
+          default:
+            return 'Unknown';
+        }
+      }
+    }, {
+      key: 'getLevelString',
+      value: function getLevelString(levelIdc) {
+        return (levelIdc / 10).toFixed(1);
+      }
+    }, {
+      key: 'getChromaFormatString',
+      value: function getChromaFormatString(chroma) {
+        switch (chroma) {
+          case 420:
+            return '4:2:0';
+          case 422:
+            return '4:2:2';
+          case 444:
+            return '4:4:4';
+          default:
+            return 'Unknown';
+        }
+      }
+    }, {
+      key: 'toVideoMeta',
+      value: function toVideoMeta(spsConfig) {
+        var meta = {};
+        if (spsConfig && spsConfig.codec_size) {
+          meta.codecWidth = spsConfig.codec_size.width;
+          meta.codecHeight = spsConfig.codec_size.height;
+          meta.presentWidth = spsConfig.present_size.width;
+          meta.presentHeight = spsConfig.present_size.height;
+        }
+
+        meta.profile = spsConfig.profile_string;
+        meta.level = spsConfig.level_string;
+        meta.bitDepth = spsConfig.bit_depth;
+        meta.chromaFormat = spsConfig.chroma_format;
+
+        // meta.parRatio = {
+        //   width: spsConfig.par_ratio.width,
+        //   height: spsConfig.par_ratio.height
+        // }
+
+        // meta.frameRate = spsConfig.frame_rate
+
+        // let fpsDen = meta.frameRate.fps_den
+        // let fpsNum = meta.frameRate.fps_num
+        // meta.refSampleDuration = Math.floor(meta.timescale * (fpsDen / fpsNum))
+        return meta;
+      }
+    }]);
+
+    return SPSParser;
+  }();
+
+  var _createClass$e = function () {
+    function defineProperties(target, props) {
+      for (var i = 0; i < props.length; i++) {
+        var descriptor = props[i];descriptor.enumerable = descriptor.enumerable || false;descriptor.configurable = true;if ("value" in descriptor) descriptor.writable = true;Object.defineProperty(target, descriptor.key, descriptor);
+      }
+    }return function (Constructor, protoProps, staticProps) {
+      if (protoProps) defineProperties(Constructor.prototype, protoProps);if (staticProps) defineProperties(Constructor, staticProps);return Constructor;
+    };
+  }();
+
+  function _classCallCheck$e(instance, Constructor) {
+    if (!(instance instanceof Constructor)) {
+      throw new TypeError("Cannot call a class as a function");
+    }
+  }
+
+  var Nalunit$1 = function () {
+    function Nalunit() {
+      _classCallCheck$e(this, Nalunit);
+    }
+
+    _createClass$e(Nalunit, null, [{
+      key: 'getNalunits',
+      value: function getNalunits(buffer) {
+        if (buffer.length - buffer.position < 4) {
+          return [];
+        }
+
+        var buf = buffer.dataview;
+        var position = buffer.position;
+        // console.log('getNalunits')
+        // console.log('buf: ', buf)
+        // console.log(buf.getInt8(position))
+        // console.log(buf.getInt8(position+1))
+        // console.log(buf.getInt8(position+2))
+        // console.log(buf.getInt8(position+3))
+        if (buf.getInt32(position) === 1 || buf.getInt16(position) === 0 && buf.getInt8(position + 2) === 1) {
+          return Nalunit.getAnnexbNals(buffer);
+        } else {
+          return Nalunit.getHvccNals(buffer);
+        }
+      }
+    }, {
+      key: 'getAnnexbNals',
+      value: function getAnnexbNals(buffer) {
+        // console.log('getAnnexbNals')
+        // console.log('buffer: ', buffer)
+        var nals = [];
+        var position = Nalunit.getHeaderPositionAnnexB(buffer);
+        var start = position.pos;
+        var end = start;
+        while (start < buffer.length - 4) {
+          var header = buffer.buffer.slice(start, start + position.headerLength);
+          if (position.pos === buffer.position) {
+            buffer.skip(position.headerLength);
+          }
+          position = Nalunit.getHeaderPositionAnnexB(buffer);
+          end = position.pos;
+          var body = new Uint8Array(buffer.buffer.slice(start + header.byteLength, end));
+          var unit = { header: header, body: body };
+          Nalunit.analyseNal(unit);
+          if (unit.type <= 40) {
+            nals.push(unit);
+          }
+          buffer.skip(end - buffer.position);
+          start = end;
+        }
+        return nals;
+      }
+    }, {
+      key: 'getHvccNals',
+      value: function getHvccNals(buffer) {
+        // console.log('getHvccNals')
+        var nals = [];
+        while (buffer.position < buffer.length - 4) {
+          // console.log('buffer')
+          // console.log(buffer)
+          // console.log(buffer.position)
+          // console.log(buffer.length)
+          // console.log(buffer.dataview)
+          // let length = buffer.dataview.getInt32();
+          var lengthArr = new Uint8Array(buffer.buffer.slice(0, 4));
+          var length = lengthArr[0] << 24 + lengthArr[1] << 16 + lengthArr[2] << 8 + lengthArr[3];
+          if (buffer.length - buffer.position >= length) {
+            var header = buffer.buffer.slice(buffer.position, buffer.position + 4);
+            buffer.skip(4);
+            var body = buffer.buffer.slice(buffer.position, buffer.position + length);
+            buffer.skip(length);
+            var unit = { header: header, body: body };
+            Nalunit.analyseNal(unit);
+            if (unit.type <= 40) {
+              nals.push(unit);
+            }
+          } else {
+            break;
+          }
+        }
+        return nals;
+      }
+    }, {
+      key: 'analyseNal',
+      value: function analyseNal(unit) {
+        // console.log('analyseNal')
+        // console.log('unit: ', unit)
+        // console.log(unit.body[0] >>> 1)
+        var type = unit.body[0] >>> 1 & 0x3f;
+        // console.log('type: ', type)
+        unit.type = type;
+        switch (type) {
+          case 0:
+            // SLICE_TRAIL_N
+            unit.slice_trail_n = true;
+            break;
+          case 1:
+            // SLICE_TRAIL_R
+            unit.slice_trail_r = true;
+            unit.key = true;
+            break;
+          case 2:
+            // SLICE_TSA_N
+            unit.slice_tsa_n = true;
+            break;
+          case 3:
+            // SLICE_TSA_R
+            unit.slice_tsa_r = true;
+            unit.key = true;
+            break;
+          case 4:
+            // SLICE_STSA_N
+            unit.slice_stsa_n = true;
+            break;
+          case 5:
+            // SLICE_STSA_R
+            unit.slice_stsa_r = true;
+            unit.key = true;
+            break;
+          case 6:
+            // SLICE_RADL_N
+            unit.slice_radl_n = true;
+            break;
+          case 7:
+            // SLICE_RADL_R
+            unit.slice_radl_r = true;
+            unit.key = true;
+            break;
+          case 8:
+            // SLICE_RASL_N
+            unit.slice_rasl_n = true;
+            break;
+          case 9:
+            // SLICE_RASL_R
+            unit.slice_rasl_r = true;
+            unit.key = true;
+            break;
+          case 16:
+            // SLICE_BLA_W_LP
+            unit.slice_bla_w_lp = true;
+            break;
+          case 17:
+            // SLICE_BLA_W_RADL
+            unit.slice_bla_w_radl = true;
+            break;
+          case 18:
+            // SLICE_BLA_N_LP
+            unit.slice_bla_n_lp = true;
+            break;
+          case 19:
+            // SLICE_IDR_W_RADL
+            unit.slice_idl_w_radl = true;
+            unit.key = true;
+            break;
+          case 20:
+            // SLICE_IDR_N_LP
+            unit.slice_idr_n_lp = true;
+            unit.key = true;
+            break;
+          case 21:
+            // SLICE_CRA_NUT
+            unit.slice_cra_nut = true;
+            unit.key = true;
+            break;
+          case 32:
+            // VPS
+            unit.vps = true;
+            break;
+          case 33:
+            // SPS
+            unit.sps = SPSParser$1.parseSPS(unit.body);
+            break;
+          case 34:
+            // PPS
+            unit.pps = true;
+            break;
+          case 35:
+            // AUD
+            break;
+          case 36:
+            // EOS
+            unit.aud = true;
+            break;
+          case 37:
+            // EOB
+            unit.eob = true;
+            break;
+          case 38:
+            // FD
+            unit.fd = true;
+            break;
+          case 39:
+            // PREFIX_SEI
+            unit.prefix_sei = true;
+            break;
+          case 40:
+            // SUFFIX_SEI
+            unit.suffix_sei = true;
+            break;
+          // case 1:
+          //   // NDR
+          //   unit.ndr = true;
+          //   break;
+          // case 5:
+          //   // IDR
+          //   unit.idr = true;
+          //   break;
+          // case 6:
+          //   // SEI
+          //   break;
+          // case 7:
+          //   // SPS
+          //   unit.sps = SpsParser.parseSPS(unit.body);
+          //   break;
+          // case 8:
+          //   // PPS
+          //   unit.pps = true;
+          //   break;
+          // case 9:
+          //   // AUD
+          //   break;
+          // default:
+          //   break;
+        }
+      }
+    }, {
+      key: 'getHeaderPositionAnnexB',
+      value: function getHeaderPositionAnnexB(buffer) {
+        // seperate
+        var pos = buffer.position;
+        var headerLength = 0;
+        while (headerLength !== 3 && headerLength !== 4 && pos < buffer.length - 4) {
+          if (buffer.dataview.getInt16(pos) === 0) {
+            if (buffer.dataview.getInt16(pos + 2) === 1) {
+              // 0x000001
+              headerLength = 4;
+            } else if (buffer.dataview.getInt8(pos + 2) === 1) {
+              headerLength = 3;
+            } else {
+              pos++;
+            }
+          } else {
+            pos++;
+          }
+        }
+
+        if (pos === buffer.length - 4) {
+          if (buffer.dataview.getInt16(pos) === 0) {
+            if (buffer.dataview.getInt16(pos + 2) === 1) {
+              // 0x000001
+              headerLength = 4;
+            }
+          } else {
+            pos++;
+            if (buffer.dataview.getInt16(pos) === 0 && buffer.dataview.getInt8(pos) === 1) {
+              // 0x0000001
+              headerLength = 3;
+            } else {
+              pos = buffer.length;
+            }
+          }
+        }
+        return { pos: pos, headerLength: headerLength };
+      }
+
+      // static getAvcc (sps, pps) {
+      //   let ret = new Uint8Array(sps.byteLength + pps.byteLength + 11);
+      //   ret[0] = 0x01;
+      //   ret[1] = sps[1];
+      //   ret[2] = sps[2];
+      //   ret[3] = sps[3];
+      //   ret[4] = 255;
+      //   ret[5] = 225;
+      //
+      //   let offset = 6;
+      //
+      //   ret.set(new Uint8Array([(sps.byteLength >>> 8) & 0xff, sps.byteLength & 0xff]), offset);
+      //   offset += 2;
+      //   ret.set(sps, offset);
+      //   offset += sps.byteLength;
+      //
+      //   ret[offset] = 1;
+      //   offset++;
+      //
+      //   ret.set(new Uint8Array([(pps.byteLength >>> 8) & 0xff, pps.byteLength & 0xff]), offset);
+      //   offset += 2;
+      //   ret.set(pps, offset);
+      //   return ret;
+      // }
+
+    }]);
+
+    return Nalunit;
+  }();
+
+  var SpsParserHEVC = SPSParser$1;
+  var NalUnitHEVC = Nalunit$1;
+
+  var _typeof$1 = typeof Symbol === "function" && typeof Symbol.iterator === "symbol" ? function (obj) { return typeof obj; } : function (obj) { return obj && typeof Symbol === "function" && obj.constructor === Symbol && obj !== Symbol.prototype ? "symbol" : typeof obj; };
+
+  var _createClass$f = function () {
     function defineProperties(target, props) {
       for (var i = 0; i < props.length; i++) {
         var descriptor = props[i];descriptor.enumerable = descriptor.enumerable || false;descriptor.configurable = true;if ("value" in descriptor) descriptor.writable = true;Object.defineProperty(target, descriptor.key, descriptor);
@@ -3421,7 +4235,7 @@
     }subClass.prototype = Object.create(superClass && superClass.prototype, { constructor: { value: subClass, enumerable: false, writable: true, configurable: true } });if (superClass) Object.setPrototypeOf ? Object.setPrototypeOf(subClass, superClass) : subClass.__proto__ = superClass;
   }
 
-  function _classCallCheck$d(instance, Constructor) {
+  function _classCallCheck$f(instance, Constructor) {
     if (!(instance instanceof Constructor)) {
       throw new TypeError("Cannot call a class as a function");
     }
@@ -3432,7 +4246,7 @@
      * The constructor.
      */
     function Track() {
-      _classCallCheck$d(this, Track);
+      _classCallCheck$f(this, Track);
 
       this.id = -1;
       this.sequenceNumber = 0;
@@ -3445,7 +4259,7 @@
      * Reset the track.
      */
 
-    _createClass$d(Track, [{
+    _createClass$f(Track, [{
       key: 'reset',
       value: function reset() {
         this.sequenceNumber = 0;
@@ -3474,7 +4288,7 @@
      * The constructor for audio track.
      */
     function AudioTrack() {
-      _classCallCheck$d(this, AudioTrack);
+      _classCallCheck$f(this, AudioTrack);
 
       var _this = _possibleConstructorReturn$1(this, (AudioTrack.__proto__ || Object.getPrototypeOf(AudioTrack)).call(this));
 
@@ -3493,7 +4307,7 @@
      * The constructor for video track.
      */
     function VideoTrack() {
-      _classCallCheck$d(this, VideoTrack);
+      _classCallCheck$f(this, VideoTrack);
 
       var _this2 = _possibleConstructorReturn$1(this, (VideoTrack.__proto__ || Object.getPrototypeOf(VideoTrack)).call(this));
 
@@ -3506,7 +4320,7 @@
      * reset the video track.
      */
 
-    _createClass$d(VideoTrack, [{
+    _createClass$f(VideoTrack, [{
       key: 'reset',
       value: function reset() {
         this.sequenceNumber = 0;
@@ -3521,13 +4335,13 @@
 
   var Tracks = function () {
     function Tracks() {
-      _classCallCheck$d(this, Tracks);
+      _classCallCheck$f(this, Tracks);
 
       this.audioTrack = null;
       this.videoTrack = null;
     }
 
-    _createClass$d(Tracks, [{
+    _createClass$f(Tracks, [{
       key: 'destroy',
       value: function destroy() {
         this.audioTrack = null;
@@ -3538,7 +4352,7 @@
     return Tracks;
   }();
 
-  var _createClass$e = function () {
+  var _createClass$g = function () {
     function defineProperties(target, props) {
       for (var i = 0; i < props.length; i++) {
         var descriptor = props[i];descriptor.enumerable = descriptor.enumerable || false;descriptor.configurable = true;if ("value" in descriptor) descriptor.writable = true;Object.defineProperty(target, descriptor.key, descriptor);
@@ -3548,7 +4362,7 @@
     };
   }();
 
-  function _classCallCheck$e(instance, Constructor) {
+  function _classCallCheck$g(instance, Constructor) {
     if (!(instance instanceof Constructor)) {
       throw new TypeError("Cannot call a class as a function");
     }
@@ -3556,10 +4370,10 @@
 
   var UTF8 = function () {
     function UTF8() {
-      _classCallCheck$e(this, UTF8);
+      _classCallCheck$g(this, UTF8);
     }
 
-    _createClass$e(UTF8, null, [{
+    _createClass$g(UTF8, null, [{
       key: 'decode',
       value: function decode(uint8array) {
         var out = [];
@@ -3628,7 +4442,7 @@
     return UTF8;
   }();
 
-  var _createClass$f = function () {
+  var _createClass$h = function () {
     function defineProperties(target, props) {
       for (var i = 0; i < props.length; i++) {
         var descriptor = props[i];descriptor.enumerable = descriptor.enumerable || false;descriptor.configurable = true;if ("value" in descriptor) descriptor.writable = true;Object.defineProperty(target, descriptor.key, descriptor);
@@ -3638,7 +4452,7 @@
     };
   }();
 
-  function _classCallCheck$f(instance, Constructor) {
+  function _classCallCheck$h(instance, Constructor) {
     if (!(instance instanceof Constructor)) {
       throw new TypeError("Cannot call a class as a function");
     }
@@ -3663,13 +4477,13 @@
   };
   var AMFParser = function () {
     function AMFParser() {
-      _classCallCheck$f(this, AMFParser);
+      _classCallCheck$h(this, AMFParser);
 
       this.offset = 0;
       this.readOffset = this.offset;
     }
 
-    _createClass$f(AMFParser, [{
+    _createClass$h(AMFParser, [{
       key: 'resolve',
       value: function resolve(meta, size) {
         if (size < 3) {
@@ -3914,7 +4728,7 @@
     return AMFParser;
   }();
 
-  var _createClass$g = function () {
+  var _createClass$i = function () {
     function defineProperties(target, props) {
       for (var i = 0; i < props.length; i++) {
         var descriptor = props[i];descriptor.enumerable = descriptor.enumerable || false;descriptor.configurable = true;if ("value" in descriptor) descriptor.writable = true;Object.defineProperty(target, descriptor.key, descriptor);
@@ -3924,7 +4738,7 @@
     };
   }();
 
-  function _classCallCheck$g(instance, Constructor) {
+  function _classCallCheck$i(instance, Constructor) {
     if (!(instance instanceof Constructor)) {
       throw new TypeError("Cannot call a class as a function");
     }
@@ -3932,7 +4746,7 @@
 
   var Stream = function () {
     function Stream(buffer) {
-      _classCallCheck$g(this, Stream);
+      _classCallCheck$i(this, Stream);
 
       if (buffer instanceof ArrayBuffer) {
         this.buffer = buffer;
@@ -3943,7 +4757,7 @@
       }
     }
 
-    _createClass$g(Stream, [{
+    _createClass$i(Stream, [{
       key: 'back',
       value: function back(count) {
         this.position -= count;
@@ -4080,7 +4894,7 @@
     return Stream;
   }();
 
-  var _createClass$h = function () {
+  var _createClass$j = function () {
     function defineProperties(target, props) {
       for (var i = 0; i < props.length; i++) {
         var descriptor = props[i];descriptor.enumerable = descriptor.enumerable || false;descriptor.configurable = true;if ("value" in descriptor) descriptor.writable = true;Object.defineProperty(target, descriptor.key, descriptor);
@@ -4090,7 +4904,7 @@
     };
   }();
 
-  function _classCallCheck$h(instance, Constructor) {
+  function _classCallCheck$j(instance, Constructor) {
     if (!(instance instanceof Constructor)) {
       throw new TypeError("Cannot call a class as a function");
     }
@@ -4100,14 +4914,14 @@
 
   var FlvDemuxer = function () {
     function FlvDemuxer() {
-      _classCallCheck$h(this, FlvDemuxer);
+      _classCallCheck$j(this, FlvDemuxer);
 
       this._firstFragmentLoaded = false;
       this._trackNum = 0;
       this._hasScript = false;
     }
 
-    _createClass$h(FlvDemuxer, [{
+    _createClass$j(FlvDemuxer, [{
       key: 'init',
       value: function init() {
         this.on(DEMUX_EVENTS$1.DEMUX_START, this.doParseFlv.bind(this));
@@ -4537,58 +5351,31 @@
         this.loaderBuffer.shift(3);
 
         // 12 for hevc, 7 for avc
-        if (codecID === 12) {
+        if (codecID === 7 || codecID === 12) {
           var data = this.loaderBuffer.shift(chunk.datasize - 5);
-          chunk.data = data;
-
-          if (Number.parseInt(chunk.avcPacketType) !== 0) {
-            if (!this._datasizeValidator(chunk.datasize)) {
-              this.emit(DEMUX_EVENTS$1.DEMUX_ERROR, this.TAG, new Error('invalid video tag datasize: ' + chunk.datasize), false);
-            }
-            var nalu = {};
-            var r = 0;
-            nalu.cts = chunk.cts;
-            nalu.dts = chunk.dts;
-            while (chunk.data.length > r) {
-              var sizes = chunk.data.slice(Number.parseInt(r), 4 + r);
-              nalu.size = sizes[3];
-              nalu.size += sizes[2] * 256;
-              nalu.size += sizes[1] * 256 * 256;
-              nalu.size += sizes[0] * 256 * 256 * 256;
-              r += 4;
-              nalu.data = chunk.data.slice(Number.parseInt(r), nalu.size + r);
-              r += nalu.size;
-              this.tracks.videoTrack.samples.push(nalu);
-              this.emit(DEMUX_EVENTS$1.METADATA_PARSED, 'video');
-            }
-          } else if (Number.parseInt(chunk.avcPacketType) === 0) {
-            if (!this._datasizeValidator(chunk.datasize)) {
-              this.emit(DEMUX_EVENTS$1.DEMUX_ERROR, this.TAG, new Error('invalid video tag datasize: ' + chunk.datasize), false);
-            } else {
-              this.emit(DEMUX_EVENTS$1.METADATA_PARSED, 'video');
-            }
-          }
-        } else if (codecID === 7) {
-          var _data = this.loaderBuffer.shift(chunk.datasize - 5);
-          if (_data[4] === 0 && _data[5] === 0 && _data[6] === 0 && _data[7] === 1) {
+          if (data[4] === 0 && data[5] === 0 && data[6] === 0 && data[7] === 1) {
             var avcclength = 0;
             for (var i = 0; i < 4; i++) {
-              avcclength = avcclength * 256 + _data[i];
+              avcclength = avcclength * 256 + data[i];
             }
             avcclength -= 4;
-            _data = _data.slice(4, _data.length);
-            _data[3] = avcclength % 256;
-            avcclength = (avcclength - _data[3]) / 256;
-            _data[2] = avcclength % 256;
-            avcclength = (avcclength - _data[2]) / 256;
-            _data[1] = avcclength % 256;
-            _data[0] = (avcclength - _data[1]) / 256;
+            data = data.slice(4, data.length);
+            data[3] = avcclength % 256;
+            avcclength = (avcclength - data[3]) / 256;
+            data[2] = avcclength % 256;
+            avcclength = (avcclength - data[2]) / 256;
+            data[1] = avcclength % 256;
+            data[0] = (avcclength - data[1]) / 256;
           }
 
-          chunk.data = _data;
+          chunk.data = data;
           // If it is AVC sequece Header.
           if (chunk.avcPacketType === 0) {
-            this._avcSequenceHeaderParser(chunk.data);
+            if (codecID === 12) {
+              this._hevcSequenceHeaderParser(chunk.data);
+            } else {
+              this._avcSequenceHeaderParser(chunk.data);
+            }
             var validate = this._datasizeValidator(chunk.datasize);
             if (validate) {
               if (!this._hasVideoSequence) {
@@ -4605,14 +5392,15 @@
               this.emit(DEMUX_EVENTS$1.DEMUX_ERROR, this.TAG, new Error('invalid video tag datasize: ' + chunk.datasize), false);
               return;
             }
-            var nals = NalUnit.getAvccNals(new Stream(chunk.data.buffer));
+            var nals = codecID === 12 ? NalUnitHEVC.getHvccNals(new Stream(chunk.data.buffer)) : NalUnit.getAvccNals(new Stream(chunk.data.buffer));
             for (var _i = 0; _i < nals.length; _i++) {
               var unit = nals[_i];
-              NalUnit.analyseNal(unit);
+              codecID === 12 ? NalUnitHEVC.analyseNal(unit) : NalUnit.analyseNal(unit);
               if (unit.sei) {
                 this.emit(DEMUX_EVENTS$1.SEI_PARSED, unit.sei);
               }
             }
+            codecID === 12 ? this.tracks.videoTrack.meta.streamType = 0x24 : this.tracks.videoTrack.meta.streamType = 0x1b;
             if (this._metaChange) {
               chunk.options = {
                 meta: Object.assign({}, this.tracks.videoTrack.meta)
@@ -4726,6 +5514,116 @@
         meta.duration = this._context.mediaInfo.duration * meta.timescale;
         meta.avcc = new Uint8Array(data.length);
         meta.avcc.set(data);
+        meta.streamType = 0x1b;
+
+        track.meta = meta;
+      }
+
+      /**
+       * parse hevc metadata
+       * @param data
+       * @private
+       */
+
+    }, {
+      key: '_hevcSequenceHeaderParser',
+      value: function _hevcSequenceHeaderParser(data) {
+        var track = this.tracks.videoTrack;
+
+        if (!track) {
+          return;
+        }
+
+        var offset = 0;
+
+        if (!track.meta) {
+          track.meta = new VideoTrackMeta();
+        }
+        var meta = track.meta;
+
+        meta.configurationVersion = data[0];
+        meta.hevcProfileSpace = (data[1] & 0xc0) >>> 6;
+        meta.hevcTierFlag = (data[1] & 0x20) >>> 5;
+        meta.hevcProfileIdc = data[1] & 0x1f;
+        meta.hevcProfileCompatibilityFlags = [data[2], data[3], data[4], data[5]];
+        meta.hevcConstraintIndicatorFlags = [data[6], data[7], data[8], data[9], data[10], data[11]];
+        meta.hevcLevelIdc = data[12];
+        meta.minSpatialSegmentationIdc = data[13] & 0x0f + data[14] << 4;
+        meta.parallelismType = data[15] & 0x03;
+        meta.chromaFormat = data[16] & 0x03;
+        meta.bitDepthLumaMinus8 = data[17] & 0x07;
+        meta.bitDepthChromaMinus8 = data[18] & 0x07;
+        meta.avgFrameRate = data[19] * 256 + data[20];
+        meta.constantFrameRate = (data[21] & 0xc0) >>> 6;
+        meta.numTemporalLayers = (data[21] & 0x38) >>> 3;
+        meta.temporalIdNested = (data[21] & 0x04) >>> 2;
+        meta.lengthSizeMinusOne = data[21] & 0x03;
+        var numOfArrays = data[22];
+
+        offset = 23;
+        var config = {};
+        var nalUnitType = 0;
+        var numNalus = 0;
+        var nalUnitSize = 0;
+        var hasVPS = false;
+        var hasSPS = false;
+        var hasPPS = false;
+        var vps = void 0,
+            sps = void 0,
+            pps = void 0;
+        for (var i = 0; i < numOfArrays; i++) {
+          nalUnitType = data[offset] & 0x3f;
+          numNalus = data[offset + 1] * 256 + data[offset + 2];
+          offset += 3;
+          for (var j = 0; j < numNalus; j++) {
+            nalUnitSize = data[offset] * 256 + data[offset + 1];
+            switch (nalUnitType) {
+              case 32:
+                if (!hasVPS) {
+                  hasVPS = true;
+                  vps = data.slice(offset + 2, offset + 2 + nalUnitSize);
+                  this.tracks.videoTrack.meta.vps = SpsParserHEVC._ebsp2rbsp(vps);
+                }
+                break;
+              case 33:
+                if (!hasSPS) {
+                  hasSPS = true;
+                  sps = data.slice(offset + 2, offset + 2 + nalUnitSize);
+                  this.tracks.videoTrack.meta.sps = SpsParserHEVC._ebsp2rbsp(sps);
+                  meta.codec = 'hev1.1.6.L93.B0';
+                  config = SpsParserHEVC.parseSPS(sps);
+                }
+                break;
+              case 34:
+                if (!hasPPS) {
+                  hasPPS = true;
+                  pps = data.slice(offset + 2, offset + 2 + nalUnitSize);
+                  this.tracks.videoTrack.meta.pps = SpsParserHEVC._ebsp2rbsp(pps);
+                }
+                break;
+            }
+            offset += 2 + nalUnitSize;
+          }
+        }
+
+        Object.assign(meta, SpsParserHEVC.toVideoMeta(config));
+
+        // fill video media info
+        var videoMedia = this._context.mediaInfo.video;
+
+        videoMedia.codec = meta.codec;
+        videoMedia.profile = meta.profile;
+        videoMedia.level = meta.level;
+        videoMedia.chromaFormat = meta.chromaFormat;
+        videoMedia.frameRate = meta.frameRate;
+        videoMedia.parRatio = meta.parRatio;
+        videoMedia.width = videoMedia.width === meta.presentWidth ? videoMedia.width : meta.presentWidth;
+        videoMedia.height = videoMedia.height === meta.presentHeight ? videoMedia.width : meta.presentHeight;
+
+        meta.duration = this._context.mediaInfo.duration * meta.timescale;
+
+        meta.streamType = 0x24;
+
         track.meta = meta;
       }
 
@@ -4849,7 +5747,7 @@
     return obj && typeof Symbol === "function" && obj.constructor === Symbol && obj !== Symbol.prototype ? "symbol" : typeof obj === "undefined" ? "undefined" : _typeof2(obj);
   };
 
-  var _createClass$i = function () {
+  var _createClass$k = function () {
     function defineProperties(target, props) {
       for (var i = 0; i < props.length; i++) {
         var descriptor = props[i];descriptor.enumerable = descriptor.enumerable || false;descriptor.configurable = true;if ("value" in descriptor) descriptor.writable = true;Object.defineProperty(target, descriptor.key, descriptor);
@@ -4859,7 +5757,7 @@
     };
   }();
 
-  function _classCallCheck$i(instance, Constructor) {
+  function _classCallCheck$k(instance, Constructor) {
     if (!(instance instanceof Constructor)) {
       throw new TypeError("Cannot call a class as a function");
     }
@@ -4873,7 +5771,7 @@
 
   var FetchLoader = function () {
     function FetchLoader(configs) {
-      _classCallCheck$i(this, FetchLoader);
+      _classCallCheck$k(this, FetchLoader);
 
       this.configs = Object.assign({}, configs);
       this.url = null;
@@ -4887,7 +5785,7 @@
       this._loaderTaskNo = 0;
     }
 
-    _createClass$i(FetchLoader, [{
+    _createClass$k(FetchLoader, [{
       key: 'init',
       value: function init() {
         this.on(LOADER_EVENTS$1.LADER_START, this.load.bind(this));
@@ -5102,7 +6000,7 @@
     return FetchLoader;
   }();
 
-  var _createClass$j = function () {
+  var _createClass$l = function () {
     function defineProperties(target, props) {
       for (var i = 0; i < props.length; i++) {
         var descriptor = props[i];descriptor.enumerable = descriptor.enumerable || false;descriptor.configurable = true;if ("value" in descriptor) descriptor.writable = true;Object.defineProperty(target, descriptor.key, descriptor);
@@ -5112,14 +6010,14 @@
     };
   }();
 
-  function _classCallCheck$j(instance, Constructor) {
+  function _classCallCheck$l(instance, Constructor) {
     if (!(instance instanceof Constructor)) {
       throw new TypeError("Cannot call a class as a function");
     }
   }
 
   var Source = function Source() {
-    _classCallCheck$j(this, Source);
+    _classCallCheck$l(this, Source);
 
     this.mimetype = '';
     this.init = null;
@@ -5128,12 +6026,12 @@
 
   var PreSource = function () {
     function PreSource() {
-      _classCallCheck$j(this, PreSource);
+      _classCallCheck$l(this, PreSource);
 
       this.sources = {};
     }
 
-    _createClass$j(PreSource, [{
+    _createClass$l(PreSource, [{
       key: 'getSource',
       value: function getSource(source) {
         return this.sources[source];
@@ -5159,7 +6057,7 @@
     return PreSource;
   }();
 
-  var _createClass$k = function () {
+  var _createClass$m = function () {
     function defineProperties(target, props) {
       for (var i = 0; i < props.length; i++) {
         var descriptor = props[i];descriptor.enumerable = descriptor.enumerable || false;descriptor.configurable = true;if ("value" in descriptor) descriptor.writable = true;Object.defineProperty(target, descriptor.key, descriptor);
@@ -5169,7 +6067,7 @@
     };
   }();
 
-  function _classCallCheck$k(instance, Constructor) {
+  function _classCallCheck$m(instance, Constructor) {
     if (!(instance instanceof Constructor)) {
       throw new TypeError("Cannot call a class as a function");
     }
@@ -5183,7 +6081,7 @@
      * @param {number} length - Optional the buffer size
      */
     function XgBuffer(length) {
-      _classCallCheck$k(this, XgBuffer);
+      _classCallCheck$m(this, XgBuffer);
 
       this.length = length || 0;
       this.historyLen = length || 0;
@@ -5197,7 +6095,7 @@
      * @param {number} data - The data to push into the buffer
      */
 
-    _createClass$k(XgBuffer, [{
+    _createClass$m(XgBuffer, [{
       key: "push",
       value: function push(data) {
         this.array.push(data);
@@ -5318,7 +6216,7 @@
     return XgBuffer;
   }();
 
-  var _createClass$l = function () {
+  var _createClass$n = function () {
     function defineProperties(target, props) {
       for (var i = 0; i < props.length; i++) {
         var descriptor = props[i];descriptor.enumerable = descriptor.enumerable || false;descriptor.configurable = true;if ("value" in descriptor) descriptor.writable = true;Object.defineProperty(target, descriptor.key, descriptor);
@@ -5328,7 +6226,109 @@
     };
   }();
 
-  function _classCallCheck$l(instance, Constructor) {
+  function _classCallCheck$n(instance, Constructor) {
+    if (!(instance instanceof Constructor)) {
+      throw new TypeError("Cannot call a class as a function");
+    }
+  }
+
+  var ADTS = function () {
+    function ADTS() {
+      _classCallCheck$n(this, ADTS);
+    }
+
+    _createClass$n(ADTS, null, [{
+      key: "isHeader",
+      value: function isHeader(data, offset) {
+        // Look for ADTS header | 1111 1111 | 1111 X00X | where X can be either 0 or 1
+        // Layer bits (position 14 and 15) in header should be always 0 for ADTS
+        // More info https://wiki.multimedia.cx/index.php?title=ADTS
+        if (offset + 1 < data.length && ADTS.isHeaderPattern(data, offset)) {
+          return true;
+        }
+
+        return false;
+      }
+    }, {
+      key: "getFrameDuration",
+      value: function getFrameDuration(samplerate) {
+        return 1024 * 90000 / samplerate;
+      }
+    }, {
+      key: "isHeaderPattern",
+      value: function isHeaderPattern(data, offset) {
+        return data[offset] === 0xff && (data[offset + 1] & 0xf6) === 0xf0;
+      }
+    }, {
+      key: "getHeaderLength",
+      value: function getHeaderLength(data, offset) {
+        return data[offset + 1] & 0x01 ? 7 : 9;
+      }
+    }, {
+      key: "getFullFrameLength",
+      value: function getFullFrameLength(data, offset) {
+        return (data[offset + 3] & 0x03) << 11 | data[offset + 4] << 3 | (data[offset + 5] & 0xE0) >>> 5;
+      }
+    }, {
+      key: "parseFrameHeader",
+      value: function parseFrameHeader(data, offset, pts, frameIndex, frameDuration) {
+        var headerLength = void 0,
+            frameLength = void 0,
+            stamp = void 0;
+        var length = data.length;
+
+        // The protection skip bit tells us if we have 2 bytes of CRC data at the end of the ADTS header
+        headerLength = ADTS.getHeaderLength(data, offset);
+        // retrieve frame size
+        frameLength = ADTS.getFullFrameLength(data, offset);
+        frameLength -= headerLength;
+
+        if (frameLength > 0 && offset + headerLength + frameLength <= length) {
+          stamp = pts + frameIndex * frameDuration;
+          // logger.log(`AAC frame, offset/length/total/pts:${offset+headerLength}/${frameLength}/${data.byteLength}/${(stamp/90).toFixed(0)}`);
+          return { headerLength: headerLength, frameLength: frameLength, stamp: stamp };
+        }
+
+        return undefined;
+      }
+    }, {
+      key: "appendFrame",
+      value: function appendFrame(track, data, offset, pts, frameIndex) {
+        var frameDuration = ADTS.getFrameDuration(track.meta.sampleRate);
+        var header = ADTS.parseFrameHeader(data, offset, pts, frameIndex, frameDuration);
+        if (header) {
+          var stamp = header.stamp;
+          var headerLength = header.headerLength;
+          var frameLength = header.frameLength;
+
+          // logger.log(`AAC frame, offset/length/total/pts:${offset+headerLength}/${frameLength}/${data.byteLength}/${(stamp/90).toFixed(0)}`);
+          var aacSample = {
+            unit: data.subarray(offset + headerLength, offset + headerLength + frameLength),
+            pts: stamp,
+            dts: stamp
+          };
+
+          return { sample: aacSample, length: frameLength + headerLength };
+        }
+
+        return undefined;
+      }
+    }]);
+
+    return ADTS;
+  }();
+
+  var _createClass$o = function () {
+    function defineProperties(target, props) {
+      for (var i = 0; i < props.length; i++) {
+        var descriptor = props[i];descriptor.enumerable = descriptor.enumerable || false;descriptor.configurable = true;if ("value" in descriptor) descriptor.writable = true;Object.defineProperty(target, descriptor.key, descriptor);
+      }
+    }return function (Constructor, protoProps, staticProps) {
+      if (protoProps) defineProperties(Constructor.prototype, protoProps);if (staticProps) defineProperties(Constructor, staticProps);return Constructor;
+    };
+  }();
+
+  function _classCallCheck$o(instance, Constructor) {
     if (!(instance instanceof Constructor)) {
       throw new TypeError("Cannot call a class as a function");
     }
@@ -5336,10 +6336,10 @@
 
   var AAC = function () {
     function AAC() {
-      _classCallCheck$l(this, AAC);
+      _classCallCheck$o(this, AAC);
     }
 
-    _createClass$l(AAC, null, [{
+    _createClass$o(AAC, null, [{
       key: 'getSilentFrame',
       value: function getSilentFrame(codec, channelCount) {
         if (codec === 'mp4a.40.2') {
@@ -5377,7 +6377,7 @@
     return AAC;
   }();
 
-  var _createClass$m = function () {
+  var _createClass$p = function () {
     function defineProperties(target, props) {
       for (var i = 0; i < props.length; i++) {
         var descriptor = props[i];descriptor.enumerable = descriptor.enumerable || false;descriptor.configurable = true;if ("value" in descriptor) descriptor.writable = true;Object.defineProperty(target, descriptor.key, descriptor);
@@ -5387,7 +6387,7 @@
     };
   }();
 
-  function _classCallCheck$m(instance, Constructor) {
+  function _classCallCheck$p(instance, Constructor) {
     if (!(instance instanceof Constructor)) {
       throw new TypeError("Cannot call a class as a function");
     }
@@ -5397,7 +6397,7 @@
 
   var Compatibility = function () {
     function Compatibility() {
-      _classCallCheck$m(this, Compatibility);
+      _classCallCheck$p(this, Compatibility);
 
       this.nextAudioDts = 0; // 模拟下一段音频数据的dts
       this.nextVideoDts = 0; // 模拟下一段视频数据的dts
@@ -5424,7 +6424,7 @@
       this._audioLargeGap = 0;
     }
 
-    _createClass$m(Compatibility, [{
+    _createClass$p(Compatibility, [{
       key: 'init',
       value: function init() {
         this.before(REMUX_EVENTS$2.REMUX_MEDIA, this.doFix.bind(this));
@@ -5438,8 +6438,8 @@
         this.lastAudioSamplesLen = 0; // 上一段音频数据的长度
         this.lastVideoSamplesLen = 0; // 上一段视频数据的长度
 
-        this.lastVideoDts = undefined; // 上一段音频数据的长度
-        this.lastAudioDts = undefined; // 上一段视频数据的长度
+        this.lastVideoDts = undefined; // 上一段音频数据的dts
+        this.lastAudioDts = undefined; // 上一段视频数据的dts
 
         // this.allAudioSamplesCount = 0 // 音频总数据量(原始帧)
         // this.allVideoSamplesCount = 0 // 视频总数据量(原始帧)
@@ -5470,22 +6470,40 @@
           this.fixRefSampleDuration(this.audioTrack.meta, this.audioTrack.samples);
         }
 
-        var _Compatibility$detact = Compatibility.detactChangeStream(this.videoTrack.samples),
-            videoChanged = _Compatibility$detact.changed,
-            videoChangedIdx = _Compatibility$detact.changedIdx;
+        var _Compatibility$detect = Compatibility.detectChangeStream(this.videoTrack.samples, isFirstVideoSamples),
+            videoChanged = _Compatibility$detect.changed,
+            videoChangedIdxes = _Compatibility$detect.changedIdxes;
 
-        if (videoChanged && !isFirstAudioSamples) {
-          this.fixChangeStreamVideo(videoChangedIdx);
+        if (videoChanged) {
+          var disContinue = false;
+          for (var i = 0; i < videoChangedIdxes.length; i++) {
+            if (this.fixChangeStreamVideo(videoChangedIdxes[i], isFirstVideoSamples)) {
+              disContinue = true;
+            }
+          }
+          if (!disContinue) {
+            this.doFixVideo(isFirstVideoSamples);
+          }
         } else {
           this.doFixVideo(isFirstVideoSamples);
         }
 
-        var _Compatibility$detact2 = Compatibility.detactChangeStream(this.audioTrack.samples),
-            audioChanged = _Compatibility$detact2.changed,
-            audioChangedIdx = _Compatibility$detact2.changedIdx;
+        var _Compatibility$detect2 = Compatibility.detectChangeStream(this.audioTrack.samples, isFirstAudioSamples),
+            audioChanged = _Compatibility$detect2.changed,
+            audioChangedIdxes = _Compatibility$detect2.changedIdxes;
 
         if (audioChanged) {
-          this.fixChangeStreamAudio(audioChangedIdx);
+          var _disContinue = false;
+          for (var _i = 0; _i < audioChangedIdxes.length; _i++) {
+            if (this.fixChangeStreamAudio(audioChangedIdxes[_i], isFirstAudioSamples)) {
+              _disContinue = true;
+            }
+          }
+          if (!_disContinue) {
+            this.doFixAudio(isFirstAudioSamples);
+          } else {
+            return;
+          }
         } else {
           this.doFixAudio(isFirstAudioSamples);
         }
@@ -5529,7 +6547,6 @@
           }
 
           this._videoLargeGap = this.nextVideoDts - firstSample.dts;
-          this._audioLargeGap = Math.abs(this._audioLargeGap - this._videoLargeGap) > 1000 ? this._videoLargeGap : this._audioLargeGap;
           Compatibility.doFixLargeGap(videoSamples, this._videoLargeGap);
         }
 
@@ -5541,10 +6558,10 @@
           if (gap > 2 * meta.refSampleDuration && gap < 10 * meta.refSampleDuration) {
             var fillCount = Math.floor(gap / meta.refSampleDuration);
 
-            for (var _i = 0; _i < fillCount; _i++) {
+            for (var _i2 = 0; _i2 < fillCount; _i2++) {
               var clonedFirstSample = Object.assign({}, firstSample); // 视频头部帧缺失需要复制第一帧
               // 重新计算sample的dts和pts
-              clonedFirstSample.dts = videoFirstDts - (_i + 1) * meta.refSampleDuration;
+              clonedFirstSample.dts = videoFirstDts - (_i2 + 1) * meta.refSampleDuration;
               clonedFirstSample.pts = clonedFirstSample.dts + clonedFirstSample.cts;
 
               videoSamples.unshift(clonedFirstSample);
@@ -5555,7 +6572,7 @@
               });
             }
             this._firstVideoSample = this.filledVideoSamples[0] || this._firstVideoSample;
-          } else if (gap < -2 * meta.refSampleDuration && !this._videoLargeGap) {
+          } else if (Math.abs(gap) > 2 * meta.refSampleDuration && !this._videoLargeGap) {
             this._videoLargeGap = -1 * gap;
             Compatibility.doFixLargeGap(videoSamples, -1 * gap);
           }
@@ -5610,7 +6627,6 @@
             this.nextAudioDts = streamChangeStart; // FIX: Hls中途切codec，在如果直接seek到后面的点会导致largeGap计算失败
           }
           this._audioLargeGap = this.nextAudioDts - _firstSample.dts;
-          this._videoLargeGap = Math.abs(this._audioLargeGap - this._videoLargeGap) > 1000 ? this._audioLargeGap : this._videoLargeGap;
 
           Compatibility.doFixLargeGap(audioSamples, this._audioLargeGap);
         }
@@ -5621,11 +6637,11 @@
           if (_gap > meta.refSampleDuration && _gap < 10 * meta.refSampleDuration) {
             var silentSampleCount = Math.floor((firstSample.dts - videoFirstPts) / meta.refSampleDuration);
 
-            for (var _i2 = 0; _i2 < silentSampleCount; _i2++) {
+            for (var _i3 = 0; _i3 < silentSampleCount; _i3++) {
               var silentSample = {
                 data: silentFrame,
                 datasize: silentFrame.byteLength,
-                dts: firstSample.dts - (_i2 + 1) * meta.refSampleDuration,
+                dts: firstSample.dts - (_i3 + 1) * meta.refSampleDuration,
                 filtered: 0
               };
 
@@ -5663,8 +6679,8 @@
             } else {
               var silentFrameCount = Math.floor(gap / meta.refSampleDuration);
 
-              for (var _i3 = 0; _i3 < silentFrameCount; _i3++) {
-                var computed = firstDts - (_i3 + 1) * meta.refSampleDuration;
+              for (var _i4 = 0; _i4 < silentFrameCount; _i4++) {
+                var computed = firstDts - (_i4 + 1) * meta.refSampleDuration;
                 var _silentSample = Object.assign({}, audioSamples[0], {
                   dts: computed > this.nextAudioDts ? computed : this.nextAudioDts
                 });
@@ -5695,41 +6711,6 @@
 
         audioSamples[audioSamples.length - 1].duration = lastSampleDuration;
 
-        // step3. 修复samples段内部的dts异常问题
-        for (var _i4 = 0, _len = audioSamples.length; _i4 < _len; _i4++) {
-          var current = audioSamples[_i4];
-          var next = audioSamples[_i4 + 1];
-
-          if (!next) {
-            break;
-          }
-
-          var duration = next.dts - current.dts;
-          audioSamples[_i4].duration = duration;
-          /*
-          if (duration > (2 * meta.refSampleDuration)) {
-            // 两帧之间间隔太大，需要补空白帧
-            /**
-            let silentFrameCount = Math.floor(duration / meta.refSampleDuration)
-            let frameIdx = 0
-             while (frameIdx < silentFrameCount) {
-              const silentSample = {
-                data: silentFrame,
-                datasize: silentFrame.byteLength,
-                dts: current.dts + (frameIdx + 1) * meta.refSampleDuration,
-                filtered: 0,
-                isSilent: true
-              }
-               audioSamples.splice(i, 0, silentSample)
-               this.filledAudioSamples.push({
-                dts: silentSample.dts,
-                size: silentSample.data.byteLength
-              })
-               frameIdx++
-              i++ // 不对静音帧做比较
-            }
-          } */
-        }
         this.audioTrack.samples = Compatibility.sortAudioSamples(audioSamples);
       }
     }, {
@@ -5738,6 +6719,7 @@
         var _videoTrack2 = this.videoTrack,
             samples = _videoTrack2.samples,
             meta = _videoTrack2.meta;
+        var isFirstVideoSample = this.isFirstVideoSample;
 
         var prevDts = changeIdx === 0 ? this.videoLastSample ? this.videoLastSample.dts : this.getStreamChangeStart(samples[0]) : samples[changeIdx - 1].dts;
         var curDts = samples[changeIdx].dts;
@@ -5751,21 +6733,22 @@
           } else {
             samples[changeIdx].options.isContinue = true;
           }
-          return this.doFixVideo(false);
+          return false;
         }
 
         this.emit(REMUX_EVENTS$2.DETECT_CHANGE_STREAM_DISCONTINUE);
         this._videoLargeGap = 0;
+        this.videoLastSample = null;
         var firstPartSamples = samples.slice(0, changeIdx);
         var secondPartSamples = samples.slice(changeIdx);
-        var firstSample = samples[0];
+        var changeSample = samples[changeIdx];
 
         var streamChangeStart = void 0;
 
-        if (firstSample.options && firstSample.options.start) {
-          streamChangeStart = firstSample.options && firstSample.options.start ? firstSample.options.start : null;
-        } else if (this.videoLastSample) {
-          streamChangeStart = this.videoLastSample.dts - this.dtsBase + meta.refSampleDuration;
+        if (changeSample.options && changeSample.options.start) {
+          streamChangeStart = changeSample.options.start;
+        } else {
+          streamChangeStart = prevDts + meta.refSampleDuration;
         }
 
         this.videoTrack.samples = samples.slice(0, changeIdx);
@@ -5777,6 +6760,8 @@
         this.doFixVideo(false, streamChangeStart);
 
         this.videoTrack.samples = firstPartSamples.concat(secondPartSamples);
+
+        return true;
       }
     }, {
       key: 'fixChangeStreamAudio',
@@ -5797,20 +6782,21 @@
           } else {
             samples[changeIdx].options.isContinue = true;
           }
-          return this.doFixAudio(false);
+          return false;
         }
         this.emit(REMUX_EVENTS$2.DETECT_CHANGE_STREAM_DISCONTINUE);
         this._audioLargeGap = 0;
-
+        this.nextAudioDts = null;
         var firstPartSamples = samples.slice(0, changeIdx);
         var secondPartSamples = samples.slice(changeIdx);
-        var firstSample = samples[0];
+        var changeSample = samples[changeIdx];
 
         var streamChangeStart = void 0;
-        if (firstSample.options && firstSample.options.start) {
-          streamChangeStart = firstSample.options && firstSample.options.start ? firstSample.options.start : null;
+        if (changeSample.options && changeSample.options.start) {
+          streamChangeStart = changeSample.options.start;
         } else {
-          streamChangeStart = this.lastAudioDts - this.dtsBase + meta.refSampleDuration;
+          streamChangeStart = prevDts + meta.refSampleDuration;
+          changeSample.options.isContinue = true;
         }
 
         this.audioTrack.samples = firstPartSamples;
@@ -5822,6 +6808,8 @@
         this.doFixAudio(false, streamChangeStart);
 
         this.audioTrack.samples = firstPartSamples.concat(secondPartSamples);
+
+        return true;
       }
     }, {
       key: 'getFirstSample',
@@ -5968,6 +6956,26 @@
         }
         return 0;
       }
+    }, {
+      key: 'audioDtsBase',
+      get: function get() {
+        var remuxer = this._context.getInstance('MP4_REMUXER');
+        if (remuxer && remuxer._audioDtsBase) {
+          return remuxer._audioDtsBase;
+        }
+
+        return this.dtsBase;
+      }
+    }, {
+      key: 'videoDtsBase',
+      get: function get() {
+        var remuxer = this._context.getInstance('MP4_REMUXER');
+        if (remuxer && remuxer._videoDtsBase) {
+          return remuxer._videoDtsBase;
+        }
+
+        return this.dtsBase;
+      }
     }], [{
       key: 'sortAudioSamples',
       value: function sortAudioSamples(samples) {
@@ -6041,21 +7049,22 @@
        */
 
     }, {
-      key: 'detactChangeStream',
-      value: function detactChangeStream(samples) {
+      key: 'detectChangeStream',
+      value: function detectChangeStream(samples, isFirst) {
         var changed = false;
-        var changedIdx = -1;
+        var changedIdxes = [];
         for (var i = 0, len = samples.length; i < len; i++) {
-          if (samples[i].options && samples[i].options.meta) {
+          var sample = samples[i];
+          if (sample.options && sample.options.meta && !(isFirst && i === 0)) {
             changed = true;
-            changedIdx = i;
-            break;
+            changedIdxes.push(i);
+            // break;
           }
         }
 
         return {
           changed: changed,
-          changedIdx: changedIdx
+          changedIdxes: changedIdxes
         };
       }
     }]);
@@ -6063,7 +7072,7 @@
     return Compatibility;
   }();
 
-  var _createClass$n = function () {
+  var _createClass$q = function () {
     function defineProperties(target, props) {
       for (var i = 0; i < props.length; i++) {
         var descriptor = props[i];descriptor.enumerable = descriptor.enumerable || false;descriptor.configurable = true;if ("value" in descriptor) descriptor.writable = true;Object.defineProperty(target, descriptor.key, descriptor);
@@ -6073,7 +7082,7 @@
     };
   }();
 
-  function _classCallCheck$n(instance, Constructor) {
+  function _classCallCheck$q(instance, Constructor) {
     if (!(instance instanceof Constructor)) {
       throw new TypeError("Cannot call a class as a function");
     }
@@ -6081,7 +7090,7 @@
 
   var MSE = function () {
     function MSE(configs, context) {
-      _classCallCheck$n(this, MSE);
+      _classCallCheck$q(this, MSE);
 
       if (context) {
         this._context = context;
@@ -6099,14 +7108,13 @@
       this.onWaiting = this.onWaiting.bind(this);
     }
 
-    _createClass$n(MSE, [{
+    _createClass$q(MSE, [{
       key: 'init',
       value: function init() {
         // eslint-disable-next-line no-undef
         this.mediaSource = new self.MediaSource();
         this.mediaSource.addEventListener('sourceopen', this.onSourceOpen);
-        this.container.src = URL.createObjectURL(this.mediaSource);
-        this.url = this.container.src;
+        this._url = null;
         this.container.addEventListener('timeupdate', this.onTimeUpdate);
         this.container.addEventListener('waiting', this.onWaiting);
       }
@@ -6191,6 +7199,7 @@
             var source = sources.sources[type];
             if (source && !source.inited) {
               try {
+                // console.log('append buffser init: ', type, source.init)
                 sourceBuffer.appendBuffer(source.init.buffer.buffer);
                 source.inited = true;
               } catch (e) {
@@ -6375,6 +7384,17 @@
           _this3.preloadTime = 1;
         });
       }
+    }, {
+      key: 'url',
+      set: function set(val) {
+        this._url = val;
+      },
+      get: function get() {
+        if (!this._url) {
+          this._url = window.URL.createObjectURL(this.mediaSource);
+        }
+        return this._url;
+      }
     }], [{
       key: 'clearBuffer',
       value: function clearBuffer(buffer) {
@@ -6394,7 +7414,7 @@
     return MSE;
   }();
 
-  var _createClass$o = function () {
+  var _createClass$r = function () {
     function defineProperties(target, props) {
       for (var i = 0; i < props.length; i++) {
         var descriptor = props[i];descriptor.enumerable = descriptor.enumerable || false;descriptor.configurable = true;if ("value" in descriptor) descriptor.writable = true;Object.defineProperty(target, descriptor.key, descriptor);
@@ -6404,7 +7424,7 @@
     };
   }();
 
-  function _classCallCheck$o(instance, Constructor) {
+  function _classCallCheck$r(instance, Constructor) {
     if (!(instance instanceof Constructor)) {
       throw new TypeError("Cannot call a class as a function");
     }
@@ -6419,10 +7439,10 @@
 
   var Logger = function () {
     function Logger() {
-      _classCallCheck$o(this, Logger);
+      _classCallCheck$r(this, Logger);
     }
 
-    _createClass$o(Logger, [{
+    _createClass$r(Logger, [{
       key: 'warn',
       value: function warn() {}
     }]);
@@ -6434,7 +7454,7 @@
 
   var FlvController = function () {
     function FlvController(player, mse) {
-      _classCallCheck$o(this, FlvController);
+      _classCallCheck$r(this, FlvController);
 
       this.TAG = Tag;
       this._player = player;
@@ -6450,7 +7470,7 @@
       this._handleTimeUpdate = this._handleTimeUpdate.bind(this);
     }
 
-    _createClass$o(FlvController, [{
+    _createClass$r(FlvController, [{
       key: 'init',
       value: function init() {
         if (!this.mse) {
@@ -6684,7 +7704,7 @@
 
   var _typeof$3 = typeof Symbol === "function" && typeof Symbol.iterator === "symbol" ? function (obj) { return typeof obj; } : function (obj) { return obj && typeof Symbol === "function" && obj.constructor === Symbol && obj !== Symbol.prototype ? "symbol" : typeof obj; };
 
-  var _createClass$p = function () {
+  var _createClass$s = function () {
     function defineProperties(target, props) {
       for (var i = 0; i < props.length; i++) {
         var descriptor = props[i];descriptor.enumerable = descriptor.enumerable || false;descriptor.configurable = true;if ("value" in descriptor) descriptor.writable = true;Object.defineProperty(target, descriptor.key, descriptor);
@@ -6710,7 +7730,7 @@
     }
   };
 
-  function _classCallCheck$p(instance, Constructor) {
+  function _classCallCheck$s(instance, Constructor) {
     if (!(instance instanceof Constructor)) {
       throw new TypeError("Cannot call a class as a function");
     }
@@ -6733,7 +7753,7 @@
     _inherits$2(FlvPlayer, _Player);
 
     function FlvPlayer(config) {
-      _classCallCheck$p(this, FlvPlayer);
+      _classCallCheck$s(this, FlvPlayer);
 
       var _this = _possibleConstructorReturn$2(this, (FlvPlayer.__proto__ || Object.getPrototypeOf(FlvPlayer)).call(this, config));
 
@@ -6745,7 +7765,7 @@
       return _this;
     }
 
-    _createClass$p(FlvPlayer, [{
+    _createClass$s(FlvPlayer, [{
       key: 'start',
       value: function start() {
         if (this.started) {
@@ -6926,7 +7946,7 @@
     return FlvPlayer;
   }(Player);
 
-  var _createClass$q = function () {
+  var _createClass$t = function () {
     function defineProperties(target, props) {
       for (var i = 0; i < props.length; i++) {
         var descriptor = props[i];descriptor.enumerable = descriptor.enumerable || false;descriptor.configurable = true;if ("value" in descriptor) descriptor.writable = true;Object.defineProperty(target, descriptor.key, descriptor);
@@ -6936,7 +7956,7 @@
     };
   }();
 
-  function _classCallCheck$q(instance, Constructor) {
+  function _classCallCheck$t(instance, Constructor) {
     if (!(instance instanceof Constructor)) {
       throw new TypeError("Cannot call a class as a function");
     }
@@ -6950,10 +7970,10 @@
 
   var Logger$1 = function () {
     function Logger() {
-      _classCallCheck$q(this, Logger);
+      _classCallCheck$t(this, Logger);
     }
 
-    _createClass$q(Logger, [{
+    _createClass$t(Logger, [{
       key: 'warn',
       value: function warn() {}
     }]);
@@ -6965,7 +7985,7 @@
 
   var FlvController$1 = function () {
     function FlvController(player, mse) {
-      _classCallCheck$q(this, FlvController);
+      _classCallCheck$t(this, FlvController);
 
       this.TAG = Tag$1;
       this._player = player;
@@ -6981,7 +8001,7 @@
       };
     }
 
-    _createClass$q(FlvController, [{
+    _createClass$t(FlvController, [{
       key: 'init',
       value: function init() {
         this._context.registry('FETCH_LOADER', FetchLoader);
@@ -7285,7 +8305,7 @@
 
   var _typeof$4 = typeof Symbol === "function" && typeof Symbol.iterator === "symbol" ? function (obj) { return typeof obj; } : function (obj) { return obj && typeof Symbol === "function" && obj.constructor === Symbol && obj !== Symbol.prototype ? "symbol" : typeof obj; };
 
-  var _createClass$r = function () {
+  var _createClass$u = function () {
     function defineProperties(target, props) {
       for (var i = 0; i < props.length; i++) {
         var descriptor = props[i];descriptor.enumerable = descriptor.enumerable || false;descriptor.configurable = true;if ("value" in descriptor) descriptor.writable = true;Object.defineProperty(target, descriptor.key, descriptor);
@@ -7311,7 +8331,7 @@
     }
   };
 
-  function _classCallCheck$r(instance, Constructor) {
+  function _classCallCheck$u(instance, Constructor) {
     if (!(instance instanceof Constructor)) {
       throw new TypeError("Cannot call a class as a function");
     }
@@ -7347,7 +8367,7 @@
     _inherits$3(FlvVodPlayer, _Player);
 
     function FlvVodPlayer(config) {
-      _classCallCheck$r(this, FlvVodPlayer);
+      _classCallCheck$u(this, FlvVodPlayer);
 
       var _this = _possibleConstructorReturn$3(this, (FlvVodPlayer.__proto__ || Object.getPrototypeOf(FlvVodPlayer)).call(this, config));
 
@@ -7358,7 +8378,7 @@
       return _this;
     }
 
-    _createClass$r(FlvVodPlayer, [{
+    _createClass$u(FlvVodPlayer, [{
       key: 'start',
       value: function start() {
         if (this.started) {
@@ -7479,13 +8499,13 @@
     return FlvVodPlayer;
   }(Player);
 
-  var _createClass$s = function () { function defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ("value" in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } } return function (Constructor, protoProps, staticProps) { if (protoProps) defineProperties(Constructor.prototype, protoProps); if (staticProps) defineProperties(Constructor, staticProps); return Constructor; }; }();
+  var _createClass$v = function () { function defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ("value" in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } } return function (Constructor, protoProps, staticProps) { if (protoProps) defineProperties(Constructor.prototype, protoProps); if (staticProps) defineProperties(Constructor, staticProps); return Constructor; }; }();
 
-  function _classCallCheck$s(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } }
+  function _classCallCheck$v(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } }
 
   var FlvPlayer$1 = function () {
     function FlvPlayer$1(config) {
-      _classCallCheck$s(this, FlvPlayer$1);
+      _classCallCheck$v(this, FlvPlayer$1);
 
       if (config.isLive) {
         return new FlvPlayer(config);
@@ -7494,7 +8514,7 @@
       }
     }
 
-    _createClass$s(FlvPlayer$1, null, [{
+    _createClass$v(FlvPlayer$1, null, [{
       key: 'isSupported',
       value: function isSupported() {
         return window.MediaSource && window.MediaSource.isTypeSupported('video/mp4; codecs="avc1.42E01E,mp4a.40.2"');

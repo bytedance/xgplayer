@@ -321,7 +321,7 @@ class HlsVodController {
         this.emitTo('TS_LOADER', LOADER_EVENTS.LADER_START, frag.url)
       }
     } else if (currentbufferend < time + this.preloadTime) {
-      let frag = this._playlist.getTs(currentbufferend * 1000);
+      let frag = this._playlist.getLastDownloadedTs() || this._playlist.getTs(currentbufferend * 1000);
 
       if (!frag) {
         return;
@@ -335,7 +335,7 @@ class HlsVodController {
       if (frag.downloaded) {
         let loopMax = 1000
         while (loopMax-- > 0) {
-          curTime += 50
+          curTime += 10
           frag = this._playlist.getTs(curTime);
           if (!frag || frag.time > curFragTime) {
             break;
