@@ -185,6 +185,7 @@ export default class Mp4Remuxer {
         }
       }
       this.videoAllDuration += sampleDuration
+      // console.log(`video dts ${dts}`, `pts ${pts}`, isKeyframe, `duration ${sampleDuration}`)
       if (sampleDuration >= 0) {
         mdatBox.samples.push(mdatSample)
         mdatSample.buffer.push(avcSample.data)
@@ -295,7 +296,7 @@ export default class Mp4Remuxer {
           sampleDuration = this.audioMeta.refSampleDuration
         }
       }
-
+      // console.log(`audio dts ${dts}`, `pts ${dts}`, `originDts ${originDts}`, `duration ${sampleDuration}`)
       this.audioAllDuration += sampleDuration
       const mp4Sample = {
         dts,

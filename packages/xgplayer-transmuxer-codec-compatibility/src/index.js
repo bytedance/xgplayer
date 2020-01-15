@@ -70,31 +70,31 @@ class Compatibility {
       this.fixRefSampleDuration(this.audioTrack.meta, this.audioTrack.samples)
     }
 
-    const { changed: videoChanged, changedIdxes: videoChangedIdxes } = Compatibility.detectChangeStream(this.videoTrack.samples)
-    if (videoChanged && !isFirstVideoSamples) {
+    const { changed: videoChanged, changedIdxes: videoChangedIdxes } = Compatibility.detectChangeStream(this.videoTrack.samples, isFirstVideoSamples)
+    if (videoChanged) {
       let disContinue = false
       for (let i = 0; i < videoChangedIdxes.length; i++) {
-        if (this.fixChangeStreamVideo(videoChangedIdxes[i])) {
+        if (this.fixChangeStreamVideo(videoChangedIdxes[i], isFirstVideoSamples)) {
           disContinue = true
         }
       }
       if (!disContinue) {
-        this.doFixVideo(false)
+        this.doFixVideo(isFirstVideoSamples)
       }
     } else {
       this.doFixVideo(isFirstVideoSamples)
     }
 
-    const { changed: audioChanged, changedIdxes: audioChangedIdxes } = Compatibility.detectChangeStream(this.audioTrack.samples)
-    if (audioChanged && !isFirstAudioSamples) {
+    const { changed: audioChanged, changedIdxes: audioChangedIdxes } = Compatibility.detectChangeStream(this.audioTrack.samples, isFirstAudioSamples)
+    if (audioChanged) {
       let disContinue = false
       for (let i = 0; i < audioChangedIdxes.length; i++) {
-        if (this.fixChangeStreamAudio(audioChangedIdxes[i])) {
+        if (this.fixChangeStreamAudio(audioChangedIdxes[i], isFirstAudioSamples)) {
           disContinue = true
         }
       }
       if (!disContinue) {
-        this.doFixAudio(false)
+        this.doFixAudio(isFirstAudioSamples)
       } else {
         return;
       }
@@ -162,7 +162,7 @@ class Compatibility {
           })
         }
         this._firstVideoSample = this.filledVideoSamples[0] || this._firstVideoSample
-      } else if (gap < (-2 * meta.refSampleDuration) && !this._videoLargeGap) {
+      } else if (Math.abs(gap) > (2 * meta.refSampleDuration) && !this._videoLargeGap) {
         this._videoLargeGap = -1 * gap
         Compatibility.doFixLargeGap(videoSamples, -1 * gap)
       }
@@ -303,6 +303,7 @@ class Compatibility {
 
   fixChangeStreamVideo (changeIdx) {
     const { samples, meta } = this.videoTrack;
+    const { isFirstVideoSample } = this;
     const prevDts = changeIdx === 0 ? this.videoLastSample ? this.videoLastSample.dts : this.getStreamChangeStart(samples[0]) : samples[changeIdx - 1].dts;
     const curDts = samples[changeIdx].dts;
     const isContinue = Math.abs(prevDts - curDts) <= 2 * 1000
@@ -551,11 +552,12 @@ class Compatibility {
   /**
    * 中途换流
    */
-  static detectChangeStream (samples) {
+  static detectChangeStream (samples, isFirst) {
     let changed = false;
     let changedIdxes = [];
     for (let i = 0, len = samples.length; i < len; i++) {
-      if (samples[i].options && samples[i].options.meta) {
+      const sample = samples[i]
+      if (sample.options && sample.options.meta && !(isFirst && (i === 0))) {
         changed = true
         changedIdxes.push(i)
         // break;

@@ -95,37 +95,37 @@ var Compatibility = function () {
         this.fixRefSampleDuration(this.audioTrack.meta, this.audioTrack.samples);
       }
 
-      var _Compatibility$detect = Compatibility.detectChangeStream(this.videoTrack.samples),
+      var _Compatibility$detect = Compatibility.detectChangeStream(this.videoTrack.samples, isFirstVideoSamples),
           videoChanged = _Compatibility$detect.changed,
           videoChangedIdxes = _Compatibility$detect.changedIdxes;
 
-      if (videoChanged && !isFirstVideoSamples) {
+      if (videoChanged) {
         var disContinue = false;
         for (var i = 0; i < videoChangedIdxes.length; i++) {
-          if (this.fixChangeStreamVideo(videoChangedIdxes[i])) {
+          if (this.fixChangeStreamVideo(videoChangedIdxes[i], isFirstVideoSamples)) {
             disContinue = true;
           }
         }
         if (!disContinue) {
-          this.doFixVideo(false);
+          this.doFixVideo(isFirstVideoSamples);
         }
       } else {
         this.doFixVideo(isFirstVideoSamples);
       }
 
-      var _Compatibility$detect2 = Compatibility.detectChangeStream(this.audioTrack.samples),
+      var _Compatibility$detect2 = Compatibility.detectChangeStream(this.audioTrack.samples, isFirstAudioSamples),
           audioChanged = _Compatibility$detect2.changed,
           audioChangedIdxes = _Compatibility$detect2.changedIdxes;
 
-      if (audioChanged && !isFirstAudioSamples) {
+      if (audioChanged) {
         var _disContinue = false;
         for (var _i = 0; _i < audioChangedIdxes.length; _i++) {
-          if (this.fixChangeStreamAudio(audioChangedIdxes[_i])) {
+          if (this.fixChangeStreamAudio(audioChangedIdxes[_i], isFirstAudioSamples)) {
             _disContinue = true;
           }
         }
         if (!_disContinue) {
-          this.doFixAudio(false);
+          this.doFixAudio(isFirstAudioSamples);
         } else {
           return;
         }
@@ -197,7 +197,7 @@ var Compatibility = function () {
             });
           }
           this._firstVideoSample = this.filledVideoSamples[0] || this._firstVideoSample;
-        } else if (gap < -2 * meta.refSampleDuration && !this._videoLargeGap) {
+        } else if (Math.abs(gap) > 2 * meta.refSampleDuration && !this._videoLargeGap) {
           this._videoLargeGap = -1 * gap;
           Compatibility.doFixLargeGap(videoSamples, -1 * gap);
         }
@@ -345,6 +345,7 @@ var Compatibility = function () {
       var _videoTrack2 = this.videoTrack,
           samples = _videoTrack2.samples,
           meta = _videoTrack2.meta;
+      var isFirstVideoSample = this.isFirstVideoSample;
 
       var prevDts = changeIdx === 0 ? this.videoLastSample ? this.videoLastSample.dts : this.getStreamChangeStart(samples[0]) : samples[changeIdx - 1].dts;
       var curDts = samples[changeIdx].dts;
@@ -678,11 +679,12 @@ var Compatibility = function () {
 
   }, {
     key: 'detectChangeStream',
-    value: function detectChangeStream(samples) {
+    value: function detectChangeStream(samples, isFirst) {
       var changed = false;
       var changedIdxes = [];
       for (var i = 0, len = samples.length; i < len; i++) {
-        if (samples[i].options && samples[i].options.meta) {
+        var sample = samples[i];
+        if (sample.options && sample.options.meta && !(isFirst && i === 0)) {
           changed = true;
           changedIdxes.push(i);
           // break;

@@ -216,6 +216,7 @@ var Mp4Remuxer = function () {
           }
         }
         this.videoAllDuration += sampleDuration;
+        // console.log(`video dts ${dts}`, `pts ${pts}`, isKeyframe, `duration ${sampleDuration}`)
         if (sampleDuration >= 0) {
           mdatBox.samples.push(mdatSample);
           mdatSample.buffer.push(avcSample.data);
@@ -333,7 +334,7 @@ var Mp4Remuxer = function () {
             sampleDuration = this.audioMeta.refSampleDuration;
           }
         }
-
+        // console.log(`audio dts ${dts}`, `pts ${dts}`, `originDts ${originDts}`, `duration ${sampleDuration}`)
         this.audioAllDuration += sampleDuration;
         var mp4Sample = {
           dts: dts,
