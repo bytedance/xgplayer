@@ -50,8 +50,8 @@ var Compatibility = function () {
       this.lastAudioSamplesLen = 0; // 上一段音频数据的长度
       this.lastVideoSamplesLen = 0; // 上一段视频数据的长度
 
-      this.lastVideoDts = undefined; // 上一段音频数据的长度
-      this.lastAudioDts = undefined; // 上一段视频数据的长度
+      this.lastVideoDts = undefined; // 上一段音频数据的dts
+      this.lastAudioDts = undefined; // 上一段视频数据的dts
 
       // this.allAudioSamplesCount = 0 // 音频总数据量(原始帧)
       // this.allVideoSamplesCount = 0 // 视频总数据量(原始帧)
@@ -159,7 +159,6 @@ var Compatibility = function () {
         }
 
         this._videoLargeGap = this.nextVideoDts - firstSample.dts;
-        this._audioLargeGap = Math.abs(this._audioLargeGap - this._videoLargeGap) > 1000 ? this._videoLargeGap : this._audioLargeGap;
         Compatibility.doFixLargeGap(videoSamples, this._videoLargeGap);
       }
 
@@ -241,7 +240,6 @@ var Compatibility = function () {
           this.nextAudioDts = streamChangeStart; // FIX: Hls中途切codec，在如果直接seek到后面的点会导致largeGap计算失败
         }
         this._audioLargeGap = this.nextAudioDts - _firstSample.dts;
-        this._videoLargeGap = Math.abs(this._audioLargeGap - this._videoLargeGap) > 1000 ? this._audioLargeGap : this._videoLargeGap;
 
         Compatibility.doFixLargeGap(audioSamples, this._audioLargeGap);
       }
@@ -352,6 +350,7 @@ var Compatibility = function () {
 
       this.emit(REMUX_EVENTS.DETECT_CHANGE_STREAM_DISCONTINUE);
       this._videoLargeGap = 0;
+      this.videoLastSample = null;
       var firstPartSamples = samples.slice(0, changeIdx);
       var secondPartSamples = samples.slice(changeIdx);
       var changeSample = samples[changeIdx];
@@ -361,7 +360,7 @@ var Compatibility = function () {
       if (changeSample.options && changeSample.options.start) {
         streamChangeStart = changeSample.options.start;
       } else {
-        return false;
+        streamChangeStart = prevDts + meta.refSampleDuration;
       }
 
       this.videoTrack.samples = samples.slice(0, changeIdx);
@@ -400,7 +399,7 @@ var Compatibility = function () {
       }
       this.emit(REMUX_EVENTS.DETECT_CHANGE_STREAM_DISCONTINUE);
       this._audioLargeGap = 0;
-
+      this.nextAudioDts = null;
       var firstPartSamples = samples.slice(0, changeIdx);
       var secondPartSamples = samples.slice(changeIdx);
       var changeSample = samples[changeIdx];
@@ -409,7 +408,8 @@ var Compatibility = function () {
       if (changeSample.options && changeSample.options.start) {
         streamChangeStart = changeSample.options.start;
       } else {
-        streamChangeStart = prevDts + meta.refSampleDuration - this.dtsBase;
+        streamChangeStart = prevDts + meta.refSampleDuration;
+        changeSample.options.isContinue = true;
       }
 
       this.audioTrack.samples = firstPartSamples;
@@ -570,6 +570,26 @@ var Compatibility = function () {
         return remuxer._dtsBase;
       }
       return 0;
+    }
+  }, {
+    key: 'audioDtsBase',
+    get: function get() {
+      var remuxer = this._context.getInstance('MP4_REMUXER');
+      if (remuxer && remuxer._audioDtsBase) {
+        return remuxer._audioDtsBase;
+      }
+
+      return this.dtsBase;
+    }
+  }, {
+    key: 'videoDtsBase',
+    get: function get() {
+      var remuxer = this._context.getInstance('MP4_REMUXER');
+      if (remuxer && remuxer._videoDtsBase) {
+        return remuxer._videoDtsBase;
+      }
+
+      return this.dtsBase;
     }
   }], [{
     key: 'sortAudioSamples',

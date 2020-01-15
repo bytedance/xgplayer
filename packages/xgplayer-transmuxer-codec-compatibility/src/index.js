@@ -41,8 +41,8 @@ class Compatibility {
     this.lastAudioSamplesLen = 0 // 上一段音频数据的长度
     this.lastVideoSamplesLen = 0 // 上一段视频数据的长度
 
-    this.lastVideoDts = undefined // 上一段音频数据的长度
-    this.lastAudioDts = undefined // 上一段视频数据的长度
+    this.lastVideoDts = undefined // 上一段音频数据的dts
+    this.lastAudioDts = undefined // 上一段视频数据的dts
 
     // this.allAudioSamplesCount = 0 // 音频总数据量(原始帧)
     // this.allVideoSamplesCount = 0 // 视频总数据量(原始帧)
@@ -137,7 +137,6 @@ class Compatibility {
       }
 
       this._videoLargeGap = this.nextVideoDts - firstSample.dts
-      this._audioLargeGap = Math.abs(this._audioLargeGap - this._videoLargeGap) > 1000 ? this._videoLargeGap : this._audioLargeGap;
       Compatibility.doFixLargeGap(videoSamples, this._videoLargeGap)
     }
 
@@ -215,7 +214,6 @@ class Compatibility {
         this.nextAudioDts = streamChangeStart // FIX: Hls中途切codec，在如果直接seek到后面的点会导致largeGap计算失败
       }
       this._audioLargeGap = this.nextAudioDts - _firstSample.dts
-      this._videoLargeGap = Math.abs(this._audioLargeGap - this._videoLargeGap) > 1000 ? this._audioLargeGap : this._videoLargeGap;
 
       Compatibility.doFixLargeGap(audioSamples, this._audioLargeGap)
     }
@@ -322,6 +320,7 @@ class Compatibility {
 
     this.emit(REMUX_EVENTS.DETECT_CHANGE_STREAM_DISCONTINUE)
     this._videoLargeGap = 0;
+    this.videoLastSample = null;
     const firstPartSamples = samples.slice(0, changeIdx);
     const secondPartSamples = samples.slice(changeIdx);
     const changeSample = samples[changeIdx]
@@ -331,7 +330,7 @@ class Compatibility {
     if (changeSample.options && changeSample.options.start) {
       streamChangeStart = changeSample.options.start;
     } else {
-      return false;
+      streamChangeStart = prevDts + meta.refSampleDuration
     }
 
     this.videoTrack.samples = samples.slice(0, changeIdx);
@@ -366,7 +365,7 @@ class Compatibility {
     }
     this.emit(REMUX_EVENTS.DETECT_CHANGE_STREAM_DISCONTINUE)
     this._audioLargeGap = 0;
-
+    this.nextAudioDts = null;
     const firstPartSamples = samples.slice(0, changeIdx);
     const secondPartSamples = samples.slice(changeIdx);
     const changeSample = samples[changeIdx]
@@ -375,7 +374,8 @@ class Compatibility {
     if (changeSample.options && changeSample.options.start) {
       streamChangeStart = changeSample.options.start;
     } else {
-      streamChangeStart = prevDts + meta.refSampleDuration - this.dtsBase
+      streamChangeStart = prevDts + meta.refSampleDuration
+      changeSample.options.isContinue = true;
     }
 
     this.audioTrack.samples = firstPartSamples;
@@ -598,6 +598,24 @@ class Compatibility {
       return remuxer._dtsBase
     }
     return 0
+  }
+
+  get audioDtsBase () {
+    const remuxer = this._context.getInstance('MP4_REMUXER');
+    if (remuxer && remuxer._audioDtsBase) {
+      return remuxer._audioDtsBase
+    }
+
+    return this.dtsBase
+  }
+
+  get videoDtsBase () {
+    const remuxer = this._context.getInstance('MP4_REMUXER');
+    if (remuxer && remuxer._videoDtsBase) {
+      return remuxer._videoDtsBase
+    }
+
+    return this.dtsBase
   }
 }
 export default Compatibility;
