@@ -43,9 +43,17 @@ class Proxy {
       }
     })
     this._interval = {}
+    /**
+     * 和video事件对应的on[EventKey]接口的触发
+     * @param {String} funName 
+     */
+    function _emitEvent(funName){
+      self[funName] && typeof self[funName] === 'function' && self[funName](self)
+    }
     this.ev.forEach(item => {
       this.evItem = Object.keys(item)[0]
       let name = Object.keys(item)[0]
+      const funName = item[name]
       this.video.addEventListener(Object.keys(item)[0],  () => {
         if (name === 'error') {
           if (this.video.error) {
@@ -57,6 +65,7 @@ class Proxy {
               }))
           }
         } else {
+          _emitEvent(funName)
           this.emit(name, this)
         }
 
@@ -82,7 +91,6 @@ class Proxy {
       }, false)
     })
   }
-
   get hasStart () {
     return this._hasStart
   }

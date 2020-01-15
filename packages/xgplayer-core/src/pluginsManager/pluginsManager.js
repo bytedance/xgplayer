@@ -40,9 +40,9 @@ const pluginsManager = {
     const originalOptions = this.pluginGroup[cgid]._originalOptions
     options.player = this.pluginGroup[cgid]._player
     console.log('plugin.pluginName', plugin.pluginName)
-    const pluginName = plugin.pluginName
+    const pluginName = options.pluginName || plugin.pluginName
     if (!pluginName) {
-      throw new Error('The property pluginName is necessary') 
+      throw new Error('The property pluginName is necessary')
     }
     for (const item of Object.keys(originalOptions)) {
       if (pluginName.toLowerCase() === item.toLowerCase()) {
@@ -55,11 +55,13 @@ const pluginsManager = {
       options.root = player.root
     }
     try { // eslint-disable-next-line new-cap
-      plugins[pluginName.toLowerCase()] = new plugin(options)
+      const _instance = new plugin(options)
+      plugins[pluginName.toLowerCase()] = _instance
       plugins[pluginName.toLowerCase()].func = plugin
-      return plugins[pluginName.toLowerCase()]
+      return _instance
     } catch (err) {
-      throw(err)
+      console.error(err)
+      throw (err)
     }
   },
 
@@ -74,9 +76,9 @@ const pluginsManager = {
 
   /**
    * get all plugin instance of player
-   * @param {*} player 
+   * @param {*} player
    */
-  getPlugins(player) {
+  getPlugins (player) {
     const cgid = player._pluginInfoId
     return cgid ? this.pluginGroup[cgid]._plugins : {}
   },
@@ -141,5 +143,7 @@ const pluginsManager = {
     delete this.pluginGroup[cgid]
   }
 }
+
+window.pluginsManager = pluginsManager
 
 export default pluginsManager

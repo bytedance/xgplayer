@@ -125,17 +125,34 @@ class Player extends Proxy {
         }
       }
     }
-  }
-
-  _initEvents () {
-    super._initEvents()
-    this.ev.forEach((item) => {
-      let evName = Object.keys(item)[0]
-      let evFunc = this[item[evName]]
-      if (evFunc) {
-        this.on(evName, evFunc)
-      }
-    });
+    if (this.config.controlStyle && util.typeOf(this.config.controlStyle) === 'String') {
+      let self = this
+      fetch(self.config.controlStyle, {
+        method: 'GET',
+        headers: {
+          Accept: 'application/json'
+        }
+      }).then(function (res) {
+        if (res.ok) {
+          res.json().then(function (obj) {
+            for (var prop in obj) {
+              if (obj.hasOwnProperty(prop)) {
+                self.config[prop] = obj[prop]
+              }
+            }
+            self.pluginsCall()
+            self._registerPlugins()
+          }).catch(() => {
+            this._registerPlugins()
+          })
+        }
+      }).catch(function (err) {
+        console.log('Fetch错误:' + err)
+      })
+    } else {
+      this.pluginsCall()
+      this._registerPlugins()
+    }
 
     ['focus', 'blur'].forEach(item => {
       this.on(item, this['on' + item.charAt(0).toUpperCase() + item.slice(1)])
@@ -437,7 +454,7 @@ class Player extends Proxy {
     util.removeClass(this.root, 'xgplayer-isloading xgplayer-nostart xgplayer-pause xgplayer-ended xgplayer-is-error xgplayer-replay')
     util.addClass(this.root, 'xgplayer-playing')
   }
-
+  
   getVideoSize() {
     if (this.video.videoWidth && this.video.videoHeight) {
       let containerSize = this.root.getBoundingClientRect()
@@ -457,6 +474,30 @@ class Player extends Proxy {
 
   get version () {
     return version
+  }
+
+  /***
+   * TODO
+   * 插件全部迁移完成再做删除
+   */
+  static install (name, descriptor) {
+    if (!Player.plugins) {
+      Player.plugins = {}
+    }
+    if (!Player.plugins[name]) {
+      Player.plugins[name] = descriptor
+    }
+  }
+  
+  /***
+   * TODO
+   * 插件全部迁移完成再做删除
+   */
+  static use (name, descriptor) {
+    if (!Player.plugins) {
+      Player.plugins = {}
+    }
+    Player.plugins[name] = descriptor
   }
 }
 

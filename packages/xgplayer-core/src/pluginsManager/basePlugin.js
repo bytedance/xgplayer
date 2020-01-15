@@ -1,71 +1,55 @@
-import util from '../utils/util'
-import sniffer from '../utils/sniffer'
+import Util from '../utils/util'
+import Sniffer from '../utils/sniffer'
 import Errors from '../error'
 import * as event from '../events'
 
-const type = 'base'
-
-
-function checkIsFunction (fun) {
-  return fun && typeof fun === 'function'
-}
-
-function checkIsObj(obj) {
-  return obj && typeof obj === ''
-}
-
 class BasePlugin {
-  static get PluginType () {
-    return type
-  }
-
-  static get name () {
-    return ''
+  static defineGetterOrSetter (Obj, map) {
+    for (const key in map) {
+      Object.defineProperty(Obj, key, map[key])
+    }
   }
 
   constructor (args) {
     this.__args = args
     this.__events = {} // 对player的事件监听缓存
-    this.__children = [] // 子组件缓存
-    this.__name = ''
-    this.__player = null
-    this.__playerConfig = null
-    this.__parentDom = null
-    this.__el = null
     this.config = args.config || {}
-    if (checkIsFunction(this.beforeCreate)) {
+    if (Util.checkIsFunction(this.beforeCreate)) {
       this.beforeCreate()
     }
     this.__init(args)
-    if (checkIsFunction(this.afterCreate)) {
+    if (Util.checkIsFunction(this.afterCreate)) {
       this.afterCreate()
     }
   }
 
   __init (args) {
-    this.__player = args.player
-    this.__playerConfig = args.player && args.player.config
-    this.__name = args.name
-  }
-
-  get player () {
-    return this.__player
-  }
-
-  get playerConfig () {
-    return this.__playerConfig
-  }
-
-  get name () {
-    return this.__name
-  }
-
-  get parentDom () {
-    return this.__parentDom
-  }
-
-  get el () {
-    return this.__el
+    BasePlugin.defineGetterOrSetter(this, {
+      'player': {
+        get: () => {
+          return args.player
+        }
+      },
+      'playerConfig': {
+        get: () => {
+          return args.player && args.player.config
+        }
+      },
+      'pluginName': {
+        get: () => {
+          if (args.pluginName) {
+            return args.pluginName
+          } else {
+            return this.constructor.pluginName
+          }
+        }
+      },
+      'root': {
+        get: () => {
+          return args.player.root
+        }
+      }
+    })
   }
 
   on (event, callback) {
@@ -108,14 +92,14 @@ class BasePlugin {
 
   _destroy () {
     this.offAll()
-    if (checkIsFunction(this.destroy)) {
+    if (Util.checkIsFunction(this.destroy)) {
       this.destroy();
     }
   }
 }
 
-BasePlugin.Util = util
-BasePlugin.Sniffer = sniffer
+BasePlugin.Util = Util
+BasePlugin.Sniffer = Sniffer
 BasePlugin.Errors = Errors
 BasePlugin.Event = event
 export default BasePlugin

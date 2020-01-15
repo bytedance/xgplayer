@@ -7,6 +7,23 @@ class Replay extends Plugin {
     return 'Replay'
   }
 
+  registerIcons () {
+    return {
+      'replay': ReplayIcon
+    }
+  }
+
+  // 扩展语言
+  registerLangauageTexts () {
+    return {
+      'replay': {
+        jp: '日文text',
+        en: 'rePlay',
+        zh: '重播'
+      }
+    }
+  }
+
   afterCreate () {
     this.bind('svg', 'click', (e) => {
       e.preventDefault()
@@ -29,11 +46,12 @@ class Replay extends Plugin {
       }
     })
   }
+
   render () {
-    const replayText = this.player.lang.REPLAY
+    console.log('this.text', this.text)
     return `<xg-replay class="xgplayer-replay">
-      ${ReplayIcon}
-      <xg-replay-txt class="xgplayer-replay-txt">${replayText}</xg-replay-txt>
+      ${this.icons.replay}
+      <xg-replay-txt class="xgplayer-replay-txt">${this.text.replay}</xg-replay-txt>
     </xg-replay>`
   }
 }
