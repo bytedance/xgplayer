@@ -45,7 +45,7 @@ class Proxy {
     this._interval = {}
     /**
      * 和video事件对应的on[EventKey]接口的触发
-     * @param {String} funName 
+     * @param {String} funName
      */
     function _emitEvent(funName){
       self[funName] && typeof self[funName] === 'function' && self[funName](self)
@@ -91,6 +91,7 @@ class Proxy {
       }, false)
     })
   }
+
   get hasStart () {
     return this._hasStart
   }

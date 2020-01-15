@@ -20,5 +20,8 @@
     "player"
   ],
   "author": "yinguohui@bytedance.com",
-  "license": "MIT"
+  "license": "MIT",
+  "dependencies": {
+    "delegate-events": "^1.1.1"
+  }
 }
