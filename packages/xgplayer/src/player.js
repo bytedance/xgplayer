@@ -40,11 +40,16 @@ class Player extends Proxy {
       if (el && el.nodeType === 1) {
         this.root = el
       } else {
-        this.emit('error', new Errors('use', this.config.vid, {
-          line: 32,
-          handle: 'Constructor',
-          msg: 'container id can\'t be empty'
+        this.emit('error', new Errors({
+          type: 'use', 
+          errd: {
+            line: 45,
+            handle: 'Constructor',
+            msg: 'container id can\'t be empty'
+          },
+          vid: this.config.vid
         }))
+        console.error('container id can\'t be empty')
         return false
       }
     }

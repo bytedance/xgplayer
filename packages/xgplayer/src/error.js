@@ -44,22 +44,32 @@ const ErrorTypes = {
 
 class Errors {
   constructor (type, currentTime, duration, networkState, readyState, src, currentSrc,
-ended, errd = {line: '', handle: '', msg: '', version: ''}) {
+ended, errd = {line: '', handle: '', msg: '', version: ''}, errorCode, mediaError) {
     let r = {}
-    r.playerVersion = version // 播放器版本
-    r.errorType = type
-    r.domain = document.domain // domain
-    r.duration = duration // 视频时长
-    r.currentTime = currentTime
-    r.networkState = networkState
-    r.readyState = readyState
-    r.currentSrc = currentSrc
-    r.src = src
-    r.ended = ended
-    r.errd = errd // 错误详情
-    r.ex = (ErrorTypes[type] || {}).msg // 补充信息
+    if (arguments.length > 1) {
+      r.playerVersion = version // 播放器版本
+      r.errorType = type
+      r.domain = document.domain // domain
+      r.duration = duration // 视频时长
+      r.currentTime = currentTime
+      r.networkState = networkState
+      r.readyState = readyState
+      r.currentSrc = currentSrc
+      r.src = src
+      r.ended = ended
+      r.errd = errd // 错误详情
+      r.ex = (ErrorTypes[type] || {}).msg // 补充信息
+      r.errorCode = errorCode
+      r.mediaError = mediaError 
+    } else {
+      const arg = arguments[0]
+      Object.keys(arg).map(key => {
+        r[key] = arg[key]
+      })
+      r.ex = (arg.type && ErrorTypes[arg.type] || {}).msg
+    }
     return r
   }
 }
-
+window.newError = Errors
 export default Errors
