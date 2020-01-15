@@ -1,6 +1,6 @@
 {
   "name": "xgplayer-hls-live",
-  "version": "2.2.0-alpha.23",
+  "version": "2.2.0-alpha.24",
   "description": "",
   "main": "lib/index.js",
   "module": "es/index.js",
@@ -30,20 +30,20 @@
   },
   "license": "ISC",
   "dependencies": {
-    "xgplayer-utils": "^2.2.0-alpha.23",
-    "xgplayer-utils-crypto": "^2.2.0-alpha.23",
-    "xgplayer-utils-mse": "^2.2.0-alpha.23",
-    "xgplayer-transmuxer-constant-events": "^2.2.0-alpha.23",
-    "xgplayer-transmuxer-context": "^2.2.0-alpha.23",
-    "xgplayer-transmuxer-buffer-track": "^2.2.0-alpha.23",
-    "xgplayer-transmuxer-buffer-presource":  "^2.2.0-alpha.23",
-    "xgplayer-transmuxer-buffer-xgbuffer":  "^2.2.0-alpha.23",
-    "xgplayer-transmuxer-loader-fetch": "^2.2.0-alpha.23",
-    "xgplayer-transmuxer-remux-mp4": "^2.2.0-alpha.23",
-    "xgplayer-transmuxer-codec-compatibility":  "^2.2.0-alpha.23",
-    "xgplayer-transmuxer-demux-m3u8": "^2.2.0-alpha.23",
-    "xgplayer-transmuxer-demux-ts": "^2.2.0-alpha.23",
-    "xgplayer-transmuxer-buffer-playlist": "^2.2.0-alpha.23"
+    "xgplayer-utils": "^2.2.0-alpha.24",
+    "xgplayer-utils-crypto": "^2.2.0-alpha.24",
+    "xgplayer-utils-mse": "^2.2.0-alpha.24",
+    "xgplayer-transmuxer-constant-events": "^2.2.0-alpha.24",
+    "xgplayer-transmuxer-context": "^2.2.0-alpha.24",
+    "xgplayer-transmuxer-buffer-track": "^2.2.0-alpha.24",
+    "xgplayer-transmuxer-buffer-presource":  "^2.2.0-alpha.24",
+    "xgplayer-transmuxer-buffer-xgbuffer":  "^2.2.0-alpha.24",
+    "xgplayer-transmuxer-loader-fetch": "^2.2.0-alpha.24",
+    "xgplayer-transmuxer-remux-mp4": "^2.2.0-alpha.24",
+    "xgplayer-transmuxer-codec-compatibility":  "^2.2.0-alpha.24",
+    "xgplayer-transmuxer-demux-m3u8": "^2.2.0-alpha.24",
+    "xgplayer-transmuxer-demux-ts": "^2.2.0-alpha.24",
+    "xgplayer-transmuxer-buffer-playlist": "^2.2.0-alpha.24"
   },
   "devDependencies": {
     "cross-env": "^6.0.3"

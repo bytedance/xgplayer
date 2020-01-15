@@ -349,7 +349,7 @@ var HlsVodController = function () {
           this.emitTo('TS_LOADER', LOADER_EVENTS.LADER_START, frag.url);
         }
       } else if (currentbufferend < time + this.preloadTime) {
-        var _frag2 = this._playlist.getTs(currentbufferend * 1000);
+        var _frag2 = this._playlist.getLastDownloadedTs() || this._playlist.getTs(currentbufferend * 1000);
 
         if (!_frag2) {
           return;
@@ -363,7 +363,7 @@ var HlsVodController = function () {
         if (_frag2.downloaded) {
           var loopMax = 1000;
           while (loopMax-- > 0) {
-            curTime += 50;
+            curTime += 10;
             _frag2 = this._playlist.getTs(curTime);
             if (!_frag2 || _frag2.time > curFragTime) {
               break;

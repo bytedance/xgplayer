@@ -9338,7 +9338,7 @@
             this.emitTo('TS_LOADER', LOADER_EVENTS$3.LADER_START, frag.url);
           }
         } else if (currentbufferend < time + this.preloadTime) {
-          var _frag2 = this._playlist.getTs(currentbufferend * 1000);
+          var _frag2 = this._playlist.getLastDownloadedTs() || this._playlist.getTs(currentbufferend * 1000);
 
           if (!_frag2) {
             return;
@@ -9352,7 +9352,7 @@
           if (_frag2.downloaded) {
             var loopMax = 1000;
             while (loopMax-- > 0) {
-              curTime += 50;
+              curTime += 10;
               _frag2 = this._playlist.getTs(curTime);
               if (!_frag2 || _frag2.time > curFragTime) {
                 break;
@@ -9577,7 +9577,7 @@
           return;
         }
 
-        this.__core__ = this._context.registry('HLS_VOD_CONTROLLER', HlsVodController)({ player: this, container: this.video });
+        this.__core__ = this._context.registry('HLS_VOD_CONTROLLER', HlsVodController)({ player: this, container: this.video, preloadTime: this.config.preloadTime });
         this._context.init();
         this.__core__.load(url);
         this._initEvents();
@@ -9592,7 +9592,8 @@
         var hls = context.registry('HLS_VOD_CONTROLLER', HlsVodController)({
           player: this,
           container: this.video,
-          mse: this.__core__.mse
+          mse: this.__core__.mse,
+          preloadTime: this.config.preloadTime
         });
         context.init();
         this.initHlsBackupEvents(hls, context);
