@@ -199,7 +199,11 @@ class Player extends Proxy {
       player.off('canplay', player.canPlayFunc)
     }
     if (util.typeOf(url) === 'String') {
-      this.video.src = url
+      if(url.indexOf('blob:') > -1 && url === this.video.src) {
+        //在Chromium环境下用mse url给video二次赋值会导致错误
+      } else {
+        this.video.src = url
+      }
     } else {
       url.forEach(item => {
         this.video.appendChild(util.createDom('source', '', {
@@ -530,9 +534,9 @@ class Player extends Proxy {
     let targetWidth = player.video.videoWidth
     let targetHeight = player.video.videoHeight
 
-    if (!player.config.rotate.innerRotate) {
-      // player.root.style.width = height + 'px'
-      // player.root.style.height = width + 'px'
+    if (!player.config.rotate.innerRotate && player.config.rotate.controlsFix) {
+      player.root.style.width = height + 'px'
+      player.root.style.height = width + 'px'
     }
 
     let scale
@@ -568,13 +572,19 @@ class Player extends Proxy {
     }
 
     if (player.config.rotate.innerRotate) {
-      player.video.style.transformOrigin = 'center center'
-      player.video.style.transform = `rotate(${player.rotateDeg}turn) scale(${scale})`
-      player.video.style.webKitTransform = `rotate(${player.rotateDeg}turn) scale(${scale})`
+        player.video.style.transformOrigin = 'center center'
+        player.video.style.transform = `rotate(${player.rotateDeg}turn) scale(${scale})`
+        player.video.style.webKitTransform = `rotate(${player.rotateDeg}turn) scale(${scale})`
     } else {
-      player.root.style.transformOrigin = 'center center'
-      player.root.style.transform = `rotate(${player.rotateDeg}turn) scale(${1})`
-      player.root.style.webKitTransform = `rotate(${player.rotateDeg}turn) scale(${1})`
+      if(player.config.rotate.controlsFix) {
+        player.video.style.transformOrigin = 'center center'
+        player.video.style.transform = `rotate(${player.rotateDeg}turn) scale(${scale})`
+        player.video.style.webKitTransform = `rotate(${player.rotateDeg}turn) scale(${scale})`
+      } else {
+        player.root.style.transformOrigin = 'center center'
+        player.root.style.transform = `rotate(${player.rotateDeg}turn) scale(${1})`
+        player.root.style.webKitTransform = `rotate(${player.rotateDeg}turn) scale(${1})`
+      }
     }
   }
 
