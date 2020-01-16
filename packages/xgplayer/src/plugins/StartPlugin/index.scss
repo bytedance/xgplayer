@@ -3,7 +3,7 @@ $startBgColor: rgba(0, 0, 0, 0.38);
 $startSvgFill: rgba(255, 255, 255, 0.7);
 $startHoverBgColor: rgba(255, 255, 255, 0.5);
 $startHoverFillColor: rgba(255, 255, 255, 0.6);
-.xgplayer-skin-default {
+.xgplayer{
   .xgplayer-start {
     display: none;
     border-radius: 50%;
@@ -40,7 +40,7 @@ $startHoverFillColor: rgba(255, 255, 255, 0.6);
   }
 }
 
-.xgplayer-skin-default.xgplayer-playing {
+.xgplayer.xgplayer-playing {
   .xgplayer-start {
     display: none;
     .xgplayer-icon-play{
@@ -51,7 +51,7 @@ $startHoverFillColor: rgba(255, 255, 255, 0.6);
     }
   }
 }
-.xgplayer-skin-default.xgplayer-pause {
+.xgplayer.xgplayer-pause {
   .xgplayer-start {
     display: inline-block;
     .xgplayer-icon-play{
@@ -62,7 +62,7 @@ $startHoverFillColor: rgba(255, 255, 255, 0.6);
     }
   }
 }
-.xgplayer-skin-default.replay {
+.xgplayer.replay {
   .xgplayer-start {
     display: none;
     .xgplayer-icon-play{

@@ -7,7 +7,7 @@ import StartPlugin from './StartPlugin'
  * 根据入参的播放器配置进行默认plugin列表的配置
  * @param {object} playerConfig
  */
-export default function getDefaultPlugins (playerConfig) {
+export default function getDefaultPlugins (playerConfig, Player) {
   const defaultPlugins = []
   defaultPlugins.push(Replay)
   defaultPlugins.push(Poster)

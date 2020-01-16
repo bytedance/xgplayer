@@ -2,11 +2,15 @@ import Proxy from './proxy'
 import util from './utils/util'
 import sniffer from './utils/sniffer'
 import Errors from './error'
-import pluginsManager, {Plugin, BasePlugin} from './pluginsManager'
+import * as Events from './events'
+import Plugin, {pluginsManager, BasePlugin} from './plugin'
+import STATE_CLASS from './stateClassMap'
 import getDefaultPlugins from './plugins'
 import {
   version
 } from '../package.json'
+
+const FULLSCREEN_EVENTS = ['fullscreenchange', 'webkitfullscreenchange', 'mozfullscreenchange', 'MSFullscreenChange']
 
 class Player extends Proxy {
   constructor (options) {
@@ -23,15 +27,17 @@ class Player extends Proxy {
       controls: true,
       controlsList: ['nodownload']
     }, options)
-
     // timer and flags
     this.userTimer = null
     this.waitTimer = null
     this.isProgressMoving = false
+    this.isReady = false
+    this.isPlaying = false
 
     this._initDOM()
 
-    this.pluginsCall()
+    this._bindEvents()
+
     this._registerPlugins()
 
     setTimeout(() => {
@@ -39,38 +45,12 @@ class Player extends Proxy {
       this.isReady = true
     }, 0)
 
-    pluginsManager.beforeInit(this)
     if (this.config.videoInit) {
-      if (util.hasClass(this.root, 'xgplayer-nostart')) {
+      if (util.hasClass(this.root, STATE_CLASS.NO_START)) {
         this.start()
       }
     }
   }
-
-  /**
-   * 注册组件 组件列表config.plugins
-   */
-  _registerPlugins () {
-    const ignores = this.config.ignores || []
-    const plugins = this.config.plugins || []
-    const ignoresStr = ignores.join('||')
-    plugins.map(plugin => {
-      try {
-        //在ignores中的不做组装
-        if (plugin.pluginName && ignoresStr.indexOf(plugin.pluginName.toLowerCase()) > -1) {
-          return null
-        }
-        return pluginsManager.register(this, plugin)
-      } catch(err) {
-        return null
-      }
-    })
-  }
-
-  register(){
-  }
-
-  unRegister(){}
 
   /**
    * init control bar
@@ -96,7 +76,7 @@ class Player extends Proxy {
       }
     }
     // this.rootBackup = util.copyDom(this.root)
-    util.addClass(this.root, `xgplayer xgplayer-${sniffer.device} xgplayer-nostart ${this.config.controls ? '' : 'no-controls'}`)
+    this.addClass(`${STATE_CLASS.DEFAULT} xgplayer-${sniffer.device} ${STATE_CLASS.NO_START} ${this.config.controls ? '' : STATE_CLASS.NO_CONTROLS}`)
     this.root.appendChild(this.controls)
     if (this.config.fluid) {
       this.root.style['max-width'] = '100%'
@@ -125,94 +105,68 @@ class Player extends Proxy {
         }
       }
     }
-    if (this.config.controlStyle && util.typeOf(this.config.controlStyle) === 'String') {
-      let self = this
-      fetch(self.config.controlStyle, {
-        method: 'GET',
-        headers: {
-          Accept: 'application/json'
-        }
-      }).then(function (res) {
-        if (res.ok) {
-          res.json().then(function (obj) {
-            for (var prop in obj) {
-              if (obj.hasOwnProperty(prop)) {
-                self.config[prop] = obj[prop]
-              }
-            }
-            self.pluginsCall()
-            self._registerPlugins()
-          }).catch(() => {
-            this._registerPlugins()
-          })
-        }
-      }).catch(function (err) {
-        console.log('Fetch错误:' + err)
-      })
-    } else {
-      this.pluginsCall()
-      this._registerPlugins()
-    }
+  }
 
+  _bindEvents () {
     ['focus', 'blur'].forEach(item => {
       this.on(item, this['on' + item.charAt(0).toUpperCase() + item.slice(1)])
+    });
+
+    // deal with the fullscreen state change callback
+    this.onFullscreenChange = () => {
+      const fullEl = util.getFullScreenEl()
+      if (fullEl && (fullEl === this._fullscreenEl || fullEl.tagName === 'VIDEO')) {
+        this.fullscreen = true
+        this.addClass(STATE_CLASS.FULLSCREEN)
+      } else {
+        this.fullscreen = false
+        this._fullscreenEl = null
+        this.removeClass(STATE_CLASS.FULLSCREEN)
+      }
+    }
+    FULLSCREEN_EVENTS.forEach(item => {
+      document.addEventListener(item, this.onFullscreenChange)
     })
 
-    let player = this
-    player.once('loadeddata', this.getVideoSize)
-    this.mousemoveFunc = function () {
-      player.emit('focus')
-      if (!player.config.closeFocusVideoFocus) {
-        player.video.focus()
+    this.once('loadeddata', this.getVideoSize)
+
+    this.mousemoveFunc = () => {
+      this.emit('focus')
+      if (!this.config.closeFocusVideoFocus) {
+        this.video.focus()
       }
     }
     this.root.addEventListener('mousemove', this.mousemoveFunc)
-    this.playFunc = function () {
-      player.emit('focus')
-      if (!player.config.closePlayVideoFocus) {
-        player.video.focus()
+    this.playFunc = () => {
+      this.emit('focus')
+      if (!this.config.closePlayVideoFocus) {
+        this.video.focus()
       }
     }
-    player.once('play', this.playFunc)
+    this.once('play', this.playFunc)
 
+    const player = this
     function onDestroy () {
-      player.root.removeEventListener('mousemove', player.mousemoveFunc)
+      player.root.removeEventListener('mousemove', player.mousemoveFunc);
+      FULLSCREEN_EVENTS.forEach(item => {
+        document.removeEventListener(item, this.onFullscreenChange)
+      });
       player.off('destroy', onDestroy)
     }
-
     player.once('destroy', onDestroy)
   }
 
-
-  /**
-   * 当前播放器挂在的插件实例代码
-   */
-  get plugins() {
-    return pluginsManager.getPlugins(this)
-  }
-
-  getPlugin(pluginName) {
-    return pluginsManager.findPlugin(this, pluginName)
-  }
-
-  start (url = this.config.url) {
+  _startInit (url) {
     let root = this.root
     let player = this
     if (!url || url === '') {
       this.emit('urlNull')
     }
     this.canPlayFunc = function () {
-      let playPromise = player.video.play()
-      if (playPromise !== undefined && playPromise) {
-        playPromise.then(function () {
-          player.emit('autoplay started')
-        }).catch(function () {
-          player.emit('autoplay was prevented')
-          Player.util.addClass(player.root, 'xgplayer-is-autoplay')
-        })
-      }
-      player.off('canplay', player.canPlayFunc)
+      this.play()
+      player.off('canplay', this.canPlayFunc)
     }
+
     if (util.typeOf(url) === 'String') {
       this.video.src = url
     } else {
@@ -223,7 +177,9 @@ class Player extends Proxy {
         }))
       })
     }
-    this.once('loadeddata', this.loadeddataFunc)
+
+    this.loadeddataFunc && this.once('loadeddata', this.loadeddataFunc)
+
     if (this.config.autoplay) {
       this.on('canplay', this.canPlayFunc)
     }
@@ -231,7 +187,98 @@ class Player extends Proxy {
     setTimeout(() => {
       this.emit('complete')
     }, 1)
+    this.hasStart = true
     pluginsManager.afterInit(this)
+  }
+  /**
+   * 注册组件 组件列表config.plugins
+   */
+  _registerPlugins () {
+    const ignores = this.config.ignores || []
+    const plugins = this.config.plugins || []
+    const ignoresStr = ignores.join('||')
+    plugins.map(plugin => {
+      try {
+        // 在ignores中的不做组装
+        if (plugin.pluginName && ignoresStr.indexOf(plugin.pluginName.toLowerCase()) > -1) {
+          return null
+        }
+        return pluginsManager.register(this, plugin)
+      } catch (err) {
+        return null
+      }
+    })
+  }
+
+  registerPlugin () {
+  }
+
+  unRegistePlugin () {}
+
+  /**
+   * 当前播放器挂在的插件实例代码
+   */
+  get plugins () {
+    return pluginsManager.getPlugins(this)
+  }
+
+  getPlugin (pluginName) {
+    return pluginsManager.findPlugin(this, pluginName)
+  }
+
+  addClass (className) {
+    if (!this.root) {
+      return;
+    }
+    if (!util.hasClass(this.root, className)) {
+      util.addClass(this.root, className)
+    }
+  }
+
+  removeClass (className) {
+    if (!this.root) {
+      return;
+    }
+    if (util.hasClass(this.root, className)) {
+      util.removeClass(this.root, className)
+    }
+  }
+
+  start (url = this.url) {
+    // 已经开始初始化播放了 则直接调用play
+    if (this.hasStart) {
+      this.play()
+    } else {
+      pluginsManager.beforeInit(this).then(() => {
+        if (!url) {
+          url = this.url
+        }
+        this._startInit(url)
+      }).catch((e) => {
+        e.fileName = 'player'
+        e.lineNumber = '236'
+        throw e
+      })
+    }
+  }
+
+  play () {
+    if (!this.hasStart) {
+      this.start()
+      return;
+    }
+    const playPromise = super.play()
+    if (playPromise !== undefined && playPromise && playPromise.then) {
+      playPromise.then(() => {
+        this.removeClass(STATE_CLASS.NO_START)
+        this.addClass(STATE_CLASS.PLAYING)
+      }).catch((e) => {
+        this.emit(Events.AUTOPLAY_PREVENTED)
+        this.addClass(STATE_CLASS.AUTOPLAY)
+        throw e
+      })
+    }
+    return playPromise
   }
 
   reload () {
@@ -243,83 +290,27 @@ class Player extends Proxy {
   }
 
   destroy (isDelDom = true) {
-    let player = this
-    clearInterval(this.bulletResizeTimer)
-    for (let k in this._interval) {
-      clearInterval(this._interval[k])
-      this._interval[k] = null
-    }
-    this.ev.forEach((item) => {
-      let evName = Object.keys(item)[0]
-      let evFunc = this[item[evName]]
-      if (evFunc) {
-        this.off(evName, evFunc)
-      }
-    });
-    if (this.loadeddataFunc) {
-      this.off('loadeddata', this.loadeddataFunc)
-    }
-    if (this.reloadFunc) {
-      this.off('loadeddata', this.reloadFunc)
-    }
-    if (this.replayFunc) {
-      this.off('play', this.replayFunc)
-    }
-    if (this.playFunc) {
-      this.off('play', this.playFunc)
-    }
-    if (this.getVideoSize) {
-      this.off('loadeddata', this.getVideoSize)
-    };
-    ['focus', 'blur'].forEach(item => {
-      this.off(item, this['on' + item.charAt(0).toUpperCase() + item.slice(1)])
-    })
-    if (!this.config.keyShortcut || this.config.keyShortcut === 'on') {
-      ['video', 'controls'].forEach(item => {
-        if (this[item]) {
-          this[item].removeEventListener('keydown', (e) => { player.onKeydown(e, player) })
-        }
-      })
-    }
-
-    function destroyFunc () {
-      this.emit('destroy')
-      // this.root.id = this.root.id + '_del'
-      // parentNode.insertBefore(this.rootBackup, this.root)
-
-      // fix video destroy https://stackoverflow.com/questions/3258587/how-to-properly-unload-destroy-a-video-element
-      this.video.removeAttribute('src') // empty source
-      this.video.load()
-      if (isDelDom) {
-        // parentNode.removeChild(this.root)
-        this.root.innerHTML = ''
-        let classNameList = this.root.className.split(' ')
-        if (classNameList.length > 0) {
-          this.root.className = classNameList.filter(name => name.indexOf('xgplayer') < 0).join(' ')
-        } else {
-          this.root.className = ''
-        }
-      }
-      for (let k in this) {
-        // if (k !== 'config') {
-        delete this[k]
-        // }
-      }
-      this.off('pause', destroyFunc)
-    }
-
-    if (!this.paused) {
-      this.pause()
-      this.once('pause', destroyFunc)
-    } else {
-      destroyFunc.call(this)
-    }
     pluginsManager.destroy(this)
     super.destroy()
+    if (isDelDom) {
+      // parentNode.removeChild(this.root)
+      this.root.innerHTML = ''
+      let classNameList = this.root.className.split(' ')
+      if (classNameList.length > 0) {
+        this.root.className = classNameList.filter(name => name.indexOf('xgplayer') < 0).join(' ')
+      } else {
+        this.root.className = ''
+      }
+    }
+    for (let k in this) {
+      // if (k !== 'config') {
+      delete this[k]
+      // }
+    }
   }
 
   replay () {
-    util.removeClass(this.root, 'xgplayer-ended')
+    this.removeClass(STATE_CLASS.ENDED)
     this.currentTime = 0
     this.play().catch(err => {
       console.log(err)
@@ -328,6 +319,10 @@ class Player extends Proxy {
 
   getFullscreen (el) {
     let player = this
+    if (!el) {
+      el = this.root
+    }
+    this._fullscreenEl = el
     if (el.requestFullscreen) {
       el.requestFullscreen()
     } else if (el.mozRequestFullScreen) {
@@ -339,11 +334,14 @@ class Player extends Proxy {
     } else if (el.msRequestFullscreen) {
       el.msRequestFullscreen()
     } else {
-      util.addClass(el, 'xgplayer-is-cssfullscreen')
+      this.addClass(STATE_CLASS.CSS_FULLSCREEN)
     }
   }
 
   exitFullscreen (el) {
+    if (el) {
+      el = this.root
+    }
     if (document.exitFullscreen) {
       document.exitFullscreen()
     } else if (document.webkitExitFullscreen) {
@@ -353,45 +351,24 @@ class Player extends Proxy {
     } else if (document.msExitFullscreen) {
       document.msExitFullscreen()
     }
-    util.removeClass(el, 'xgplayer-is-cssfullscreen')
+    this.removeClass(STATE_CLASS.CSS_FULLSCREEN)
   }
 
   getCssFullscreen () {
     let player = this
-    util.addClass(player.root, 'xgplayer-is-cssfullscreen')
+    this.addClass(STATE_CLASS.CSS_FULLSCREEN)
     player.emit('requestCssFullscreen')
   }
 
   exitCssFullscreen () {
     let player = this
-    util.removeClass(player.root, 'xgplayer-is-cssfullscreen')
+    this.removeClass(STATE_CLASS.CSS_FULLSCREEN)
     player.emit('exitCssFullscreen')
-  }
-
-  pluginsCall () {
-    let self = this
-    if (Player.plugins) {
-      let ignores = this.config.ignores
-      Object.keys(Player.plugins).forEach(name => {
-        let descriptor = Player.plugins[name]
-        if (!ignores.some(item => name === item || name === 's_' + item)) {
-          if (['pc', 'tablet', 'mobile'].some(type => type === name)) {
-            if (name === sniffer.device) {
-              setTimeout(() => {
-                descriptor.call(self, self)
-              }, 0)
-            }
-          } else {
-            descriptor.call(this, this)
-          }
-        }
-      })
-    }
   }
 
   onFocus () {
     let player = this
-    util.removeClass(this.root, 'xgplayer-inactive')
+    this.removeClass(STATE_CLASS.ACTIVE)
     if (player.userTimer) {
       clearTimeout(player.userTimer)
     }
@@ -403,17 +380,17 @@ class Player extends Proxy {
   onBlur () {
     // this.video.blur()
     if (!this.paused && !this.ended) {
-      util.addClass(this.root, 'xgplayer-inactive')
+      this.addClass(STATE_CLASS.ACTIVE)
     }
   }
 
   onPlay () {
-    util.addClass(this.root, 'xgplayer-playing')
-    util.removeClass(this.root, 'xgplayer-pause')
+    this.addClass(STATE_CLASS.PLAYING)
+    this.removeClass(STATE_CLASS.PAUSED)
   }
 
   onPause () {
-    util.addClass(this.root, 'xgplayer-pause')
+    this.addClass(STATE_CLASS.PAUSED)
     if (this.userTimer) {
       clearTimeout(this.userTimer)
     }
@@ -421,8 +398,8 @@ class Player extends Proxy {
   }
 
   onEnded () {
-    util.addClass(this.root, 'xgplayer-ended')
-    util.removeClass(this.root, 'xgplayer-playing')
+    this.addClass(STATE_CLASS.ENDED)
+    this.removeClass(STATE_CLASS.PLAYING)
   }
 
   onSeeking () {
@@ -434,7 +411,7 @@ class Player extends Proxy {
     if (this.waitTimer) {
       clearTimeout(this.waitTimer)
     }
-    util.removeClass(this.root, 'xgplayer-isloading')
+    this.removeClass(STATE_CLASS.LOADING)
   }
 
   onWaiting () {
@@ -442,8 +419,8 @@ class Player extends Proxy {
     if (self.waitTimer) {
       clearTimeout(self.waitTimer)
     }
-    self.waitTimer = setTimeout(function () {
-      util.addClass(self.root, 'xgplayer-isloading')
+    self.waitTimer = setTimeout(() => {
+      this.addClass(STATE_CLASS.LOADING)
     }, 500)
   }
 
@@ -451,11 +428,11 @@ class Player extends Proxy {
     if (this.waitTimer) {
       clearTimeout(this.waitTimer)
     }
-    util.removeClass(this.root, 'xgplayer-isloading xgplayer-nostart xgplayer-pause xgplayer-ended xgplayer-is-error xgplayer-replay')
-    util.addClass(this.root, 'xgplayer-playing')
+    this.removeClass(`${STATE_CLASS.NO_START} ${STATE_CLASS.PAUSED} ${STATE_CLASS.ENDED} ${STATE_CLASS.ERROR} ${STATE_CLASS.REPLAY}`)
+    this.addClass(STATE_CLASS.PLAYING)
   }
-  
-  getVideoSize() {
+
+  getVideoSize () {
     if (this.video.videoWidth && this.video.videoHeight) {
       let containerSize = this.root.getBoundingClientRect()
       if (this.config.fitVideoSize === 'auto') {
@@ -476,28 +453,39 @@ class Player extends Proxy {
     return version
   }
 
-  /***
-   * TODO
-   * 插件全部迁移完成再做删除
-   */
-  static install (name, descriptor) {
-    if (!Player.plugins) {
-      Player.plugins = {}
-    }
-    if (!Player.plugins[name]) {
-      Player.plugins[name] = descriptor
+  set url (url) {
+    this.__url = url
+  }
+
+  get url () {
+    return this.__url || this.config.url
+  }
+
+  set poster (posterUrl) {
+    let poster = util.findDom(this.root, '.xgplayer-poster')
+    if (poster) {
+      poster.style.backgroundImage = `url(${posterUrl})`
     }
   }
-  
-  /***
-   * TODO
-   * 插件全部迁移完成再做删除
-   */
-  static use (name, descriptor) {
-    if (!Player.plugins) {
-      Player.plugins = {}
-    }
-    Player.plugins[name] = descriptor
+
+  get fullscreen () {
+    return this._isFullScreen;
+  }
+
+  set fullscreen (val) {
+    this._isFullScreen = val
+  }
+
+  get bullet () {
+    return util.findDom(this.root, 'xg-bullet') ? util.hasClass(util.findDom(this.root, 'xg-bullet'), 'xgplayer-has-bullet') : false
+  }
+
+  get textTrack () {
+    return util.hasClass(this.root, 'xgplayer-is-textTrack')
+  }
+
+  get pip () {
+    return util.hasClass(this.root, 'xgplayer-pip-active')
   }
 }
 

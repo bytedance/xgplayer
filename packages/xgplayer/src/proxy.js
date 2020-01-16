@@ -1,10 +1,14 @@
 import EventEmitter from 'event-emitter'
+import allOff from 'event-emitter/all-off'
 import util from './utils/util'
 import Errors from './error'
+import {URL_CHANGE, BUFFER_CHANGE, DESTROY} from './events'
 
 class Proxy {
   constructor (options) {
     this._hasStart = false
+    this._currentTime = 0
+    this._duration = 0
     this.videoConfig = {
       controls: false,
       autoplay: options.autoplay,
@@ -19,6 +23,11 @@ class Proxy {
       tabindex: 2,
       mediaType: options.mediaType || 'video'
     }
+    if (options.videoAttrbutes) {
+      Object.keys(options.videoAttrbutes).map((key) => {
+        this.videoConfig[key] = options.videoAttrbutes[key]
+      })
+    }
     if (options.loop) {
       this.videoConfig.loop = 'loop'
     }
@@ -31,6 +40,8 @@ class Proxy {
     }
 
     EventEmitter(this)
+    this._interval = {}
+    this._initEvents()
   }
 
   _initEvents () {
@@ -42,31 +53,32 @@ class Proxy {
         [item]: `on${item.charAt(0).toUpperCase()}${item.slice(1)}`
       }
     })
-    this._interval = {}
     /**
      * 和video事件对应的on[EventKey]接口的触发
-     * @param {String} funName 
+     * @param {String} funName
      */
-    function _emitEvent(funName){
-      self[funName] && typeof self[funName] === 'function' && self[funName](self)
+    function _emitEvent (funName, player) {
+      player[funName] && typeof player[funName] === 'function' && player[funName](player)
     }
     this.ev.forEach(item => {
       this.evItem = Object.keys(item)[0]
       let name = Object.keys(item)[0]
       const funName = item[name]
-      this.video.addEventListener(Object.keys(item)[0],  () => {
+      this.video.addEventListener(Object.keys(item)[0], () => {
         if (name === 'error') {
-          if (this.video.error) {
-            this.emit(name, new Errors('other', this.currentTime, this.duration, this.networkState, this.readyState, this.currentSrc, this.src,
-              this.ended, {
-                line: 55,
-                msg: this.error,
-                handle: '_initEvents'
-              }))
-          }
+          this.errorHandler(name)
+          _emitEvent(funName, this)
         } else {
-          _emitEvent(funName)
           this.emit(name, this)
+          _emitEvent(funName, this)
+        }
+
+        if (name === 'timeupdate') {
+          this._currentTime = this.video.currentTime
+        }
+
+        if (name === 'durationchange') {
+          this._duration = this.video.duration
         }
 
         if (this.hasOwnProperty('_interval')) {
@@ -79,7 +91,7 @@ class Proxy {
               }
               if (curBuffer.toString() !== lastBuffer) {
                 lastBuffer = curBuffer.toString()
-                this.emit('bufferedChange', curBuffer)
+                this.emit(BUFFER_CHANGE, curBuffer)
               }
             }, 200)
           } else {
@@ -91,26 +103,65 @@ class Proxy {
       }, false)
     })
   }
+
+  /**
+   * 错误监听处理逻辑抽离
+   */
+  errorHandler (name) {
+    if (this.video && this.video.error) {
+      this.emit(name, new Errors('other', this.currentTime, this.duration, this.networkState, this.readyState, this.currentSrc, this.src,
+        this.ended, {
+          line: 162,
+          msg: this.error,
+          handle: 'Constructor'
+        }, this.video.error.code, this.video.error))
+    }
+  }
+
   get hasStart () {
     return this._hasStart
   }
+
   set hasStart (bool) {
     if (typeof bool === 'boolean' && bool === true && !this._hasStart) {
       this._hasStart = true
       this.emit('hasstart')
     }
   }
+
   destroy () {
+    this.pause()
+    this.video.removeAttribute('src') // empty source
+    this.video.load()
+    this._currentTime = 0;
+    this._duration = 0;
+    for (let k in this._interval) {
+      clearInterval(this._interval[k])
+      this._interval[k] = null
+    }
+    this.emit(DESTROY)
+    this.ev.forEach((item) => {
+      const evName = Object.keys(item)[0]
+      const evFunc = this[item[evName]]
+      if (evFunc) {
+        this.off(evName, evFunc)
+      }
+    });
+    allOff(this)
   }
+
   play () {
     return this.video.play()
   }
+
   pause () {
     this.video.pause()
   }
+
   canPlayType (type) {
     return this.video.canPlayType(type)
   }
+
   getBufferedRange () {
     let range = [0, 0]
     let video = this.video
@@ -131,45 +182,58 @@ class Proxy {
       return [0, 0]
     }
   }
+
   set autoplay (isTrue) {
     this.video.autoplay = isTrue
   }
+
   get autoplay () {
     return this.video.autoplay
   }
   get buffered () {
     return this.video.buffered
   }
+
   get crossOrigin () {
     return this.video.crossOrigin
   }
+
   set crossOrigin (isTrue) {
     this.video.crossOrigin = isTrue
   }
+
   get currentSrc () {
     return this.video.currentSrc
   }
+
   set currentSrc (src) {
     this.video.currentSrc = src
   }
+
   get currentTime () {
-    return this.video.currentTime
+    return this._currentTime
   }
+
   set currentTime (time) {
     this.video.currentTime = time
   }
+
   get defaultMuted () {
     return this.video.defaultMuted
   }
+
   set defaultMuted (isTrue) {
     this.video.defaultMuted = isTrue
   }
+
   get duration () {
-    return this.video.duration
+    return this._duration
   }
+
   get ended () {
     return this.video.ended
   }
+
   get error () {
     let err = this.video.error
     if (!err) {
@@ -218,24 +282,31 @@ class Proxy {
     }]
     return this.lang ? this.lang[status[this.video.networkState].en] : status[this.video.networkState].en
   }
+
   get paused () {
     return this.video.paused
   }
+
   get playbackRate () {
     return this.video.playbackRate
   }
+
   set playbackRate (rate) {
     this.video.playbackRate = rate
   }
+
   get played () {
     return this.video.played
   }
+
   get preload () {
     return this.video.preload
   }
+
   set preload (isTrue) {
     this.video.preload = isTrue
   }
+
   get readyState () {
     let status = [{
       en: 'HAVE_NOTHING',
@@ -255,45 +326,35 @@ class Proxy {
     }]
     return this.lang ? this.lang[status[this.video.readyState].en] : status[this.video.readyState]
   }
+
   get seekable () {
     return this.video.seekable
   }
+
   get seeking () {
     return this.video.seeking
   }
+
   get src () {
     return this.video.src
   }
+
   set src (url) {
-    if (!util.hasClass(this.root, 'xgplayer-ended')) {
-      this.emit('urlchange', url)
+    if (!this.ended) {
+      this.emit(URL_CHANGE)
     }
     this.video.pause()
+    this._currentTime = 0;
+    this._duration = 0;
     this.video.src = url
   }
-  set poster (posterUrl) {
-    let poster = util.findDom(this.root, '.xgplayer-poster')
-    if(poster) {
-      poster.style.backgroundImage = `url(${posterUrl})`
-    }
-  }
+
   get volume () {
     return this.video.volume
   }
+
   set volume (vol) {
     this.video.volume = vol
-  }
-  get fullscreen () {
-    return util.hasClass(this.root, 'xgplayer-is-fullscreen') || util.hasClass(this.root, 'xgplayer-fullscreen-active')
-  }
-  get bullet () {
-    return util.findDom(this.root, 'xg-bullet') ? util.hasClass(util.findDom(this.root, 'xg-bullet'), 'xgplayer-has-bullet') : false
-  }
-  get textTrack () {
-    return util.hasClass(this.root, 'xgplayer-is-textTrack')
-  }
-  get pip () {
-    return util.hasClass(this.root, 'xgplayer-pip-active')
   }
 }
 

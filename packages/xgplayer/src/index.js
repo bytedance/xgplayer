@@ -1,3 +1,4 @@
 import Player from './player'
-import './skin'
+// import * as Controls from './controls/*.js'
+import './skin/style/index.scss'
 export default Player

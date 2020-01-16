@@ -230,6 +230,10 @@ util.Hex2RGBA = function (hex, alpha) {
   }
 }
 
+util.getFullScreenEl = function () {
+  return document.fullscreenElement || document.webkitFullscreenElement || document.mozFullScreenElement || document.msFullscreenElement
+}
+
 util.checkIsFunction = function (fun) {
   return typeof fun === 'function'
 }

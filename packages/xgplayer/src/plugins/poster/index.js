@@ -1,4 +1,4 @@
-import {Plugin} from '../../pluginsManager'
+import Plugin from '../../plugin'
 import './poster.scss'
 
 class Poster extends Plugin {
@@ -13,6 +13,10 @@ class Poster extends Plugin {
     }
     return `<xg-poster class="xgplayer-poster" style="background-image:url(${poster})">
     </xg-poster>`
+  }
+
+  beforePlayerInit () {
+    console.log('beforePlayerInit')
   }
 }
 

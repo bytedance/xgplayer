@@ -48,6 +48,11 @@ class BasePlugin {
         get: () => {
           return args.player.root
         }
+      },
+      'logger': {
+        get: () => {
+          return args.player.logger
+        }
       }
     })
   }

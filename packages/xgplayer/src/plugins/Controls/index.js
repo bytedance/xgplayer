@@ -1,14 +1,11 @@
-import {Plugin} from '../../pluginsManager'
+import Plugin from '../../plugin'
 
 class Controls extends Plugin {
-  constructor() {
-    super();
-  }
-  afterCreate(){
-    //this.on('player', 'revrevre')
+  afterCreate () {
+    // this.on('player', 'revrevre')
   }
 
-  render() {
+  render () {
 
   }
 }

@@ -1,0 +1,19 @@
+.new-xg-controls {
+  position: absolute;
+  display: inline-block;
+  left: 0;
+  bottom: 0;
+  right: 0;
+  height: 40px;
+  z-index: 10px;
+  .left-grid {
+    position: relative;
+    float: left;
+    display:flex;
+  }
+  .right-grid {
+    position: relative;
+    float: right;
+    display:flex;
+  }
+}

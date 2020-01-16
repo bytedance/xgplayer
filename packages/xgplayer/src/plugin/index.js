@@ -3,7 +3,7 @@ import Plugin from './plugin'
 import pluginsManager from './pluginsManager'
 
 export {
-  pluginsManager as default,
+  pluginsManager,
   BasePlugin,
-  Plugin
+  Plugin as default
 }

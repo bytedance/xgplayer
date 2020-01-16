@@ -1,15 +1,12 @@
-import {Plugin} from '../../pluginsManager'
+import Plugin from '../../plugin'
 
 class Play extends Plugin {
-  constructor() {
-    super();
+  afterCreate () {
+
   }
-  afterCreate(){
-   
-  }
-  render(){
+  render () {
     return ``
   }
 }
 
-export default PluginTest
+export default Play

@@ -1,4 +1,4 @@
-.xgplayer-skin-default {
+.xgplayer {
   .xgplayer-poster{
     display: none;
     position: absolute;
@@ -12,7 +12,7 @@
   }
 }
 
-.xgplayer-skin-default.xgplayer-nostart {
+.xgplayer.xgplayer-nostart {
   .xgplayer-poster {
     display: block;
   }

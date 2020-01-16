@@ -1,4 +1,4 @@
-import {Plugin} from '../../pluginsManager'
+import Plugin from '../../plugin'
 import ReplayIcon from '../../skin/assets/replay.svg'
 import './replay.scss'
 
@@ -48,7 +48,6 @@ class Replay extends Plugin {
   }
 
   render () {
-    console.log('this.text', this.text)
     return `<xg-replay class="xgplayer-replay">
       ${this.icons.replay}
       <xg-replay-txt class="xgplayer-replay-txt">${this.text.replay}</xg-replay-txt>

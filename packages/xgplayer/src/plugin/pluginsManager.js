@@ -93,16 +93,40 @@ const pluginsManager = {
   },
 
   beforeInit (player) {
-    if (!this.pluginGroup) {
-      return;
-    }
-    const cgid = player._pluginInfoId
-    const plugins = this.pluginGroup[cgid]._plugins
-    for (const item of Object.keys(plugins)) {
-      if (plugins[item] && plugins[item].beforePlayerInit) {
-        plugins[item].beforePlayerInit()
+    function retPromise (fun) {
+      if (!fun || !fun.then) {
+        return new Promise((resolve) => {
+          resolve()
+        })
+      } else {
+        return fun
       }
     }
+    return new Promise((resolve) => {
+      if (!this.pluginGroup) {
+        return;
+      }
+      const cgid = player._pluginInfoId
+      const plugins = this.pluginGroup[cgid]._plugins
+      const pluginsRet = []
+      for (const item of Object.keys(plugins)) {
+        if (plugins[item] && plugins[item].beforePlayerInit) {
+          try {
+            let ret = plugins[item].beforePlayerInit()
+            pluginsRet.push(retPromise(ret))
+          } catch (e) {
+            pluginsRet.push(retPromise(null))
+            throw e
+          }
+        }
+      }
+      Promise.all(pluginsRet).then(() => {
+        resolve()
+      }).catch((e) => {
+        console.error(e)
+        resolve()
+      })
+    })
   },
 
   afterInit (player) {
@@ -143,7 +167,5 @@ const pluginsManager = {
     delete this.pluginGroup[cgid]
   }
 }
-
-window.pluginsManager = pluginsManager
 
 export default pluginsManager
