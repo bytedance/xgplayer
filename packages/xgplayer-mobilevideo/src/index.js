@@ -253,10 +253,10 @@ class MobileVideo extends HTMLElement {
     this.pendingPlayTask = Promise.all([
       this.vCtx.play(),
       this.aCtx.play().then(() => {
-        this.aCtx.muted = true
+        // this.aCtx.muted = true
       })
     ]).then(() => {
-      this.aCtx.muted = false
+      // this.aCtx.muted = false
       this.ticker.start(() => {
         if (!this.start) {
           this.start = Date.now()
@@ -288,6 +288,7 @@ class MobileVideo extends HTMLElement {
   set volume (vol) {
     this.setAttribute('volume', vol);
     this.aCtx.volume = vol
+    this.dispatchEvent(new Event('volumechange'))
   }
 
   get muted () {
@@ -308,6 +309,7 @@ class MobileVideo extends HTMLElement {
     } else {
       this.aCtx.muted = true
     }
+    this.dispatchEvent(new Event('volumechange'))
   }
 
   get error () {

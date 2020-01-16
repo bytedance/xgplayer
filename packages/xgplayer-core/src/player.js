@@ -3,14 +3,12 @@ import util from './utils/util'
 import sniffer from './utils/sniffer'
 import Errors from './error'
 import pluginsManager, {Plugin, BasePlugin} from './pluginsManager'
-import getDefaultPlugins from './plugins'
 import {
   version
 } from '../package.json'
 
 class Player extends Proxy {
   constructor (options) {
-    options.plugins = getDefaultPlugins(options)
     super(options)
     this.config = util.deepCopy({
       width: 600,
@@ -47,7 +45,6 @@ class Player extends Proxy {
     }
   }
 
-
   /**
    * 注册组件 组件列表config.plugins
    */
@@ -57,21 +54,21 @@ class Player extends Proxy {
     const ignoresStr = ignores.join('||')
     plugins.map(plugin => {
       try {
-        //在ignores中的不做组装
+        // 在ignores中的不做组装
         if (plugin.pluginName && ignoresStr.indexOf(plugin.pluginName.toLowerCase()) > -1) {
           return null
         }
         return pluginsManager.register(this, plugin)
-      } catch(err) {
+      } catch (err) {
         return null
       }
     })
   }
 
-  register(){
+  register () {
   }
 
-  unRegister(){}
+  unRegister () {}
 
   /**
    * init control bar
@@ -167,15 +164,14 @@ class Player extends Proxy {
     player.once('destroy', onDestroy)
   }
 
-
   /**
    * 当前播放器挂在的插件实例代码
    */
-  get plugins() {
+  get plugins () {
     return pluginsManager.getPlugins(this)
   }
 
-  getPlugin(pluginName) {
+  getPlugin (pluginName) {
     return pluginsManager.findPlugin(this, pluginName)
   }
 
@@ -209,7 +205,7 @@ class Player extends Proxy {
     }
     this.once('loadeddata', this.loadeddataFunc)
     if (this.config.autoplay) {
-      this.on('canplay', this.canPlayFunc)
+      this.once('canplay', this.canPlayFunc)
     }
     root.insertBefore(this.video, root.firstChild)
     setTimeout(() => {
@@ -228,7 +224,6 @@ class Player extends Proxy {
 
   destroy (isDelDom = true) {
     let player = this
-    clearInterval(this.bulletResizeTimer)
     for (let k in this._interval) {
       clearInterval(this._interval[k])
       this._interval[k] = null
@@ -268,8 +263,6 @@ class Player extends Proxy {
 
     function destroyFunc () {
       this.emit('destroy')
-      // this.root.id = this.root.id + '_del'
-      // parentNode.insertBefore(this.rootBackup, this.root)
 
       // fix video destroy https://stackoverflow.com/questions/3258587/how-to-properly-unload-destroy-a-video-element
       this.video.removeAttribute('src') // empty source
@@ -439,7 +432,7 @@ class Player extends Proxy {
     util.addClass(this.root, 'xgplayer-playing')
   }
 
-  getVideoSize() {
+  getVideoSize () {
     if (this.video.videoWidth && this.video.videoHeight) {
       let containerSize = this.root.getBoundingClientRect()
       if (this.config.fitVideoSize === 'auto') {

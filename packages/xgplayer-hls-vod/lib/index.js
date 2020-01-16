@@ -153,7 +153,7 @@ var HlsVodPlayer = function (_Player) {
         return;
       }
 
-      this.__core__ = this._context.registry('HLS_VOD_CONTROLLER', _hlsVod2.default)({ player: this, container: this.video });
+      this.__core__ = this._context.registry('HLS_VOD_CONTROLLER', _hlsVod2.default)({ player: this, container: this.video, preloadTime: this.config.preloadTime });
       this._context.init();
       this.__core__.load(url);
       this._initEvents();
@@ -168,7 +168,8 @@ var HlsVodPlayer = function (_Player) {
       var hls = context.registry('HLS_VOD_CONTROLLER', _hlsVod2.default)({
         player: this,
         container: this.video,
-        mse: this.__core__.mse
+        mse: this.__core__.mse,
+        preloadTime: this.config.preloadTime
       });
       context.init();
       this.initHlsBackupEvents(hls, context);

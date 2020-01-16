@@ -6,7 +6,7 @@ const getDefaultConfigs = () => ({
   historyMax: 100
 })
 
-export default class Logger extends BasePlugin{
+export default class Logger extends BasePlugin {
   constructor (configs) {
     super();
     this._configs = Object.assign({}, getDefaultConfigs(), configs);

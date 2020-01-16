@@ -2,6 +2,8 @@ var _createClass = function () { function defineProperties(target, props) { for 
 
 function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } }
 
+import _ADTS from './adts';
+
 var AAC = function () {
   function AAC() {
     _classCallCheck(this, AAC);
@@ -45,4 +47,5 @@ var AAC = function () {
   return AAC;
 }();
 
+export var ADTS = _ADTS;
 export default AAC;

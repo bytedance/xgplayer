@@ -5,6 +5,7 @@ function _classCallCheck(instance, Constructor) { if (!(instance instanceof Cons
 import EVENTS from 'xgplayer-transmuxer-constant-events';
 import { AudioTrackMeta, VideoTrackMeta } from 'xgplayer-transmuxer-model-trackmeta';
 import { SpsParser, NalUnit } from 'xgplayer-transmuxer-codec-avc';
+import { SpsParserHEVC, NalUnitHEVC } from 'xgplayer-transmuxer-codec-hevc';
 import { VideoTrack, AudioTrack } from 'xgplayer-transmuxer-buffer-track';
 import AMFParser from './amf-parser';
 import Stream from 'xgplayer-transmuxer-buffer-stream';
@@ -450,58 +451,31 @@ var FlvDemuxer = function () {
       this.loaderBuffer.shift(3);
 
       // 12 for hevc, 7 for avc
-      if (codecID === 12) {
+      if (codecID === 7 || codecID === 12) {
         var data = this.loaderBuffer.shift(chunk.datasize - 5);
-        chunk.data = data;
-
-        if (Number.parseInt(chunk.avcPacketType) !== 0) {
-          if (!this._datasizeValidator(chunk.datasize)) {
-            this.emit(DEMUX_EVENTS.DEMUX_ERROR, this.TAG, new Error('invalid video tag datasize: ' + chunk.datasize), false);
-          }
-          var nalu = {};
-          var r = 0;
-          nalu.cts = chunk.cts;
-          nalu.dts = chunk.dts;
-          while (chunk.data.length > r) {
-            var sizes = chunk.data.slice(Number.parseInt(r), 4 + r);
-            nalu.size = sizes[3];
-            nalu.size += sizes[2] * 256;
-            nalu.size += sizes[1] * 256 * 256;
-            nalu.size += sizes[0] * 256 * 256 * 256;
-            r += 4;
-            nalu.data = chunk.data.slice(Number.parseInt(r), nalu.size + r);
-            r += nalu.size;
-            this.tracks.videoTrack.samples.push(nalu);
-            this.emit(DEMUX_EVENTS.METADATA_PARSED, 'video');
-          }
-        } else if (Number.parseInt(chunk.avcPacketType) === 0) {
-          if (!this._datasizeValidator(chunk.datasize)) {
-            this.emit(DEMUX_EVENTS.DEMUX_ERROR, this.TAG, new Error('invalid video tag datasize: ' + chunk.datasize), false);
-          } else {
-            this.emit(DEMUX_EVENTS.METADATA_PARSED, 'video');
-          }
-        }
-      } else if (codecID === 7) {
-        var _data = this.loaderBuffer.shift(chunk.datasize - 5);
-        if (_data[4] === 0 && _data[5] === 0 && _data[6] === 0 && _data[7] === 1) {
+        if (data[4] === 0 && data[5] === 0 && data[6] === 0 && data[7] === 1) {
           var avcclength = 0;
           for (var i = 0; i < 4; i++) {
-            avcclength = avcclength * 256 + _data[i];
+            avcclength = avcclength * 256 + data[i];
           }
           avcclength -= 4;
-          _data = _data.slice(4, _data.length);
-          _data[3] = avcclength % 256;
-          avcclength = (avcclength - _data[3]) / 256;
-          _data[2] = avcclength % 256;
-          avcclength = (avcclength - _data[2]) / 256;
-          _data[1] = avcclength % 256;
-          _data[0] = (avcclength - _data[1]) / 256;
+          data = data.slice(4, data.length);
+          data[3] = avcclength % 256;
+          avcclength = (avcclength - data[3]) / 256;
+          data[2] = avcclength % 256;
+          avcclength = (avcclength - data[2]) / 256;
+          data[1] = avcclength % 256;
+          data[0] = (avcclength - data[1]) / 256;
         }
 
-        chunk.data = _data;
+        chunk.data = data;
         // If it is AVC sequece Header.
         if (chunk.avcPacketType === 0) {
-          this._avcSequenceHeaderParser(chunk.data);
+          if (codecID === 12) {
+            this._hevcSequenceHeaderParser(chunk.data);
+          } else {
+            this._avcSequenceHeaderParser(chunk.data);
+          }
           var validate = this._datasizeValidator(chunk.datasize);
           if (validate) {
             if (!this._hasVideoSequence) {
@@ -518,14 +492,15 @@ var FlvDemuxer = function () {
             this.emit(DEMUX_EVENTS.DEMUX_ERROR, this.TAG, new Error('invalid video tag datasize: ' + chunk.datasize), false);
             return;
           }
-          var nals = NalUnit.getAvccNals(new Stream(chunk.data.buffer));
+          var nals = codecID === 12 ? NalUnitHEVC.getHvccNals(new Stream(chunk.data.buffer)) : NalUnit.getAvccNals(new Stream(chunk.data.buffer));
           for (var _i = 0; _i < nals.length; _i++) {
             var unit = nals[_i];
-            NalUnit.analyseNal(unit);
+            codecID === 12 ? NalUnitHEVC.analyseNal(unit) : NalUnit.analyseNal(unit);
             if (unit.sei) {
               this.emit(DEMUX_EVENTS.SEI_PARSED, unit.sei);
             }
           }
+          codecID === 12 ? this.tracks.videoTrack.meta.streamType = 0x24 : this.tracks.videoTrack.meta.streamType = 0x1b;
           if (this._metaChange) {
             chunk.options = {
               meta: Object.assign({}, this.tracks.videoTrack.meta)
@@ -639,6 +614,124 @@ var FlvDemuxer = function () {
       meta.duration = this._context.mediaInfo.duration * meta.timescale;
       meta.avcc = new Uint8Array(data.length);
       meta.avcc.set(data);
+      meta.streamType = 0x1b;
+
+      track.meta = meta;
+    }
+
+    /**
+     * parse hevc metadata
+     * @param data
+     * @private
+     */
+
+  }, {
+    key: '_hevcSequenceHeaderParser',
+    value: function _hevcSequenceHeaderParser(data) {
+      var track = this.tracks.videoTrack;
+
+      if (!track) {
+        return;
+      }
+
+      var offset = 0;
+
+      if (!track.meta) {
+        track.meta = new VideoTrackMeta();
+      }
+      var meta = track.meta;
+
+      meta.configurationVersion = data[0];
+      meta.hevcProfileSpace = (data[1] & 0xc0) >>> 6;
+      meta.hevcTierFlag = (data[1] & 0x20) >>> 5;
+      meta.hevcProfileIdc = data[1] & 0x1f;
+      meta.hevcProfileCompatibilityFlags = [data[2], data[3], data[4], data[5]];
+      meta.hevcConstraintIndicatorFlags = [data[6], data[7], data[8], data[9], data[10], data[11]];
+      meta.hevcLevelIdc = data[12];
+      meta.minSpatialSegmentationIdc = data[13] & 0x0f + data[14] << 4;
+      meta.parallelismType = data[15] & 0x03;
+      meta.chromaFormat = data[16] & 0x03;
+      meta.bitDepthLumaMinus8 = data[17] & 0x07;
+      meta.bitDepthChromaMinus8 = data[18] & 0x07;
+      meta.avgFrameRate = data[19] * 256 + data[20];
+      meta.constantFrameRate = (data[21] & 0xc0) >>> 6;
+      meta.numTemporalLayers = (data[21] & 0x38) >>> 3;
+      meta.temporalIdNested = (data[21] & 0x04) >>> 2;
+      meta.lengthSizeMinusOne = data[21] & 0x03;
+      var numOfArrays = data[22];
+
+      offset = 23;
+      var config = {};
+      var nalUnitType = 0;
+      var numNalus = 0;
+      var nalUnitSize = 0;
+      var hasVPS = false;
+      var hasSPS = false;
+      var hasPPS = false;
+      var vps = void 0,
+          sps = void 0,
+          pps = void 0;
+      for (var i = 0; i < numOfArrays; i++) {
+        nalUnitType = data[offset] & 0x3f;
+        numNalus = data[offset + 1] * 256 + data[offset + 2];
+        offset += 3;
+        for (var j = 0; j < numNalus; j++) {
+          nalUnitSize = data[offset] * 256 + data[offset + 1];
+          switch (nalUnitType) {
+            case 32:
+              if (!hasVPS) {
+                hasVPS = true;
+                vps = data.slice(offset + 2, offset + 2 + nalUnitSize);
+                this.tracks.videoTrack.meta.vps = SpsParserHEVC._ebsp2rbsp(vps);
+              }
+              break;
+            case 33:
+              if (!hasSPS) {
+                hasSPS = true;
+                sps = data.slice(offset + 2, offset + 2 + nalUnitSize);
+                this.tracks.videoTrack.meta.sps = SpsParserHEVC._ebsp2rbsp(sps);
+                meta.codec = 'hev1.1.6.L93.B0';
+                config = SpsParserHEVC.parseSPS(sps);
+              }
+              break;
+            case 34:
+              if (!hasPPS) {
+                hasPPS = true;
+                pps = data.slice(offset + 2, offset + 2 + nalUnitSize);
+                this.tracks.videoTrack.meta.pps = SpsParserHEVC._ebsp2rbsp(pps);
+              }
+              break;
+            case 39:
+              // PREFIX_SEI
+              break;
+            case 40:
+              // SUFFIX_SEI
+              break;
+            default:
+              break;
+          }
+          offset += 2 + nalUnitSize;
+        }
+      }
+
+      Object.assign(meta, SpsParserHEVC.toVideoMeta(config));
+
+      // fill video media info
+      var videoMedia = this._context.mediaInfo.video;
+
+      videoMedia.codec = meta.codec;
+      videoMedia.profile = meta.profile;
+      videoMedia.level = meta.level;
+      videoMedia.chromaFormat = meta.chromaFormat;
+      videoMedia.frameRate = meta.frameRate;
+      videoMedia.parRatio = meta.parRatio;
+      videoMedia.width = videoMedia.width === meta.presentWidth ? videoMedia.width : meta.presentWidth;
+      videoMedia.height = videoMedia.height === meta.presentHeight ? videoMedia.width : meta.presentHeight;
+
+      meta.duration = this._context.mediaInfo.duration * meta.timescale;
+
+      meta.streamType = 0x24;
+
       track.meta = meta;
     }
 

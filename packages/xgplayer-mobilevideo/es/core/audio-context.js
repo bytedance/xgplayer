@@ -33,8 +33,10 @@ var AudioCtx = function (_EventEmitter) {
     _this2._currentTime = 0;
     _this2._decoding = false;
     _this2._volume = _this2.config.volume || 0.6;
+
     // 记录外部传输的状态
     _this2._played = false;
+    _this2.paused = true;
     _this2.playFinish = null; // pending play task
     _this2.waitNextID = null; // audio source end and next source not loaded
     return _this2;
@@ -163,11 +165,12 @@ var AudioCtx = function (_EventEmitter) {
       var _this = this;
       var playStart = function playStart() {
         var audioSource = _this4._currentBuffer.data;
-        audioSource.connect(_this4.gainNode);
         audioSource.start();
+        audioSource.connect(_this4.gainNode);
+        _this4.paused = false;
         setTimeout(function () {
           _this.onSourceEnded.call(_this4);
-        }, audioSource.buffer.duration * 1000 - 10);
+        }, audioSource.buffer.duration * 1000 - 20);
       };
 
       if (!this._currentBuffer) {
@@ -189,6 +192,7 @@ var AudioCtx = function (_EventEmitter) {
       if (audioCtx.state === 'running') {
         audioCtx.suspend();
       }
+      this.paused = true;
     }
   }, {
     key: 'getTimeBuffer',
@@ -214,6 +218,7 @@ var AudioCtx = function (_EventEmitter) {
       if (this.waitNextID) {
         window.clearTimeout(this.waitNextID);
       }
+      this.paused = true;
       this.context.close();
     }
   }, {
@@ -229,10 +234,16 @@ var AudioCtx = function (_EventEmitter) {
       } else {
         this.gainNode.gain.value = this._volume;
       }
+      if (this.context.state === 'suspended' && !this.paused) {
+        this.context.resume();
+      }
     }
   }, {
     key: 'volume',
     get: function get() {
+      if (this.context.state === 'suspended' || this.paused) {
+        return 0;
+      }
       return this._volume;
     },
     set: function set(val) {

@@ -199,9 +199,9 @@ var MobileVideo = function (_HTMLElement) {
         this.init();
       }
       this.pendingPlayTask = Promise.all([this.vCtx.play(), this.aCtx.play().then(function () {
-        _this3.aCtx.muted = true;
+        // this.aCtx.muted = true
       })]).then(function () {
-        _this3.aCtx.muted = false;
+        // this.aCtx.muted = false
         _this3.ticker.start(function () {
           if (!_this3.start) {
             _this3.start = Date.now();
@@ -343,6 +343,7 @@ var MobileVideo = function (_HTMLElement) {
     set: function set(vol) {
       this.setAttribute('volume', vol);
       this.aCtx.volume = vol;
+      this.dispatchEvent(new Event('volumechange'));
     }
   }, {
     key: 'muted',
@@ -363,6 +364,7 @@ var MobileVideo = function (_HTMLElement) {
       } else {
         this.aCtx.muted = true;
       }
+      this.dispatchEvent(new Event('volumechange'));
     }
   }, {
     key: 'error',
