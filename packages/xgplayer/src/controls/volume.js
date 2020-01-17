@@ -132,6 +132,7 @@ let volume = function () {
         } else {
           util.addClass(root, 'xgplayer-volume-large')
         }
+        if (!bar) return
         let containerHeight = bar.getBoundingClientRect().height || 76
         selected.style.height = `${player.volume * containerHeight}px`
       }
