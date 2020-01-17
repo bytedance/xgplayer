@@ -117,6 +117,7 @@ class Player extends Proxy {
         this.removeClass(STATE_CLASS.FULLSCREEN)
       }
     }
+
     FULLSCREEN_EVENTS.forEach(item => {
       document.addEventListener(item, this.onFullscreenChange)
     })
@@ -130,6 +131,7 @@ class Player extends Proxy {
       }
     }
     this.root.addEventListener('mousemove', this.mousemoveFunc)
+
     this.playFunc = () => {
       this.emit(Events.PLAYER_FOCUS)
       if (!this.config.closePlayVideoFocus) {
@@ -137,7 +139,18 @@ class Player extends Proxy {
       }
     }
     this.once('play', this.playFunc)
-
+    if (!this.config.closeVideoClick) {
+      ['touched', 'click'].map((key) => {
+        this.root.addEventListener(key, () => {
+          console.log('this.video.addEventListener')
+          if (this.paused) {
+            this.play()
+          } else {
+            this.pause()
+          }
+        })
+      })
+    }
     const player = this
     function onDestroy () {
       player.root.removeEventListener('mousemove', player.mousemoveFunc);
@@ -233,9 +246,7 @@ class Player extends Proxy {
     if (!this.root) {
       return;
     }
-    if (util.hasClass(this.root, className)) {
-      util.removeClass(this.root, className)
-    }
+    util.removeClass(this.root, className)
   }
 
   start (url = this.url) {
@@ -309,10 +320,12 @@ class Player extends Proxy {
 
   replay () {
     this.removeClass(STATE_CLASS.ENDED)
-    this.currentTime = 0
-    this.play().catch(err => {
-      console.log(err)
+    this.once(Events.CANPLAY, () => {
+      this.play().catch(err => {
+        console.log(err)
+      })
     })
+    this.currentTime = 0
   }
 
   getFullscreen (el) {
@@ -386,6 +399,7 @@ class Player extends Proxy {
   onPlay () {
     this.addClass(STATE_CLASS.PLAYING)
     this.removeClass(STATE_CLASS.PAUSED)
+    this.ended && this.removeClass(STATE_CLASS.ENDED)
     this.emit(Events.PLAYER_FOCUS)
   }
 

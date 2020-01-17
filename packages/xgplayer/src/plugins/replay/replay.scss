@@ -1,7 +1,7 @@
 .xgplayer-replay {
   display: none;
 }
-.xgplayer-skin-default {
+.xgplayer {
   .xgplayer-replay {
     position: absolute;
     left: 0;
@@ -39,7 +39,7 @@
   }
 }
 
-.xgplayer-skin-default.xgplayer.xgplayer-ended {
+.xgplayer.xgplayer-ended {
   .xgplayer-controls {
     display: none;
   }
