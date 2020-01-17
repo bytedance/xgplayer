@@ -106,5 +106,5 @@ class BasePlugin {
 BasePlugin.Util = Util
 BasePlugin.Sniffer = Sniffer
 BasePlugin.Errors = Errors
-BasePlugin.Event = event
+BasePlugin.Events = event
 export default BasePlugin

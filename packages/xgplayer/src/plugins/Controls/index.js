@@ -5,7 +5,7 @@ class Controls extends Plugin {
     // this.on('player', 'revrevre')
   }
 
-  children() {
+  children () {
     return {}
   }
 

@@ -220,8 +220,8 @@ export default class Plugin extends BasePlugin {
     }
   }
 
-  show () {
-    this.el.style.display = ''
+  show (value) {
+    this.el.style.display = value !== undefined ? value : 'block'
     const cs = window.getComputedStyle(this.el, null)
     const cssDisplayValue = cs.getPropertyValue('display')
     if (cssDisplayValue === 'none') {

@@ -31,7 +31,7 @@ class Replay extends Plugin {
       Plugin.Util.removeClass(this.player.root, 'replay')
     })
 
-    this.on(Plugin.Event.ENDED, () => {
+    this.on(Plugin.Events.ENDED, () => {
       if (!this.playerConfig.loop) {
         Plugin.Util.addClass(this.player.root, 'replay')
       }

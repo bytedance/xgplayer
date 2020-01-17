@@ -3,7 +3,7 @@ import Plugin from '../../plugin'
 import StartIcon from '../assets/start.svg'
 import './index.scss'
 
-const { Util } = Plugin
+const { Util, Events } = Plugin
 class Start extends Plugin {
   static get pluginName () {
     return 'start'
@@ -11,8 +11,7 @@ class Start extends Plugin {
 
   afterCreate () {
     const {player, root, playerConfig} = this
-    Util.addClass(root, 'xgplayer-skin-default')
-    this.once('ready', () => {
+    this.once(Events.READY, () => {
       if (playerConfig) {
         if (playerConfig.lang && playerConfig.lang === 'en') {
           Util.addClass(root, 'lang-is-en')
@@ -35,25 +34,34 @@ class Start extends Plugin {
         this.player.play()
       }
     })
-    this.on(['play', 'pause'], () => {
-      this.setInterval()
+    this.on([Events.PLAY, Events.PAUSE], () => {
+      console.log('>>>>>>>intervalId PLAY PAUSE')
+      // this.setInterval()
+      this.animate()
+    })
+    this.on(Events.AUTOPLAY_PREVENTED, () => {
+      console.log('>>>>>>>intervalId AUTOPLAY_PREVENTED')
+      this.show('inline-block');
+      // this.clearInterval()
       this.animate()
     })
   }
 
   setInterval () {
-    clearTimeout(this.interval)
+    clearTimeout(this.intervalId)
     Util.addClass(this.el, 'interact')
-    this.show()
+    this.show('inline-block')
     this.intervalId = setTimeout(() => {
+      console.log('>>>hide')
       this.clearInterval()
       this.hide();
     }, 400);
   }
 
   clearInterval () {
-    clearTimeout(this.interval)
+    clearTimeout(this.intervalId)
     this.intervalId = null
+    console.log('this.el', this.el)
     Util.removeClass(this.el, 'interact');
   }
 
@@ -70,12 +78,20 @@ class Start extends Plugin {
     pasition.animate({
       from: pathPlay,
       to: pathPlay,
-      time: 1500,
+      time: 400,
+      begin: (shapes) => {
+        this.show()
+        console.log('>>>>>>>>>>begin')
+        Util.addClass(this.el, 'interact')
+      },
       end: () => {
+        console.log('>>>>>>>>>>>ended ' + this.player.paused)
+        Util.removeClass(this.el, 'interact')
         path.setAttribute('d', pathPlay)
         if (this.player.paused) {
           path.setAttribute('d', pathPlay)
         } else {
+          this.hide()
           path.setAttribute('d', pathPause)
         }
       }

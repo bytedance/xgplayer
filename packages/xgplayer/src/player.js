@@ -34,7 +34,7 @@ class Player extends Proxy {
     this._registerPlugins()
 
     setTimeout(() => {
-      this.emit('ready')
+      this.emit(Events.READY)
       this.isReady = true
     }, 0)
 
@@ -60,7 +60,7 @@ class Player extends Proxy {
       if (el && el.nodeType === 1) {
         this.root = el
       } else {
-        this.emit('error', new Errors('use', this.config.vid, {
+        this.emit(Events.ERROR, new Errors('use', this.config.vid, {
           line: 32,
           handle: 'Constructor',
           msg: 'container id can\'t be empty'
@@ -124,14 +124,14 @@ class Player extends Proxy {
     this.once('loadeddata', this.getVideoSize)
 
     this.mousemoveFunc = () => {
-      this.emit('focus')
+      this.emit(Events.PLAYER_FOCUS)
       if (!this.config.closeFocusVideoFocus) {
         this.video.focus()
       }
     }
     this.root.addEventListener('mousemove', this.mousemoveFunc)
     this.playFunc = () => {
-      this.emit('focus')
+      this.emit(Events.PLAYER_FOCUS)
       if (!this.config.closePlayVideoFocus) {
         this.video.focus()
       }
@@ -153,12 +153,12 @@ class Player extends Proxy {
     let root = this.root
     let player = this
     if (!url || url === '') {
-      this.emit('urlNull')
+      this.emit(Events.URL_NULL)
     }
     this.canPlayFunc = function () {
       this.volume = this.config.volume
       this.play()
-      player.off('canplay', this.canPlayFunc)
+      player.off(Events.CANPLAY, this.canPlayFunc)
     }
 
     if (util.typeOf(url) === 'String') {
@@ -175,11 +175,11 @@ class Player extends Proxy {
     this.loadeddataFunc && this.once('loadeddata', this.loadeddataFunc)
 
     if (this.config.autoplay) {
-      this.on('canplay', this.canPlayFunc)
+      this.once(Events.CANPLAY, this.canPlayFunc)
     }
     root.insertBefore(this.video, root.firstChild)
     setTimeout(() => {
-      this.emit('complete')
+      this.emit(Events.COMPLETE)
     }, 1)
     this.hasStart = true
     pluginsManager.afterInit(this)
@@ -264,11 +264,15 @@ class Player extends Proxy {
     const playPromise = super.play()
     if (playPromise !== undefined && playPromise && playPromise.then) {
       playPromise.then(() => {
+        this.removeClass(STATE_CLASS.AUTOPLAY)
         this.removeClass(STATE_CLASS.NO_START)
         this.addClass(STATE_CLASS.PLAYING)
       }).catch((e) => {
-        this.emit(Events.AUTOPLAY_PREVENTED)
-        this.addClass(STATE_CLASS.AUTOPLAY)
+        // 避免AUTOPLAY_PREVENTED先于playing和play触发
+        setTimeout(() => {
+          this.emit(Events.AUTOPLAY_PREVENTED)
+          this.addClass(STATE_CLASS.AUTOPLAY)
+        }, 0)
         throw e
       })
     }
@@ -361,18 +365,19 @@ class Player extends Proxy {
   }
 
   onFocus () {
+    this.isActive = true
     let player = this
     this.removeClass(STATE_CLASS.ACTIVE)
     if (player.userTimer) {
       clearTimeout(player.userTimer)
     }
     player.userTimer = setTimeout(function () {
-      player.emit('blur')
+      this.isActive = false
+      player.emit(Events.PLAYER_BLUR)
     }, player.config.inactive)
   }
 
   onBlur () {
-    // this.video.blur()
     if (!this.paused && !this.ended) {
       this.addClass(STATE_CLASS.ACTIVE)
     }
@@ -381,6 +386,7 @@ class Player extends Proxy {
   onPlay () {
     this.addClass(STATE_CLASS.PLAYING)
     this.removeClass(STATE_CLASS.PAUSED)
+    this.emit(Events.PLAYER_FOCUS)
   }
 
   onPause () {
@@ -388,7 +394,7 @@ class Player extends Proxy {
     if (this.userTimer) {
       clearTimeout(this.userTimer)
     }
-    this.emit('focus')
+    this.emit(Events.PLAYER_FOCUS)
   }
 
   onEnded () {
@@ -486,6 +492,7 @@ class Player extends Proxy {
 Player.util = util
 Player.sniffer = sniffer
 Player.Errors = Errors
+Player.Events = Events
 Player.Plugin = Plugin
 Player.BasePlugin = BasePlugin
 export default Player
