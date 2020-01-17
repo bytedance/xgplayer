@@ -6,6 +6,7 @@ import * as Events from './events'
 import Plugin, {pluginsManager, BasePlugin} from './plugin'
 import STATE_CLASS from './stateClassMap'
 import getDefaultPlugins from './plugins'
+import getDefaultConfig from './defaultConfig'
 import {
   version
 } from '../package.json'
@@ -16,23 +17,15 @@ class Player extends Proxy {
   constructor (options) {
     options.plugins = getDefaultPlugins(options)
     super(options)
-    this.config = util.deepCopy({
-      width: 600,
-      height: 337.5,
-      ignores: [],
-      whitelist: [],
-      lang: (document.documentElement.getAttribute('lang') || navigator.language || 'zh-cn').toLocaleLowerCase(),
-      inactive: 3000,
-      volume: 0.6,
-      controls: true,
-      controlsList: ['nodownload']
-    }, options)
+    this.config = util.deepCopy(getDefaultConfig(), options)
+    console.log(this.config)
     // timer and flags
     this.userTimer = null
     this.waitTimer = null
     this.isProgressMoving = false
     this.isReady = false
     this.isPlaying = false
+    this.isActive = true
 
     this._initDOM()
 
@@ -45,8 +38,8 @@ class Player extends Proxy {
       this.isReady = true
     }, 0)
 
-    if (this.config.videoInit) {
-      if (util.hasClass(this.root, STATE_CLASS.NO_START)) {
+    if (this.config.videoInit || this.config.autoplay) {
+      if (!this.hasStart) {
         this.start()
       }
     }
@@ -75,7 +68,7 @@ class Player extends Proxy {
         return false
       }
     }
-    // this.rootBackup = util.copyDom(this.root)
+
     this.addClass(`${STATE_CLASS.DEFAULT} xgplayer-${sniffer.device} ${STATE_CLASS.NO_START} ${this.config.controls ? '' : STATE_CLASS.NO_CONTROLS}`)
     this.root.appendChild(this.controls)
     if (this.config.fluid) {
@@ -163,6 +156,7 @@ class Player extends Proxy {
       this.emit('urlNull')
     }
     this.canPlayFunc = function () {
+      this.volume = this.config.volume
       this.play()
       player.off('canplay', this.canPlayFunc)
     }

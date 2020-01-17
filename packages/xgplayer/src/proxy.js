@@ -31,6 +31,11 @@ class Proxy {
     if (options.loop) {
       this.videoConfig.loop = 'loop'
     }
+
+    if (options.defaultPlaybackRate) {
+      this.videoConfig.defaultPlaybackRate = options.defaultPlaybackRate
+    }
+
     this.video = util.createDom(this.videoConfig.mediaType, '', this.videoConfig, '')
     if (options.autoplay) {
       this.video.autoplay = true

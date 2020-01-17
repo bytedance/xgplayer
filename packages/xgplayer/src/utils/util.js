@@ -131,7 +131,7 @@ util.deepCopy = function (dst, src) {
     Object.keys(src).forEach(key => {
       // eslint-disable-next-line no-undef
       if (util.typeOf(src[key]) === 'Object' && !(src[key] instanceof Node)) {
-        if (!dst[key]) {
+        if (dst[key] === undefined) {
           dst[key] = src[key]
         } else {
           util.deepCopy(dst[key], src[key])

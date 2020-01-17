@@ -1,0 +1,7 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="70" height="70" viewBox="0 0 70 70">
+<defs>
+  <path id="path_play" transform="scale(0.04,0.04)" d="M576,363L810,512L576,661zM342,214L576,363L576,661L342,810z"></path>
+  <path id="path_pause" transform="scale(0.04 0.04)" d="M598,214h170v596h-170v-596zM256 810v-596h170v596h-170z"></path>
+</defs>
+<path id="path" transform="scale(0.04 0.04)" d="M576,363L810,512L576,661zM342,214L576,363L576,661L342,810z"></path>
+</svg>
