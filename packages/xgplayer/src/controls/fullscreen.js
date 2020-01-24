@@ -6,10 +6,20 @@ let fullscreen = function () {
   let util = Player.util
 
   function onFullscreenBtnClick () {
-    if (util.hasClass(root, 'xgplayer-is-fullscreen')) {
-      player.exitFullscreen(root)
+    if(player.config.rotateFullscreen) {
+      if(util.hasClass(root, 'xgplayer-rotate-fullscreen')) {
+        console.log('player.exitRotateFullscreen')
+        player.exitRotateFullscreen()
+      } else {
+        console.log('player.getRotateFullscreen')
+        player.getRotateFullscreen()
+      }
     } else {
-      player.getFullscreen(root)
+      if (util.hasClass(root, 'xgplayer-is-fullscreen')) {
+        player.exitFullscreen(root)
+      } else {
+        player.getFullscreen(root)
+      }
     }
   }
   player.on('fullscreenBtnClick', onFullscreenBtnClick)

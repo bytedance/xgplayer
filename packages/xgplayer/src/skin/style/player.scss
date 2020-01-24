@@ -46,6 +46,17 @@
     .xgplayer-none{
         display: none
     }
+    &.xgplayer-rotate-fullscreen {
+        position: absolute;
+        top: 0;
+        left: 100%;
+        bottom: 0;
+        right: 0;
+        height: 100vw!important;
+        width: 100vh!important;
+        transform-origin: top left;
+        transform: rotate(90deg);
+    }
     &.xgplayer-is-fullscreen{
         width: 100%!important;
         height: 100%!important;

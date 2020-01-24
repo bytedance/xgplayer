@@ -409,6 +409,24 @@ class Player extends Proxy {
     player.emit('exitCssFullscreen')
   }
 
+  getRotateFullscreen () {
+    let player = this
+    document.documentElement.style.width = '100%'
+    document.documentElement.style.height = '100%'
+    if (player.root && !Player.util.hasClass(player.root, 'xgplayer-rotate-fullscreen')) {
+      Player.util.addClass(player.root, 'xgplayer-rotate-fullscreen')
+    }
+  }
+
+  exitRotateFullscreen () {
+    let player = this
+    document.documentElement.style.width = 'unset'
+    document.documentElement.style.height = 'unset'
+    if (player.root && Player.util.hasClass(player.root, 'xgplayer-rotate-fullscreen')) {
+      Player.util.removeClass(player.root, 'xgplayer-rotate-fullscreen')
+    }
+  }
+
   download () {
     const url = getAbsoluteURL(this.config.url)
     downloadUtil(url)
