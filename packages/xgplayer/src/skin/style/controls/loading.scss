@@ -31,6 +31,12 @@
   }
 }
 
+.xgplayer-skin-default.xgplayer-pause {
+  .xgplayer-loading{
+    display: none !important;
+  }
+}
+
 .xgplayer-skin-default.xgplayer-isloading {
   .xgplayer-loading{
     display: block;

@@ -41,7 +41,7 @@ class Player extends Proxy {
         this.root = el
       } else {
         this.emit('error', new Errors({
-          type: 'use', 
+          type: 'use',
           errd: {
             line: 45,
             handle: 'Constructor',
@@ -192,7 +192,7 @@ class Player extends Proxy {
     }
     this.logParams.playSrc = url
     this.canPlayFunc = function () {
-      let playPromise = player.video.play()
+      let playPromise = player.play()
       if (playPromise !== undefined && playPromise) {
         playPromise.then(function () {
           player.emit('autoplay started')
@@ -647,6 +647,14 @@ class Player extends Proxy {
     // 兼容IE下无法触发waiting事件的问题 seeking的时候直接出发waiting
     this.onWaiting()
     // util.addClass(this.root, 'seeking');
+  }
+
+  onTimeupdate () {
+    // for ie,playing fired before waiting
+    if (this.waitTimer) {
+      clearTimeout(this.waitTimer)
+    }
+    util.removeClass(this.root, 'xgplayer-isloading')
   }
 
   onSeeked () {

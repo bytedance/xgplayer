@@ -30,7 +30,8 @@ let i18n = function () {
     EXITCSSFULLSCREEN_TIPS: 'Exit cssfullscreen',
     TEXTTRACK: 'Caption',
     PIP: 'Pip',
-    SCREENSHOT: 'Screenshot'
+    SCREENSHOT: 'Screenshot',
+    LIVE: 'LIVE',
   }
   lang['zh-cn'] = {
     HAVE_NOTHING: '没有关于音频/视频是否就绪的信息',
@@ -60,7 +61,8 @@ let i18n = function () {
     EXITCSSFULLSCREEN_TIPS: '退出样式全屏',
     TEXTTRACK: '字幕',
     PIP: '画中画',
-    SCREENSHOT: '截图'
+    SCREENSHOT: '截图',
+    LIVE: '正在直播',
   }
   lang['jp'] = {
     HAVE_NOTHING: 'オーディオ/ビデオが準備できているか情報がありません',
@@ -90,7 +92,8 @@ let i18n = function () {
     EXITCSSFULLSCREEN_TIPS: 'シアターモードを終了',
     TEXTTRACK: '字幕',
     PIP: 'ミニプレーヤー',
-    SCREENSHOT: 'スクリーンショット'
+    SCREENSHOT: 'スクリーンショット',
+    LIVE: '生放送',
   }
 
   Object.defineProperty(player, 'lang', {
