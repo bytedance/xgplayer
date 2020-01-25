@@ -169,7 +169,11 @@ let s_definition = function () {
           util.removeClass(player.root, 'xgplayer-definition-active')
         }
       } else if (player.config.definitionActive === 'click' && li && (li.tagName.toLocaleLowerCase() === 'p' || li.tagName.toLocaleLowerCase() === 'em')) {
-        util.addClass(player.root, 'xgplayer-definition-active')
+        if(sniffer.device === 'mobile') {
+          util.toggleClass(player.root, 'xgplayer-definition-active')
+        } else {
+          util.addClass(player.root, 'xgplayer-definition-active')
+        }
         container.focus()
       }
       player.emit('focus')
@@ -182,10 +186,16 @@ let s_definition = function () {
     util.removeClass(root, 'xgplayer-definition-active')
   })
 
+  function onBlur () {
+    util.removeClass(root, 'xgplayer-definition-active')
+  }
+  player.on('blur', onBlur)
+
   function onDestroy () {
     player.off('resourceReady', onResourceReady)
     player.off('canplay', onCanplayResourceReady)
     player.off('canplay', onCanplayChangeDefinition)
+    player.off('blur', onBlur)
     player.off('destroy', onDestroy)
   }
   player.once('destroy', onDestroy)

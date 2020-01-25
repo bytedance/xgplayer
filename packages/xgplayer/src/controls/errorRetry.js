@@ -53,7 +53,7 @@ function errorRetry () {
           resolveFun(resolve, {status: xhr.status, statusText: xhr.statusText || 'The network environment is disconnected or the address is invalid', xhr})
         }
         xhr.onabort = function () {
-          console.log('task onerror', xhr)
+          // console.log('task onerror', xhr)
         }
         player.retryData.errfTimer = window.setTimeout(() => {
           let errfTimer = player.retryData.errfTimer
@@ -70,7 +70,7 @@ function errorRetry () {
   }
 
   function retryCanPlay () {
-    console.log(`retryCanPlay this.retryData.currentTime:${this.retryData.currentTime}`)
+    // console.log(`retryCanPlay this.retryData.currentTime:${this.retryData.currentTime}`)
     this.currentTime = this.retryData.currentTime
     this.play()
     this.retryData.retryCode = 0
@@ -81,7 +81,7 @@ function errorRetry () {
   const _originErrorEmit = player._onError
   player._onError = (data) => {
     const errorCount = this.retryData.count
-    console.log(`originErrorEmit:errorCount:${errorCount}`, data)
+    // console.log(`originErrorEmit:errorCount:${errorCount}`, data)
     if (errorCount > errorConfig.maxCount) {
       if (errorConfig.isFetch) {
         errorfetch(this, this.currentSrc, errorConfig.fetchTimeout).then((data) => {
