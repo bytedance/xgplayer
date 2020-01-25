@@ -8,7 +8,7 @@
     position: absolute;
     left: 50%;
     top: 50%;
-    margin: -70px auto auto -50px;
+    margin: -50px auto auto -50px;
     svg{
       border-radius: 50%;
       transform-origin: center;
@@ -28,6 +28,12 @@
 .xgplayer-skin-default.xgplayer-nostart {
   .xgplayer-loading{
     display: none;
+  }
+}
+
+.xgplayer-skin-default.xgplayer-pause {
+  .xgplayer-loading{
+    display: none !important;
   }
 }
 

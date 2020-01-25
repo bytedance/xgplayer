@@ -1,5 +1,9 @@
 import Player from '../../player'
 
+const isRotateFullscreen = (player) => {
+  return Player.util.hasClass(player.root, 'xgplayer-rotate-fullscreen')
+}
+
 let s_progress = function () {
   let player = this
   let util = Player.util
@@ -125,16 +129,24 @@ let s_progress = function () {
         return true
       }
       container.focus()
-      containerWidth = container.getBoundingClientRect().width
       let {left} = progress.getBoundingClientRect()
+
+      const isRotate = isRotateFullscreen(player)
+      if(isRotate) {
+        left = progress.getBoundingClientRect().top
+        containerWidth = container.getBoundingClientRect().height
+      } else {
+        containerWidth = container.getBoundingClientRect().width
+        left = progress.getBoundingClientRect().left
+      }
 
       let move = function (e) {
         // e.preventDefault()
         e.stopPropagation()
         util.event(e)
         player.isProgressMoving = true
-        let w = e.clientX - left
-        if(w > containerWidth) {
+        let w = (isRotate ? e.clientY : e.clientX) - left
+        if (w > containerWidth) {
           w = containerWidth
         }
         let now = w / containerWidth * player.duration
@@ -160,7 +172,7 @@ let s_progress = function () {
         window.removeEventListener('touchend', up)
         container.blur()
         if (!player.isProgressMoving || player.videoConfig.mediaType === 'audio' || player.dash || player.config.closeMoveSeek) {
-          let w = e.clientX - left
+          let w = (isRotate ? e.clientY : e.clientX) - left
           if(w > containerWidth) {
             w = containerWidth
           }
@@ -183,10 +195,12 @@ let s_progress = function () {
     if (!player.config.allowSeekAfterEnded && player.ended) {
       return true
     }
-    let containerLeft = container.getBoundingClientRect().left
-    let containerWidth = container.getBoundingClientRect().width
+    const isRotate = isRotateFullscreen(player)
+    let containerLeft = isRotate ? container.getBoundingClientRect().left : container.getBoundingClientRect().top
+    let containerWidth = isRotate ? container.getBoundingClientRect().width : container.getBoundingClientRect().height
+
     let compute = function (e) {
-      let now = (e.clientX - containerLeft) / containerWidth * player.duration
+      let now = ((isRotate ? e.clientY : e.clientX) - containerLeft) / containerWidth * player.duration
       now = now < 0 ? 0 : now
       point.textContent = util.format(now)
       let pointWidth = point.getBoundingClientRect().width
@@ -198,7 +212,7 @@ let s_progress = function () {
         let tnaiRowIndex = Math.ceil(indexInPage / tnailRow) - 1
         let tnaiColIndex = indexInPage - tnaiRowIndex * tnailRow - 1
         thumbnail.style['background-position'] = `-${tnaiColIndex * tnailWidth}px -${tnaiRowIndex * tnailHeight}px`
-        let left = e.clientX - containerLeft - tnailWidth / 2
+        let left = (isRotate ? e.clientY : e.clientX) - containerLeft - tnailWidth / 2
         left = left > 0 ? left : 0
         left = left < containerWidth - tnailWidth ? left : containerWidth - tnailWidth
         thumbnail.style.left = `${left}px`
@@ -238,7 +252,11 @@ let s_progress = function () {
       containerWidth = container.getBoundingClientRect().width
     }
     if (player.videoConfig.mediaType !== 'audio' || !player.isProgressMoving || !player.dash) {
-      progress.style.width = `${player.currentTime * 100 / player.duration}%`
+      const precent = player.currentTime * 100 / player.duration
+      const prevWidth = Number.parseFloat(progress.style.width || '0');
+      if (Math.abs(precent - prevWidth) <= 1) {
+        progress.style.width = `${player.currentTime * 100 / player.duration}%`
+      }
     }
   }
   player.on('timeupdate', onTimeupdate)

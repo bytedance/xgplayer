@@ -2,6 +2,7 @@ import Player from '../../player'
 
 let s_playbackRate = function () {
   let player = this
+  let sniffer = Player.sniffer
   let util = Player.util
   if (player.config.playbackRate) {
     player.config.playbackRate.sort((a, b) => b - a)
@@ -84,6 +85,9 @@ let s_playbackRate = function () {
         to = parseFloat(li.getAttribute('cname'))
         li.parentNode.nextSibling.innerHTML = `${li.getAttribute('cname')}x`
         player.emit('playbackrateChange', {from, to})
+        if (sniffer.device === 'mobile') {
+          util.removeClass(player.root, 'xgplayer-playbackrate-active')
+        }
       } else if (li && (li.tagName.toLocaleLowerCase() === 'p' || li.tagName.toLocaleLowerCase() === 'span')) {
         util.addClass(player.root, 'xgplayer-playbackrate-active')
         ul.focus()

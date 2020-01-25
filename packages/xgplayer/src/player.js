@@ -35,16 +35,24 @@ class Player extends Proxy {
       unselectable: 'on',
       onselectstart: 'return false'
     }, 'xgplayer-controls')
+    if(this.config.isShowControl) {
+      this.controls.style.display = 'none'
+    }
     if (!this.root) {
       let el = this.config.el
       if (el && el.nodeType === 1) {
         this.root = el
       } else {
-        this.emit('error', new Errors('use', this.config.vid, {
-          line: 32,
-          handle: 'Constructor',
-          msg: 'container id can\'t be empty'
+        this.emit('error', new Errors({
+          type: 'use',
+          errd: {
+            line: 45,
+            handle: 'Constructor',
+            msg: 'container id can\'t be empty'
+          },
+          vid: this.config.vid
         }))
+        console.error('container id can\'t be empty')
         return false
       }
     }
@@ -187,7 +195,7 @@ class Player extends Proxy {
     }
     this.logParams.playSrc = url
     this.canPlayFunc = function () {
-      let playPromise = player.video.play()
+      let playPromise = player.play()
       if (playPromise !== undefined && playPromise) {
         playPromise.then(function () {
           player.emit('autoplay started')
@@ -199,7 +207,11 @@ class Player extends Proxy {
       player.off('canplay', player.canPlayFunc)
     }
     if (util.typeOf(url) === 'String') {
-      this.video.src = url
+      if(url.indexOf('blob:') > -1 && url === this.video.src) {
+        //在Chromium环境下用mse url给video二次赋值会导致错误
+      } else {
+        this.video.src = url
+      }
     } else {
       url.forEach(item => {
         this.video.appendChild(util.createDom('source', '', {
@@ -400,6 +412,26 @@ class Player extends Proxy {
     player.emit('exitCssFullscreen')
   }
 
+  getRotateFullscreen () {
+    let player = this
+    document.documentElement.style.width = '100%'
+    document.documentElement.style.height = '100%'
+    if (player.root && !Player.util.hasClass(player.root, 'xgplayer-rotate-fullscreen')) {
+      Player.util.addClass(player.root, 'xgplayer-rotate-fullscreen')
+    }
+    player.emit('getRotateFullscreen')
+  }
+
+  exitRotateFullscreen () {
+    let player = this
+    document.documentElement.style.width = 'unset'
+    document.documentElement.style.height = 'unset'
+    if (player.root && Player.util.hasClass(player.root, 'xgplayer-rotate-fullscreen')) {
+      Player.util.removeClass(player.root, 'xgplayer-rotate-fullscreen')
+    }
+    player.emit('exitRotateFullscreen')
+  }
+
   download () {
     const url = getAbsoluteURL(this.config.url)
     downloadUtil(url)
@@ -530,9 +562,9 @@ class Player extends Proxy {
     let targetWidth = player.video.videoWidth
     let targetHeight = player.video.videoHeight
 
-    if (!player.config.rotate.innerRotate) {
-      // player.root.style.width = height + 'px'
-      // player.root.style.height = width + 'px'
+    if (!player.config.rotate.innerRotate && player.config.rotate.controlsFix) {
+      player.root.style.width = height + 'px'
+      player.root.style.height = width + 'px'
     }
 
     let scale
@@ -568,13 +600,19 @@ class Player extends Proxy {
     }
 
     if (player.config.rotate.innerRotate) {
-      player.video.style.transformOrigin = 'center center'
-      player.video.style.transform = `rotate(${player.rotateDeg}turn) scale(${scale})`
-      player.video.style.webKitTransform = `rotate(${player.rotateDeg}turn) scale(${scale})`
+        player.video.style.transformOrigin = 'center center'
+        player.video.style.transform = `rotate(${player.rotateDeg}turn) scale(${scale})`
+        player.video.style.webKitTransform = `rotate(${player.rotateDeg}turn) scale(${scale})`
     } else {
-      player.root.style.transformOrigin = 'center center'
-      player.root.style.transform = `rotate(${player.rotateDeg}turn) scale(${1})`
-      player.root.style.webKitTransform = `rotate(${player.rotateDeg}turn) scale(${1})`
+      if(player.config.rotate.controlsFix) {
+        player.video.style.transformOrigin = 'center center'
+        player.video.style.transform = `rotate(${player.rotateDeg}turn) scale(${scale})`
+        player.video.style.webKitTransform = `rotate(${player.rotateDeg}turn) scale(${scale})`
+      } else {
+        player.root.style.transformOrigin = 'center center'
+        player.root.style.transform = `rotate(${player.rotateDeg}turn) scale(${1})`
+        player.root.style.webKitTransform = `rotate(${player.rotateDeg}turn) scale(${1})`
+      }
     }
   }
 
@@ -610,6 +648,7 @@ class Player extends Proxy {
   }
 
   onPlay () {
+    util.addClass(this.root, 'xgplayer-isloading')
     util.addClass(this.root, 'xgplayer-playing')
     util.removeClass(this.root, 'xgplayer-pause')
   }
@@ -628,11 +667,23 @@ class Player extends Proxy {
   }
 
   onSeeking () {
+    this.isSeeking = true
+    // 兼容IE下无法触发waiting事件的问题 seeking的时候直接出发waiting
+    this.onWaiting()
     // util.addClass(this.root, 'seeking');
+  }
+
+  onTimeupdate () {
+    // for ie,playing fired before waiting
+    if (this.waitTimer) {
+      clearTimeout(this.waitTimer)
+    }
+    util.removeClass(this.root, 'xgplayer-isloading')
   }
 
   onSeeked () {
     // for ie,playing fired before waiting
+    this.isSeeking = false
     if (this.waitTimer) {
       clearTimeout(this.waitTimer)
     }
@@ -644,12 +695,29 @@ class Player extends Proxy {
     if (self.waitTimer) {
       clearTimeout(self.waitTimer)
     }
+    if (self.checkTimer) {
+      clearInterval(self.checkTimer)
+      self.checkTimer = null
+    }
+    let time = self.currentTime
     self.waitTimer = setTimeout(function () {
       util.addClass(self.root, 'xgplayer-isloading')
+      self.checkTimer = setInterval(function () {
+        if (self.currentTime !== time) {
+          util.removeClass(this.root, 'xgplayer-isloading')
+          clearInterval(self.checkTimer)
+          self.checkTimer = null
+        }
+      }, 1000)
     }, 500)
   }
 
   onPlaying () {
+    // 兼容safari下无法自动播放会触发该事件的场景
+    if (this.paused) {
+      return
+    }
+    this.isSeeking = false
     if (this.waitTimer) {
       clearTimeout(this.waitTimer)
     }

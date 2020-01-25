@@ -11,7 +11,7 @@ class Proxy {
     }
     this._hasStart = false
     this.videoConfig = {
-      controls: false,
+      controls: !!options.isShowControl,
       autoplay: options.autoplay,
       playsinline: options.playsinline,
       'webkit-playsinline': options.playsinline,
@@ -118,14 +118,8 @@ class Proxy {
           self.logParams.played[self.logParams.played.length - 1].end = self.video.currentTime
         }
         if (name === 'error') {
-          if (self.video.error) {
-            self.emit(name, new Errors('other', self.currentTime, self.duration, self.networkState, self.readyState, self.currentSrc, self.src,
-              self.ended, {
-                line: 41,
-                msg: self.error,
-                handle: 'Constructor'
-              }))
-          }
+          // process the error
+          self._onError(name)
         } else {
           self.emit(name, self)
         }
@@ -151,6 +145,19 @@ class Proxy {
         }
       }, false)
     })
+  }
+  /**
+   * 错误监听处理逻辑抽离
+   */
+  _onError (name) {
+    if (this.video && this.video.error) {
+      this.emit(name, new Errors('other', this.currentTime, this.duration, this.networkState, this.readyState, this.currentSrc, this.src,
+        this.ended, {
+          line: 162,
+          msg: this.error,
+          handle: 'Constructor'
+        }, this.video.error.code, this.video.error))
+    }
   }
 
   get hasStart () {
@@ -359,7 +366,7 @@ class Proxy {
   }
   set poster (posterUrl) {
     let poster = util.findDom(this.root, '.xgplayer-poster')
-    if(poster) {
+    if (poster) {
       poster.style.backgroundImage = `url(${posterUrl})`
     }
   }

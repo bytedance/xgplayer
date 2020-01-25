@@ -23,13 +23,15 @@ let i18n = function () {
     PLAYNEXT_TIPS: 'Play next',
     DOWNLOAD_TIPS: 'Download',
     ROTATE_TIPS: 'Rotate',
+    RELOAD_TIPS: 'Reload',
     FULLSCREEN_TIPS: "Fullscreen",
     EXITFULLSCREEN_TIPS: 'Exit fullscreen',
     CSSFULLSCREEN_TIPS: 'Cssfullscreen',
     EXITCSSFULLSCREEN_TIPS: 'Exit cssfullscreen',
     TEXTTRACK: 'Caption',
     PIP: 'Pip',
-    SCREENSHOT: 'Screenshot'
+    SCREENSHOT: 'Screenshot',
+    LIVE: 'LIVE',
   }
   lang['zh-cn'] = {
     HAVE_NOTHING: '没有关于音频/视频是否就绪的信息',
@@ -52,13 +54,15 @@ let i18n = function () {
     PLAYNEXT_TIPS: '下一集',
     DOWNLOAD_TIPS: '下载',
     ROTATE_TIPS: '旋转',
+    RELOAD_TIPS: '重新载入',
     FULLSCREEN_TIPS: "进入全屏",
     EXITFULLSCREEN_TIPS: '退出全屏',
     CSSFULLSCREEN_TIPS: '进入样式全屏',
     EXITCSSFULLSCREEN_TIPS: '退出样式全屏',
     TEXTTRACK: '字幕',
     PIP: '画中画',
-    SCREENSHOT: '截图'
+    SCREENSHOT: '截图',
+    LIVE: '正在直播',
   }
   lang['jp'] = {
     HAVE_NOTHING: 'オーディオ/ビデオが準備できているか情報がありません',
@@ -81,13 +85,15 @@ let i18n = function () {
     PLAYNEXT_TIPS: '次をプレイ',
     DOWNLOAD_TIPS: 'ダウンロード',
     ROTATE_TIPS: '回転',
+    RELOAD_TIPS: '再読み込み',
     FULLSCREEN_TIPS: "フルスクリーン",
     EXITFULLSCREEN_TIPS: 'フルスクリーンを終了',
     CSSFULLSCREEN_TIPS: 'シアターモード',
     EXITCSSFULLSCREEN_TIPS: 'シアターモードを終了',
     TEXTTRACK: '字幕',
     PIP: 'ミニプレーヤー',
-    SCREENSHOT: 'スクリーンショット'
+    SCREENSHOT: 'スクリーンショット',
+    LIVE: '生放送',
   }
 
   Object.defineProperty(player, 'lang', {

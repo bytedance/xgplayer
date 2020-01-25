@@ -3,9 +3,17 @@ import Player from '../player'
 let screenShot = function () {
   let player = this
   let root = player.root
-  if (!player.config.screenShot) {
+  let screenShotOptions = player.config.screenShot
+  if (!screenShotOptions) {
     return
   }
+
+  let encoderOptions = 0.92
+  if(screenShotOptions.quality || screenShotOptions.quality === 0) {
+    encoderOptions = screenShotOptions.quality
+  }
+  let type = screenShotOptions.type === undefined ? 'image/png' : screenShotOptions.type
+  let format = screenShotOptions.format === undefined ? '.png' : screenShotOptions.format
 
   let canvas = document.createElement('canvas')
   let canvasCtx = canvas.getContext('2d')
@@ -22,13 +30,16 @@ let screenShot = function () {
     saveLink.dispatchEvent(event)
   }
 
-  function onScreenShotBtnClick () {
+  function onScreenShotBtnClick (save = true) {
+    canvas.width = player.video.videoWidth || 600
+    canvas.height = player.video.videoHeight || 337.5
     img.onload = (function () {
       canvasCtx.drawImage(player.video, 0, 0, canvas.width, canvas.height)
       img.setAttribute('crossOrigin', 'anonymous')
-      img.src = canvas.toDataURL('image/png').replace('image/png', 'image/octet-stream')
+      img.src = canvas.toDataURL(type, encoderOptions).replace(type, 'image/octet-stream')
       let screenShotImg = img.src.replace(/^data:image\/[^;]+/, 'data:application/octet-stream')
-      saveScreenShot(screenShotImg, '截图.png')
+      player.emit('screenShot', screenShotImg)
+      save && saveScreenShot(screenShotImg, '截图' + format)
     })()
   }
   player.on('screenShotBtnClick', onScreenShotBtnClick)

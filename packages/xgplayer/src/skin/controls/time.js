@@ -10,13 +10,14 @@ let s_time = function () {
     player.controls.appendChild(container)
   })
   let onTimeChange = function () {
-    if(player.duration === Infinity) {
-      util.addClass(player.root, 'xgplayer-is-live')
-      if(!util.findDom(player.root, '.xgplayer-live')) {
-        const live = util.createDom('xg-live', '正在直播', {}, 'xgplayer-live')
-        player.controls.appendChild(live)
-      }
-    }
+    let liveText = player.lang.LIVE
+    // if(player.duration === Infinity) {
+    //   util.addClass(player.root, 'xgplayer-is-live')
+    //   if(!util.findDom(player.root, '.xgplayer-live')) {
+    //     const live = util.createDom('xg-live', liveText, {}, 'xgplayer-live')
+    //     player.controls.appendChild(live)
+    //   }
+    // }
     if (player.videoConfig.mediaType !== 'audio' || !player.isProgressMoving || !player.dash) {
       container.innerHTML = `<span>${util.format(player.currentTime || 0)}</span>` + `<em>${util.format(player.duration)}</em>`
     }

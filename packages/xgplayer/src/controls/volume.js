@@ -81,7 +81,11 @@ let volume = function () {
     } else {
       player.video.muted = false
       if (player.volume < 0.1) {
-        player.volume = slider.volume
+        if(slider.volume < 0.1) {
+          player.volume = 0.6
+        } else {
+          player.volume = slider.volume
+        }
       } else {
         player.volume = 0
       }
@@ -128,6 +132,7 @@ let volume = function () {
         } else {
           util.addClass(root, 'xgplayer-volume-large')
         }
+        if (!bar) return
         let containerHeight = bar.getBoundingClientRect().height || 76
         selected.style.height = `${player.volume * containerHeight}px`
       }
