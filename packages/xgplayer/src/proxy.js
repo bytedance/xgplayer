@@ -229,6 +229,7 @@ class Proxy {
   }
   set currentTime (time) {
     this.video.currentTime = time
+    this.emit('currentTimeChange')
   }
   get defaultMuted () {
     return this.video.defaultMuted
@@ -351,6 +352,7 @@ class Proxy {
     }
     this.video.pause()
     this.video.src = url
+    this.emit('srcChange')
     this.logParams.playSrc = url
     this.logParams.pt = new Date().getTime()
     this.logParams.vt = this.logParams.pt

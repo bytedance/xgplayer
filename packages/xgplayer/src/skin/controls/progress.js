@@ -261,6 +261,16 @@ let s_progress = function () {
   }
   player.on('timeupdate', onTimeupdate)
 
+  let onCurrentTimeChange = function () {
+    progress.style.width = `${player.currentTime * 100 / player.duration}%`
+  }
+  player.on('currentTimeChange', onCurrentTimeChange)
+
+  let onSrcChange = function () {
+    progress.style.width = '0%'
+  }
+  player.on('srcChange', onSrcChange)
+
   let onCacheUpdate = function () {
     let buffered = player.buffered
     if (buffered && buffered.length > 0) {
@@ -289,6 +299,8 @@ let s_progress = function () {
     player.removeAllProgressDot()
     player.off('canplay', onCanplay)
     player.off('timeupdate', onTimeupdate)
+    player.off('currentTimeChange', onCurrentTimeChange)
+    player.off('srcChange', onSrcChange)
     cacheUpdateEvents.forEach(item => {
       player.off(item, onCacheUpdate)
     })
