@@ -228,6 +228,7 @@ class Proxy {
     return this.video.currentTime
   }
   set currentTime (time) {
+    if(typeof isFinite === 'function' && !isFinite(time)) return
     this.video.currentTime = time
     this.emit('currentTimeChange')
   }
