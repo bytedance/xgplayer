@@ -44,16 +44,21 @@ const pluginsManager = {
     if (!pluginName) {
       throw new Error('The property pluginName is necessary')
     }
+    if (!options.config) {
+      options.config = {}
+    }
     for (const item of Object.keys(originalOptions)) {
       if (pluginName.toLowerCase() === item.toLowerCase()) {
-        options.config = originalOptions[item]
-      } else {
-        options.config = {}
+        options.config = Object.assign({}, options.config, originalOptions[item])
+        break;
       }
     }
     if (!options.root) {
       options.root = player.root
+    } else if (typeof options.root === 'string') {
+      options.root = player[options.root]
     }
+
     try { // eslint-disable-next-line new-cap
       const _instance = new plugin(options)
       plugins[pluginName.toLowerCase()] = _instance

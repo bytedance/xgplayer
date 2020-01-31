@@ -1,22 +1,17 @@
 (function (global, factory) {
-	typeof exports === 'object' && typeof module !== 'undefined' ? module.exports = factory(require('delegate-events')) :
-	typeof define === 'function' && define.amd ? define(['delegate-events'], factory) :
-	(global = global || self, global.Player = factory(global.delegate));
-}(this, (function (delegate) { 'use strict';
-
-	delegate = delegate && delegate.hasOwnProperty('default') ? delegate['default'] : delegate;
+	typeof exports === 'object' && typeof module !== 'undefined' ? factory(exports) :
+	typeof define === 'function' && define.amd ? define(['exports'], factory) :
+	(global = global || self, factory(global.Player = {}));
+}(this, (function (exports) { 'use strict';
 
 	function createCommonjsModule(fn, module) {
 		return module = { exports: {} }, fn(module, module.exports), module.exports;
 	}
 
 	// ES3 safe
-
 	var _undefined = void 0;
 
-	var is = function (value) {
-	  return value !== _undefined && value !== null;
-	};
+	var is = function (value) { return value !== _undefined && value !== null; };
 
 	// prettier-ignore
 	var possibleTypes = { "object": true, "function": true, "undefined": true /* document.all */ };
@@ -52,8 +47,7 @@
 		return !is$2(value);
 	};
 
-	var classRe = /^\s*class[\s{/}]/,
-	    functionToString = Function.prototype.toString;
+	var classRe = /^\s*class[\s{/}]/, functionToString = Function.prototype.toString;
 
 	var is$4 = function (value) {
 		if (!is$3(value)) return false;
@@ -62,8 +56,7 @@
 	};
 
 	var isImplemented = function () {
-		var assign = Object.assign,
-		    obj;
+		var assign = Object.assign, obj;
 		if (typeof assign !== "function") return false;
 		obj = { foo: "raz" };
 		assign(obj, { bar: "dwa" }, { trzy: "trzy" });
@@ -80,20 +73,15 @@
 	};
 
 	// eslint-disable-next-line no-empty-function
-
 	var noop = function () {};
 
 	var _undefined$1 = noop(); // Support ES3 engines
 
-	var isValue = function (val) {
-	  return val !== _undefined$1 && val !== null;
-	};
+	var isValue = function (val) { return val !== _undefined$1 && val !== null; };
 
 	var keys = Object.keys;
 
-	var shim = function (object) {
-	  return keys(isValue(object) ? Object(object) : object);
-	};
+	var shim = function (object) { return keys(isValue(object) ? Object(object) : object); };
 
 	var keys$1 = isImplemented$1() ? Object.keys : shim;
 
@@ -102,13 +90,10 @@
 		return value;
 	};
 
-	var max = Math.max;
+	var max   = Math.max;
 
-	var shim$1 = function (dest, src /*, …srcn*/) {
-		var error,
-		    i,
-		    length = max(arguments.length, 2),
-		    assign;
+	var shim$1 = function (dest, src/*, …srcn*/) {
+		var error, i, length = max(arguments.length, 2), assign;
 		dest = Object(validValue(dest));
 		assign = function (key) {
 			try {
@@ -127,8 +112,7 @@
 
 	var assign = isImplemented() ? Object.assign : shim$1;
 
-	var forEach = Array.prototype.forEach,
-	    create = Object.create;
+	var forEach = Array.prototype.forEach, create = Object.create;
 
 	var process = function (src, obj) {
 		var key;
@@ -136,7 +120,7 @@
 	};
 
 	// eslint-disable-next-line no-unused-vars
-	var normalizeOptions = function (opts1 /*, …options*/) {
+	var normalizeOptions = function (opts1/*, …options*/) {
 		var result = create(null);
 		forEach.call(arguments, function (options) {
 			if (!isValue(options)) return;
@@ -154,7 +138,7 @@
 
 	var indexOf = String.prototype.indexOf;
 
-	var shim$2 = function (searchString /*, position*/) {
+	var shim$2 = function (searchString/*, position*/) {
 		return indexOf.call(this, searchString, arguments[1]) > -1;
 	};
 
@@ -164,7 +148,7 @@
 
 
 
-	var d = module.exports = function (dscr, value /*, options*/) {
+	var d = (module.exports = function (dscr, value/*, options*/) {
 		var c, e, w, options, desc;
 		if (arguments.length < 2 || typeof dscr !== "string") {
 			options = value;
@@ -184,9 +168,9 @@
 
 		desc = { value: value, configurable: c, enumerable: e, writable: w };
 		return !options ? desc : assign(normalizeOptions(options), desc);
-	};
+	});
 
-	d.gs = function (dscr, get, set /*, options*/) {
+	d.gs = function (dscr, get, set/*, options*/) {
 		var c, e, options, desc;
 		if (typeof dscr !== "string") {
 			options = set;
@@ -227,20 +211,13 @@
 
 	var eventEmitter = createCommonjsModule(function (module, exports) {
 
-	var apply = Function.prototype.apply,
-	    call = Function.prototype.call,
-	    create = Object.create,
-	    defineProperty = Object.defineProperty,
-	    defineProperties = Object.defineProperties,
-	    hasOwnProperty = Object.prototype.hasOwnProperty,
-	    descriptor = { configurable: true, enumerable: false, writable: true },
-	    on,
-	    once,
-	    off,
-	    emit,
-	    methods,
-	    descriptors,
-	    base;
+	var apply = Function.prototype.apply, call = Function.prototype.call
+	  , create = Object.create, defineProperty = Object.defineProperty
+	  , defineProperties = Object.defineProperties
+	  , hasOwnProperty = Object.prototype.hasOwnProperty
+	  , descriptor = { configurable: true, enumerable: false, writable: true }
+
+	  , on, once, off, emit, methods, descriptors, base;
 
 	on = function (type, listener) {
 		var data;
@@ -254,7 +231,9 @@
 		} else {
 			data = this.__ee__;
 		}
-		if (!data[type]) data[type] = listener;else if (typeof data[type] === 'object') data[type].push(listener);else data[type] = [data[type], listener];
+		if (!data[type]) data[type] = listener;
+		else if (typeof data[type] === 'object') data[type].push(listener);
+		else data[type] = [data[type], listener];
 
 		return this;
 	};
@@ -284,13 +263,16 @@
 		listeners = data[type];
 
 		if (typeof listeners === 'object') {
-			for (i = 0; candidate = listeners[i]; ++i) {
-				if (candidate === listener || candidate.__eeOnceListener__ === listener) {
-					if (listeners.length === 2) data[type] = listeners[i ? 0 : 1];else listeners.splice(i, 1);
+			for (i = 0; (candidate = listeners[i]); ++i) {
+				if ((candidate === listener) ||
+						(candidate.__eeOnceListener__ === listener)) {
+					if (listeners.length === 2) data[type] = listeners[i ? 0 : 1];
+					else listeners.splice(i, 1);
 				}
 			}
 		} else {
-			if (listeners === listener || listeners.__eeOnceListener__ === listener) {
+			if ((listeners === listener) ||
+					(listeners.__eeOnceListener__ === listener)) {
 				delete data[type];
 			}
 		}
@@ -311,27 +293,27 @@
 			for (i = 1; i < l; ++i) args[i - 1] = arguments[i];
 
 			listeners = listeners.slice();
-			for (i = 0; listener = listeners[i]; ++i) {
+			for (i = 0; (listener = listeners[i]); ++i) {
 				apply.call(listener, this, args);
 			}
 		} else {
 			switch (arguments.length) {
-				case 1:
-					call.call(listeners, this);
-					break;
-				case 2:
-					call.call(listeners, this, arguments[1]);
-					break;
-				case 3:
-					call.call(listeners, this, arguments[1], arguments[2]);
-					break;
-				default:
-					l = arguments.length;
-					args = new Array(l - 1);
-					for (i = 1; i < l; ++i) {
-						args[i - 1] = arguments[i];
-					}
-					apply.call(listeners, this, args);
+			case 1:
+				call.call(listeners, this);
+				break;
+			case 2:
+				call.call(listeners, this, arguments[1]);
+				break;
+			case 3:
+				call.call(listeners, this, arguments[1], arguments[2]);
+				break;
+			default:
+				l = arguments.length;
+				args = new Array(l - 1);
+				for (i = 1; i < l; ++i) {
+					args[i - 1] = arguments[i];
+				}
+				apply.call(listeners, this, args);
 			}
 		}
 	};
@@ -353,7 +335,7 @@
 	base = defineProperties({}, descriptors);
 
 	module.exports = exports = function (o) {
-		return o == null ? create(base) : defineProperties(Object(o), descriptors);
+		return (o == null) ? create(base) : defineProperties(Object(o), descriptors);
 	};
 	exports.methods = methods;
 	});
@@ -361,9 +343,7 @@
 
 	var map = { function: true, object: true };
 
-	var isObject = function (value) {
-	  return isValue(value) && map[typeof value] || false;
-	};
+	var isObject = function (value) { return (isValue(value) && map[typeof value]) || false; };
 
 	var validObject = function (value) {
 		if (!isObject(value)) throw new TypeError(value + " is not an Object");
@@ -372,9 +352,8 @@
 
 	var hasOwnProperty$1 = Object.prototype.hasOwnProperty;
 
-	var allOff = function (emitter /*, type*/) {
-		var type = arguments[1],
-		    data;
+	var allOff = function (emitter/*, type*/) {
+		var type = arguments[1], data;
 
 		validObject(emitter);
 
@@ -1412,6 +1391,9 @@
 	    if (!pluginName) {
 	      throw new Error('The property pluginName is necessary');
 	    }
+	    if (!options.config) {
+	      options.config = {};
+	    }
 	    var _iteratorNormalCompletion = true;
 	    var _didIteratorError = false;
 	    var _iteratorError = undefined;
@@ -1421,9 +1403,8 @@
 	        var item = _step.value;
 
 	        if (pluginName.toLowerCase() === item.toLowerCase()) {
-	          options.config = originalOptions[item];
-	        } else {
-	          options.config = {};
+	          options.config = Object.assign({}, options.config, originalOptions[item]);
+	          break;
 	        }
 	      }
 	    } catch (err) {
@@ -1443,7 +1424,10 @@
 
 	    if (!options.root) {
 	      options.root = player.root;
+	    } else if (typeof options.root === 'string') {
+	      options.root = player[options.root];
 	    }
+
 	    try {
 	      // eslint-disable-next-line new-cap
 	      var _instance = new plugin(options);
@@ -1664,6 +1648,165 @@
 	  }
 	};
 
+	/**
+	 * Element prototype.
+	 */
+
+	var proto = Element.prototype;
+
+	/**
+	 * Vendor function.
+	 */
+
+	var vendor = proto.matchesSelector
+	  || proto.webkitMatchesSelector
+	  || proto.mozMatchesSelector
+	  || proto.msMatchesSelector
+	  || proto.oMatchesSelector;
+
+	/**
+	 * Expose `match()`.
+	 */
+
+	var matchesSelector = match;
+
+	/**
+	 * Match `el` to `selector`.
+	 *
+	 * @param {Element} el
+	 * @param {String} selector
+	 * @return {Boolean}
+	 * @api public
+	 */
+
+	function match(el, selector) {
+	  if (vendor) return vendor.call(el, selector);
+	  var nodes = el.parentNode.querySelectorAll(selector);
+	  for (var i = 0; i < nodes.length; ++i) {
+	    if (nodes[i] == el) return true;
+	  }
+	  return false;
+	}
+
+	var closest = function (element, selector, checkYoSelf) {
+	  var parent = checkYoSelf ? element : element.parentNode;
+
+	  while (parent && parent !== document) {
+	    if (matchesSelector(parent, selector)) return parent;
+	    parent = parent.parentNode;
+	  }
+	};
+
+	var bind, unbind, prefix;
+
+	function detect () {
+	  bind = window.addEventListener ? 'addEventListener' : 'attachEvent';
+	  unbind = window.removeEventListener ? 'removeEventListener' : 'detachEvent';
+	  prefix = bind !== 'addEventListener' ? 'on' : '';
+	}
+
+	/**
+	 * Bind `el` event `type` to `fn`.
+	 *
+	 * @param {Element} el
+	 * @param {String} type
+	 * @param {Function} fn
+	 * @param {Boolean} capture
+	 * @return {Function}
+	 * @api public
+	 */
+
+	var bind_1 = function(el, type, fn, capture){
+	  if (!bind) detect();
+	  el[bind](prefix + type, fn, capture || false);
+	  return fn;
+	};
+
+	/**
+	 * Unbind `el` event `type`'s callback `fn`.
+	 *
+	 * @param {Element} el
+	 * @param {String} type
+	 * @param {Function} fn
+	 * @param {Boolean} capture
+	 * @return {Function}
+	 * @api public
+	 */
+
+	var unbind_1 = function(el, type, fn, capture){
+	  if (!unbind) detect();
+	  el[unbind](prefix + type, fn, capture || false);
+	  return fn;
+	};
+
+	var componentEvent = {
+		bind: bind_1,
+		unbind: unbind_1
+	};
+
+	/**
+	 * Module dependencies.
+	 */
+
+
+
+	/**
+	 * Delegate event `type` to `selector`
+	 * and invoke `fn(e)`. A callback function
+	 * is returned which may be passed to `.unbind()`.
+	 *
+	 * @param {Element} el
+	 * @param {String} selector
+	 * @param {String} type
+	 * @param {Function} fn
+	 * @param {Boolean} capture
+	 * @return {Function}
+	 * @api public
+	 */
+
+	// Some events don't bubble, so we want to bind to the capture phase instead
+	// when delegating.
+	var forceCaptureEvents = ['focus', 'blur'];
+
+	var bind$1 = function(el, selector, type, fn, capture){
+	  if (forceCaptureEvents.indexOf(type) !== -1) capture = true;
+
+	  return componentEvent.bind(el, type, function(e){
+	    var target = e.target || e.srcElement;
+	    e.delegateTarget = closest(target, selector, true);
+	    if (e.delegateTarget) fn.call(el, e);
+	  }, capture);
+	};
+
+	/**
+	 * Unbind event `type`'s callback `fn`.
+	 *
+	 * @param {Element} el
+	 * @param {String} type
+	 * @param {Function} fn
+	 * @param {Boolean} capture
+	 * @api public
+	 */
+
+	var unbind$1 = function(el, type, fn, capture){
+	  if (forceCaptureEvents.indexOf(type) !== -1) capture = true;
+
+	  componentEvent.unbind(el, type, fn, capture);
+	};
+
+	var delegateEvents = {
+		bind: bind$1,
+		unbind: unbind$1
+	};
+
+	var delegate = /*#__PURE__*/Object.freeze({
+		__proto__: null,
+		'default': delegateEvents,
+		__moduleExports: delegateEvents,
+		bind: bind$1,
+		unbind: unbind$1
+	});
+
 	var _typeof$1 = typeof Symbol === "function" && typeof Symbol.iterator === "symbol" ? function (obj) { return typeof obj; } : function (obj) { return obj && typeof Symbol === "function" && obj.constructor === Symbol && obj !== Symbol.prototype ? "symbol" : typeof obj; };
 
 	var _createClass$2 = function () { function defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ("value" in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } } return function (Constructor, protoProps, staticProps) { if (protoProps) defineProperties(Constructor.prototype, protoProps); if (staticProps) defineProperties(Constructor, staticProps); return Constructor; }; }();
@@ -1873,7 +2016,7 @@
 	      if (arguments.length < 3 && typeof eventType === 'function') {
 	        this.bindEL(querySelector, eventType);
 	      } else if (arguments.length === 3 && typeof callback === 'function') {
-	        delegate.bind(this.el, querySelector, eventType, callback, false);
+	        bind$1(this.el, querySelector, eventType, callback, false);
 	      }
 	    }
 	  }, {
@@ -1883,7 +2026,7 @@
 	      if (arguments.length < 3 && typeof eventType === 'function') {
 	        this.unbindEL(querySelector, eventType);
 	      } else if (typeof callback === 'function') {
-	        delegate.ubind(this.el, querySelector, eventType, callback, false);
+	        undefined(this.el, querySelector, eventType, callback, false);
 	      }
 	    }
 	  }, {
@@ -2200,14 +2343,9 @@
 	  return Replay;
 	}(Plugin);
 
-	var StartPlayIcon = "<svg xmlns=\"http://www.w3.org/2000/svg\" width=\"70\" height=\"70\" viewBox=\"0 0 70 70\">\n  <path transform=\"scale(0.04,0.04)\" d=\"M576,363L810,512L576,661zM342,214L576,363L576,661L342,810z\"></path>\n</svg>\n";
-
-	var StartPauseIcon = "<svg xmlns=\"http://www.w3.org/2000/svg\" width=\"70\" height=\"70\" viewBox=\"0 0 70 70\">\n  <path transform=\"scale(0.04 0.04)\" d=\"M598,214h170v596h-170v-596zM256 810v-596h170v596h-170z\"></path>\n</svg>\n";
-
-	var css$3 = ".xgplayer .xgplayer-start {\n  display: none;\n  border-radius: 50%;\n  display: inline-block;\n  width: 70px;\n  height: 70px;\n  background: rgba(0, 0, 0, .38);\n  overflow: hidden;\n  text-align: center;\n  line-height: 70px;\n  vertical-align: middle;\n  position: absolute;\n  left: 50%;\n  top: 50%;\n  z-index: 115;\n  margin: -35px auto auto -35px;\n  cursor: pointer; }\n  .xgplayer .xgplayer-start div {\n    position: absolute; }\n    .xgplayer .xgplayer-start div svg {\n      fill: rgba(255, 255, 255, .7);\n      margin: 14px; }\n  .xgplayer .xgplayer-start .xgplayer-icon-play {\n    display: block; }\n  .xgplayer .xgplayer-start .xgplayer-icon-pause {\n    display: none; }\n  .xgplayer .xgplayer-start:hover {\n    opacity: 0.85; }\n\n.xgplayer.xgplayer-playing .xgplayer-start {\n  display: none; }\n  .xgplayer.xgplayer-playing .xgplayer-start .xgplayer-icon-play {\n    display: none; }\n  .xgplayer.xgplayer-playing .xgplayer-start .xgplayer-icon-pause {\n    display: block; }\n\n.xgplayer.xgplayer-pause .xgplayer-start {\n  display: inline-block; }\n  .xgplayer.xgplayer-pause .xgplayer-start .xgplayer-icon-play {\n    display: block; }\n  .xgplayer.xgplayer-pause .xgplayer-start .xgplayer-icon-pause {\n    display: none; }\n\n.xgplayer.replay .xgplayer-start {\n  display: none; }\n  .xgplayer.replay .xgplayer-start .xgplayer-icon-play {\n    display: block; }\n  .xgplayer.replay .xgplayer-start .xgplayer-icon-pause {\n    display: none; }\n";
-	styleInject(css$3);
-
 	var _createClass$5 = function () { function defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ("value" in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } } return function (Constructor, protoProps, staticProps) { if (protoProps) defineProperties(Constructor.prototype, protoProps); if (staticProps) defineProperties(Constructor, staticProps); return Constructor; }; }();
+
+	var _get$1 = function get(object, property, receiver) { if (object === null) object = Function.prototype; var desc = Object.getOwnPropertyDescriptor(object, property); if (desc === undefined) { var parent = Object.getPrototypeOf(object); if (parent === null) { return undefined; } else { return get(parent, property, receiver); } } else if ("value" in desc) { return desc.value; } else { var getter = desc.get; if (getter === undefined) { return undefined; } return getter.call(receiver); } };
 
 	function _classCallCheck$6(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } }
 
@@ -2215,16 +2353,444 @@
 
 	function _inherits$3(subClass, superClass) { if (typeof superClass !== "function" && superClass !== null) { throw new TypeError("Super expression must either be null or a function, not " + typeof superClass); } subClass.prototype = Object.create(superClass && superClass.prototype, { constructor: { value: subClass, enumerable: false, writable: true, configurable: true } }); if (superClass) Object.setPrototypeOf ? Object.setPrototypeOf(subClass, superClass) : subClass.__proto__ = superClass; }
 
-	var Start = function (_Plugin) {
-	  _inherits$3(Start, _Plugin);
+	var MiniScreen = function (_Plugin) {
+	  _inherits$3(MiniScreen, _Plugin);
 
-	  function Start() {
-	    _classCallCheck$6(this, Start);
+	  function MiniScreen() {
+	    _classCallCheck$6(this, MiniScreen);
 
-	    return _possibleConstructorReturn$3(this, (Start.__proto__ || Object.getPrototypeOf(Start)).apply(this, arguments));
+	    return _possibleConstructorReturn$3(this, (MiniScreen.__proto__ || Object.getPrototypeOf(MiniScreen)).apply(this, arguments));
 	  }
 
-	  _createClass$5(Start, [{
+	  _createClass$5(MiniScreen, [{
+	    key: 'afterCreate',
+	    value: function afterCreate() {
+	      this.getPIP = this.getPIP.bind(this);
+	      this.exitPIP = this.exitPIP.bind(this);
+	      this.bind('.xgplayer-pip', 'click', this.getPIP);
+	      this.bind('.xgplayer-pip', 'touchend', this.getPIP);
+	    }
+	  }, {
+	    key: 'getPIP',
+	    value: function getPIP() {
+	      var _this2 = this;
+
+	      var _player = this.player;
+	      // let ro = this.root.getBoundingClientRect()
+	      // let Top = ro.top
+	      // let Left = ro.left
+	      var dragLay = util.createDom('xg-pip-lay', '<div></div>', {}, 'xgplayer-pip-lay');
+	      _player.root.appendChild(dragLay);
+	      var dragHandle = util.createDom('xg-pip-drag', '<div class="drag-handle"><span>点击按住可拖动视频</span></div>', { tabindex: 9 }, 'xgplayer-pip-drag');
+	      _player.root.appendChild(dragHandle);
+	      util.addClass(this.root, 'xgplayer-pip-active');
+	      _player.root.style.right = 0;
+	      _player.root.style.bottom = '200px';
+	      _player.root.style.top = '';
+	      _player.root.style.left = '';
+	      _player.root.style.width = '320px';
+	      _player.root.style.height = '180px';
+	      if (_player.config.pipConfig) {
+	        if (_player.config.pipConfig.top !== undefined) {
+	          _player.root.style.top = _player.config.pipConfig.top + 'px';
+	          _player.root.style.bottom = '';
+	        }
+	        if (_player.config.pipConfig.bottom !== undefined) {
+	          _player.root.style.bottom = _player.config.pipConfig.bottom + 'px';
+	        }
+	        if (_player.config.pipConfig.left !== undefined) {
+	          _player.root.style.left = _player.config.pipConfig.left + 'px';
+	          _player.root.style.right = '';
+	        }
+	        if (_player.config.pipConfig.right !== undefined) {
+	          _player.root.style.right = _player.config.pipConfig.right + 'px';
+	        }
+	        if (_player.config.pipConfig.width !== undefined) {
+	          _player.root.style.width = _player.config.pipConfig.width + 'px';
+	        }
+	        if (_player.config.pipConfig.height !== undefined) {
+	          _player.root.style.height = _player.config.pipConfig.height + 'px';
+	        }
+	      }
+	      if (_player.config.fluid) {
+	        _player.root.style['padding-top'] = '';
+	      }
+	      ['click', 'touchend'].forEach(function (item) {
+	        dragLay.addEventListener(item, function (e) {
+	          e.preventDefault();
+	          e.stopPropagation();
+	          _this2.exitPIP();
+	          // player.root.style.top = `${Top}px`
+	          // player.root.style.left = `${Left}px`
+	        });
+	      });
+	    }
+	  }, {
+	    key: 'exitPIP',
+	    value: function exitPIP() {
+	      var player = this.player;
+	      util.removeClass(this.root, 'xgplayer-pip-active');
+	      player.root.style.right = '';
+	      player.root.style.bottom = '';
+	      player.root.style.top = '';
+	      player.root.style.left = '';
+	      if (player.config.fluid) {
+	        player.root.style['width'] = '100%';
+	        player.root.style['height'] = '0';
+	        player.root.style['padding-top'] = this.config.height * 100 / this.config.width + '%';
+	      } else {
+	        if (player.config.width) {
+	          if (typeof this.config.width !== 'number') {
+	            player.root.style.width = player.config.width;
+	          } else {
+	            player.root.style.width = player.config.width + 'px';
+	          }
+	        }
+	        if (player.config.height) {
+	          if (typeof player.config.height !== 'number') {
+	            player.root.style.height = player.config.height;
+	          } else {
+	            player.root.style.height = player.config.height + 'px';
+	          }
+	        }
+	      }
+
+	      var dragLay = util.findDom(player.root, '.xgplayer-pip-lay');
+	      if (dragLay && dragLay.parentNode) {
+	        dragLay.parentNode.removeChild(dragLay);
+	      }
+	      var dragHandle = util.findDom(player.root, '.xgplayer-pip-drag');
+	      if (dragHandle && dragHandle.parentNode) {
+	        dragHandle.parentNode.removeChild(dragHandle);
+	      }
+	    }
+	  }, {
+	    key: '_destroy',
+	    value: function _destroy() {
+	      this.unbind('.xgplayer-pip', 'click', this.getPIP);
+	      this.unbind('.xgplayer-pip', 'touchend', this.getPIP);
+	      _get$1(MiniScreen.prototype.__proto__ || Object.getPrototypeOf(MiniScreen.prototype), '_destroy', this).call(this);
+	    }
+	  }, {
+	    key: 'registerIcons',
+	    value: function registerIcons() {
+	      return {
+	        'miniscreen': ReplayIcon
+	      };
+	    }
+
+	    // 扩展语言
+
+	  }, {
+	    key: 'registerLangauageTexts',
+	    value: function registerLangauageTexts() {
+	      return {
+	        'miniscreen': {
+	          jp: '日文text',
+	          en: 'miniscreen',
+	          zh: '小屏幕'
+	        }
+	      };
+	    }
+	  }, {
+	    key: 'render',
+	    value: function render() {
+	      var text = this.text.miniscreen;
+	      return '<xg-pip class="xgplayer-pip" tabindex="9"><p class="name">' + text + '</p></xg-pip>';
+	    }
+	  }], [{
+	    key: 'pluginName',
+	    get: function get() {
+	      return 'miniscreen';
+	    }
+	  }]);
+
+	  return MiniScreen;
+	}(Plugin);
+
+	var _createClass$6 = function () { function defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ("value" in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } } return function (Constructor, protoProps, staticProps) { if (protoProps) defineProperties(Constructor.prototype, protoProps); if (staticProps) defineProperties(Constructor, staticProps); return Constructor; }; }();
+
+	var _get$2 = function get(object, property, receiver) { if (object === null) object = Function.prototype; var desc = Object.getOwnPropertyDescriptor(object, property); if (desc === undefined) { var parent = Object.getPrototypeOf(object); if (parent === null) { return undefined; } else { return get(parent, property, receiver); } } else if ("value" in desc) { return desc.value; } else { var getter = desc.get; if (getter === undefined) { return undefined; } return getter.call(receiver); } };
+
+	function _classCallCheck$7(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } }
+
+	function _possibleConstructorReturn$4(self, call) { if (!self) { throw new ReferenceError("this hasn't been initialised - super() hasn't been called"); } return call && (typeof call === "object" || typeof call === "function") ? call : self; }
+
+	function _inherits$4(subClass, superClass) { if (typeof superClass !== "function" && superClass !== null) { throw new TypeError("Super expression must either be null or a function, not " + typeof superClass); } subClass.prototype = Object.create(superClass && superClass.prototype, { constructor: { value: subClass, enumerable: false, writable: true, configurable: true } }); if (superClass) Object.setPrototypeOf ? Object.setPrototypeOf(subClass, superClass) : subClass.__proto__ = superClass; }
+
+	var Keyboard = function (_BasePlugin) {
+	  _inherits$4(Keyboard, _BasePlugin);
+
+	  function Keyboard() {
+	    _classCallCheck$7(this, Keyboard);
+
+	    return _possibleConstructorReturn$4(this, (Keyboard.__proto__ || Object.getPrototypeOf(Keyboard)).apply(this, arguments));
+	  }
+
+	  _createClass$6(Keyboard, [{
+	    key: 'afterCreate',
+	    value: function afterCreate() {
+	      this.onKeydown = this.onKeydown.bind(this);
+	      this.player.root.addEventListener('keydown', this.onKeydown);
+	    }
+	  }, {
+	    key: 'onKeydown',
+	    value: function onKeydown(event) {
+	      var player = this.player;
+
+	      var util = BasePlugin.Util;
+	      // let player = this
+	      var e = event || window.event;
+	      if (e && (e.keyCode === 37 || e.keyCode === 38 || e.keyCode === 39 || e.keyCode === 40 || e.keyCode === 32)) {
+	        player.emit('focus');
+	      }
+	      if (e && (e.keyCode === 40 || e.keyCode === 38)) {
+	        if (player.controls) {
+	          var volumeSlider = player.controls.querySelector('.xgplayer-slider');
+	          if (volumeSlider) {
+	            if (util.hasClass(volumeSlider, 'xgplayer-none')) {
+	              util.removeClass(volumeSlider, 'xgplayer-none');
+	            }
+	            if (player.sliderTimer) {
+	              clearTimeout(player.sliderTimer);
+	            }
+	            player.sliderTimer = setTimeout(function () {
+	              util.addClass(volumeSlider, 'xgplayer-none');
+	            }, player.config.inactive);
+	          }
+	        }
+	        if (e && e.keyCode === 40) {
+	          // 按 down
+	          if (player.volume - 0.1 >= 0) {
+	            player.volume = parseFloat((player.volume - 0.1).toFixed(1));
+	          } else {
+	            player.volume = 0;
+	          }
+	        } else if (e && e.keyCode === 38) {
+	          // 按 up
+	          if (player.volume + 0.1 <= 1) {
+	            player.volume = parseFloat((player.volume + 0.1).toFixed(1));
+	          } else {
+	            player.volume = 1;
+	          }
+	        }
+	      } else if (e && e.keyCode === 39) {
+	        // 按 right
+	        if (player.currentTime + 10 <= player.duration) {
+	          player.currentTime += 10;
+	        } else {
+	          player.currentTime = player.duration - 1;
+	        }
+	      } else if (e && e.keyCode === 37) {
+	        // 按 left
+	        if (player.currentTime - 10 >= 0) {
+	          player.currentTime -= 10;
+	        } else {
+	          player.currentTime = 0;
+	        }
+	      } else if (e && e.keyCode === 32) {
+	        // 按 spacebar
+	        if (player.paused) {
+	          // eslint-disable-next-line handle-callback-err
+	          player.play().catch(function (err) {});
+	        } else {
+	          player.pause();
+	        }
+	      }
+	    }
+	  }, {
+	    key: '_destroy',
+	    value: function _destroy() {
+	      _get$2(Keyboard.prototype.__proto__ || Object.getPrototypeOf(Keyboard.prototype), '_destroy', this).call(this);
+	      this.player.root.removeEventListener('keydown', this.onKeydown);
+	    }
+	  }], [{
+	    key: 'pluginName',
+	    get: function get() {
+	      return 'Keyboard';
+	    }
+	  }]);
+
+	  return Keyboard;
+	}(BasePlugin);
+
+	var RotateIcon = "<svg xmlns=\"http://www.w3.org/2000/svg\" width=\"32\" height=\"32\" viewBox=\"0 0 40 40\" fill=\"none\">\n  <g clip-path=\"url(#clip0)\">\n    <path transform=\"scale(1.5 1.5)\" d=\"M11.6665 9.16663H4.1665C2.78579 9.16663 1.6665 10.2859 1.6665 11.6666V15.8333C1.6665 17.214 2.78579 18.3333 4.1665 18.3333H11.6665C13.0472 18.3333 14.1665 17.214 14.1665 15.8333V11.6666C14.1665 10.2859 13.0472 9.16663 11.6665 9.16663Z\" fill=\"white\"/>\n    <path transform=\"scale(1.5 1.5)\" fill-rule=\"evenodd\" clip-rule=\"evenodd\" d=\"M3.88148 4.06298C3.75371 4.21005 3.67667 4.40231 3.67749 4.61242C3.67847 4.87253 3.79852 5.10435 3.98581 5.25646L6.99111 8.05895C7.32771 8.37283 7.85502 8.35443 8.16891 8.01782C8.48279 7.68122 8.46437 7.15391 8.12778 6.84003L6.62061 5.43457L9.8198 5.4224C9.82848 5.42239 9.8372 5.42221 9.84591 5.4219C10.9714 5.38233 12.0885 5.6285 13.0931 6.13744C14.0976 6.64635 14.957 7.40148 15.5908 8.33234C16.2246 9.2632 16.6122 10.3394 16.7177 11.4606C16.823 12.5819 16.6427 13.7115 16.1934 14.7442C16.0098 15.1661 16.203 15.6571 16.6251 15.8408C17.0471 16.0243 17.5381 15.8311 17.7216 15.4091C18.2833 14.1183 18.5087 12.7063 18.3771 11.3047C18.2453 9.90318 17.7607 8.55792 16.9684 7.39433C16.1761 6.23073 15.1021 5.28683 13.8463 4.65065C12.5946 4.01651 11.203 3.70872 9.80072 3.75583L6.43415 3.76862L7.96326 2.12885C8.27715 1.79225 8.25872 1.26494 7.92213 0.951061C7.58553 0.63718 7.05822 0.655585 6.74433 0.99219L3.90268 4.0395C3.89545 4.04724 3.88841 4.05509 3.88154 4.06303L3.88148 4.06298Z\" fill=\"white\"/>\n  </g>\n  <defs>\n    <clipPath id=\"clip0\">\n      <rect width=\"40\" height=\"40\" fill=\"white\"/>\n    </clipPath>\n  </defs>\n</svg>\n";
+
+	var _createClass$7 = function () { function defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ("value" in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } } return function (Constructor, protoProps, staticProps) { if (protoProps) defineProperties(Constructor.prototype, protoProps); if (staticProps) defineProperties(Constructor, staticProps); return Constructor; }; }();
+
+	var _get$3 = function get(object, property, receiver) { if (object === null) object = Function.prototype; var desc = Object.getOwnPropertyDescriptor(object, property); if (desc === undefined) { var parent = Object.getPrototypeOf(object); if (parent === null) { return undefined; } else { return get(parent, property, receiver); } } else if ("value" in desc) { return desc.value; } else { var getter = desc.get; if (getter === undefined) { return undefined; } return getter.call(receiver); } };
+
+	function _classCallCheck$8(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } }
+
+	function _possibleConstructorReturn$5(self, call) { if (!self) { throw new ReferenceError("this hasn't been initialised - super() hasn't been called"); } return call && (typeof call === "object" || typeof call === "function") ? call : self; }
+
+	function _inherits$5(subClass, superClass) { if (typeof superClass !== "function" && superClass !== null) { throw new TypeError("Super expression must either be null or a function, not " + typeof superClass); } subClass.prototype = Object.create(superClass && superClass.prototype, { constructor: { value: subClass, enumerable: false, writable: true, configurable: true } }); if (superClass) Object.setPrototypeOf ? Object.setPrototypeOf(subClass, superClass) : subClass.__proto__ = superClass; }
+
+	var Rotate = function (_Plugin) {
+	  _inherits$5(Rotate, _Plugin);
+
+	  function Rotate() {
+	    _classCallCheck$8(this, Rotate);
+
+	    return _possibleConstructorReturn$5(this, (Rotate.__proto__ || Object.getPrototypeOf(Rotate)).apply(this, arguments));
+	  }
+
+	  _createClass$7(Rotate, [{
+	    key: 'afterCreate',
+	    value: function afterCreate() {
+	      this.updateRotateDeg = this.updateRotateDeg.bind(this);
+	      this.rotate = this.rotate.bind(this);
+	      this.bind('.xgplayer-icon', 'click', this.rotate);
+	      this.bind('.xgplayer-icon', 'touchend', this.rotate);
+	    }
+	  }, {
+	    key: '_destroy',
+	    value: function _destroy() {
+	      this.unbind('.xgplayer-icon', 'click', this.rotate);
+	      this.unbind('.xgplayer-icon', 'touchend', this.rotate);
+	      _get$3(Rotate.prototype.__proto__ || Object.getPrototypeOf(Rotate.prototype), '_destroy', this).call(this);
+	    }
+	  }, {
+	    key: 'updateRotateDeg',
+	    value: function updateRotateDeg() {
+	      var player = this.player;
+	      if (!player.rotateDeg) {
+	        player.rotateDeg = 0;
+	      }
+
+	      var width = player.root.offsetWidth;
+	      var height = player.root.offsetHeight;
+	      var targetWidth = player.video.videoWidth;
+	      var targetHeight = player.video.videoHeight;
+
+	      if (!this.config.innerRotate) ;
+
+	      var scale = void 0;
+	      if (player.rotateDeg === 0.25 || player.rotateDeg === 0.75) {
+	        if (this.config.innerRotate) {
+	          if (targetWidth / targetHeight > height / width) {
+	            // 旋转后纵向撑满
+	            var videoWidth = 0;
+	            if (targetHeight / targetWidth > height / width) {
+	              // 旋转前是纵向撑满
+	              videoWidth = height * targetWidth / targetHeight;
+	            } else {
+	              // 旋转前是横向撑满
+	              videoWidth = width;
+	            }
+	            scale = height / videoWidth;
+	          } else {
+	            // 旋转后横向撑满
+	            var videoHeight = 0;
+	            if (targetHeight / targetWidth > height / width) {
+	              // 旋转前是纵向撑满
+	              videoHeight = height;
+	            } else {
+	              // 旋转前是横向撑满
+	              videoHeight = width * targetHeight / targetWidth;
+	            }
+	            scale = width / videoHeight;
+	          }
+	        } else {
+	          if (width >= height) {
+	            scale = width / height;
+	          } else {
+	            scale = height / width;
+	          }
+	        }
+	        scale = parseFloat(scale.toFixed(5));
+	      } else {
+	        scale = 1;
+	      }
+
+	      if (this.config.innerRotate) {
+	        player.video.style.transformOrigin = 'center center';
+	        player.video.style.transform = 'rotate(' + player.rotateDeg + 'turn) scale(' + scale + ')';
+	        player.video.style.webKitTransform = 'rotate(' + player.rotateDeg + 'turn) scale(' + scale + ')';
+	      } else {
+	        player.root.style.transformOrigin = 'center center';
+	        player.root.style.transform = 'rotate(' + player.rotateDeg + 'turn) scale(' + 1 + ')';
+	        player.root.style.webKitTransform = 'rotate(' + player.rotateDeg + 'turn) scale(' + 1 + ')';
+	      }
+	    }
+	  }, {
+	    key: 'rotate',
+	    value: function rotate() {
+	      var clockwise = arguments.length > 0 && arguments[0] !== undefined ? arguments[0] : false;
+	      var times = arguments.length > 2 && arguments[2] !== undefined ? arguments[2] : 1;
+
+	      var player = this.player;
+	      if (!player.rotateDeg) {
+	        player.rotateDeg = 0;
+	      }
+	      var factor = clockwise ? 1 : -1;
+
+	      player.rotateDeg = (player.rotateDeg + 1 + factor * 0.25 * times) % 1;
+	      this.updateRotateDeg();
+
+	      player.emit('rotate', player.rotateDeg * 360);
+	    }
+	  }, {
+	    key: 'registerIcons',
+	    value: function registerIcons() {
+	      return {
+	        'rotate': RotateIcon
+	      };
+	    }
+
+	    // 扩展语言
+
+	  }, {
+	    key: 'registerLangauageTexts',
+	    value: function registerLangauageTexts() {
+	      return {
+	        'rotate': {
+	          jp: '日文text',
+	          en: 'rotate',
+	          zh: '旋转屏幕'
+	        }
+	      };
+	    }
+	  }, {
+	    key: 'render',
+	    value: function render() {
+	      return '<xg-icon class="xgplayer-icon">' + RotateIcon + '<span class="xgplayer-tip-rotate">' + this.text.rotate + '</span></xg-icon>';
+	    }
+	  }], [{
+	    key: 'pluginName',
+	    get: function get() {
+	      return 'rotate';
+	    }
+	  }]);
+
+	  return Rotate;
+	}(Plugin);
+
+	var StartPlayIcon = "<svg xmlns=\"http://www.w3.org/2000/svg\" width=\"70\" height=\"70\" viewBox=\"0 0 70 70\">\n  <path transform=\"scale(0.04,0.04)\" d=\"M576,363L810,512L576,661zM342,214L576,363L576,661L342,810z\"></path>\n</svg>\n";
+
+	var StartPauseIcon = "<svg xmlns=\"http://www.w3.org/2000/svg\" width=\"70\" height=\"70\" viewBox=\"0 0 70 70\">\n  <path transform=\"scale(0.04 0.04)\" d=\"M598,214h170v596h-170v-596zM256 810v-596h170v596h-170z\"></path>\n</svg>\n";
+
+	var css$3 = ".xgplayer .xgplayer-start {\n  display: none;\n  border-radius: 50%;\n  display: inline-block;\n  width: 70px;\n  height: 70px;\n  background: rgba(0, 0, 0, .38);\n  overflow: hidden;\n  text-align: center;\n  line-height: 70px;\n  vertical-align: middle;\n  position: absolute;\n  left: 50%;\n  top: 50%;\n  z-index: 115;\n  margin: -35px auto auto -35px;\n  cursor: pointer; }\n  .xgplayer .xgplayer-start div {\n    position: absolute; }\n    .xgplayer .xgplayer-start div svg {\n      fill: rgba(255, 255, 255, .7);\n      margin: 14px; }\n  .xgplayer .xgplayer-start .xgplayer-icon-play {\n    display: block; }\n  .xgplayer .xgplayer-start .xgplayer-icon-pause {\n    display: none; }\n  .xgplayer .xgplayer-start:hover {\n    opacity: 0.85; }\n\n.xgplayer.xgplayer-playing .xgplayer-start {\n  display: none; }\n  .xgplayer.xgplayer-playing .xgplayer-start .xgplayer-icon-play {\n    display: none; }\n  .xgplayer.xgplayer-playing .xgplayer-start .xgplayer-icon-pause {\n    display: block; }\n\n.xgplayer.xgplayer-pause .xgplayer-start {\n  display: inline-block; }\n  .xgplayer.xgplayer-pause .xgplayer-start .xgplayer-icon-play {\n    display: block; }\n  .xgplayer.xgplayer-pause .xgplayer-start .xgplayer-icon-pause {\n    display: none; }\n\n.xgplayer.replay .xgplayer-start {\n  display: none; }\n  .xgplayer.replay .xgplayer-start .xgplayer-icon-play {\n    display: block; }\n  .xgplayer.replay .xgplayer-start .xgplayer-icon-pause {\n    display: none; }\n";
+	styleInject(css$3);
+
+	var _createClass$8 = function () { function defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ("value" in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } } return function (Constructor, protoProps, staticProps) { if (protoProps) defineProperties(Constructor.prototype, protoProps); if (staticProps) defineProperties(Constructor, staticProps); return Constructor; }; }();
+
+	function _classCallCheck$9(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } }
+
+	function _possibleConstructorReturn$6(self, call) { if (!self) { throw new ReferenceError("this hasn't been initialised - super() hasn't been called"); } return call && (typeof call === "object" || typeof call === "function") ? call : self; }
+
+	function _inherits$6(subClass, superClass) { if (typeof superClass !== "function" && superClass !== null) { throw new TypeError("Super expression must either be null or a function, not " + typeof superClass); } subClass.prototype = Object.create(superClass && superClass.prototype, { constructor: { value: subClass, enumerable: false, writable: true, configurable: true } }); if (superClass) Object.setPrototypeOf ? Object.setPrototypeOf(subClass, superClass) : subClass.__proto__ = superClass; }
+
+	var Start = function (_Plugin) {
+	  _inherits$6(Start, _Plugin);
+
+	  function Start() {
+	    _classCallCheck$9(this, Start);
+
+	    return _possibleConstructorReturn$6(this, (Start.__proto__ || Object.getPrototypeOf(Start)).apply(this, arguments));
+	  }
+
+	  _createClass$8(Start, [{
 	    key: 'afterCreate',
 	    value: function afterCreate() {
 	      var _this2 = this;
@@ -2287,37 +2853,50 @@
 	 * 根据入参的播放器配置进行默认plugin列表的配置
 	 * @param {object} playerConfig
 	 */
-	function getDefaultPlugins(playerConfig, Player) {
+	function getDefaultPlugins(playerConfig) {
 	  var defaultPlugins = [];
 	  defaultPlugins.push(Replay);
 	  defaultPlugins.push(Poster);
 	  defaultPlugins.push(Start);
+	  defaultPlugins.push({
+	    plugin: MiniScreen,
+	    options: {
+	      root: 'controls'
+	    }
+	  });
+	  defaultPlugins.push({
+	    plugin: Rotate,
+	    options: {
+	      root: 'controls'
+	    }
+	  });
+	  defaultPlugins.push(Keyboard);
 	  var plugins = playerConfig.plugins || [];
 	  var retPlugins = defaultPlugins.concat(plugins);
 	  return retPlugins;
 	}
 
-	var _createClass$6 = function () { function defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ("value" in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } } return function (Constructor, protoProps, staticProps) { if (protoProps) defineProperties(Constructor.prototype, protoProps); if (staticProps) defineProperties(Constructor, staticProps); return Constructor; }; }();
+	var _createClass$9 = function () { function defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ("value" in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } } return function (Constructor, protoProps, staticProps) { if (protoProps) defineProperties(Constructor.prototype, protoProps); if (staticProps) defineProperties(Constructor, staticProps); return Constructor; }; }();
 
-	var _get$1 = function get(object, property, receiver) { if (object === null) object = Function.prototype; var desc = Object.getOwnPropertyDescriptor(object, property); if (desc === undefined) { var parent = Object.getPrototypeOf(object); if (parent === null) { return undefined; } else { return get(parent, property, receiver); } } else if ("value" in desc) { return desc.value; } else { var getter = desc.get; if (getter === undefined) { return undefined; } return getter.call(receiver); } };
+	var _get$4 = function get(object, property, receiver) { if (object === null) object = Function.prototype; var desc = Object.getOwnPropertyDescriptor(object, property); if (desc === undefined) { var parent = Object.getPrototypeOf(object); if (parent === null) { return undefined; } else { return get(parent, property, receiver); } } else if ("value" in desc) { return desc.value; } else { var getter = desc.get; if (getter === undefined) { return undefined; } return getter.call(receiver); } };
 
-	function _classCallCheck$7(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } }
+	function _classCallCheck$a(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } }
 
-	function _possibleConstructorReturn$4(self, call) { if (!self) { throw new ReferenceError("this hasn't been initialised - super() hasn't been called"); } return call && (typeof call === "object" || typeof call === "function") ? call : self; }
+	function _possibleConstructorReturn$7(self, call) { if (!self) { throw new ReferenceError("this hasn't been initialised - super() hasn't been called"); } return call && (typeof call === "object" || typeof call === "function") ? call : self; }
 
-	function _inherits$4(subClass, superClass) { if (typeof superClass !== "function" && superClass !== null) { throw new TypeError("Super expression must either be null or a function, not " + typeof superClass); } subClass.prototype = Object.create(superClass && superClass.prototype, { constructor: { value: subClass, enumerable: false, writable: true, configurable: true } }); if (superClass) Object.setPrototypeOf ? Object.setPrototypeOf(subClass, superClass) : subClass.__proto__ = superClass; }
+	function _inherits$7(subClass, superClass) { if (typeof superClass !== "function" && superClass !== null) { throw new TypeError("Super expression must either be null or a function, not " + typeof superClass); } subClass.prototype = Object.create(superClass && superClass.prototype, { constructor: { value: subClass, enumerable: false, writable: true, configurable: true } }); if (superClass) Object.setPrototypeOf ? Object.setPrototypeOf(subClass, superClass) : subClass.__proto__ = superClass; }
 
 	var FULLSCREEN_EVENTS = ['fullscreenchange', 'webkitfullscreenchange', 'mozfullscreenchange', 'MSFullscreenChange'];
 
 	var Player = function (_Proxy) {
-	  _inherits$4(Player, _Proxy);
+	  _inherits$7(Player, _Proxy);
 
 	  function Player(options) {
-	    _classCallCheck$7(this, Player);
+	    _classCallCheck$a(this, Player);
 
 	    options.plugins = getDefaultPlugins(options);
 
-	    var _this = _possibleConstructorReturn$4(this, (Player.__proto__ || Object.getPrototypeOf(Player)).call(this, options));
+	    var _this = _possibleConstructorReturn$7(this, (Player.__proto__ || Object.getPrototypeOf(Player)).call(this, options));
 
 	    _this.config = util.deepCopy({
 	      width: 600,
@@ -2362,7 +2941,7 @@
 	   */
 
 
-	  _createClass$6(Player, [{
+	  _createClass$9(Player, [{
 	    key: '_initDOM',
 	    value: function _initDOM() {
 	      this.root = util.findDom(document, '#' + this.config.id);
@@ -2524,6 +3103,9 @@
 	          if (plugin.pluginName && ignoresStr.indexOf(plugin.pluginName.toLowerCase()) > -1) {
 	            return null;
 	          }
+	          if (plugin.options) {
+	            return pluginsManager.register(_this5, plugin.plugin, plugin.options);
+	          }
 	          return pluginsManager.register(_this5, plugin);
 	        } catch (err) {
 	          return null;
@@ -2579,7 +3161,7 @@
 	      } else {
 	        pluginsManager.beforeInit(this).then(function () {
 	          if (!url) {
-	            url = _this6.url;
+	            url = _this6.url || _this6.config.url;
 	          }
 	          _this6._startInit(url);
 	        }).catch(function (e) {
@@ -2598,7 +3180,7 @@
 	        this.start();
 	        return;
 	      }
-	      var playPromise = _get$1(Player.prototype.__proto__ || Object.getPrototypeOf(Player.prototype), 'play', this).call(this);
+	      var playPromise = _get$4(Player.prototype.__proto__ || Object.getPrototypeOf(Player.prototype), 'play', this).call(this);
 	      if (playPromise !== undefined && playPromise && playPromise.then) {
 	        playPromise.then(function () {
 	          _this7.removeClass(STATE_CLASS.NO_START);
@@ -2628,7 +3210,7 @@
 	      var isDelDom = arguments.length > 0 && arguments[0] !== undefined ? arguments[0] : true;
 
 	      pluginsManager.destroy(this);
-	      _get$1(Player.prototype.__proto__ || Object.getPrototypeOf(Player.prototype), 'destroy', this).call(this);
+	      _get$4(Player.prototype.__proto__ || Object.getPrototypeOf(Player.prototype), 'destroy', this).call(this);
 	      if (isDelDom) {
 	        // parentNode.removeChild(this.root)
 	        this.root.innerHTML = '';
@@ -2867,7 +3449,12 @@
 	var css$4 = ".xgplayer-skin-default {\n  background: #000;\n  width: 100%;\n  height: 100%;\n  position: relative;\n  -webkit-user-select: none;\n     -moz-user-select: none;\n          user-select: none;\n  -ms-user-select: none; }\n  .xgplayer-skin-default * {\n    margin: 0;\n    padding: 0;\n    border: 0;\n    font-size: 100%;\n    font: inherit;\n    vertical-align: baseline; }\n  .xgplayer-skin-default .xgplayer-none {\n    display: none; }\n  .xgplayer-skin-default.xgplayer-is-fullscreen {\n    width: 100% !important;\n    height: 100% !important;\n    padding-top: 0 !important;\n    z-index: 9999; }\n  .xgplayer-skin-default.xgplayer-is-fullscreen.xgplayer-inactive {\n    cursor: none; }\n  .xgplayer-skin-default video {\n    width: 100%;\n    height: 100%;\n    outline: none; }\n\n.xgplayer-skin-default .xgplayer-none {\n  display: none; }\n\n@-webkit-keyframes loadingRotate {\n  0% {\n    -webkit-transform: rotate(0);\n            transform: rotate(0); }\n  100% {\n    -webkit-transform: rotate(360deg);\n            transform: rotate(360deg); } }\n\n@keyframes loadingRotate {\n  0% {\n    -webkit-transform: rotate(0);\n            transform: rotate(0); }\n  100% {\n    -webkit-transform: rotate(360deg);\n            transform: rotate(360deg); } }\n\n@-webkit-keyframes loadingDashOffset {\n  0% {\n    stroke-dashoffset: 236; }\n  100% {\n    stroke-dashoffset: 0; } }\n\n@keyframes loadingDashOffset {\n  0% {\n    stroke-dashoffset: 236; }\n  100% {\n    stroke-dashoffset: 0; } }\n\n.xgplayer-skin-default .xgplayer-play, .xgplayer-skin-default .xgplayer-play-img {\n  position: relative;\n  -webkit-order: 0;\n     -moz-box-ordinal-group: 1;\n          order: 0;\n  display: block;\n  cursor: pointer; }\n  .xgplayer-skin-default .xgplayer-play .xgplayer-icon, .xgplayer-skin-default .xgplayer-play-img .xgplayer-icon {\n    margin-top: 3px;\n    width: 32px; }\n    .xgplayer-skin-default .xgplayer-play .xgplayer-icon div, .xgplayer-skin-default .xgplayer-play-img .xgplayer-icon div {\n      position: absolute; }\n    .xgplayer-skin-default .xgplayer-play .xgplayer-icon .xgplayer-icon-play, .xgplayer-skin-default .xgplayer-play-img .xgplayer-icon .xgplayer-icon-play {\n      display: block; }\n    .xgplayer-skin-default .xgplayer-play .xgplayer-icon .xgplayer-icon-pause, .xgplayer-skin-default .xgplayer-play-img .xgplayer-icon .xgplayer-icon-pause {\n      display: none; }\n  .xgplayer-skin-default .xgplayer-play .xgplayer-tips .xgplayer-tip-play, .xgplayer-skin-default .xgplayer-play-img .xgplayer-tips .xgplayer-tip-play {\n    display: block; }\n  .xgplayer-skin-default .xgplayer-play .xgplayer-tips .xgplayer-tip-pause, .xgplayer-skin-default .xgplayer-play-img .xgplayer-tips .xgplayer-tip-pause {\n    display: none; }\n  .xgplayer-skin-default .xgplayer-play:hover, .xgplayer-skin-default .xgplayer-play-img:hover {\n    opacity: 0.85; }\n    .xgplayer-skin-default .xgplayer-play:hover .xgplayer-tips, .xgplayer-skin-default .xgplayer-play-img:hover .xgplayer-tips {\n      display: block; }\n\n.xgplayer-skin-default.xgplayer-playing .xgplayer-play .xgplayer-icon .xgplayer-icon-play, .xgplayer-skin-default.xgplayer-playing .xgplayer-play-img .xgplayer-icon .xgplayer-icon-play {\n  display: none; }\n\n.xgplayer-skin-default.xgplayer-playing .xgplayer-play .xgplayer-icon .xgplayer-icon-pause, .xgplayer-skin-default.xgplayer-playing .xgplayer-play-img .xgplayer-icon .xgplayer-icon-pause {\n  display: block; }\n\n.xgplayer-skin-default.xgplayer-playing .xgplayer-play .xgplayer-tips .xgplayer-tip-play, .xgplayer-skin-default.xgplayer-playing .xgplayer-play-img .xgplayer-tips .xgplayer-tip-play {\n  display: none; }\n\n.xgplayer-skin-default.xgplayer-playing .xgplayer-play .xgplayer-tips .xgplayer-tip-pause, .xgplayer-skin-default.xgplayer-playing .xgplayer-play-img .xgplayer-tips .xgplayer-tip-pause {\n  display: block; }\n\n.xgplayer-skin-default.xgplayer-pause .xgplayer-play .xgplayer-icon .xgplayer-icon-play, .xgplayer-skin-default.xgplayer-pause .xgplayer-play-img .xgplayer-icon .xgplayer-icon-play {\n  display: block; }\n\n.xgplayer-skin-default.xgplayer-pause .xgplayer-play .xgplayer-icon .xgplayer-icon-pause, .xgplayer-skin-default.xgplayer-pause .xgplayer-play-img .xgplayer-icon .xgplayer-icon-pause {\n  display: none; }\n\n.xgplayer-skin-default.xgplayer-pause .xgplayer-play .xgplayer-tips .xgplayer-tip-play, .xgplayer-skin-default.xgplayer-pause .xgplayer-play-img .xgplayer-tips .xgplayer-tip-play {\n  display: block; }\n\n.xgplayer-skin-default.xgplayer-pause .xgplayer-play .xgplayer-tips .xgplayer-tip-pause, .xgplayer-skin-default.xgplayer-pause .xgplayer-play-img .xgplayer-tips .xgplayer-tip-pause {\n  display: none; }\n\n.xgplayer-skin-default .xgplayer-enter {\n  display: none;\n  position: absolute;\n  left: 0;\n  top: 0;\n  width: 100%;\n  height: 100%;\n  background: black;\n  z-index: 120; }\n  .xgplayer-skin-default .xgplayer-enter .xgplayer-enter-spinner {\n    display: block;\n    position: absolute;\n    left: 50%;\n    top: 50%;\n    height: 100px;\n    width: 100px;\n    position: relative;\n    -webkit-transform: translate(-50%, -50%);\n        -ms-transform: translate(-50%, -50%);\n            transform: translate(-50%, -50%); }\n  .xgplayer-skin-default .xgplayer-enter .xgplayer-enter-spinner div {\n    width: 12%;\n    height: 26%;\n    background-color: rgba(255, 255, 255, .7);\n    position: absolute;\n    left: 44%;\n    top: 37%;\n    opacity: 0;\n    border-radius: 30px;\n    -webkit-animation: fade 1s linear infinite;\n            animation: fade 1s linear infinite; }\n  .xgplayer-skin-default .xgplayer-enter .xgplayer-enter-spinner div.xgplayer-enter-bar1 {\n    -webkit-transform: rotate(0deg) translate(0, -142%);\n        -ms-transform: rotate(0deg) translate(0, -142%);\n            transform: rotate(0deg) translate(0, -142%);\n    -webkit-animation-delay: -0s;\n            animation-delay: -0s; }\n  .xgplayer-skin-default .xgplayer-enter .xgplayer-enter-spinner div.xgplayer-enter-bar2 {\n    -webkit-transform: rotate(30deg) translate(0, -142%);\n        -ms-transform: rotate(30deg) translate(0, -142%);\n            transform: rotate(30deg) translate(0, -142%);\n    -webkit-animation-delay: -0.9163s;\n            animation-delay: -0.9163s; }\n  .xgplayer-skin-default .xgplayer-enter .xgplayer-enter-spinner div.xgplayer-enter-bar3 {\n    -webkit-transform: rotate(60deg) translate(0, -142%);\n        -ms-transform: rotate(60deg) translate(0, -142%);\n            transform: rotate(60deg) translate(0, -142%);\n    -webkit-animation-delay: -0.833s;\n            animation-delay: -0.833s; }\n  .xgplayer-skin-default .xgplayer-enter .xgplayer-enter-spinner div.xgplayer-enter-bar4 {\n    -webkit-transform: rotate(90deg) translate(0, -142%);\n        -ms-transform: rotate(90deg) translate(0, -142%);\n            transform: rotate(90deg) translate(0, -142%);\n    -webkit-animation-delay: -0.7497s;\n            animation-delay: -0.7497s; }\n  .xgplayer-skin-default .xgplayer-enter .xgplayer-enter-spinner div.xgplayer-enter-bar5 {\n    -webkit-transform: rotate(120deg) translate(0, -142%);\n        -ms-transform: rotate(120deg) translate(0, -142%);\n            transform: rotate(120deg) translate(0, -142%);\n    -webkit-animation-delay: -0.6664s;\n            animation-delay: -0.6664s; }\n  .xgplayer-skin-default .xgplayer-enter .xgplayer-enter-spinner div.xgplayer-enter-bar6 {\n    -webkit-transform: rotate(150deg) translate(0, -142%);\n        -ms-transform: rotate(150deg) translate(0, -142%);\n            transform: rotate(150deg) translate(0, -142%);\n    -webkit-animation-delay: -0.5831s;\n            animation-delay: -0.5831s; }\n  .xgplayer-skin-default .xgplayer-enter .xgplayer-enter-spinner div.xgplayer-enter-bar7 {\n    -webkit-transform: rotate(180deg) translate(0, -142%);\n        -ms-transform: rotate(180deg) translate(0, -142%);\n            transform: rotate(180deg) translate(0, -142%);\n    -webkit-animation-delay: -0.4998s;\n            animation-delay: -0.4998s; }\n  .xgplayer-skin-default .xgplayer-enter .xgplayer-enter-spinner div.xgplayer-enter-bar8 {\n    -webkit-transform: rotate(210deg) translate(0, -142%);\n        -ms-transform: rotate(210deg) translate(0, -142%);\n            transform: rotate(210deg) translate(0, -142%);\n    -webkit-animation-delay: -0.4165s;\n            animation-delay: -0.4165s; }\n  .xgplayer-skin-default .xgplayer-enter .xgplayer-enter-spinner div.xgplayer-enter-bar9 {\n    -webkit-transform: rotate(240deg) translate(0, -142%);\n        -ms-transform: rotate(240deg) translate(0, -142%);\n            transform: rotate(240deg) translate(0, -142%);\n    -webkit-animation-delay: -0.3332s;\n            animation-delay: -0.3332s; }\n  .xgplayer-skin-default .xgplayer-enter .xgplayer-enter-spinner div.xgplayer-enter-bar10 {\n    -webkit-transform: rotate(270deg) translate(0, -142%);\n        -ms-transform: rotate(270deg) translate(0, -142%);\n            transform: rotate(270deg) translate(0, -142%);\n    -webkit-animation-delay: -0.2499s;\n            animation-delay: -0.2499s; }\n  .xgplayer-skin-default .xgplayer-enter .xgplayer-enter-spinner div.xgplayer-enter-bar11 {\n    -webkit-transform: rotate(300deg) translate(0, -142%);\n        -ms-transform: rotate(300deg) translate(0, -142%);\n            transform: rotate(300deg) translate(0, -142%);\n    -webkit-animation-delay: -0.1666s;\n            animation-delay: -0.1666s; }\n  .xgplayer-skin-default .xgplayer-enter .xgplayer-enter-spinner div.xgplayer-enter-bar12 {\n    -webkit-transform: rotate(330deg) translate(0, -142%);\n        -ms-transform: rotate(330deg) translate(0, -142%);\n            transform: rotate(330deg) translate(0, -142%);\n    -webkit-animation-delay: -0.0833s;\n            animation-delay: -0.0833s; }\n\n@-webkit-keyframes fade {\n  from {\n    opacity: 1; }\n  to {\n    opacity: 0.25; } }\n\n.xgplayer-skin-default.xgplayer-is-enter .xgplayer-enter {\n  display: block; }\n\n.xgplayer-skin-default .xgplayer-placeholder {\n  -webkit-flex: 1;\n     -moz-box-flex: 1;\n          flex: 1;\n  -webkit-order: 3;\n     -moz-box-ordinal-group: 4;\n          order: 3;\n  display: block; }\n\n.xgplayer-skin-default .xgplayer-fullscreen, .xgplayer-skin-default .xgplayer-fullscreen-img {\n  position: relative;\n  -webkit-order: 13;\n     -moz-box-ordinal-group: 14;\n          order: 13;\n  display: block;\n  cursor: pointer; }\n  .xgplayer-skin-default .xgplayer-fullscreen .xgplayer-icon, .xgplayer-skin-default .xgplayer-fullscreen-img .xgplayer-icon {\n    margin-top: 3px; }\n    .xgplayer-skin-default .xgplayer-fullscreen .xgplayer-icon div, .xgplayer-skin-default .xgplayer-fullscreen-img .xgplayer-icon div {\n      position: absolute; }\n    .xgplayer-skin-default .xgplayer-fullscreen .xgplayer-icon .xgplayer-icon-requestfull, .xgplayer-skin-default .xgplayer-fullscreen-img .xgplayer-icon .xgplayer-icon-requestfull {\n      display: block; }\n    .xgplayer-skin-default .xgplayer-fullscreen .xgplayer-icon .xgplayer-icon-exitfull, .xgplayer-skin-default .xgplayer-fullscreen-img .xgplayer-icon .xgplayer-icon-exitfull {\n      display: none; }\n  .xgplayer-skin-default .xgplayer-fullscreen .xgplayer-tips, .xgplayer-skin-default .xgplayer-fullscreen-img .xgplayer-tips {\n    position: absolute;\n    right: 0;\n    left: auto; }\n    .xgplayer-skin-default .xgplayer-fullscreen .xgplayer-tips .xgplayer-tip-requestfull, .xgplayer-skin-default .xgplayer-fullscreen-img .xgplayer-tips .xgplayer-tip-requestfull {\n      display: block; }\n    .xgplayer-skin-default .xgplayer-fullscreen .xgplayer-tips .xgplayer-tip-exitfull, .xgplayer-skin-default .xgplayer-fullscreen-img .xgplayer-tips .xgplayer-tip-exitfull {\n      display: none; }\n  .xgplayer-skin-default .xgplayer-fullscreen:hover, .xgplayer-skin-default .xgplayer-fullscreen-img:hover {\n    opacity: 0.85; }\n    .xgplayer-skin-default .xgplayer-fullscreen:hover .xgplayer-tips, .xgplayer-skin-default .xgplayer-fullscreen-img:hover .xgplayer-tips {\n      display: block; }\n\n.xgplayer-skin-default.xgplayer-is-fullscreen .xgplayer-fullscreen .xgplayer-icon .xgplayer-icon-requestfull, .xgplayer-skin-default.xgplayer-is-fullscreen .xgplayer-fullscreen-img .xgplayer-icon .xgplayer-icon-requestfull {\n  display: none; }\n\n.xgplayer-skin-default.xgplayer-is-fullscreen .xgplayer-fullscreen .xgplayer-icon .xgplayer-icon-exitfull, .xgplayer-skin-default.xgplayer-is-fullscreen .xgplayer-fullscreen-img .xgplayer-icon .xgplayer-icon-exitfull {\n  display: block; }\n\n.xgplayer-skin-default.xgplayer-is-fullscreen .xgplayer-fullscreen .xgplayer-tips .xgplayer-tip-requestfull, .xgplayer-skin-default.xgplayer-is-fullscreen .xgplayer-fullscreen-img .xgplayer-tips .xgplayer-tip-requestfull {\n  display: none; }\n\n.xgplayer-skin-default.xgplayer-is-fullscreen .xgplayer-fullscreen .xgplayer-tips .xgplayer-tip-exitfull, .xgplayer-skin-default.xgplayer-is-fullscreen .xgplayer-fullscreen-img .xgplayer-tips .xgplayer-tip-exitfull {\n  display: block; }\n\n.xgplayer-skin-default .xgplayer-cssfullscreen, .xgplayer-skin-default .xgplayer-cssfullscreen-img {\n  position: relative;\n  -webkit-order: 12;\n     -moz-box-ordinal-group: 13;\n          order: 12;\n  display: block;\n  cursor: pointer; }\n  .xgplayer-skin-default .xgplayer-cssfullscreen .xgplayer-icon, .xgplayer-skin-default .xgplayer-cssfullscreen-img .xgplayer-icon {\n    width: 32px;\n    margin-top: 5px; }\n    .xgplayer-skin-default .xgplayer-cssfullscreen .xgplayer-icon div, .xgplayer-skin-default .xgplayer-cssfullscreen-img .xgplayer-icon div {\n      position: absolute; }\n    .xgplayer-skin-default .xgplayer-cssfullscreen .xgplayer-icon .xgplayer-icon-requestfull, .xgplayer-skin-default .xgplayer-cssfullscreen-img .xgplayer-icon .xgplayer-icon-requestfull {\n      display: block; }\n    .xgplayer-skin-default .xgplayer-cssfullscreen .xgplayer-icon .xgplayer-icon-exitfull, .xgplayer-skin-default .xgplayer-cssfullscreen-img .xgplayer-icon .xgplayer-icon-exitfull {\n      display: none; }\n  .xgplayer-skin-default .xgplayer-cssfullscreen .xgplayer-tips, .xgplayer-skin-default .xgplayer-cssfullscreen-img .xgplayer-tips {\n    margin-left: -40px; }\n    .xgplayer-skin-default .xgplayer-cssfullscreen .xgplayer-tips .xgplayer-tip-requestfull, .xgplayer-skin-default .xgplayer-cssfullscreen-img .xgplayer-tips .xgplayer-tip-requestfull {\n      display: block; }\n    .xgplayer-skin-default .xgplayer-cssfullscreen .xgplayer-tips .xgplayer-tip-exitfull, .xgplayer-skin-default .xgplayer-cssfullscreen-img .xgplayer-tips .xgplayer-tip-exitfull {\n      display: none; }\n  .xgplayer-skin-default .xgplayer-cssfullscreen:hover, .xgplayer-skin-default .xgplayer-cssfullscreen-img:hover {\n    opacity: 0.85; }\n    .xgplayer-skin-default .xgplayer-cssfullscreen:hover .xgplayer-tips, .xgplayer-skin-default .xgplayer-cssfullscreen-img:hover .xgplayer-tips {\n      display: block; }\n\n.xgplayer-skin-default.xgplayer-is-cssfullscreen .xgplayer-cssfullscreen .xgplayer-icon .xgplayer-icon-requestfull, .xgplayer-skin-default.xgplayer-is-cssfullscreen .xgplayer-cssfullscreen-img .xgplayer-icon .xgplayer-icon-requestfull {\n  display: none; }\n\n.xgplayer-skin-default.xgplayer-is-cssfullscreen .xgplayer-cssfullscreen .xgplayer-icon .xgplayer-icon-exitfull, .xgplayer-skin-default.xgplayer-is-cssfullscreen .xgplayer-cssfullscreen-img .xgplayer-icon .xgplayer-icon-exitfull {\n  display: block; }\n\n.xgplayer-skin-default.xgplayer-is-cssfullscreen .xgplayer-cssfullscreen .xgplayer-tips, .xgplayer-skin-default.xgplayer-is-cssfullscreen .xgplayer-cssfullscreen-img .xgplayer-tips {\n  margin-left: -47px; }\n  .xgplayer-skin-default.xgplayer-is-cssfullscreen .xgplayer-cssfullscreen .xgplayer-tips .xgplayer-tip-requestfull, .xgplayer-skin-default.xgplayer-is-cssfullscreen .xgplayer-cssfullscreen-img .xgplayer-tips .xgplayer-tip-requestfull {\n    display: none; }\n  .xgplayer-skin-default.xgplayer-is-cssfullscreen .xgplayer-cssfullscreen .xgplayer-tips .xgplayer-tip-exitfull, .xgplayer-skin-default.xgplayer-is-cssfullscreen .xgplayer-cssfullscreen-img .xgplayer-tips .xgplayer-tip-exitfull {\n    display: block; }\n\n.xgplayer-skin-default.xgplayer-is-fullscreen .xgplayer-cssfullscreen, .xgplayer-skin-default.xgplayer-is-fullscreen .xgplayer-cssfullscreen-img {\n  display: none; }\n\n.xgplayer-skin-default.xgplayer-is-cssfullscreen {\n  position: fixed !important;\n  left: 0 !important;\n  top: 0 !important;\n  width: 100% !important;\n  height: 100% !important;\n  z-index: 99999 !important; }\n\n.lang-is-en .xgplayer-cssfullscreen .xgplayer-tips, .lang-is-en .xgplayer-cssfullscreen-img .xgplayer-tips {\n  margin-left: -46px; }\n\n.lang-is-en.xgplayer-is-cssfullscreen .xgplayer-cssfullscreen .xgplayer-tips, .lang-is-en.xgplayer-is-cssfullscreen .xgplayer-cssfullscreen-img .xgplayer-tips {\n  margin-left: -46px; }\n\n.lang-is-jp .xgplayer-cssfullscreen .xgplayer-tips, .lang-is-jp .xgplayer-cssfullscreen-img .xgplayer-tips {\n  margin-left: -120px; }\n\n.lang-is-jp.xgplayer-is-cssfullscreen .xgplayer-cssfullscreen .xgplayer-tips, .lang-is-jp.xgplayer-is-cssfullscreen .xgplayer-cssfullscreen-img .xgplayer-tips {\n  margin-left: -60px; }\n\n.xgplayer-skin-default .xgplayer-volume {\n  outline: none;\n  -webkit-order: 4;\n     -moz-box-ordinal-group: 5;\n          order: 4;\n  width: 28px;\n  height: 140px;\n  display: block;\n  position: relative;\n  margin-top: -100px;\n  overflow: hidden;\n  z-index: 18; }\n  .xgplayer-skin-default .xgplayer-volume .xgplayer-icon {\n    margin-top: 8px;\n    cursor: pointer;\n    position: absolute;\n    bottom: -9px; }\n    .xgplayer-skin-default .xgplayer-volume .xgplayer-icon div {\n      position: absolute; }\n    .xgplayer-skin-default .xgplayer-volume .xgplayer-icon .xgplayer-icon-large {\n      display: block; }\n    .xgplayer-skin-default .xgplayer-volume .xgplayer-icon .xgplayer-icon-small {\n      display: none; }\n    .xgplayer-skin-default .xgplayer-volume .xgplayer-icon .xgplayer-icon-muted {\n      display: none; }\n\n.xgplayer-skin-default .xgplayer-slider {\n  display: none;\n  position: absolute;\n  width: 28px;\n  height: 92px;\n  background: rgba(0, 0, 0, .54);\n  border-radius: 1px;\n  bottom: 42px;\n  outline: none; }\n  .xgplayer-skin-default .xgplayer-slider:after {\n    content: \" \";\n    display: block;\n    height: 15px;\n    width: 28px;\n    position: absolute;\n    bottom: -15px;\n    left: 0;\n    z-index: 20; }\n\n.xgplayer-skin-default .xgplayer-bar, .xgplayer-skin-default .xgplayer-drag {\n  display: block;\n  position: absolute;\n  bottom: 6px;\n  left: 12px;\n  background: rgba(255, 255, 255, .3);\n  border-radius: 100px;\n  width: 4px;\n  height: 76px;\n  outline: none;\n  cursor: pointer; }\n\n.xgplayer-skin-default .xgplayer-drag {\n  bottom: 0;\n  left: 0;\n  background: #FA1F41;\n  max-height: 76px; }\n  .xgplayer-skin-default .xgplayer-drag:after {\n    content: \" \";\n    display: inline-block;\n    width: 8px;\n    height: 8px;\n    background: #fff;\n    box-shadow: 0 0 5px 0 rgba(0, 0, 0, .26);\n    position: absolute;\n    border-radius: 50%;\n    left: -2px;\n    top: -6px; }\n\n.xgplayer-skin-default.xgplayer-volume-active .xgplayer-slider {\n  display: block; }\n\n.xgplayer-skin-default.xgplayer-volume-large .xgplayer-volume .xgplayer-icon .xgplayer-icon-large {\n  display: block; }\n\n.xgplayer-skin-default.xgplayer-volume-large .xgplayer-volume .xgplayer-icon .xgplayer-icon-small {\n  display: none; }\n\n.xgplayer-skin-default.xgplayer-volume-large .xgplayer-volume .xgplayer-icon .xgplayer-icon-muted {\n  display: none; }\n\n.xgplayer-skin-default.xgplayer-volume-small .xgplayer-volume .xgplayer-icon .xgplayer-icon-large {\n  display: none; }\n\n.xgplayer-skin-default.xgplayer-volume-small .xgplayer-volume .xgplayer-icon .xgplayer-icon-small {\n  display: block; }\n\n.xgplayer-skin-default.xgplayer-volume-small .xgplayer-volume .xgplayer-icon .xgplayer-icon-muted {\n  display: none; }\n\n.xgplayer-skin-default.xgplayer-volume-muted .xgplayer-volume .xgplayer-icon .xgplayer-icon-large {\n  display: none; }\n\n.xgplayer-skin-default.xgplayer-volume-muted .xgplayer-volume .xgplayer-icon .xgplayer-icon-small {\n  display: none; }\n\n.xgplayer-skin-default.xgplayer-volume-muted .xgplayer-volume .xgplayer-icon .xgplayer-icon-muted {\n  display: block; }\n\n.xgplayer-skin-default.xgplayer-mobile .xgplayer-volume .xgplayer-slider {\n  display: none; }\n\n.xgplayer-skin-default .xgplayer-definition {\n  -webkit-order: 5;\n     -moz-box-ordinal-group: 6;\n          order: 5;\n  width: 60px;\n  height: 150px;\n  z-index: 18;\n  position: relative;\n  outline: none;\n  display: none;\n  cursor: default;\n  margin-left: 10px;\n  margin-top: -119px; }\n  .xgplayer-skin-default .xgplayer-definition ul {\n    display: none;\n    list-style: none;\n    width: 78px;\n    background: rgba(0, 0, 0, .54);\n    border-radius: 1px;\n    position: absolute;\n    bottom: 30px;\n    left: 0;\n    text-align: center;\n    white-space: nowrap;\n    margin-left: -10px;\n    z-index: 26;\n    cursor: pointer; }\n    .xgplayer-skin-default .xgplayer-definition ul li {\n      opacity: 0.7;\n      font-family: PingFangSC-Regular;\n      font-size: 11px;\n      color: rgba(255, 255, 255, .8);\n      padding: 6px 13px; }\n      .xgplayer-skin-default .xgplayer-definition ul li.selected {\n        color: #fff;\n        opacity: 1; }\n      .xgplayer-skin-default .xgplayer-definition ul li:hover {\n        color: #fff;\n        opacity: 1; }\n  .xgplayer-skin-default .xgplayer-definition .name {\n    text-align: center;\n    font-family: PingFangSC-Regular;\n    font-size: 13px;\n    line-height: 20px;\n    height: 20px;\n    cursor: pointer;\n    color: rgba(255, 255, 255, .8);\n    position: absolute;\n    bottom: 0;\n    width: 60px;\n    height: 20px;\n    line-height: 20px;\n    background: rgba(0, 0, 0, .38);\n    border-radius: 10px;\n    display: inline-block;\n    vertical-align: middle; }\n\n.xgplayer-skin-default.xgplayer-definition-active .xgplayer-definition ul {\n  display: block; }\n\n.xgplayer-skin-default.xgplayer-is-definition .xgplayer-definition {\n  display: block; }\n\n.xgplayer-skin-default .xgplayer-time {\n  -webkit-order: 2;\n     -moz-box-ordinal-group: 3;\n          order: 2;\n  font-family: ArialMT;\n  font-size: 13px;\n  color: #fff;\n  line-height: 40px;\n  text-align: center;\n  display: inline-block; }\n  .xgplayer-skin-default .xgplayer-time span::after {\n    content: \"/\";\n    display: inline-block;\n    padding: 0 3px; }\n  .xgplayer-skin-default .xgplayer-time em {\n    color: rgba(255, 255, 255, .5); }\n\n.xgplayer-skin-default .xgplayer-controls {\n  display: -webkit-flex;\n  display: -moz-box;\n  display: flex;\n  position: absolute;\n  bottom: 0;\n  left: 0;\n  right: 0;\n  height: 40px;\n  background-image: linear-gradient(to bottom, rgba(0, 0, 0, 0), rgba(0, 0, 0, .37), rgba(0, 0, 0, .75), rgba(0, 0, 0, .75));\n  z-index: 10; }\n\n.xgplayer-skin-default.xgplayer-nostart .xgplayer-controls {\n  display: none; }\n\n.xgplayer-skin-default.no-controls .xgplayer-controls {\n  display: none; }\n\n.xgplayer-skin-default.xgplayer-inactive .xgplayer-controls {\n  display: none; }\n\n.xgplayer-skin-default.xgplayer-is-live .xgplayer-controls > * {\n  display: none; }\n\n.xgplayer-skin-default.xgplayer-is-live .xgplayer-controls .xgplayer-play,\n.xgplayer-skin-default.xgplayer-is-live .xgplayer-controls .xgplayer-play-img,\n.xgplayer-skin-default.xgplayer-is-live .xgplayer-controls .xgplayer-placeholder,\n.xgplayer-skin-default.xgplayer-is-live .xgplayer-controls .xgplayer-volume,\n.xgplayer-skin-default.xgplayer-is-live .xgplayer-controls .xgplayer-live,\n.xgplayer-skin-default.xgplayer-is-live .xgplayer-controls .xgplayer-definition,\n.xgplayer-skin-default.xgplayer-is-live .xgplayer-controls .xgplayer-cssfullscreen,\n.xgplayer-skin-default.xgplayer-is-live .xgplayer-controls .xgplayer-fullscreen {\n  display: block; }\n\n.xgplayer-skin-default .xgplayer-live {\n  display: block;\n  font-size: 12px;\n  color: #fff;\n  line-height: 40px;\n  -webkit-order: 1;\n     -moz-box-ordinal-group: 2;\n          order: 1; }\n\n.xgplayer-skin-default .xgplayer-loading {\n  display: none;\n  width: 100px;\n  height: 100px;\n  overflow: hidden;\n  -webkit-transform: scale(0.7);\n      -ms-transform: scale(0.7);\n          transform: scale(0.7);\n  position: absolute;\n  left: 50%;\n  top: 50%;\n  margin: -70px auto auto -50px; }\n  .xgplayer-skin-default .xgplayer-loading svg {\n    border-radius: 50%;\n    -webkit-transform-origin: center;\n        -ms-transform-origin: center;\n            transform-origin: center;\n    -webkit-animation: loadingRotate 1s linear infinite;\n            animation: loadingRotate 1s linear infinite; }\n    .xgplayer-skin-default .xgplayer-loading svg path {\n      stroke: #ddd;\n      stroke-dasharray: 236;\n      -webkit-animation: loadingDashOffset 2s linear infinite;\n              animation: loadingDashOffset 2s linear infinite;\n      animation-direction: alternate-reverse;\n      fill: none;\n      stroke-width: 12px; }\n\n.xgplayer-skin-default.xgplayer-nostart .xgplayer-loading {\n  display: none; }\n\n.xgplayer-skin-default.xgplayer-isloading .xgplayer-loading {\n  display: block; }\n\n.xgplayer-skin-default.xgplayer-ended .xgplayer-loading {\n  display: none; }\n\n.xgplayer-skin-default .xgplayer-progress {\n  display: block;\n  position: absolute;\n  height: 20px;\n  line-height: 20px;\n  left: 12px;\n  right: 12px;\n  outline: none;\n  top: -10px;\n  z-index: 35; }\n\n.xgplayer-skin-default .xgplayer-progress-outer {\n  background: rgba(255, 255, 255, .3);\n  display: block;\n  height: 3px;\n  line-height: 3px;\n  margin-top: 8.5px;\n  width: 100%;\n  position: relative;\n  cursor: pointer; }\n\n.xgplayer-skin-default .xgplayer-progress-cache, .xgplayer-skin-default .xgplayer-progress-played {\n  display: block;\n  height: 100%;\n  line-height: 1;\n  position: absolute;\n  left: 0;\n  top: 0; }\n\n.xgplayer-skin-default .xgplayer-progress-cache {\n  width: 0;\n  background: rgba(255, 255, 255, .5); }\n\n.xgplayer-skin-default .xgplayer-progress-played {\n  display: block;\n  width: 0;\n  background-image: linear-gradient(-90deg, #FA1F41 0%, #E31106 100%);\n  border-radius: 0 1.5px 1.5px 0; }\n\n.xgplayer-skin-default .xgplayer-progress-btn {\n  display: none;\n  position: absolute;\n  left: 0px;\n  top: -5px;\n  width: 13px;\n  height: 13px;\n  border-radius: 30px;\n  background: #FFFFFF;\n  box-shadow: 0 0 2px 0 rgba(0, 0, 0, .26);\n  left: 100%;\n  -webkit-transform: translate(-50%, 0);\n      -ms-transform: translate(-50%, 0);\n          transform: translate(-50%, 0); }\n\n.xgplayer-skin-default .xgplayer-progress-point {\n  position: absolute; }\n  .xgplayer-skin-default .xgplayer-progress-point.xgplayer-tips {\n    margin-left: 0;\n    top: -25px;\n    display: none;\n    z-index: 100; }\n\n.xgplayer-skin-default .xgplayer-progress-dot {\n  display: inline-block;\n  position: absolute;\n  height: 3px;\n  width: 5px;\n  top: 0px;\n  background: white;\n  border-radius: 6px;\n  z-index: 16; }\n  .xgplayer-skin-default .xgplayer-progress-dot .xgplayer-progress-tip {\n    position: absolute;\n    left: 0;\n    top: -40px;\n    height: auto;\n    line-height: 30px;\n    width: auto;\n    -webkit-transform: scale(0.8);\n        -ms-transform: scale(0.8);\n            transform: scale(0.8);\n    background: rgba(0, 0, 0, .3);\n    border-radius: 6px;\n    border: 1px solid rgba(0, 0, 0, .8);\n    cursor: default;\n    white-space: nowrap;\n    display: none; }\n\n.xgplayer-skin-default .xgplayer-progress-dot-show .xgplayer-progress-tip {\n  display: block; }\n\n.xgplayer-skin-default .xgplayer-progress-thumbnail {\n  position: absolute;\n  -moz-box-sizing: border-box;\n       box-sizing: border-box; }\n  .xgplayer-skin-default .xgplayer-progress-thumbnail.xgplayer-tips {\n    margin-left: 0;\n    display: none;\n    z-index: 99; }\n\n.xgplayer-skin-default .xgplayer-progress:hover .xgplayer-progress-outer, .xgplayer-skin-default .xgplayer-progress:focus .xgplayer-progress-outer {\n  height: 6px;\n  margin-top: 7px; }\n\n.xgplayer-skin-default .xgplayer-progress:hover .xgplayer-progress-dot, .xgplayer-skin-default .xgplayer-progress:focus .xgplayer-progress-dot {\n  height: 6px; }\n\n.xgplayer-skin-default .xgplayer-progress:hover .xgplayer-progress-btn, .xgplayer-skin-default .xgplayer-progress:focus .xgplayer-progress-btn {\n  display: block;\n  top: -3px; }\n\n.xgplayer-skin-default.xgplayer-volume-active .xgplayer-progress {\n  z-index: 15; }\n\n.xgplayer-skin-default.xgplayer-definition-active .xgplayer-progress {\n  z-index: 15; }\n\n.xgplayer-skin-default.xgplayer-texttrack-active .xgplayer-progress {\n  z-index: 15; }\n\n.xgplayer-skin-default.xgplayer-playbackrate-active .xgplayer-progress {\n  z-index: 15; }\n\n.xgplayer-skin-default.xgplayer-mobile .xgplayer-progress-btn {\n  display: block !important; }\n\n.xgplayer-skin-default.xgplayer-mobile .xgplayer-progress:hover .xgplayer-progress-outer, .xgplayer-skin-default.xgplayer-mobile .xgplayer-progress:focus .xgplayer-progress-outer {\n  height: 3px !important;\n  margin-top: 8.5px !important; }\n\n.xgplayer-skin-default.xgplayer-mobile .xgplayer-progress:hover .xgplayer-progress-btn, .xgplayer-skin-default.xgplayer-mobile .xgplayer-progress:focus .xgplayer-progress-btn {\n  display: block !important;\n  top: -5px !important; }\n\n.xgplayer-skin-default .xgplayer-playbackrate {\n  -webkit-order: 8;\n     -moz-box-ordinal-group: 9;\n          order: 8;\n  width: 60px;\n  height: 20px;\n  z-index: 18;\n  position: relative;\n  display: inline-block;\n  cursor: default; }\n  .xgplayer-skin-default .xgplayer-playbackrate ul {\n    display: none;\n    list-style: none;\n    width: 78px;\n    background: rgba(0, 0, 0, .54);\n    border-radius: 1px;\n    position: absolute;\n    bottom: 20px;\n    left: 0px;\n    text-align: left;\n    white-space: nowrap;\n    z-index: 26;\n    cursor: pointer; }\n    .xgplayer-skin-default .xgplayer-playbackrate ul li {\n      opacity: 0.7;\n      font-family: PingFangSC-Regular;\n      font-size: 11px;\n      color: rgba(255, 255, 255, .8);\n      position: relative;\n      padding: 4px 0 4px 0px;\n      text-align: center; }\n      .xgplayer-skin-default .xgplayer-playbackrate ul li.selected {\n        color: #fff;\n        opacity: 1; }\n      .xgplayer-skin-default .xgplayer-playbackrate ul li:hover {\n        color: #fff;\n        opacity: 1; }\n    .xgplayer-skin-default .xgplayer-playbackrate ul li:nth-child(1) {\n      position: relative;\n      margin-top: 12px; }\n    .xgplayer-skin-default .xgplayer-playbackrate ul li:last-child {\n      position: relative;\n      margin-bottom: 12px; }\n  .xgplayer-skin-default .xgplayer-playbackrate .name {\n    height: 20px;\n    position: relative;\n    top: 11px;\n    text-align: center;\n    background: rgba(0, 0, 0, .38);\n    color: rgba(255, 255, 255, .8);\n    border-radius: 10px;\n    line-height: 20px; }\n  .xgplayer-skin-default .xgplayer-playbackrate span {\n    position: relative;\n    top: 19px;\n    font-weight: bold;\n    text-shadow: 0 0 4px rgba(0, 0, 0, .6); }\n  .xgplayer-skin-default .xgplayer-playbackrate:hover {\n    opacity: 1; }\n\n.xgplayer-skin-default.xgplayer-playbackrate-active .xgplayer-playbackrate ul {\n  display: block; }\n\n.xgplayer-skin-default .xgplayer-download {\n  position: relative;\n  -webkit-order: 9;\n     -moz-box-ordinal-group: 10;\n          order: 9;\n  display: block;\n  cursor: pointer; }\n  .xgplayer-skin-default .xgplayer-download .xgplayer-icon {\n    margin-top: 3px; }\n    .xgplayer-skin-default .xgplayer-download .xgplayer-icon div {\n      position: absolute; }\n    .xgplayer-skin-default .xgplayer-download .xgplayer-icon svg {\n      position: relative;\n      top: 5px;\n      left: 5px; }\n  .xgplayer-skin-default .xgplayer-download .xgplayer-tips {\n    margin-left: -20px; }\n    .xgplayer-skin-default .xgplayer-download .xgplayer-tips .xgplayer-tip-download {\n      display: block; }\n  .xgplayer-skin-default .xgplayer-download:hover {\n    opacity: 0.85; }\n    .xgplayer-skin-default .xgplayer-download:hover .xgplayer-tips {\n      display: block; }\n\n.lang-is-en .xgplayer-download .xgplayer-tips {\n  margin-left: -32px; }\n\n.lang-is-jp .xgplayer-download .xgplayer-tips {\n  margin-left: -40px; }\n\n.xgplayer-skin-default .danmu-switch {\n  -webkit-order: 6;\n     -moz-box-ordinal-group: 7;\n          order: 6;\n  z-index: 26; }\n\n.xgplayer-skin-default .xgplayer-danmu {\n  display: none;\n  position: absolute;\n  top: 0;\n  left: 0;\n  right: 0;\n  height: 100%;\n  overflow: hidden;\n  z-index: 9;\n  outline: none; }\n  .xgplayer-skin-default .xgplayer-danmu > * {\n    position: absolute;\n    white-space: nowrap;\n    z-index: 9; }\n\n.xgplayer-skin-default .xgplayer-danmu.xgplayer-has-danmu {\n  display: block; }\n\n.xgplayer-skin-default .xgplayer-panel {\n  outline: none;\n  -webkit-order: 7;\n     -moz-box-ordinal-group: 8;\n          order: 7;\n  width: 40px;\n  height: 40px;\n  display: inline-block;\n  position: relative;\n  font-family: PingFangSC-Regular;\n  font-size: 13px;\n  color: rgba(255, 255, 255, .8);\n  z-index: 36; }\n  .xgplayer-skin-default .xgplayer-panel .xgplayer-panel-icon {\n    cursor: pointer;\n    position: absolute;\n    margin-left: 5px;\n    top: 10px; }\n\n.xgplayer-skin-default .xgplayer-panel-active {\n  display: block !important;\n  bottom: 30px; }\n\n.xgplayer-skin-default .xgplayer-panel-slider {\n  z-index: 36;\n  display: none;\n  position: absolute;\n  width: 230px;\n  height: 230px;\n  background: rgba(0, 0, 0, .54);\n  border-radius: 1px;\n  padding: 10px 20px;\n  outline: none;\n  left: -115px;\n  bottom: 40px; }\n  .xgplayer-skin-default .xgplayer-panel-slider .xgplayer-hidemode {\n    padding-bottom: 10px; }\n    .xgplayer-skin-default .xgplayer-panel-slider .xgplayer-hidemode-radio li {\n      display: inline;\n      list-style: none;\n      cursor: pointer; }\n    .xgplayer-skin-default .xgplayer-panel-slider .xgplayer-hidemode ul {\n      display: -webkit-flex;\n      display: -moz-box;\n      display: flex;\n      -webkit-justify-content: space-around;\n              justify-content: space-around; }\n    .xgplayer-skin-default .xgplayer-panel-slider .xgplayer-hidemode li {\n      margin: 0 12px;\n      font-size: 11px;\n      color: #aaa; }\n    .xgplayer-skin-default .xgplayer-panel-slider .xgplayer-hidemode-font {\n      margin-bottom: 10px; }\n  .xgplayer-skin-default .xgplayer-panel-slider .xgplayer-transparency {\n    display: block;\n    margin-top: 10px; }\n    .xgplayer-skin-default .xgplayer-panel-slider .xgplayer-transparency .xgplayer-transparency-line {\n      -webkit-appearance: none;\n      -moz-appearance: none;\n      appearance: none;\n      cursor: pointer;\n      outline: none;\n      width: 150px;\n      height: 4px;\n      background: #aaa;\n      border-radius: 4px;\n      border-style: none;\n      margin-left: 10px;\n      margin-top: -2px; }\n    .xgplayer-skin-default .xgplayer-panel-slider .xgplayer-transparency .xgplayer-transparency-line::-moz-focus-outer {\n      border: 0 !important; }\n    .xgplayer-skin-default .xgplayer-panel-slider .xgplayer-transparency .xgplayer-transparency-color::-webkit-slider-runnable-track {\n      outline: none;\n      width: 150px;\n      height: 4px;\n      border-radius: 4px; }\n    .xgplayer-skin-default .xgplayer-panel-slider .xgplayer-transparency .xgplayer-transparency-color::-moz-range-track {\n      outline: none;\n      background-color: #aaa;\n      border-color: transparent;\n      cursor: pointer;\n      width: 150px;\n      height: 4px;\n      border-radius: 4px; }\n    .xgplayer-skin-default .xgplayer-panel-slider .xgplayer-transparency .xgplayer-transparency-color::-ms-track {\n      outline: none;\n      background-color: #aaa;\n      color: transparent;\n      border-color: transparent;\n      width: 150px;\n      height: 4px;\n      border-radius: 4px; }\n    .xgplayer-skin-default .xgplayer-panel-slider .xgplayer-transparency .xgplayer-transparency-bar::-webkit-slider-thumb {\n      outline: none;\n      -webkit-appearance: none;\n      -moz-appearance: none;\n      appearance: none;\n      border: 6px solid #f85959;\n      height: 6px;\n      width: 6px;\n      margin-top: -4px;\n      border-radius: 6px;\n      cursor: pointer; }\n    .xgplayer-skin-default .xgplayer-panel-slider .xgplayer-transparency .xgplayer-transparency-bar::-moz-range-thumb {\n      outline: none;\n      -webkit-appearance: none;\n      -moz-appearance: none;\n      appearance: none;\n      border: 6px solid #f85959;\n      height: 0;\n      width: 0;\n      border-radius: 6px;\n      cursor: pointer; }\n    .xgplayer-skin-default .xgplayer-panel-slider .xgplayer-transparency .xgplayer-transparency-bar::-ms-thumb {\n      outline: none;\n      -webkit-appearance: none;\n      -moz-appearance: none;\n      appearance: none;\n      border: 6px solid #f85959;\n      height: 6px;\n      width: 6px;\n      border-radius: 6px;\n      cursor: pointer; }\n    .xgplayer-skin-default .xgplayer-panel-slider .xgplayer-transparency .xgplayer-transparency-bar::-moz-range-progress {\n      outline: none;\n      -webkit-appearance: none;\n      -moz-appearance: none;\n      appearance: none;\n      height: 4px;\n      border-radius: 4px;\n      background: linear-gradient(to right, #f85959, #f85959 100%, #aaa); }\n  .xgplayer-skin-default .xgplayer-panel-slider .xgplayer-showarea {\n    display: block;\n    margin-top: 8px; }\n    .xgplayer-skin-default .xgplayer-panel-slider .xgplayer-showarea-name {\n      display: inline-block;\n      position: relative;\n      top: -10px; }\n    .xgplayer-skin-default .xgplayer-panel-slider .xgplayer-showarea-control {\n      display: inline-block; }\n      .xgplayer-skin-default .xgplayer-panel-slider .xgplayer-showarea-control-up {\n        width: 150px;\n        margin-left: 10px;\n        display: -moz-box;\n        display: -webkit-flex;\n        display: flex;\n        -webkit-justify-content: space-between;\n           -moz-box-pack: justify;\n                justify-content: space-between;\n        color: #aaa; }\n      .xgplayer-skin-default .xgplayer-panel-slider .xgplayer-showarea-control-down {\n        position: relative;\n        top: -10px; }\n      .xgplayer-skin-default .xgplayer-panel-slider .xgplayer-showarea-control-down-dots {\n        display: -webkit-flex;\n        display: -moz-box;\n        display: flex;\n        width: 150px;\n        margin-left: 10px;\n        -webkit-justify-content: space-between;\n           -moz-box-pack: justify;\n                justify-content: space-between; }\n    .xgplayer-skin-default .xgplayer-panel-slider .xgplayer-showarea-twoquarters {\n      margin-left: -6px; }\n    .xgplayer-skin-default .xgplayer-panel-slider .xgplayer-showarea-threequarters {\n      margin-left: -6px; }\n    .xgplayer-skin-default .xgplayer-panel-slider .xgplayer-showarea-full {\n      margin-right: 3px; }\n    .xgplayer-skin-default .xgplayer-panel-slider .xgplayer-showarea .xgplayer-showarea-line {\n      -webkit-appearance: none;\n      -moz-appearance: none;\n      appearance: none;\n      cursor: pointer;\n      outline: none;\n      width: 150px;\n      height: 4px;\n      background: #aaa;\n      border-radius: 4px;\n      border-style: none;\n      margin-left: 10px;\n      margin-top: -2px; }\n    .xgplayer-skin-default .xgplayer-panel-slider .xgplayer-showarea .xgplayer-showarea-line::-moz-focus-outer {\n      border: 0 !important; }\n    .xgplayer-skin-default .xgplayer-panel-slider .xgplayer-showarea .xgplayer-showarea-color::-webkit-slider-runnable-track {\n      outline: none;\n      width: 150px;\n      height: 4px;\n      border-radius: 4px; }\n    .xgplayer-skin-default .xgplayer-panel-slider .xgplayer-showarea .xgplayer-showarea-color::-moz-range-track {\n      outline: none;\n      background-color: #aaa;\n      border-color: transparent;\n      cursor: pointer;\n      width: 150px;\n      height: 4px;\n      border-radius: 4px; }\n    .xgplayer-skin-default .xgplayer-panel-slider .xgplayer-showarea .xgplayer-showarea-color::-ms-track {\n      outline: none;\n      background-color: #aaa;\n      color: transparent;\n      border-color: transparent;\n      width: 150px;\n      height: 4px;\n      border-radius: 4px; }\n    .xgplayer-skin-default .xgplayer-panel-slider .xgplayer-showarea .xgplayer-showarea-bar::-webkit-slider-thumb {\n      outline: none;\n      -webkit-appearance: none;\n      -moz-appearance: none;\n      appearance: none;\n      border: 6px solid #f85959;\n      height: 6px;\n      width: 6px;\n      margin-top: -4px;\n      border-radius: 6px;\n      cursor: pointer; }\n    .xgplayer-skin-default .xgplayer-panel-slider .xgplayer-showarea .xgplayer-showarea-bar::-moz-range-thumb {\n      outline: none;\n      -webkit-appearance: none;\n      -moz-appearance: none;\n      appearance: none;\n      border: 6px solid #f85959;\n      height: 0;\n      width: 0;\n      border-radius: 6px;\n      cursor: pointer; }\n    .xgplayer-skin-default .xgplayer-panel-slider .xgplayer-showarea .xgplayer-showarea-bar::-ms-thumb {\n      outline: none;\n      -webkit-appearance: none;\n      -moz-appearance: none;\n      appearance: none;\n      border: 6px solid #f85959;\n      height: 6px;\n      width: 6px;\n      border-radius: 6px;\n      cursor: pointer; }\n    .xgplayer-skin-default .xgplayer-panel-slider .xgplayer-showarea .xgplayer-showarea-zero-dot {\n      width: 3px;\n      height: 3px;\n      border: 3px solid #aaa;\n      border-radius: 50%;\n      background-color: #aaa;\n      position: relative;\n      top: 16px;\n      z-index: -1; }\n    .xgplayer-skin-default .xgplayer-panel-slider .xgplayer-showarea .xgplayer-showarea-onequarters-dot {\n      width: 3px;\n      height: 3px;\n      border: 3px solid #aaa;\n      border-radius: 50%;\n      background-color: #aaa;\n      position: relative;\n      top: 16px;\n      z-index: -1; }\n    .xgplayer-skin-default .xgplayer-panel-slider .xgplayer-showarea .xgplayer-showarea-twoquarters-dot {\n      width: 3px;\n      height: 3px;\n      border: 3px solid #aaa;\n      border-radius: 50%;\n      background-color: #aaa;\n      position: relative;\n      top: 16px;\n      z-index: -1; }\n    .xgplayer-skin-default .xgplayer-panel-slider .xgplayer-showarea .xgplayer-showarea-threequarters-dot {\n      width: 3px;\n      height: 3px;\n      border: 3px solid #aaa;\n      border-radius: 50%;\n      background-color: #aaa;\n      position: relative;\n      top: 16px;\n      z-index: -1; }\n    .xgplayer-skin-default .xgplayer-panel-slider .xgplayer-showarea .xgplayer-showarea-full-dot {\n      width: 3px;\n      height: 3px;\n      border: 3px solid #aaa;\n      border-radius: 50%;\n      background-color: #aaa;\n      position: relative;\n      top: 16px;\n      z-index: -1; }\n  .xgplayer-skin-default .xgplayer-panel-slider .xgplayer-danmuspeed {\n    display: block; }\n    .xgplayer-skin-default .xgplayer-panel-slider .xgplayer-danmuspeed-name {\n      display: inline-block;\n      position: relative;\n      top: -10px; }\n    .xgplayer-skin-default .xgplayer-panel-slider .xgplayer-danmuspeed-control {\n      display: inline-block; }\n      .xgplayer-skin-default .xgplayer-panel-slider .xgplayer-danmuspeed-control-up {\n        width: 150px;\n        margin-left: 10px;\n        display: -moz-box;\n        display: -webkit-flex;\n        display: flex;\n        -webkit-justify-content: space-between;\n           -moz-box-pack: justify;\n                justify-content: space-between;\n        color: #aaa; }\n      .xgplayer-skin-default .xgplayer-panel-slider .xgplayer-danmuspeed-control-down {\n        position: relative;\n        top: -10px; }\n      .xgplayer-skin-default .xgplayer-panel-slider .xgplayer-danmuspeed-control-down-dots {\n        display: -webkit-flex;\n        display: -moz-box;\n        display: flex;\n        width: 150px;\n        margin-left: 10px;\n        -webkit-justify-content: space-between;\n           -moz-box-pack: justify;\n                justify-content: space-between; }\n    .xgplayer-skin-default .xgplayer-panel-slider .xgplayer-danmuspeed .xgplayer-danmuspeed-line {\n      -webkit-appearance: none;\n      -moz-appearance: none;\n      appearance: none;\n      cursor: pointer;\n      outline: none;\n      width: 150px;\n      height: 4px;\n      background: #aaa;\n      border-radius: 4px;\n      border-style: none;\n      margin-left: 10px;\n      margin-top: -2px; }\n    .xgplayer-skin-default .xgplayer-panel-slider .xgplayer-danmuspeed .xgplayer-danmuspeed-line::-moz-focus-outer {\n      border: 0 !important; }\n    .xgplayer-skin-default .xgplayer-panel-slider .xgplayer-danmuspeed .xgplayer-danmuspeed-color::-webkit-slider-runnable-track {\n      outline: none;\n      width: 150px;\n      height: 4px;\n      border-radius: 4px; }\n    .xgplayer-skin-default .xgplayer-panel-slider .xgplayer-danmuspeed .xgplayer-danmuspeed-color::-moz-range-track {\n      outline: none;\n      background-color: #aaa;\n      border-color: transparent;\n      cursor: pointer;\n      width: 150px;\n      height: 4px;\n      border-radius: 4px; }\n    .xgplayer-skin-default .xgplayer-panel-slider .xgplayer-danmuspeed .xgplayer-danmuspeed-color::-ms-track {\n      outline: none;\n      background-color: #aaa;\n      color: transparent;\n      border-color: transparent;\n      width: 150px;\n      height: 4px;\n      border-radius: 4px; }\n    .xgplayer-skin-default .xgplayer-panel-slider .xgplayer-danmuspeed .xgplayer-danmuspeed-bar::-webkit-slider-thumb {\n      outline: none;\n      -webkit-appearance: none;\n      -moz-appearance: none;\n      appearance: none;\n      border: 6px solid #f85959;\n      height: 6px;\n      width: 6px;\n      margin-top: -4px;\n      border-radius: 6px;\n      cursor: pointer; }\n    .xgplayer-skin-default .xgplayer-panel-slider .xgplayer-danmuspeed .xgplayer-danmuspeed-bar::-moz-range-thumb {\n      outline: none;\n      -webkit-appearance: none;\n      -moz-appearance: none;\n      appearance: none;\n      border: 6px solid #f85959;\n      height: 0;\n      width: 0;\n      border-radius: 6px;\n      cursor: pointer; }\n    .xgplayer-skin-default .xgplayer-panel-slider .xgplayer-danmuspeed .xgplayer-danmuspeed-bar::-ms-thumb {\n      outline: none;\n      -webkit-appearance: none;\n      -moz-appearance: none;\n      appearance: none;\n      border: 6px solid #f85959;\n      height: 6px;\n      width: 6px;\n      border-radius: 6px;\n      cursor: pointer; }\n    .xgplayer-skin-default .xgplayer-panel-slider .xgplayer-danmuspeed .xgplayer-danmuspeed-small-dot {\n      width: 3px;\n      height: 3px;\n      border: 3px solid #aaa;\n      border-radius: 50%;\n      background-color: #aaa;\n      position: relative;\n      top: 16px;\n      z-index: -1; }\n    .xgplayer-skin-default .xgplayer-panel-slider .xgplayer-danmuspeed .xgplayer-danmuspeed-middle-dot {\n      width: 3px;\n      height: 3px;\n      border: 3px solid #aaa;\n      border-radius: 50%;\n      background-color: #aaa;\n      position: relative;\n      top: 16px;\n      z-index: -1; }\n    .xgplayer-skin-default .xgplayer-panel-slider .xgplayer-danmuspeed .xgplayer-danmuspeed-large-dot {\n      width: 3px;\n      height: 3px;\n      border: 3px solid #aaa;\n      border-radius: 50%;\n      background-color: #aaa;\n      position: relative;\n      top: 16px;\n      z-index: -1; }\n  .xgplayer-skin-default .xgplayer-panel-slider .xgplayer-danmufont {\n    display: block; }\n    .xgplayer-skin-default .xgplayer-panel-slider .xgplayer-danmufont-name {\n      display: inline-block;\n      position: relative;\n      top: -10px; }\n    .xgplayer-skin-default .xgplayer-panel-slider .xgplayer-danmufont-control {\n      display: inline-block; }\n      .xgplayer-skin-default .xgplayer-panel-slider .xgplayer-danmufont-control-up {\n        width: 150px;\n        margin-left: 10px;\n        display: -moz-box;\n        display: -webkit-flex;\n        display: flex;\n        -webkit-justify-content: space-between;\n           -moz-box-pack: justify;\n                justify-content: space-between;\n        color: #aaa; }\n      .xgplayer-skin-default .xgplayer-panel-slider .xgplayer-danmufont-control-down {\n        position: relative;\n        top: -10px; }\n      .xgplayer-skin-default .xgplayer-panel-slider .xgplayer-danmufont-control-down-dots {\n        display: -webkit-flex;\n        display: -moz-box;\n        display: flex;\n        width: 150px;\n        margin-left: 10px;\n        -webkit-justify-content: space-between;\n           -moz-box-pack: justify;\n                justify-content: space-between; }\n    .xgplayer-skin-default .xgplayer-panel-slider .xgplayer-danmufont .xgplayer-danmufont-line {\n      -webkit-appearance: none;\n      -moz-appearance: none;\n      appearance: none;\n      cursor: pointer;\n      outline: none;\n      width: 150px;\n      height: 4px;\n      background: #aaa;\n      border-radius: 4px;\n      border-style: none;\n      margin-left: 10px;\n      margin-top: -2px; }\n    .xgplayer-skin-default .xgplayer-panel-slider .xgplayer-danmufont .xgplayer-danmufont-line::-moz-focus-outer {\n      border: 0 !important; }\n    .xgplayer-skin-default .xgplayer-panel-slider .xgplayer-danmufont .xgplayer-danmufont-color::-webkit-slider-runnable-track {\n      outline: none;\n      width: 150px;\n      height: 4px;\n      border-radius: 4px; }\n    .xgplayer-skin-default .xgplayer-panel-slider .xgplayer-danmufont .xgplayer-danmufont-color::-moz-range-track {\n      outline: none;\n      background-color: #aaa;\n      border-color: transparent;\n      cursor: pointer;\n      width: 150px;\n      height: 4px;\n      border-radius: 4px; }\n    .xgplayer-skin-default .xgplayer-panel-slider .xgplayer-danmufont .xgplayer-danmufont-color::-ms-track {\n      outline: none;\n      background-color: #aaa;\n      color: transparent;\n      border-color: transparent;\n      width: 150px;\n      height: 4px;\n      border-radius: 4px; }\n    .xgplayer-skin-default .xgplayer-panel-slider .xgplayer-danmufont .xgplayer-danmufont-bar::-webkit-slider-thumb {\n      outline: none;\n      -webkit-appearance: none;\n      -moz-appearance: none;\n      appearance: none;\n      border: 6px solid #f85959;\n      height: 6px;\n      width: 6px;\n      margin-top: -4px;\n      border-radius: 6px;\n      cursor: pointer; }\n    .xgplayer-skin-default .xgplayer-panel-slider .xgplayer-danmufont .xgplayer-danmufont-bar::-moz-range-thumb {\n      outline: none;\n      -webkit-appearance: none;\n      -moz-appearance: none;\n      appearance: none;\n      border: 6px solid #f85959;\n      height: 0;\n      width: 0;\n      border-radius: 6px;\n      cursor: pointer; }\n    .xgplayer-skin-default .xgplayer-panel-slider .xgplayer-danmufont .xgplayer-danmufont-bar::-ms-thumb {\n      outline: none;\n      -webkit-appearance: none;\n      -moz-appearance: none;\n      appearance: none;\n      border: 6px solid #f85959;\n      height: 6px;\n      width: 6px;\n      border-radius: 6px;\n      cursor: pointer; }\n    .xgplayer-skin-default .xgplayer-panel-slider .xgplayer-danmufont .xgplayer-danmufont-small-dot {\n      width: 3px;\n      height: 3px;\n      border: 3px solid #aaa;\n      border-radius: 50%;\n      background-color: #aaa;\n      position: relative;\n      top: 16px;\n      z-index: -1; }\n    .xgplayer-skin-default .xgplayer-panel-slider .xgplayer-danmufont .xgplayer-danmufont-middle-dot {\n      width: 3px;\n      height: 3px;\n      border: 3px solid #aaa;\n      border-radius: 50%;\n      background-color: #aaa;\n      position: relative;\n      top: 16px;\n      z-index: -1; }\n    .xgplayer-skin-default .xgplayer-panel-slider .xgplayer-danmufont .xgplayer-danmufont-large-dot {\n      width: 3px;\n      height: 3px;\n      border: 3px solid #aaa;\n      border-radius: 50%;\n      background-color: #aaa;\n      position: relative;\n      top: 16px;\n      z-index: -1; }\n\n.xgplayer-skin-default .xgplayer-playnext {\n  position: relative;\n  -webkit-order: 1;\n     -moz-box-ordinal-group: 2;\n          order: 1;\n  display: block;\n  cursor: pointer;\n  top: -2px; }\n  .xgplayer-skin-default .xgplayer-playnext .xgplayer-icon div {\n    position: absolute; }\n  .xgplayer-skin-default .xgplayer-playnext .xgplayer-tips .xgplayer-tip-playnext {\n    display: block; }\n  .xgplayer-skin-default .xgplayer-playnext:hover {\n    opacity: 0.85; }\n    .xgplayer-skin-default .xgplayer-playnext:hover .xgplayer-tips {\n      display: block; }\n\n.lang-is-en .xgplayer-playnext .xgplayer-tips {\n  margin-left: -25px; }\n\n.lang-is-jp .xgplayer-playnext .xgplayer-tips {\n  margin-left: -38px; }\n\n.xgplayer-skin-default .xgplayer-pip {\n  -webkit-order: 9;\n     -moz-box-ordinal-group: 10;\n          order: 9;\n  position: relative;\n  outline: none;\n  display: block;\n  cursor: pointer;\n  height: 20px;\n  top: 8px; }\n  .xgplayer-skin-default .xgplayer-pip .name {\n    text-align: center;\n    font-family: PingFangSC-Regular;\n    font-size: 13px;\n    line-height: 20px;\n    height: 20px;\n    color: rgba(255, 255, 255, .8); }\n    .xgplayer-skin-default .xgplayer-pip .name span {\n      width: 60px;\n      height: 20px;\n      line-height: 20px;\n      background: rgba(0, 0, 0, .38);\n      border-radius: 10px;\n      display: inline-block;\n      vertical-align: middle; }\n\n.xgplayer-skin-default .xgplayer-pip-lay {\n  position: absolute;\n  top: 26px;\n  left: 0;\n  width: 100%;\n  height: 100%;\n  z-index: 130;\n  cursor: pointer;\n  background-color: transparent;\n  display: none; }\n  .xgplayer-skin-default .xgplayer-pip-lay div {\n    width: 100%;\n    height: 100%; }\n\n.xgplayer-skin-default .xgplayer-pip-drag {\n  cursor: move;\n  position: absolute;\n  top: 0;\n  left: 0;\n  width: 100%;\n  height: 26px;\n  line-height: 26px;\n  background-image: linear-gradient(rgba(0, 0, 0, .3), rgba(0, 0, 0, 0));\n  z-index: 130;\n  display: none; }\n\n.xgplayer-skin-default.xgplayer-pip-active {\n  position: fixed;\n  right: 0;\n  bottom: 200px;\n  width: 320px !important;\n  height: 180px !important;\n  z-index: 110 !important; }\n  .xgplayer-skin-default.xgplayer-pip-active .xgplayer-controls {\n    display: none; }\n  .xgplayer-skin-default.xgplayer-pip-active .xgplayer-danmu {\n    display: none; }\n  .xgplayer-skin-default.xgplayer-pip-active .xgplayer-pip-lay {\n    display: block; }\n\n.xgplayer-skin-default.xgplayer-pip-active .xgplayer-pip-drag {\n  display: -webkit-flex;\n  display: -moz-box;\n  display: flex; }\n\n.xgplayer-skin-default.xgplayer-inactive .xgplayer-pip-drag {\n  display: none; }\n\n.lang-is-jp .xgplayer-pip .name span {\n  width: 70px;\n  height: 20px; }\n\n.xgplayer-skin-default .xgplayer-rotate {\n  position: relative;\n  -webkit-order: 10;\n     -moz-box-ordinal-group: 11;\n          order: 10;\n  display: block;\n  cursor: pointer; }\n  .xgplayer-skin-default .xgplayer-rotate .xgplayer-icon {\n    margin-top: 7px;\n    width: 26px; }\n    .xgplayer-skin-default .xgplayer-rotate .xgplayer-icon div {\n      position: absolute; }\n  .xgplayer-skin-default .xgplayer-rotate .xgplayer-tips {\n    margin-left: -22px; }\n    .xgplayer-skin-default .xgplayer-rotate .xgplayer-tips .xgplayer-tip-rotate {\n      display: block; }\n  .xgplayer-skin-default .xgplayer-rotate:hover {\n    opacity: 0.85; }\n    .xgplayer-skin-default .xgplayer-rotate:hover .xgplayer-tips {\n      display: block; }\n\n.lang-is-en .xgplayer-rotate .xgplayer-tips {\n  margin-left: -26px; }\n\n.lang-is-jp .xgplayer-rotate .xgplayer-tips {\n  margin-left: -38px; }\n\n.xgplayer-skin-default .xgplayer-screenshot {\n  -webkit-order: 11;\n     -moz-box-ordinal-group: 12;\n          order: 11;\n  position: relative;\n  outline: none;\n  display: block;\n  cursor: pointer;\n  height: 20px;\n  top: 8px; }\n  .xgplayer-skin-default .xgplayer-screenshot .name {\n    text-align: center;\n    font-family: PingFangSC-Regular;\n    font-size: 13px;\n    line-height: 20px;\n    height: 20px;\n    color: rgba(255, 255, 255, .8); }\n    .xgplayer-skin-default .xgplayer-screenshot .name span {\n      width: 60px;\n      height: 20px;\n      line-height: 20px;\n      background: rgba(0, 0, 0, .38);\n      border-radius: 10px;\n      display: inline-block;\n      vertical-align: middle; }\n\n.lang-is-en .xgplayer-screenshot .name span, .lang-is-jp .xgplayer-screenshot .name span {\n  width: 75px;\n  height: 20px; }\n\n.xgplayer-skin-default .xgplayer-texttrack {\n  -webkit-order: 7;\n     -moz-box-ordinal-group: 8;\n          order: 7;\n  width: 60px;\n  height: 150px;\n  z-index: 18;\n  position: relative;\n  outline: none;\n  display: none;\n  cursor: default;\n  margin-top: -119px; }\n  .xgplayer-skin-default .xgplayer-texttrack ul {\n    display: none;\n    list-style: none;\n    width: 78px;\n    background: rgba(0, 0, 0, .54);\n    border-radius: 1px;\n    position: absolute;\n    bottom: 30px;\n    left: 0;\n    text-align: center;\n    white-space: nowrap;\n    margin-left: -10px;\n    z-index: 26;\n    cursor: pointer; }\n    .xgplayer-skin-default .xgplayer-texttrack ul li {\n      opacity: 0.7;\n      font-family: PingFangSC-Regular;\n      font-size: 11px;\n      color: rgba(255, 255, 255, .8);\n      padding: 6px 13px; }\n      .xgplayer-skin-default .xgplayer-texttrack ul li.selected {\n        color: #fff;\n        opacity: 1; }\n      .xgplayer-skin-default .xgplayer-texttrack ul li:hover {\n        color: #fff;\n        opacity: 1; }\n  .xgplayer-skin-default .xgplayer-texttrack .name {\n    text-align: center;\n    font-family: PingFangSC-Regular;\n    font-size: 13px;\n    line-height: 20px;\n    height: 20px;\n    cursor: pointer;\n    color: rgba(255, 255, 255, .8);\n    position: absolute;\n    bottom: 0;\n    width: 60px;\n    height: 20px;\n    line-height: 20px;\n    background: rgba(0, 0, 0, .38);\n    border-radius: 10px;\n    display: inline-block;\n    vertical-align: middle; }\n\n.xgplayer-skin-default.xgplayer-texttrack-active .xgplayer-texttrack ul {\n  display: block; }\n\n.xgplayer-skin-default.xgplayer-is-texttrack .xgplayer-texttrack {\n  display: block; }\n\n.xgplayer-skin-default .xgplayer-icon {\n  display: block;\n  width: 40px;\n  height: 40px;\n  overflow: hidden;\n  fill: #fff; }\n\n.xgplayer-skin-default .xgplayer-tips {\n  background: rgba(0, 0, 0, .54);\n  border-radius: 1px;\n  display: none;\n  position: absolute;\n  font-family: PingFangSC-Regular;\n  font-size: 11px;\n  color: #fff;\n  padding: 2px 4px;\n  text-align: center;\n  top: -30px;\n  left: 50%;\n  margin-left: -16px;\n  width: auto;\n  white-space: nowrap; }\n\n.xgplayer-skin-default.xgplayer-mobile .xgplayer-tips {\n  display: none !important; }\n\n.xgplayer-skin-default .xgplayer-error {\n  background: #000;\n  display: none;\n  position: absolute;\n  left: 0;\n  top: 0;\n  width: 100%;\n  height: 100%;\n  z-index: 125;\n  font-family: PingFangSC-Regular;\n  font-size: 14px;\n  color: #fff;\n  text-align: center;\n  line-height: 100%;\n  -webkit-justify-content: center;\n     -moz-box-pack: center;\n          justify-content: center;\n  -webkit-align-items: center;\n     -moz-box-align: center;\n          align-items: center; }\n  .xgplayer-skin-default .xgplayer-error .xgplayer-error-refresh {\n    color: #FA1F41;\n    padding: 0 3px;\n    cursor: pointer; }\n  .xgplayer-skin-default .xgplayer-error .xgplayer-error-text {\n    line-height: 18px;\n    margin: auto 6px; }\n\n.xgplayer-skin-default.xgplayer-is-error .xgplayer-error {\n  display: -webkit-flex;\n  display: -moz-box;\n  display: flex; }\n\n.xgplayer-skin-default .xgplayer-memoryplay-spot {\n  position: absolute;\n  height: 32px;\n  left: 10px;\n  bottom: 46px;\n  background: rgba(0, 0, 0, .5);\n  border-radius: 32px;\n  line-height: 32px;\n  color: #ddd;\n  z-index: 15;\n  padding: 0 32px 0 16px; }\n  .xgplayer-skin-default .xgplayer-memoryplay-spot .xgplayer-lasttime {\n    color: red;\n    font-weight: bold; }\n  .xgplayer-skin-default .xgplayer-memoryplay-spot .btn-close {\n    position: absolute;\n    width: 16px;\n    height: 16px;\n    right: 10px;\n    top: 2px;\n    cursor: pointer;\n    color: #fff;\n    font-size: 16px; }\n";
 	styleInject(css$4);
 
-	return Player;
+	exports.BasePlugin = BasePlugin;
+	exports.Plugin = Plugin;
+	exports.default = Player;
+	exports.pluginsManager = pluginsManager;
+
+	Object.defineProperty(exports, '__esModule', { value: true });
 
 })));
 //# sourceMappingURL=index.js.map

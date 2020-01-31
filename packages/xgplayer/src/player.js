@@ -203,6 +203,9 @@ class Player extends Proxy {
         if (plugin.pluginName && ignoresStr.indexOf(plugin.pluginName.toLowerCase()) > -1) {
           return null
         }
+        if (plugin.options) {
+          return pluginsManager.register(this, plugin.plugin, plugin.options)
+        }
         return pluginsManager.register(this, plugin)
       } catch (err) {
         return null
@@ -251,7 +254,7 @@ class Player extends Proxy {
     } else {
       pluginsManager.beforeInit(this).then(() => {
         if (!url) {
-          url = this.url
+          url = this.url || this.config.url;
         }
         this._startInit(url)
       }).catch((e) => {

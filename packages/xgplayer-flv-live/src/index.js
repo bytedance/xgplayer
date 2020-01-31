@@ -1,26 +1,29 @@
-import Player from 'xgplayer'
+import { BasePlugin } from 'xgplayer'
 import EVENTS from 'xgplayer-transmuxer-constant-events'
 import Context from 'xgplayer-transmuxer-context';
 import FLV from './flv-live'
 const flvAllowedEvents = EVENTS.FlvAllowedEvents;
 
-class FlvPlayer extends Player {
+class FlvPlayer extends BasePlugin {
   constructor (config) {
     super(config)
     this.context = new Context(flvAllowedEvents)
     this.initEvents()
     this.loaderCompleteTimer = null
     this.started = false
+    this.play = this.play.bind(this)
+    this.pause = this.pause.bind(this)
     // const preloadTime = player.config.preloadTime || 15
   }
 
-  start () {
+  beforeInit () {
     if (this.started) {
       return;
     }
+    this.player.url = this.flv.mse.url
     this.initFlv()
     this.context.init()
-    super.start(this.flv.mse.url)
+    super.start()
     this.loadData()
     this.started = true
   }
@@ -28,9 +31,9 @@ class FlvPlayer extends Player {
   initFlvEvents (flv) {
     const player = this;
     flv.once(EVENTS.REMUX_EVENTS.INIT_SEGMENT, () => {
-      Player.util.addClass(player.root, 'xgplayer-is-live')
-      if (!Player.util.findDom(this.root, 'xg-live')) {
-        const live = Player.util.createDom('xg-live', '正在直播', {}, 'xgplayer-live')
+      BasePlugin.util.addClass(player.root, 'xgplayer-is-live')
+      if (!BasePlugin.util.findDom(this.root, 'xg-live')) {
+        const live = BasePlugin.util.createDom('xg-live', '正在直播', {}, 'xgplayer-live')
         player.controls.appendChild(live)
       }
     })
@@ -92,6 +95,9 @@ class FlvPlayer extends Player {
         this.flv.seek(this.currentTime)
       }
     })
+
+    this.on('play', this.play)
+    this.on('pause', this.pause)
   }
 
   initFlv () {

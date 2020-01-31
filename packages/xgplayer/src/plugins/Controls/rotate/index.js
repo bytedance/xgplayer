@@ -1,5 +1,6 @@
-import Plugin from '../../plugin'
-import RotateIcon from '../assets/rotate.svg'
+import Plugin from '../../../plugin'
+import RotateIcon from '../../assets/rotate.svg'
+import ReplayIcon from '../../../skin/assets/replay.svg';
 
 class Rotate extends Plugin {
   static get pluginName () {
@@ -7,6 +8,8 @@ class Rotate extends Plugin {
   }
 
   afterCreate () {
+    this.updateRotateDeg = this.updateRotateDeg.bind(this)
+    this.rotate = this.rotate.bind(this)
     this.bind('.xgplayer-icon', 'click', this.rotate)
     this.bind('.xgplayer-icon', 'touchend', this.rotate)
   }
@@ -28,14 +31,14 @@ class Rotate extends Plugin {
     let targetWidth = player.video.videoWidth
     let targetHeight = player.video.videoHeight
 
-    if (!player.config.rotate.innerRotate) {
+    if (!this.config.innerRotate) {
       // player.root.style.width = height + 'px'
       // player.root.style.height = width + 'px'
     }
 
     let scale
     if (player.rotateDeg === 0.25 || player.rotateDeg === 0.75) {
-      if (player.config.rotate.innerRotate) {
+      if (this.config.innerRotate) {
         if ((targetWidth / targetHeight) > (height / width)) { // 旋转后纵向撑满
           let videoWidth = 0
           if ((targetHeight / targetWidth) > (height / width)) { // 旋转前是纵向撑满
@@ -66,7 +69,7 @@ class Rotate extends Plugin {
       scale = 1
     }
 
-    if (player.config.rotate.innerRotate) {
+    if (this.config.innerRotate) {
       player.video.style.transformOrigin = 'center center'
       player.video.style.transform = `rotate(${player.rotateDeg}turn) scale(${scale})`
       player.video.style.webKitTransform = `rotate(${player.rotateDeg}turn) scale(${scale})`
@@ -90,9 +93,25 @@ class Rotate extends Plugin {
     player.emit('rotate', player.rotateDeg * 360)
   }
 
+  registerIcons () {
+    return {
+      'rotate': RotateIcon
+    }
+  }
+
+  // 扩展语言
+  registerLangauageTexts () {
+    return {
+      'rotate': {
+        jp: '日文text',
+        en: 'rotate',
+        zh: '旋转屏幕'
+      }
+    }
+  }
+
   render () {
-    let tipsText = player.lang.ROTATE_TIPS
-    return `<xg-icon class="xgplayer-icon">${RotateIcon}<span class="xgplayer-tip-rotate">${tipsText}</span></xg-icon>`
+    return `<xg-icon class="xgplayer-icon">${RotateIcon}<span class="xgplayer-tip-rotate">${this.text.rotate}</span></xg-icon>`
   }
 }
 
