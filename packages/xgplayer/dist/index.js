@@ -2162,6 +2162,12 @@
 	  return Plugin;
 	}(BasePlugin);
 
+
+	Plugin.Util = BasePlugin.Util;
+	Plugin.Sniffer = BasePlugin.Sniffer;
+	Plugin.Errors = BasePlugin.Errors;
+	Plugin.Event = BasePlugin.Event;
+
 	var STATE_CLASS = {
 	  DEFAULT: 'xgplayer',
 	  DEFAULT_SKIN: 'xgplayer-skin-default',
@@ -2182,6 +2188,8 @@
 	  PC: 'xgplayer-pc',
 	  MOBILE: 'xgplayer-mobile'
 	};
+
+	var ReplayIcon = "<svg class=\"xgplayer-replay-svg\" xmlns=\"http://www.w3.org/2000/svg\" width=\"78\" height=\"78\" viewbox=\"0 0 78 78\">\n  <path d=\"M8.22708362,13.8757234 L11.2677371,12.6472196 C11.7798067,12.4403301 12.3626381,12.6877273 12.5695276,13.1997969 L12.9441342,14.1269807 C13.1510237,14.6390502 12.9036264,15.2218816 12.3915569,15.4287712 L6.8284538,17.6764107 L5.90126995,18.0510173 C5.38920044,18.2579068 4.80636901,18.0105096 4.5994795,17.49844 L1.97723335,11.0081531 C1.77034384,10.4960836 2.0177411,9.91325213 2.52981061,9.70636262 L3.45699446,9.33175602 C3.96906396,9.12486652 4.5518954,9.37226378 4.75878491,9.88433329 L5.67885163,12.1615783 C7.99551726,6.6766934 13.3983951,3 19.5,3 C27.7842712,3 34.5,9.71572875 34.5,18 C34.5,26.2842712 27.7842712,33 19.5,33 C15.4573596,33 11.6658607,31.3912946 8.87004692,28.5831991 C8.28554571,27.9961303 8.28762719,27.0463851 8.87469603,26.4618839 C9.46176488,25.8773827 10.4115101,25.8794641 10.9960113,26.466533 C13.2344327,28.7147875 16.263503,30 19.5,30 C26.127417,30 31.5,24.627417 31.5,18 C31.5,11.372583 26.127417,6 19.5,6 C14.4183772,6 9.94214483,9.18783811 8.22708362,13.8757234 Z\"></path>\n</svg>\n";
 
 	function styleInject(css, ref) {
 	  if (ref === void 0) ref = {};
@@ -2212,11 +2220,8 @@
 	  }
 	}
 
-	var css = "";
+	var css = ".xgplayer-replay {\n  display: none; }\n\n.xgplayer-skin-default .xgplayer-replay {\n  position: absolute;\n  left: 0;\n  top: 0;\n  width: 100%;\n  height: 100%;\n  z-index: 105;\n  display: none;\n  -webkit-justify-content: center;\n     -moz-box-pack: center;\n          justify-content: center;\n  -webkit-align-items: center;\n     -moz-box-align: center;\n          align-items: center;\n  background: rgba(0, 0, 0, .54);\n  -webkit-flex-direction: column;\n     -moz-box-orient: vertical;\n     -moz-box-direction: normal;\n          flex-direction: column; }\n  .xgplayer-skin-default .xgplayer-replay svg {\n    background: rgba(0, 0, 0, .58);\n    border-radius: 100%;\n    cursor: pointer; }\n    .xgplayer-skin-default .xgplayer-replay svg path {\n      -webkit-transform: translate(20px, 21px);\n          -ms-transform: translate(20px, 21px);\n              transform: translate(20px, 21px);\n      fill: #ddd; }\n    .xgplayer-skin-default .xgplayer-replay svg:hover {\n      background: rgba(0, 0, 0, .38); }\n      .xgplayer-skin-default .xgplayer-replay svg:hover path {\n        fill: #fff; }\n  .xgplayer-skin-default .xgplayer-replay .xgplayer-replay-txt {\n    display: inline-block;\n    font-family: PingFangSC-Regular;\n    font-size: 14px;\n    color: #fff;\n    line-height: 34px; }\n\n.xgplayer-skin-default.xgplayer.xgplayer-ended .xgplayer-controls {\n  display: none; }\n\n.xgplayer-skin-default.xgplayer.xgplayer-ended .xgplayer-replay {\n  display: -webkit-flex;\n  display: -moz-box;\n  display: flex; }\n";
 	styleInject(css);
-
-	var css$1 = ".xgplayer .xgplayer-poster {\n  display: none;\n  position: absolute;\n  left: 0;\n  top: 0;\n  width: 100%;\n  height: 100%;\n  z-index: 100;\n  background-size: cover;\n  background-position: center center; }\n\n.xgplayer.xgplayer-nostart .xgplayer-poster {\n  display: block; }\n";
-	styleInject(css$1);
 
 	var _createClass$3 = function () { function defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ("value" in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } } return function (Constructor, protoProps, staticProps) { if (protoProps) defineProperties(Constructor.prototype, protoProps); if (staticProps) defineProperties(Constructor, staticProps); return Constructor; }; }();
 
@@ -2226,62 +2231,16 @@
 
 	function _inherits$1(subClass, superClass) { if (typeof superClass !== "function" && superClass !== null) { throw new TypeError("Super expression must either be null or a function, not " + typeof superClass); } subClass.prototype = Object.create(superClass && superClass.prototype, { constructor: { value: subClass, enumerable: false, writable: true, configurable: true } }); if (superClass) Object.setPrototypeOf ? Object.setPrototypeOf(subClass, superClass) : subClass.__proto__ = superClass; }
 
-	var Poster = function (_Plugin) {
-	  _inherits$1(Poster, _Plugin);
-
-	  function Poster() {
-	    _classCallCheck$4(this, Poster);
-
-	    return _possibleConstructorReturn$1(this, (Poster.__proto__ || Object.getPrototypeOf(Poster)).apply(this, arguments));
-	  }
-
-	  _createClass$3(Poster, [{
-	    key: 'render',
-	    value: function render() {
-	      var poster = this.config.poster || this.playerConfig.poster;
-	      if (!poster) {
-	        return '';
-	      }
-	      return '<xg-poster class="xgplayer-poster" style="background-image:url(' + poster + ')">\n    </xg-poster>';
-	    }
-	  }, {
-	    key: 'beforePlayerInit',
-	    value: function beforePlayerInit() {
-	      console.log('beforePlayerInit');
-	    }
-	  }], [{
-	    key: 'pluginName',
-	    get: function get() {
-	      return 'Poster';
-	    }
-	  }]);
-
-	  return Poster;
-	}(Plugin);
-
-	var ReplayIcon = "<svg class=\"xgplayer-replay-svg\" xmlns=\"http://www.w3.org/2000/svg\" width=\"78\" height=\"78\" viewbox=\"0 0 78 78\">\n  <path d=\"M8.22708362,13.8757234 L11.2677371,12.6472196 C11.7798067,12.4403301 12.3626381,12.6877273 12.5695276,13.1997969 L12.9441342,14.1269807 C13.1510237,14.6390502 12.9036264,15.2218816 12.3915569,15.4287712 L6.8284538,17.6764107 L5.90126995,18.0510173 C5.38920044,18.2579068 4.80636901,18.0105096 4.5994795,17.49844 L1.97723335,11.0081531 C1.77034384,10.4960836 2.0177411,9.91325213 2.52981061,9.70636262 L3.45699446,9.33175602 C3.96906396,9.12486652 4.5518954,9.37226378 4.75878491,9.88433329 L5.67885163,12.1615783 C7.99551726,6.6766934 13.3983951,3 19.5,3 C27.7842712,3 34.5,9.71572875 34.5,18 C34.5,26.2842712 27.7842712,33 19.5,33 C15.4573596,33 11.6658607,31.3912946 8.87004692,28.5831991 C8.28554571,27.9961303 8.28762719,27.0463851 8.87469603,26.4618839 C9.46176488,25.8773827 10.4115101,25.8794641 10.9960113,26.466533 C13.2344327,28.7147875 16.263503,30 19.5,30 C26.127417,30 31.5,24.627417 31.5,18 C31.5,11.372583 26.127417,6 19.5,6 C14.4183772,6 9.94214483,9.18783811 8.22708362,13.8757234 Z\"></path>\n</svg>\n";
-
-	var css$2 = ".xgplayer-replay {\n  display: none; }\n\n.xgplayer-skin-default .xgplayer-replay {\n  position: absolute;\n  left: 0;\n  top: 0;\n  width: 100%;\n  height: 100%;\n  z-index: 105;\n  display: none;\n  -webkit-justify-content: center;\n     -moz-box-pack: center;\n          justify-content: center;\n  -webkit-align-items: center;\n     -moz-box-align: center;\n          align-items: center;\n  background: rgba(0, 0, 0, .54);\n  -webkit-flex-direction: column;\n     -moz-box-orient: vertical;\n     -moz-box-direction: normal;\n          flex-direction: column; }\n  .xgplayer-skin-default .xgplayer-replay svg {\n    background: rgba(0, 0, 0, .58);\n    border-radius: 100%;\n    cursor: pointer; }\n    .xgplayer-skin-default .xgplayer-replay svg path {\n      -webkit-transform: translate(20px, 21px);\n          -ms-transform: translate(20px, 21px);\n              transform: translate(20px, 21px);\n      fill: #ddd; }\n    .xgplayer-skin-default .xgplayer-replay svg:hover {\n      background: rgba(0, 0, 0, .38); }\n      .xgplayer-skin-default .xgplayer-replay svg:hover path {\n        fill: #fff; }\n  .xgplayer-skin-default .xgplayer-replay .xgplayer-replay-txt {\n    display: inline-block;\n    font-family: PingFangSC-Regular;\n    font-size: 14px;\n    color: #fff;\n    line-height: 34px; }\n\n.xgplayer-skin-default.xgplayer.xgplayer-ended .xgplayer-controls {\n  display: none; }\n\n.xgplayer-skin-default.xgplayer.xgplayer-ended .xgplayer-replay {\n  display: -webkit-flex;\n  display: -moz-box;\n  display: flex; }\n";
-	styleInject(css$2);
-
-	var _createClass$4 = function () { function defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ("value" in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } } return function (Constructor, protoProps, staticProps) { if (protoProps) defineProperties(Constructor.prototype, protoProps); if (staticProps) defineProperties(Constructor, staticProps); return Constructor; }; }();
-
-	function _classCallCheck$5(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } }
-
-	function _possibleConstructorReturn$2(self, call) { if (!self) { throw new ReferenceError("this hasn't been initialised - super() hasn't been called"); } return call && (typeof call === "object" || typeof call === "function") ? call : self; }
-
-	function _inherits$2(subClass, superClass) { if (typeof superClass !== "function" && superClass !== null) { throw new TypeError("Super expression must either be null or a function, not " + typeof superClass); } subClass.prototype = Object.create(superClass && superClass.prototype, { constructor: { value: subClass, enumerable: false, writable: true, configurable: true } }); if (superClass) Object.setPrototypeOf ? Object.setPrototypeOf(subClass, superClass) : subClass.__proto__ = superClass; }
-
 	var Replay = function (_Plugin) {
-	  _inherits$2(Replay, _Plugin);
+	  _inherits$1(Replay, _Plugin);
 
 	  function Replay() {
-	    _classCallCheck$5(this, Replay);
+	    _classCallCheck$4(this, Replay);
 
-	    return _possibleConstructorReturn$2(this, (Replay.__proto__ || Object.getPrototypeOf(Replay)).apply(this, arguments));
+	    return _possibleConstructorReturn$1(this, (Replay.__proto__ || Object.getPrototypeOf(Replay)).apply(this, arguments));
 	  }
 
-	  _createClass$4(Replay, [{
+	  _createClass$3(Replay, [{
 	    key: 'registerIcons',
 	    value: function registerIcons() {
 	      return {
@@ -2343,9 +2302,58 @@
 	  return Replay;
 	}(Plugin);
 
-	var _createClass$5 = function () { function defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ("value" in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } } return function (Constructor, protoProps, staticProps) { if (protoProps) defineProperties(Constructor.prototype, protoProps); if (staticProps) defineProperties(Constructor, staticProps); return Constructor; }; }();
+	var css$1 = ".xgplayer .xgplayer-poster {\n  display: none;\n  position: absolute;\n  left: 0;\n  top: 0;\n  width: 100%;\n  height: 100%;\n  z-index: 100;\n  background-size: cover;\n  background-position: center center; }\n\n.xgplayer.xgplayer-nostart .xgplayer-poster {\n  display: block; }\n";
+	styleInject(css$1);
 
-	var _get$1 = function get(object, property, receiver) { if (object === null) object = Function.prototype; var desc = Object.getOwnPropertyDescriptor(object, property); if (desc === undefined) { var parent = Object.getPrototypeOf(object); if (parent === null) { return undefined; } else { return get(parent, property, receiver); } } else if ("value" in desc) { return desc.value; } else { var getter = desc.get; if (getter === undefined) { return undefined; } return getter.call(receiver); } };
+	var _createClass$4 = function () { function defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ("value" in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } } return function (Constructor, protoProps, staticProps) { if (protoProps) defineProperties(Constructor.prototype, protoProps); if (staticProps) defineProperties(Constructor, staticProps); return Constructor; }; }();
+
+	function _classCallCheck$5(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } }
+
+	function _possibleConstructorReturn$2(self, call) { if (!self) { throw new ReferenceError("this hasn't been initialised - super() hasn't been called"); } return call && (typeof call === "object" || typeof call === "function") ? call : self; }
+
+	function _inherits$2(subClass, superClass) { if (typeof superClass !== "function" && superClass !== null) { throw new TypeError("Super expression must either be null or a function, not " + typeof superClass); } subClass.prototype = Object.create(superClass && superClass.prototype, { constructor: { value: subClass, enumerable: false, writable: true, configurable: true } }); if (superClass) Object.setPrototypeOf ? Object.setPrototypeOf(subClass, superClass) : subClass.__proto__ = superClass; }
+
+	var Poster = function (_Plugin) {
+	  _inherits$2(Poster, _Plugin);
+
+	  function Poster() {
+	    _classCallCheck$5(this, Poster);
+
+	    return _possibleConstructorReturn$2(this, (Poster.__proto__ || Object.getPrototypeOf(Poster)).apply(this, arguments));
+	  }
+
+	  _createClass$4(Poster, [{
+	    key: 'render',
+	    value: function render() {
+	      var poster = this.config.poster || this.playerConfig.poster;
+	      if (!poster) {
+	        return '';
+	      }
+	      return '<xg-poster class="xgplayer-poster" style="background-image:url(' + poster + ')">\n    </xg-poster>';
+	    }
+	  }, {
+	    key: 'beforePlayerInit',
+	    value: function beforePlayerInit() {
+	      console.log('beforePlayerInit');
+	    }
+	  }], [{
+	    key: 'pluginName',
+	    get: function get() {
+	      return 'Poster';
+	    }
+	  }]);
+
+	  return Poster;
+	}(Plugin);
+
+	var StartPlayIcon = "<svg xmlns=\"http://www.w3.org/2000/svg\" width=\"70\" height=\"70\" viewBox=\"0 0 70 70\">\n  <path transform=\"scale(0.04,0.04)\" d=\"M576,363L810,512L576,661zM342,214L576,363L576,661L342,810z\"></path>\n</svg>\n";
+
+	var StartPauseIcon = "<svg xmlns=\"http://www.w3.org/2000/svg\" width=\"70\" height=\"70\" viewBox=\"0 0 70 70\">\n  <path transform=\"scale(0.04 0.04)\" d=\"M598,214h170v596h-170v-596zM256 810v-596h170v596h-170z\"></path>\n</svg>\n";
+
+	var css$2 = ".xgplayer .xgplayer-start {\n  border-radius: 50%;\n  display: none;\n  width: 70px;\n  height: 70px;\n  background: rgba(0, 0, 0, .38);\n  overflow: hidden;\n  text-align: center;\n  line-height: 70px;\n  vertical-align: middle;\n  position: absolute;\n  left: 50%;\n  top: 50%;\n  z-index: 115;\n  margin: -35px auto auto -35px;\n  cursor: pointer; }\n  .xgplayer .xgplayer-start div {\n    position: absolute; }\n    .xgplayer .xgplayer-start div svg {\n      fill: rgba(255, 255, 255, .7);\n      margin: 14px; }\n  .xgplayer .xgplayer-start .xgplayer-icon-play {\n    display: block; }\n  .xgplayer .xgplayer-start .xgplayer-icon-pause {\n    display: none; }\n  .xgplayer .xgplayer-start:hover {\n    opacity: 0.85; }\n\n.xgplayer.xgplayer-nostart .xgplayer-start, .xgplayer.xgplayer-pause .xgplayer-start {\n  display: inline-block; }\n\n.xgplayer.xgplayer-playing .xgplayer-start {\n  display: none; }\n  .xgplayer.xgplayer-playing .xgplayer-start .xgplayer-icon-play {\n    display: none; }\n  .xgplayer.xgplayer-playing .xgplayer-start .xgplayer-icon-pause {\n    display: block; }\n\n.xgplayer.xgplayer-pause .xgplayer-start {\n  display: inline-block; }\n  .xgplayer.xgplayer-pause .xgplayer-start .xgplayer-icon-play {\n    display: block; }\n  .xgplayer.xgplayer-pause .xgplayer-start .xgplayer-icon-pause {\n    display: none; }\n\n.xgplayer.replay .xgplayer-start {\n  display: none; }\n  .xgplayer.replay .xgplayer-start .xgplayer-icon-play {\n    display: block; }\n  .xgplayer.replay .xgplayer-start .xgplayer-icon-pause {\n    display: none; }\n";
+	styleInject(css$2);
+
+	var _createClass$5 = function () { function defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ("value" in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } } return function (Constructor, protoProps, staticProps) { if (protoProps) defineProperties(Constructor.prototype, protoProps); if (staticProps) defineProperties(Constructor, staticProps); return Constructor; }; }();
 
 	function _classCallCheck$6(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } }
 
@@ -2353,16 +2361,101 @@
 
 	function _inherits$3(subClass, superClass) { if (typeof superClass !== "function" && superClass !== null) { throw new TypeError("Super expression must either be null or a function, not " + typeof superClass); } subClass.prototype = Object.create(superClass && superClass.prototype, { constructor: { value: subClass, enumerable: false, writable: true, configurable: true } }); if (superClass) Object.setPrototypeOf ? Object.setPrototypeOf(subClass, superClass) : subClass.__proto__ = superClass; }
 
-	var MiniScreen = function (_Plugin) {
-	  _inherits$3(MiniScreen, _Plugin);
+	var Start = function (_Plugin) {
+	  _inherits$3(Start, _Plugin);
 
-	  function MiniScreen() {
-	    _classCallCheck$6(this, MiniScreen);
+	  function Start() {
+	    _classCallCheck$6(this, Start);
 
-	    return _possibleConstructorReturn$3(this, (MiniScreen.__proto__ || Object.getPrototypeOf(MiniScreen)).apply(this, arguments));
+	    return _possibleConstructorReturn$3(this, (Start.__proto__ || Object.getPrototypeOf(Start)).apply(this, arguments));
 	  }
 
-	  _createClass$5(MiniScreen, [{
+	  _createClass$5(Start, [{
+	    key: 'afterCreate',
+	    value: function afterCreate() {
+	      var _this2 = this;
+
+	      var Util = Plugin.Util;
+	      var player = this.player,
+	          root = this.root,
+	          playerConfig = this.playerConfig;
+
+	      Util.addClass(root, 'xgplayer-skin-default');
+	      this.once('ready', function () {
+	        // Util.addClass(root, 'xgplayer-skin-default')
+	        if (playerConfig) {
+	          if (playerConfig.lang && playerConfig.lang === 'en') {
+	            Util.addClass(root, 'lang-is-en');
+	          } else if (playerConfig.lang === 'jp') {
+	            Util.addClass(root, 'lang-is-jp');
+	          }
+	        }
+	      });
+
+	      this.bind('click', function (e) {
+	        if (!player.isReady) {
+	          return;
+	        }
+	        e.preventDefault();
+	        e.stopPropagation();
+	        var paused = _this2.player.paused;
+	        if (!_this2.player.hasStart) {
+	          _this2.player.start();
+	          _this2.player.once('complete', function () {
+	            _this2.player.play();
+	          });
+	        } else {
+	          if (!paused) {
+	            _this2.player.pause();
+	          } else {
+	            _this2.player.play();
+	          }
+	        }
+	      });
+	    }
+	  }, {
+	    key: 'registerIcons',
+	    value: function registerIcons() {
+	      return {
+	        'startPlayIcon': StartPlayIcon,
+	        'startPauseIcon': StartPauseIcon
+	      };
+	    }
+	  }, {
+	    key: 'render',
+	    value: function render() {
+	      return '\n    <xg-start class="xgplayer-start">\n      <div class="xgplayer-icon-play">\n      ' + this.icons.startPlayIcon + '\n      </div>\n      <div class="xgplayer-icon-pause">\n      ' + this.icons.startPauseIcon + '\n      </div>\n    </xg-start>';
+	    }
+	  }], [{
+	    key: 'pluginName',
+	    get: function get() {
+	      return 'start';
+	    }
+	  }]);
+
+	  return Start;
+	}(Plugin);
+
+	var _createClass$6 = function () { function defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ("value" in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } } return function (Constructor, protoProps, staticProps) { if (protoProps) defineProperties(Constructor.prototype, protoProps); if (staticProps) defineProperties(Constructor, staticProps); return Constructor; }; }();
+
+	var _get$1 = function get(object, property, receiver) { if (object === null) object = Function.prototype; var desc = Object.getOwnPropertyDescriptor(object, property); if (desc === undefined) { var parent = Object.getPrototypeOf(object); if (parent === null) { return undefined; } else { return get(parent, property, receiver); } } else if ("value" in desc) { return desc.value; } else { var getter = desc.get; if (getter === undefined) { return undefined; } return getter.call(receiver); } };
+
+	function _classCallCheck$7(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } }
+
+	function _possibleConstructorReturn$4(self, call) { if (!self) { throw new ReferenceError("this hasn't been initialised - super() hasn't been called"); } return call && (typeof call === "object" || typeof call === "function") ? call : self; }
+
+	function _inherits$4(subClass, superClass) { if (typeof superClass !== "function" && superClass !== null) { throw new TypeError("Super expression must either be null or a function, not " + typeof superClass); } subClass.prototype = Object.create(superClass && superClass.prototype, { constructor: { value: subClass, enumerable: false, writable: true, configurable: true } }); if (superClass) Object.setPrototypeOf ? Object.setPrototypeOf(subClass, superClass) : subClass.__proto__ = superClass; }
+
+	var MiniScreen = function (_Plugin) {
+	  _inherits$4(MiniScreen, _Plugin);
+
+	  function MiniScreen() {
+	    _classCallCheck$7(this, MiniScreen);
+
+	    return _possibleConstructorReturn$4(this, (MiniScreen.__proto__ || Object.getPrototypeOf(MiniScreen)).apply(this, arguments));
+	  }
+
+	  _createClass$6(MiniScreen, [{
 	    key: 'afterCreate',
 	    value: function afterCreate() {
 	      this.getPIP = this.getPIP.bind(this);
@@ -2508,117 +2601,11 @@
 	  return MiniScreen;
 	}(Plugin);
 
-	var _createClass$6 = function () { function defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ("value" in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } } return function (Constructor, protoProps, staticProps) { if (protoProps) defineProperties(Constructor.prototype, protoProps); if (staticProps) defineProperties(Constructor, staticProps); return Constructor; }; }();
-
-	var _get$2 = function get(object, property, receiver) { if (object === null) object = Function.prototype; var desc = Object.getOwnPropertyDescriptor(object, property); if (desc === undefined) { var parent = Object.getPrototypeOf(object); if (parent === null) { return undefined; } else { return get(parent, property, receiver); } } else if ("value" in desc) { return desc.value; } else { var getter = desc.get; if (getter === undefined) { return undefined; } return getter.call(receiver); } };
-
-	function _classCallCheck$7(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } }
-
-	function _possibleConstructorReturn$4(self, call) { if (!self) { throw new ReferenceError("this hasn't been initialised - super() hasn't been called"); } return call && (typeof call === "object" || typeof call === "function") ? call : self; }
-
-	function _inherits$4(subClass, superClass) { if (typeof superClass !== "function" && superClass !== null) { throw new TypeError("Super expression must either be null or a function, not " + typeof superClass); } subClass.prototype = Object.create(superClass && superClass.prototype, { constructor: { value: subClass, enumerable: false, writable: true, configurable: true } }); if (superClass) Object.setPrototypeOf ? Object.setPrototypeOf(subClass, superClass) : subClass.__proto__ = superClass; }
-
-	var Keyboard = function (_BasePlugin) {
-	  _inherits$4(Keyboard, _BasePlugin);
-
-	  function Keyboard() {
-	    _classCallCheck$7(this, Keyboard);
-
-	    return _possibleConstructorReturn$4(this, (Keyboard.__proto__ || Object.getPrototypeOf(Keyboard)).apply(this, arguments));
-	  }
-
-	  _createClass$6(Keyboard, [{
-	    key: 'afterCreate',
-	    value: function afterCreate() {
-	      this.onKeydown = this.onKeydown.bind(this);
-	      this.player.root.addEventListener('keydown', this.onKeydown);
-	    }
-	  }, {
-	    key: 'onKeydown',
-	    value: function onKeydown(event) {
-	      var player = this.player;
-
-	      var util = BasePlugin.Util;
-	      // let player = this
-	      var e = event || window.event;
-	      if (e && (e.keyCode === 37 || e.keyCode === 38 || e.keyCode === 39 || e.keyCode === 40 || e.keyCode === 32)) {
-	        player.emit('focus');
-	      }
-	      if (e && (e.keyCode === 40 || e.keyCode === 38)) {
-	        if (player.controls) {
-	          var volumeSlider = player.controls.querySelector('.xgplayer-slider');
-	          if (volumeSlider) {
-	            if (util.hasClass(volumeSlider, 'xgplayer-none')) {
-	              util.removeClass(volumeSlider, 'xgplayer-none');
-	            }
-	            if (player.sliderTimer) {
-	              clearTimeout(player.sliderTimer);
-	            }
-	            player.sliderTimer = setTimeout(function () {
-	              util.addClass(volumeSlider, 'xgplayer-none');
-	            }, player.config.inactive);
-	          }
-	        }
-	        if (e && e.keyCode === 40) {
-	          // 按 down
-	          if (player.volume - 0.1 >= 0) {
-	            player.volume = parseFloat((player.volume - 0.1).toFixed(1));
-	          } else {
-	            player.volume = 0;
-	          }
-	        } else if (e && e.keyCode === 38) {
-	          // 按 up
-	          if (player.volume + 0.1 <= 1) {
-	            player.volume = parseFloat((player.volume + 0.1).toFixed(1));
-	          } else {
-	            player.volume = 1;
-	          }
-	        }
-	      } else if (e && e.keyCode === 39) {
-	        // 按 right
-	        if (player.currentTime + 10 <= player.duration) {
-	          player.currentTime += 10;
-	        } else {
-	          player.currentTime = player.duration - 1;
-	        }
-	      } else if (e && e.keyCode === 37) {
-	        // 按 left
-	        if (player.currentTime - 10 >= 0) {
-	          player.currentTime -= 10;
-	        } else {
-	          player.currentTime = 0;
-	        }
-	      } else if (e && e.keyCode === 32) {
-	        // 按 spacebar
-	        if (player.paused) {
-	          // eslint-disable-next-line handle-callback-err
-	          player.play().catch(function (err) {});
-	        } else {
-	          player.pause();
-	        }
-	      }
-	    }
-	  }, {
-	    key: '_destroy',
-	    value: function _destroy() {
-	      _get$2(Keyboard.prototype.__proto__ || Object.getPrototypeOf(Keyboard.prototype), '_destroy', this).call(this);
-	      this.player.root.removeEventListener('keydown', this.onKeydown);
-	    }
-	  }], [{
-	    key: 'pluginName',
-	    get: function get() {
-	      return 'Keyboard';
-	    }
-	  }]);
-
-	  return Keyboard;
-	}(BasePlugin);
-
 	var RotateIcon = "<svg xmlns=\"http://www.w3.org/2000/svg\" width=\"32\" height=\"32\" viewBox=\"0 0 40 40\" fill=\"none\">\n  <g clip-path=\"url(#clip0)\">\n    <path transform=\"scale(1.5 1.5)\" d=\"M11.6665 9.16663H4.1665C2.78579 9.16663 1.6665 10.2859 1.6665 11.6666V15.8333C1.6665 17.214 2.78579 18.3333 4.1665 18.3333H11.6665C13.0472 18.3333 14.1665 17.214 14.1665 15.8333V11.6666C14.1665 10.2859 13.0472 9.16663 11.6665 9.16663Z\" fill=\"white\"/>\n    <path transform=\"scale(1.5 1.5)\" fill-rule=\"evenodd\" clip-rule=\"evenodd\" d=\"M3.88148 4.06298C3.75371 4.21005 3.67667 4.40231 3.67749 4.61242C3.67847 4.87253 3.79852 5.10435 3.98581 5.25646L6.99111 8.05895C7.32771 8.37283 7.85502 8.35443 8.16891 8.01782C8.48279 7.68122 8.46437 7.15391 8.12778 6.84003L6.62061 5.43457L9.8198 5.4224C9.82848 5.42239 9.8372 5.42221 9.84591 5.4219C10.9714 5.38233 12.0885 5.6285 13.0931 6.13744C14.0976 6.64635 14.957 7.40148 15.5908 8.33234C16.2246 9.2632 16.6122 10.3394 16.7177 11.4606C16.823 12.5819 16.6427 13.7115 16.1934 14.7442C16.0098 15.1661 16.203 15.6571 16.6251 15.8408C17.0471 16.0243 17.5381 15.8311 17.7216 15.4091C18.2833 14.1183 18.5087 12.7063 18.3771 11.3047C18.2453 9.90318 17.7607 8.55792 16.9684 7.39433C16.1761 6.23073 15.1021 5.28683 13.8463 4.65065C12.5946 4.01651 11.203 3.70872 9.80072 3.75583L6.43415 3.76862L7.96326 2.12885C8.27715 1.79225 8.25872 1.26494 7.92213 0.951061C7.58553 0.63718 7.05822 0.655585 6.74433 0.99219L3.90268 4.0395C3.89545 4.04724 3.88841 4.05509 3.88154 4.06303L3.88148 4.06298Z\" fill=\"white\"/>\n  </g>\n  <defs>\n    <clipPath id=\"clip0\">\n      <rect width=\"40\" height=\"40\" fill=\"white\"/>\n    </clipPath>\n  </defs>\n</svg>\n";
 
 	var _createClass$7 = function () { function defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ("value" in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } } return function (Constructor, protoProps, staticProps) { if (protoProps) defineProperties(Constructor.prototype, protoProps); if (staticProps) defineProperties(Constructor, staticProps); return Constructor; }; }();
 
-	var _get$3 = function get(object, property, receiver) { if (object === null) object = Function.prototype; var desc = Object.getOwnPropertyDescriptor(object, property); if (desc === undefined) { var parent = Object.getPrototypeOf(object); if (parent === null) { return undefined; } else { return get(parent, property, receiver); } } else if ("value" in desc) { return desc.value; } else { var getter = desc.get; if (getter === undefined) { return undefined; } return getter.call(receiver); } };
+	var _get$2 = function get(object, property, receiver) { if (object === null) object = Function.prototype; var desc = Object.getOwnPropertyDescriptor(object, property); if (desc === undefined) { var parent = Object.getPrototypeOf(object); if (parent === null) { return undefined; } else { return get(parent, property, receiver); } } else if ("value" in desc) { return desc.value; } else { var getter = desc.get; if (getter === undefined) { return undefined; } return getter.call(receiver); } };
 
 	function _classCallCheck$8(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } }
 
@@ -2648,7 +2635,7 @@
 	    value: function _destroy() {
 	      this.unbind('.xgplayer-icon', 'click', this.rotate);
 	      this.unbind('.xgplayer-icon', 'touchend', this.rotate);
-	      _get$3(Rotate.prototype.__proto__ || Object.getPrototypeOf(Rotate.prototype), '_destroy', this).call(this);
+	      _get$2(Rotate.prototype.__proto__ || Object.getPrototypeOf(Rotate.prototype), '_destroy', this).call(this);
 	    }
 	  }, {
 	    key: 'updateRotateDeg',
@@ -2766,13 +2753,6 @@
 	  return Rotate;
 	}(Plugin);
 
-	var StartPlayIcon = "<svg xmlns=\"http://www.w3.org/2000/svg\" width=\"70\" height=\"70\" viewBox=\"0 0 70 70\">\n  <path transform=\"scale(0.04,0.04)\" d=\"M576,363L810,512L576,661zM342,214L576,363L576,661L342,810z\"></path>\n</svg>\n";
-
-	var StartPauseIcon = "<svg xmlns=\"http://www.w3.org/2000/svg\" width=\"70\" height=\"70\" viewBox=\"0 0 70 70\">\n  <path transform=\"scale(0.04 0.04)\" d=\"M598,214h170v596h-170v-596zM256 810v-596h170v596h-170z\"></path>\n</svg>\n";
-
-	var css$3 = ".xgplayer .xgplayer-start {\n  display: none;\n  border-radius: 50%;\n  display: inline-block;\n  width: 70px;\n  height: 70px;\n  background: rgba(0, 0, 0, .38);\n  overflow: hidden;\n  text-align: center;\n  line-height: 70px;\n  vertical-align: middle;\n  position: absolute;\n  left: 50%;\n  top: 50%;\n  z-index: 115;\n  margin: -35px auto auto -35px;\n  cursor: pointer; }\n  .xgplayer .xgplayer-start div {\n    position: absolute; }\n    .xgplayer .xgplayer-start div svg {\n      fill: rgba(255, 255, 255, .7);\n      margin: 14px; }\n  .xgplayer .xgplayer-start .xgplayer-icon-play {\n    display: block; }\n  .xgplayer .xgplayer-start .xgplayer-icon-pause {\n    display: none; }\n  .xgplayer .xgplayer-start:hover {\n    opacity: 0.85; }\n\n.xgplayer.xgplayer-playing .xgplayer-start {\n  display: none; }\n  .xgplayer.xgplayer-playing .xgplayer-start .xgplayer-icon-play {\n    display: none; }\n  .xgplayer.xgplayer-playing .xgplayer-start .xgplayer-icon-pause {\n    display: block; }\n\n.xgplayer.xgplayer-pause .xgplayer-start {\n  display: inline-block; }\n  .xgplayer.xgplayer-pause .xgplayer-start .xgplayer-icon-play {\n    display: block; }\n  .xgplayer.xgplayer-pause .xgplayer-start .xgplayer-icon-pause {\n    display: none; }\n\n.xgplayer.replay .xgplayer-start {\n  display: none; }\n  .xgplayer.replay .xgplayer-start .xgplayer-icon-play {\n    display: block; }\n  .xgplayer.replay .xgplayer-start .xgplayer-icon-pause {\n    display: none; }\n";
-	styleInject(css$3);
-
 	var _createClass$8 = function () { function defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ("value" in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } } return function (Constructor, protoProps, staticProps) { if (protoProps) defineProperties(Constructor.prototype, protoProps); if (staticProps) defineProperties(Constructor, staticProps); return Constructor; }; }();
 
 	function _classCallCheck$9(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } }
@@ -2781,106 +2761,235 @@
 
 	function _inherits$6(subClass, superClass) { if (typeof superClass !== "function" && superClass !== null) { throw new TypeError("Super expression must either be null or a function, not " + typeof superClass); } subClass.prototype = Object.create(superClass && superClass.prototype, { constructor: { value: subClass, enumerable: false, writable: true, configurable: true } }); if (superClass) Object.setPrototypeOf ? Object.setPrototypeOf(subClass, superClass) : subClass.__proto__ = superClass; }
 
-	var Start = function (_Plugin) {
-	  _inherits$6(Start, _Plugin);
+	var PCPlugin = function (_BasePlugin) {
+	  _inherits$6(PCPlugin, _BasePlugin);
 
-	  function Start() {
-	    _classCallCheck$9(this, Start);
+	  function PCPlugin() {
+	    _classCallCheck$9(this, PCPlugin);
 
-	    return _possibleConstructorReturn$6(this, (Start.__proto__ || Object.getPrototypeOf(Start)).apply(this, arguments));
+	    return _possibleConstructorReturn$6(this, (PCPlugin.__proto__ || Object.getPrototypeOf(PCPlugin)).apply(this, arguments));
 	  }
 
-	  _createClass$8(Start, [{
+	  _createClass$8(PCPlugin, [{
 	    key: 'afterCreate',
 	    value: function afterCreate() {
-	      var _this2 = this;
+	      this.onVideoClick = this.onVideoClick.bind(this);
+	      this.onVideoDblClick = this.onVideoDblClick.bind(this);
+	      this.onMouseEnter = this.onMouseEnter.bind(this);
+	      this.onMouseLeave = this.onMouseLeave.bind(this);
+	      this.onControlMouseEnter = this.onControlMouseEnter.bind(this);
+	      this.onControlMouseLeave = this.onControlMouseLeave.bind(this);
+	      this.onReady = this.onReady.bind(this);
+	      this.onDestroy = this.onDestroy.bind(this);
+	      this.initEvents();
+	    }
+	  }, {
+	    key: 'initEvents',
+	    value: function initEvents() {
+	      var player = this.player;
 
-	      var Util = Plugin.Util;
-	      var player = this.player,
-	          root = this.root,
-	          playerConfig = this.playerConfig;
 
-	      Util.addClass(root, 'xgplayer-skin-default');
-	      this.once('ready', function () {
-	        // Util.addClass(root, 'xgplayer-skin-default')
-	        if (playerConfig) {
-	          if (playerConfig.lang && playerConfig.lang === 'en') {
-	            Util.addClass(root, 'lang-is-en');
-	          } else if (playerConfig.lang === 'jp') {
-	            Util.addClass(root, 'lang-is-jp');
-	          }
+	      player.video.addEventListener('click', this.onVideoClick, false);
+
+	      player.video.addEventListener('dblclick', this.onVideoDblClick, false);
+
+	      player.root.addEventListener('mouseenter', this.onMouseEnter);
+
+	      player.root.addEventListener('mouseleave', this.onMouseLeave);
+
+	      player.controls.addEventListener('mouseenter', this.onControlMouseEnter, false);
+
+	      player.controls.addEventListener('mouseleave', this.onControlMouseLeave, false);
+	    }
+	  }, {
+	    key: 'onVideoClick',
+	    value: function onVideoClick(e) {
+	      e.preventDefault();
+	      e.stopPropagation();
+	      var player = this.player;
+
+	      var clk = 0;var timer = void 0;
+	      if (!player.config.closeVideoClick) {
+	        clk++;
+	        if (timer) {
+	          clearTimeout(timer);
 	        }
-	      });
-
-	      this.bind('click', function (e) {
-	        if (!player.isReady) {
-	          return;
-	        }
-	        e.preventDefault();
-	        e.stopPropagation();
-	        var paused = _this2.player.paused;
-	        if (!paused) {
-	          _this2.player.pause();
+	        if (clk === 1) {
+	          timer = setTimeout(function () {
+	            if (BasePlugin.Util.hasClass(player.root, 'xgplayer-nostart')) {
+	              return false;
+	            } else if (!player.ended) {
+	              if (player.paused) {
+	                var playPromise = player.play();
+	                if (playPromise !== undefined && playPromise) {
+	                  playPromise.catch(function (err) {});
+	                }
+	              } else {
+	                player.pause();
+	              }
+	            }
+	            clk = 0;
+	          }, 200);
 	        } else {
-	          _this2.player.play();
+	          clk = 0;
 	        }
-	      });
+	      }
 	    }
 	  }, {
-	    key: 'registerIcons',
-	    value: function registerIcons() {
-	      return {
-	        'startPlayIcon': StartPlayIcon,
-	        'startPauseIcon': StartPauseIcon
-	      };
+	    key: 'onVideoDblClick',
+	    value: function onVideoDblClick(e) {
+	      e.preventDefault();
+	      e.stopPropagation();
+	      var player = this.player;
+
+	      if (!player.config.closeVideoDblclick) {
+	        var fullscreen = player.controls.querySelector('.xgplayer-fullscreen');
+	        if (fullscreen) {
+	          var clk = void 0;
+	          if (document.createEvent) {
+	            clk = document.createEvent('Event');
+	            clk.initEvent('click', true, true);
+	          } else {
+	            // eslint-disable-next-line no-undef
+	            clk = new Event('click');
+	          }
+	          fullscreen.dispatchEvent(clk);
+	        }
+	      }
 	    }
 	  }, {
-	    key: 'render',
-	    value: function render() {
-	      return '\n    <xg-start class="xgplayer-start">\n      <div class="xgplayer-icon-play">\n      ' + this.icons.startPlayIcon + '\n      </div>\n      <div class="xgplayer-icon-pause">\n      ' + this.icons.startPauseIcon + '\n      </div>\n    </xg-start>';
+	    key: 'onMouseEnter',
+	    value: function onMouseEnter() {
+	      var player = this.player;
+
+	      clearTimeout(player.leavePlayerTimer);
+	      player.emit('focus', player);
+	    }
+	  }, {
+	    key: 'onMouseLeave',
+	    value: function onMouseLeave() {
+	      var player = this.player;
+
+	      if (!player.config.closePlayerBlur) {
+	        player.leavePlayerTimer = setTimeout(function () {
+	          player.emit('blur', player);
+	        }, player.config.leavePlayerTime || 1500);
+	      }
+	    }
+	  }, {
+	    key: 'onControlMouseEnter',
+	    value: function onControlMouseEnter() {
+	      var player = this.player;
+
+	      if (player.userTimer) {
+	        clearTimeout(player.userTimer);
+	      }
+	    }
+	  }, {
+	    key: 'onControlMouseLeave',
+	    value: function onControlMouseLeave() {
+	      var player = this.player;
+
+	      if (!player.config.closeControlsBlur) {
+	        player.emit('focus', player);
+	      }
+	    }
+	  }, {
+	    key: 'onReady',
+	    value: function onReady() {
+	      var player = this.player;
+
+	      if (player.config.autoplay) {
+	        player.start();
+	      }
+	    }
+	  }, {
+	    key: 'onDestroy',
+	    value: function onDestroy() {
+	      var player = this.player;
+
+	      player.root.removeEventListener('mouseenter', this.onMouseEnter);
+	      player.root.removeEventListener('mouseleave', this.onMouseLeave);
+	      player.off('ready', this.onReady);
+	      player.off('destroy', this.onDestroy);
 	    }
 	  }], [{
 	    key: 'pluginName',
 	    get: function get() {
-	      return 'start';
+	      return 'pc';
 	    }
 	  }]);
 
-	  return Start;
-	}(Plugin);
+	  return PCPlugin;
+	}(BasePlugin);
 
-	/**
-	 * 根据入参的播放器配置进行默认plugin列表的配置
-	 * @param {object} playerConfig
-	 */
-	function getDefaultPlugins(playerConfig) {
-	  var defaultPlugins = [];
-	  defaultPlugins.push(Replay);
-	  defaultPlugins.push(Poster);
-	  defaultPlugins.push(Start);
-	  defaultPlugins.push({
+	function _classCallCheck$a(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } }
+
+	var DefaultPreset = function DefaultPreset() {
+	  _classCallCheck$a(this, DefaultPreset);
+
+	  this.plugins = [];
+	  this.plugins.push(Replay);
+	  this.plugins.push(Poster);
+	  this.plugins.push(Start);
+
+	  this.plugins.push({
 	    plugin: MiniScreen,
 	    options: {
 	      root: 'controls'
 	    }
 	  });
-	  defaultPlugins.push({
+	  this.plugins.push({
 	    plugin: Rotate,
 	    options: {
 	      root: 'controls'
 	    }
 	  });
-	  defaultPlugins.push(Keyboard);
-	  var plugins = playerConfig.plugins || [];
-	  var retPlugins = defaultPlugins.concat(plugins);
-	  return retPlugins;
-	}
+
+	  switch (sniffer.device) {
+	    case 'pc':
+	      this.plugins.push(PCPlugin);
+	      break;
+	    default:
+	      this.plugins.push(PCPlugin);
+	  }
+	  this.ignores = [];
+	};
+
+	function _toConsumableArray(arr) { if (Array.isArray(arr)) { for (var i = 0, arr2 = Array(arr.length); i < arr.length; i++) { arr2[i] = arr[i]; } return arr2; } else { return Array.from(arr); } }
+
+	var usePreset = function usePreset(player, Preset) {
+	  var _player$config$plugin, _player$config$ignore;
+
+	  var presetInst = void 0;
+	  if (Preset.preset && Preset.options) {
+	    // eslint-disable-next-line new-cap
+	    presetInst = new Preset.preset(Preset.options);
+	  } else {
+	    presetInst = new Preset();
+	  }
+	  var _presetInst = presetInst,
+	      plugins = _presetInst.plugins,
+	      ignores = _presetInst.ignores;
+
+
+	  if (!player.config.plugins) {
+	    player.config.plugins = [];
+	  }
+
+	  if (!player.config.ignores) {
+	    player.config.ignores = [];
+	  }
+
+	  (_player$config$plugin = player.config.plugins).push.apply(_player$config$plugin, _toConsumableArray(plugins));
+	  (_player$config$ignore = player.config.ignores).push.apply(_player$config$ignore, _toConsumableArray(ignores));
+	};
 
 	var _createClass$9 = function () { function defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ("value" in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } } return function (Constructor, protoProps, staticProps) { if (protoProps) defineProperties(Constructor.prototype, protoProps); if (staticProps) defineProperties(Constructor, staticProps); return Constructor; }; }();
 
-	var _get$4 = function get(object, property, receiver) { if (object === null) object = Function.prototype; var desc = Object.getOwnPropertyDescriptor(object, property); if (desc === undefined) { var parent = Object.getPrototypeOf(object); if (parent === null) { return undefined; } else { return get(parent, property, receiver); } } else if ("value" in desc) { return desc.value; } else { var getter = desc.get; if (getter === undefined) { return undefined; } return getter.call(receiver); } };
+	var _get$3 = function get(object, property, receiver) { if (object === null) object = Function.prototype; var desc = Object.getOwnPropertyDescriptor(object, property); if (desc === undefined) { var parent = Object.getPrototypeOf(object); if (parent === null) { return undefined; } else { return get(parent, property, receiver); } } else if ("value" in desc) { return desc.value; } else { var getter = desc.get; if (getter === undefined) { return undefined; } return getter.call(receiver); } };
 
-	function _classCallCheck$a(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } }
+	function _classCallCheck$b(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } }
 
 	function _possibleConstructorReturn$7(self, call) { if (!self) { throw new ReferenceError("this hasn't been initialised - super() hasn't been called"); } return call && (typeof call === "object" || typeof call === "function") ? call : self; }
 
@@ -2892,9 +3001,7 @@
 	  _inherits$7(Player, _Proxy);
 
 	  function Player(options) {
-	    _classCallCheck$a(this, Player);
-
-	    options.plugins = getDefaultPlugins(options);
+	    _classCallCheck$b(this, Player);
 
 	    var _this = _possibleConstructorReturn$7(this, (Player.__proto__ || Object.getPrototypeOf(Player)).call(this, options));
 
@@ -2902,6 +3009,8 @@
 	      width: 600,
 	      height: 337.5,
 	      ignores: [],
+	      plugins: [],
+	      presets: [DefaultPreset],
 	      whitelist: [],
 	      lang: (document.documentElement.getAttribute('lang') || navigator.language || 'zh-cn').toLocaleLowerCase(),
 	      inactive: 3000,
@@ -2920,6 +3029,7 @@
 
 	    _this._bindEvents();
 
+	    _this._registerPresets();
 	    _this._registerPlugins();
 
 	    setTimeout(function () {
@@ -3113,6 +3223,15 @@
 	      });
 	    }
 	  }, {
+	    key: '_registerPresets',
+	    value: function _registerPresets() {
+	      var _this6 = this;
+
+	      this.config.presets.forEach(function (preset) {
+	        usePreset(_this6, preset);
+	      });
+	    }
+	  }, {
 	    key: 'registerPlugin',
 	    value: function registerPlugin() {}
 	  }, {
@@ -3151,19 +3270,19 @@
 	  }, {
 	    key: 'start',
 	    value: function start() {
-	      var _this6 = this;
+	      var _this7 = this;
 
 	      var url = arguments.length > 0 && arguments[0] !== undefined ? arguments[0] : this.url;
 
 	      // 已经开始初始化播放了 则直接调用play
 	      if (this.hasStart) {
-	        this.play();
+	        return this.play();
 	      } else {
-	        pluginsManager.beforeInit(this).then(function () {
+	        return pluginsManager.beforeInit(this).then(function () {
 	          if (!url) {
-	            url = _this6.url || _this6.config.url;
+	            url = _this7.url || _this7.config.url;
 	          }
-	          _this6._startInit(url);
+	          _this7._startInit(url);
 	        }).catch(function (e) {
 	          e.fileName = 'player';
 	          e.lineNumber = '236';
@@ -3174,20 +3293,19 @@
 	  }, {
 	    key: 'play',
 	    value: function play() {
-	      var _this7 = this;
+	      var _this8 = this;
 
 	      if (!this.hasStart) {
 	        this.start();
 	        return;
 	      }
-	      var playPromise = _get$4(Player.prototype.__proto__ || Object.getPrototypeOf(Player.prototype), 'play', this).call(this);
+	      var playPromise = _get$3(Player.prototype.__proto__ || Object.getPrototypeOf(Player.prototype), 'play', this).call(this);
 	      if (playPromise !== undefined && playPromise && playPromise.then) {
 	        playPromise.then(function () {
-	          _this7.removeClass(STATE_CLASS.NO_START);
-	          _this7.addClass(STATE_CLASS.PLAYING);
+	          _this8.addClass(STATE_CLASS.PLAYING);
 	        }).catch(function (e) {
-	          _this7.emit(AUTOPLAY_PREVENTED);
-	          _this7.addClass(STATE_CLASS.AUTOPLAY);
+	          _this8.emit(AUTOPLAY_PREVENTED);
+	          _this8.addClass(STATE_CLASS.AUTOPLAY);
 	          throw e;
 	        });
 	      }
@@ -3210,7 +3328,7 @@
 	      var isDelDom = arguments.length > 0 && arguments[0] !== undefined ? arguments[0] : true;
 
 	      pluginsManager.destroy(this);
-	      _get$4(Player.prototype.__proto__ || Object.getPrototypeOf(Player.prototype), 'destroy', this).call(this);
+	      _get$3(Player.prototype.__proto__ || Object.getPrototypeOf(Player.prototype), 'destroy', this).call(this);
 	      if (isDelDom) {
 	        // parentNode.removeChild(this.root)
 	        this.root.innerHTML = '';
@@ -3349,14 +3467,14 @@
 	  }, {
 	    key: 'onWaiting',
 	    value: function onWaiting() {
-	      var _this8 = this;
+	      var _this9 = this;
 
 	      var self = this;
 	      if (self.waitTimer) {
 	        clearTimeout(self.waitTimer);
 	      }
 	      self.waitTimer = setTimeout(function () {
-	        _this8.addClass(STATE_CLASS.LOADING);
+	        _this9.addClass(STATE_CLASS.LOADING);
 	      }, 500);
 	    }
 	  }, {
@@ -3365,7 +3483,15 @@
 	      if (this.waitTimer) {
 	        clearTimeout(this.waitTimer);
 	      }
-	      this.removeClass(STATE_CLASS.NO_START + ' ' + STATE_CLASS.PAUSED + ' ' + STATE_CLASS.ENDED + ' ' + STATE_CLASS.ERROR + ' ' + STATE_CLASS.REPLAY);
+	      var NO_START = STATE_CLASS.NO_START,
+	          PAUSED = STATE_CLASS.PAUSED,
+	          ENDED = STATE_CLASS.ENDED,
+	          ERROR = STATE_CLASS.ERROR,
+	          REPLAY = STATE_CLASS.REPLAY,
+	          LOADING = STATE_CLASS.LOADING;
+
+	      var clsList = [NO_START, PAUSED, ENDED, ERROR, REPLAY, LOADING];
+	      this.removeClass(clsList.join(' '));
 	      this.addClass(STATE_CLASS.PLAYING);
 	    }
 	  }, {
@@ -3435,6 +3561,36 @@
 	    get: function get() {
 	      return util.hasClass(this.root, 'xgplayer-pip-active');
 	    }
+
+	    /***
+	     * TODO
+	     * 插件全部迁移完成再做删除
+	     */
+
+	  }], [{
+	    key: 'install',
+	    value: function install(name, descriptor) {
+	      if (!Player.plugins) {
+	        Player.plugins = {};
+	      }
+	      if (!Player.plugins[name]) {
+	        Player.plugins[name] = descriptor;
+	      }
+	    }
+
+	    /***
+	     * TODO
+	     * 插件全部迁移完成再做删除
+	     */
+
+	  }, {
+	    key: 'use',
+	    value: function use(name, descriptor) {
+	      if (!Player.plugins) {
+	        Player.plugins = {};
+	      }
+	      Player.plugins[name] = descriptor;
+	    }
 	  }]);
 
 	  return Player;
@@ -3446,8 +3602,8 @@
 	Player.Plugin = Plugin;
 	Player.BasePlugin = BasePlugin;
 
-	var css$4 = ".xgplayer-skin-default {\n  background: #000;\n  width: 100%;\n  height: 100%;\n  position: relative;\n  -webkit-user-select: none;\n     -moz-user-select: none;\n          user-select: none;\n  -ms-user-select: none; }\n  .xgplayer-skin-default * {\n    margin: 0;\n    padding: 0;\n    border: 0;\n    font-size: 100%;\n    font: inherit;\n    vertical-align: baseline; }\n  .xgplayer-skin-default .xgplayer-none {\n    display: none; }\n  .xgplayer-skin-default.xgplayer-is-fullscreen {\n    width: 100% !important;\n    height: 100% !important;\n    padding-top: 0 !important;\n    z-index: 9999; }\n  .xgplayer-skin-default.xgplayer-is-fullscreen.xgplayer-inactive {\n    cursor: none; }\n  .xgplayer-skin-default video {\n    width: 100%;\n    height: 100%;\n    outline: none; }\n\n.xgplayer-skin-default .xgplayer-none {\n  display: none; }\n\n@-webkit-keyframes loadingRotate {\n  0% {\n    -webkit-transform: rotate(0);\n            transform: rotate(0); }\n  100% {\n    -webkit-transform: rotate(360deg);\n            transform: rotate(360deg); } }\n\n@keyframes loadingRotate {\n  0% {\n    -webkit-transform: rotate(0);\n            transform: rotate(0); }\n  100% {\n    -webkit-transform: rotate(360deg);\n            transform: rotate(360deg); } }\n\n@-webkit-keyframes loadingDashOffset {\n  0% {\n    stroke-dashoffset: 236; }\n  100% {\n    stroke-dashoffset: 0; } }\n\n@keyframes loadingDashOffset {\n  0% {\n    stroke-dashoffset: 236; }\n  100% {\n    stroke-dashoffset: 0; } }\n\n.xgplayer-skin-default .xgplayer-play, .xgplayer-skin-default .xgplayer-play-img {\n  position: relative;\n  -webkit-order: 0;\n     -moz-box-ordinal-group: 1;\n          order: 0;\n  display: block;\n  cursor: pointer; }\n  .xgplayer-skin-default .xgplayer-play .xgplayer-icon, .xgplayer-skin-default .xgplayer-play-img .xgplayer-icon {\n    margin-top: 3px;\n    width: 32px; }\n    .xgplayer-skin-default .xgplayer-play .xgplayer-icon div, .xgplayer-skin-default .xgplayer-play-img .xgplayer-icon div {\n      position: absolute; }\n    .xgplayer-skin-default .xgplayer-play .xgplayer-icon .xgplayer-icon-play, .xgplayer-skin-default .xgplayer-play-img .xgplayer-icon .xgplayer-icon-play {\n      display: block; }\n    .xgplayer-skin-default .xgplayer-play .xgplayer-icon .xgplayer-icon-pause, .xgplayer-skin-default .xgplayer-play-img .xgplayer-icon .xgplayer-icon-pause {\n      display: none; }\n  .xgplayer-skin-default .xgplayer-play .xgplayer-tips .xgplayer-tip-play, .xgplayer-skin-default .xgplayer-play-img .xgplayer-tips .xgplayer-tip-play {\n    display: block; }\n  .xgplayer-skin-default .xgplayer-play .xgplayer-tips .xgplayer-tip-pause, .xgplayer-skin-default .xgplayer-play-img .xgplayer-tips .xgplayer-tip-pause {\n    display: none; }\n  .xgplayer-skin-default .xgplayer-play:hover, .xgplayer-skin-default .xgplayer-play-img:hover {\n    opacity: 0.85; }\n    .xgplayer-skin-default .xgplayer-play:hover .xgplayer-tips, .xgplayer-skin-default .xgplayer-play-img:hover .xgplayer-tips {\n      display: block; }\n\n.xgplayer-skin-default.xgplayer-playing .xgplayer-play .xgplayer-icon .xgplayer-icon-play, .xgplayer-skin-default.xgplayer-playing .xgplayer-play-img .xgplayer-icon .xgplayer-icon-play {\n  display: none; }\n\n.xgplayer-skin-default.xgplayer-playing .xgplayer-play .xgplayer-icon .xgplayer-icon-pause, .xgplayer-skin-default.xgplayer-playing .xgplayer-play-img .xgplayer-icon .xgplayer-icon-pause {\n  display: block; }\n\n.xgplayer-skin-default.xgplayer-playing .xgplayer-play .xgplayer-tips .xgplayer-tip-play, .xgplayer-skin-default.xgplayer-playing .xgplayer-play-img .xgplayer-tips .xgplayer-tip-play {\n  display: none; }\n\n.xgplayer-skin-default.xgplayer-playing .xgplayer-play .xgplayer-tips .xgplayer-tip-pause, .xgplayer-skin-default.xgplayer-playing .xgplayer-play-img .xgplayer-tips .xgplayer-tip-pause {\n  display: block; }\n\n.xgplayer-skin-default.xgplayer-pause .xgplayer-play .xgplayer-icon .xgplayer-icon-play, .xgplayer-skin-default.xgplayer-pause .xgplayer-play-img .xgplayer-icon .xgplayer-icon-play {\n  display: block; }\n\n.xgplayer-skin-default.xgplayer-pause .xgplayer-play .xgplayer-icon .xgplayer-icon-pause, .xgplayer-skin-default.xgplayer-pause .xgplayer-play-img .xgplayer-icon .xgplayer-icon-pause {\n  display: none; }\n\n.xgplayer-skin-default.xgplayer-pause .xgplayer-play .xgplayer-tips .xgplayer-tip-play, .xgplayer-skin-default.xgplayer-pause .xgplayer-play-img .xgplayer-tips .xgplayer-tip-play {\n  display: block; }\n\n.xgplayer-skin-default.xgplayer-pause .xgplayer-play .xgplayer-tips .xgplayer-tip-pause, .xgplayer-skin-default.xgplayer-pause .xgplayer-play-img .xgplayer-tips .xgplayer-tip-pause {\n  display: none; }\n\n.xgplayer-skin-default .xgplayer-enter {\n  display: none;\n  position: absolute;\n  left: 0;\n  top: 0;\n  width: 100%;\n  height: 100%;\n  background: black;\n  z-index: 120; }\n  .xgplayer-skin-default .xgplayer-enter .xgplayer-enter-spinner {\n    display: block;\n    position: absolute;\n    left: 50%;\n    top: 50%;\n    height: 100px;\n    width: 100px;\n    position: relative;\n    -webkit-transform: translate(-50%, -50%);\n        -ms-transform: translate(-50%, -50%);\n            transform: translate(-50%, -50%); }\n  .xgplayer-skin-default .xgplayer-enter .xgplayer-enter-spinner div {\n    width: 12%;\n    height: 26%;\n    background-color: rgba(255, 255, 255, .7);\n    position: absolute;\n    left: 44%;\n    top: 37%;\n    opacity: 0;\n    border-radius: 30px;\n    -webkit-animation: fade 1s linear infinite;\n            animation: fade 1s linear infinite; }\n  .xgplayer-skin-default .xgplayer-enter .xgplayer-enter-spinner div.xgplayer-enter-bar1 {\n    -webkit-transform: rotate(0deg) translate(0, -142%);\n        -ms-transform: rotate(0deg) translate(0, -142%);\n            transform: rotate(0deg) translate(0, -142%);\n    -webkit-animation-delay: -0s;\n            animation-delay: -0s; }\n  .xgplayer-skin-default .xgplayer-enter .xgplayer-enter-spinner div.xgplayer-enter-bar2 {\n    -webkit-transform: rotate(30deg) translate(0, -142%);\n        -ms-transform: rotate(30deg) translate(0, -142%);\n            transform: rotate(30deg) translate(0, -142%);\n    -webkit-animation-delay: -0.9163s;\n            animation-delay: -0.9163s; }\n  .xgplayer-skin-default .xgplayer-enter .xgplayer-enter-spinner div.xgplayer-enter-bar3 {\n    -webkit-transform: rotate(60deg) translate(0, -142%);\n        -ms-transform: rotate(60deg) translate(0, -142%);\n            transform: rotate(60deg) translate(0, -142%);\n    -webkit-animation-delay: -0.833s;\n            animation-delay: -0.833s; }\n  .xgplayer-skin-default .xgplayer-enter .xgplayer-enter-spinner div.xgplayer-enter-bar4 {\n    -webkit-transform: rotate(90deg) translate(0, -142%);\n        -ms-transform: rotate(90deg) translate(0, -142%);\n            transform: rotate(90deg) translate(0, -142%);\n    -webkit-animation-delay: -0.7497s;\n            animation-delay: -0.7497s; }\n  .xgplayer-skin-default .xgplayer-enter .xgplayer-enter-spinner div.xgplayer-enter-bar5 {\n    -webkit-transform: rotate(120deg) translate(0, -142%);\n        -ms-transform: rotate(120deg) translate(0, -142%);\n            transform: rotate(120deg) translate(0, -142%);\n    -webkit-animation-delay: -0.6664s;\n            animation-delay: -0.6664s; }\n  .xgplayer-skin-default .xgplayer-enter .xgplayer-enter-spinner div.xgplayer-enter-bar6 {\n    -webkit-transform: rotate(150deg) translate(0, -142%);\n        -ms-transform: rotate(150deg) translate(0, -142%);\n            transform: rotate(150deg) translate(0, -142%);\n    -webkit-animation-delay: -0.5831s;\n            animation-delay: -0.5831s; }\n  .xgplayer-skin-default .xgplayer-enter .xgplayer-enter-spinner div.xgplayer-enter-bar7 {\n    -webkit-transform: rotate(180deg) translate(0, -142%);\n        -ms-transform: rotate(180deg) translate(0, -142%);\n            transform: rotate(180deg) translate(0, -142%);\n    -webkit-animation-delay: -0.4998s;\n            animation-delay: -0.4998s; }\n  .xgplayer-skin-default .xgplayer-enter .xgplayer-enter-spinner div.xgplayer-enter-bar8 {\n    -webkit-transform: rotate(210deg) translate(0, -142%);\n        -ms-transform: rotate(210deg) translate(0, -142%);\n            transform: rotate(210deg) translate(0, -142%);\n    -webkit-animation-delay: -0.4165s;\n            animation-delay: -0.4165s; }\n  .xgplayer-skin-default .xgplayer-enter .xgplayer-enter-spinner div.xgplayer-enter-bar9 {\n    -webkit-transform: rotate(240deg) translate(0, -142%);\n        -ms-transform: rotate(240deg) translate(0, -142%);\n            transform: rotate(240deg) translate(0, -142%);\n    -webkit-animation-delay: -0.3332s;\n            animation-delay: -0.3332s; }\n  .xgplayer-skin-default .xgplayer-enter .xgplayer-enter-spinner div.xgplayer-enter-bar10 {\n    -webkit-transform: rotate(270deg) translate(0, -142%);\n        -ms-transform: rotate(270deg) translate(0, -142%);\n            transform: rotate(270deg) translate(0, -142%);\n    -webkit-animation-delay: -0.2499s;\n            animation-delay: -0.2499s; }\n  .xgplayer-skin-default .xgplayer-enter .xgplayer-enter-spinner div.xgplayer-enter-bar11 {\n    -webkit-transform: rotate(300deg) translate(0, -142%);\n        -ms-transform: rotate(300deg) translate(0, -142%);\n            transform: rotate(300deg) translate(0, -142%);\n    -webkit-animation-delay: -0.1666s;\n            animation-delay: -0.1666s; }\n  .xgplayer-skin-default .xgplayer-enter .xgplayer-enter-spinner div.xgplayer-enter-bar12 {\n    -webkit-transform: rotate(330deg) translate(0, -142%);\n        -ms-transform: rotate(330deg) translate(0, -142%);\n            transform: rotate(330deg) translate(0, -142%);\n    -webkit-animation-delay: -0.0833s;\n            animation-delay: -0.0833s; }\n\n@-webkit-keyframes fade {\n  from {\n    opacity: 1; }\n  to {\n    opacity: 0.25; } }\n\n.xgplayer-skin-default.xgplayer-is-enter .xgplayer-enter {\n  display: block; }\n\n.xgplayer-skin-default .xgplayer-placeholder {\n  -webkit-flex: 1;\n     -moz-box-flex: 1;\n          flex: 1;\n  -webkit-order: 3;\n     -moz-box-ordinal-group: 4;\n          order: 3;\n  display: block; }\n\n.xgplayer-skin-default .xgplayer-fullscreen, .xgplayer-skin-default .xgplayer-fullscreen-img {\n  position: relative;\n  -webkit-order: 13;\n     -moz-box-ordinal-group: 14;\n          order: 13;\n  display: block;\n  cursor: pointer; }\n  .xgplayer-skin-default .xgplayer-fullscreen .xgplayer-icon, .xgplayer-skin-default .xgplayer-fullscreen-img .xgplayer-icon {\n    margin-top: 3px; }\n    .xgplayer-skin-default .xgplayer-fullscreen .xgplayer-icon div, .xgplayer-skin-default .xgplayer-fullscreen-img .xgplayer-icon div {\n      position: absolute; }\n    .xgplayer-skin-default .xgplayer-fullscreen .xgplayer-icon .xgplayer-icon-requestfull, .xgplayer-skin-default .xgplayer-fullscreen-img .xgplayer-icon .xgplayer-icon-requestfull {\n      display: block; }\n    .xgplayer-skin-default .xgplayer-fullscreen .xgplayer-icon .xgplayer-icon-exitfull, .xgplayer-skin-default .xgplayer-fullscreen-img .xgplayer-icon .xgplayer-icon-exitfull {\n      display: none; }\n  .xgplayer-skin-default .xgplayer-fullscreen .xgplayer-tips, .xgplayer-skin-default .xgplayer-fullscreen-img .xgplayer-tips {\n    position: absolute;\n    right: 0;\n    left: auto; }\n    .xgplayer-skin-default .xgplayer-fullscreen .xgplayer-tips .xgplayer-tip-requestfull, .xgplayer-skin-default .xgplayer-fullscreen-img .xgplayer-tips .xgplayer-tip-requestfull {\n      display: block; }\n    .xgplayer-skin-default .xgplayer-fullscreen .xgplayer-tips .xgplayer-tip-exitfull, .xgplayer-skin-default .xgplayer-fullscreen-img .xgplayer-tips .xgplayer-tip-exitfull {\n      display: none; }\n  .xgplayer-skin-default .xgplayer-fullscreen:hover, .xgplayer-skin-default .xgplayer-fullscreen-img:hover {\n    opacity: 0.85; }\n    .xgplayer-skin-default .xgplayer-fullscreen:hover .xgplayer-tips, .xgplayer-skin-default .xgplayer-fullscreen-img:hover .xgplayer-tips {\n      display: block; }\n\n.xgplayer-skin-default.xgplayer-is-fullscreen .xgplayer-fullscreen .xgplayer-icon .xgplayer-icon-requestfull, .xgplayer-skin-default.xgplayer-is-fullscreen .xgplayer-fullscreen-img .xgplayer-icon .xgplayer-icon-requestfull {\n  display: none; }\n\n.xgplayer-skin-default.xgplayer-is-fullscreen .xgplayer-fullscreen .xgplayer-icon .xgplayer-icon-exitfull, .xgplayer-skin-default.xgplayer-is-fullscreen .xgplayer-fullscreen-img .xgplayer-icon .xgplayer-icon-exitfull {\n  display: block; }\n\n.xgplayer-skin-default.xgplayer-is-fullscreen .xgplayer-fullscreen .xgplayer-tips .xgplayer-tip-requestfull, .xgplayer-skin-default.xgplayer-is-fullscreen .xgplayer-fullscreen-img .xgplayer-tips .xgplayer-tip-requestfull {\n  display: none; }\n\n.xgplayer-skin-default.xgplayer-is-fullscreen .xgplayer-fullscreen .xgplayer-tips .xgplayer-tip-exitfull, .xgplayer-skin-default.xgplayer-is-fullscreen .xgplayer-fullscreen-img .xgplayer-tips .xgplayer-tip-exitfull {\n  display: block; }\n\n.xgplayer-skin-default .xgplayer-cssfullscreen, .xgplayer-skin-default .xgplayer-cssfullscreen-img {\n  position: relative;\n  -webkit-order: 12;\n     -moz-box-ordinal-group: 13;\n          order: 12;\n  display: block;\n  cursor: pointer; }\n  .xgplayer-skin-default .xgplayer-cssfullscreen .xgplayer-icon, .xgplayer-skin-default .xgplayer-cssfullscreen-img .xgplayer-icon {\n    width: 32px;\n    margin-top: 5px; }\n    .xgplayer-skin-default .xgplayer-cssfullscreen .xgplayer-icon div, .xgplayer-skin-default .xgplayer-cssfullscreen-img .xgplayer-icon div {\n      position: absolute; }\n    .xgplayer-skin-default .xgplayer-cssfullscreen .xgplayer-icon .xgplayer-icon-requestfull, .xgplayer-skin-default .xgplayer-cssfullscreen-img .xgplayer-icon .xgplayer-icon-requestfull {\n      display: block; }\n    .xgplayer-skin-default .xgplayer-cssfullscreen .xgplayer-icon .xgplayer-icon-exitfull, .xgplayer-skin-default .xgplayer-cssfullscreen-img .xgplayer-icon .xgplayer-icon-exitfull {\n      display: none; }\n  .xgplayer-skin-default .xgplayer-cssfullscreen .xgplayer-tips, .xgplayer-skin-default .xgplayer-cssfullscreen-img .xgplayer-tips {\n    margin-left: -40px; }\n    .xgplayer-skin-default .xgplayer-cssfullscreen .xgplayer-tips .xgplayer-tip-requestfull, .xgplayer-skin-default .xgplayer-cssfullscreen-img .xgplayer-tips .xgplayer-tip-requestfull {\n      display: block; }\n    .xgplayer-skin-default .xgplayer-cssfullscreen .xgplayer-tips .xgplayer-tip-exitfull, .xgplayer-skin-default .xgplayer-cssfullscreen-img .xgplayer-tips .xgplayer-tip-exitfull {\n      display: none; }\n  .xgplayer-skin-default .xgplayer-cssfullscreen:hover, .xgplayer-skin-default .xgplayer-cssfullscreen-img:hover {\n    opacity: 0.85; }\n    .xgplayer-skin-default .xgplayer-cssfullscreen:hover .xgplayer-tips, .xgplayer-skin-default .xgplayer-cssfullscreen-img:hover .xgplayer-tips {\n      display: block; }\n\n.xgplayer-skin-default.xgplayer-is-cssfullscreen .xgplayer-cssfullscreen .xgplayer-icon .xgplayer-icon-requestfull, .xgplayer-skin-default.xgplayer-is-cssfullscreen .xgplayer-cssfullscreen-img .xgplayer-icon .xgplayer-icon-requestfull {\n  display: none; }\n\n.xgplayer-skin-default.xgplayer-is-cssfullscreen .xgplayer-cssfullscreen .xgplayer-icon .xgplayer-icon-exitfull, .xgplayer-skin-default.xgplayer-is-cssfullscreen .xgplayer-cssfullscreen-img .xgplayer-icon .xgplayer-icon-exitfull {\n  display: block; }\n\n.xgplayer-skin-default.xgplayer-is-cssfullscreen .xgplayer-cssfullscreen .xgplayer-tips, .xgplayer-skin-default.xgplayer-is-cssfullscreen .xgplayer-cssfullscreen-img .xgplayer-tips {\n  margin-left: -47px; }\n  .xgplayer-skin-default.xgplayer-is-cssfullscreen .xgplayer-cssfullscreen .xgplayer-tips .xgplayer-tip-requestfull, .xgplayer-skin-default.xgplayer-is-cssfullscreen .xgplayer-cssfullscreen-img .xgplayer-tips .xgplayer-tip-requestfull {\n    display: none; }\n  .xgplayer-skin-default.xgplayer-is-cssfullscreen .xgplayer-cssfullscreen .xgplayer-tips .xgplayer-tip-exitfull, .xgplayer-skin-default.xgplayer-is-cssfullscreen .xgplayer-cssfullscreen-img .xgplayer-tips .xgplayer-tip-exitfull {\n    display: block; }\n\n.xgplayer-skin-default.xgplayer-is-fullscreen .xgplayer-cssfullscreen, .xgplayer-skin-default.xgplayer-is-fullscreen .xgplayer-cssfullscreen-img {\n  display: none; }\n\n.xgplayer-skin-default.xgplayer-is-cssfullscreen {\n  position: fixed !important;\n  left: 0 !important;\n  top: 0 !important;\n  width: 100% !important;\n  height: 100% !important;\n  z-index: 99999 !important; }\n\n.lang-is-en .xgplayer-cssfullscreen .xgplayer-tips, .lang-is-en .xgplayer-cssfullscreen-img .xgplayer-tips {\n  margin-left: -46px; }\n\n.lang-is-en.xgplayer-is-cssfullscreen .xgplayer-cssfullscreen .xgplayer-tips, .lang-is-en.xgplayer-is-cssfullscreen .xgplayer-cssfullscreen-img .xgplayer-tips {\n  margin-left: -46px; }\n\n.lang-is-jp .xgplayer-cssfullscreen .xgplayer-tips, .lang-is-jp .xgplayer-cssfullscreen-img .xgplayer-tips {\n  margin-left: -120px; }\n\n.lang-is-jp.xgplayer-is-cssfullscreen .xgplayer-cssfullscreen .xgplayer-tips, .lang-is-jp.xgplayer-is-cssfullscreen .xgplayer-cssfullscreen-img .xgplayer-tips {\n  margin-left: -60px; }\n\n.xgplayer-skin-default .xgplayer-volume {\n  outline: none;\n  -webkit-order: 4;\n     -moz-box-ordinal-group: 5;\n          order: 4;\n  width: 28px;\n  height: 140px;\n  display: block;\n  position: relative;\n  margin-top: -100px;\n  overflow: hidden;\n  z-index: 18; }\n  .xgplayer-skin-default .xgplayer-volume .xgplayer-icon {\n    margin-top: 8px;\n    cursor: pointer;\n    position: absolute;\n    bottom: -9px; }\n    .xgplayer-skin-default .xgplayer-volume .xgplayer-icon div {\n      position: absolute; }\n    .xgplayer-skin-default .xgplayer-volume .xgplayer-icon .xgplayer-icon-large {\n      display: block; }\n    .xgplayer-skin-default .xgplayer-volume .xgplayer-icon .xgplayer-icon-small {\n      display: none; }\n    .xgplayer-skin-default .xgplayer-volume .xgplayer-icon .xgplayer-icon-muted {\n      display: none; }\n\n.xgplayer-skin-default .xgplayer-slider {\n  display: none;\n  position: absolute;\n  width: 28px;\n  height: 92px;\n  background: rgba(0, 0, 0, .54);\n  border-radius: 1px;\n  bottom: 42px;\n  outline: none; }\n  .xgplayer-skin-default .xgplayer-slider:after {\n    content: \" \";\n    display: block;\n    height: 15px;\n    width: 28px;\n    position: absolute;\n    bottom: -15px;\n    left: 0;\n    z-index: 20; }\n\n.xgplayer-skin-default .xgplayer-bar, .xgplayer-skin-default .xgplayer-drag {\n  display: block;\n  position: absolute;\n  bottom: 6px;\n  left: 12px;\n  background: rgba(255, 255, 255, .3);\n  border-radius: 100px;\n  width: 4px;\n  height: 76px;\n  outline: none;\n  cursor: pointer; }\n\n.xgplayer-skin-default .xgplayer-drag {\n  bottom: 0;\n  left: 0;\n  background: #FA1F41;\n  max-height: 76px; }\n  .xgplayer-skin-default .xgplayer-drag:after {\n    content: \" \";\n    display: inline-block;\n    width: 8px;\n    height: 8px;\n    background: #fff;\n    box-shadow: 0 0 5px 0 rgba(0, 0, 0, .26);\n    position: absolute;\n    border-radius: 50%;\n    left: -2px;\n    top: -6px; }\n\n.xgplayer-skin-default.xgplayer-volume-active .xgplayer-slider {\n  display: block; }\n\n.xgplayer-skin-default.xgplayer-volume-large .xgplayer-volume .xgplayer-icon .xgplayer-icon-large {\n  display: block; }\n\n.xgplayer-skin-default.xgplayer-volume-large .xgplayer-volume .xgplayer-icon .xgplayer-icon-small {\n  display: none; }\n\n.xgplayer-skin-default.xgplayer-volume-large .xgplayer-volume .xgplayer-icon .xgplayer-icon-muted {\n  display: none; }\n\n.xgplayer-skin-default.xgplayer-volume-small .xgplayer-volume .xgplayer-icon .xgplayer-icon-large {\n  display: none; }\n\n.xgplayer-skin-default.xgplayer-volume-small .xgplayer-volume .xgplayer-icon .xgplayer-icon-small {\n  display: block; }\n\n.xgplayer-skin-default.xgplayer-volume-small .xgplayer-volume .xgplayer-icon .xgplayer-icon-muted {\n  display: none; }\n\n.xgplayer-skin-default.xgplayer-volume-muted .xgplayer-volume .xgplayer-icon .xgplayer-icon-large {\n  display: none; }\n\n.xgplayer-skin-default.xgplayer-volume-muted .xgplayer-volume .xgplayer-icon .xgplayer-icon-small {\n  display: none; }\n\n.xgplayer-skin-default.xgplayer-volume-muted .xgplayer-volume .xgplayer-icon .xgplayer-icon-muted {\n  display: block; }\n\n.xgplayer-skin-default.xgplayer-mobile .xgplayer-volume .xgplayer-slider {\n  display: none; }\n\n.xgplayer-skin-default .xgplayer-definition {\n  -webkit-order: 5;\n     -moz-box-ordinal-group: 6;\n          order: 5;\n  width: 60px;\n  height: 150px;\n  z-index: 18;\n  position: relative;\n  outline: none;\n  display: none;\n  cursor: default;\n  margin-left: 10px;\n  margin-top: -119px; }\n  .xgplayer-skin-default .xgplayer-definition ul {\n    display: none;\n    list-style: none;\n    width: 78px;\n    background: rgba(0, 0, 0, .54);\n    border-radius: 1px;\n    position: absolute;\n    bottom: 30px;\n    left: 0;\n    text-align: center;\n    white-space: nowrap;\n    margin-left: -10px;\n    z-index: 26;\n    cursor: pointer; }\n    .xgplayer-skin-default .xgplayer-definition ul li {\n      opacity: 0.7;\n      font-family: PingFangSC-Regular;\n      font-size: 11px;\n      color: rgba(255, 255, 255, .8);\n      padding: 6px 13px; }\n      .xgplayer-skin-default .xgplayer-definition ul li.selected {\n        color: #fff;\n        opacity: 1; }\n      .xgplayer-skin-default .xgplayer-definition ul li:hover {\n        color: #fff;\n        opacity: 1; }\n  .xgplayer-skin-default .xgplayer-definition .name {\n    text-align: center;\n    font-family: PingFangSC-Regular;\n    font-size: 13px;\n    line-height: 20px;\n    height: 20px;\n    cursor: pointer;\n    color: rgba(255, 255, 255, .8);\n    position: absolute;\n    bottom: 0;\n    width: 60px;\n    height: 20px;\n    line-height: 20px;\n    background: rgba(0, 0, 0, .38);\n    border-radius: 10px;\n    display: inline-block;\n    vertical-align: middle; }\n\n.xgplayer-skin-default.xgplayer-definition-active .xgplayer-definition ul {\n  display: block; }\n\n.xgplayer-skin-default.xgplayer-is-definition .xgplayer-definition {\n  display: block; }\n\n.xgplayer-skin-default .xgplayer-time {\n  -webkit-order: 2;\n     -moz-box-ordinal-group: 3;\n          order: 2;\n  font-family: ArialMT;\n  font-size: 13px;\n  color: #fff;\n  line-height: 40px;\n  text-align: center;\n  display: inline-block; }\n  .xgplayer-skin-default .xgplayer-time span::after {\n    content: \"/\";\n    display: inline-block;\n    padding: 0 3px; }\n  .xgplayer-skin-default .xgplayer-time em {\n    color: rgba(255, 255, 255, .5); }\n\n.xgplayer-skin-default .xgplayer-controls {\n  display: -webkit-flex;\n  display: -moz-box;\n  display: flex;\n  position: absolute;\n  bottom: 0;\n  left: 0;\n  right: 0;\n  height: 40px;\n  background-image: linear-gradient(to bottom, rgba(0, 0, 0, 0), rgba(0, 0, 0, .37), rgba(0, 0, 0, .75), rgba(0, 0, 0, .75));\n  z-index: 10; }\n\n.xgplayer-skin-default.xgplayer-nostart .xgplayer-controls {\n  display: none; }\n\n.xgplayer-skin-default.no-controls .xgplayer-controls {\n  display: none; }\n\n.xgplayer-skin-default.xgplayer-inactive .xgplayer-controls {\n  display: none; }\n\n.xgplayer-skin-default.xgplayer-is-live .xgplayer-controls > * {\n  display: none; }\n\n.xgplayer-skin-default.xgplayer-is-live .xgplayer-controls .xgplayer-play,\n.xgplayer-skin-default.xgplayer-is-live .xgplayer-controls .xgplayer-play-img,\n.xgplayer-skin-default.xgplayer-is-live .xgplayer-controls .xgplayer-placeholder,\n.xgplayer-skin-default.xgplayer-is-live .xgplayer-controls .xgplayer-volume,\n.xgplayer-skin-default.xgplayer-is-live .xgplayer-controls .xgplayer-live,\n.xgplayer-skin-default.xgplayer-is-live .xgplayer-controls .xgplayer-definition,\n.xgplayer-skin-default.xgplayer-is-live .xgplayer-controls .xgplayer-cssfullscreen,\n.xgplayer-skin-default.xgplayer-is-live .xgplayer-controls .xgplayer-fullscreen {\n  display: block; }\n\n.xgplayer-skin-default .xgplayer-live {\n  display: block;\n  font-size: 12px;\n  color: #fff;\n  line-height: 40px;\n  -webkit-order: 1;\n     -moz-box-ordinal-group: 2;\n          order: 1; }\n\n.xgplayer-skin-default .xgplayer-loading {\n  display: none;\n  width: 100px;\n  height: 100px;\n  overflow: hidden;\n  -webkit-transform: scale(0.7);\n      -ms-transform: scale(0.7);\n          transform: scale(0.7);\n  position: absolute;\n  left: 50%;\n  top: 50%;\n  margin: -70px auto auto -50px; }\n  .xgplayer-skin-default .xgplayer-loading svg {\n    border-radius: 50%;\n    -webkit-transform-origin: center;\n        -ms-transform-origin: center;\n            transform-origin: center;\n    -webkit-animation: loadingRotate 1s linear infinite;\n            animation: loadingRotate 1s linear infinite; }\n    .xgplayer-skin-default .xgplayer-loading svg path {\n      stroke: #ddd;\n      stroke-dasharray: 236;\n      -webkit-animation: loadingDashOffset 2s linear infinite;\n              animation: loadingDashOffset 2s linear infinite;\n      animation-direction: alternate-reverse;\n      fill: none;\n      stroke-width: 12px; }\n\n.xgplayer-skin-default.xgplayer-nostart .xgplayer-loading {\n  display: none; }\n\n.xgplayer-skin-default.xgplayer-isloading .xgplayer-loading {\n  display: block; }\n\n.xgplayer-skin-default.xgplayer-ended .xgplayer-loading {\n  display: none; }\n\n.xgplayer-skin-default .xgplayer-progress {\n  display: block;\n  position: absolute;\n  height: 20px;\n  line-height: 20px;\n  left: 12px;\n  right: 12px;\n  outline: none;\n  top: -10px;\n  z-index: 35; }\n\n.xgplayer-skin-default .xgplayer-progress-outer {\n  background: rgba(255, 255, 255, .3);\n  display: block;\n  height: 3px;\n  line-height: 3px;\n  margin-top: 8.5px;\n  width: 100%;\n  position: relative;\n  cursor: pointer; }\n\n.xgplayer-skin-default .xgplayer-progress-cache, .xgplayer-skin-default .xgplayer-progress-played {\n  display: block;\n  height: 100%;\n  line-height: 1;\n  position: absolute;\n  left: 0;\n  top: 0; }\n\n.xgplayer-skin-default .xgplayer-progress-cache {\n  width: 0;\n  background: rgba(255, 255, 255, .5); }\n\n.xgplayer-skin-default .xgplayer-progress-played {\n  display: block;\n  width: 0;\n  background-image: linear-gradient(-90deg, #FA1F41 0%, #E31106 100%);\n  border-radius: 0 1.5px 1.5px 0; }\n\n.xgplayer-skin-default .xgplayer-progress-btn {\n  display: none;\n  position: absolute;\n  left: 0px;\n  top: -5px;\n  width: 13px;\n  height: 13px;\n  border-radius: 30px;\n  background: #FFFFFF;\n  box-shadow: 0 0 2px 0 rgba(0, 0, 0, .26);\n  left: 100%;\n  -webkit-transform: translate(-50%, 0);\n      -ms-transform: translate(-50%, 0);\n          transform: translate(-50%, 0); }\n\n.xgplayer-skin-default .xgplayer-progress-point {\n  position: absolute; }\n  .xgplayer-skin-default .xgplayer-progress-point.xgplayer-tips {\n    margin-left: 0;\n    top: -25px;\n    display: none;\n    z-index: 100; }\n\n.xgplayer-skin-default .xgplayer-progress-dot {\n  display: inline-block;\n  position: absolute;\n  height: 3px;\n  width: 5px;\n  top: 0px;\n  background: white;\n  border-radius: 6px;\n  z-index: 16; }\n  .xgplayer-skin-default .xgplayer-progress-dot .xgplayer-progress-tip {\n    position: absolute;\n    left: 0;\n    top: -40px;\n    height: auto;\n    line-height: 30px;\n    width: auto;\n    -webkit-transform: scale(0.8);\n        -ms-transform: scale(0.8);\n            transform: scale(0.8);\n    background: rgba(0, 0, 0, .3);\n    border-radius: 6px;\n    border: 1px solid rgba(0, 0, 0, .8);\n    cursor: default;\n    white-space: nowrap;\n    display: none; }\n\n.xgplayer-skin-default .xgplayer-progress-dot-show .xgplayer-progress-tip {\n  display: block; }\n\n.xgplayer-skin-default .xgplayer-progress-thumbnail {\n  position: absolute;\n  -moz-box-sizing: border-box;\n       box-sizing: border-box; }\n  .xgplayer-skin-default .xgplayer-progress-thumbnail.xgplayer-tips {\n    margin-left: 0;\n    display: none;\n    z-index: 99; }\n\n.xgplayer-skin-default .xgplayer-progress:hover .xgplayer-progress-outer, .xgplayer-skin-default .xgplayer-progress:focus .xgplayer-progress-outer {\n  height: 6px;\n  margin-top: 7px; }\n\n.xgplayer-skin-default .xgplayer-progress:hover .xgplayer-progress-dot, .xgplayer-skin-default .xgplayer-progress:focus .xgplayer-progress-dot {\n  height: 6px; }\n\n.xgplayer-skin-default .xgplayer-progress:hover .xgplayer-progress-btn, .xgplayer-skin-default .xgplayer-progress:focus .xgplayer-progress-btn {\n  display: block;\n  top: -3px; }\n\n.xgplayer-skin-default.xgplayer-volume-active .xgplayer-progress {\n  z-index: 15; }\n\n.xgplayer-skin-default.xgplayer-definition-active .xgplayer-progress {\n  z-index: 15; }\n\n.xgplayer-skin-default.xgplayer-texttrack-active .xgplayer-progress {\n  z-index: 15; }\n\n.xgplayer-skin-default.xgplayer-playbackrate-active .xgplayer-progress {\n  z-index: 15; }\n\n.xgplayer-skin-default.xgplayer-mobile .xgplayer-progress-btn {\n  display: block !important; }\n\n.xgplayer-skin-default.xgplayer-mobile .xgplayer-progress:hover .xgplayer-progress-outer, .xgplayer-skin-default.xgplayer-mobile .xgplayer-progress:focus .xgplayer-progress-outer {\n  height: 3px !important;\n  margin-top: 8.5px !important; }\n\n.xgplayer-skin-default.xgplayer-mobile .xgplayer-progress:hover .xgplayer-progress-btn, .xgplayer-skin-default.xgplayer-mobile .xgplayer-progress:focus .xgplayer-progress-btn {\n  display: block !important;\n  top: -5px !important; }\n\n.xgplayer-skin-default .xgplayer-playbackrate {\n  -webkit-order: 8;\n     -moz-box-ordinal-group: 9;\n          order: 8;\n  width: 60px;\n  height: 20px;\n  z-index: 18;\n  position: relative;\n  display: inline-block;\n  cursor: default; }\n  .xgplayer-skin-default .xgplayer-playbackrate ul {\n    display: none;\n    list-style: none;\n    width: 78px;\n    background: rgba(0, 0, 0, .54);\n    border-radius: 1px;\n    position: absolute;\n    bottom: 20px;\n    left: 0px;\n    text-align: left;\n    white-space: nowrap;\n    z-index: 26;\n    cursor: pointer; }\n    .xgplayer-skin-default .xgplayer-playbackrate ul li {\n      opacity: 0.7;\n      font-family: PingFangSC-Regular;\n      font-size: 11px;\n      color: rgba(255, 255, 255, .8);\n      position: relative;\n      padding: 4px 0 4px 0px;\n      text-align: center; }\n      .xgplayer-skin-default .xgplayer-playbackrate ul li.selected {\n        color: #fff;\n        opacity: 1; }\n      .xgplayer-skin-default .xgplayer-playbackrate ul li:hover {\n        color: #fff;\n        opacity: 1; }\n    .xgplayer-skin-default .xgplayer-playbackrate ul li:nth-child(1) {\n      position: relative;\n      margin-top: 12px; }\n    .xgplayer-skin-default .xgplayer-playbackrate ul li:last-child {\n      position: relative;\n      margin-bottom: 12px; }\n  .xgplayer-skin-default .xgplayer-playbackrate .name {\n    height: 20px;\n    position: relative;\n    top: 11px;\n    text-align: center;\n    background: rgba(0, 0, 0, .38);\n    color: rgba(255, 255, 255, .8);\n    border-radius: 10px;\n    line-height: 20px; }\n  .xgplayer-skin-default .xgplayer-playbackrate span {\n    position: relative;\n    top: 19px;\n    font-weight: bold;\n    text-shadow: 0 0 4px rgba(0, 0, 0, .6); }\n  .xgplayer-skin-default .xgplayer-playbackrate:hover {\n    opacity: 1; }\n\n.xgplayer-skin-default.xgplayer-playbackrate-active .xgplayer-playbackrate ul {\n  display: block; }\n\n.xgplayer-skin-default .xgplayer-download {\n  position: relative;\n  -webkit-order: 9;\n     -moz-box-ordinal-group: 10;\n          order: 9;\n  display: block;\n  cursor: pointer; }\n  .xgplayer-skin-default .xgplayer-download .xgplayer-icon {\n    margin-top: 3px; }\n    .xgplayer-skin-default .xgplayer-download .xgplayer-icon div {\n      position: absolute; }\n    .xgplayer-skin-default .xgplayer-download .xgplayer-icon svg {\n      position: relative;\n      top: 5px;\n      left: 5px; }\n  .xgplayer-skin-default .xgplayer-download .xgplayer-tips {\n    margin-left: -20px; }\n    .xgplayer-skin-default .xgplayer-download .xgplayer-tips .xgplayer-tip-download {\n      display: block; }\n  .xgplayer-skin-default .xgplayer-download:hover {\n    opacity: 0.85; }\n    .xgplayer-skin-default .xgplayer-download:hover .xgplayer-tips {\n      display: block; }\n\n.lang-is-en .xgplayer-download .xgplayer-tips {\n  margin-left: -32px; }\n\n.lang-is-jp .xgplayer-download .xgplayer-tips {\n  margin-left: -40px; }\n\n.xgplayer-skin-default .danmu-switch {\n  -webkit-order: 6;\n     -moz-box-ordinal-group: 7;\n          order: 6;\n  z-index: 26; }\n\n.xgplayer-skin-default .xgplayer-danmu {\n  display: none;\n  position: absolute;\n  top: 0;\n  left: 0;\n  right: 0;\n  height: 100%;\n  overflow: hidden;\n  z-index: 9;\n  outline: none; }\n  .xgplayer-skin-default .xgplayer-danmu > * {\n    position: absolute;\n    white-space: nowrap;\n    z-index: 9; }\n\n.xgplayer-skin-default .xgplayer-danmu.xgplayer-has-danmu {\n  display: block; }\n\n.xgplayer-skin-default .xgplayer-panel {\n  outline: none;\n  -webkit-order: 7;\n     -moz-box-ordinal-group: 8;\n          order: 7;\n  width: 40px;\n  height: 40px;\n  display: inline-block;\n  position: relative;\n  font-family: PingFangSC-Regular;\n  font-size: 13px;\n  color: rgba(255, 255, 255, .8);\n  z-index: 36; }\n  .xgplayer-skin-default .xgplayer-panel .xgplayer-panel-icon {\n    cursor: pointer;\n    position: absolute;\n    margin-left: 5px;\n    top: 10px; }\n\n.xgplayer-skin-default .xgplayer-panel-active {\n  display: block !important;\n  bottom: 30px; }\n\n.xgplayer-skin-default .xgplayer-panel-slider {\n  z-index: 36;\n  display: none;\n  position: absolute;\n  width: 230px;\n  height: 230px;\n  background: rgba(0, 0, 0, .54);\n  border-radius: 1px;\n  padding: 10px 20px;\n  outline: none;\n  left: -115px;\n  bottom: 40px; }\n  .xgplayer-skin-default .xgplayer-panel-slider .xgplayer-hidemode {\n    padding-bottom: 10px; }\n    .xgplayer-skin-default .xgplayer-panel-slider .xgplayer-hidemode-radio li {\n      display: inline;\n      list-style: none;\n      cursor: pointer; }\n    .xgplayer-skin-default .xgplayer-panel-slider .xgplayer-hidemode ul {\n      display: -webkit-flex;\n      display: -moz-box;\n      display: flex;\n      -webkit-justify-content: space-around;\n              justify-content: space-around; }\n    .xgplayer-skin-default .xgplayer-panel-slider .xgplayer-hidemode li {\n      margin: 0 12px;\n      font-size: 11px;\n      color: #aaa; }\n    .xgplayer-skin-default .xgplayer-panel-slider .xgplayer-hidemode-font {\n      margin-bottom: 10px; }\n  .xgplayer-skin-default .xgplayer-panel-slider .xgplayer-transparency {\n    display: block;\n    margin-top: 10px; }\n    .xgplayer-skin-default .xgplayer-panel-slider .xgplayer-transparency .xgplayer-transparency-line {\n      -webkit-appearance: none;\n      -moz-appearance: none;\n      appearance: none;\n      cursor: pointer;\n      outline: none;\n      width: 150px;\n      height: 4px;\n      background: #aaa;\n      border-radius: 4px;\n      border-style: none;\n      margin-left: 10px;\n      margin-top: -2px; }\n    .xgplayer-skin-default .xgplayer-panel-slider .xgplayer-transparency .xgplayer-transparency-line::-moz-focus-outer {\n      border: 0 !important; }\n    .xgplayer-skin-default .xgplayer-panel-slider .xgplayer-transparency .xgplayer-transparency-color::-webkit-slider-runnable-track {\n      outline: none;\n      width: 150px;\n      height: 4px;\n      border-radius: 4px; }\n    .xgplayer-skin-default .xgplayer-panel-slider .xgplayer-transparency .xgplayer-transparency-color::-moz-range-track {\n      outline: none;\n      background-color: #aaa;\n      border-color: transparent;\n      cursor: pointer;\n      width: 150px;\n      height: 4px;\n      border-radius: 4px; }\n    .xgplayer-skin-default .xgplayer-panel-slider .xgplayer-transparency .xgplayer-transparency-color::-ms-track {\n      outline: none;\n      background-color: #aaa;\n      color: transparent;\n      border-color: transparent;\n      width: 150px;\n      height: 4px;\n      border-radius: 4px; }\n    .xgplayer-skin-default .xgplayer-panel-slider .xgplayer-transparency .xgplayer-transparency-bar::-webkit-slider-thumb {\n      outline: none;\n      -webkit-appearance: none;\n      -moz-appearance: none;\n      appearance: none;\n      border: 6px solid #f85959;\n      height: 6px;\n      width: 6px;\n      margin-top: -4px;\n      border-radius: 6px;\n      cursor: pointer; }\n    .xgplayer-skin-default .xgplayer-panel-slider .xgplayer-transparency .xgplayer-transparency-bar::-moz-range-thumb {\n      outline: none;\n      -webkit-appearance: none;\n      -moz-appearance: none;\n      appearance: none;\n      border: 6px solid #f85959;\n      height: 0;\n      width: 0;\n      border-radius: 6px;\n      cursor: pointer; }\n    .xgplayer-skin-default .xgplayer-panel-slider .xgplayer-transparency .xgplayer-transparency-bar::-ms-thumb {\n      outline: none;\n      -webkit-appearance: none;\n      -moz-appearance: none;\n      appearance: none;\n      border: 6px solid #f85959;\n      height: 6px;\n      width: 6px;\n      border-radius: 6px;\n      cursor: pointer; }\n    .xgplayer-skin-default .xgplayer-panel-slider .xgplayer-transparency .xgplayer-transparency-bar::-moz-range-progress {\n      outline: none;\n      -webkit-appearance: none;\n      -moz-appearance: none;\n      appearance: none;\n      height: 4px;\n      border-radius: 4px;\n      background: linear-gradient(to right, #f85959, #f85959 100%, #aaa); }\n  .xgplayer-skin-default .xgplayer-panel-slider .xgplayer-showarea {\n    display: block;\n    margin-top: 8px; }\n    .xgplayer-skin-default .xgplayer-panel-slider .xgplayer-showarea-name {\n      display: inline-block;\n      position: relative;\n      top: -10px; }\n    .xgplayer-skin-default .xgplayer-panel-slider .xgplayer-showarea-control {\n      display: inline-block; }\n      .xgplayer-skin-default .xgplayer-panel-slider .xgplayer-showarea-control-up {\n        width: 150px;\n        margin-left: 10px;\n        display: -moz-box;\n        display: -webkit-flex;\n        display: flex;\n        -webkit-justify-content: space-between;\n           -moz-box-pack: justify;\n                justify-content: space-between;\n        color: #aaa; }\n      .xgplayer-skin-default .xgplayer-panel-slider .xgplayer-showarea-control-down {\n        position: relative;\n        top: -10px; }\n      .xgplayer-skin-default .xgplayer-panel-slider .xgplayer-showarea-control-down-dots {\n        display: -webkit-flex;\n        display: -moz-box;\n        display: flex;\n        width: 150px;\n        margin-left: 10px;\n        -webkit-justify-content: space-between;\n           -moz-box-pack: justify;\n                justify-content: space-between; }\n    .xgplayer-skin-default .xgplayer-panel-slider .xgplayer-showarea-twoquarters {\n      margin-left: -6px; }\n    .xgplayer-skin-default .xgplayer-panel-slider .xgplayer-showarea-threequarters {\n      margin-left: -6px; }\n    .xgplayer-skin-default .xgplayer-panel-slider .xgplayer-showarea-full {\n      margin-right: 3px; }\n    .xgplayer-skin-default .xgplayer-panel-slider .xgplayer-showarea .xgplayer-showarea-line {\n      -webkit-appearance: none;\n      -moz-appearance: none;\n      appearance: none;\n      cursor: pointer;\n      outline: none;\n      width: 150px;\n      height: 4px;\n      background: #aaa;\n      border-radius: 4px;\n      border-style: none;\n      margin-left: 10px;\n      margin-top: -2px; }\n    .xgplayer-skin-default .xgplayer-panel-slider .xgplayer-showarea .xgplayer-showarea-line::-moz-focus-outer {\n      border: 0 !important; }\n    .xgplayer-skin-default .xgplayer-panel-slider .xgplayer-showarea .xgplayer-showarea-color::-webkit-slider-runnable-track {\n      outline: none;\n      width: 150px;\n      height: 4px;\n      border-radius: 4px; }\n    .xgplayer-skin-default .xgplayer-panel-slider .xgplayer-showarea .xgplayer-showarea-color::-moz-range-track {\n      outline: none;\n      background-color: #aaa;\n      border-color: transparent;\n      cursor: pointer;\n      width: 150px;\n      height: 4px;\n      border-radius: 4px; }\n    .xgplayer-skin-default .xgplayer-panel-slider .xgplayer-showarea .xgplayer-showarea-color::-ms-track {\n      outline: none;\n      background-color: #aaa;\n      color: transparent;\n      border-color: transparent;\n      width: 150px;\n      height: 4px;\n      border-radius: 4px; }\n    .xgplayer-skin-default .xgplayer-panel-slider .xgplayer-showarea .xgplayer-showarea-bar::-webkit-slider-thumb {\n      outline: none;\n      -webkit-appearance: none;\n      -moz-appearance: none;\n      appearance: none;\n      border: 6px solid #f85959;\n      height: 6px;\n      width: 6px;\n      margin-top: -4px;\n      border-radius: 6px;\n      cursor: pointer; }\n    .xgplayer-skin-default .xgplayer-panel-slider .xgplayer-showarea .xgplayer-showarea-bar::-moz-range-thumb {\n      outline: none;\n      -webkit-appearance: none;\n      -moz-appearance: none;\n      appearance: none;\n      border: 6px solid #f85959;\n      height: 0;\n      width: 0;\n      border-radius: 6px;\n      cursor: pointer; }\n    .xgplayer-skin-default .xgplayer-panel-slider .xgplayer-showarea .xgplayer-showarea-bar::-ms-thumb {\n      outline: none;\n      -webkit-appearance: none;\n      -moz-appearance: none;\n      appearance: none;\n      border: 6px solid #f85959;\n      height: 6px;\n      width: 6px;\n      border-radius: 6px;\n      cursor: pointer; }\n    .xgplayer-skin-default .xgplayer-panel-slider .xgplayer-showarea .xgplayer-showarea-zero-dot {\n      width: 3px;\n      height: 3px;\n      border: 3px solid #aaa;\n      border-radius: 50%;\n      background-color: #aaa;\n      position: relative;\n      top: 16px;\n      z-index: -1; }\n    .xgplayer-skin-default .xgplayer-panel-slider .xgplayer-showarea .xgplayer-showarea-onequarters-dot {\n      width: 3px;\n      height: 3px;\n      border: 3px solid #aaa;\n      border-radius: 50%;\n      background-color: #aaa;\n      position: relative;\n      top: 16px;\n      z-index: -1; }\n    .xgplayer-skin-default .xgplayer-panel-slider .xgplayer-showarea .xgplayer-showarea-twoquarters-dot {\n      width: 3px;\n      height: 3px;\n      border: 3px solid #aaa;\n      border-radius: 50%;\n      background-color: #aaa;\n      position: relative;\n      top: 16px;\n      z-index: -1; }\n    .xgplayer-skin-default .xgplayer-panel-slider .xgplayer-showarea .xgplayer-showarea-threequarters-dot {\n      width: 3px;\n      height: 3px;\n      border: 3px solid #aaa;\n      border-radius: 50%;\n      background-color: #aaa;\n      position: relative;\n      top: 16px;\n      z-index: -1; }\n    .xgplayer-skin-default .xgplayer-panel-slider .xgplayer-showarea .xgplayer-showarea-full-dot {\n      width: 3px;\n      height: 3px;\n      border: 3px solid #aaa;\n      border-radius: 50%;\n      background-color: #aaa;\n      position: relative;\n      top: 16px;\n      z-index: -1; }\n  .xgplayer-skin-default .xgplayer-panel-slider .xgplayer-danmuspeed {\n    display: block; }\n    .xgplayer-skin-default .xgplayer-panel-slider .xgplayer-danmuspeed-name {\n      display: inline-block;\n      position: relative;\n      top: -10px; }\n    .xgplayer-skin-default .xgplayer-panel-slider .xgplayer-danmuspeed-control {\n      display: inline-block; }\n      .xgplayer-skin-default .xgplayer-panel-slider .xgplayer-danmuspeed-control-up {\n        width: 150px;\n        margin-left: 10px;\n        display: -moz-box;\n        display: -webkit-flex;\n        display: flex;\n        -webkit-justify-content: space-between;\n           -moz-box-pack: justify;\n                justify-content: space-between;\n        color: #aaa; }\n      .xgplayer-skin-default .xgplayer-panel-slider .xgplayer-danmuspeed-control-down {\n        position: relative;\n        top: -10px; }\n      .xgplayer-skin-default .xgplayer-panel-slider .xgplayer-danmuspeed-control-down-dots {\n        display: -webkit-flex;\n        display: -moz-box;\n        display: flex;\n        width: 150px;\n        margin-left: 10px;\n        -webkit-justify-content: space-between;\n           -moz-box-pack: justify;\n                justify-content: space-between; }\n    .xgplayer-skin-default .xgplayer-panel-slider .xgplayer-danmuspeed .xgplayer-danmuspeed-line {\n      -webkit-appearance: none;\n      -moz-appearance: none;\n      appearance: none;\n      cursor: pointer;\n      outline: none;\n      width: 150px;\n      height: 4px;\n      background: #aaa;\n      border-radius: 4px;\n      border-style: none;\n      margin-left: 10px;\n      margin-top: -2px; }\n    .xgplayer-skin-default .xgplayer-panel-slider .xgplayer-danmuspeed .xgplayer-danmuspeed-line::-moz-focus-outer {\n      border: 0 !important; }\n    .xgplayer-skin-default .xgplayer-panel-slider .xgplayer-danmuspeed .xgplayer-danmuspeed-color::-webkit-slider-runnable-track {\n      outline: none;\n      width: 150px;\n      height: 4px;\n      border-radius: 4px; }\n    .xgplayer-skin-default .xgplayer-panel-slider .xgplayer-danmuspeed .xgplayer-danmuspeed-color::-moz-range-track {\n      outline: none;\n      background-color: #aaa;\n      border-color: transparent;\n      cursor: pointer;\n      width: 150px;\n      height: 4px;\n      border-radius: 4px; }\n    .xgplayer-skin-default .xgplayer-panel-slider .xgplayer-danmuspeed .xgplayer-danmuspeed-color::-ms-track {\n      outline: none;\n      background-color: #aaa;\n      color: transparent;\n      border-color: transparent;\n      width: 150px;\n      height: 4px;\n      border-radius: 4px; }\n    .xgplayer-skin-default .xgplayer-panel-slider .xgplayer-danmuspeed .xgplayer-danmuspeed-bar::-webkit-slider-thumb {\n      outline: none;\n      -webkit-appearance: none;\n      -moz-appearance: none;\n      appearance: none;\n      border: 6px solid #f85959;\n      height: 6px;\n      width: 6px;\n      margin-top: -4px;\n      border-radius: 6px;\n      cursor: pointer; }\n    .xgplayer-skin-default .xgplayer-panel-slider .xgplayer-danmuspeed .xgplayer-danmuspeed-bar::-moz-range-thumb {\n      outline: none;\n      -webkit-appearance: none;\n      -moz-appearance: none;\n      appearance: none;\n      border: 6px solid #f85959;\n      height: 0;\n      width: 0;\n      border-radius: 6px;\n      cursor: pointer; }\n    .xgplayer-skin-default .xgplayer-panel-slider .xgplayer-danmuspeed .xgplayer-danmuspeed-bar::-ms-thumb {\n      outline: none;\n      -webkit-appearance: none;\n      -moz-appearance: none;\n      appearance: none;\n      border: 6px solid #f85959;\n      height: 6px;\n      width: 6px;\n      border-radius: 6px;\n      cursor: pointer; }\n    .xgplayer-skin-default .xgplayer-panel-slider .xgplayer-danmuspeed .xgplayer-danmuspeed-small-dot {\n      width: 3px;\n      height: 3px;\n      border: 3px solid #aaa;\n      border-radius: 50%;\n      background-color: #aaa;\n      position: relative;\n      top: 16px;\n      z-index: -1; }\n    .xgplayer-skin-default .xgplayer-panel-slider .xgplayer-danmuspeed .xgplayer-danmuspeed-middle-dot {\n      width: 3px;\n      height: 3px;\n      border: 3px solid #aaa;\n      border-radius: 50%;\n      background-color: #aaa;\n      position: relative;\n      top: 16px;\n      z-index: -1; }\n    .xgplayer-skin-default .xgplayer-panel-slider .xgplayer-danmuspeed .xgplayer-danmuspeed-large-dot {\n      width: 3px;\n      height: 3px;\n      border: 3px solid #aaa;\n      border-radius: 50%;\n      background-color: #aaa;\n      position: relative;\n      top: 16px;\n      z-index: -1; }\n  .xgplayer-skin-default .xgplayer-panel-slider .xgplayer-danmufont {\n    display: block; }\n    .xgplayer-skin-default .xgplayer-panel-slider .xgplayer-danmufont-name {\n      display: inline-block;\n      position: relative;\n      top: -10px; }\n    .xgplayer-skin-default .xgplayer-panel-slider .xgplayer-danmufont-control {\n      display: inline-block; }\n      .xgplayer-skin-default .xgplayer-panel-slider .xgplayer-danmufont-control-up {\n        width: 150px;\n        margin-left: 10px;\n        display: -moz-box;\n        display: -webkit-flex;\n        display: flex;\n        -webkit-justify-content: space-between;\n           -moz-box-pack: justify;\n                justify-content: space-between;\n        color: #aaa; }\n      .xgplayer-skin-default .xgplayer-panel-slider .xgplayer-danmufont-control-down {\n        position: relative;\n        top: -10px; }\n      .xgplayer-skin-default .xgplayer-panel-slider .xgplayer-danmufont-control-down-dots {\n        display: -webkit-flex;\n        display: -moz-box;\n        display: flex;\n        width: 150px;\n        margin-left: 10px;\n        -webkit-justify-content: space-between;\n           -moz-box-pack: justify;\n                justify-content: space-between; }\n    .xgplayer-skin-default .xgplayer-panel-slider .xgplayer-danmufont .xgplayer-danmufont-line {\n      -webkit-appearance: none;\n      -moz-appearance: none;\n      appearance: none;\n      cursor: pointer;\n      outline: none;\n      width: 150px;\n      height: 4px;\n      background: #aaa;\n      border-radius: 4px;\n      border-style: none;\n      margin-left: 10px;\n      margin-top: -2px; }\n    .xgplayer-skin-default .xgplayer-panel-slider .xgplayer-danmufont .xgplayer-danmufont-line::-moz-focus-outer {\n      border: 0 !important; }\n    .xgplayer-skin-default .xgplayer-panel-slider .xgplayer-danmufont .xgplayer-danmufont-color::-webkit-slider-runnable-track {\n      outline: none;\n      width: 150px;\n      height: 4px;\n      border-radius: 4px; }\n    .xgplayer-skin-default .xgplayer-panel-slider .xgplayer-danmufont .xgplayer-danmufont-color::-moz-range-track {\n      outline: none;\n      background-color: #aaa;\n      border-color: transparent;\n      cursor: pointer;\n      width: 150px;\n      height: 4px;\n      border-radius: 4px; }\n    .xgplayer-skin-default .xgplayer-panel-slider .xgplayer-danmufont .xgplayer-danmufont-color::-ms-track {\n      outline: none;\n      background-color: #aaa;\n      color: transparent;\n      border-color: transparent;\n      width: 150px;\n      height: 4px;\n      border-radius: 4px; }\n    .xgplayer-skin-default .xgplayer-panel-slider .xgplayer-danmufont .xgplayer-danmufont-bar::-webkit-slider-thumb {\n      outline: none;\n      -webkit-appearance: none;\n      -moz-appearance: none;\n      appearance: none;\n      border: 6px solid #f85959;\n      height: 6px;\n      width: 6px;\n      margin-top: -4px;\n      border-radius: 6px;\n      cursor: pointer; }\n    .xgplayer-skin-default .xgplayer-panel-slider .xgplayer-danmufont .xgplayer-danmufont-bar::-moz-range-thumb {\n      outline: none;\n      -webkit-appearance: none;\n      -moz-appearance: none;\n      appearance: none;\n      border: 6px solid #f85959;\n      height: 0;\n      width: 0;\n      border-radius: 6px;\n      cursor: pointer; }\n    .xgplayer-skin-default .xgplayer-panel-slider .xgplayer-danmufont .xgplayer-danmufont-bar::-ms-thumb {\n      outline: none;\n      -webkit-appearance: none;\n      -moz-appearance: none;\n      appearance: none;\n      border: 6px solid #f85959;\n      height: 6px;\n      width: 6px;\n      border-radius: 6px;\n      cursor: pointer; }\n    .xgplayer-skin-default .xgplayer-panel-slider .xgplayer-danmufont .xgplayer-danmufont-small-dot {\n      width: 3px;\n      height: 3px;\n      border: 3px solid #aaa;\n      border-radius: 50%;\n      background-color: #aaa;\n      position: relative;\n      top: 16px;\n      z-index: -1; }\n    .xgplayer-skin-default .xgplayer-panel-slider .xgplayer-danmufont .xgplayer-danmufont-middle-dot {\n      width: 3px;\n      height: 3px;\n      border: 3px solid #aaa;\n      border-radius: 50%;\n      background-color: #aaa;\n      position: relative;\n      top: 16px;\n      z-index: -1; }\n    .xgplayer-skin-default .xgplayer-panel-slider .xgplayer-danmufont .xgplayer-danmufont-large-dot {\n      width: 3px;\n      height: 3px;\n      border: 3px solid #aaa;\n      border-radius: 50%;\n      background-color: #aaa;\n      position: relative;\n      top: 16px;\n      z-index: -1; }\n\n.xgplayer-skin-default .xgplayer-playnext {\n  position: relative;\n  -webkit-order: 1;\n     -moz-box-ordinal-group: 2;\n          order: 1;\n  display: block;\n  cursor: pointer;\n  top: -2px; }\n  .xgplayer-skin-default .xgplayer-playnext .xgplayer-icon div {\n    position: absolute; }\n  .xgplayer-skin-default .xgplayer-playnext .xgplayer-tips .xgplayer-tip-playnext {\n    display: block; }\n  .xgplayer-skin-default .xgplayer-playnext:hover {\n    opacity: 0.85; }\n    .xgplayer-skin-default .xgplayer-playnext:hover .xgplayer-tips {\n      display: block; }\n\n.lang-is-en .xgplayer-playnext .xgplayer-tips {\n  margin-left: -25px; }\n\n.lang-is-jp .xgplayer-playnext .xgplayer-tips {\n  margin-left: -38px; }\n\n.xgplayer-skin-default .xgplayer-pip {\n  -webkit-order: 9;\n     -moz-box-ordinal-group: 10;\n          order: 9;\n  position: relative;\n  outline: none;\n  display: block;\n  cursor: pointer;\n  height: 20px;\n  top: 8px; }\n  .xgplayer-skin-default .xgplayer-pip .name {\n    text-align: center;\n    font-family: PingFangSC-Regular;\n    font-size: 13px;\n    line-height: 20px;\n    height: 20px;\n    color: rgba(255, 255, 255, .8); }\n    .xgplayer-skin-default .xgplayer-pip .name span {\n      width: 60px;\n      height: 20px;\n      line-height: 20px;\n      background: rgba(0, 0, 0, .38);\n      border-radius: 10px;\n      display: inline-block;\n      vertical-align: middle; }\n\n.xgplayer-skin-default .xgplayer-pip-lay {\n  position: absolute;\n  top: 26px;\n  left: 0;\n  width: 100%;\n  height: 100%;\n  z-index: 130;\n  cursor: pointer;\n  background-color: transparent;\n  display: none; }\n  .xgplayer-skin-default .xgplayer-pip-lay div {\n    width: 100%;\n    height: 100%; }\n\n.xgplayer-skin-default .xgplayer-pip-drag {\n  cursor: move;\n  position: absolute;\n  top: 0;\n  left: 0;\n  width: 100%;\n  height: 26px;\n  line-height: 26px;\n  background-image: linear-gradient(rgba(0, 0, 0, .3), rgba(0, 0, 0, 0));\n  z-index: 130;\n  display: none; }\n\n.xgplayer-skin-default.xgplayer-pip-active {\n  position: fixed;\n  right: 0;\n  bottom: 200px;\n  width: 320px !important;\n  height: 180px !important;\n  z-index: 110 !important; }\n  .xgplayer-skin-default.xgplayer-pip-active .xgplayer-controls {\n    display: none; }\n  .xgplayer-skin-default.xgplayer-pip-active .xgplayer-danmu {\n    display: none; }\n  .xgplayer-skin-default.xgplayer-pip-active .xgplayer-pip-lay {\n    display: block; }\n\n.xgplayer-skin-default.xgplayer-pip-active .xgplayer-pip-drag {\n  display: -webkit-flex;\n  display: -moz-box;\n  display: flex; }\n\n.xgplayer-skin-default.xgplayer-inactive .xgplayer-pip-drag {\n  display: none; }\n\n.lang-is-jp .xgplayer-pip .name span {\n  width: 70px;\n  height: 20px; }\n\n.xgplayer-skin-default .xgplayer-rotate {\n  position: relative;\n  -webkit-order: 10;\n     -moz-box-ordinal-group: 11;\n          order: 10;\n  display: block;\n  cursor: pointer; }\n  .xgplayer-skin-default .xgplayer-rotate .xgplayer-icon {\n    margin-top: 7px;\n    width: 26px; }\n    .xgplayer-skin-default .xgplayer-rotate .xgplayer-icon div {\n      position: absolute; }\n  .xgplayer-skin-default .xgplayer-rotate .xgplayer-tips {\n    margin-left: -22px; }\n    .xgplayer-skin-default .xgplayer-rotate .xgplayer-tips .xgplayer-tip-rotate {\n      display: block; }\n  .xgplayer-skin-default .xgplayer-rotate:hover {\n    opacity: 0.85; }\n    .xgplayer-skin-default .xgplayer-rotate:hover .xgplayer-tips {\n      display: block; }\n\n.lang-is-en .xgplayer-rotate .xgplayer-tips {\n  margin-left: -26px; }\n\n.lang-is-jp .xgplayer-rotate .xgplayer-tips {\n  margin-left: -38px; }\n\n.xgplayer-skin-default .xgplayer-screenshot {\n  -webkit-order: 11;\n     -moz-box-ordinal-group: 12;\n          order: 11;\n  position: relative;\n  outline: none;\n  display: block;\n  cursor: pointer;\n  height: 20px;\n  top: 8px; }\n  .xgplayer-skin-default .xgplayer-screenshot .name {\n    text-align: center;\n    font-family: PingFangSC-Regular;\n    font-size: 13px;\n    line-height: 20px;\n    height: 20px;\n    color: rgba(255, 255, 255, .8); }\n    .xgplayer-skin-default .xgplayer-screenshot .name span {\n      width: 60px;\n      height: 20px;\n      line-height: 20px;\n      background: rgba(0, 0, 0, .38);\n      border-radius: 10px;\n      display: inline-block;\n      vertical-align: middle; }\n\n.lang-is-en .xgplayer-screenshot .name span, .lang-is-jp .xgplayer-screenshot .name span {\n  width: 75px;\n  height: 20px; }\n\n.xgplayer-skin-default .xgplayer-texttrack {\n  -webkit-order: 7;\n     -moz-box-ordinal-group: 8;\n          order: 7;\n  width: 60px;\n  height: 150px;\n  z-index: 18;\n  position: relative;\n  outline: none;\n  display: none;\n  cursor: default;\n  margin-top: -119px; }\n  .xgplayer-skin-default .xgplayer-texttrack ul {\n    display: none;\n    list-style: none;\n    width: 78px;\n    background: rgba(0, 0, 0, .54);\n    border-radius: 1px;\n    position: absolute;\n    bottom: 30px;\n    left: 0;\n    text-align: center;\n    white-space: nowrap;\n    margin-left: -10px;\n    z-index: 26;\n    cursor: pointer; }\n    .xgplayer-skin-default .xgplayer-texttrack ul li {\n      opacity: 0.7;\n      font-family: PingFangSC-Regular;\n      font-size: 11px;\n      color: rgba(255, 255, 255, .8);\n      padding: 6px 13px; }\n      .xgplayer-skin-default .xgplayer-texttrack ul li.selected {\n        color: #fff;\n        opacity: 1; }\n      .xgplayer-skin-default .xgplayer-texttrack ul li:hover {\n        color: #fff;\n        opacity: 1; }\n  .xgplayer-skin-default .xgplayer-texttrack .name {\n    text-align: center;\n    font-family: PingFangSC-Regular;\n    font-size: 13px;\n    line-height: 20px;\n    height: 20px;\n    cursor: pointer;\n    color: rgba(255, 255, 255, .8);\n    position: absolute;\n    bottom: 0;\n    width: 60px;\n    height: 20px;\n    line-height: 20px;\n    background: rgba(0, 0, 0, .38);\n    border-radius: 10px;\n    display: inline-block;\n    vertical-align: middle; }\n\n.xgplayer-skin-default.xgplayer-texttrack-active .xgplayer-texttrack ul {\n  display: block; }\n\n.xgplayer-skin-default.xgplayer-is-texttrack .xgplayer-texttrack {\n  display: block; }\n\n.xgplayer-skin-default .xgplayer-icon {\n  display: block;\n  width: 40px;\n  height: 40px;\n  overflow: hidden;\n  fill: #fff; }\n\n.xgplayer-skin-default .xgplayer-tips {\n  background: rgba(0, 0, 0, .54);\n  border-radius: 1px;\n  display: none;\n  position: absolute;\n  font-family: PingFangSC-Regular;\n  font-size: 11px;\n  color: #fff;\n  padding: 2px 4px;\n  text-align: center;\n  top: -30px;\n  left: 50%;\n  margin-left: -16px;\n  width: auto;\n  white-space: nowrap; }\n\n.xgplayer-skin-default.xgplayer-mobile .xgplayer-tips {\n  display: none !important; }\n\n.xgplayer-skin-default .xgplayer-error {\n  background: #000;\n  display: none;\n  position: absolute;\n  left: 0;\n  top: 0;\n  width: 100%;\n  height: 100%;\n  z-index: 125;\n  font-family: PingFangSC-Regular;\n  font-size: 14px;\n  color: #fff;\n  text-align: center;\n  line-height: 100%;\n  -webkit-justify-content: center;\n     -moz-box-pack: center;\n          justify-content: center;\n  -webkit-align-items: center;\n     -moz-box-align: center;\n          align-items: center; }\n  .xgplayer-skin-default .xgplayer-error .xgplayer-error-refresh {\n    color: #FA1F41;\n    padding: 0 3px;\n    cursor: pointer; }\n  .xgplayer-skin-default .xgplayer-error .xgplayer-error-text {\n    line-height: 18px;\n    margin: auto 6px; }\n\n.xgplayer-skin-default.xgplayer-is-error .xgplayer-error {\n  display: -webkit-flex;\n  display: -moz-box;\n  display: flex; }\n\n.xgplayer-skin-default .xgplayer-memoryplay-spot {\n  position: absolute;\n  height: 32px;\n  left: 10px;\n  bottom: 46px;\n  background: rgba(0, 0, 0, .5);\n  border-radius: 32px;\n  line-height: 32px;\n  color: #ddd;\n  z-index: 15;\n  padding: 0 32px 0 16px; }\n  .xgplayer-skin-default .xgplayer-memoryplay-spot .xgplayer-lasttime {\n    color: red;\n    font-weight: bold; }\n  .xgplayer-skin-default .xgplayer-memoryplay-spot .btn-close {\n    position: absolute;\n    width: 16px;\n    height: 16px;\n    right: 10px;\n    top: 2px;\n    cursor: pointer;\n    color: #fff;\n    font-size: 16px; }\n";
-	styleInject(css$4);
+	var css$3 = ".xgplayer-skin-default {\n  background: #000;\n  width: 100%;\n  height: 100%;\n  position: relative;\n  -webkit-user-select: none;\n     -moz-user-select: none;\n          user-select: none;\n  -ms-user-select: none; }\n  .xgplayer-skin-default * {\n    margin: 0;\n    padding: 0;\n    border: 0;\n    font-size: 100%;\n    font: inherit;\n    vertical-align: baseline; }\n  .xgplayer-skin-default .xgplayer-none {\n    display: none; }\n  .xgplayer-skin-default.xgplayer-is-fullscreen {\n    width: 100% !important;\n    height: 100% !important;\n    padding-top: 0 !important;\n    z-index: 9999; }\n  .xgplayer-skin-default.xgplayer-is-fullscreen.xgplayer-inactive {\n    cursor: none; }\n  .xgplayer-skin-default video {\n    width: 100%;\n    height: 100%;\n    outline: none; }\n\n.xgplayer-skin-default .xgplayer-none {\n  display: none; }\n\n@-webkit-keyframes loadingRotate {\n  0% {\n    -webkit-transform: rotate(0);\n            transform: rotate(0); }\n  100% {\n    -webkit-transform: rotate(360deg);\n            transform: rotate(360deg); } }\n\n@keyframes loadingRotate {\n  0% {\n    -webkit-transform: rotate(0);\n            transform: rotate(0); }\n  100% {\n    -webkit-transform: rotate(360deg);\n            transform: rotate(360deg); } }\n\n@-webkit-keyframes loadingDashOffset {\n  0% {\n    stroke-dashoffset: 236; }\n  100% {\n    stroke-dashoffset: 0; } }\n\n@keyframes loadingDashOffset {\n  0% {\n    stroke-dashoffset: 236; }\n  100% {\n    stroke-dashoffset: 0; } }\n\n.xgplayer-skin-default .xgplayer-play, .xgplayer-skin-default .xgplayer-play-img {\n  position: relative;\n  -webkit-order: 0;\n     -moz-box-ordinal-group: 1;\n          order: 0;\n  display: block;\n  cursor: pointer; }\n  .xgplayer-skin-default .xgplayer-play .xgplayer-icon, .xgplayer-skin-default .xgplayer-play-img .xgplayer-icon {\n    margin-top: 3px;\n    width: 32px; }\n    .xgplayer-skin-default .xgplayer-play .xgplayer-icon div, .xgplayer-skin-default .xgplayer-play-img .xgplayer-icon div {\n      position: absolute; }\n    .xgplayer-skin-default .xgplayer-play .xgplayer-icon .xgplayer-icon-play, .xgplayer-skin-default .xgplayer-play-img .xgplayer-icon .xgplayer-icon-play {\n      display: block; }\n    .xgplayer-skin-default .xgplayer-play .xgplayer-icon .xgplayer-icon-pause, .xgplayer-skin-default .xgplayer-play-img .xgplayer-icon .xgplayer-icon-pause {\n      display: none; }\n  .xgplayer-skin-default .xgplayer-play .xgplayer-tips .xgplayer-tip-play, .xgplayer-skin-default .xgplayer-play-img .xgplayer-tips .xgplayer-tip-play {\n    display: block; }\n  .xgplayer-skin-default .xgplayer-play .xgplayer-tips .xgplayer-tip-pause, .xgplayer-skin-default .xgplayer-play-img .xgplayer-tips .xgplayer-tip-pause {\n    display: none; }\n  .xgplayer-skin-default .xgplayer-play:hover, .xgplayer-skin-default .xgplayer-play-img:hover {\n    opacity: 0.85; }\n    .xgplayer-skin-default .xgplayer-play:hover .xgplayer-tips, .xgplayer-skin-default .xgplayer-play-img:hover .xgplayer-tips {\n      display: block; }\n\n.xgplayer-skin-default.xgplayer-playing .xgplayer-play .xgplayer-icon .xgplayer-icon-play, .xgplayer-skin-default.xgplayer-playing .xgplayer-play-img .xgplayer-icon .xgplayer-icon-play {\n  display: none; }\n\n.xgplayer-skin-default.xgplayer-playing .xgplayer-play .xgplayer-icon .xgplayer-icon-pause, .xgplayer-skin-default.xgplayer-playing .xgplayer-play-img .xgplayer-icon .xgplayer-icon-pause {\n  display: block; }\n\n.xgplayer-skin-default.xgplayer-playing .xgplayer-play .xgplayer-tips .xgplayer-tip-play, .xgplayer-skin-default.xgplayer-playing .xgplayer-play-img .xgplayer-tips .xgplayer-tip-play {\n  display: none; }\n\n.xgplayer-skin-default.xgplayer-playing .xgplayer-play .xgplayer-tips .xgplayer-tip-pause, .xgplayer-skin-default.xgplayer-playing .xgplayer-play-img .xgplayer-tips .xgplayer-tip-pause {\n  display: block; }\n\n.xgplayer-skin-default.xgplayer-pause .xgplayer-play .xgplayer-icon .xgplayer-icon-play, .xgplayer-skin-default.xgplayer-pause .xgplayer-play-img .xgplayer-icon .xgplayer-icon-play {\n  display: block; }\n\n.xgplayer-skin-default.xgplayer-pause .xgplayer-play .xgplayer-icon .xgplayer-icon-pause, .xgplayer-skin-default.xgplayer-pause .xgplayer-play-img .xgplayer-icon .xgplayer-icon-pause {\n  display: none; }\n\n.xgplayer-skin-default.xgplayer-pause .xgplayer-play .xgplayer-tips .xgplayer-tip-play, .xgplayer-skin-default.xgplayer-pause .xgplayer-play-img .xgplayer-tips .xgplayer-tip-play {\n  display: block; }\n\n.xgplayer-skin-default.xgplayer-pause .xgplayer-play .xgplayer-tips .xgplayer-tip-pause, .xgplayer-skin-default.xgplayer-pause .xgplayer-play-img .xgplayer-tips .xgplayer-tip-pause {\n  display: none; }\n\n.xgplayer-skin-default .xgplayer-enter {\n  display: none;\n  position: absolute;\n  left: 0;\n  top: 0;\n  width: 100%;\n  height: 100%;\n  background: black;\n  z-index: 120; }\n  .xgplayer-skin-default .xgplayer-enter .xgplayer-enter-spinner {\n    display: block;\n    position: absolute;\n    left: 50%;\n    top: 50%;\n    height: 100px;\n    width: 100px;\n    position: relative;\n    -webkit-transform: translate(-50%, -50%);\n        -ms-transform: translate(-50%, -50%);\n            transform: translate(-50%, -50%); }\n  .xgplayer-skin-default .xgplayer-enter .xgplayer-enter-spinner div {\n    width: 12%;\n    height: 26%;\n    background-color: rgba(255, 255, 255, .7);\n    position: absolute;\n    left: 44%;\n    top: 37%;\n    opacity: 0;\n    border-radius: 30px;\n    -webkit-animation: fade 1s linear infinite;\n            animation: fade 1s linear infinite; }\n  .xgplayer-skin-default .xgplayer-enter .xgplayer-enter-spinner div.xgplayer-enter-bar1 {\n    -webkit-transform: rotate(0deg) translate(0, -142%);\n        -ms-transform: rotate(0deg) translate(0, -142%);\n            transform: rotate(0deg) translate(0, -142%);\n    -webkit-animation-delay: -0s;\n            animation-delay: -0s; }\n  .xgplayer-skin-default .xgplayer-enter .xgplayer-enter-spinner div.xgplayer-enter-bar2 {\n    -webkit-transform: rotate(30deg) translate(0, -142%);\n        -ms-transform: rotate(30deg) translate(0, -142%);\n            transform: rotate(30deg) translate(0, -142%);\n    -webkit-animation-delay: -0.9163s;\n            animation-delay: -0.9163s; }\n  .xgplayer-skin-default .xgplayer-enter .xgplayer-enter-spinner div.xgplayer-enter-bar3 {\n    -webkit-transform: rotate(60deg) translate(0, -142%);\n        -ms-transform: rotate(60deg) translate(0, -142%);\n            transform: rotate(60deg) translate(0, -142%);\n    -webkit-animation-delay: -0.833s;\n            animation-delay: -0.833s; }\n  .xgplayer-skin-default .xgplayer-enter .xgplayer-enter-spinner div.xgplayer-enter-bar4 {\n    -webkit-transform: rotate(90deg) translate(0, -142%);\n        -ms-transform: rotate(90deg) translate(0, -142%);\n            transform: rotate(90deg) translate(0, -142%);\n    -webkit-animation-delay: -0.7497s;\n            animation-delay: -0.7497s; }\n  .xgplayer-skin-default .xgplayer-enter .xgplayer-enter-spinner div.xgplayer-enter-bar5 {\n    -webkit-transform: rotate(120deg) translate(0, -142%);\n        -ms-transform: rotate(120deg) translate(0, -142%);\n            transform: rotate(120deg) translate(0, -142%);\n    -webkit-animation-delay: -0.6664s;\n            animation-delay: -0.6664s; }\n  .xgplayer-skin-default .xgplayer-enter .xgplayer-enter-spinner div.xgplayer-enter-bar6 {\n    -webkit-transform: rotate(150deg) translate(0, -142%);\n        -ms-transform: rotate(150deg) translate(0, -142%);\n            transform: rotate(150deg) translate(0, -142%);\n    -webkit-animation-delay: -0.5831s;\n            animation-delay: -0.5831s; }\n  .xgplayer-skin-default .xgplayer-enter .xgplayer-enter-spinner div.xgplayer-enter-bar7 {\n    -webkit-transform: rotate(180deg) translate(0, -142%);\n        -ms-transform: rotate(180deg) translate(0, -142%);\n            transform: rotate(180deg) translate(0, -142%);\n    -webkit-animation-delay: -0.4998s;\n            animation-delay: -0.4998s; }\n  .xgplayer-skin-default .xgplayer-enter .xgplayer-enter-spinner div.xgplayer-enter-bar8 {\n    -webkit-transform: rotate(210deg) translate(0, -142%);\n        -ms-transform: rotate(210deg) translate(0, -142%);\n            transform: rotate(210deg) translate(0, -142%);\n    -webkit-animation-delay: -0.4165s;\n            animation-delay: -0.4165s; }\n  .xgplayer-skin-default .xgplayer-enter .xgplayer-enter-spinner div.xgplayer-enter-bar9 {\n    -webkit-transform: rotate(240deg) translate(0, -142%);\n        -ms-transform: rotate(240deg) translate(0, -142%);\n            transform: rotate(240deg) translate(0, -142%);\n    -webkit-animation-delay: -0.3332s;\n            animation-delay: -0.3332s; }\n  .xgplayer-skin-default .xgplayer-enter .xgplayer-enter-spinner div.xgplayer-enter-bar10 {\n    -webkit-transform: rotate(270deg) translate(0, -142%);\n        -ms-transform: rotate(270deg) translate(0, -142%);\n            transform: rotate(270deg) translate(0, -142%);\n    -webkit-animation-delay: -0.2499s;\n            animation-delay: -0.2499s; }\n  .xgplayer-skin-default .xgplayer-enter .xgplayer-enter-spinner div.xgplayer-enter-bar11 {\n    -webkit-transform: rotate(300deg) translate(0, -142%);\n        -ms-transform: rotate(300deg) translate(0, -142%);\n            transform: rotate(300deg) translate(0, -142%);\n    -webkit-animation-delay: -0.1666s;\n            animation-delay: -0.1666s; }\n  .xgplayer-skin-default .xgplayer-enter .xgplayer-enter-spinner div.xgplayer-enter-bar12 {\n    -webkit-transform: rotate(330deg) translate(0, -142%);\n        -ms-transform: rotate(330deg) translate(0, -142%);\n            transform: rotate(330deg) translate(0, -142%);\n    -webkit-animation-delay: -0.0833s;\n            animation-delay: -0.0833s; }\n\n@-webkit-keyframes fade {\n  from {\n    opacity: 1; }\n  to {\n    opacity: 0.25; } }\n\n.xgplayer-skin-default.xgplayer-is-enter .xgplayer-enter {\n  display: block; }\n\n.xgplayer-skin-default .xgplayer-placeholder {\n  -webkit-flex: 1;\n     -moz-box-flex: 1;\n          flex: 1;\n  -webkit-order: 3;\n     -moz-box-ordinal-group: 4;\n          order: 3;\n  display: block; }\n\n.xgplayer-skin-default .xgplayer-fullscreen, .xgplayer-skin-default .xgplayer-fullscreen-img {\n  position: relative;\n  -webkit-order: 13;\n     -moz-box-ordinal-group: 14;\n          order: 13;\n  display: block;\n  cursor: pointer; }\n  .xgplayer-skin-default .xgplayer-fullscreen .xgplayer-icon, .xgplayer-skin-default .xgplayer-fullscreen-img .xgplayer-icon {\n    margin-top: 3px; }\n    .xgplayer-skin-default .xgplayer-fullscreen .xgplayer-icon div, .xgplayer-skin-default .xgplayer-fullscreen-img .xgplayer-icon div {\n      position: absolute; }\n    .xgplayer-skin-default .xgplayer-fullscreen .xgplayer-icon .xgplayer-icon-requestfull, .xgplayer-skin-default .xgplayer-fullscreen-img .xgplayer-icon .xgplayer-icon-requestfull {\n      display: block; }\n    .xgplayer-skin-default .xgplayer-fullscreen .xgplayer-icon .xgplayer-icon-exitfull, .xgplayer-skin-default .xgplayer-fullscreen-img .xgplayer-icon .xgplayer-icon-exitfull {\n      display: none; }\n  .xgplayer-skin-default .xgplayer-fullscreen .xgplayer-tips, .xgplayer-skin-default .xgplayer-fullscreen-img .xgplayer-tips {\n    position: absolute;\n    right: 0;\n    left: auto; }\n    .xgplayer-skin-default .xgplayer-fullscreen .xgplayer-tips .xgplayer-tip-requestfull, .xgplayer-skin-default .xgplayer-fullscreen-img .xgplayer-tips .xgplayer-tip-requestfull {\n      display: block; }\n    .xgplayer-skin-default .xgplayer-fullscreen .xgplayer-tips .xgplayer-tip-exitfull, .xgplayer-skin-default .xgplayer-fullscreen-img .xgplayer-tips .xgplayer-tip-exitfull {\n      display: none; }\n  .xgplayer-skin-default .xgplayer-fullscreen:hover, .xgplayer-skin-default .xgplayer-fullscreen-img:hover {\n    opacity: 0.85; }\n    .xgplayer-skin-default .xgplayer-fullscreen:hover .xgplayer-tips, .xgplayer-skin-default .xgplayer-fullscreen-img:hover .xgplayer-tips {\n      display: block; }\n\n.xgplayer-skin-default.xgplayer-is-fullscreen .xgplayer-fullscreen .xgplayer-icon .xgplayer-icon-requestfull, .xgplayer-skin-default.xgplayer-is-fullscreen .xgplayer-fullscreen-img .xgplayer-icon .xgplayer-icon-requestfull {\n  display: none; }\n\n.xgplayer-skin-default.xgplayer-is-fullscreen .xgplayer-fullscreen .xgplayer-icon .xgplayer-icon-exitfull, .xgplayer-skin-default.xgplayer-is-fullscreen .xgplayer-fullscreen-img .xgplayer-icon .xgplayer-icon-exitfull {\n  display: block; }\n\n.xgplayer-skin-default.xgplayer-is-fullscreen .xgplayer-fullscreen .xgplayer-tips .xgplayer-tip-requestfull, .xgplayer-skin-default.xgplayer-is-fullscreen .xgplayer-fullscreen-img .xgplayer-tips .xgplayer-tip-requestfull {\n  display: none; }\n\n.xgplayer-skin-default.xgplayer-is-fullscreen .xgplayer-fullscreen .xgplayer-tips .xgplayer-tip-exitfull, .xgplayer-skin-default.xgplayer-is-fullscreen .xgplayer-fullscreen-img .xgplayer-tips .xgplayer-tip-exitfull {\n  display: block; }\n\n.xgplayer-skin-default .xgplayer-cssfullscreen, .xgplayer-skin-default .xgplayer-cssfullscreen-img {\n  position: relative;\n  -webkit-order: 12;\n     -moz-box-ordinal-group: 13;\n          order: 12;\n  display: block;\n  cursor: pointer; }\n  .xgplayer-skin-default .xgplayer-cssfullscreen .xgplayer-icon, .xgplayer-skin-default .xgplayer-cssfullscreen-img .xgplayer-icon {\n    width: 32px;\n    margin-top: 5px; }\n    .xgplayer-skin-default .xgplayer-cssfullscreen .xgplayer-icon div, .xgplayer-skin-default .xgplayer-cssfullscreen-img .xgplayer-icon div {\n      position: absolute; }\n    .xgplayer-skin-default .xgplayer-cssfullscreen .xgplayer-icon .xgplayer-icon-requestfull, .xgplayer-skin-default .xgplayer-cssfullscreen-img .xgplayer-icon .xgplayer-icon-requestfull {\n      display: block; }\n    .xgplayer-skin-default .xgplayer-cssfullscreen .xgplayer-icon .xgplayer-icon-exitfull, .xgplayer-skin-default .xgplayer-cssfullscreen-img .xgplayer-icon .xgplayer-icon-exitfull {\n      display: none; }\n  .xgplayer-skin-default .xgplayer-cssfullscreen .xgplayer-tips, .xgplayer-skin-default .xgplayer-cssfullscreen-img .xgplayer-tips {\n    margin-left: -40px; }\n    .xgplayer-skin-default .xgplayer-cssfullscreen .xgplayer-tips .xgplayer-tip-requestfull, .xgplayer-skin-default .xgplayer-cssfullscreen-img .xgplayer-tips .xgplayer-tip-requestfull {\n      display: block; }\n    .xgplayer-skin-default .xgplayer-cssfullscreen .xgplayer-tips .xgplayer-tip-exitfull, .xgplayer-skin-default .xgplayer-cssfullscreen-img .xgplayer-tips .xgplayer-tip-exitfull {\n      display: none; }\n  .xgplayer-skin-default .xgplayer-cssfullscreen:hover, .xgplayer-skin-default .xgplayer-cssfullscreen-img:hover {\n    opacity: 0.85; }\n    .xgplayer-skin-default .xgplayer-cssfullscreen:hover .xgplayer-tips, .xgplayer-skin-default .xgplayer-cssfullscreen-img:hover .xgplayer-tips {\n      display: block; }\n\n.xgplayer-skin-default.xgplayer-is-cssfullscreen .xgplayer-cssfullscreen .xgplayer-icon .xgplayer-icon-requestfull, .xgplayer-skin-default.xgplayer-is-cssfullscreen .xgplayer-cssfullscreen-img .xgplayer-icon .xgplayer-icon-requestfull {\n  display: none; }\n\n.xgplayer-skin-default.xgplayer-is-cssfullscreen .xgplayer-cssfullscreen .xgplayer-icon .xgplayer-icon-exitfull, .xgplayer-skin-default.xgplayer-is-cssfullscreen .xgplayer-cssfullscreen-img .xgplayer-icon .xgplayer-icon-exitfull {\n  display: block; }\n\n.xgplayer-skin-default.xgplayer-is-cssfullscreen .xgplayer-cssfullscreen .xgplayer-tips, .xgplayer-skin-default.xgplayer-is-cssfullscreen .xgplayer-cssfullscreen-img .xgplayer-tips {\n  margin-left: -47px; }\n  .xgplayer-skin-default.xgplayer-is-cssfullscreen .xgplayer-cssfullscreen .xgplayer-tips .xgplayer-tip-requestfull, .xgplayer-skin-default.xgplayer-is-cssfullscreen .xgplayer-cssfullscreen-img .xgplayer-tips .xgplayer-tip-requestfull {\n    display: none; }\n  .xgplayer-skin-default.xgplayer-is-cssfullscreen .xgplayer-cssfullscreen .xgplayer-tips .xgplayer-tip-exitfull, .xgplayer-skin-default.xgplayer-is-cssfullscreen .xgplayer-cssfullscreen-img .xgplayer-tips .xgplayer-tip-exitfull {\n    display: block; }\n\n.xgplayer-skin-default.xgplayer-is-fullscreen .xgplayer-cssfullscreen, .xgplayer-skin-default.xgplayer-is-fullscreen .xgplayer-cssfullscreen-img {\n  display: none; }\n\n.xgplayer-skin-default.xgplayer-is-cssfullscreen {\n  position: fixed !important;\n  left: 0 !important;\n  top: 0 !important;\n  width: 100% !important;\n  height: 100% !important;\n  z-index: 99999 !important; }\n\n.lang-is-en .xgplayer-cssfullscreen .xgplayer-tips, .lang-is-en .xgplayer-cssfullscreen-img .xgplayer-tips {\n  margin-left: -46px; }\n\n.lang-is-en.xgplayer-is-cssfullscreen .xgplayer-cssfullscreen .xgplayer-tips, .lang-is-en.xgplayer-is-cssfullscreen .xgplayer-cssfullscreen-img .xgplayer-tips {\n  margin-left: -46px; }\n\n.lang-is-jp .xgplayer-cssfullscreen .xgplayer-tips, .lang-is-jp .xgplayer-cssfullscreen-img .xgplayer-tips {\n  margin-left: -120px; }\n\n.lang-is-jp.xgplayer-is-cssfullscreen .xgplayer-cssfullscreen .xgplayer-tips, .lang-is-jp.xgplayer-is-cssfullscreen .xgplayer-cssfullscreen-img .xgplayer-tips {\n  margin-left: -60px; }\n\n.xgplayer-skin-default .xgplayer-volume {\n  outline: none;\n  -webkit-order: 4;\n     -moz-box-ordinal-group: 5;\n          order: 4;\n  width: 28px;\n  height: 140px;\n  display: block;\n  position: relative;\n  margin-top: -100px;\n  overflow: hidden;\n  z-index: 18; }\n  .xgplayer-skin-default .xgplayer-volume .xgplayer-icon {\n    margin-top: 8px;\n    cursor: pointer;\n    position: absolute;\n    bottom: -9px; }\n    .xgplayer-skin-default .xgplayer-volume .xgplayer-icon div {\n      position: absolute; }\n    .xgplayer-skin-default .xgplayer-volume .xgplayer-icon .xgplayer-icon-large {\n      display: block; }\n    .xgplayer-skin-default .xgplayer-volume .xgplayer-icon .xgplayer-icon-small {\n      display: none; }\n    .xgplayer-skin-default .xgplayer-volume .xgplayer-icon .xgplayer-icon-muted {\n      display: none; }\n\n.xgplayer-skin-default .xgplayer-slider {\n  display: none;\n  position: absolute;\n  width: 28px;\n  height: 92px;\n  background: rgba(0, 0, 0, .54);\n  border-radius: 1px;\n  bottom: 42px;\n  outline: none; }\n  .xgplayer-skin-default .xgplayer-slider:after {\n    content: \" \";\n    display: block;\n    height: 15px;\n    width: 28px;\n    position: absolute;\n    bottom: -15px;\n    left: 0;\n    z-index: 20; }\n\n.xgplayer-skin-default .xgplayer-bar, .xgplayer-skin-default .xgplayer-drag {\n  display: block;\n  position: absolute;\n  bottom: 6px;\n  left: 12px;\n  background: rgba(255, 255, 255, .3);\n  border-radius: 100px;\n  width: 4px;\n  height: 76px;\n  outline: none;\n  cursor: pointer; }\n\n.xgplayer-skin-default .xgplayer-drag {\n  bottom: 0;\n  left: 0;\n  background: #FA1F41;\n  max-height: 76px; }\n  .xgplayer-skin-default .xgplayer-drag:after {\n    content: \" \";\n    display: inline-block;\n    width: 8px;\n    height: 8px;\n    background: #fff;\n    box-shadow: 0 0 5px 0 rgba(0, 0, 0, .26);\n    position: absolute;\n    border-radius: 50%;\n    left: -2px;\n    top: -6px; }\n\n.xgplayer-skin-default.xgplayer-volume-active .xgplayer-slider {\n  display: block; }\n\n.xgplayer-skin-default.xgplayer-volume-large .xgplayer-volume .xgplayer-icon .xgplayer-icon-large {\n  display: block; }\n\n.xgplayer-skin-default.xgplayer-volume-large .xgplayer-volume .xgplayer-icon .xgplayer-icon-small {\n  display: none; }\n\n.xgplayer-skin-default.xgplayer-volume-large .xgplayer-volume .xgplayer-icon .xgplayer-icon-muted {\n  display: none; }\n\n.xgplayer-skin-default.xgplayer-volume-small .xgplayer-volume .xgplayer-icon .xgplayer-icon-large {\n  display: none; }\n\n.xgplayer-skin-default.xgplayer-volume-small .xgplayer-volume .xgplayer-icon .xgplayer-icon-small {\n  display: block; }\n\n.xgplayer-skin-default.xgplayer-volume-small .xgplayer-volume .xgplayer-icon .xgplayer-icon-muted {\n  display: none; }\n\n.xgplayer-skin-default.xgplayer-volume-muted .xgplayer-volume .xgplayer-icon .xgplayer-icon-large {\n  display: none; }\n\n.xgplayer-skin-default.xgplayer-volume-muted .xgplayer-volume .xgplayer-icon .xgplayer-icon-small {\n  display: none; }\n\n.xgplayer-skin-default.xgplayer-volume-muted .xgplayer-volume .xgplayer-icon .xgplayer-icon-muted {\n  display: block; }\n\n.xgplayer-skin-default.xgplayer-mobile .xgplayer-volume .xgplayer-slider {\n  display: none; }\n\n.xgplayer-skin-default .xgplayer-definition {\n  -webkit-order: 5;\n     -moz-box-ordinal-group: 6;\n          order: 5;\n  width: 60px;\n  height: 150px;\n  z-index: 18;\n  position: relative;\n  outline: none;\n  display: none;\n  cursor: default;\n  margin-left: 10px;\n  margin-top: -119px; }\n  .xgplayer-skin-default .xgplayer-definition ul {\n    display: none;\n    list-style: none;\n    width: 78px;\n    background: rgba(0, 0, 0, .54);\n    border-radius: 1px;\n    position: absolute;\n    bottom: 30px;\n    left: 0;\n    text-align: center;\n    white-space: nowrap;\n    margin-left: -10px;\n    z-index: 26;\n    cursor: pointer; }\n    .xgplayer-skin-default .xgplayer-definition ul li {\n      opacity: 0.7;\n      font-family: PingFangSC-Regular;\n      font-size: 11px;\n      color: rgba(255, 255, 255, .8);\n      padding: 6px 13px; }\n      .xgplayer-skin-default .xgplayer-definition ul li.selected {\n        color: #fff;\n        opacity: 1; }\n      .xgplayer-skin-default .xgplayer-definition ul li:hover {\n        color: #fff;\n        opacity: 1; }\n  .xgplayer-skin-default .xgplayer-definition .name {\n    text-align: center;\n    font-family: PingFangSC-Regular;\n    font-size: 13px;\n    line-height: 20px;\n    height: 20px;\n    cursor: pointer;\n    color: rgba(255, 255, 255, .8);\n    position: absolute;\n    bottom: 0;\n    width: 60px;\n    height: 20px;\n    line-height: 20px;\n    background: rgba(0, 0, 0, .38);\n    border-radius: 10px;\n    display: inline-block;\n    vertical-align: middle; }\n\n.xgplayer-skin-default.xgplayer-definition-active .xgplayer-definition ul {\n  display: block; }\n\n.xgplayer-skin-default.xgplayer-is-definition .xgplayer-definition {\n  display: block; }\n\n.xgplayer-skin-default .xgplayer-time {\n  -webkit-order: 2;\n     -moz-box-ordinal-group: 3;\n          order: 2;\n  font-family: ArialMT;\n  font-size: 13px;\n  color: #fff;\n  line-height: 40px;\n  text-align: center;\n  display: inline-block; }\n  .xgplayer-skin-default .xgplayer-time span::after {\n    content: \"/\";\n    display: inline-block;\n    padding: 0 3px; }\n  .xgplayer-skin-default .xgplayer-time em {\n    color: rgba(255, 255, 255, .5); }\n\n.xgplayer-skin-default .xgplayer-controls {\n  display: -webkit-flex;\n  display: -moz-box;\n  display: flex;\n  position: absolute;\n  bottom: 0;\n  left: 0;\n  right: 0;\n  height: 40px;\n  background-image: linear-gradient(to bottom, rgba(0, 0, 0, 0), rgba(0, 0, 0, .37), rgba(0, 0, 0, .75), rgba(0, 0, 0, .75));\n  z-index: 10; }\n\n.xgplayer-skin-default.xgplayer-nostart .xgplayer-controls {\n  display: none; }\n\n.xgplayer-skin-default.no-controls .xgplayer-controls {\n  display: none; }\n\n.xgplayer-skin-default.xgplayer-inactive .xgplayer-controls {\n  display: none; }\n\n.xgplayer-skin-default.xgplayer-is-live .xgplayer-controls > * {\n  display: none; }\n\n.xgplayer-skin-default.xgplayer-is-live .xgplayer-controls .xgplayer-play,\n.xgplayer-skin-default.xgplayer-is-live .xgplayer-controls .xgplayer-play-img,\n.xgplayer-skin-default.xgplayer-is-live .xgplayer-controls .xgplayer-placeholder,\n.xgplayer-skin-default.xgplayer-is-live .xgplayer-controls .xgplayer-volume,\n.xgplayer-skin-default.xgplayer-is-live .xgplayer-controls .xgplayer-live,\n.xgplayer-skin-default.xgplayer-is-live .xgplayer-controls .xgplayer-definition,\n.xgplayer-skin-default.xgplayer-is-live .xgplayer-controls .xgplayer-cssfullscreen,\n.xgplayer-skin-default.xgplayer-is-live .xgplayer-controls .xgplayer-fullscreen {\n  display: block; }\n\n.xgplayer-skin-default .xgplayer-live {\n  display: block;\n  font-size: 12px;\n  color: #fff;\n  line-height: 40px;\n  -webkit-order: 1;\n     -moz-box-ordinal-group: 2;\n          order: 1; }\n\n.xgplayer-skin-default .xgplayer-loading {\n  display: none;\n  width: 100px;\n  height: 100px;\n  overflow: hidden;\n  -webkit-transform: scale(0.7);\n      -ms-transform: scale(0.7);\n          transform: scale(0.7);\n  position: absolute;\n  left: 50%;\n  top: 50%;\n  margin: -70px auto auto -50px; }\n  .xgplayer-skin-default .xgplayer-loading svg {\n    border-radius: 50%;\n    -webkit-transform-origin: center;\n        -ms-transform-origin: center;\n            transform-origin: center;\n    -webkit-animation: loadingRotate 1s linear infinite;\n            animation: loadingRotate 1s linear infinite; }\n    .xgplayer-skin-default .xgplayer-loading svg path {\n      stroke: #ddd;\n      stroke-dasharray: 236;\n      -webkit-animation: loadingDashOffset 2s linear infinite;\n              animation: loadingDashOffset 2s linear infinite;\n      animation-direction: alternate-reverse;\n      fill: none;\n      stroke-width: 12px; }\n\n.xgplayer-skin-default.xgplayer-nostart .xgplayer-loading {\n  display: none; }\n\n.xgplayer-skin-default.xgplayer-isloading .xgplayer-loading {\n  display: block; }\n\n.xgplayer-skin-default.xgplayer-ended .xgplayer-loading {\n  display: none; }\n\n.xgplayer-skin-default .xgplayer-progress {\n  display: block;\n  position: absolute;\n  height: 20px;\n  line-height: 20px;\n  left: 12px;\n  right: 12px;\n  outline: none;\n  top: -10px;\n  z-index: 35; }\n\n.xgplayer-skin-default .xgplayer-progress-outer {\n  background: rgba(255, 255, 255, .3);\n  display: block;\n  height: 3px;\n  line-height: 3px;\n  margin-top: 8.5px;\n  width: 100%;\n  position: relative;\n  cursor: pointer; }\n\n.xgplayer-skin-default .xgplayer-progress-cache, .xgplayer-skin-default .xgplayer-progress-played {\n  display: block;\n  height: 100%;\n  line-height: 1;\n  position: absolute;\n  left: 0;\n  top: 0; }\n\n.xgplayer-skin-default .xgplayer-progress-cache {\n  width: 0;\n  background: rgba(255, 255, 255, .5); }\n\n.xgplayer-skin-default .xgplayer-progress-played {\n  display: block;\n  width: 0;\n  background-image: linear-gradient(-90deg, #FA1F41 0%, #E31106 100%);\n  border-radius: 0 1.5px 1.5px 0; }\n\n.xgplayer-skin-default .xgplayer-progress-btn {\n  display: none;\n  position: absolute;\n  left: 0px;\n  top: -5px;\n  width: 13px;\n  height: 13px;\n  border-radius: 30px;\n  background: #FFFFFF;\n  box-shadow: 0 0 2px 0 rgba(0, 0, 0, .26);\n  left: 100%;\n  -webkit-transform: translate(-50%, 0);\n      -ms-transform: translate(-50%, 0);\n          transform: translate(-50%, 0); }\n\n.xgplayer-skin-default .xgplayer-progress-point {\n  position: absolute; }\n  .xgplayer-skin-default .xgplayer-progress-point.xgplayer-tips {\n    margin-left: 0;\n    top: -25px;\n    display: none;\n    z-index: 100; }\n\n.xgplayer-skin-default .xgplayer-progress-dot {\n  display: inline-block;\n  position: absolute;\n  height: 3px;\n  width: 5px;\n  top: 0px;\n  background: white;\n  border-radius: 6px;\n  z-index: 16; }\n  .xgplayer-skin-default .xgplayer-progress-dot .xgplayer-progress-tip {\n    position: absolute;\n    left: 0;\n    top: -40px;\n    height: auto;\n    line-height: 30px;\n    width: auto;\n    -webkit-transform: scale(0.8);\n        -ms-transform: scale(0.8);\n            transform: scale(0.8);\n    background: rgba(0, 0, 0, .3);\n    border-radius: 6px;\n    border: 1px solid rgba(0, 0, 0, .8);\n    cursor: default;\n    white-space: nowrap;\n    display: none; }\n\n.xgplayer-skin-default .xgplayer-progress-dot-show .xgplayer-progress-tip {\n  display: block; }\n\n.xgplayer-skin-default .xgplayer-progress-thumbnail {\n  position: absolute;\n  -moz-box-sizing: border-box;\n       box-sizing: border-box; }\n  .xgplayer-skin-default .xgplayer-progress-thumbnail.xgplayer-tips {\n    margin-left: 0;\n    display: none;\n    z-index: 99; }\n\n.xgplayer-skin-default .xgplayer-progress:hover .xgplayer-progress-outer, .xgplayer-skin-default .xgplayer-progress:focus .xgplayer-progress-outer {\n  height: 6px;\n  margin-top: 7px; }\n\n.xgplayer-skin-default .xgplayer-progress:hover .xgplayer-progress-dot, .xgplayer-skin-default .xgplayer-progress:focus .xgplayer-progress-dot {\n  height: 6px; }\n\n.xgplayer-skin-default .xgplayer-progress:hover .xgplayer-progress-btn, .xgplayer-skin-default .xgplayer-progress:focus .xgplayer-progress-btn {\n  display: block;\n  top: -3px; }\n\n.xgplayer-skin-default.xgplayer-volume-active .xgplayer-progress {\n  z-index: 15; }\n\n.xgplayer-skin-default.xgplayer-definition-active .xgplayer-progress {\n  z-index: 15; }\n\n.xgplayer-skin-default.xgplayer-texttrack-active .xgplayer-progress {\n  z-index: 15; }\n\n.xgplayer-skin-default.xgplayer-playbackrate-active .xgplayer-progress {\n  z-index: 15; }\n\n.xgplayer-skin-default.xgplayer-mobile .xgplayer-progress-btn {\n  display: block !important; }\n\n.xgplayer-skin-default.xgplayer-mobile .xgplayer-progress:hover .xgplayer-progress-outer, .xgplayer-skin-default.xgplayer-mobile .xgplayer-progress:focus .xgplayer-progress-outer {\n  height: 3px !important;\n  margin-top: 8.5px !important; }\n\n.xgplayer-skin-default.xgplayer-mobile .xgplayer-progress:hover .xgplayer-progress-btn, .xgplayer-skin-default.xgplayer-mobile .xgplayer-progress:focus .xgplayer-progress-btn {\n  display: block !important;\n  top: -5px !important; }\n\n.xgplayer-skin-default .xgplayer-playbackrate {\n  -webkit-order: 8;\n     -moz-box-ordinal-group: 9;\n          order: 8;\n  width: 60px;\n  height: 20px;\n  z-index: 18;\n  position: relative;\n  display: inline-block;\n  cursor: default; }\n  .xgplayer-skin-default .xgplayer-playbackrate ul {\n    display: none;\n    list-style: none;\n    width: 78px;\n    background: rgba(0, 0, 0, .54);\n    border-radius: 1px;\n    position: absolute;\n    bottom: 20px;\n    left: 0px;\n    text-align: left;\n    white-space: nowrap;\n    z-index: 26;\n    cursor: pointer; }\n    .xgplayer-skin-default .xgplayer-playbackrate ul li {\n      opacity: 0.7;\n      font-family: PingFangSC-Regular;\n      font-size: 11px;\n      color: rgba(255, 255, 255, .8);\n      position: relative;\n      padding: 4px 0 4px 0px;\n      text-align: center; }\n      .xgplayer-skin-default .xgplayer-playbackrate ul li.selected {\n        color: #fff;\n        opacity: 1; }\n      .xgplayer-skin-default .xgplayer-playbackrate ul li:hover {\n        color: #fff;\n        opacity: 1; }\n    .xgplayer-skin-default .xgplayer-playbackrate ul li:nth-child(1) {\n      position: relative;\n      margin-top: 12px; }\n    .xgplayer-skin-default .xgplayer-playbackrate ul li:last-child {\n      position: relative;\n      margin-bottom: 12px; }\n  .xgplayer-skin-default .xgplayer-playbackrate .name {\n    height: 20px;\n    position: relative;\n    top: 11px;\n    text-align: center;\n    background: rgba(0, 0, 0, .38);\n    color: rgba(255, 255, 255, .8);\n    border-radius: 10px;\n    line-height: 20px; }\n  .xgplayer-skin-default .xgplayer-playbackrate span {\n    position: relative;\n    top: 19px;\n    font-weight: bold;\n    text-shadow: 0 0 4px rgba(0, 0, 0, .6); }\n  .xgplayer-skin-default .xgplayer-playbackrate:hover {\n    opacity: 1; }\n\n.xgplayer-skin-default.xgplayer-playbackrate-active .xgplayer-playbackrate ul {\n  display: block; }\n\n.xgplayer-skin-default .xgplayer-download {\n  position: relative;\n  -webkit-order: 9;\n     -moz-box-ordinal-group: 10;\n          order: 9;\n  display: block;\n  cursor: pointer; }\n  .xgplayer-skin-default .xgplayer-download .xgplayer-icon {\n    margin-top: 3px; }\n    .xgplayer-skin-default .xgplayer-download .xgplayer-icon div {\n      position: absolute; }\n    .xgplayer-skin-default .xgplayer-download .xgplayer-icon svg {\n      position: relative;\n      top: 5px;\n      left: 5px; }\n  .xgplayer-skin-default .xgplayer-download .xgplayer-tips {\n    margin-left: -20px; }\n    .xgplayer-skin-default .xgplayer-download .xgplayer-tips .xgplayer-tip-download {\n      display: block; }\n  .xgplayer-skin-default .xgplayer-download:hover {\n    opacity: 0.85; }\n    .xgplayer-skin-default .xgplayer-download:hover .xgplayer-tips {\n      display: block; }\n\n.lang-is-en .xgplayer-download .xgplayer-tips {\n  margin-left: -32px; }\n\n.lang-is-jp .xgplayer-download .xgplayer-tips {\n  margin-left: -40px; }\n\n.xgplayer-skin-default .danmu-switch {\n  -webkit-order: 6;\n     -moz-box-ordinal-group: 7;\n          order: 6;\n  z-index: 26; }\n\n.xgplayer-skin-default .xgplayer-danmu {\n  display: none;\n  position: absolute;\n  top: 0;\n  left: 0;\n  right: 0;\n  height: 100%;\n  overflow: hidden;\n  z-index: 9;\n  outline: none; }\n  .xgplayer-skin-default .xgplayer-danmu > * {\n    position: absolute;\n    white-space: nowrap;\n    z-index: 9; }\n\n.xgplayer-skin-default .xgplayer-danmu.xgplayer-has-danmu {\n  display: block; }\n\n.xgplayer-skin-default .xgplayer-panel {\n  outline: none;\n  -webkit-order: 7;\n     -moz-box-ordinal-group: 8;\n          order: 7;\n  width: 40px;\n  height: 40px;\n  display: inline-block;\n  position: relative;\n  font-family: PingFangSC-Regular;\n  font-size: 13px;\n  color: rgba(255, 255, 255, .8);\n  z-index: 36; }\n  .xgplayer-skin-default .xgplayer-panel .xgplayer-panel-icon {\n    cursor: pointer;\n    position: absolute;\n    margin-left: 5px;\n    top: 10px; }\n\n.xgplayer-skin-default .xgplayer-panel-active {\n  display: block !important;\n  bottom: 30px; }\n\n.xgplayer-skin-default .xgplayer-panel-slider {\n  z-index: 36;\n  display: none;\n  position: absolute;\n  width: 230px;\n  height: 230px;\n  background: rgba(0, 0, 0, .54);\n  border-radius: 1px;\n  padding: 10px 20px;\n  outline: none;\n  left: -115px;\n  bottom: 40px; }\n  .xgplayer-skin-default .xgplayer-panel-slider .xgplayer-hidemode {\n    padding-bottom: 10px; }\n    .xgplayer-skin-default .xgplayer-panel-slider .xgplayer-hidemode-radio li {\n      display: inline;\n      list-style: none;\n      cursor: pointer; }\n    .xgplayer-skin-default .xgplayer-panel-slider .xgplayer-hidemode ul {\n      display: -webkit-flex;\n      display: -moz-box;\n      display: flex;\n      -webkit-justify-content: space-around;\n              justify-content: space-around; }\n    .xgplayer-skin-default .xgplayer-panel-slider .xgplayer-hidemode li {\n      margin: 0 12px;\n      font-size: 11px;\n      color: #aaa; }\n    .xgplayer-skin-default .xgplayer-panel-slider .xgplayer-hidemode-font {\n      margin-bottom: 10px; }\n  .xgplayer-skin-default .xgplayer-panel-slider .xgplayer-transparency {\n    display: block;\n    margin-top: 10px; }\n    .xgplayer-skin-default .xgplayer-panel-slider .xgplayer-transparency .xgplayer-transparency-line {\n      -webkit-appearance: none;\n      -moz-appearance: none;\n      appearance: none;\n      cursor: pointer;\n      outline: none;\n      width: 150px;\n      height: 4px;\n      background: #aaa;\n      border-radius: 4px;\n      border-style: none;\n      margin-left: 10px;\n      margin-top: -2px; }\n    .xgplayer-skin-default .xgplayer-panel-slider .xgplayer-transparency .xgplayer-transparency-line::-moz-focus-outer {\n      border: 0 !important; }\n    .xgplayer-skin-default .xgplayer-panel-slider .xgplayer-transparency .xgplayer-transparency-color::-webkit-slider-runnable-track {\n      outline: none;\n      width: 150px;\n      height: 4px;\n      border-radius: 4px; }\n    .xgplayer-skin-default .xgplayer-panel-slider .xgplayer-transparency .xgplayer-transparency-color::-moz-range-track {\n      outline: none;\n      background-color: #aaa;\n      border-color: transparent;\n      cursor: pointer;\n      width: 150px;\n      height: 4px;\n      border-radius: 4px; }\n    .xgplayer-skin-default .xgplayer-panel-slider .xgplayer-transparency .xgplayer-transparency-color::-ms-track {\n      outline: none;\n      background-color: #aaa;\n      color: transparent;\n      border-color: transparent;\n      width: 150px;\n      height: 4px;\n      border-radius: 4px; }\n    .xgplayer-skin-default .xgplayer-panel-slider .xgplayer-transparency .xgplayer-transparency-bar::-webkit-slider-thumb {\n      outline: none;\n      -webkit-appearance: none;\n      -moz-appearance: none;\n      appearance: none;\n      border: 6px solid #f85959;\n      height: 6px;\n      width: 6px;\n      margin-top: -4px;\n      border-radius: 6px;\n      cursor: pointer; }\n    .xgplayer-skin-default .xgplayer-panel-slider .xgplayer-transparency .xgplayer-transparency-bar::-moz-range-thumb {\n      outline: none;\n      -webkit-appearance: none;\n      -moz-appearance: none;\n      appearance: none;\n      border: 6px solid #f85959;\n      height: 0;\n      width: 0;\n      border-radius: 6px;\n      cursor: pointer; }\n    .xgplayer-skin-default .xgplayer-panel-slider .xgplayer-transparency .xgplayer-transparency-bar::-ms-thumb {\n      outline: none;\n      -webkit-appearance: none;\n      -moz-appearance: none;\n      appearance: none;\n      border: 6px solid #f85959;\n      height: 6px;\n      width: 6px;\n      border-radius: 6px;\n      cursor: pointer; }\n    .xgplayer-skin-default .xgplayer-panel-slider .xgplayer-transparency .xgplayer-transparency-bar::-moz-range-progress {\n      outline: none;\n      -webkit-appearance: none;\n      -moz-appearance: none;\n      appearance: none;\n      height: 4px;\n      border-radius: 4px;\n      background: linear-gradient(to right, #f85959, #f85959 100%, #aaa); }\n  .xgplayer-skin-default .xgplayer-panel-slider .xgplayer-showarea {\n    display: block;\n    margin-top: 8px; }\n    .xgplayer-skin-default .xgplayer-panel-slider .xgplayer-showarea-name {\n      display: inline-block;\n      position: relative;\n      top: -10px; }\n    .xgplayer-skin-default .xgplayer-panel-slider .xgplayer-showarea-control {\n      display: inline-block; }\n      .xgplayer-skin-default .xgplayer-panel-slider .xgplayer-showarea-control-up {\n        width: 150px;\n        margin-left: 10px;\n        display: -moz-box;\n        display: -webkit-flex;\n        display: flex;\n        -webkit-justify-content: space-between;\n           -moz-box-pack: justify;\n                justify-content: space-between;\n        color: #aaa; }\n      .xgplayer-skin-default .xgplayer-panel-slider .xgplayer-showarea-control-down {\n        position: relative;\n        top: -10px; }\n      .xgplayer-skin-default .xgplayer-panel-slider .xgplayer-showarea-control-down-dots {\n        display: -webkit-flex;\n        display: -moz-box;\n        display: flex;\n        width: 150px;\n        margin-left: 10px;\n        -webkit-justify-content: space-between;\n           -moz-box-pack: justify;\n                justify-content: space-between; }\n    .xgplayer-skin-default .xgplayer-panel-slider .xgplayer-showarea-twoquarters {\n      margin-left: -6px; }\n    .xgplayer-skin-default .xgplayer-panel-slider .xgplayer-showarea-threequarters {\n      margin-left: -6px; }\n    .xgplayer-skin-default .xgplayer-panel-slider .xgplayer-showarea-full {\n      margin-right: 3px; }\n    .xgplayer-skin-default .xgplayer-panel-slider .xgplayer-showarea .xgplayer-showarea-line {\n      -webkit-appearance: none;\n      -moz-appearance: none;\n      appearance: none;\n      cursor: pointer;\n      outline: none;\n      width: 150px;\n      height: 4px;\n      background: #aaa;\n      border-radius: 4px;\n      border-style: none;\n      margin-left: 10px;\n      margin-top: -2px; }\n    .xgplayer-skin-default .xgplayer-panel-slider .xgplayer-showarea .xgplayer-showarea-line::-moz-focus-outer {\n      border: 0 !important; }\n    .xgplayer-skin-default .xgplayer-panel-slider .xgplayer-showarea .xgplayer-showarea-color::-webkit-slider-runnable-track {\n      outline: none;\n      width: 150px;\n      height: 4px;\n      border-radius: 4px; }\n    .xgplayer-skin-default .xgplayer-panel-slider .xgplayer-showarea .xgplayer-showarea-color::-moz-range-track {\n      outline: none;\n      background-color: #aaa;\n      border-color: transparent;\n      cursor: pointer;\n      width: 150px;\n      height: 4px;\n      border-radius: 4px; }\n    .xgplayer-skin-default .xgplayer-panel-slider .xgplayer-showarea .xgplayer-showarea-color::-ms-track {\n      outline: none;\n      background-color: #aaa;\n      color: transparent;\n      border-color: transparent;\n      width: 150px;\n      height: 4px;\n      border-radius: 4px; }\n    .xgplayer-skin-default .xgplayer-panel-slider .xgplayer-showarea .xgplayer-showarea-bar::-webkit-slider-thumb {\n      outline: none;\n      -webkit-appearance: none;\n      -moz-appearance: none;\n      appearance: none;\n      border: 6px solid #f85959;\n      height: 6px;\n      width: 6px;\n      margin-top: -4px;\n      border-radius: 6px;\n      cursor: pointer; }\n    .xgplayer-skin-default .xgplayer-panel-slider .xgplayer-showarea .xgplayer-showarea-bar::-moz-range-thumb {\n      outline: none;\n      -webkit-appearance: none;\n      -moz-appearance: none;\n      appearance: none;\n      border: 6px solid #f85959;\n      height: 0;\n      width: 0;\n      border-radius: 6px;\n      cursor: pointer; }\n    .xgplayer-skin-default .xgplayer-panel-slider .xgplayer-showarea .xgplayer-showarea-bar::-ms-thumb {\n      outline: none;\n      -webkit-appearance: none;\n      -moz-appearance: none;\n      appearance: none;\n      border: 6px solid #f85959;\n      height: 6px;\n      width: 6px;\n      border-radius: 6px;\n      cursor: pointer; }\n    .xgplayer-skin-default .xgplayer-panel-slider .xgplayer-showarea .xgplayer-showarea-zero-dot {\n      width: 3px;\n      height: 3px;\n      border: 3px solid #aaa;\n      border-radius: 50%;\n      background-color: #aaa;\n      position: relative;\n      top: 16px;\n      z-index: -1; }\n    .xgplayer-skin-default .xgplayer-panel-slider .xgplayer-showarea .xgplayer-showarea-onequarters-dot {\n      width: 3px;\n      height: 3px;\n      border: 3px solid #aaa;\n      border-radius: 50%;\n      background-color: #aaa;\n      position: relative;\n      top: 16px;\n      z-index: -1; }\n    .xgplayer-skin-default .xgplayer-panel-slider .xgplayer-showarea .xgplayer-showarea-twoquarters-dot {\n      width: 3px;\n      height: 3px;\n      border: 3px solid #aaa;\n      border-radius: 50%;\n      background-color: #aaa;\n      position: relative;\n      top: 16px;\n      z-index: -1; }\n    .xgplayer-skin-default .xgplayer-panel-slider .xgplayer-showarea .xgplayer-showarea-threequarters-dot {\n      width: 3px;\n      height: 3px;\n      border: 3px solid #aaa;\n      border-radius: 50%;\n      background-color: #aaa;\n      position: relative;\n      top: 16px;\n      z-index: -1; }\n    .xgplayer-skin-default .xgplayer-panel-slider .xgplayer-showarea .xgplayer-showarea-full-dot {\n      width: 3px;\n      height: 3px;\n      border: 3px solid #aaa;\n      border-radius: 50%;\n      background-color: #aaa;\n      position: relative;\n      top: 16px;\n      z-index: -1; }\n  .xgplayer-skin-default .xgplayer-panel-slider .xgplayer-danmuspeed {\n    display: block; }\n    .xgplayer-skin-default .xgplayer-panel-slider .xgplayer-danmuspeed-name {\n      display: inline-block;\n      position: relative;\n      top: -10px; }\n    .xgplayer-skin-default .xgplayer-panel-slider .xgplayer-danmuspeed-control {\n      display: inline-block; }\n      .xgplayer-skin-default .xgplayer-panel-slider .xgplayer-danmuspeed-control-up {\n        width: 150px;\n        margin-left: 10px;\n        display: -moz-box;\n        display: -webkit-flex;\n        display: flex;\n        -webkit-justify-content: space-between;\n           -moz-box-pack: justify;\n                justify-content: space-between;\n        color: #aaa; }\n      .xgplayer-skin-default .xgplayer-panel-slider .xgplayer-danmuspeed-control-down {\n        position: relative;\n        top: -10px; }\n      .xgplayer-skin-default .xgplayer-panel-slider .xgplayer-danmuspeed-control-down-dots {\n        display: -webkit-flex;\n        display: -moz-box;\n        display: flex;\n        width: 150px;\n        margin-left: 10px;\n        -webkit-justify-content: space-between;\n           -moz-box-pack: justify;\n                justify-content: space-between; }\n    .xgplayer-skin-default .xgplayer-panel-slider .xgplayer-danmuspeed .xgplayer-danmuspeed-line {\n      -webkit-appearance: none;\n      -moz-appearance: none;\n      appearance: none;\n      cursor: pointer;\n      outline: none;\n      width: 150px;\n      height: 4px;\n      background: #aaa;\n      border-radius: 4px;\n      border-style: none;\n      margin-left: 10px;\n      margin-top: -2px; }\n    .xgplayer-skin-default .xgplayer-panel-slider .xgplayer-danmuspeed .xgplayer-danmuspeed-line::-moz-focus-outer {\n      border: 0 !important; }\n    .xgplayer-skin-default .xgplayer-panel-slider .xgplayer-danmuspeed .xgplayer-danmuspeed-color::-webkit-slider-runnable-track {\n      outline: none;\n      width: 150px;\n      height: 4px;\n      border-radius: 4px; }\n    .xgplayer-skin-default .xgplayer-panel-slider .xgplayer-danmuspeed .xgplayer-danmuspeed-color::-moz-range-track {\n      outline: none;\n      background-color: #aaa;\n      border-color: transparent;\n      cursor: pointer;\n      width: 150px;\n      height: 4px;\n      border-radius: 4px; }\n    .xgplayer-skin-default .xgplayer-panel-slider .xgplayer-danmuspeed .xgplayer-danmuspeed-color::-ms-track {\n      outline: none;\n      background-color: #aaa;\n      color: transparent;\n      border-color: transparent;\n      width: 150px;\n      height: 4px;\n      border-radius: 4px; }\n    .xgplayer-skin-default .xgplayer-panel-slider .xgplayer-danmuspeed .xgplayer-danmuspeed-bar::-webkit-slider-thumb {\n      outline: none;\n      -webkit-appearance: none;\n      -moz-appearance: none;\n      appearance: none;\n      border: 6px solid #f85959;\n      height: 6px;\n      width: 6px;\n      margin-top: -4px;\n      border-radius: 6px;\n      cursor: pointer; }\n    .xgplayer-skin-default .xgplayer-panel-slider .xgplayer-danmuspeed .xgplayer-danmuspeed-bar::-moz-range-thumb {\n      outline: none;\n      -webkit-appearance: none;\n      -moz-appearance: none;\n      appearance: none;\n      border: 6px solid #f85959;\n      height: 0;\n      width: 0;\n      border-radius: 6px;\n      cursor: pointer; }\n    .xgplayer-skin-default .xgplayer-panel-slider .xgplayer-danmuspeed .xgplayer-danmuspeed-bar::-ms-thumb {\n      outline: none;\n      -webkit-appearance: none;\n      -moz-appearance: none;\n      appearance: none;\n      border: 6px solid #f85959;\n      height: 6px;\n      width: 6px;\n      border-radius: 6px;\n      cursor: pointer; }\n    .xgplayer-skin-default .xgplayer-panel-slider .xgplayer-danmuspeed .xgplayer-danmuspeed-small-dot {\n      width: 3px;\n      height: 3px;\n      border: 3px solid #aaa;\n      border-radius: 50%;\n      background-color: #aaa;\n      position: relative;\n      top: 16px;\n      z-index: -1; }\n    .xgplayer-skin-default .xgplayer-panel-slider .xgplayer-danmuspeed .xgplayer-danmuspeed-middle-dot {\n      width: 3px;\n      height: 3px;\n      border: 3px solid #aaa;\n      border-radius: 50%;\n      background-color: #aaa;\n      position: relative;\n      top: 16px;\n      z-index: -1; }\n    .xgplayer-skin-default .xgplayer-panel-slider .xgplayer-danmuspeed .xgplayer-danmuspeed-large-dot {\n      width: 3px;\n      height: 3px;\n      border: 3px solid #aaa;\n      border-radius: 50%;\n      background-color: #aaa;\n      position: relative;\n      top: 16px;\n      z-index: -1; }\n  .xgplayer-skin-default .xgplayer-panel-slider .xgplayer-danmufont {\n    display: block; }\n    .xgplayer-skin-default .xgplayer-panel-slider .xgplayer-danmufont-name {\n      display: inline-block;\n      position: relative;\n      top: -10px; }\n    .xgplayer-skin-default .xgplayer-panel-slider .xgplayer-danmufont-control {\n      display: inline-block; }\n      .xgplayer-skin-default .xgplayer-panel-slider .xgplayer-danmufont-control-up {\n        width: 150px;\n        margin-left: 10px;\n        display: -moz-box;\n        display: -webkit-flex;\n        display: flex;\n        -webkit-justify-content: space-between;\n           -moz-box-pack: justify;\n                justify-content: space-between;\n        color: #aaa; }\n      .xgplayer-skin-default .xgplayer-panel-slider .xgplayer-danmufont-control-down {\n        position: relative;\n        top: -10px; }\n      .xgplayer-skin-default .xgplayer-panel-slider .xgplayer-danmufont-control-down-dots {\n        display: -webkit-flex;\n        display: -moz-box;\n        display: flex;\n        width: 150px;\n        margin-left: 10px;\n        -webkit-justify-content: space-between;\n           -moz-box-pack: justify;\n                justify-content: space-between; }\n    .xgplayer-skin-default .xgplayer-panel-slider .xgplayer-danmufont .xgplayer-danmufont-line {\n      -webkit-appearance: none;\n      -moz-appearance: none;\n      appearance: none;\n      cursor: pointer;\n      outline: none;\n      width: 150px;\n      height: 4px;\n      background: #aaa;\n      border-radius: 4px;\n      border-style: none;\n      margin-left: 10px;\n      margin-top: -2px; }\n    .xgplayer-skin-default .xgplayer-panel-slider .xgplayer-danmufont .xgplayer-danmufont-line::-moz-focus-outer {\n      border: 0 !important; }\n    .xgplayer-skin-default .xgplayer-panel-slider .xgplayer-danmufont .xgplayer-danmufont-color::-webkit-slider-runnable-track {\n      outline: none;\n      width: 150px;\n      height: 4px;\n      border-radius: 4px; }\n    .xgplayer-skin-default .xgplayer-panel-slider .xgplayer-danmufont .xgplayer-danmufont-color::-moz-range-track {\n      outline: none;\n      background-color: #aaa;\n      border-color: transparent;\n      cursor: pointer;\n      width: 150px;\n      height: 4px;\n      border-radius: 4px; }\n    .xgplayer-skin-default .xgplayer-panel-slider .xgplayer-danmufont .xgplayer-danmufont-color::-ms-track {\n      outline: none;\n      background-color: #aaa;\n      color: transparent;\n      border-color: transparent;\n      width: 150px;\n      height: 4px;\n      border-radius: 4px; }\n    .xgplayer-skin-default .xgplayer-panel-slider .xgplayer-danmufont .xgplayer-danmufont-bar::-webkit-slider-thumb {\n      outline: none;\n      -webkit-appearance: none;\n      -moz-appearance: none;\n      appearance: none;\n      border: 6px solid #f85959;\n      height: 6px;\n      width: 6px;\n      margin-top: -4px;\n      border-radius: 6px;\n      cursor: pointer; }\n    .xgplayer-skin-default .xgplayer-panel-slider .xgplayer-danmufont .xgplayer-danmufont-bar::-moz-range-thumb {\n      outline: none;\n      -webkit-appearance: none;\n      -moz-appearance: none;\n      appearance: none;\n      border: 6px solid #f85959;\n      height: 0;\n      width: 0;\n      border-radius: 6px;\n      cursor: pointer; }\n    .xgplayer-skin-default .xgplayer-panel-slider .xgplayer-danmufont .xgplayer-danmufont-bar::-ms-thumb {\n      outline: none;\n      -webkit-appearance: none;\n      -moz-appearance: none;\n      appearance: none;\n      border: 6px solid #f85959;\n      height: 6px;\n      width: 6px;\n      border-radius: 6px;\n      cursor: pointer; }\n    .xgplayer-skin-default .xgplayer-panel-slider .xgplayer-danmufont .xgplayer-danmufont-small-dot {\n      width: 3px;\n      height: 3px;\n      border: 3px solid #aaa;\n      border-radius: 50%;\n      background-color: #aaa;\n      position: relative;\n      top: 16px;\n      z-index: -1; }\n    .xgplayer-skin-default .xgplayer-panel-slider .xgplayer-danmufont .xgplayer-danmufont-middle-dot {\n      width: 3px;\n      height: 3px;\n      border: 3px solid #aaa;\n      border-radius: 50%;\n      background-color: #aaa;\n      position: relative;\n      top: 16px;\n      z-index: -1; }\n    .xgplayer-skin-default .xgplayer-panel-slider .xgplayer-danmufont .xgplayer-danmufont-large-dot {\n      width: 3px;\n      height: 3px;\n      border: 3px solid #aaa;\n      border-radius: 50%;\n      background-color: #aaa;\n      position: relative;\n      top: 16px;\n      z-index: -1; }\n\n.xgplayer-skin-default .xgplayer-playnext {\n  position: relative;\n  -webkit-order: 1;\n     -moz-box-ordinal-group: 2;\n          order: 1;\n  display: block;\n  cursor: pointer;\n  top: -2px; }\n  .xgplayer-skin-default .xgplayer-playnext .xgplayer-icon div {\n    position: absolute; }\n  .xgplayer-skin-default .xgplayer-playnext .xgplayer-tips .xgplayer-tip-playnext {\n    display: block; }\n  .xgplayer-skin-default .xgplayer-playnext:hover {\n    opacity: 0.85; }\n    .xgplayer-skin-default .xgplayer-playnext:hover .xgplayer-tips {\n      display: block; }\n\n.lang-is-en .xgplayer-playnext .xgplayer-tips {\n  margin-left: -25px; }\n\n.lang-is-jp .xgplayer-playnext .xgplayer-tips {\n  margin-left: -38px; }\n\n.xgplayer-skin-default .xgplayer-pip {\n  -webkit-order: 9;\n     -moz-box-ordinal-group: 10;\n          order: 9;\n  position: relative;\n  outline: none;\n  display: block;\n  cursor: pointer;\n  height: 20px;\n  top: 8px; }\n  .xgplayer-skin-default .xgplayer-pip .name {\n    text-align: center;\n    font-family: PingFangSC-Regular;\n    font-size: 13px;\n    line-height: 20px;\n    height: 20px;\n    color: rgba(255, 255, 255, .8); }\n    .xgplayer-skin-default .xgplayer-pip .name span {\n      width: 60px;\n      height: 20px;\n      line-height: 20px;\n      background: rgba(0, 0, 0, .38);\n      border-radius: 10px;\n      display: inline-block;\n      vertical-align: middle; }\n\n.xgplayer-skin-default .xgplayer-pip-lay {\n  position: absolute;\n  top: 26px;\n  left: 0;\n  width: 100%;\n  height: 100%;\n  z-index: 130;\n  cursor: pointer;\n  background-color: transparent;\n  display: none; }\n  .xgplayer-skin-default .xgplayer-pip-lay div {\n    width: 100%;\n    height: 100%; }\n\n.xgplayer-skin-default .xgplayer-pip-drag {\n  cursor: move;\n  position: absolute;\n  top: 0;\n  left: 0;\n  width: 100%;\n  height: 26px;\n  line-height: 26px;\n  background-image: linear-gradient(rgba(0, 0, 0, .3), rgba(0, 0, 0, 0));\n  z-index: 130;\n  display: none; }\n\n.xgplayer-skin-default.xgplayer-pip-active {\n  position: fixed;\n  right: 0;\n  bottom: 200px;\n  width: 320px !important;\n  height: 180px !important;\n  z-index: 110 !important; }\n  .xgplayer-skin-default.xgplayer-pip-active .xgplayer-controls {\n    display: none; }\n  .xgplayer-skin-default.xgplayer-pip-active .xgplayer-danmu {\n    display: none; }\n  .xgplayer-skin-default.xgplayer-pip-active .xgplayer-pip-lay {\n    display: block; }\n\n.xgplayer-skin-default.xgplayer-pip-active .xgplayer-pip-drag {\n  display: -webkit-flex;\n  display: -moz-box;\n  display: flex; }\n\n.xgplayer-skin-default.xgplayer-inactive .xgplayer-pip-drag {\n  display: none; }\n\n.lang-is-jp .xgplayer-pip .name span {\n  width: 70px;\n  height: 20px; }\n\n.xgplayer-skin-default .xgplayer-rotate {\n  position: relative;\n  -webkit-order: 10;\n     -moz-box-ordinal-group: 11;\n          order: 10;\n  display: block;\n  cursor: pointer; }\n  .xgplayer-skin-default .xgplayer-rotate .xgplayer-icon {\n    margin-top: 7px;\n    width: 26px; }\n    .xgplayer-skin-default .xgplayer-rotate .xgplayer-icon div {\n      position: absolute; }\n  .xgplayer-skin-default .xgplayer-rotate .xgplayer-tips {\n    margin-left: -22px; }\n    .xgplayer-skin-default .xgplayer-rotate .xgplayer-tips .xgplayer-tip-rotate {\n      display: block; }\n  .xgplayer-skin-default .xgplayer-rotate:hover {\n    opacity: 0.85; }\n    .xgplayer-skin-default .xgplayer-rotate:hover .xgplayer-tips {\n      display: block; }\n\n.lang-is-en .xgplayer-rotate .xgplayer-tips {\n  margin-left: -26px; }\n\n.lang-is-jp .xgplayer-rotate .xgplayer-tips {\n  margin-left: -38px; }\n\n.xgplayer-skin-default .xgplayer-screenshot {\n  -webkit-order: 11;\n     -moz-box-ordinal-group: 12;\n          order: 11;\n  position: relative;\n  outline: none;\n  display: block;\n  cursor: pointer;\n  height: 20px;\n  top: 8px; }\n  .xgplayer-skin-default .xgplayer-screenshot .name {\n    text-align: center;\n    font-family: PingFangSC-Regular;\n    font-size: 13px;\n    line-height: 20px;\n    height: 20px;\n    color: rgba(255, 255, 255, .8); }\n    .xgplayer-skin-default .xgplayer-screenshot .name span {\n      width: 60px;\n      height: 20px;\n      line-height: 20px;\n      background: rgba(0, 0, 0, .38);\n      border-radius: 10px;\n      display: inline-block;\n      vertical-align: middle; }\n\n.lang-is-en .xgplayer-screenshot .name span, .lang-is-jp .xgplayer-screenshot .name span {\n  width: 75px;\n  height: 20px; }\n\n.xgplayer-skin-default .xgplayer-texttrack {\n  -webkit-order: 7;\n     -moz-box-ordinal-group: 8;\n          order: 7;\n  width: 60px;\n  height: 150px;\n  z-index: 18;\n  position: relative;\n  outline: none;\n  display: none;\n  cursor: default;\n  margin-top: -119px; }\n  .xgplayer-skin-default .xgplayer-texttrack ul {\n    display: none;\n    list-style: none;\n    width: 78px;\n    background: rgba(0, 0, 0, .54);\n    border-radius: 1px;\n    position: absolute;\n    bottom: 30px;\n    left: 0;\n    text-align: center;\n    white-space: nowrap;\n    margin-left: -10px;\n    z-index: 26;\n    cursor: pointer; }\n    .xgplayer-skin-default .xgplayer-texttrack ul li {\n      opacity: 0.7;\n      font-family: PingFangSC-Regular;\n      font-size: 11px;\n      color: rgba(255, 255, 255, .8);\n      padding: 6px 13px; }\n      .xgplayer-skin-default .xgplayer-texttrack ul li.selected {\n        color: #fff;\n        opacity: 1; }\n      .xgplayer-skin-default .xgplayer-texttrack ul li:hover {\n        color: #fff;\n        opacity: 1; }\n  .xgplayer-skin-default .xgplayer-texttrack .name {\n    text-align: center;\n    font-family: PingFangSC-Regular;\n    font-size: 13px;\n    line-height: 20px;\n    height: 20px;\n    cursor: pointer;\n    color: rgba(255, 255, 255, .8);\n    position: absolute;\n    bottom: 0;\n    width: 60px;\n    height: 20px;\n    line-height: 20px;\n    background: rgba(0, 0, 0, .38);\n    border-radius: 10px;\n    display: inline-block;\n    vertical-align: middle; }\n\n.xgplayer-skin-default.xgplayer-texttrack-active .xgplayer-texttrack ul {\n  display: block; }\n\n.xgplayer-skin-default.xgplayer-is-texttrack .xgplayer-texttrack {\n  display: block; }\n\n.xgplayer-skin-default .xgplayer-icon {\n  display: block;\n  width: 40px;\n  height: 40px;\n  overflow: hidden;\n  fill: #fff; }\n\n.xgplayer-skin-default .xgplayer-tips {\n  background: rgba(0, 0, 0, .54);\n  border-radius: 1px;\n  display: none;\n  position: absolute;\n  font-family: PingFangSC-Regular;\n  font-size: 11px;\n  color: #fff;\n  padding: 2px 4px;\n  text-align: center;\n  top: -30px;\n  left: 50%;\n  margin-left: -16px;\n  width: auto;\n  white-space: nowrap; }\n\n.xgplayer-skin-default.xgplayer-mobile .xgplayer-tips {\n  display: none !important; }\n\n.xgplayer-skin-default .xgplayer-error {\n  background: #000;\n  display: none;\n  position: absolute;\n  left: 0;\n  top: 0;\n  width: 100%;\n  height: 100%;\n  z-index: 125;\n  font-family: PingFangSC-Regular;\n  font-size: 14px;\n  color: #fff;\n  text-align: center;\n  line-height: 100%;\n  -webkit-justify-content: center;\n     -moz-box-pack: center;\n          justify-content: center;\n  -webkit-align-items: center;\n     -moz-box-align: center;\n          align-items: center; }\n  .xgplayer-skin-default .xgplayer-error .xgplayer-error-refresh {\n    color: #FA1F41;\n    padding: 0 3px;\n    cursor: pointer; }\n  .xgplayer-skin-default .xgplayer-error .xgplayer-error-text {\n    line-height: 18px;\n    margin: auto 6px; }\n\n.xgplayer-skin-default.xgplayer-is-error .xgplayer-error {\n  display: -webkit-flex;\n  display: -moz-box;\n  display: flex; }\n\n.xgplayer-skin-default .xgplayer-memoryplay-spot {\n  position: absolute;\n  height: 32px;\n  left: 10px;\n  bottom: 46px;\n  background: rgba(0, 0, 0, .5);\n  border-radius: 32px;\n  line-height: 32px;\n  color: #ddd;\n  z-index: 15;\n  padding: 0 32px 0 16px; }\n  .xgplayer-skin-default .xgplayer-memoryplay-spot .xgplayer-lasttime {\n    color: red;\n    font-weight: bold; }\n  .xgplayer-skin-default .xgplayer-memoryplay-spot .btn-close {\n    position: absolute;\n    width: 16px;\n    height: 16px;\n    right: 10px;\n    top: 2px;\n    cursor: pointer;\n    color: #fff;\n    font-size: 16px; }\n";
+	styleInject(css$3);
 
 	exports.BasePlugin = BasePlugin;
 	exports.Plugin = Plugin;

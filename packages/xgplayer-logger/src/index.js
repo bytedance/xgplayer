@@ -1,4 +1,4 @@
-import { BasePlugin } from '../../xgplayer/lib/plugin';
+import { BasePlugin } from 'xgplayer';
 import levels from './constants/levels'
 
 const getDefaultConfigs = () => ({
@@ -22,7 +22,7 @@ export default class Logger extends BasePlugin {
 
   setLevel (level) {
     if (Logger.isLevelInvalid(level)) {
-      this._level =
+      this._level = level;
     }
   }
 

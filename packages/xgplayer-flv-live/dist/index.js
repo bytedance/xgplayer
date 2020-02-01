@@ -4,7 +4,7 @@
   (global = global || self, global.FlvLivePlayer = factory(global.Player));
 }(this, (function (Player) { 'use strict';
 
-  Player = Player && Player.hasOwnProperty('default') ? Player['default'] : Player;
+  var Player__default = 'default' in Player ? Player['default'] : Player;
 
   var BROWSER_EVENTS = {
     VISIBILITY_CHANGE: 'VISIBILITY_CHANGE'
@@ -7626,7 +7626,7 @@
     }, {
       key: '_handleNetworkError',
       value: function _handleNetworkError(tag, err) {
-        this._player.emit('error', new Player.Errors('network', this._player.config.url));
+        this._player.emit('error', new Player__default.Errors('network', this._player.config.url));
         this._onError(LOADER_EVENTS$2.LOADER_ERROR, tag, err, true);
       }
     }, {
@@ -7635,7 +7635,7 @@
         if (fatal === undefined) {
           fatal = false;
         }
-        this._player.emit('error', new Player.Errors('parse', this._player.config.url));
+        this._player.emit('error', new Player__default.Errors('parse', this._player.config.url));
         this._onError(DEMUX_EVENTS$2.DEMUX_ERROR, tag, err, fatal);
       }
     }, {
@@ -7702,8 +7702,8 @@
   function _inherits$2(subClass, superClass) { if (typeof superClass !== "function" && superClass !== null) { throw new TypeError("Super expression must either be null or a function, not " + typeof superClass); } subClass.prototype = Object.create(superClass && superClass.prototype, { constructor: { value: subClass, enumerable: false, writable: true, configurable: true } }); if (superClass) Object.setPrototypeOf ? Object.setPrototypeOf(subClass, superClass) : subClass.__proto__ = superClass; }
   var flvAllowedEvents = EVENTS.FlvAllowedEvents;
 
-  var FlvPlayer = function (_Player) {
-    _inherits$2(FlvPlayer, _Player);
+  var FlvPlayer = function (_BasePlugin) {
+    _inherits$2(FlvPlayer, _BasePlugin);
 
     function FlvPlayer(config) {
       _classCallCheck$s(this, FlvPlayer);
@@ -7714,19 +7714,22 @@
       _this.initEvents();
       _this.loaderCompleteTimer = null;
       _this.started = false;
+      _this.play = _this.play.bind(_this);
+      _this.pause = _this.pause.bind(_this);
       // const preloadTime = player.config.preloadTime || 15
       return _this;
     }
 
     _createClass$s(FlvPlayer, [{
-      key: 'start',
-      value: function start() {
+      key: 'beforeInit',
+      value: function beforeInit() {
         if (this.started) {
           return;
         }
+        this.player.url = this.flv.mse.url;
         this.initFlv();
         this.context.init();
-        _get$1(FlvPlayer.prototype.__proto__ || Object.getPrototypeOf(FlvPlayer.prototype), 'start', this).call(this, this.flv.mse.url);
+        _get$1(FlvPlayer.prototype.__proto__ || Object.getPrototypeOf(FlvPlayer.prototype), 'start', this).call(this);
         this.loadData();
         this.started = true;
       }
@@ -7737,9 +7740,9 @@
 
         var player = this;
         flv.once(EVENTS.REMUX_EVENTS.INIT_SEGMENT, function () {
-          Player.util.addClass(player.root, 'xgplayer-is-live');
-          if (!Player.util.findDom(_this2.root, 'xg-live')) {
-            var live = Player.util.createDom('xg-live', '正在直播', {}, 'xgplayer-live');
+          Player.BasePlugin.util.addClass(player.root, 'xgplayer-is-live');
+          if (!Player.BasePlugin.util.findDom(_this2.root, 'xg-live')) {
+            var live = Player.BasePlugin.util.createDom('xg-live', '正在直播', {}, 'xgplayer-live');
             player.controls.appendChild(live);
           }
         });
@@ -7807,6 +7810,9 @@
             _this4.flv.seek(_this4.currentTime);
           }
         });
+
+        this.on('play', this.play);
+        this.on('pause', this.pause);
       }
     }, {
       key: 'initFlv',
@@ -7897,7 +7903,7 @@
     }]);
 
     return FlvPlayer;
-  }(Player);
+  }(Player.BasePlugin);
 
   return FlvPlayer;
 

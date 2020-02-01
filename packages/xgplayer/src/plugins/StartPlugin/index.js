@@ -1,6 +1,7 @@
 import Plugin from '../../plugin'
 import StartPlayIcon from '../assets/startPlay.svg'
 import StartPauseIcon from '../assets/startPause.svg'
+import STATE_CLASS from '../../stateClassMap'
 import './index.scss'
 
 class Start extends Plugin {
@@ -30,10 +31,17 @@ class Start extends Plugin {
       e.preventDefault()
       e.stopPropagation()
       const paused = this.player.paused
-      if (!paused) {
-        this.player.pause()
+      if (!this.player.hasStart) {
+        this.player.start()
+        this.player.once('complete', () => {
+          this.player.play()
+        })
       } else {
-        this.player.play()
+        if (!paused) {
+          this.player.pause()
+        } else {
+          this.player.play()
+        }
       }
     })
   }

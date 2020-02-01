@@ -8967,6 +8967,7 @@
   var HlsAllowedEvents$1 = EVENTS.HlsAllowedEvents;
   var REMUX_EVENTS$4 = EVENTS.REMUX_EVENTS;
   var HLS_EVENTS$2 = EVENTS.HLS_EVENTS;
+  var MSE_EVENTS$1 = EVENTS.MSE_EVENTS;
 
   var HlsVodPlayer = function (_Player) {
     _inherits$3(HlsVodPlayer, _Player);
@@ -8979,10 +8980,9 @@
       _this.hlsOps = {};
       _this.util = Player.util;
       _this.util.deepCopy(_this.hlsOps, options);
-      _this._context = new Context(HlsAllowedEvents$1);
       _this._handleSetCurrentTime = debounce(_this._handleSetCurrentTime.bind(_this), 200);
       _this.onWaiting = _this.onWaiting.bind(_this);
-      _this.started = false;
+      // this.started = false;
       return _this;
     }
 
@@ -9000,7 +9000,7 @@
       value: function play() {
         var _this2 = this;
 
-        return this.video.play().catch(function (e) {
+        return _get$2(HlsVodPlayer.prototype.__proto__ || Object.getPrototypeOf(HlsVodPlayer.prototype), 'play', this).call(this).catch(function (e) {
           if (e && e.code === 20) {
             // fix: chrome The play() request was interrupted by a new load request.
             _this2.once('canplay', function () {
@@ -9010,8 +9010,8 @@
         });
       }
     }, {
-      key: '_initEvents',
-      value: function _initEvents() {
+      key: '__initEvents',
+      value: function __initEvents() {
         var _this3 = this;
 
         this.__core__.once(REMUX_EVENTS$4.INIT_SEGMENT, function () {
@@ -9021,6 +9021,10 @@
 
         this.__core__.once(HLS_EVENTS$2.RETRY_TIME_EXCEEDED, function () {
           _this3.emit('error', new Player.Errors('network', _this3.config.url));
+        });
+
+        this.__core__.on(MSE_EVENTS$1.SOURCE_UPDATE_END, function () {
+          _this3._onSourceUpdateEnd();
         });
 
         this.once('canplay', function () {
@@ -9049,28 +9053,18 @@
         });
       }
     }, {
-      key: 'onWaiting',
-      value: function onWaiting() {
-        var _this5 = this;
+      key: '_onSourceUpdateEnd',
+      value: function _onSourceUpdateEnd() {
+        if (Player.util.hasClass(this.root, 'xgplayer-isloading')) {
+          var _detectBufferGap = this.detectBufferGap(),
+              gap = _detectBufferGap.gap,
+              start = _detectBufferGap.start,
+              method = _detectBufferGap.method;
 
-        var _self = this;
-        _get$2(HlsVodPlayer.prototype.__proto__ || Object.getPrototypeOf(HlsVodPlayer.prototype), 'onWaiting', this).call(this);
-        var retryTime = 10;
-        var timer = setInterval(function () {
-          if (Player.util.hasClass(_self.root, 'xgplayer-isloading')) {
-            var _detectBufferGap = _this5.detectBufferGap(),
-                gap = _detectBufferGap.gap,
-                start = _detectBufferGap.start,
-                method = _detectBufferGap.method;
-
-            if (gap) {
-              _this5.currentTime = Math[method](start);
-            }
+          if (gap) {
+            this.currentTime = Math[method](start);
           }
-          if (retryTime-- <= 0) {
-            clearInterval(timer);
-          }
-        }, 500);
+        }
       }
     }, {
       key: 'start',
@@ -9080,11 +9074,14 @@
         if (!url || this.started) {
           return;
         }
+        if (!this._context) {
+          this._context = new Context(HlsAllowedEvents$1);
+        }
 
         this.__core__ = this._context.registry('HLS_VOD_CONTROLLER', HlsVodController)({ player: this, container: this.video, preloadTime: this.config.preloadTime });
         this._context.init();
         this.__core__.load(url);
-        this._initEvents();
+        this.__initEvents();
 
         this.started = true;
       }
@@ -9106,10 +9103,26 @@
     }, {
       key: 'destroy',
       value: function destroy() {
-        if (this._context) {
-          this._context.destroy();
-        }
-        _get$2(HlsVodPlayer.prototype.__proto__ || Object.getPrototypeOf(HlsVodPlayer.prototype), 'destroy', this).call(this);
+        var _this5 = this;
+
+        return new Promise(function (resolve) {
+          if (_this5.__core__.mse) {
+            _this5.__core__.mse.destroy().then(function () {
+              if (_this5._context) {
+                _this5._context.destroy();
+              }
+              _get$2(HlsVodPlayer.prototype.__proto__ || Object.getPrototypeOf(HlsVodPlayer.prototype), 'destroy', _this5).call(_this5);
+              setTimeout(function () {
+                resolve();
+              }, 50);
+            });
+          } else {
+            _get$2(HlsVodPlayer.prototype.__proto__ || Object.getPrototypeOf(HlsVodPlayer.prototype), 'destroy', _this5).call(_this5);
+            setTimeout(function () {
+              resolve();
+            }, 50);
+          }
+        });
       }
     }, {
       key: 'detectBufferGap',
@@ -9123,7 +9136,7 @@
         for (var i = 0; i < video.buffered.length; i++) {
           var bufferStart = video.buffered.start(i);
           var startGap = bufferStart - this.currentTime;
-          if (startGap > 0.1 && startGap <= 2) {
+          if (startGap > 0.1 && startGap <= 4) {
             result = {
               gap: true,
               start: bufferStart,
@@ -9165,6 +9178,11 @@
           this.play();
         }
         // this.swithURL(url)
+      }
+    }], [{
+      key: 'install',
+      value: function install(name, plugin) {
+        return Player.install(name, plugin);
       }
     }]);
 

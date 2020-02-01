@@ -5,9 +5,8 @@ $startHoverBgColor: rgba(255, 255, 255, 0.5);
 $startHoverFillColor: rgba(255, 255, 255, 0.6);
 .xgplayer{
   .xgplayer-start {
-    display: none;
     border-radius: 50%;
-    display: inline-block;
+    display: none;
     width: 70px;
     height: 70px;
     background: $startBgColor;
@@ -36,6 +35,11 @@ $startHoverFillColor: rgba(255, 255, 255, 0.6);
     }
     &:hover{
       opacity: 0.85;
+    }
+  }
+  &.xgplayer-nostart, &.xgplayer-pause {
+    .xgplayer-start {
+      display: inline-block;
     }
   }
 }
