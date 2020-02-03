@@ -1,11 +1,11 @@
-import {Plugin} from '../../plugin'
+import Plugin from '../../plugin'
 
 class Volume extends Plugin {
   static get pluginName () {
-    return 'Volume'
+    return 'VolumeIcon'
   }
   render () {
-    return `<xgtime></xgtime>`
+    return `<xgtime class="icon"></xgtime>`
   }
 }
 export default Volume

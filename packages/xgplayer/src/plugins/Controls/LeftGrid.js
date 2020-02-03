@@ -9,6 +9,9 @@ class LeftGrid extends Plugin {
     return `
         <left-grid class="left-grid">
         </Left-grid>
+        <center></center>
+        <right-grid class="right-grid">
+        </right-grid>
      `
   }
 }

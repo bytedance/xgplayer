@@ -1,19 +1,44 @@
-.new-xg-controls {
-  position: absolute;
-  display: inline-block;
-  left: 0;
-  bottom: 0;
-  right: 0;
-  height: 40px;
-  z-index: 10px;
-  .left-grid {
-    position: relative;
-    float: left;
-    display:flex;
+.xgplayer {
+  &.xgplayer-inactive {
+    .xgplayer-controls {
+      display: inline-block;
+    }
   }
-  .right-grid {
-    position: relative;
-    float: right;
-    display:flex;
+  .xgplayer-controls {
+    position: absolute;
+    display: none;
+    left: 0;
+    bottom: 0;
+    right: 0;
+    height: 40px;
+    z-index: 10;
+    background-image: linear-gradient(-1deg,rgba(0,0,0,.3),transparent);
+    z-index: 10;
+    .left-grid,  .right-grid {
+      position: relative;
+      float: left;
+      display: flex;
+      height: 100%;
+      width: 100px;
+      background-color: red;
+    }
+    .icon {
+      height: 100%;
+      margin-right: 10px;
+      background-color: gray;
+    }
+    .right-grid {
+      float: right;
+      background-color: blue;
+      .icon {
+        margin-right: 0;
+        margin-left: 10px;
+      }
+    }
+    .center {
+      background-color: green;
+    }
+    
+    .right-grid {}
   }
 }

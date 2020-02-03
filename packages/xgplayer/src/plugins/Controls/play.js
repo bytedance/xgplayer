@@ -1,10 +1,10 @@
-import {Plugin} from '../../plugin'
+import Plugin from '../../plugin'
 class Play extends Plugin {
   static get pluginName () {
-    return 'Play'
+    return 'PlayIcon'
   }
   render () {
-    return `<xgplay></xgplay>`
+    return `<xgplay class="icon"></xgplay>`
   }
 }
 export default Play
