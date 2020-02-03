@@ -4,14 +4,13 @@ import StartPlugin from '../StartPlugin';
 import Miniscreen from '../Controls/mini';
 import Rotate from '../Controls/rotate';
 import PC from '../pc'
+import Keyboard from '../keyboard'
+import Loading from '../loading'
 import sniffer from '../../utils/sniffer';
 
 export default class DefaultPreset {
   constructor () {
-    this.plugins = []
-    this.plugins.push(Replay);
-    this.plugins.push(Poster);
-    this.plugins.push(StartPlugin);
+    this.plugins = [Replay, Poster, StartPlugin, Loading]
 
     this.plugins.push({
       plugin: Miniscreen,
@@ -28,10 +27,10 @@ export default class DefaultPreset {
 
     switch (sniffer.device) {
       case 'pc':
-        this.plugins.push(PC)
+        this.plugins.push(...[Keyboard, PC])
         break;
       default:
-        this.plugins.push(PC)
+        this.plugins.push(...[Keyboard, PC])
     }
     this.ignores = []
   }

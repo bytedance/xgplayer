@@ -30,18 +30,18 @@
 }
 .xgplayer-skin-default.xgplayer-is-live {
   .xgplayer-controls {
-    > *{
-      display: none;
-    }
-    .xgplayer-play,
-    .xgplayer-play-img,
-    .xgplayer-placeholder,
-    .xgplayer-volume,
-    .xgplayer-live,
-    .xgplayer-definition,
-    .xgplayer-cssfullscreen,
-    .xgplayer-fullscreen {
-      display: block;
-    }
+    //> *{
+    //  display: none;
+    //}
+    //.xgplayer-play,
+    //.xgplayer-play-img,
+    //.xgplayer-placeholder,
+    //.xgplayer-volume,
+    //.xgplayer-live,
+    //.xgplayer-definition,
+    //.xgplayer-cssfullscreen,
+    //.xgplayer-fullscreen {
+    //  display: block;
+    //}
   }
 }

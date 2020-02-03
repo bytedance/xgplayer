@@ -123,8 +123,8 @@ class Proxy {
   }
 
   set hasStart (bool) {
-    if (typeof bool === 'boolean' && bool === true && !this._hasStart) {
-      this._hasStart = true
+    if (typeof bool === 'boolean') {
+      this._hasStart = bool
       this.emit('hasstart')
     }
   }

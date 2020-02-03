@@ -4,7 +4,7 @@
   (global = global || self, global.FlvLivePlayer = factory(global.Player));
 }(this, (function (Player) { 'use strict';
 
-  var Player__default = 'default' in Player ? Player['default'] : Player;
+  Player = Player && Player.hasOwnProperty('default') ? Player['default'] : Player;
 
   var BROWSER_EVENTS = {
     VISIBILITY_CHANGE: 'VISIBILITY_CHANGE'
@@ -7098,14 +7098,11 @@
       }
 
       this.configs = Object.assign({}, configs);
-      this.container = this.configs.container;
       this.mediaSource = null;
       this.sourceBuffers = {};
       this.preloadTime = this.configs.preloadTime || 1;
       this.onSourceOpen = this.onSourceOpen.bind(this);
-      this.onTimeUpdate = this.onTimeUpdate.bind(this);
       this.onUpdateEnd = this.onUpdateEnd.bind(this);
-      this.onWaiting = this.onWaiting.bind(this);
     }
 
     _createClass$q(MSE, [{
@@ -7115,23 +7112,11 @@
         this.mediaSource = new self.MediaSource();
         this.mediaSource.addEventListener('sourceopen', this.onSourceOpen);
         this._url = null;
-        this.container.addEventListener('timeupdate', this.onTimeUpdate);
-        this.container.addEventListener('waiting', this.onWaiting);
       }
     }, {
       key: 'resetContext',
       value: function resetContext(newCtx) {
         this._context = newCtx;
-      }
-    }, {
-      key: 'onTimeUpdate',
-      value: function onTimeUpdate() {
-        this.emit('TIME_UPDATE', this.container);
-      }
-    }, {
-      key: 'onWaiting',
-      value: function onWaiting() {
-        this.emit('WAITING', this.container);
       }
     }, {
       key: 'onSourceOpen',
@@ -7369,8 +7354,6 @@
             delete _this3.sourceBuffers[Object.keys(_this3.sourceBuffers)[i]];
           }
 
-          _this3.container.removeEventListener('timeupdate', _this3.onTimeUpdate);
-          _this3.container.removeEventListener('waiting', _this3.onWaiting);
           _this3.mediaSource.removeEventListener('sourceopen', _this3.onSourceOpen);
 
           _this3.endOfStream();
@@ -7378,7 +7361,6 @@
 
           _this3.url = null;
           _this3.configs = {};
-          _this3.container = null;
           _this3.mediaSource = null;
           _this3.sourceBuffers = {};
           _this3.preloadTime = 1;
@@ -7626,7 +7608,7 @@
     }, {
       key: '_handleNetworkError',
       value: function _handleNetworkError(tag, err) {
-        this._player.emit('error', new Player__default.Errors('network', this._player.config.url));
+        this._player.emit('error', new Player.Errors('network', this._player.config.url));
         this._onError(LOADER_EVENTS$2.LOADER_ERROR, tag, err, true);
       }
     }, {
@@ -7635,7 +7617,7 @@
         if (fatal === undefined) {
           fatal = false;
         }
-        this._player.emit('error', new Player__default.Errors('parse', this._player.config.url));
+        this._player.emit('error', new Player.Errors('parse', this._player.config.url));
         this._onError(DEMUX_EVENTS$2.DEMUX_ERROR, tag, err, fatal);
       }
     }, {
@@ -7693,17 +7675,24 @@
 
   var _createClass$s = function () { function defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ("value" in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } } return function (Constructor, protoProps, staticProps) { if (protoProps) defineProperties(Constructor.prototype, protoProps); if (staticProps) defineProperties(Constructor, staticProps); return Constructor; }; }();
 
-  var _get$1 = function get(object, property, receiver) { if (object === null) object = Function.prototype; var desc = Object.getOwnPropertyDescriptor(object, property); if (desc === undefined) { var parent = Object.getPrototypeOf(object); if (parent === null) { return undefined; } else { return get(parent, property, receiver); } } else if ("value" in desc) { return desc.value; } else { var getter = desc.get; if (getter === undefined) { return undefined; } return getter.call(receiver); } };
-
   function _classCallCheck$s(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } }
 
   function _possibleConstructorReturn$2(self, call) { if (!self) { throw new ReferenceError("this hasn't been initialised - super() hasn't been called"); } return call && (typeof call === "object" || typeof call === "function") ? call : self; }
 
   function _inherits$2(subClass, superClass) { if (typeof superClass !== "function" && superClass !== null) { throw new TypeError("Super expression must either be null or a function, not " + typeof superClass); } subClass.prototype = Object.create(superClass && superClass.prototype, { constructor: { value: subClass, enumerable: false, writable: true, configurable: true } }); if (superClass) Object.setPrototypeOf ? Object.setPrototypeOf(subClass, superClass) : subClass.__proto__ = superClass; }
+
   var flvAllowedEvents = EVENTS.FlvAllowedEvents;
+  var BasePlugin = Player.BasePlugin;
 
   var FlvPlayer = function (_BasePlugin) {
     _inherits$2(FlvPlayer, _BasePlugin);
+
+    _createClass$s(FlvPlayer, null, [{
+      key: 'pluginName',
+      get: function get() {
+        return 'flvLive';
+      }
+    }]);
 
     function FlvPlayer(config) {
       _classCallCheck$s(this, FlvPlayer);
@@ -7711,50 +7700,53 @@
       var _this = _possibleConstructorReturn$2(this, (FlvPlayer.__proto__ || Object.getPrototypeOf(FlvPlayer)).call(this, config));
 
       _this.context = new Context(flvAllowedEvents);
-      _this.initEvents();
       _this.loaderCompleteTimer = null;
-      _this.started = false;
       _this.play = _this.play.bind(_this);
       _this.pause = _this.pause.bind(_this);
+      _this.destroy = _this.destroy.bind(_this);
       // const preloadTime = player.config.preloadTime || 15
+      _this.initEvents();
       return _this;
     }
 
     _createClass$s(FlvPlayer, [{
-      key: 'beforeInit',
-      value: function beforeInit() {
-        if (this.started) {
-          return;
-        }
-        this.player.url = this.flv.mse.url;
+      key: 'beforePlayerInit',
+      value: function beforePlayerInit() {
+        var _this2 = this;
+
         this.initFlv();
         this.context.init();
-        _get$1(FlvPlayer.prototype.__proto__ || Object.getPrototypeOf(FlvPlayer.prototype), 'start', this).call(this);
         this.loadData();
-        this.started = true;
+        try {
+          BasePlugin.defineGetterOrSetter(this.player, {
+            '__url': {
+              get: function get() {
+                return _this2.flv.mse.url;
+              }
+            }
+          });
+        } catch (e) {
+          // NOOP
+        }
       }
     }, {
       key: 'initFlvEvents',
       value: function initFlvEvents(flv) {
-        var _this2 = this;
+        var _this3 = this;
 
         var player = this;
         flv.once(EVENTS.REMUX_EVENTS.INIT_SEGMENT, function () {
-          Player.BasePlugin.util.addClass(player.root, 'xgplayer-is-live');
-          if (!Player.BasePlugin.util.findDom(_this2.root, 'xg-live')) {
-            var live = Player.BasePlugin.util.createDom('xg-live', '正在直播', {}, 'xgplayer-live');
-            player.controls.appendChild(live);
-          }
+          BasePlugin.Util.addClass(player.root, 'xgplayer-is-live');
         });
 
         flv.once(EVENTS.LOADER_EVENTS.LOADER_COMPLETE, function () {
           // 直播完成，待播放器播完缓存后发送关闭事件
           if (!player.paused) {
-            _this2.loaderCompleteTimer = setInterval(function () {
+            _this3.loaderCompleteTimer = setInterval(function () {
               var end = player.getBufferedRange()[1];
               if (Math.abs(player.currentTime - end) < 0.5) {
                 player.emit('ended');
-                window.clearInterval(_this2.loaderCompleteTimer);
+                window.clearInterval(_this3.loaderCompleteTimer);
               }
             }, 200);
           } else {
@@ -7765,32 +7757,32 @@
     }, {
       key: 'initFlvBackupEvents',
       value: function initFlvBackupEvents(flv, ctx) {
-        var _this3 = this;
+        var _this4 = this;
 
         var mediaLength = 3;
         flv.on(EVENTS.REMUX_EVENTS.MEDIA_SEGMENT, function () {
           mediaLength -= 1;
           if (mediaLength === 0) {
             // ensure switch smoothly
-            _this3.flv = flv;
-            _this3.mse.resetContext(ctx);
-            _this3.context.destroy();
-            _this3.context = ctx;
+            _this4.flv = flv;
+            _this4.mse.resetContext(ctx);
+            _this4.context.destroy();
+            _this4.context = ctx;
           }
         });
 
         flv.once(EVENTS.LOADER_EVENTS.LOADER_COMPLETE, function () {
           // 直播完成，待播放器播完缓存后发送关闭事件
-          if (!_this3.paused) {
-            _this3.loaderCompleteTimer = setInterval(function () {
-              var end = _this3.getBufferedRange()[1];
-              if (Math.abs(_this3.currentTime - end) < 0.5) {
-                _this3.emit('ended');
-                window.clearInterval(_this3.loaderCompleteTimer);
+          if (!_this4.paused) {
+            _this4.loaderCompleteTimer = setInterval(function () {
+              var end = _this4.getBufferedRange()[1];
+              if (Math.abs(_this4.player.currentTime - end) < 0.5) {
+                _this4.emit('ended');
+                window.clearInterval(_this4.loaderCompleteTimer);
               }
             }, 200);
           } else {
-            _this3.emit('ended');
+            _this4.emit('ended');
           }
         });
 
@@ -7801,23 +7793,24 @@
     }, {
       key: 'initEvents',
       value: function initEvents() {
-        var _this4 = this;
+        var _this5 = this;
 
         this.on('seeking', function () {
-          var time = _this4.currentTime;
-          var range = _this4.getBufferedRange();
+          var time = _this5.player.currentTime;
+          var range = _this5.player.getBufferedRange();
           if (time > range[1] || time < range[0]) {
-            _this4.flv.seek(_this4.currentTime);
+            _this5.flv.seek(_this5.player.currentTime);
           }
         });
 
         this.on('play', this.play);
         this.on('pause', this.pause);
+        this.on('destroy', this.destroy);
       }
     }, {
       key: 'initFlv',
       value: function initFlv() {
-        var flv = this.context.registry('FLV_CONTROLLER', FlvController)(this);
+        var flv = this.context.registry('FLV_CONTROLLER', FlvController)(this.player);
         this.initFlvEvents(flv);
         this.flv = flv;
         this.mse = flv.mse;
@@ -7826,22 +7819,19 @@
     }, {
       key: 'play',
       value: function play() {
-        var _this5 = this;
+        var _this6 = this;
 
-        if (this._hasStart) {
+        if (this.player.played.length) {
           return this._destroy().then(function () {
-            _this5.context = new Context(flvAllowedEvents);
-            _this5.start();
-            return _get$1(FlvPlayer.prototype.__proto__ || Object.getPrototypeOf(FlvPlayer.prototype), 'play', _this5).call(_this5);
+            _this6.context = new Context(flvAllowedEvents);
+            _this6.player.hasStart = false;
+            _this6.player.start();
           });
-        } else {
-          return _get$1(FlvPlayer.prototype.__proto__ || Object.getPrototypeOf(FlvPlayer.prototype), 'play', this).call(this);
         }
       }
     }, {
       key: 'pause',
       value: function pause() {
-        _get$1(FlvPlayer.prototype.__proto__ || Object.getPrototypeOf(FlvPlayer.prototype), 'pause', this).call(this);
         if (this.flv) {
           this.flv.pause();
         }
@@ -7849,7 +7839,7 @@
     }, {
       key: 'loadData',
       value: function loadData() {
-        var time = arguments.length > 0 && arguments[0] !== undefined ? arguments[0] : this.currentTime;
+        var time = arguments.length > 0 && arguments[0] !== undefined ? arguments[0] : this.player.currentTime;
 
         if (this.flv) {
           this.flv.seek(time);
@@ -7858,11 +7848,7 @@
     }, {
       key: 'destroy',
       value: function destroy() {
-        var _this6 = this;
-
-        this._destroy().then(function () {
-          _get$1(FlvPlayer.prototype.__proto__ || Object.getPrototypeOf(FlvPlayer.prototype), 'destroy', _this6).call(_this6);
-        });
+        return this._destroy();
       }
     }, {
       key: '_destroy',
@@ -7903,7 +7889,7 @@
     }]);
 
     return FlvPlayer;
-  }(Player.BasePlugin);
+  }(BasePlugin);
 
   return FlvPlayer;
 

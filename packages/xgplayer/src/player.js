@@ -256,11 +256,12 @@ class Player extends Proxy {
     }
   }
 
-  start (url = this.url) {
+  start (url) {
     // 已经开始初始化播放了 则直接调用play
     if (this.hasStart) {
       return this.play()
     } else {
+
       return pluginsManager.beforeInit(this).then(() => {
         if (!url) {
           url = this.url || this.config.url;
@@ -441,7 +442,9 @@ class Player extends Proxy {
     }
     const { NO_START, PAUSED, ENDED, ERROR, REPLAY, LOADING } = STATE_CLASS
     const clsList = [NO_START, PAUSED, ENDED, ERROR, REPLAY, LOADING];
-    this.removeClass(clsList.join(' '))
+    clsList.forEach((cls) => {
+      this.removeClass(cls)
+    })
     this.addClass(STATE_CLASS.PLAYING)
   }
 

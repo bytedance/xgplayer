@@ -4,9 +4,7 @@ import Player from './player'
 import './skin/style/index.scss'
 import Plugin, { BasePlugin, pluginsManager } from './plugin';
 
-export {
-  Plugin,
-  BasePlugin,
-  pluginsManager,
-  Player as default
-}
+Player.BasePlugin = BasePlugin;
+Player.Plugin = Plugin;
+Player.pluginsManager = pluginsManager;
+export default Player

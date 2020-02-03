@@ -1,41 +1,47 @@
-import { BasePlugin } from 'xgplayer'
+import Player from 'xgplayer'
 import EVENTS from 'xgplayer-transmuxer-constant-events'
 import Context from 'xgplayer-transmuxer-context';
 import FLV from './flv-live'
+
 const flvAllowedEvents = EVENTS.FlvAllowedEvents;
+const { BasePlugin } = Player;
 
 class FlvPlayer extends BasePlugin {
+  static get pluginName () {
+    return 'flvLive'
+  }
   constructor (config) {
     super(config)
     this.context = new Context(flvAllowedEvents)
-    this.initEvents()
     this.loaderCompleteTimer = null
-    this.started = false
     this.play = this.play.bind(this)
     this.pause = this.pause.bind(this)
+    this.destroy = this.destroy.bind(this)
     // const preloadTime = player.config.preloadTime || 15
+    this.initEvents()
   }
 
-  beforeInit () {
-    if (this.started) {
-      return;
-    }
-    this.player.url = this.flv.mse.url
+  beforePlayerInit () {
     this.initFlv()
     this.context.init()
-    super.start()
     this.loadData()
-    this.started = true
+    try {
+      BasePlugin.defineGetterOrSetter(this.player, {
+        '__url': {
+          get: () => {
+            return this.flv.mse.url
+          }
+        }
+      })
+    } catch (e) {
+      // NOOP
+    }
   }
 
   initFlvEvents (flv) {
     const player = this;
     flv.once(EVENTS.REMUX_EVENTS.INIT_SEGMENT, () => {
-      BasePlugin.util.addClass(player.root, 'xgplayer-is-live')
-      if (!BasePlugin.util.findDom(this.root, 'xg-live')) {
-        const live = BasePlugin.util.createDom('xg-live', '正在直播', {}, 'xgplayer-live')
-        player.controls.appendChild(live)
-      }
+      BasePlugin.Util.addClass(player.root, 'xgplayer-is-live')
     })
 
     flv.once(EVENTS.LOADER_EVENTS.LOADER_COMPLETE, () => {
@@ -72,7 +78,7 @@ class FlvPlayer extends BasePlugin {
       if (!this.paused) {
         this.loaderCompleteTimer = setInterval(() => {
           const end = this.getBufferedRange()[1]
-          if (Math.abs(this.currentTime - end) < 0.5) {
+          if (Math.abs(this.player.currentTime - end) < 0.5) {
             this.emit('ended')
             window.clearInterval(this.loaderCompleteTimer)
           }
@@ -89,19 +95,20 @@ class FlvPlayer extends BasePlugin {
 
   initEvents () {
     this.on('seeking', () => {
-      const time = this.currentTime
-      const range = this.getBufferedRange()
+      const time = this.player.currentTime
+      const range = this.player.getBufferedRange()
       if (time > range[1] || time < range[0]) {
-        this.flv.seek(this.currentTime)
+        this.flv.seek(this.player.currentTime)
       }
     })
 
     this.on('play', this.play)
     this.on('pause', this.pause)
+    this.on('destroy', this.destroy)
   }
 
   initFlv () {
-    const flv = this.context.registry('FLV_CONTROLLER', FLV)(this)
+    const flv = this.context.registry('FLV_CONTROLLER', FLV)(this.player)
     this.initFlvEvents(flv)
     this.flv = flv
     this.mse = flv.mse;
@@ -109,34 +116,29 @@ class FlvPlayer extends BasePlugin {
   }
 
   play () {
-    if (this._hasStart) {
+    if (this.player.played.length) {
       return this._destroy().then(() => {
         this.context = new Context(flvAllowedEvents)
-        this.start()
-        return super.play()
+        this.player.hasStart = false;
+        this.player.start()
       })
-    } else {
-      return super.play()
     }
   }
 
   pause () {
-    super.pause()
     if (this.flv) {
       this.flv.pause()
     }
   }
 
-  loadData (time = this.currentTime) {
+  loadData (time = this.player.currentTime) {
     if (this.flv) {
       this.flv.seek(time)
     }
   }
 
   destroy () {
-    this._destroy().then(() => {
-      super.destroy();
-    })
+    return this._destroy()
   }
 
   _destroy () {

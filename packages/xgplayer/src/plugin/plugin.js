@@ -5,10 +5,6 @@
 import pluginsManager from './pluginsManager'
 import BasePlugin from './basePlugin'
 import * as delegate from 'delegate-events'
-import Util from '../utils/util';
-import Sniffer from '../utils/sniffer';
-import Errors from '../error';
-import * as event from '../events';
 
 function _createElement (tag, name) {
   const dom = document.createElement(tag)
