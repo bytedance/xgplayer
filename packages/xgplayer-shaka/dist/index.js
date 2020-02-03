@@ -1935,14 +1935,14 @@
 	    function qf(b) {
 	      b.C.P(.5);var c = { video: {}, player: {} };Qe.forEach(function (b) {
 	        c.video[b] = this.a[b];
-	      }.bind(b));if (b.b.V()) for (var d in Ve) 0 == b.g % Ve[d] && (c.player[d] = b.b[d]());for (var e in Ue) 0 == b.g % Ue[e] && (c.player[e] = b.b[e]());if (d = cast.receiver.CastReceiverManager.getInstance().getSystemVolume()) c.video.volume = d.levels, c.video.muted = d.muted;b.m && (b.g += 1);wf(b, { type: "update", update: c }, b.f);tf(b);
+	      }.bind(b));if (b.b.V()) for (var d in Ve) 0 == b.g % Ve[d] && (c.player[d] = b.b[d]());for (var e in Ue) 0 == b.g % Ue[e] && (c.player[e] = b.b[e]());if (d = cast.receiver.CastReceiverManager.getInstance().getSystemVolume()) c.video.volume = d.level, c.video.muted = d.muted;b.m && (b.g += 1);wf(b, { type: "update", update: c }, b.f);tf(b);
 	    }function tf(b) {
 	      return b.l && (b.a.duration || b.b.V()) ? (xf(b), b.l = !1, !0) : !1;
 	    }
 	    function xf(b) {
 	      var c = { contentId: b.b.ec(), streamType: b.b.V() ? "LIVE" : "BUFFERED", duration: b.a.duration, contentType: "" };uf(b, 0, c);
 	    }q.Ee = function () {
-	      var b = cast.receiver.CastReceiverManager.getInstance().getSystemVolume();b && wf(this, { type: "update", update: { video: { volume: b.levels, muted: b.muted } } }, this.f);wf(this, { type: "event", targetName: "video", event: { type: "volumechange" } }, this.f);
+	      var b = cast.receiver.CastReceiverManager.getInstance().getSystemVolume();b && wf(this, { type: "update", update: { video: { volume: b.level, muted: b.muted } } }, this.f);wf(this, { type: "event", targetName: "video", event: { type: "volumechange" } }, this.f);
 	    };
 	    q.vf = function (b) {
 	      var c = af(b.data);switch (c.type) {case "init":
@@ -1970,7 +1970,7 @@
 	            this.b && uf(this, 0);
 	          }.bind(this));break;case "GET_STATUS":
 	          uf(this, Number(c.requestId));break;case "VOLUME":
-	          d = c.volume;b = d.levels;d = d.muted;var e = this.a.volume,
+	          d = c.volume;b = d.level;d = d.muted;var e = this.a.volume,
 	              f = this.a.muted;null != b && (this.a.volume = Number(b));null != d && (this.a.muted = d);e == this.a.volume && f == this.a.muted || uf(this, 0);break;case "LOAD":
 	          this.g = 0;this.l = this.m = !1;b = c.media;d = c.currentTime;e = this.F(b.contentId);f = c.autoplay || !0;this.s(b.customData);f && (this.a.autoplay = !0);this.b.load(e, d).then(function () {
 	            this.b && xf(this);

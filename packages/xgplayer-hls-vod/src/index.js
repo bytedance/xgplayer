@@ -7,6 +7,7 @@ import HlsVodController from './hls-vod';
 const HlsAllowedEvents = EVENTS.HlsAllowedEvents;
 const REMUX_EVENTS = EVENTS.REMUX_EVENTS;
 const HLS_EVENTS = EVENTS.HLS_EVENTS;
+const MSE_EVENTS = EVENTS.MSE_EVENTS;
 
 class HlsVodPlayer extends Player {
   constructor (options) {
@@ -14,10 +15,9 @@ class HlsVodPlayer extends Player {
     this.hlsOps = {};
     this.util = Player.util;
     this.util.deepCopy(this.hlsOps, options);
-    this._context = new Context(HlsAllowedEvents);
     this._handleSetCurrentTime = debounce(this._handleSetCurrentTime.bind(this), 200)
     this.onWaiting = this.onWaiting.bind(this)
-    this.started = false;
+    // this.started = false;
   }
 
   get currentTime () {
@@ -58,7 +58,7 @@ class HlsVodPlayer extends Player {
     }
   }
   play () {
-    return this.video.play().catch((e) => {
+    return super.play().catch((e) => {
       if (e && e.code === 20) { // fix: chrome The play() request was interrupted by a new load request.
         this.once('canplay', () => {
           this.video.play()
@@ -67,7 +67,7 @@ class HlsVodPlayer extends Player {
     })
   }
 
-  _initEvents () {
+  __initEvents () {
     this.__core__.once(REMUX_EVENTS.INIT_SEGMENT, () => {
       const mse = this.__core__.mse;
       super.start(mse.url);
@@ -77,12 +77,15 @@ class HlsVodPlayer extends Player {
       this.emit('error', new Player.Errors('network', this.config.url))
     })
 
+    this.__core__.on(MSE_EVENTS.SOURCE_UPDATE_END, () => {
+      this._onSourceUpdateEnd();
+    })
+
     this.once('canplay', () => {
       if (this.config.autoplay) {
         this.play()
       }
     });
-
   }
 
   initHlsBackupEvents (hls, ctx) {
@@ -94,7 +97,6 @@ class HlsVodPlayer extends Player {
         this._context.destroy();
         this._context = ctx;
       })
-
     })
 
     hls.once(EVENTS.LOADER_EVENTS.LOADER_ERROR, () => {
@@ -102,32 +104,27 @@ class HlsVodPlayer extends Player {
     })
   }
 
-  onWaiting () {
-    const _self = this;
-    super.onWaiting();
-    let retryTime = 10
-    let timer = setInterval(() => {
-      if (Player.util.hasClass(_self.root, 'xgplayer-isloading')) {
-        const { gap, start, method } = this.detectBufferGap()
-        if (gap) {
-          this.currentTime = Math[method](start);
-        }
+  _onSourceUpdateEnd () {
+    if (Player.util.hasClass(this.root, 'xgplayer-isloading')) {
+      const { gap, start, method } = this.detectBufferGap()
+      if (gap) {
+        this.currentTime = Math[method](start);
       }
-      if (retryTime-- <= 0) {
-        clearInterval(timer)
-      }
-    }, 500)
+    }
   }
 
   start (url = this.config.url) {
     if (!url || this.started) {
       return;
     }
+    if (!this._context) {
+      this._context = new Context(HlsAllowedEvents);
+    }
 
     this.__core__ = this._context.registry('HLS_VOD_CONTROLLER', HlsVodController)({player: this, container: this.video, preloadTime: this.config.preloadTime});
     this._context.init();
     this.__core__.load(url);
-    this._initEvents();
+    this.__initEvents();
 
     this.started = true;
   }
@@ -147,10 +144,24 @@ class HlsVodPlayer extends Player {
   }
 
   destroy () {
-    if (this._context) {
-      this._context.destroy();
-    }
-    super.destroy();
+    return new Promise((resolve) => {
+      if (this.__core__.mse) {
+        this.__core__.mse.destroy().then(() => {
+          if (this._context) {
+            this._context.destroy();
+          }
+          super.destroy();
+          setTimeout(() => {
+            resolve()
+          }, 50)
+        })
+      } else {
+        super.destroy();
+        setTimeout(() => {
+          resolve()
+        }, 50)
+      }
+    })
   }
 
   detectBufferGap () {
@@ -162,7 +173,7 @@ class HlsVodPlayer extends Player {
     for (let i = 0; i < video.buffered.length; i++) {
       const bufferStart = video.buffered.start(i)
       const startGap = bufferStart - this.currentTime;
-      if (startGap > 0.1 && startGap <= 2) {
+      if (startGap > 0.1 && startGap <= 4) {
         result = {
           gap: true,
           start: bufferStart,
@@ -172,6 +183,10 @@ class HlsVodPlayer extends Player {
     }
 
     return result;
+  }
+
+  static install (name, plugin) {
+    return Player.install(name, plugin)
   }
 }
 

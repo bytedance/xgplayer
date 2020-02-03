@@ -9,7 +9,7 @@ import './localPreview';
 import './logger';
 import './memoryPlay';
 import './mobile';
-import './pc';
+import '../plugins/pc';
 import './pip';
 import './play';
 import './playNext';

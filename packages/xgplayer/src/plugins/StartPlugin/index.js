@@ -28,10 +28,17 @@ class Start extends Plugin {
         return;
       }
       const paused = this.player.paused
-      if (!paused) {
-        this.player.pause()
+      if (!this.player.hasStart) {
+        this.player.start()
+        this.player.once('complete', () => {
+          this.player.play()
+        })
       } else {
-        this.player.play()
+        if (!paused) {
+          this.player.pause()
+        } else {
+          this.player.play()
+        }
       }
     })
     this.on([Events.PLAY, Events.PAUSE], () => {

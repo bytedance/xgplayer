@@ -997,14 +997,11 @@
       }
 
       this.configs = Object.assign({}, configs);
-      this.container = this.configs.container;
       this.mediaSource = null;
       this.sourceBuffers = {};
       this.preloadTime = this.configs.preloadTime || 1;
       this.onSourceOpen = this.onSourceOpen.bind(this);
-      this.onTimeUpdate = this.onTimeUpdate.bind(this);
       this.onUpdateEnd = this.onUpdateEnd.bind(this);
-      this.onWaiting = this.onWaiting.bind(this);
     }
 
     _createClass$2(MSE, [{
@@ -1014,23 +1011,11 @@
         this.mediaSource = new self.MediaSource();
         this.mediaSource.addEventListener('sourceopen', this.onSourceOpen);
         this._url = null;
-        this.container.addEventListener('timeupdate', this.onTimeUpdate);
-        this.container.addEventListener('waiting', this.onWaiting);
       }
     }, {
       key: 'resetContext',
       value: function resetContext(newCtx) {
         this._context = newCtx;
-      }
-    }, {
-      key: 'onTimeUpdate',
-      value: function onTimeUpdate() {
-        this.emit('TIME_UPDATE', this.container);
-      }
-    }, {
-      key: 'onWaiting',
-      value: function onWaiting() {
-        this.emit('WAITING', this.container);
       }
     }, {
       key: 'onSourceOpen',
@@ -1268,8 +1253,6 @@
             delete _this3.sourceBuffers[Object.keys(_this3.sourceBuffers)[i]];
           }
 
-          _this3.container.removeEventListener('timeupdate', _this3.onTimeUpdate);
-          _this3.container.removeEventListener('waiting', _this3.onWaiting);
           _this3.mediaSource.removeEventListener('sourceopen', _this3.onSourceOpen);
 
           _this3.endOfStream();
@@ -1277,7 +1260,6 @@
 
           _this3.url = null;
           _this3.configs = {};
-          _this3.container = null;
           _this3.mediaSource = null;
           _this3.sourceBuffers = {};
           _this3.preloadTime = 1;

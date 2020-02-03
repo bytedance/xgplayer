@@ -2,9 +2,9 @@
 * an ui Plugin class
 *
 **/
-import delegate from 'delegate-events'
 import pluginsManager from './pluginsManager'
 import BasePlugin from './basePlugin'
+import * as delegate from 'delegate-events'
 
 function _createElement (tag, name) {
   const dom = document.createElement(tag)
@@ -251,3 +251,8 @@ export default class Plugin extends BasePlugin {
     }
   }
 }
+
+Plugin.Util = BasePlugin.Util
+Plugin.Sniffer = BasePlugin.Sniffer
+Plugin.Errors = BasePlugin.Errors
+Plugin.Event = BasePlugin.Event

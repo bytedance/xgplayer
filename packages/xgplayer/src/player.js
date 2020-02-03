@@ -5,8 +5,9 @@ import Errors from './error'
 import * as Events from './events'
 import Plugin, {pluginsManager, BasePlugin} from './plugin'
 import STATE_CLASS from './stateClassMap'
-import getDefaultPlugins from './plugins'
+import defaultPreset from './plugins/presets/default'
 import getDefaultConfig from './defaultConfig'
+import { usePreset } from './plugin/preset';
 import {
   version
 } from '../package.json'
@@ -15,10 +16,9 @@ const FULLSCREEN_EVENTS = ['fullscreenchange', 'webkitfullscreenchange', 'mozful
 
 class Player extends Proxy {
   constructor (options) {
-    options.plugins = getDefaultPlugins(options)
     super(options)
     this.config = util.deepCopy(getDefaultConfig(), options)
-    console.log(this.config)
+    this.config.presets = [defaultPreset]
     // timer and flags
     this.userTimer = null
     this.waitTimer = null
@@ -31,6 +31,7 @@ class Player extends Proxy {
 
     this._bindEvents()
 
+    this._registerPresets()
     this._registerPlugins()
 
     setTimeout(() => {
@@ -210,10 +211,19 @@ class Player extends Proxy {
         if (plugin.pluginName && ignoresStr.indexOf(plugin.pluginName.toLowerCase()) > -1) {
           return null
         }
+        if (plugin.options) {
+          return pluginsManager.register(this, plugin.plugin, plugin.options)
+        }
         return pluginsManager.register(this, plugin)
       } catch (err) {
         return null
       }
+    })
+  }
+
+  _registerPresets () {
+    this.config.presets.forEach((preset) => {
+      usePreset(this, preset)
     })
   }
 
@@ -249,14 +259,14 @@ class Player extends Proxy {
     util.removeClass(this.root, className)
   }
 
-  start (url = this.url) {
+  start (url) {
     // 已经开始初始化播放了 则直接调用play
     if (this.hasStart) {
-      this.play()
+      return this.play()
     } else {
-      pluginsManager.beforeInit(this).then(() => {
+      return pluginsManager.beforeInit(this).then(() => {
         if (!url) {
-          url = this.url
+          url = this.url || this.config.url;
         }
         this._startInit(url)
       }).catch((e) => {
@@ -442,7 +452,11 @@ class Player extends Proxy {
     if (this.waitTimer) {
       clearTimeout(this.waitTimer)
     }
-    this.removeClass(`${STATE_CLASS.NO_START} ${STATE_CLASS.PAUSED} ${STATE_CLASS.ENDED} ${STATE_CLASS.ERROR} ${STATE_CLASS.REPLAY}`)
+    const { NO_START, PAUSED, ENDED, ERROR, REPLAY, LOADING } = STATE_CLASS
+    const clsList = [NO_START, PAUSED, ENDED, ERROR, REPLAY, LOADING];
+    clsList.forEach((cls) => {
+      this.removeClass(cls)
+    })
     this.addClass(STATE_CLASS.PLAYING)
   }
 
@@ -500,6 +514,30 @@ class Player extends Proxy {
 
   get pip () {
     return util.hasClass(this.root, 'xgplayer-pip-active')
+  }
+
+  /***
+   * TODO
+   * 插件全部迁移完成再做删除
+   */
+  static install (name, descriptor) {
+    if (!Player.plugins) {
+      Player.plugins = {}
+    }
+    if (!Player.plugins[name]) {
+      Player.plugins[name] = descriptor
+    }
+  }
+
+  /***
+   * TODO
+   * 插件全部迁移完成再做删除
+   */
+  static use (name, descriptor) {
+    if (!Player.plugins) {
+      Player.plugins = {}
+    }
+    Player.plugins[name] = descriptor
   }
 }
 
