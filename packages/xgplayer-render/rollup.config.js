@@ -1,6 +1,7 @@
-import babel from 'rollup-plugin-babel';
+const babel  = require('rollup-plugin-babel');
 
-export default {
+
+module.exports = {
   input: 'src/index.js',
   plugins: [
     babel({
@@ -9,12 +10,12 @@ export default {
   ],
   output: [{
     file: 'browser/index.js',
-    format: 'iife',
+    format: 'umd',
     name: 'Render'
   },
-  {
-    file: 'dist/index.js',
-    format: 'esm',
-    name: 'Render'
-  }]
+    {
+      file: 'dist/index.js',
+      format: 'esm',
+      name: 'Render'
+    }]
 };

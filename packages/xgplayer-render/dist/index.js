@@ -90,6 +90,8 @@ function () {
         gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA, gl.RGBA, gl.UNSIGNED_BYTE, data);
       } else if (data instanceof HTMLImageElement) {
         gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA, gl.RGBA, gl.UNSIGNED_BYTE, data);
+      } else if (data instanceof ImageData) {
+        gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA, gl.RGBA, gl.UNSIGNED_BYTE, data);
       }
 
       gl.bindTexture(gl.TEXTURE_2D, null);
@@ -614,7 +616,12 @@ function (_Filter) {
   }, {
     key: "render",
     value: function render(data, width, height) {
-      data = data[0];
+      if (data instanceof ImageData) {
+        data = data.data;
+      } else {
+        data = data[0];
+      }
+
       var gl = this.gl;
       var program = this.program;
       var textureRef = this.inputTextures[0];
@@ -712,17 +719,10 @@ function () {
     }
 
     this.filters = [];
-
-    if (config.opacity !== undefined && !!config.flip) {
-      this.basicFilter = new Basic({
-        opacity: config.opacity,
-        flip: config.flip
-      });
-    } else {
-      this.basicFilter = new Basic({
-        opacity: 1
-      });
-    }
+    this.basicFilter = new Basic({
+      opacity: config.opacity !== undefined ? config.opacity : 1,
+      flip: config.flip || undefined
+    });
 
     if (config.filters) {
       for (var i = 0; i < config.filters.length; i++) {

@@ -1,5 +1,8 @@
-var Render = (function () {
-  'use strict';
+(function (global, factory) {
+  typeof exports === 'object' && typeof module !== 'undefined' ? module.exports = factory() :
+  typeof define === 'function' && define.amd ? define(factory) :
+  (global = global || self, global.Render = factory());
+}(this, (function () { 'use strict';
 
   function _classCallCheck(instance, Constructor) {
     if (!(instance instanceof Constructor)) {
@@ -92,6 +95,8 @@ var Render = (function () {
         } else if (data instanceof HTMLVideoElement) {
           gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA, gl.RGBA, gl.UNSIGNED_BYTE, data);
         } else if (data instanceof HTMLImageElement) {
+          gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA, gl.RGBA, gl.UNSIGNED_BYTE, data);
+        } else if (data instanceof ImageData) {
           gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA, gl.RGBA, gl.UNSIGNED_BYTE, data);
         }
 
@@ -617,7 +622,12 @@ var Render = (function () {
     }, {
       key: "render",
       value: function render(data, width, height) {
-        data = data[0];
+        if (data instanceof ImageData) {
+          data = data.data;
+        } else {
+          data = data[0];
+        }
+
         var gl = this.gl;
         var program = this.program;
         var textureRef = this.inputTextures[0];
@@ -715,17 +725,10 @@ var Render = (function () {
       }
 
       this.filters = [];
-
-      if (config.opacity !== undefined && !!config.flip) {
-        this.basicFilter = new Basic({
-          opacity: config.opacity,
-          flip: config.flip
-        });
-      } else {
-        this.basicFilter = new Basic({
-          opacity: 1
-        });
-      }
+      this.basicFilter = new Basic({
+        opacity: config.opacity !== undefined ? config.opacity : 1,
+        flip: config.flip || undefined
+      });
 
       if (config.filters) {
         for (var i = 0; i < config.filters.length; i++) {
@@ -878,4 +881,4 @@ var Render = (function () {
 
   return Render;
 
-}());
+})));
