@@ -22,12 +22,13 @@
   "babel": {
     "presets": [
       [
-        "@babel/preset-env", {
-        "targets": {
-          "chrome": "60",
-          "ie": "11"
+        "@babel/preset-env",
+        {
+          "targets": {
+            "chrome": "60",
+            "ie": "11"
+          }
         }
-      }
       ]
     ]
   }

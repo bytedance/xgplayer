@@ -26,12 +26,14 @@ class Yuv420 extends Filter {
       'uniform sampler2D uSampler;',
       'uniform sampler2D vSampler;',
       'uniform mat4 yuv2rgb;',
+
       'void main(void) {',
-      '  vec4 colory = texture2D(ySampler, vec2(yTextureCoord.x / 2.0, yTextureCoord.y));',
-      '  vec4 coloru = texture2D(uSampler, vec2(uTextureCoord.x / 4.0, uTextureCoord.y));',
-      '  vec4 colorv = texture2D(vSampler, vec2(vTextureCoord.x / 4.0, vTextureCoord.y));',
-      '  gl_FragColor = vec4(colory[0], coloru[0], colorv[0], 1) * yuv2rgb;',
-      '}'].join('\n');
+      '  highp float y = texture2D(ySampler,  yTextureCoord).r;',
+      '  highp float u = texture2D(uSampler,  uTextureCoord).r;',
+      '  highp float v = texture2D(vSampler,  vTextureCoord).r;',
+      '  gl_FragColor = vec4(y, u, v, 1) * yuv2rgb;',
+      '}'
+    ].join('\n');
   }
 
   init (render) {
@@ -88,29 +90,43 @@ class Yuv420 extends Filter {
     let yTextureRef = this.inputTextures[0];
     let uTextureRef = this.inputTextures[1];
     let vTextureRef = this.inputTextures[2];
-  
-    this.outputTexuture = GLUtil.createTexture(gl, gl.LINEAR, new Uint8Array(width * height * 4), width, height);
+
+    if (this.width !== width || this.height !== height) {
+      this.width = width;
+      this.height = height;
+      this.outputTexuture = GLUtil.createTexture(gl, gl.LINEAR, new Uint8Array(width * height * 4), width, height);
+    }
+
+    if (!this.outputTexuture) {
+      this.outputTexuture = GLUtil.createTexture(gl, gl.LINEAR, new Uint8Array(width * height * 4), width, height);
+    }
+
     gl.bindFramebuffer(gl.FRAMEBUFFER, this.rend.fb);
     gl.framebufferTexture2D(gl.FRAMEBUFFER, gl.COLOR_ATTACHMENT0, gl.TEXTURE_2D, this.outputTexuture, 0);
 
     gl.useProgram(program);
     gl.viewport(0, 0, this.canvas.width, this.canvas.height);
 
+    gl.pixelStorei(gl.UNPACK_ALIGNMENT, 1);
     gl.activeTexture(gl.TEXTURE0);
     gl.bindTexture(gl.TEXTURE_2D, yTextureRef);
-    gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA, width / 2, height / 2, 0, gl.RGBA, gl.UNSIGNED_BYTE, ydata);
+    gl.texImage2D(gl.TEXTURE_2D, 0, gl.LUMINANCE, width, height, 0, gl.LUMINANCE, gl.UNSIGNED_BYTE, ydata);
 
     gl.activeTexture(gl.TEXTURE1);
     gl.bindTexture(gl.TEXTURE_2D, uTextureRef);
-    gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA, width / 2, height / 8, 0, gl.RGBA, gl.UNSIGNED_BYTE, udata);
+    gl.texImage2D(gl.TEXTURE_2D, 0, gl.LUMINANCE, width / 2, height / 2, 0, gl.LUMINANCE, gl.UNSIGNED_BYTE, udata);
 
     gl.activeTexture(gl.TEXTURE2);
     gl.bindTexture(gl.TEXTURE_2D, vTextureRef);
-    gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA, width / 2, height / 8, 0, gl.RGBA, gl.UNSIGNED_BYTE, vdata);
+    gl.texImage2D(gl.TEXTURE_2D, 0, gl.LUMINANCE, width / 2, height / 2, 0, gl.LUMINANCE, gl.UNSIGNED_BYTE, vdata);
 
     gl.drawArrays(gl.TRIANGLE_STRIP, 0, 4);
 
-    return this.outputTexuture;
+    return {
+      texture: this.outputTexuture,
+      width: width,
+      height: height
+    };
   }
 }
 

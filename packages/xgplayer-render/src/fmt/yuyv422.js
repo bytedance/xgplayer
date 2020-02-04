@@ -63,21 +63,35 @@ class Yuyv422 extends Filter {
     let program = this.program;
     let textureRef = this.inputTextures[0];
 
-    this.outputTexuture = GLUtil.createTexture(gl, gl.LINEAR, new Uint8Array(width * height * 4), width, height);
+    if (this.width !== width || this.height !== height) {
+      this.width = width;
+      this.height = height;
+      this.outputTexuture = GLUtil.createTexture(gl, gl.LINEAR, new Uint8Array(width * height * 4), width, height);
+    }
+
+    if (!this.outputTexuture) {
+      this.outputTexuture = GLUtil.createTexture(gl, gl.LINEAR, new Uint8Array(width * height * 4), width, height);
+    }
+
     gl.bindFramebuffer(gl.FRAMEBUFFER, this.rend.fb);
     gl.framebufferTexture2D(gl.FRAMEBUFFER, gl.COLOR_ATTACHMENT0, gl.TEXTURE_2D, this.outputTexuture, 0);
-    
+
     gl.useProgram(program);
     gl.viewport(0, 0, this.canvas.width, this.canvas.height);
 
     gl.uniform2fv(this.pw.outerSize, [width, height]);
 
+    gl.pixelStorei(gl.UNPACK_ALIGNMENT, 1);
     gl.activeTexture(gl.TEXTURE0);
     gl.bindTexture(gl.TEXTURE_2D, textureRef);
     gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA, width / 2, height, 0, gl.RGBA, gl.UNSIGNED_BYTE, data);
     gl.drawArrays(gl.TRIANGLE_STRIP, 0, 4);
 
-    return this.outputTexuture;
+    return {
+      texture: this.outputTexuture,
+      width,
+      height
+    };
   }
 }
 

@@ -1,13 +1,11 @@
-"use strict";
+'use strict';
 
 Object.defineProperty(exports, "__esModule", {
   value: true
 });
-
 const le = function () {
   const buf = new ArrayBuffer(2);
   new DataView(buf).setInt16(0, 256, true); // little-endian write
-
   return new Int16Array(buf)[0] === 256; // platform-spec read, if equal then LE
 }();
 
@@ -16,7 +14,6 @@ const sniffer = {
     let r = sniffer.os;
     return r.isPc ? 'pc' : r.isTablet ? 'tablet' : 'mobile';
   },
-
   get browser() {
     let ua = navigator.userAgent.toLowerCase();
     let reg = {
@@ -28,7 +25,6 @@ const sniffer = {
     };
     return [].concat(Object.keys(reg).filter(key => reg[key].test(ua)))[0];
   },
-
   get os() {
     let ua = navigator.userAgent;
     let isWindowsPhone = /(?:Windows Phone)/.test(ua);
@@ -52,6 +48,6 @@ const sniffer = {
   get isLe() {
     return le;
   }
-
 };
+
 exports.default = sniffer;

@@ -1,4 +1,4 @@
-import Player from 'xgplayer'
+import Player from 'xgplayer';
 import { Context, EVENTS } from 'xgplayer-utils';
 import FLV from './flv-live'
 const flvAllowedEvents = EVENTS.FlvAllowedEvents;

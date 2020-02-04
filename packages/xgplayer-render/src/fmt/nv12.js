@@ -3,7 +3,8 @@ import GLUtil from '../glutil';
 class Nv12 extends Filter {
   constructor (config) {
     super();
-    this.vShader = ['attribute vec4 vertexPos;',
+    this.vShader = [
+      'attribute vec4 vertexPos;',
       'attribute vec2 yTexturePos;',
       'attribute vec2 uvTexturePos;',
       'varying vec2 yTextureCoord;',
@@ -21,8 +22,8 @@ class Nv12 extends Filter {
       'uniform sampler2D uvSampler;',
       'uniform mat4 yuv2rgb;',
       'void main(void) {',
-      '  vec4 colory = texture2D(ySampler, vec2(yTextureCoord.x / 2.0, yTextureCoord.y));', 
-      '  vec4 coloruv = texture2D(uvSampler, vec2(uvTextureCoord.x / 2.0, uvTextureCoord.y));',
+      '  vec4 colory = texture2D(ySampler, yTextureCoord);',
+      '  vec4 coloruv = texture2D(uvSampler, vec2(yTextureCoord.x / 2.0, yTextureCoord.y));',
       '  gl_FragColor = vec4(colory[0], coloruv[0], coloruv[1], 1) * yuv2rgb;',
       '}'].join('\n');
   }
@@ -72,23 +73,36 @@ class Nv12 extends Filter {
     let yTextureRef = this.inputTextures[0];
     let uvTextureRef = this.inputTextures[1];
 
-    this.outputTexuture = GLUtil.createTexture(gl, gl.LINEAR, new Uint8Array(width * height * 4), width, height);
-    gl.bindFramebuffer(gl.FRAMEBUFFER, this.fb);
-    gl.framebufferTexture2D(gl.FRAMEBUFFER, gl.COLOR_ATTACHMENT0, gl.TEXTURE_2D, this.outputTexuture, 0);
-    
-    gl.useProgram(program);
-    gl.viewport(0, 0, this.canvas.width, this.canvas.height);
+    if (this.width !== width || this.height !== height) {
+      this.width = width;
+      this.height = height;
+      this.outputTexuture = GLUtil.createTexture(gl, gl.LINEAR, new Uint8Array(width * height * 4), width, height);
+    }
 
+    if (!this.outputTexuture) {
+      this.outputTexuture = GLUtil.createTexture(gl, gl.LINEAR, new Uint8Array(width * height * 4), width, height);
+    }
+
+    gl.bindFramebuffer(gl.FRAMEBUFFER, this.rend.fb);
+    gl.framebufferTexture2D(gl.FRAMEBUFFER, gl.COLOR_ATTACHMENT0, gl.TEXTURE_2D, this.outputTexuture, 0);
+
+    gl.useProgram(program);
+
+    gl.pixelStorei(gl.UNPACK_ALIGNMENT, 1);
     gl.activeTexture(gl.TEXTURE0);
     gl.bindTexture(gl.TEXTURE_2D, yTextureRef);
-    gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA, width / 2, height / 2, 0, gl.RGBA, gl.UNSIGNED_BYTE, ydata);
+    gl.texImage2D(gl.TEXTURE_2D, 0, gl.LUMINANCE, width, height, 0, gl.LUMINANCE, gl.UNSIGNED_BYTE, ydata);
 
     gl.activeTexture(gl.TEXTURE1);
     gl.bindTexture(gl.TEXTURE_2D, uvTextureRef);
     gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA, width / 2, height / 4, 0, gl.RGBA, gl.UNSIGNED_BYTE, uvdata);
 
     gl.drawArrays(gl.TRIANGLE_STRIP, 0, 4);
-    return this.outputTexuture;
+    return {
+      texture: this.outputTexuture,
+      width,
+      height
+    };
   }
 }
 

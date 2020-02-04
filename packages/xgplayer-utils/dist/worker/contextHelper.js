@@ -1,10 +1,10 @@
-"use strict";
+'use strict';
 
 Object.defineProperty(exports, "__esModule", {
   value: true
 });
 
-var _workerCommands = require("../constants/workerCommands");
+var _workerCommands = require('../constants/workerCommands');
 
 exports.default = self => {
   const emit = (messageName, data) => {

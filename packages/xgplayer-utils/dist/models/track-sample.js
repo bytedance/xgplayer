@@ -4,53 +4,63 @@ Object.defineProperty(exports, "__esModule", {
   value: true
 });
 
-class AudioTrackSample {
-  constructor(info) {
-    let _default = AudioTrackSample.getDefault();
+var _createClass = function () { function defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ("value" in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } } return function (Constructor, protoProps, staticProps) { if (protoProps) defineProperties(Constructor.prototype, protoProps); if (staticProps) defineProperties(Constructor, staticProps); return Constructor; }; }();
 
+function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } }
+
+let AudioTrackSample = exports.AudioTrackSample = function () {
+  function AudioTrackSample(info) {
+    _classCallCheck(this, AudioTrackSample);
+
+    let _default = AudioTrackSample.getDefault();
     if (!info) {
       return _default;
     }
-
     let sample = Object.assign({}, _default, info);
+
     return sample;
   }
 
-  static getDefault() {
-    return {
-      dts: null,
-      pts: null,
-      data: new Uint8Array()
-    };
-  }
+  _createClass(AudioTrackSample, null, [{
+    key: "getDefault",
+    value: function getDefault() {
+      return {
+        dts: null,
+        pts: null,
+        data: new Uint8Array()
+      };
+    }
+  }]);
 
-}
+  return AudioTrackSample;
+}();
 
-exports.AudioTrackSample = AudioTrackSample;
+let VideoTrackSample = exports.VideoTrackSample = function () {
+  function VideoTrackSample(info) {
+    _classCallCheck(this, VideoTrackSample);
 
-class VideoTrackSample {
-  constructor(info) {
     let _default = VideoTrackSample.getDefault();
 
     if (!info) {
       return _default;
     }
-
     let sample = Object.assign({}, _default, info);
+
     return sample;
   }
 
-  static getDefault() {
-    return {
-      dts: null,
-      pts: null,
-      isKeyframe: false,
-      // is Random access point
-      originDts: null,
-      data: new Uint8Array()
-    };
-  }
+  _createClass(VideoTrackSample, null, [{
+    key: "getDefault",
+    value: function getDefault() {
+      return {
+        dts: null,
+        pts: null,
+        isKeyframe: false, // is Random access point
+        originDts: null,
+        data: new Uint8Array()
+      };
+    }
+  }]);
 
-}
-
-exports.VideoTrackSample = VideoTrackSample;
+  return VideoTrackSample;
+}();

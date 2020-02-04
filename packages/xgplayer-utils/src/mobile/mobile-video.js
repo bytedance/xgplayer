@@ -65,6 +65,8 @@ class MobileVideo extends HTMLElement {
       aCtx: this.aCtx,
       video: this
     })
+
+    this.dispatchEvent(new Event('waiting'));
     this.vCtx.oncanplay = () => {
       if (!this.played) {
         this.appendChild(this._canvas);
@@ -129,7 +131,6 @@ class MobileVideo extends HTMLElement {
     const pxVal = typeof val === 'number' ? `${val}px` : val
     this.setAttribute('width', pxVal)
     this.style.width = pxVal
-    this._canvas.style.width = pxVal;
     this._canvas.width = val;
   }
 
@@ -142,7 +143,6 @@ class MobileVideo extends HTMLElement {
     const pxVal = typeof val === 'number' ? `${val}px` : val
     this.setAttribute('height', pxVal)
     this.style.height = pxVal
-    this._canvas.style.height = pxVal;
     this._canvas.height = val;
   }
 
@@ -247,6 +247,7 @@ class MobileVideo extends HTMLElement {
 
       this.pendingPlayTask = null
       this.played = true;
+      this.dispatchEvent(new Event('playing'))
       this.dispatchEvent(new Event('play'))
       this._paused = false
     })
