@@ -1,6 +1,7 @@
-import Plugin from '../../../plugin';
-import util from '../../../utils/util'
-import ReplayIcon from '../../../skin/assets/replay.svg';
+import Plugin from '../../../plugin'
+import './index.scss'
+
+const {Util} = Plugin
 
 class MiniScreen extends Plugin {
   static get pluginName () {
@@ -8,22 +9,22 @@ class MiniScreen extends Plugin {
   }
 
   afterCreate () {
-    this.getPIP = this.getPIP.bind(this)
-    this.exitPIP = this.exitPIP.bind(this)
-    this.bind('.xgplayer-pip', 'click', this.getPIP)
-    this.bind('.xgplayer-pip', 'touchend', this.getPIP)
+    this.getMini = this.getMini.bind(this)
+    this.exitMini = this.exitMini.bind(this)
+    this.bind('click', this.getMini)
+    this.bind('touchend', this.getMini)
   }
 
-  getPIP () {
+  getMini () {
     const _player = this.player;
     // let ro = this.root.getBoundingClientRect()
     // let Top = ro.top
     // let Left = ro.left
-    let dragLay = util.createDom('xg-pip-lay', '<div></div>', {}, 'xgplayer-pip-lay')
+    let dragLay = Util.createDom('xg-pip-lay', '<div></div>', {}, 'xgplayer-pip-lay')
     _player.root.appendChild(dragLay)
-    let dragHandle = util.createDom('xg-pip-drag', '<div class="drag-handle"><span>点击按住可拖动视频</span></div>', {tabindex: 9}, 'xgplayer-pip-drag')
+    let dragHandle = Util.createDom('xg-pip-drag', '<div class="drag-handle"><span>点击按住可拖动视频</span></div>', {tabindex: 9}, 'xgplayer-pip-drag')
     _player.root.appendChild(dragHandle)
-    util.addClass(this.root, 'xgplayer-pip-active')
+    Util.addClass(this.root, 'xgplayer-pip-active')
     _player.root.style.right = 0
     _player.root.style.bottom = '200px'
     _player.root.style.top = ''
@@ -59,16 +60,16 @@ class MiniScreen extends Plugin {
       dragLay.addEventListener(item, (e) => {
         e.preventDefault()
         e.stopPropagation()
-        this.exitPIP()
+        this.exitMini()
         // player.root.style.top = `${Top}px`
         // player.root.style.left = `${Left}px`
       })
     })
   }
 
-  exitPIP () {
+  exitMini () {
     const player = this.player;
-    util.removeClass(this.root, 'xgplayer-pip-active')
+    Util.removeClass(this.root, 'xgplayer-pip-active')
     player.root.style.right = ''
     player.root.style.bottom = ''
     player.root.style.top = ''
@@ -94,26 +95,20 @@ class MiniScreen extends Plugin {
       }
     }
 
-    let dragLay = util.findDom(player.root, '.xgplayer-pip-lay')
+    let dragLay = Util.findDom(player.root, '.xgplayer-pip-lay')
     if (dragLay && dragLay.parentNode) {
       dragLay.parentNode.removeChild(dragLay)
     }
-    let dragHandle = util.findDom(player.root, '.xgplayer-pip-drag')
+    let dragHandle = Util.findDom(player.root, '.xgplayer-pip-drag')
     if (dragHandle && dragHandle.parentNode) {
       dragHandle.parentNode.removeChild(dragHandle)
     }
   }
 
   _destroy () {
-    this.unbind('.xgplayer-pip', 'click', this.getPIP)
-    this.unbind('.xgplayer-pip', 'touchend', this.getPIP)
+    this.unbind('click', this.getMini)
+    this.unbind('touchend', this.getMini)
     super._destroy();
-  }
-
-  registerIcons () {
-    return {
-      'miniscreen': ReplayIcon
-    }
   }
 
   // 扩展语言
@@ -129,7 +124,10 @@ class MiniScreen extends Plugin {
 
   render () {
     let text = this.text.miniscreen
-    return `<xg-pip class="xgplayer-pip" tabindex="9"><p class="name">${text}</p></xg-pip>`
+    return `
+      <xg-icon class="xgplayer-mini">
+       <p class="name"><span>${text}</span></p>
+      </xg-icon>`
   }
 }
 

@@ -24,3 +24,6 @@ export const AUTOPLAY_PREVENTED = 'autoplay_was_prevented'
 export const COMPLETE = 'complete'
 export const DESTROY = 'destroy'
 export const URL_CHANGE = 'urlchange'
+
+// screen change evnets
+export const FULLSCREEN_CHANGE = 'fullscreenchange'

@@ -8,6 +8,7 @@ import STATE_CLASS from './stateClassMap'
 import defaultPreset from './plugins/presets/default'
 import getDefaultConfig from './defaultConfig'
 import { usePreset } from './plugin/preset';
+import Controls from './plugins/controls'
 import {
   version
 } from '../package.json'
@@ -18,6 +19,8 @@ class Player extends Proxy {
   constructor (options) {
     super(options)
     this.config = util.deepCopy(getDefaultConfig(), options)
+    this.config.plugins = [Controls].concat(this.config.plugins)
+    console.log('this.config.plugins', this.config.plugins)
     this.config.presets = [defaultPreset]
     // timer and flags
     this.userTimer = null
@@ -112,10 +115,12 @@ class Player extends Proxy {
       if (fullEl && (fullEl === this._fullscreenEl || fullEl.tagName === 'VIDEO')) {
         this.fullscreen = true
         this.addClass(STATE_CLASS.FULLSCREEN)
+        this.emit(Events.FULLSCREEN_CHANGE, true)
       } else {
         this.fullscreen = false
         this._fullscreenEl = null
         this.removeClass(STATE_CLASS.FULLSCREEN)
+        this.emit(Events.FULLSCREEN_CHANGE, false)
       }
     }
 
@@ -140,18 +145,18 @@ class Player extends Proxy {
       }
     }
     this.once('play', this.playFunc)
-    if (!this.config.closeVideoClick) {
-      ['touched', 'click'].map((key) => {
-        this.root.addEventListener(key, () => {
-          console.log('this.video.addEventListener')
-          if (this.paused) {
-            this.play()
-          } else {
-            this.pause()
-          }
-        })
-      })
-    }
+    // if (!this.config.closeVideoClick) {
+    //   ['touched', 'click'].map((key) => {
+    //     this.video.addEventListener(key, () => {
+    //       console.log('this.video.addEventListener')
+    //       if (this.paused) {
+    //         this.play()
+    //       } else {
+    //         this.pause()
+    //       }
+    //     })
+    //   })
+    // }
     const player = this
     function onDestroy () {
       player.root.removeEventListener('mousemove', player.mousemoveFunc);
@@ -390,7 +395,7 @@ class Player extends Proxy {
   onFocus () {
     this.isActive = true
     let player = this
-    this.removeClass(STATE_CLASS.ACTIVE)
+    this.addClass(STATE_CLASS.ACTIVE)
     if (player.userTimer) {
       clearTimeout(player.userTimer)
     }
@@ -402,7 +407,7 @@ class Player extends Proxy {
 
   onBlur () {
     if (!this.paused && !this.ended) {
-      this.addClass(STATE_CLASS.ACTIVE)
+      this.removeClass(STATE_CLASS.ACTIVE)
     }
   }
 

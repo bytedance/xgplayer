@@ -54,7 +54,6 @@ function registerTextObj (textConfig, plugin) {
     Object.defineProperty(plugin.text, key, {
       get: () => {
         const lang = plugin.playerConfig.lang || 'zh'
-        console.log(textConfig[key][lang])
         return textConfig[key][lang]
       }
     })
@@ -76,7 +75,6 @@ export default class Plugin extends BasePlugin {
 
     this.text = {}
     const defaultTexConfig = this.registerLangauageTexts() || {}
-    console.log('registerLangauageTexts', defaultTexConfig)
     registerTextObj(defaultTexConfig, this)
     let renderStr = ''
     try {
@@ -122,8 +120,15 @@ export default class Plugin extends BasePlugin {
       if (Object.keys(children).length > 0) {
         for (const item of Object.keys(children)) {
           const name = item
-          const c = this._registerPlugin(name, children[item], this.config[name])
-          this._children.push(c)
+          let _plugin = children[name]
+          if (typeof _plugin === 'function') {
+            const c = this._registerPlugin(name, _plugin, this.config[name])
+            this._children.push(c)
+          } else if (typeof _plugin === 'object' && typeof _plugin.plugin === 'function') {
+            const config = _plugin.options ? BasePlugin.Util.deepCopy((this.config[name] || {}), _plugin.options) : (this.config[name] || {})
+            const c = this._registerPlugin(name, _plugin.plugin, config)
+            this._children.push(c)
+          }
         }
       }
     }
@@ -139,7 +144,7 @@ export default class Plugin extends BasePlugin {
 
   _registerPlugin (name, item, options) {
     const opts = (typeof options === 'object' ? options : {})
-    opts.root = this.el
+    opts.root = options.root || this.el
     opts.pluginName = name
     return pluginsManager.register(this.player, item, opts)
   }
@@ -174,7 +179,7 @@ export default class Plugin extends BasePlugin {
     if (arguments.length < 3 && typeof eventType === 'function') {
       this.unbindEL(querySelector, eventType)
     } else if (typeof callback === 'function') {
-      delegate.ubind(this.el, querySelector, eventType, callback, false)
+      delegate.unbind(this.el, querySelector, eventType, callback, false)
     }
   }
 

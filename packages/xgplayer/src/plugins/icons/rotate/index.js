@@ -1,6 +1,6 @@
 import Plugin from '../../../plugin'
 import RotateIcon from '../../assets/rotate.svg'
-import ReplayIcon from '../../../skin/assets/replay.svg';
+import './index.scss'
 
 class Rotate extends Plugin {
   static get pluginName () {
@@ -9,14 +9,20 @@ class Rotate extends Plugin {
 
   afterCreate () {
     this.updateRotateDeg = this.updateRotateDeg.bind(this)
-    this.rotate = this.rotate.bind(this)
-    this.bind('.xgplayer-icon', 'click', this.rotate)
-    this.bind('.xgplayer-icon', 'touchend', this.rotate)
+    this.rotate = this.rotate.bind(this);
+    ['click', 'touchend'].forEach(event => {
+      this.bind('.xgplayer-icon', event, this.rotate)
+    })
+    // this.bind('.xgplayer-icon', 'click', this.rotate)
+    // this.bind('.xgplayer-icon', 'touchend', this.rotate)
   }
 
   _destroy () {
-    this.unbind('.xgplayer-icon', 'click', this.rotate)
-    this.unbind('.xgplayer-icon', 'touchend', this.rotate)
+    ['click', 'touchend'].forEach(event => {
+      this.unbind('.xgplayer-icon', event, this.rotate)
+    })
+    // this.unbind('.xgplayer-icon', 'click', this.rotate)
+    // this.unbind('.xgplayer-icon', 'touchend', this.rotate)
     super._destroy();
   }
 
@@ -111,7 +117,15 @@ class Rotate extends Plugin {
   }
 
   render () {
-    return `<xg-icon class="xgplayer-icon">${RotateIcon}<span class="xgplayer-tip-rotate">${this.text.rotate}</span></xg-icon>`
+    return `
+    <xg-icon class="xgplayer-rotate">
+      <div class="xgplayer-icon">
+        ${RotateIcon}
+      </div>
+      <div class="xg-tips">
+      ${this.text.rotate}
+      </div>
+    </xg-icon>`
   }
 }
 

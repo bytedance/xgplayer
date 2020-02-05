@@ -6,7 +6,6 @@ import Miniscreen from './Controls/mini'
 import Keyboard from './keyboard';
 import Rotate from './Controls/rotate'
 import StartPlugin from './StartPlugin'
-// import Control from './controls'
 /**
  * 根据入参的播放器配置进行默认plugin列表的配置
  * @param {object} playerConfig

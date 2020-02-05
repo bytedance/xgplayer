@@ -1,8 +1,12 @@
 import Plugin from '../../plugin'
+import PlayIcon from '../icons/playIcon'
+import FullScreen from '../icons/fullscreen'
+import TimeIcon from '../icons/timeIcon'
+import VolumeIcon from '../icons/volumeIcon'
+import RotateIcon from '../icons/rotate'
+import MiniScreen from '../icons/miniScreen'
+import Progress from '../icons/progress'
 import './index.scss'
-// import PlayIcon from './play'
-// import NextIcon from './next'
-// import VolumeIcon from './volume'
 
 class Controls extends Plugin {
   static get pluginName () {
@@ -10,29 +14,63 @@ class Controls extends Plugin {
   }
 
   afterCreate () {
-    // this.on('player', 'revrevre')
     console.log('afterCreate')
   }
 
   children () {
-    // const left = this.find('left-grid')
-    // const center = this.find('center')
-    // const right = this.find('right-grid')
+    this.left = this.find('left-grid')
+    this.center = this.find('center')
+    this.right = this.find('right-grid')
+    console.log('center', this.center)
     return {
-      // PlayIcon: {
-      //   plugin: PlayIcon,
-      //   options: {
-      //     index: 0, root: left
-      //   }
-      // },
-      // NextIcon: {
-      //   plugin: NextIcon,
-      //   options: {index: 1, root: left}
-      // },
-      // TimeIcon: {
-      //   plugin: VolumeIcon,
-      //   options: {index: 1, root: left}
-      // }
+      TimeIcon: {
+        plugin: TimeIcon,
+        options: {
+          index: 1,
+          root: this.left
+        }
+      },
+      PlayIcon: {
+        plugin: PlayIcon,
+        options: {
+          index: 0,
+          root: this.left
+        }
+      },
+      FullScreen: {
+        plugin: FullScreen,
+        options: {
+          index: 0,
+          root: this.right
+        }
+      },
+      VolumeIcon: {
+        plugin: VolumeIcon,
+        options: {
+          index: 1,
+          root: this.right
+        }
+      },
+      RotateIcon: {
+        plugin: RotateIcon,
+        options: {
+          index: 1,
+          root: this.right
+        }
+      },
+      MiniScreen: {
+        plugin: MiniScreen,
+        options: {
+          index: 1,
+          root: this.right
+        }
+      },
+      Progress: {
+        plugin: Progress,
+        options: {
+          root: this.center
+        }
+      }
     }
   }
 

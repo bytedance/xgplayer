@@ -59,9 +59,9 @@ class Start extends Plugin {
   }
 
   animate (isShowEnded) {
-    const path = this.find('#path')
-    const pathPlay = this.find('#path_play').getAttribute('d')
-    const pathPause = this.find('#path_pause').getAttribute('d')
+    const path = this.find('.path')
+    const pathPlay = this.find('.path_play').getAttribute('d')
+    const pathPause = this.find('.path_pause').getAttribute('d')
     const paused = this.player.paused
     pasition.animate({
       from: path.getAttribute('d'),
