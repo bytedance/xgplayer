@@ -6,6 +6,7 @@ import Rgb32 from './fmt/rgb32';
 import Rgb24 from './fmt/rgb24';
 import Nv12 from './fmt/nv12';
 import Yuv420 from './fmt/yuv420';
+import I420 from "./fmt/i420";
 import Rgba from './fmt/rgba';
 import Rgb from './fmt/rgb';
 
@@ -60,7 +61,11 @@ class Render {
       case 'YUV420':
         this.fmt = new Yuv420(this);
         break;
+      case 'I420':
+        this.fmt = new I420(this);
+        break;
       default:
+        console.error('format illegal')
         break;
     }
   }
@@ -154,16 +159,16 @@ class Render {
   }
 
   render (data, width, height) {
-    if (this.fmt) {
-      if (this.width !== width || this.height !== height) {
-        this.width = this.canvas.width = width;
-        this.height = this.canvas.height = height;
-      }
+    if(!this.width || !this.height || this.width !==width || this.height !== height) {
+      this.width = width;
+      this.height = height;
+      this.canvas.width = width;
+      this.canvas.height = height;
+    }
 
-      this.gl.viewport(0, 0, this.canvas.width, this.canvas.height);
+    if (this.fmt) {
       this._drawPicture(data, width, height)
     } else if (this.video) {
-      this.gl.viewport(0, 0, this.canvas.width, this.canvas.height);
       this._drawVideo();
     }
   }
