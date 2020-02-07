@@ -4,6 +4,8 @@
 	(global = global || self, global.Player = factory());
 }(this, (function () { 'use strict';
 
+	var commonjsGlobal = typeof globalThis !== 'undefined' ? globalThis : typeof window !== 'undefined' ? window : typeof global !== 'undefined' ? global : typeof self !== 'undefined' ? self : {};
+
 	function createCommonjsModule(fn, module) {
 		return module = { exports: {} }, fn(module, module.exports), module.exports;
 	}
@@ -511,7 +513,7 @@
 	    Object.keys(src).forEach(function (key) {
 	      // eslint-disable-next-line no-undef
 	      if (util.typeOf(src[key]) === 'Object' && !(src[key] instanceof Node)) {
-	        if (!dst[key]) {
+	        if (dst[key] === undefined) {
 	          dst[key] = src[key];
 	        } else {
 	          util.deepCopy(dst[key], src[key]);
@@ -730,7 +732,7 @@
 	var DESTROY = 'destroy';
 	var URL_CHANGE = 'urlchange';
 
-	var event = /*#__PURE__*/Object.freeze({
+	var Events = /*#__PURE__*/Object.freeze({
 		__proto__: null,
 		PLAY: PLAY,
 		PLAYING: PLAYING,
@@ -795,6 +797,11 @@
 	    if (options.loop) {
 	      this.videoConfig.loop = 'loop';
 	    }
+
+	    if (options.defaultPlaybackRate) {
+	      this.videoConfig.defaultPlaybackRate = options.defaultPlaybackRate;
+	    }
+
 	    this.video = util.createDom(this.videoConfig.mediaType, '', this.videoConfig, '');
 	    if (options.autoplay) {
 	      this.video.autoplay = true;
@@ -1340,7 +1347,7 @@
 	BasePlugin.Util = util;
 	BasePlugin.Sniffer = sniffer;
 	BasePlugin.Errors = Errors;
-	BasePlugin.Event = event;
+	BasePlugin.Events = Events;
 
 	/**
 	* a plugins manager to register and search
@@ -2124,8 +2131,8 @@
 	    }
 	  }, {
 	    key: 'show',
-	    value: function show() {
-	      this.el.style.display = '';
+	    value: function show(value) {
+	      this.el.style.display = value !== undefined ? value : 'block';
 	      var cs = window.getComputedStyle(this.el, null);
 	      var cssDisplayValue = cs.getPropertyValue('display');
 	      if (cssDisplayValue === 'none') {
@@ -2220,7 +2227,7 @@
 	  }
 	}
 
-	var css = ".xgplayer-replay {\n  display: none; }\n\n.xgplayer-skin-default .xgplayer-replay {\n  position: absolute;\n  left: 0;\n  top: 0;\n  width: 100%;\n  height: 100%;\n  z-index: 105;\n  display: none;\n  -webkit-justify-content: center;\n     -moz-box-pack: center;\n          justify-content: center;\n  -webkit-align-items: center;\n     -moz-box-align: center;\n          align-items: center;\n  background: rgba(0, 0, 0, .54);\n  -webkit-flex-direction: column;\n     -moz-box-orient: vertical;\n     -moz-box-direction: normal;\n          flex-direction: column; }\n  .xgplayer-skin-default .xgplayer-replay svg {\n    background: rgba(0, 0, 0, .58);\n    border-radius: 100%;\n    cursor: pointer; }\n    .xgplayer-skin-default .xgplayer-replay svg path {\n      -webkit-transform: translate(20px, 21px);\n          -ms-transform: translate(20px, 21px);\n              transform: translate(20px, 21px);\n      fill: #ddd; }\n    .xgplayer-skin-default .xgplayer-replay svg:hover {\n      background: rgba(0, 0, 0, .38); }\n      .xgplayer-skin-default .xgplayer-replay svg:hover path {\n        fill: #fff; }\n  .xgplayer-skin-default .xgplayer-replay .xgplayer-replay-txt {\n    display: inline-block;\n    font-family: PingFangSC-Regular;\n    font-size: 14px;\n    color: #fff;\n    line-height: 34px; }\n\n.xgplayer-skin-default.xgplayer.xgplayer-ended .xgplayer-controls {\n  display: none; }\n\n.xgplayer-skin-default.xgplayer.xgplayer-ended .xgplayer-replay {\n  display: -webkit-flex;\n  display: -moz-box;\n  display: flex; }\n";
+	var css = ".xgplayer-replay {\n  display: none; }\n\n.xgplayer .xgplayer-replay {\n  position: absolute;\n  left: 0;\n  top: 0;\n  width: 100%;\n  height: 100%;\n  z-index: 105;\n  display: none;\n  -webkit-justify-content: center;\n     -moz-box-pack: center;\n          justify-content: center;\n  -webkit-align-items: center;\n     -moz-box-align: center;\n          align-items: center;\n  background: rgba(0, 0, 0, .54);\n  -webkit-flex-direction: column;\n     -moz-box-orient: vertical;\n     -moz-box-direction: normal;\n          flex-direction: column; }\n  .xgplayer .xgplayer-replay svg {\n    background: rgba(0, 0, 0, .58);\n    border-radius: 100%;\n    cursor: pointer; }\n    .xgplayer .xgplayer-replay svg path {\n      -webkit-transform: translate(20px, 21px);\n          -ms-transform: translate(20px, 21px);\n              transform: translate(20px, 21px);\n      fill: #ddd; }\n    .xgplayer .xgplayer-replay svg:hover {\n      background: rgba(0, 0, 0, .38); }\n      .xgplayer .xgplayer-replay svg:hover path {\n        fill: #fff; }\n  .xgplayer .xgplayer-replay .xgplayer-replay-txt {\n    display: inline-block;\n    font-family: PingFangSC-Regular;\n    font-size: 14px;\n    color: #fff;\n    line-height: 34px; }\n\n.xgplayer.xgplayer-ended .xgplayer-controls {\n  display: none; }\n\n.xgplayer.xgplayer-ended .xgplayer-replay {\n  display: -webkit-flex;\n  display: -moz-box;\n  display: flex; }\n";
 	styleInject(css);
 
 	var _createClass$3 = function () { function defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ("value" in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } } return function (Constructor, protoProps, staticProps) { if (protoProps) defineProperties(Constructor.prototype, protoProps); if (staticProps) defineProperties(Constructor, staticProps); return Constructor; }; }();
@@ -2272,7 +2279,7 @@
 	        Plugin.Util.removeClass(_this2.player.root, 'replay');
 	      });
 
-	      this.on(Plugin.Event.ENDED, function () {
+	      this.on(Plugin.Events.ENDED, function () {
 	        if (!_this2.playerConfig.loop) {
 	          Plugin.Util.addClass(_this2.player.root, 'replay');
 	        }
@@ -2331,11 +2338,6 @@
 	      }
 	      return '<xg-poster class="xgplayer-poster" style="background-image:url(' + poster + ')">\n    </xg-poster>';
 	    }
-	  }, {
-	    key: 'beforePlayerInit',
-	    value: function beforePlayerInit() {
-	      console.log('beforePlayerInit');
-	    }
 	  }], [{
 	    key: 'pluginName',
 	    get: function get() {
@@ -2346,11 +2348,862 @@
 	  return Poster;
 	}(Plugin);
 
-	var StartPlayIcon = "<svg xmlns=\"http://www.w3.org/2000/svg\" width=\"70\" height=\"70\" viewBox=\"0 0 70 70\">\n  <path transform=\"scale(0.04,0.04)\" d=\"M576,363L810,512L576,661zM342,214L576,363L576,661L342,810z\"></path>\n</svg>\n";
+	var pasition = createCommonjsModule(function (module, exports) {
+	/**
+	 * pasition v1.0.2 By dntzhang
+	 * Github: https://github.com/AlloyTeam/pasition
+	 * MIT Licensed.
+	 */
 
-	var StartPauseIcon = "<svg xmlns=\"http://www.w3.org/2000/svg\" width=\"70\" height=\"70\" viewBox=\"0 0 70 70\">\n  <path transform=\"scale(0.04 0.04)\" d=\"M598,214h170v596h-170v-596zM256 810v-596h170v596h-170z\"></path>\n</svg>\n";
+	(function (global, factory) {
+	   module.exports = factory() ;
+	}(commonjsGlobal, (function () {
+	var slicedToArray = function () {
+	  function sliceIterator(arr, i) {
+	    var _arr = [];
+	    var _n = true;
+	    var _d = false;
+	    var _e = undefined;
 
-	var css$2 = ".xgplayer .xgplayer-start {\n  border-radius: 50%;\n  display: none;\n  width: 70px;\n  height: 70px;\n  background: rgba(0, 0, 0, .38);\n  overflow: hidden;\n  text-align: center;\n  line-height: 70px;\n  vertical-align: middle;\n  position: absolute;\n  left: 50%;\n  top: 50%;\n  z-index: 115;\n  margin: -35px auto auto -35px;\n  cursor: pointer; }\n  .xgplayer .xgplayer-start div {\n    position: absolute; }\n    .xgplayer .xgplayer-start div svg {\n      fill: rgba(255, 255, 255, .7);\n      margin: 14px; }\n  .xgplayer .xgplayer-start .xgplayer-icon-play {\n    display: block; }\n  .xgplayer .xgplayer-start .xgplayer-icon-pause {\n    display: none; }\n  .xgplayer .xgplayer-start:hover {\n    opacity: 0.85; }\n\n.xgplayer.xgplayer-nostart .xgplayer-start, .xgplayer.xgplayer-pause .xgplayer-start {\n  display: inline-block; }\n\n.xgplayer.xgplayer-playing .xgplayer-start {\n  display: none; }\n  .xgplayer.xgplayer-playing .xgplayer-start .xgplayer-icon-play {\n    display: none; }\n  .xgplayer.xgplayer-playing .xgplayer-start .xgplayer-icon-pause {\n    display: block; }\n\n.xgplayer.xgplayer-pause .xgplayer-start {\n  display: inline-block; }\n  .xgplayer.xgplayer-pause .xgplayer-start .xgplayer-icon-play {\n    display: block; }\n  .xgplayer.xgplayer-pause .xgplayer-start .xgplayer-icon-pause {\n    display: none; }\n\n.xgplayer.replay .xgplayer-start {\n  display: none; }\n  .xgplayer.replay .xgplayer-start .xgplayer-icon-play {\n    display: block; }\n  .xgplayer.replay .xgplayer-start .xgplayer-icon-pause {\n    display: none; }\n";
+	    try {
+	      for (var _i = arr[Symbol.iterator](), _s; !(_n = (_s = _i.next()).done); _n = true) {
+	        _arr.push(_s.value);
+
+	        if (i && _arr.length === i) break;
+	      }
+	    } catch (err) {
+	      _d = true;
+	      _e = err;
+	    } finally {
+	      try {
+	        if (!_n && _i["return"]) _i["return"]();
+	      } finally {
+	        if (_d) throw _e;
+	      }
+	    }
+
+	    return _arr;
+	  }
+
+	  return function (arr, i) {
+	    if (Array.isArray(arr)) {
+	      return arr;
+	    } else if (Symbol.iterator in Object(arr)) {
+	      return sliceIterator(arr, i);
+	    } else {
+	      throw new TypeError("Invalid attempt to destructure non-iterable instance");
+	    }
+	  };
+	}();
+
+	//https://github.com/colinmeinke/svg-arc-to-cubic-bezier
+
+	var TAU = Math.PI * 2;
+
+	var mapToEllipse = function mapToEllipse(_ref, rx, ry, cosphi, sinphi, centerx, centery) {
+	    var x = _ref.x,
+	        y = _ref.y;
+
+	    x *= rx;
+	    y *= ry;
+
+	    var xp = cosphi * x - sinphi * y;
+	    var yp = sinphi * x + cosphi * y;
+
+	    return {
+	        x: xp + centerx,
+	        y: yp + centery
+	    };
+	};
+
+	var approxUnitArc = function approxUnitArc(ang1, ang2) {
+	    var a = 4 / 3 * Math.tan(ang2 / 4);
+
+	    var x1 = Math.cos(ang1);
+	    var y1 = Math.sin(ang1);
+	    var x2 = Math.cos(ang1 + ang2);
+	    var y2 = Math.sin(ang1 + ang2);
+
+	    return [{
+	        x: x1 - y1 * a,
+	        y: y1 + x1 * a
+	    }, {
+	        x: x2 + y2 * a,
+	        y: y2 - x2 * a
+	    }, {
+	        x: x2,
+	        y: y2
+	    }];
+	};
+
+	var vectorAngle = function vectorAngle(ux, uy, vx, vy) {
+	    var sign = ux * vy - uy * vx < 0 ? -1 : 1;
+	    var umag = Math.sqrt(ux * ux + uy * uy);
+	    var vmag = Math.sqrt(ux * ux + uy * uy);
+	    var dot = ux * vx + uy * vy;
+
+	    var div = dot / (umag * vmag);
+
+	    if (div > 1) {
+	        div = 1;
+	    }
+
+	    if (div < -1) {
+	        div = -1;
+	    }
+
+	    return sign * Math.acos(div);
+	};
+
+	var getArcCenter = function getArcCenter(px, py, cx, cy, rx, ry, largeArcFlag, sweepFlag, sinphi, cosphi, pxp, pyp) {
+	    var rxsq = Math.pow(rx, 2);
+	    var rysq = Math.pow(ry, 2);
+	    var pxpsq = Math.pow(pxp, 2);
+	    var pypsq = Math.pow(pyp, 2);
+
+	    var radicant = rxsq * rysq - rxsq * pypsq - rysq * pxpsq;
+
+	    if (radicant < 0) {
+	        radicant = 0;
+	    }
+
+	    radicant /= rxsq * pypsq + rysq * pxpsq;
+	    radicant = Math.sqrt(radicant) * (largeArcFlag === sweepFlag ? -1 : 1);
+
+	    var centerxp = radicant * rx / ry * pyp;
+	    var centeryp = radicant * -ry / rx * pxp;
+
+	    var centerx = cosphi * centerxp - sinphi * centeryp + (px + cx) / 2;
+	    var centery = sinphi * centerxp + cosphi * centeryp + (py + cy) / 2;
+
+	    var vx1 = (pxp - centerxp) / rx;
+	    var vy1 = (pyp - centeryp) / ry;
+	    var vx2 = (-pxp - centerxp) / rx;
+	    var vy2 = (-pyp - centeryp) / ry;
+
+	    var ang1 = vectorAngle(1, 0, vx1, vy1);
+	    var ang2 = vectorAngle(vx1, vy1, vx2, vy2);
+
+	    if (sweepFlag === 0 && ang2 > 0) {
+	        ang2 -= TAU;
+	    }
+
+	    if (sweepFlag === 1 && ang2 < 0) {
+	        ang2 += TAU;
+	    }
+
+	    return [centerx, centery, ang1, ang2];
+	};
+
+	var arcToBezier = function arcToBezier(_ref2) {
+	    var px = _ref2.px,
+	        py = _ref2.py,
+	        cx = _ref2.cx,
+	        cy = _ref2.cy,
+	        rx = _ref2.rx,
+	        ry = _ref2.ry,
+	        _ref2$xAxisRotation = _ref2.xAxisRotation,
+	        xAxisRotation = _ref2$xAxisRotation === undefined ? 0 : _ref2$xAxisRotation,
+	        _ref2$largeArcFlag = _ref2.largeArcFlag,
+	        largeArcFlag = _ref2$largeArcFlag === undefined ? 0 : _ref2$largeArcFlag,
+	        _ref2$sweepFlag = _ref2.sweepFlag,
+	        sweepFlag = _ref2$sweepFlag === undefined ? 0 : _ref2$sweepFlag;
+
+	    var curves = [];
+
+	    if (rx === 0 || ry === 0) {
+	        return [];
+	    }
+
+	    var sinphi = Math.sin(xAxisRotation * TAU / 360);
+	    var cosphi = Math.cos(xAxisRotation * TAU / 360);
+
+	    var pxp = cosphi * (px - cx) / 2 + sinphi * (py - cy) / 2;
+	    var pyp = -sinphi * (px - cx) / 2 + cosphi * (py - cy) / 2;
+
+	    if (pxp === 0 && pyp === 0) {
+	        return [];
+	    }
+
+	    rx = Math.abs(rx);
+	    ry = Math.abs(ry);
+
+	    var lambda = Math.pow(pxp, 2) / Math.pow(rx, 2) + Math.pow(pyp, 2) / Math.pow(ry, 2);
+
+	    if (lambda > 1) {
+	        rx *= Math.sqrt(lambda);
+	        ry *= Math.sqrt(lambda);
+	    }
+
+	    var _getArcCenter = getArcCenter(px, py, cx, cy, rx, ry, largeArcFlag, sweepFlag, sinphi, cosphi, pxp, pyp),
+	        _getArcCenter2 = slicedToArray(_getArcCenter, 4),
+	        centerx = _getArcCenter2[0],
+	        centery = _getArcCenter2[1],
+	        ang1 = _getArcCenter2[2],
+	        ang2 = _getArcCenter2[3];
+
+	    var segments = Math.max(Math.ceil(Math.abs(ang2) / (TAU / 4)), 1);
+
+	    ang2 /= segments;
+
+	    for (var i = 0; i < segments; i++) {
+	        curves.push(approxUnitArc(ang1, ang2));
+	        ang1 += ang2;
+	    }
+
+	    return curves.map(function (curve) {
+	        var _mapToEllipse = mapToEllipse(curve[0], rx, ry, cosphi, sinphi, centerx, centery),
+	            x1 = _mapToEllipse.x,
+	            y1 = _mapToEllipse.y;
+
+	        var _mapToEllipse2 = mapToEllipse(curve[1], rx, ry, cosphi, sinphi, centerx, centery),
+	            x2 = _mapToEllipse2.x,
+	            y2 = _mapToEllipse2.y;
+
+	        var _mapToEllipse3 = mapToEllipse(curve[2], rx, ry, cosphi, sinphi, centerx, centery),
+	            x = _mapToEllipse3.x,
+	            y = _mapToEllipse3.y;
+
+	        return { x1: x1, y1: y1, x2: x2, y2: y2, x: x, y: y };
+	    });
+	};
+
+	//https://github.com/jkroso/parse-svg-path/blob/master/index.js
+	/**
+	 * expected argument lengths
+	 * @type {Object}
+	 */
+
+	var length = { a: 7, c: 6, h: 1, l: 2, m: 2, q: 4, s: 4, t: 2, v: 1, z: 0
+
+	    /**
+	     * segment pattern
+	     * @type {RegExp}
+	     */
+
+	};var segment = /([astvzqmhlc])([^astvzqmhlc]*)/ig;
+
+	/**
+	 * parse an svg path data string. Generates an Array
+	 * of commands where each command is an Array of the
+	 * form `[command, arg1, arg2, ...]`
+	 *
+	 * @param {String} path
+	 * @return {Array}
+	 */
+
+	function parse(path) {
+	    var data = [];
+	    path.replace(segment, function (_, command, args) {
+	        var type = command.toLowerCase();
+	        args = parseValues(args);
+
+	        // overloaded moveTo
+	        if (type == 'm' && args.length > 2) {
+	            data.push([command].concat(args.splice(0, 2)));
+	            type = 'l';
+	            command = command == 'm' ? 'l' : 'L';
+	        }
+
+	        while (true) {
+	            if (args.length == length[type]) {
+	                args.unshift(command);
+	                return data.push(args);
+	            }
+	            if (args.length < length[type]) throw new Error('malformed path data');
+	            data.push([command].concat(args.splice(0, length[type])));
+	        }
+	    });
+	    return data;
+	}
+
+	var number = /-?[0-9]*\.?[0-9]+(?:e[-+]?\d+)?/ig;
+
+	function parseValues(args) {
+	    var numbers = args.match(number);
+	    return numbers ? numbers.map(Number) : [];
+	}
+
+	function shapeBox(shape) {
+	    var minX = shape[0][0],
+	        minY = shape[0][1],
+	        maxX = minX,
+	        maxY = minY;
+	    shape.forEach(function (curve) {
+	        var x1 = curve[0],
+	            x2 = curve[2],
+	            x3 = curve[4],
+	            x4 = curve[6],
+	            y1 = curve[1],
+	            y2 = curve[3],
+	            y3 = curve[5],
+	            y4 = curve[7];
+
+	        minX = Math.min(minX, x1, x2, x3, x4);
+	        minY = Math.min(minY, y1, y2, y3, y4);
+	        maxX = Math.max(maxX, x1, x2, x3, x4);
+	        maxY = Math.max(maxY, y1, y2, y3, y4);
+	    });
+
+	    return [minX, minY, maxX, maxY];
+	}
+
+	function boxDistance(boxA, boxB) {
+	    return Math.sqrt(Math.pow(boxA[0] - boxB[0], 2) + Math.pow(boxA[1] - boxB[1], 2)) + Math.sqrt(Math.pow(boxA[2] - boxB[2], 2) + Math.pow(boxA[3] - boxB[3], 2));
+	}
+
+	function curveDistance(curveA, curveB) {
+	    var x1 = curveA[0],
+	        x2 = curveA[2],
+	        x3 = curveA[4],
+	        x4 = curveA[6],
+	        y1 = curveA[1],
+	        y2 = curveA[3],
+	        y3 = curveA[5],
+	        y4 = curveA[7],
+	        xb1 = curveB[0],
+	        xb2 = curveB[2],
+	        xb3 = curveB[4],
+	        xb4 = curveB[6],
+	        yb1 = curveB[1],
+	        yb2 = curveB[3],
+	        yb3 = curveB[5],
+	        yb4 = curveB[7];
+
+	    return Math.sqrt(Math.pow(xb1 - x1, 2) + Math.pow(yb1 - y1, 2)) + Math.sqrt(Math.pow(xb2 - x2, 2) + Math.pow(yb2 - y2, 2)) + Math.sqrt(Math.pow(xb3 - x3, 2) + Math.pow(yb3 - y3, 2)) + Math.sqrt(Math.pow(xb4 - x4, 2) + Math.pow(yb4 - y4, 2));
+	}
+
+	function sortCurves(curvesA, curvesB) {
+
+	    var arrList = permuteCurveNum(curvesA.length);
+
+	    var list = [];
+	    arrList.forEach(function (arr) {
+	        var distance = 0;
+	        var i = 0;
+	        arr.forEach(function (index) {
+	            distance += curveDistance(curvesA[index], curvesB[i++]);
+	        });
+	        list.push({ index: arr, distance: distance });
+	    });
+
+	    list.sort(function (a, b) {
+	        return a.distance - b.distance;
+	    });
+
+	    var result = [];
+
+	    list[0].index.forEach(function (index) {
+	        result.push(curvesA[index]);
+	    });
+
+	    return result;
+	}
+
+	function sort(pathA, pathB) {
+
+	    var arrList = permuteNum(pathA.length);
+
+	    var list = [];
+	    arrList.forEach(function (arr) {
+	        var distance = 0;
+	        arr.forEach(function (index) {
+	            distance += boxDistance(shapeBox(pathA[index]), shapeBox(pathB[index]));
+	        });
+	        list.push({ index: arr, distance: distance });
+	    });
+
+	    list.sort(function (a, b) {
+	        return a.distance - b.distance;
+	    });
+
+	    var result = [];
+
+	    list[0].index.forEach(function (index) {
+	        result.push(pathA[index]);
+	    });
+
+	    return result;
+	}
+
+	function permuteCurveNum(num) {
+	    var arr = [];
+
+	    for (var i = 0; i < num; i++) {
+	        var indexArr = [];
+	        for (var j = 0; j < num; j++) {
+	            var index = j + i;
+	            if (index > num - 1) index -= num;
+	            indexArr[index] = j;
+	        }
+
+	        arr.push(indexArr);
+	    }
+
+	    return arr;
+	}
+
+	function permuteNum(num) {
+	    var arr = [];
+	    for (var i = 0; i < num; i++) {
+	        arr.push(i);
+	    }
+
+	    return permute(arr);
+	}
+
+	function permute(input) {
+	    var permArr = [],
+	        usedChars = [];
+	    function main(input) {
+	        var i, ch;
+	        for (i = 0; i < input.length; i++) {
+	            ch = input.splice(i, 1)[0];
+	            usedChars.push(ch);
+	            if (input.length == 0) {
+	                permArr.push(usedChars.slice());
+	            }
+	            main(input);
+	            input.splice(i, 0, ch);
+	            usedChars.pop();
+	        }
+	        return permArr;
+	    }
+	    return main(input);
+	}
+
+	var pasition = {};
+	pasition.parser = parse;
+
+	pasition.lerpCurve = function (pathA, pathB, t) {
+
+	    return pasition.lerpPoints(pathA[0], pathA[1], pathB[0], pathB[1], t).concat(pasition.lerpPoints(pathA[2], pathA[3], pathB[2], pathB[3], t)).concat(pasition.lerpPoints(pathA[4], pathA[5], pathB[4], pathB[5], t)).concat(pasition.lerpPoints(pathA[6], pathA[7], pathB[6], pathB[7], t));
+	};
+
+	pasition.lerpPoints = function (x1, y1, x2, y2, t) {
+	    return [x1 + (x2 - x1) * t, y1 + (y2 - y1) * t];
+	};
+
+	pasition.q2b = function (x1, y1, x2, y2, x3, y3) {
+	    return [x1, y1, (x1 + 2 * x2) / 3, (y1 + 2 * y2) / 3, (x3 + 2 * x2) / 3, (y3 + 2 * y2) / 3, x3, y3];
+	};
+
+	pasition.path2shapes = function (path) {
+	    //https://developer.mozilla.org/zh-CN/docs/Web/SVG/Tutorial/Paths
+	    //M = moveto
+	    //L = lineto
+	    //H = horizontal lineto
+	    //V = vertical lineto
+	    //C = curveto
+	    //S = smooth curveto
+	    //Q = quadratic Belzier curve
+	    //T = smooth quadratic Belzier curveto
+	    //A = elliptical Arc
+	    //Z = closepath
+	    //以上所有命令均允许小写字母。大写表示绝对定位，小写表示相对定位(从上一个点开始)。
+	    var cmds = pasition.parser(path),
+	        preX = 0,
+	        preY = 0,
+	        j = 0,
+	        len = cmds.length,
+	        shapes = [],
+	        current = null,
+	        closeX = void 0,
+	        closeY = void 0,
+	        preCX = void 0,
+	        preCY = void 0,
+	        sLen = void 0,
+	        curves = void 0,
+	        lastCurve = void 0;
+
+	    for (; j < len; j++) {
+	        var item = cmds[j];
+	        var action = item[0];
+	        var preItem = cmds[j - 1];
+
+	        switch (action) {
+	            case 'm':
+	                sLen = shapes.length;
+	                shapes[sLen] = [];
+	                current = shapes[sLen];
+	                preX = preX + item[1];
+	                preY = preY + item[2];
+	                break;
+	            case 'M':
+
+	                sLen = shapes.length;
+	                shapes[sLen] = [];
+	                current = shapes[sLen];
+	                preX = item[1];
+	                preY = item[2];
+	                break;
+
+	            case 'l':
+	                current.push([preX, preY, preX, preY, preX, preY, preX + item[1], preY + item[2]]);
+	                preX += item[1];
+	                preY += item[2];
+	                break;
+
+	            case 'L':
+
+	                current.push([preX, preY, item[1], item[2], item[1], item[2], item[1], item[2]]);
+	                preX = item[1];
+	                preY = item[2];
+
+	                break;
+
+	            case 'h':
+
+	                current.push([preX, preY, preX, preY, preX, preY, preX + item[1], preY]);
+	                preX += item[1];
+	                break;
+
+	            case 'H':
+	                current.push([preX, preY, item[1], preY, item[1], preY, item[1], preY]);
+	                preX = item[1];
+	                break;
+
+	            case 'v':
+	                current.push([preX, preY, preX, preY, preX, preY, preX, preY + item[1]]);
+	                preY += item[1];
+	                break;
+
+	            case 'V':
+	                current.push([preX, preY, preX, item[1], preX, item[1], preX, item[1]]);
+	                preY = item[1];
+	                break;
+
+	            case 'C':
+
+	                current.push([preX, preY, item[1], item[2], item[3], item[4], item[5], item[6]]);
+	                preX = item[5];
+	                preY = item[6];
+	                break;
+	            case 'S':
+	                if (preItem[0] === 'C' || preItem[0] === 'c') {
+	                    current.push([preX, preY, preX + preItem[5] - preItem[3], preY + preItem[6] - preItem[4], item[1], item[2], item[3], item[4]]);
+	                } else if (preItem[0] === 'S' || preItem[0] === 's') {
+	                    current.push([preX, preY, preX + preItem[3] - preItem[1], preY + preItem[4] - preItem[2], item[1], item[2], item[3], item[4]]);
+	                }
+	                preX = item[3];
+	                preY = item[4];
+	                break;
+
+	            case 'c':
+	                current.push([preX, preY, preX + item[1], preY + item[2], preX + item[3], preY + item[4], preX + item[5], preY + item[6]]);
+	                preX = preX + item[5];
+	                preY = preY + item[6];
+	                break;
+	            case 's':
+	                if (preItem[0] === 'C' || preItem[0] === 'c') {
+
+	                    current.push([preX, preY, preX + preItem[5] - preItem[3], preY + preItem[6] - preItem[4], preX + item[1], preY + item[2], preX + item[3], preY + item[4]]);
+	                } else if (preItem[0] === 'S' || preItem[0] === 's') {
+	                    current.push([preX, preY, preX + preItem[3] - preItem[1], preY + preItem[4] - preItem[2], preX + item[1], preY + item[2], preX + item[3], preY + item[4]]);
+	                }
+
+	                preX = preX + item[3];
+	                preY = preY + item[4];
+
+	                break;
+	            case 'a':
+	                curves = arcToBezier({
+	                    rx: item[1],
+	                    ry: item[2],
+	                    px: preX,
+	                    py: preY,
+	                    xAxisRotation: item[3],
+	                    largeArcFlag: item[4],
+	                    sweepFlag: item[5],
+	                    cx: preX + item[6],
+	                    cy: preY + item[7]
+	                });
+	                lastCurve = curves[curves.length - 1];
+
+	                curves.forEach(function (curve, index) {
+	                    if (index === 0) {
+	                        current.push([preX, preY, curve.x1, curve.y1, curve.x2, curve.y2, curve.x, curve.y]);
+	                    } else {
+	                        current.push([curves[index - 1].x, curves[index - 1].y, curve.x1, curve.y1, curve.x2, curve.y2, curve.x, curve.y]);
+	                    }
+	                });
+
+	                preX = lastCurve.x;
+	                preY = lastCurve.y;
+
+	                break;
+
+	            case 'A':
+
+	                curves = arcToBezier({
+	                    rx: item[1],
+	                    ry: item[2],
+	                    px: preX,
+	                    py: preY,
+	                    xAxisRotation: item[3],
+	                    largeArcFlag: item[4],
+	                    sweepFlag: item[5],
+	                    cx: item[6],
+	                    cy: item[7]
+	                });
+	                lastCurve = curves[curves.length - 1];
+
+	                curves.forEach(function (curve, index) {
+	                    if (index === 0) {
+	                        current.push([preX, preY, curve.x1, curve.y1, curve.x2, curve.y2, curve.x, curve.y]);
+	                    } else {
+	                        current.push([curves[index - 1].x, curves[index - 1].y, curve.x1, curve.y1, curve.x2, curve.y2, curve.x, curve.y]);
+	                    }
+	                });
+
+	                preX = lastCurve.x;
+	                preY = lastCurve.y;
+
+	                break;
+	            case 'Q':
+	                current.push(pasition.q2b(preX, preY, item[1], item[2], item[3], item[4]));
+	                preX = item[3];
+	                preY = item[4];
+
+	                break;
+	            case 'q':
+	                current.push(pasition.q2b(preX, preY, preX + item[1], preY + item[2], item[3] + preX, item[4] + preY));
+	                preX += item[3];
+	                preY += item[4];
+	                break;
+
+	            case 'T':
+
+	                if (preItem[0] === 'Q' || preItem[0] === 'q') {
+	                    preCX = preX + preItem[3] - preItem[1];
+	                    preCY = preY + preItem[4] - preItem[2];
+	                    current.push(pasition.q2b(preX, preY, preCX, preCY, item[1], item[2]));
+	                } else if (preItem[0] === 'T' || preItem[0] === 't') {
+	                    current.push(pasition.q2b(preX, preY, preX + preX - preCX, preY + preY - preCY, item[1], item[2]));
+	                    preCX = preX + preX - preCX;
+	                    preCY = preY + preY - preCY;
+	                }
+
+	                preX = item[1];
+	                preY = item[2];
+	                break;
+
+	            case 't':
+	                if (preItem[0] === 'Q' || preItem[0] === 'q') {
+	                    preCX = preX + preItem[3] - preItem[1];
+	                    preCY = preY + preItem[4] - preItem[2];
+	                    current.push(pasition.q2b(preX, preY, preCX, preCY, preX + item[1], preY + item[2]));
+	                } else if (preItem[0] === 'T' || preItem[0] === 't') {
+	                    current.push(pasition.q2b(preX, preY, preX + preX - preCX, preY + preY - preCY, preX + item[1], preY + item[2]));
+	                    preCX = preX + preX - preCX;
+	                    preCY = preY + preY - preCY;
+	                }
+
+	                preX += item[1];
+	                preY += item[2];
+	                break;
+
+	            case 'Z':
+	                closeX = current[0][0];
+	                closeY = current[0][1];
+	                current.push([preX, preY, closeX, closeY, closeX, closeY, closeX, closeY]);
+	                break;
+	            case 'z':
+	                closeX = current[0][0];
+	                closeY = current[0][1];
+	                current.push([preX, preY, closeX, closeY, closeX, closeY, closeX, closeY]);
+	                break;
+	        }
+	    }
+
+	    return shapes;
+	};
+
+	pasition._upCurves = function (curves, count) {
+	    var i = 0,
+	        index = 0,
+	        len = curves.length;
+	    for (; i < count; i++) {
+	        curves.push(curves[index].slice(0));
+	        index++;
+	        if (index > len - 1) {
+	            index -= len;
+	        }
+	    }
+	};
+
+	function split(x1, y1, x2, y2, x3, y3, x4, y4, t) {
+	    return {
+	        left: _split(x1, y1, x2, y2, x3, y3, x4, y4, t),
+	        right: _split(x4, y4, x3, y3, x2, y2, x1, y1, 1 - t, true)
+	    };
+	}
+
+	function _split(x1, y1, x2, y2, x3, y3, x4, y4, t, reverse) {
+
+	    var x12 = (x2 - x1) * t + x1;
+	    var y12 = (y2 - y1) * t + y1;
+
+	    var x23 = (x3 - x2) * t + x2;
+	    var y23 = (y3 - y2) * t + y2;
+
+	    var x34 = (x4 - x3) * t + x3;
+	    var y34 = (y4 - y3) * t + y3;
+
+	    var x123 = (x23 - x12) * t + x12;
+	    var y123 = (y23 - y12) * t + y12;
+
+	    var x234 = (x34 - x23) * t + x23;
+	    var y234 = (y34 - y23) * t + y23;
+
+	    var x1234 = (x234 - x123) * t + x123;
+	    var y1234 = (y234 - y123) * t + y123;
+
+	    if (reverse) {
+	        return [x1234, y1234, x123, y123, x12, y12, x1, y1];
+	    }
+	    return [x1, y1, x12, y12, x123, y123, x1234, y1234];
+	}
+
+	pasition._splitCurves = function (curves, count) {
+	    var i = 0,
+	        index = 0;
+
+	    for (; i < count; i++) {
+	        var curve = curves[index];
+	        var cs = split(curve[0], curve[1], curve[2], curve[3], curve[4], curve[5], curve[6], curve[7], 0.5);
+	        curves.splice(index, 1);
+	        curves.splice(index, 0, cs.left, cs.right);
+
+	        index += 2;
+	        if (index >= curves.length - 1) {
+	            index = 0;
+	        }
+	    }
+	};
+
+	function sync(shapes, count) {
+	    var _loop = function _loop(i) {
+	        var shape = shapes[shapes.length - 1];
+	        var newShape = [];
+
+	        shape.forEach(function (curve) {
+	            newShape.push(curve.slice(0));
+	        });
+	        shapes.push(newShape);
+	    };
+
+	    for (var i = 0; i < count; i++) {
+	        _loop();
+	    }
+	}
+
+	pasition.lerp = function (pathA, pathB, t) {
+	    return pasition._lerp(pasition.path2shapes(pathA), pasition.path2shapes(pathB), t);
+	};
+
+	pasition.MIM_CURVES_COUNT = 100;
+
+	pasition._preprocessing = function (pathA, pathB) {
+
+	    var lenA = pathA.length,
+	        lenB = pathB.length,
+	        clonePathA = JSON.parse(JSON.stringify(pathA)),
+	        clonePathB = JSON.parse(JSON.stringify(pathB));
+
+	    if (lenA > lenB) {
+	        sync(clonePathB, lenA - lenB);
+	    } else if (lenA < lenB) {
+	        sync(clonePathA, lenB - lenA);
+	    }
+
+	    clonePathA = sort(clonePathA, clonePathB);
+
+	    clonePathA.forEach(function (curves, index) {
+
+	        var lenA = curves.length,
+	            lenB = clonePathB[index].length;
+
+	        if (lenA > lenB) {
+	            if (lenA < pasition.MIM_CURVES_COUNT) {
+	                pasition._splitCurves(curves, pasition.MIM_CURVES_COUNT - lenA);
+	                pasition._splitCurves(clonePathB[index], pasition.MIM_CURVES_COUNT - lenB);
+	            } else {
+	                pasition._splitCurves(clonePathB[index], lenA - lenB);
+	            }
+	        } else if (lenA < lenB) {
+	            if (lenB < pasition.MIM_CURVES_COUNT) {
+	                pasition._splitCurves(curves, pasition.MIM_CURVES_COUNT - lenA);
+	                pasition._splitCurves(clonePathB[index], pasition.MIM_CURVES_COUNT - lenB);
+	            } else {
+	                pasition._splitCurves(curves, lenB - lenA);
+	            }
+	        }
+	    });
+
+	    clonePathA.forEach(function (curves, index) {
+	        clonePathA[index] = sortCurves(curves, clonePathB[index]);
+	    });
+
+	    return [clonePathA, clonePathB];
+	};
+
+	pasition._lerp = function (pathA, pathB, t) {
+
+	    var shapes = [];
+	    pathA.forEach(function (curves, index) {
+	        var newCurves = [];
+	        curves.forEach(function (curve, curveIndex) {
+	            newCurves.push(pasition.lerpCurve(curve, pathB[index][curveIndex], t));
+	        });
+	        shapes.push(newCurves);
+	    });
+	    return shapes;
+	};
+
+	pasition.animate = function (option) {
+	    var pathA = pasition.path2shapes(option.from);
+	    var pathB = pasition.path2shapes(option.to);
+	    var pathArr = pasition._preprocessing(pathA, pathB);
+
+	    var beginTime = new Date(),
+	        end = option.end || function () {},
+	        progress = option.progress || function () {},
+	        begin = option.begin || function () {},
+	        easing = option.easing || function (v) {
+	        return v;
+	    },
+	        tickId = null,
+	        outShape = null,
+	        time = option.time;
+
+	    begin(pathA);
+
+	    var tick = function tick() {
+	        var dt = new Date() - beginTime;
+	        if (dt >= time) {
+	            outShape = pathB;
+	            progress(outShape, 1);
+	            end(outShape);
+	            cancelAnimationFrame(tickId);
+	            return;
+	        }
+	        var percent = easing(dt / time);
+	        outShape = pasition._lerp(pathArr[0], pathArr[1], percent);
+	        progress(outShape, percent);
+	        tickId = requestAnimationFrame(tick);
+	    };
+	    tick();
+	};
+
+	return pasition;
+
+	})));
+	});
+
+	var StartIcon = "<svg xmlns=\"http://www.w3.org/2000/svg\" width=\"70\" height=\"70\" viewBox=\"0 0 70 70\">\n<defs>\n  <path id=\"path_play\" transform=\"scale(0.04,0.04)\" d=\"M576,363L810,512L576,661zM342,214L576,363L576,661L342,810z\"></path>\n  <path id=\"path_pause\" transform=\"scale(0.04 0.04)\" d=\"M598,214h170v596h-170v-596zM256 810v-596h170v596h-170z\"></path>\n</defs>\n<path id=\"path\" transform=\"scale(0.04 0.04)\" d=\"M576,363L810,512L576,661zM342,214L576,363L576,661L342,810z\"></path>\n</svg>\n";
+
+	var css$2 = "@-webkit-keyframes playPause {\n  0% {\n    -webkit-transform: scale(1);\n            transform: scale(1);\n    opacity: 1; }\n  99% {\n    -webkit-transform: scale(1.3);\n            transform: scale(1.3);\n    opacity: 0; }\n  to {\n    -webkit-transform: scale(0);\n            transform: scale(0);\n    opacity: 1; } }\n\n@keyframes playPause {\n  0% {\n    -webkit-transform: scale(1);\n            transform: scale(1);\n    opacity: 1; }\n  99% {\n    -webkit-transform: scale(1.3);\n            transform: scale(1.3);\n    opacity: 0; }\n  to {\n    -webkit-transform: scale(0);\n            transform: scale(0);\n    opacity: 1; } }\n\n.xgplayer .xgplayer-start {\n  border-radius: 50%;\n  display: none;\n  width: 70px;\n  height: 70px;\n  background: rgba(0, 0, 0, .38);\n  overflow: hidden;\n  text-align: center;\n  line-height: 70px;\n  vertical-align: middle;\n  position: absolute;\n  left: 50%;\n  top: 50%;\n  z-index: 115;\n  margin: -35px auto auto -35px;\n  cursor: pointer; }\n  .xgplayer .xgplayer-start svg {\n    fill: rgba(255, 255, 255, .7);\n    margin: 14px; }\n  .xgplayer .xgplayer-start:hover {\n    opacity: 0.85; }\n  .xgplayer .xgplayer-start.interact {\n    -webkit-animation: playPause .4s ease-out forwards;\n            animation: playPause .4s ease-out forwards; }\n";
 	styleInject(css$2);
 
 	var _createClass$5 = function () { function defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ("value" in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } } return function (Constructor, protoProps, staticProps) { if (protoProps) defineProperties(Constructor.prototype, protoProps); if (staticProps) defineProperties(Constructor, staticProps); return Constructor; }; }();
@@ -2360,6 +3213,9 @@
 	function _possibleConstructorReturn$3(self, call) { if (!self) { throw new ReferenceError("this hasn't been initialised - super() hasn't been called"); } return call && (typeof call === "object" || typeof call === "function") ? call : self; }
 
 	function _inherits$3(subClass, superClass) { if (typeof superClass !== "function" && superClass !== null) { throw new TypeError("Super expression must either be null or a function, not " + typeof superClass); } subClass.prototype = Object.create(superClass && superClass.prototype, { constructor: { value: subClass, enumerable: false, writable: true, configurable: true } }); if (superClass) Object.setPrototypeOf ? Object.setPrototypeOf(subClass, superClass) : subClass.__proto__ = superClass; }
+
+	var Util = Plugin.Util,
+	    Events$1 = Plugin.Events;
 
 	var Start = function (_Plugin) {
 	  _inherits$3(Start, _Plugin);
@@ -2375,14 +3231,11 @@
 	    value: function afterCreate() {
 	      var _this2 = this;
 
-	      var Util = Plugin.Util;
 	      var player = this.player,
 	          root = this.root,
 	          playerConfig = this.playerConfig;
 
-	      Util.addClass(root, 'xgplayer-skin-default');
-	      this.once('ready', function () {
-	        // Util.addClass(root, 'xgplayer-skin-default')
+	      this.once(Events$1.READY, function () {
 	        if (playerConfig) {
 	          if (playerConfig.lang && playerConfig.lang === 'en') {
 	            Util.addClass(root, 'lang-is-en');
@@ -2393,11 +3246,11 @@
 	      });
 
 	      this.bind('click', function (e) {
+	        e.preventDefault();
+	        e.stopPropagation();
 	        if (!player.isReady) {
 	          return;
 	        }
-	        e.preventDefault();
-	        e.stopPropagation();
 	        var paused = _this2.player.paused;
 	        if (!_this2.player.hasStart) {
 	          _this2.player.start();
@@ -2412,24 +3265,61 @@
 	          }
 	        }
 	      });
+	      this.on([Events$1.PLAY, Events$1.PAUSE], function () {
+	        // this.setInterval()
+	        _this2.animate();
+	      });
+	      this.on(Events$1.AUTOPLAY_PREVENTED, function () {
+	        _this2.show('inline-block');
+	        // this.clearInterval()
+	        _this2.animate(true);
+	      });
 	    }
 	  }, {
 	    key: 'registerIcons',
 	    value: function registerIcons() {
 	      return {
-	        'startPlayIcon': StartPlayIcon,
-	        'startPauseIcon': StartPauseIcon
+	        'start': StartIcon
 	      };
+	    }
+	  }, {
+	    key: 'animate',
+	    value: function animate(isShowEnded) {
+	      var _this3 = this;
+
+	      var path = this.find('#path');
+	      var pathPlay = this.find('#path_play').getAttribute('d');
+	      var pathPause = this.find('#path_pause').getAttribute('d');
+	      var paused = this.player.paused;
+	      pasition.animate({
+	        from: path.getAttribute('d'),
+	        to: paused ? pathPause : pathPlay,
+	        time: 400,
+	        begin: function begin(shapes) {
+	          _this3.show();
+	          Util.addClass(_this3.el, 'interact');
+	        },
+	        end: function end(shapes) {
+	          Util.removeClass(_this3.el, 'interact');
+	          if (!_this3.player.paused) {
+	            _this3.hide();
+	            path.setAttribute('d', pathPause);
+	          } else {
+	            !_this3.config.isShowPause && !isShowEnded && _this3.hide();
+	            path.setAttribute('d', pathPlay);
+	          }
+	        }
+	      });
 	    }
 	  }, {
 	    key: 'render',
 	    value: function render() {
-	      return '\n    <xg-start class="xgplayer-start">\n      <div class="xgplayer-icon-play">\n      ' + this.icons.startPlayIcon + '\n      </div>\n      <div class="xgplayer-icon-pause">\n      ' + this.icons.startPauseIcon + '\n      </div>\n    </xg-start>';
+	      return '\n    <xg-start class="xgplayer-start" >\n      ' + this.icons.start + '\n    </xg-start>';
 	    }
 	  }], [{
 	    key: 'pluginName',
 	    get: function get() {
-	      return 'start';
+	      return 'startplugin';
 	    }
 	  }]);
 
@@ -3097,6 +3987,42 @@
 	  this.ignores = [];
 	};
 
+	function getDefaultConfig() {
+	  return {
+	    id: '', // 播放器容器id
+	    el: null, // 播放器容器dom
+	    url: '', // 播放url
+	    width: 600, // 播放器宽度,单位px
+	    height: 337.5, // 播放器高度,单位px
+	    fluid: false, // 是否启用流式布局
+	    fitVideoSize: 'auto', // fixWidth/fixHeight/auto
+	    volume: 0.6, // 默认音量
+	    autoplay: false, // 是否自动播放
+	    autoplayMuted: false, // 是否自动静音
+	    loop: false, // 是否循环播放
+	    videoInit: false, // 是否优先显示视频首帧， mobile模式下无效
+	    poster: '', // 封面图地址
+	    defaultPlaybackRate: 0, // 默认播放倍数
+	    playbackRate: [], // 倍速调控档位，参考[0.5, 0.75, 1, 1.5, 2]
+	    execBeforePluginsCall: null, // 默认插件组装前回调
+	    closeVideoClick: false, // 是否通过video的click/touchend行为切换播放暂停
+	    closeVideoDblclick: false, // 是否通过双击行为触发全屏切换
+	    closePlayerBlur: false, // 是个否启用鼠标移动激活行为
+	    leavePlayerTime: 0, // 延迟触发时间
+	    closePlayVideoFocus: false, // 是否关闭play时触发focus
+	    closeFocusVideoFocus: false, // 是否支持播放器移动鼠标时触发focus
+	    closeControlsBlur: false, // 鼠标移出播放器控制条范围时触发focus事件
+	    videoAttrbutes: {}, // video扩展属性
+	    // 是否删除
+	    ignores: [],
+	    whitelist: [],
+	    inactive: 3000,
+	    lang: (document.documentElement.getAttribute('lang') || navigator.language || 'zh-cn').toLocaleLowerCase(),
+	    controls: true,
+	    controlsList: []
+	  };
+	}
+
 	function _toConsumableArray(arr) { if (Array.isArray(arr)) { for (var i = 0, arr2 = Array(arr.length); i < arr.length; i++) { arr2[i] = arr[i]; } return arr2; } else { return Array.from(arr); } }
 
 	var usePreset = function usePreset(player, Preset) {
@@ -3146,25 +4072,15 @@
 
 	    var _this = _possibleConstructorReturn$9(this, (Player.__proto__ || Object.getPrototypeOf(Player)).call(this, options));
 
-	    _this.config = util.deepCopy({
-	      width: 600,
-	      height: 337.5,
-	      ignores: [],
-	      plugins: [],
-	      presets: [DefaultPreset],
-	      whitelist: [],
-	      lang: (document.documentElement.getAttribute('lang') || navigator.language || 'zh-cn').toLocaleLowerCase(),
-	      inactive: 3000,
-	      volume: 0.6,
-	      controls: true,
-	      controlsList: ['nodownload']
-	    }, options);
+	    _this.config = util.deepCopy(getDefaultConfig(), options);
+	    _this.config.presets = [DefaultPreset];
 	    // timer and flags
 	    _this.userTimer = null;
 	    _this.waitTimer = null;
 	    _this.isProgressMoving = false;
 	    _this.isReady = false;
 	    _this.isPlaying = false;
+	    _this.isActive = true;
 
 	    _this._initDOM();
 
@@ -3174,12 +4090,12 @@
 	    _this._registerPlugins();
 
 	    setTimeout(function () {
-	      _this.emit('ready');
+	      _this.emit(READY);
 	      _this.isReady = true;
 	    }, 0);
 
-	    if (_this.config.videoInit) {
-	      if (util.hasClass(_this.root, STATE_CLASS.NO_START)) {
+	    if (_this.config.videoInit || _this.config.autoplay) {
+	      if (!_this.hasStart) {
 	        _this.start();
 	      }
 	    }
@@ -3205,7 +4121,7 @@
 	        if (el && el.nodeType === 1) {
 	          this.root = el;
 	        } else {
-	          this.emit('error', new Errors('use', this.config.vid, {
+	          this.emit(ERROR, new Errors('use', this.config.vid, {
 	            line: 32,
 	            handle: 'Constructor',
 	            msg: 'container id can\'t be empty'
@@ -3213,7 +4129,7 @@
 	          return false;
 	        }
 	      }
-	      // this.rootBackup = util.copyDom(this.root)
+
 	      this.addClass(STATE_CLASS.DEFAULT + ' xgplayer-' + sniffer.device + ' ' + STATE_CLASS.NO_START + ' ' + (this.config.controls ? '' : STATE_CLASS.NO_CONTROLS));
 	      this.root.appendChild(this.controls);
 	      if (this.config.fluid) {
@@ -3265,6 +4181,7 @@
 	          _this2.removeClass(STATE_CLASS.FULLSCREEN);
 	        }
 	      };
+
 	      FULLSCREEN_EVENTS.forEach(function (item) {
 	        document.addEventListener(item, _this2.onFullscreenChange);
 	      });
@@ -3272,20 +4189,32 @@
 	      this.once('loadeddata', this.getVideoSize);
 
 	      this.mousemoveFunc = function () {
-	        _this2.emit('focus');
+	        _this2.emit(PLAYER_FOCUS);
 	        if (!_this2.config.closeFocusVideoFocus) {
 	          _this2.video.focus();
 	        }
 	      };
 	      this.root.addEventListener('mousemove', this.mousemoveFunc);
+
 	      this.playFunc = function () {
-	        _this2.emit('focus');
+	        _this2.emit(PLAYER_FOCUS);
 	        if (!_this2.config.closePlayVideoFocus) {
 	          _this2.video.focus();
 	        }
 	      };
 	      this.once('play', this.playFunc);
-
+	      if (!this.config.closeVideoClick) {
+	        ['touched', 'click'].map(function (key) {
+	          _this2.root.addEventListener(key, function () {
+	            console.log('this.video.addEventListener');
+	            if (_this2.paused) {
+	              _this2.play();
+	            } else {
+	              _this2.pause();
+	            }
+	          });
+	        });
+	      }
 	      var player = this;
 	      function onDestroy() {
 	        var _this3 = this;
@@ -3306,11 +4235,12 @@
 	      var root = this.root;
 	      var player = this;
 	      if (!url || url === '') {
-	        this.emit('urlNull');
+	        this.emit(URL_NULL);
 	      }
 	      this.canPlayFunc = function () {
+	        this.volume = this.config.volume;
 	        this.play();
-	        player.off('canplay', this.canPlayFunc);
+	        player.off(CANPLAY, this.canPlayFunc);
 	      };
 
 	      if (util.typeOf(url) === 'String') {
@@ -3327,11 +4257,11 @@
 	      this.loadeddataFunc && this.once('loadeddata', this.loadeddataFunc);
 
 	      if (this.config.autoplay) {
-	        this.on('canplay', this.canPlayFunc);
+	        this.once(CANPLAY, this.canPlayFunc);
 	      }
 	      root.insertBefore(this.video, root.firstChild);
 	      setTimeout(function () {
-	        _this4.emit('complete');
+	        _this4.emit(COMPLETE);
 	      }, 1);
 	      this.hasStart = true;
 	      pluginsManager.afterInit(this);
@@ -3404,9 +4334,7 @@
 	      if (!this.root) {
 	        return;
 	      }
-	      if (util.hasClass(this.root, className)) {
-	        util.removeClass(this.root, className);
-	      }
+	      util.removeClass(this.root, className);
 	    }
 	  }, {
 	    key: 'start',
@@ -3417,7 +4345,6 @@
 	      if (this.hasStart) {
 	        return this.play();
 	      } else {
-
 	        return pluginsManager.beforeInit(this).then(function () {
 	          if (!url) {
 	            url = _this7.url || _this7.config.url;
@@ -3442,10 +4369,15 @@
 	      var playPromise = _get$4(Player.prototype.__proto__ || Object.getPrototypeOf(Player.prototype), 'play', this).call(this);
 	      if (playPromise !== undefined && playPromise && playPromise.then) {
 	        playPromise.then(function () {
+	          _this8.removeClass(STATE_CLASS.AUTOPLAY);
+	          _this8.removeClass(STATE_CLASS.NO_START);
 	          _this8.addClass(STATE_CLASS.PLAYING);
 	        }).catch(function (e) {
-	          _this8.emit(AUTOPLAY_PREVENTED);
-	          _this8.addClass(STATE_CLASS.AUTOPLAY);
+	          // 避免AUTOPLAY_PREVENTED先于playing和play触发
+	          setTimeout(function () {
+	            _this8.emit(AUTOPLAY_PREVENTED);
+	            _this8.addClass(STATE_CLASS.AUTOPLAY);
+	          }, 0);
 	          throw e;
 	        });
 	      }
@@ -3490,11 +4422,15 @@
 	  }, {
 	    key: 'replay',
 	    value: function replay() {
+	      var _this9 = this;
+
 	      this.removeClass(STATE_CLASS.ENDED);
-	      this.currentTime = 0;
-	      this.play().catch(function (err) {
-	        console.log(err);
+	      this.once(CANPLAY, function () {
+	        _this9.play().catch(function (err) {
+	          console.log(err);
+	        });
 	      });
+	      this.currentTime = 0;
 	    }
 	  }, {
 	    key: 'getFullscreen',
@@ -3552,19 +4488,20 @@
 	  }, {
 	    key: 'onFocus',
 	    value: function onFocus() {
+	      this.isActive = true;
 	      var player = this;
 	      this.removeClass(STATE_CLASS.ACTIVE);
 	      if (player.userTimer) {
 	        clearTimeout(player.userTimer);
 	      }
 	      player.userTimer = setTimeout(function () {
-	        player.emit('blur');
+	        this.isActive = false;
+	        player.emit(PLAYER_BLUR);
 	      }, player.config.inactive);
 	    }
 	  }, {
 	    key: 'onBlur',
 	    value: function onBlur() {
-	      // this.video.blur()
 	      if (!this.paused && !this.ended) {
 	        this.addClass(STATE_CLASS.ACTIVE);
 	      }
@@ -3574,6 +4511,8 @@
 	    value: function onPlay() {
 	      this.addClass(STATE_CLASS.PLAYING);
 	      this.removeClass(STATE_CLASS.PAUSED);
+	      this.ended && this.removeClass(STATE_CLASS.ENDED);
+	      this.emit(PLAYER_FOCUS);
 	    }
 	  }, {
 	    key: 'onPause',
@@ -3582,7 +4521,7 @@
 	      if (this.userTimer) {
 	        clearTimeout(this.userTimer);
 	      }
-	      this.emit('focus');
+	      this.emit(PLAYER_FOCUS);
 	    }
 	  }, {
 	    key: 'onEnded',
@@ -3607,20 +4546,20 @@
 	  }, {
 	    key: 'onWaiting',
 	    value: function onWaiting() {
-	      var _this9 = this;
+	      var _this10 = this;
 
 	      var self = this;
 	      if (self.waitTimer) {
 	        clearTimeout(self.waitTimer);
 	      }
 	      self.waitTimer = setTimeout(function () {
-	        _this9.addClass(STATE_CLASS.LOADING);
+	        _this10.addClass(STATE_CLASS.LOADING);
 	      }, 500);
 	    }
 	  }, {
 	    key: 'onPlaying',
 	    value: function onPlaying() {
-	      var _this10 = this;
+	      var _this11 = this;
 
 	      if (this.waitTimer) {
 	        clearTimeout(this.waitTimer);
@@ -3634,7 +4573,7 @@
 
 	      var clsList = [NO_START, PAUSED, ENDED, ERROR, REPLAY, LOADING];
 	      clsList.forEach(function (cls) {
-	        _this10.removeClass(cls);
+	        _this11.removeClass(cls);
 	      });
 	      this.addClass(STATE_CLASS.PLAYING);
 	    }
@@ -3743,10 +4682,11 @@
 	Player.util = util;
 	Player.sniffer = sniffer;
 	Player.Errors = Errors;
+	Player.Events = Events;
 	Player.Plugin = Plugin;
 	Player.BasePlugin = BasePlugin;
 
-	var css$3 = ".xgplayer-skin-default {\n  background: #000;\n  width: 100%;\n  height: 100%;\n  position: relative;\n  -webkit-user-select: none;\n     -moz-user-select: none;\n          user-select: none;\n  -ms-user-select: none; }\n  .xgplayer-skin-default * {\n    margin: 0;\n    padding: 0;\n    border: 0;\n    font-size: 100%;\n    font: inherit;\n    vertical-align: baseline; }\n  .xgplayer-skin-default .xgplayer-none {\n    display: none; }\n  .xgplayer-skin-default.xgplayer-is-fullscreen {\n    width: 100% !important;\n    height: 100% !important;\n    padding-top: 0 !important;\n    z-index: 9999; }\n  .xgplayer-skin-default.xgplayer-is-fullscreen.xgplayer-inactive {\n    cursor: none; }\n  .xgplayer-skin-default video {\n    width: 100%;\n    height: 100%;\n    outline: none; }\n\n.xgplayer-skin-default .xgplayer-none {\n  display: none; }\n\n@-webkit-keyframes loadingRotate {\n  0% {\n    -webkit-transform: rotate(0);\n            transform: rotate(0); }\n  100% {\n    -webkit-transform: rotate(360deg);\n            transform: rotate(360deg); } }\n\n@keyframes loadingRotate {\n  0% {\n    -webkit-transform: rotate(0);\n            transform: rotate(0); }\n  100% {\n    -webkit-transform: rotate(360deg);\n            transform: rotate(360deg); } }\n\n@-webkit-keyframes loadingDashOffset {\n  0% {\n    stroke-dashoffset: 236; }\n  100% {\n    stroke-dashoffset: 0; } }\n\n@keyframes loadingDashOffset {\n  0% {\n    stroke-dashoffset: 236; }\n  100% {\n    stroke-dashoffset: 0; } }\n\n.xgplayer-skin-default .xgplayer-play, .xgplayer-skin-default .xgplayer-play-img {\n  position: relative;\n  -webkit-order: 0;\n     -moz-box-ordinal-group: 1;\n          order: 0;\n  display: block;\n  cursor: pointer; }\n  .xgplayer-skin-default .xgplayer-play .xgplayer-icon, .xgplayer-skin-default .xgplayer-play-img .xgplayer-icon {\n    margin-top: 3px;\n    width: 32px; }\n    .xgplayer-skin-default .xgplayer-play .xgplayer-icon div, .xgplayer-skin-default .xgplayer-play-img .xgplayer-icon div {\n      position: absolute; }\n    .xgplayer-skin-default .xgplayer-play .xgplayer-icon .xgplayer-icon-play, .xgplayer-skin-default .xgplayer-play-img .xgplayer-icon .xgplayer-icon-play {\n      display: block; }\n    .xgplayer-skin-default .xgplayer-play .xgplayer-icon .xgplayer-icon-pause, .xgplayer-skin-default .xgplayer-play-img .xgplayer-icon .xgplayer-icon-pause {\n      display: none; }\n  .xgplayer-skin-default .xgplayer-play .xgplayer-tips .xgplayer-tip-play, .xgplayer-skin-default .xgplayer-play-img .xgplayer-tips .xgplayer-tip-play {\n    display: block; }\n  .xgplayer-skin-default .xgplayer-play .xgplayer-tips .xgplayer-tip-pause, .xgplayer-skin-default .xgplayer-play-img .xgplayer-tips .xgplayer-tip-pause {\n    display: none; }\n  .xgplayer-skin-default .xgplayer-play:hover, .xgplayer-skin-default .xgplayer-play-img:hover {\n    opacity: 0.85; }\n    .xgplayer-skin-default .xgplayer-play:hover .xgplayer-tips, .xgplayer-skin-default .xgplayer-play-img:hover .xgplayer-tips {\n      display: block; }\n\n.xgplayer-skin-default.xgplayer-playing .xgplayer-play .xgplayer-icon .xgplayer-icon-play, .xgplayer-skin-default.xgplayer-playing .xgplayer-play-img .xgplayer-icon .xgplayer-icon-play {\n  display: none; }\n\n.xgplayer-skin-default.xgplayer-playing .xgplayer-play .xgplayer-icon .xgplayer-icon-pause, .xgplayer-skin-default.xgplayer-playing .xgplayer-play-img .xgplayer-icon .xgplayer-icon-pause {\n  display: block; }\n\n.xgplayer-skin-default.xgplayer-playing .xgplayer-play .xgplayer-tips .xgplayer-tip-play, .xgplayer-skin-default.xgplayer-playing .xgplayer-play-img .xgplayer-tips .xgplayer-tip-play {\n  display: none; }\n\n.xgplayer-skin-default.xgplayer-playing .xgplayer-play .xgplayer-tips .xgplayer-tip-pause, .xgplayer-skin-default.xgplayer-playing .xgplayer-play-img .xgplayer-tips .xgplayer-tip-pause {\n  display: block; }\n\n.xgplayer-skin-default.xgplayer-pause .xgplayer-play .xgplayer-icon .xgplayer-icon-play, .xgplayer-skin-default.xgplayer-pause .xgplayer-play-img .xgplayer-icon .xgplayer-icon-play {\n  display: block; }\n\n.xgplayer-skin-default.xgplayer-pause .xgplayer-play .xgplayer-icon .xgplayer-icon-pause, .xgplayer-skin-default.xgplayer-pause .xgplayer-play-img .xgplayer-icon .xgplayer-icon-pause {\n  display: none; }\n\n.xgplayer-skin-default.xgplayer-pause .xgplayer-play .xgplayer-tips .xgplayer-tip-play, .xgplayer-skin-default.xgplayer-pause .xgplayer-play-img .xgplayer-tips .xgplayer-tip-play {\n  display: block; }\n\n.xgplayer-skin-default.xgplayer-pause .xgplayer-play .xgplayer-tips .xgplayer-tip-pause, .xgplayer-skin-default.xgplayer-pause .xgplayer-play-img .xgplayer-tips .xgplayer-tip-pause {\n  display: none; }\n\n.xgplayer-skin-default .xgplayer-enter {\n  display: none;\n  position: absolute;\n  left: 0;\n  top: 0;\n  width: 100%;\n  height: 100%;\n  background: black;\n  z-index: 120; }\n  .xgplayer-skin-default .xgplayer-enter .xgplayer-enter-spinner {\n    display: block;\n    position: absolute;\n    left: 50%;\n    top: 50%;\n    height: 100px;\n    width: 100px;\n    position: relative;\n    -webkit-transform: translate(-50%, -50%);\n        -ms-transform: translate(-50%, -50%);\n            transform: translate(-50%, -50%); }\n  .xgplayer-skin-default .xgplayer-enter .xgplayer-enter-spinner div {\n    width: 12%;\n    height: 26%;\n    background-color: rgba(255, 255, 255, .7);\n    position: absolute;\n    left: 44%;\n    top: 37%;\n    opacity: 0;\n    border-radius: 30px;\n    -webkit-animation: fade 1s linear infinite;\n            animation: fade 1s linear infinite; }\n  .xgplayer-skin-default .xgplayer-enter .xgplayer-enter-spinner div.xgplayer-enter-bar1 {\n    -webkit-transform: rotate(0deg) translate(0, -142%);\n        -ms-transform: rotate(0deg) translate(0, -142%);\n            transform: rotate(0deg) translate(0, -142%);\n    -webkit-animation-delay: -0s;\n            animation-delay: -0s; }\n  .xgplayer-skin-default .xgplayer-enter .xgplayer-enter-spinner div.xgplayer-enter-bar2 {\n    -webkit-transform: rotate(30deg) translate(0, -142%);\n        -ms-transform: rotate(30deg) translate(0, -142%);\n            transform: rotate(30deg) translate(0, -142%);\n    -webkit-animation-delay: -0.9163s;\n            animation-delay: -0.9163s; }\n  .xgplayer-skin-default .xgplayer-enter .xgplayer-enter-spinner div.xgplayer-enter-bar3 {\n    -webkit-transform: rotate(60deg) translate(0, -142%);\n        -ms-transform: rotate(60deg) translate(0, -142%);\n            transform: rotate(60deg) translate(0, -142%);\n    -webkit-animation-delay: -0.833s;\n            animation-delay: -0.833s; }\n  .xgplayer-skin-default .xgplayer-enter .xgplayer-enter-spinner div.xgplayer-enter-bar4 {\n    -webkit-transform: rotate(90deg) translate(0, -142%);\n        -ms-transform: rotate(90deg) translate(0, -142%);\n            transform: rotate(90deg) translate(0, -142%);\n    -webkit-animation-delay: -0.7497s;\n            animation-delay: -0.7497s; }\n  .xgplayer-skin-default .xgplayer-enter .xgplayer-enter-spinner div.xgplayer-enter-bar5 {\n    -webkit-transform: rotate(120deg) translate(0, -142%);\n        -ms-transform: rotate(120deg) translate(0, -142%);\n            transform: rotate(120deg) translate(0, -142%);\n    -webkit-animation-delay: -0.6664s;\n            animation-delay: -0.6664s; }\n  .xgplayer-skin-default .xgplayer-enter .xgplayer-enter-spinner div.xgplayer-enter-bar6 {\n    -webkit-transform: rotate(150deg) translate(0, -142%);\n        -ms-transform: rotate(150deg) translate(0, -142%);\n            transform: rotate(150deg) translate(0, -142%);\n    -webkit-animation-delay: -0.5831s;\n            animation-delay: -0.5831s; }\n  .xgplayer-skin-default .xgplayer-enter .xgplayer-enter-spinner div.xgplayer-enter-bar7 {\n    -webkit-transform: rotate(180deg) translate(0, -142%);\n        -ms-transform: rotate(180deg) translate(0, -142%);\n            transform: rotate(180deg) translate(0, -142%);\n    -webkit-animation-delay: -0.4998s;\n            animation-delay: -0.4998s; }\n  .xgplayer-skin-default .xgplayer-enter .xgplayer-enter-spinner div.xgplayer-enter-bar8 {\n    -webkit-transform: rotate(210deg) translate(0, -142%);\n        -ms-transform: rotate(210deg) translate(0, -142%);\n            transform: rotate(210deg) translate(0, -142%);\n    -webkit-animation-delay: -0.4165s;\n            animation-delay: -0.4165s; }\n  .xgplayer-skin-default .xgplayer-enter .xgplayer-enter-spinner div.xgplayer-enter-bar9 {\n    -webkit-transform: rotate(240deg) translate(0, -142%);\n        -ms-transform: rotate(240deg) translate(0, -142%);\n            transform: rotate(240deg) translate(0, -142%);\n    -webkit-animation-delay: -0.3332s;\n            animation-delay: -0.3332s; }\n  .xgplayer-skin-default .xgplayer-enter .xgplayer-enter-spinner div.xgplayer-enter-bar10 {\n    -webkit-transform: rotate(270deg) translate(0, -142%);\n        -ms-transform: rotate(270deg) translate(0, -142%);\n            transform: rotate(270deg) translate(0, -142%);\n    -webkit-animation-delay: -0.2499s;\n            animation-delay: -0.2499s; }\n  .xgplayer-skin-default .xgplayer-enter .xgplayer-enter-spinner div.xgplayer-enter-bar11 {\n    -webkit-transform: rotate(300deg) translate(0, -142%);\n        -ms-transform: rotate(300deg) translate(0, -142%);\n            transform: rotate(300deg) translate(0, -142%);\n    -webkit-animation-delay: -0.1666s;\n            animation-delay: -0.1666s; }\n  .xgplayer-skin-default .xgplayer-enter .xgplayer-enter-spinner div.xgplayer-enter-bar12 {\n    -webkit-transform: rotate(330deg) translate(0, -142%);\n        -ms-transform: rotate(330deg) translate(0, -142%);\n            transform: rotate(330deg) translate(0, -142%);\n    -webkit-animation-delay: -0.0833s;\n            animation-delay: -0.0833s; }\n\n@-webkit-keyframes fade {\n  from {\n    opacity: 1; }\n  to {\n    opacity: 0.25; } }\n\n.xgplayer-skin-default.xgplayer-is-enter .xgplayer-enter {\n  display: block; }\n\n.xgplayer-skin-default .xgplayer-placeholder {\n  -webkit-flex: 1;\n     -moz-box-flex: 1;\n          flex: 1;\n  -webkit-order: 3;\n     -moz-box-ordinal-group: 4;\n          order: 3;\n  display: block; }\n\n.xgplayer-skin-default .xgplayer-fullscreen, .xgplayer-skin-default .xgplayer-fullscreen-img {\n  position: relative;\n  -webkit-order: 13;\n     -moz-box-ordinal-group: 14;\n          order: 13;\n  display: block;\n  cursor: pointer; }\n  .xgplayer-skin-default .xgplayer-fullscreen .xgplayer-icon, .xgplayer-skin-default .xgplayer-fullscreen-img .xgplayer-icon {\n    margin-top: 3px; }\n    .xgplayer-skin-default .xgplayer-fullscreen .xgplayer-icon div, .xgplayer-skin-default .xgplayer-fullscreen-img .xgplayer-icon div {\n      position: absolute; }\n    .xgplayer-skin-default .xgplayer-fullscreen .xgplayer-icon .xgplayer-icon-requestfull, .xgplayer-skin-default .xgplayer-fullscreen-img .xgplayer-icon .xgplayer-icon-requestfull {\n      display: block; }\n    .xgplayer-skin-default .xgplayer-fullscreen .xgplayer-icon .xgplayer-icon-exitfull, .xgplayer-skin-default .xgplayer-fullscreen-img .xgplayer-icon .xgplayer-icon-exitfull {\n      display: none; }\n  .xgplayer-skin-default .xgplayer-fullscreen .xgplayer-tips, .xgplayer-skin-default .xgplayer-fullscreen-img .xgplayer-tips {\n    position: absolute;\n    right: 0;\n    left: auto; }\n    .xgplayer-skin-default .xgplayer-fullscreen .xgplayer-tips .xgplayer-tip-requestfull, .xgplayer-skin-default .xgplayer-fullscreen-img .xgplayer-tips .xgplayer-tip-requestfull {\n      display: block; }\n    .xgplayer-skin-default .xgplayer-fullscreen .xgplayer-tips .xgplayer-tip-exitfull, .xgplayer-skin-default .xgplayer-fullscreen-img .xgplayer-tips .xgplayer-tip-exitfull {\n      display: none; }\n  .xgplayer-skin-default .xgplayer-fullscreen:hover, .xgplayer-skin-default .xgplayer-fullscreen-img:hover {\n    opacity: 0.85; }\n    .xgplayer-skin-default .xgplayer-fullscreen:hover .xgplayer-tips, .xgplayer-skin-default .xgplayer-fullscreen-img:hover .xgplayer-tips {\n      display: block; }\n\n.xgplayer-skin-default.xgplayer-is-fullscreen .xgplayer-fullscreen .xgplayer-icon .xgplayer-icon-requestfull, .xgplayer-skin-default.xgplayer-is-fullscreen .xgplayer-fullscreen-img .xgplayer-icon .xgplayer-icon-requestfull {\n  display: none; }\n\n.xgplayer-skin-default.xgplayer-is-fullscreen .xgplayer-fullscreen .xgplayer-icon .xgplayer-icon-exitfull, .xgplayer-skin-default.xgplayer-is-fullscreen .xgplayer-fullscreen-img .xgplayer-icon .xgplayer-icon-exitfull {\n  display: block; }\n\n.xgplayer-skin-default.xgplayer-is-fullscreen .xgplayer-fullscreen .xgplayer-tips .xgplayer-tip-requestfull, .xgplayer-skin-default.xgplayer-is-fullscreen .xgplayer-fullscreen-img .xgplayer-tips .xgplayer-tip-requestfull {\n  display: none; }\n\n.xgplayer-skin-default.xgplayer-is-fullscreen .xgplayer-fullscreen .xgplayer-tips .xgplayer-tip-exitfull, .xgplayer-skin-default.xgplayer-is-fullscreen .xgplayer-fullscreen-img .xgplayer-tips .xgplayer-tip-exitfull {\n  display: block; }\n\n.xgplayer-skin-default .xgplayer-cssfullscreen, .xgplayer-skin-default .xgplayer-cssfullscreen-img {\n  position: relative;\n  -webkit-order: 12;\n     -moz-box-ordinal-group: 13;\n          order: 12;\n  display: block;\n  cursor: pointer; }\n  .xgplayer-skin-default .xgplayer-cssfullscreen .xgplayer-icon, .xgplayer-skin-default .xgplayer-cssfullscreen-img .xgplayer-icon {\n    width: 32px;\n    margin-top: 5px; }\n    .xgplayer-skin-default .xgplayer-cssfullscreen .xgplayer-icon div, .xgplayer-skin-default .xgplayer-cssfullscreen-img .xgplayer-icon div {\n      position: absolute; }\n    .xgplayer-skin-default .xgplayer-cssfullscreen .xgplayer-icon .xgplayer-icon-requestfull, .xgplayer-skin-default .xgplayer-cssfullscreen-img .xgplayer-icon .xgplayer-icon-requestfull {\n      display: block; }\n    .xgplayer-skin-default .xgplayer-cssfullscreen .xgplayer-icon .xgplayer-icon-exitfull, .xgplayer-skin-default .xgplayer-cssfullscreen-img .xgplayer-icon .xgplayer-icon-exitfull {\n      display: none; }\n  .xgplayer-skin-default .xgplayer-cssfullscreen .xgplayer-tips, .xgplayer-skin-default .xgplayer-cssfullscreen-img .xgplayer-tips {\n    margin-left: -40px; }\n    .xgplayer-skin-default .xgplayer-cssfullscreen .xgplayer-tips .xgplayer-tip-requestfull, .xgplayer-skin-default .xgplayer-cssfullscreen-img .xgplayer-tips .xgplayer-tip-requestfull {\n      display: block; }\n    .xgplayer-skin-default .xgplayer-cssfullscreen .xgplayer-tips .xgplayer-tip-exitfull, .xgplayer-skin-default .xgplayer-cssfullscreen-img .xgplayer-tips .xgplayer-tip-exitfull {\n      display: none; }\n  .xgplayer-skin-default .xgplayer-cssfullscreen:hover, .xgplayer-skin-default .xgplayer-cssfullscreen-img:hover {\n    opacity: 0.85; }\n    .xgplayer-skin-default .xgplayer-cssfullscreen:hover .xgplayer-tips, .xgplayer-skin-default .xgplayer-cssfullscreen-img:hover .xgplayer-tips {\n      display: block; }\n\n.xgplayer-skin-default.xgplayer-is-cssfullscreen .xgplayer-cssfullscreen .xgplayer-icon .xgplayer-icon-requestfull, .xgplayer-skin-default.xgplayer-is-cssfullscreen .xgplayer-cssfullscreen-img .xgplayer-icon .xgplayer-icon-requestfull {\n  display: none; }\n\n.xgplayer-skin-default.xgplayer-is-cssfullscreen .xgplayer-cssfullscreen .xgplayer-icon .xgplayer-icon-exitfull, .xgplayer-skin-default.xgplayer-is-cssfullscreen .xgplayer-cssfullscreen-img .xgplayer-icon .xgplayer-icon-exitfull {\n  display: block; }\n\n.xgplayer-skin-default.xgplayer-is-cssfullscreen .xgplayer-cssfullscreen .xgplayer-tips, .xgplayer-skin-default.xgplayer-is-cssfullscreen .xgplayer-cssfullscreen-img .xgplayer-tips {\n  margin-left: -47px; }\n  .xgplayer-skin-default.xgplayer-is-cssfullscreen .xgplayer-cssfullscreen .xgplayer-tips .xgplayer-tip-requestfull, .xgplayer-skin-default.xgplayer-is-cssfullscreen .xgplayer-cssfullscreen-img .xgplayer-tips .xgplayer-tip-requestfull {\n    display: none; }\n  .xgplayer-skin-default.xgplayer-is-cssfullscreen .xgplayer-cssfullscreen .xgplayer-tips .xgplayer-tip-exitfull, .xgplayer-skin-default.xgplayer-is-cssfullscreen .xgplayer-cssfullscreen-img .xgplayer-tips .xgplayer-tip-exitfull {\n    display: block; }\n\n.xgplayer-skin-default.xgplayer-is-fullscreen .xgplayer-cssfullscreen, .xgplayer-skin-default.xgplayer-is-fullscreen .xgplayer-cssfullscreen-img {\n  display: none; }\n\n.xgplayer-skin-default.xgplayer-is-cssfullscreen {\n  position: fixed !important;\n  left: 0 !important;\n  top: 0 !important;\n  width: 100% !important;\n  height: 100% !important;\n  z-index: 99999 !important; }\n\n.lang-is-en .xgplayer-cssfullscreen .xgplayer-tips, .lang-is-en .xgplayer-cssfullscreen-img .xgplayer-tips {\n  margin-left: -46px; }\n\n.lang-is-en.xgplayer-is-cssfullscreen .xgplayer-cssfullscreen .xgplayer-tips, .lang-is-en.xgplayer-is-cssfullscreen .xgplayer-cssfullscreen-img .xgplayer-tips {\n  margin-left: -46px; }\n\n.lang-is-jp .xgplayer-cssfullscreen .xgplayer-tips, .lang-is-jp .xgplayer-cssfullscreen-img .xgplayer-tips {\n  margin-left: -120px; }\n\n.lang-is-jp.xgplayer-is-cssfullscreen .xgplayer-cssfullscreen .xgplayer-tips, .lang-is-jp.xgplayer-is-cssfullscreen .xgplayer-cssfullscreen-img .xgplayer-tips {\n  margin-left: -60px; }\n\n.xgplayer-skin-default .xgplayer-volume {\n  outline: none;\n  -webkit-order: 4;\n     -moz-box-ordinal-group: 5;\n          order: 4;\n  width: 28px;\n  height: 140px;\n  display: block;\n  position: relative;\n  margin-top: -100px;\n  overflow: hidden;\n  z-index: 18; }\n  .xgplayer-skin-default .xgplayer-volume .xgplayer-icon {\n    margin-top: 8px;\n    cursor: pointer;\n    position: absolute;\n    bottom: -9px; }\n    .xgplayer-skin-default .xgplayer-volume .xgplayer-icon div {\n      position: absolute; }\n    .xgplayer-skin-default .xgplayer-volume .xgplayer-icon .xgplayer-icon-large {\n      display: block; }\n    .xgplayer-skin-default .xgplayer-volume .xgplayer-icon .xgplayer-icon-small {\n      display: none; }\n    .xgplayer-skin-default .xgplayer-volume .xgplayer-icon .xgplayer-icon-muted {\n      display: none; }\n\n.xgplayer-skin-default .xgplayer-slider {\n  display: none;\n  position: absolute;\n  width: 28px;\n  height: 92px;\n  background: rgba(0, 0, 0, .54);\n  border-radius: 1px;\n  bottom: 42px;\n  outline: none; }\n  .xgplayer-skin-default .xgplayer-slider:after {\n    content: \" \";\n    display: block;\n    height: 15px;\n    width: 28px;\n    position: absolute;\n    bottom: -15px;\n    left: 0;\n    z-index: 20; }\n\n.xgplayer-skin-default .xgplayer-bar, .xgplayer-skin-default .xgplayer-drag {\n  display: block;\n  position: absolute;\n  bottom: 6px;\n  left: 12px;\n  background: rgba(255, 255, 255, .3);\n  border-radius: 100px;\n  width: 4px;\n  height: 76px;\n  outline: none;\n  cursor: pointer; }\n\n.xgplayer-skin-default .xgplayer-drag {\n  bottom: 0;\n  left: 0;\n  background: #FA1F41;\n  max-height: 76px; }\n  .xgplayer-skin-default .xgplayer-drag:after {\n    content: \" \";\n    display: inline-block;\n    width: 8px;\n    height: 8px;\n    background: #fff;\n    box-shadow: 0 0 5px 0 rgba(0, 0, 0, .26);\n    position: absolute;\n    border-radius: 50%;\n    left: -2px;\n    top: -6px; }\n\n.xgplayer-skin-default.xgplayer-volume-active .xgplayer-slider {\n  display: block; }\n\n.xgplayer-skin-default.xgplayer-volume-large .xgplayer-volume .xgplayer-icon .xgplayer-icon-large {\n  display: block; }\n\n.xgplayer-skin-default.xgplayer-volume-large .xgplayer-volume .xgplayer-icon .xgplayer-icon-small {\n  display: none; }\n\n.xgplayer-skin-default.xgplayer-volume-large .xgplayer-volume .xgplayer-icon .xgplayer-icon-muted {\n  display: none; }\n\n.xgplayer-skin-default.xgplayer-volume-small .xgplayer-volume .xgplayer-icon .xgplayer-icon-large {\n  display: none; }\n\n.xgplayer-skin-default.xgplayer-volume-small .xgplayer-volume .xgplayer-icon .xgplayer-icon-small {\n  display: block; }\n\n.xgplayer-skin-default.xgplayer-volume-small .xgplayer-volume .xgplayer-icon .xgplayer-icon-muted {\n  display: none; }\n\n.xgplayer-skin-default.xgplayer-volume-muted .xgplayer-volume .xgplayer-icon .xgplayer-icon-large {\n  display: none; }\n\n.xgplayer-skin-default.xgplayer-volume-muted .xgplayer-volume .xgplayer-icon .xgplayer-icon-small {\n  display: none; }\n\n.xgplayer-skin-default.xgplayer-volume-muted .xgplayer-volume .xgplayer-icon .xgplayer-icon-muted {\n  display: block; }\n\n.xgplayer-skin-default.xgplayer-mobile .xgplayer-volume .xgplayer-slider {\n  display: none; }\n\n.xgplayer-skin-default .xgplayer-definition {\n  -webkit-order: 5;\n     -moz-box-ordinal-group: 6;\n          order: 5;\n  width: 60px;\n  height: 150px;\n  z-index: 18;\n  position: relative;\n  outline: none;\n  display: none;\n  cursor: default;\n  margin-left: 10px;\n  margin-top: -119px; }\n  .xgplayer-skin-default .xgplayer-definition ul {\n    display: none;\n    list-style: none;\n    width: 78px;\n    background: rgba(0, 0, 0, .54);\n    border-radius: 1px;\n    position: absolute;\n    bottom: 30px;\n    left: 0;\n    text-align: center;\n    white-space: nowrap;\n    margin-left: -10px;\n    z-index: 26;\n    cursor: pointer; }\n    .xgplayer-skin-default .xgplayer-definition ul li {\n      opacity: 0.7;\n      font-family: PingFangSC-Regular;\n      font-size: 11px;\n      color: rgba(255, 255, 255, .8);\n      padding: 6px 13px; }\n      .xgplayer-skin-default .xgplayer-definition ul li.selected {\n        color: #fff;\n        opacity: 1; }\n      .xgplayer-skin-default .xgplayer-definition ul li:hover {\n        color: #fff;\n        opacity: 1; }\n  .xgplayer-skin-default .xgplayer-definition .name {\n    text-align: center;\n    font-family: PingFangSC-Regular;\n    font-size: 13px;\n    line-height: 20px;\n    height: 20px;\n    cursor: pointer;\n    color: rgba(255, 255, 255, .8);\n    position: absolute;\n    bottom: 0;\n    width: 60px;\n    height: 20px;\n    line-height: 20px;\n    background: rgba(0, 0, 0, .38);\n    border-radius: 10px;\n    display: inline-block;\n    vertical-align: middle; }\n\n.xgplayer-skin-default.xgplayer-definition-active .xgplayer-definition ul {\n  display: block; }\n\n.xgplayer-skin-default.xgplayer-is-definition .xgplayer-definition {\n  display: block; }\n\n.xgplayer-skin-default .xgplayer-time {\n  -webkit-order: 2;\n     -moz-box-ordinal-group: 3;\n          order: 2;\n  font-family: ArialMT;\n  font-size: 13px;\n  color: #fff;\n  line-height: 40px;\n  text-align: center;\n  display: inline-block; }\n  .xgplayer-skin-default .xgplayer-time span::after {\n    content: \"/\";\n    display: inline-block;\n    padding: 0 3px; }\n  .xgplayer-skin-default .xgplayer-time em {\n    color: rgba(255, 255, 255, .5); }\n\n.xgplayer-skin-default .xgplayer-controls {\n  display: -webkit-flex;\n  display: -moz-box;\n  display: flex;\n  position: absolute;\n  bottom: 0;\n  left: 0;\n  right: 0;\n  height: 40px;\n  background-image: linear-gradient(to bottom, rgba(0, 0, 0, 0), rgba(0, 0, 0, .37), rgba(0, 0, 0, .75), rgba(0, 0, 0, .75));\n  z-index: 10; }\n\n.xgplayer-skin-default.xgplayer-nostart .xgplayer-controls {\n  display: none; }\n\n.xgplayer-skin-default.no-controls .xgplayer-controls {\n  display: none; }\n\n.xgplayer-skin-default.xgplayer-inactive .xgplayer-controls {\n  display: none; }\n\n.xgplayer-skin-default .xgplayer-live {\n  display: block;\n  font-size: 12px;\n  color: #fff;\n  line-height: 40px;\n  -webkit-order: 1;\n     -moz-box-ordinal-group: 2;\n          order: 1; }\n\n.xgplayer-skin-default .xgplayer-loading {\n  display: none;\n  width: 100px;\n  height: 100px;\n  overflow: hidden;\n  -webkit-transform: scale(0.7);\n      -ms-transform: scale(0.7);\n          transform: scale(0.7);\n  position: absolute;\n  left: 50%;\n  top: 50%;\n  margin: -70px auto auto -50px; }\n  .xgplayer-skin-default .xgplayer-loading svg {\n    border-radius: 50%;\n    -webkit-transform-origin: center;\n        -ms-transform-origin: center;\n            transform-origin: center;\n    -webkit-animation: loadingRotate 1s linear infinite;\n            animation: loadingRotate 1s linear infinite; }\n    .xgplayer-skin-default .xgplayer-loading svg path {\n      stroke: #ddd;\n      stroke-dasharray: 236;\n      -webkit-animation: loadingDashOffset 2s linear infinite;\n              animation: loadingDashOffset 2s linear infinite;\n      animation-direction: alternate-reverse;\n      fill: none;\n      stroke-width: 12px; }\n\n.xgplayer-skin-default.xgplayer-nostart .xgplayer-loading {\n  display: none; }\n\n.xgplayer-skin-default.xgplayer-isloading .xgplayer-loading {\n  display: block; }\n\n.xgplayer-skin-default.xgplayer-ended .xgplayer-loading {\n  display: none; }\n\n.xgplayer-skin-default .xgplayer-progress {\n  display: block;\n  position: absolute;\n  height: 20px;\n  line-height: 20px;\n  left: 12px;\n  right: 12px;\n  outline: none;\n  top: -10px;\n  z-index: 35; }\n\n.xgplayer-skin-default .xgplayer-progress-outer {\n  background: rgba(255, 255, 255, .3);\n  display: block;\n  height: 3px;\n  line-height: 3px;\n  margin-top: 8.5px;\n  width: 100%;\n  position: relative;\n  cursor: pointer; }\n\n.xgplayer-skin-default .xgplayer-progress-cache, .xgplayer-skin-default .xgplayer-progress-played {\n  display: block;\n  height: 100%;\n  line-height: 1;\n  position: absolute;\n  left: 0;\n  top: 0; }\n\n.xgplayer-skin-default .xgplayer-progress-cache {\n  width: 0;\n  background: rgba(255, 255, 255, .5); }\n\n.xgplayer-skin-default .xgplayer-progress-played {\n  display: block;\n  width: 0;\n  background-image: linear-gradient(-90deg, #FA1F41 0%, #E31106 100%);\n  border-radius: 0 1.5px 1.5px 0; }\n\n.xgplayer-skin-default .xgplayer-progress-btn {\n  display: none;\n  position: absolute;\n  left: 0px;\n  top: -5px;\n  width: 13px;\n  height: 13px;\n  border-radius: 30px;\n  background: #FFFFFF;\n  box-shadow: 0 0 2px 0 rgba(0, 0, 0, .26);\n  left: 100%;\n  -webkit-transform: translate(-50%, 0);\n      -ms-transform: translate(-50%, 0);\n          transform: translate(-50%, 0); }\n\n.xgplayer-skin-default .xgplayer-progress-point {\n  position: absolute; }\n  .xgplayer-skin-default .xgplayer-progress-point.xgplayer-tips {\n    margin-left: 0;\n    top: -25px;\n    display: none;\n    z-index: 100; }\n\n.xgplayer-skin-default .xgplayer-progress-dot {\n  display: inline-block;\n  position: absolute;\n  height: 3px;\n  width: 5px;\n  top: 0px;\n  background: white;\n  border-radius: 6px;\n  z-index: 16; }\n  .xgplayer-skin-default .xgplayer-progress-dot .xgplayer-progress-tip {\n    position: absolute;\n    left: 0;\n    top: -40px;\n    height: auto;\n    line-height: 30px;\n    width: auto;\n    -webkit-transform: scale(0.8);\n        -ms-transform: scale(0.8);\n            transform: scale(0.8);\n    background: rgba(0, 0, 0, .3);\n    border-radius: 6px;\n    border: 1px solid rgba(0, 0, 0, .8);\n    cursor: default;\n    white-space: nowrap;\n    display: none; }\n\n.xgplayer-skin-default .xgplayer-progress-dot-show .xgplayer-progress-tip {\n  display: block; }\n\n.xgplayer-skin-default .xgplayer-progress-thumbnail {\n  position: absolute;\n  -moz-box-sizing: border-box;\n       box-sizing: border-box; }\n  .xgplayer-skin-default .xgplayer-progress-thumbnail.xgplayer-tips {\n    margin-left: 0;\n    display: none;\n    z-index: 99; }\n\n.xgplayer-skin-default .xgplayer-progress:hover .xgplayer-progress-outer, .xgplayer-skin-default .xgplayer-progress:focus .xgplayer-progress-outer {\n  height: 6px;\n  margin-top: 7px; }\n\n.xgplayer-skin-default .xgplayer-progress:hover .xgplayer-progress-dot, .xgplayer-skin-default .xgplayer-progress:focus .xgplayer-progress-dot {\n  height: 6px; }\n\n.xgplayer-skin-default .xgplayer-progress:hover .xgplayer-progress-btn, .xgplayer-skin-default .xgplayer-progress:focus .xgplayer-progress-btn {\n  display: block;\n  top: -3px; }\n\n.xgplayer-skin-default.xgplayer-volume-active .xgplayer-progress {\n  z-index: 15; }\n\n.xgplayer-skin-default.xgplayer-definition-active .xgplayer-progress {\n  z-index: 15; }\n\n.xgplayer-skin-default.xgplayer-texttrack-active .xgplayer-progress {\n  z-index: 15; }\n\n.xgplayer-skin-default.xgplayer-playbackrate-active .xgplayer-progress {\n  z-index: 15; }\n\n.xgplayer-skin-default.xgplayer-mobile .xgplayer-progress-btn {\n  display: block !important; }\n\n.xgplayer-skin-default.xgplayer-mobile .xgplayer-progress:hover .xgplayer-progress-outer, .xgplayer-skin-default.xgplayer-mobile .xgplayer-progress:focus .xgplayer-progress-outer {\n  height: 3px !important;\n  margin-top: 8.5px !important; }\n\n.xgplayer-skin-default.xgplayer-mobile .xgplayer-progress:hover .xgplayer-progress-btn, .xgplayer-skin-default.xgplayer-mobile .xgplayer-progress:focus .xgplayer-progress-btn {\n  display: block !important;\n  top: -5px !important; }\n\n.xgplayer-skin-default .xgplayer-playbackrate {\n  -webkit-order: 8;\n     -moz-box-ordinal-group: 9;\n          order: 8;\n  width: 60px;\n  height: 20px;\n  z-index: 18;\n  position: relative;\n  display: inline-block;\n  cursor: default; }\n  .xgplayer-skin-default .xgplayer-playbackrate ul {\n    display: none;\n    list-style: none;\n    width: 78px;\n    background: rgba(0, 0, 0, .54);\n    border-radius: 1px;\n    position: absolute;\n    bottom: 20px;\n    left: 0px;\n    text-align: left;\n    white-space: nowrap;\n    z-index: 26;\n    cursor: pointer; }\n    .xgplayer-skin-default .xgplayer-playbackrate ul li {\n      opacity: 0.7;\n      font-family: PingFangSC-Regular;\n      font-size: 11px;\n      color: rgba(255, 255, 255, .8);\n      position: relative;\n      padding: 4px 0 4px 0px;\n      text-align: center; }\n      .xgplayer-skin-default .xgplayer-playbackrate ul li.selected {\n        color: #fff;\n        opacity: 1; }\n      .xgplayer-skin-default .xgplayer-playbackrate ul li:hover {\n        color: #fff;\n        opacity: 1; }\n    .xgplayer-skin-default .xgplayer-playbackrate ul li:nth-child(1) {\n      position: relative;\n      margin-top: 12px; }\n    .xgplayer-skin-default .xgplayer-playbackrate ul li:last-child {\n      position: relative;\n      margin-bottom: 12px; }\n  .xgplayer-skin-default .xgplayer-playbackrate .name {\n    height: 20px;\n    position: relative;\n    top: 11px;\n    text-align: center;\n    background: rgba(0, 0, 0, .38);\n    color: rgba(255, 255, 255, .8);\n    border-radius: 10px;\n    line-height: 20px; }\n  .xgplayer-skin-default .xgplayer-playbackrate span {\n    position: relative;\n    top: 19px;\n    font-weight: bold;\n    text-shadow: 0 0 4px rgba(0, 0, 0, .6); }\n  .xgplayer-skin-default .xgplayer-playbackrate:hover {\n    opacity: 1; }\n\n.xgplayer-skin-default.xgplayer-playbackrate-active .xgplayer-playbackrate ul {\n  display: block; }\n\n.xgplayer-skin-default .xgplayer-download {\n  position: relative;\n  -webkit-order: 9;\n     -moz-box-ordinal-group: 10;\n          order: 9;\n  display: block;\n  cursor: pointer; }\n  .xgplayer-skin-default .xgplayer-download .xgplayer-icon {\n    margin-top: 3px; }\n    .xgplayer-skin-default .xgplayer-download .xgplayer-icon div {\n      position: absolute; }\n    .xgplayer-skin-default .xgplayer-download .xgplayer-icon svg {\n      position: relative;\n      top: 5px;\n      left: 5px; }\n  .xgplayer-skin-default .xgplayer-download .xgplayer-tips {\n    margin-left: -20px; }\n    .xgplayer-skin-default .xgplayer-download .xgplayer-tips .xgplayer-tip-download {\n      display: block; }\n  .xgplayer-skin-default .xgplayer-download:hover {\n    opacity: 0.85; }\n    .xgplayer-skin-default .xgplayer-download:hover .xgplayer-tips {\n      display: block; }\n\n.lang-is-en .xgplayer-download .xgplayer-tips {\n  margin-left: -32px; }\n\n.lang-is-jp .xgplayer-download .xgplayer-tips {\n  margin-left: -40px; }\n\n.xgplayer-skin-default .danmu-switch {\n  -webkit-order: 6;\n     -moz-box-ordinal-group: 7;\n          order: 6;\n  z-index: 26; }\n\n.xgplayer-skin-default .xgplayer-danmu {\n  display: none;\n  position: absolute;\n  top: 0;\n  left: 0;\n  right: 0;\n  height: 100%;\n  overflow: hidden;\n  z-index: 9;\n  outline: none; }\n  .xgplayer-skin-default .xgplayer-danmu > * {\n    position: absolute;\n    white-space: nowrap;\n    z-index: 9; }\n\n.xgplayer-skin-default .xgplayer-danmu.xgplayer-has-danmu {\n  display: block; }\n\n.xgplayer-skin-default .xgplayer-panel {\n  outline: none;\n  -webkit-order: 7;\n     -moz-box-ordinal-group: 8;\n          order: 7;\n  width: 40px;\n  height: 40px;\n  display: inline-block;\n  position: relative;\n  font-family: PingFangSC-Regular;\n  font-size: 13px;\n  color: rgba(255, 255, 255, .8);\n  z-index: 36; }\n  .xgplayer-skin-default .xgplayer-panel .xgplayer-panel-icon {\n    cursor: pointer;\n    position: absolute;\n    margin-left: 5px;\n    top: 10px; }\n\n.xgplayer-skin-default .xgplayer-panel-active {\n  display: block !important;\n  bottom: 30px; }\n\n.xgplayer-skin-default .xgplayer-panel-slider {\n  z-index: 36;\n  display: none;\n  position: absolute;\n  width: 230px;\n  height: 230px;\n  background: rgba(0, 0, 0, .54);\n  border-radius: 1px;\n  padding: 10px 20px;\n  outline: none;\n  left: -115px;\n  bottom: 40px; }\n  .xgplayer-skin-default .xgplayer-panel-slider .xgplayer-hidemode {\n    padding-bottom: 10px; }\n    .xgplayer-skin-default .xgplayer-panel-slider .xgplayer-hidemode-radio li {\n      display: inline;\n      list-style: none;\n      cursor: pointer; }\n    .xgplayer-skin-default .xgplayer-panel-slider .xgplayer-hidemode ul {\n      display: -webkit-flex;\n      display: -moz-box;\n      display: flex;\n      -webkit-justify-content: space-around;\n              justify-content: space-around; }\n    .xgplayer-skin-default .xgplayer-panel-slider .xgplayer-hidemode li {\n      margin: 0 12px;\n      font-size: 11px;\n      color: #aaa; }\n    .xgplayer-skin-default .xgplayer-panel-slider .xgplayer-hidemode-font {\n      margin-bottom: 10px; }\n  .xgplayer-skin-default .xgplayer-panel-slider .xgplayer-transparency {\n    display: block;\n    margin-top: 10px; }\n    .xgplayer-skin-default .xgplayer-panel-slider .xgplayer-transparency .xgplayer-transparency-line {\n      -webkit-appearance: none;\n      -moz-appearance: none;\n      appearance: none;\n      cursor: pointer;\n      outline: none;\n      width: 150px;\n      height: 4px;\n      background: #aaa;\n      border-radius: 4px;\n      border-style: none;\n      margin-left: 10px;\n      margin-top: -2px; }\n    .xgplayer-skin-default .xgplayer-panel-slider .xgplayer-transparency .xgplayer-transparency-line::-moz-focus-outer {\n      border: 0 !important; }\n    .xgplayer-skin-default .xgplayer-panel-slider .xgplayer-transparency .xgplayer-transparency-color::-webkit-slider-runnable-track {\n      outline: none;\n      width: 150px;\n      height: 4px;\n      border-radius: 4px; }\n    .xgplayer-skin-default .xgplayer-panel-slider .xgplayer-transparency .xgplayer-transparency-color::-moz-range-track {\n      outline: none;\n      background-color: #aaa;\n      border-color: transparent;\n      cursor: pointer;\n      width: 150px;\n      height: 4px;\n      border-radius: 4px; }\n    .xgplayer-skin-default .xgplayer-panel-slider .xgplayer-transparency .xgplayer-transparency-color::-ms-track {\n      outline: none;\n      background-color: #aaa;\n      color: transparent;\n      border-color: transparent;\n      width: 150px;\n      height: 4px;\n      border-radius: 4px; }\n    .xgplayer-skin-default .xgplayer-panel-slider .xgplayer-transparency .xgplayer-transparency-bar::-webkit-slider-thumb {\n      outline: none;\n      -webkit-appearance: none;\n      -moz-appearance: none;\n      appearance: none;\n      border: 6px solid #f85959;\n      height: 6px;\n      width: 6px;\n      margin-top: -4px;\n      border-radius: 6px;\n      cursor: pointer; }\n    .xgplayer-skin-default .xgplayer-panel-slider .xgplayer-transparency .xgplayer-transparency-bar::-moz-range-thumb {\n      outline: none;\n      -webkit-appearance: none;\n      -moz-appearance: none;\n      appearance: none;\n      border: 6px solid #f85959;\n      height: 0;\n      width: 0;\n      border-radius: 6px;\n      cursor: pointer; }\n    .xgplayer-skin-default .xgplayer-panel-slider .xgplayer-transparency .xgplayer-transparency-bar::-ms-thumb {\n      outline: none;\n      -webkit-appearance: none;\n      -moz-appearance: none;\n      appearance: none;\n      border: 6px solid #f85959;\n      height: 6px;\n      width: 6px;\n      border-radius: 6px;\n      cursor: pointer; }\n    .xgplayer-skin-default .xgplayer-panel-slider .xgplayer-transparency .xgplayer-transparency-bar::-moz-range-progress {\n      outline: none;\n      -webkit-appearance: none;\n      -moz-appearance: none;\n      appearance: none;\n      height: 4px;\n      border-radius: 4px;\n      background: linear-gradient(to right, #f85959, #f85959 100%, #aaa); }\n  .xgplayer-skin-default .xgplayer-panel-slider .xgplayer-showarea {\n    display: block;\n    margin-top: 8px; }\n    .xgplayer-skin-default .xgplayer-panel-slider .xgplayer-showarea-name {\n      display: inline-block;\n      position: relative;\n      top: -10px; }\n    .xgplayer-skin-default .xgplayer-panel-slider .xgplayer-showarea-control {\n      display: inline-block; }\n      .xgplayer-skin-default .xgplayer-panel-slider .xgplayer-showarea-control-up {\n        width: 150px;\n        margin-left: 10px;\n        display: -moz-box;\n        display: -webkit-flex;\n        display: flex;\n        -webkit-justify-content: space-between;\n           -moz-box-pack: justify;\n                justify-content: space-between;\n        color: #aaa; }\n      .xgplayer-skin-default .xgplayer-panel-slider .xgplayer-showarea-control-down {\n        position: relative;\n        top: -10px; }\n      .xgplayer-skin-default .xgplayer-panel-slider .xgplayer-showarea-control-down-dots {\n        display: -webkit-flex;\n        display: -moz-box;\n        display: flex;\n        width: 150px;\n        margin-left: 10px;\n        -webkit-justify-content: space-between;\n           -moz-box-pack: justify;\n                justify-content: space-between; }\n    .xgplayer-skin-default .xgplayer-panel-slider .xgplayer-showarea-twoquarters {\n      margin-left: -6px; }\n    .xgplayer-skin-default .xgplayer-panel-slider .xgplayer-showarea-threequarters {\n      margin-left: -6px; }\n    .xgplayer-skin-default .xgplayer-panel-slider .xgplayer-showarea-full {\n      margin-right: 3px; }\n    .xgplayer-skin-default .xgplayer-panel-slider .xgplayer-showarea .xgplayer-showarea-line {\n      -webkit-appearance: none;\n      -moz-appearance: none;\n      appearance: none;\n      cursor: pointer;\n      outline: none;\n      width: 150px;\n      height: 4px;\n      background: #aaa;\n      border-radius: 4px;\n      border-style: none;\n      margin-left: 10px;\n      margin-top: -2px; }\n    .xgplayer-skin-default .xgplayer-panel-slider .xgplayer-showarea .xgplayer-showarea-line::-moz-focus-outer {\n      border: 0 !important; }\n    .xgplayer-skin-default .xgplayer-panel-slider .xgplayer-showarea .xgplayer-showarea-color::-webkit-slider-runnable-track {\n      outline: none;\n      width: 150px;\n      height: 4px;\n      border-radius: 4px; }\n    .xgplayer-skin-default .xgplayer-panel-slider .xgplayer-showarea .xgplayer-showarea-color::-moz-range-track {\n      outline: none;\n      background-color: #aaa;\n      border-color: transparent;\n      cursor: pointer;\n      width: 150px;\n      height: 4px;\n      border-radius: 4px; }\n    .xgplayer-skin-default .xgplayer-panel-slider .xgplayer-showarea .xgplayer-showarea-color::-ms-track {\n      outline: none;\n      background-color: #aaa;\n      color: transparent;\n      border-color: transparent;\n      width: 150px;\n      height: 4px;\n      border-radius: 4px; }\n    .xgplayer-skin-default .xgplayer-panel-slider .xgplayer-showarea .xgplayer-showarea-bar::-webkit-slider-thumb {\n      outline: none;\n      -webkit-appearance: none;\n      -moz-appearance: none;\n      appearance: none;\n      border: 6px solid #f85959;\n      height: 6px;\n      width: 6px;\n      margin-top: -4px;\n      border-radius: 6px;\n      cursor: pointer; }\n    .xgplayer-skin-default .xgplayer-panel-slider .xgplayer-showarea .xgplayer-showarea-bar::-moz-range-thumb {\n      outline: none;\n      -webkit-appearance: none;\n      -moz-appearance: none;\n      appearance: none;\n      border: 6px solid #f85959;\n      height: 0;\n      width: 0;\n      border-radius: 6px;\n      cursor: pointer; }\n    .xgplayer-skin-default .xgplayer-panel-slider .xgplayer-showarea .xgplayer-showarea-bar::-ms-thumb {\n      outline: none;\n      -webkit-appearance: none;\n      -moz-appearance: none;\n      appearance: none;\n      border: 6px solid #f85959;\n      height: 6px;\n      width: 6px;\n      border-radius: 6px;\n      cursor: pointer; }\n    .xgplayer-skin-default .xgplayer-panel-slider .xgplayer-showarea .xgplayer-showarea-zero-dot {\n      width: 3px;\n      height: 3px;\n      border: 3px solid #aaa;\n      border-radius: 50%;\n      background-color: #aaa;\n      position: relative;\n      top: 16px;\n      z-index: -1; }\n    .xgplayer-skin-default .xgplayer-panel-slider .xgplayer-showarea .xgplayer-showarea-onequarters-dot {\n      width: 3px;\n      height: 3px;\n      border: 3px solid #aaa;\n      border-radius: 50%;\n      background-color: #aaa;\n      position: relative;\n      top: 16px;\n      z-index: -1; }\n    .xgplayer-skin-default .xgplayer-panel-slider .xgplayer-showarea .xgplayer-showarea-twoquarters-dot {\n      width: 3px;\n      height: 3px;\n      border: 3px solid #aaa;\n      border-radius: 50%;\n      background-color: #aaa;\n      position: relative;\n      top: 16px;\n      z-index: -1; }\n    .xgplayer-skin-default .xgplayer-panel-slider .xgplayer-showarea .xgplayer-showarea-threequarters-dot {\n      width: 3px;\n      height: 3px;\n      border: 3px solid #aaa;\n      border-radius: 50%;\n      background-color: #aaa;\n      position: relative;\n      top: 16px;\n      z-index: -1; }\n    .xgplayer-skin-default .xgplayer-panel-slider .xgplayer-showarea .xgplayer-showarea-full-dot {\n      width: 3px;\n      height: 3px;\n      border: 3px solid #aaa;\n      border-radius: 50%;\n      background-color: #aaa;\n      position: relative;\n      top: 16px;\n      z-index: -1; }\n  .xgplayer-skin-default .xgplayer-panel-slider .xgplayer-danmuspeed {\n    display: block; }\n    .xgplayer-skin-default .xgplayer-panel-slider .xgplayer-danmuspeed-name {\n      display: inline-block;\n      position: relative;\n      top: -10px; }\n    .xgplayer-skin-default .xgplayer-panel-slider .xgplayer-danmuspeed-control {\n      display: inline-block; }\n      .xgplayer-skin-default .xgplayer-panel-slider .xgplayer-danmuspeed-control-up {\n        width: 150px;\n        margin-left: 10px;\n        display: -moz-box;\n        display: -webkit-flex;\n        display: flex;\n        -webkit-justify-content: space-between;\n           -moz-box-pack: justify;\n                justify-content: space-between;\n        color: #aaa; }\n      .xgplayer-skin-default .xgplayer-panel-slider .xgplayer-danmuspeed-control-down {\n        position: relative;\n        top: -10px; }\n      .xgplayer-skin-default .xgplayer-panel-slider .xgplayer-danmuspeed-control-down-dots {\n        display: -webkit-flex;\n        display: -moz-box;\n        display: flex;\n        width: 150px;\n        margin-left: 10px;\n        -webkit-justify-content: space-between;\n           -moz-box-pack: justify;\n                justify-content: space-between; }\n    .xgplayer-skin-default .xgplayer-panel-slider .xgplayer-danmuspeed .xgplayer-danmuspeed-line {\n      -webkit-appearance: none;\n      -moz-appearance: none;\n      appearance: none;\n      cursor: pointer;\n      outline: none;\n      width: 150px;\n      height: 4px;\n      background: #aaa;\n      border-radius: 4px;\n      border-style: none;\n      margin-left: 10px;\n      margin-top: -2px; }\n    .xgplayer-skin-default .xgplayer-panel-slider .xgplayer-danmuspeed .xgplayer-danmuspeed-line::-moz-focus-outer {\n      border: 0 !important; }\n    .xgplayer-skin-default .xgplayer-panel-slider .xgplayer-danmuspeed .xgplayer-danmuspeed-color::-webkit-slider-runnable-track {\n      outline: none;\n      width: 150px;\n      height: 4px;\n      border-radius: 4px; }\n    .xgplayer-skin-default .xgplayer-panel-slider .xgplayer-danmuspeed .xgplayer-danmuspeed-color::-moz-range-track {\n      outline: none;\n      background-color: #aaa;\n      border-color: transparent;\n      cursor: pointer;\n      width: 150px;\n      height: 4px;\n      border-radius: 4px; }\n    .xgplayer-skin-default .xgplayer-panel-slider .xgplayer-danmuspeed .xgplayer-danmuspeed-color::-ms-track {\n      outline: none;\n      background-color: #aaa;\n      color: transparent;\n      border-color: transparent;\n      width: 150px;\n      height: 4px;\n      border-radius: 4px; }\n    .xgplayer-skin-default .xgplayer-panel-slider .xgplayer-danmuspeed .xgplayer-danmuspeed-bar::-webkit-slider-thumb {\n      outline: none;\n      -webkit-appearance: none;\n      -moz-appearance: none;\n      appearance: none;\n      border: 6px solid #f85959;\n      height: 6px;\n      width: 6px;\n      margin-top: -4px;\n      border-radius: 6px;\n      cursor: pointer; }\n    .xgplayer-skin-default .xgplayer-panel-slider .xgplayer-danmuspeed .xgplayer-danmuspeed-bar::-moz-range-thumb {\n      outline: none;\n      -webkit-appearance: none;\n      -moz-appearance: none;\n      appearance: none;\n      border: 6px solid #f85959;\n      height: 0;\n      width: 0;\n      border-radius: 6px;\n      cursor: pointer; }\n    .xgplayer-skin-default .xgplayer-panel-slider .xgplayer-danmuspeed .xgplayer-danmuspeed-bar::-ms-thumb {\n      outline: none;\n      -webkit-appearance: none;\n      -moz-appearance: none;\n      appearance: none;\n      border: 6px solid #f85959;\n      height: 6px;\n      width: 6px;\n      border-radius: 6px;\n      cursor: pointer; }\n    .xgplayer-skin-default .xgplayer-panel-slider .xgplayer-danmuspeed .xgplayer-danmuspeed-small-dot {\n      width: 3px;\n      height: 3px;\n      border: 3px solid #aaa;\n      border-radius: 50%;\n      background-color: #aaa;\n      position: relative;\n      top: 16px;\n      z-index: -1; }\n    .xgplayer-skin-default .xgplayer-panel-slider .xgplayer-danmuspeed .xgplayer-danmuspeed-middle-dot {\n      width: 3px;\n      height: 3px;\n      border: 3px solid #aaa;\n      border-radius: 50%;\n      background-color: #aaa;\n      position: relative;\n      top: 16px;\n      z-index: -1; }\n    .xgplayer-skin-default .xgplayer-panel-slider .xgplayer-danmuspeed .xgplayer-danmuspeed-large-dot {\n      width: 3px;\n      height: 3px;\n      border: 3px solid #aaa;\n      border-radius: 50%;\n      background-color: #aaa;\n      position: relative;\n      top: 16px;\n      z-index: -1; }\n  .xgplayer-skin-default .xgplayer-panel-slider .xgplayer-danmufont {\n    display: block; }\n    .xgplayer-skin-default .xgplayer-panel-slider .xgplayer-danmufont-name {\n      display: inline-block;\n      position: relative;\n      top: -10px; }\n    .xgplayer-skin-default .xgplayer-panel-slider .xgplayer-danmufont-control {\n      display: inline-block; }\n      .xgplayer-skin-default .xgplayer-panel-slider .xgplayer-danmufont-control-up {\n        width: 150px;\n        margin-left: 10px;\n        display: -moz-box;\n        display: -webkit-flex;\n        display: flex;\n        -webkit-justify-content: space-between;\n           -moz-box-pack: justify;\n                justify-content: space-between;\n        color: #aaa; }\n      .xgplayer-skin-default .xgplayer-panel-slider .xgplayer-danmufont-control-down {\n        position: relative;\n        top: -10px; }\n      .xgplayer-skin-default .xgplayer-panel-slider .xgplayer-danmufont-control-down-dots {\n        display: -webkit-flex;\n        display: -moz-box;\n        display: flex;\n        width: 150px;\n        margin-left: 10px;\n        -webkit-justify-content: space-between;\n           -moz-box-pack: justify;\n                justify-content: space-between; }\n    .xgplayer-skin-default .xgplayer-panel-slider .xgplayer-danmufont .xgplayer-danmufont-line {\n      -webkit-appearance: none;\n      -moz-appearance: none;\n      appearance: none;\n      cursor: pointer;\n      outline: none;\n      width: 150px;\n      height: 4px;\n      background: #aaa;\n      border-radius: 4px;\n      border-style: none;\n      margin-left: 10px;\n      margin-top: -2px; }\n    .xgplayer-skin-default .xgplayer-panel-slider .xgplayer-danmufont .xgplayer-danmufont-line::-moz-focus-outer {\n      border: 0 !important; }\n    .xgplayer-skin-default .xgplayer-panel-slider .xgplayer-danmufont .xgplayer-danmufont-color::-webkit-slider-runnable-track {\n      outline: none;\n      width: 150px;\n      height: 4px;\n      border-radius: 4px; }\n    .xgplayer-skin-default .xgplayer-panel-slider .xgplayer-danmufont .xgplayer-danmufont-color::-moz-range-track {\n      outline: none;\n      background-color: #aaa;\n      border-color: transparent;\n      cursor: pointer;\n      width: 150px;\n      height: 4px;\n      border-radius: 4px; }\n    .xgplayer-skin-default .xgplayer-panel-slider .xgplayer-danmufont .xgplayer-danmufont-color::-ms-track {\n      outline: none;\n      background-color: #aaa;\n      color: transparent;\n      border-color: transparent;\n      width: 150px;\n      height: 4px;\n      border-radius: 4px; }\n    .xgplayer-skin-default .xgplayer-panel-slider .xgplayer-danmufont .xgplayer-danmufont-bar::-webkit-slider-thumb {\n      outline: none;\n      -webkit-appearance: none;\n      -moz-appearance: none;\n      appearance: none;\n      border: 6px solid #f85959;\n      height: 6px;\n      width: 6px;\n      margin-top: -4px;\n      border-radius: 6px;\n      cursor: pointer; }\n    .xgplayer-skin-default .xgplayer-panel-slider .xgplayer-danmufont .xgplayer-danmufont-bar::-moz-range-thumb {\n      outline: none;\n      -webkit-appearance: none;\n      -moz-appearance: none;\n      appearance: none;\n      border: 6px solid #f85959;\n      height: 0;\n      width: 0;\n      border-radius: 6px;\n      cursor: pointer; }\n    .xgplayer-skin-default .xgplayer-panel-slider .xgplayer-danmufont .xgplayer-danmufont-bar::-ms-thumb {\n      outline: none;\n      -webkit-appearance: none;\n      -moz-appearance: none;\n      appearance: none;\n      border: 6px solid #f85959;\n      height: 6px;\n      width: 6px;\n      border-radius: 6px;\n      cursor: pointer; }\n    .xgplayer-skin-default .xgplayer-panel-slider .xgplayer-danmufont .xgplayer-danmufont-small-dot {\n      width: 3px;\n      height: 3px;\n      border: 3px solid #aaa;\n      border-radius: 50%;\n      background-color: #aaa;\n      position: relative;\n      top: 16px;\n      z-index: -1; }\n    .xgplayer-skin-default .xgplayer-panel-slider .xgplayer-danmufont .xgplayer-danmufont-middle-dot {\n      width: 3px;\n      height: 3px;\n      border: 3px solid #aaa;\n      border-radius: 50%;\n      background-color: #aaa;\n      position: relative;\n      top: 16px;\n      z-index: -1; }\n    .xgplayer-skin-default .xgplayer-panel-slider .xgplayer-danmufont .xgplayer-danmufont-large-dot {\n      width: 3px;\n      height: 3px;\n      border: 3px solid #aaa;\n      border-radius: 50%;\n      background-color: #aaa;\n      position: relative;\n      top: 16px;\n      z-index: -1; }\n\n.xgplayer-skin-default .xgplayer-playnext {\n  position: relative;\n  -webkit-order: 1;\n     -moz-box-ordinal-group: 2;\n          order: 1;\n  display: block;\n  cursor: pointer;\n  top: -2px; }\n  .xgplayer-skin-default .xgplayer-playnext .xgplayer-icon div {\n    position: absolute; }\n  .xgplayer-skin-default .xgplayer-playnext .xgplayer-tips .xgplayer-tip-playnext {\n    display: block; }\n  .xgplayer-skin-default .xgplayer-playnext:hover {\n    opacity: 0.85; }\n    .xgplayer-skin-default .xgplayer-playnext:hover .xgplayer-tips {\n      display: block; }\n\n.lang-is-en .xgplayer-playnext .xgplayer-tips {\n  margin-left: -25px; }\n\n.lang-is-jp .xgplayer-playnext .xgplayer-tips {\n  margin-left: -38px; }\n\n.xgplayer-skin-default .xgplayer-pip {\n  -webkit-order: 9;\n     -moz-box-ordinal-group: 10;\n          order: 9;\n  position: relative;\n  outline: none;\n  display: block;\n  cursor: pointer;\n  height: 20px;\n  top: 8px; }\n  .xgplayer-skin-default .xgplayer-pip .name {\n    text-align: center;\n    font-family: PingFangSC-Regular;\n    font-size: 13px;\n    line-height: 20px;\n    height: 20px;\n    color: rgba(255, 255, 255, .8); }\n    .xgplayer-skin-default .xgplayer-pip .name span {\n      width: 60px;\n      height: 20px;\n      line-height: 20px;\n      background: rgba(0, 0, 0, .38);\n      border-radius: 10px;\n      display: inline-block;\n      vertical-align: middle; }\n\n.xgplayer-skin-default .xgplayer-pip-lay {\n  position: absolute;\n  top: 26px;\n  left: 0;\n  width: 100%;\n  height: 100%;\n  z-index: 130;\n  cursor: pointer;\n  background-color: transparent;\n  display: none; }\n  .xgplayer-skin-default .xgplayer-pip-lay div {\n    width: 100%;\n    height: 100%; }\n\n.xgplayer-skin-default .xgplayer-pip-drag {\n  cursor: move;\n  position: absolute;\n  top: 0;\n  left: 0;\n  width: 100%;\n  height: 26px;\n  line-height: 26px;\n  background-image: linear-gradient(rgba(0, 0, 0, .3), rgba(0, 0, 0, 0));\n  z-index: 130;\n  display: none; }\n\n.xgplayer-skin-default.xgplayer-pip-active {\n  position: fixed;\n  right: 0;\n  bottom: 200px;\n  width: 320px !important;\n  height: 180px !important;\n  z-index: 110 !important; }\n  .xgplayer-skin-default.xgplayer-pip-active .xgplayer-controls {\n    display: none; }\n  .xgplayer-skin-default.xgplayer-pip-active .xgplayer-danmu {\n    display: none; }\n  .xgplayer-skin-default.xgplayer-pip-active .xgplayer-pip-lay {\n    display: block; }\n\n.xgplayer-skin-default.xgplayer-pip-active .xgplayer-pip-drag {\n  display: -webkit-flex;\n  display: -moz-box;\n  display: flex; }\n\n.xgplayer-skin-default.xgplayer-inactive .xgplayer-pip-drag {\n  display: none; }\n\n.lang-is-jp .xgplayer-pip .name span {\n  width: 70px;\n  height: 20px; }\n\n.xgplayer-skin-default .xgplayer-rotate {\n  position: relative;\n  -webkit-order: 10;\n     -moz-box-ordinal-group: 11;\n          order: 10;\n  display: block;\n  cursor: pointer; }\n  .xgplayer-skin-default .xgplayer-rotate .xgplayer-icon {\n    margin-top: 7px;\n    width: 26px; }\n    .xgplayer-skin-default .xgplayer-rotate .xgplayer-icon div {\n      position: absolute; }\n  .xgplayer-skin-default .xgplayer-rotate .xgplayer-tips {\n    margin-left: -22px; }\n    .xgplayer-skin-default .xgplayer-rotate .xgplayer-tips .xgplayer-tip-rotate {\n      display: block; }\n  .xgplayer-skin-default .xgplayer-rotate:hover {\n    opacity: 0.85; }\n    .xgplayer-skin-default .xgplayer-rotate:hover .xgplayer-tips {\n      display: block; }\n\n.lang-is-en .xgplayer-rotate .xgplayer-tips {\n  margin-left: -26px; }\n\n.lang-is-jp .xgplayer-rotate .xgplayer-tips {\n  margin-left: -38px; }\n\n.xgplayer-skin-default .xgplayer-screenshot {\n  -webkit-order: 11;\n     -moz-box-ordinal-group: 12;\n          order: 11;\n  position: relative;\n  outline: none;\n  display: block;\n  cursor: pointer;\n  height: 20px;\n  top: 8px; }\n  .xgplayer-skin-default .xgplayer-screenshot .name {\n    text-align: center;\n    font-family: PingFangSC-Regular;\n    font-size: 13px;\n    line-height: 20px;\n    height: 20px;\n    color: rgba(255, 255, 255, .8); }\n    .xgplayer-skin-default .xgplayer-screenshot .name span {\n      width: 60px;\n      height: 20px;\n      line-height: 20px;\n      background: rgba(0, 0, 0, .38);\n      border-radius: 10px;\n      display: inline-block;\n      vertical-align: middle; }\n\n.lang-is-en .xgplayer-screenshot .name span, .lang-is-jp .xgplayer-screenshot .name span {\n  width: 75px;\n  height: 20px; }\n\n.xgplayer-skin-default .xgplayer-texttrack {\n  -webkit-order: 7;\n     -moz-box-ordinal-group: 8;\n          order: 7;\n  width: 60px;\n  height: 150px;\n  z-index: 18;\n  position: relative;\n  outline: none;\n  display: none;\n  cursor: default;\n  margin-top: -119px; }\n  .xgplayer-skin-default .xgplayer-texttrack ul {\n    display: none;\n    list-style: none;\n    width: 78px;\n    background: rgba(0, 0, 0, .54);\n    border-radius: 1px;\n    position: absolute;\n    bottom: 30px;\n    left: 0;\n    text-align: center;\n    white-space: nowrap;\n    margin-left: -10px;\n    z-index: 26;\n    cursor: pointer; }\n    .xgplayer-skin-default .xgplayer-texttrack ul li {\n      opacity: 0.7;\n      font-family: PingFangSC-Regular;\n      font-size: 11px;\n      color: rgba(255, 255, 255, .8);\n      padding: 6px 13px; }\n      .xgplayer-skin-default .xgplayer-texttrack ul li.selected {\n        color: #fff;\n        opacity: 1; }\n      .xgplayer-skin-default .xgplayer-texttrack ul li:hover {\n        color: #fff;\n        opacity: 1; }\n  .xgplayer-skin-default .xgplayer-texttrack .name {\n    text-align: center;\n    font-family: PingFangSC-Regular;\n    font-size: 13px;\n    line-height: 20px;\n    height: 20px;\n    cursor: pointer;\n    color: rgba(255, 255, 255, .8);\n    position: absolute;\n    bottom: 0;\n    width: 60px;\n    height: 20px;\n    line-height: 20px;\n    background: rgba(0, 0, 0, .38);\n    border-radius: 10px;\n    display: inline-block;\n    vertical-align: middle; }\n\n.xgplayer-skin-default.xgplayer-texttrack-active .xgplayer-texttrack ul {\n  display: block; }\n\n.xgplayer-skin-default.xgplayer-is-texttrack .xgplayer-texttrack {\n  display: block; }\n\n.xgplayer-skin-default .xgplayer-icon {\n  display: block;\n  width: 40px;\n  height: 40px;\n  overflow: hidden;\n  fill: #fff; }\n\n.xgplayer-skin-default .xgplayer-tips {\n  background: rgba(0, 0, 0, .54);\n  border-radius: 1px;\n  display: none;\n  position: absolute;\n  font-family: PingFangSC-Regular;\n  font-size: 11px;\n  color: #fff;\n  padding: 2px 4px;\n  text-align: center;\n  top: -30px;\n  left: 50%;\n  margin-left: -16px;\n  width: auto;\n  white-space: nowrap; }\n\n.xgplayer-skin-default.xgplayer-mobile .xgplayer-tips {\n  display: none !important; }\n\n.xgplayer-skin-default .xgplayer-error {\n  background: #000;\n  display: none;\n  position: absolute;\n  left: 0;\n  top: 0;\n  width: 100%;\n  height: 100%;\n  z-index: 125;\n  font-family: PingFangSC-Regular;\n  font-size: 14px;\n  color: #fff;\n  text-align: center;\n  line-height: 100%;\n  -webkit-justify-content: center;\n     -moz-box-pack: center;\n          justify-content: center;\n  -webkit-align-items: center;\n     -moz-box-align: center;\n          align-items: center; }\n  .xgplayer-skin-default .xgplayer-error .xgplayer-error-refresh {\n    color: #FA1F41;\n    padding: 0 3px;\n    cursor: pointer; }\n  .xgplayer-skin-default .xgplayer-error .xgplayer-error-text {\n    line-height: 18px;\n    margin: auto 6px; }\n\n.xgplayer-skin-default.xgplayer-is-error .xgplayer-error {\n  display: -webkit-flex;\n  display: -moz-box;\n  display: flex; }\n\n.xgplayer-skin-default .xgplayer-memoryplay-spot {\n  position: absolute;\n  height: 32px;\n  left: 10px;\n  bottom: 46px;\n  background: rgba(0, 0, 0, .5);\n  border-radius: 32px;\n  line-height: 32px;\n  color: #ddd;\n  z-index: 15;\n  padding: 0 32px 0 16px; }\n  .xgplayer-skin-default .xgplayer-memoryplay-spot .xgplayer-lasttime {\n    color: red;\n    font-weight: bold; }\n  .xgplayer-skin-default .xgplayer-memoryplay-spot .btn-close {\n    position: absolute;\n    width: 16px;\n    height: 16px;\n    right: 10px;\n    top: 2px;\n    cursor: pointer;\n    color: #fff;\n    font-size: 16px; }\n";
+	var css$3 = ".xgplayer {\n  background: #000;\n  width: 100%;\n  height: 100%;\n  position: relative;\n  -webkit-user-select: none;\n     -moz-user-select: none;\n          user-select: none;\n  -ms-user-select: none; }\n  .xgplayer * {\n    margin: 0;\n    padding: 0;\n    border: 0;\n    font-size: 100%;\n    font: inherit;\n    vertical-align: baseline; }\n  .xgplayer .xgplayer-none {\n    display: none; }\n  .xgplayer.xgplayer-is-fullscreen {\n    width: 100% !important;\n    height: 100% !important;\n    padding-top: 0 !important;\n    z-index: 9999; }\n  .xgplayer.xgplayer-is-fullscreen.xgplayer-inactive {\n    cursor: none; }\n  .xgplayer video {\n    width: 100%;\n    height: 100%;\n    outline: none; }\n\n.xgplayer .xgplayer-none {\n  display: none; }\n";
 	styleInject(css$3);
 
 	Player.BasePlugin = BasePlugin;

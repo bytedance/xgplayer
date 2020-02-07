@@ -39,7 +39,7 @@ class FlvPlayer extends BasePlugin {
   }
 
   initFlvEvents (flv) {
-    const player = this;
+    const player = this.player;
     flv.once(EVENTS.REMUX_EVENTS.INIT_SEGMENT, () => {
       BasePlugin.Util.addClass(player.root, 'xgplayer-is-live')
     })

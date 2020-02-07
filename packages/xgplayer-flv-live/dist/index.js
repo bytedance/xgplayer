@@ -7734,7 +7734,7 @@
       value: function initFlvEvents(flv) {
         var _this3 = this;
 
-        var player = this;
+        var player = this.player;
         flv.once(EVENTS.REMUX_EVENTS.INIT_SEGMENT, function () {
           BasePlugin.Util.addClass(player.root, 'xgplayer-is-live');
         });

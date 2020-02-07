@@ -4,8 +4,9 @@ import EVENTS from 'xgplayer-transmuxer-constant-events'
 import FLV from './flv-live-mobile'
 import 'xgplayer-mobilevideo'
 const flvAllowedEvents = EVENTS.FlvAllowedEvents;
+const { BasePlugin } = Player;
 
-class FlvPlayer extends Player {
+class FlvPlayer extends BasePlugin {
   constructor (config) {
     if (!config.mediaType) {
       config.mediaType = 'mobile-video'
