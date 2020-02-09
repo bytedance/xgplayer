@@ -129,6 +129,9 @@ var AudioCtx = function (_EventEmitter) {
     value: function onSourceEnded() {
       var _this3 = this;
 
+      if (this.paused) {
+        return;
+      }
       if (!this._nextBuffer || !this._played) {
         this.waitNextID = setTimeout(function () {
           _this3.onSourceEnded();
@@ -139,7 +142,7 @@ var AudioCtx = function (_EventEmitter) {
       audioSource.start();
       audioSource.connect(this.gainNode);
       var _this = this;
-      setTimeout(function () {
+      this.waitNextID = setTimeout(function () {
         _this.onSourceEnded.call(_this3);
       }, audioSource.buffer.duration * 1000 - 10);
       this._currentBuffer = this._nextBuffer;

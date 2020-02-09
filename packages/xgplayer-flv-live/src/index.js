@@ -10,6 +10,7 @@ class FlvPlayer extends BasePlugin {
   static get pluginName () {
     return 'flvLive'
   }
+
   constructor (config) {
     super(config)
     this.context = new Context(flvAllowedEvents)
@@ -17,7 +18,8 @@ class FlvPlayer extends BasePlugin {
     this.play = this.play.bind(this)
     this.pause = this.pause.bind(this)
     this.destroy = this.destroy.bind(this)
-    // const preloadTime = player.config.preloadTime || 15
+
+    this.played = false;
     this.initEvents()
   }
 
@@ -110,13 +112,13 @@ class FlvPlayer extends BasePlugin {
   initFlv () {
     const flv = this.context.registry('FLV_CONTROLLER', FLV)(this.player)
     this.initFlvEvents(flv)
-    this.flv = flv
+    this.player.flv = flv
     this.mse = flv.mse;
     return flv;
   }
 
   play () {
-    if (this.player.played.length) {
+    if (this.played && this.player.played.length && this.player.paused) {
       return this._destroy().then(() => {
         this.context = new Context(flvAllowedEvents)
         this.player.hasStart = false;
@@ -132,8 +134,8 @@ class FlvPlayer extends BasePlugin {
   }
 
   loadData (time = this.player.currentTime) {
-    if (this.flv) {
-      this.flv.seek(time)
+    if (this.player.flv) {
+      this.player.flv.seek(time)
     }
   }
 
@@ -153,7 +155,7 @@ class FlvPlayer extends BasePlugin {
   }
 
   get src () {
-    return this.currentSrc
+    return this.player.currentSrc
   }
 
   set src (url) {
@@ -162,7 +164,7 @@ class FlvPlayer extends BasePlugin {
 
   switchURL (url) {
     const context = new Context(flvAllowedEvents);
-    const flv = context.registry('FLV_CONTROLLER', FLV)(this, this.mse)
+    const flv = context.registry('FLV_CONTROLLER', FLV)(this.player, this.mse)
     context.init()
     this.initFlvBackupEvents(flv, context);
     flv.loadData(url);

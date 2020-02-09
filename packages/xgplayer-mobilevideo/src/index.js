@@ -106,6 +106,7 @@ class MobileVideo extends HTMLElement {
     this.videoMetaInited = false;
     this.audioMetaInited = false;
 
+    this.aCtx.on('AUDIO_SOURCE_END', this.handleAudioSourceEnd)
     this.aCtx.destroy()
     this.vCtx.destroy()
     this.ticker.stop()
@@ -250,6 +251,7 @@ class MobileVideo extends HTMLElement {
       this.destroy()
       this.init()
     }
+    this.dispatchEvent(new Event('play'))
     this.pendingPlayTask = Promise.all([
       this.vCtx.play(),
       this.aCtx.play().then(() => {
@@ -268,7 +270,6 @@ class MobileVideo extends HTMLElement {
       this.pendingPlayTask = null
       this.played = true;
       this.dispatchEvent(new Event('playing'))
-      this.dispatchEvent(new Event('play'))
       this._paused = false
     })
   }

@@ -6877,6 +6877,9 @@
       value: function onSourceEnded() {
         var _this3 = this;
 
+        if (this.paused) {
+          return;
+        }
         if (!this._nextBuffer || !this._played) {
           this.waitNextID = setTimeout(function () {
             _this3.onSourceEnded();
@@ -6887,7 +6890,7 @@
         audioSource.start();
         audioSource.connect(this.gainNode);
         var _this = this;
-        setTimeout(function () {
+        this.waitNextID = setTimeout(function () {
           _this.onSourceEnded.call(_this3);
         }, audioSource.buffer.duration * 1000 - 10);
         this._currentBuffer = this._nextBuffer;
@@ -7302,6 +7305,7 @@
         this.videoMetaInited = false;
         this.audioMetaInited = false;
 
+        this.aCtx.on('AUDIO_SOURCE_END', this.handleAudioSourceEnd);
         this.aCtx.destroy();
         this.vCtx.destroy();
         this.ticker.stop();
@@ -7353,6 +7357,7 @@
           this.destroy();
           this.init();
         }
+        this.dispatchEvent(new Event('play'));
         this.pendingPlayTask = Promise.all([this.vCtx.play(), this.aCtx.play().then(function () {
           // this.aCtx.muted = true
         })]).then(function () {
@@ -7368,7 +7373,6 @@
           _this3.pendingPlayTask = null;
           _this3.played = true;
           _this3.dispatchEvent(new Event('playing'));
-          _this3.dispatchEvent(new Event('play'));
           _this3._paused = false;
         });
       }
@@ -7542,59 +7546,48 @@
 
   var _createClass$s = function () { function defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ("value" in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } } return function (Constructor, protoProps, staticProps) { if (protoProps) defineProperties(Constructor.prototype, protoProps); if (staticProps) defineProperties(Constructor, staticProps); return Constructor; }; }();
 
-  var _get$2 = function get(object, property, receiver) { if (object === null) object = Function.prototype; var desc = Object.getOwnPropertyDescriptor(object, property); if (desc === undefined) { var parent = Object.getPrototypeOf(object); if (parent === null) { return undefined; } else { return get(parent, property, receiver); } } else if ("value" in desc) { return desc.value; } else { var getter = desc.get; if (getter === undefined) { return undefined; } return getter.call(receiver); } };
-
   function _classCallCheck$s(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } }
 
   function _possibleConstructorReturn$5(self, call) { if (!self) { throw new ReferenceError("this hasn't been initialised - super() hasn't been called"); } return call && (typeof call === "object" || typeof call === "function") ? call : self; }
 
   function _inherits$5(subClass, superClass) { if (typeof superClass !== "function" && superClass !== null) { throw new TypeError("Super expression must either be null or a function, not " + typeof superClass); } subClass.prototype = Object.create(superClass && superClass.prototype, { constructor: { value: subClass, enumerable: false, writable: true, configurable: true } }); if (superClass) Object.setPrototypeOf ? Object.setPrototypeOf(subClass, superClass) : subClass.__proto__ = superClass; }
   var flvAllowedEvents = EVENTS.FlvAllowedEvents;
+  var BasePlugin = Player.BasePlugin;
 
-  var FlvPlayer = function (_Player) {
-    _inherits$5(FlvPlayer, _Player);
+  var FlvPlayer = function (_BasePlugin) {
+    _inherits$5(FlvPlayer, _BasePlugin);
 
-    function FlvPlayer(config) {
+    function FlvPlayer() {
       _classCallCheck$s(this, FlvPlayer);
 
-      if (!config.mediaType) {
-        config.mediaType = 'mobile-video';
-      }
-
-      var _this = _possibleConstructorReturn$5(this, (FlvPlayer.__proto__ || Object.getPrototypeOf(FlvPlayer)).call(this, config));
-
-      if (!_this.playerInited) {
-        _this.initPlayer(config);
-      }
-      return _this;
+      return _possibleConstructorReturn$5(this, (FlvPlayer.__proto__ || Object.getPrototypeOf(FlvPlayer)).apply(this, arguments));
     }
 
     _createClass$s(FlvPlayer, [{
-      key: 'initPlayer',
-      value: function initPlayer() {
-        this.video.width = Number.parseInt(this.config.width || 600);
-        this.video.height = Number.parseInt(this.config.height || 337.5);
-        this.video.style.outline = 'none';
+      key: 'beforePlayerInit',
+      value: function beforePlayerInit() {
         this.context = new Context(flvAllowedEvents);
-        this.initEvents();
-        this.playerInited = true;
-      }
-    }, {
-      key: 'start',
-      value: function start() {
-        if (!this.playerInited) {
-          this.initPlayer();
-        }
         this.initFlv();
         this.context.init();
-        this.flv.seek(0);
-        _get$2(FlvPlayer.prototype.__proto__ || Object.getPrototypeOf(FlvPlayer.prototype), 'start', this).call(this, this.config.url);
-        this.play();
+        this.loadData();
+        this.initEvents();
+      }
+    }, {
+      key: 'afterCreate',
+      value: function afterCreate() {
+        var _player = this.player,
+            video = _player.video,
+            config = _player.config;
+
+        video.width = Number.parseInt(config.width || 600);
+        video.height = Number.parseInt(config.height || 337.5);
+        video.style.outline = 'none';
       }
     }, {
       key: 'initFlvEvents',
       value: function initFlvEvents(flv) {
-        var player = this;
+        var player = this.player;
+
 
         flv.once(EVENTS.LOADER_EVENTS.LOADER_COMPLETE, function () {
           // 直播完成，待播放器播完缓存后发送关闭事件
@@ -7614,47 +7607,54 @@
       value: function initEvents() {
         var _this2 = this;
 
-        this.on('timeupdate', function () {
+        this.play = this.play.bind(this);
+        this.pause = this.pause.bind(this);
+
+        var player = this.player;
+
+        player.on('timeupdate', function () {
           _this2.loadData();
         });
 
-        this.on('seeking', function () {
+        player.on('seeking', function () {
           var time = _this2.currentTime;
           var range = _this2.getBufferedRange();
           if (time > range[1] || time < range[0]) {
             _this2.flv.seek(_this2.currentTime);
           }
         });
+
+        player.on('play', this.play);
+        player.on('pause', this.pause);
       }
     }, {
       key: 'initFlv',
       value: function initFlv() {
-        var flv = this.context.registry('FLV_CONTROLLER', FlvController)(this);
+        var player = this.player;
+
+        var flv = this.context.registry('FLV_CONTROLLER', FlvController)(player);
         this.initFlvEvents(flv);
         this.flv = flv;
       }
     }, {
       key: 'play',
       value: function play() {
-        if (this._hasStart && this.paused) {
+        var player = this.player;
+
+        if (this.played && this.player.paused) {
           this._destroy();
-          this.context = new Context(flvAllowedEvents);
-          var flv = this.context.registry('FLV_CONTROLLER', FlvController)(this);
-          this.initFlvEvents(flv);
-          this.flv = flv;
-          this.context.init();
-          this.loadData();
-          _get$2(FlvPlayer.prototype.__proto__ || Object.getPrototypeOf(FlvPlayer.prototype), 'start', this).call(this);
-          _get$2(FlvPlayer.prototype.__proto__ || Object.getPrototypeOf(FlvPlayer.prototype), 'play', this).call(this);
+          player.hasStart = false;
+          player.start();
         } else {
-          _get$2(FlvPlayer.prototype.__proto__ || Object.getPrototypeOf(FlvPlayer.prototype), 'play', this).call(this);
           this.addLiveFlag();
         }
+        this.played = true;
       }
     }, {
       key: 'pause',
       value: function pause() {
-        _get$2(FlvPlayer.prototype.__proto__ || Object.getPrototypeOf(FlvPlayer.prototype), 'pause', this).call(this);
+        var player = this.player;
+
         if (this.flv) {
           this.flv.pause();
         }
@@ -7662,7 +7662,8 @@
     }, {
       key: 'loadData',
       value: function loadData() {
-        var time = arguments.length > 0 && arguments[0] !== undefined ? arguments[0] : this.currentTime;
+        var time = arguments.length > 0 && arguments[0] !== undefined ? arguments[0] : this.player.currentTime;
+        var player = this.player;
 
         if (this.flv) {
           this.flv.seek(time);
@@ -7672,17 +7673,13 @@
       key: 'destroy',
       value: function destroy() {
         this._destroy();
-        _get$2(FlvPlayer.prototype.__proto__ || Object.getPrototypeOf(FlvPlayer.prototype), 'destroy', this).call(this);
       }
     }, {
       key: 'addLiveFlag',
       value: function addLiveFlag() {
-        var player = this;
+        var player = this.player;
+
         Player.util.addClass(player.root, 'xgplayer-is-live');
-        if (!Player.util.findDom(this.root, 'xg-live')) {
-          var live = Player.util.createDom('xg-live', '正在直播', {}, 'xgplayer-live');
-          player.controls.appendChild(live);
-        }
       }
     }, {
       key: '_destroy',
@@ -7692,33 +7689,32 @@
         this.context = null;
       }
     }, {
+      key: 'switchURL',
+      value: function switchURL(url) {
+        var context = new Context(flvAllowedEvents);
+        var flv = context.registry('FLV_CONTROLLER', FlvController)(this.player);
+        context.init();
+        this.this.flv = flv;
+        this.initFlvBackupEvents(flv, context);
+        flv.loadData(url);
+      }
+    }, {
       key: 'src',
       get: function get() {
-        return this.currentSrc;
+        return this.player.currentSrc;
       },
       set: function set(url) {
-        var _this3 = this;
-
-        this.player.config.url = url;
-        if (!this.paused) {
-          this.pause();
-          this.once('pause', function () {
-            _this3.start(url);
-          });
-          this.once('canplay', function () {
-            _this3.play();
-          });
-        } else {
-          this.start(url);
-        }
-        this.once('canplay', function () {
-          _this3.currentTime = 0;
-        });
+        this.switchURL(url);
+      }
+    }], [{
+      key: 'pluginName',
+      get: function get() {
+        return 'flvLiveMobile';
       }
     }]);
 
     return FlvPlayer;
-  }(Player);
+  }(BasePlugin);
 
   return FlvPlayer;
 

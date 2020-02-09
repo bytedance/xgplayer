@@ -108,6 +108,9 @@ class AudioCtx extends EventEmitter {
   }
 
   onSourceEnded () {
+    if (this.paused) {
+      return;
+    }
     if (!this._nextBuffer || !this._played) {
       this.waitNextID = setTimeout(() => {
         this.onSourceEnded();
@@ -118,7 +121,7 @@ class AudioCtx extends EventEmitter {
     audioSource.start();
     audioSource.connect(this.gainNode);
     let _this = this;
-    setTimeout(() => {
+    this.waitNextID = setTimeout(() => {
       _this.onSourceEnded.call(this);
     }, audioSource.buffer.duration * 1000 - 10);
     this._currentBuffer = this._nextBuffer;
