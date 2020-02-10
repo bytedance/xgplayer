@@ -4,7 +4,7 @@ import Context from 'xgplayer-transmuxer-context';
 import FLV from './flv-live'
 
 const flvAllowedEvents = EVENTS.FlvAllowedEvents;
-const { BasePlugin } = Player;
+const { BasePlugin, Events } = Player;
 
 class FlvPlayer extends BasePlugin {
   static get pluginName () {
@@ -18,6 +18,7 @@ class FlvPlayer extends BasePlugin {
     this.play = this.play.bind(this)
     this.pause = this.pause.bind(this)
     this.destroy = this.destroy.bind(this)
+    this.switchURL = this.switchURL.bind(this)
 
     this.played = false;
     this.initEvents()
@@ -27,6 +28,7 @@ class FlvPlayer extends BasePlugin {
     this.initFlv()
     this.context.init()
     this.loadData()
+    this.player.swithURL = this.swithURL;
     try {
       BasePlugin.defineGetterOrSetter(this.player, {
         '__url': {
@@ -104,9 +106,10 @@ class FlvPlayer extends BasePlugin {
       }
     })
 
-    this.on('play', this.play)
-    this.on('pause', this.pause)
-    this.on('destroy', this.destroy)
+    this.on(Events.PLAY, this.play)
+    this.on(Events.PAUSE, this.pause)
+    this.on(Events.DESTROY, this.destroy)
+    this.on(Events.URL_CHANGE, this.switchURL)
   }
 
   initFlv () {
@@ -152,14 +155,6 @@ class FlvPlayer extends BasePlugin {
         window.clearInterval(this.loaderCompleteTimer)
       }
     })
-  }
-
-  get src () {
-    return this.player.currentSrc
-  }
-
-  set src (url) {
-    this.switchURL(url)
   }
 
   switchURL (url) {

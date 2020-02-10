@@ -7682,7 +7682,8 @@
   function _inherits$2(subClass, superClass) { if (typeof superClass !== "function" && superClass !== null) { throw new TypeError("Super expression must either be null or a function, not " + typeof superClass); } subClass.prototype = Object.create(superClass && superClass.prototype, { constructor: { value: subClass, enumerable: false, writable: true, configurable: true } }); if (superClass) Object.setPrototypeOf ? Object.setPrototypeOf(subClass, superClass) : subClass.__proto__ = superClass; }
 
   var flvAllowedEvents = EVENTS.FlvAllowedEvents;
-  var BasePlugin = Player.BasePlugin;
+  var BasePlugin = Player.BasePlugin,
+      Events = Player.Events;
 
   var FlvPlayer = function (_BasePlugin) {
     _inherits$2(FlvPlayer, _BasePlugin);
@@ -7704,6 +7705,7 @@
       _this.play = _this.play.bind(_this);
       _this.pause = _this.pause.bind(_this);
       _this.destroy = _this.destroy.bind(_this);
+      _this.switchURL = _this.switchURL.bind(_this);
 
       _this.played = false;
       _this.initEvents();
@@ -7718,6 +7720,7 @@
         this.initFlv();
         this.context.init();
         this.loadData();
+        this.player.swithURL = this.swithURL;
         try {
           BasePlugin.defineGetterOrSetter(this.player, {
             '__url': {
@@ -7804,9 +7807,10 @@
           }
         });
 
-        this.on('play', this.play);
-        this.on('pause', this.pause);
-        this.on('destroy', this.destroy);
+        this.on(Events.PLAY, this.play);
+        this.on(Events.PAUSE, this.pause);
+        this.on(Events.DESTROY, this.destroy);
+        this.on(Events.URL_CHANGE, this.switchURL);
       }
     }, {
       key: 'initFlv',
@@ -7873,14 +7877,6 @@
         context.init();
         this.initFlvBackupEvents(flv, context);
         flv.loadData(url);
-      }
-    }, {
-      key: 'src',
-      get: function get() {
-        return this.player.currentSrc;
-      },
-      set: function set(url) {
-        this.switchURL(url);
       }
     }], [{
       key: 'isSupported',

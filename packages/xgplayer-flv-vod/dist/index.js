@@ -7748,7 +7748,8 @@
   function _possibleConstructorReturn$2(self, call) { if (!self) { throw new ReferenceError("this hasn't been initialised - super() hasn't been called"); } return call && (typeof call === "object" || typeof call === "function") ? call : self; }
 
   function _inherits$2(subClass, superClass) { if (typeof superClass !== "function" && superClass !== null) { throw new TypeError("Super expression must either be null or a function, not " + typeof superClass); } subClass.prototype = Object.create(superClass && superClass.prototype, { constructor: { value: subClass, enumerable: false, writable: true, configurable: true } }); if (superClass) Object.setPrototypeOf ? Object.setPrototypeOf(subClass, superClass) : subClass.__proto__ = superClass; }
-  var BasePlugin = Player.BasePlugin;
+  var BasePlugin = Player.BasePlugin,
+      Events = Player.Events;
 
 
   var flvAllowedEvents = EVENTS.FlvAllowedEvents;
@@ -7784,9 +7785,10 @@
         this.initEvents();
         var flv = this.initFlv();
         this.context.init();
-        var remuxer = this.context.getInstance('MP4_REMUXER');
+        var remuxer = this.remuxer;
         remuxer._dtsBase = 0;
         flv.loadMeta();
+        this.player.swithURL = this.swithURL;
         try {
           BasePlugin.defineGetterOrSetter(this.player, {
             '__url': {
@@ -7836,11 +7838,11 @@
     }, {
       key: 'initEvents',
       value: function initEvents() {
-        this.on('timeupdate', this.handleTimeUpdate.bind(this));
+        this.on(Events.TIME_UPDATE, this.handleTimeUpdate.bind(this));
 
-        this.on('seeking', this.handleSeek.bind(this));
+        this.on(Events.SEEKING, this.handleSeek.bind(this));
 
-        this.once('destroy', this._destroy.bind(this));
+        this.once(Events.DESTROY, this._destroy.bind(this));
       }
     }, {
       key: 'handleTimeUpdate',
@@ -7881,7 +7883,7 @@
 
         player.config.url = url;
         var context = new Context(flvAllowedEvents);
-        var flv = context.registry('FLV_CONTROLLER', FlvController)(this, this.mse);
+        var flv = context.registry('FLV_CONTROLLER', FlvController)(player, this.mse);
         context.init();
 
         this.initFlvBackupEvents(flv, context);
@@ -7891,14 +7893,6 @@
       key: 'remuxer',
       get: function get() {
         return this.context.getInstance('MP4_REMUXER');
-      }
-    }, {
-      key: 'src',
-      get: function get() {
-        return this.currentSrc;
-      },
-      set: function set(url) {
-        return this.swithURL(url);
       }
     }], [{
       key: 'isSupported',

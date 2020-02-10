@@ -2,7 +2,7 @@ import Player from 'xgplayer'
 import EVENTS from 'xgplayer-transmuxer-constant-events';
 import Context from 'xgplayer-transmuxer-context';
 import FLV from './flv-vod'
-const { BasePlugin } = Player;
+const { BasePlugin, Events } = Player;
 
 const flvAllowedEvents = EVENTS.FlvAllowedEvents;
 
@@ -23,15 +23,21 @@ class FlvVodPlayer extends BasePlugin {
     return 'flvVod'
   }
 
+  static isSupported () {
+    return window.MediaSource &&
+      window.MediaSource.isTypeSupported('video/mp4; codecs="avc1.42E01E,mp4a.40.2"');
+  }
+
   beforePlayerInit () {
     this.context = new Context(flvAllowedEvents)
 
     this.initEvents()
     const flv = this.initFlv();
     this.context.init();
-    const remuxer = this.context.getInstance('MP4_REMUXER');
+    const remuxer = this.remuxer;
     remuxer._dtsBase = 0;
     flv.loadMeta()
+    this.player.swithURL = this.swithURL;
     try {
       BasePlugin.defineGetterOrSetter(this.player, {
         '__url': {
@@ -75,11 +81,11 @@ class FlvVodPlayer extends BasePlugin {
   }
 
   initEvents () {
-    this.on('timeupdate', this.handleTimeUpdate.bind(this))
+    this.on(Events.TIME_UPDATE, this.handleTimeUpdate.bind(this))
 
-    this.on('seeking', this.handleSeek.bind(this))
+    this.on(Events.SEEKING, this.handleSeek.bind(this))
 
-    this.once('destroy', this._destroy.bind(this))
+    this.once(Events.DESTROY, this._destroy.bind(this))
   }
 
   handleTimeUpdate () {
@@ -112,7 +118,7 @@ class FlvVodPlayer extends BasePlugin {
     const { player } = this;
     player.config.url = url;
     const context = new Context(flvAllowedEvents);
-    const flv = context.registry('FLV_CONTROLLER', FLV)(this, this.mse)
+    const flv = context.registry('FLV_CONTROLLER', FLV)(player, this.mse)
     context.init()
 
     this.initFlvBackupEvents(flv, context);
@@ -123,18 +129,6 @@ class FlvVodPlayer extends BasePlugin {
     return this.context.getInstance('MP4_REMUXER');
   }
 
-  get src () {
-    return this.currentSrc
-  }
-
-  set src (url) {
-    return this.swithURL(url)
-  }
-
-  static isSupported () {
-    return window.MediaSource &&
-      window.MediaSource.isTypeSupported('video/mp4; codecs="avc1.42E01E,mp4a.40.2"');
-  }
 }
 
 export default FlvVodPlayer
