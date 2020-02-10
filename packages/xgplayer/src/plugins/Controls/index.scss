@@ -6,6 +6,14 @@ $iconMargin: 10px;
 $tipsColor: #fff;
 $tipsBgColor: rgba(0, 0, 0, 0.54);
 $tipsFontsize: 11px;
+// text
+$definitionUlBgColor: rgba(0, 0, 0, 0.54);
+$definitionLiColor: rgba(255, 255, 255, 0.80);
+$definitionLiActiveColor: #fff;
+
+$definitionNameColor: rgba(255, 255, 255, 1);
+$definitionNameBgColor: rgba(0, 0, 0, 0.38);
+
 .xgplayer {
   &.xgplayer-inactive {
     .xgplayer-controls {
@@ -32,7 +40,7 @@ $tipsFontsize: 11px;
       font-family: PingFangSC-Regular;
       font-size: $tipsFontsize;
       color: $tipsColor;
-      padding: 2px 4px;
+      padding: 4px 4px;
       text-align: center;
       top: -30px;
       left: 50%;
@@ -48,6 +56,27 @@ $tipsFontsize: 11px;
     .xgplayer-icon {
       fill: #fff;
       padding-top: 4px;
+    }
+    .btn-definition {
+      text-align: center;
+      font-family: PingFangSC-Regular;
+      font-size: 13px;
+      line-height: 20px;
+      height: 20px;
+      color: $definitionNameColor;
+      line-height: 40px;
+      span {
+        font-family: PingFangSC-Regular;
+        font-size: 13px;
+        width: 60px;
+        height: 20px;
+        line-height: 20px;
+        background: $definitionNameBgColor;
+        border-radius: 10px;
+        display:inline-block;
+        vertical-align:middle;
+        margin-bottom: 8px;
+      }
     }
   }
 

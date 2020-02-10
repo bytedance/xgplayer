@@ -26,4 +26,5 @@ export const DESTROY = 'destroy'
 export const URL_CHANGE = 'urlchange'
 
 // screen change evnets
-export const FULLSCREEN_CHANGE = 'fullscreenchange'
+export const FULLSCREEN_CHANGE = 'fullscreen_change'
+export const CSS_FULLSCREEN_CHANGE = 'cssFullscreen_change'

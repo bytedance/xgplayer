@@ -1,11 +1,17 @@
 import Plugin from '../../plugin'
+import Progress from '../icons/progress'
 import PlayIcon from '../icons/playIcon'
 import FullScreen from '../icons/fullscreen'
 import TimeIcon from '../icons/timeIcon'
 import VolumeIcon from '../icons/volumeIcon'
 import RotateIcon from '../icons/rotate'
 import MiniScreen from '../icons/miniScreen'
-import Progress from '../icons/progress'
+import PIPIcon from '../icons/pipIcon'
+import PlayNextIcon from '../icons/playNextIcon'
+import DownLoadIcon from '../icons/downloadIcon'
+import ScreenShotIcon from '../icons/screenShotIcon'
+import CssFullScreen from '../icons/cssFullScreen'
+
 import './index.scss'
 
 class Controls extends Plugin {
@@ -37,6 +43,27 @@ class Controls extends Plugin {
           root: this.left
         }
       },
+      playNextIcon: {
+        plugin: PlayNextIcon,
+        options: {
+          index: 2,
+          root: this.left
+        }
+      },
+      DownLoadIcon: {
+        plugin: DownLoadIcon,
+        options: {
+          index: 3,
+          root: this.right
+        }
+      },
+      ScreenShotIcon: {
+        plugin: ScreenShotIcon,
+        options: {
+          index: 4,
+          root: this.right
+        }
+      },
       FullScreen: {
         plugin: FullScreen,
         options: {
@@ -60,6 +87,20 @@ class Controls extends Plugin {
       },
       MiniScreen: {
         plugin: MiniScreen,
+        options: {
+          index: 1,
+          root: this.right
+        }
+      },
+      PIPIcon: {
+        plugin: PIPIcon,
+        options: {
+          index: 1,
+          root: this.right
+        }
+      },
+      CssFullScreen: {
+        plugin: CssFullScreen,
         options: {
           index: 1,
           root: this.right

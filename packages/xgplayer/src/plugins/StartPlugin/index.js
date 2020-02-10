@@ -21,6 +21,10 @@ class Start extends Plugin {
       }
     })
 
+    if (!player.config.autoplay) {
+      this.show();
+    }
+
     this.bind('click', (e) => {
       e.preventDefault()
       e.stopPropagation()

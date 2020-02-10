@@ -53,13 +53,23 @@ const pluginsManager = {
         break;
       }
     }
+    // 获取插件添加的父节点
     if (!options.root) {
       options.root = player.root
     } else if (typeof options.root === 'string') {
       options.root = player[options.root]
     }
 
-    try { // eslint-disable-next-line new-cap
+    // 复制插件的默认配置项
+    if (plugin.defaultConfig) {
+      Object.keys(plugin.defaultConfig).map(key => {
+        if (typeof options.config[key] === 'undefined') {
+          options.config[key] = plugin.defaultConfig[key]
+        }
+      })
+    }
+    try {
+      // eslint-disable-next-line new-cap
       const _instance = new plugin(options)
       plugins[pluginName.toLowerCase()] = _instance
       plugins[pluginName.toLowerCase()].func = plugin

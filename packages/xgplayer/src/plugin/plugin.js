@@ -168,9 +168,21 @@ export default class Plugin extends BasePlugin {
   bind (querySelector, eventType, callback) {
     // if no querySelector passed to the method
     if (arguments.length < 3 && typeof eventType === 'function') {
-      this.bindEL(querySelector, eventType)
+      if (Array.isArray(querySelector)) {
+        querySelector.forEach((item) => {
+          this.bindEL(item, eventType)
+        })
+      } else {
+        this.bindEL(querySelector, eventType)
+      }
     } else if (arguments.length === 3 && typeof callback === 'function') {
-      delegate.bind(this.el, querySelector, eventType, callback, false)
+      if (Array.isArray(eventType)) {
+        eventType.forEach((item) => {
+          delegate.bind(this.el, querySelector, item, callback, false)
+        })
+      } else {
+        delegate.bind(this.el, querySelector, eventType, callback, false)
+      }
     }
   }
 
