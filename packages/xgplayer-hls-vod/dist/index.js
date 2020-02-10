@@ -4717,7 +4717,7 @@
             }
           }
           this.videoAllDuration += sampleDuration;
-          // console.log(`video dts ${dts}`, `pts ${pts}`, isKeyframe, `duration ${sampleDuration}`)
+          console.log('video dts ' + dts, 'pts ' + pts, isKeyframe, 'duration ' + sampleDuration);
           if (sampleDuration >= 0) {
             mdatBox.samples.push(mdatSample);
             mdatSample.buffer.push(avcSample.data);
@@ -8556,7 +8556,6 @@
       this.sequence = 0;
       this._playlist = null;
       this.retrytimes = this.configs.retrytimes || 3;
-      this.container = this.configs.container;
       this.preloadTime = this.configs.preloadTime || 5;
       this.mse = this.configs.mse;
       this._lastSeekTime = 0;
@@ -8589,7 +8588,7 @@
 
         // 初始化MSE
         if (!this.mse) {
-          this.mse = new MSE({ container: this.container, preloadTime: this.preloadTime }, this._context);
+          this.mse = new MSE({ preloadTime: this.preloadTime }, this._context);
           this.mse.init();
         }
         this.initEvents();
@@ -8653,7 +8652,7 @@
       }
     }, {
       key: '_onWaiting',
-      value: function _onWaiting(container) {
+      value: function _onWaiting() {
         var end = true;
 
         var playListLen = Object.keys(this._playlist.list).length;
@@ -8662,12 +8661,12 @@
         }
 
         for (var i = 0; i < Object.keys(this._playlist.list).length; i++) {
-          if (this.container.currentTime * 1000 < parseInt(Object.keys(this._playlist.list)[i])) {
+          if (this._player.currentTime * 1000 < parseInt(Object.keys(this._playlist.list)[i])) {
             end = false;
           }
         }
         if (end) {
-          var ts = this._playlist.getTs(this.container.currentTime * 1000);
+          var ts = this._playlist.getTs(this._player.currentTime * 1000);
           if (!ts) {
             this._player.emit('ended');
             this.mse.endOfStream();
@@ -8759,7 +8758,7 @@
             }
           }
         } else if (buffer.TAG === 'TS_BUFFER') {
-          this._preload(this.mse.container.currentTime);
+          this._preload(this._player.currentTime);
           this._playlist.downloaded(this._tsloader.url, true);
           this.emit(DEMUX_EVENTS$2.DEMUX_START, Object.assign({ url: this._tsloader.url }, this._playlist._ts[this._tsloader.url]));
         } else if (buffer.TAG === 'DECRYPT_BUFFER') {
@@ -8852,7 +8851,7 @@
         if (this._tsloader.loading) {
           return;
         }
-        var video = this.mse.container;
+        var video = this._player.video;
         // Get current time range
         var currentbufferend = -1;
         if (!time && video.buffered.length) {
@@ -8909,7 +8908,6 @@
         this.sequence = 0;
         this._playlist = null;
         this.retrytimes = 3;
-        this.container = undefined;
         this.preloadTime = 5;
         this._lastSeekTime = 0;
         this.m3u8Text = null;
@@ -8936,8 +8934,6 @@
 
   var _createClass$z = function () { function defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ("value" in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } } return function (Constructor, protoProps, staticProps) { if (protoProps) defineProperties(Constructor.prototype, protoProps); if (staticProps) defineProperties(Constructor, staticProps); return Constructor; }; }();
 
-  var _set = function set(object, property, value, receiver) { var desc = Object.getOwnPropertyDescriptor(object, property); if (desc === undefined) { var parent = Object.getPrototypeOf(object); if (parent !== null) { set(parent, property, value, receiver); } } else if ("value" in desc && desc.writable) { desc.value = value; } else { var setter = desc.set; if (setter !== undefined) { setter.call(receiver, value); } } return value; };
-
   var _get$2 = function get(object, property, receiver) { if (object === null) object = Function.prototype; var desc = Object.getOwnPropertyDescriptor(object, property); if (desc === undefined) { var parent = Object.getPrototypeOf(object); if (parent === null) { return undefined; } else { return get(parent, property, receiver); } } else if ("value" in desc) { return desc.value; } else { var getter = desc.get; if (getter === undefined) { return undefined; } return getter.call(receiver); } };
 
   function _classCallCheck$z(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } }
@@ -8946,47 +8942,92 @@
 
   function _inherits$3(subClass, superClass) { if (typeof superClass !== "function" && superClass !== null) { throw new TypeError("Super expression must either be null or a function, not " + typeof superClass); } subClass.prototype = Object.create(superClass && superClass.prototype, { constructor: { value: subClass, enumerable: false, writable: true, configurable: true } }); if (superClass) Object.setPrototypeOf ? Object.setPrototypeOf(subClass, superClass) : subClass.__proto__ = superClass; }
 
+  var Events = Player.Events,
+      BasePlugin = Player.BasePlugin;
+
+
   var HlsAllowedEvents$1 = EVENTS.HlsAllowedEvents;
-  var REMUX_EVENTS$4 = EVENTS.REMUX_EVENTS;
   var HLS_EVENTS$2 = EVENTS.HLS_EVENTS;
   var MSE_EVENTS$1 = EVENTS.MSE_EVENTS;
 
-  var HlsVodPlayer = function (_Player) {
-    _inherits$3(HlsVodPlayer, _Player);
+  var HlsVodPlayer = function (_BasePlugin) {
+    _inherits$3(HlsVodPlayer, _BasePlugin);
 
     function HlsVodPlayer(options) {
       _classCallCheck$z(this, HlsVodPlayer);
 
       var _this = _possibleConstructorReturn$3(this, (HlsVodPlayer.__proto__ || Object.getPrototypeOf(HlsVodPlayer)).call(this, options));
 
-      _this.hlsOps = {};
-      _this.util = Player.util;
-      _this.util.deepCopy(_this.hlsOps, options);
       _this._handleSetCurrentTime = debounce(_this._handleSetCurrentTime.bind(_this), 200);
       _this.onWaiting = _this.onWaiting.bind(_this);
-      // this.started = false;
+      _this.destroy = _this.destroy.bind(_this);
+      _this.handleUrlChange = _this.handleUrlChange.bind(_this);
       return _this;
     }
 
     _createClass$z(HlsVodPlayer, [{
+      key: 'beforePlayerInit',
+      value: function beforePlayerInit() {
+        var _this2 = this;
+
+        this.hls = this._context.registry('HLS_VOD_CONTROLLER', HlsVodController)({ player: this.player, preloadTime: this.player.config.preloadTime });
+        this._context.init();
+        this.hls.load(this.player.config.url);
+        this.__initEvents();
+
+        try {
+          BasePlugin.defineGetterOrSetter(this.player, {
+            '__url': {
+              get: function get() {
+                return _this2.hls.mse.url;
+              }
+            }
+          });
+        } catch (e) {
+          // NOOP
+        }
+      }
+    }, {
+      key: 'handleUrlChange',
+      value: function handleUrlChange(url) {
+        var _this3 = this;
+
+        this.hls.mse.destroy().then(function () {
+          _this3.player.config.url = url;
+          _this3._context.destroy();
+          _this3._context = null;
+          _this3.player.started = false;
+          _this3.video.currentTime = 0;
+
+          if (!_this3.paused) {
+            _this3.pause();
+            _this3.once('canplay', function () {
+              _this3.play();
+            });
+          } else {
+            _this3.play();
+          }
+          _this3.player.start();
+        });
+      }
+    }, {
       key: '_handleSetCurrentTime',
       value: function _handleSetCurrentTime(time) {
         time = parseFloat(time);
-        _set(HlsVodPlayer.prototype.__proto__ || Object.getPrototypeOf(HlsVodPlayer.prototype), 'currentTime', parseInt(time), this);
         if (this._context) {
-          this.__core__.seek(time);
+          this.hls.seek(time);
         }
       }
     }, {
       key: 'play',
       value: function play() {
-        var _this2 = this;
+        var _this4 = this;
 
         return _get$2(HlsVodPlayer.prototype.__proto__ || Object.getPrototypeOf(HlsVodPlayer.prototype), 'play', this).call(this).catch(function (e) {
           if (e && e.code === 20) {
             // fix: chrome The play() request was interrupted by a new load request.
-            _this2.once('canplay', function () {
-              _this2.video.play();
+            _this4.once('canplay', function () {
+              _this4.video.play();
             });
           }
         });
@@ -8994,39 +9035,38 @@
     }, {
       key: '__initEvents',
       value: function __initEvents() {
-        var _this3 = this;
+        var _this5 = this;
 
-        this.__core__.once(REMUX_EVENTS$4.INIT_SEGMENT, function () {
-          var mse = _this3.__core__.mse;
-          _get$2(HlsVodPlayer.prototype.__proto__ || Object.getPrototypeOf(HlsVodPlayer.prototype), 'start', _this3).call(_this3, mse.url);
+        this.hls.once(HLS_EVENTS$2.RETRY_TIME_EXCEEDED, function () {
+          _this5.emit('error', new Player.Errors('network', _this5.config.url));
         });
 
-        this.__core__.once(HLS_EVENTS$2.RETRY_TIME_EXCEEDED, function () {
-          _this3.emit('error', new Player.Errors('network', _this3.config.url));
-        });
-
-        this.__core__.on(MSE_EVENTS$1.SOURCE_UPDATE_END, function () {
-          _this3._onSourceUpdateEnd();
+        this.hls.on(MSE_EVENTS$1.SOURCE_UPDATE_END, function () {
+          _this5._onSourceUpdateEnd();
         });
 
         this.once('canplay', function () {
-          if (_this3.config.autoplay) {
-            _this3.play();
+          if (_this5.config.autoplay) {
+            _this5.play();
           }
         });
+
+        this.on(Events.SEEKING, this._handleSetCurrentTime);
+        this.on(Events.URL_CHANGE, this.handleUrlChange);
+        this.on(Events.DESTROY, this.destroy);
       }
     }, {
       key: 'initHlsBackupEvents',
       value: function initHlsBackupEvents(hls, ctx) {
-        var _this4 = this;
+        var _this6 = this;
 
         hls.once(EVENTS.REMUX_EVENTS.MEDIA_SEGMENT, function () {
-          _this4.__core__ = hls;
-          _this4.__core__.mse.cleanBuffers().then(function () {
-            _this4.__core__.mse.resetContext(ctx);
-            _this4.__core__.mse.doAppend();
-            _this4._context.destroy();
-            _this4._context = ctx;
+          _this6.hls = hls;
+          _this6.hls.mse.cleanBuffers().then(function () {
+            _this6.hls.mse.resetContext(ctx);
+            _this6.hls.mse.doAppend();
+            _this6._context.destroy();
+            _this6._context = ctx;
           });
         });
 
@@ -9060,9 +9100,9 @@
           this._context = new Context(HlsAllowedEvents$1);
         }
 
-        this.__core__ = this._context.registry('HLS_VOD_CONTROLLER', HlsVodController)({ player: this, container: this.video, preloadTime: this.config.preloadTime });
+        this.hls = this._context.registry('HLS_VOD_CONTROLLER', HlsVodController)({ player: this, container: this.video, preloadTime: this.config.preloadTime });
         this._context.init();
-        this.__core__.load(url);
+        this.hls.load(url);
         this.__initEvents();
 
         this.started = true;
@@ -9075,7 +9115,7 @@
         var hls = context.registry('HLS_VOD_CONTROLLER', HlsVodController)({
           player: this,
           container: this.video,
-          mse: this.__core__.mse,
+          mse: this.hls.mse,
           preloadTime: this.config.preloadTime
         });
         context.init();
@@ -9085,21 +9125,21 @@
     }, {
       key: 'destroy',
       value: function destroy() {
-        var _this5 = this;
+        var _this7 = this;
 
         return new Promise(function (resolve) {
-          if (_this5.__core__.mse) {
-            _this5.__core__.mse.destroy().then(function () {
-              if (_this5._context) {
-                _this5._context.destroy();
+          if (_this7.hls.mse) {
+            _this7.hls.mse.destroy().then(function () {
+              if (_this7._context) {
+                _this7._context.destroy();
               }
-              _get$2(HlsVodPlayer.prototype.__proto__ || Object.getPrototypeOf(HlsVodPlayer.prototype), 'destroy', _this5).call(_this5);
+              _get$2(HlsVodPlayer.prototype.__proto__ || Object.getPrototypeOf(HlsVodPlayer.prototype), 'destroy', _this7).call(_this7);
               setTimeout(function () {
                 resolve();
               }, 50);
             });
           } else {
-            _get$2(HlsVodPlayer.prototype.__proto__ || Object.getPrototypeOf(HlsVodPlayer.prototype), 'destroy', _this5).call(_this5);
+            _get$2(HlsVodPlayer.prototype.__proto__ || Object.getPrototypeOf(HlsVodPlayer.prototype), 'destroy', _this7).call(_this7);
             setTimeout(function () {
               resolve();
             }, 50);
@@ -9129,47 +9169,10 @@
 
         return result;
       }
-    }, {
-      key: 'currentTime',
-      get: function get() {
-        return _get$2(HlsVodPlayer.prototype.__proto__ || Object.getPrototypeOf(HlsVodPlayer.prototype), 'currentTime', this);
-      },
-      set: function set(time) {
-        this._handleSetCurrentTime(time);
-      }
-    }, {
-      key: 'src',
-      get: function get() {
-        return this.currentSrc;
-      },
-      set: function set(url) {
-        var _this6 = this;
-
-        this.currentTime = 0;
-        this.__core__.destroy();
-        this._context = new Context(HlsAllowedEvents$1);
-        this.onWaiting = this.onWaiting.bind(this);
-        this.started = false;
-        this.start(url);
-        if (!this.paused) {
-          this.pause();
-          this.once('canplay', function () {
-            _this6.play();
-          });
-        } else {
-          this.play();
-        }
-        // this.swithURL(url)
-      }
-    }], [{
-      key: 'install',
-      value: function install(name, plugin) {
-        return Player.install(name, plugin);
-      }
     }]);
 
     return HlsVodPlayer;
-  }(Player);
+  }(BasePlugin);
 
   return HlsVodPlayer;
 

@@ -2145,7 +2145,7 @@
             }
           }
           this.videoAllDuration += sampleDuration;
-          // console.log(`video dts ${dts}`, `pts ${pts}`, isKeyframe, `duration ${sampleDuration}`)
+          console.log('video dts ' + dts, 'pts ' + pts, isKeyframe, 'duration ' + sampleDuration);
           if (sampleDuration >= 0) {
             mdatBox.samples.push(mdatSample);
             mdatSample.buffer.push(avcSample.data);
@@ -7682,7 +7682,8 @@
   function _inherits$2(subClass, superClass) { if (typeof superClass !== "function" && superClass !== null) { throw new TypeError("Super expression must either be null or a function, not " + typeof superClass); } subClass.prototype = Object.create(superClass && superClass.prototype, { constructor: { value: subClass, enumerable: false, writable: true, configurable: true } }); if (superClass) Object.setPrototypeOf ? Object.setPrototypeOf(subClass, superClass) : subClass.__proto__ = superClass; }
 
   var flvAllowedEvents = EVENTS.FlvAllowedEvents;
-  var BasePlugin = Player.BasePlugin;
+  var BasePlugin = Player.BasePlugin,
+      Events = Player.Events;
 
   var FlvPlayer = function (_BasePlugin) {
     _inherits$2(FlvPlayer, _BasePlugin);
@@ -7704,7 +7705,9 @@
       _this.play = _this.play.bind(_this);
       _this.pause = _this.pause.bind(_this);
       _this.destroy = _this.destroy.bind(_this);
-      // const preloadTime = player.config.preloadTime || 15
+      _this.switchURL = _this.switchURL.bind(_this);
+
+      _this.played = false;
       _this.initEvents();
       return _this;
     }
@@ -7717,6 +7720,7 @@
         this.initFlv();
         this.context.init();
         this.loadData();
+        this.player.swithURL = this.swithURL;
         try {
           BasePlugin.defineGetterOrSetter(this.player, {
             '__url': {
@@ -7734,7 +7738,7 @@
       value: function initFlvEvents(flv) {
         var _this3 = this;
 
-        var player = this;
+        var player = this.player;
         flv.once(EVENTS.REMUX_EVENTS.INIT_SEGMENT, function () {
           BasePlugin.Util.addClass(player.root, 'xgplayer-is-live');
         });
@@ -7803,16 +7807,17 @@
           }
         });
 
-        this.on('play', this.play);
-        this.on('pause', this.pause);
-        this.on('destroy', this.destroy);
+        this.on(Events.PLAY, this.play);
+        this.on(Events.PAUSE, this.pause);
+        this.on(Events.DESTROY, this.destroy);
+        this.on(Events.URL_CHANGE, this.switchURL);
       }
     }, {
       key: 'initFlv',
       value: function initFlv() {
         var flv = this.context.registry('FLV_CONTROLLER', FlvController)(this.player);
         this.initFlvEvents(flv);
-        this.flv = flv;
+        this.player.flv = flv;
         this.mse = flv.mse;
         return flv;
       }
@@ -7821,7 +7826,7 @@
       value: function play() {
         var _this6 = this;
 
-        if (this.player.played.length) {
+        if (this.played && this.player.played.length && this.player.paused) {
           return this._destroy().then(function () {
             _this6.context = new Context(flvAllowedEvents);
             _this6.player.hasStart = false;
@@ -7841,8 +7846,8 @@
       value: function loadData() {
         var time = arguments.length > 0 && arguments[0] !== undefined ? arguments[0] : this.player.currentTime;
 
-        if (this.flv) {
-          this.flv.seek(time);
+        if (this.player.flv) {
+          this.player.flv.seek(time);
         }
       }
     }, {
@@ -7868,18 +7873,10 @@
       key: 'switchURL',
       value: function switchURL(url) {
         var context = new Context(flvAllowedEvents);
-        var flv = context.registry('FLV_CONTROLLER', FlvController)(this, this.mse);
+        var flv = context.registry('FLV_CONTROLLER', FlvController)(this.player, this.mse);
         context.init();
         this.initFlvBackupEvents(flv, context);
         flv.loadData(url);
-      }
-    }, {
-      key: 'src',
-      get: function get() {
-        return this.currentSrc;
-      },
-      set: function set(url) {
-        this.switchURL(url);
       }
     }], [{
       key: 'isSupported',

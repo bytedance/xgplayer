@@ -4,12 +4,13 @@ import Context from 'xgplayer-transmuxer-context';
 import FLV from './flv-live'
 
 const flvAllowedEvents = EVENTS.FlvAllowedEvents;
-const { BasePlugin } = Player;
+const { BasePlugin, Events } = Player;
 
 class FlvPlayer extends BasePlugin {
   static get pluginName () {
     return 'flvLive'
   }
+
   constructor (config) {
     super(config)
     this.context = new Context(flvAllowedEvents)
@@ -17,7 +18,9 @@ class FlvPlayer extends BasePlugin {
     this.play = this.play.bind(this)
     this.pause = this.pause.bind(this)
     this.destroy = this.destroy.bind(this)
-    // const preloadTime = player.config.preloadTime || 15
+    this.switchURL = this.switchURL.bind(this)
+
+    this.played = false;
     this.initEvents()
   }
 
@@ -25,6 +28,7 @@ class FlvPlayer extends BasePlugin {
     this.initFlv()
     this.context.init()
     this.loadData()
+    this.player.swithURL = this.swithURL;
     try {
       BasePlugin.defineGetterOrSetter(this.player, {
         '__url': {
@@ -39,7 +43,7 @@ class FlvPlayer extends BasePlugin {
   }
 
   initFlvEvents (flv) {
-    const player = this;
+    const player = this.player;
     flv.once(EVENTS.REMUX_EVENTS.INIT_SEGMENT, () => {
       BasePlugin.Util.addClass(player.root, 'xgplayer-is-live')
     })
@@ -102,21 +106,22 @@ class FlvPlayer extends BasePlugin {
       }
     })
 
-    this.on('play', this.play)
-    this.on('pause', this.pause)
-    this.on('destroy', this.destroy)
+    this.on(Events.PLAY, this.play)
+    this.on(Events.PAUSE, this.pause)
+    this.on(Events.DESTROY, this.destroy)
+    this.on(Events.URL_CHANGE, this.switchURL)
   }
 
   initFlv () {
     const flv = this.context.registry('FLV_CONTROLLER', FLV)(this.player)
     this.initFlvEvents(flv)
-    this.flv = flv
+    this.player.flv = flv
     this.mse = flv.mse;
     return flv;
   }
 
   play () {
-    if (this.player.played.length) {
+    if (this.played && this.player.played.length && this.player.paused) {
       return this._destroy().then(() => {
         this.context = new Context(flvAllowedEvents)
         this.player.hasStart = false;
@@ -132,8 +137,8 @@ class FlvPlayer extends BasePlugin {
   }
 
   loadData (time = this.player.currentTime) {
-    if (this.flv) {
-      this.flv.seek(time)
+    if (this.player.flv) {
+      this.player.flv.seek(time)
     }
   }
 
@@ -152,17 +157,9 @@ class FlvPlayer extends BasePlugin {
     })
   }
 
-  get src () {
-    return this.currentSrc
-  }
-
-  set src (url) {
-    this.switchURL(url)
-  }
-
   switchURL (url) {
     const context = new Context(flvAllowedEvents);
-    const flv = context.registry('FLV_CONTROLLER', FLV)(this, this.mse)
+    const flv = context.registry('FLV_CONTROLLER', FLV)(this.player, this.mse)
     context.init()
     this.initFlvBackupEvents(flv, context);
     flv.loadData(url);

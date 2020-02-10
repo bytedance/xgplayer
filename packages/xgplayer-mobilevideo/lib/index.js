@@ -147,6 +147,7 @@ var MobileVideo = function (_HTMLElement) {
       this.videoMetaInited = false;
       this.audioMetaInited = false;
 
+      this.aCtx.on('AUDIO_SOURCE_END', this.handleAudioSourceEnd);
       this.aCtx.destroy();
       this.vCtx.destroy();
       this.ticker.stop();
@@ -198,6 +199,7 @@ var MobileVideo = function (_HTMLElement) {
         this.destroy();
         this.init();
       }
+      this.dispatchEvent(new Event('play'));
       this.pendingPlayTask = Promise.all([this.vCtx.play(), this.aCtx.play().then(function () {
         // this.aCtx.muted = true
       })]).then(function () {
@@ -213,7 +215,6 @@ var MobileVideo = function (_HTMLElement) {
         _this3.pendingPlayTask = null;
         _this3.played = true;
         _this3.dispatchEvent(new Event('playing'));
-        _this3.dispatchEvent(new Event('play'));
         _this3._paused = false;
       });
     }

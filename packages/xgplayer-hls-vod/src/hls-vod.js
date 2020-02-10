@@ -26,7 +26,6 @@ class HlsVodController {
     this.sequence = 0;
     this._playlist = null;
     this.retrytimes = this.configs.retrytimes || 3;
-    this.container = this.configs.container;
     this.preloadTime = this.configs.preloadTime || 5;
     this.mse = this.configs.mse;
     this._lastSeekTime = 0;
@@ -57,7 +56,7 @@ class HlsVodController {
 
     // 初始化MSE
     if (!this.mse) {
-      this.mse = new Mse({ container: this.container, preloadTime: this.preloadTime }, this._context);
+      this.mse = new Mse({ preloadTime: this.preloadTime }, this._context);
       this.mse.init();
     }
     this.initEvents();
@@ -115,7 +114,7 @@ class HlsVodController {
     this._onError(REMUX_EVENTS.REMUX_ERROR, mod, error, fatal);
   }
 
-  _onWaiting (container) {
+  _onWaiting () {
     let end = true;
 
     const playListLen = Object.keys(this._playlist.list).length
@@ -124,12 +123,12 @@ class HlsVodController {
     }
 
     for (let i = 0; i < Object.keys(this._playlist.list).length; i++) {
-      if (this.container.currentTime * 1000 < parseInt(Object.keys(this._playlist.list)[i])) {
+      if (this._player.currentTime * 1000 < parseInt(Object.keys(this._playlist.list)[i])) {
         end = false;
       }
     }
     if (end) {
-      let ts = this._playlist.getTs(this.container.currentTime * 1000);
+      let ts = this._playlist.getTs(this._player.currentTime * 1000);
       if (!ts) {
         this._player.emit('ended')
         this.mse.endOfStream();
@@ -213,7 +212,7 @@ class HlsVodController {
         }
       }
     } else if (buffer.TAG === 'TS_BUFFER') {
-      this._preload(this.mse.container.currentTime);
+      this._preload(this._player.currentTime);
       this._playlist.downloaded(this._tsloader.url, true);
       this.emit(DEMUX_EVENTS.DEMUX_START, Object.assign({url: this._tsloader.url}, this._playlist._ts[this._tsloader.url]));
     } else if (buffer.TAG === 'DECRYPT_BUFFER') {
@@ -301,7 +300,7 @@ class HlsVodController {
     if (this._tsloader.loading) {
       return;
     }
-    let video = this.mse.container;
+    let video = this._player.video;
     // Get current time range
     let currentbufferend = -1;
     if (!time && video.buffered.length) {
@@ -357,7 +356,6 @@ class HlsVodController {
     this.sequence = 0;
     this._playlist = null;
     this.retrytimes = 3;
-    this.container = undefined;
     this.preloadTime = 5;
     this._lastSeekTime = 0
     this.m3u8Text = null;

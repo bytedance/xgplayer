@@ -2,6 +2,7 @@ import Player from 'xgplayer'
 import EVENTS from 'xgplayer-transmuxer-constant-events';
 import Context from 'xgplayer-transmuxer-context';
 import FLV from './flv-vod'
+const { BasePlugin, Events } = Player;
 
 const flvAllowedEvents = EVENTS.FlvAllowedEvents;
 
@@ -17,30 +18,43 @@ const isEnded = (player, flv) => {
   }
 }
 
-class FlvVodPlayer extends Player {
-  constructor (config) {
-    super(config)
-    this.context = new Context(flvAllowedEvents)
-    this.initEvents()
-    // const preloadTime = player.config.preloadTime || 15
-    this.started = false;
+class FlvVodPlayer extends BasePlugin {
+  static get pluginName () {
+    return 'flvVod'
   }
 
-  start () {
-    if (this.started) {
-      return;
-    }
-    this.started = true;
-    const flv = this.initFlv();
+  static isSupported () {
+    return window.MediaSource &&
+      window.MediaSource.isTypeSupported('video/mp4; codecs="avc1.42E01E,mp4a.40.2"');
+  }
 
+  beforePlayerInit () {
+    this.context = new Context(flvAllowedEvents)
+
+    this.initEvents()
+    const flv = this.initFlv();
+    this.context.init();
+    const remuxer = this.remuxer;
+    remuxer._dtsBase = 0;
     flv.loadMeta()
-    super.start(flv.mse.url)
-    this.started = true;
+    this.player.swithURL = this.swithURL;
+    try {
+      BasePlugin.defineGetterOrSetter(this.player, {
+        '__url': {
+          get: () => {
+            return this.flv.mse.url
+          }
+        }
+      })
+    } catch (e) {
+      // NOOP
+    }
   }
 
   initFlv () {
-    const flv = this.context.registry('FLV_CONTROLLER', FLV)(this)
-    this.context.init();
+    const { player } = this;
+    const flv = this.context.registry('FLV_CONTROLLER', FLV)(player)
+
     this.flv = flv
     this.mse = flv.mse;
     return flv;
@@ -67,16 +81,16 @@ class FlvVodPlayer extends Player {
   }
 
   initEvents () {
-    this.on('timeupdate', this.handleTimeUpdate.bind(this))
+    this.on(Events.TIME_UPDATE, this.handleTimeUpdate.bind(this))
 
-    this.on('seeking', this.handleSeek.bind(this))
+    this.on(Events.SEEKING, this.handleSeek.bind(this))
 
-    this.once('destroy', this._destroy.bind(this))
+    this.once(Events.DESTROY, this._destroy.bind(this))
   }
 
   handleTimeUpdate () {
     this.loadData()
-    isEnded(this, this.flv)
+    isEnded(this.player, this.this.flv)
   }
 
   handleSeek () {
@@ -90,23 +104,23 @@ class FlvVodPlayer extends Player {
   _destroy () {
     this.context.destroy()
     this.context = null
-    this.flv = null
   }
 
   loadData (time = this.currentTime) {
-    const range = this.getBufferedRange()
-    if (range[1] - time < (this.config.preloadTime || 15) - 5) {
+    const { player } = this;
+    const range = player.getBufferedRange()
+    if (range[1] - time < (player.config.preloadTime || 15) - 5) {
       this.flv.loadNext(range[1] + 1)
     }
   }
 
   swithURL (url) {
-    this.config.url = url;
+    const { player } = this;
+    player.config.url = url;
     const context = new Context(flvAllowedEvents);
-    const flv = context.registry('FLV_CONTROLLER', FLV)(this, this.mse)
+    const flv = context.registry('FLV_CONTROLLER', FLV)(player, this.mse)
     context.init()
-    const remuxer = context.getInstance('MP4_REMUXER');
-    remuxer._dtsBase = 0;
+
     this.initFlvBackupEvents(flv, context);
     flv.loadMeta();
   }
@@ -115,18 +129,6 @@ class FlvVodPlayer extends Player {
     return this.context.getInstance('MP4_REMUXER');
   }
 
-  get src () {
-    return this.currentSrc
-  }
-
-  set src (url) {
-    return this.swithURL(url)
-  }
-
-  static isSupported () {
-    return window.MediaSource &&
-      window.MediaSource.isTypeSupported('video/mp4; codecs="avc1.42E01E,mp4a.40.2"');
-  }
 }
 
 export default FlvVodPlayer

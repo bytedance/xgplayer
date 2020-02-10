@@ -5,67 +5,85 @@ import HlsLiveController from './hls-live';
 const HlsAllowedEvents = EVENTS.HlsAllowedEvents;
 const REMUX_EVENTS = EVENTS.REMUX_EVENTS;
 
-export default class HlsLivePlayer extends Player {
+const { BasePlugin, Events } = Player
+
+export default class HlsLivePlayer extends BasePlugin {
   constructor (options) {
     super(options)
-    this.hlsOps = {};
-    this.util = Player.util;
-    this.util.deepCopy(this.hlsOps, options);
-    this._context = new Context(HlsAllowedEvents);
-    this.started = false;
+    this.played = false;
+    this.handleUrlChange = this.handleUrlChange.bind(this);
+    this.destroy = this.destroy.bind(this);
+  }
+
+  beforePlayerInit () {
+    const { url } = this.player.config
+    this.hls = this._context.registry('HLS_LIVE_CONTROLLER', HlsLiveController)({player: this.player, preloadTime: this.player.config.preloadTime});
+    this._context.init();
+    this.hls.load(url);
+    this._initEvents();
+    try {
+      BasePlugin.defineGetterOrSetter(this.player, {
+        '__url': {
+          get: () => {
+            return this.hls.mse.url
+          }
+        }
+      })
+    } catch (e) {
+      // NOOP
+    }
   }
 
   _initEvents () {
-    this.__core__.once(REMUX_EVENTS.INIT_SEGMENT, () => {
-      const mse = this._context.getInstance('MSE');
-      if (!this.started) {
-        const live = this.util.createDom('xg-live', '正在直播', {}, 'xgplayer-live');
-        this.util.addClass(this.root, 'xgplayer-is-live');
-        this.controls.appendChild(live);
-      }
-      this.started = true;
-      super.start(mse.url);
+    this.hls.once(REMUX_EVENTS.INIT_SEGMENT, () => {
+      BasePlugin.Util.addClass(this.root, 'xgplayer-is-live');
     });
 
     this.once('canplay', () => {
-      this.video.play()
+      if (this.player.config.autoplay) {
+        this.player.play()
+      }
     });
+
+    this.on(Events.URL_CHANGE, this.handleUrlChange)
+    this.on(Events.DESTROY, this.destroy)
+    this.on(Events.PLAY, this.play)
   }
 
-  set src (url) {
-    this._context.destroy();
-    this._context = new Context(HlsAllowedEvents);
-    this.__core__ = this._context.registry('HLS_LIVE_CONTROLLER', HlsLiveController)({player:this, container: this.video, preloadTime: this.config.preloadTime});
-    this._context.init();
-    this._initEvents();
-    this.__core__.load(url);
-  }
+  handleUrlChange (url) {
+    this.hls.mse.destroy().then(() => {
+      this.player.config.url = url
+      this._context.destroy();
+      this._context = null;
+      this.video.currentTime = 0;
 
-  start (url = this.config.url) {
-    if (!url || this.started) {
-      return;
-    }
-    this.__core__ = this._context.registry('HLS_LIVE_CONTROLLER', HlsLiveController)({player:this, container: this.video, preloadTime: this.config.preloadTime});
-    this._context.init();
-    this.url = url;
-    this.__core__.load(url);
-    this._initEvents();
+      if (!this.paused) {
+        this.pause()
+        this.once('canplay', () => {
+          this.play()
+        })
+      } else {
+        this.play()
+      }
+
+      this.player.started = false;
+      this.player.start()
+    })
   }
 
   play () {
-    if (this.started) {
+    if (this.played) {
       this._context.destroy();
       this._context = new Context(HlsAllowedEvents);
-      this.__core__ = this._context.registry('HLS_LIVE_CONTROLLER', HlsLiveController)({player:this, container: this.video, preloadTime: this.config.preloadTime});
+      this.hls = this._context.registry('HLS_LIVE_CONTROLLER', HlsLiveController)({player: this, container: this.video, preloadTime: this.config.preloadTime});
       this._context.init();
       this._initEvents();
-      this.__core__.load(this.url);
+      this.hls.load(this.player.config.url);
     }
-    super.play();
+    this.played = true;
   }
 
   destroy () {
     this._context.destroy();
-    super.destroy();
   }
 }

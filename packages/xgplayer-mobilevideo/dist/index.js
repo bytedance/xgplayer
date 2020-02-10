@@ -449,6 +449,8 @@
     }T && !T.forcePolyfill && "function" == typeof T.define && "function" == typeof T.get || Ja();window.__CE_installPolyfill = Ja;
   }).call(self);
 
+  //# sourceMappingURL=custom-elements.min.js.map
+
   /**
    * @license
    * Copyright (c) 2016 The Polymer Project Authors. All rights reserved.
@@ -3123,6 +3125,9 @@
       value: function onSourceEnded() {
         var _this3 = this;
 
+        if (this.paused) {
+          return;
+        }
         if (!this._nextBuffer || !this._played) {
           this.waitNextID = setTimeout(function () {
             _this3.onSourceEnded();
@@ -3133,7 +3138,7 @@
         audioSource.start();
         audioSource.connect(this.gainNode);
         var _this = this;
-        setTimeout(function () {
+        this.waitNextID = setTimeout(function () {
           _this.onSourceEnded.call(_this3);
         }, audioSource.buffer.duration * 1000 - 10);
         this._currentBuffer = this._nextBuffer;
@@ -3514,6 +3519,7 @@
         this.videoMetaInited = false;
         this.audioMetaInited = false;
 
+        this.aCtx.on('AUDIO_SOURCE_END', this.handleAudioSourceEnd);
         this.aCtx.destroy();
         this.vCtx.destroy();
         this.ticker.stop();
@@ -3565,6 +3571,7 @@
           this.destroy();
           this.init();
         }
+        this.dispatchEvent(new Event('play'));
         this.pendingPlayTask = Promise.all([this.vCtx.play(), this.aCtx.play().then(function () {
           // this.aCtx.muted = true
         })]).then(function () {
@@ -3580,7 +3587,6 @@
           _this3.pendingPlayTask = null;
           _this3.played = true;
           _this3.dispatchEvent(new Event('playing'));
-          _this3.dispatchEvent(new Event('play'));
           _this3._paused = false;
         });
       }

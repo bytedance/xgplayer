@@ -346,7 +346,7 @@ class Proxy {
 
   set src (url) {
     if (!this.ended) {
-      this.emit(URL_CHANGE)
+      this.emit(URL_CHANGE, url)
     }
     this.video.pause()
     this._currentTime = 0;
