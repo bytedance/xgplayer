@@ -27,7 +27,6 @@ class HlsLiveController {
     this._playlist = null;
     this.retrytimes = this.configs.retrytimes || 3;
     this.preloadTime = this.configs.preloadTime;
-    this.container = this.configs.container;
     this._m3u8lasttime = 0;
     this._timmer = setInterval(this._checkStatus.bind(this), 50);
     this._lastCheck = 0;
@@ -57,7 +56,7 @@ class HlsLiveController {
     this._context.registry('MP4_REMUXER', Mp4Remuxer);
 
     // 初始化MSE
-    this.mse = this._context.registry('MSE', Mse)({container: this.container});
+    this.mse = this._context.registry('MSE', Mse)();
     this.initEvents();
   }
 
@@ -66,7 +65,7 @@ class HlsLiveController {
 
     this.on(REMUX_EVENTS.INIT_SEGMENT, this.mse.addSourceBuffers.bind(this.mse));
 
-    this.on(REMUX_EVENTS.MEDIA_SEGMENT, this.mse.doAppend.bind(this.mse));
+    this.on(REMUX_EVENTS.MEDIA_SEGMENT, this._onMediaSegment.bind(this));
 
     this.on(DEMUX_EVENTS.METADATA_PARSED, this._onMetadataParsed.bind(this));
 
@@ -95,6 +94,11 @@ class HlsLiveController {
   }
   _onMetadataParsed (type) {
     this.emit(REMUX_EVENTS.REMUX_METADATA, type)
+  }
+
+  _onMediaSegment () {
+    this.mse.addSourceBuffers()
+    this.mse.doAppend();
   }
 
   _onLoadError (loader, error) {
@@ -209,23 +213,23 @@ class HlsLiveController {
       return;
     }
     this._lastCheck = new Date().getTime();
-    if (this.container.buffered.length < 1) {
+    if (this._player.buffered.length < 1) {
       this._preload()
     } else {
       // Check for load.
-      let currentTime = this.container.currentTime;
-      let bufferstart = this.container.buffered.start(this.container.buffered.length - 1);
-      if (this.container.readyState <= 2) {
+      let currentTime = this._player.currentTime;
+      let bufferstart = this._player.buffered.start(this._player.buffered.length - 1);
+      if (this._player.readyState <= 2) {
         if (currentTime < bufferstart) {
-          this.container.currentTime = bufferstart;
+          this._player.currentTime = bufferstart;
           currentTime = bufferstart;
         } else {
           this._preload();
         }
       }
-      let bufferend = this.container.buffered.end(this.container.buffered.length - 1);
+      let bufferend = this._player.buffered.end(this._player.buffered.length - 1);
       if (currentTime < bufferend - (this.preloadTime * 2)) {
-        this.container.currentTime = bufferend - (this.preloadTime * 2);
+        this._player.currentTime = bufferend - (this.preloadTime * 2);
       }
       if (bufferend > this.preloadTime * 2) {
         this.mse.remove(bufferend - (this.preloadTime * 2));
@@ -264,12 +268,6 @@ class HlsLiveController {
 
   destroy () {
     clearInterval(this._timmer);
-    this.off(LOADER_EVENTS.LOADER_COMPLETE, this._onLoadComplete);
-    this.off(REMUX_EVENTS.INIT_SEGMENT, this.mse.addSourceBuffers);
-    this.off(REMUX_EVENTS.MEDIA_SEGMENT, this.mse.doAppend);
-    // this.off(REMUX_EVENTS.REMUX_ERROR);
-    this.off(DEMUX_EVENTS.METADATA_PARSED, this._onMetadataParsed);
-    this.off(DEMUX_EVENTS.DEMUX_COMPLETE, this._onDemuxComplete);
 
     this.mse = null
     this.m3u8Text = null
