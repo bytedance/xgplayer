@@ -22,6 +22,7 @@ export const URL_NULL = 'urlNull'
 export const AUTOPLAY_STARTED = 'autoplay_started'
 export const AUTOPLAY_PREVENTED = 'autoplay_was_prevented'
 export const COMPLETE = 'complete'
+export const REPLAY = 'replay'
 export const DESTROY = 'destroy'
 export const URL_CHANGE = 'urlchange'
 

@@ -1,5 +1,4 @@
-import 'core-js/modules/es6.promise.js';
-import 'core-js/modules/es7.string.pad-start';
+// import 'core-js/modules/es7.string.pad-start';
 import Player from 'xgplayer';
 import MP4 from './mp4';
 import MSE from './media/mse';
@@ -8,18 +7,9 @@ import Buffer from './fmp4/buffer';
 
 const {BasePlugin, Events} = Player;
 
-let isEnded = (player, mp4) => {
-  if (mp4.meta.endTime - player.currentTime < 2) {
-    let range = player.getBufferedRange();
-    if (player.currentTime - range[1] < 0.1) {
-      player.mse.endOfStream();
-    }
-  }
-};
-
-export class Mp4Player extends BasePlugin {
+export default class Mp4Player extends BasePlugin {
   static get pluginName () {
-    return 'mp4Player'
+    return 'Mp4Player'
   }
 
   constructor (options) {
@@ -27,6 +17,7 @@ export class Mp4Player extends BasePlugin {
 
     this.loadData = this.loadData.bind(this);
     this.destroy = this.destroy.bind(this)
+    this.replay = this.replay.bind(this)
     this.onTimeUpdate = this.onTimeUpdate.bind(this)
     this.onSeeking = this.onSeeking.bind(this)
     this.initEvents();
@@ -63,6 +54,11 @@ export class Mp4Player extends BasePlugin {
     player.on(Events.TIME_UPDATE, this.onTimeUpdate);
     player.on(Events.SEEKING, this.onSeeking);
     player.on(Events.WAITING, this.onWaiting);
+    player.on(Events.REPLAY, this.replay);
+
+    this.progressTimer = setInterval(() => {
+      this.onTimeUpdate()
+    }, 300)
   }
 
   initMp4 () {
@@ -81,7 +77,9 @@ export class Mp4Player extends BasePlugin {
         resolve(mp4);
       });
 
-      mp4.on('error', reject);
+      mp4.on('error', (e) => {
+        reject(e);
+      });
     });
   }
 
@@ -127,7 +125,7 @@ export class Mp4Player extends BasePlugin {
     }
     time = Math.max(time, player.currentTime);
     player.timer = setTimeout(() => {
-      player.mp4.seek(time + i * 0.1).then(buffer => {
+      this.mp4.seek(time + i * 0.1).then(buffer => {
         if (buffer) {
           const {mse} = this;
           mse.updating = true;
@@ -149,7 +147,7 @@ export class Mp4Player extends BasePlugin {
   switchURL (url) {
     const {player} = this;
     let mp5 = new MP4(url, player.config.withCredentials);
-    let mp4 = player.mp4;
+    let mp4 = this.mp4;
     mp5.on('moovReady', () => {
       let curTime = player.currentTime;
       const timeRange = mp4.timeRage;
@@ -172,7 +170,7 @@ export class Mp4Player extends BasePlugin {
   playNext (url) {
     const { player } = this
     let mp5 = new MP4(url, player.config.withCredentials);
-    let mp4 = player.mp4;
+    let mp4 = this.mp4;
     mp5.on('moovReady', () => {
       let range = [0, 0];
       let buffered = player.video.buffered;
@@ -220,18 +218,12 @@ export class Mp4Player extends BasePlugin {
     const { player } = this;
     Task.clear();
     this.mp4.bufferCache.clear();
-    this.initMp4().then(() => {
-      player.hasStart = false;
-      player.start();
-      player.currentTime = 0;
-      player.play();
-      player.once('canplay', () => {
-        player.on('waiting', this.onWaiting);
-        this.mp4ProgressTimer = setInterval(this.onTimeUpdate, player.config.mp4ProgressTimer || 300);
-      });
-    }, err => {
-      this.errorHandle(err);
-    });
+    player.hasStart = false;
+    player.start()
+
+    this.once(Events.COMPLETE, () => {
+      player.play()
+    })
   }
 
   onTimeUpdate () {
@@ -241,13 +233,13 @@ export class Mp4Player extends BasePlugin {
     if (mse && !mse.updating && mp4.canDownload) {
       let timeRage = mp4.timeRage;
       let range = player.getBufferedRange();
-      let cacheMaxTime = player.currentTime + this.playerConfig.preloadTime;
+      let cacheMaxTime = player.currentTime + (this.playerConfig.preloadTime || 30);
       if (range[1] - cacheMaxTime > 0) {
         return;
       }
       timeRage.every((item, idx) => {
         let start = item[0];
-        let end = item[1];
+        let end = item[1] !== -1 ? item[1] : player.duration;
         let center = (start + end) / 2;
         if (range[1] === 0) {
           return false;
@@ -259,7 +251,7 @@ export class Mp4Player extends BasePlugin {
           }
         }
       });
-      isEnded(player, mp4);// hack for older webkit
+      this.isEnded(player, mp4);// hack for older webkit
     }
   }
 
@@ -293,7 +285,8 @@ export class Mp4Player extends BasePlugin {
     const { player } = this;
     let buffered = player.buffered;
     let hasBuffered = false;
-    let curTime = player.currentTime;
+
+    let curTime = player.video.currentTime;
     Task.clear();
     if (buffered.length) {
       for (let i = 0, len = buffered.length; i < len; i++) {
@@ -314,10 +307,10 @@ export class Mp4Player extends BasePlugin {
     const {player} = this;
     err.url = player.src;
     if (err.errd && typeof err.errd === 'object') {
-      if (player.mp4) {
-        err.errd.url = player.mp4.url;
-        err.url = player.mp4.url;
-        player.mp4.canDownload = false;
+      if (this.mp4) {
+        err.errd.url = this.mp4.url;
+        err.url = this.mp4.url;
+        this.mp4.canDownload = false;
       }
     }
     Task.clear();
@@ -325,6 +318,26 @@ export class Mp4Player extends BasePlugin {
       this.mp4.bufferCache.clear();
     }
 
-    clearInterval(player.mp4ProgressTimer);
+    clearInterval(this.mp4ProgressTimer);
+  }
+
+  isEnded () {
+    const { player, mp4, mse } = this;
+    if (mp4.meta.endTime - player.currentTime < 2) {
+      let range = player.getBufferedRange();
+      if (player.currentTime - range[1] < 0.1) {
+        mse.endOfStream();
+      }
+    }
+  };
+
+  destroy () {
+    Task.clear()
+    if (this.player.timer) {
+      clearTimeout(this.player.timer)
+    }
+    if (this.progressTimer) {
+      clearInterval(this.progressTimer)
+    }
   }
 }

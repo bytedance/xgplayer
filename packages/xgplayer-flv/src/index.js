@@ -4,9 +4,9 @@ import FlvVodPlayer from 'xgplayer-flv-vod'
 class FlvPlayer {
   constructor (config) {
     if (config.isLive) {
-      return new FlvLivePlayer(config)
+      this.plugins = [FlvLivePlayer]
     } else {
-      return new FlvVodPlayer(config)
+      this.plugins = [FlvVodPlayer]
     }
   }
 

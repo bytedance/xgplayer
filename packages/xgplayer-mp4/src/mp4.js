@@ -51,7 +51,8 @@ class MP4 {
     let self = this
     let moov = this.moovBox
     let mvhd = util.findBox(moov, 'mvhd')
-    let traks = util.findBox(moov, 'trak')
+    let traks = []
+    util.findBox(moov, 'trak', traks)
     let videoTrak,
       audioTrak
     let videoCodec,
@@ -230,7 +231,8 @@ class MP4 {
           })
         }
       }
-    }).catch(() => {
+    }).catch((e) => {
+      console.error(e.message);
       self.emit('error', new Errors('network', '', {line: 231, handle: '[MP4] getData', msg: 'getData failed'}))
     })
   }

@@ -729,6 +729,7 @@
 	var AUTOPLAY_STARTED = 'autoplay_started';
 	var AUTOPLAY_PREVENTED = 'autoplay_was_prevented';
 	var COMPLETE = 'complete';
+	var REPLAY = 'replay';
 	var DESTROY = 'destroy';
 	var URL_CHANGE = 'urlchange';
 
@@ -760,6 +761,7 @@
 		AUTOPLAY_STARTED: AUTOPLAY_STARTED,
 		AUTOPLAY_PREVENTED: AUTOPLAY_PREVENTED,
 		COMPLETE: COMPLETE,
+		REPLAY: REPLAY,
 		DESTROY: DESTROY,
 		URL_CHANGE: URL_CHANGE,
 		FULLSCREEN_CHANGE: FULLSCREEN_CHANGE,
@@ -5660,7 +5662,7 @@
 	          if (!url) {
 	            url = _this7.url || _this7.config.url;
 	          }
-	          _this7._startInit(url);
+	          return _this7._startInit(url);
 	        }).catch(function (e) {
 	          e.fileName = 'player';
 	          e.lineNumber = '236';
@@ -5737,10 +5739,14 @@
 
 	      this.removeClass(STATE_CLASS.ENDED);
 	      this.once(CANPLAY, function () {
-	        _this9.play().catch(function (err) {
-	          console.log(err);
-	        });
+	        var playPromise = _this9.play();
+	        if (playPromise && playPromise.catch) {
+	          playPromise.catch(function (err) {
+	            console.log(err);
+	          });
+	        }
 	      });
+	      this.emit(REPLAY);
 	      this.currentTime = 0;
 	    }
 	  }, {
