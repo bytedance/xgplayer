@@ -8,6 +8,7 @@ const umd = {
     library: 'xgplayer-dash',
     libraryTarget: 'umd'
   },
+  devtool: 'source-map',
   mode: 'production',
   module: {
     rules: [{
@@ -68,6 +69,7 @@ const client = {
   externals: {
     'xgplayer': 'Player'
   },
+  devtool: 'source-map',
   mode: 'production',
   optimization: {
     minimize: true

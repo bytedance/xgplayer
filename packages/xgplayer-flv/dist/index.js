@@ -8490,9 +8490,9 @@
       _classCallCheck$v(this, FlvPlayer$1);
 
       if (config.isLive) {
-        return new FlvPlayer(config);
+        this.plugins = [FlvPlayer];
       } else {
-        return new FlvVodPlayer(config);
+        this.plugins = [FlvVodPlayer];
       }
     }
 

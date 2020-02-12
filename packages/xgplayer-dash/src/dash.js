@@ -17,7 +17,7 @@ class DASH {
       this.eme = new EME(options.dashOpts.drm)
     }
   }
-  getData (url, range = []) {
+  getData (url, range = [0]) {
     return new Promise((resolve, reject) => {
       let task = new Task(url, resolve, range)
       task.once('error', err => {
@@ -62,7 +62,7 @@ class DASH {
           })
         })
         mse.on('updateend', function (e) {
-          if (vl[vl.selectedIdx].inited && al[al.selectedIdx].inited) {
+          if (vl[vl.selectedIdx] && vl[vl.selectedIdx].inited && al[al.selectedIdx] && al[al.selectedIdx].inited) {
             dash.inited = true
             if (vl[vl.selectedIdx].encrypted || al[al.selectedIdx].encrypted) {
               dash.eme.emit('encrypted')
@@ -93,7 +93,7 @@ class DASH {
     let dash = this
     let seekResult = this.mpd.seek(time);
     ['video', 'audio'].forEach(mediaType => {
-      if (seekResult[mediaType].length > 0) {
+      if (seekResult[mediaType] && seekResult[mediaType].length > 0) {
         // console.log('seekResult[mediaType].length > 0')
         // console.log(seekResult[mediaType])
         seekResult[mediaType].every(item => {

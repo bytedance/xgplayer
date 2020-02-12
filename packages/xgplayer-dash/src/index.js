@@ -6,22 +6,6 @@ import Task from './media/task';
 
 const {BasePlugin, Events} = Player;
 
-const isEnded = (player, dash) => {
-  if (dash.type === 'vod') {
-    if (player.duration - player.currentTime < 2) {
-      const range = player.getBufferedRange();
-      if (player.currentTime - range[1] < 0.1) {
-        // console.log('player.mse.endOfStream')
-        player.mse.endOfStream();
-        if (player.dash.mse.progressTimer) {
-          clearInterval(player.dash.mse.progressTimer);
-          player.dash.mse.progressTimer = null;
-        }
-      }
-    }
-  }
-};
-
 let errorHandle = (player, err) => {
   err.vid = player.config.vid;
   err.url = player.src;
@@ -43,17 +27,24 @@ let errorHandle = (player, err) => {
 };
 
 class DashPlayer extends BasePlugin {
+  static get pluginName () {
+    return 'DashPlayer';
+  }
+
   constructor (options) {
     super(options);
     this.definitions = [];
 
-    this.destroy = this.destroy.bind(this)
-    this.timeUpdate = this.timeUpdate.bind(this)
+    this.destroy = this.destroy.bind(this);
+    this.timeUpdate = this.timeUpdate.bind(this);
+    this.replay = this.replay.bind(this);
+    this.initEvents();
   }
 
   initEvents () {
-    this.on(Events.DESTROY, this.destroy)
-    this.on(Events.TIME_UPDATE, this.timeUpdate)
+    this.on(Events.DESTROY, this.destroy);
+    this.on(Events.TIME_UPDATE, this.timeUpdate);
+    this.on(Events.REPLAY, this.replay);
   }
 
   beforePlayerInit () {
@@ -65,15 +56,17 @@ class DashPlayer extends BasePlugin {
       }
     }
     const dash = new DASH(playerConfig.url, playerConfig, player.video);
-    dash.init(playerConfig.url).then((res) => {
-      dash.mpd.mediaList['video'].forEach((item) => {
-        this.definitions.push({
-          name: item.height + 'P',
-          url: item.id,
-          selected: false
+    return dash.init(playerConfig.url).then((res) => {
+      if (!this.definitions.length) {
+        dash.mpd.mediaList['video'].forEach((item) => {
+          this.definitions.push({
+            name: item.height + 'P',
+            url: item.id,
+            selected: false
+          });
         });
-      });
-      this.definitions[0].selected = true;
+        this.definitions[0].selected = true;
+      }
       player.emit('resourceReady', this.definitions);
 
       let mse = res;
@@ -82,23 +75,29 @@ class DashPlayer extends BasePlugin {
       dash.on('error', err => {
         errorHandle(player, err);
       });
+
+      dash.once('startPlay', () => {
+        this.progressTimer = setInterval(() => {
+          this.timeUpdate();
+        }, 300);
+      });
+      try {
+        BasePlugin.defineGetterOrSetter(this.player, {
+          '__url': {
+            get: () => {
+              return this.mse.url;
+            }
+          }
+        });
+      } catch (e) {
+        // NOOP
+      }
     });
 
-    try {
-      BasePlugin.defineGetterOrSetter(this.player, {
-        '__url': {
-          get: () => {
-            return this.mse.url;
-          }
-        }
-      });
-    } catch (e) {
-      // NOOP
-    }
   }
 
   loadData (time = this.player.currentTime) {
-    const { dash } = this;
+    const {dash} = this;
     let range = this.findRangeForPlaybackTime(time);
     let appendTime = (range && range.end) || time;
     if (appendTime > time + 15) return;
@@ -110,7 +109,7 @@ class DashPlayer extends BasePlugin {
   }
 
   findRangeForPlaybackTime (time) {
-    const { player } = this;
+    const {player} = this;
     let ranges = player.buffered;
     if (!ranges) return;
     for (let i = 0; i < ranges.length; i++) {
@@ -144,13 +143,13 @@ class DashPlayer extends BasePlugin {
   }
 
   timeUpdate () {
-    const { player, dash } = this;
+    const {player, dash} = this;
     this.loadData(player.currentTime + 1);
-    isEnded(player, dash);
+    this.isEnded(player, dash);
   }
 
   switchBW (idx) {
-    const { dash } = this;
+    const {dash} = this;
     idx = idx.split('/')[idx.split('/').length - 1];
     let vl = dash.mpd.mediaList['video'];
     let newIdx = vl.selectedIdx;
@@ -190,28 +189,42 @@ class DashPlayer extends BasePlugin {
   }
 
   replay () {
-    const { player, playerConfig } = this;
+    const {player} = this;
     Task.clear();
     let selectedIdx = this.dash.mpd.mediaList['video'].selectedIdx;
-    const dash = new DASH(playerConfig.url, playerConfig, player.video);
-    dash.init(playerConfig.url).then((result) => {
-      this.definitions[selectedIdx].selected = true;
-      player.emit('resourceReady', this.definitions);
-      let mse = result;
-      this.dash = dash;
-      this.mse = mse;
-      player.currentTime = 0;
-      player.play();
-    });
+    this.definitions[selectedIdx].selected = true;
+    player.hasStart = false;
+    player.start()
 
-    dash.on('error', err => {
-      errorHandle(player, err);
-    });
+    this.once(Events.COMPLETE, () => {
+      player.play()
+    })
+  }
+
+  isEnded () {
+    const {dash, player, mse} = this;
+
+    if (dash.type === 'vod') {
+      if (player.duration - player.currentTime < 2) {
+        const range = player.getBufferedRange();
+        if (player.currentTime - range[1] < 0.1) {
+          // console.log('player.mse.endOfStream')
+          mse.endOfStream();
+          if (this.progressTimer) {
+            clearInterval(this.progressTimer);
+            this.progressTimer = null;
+          }
+        }
+      }
+    }
   }
 
   destroy () {
     if (this.dash) {
       window.clearTimeout(this.dash.mpd.timer);
+    }
+    if (this.progressTimer) {
+      clearInterval(this.progressTimer);
     }
   }
 }

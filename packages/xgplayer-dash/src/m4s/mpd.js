@@ -254,9 +254,12 @@ class MPD {
     if (this.type === 'vod' || time !== undefined) {
       ['video', 'audio'].forEach(mediaType => {
         let mo = self.mediaList[mediaType][self.mediaList[mediaType].selectedIdx]
-        mediaResults[mediaType] = mo.mediaSegments.filter((item) => {
-          return ((item.start <= time && time < item.end) || (item.start <= time - item.segmentDuration && time - item.segmentDuration < item.end) || (item.start <= time + item.segmentDuration && time + item.segmentDuration < item.end)) && !item.downloaded
-        })
+        if (mo) {
+          mediaResults[mediaType] = mo.mediaSegments.filter((item) => {
+            return ((item.start <= time && time < item.end) || (item.start <= time - item.segmentDuration && time - item.segmentDuration < item.end) || (item.start <= time + item.segmentDuration && time + item.segmentDuration < item.end)) && !item.downloaded
+          })
+        }
+
       })
     }
     return mediaResults
