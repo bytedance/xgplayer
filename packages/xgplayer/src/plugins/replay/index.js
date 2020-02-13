@@ -1,6 +1,5 @@
 import Plugin from '../../plugin'
 import ReplayIcon from '../../skin/assets/replay.svg'
-import './replay.scss'
 
 class Replay extends Plugin {
   static get pluginName () {

@@ -1,8 +1,5 @@
+@import "../style/theme/index";
 
-$startBgColor: rgba(0, 0, 0, 0.38);
-$startSvgFill: rgba(255, 255, 255, 0.7);
-$startHoverBgColor: rgba(255, 255, 255, 0.5);
-$startHoverFillColor: rgba(255, 255, 255, 0.6);
 .xgplayer {
   @keyframes playPause {
     0%{

@@ -1,5 +1,4 @@
 import Plugin from '../../plugin'
-import './poster.scss'
 
 class Poster extends Plugin {
   static get pluginName () {

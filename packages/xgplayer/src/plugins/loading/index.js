@@ -1,4 +1,6 @@
 import loadingIcon from '../../skin/assets/loading.svg';
+import './loading.scss';
+
 import Plugin from '../../plugin/plugin';
 
 class Loading extends Plugin {

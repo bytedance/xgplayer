@@ -11,7 +11,8 @@
     "scripts": {
         "prepare": "npm run build",
         "build": "cross-env NODE_ENV=production rollup -c rollup.config.js",
-        "watch": "cross-env NODE_ENV=development rollup -c rollup.config.js --watch"
+        "watch": "cross-env NODE_ENV=development rollup -c rollup.config.js --watch",
+        "build:style": "node bin/buildStyles.js"
     },
     "keywords": [
         "video",
@@ -58,5 +59,9 @@
         "request-frame": "^1.5.3",
         "rollup": "^1.27.14",
         "rollup-plugin-uglify-es": "^0.0.1"
+    },
+    "devDependencies": {
+        "node-sass": "^4.13.1",
+        "recursive-readdir": "^2.2.2"
     }
 }

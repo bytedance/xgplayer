@@ -5,7 +5,7 @@ import Replay from './replay'
 import Miniscreen from './Controls/mini'
 import Keyboard from './keyboard';
 import Rotate from './Controls/rotate'
-import StartPlugin from './StartPlugin'
+import StartPlugin from './start'
 /**
  * 根据入参的播放器配置进行默认plugin列表的配置
  * @param {object} playerConfig
