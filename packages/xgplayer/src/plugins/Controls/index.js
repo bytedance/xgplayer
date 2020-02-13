@@ -12,7 +12,7 @@ import DownLoadIcon from '../icons/downloadIcon'
 import ScreenShotIcon from '../icons/screenShotIcon'
 import CssFullScreen from '../icons/cssFullScreen'
 
-import './index.scss'
+
 
 class Controls extends Plugin {
   static get pluginName () {

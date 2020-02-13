@@ -1,3 +1,4 @@
+import Player from '../../player'
 import BasePlugin from '../../plugin/basePlugin';
 
 export default class PCPlugin extends BasePlugin {
@@ -23,6 +24,8 @@ export default class PCPlugin extends BasePlugin {
     player.video.addEventListener('click', this.onVideoClick, false)
 
     player.video.addEventListener('dblclick', this.onVideoDblClick, false)
+    this.once(Player.Events.WAITING, this.onEnter.bind(this));
+    this.once(Player.Events.CANPLAY, this.onEntered.bind(this));
 
     player.root.addEventListener('mouseenter', this.onMouseEnter)
 
@@ -31,6 +34,16 @@ export default class PCPlugin extends BasePlugin {
     player.controls.addEventListener('mouseenter', this.onControlMouseEnter, false)
 
     player.controls.addEventListener('mouseleave', this.onControlMouseLeave, false)
+  }
+
+  onEnter () {
+    const { player } = this;
+    BasePlugin.Util.addClass(player.root, 'xgplayer-is-enter')
+  }
+
+  onEntered () {
+    const { player } = this;
+    BasePlugin.Util.removeClass(player.root, 'xgplayer-is-enter')
   }
 
   onVideoClick (e) {

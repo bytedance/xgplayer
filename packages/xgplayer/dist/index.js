@@ -1878,6 +1878,9 @@
 	    Object.defineProperty(plugin.text, key, {
 	      get: function get() {
 	        var lang = plugin.playerConfig.lang || 'zh';
+	        if (lang.indexOf('-') > 0) {
+	          lang = lang.split('-')[0];
+	        }
 	        return textConfig[key][lang];
 	      }
 	    });
@@ -2221,38 +2224,6 @@
 
 	var ReplayIcon = "<svg class=\"xgplayer-replay-svg\" xmlns=\"http://www.w3.org/2000/svg\" width=\"78\" height=\"78\" viewbox=\"0 0 78 78\">\n  <path d=\"M8.22708362,13.8757234 L11.2677371,12.6472196 C11.7798067,12.4403301 12.3626381,12.6877273 12.5695276,13.1997969 L12.9441342,14.1269807 C13.1510237,14.6390502 12.9036264,15.2218816 12.3915569,15.4287712 L6.8284538,17.6764107 L5.90126995,18.0510173 C5.38920044,18.2579068 4.80636901,18.0105096 4.5994795,17.49844 L1.97723335,11.0081531 C1.77034384,10.4960836 2.0177411,9.91325213 2.52981061,9.70636262 L3.45699446,9.33175602 C3.96906396,9.12486652 4.5518954,9.37226378 4.75878491,9.88433329 L5.67885163,12.1615783 C7.99551726,6.6766934 13.3983951,3 19.5,3 C27.7842712,3 34.5,9.71572875 34.5,18 C34.5,26.2842712 27.7842712,33 19.5,33 C15.4573596,33 11.6658607,31.3912946 8.87004692,28.5831991 C8.28554571,27.9961303 8.28762719,27.0463851 8.87469603,26.4618839 C9.46176488,25.8773827 10.4115101,25.8794641 10.9960113,26.466533 C13.2344327,28.7147875 16.263503,30 19.5,30 C26.127417,30 31.5,24.627417 31.5,18 C31.5,11.372583 26.127417,6 19.5,6 C14.4183772,6 9.94214483,9.18783811 8.22708362,13.8757234 Z\"></path>\n</svg>\n";
 
-	function styleInject(css, ref) {
-	  if (ref === void 0) ref = {};
-	  var insertAt = ref.insertAt;
-
-	  if (!css || typeof document === 'undefined') {
-	    return;
-	  }
-
-	  var head = document.head || document.getElementsByTagName('head')[0];
-	  var style = document.createElement('style');
-	  style.type = 'text/css';
-
-	  if (insertAt === 'top') {
-	    if (head.firstChild) {
-	      head.insertBefore(style, head.firstChild);
-	    } else {
-	      head.appendChild(style);
-	    }
-	  } else {
-	    head.appendChild(style);
-	  }
-
-	  if (style.styleSheet) {
-	    style.styleSheet.cssText = css;
-	  } else {
-	    style.appendChild(document.createTextNode(css));
-	  }
-	}
-
-	var css = ".xgplayer-replay {\n  display: none; }\n\n.xgplayer .xgplayer-replay {\n  position: absolute;\n  left: 0;\n  top: 0;\n  width: 100%;\n  height: 100%;\n  z-index: 105;\n  display: none;\n  -webkit-justify-content: center;\n     -moz-box-pack: center;\n          justify-content: center;\n  -webkit-align-items: center;\n     -moz-box-align: center;\n          align-items: center;\n  background: rgba(0, 0, 0, .54);\n  -webkit-flex-direction: column;\n     -moz-box-orient: vertical;\n     -moz-box-direction: normal;\n          flex-direction: column; }\n  .xgplayer .xgplayer-replay svg {\n    background: rgba(0, 0, 0, .58);\n    border-radius: 100%;\n    cursor: pointer; }\n    .xgplayer .xgplayer-replay svg path {\n      -webkit-transform: translate(20px, 21px);\n          -ms-transform: translate(20px, 21px);\n              transform: translate(20px, 21px);\n      fill: #ddd; }\n    .xgplayer .xgplayer-replay svg:hover {\n      background: rgba(0, 0, 0, .38); }\n      .xgplayer .xgplayer-replay svg:hover path {\n        fill: #fff; }\n  .xgplayer .xgplayer-replay .xgplayer-replay-txt {\n    display: inline-block;\n    font-family: PingFangSC-Regular;\n    font-size: 14px;\n    color: #fff;\n    line-height: 34px; }\n\n.xgplayer.xgplayer-ended .xgplayer-controls {\n  display: none; }\n\n.xgplayer.xgplayer-ended .xgplayer-replay {\n  display: -webkit-flex;\n  display: -moz-box;\n  display: flex; }\n";
-	styleInject(css);
-
 	var _createClass$3 = function () { function defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ("value" in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } } return function (Constructor, protoProps, staticProps) { if (protoProps) defineProperties(Constructor.prototype, protoProps); if (staticProps) defineProperties(Constructor, staticProps); return Constructor; }; }();
 
 	function _classCallCheck$4(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } }
@@ -2331,9 +2302,6 @@
 
 	  return Replay;
 	}(Plugin);
-
-	var css$1 = ".xgplayer .xgplayer-poster {\n  display: none;\n  position: absolute;\n  left: 0;\n  top: 0;\n  width: 100%;\n  height: 100%;\n  z-index: 100;\n  background-size: cover;\n  background-position: center center; }\n\n.xgplayer.xgplayer-nostart .xgplayer-poster {\n  display: block; }\n";
-	styleInject(css$1);
 
 	var _createClass$4 = function () { function defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ("value" in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } } return function (Constructor, protoProps, staticProps) { if (protoProps) defineProperties(Constructor.prototype, protoProps); if (staticProps) defineProperties(Constructor, staticProps); return Constructor; }; }();
 
@@ -3226,9 +3194,6 @@
 
 	var StartIcon = "<svg xmlns=\"http://www.w3.org/2000/svg\" width=\"70\" height=\"70\" viewBox=\"0 0 70 70\">\n<defs>\n  <path class=\"path_play\" transform=\"scale(0.04,0.04)\" d=\"M576,363L810,512L576,661zM342,214L576,363L576,661L342,810z\"></path>\n  <path class=\"path_pause\" transform=\"scale(0.04 0.04)\" d=\"M598,214h170v596h-170v-596zM256 810v-596h170v596h-170z\"></path>\n</defs>\n<path class=\"path\" transform=\"scale(0.04 0.04)\" d=\"M576,363L810,512L576,661zM342,214L576,363L576,661L342,810z\"></path>\n</svg>\n";
 
-	var css$2 = "@-webkit-keyframes playPause {\n  0% {\n    -webkit-transform: scale(1);\n            transform: scale(1);\n    opacity: 1; }\n  99% {\n    -webkit-transform: scale(1.3);\n            transform: scale(1.3);\n    opacity: 0; }\n  to {\n    -webkit-transform: scale(0);\n            transform: scale(0);\n    opacity: 1; } }\n\n@keyframes playPause {\n  0% {\n    -webkit-transform: scale(1);\n            transform: scale(1);\n    opacity: 1; }\n  99% {\n    -webkit-transform: scale(1.3);\n            transform: scale(1.3);\n    opacity: 0; }\n  to {\n    -webkit-transform: scale(0);\n            transform: scale(0);\n    opacity: 1; } }\n\n.xgplayer .xgplayer-start {\n  border-radius: 50%;\n  display: none;\n  width: 70px;\n  height: 70px;\n  background: rgba(0, 0, 0, .38);\n  overflow: hidden;\n  text-align: center;\n  line-height: 70px;\n  vertical-align: middle;\n  position: absolute;\n  left: 50%;\n  top: 50%;\n  z-index: 115;\n  margin: -35px auto auto -35px;\n  cursor: pointer; }\n  .xgplayer .xgplayer-start svg {\n    fill: rgba(255, 255, 255, .7);\n    margin: 14px; }\n  .xgplayer .xgplayer-start:hover {\n    opacity: 0.85; }\n  .xgplayer .xgplayer-start.interact {\n    -webkit-animation: playPause .4s ease-out forwards;\n            animation: playPause .4s ease-out forwards; }\n";
-	styleInject(css$2);
-
 	var _createClass$5 = function () { function defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ("value" in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } } return function (Constructor, protoProps, staticProps) { if (protoProps) defineProperties(Constructor.prototype, protoProps); if (staticProps) defineProperties(Constructor, staticProps); return Constructor; }; }();
 
 	function _classCallCheck$6(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } }
@@ -3361,16 +3326,53 @@
 
 	function _inherits$4(subClass, superClass) { if (typeof superClass !== "function" && superClass !== null) { throw new TypeError("Super expression must either be null or a function, not " + typeof superClass); } subClass.prototype = Object.create(superClass && superClass.prototype, { constructor: { value: subClass, enumerable: false, writable: true, configurable: true } }); if (superClass) Object.setPrototypeOf ? Object.setPrototypeOf(subClass, superClass) : subClass.__proto__ = superClass; }
 
-	var PCPlugin = function (_BasePlugin) {
-	  _inherits$4(PCPlugin, _BasePlugin);
+	var EnterPlugin = function (_Plugin) {
+	  _inherits$4(EnterPlugin, _Plugin);
 
-	  function PCPlugin() {
-	    _classCallCheck$7(this, PCPlugin);
+	  function EnterPlugin() {
+	    _classCallCheck$7(this, EnterPlugin);
 
-	    return _possibleConstructorReturn$4(this, (PCPlugin.__proto__ || Object.getPrototypeOf(PCPlugin)).apply(this, arguments));
+	    return _possibleConstructorReturn$4(this, (EnterPlugin.__proto__ || Object.getPrototypeOf(EnterPlugin)).apply(this, arguments));
 	  }
 
-	  _createClass$6(PCPlugin, [{
+	  _createClass$6(EnterPlugin, [{
+	    key: 'render',
+	    value: function render() {
+	      var barStr = '';
+	      for (var i = 1; i <= 12; i++) {
+	        barStr += '<div class="xgplayer-enter-bar' + i + '"></div>';
+	      }
+
+	      return '<xg-enter class="xgplayer-enter"><div class="xgplayer-enter-spinner">\n      ' + barStr + '\n    </div></xg-enter>';
+	    }
+	  }], [{
+	    key: 'pluginName',
+	    get: function get() {
+	      return 'index.scss';
+	    }
+	  }]);
+
+	  return EnterPlugin;
+	}(Plugin);
+
+	var _createClass$7 = function () { function defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ("value" in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } } return function (Constructor, protoProps, staticProps) { if (protoProps) defineProperties(Constructor.prototype, protoProps); if (staticProps) defineProperties(Constructor, staticProps); return Constructor; }; }();
+
+	function _classCallCheck$8(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } }
+
+	function _possibleConstructorReturn$5(self, call) { if (!self) { throw new ReferenceError("this hasn't been initialised - super() hasn't been called"); } return call && (typeof call === "object" || typeof call === "function") ? call : self; }
+
+	function _inherits$5(subClass, superClass) { if (typeof superClass !== "function" && superClass !== null) { throw new TypeError("Super expression must either be null or a function, not " + typeof superClass); } subClass.prototype = Object.create(superClass && superClass.prototype, { constructor: { value: subClass, enumerable: false, writable: true, configurable: true } }); if (superClass) Object.setPrototypeOf ? Object.setPrototypeOf(subClass, superClass) : subClass.__proto__ = superClass; }
+
+	var PCPlugin = function (_BasePlugin) {
+	  _inherits$5(PCPlugin, _BasePlugin);
+
+	  function PCPlugin() {
+	    _classCallCheck$8(this, PCPlugin);
+
+	    return _possibleConstructorReturn$5(this, (PCPlugin.__proto__ || Object.getPrototypeOf(PCPlugin)).apply(this, arguments));
+	  }
+
+	  _createClass$7(PCPlugin, [{
 	    key: 'afterCreate',
 	    value: function afterCreate() {
 	      this.onVideoClick = this.onVideoClick.bind(this);
@@ -3392,6 +3394,8 @@
 	      player.video.addEventListener('click', this.onVideoClick, false);
 
 	      player.video.addEventListener('dblclick', this.onVideoDblClick, false);
+	      this.once(Player.Events.WAITING, this.onEnter.bind(this));
+	      this.once(Player.Events.CANPLAY, this.onEntered.bind(this));
 
 	      player.root.addEventListener('mouseenter', this.onMouseEnter);
 
@@ -3400,6 +3404,20 @@
 	      player.controls.addEventListener('mouseenter', this.onControlMouseEnter, false);
 
 	      player.controls.addEventListener('mouseleave', this.onControlMouseLeave, false);
+	    }
+	  }, {
+	    key: 'onEnter',
+	    value: function onEnter() {
+	      var player = this.player;
+
+	      BasePlugin.Util.addClass(player.root, 'xgplayer-is-enter');
+	    }
+	  }, {
+	    key: 'onEntered',
+	    value: function onEntered() {
+	      var player = this.player;
+
+	      BasePlugin.Util.removeClass(player.root, 'xgplayer-is-enter');
 	    }
 	  }, {
 	    key: 'onVideoClick',
@@ -3523,26 +3541,106 @@
 	  return PCPlugin;
 	}(BasePlugin);
 
-	var _createClass$7 = function () { function defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ("value" in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } } return function (Constructor, protoProps, staticProps) { if (protoProps) defineProperties(Constructor.prototype, protoProps); if (staticProps) defineProperties(Constructor, staticProps); return Constructor; }; }();
+	var _createClass$8 = function () { function defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ("value" in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } } return function (Constructor, protoProps, staticProps) { if (protoProps) defineProperties(Constructor.prototype, protoProps); if (staticProps) defineProperties(Constructor, staticProps); return Constructor; }; }();
+
+	function _classCallCheck$9(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } }
+
+	function _possibleConstructorReturn$6(self, call) { if (!self) { throw new ReferenceError("this hasn't been initialised - super() hasn't been called"); } return call && (typeof call === "object" || typeof call === "function") ? call : self; }
+
+	function _inherits$6(subClass, superClass) { if (typeof superClass !== "function" && superClass !== null) { throw new TypeError("Super expression must either be null or a function, not " + typeof superClass); } subClass.prototype = Object.create(superClass && superClass.prototype, { constructor: { value: subClass, enumerable: false, writable: true, configurable: true } }); if (superClass) Object.setPrototypeOf ? Object.setPrototypeOf(subClass, superClass) : subClass.__proto__ = superClass; }
+
+	var MobilePlugin = function (_BasePlugin) {
+	  _inherits$6(MobilePlugin, _BasePlugin);
+
+	  _createClass$8(MobilePlugin, null, [{
+	    key: 'pluginName',
+	    get: function get() {
+	      return 'mobile';
+	    }
+	  }]);
+
+	  function MobilePlugin(options) {
+	    _classCallCheck$9(this, MobilePlugin);
+
+	    var _this = _possibleConstructorReturn$6(this, (MobilePlugin.__proto__ || Object.getPrototypeOf(MobilePlugin)).call(this, options));
+
+	    _this.isTouchMove = false;
+	    return _this;
+	  }
+
+	  _createClass$8(MobilePlugin, [{
+	    key: 'afterCreate',
+	    value: function afterCreate() {
+	      var _this2 = this;
+
+	      var player = this.player;
+
+	      player.video.addEventListener('touchend', function (e) {
+	        _this2.onTouchEnd(e);
+	      }, false);
+
+	      player.video.addEventListener('touchstart', function () {
+	        _this2.isTouchMove = false;
+	      });
+
+	      player.video.addEventListener('touchmove', function () {
+	        _this2.isTouchMove = true;
+	      });
+	    }
+	  }, {
+	    key: 'onTouchEnd',
+	    value: function onTouchEnd(e) {
+	      e.preventDefault();
+	      var util = BasePlugin.Util;
+	      e.stopPropagation();
+	      var player = this.player,
+	          playerConfig = this.playerConfig;
+
+	      if (util.hasClass(player.root, 'xgplayer-inactive')) {
+	        player.emit('focus');
+	      } else {
+	        player.emit('blur');
+	      }
+	      if (!playerConfig.closeVideoTouch && !player.isTouchMove) {
+	        if (util.hasClass(player.root, 'xgplayer-nostart')) {
+	          return false;
+	        } else if (!player.ended) {
+	          if (player.paused) {
+	            var playPromise = player.play();
+	            if (playPromise !== undefined && playPromise) {
+	              playPromise.catch(function (err) {});
+	            }
+	          } else {
+	            player.pause();
+	          }
+	        }
+	      }
+	    }
+	  }]);
+
+	  return MobilePlugin;
+	}(BasePlugin);
+
+	var _createClass$9 = function () { function defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ("value" in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } } return function (Constructor, protoProps, staticProps) { if (protoProps) defineProperties(Constructor.prototype, protoProps); if (staticProps) defineProperties(Constructor, staticProps); return Constructor; }; }();
 
 	var _get$1 = function get(object, property, receiver) { if (object === null) object = Function.prototype; var desc = Object.getOwnPropertyDescriptor(object, property); if (desc === undefined) { var parent = Object.getPrototypeOf(object); if (parent === null) { return undefined; } else { return get(parent, property, receiver); } } else if ("value" in desc) { return desc.value; } else { var getter = desc.get; if (getter === undefined) { return undefined; } return getter.call(receiver); } };
 
-	function _classCallCheck$8(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } }
+	function _classCallCheck$a(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } }
 
-	function _possibleConstructorReturn$5(self, call) { if (!self) { throw new ReferenceError("this hasn't been initialised - super() hasn't been called"); } return call && (typeof call === "object" || typeof call === "function") ? call : self; }
+	function _possibleConstructorReturn$7(self, call) { if (!self) { throw new ReferenceError("this hasn't been initialised - super() hasn't been called"); } return call && (typeof call === "object" || typeof call === "function") ? call : self; }
 
-	function _inherits$5(subClass, superClass) { if (typeof superClass !== "function" && superClass !== null) { throw new TypeError("Super expression must either be null or a function, not " + typeof superClass); } subClass.prototype = Object.create(superClass && superClass.prototype, { constructor: { value: subClass, enumerable: false, writable: true, configurable: true } }); if (superClass) Object.setPrototypeOf ? Object.setPrototypeOf(subClass, superClass) : subClass.__proto__ = superClass; }
+	function _inherits$7(subClass, superClass) { if (typeof superClass !== "function" && superClass !== null) { throw new TypeError("Super expression must either be null or a function, not " + typeof superClass); } subClass.prototype = Object.create(superClass && superClass.prototype, { constructor: { value: subClass, enumerable: false, writable: true, configurable: true } }); if (superClass) Object.setPrototypeOf ? Object.setPrototypeOf(subClass, superClass) : subClass.__proto__ = superClass; }
 
 	var Keyboard = function (_BasePlugin) {
-	  _inherits$5(Keyboard, _BasePlugin);
+	  _inherits$7(Keyboard, _BasePlugin);
 
 	  function Keyboard() {
-	    _classCallCheck$8(this, Keyboard);
+	    _classCallCheck$a(this, Keyboard);
 
-	    return _possibleConstructorReturn$5(this, (Keyboard.__proto__ || Object.getPrototypeOf(Keyboard)).apply(this, arguments));
+	    return _possibleConstructorReturn$7(this, (Keyboard.__proto__ || Object.getPrototypeOf(Keyboard)).apply(this, arguments));
 	  }
 
-	  _createClass$7(Keyboard, [{
+	  _createClass$9(Keyboard, [{
 	    key: 'afterCreate',
 	    value: function afterCreate() {
 	      this.onKeydown = this.onKeydown.bind(this);
@@ -3631,24 +3729,24 @@
 
 	var loadingIcon = "<svg xmlns=\"http://www.w3.org/2000/svg\" width=\"100\" height=\"100\" viewbox=\"0 0 100 100\">\n  <path d=\"M100,50A50,50,0,1,1,50,0\"></path>\n</svg>\n";
 
-	var _createClass$8 = function () { function defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ("value" in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } } return function (Constructor, protoProps, staticProps) { if (protoProps) defineProperties(Constructor.prototype, protoProps); if (staticProps) defineProperties(Constructor, staticProps); return Constructor; }; }();
+	var _createClass$a = function () { function defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ("value" in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } } return function (Constructor, protoProps, staticProps) { if (protoProps) defineProperties(Constructor.prototype, protoProps); if (staticProps) defineProperties(Constructor, staticProps); return Constructor; }; }();
 
-	function _classCallCheck$9(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } }
+	function _classCallCheck$b(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } }
 
-	function _possibleConstructorReturn$6(self, call) { if (!self) { throw new ReferenceError("this hasn't been initialised - super() hasn't been called"); } return call && (typeof call === "object" || typeof call === "function") ? call : self; }
+	function _possibleConstructorReturn$8(self, call) { if (!self) { throw new ReferenceError("this hasn't been initialised - super() hasn't been called"); } return call && (typeof call === "object" || typeof call === "function") ? call : self; }
 
-	function _inherits$6(subClass, superClass) { if (typeof superClass !== "function" && superClass !== null) { throw new TypeError("Super expression must either be null or a function, not " + typeof superClass); } subClass.prototype = Object.create(superClass && superClass.prototype, { constructor: { value: subClass, enumerable: false, writable: true, configurable: true } }); if (superClass) Object.setPrototypeOf ? Object.setPrototypeOf(subClass, superClass) : subClass.__proto__ = superClass; }
+	function _inherits$8(subClass, superClass) { if (typeof superClass !== "function" && superClass !== null) { throw new TypeError("Super expression must either be null or a function, not " + typeof superClass); } subClass.prototype = Object.create(superClass && superClass.prototype, { constructor: { value: subClass, enumerable: false, writable: true, configurable: true } }); if (superClass) Object.setPrototypeOf ? Object.setPrototypeOf(subClass, superClass) : subClass.__proto__ = superClass; }
 
 	var Loading = function (_Plugin) {
-	  _inherits$6(Loading, _Plugin);
+	  _inherits$8(Loading, _Plugin);
 
 	  function Loading() {
-	    _classCallCheck$9(this, Loading);
+	    _classCallCheck$b(this, Loading);
 
-	    return _possibleConstructorReturn$6(this, (Loading.__proto__ || Object.getPrototypeOf(Loading)).apply(this, arguments));
+	    return _possibleConstructorReturn$8(this, (Loading.__proto__ || Object.getPrototypeOf(Loading)).apply(this, arguments));
 	  }
 
-	  _createClass$8(Loading, [{
+	  _createClass$a(Loading, [{
 	    key: 'registerIcons',
 	    value: function registerIcons() {
 	      return {
@@ -3665,30 +3763,21 @@
 	  return Loading;
 	}(Plugin);
 
-	function _classCallCheck$a(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } }
+	function _classCallCheck$c(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } }
 
 	var DefaultPreset = function DefaultPreset() {
 	  var _plugins, _plugins2;
 
-	  _classCallCheck$a(this, DefaultPreset);
+	  _classCallCheck$c(this, DefaultPreset);
 
-	  this.plugins = [Replay, Poster, Start, Loading];
-	  // this.plugins.push({
-	  //   plugin: Miniscreen,
-	  //   options: {
-	  //     root: 'controls'
-	  //   }
-	  // });
-	  // this.plugins.push({
-	  //   plugin: Rotate,
-	  //   options: {
-	  //     root: 'controls'
-	  //   }
-	  // })
+	  this.plugins = [Replay, Poster, Start, Loading, EnterPlugin];
 
 	  switch (sniffer.device) {
 	    case 'pc':
 	      (_plugins = this.plugins).push.apply(_plugins, [Keyboard, PCPlugin]);
+	      break;
+	    case 'mobile':
+	      this.plugins.push(MobilePlugin);
 	      break;
 	    default:
 	      (_plugins2 = this.plugins).push.apply(_plugins2, [Keyboard, PCPlugin]);
@@ -3761,16 +3850,13 @@
 	  (_player$config$ignore = player.config.ignores).push.apply(_player$config$ignore, _toConsumableArray(ignores));
 	};
 
-	var css$3 = ".xgplayer .xgplayer-progress {\n  display: block;\n  position: absolute;\n  height: 20px;\n  line-height: 20px;\n  left: 12px;\n  right: 12px;\n  outline: none;\n  z-index: 35; }\n\n.xgplayer .xgplayer-progress-outer {\n  background: rgba(133, 133, 133, .3);\n  opacity: .85;\n  transition: height 0.2s ease-in, opacity 0.2s ease-out;\n  display: block;\n  height: 3px;\n  line-height: 3px;\n  margin-top: 8.5px;\n  width: 100%;\n  position: relative;\n  cursor: pointer; }\n\n.xgplayer .xgplayer-progress-cache, .xgplayer .xgplayer-progress-played {\n  display: block;\n  height: 100%;\n  line-height: 1;\n  position: absolute;\n  left: 0;\n  top: 0; }\n\n.xgplayer .xgplayer-progress-cache {\n  width: 0;\n  background: rgba(255, 255, 255, .5); }\n\n.xgplayer .xgplayer-progress-played {\n  display: block;\n  width: 0;\n  background-image: linear-gradient(-90deg, #FA1F41 0%, #E31106 100%);\n  border-radius: 0 1.5px 1.5px 0; }\n\n.xgplayer .xgplayer-progress-btn {\n  display: none;\n  position: absolute;\n  left: 0px;\n  top: -5px;\n  width: 13px;\n  height: 13px;\n  border-radius: 30px;\n  background: #FFFFFF;\n  box-shadow: 0 0 2px 0 rgba(0, 0, 0, .26);\n  left: 100%;\n  -webkit-transform: translate(-50%, 0);\n      -ms-transform: translate(-50%, 0);\n          transform: translate(-50%, 0); }\n\n.xgplayer .xgplayer-progress-point {\n  position: absolute; }\n  .xgplayer .xgplayer-progress-point.xgplayer-tips {\n    margin-left: 0;\n    top: -25px;\n    display: none;\n    z-index: 100; }\n\n.xgplayer .xgplayer-progress-dot {\n  display: inline-block;\n  position: absolute;\n  height: 3px;\n  width: 5px;\n  top: 0px;\n  background: white;\n  border-radius: 6px;\n  z-index: 16; }\n  .xgplayer .xgplayer-progress-dot .xgplayer-progress-tip {\n    position: absolute;\n    left: 0;\n    top: -40px;\n    height: auto;\n    line-height: 30px;\n    width: auto;\n    -webkit-transform: scale(0.8);\n        -ms-transform: scale(0.8);\n            transform: scale(0.8);\n    background: rgba(0, 0, 0, .3);\n    border-radius: 6px;\n    border: 1px solid rgba(0, 0, 0, .8);\n    cursor: default;\n    white-space: nowrap;\n    display: none; }\n\n.xgplayer .xgplayer-progress-dot-show .xgplayer-progress-tip {\n  display: block; }\n\n.xgplayer .xgplayer-progress-thumbnail {\n  position: absolute;\n  -moz-box-sizing: border-box;\n       box-sizing: border-box; }\n  .xgplayer .xgplayer-progress-thumbnail.xgplayer-tips {\n    margin-left: 0;\n    display: none;\n    z-index: 99; }\n\n.xgplayer .xgplayer-progress:hover .xgplayer-progress-outer, .xgplayer .xgplayer-progress:focus .xgplayer-progress-outer {\n  height: 6px;\n  margin-top: 7px; }\n\n.xgplayer .xgplayer-progress:hover .xgplayer-progress-dot, .xgplayer .xgplayer-progress:focus .xgplayer-progress-dot {\n  height: 6px; }\n\n.xgplayer .xgplayer-progress:hover .xgplayer-progress-btn, .xgplayer .xgplayer-progress:focus .xgplayer-progress-btn {\n  display: block;\n  top: -3px; }\n";
-	styleInject(css$3);
+	var _createClass$b = function () { function defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ("value" in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } } return function (Constructor, protoProps, staticProps) { if (protoProps) defineProperties(Constructor.prototype, protoProps); if (staticProps) defineProperties(Constructor, staticProps); return Constructor; }; }();
 
-	var _createClass$9 = function () { function defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ("value" in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } } return function (Constructor, protoProps, staticProps) { if (protoProps) defineProperties(Constructor.prototype, protoProps); if (staticProps) defineProperties(Constructor, staticProps); return Constructor; }; }();
+	function _classCallCheck$d(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } }
 
-	function _classCallCheck$b(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } }
+	function _possibleConstructorReturn$9(self, call) { if (!self) { throw new ReferenceError("this hasn't been initialised - super() hasn't been called"); } return call && (typeof call === "object" || typeof call === "function") ? call : self; }
 
-	function _possibleConstructorReturn$7(self, call) { if (!self) { throw new ReferenceError("this hasn't been initialised - super() hasn't been called"); } return call && (typeof call === "object" || typeof call === "function") ? call : self; }
-
-	function _inherits$7(subClass, superClass) { if (typeof superClass !== "function" && superClass !== null) { throw new TypeError("Super expression must either be null or a function, not " + typeof superClass); } subClass.prototype = Object.create(superClass && superClass.prototype, { constructor: { value: subClass, enumerable: false, writable: true, configurable: true } }); if (superClass) Object.setPrototypeOf ? Object.setPrototypeOf(subClass, superClass) : subClass.__proto__ = superClass; }
+	function _inherits$9(subClass, superClass) { if (typeof superClass !== "function" && superClass !== null) { throw new TypeError("Super expression must either be null or a function, not " + typeof superClass); } subClass.prototype = Object.create(superClass && superClass.prototype, { constructor: { value: subClass, enumerable: false, writable: true, configurable: true } }); if (superClass) Object.setPrototypeOf ? Object.setPrototypeOf(subClass, superClass) : subClass.__proto__ = superClass; }
 
 	var Events$2 = Plugin.Events;
 	/**
@@ -3778,9 +3864,9 @@
 	 */
 
 	var Progress = function (_Plugin) {
-	  _inherits$7(Progress, _Plugin);
+	  _inherits$9(Progress, _Plugin);
 
-	  _createClass$9(Progress, null, [{
+	  _createClass$b(Progress, null, [{
 	    key: 'pluginName',
 	    get: function get() {
 	      return 'Progress';
@@ -3795,15 +3881,15 @@
 	  }]);
 
 	  function Progress(args) {
-	    _classCallCheck$b(this, Progress);
+	    _classCallCheck$d(this, Progress);
 
-	    var _this = _possibleConstructorReturn$7(this, (Progress.__proto__ || Object.getPrototypeOf(Progress)).call(this, args));
+	    var _this = _possibleConstructorReturn$9(this, (Progress.__proto__ || Object.getPrototypeOf(Progress)).call(this, args));
 
 	    _this.useable = false;
 	    return _this;
 	  }
 
-	  _createClass$9(Progress, [{
+	  _createClass$b(Progress, [{
 	    key: 'changeState',
 	    value: function changeState() {
 	      var useable = arguments.length > 0 && arguments[0] !== undefined ? arguments[0] : true;
@@ -3842,29 +3928,26 @@
 
 	var PlayPauseSvg = "<svg xmlns=\"http://www.w3.org/2000/svg\" width=\"40\" height=\"40\" viewBox=\"0 0 40 40\">\n  <defs>\n  <path class=\"path_play\" transform=\"scale(0.0320625 0.0320625)\" d=\"M576,363L810,512L576,661zM342,214L576,363L576,661L342,810z\"></path>\n  <path class=\"path_pause\" transform=\"scale(0.0320625 0.0320625)\" d=\"M598,214h170v596h-170v-596zM256 810v-596h170v596h-170z\"></path>\n  </defs>\n  <path class=\"path\" transform=\"scale(0.0320625 0.0320625)\" d=\"M576,363L810,512L576,661zM342,214L576,363L576,661L342,810z\"></path>\n</svg>\n";
 
-	var css$4 = "";
-	styleInject(css$4);
+	var _createClass$c = function () { function defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ("value" in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } } return function (Constructor, protoProps, staticProps) { if (protoProps) defineProperties(Constructor.prototype, protoProps); if (staticProps) defineProperties(Constructor, staticProps); return Constructor; }; }();
 
-	var _createClass$a = function () { function defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ("value" in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } } return function (Constructor, protoProps, staticProps) { if (protoProps) defineProperties(Constructor.prototype, protoProps); if (staticProps) defineProperties(Constructor, staticProps); return Constructor; }; }();
+	function _classCallCheck$e(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } }
 
-	function _classCallCheck$c(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } }
+	function _possibleConstructorReturn$a(self, call) { if (!self) { throw new ReferenceError("this hasn't been initialised - super() hasn't been called"); } return call && (typeof call === "object" || typeof call === "function") ? call : self; }
 
-	function _possibleConstructorReturn$8(self, call) { if (!self) { throw new ReferenceError("this hasn't been initialised - super() hasn't been called"); } return call && (typeof call === "object" || typeof call === "function") ? call : self; }
-
-	function _inherits$8(subClass, superClass) { if (typeof superClass !== "function" && superClass !== null) { throw new TypeError("Super expression must either be null or a function, not " + typeof superClass); } subClass.prototype = Object.create(superClass && superClass.prototype, { constructor: { value: subClass, enumerable: false, writable: true, configurable: true } }); if (superClass) Object.setPrototypeOf ? Object.setPrototypeOf(subClass, superClass) : subClass.__proto__ = superClass; }
+	function _inherits$a(subClass, superClass) { if (typeof superClass !== "function" && superClass !== null) { throw new TypeError("Super expression must either be null or a function, not " + typeof superClass); } subClass.prototype = Object.create(superClass && superClass.prototype, { constructor: { value: subClass, enumerable: false, writable: true, configurable: true } }); if (superClass) Object.setPrototypeOf ? Object.setPrototypeOf(subClass, superClass) : subClass.__proto__ = superClass; }
 
 	var Events$3 = Plugin.Events;
 
 	var PlayIcon = function (_Plugin) {
-	  _inherits$8(PlayIcon, _Plugin);
+	  _inherits$a(PlayIcon, _Plugin);
 
 	  function PlayIcon() {
-	    _classCallCheck$c(this, PlayIcon);
+	    _classCallCheck$e(this, PlayIcon);
 
-	    return _possibleConstructorReturn$8(this, (PlayIcon.__proto__ || Object.getPrototypeOf(PlayIcon)).apply(this, arguments));
+	    return _possibleConstructorReturn$a(this, (PlayIcon.__proto__ || Object.getPrototypeOf(PlayIcon)).apply(this, arguments));
 	  }
 
-	  _createClass$a(PlayIcon, [{
+	  _createClass$c(PlayIcon, [{
 	    key: 'afterCreate',
 	    value: function afterCreate() {
 	      var _this2 = this;
@@ -3941,29 +4024,26 @@
 
 	var FullScreenChangeSvg = "<svg xmlns=\"http://www.w3.org/2000/svg\" width=\"40\" height=\"40\" viewBox=\"0 0 40 40\">\n  <defs>\n  <path class=\"path_full\" transform=\"scale(0.0320625 0.0320625)\" d=\"M598 214h212v212h-84v-128h-128v-84zM726 726v-128h84v212h-212v-84h128zM214 426v-212h212v84h-128v128h-84zM298 598v128h128v84h-212v-212h84z\"></path>\n  <path class=\"path_exitfull\" transform=\"scale(0.0320625 0.0320625)\" d=\"M682 342h128v84h-212v-212h84v128zM598 810v-212h212v84h-128v128h-84zM342 342v-128h84v212h-212v-84h128zM214 682v-84h212v212h-84v-128h-128z\"></path>\n  </defs>\n  <path class=\"path\" transform=\"scale(0.0320625 0.0320625)\" d=\"M598 214h212v212h-84v-128h-128v-84zM726 726v-128h84v212h-212v-84h128zM214 426v-212h212v84h-128v128h-84zM298 598v128h128v84h-212v-212h84z\"></path>\n</svg>\n";
 
-	var css$5 = ".xgplayer .xgplayer-fullscreen .xg-tips {\n  margin-left: -80%; }\n";
-	styleInject(css$5);
+	var _createClass$d = function () { function defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ("value" in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } } return function (Constructor, protoProps, staticProps) { if (protoProps) defineProperties(Constructor.prototype, protoProps); if (staticProps) defineProperties(Constructor, staticProps); return Constructor; }; }();
 
-	var _createClass$b = function () { function defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ("value" in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } } return function (Constructor, protoProps, staticProps) { if (protoProps) defineProperties(Constructor.prototype, protoProps); if (staticProps) defineProperties(Constructor, staticProps); return Constructor; }; }();
+	function _classCallCheck$f(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } }
 
-	function _classCallCheck$d(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } }
+	function _possibleConstructorReturn$b(self, call) { if (!self) { throw new ReferenceError("this hasn't been initialised - super() hasn't been called"); } return call && (typeof call === "object" || typeof call === "function") ? call : self; }
 
-	function _possibleConstructorReturn$9(self, call) { if (!self) { throw new ReferenceError("this hasn't been initialised - super() hasn't been called"); } return call && (typeof call === "object" || typeof call === "function") ? call : self; }
-
-	function _inherits$9(subClass, superClass) { if (typeof superClass !== "function" && superClass !== null) { throw new TypeError("Super expression must either be null or a function, not " + typeof superClass); } subClass.prototype = Object.create(superClass && superClass.prototype, { constructor: { value: subClass, enumerable: false, writable: true, configurable: true } }); if (superClass) Object.setPrototypeOf ? Object.setPrototypeOf(subClass, superClass) : subClass.__proto__ = superClass; }
+	function _inherits$b(subClass, superClass) { if (typeof superClass !== "function" && superClass !== null) { throw new TypeError("Super expression must either be null or a function, not " + typeof superClass); } subClass.prototype = Object.create(superClass && superClass.prototype, { constructor: { value: subClass, enumerable: false, writable: true, configurable: true } }); if (superClass) Object.setPrototypeOf ? Object.setPrototypeOf(subClass, superClass) : subClass.__proto__ = superClass; }
 
 	var Events$4 = Plugin.Events;
 
 	var Fullscreen = function (_Plugin) {
-	  _inherits$9(Fullscreen, _Plugin);
+	  _inherits$b(Fullscreen, _Plugin);
 
 	  function Fullscreen() {
-	    _classCallCheck$d(this, Fullscreen);
+	    _classCallCheck$f(this, Fullscreen);
 
-	    return _possibleConstructorReturn$9(this, (Fullscreen.__proto__ || Object.getPrototypeOf(Fullscreen)).apply(this, arguments));
+	    return _possibleConstructorReturn$b(this, (Fullscreen.__proto__ || Object.getPrototypeOf(Fullscreen)).apply(this, arguments));
 	  }
 
-	  _createClass$b(Fullscreen, [{
+	  _createClass$d(Fullscreen, [{
 	    key: 'afterCreate',
 	    value: function afterCreate() {
 	      var _this2 = this;
@@ -4031,29 +4111,27 @@
 	  return Fullscreen;
 	}(Plugin);
 
-	var css$6 = ".xgplayer .xgplayer-controls .xgplayer-time {\n  padding-top: 0;\n  width: auto;\n  font-family: ArialMT;\n  font-size: 13px;\n  color: #fff;\n  line-height: 40px;\n  text-align: center;\n  display: inline-block; }\n  .xgplayer .xgplayer-controls .xgplayer-time span::after {\n    content: \"/\";\n    display: inline-block;\n    padding: 0 3px; }\n  .xgplayer .xgplayer-controls .xgplayer-time em {\n    color: rgba(255, 255, 255, .5); }\n";
-	styleInject(css$6);
+	var _createClass$e = function () { function defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ("value" in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } } return function (Constructor, protoProps, staticProps) { if (protoProps) defineProperties(Constructor.prototype, protoProps); if (staticProps) defineProperties(Constructor, staticProps); return Constructor; }; }();
 
-	var _createClass$c = function () { function defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ("value" in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } } return function (Constructor, protoProps, staticProps) { if (protoProps) defineProperties(Constructor.prototype, protoProps); if (staticProps) defineProperties(Constructor, staticProps); return Constructor; }; }();
+	function _classCallCheck$g(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } }
 
-	function _classCallCheck$e(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } }
+	function _possibleConstructorReturn$c(self, call) { if (!self) { throw new ReferenceError("this hasn't been initialised - super() hasn't been called"); } return call && (typeof call === "object" || typeof call === "function") ? call : self; }
 
-	function _possibleConstructorReturn$a(self, call) { if (!self) { throw new ReferenceError("this hasn't been initialised - super() hasn't been called"); } return call && (typeof call === "object" || typeof call === "function") ? call : self; }
+	function _inherits$c(subClass, superClass) { if (typeof superClass !== "function" && superClass !== null) { throw new TypeError("Super expression must either be null or a function, not " + typeof superClass); } subClass.prototype = Object.create(superClass && superClass.prototype, { constructor: { value: subClass, enumerable: false, writable: true, configurable: true } }); if (superClass) Object.setPrototypeOf ? Object.setPrototypeOf(subClass, superClass) : subClass.__proto__ = superClass; }
 
-	function _inherits$a(subClass, superClass) { if (typeof superClass !== "function" && superClass !== null) { throw new TypeError("Super expression must either be null or a function, not " + typeof superClass); } subClass.prototype = Object.create(superClass && superClass.prototype, { constructor: { value: subClass, enumerable: false, writable: true, configurable: true } }); if (superClass) Object.setPrototypeOf ? Object.setPrototypeOf(subClass, superClass) : subClass.__proto__ = superClass; }
 	var Util$1 = Plugin.Util,
 	    Events$5 = Plugin.Events;
 
 	var TimeIcon = function (_Plugin) {
-	  _inherits$a(TimeIcon, _Plugin);
+	  _inherits$c(TimeIcon, _Plugin);
 
 	  function TimeIcon() {
-	    _classCallCheck$e(this, TimeIcon);
+	    _classCallCheck$g(this, TimeIcon);
 
-	    return _possibleConstructorReturn$a(this, (TimeIcon.__proto__ || Object.getPrototypeOf(TimeIcon)).apply(this, arguments));
+	    return _possibleConstructorReturn$c(this, (TimeIcon.__proto__ || Object.getPrototypeOf(TimeIcon)).apply(this, arguments));
 	  }
 
-	  _createClass$c(TimeIcon, [{
+	  _createClass$e(TimeIcon, [{
 	    key: 'updateTime',
 	    value: function updateTime() {
 	      var player = this.player;
@@ -4100,30 +4178,27 @@
 
 	var volumeChange = "<svg xmlns=\"http://www.w3.org/2000/svg\" width=\"28\" height=\"28\" viewBox=\"0 0 28 28\">\n  <path transform=\"scale(0.0220625 0.0220625)\" d=\"M358.4 358.4h-204.8v307.2h204.8l256 256v-819.2l-256 256z\"></path>\n  <defs>\n  <path class=\"path_large\" transform=\"scale(0.0220625 0.0220625)\" d=\"M940.632 837.632l-72.192-72.192c65.114-64.745 105.412-154.386 105.412-253.44s-40.299-188.695-105.396-253.424l-0.016-0.016 72.192-72.192c83.639 83.197 135.401 198.37 135.401 325.632s-51.762 242.434-135.381 325.612l-0.020 0.020zM795.648 693.248l-72.704-72.704c27.756-27.789 44.921-66.162 44.921-108.544s-17.165-80.755-44.922-108.546l0.002 0.002 72.704-72.704c46.713 46.235 75.639 110.363 75.639 181.248s-28.926 135.013-75.617 181.227l-0.021 0.021z\"></path>\n  <!--muted-->\n  <path class=\"path_muted\" transform=\"scale(0.0220625 0.0220625)\" d=\"M920.4 439.808l-108.544-109.056-72.704 72.704 109.568 108.544-109.056 108.544 72.704 72.704 108.032-109.568 108.544 109.056 72.704-72.704-109.568-108.032 109.056-108.544-72.704-72.704-108.032 109.568z\"></path>\n  <!--small-->\n  <path class=\"path_small\" transform=\"scale(0.0220625 0.0220625)\" d=\"M795.648 693.248l-72.704-72.704c27.756-27.789 44.921-66.162 44.921-108.544s-17.165-80.755-44.922-108.546l0.002 0.002 72.704-72.704c46.713 46.235 75.639 110.363 75.639 181.248s-28.926 135.013-75.617 181.227l-0.021 0.021zM795.648 693.248l-72.704-72.704c27.756-27.789 44.921-66.162 44.921-108.544s-17.165-80.755-44.922-108.546l0.002 0.002 72.704-72.704c46.713 46.235 75.639 110.363 75.639 181.248s-28.926 135.013-75.617 181.227l-0.021 0.021z\"></path>\n  </defs>\n  <path class=\"path\" transform=\"scale(0.0220625 0.0220625)\" d=\"M940.632 837.632l-72.192-72.192c65.114-64.745 105.412-154.386 105.412-253.44s-40.299-188.695-105.396-253.424l-0.016-0.016 72.192-72.192c83.639 83.197 135.401 198.37 135.401 325.632s-51.762 242.434-135.381 325.612l-0.020 0.020zM795.648 693.248l-72.704-72.704c27.756-27.789 44.921-66.162 44.921-108.544s-17.165-80.755-44.922-108.546l0.002 0.002 72.704-72.704c46.713 46.235 75.639 110.363 75.639 181.248s-28.926 135.013-75.617 181.227l-0.021 0.021z\"></path>\n</svg>\n";
 
-	var css$7 = ".xgplayer .xgplayer-volume .xgplayer-icon {\n  padding: 10px 0 0 5px; }\n\n.xgplayer .xgplayer-volume.slide-show .xgplayer-slider {\n  display: block; }\n\n.xgplayer .xgplayer-slider {\n  display: none;\n  position: absolute;\n  width: 28px;\n  height: 92px;\n  background: rgba(0, 0, 0, .54);\n  border-radius: 1px;\n  bottom: 34px;\n  outline: none; }\n  .xgplayer .xgplayer-slider:after {\n    content: \" \";\n    display: block;\n    height: 15px;\n    width: 28px;\n    position: absolute;\n    bottom: -15px;\n    left: 0;\n    z-index: 20; }\n\n.xgplayer .xgplayer-bar, .xgplayer .xgplayer-drag {\n  display: block;\n  position: absolute;\n  bottom: 6px;\n  left: 12px;\n  background: rgba(255, 255, 255, .3);\n  border-radius: 100px;\n  width: 4px;\n  height: 76px;\n  outline: none;\n  cursor: pointer; }\n\n.xgplayer .xgplayer-drag {\n  bottom: 0;\n  left: 0;\n  background: #FA1F41;\n  max-height: 76px; }\n  .xgplayer .xgplayer-drag:after {\n    content: \" \";\n    display: inline-block;\n    width: 8px;\n    height: 8px;\n    background: #fff;\n    box-shadow: 0 0 5px 0 rgba(0, 0, 0, .26);\n    position: absolute;\n    border-radius: 50%;\n    left: -2px;\n    top: -6px; }\n\n.xgplayer.xgplayer-mobile .xgplayer-volume .xgplayer-slider {\n  display: none; }\n";
-	styleInject(css$7);
+	var _createClass$f = function () { function defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ("value" in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } } return function (Constructor, protoProps, staticProps) { if (protoProps) defineProperties(Constructor.prototype, protoProps); if (staticProps) defineProperties(Constructor, staticProps); return Constructor; }; }();
 
-	var _createClass$d = function () { function defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ("value" in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } } return function (Constructor, protoProps, staticProps) { if (protoProps) defineProperties(Constructor.prototype, protoProps); if (staticProps) defineProperties(Constructor, staticProps); return Constructor; }; }();
+	function _classCallCheck$h(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } }
 
-	function _classCallCheck$f(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } }
+	function _possibleConstructorReturn$d(self, call) { if (!self) { throw new ReferenceError("this hasn't been initialised - super() hasn't been called"); } return call && (typeof call === "object" || typeof call === "function") ? call : self; }
 
-	function _possibleConstructorReturn$b(self, call) { if (!self) { throw new ReferenceError("this hasn't been initialised - super() hasn't been called"); } return call && (typeof call === "object" || typeof call === "function") ? call : self; }
-
-	function _inherits$b(subClass, superClass) { if (typeof superClass !== "function" && superClass !== null) { throw new TypeError("Super expression must either be null or a function, not " + typeof superClass); } subClass.prototype = Object.create(superClass && superClass.prototype, { constructor: { value: subClass, enumerable: false, writable: true, configurable: true } }); if (superClass) Object.setPrototypeOf ? Object.setPrototypeOf(subClass, superClass) : subClass.__proto__ = superClass; }
+	function _inherits$d(subClass, superClass) { if (typeof superClass !== "function" && superClass !== null) { throw new TypeError("Super expression must either be null or a function, not " + typeof superClass); } subClass.prototype = Object.create(superClass && superClass.prototype, { constructor: { value: subClass, enumerable: false, writable: true, configurable: true } }); if (superClass) Object.setPrototypeOf ? Object.setPrototypeOf(subClass, superClass) : subClass.__proto__ = superClass; }
 
 	var Util$2 = Plugin.Util,
 	    Events$6 = Plugin.Events;
 
 	var VolumeIcon = function (_Plugin) {
-	  _inherits$b(VolumeIcon, _Plugin);
+	  _inherits$d(VolumeIcon, _Plugin);
 
 	  function VolumeIcon() {
-	    _classCallCheck$f(this, VolumeIcon);
+	    _classCallCheck$h(this, VolumeIcon);
 
-	    return _possibleConstructorReturn$b(this, (VolumeIcon.__proto__ || Object.getPrototypeOf(VolumeIcon)).apply(this, arguments));
+	    return _possibleConstructorReturn$d(this, (VolumeIcon.__proto__ || Object.getPrototypeOf(VolumeIcon)).apply(this, arguments));
 	  }
 
-	  _createClass$d(VolumeIcon, [{
+	  _createClass$f(VolumeIcon, [{
 	    key: 'registerIcons',
 	    value: function registerIcons() {
 	      return {
@@ -4204,29 +4279,26 @@
 
 	var RotateIcon = "<svg xmlns=\"http://www.w3.org/2000/svg\" width=\"32\" height=\"32\" viewBox=\"0 0 40 40\" fill=\"none\">\n  <g clip-path=\"url(#clip0)\">\n    <path transform=\"scale(1.5 1.5)\" d=\"M11.6665 9.16663H4.1665C2.78579 9.16663 1.6665 10.2859 1.6665 11.6666V15.8333C1.6665 17.214 2.78579 18.3333 4.1665 18.3333H11.6665C13.0472 18.3333 14.1665 17.214 14.1665 15.8333V11.6666C14.1665 10.2859 13.0472 9.16663 11.6665 9.16663Z\" fill=\"white\"/>\n    <path transform=\"scale(1.5 1.5)\" fill-rule=\"evenodd\" clip-rule=\"evenodd\" d=\"M3.88148 4.06298C3.75371 4.21005 3.67667 4.40231 3.67749 4.61242C3.67847 4.87253 3.79852 5.10435 3.98581 5.25646L6.99111 8.05895C7.32771 8.37283 7.85502 8.35443 8.16891 8.01782C8.48279 7.68122 8.46437 7.15391 8.12778 6.84003L6.62061 5.43457L9.8198 5.4224C9.82848 5.42239 9.8372 5.42221 9.84591 5.4219C10.9714 5.38233 12.0885 5.6285 13.0931 6.13744C14.0976 6.64635 14.957 7.40148 15.5908 8.33234C16.2246 9.2632 16.6122 10.3394 16.7177 11.4606C16.823 12.5819 16.6427 13.7115 16.1934 14.7442C16.0098 15.1661 16.203 15.6571 16.6251 15.8408C17.0471 16.0243 17.5381 15.8311 17.7216 15.4091C18.2833 14.1183 18.5087 12.7063 18.3771 11.3047C18.2453 9.90318 17.7607 8.55792 16.9684 7.39433C16.1761 6.23073 15.1021 5.28683 13.8463 4.65065C12.5946 4.01651 11.203 3.70872 9.80072 3.75583L6.43415 3.76862L7.96326 2.12885C8.27715 1.79225 8.25872 1.26494 7.92213 0.951061C7.58553 0.63718 7.05822 0.655585 6.74433 0.99219L3.90268 4.0395C3.89545 4.04724 3.88841 4.05509 3.88154 4.06303L3.88148 4.06298Z\" fill=\"white\"/>\n  </g>\n  <defs>\n    <clipPath id=\"clip0\">\n      <rect width=\"40\" height=\"40\" fill=\"white\"/>\n    </clipPath>\n  </defs>\n</svg>\n";
 
-	var css$8 = ".xgplayer .xgplayer-rotate .xgplayer-icon {\n  padding: 8px 0 0 5px; }\n";
-	styleInject(css$8);
-
-	var _createClass$e = function () { function defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ("value" in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } } return function (Constructor, protoProps, staticProps) { if (protoProps) defineProperties(Constructor.prototype, protoProps); if (staticProps) defineProperties(Constructor, staticProps); return Constructor; }; }();
+	var _createClass$g = function () { function defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ("value" in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } } return function (Constructor, protoProps, staticProps) { if (protoProps) defineProperties(Constructor.prototype, protoProps); if (staticProps) defineProperties(Constructor, staticProps); return Constructor; }; }();
 
 	var _get$2 = function get(object, property, receiver) { if (object === null) object = Function.prototype; var desc = Object.getOwnPropertyDescriptor(object, property); if (desc === undefined) { var parent = Object.getPrototypeOf(object); if (parent === null) { return undefined; } else { return get(parent, property, receiver); } } else if ("value" in desc) { return desc.value; } else { var getter = desc.get; if (getter === undefined) { return undefined; } return getter.call(receiver); } };
 
-	function _classCallCheck$g(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } }
+	function _classCallCheck$i(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } }
 
-	function _possibleConstructorReturn$c(self, call) { if (!self) { throw new ReferenceError("this hasn't been initialised - super() hasn't been called"); } return call && (typeof call === "object" || typeof call === "function") ? call : self; }
+	function _possibleConstructorReturn$e(self, call) { if (!self) { throw new ReferenceError("this hasn't been initialised - super() hasn't been called"); } return call && (typeof call === "object" || typeof call === "function") ? call : self; }
 
-	function _inherits$c(subClass, superClass) { if (typeof superClass !== "function" && superClass !== null) { throw new TypeError("Super expression must either be null or a function, not " + typeof superClass); } subClass.prototype = Object.create(superClass && superClass.prototype, { constructor: { value: subClass, enumerable: false, writable: true, configurable: true } }); if (superClass) Object.setPrototypeOf ? Object.setPrototypeOf(subClass, superClass) : subClass.__proto__ = superClass; }
+	function _inherits$e(subClass, superClass) { if (typeof superClass !== "function" && superClass !== null) { throw new TypeError("Super expression must either be null or a function, not " + typeof superClass); } subClass.prototype = Object.create(superClass && superClass.prototype, { constructor: { value: subClass, enumerable: false, writable: true, configurable: true } }); if (superClass) Object.setPrototypeOf ? Object.setPrototypeOf(subClass, superClass) : subClass.__proto__ = superClass; }
 
 	var Rotate = function (_Plugin) {
-	  _inherits$c(Rotate, _Plugin);
+	  _inherits$e(Rotate, _Plugin);
 
 	  function Rotate() {
-	    _classCallCheck$g(this, Rotate);
+	    _classCallCheck$i(this, Rotate);
 
-	    return _possibleConstructorReturn$c(this, (Rotate.__proto__ || Object.getPrototypeOf(Rotate)).apply(this, arguments));
+	    return _possibleConstructorReturn$e(this, (Rotate.__proto__ || Object.getPrototypeOf(Rotate)).apply(this, arguments));
 	  }
 
-	  _createClass$e(Rotate, [{
+	  _createClass$g(Rotate, [{
 	    key: 'afterCreate',
 	    value: function afterCreate() {
 	      var _this2 = this;
@@ -4367,31 +4439,28 @@
 	  return Rotate;
 	}(Plugin);
 
-	var css$9 = ".xgplayer .xgplayer-mini {\n  position: relative;\n  outline: none;\n  display: block; }\n  .xgplayer .xgplayer-mini .name {\n    text-align: center;\n    font-family: PingFangSC-Regular;\n    font-size: 13px;\n    line-height: 20px;\n    height: 20px;\n    color: white;\n    line-height: 40px; }\n    .xgplayer .xgplayer-mini .name span {\n      font-family: PingFangSC-Regular;\n      font-size: 13px;\n      width: 60px;\n      height: 20px;\n      line-height: 20px;\n      background: rgba(0, 0, 0, .38);\n      border-radius: 10px;\n      display: inline-block;\n      vertical-align: middle; }\n\n.xgplayer .xgplayer-pip-lay {\n  position: absolute;\n  top: 26px;\n  left: 0;\n  width: 100%;\n  height: 100%;\n  z-index: 130;\n  cursor: pointer;\n  background-color: transparent;\n  display: none; }\n  .xgplayer .xgplayer-pip-lay div {\n    width: 100%;\n    height: 100%; }\n\n.xgplayer .xgplayer-pip-drag {\n  cursor: move;\n  position: absolute;\n  top: 0;\n  left: 0;\n  width: 100%;\n  height: 26px;\n  line-height: 26px;\n  background-image: linear-gradient(rgba(0, 0, 0, .3), rgba(0, 0, 0, 0));\n  z-index: 130;\n  display: none; }\n\n.xgplayer-skin-default.xgplayer-pip-active {\n  position: fixed;\n  right: 0;\n  bottom: 200px;\n  width: 320px !important;\n  height: 180px !important;\n  z-index: 110 !important; }\n  .xgplayer-skin-default.xgplayer-pip-active .xgplayer-controls {\n    display: none; }\n  .xgplayer-skin-default.xgplayer-pip-active .xgplayer-danmu {\n    display: none; }\n  .xgplayer-skin-default.xgplayer-pip-active .xgplayer-pip-lay {\n    display: block; }\n\n.xgplayer-skin-default.xgplayer-pip-active .xgplayer-pip-drag {\n  display: -webkit-flex;\n  display: -moz-box;\n  display: flex; }\n\n.xgplayer-skin-default.xgplayer-inactive .xgplayer-pip-drag {\n  display: none; }\n\n.lang-is-jp .xgplayer-pip .name span {\n  width: 70px;\n  height: 20px; }\n";
-	styleInject(css$9);
-
-	var _createClass$f = function () { function defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ("value" in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } } return function (Constructor, protoProps, staticProps) { if (protoProps) defineProperties(Constructor.prototype, protoProps); if (staticProps) defineProperties(Constructor, staticProps); return Constructor; }; }();
+	var _createClass$h = function () { function defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ("value" in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } } return function (Constructor, protoProps, staticProps) { if (protoProps) defineProperties(Constructor.prototype, protoProps); if (staticProps) defineProperties(Constructor, staticProps); return Constructor; }; }();
 
 	var _get$3 = function get(object, property, receiver) { if (object === null) object = Function.prototype; var desc = Object.getOwnPropertyDescriptor(object, property); if (desc === undefined) { var parent = Object.getPrototypeOf(object); if (parent === null) { return undefined; } else { return get(parent, property, receiver); } } else if ("value" in desc) { return desc.value; } else { var getter = desc.get; if (getter === undefined) { return undefined; } return getter.call(receiver); } };
 
-	function _classCallCheck$h(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } }
+	function _classCallCheck$j(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } }
 
-	function _possibleConstructorReturn$d(self, call) { if (!self) { throw new ReferenceError("this hasn't been initialised - super() hasn't been called"); } return call && (typeof call === "object" || typeof call === "function") ? call : self; }
+	function _possibleConstructorReturn$f(self, call) { if (!self) { throw new ReferenceError("this hasn't been initialised - super() hasn't been called"); } return call && (typeof call === "object" || typeof call === "function") ? call : self; }
 
-	function _inherits$d(subClass, superClass) { if (typeof superClass !== "function" && superClass !== null) { throw new TypeError("Super expression must either be null or a function, not " + typeof superClass); } subClass.prototype = Object.create(superClass && superClass.prototype, { constructor: { value: subClass, enumerable: false, writable: true, configurable: true } }); if (superClass) Object.setPrototypeOf ? Object.setPrototypeOf(subClass, superClass) : subClass.__proto__ = superClass; }
+	function _inherits$f(subClass, superClass) { if (typeof superClass !== "function" && superClass !== null) { throw new TypeError("Super expression must either be null or a function, not " + typeof superClass); } subClass.prototype = Object.create(superClass && superClass.prototype, { constructor: { value: subClass, enumerable: false, writable: true, configurable: true } }); if (superClass) Object.setPrototypeOf ? Object.setPrototypeOf(subClass, superClass) : subClass.__proto__ = superClass; }
 
 	var Util$3 = Plugin.Util;
 
 	var MiniScreen = function (_Plugin) {
-	  _inherits$d(MiniScreen, _Plugin);
+	  _inherits$f(MiniScreen, _Plugin);
 
 	  function MiniScreen() {
-	    _classCallCheck$h(this, MiniScreen);
+	    _classCallCheck$j(this, MiniScreen);
 
-	    return _possibleConstructorReturn$d(this, (MiniScreen.__proto__ || Object.getPrototypeOf(MiniScreen)).apply(this, arguments));
+	    return _possibleConstructorReturn$f(this, (MiniScreen.__proto__ || Object.getPrototypeOf(MiniScreen)).apply(this, arguments));
 	  }
 
-	  _createClass$f(MiniScreen, [{
+	  _createClass$h(MiniScreen, [{
 	    key: 'afterCreate',
 	    value: function afterCreate() {
 	      this.getMini = this.getMini.bind(this);
@@ -4530,28 +4599,26 @@
 	  return MiniScreen;
 	}(Plugin);
 
-	var css$a = ".xgplayer .xgplayer-pip {\n  display: none; }\n";
-	styleInject(css$a);
+	var _createClass$i = function () { function defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ("value" in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } } return function (Constructor, protoProps, staticProps) { if (protoProps) defineProperties(Constructor.prototype, protoProps); if (staticProps) defineProperties(Constructor, staticProps); return Constructor; }; }();
 
-	var _createClass$g = function () { function defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ("value" in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } } return function (Constructor, protoProps, staticProps) { if (protoProps) defineProperties(Constructor.prototype, protoProps); if (staticProps) defineProperties(Constructor, staticProps); return Constructor; }; }();
+	function _classCallCheck$k(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } }
 
-	function _classCallCheck$i(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } }
+	function _possibleConstructorReturn$g(self, call) { if (!self) { throw new ReferenceError("this hasn't been initialised - super() hasn't been called"); } return call && (typeof call === "object" || typeof call === "function") ? call : self; }
 
-	function _possibleConstructorReturn$e(self, call) { if (!self) { throw new ReferenceError("this hasn't been initialised - super() hasn't been called"); } return call && (typeof call === "object" || typeof call === "function") ? call : self; }
+	function _inherits$g(subClass, superClass) { if (typeof superClass !== "function" && superClass !== null) { throw new TypeError("Super expression must either be null or a function, not " + typeof superClass); } subClass.prototype = Object.create(superClass && superClass.prototype, { constructor: { value: subClass, enumerable: false, writable: true, configurable: true } }); if (superClass) Object.setPrototypeOf ? Object.setPrototypeOf(subClass, superClass) : subClass.__proto__ = superClass; }
 
-	function _inherits$e(subClass, superClass) { if (typeof superClass !== "function" && superClass !== null) { throw new TypeError("Super expression must either be null or a function, not " + typeof superClass); } subClass.prototype = Object.create(superClass && superClass.prototype, { constructor: { value: subClass, enumerable: false, writable: true, configurable: true } }); if (superClass) Object.setPrototypeOf ? Object.setPrototypeOf(subClass, superClass) : subClass.__proto__ = superClass; }
 	var Events$7 = Plugin.Events;
 
 	var PIPIcon = function (_Plugin) {
-	  _inherits$e(PIPIcon, _Plugin);
+	  _inherits$g(PIPIcon, _Plugin);
 
 	  function PIPIcon() {
-	    _classCallCheck$i(this, PIPIcon);
+	    _classCallCheck$k(this, PIPIcon);
 
-	    return _possibleConstructorReturn$e(this, (PIPIcon.__proto__ || Object.getPrototypeOf(PIPIcon)).apply(this, arguments));
+	    return _possibleConstructorReturn$g(this, (PIPIcon.__proto__ || Object.getPrototypeOf(PIPIcon)).apply(this, arguments));
 	  }
 
-	  _createClass$g(PIPIcon, [{
+	  _createClass$i(PIPIcon, [{
 	    key: 'afterCreate',
 	    value: function afterCreate() {
 	      var _this2 = this;
@@ -4649,29 +4716,26 @@
 
 	var Next = "<svg xmlns=\"http://www.w3.org/2000/svg\" width=\"40\" height=\"40\" viewBox=\"0 0 40 40\">\n  <path transform=\"scale(0.038 0.028)\" d=\"M800 380v768h-128v-352l-320 320v-704l320 320v-352z\"></path>\n</svg>\n";
 
-	var css$b = ".xgplayer .xgplayer-playnext {\n  display: none; }\n  .xgplayer .xgplayer-playnext .xgplayer-icon {\n    padding-top: 0;\n    margin-top: -1px; }\n";
-	styleInject(css$b);
+	var _createClass$j = function () { function defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ("value" in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } } return function (Constructor, protoProps, staticProps) { if (protoProps) defineProperties(Constructor.prototype, protoProps); if (staticProps) defineProperties(Constructor, staticProps); return Constructor; }; }();
 
-	var _createClass$h = function () { function defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ("value" in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } } return function (Constructor, protoProps, staticProps) { if (protoProps) defineProperties(Constructor.prototype, protoProps); if (staticProps) defineProperties(Constructor, staticProps); return Constructor; }; }();
+	function _classCallCheck$l(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } }
 
-	function _classCallCheck$j(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } }
+	function _possibleConstructorReturn$h(self, call) { if (!self) { throw new ReferenceError("this hasn't been initialised - super() hasn't been called"); } return call && (typeof call === "object" || typeof call === "function") ? call : self; }
 
-	function _possibleConstructorReturn$f(self, call) { if (!self) { throw new ReferenceError("this hasn't been initialised - super() hasn't been called"); } return call && (typeof call === "object" || typeof call === "function") ? call : self; }
-
-	function _inherits$f(subClass, superClass) { if (typeof superClass !== "function" && superClass !== null) { throw new TypeError("Super expression must either be null or a function, not " + typeof superClass); } subClass.prototype = Object.create(superClass && superClass.prototype, { constructor: { value: subClass, enumerable: false, writable: true, configurable: true } }); if (superClass) Object.setPrototypeOf ? Object.setPrototypeOf(subClass, superClass) : subClass.__proto__ = superClass; }
+	function _inherits$h(subClass, superClass) { if (typeof superClass !== "function" && superClass !== null) { throw new TypeError("Super expression must either be null or a function, not " + typeof superClass); } subClass.prototype = Object.create(superClass && superClass.prototype, { constructor: { value: subClass, enumerable: false, writable: true, configurable: true } }); if (superClass) Object.setPrototypeOf ? Object.setPrototypeOf(subClass, superClass) : subClass.__proto__ = superClass; }
 
 	// const { Events } = Plugin
 
 	var PlayNextIcon = function (_Plugin) {
-	  _inherits$f(PlayNextIcon, _Plugin);
+	  _inherits$h(PlayNextIcon, _Plugin);
 
 	  function PlayNextIcon() {
-	    _classCallCheck$j(this, PlayNextIcon);
+	    _classCallCheck$l(this, PlayNextIcon);
 
-	    return _possibleConstructorReturn$f(this, (PlayNextIcon.__proto__ || Object.getPrototypeOf(PlayNextIcon)).apply(this, arguments));
+	    return _possibleConstructorReturn$h(this, (PlayNextIcon.__proto__ || Object.getPrototypeOf(PlayNextIcon)).apply(this, arguments));
 	  }
 
-	  _createClass$h(PlayNextIcon, [{
+	  _createClass$j(PlayNextIcon, [{
 	    key: 'afterCreate',
 	    value: function afterCreate() {
 	      var playerConfig = this.playerConfig;
@@ -4880,21 +4944,18 @@
 	}));
 	});
 
-	var css$c = "";
-	styleInject(css$c);
+	var _createClass$k = function () { function defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ("value" in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } } return function (Constructor, protoProps, staticProps) { if (protoProps) defineProperties(Constructor.prototype, protoProps); if (staticProps) defineProperties(Constructor, staticProps); return Constructor; }; }();
 
-	var _createClass$i = function () { function defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ("value" in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } } return function (Constructor, protoProps, staticProps) { if (protoProps) defineProperties(Constructor.prototype, protoProps); if (staticProps) defineProperties(Constructor, staticProps); return Constructor; }; }();
+	function _classCallCheck$m(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } }
 
-	function _classCallCheck$k(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } }
+	function _possibleConstructorReturn$i(self, call) { if (!self) { throw new ReferenceError("this hasn't been initialised - super() hasn't been called"); } return call && (typeof call === "object" || typeof call === "function") ? call : self; }
 
-	function _possibleConstructorReturn$g(self, call) { if (!self) { throw new ReferenceError("this hasn't been initialised - super() hasn't been called"); } return call && (typeof call === "object" || typeof call === "function") ? call : self; }
-
-	function _inherits$g(subClass, superClass) { if (typeof superClass !== "function" && superClass !== null) { throw new TypeError("Super expression must either be null or a function, not " + typeof superClass); } subClass.prototype = Object.create(superClass && superClass.prototype, { constructor: { value: subClass, enumerable: false, writable: true, configurable: true } }); if (superClass) Object.setPrototypeOf ? Object.setPrototypeOf(subClass, superClass) : subClass.__proto__ = superClass; }
+	function _inherits$i(subClass, superClass) { if (typeof superClass !== "function" && superClass !== null) { throw new TypeError("Super expression must either be null or a function, not " + typeof superClass); } subClass.prototype = Object.create(superClass && superClass.prototype, { constructor: { value: subClass, enumerable: false, writable: true, configurable: true } }); if (superClass) Object.setPrototypeOf ? Object.setPrototypeOf(subClass, superClass) : subClass.__proto__ = superClass; }
 
 	var DownloadIcon = function (_Plugin) {
-	  _inherits$g(DownloadIcon, _Plugin);
+	  _inherits$i(DownloadIcon, _Plugin);
 
-	  _createClass$i(DownloadIcon, null, [{
+	  _createClass$k(DownloadIcon, null, [{
 	    key: 'pluginName',
 	    get: function get() {
 	      return 'DownloadIcon';
@@ -4902,16 +4963,16 @@
 	  }]);
 
 	  function DownloadIcon(args) {
-	    _classCallCheck$k(this, DownloadIcon);
+	    _classCallCheck$m(this, DownloadIcon);
 
-	    var _this = _possibleConstructorReturn$g(this, (DownloadIcon.__proto__ || Object.getPrototypeOf(DownloadIcon)).call(this, args));
+	    var _this = _possibleConstructorReturn$i(this, (DownloadIcon.__proto__ || Object.getPrototypeOf(DownloadIcon)).call(this, args));
 
 	    _this.timer = null;
 	    _this.isLock = false;
 	    return _this;
 	  }
 
-	  _createClass$i(DownloadIcon, [{
+	  _createClass$k(DownloadIcon, [{
 	    key: 'afterCreate',
 	    value: function afterCreate() {
 	      var _this2 = this;
@@ -4970,28 +5031,26 @@
 	  return DownloadIcon;
 	}(Plugin);
 
-	var css$d = ".xgplayer .xgplayer-shot {\n  display: none; }\n";
-	styleInject(css$d);
+	var _createClass$l = function () { function defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ("value" in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } } return function (Constructor, protoProps, staticProps) { if (protoProps) defineProperties(Constructor.prototype, protoProps); if (staticProps) defineProperties(Constructor, staticProps); return Constructor; }; }();
 
-	var _createClass$j = function () { function defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ("value" in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } } return function (Constructor, protoProps, staticProps) { if (protoProps) defineProperties(Constructor.prototype, protoProps); if (staticProps) defineProperties(Constructor, staticProps); return Constructor; }; }();
+	function _classCallCheck$n(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } }
 
-	function _classCallCheck$l(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } }
+	function _possibleConstructorReturn$j(self, call) { if (!self) { throw new ReferenceError("this hasn't been initialised - super() hasn't been called"); } return call && (typeof call === "object" || typeof call === "function") ? call : self; }
 
-	function _possibleConstructorReturn$h(self, call) { if (!self) { throw new ReferenceError("this hasn't been initialised - super() hasn't been called"); } return call && (typeof call === "object" || typeof call === "function") ? call : self; }
+	function _inherits$j(subClass, superClass) { if (typeof superClass !== "function" && superClass !== null) { throw new TypeError("Super expression must either be null or a function, not " + typeof superClass); } subClass.prototype = Object.create(superClass && superClass.prototype, { constructor: { value: subClass, enumerable: false, writable: true, configurable: true } }); if (superClass) Object.setPrototypeOf ? Object.setPrototypeOf(subClass, superClass) : subClass.__proto__ = superClass; }
 
-	function _inherits$h(subClass, superClass) { if (typeof superClass !== "function" && superClass !== null) { throw new TypeError("Super expression must either be null or a function, not " + typeof superClass); } subClass.prototype = Object.create(superClass && superClass.prototype, { constructor: { value: subClass, enumerable: false, writable: true, configurable: true } }); if (superClass) Object.setPrototypeOf ? Object.setPrototypeOf(subClass, superClass) : subClass.__proto__ = superClass; }
 	var Events$8 = Plugin.Events;
 
 	var ScreenShotIcon = function (_Plugin) {
-	  _inherits$h(ScreenShotIcon, _Plugin);
+	  _inherits$j(ScreenShotIcon, _Plugin);
 
 	  function ScreenShotIcon() {
-	    _classCallCheck$l(this, ScreenShotIcon);
+	    _classCallCheck$n(this, ScreenShotIcon);
 
-	    return _possibleConstructorReturn$h(this, (ScreenShotIcon.__proto__ || Object.getPrototypeOf(ScreenShotIcon)).apply(this, arguments));
+	    return _possibleConstructorReturn$j(this, (ScreenShotIcon.__proto__ || Object.getPrototypeOf(ScreenShotIcon)).apply(this, arguments));
 	  }
 
-	  _createClass$j(ScreenShotIcon, [{
+	  _createClass$l(ScreenShotIcon, [{
 	    key: 'afterCreate',
 	    value: function afterCreate() {
 	      var _this2 = this;
@@ -5094,24 +5153,21 @@
 
 	var CssFullscreenChange = "<svg xmlns=\"http://www.w3.org/2000/svg\" width=\"40\" height=\"40\" viewBox=\"0 0 40 40\">\n  <defs>\n  <path class='path_full' transform=\"scale(0.028 0.028)\" d=\"M843.617212 67.898413 175.411567 67.898413c-61.502749 0-111.367437 49.856501-111.367437 111.367437l0 668.205645c0 61.510936 49.864688 111.367437 111.367437 111.367437L843.617212 958.838931c61.510936 0 111.367437-49.856501 111.367437-111.367437L954.984648 179.26585C954.984648 117.754914 905.12917 67.898413 843.617212 67.898413zM398.146441 736.104057c15.380292 0 27.842115 12.461823 27.842115 27.842115 0 15.379269-12.461823 27.841092-27.842115 27.841092L259.725858 791.787264c-7.785314 0-14.781658-3.217275-19.838837-8.365528-5.383614-4.577249-8.791224-11.228739-8.791224-19.475564L231.095797 624.736621c0-15.371082 12.471033-27.842115 27.842115-27.842115 15.380292 0 27.842115 12.471033 27.842115 27.842115l-0.61603 71.426773 133.036969-133.037992 39.378869 39.378869L324.962651 736.113267 398.146441 736.104057zM419.199942 463.611943 286.162974 330.565764l0.61603 71.435982c0 15.380292-12.461823 27.842115-27.842115 27.842115-15.371082 0-27.842115-12.461823-27.842115-27.842115L231.094774 262.791172c0-8.256034 3.40761-14.908548 8.791224-19.476587 5.057179-5.148253 12.053524-8.374738 19.838837-8.374738l138.420583 0.00921c15.380292 0 27.842115 12.461823 27.842115 27.842115s-12.461823 27.842115-27.842115 27.842115l-73.175603-0.00921 133.607974 133.607974L419.199942 463.611943zM787.932981 763.946172c0 8.247848-3.40761 14.899338-8.791224 19.475564-5.057179 5.148253-12.053524 8.365528-19.839861 8.365528L620.881314 791.787264c-15.379269 0-27.841092-12.461823-27.841092-27.841092 0-15.380292 12.461823-27.842115 27.841092-27.842115l73.185836 0.00921L560.449967 602.50427l39.378869-39.378869L732.875015 696.163393l-0.62524-71.426773c0-15.371082 12.462846-27.842115 27.842115-27.842115 15.380292 0 27.842115 12.471033 27.842115 27.842115L787.934005 763.946172zM787.932981 402.000724c0 15.380292-12.461823 27.842115-27.842115 27.842115-15.379269 0-27.842115-12.461823-27.842115-27.842115l0.62524-71.435982L599.828836 463.611943l-39.378869-39.378869 133.617184-133.607974-73.185836 0.00921c-15.379269 0-27.841092-12.461823-27.841092-27.842115s12.461823-27.842115 27.841092-27.842115l138.421606-0.00921c7.785314 0 14.781658 3.226484 19.839861 8.374738 5.383614 4.568039 8.791224 11.219529 8.791224 19.476587L787.934005 402.000724z\"></path>\n  <path class='path_exitfull'transform=\"scale(0.028 0.028)\" d=\"M834.56 81.92H189.44c-59.392 0-107.52 48.128-107.52 107.52v645.12c0 59.392 48.128 107.52 107.52 107.52h645.12c59.392 0 107.52-48.128 107.52-107.52V189.44c0-59.392-48.128-107.52-107.52-107.52zM458.24 727.04c0 14.848-12.288 26.624-26.624 26.624S404.48 741.888 404.48 727.04v-69.632L289.28 773.12c-10.752 10.24-27.648 10.24-37.888 0-10.24-10.752-10.24-27.648 0-37.888L366.592 619.52H296.96c-14.848 0-26.624-12.288-26.624-26.624s12.288-26.624 26.624-26.624h134.144c14.848 0 26.624 12.288 26.624 26.624V727.04z m0-295.936c0 14.848-12.288 26.624-26.624 26.624H296.96c-14.848 0-26.624-12.288-26.624-26.624S282.112 404.48 296.96 404.48h69.632L251.392 289.28c-10.24-10.752-10.24-27.648 0-37.888 5.12-5.12 12.288-7.68 18.944-7.68 6.656 0 13.824 2.56 18.944 7.68L404.48 366.592V296.96c0-14.848 12.288-26.624 26.624-26.624s26.624 12.288 26.624 26.624v134.144zM773.12 773.12c-10.752 10.24-27.648 10.24-37.888 0L619.52 657.408V727.04c0 14.848-12.288 26.624-26.624 26.624s-26.624-11.776-26.624-26.624v-134.144c0-14.848 12.288-26.624 26.624-26.624H727.04c14.848 0 26.624 12.288 26.624 26.624s-12.288 26.624-26.624 26.624h-69.632l115.2 115.2c10.752 10.752 10.752 27.648 0.512 38.4z m0-483.84L657.408 404.48H727.04c14.848 0 26.624 12.288 26.624 26.624 0 14.848-12.288 26.624-26.624 26.624h-134.144c-14.848 0-26.624-12.288-26.624-26.624V296.96c0-14.848 12.288-26.624 26.624-26.624s26.624 12.288 26.624 26.624v69.632L734.72 250.88c5.12-5.12 12.288-7.68 18.944-7.68s13.824 2.56 18.944 7.68c10.752 10.752 10.752 27.648 0.512 38.4z\"></path>\n  </defs>\n  <path class=\"path\" transform=\"scale(0.028 0.028)\" d=\"M843.617212 67.898413 175.411567 67.898413c-61.502749 0-111.367437 49.856501-111.367437 111.367437l0 668.205645c0 61.510936 49.864688 111.367437 111.367437 111.367437L843.617212 958.838931c61.510936 0 111.367437-49.856501 111.367437-111.367437L954.984648 179.26585C954.984648 117.754914 905.12917 67.898413 843.617212 67.898413zM398.146441 736.104057c15.380292 0 27.842115 12.461823 27.842115 27.842115 0 15.379269-12.461823 27.841092-27.842115 27.841092L259.725858 791.787264c-7.785314 0-14.781658-3.217275-19.838837-8.365528-5.383614-4.577249-8.791224-11.228739-8.791224-19.475564L231.095797 624.736621c0-15.371082 12.471033-27.842115 27.842115-27.842115 15.380292 0 27.842115 12.471033 27.842115 27.842115l-0.61603 71.426773 133.036969-133.037992 39.378869 39.378869L324.962651 736.113267 398.146441 736.104057zM419.199942 463.611943 286.162974 330.565764l0.61603 71.435982c0 15.380292-12.461823 27.842115-27.842115 27.842115-15.371082 0-27.842115-12.461823-27.842115-27.842115L231.094774 262.791172c0-8.256034 3.40761-14.908548 8.791224-19.476587 5.057179-5.148253 12.053524-8.374738 19.838837-8.374738l138.420583 0.00921c15.380292 0 27.842115 12.461823 27.842115 27.842115s-12.461823 27.842115-27.842115 27.842115l-73.175603-0.00921 133.607974 133.607974L419.199942 463.611943zM787.932981 763.946172c0 8.247848-3.40761 14.899338-8.791224 19.475564-5.057179 5.148253-12.053524 8.365528-19.839861 8.365528L620.881314 791.787264c-15.379269 0-27.841092-12.461823-27.841092-27.841092 0-15.380292 12.461823-27.842115 27.841092-27.842115l73.185836 0.00921L560.449967 602.50427l39.378869-39.378869L732.875015 696.163393l-0.62524-71.426773c0-15.371082 12.462846-27.842115 27.842115-27.842115 15.380292 0 27.842115 12.471033 27.842115 27.842115L787.934005 763.946172zM787.932981 402.000724c0 15.380292-12.461823 27.842115-27.842115 27.842115-15.379269 0-27.842115-12.461823-27.842115-27.842115l0.62524-71.435982L599.828836 463.611943l-39.378869-39.378869 133.617184-133.607974-73.185836 0.00921c-15.379269 0-27.841092-12.461823-27.841092-27.842115s12.461823-27.842115 27.841092-27.842115l138.421606-0.00921c7.785314 0 14.781658 3.226484 19.839861 8.374738 5.383614 4.568039 8.791224 11.219529 8.791224 19.476587L787.934005 402.000724z\"></path>\n</svg>\n";
 
-	var css$e = ".xgplayer.xgplayer-is-cssfullscreen {\n  position: fixed !important;\n  left: 0 !important;\n  top: 0 !important;\n  width: 100% !important;\n  height: 100% !important;\n  z-index: 99999 !important; }\n\n.xgplayer .xgplayer-cssfullscreen .xgplayer-icon {\n  position: relative;\n  left: 8px;\n  top: 4px; }\n";
-	styleInject(css$e);
+	var _createClass$m = function () { function defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ("value" in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } } return function (Constructor, protoProps, staticProps) { if (protoProps) defineProperties(Constructor.prototype, protoProps); if (staticProps) defineProperties(Constructor, staticProps); return Constructor; }; }();
 
-	var _createClass$k = function () { function defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ("value" in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } } return function (Constructor, protoProps, staticProps) { if (protoProps) defineProperties(Constructor.prototype, protoProps); if (staticProps) defineProperties(Constructor, staticProps); return Constructor; }; }();
+	function _classCallCheck$o(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } }
 
-	function _classCallCheck$m(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } }
+	function _possibleConstructorReturn$k(self, call) { if (!self) { throw new ReferenceError("this hasn't been initialised - super() hasn't been called"); } return call && (typeof call === "object" || typeof call === "function") ? call : self; }
 
-	function _possibleConstructorReturn$i(self, call) { if (!self) { throw new ReferenceError("this hasn't been initialised - super() hasn't been called"); } return call && (typeof call === "object" || typeof call === "function") ? call : self; }
-
-	function _inherits$i(subClass, superClass) { if (typeof superClass !== "function" && superClass !== null) { throw new TypeError("Super expression must either be null or a function, not " + typeof superClass); } subClass.prototype = Object.create(superClass && superClass.prototype, { constructor: { value: subClass, enumerable: false, writable: true, configurable: true } }); if (superClass) Object.setPrototypeOf ? Object.setPrototypeOf(subClass, superClass) : subClass.__proto__ = superClass; }
+	function _inherits$k(subClass, superClass) { if (typeof superClass !== "function" && superClass !== null) { throw new TypeError("Super expression must either be null or a function, not " + typeof superClass); } subClass.prototype = Object.create(superClass && superClass.prototype, { constructor: { value: subClass, enumerable: false, writable: true, configurable: true } }); if (superClass) Object.setPrototypeOf ? Object.setPrototypeOf(subClass, superClass) : subClass.__proto__ = superClass; }
 
 	var Events$9 = Plugin.Events,
 	    Util$4 = Plugin.Util;
 
 	var CssFullScreen = function (_Plugin) {
-	  _inherits$i(CssFullScreen, _Plugin);
+	  _inherits$k(CssFullScreen, _Plugin);
 
-	  _createClass$k(CssFullScreen, null, [{
+	  _createClass$m(CssFullScreen, null, [{
 	    key: 'pluginName',
 	    get: function get() {
 	      return 'cssFullscreen';
@@ -5119,15 +5175,15 @@
 	  }]);
 
 	  function CssFullScreen(args) {
-	    _classCallCheck$m(this, CssFullScreen);
+	    _classCallCheck$o(this, CssFullScreen);
 
-	    var _this = _possibleConstructorReturn$i(this, (CssFullScreen.__proto__ || Object.getPrototypeOf(CssFullScreen)).call(this, args));
+	    var _this = _possibleConstructorReturn$k(this, (CssFullScreen.__proto__ || Object.getPrototypeOf(CssFullScreen)).call(this, args));
 
 	    _this.isCssfullScreen = false;
 	    return _this;
 	  }
 
-	  _createClass$k(CssFullScreen, [{
+	  _createClass$m(CssFullScreen, [{
 	    key: 'afterCreate',
 	    value: function afterCreate() {
 	      var _this2 = this;
@@ -5228,27 +5284,24 @@
 	  return CssFullScreen;
 	}(Plugin);
 
-	var css$f = ".xgplayer.xgplayer-inactive .xgplayer-controls {\n  display: inline-block; }\n  .xgplayer.xgplayer-inactive .xgplayer-controls.flex {\n    display: -webkit-flex;\n    display: -moz-box;\n    display: flex; }\n\n.xgplayer xg-icon {\n  position: relative;\n  height: 100%;\n  margin-right: 10px;\n  cursor: pointer;\n  -moz-box-sizing: border-box;\n       box-sizing: border-box; }\n  .xgplayer xg-icon .xg-tips {\n    background: rgba(0, 0, 0, .54);\n    border-radius: 1px;\n    display: none;\n    position: absolute;\n    font-family: PingFangSC-Regular;\n    font-size: 11px;\n    color: #fff;\n    padding: 4px 4px;\n    text-align: center;\n    top: -30px;\n    left: 50%;\n    margin-left: -16px;\n    width: auto;\n    white-space: nowrap; }\n  .xgplayer xg-icon:hover .xg-tips {\n    display: block; }\n  .xgplayer xg-icon .xgplayer-icon {\n    fill: #fff;\n    padding-top: 4px; }\n  .xgplayer xg-icon .btn-definition {\n    text-align: center;\n    font-family: PingFangSC-Regular;\n    font-size: 13px;\n    line-height: 20px;\n    height: 20px;\n    color: white;\n    line-height: 40px; }\n    .xgplayer xg-icon .btn-definition span {\n      font-family: PingFangSC-Regular;\n      font-size: 13px;\n      width: 60px;\n      height: 20px;\n      line-height: 20px;\n      background: rgba(0, 0, 0, .38);\n      border-radius: 10px;\n      display: inline-block;\n      vertical-align: middle;\n      margin-bottom: 8px; }\n\n.xgplayer .xgplayer-controls {\n  position: absolute;\n  display: none;\n  left: 0;\n  bottom: 0;\n  right: 0;\n  height: 40px;\n  z-index: 10;\n  background-image: linear-gradient(180deg, transparent, rgba(0, 0, 0, .37), rgba(0, 0, 0, .75), rgba(0, 0, 0, .75));\n  z-index: 10; }\n  .xgplayer .xgplayer-controls .left-grid, .xgplayer .xgplayer-controls .right-grid {\n    position: relative;\n    float: left;\n    display: -webkit-flex;\n    display: -moz-box;\n    display: flex;\n    height: 100%; }\n  .xgplayer .xgplayer-controls .right-grid {\n    float: right;\n    -webkit-flex-direction: row-reverse;\n       -moz-box-orient: horizontal;\n       -moz-box-direction: reverse;\n            flex-direction: row-reverse; }\n  .xgplayer .xgplayer-controls .center {\n    display: block;\n    position: absolute;\n    height: 20px;\n    line-height: 20px;\n    left: 0;\n    right: 0;\n    outline: none;\n    top: -15px;\n    z-index: 35; }\n  .xgplayer .xgplayer-controls.flex {\n    -webkit-justify-content: space-around;\n            justify-content: space-around;\n    display: -webkit-flex;\n    display: -moz-box;\n    display: flex; }\n    .xgplayer .xgplayer-controls.flex .center {\n      -webkit-flex: 1;\n         -moz-box-flex: 1;\n              flex: 1;\n      position: relative;\n      top: 0;\n      left: 0;\n      right: 0;\n      height: 100%; }\n\n.xgplayer .right-grid xg-icon {\n  margin-right: 0;\n  margin-left: 10px; }\n";
-	styleInject(css$f);
+	var _createClass$n = function () { function defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ("value" in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } } return function (Constructor, protoProps, staticProps) { if (protoProps) defineProperties(Constructor.prototype, protoProps); if (staticProps) defineProperties(Constructor, staticProps); return Constructor; }; }();
 
-	var _createClass$l = function () { function defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ("value" in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } } return function (Constructor, protoProps, staticProps) { if (protoProps) defineProperties(Constructor.prototype, protoProps); if (staticProps) defineProperties(Constructor, staticProps); return Constructor; }; }();
+	function _classCallCheck$p(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } }
 
-	function _classCallCheck$n(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } }
+	function _possibleConstructorReturn$l(self, call) { if (!self) { throw new ReferenceError("this hasn't been initialised - super() hasn't been called"); } return call && (typeof call === "object" || typeof call === "function") ? call : self; }
 
-	function _possibleConstructorReturn$j(self, call) { if (!self) { throw new ReferenceError("this hasn't been initialised - super() hasn't been called"); } return call && (typeof call === "object" || typeof call === "function") ? call : self; }
-
-	function _inherits$j(subClass, superClass) { if (typeof superClass !== "function" && superClass !== null) { throw new TypeError("Super expression must either be null or a function, not " + typeof superClass); } subClass.prototype = Object.create(superClass && superClass.prototype, { constructor: { value: subClass, enumerable: false, writable: true, configurable: true } }); if (superClass) Object.setPrototypeOf ? Object.setPrototypeOf(subClass, superClass) : subClass.__proto__ = superClass; }
+	function _inherits$l(subClass, superClass) { if (typeof superClass !== "function" && superClass !== null) { throw new TypeError("Super expression must either be null or a function, not " + typeof superClass); } subClass.prototype = Object.create(superClass && superClass.prototype, { constructor: { value: subClass, enumerable: false, writable: true, configurable: true } }); if (superClass) Object.setPrototypeOf ? Object.setPrototypeOf(subClass, superClass) : subClass.__proto__ = superClass; }
 
 	var Controls = function (_Plugin) {
-	  _inherits$j(Controls, _Plugin);
+	  _inherits$l(Controls, _Plugin);
 
 	  function Controls() {
-	    _classCallCheck$n(this, Controls);
+	    _classCallCheck$p(this, Controls);
 
-	    return _possibleConstructorReturn$j(this, (Controls.__proto__ || Object.getPrototypeOf(Controls)).apply(this, arguments));
+	    return _possibleConstructorReturn$l(this, (Controls.__proto__ || Object.getPrototypeOf(Controls)).apply(this, arguments));
 	  }
 
-	  _createClass$l(Controls, [{
+	  _createClass$n(Controls, [{
 	    key: 'afterCreate',
 	    value: function afterCreate() {
 	      console.log('afterCreate');
@@ -5361,25 +5414,25 @@
 	  return Controls;
 	}(Plugin);
 
-	var _createClass$m = function () { function defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ("value" in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } } return function (Constructor, protoProps, staticProps) { if (protoProps) defineProperties(Constructor.prototype, protoProps); if (staticProps) defineProperties(Constructor, staticProps); return Constructor; }; }();
+	var _createClass$o = function () { function defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ("value" in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } } return function (Constructor, protoProps, staticProps) { if (protoProps) defineProperties(Constructor.prototype, protoProps); if (staticProps) defineProperties(Constructor, staticProps); return Constructor; }; }();
 
 	var _get$4 = function get(object, property, receiver) { if (object === null) object = Function.prototype; var desc = Object.getOwnPropertyDescriptor(object, property); if (desc === undefined) { var parent = Object.getPrototypeOf(object); if (parent === null) { return undefined; } else { return get(parent, property, receiver); } } else if ("value" in desc) { return desc.value; } else { var getter = desc.get; if (getter === undefined) { return undefined; } return getter.call(receiver); } };
 
-	function _classCallCheck$o(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } }
+	function _classCallCheck$q(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } }
 
-	function _possibleConstructorReturn$k(self, call) { if (!self) { throw new ReferenceError("this hasn't been initialised - super() hasn't been called"); } return call && (typeof call === "object" || typeof call === "function") ? call : self; }
+	function _possibleConstructorReturn$m(self, call) { if (!self) { throw new ReferenceError("this hasn't been initialised - super() hasn't been called"); } return call && (typeof call === "object" || typeof call === "function") ? call : self; }
 
-	function _inherits$k(subClass, superClass) { if (typeof superClass !== "function" && superClass !== null) { throw new TypeError("Super expression must either be null or a function, not " + typeof superClass); } subClass.prototype = Object.create(superClass && superClass.prototype, { constructor: { value: subClass, enumerable: false, writable: true, configurable: true } }); if (superClass) Object.setPrototypeOf ? Object.setPrototypeOf(subClass, superClass) : subClass.__proto__ = superClass; }
+	function _inherits$m(subClass, superClass) { if (typeof superClass !== "function" && superClass !== null) { throw new TypeError("Super expression must either be null or a function, not " + typeof superClass); } subClass.prototype = Object.create(superClass && superClass.prototype, { constructor: { value: subClass, enumerable: false, writable: true, configurable: true } }); if (superClass) Object.setPrototypeOf ? Object.setPrototypeOf(subClass, superClass) : subClass.__proto__ = superClass; }
 
 	var FULLSCREEN_EVENTS = ['fullscreenchange', 'webkitfullscreenchange', 'mozfullscreenchange', 'MSFullscreenChange'];
 
 	var Player = function (_Proxy) {
-	  _inherits$k(Player, _Proxy);
+	  _inherits$m(Player, _Proxy);
 
 	  function Player(options) {
-	    _classCallCheck$o(this, Player);
+	    _classCallCheck$q(this, Player);
 
-	    var _this = _possibleConstructorReturn$k(this, (Player.__proto__ || Object.getPrototypeOf(Player)).call(this, options));
+	    var _this = _possibleConstructorReturn$m(this, (Player.__proto__ || Object.getPrototypeOf(Player)).call(this, options));
 
 	    _this.config = util.deepCopy(getDefaultConfig(), options);
 	    _this.config.plugins = [Controls].concat(_this.config.plugins);
@@ -5419,7 +5472,7 @@
 	   */
 
 
-	  _createClass$m(Player, [{
+	  _createClass$o(Player, [{
 	    key: '_initDOM',
 	    value: function _initDOM() {
 	      this.root = util.findDom(document, '#' + this.config.id);
@@ -6002,9 +6055,6 @@
 	Player.Events = Events;
 	Player.Plugin = Plugin;
 	Player.BasePlugin = BasePlugin;
-
-	var css$g = ".xgplayer {\n  background: #000;\n  width: 100%;\n  height: 100%;\n  position: relative;\n  -webkit-user-select: none;\n     -moz-user-select: none;\n          user-select: none;\n  -ms-user-select: none; }\n  .xgplayer * {\n    margin: 0;\n    padding: 0;\n    border: 0;\n    font-size: 100%;\n    font: inherit;\n    vertical-align: baseline; }\n  .xgplayer .xgplayer-none {\n    display: none; }\n  .xgplayer.xgplayer-is-fullscreen {\n    width: 100% !important;\n    height: 100% !important;\n    padding-top: 0 !important;\n    z-index: 9999; }\n  .xgplayer.xgplayer-is-fullscreen.xgplayer-inactive {\n    cursor: none; }\n  .xgplayer video {\n    width: 100%;\n    height: 100%;\n    outline: none; }\n\n.xgplayer .xgplayer-none {\n  display: none; }\n";
-	styleInject(css$g);
 
 	Player.BasePlugin = BasePlugin;
 	Player.Plugin = Plugin;

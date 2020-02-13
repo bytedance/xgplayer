@@ -2,7 +2,7 @@ import Plugin from '../../plugin';
 
 class EnterPlugin extends Plugin {
   static get pluginName () {
-    return 'enter';
+    return 'index.scss';
   }
 
   render () {

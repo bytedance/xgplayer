@@ -1,6 +1,5 @@
 import Player from 'xgplayer'
 import Plugin from '../../Plugin'
-import 'error.scss';
 
 export default class ErrorPlugin extends Plugin  {
   static get pluginName () {

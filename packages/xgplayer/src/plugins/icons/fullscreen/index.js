@@ -1,6 +1,6 @@
 import Plugin from '../../../plugin'
 import FullScreenChangeSvg from '../../assets/fullscreenChange.svg'
-import './index.scss'
+
 
 const { Events } = Plugin
 

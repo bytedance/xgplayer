@@ -1,4 +1,4 @@
-@import "../style/theme/index";
+@import "../../style/variable";
 
 .xgplayer {
   @keyframes playPause {
@@ -40,6 +40,41 @@
     }
     &.interact {
       animation: playPause .4s ease-out forwards;
+    }
+  }
+}
+
+
+.xgplayer-playing {
+  .xgplayer-start {
+    display: none;
+    .xgplayer-icon-play{
+      display: none;
+    }
+    .xgplayer-icon-pause{
+      display: block;
+    }
+  }
+}
+.xgplayer-pause {
+  .xgplayer-start {
+    display: inline-block;
+    .xgplayer-icon-play{
+      display: block;
+    }
+    .xgplayer-icon-pause{
+      display: none;
+    }
+  }
+}
+.xgplayer-ended {
+  .xgplayer-start {
+    display: none;
+    .xgplayer-icon-play{
+      display: block;
+    }
+    .xgplayer-icon-pause{
+      display: none;
     }
   }
 }

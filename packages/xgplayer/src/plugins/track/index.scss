@@ -1,6 +1,7 @@
-@import "../../../style/variable";
-.xgplayer-definition {
-  order: 5;
+@import "../../style/variable";
+
+.xgplayer-texttrack {
+  order: 7;
   width: 60px;
   height: 150px;
   z-index: 18;
@@ -8,7 +9,7 @@
   outline: none;
   display: none;
   cursor: default;
-  margin-left: 10px;
+  // margin-left: 10px;
   margin-top: -119px;
   // margin-bottom: 11px;
   ul {
@@ -31,11 +32,11 @@
       font-size: 11px;
       color: $definitionLiColor;
       padding: 6px 13px;
-      &.selected{
+      &.selected {
         color: $definitionLiActiveColor;
         opacity: 1;
       }
-      &:hover{
+      &:hover {
         color: $definitionLiActiveColor;
         opacity: 1;
       }
@@ -61,16 +62,16 @@
   }
 }
 
-.xgplayer-definition-active {
-  .xgplayer-definition {
+.xgplayer-texttrack-active {
+  .xgplayer-texttrack {
     ul {
       display: block;
     }
   }
 }
 
-.xgplayer-is-definition {
-  .xgplayer-definition {
+.xgplayer-is-texttrack {
+  .xgplayer-texttrack {
     display: block;
   }
 }

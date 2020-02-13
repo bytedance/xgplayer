@@ -1,7 +1,7 @@
 import pasition from 'pasition'
 import Plugin from '../../plugin'
 import StartIcon from '../assets/start.svg'
-import './index.scss'
+
 
 const { Util, Events } = Plugin
 class Start extends Plugin {

@@ -53,7 +53,10 @@ function registerTextObj (textConfig, plugin) {
   Object.keys(textConfig).map((key) => {
     Object.defineProperty(plugin.text, key, {
       get: () => {
-        const lang = plugin.playerConfig.lang || 'zh'
+        let lang = plugin.playerConfig.lang || 'zh'
+        if (lang.indexOf('-') > 0) {
+          lang = lang.split('-')[0]
+        }
         return textConfig[key][lang]
       }
     })

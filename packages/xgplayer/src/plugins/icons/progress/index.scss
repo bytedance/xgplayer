@@ -1,8 +1,6 @@
 // progress-bar
-$progressOuterBgColor: rgba(133, 133, 133, 0.30);
-$progressCacheBgColor: rgba(255, 255, 255, 0.50);
-$progressPlayedBgImage: linear-gradient(-90deg, #FA1F41 0%, #E31106 100%);
-$progressPlayedShadow: 0 0 2px 0 rgba(0, 0, 0, 0.26);
+@import "../../../style/variable";
+
 .xgplayer {
   .xgplayer-progress {
     display: block;

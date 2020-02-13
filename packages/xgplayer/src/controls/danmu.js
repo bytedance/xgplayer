@@ -1,4 +1,4 @@
-1import Player from '../player'
+import Player from '../player'
 
 let danmu = function () {
   let player = this

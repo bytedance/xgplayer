@@ -10,9 +10,12 @@
     },
     "scripts": {
         "prepare": "npm run build",
-        "build": "cross-env NODE_ENV=production rollup -c rollup.config.js",
-        "watch": "cross-env NODE_ENV=development rollup -c rollup.config.js --watch",
-        "build:style": "node bin/buildStyles.js"
+        "build": "npm run build:es && npm run build:lib && npm run build:main && npm run build:style",
+        "build:main": "cross-env NODE_ENV=production rollup -c rollup.config.js",
+        "build:es": "babel src --out-dir es",
+        "build:lib": "babel src --out-dir lib --presets=es2015",
+        "build:style": "node scripts/buildStyles.js",
+        "watch": "cross-env NODE_ENV=development rollup -c rollup.config.js --watch"
     },
     "keywords": [
         "video",
@@ -61,7 +64,10 @@
         "rollup-plugin-uglify-es": "^0.0.1"
     },
     "devDependencies": {
+        "autoprefixer": "^9.7.4",
+        "cssnano": "^4.1.10",
         "node-sass": "^4.13.1",
+        "postcss": "^7.0.26",
         "recursive-readdir": "^2.2.2"
     }
 }

@@ -1,6 +1,6 @@
 import Plugin from '../../../plugin'
 import CssFullscreenChange from '../../assets/cssFullscreenChange.svg'
-import './index.scss'
+
 
 const { Events, Util } = Plugin
 export default class CssFullScreen extends Plugin {

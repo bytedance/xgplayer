@@ -1,6 +1,6 @@
 import Plugin from '../../../plugin'
 import RotateIcon from '../../assets/rotate.svg'
-import './index.scss'
+
 
 class Rotate extends Plugin {
   static get pluginName () {

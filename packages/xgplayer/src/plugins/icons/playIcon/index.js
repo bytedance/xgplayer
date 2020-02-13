@@ -1,6 +1,6 @@
 import Plugin from '../../../plugin'
 import PlayPauseSvg from '../../assets/playPause.svg'
-import './index.scss'
+
 
 const { Events } = Plugin
 class PlayIcon extends Plugin {

@@ -1,3 +1,4 @@
+@import "variable";
 // order:
 // xgplayer-play  0
 // xgplayer-playNext  1
@@ -27,7 +28,7 @@
 // xgplayer-is-fullscreen 9999
 // xgplayer-is-cssfullscreen 99999
 
-.xgplayer-skin-default{
+.xgplayer{
     background: $playerBgColor;
     width: 100%;
     height: 100%;
@@ -62,35 +63,30 @@
     }
 }
 
-.xgplayer-skin-default .xgplayer-none{
-    display: none;
-}
-
-
-@import "controls/play";
-//@import "controls/start";
-@import "controls/enter";
-// @import "controls/poster";
-@import "controls/placeholder";
-@import "controls/fullscreen";
-@import "controls/cssfullscreen";
-@import "controls/volume";
-@import "controls/definition";
-@import "controls/time";
-@import "controls/controls";
-@import "controls/live";
-@import "controls/loading";
-@import "controls/progress";
-// @import "controls/replay";
-@import "controls/playbackRate";
-@import "controls/download";
-@import "controls/danmu";
-@import "controls/playNext";
-@import "controls/pip";
-@import "controls/rotate";
-@import "controls/screenShot";
-@import "controls/textTrack";
-@import "controls/icon";
-@import "controls/tips";
-@import "controls/error";
-@import "controls/memoryPlay";
+@import "../plugins/icons/playIcon/index";
+@import "../plugins/start/index";
+@import "../plugins/enter/index";
+ @import "../plugins/poster/index";
+@import "../plugins/placeholder/index";
+@import "../plugins/icons/fullscreen/index";
+@import "../plugins/icons/cssFullScreen/index";
+@import "../plugins/icons/volumeIcon/index";
+@import "../plugins/icons/definitionIcon/index";
+@import "../plugins/icons/timeIcon/index";
+@import "../plugins/Controls/index";
+//@import "controls/live";
+ @import "../plugins/replay/index";
+@import "../plugins/icons/progress/index";
+@import "../plugins/loading/index";
+@import "../plugins/icons/playbackRateIcon/index";
+@import "../plugins/icons/downloadIcon/index";
+//@import "controls/danmu";
+@import "../plugins/icons/playNextIcon/index";
+@import "../plugins/icons/pipIcon/index";
+@import "../plugins/icons/rotate/index";
+@import "../plugins/icons/screenShotIcon/index";
+//@import "../plugins/icons/textTrack";
+//@import "controls/icon";
+//@import "controls/tips";
+@import "../plugins/error/index";
+//@import "controls/memoryPlay"

@@ -1,6 +1,7 @@
 import Replay from '../replay';
 import Poster from '../poster';
 import Start from '../start';
+import Enter from '../enter';
 // import Miniscreen from '../Controls/mini';
 // import Rotate from '../Controls/rotate';
 import PC from '../pc'
@@ -11,7 +12,7 @@ import sniffer from '../../utils/sniffer';
 
 export default class DefaultPreset {
   constructor () {
-    this.plugins = [Replay, Poster, Start, Loading]
+    this.plugins = [Replay, Poster, Start, Loading, Enter]
 
     switch (sniffer.device) {
       case 'pc':

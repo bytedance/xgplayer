@@ -474,7 +474,7 @@ var _microtask = function () {
         throw e;
       }
     } last = undefined;
-    if (parent) parent.enter();
+    if (parent) parent.index();
   };
 
   // Node.js
@@ -671,7 +671,7 @@ var notify = function (promise, isReject) {
           }
           if (handler === true) result = value;
           else {
-            if (domain) domain.enter();
+            if (domain) domain.index();
             result = handler(value); // may throw
             if (domain) {
               domain.exit();

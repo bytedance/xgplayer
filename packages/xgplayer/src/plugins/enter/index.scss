@@ -46,6 +46,8 @@
   }
 }
 
-.xgplayer-enter {
-  display: block;
+.xgplayer-is-enter {
+  .xgplayer-enter {
+    display: block;
+  }
 }
