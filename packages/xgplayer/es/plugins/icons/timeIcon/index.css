@@ -1,0 +1,15 @@
+.xgplayer .xgplayer-controls .xgplayer-time {
+  padding-top: 0;
+  width: auto;
+  font-family: ArialMT;
+  font-size: 13px;
+  color: #fff;
+  line-height: 40px;
+  text-align: center;
+  display: inline-block; }
+  .xgplayer .xgplayer-controls .xgplayer-time span::after {
+    content: "/";
+    display: inline-block;
+    padding: 0 3px; }
+  .xgplayer .xgplayer-controls .xgplayer-time em {
+    color: rgba(255, 255, 255, 0.5); }

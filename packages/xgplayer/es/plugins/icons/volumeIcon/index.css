@@ -1,0 +1,56 @@
+.xgplayer .xgplayer-volume .xgplayer-icon {
+  padding: 10px 0 0 5px; }
+
+.xgplayer .xgplayer-volume.slide-show .xgplayer-slider {
+  display: block; }
+
+.xgplayer .xgplayer-slider {
+  display: none;
+  position: absolute;
+  width: 28px;
+  height: 92px;
+  background: rgba(0, 0, 0, 0.54);
+  border-radius: 1px;
+  bottom: 34px;
+  outline: none; }
+  .xgplayer .xgplayer-slider:after {
+    content: " ";
+    display: block;
+    height: 15px;
+    width: 28px;
+    position: absolute;
+    bottom: -15px;
+    left: 0;
+    z-index: 20; }
+
+.xgplayer .xgplayer-bar, .xgplayer .xgplayer-drag {
+  display: block;
+  position: absolute;
+  bottom: 6px;
+  left: 12px;
+  background: rgba(255, 255, 255, 0.3);
+  border-radius: 100px;
+  width: 4px;
+  height: 76px;
+  outline: none;
+  cursor: pointer; }
+
+.xgplayer .xgplayer-drag {
+  bottom: 0;
+  left: 0;
+  background: #FA1F41;
+  max-height: 76px; }
+  .xgplayer .xgplayer-drag:after {
+    content: " ";
+    display: inline-block;
+    width: 8px;
+    height: 8px;
+    background: #fff;
+    box-shadow: 0 0 5px 0 rgba(0, 0, 0, 0.26);
+    position: absolute;
+    border-radius: 50%;
+    left: -2px;
+    top: -6px; }
+
+.xgplayer.xgplayer-mobile .xgplayer-volume .xgplayer-slider {
+  display: none; }

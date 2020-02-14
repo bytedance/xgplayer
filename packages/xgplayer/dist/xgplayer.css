@@ -1,0 +1,866 @@
+@-webkit-keyframes loadingRotate {
+  0% {
+    -webkit-transform: rotate(0);
+            transform: rotate(0); }
+  100% {
+    -webkit-transform: rotate(360deg);
+            transform: rotate(360deg); } }
+
+@keyframes loadingRotate {
+  0% {
+    -webkit-transform: rotate(0);
+            transform: rotate(0); }
+  100% {
+    -webkit-transform: rotate(360deg);
+            transform: rotate(360deg); } }
+
+@-webkit-keyframes loadingDashOffset {
+  0% {
+    stroke-dashoffset: 236; }
+  100% {
+    stroke-dashoffset: 0; } }
+
+@keyframes loadingDashOffset {
+  0% {
+    stroke-dashoffset: 236; }
+  100% {
+    stroke-dashoffset: 0; } }
+
+.xgplayer {
+  background: #000;
+  width: 100%;
+  height: 100%;
+  position: relative;
+  -webkit-user-select: none;
+     -moz-user-select: none;
+          user-select: none;
+  -ms-user-select: none; }
+  .xgplayer * {
+    margin: 0;
+    padding: 0;
+    border: 0;
+    font-size: 100%;
+    font: inherit;
+    vertical-align: baseline; }
+  .xgplayer .xgplayer-none {
+    display: none; }
+  .xgplayer.xgplayer-is-fullscreen {
+    width: 100% !important;
+    height: 100% !important;
+    padding-top: 0 !important;
+    z-index: 9999; }
+  .xgplayer.xgplayer-is-fullscreen.xgplayer-inactive {
+    cursor: none; }
+  .xgplayer video {
+    width: 100%;
+    height: 100%;
+    outline: none; }
+
+@-webkit-keyframes playPause {
+  0% {
+    -webkit-transform: scale(1);
+            transform: scale(1);
+    opacity: 1; }
+  99% {
+    -webkit-transform: scale(1.3);
+            transform: scale(1.3);
+    opacity: 0; }
+  to {
+    -webkit-transform: scale(0);
+            transform: scale(0);
+    opacity: 1; } }
+
+@keyframes playPause {
+  0% {
+    -webkit-transform: scale(1);
+            transform: scale(1);
+    opacity: 1; }
+  99% {
+    -webkit-transform: scale(1.3);
+            transform: scale(1.3);
+    opacity: 0; }
+  to {
+    -webkit-transform: scale(0);
+            transform: scale(0);
+    opacity: 1; } }
+
+.xgplayer .xgplayer-start {
+  border-radius: 50%;
+  display: none;
+  width: 70px;
+  height: 70px;
+  background: rgba(0, 0, 0, 0.38);
+  overflow: hidden;
+  text-align: center;
+  line-height: 70px;
+  vertical-align: middle;
+  position: absolute;
+  left: 50%;
+  top: 50%;
+  z-index: 115;
+  margin: -35px auto auto -35px;
+  cursor: pointer; }
+  .xgplayer .xgplayer-start svg {
+    fill: rgba(255, 255, 255, 0.7);
+    margin: 14px; }
+  .xgplayer .xgplayer-start:hover {
+    opacity: 0.85; }
+  .xgplayer .xgplayer-start.interact {
+    -webkit-animation: playPause .4s ease-out forwards;
+            animation: playPause .4s ease-out forwards; }
+
+.xgplayer-playing .xgplayer-start {
+  display: none; }
+  .xgplayer-playing .xgplayer-start .xgplayer-icon-play {
+    display: none; }
+  .xgplayer-playing .xgplayer-start .xgplayer-icon-pause {
+    display: block; }
+
+.xgplayer-pause .xgplayer-start {
+  display: inline-block; }
+  .xgplayer-pause .xgplayer-start .xgplayer-icon-play {
+    display: block; }
+  .xgplayer-pause .xgplayer-start .xgplayer-icon-pause {
+    display: none; }
+
+.xgplayer-ended .xgplayer-start {
+  display: none; }
+  .xgplayer-ended .xgplayer-start .xgplayer-icon-play {
+    display: block; }
+  .xgplayer-ended .xgplayer-start .xgplayer-icon-pause {
+    display: none; }
+
+.xgplayer-enter {
+  display: none;
+  position: absolute;
+  left: 0;
+  top: 0;
+  width: 100%;
+  height: 100%;
+  background: black;
+  z-index: 120; }
+  .xgplayer-enter .xgplayer-enter-spinner {
+    display: block;
+    position: absolute;
+    left: 50%;
+    top: 50%;
+    height: 100px;
+    width: 100px;
+    position: relative;
+    -webkit-transform: translate(-50%, -50%);
+        -ms-transform: translate(-50%, -50%);
+            transform: translate(-50%, -50%); }
+  .xgplayer-enter .xgplayer-enter-spinner div {
+    width: 6%;
+    height: 13%;
+    background-color: rgba(255, 255, 255, 0.7);
+    position: absolute;
+    left: 44%;
+    top: 37%;
+    opacity: 0;
+    border-radius: 30px;
+    -webkit-animation: fade 1s linear infinite;
+            animation: fade 1s linear infinite; }
+  .xgplayer-enter .xgplayer-enter-spinner div.xgplayer-enter-bar1 {
+    -webkit-transform: rotate(0deg) translate(0, -142%);
+        -ms-transform: rotate(0deg) translate(0, -142%);
+            transform: rotate(0deg) translate(0, -142%);
+    -webkit-animation-delay: -0s;
+            animation-delay: -0s; }
+  .xgplayer-enter .xgplayer-enter-spinner div.xgplayer-enter-bar2 {
+    -webkit-transform: rotate(30deg) translate(0, -142%);
+        -ms-transform: rotate(30deg) translate(0, -142%);
+            transform: rotate(30deg) translate(0, -142%);
+    -webkit-animation-delay: -0.9163s;
+            animation-delay: -0.9163s; }
+  .xgplayer-enter .xgplayer-enter-spinner div.xgplayer-enter-bar3 {
+    -webkit-transform: rotate(60deg) translate(0, -142%);
+        -ms-transform: rotate(60deg) translate(0, -142%);
+            transform: rotate(60deg) translate(0, -142%);
+    -webkit-animation-delay: -0.833s;
+            animation-delay: -0.833s; }
+  .xgplayer-enter .xgplayer-enter-spinner div.xgplayer-enter-bar4 {
+    -webkit-transform: rotate(90deg) translate(0, -142%);
+        -ms-transform: rotate(90deg) translate(0, -142%);
+            transform: rotate(90deg) translate(0, -142%);
+    -webkit-animation-delay: -0.7497s;
+            animation-delay: -0.7497s; }
+  .xgplayer-enter .xgplayer-enter-spinner div.xgplayer-enter-bar5 {
+    -webkit-transform: rotate(120deg) translate(0, -142%);
+        -ms-transform: rotate(120deg) translate(0, -142%);
+            transform: rotate(120deg) translate(0, -142%);
+    -webkit-animation-delay: -0.6664s;
+            animation-delay: -0.6664s; }
+  .xgplayer-enter .xgplayer-enter-spinner div.xgplayer-enter-bar6 {
+    -webkit-transform: rotate(150deg) translate(0, -142%);
+        -ms-transform: rotate(150deg) translate(0, -142%);
+            transform: rotate(150deg) translate(0, -142%);
+    -webkit-animation-delay: -0.5831s;
+            animation-delay: -0.5831s; }
+  .xgplayer-enter .xgplayer-enter-spinner div.xgplayer-enter-bar7 {
+    -webkit-transform: rotate(180deg) translate(0, -142%);
+        -ms-transform: rotate(180deg) translate(0, -142%);
+            transform: rotate(180deg) translate(0, -142%);
+    -webkit-animation-delay: -0.4998s;
+            animation-delay: -0.4998s; }
+  .xgplayer-enter .xgplayer-enter-spinner div.xgplayer-enter-bar8 {
+    -webkit-transform: rotate(210deg) translate(0, -142%);
+        -ms-transform: rotate(210deg) translate(0, -142%);
+            transform: rotate(210deg) translate(0, -142%);
+    -webkit-animation-delay: -0.4165s;
+            animation-delay: -0.4165s; }
+  .xgplayer-enter .xgplayer-enter-spinner div.xgplayer-enter-bar9 {
+    -webkit-transform: rotate(240deg) translate(0, -142%);
+        -ms-transform: rotate(240deg) translate(0, -142%);
+            transform: rotate(240deg) translate(0, -142%);
+    -webkit-animation-delay: -0.3332s;
+            animation-delay: -0.3332s; }
+  .xgplayer-enter .xgplayer-enter-spinner div.xgplayer-enter-bar10 {
+    -webkit-transform: rotate(270deg) translate(0, -142%);
+        -ms-transform: rotate(270deg) translate(0, -142%);
+            transform: rotate(270deg) translate(0, -142%);
+    -webkit-animation-delay: -0.2499s;
+            animation-delay: -0.2499s; }
+  .xgplayer-enter .xgplayer-enter-spinner div.xgplayer-enter-bar11 {
+    -webkit-transform: rotate(300deg) translate(0, -142%);
+        -ms-transform: rotate(300deg) translate(0, -142%);
+            transform: rotate(300deg) translate(0, -142%);
+    -webkit-animation-delay: -0.1666s;
+            animation-delay: -0.1666s; }
+  .xgplayer-enter .xgplayer-enter-spinner div.xgplayer-enter-bar12 {
+    -webkit-transform: rotate(330deg) translate(0, -142%);
+        -ms-transform: rotate(330deg) translate(0, -142%);
+            transform: rotate(330deg) translate(0, -142%);
+    -webkit-animation-delay: -0.0833s;
+            animation-delay: -0.0833s; }
+
+@-webkit-keyframes fade {
+  from {
+    opacity: 1; }
+  to {
+    opacity: 0.25; } }
+
+.xgplayer-is-enter .xgplayer-enter {
+  display: block; }
+
+.xgplayer .xgplayer-poster {
+  display: none;
+  position: absolute;
+  left: 0;
+  top: 0;
+  width: 100%;
+  height: 100%;
+  z-index: 100;
+  background-size: cover;
+  background-position: center center; }
+
+.xgplayer.xgplayer-nostart .xgplayer-poster {
+  display: block; }
+
+.xgplayer-placeholder {
+  -webkit-flex: 1;
+     -moz-box-flex: 1;
+          flex: 1;
+  -webkit-order: 3;
+     -moz-box-ordinal-group: 4;
+          order: 3;
+  display: block; }
+
+.xgplayer .xgplayer-fullscreen .xg-tips {
+  margin-left: -80%; }
+
+.xgplayer.xgplayer-is-cssfullscreen {
+  position: fixed !important;
+  left: 0 !important;
+  top: 0 !important;
+  width: 100% !important;
+  height: 100% !important;
+  z-index: 99999 !important; }
+
+.xgplayer .xgplayer-cssfullscreen .xgplayer-icon {
+  position: relative;
+  left: 8px;
+  top: 4px; }
+
+.xgplayer .xgplayer-volume .xgplayer-icon {
+  padding: 10px 0 0 5px; }
+
+.xgplayer .xgplayer-volume.slide-show .xgplayer-slider {
+  display: block; }
+
+.xgplayer .xgplayer-slider {
+  display: none;
+  position: absolute;
+  width: 28px;
+  height: 92px;
+  background: rgba(0, 0, 0, 0.54);
+  border-radius: 1px;
+  bottom: 34px;
+  outline: none; }
+  .xgplayer .xgplayer-slider:after {
+    content: " ";
+    display: block;
+    height: 15px;
+    width: 28px;
+    position: absolute;
+    bottom: -15px;
+    left: 0;
+    z-index: 20; }
+
+.xgplayer .xgplayer-bar, .xgplayer .xgplayer-drag {
+  display: block;
+  position: absolute;
+  bottom: 6px;
+  left: 12px;
+  background: rgba(255, 255, 255, 0.3);
+  border-radius: 100px;
+  width: 4px;
+  height: 76px;
+  outline: none;
+  cursor: pointer; }
+
+.xgplayer .xgplayer-drag {
+  bottom: 0;
+  left: 0;
+  background: #FA1F41;
+  max-height: 76px; }
+  .xgplayer .xgplayer-drag:after {
+    content: " ";
+    display: inline-block;
+    width: 8px;
+    height: 8px;
+    background: #fff;
+    box-shadow: 0 0 5px 0 rgba(0, 0, 0, 0.26);
+    position: absolute;
+    border-radius: 50%;
+    left: -2px;
+    top: -6px; }
+
+.xgplayer.xgplayer-mobile .xgplayer-volume .xgplayer-slider {
+  display: none; }
+
+.xgplayer-definition {
+  -webkit-order: 5;
+     -moz-box-ordinal-group: 6;
+          order: 5;
+  width: 60px;
+  height: 150px;
+  z-index: 18;
+  position: relative;
+  outline: none;
+  display: none;
+  cursor: default;
+  margin-left: 10px;
+  margin-top: -119px; }
+  .xgplayer-definition ul {
+    display: none;
+    list-style: none;
+    width: 78px;
+    background: rgba(0, 0, 0, 0.54);
+    border-radius: 1px;
+    position: absolute;
+    bottom: 30px;
+    left: 0;
+    text-align: center;
+    white-space: nowrap;
+    margin-left: -10px;
+    z-index: 26;
+    cursor: pointer; }
+    .xgplayer-definition ul li {
+      opacity: 0.7;
+      font-family: PingFangSC-Regular;
+      font-size: 11px;
+      color: rgba(255, 255, 255, 0.8);
+      padding: 6px 13px; }
+      .xgplayer-definition ul li.selected {
+        color: #fff;
+        opacity: 1; }
+      .xgplayer-definition ul li:hover {
+        color: #fff;
+        opacity: 1; }
+  .xgplayer-definition .name {
+    text-align: center;
+    font-family: PingFangSC-Regular;
+    font-size: 13px;
+    line-height: 20px;
+    height: 20px;
+    cursor: pointer;
+    color: rgba(255, 255, 255, 0.8);
+    position: absolute;
+    bottom: 0;
+    width: 60px;
+    height: 20px;
+    line-height: 20px;
+    background: rgba(0, 0, 0, 0.38);
+    border-radius: 10px;
+    display: inline-block;
+    vertical-align: middle; }
+
+.xgplayer-definition-active .xgplayer-definition ul {
+  display: block; }
+
+.xgplayer-is-definition .xgplayer-definition {
+  display: block; }
+
+.xgplayer .xgplayer-controls .xgplayer-time {
+  padding-top: 0;
+  width: auto;
+  font-family: ArialMT;
+  font-size: 13px;
+  color: #fff;
+  line-height: 40px;
+  text-align: center;
+  display: inline-block; }
+  .xgplayer .xgplayer-controls .xgplayer-time span::after {
+    content: "/";
+    display: inline-block;
+    padding: 0 3px; }
+  .xgplayer .xgplayer-controls .xgplayer-time em {
+    color: rgba(255, 255, 255, 0.5); }
+
+.xgplayer.xgplayer-inactive .xgplayer-controls {
+  display: inline-block; }
+  .xgplayer.xgplayer-inactive .xgplayer-controls.flex {
+    display: -webkit-flex;
+    display: -moz-box;
+    display: flex; }
+
+.xgplayer xg-icon {
+  position: relative;
+  height: 100%;
+  margin-right: 10px;
+  cursor: pointer;
+  -moz-box-sizing: border-box;
+       box-sizing: border-box; }
+  .xgplayer xg-icon .xg-tips {
+    background: rgba(0, 0, 0, 0.54);
+    border-radius: 1px;
+    display: none;
+    position: absolute;
+    font-family: PingFangSC-Regular;
+    font-size: 11px;
+    color: #fff;
+    padding: 4px 4px;
+    text-align: center;
+    top: -30px;
+    left: 50%;
+    margin-left: -16px;
+    width: auto;
+    white-space: nowrap; }
+  .xgplayer xg-icon:hover .xg-tips {
+    display: block; }
+  .xgplayer xg-icon .xgplayer-icon {
+    fill: #fff;
+    padding-top: 4px; }
+  .xgplayer xg-icon .btn-definition {
+    text-align: center;
+    font-family: PingFangSC-Regular;
+    font-size: 13px;
+    line-height: 20px;
+    height: 20px;
+    color: white;
+    line-height: 40px; }
+    .xgplayer xg-icon .btn-definition span {
+      font-family: PingFangSC-Regular;
+      font-size: 13px;
+      width: 60px;
+      height: 20px;
+      line-height: 20px;
+      background: rgba(0, 0, 0, 0.38);
+      border-radius: 10px;
+      display: inline-block;
+      vertical-align: middle;
+      margin-bottom: 8px; }
+
+.xgplayer .xgplayer-controls {
+  position: absolute;
+  display: none;
+  left: 0;
+  bottom: 0;
+  right: 0;
+  height: 40px;
+  z-index: 10;
+  background-image: linear-gradient(180deg, transparent, rgba(0, 0, 0, 0.37), rgba(0, 0, 0, 0.75), rgba(0, 0, 0, 0.75));
+  z-index: 10; }
+  .xgplayer .xgplayer-controls .left-grid, .xgplayer .xgplayer-controls .right-grid {
+    position: relative;
+    float: left;
+    display: -webkit-flex;
+    display: -moz-box;
+    display: flex;
+    height: 100%; }
+  .xgplayer .xgplayer-controls .right-grid {
+    float: right;
+    -webkit-flex-direction: row-reverse;
+       -moz-box-orient: horizontal;
+       -moz-box-direction: reverse;
+            flex-direction: row-reverse; }
+  .xgplayer .xgplayer-controls .center {
+    display: block;
+    position: absolute;
+    height: 20px;
+    line-height: 20px;
+    left: 0;
+    right: 0;
+    outline: none;
+    top: -15px;
+    z-index: 35; }
+  .xgplayer .xgplayer-controls.flex {
+    -webkit-justify-content: space-around;
+            justify-content: space-around;
+    display: -webkit-flex;
+    display: -moz-box;
+    display: flex; }
+    .xgplayer .xgplayer-controls.flex .center {
+      -webkit-flex: 1;
+         -moz-box-flex: 1;
+              flex: 1;
+      position: relative;
+      top: 0;
+      left: 0;
+      right: 0;
+      height: 100%; }
+
+.xgplayer .right-grid xg-icon {
+  margin-right: 0;
+  margin-left: 10px; }
+
+.xgplayer-replay {
+  display: none; }
+
+.xgplayer .xgplayer-replay {
+  position: absolute;
+  left: 0;
+  top: 0;
+  width: 100%;
+  height: 100%;
+  z-index: 105;
+  display: none;
+  -webkit-justify-content: center;
+     -moz-box-pack: center;
+          justify-content: center;
+  -webkit-align-items: center;
+     -moz-box-align: center;
+          align-items: center;
+  background: rgba(0, 0, 0, 0.54);
+  -webkit-flex-direction: column;
+     -moz-box-orient: vertical;
+     -moz-box-direction: normal;
+          flex-direction: column; }
+  .xgplayer .xgplayer-replay svg {
+    background: rgba(0, 0, 0, 0.58);
+    border-radius: 100%;
+    cursor: pointer; }
+    .xgplayer .xgplayer-replay svg path {
+      -webkit-transform: translate(20px, 21px);
+          -ms-transform: translate(20px, 21px);
+              transform: translate(20px, 21px);
+      fill: #ddd; }
+    .xgplayer .xgplayer-replay svg:hover {
+      background: rgba(0, 0, 0, 0.38); }
+      .xgplayer .xgplayer-replay svg:hover path {
+        fill: #fff; }
+  .xgplayer .xgplayer-replay .xgplayer-replay-txt {
+    display: inline-block;
+    font-family: PingFangSC-Regular;
+    font-size: 14px;
+    color: #fff;
+    line-height: 34px; }
+
+.xgplayer.xgplayer-ended .xgplayer-controls {
+  display: none; }
+
+.xgplayer.xgplayer-ended .xgplayer-replay {
+  display: -webkit-flex;
+  display: -moz-box;
+  display: flex; }
+
+.xgplayer .xgplayer-progress {
+  display: block;
+  position: absolute;
+  height: 20px;
+  line-height: 20px;
+  left: 12px;
+  right: 12px;
+  outline: none;
+  z-index: 35; }
+
+.xgplayer .xgplayer-progress-outer {
+  background: rgba(255, 255, 255, 0.3);
+  opacity: .85;
+  transition: height 0.2s ease-in, opacity 0.2s ease-out;
+  display: block;
+  height: 3px;
+  line-height: 3px;
+  margin-top: 8.5px;
+  width: 100%;
+  position: relative;
+  cursor: pointer; }
+
+.xgplayer .xgplayer-progress-cache, .xgplayer .xgplayer-progress-played {
+  display: block;
+  height: 100%;
+  line-height: 1;
+  position: absolute;
+  left: 0;
+  top: 0; }
+
+.xgplayer .xgplayer-progress-cache {
+  width: 0;
+  background: rgba(255, 255, 255, 0.5); }
+
+.xgplayer .xgplayer-progress-played {
+  display: block;
+  width: 0;
+  background-image: linear-gradient(-90deg, #FA1F41 0%, #E31106 100%);
+  border-radius: 0 1.5px 1.5px 0; }
+
+.xgplayer .xgplayer-progress-btn {
+  display: none;
+  position: absolute;
+  left: 0px;
+  top: -5px;
+  width: 13px;
+  height: 13px;
+  border-radius: 30px;
+  background: #FFFFFF;
+  box-shadow: 0 0 2px 0 rgba(0, 0, 0, 0.26);
+  left: 100%;
+  -webkit-transform: translate(-50%, 0);
+      -ms-transform: translate(-50%, 0);
+          transform: translate(-50%, 0); }
+
+.xgplayer .xgplayer-progress-point {
+  position: absolute; }
+  .xgplayer .xgplayer-progress-point.xgplayer-tips {
+    margin-left: 0;
+    top: -25px;
+    display: none;
+    z-index: 100; }
+
+.xgplayer .xgplayer-progress-dot {
+  display: inline-block;
+  position: absolute;
+  height: 3px;
+  width: 5px;
+  top: 0px;
+  background: white;
+  border-radius: 6px;
+  z-index: 16; }
+  .xgplayer .xgplayer-progress-dot .xgplayer-progress-tip {
+    position: absolute;
+    left: 0;
+    top: -40px;
+    height: auto;
+    line-height: 30px;
+    width: auto;
+    -webkit-transform: scale(0.8);
+        -ms-transform: scale(0.8);
+            transform: scale(0.8);
+    background: rgba(0, 0, 0, 0.3);
+    border-radius: 6px;
+    border: 1px solid rgba(0, 0, 0, 0.8);
+    cursor: default;
+    white-space: nowrap;
+    display: none; }
+
+.xgplayer .xgplayer-progress-dot-show .xgplayer-progress-tip {
+  display: block; }
+
+.xgplayer .xgplayer-progress-thumbnail {
+  position: absolute;
+  -moz-box-sizing: border-box;
+       box-sizing: border-box; }
+  .xgplayer .xgplayer-progress-thumbnail.xgplayer-tips {
+    margin-left: 0;
+    display: none;
+    z-index: 99; }
+
+.xgplayer .xgplayer-progress:hover .xgplayer-progress-outer, .xgplayer .xgplayer-progress:focus .xgplayer-progress-outer {
+  height: 6px;
+  margin-top: 7px; }
+
+.xgplayer .xgplayer-progress:hover .xgplayer-progress-dot, .xgplayer .xgplayer-progress:focus .xgplayer-progress-dot {
+  height: 6px; }
+
+.xgplayer .xgplayer-progress:hover .xgplayer-progress-btn, .xgplayer .xgplayer-progress:focus .xgplayer-progress-btn {
+  display: block;
+  top: -3px; }
+
+.xgplayer-loading {
+  display: none;
+  width: 100px;
+  height: 100px;
+  overflow: hidden;
+  -webkit-transform: scale(0.7);
+      -ms-transform: scale(0.7);
+          transform: scale(0.7);
+  position: absolute;
+  left: 50%;
+  top: 50%;
+  margin: -70px auto auto -50px; }
+  .xgplayer-loading svg {
+    border-radius: 50%;
+    -webkit-transform-origin: center;
+        -ms-transform-origin: center;
+            transform-origin: center;
+    -webkit-animation: loadingRotate 1s linear infinite;
+            animation: loadingRotate 1s linear infinite; }
+    .xgplayer-loading svg path {
+      stroke: #ddd;
+      stroke-dasharray: 236;
+      -webkit-animation: loadingDashOffset 2s linear infinite;
+              animation: loadingDashOffset 2s linear infinite;
+      animation-direction: alternate-reverse;
+      fill: none;
+      stroke-width: 12px; }
+
+.xgplayer-nostart .xgplayer-loading {
+  display: none; }
+
+.xgplayer-pause .xgplayer-loading {
+  display: none !important; }
+
+.xgplayer-isloading .xgplayer-loading {
+  display: block; }
+
+.xgplayer-playbackrate {
+  -webkit-order: 8;
+     -moz-box-ordinal-group: 9;
+          order: 8;
+  width: 60px;
+  height: 20px;
+  z-index: 18;
+  position: relative;
+  display: inline-block;
+  cursor: default; }
+  .xgplayer-playbackrate ul {
+    display: none;
+    list-style: none;
+    width: 78px;
+    background: rgba(0, 0, 0, 0.54);
+    border-radius: 1px;
+    position: absolute;
+    bottom: 20px;
+    left: 0px;
+    text-align: left;
+    white-space: nowrap;
+    z-index: 26;
+    cursor: pointer; }
+    .xgplayer-playbackrate ul li {
+      opacity: 0.7;
+      font-family: PingFangSC-Regular;
+      font-size: 11px;
+      color: rgba(255, 255, 255, 0.8);
+      position: relative;
+      padding: 4px 0 4px 0px;
+      text-align: center; }
+      .xgplayer-playbackrate ul li.selected {
+        color: #fff;
+        opacity: 1; }
+      .xgplayer-playbackrate ul li:hover {
+        color: #fff;
+        opacity: 1; }
+    .xgplayer-playbackrate ul li:nth-child(1) {
+      position: relative;
+      margin-top: 12px; }
+    .xgplayer-playbackrate ul li:last-child {
+      position: relative;
+      margin-bottom: 12px; }
+  .xgplayer-playbackrate .name {
+    height: 20px;
+    position: relative;
+    top: 11px;
+    text-align: center;
+    background: rgba(0, 0, 0, 0.38);
+    color: rgba(255, 255, 255, 0.8);
+    border-radius: 10px;
+    line-height: 20px; }
+  .xgplayer-playbackrate span {
+    position: relative;
+    top: 19px;
+    font-weight: bold;
+    text-shadow: 0 0 4px rgba(0, 0, 0, 0.6); }
+  .xgplayer-playbackrate:hover {
+    opacity: 1; }
+
+.xgplayer-playbackrate-active .xgplayer-playbackrate ul {
+  display: block; }
+
+.xgplayer .xgplayer-download {
+  position: relative;
+  -webkit-order: 9;
+     -moz-box-ordinal-group: 10;
+          order: 9;
+  display: block;
+  cursor: pointer; }
+  .xgplayer .xgplayer-download .xgplayer-icon {
+    margin-top: 3px; }
+    .xgplayer .xgplayer-download .xgplayer-icon div {
+      position: absolute; }
+    .xgplayer .xgplayer-download .xgplayer-icon svg {
+      position: relative;
+      top: 5px;
+      left: 5px; }
+  .xgplayer .xgplayer-download .xgplayer-tips {
+    margin-left: -20px; }
+    .xgplayer .xgplayer-download .xgplayer-tips .xgplayer-tip-download {
+      display: block; }
+  .xgplayer .xgplayer-download:hover {
+    opacity: 0.85; }
+    .xgplayer .xgplayer-download:hover .xgplayer-tips {
+      display: block; }
+
+.lang-is-en .xgplayer-download .xgplayer-tips {
+  margin-left: -32px; }
+
+.lang-is-jp .xgplayer-download .xgplayer-tips {
+  margin-left: -40px; }
+
+.xgplayer .xgplayer-playnext {
+  display: none; }
+  .xgplayer .xgplayer-playnext .xgplayer-icon {
+    padding-top: 0;
+    margin-top: -1px; }
+
+.xgplayer .xgplayer-pip {
+  display: none; }
+
+.xgplayer .xgplayer-rotate .xgplayer-icon {
+  padding: 8px 0 0 5px; }
+
+.xgplayer .xgplayer-shot {
+  display: none; }
+
+.xgplayer-error {
+  background: #000;
+  display: none;
+  position: absolute;
+  left: 0;
+  top: 0;
+  width: 100%;
+  height: 100%;
+  z-index: 125;
+  font-family: PingFangSC-Regular;
+  font-size: 14px;
+  color: #fff;
+  text-align: center;
+  line-height: 100%;
+  -webkit-justify-content: center;
+     -moz-box-pack: center;
+          justify-content: center;
+  -webkit-align-items: center;
+     -moz-box-align: center;
+          align-items: center; }
+  .xgplayer-error .xgplayer-error-refresh {
+    color: #FA1F41;
+    padding: 0 3px;
+    cursor: pointer; }
+  .xgplayer-error .xgplayer-error-text {
+    line-height: 18px;
+    margin: auto 6px; }
+
+.xgplayer-is-error .xgplayer-error {
+  display: -webkit-flex;
+  display: -moz-box;
+  display: flex; }
