@@ -56,12 +56,13 @@ $progressPlayedShadow: 0 0 2px 0 rgba(0, 0, 0, 0.26);
     box-shadow: $progressPlayedShadow;
     left: 100%;
     transform: translate(-50%, 0);
+    z-index: 17;
   }
   .xgplayer-progress-point {
     position: absolute;
-    &.xgplayer-tips {
+    &.xg-tips {
       margin-left: 0;
-      top: -25px;
+      top: -29px;
       display: none;
       z-index: 100;
     }
@@ -77,18 +78,23 @@ $progressPlayedShadow: 0 0 2px 0 rgba(0, 0, 0, 0.26);
     z-index: 16;
     .xgplayer-progress-tip {
       position: absolute;
-      left: 0;
+      left: 25%;
       top: -40px;
       height: auto;
       line-height: 30px;
       width: auto;
-      transform: scale(0.8);
+      transform: scale(0.8) translateX(-50%);
       background: rgba(0, 0, 0, .3);
       border-radius: 6px;
       border: 1px solid rgba(0, 0, 0, .8);
       cursor: default;
       white-space: nowrap;
       display: none;
+    }
+    &:hover {
+      .xgplayer-progress-tip {
+        display: block;
+      }
     }
   }
   .xgplayer-progress-dot-show {

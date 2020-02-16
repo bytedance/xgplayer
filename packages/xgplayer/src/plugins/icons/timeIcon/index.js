@@ -7,7 +7,7 @@ class TimeIcon extends Plugin {
     return 'TimeIcon'
   }
 
-  updateTime () {
+  onTimeUpdate () {
     const { player } = this
     const current = player.currentTime
     this.timeDom.innerHTML = Util.format(current)
@@ -18,23 +18,55 @@ class TimeIcon extends Plugin {
 
   afterCreate () {
     const { player } = this
-    this.durationDom = this.find('.duration')
-    this.timeDom = this.find('.current')
+    this.durationDom = this.find('.time-duration')
+    this.timeDom = this.find('.time-current')
     this.once(Events.READY, () => {
-      player.duration !== Infinity && this.show();
+      if (player.duration === Infinity || this.playerConfig.isLive) {
+        Util.hide(this.durationDom)
+        Util.hide(this.timeDom)
+        Util.hide(this.find('.time-separator'))
+        Util.show(this.find('.time-live-tag'))
+      } else {
+        Util.hide(this.find('.time-live-tag'))
+      }
+      this.show();
     })
     this.on(Events.DURATION_CHANGE, () => {
-      this.updateTime()
+      this.onTimeUpdate()
     })
     this.on(Events.TIME_UPDATE, () => {
-      this.updateTime()
+      this.onTimeUpdate()
     })
+  }
+
+  changeLiveState (isLive) {
+    if (isLive) {
+      Util.hide(this.durationDom)
+      Util.hide(this.timeDom)
+      Util.hide(this.find('.time-separator'))
+      Util.show(this.find('.time-live-tag'))
+    } else {
+      Util.hide(this.find('.time-live-tag'))
+      Util.show(this.find('.time-separator'))
+      Util.show(this.durationDom)
+      Util.show(this.timeDom)
+    }
+  }
+
+  updateTime (time) {
+    const { player } = this
+    if ((!time && time !== 0) || time > player.duration) {
+      return
+    }
+    this.timeDom.innerHTML = Util.format(time)
   }
 
   render () {
     return `<xg-icon class="xgplayer-time" style="display:none">
-    <span class="current">00:00</span>
-    <em class="duration">00:00</em>
+    <span class="time-current">00:00</span>
+    <span class="time-separator">/</span>
+    <span class="time-duration">00:00</span>
+    <span class="time-live-tag">直播</span>
     </xg-icon>`
   }
 }

@@ -14,10 +14,8 @@ export default class DownloadIcon extends Plugin {
   }
 
   afterCreate () {
-    this.download = this.download.bind(this);
-    ['click', 'touchend'].forEach(event => {
-      this.bind(event, this.download)
-    })
+    this.download = this.download.bind(this)
+    this.bind(['click', 'touchend'], this.download)
   }
 
   download () {
@@ -34,7 +32,7 @@ export default class DownloadIcon extends Plugin {
     }, 300)
   }
 
-  getAbsoluteURL(url) {
+  getAbsoluteURL (url) {
     // Check if absolute URL
     if (!url.match(/^https?:\/\//)) {
       const div = document.createElement('div')
@@ -44,10 +42,8 @@ export default class DownloadIcon extends Plugin {
     return url
   }
 
-  destroy() {
-    ['click', 'touchend'].forEach(event => {
-      this.unbind(event, this.download)
-    })
+  destroy () {
+    this.unbind(['click', 'touchend'], this.download)
     window.clearTimeout(this.timer)
     this.timer = null
   }

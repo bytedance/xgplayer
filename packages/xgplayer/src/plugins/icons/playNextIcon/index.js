@@ -14,7 +14,7 @@ export default class PlayNextIcon extends Plugin {
   afterCreate () {
     const { playerConfig } = this
     console.log('playerConfig', playerConfig)
-    if (this.config.url) {
+    if (!this.config.url) {
       this.initEvents()
     }
   }
@@ -36,12 +36,32 @@ export default class PlayNextIcon extends Plugin {
     }
   }
 
+  registerLangauageTexts () {
+    return {
+      'play': {
+        jp: 'play',
+        en: 'play',
+        zh: '播放'
+      },
+      'pause': {
+        jp: 'pause',
+        en: 'pause',
+        zh: '暂停'
+      }
+    }
+  }
+
+  destroy () {
+    this.unbind(['touchend', 'click'], this.playNext)
+  }
+
   render () {
     return `
      <xg-icon class="xgplayer-playnext">
       <div class="xgplayer-icon">
         ${this.icons.playNext}
       </div>
+      <div class="xg-tips"></div>
      </xg-icon>
     `
   }

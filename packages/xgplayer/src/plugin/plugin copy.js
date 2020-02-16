@@ -2,14 +2,36 @@
 * an ui Plugin class
 *
 **/
+import delegate from 'delegate-events'
 import pluginsManager from './pluginsManager'
 import BasePlugin from './basePlugin'
-import * as delegate from 'delegate-events'
 
 function _createElement (tag, name) {
   const dom = document.createElement(tag)
   dom.name = name
   return dom
+}
+/**
+ * 插入dom结构
+ * @param {String} html html字符串
+ * @param {DocumentElemebt } parent
+ * @param {*} index
+ */
+function insert (html, parent, index) {
+  const len = parent.children.length
+  const insertIdx = parseInt(index)
+  if (typeof index === 'undefined' || len <= insertIdx) {
+    parent.insertAdjacentHTML('beforeend', html)
+    return parent.children[parent.children.length - 1]
+  } else if (insertIdx === 0) {
+    parent.insertAdjacentHTML('afterbegin', html)
+    return parent.children[0]
+  }
+  const el = parent.children[insertIdx]
+  if (el && el.insertAdjacentHTML) {
+    el.insertAdjacentHTML('beforebegin', html)
+    return parent.children[insertIdx]
+  }
 }
 
 function registerIconsObj (iconsConfig, plugin) {
@@ -32,6 +54,7 @@ function registerTextObj (textConfig, plugin) {
     Object.defineProperty(plugin.text, key, {
       get: () => {
         const lang = plugin.playerConfig.lang || 'zh'
+        console.log(textConfig[key][lang])
         return textConfig[key][lang]
       }
     })
@@ -39,29 +62,6 @@ function registerTextObj (textConfig, plugin) {
 }
 
 export default class Plugin extends BasePlugin {
-  /**
-    * 插入dom结构
-    * @param {String} html html字符串或者dom
-    * @param {DocumentElemebt } parent
-    * @param {*} index
-    */
-  static insert (html, parent, index) {
-    const len = parent.children.length
-    const insertIdx = parseInt(index)
-    const isDomElement = html instanceof window.HTMLElement
-    if (typeof index === 'undefined' || len <= insertIdx) {
-      isDomElement ? parent.appendChild(html) : parent.insertAdjacentHTML('beforeend', html)
-      return parent.children[parent.children.length - 1]
-    } else if (insertIdx === 0) {
-      isDomElement ? parent.insertBefore(html, parent.children.length > 0 ? parent.children[0] : null) : parent.insertAdjacentHTML('afterbegin', html)
-      return parent.children[0]
-    }
-    const el = parent.children[insertIdx]
-    if (el && el.insertAdjacentHTML) {
-      isDomElement ? parent.insertBefore(html, el) : el.insertAdjacentHTML('beforebegin', html)
-      return parent.children[insertIdx]
-    }
-  }
   constructor (args = {}) {
     super(args)
   }
@@ -76,6 +76,7 @@ export default class Plugin extends BasePlugin {
 
     this.text = {}
     const defaultTexConfig = this.registerLangauageTexts() || {}
+    console.log('registerLangauageTexts', defaultTexConfig)
     registerTextObj(defaultTexConfig, this)
     let renderStr = ''
     try {
@@ -85,7 +86,7 @@ export default class Plugin extends BasePlugin {
     }
 
     if (renderStr) {
-      _el = Plugin.insert(renderStr, _parent, args.index)
+      _el = insert(renderStr, _parent, args.index)
     } else if (args.tag) {
       _el = _createElement(args.tag, args.name)
       _parent.appendChild(_el)
@@ -109,36 +110,25 @@ export default class Plugin extends BasePlugin {
 
     this.setAttr(attr)
     this.setStyle(style)
-    this.__registeChildren()
+    this.registeChildren()
   }
 
-  __registeChildren () {
+  registeChildren () {
     const children = this.children()
     if (children && typeof children === 'object') {
       if (!this._children) {
         this._children = []
       }
-      if (Object.keys(children).length > 0) {
-        for (const item of Object.keys(children)) {
-          const name = item
-          let _plugin = children[name]
-          const options = {
-            root: this.el
+      if (Array.isArray(children)) {
+        children.map((item) => {
+        })
+      } else {
+        if (Object.keys(children).length > 0) {
+          for (const item of Object.keys(children)) {
+            const name = item
+            const c = this._registerPlugin(name, children[item], this.config[name])
+            this._children.push(c)
           }
-          // eslint-disable-next-line no-unused-vars
-          let config, Plugin
-          if (typeof _plugin === 'function') {
-            config = this.config[name] || {}
-            Plugin = _plugin
-          } else if (typeof _plugin === 'object' && typeof _plugin.plugin === 'function') {
-            config = _plugin.options ? BasePlugin.Util.deepCopy((this.config[name] || {}), _plugin.options) : (this.config[name] || {})
-            Plugin = _plugin.plugin
-          }
-          options.config = config
-          config.index && (options.index = config.index)
-          config.root && (options.root = config.root)
-          const c = this.registerPlugin(name, Plugin, options)
-          this._children.push(c)
         }
       }
     }
@@ -152,11 +142,11 @@ export default class Plugin extends BasePlugin {
     return {}
   }
 
-  registerPlugin (name, plugin, options) {
+  _registerPlugin (name, item, options) {
     const opts = (typeof options === 'object' ? options : {})
     opts.root = options.root || this.el
     opts.pluginName = name
-    return pluginsManager.register(this.player, plugin, opts)
+    return pluginsManager.register(this.player, item, opts)
   }
 
   registerIcons () {
@@ -178,42 +168,18 @@ export default class Plugin extends BasePlugin {
   bind (querySelector, eventType, callback) {
     // if no querySelector passed to the method
     if (arguments.length < 3 && typeof eventType === 'function') {
-      if (Array.isArray(querySelector)) {
-        querySelector.forEach((item) => {
-          this.bindEL(item, eventType)
-        })
-      } else {
-        this.bindEL(querySelector, eventType)
-      }
+      this.bindEL(querySelector, eventType)
     } else if (arguments.length === 3 && typeof callback === 'function') {
-      if (Array.isArray(eventType)) {
-        eventType.forEach((item) => {
-          delegate.bind(this.el, querySelector, item, callback, false)
-        })
-      } else {
-        delegate.bind(this.el, querySelector, eventType, callback, false)
-      }
+      delegate.bind(this.el, querySelector, eventType, callback, false)
     }
   }
 
   unbind (querySelector, eventType, callback) {
     // if no querySelector passed to the method
     if (arguments.length < 3 && typeof eventType === 'function') {
-      if (Array.isArray(querySelector)) {
-        querySelector.forEach((item) => {
-          this.unbindEL(item, eventType)
-        })
-      } else {
-        this.unbindEL(querySelector, eventType)
-      }
+      this.unbindEL(querySelector, eventType)
     } else if (typeof callback === 'function') {
-      if (Array.isArray(eventType)) {
-        eventType.forEach((item) => {
-          delegate.unbind(this.el, querySelector, item, callback, false)
-        })
-      } else {
-        delegate.unbind(this.el, querySelector, eventType, callback, false)
-      }
+      delegate.ubind(this.el, querySelector, eventType, callback, false)
     }
   }
 
@@ -290,8 +256,3 @@ export default class Plugin extends BasePlugin {
     }
   }
 }
-
-Plugin.Util = BasePlugin.Util
-Plugin.Sniffer = BasePlugin.Sniffer
-Plugin.Errors = BasePlugin.Errors
-Plugin.Event = BasePlugin.Event

@@ -16,9 +16,7 @@ export default class CssFullScreen extends Plugin {
   afterCreate () {
     this.on(Events.READY, () => {
       this.btnClick = this.btnClick.bind(this);
-      ['click', 'touchend'].forEach(event => {
-        this.bind(event, this.btnClick)
-      });
+      this.bind(['click', 'touchend'], this.btnClick)
     });
   }
 
@@ -85,9 +83,7 @@ export default class CssFullScreen extends Plugin {
   }
 
   destroy () {
-    ['click', 'touchend'].forEach(event => {
-      this.unbind(event, this.btnClick)
-    });
+    this.unbind(['click', 'touchend'], this.btnClick)
   }
 
   render () {

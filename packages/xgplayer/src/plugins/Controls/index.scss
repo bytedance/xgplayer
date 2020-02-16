@@ -1,7 +1,7 @@
 //controls
 $controlHeight: 40px;
 //icon 
-$iconMargin: 10px;
+$iconMargin: 5px;
 // tips
 $tipsColor: #fff;
 $tipsBgColor: rgba(0, 0, 0, 0.54);
@@ -26,28 +26,28 @@ $definitionNameBgColor: rgba(0, 0, 0, 0.38);
       }
     }
   }
+  .xg-tips {
+    background:$tipsBgColor;
+    border-radius: 1px;
+    display: none;
+    position: absolute;
+    font-family: PingFangSC-Regular;
+    font-size: $tipsFontsize;
+    color: $tipsColor;
+    padding: 4px 4px;
+    text-align: center;
+    top: -30px;
+    left: 50%;
+    margin-left: -16px;
+    width: auto;
+    white-space: nowrap;
+  }
   xg-icon {
     position: relative;
     height: 100%;
     margin-right: $iconMargin;
     cursor: pointer;
     box-sizing: border-box;
-    .xg-tips {
-      background:$tipsBgColor;
-      border-radius: 1px;
-      display: none;
-      position: absolute;
-      font-family: PingFangSC-Regular;
-      font-size: $tipsFontsize;
-      color: $tipsColor;
-      padding: 4px 4px;
-      text-align: center;
-      top: -30px;
-      left: 50%;
-      margin-left: -16px;
-      width: auto;
-      white-space: nowrap;
-    }
     &:hover {
       .xg-tips { 
         display: block;

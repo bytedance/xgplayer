@@ -11,13 +11,12 @@ $timeDurationColor: rgba(255, 255, 255, 0.50);
     line-height: 40px;
     text-align: center;
     display: inline-block;
-    span::after {
-      content: "/";
-      display: inline-block;
-      padding: 0 3px;
-    }
-    em {
+    .time-duration {
       color: $timeDurationColor;
+    }
+
+    .live_tag {
+      display: none;
     }
   }
 }

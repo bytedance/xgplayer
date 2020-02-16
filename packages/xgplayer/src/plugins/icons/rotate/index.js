@@ -10,20 +10,11 @@ class Rotate extends Plugin {
   afterCreate () {
     this.updateRotateDeg = this.updateRotateDeg.bind(this)
     this.rotate = this.rotate.bind(this);
-    ['click', 'touchend'].forEach(event => {
-      this.bind('.xgplayer-icon', event, this.rotate)
-    })
-    // this.bind('.xgplayer-icon', 'click', this.rotate)
-    // this.bind('.xgplayer-icon', 'touchend', this.rotate)
+    this.bind('.xgplayer-icon', ['click', 'touchend'], this.rotate)
   }
 
-  _destroy () {
-    ['click', 'touchend'].forEach(event => {
-      this.unbind('.xgplayer-icon', event, this.rotate)
-    })
-    // this.unbind('.xgplayer-icon', 'click', this.rotate)
-    // this.unbind('.xgplayer-icon', 'touchend', this.rotate)
-    super._destroy();
+  destroy () {
+    this.unbind('.xgplayer-icon', ['click', 'touchend'], this.rotate)
   }
 
   updateRotateDeg () {

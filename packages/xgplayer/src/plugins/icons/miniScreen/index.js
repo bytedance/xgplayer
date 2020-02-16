@@ -11,8 +11,7 @@ class MiniScreen extends Plugin {
   afterCreate () {
     this.getMini = this.getMini.bind(this)
     this.exitMini = this.exitMini.bind(this)
-    this.bind('click', this.getMini)
-    this.bind('touchend', this.getMini)
+    this.bind(['click', 'touchend'], this.getMini)
   }
 
   getMini () {
@@ -105,10 +104,8 @@ class MiniScreen extends Plugin {
     }
   }
 
-  _destroy () {
-    this.unbind('click', this.getMini)
-    this.unbind('touchend', this.getMini)
-    super._destroy();
+  destroy () {
+    this.unbind(['click', 'touchend'], this.getMini)
   }
 
   // 扩展语言

@@ -241,4 +241,12 @@ util.checkIsFunction = function (fun) {
 util.checkIsObject = function (obj) {
   return obj !== null && typeof obj === 'object'
 }
+
+util.hide = function (dom) {
+  dom.style.display = 'none'
+}
+
+util.show = function (dom, display) {
+  dom.style.display = display || 'block'
+}
 export default util

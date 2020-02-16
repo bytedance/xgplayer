@@ -10,21 +10,21 @@ class Fullscreen extends Plugin {
   }
 
   afterCreate () {
-    const {player} = this;
-    ['click', 'touchend'].forEach(event => {
-      this.bind(event, () => {
-        if (player.fullscreen) {
-          player.exitFullscreen()
-        } else {
-          player.getFullscreen()
-        }
-      })
-    })
-
+    this.btnClick = this.btnClick.bind(this)
+    this.bind(['click', 'touchend'], this.btnClick)
     this.on(Events.FULLSCREEN_CHANGE, (isFullScreen) => {
       this.find('.xg-tips').innerHTML = isFullScreen ? this.text.exitFullscreen : this.text.fullscreen
       this.animate(isFullScreen)
     })
+  }
+
+  btnClick (e) {
+    const {player} = this;
+    if (player.fullscreen) {
+      player.exitFullscreen()
+    } else {
+      player.getFullscreen()
+    }
   }
 
   animate (isFullScreen) {
@@ -53,6 +53,10 @@ class Fullscreen extends Plugin {
     return {
       fullscreenChange: FullScreenChangeSvg
     }
+  }
+
+  destroy () {
+    this.unbind(['click', 'touchend'], this.btnClick)
   }
 
   render () {

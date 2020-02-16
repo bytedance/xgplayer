@@ -10,15 +10,8 @@ class PlayIcon extends Plugin {
 
   afterCreate () {
     const { player } = this;
-    ['click', 'touchend'].forEach(event => {
-      this.bind(event, (e) => {
-        if (player.paused) {
-          player.play();
-        } else {
-          player.pause();
-        }
-      })
-    })
+    this.btnClick = this.btnClick.bind(this)
+    this.bind(['touchend', 'click'], this.btnClick)
 
     this.on(Events.PAUSE, () => {
       this.find('.xg-tips').innerHTML = this.text.play
@@ -28,6 +21,15 @@ class PlayIcon extends Plugin {
       this.find('.xg-tips').innerHTML = this.text.pause
       this.animate(player.paused)
     })
+  }
+
+  btnClick (e) {
+    const {player} = this
+    if (player.paused) {
+      player.play();
+    } else {
+      player.pause();
+    }
   }
 
   // 扩展语言
@@ -57,6 +59,10 @@ class PlayIcon extends Plugin {
     const pathPlay = this.find('.path_play').getAttribute('d')
     const pathPause = this.find('.path_pause').getAttribute('d')
     !paused ? path.setAttribute('d', pathPause) : path.setAttribute('d', pathPlay)
+  }
+
+  destroy () {
+    this.unbind(['touchend', 'click'], this.btnClick)
   }
 
   render () {

@@ -20,9 +20,7 @@ export default class ScreenShotIcon extends Plugin {
     this.once(Events.READY, () => {
       this.show()
       this.onClickBtn = this.onClickBtn.bind(this);
-      ['click', 'touchend'].forEach(event => {
-        this.bind(event, this.onClickBtn)
-      })
+      this.bind(['click', 'touchend'], this.onClickBtn)
     })
   }
 
@@ -80,6 +78,10 @@ export default class ScreenShotIcon extends Plugin {
     return {
       'screenshotIcon': null
     }
+  }
+
+  destroy () {
+    this.bind(['click', 'touchend'], this.onClickBtn)
   }
 
   render () {

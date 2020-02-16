@@ -8,8 +8,8 @@ import RotateIcon from '../icons/rotate'
 import MiniScreen from '../icons/miniScreen'
 import PIPIcon from '../icons/pipIcon'
 import PlayNextIcon from '../icons/playNextIcon'
-import DownLoadIcon from '../icons/downloadIcon'
-import ScreenShotIcon from '../icons/screenShotIcon'
+// import DownLoadIcon from '../icons/downloadIcon'
+// import ScreenShotIcon from '../icons/screenShotIcon'
 import CssFullScreen from '../icons/cssFullScreen'
 
 import './index.scss'
@@ -20,19 +20,17 @@ class Controls extends Plugin {
   }
 
   afterCreate () {
-    console.log('afterCreate')
   }
 
   children () {
     this.left = this.find('left-grid')
     this.center = this.find('center')
     this.right = this.find('right-grid')
-    console.log('center', this.center)
     return {
       TimeIcon: {
         plugin: TimeIcon,
         options: {
-          index: 1,
+          index: 3,
           root: this.left
         }
       },
@@ -46,24 +44,24 @@ class Controls extends Plugin {
       playNextIcon: {
         plugin: PlayNextIcon,
         options: {
-          index: 2,
+          index: 1,
           root: this.left
         }
       },
-      DownLoadIcon: {
-        plugin: DownLoadIcon,
-        options: {
-          index: 3,
-          root: this.right
-        }
-      },
-      ScreenShotIcon: {
-        plugin: ScreenShotIcon,
-        options: {
-          index: 4,
-          root: this.right
-        }
-      },
+      // DownLoadIcon: {
+      //   plugin: DownLoadIcon,
+      //   options: {
+      //     index: 3,
+      //     root: this.right
+      //   }
+      // },
+      // ScreenShotIcon: {
+      //   plugin: ScreenShotIcon,
+      //   options: {
+      //     index: 4,
+      //     root: this.right
+      //   }
+      // },
       FullScreen: {
         plugin: FullScreen,
         options: {
@@ -85,20 +83,20 @@ class Controls extends Plugin {
           root: this.right
         }
       },
-      MiniScreen: {
-        plugin: MiniScreen,
-        options: {
-          index: 1,
-          root: this.right
-        }
-      },
-      PIPIcon: {
-        plugin: PIPIcon,
-        options: {
-          index: 1,
-          root: this.right
-        }
-      },
+      // MiniScreen: {
+      //   plugin: MiniScreen,
+      //   options: {
+      //     index: 1,
+      //     root: this.right
+      //   }
+      // },
+      // PIPIcon: {
+      //   plugin: PIPIcon,
+      //   options: {
+      //     index: 1,
+      //     root: this.right
+      //   }
+      // },
       CssFullScreen: {
         plugin: CssFullScreen,
         options: {

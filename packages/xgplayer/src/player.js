@@ -28,6 +28,7 @@ class Player extends Proxy {
     this.isProgressMoving = false
     this.isReady = false
     this.isPlaying = false
+    this.isSeeking = false
     this.isActive = true
 
     this._initDOM()
@@ -432,10 +433,12 @@ class Player extends Proxy {
   }
 
   onSeeking () {
+    this.isSeeking = true
     // util.addClass(this.root, 'seeking');
   }
 
   onSeeked () {
+    this.isSeeking = false
     // for ie,playing fired before waiting
     if (this.waitTimer) {
       clearTimeout(this.waitTimer)
