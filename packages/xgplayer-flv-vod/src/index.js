@@ -84,20 +84,21 @@ class FlvVodPlayer extends BasePlugin {
     this.on(Events.TIME_UPDATE, this.handleTimeUpdate.bind(this))
 
     this.on(Events.SEEKING, this.handleSeek.bind(this))
+    this.on(Events.URL_CHANGE, this.swithURL.bind(this))
 
     this.once(Events.DESTROY, this._destroy.bind(this))
   }
 
   handleTimeUpdate () {
     this.loadData()
-    isEnded(this.player, this.this.flv)
+    isEnded(this.player, this.flv)
   }
 
   handleSeek () {
-    const time = this.currentTime
-    const range = this.getBufferedRange()
+    const time = this.player.currentTime
+    const range = this.player.getBufferedRange()
     if (time > range[1] || time < range[0]) {
-      this.flv.seek(this.currentTime)
+      this.flv.seek(time)
     }
   }
 
@@ -106,7 +107,7 @@ class FlvVodPlayer extends BasePlugin {
     this.context = null
   }
 
-  loadData (time = this.currentTime) {
+  loadData (time = this.player.currentTime) {
     const { player } = this;
     const range = player.getBufferedRange()
     if (range[1] - time < (player.config.preloadTime || 15) - 5) {
@@ -115,14 +116,23 @@ class FlvVodPlayer extends BasePlugin {
   }
 
   swithURL (url) {
-    const { player } = this;
+    const {player} = this;
     player.config.url = url;
-    const context = new Context(flvAllowedEvents);
-    const flv = context.registry('FLV_CONTROLLER', FLV)(player, this.mse)
-    context.init()
-
-    this.initFlvBackupEvents(flv, context);
-    flv.loadMeta();
+    player.hasStart = false;
+    if (!player.paused) {
+      player.pause();
+      player.once('pause', () => {
+        player.start();
+      });
+      player.once('canplay', () => {
+        player.play();
+      });
+    } else {
+      player.start();
+    }
+    player.once('canplay', () => {
+      player.currentTime = 0;
+    });
   }
 
   get remuxer () {

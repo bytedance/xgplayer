@@ -14,6 +14,7 @@ import Player from 'xgplayer'
 const REMUX_EVENTS = EVENTS.REMUX_EVENTS;
 const DEMUX_EVENTS = EVENTS.DEMUX_EVENTS;
 const LOADER_EVENTS = EVENTS.LOADER_EVENTS
+const MSE_EVENTS = EVENTS.MSE_EVENTS
 
 const Tag = 'FLVController'
 
