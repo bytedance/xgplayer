@@ -15,21 +15,89 @@ class VolumeIcon extends Plugin {
   }
 
   afterCreate () {
-    this.find('.xgplayer-icon').addEventListener('mouseenter', () => {
-      console.log('mouseenter')
-      Util.addClass(this.el, 'slide-show')
-    })
-    this.el.addEventListener('mouseleave', (e) => {
-      e.preventDefault()
-      e.stopPropagation()
-      console.log('mouseleave')
-      Util.removeClass(this.el, 'slide-show')
-    })
-
+    this.bar = this.find('.xgplayer-bar')
+    this.drag = this.find('.xgplayer-drag')
     this.changeMuted = this.changeMuted.bind(this)
-    this.bind('click', this.changeMuted)
+
+    this.onBarMousedown = this.onBarMousedown.bind(this)
+
+    this.onMouseenter = this.onMouseenter.bind(this)
+    this.onMouseleave = this.onMouseleave.bind(this)
+    this.bind('mouseenter', this.onMouseenter)
+
+    this.bind(['blur', 'mouseleave'], this.onMouseleave)
+
+    this.bind('.xgplayer-bar', 'mousedown', this.onBarMousedown)
+    this.bind('.xgplayer-icon', ['click', 'touched'], this.changeMuted)
 
     this.on(Events.VOLUME_CHANGE, this.onVolumeChange.bind(this))
+  }
+
+  onBarMousedown (e) {
+    const {player} = this
+    player.video.muted = false
+    const drag = this.drag
+    const slider = this.find('.xgplayer-slider')
+    slider.focus()
+    Util.event(e)
+
+    let barRect = this.bar.getBoundingClientRect()
+    let pos = {x: e.clientX, y: e.clientY}
+    let height = drag.getBoundingClientRect().height
+    let isMove = false
+    let onMove = function (e) {
+      e.preventDefault()
+      e.stopPropagation()
+      Util.event(e)
+      isMove = true
+      let w = height - e.clientY + pos.y
+      let now = w / barRect.height
+      drag.style.height = `${w}px`
+      player.volume = Math.max(Math.min(now, 1), 0)
+    }
+
+    let onUp = function (e) {
+      e.preventDefault()
+      e.stopPropagation()
+      Util.event(e)
+      window.removeEventListener('mousemove', onMove)
+      window.removeEventListener('touchmove', onMove)
+      window.removeEventListener('mouseup', onUp)
+      window.removeEventListener('touchend', onUp)
+
+      if (!isMove) {
+        let w = barRect.height - (e.clientY - barRect.top)
+        let now = w / barRect.height
+        drag.style.height = `${w}px`
+        if (now <= 0) {
+          if (player.volume > 0) {
+            drag.volume = player.video.volume
+          } else {
+            now = drag.volume
+          }
+        }
+        player.volume = Math.max(Math.min(now, 1), 0)
+      }
+      slider.volume = player.volume
+      isMove = false
+    }
+    window.addEventListener('mousemove', onMove)
+    window.addEventListener('touchmove', onMove)
+    window.addEventListener('mouseup', onUp)
+    window.addEventListener('touchend', onUp)
+    return false
+  }
+
+  onMouseenter (e) {
+    e.preventDefault()
+    e.stopPropagation()
+    Util.addClass(this.el, 'slide-show')
+  }
+  onMouseleave (e) {
+    console.log('mouseleave')
+    e.preventDefault()
+    e.stopPropagation()
+    Util.removeClass(this.el, 'slide-show')
   }
 
   changeMuted () {
@@ -37,13 +105,8 @@ class VolumeIcon extends Plugin {
     player.muted = !player.muted
   }
 
-  changeVolume () {
-
-  }
-
   onVolumeChange () {
     const {muted, volume} = this.player
-    console.log(`muted: ${muted} volume: ${volume}`)
     this.find('.xgplayer-drag').style.height = muted || volume === 0 ? `0px` : `${volume * 100}%`
     this.animate(muted, volume)
   }

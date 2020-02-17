@@ -8,7 +8,7 @@ $tipsBgColor: rgba(0, 0, 0, 0.54);
 $tipsFontsize: 11px;
 // text
 $definitionUlBgColor: rgba(0, 0, 0, 0.54);
-$definitionLiColor: rgba(255, 255, 255, 0.80);
+$definitionLiColor: hsla(0,0%,100%,.8);
 $definitionLiActiveColor: #fff;
 
 $definitionNameColor: rgba(255, 255, 255, 1);
@@ -18,11 +18,56 @@ $definitionNameBgColor: rgba(0, 0, 0, 0.38);
   &.xgplayer-inactive {
     .xgplayer-controls {
       display: inline-block;
-      // &.normal {
-      //   display: inline-block;
-      // }
       &.flex {
         display: flex;
+      }
+    }
+  }
+
+  .xgplayer-controls {
+    position: absolute;
+    display: none;
+    left: 0;
+    bottom: 0;
+    right: 0;
+    height: $controlHeight;
+    z-index: 10;
+    background-image: linear-gradient(180deg,transparent,rgba(0,0,0,.37),rgba(0,0,0,.75),rgba(0,0,0,.75));
+    z-index: 10;
+    // padding: 0 10px;
+    .left-grid,  .right-grid {
+      position: relative;
+      float: left;
+      display: flex;
+      height: 100%;
+      z-index: 36;
+    }
+    .right-grid {
+      float: right;
+      flex-direction: row-reverse;
+    }
+    .center {
+      display: block;
+      position: absolute;
+      height: 20px;
+      line-height: 20px;
+      left: 0;
+      right: 0;
+      outline: none;
+      top: -15px;
+      z-index: 35;
+    }
+
+    &.flex {
+      justify-content: space-around;
+      display: flex;
+      .center {
+        flex: 1;
+        position: relative;
+        top: 0;
+        left: 0;
+        right: 0;
+        height: 100%;
       }
     }
   }
@@ -78,51 +123,56 @@ $definitionNameBgColor: rgba(0, 0, 0, 0.38);
         margin-bottom: 8px;
       }
     }
-  }
-
-  .xgplayer-controls {
-    position: absolute;
-    display: none;
-    left: 0;
-    bottom: 0;
-    right: 0;
-    height: $controlHeight;
-    z-index: 10;
-    background-image: linear-gradient(180deg,transparent,rgba(0,0,0,.37),rgba(0,0,0,.75),rgba(0,0,0,.75));
-    z-index: 10;
-    // padding: 0 10px;
-    .left-grid,  .right-grid {
-      position: relative;
-      float: left;
-      display: flex;
-      height: 100%;
+    ul, li {
+      list-style: none;
     }
-    .right-grid {
-      float: right;
-      flex-direction: row-reverse;
-    }
-    .center {
-      display: block;
+    .icon-list {
+      display: none;
+      width: 78px;
+      background: $definitionUlBgColor;
+      border-radius: 1px;
       position: absolute;
-      height: 20px;
-      line-height: 20px;
-      left: 0;
-      right: 0;
-      outline: none;
-      top: -15px;
-      z-index: 35;
-    }
-
-    &.flex {
-      justify-content: space-around;
-      display: flex;
-      .center {
-        flex: 1;
+      bottom: 34px;
+      left: 0px;
+      text-align: left;
+      white-space: nowrap;
+      z-index: 26;
+      cursor: pointer;
+      li {
+        width: 73px;
+        height: 20px;
+        line-height: 20px;
+        opacity: 0.85;
+        font-family: PingFangSC;
+        font-size: 14px;
+        color: $definitionLiColor;
         position: relative;
-        top: 0;
-        left: 0;
-        right: 0;
-        height: 100%;
+        padding: 4px 0 4px 0px;
+        text-align: center;
+        &.selected{
+          color: $definitionLiActiveColor;
+          opacity: 1;
+        }
+        &:hover{
+          color: $definitionLiActiveColor;
+          opacity: 1;
+        }
+      }
+      li:nth-child(1) {
+        position: relative;
+        margin-top: 12px;
+      }
+      li:last-child {
+        position: relative;
+        margin-bottom: 12px;
+      }
+      &:hover {
+        opacity: 1;
+      }
+    }
+    &.list-show {
+      .icon-list {
+        display: block;
       }
     }
   }

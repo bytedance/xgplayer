@@ -32,16 +32,17 @@ class Proxy {
       this.videoConfig.loop = 'loop'
     }
 
+    console.log('this.videoConfig', this.videoConfig)
     if (options.defaultPlaybackRate) {
       this.videoConfig.defaultPlaybackRate = options.defaultPlaybackRate
     }
 
     this.video = util.createDom(this.videoConfig.mediaType, '', this.videoConfig, '')
+    if (options.autoplayMuted) {
+      this.video.muted = true
+    }
     if (options.autoplay) {
       this.video.autoplay = true
-      if (options.autoplayMuted) {
-        this.video.muted = true
-      }
     }
 
     EventEmitter(this)

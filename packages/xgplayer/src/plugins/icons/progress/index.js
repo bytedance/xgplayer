@@ -155,7 +155,6 @@ class Progress extends Plugin {
   }
 
   mouseEnter (e) {
-    console.log('mouseEnter')
     const {player} = this
     if (!player.config.allowSeekAfterEnded && player.ended) {
       return true
@@ -165,7 +164,6 @@ class Progress extends Plugin {
   }
 
   mouseLeave (e) {
-    console.log('mouseLeave')
     this.pointTip.style.display = 'none'
     this.thumbnailDom.style.display = 'none'
     this.el.removeEventListener('mousemove', this.mouseMove, false)
@@ -221,7 +219,6 @@ class Progress extends Plugin {
   updateTime (time) {
     const {player} = this
     let timeIcon = player.plugins.timeicon
-    console.log('uopdateTime', timeIcon)
     if (timeIcon) {
       timeIcon.updateTime(time)
     }

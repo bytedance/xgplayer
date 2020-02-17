@@ -10,6 +10,8 @@ import PIPIcon from '../icons/pipIcon'
 import PlayNextIcon from '../icons/playNextIcon'
 // import DownLoadIcon from '../icons/downloadIcon'
 // import ScreenShotIcon from '../icons/screenShotIcon'
+import DefinitionIcon from '../icons/definitionIcon'
+import PlaybackRateIcon from '../icons/playbackRateIcon'
 import CssFullScreen from '../icons/cssFullScreen'
 
 import './index.scss'
@@ -77,9 +79,23 @@ class Controls extends Plugin {
         }
       },
       RotateIcon: {
+        plugin: DefinitionIcon,
+        options: {
+          index: 2,
+          root: this.right
+        }
+      },
+      DefinitionIcon: {
         plugin: RotateIcon,
         options: {
-          index: 1,
+          index: 3,
+          root: this.right
+        }
+      },
+      PlaybackRateIcon: {
+        plugin: PlaybackRateIcon,
+        options: {
+          index: 4,
           root: this.right
         }
       },
