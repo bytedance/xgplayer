@@ -1,6 +1,6 @@
 import downloadUtil from 'downloadjs'
 import Plugin from '../../../plugin'
-import './index.scss'
+
 
 export default class DownloadIcon extends Plugin {
   static get pluginName () {

@@ -1,12 +1,19 @@
 import HlsLivePlayer from 'xgplayer-hls-live';
 import HlsVodPlayer from 'xgplayer-hls-vod';
 
-export default class HlsPlayer {
+class HlsPlayer {
   constructor (config) {
     if (config.isLive) {
-      return new HlsLivePlayer(config)
+      this.plugins = [HlsLivePlayer]
     } else {
-      return new HlsVodPlayer(config)
+      this.plugins = [HlsVodPlayer]
     }
   }
+
+  static isSupported () {
+    return window.MediaSource &&
+      window.MediaSource.isTypeSupported('video/mp4; codecs="avc1.42E01E,mp4a.40.2"');
+  }
 }
+
+export default HlsPlayer

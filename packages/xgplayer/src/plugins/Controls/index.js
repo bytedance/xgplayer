@@ -14,8 +14,6 @@ import DefinitionIcon from '../icons/definitionIcon'
 import PlaybackRateIcon from '../icons/playbackRateIcon'
 import CssFullScreen from '../icons/cssFullScreen'
 
-import './index.scss'
-
 class Controls extends Plugin {
   static get pluginName () {
     return 'Controls'
@@ -106,13 +104,13 @@ class Controls extends Plugin {
       //     root: this.right
       //   }
       // },
-      // PIPIcon: {
-      //   plugin: PIPIcon,
-      //   options: {
-      //     index: 1,
-      //     root: this.right
-      //   }
-      // },
+      PIPIcon: {
+        plugin: PIPIcon,
+        options: {
+          index: 1,
+          root: this.right
+        }
+      },
       CssFullScreen: {
         plugin: CssFullScreen,
         options: {

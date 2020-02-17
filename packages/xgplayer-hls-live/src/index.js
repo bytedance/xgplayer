@@ -8,11 +8,16 @@ const REMUX_EVENTS = EVENTS.REMUX_EVENTS;
 const { BasePlugin, Events } = Player
 
 export default class HlsLivePlayer extends BasePlugin {
+  static get pluginName () {
+    return 'hlsLive';
+  }
   constructor (options) {
     super(options)
     this.played = false;
     this.handleUrlChange = this.handleUrlChange.bind(this);
     this.destroy = this.destroy.bind(this);
+    this.play = this.play.bind(this);
+    this._context = new Context(HlsAllowedEvents);
   }
 
   beforePlayerInit () {

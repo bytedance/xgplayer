@@ -1,0 +1,114 @@
+.xgplayer .xgplayer-progress {
+  display: block;
+  position: absolute;
+  height: 20px;
+  line-height: 20px;
+  left: 12px;
+  right: 12px;
+  outline: none;
+  z-index: 35; }
+
+.xgplayer .xgplayer-progress-outer {
+  background: rgba(255, 255, 255, 0.3);
+  opacity: .85;
+  transition: height 0.2s ease-in, opacity 0.2s ease-out;
+  display: block;
+  height: 3px;
+  line-height: 3px;
+  margin-top: 8.5px;
+  width: 100%;
+  position: relative;
+  cursor: pointer; }
+
+.xgplayer .xgplayer-progress-cache, .xgplayer .xgplayer-progress-played {
+  display: block;
+  height: 100%;
+  line-height: 1;
+  position: absolute;
+  left: 0;
+  top: 0; }
+
+.xgplayer .xgplayer-progress-cache {
+  width: 0;
+  background: rgba(255, 255, 255, 0.5); }
+
+.xgplayer .xgplayer-progress-played {
+  display: block;
+  width: 0;
+  background-image: linear-gradient(-90deg, #FA1F41 0%, #E31106 100%);
+  border-radius: 0 1.5px 1.5px 0; }
+
+.xgplayer .xgplayer-progress-btn {
+  display: none;
+  position: absolute;
+  left: 0px;
+  top: -5px;
+  width: 13px;
+  height: 13px;
+  border-radius: 30px;
+  background: #FFFFFF;
+  box-shadow: 0 0 2px 0 rgba(0, 0, 0, 0.26);
+  left: 100%;
+  -webkit-transform: translate(-50%, 0);
+      -ms-transform: translate(-50%, 0);
+          transform: translate(-50%, 0);
+  z-index: 17; }
+
+.xgplayer .xgplayer-progress-point {
+  position: absolute; }
+  .xgplayer .xgplayer-progress-point.xg-tips {
+    margin-left: 0;
+    top: -29px;
+    display: none;
+    z-index: 100; }
+
+.xgplayer .xgplayer-progress-dot {
+  display: inline-block;
+  position: absolute;
+  height: 3px;
+  width: 5px;
+  top: 0px;
+  background: white;
+  border-radius: 6px;
+  z-index: 16; }
+  .xgplayer .xgplayer-progress-dot .xgplayer-progress-tip {
+    position: absolute;
+    left: 25%;
+    top: -40px;
+    height: auto;
+    line-height: 30px;
+    width: auto;
+    -webkit-transform: scale(0.8) translateX(-50%);
+        -ms-transform: scale(0.8) translateX(-50%);
+            transform: scale(0.8) translateX(-50%);
+    background: rgba(0, 0, 0, 0.3);
+    border-radius: 6px;
+    border: 1px solid rgba(0, 0, 0, 0.8);
+    cursor: default;
+    white-space: nowrap;
+    display: none; }
+  .xgplayer .xgplayer-progress-dot:hover .xgplayer-progress-tip {
+    display: block; }
+
+.xgplayer .xgplayer-progress-dot-show .xgplayer-progress-tip {
+  display: block; }
+
+.xgplayer .xgplayer-progress-thumbnail {
+  position: absolute;
+  -moz-box-sizing: border-box;
+       box-sizing: border-box; }
+  .xgplayer .xgplayer-progress-thumbnail.xgplayer-tips {
+    margin-left: 0;
+    display: none;
+    z-index: 99; }
+
+.xgplayer .xgplayer-progress:hover .xgplayer-progress-outer, .xgplayer .xgplayer-progress:focus .xgplayer-progress-outer {
+  height: 6px;
+  margin-top: 7px; }
+
+.xgplayer .xgplayer-progress:hover .xgplayer-progress-dot, .xgplayer .xgplayer-progress:focus .xgplayer-progress-dot {
+  height: 6px; }
+
+.xgplayer .xgplayer-progress:hover .xgplayer-progress-btn, .xgplayer .xgplayer-progress:focus .xgplayer-progress-btn {
+  display: block;
+  top: -3px; }

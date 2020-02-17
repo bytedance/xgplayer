@@ -2427,7 +2427,7 @@
 	      });
 	    }function rg(b, c, d, e) {
 	      var f = sg(b);var g = Sf(b, tg);var h = Tf(b, tg, "media"),
-	          k = Tf(b, tg, "index");g = { Z: g.Z, timescale: g.timescale, ab: g.ab, ma: g.ma, yd: g.yd, N: g.N, Xc: h, Ob: k };h = g.Ob ? 1 : 0;h += g.N ? 1 : 0;h += g.Z ? 1 : 0;if (0 == h) throw new D(2, 4, 4002);1 != h && (g.Ob && (g.N = null), g.Z = null);if (!g.Ob && !g.Xc) throw new D(2, 4, 4002);if (g.Ob) {
+	          k = Tf(b, tg, "index.scss");g = { Z: g.Z, timescale: g.timescale, ab: g.ab, ma: g.ma, yd: g.yd, N: g.N, Xc: h, Ob: k };h = g.Ob ? 1 : 0;h += g.N ? 1 : 0;h += g.Z ? 1 : 0;if (0 == h) throw new D(2, 4, 4002);1 != h && (g.Ob && (g.N = null), g.Z = null);if (!g.Ob && !g.Xc) throw new D(2, 4, 4002);if (g.Ob) {
 	        d = b.B.mimeType.split("/")[1];if ("mp4" != d && "webm" != d) throw new D(2, 4, 4006);if ("webm" == d && !f) throw new D(2, 4, 4005);e = Rf(g.Ob, b.B.id, null, b.bandwidth || null, null);e = td(b.B.pa, [e]);b = mg(b, c, f, e, 0, null, d, g.ma);
 	      } else g.Z ? (e || (b.presentationTimeline.$c(g.Z), b.presentationTimeline.ad(b.S.start)), b = ug(b, g)) : (h = c = null, b.ka.id && b.B.id && (h = b.ka.id + "," + b.B.id, c = d[h]), k = vg(b, g), e = !b.mb || !b.S.Vc, c ? (e && $f(new T(k), b.S.duration), c.Yc(k), d = b.presentationTimeline.Mb(), c.Hc(d - b.S.start)) : (b.presentationTimeline.ub(k, b.S.start), c = new T(k), h && b.mb && (d[h] = c)), e && $f(c, b.S.duration), b = { createSegmentIndex: Promise.resolve.bind(Promise), findSegmentPosition: c.find.bind(c), getSegmentReference: c.get.bind(c) });return { createSegmentIndex: b.createSegmentIndex,
 	        findSegmentPosition: b.findSegmentPosition, getSegmentReference: b.getSegmentReference, initSegmentReference: f, ma: g.ma };

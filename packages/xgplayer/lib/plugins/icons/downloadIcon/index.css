@@ -1,0 +1,29 @@
+.xgplayer .xgplayer-download {
+  position: relative;
+  -webkit-order: 9;
+     -moz-box-ordinal-group: 10;
+          order: 9;
+  display: block;
+  cursor: pointer; }
+  .xgplayer .xgplayer-download .xgplayer-icon {
+    margin-top: 3px; }
+    .xgplayer .xgplayer-download .xgplayer-icon div {
+      position: absolute; }
+    .xgplayer .xgplayer-download .xgplayer-icon svg {
+      position: relative;
+      top: 5px;
+      left: 5px; }
+  .xgplayer .xgplayer-download .xgplayer-tips {
+    margin-left: -20px; }
+    .xgplayer .xgplayer-download .xgplayer-tips .xgplayer-tip-download {
+      display: block; }
+  .xgplayer .xgplayer-download:hover {
+    opacity: 0.85; }
+    .xgplayer .xgplayer-download:hover .xgplayer-tips {
+      display: block; }
+
+.lang-is-en .xgplayer-download .xgplayer-tips {
+  margin-left: -32px; }
+
+.lang-is-jp .xgplayer-download .xgplayer-tips {
+  margin-left: -40px; }

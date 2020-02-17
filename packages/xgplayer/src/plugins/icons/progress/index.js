@@ -1,6 +1,5 @@
 import Plugin from '../../../plugin'
 import ProgressDots from './progressdots'
-import './index.scss'
 
 const {Events, Util} = Plugin
 const defaultThumbnailConfig = {

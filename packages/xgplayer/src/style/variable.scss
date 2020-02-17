@@ -1,0 +1,72 @@
+// player
+
+$playerBgColor: #000;
+$playerIconColor: #fff;
+
+// controls
+$controlsBgImage: linear-gradient(to bottom, rgba(0, 0, 0, 0), rgba(0, 0, 0, .37), rgba(0, 0, 0, .75), rgba(0, 0, 0, .75));
+
+// progress-bar
+$progressOuterBgColor: rgba(255, 255, 255, 0.30);
+$progressCacheBgColor: rgba(255, 255, 255, 0.50);
+$progressPlayedBgImage: linear-gradient(-90deg, #FA1F41 0%, #E31106 100%);
+$progressPlayedShadow: 0 0 2px 0 rgba(0, 0, 0, 0.26);
+
+// time
+$timeColor: #fff;
+$timeDurationColor: rgba(255, 255, 255, 0.50);
+
+// tips
+$tipsColor: #fff;
+$tipsBgColor: rgba(0, 0, 0, 0.54);
+$tipsFontsize: 11px;
+
+// slider
+$sliderBgColor: rgba(0, 0, 0, 0.54);
+$sliderBarBgColor: rgba(255, 255, 255, 0.30);
+$sliderDragBgColor: #FA1F41;
+$sliderDragAfterBgColor: #fff;
+$sliderDragAfterShadow: 0 0 5px 0 rgba(0, 0, 0, 0.26);
+
+// start
+
+$startBgColor: rgba(0, 0, 0, 0.38);
+$startSvgFill: rgba(255, 255, 255, 0.7);
+$startHoverBgColor: rgba(255, 255, 255, 0.5);
+$startHoverFillColor: rgba(255, 255, 255, 0.6);
+
+// definition
+
+$definitionUlBgColor: rgba(0, 0, 0, 0.54);
+$definitionLiColor: rgba(255, 255, 255, 0.80);
+$definitionLiActiveColor: #fff;
+$definitionNameColor: rgba(255, 255, 255, 0.80);
+$definitionNameBgColor: rgba(0, 0, 0, 0.38);
+
+// replay
+
+$replayBgColor: rgba(0, 0, 0, 0.54);
+$replaySvgBgColor: rgba(0,0,0,0.58);
+$replaySvgPathFillColor: #ddd;
+$replaySvgHoverBgColor: rgba(0, 0, 0, .38);
+$replaySvgHoverFillColor: #fff;
+$replayTxtColor: #fff;
+
+
+// enter-logo
+// $enterBgImageParty: '//s2.pstatp.com/cdn/expire-1-M/byted-player-images/1.0.2/bg.svg';
+$enterBgImageParty: '//s2.pstatp.com/cdn/expire-1-M/byted-player-images/1.0.2/bg.svg';
+$enterBgImage: '//s2.pstatp.com/cdn/expire-1-M/byted-player-images/1.0.2/bg.svg';
+$enterLogo: '//s3.pstatp.com/cdn/expire-1-M/byted-player-images/1.0.1/xg-logo-new.png';
+$enterTipsBgColor: -webkit-linear-gradient(right, #000, red, red, red, #000);
+$ieEnterTipsBgColor: linear-gradient(to right, #000, red, red, red, #000);
+
+// live
+
+$liveColor: #fff;
+
+// error
+
+$errorBgColor: #000;
+$errorColor: #fff;
+$errorRefreshColor: #FA1F41;

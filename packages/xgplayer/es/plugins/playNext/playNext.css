@@ -1,0 +1,7 @@
+.xgplayer-playNext, .xgplayer-playNext-img {
+  -webkit-order: 1;
+     -moz-box-ordinal-group: 2;
+          order: 1;
+  cursor: pointer; }
+  .xgplayer-playNext:hover, .xgplayer-playNext-img:hover {
+    opacity: 0.85; }

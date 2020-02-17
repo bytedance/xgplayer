@@ -31,7 +31,10 @@ function registerTextObj (textConfig, plugin) {
   Object.keys(textConfig).map((key) => {
     Object.defineProperty(plugin.text, key, {
       get: () => {
-        const lang = plugin.playerConfig.lang || 'zh'
+        let lang = plugin.playerConfig.lang || 'zh'
+        if (lang.indexOf('-') > 0) {
+          lang = lang.split('-')[0]
+        }
         return textConfig[key][lang]
       }
     })
@@ -135,7 +138,7 @@ export default class Plugin extends BasePlugin {
             Plugin = _plugin.plugin
           }
           options.config = config
-          config.index && (options.index = config.index)
+          config.index !== undefined && (options.index = config.index)
           config.root && (options.root = config.root)
           const c = this.registerPlugin(name, Plugin, options)
           this._children.push(c)

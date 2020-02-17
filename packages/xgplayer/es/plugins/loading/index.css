@@ -1,0 +1,36 @@
+.xgplayer-loading {
+  display: none;
+  width: 100px;
+  height: 100px;
+  overflow: hidden;
+  -webkit-transform: scale(0.7);
+      -ms-transform: scale(0.7);
+          transform: scale(0.7);
+  position: absolute;
+  left: 50%;
+  top: 50%;
+  margin: -70px auto auto -50px; }
+  .xgplayer-loading svg {
+    border-radius: 50%;
+    -webkit-transform-origin: center;
+        -ms-transform-origin: center;
+            transform-origin: center;
+    -webkit-animation: loadingRotate 1s linear infinite;
+            animation: loadingRotate 1s linear infinite; }
+    .xgplayer-loading svg path {
+      stroke: #ddd;
+      stroke-dasharray: 236;
+      -webkit-animation: loadingDashOffset 2s linear infinite;
+              animation: loadingDashOffset 2s linear infinite;
+      animation-direction: alternate-reverse;
+      fill: none;
+      stroke-width: 12px; }
+
+.xgplayer-nostart .xgplayer-loading {
+  display: none; }
+
+.xgplayer-pause .xgplayer-loading {
+  display: none !important; }
+
+.xgplayer-isloading .xgplayer-loading {
+  display: block; }

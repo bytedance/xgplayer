@@ -1,5 +1,4 @@
 import Plugin from '../../../plugin'
-import './index.scss'
 
 const { Events, Util, Sniffer } = Plugin
 export default class PlaybackRateIcon extends Plugin {

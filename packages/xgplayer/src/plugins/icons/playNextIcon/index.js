@@ -3,7 +3,7 @@
  */
 import Plugin from '../../../plugin'
 import Next from '../../assets/playNext.svg'
-import './index.scss'
+
 
 // const { Events } = Plugin
 export default class PlayNextIcon extends Plugin {

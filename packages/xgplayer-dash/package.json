@@ -3,10 +3,13 @@
   "version": "1.1.6",
   "description": "xgplayer plugin for MPEG-DASH",
   "main": "./dist/index.js",
+  "browser": "./browser/index.js",
+  "module": "./es/index.js",
   "scripts": {
-    "prepare": "npm run build",
+    "build:es": "babel src --out-dir es",
+    "build:lib": "babel src --out-dir lib --presets=es2015",
     "build": "webpack --progress --display-chunks -p",
-    "watch": "webpack --progress --display-chunks -p --watch"
+    "watch": "webpack --progress --display-chunks --watch"
   },
   "repository": {
     "type": "git",
@@ -41,5 +44,9 @@
   },
   "peerDependency": {
     "xgplayer": "^0.1.0"
+  },
+  "devDependencies": {
+    "webpack": "^4.41.6",
+    "webpack-cli": "^3.3.11"
   }
 }

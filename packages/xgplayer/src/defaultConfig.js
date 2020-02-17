@@ -1,4 +1,3 @@
-
 export default function getDefaultConfig () {
   return {
     id: '', // 播放器容器id
@@ -34,3 +33,4 @@ export default function getDefaultConfig () {
     controlsList: []
   }
 }
+

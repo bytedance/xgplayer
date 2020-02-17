@@ -274,7 +274,7 @@ class Player extends Proxy {
         if (!url) {
           url = this.url || this.config.url;
         }
-        this._startInit(url)
+        return this._startInit(url)
       }).catch((e) => {
         e.fileName = 'player'
         e.lineNumber = '236'
@@ -337,10 +337,15 @@ class Player extends Proxy {
   replay () {
     this.removeClass(STATE_CLASS.ENDED)
     this.once(Events.CANPLAY, () => {
-      this.play().catch(err => {
-        console.log(err)
-      })
+      const playPromise = this.play()
+      if (playPromise && playPromise.catch) {
+        playPromise.catch(err => {
+          console.log(err)
+        })
+      }
+
     })
+    this.emit(Events.REPLAY)
     this.currentTime = 0
   }
 

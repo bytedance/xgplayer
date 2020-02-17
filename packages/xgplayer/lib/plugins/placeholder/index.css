@@ -1,0 +1,8 @@
+.xgplayer-placeholder {
+  -webkit-flex: 1;
+     -moz-box-flex: 1;
+          flex: 1;
+  -webkit-order: 3;
+     -moz-box-ordinal-group: 4;
+          order: 3;
+  display: block; }

@@ -1,6 +1,6 @@
 import Plugin from '../../../plugin'
 import volumeChange from '../../assets/volumeChange.svg'
-import './index.scss'
+
 
 const { Util, Events } = Plugin
 class VolumeIcon extends Plugin {

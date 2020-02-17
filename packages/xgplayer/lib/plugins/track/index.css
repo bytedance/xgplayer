@@ -1,0 +1,61 @@
+.xgplayer-texttrack {
+  -webkit-order: 7;
+     -moz-box-ordinal-group: 8;
+          order: 7;
+  width: 60px;
+  height: 150px;
+  z-index: 18;
+  position: relative;
+  outline: none;
+  display: none;
+  cursor: default;
+  margin-top: -119px; }
+  .xgplayer-texttrack ul {
+    display: none;
+    list-style: none;
+    width: 78px;
+    background: rgba(0, 0, 0, 0.54);
+    border-radius: 1px;
+    position: absolute;
+    bottom: 30px;
+    left: 0;
+    text-align: center;
+    white-space: nowrap;
+    margin-left: -10px;
+    z-index: 26;
+    cursor: pointer; }
+    .xgplayer-texttrack ul li {
+      opacity: 0.7;
+      font-family: PingFangSC-Regular;
+      font-size: 11px;
+      color: rgba(255, 255, 255, 0.8);
+      padding: 6px 13px; }
+      .xgplayer-texttrack ul li.selected {
+        color: #fff;
+        opacity: 1; }
+      .xgplayer-texttrack ul li:hover {
+        color: #fff;
+        opacity: 1; }
+  .xgplayer-texttrack .name {
+    text-align: center;
+    font-family: PingFangSC-Regular;
+    font-size: 13px;
+    line-height: 20px;
+    height: 20px;
+    cursor: pointer;
+    color: rgba(255, 255, 255, 0.8);
+    position: absolute;
+    bottom: 0;
+    width: 60px;
+    height: 20px;
+    line-height: 20px;
+    background: rgba(0, 0, 0, 0.38);
+    border-radius: 10px;
+    display: inline-block;
+    vertical-align: middle; }
+
+.xgplayer-texttrack-active .xgplayer-texttrack ul {
+  display: block; }
+
+.xgplayer-is-texttrack .xgplayer-texttrack {
+  display: block; }
