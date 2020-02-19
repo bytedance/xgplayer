@@ -4,7 +4,7 @@ import Replay from '../replay';
 import Poster from '../poster';
 import Start from '../start';
 import Enter from '../enter';
-// import Miniscreen from '../Controls/mini';
+import Miniscreen from '../miniScreen';
 // import Rotate from '../Controls/rotate';
 import PC from '../pc';
 import Mobile from '../mobile';

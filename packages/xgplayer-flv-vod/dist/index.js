@@ -7841,6 +7841,7 @@
         this.on(Events.TIME_UPDATE, this.handleTimeUpdate.bind(this));
 
         this.on(Events.SEEKING, this.handleSeek.bind(this));
+        this.on(Events.URL_CHANGE, this.swithURL.bind(this));
 
         this.once(Events.DESTROY, this._destroy.bind(this));
       }
@@ -7848,15 +7849,15 @@
       key: 'handleTimeUpdate',
       value: function handleTimeUpdate() {
         this.loadData();
-        isEnded(this.player, this.this.flv);
+        isEnded(this.player, this.flv);
       }
     }, {
       key: 'handleSeek',
       value: function handleSeek() {
-        var time = this.currentTime;
-        var range = this.getBufferedRange();
+        var time = this.player.currentTime;
+        var range = this.player.getBufferedRange();
         if (time > range[1] || time < range[0]) {
-          this.flv.seek(this.currentTime);
+          this.flv.seek(time);
         }
       }
     }, {
@@ -7868,7 +7869,7 @@
     }, {
       key: 'loadData',
       value: function loadData() {
-        var time = arguments.length > 0 && arguments[0] !== undefined ? arguments[0] : this.currentTime;
+        var time = arguments.length > 0 && arguments[0] !== undefined ? arguments[0] : this.player.currentTime;
         var player = this.player;
 
         var range = player.getBufferedRange();
@@ -7882,12 +7883,21 @@
         var player = this.player;
 
         player.config.url = url;
-        var context = new Context(flvAllowedEvents);
-        var flv = context.registry('FLV_CONTROLLER', FlvController)(player, this.mse);
-        context.init();
-
-        this.initFlvBackupEvents(flv, context);
-        flv.loadMeta();
+        player.hasStart = false;
+        if (!player.paused) {
+          player.pause();
+          player.once('pause', function () {
+            player.start();
+          });
+          player.once('canplay', function () {
+            player.play();
+          });
+        } else {
+          player.start();
+        }
+        player.once('canplay', function () {
+          player.currentTime = 0;
+        });
       }
     }, {
       key: 'remuxer',

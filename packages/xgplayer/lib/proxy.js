@@ -407,7 +407,7 @@ var Proxy = function () {
       this.video.pause();
       this._currentTime = 0;
       this._duration = 0;
-      this.video.src = url;
+      // this.video.src = url
     }
   }, {
     key: 'volume',

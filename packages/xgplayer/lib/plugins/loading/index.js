@@ -43,6 +43,11 @@ var Loading = function (_Plugin) {
     value: function render() {
       return '\n    <xg-loading class="xgplayer-loading">\n      ' + this.icons.loadingIcon + '\n    </xg-loading>';
     }
+  }], [{
+    key: 'pluginName',
+    get: function get() {
+      return 'loading';
+    }
   }]);
 
   return Loading;

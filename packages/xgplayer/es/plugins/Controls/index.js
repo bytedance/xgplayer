@@ -13,7 +13,7 @@ import FullScreen from '../icons/fullscreen';
 import TimeIcon from '../icons/timeIcon';
 import VolumeIcon from '../icons/volumeIcon';
 import RotateIcon from '../icons/rotate';
-import MiniScreen from '../icons/miniScreen';
+// import MiniScreen from '../icons/miniScreen'
 import PIPIcon from '../icons/pipIcon';
 import PlayNextIcon from '../icons/playNextIcon';
 // import DownLoadIcon from '../icons/downloadIcon'
@@ -118,13 +118,13 @@ var Controls = function (_Plugin) {
         //     root: this.right
         //   }
         // },
-        // PIPIcon: {
-        //   plugin: PIPIcon,
-        //   options: {
-        //     index: 1,
-        //     root: this.right
-        //   }
-        // },
+        PIPIcon: {
+          plugin: PIPIcon,
+          options: {
+            index: 1,
+            root: this.right
+          }
+        },
         CssFullScreen: {
           plugin: CssFullScreen,
           options: {

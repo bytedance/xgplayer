@@ -20,6 +20,10 @@ var _enter = require('../enter');
 
 var _enter2 = _interopRequireDefault(_enter);
 
+var _miniScreen = require('../miniScreen');
+
+var _miniScreen2 = _interopRequireDefault(_miniScreen);
+
 var _pc = require('../pc');
 
 var _pc2 = _interopRequireDefault(_pc);
@@ -43,7 +47,6 @@ var _sniffer2 = _interopRequireDefault(_sniffer);
 function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
 
 function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } }
-// import Miniscreen from '../Controls/mini';
 // import Rotate from '../Controls/rotate';
 
 

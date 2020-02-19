@@ -6,8 +6,9 @@ function _possibleConstructorReturn(self, call) { if (!self) { throw new Referen
 
 function _inherits(subClass, superClass) { if (typeof superClass !== "function" && superClass !== null) { throw new TypeError("Super expression must either be null or a function, not " + typeof superClass); } subClass.prototype = Object.create(superClass && superClass.prototype, { constructor: { value: subClass, enumerable: false, writable: true, configurable: true } }); if (superClass) Object.setPrototypeOf ? Object.setPrototypeOf(subClass, superClass) : subClass.__proto__ = superClass; }
 
-import Player from '../../player';
 import BasePlugin from '../../plugin/basePlugin';
+var Events = BasePlugin.Events,
+    Util = BasePlugin.Util;
 
 var PCPlugin = function (_BasePlugin) {
   _inherits(PCPlugin, _BasePlugin);
@@ -28,20 +29,29 @@ var PCPlugin = function (_BasePlugin) {
       this.onControlMouseEnter = this.onControlMouseEnter.bind(this);
       this.onControlMouseLeave = this.onControlMouseLeave.bind(this);
       this.onReady = this.onReady.bind(this);
-      this.onDestroy = this.onDestroy.bind(this);
       this.initEvents();
+      var playerConfig = this.playerConfig;
+
+      if (playerConfig.autoplay) {
+        this.onEnter();
+      }
     }
   }, {
     key: 'initEvents',
     value: function initEvents() {
+      var _this2 = this;
+
       var player = this.player;
 
 
       player.video.addEventListener('click', this.onVideoClick, false);
 
       player.video.addEventListener('dblclick', this.onVideoDblClick, false);
-      this.once(Player.Events.WAITING, this.onEnter.bind(this));
-      this.once(Player.Events.CANPLAY, this.onEntered.bind(this));
+
+      this.once(Events.CANPLAY, this.onEntered.bind(this));
+      this.once(Events.AUTOPLAY_PREVENTED, function () {
+        _this2.onAutoPlayPrevented();
+      });
 
       player.root.addEventListener('mouseenter', this.onMouseEnter);
 
@@ -56,14 +66,29 @@ var PCPlugin = function (_BasePlugin) {
     value: function onEnter() {
       var player = this.player;
 
-      BasePlugin.Util.addClass(player.root, 'xgplayer-is-enter');
+      Util.addClass(player.root, 'xgplayer-is-enter');
     }
   }, {
     key: 'onEntered',
     value: function onEntered() {
       var player = this.player;
 
-      BasePlugin.Util.removeClass(player.root, 'xgplayer-is-enter');
+      Util.removeClass(player.root, 'xgplayer-is-enter');
+    }
+  }, {
+    key: 'onAutoPlayPrevented',
+    value: function onAutoPlayPrevented() {
+      var _this3 = this;
+
+      var player = this.player;
+
+      Util.removeClass(player.root, 'xgplayer-is-enter');
+      this.once(Events.PLAY, function () {
+        Util.addClass(player.root, 'xgplayer-is-enter');
+        _this3.once(Events.TIME_UPDATE, function () {
+          Util.removeClass(player.root, 'xgplayer-is-enter');
+        });
+      });
     }
   }, {
     key: 'onVideoClick',
@@ -80,7 +105,7 @@ var PCPlugin = function (_BasePlugin) {
         }
         if (clk === 1) {
           timer = setTimeout(function () {
-            if (BasePlugin.Util.hasClass(player.root, 'xgplayer-nostart')) {
+            if (Util.hasClass(player.root, 'xgplayer-nostart')) {
               return false;
             } else if (!player.ended) {
               if (player.paused) {
@@ -168,14 +193,13 @@ var PCPlugin = function (_BasePlugin) {
       }
     }
   }, {
-    key: 'onDestroy',
-    value: function onDestroy() {
+    key: 'destroy',
+    value: function destroy() {
       var player = this.player;
 
       player.root.removeEventListener('mouseenter', this.onMouseEnter);
       player.root.removeEventListener('mouseleave', this.onMouseLeave);
       player.off('ready', this.onReady);
-      player.off('destroy', this.onDestroy);
     }
   }], [{
     key: 'pluginName',

@@ -34,10 +34,6 @@ var _rotate = require('../icons/rotate');
 
 var _rotate2 = _interopRequireDefault(_rotate);
 
-var _miniScreen = require('../icons/miniScreen');
-
-var _miniScreen2 = _interopRequireDefault(_miniScreen);
-
 var _pipIcon = require('../icons/pipIcon');
 
 var _pipIcon2 = _interopRequireDefault(_pipIcon);
@@ -65,6 +61,8 @@ function _classCallCheck(instance, Constructor) { if (!(instance instanceof Cons
 function _possibleConstructorReturn(self, call) { if (!self) { throw new ReferenceError("this hasn't been initialised - super() hasn't been called"); } return call && (typeof call === "object" || typeof call === "function") ? call : self; }
 
 function _inherits(subClass, superClass) { if (typeof superClass !== "function" && superClass !== null) { throw new TypeError("Super expression must either be null or a function, not " + typeof superClass); } subClass.prototype = Object.create(superClass && superClass.prototype, { constructor: { value: subClass, enumerable: false, writable: true, configurable: true } }); if (superClass) Object.setPrototypeOf ? Object.setPrototypeOf(subClass, superClass) : subClass.__proto__ = superClass; }
+// import MiniScreen from '../icons/miniScreen'
+
 // import DownLoadIcon from '../icons/downloadIcon'
 // import ScreenShotIcon from '../icons/screenShotIcon'
 
@@ -165,13 +163,13 @@ var Controls = function (_Plugin) {
         //     root: this.right
         //   }
         // },
-        // PIPIcon: {
-        //   plugin: PIPIcon,
-        //   options: {
-        //     index: 1,
-        //     root: this.right
-        //   }
-        // },
+        PIPIcon: {
+          plugin: _pipIcon2.default,
+          options: {
+            index: 1,
+            root: this.right
+          }
+        },
         CssFullScreen: {
           plugin: _cssFullScreen2.default,
           options: {

@@ -171,7 +171,7 @@ var Plugin = function (_BasePlugin) {
                 _Plugin = _plugin.plugin;
               }
               options.config = config;
-              config.index && (options.index = config.index);
+              config.index !== undefined && (options.index = config.index);
               config.root && (options.root = config.root);
               var c = this.registerPlugin(name, _Plugin, options);
               this._children.push(c);
