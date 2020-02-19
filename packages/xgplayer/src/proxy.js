@@ -28,7 +28,12 @@ class Proxy {
       this.videoConfig.loop = 'loop'
     }
     let textTrackDom = ''
+    this.textTrackShowDefault = true
     if (options.textTrack && Array.isArray(options.textTrack) && (navigator.userAgent.indexOf('Chrome') > -1 || navigator.userAgent.indexOf('Firefox') > -1)) {
+      if(options.textTrack.length > 0 && !options.textTrack.some(track => { return track.default })) {
+        options.textTrack[0].default = true
+        this.textTrackShowDefault = false
+      }
       options.textTrack.some(track => {
         if (track.src && track.label && track.default) {
           textTrackDom += `<track src="${track.src}" `
@@ -61,6 +66,10 @@ class Proxy {
       }
     }
     this.video = util.createDom(this.videoConfig.mediaType, textTrackDom, this.videoConfig, '')
+    if(!this.textTrackShowDefault && textTrackDom) {
+      let trackDoms = this.video.getElementsByTagName('Track')
+      trackDoms[0].track.mode = 'hidden'
+    }
     if (options.autoplay) {
       this.video.autoplay = true
       if (options.autoplayMuted) {

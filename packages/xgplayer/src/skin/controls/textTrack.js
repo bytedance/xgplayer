@@ -11,13 +11,13 @@ let s_textTrack = function () {
   let controls = player.controls
   let container = util.createDom('xg-texttrack', '', {tabindex: 7}, 'xgplayer-texttrack')
   let list = player.config.textTrack
-  if (list && Array.isArray(list) && list.length > 1) {
+  if (list && Array.isArray(list) && list.length > 0) {
     util.addClass(player.root, 'xgplayer-is-texttrack')
     player.on('canplay', function () {
       let tmp = ['<ul>']
-      tmp.push(`<li class=''}'>关闭</li>`)
+      tmp.push(`<li class='${this.textTrackShowDefault ? '' : 'selected'}'}'>关闭</li>`)
       list.forEach(item => {
-        tmp.push(`<li class='${item.default ? 'selected' : ''}'>${item.label}</li>`)
+        tmp.push(`<li class='${item.default && this.textTrackShowDefault ? 'selected' : ''}'>${item.label}</li>`)
       })
       let controlText = player.lang.TEXTTRACK
       tmp.push(`</ul><p class="name"><em>${controlText}</em></p>`)
@@ -65,9 +65,7 @@ let s_textTrack = function () {
           trackDoms[0].track.mode = 'hidden'
           util.removeClass(player.root, 'xgplayer-texttrack-active')
         } else {
-          if (!util.hasClass(player.root, 'xgplayer-texttrack-active')) {
-            util.addClass(player.root, 'xgplayer-texttrack-active')
-          }
+          util.addClass(player.root, 'xgplayer-texttrack-active')
           trackDoms[0].track.mode = 'showing'
 
           list.some(item => {
