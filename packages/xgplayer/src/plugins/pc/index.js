@@ -1,6 +1,5 @@
-import Player from '../../player'
 import BasePlugin from '../../plugin/basePlugin';
-
+const {Events, Util} = BasePlugin
 export default class PCPlugin extends BasePlugin {
   static get pluginName () {
     return 'pc'
@@ -14,8 +13,11 @@ export default class PCPlugin extends BasePlugin {
     this.onControlMouseEnter = this.onControlMouseEnter.bind(this)
     this.onControlMouseLeave = this.onControlMouseLeave.bind(this)
     this.onReady = this.onReady.bind(this)
-    this.onDestroy = this.onDestroy.bind(this)
     this.initEvents();
+    const {playerConfig} = this
+    if (playerConfig.autoplay) {
+      this.onEnter()
+    }
   }
 
   initEvents () {
@@ -24,8 +26,11 @@ export default class PCPlugin extends BasePlugin {
     player.video.addEventListener('click', this.onVideoClick, false)
 
     player.video.addEventListener('dblclick', this.onVideoDblClick, false)
-    this.once(Player.Events.WAITING, this.onEnter.bind(this));
-    this.once(Player.Events.CANPLAY, this.onEntered.bind(this));
+
+    this.once(Events.CANPLAY, this.onEntered.bind(this));
+    this.once(Events.AUTOPLAY_PREVENTED, () => {
+      this.onAutoPlayPrevented()
+    })
 
     player.root.addEventListener('mouseenter', this.onMouseEnter)
 
@@ -38,12 +43,23 @@ export default class PCPlugin extends BasePlugin {
 
   onEnter () {
     const { player } = this;
-    BasePlugin.Util.addClass(player.root, 'xgplayer-is-enter')
+    Util.addClass(player.root, 'xgplayer-is-enter')
   }
 
   onEntered () {
     const { player } = this;
-    BasePlugin.Util.removeClass(player.root, 'xgplayer-is-enter')
+    Util.removeClass(player.root, 'xgplayer-is-enter')
+  }
+
+  onAutoPlayPrevented () {
+    const { player } = this;
+    Util.removeClass(player.root, 'xgplayer-is-enter')
+    this.once(Events.PLAY, () => {
+      Util.addClass(player.root, 'xgplayer-is-enter')
+      this.once(Events.TIME_UPDATE, () => {
+        Util.removeClass(player.root, 'xgplayer-is-enter')
+      })
+    })
   }
 
   onVideoClick (e) {
@@ -58,7 +74,7 @@ export default class PCPlugin extends BasePlugin {
       }
       if (clk === 1) {
         timer = setTimeout(function () {
-          if (BasePlugin.Util.hasClass(player.root, 'xgplayer-nostart')) {
+          if (Util.hasClass(player.root, 'xgplayer-nostart')) {
             return false
           } else if (!player.ended) {
             if (player.paused) {
@@ -134,11 +150,10 @@ export default class PCPlugin extends BasePlugin {
     }
   }
 
-  onDestroy () {
+  destroy () {
     const { player } = this;
     player.root.removeEventListener('mouseenter', this.onMouseEnter)
     player.root.removeEventListener('mouseleave', this.onMouseLeave)
     player.off('ready', this.onReady)
-    player.off('destroy', this.onDestroy)
   }
 }
