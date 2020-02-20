@@ -18,6 +18,31 @@ const pluginsManager = {
     }
   },
   /**
+   * register a lazy plugin
+   * @param { object } player instance
+   * @param { object } lazyPlugin config
+   *
+   */
+  lazyRegister (player, lazyPlugin) {
+    const timeout = lazyPlugin.timeout || 1500
+    return Promise.race([
+      lazyPlugin.loader().then((plugin) => {
+        let result;
+        if (plugin && plugin.__esModule) {
+          result = plugin.default
+        } else {
+          result = plugin
+        }
+        this.register(player, result, plugin.options)
+      }),
+      new Promise((resolve, reject) => {
+        setTimeout(() => {
+          reject(new Error('timeout'))
+        }, timeout)
+      })
+    ])
+  },
+  /**
   * register a Plugin
   * @param { object } player the plugins install
   * @param { function } plugin the plugin contructor
@@ -44,6 +69,7 @@ const pluginsManager = {
     if (!pluginName) {
       throw new Error('The property pluginName is necessary')
     }
+
     if (!options.config) {
       options.config = {}
     }
@@ -145,16 +171,24 @@ const pluginsManager = {
   },
 
   afterInit (player) {
+    let prevTask;
+    if (player._loadingPlugins && player._loadingPlugins.length) {
+      prevTask = Promise.all(player._loadingPlugins)
+    } else {
+      prevTask = Promise.resolve()
+    }
     if (!this.pluginGroup) {
       return;
     }
-    const cgid = player._pluginInfoId
-    const plugins = this.pluginGroup[cgid]._plugins
-    for (const item of Object.keys(plugins)) {
-      if (plugins[item] && plugins[item].afterPlayerInit) {
-        plugins[item].afterPlayerInit()
+    prevTask.then(() => {
+      const cgid = player._pluginInfoId
+      const plugins = this.pluginGroup[cgid]._plugins
+      for (const item of Object.keys(plugins)) {
+        if (plugins[item] && plugins[item].afterPlayerInit) {
+          plugins[item].afterPlayerInit()
+        }
       }
-    }
+    })
   },
 
   reRender (player) {

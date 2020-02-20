@@ -208,6 +208,7 @@ class Player extends Proxy {
    * 注册组件 组件列表config.plugins
    */
   _registerPlugins () {
+    this._loadingPlugins = []
     const ignores = this.config.ignores || []
     const plugins = this.config.plugins || []
     const ignoresStr = ignores.join('||')
@@ -216,6 +217,19 @@ class Player extends Proxy {
         // 在ignores中的不做组装
         if (plugin.pluginName && ignoresStr.indexOf(plugin.pluginName.toLowerCase()) > -1) {
           return null
+        }
+        if (plugin.lazy && plugin.loader) {
+          const loadingPlugin = pluginsManager.lazyRegister(this, plugin)
+          if (plugin.forceBeforeInited) {
+            loadingPlugin.then(() => {
+              this._loadingPlugins.splice(this._loadingPlugins.indexOf(loadingPlugin), 1);
+            }).catch(() => {
+              this._loadingPlugins.splice(this._loadingPlugins.indexOf(loadingPlugin), 1);
+            })
+            this._loadingPlugins.push(loadingPlugin)
+          }
+
+          return;
         }
         if (plugin.options) {
           return pluginsManager.register(this, plugin.plugin, plugin.options)
@@ -343,7 +357,6 @@ class Player extends Proxy {
           console.log(err)
         })
       }
-
     })
     this.emit(Events.REPLAY)
     this.currentTime = 0
