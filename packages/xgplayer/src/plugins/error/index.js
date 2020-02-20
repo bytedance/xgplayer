@@ -1,4 +1,4 @@
-import Player from 'xgplayer'
+import Player from '../../player'
 import Plugin from '../../Plugin'
 
 export default class ErrorPlugin extends Plugin  {

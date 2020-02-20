@@ -745,7 +745,7 @@
 	var FULLSCREEN_CHANGE = 'fullscreen_change';
 	var CSS_FULLSCREEN_CHANGE = 'cssFullscreen_change';
 
-	var Events = /*#__PURE__*/Object.freeze({
+	var event = /*#__PURE__*/Object.freeze({
 		__proto__: null,
 		PLAY: PLAY,
 		PLAYING: PLAYING,
@@ -852,7 +852,8 @@
 	        _this2.evItem = Object.keys(item)[0];
 	        var name = Object.keys(item)[0];
 	        var funName = item[name];
-	        _this2.video.addEventListener(Object.keys(item)[0], function () {
+
+	        _this2.videoEventHandler = function () {
 	          if (name === 'error') {
 	            _this2.errorHandler(name);
 	            _emitEvent(funName, _this2);
@@ -888,7 +889,8 @@
 	              }
 	            }
 	          }
-	        }, false);
+	        };
+	        _this2.video.addEventListener(Object.keys(item)[0], _this2.videoEventHandler, false);
 	      });
 	    }
 
@@ -928,6 +930,8 @@
 	        if (evFunc) {
 	          _this3.off(evName, evFunc);
 	        }
+
+	        _this3.video.removeEventListener(evName, _this3.videoEventHandler, false);
 	      });
 	      allOff(this);
 	    }
@@ -1364,7 +1368,7 @@
 	BasePlugin.Util = util;
 	BasePlugin.Sniffer = sniffer;
 	BasePlugin.Errors = Errors;
-	BasePlugin.Events = Events;
+	BasePlugin.Events = event;
 
 	/**
 	* a plugins manager to register and search
@@ -3241,7 +3245,7 @@
 	function _inherits$3(subClass, superClass) { if (typeof superClass !== "function" && superClass !== null) { throw new TypeError("Super expression must either be null or a function, not " + typeof superClass); } subClass.prototype = Object.create(superClass && superClass.prototype, { constructor: { value: subClass, enumerable: false, writable: true, configurable: true } }); if (superClass) Object.setPrototypeOf ? Object.setPrototypeOf(subClass, superClass) : subClass.__proto__ = superClass; }
 
 	var Util = Plugin.Util,
-	    Events$1 = Plugin.Events;
+	    Events = Plugin.Events;
 
 	var Start = function (_Plugin) {
 	  _inherits$3(Start, _Plugin);
@@ -3261,7 +3265,7 @@
 	          root = this.root,
 	          playerConfig = this.playerConfig;
 
-	      this.once(Events$1.READY, function () {
+	      this.once(Events.READY, function () {
 	        if (playerConfig) {
 	          if (playerConfig.lang && playerConfig.lang === 'en') {
 	            Util.addClass(root, 'lang-is-en');
@@ -3295,11 +3299,11 @@
 	          }
 	        }
 	      });
-	      this.on([Events$1.PLAY, Events$1.PAUSE], function () {
+	      this.on([Events.PLAY, Events.PAUSE], function () {
 	        // this.setInterval()
 	        _this2.animate();
 	      });
-	      this.on(Events$1.AUTOPLAY_PREVENTED, function () {
+	      this.on(Events.AUTOPLAY_PREVENTED, function () {
 	        _this2.show('inline-block');
 	        // this.clearInterval()
 	        _this2.animate(true);
@@ -3471,26 +3475,26 @@
 	      _player.root.style.left = '';
 	      _player.root.style.width = '320px';
 	      _player.root.style.height = '180px';
-	      if (_player.config.pipConfig) {
-	        if (_player.config.pipConfig.top !== undefined) {
-	          _player.root.style.top = _player.config.pipConfig.top + 'px';
+	      if (this.config) {
+	        if (this.config.top !== undefined) {
+	          _player.root.style.top = this.config.top + 'px';
 	          _player.root.style.bottom = '';
 	        }
-	        if (_player.config.pipConfig.bottom !== undefined) {
-	          _player.root.style.bottom = _player.config.pipConfig.bottom + 'px';
+	        if (this.config.bottom !== undefined) {
+	          _player.root.style.bottom = this.config.bottom + 'px';
 	        }
-	        if (_player.config.pipConfig.left !== undefined) {
-	          _player.root.style.left = _player.config.pipConfig.left + 'px';
+	        if (this.config.left !== undefined) {
+	          _player.root.style.left = this.config.left + 'px';
 	          _player.root.style.right = '';
 	        }
-	        if (_player.config.pipConfig.right !== undefined) {
-	          _player.root.style.right = _player.config.pipConfig.right + 'px';
+	        if (this.config.right !== undefined) {
+	          _player.root.style.right = this.config.right + 'px';
 	        }
-	        if (_player.config.pipConfig.width !== undefined) {
-	          _player.root.style.width = _player.config.pipConfig.width + 'px';
+	        if (this.config.width !== undefined) {
+	          _player.root.style.width = this.config.width + 'px';
 	        }
-	        if (_player.config.pipConfig.height !== undefined) {
-	          _player.root.style.height = _player.config.pipConfig.height + 'px';
+	        if (this.config.height !== undefined) {
+	          _player.root.style.height = this.config.height + 'px';
 	        }
 	      }
 	      if (_player.config.fluid) {
@@ -3587,7 +3591,7 @@
 	function _possibleConstructorReturn$6(self, call) { if (!self) { throw new ReferenceError("this hasn't been initialised - super() hasn't been called"); } return call && (typeof call === "object" || typeof call === "function") ? call : self; }
 
 	function _inherits$6(subClass, superClass) { if (typeof superClass !== "function" && superClass !== null) { throw new TypeError("Super expression must either be null or a function, not " + typeof superClass); } subClass.prototype = Object.create(superClass && superClass.prototype, { constructor: { value: subClass, enumerable: false, writable: true, configurable: true } }); if (superClass) Object.setPrototypeOf ? Object.setPrototypeOf(subClass, superClass) : subClass.__proto__ = superClass; }
-	var Events$2 = BasePlugin.Events,
+	var Events$1 = BasePlugin.Events,
 	    Util$2 = BasePlugin.Util;
 
 	var PCPlugin = function (_BasePlugin) {
@@ -3628,8 +3632,8 @@
 
 	      player.video.addEventListener('dblclick', this.onVideoDblClick, false);
 
-	      this.once(Events$2.CANPLAY, this.onEntered.bind(this));
-	      this.once(Events$2.AUTOPLAY_PREVENTED, function () {
+	      this.once(Events$1.CANPLAY, this.onEntered.bind(this));
+	      this.once(Events$1.AUTOPLAY_PREVENTED, function () {
 	        _this2.onAutoPlayPrevented();
 	      });
 
@@ -3663,9 +3667,9 @@
 	      var player = this.player;
 
 	      Util$2.removeClass(player.root, 'xgplayer-is-enter');
-	      this.once(Events$2.PLAY, function () {
+	      this.once(Events$1.PLAY, function () {
 	        Util$2.addClass(player.root, 'xgplayer-is-enter');
-	        _this3.once(Events$2.TIME_UPDATE, function () {
+	        _this3.once(Events$1.TIME_UPDATE, function () {
 	          Util$2.removeClass(player.root, 'xgplayer-is-enter');
 	        });
 	      });
@@ -4123,7 +4127,7 @@
 	};
 
 	var Util$3 = Plugin.Util,
-	    Events$3 = Plugin.Events;
+	    Events$2 = Plugin.Events;
 
 	var ProgressDot = function (_Plugin) {
 	  _inherits$a(ProgressDot, _Plugin);
@@ -4156,7 +4160,7 @@
 	    value: function afterCreate() {
 	      var _this2 = this;
 
-	      this.once(Events$3.CANPLAY, function () {
+	      this.once(Events$2.CANPLAY, function () {
 	        var dots = _this2.config.dots;
 
 	        if (!dots || !Array.isArray(dots)) {
@@ -4256,7 +4260,7 @@
 
 	function _inherits$b(subClass, superClass) { if (typeof superClass !== "function" && superClass !== null) { throw new TypeError("Super expression must either be null or a function, not " + typeof superClass); } subClass.prototype = Object.create(superClass && superClass.prototype, { constructor: { value: subClass, enumerable: false, writable: true, configurable: true } }); if (superClass) Object.setPrototypeOf ? Object.setPrototypeOf(subClass, superClass) : subClass.__proto__ = superClass; }
 
-	var Events$4 = Plugin.Events,
+	var Events$3 = Plugin.Events,
 	    Util$4 = Plugin.Util;
 
 	var defaultThumbnailConfig = {
@@ -4297,6 +4301,10 @@
 
 	    _this.useable = false;
 	    _this.isProgressMoving = false;
+
+	    if (args.thumbnail) {
+	      _this.thumbnail = args.thumbnail;
+	    }
 	    return _this;
 	  }
 
@@ -4318,11 +4326,15 @@
 	      this.progressBtn = this.find('.xgplayer-progress-btn');
 	      this.thumbnailDom = this.find('xg-thumbnail');
 	      this.initThumbnail();
-	      this.on(Events$4.TIME_UPDATE, function () {
+	      this.on(Events$3.TIME_UPDATE, function () {
 	        _this2.onTimeupdate();
 	        _this2.onCacheUpdate();
 	      });
-	      this.on([Events$4.BUFFER_CHANGE, Events$4.ENDED], function () {
+	      this.on(Events$3.SEEKING, function () {
+	        _this2.onTimeupdate();
+	        _this2.onCacheUpdate();
+	      });
+	      this.on([Events$3.BUFFER_CHANGE, Events$3.ENDED], function () {
 	        _this2.onCacheUpdate();
 	      });
 	      this.bindDomEvents();
@@ -4345,8 +4357,8 @@
 	    value: function initThumbnail() {
 	      var _this3 = this;
 
-	      if (this.playerConfig.thumbnail) {
-	        var thumbnail = this.playerConfig.thumbnail;
+	      if (this.thumbnail) {
+	        var thumbnail = this.thumbnail;
 
 	        this.thumbnailConfig = {};
 	        Object.keys(defaultThumbnailConfig).map(function (key) {
@@ -4490,7 +4502,7 @@
 	      var _this5 = this;
 
 	      var thumbnail = this.thumbnailConfig;
-	      if (!thumbnail.pic_num === 0 || thumbnail.urls.length === 0) {
+	      if (!thumbnail || !thumbnail.pic_num === 0 || thumbnail.urls.length === 0) {
 	        return;
 	      }
 	      this.interval = this.player.duration / thumbnail.pic_num;
@@ -4605,7 +4617,7 @@
 
 	function _inherits$c(subClass, superClass) { if (typeof superClass !== "function" && superClass !== null) { throw new TypeError("Super expression must either be null or a function, not " + typeof superClass); } subClass.prototype = Object.create(superClass && superClass.prototype, { constructor: { value: subClass, enumerable: false, writable: true, configurable: true } }); if (superClass) Object.setPrototypeOf ? Object.setPrototypeOf(subClass, superClass) : subClass.__proto__ = superClass; }
 
-	var Events$5 = Plugin.Events;
+	var Events$4 = Plugin.Events;
 
 	var PlayIcon = function (_Plugin) {
 	  _inherits$c(PlayIcon, _Plugin);
@@ -4626,11 +4638,11 @@
 	      this.btnClick = this.btnClick.bind(this);
 	      this.bind(['touchend', 'click'], this.btnClick);
 
-	      this.on(Events$5.PAUSE, function () {
+	      this.on(Events$4.PAUSE, function () {
 	        _this2.find('.xg-tips').innerHTML = _this2.text.play;
 	        _this2.animate(player.paused);
 	      });
-	      this.on(Events$5.PLAY, function () {
+	      this.on(Events$4.PLAY, function () {
 	        _this2.find('.xg-tips').innerHTML = _this2.text.pause;
 	        _this2.animate(player.paused);
 	      });
@@ -4710,7 +4722,7 @@
 
 	function _inherits$d(subClass, superClass) { if (typeof superClass !== "function" && superClass !== null) { throw new TypeError("Super expression must either be null or a function, not " + typeof superClass); } subClass.prototype = Object.create(superClass && superClass.prototype, { constructor: { value: subClass, enumerable: false, writable: true, configurable: true } }); if (superClass) Object.setPrototypeOf ? Object.setPrototypeOf(subClass, superClass) : subClass.__proto__ = superClass; }
 
-	var Events$6 = Plugin.Events;
+	var Events$5 = Plugin.Events;
 
 	var Fullscreen = function (_Plugin) {
 	  _inherits$d(Fullscreen, _Plugin);
@@ -4728,7 +4740,7 @@
 
 	      this.btnClick = this.btnClick.bind(this);
 	      this.bind(['click', 'touchend'], this.btnClick);
-	      this.on(Events$6.FULLSCREEN_CHANGE, function (isFullScreen) {
+	      this.on(Events$5.FULLSCREEN_CHANGE, function (isFullScreen) {
 	        _this2.find('.xg-tips').innerHTML = isFullScreen ? _this2.text.exitFullscreen : _this2.text.fullscreen;
 	        _this2.animate(isFullScreen);
 	      });
@@ -4738,10 +4750,26 @@
 	    value: function btnClick(e) {
 	      var player = this.player;
 
-	      if (player.fullscreen) {
-	        player.exitFullscreen();
+	      var useCssFullscreen = false;
+	      if (this.config.useCssFullscreen && this.config.useCssFullscreen()) {
+	        useCssFullscreen = true;
+	      }
+	      if (useCssFullscreen) {
+	        if (player.fullscreen) {
+	          player.getCssFullscreen();
+	          player.fullscreen = true;
+	          this.emit(Events$5.FULLSCREEN_CHANGE, true);
+	        } else {
+	          player.exitCssFullscreen();
+	          player.fullscreen = false;
+	          this.emit(Events$5.FULLSCREEN_CHANGE, false);
+	        }
 	      } else {
-	        player.getFullscreen();
+	        if (player.fullscreen) {
+	          player.exitFullscreen();
+	        } else {
+	          player.getFullscreen();
+	        }
 	      }
 	    }
 	  }, {
@@ -4804,7 +4832,7 @@
 	function _inherits$e(subClass, superClass) { if (typeof superClass !== "function" && superClass !== null) { throw new TypeError("Super expression must either be null or a function, not " + typeof superClass); } subClass.prototype = Object.create(superClass && superClass.prototype, { constructor: { value: subClass, enumerable: false, writable: true, configurable: true } }); if (superClass) Object.setPrototypeOf ? Object.setPrototypeOf(subClass, superClass) : subClass.__proto__ = superClass; }
 
 	var Util$5 = Plugin.Util,
-	    Events$7 = Plugin.Events;
+	    Events$6 = Plugin.Events;
 
 	var TimeIcon = function (_Plugin) {
 	  _inherits$e(TimeIcon, _Plugin);
@@ -4835,7 +4863,7 @@
 
 	      this.durationDom = this.find('.time-duration');
 	      this.timeDom = this.find('.time-current');
-	      this.once(Events$7.READY, function () {
+	      this.once(Events$6.READY, function () {
 	        if (player.duration === Infinity || _this2.playerConfig.isLive) {
 	          Util$5.hide(_this2.durationDom);
 	          Util$5.hide(_this2.timeDom);
@@ -4846,10 +4874,10 @@
 	        }
 	        _this2.show();
 	      });
-	      this.on(Events$7.DURATION_CHANGE, function () {
+	      this.on(Events$6.DURATION_CHANGE, function () {
 	        _this2.onTimeUpdate();
 	      });
-	      this.on(Events$7.TIME_UPDATE, function () {
+	      this.on(Events$6.TIME_UPDATE, function () {
 	        _this2.onTimeUpdate();
 	      });
 	    }
@@ -4904,7 +4932,7 @@
 	function _inherits$f(subClass, superClass) { if (typeof superClass !== "function" && superClass !== null) { throw new TypeError("Super expression must either be null or a function, not " + typeof superClass); } subClass.prototype = Object.create(superClass && superClass.prototype, { constructor: { value: subClass, enumerable: false, writable: true, configurable: true } }); if (superClass) Object.setPrototypeOf ? Object.setPrototypeOf(subClass, superClass) : subClass.__proto__ = superClass; }
 
 	var Util$6 = Plugin.Util,
-	    Events$8 = Plugin.Events;
+	    Events$7 = Plugin.Events;
 
 	var VolumeIcon = function (_Plugin) {
 	  _inherits$f(VolumeIcon, _Plugin);
@@ -4940,7 +4968,7 @@
 	      this.bind('.xgplayer-bar', 'mousedown', this.onBarMousedown);
 	      this.bind('.xgplayer-icon', ['click', 'touched'], this.changeMuted);
 
-	      this.on(Events$8.VOLUME_CHANGE, this.onVolumeChange.bind(this));
+	      this.on(Events$7.VOLUME_CHANGE, this.onVolumeChange.bind(this));
 	    }
 	  }, {
 	    key: 'onBarMousedown',
@@ -5216,7 +5244,7 @@
 
 	function _inherits$h(subClass, superClass) { if (typeof superClass !== "function" && superClass !== null) { throw new TypeError("Super expression must either be null or a function, not " + typeof superClass); } subClass.prototype = Object.create(superClass && superClass.prototype, { constructor: { value: subClass, enumerable: false, writable: true, configurable: true } }); if (superClass) Object.setPrototypeOf ? Object.setPrototypeOf(subClass, superClass) : subClass.__proto__ = superClass; }
 
-	var Events$9 = Plugin.Events;
+	var Events$8 = Plugin.Events;
 
 	var PIPIcon = function (_Plugin) {
 	  _inherits$h(PIPIcon, _Plugin);
@@ -5233,7 +5261,7 @@
 	      var _this2 = this;
 
 	      // video初始化之后再做判断是否显示
-	      this.once(Events$9.COMPLETE, function () {
+	      this.once(Events$8.COMPLETE, function () {
 	        if (_this2.isPIPAvailable()) {
 	          _this2.show();
 	          _this2.switchPIP = _this2.switchPIP.bind(_this2);
@@ -5323,7 +5351,7 @@
 	  return PIPIcon;
 	}(Plugin);
 
-	var Next = "<svg xmlns=\"http://www.w3.org/2000/svg\" width=\"40\" height=\"40\" viewBox=\"0 0 40 40\">\n  <path transform=\"scale(0.038 0.028)\" d=\"M800 380v768h-128v-352l-320 320v-704l320 320v-352z\"></path>\n</svg>\n";
+	var PlayNextIcon = "<svg xmlns=\"http://www.w3.org/2000/svg\" width=\"40\" height=\"40\" viewBox=\"0 0 40 40\">\n  <path transform=\"scale(0.038 0.028)\" d=\"M800 380v768h-128v-352l-320 320v-704l320 320v-352z\"></path>\n</svg>\n";
 
 	var _createClass$k = function () { function defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ("value" in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } } return function (Constructor, protoProps, staticProps) { if (protoProps) defineProperties(Constructor.prototype, protoProps); if (staticProps) defineProperties(Constructor, staticProps); return Constructor; }; }();
 
@@ -5335,16 +5363,27 @@
 
 	// const { Events } = Plugin
 
-	var PlayNextIcon = function (_Plugin) {
-	  _inherits$i(PlayNextIcon, _Plugin);
+	var PlayNextIcon$1 = function (_Plugin) {
+	  _inherits$i(PlayNextIcon$1, _Plugin);
 
-	  function PlayNextIcon() {
-	    _classCallCheck$m(this, PlayNextIcon);
+	  _createClass$k(PlayNextIcon$1, null, [{
+	    key: 'pluginName',
+	    get: function get() {
+	      return 'PlayNextIcon';
+	    }
+	  }]);
 
-	    return _possibleConstructorReturn$i(this, (PlayNextIcon.__proto__ || Object.getPrototypeOf(PlayNextIcon)).apply(this, arguments));
+	  function PlayNextIcon$1(options) {
+	    _classCallCheck$m(this, PlayNextIcon$1);
+
+	    var _this = _possibleConstructorReturn$i(this, (PlayNextIcon$1.__proto__ || Object.getPrototypeOf(PlayNextIcon$1)).call(this, options));
+
+	    _this.urlList = options.urlList || [];
+	    _this.idx = -1;
+	    return _this;
 	  }
 
-	  _createClass$k(PlayNextIcon, [{
+	  _createClass$k(PlayNextIcon$1, [{
 	    key: 'afterCreate',
 	    value: function afterCreate() {
 	      var playerConfig = this.playerConfig;
@@ -5364,29 +5403,34 @@
 	  }, {
 	    key: 'playNext',
 	    value: function playNext() {
-	      // TODO 根据配置信息进行下一个视频的切换 或者 根据参数中的回调函数进行调用
-	      this.emit('playNext');
+	      var player = this.player;
+
+	      if (this.idx + 1 < this.urlList.length) {
+	        this.idx++;
+	        player.video.pause();
+	        player.currentTime = 0;
+	        player.video.autoplay = true;
+	        player.src = this.urlList[this.idx];
+	        player.emit('playerNext', this.idx + 1);
+	      } else {
+	        player.emit('urlList last');
+	      }
 	    }
 	  }, {
 	    key: 'registerIcons',
 	    value: function registerIcons() {
 	      return {
-	        playNext: Next
+	        playNext: PlayNextIcon
 	      };
 	    }
 	  }, {
 	    key: 'registerLangauageTexts',
 	    value: function registerLangauageTexts() {
 	      return {
-	        'play': {
+	        'playNext': {
 	          jp: 'play',
 	          en: 'play',
 	          zh: '播放'
-	        },
-	        'pause': {
-	          jp: 'pause',
-	          en: 'pause',
-	          zh: '暂停'
 	        }
 	      };
 	    }
@@ -5398,16 +5442,11 @@
 	  }, {
 	    key: 'render',
 	    value: function render() {
-	      return '\n     <xg-icon class="xgplayer-playnext">\n      <div class="xgplayer-icon">\n        ' + this.icons.playNext + '\n      </div>\n      <div class="xg-tips"></div>\n     </xg-icon>\n    ';
-	    }
-	  }], [{
-	    key: 'pluginName',
-	    get: function get() {
-	      return 'PlayNextIcon';
+	      return '\n     <xg-icon class="xgplayer-playnext">\n      <div class="xgplayer-icon">\n        ' + this.icons.playNext + '\n      </div>\n      <div class="xg-tips">' + this.text.playNext + '</div>\n     </xg-icon>\n    ';
 	    }
 	  }]);
 
-	  return PlayNextIcon;
+	  return PlayNextIcon$1;
 	}(Plugin);
 
 	var _createClass$l = function () { function defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ("value" in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } } return function (Constructor, protoProps, staticProps) { if (protoProps) defineProperties(Constructor.prototype, protoProps); if (staticProps) defineProperties(Constructor, staticProps); return Constructor; }; }();
@@ -5418,7 +5457,7 @@
 
 	function _inherits$j(subClass, superClass) { if (typeof superClass !== "function" && superClass !== null) { throw new TypeError("Super expression must either be null or a function, not " + typeof superClass); } subClass.prototype = Object.create(superClass && superClass.prototype, { constructor: { value: subClass, enumerable: false, writable: true, configurable: true } }); if (superClass) Object.setPrototypeOf ? Object.setPrototypeOf(subClass, superClass) : subClass.__proto__ = superClass; }
 
-	var Events$a = Plugin.Events,
+	var Events$9 = Plugin.Events,
 	    Util$7 = Plugin.Util,
 	    Sniffer = Plugin.Sniffer;
 
@@ -5459,7 +5498,7 @@
 	    value: function afterCreate() {
 	      var _this2 = this;
 
-	      this.once(Events$a.CANPLAY, function () {
+	      this.once(Events$9.CANPLAY, function () {
 	        if (_this2.config.itemList && _this2.config.itemList.length > 0) {
 	          _this2.renderItemList();
 	          _this2.show();
@@ -5637,7 +5676,7 @@
 
 	function _inherits$k(subClass, superClass) { if (typeof superClass !== "function" && superClass !== null) { throw new TypeError("Super expression must either be null or a function, not " + typeof superClass); } subClass.prototype = Object.create(superClass && superClass.prototype, { constructor: { value: subClass, enumerable: false, writable: true, configurable: true } }); if (superClass) Object.setPrototypeOf ? Object.setPrototypeOf(subClass, superClass) : subClass.__proto__ = superClass; }
 
-	var Events$b = Plugin.Events,
+	var Events$a = Plugin.Events,
 	    Util$8 = Plugin.Util,
 	    Sniffer$1 = Plugin.Sniffer;
 
@@ -5676,7 +5715,7 @@
 	    value: function afterCreate() {
 	      var _this2 = this;
 
-	      this.once(Events$b.CANPLAY, function () {
+	      this.once(Events$a.CANPLAY, function () {
 	        _this2.show();
 	      });
 	      if (Sniffer$1.device === 'mobile') {
@@ -5751,7 +5790,7 @@
 
 	function _inherits$l(subClass, superClass) { if (typeof superClass !== "function" && superClass !== null) { throw new TypeError("Super expression must either be null or a function, not " + typeof superClass); } subClass.prototype = Object.create(superClass && superClass.prototype, { constructor: { value: subClass, enumerable: false, writable: true, configurable: true } }); if (superClass) Object.setPrototypeOf ? Object.setPrototypeOf(subClass, superClass) : subClass.__proto__ = superClass; }
 
-	var Events$c = Plugin.Events,
+	var Events$b = Plugin.Events,
 	    Util$9 = Plugin.Util;
 
 	var CssFullScreen = function (_Plugin) {
@@ -5778,7 +5817,7 @@
 	    value: function afterCreate() {
 	      var _this2 = this;
 
-	      this.on(Events$c.READY, function () {
+	      this.on(Events$b.READY, function () {
 	        _this2.btnClick = _this2.btnClick.bind(_this2);
 	        _this2.bind(['click', 'touchend'], _this2.btnClick);
 	      });
@@ -5794,7 +5833,7 @@
 	        this.exitCssFullscreen();
 	      }
 	      this.animate(this.isCssfullScreen);
-	      this.emit(Events$c.CSS_FULLSCREEN_CHANGE, this.isCssfullScreen);
+	      this.emit(Events$b.CSS_FULLSCREEN_CHANGE, this.isCssfullScreen);
 	    }
 	  }, {
 	    key: 'animate',
@@ -5887,7 +5926,11 @@
 
 	  _createClass$o(Controls, [{
 	    key: 'afterCreate',
-	    value: function afterCreate() {}
+	    value: function afterCreate() {
+	      var player = this.player;
+
+	      player.controls = this.el;
+	    }
 	  }, {
 	    key: 'children',
 	    value: function children() {
@@ -5910,7 +5953,7 @@
 	          }
 	        },
 	        playNextIcon: {
-	          plugin: PlayNextIcon,
+	          plugin: PlayNextIcon$1,
 	          options: {
 	            index: 1,
 	            root: this.left
@@ -6650,13 +6693,1290 @@
 	Player.util = util;
 	Player.sniffer = sniffer;
 	Player.Errors = Errors;
-	Player.Events = Events;
+	Player.Events = event;
 	Player.Plugin = Plugin;
 	Player.BasePlugin = BasePlugin;
 
-	Player.BasePlugin = BasePlugin;
-	Player.Plugin = Plugin;
-	Player.pluginsManager = pluginsManager;
+	var _createClass$q = function () { function defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ("value" in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } } return function (Constructor, protoProps, staticProps) { if (protoProps) defineProperties(Constructor.prototype, protoProps); if (staticProps) defineProperties(Constructor, staticProps); return Constructor; }; }();
+
+	function _classCallCheck$s(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } }
+
+	function _possibleConstructorReturn$o(self, call) { if (!self) { throw new ReferenceError("this hasn't been initialised - super() hasn't been called"); } return call && (typeof call === "object" || typeof call === "function") ? call : self; }
+
+	function _inherits$o(subClass, superClass) { if (typeof superClass !== "function" && superClass !== null) { throw new TypeError("Super expression must either be null or a function, not " + typeof superClass); } subClass.prototype = Object.create(superClass && superClass.prototype, { constructor: { value: subClass, enumerable: false, writable: true, configurable: true } }); if (superClass) Object.setPrototypeOf ? Object.setPrototypeOf(subClass, superClass) : subClass.__proto__ = superClass; }
+
+	var Controls$1 = function (_Plugin) {
+	  _inherits$o(Controls, _Plugin);
+
+	  function Controls() {
+	    _classCallCheck$s(this, Controls);
+
+	    return _possibleConstructorReturn$o(this, (Controls.__proto__ || Object.getPrototypeOf(Controls)).apply(this, arguments));
+	  }
+
+	  _createClass$q(Controls, [{
+	    key: 'afterCreate',
+	    value: function afterCreate() {
+	      var player = this.player;
+
+	      player.controls = this.el;
+	    }
+	  }, {
+	    key: 'children',
+	    value: function children() {
+	      this.left = this.find('left-grid');
+	      this.center = this.find('center');
+	      this.right = this.find('right-grid');
+	      return {
+	        TimeIcon: {
+	          plugin: TimeIcon,
+	          options: {
+	            index: 3,
+	            root: this.left
+	          }
+	        },
+	        PlayIcon: {
+	          plugin: PlayIcon,
+	          options: {
+	            index: 0,
+	            root: this.left
+	          }
+	        },
+	        playNextIcon: {
+	          plugin: PlayNextIcon$1,
+	          options: {
+	            index: 1,
+	            root: this.left
+	          }
+	        },
+	        // DownLoadIcon: {
+	        //   plugin: DownLoadIcon,
+	        //   options: {
+	        //     index: 3,
+	        //     root: this.right
+	        //   }
+	        // },
+	        // ScreenShotIcon: {
+	        //   plugin: ScreenShotIcon,
+	        //   options: {
+	        //     index: 4,
+	        //     root: this.right
+	        //   }
+	        // },
+	        FullScreen: {
+	          plugin: Fullscreen,
+	          options: {
+	            index: 0,
+	            root: this.right
+	          }
+	        },
+	        VolumeIcon: {
+	          plugin: VolumeIcon,
+	          options: {
+	            index: 1,
+	            root: this.right
+	          }
+	        },
+	        RotateIcon: {
+	          plugin: DefinitionIcon,
+	          options: {
+	            index: 2,
+	            root: this.right
+	          }
+	        },
+	        DefinitionIcon: {
+	          plugin: Rotate,
+	          options: {
+	            index: 3,
+	            root: this.right
+	          }
+	        },
+	        PlaybackRateIcon: {
+	          plugin: PlaybackRateIcon,
+	          options: {
+	            index: 4,
+	            root: this.right
+	          }
+	        },
+	        // MiniScreen: {
+	        //   plugin: MiniScreen,
+	        //   options: {
+	        //     index: 1,
+	        //     root: this.right
+	        //   }
+	        // },
+	        PIPIcon: {
+	          plugin: PIPIcon,
+	          options: {
+	            index: 1,
+	            root: this.right
+	          }
+	        },
+	        CssFullScreen: {
+	          plugin: CssFullScreen,
+	          options: {
+	            index: 1,
+	            root: this.right
+	          }
+	        },
+	        Progress: {
+	          plugin: Progress,
+	          options: {
+	            root: this.center
+	          }
+	        }
+	      };
+	    }
+	  }, {
+	    key: 'render',
+	    value: function render() {
+	      return '<xg-controls class="xgplayer-controls" unselectable="on" onselectstart="return false">\n    <left-grid class="left-grid">\n    </Left-grid>\n    <center class="center"></center>\n    <right-grid class="right-grid">\n    </right-grid>\n    </xg-controls>';
+	    }
+	  }], [{
+	    key: 'pluginName',
+	    get: function get() {
+	      return 'Controls';
+	    }
+	  }]);
+
+	  return Controls;
+	}(Plugin);
+
+	var _createClass$r = function () { function defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ("value" in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } } return function (Constructor, protoProps, staticProps) { if (protoProps) defineProperties(Constructor.prototype, protoProps); if (staticProps) defineProperties(Constructor, staticProps); return Constructor; }; }();
+
+	function _classCallCheck$t(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } }
+
+	function _possibleConstructorReturn$p(self, call) { if (!self) { throw new ReferenceError("this hasn't been initialised - super() hasn't been called"); } return call && (typeof call === "object" || typeof call === "function") ? call : self; }
+
+	function _inherits$p(subClass, superClass) { if (typeof superClass !== "function" && superClass !== null) { throw new TypeError("Super expression must either be null or a function, not " + typeof superClass); } subClass.prototype = Object.create(superClass && superClass.prototype, { constructor: { value: subClass, enumerable: false, writable: true, configurable: true } }); if (superClass) Object.setPrototypeOf ? Object.setPrototypeOf(subClass, superClass) : subClass.__proto__ = superClass; }
+
+	var PlayNext = function (_Plugin) {
+	  _inherits$p(PlayNext, _Plugin);
+
+	  _createClass$r(PlayNext, null, [{
+	    key: 'pluginName',
+	    get: function get() {
+	      return 'PlayNext';
+	    }
+	  }]);
+
+	  function PlayNext(options) {
+	    _classCallCheck$t(this, PlayNext);
+
+	    var _this = _possibleConstructorReturn$p(this, (PlayNext.__proto__ || Object.getPrototypeOf(PlayNext)).call(this, options));
+
+	    _this.urlList = options.urlList;
+	    _this.idx = -1;
+	    return _this;
+	  }
+
+	  _createClass$r(PlayNext, [{
+	    key: 'registerIcons',
+	    value: function registerIcons() {
+	      return {
+	        'playNext': PlayNextIcon
+	      };
+	    }
+	  }, {
+	    key: 'afterCreate',
+	    value: function afterCreate() {
+	      var _this2 = this;
+
+	      var player = this.player;
+
+	      this.bind('svg', 'click', function (e) {
+	        e.preventDefault();
+	        e.stopPropagation();
+	        if (_this2.idx + 1 < _this2.urlList.length) {
+	          _this2.idx++;
+	          player.video.pause();
+	          player.currentTime = 0;
+	          player.video.autoplay = true;
+	          player.src = _this2.urlList[_this2.idx];
+	          player.emit('playerNext', _this2.idx + 1);
+	        } else {
+	          player.emit('urlList last');
+	        }
+	      });
+	    }
+	  }, {
+	    key: 'render',
+	    value: function render() {
+	      return '<xg-play-next class="xgplayer-play-next">\n      ' + this.icons.playNext + '\n    </xg-play-next>';
+	    }
+	  }]);
+
+	  return PlayNext;
+	}(Plugin);
+
+	var _createClass$s = function () { function defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ("value" in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } } return function (Constructor, protoProps, staticProps) { if (protoProps) defineProperties(Constructor.prototype, protoProps); if (staticProps) defineProperties(Constructor, staticProps); return Constructor; }; }();
+
+	function _classCallCheck$u(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } }
+
+	function _possibleConstructorReturn$q(self, call) { if (!self) { throw new ReferenceError("this hasn't been initialised - super() hasn't been called"); } return call && (typeof call === "object" || typeof call === "function") ? call : self; }
+
+	function _inherits$q(subClass, superClass) { if (typeof superClass !== "function" && superClass !== null) { throw new TypeError("Super expression must either be null or a function, not " + typeof superClass); } subClass.prototype = Object.create(superClass && superClass.prototype, { constructor: { value: subClass, enumerable: false, writable: true, configurable: true } }); if (superClass) Object.setPrototypeOf ? Object.setPrototypeOf(subClass, superClass) : subClass.__proto__ = superClass; }
+
+	var PlaceHolderPlugin = function (_BasePlugin) {
+	  _inherits$q(PlaceHolderPlugin, _BasePlugin);
+
+	  function PlaceHolderPlugin() {
+	    _classCallCheck$u(this, PlaceHolderPlugin);
+
+	    return _possibleConstructorReturn$q(this, (PlaceHolderPlugin.__proto__ || Object.getPrototypeOf(PlaceHolderPlugin)).apply(this, arguments));
+	  }
+
+	  _createClass$s(PlaceHolderPlugin, [{
+	    key: 'render',
+	    value: function render() {
+	      return '<xg-placeholder class="xgplayer-placeholder">\n    </xg-placeholder>';
+	    }
+	  }], [{
+	    key: 'pluginName',
+	    get: function get() {
+	      return 'placeholder';
+	    }
+	  }]);
+
+	  return PlaceHolderPlugin;
+	}(BasePlugin);
+
+	var _createClass$t = function () { function defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ("value" in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } } return function (Constructor, protoProps, staticProps) { if (protoProps) defineProperties(Constructor.prototype, protoProps); if (staticProps) defineProperties(Constructor, staticProps); return Constructor; }; }();
+
+	function _classCallCheck$v(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } }
+
+	function _possibleConstructorReturn$r(self, call) { if (!self) { throw new ReferenceError("this hasn't been initialised - super() hasn't been called"); } return call && (typeof call === "object" || typeof call === "function") ? call : self; }
+
+	function _inherits$r(subClass, superClass) { if (typeof superClass !== "function" && superClass !== null) { throw new TypeError("Super expression must either be null or a function, not " + typeof superClass); } subClass.prototype = Object.create(superClass && superClass.prototype, { constructor: { value: subClass, enumerable: false, writable: true, configurable: true } }); if (superClass) Object.setPrototypeOf ? Object.setPrototypeOf(subClass, superClass) : subClass.__proto__ = superClass; }
+
+	var TextTrackPlugin = function (_BasePlugin) {
+	  _inherits$r(TextTrackPlugin, _BasePlugin);
+
+	  function TextTrackPlugin() {
+	    _classCallCheck$v(this, TextTrackPlugin);
+
+	    return _possibleConstructorReturn$r(this, (TextTrackPlugin.__proto__ || Object.getPrototypeOf(TextTrackPlugin)).apply(this, arguments));
+	  }
+
+	  _createClass$t(TextTrackPlugin, [{
+	    key: 'afterCreate',
+	    value: function afterCreate() {
+	      var config = this.config,
+	          player = this.player;
+
+	      var options = config;
+	      var textTrackDom = '';
+	      if (options.textTrack && Array.isArray(options.textTrack) && (navigator.userAgent.indexOf('Chrome') > -1 || navigator.userAgent.indexOf('Firefox') > -1)) {
+	        options.textTrack.some(function (track) {
+	          if (track.src && track.label && track.default) {
+	            textTrackDom += '<track src="' + track.src + '" ';
+	            if (track.kind) {
+	              textTrackDom += 'kind="' + track.kind + '" ';
+	            }
+	            textTrackDom += 'label="' + track.label + '" ';
+	            if (track.srclang) {
+	              textTrackDom += 'srclang="' + track.srclang + '" ';
+	            }
+	            textTrackDom += (track.default ? 'default' : '') + '>';
+	            return true;
+	          }
+	        });
+	        this.videoConfig.crossorigin = 'anonymous';
+	      }
+	      if (options.textTrackStyle) {
+	        var style = document.createElement('style');
+	        this.textTrackStyle = style;
+	        document.head.appendChild(style);
+	        var styleStr = '';
+	        for (var index in options.textTrackStyle) {
+	          styleStr += index + ': ' + options.textTrackStyle[index] + ';';
+	        }
+	        var wrap = options.id ? '#' + options.id : options.el.id ? '#' + options.el.id : '.' + options.el.className;
+	        if (style.sheet.insertRule) {
+	          style.sheet.insertRule(wrap + ' video::cue { ' + styleStr + ' }', 0);
+	        } else if (style.sheet.addRule) {
+	          style.sheet.addRule(wrap + ' video::cue', styleStr);
+	        }
+	      }
+	      if (player.video) {
+	        player.video.insertAdjacentHTML('afterbegin', textTrackDom);
+	      }
+	    }
+	  }], [{
+	    key: 'pluginName',
+	    get: function get() {
+	      return 'textTrack';
+	    }
+	  }]);
+
+	  return TextTrackPlugin;
+	}(BasePlugin);
+
+	var _createClass$u = function () { function defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ("value" in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } } return function (Constructor, protoProps, staticProps) { if (protoProps) defineProperties(Constructor.prototype, protoProps); if (staticProps) defineProperties(Constructor, staticProps); return Constructor; }; }();
+
+	function _classCallCheck$w(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } }
+
+	var BasePlugin$1 = function () {
+	  _createClass$u(BasePlugin, null, [{
+	    key: 'defineGetterOrSetter',
+	    value: function defineGetterOrSetter(Obj, map) {
+	      for (var key in map) {
+	        Object.defineProperty(Obj, key, map[key]);
+	      }
+	    }
+	  }]);
+
+	  function BasePlugin(args) {
+	    _classCallCheck$w(this, BasePlugin);
+
+	    this.__args = args;
+	    this.__events = {}; // 对player的事件监听缓存
+	    this.config = args.config || {};
+	    if (util.checkIsFunction(this.beforeCreate)) {
+	      this.beforeCreate();
+	    }
+	    this.__init(args);
+	    if (util.checkIsFunction(this.afterCreate)) {
+	      this.afterCreate();
+	    }
+	  }
+
+	  _createClass$u(BasePlugin, [{
+	    key: '__init',
+	    value: function __init(args) {
+	      var _this = this;
+
+	      BasePlugin.defineGetterOrSetter(this, {
+	        'player': {
+	          get: function get() {
+	            return args.player;
+	          }
+	        },
+	        'playerConfig': {
+	          get: function get() {
+	            return args.player && args.player.config;
+	          }
+	        },
+	        'pluginName': {
+	          get: function get() {
+	            if (args.pluginName) {
+	              return args.pluginName;
+	            } else {
+	              return _this.constructor.pluginName;
+	            }
+	          }
+	        },
+	        'root': {
+	          get: function get() {
+	            return args.player.root;
+	          }
+	        },
+	        'logger': {
+	          get: function get() {
+	            return args.player.logger;
+	          }
+	        }
+	      });
+	    }
+	  }, {
+	    key: 'on',
+	    value: function on(event, callback) {
+	      var _this2 = this;
+
+	      if (typeof event === 'string') {
+	        this.__events[event] = callback;
+	        this.player.on(event, callback);
+	      } else if (Array.isArray(event)) {
+	        event.forEach(function (item) {
+	          _this2.__events[item] = callback;
+	          _this2.player.on(item, callback);
+	        });
+	      }
+	    }
+	  }, {
+	    key: 'once',
+	    value: function once(event, callback) {
+	      this.player.once(event, callback);
+	    }
+	  }, {
+	    key: 'off',
+	    value: function off(event, callback) {
+	      var _this3 = this;
+
+	      if (typeof event === 'string') {
+	        this.__events[event] = undefined;
+	        this.player.off(event, callback);
+	      } else if (Array.isArray(event)) {
+	        event.forEach(function (item) {
+	          _this3.__events[item] = undefined;
+	          _this3.player.off(item, callback);
+	        });
+	      }
+	    }
+	  }, {
+	    key: 'offAll',
+	    value: function offAll() {
+	      var _iteratorNormalCompletion = true;
+	      var _didIteratorError = false;
+	      var _iteratorError = undefined;
+
+	      try {
+	        for (var _iterator = Object.keys(this.__events)[Symbol.iterator](), _step; !(_iteratorNormalCompletion = (_step = _iterator.next()).done); _iteratorNormalCompletion = true) {
+	          var item = _step.value;
+
+	          this.off(item, this.__events[item]);
+	        }
+	      } catch (err) {
+	        _didIteratorError = true;
+	        _iteratorError = err;
+	      } finally {
+	        try {
+	          if (!_iteratorNormalCompletion && _iterator.return) {
+	            _iterator.return();
+	          }
+	        } finally {
+	          if (_didIteratorError) {
+	            throw _iteratorError;
+	          }
+	        }
+	      }
+	    }
+	  }, {
+	    key: 'emit',
+	    value: function emit(event, res) {
+	      this.player.emit(event, res);
+	    }
+	  }, {
+	    key: '_destroy',
+	    value: function _destroy() {
+	      this.offAll();
+	      if (util.checkIsFunction(this.destroy)) {
+	        this.destroy();
+	      }
+	    }
+	  }]);
+
+	  return BasePlugin;
+	}();
+
+	BasePlugin$1.Util = util;
+	BasePlugin$1.Sniffer = sniffer;
+	BasePlugin$1.Errors = Errors;
+	BasePlugin$1.Events = event;
+
+	/**
+	* a plugins manager to register and search
+	**/
+	var pluginsManager$1 = {
+	  init: function init(player) {
+	    // 标记每一个播放器实例
+	    var cgid = player._pluginInfoId;
+	    if (!cgid) {
+	      cgid = new Date().getTime();
+	      player._pluginInfoId = cgid;
+	    }
+	    if (!this.pluginGroup) {
+	      this.pluginGroup = {};
+	    }
+	    this.pluginGroup[cgid] = {
+	      '_player': player,
+	      '_originalOptions': player.config || {}
+	    };
+	  },
+
+	  /**
+	  * register a Plugin
+	  * @param { object } player the plugins install
+	  * @param { function } plugin the plugin contructor
+	  * @param { object } options the plugin configuration
+	  * @return { object } Plugin the plugin instance
+	  **/
+	  register: function register(player, plugin) {
+	    var options = arguments.length > 2 && arguments[2] !== undefined ? arguments[2] : {};
+
+	    if (!player || !plugin || typeof plugin !== 'function' || plugin.prototype === undefined) {
+	      return;
+	    }
+	    var cgid = player._pluginInfoId;
+	    if (!cgid || !this.pluginGroup || !this.pluginGroup[cgid]) {
+	      this.init(player);
+	      cgid = player._pluginInfoId;
+	    }
+	    if (!this.pluginGroup[cgid]._plugins) {
+	      this.pluginGroup[cgid]._plugins = [];
+	    }
+	    var plugins = this.pluginGroup[cgid]._plugins;
+	    var originalOptions = this.pluginGroup[cgid]._originalOptions;
+	    options.player = this.pluginGroup[cgid]._player;
+	    // console.log('plugin.pluginName', plugin.pluginName)
+	    var pluginName = options.pluginName || plugin.pluginName;
+	    if (!pluginName) {
+	      throw new Error('The property pluginName is necessary');
+	    }
+	    if (!options.config) {
+	      options.config = {};
+	    }
+	    var _iteratorNormalCompletion = true;
+	    var _didIteratorError = false;
+	    var _iteratorError = undefined;
+
+	    try {
+	      for (var _iterator = Object.keys(originalOptions)[Symbol.iterator](), _step; !(_iteratorNormalCompletion = (_step = _iterator.next()).done); _iteratorNormalCompletion = true) {
+	        var item = _step.value;
+
+	        if (pluginName.toLowerCase() === item.toLowerCase()) {
+	          options.config = Object.assign({}, options.config, originalOptions[item]);
+	          break;
+	        }
+	      }
+	      // 获取插件添加的父节点
+	    } catch (err) {
+	      _didIteratorError = true;
+	      _iteratorError = err;
+	    } finally {
+	      try {
+	        if (!_iteratorNormalCompletion && _iterator.return) {
+	          _iterator.return();
+	        }
+	      } finally {
+	        if (_didIteratorError) {
+	          throw _iteratorError;
+	        }
+	      }
+	    }
+
+	    if (!options.root) {
+	      options.root = player.root;
+	    } else if (typeof options.root === 'string') {
+	      options.root = player[options.root];
+	    }
+
+	    // 复制插件的默认配置项
+	    if (plugin.defaultConfig) {
+	      Object.keys(plugin.defaultConfig).map(function (key) {
+	        if (typeof options.config[key] === 'undefined') {
+	          options.config[key] = plugin.defaultConfig[key];
+	        }
+	      });
+	    }
+	    try {
+	      // eslint-disable-next-line new-cap
+	      var _instance = new plugin(options);
+	      plugins[pluginName.toLowerCase()] = _instance;
+	      plugins[pluginName.toLowerCase()].func = plugin;
+	      return _instance;
+	    } catch (err) {
+	      console.error(err);
+	      throw err;
+	    }
+	  },
+	  unRegister: function unRegister(cgid, name) {
+	    try {
+	      this.pluginGroup[cgid]._plugins[name]._destroy();
+	      this.pluginGroup[cgid]._plugins[name] = null;
+	    } catch (e) {
+	      this.pluginGroup[cgid]._plugins[name] = null;
+	    }
+	  },
+
+
+	  /**
+	   * get all plugin instance of player
+	   * @param {*} player
+	   */
+	  getPlugins: function getPlugins(player) {
+	    var cgid = player._pluginInfoId;
+	    return cgid ? this.pluginGroup[cgid]._plugins : {};
+	  },
+	  findPlugin: function findPlugin(player, name) {
+	    if (!this.pluginGroup) {
+	      return null;
+	    }
+	    var cgid = player._pluginInfoId;
+	    var cName = name.toLowerCase();
+	    return this.pluginGroup[cgid]._plugins[cName];
+	  },
+	  beforeInit: function beforeInit(player) {
+	    var _this = this;
+
+	    function retPromise(fun) {
+	      if (!fun || !fun.then) {
+	        return new Promise(function (resolve) {
+	          resolve();
+	        });
+	      } else {
+	        return fun;
+	      }
+	    }
+	    return new Promise(function (resolve) {
+	      if (!_this.pluginGroup) {
+	        return;
+	      }
+	      var cgid = player._pluginInfoId;
+	      var plugins = _this.pluginGroup[cgid]._plugins;
+	      var pluginsRet = [];
+	      var _iteratorNormalCompletion2 = true;
+	      var _didIteratorError2 = false;
+	      var _iteratorError2 = undefined;
+
+	      try {
+	        for (var _iterator2 = Object.keys(plugins)[Symbol.iterator](), _step2; !(_iteratorNormalCompletion2 = (_step2 = _iterator2.next()).done); _iteratorNormalCompletion2 = true) {
+	          var item = _step2.value;
+
+	          if (plugins[item] && plugins[item].beforePlayerInit) {
+	            try {
+	              var ret = plugins[item].beforePlayerInit();
+	              pluginsRet.push(retPromise(ret));
+	            } catch (e) {
+	              pluginsRet.push(retPromise(null));
+	              throw e;
+	            }
+	          }
+	        }
+	      } catch (err) {
+	        _didIteratorError2 = true;
+	        _iteratorError2 = err;
+	      } finally {
+	        try {
+	          if (!_iteratorNormalCompletion2 && _iterator2.return) {
+	            _iterator2.return();
+	          }
+	        } finally {
+	          if (_didIteratorError2) {
+	            throw _iteratorError2;
+	          }
+	        }
+	      }
+
+	      Promise.all(pluginsRet).then(function () {
+	        resolve();
+	      }).catch(function (e) {
+	        console.error(e);
+	        resolve();
+	      });
+	    });
+	  },
+	  afterInit: function afterInit(player) {
+	    if (!this.pluginGroup) {
+	      return;
+	    }
+	    var cgid = player._pluginInfoId;
+	    var plugins = this.pluginGroup[cgid]._plugins;
+	    var _iteratorNormalCompletion3 = true;
+	    var _didIteratorError3 = false;
+	    var _iteratorError3 = undefined;
+
+	    try {
+	      for (var _iterator3 = Object.keys(plugins)[Symbol.iterator](), _step3; !(_iteratorNormalCompletion3 = (_step3 = _iterator3.next()).done); _iteratorNormalCompletion3 = true) {
+	        var item = _step3.value;
+
+	        if (plugins[item] && plugins[item].afterPlayerInit) {
+	          plugins[item].afterPlayerInit();
+	        }
+	      }
+	    } catch (err) {
+	      _didIteratorError3 = true;
+	      _iteratorError3 = err;
+	    } finally {
+	      try {
+	        if (!_iteratorNormalCompletion3 && _iterator3.return) {
+	          _iterator3.return();
+	        }
+	      } finally {
+	        if (_didIteratorError3) {
+	          throw _iteratorError3;
+	        }
+	      }
+	    }
+	  },
+	  reRender: function reRender(player) {
+	    var cgid = player._pluginInfoId;
+	    var pluginsMap = {};
+	    var plugins = this.pluginGroup[cgid]._plugins;
+	    var _iteratorNormalCompletion4 = true;
+	    var _didIteratorError4 = false;
+	    var _iteratorError4 = undefined;
+
+	    try {
+	      for (var _iterator4 = Object.keys(plugins)[Symbol.iterator](), _step4; !(_iteratorNormalCompletion4 = (_step4 = _iterator4.next()).done); _iteratorNormalCompletion4 = true) {
+	        var item = _step4.value;
+
+	        pluginsMap[item] = {
+	          plugin: plugins[item].func,
+	          options: plugins[item]._args
+	        };
+	        this.unRegister(cgid, item);
+	      }
+	    } catch (err) {
+	      _didIteratorError4 = true;
+	      _iteratorError4 = err;
+	    } finally {
+	      try {
+	        if (!_iteratorNormalCompletion4 && _iterator4.return) {
+	          _iterator4.return();
+	        }
+	      } finally {
+	        if (_didIteratorError4) {
+	          throw _iteratorError4;
+	        }
+	      }
+	    }
+
+	    var _iteratorNormalCompletion5 = true;
+	    var _didIteratorError5 = false;
+	    var _iteratorError5 = undefined;
+
+	    try {
+	      for (var _iterator5 = Object.keys(pluginsMap)[Symbol.iterator](), _step5; !(_iteratorNormalCompletion5 = (_step5 = _iterator5.next()).done); _iteratorNormalCompletion5 = true) {
+	        var _item = _step5.value;
+
+	        this.register(cgid, _item, pluginsMap[_item].plugin, pluginsMap[_item].options);
+	      }
+	    } catch (err) {
+	      _didIteratorError5 = true;
+	      _iteratorError5 = err;
+	    } finally {
+	      try {
+	        if (!_iteratorNormalCompletion5 && _iterator5.return) {
+	          _iterator5.return();
+	        }
+	      } finally {
+	        if (_didIteratorError5) {
+	          throw _iteratorError5;
+	        }
+	      }
+	    }
+	  },
+	  destroy: function destroy(player) {
+	    var cgid = player._pluginInfoId;
+	    var plugins = this.pluginGroup[cgid]._plugins;
+	    var _iteratorNormalCompletion6 = true;
+	    var _didIteratorError6 = false;
+	    var _iteratorError6 = undefined;
+
+	    try {
+	      for (var _iterator6 = Object.keys(plugins)[Symbol.iterator](), _step6; !(_iteratorNormalCompletion6 = (_step6 = _iterator6.next()).done); _iteratorNormalCompletion6 = true) {
+	        var item = _step6.value;
+
+	        this.unRegister(cgid, item);
+	      }
+	    } catch (err) {
+	      _didIteratorError6 = true;
+	      _iteratorError6 = err;
+	    } finally {
+	      try {
+	        if (!_iteratorNormalCompletion6 && _iterator6.return) {
+	          _iterator6.return();
+	        }
+	      } finally {
+	        if (_didIteratorError6) {
+	          throw _iteratorError6;
+	        }
+	      }
+	    }
+
+	    delete this.pluginGroup[cgid];
+	  }
+	};
+
+	var _typeof$4 = typeof Symbol === "function" && typeof Symbol.iterator === "symbol" ? function (obj) { return typeof obj; } : function (obj) { return obj && typeof Symbol === "function" && obj.constructor === Symbol && obj !== Symbol.prototype ? "symbol" : typeof obj; };
+
+	var _get$3 = function get(object, property, receiver) { if (object === null) object = Function.prototype; var desc = Object.getOwnPropertyDescriptor(object, property); if (desc === undefined) { var parent = Object.getPrototypeOf(object); if (parent === null) { return undefined; } else { return get(parent, property, receiver); } } else if ("value" in desc) { return desc.value; } else { var getter = desc.get; if (getter === undefined) { return undefined; } return getter.call(receiver); } };
+
+	var _createClass$v = function () { function defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ("value" in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } } return function (Constructor, protoProps, staticProps) { if (protoProps) defineProperties(Constructor.prototype, protoProps); if (staticProps) defineProperties(Constructor, staticProps); return Constructor; }; }();
+
+	function _classCallCheck$x(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } }
+
+	function _possibleConstructorReturn$s(self, call) { if (!self) { throw new ReferenceError("this hasn't been initialised - super() hasn't been called"); } return call && (typeof call === "object" || typeof call === "function") ? call : self; }
+
+	function _inherits$s(subClass, superClass) { if (typeof superClass !== "function" && superClass !== null) { throw new TypeError("Super expression must either be null or a function, not " + typeof superClass); } subClass.prototype = Object.create(superClass && superClass.prototype, { constructor: { value: subClass, enumerable: false, writable: true, configurable: true } }); if (superClass) Object.setPrototypeOf ? Object.setPrototypeOf(subClass, superClass) : subClass.__proto__ = superClass; }
+
+	function _createElement$1(tag, name) {
+	  var dom = document.createElement(tag);
+	  dom.name = name;
+	  return dom;
+	}
+
+	function registerIconsObj$1(iconsConfig, plugin) {
+	  Object.keys(iconsConfig).map(function (iconKey) {
+	    Object.defineProperty(plugin.icons, iconKey, {
+	      get: function get() {
+	        var _icons = plugin.config.icons || plugin.playerConfig.icons;
+	        if (_icons && _icons[iconKey]) {
+	          return _icons[iconKey];
+	        } else {
+	          return iconsConfig[iconKey];
+	        }
+	      }
+	    });
+	  });
+	}
+
+	function registerTextObj$1(textConfig, plugin) {
+	  Object.keys(textConfig).map(function (key) {
+	    Object.defineProperty(plugin.text, key, {
+	      get: function get() {
+	        var lang = plugin.playerConfig.lang || 'zh';
+	        if (lang.indexOf('-') > 0) {
+	          lang = lang.split('-')[0];
+	        }
+	        return textConfig[key][lang];
+	      }
+	    });
+	  });
+	}
+
+	var Plugin$1 = function (_BasePlugin) {
+	  _inherits$s(Plugin, _BasePlugin);
+
+	  _createClass$v(Plugin, null, [{
+	    key: 'insert',
+
+	    /**
+	      * 插入dom结构
+	      * @param {String} html html字符串或者dom
+	      * @param {DocumentElemebt } parent
+	      * @param {*} index
+	      */
+	    value: function insert(html, parent, index) {
+	      var len = parent.children.length;
+	      var insertIdx = parseInt(index);
+	      var isDomElement = html instanceof window.HTMLElement;
+	      if (typeof index === 'undefined' || len <= insertIdx) {
+	        isDomElement ? parent.appendChild(html) : parent.insertAdjacentHTML('beforeend', html);
+	        return parent.children[parent.children.length - 1];
+	      } else if (insertIdx === 0) {
+	        isDomElement ? parent.insertBefore(html, parent.children.length > 0 ? parent.children[0] : null) : parent.insertAdjacentHTML('afterbegin', html);
+	        return parent.children[0];
+	      }
+	      var el = parent.children[insertIdx];
+	      if (el && el.insertAdjacentHTML) {
+	        isDomElement ? parent.insertBefore(html, el) : el.insertAdjacentHTML('beforebegin', html);
+	        return parent.children[insertIdx];
+	      }
+	    }
+	  }]);
+
+	  function Plugin() {
+	    var args = arguments.length > 0 && arguments[0] !== undefined ? arguments[0] : {};
+
+	    _classCallCheck$x(this, Plugin);
+
+	    return _possibleConstructorReturn$s(this, (Plugin.__proto__ || Object.getPrototypeOf(Plugin)).call(this, args));
+	  }
+
+	  _createClass$v(Plugin, [{
+	    key: '__init',
+	    value: function __init(args) {
+	      _get$3(Plugin.prototype.__proto__ || Object.getPrototypeOf(Plugin.prototype), '__init', this).call(this, args);
+	      var _parent = args.root;
+	      var _el = null;
+	      this.icons = {};
+	      var defaultIcons = this.registerIcons() || {};
+	      registerIconsObj$1(defaultIcons, this);
+
+	      this.text = {};
+	      var defaultTexConfig = this.registerLangauageTexts() || {};
+	      registerTextObj$1(defaultTexConfig, this);
+	      var renderStr = '';
+	      try {
+	        renderStr = this.render();
+	      } catch (e) {
+	        throw new Error('Plugin:' + this.pluginName + ':render:' + e.message);
+	      }
+
+	      if (renderStr) {
+	        _el = Plugin.insert(renderStr, _parent, args.index);
+	      } else if (args.tag) {
+	        _el = _createElement$1(args.tag, args.name);
+	        _parent.appendChild(_el);
+	      }
+
+	      Plugin.defineGetterOrSetter(this, {
+	        'el': {
+	          get: function get() {
+	            return _el;
+	          }
+	        },
+	        'parent': {
+	          get: function get() {
+	            return _parent;
+	          }
+	        }
+	      });
+
+	      var attr = this.config.attr || {};
+	      var style = this.config.style || {};
+
+	      this.setAttr(attr);
+	      this.setStyle(style);
+	      this.__registeChildren();
+	    }
+	  }, {
+	    key: '__registeChildren',
+	    value: function __registeChildren() {
+	      var children = this.children();
+	      if (children && (typeof children === 'undefined' ? 'undefined' : _typeof$4(children)) === 'object') {
+	        if (!this._children) {
+	          this._children = [];
+	        }
+	        if (Object.keys(children).length > 0) {
+	          var _iteratorNormalCompletion = true;
+	          var _didIteratorError = false;
+	          var _iteratorError = undefined;
+
+	          try {
+	            for (var _iterator = Object.keys(children)[Symbol.iterator](), _step; !(_iteratorNormalCompletion = (_step = _iterator.next()).done); _iteratorNormalCompletion = true) {
+	              var item = _step.value;
+
+	              var name = item;
+	              var _plugin = children[name];
+	              var options = {
+	                root: this.el
+	                // eslint-disable-next-line no-unused-vars
+	              };var config = void 0,
+	                  _Plugin = void 0;
+	              if (typeof _plugin === 'function') {
+	                config = this.config[name] || {};
+	                _Plugin = _plugin;
+	              } else if ((typeof _plugin === 'undefined' ? 'undefined' : _typeof$4(_plugin)) === 'object' && typeof _plugin.plugin === 'function') {
+	                config = _plugin.options ? BasePlugin$1.Util.deepCopy(this.config[name] || {}, _plugin.options) : this.config[name] || {};
+	                _Plugin = _plugin.plugin;
+	              }
+	              options.config = config;
+	              config.index !== undefined && (options.index = config.index);
+	              config.root && (options.root = config.root);
+	              var c = this.registerPlugin(name, _Plugin, options);
+	              this._children.push(c);
+	            }
+	          } catch (err) {
+	            _didIteratorError = true;
+	            _iteratorError = err;
+	          } finally {
+	            try {
+	              if (!_iteratorNormalCompletion && _iterator.return) {
+	                _iterator.return();
+	              }
+	            } finally {
+	              if (_didIteratorError) {
+	                throw _iteratorError;
+	              }
+	            }
+	          }
+	        }
+	      }
+	    }
+	  }, {
+	    key: 'plugins',
+	    value: function plugins() {
+	      return this._children;
+	    }
+	  }, {
+	    key: 'children',
+	    value: function children() {
+	      return {};
+	    }
+	  }, {
+	    key: 'registerPlugin',
+	    value: function registerPlugin(name, plugin, options) {
+	      var opts = (typeof options === 'undefined' ? 'undefined' : _typeof$4(options)) === 'object' ? options : {};
+	      opts.root = options.root || this.el;
+	      opts.pluginName = name;
+	      return pluginsManager$1.register(this.player, plugin, opts);
+	    }
+	  }, {
+	    key: 'registerIcons',
+	    value: function registerIcons() {
+	      return {};
+	    }
+	  }, {
+	    key: 'registerLangauageTexts',
+	    value: function registerLangauageTexts() {
+	      return {};
+	    }
+	  }, {
+	    key: 'getPlugin',
+	    value: function getPlugin(name) {
+	      return pluginsManager$1.findPlugin(this.player, name);
+	    }
+	  }, {
+	    key: 'find',
+	    value: function find(qs) {
+	      return this.el.querySelector(qs);
+	    }
+	  }, {
+	    key: 'bind',
+	    value: function bind(querySelector, eventType, callback) {
+	      var _this2 = this;
+
+	      // if no querySelector passed to the method
+	      if (arguments.length < 3 && typeof eventType === 'function') {
+	        if (Array.isArray(querySelector)) {
+	          querySelector.forEach(function (item) {
+	            _this2.bindEL(item, eventType);
+	          });
+	        } else {
+	          this.bindEL(querySelector, eventType);
+	        }
+	      } else if (arguments.length === 3 && typeof callback === 'function') {
+	        if (Array.isArray(eventType)) {
+	          eventType.forEach(function (item) {
+	            bind$1(_this2.el, querySelector, item, callback, false);
+	          });
+	        } else {
+	          bind$1(this.el, querySelector, eventType, callback, false);
+	        }
+	      }
+	    }
+	  }, {
+	    key: 'unbind',
+	    value: function unbind(querySelector, eventType, callback) {
+	      var _this3 = this;
+
+	      // if no querySelector passed to the method
+	      if (arguments.length < 3 && typeof eventType === 'function') {
+	        if (Array.isArray(querySelector)) {
+	          querySelector.forEach(function (item) {
+	            _this3.unbindEL(item, eventType);
+	          });
+	        } else {
+	          this.unbindEL(querySelector, eventType);
+	        }
+	      } else if (typeof callback === 'function') {
+	        if (Array.isArray(eventType)) {
+	          eventType.forEach(function (item) {
+	            unbind$1(_this3.el, querySelector, item, callback);
+	          });
+	        } else {
+	          unbind$1(this.el, querySelector, eventType, callback);
+	        }
+	      }
+	    }
+	  }, {
+	    key: 'setStyle',
+	    value: function setStyle(name, value) {
+	      if (typeof name === 'string') {
+	        this.style[name] = value;
+	        return this.el.style[name] = value;
+	      } else if ((typeof name === 'undefined' ? 'undefined' : _typeof$4(name)) === 'object') {
+	        var obj = name;
+	        var _iteratorNormalCompletion2 = true;
+	        var _didIteratorError2 = false;
+	        var _iteratorError2 = undefined;
+
+	        try {
+	          for (var _iterator2 = Object.keys(obj)[Symbol.iterator](), _step2; !(_iteratorNormalCompletion2 = (_step2 = _iterator2.next()).done); _iteratorNormalCompletion2 = true) {
+	            var item = _step2.value;
+
+	            this.el.style[item] = obj[item];
+	          }
+	        } catch (err) {
+	          _didIteratorError2 = true;
+	          _iteratorError2 = err;
+	        } finally {
+	          try {
+	            if (!_iteratorNormalCompletion2 && _iterator2.return) {
+	              _iterator2.return();
+	            }
+	          } finally {
+	            if (_didIteratorError2) {
+	              throw _iteratorError2;
+	            }
+	          }
+	        }
+	      }
+	    }
+	  }, {
+	    key: 'setAttr',
+	    value: function setAttr(name, value) {
+	      if (typeof name === 'string') {
+	        return this.el.setAttribute(name, value);
+	      } else if ((typeof name === 'undefined' ? 'undefined' : _typeof$4(name)) === 'object') {
+	        var obj = name;
+	        var _iteratorNormalCompletion3 = true;
+	        var _didIteratorError3 = false;
+	        var _iteratorError3 = undefined;
+
+	        try {
+	          for (var _iterator3 = Object.keys(obj)[Symbol.iterator](), _step3; !(_iteratorNormalCompletion3 = (_step3 = _iterator3.next()).done); _iteratorNormalCompletion3 = true) {
+	            var item = _step3.value;
+
+	            this.el.setAttribute(item, obj[item]);
+	          }
+	        } catch (err) {
+	          _didIteratorError3 = true;
+	          _iteratorError3 = err;
+	        } finally {
+	          try {
+	            if (!_iteratorNormalCompletion3 && _iterator3.return) {
+	              _iterator3.return();
+	            }
+	          } finally {
+	            if (_didIteratorError3) {
+	              throw _iteratorError3;
+	            }
+	          }
+	        }
+	      }
+	    }
+	  }, {
+	    key: 'setHtml',
+	    value: function setHtml(htmlStr, callback) {
+	      this.el.innerHtml = htmlStr;
+	      if (typeof callback === 'function') {
+	        callback();
+	      }
+	    }
+	  }, {
+	    key: 'bindEL',
+	    value: function bindEL(event, eventHandle) {
+	      var isBubble = arguments.length > 2 && arguments[2] !== undefined ? arguments[2] : false;
+
+	      if ('on' + event in this.el && typeof eventHandle === 'function') {
+	        this.el.addEventListener(event, eventHandle, isBubble);
+	      }
+	    }
+	  }, {
+	    key: 'unbindEL',
+	    value: function unbindEL(event, eventHandle) {
+	      var isBubble = arguments.length > 2 && arguments[2] !== undefined ? arguments[2] : false;
+
+	      if ('on' + event in this.el && typeof eventHandle === 'function') {
+	        this.el.removeEventListener(event, eventHandle, isBubble);
+	      }
+	    }
+	  }, {
+	    key: 'show',
+	    value: function show(value) {
+	      this.el.style.display = value !== undefined ? value : 'block';
+	      var cs = window.getComputedStyle(this.el, null);
+	      var cssDisplayValue = cs.getPropertyValue('display');
+	      if (cssDisplayValue === 'none') {
+	        return this.el.style.display = 'block';
+	      }
+	    }
+	  }, {
+	    key: 'hide',
+	    value: function hide() {
+	      this.el.style.display = 'none';
+	    }
+	  }, {
+	    key: 'render',
+	    value: function render() {
+	      return '';
+	    }
+	  }, {
+	    key: '_destroy',
+	    value: function _destroy() {
+	      this.offAll();
+	      if (BasePlugin$1.Util.checkIsFunction(this.destroy)) {
+	        this.destroy();
+	      }
+	      if (this.el) {
+	        if (this.el.hasOwnProperty('remove')) {
+	          this.el.remove();
+	        } else if (this.el.parentNode) {
+	          this.el.parentNode.removeChild(this.el);
+	        }
+	      }
+	    }
+	  }]);
+
+	  return Plugin;
+	}(BasePlugin$1);
+
+
+	Plugin$1.Util = BasePlugin$1.Util;
+	Plugin$1.Sniffer = BasePlugin$1.Sniffer;
+	Plugin$1.Errors = BasePlugin$1.Errors;
+	Plugin$1.Event = BasePlugin$1.Event;
+
+	var _createClass$w = function () { function defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ("value" in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } } return function (Constructor, protoProps, staticProps) { if (protoProps) defineProperties(Constructor.prototype, protoProps); if (staticProps) defineProperties(Constructor, staticProps); return Constructor; }; }();
+
+	function _classCallCheck$y(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } }
+
+	function _possibleConstructorReturn$t(self, call) { if (!self) { throw new ReferenceError("this hasn't been initialised - super() hasn't been called"); } return call && (typeof call === "object" || typeof call === "function") ? call : self; }
+
+	function _inherits$t(subClass, superClass) { if (typeof superClass !== "function" && superClass !== null) { throw new TypeError("Super expression must either be null or a function, not " + typeof superClass); } subClass.prototype = Object.create(superClass && superClass.prototype, { constructor: { value: subClass, enumerable: false, writable: true, configurable: true } }); if (superClass) Object.setPrototypeOf ? Object.setPrototypeOf(subClass, superClass) : subClass.__proto__ = superClass; }
+
+	var ErrorPlugin = function (_Plugin) {
+	  _inherits$t(ErrorPlugin, _Plugin);
+
+	  function ErrorPlugin() {
+	    _classCallCheck$y(this, ErrorPlugin);
+
+	    return _possibleConstructorReturn$t(this, (ErrorPlugin.__proto__ || Object.getPrototypeOf(ErrorPlugin)).apply(this, arguments));
+	  }
+
+	  _createClass$w(ErrorPlugin, [{
+	    key: 'afterCreate',
+	    value: function afterCreate() {
+	      var _this2 = this;
+
+	      this.bind('.xgplayer-error-refresh', 'click', function (e) {
+	        e.preventDefault();
+	        _this2.player.replay();
+	        Plugin$1.Util.removeClass(_this2.player.root, 'replay');
+	      });
+	      this.on(Player.Events.CANPLAY, this.handleCanPlay.bind(this));
+	      this.on(Player.Events.ERROR, this.handleError.bind(this));
+	    }
+	  }, {
+	    key: 'handleCanPlay',
+	    value: function handleCanPlay() {
+	      Plugin$1.Util.removeClass(this.player.root, 'xgplayer-is-error');
+	    }
+	  }, {
+	    key: 'handleError',
+	    value: function handleError() {
+	      var player = this.player;
+
+	      var textDOM = this.find('.xgplayer-error-text');
+	      if (player.error) {
+	        textDOM.innerHTML = player.error;
+	      } else {
+	        if (player.config.lang && player.config.lang === 'zh-cn') {
+	          textDOM.innerHTML = player.lang.ERROR;
+	        } else {
+	          this.el.innerHTML = player.lang.ERROR + '\uFF0Cplease try to <span class="xgplayer-error-refresh">refresh</span>';
+	        }
+	      }
+	    }
+	  }, {
+	    key: 'render',
+	    value: function render() {
+	      return '<xg-error class="xgplayer-error">\n      <em class="xgplayer-error-text"></em>\u8BF7<span class="xgplayer-error-refresh">\u5237\u65B0</span>\u8BD5\u8BD5\n    </xg-error>';
+	    }
+	  }], [{
+	    key: 'pluginName',
+	    get: function get() {
+	      return 'error';
+	    }
+	  }]);
+
+	  return ErrorPlugin;
+	}(Plugin$1);
+
+
+
+	var Plugins = /*#__PURE__*/Object.freeze({
+		__proto__: null,
+		Poster: Poster,
+		Replay: Replay,
+		Miniscreen: MiniScreen,
+		Keyboard: Keyboard,
+		Rotate: Controls$1,
+		PlayNext: PlayNext,
+		PC: PCPlugin,
+		Mobile: MobilePlugin,
+		PlaceHolder: PlaceHolderPlugin,
+		Start: Start,
+		track: TextTrackPlugin,
+		Error: ErrorPlugin,
+		Enter: EnterPlugin
+	});
+
+	Player.defaultPlugins = Plugins;
 
 	return Player;
 

@@ -31,6 +31,10 @@ class Progress extends Plugin {
     super(args)
     this.useable = false
     this.isProgressMoving = false
+
+    if (args.thumbnail) {
+      this.thumbnail = args.thumbnail
+    }
   }
 
   changeState (useable = true) {
@@ -45,6 +49,10 @@ class Progress extends Plugin {
     this.thumbnailDom = this.find('xg-thumbnail')
     this.initThumbnail()
     this.on(Events.TIME_UPDATE, () => {
+      this.onTimeupdate()
+      this.onCacheUpdate()
+    });
+    this.on(Events.SEEKING, () => {
       this.onTimeupdate()
       this.onCacheUpdate()
     });
@@ -67,8 +75,8 @@ class Progress extends Plugin {
   }
 
   initThumbnail () {
-    if (this.playerConfig.thumbnail) {
-      const {thumbnail} = this.playerConfig
+    if (this.thumbnail) {
+      const {thumbnail} = this
       this.thumbnailConfig = {}
       Object.keys(defaultThumbnailConfig).map(key => {
         if (typeof thumbnail[key] === 'undefined') {
@@ -191,7 +199,7 @@ class Progress extends Plugin {
 
   updateThumbnailPosition (e, now, containerWidth) {
     const thumbnail = this.thumbnailConfig
-    if (!thumbnail.pic_num === 0 || thumbnail.urls.length === 0) {
+    if (!thumbnail || !thumbnail.pic_num === 0 || thumbnail.urls.length === 0) {
       return
     }
     this.interval = this.player.duration / thumbnail.pic_num

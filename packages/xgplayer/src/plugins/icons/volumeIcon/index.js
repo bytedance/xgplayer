@@ -1,7 +1,6 @@
 import Plugin from '../../../plugin'
 import volumeChange from '../../assets/volumeChange.svg'
 
-
 const { Util, Events } = Plugin
 class VolumeIcon extends Plugin {
   static get pluginName () {

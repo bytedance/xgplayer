@@ -5,7 +5,7 @@ import Errors from './error'
 import * as Events from './events'
 import Plugin, {pluginsManager, BasePlugin} from './plugin'
 import STATE_CLASS from './stateClassMap'
-import defaultPreset from './plugins/presets/default'
+import defaultPreset from './presets/default'
 import getDefaultConfig from './defaultConfig'
 import { usePreset } from './plugin/preset';
 import Controls from './plugins/controls'

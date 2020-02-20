@@ -1,6 +1,6 @@
 //controls
 $controlHeight: 40px;
-//icon 
+//icon
 $iconMargin: 5px;
 // tips
 $tipsColor: #fff;
@@ -94,7 +94,7 @@ $definitionNameBgColor: rgba(0, 0, 0, 0.38);
     cursor: pointer;
     box-sizing: border-box;
     &:hover {
-      .xg-tips { 
+      .xg-tips {
         display: block;
       }
     }
@@ -128,12 +128,13 @@ $definitionNameBgColor: rgba(0, 0, 0, 0.38);
     }
     .icon-list {
       display: none;
+      position: absolute;
       width: 78px;
+      left: 50%;
+      bottom: 34px;
       background: $definitionUlBgColor;
       border-radius: 1px;
-      position: absolute;
-      bottom: 34px;
-      left: 0px;
+      transform: translate(-50%);
       text-align: left;
       white-space: nowrap;
       z-index: 26;

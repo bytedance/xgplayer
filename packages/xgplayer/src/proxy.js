@@ -70,7 +70,8 @@ class Proxy {
       this.evItem = Object.keys(item)[0]
       let name = Object.keys(item)[0]
       const funName = item[name]
-      this.video.addEventListener(Object.keys(item)[0], () => {
+
+      this.videoEventHandler = () => {
         if (name === 'error') {
           this.errorHandler(name)
           _emitEvent(funName, this)
@@ -106,7 +107,8 @@ class Proxy {
             }
           }
         }
-      }, false)
+      }
+      this.video.addEventListener(Object.keys(item)[0], this.videoEventHandler, false)
     })
   }
 
@@ -152,6 +154,8 @@ class Proxy {
       if (evFunc) {
         this.off(evName, evFunc)
       }
+
+      this.video.removeEventListener(evName, this.videoEventHandler, false)
     });
     allOff(this)
   }

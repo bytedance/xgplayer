@@ -4,11 +4,16 @@
 import Plugin from '../../../plugin'
 import Next from '../../assets/playNext.svg'
 
-
 // const { Events } = Plugin
 export default class PlayNextIcon extends Plugin {
   static get pluginName () {
     return 'PlayNextIcon'
+  }
+
+  constructor (options) {
+    super(options);
+    this.urlList = options.urlList || []
+    this.idx = -1;
   }
 
   afterCreate () {
@@ -26,8 +31,17 @@ export default class PlayNextIcon extends Plugin {
   }
 
   playNext () {
-    // TODO 根据配置信息进行下一个视频的切换 或者 根据参数中的回调函数进行调用
-    this.emit('playNext')
+    const { player } = this;
+    if (this.idx + 1 < this.urlList.length) {
+      this.idx++;
+      player.video.pause();
+      player.currentTime = 0;
+      player.video.autoplay = true;
+      player.src = this.urlList[this.idx];
+      player.emit('playerNext', this.idx + 1);
+    } else {
+      player.emit('urlList last');
+    }
   }
 
   registerIcons () {
@@ -38,15 +52,10 @@ export default class PlayNextIcon extends Plugin {
 
   registerLangauageTexts () {
     return {
-      'play': {
+      'playNext': {
         jp: 'play',
         en: 'play',
         zh: '播放'
-      },
-      'pause': {
-        jp: 'pause',
-        en: 'pause',
-        zh: '暂停'
       }
     }
   }
@@ -61,7 +70,7 @@ export default class PlayNextIcon extends Plugin {
       <div class="xgplayer-icon">
         ${this.icons.playNext}
       </div>
-      <div class="xg-tips"></div>
+      <div class="xg-tips">${this.text.playNext}</div>
      </xg-icon>
     `
   }

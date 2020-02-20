@@ -20,6 +20,8 @@ class Controls extends Plugin {
   }
 
   afterCreate () {
+    const { player } = this;
+    player.controls = this.el;
   }
 
   children () {

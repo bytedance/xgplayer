@@ -1,7 +1,6 @@
 import Plugin from '../../../plugin'
 import FullScreenChangeSvg from '../../assets/fullscreenChange.svg'
 
-
 const { Events } = Plugin
 
 class Fullscreen extends Plugin {
@@ -20,10 +19,27 @@ class Fullscreen extends Plugin {
 
   btnClick (e) {
     const {player} = this;
-    if (player.fullscreen) {
-      player.exitFullscreen()
+    let useCssFullscreen = false
+    if (this.config.useCssFullscreen && this.config.useCssFullscreen()) {
+      useCssFullscreen = true;
+    }
+    if (useCssFullscreen) {
+      if (player.fullscreen) {
+        player.getCssFullscreen()
+        player.fullscreen = true
+        this.emit(Events.FULLSCREEN_CHANGE, true)
+      } else {
+        player.exitCssFullscreen()
+        player.fullscreen = false
+        this.emit(Events.FULLSCREEN_CHANGE, false)
+      }
+
     } else {
-      player.getFullscreen()
+      if (player.fullscreen) {
+        player.exitFullscreen()
+      } else {
+        player.getFullscreen()
+      }
     }
   }
 
