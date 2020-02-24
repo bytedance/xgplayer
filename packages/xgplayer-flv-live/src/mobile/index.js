@@ -10,6 +10,13 @@ class FlvPlayer extends BasePlugin {
   static get pluginName () {
     return 'flvLiveMobile'
   }
+
+  static isSupported () {
+    const wasmSupported = 'WebAssembly' in window;
+    const WebComponentSupported = 'customElements' in window && window.customElements.define;
+    return wasmSupported && WebComponentSupported;
+  }
+
   beforePlayerInit () {
     this.context = new Context(flvAllowedEvents)
     this.initFlv()
@@ -23,7 +30,6 @@ class FlvPlayer extends BasePlugin {
     video.width = Number.parseInt(config.width || 600)
     video.height = Number.parseInt(config.height || 337.5)
     video.style.outline = 'none';
-
   }
 
   initFlvEvents (flv) {
