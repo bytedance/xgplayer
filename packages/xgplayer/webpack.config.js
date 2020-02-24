@@ -34,7 +34,7 @@ const umd = {
     }]
   },
   optimization: {
-    minimize: true
+    minimize: false
   }
 }
 
