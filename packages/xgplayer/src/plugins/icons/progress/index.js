@@ -96,6 +96,9 @@ class Progress extends Plugin {
 
   mouseDown (e) {
     const {player} = this
+    if (player.isMini) {
+      return
+    }
     const self = this
     e.stopPropagation()
     Util.event(e)
@@ -155,6 +158,9 @@ class Progress extends Plugin {
 
   mouseEnter (e) {
     const {player} = this
+    if (player.isMini) {
+      return
+    }
     if (!player.config.allowSeekAfterEnded && player.ended) {
       return true
     }
@@ -163,6 +169,10 @@ class Progress extends Plugin {
   }
 
   mouseLeave (e) {
+    const {player} = this
+    if (player.isMini) {
+      return
+    }
     this.pointTip.style.display = 'none'
     this.thumbnailDom.style.display = 'none'
     this.el.removeEventListener('mousemove', this.mouseMove, false)

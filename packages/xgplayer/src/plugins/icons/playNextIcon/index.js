@@ -4,7 +4,6 @@
 import Plugin from '../../../plugin'
 import Next from '../../assets/playNext.svg'
 
-
 // const { Events } = Plugin
 export default class PlayNextIcon extends Plugin {
   static get pluginName () {

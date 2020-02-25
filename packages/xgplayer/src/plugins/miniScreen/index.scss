@@ -4,6 +4,48 @@ $definitionLiActiveColor: #fff;
 $definitionNameColor: rgba(255, 255, 255, 1);
 $definitionNameBgColor: rgba(0, 0, 0, 0.38);
 .xgplayer {
+  &.xgplayer-mini {
+    position: fixed;
+    width: 320px;
+    height: 180px;
+    z-index: 110;
+  }
+  &.xgplayer-inactive {
+    background-color: rgba(0,0,0,0);
+    xg-mini-drag {
+      display: none;
+    }
+  }
+  .xg-mini-layer {
+    pointer-events: none;
+    display: none;
+    position: absolute;
+    top: 0;
+    left: 0;
+    height: 100%;
+    width: 100%;
+    background-color: rgba(0,0,0,.16);
+    // .xg-mask {
+    //   display: none;
+    //   position: absolute;
+    //   top: 0;
+    //   left: 0;
+    //   background-color: rgba(0,0,0,.16);
+    //   width: 100%;
+    //   height: 100%;
+    // }
+    
+    xg-mini-drag {
+      pointer-events: auto;
+      color: rgba(255,255,255,0.7);
+    }
+    // &.hover {
+    //   background-color: rgba(0,0,0,.16);
+    //   xg-mini-drag {
+    //     display: block;
+    //   }
+    // }
+  }
   .xgplayer-miniicon {
     position: relative;
     outline: none;
@@ -60,7 +102,7 @@ $definitionNameBgColor: rgba(0, 0, 0, 0.38);
   }
 }
 
-.xgplayer-skin-default.xgplayer-pip-active {
+.xgplayer-pip-active {
   position: fixed;
   right: 0;
   bottom: 200px;
@@ -78,13 +120,13 @@ $definitionNameBgColor: rgba(0, 0, 0, 0.38);
   }
 }
 
-.xgplayer-skin-default.xgplayer-pip-active {
+.xgplayer.xgplayer-pip-active {
   .xgplayer-pip-drag {
     display: flex;
   }
 }
 
-.xgplayer-skin-default.xgplayer-inactive {
+.xgplayer.xgplayer-inactive {
   .xgplayer-pip-drag {
     display: none;
   }

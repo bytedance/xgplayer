@@ -68,7 +68,7 @@
   .xgplayer-progress-dot {
     display: inline-block;
     position: absolute;
-    height: 3px;
+    height: 100%;
     width: 5px;
     top: 0px;
     background: white;
@@ -95,11 +95,6 @@
       }
     }
   }
-  .xgplayer-progress-dot-show {
-    .xgplayer-progress-tip {
-      display: block;
-    }
-  }
   .xgplayer-progress-thumbnail {
     position: absolute;
     box-sizing: border-box;
@@ -109,19 +104,45 @@
       z-index: 99;
     }
   }
+
   .xgplayer-progress:hover,.xgplayer-progress:focus {
     .xgplayer-progress-outer {
       height: 6px;
       margin-top: 7px;
     }
 
-    .xgplayer-progress-dot {
-      height: 6px;
-    }
-
     .xgplayer-progress-btn {
       display: block;
       top: -3px;
+    }
+  }
+
+  .xgplayer-controls.mini {
+    .xgplayer-progress {
+      left: 0;
+      right: 0;
+    }
+    .xgplayer-progress-point {
+      display: none;
+    }
+    .xgplayer-progress-dot {
+      .xgplayer-progress-tip {
+        opacity: 0;
+      }
+    }
+    .xgplayer-progress-thumbnail {
+      opacity: 0;
+    }
+
+    .xgplayer-progress:hover,.xgplayer-progress:focus {
+      .xgplayer-progress-outer {
+        height: 3px;
+        margin-top: 9px;
+      }
+  
+      .xgplayer-progress-btn {
+        display: none;
+      }
     }
   }
 }

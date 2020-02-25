@@ -14,12 +14,16 @@ import DefinitionIcon from '../icons/definitionIcon'
 import PlaybackRateIcon from '../icons/playbackRateIcon'
 import CssFullScreen from '../icons/cssFullScreen'
 
+const {Events, Util} = Plugin
 class Controls extends Plugin {
   static get pluginName () {
     return 'Controls'
   }
 
   afterCreate () {
+    this.on(Events.MINI_STATE_CHANGE, (isMini) => {
+      isMini ? Util.addClass(this.el, 'mini') : Util.removeClass(this.el, 'mini')
+    })
   }
 
   children () {
