@@ -196,8 +196,8 @@ let s_progress = function () {
       return true
     }
     const isRotate = isRotateFullscreen(player)
-    let containerLeft = isRotate ? container.getBoundingClientRect().left : container.getBoundingClientRect().top
-    let containerWidth = isRotate ? container.getBoundingClientRect().width : container.getBoundingClientRect().height
+    let containerLeft = isRotate ? container.getBoundingClientRect().top : container.getBoundingClientRect().left
+    let containerWidth = isRotate ? container.getBoundingClientRect().height : container.getBoundingClientRect().width
 
     let compute = function (e) {
       let now = ((isRotate ? e.clientY : e.clientX) - containerLeft) / containerWidth * player.duration
