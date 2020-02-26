@@ -36,9 +36,9 @@ export default class PCPlugin extends BasePlugin {
 
     player.root.addEventListener('mouseleave', this.onMouseLeave)
 
-    player.controls.addEventListener('mouseenter', this.onControlMouseEnter, false)
+    // player.controls.addEventListener('mouseenter', this.onControlMouseEnter, false)
 
-    player.controls.addEventListener('mouseleave', this.onControlMouseLeave, false)
+    // player.controls.addEventListener('mouseleave', this.onControlMouseLeave, false)
   }
 
   onEnter () {
@@ -63,8 +63,12 @@ export default class PCPlugin extends BasePlugin {
   }
 
   onVideoClick (e) {
+    console.log('onVideoClick')
     e.preventDefault()
-    e.stopPropagation()
+    // e.stopPropagation()
+    if (!this.config.closeVideoStopPropagation) {
+      e.stopPropagation()
+    }
     const { player } = this
     let clk = 0; let timer;
     if (!player.config.closeVideoClick) {
@@ -99,18 +103,7 @@ export default class PCPlugin extends BasePlugin {
     e.stopPropagation()
     const { player } = this
     if (!player.config.closeVideoDblclick) {
-      let fullscreen = player.controls.querySelector('.xgplayer-fullscreen')
-      if (fullscreen) {
-        let clk
-        if (document.createEvent) {
-          clk = document.createEvent('Event')
-          clk.initEvent('click', true, true)
-        } else {
-          // eslint-disable-next-line no-undef
-          clk = new Event('click')
-        }
-        fullscreen.dispatchEvent(clk)
-      }
+      player.fullscreen ? player.exitFullscreen() : player.getFullscreen()
     }
   }
 

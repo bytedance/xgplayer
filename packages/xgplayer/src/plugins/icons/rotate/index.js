@@ -1,26 +1,46 @@
 import Plugin from '../../../plugin'
 import RotateIcon from '../../assets/rotate.svg'
 
+const {POSITIONS, ROOT_TYPES} = Plugin
 
 class Rotate extends Plugin {
   static get pluginName () {
     return 'rotate'
   }
 
+  static get defaultConfig () {
+    return {
+      position: POSITIONS.RIGHT,
+      rootType: ROOT_TYPES.CONTROLS,
+      index: 6,
+      innerRotate: false, // true为只有画面旋转，false为整个播放器旋转
+      clockwise: false,
+      rotateDeg: 0 // 初始旋转角度
+    }
+  }
+
+  constructor (args) {
+    super(args)
+    this.rotateDeg = this.config.rotateDeg || 0
+  }
+
   afterCreate () {
-    this.updateRotateDeg = this.updateRotateDeg.bind(this)
-    this.rotate = this.rotate.bind(this);
-    this.bind('.xgplayer-icon', ['click', 'touchend'], this.rotate)
+    this.onBtnClick = this.onBtnClick.bind(this);
+    this.bind('.xgplayer-icon', ['click', 'touchend'], this.onBtnClick)
   }
 
   destroy () {
-    this.unbind('.xgplayer-icon', ['click', 'touchend'], this.rotate)
+    this.unbind('.xgplayer-icon', ['click', 'touchend'], this.onBtnClick)
+  }
+
+  onBtnClick (e) {
+    this.rotate(this.config.clockwise, this.config.innerRotate, 1)
   }
 
   updateRotateDeg () {
     let player = this.player;
-    if (!player.rotateDeg) {
-      player.rotateDeg = 0
+    if (!this.rotateDeg) {
+      this.rotateDeg = 0
     }
 
     let width = player.root.offsetWidth
@@ -34,7 +54,7 @@ class Rotate extends Plugin {
     }
 
     let scale
-    if (player.rotateDeg === 0.25 || player.rotateDeg === 0.75) {
+    if (this.rotateDeg === 0.25 || this.rotateDeg === 0.75) {
       if (this.config.innerRotate) {
         if ((targetWidth / targetHeight) > (height / width)) { // 旋转后纵向撑满
           let videoWidth = 0
@@ -68,26 +88,27 @@ class Rotate extends Plugin {
 
     if (this.config.innerRotate) {
       player.video.style.transformOrigin = 'center center'
-      player.video.style.transform = `rotate(${player.rotateDeg}turn) scale(${scale})`
-      player.video.style.webKitTransform = `rotate(${player.rotateDeg}turn) scale(${scale})`
+      player.video.style.transform = `rotate(${this.rotateDeg}turn) scale(${scale})`
+      player.video.style.webKitTransform = `rotate(${this.rotateDeg}turn) scale(${scale})`
     } else {
       player.root.style.transformOrigin = 'center center'
-      player.root.style.transform = `rotate(${player.rotateDeg}turn) scale(${1})`
-      player.root.style.webKitTransform = `rotate(${player.rotateDeg}turn) scale(${1})`
+      player.root.style.transform = `rotate(${this.rotateDeg}turn) scale(${1})`
+      player.root.style.webKitTransform = `rotate(${this.rotateDeg}turn) scale(${1})`
     }
   }
 
   rotate (clockwise = false, innerRotate = true, times = 1) {
+    console.log(`clockwise:${clockwise} innerRotate:${innerRotate} times:${times}`)
     let player = this.player;
-    if (!player.rotateDeg) {
-      player.rotateDeg = 0
+    if (!this.rotateDeg) {
+      this.rotateDeg = 0
     }
     let factor = clockwise ? 1 : -1
 
-    player.rotateDeg = (player.rotateDeg + 1 + factor * 0.25 * times) % 1
+    this.rotateDeg = (this.rotateDeg + 1 + factor * 0.25 * times) % 1
+    console.log('this.rotateDeg', this.rotateDeg)
     this.updateRotateDeg()
-
-    player.emit('rotate', player.rotateDeg * 360)
+    player.emit('rotate', this.rotateDeg * 360)
   }
 
   registerIcons () {

@@ -9,6 +9,7 @@ import defaultPreset from './presets/default'
 import getDefaultConfig from './defaultConfig'
 import { usePreset } from './plugin/preset';
 import Controls from './plugins/controls'
+import BaseBar from './plugins/baseBar'
 import {
   version
 } from '../package.json'
@@ -19,8 +20,6 @@ class Player extends Proxy {
   constructor (options) {
     super(options)
     this.config = util.deepCopy(getDefaultConfig(), options)
-    this.config.plugins = [Controls].concat(this.config.plugins)
-    console.log('this.config.plugins', this.config.plugins)
     this.config.presets = [defaultPreset]
     // timer and flags
     this.userTimer = null
@@ -34,7 +33,6 @@ class Player extends Proxy {
     this._initDOM()
 
     this._bindEvents()
-
     this._registerPresets()
     this._registerPlugins()
 
@@ -56,10 +54,6 @@ class Player extends Proxy {
    */
   _initDOM () {
     this.root = util.findDom(document, `#${this.config.id}`)
-    this.controls = util.createDom('xg-controls', '', {
-      unselectable: 'on',
-      onselectstart: 'return false'
-    }, 'xgplayer-controls')
     if (!this.root) {
       let el = this.config.el
       if (el && el.nodeType === 1) {
@@ -73,35 +67,35 @@ class Player extends Proxy {
         return false
       }
     }
-
+    const baseBar = pluginsManager.register(this, BaseBar)
+    this.baseBar = baseBar
+    const controls = pluginsManager.register(this, Controls, {isHide: !!this.config.controls})
+    this.controls = controls
     this.addClass(`${STATE_CLASS.DEFAULT} xgplayer-${sniffer.device} ${STATE_CLASS.NO_START} ${this.config.controls ? '' : STATE_CLASS.NO_CONTROLS}`)
-    this.root.appendChild(this.controls)
     if (this.config.fluid) {
-      this.root.style['max-width'] = '100%'
-      this.root.style['width'] = '100%'
-      this.root.style['height'] = '0'
-      this.root.style['padding-top'] = `${this.config.height * 100 / this.config.width}%`
-
-      this.video.style['position'] = 'absolute'
-      this.video.style['top'] = '0'
-      this.video.style['left'] = '0'
+      const style = {
+        'max-width': '100%',
+        'width': '100%',
+        'height': '0',
+        'padding-top': `${this.config.height * 100 / this.config.width}%`,
+        'position': 'position',
+        'top': '0',
+        'left': '0'
+      };
+      console.log('style', style)
+      Object.keys(style).map(key => {
+        this.root.style[key] = style[key]
+      })
     } else {
-      // this.root.style.width = `${this.config.width}px`
-      // this.root.style.height = `${this.config.height}px`
-      if (this.config.width) {
-        if (typeof this.config.width !== 'number') {
-          this.root.style.width = this.config.width
-        } else {
-          this.root.style.width = `${this.config.width}px`
+      ['width', 'height'].map(key => {
+        if (this.config[key]) {
+          if (typeof this.config[key] !== 'number') {
+            this.root.style[key] = this.config[key]
+          } else {
+            this.root.style[key] = `${this.config[key]}px`
+          }
         }
-      }
-      if (this.config.height) {
-        if (typeof this.config.height !== 'number') {
-          this.root.style.height = this.config.height
-        } else {
-          this.root.style.height = `${this.config.height}px`
-        }
-      }
+      })
     }
   }
 
@@ -231,10 +225,8 @@ class Player extends Proxy {
 
           return;
         }
-        if (plugin.options) {
-          return pluginsManager.register(this, plugin.plugin, plugin.options)
-        }
-        return pluginsManager.register(this, plugin)
+        console.log(plugin.pluginName)
+        return this.registerPlugin(plugin)
       } catch (err) {
         return null
       }
@@ -247,7 +239,26 @@ class Player extends Proxy {
     })
   }
 
-  registerPlugin () {
+  registerPlugin (plugin) {
+    let PLUFGIN = null
+    let options = {}
+    if (plugin.plugin && typeof plugin.plugin === 'function') {
+      PLUFGIN = plugin.plugin
+      options = plugin.options
+    } else {
+      PLUFGIN = plugin
+      options = {}
+    }
+    if (!options.root) {
+      const rootType = options.rootType ? options.rootType : (PLUFGIN.defaultConfig && PLUFGIN.defaultConfig.rootType)
+      const {ROOT_TYPES} = Plugin
+      if (rootType === ROOT_TYPES.CONTROLS) {
+        return this.controls.registerPlugin(PLUFGIN.pluginName, PLUFGIN, options)
+      } else if (rootType === ROOT_TYPES.BASE_BAR) {
+        return this.baseBar.registerPlugin(PLUFGIN.pluginName, PLUFGIN, options)
+      }
+    }
+    return pluginsManager.register(this, PLUFGIN, options)
   }
 
   unRegistePlugin () {}
@@ -412,9 +423,10 @@ class Player extends Proxy {
   }
 
   onFocus () {
+    console.log('onFocus')
     this.isActive = true
     let player = this
-    this.addClass(STATE_CLASS.ACTIVE)
+    this.removeClass(STATE_CLASS.ACTIVE)
     if (player.userTimer) {
       clearTimeout(player.userTimer)
     }
@@ -425,8 +437,9 @@ class Player extends Proxy {
   }
 
   onBlur () {
+    console.log('onBlur')
     if (!this.paused && !this.ended) {
-      this.removeClass(STATE_CLASS.ACTIVE)
+      this.addClass(STATE_CLASS.ACTIVE)
     }
   }
 

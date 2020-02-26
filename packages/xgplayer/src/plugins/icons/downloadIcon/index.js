@@ -1,10 +1,19 @@
 import downloadUtil from 'downloadjs'
 import Plugin from '../../../plugin'
 
+const {POSITIONS, ROOT_TYPES} = Plugin
 
 export default class DownloadIcon extends Plugin {
   static get pluginName () {
     return 'DownloadIcon'
+  }
+
+  static get defaultConfig () {
+    return {
+      position: POSITIONS.RIGHT,
+      rootType: ROOT_TYPES.CONTROLS,
+      index: 3
+    }
   }
 
   constructor (args) {

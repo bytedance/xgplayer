@@ -1,6 +1,5 @@
 import Plugin from '../../../plugin'
 
-
 const {Util} = Plugin
 
 class MiniScreen extends Plugin {

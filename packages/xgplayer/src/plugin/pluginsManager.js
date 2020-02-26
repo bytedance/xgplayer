@@ -66,6 +66,7 @@ const pluginsManager = {
     options.player = this.pluginGroup[cgid]._player
     // console.log('plugin.pluginName', plugin.pluginName)
     const pluginName = options.pluginName || plugin.pluginName
+    console.log(`pluginName:${pluginName}`, options)
     if (!pluginName) {
       throw new Error('The property pluginName is necessary')
     }
@@ -94,6 +95,8 @@ const pluginsManager = {
         }
       })
     }
+
+    options.index = options.config.index || 0
     try {
       // eslint-disable-next-line new-cap
       const _instance = new plugin(options)

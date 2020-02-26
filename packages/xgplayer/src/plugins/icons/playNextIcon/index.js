@@ -4,10 +4,18 @@
 import Plugin from '../../../plugin'
 import Next from '../../assets/playNext.svg'
 
-// const { Events } = Plugin
+const { POSITIONS, ROOT_TYPES } = Plugin
 export default class PlayNextIcon extends Plugin {
   static get pluginName () {
     return 'PlayNextIcon'
+  }
+
+  static get defaultConfig () {
+    return {
+      position: POSITIONS.LEFT,
+      rootType: ROOT_TYPES.CONTROLS,
+      index: 1
+    }
   }
 
   constructor (options) {

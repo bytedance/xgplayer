@@ -1,7 +1,7 @@
 import Plugin from '../../../plugin'
 import ProgressDots from './progressdots'
 
-const {Events, Util} = Plugin
+const {Events, Util, POSITIONS, ROOT_TYPES} = Plugin
 const defaultThumbnailConfig = {
   isShow: false,
   urls: [],
@@ -23,6 +23,9 @@ class Progress extends Plugin {
 
   static get defaultConfig () {
     return {
+      position: POSITIONS.CENTER,
+      rootType: ROOT_TYPES.CONTROLS,
+      index: 0,
       progressDot: []
     }
   }
@@ -104,6 +107,9 @@ class Progress extends Plugin {
 
   mouseDown (e) {
     const {player} = this
+    if (player.isMini) {
+      return
+    }
     const self = this
     e.stopPropagation()
     Util.event(e)
@@ -163,6 +169,9 @@ class Progress extends Plugin {
 
   mouseEnter (e) {
     const {player} = this
+    if (player.isMini) {
+      return
+    }
     if (!player.config.allowSeekAfterEnded && player.ended) {
       return true
     }
@@ -171,6 +180,10 @@ class Progress extends Plugin {
   }
 
   mouseLeave (e) {
+    const {player} = this
+    if (player.isMini) {
+      return
+    }
     this.pointTip.style.display = 'none'
     this.thumbnailDom.style.display = 'none'
     this.el.removeEventListener('mousemove', this.mouseMove, false)

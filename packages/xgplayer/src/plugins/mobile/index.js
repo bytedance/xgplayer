@@ -42,8 +42,7 @@ class MobilePlugin extends BasePlugin {
         if (player.paused) {
           let playPromise = player.play();
           if (playPromise !== undefined && playPromise) {
-            playPromise.catch(err => {
-            });
+            playPromise.catch(err => {});
           }
         } else {
           player.pause();
@@ -51,7 +50,6 @@ class MobilePlugin extends BasePlugin {
       }
     }
   }
-
 }
 
 export default MobilePlugin;

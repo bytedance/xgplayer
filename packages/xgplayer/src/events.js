@@ -29,3 +29,4 @@ export const URL_CHANGE = 'urlchange'
 // screen change evnets
 export const FULLSCREEN_CHANGE = 'fullscreen_change'
 export const CSS_FULLSCREEN_CHANGE = 'cssFullscreen_change'
+export const MINI_STATE_CHANGE = 'mini_state_change'

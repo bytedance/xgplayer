@@ -1,130 +1,180 @@
+import Draggabilly from 'draggabilly'
 import Plugin from '../../plugin'
+import MiniScreenIcon from './miniScreenIcon'
 import './index.scss'
 
-const {Util} = Plugin
+const {Util, Events} = Plugin
 
 class MiniScreen extends Plugin {
   static get pluginName () {
     return 'miniscreen'
   }
 
+  static get defaultConfig () {
+    return {
+      width: 320,
+      height: 180,
+      left: 0,
+      top: 200,
+      'z-index': 110,
+      isShowIcon: true, // 是否显示icon
+      isCachePosition: true // 是否缓存位置信息
+    }
+  }
+
+  constructor (args) {
+    super(args)
+    this.isMini = false
+    this.position = {
+      left: this.config.left,
+      top: this.config.top,
+      height: this.config.height,
+      width: this.config.width
+    }
+    this.coordinate = {}
+    this.lastStyle = null
+  }
+
+  changPosition (position = {left: 0, rigth: 0, top: null, bottom: null}) {
+    console.log(position)
+  }
+
   afterCreate () {
     this.getMini = this.getMini.bind(this)
     this.exitMini = this.exitMini.bind(this)
-    this.bind(['click', 'touchend'], this.getMini)
-  }
-
-  getMini () {
-    const _player = this.player;
-    // let ro = this.root.getBoundingClientRect()
-    // let Top = ro.top
-    // let Left = ro.left
-    let dragLay = Util.createDom('xg-pip-lay', '<div></div>', {}, 'xgplayer-pip-lay')
-    _player.root.appendChild(dragLay)
-    let dragHandle = Util.createDom('xg-pip-drag', '<div class="drag-handle"><span>点击按住可拖动视频</span></div>', {tabindex: 9}, 'xgplayer-pip-drag')
-    _player.root.appendChild(dragHandle)
-    Util.addClass(this.root, 'xgplayer-pip-active')
-    _player.root.style.right = 0
-    _player.root.style.bottom = '200px'
-    _player.root.style.top = ''
-    _player.root.style.left = ''
-    _player.root.style.width = '320px'
-    _player.root.style.height = '180px'
-    if (this.config) {
-      if (this.config.top !== undefined) {
-        _player.root.style.top = this.config.top + 'px'
-        _player.root.style.bottom = ''
+    this.onMousemove = this.onMousemove.bind(this)
+    this.onMousedown = this.onMousedown.bind(this)
+    this.onMouseup = this.onMouseup.bind(this)
+    const {player} = this
+    if (this.config.isShowIcon) {
+      const options = {
+        onClick: () => {
+          this.getMini()
+        }
       }
-      if (this.config.bottom !== undefined) {
-        _player.root.style.bottom = this.config.bottom + 'px'
-      }
-      if (this.config.left !== undefined) {
-        _player.root.style.left = this.config.left + 'px'
-        _player.root.style.right = ''
-      }
-      if (this.config.right !== undefined) {
-        _player.root.style.right = this.config.right + 'px'
-      }
-      if (this.config.width !== undefined) {
-        _player.root.style.width = this.config.width + 'px'
-      }
-      if (this.config.height !== undefined) {
-        _player.root.style.height = this.config.height + 'px'
-      }
+      this.miniIcon = player.controls.registerPlugin(MiniScreenIcon.pluginName, MiniScreenIcon, options)
     }
-    if (_player.config.fluid) {
-      _player.root.style['padding-top'] = ''
-    }
-    ['click', 'touchend'].forEach(item => {
-      dragLay.addEventListener(item, (e) => {
-        e.preventDefault()
-        e.stopPropagation()
-        this.exitMini()
-        // player.root.style.top = `${Top}px`
-        // player.root.style.left = `${Left}px`
-      })
+    this.bind('xg-mini-drag', 'click', () => {
+      console.log('xg-mini-drag')
+      this.exitMini()
+    })
+    // this.bind(['click', 'touchend'], this.getMini)
+    // this.bind('mousedown', this.onMousedown)
+    // this.bind('mouseup', this.onMouseup)
+    // this.draggie = new Draggabilly(this.player.root, {grid: [ 20, 20 ]})
+    // this.draggie.isEnabled = false
+    this.bind('mouseenter', () => {
+      console.log('onMouseEnter')
+    })
+    this.bind('mouseleave', () => {
+      console.log('onMouseLeave')
     })
   }
 
+  onMouseEnter () {
+    console.log('onMouseEnter')
+  }
+
+  onMouseLeave () {
+    console.log('onMouseLeave')
+  }
+
+  onMousedown (e) {
+    console.log('onMousedown')
+    console.log(`x:${e.clientX}  y:${e.clientY}`)
+    this.bind('mousemove', this.onMousemove)
+  }
+
+  onMouseup (e) {
+    console.log('onMouseup')
+    this.unbind('mousemove', this.onMousemove)
+  }
+
+  onMousemove (e) {
+    const nx = e.clientX
+    const ny = e.clientY
+    const {x, y} = this.coordinate
+    const {right, left} = this.position
+    if (nx === x && ny === y) {
+      return
+    }
+    if (right === 0) {
+
+    } else if (left === 0) {
+
+    }
+    this.coordinate.x = nx
+    this.coordinate.y = ny
+    console.log('coordinate', this.coordinate)
+  }
+
+  getMini () {
+    if (this.isMini) {
+      return
+    }
+    const {player, playerConfig} = this;
+    player.isMini = this.isMini = true
+    // this.draggie.enable()
+    this.lastStyle = {}
+    Util.addClass(player.root, 'xgplayer-mini')
+    this.show()
+    console.log('position', this.position)
+    Object.keys(this.position).map(key => {
+      this.lastStyle[key] = player.root.style[key]
+      player.root.style[key] = `${this.position[key]}px`
+    })
+    if (playerConfig.fluid) {
+      player.root.style['padding-top'] = ''
+    }
+    console.log('this.lastStyle', this.lastStyle)
+    this.createDraggie()
+    this.emit(Events.MINI_STATE_CHANGE, true)
+  }
+
   exitMini () {
-    const player = this.player;
-    Util.removeClass(this.root, 'xgplayer-pip-active')
-    player.root.style.right = ''
-    player.root.style.bottom = ''
-    player.root.style.top = ''
-    player.root.style.left = ''
-    if (player.config.fluid) {
+    this.hide();
+    if (!this.isMini) {
+      return false
+    }
+    // this.draggie.disable()
+    const {player, playerConfig} = this;
+    this.isMini = player.isMini = false
+    Util.removeClass(player.root, 'xgplayer-mini')
+    if (this.lastStyle) {
+      console.log('this.lastStyle', this.lastStyle)
+      // player.root.removeAttribute('style')
+      // player.root.setAttribute('style', this.lastStyle)
+      Object.keys(this.lastStyle).map(key => {
+        player.root.style[key] = this.lastStyle[key]
+      })
+    }
+    this.lastStyle = null;
+    if (playerConfig.fluid) {
       player.root.style['width'] = '100%'
       player.root.style['height'] = '0'
-      player.root.style['padding-top'] = `${this.config.height * 100 / this.config.width}%`
-    } else {
-      if (player.config.width) {
-        if (typeof this.config.width !== 'number') {
-          player.root.style.width = player.config.width
-        } else {
-          player.root.style.width = `${player.config.width}px`
-        }
-      }
-      if (player.config.height) {
-        if (typeof player.config.height !== 'number') {
-          player.root.style.height = player.config.height
-        } else {
-          player.root.style.height = `${player.config.height}px`
-        }
-      }
+      player.root.style['padding-top'] = `${playerConfig.height * 100 / playerConfig.width}%`
     }
+    this.draggie.destroy()
+    this.draggie = null
+    this.emit(Events.MINI_STATE_CHANGE, false)
+  }
 
-    let dragLay = Util.findDom(player.root, '.xgplayer-pip-lay')
-    if (dragLay && dragLay.parentNode) {
-      dragLay.parentNode.removeChild(dragLay)
-    }
-    let dragHandle = Util.findDom(player.root, '.xgplayer-pip-drag')
-    if (dragHandle && dragHandle.parentNode) {
-      dragHandle.parentNode.removeChild(dragHandle)
-    }
+  createDraggie () {
+    this.draggie = new Draggabilly(this.player.root, {
+      // grid: [ 5, 5 ]
+      // handle: '.xg-mini-layer'
+    })
   }
 
   destroy () {
     this.unbind(['click', 'touchend'], this.getMini)
   }
 
-  // 扩展语言
-  registerLangauageTexts () {
-    return {
-      'miniscreen': {
-        jp: '日文text',
-        en: 'miniscreen',
-        zh: '小屏幕'
-      }
-    }
-  }
-
   render () {
-    let text = this.text.miniscreen
     return `
-      <xg-icon class="xgplayer-miniicon">
-       <p class="name"><span>${text}</span></p>
-      </xg-icon>`
+      <xg-mini-layer class="xg-mini-layer">
+      <xg-mini-drag>关闭</xg-mini-drag>
+      </xg-mini-layer>`
   }
 }
 
