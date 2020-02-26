@@ -1,11 +1,18 @@
 import Plugin from '../../../plugin'
 import CssFullscreenChange from '../../assets/cssFullscreenChange.svg'
 
-
-const { Events, Util } = Plugin
+const {Events, Util, POSITIONS, ROOT_TYPES} = Plugin
 export default class CssFullScreen extends Plugin {
   static get pluginName () {
     return 'cssFullscreen'
+  }
+
+  static get defaultConfig () {
+    return {
+      position: POSITIONS.RIGHT,
+      rootType: ROOT_TYPES.CONTROLS,
+      index: 1
+    }
   }
 
   constructor (args) {
@@ -46,6 +53,7 @@ export default class CssFullScreen extends Plugin {
     }
     Util.addClass(player.root, 'xgplayer-is-cssfullscreen')
     this.isCssfullScreen = true
+    this.switchTips()
     player.emit('cssFullscreen_change', this.isCssfullScreen)
   }
 
@@ -58,7 +66,12 @@ export default class CssFullScreen extends Plugin {
     }
     Util.removeClass(player.root, 'xgplayer-is-cssfullscreen')
     this.isCssfullScreen = false
+    this.switchTips()
     player.emit('cssFullscreen_change', this.isCssfullScreen)
+  }
+
+  switchTips () {
+    this.find('.xg-tips').innerHTML = this.isCssfullScreen ? this.text.exitCssFullscreen : this.text.cssFullscreen
   }
 
   registerIcons () {

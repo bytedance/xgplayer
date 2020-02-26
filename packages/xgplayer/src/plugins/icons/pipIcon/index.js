@@ -1,10 +1,18 @@
 import Plugin from '../../../plugin'
 
-const { Events } = Plugin
+const {Events, POSITIONS, ROOT_TYPES} = Plugin
 
 class PIPIcon extends Plugin {
   static get pluginName () {
     return 'PipIcon'
+  }
+
+  static get defaultConfig () {
+    return {
+      position: POSITIONS.RIGHT,
+      rootType: ROOT_TYPES.CONTROLS,
+      index: 6
+    }
   }
 
   afterCreate () {

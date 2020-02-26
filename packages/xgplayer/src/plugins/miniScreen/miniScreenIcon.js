@@ -1,9 +1,17 @@
 import Plugin from '../../plugin'
 import './index.scss'
-
+const {ROOT_TYPES, POSITIONS} = Plugin
 class MiniScreenIcon extends Plugin {
   static get pluginName () {
     return 'miniscreenIcon'
+  }
+
+  static get defaultConfig () {
+    return {
+      position: POSITIONS.RIGHT,
+      rootType: ROOT_TYPES.CONTROLS,
+      index: 10
+    }
   }
 
   afterCreate () {

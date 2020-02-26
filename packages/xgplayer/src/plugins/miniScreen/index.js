@@ -17,7 +17,7 @@ class MiniScreen extends Plugin {
       left: 0,
       top: 200,
       'z-index': 110,
-      isShowIcon: false, // 是否显示icon
+      isShowIcon: true, // 是否显示icon
       isCachePosition: true // 是否缓存位置信息
     }
   }
@@ -26,9 +26,7 @@ class MiniScreen extends Plugin {
     super(args)
     this.isMini = false
     this.position = {
-      // left: this.config.left,
       left: this.config.left,
-      // top: this.config.top,
       top: this.config.top,
       height: this.config.height,
       width: this.config.width
@@ -50,15 +48,11 @@ class MiniScreen extends Plugin {
     const {player} = this
     if (this.config.isShowIcon) {
       const options = {
-        config: {
-          onClick: () => {
-            this.getMini()
-          }
-        },
-        root: player.controls.right
+        onClick: () => {
+          this.getMini()
+        }
       }
-      const c = player.controls.registerPlugin(MiniScreenIcon.pluginName, MiniScreenIcon, options)
-      console.log('c', c)
+      this.miniIcon = player.controls.registerPlugin(MiniScreenIcon.pluginName, MiniScreenIcon, options)
     }
     this.bind('xg-mini-drag', 'click', () => {
       console.log('xg-mini-drag')

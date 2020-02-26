@@ -1,6 +1,6 @@
 import Plugin from '../../../plugin'
 
-const { Events, Util, Sniffer } = Plugin
+const {Events, Util, Sniffer, POSITIONS, ROOT_TYPES} = Plugin
 export default class PlaybackRateIcon extends Plugin {
   static get pluginName () {
     return 'PlaybackRateIcon'
@@ -8,8 +8,9 @@ export default class PlaybackRateIcon extends Plugin {
   // 默认配置信息
   static get defaultConfig () {
     return {
-      position: 'left',
-      index: 2,
+      position: POSITIONS.RIGHT,
+      rootType: ROOT_TYPES.CONTROLS,
+      index: 4,
       rateList: [0.5, 0.75, {rate: 1, iconText: '倍速'}, 1.5, 2]
     }
   }
@@ -17,6 +18,7 @@ export default class PlaybackRateIcon extends Plugin {
     super(args)
     this.curRate = 1
   }
+
   afterCreate () {
     this.once(Events.CANPLAY, () => {
       this.show()

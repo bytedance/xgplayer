@@ -1,11 +1,18 @@
 import Plugin from '../../../plugin'
 import PlayPauseSvg from '../../assets/playPause.svg'
 
-
-const { Events } = Plugin
+const {Events, POSITIONS, ROOT_TYPES} = Plugin
 class PlayIcon extends Plugin {
   static get pluginName () {
     return 'PlayIcon'
+  }
+
+  static get defaultConfig () {
+    return {
+      position: POSITIONS.LEFT,
+      rootType: ROOT_TYPES.CONTROLS,
+      index: 0
+    }
   }
 
   afterCreate () {

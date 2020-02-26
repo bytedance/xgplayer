@@ -1,6 +1,7 @@
 import Plugin from '../../plugin'
 import PanelIcon from '../assets/panel.svg'
 
+const {Sniffer, Util, POSITIONS, ROOT_TYPES} = Plugin
 class DanmuPanel extends Plugin {
   static get pluginName () {
     return 'DanmuPanel'
@@ -15,6 +16,9 @@ class DanmuPanel extends Plugin {
 
   static get defaultConfig () {
     return {
+      position: POSITIONS.RIGHT,
+      rootType: ROOT_TYPES.CONTROLS,
+      index: 11,
       onChangeSet: (set) => {
         console.log(`DanmuPanel:${set}`)
       },
@@ -27,22 +31,34 @@ class DanmuPanel extends Plugin {
   constructor (args) {
     super(args)
     this.set = {
-      speed: 1,
-      area: {},
-      opacity: 1,
-      fonSize: 'middle'
+      speed: 1, // 速度
+      area: {}, // 区域
+      opacity: 1, // 透明度
+      fonSize: 'middle' // 字体
     }
   }
 
   afterCreate () {
-    console.log('danmuIcon', this.config)
+    if (Sniffer.device === 'mobile') {
+      this.activeEvent = 'click'
+    } else {
+      this.activeEvent = 'mouseenter'
+    }
     this.onStateChange = this.onStateChange.bind(this)
-    this.bind(['click', 'touchend'], this.onStateChange)
+    this.onToggle = this.onToggle.bind(this)
+    this.bind(this.activeEvent, this.onToggle)
+    this.bind('mouseleave', this.onToggle)
+    // this.bind(['click', 'touchend'], this.onStateChange)
   }
 
   onStateChange (e) {
-    console.log('onStateChange')
     this.config.onChangeSet && this.config.onChangeSet(this.set)
+  }
+
+  onToggle (e) {
+    e.preventDefault()
+    e.stopPropagation()
+    Util.hasClass(this.el, 'slider-show') ? Util.removeClass(this.el, 'slider-show') : Util.addClass(this.el, 'slider-show')
   }
 
   destroy () {

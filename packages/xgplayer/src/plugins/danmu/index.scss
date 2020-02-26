@@ -1,3 +1,5 @@
+@import "./danmuIcon.scss";
+@import "./danmuPanel.scss";
 // definition
 $definitionUlBgColor: rgba(0, 0, 0, 0.54);
 $definitionLiColor: rgba(255, 255, 255, 0.80);
@@ -25,19 +27,13 @@ $sliderDragAfterShadow: 0 0 5px 0 rgba(0, 0, 0, 0.26);
     right: 0;
     height: 100%;
     overflow: hidden;
-    z-index: 9;
+    // z-index: 9;
     outline: none;
     > * {
       position: absolute;
       white-space: nowrap;
-      z-index: 9;
+      // z-index: 9;
     }
-  }
-}
-
-.xgplayer {
-  .xgplayer-danmu.xgplayer-has-danmu {
-    display: block;
   }
 }
 
@@ -152,10 +148,6 @@ $sliderDragAfterShadow: 0 0 5px 0 rgba(0, 0, 0, 0.26);
       top: 10px;
     }
   }
-  .xgplayer-panel-active {
-    display: block!important;
-    bottom: 30px;
-  }
   // .selected-color {
   //   color: #f85959;
   // }
@@ -171,7 +163,7 @@ $sliderDragAfterShadow: 0 0 5px 0 rgba(0, 0, 0, 0.26);
     outline: none;
     left: -115px;
     bottom: 40px;
-    .xgplayer-hidemode{
+    .xgplayer-hidemode {
       padding-bottom: 10px;
       &-radio li{
         display: inline;
@@ -340,5 +332,9 @@ $sliderDragAfterShadow: 0 0 5px 0 rgba(0, 0, 0, 0.26);
       @include dot(danmufont-middle);
       @include dot(danmufont-large);
     }
+  }
+  .slider-show .xgplayer-panel-slider{
+    display: block;
+    bottom: 30px;
   }
 }

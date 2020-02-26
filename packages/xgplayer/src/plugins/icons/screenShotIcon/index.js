@@ -1,6 +1,6 @@
 import Plugin from '../../../plugin'
 
-const { Events } = Plugin
+const { Events, POSITIONS, ROOT_TYPES } = Plugin
 export default class ScreenShotIcon extends Plugin {
   static get pluginName () {
     return 'ScreenShotIcon'
@@ -8,6 +8,9 @@ export default class ScreenShotIcon extends Plugin {
 
   static get defaultConfig () {
     return {
+      position: POSITIONS.LEFT,
+      rootType: ROOT_TYPES.CONTROLS,
+      index: 5,
       quality: 0.92,
       type: 'image/png',
       format: '.png',

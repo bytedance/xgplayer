@@ -1,11 +1,19 @@
 import Plugin from '../../../plugin'
 import volumeChange from '../../assets/volumeChange.svg'
 
-
-const { Util, Events } = Plugin
+const {Util, Events, POSITIONS, ROOT_TYPES} = Plugin
 class VolumeIcon extends Plugin {
   static get pluginName () {
     return 'VolumeIcon'
+  }
+
+  static get defaultConfig () {
+    return {
+      position: POSITIONS.RIGHT,
+      rootType: ROOT_TYPES.CONTROLS,
+      index: 1,
+      progressDot: []
+    }
   }
 
   registerIcons () {

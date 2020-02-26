@@ -1,15 +1,17 @@
 import Plugin from '../../../plugin'
 
-const { Events, Util, Sniffer } = Plugin
+const { Events, Util, Sniffer, POSITIONS, ROOT_TYPES } = Plugin
 export default class DefinitionIcon extends Plugin {
   static get pluginName () {
     return 'DefinitionIcon'
   }
+
   // 默认配置信息
   static get defaultConfig () {
     return {
-      position: 'left',
-      index: 2,
+      position: POSITIONS.RIGHT,
+      rootType: ROOT_TYPES.CONTROLS,
+      index: 3,
       itemList: null
     }
   }
@@ -38,10 +40,10 @@ export default class DefinitionIcon extends Plugin {
     } else {
       this.activeEvent = 'mouseenter'
     }
-    this.onMouseenter = this.onMouseenter.bind(this)
+    this.onToggle = this.onToggle.bind(this)
     this.onItemClick = this.onItemClick.bind(this)
-    this.bind(this.activeEvent, this.onMouseenter)
-    this.bind('mouseleave', this.onMouseenter)
+    this.bind(this.activeEvent, this.onToggle)
+    this.bind('mouseleave', this.onToggle)
     this.bind('.icon-list li', ['touched', 'click'], this.onItemClick)
   }
 
@@ -87,9 +89,10 @@ export default class DefinitionIcon extends Plugin {
         playPromise.catch(err => {})
       }
     }
+    player.emit('afterdefinitionChange')
   }
 
-  onMouseenter (e) {
+  onToggle (e) {
     e.preventDefault()
     e.stopPropagation()
     Util.hasClass(this.el, 'list-show') ? Util.removeClass(this.el, 'list-show') : Util.addClass(this.el, 'list-show')
@@ -119,8 +122,13 @@ export default class DefinitionIcon extends Plugin {
       player.switchURL(lastATag.href)
     }
   }
+  // 对外暴露 切换清晰度
+  changeDefinition () {
+
+  }
 
   onItemClick (e) {
+    console.log('onItemClick')
     const {player} = this
     const {itemList} = this.config
     e.preventDefault()

@@ -1,7 +1,6 @@
 import Plugin from '../../plugin'
-import './danmuIcon.scss'
 
-const {Util} = Plugin
+const {Util, POSITIONS, ROOT_TYPES} = Plugin
 class DanmuIcon extends Plugin {
   static get pluginName () {
     return 'danmuIcon'
@@ -16,10 +15,13 @@ class DanmuIcon extends Plugin {
 
   static get defaultConfig () {
     return {
+      position: POSITIONS.RIGHT,
+      rootType: ROOT_TYPES.CONTROLS,
+      index: 11,
       onSwitch: (state) => {
         console.log(`DanmuIcon:${state}`)
       },
-      isOpen: false
+      defaultOpen: false
     }
   }
 
@@ -56,7 +58,7 @@ class DanmuIcon extends Plugin {
   render () {
     return `
     <xg-icon class="danmu-icon">
-      <dk-switch class="danmu-switch ${this.config.isOpen ? 'danmu-switch-active' : ''}">
+      <dk-switch class="danmu-switch ${this.config.defaultOpen ? 'danmu-switch-active' : ''}">
         <span class="txt">弹</span>
       </dk-switch>
     </xg-icon>`

@@ -6,7 +6,6 @@ export default class PCPlugin extends BasePlugin {
   }
 
   afterCreate () {
-    console.log('pc___')
     this.onVideoClick = this.onVideoClick.bind(this)
     this.onVideoDblClick = this.onVideoDblClick.bind(this)
     this.onMouseEnter = this.onMouseEnter.bind(this)

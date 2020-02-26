@@ -2,9 +2,8 @@ import DanmuJs from 'danmu.js'
 import Plugin from '../../plugin'
 import DanmuPanel from './danmuPanel'
 import DanmuIcon from './danmuIcon'
-import './index.scss'
 
-const {Util, Events} = Plugin
+const {Events} = Plugin
 
 class Danmu extends Plugin {
   constructor (args) {
@@ -24,23 +23,23 @@ class Danmu extends Plugin {
         start: 0, // 区域顶部到播放器顶部所占播放器高度的比例
         end: 1 // 区域底部到播放器顶部所占播放器高度的比例
       },
-      closeDefaultBtn: true, // 开启此项后不使用默认提供的弹幕开关，默认使用西瓜播放器提供的开关
-      defaultOff: true, // 开启此项后弹幕不会初始化，默认初始化弹幕
-      panel: true,
-      panelConfig: {},
-      switchButton: true,
-      isOpen: true
+      closeDefaultBtn: true, // TODO: 开启此项后不使用默认提供的弹幕开关，默认使用西瓜播放器提供的开关
+      defaultOff: true, // TODO: 开启此项后弹幕不会初始化，默认初始化弹幕
+      panel: false, // 是否安装配置面板
+      panelConfig: {}, // 配置面板促使配置
+      switchButton: true, // 是否加载开关按钮
+      switchConfig: {}, // 开关按钮配置信息
+      defaultOpen: true // 是否默认开启弹幕
     }
   }
 
   afterCreate () {
-    console.log('danmu', this.config)
     this.once(Events.COMPLETE, () => {
       this.initDanmu()
       this.registerExtIcons()
     })
 
-    this.config.isOpen &&
+    this.config.defaultOpen &&
     this.once(Events.TIME_UPDATE, () => {
       this.start()
     })
@@ -55,8 +54,6 @@ class Danmu extends Plugin {
       area: config.area
     }
     player.danmu = this.danmujs = new DanmuJs(danmuConfig)
-    const switchBtn = Util.copyDom(this.danmujs.bulletBtn.createSwitch(true))
-    console.log('switchBtn', switchBtn)
   }
 
   registerExtIcons () {
@@ -67,23 +64,20 @@ class Danmu extends Plugin {
           onChangeset: (set) => {
             this.changeSet(set)
           }
-        },
-        root: player.controls.right
+        }
       }
       this.danmuPanel = player.controls.registerPlugin(DanmuPanel.pluginName, DanmuPanel, panelOptions)
     }
     if (config.switchButton) {
-      const buttonConfig = {
+      const buttonOptions = {
         config: {
           onSwitch: (isOpen) => {
             this.onSwitch(isOpen)
           },
-          isOpen: true
-        },
-        root: player.controls.right,
-        index: 8
+          defaultOpen: this.config.defaultOpen
+        }
       }
-      this.danmuButton = player.controls.registerPlugin(DanmuIcon.pluginName, DanmuIcon, buttonConfig)
+      this.danmuButton = player.controls.registerPlugin(DanmuIcon.pluginName, DanmuIcon, buttonOptions)
     }
   }
 
@@ -91,8 +85,8 @@ class Danmu extends Plugin {
     console.log('changeSet', set)
   }
 
-  onSwitch (isOpen) {
-    if (isOpen) {
+  onSwitch (defaultOpen) {
+    if (defaultOpen) {
       this.start()
     } else {
       this.stop()

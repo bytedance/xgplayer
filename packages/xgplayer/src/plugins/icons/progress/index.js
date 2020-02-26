@@ -1,7 +1,7 @@
 import Plugin from '../../../plugin'
 import ProgressDots from './progressdots'
 
-const {Events, Util} = Plugin
+const {Events, Util, POSITIONS, ROOT_TYPES} = Plugin
 const defaultThumbnailConfig = {
   isShow: false,
   urls: [],
@@ -23,6 +23,9 @@ class Progress extends Plugin {
 
   static get defaultConfig () {
     return {
+      position: POSITIONS.CENTER,
+      rootType: ROOT_TYPES.CONTROLS,
+      index: 0,
       progressDot: []
     }
   }

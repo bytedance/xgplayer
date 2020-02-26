@@ -68,6 +68,8 @@ const pluginsManager = {
         }
       })
     }
+
+    options.index = options.config.index || 0
     try {
       // eslint-disable-next-line new-cap
       const _instance = new plugin(options)
