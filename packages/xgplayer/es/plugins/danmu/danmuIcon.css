@@ -1,0 +1,5 @@
+.xgplayer .danmu-icon {
+  display: -webkit-flex;
+  display: -moz-box;
+  display: flex;
+  padding-top: 2px; }

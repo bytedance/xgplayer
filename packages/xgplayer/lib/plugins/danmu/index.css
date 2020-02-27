@@ -1,0 +1,553 @@
+.xgplayer .danmu-icon {
+  display: -webkit-flex;
+  display: -moz-box;
+  display: flex;
+  padding-top: 2px; }
+
+.xgplayer .danmu-switch {
+  -webkit-order: 6;
+     -moz-box-ordinal-group: 7;
+          order: 6;
+  z-index: 26; }
+
+.xgplayer .xgplayer-danmu {
+  display: none;
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 100%;
+  overflow: hidden;
+  outline: none; }
+  .xgplayer .xgplayer-danmu > * {
+    position: absolute;
+    white-space: nowrap; }
+
+.xgplayer .xgplayer-panel {
+  outline: none;
+  -webkit-order: 7;
+     -moz-box-ordinal-group: 8;
+          order: 7;
+  width: 40px;
+  height: 40px;
+  display: inline-block;
+  position: relative;
+  font-family: PingFangSC-Regular;
+  font-size: 13px;
+  color: rgba(255, 255, 255, 0.8);
+  z-index: 36; }
+  .xgplayer .xgplayer-panel .xgplayer-panel-icon {
+    cursor: pointer;
+    position: absolute;
+    margin-left: 5px;
+    top: 10px; }
+
+.xgplayer .xgplayer-panel-slider {
+  z-index: 36;
+  display: none;
+  position: absolute;
+  width: 230px;
+  height: 230px;
+  background: rgba(0, 0, 0, 0.54);
+  border-radius: 1px;
+  padding: 10px 20px;
+  outline: none;
+  left: -115px;
+  bottom: 40px; }
+  .xgplayer .xgplayer-panel-slider .xgplayer-hidemode {
+    padding-bottom: 10px; }
+    .xgplayer .xgplayer-panel-slider .xgplayer-hidemode-radio li {
+      display: inline;
+      list-style: none;
+      cursor: pointer; }
+    .xgplayer .xgplayer-panel-slider .xgplayer-hidemode ul {
+      display: -webkit-flex;
+      display: -moz-box;
+      display: flex;
+      -webkit-justify-content: space-around;
+              justify-content: space-around; }
+    .xgplayer .xgplayer-panel-slider .xgplayer-hidemode li {
+      margin: 0 12px;
+      font-size: 11px;
+      color: #aaa; }
+    .xgplayer .xgplayer-panel-slider .xgplayer-hidemode-font {
+      margin-bottom: 10px; }
+  .xgplayer .xgplayer-panel-slider .xgplayer-transparency {
+    display: block;
+    margin-top: 10px; }
+    .xgplayer .xgplayer-panel-slider .xgplayer-transparency .xgplayer-transparency-line {
+      -webkit-appearance: none;
+      -moz-appearance: none;
+      appearance: none;
+      cursor: pointer;
+      outline: none;
+      width: 150px;
+      height: 4px;
+      background: #aaa;
+      border-radius: 4px;
+      border-style: none;
+      margin-left: 10px;
+      margin-top: -2px; }
+    .xgplayer .xgplayer-panel-slider .xgplayer-transparency .xgplayer-transparency-line::-moz-focus-outer {
+      border: 0 !important; }
+    .xgplayer .xgplayer-panel-slider .xgplayer-transparency .xgplayer-transparency-color::-webkit-slider-runnable-track {
+      outline: none;
+      width: 150px;
+      height: 4px;
+      border-radius: 4px; }
+    .xgplayer .xgplayer-panel-slider .xgplayer-transparency .xgplayer-transparency-color::-moz-range-track {
+      outline: none;
+      background-color: #aaa;
+      border-color: transparent;
+      cursor: pointer;
+      width: 150px;
+      height: 4px;
+      border-radius: 4px; }
+    .xgplayer .xgplayer-panel-slider .xgplayer-transparency .xgplayer-transparency-color::-ms-track {
+      outline: none;
+      background-color: #aaa;
+      color: transparent;
+      border-color: transparent;
+      width: 150px;
+      height: 4px;
+      border-radius: 4px; }
+    .xgplayer .xgplayer-panel-slider .xgplayer-transparency .xgplayer-transparency-bar::-webkit-slider-thumb {
+      outline: none;
+      -webkit-appearance: none;
+      -moz-appearance: none;
+      appearance: none;
+      border: 6px solid #f85959;
+      height: 6px;
+      width: 6px;
+      margin-top: -4px;
+      border-radius: 6px;
+      cursor: pointer; }
+    .xgplayer .xgplayer-panel-slider .xgplayer-transparency .xgplayer-transparency-bar::-moz-range-thumb {
+      outline: none;
+      -webkit-appearance: none;
+      -moz-appearance: none;
+      appearance: none;
+      border: 6px solid #f85959;
+      height: 0;
+      width: 0;
+      border-radius: 6px;
+      cursor: pointer; }
+    .xgplayer .xgplayer-panel-slider .xgplayer-transparency .xgplayer-transparency-bar::-ms-thumb {
+      outline: none;
+      -webkit-appearance: none;
+      -moz-appearance: none;
+      appearance: none;
+      border: 6px solid #f85959;
+      height: 6px;
+      width: 6px;
+      border-radius: 6px;
+      cursor: pointer; }
+    .xgplayer .xgplayer-panel-slider .xgplayer-transparency .xgplayer-transparency-bar::-moz-range-progress {
+      outline: none;
+      -webkit-appearance: none;
+      -moz-appearance: none;
+      appearance: none;
+      height: 4px;
+      border-radius: 4px;
+      background: linear-gradient(to right, #f85959, #f85959 100%, #aaa); }
+  .xgplayer .xgplayer-panel-slider .xgplayer-showarea {
+    display: block;
+    margin-top: 8px; }
+    .xgplayer .xgplayer-panel-slider .xgplayer-showarea-name {
+      display: inline-block;
+      position: relative;
+      top: -10px; }
+    .xgplayer .xgplayer-panel-slider .xgplayer-showarea-control {
+      display: inline-block; }
+      .xgplayer .xgplayer-panel-slider .xgplayer-showarea-control-up {
+        width: 150px;
+        margin-left: 10px;
+        display: -moz-box;
+        display: -webkit-flex;
+        display: flex;
+        -webkit-justify-content: space-between;
+           -moz-box-pack: justify;
+                justify-content: space-between;
+        color: #aaa; }
+      .xgplayer .xgplayer-panel-slider .xgplayer-showarea-control-down {
+        position: relative;
+        top: -10px; }
+      .xgplayer .xgplayer-panel-slider .xgplayer-showarea-control-down-dots {
+        display: -webkit-flex;
+        display: -moz-box;
+        display: flex;
+        width: 150px;
+        margin-left: 10px;
+        -webkit-justify-content: space-between;
+           -moz-box-pack: justify;
+                justify-content: space-between; }
+    .xgplayer .xgplayer-panel-slider .xgplayer-showarea-twoquarters {
+      margin-left: -6px; }
+    .xgplayer .xgplayer-panel-slider .xgplayer-showarea-threequarters {
+      margin-left: -6px; }
+    .xgplayer .xgplayer-panel-slider .xgplayer-showarea-full {
+      margin-right: 3px; }
+    .xgplayer .xgplayer-panel-slider .xgplayer-showarea .xgplayer-showarea-line {
+      -webkit-appearance: none;
+      -moz-appearance: none;
+      appearance: none;
+      cursor: pointer;
+      outline: none;
+      width: 150px;
+      height: 4px;
+      background: #aaa;
+      border-radius: 4px;
+      border-style: none;
+      margin-left: 10px;
+      margin-top: -2px; }
+    .xgplayer .xgplayer-panel-slider .xgplayer-showarea .xgplayer-showarea-line::-moz-focus-outer {
+      border: 0 !important; }
+    .xgplayer .xgplayer-panel-slider .xgplayer-showarea .xgplayer-showarea-color::-webkit-slider-runnable-track {
+      outline: none;
+      width: 150px;
+      height: 4px;
+      border-radius: 4px; }
+    .xgplayer .xgplayer-panel-slider .xgplayer-showarea .xgplayer-showarea-color::-moz-range-track {
+      outline: none;
+      background-color: #aaa;
+      border-color: transparent;
+      cursor: pointer;
+      width: 150px;
+      height: 4px;
+      border-radius: 4px; }
+    .xgplayer .xgplayer-panel-slider .xgplayer-showarea .xgplayer-showarea-color::-ms-track {
+      outline: none;
+      background-color: #aaa;
+      color: transparent;
+      border-color: transparent;
+      width: 150px;
+      height: 4px;
+      border-radius: 4px; }
+    .xgplayer .xgplayer-panel-slider .xgplayer-showarea .xgplayer-showarea-bar::-webkit-slider-thumb {
+      outline: none;
+      -webkit-appearance: none;
+      -moz-appearance: none;
+      appearance: none;
+      border: 6px solid #f85959;
+      height: 6px;
+      width: 6px;
+      margin-top: -4px;
+      border-radius: 6px;
+      cursor: pointer; }
+    .xgplayer .xgplayer-panel-slider .xgplayer-showarea .xgplayer-showarea-bar::-moz-range-thumb {
+      outline: none;
+      -webkit-appearance: none;
+      -moz-appearance: none;
+      appearance: none;
+      border: 6px solid #f85959;
+      height: 0;
+      width: 0;
+      border-radius: 6px;
+      cursor: pointer; }
+    .xgplayer .xgplayer-panel-slider .xgplayer-showarea .xgplayer-showarea-bar::-ms-thumb {
+      outline: none;
+      -webkit-appearance: none;
+      -moz-appearance: none;
+      appearance: none;
+      border: 6px solid #f85959;
+      height: 6px;
+      width: 6px;
+      border-radius: 6px;
+      cursor: pointer; }
+    .xgplayer .xgplayer-panel-slider .xgplayer-showarea .xgplayer-showarea-zero-dot {
+      width: 3px;
+      height: 3px;
+      border: 3px solid #aaa;
+      border-radius: 50%;
+      background-color: #aaa;
+      position: relative;
+      top: 16px;
+      z-index: -1; }
+    .xgplayer .xgplayer-panel-slider .xgplayer-showarea .xgplayer-showarea-onequarters-dot {
+      width: 3px;
+      height: 3px;
+      border: 3px solid #aaa;
+      border-radius: 50%;
+      background-color: #aaa;
+      position: relative;
+      top: 16px;
+      z-index: -1; }
+    .xgplayer .xgplayer-panel-slider .xgplayer-showarea .xgplayer-showarea-twoquarters-dot {
+      width: 3px;
+      height: 3px;
+      border: 3px solid #aaa;
+      border-radius: 50%;
+      background-color: #aaa;
+      position: relative;
+      top: 16px;
+      z-index: -1; }
+    .xgplayer .xgplayer-panel-slider .xgplayer-showarea .xgplayer-showarea-threequarters-dot {
+      width: 3px;
+      height: 3px;
+      border: 3px solid #aaa;
+      border-radius: 50%;
+      background-color: #aaa;
+      position: relative;
+      top: 16px;
+      z-index: -1; }
+    .xgplayer .xgplayer-panel-slider .xgplayer-showarea .xgplayer-showarea-full-dot {
+      width: 3px;
+      height: 3px;
+      border: 3px solid #aaa;
+      border-radius: 50%;
+      background-color: #aaa;
+      position: relative;
+      top: 16px;
+      z-index: -1; }
+  .xgplayer .xgplayer-panel-slider .xgplayer-danmuspeed {
+    display: block; }
+    .xgplayer .xgplayer-panel-slider .xgplayer-danmuspeed-name {
+      display: inline-block;
+      position: relative;
+      top: -10px; }
+    .xgplayer .xgplayer-panel-slider .xgplayer-danmuspeed-control {
+      display: inline-block; }
+      .xgplayer .xgplayer-panel-slider .xgplayer-danmuspeed-control-up {
+        width: 150px;
+        margin-left: 10px;
+        display: -moz-box;
+        display: -webkit-flex;
+        display: flex;
+        -webkit-justify-content: space-between;
+           -moz-box-pack: justify;
+                justify-content: space-between;
+        color: #aaa; }
+      .xgplayer .xgplayer-panel-slider .xgplayer-danmuspeed-control-down {
+        position: relative;
+        top: -10px; }
+      .xgplayer .xgplayer-panel-slider .xgplayer-danmuspeed-control-down-dots {
+        display: -webkit-flex;
+        display: -moz-box;
+        display: flex;
+        width: 150px;
+        margin-left: 10px;
+        -webkit-justify-content: space-between;
+           -moz-box-pack: justify;
+                justify-content: space-between; }
+    .xgplayer .xgplayer-panel-slider .xgplayer-danmuspeed .xgplayer-danmuspeed-line {
+      -webkit-appearance: none;
+      -moz-appearance: none;
+      appearance: none;
+      cursor: pointer;
+      outline: none;
+      width: 150px;
+      height: 4px;
+      background: #aaa;
+      border-radius: 4px;
+      border-style: none;
+      margin-left: 10px;
+      margin-top: -2px; }
+    .xgplayer .xgplayer-panel-slider .xgplayer-danmuspeed .xgplayer-danmuspeed-line::-moz-focus-outer {
+      border: 0 !important; }
+    .xgplayer .xgplayer-panel-slider .xgplayer-danmuspeed .xgplayer-danmuspeed-color::-webkit-slider-runnable-track {
+      outline: none;
+      width: 150px;
+      height: 4px;
+      border-radius: 4px; }
+    .xgplayer .xgplayer-panel-slider .xgplayer-danmuspeed .xgplayer-danmuspeed-color::-moz-range-track {
+      outline: none;
+      background-color: #aaa;
+      border-color: transparent;
+      cursor: pointer;
+      width: 150px;
+      height: 4px;
+      border-radius: 4px; }
+    .xgplayer .xgplayer-panel-slider .xgplayer-danmuspeed .xgplayer-danmuspeed-color::-ms-track {
+      outline: none;
+      background-color: #aaa;
+      color: transparent;
+      border-color: transparent;
+      width: 150px;
+      height: 4px;
+      border-radius: 4px; }
+    .xgplayer .xgplayer-panel-slider .xgplayer-danmuspeed .xgplayer-danmuspeed-bar::-webkit-slider-thumb {
+      outline: none;
+      -webkit-appearance: none;
+      -moz-appearance: none;
+      appearance: none;
+      border: 6px solid #f85959;
+      height: 6px;
+      width: 6px;
+      margin-top: -4px;
+      border-radius: 6px;
+      cursor: pointer; }
+    .xgplayer .xgplayer-panel-slider .xgplayer-danmuspeed .xgplayer-danmuspeed-bar::-moz-range-thumb {
+      outline: none;
+      -webkit-appearance: none;
+      -moz-appearance: none;
+      appearance: none;
+      border: 6px solid #f85959;
+      height: 0;
+      width: 0;
+      border-radius: 6px;
+      cursor: pointer; }
+    .xgplayer .xgplayer-panel-slider .xgplayer-danmuspeed .xgplayer-danmuspeed-bar::-ms-thumb {
+      outline: none;
+      -webkit-appearance: none;
+      -moz-appearance: none;
+      appearance: none;
+      border: 6px solid #f85959;
+      height: 6px;
+      width: 6px;
+      border-radius: 6px;
+      cursor: pointer; }
+    .xgplayer .xgplayer-panel-slider .xgplayer-danmuspeed .xgplayer-danmuspeed-small-dot {
+      width: 3px;
+      height: 3px;
+      border: 3px solid #aaa;
+      border-radius: 50%;
+      background-color: #aaa;
+      position: relative;
+      top: 16px;
+      z-index: -1; }
+    .xgplayer .xgplayer-panel-slider .xgplayer-danmuspeed .xgplayer-danmuspeed-middle-dot {
+      width: 3px;
+      height: 3px;
+      border: 3px solid #aaa;
+      border-radius: 50%;
+      background-color: #aaa;
+      position: relative;
+      top: 16px;
+      z-index: -1; }
+    .xgplayer .xgplayer-panel-slider .xgplayer-danmuspeed .xgplayer-danmuspeed-large-dot {
+      width: 3px;
+      height: 3px;
+      border: 3px solid #aaa;
+      border-radius: 50%;
+      background-color: #aaa;
+      position: relative;
+      top: 16px;
+      z-index: -1; }
+  .xgplayer .xgplayer-panel-slider .xgplayer-danmufont {
+    display: block; }
+    .xgplayer .xgplayer-panel-slider .xgplayer-danmufont-name {
+      display: inline-block;
+      position: relative;
+      top: -10px; }
+    .xgplayer .xgplayer-panel-slider .xgplayer-danmufont-control {
+      display: inline-block; }
+      .xgplayer .xgplayer-panel-slider .xgplayer-danmufont-control-up {
+        width: 150px;
+        margin-left: 10px;
+        display: -moz-box;
+        display: -webkit-flex;
+        display: flex;
+        -webkit-justify-content: space-between;
+           -moz-box-pack: justify;
+                justify-content: space-between;
+        color: #aaa; }
+      .xgplayer .xgplayer-panel-slider .xgplayer-danmufont-control-down {
+        position: relative;
+        top: -10px; }
+      .xgplayer .xgplayer-panel-slider .xgplayer-danmufont-control-down-dots {
+        display: -webkit-flex;
+        display: -moz-box;
+        display: flex;
+        width: 150px;
+        margin-left: 10px;
+        -webkit-justify-content: space-between;
+           -moz-box-pack: justify;
+                justify-content: space-between; }
+    .xgplayer .xgplayer-panel-slider .xgplayer-danmufont .xgplayer-danmufont-line {
+      -webkit-appearance: none;
+      -moz-appearance: none;
+      appearance: none;
+      cursor: pointer;
+      outline: none;
+      width: 150px;
+      height: 4px;
+      background: #aaa;
+      border-radius: 4px;
+      border-style: none;
+      margin-left: 10px;
+      margin-top: -2px; }
+    .xgplayer .xgplayer-panel-slider .xgplayer-danmufont .xgplayer-danmufont-line::-moz-focus-outer {
+      border: 0 !important; }
+    .xgplayer .xgplayer-panel-slider .xgplayer-danmufont .xgplayer-danmufont-color::-webkit-slider-runnable-track {
+      outline: none;
+      width: 150px;
+      height: 4px;
+      border-radius: 4px; }
+    .xgplayer .xgplayer-panel-slider .xgplayer-danmufont .xgplayer-danmufont-color::-moz-range-track {
+      outline: none;
+      background-color: #aaa;
+      border-color: transparent;
+      cursor: pointer;
+      width: 150px;
+      height: 4px;
+      border-radius: 4px; }
+    .xgplayer .xgplayer-panel-slider .xgplayer-danmufont .xgplayer-danmufont-color::-ms-track {
+      outline: none;
+      background-color: #aaa;
+      color: transparent;
+      border-color: transparent;
+      width: 150px;
+      height: 4px;
+      border-radius: 4px; }
+    .xgplayer .xgplayer-panel-slider .xgplayer-danmufont .xgplayer-danmufont-bar::-webkit-slider-thumb {
+      outline: none;
+      -webkit-appearance: none;
+      -moz-appearance: none;
+      appearance: none;
+      border: 6px solid #f85959;
+      height: 6px;
+      width: 6px;
+      margin-top: -4px;
+      border-radius: 6px;
+      cursor: pointer; }
+    .xgplayer .xgplayer-panel-slider .xgplayer-danmufont .xgplayer-danmufont-bar::-moz-range-thumb {
+      outline: none;
+      -webkit-appearance: none;
+      -moz-appearance: none;
+      appearance: none;
+      border: 6px solid #f85959;
+      height: 0;
+      width: 0;
+      border-radius: 6px;
+      cursor: pointer; }
+    .xgplayer .xgplayer-panel-slider .xgplayer-danmufont .xgplayer-danmufont-bar::-ms-thumb {
+      outline: none;
+      -webkit-appearance: none;
+      -moz-appearance: none;
+      appearance: none;
+      border: 6px solid #f85959;
+      height: 6px;
+      width: 6px;
+      border-radius: 6px;
+      cursor: pointer; }
+    .xgplayer .xgplayer-panel-slider .xgplayer-danmufont .xgplayer-danmufont-small-dot {
+      width: 3px;
+      height: 3px;
+      border: 3px solid #aaa;
+      border-radius: 50%;
+      background-color: #aaa;
+      position: relative;
+      top: 16px;
+      z-index: -1; }
+    .xgplayer .xgplayer-panel-slider .xgplayer-danmufont .xgplayer-danmufont-middle-dot {
+      width: 3px;
+      height: 3px;
+      border: 3px solid #aaa;
+      border-radius: 50%;
+      background-color: #aaa;
+      position: relative;
+      top: 16px;
+      z-index: -1; }
+    .xgplayer .xgplayer-panel-slider .xgplayer-danmufont .xgplayer-danmufont-large-dot {
+      width: 3px;
+      height: 3px;
+      border: 3px solid #aaa;
+      border-radius: 50%;
+      background-color: #aaa;
+      position: relative;
+      top: 16px;
+      z-index: -1; }
+
+.xgplayer .slider-show .xgplayer-panel-slider {
+  display: block;
+  bottom: 30px; }
