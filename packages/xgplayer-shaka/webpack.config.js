@@ -4,7 +4,7 @@ const umd = {
   entry: polyfill.concat(['./src/index.js']),
   output: {
     path: `${__dirname}/dist`,
-    filename: 'index.scss.js',
+    filename: 'index.js',
     library: 'xgplayer-shaka',
     libraryTarget: 'umd'
   },
@@ -41,7 +41,7 @@ const client = {
   entry: polyfill.concat(['./src/index.js']),
   output: {
     path: `${__dirname}/browser`,
-    filename: 'index.scss.js',
+    filename: 'index.js',
     library: 'ShakaJsPlayer',
     libraryTarget: 'window'
   },

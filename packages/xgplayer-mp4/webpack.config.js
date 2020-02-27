@@ -5,7 +5,7 @@ const umd = {
   devtool: 'source-map',
   output: {
     path: `${__dirname}/dist`,
-    filename: 'index.scss.js',
+    filename: 'index.js',
     library: 'xgplayer-mp4',
     libraryTarget: 'umd'
   },
@@ -43,7 +43,7 @@ const client = {
   devtool: 'source-map',
   output: {
     path: `${__dirname}/browser`,
-    filename: 'index.scss.js'
+    filename: 'index.js'
   },
   module: {
     rules: [{
