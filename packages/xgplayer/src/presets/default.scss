@@ -1,0 +1,95 @@
+@import "../style/variable";
+// order:
+// xgplayer-play  0
+// xgplayer-playNext  1
+// xgplayer-time  2
+// xgplayer-placeholder 3
+// xgplayer-volume 4
+// xgplayer-definition 5
+// xgplayer-bullet-btn 6
+// xgplayer-textTrack 7
+// xgplayer-playback 8
+// xgplayer-download 9
+// xgplayer-rotate 10
+// xgplayer-screenShot 11
+// xgplayer-cssFullscreen 12
+// xgplayer-fullscreen 13
+
+// z-index:
+// xgplayer-poster 100
+// xgplayer-progress-point 100
+// xgplayer-replay 105
+// xgplayer-pip-active 110
+// xgplayer-start 115
+// xgplayer-enter 120
+// xgplayer-error 125
+// xgplayer-pip-lay 130
+// xgplayer-pip-drag 135
+// xgplayer-is-fullscreen 9999
+// xgplayer-is-cssfullscreen 99999
+
+.xgplayer{
+  background: $playerBgColor;
+  width: 100%;
+  height: 100%;
+  position: relative;
+  user-select: none;
+  -ms-user-select: none;
+  *{
+    margin: 0;
+    padding: 0;
+    border: 0;
+    font-size: 100%;
+    font: inherit;
+    vertical-align: baseline;
+  }
+  .xgplayer-none{
+    display: none
+  }
+  &.xgplayer-is-fullscreen{
+    width: 100%!important;
+    height: 100%!important;
+    // Undo any aspect ratio padding for fluid layouts
+    padding-top: 0 !important;
+    z-index: 9999;
+  }
+  &.xgplayer-is-fullscreen.xgplayer-inactive{
+    cursor: none;
+  }
+  video{
+    width:100%;
+    height: 100%;
+    outline: none;
+  }
+}
+
+@import "../plugins/icons/playIcon/index";
+@import "../plugins/start/index";
+@import "../plugins/enter/index";
+@import "../plugins/poster/index";
+@import "../plugins/placeholder/index";
+@import "../plugins/icons/fullscreen/index";
+@import "../plugins/icons/cssFullScreen/index";
+@import "../plugins/icons/volumeIcon/index";
+@import "../plugins/icons/definitionIcon/index";
+@import "../plugins/icons/timeIcon/index";
+@import "../plugins/Controls/index";
+//@import "controls/live";
+@import "../plugins/replay/index";
+@import "../plugins/icons/progress/index";
+@import "../plugins/loading/index";
+@import "../plugins/icons/playbackRateIcon/index";
+@import "../plugins/icons/downloadIcon/index";
+//@import "controls/danmu";
+@import "../plugins/icons/playNextIcon/index";
+@import "../plugins/icons/pipIcon/index";
+@import "../plugins/icons/rotate/index";
+@import "../plugins/icons/screenShotIcon/index";
+//@import "../plugins/icons/textTrack";
+//@import "controls/icon";
+//@import "controls/tips";
+@import "../plugins/error/index";
+@import "../plugins/baseBar/index";
+@import "../plugins/miniScreen/index";
+@import "../plugins/danmu/index";
+//@import "controls/memoryPlay"

@@ -57,9 +57,9 @@ var PCPlugin = function (_BasePlugin) {
 
       player.root.addEventListener('mouseleave', this.onMouseLeave);
 
-      player.controls.addEventListener('mouseenter', this.onControlMouseEnter, false);
+      // player.controls.addEventListener('mouseenter', this.onControlMouseEnter, false)
 
-      player.controls.addEventListener('mouseleave', this.onControlMouseLeave, false);
+      // player.controls.addEventListener('mouseleave', this.onControlMouseLeave, false)
     }
   }, {
     key: 'onEnter',
@@ -93,8 +93,12 @@ var PCPlugin = function (_BasePlugin) {
   }, {
     key: 'onVideoClick',
     value: function onVideoClick(e) {
+      console.log('onVideoClick');
       e.preventDefault();
-      e.stopPropagation();
+      // e.stopPropagation()
+      if (!this.config.closeVideoStopPropagation) {
+        e.stopPropagation();
+      }
       var player = this.player;
 
       var clk = 0;var timer = void 0;
@@ -132,18 +136,7 @@ var PCPlugin = function (_BasePlugin) {
       var player = this.player;
 
       if (!player.config.closeVideoDblclick) {
-        var fullscreen = player.controls.querySelector('.xgplayer-fullscreen');
-        if (fullscreen) {
-          var clk = void 0;
-          if (document.createEvent) {
-            clk = document.createEvent('Event');
-            clk.initEvent('click', true, true);
-          } else {
-            // eslint-disable-next-line no-undef
-            clk = new Event('click');
-          }
-          fullscreen.dispatchEvent(clk);
-        }
+        player.fullscreen ? player.exitFullscreen() : player.getFullscreen();
       }
     }
   }, {

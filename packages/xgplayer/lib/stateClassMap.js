@@ -21,5 +21,6 @@ exports.default = {
   NO_CONTROLS: 'no-controls',
   AUTOPLAY: 'xgplayer-is-autoplay',
   PC: 'xgplayer-pc',
-  MOBILE: 'xgplayer-mobile'
+  MOBILE: 'xgplayer-mobile',
+  MINI: 'xgplayer-mini'
 };

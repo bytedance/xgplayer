@@ -22,33 +22,62 @@ function _possibleConstructorReturn(self, call) { if (!self) { throw new Referen
 
 function _inherits(subClass, superClass) { if (typeof superClass !== "function" && superClass !== null) { throw new TypeError("Super expression must either be null or a function, not " + typeof superClass); } subClass.prototype = Object.create(superClass && superClass.prototype, { constructor: { value: subClass, enumerable: false, writable: true, configurable: true } }); if (superClass) Object.setPrototypeOf ? Object.setPrototypeOf(subClass, superClass) : subClass.__proto__ = superClass; }
 
+var POSITIONS = _plugin2.default.POSITIONS,
+    ROOT_TYPES = _plugin2.default.ROOT_TYPES;
+
 var Rotate = function (_Plugin) {
   _inherits(Rotate, _Plugin);
 
-  function Rotate() {
+  _createClass(Rotate, null, [{
+    key: 'pluginName',
+    get: function get() {
+      return 'rotate';
+    }
+  }, {
+    key: 'defaultConfig',
+    get: function get() {
+      return {
+        position: POSITIONS.RIGHT,
+        rootType: ROOT_TYPES.CONTROLS,
+        index: 6,
+        innerRotate: false, // true为只有画面旋转，false为整个播放器旋转
+        clockwise: false,
+        rotateDeg: 0 // 初始旋转角度
+      };
+    }
+  }]);
+
+  function Rotate(args) {
     _classCallCheck(this, Rotate);
 
-    return _possibleConstructorReturn(this, (Rotate.__proto__ || Object.getPrototypeOf(Rotate)).apply(this, arguments));
+    var _this = _possibleConstructorReturn(this, (Rotate.__proto__ || Object.getPrototypeOf(Rotate)).call(this, args));
+
+    _this.rotateDeg = _this.config.rotateDeg || 0;
+    return _this;
   }
 
   _createClass(Rotate, [{
     key: 'afterCreate',
     value: function afterCreate() {
-      this.updateRotateDeg = this.updateRotateDeg.bind(this);
-      this.rotate = this.rotate.bind(this);
-      this.bind('.xgplayer-icon', ['click', 'touchend'], this.rotate);
+      this.onBtnClick = this.onBtnClick.bind(this);
+      this.bind('.xgplayer-icon', ['click', 'touchend'], this.onBtnClick);
     }
   }, {
     key: 'destroy',
     value: function destroy() {
-      this.unbind('.xgplayer-icon', ['click', 'touchend'], this.rotate);
+      this.unbind('.xgplayer-icon', ['click', 'touchend'], this.onBtnClick);
+    }
+  }, {
+    key: 'onBtnClick',
+    value: function onBtnClick(e) {
+      this.rotate(this.config.clockwise, this.config.innerRotate, 1);
     }
   }, {
     key: 'updateRotateDeg',
     value: function updateRotateDeg() {
       var player = this.player;
-      if (!player.rotateDeg) {
-        player.rotateDeg = 0;
+      if (!this.rotateDeg) {
+        this.rotateDeg = 0;
       }
 
       var width = player.root.offsetWidth;
@@ -62,7 +91,7 @@ var Rotate = function (_Plugin) {
       }
 
       var scale = void 0;
-      if (player.rotateDeg === 0.25 || player.rotateDeg === 0.75) {
+      if (this.rotateDeg === 0.25 || this.rotateDeg === 0.75) {
         if (this.config.innerRotate) {
           if (targetWidth / targetHeight > height / width) {
             // 旋转后纵向撑满
@@ -101,12 +130,12 @@ var Rotate = function (_Plugin) {
 
       if (this.config.innerRotate) {
         player.video.style.transformOrigin = 'center center';
-        player.video.style.transform = 'rotate(' + player.rotateDeg + 'turn) scale(' + scale + ')';
-        player.video.style.webKitTransform = 'rotate(' + player.rotateDeg + 'turn) scale(' + scale + ')';
+        player.video.style.transform = 'rotate(' + this.rotateDeg + 'turn) scale(' + scale + ')';
+        player.video.style.webKitTransform = 'rotate(' + this.rotateDeg + 'turn) scale(' + scale + ')';
       } else {
         player.root.style.transformOrigin = 'center center';
-        player.root.style.transform = 'rotate(' + player.rotateDeg + 'turn) scale(' + 1 + ')';
-        player.root.style.webKitTransform = 'rotate(' + player.rotateDeg + 'turn) scale(' + 1 + ')';
+        player.root.style.transform = 'rotate(' + this.rotateDeg + 'turn) scale(' + 1 + ')';
+        player.root.style.webKitTransform = 'rotate(' + this.rotateDeg + 'turn) scale(' + 1 + ')';
       }
     }
   }, {
@@ -116,16 +145,17 @@ var Rotate = function (_Plugin) {
       var innerRotate = arguments.length > 1 && arguments[1] !== undefined ? arguments[1] : true;
       var times = arguments.length > 2 && arguments[2] !== undefined ? arguments[2] : 1;
 
+      console.log('clockwise:' + clockwise + ' innerRotate:' + innerRotate + ' times:' + times);
       var player = this.player;
-      if (!player.rotateDeg) {
-        player.rotateDeg = 0;
+      if (!this.rotateDeg) {
+        this.rotateDeg = 0;
       }
       var factor = clockwise ? 1 : -1;
 
-      player.rotateDeg = (player.rotateDeg + 1 + factor * 0.25 * times) % 1;
+      this.rotateDeg = (this.rotateDeg + 1 + factor * 0.25 * times) % 1;
+      console.log('this.rotateDeg', this.rotateDeg);
       this.updateRotateDeg();
-
-      player.emit('rotate', player.rotateDeg * 360);
+      player.emit('rotate', this.rotateDeg * 360);
     }
   }, {
     key: 'registerIcons',
@@ -152,11 +182,6 @@ var Rotate = function (_Plugin) {
     key: 'render',
     value: function render() {
       return '\n    <xg-icon class="xgplayer-rotate">\n      <div class="xgplayer-icon">\n        ' + _rotate2.default + '\n      </div>\n      <div class="xg-tips">\n      ' + this.text.rotate + '\n      </div>\n    </xg-icon>';
-    }
-  }], [{
-    key: 'pluginName',
-    get: function get() {
-      return 'rotate';
     }
   }]);
 

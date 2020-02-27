@@ -23,7 +23,9 @@ function _possibleConstructorReturn(self, call) { if (!self) { throw new Referen
 function _inherits(subClass, superClass) { if (typeof superClass !== "function" && superClass !== null) { throw new TypeError("Super expression must either be null or a function, not " + typeof superClass); } subClass.prototype = Object.create(superClass && superClass.prototype, { constructor: { value: subClass, enumerable: false, writable: true, configurable: true } }); if (superClass) Object.setPrototypeOf ? Object.setPrototypeOf(subClass, superClass) : subClass.__proto__ = superClass; }
 
 var Util = _plugin2.default.Util,
-    Events = _plugin2.default.Events;
+    Events = _plugin2.default.Events,
+    POSITIONS = _plugin2.default.POSITIONS,
+    ROOT_TYPES = _plugin2.default.ROOT_TYPES;
 
 var VolumeIcon = function (_Plugin) {
   _inherits(VolumeIcon, _Plugin);
@@ -174,6 +176,16 @@ var VolumeIcon = function (_Plugin) {
     key: 'pluginName',
     get: function get() {
       return 'VolumeIcon';
+    }
+  }, {
+    key: 'defaultConfig',
+    get: function get() {
+      return {
+        position: POSITIONS.RIGHT,
+        rootType: ROOT_TYPES.CONTROLS,
+        index: 1,
+        progressDot: []
+      };
     }
   }]);
 

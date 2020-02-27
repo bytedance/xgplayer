@@ -82,6 +82,11 @@ var Plugin = function (_BasePlugin) {
         return parent.children[insertIdx];
       }
     }
+  }, {
+    key: 'defaultConfig',
+    get: function get() {
+      return {};
+    }
   }]);
 
   function Plugin() {
@@ -111,7 +116,6 @@ var Plugin = function (_BasePlugin) {
       } catch (e) {
         throw new Error('Plugin:' + this.pluginName + ':render:' + e.message);
       }
-
       if (renderStr) {
         _el = Plugin.insert(renderStr, _parent, args.index);
       } else if (args.tag) {
@@ -137,6 +141,9 @@ var Plugin = function (_BasePlugin) {
 
       this.setAttr(attr);
       this.setStyle(style);
+      if (this.config.index) {
+        this.el.setAttribute('data-index', this.config.index);
+      }
       this.__registeChildren();
     }
   }, {
@@ -209,7 +216,9 @@ var Plugin = function (_BasePlugin) {
       var opts = (typeof options === 'undefined' ? 'undefined' : _typeof(options)) === 'object' ? options : {};
       opts.root = options.root || this.el;
       opts.pluginName = name;
-      return pluginsManager.register(this.player, plugin, opts);
+      var _c = pluginsManager.register(this.player, plugin, opts);
+      this._children.push(_c);
+      return _c;
     }
   }, {
     key: 'registerIcons',
@@ -415,7 +424,14 @@ var Plugin = function (_BasePlugin) {
 export default Plugin;
 
 
-Plugin.Util = BasePlugin.Util;
-Plugin.Sniffer = BasePlugin.Sniffer;
-Plugin.Errors = BasePlugin.Errors;
-Plugin.Event = BasePlugin.Event;
+Plugin.ROOT_TYPES = {
+  CONTROLS: 'controls',
+  BASE_BAR: 'base_bar',
+  ROOT: 'root'
+};
+
+Plugin.POSITIONS = {
+  LEFT: 'left',
+  RIGHT: 'right',
+  CENTER: 'center'
+};

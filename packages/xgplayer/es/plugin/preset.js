@@ -14,7 +14,7 @@ export var usePreset = function usePreset(player, Preset) {
       plugins = _presetInst.plugins,
       ignores = _presetInst.ignores;
 
-
+  console.log('preset', plugins);
   if (!player.config.plugins) {
     player.config.plugins = [];
   }

@@ -8,16 +8,14 @@ var _player = require('./player');
 
 var _player2 = _interopRequireDefault(_player);
 
-var _plugin = require('./plugin');
+var _plugins = require('./plugins');
 
-var _plugin2 = _interopRequireDefault(_plugin);
+var Plugins = _interopRequireWildcard(_plugins);
+
+function _interopRequireWildcard(obj) { if (obj && obj.__esModule) { return obj; } else { var newObj = {}; if (obj != null) { for (var key in obj) { if (Object.prototype.hasOwnProperty.call(obj, key)) newObj[key] = obj[key]; } } newObj.default = obj; return newObj; } }
 
 function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
 
-_player2.default.BasePlugin = _plugin.BasePlugin;
-// import * as Controls from './controls/*.js'
-// import pc from './plugins/pc';
+_player2.default.defaultPlugins = Plugins;
 
-_player2.default.Plugin = _plugin2.default;
-_player2.default.pluginsManager = _plugin.pluginsManager;
 exports.default = _player2.default;

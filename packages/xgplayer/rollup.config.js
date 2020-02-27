@@ -5,6 +5,23 @@ module.exports = commonRollup({
   name: 'Player',
   uglify: uglify,
   babel: {
-    runtimeHelpers: true
+    // runtimeHelpers: true,
+    plugins: ['external-helpers'],
+    babelrc: false,
+    'presets': [
+      [
+        'env',
+        {
+          'targets': {
+            'chrome': 58,
+            'ie': 10
+          },
+          'modules': false,
+          'useBuiltIns': 'usage',
+          'corejs': 3
+        }
+      ]
+    ]
+    // externalHelpers: false
   }
 })

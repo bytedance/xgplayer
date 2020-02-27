@@ -6,9 +6,9 @@ Object.defineProperty(exports, "__esModule", {
 
 var _createClass = function () { function defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ("value" in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } } return function (Constructor, protoProps, staticProps) { if (protoProps) defineProperties(Constructor.prototype, protoProps); if (staticProps) defineProperties(Constructor, staticProps); return Constructor; }; }();
 
-var _xgplayer = require('xgplayer');
+var _player = require('../../player');
 
-var _xgplayer2 = _interopRequireDefault(_xgplayer);
+var _player2 = _interopRequireDefault(_player);
 
 var _Plugin2 = require('../../Plugin');
 
@@ -41,8 +41,8 @@ var ErrorPlugin = function (_Plugin) {
         _this2.player.replay();
         _Plugin3.default.Util.removeClass(_this2.player.root, 'replay');
       });
-      this.on(_xgplayer2.default.Events.CANPLAY, this.handleCanPlay.bind(this));
-      this.on(_xgplayer2.default.Events.ERROR, this.handleError.bind(this));
+      this.on(_player2.default.Events.CANPLAY, this.handleCanPlay.bind(this));
+      this.on(_player2.default.Events.ERROR, this.handleError.bind(this));
     }
   }, {
     key: 'handleCanPlay',

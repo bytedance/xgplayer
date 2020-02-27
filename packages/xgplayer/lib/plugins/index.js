@@ -3,9 +3,7 @@
 Object.defineProperty(exports, "__esModule", {
   value: true
 });
-exports.default = getDefaultPlugins;
-
-require('../skin/style/variable.scss');
+exports.Enter = exports.Error = exports.track = exports.Start = exports.PlaceHolder = exports.Mobile = exports.PC = exports.PlayNext = exports.Rotate = exports.Keyboard = exports.Miniscreen = exports.Replay = exports.Poster = undefined;
 
 var _poster = require('./poster');
 
@@ -15,47 +13,64 @@ var _replay = require('./replay');
 
 var _replay2 = _interopRequireDefault(_replay);
 
-var _mini = require('./Controls/mini');
+var _miniScreen = require('./miniScreen');
 
-var _mini2 = _interopRequireDefault(_mini);
+var _miniScreen2 = _interopRequireDefault(_miniScreen);
 
-var _keyboard = require('./keyboard');
+var _Controls = require('./Controls/');
 
-var _keyboard2 = _interopRequireDefault(_keyboard);
+var _Controls2 = _interopRequireDefault(_Controls);
 
-var _rotate = require('./Controls/rotate');
+var _playNext = require('./playNext');
 
-var _rotate2 = _interopRequireDefault(_rotate);
+var _playNext2 = _interopRequireDefault(_playNext);
+
+var _pc = require('./pc');
+
+var _pc2 = _interopRequireDefault(_pc);
+
+var _mobile = require('./mobile');
+
+var _mobile2 = _interopRequireDefault(_mobile);
+
+var _placeholder = require('./placeholder');
+
+var _placeholder2 = _interopRequireDefault(_placeholder);
 
 var _start = require('./start');
 
 var _start2 = _interopRequireDefault(_start);
 
+var _track = require('./track');
+
+var _track2 = _interopRequireDefault(_track);
+
+var _error = require('./error');
+
+var _error2 = _interopRequireDefault(_error);
+
+var _enter = require('./enter');
+
+var _enter2 = _interopRequireDefault(_enter);
+
+var _keyboard = require('./keyboard');
+
+var _keyboard2 = _interopRequireDefault(_keyboard);
+
 function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
 
-/**
- * 根据入参的播放器配置进行默认plugin列表的配置
- * @param {object} playerConfig
- */
-function getDefaultPlugins(playerConfig) {
-  var defaultPlugins = [];
-  defaultPlugins.push(_replay2.default);
-  defaultPlugins.push(_poster2.default);
-  defaultPlugins.push(_start2.default);
-  defaultPlugins.push({
-    plugin: _mini2.default,
-    options: {
-      root: 'controls'
-    }
-  });
-  defaultPlugins.push({
-    plugin: _rotate2.default,
-    options: {
-      root: 'controls'
-    }
-  });
-  defaultPlugins.push(_keyboard2.default);
-  var plugins = playerConfig.plugins || [];
-  var retPlugins = defaultPlugins.concat(plugins);
-  return retPlugins;
-}
+// import Danmu from './danmu'
+
+exports.Poster = _poster2.default;
+exports.Replay = _replay2.default;
+exports.Miniscreen = _miniScreen2.default;
+exports.Keyboard = _keyboard2.default;
+exports.Rotate = _Controls2.default;
+exports.PlayNext = _playNext2.default;
+exports.PC = _pc2.default;
+exports.Mobile = _mobile2.default;
+exports.PlaceHolder = _placeholder2.default;
+exports.Start = _start2.default;
+exports.track = _track2.default;
+exports.Error = _error2.default;
+exports.Enter = _enter2.default;

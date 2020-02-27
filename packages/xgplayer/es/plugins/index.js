@@ -1,34 +1,18 @@
-
-import '../skin/style/variable.scss';
 import Poster from './poster';
 import Replay from './replay';
-import Miniscreen from './Controls/mini';
+import Miniscreen from './miniScreen';
+import Rotate from './Controls/';
+import PlayNext from './playNext';
+import PC from './pc';
+import Mobile from './mobile';
+import PlaceHolder from './placeholder';
+import Start from './start';
+import track from './track';
+import Error from './error';
+import Enter from './enter';
 import Keyboard from './keyboard';
-import Rotate from './Controls/rotate';
-import StartPlugin from './start';
-/**
- * 根据入参的播放器配置进行默认plugin列表的配置
- * @param {object} playerConfig
- */
-export default function getDefaultPlugins(playerConfig) {
-  var defaultPlugins = [];
-  defaultPlugins.push(Replay);
-  defaultPlugins.push(Poster);
-  defaultPlugins.push(StartPlugin);
-  defaultPlugins.push({
-    plugin: Miniscreen,
-    options: {
-      root: 'controls'
-    }
-  });
-  defaultPlugins.push({
-    plugin: Rotate,
-    options: {
-      root: 'controls'
-    }
-  });
-  defaultPlugins.push(Keyboard);
-  var plugins = playerConfig.plugins || [];
-  var retPlugins = defaultPlugins.concat(plugins);
-  return retPlugins;
-}
+// import Danmu from './danmu'
+
+export { Poster, Replay, Miniscreen, Keyboard, Rotate, PlayNext, PC, Mobile, PlaceHolder, Start, track, Error, Enter
+// Danmu
+};

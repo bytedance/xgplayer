@@ -100,7 +100,8 @@ var Proxy = function () {
         _this2.evItem = Object.keys(item)[0];
         var name = Object.keys(item)[0];
         var funName = item[name];
-        _this2.video.addEventListener(Object.keys(item)[0], function () {
+
+        _this2.videoEventHandler = function () {
           if (name === 'error') {
             _this2.errorHandler(name);
             _emitEvent(funName, _this2);
@@ -136,7 +137,8 @@ var Proxy = function () {
               }
             }
           }
-        }, false);
+        };
+        _this2.video.addEventListener(Object.keys(item)[0], _this2.videoEventHandler, false);
       });
     }
 
@@ -176,6 +178,8 @@ var Proxy = function () {
         if (evFunc) {
           _this3.off(evName, evFunc);
         }
+
+        _this3.video.removeEventListener(evName, _this3.videoEventHandler, false);
       });
       (0, _allOff2.default)(this);
     }
@@ -407,7 +411,7 @@ var Proxy = function () {
       this.video.pause();
       this._currentTime = 0;
       this._duration = 0;
-      // this.video.src = url
+      this.video.src = url;
     }
   }, {
     key: 'volume',

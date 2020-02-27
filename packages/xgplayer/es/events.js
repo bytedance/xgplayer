@@ -29,3 +29,4 @@ export var URL_CHANGE = 'urlchange';
 // screen change evnets
 export var FULLSCREEN_CHANGE = 'fullscreen_change';
 export var CSS_FULLSCREEN_CHANGE = 'cssFullscreen_change';
+export var MINI_STATE_CHANGE = 'mini_state_change';

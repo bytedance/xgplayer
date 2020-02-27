@@ -8,7 +8,9 @@ function _inherits(subClass, superClass) { if (typeof superClass !== "function" 
 
 import Plugin from '../../../plugin';
 
-var Events = Plugin.Events;
+var Events = Plugin.Events,
+    POSITIONS = Plugin.POSITIONS,
+    ROOT_TYPES = Plugin.ROOT_TYPES;
 
 var ScreenShotIcon = function (_Plugin) {
   _inherits(ScreenShotIcon, _Plugin);
@@ -111,6 +113,9 @@ var ScreenShotIcon = function (_Plugin) {
     key: 'defaultConfig',
     get: function get() {
       return {
+        position: POSITIONS.LEFT,
+        rootType: ROOT_TYPES.CONTROLS,
+        index: 5,
         quality: 0.92,
         type: 'image/png',
         format: '.png',

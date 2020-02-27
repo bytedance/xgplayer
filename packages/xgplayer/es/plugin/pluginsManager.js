@@ -19,6 +19,31 @@ var pluginsManager = {
   },
 
   /**
+   * register a lazy plugin
+   * @param { object } player instance
+   * @param { object } lazyPlugin config
+   *
+   */
+  lazyRegister: function lazyRegister(player, lazyPlugin) {
+    var _this = this;
+
+    var timeout = lazyPlugin.timeout || 1500;
+    return Promise.race([lazyPlugin.loader().then(function (plugin) {
+      var result = void 0;
+      if (plugin && plugin.__esModule) {
+        result = plugin.default;
+      } else {
+        result = plugin;
+      }
+      _this.register(player, result, plugin.options);
+    }), new Promise(function (resolve, reject) {
+      setTimeout(function () {
+        reject(new Error('timeout'));
+      }, timeout);
+    })]);
+  },
+
+  /**
   * register a Plugin
   * @param { object } player the plugins install
   * @param { function } plugin the plugin contructor
@@ -44,9 +69,11 @@ var pluginsManager = {
     options.player = this.pluginGroup[cgid]._player;
     // console.log('plugin.pluginName', plugin.pluginName)
     var pluginName = options.pluginName || plugin.pluginName;
+    console.log('pluginName:' + pluginName, options);
     if (!pluginName) {
       throw new Error('The property pluginName is necessary');
     }
+
     if (!options.config) {
       options.config = {};
     }
@@ -93,6 +120,8 @@ var pluginsManager = {
         }
       });
     }
+
+    options.index = options.config.index || 0;
     try {
       // eslint-disable-next-line new-cap
       var _instance = new plugin(options);
@@ -131,7 +160,7 @@ var pluginsManager = {
     return this.pluginGroup[cgid]._plugins[cName];
   },
   beforeInit: function beforeInit(player) {
-    var _this = this;
+    var _this2 = this;
 
     function retPromise(fun) {
       if (!fun || !fun.then) {
@@ -143,11 +172,11 @@ var pluginsManager = {
       }
     }
     return new Promise(function (resolve) {
-      if (!_this.pluginGroup) {
+      if (!_this2.pluginGroup) {
         return;
       }
       var cgid = player._pluginInfoId;
-      var plugins = _this.pluginGroup[cgid]._plugins;
+      var plugins = _this2.pluginGroup[cgid]._plugins;
       var pluginsRet = [];
       var _iteratorNormalCompletion2 = true;
       var _didIteratorError2 = false;
@@ -191,37 +220,47 @@ var pluginsManager = {
     });
   },
   afterInit: function afterInit(player) {
+    var _this3 = this;
+
+    var prevTask = void 0;
+    if (player._loadingPlugins && player._loadingPlugins.length) {
+      prevTask = Promise.all(player._loadingPlugins);
+    } else {
+      prevTask = Promise.resolve();
+    }
     if (!this.pluginGroup) {
       return;
     }
-    var cgid = player._pluginInfoId;
-    var plugins = this.pluginGroup[cgid]._plugins;
-    var _iteratorNormalCompletion3 = true;
-    var _didIteratorError3 = false;
-    var _iteratorError3 = undefined;
+    prevTask.then(function () {
+      var cgid = player._pluginInfoId;
+      var plugins = _this3.pluginGroup[cgid]._plugins;
+      var _iteratorNormalCompletion3 = true;
+      var _didIteratorError3 = false;
+      var _iteratorError3 = undefined;
 
-    try {
-      for (var _iterator3 = Object.keys(plugins)[Symbol.iterator](), _step3; !(_iteratorNormalCompletion3 = (_step3 = _iterator3.next()).done); _iteratorNormalCompletion3 = true) {
-        var item = _step3.value;
-
-        if (plugins[item] && plugins[item].afterPlayerInit) {
-          plugins[item].afterPlayerInit();
-        }
-      }
-    } catch (err) {
-      _didIteratorError3 = true;
-      _iteratorError3 = err;
-    } finally {
       try {
-        if (!_iteratorNormalCompletion3 && _iterator3.return) {
-          _iterator3.return();
+        for (var _iterator3 = Object.keys(plugins)[Symbol.iterator](), _step3; !(_iteratorNormalCompletion3 = (_step3 = _iterator3.next()).done); _iteratorNormalCompletion3 = true) {
+          var item = _step3.value;
+
+          if (plugins[item] && plugins[item].afterPlayerInit) {
+            plugins[item].afterPlayerInit();
+          }
         }
+      } catch (err) {
+        _didIteratorError3 = true;
+        _iteratorError3 = err;
       } finally {
-        if (_didIteratorError3) {
-          throw _iteratorError3;
+        try {
+          if (!_iteratorNormalCompletion3 && _iterator3.return) {
+            _iterator3.return();
+          }
+        } finally {
+          if (_didIteratorError3) {
+            throw _iteratorError3;
+          }
         }
       }
-    }
+    });
   },
   reRender: function reRender(player) {
     var cgid = player._pluginInfoId;

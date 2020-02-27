@@ -10,7 +10,9 @@ import Plugin from '../../../plugin';
 import volumeChange from '../../assets/volumeChange.svg';
 
 var Util = Plugin.Util,
-    Events = Plugin.Events;
+    Events = Plugin.Events,
+    POSITIONS = Plugin.POSITIONS,
+    ROOT_TYPES = Plugin.ROOT_TYPES;
 
 var VolumeIcon = function (_Plugin) {
   _inherits(VolumeIcon, _Plugin);
@@ -161,6 +163,16 @@ var VolumeIcon = function (_Plugin) {
     key: 'pluginName',
     get: function get() {
       return 'VolumeIcon';
+    }
+  }, {
+    key: 'defaultConfig',
+    get: function get() {
+      return {
+        position: POSITIONS.RIGHT,
+        rootType: ROOT_TYPES.CONTROLS,
+        index: 1,
+        progressDot: []
+      };
     }
   }]);
 

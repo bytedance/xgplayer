@@ -20,7 +20,9 @@ function _inherits(subClass, superClass) { if (typeof superClass !== "function" 
 
 var Events = _plugin2.default.Events,
     Util = _plugin2.default.Util,
-    Sniffer = _plugin2.default.Sniffer;
+    Sniffer = _plugin2.default.Sniffer,
+    POSITIONS = _plugin2.default.POSITIONS,
+    ROOT_TYPES = _plugin2.default.ROOT_TYPES;
 
 var DefinitionIcon = function (_Plugin) {
   _inherits(DefinitionIcon, _Plugin);
@@ -30,14 +32,16 @@ var DefinitionIcon = function (_Plugin) {
     get: function get() {
       return 'DefinitionIcon';
     }
+
     // 默认配置信息
 
   }, {
     key: 'defaultConfig',
     get: function get() {
       return {
-        position: 'left',
-        index: 2,
+        position: POSITIONS.RIGHT,
+        rootType: ROOT_TYPES.CONTROLS,
+        index: 3,
         itemList: null
       };
     }
@@ -75,10 +79,10 @@ var DefinitionIcon = function (_Plugin) {
       } else {
         this.activeEvent = 'mouseenter';
       }
-      this.onMouseenter = this.onMouseenter.bind(this);
+      this.onToggle = this.onToggle.bind(this);
       this.onItemClick = this.onItemClick.bind(this);
-      this.bind(this.activeEvent, this.onMouseenter);
-      this.bind('mouseleave', this.onMouseenter);
+      this.bind(this.activeEvent, this.onToggle);
+      this.bind('mouseleave', this.onToggle);
       this.bind('.icon-list li', ['touched', 'click'], this.onItemClick);
     }
   }, {
@@ -128,10 +132,11 @@ var DefinitionIcon = function (_Plugin) {
           playPromise.catch(function (err) {});
         }
       }
+      player.emit('afterdefinitionChange');
     }
   }, {
-    key: 'onMouseenter',
-    value: function onMouseenter(e) {
+    key: 'onToggle',
+    value: function onToggle(e) {
       e.preventDefault();
       e.stopPropagation();
       Util.hasClass(this.el, 'list-show') ? Util.removeClass(this.el, 'list-show') : Util.addClass(this.el, 'list-show');
@@ -163,11 +168,17 @@ var DefinitionIcon = function (_Plugin) {
         player.switchURL(lastATag.href);
       }
     }
+    // 对外暴露 切换清晰度
+
+  }, {
+    key: 'changeDefinition',
+    value: function changeDefinition() {}
   }, {
     key: 'onItemClick',
     value: function onItemClick(e) {
       var _this3 = this;
 
+      console.log('onItemClick');
       var player = this.player;
       var itemList = this.config.itemList;
 

@@ -12,15 +12,36 @@ function _inherits(subClass, superClass) { if (typeof superClass !== "function" 
 import Plugin from '../../../plugin';
 import Next from '../../assets/playNext.svg';
 
-// const { Events } = Plugin
+var POSITIONS = Plugin.POSITIONS,
+    ROOT_TYPES = Plugin.ROOT_TYPES;
 
 var PlayNextIcon = function (_Plugin) {
   _inherits(PlayNextIcon, _Plugin);
 
-  function PlayNextIcon() {
+  _createClass(PlayNextIcon, null, [{
+    key: 'pluginName',
+    get: function get() {
+      return 'PlayNextIcon';
+    }
+  }, {
+    key: 'defaultConfig',
+    get: function get() {
+      return {
+        position: POSITIONS.LEFT,
+        rootType: ROOT_TYPES.CONTROLS,
+        index: 1
+      };
+    }
+  }]);
+
+  function PlayNextIcon(options) {
     _classCallCheck(this, PlayNextIcon);
 
-    return _possibleConstructorReturn(this, (PlayNextIcon.__proto__ || Object.getPrototypeOf(PlayNextIcon)).apply(this, arguments));
+    var _this = _possibleConstructorReturn(this, (PlayNextIcon.__proto__ || Object.getPrototypeOf(PlayNextIcon)).call(this, options));
+
+    _this.urlList = options.urlList || [];
+    _this.idx = -1;
+    return _this;
   }
 
   _createClass(PlayNextIcon, [{
@@ -43,8 +64,18 @@ var PlayNextIcon = function (_Plugin) {
   }, {
     key: 'playNext',
     value: function playNext() {
-      // TODO 根据配置信息进行下一个视频的切换 或者 根据参数中的回调函数进行调用
-      this.emit('playNext');
+      var player = this.player;
+
+      if (this.idx + 1 < this.urlList.length) {
+        this.idx++;
+        player.video.pause();
+        player.currentTime = 0;
+        player.video.autoplay = true;
+        player.src = this.urlList[this.idx];
+        player.emit('playerNext', this.idx + 1);
+      } else {
+        player.emit('urlList last');
+      }
     }
   }, {
     key: 'registerIcons',
@@ -57,15 +88,10 @@ var PlayNextIcon = function (_Plugin) {
     key: 'registerLangauageTexts',
     value: function registerLangauageTexts() {
       return {
-        'play': {
+        'playNext': {
           jp: 'play',
           en: 'play',
           zh: '播放'
-        },
-        'pause': {
-          jp: 'pause',
-          en: 'pause',
-          zh: '暂停'
         }
       };
     }
@@ -77,12 +103,7 @@ var PlayNextIcon = function (_Plugin) {
   }, {
     key: 'render',
     value: function render() {
-      return '\n     <xg-icon class="xgplayer-playnext">\n      <div class="xgplayer-icon">\n        ' + this.icons.playNext + '\n      </div>\n      <div class="xg-tips"></div>\n     </xg-icon>\n    ';
-    }
-  }], [{
-    key: 'pluginName',
-    get: function get() {
-      return 'PlayNextIcon';
+      return '\n     <xg-icon class="xgplayer-playnext">\n      <div class="xgplayer-icon">\n        ' + this.icons.playNext + '\n      </div>\n      <div class="xg-tips">' + this.text.playNext + '</div>\n     </xg-icon>\n    ';
     }
   }]);
 

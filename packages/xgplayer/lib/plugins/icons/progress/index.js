@@ -23,7 +23,9 @@ function _possibleConstructorReturn(self, call) { if (!self) { throw new Referen
 function _inherits(subClass, superClass) { if (typeof superClass !== "function" && superClass !== null) { throw new TypeError("Super expression must either be null or a function, not " + typeof superClass); } subClass.prototype = Object.create(superClass && superClass.prototype, { constructor: { value: subClass, enumerable: false, writable: true, configurable: true } }); if (superClass) Object.setPrototypeOf ? Object.setPrototypeOf(subClass, superClass) : subClass.__proto__ = superClass; }
 
 var Events = _plugin2.default.Events,
-    Util = _plugin2.default.Util;
+    Util = _plugin2.default.Util,
+    POSITIONS = _plugin2.default.POSITIONS,
+    ROOT_TYPES = _plugin2.default.ROOT_TYPES;
 
 var defaultThumbnailConfig = {
   isShow: false,
@@ -51,6 +53,9 @@ var Progress = function (_Plugin) {
     key: 'defaultConfig',
     get: function get() {
       return {
+        position: POSITIONS.CENTER,
+        rootType: ROOT_TYPES.CONTROLS,
+        index: 0,
         progressDot: []
       };
     }
@@ -63,6 +68,10 @@ var Progress = function (_Plugin) {
 
     _this.useable = false;
     _this.isProgressMoving = false;
+
+    if (args.thumbnail) {
+      _this.thumbnail = args.thumbnail;
+    }
     return _this;
   }
 
@@ -85,6 +94,10 @@ var Progress = function (_Plugin) {
       this.thumbnailDom = this.find('xg-thumbnail');
       this.initThumbnail();
       this.on(Events.TIME_UPDATE, function () {
+        _this2.onTimeupdate();
+        _this2.onCacheUpdate();
+      });
+      this.on(Events.SEEKING, function () {
         _this2.onTimeupdate();
         _this2.onCacheUpdate();
       });
@@ -111,8 +124,8 @@ var Progress = function (_Plugin) {
     value: function initThumbnail() {
       var _this3 = this;
 
-      if (this.playerConfig.thumbnail) {
-        var thumbnail = this.playerConfig.thumbnail;
+      if (this.thumbnail) {
+        var thumbnail = this.thumbnail;
 
         this.thumbnailConfig = {};
         Object.keys(defaultThumbnailConfig).map(function (key) {
@@ -150,6 +163,9 @@ var Progress = function (_Plugin) {
     value: function mouseDown(e) {
       var player = this.player;
 
+      if (player.isMini) {
+        return;
+      }
       var self = this;
       e.stopPropagation();
       Util.event(e);
@@ -214,6 +230,9 @@ var Progress = function (_Plugin) {
     value: function mouseEnter(e) {
       var player = this.player;
 
+      if (player.isMini) {
+        return;
+      }
       if (!player.config.allowSeekAfterEnded && player.ended) {
         return true;
       }
@@ -223,6 +242,11 @@ var Progress = function (_Plugin) {
   }, {
     key: 'mouseLeave',
     value: function mouseLeave(e) {
+      var player = this.player;
+
+      if (player.isMini) {
+        return;
+      }
       this.pointTip.style.display = 'none';
       this.thumbnailDom.style.display = 'none';
       this.el.removeEventListener('mousemove', this.mouseMove, false);
@@ -256,7 +280,7 @@ var Progress = function (_Plugin) {
       var _this5 = this;
 
       var thumbnail = this.thumbnailConfig;
-      if (!thumbnail.pic_num === 0 || thumbnail.urls.length === 0) {
+      if (!thumbnail || !thumbnail.pic_num === 0 || thumbnail.urls.length === 0) {
         return;
       }
       this.interval = this.player.duration / thumbnail.pic_num;
