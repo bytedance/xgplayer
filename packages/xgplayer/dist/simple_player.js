@@ -10267,4 +10267,4 @@ _player2.default.install('s_memoryPlay', smemoryPlay);
 /***/ })
 /******/ ]);
 });
-//# sourceMappingURL=index.js.map
+//# sourceMappingURL=simple_player.js.map
