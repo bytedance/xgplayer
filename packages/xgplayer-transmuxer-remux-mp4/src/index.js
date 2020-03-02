@@ -105,15 +105,23 @@ export default class Mp4Remuxer {
 
     let audioBase = Infinity
     let videoBase = Infinity
-
+    let start = null;
     if (audioTrack.samples && audioTrack.samples.length) {
-      audioBase = audioTrack.samples[0].dts
+      const firstSample = audioTrack.samples[0];
+      audioBase = firstSample.dts;
+      if (firstSample.options && firstSample.options.start) {
+        start = firstSample.options.start
+      }
     }
     if (videoTrack.samples && videoTrack.samples.length) {
-      videoBase = videoTrack.samples[0].dts
+      const firstSample = videoTrack.samples[0];
+      videoBase = firstSample.dts;
+      if (firstSample.options && firstSample.options.start) {
+        start = firstSample.options.start
+      }
     }
 
-    this._dtsBase = Math.min(audioBase, videoBase) - this._dtsBase;
+    this._dtsBase = Math.min(audioBase, videoBase) - (start || this._dtsBase);
     this._videoDtsBase = this._dtsBase
     this._audioDtsBase = this._dtsBase
     this._isDtsBaseInited = true
@@ -185,7 +193,7 @@ export default class Mp4Remuxer {
         }
       }
       this.videoAllDuration += sampleDuration
-      console.log(`video dts ${dts}`, `pts ${pts}`, isKeyframe, `duration ${sampleDuration}`)
+      console.log(`video dts ${dts}`, `pts ${pts}`, isKeyframe, `originDts ${avcSample.originDts}`, `duration ${sampleDuration}`)
       if (sampleDuration >= 0) {
         mdatBox.samples.push(mdatSample)
         mdatSample.buffer.push(avcSample.data)

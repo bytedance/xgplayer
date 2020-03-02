@@ -56,6 +56,9 @@ var Compatibility = function () {
       // this.allAudioSamplesCount = 0 // 音频总数据量(原始帧)
       // this.allVideoSamplesCount = 0 // 视频总数据量(原始帧)
 
+      this._audioLargeGap = 0;
+      this._videoLargeGap = 0;
+
       // this._firstAudioSample = null
       // this._firstVideoSample = null
       // this._firstAudioSample = null
@@ -136,10 +139,6 @@ var Compatibility = function () {
         sample.originDts = sample.dts;
       }
 
-      if (meta.frameRate && meta.frameRate.fixed === false) {
-        return;
-      }
-
       if (!videoSamples || !videoSamples.length || !this._firstVideoSample) {
         return;
       }
@@ -148,17 +147,22 @@ var Compatibility = function () {
 
       var firstSample = videoSamples[0];
 
+      if (!first && this.videoLastSample === null && firstSample.options && firstSample.options.start) {
+        if (streamChangeStart) {
+          streamChangeStart = firstSample.options.start;
+        }
+      }
+      if (!first && !streamChangeStart && this.videoLastSample && Compatibility.detectLargeGap(this.videoLastSample ? this.videoLastSample.dts : 0, firstSample.dts + this._videoLargeGap)) {
+        // large gap 不准确，出现了非换流场景的时间戳跳变
+        this._videoLargeGap = this.videoLastSample.dts + meta.refSampleDuration - firstSample.dts;
+      }
       // step0.修复hls流出现巨大gap，需要强制重定位的问题
       if (this._videoLargeGap !== 0) {
         Compatibility.doFixLargeGap(videoSamples, this._videoLargeGap);
-      } else if (firstSample.dts !== this._firstVideoSample.dts && (streamChangeStart || this.videoLastSample && Compatibility.detectLargeGap(this.videoLastSample.dts, firstSample))) {
-        if (streamChangeStart) {
-          this.nextVideoDts = streamChangeStart; // FIX: Hls中途切codec，在如果直接seek到后面的点会导致largeGap计算失败
-        } else {
-          this.nextVideoDts = this.videoLastSample.dts;
-        }
+      }
 
-        this._videoLargeGap = this.nextVideoDts - firstSample.dts;
+      if (!first && streamChangeStart) {
+        this._videoLargeGap = streamChangeStart - firstSample.dts;
         Compatibility.doFixLargeGap(videoSamples, this._videoLargeGap);
       }
 
@@ -231,11 +235,17 @@ var Compatibility = function () {
       var firstSample = this._firstAudioSample;
 
       var _firstSample = audioSamples[0];
+
+      if (!first && this.nextAudioDts === null && _firstSample.options.start) {
+        if (streamChangeStart) {
+          streamChangeStart = _firstSample.options.start;
+        }
+      }
+
       // 对audioSamples按照dts做排序
-      // audioSamples = Compatibility.sortAudioSamples(audioSamples)
       if (this._audioLargeGap !== 0) {
         Compatibility.doFixLargeGap(audioSamples, this._audioLargeGap);
-      } else if (_firstSample.dts !== this._firstAudioSample.dts && (streamChangeStart || Compatibility.detectLargeGap(this.nextAudioDts, _firstSample))) {
+      } else if (!first && (streamChangeStart || Compatibility.detectLargeGap(this.nextAudioDts, _firstSample.dts))) {
         if (streamChangeStart) {
           this.nextAudioDts = streamChangeStart; // FIX: Hls中途切codec，在如果直接seek到后面的点会导致largeGap计算失败
         }
@@ -329,14 +339,11 @@ var Compatibility = function () {
   }, {
     key: 'fixChangeStreamVideo',
     value: function fixChangeStreamVideo(changeIdx) {
-      var _videoTrack2 = this.videoTrack,
-          samples = _videoTrack2.samples,
-          meta = _videoTrack2.meta;
-      var isFirstVideoSample = this.isFirstVideoSample;
+      var samples = this.videoTrack.samples;
 
       var prevDts = changeIdx === 0 ? this.videoLastSample ? this.videoLastSample.dts : this.getStreamChangeStart(samples[0]) : samples[changeIdx - 1].dts;
       var curDts = samples[changeIdx].dts;
-      var isContinue = Math.abs(prevDts - curDts) <= 2 * 1000;
+      var isContinue = Math.abs(prevDts - curDts) <= 100;
 
       if (isContinue) {
         if (!samples[changeIdx].options) {
@@ -350,18 +357,19 @@ var Compatibility = function () {
       }
 
       this.emit(REMUX_EVENTS.DETECT_CHANGE_STREAM_DISCONTINUE);
-      this._videoLargeGap = 0;
-      this.videoLastSample = null;
+
       var firstPartSamples = samples.slice(0, changeIdx);
       var secondPartSamples = samples.slice(changeIdx);
       var changeSample = samples[changeIdx];
 
       var streamChangeStart = void 0;
 
+      this._videoLargeGap = 0;
+      this.videoLastSample = null;
       if (changeSample.options && changeSample.options.start) {
         streamChangeStart = changeSample.options.start;
       } else {
-        streamChangeStart = prevDts + meta.refSampleDuration;
+        streamChangeStart = prevDts - this.videoDtsBase;
       }
 
       this.videoTrack.samples = samples.slice(0, changeIdx);
@@ -386,7 +394,7 @@ var Compatibility = function () {
 
       var prevDts = changeIdx === 0 ? this.lastAudioDts : samples[changeIdx - 1].dts;
       var curDts = samples[changeIdx].dts;
-      var isContinue = Math.abs(prevDts - curDts) <= 2 * 1000;
+      var isContinue = Math.abs(prevDts - curDts) <= 1000;
 
       if (isContinue) {
         if (!samples[changeIdx].options) {
@@ -409,7 +417,7 @@ var Compatibility = function () {
       if (changeSample.options && changeSample.options.start) {
         streamChangeStart = changeSample.options.start;
       } else {
-        streamChangeStart = prevDts + meta.refSampleDuration;
+        streamChangeStart = prevDts - this.audioDtsBase;
         changeSample.options.isContinue = true;
       }
 
@@ -465,12 +473,15 @@ var Compatibility = function () {
       var allSamplesCount = isVideo ? this.allVideoSamplesCount : this.allAudioSamplesCount;
       var firstDts = isVideo ? this._firstVideoSample.dts : this._firstAudioSample.dts;
       var filledSamplesCount = isVideo ? this.filledVideoSamples.length : this.filledAudioSamples.length;
-
-      if (!meta.refSampleDuration || meta.refSampleDuration <= 0 || Number.isNaN(meta.refSampleDuration)) {
+      if (!Compatibility.isRefSampleDurationValid(meta.refSampleDuration)) {
         if (samples.length >= 1) {
           var lastDts = samples[samples.length - 1].dts;
 
-          meta.refSampleDuration = Math.floor((lastDts - firstDts) / (allSamplesCount + filledSamplesCount - 1)); // 将refSampleDuration重置为计算后的平均值
+          var fixed = Math.floor((lastDts - firstDts) / (allSamplesCount + filledSamplesCount - 1)); // 将refSampleDuration重置为计算后的平均值
+
+          if (Compatibility.isRefSampleDurationValid(fixed)) {
+            meta.refSampleDuration = fixed;
+          }
         }
       } else if (meta.refSampleDuration) {
         if (samples.length >= 5) {
@@ -478,9 +489,16 @@ var Compatibility = function () {
           var _firstDts = samples[0].dts;
           var durationAvg = (_lastDts - _firstDts) / (samples.length - 1);
           if (durationAvg > 0 && durationAvg < 1000) {
-            meta.refSampleDuration = Math.floor(Math.abs(meta.refSampleDuration - durationAvg) <= 5 ? meta.refSampleDuration : durationAvg); // 将refSampleDuration重置为计算后的平均值
+            var _fixed = Math.floor(Math.abs(meta.refSampleDuration - durationAvg) <= 5 ? meta.refSampleDuration : durationAvg); // 将refSampleDuration重置为计算后的平均值
+            if (Compatibility.isRefSampleDurationValid(_fixed)) {
+              meta.refSampleDuration = _fixed;
+            }
           }
         }
+      }
+
+      if (!Compatibility.isRefSampleDurationValid(meta.refSampleDuration)) {
+        meta.refSampleDuration = 67;
       }
     }
 
@@ -576,7 +594,7 @@ var Compatibility = function () {
     key: 'audioDtsBase',
     get: function get() {
       var remuxer = this._context.getInstance('MP4_REMUXER');
-      if (remuxer && remuxer._audioDtsBase) {
+      if (remuxer && remuxer._audioDtsBase !== null) {
         return remuxer._audioDtsBase;
       }
 
@@ -586,7 +604,7 @@ var Compatibility = function () {
     key: 'videoDtsBase',
     get: function get() {
       var remuxer = this._context.getInstance('MP4_REMUXER');
-      if (remuxer && remuxer._videoDtsBase) {
+      if (remuxer && remuxer._videoDtsBase !== null) {
         return remuxer._videoDtsBase;
       }
 
@@ -603,7 +621,11 @@ var Compatibility = function () {
         return a.dts - b.dts;
       });
     }
-
+  }, {
+    key: 'isRefSampleDurationValid',
+    value: function isRefSampleDurationValid(refSampleDuration) {
+      return refSampleDuration && refSampleDuration > 0 && !Number.isNaN(refSampleDuration);
+    }
     /**
      * 寻找dts最小的sample
      * @param samples
@@ -637,15 +659,11 @@ var Compatibility = function () {
     }
   }, {
     key: 'detectLargeGap',
-    value: function detectLargeGap(nextDts, firstSample) {
+    value: function detectLargeGap(nextDts, firstSampleDts) {
       if (nextDts === null) {
         return;
       }
-      var curDts = firstSample.dts || 0;
-      var cond1 = nextDts - curDts >= 1000 || curDts - nextDts >= 1000; // fix hls流出现大量流dts间距问题
-      var cond2 = firstSample.options && firstSample.options.discontinue;
-
-      return cond1 || cond2;
+      return nextDts - firstSampleDts >= 1000 || firstSampleDts - nextDts >= 1000; // fix hls流出现大量流dts间距问题
     }
   }, {
     key: 'doFixLargeGap',

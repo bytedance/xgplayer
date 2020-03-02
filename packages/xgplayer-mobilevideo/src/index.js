@@ -64,6 +64,7 @@ class MobileVideo extends HTMLElement {
     this.handleAudioSourceEnd = this.handleAudioSourceEnd.bind(this)
     this.played = false;
     this.pendingPlayTask = null
+    this._waiting = false;
     this._paused = true;
     this.videoMetaInited = false;
     this.audioMetaInited = false;
@@ -71,10 +72,16 @@ class MobileVideo extends HTMLElement {
   }
 
   init () {
+    const attrVolume = this.getAttribute('volume')
+    const volume = this.muted ? 0 : attrVolume
+
     this.vCtx = new VideoCtx(Object.assign({
       canvas: this._canvas
     }, { style: { width: this.width, height: this.height } }));
-    this.aCtx = new AudioCtx({});
+
+    this.aCtx = new AudioCtx({
+      volume
+    });
     this.ticker = new (getTicker())()
     this.reconciler = new AVReconciler({
       vCtx: this.vCtx,
@@ -141,6 +148,10 @@ class MobileVideo extends HTMLElement {
     }
     this.vCtx.setVideoMetaData(meta);
     this.videoMetaInited = true;
+  }
+
+  disconnectedCallback () {
+    this.destroy();
   }
 
   get width () {
@@ -263,13 +274,29 @@ class MobileVideo extends HTMLElement {
         if (!this.start) {
           this.start = Date.now()
         }
+        const prevTime = this._currentTime;
         this._currentTime = Date.now() - this.start
-        this.vCtx._onTimer(this._currentTime)
+
+        const rendered = this.vCtx._onTimer(this._currentTime)
+        if (rendered) {
+          if (this._waiting) {
+            this.dispatchEvent(new Event('playing'))
+            this._waiting = false;
+          }
+          this.dispatchEvent(new Event('timeupdate'))
+        } else {
+          this._currentTime = prevTime;
+          if (!this._waiting) {
+            this._waiting = true;
+            this.dispatchEvent(new Event('waiting'))
+          }
+        }
       })
 
       this.pendingPlayTask = null
       this.played = true;
       this.dispatchEvent(new Event('playing'))
+      this.dispatchEvent(new Event('play'))
       this._paused = false
     })
   }
@@ -282,6 +309,10 @@ class MobileVideo extends HTMLElement {
     this.dispatchEvent(new Event('pause'))
   }
 
+  load () {
+    // no-op for now
+  }
+
   get volume () {
     return this.aCtx.volume
   }
@@ -289,6 +320,9 @@ class MobileVideo extends HTMLElement {
   set volume (vol) {
     this.setAttribute('volume', vol);
     this.aCtx.volume = vol
+    if (vol > 0 && this.muted) {
+      this.aCtx.mute()
+    }
     this.dispatchEvent(new Event('volumechange'))
   }
 

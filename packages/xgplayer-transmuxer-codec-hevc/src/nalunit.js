@@ -1,4 +1,5 @@
 import SpsParser from './sps';
+import SEIParser from './sei';
 class Nalunit {
   static getNalunits (buffer) {
     if (buffer.length - buffer.position < 4) {
@@ -185,11 +186,12 @@ class Nalunit {
         break;
       case 39:
         // PREFIX_SEI
-        unit.prefix_sei = true;
+        // unit.prefix_sei = true;
+        unit.sei = SEIParser.parse(unit.body.slice(1));
         break;
       case 40:
         // SUFFIX_SEI
-        unit.suffix_sei = true;
+        unit.sei = SEIParser.parse(unit.body.slice(1));
         break;
       default:
         break;
@@ -224,7 +226,8 @@ class Nalunit {
     // seperate
     let pos = buffer.position;
     let headerLength = 0;
-    while (headerLength !== 3 && headerLength !== 4 && pos < buffer.length - 4) {
+    const bufferLen = buffer.length;
+    while (headerLength !== 3 && headerLength !== 4 && pos < bufferLen - 4) {
       if (buffer.dataview.getInt16(pos) === 0) {
         if (buffer.dataview.getInt16(pos + 2) === 1) {
           // 0x000001
@@ -239,7 +242,7 @@ class Nalunit {
       }
     }
 
-    if (pos === buffer.length - 4) {
+    if (pos === bufferLen - 4) {
       if (buffer.dataview.getInt16(pos) === 0) {
         if (buffer.dataview.getInt16(pos + 2) === 1) {
           // 0x000001
@@ -251,7 +254,7 @@ class Nalunit {
           // 0x0000001
           headerLength = 3;
         } else {
-          pos = buffer.length;
+          pos = bufferLen;
         }
       }
     }

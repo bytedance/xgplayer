@@ -10,6 +10,10 @@ var _sps = require('./sps');
 
 var _sps2 = _interopRequireDefault(_sps);
 
+var _sei = require('./sei');
+
+var _sei2 = _interopRequireDefault(_sei);
+
 function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
 
 function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } }
@@ -208,11 +212,12 @@ var Nalunit = function () {
           break;
         case 39:
           // PREFIX_SEI
-          unit.prefix_sei = true;
+          // unit.prefix_sei = true;
+          unit.sei = _sei2.default.parse(unit.body.slice(1));
           break;
         case 40:
           // SUFFIX_SEI
-          unit.suffix_sei = true;
+          unit.sei = _sei2.default.parse(unit.body.slice(1));
           break;
         default:
           break;
@@ -248,7 +253,8 @@ var Nalunit = function () {
       // seperate
       var pos = buffer.position;
       var headerLength = 0;
-      while (headerLength !== 3 && headerLength !== 4 && pos < buffer.length - 4) {
+      var bufferLen = buffer.length;
+      while (headerLength !== 3 && headerLength !== 4 && pos < bufferLen - 4) {
         if (buffer.dataview.getInt16(pos) === 0) {
           if (buffer.dataview.getInt16(pos + 2) === 1) {
             // 0x000001
@@ -263,7 +269,7 @@ var Nalunit = function () {
         }
       }
 
-      if (pos === buffer.length - 4) {
+      if (pos === bufferLen - 4) {
         if (buffer.dataview.getInt16(pos) === 0) {
           if (buffer.dataview.getInt16(pos + 2) === 1) {
             // 0x000001
@@ -275,7 +281,7 @@ var Nalunit = function () {
             // 0x0000001
             headerLength = 3;
           } else {
-            pos = buffer.length;
+            pos = bufferLen;
           }
         }
       }

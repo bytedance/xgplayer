@@ -148,15 +148,23 @@ var Mp4Remuxer = function () {
 
       var audioBase = Infinity;
       var videoBase = Infinity;
-
+      var start = null;
       if (audioTrack.samples && audioTrack.samples.length) {
-        audioBase = audioTrack.samples[0].dts;
+        var firstSample = audioTrack.samples[0];
+        audioBase = firstSample.dts;
+        if (firstSample.options && firstSample.options.start) {
+          start = firstSample.options.start;
+        }
       }
       if (videoTrack.samples && videoTrack.samples.length) {
-        videoBase = videoTrack.samples[0].dts;
+        var _firstSample = videoTrack.samples[0];
+        videoBase = _firstSample.dts;
+        if (_firstSample.options && _firstSample.options.start) {
+          start = _firstSample.options.start;
+        }
       }
 
-      this._dtsBase = Math.min(audioBase, videoBase) - this._dtsBase;
+      this._dtsBase = Math.min(audioBase, videoBase) - (start || this._dtsBase);
       this._videoDtsBase = this._dtsBase;
       this._audioDtsBase = this._dtsBase;
       this._isDtsBaseInited = true;
@@ -234,7 +242,7 @@ var Mp4Remuxer = function () {
           }
         }
         this.videoAllDuration += sampleDuration;
-        console.log('video dts ' + dts, 'pts ' + pts, isKeyframe, 'duration ' + sampleDuration);
+        console.log('video dts ' + dts, 'pts ' + pts, isKeyframe, 'originDts ' + avcSample.originDts, 'duration ' + sampleDuration);
         if (sampleDuration >= 0) {
           mdatBox.samples.push(mdatSample);
           mdatSample.buffer.push(avcSample.data);

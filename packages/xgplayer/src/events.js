@@ -30,3 +30,6 @@ export const URL_CHANGE = 'urlchange'
 export const FULLSCREEN_CHANGE = 'fullscreen_change'
 export const CSS_FULLSCREEN_CHANGE = 'cssFullscreen_change'
 export const MINI_STATE_CHANGE = 'mini_state_change'
+
+// transmuxer events
+export const SEI_PARSED = 'SEI_PARSED';

@@ -131,7 +131,8 @@ var Nalunit = function () {
       // seperate
       var pos = buffer.position;
       var headerLength = 0;
-      while (headerLength !== 3 && headerLength !== 4 && pos < buffer.length - 4) {
+      var bufferLen = buffer.length;
+      while (headerLength !== 3 && headerLength !== 4 && pos < bufferLen - 4) {
         if (buffer.dataview.getInt16(pos) === 0) {
           if (buffer.dataview.getInt16(pos + 2) === 1) {
             // 0x000001
@@ -146,7 +147,7 @@ var Nalunit = function () {
         }
       }
 
-      if (pos === buffer.length - 4) {
+      if (pos === bufferLen - 4) {
         if (buffer.dataview.getInt16(pos) === 0) {
           if (buffer.dataview.getInt16(pos + 2) === 1) {
             // 0x000001
@@ -158,7 +159,7 @@ var Nalunit = function () {
             // 0x0000001
             headerLength = 3;
           } else {
-            pos = buffer.length;
+            pos = bufferLen;
           }
         }
       }

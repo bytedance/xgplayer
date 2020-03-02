@@ -18,8 +18,8 @@ class AudioCtx extends EventEmitter {
     this._preDecode = [];
     this._currentTime = 0;
     this._decoding = false;
-    this._volume = this.config.volume || 0.6
-
+    this._volume = Number.parseInt(this.config.volume) === this.config.volume ? this.config.volume : 0.6
+    this.gainNode.gain.value = this._volume
     // 记录外部传输的状态
     this._played = false;
     this.paused = true;
@@ -121,7 +121,7 @@ class AudioCtx extends EventEmitter {
     audioSource.start();
     audioSource.connect(this.gainNode);
     let _this = this;
-    this.waitNextID = setTimeout(() => {
+    setTimeout(() => {
       _this.onSourceEnded.call(this);
     }, audioSource.buffer.duration * 1000 - 10);
     this._currentBuffer = this._nextBuffer;
@@ -209,7 +209,7 @@ class AudioCtx extends EventEmitter {
   }
 
   get volume () {
-    if (this.context.state === 'suspended' || this.paused) {
+    if (this.context.state === 'suspended' || this.paused || this.muted) {
       return 0;
     }
     return this._volume
@@ -228,6 +228,10 @@ class AudioCtx extends EventEmitter {
 
     this._volume = val;
     this.gainNode.gain.value = val
+  }
+
+  mute () {
+    this.gainNode.gain.value = 0
   }
 
   static getAACData (meta, sample) {

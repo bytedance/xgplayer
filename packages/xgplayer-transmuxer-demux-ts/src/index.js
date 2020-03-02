@@ -53,65 +53,71 @@ class TsDemuxer {
     let frags = {pat: [], pmt: []};
     let peses = {};
 
-    // Read TS segment
-    while (buffer.length >= 188) {
-      if (buffer.length >= 1 && buffer.array[0][buffer.offset] !== 71) {
-        this.emit(DEMUX_EVENTS.DEMUX_ERROR, this.TAG, new Error(`Untrust sync code: ${buffer.array[0][buffer.offset]}, try to recover;`), false);
-      }
-      while (buffer.length >= 1 && buffer.array[0][buffer.offset] !== 71) {
-        buffer.shift(1);
-      }
-      if (buffer.length < 188) {
-        continue;
-      }
-      let buf = buffer.shift(188);
-      // console.log(buf);
-      let tsStream = new Stream(buf.buffer);
-      let ts = {};
-      TsDemuxer.read(tsStream, ts, frags);
-      if (ts.pes) {
-        ts.pes.codec = ts.header.codec;
-        if (!peses[ts.header.pid]) {
-          peses[ts.header.pid] = [];
+    Promise.resolve().then(() => {
+      // Read TS segment
+      while (buffer.length >= 188) {
+        if (buffer.length >= 1 && buffer.array[0][buffer.offset] !== 71) {
+          this.emit(DEMUX_EVENTS.DEMUX_ERROR, this.TAG, new Error(`Untrust sync code: ${buffer.array[0][buffer.offset]}, try to recover;`), false);
         }
-        peses[ts.header.pid].push(ts.pes);
-        ts.pes.ES.buffer = [ts.pes.ES.buffer];
-      } else if (peses[ts.header.pid]) {
-        peses[ts.header.pid][peses[ts.header.pid].length - 1].ES.buffer.push(ts.payload.stream);
-      }
-    }
-
-    let AudioOptions = Object.assign({}, frag);
-    let VideoOptions = Object.assign({}, frag);
-
-    // Get Frames data
-    for (let i = 0; i < Object.keys(peses).length; i++) {
-      let epeses = peses[Object.keys(peses)[i]];
-      for (let j = 0; j < epeses.length; j++) {
-        epeses[j].id = Object.keys(peses)[i];
-
-        if (epeses[j].type === 'audio') {
-          epeses[j].ES.buffer = TsDemuxer.mergeAudioES(epeses[j].ES.buffer);
-          this.pushAudioSample(epeses[j], AudioOptions);
-          AudioOptions = {};
-        } else if (epeses[j].type === 'video') {
-          epeses[j].ES.buffer = TsDemuxer.mergeVideoES(epeses[j].ES.buffer);
-          if (epeses[j].codec === 'HVC.H265') {
-            this.pushVideoSampleHEVC(epeses[j], VideoOptions);
-          } else {
-            this.pushVideoSample(epeses[j], VideoOptions);
+        while (buffer.length >= 1 && buffer.array[0][buffer.offset] !== 71) {
+          buffer.shift(1);
+        }
+        if (buffer.length < 188) {
+          continue;
+        }
+        let buf = buffer.shift(188);
+        // console.log(buf);
+        let tsStream = new Stream(buf.buffer);
+        let ts = {};
+        TsDemuxer.read(tsStream, ts, frags);
+        let pes = peses[ts.header.pid]
+        if (ts.pes) {
+          ts.pes.codec = ts.header.codec;
+          if (!peses[ts.header.pid]) {
+            peses[ts.header.pid] = [];
           }
-          VideoOptions = {};
+          peses[ts.header.pid].push(ts.pes);
+          ts.pes.ES.buffer = [ts.pes.ES.buffer];
+        } else if (pes) {
+          pes[pes.length - 1].ES.buffer.push(ts.payload.stream);
         }
       }
-    }
+    })
 
-    if (this._hasAudioMeta) {
-      this.emit(DEMUX_EVENTS.DEMUX_COMPLETE, 'audio');
-    }
-    if (this._hasVideoMeta) {
-      this.emit(DEMUX_EVENTS.DEMUX_COMPLETE, 'video');
-    }
+    setTimeout(() => {
+      let AudioOptions = Object.assign({}, frag);
+      let VideoOptions = Object.assign({}, frag);
+
+      // Get Frames data
+      for (let i = 0; i < Object.keys(peses).length; i++) {
+        let epeses = peses[Object.keys(peses)[i]];
+        for (let j = 0; j < epeses.length; j++) {
+          epeses[j].id = Object.keys(peses)[i];
+
+          if (epeses[j].type === 'audio') {
+            epeses[j].ES.buffer = TsDemuxer.mergeAudioES(epeses[j].ES.buffer);
+            this.pushAudioSample(epeses[j], AudioOptions);
+            AudioOptions = {};
+          } else if (epeses[j].type === 'video') {
+            epeses[j].ES.buffer = TsDemuxer.mergeVideoES(epeses[j].ES.buffer);
+            if (epeses[j].codec === 'HVC.H265') {
+              this.pushVideoSampleHEVC(epeses[j], VideoOptions);
+            } else {
+              this.pushVideoSample(epeses[j], VideoOptions);
+            }
+            VideoOptions = {};
+          }
+        }
+      }
+    })
+    setTimeout(() => {
+      if (this._hasAudioMeta) {
+        this.emit(DEMUX_EVENTS.DEMUX_COMPLETE, 'audio');
+      }
+      if (this._hasVideoMeta) {
+        this.emit(DEMUX_EVENTS.DEMUX_COMPLETE, 'video');
+      }
+    })
   }
 
   pushAudioSample (pes, options) {
@@ -368,6 +374,8 @@ class TsDemuxer {
       } else if (nal.vps) {
         track.vps = nal.body;
         vps = nal;
+      } else if (nal.sei) {
+        this.emit(DEMUX_EVENTS.SEI_PARSED, nal.sei);
       }
       if (nal.type <= 40) {
         sampleLength += (4 + nal.body.byteLength);
@@ -493,7 +501,7 @@ class TsDemuxer {
         return true;
       }
 
-      if ((!itema && itemb) || (itema && !itemb)) {
+      if ((itema === undefined && itemb) || (itema && itemb === undefined)) {
         return false;
       }
 

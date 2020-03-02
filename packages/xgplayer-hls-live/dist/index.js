@@ -997,11 +997,14 @@
       }
 
       this.configs = Object.assign({}, configs);
+      this.container = this.configs.container;
       this.mediaSource = null;
       this.sourceBuffers = {};
       this.preloadTime = this.configs.preloadTime || 1;
       this.onSourceOpen = this.onSourceOpen.bind(this);
+      this.onTimeUpdate = this.onTimeUpdate.bind(this);
       this.onUpdateEnd = this.onUpdateEnd.bind(this);
+      this.onWaiting = this.onWaiting.bind(this);
     }
 
     _createClass$2(MSE, [{
@@ -1011,11 +1014,30 @@
         this.mediaSource = new self.MediaSource();
         this.mediaSource.addEventListener('sourceopen', this.onSourceOpen);
         this._url = null;
+        this.container.addEventListener('timeupdate', this.onTimeUpdate);
+        this.container.addEventListener('waiting', this.onWaiting);
       }
     }, {
       key: 'resetContext',
       value: function resetContext(newCtx) {
         this._context = newCtx;
+        this.emit = newCtx._emitter.emit.bind(newCtx._emitter);
+        for (var i = 0; i < Object.keys(this.sourceBuffers).length; i++) {
+          var buffer = this.sourceBuffers[Object.keys(this.sourceBuffers)[i]];
+          if (!buffer.updating) {
+            MSE.clearBuffer(buffer);
+          }
+        }
+      }
+    }, {
+      key: 'onTimeUpdate',
+      value: function onTimeUpdate() {
+        this.emit('TIME_UPDATE', this.container);
+      }
+    }, {
+      key: 'onWaiting',
+      value: function onWaiting() {
+        this.emit('WAITING', this.container);
       }
     }, {
       key: 'onSourceOpen',
@@ -1253,6 +1275,8 @@
             delete _this3.sourceBuffers[Object.keys(_this3.sourceBuffers)[i]];
           }
 
+          _this3.container.removeEventListener('timeupdate', _this3.onTimeUpdate);
+          _this3.container.removeEventListener('waiting', _this3.onWaiting);
           _this3.mediaSource.removeEventListener('sourceopen', _this3.onSourceOpen);
 
           _this3.endOfStream();
@@ -1260,6 +1284,7 @@
 
           _this3.url = null;
           _this3.configs = {};
+          _this3.container = null;
           _this3.mediaSource = null;
           _this3.sourceBuffers = {};
           _this3.preloadTime = 1;
@@ -2143,6 +2168,9 @@
         // this.allAudioSamplesCount = 0 // 音频总数据量(原始帧)
         // this.allVideoSamplesCount = 0 // 视频总数据量(原始帧)
 
+        this._audioLargeGap = 0;
+        this._videoLargeGap = 0;
+
         // this._firstAudioSample = null
         // this._firstVideoSample = null
         // this._firstAudioSample = null
@@ -2223,10 +2251,6 @@
           sample.originDts = sample.dts;
         }
 
-        if (meta.frameRate && meta.frameRate.fixed === false) {
-          return;
-        }
-
         if (!videoSamples || !videoSamples.length || !this._firstVideoSample) {
           return;
         }
@@ -2235,17 +2259,22 @@
 
         var firstSample = videoSamples[0];
 
+        if (!first && this.videoLastSample === null && firstSample.options && firstSample.options.start) {
+          if (streamChangeStart) {
+            streamChangeStart = firstSample.options.start;
+          }
+        }
+        if (!first && !streamChangeStart && this.videoLastSample && Compatibility.detectLargeGap(this.videoLastSample ? this.videoLastSample.dts : 0, firstSample.dts + this._videoLargeGap)) {
+          // large gap 不准确，出现了非换流场景的时间戳跳变
+          this._videoLargeGap = this.videoLastSample.dts + meta.refSampleDuration - firstSample.dts;
+        }
         // step0.修复hls流出现巨大gap，需要强制重定位的问题
         if (this._videoLargeGap !== 0) {
           Compatibility.doFixLargeGap(videoSamples, this._videoLargeGap);
-        } else if (firstSample.dts !== this._firstVideoSample.dts && (streamChangeStart || this.videoLastSample && Compatibility.detectLargeGap(this.videoLastSample.dts, firstSample))) {
-          if (streamChangeStart) {
-            this.nextVideoDts = streamChangeStart; // FIX: Hls中途切codec，在如果直接seek到后面的点会导致largeGap计算失败
-          } else {
-            this.nextVideoDts = this.videoLastSample.dts;
-          }
+        }
 
-          this._videoLargeGap = this.nextVideoDts - firstSample.dts;
+        if (!first && streamChangeStart) {
+          this._videoLargeGap = streamChangeStart - firstSample.dts;
           Compatibility.doFixLargeGap(videoSamples, this._videoLargeGap);
         }
 
@@ -2317,11 +2346,17 @@
         var firstSample = this._firstAudioSample;
 
         var _firstSample = audioSamples[0];
+
+        if (!first && this.nextAudioDts === null && _firstSample.options.start) {
+          if (streamChangeStart) {
+            streamChangeStart = _firstSample.options.start;
+          }
+        }
+
         // 对audioSamples按照dts做排序
-        // audioSamples = Compatibility.sortAudioSamples(audioSamples)
         if (this._audioLargeGap !== 0) {
           Compatibility.doFixLargeGap(audioSamples, this._audioLargeGap);
-        } else if (_firstSample.dts !== this._firstAudioSample.dts && (streamChangeStart || Compatibility.detectLargeGap(this.nextAudioDts, _firstSample))) {
+        } else if (!first && (streamChangeStart || Compatibility.detectLargeGap(this.nextAudioDts, _firstSample.dts))) {
           if (streamChangeStart) {
             this.nextAudioDts = streamChangeStart; // FIX: Hls中途切codec，在如果直接seek到后面的点会导致largeGap计算失败
           }
@@ -2415,14 +2450,11 @@
     }, {
       key: 'fixChangeStreamVideo',
       value: function fixChangeStreamVideo(changeIdx) {
-        var _videoTrack2 = this.videoTrack,
-            samples = _videoTrack2.samples,
-            meta = _videoTrack2.meta;
-        var isFirstVideoSample = this.isFirstVideoSample;
+        var samples = this.videoTrack.samples;
 
         var prevDts = changeIdx === 0 ? this.videoLastSample ? this.videoLastSample.dts : this.getStreamChangeStart(samples[0]) : samples[changeIdx - 1].dts;
         var curDts = samples[changeIdx].dts;
-        var isContinue = Math.abs(prevDts - curDts) <= 2 * 1000;
+        var isContinue = Math.abs(prevDts - curDts) <= 100;
 
         if (isContinue) {
           if (!samples[changeIdx].options) {
@@ -2436,18 +2468,19 @@
         }
 
         this.emit(REMUX_EVENTS$1.DETECT_CHANGE_STREAM_DISCONTINUE);
-        this._videoLargeGap = 0;
-        this.videoLastSample = null;
+
         var firstPartSamples = samples.slice(0, changeIdx);
         var secondPartSamples = samples.slice(changeIdx);
         var changeSample = samples[changeIdx];
 
         var streamChangeStart = void 0;
 
+        this._videoLargeGap = 0;
+        this.videoLastSample = null;
         if (changeSample.options && changeSample.options.start) {
           streamChangeStart = changeSample.options.start;
         } else {
-          streamChangeStart = prevDts + meta.refSampleDuration;
+          streamChangeStart = prevDts - this.videoDtsBase;
         }
 
         this.videoTrack.samples = samples.slice(0, changeIdx);
@@ -2471,7 +2504,7 @@
 
         var prevDts = changeIdx === 0 ? this.lastAudioDts : samples[changeIdx - 1].dts;
         var curDts = samples[changeIdx].dts;
-        var isContinue = Math.abs(prevDts - curDts) <= 2 * 1000;
+        var isContinue = Math.abs(prevDts - curDts) <= 1000;
 
         if (isContinue) {
           if (!samples[changeIdx].options) {
@@ -2494,7 +2527,7 @@
         if (changeSample.options && changeSample.options.start) {
           streamChangeStart = changeSample.options.start;
         } else {
-          streamChangeStart = prevDts + meta.refSampleDuration;
+          streamChangeStart = prevDts - this.audioDtsBase;
           changeSample.options.isContinue = true;
         }
 
@@ -2549,12 +2582,15 @@
         var allSamplesCount = isVideo ? this.allVideoSamplesCount : this.allAudioSamplesCount;
         var firstDts = isVideo ? this._firstVideoSample.dts : this._firstAudioSample.dts;
         var filledSamplesCount = isVideo ? this.filledVideoSamples.length : this.filledAudioSamples.length;
-
-        if (!meta.refSampleDuration || meta.refSampleDuration <= 0 || Number.isNaN(meta.refSampleDuration)) {
+        if (!Compatibility.isRefSampleDurationValid(meta.refSampleDuration)) {
           if (samples.length >= 1) {
             var lastDts = samples[samples.length - 1].dts;
 
-            meta.refSampleDuration = Math.floor((lastDts - firstDts) / (allSamplesCount + filledSamplesCount - 1)); // 将refSampleDuration重置为计算后的平均值
+            var fixed = Math.floor((lastDts - firstDts) / (allSamplesCount + filledSamplesCount - 1)); // 将refSampleDuration重置为计算后的平均值
+
+            if (Compatibility.isRefSampleDurationValid(fixed)) {
+              meta.refSampleDuration = fixed;
+            }
           }
         } else if (meta.refSampleDuration) {
           if (samples.length >= 5) {
@@ -2562,9 +2598,16 @@
             var _firstDts = samples[0].dts;
             var durationAvg = (_lastDts - _firstDts) / (samples.length - 1);
             if (durationAvg > 0 && durationAvg < 1000) {
-              meta.refSampleDuration = Math.floor(Math.abs(meta.refSampleDuration - durationAvg) <= 5 ? meta.refSampleDuration : durationAvg); // 将refSampleDuration重置为计算后的平均值
+              var _fixed = Math.floor(Math.abs(meta.refSampleDuration - durationAvg) <= 5 ? meta.refSampleDuration : durationAvg); // 将refSampleDuration重置为计算后的平均值
+              if (Compatibility.isRefSampleDurationValid(_fixed)) {
+                meta.refSampleDuration = _fixed;
+              }
             }
           }
+        }
+
+        if (!Compatibility.isRefSampleDurationValid(meta.refSampleDuration)) {
+          meta.refSampleDuration = 67;
         }
       }
 
@@ -2659,7 +2702,7 @@
       key: 'audioDtsBase',
       get: function get() {
         var remuxer = this._context.getInstance('MP4_REMUXER');
-        if (remuxer && remuxer._audioDtsBase) {
+        if (remuxer && remuxer._audioDtsBase !== null) {
           return remuxer._audioDtsBase;
         }
 
@@ -2669,7 +2712,7 @@
       key: 'videoDtsBase',
       get: function get() {
         var remuxer = this._context.getInstance('MP4_REMUXER');
-        if (remuxer && remuxer._videoDtsBase) {
+        if (remuxer && remuxer._videoDtsBase !== null) {
           return remuxer._videoDtsBase;
         }
 
@@ -2686,7 +2729,11 @@
           return a.dts - b.dts;
         });
       }
-
+    }, {
+      key: 'isRefSampleDurationValid',
+      value: function isRefSampleDurationValid(refSampleDuration) {
+        return refSampleDuration && refSampleDuration > 0 && !Number.isNaN(refSampleDuration);
+      }
       /**
        * 寻找dts最小的sample
        * @param samples
@@ -2720,15 +2767,11 @@
       }
     }, {
       key: 'detectLargeGap',
-      value: function detectLargeGap(nextDts, firstSample) {
+      value: function detectLargeGap(nextDts, firstSampleDts) {
         if (nextDts === null) {
           return;
         }
-        var curDts = firstSample.dts || 0;
-        var cond1 = nextDts - curDts >= 1000 || curDts - nextDts >= 1000; // fix hls流出现大量流dts间距问题
-        var cond2 = firstSample.options && firstSample.options.discontinue;
-
-        return cond1 || cond2;
+        return nextDts - firstSampleDts >= 1000 || firstSampleDts - nextDts >= 1000; // fix hls流出现大量流dts间距问题
       }
     }, {
       key: 'doFixLargeGap',
@@ -3859,15 +3902,23 @@
 
         var audioBase = Infinity;
         var videoBase = Infinity;
-
+        var start = null;
         if (audioTrack.samples && audioTrack.samples.length) {
-          audioBase = audioTrack.samples[0].dts;
+          var firstSample = audioTrack.samples[0];
+          audioBase = firstSample.dts;
+          if (firstSample.options && firstSample.options.start) {
+            start = firstSample.options.start;
+          }
         }
         if (videoTrack.samples && videoTrack.samples.length) {
-          videoBase = videoTrack.samples[0].dts;
+          var _firstSample = videoTrack.samples[0];
+          videoBase = _firstSample.dts;
+          if (_firstSample.options && _firstSample.options.start) {
+            start = _firstSample.options.start;
+          }
         }
 
-        this._dtsBase = Math.min(audioBase, videoBase) - this._dtsBase;
+        this._dtsBase = Math.min(audioBase, videoBase) - (start || this._dtsBase);
         this._videoDtsBase = this._dtsBase;
         this._audioDtsBase = this._dtsBase;
         this._isDtsBaseInited = true;
@@ -3945,7 +3996,7 @@
             }
           }
           this.videoAllDuration += sampleDuration;
-          console.log('video dts ' + dts, 'pts ' + pts, isKeyframe, 'duration ' + sampleDuration);
+          console.log('video dts ' + dts, 'pts ' + pts, isKeyframe, 'originDts ' + avcSample.originDts, 'duration ' + sampleDuration);
           if (sampleDuration >= 0) {
             mdatBox.samples.push(mdatSample);
             mdatSample.buffer.push(avcSample.data);
@@ -5142,7 +5193,10 @@
           case 5:
             return SEIParser.user_data_unregistered(content);
           default:
-            return {};
+            return {
+              code: payloadType,
+              content: content
+            };
         }
       }
 
@@ -5350,7 +5404,8 @@
         // seperate
         var pos = buffer.position;
         var headerLength = 0;
-        while (headerLength !== 3 && headerLength !== 4 && pos < buffer.length - 4) {
+        var bufferLen = buffer.length;
+        while (headerLength !== 3 && headerLength !== 4 && pos < bufferLen - 4) {
           if (buffer.dataview.getInt16(pos) === 0) {
             if (buffer.dataview.getInt16(pos + 2) === 1) {
               // 0x000001
@@ -5365,7 +5420,7 @@
           }
         }
 
-        if (pos === buffer.length - 4) {
+        if (pos === bufferLen - 4) {
           if (buffer.dataview.getInt16(pos) === 0) {
             if (buffer.dataview.getInt16(pos + 2) === 1) {
               // 0x000001
@@ -5377,7 +5432,7 @@
               // 0x0000001
               headerLength = 3;
             } else {
-              pos = buffer.length;
+              pos = bufferLen;
             }
           }
         }
@@ -5999,12 +6054,220 @@
     }
   }
 
-  var Nalunit$1 = function () {
-    function Nalunit() {
-      _classCallCheck$o(this, Nalunit);
+  var RBSP$1 = function () {
+    function RBSP() {
+      _classCallCheck$o(this, RBSP);
     }
 
-    _createClass$o(Nalunit, null, [{
+    _createClass$o(RBSP, null, [{
+      key: "EBSP2RBSP",
+
+      /**
+       * convert EBSP to RBSP
+       * @param data {Uint8Array}
+       * @returns {Uint8Array}
+       * @constructor
+       */
+      value: function EBSP2RBSP(data) {
+        return data.filter(function (el, idx) {
+          if (idx < 2) {
+            return true;
+          } else {
+            return !(data[idx - 2] === 0 && data[idx - 1] === 0 && el === 3);
+          }
+        });
+      }
+
+      /**
+       * @param data {Uint8Array}
+       * @constructor
+       */
+
+    }, {
+      key: "EBSP2SODB",
+      value: function EBSP2SODB(data) {
+        var lastByte = data[data.byteLength - 1];
+        if (lastByte && lastByte === 128) {
+          return data.slice(0, data.byteLength - 1);
+        }
+
+        return data;
+      }
+    }]);
+
+    return RBSP;
+  }();
+
+  var _createClass$p = function () {
+    function defineProperties(target, props) {
+      for (var i = 0; i < props.length; i++) {
+        var descriptor = props[i];descriptor.enumerable = descriptor.enumerable || false;descriptor.configurable = true;if ("value" in descriptor) descriptor.writable = true;Object.defineProperty(target, descriptor.key, descriptor);
+      }
+    }return function (Constructor, protoProps, staticProps) {
+      if (protoProps) defineProperties(Constructor.prototype, protoProps);if (staticProps) defineProperties(Constructor, staticProps);return Constructor;
+    };
+  }();
+
+  function _classCallCheck$p(instance, Constructor) {
+    if (!(instance instanceof Constructor)) {
+      throw new TypeError("Cannot call a class as a function");
+    }
+  }
+
+  var u8aToString$1 = function u8aToString(data) {
+    var result = '';
+    for (var i = 0; i < data.byteLength; i++) {
+      result += String.fromCharCode(data[i]);
+    }
+    return result;
+  };
+
+  var SEIParser$1 = function () {
+    function SEIParser() {
+      _classCallCheck$p(this, SEIParser);
+    }
+
+    _createClass$p(SEIParser, null, [{
+      key: '_resolveNalu',
+      value: function _resolveNalu(data) {
+        if (data.length >= 1) {
+          return RBSP$1.EBSP2SODB(RBSP$1.EBSP2RBSP(data.slice(1)));
+        }
+        return null;
+      }
+      /**
+       *
+       * @param data {Uint8Array}
+       */
+
+    }, {
+      key: 'parse',
+      value: function parse(data) {
+        var sodb = SEIParser._resolveNalu(data);
+
+        var _SEIParser$switchPayl = SEIParser.switchPayloadType(sodb),
+            payloadType = _SEIParser$switchPayl.payloadType,
+            offset = _SEIParser$switchPayl.offset;
+
+        var content = sodb.slice(offset);
+
+        switch (payloadType) {
+          case 5:
+            return SEIParser.user_data_unregistered(content);
+          default:
+            return {
+              code: payloadType,
+              content: content
+            };
+        }
+      }
+
+      /**
+       *
+       * @param data
+       * @returns {{payloadType: number, offset: number}}
+       */
+
+    }, {
+      key: 'switchPayloadType',
+      value: function switchPayloadType(data) {
+        var dv = new DataView(data.buffer);
+        var payloadType = 0;
+        var offset = 0;
+        while (dv.getUint8(offset) === 255) {
+          offset++;
+          payloadType += 255;
+        }
+        payloadType += dv.getUint8(offset++);
+
+        return {
+          payloadType: payloadType,
+          offset: offset
+        };
+      }
+
+      /**
+       *
+       * @param data {Uint8Array}
+       * @return {{ payloadLength: number, offset: number }}
+       */
+
+    }, {
+      key: 'getPayloadLength',
+      value: function getPayloadLength(data) {
+        var dv = new DataView(data.buffer);
+
+        var payloadLength = 0;
+        var offset = 0;
+        while (dv.getUint8(offset) === 255) {
+          offset++;
+          payloadLength += 255;
+        }
+        payloadLength += dv.getUint8(offset++);
+
+        return {
+          payloadLength: payloadLength,
+          offset: offset
+        };
+      }
+
+      /**
+       * resolve 0x05 user data unregistered
+       * @param data {Uint8Array}
+       */
+      // eslint-disable-next-line camelcase
+
+    }, {
+      key: 'user_data_unregistered',
+      value: function user_data_unregistered(data) {
+        var _SEIParser$getPayload = SEIParser.getPayloadLength(data),
+            payloadLength = _SEIParser$getPayload.payloadLength,
+            offset = _SEIParser$getPayload.offset;
+
+        if (payloadLength < 16) {
+          return {
+            uuid: '',
+            content: null
+          };
+        }
+        var payload = data.slice(offset);
+
+        var uuid = u8aToString$1(payload.slice(0, 16));
+        var content = u8aToString$1(payload.slice(16, payloadLength));
+
+        return {
+          code: 5, // for user data unregistered
+          uuid: uuid,
+          content: content
+        };
+      }
+    }]);
+
+    return SEIParser;
+  }();
+
+  var _createClass$q = function () {
+    function defineProperties(target, props) {
+      for (var i = 0; i < props.length; i++) {
+        var descriptor = props[i];descriptor.enumerable = descriptor.enumerable || false;descriptor.configurable = true;if ("value" in descriptor) descriptor.writable = true;Object.defineProperty(target, descriptor.key, descriptor);
+      }
+    }return function (Constructor, protoProps, staticProps) {
+      if (protoProps) defineProperties(Constructor.prototype, protoProps);if (staticProps) defineProperties(Constructor, staticProps);return Constructor;
+    };
+  }();
+
+  function _classCallCheck$q(instance, Constructor) {
+    if (!(instance instanceof Constructor)) {
+      throw new TypeError("Cannot call a class as a function");
+    }
+  }
+
+  var Nalunit$1 = function () {
+    function Nalunit() {
+      _classCallCheck$q(this, Nalunit);
+    }
+
+    _createClass$q(Nalunit, null, [{
       key: 'getNalunits',
       value: function getNalunits(buffer) {
         if (buffer.length - buffer.position < 4) {
@@ -6193,11 +6456,12 @@
             break;
           case 39:
             // PREFIX_SEI
-            unit.prefix_sei = true;
+            // unit.prefix_sei = true;
+            unit.sei = SEIParser$1.parse(unit.body.slice(1));
             break;
           case 40:
             // SUFFIX_SEI
-            unit.suffix_sei = true;
+            unit.sei = SEIParser$1.parse(unit.body.slice(1));
             break;
           // case 1:
           //   // NDR
@@ -6231,7 +6495,8 @@
         // seperate
         var pos = buffer.position;
         var headerLength = 0;
-        while (headerLength !== 3 && headerLength !== 4 && pos < buffer.length - 4) {
+        var bufferLen = buffer.length;
+        while (headerLength !== 3 && headerLength !== 4 && pos < bufferLen - 4) {
           if (buffer.dataview.getInt16(pos) === 0) {
             if (buffer.dataview.getInt16(pos + 2) === 1) {
               // 0x000001
@@ -6246,7 +6511,7 @@
           }
         }
 
-        if (pos === buffer.length - 4) {
+        if (pos === bufferLen - 4) {
           if (buffer.dataview.getInt16(pos) === 0) {
             if (buffer.dataview.getInt16(pos + 2) === 1) {
               // 0x000001
@@ -6258,7 +6523,7 @@
               // 0x0000001
               headerLength = 3;
             } else {
-              pos = buffer.length;
+              pos = bufferLen;
             }
           }
         }
@@ -6297,7 +6562,7 @@
 
   var NalUnitHEVC = Nalunit$1;
 
-  var _createClass$p = function () {
+  var _createClass$r = function () {
     function defineProperties(target, props) {
       for (var i = 0; i < props.length; i++) {
         var descriptor = props[i];descriptor.enumerable = descriptor.enumerable || false;descriptor.configurable = true;if ("value" in descriptor) descriptor.writable = true;Object.defineProperty(target, descriptor.key, descriptor);
@@ -6307,7 +6572,7 @@
     };
   }();
 
-  function _classCallCheck$p(instance, Constructor) {
+  function _classCallCheck$r(instance, Constructor) {
     if (!(instance instanceof Constructor)) {
       throw new TypeError("Cannot call a class as a function");
     }
@@ -6315,7 +6580,7 @@
 
   var AudioTrackMeta = function () {
     function AudioTrackMeta(meta) {
-      _classCallCheck$p(this, AudioTrackMeta);
+      _classCallCheck$r(this, AudioTrackMeta);
 
       var _default = {
         sampleRate: 48000,
@@ -6335,7 +6600,7 @@
       return _default;
     }
 
-    _createClass$p(AudioTrackMeta, [{
+    _createClass$r(AudioTrackMeta, [{
       key: 'destroy',
       value: function destroy() {
         this.init = null;
@@ -6347,7 +6612,7 @@
 
   var VideoTrackMeta = function () {
     function VideoTrackMeta(meta) {
-      _classCallCheck$p(this, VideoTrackMeta);
+      _classCallCheck$r(this, VideoTrackMeta);
 
       var _default = {
         avcc: null,
@@ -6384,7 +6649,7 @@
       return _default;
     }
 
-    _createClass$p(VideoTrackMeta, [{
+    _createClass$r(VideoTrackMeta, [{
       key: 'destroy',
       value: function destroy() {
         this.init = null;
@@ -6396,7 +6661,7 @@
     return VideoTrackMeta;
   }();
 
-  var _createClass$q = function () {
+  var _createClass$s = function () {
     function defineProperties(target, props) {
       for (var i = 0; i < props.length; i++) {
         var descriptor = props[i];descriptor.enumerable = descriptor.enumerable || false;descriptor.configurable = true;if ("value" in descriptor) descriptor.writable = true;Object.defineProperty(target, descriptor.key, descriptor);
@@ -6406,7 +6671,7 @@
     };
   }();
 
-  function _classCallCheck$q(instance, Constructor) {
+  function _classCallCheck$s(instance, Constructor) {
     if (!(instance instanceof Constructor)) {
       throw new TypeError("Cannot call a class as a function");
     }
@@ -6414,7 +6679,7 @@
 
   var AudioTrackSample = function () {
     function AudioTrackSample(info) {
-      _classCallCheck$q(this, AudioTrackSample);
+      _classCallCheck$s(this, AudioTrackSample);
 
       var _default = AudioTrackSample.getDefault();
       if (!info) {
@@ -6425,7 +6690,7 @@
       return sample;
     }
 
-    _createClass$q(AudioTrackSample, null, [{
+    _createClass$s(AudioTrackSample, null, [{
       key: "getDefault",
       value: function getDefault() {
         return {
@@ -6441,7 +6706,7 @@
 
   var VideoTrackSample = function () {
     function VideoTrackSample(info) {
-      _classCallCheck$q(this, VideoTrackSample);
+      _classCallCheck$s(this, VideoTrackSample);
 
       var _default = VideoTrackSample.getDefault();
 
@@ -6453,7 +6718,7 @@
       return sample;
     }
 
-    _createClass$q(VideoTrackSample, null, [{
+    _createClass$s(VideoTrackSample, null, [{
       key: "getDefault",
       value: function getDefault() {
         return {
@@ -6477,7 +6742,7 @@
     return obj && typeof Symbol === "function" && obj.constructor === Symbol && obj !== Symbol.prototype ? "symbol" : typeof obj === "undefined" ? "undefined" : _typeof2$1(obj);
   };
 
-  var _createClass$r = function () {
+  var _createClass$t = function () {
     function defineProperties(target, props) {
       for (var i = 0; i < props.length; i++) {
         var descriptor = props[i];descriptor.enumerable = descriptor.enumerable || false;descriptor.configurable = true;if ("value" in descriptor) descriptor.writable = true;Object.defineProperty(target, descriptor.key, descriptor);
@@ -6487,7 +6752,7 @@
     };
   }();
 
-  function _classCallCheck$r(instance, Constructor) {
+  function _classCallCheck$t(instance, Constructor) {
     if (!(instance instanceof Constructor)) {
       throw new TypeError("Cannot call a class as a function");
     }
@@ -6518,7 +6783,7 @@
 
   var TsDemuxer = function () {
     function TsDemuxer(configs) {
-      _classCallCheck$r(this, TsDemuxer);
+      _classCallCheck$t(this, TsDemuxer);
 
       this.configs = Object.assign({}, configs);
       this.demuxing = false;
@@ -6528,7 +6793,7 @@
       this._hasAudioMeta = false;
     }
 
-    _createClass$r(TsDemuxer, [{
+    _createClass$t(TsDemuxer, [{
       key: 'init',
       value: function init() {
         this.on(DEMUX_EVENTS$1.DEMUX_START, this.demux.bind(this));
@@ -6536,6 +6801,8 @@
     }, {
       key: 'demux',
       value: function demux(frag) {
+        var _this = this;
+
         if (this.demuxing) {
           return;
         }
@@ -6544,65 +6811,71 @@
         var frags = { pat: [], pmt: [] };
         var peses = {};
 
-        // Read TS segment
-        while (buffer.length >= 188) {
-          if (buffer.length >= 1 && buffer.array[0][buffer.offset] !== 71) {
-            this.emit(DEMUX_EVENTS$1.DEMUX_ERROR, this.TAG, new Error('Untrust sync code: ' + buffer.array[0][buffer.offset] + ', try to recover;'), false);
-          }
-          while (buffer.length >= 1 && buffer.array[0][buffer.offset] !== 71) {
-            buffer.shift(1);
-          }
-          if (buffer.length < 188) {
-            continue;
-          }
-          var buf = buffer.shift(188);
-          // console.log(buf);
-          var tsStream = new Stream(buf.buffer);
-          var ts = {};
-          TsDemuxer.read(tsStream, ts, frags);
-          if (ts.pes) {
-            ts.pes.codec = ts.header.codec;
-            if (!peses[ts.header.pid]) {
-              peses[ts.header.pid] = [];
+        Promise.resolve().then(function () {
+          // Read TS segment
+          while (buffer.length >= 188) {
+            if (buffer.length >= 1 && buffer.array[0][buffer.offset] !== 71) {
+              _this.emit(DEMUX_EVENTS$1.DEMUX_ERROR, _this.TAG, new Error('Untrust sync code: ' + buffer.array[0][buffer.offset] + ', try to recover;'), false);
             }
-            peses[ts.header.pid].push(ts.pes);
-            ts.pes.ES.buffer = [ts.pes.ES.buffer];
-          } else if (peses[ts.header.pid]) {
-            peses[ts.header.pid][peses[ts.header.pid].length - 1].ES.buffer.push(ts.payload.stream);
-          }
-        }
-
-        var AudioOptions = Object.assign({}, frag);
-        var VideoOptions = Object.assign({}, frag);
-
-        // Get Frames data
-        for (var i = 0; i < Object.keys(peses).length; i++) {
-          var epeses = peses[Object.keys(peses)[i]];
-          for (var j = 0; j < epeses.length; j++) {
-            epeses[j].id = Object.keys(peses)[i];
-
-            if (epeses[j].type === 'audio') {
-              epeses[j].ES.buffer = TsDemuxer.mergeAudioES(epeses[j].ES.buffer);
-              this.pushAudioSample(epeses[j], AudioOptions);
-              AudioOptions = {};
-            } else if (epeses[j].type === 'video') {
-              epeses[j].ES.buffer = TsDemuxer.mergeVideoES(epeses[j].ES.buffer);
-              if (epeses[j].codec === 'HVC.H265') {
-                this.pushVideoSampleHEVC(epeses[j], VideoOptions);
-              } else {
-                this.pushVideoSample(epeses[j], VideoOptions);
+            while (buffer.length >= 1 && buffer.array[0][buffer.offset] !== 71) {
+              buffer.shift(1);
+            }
+            if (buffer.length < 188) {
+              continue;
+            }
+            var buf = buffer.shift(188);
+            // console.log(buf);
+            var tsStream = new Stream(buf.buffer);
+            var ts = {};
+            TsDemuxer.read(tsStream, ts, frags);
+            var pes = peses[ts.header.pid];
+            if (ts.pes) {
+              ts.pes.codec = ts.header.codec;
+              if (!peses[ts.header.pid]) {
+                peses[ts.header.pid] = [];
               }
-              VideoOptions = {};
+              peses[ts.header.pid].push(ts.pes);
+              ts.pes.ES.buffer = [ts.pes.ES.buffer];
+            } else if (pes) {
+              pes[pes.length - 1].ES.buffer.push(ts.payload.stream);
             }
           }
-        }
+        });
 
-        if (this._hasAudioMeta) {
-          this.emit(DEMUX_EVENTS$1.DEMUX_COMPLETE, 'audio');
-        }
-        if (this._hasVideoMeta) {
-          this.emit(DEMUX_EVENTS$1.DEMUX_COMPLETE, 'video');
-        }
+        setTimeout(function () {
+          var AudioOptions = Object.assign({}, frag);
+          var VideoOptions = Object.assign({}, frag);
+
+          // Get Frames data
+          for (var i = 0; i < Object.keys(peses).length; i++) {
+            var epeses = peses[Object.keys(peses)[i]];
+            for (var j = 0; j < epeses.length; j++) {
+              epeses[j].id = Object.keys(peses)[i];
+
+              if (epeses[j].type === 'audio') {
+                epeses[j].ES.buffer = TsDemuxer.mergeAudioES(epeses[j].ES.buffer);
+                _this.pushAudioSample(epeses[j], AudioOptions);
+                AudioOptions = {};
+              } else if (epeses[j].type === 'video') {
+                epeses[j].ES.buffer = TsDemuxer.mergeVideoES(epeses[j].ES.buffer);
+                if (epeses[j].codec === 'HVC.H265') {
+                  _this.pushVideoSampleHEVC(epeses[j], VideoOptions);
+                } else {
+                  _this.pushVideoSample(epeses[j], VideoOptions);
+                }
+                VideoOptions = {};
+              }
+            }
+          }
+        });
+        setTimeout(function () {
+          if (_this._hasAudioMeta) {
+            _this.emit(DEMUX_EVENTS$1.DEMUX_COMPLETE, 'audio');
+          }
+          if (_this._hasVideoMeta) {
+            _this.emit(DEMUX_EVENTS$1.DEMUX_COMPLETE, 'video');
+          }
+        });
       }
     }, {
       key: 'pushAudioSample',
@@ -6860,6 +7133,8 @@
           } else if (nal.vps) {
             track.vps = nal.body;
             vps = nal;
+          } else if (nal.sei) {
+            this.emit(DEMUX_EVENTS$1.SEI_PARSED, nal.sei);
           }
           if (nal.type <= 40) {
             sampleLength += 4 + nal.body.byteLength;
@@ -6994,7 +7269,7 @@
             return true;
           }
 
-          if (!itema && itemb || itema && !itemb) {
+          if (itema === undefined && itemb || itema && itemb === undefined) {
             return false;
           }
 
@@ -7522,7 +7797,7 @@
     return TsDemuxer;
   }();
 
-  var _createClass$s = function () {
+  var _createClass$u = function () {
     function defineProperties(target, props) {
       for (var i = 0; i < props.length; i++) {
         var descriptor = props[i];descriptor.enumerable = descriptor.enumerable || false;descriptor.configurable = true;if ("value" in descriptor) descriptor.writable = true;Object.defineProperty(target, descriptor.key, descriptor);
@@ -7532,7 +7807,7 @@
     };
   }();
 
-  function _classCallCheck$s(instance, Constructor) {
+  function _classCallCheck$u(instance, Constructor) {
     if (!(instance instanceof Constructor)) {
       throw new TypeError("Cannot call a class as a function");
     }
@@ -7540,7 +7815,7 @@
 
   var Playlist = function () {
     function Playlist(configs) {
-      _classCallCheck$s(this, Playlist);
+      _classCallCheck$u(this, Playlist);
 
       this._baseURL = '';
       this._list = {};
@@ -7554,7 +7829,7 @@
       this._audoclear = configs.autoclear || false;
     }
 
-    _createClass$s(Playlist, [{
+    _createClass$u(Playlist, [{
       key: 'push',
       value: function push(ts, duration, discontinue) {
         if (!this._ts[ts]) {
@@ -7599,6 +7874,11 @@
         if (data.encrypt && !this.encrypt) {
           this.encrypt = data.encrypt;
         }
+
+        if (!data.sequence) {
+          data.sequence = 0;
+        }
+
         // 新分片信息
         if (data.sequence > this.sequence) {
           this.sequence = data.sequence;
@@ -7763,9 +8043,9 @@
     return Playlist;
   }();
 
-  var _createClass$t = function () { function defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ("value" in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } } return function (Constructor, protoProps, staticProps) { if (protoProps) defineProperties(Constructor.prototype, protoProps); if (staticProps) defineProperties(Constructor, staticProps); return Constructor; }; }();
+  var _createClass$v = function () { function defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ("value" in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } } return function (Constructor, protoProps, staticProps) { if (protoProps) defineProperties(Constructor.prototype, protoProps); if (staticProps) defineProperties(Constructor, staticProps); return Constructor; }; }();
 
-  function _classCallCheck$t(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } }
+  function _classCallCheck$v(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } }
 
   var LOADER_EVENTS$2 = EVENTS.LOADER_EVENTS;
   var REMUX_EVENTS$3 = EVENTS.REMUX_EVENTS;
@@ -7776,7 +8056,7 @@
 
   var HlsLiveController = function () {
     function HlsLiveController(configs) {
-      _classCallCheck$t(this, HlsLiveController);
+      _classCallCheck$v(this, HlsLiveController);
 
       this.configs = Object.assign({}, configs);
       this.url = '';
@@ -7792,7 +8072,7 @@
       this.m3u8Text = null;
     }
 
-    _createClass$t(HlsLiveController, [{
+    _createClass$v(HlsLiveController, [{
       key: 'init',
       value: function init() {
         // 初始化Buffer （M3U8/TS/Playlist);
@@ -8054,9 +8334,9 @@
     return HlsLiveController;
   }();
 
-  var _createClass$u = function () { function defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ("value" in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } } return function (Constructor, protoProps, staticProps) { if (protoProps) defineProperties(Constructor.prototype, protoProps); if (staticProps) defineProperties(Constructor, staticProps); return Constructor; }; }();
+  var _createClass$w = function () { function defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ("value" in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } } return function (Constructor, protoProps, staticProps) { if (protoProps) defineProperties(Constructor.prototype, protoProps); if (staticProps) defineProperties(Constructor, staticProps); return Constructor; }; }();
 
-  function _classCallCheck$u(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } }
+  function _classCallCheck$w(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } }
 
   function _possibleConstructorReturn$2(self, call) { if (!self) { throw new ReferenceError("this hasn't been initialised - super() hasn't been called"); } return call && (typeof call === "object" || typeof call === "function") ? call : self; }
 
@@ -8070,7 +8350,7 @@
   var HlsLivePlayer = function (_BasePlugin) {
     _inherits$2(HlsLivePlayer, _BasePlugin);
 
-    _createClass$u(HlsLivePlayer, null, [{
+    _createClass$w(HlsLivePlayer, null, [{
       key: 'pluginName',
       get: function get() {
         return 'hlsLive';
@@ -8078,7 +8358,7 @@
     }]);
 
     function HlsLivePlayer(options) {
-      _classCallCheck$u(this, HlsLivePlayer);
+      _classCallCheck$w(this, HlsLivePlayer);
 
       var _this = _possibleConstructorReturn$2(this, (HlsLivePlayer.__proto__ || Object.getPrototypeOf(HlsLivePlayer)).call(this, options));
 
@@ -8090,7 +8370,7 @@
       return _this;
     }
 
-    _createClass$u(HlsLivePlayer, [{
+    _createClass$w(HlsLivePlayer, [{
       key: 'beforePlayerInit',
       value: function beforePlayerInit() {
         var _this2 = this;

@@ -130,10 +130,13 @@ export default class FlvController {
     }
 
     const bufferEnd = video.buffered.end(length - 1);
-    if (bufferEnd - time > preloadTime * 2) {
+    if (bufferEnd - time > preloadTime * 2 && !this._player.paused) {
       this._player.currentTime = bufferEnd - preloadTime
     }
     this.mse.doAppend();
+    if (this._player.paused) {
+      this._handleTimeUpdate();
+    }
   }
 
   _handleTimeUpdate () {
