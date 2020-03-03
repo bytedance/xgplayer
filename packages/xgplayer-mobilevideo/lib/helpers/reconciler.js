@@ -28,7 +28,12 @@ var AVReconciler = function () {
       var _this = this;
 
       var vCurTime = this.vCtx.currentTime || 0;
-      var aCurTime = (this.aCtx.currentTime || 0) * 1000;
+      var aCurTime = void 0;
+      if (this.video.noAudio) {
+        aCurTime = vCurTime;
+      } else {
+        aCurTime = this.aCtx.currentTime || 0;
+      }
 
       var gap = vCurTime - aCurTime;
       if (this.timeoutId) {

@@ -3383,7 +3383,12 @@
         var _this = this;
 
         var vCurTime = this.vCtx.currentTime || 0;
-        var aCurTime = (this.aCtx.currentTime || 0) * 1000;
+        var aCurTime = void 0;
+        if (this.video.noAudio) {
+          aCurTime = vCurTime;
+        } else {
+          aCurTime = this.aCtx.currentTime || 0;
+        }
 
         var gap = vCurTime - aCurTime;
         if (this.timeoutId) {
@@ -3510,10 +3515,12 @@
         this.vCtx = new VideoCanvas(Object.assign({
           canvas: this._canvas
         }, { style: { width: this.width, height: this.height } }));
+        if (!this.noAudio) {
+          this.aCtx = new AudioCtx({
+            volume: volume
+          });
+        }
 
-        this.aCtx = new AudioCtx({
-          volume: volume
-        });
         this.ticker = new (getTicker())();
         this.reconciler = new AVReconciler({
           vCtx: this.vCtx,
@@ -3528,8 +3535,9 @@
           }
           _this2.dispatchEvent(new Event('canplay'));
         };
-
-        this.aCtx.on('AUDIO_SOURCE_END', this.handleAudioSourceEnd);
+        if (!this.noAudio) {
+          this.aCtx.on('AUDIO_SOURCE_END', this.handleAudioSourceEnd);
+        }
       }
     }, {
       key: 'handleAudioSourceEnd',
@@ -3547,9 +3555,10 @@
       value: function destroy() {
         this.videoMetaInited = false;
         this.audioMetaInited = false;
-
-        this.aCtx.on('AUDIO_SOURCE_END', this.handleAudioSourceEnd);
-        this.aCtx.destroy();
+        if (!this.noAudio) {
+          this.aCtx.on('AUDIO_SOURCE_END', this.handleAudioSourceEnd);
+          this.aCtx.destroy();
+        }
         this.vCtx.destroy();
         this.ticker.stop();
         this.start = null;
@@ -3561,13 +3570,17 @@
     }, {
       key: 'onDemuxComplete',
       value: function onDemuxComplete(videoTrack, audioTrack) {
-        // MobileVideo.resolveVideoGOP(videoTrack)
-        this.aCtx.decodeAudio(audioTrack);
+        if (!this.noAudio) {
+          this.aCtx.decodeAudio(audioTrack);
+        }
         this.vCtx.decodeVideo(videoTrack);
       }
     }, {
       key: 'setAudioMeta',
       value: function setAudioMeta(meta) {
+        if (this.noAudio) {
+          return;
+        }
         if (this.audioMetaInited) {
           this.aCtx.destroy();
           this.aCtx = new AudioCtx({});
@@ -3588,11 +3601,6 @@
         this.videoMetaInited = true;
       }
     }, {
-      key: 'disconnectedCallback',
-      value: function disconnectedCallback() {
-        this.destroy();
-      }
-    }, {
       key: 'play',
       value: function play() {
         var _this3 = this;
@@ -3605,8 +3613,13 @@
           this.destroy();
           this.init();
         }
-        this.dispatchEvent(new Event('play'));
-        this.pendingPlayTask = Promise.all([this.vCtx.play(), this.aCtx.play().then(function () {
+        var audioPlayTask = null;
+        if (this.noAudio) {
+          audioPlayTask = Promise.resolve();
+        } else {
+          audioPlayTask = this.aCtx.play();
+        }
+        this.pendingPlayTask = Promise.all([this.vCtx.play(), audioPlayTask.then(function () {
           // this.aCtx.muted = true
         })]).then(function () {
           // this.aCtx.muted = false
@@ -3631,6 +3644,9 @@
                 _this3.dispatchEvent(new Event('waiting'));
               }
             }
+            if (_this3.noAudio) {
+              _this3.vCtx.cleanBuffer();
+            }
           });
 
           _this3.pendingPlayTask = null;
@@ -3644,7 +3660,9 @@
       key: 'pause',
       value: function pause() {
         this._paused = true;
-        this.aCtx.pause();
+        if (!this.noAudio) {
+          this.aCtx.pause();
+        }
         this.vCtx.pause();
 
         this.dispatchEvent(new Event('pause'));
@@ -3738,7 +3756,9 @@
       },
       set: function set(val) {
         this.setAttribute('playbackrate', val);
-        this.aCtx.playbackRate = val;
+        if (!this.noAudio) {
+          this.aCtx.playbackRate = val;
+        }
         this.vCtx.playbackRate = val;
 
         this.dispatchEvent(new Event('ratechange'));
@@ -3766,9 +3786,15 @@
     }, {
       key: 'volume',
       get: function get() {
+        if (this.noAudio) {
+          return 0;
+        }
         return this.aCtx.volume;
       },
       set: function set(vol) {
+        if (this.noAudio) {
+          return;
+        }
         this.setAttribute('volume', vol);
         this.aCtx.volume = vol;
         if (vol > 0 && this.muted) {
@@ -3789,6 +3815,9 @@
         }
       },
       set: function set(val) {
+        if (this.noAudio) {
+          return;
+        }
         this.setAttribute('muted', val);
         if (!val) {
           this.aCtx.muted = false;
@@ -3800,12 +3829,17 @@
     }, {
       key: 'error',
       get: function get() {
-        return this.vCtx.error || this.aCtx.error;
+        return this.vCtx.error || (this.noAudio ? null : this.aCtx.error);
       }
     }, {
       key: 'buffered',
       get: function get() {
         return this.vCtx.buffered;
+      }
+    }, {
+      key: 'noAudio',
+      get: function get() {
+        return this.getAttribute('noaudio') === 'true';
       }
     }]);
 

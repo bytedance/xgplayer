@@ -11,8 +11,14 @@ class AVReconciler {
   }
 
   doReconcile () {
+
     const vCurTime = (this.vCtx.currentTime || 0);
-    const aCurTime = (this.aCtx.currentTime || 0) * 1000;
+    let aCurTime;
+    if (this.video.noAudio) {
+      aCurTime = vCurTime;
+    } else {
+      aCurTime = (this.aCtx.currentTime || 0);
+    }
 
     const gap = vCurTime - aCurTime;
     if (this.timeoutId) {

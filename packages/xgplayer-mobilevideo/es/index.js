@@ -83,6 +83,7 @@ var MobileVideo = function (_HTMLElement) {
     _this.handleAudioSourceEnd = _this.handleAudioSourceEnd.bind(_this);
     _this.played = false;
     _this.pendingPlayTask = null;
+    _this._waiting = false;
     _this._paused = true;
     _this.videoMetaInited = false;
     _this.audioMetaInited = false;
@@ -95,10 +96,18 @@ var MobileVideo = function (_HTMLElement) {
     value: function init() {
       var _this2 = this;
 
+      var attrVolume = this.getAttribute('volume');
+      var volume = this.muted ? 0 : attrVolume;
+
       this.vCtx = new VideoCtx(Object.assign({
         canvas: this._canvas
       }, { style: { width: this.width, height: this.height } }));
-      this.aCtx = new AudioCtx({});
+      if (!this.noAudio) {
+        this.aCtx = new AudioCtx({
+          volume: volume
+        });
+      }
+
       this.ticker = new (getTicker())();
       this.reconciler = new AVReconciler({
         vCtx: this.vCtx,
@@ -113,8 +122,9 @@ var MobileVideo = function (_HTMLElement) {
         }
         _this2.dispatchEvent(new Event('canplay'));
       };
-
-      this.aCtx.on('AUDIO_SOURCE_END', this.handleAudioSourceEnd);
+      if (!this.noAudio) {
+        this.aCtx.on('AUDIO_SOURCE_END', this.handleAudioSourceEnd);
+      }
     }
   }, {
     key: 'handleAudioSourceEnd',
@@ -132,9 +142,10 @@ var MobileVideo = function (_HTMLElement) {
     value: function destroy() {
       this.videoMetaInited = false;
       this.audioMetaInited = false;
-
-      this.aCtx.on('AUDIO_SOURCE_END', this.handleAudioSourceEnd);
-      this.aCtx.destroy();
+      if (!this.noAudio) {
+        this.aCtx.on('AUDIO_SOURCE_END', this.handleAudioSourceEnd);
+        this.aCtx.destroy();
+      }
       this.vCtx.destroy();
       this.ticker.stop();
       this.start = null;
@@ -146,13 +157,17 @@ var MobileVideo = function (_HTMLElement) {
   }, {
     key: 'onDemuxComplete',
     value: function onDemuxComplete(videoTrack, audioTrack) {
-      // MobileVideo.resolveVideoGOP(videoTrack)
-      this.aCtx.decodeAudio(audioTrack);
+      if (!this.noAudio) {
+        this.aCtx.decodeAudio(audioTrack);
+      }
       this.vCtx.decodeVideo(videoTrack);
     }
   }, {
     key: 'setAudioMeta',
     value: function setAudioMeta(meta) {
+      if (this.noAudio) {
+        return;
+      }
       if (this.audioMetaInited) {
         this.aCtx.destroy();
         this.aCtx = new AudioCtx({});
@@ -185,8 +200,13 @@ var MobileVideo = function (_HTMLElement) {
         this.destroy();
         this.init();
       }
-      this.dispatchEvent(new Event('play'));
-      this.pendingPlayTask = Promise.all([this.vCtx.play(), this.aCtx.play().then(function () {
+      var audioPlayTask = null;
+      if (this.noAudio) {
+        audioPlayTask = Promise.resolve();
+      } else {
+        audioPlayTask = this.aCtx.play();
+      }
+      this.pendingPlayTask = Promise.all([this.vCtx.play(), audioPlayTask.then(function () {
         // this.aCtx.muted = true
       })]).then(function () {
         // this.aCtx.muted = false
@@ -194,13 +214,32 @@ var MobileVideo = function (_HTMLElement) {
           if (!_this3.start) {
             _this3.start = Date.now();
           }
+          var prevTime = _this3._currentTime;
           _this3._currentTime = Date.now() - _this3.start;
-          _this3.vCtx._onTimer(_this3._currentTime);
+
+          var rendered = _this3.vCtx._onTimer(_this3._currentTime);
+          if (rendered) {
+            if (_this3._waiting) {
+              _this3.dispatchEvent(new Event('playing'));
+              _this3._waiting = false;
+            }
+            _this3.dispatchEvent(new Event('timeupdate'));
+          } else {
+            _this3._currentTime = prevTime;
+            if (!_this3._waiting) {
+              _this3._waiting = true;
+              _this3.dispatchEvent(new Event('waiting'));
+            }
+          }
+          if (_this3.noAudio) {
+            _this3.vCtx.cleanBuffer();
+          }
         });
 
         _this3.pendingPlayTask = null;
         _this3.played = true;
         _this3.dispatchEvent(new Event('playing'));
+        _this3.dispatchEvent(new Event('play'));
         _this3._paused = false;
       });
     }
@@ -208,10 +247,17 @@ var MobileVideo = function (_HTMLElement) {
     key: 'pause',
     value: function pause() {
       this._paused = true;
-      this.aCtx.pause();
+      if (!this.noAudio) {
+        this.aCtx.pause();
+      }
       this.vCtx.pause();
 
       this.dispatchEvent(new Event('pause'));
+    }
+  }, {
+    key: 'load',
+    value: function load() {
+      // no-op for now
     }
   }, {
     key: 'width',
@@ -297,7 +343,9 @@ var MobileVideo = function (_HTMLElement) {
     },
     set: function set(val) {
       this.setAttribute('playbackrate', val);
-      this.aCtx.playbackRate = val;
+      if (!this.noAudio) {
+        this.aCtx.playbackRate = val;
+      }
       this.vCtx.playbackRate = val;
 
       this.dispatchEvent(new Event('ratechange'));
@@ -325,11 +373,20 @@ var MobileVideo = function (_HTMLElement) {
   }, {
     key: 'volume',
     get: function get() {
+      if (this.noAudio) {
+        return 0;
+      }
       return this.aCtx.volume;
     },
     set: function set(vol) {
+      if (this.noAudio) {
+        return;
+      }
       this.setAttribute('volume', vol);
       this.aCtx.volume = vol;
+      if (vol > 0 && this.muted) {
+        this.aCtx.mute();
+      }
       this.dispatchEvent(new Event('volumechange'));
     }
   }, {
@@ -345,6 +402,9 @@ var MobileVideo = function (_HTMLElement) {
       }
     },
     set: function set(val) {
+      if (this.noAudio) {
+        return;
+      }
       this.setAttribute('muted', val);
       if (!val) {
         this.aCtx.muted = false;
@@ -356,12 +416,17 @@ var MobileVideo = function (_HTMLElement) {
   }, {
     key: 'error',
     get: function get() {
-      return this.vCtx.error || this.aCtx.error;
+      return this.vCtx.error || (this.noAudio ? null : this.aCtx.error);
     }
   }, {
     key: 'buffered',
     get: function get() {
       return this.vCtx.buffered;
+    }
+  }, {
+    key: 'noAudio',
+    get: function get() {
+      return this.getAttribute('noaudio') === 'true';
     }
   }]);
 

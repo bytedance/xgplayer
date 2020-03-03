@@ -225,7 +225,6 @@ class Player extends Proxy {
 
           return;
         }
-        console.log(plugin.pluginName)
         return this.registerPlugin(plugin)
       } catch (err) {
         return null

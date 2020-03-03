@@ -9,7 +9,7 @@ class Proxy {
     this._hasStart = false
     this._currentTime = 0
     this._duration = 0
-    this.videoConfig = {
+    this.videoConfig = Object.assign({}, {
       controls: false,
       autoplay: options.autoplay,
       playsinline: options.playsinline,
@@ -21,8 +21,8 @@ class Proxy {
       airplay: options['airplay'],
       'webkit-airplay': options['airplay'],
       tabindex: 2,
-      mediaType: options.mediaType || 'video'
-    }
+      mediaType: options.mediaType || 'video',
+    }, options.videoConfig);
     if (options.videoAttrbutes) {
       Object.keys(options.videoAttrbutes).map((key) => {
         this.videoConfig[key] = options.videoAttrbutes[key]
@@ -32,7 +32,7 @@ class Proxy {
       this.videoConfig.loop = 'loop'
     }
 
-    console.log('this.videoConfig', this.videoConfig)
+    // console.log('this.videoConfig', this.videoConfig)
     if (options.defaultPlaybackRate) {
       this.videoConfig.defaultPlaybackRate = options.defaultPlaybackRate
     }
