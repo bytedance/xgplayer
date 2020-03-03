@@ -14,11 +14,11 @@ class LyricTime {
 export {LyricTime}
 
 class Lyric {
-  constructor (txts, dom) {
+  constructor (txts, dom, options) {
     this.rawTxts = txts
     this.txts = txts.map((item) => { return item.replace(/^[\r\n]|[\r\n]$/g, '').match(/(\[.*\])[^[]+/g) })
     this.isDynamics = txts.map((item, idx) => {
-      return [].concat(item.match(/\[\d{2}:\d{2}\.\d{2,3}\]/g)).length === this.txts[idx].length && this.txts[idx].length === this.txts[0].length && this.txts[idx].length > 1
+      return [].concat(item.match(/\[\d{2}:\d{2}\.\d{2,3}\]/g)).length > 0 && this.txts[idx].length === this.txts[0].length && this.txts[idx].length > 1
     })
     this.isDynamic = this.isDynamics.some((item) => {
       return item
@@ -53,6 +53,11 @@ class Lyric {
         }
       })
     })
+    if(this.list.length > 0 && options.removeBlankLine) {
+      this.list = this.list.filter(item => {
+        return item.lyric !== '\r\n' && item.lyric !== '\n' && item.lyric !== ''
+      })
+    }
     this.line = 0
   }
   set interval (val) {

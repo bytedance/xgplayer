@@ -113,7 +113,7 @@ class Music extends Player {
     if (Player.util.typeOf(lyricTxts) !== 'Array') {
       lyricTxts = [].concat(lyricTxts)
     }
-    this.__lyric__ = new Lyric(lyricTxts, Dom)
+    this.__lyric__ = new Lyric(lyricTxts, Dom, this.config.lyricOpts || {})
     this.__lyric__.bind(this)
     return this.__lyric__
   }
