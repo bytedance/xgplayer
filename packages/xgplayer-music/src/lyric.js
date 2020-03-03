@@ -52,12 +52,11 @@ class Lyric {
           idx
         }
       })
+    }).filter(item => {
+      if(options.removeBlankLine) return item.lyric !== '\r\n' && item.lyric !== '\n' && item.lyric !== ''
+      else return true
     })
-    if(this.list.length > 0 && options.removeBlankLine) {
-      this.list = this.list.filter(item => {
-        return item.lyric !== '\r\n' && item.lyric !== '\n' && item.lyric !== ''
-      })
-    }
+
     this.line = 0
   }
   set interval (val) {
