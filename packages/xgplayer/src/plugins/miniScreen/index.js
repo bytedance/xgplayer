@@ -1,4 +1,3 @@
-import Draggabilly from 'draggabilly'
 import Plugin from '../../plugin'
 import PlayIcon from '../assets/play.svg'
 import PauseIcon from '../assets/pause.svg'
@@ -49,27 +48,6 @@ class MiniScreen extends Plugin {
     bindFunKeys.map(key => {
       this[key] = this[key].bind(this)
     })
-    this.on(Events.READY, () => {
-      const {player} = this
-      if (this.config.isShowIcon) {
-        const options = {
-          config: {
-            onClick: () => {
-              this.getMini()
-            }
-          }
-        }
-        this.miniIcon = player.controls.registerPlugin(MiniScreenIcon, options, MiniScreenIcon.pluginName)
-      }
-      this.bind('.mini-cancel-btn', 'click', this.onCancelClick)
-      this.bind('.play-icon', 'click', this.onCenterClick)
-      if (!this.config.disableDrag) {
-        this.bind('mousedown', this.onMousedown)
-      }
-      if (this.config.isScrollSwitch) {
-        window.addEventListener('scroll', this.onScroll)
-      }
-    })
     this.on(Events.PAUSE, () => {
       const btn = this.find('.play-icon')
       Util.addClass(btn, 'pause')
@@ -80,6 +58,28 @@ class MiniScreen extends Plugin {
       Util.addClass(btn, 'play')
       Util.removeClass(btn, 'pause')
     })
+  }
+
+  onPlayerReady () {
+    const {player} = this
+    if (this.config.isShowIcon) {
+      const options = {
+        config: {
+          onClick: () => {
+            this.getMini()
+          }
+        }
+      }
+      this.miniIcon = player.controls.registerPlugin(MiniScreenIcon, options, MiniScreenIcon.pluginName)
+    }
+    this.bind('.mini-cancel-btn', 'click', this.onCancelClick)
+    this.bind('.play-icon', 'click', this.onCenterClick)
+    if (!this.config.disableDrag) {
+      this.bind('mousedown', this.onMousedown)
+    }
+    if (this.config.isScrollSwitch) {
+      window.addEventListener('scroll', this.onScroll)
+    }
   }
 
   onCancelClick (e) {

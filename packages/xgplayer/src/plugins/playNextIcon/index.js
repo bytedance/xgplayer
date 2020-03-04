@@ -15,7 +15,8 @@ export default class PlayNextIcon extends Plugin {
     return {
       position: POSITIONS.LEFT,
       rootType: ROOT_TYPES.CONTROLS,
-      index: 1
+      index: 1,
+      url: null
     }
   }
 
@@ -26,7 +27,7 @@ export default class PlayNextIcon extends Plugin {
   }
 
   afterCreate () {
-    if (!this.config.url) {
+    if (this.config.url) {
       this.initEvents()
     }
   }

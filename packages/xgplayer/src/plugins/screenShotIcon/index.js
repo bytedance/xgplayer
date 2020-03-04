@@ -8,7 +8,7 @@ export default class ScreenShotIcon extends Plugin {
 
   static get defaultConfig () {
     return {
-      position: POSITIONS.LEFT,
+      position: POSITIONS.RIGHT,
       rootType: ROOT_TYPES.CONTROLS,
       index: 5,
       quality: 0.92,
@@ -20,11 +20,12 @@ export default class ScreenShotIcon extends Plugin {
   }
 
   afterCreate () {
-    this.once(Events.READY, () => {
-      this.show()
-      this.onClickBtn = this.onClickBtn.bind(this);
-      this.bind(['click', 'touchend'], this.onClickBtn)
-    })
+  }
+
+  onPlayerReady () {
+    this.show()
+    this.onClickBtn = this.onClickBtn.bind(this)
+    this.bind(['click', 'touchend'], this.onClickBtn)
   }
 
   saveScreenShot (data, filename) {

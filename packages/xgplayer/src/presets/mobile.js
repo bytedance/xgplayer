@@ -3,6 +3,8 @@ import Poster from '../plugins/poster';
 import Start from '../plugins/start';
 import Enter from '../plugins/enter';
 import Miniscreen from '../plugins/miniScreen';
+// import Miniscreen from '../Controls/mini';
+// import Rotate from '../Controls/rotate';
 import PC from '../plugins/pc'
 import Mobile from '../plugins/mobile'
 import Keyboard from '../plugins/keyboard'
@@ -18,7 +20,9 @@ import RotateIcon from '../plugins/rotateIcon'
 import PIPIcon from '../plugins/pipIcon'
 import PlayNextIcon from '../plugins/playNextIcon'
 import DownLoadIcon from '../plugins/downloadIcon'
-import ScreenShotIcon from '../plugins/screenShotIcon'
+// import PlayNext from '../plugins/playNext'
+// import DownLoadIcon from '../plugins/downloadIcon'
+// import ScreenShotIcon from '../plugins/screenShotIcon'
 import DefinitionIcon from '../plugins/definitionIcon'
 import PlaybackRateIcon from '../plugins/playbackRateIcon'
 import CssFullScreen from '../plugins/cssFullScreenIcon'
@@ -26,7 +30,7 @@ import CssFullScreen from '../plugins/cssFullScreenIcon'
 export default class DefaultPreset {
   constructor () {
     const contolsIcons = [Progress, PlayIcon, FullScreen, TimeIcon, VolumeIcon,
-      RotateIcon, PlayNextIcon, DefinitionIcon, PlaybackRateIcon, CssFullScreen, DownLoadIcon, ScreenShotIcon]
+      RotateIcon, PlayNextIcon, DefinitionIcon, PlaybackRateIcon, CssFullScreen, DownLoadIcon]
 
     const barIcons = [{
       plugin: PIPIcon,

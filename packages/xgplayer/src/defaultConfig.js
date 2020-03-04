@@ -13,7 +13,7 @@ export default function getDefaultConfig () {
     loop: false, // 是否循环播放
     videoInit: false, // 是否优先显示视频首帧， mobile模式下无效
     poster: '', // 封面图地址
-    defaultPlaybackRate: 0, // 默认播放倍数
+    defaultPlaybackRate: 1, // 默认播放倍数
     playbackRate: [], // 倍速调控档位，参考[0.5, 0.75, 1, 1.5, 2]
     execBeforePluginsCall: null, // 默认插件组装前回调
     closeVideoClick: false, // 是否通过video的click/touchend行为切换播放暂停

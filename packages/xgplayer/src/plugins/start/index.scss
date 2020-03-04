@@ -34,6 +34,8 @@
     svg {
       fill: $startSvgFill;
       margin: 14px;
+      width: 50px;
+      height: 50px;
     }
     &:hover{
       opacity: 0.85;
@@ -42,45 +44,4 @@
       animation: playPause .4s ease-out forwards;
     }
   }
-  &.xgplayer-mini {
-    .xgplayer-start {
-      display: block;
-      background:rgba(0,0,0,0)
-    }
-  }
 }
-
-
-// .xgplayer-playing {
-//   .xgplayer-start {
-//     display: none;
-//     .xgplayer-icon-play{
-//       display: none;
-//     }
-//     .xgplayer-icon-pause{
-//       display: block;
-//     }
-//   }
-// }
-// .xgplayer-pause {
-//   .xgplayer-start {
-//     display: inline-block;
-//     .xgplayer-icon-play{
-//       display: block;
-//     }
-//     .xgplayer-icon-pause{
-//       display: none;
-//     }
-//   }
-// }
-// .xgplayer-ended {
-//   .xgplayer-start {
-//     display: none;
-//     .xgplayer-icon-play{
-//       display: block;
-//     }
-//     .xgplayer-icon-pause{
-//       display: none;
-//     }
-//   }
-// }

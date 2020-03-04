@@ -15,14 +15,12 @@ class MiniScreenIcon extends Plugin {
   }
 
   afterCreate () {
-    console.log('111miniscreenIcon', this.config)
     this.getMini = this.getMini.bind(this)
     this.exitMini = this.exitMini.bind(this)
     this.bind(['click', 'touchend'], this.getMini)
   }
 
   getMini () {
-    console.log('getMini')
     this.config.onClick && this.config.onClick()
   }
 

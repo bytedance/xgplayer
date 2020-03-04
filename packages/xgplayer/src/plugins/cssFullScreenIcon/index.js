@@ -21,10 +21,11 @@ export default class CssFullScreenIcon extends Plugin {
   }
 
   afterCreate () {
-    this.on(Events.READY, () => {
-      this.btnClick = this.btnClick.bind(this);
-      this.bind(['click', 'touchend'], this.btnClick)
-    });
+  }
+
+  onPlayerReady () {
+    this.btnClick = this.btnClick.bind(this);
+    this.bind(['click', 'touchend'], this.btnClick)
   }
 
   btnClick (e) {

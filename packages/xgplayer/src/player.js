@@ -9,7 +9,6 @@ import defaultPreset from './presets/default'
 import getDefaultConfig from './defaultConfig'
 import { usePreset } from './plugin/preset';
 import Controls from './plugins/controls'
-import BaseBar from './plugins/baseBar'
 import {
   version
 } from '../package.json'
@@ -38,6 +37,7 @@ class Player extends Proxy {
 
     setTimeout(() => {
       this.emit(Events.READY)
+      this.onReady && this.onReady()
       this.isReady = true
     }, 0)
 
@@ -67,8 +67,14 @@ class Player extends Proxy {
         return false
       }
     }
-    const baseBar = pluginsManager.register(this, BaseBar)
-    this.baseBar = baseBar
+    this.topBar = util.createDom('xg-bar', '', '', 'xg-top-bar')
+    this.leftBar = util.createDom('xg-bar', '', '', 'xg-left-bar')
+    this.rightBar = util.createDom('xg-bar', '', '', 'xg-right-bar')
+    this.root.appendChild(this.topBar)
+    this.root.appendChild(this.leftBar)
+    this.root.appendChild(this.rightBar)
+    // const baseBar = pluginsManager.register(this, BaseBar)
+    // this.baseBar = baseBar
     const controls = pluginsManager.register(this, Controls, {isHide: !!this.config.controls})
     this.controls = controls
     this.addClass(`${STATE_CLASS.DEFAULT} xgplayer-${sniffer.device} ${STATE_CLASS.NO_START} ${this.config.controls ? '' : STATE_CLASS.NO_CONTROLS}`)
@@ -82,7 +88,6 @@ class Player extends Proxy {
         'top': '0',
         'left': '0'
       };
-      console.log('style', style)
       Object.keys(style).map(key => {
         this.root.style[key] = style[key]
       })
@@ -126,6 +131,10 @@ class Player extends Proxy {
     this.once('loadeddata', this.getVideoSize)
 
     this.mousemoveFunc = () => {
+      // 加上判断减少触发次数
+      if (this.isActive) {
+        return
+      }
       this.emit(Events.PLAYER_FOCUS)
       if (!this.config.closeFocusVideoFocus) {
         this.video.focus()
@@ -225,7 +234,6 @@ class Player extends Proxy {
 
           return;
         }
-        console.log(plugin.pluginName)
         return this.registerPlugin(plugin)
       } catch (err) {
         return null
@@ -249,13 +257,25 @@ class Player extends Proxy {
       PLUFGIN = plugin
       options = {}
     }
-    if (!options.root) {
-      const rootType = options.rootType ? options.rootType : (PLUFGIN.defaultConfig && PLUFGIN.defaultConfig.rootType)
-      const {ROOT_TYPES} = Plugin
-      if (rootType === ROOT_TYPES.CONTROLS) {
-        return this.controls.registerPlugin(PLUFGIN.pluginName, PLUFGIN, options)
-      } else if (rootType === ROOT_TYPES.BASE_BAR) {
-        return this.baseBar.registerPlugin(PLUFGIN.pluginName, PLUFGIN, options)
+    const rootType = options.rootType ? options.rootType : (PLUFGIN.defaultConfig && PLUFGIN.defaultConfig.rootType)
+    const {ROOT_TYPES, POSITIONS} = Plugin
+    if (!options.root && rootType === ROOT_TYPES.CONTROLS) {
+      return this.controls.registerPlugin(PLUFGIN, options, PLUFGIN.pluginName)
+    }
+    // root位置选取
+    if (!rootType || rootType === ROOT_TYPES.ROOT) {
+      const position = options.position ? options.position : (PLUFGIN.defaultConfig && PLUFGIN.defaultConfig.position)
+      switch (position) {
+        case POSITIONS.RIGHT:
+          options.root = this.rightBar
+          break;
+        case POSITIONS.LEFT:
+          options.root = this.leftBar
+          break;
+        case POSITIONS.TOP:
+          options.root = this.topBar
+          break;
+        default:
       }
     }
     return pluginsManager.register(this, PLUFGIN, options)
@@ -423,7 +443,6 @@ class Player extends Proxy {
   }
 
   onFocus () {
-    console.log('onFocus')
     this.isActive = true
     let player = this
     this.removeClass(STATE_CLASS.ACTIVE)
@@ -437,7 +456,7 @@ class Player extends Proxy {
   }
 
   onBlur () {
-    console.log('onBlur')
+    this.isActive = false
     if (!this.paused && !this.ended) {
       this.addClass(STATE_CLASS.ACTIVE)
     }
@@ -461,6 +480,10 @@ class Player extends Proxy {
   onEnded () {
     this.addClass(STATE_CLASS.ENDED)
     this.removeClass(STATE_CLASS.PLAYING)
+  }
+
+  onReady () {
+    pluginsManager.onReady(this)
   }
 
   onSeeking () {

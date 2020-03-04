@@ -12,6 +12,7 @@ export const CANPLAY_THROUGH = 'canplaythrough'
 export const DURATION_CHANGE = 'durationchange'
 export const VOLUME_CHANGE = 'volumechange'
 export const LOADED_DATA = 'loadeddata'
+export const RATE_CHANGE = 'rateChange'
 
 // player events
 export const BUFFER_CHANGE = 'bufferedChange'

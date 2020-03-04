@@ -32,7 +32,6 @@ class Proxy {
       this.videoConfig.loop = 'loop'
     }
 
-    console.log('this.videoConfig', this.videoConfig)
     if (options.defaultPlaybackRate) {
       this.videoConfig.defaultPlaybackRate = options.defaultPlaybackRate
     }
@@ -53,7 +52,7 @@ class Proxy {
   _initEvents () {
     let lastBuffer = '0,0'
     this.ev = ['play', 'playing', 'pause', 'ended', 'error', 'seeking', 'seeked',
-      'timeupdate', 'waiting', 'canplay', 'canplaythrough', 'durationchange', 'volumechange', 'loadeddata'
+      'timeupdate', 'waiting', 'canplay', 'canplaythrough', 'durationchange', 'volumechange', 'loadeddata','ratechange'
     ].map((item) => {
       return {
         [item]: `on${item.charAt(0).toUpperCase()}${item.slice(1)}`

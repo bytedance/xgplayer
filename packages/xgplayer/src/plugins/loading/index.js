@@ -1,4 +1,4 @@
-import loadingIcon from '../../skin/assets/loading.svg';
+import loadingIcon from '../assets/loading.svg';
 
 import Plugin from '../../plugin/plugin';
 

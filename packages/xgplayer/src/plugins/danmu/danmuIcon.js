@@ -26,7 +26,6 @@ class DanmuIcon extends Plugin {
   }
 
   afterCreate () {
-    console.log('danmuIcon', this.config)
     this.onStateChange = this.onStateChange.bind(this)
     this.bind(['click', 'touchend'], this.onStateChange)
   }

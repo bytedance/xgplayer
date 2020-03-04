@@ -23,6 +23,8 @@ class BasePlugin {
     }
   }
 
+  onPlayerReady () {}
+
   __init (args) {
     BasePlugin.defineGetterOrSetter(this, {
       'player': {

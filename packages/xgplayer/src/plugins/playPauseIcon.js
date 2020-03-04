@@ -1,3 +1,0 @@
-function PlayPauseSwitchIcon (root) {
-  
-}

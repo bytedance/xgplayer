@@ -1,6 +1,6 @@
 import downloadUtil from 'downloadjs'
 import Plugin from '../../plugin'
-
+import Download from '../assets/download.svg'
 const {POSITIONS, ROOT_TYPES} = Plugin
 
 export default class DownloadIcon extends Plugin {
@@ -27,6 +27,22 @@ export default class DownloadIcon extends Plugin {
     this.bind(['click', 'touchend'], this.download)
   }
 
+  registerLangauageTexts () {
+    return {
+      download: {
+        jp: 'フルスクリーン',
+        en: 'download',
+        zh: '下载'
+      }
+    }
+  }
+
+  registerIcons () {
+    return {
+      download: Download
+    }
+  }
+
   download () {
     if (!this.isLock) {
       return
@@ -40,7 +56,7 @@ export default class DownloadIcon extends Plugin {
       this.timer = null
     }, 300)
   }
-
+  
   getAbsoluteURL (url) {
     // Check if absolute URL
     if (!url.match(/^https?:\/\//)) {
@@ -59,7 +75,10 @@ export default class DownloadIcon extends Plugin {
 
   render () {
     return `<xg-icon class="xgplayer-download">
-      <div class="xgplayer-icon btn-definition"><span>下载</span></div>
+      <div class="xgplayer-icon">
+      ${this.icons.download}
+      </div>
+      <div class="xg-tips">${this.text.download}</div>
     </xg-icon>`
   }
 }

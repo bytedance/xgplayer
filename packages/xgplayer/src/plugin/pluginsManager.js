@@ -66,7 +66,6 @@ const pluginsManager = {
     options.player = this.pluginGroup[cgid]._player
     // console.log('plugin.pluginName', plugin.pluginName)
     const pluginName = options.pluginName || plugin.pluginName
-    console.log(`pluginName:${pluginName}`, options)
     if (!pluginName) {
       throw new Error('The property pluginName is necessary')
     }
@@ -80,12 +79,6 @@ const pluginsManager = {
         break;
       }
     }
-    // 获取插件添加的父节点
-    if (!options.root) {
-      options.root = player.root
-    } else if (typeof options.root === 'string') {
-      options.root = player[options.root]
-    }
 
     // 复制插件的默认配置项
     if (plugin.defaultConfig) {
@@ -96,7 +89,15 @@ const pluginsManager = {
       })
     }
 
+    // 获取插件添加的父节点
+    if (!options.root) {
+      options.root = player.root
+    } else if (typeof options.root === 'string') {
+      options.root = player[options.root]
+    }
+
     options.index = options.config.index || 0
+
     try {
       // eslint-disable-next-line new-cap
       const _instance = new plugin(options)
@@ -208,6 +209,19 @@ const pluginsManager = {
     for (const item of Object.keys(pluginsMap)) {
       this.register(cgid, item, pluginsMap[item].plugin, pluginsMap[item].options)
     }
+  },
+
+  onReady (player) {
+    const cgid = player._pluginInfoId
+    const plugins = this.pluginGroup[cgid]._plugins
+    if (!cgid || !plugins) {
+      return;
+    }
+    Object.keys(plugins).map(key => {
+      if(plugins[key].onPlayerReady && typeof plugins[key].onPlayerReady === 'function') {
+        plugins[key].onPlayerReady()
+      }
+    })
   },
 
   destroy (player) {

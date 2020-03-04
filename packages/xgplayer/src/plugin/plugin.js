@@ -146,7 +146,7 @@ export default class Plugin extends BasePlugin {
           options.config = config
           config.index !== undefined && (options.index = config.index)
           config.root && (options.root = config.root)
-          const c = this.registerPlugin(name, Plugin, options)
+          const c = this.registerPlugin(Plugin, options, name)
           this._children.push(c)
         }
       }
@@ -161,11 +161,10 @@ export default class Plugin extends BasePlugin {
     return {}
   }
 
-  registerPlugin (name, plugin, options) {
-    const opts = (typeof options === 'object' ? options : {})
-    opts.root = options.root || this.el
-    opts.pluginName = name
-    const _c = pluginsManager.register(this.player, plugin, opts)
+  registerPlugin (plugin, options = {}, name = '') {
+    options.root = options.root || this.el
+    name && (options.pluginName = name)
+    const _c = pluginsManager.register(this.player, plugin, options)
     this._children.push(_c)
     return _c
   }
@@ -311,5 +310,6 @@ Plugin.ROOT_TYPES = {
 Plugin.POSITIONS = {
   LEFT: 'left',
   RIGHT: 'right',
-  CENTER: 'center'
+  CENTER: 'center',
+  TOP: 'top'
 }

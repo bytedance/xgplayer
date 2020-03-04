@@ -1,6 +1,8 @@
 import Plugin from '../../plugin'
 //import PlayPauseSvg from '../assets/playPause.svg'
-import PlayPauseSvg from '../assets/mPlay.svg'
+import PlaySvg from '../assets/play.svg'
+import PauseSvg from '../assets/pause.svg'
+
 const {Events, POSITIONS, ROOT_TYPES} = Plugin
 class PlayIcon extends Plugin {
   static get pluginName () {
@@ -21,11 +23,9 @@ class PlayIcon extends Plugin {
     this.bind(['touchend', 'click'], this.btnClick)
 
     this.on(Events.PAUSE, () => {
-      this.find('.xg-tips').innerHTML = this.text.play
       this.animate(player.paused)
     })
     this.on(Events.PLAY, () => {
-      this.find('.xg-tips').innerHTML = this.text.pause
       this.animate(player.paused)
     })
   }
@@ -57,11 +57,19 @@ class PlayIcon extends Plugin {
 
   registerIcons () {
     return {
-      playIcon: PlayPauseSvg
+      play: PlaySvg,
+      pause: PauseSvg
     }
   }
 
   animate (paused) {
+    if (paused) {
+      this.find('.xgplayer-icon').innerHTML = this.icons.play
+      this.find('.xg-tips').innerHTML = this.text.play
+    } else {
+      this.find('.xgplayer-icon').innerHTML = this.icons.pause
+      this.find('.xg-tips').innerHTML = this.text.pause
+    }
     // const path = this.find('.path')
     // const pathPlay = this.find('.path_play').getAttribute('d')
     // const pathPause = this.find('.path_pause').getAttribute('d')
@@ -75,7 +83,7 @@ class PlayIcon extends Plugin {
   render () {
     return `<xg-icon class="xgplayer-play">
     <div class="xgplayer-icon">
-    ${this.icons.playIcon}
+    ${this.icons.play}
     </div>
     <div class="xg-tips">${this.player.paused ? this.text.play : this.text.pause}</div>
     </xg-icon>`

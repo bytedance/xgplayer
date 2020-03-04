@@ -45,6 +45,15 @@ class Danmu extends Plugin {
     })
   }
 
+  onPlayerReady () {
+    // 添加点击触发事件触发 依赖pc插件
+    const pcPlugin = this.player.plugins.pc
+    if (pcPlugin) {
+      pcPlugin.onVideoDblClick && this.bind('dblclick', pcPlugin.onVideoDblClick)
+      pcPlugin.onVideoClick && this.bind('click', pcPlugin.onVideoClick)
+    }
+  }
+
   initDanmu () {
     const {player, config} = this
     const danmuConfig = {
@@ -103,7 +112,9 @@ class Danmu extends Plugin {
     this.hide()
   }
   render () {
-    return `<xg-danmu class="xgplayer-danmu"></xg-danmu>`
+    return `<xg-danmu class="xgplayer-danmu">
+    <p>vrevtrbtr</p>
+    </xg-danmu>`
   }
 }
 

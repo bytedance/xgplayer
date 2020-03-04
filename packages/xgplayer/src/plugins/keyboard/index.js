@@ -13,19 +13,42 @@ class Keyboard extends BasePlugin {
 
   afterCreate () {
     this.onKeydown = this.onKeydown.bind(this);
+    this.onBodyKeyDown = this.onBodyKeyDown.bind(this);
     this.player.root.addEventListener('keydown', this.onKeydown)
+    document.addEventListener('keydown', this.onBodyKeyDown)
+  }
+
+  onBodyKeyDown (event) {
+    console.log('onBodyKeyDown', event.target)
+    let e = event || window.event
+    const keyCode = e.keyCode
+    if (e.target === document.body && (keyCode === 38 || keyCode === 40 || keyCode === 32 || keyCode === 39)) {
+      e.preventDefault()
+      e.cancelBubble = true
+      e.returnValue = false
+      this.handleKeyCode(keyCode)
+      return false
+    }
+    return false
   }
 
   onKeydown (event) {
+    console.log('onKeydown', event.target)
     const player = this.player
     let e = event || window.event
-    if (e && (e.keyCode === 37 || e.keyCode === 38 || e.keyCode === 39 || e.keyCode === 40 || e.keyCode === 32)) {
+    if (e && (e.keyCode === 37 || e.keyCode === 38 || e.keyCode === 39 || e.keyCode === 40 || e.keyCode === 32) && (e.target === this.player.root || e.target === this.player.video || e.target === this.player.controls.el)) {
       player.emit('focus')
+      e.preventDefault()
+      e.cancelBubble = true
+      e.returnValue = false
+    } else {
+      return true
     }
-    const keyCode = e && e.keyCode
-    console.log('keyCode', keyCode)
+    this.handleKeyCode(e.keyCode)
+  }
+
+  handleKeyCode (keyCode) {
     if (keyCode === 40 || keyCode === 38) {
-      console.log('切换声音')
       if (player.controls) {
         // let volumeSlider = player.controls.querySelector('.xgplayer-slider')
         // if (volumeSlider) {
@@ -86,10 +109,10 @@ class Keyboard extends BasePlugin {
       default:
     }
   }
-
   _destroy () {
     super._destroy();
     this.player.root.removeEventListener('keydown', this.onKeydown)
+    document.removeEventListener('keydown', this.onBodyKeyDown)
   }
 }
 

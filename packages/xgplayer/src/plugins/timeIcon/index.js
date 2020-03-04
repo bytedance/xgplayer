@@ -28,17 +28,6 @@ class TimeIcon extends Plugin {
     const { player } = this
     this.durationDom = this.find('.time-duration')
     this.timeDom = this.find('.time-current')
-    this.once(Events.READY, () => {
-      if (player.duration === Infinity || this.playerConfig.isLive) {
-        Util.hide(this.durationDom)
-        Util.hide(this.timeDom)
-        Util.hide(this.find('.time-separator'))
-        Util.show(this.find('.time-live-tag'))
-      } else {
-        Util.hide(this.find('.time-live-tag'))
-      }
-      this.show();
-    })
     this.on(Events.DURATION_CHANGE, () => {
       this.onTimeUpdate()
     })
@@ -46,7 +35,17 @@ class TimeIcon extends Plugin {
       this.onTimeUpdate()
     })
   }
-
+  onPlayerReady () {
+    if (player.duration === Infinity || this.playerConfig.isLive) {
+      Util.hide(this.durationDom)
+      Util.hide(this.timeDom)
+      Util.hide(this.find('.time-separator'))
+      Util.show(this.find('.time-live-tag'))
+    } else {
+      Util.hide(this.find('.time-live-tag'))
+    }
+    this.show();
+  }
   changeLiveState (isLive) {
     if (isLive) {
       Util.hide(this.durationDom)
