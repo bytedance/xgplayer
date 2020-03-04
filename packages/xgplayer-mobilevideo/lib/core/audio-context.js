@@ -42,8 +42,8 @@ var AudioCtx = function (_EventEmitter) {
     _this2._preDecode = [];
     _this2._currentTime = 0;
     _this2._decoding = false;
-    _this2._volume = _this2.config.volume || 0.6;
-
+    _this2._volume = Number.parseInt(_this2.config.volume) === _this2.config.volume ? _this2.config.volume : 0.6;
+    _this2.gainNode.gain.value = _this2._volume;
     // 记录外部传输的状态
     _this2._played = false;
     _this2.paused = true;
@@ -152,7 +152,7 @@ var AudioCtx = function (_EventEmitter) {
       audioSource.start();
       audioSource.connect(this.gainNode);
       var _this = this;
-      this.waitNextID = setTimeout(function () {
+      setTimeout(function () {
         _this.onSourceEnded.call(_this3);
       }, audioSource.buffer.duration * 1000 - 10);
       this._currentBuffer = this._nextBuffer;
@@ -235,6 +235,11 @@ var AudioCtx = function (_EventEmitter) {
       this.context.close();
     }
   }, {
+    key: 'mute',
+    value: function mute() {
+      this.gainNode.gain.value = 0;
+    }
+  }, {
     key: 'currentTime',
     get: function get() {
       return this._currentTime;
@@ -254,7 +259,7 @@ var AudioCtx = function (_EventEmitter) {
   }, {
     key: 'volume',
     get: function get() {
-      if (this.context.state === 'suspended' || this.paused) {
+      if (this.context.state === 'suspended' || this.paused || this.muted) {
         return 0;
       }
       return this._volume;

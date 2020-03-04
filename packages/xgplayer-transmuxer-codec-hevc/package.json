@@ -1,6 +1,6 @@
 {
   "name": "xgplayer-transmuxer-codec-hevc",
-  "version": "2.2.0-alpha.24",
+  "version": "2.2.0-alpha.55",
   "description": "",
   "main": "lib/index.js",
   "module": "es/index.js",

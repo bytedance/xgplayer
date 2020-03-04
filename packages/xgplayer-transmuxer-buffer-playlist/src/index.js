@@ -68,6 +68,11 @@ class Playlist {
     if (data.encrypt && !this.encrypt) {
       this.encrypt = data.encrypt;
     }
+
+    if (!data.sequence) {
+      data.sequence = 0;
+    }
+
     // 新分片信息
     if (data.sequence > this.sequence) {
       this.sequence = data.sequence;

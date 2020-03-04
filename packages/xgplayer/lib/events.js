@@ -34,3 +34,4 @@ var URL_CHANGE = exports.URL_CHANGE = 'urlchange';
 // screen change evnets
 var FULLSCREEN_CHANGE = exports.FULLSCREEN_CHANGE = 'fullscreen_change';
 var CSS_FULLSCREEN_CHANGE = exports.CSS_FULLSCREEN_CHANGE = 'cssFullscreen_change';
+var MINI_STATE_CHANGE = exports.MINI_STATE_CHANGE = 'mini_state_change';

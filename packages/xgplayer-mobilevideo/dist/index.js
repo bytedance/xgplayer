@@ -1582,7 +1582,10 @@
           case 5:
             return SEIParser.user_data_unregistered(content);
           default:
-            return {};
+            return {
+              code: payloadType,
+              content: content
+            };
         }
       }
 
@@ -1790,7 +1793,8 @@
         // seperate
         var pos = buffer.position;
         var headerLength = 0;
-        while (headerLength !== 3 && headerLength !== 4 && pos < buffer.length - 4) {
+        var bufferLen = buffer.length;
+        while (headerLength !== 3 && headerLength !== 4 && pos < bufferLen - 4) {
           if (buffer.dataview.getInt16(pos) === 0) {
             if (buffer.dataview.getInt16(pos + 2) === 1) {
               // 0x000001
@@ -1805,7 +1809,7 @@
           }
         }
 
-        if (pos === buffer.length - 4) {
+        if (pos === bufferLen - 4) {
           if (buffer.dataview.getInt16(pos) === 0) {
             if (buffer.dataview.getInt16(pos + 2) === 1) {
               // 0x000001
@@ -1817,7 +1821,7 @@
               // 0x0000001
               headerLength = 3;
             } else {
-              pos = buffer.length;
+              pos = bufferLen;
             }
           }
         }
@@ -2491,7 +2495,7 @@
       key: '_onTimer',
       value: function _onTimer(currentTime) {
         if (this.paused) {
-          return;
+          return false;
         }
 
         if (this.meta) {
@@ -2515,11 +2519,14 @@
               //   buf = [new Uint8Array(buf0), new Uint8Array(buf1), new Uint8Array(buf2)];
               // }
               this.yuvCanvas.render(frame.buffer, frame.width, frame.height, frame.yLinesize, frame.uvLinesize);
-            }
-            for (var _i2 = 0; _i2 < frameTimes.length; _i2++) {
-              if (Number.parseInt(frameTimes[_i2]) < frameTime) {
-                delete this._decodedFrames[frameTimes[_i2]];
+              for (var _i2 = 0; _i2 < frameTimes.length; _i2++) {
+                if (Number.parseInt(frameTimes[_i2]) < frameTime) {
+                  delete this._decodedFrames[frameTimes[_i2]];
+                }
               }
+              return true;
+            } else {
+              return false;
             }
           }
         }
@@ -2574,12 +2581,22 @@
         }
 
         if (currentRange.start !== null && currentRange.end !== null) {
-          currentRange.start = currentRange.start / 1000;
-          currentRange.end = currentRange.end / 1000;
+          currentRange.start = (currentRange.start - this._baseDts) / 1000;
+          currentRange.end = (currentRange.end - this._baseDts) / 1000;
           ranges.push(currentRange);
         }
 
         return new TimeRanges(ranges);
+      }
+    }, {
+      key: 'videoWidth',
+      get: function get() {
+        return this.canvas.width;
+      }
+    }, {
+      key: 'videoHeight',
+      get: function get() {
+        return this.canvas.height;
       }
     }]);
 
@@ -3028,8 +3045,8 @@
       _this2._preDecode = [];
       _this2._currentTime = 0;
       _this2._decoding = false;
-      _this2._volume = _this2.config.volume || 0.6;
-
+      _this2._volume = Number.parseInt(_this2.config.volume) === _this2.config.volume ? _this2.config.volume : 0.6;
+      _this2.gainNode.gain.value = _this2._volume;
       // 记录外部传输的状态
       _this2._played = false;
       _this2.paused = true;
@@ -3138,7 +3155,7 @@
         audioSource.start();
         audioSource.connect(this.gainNode);
         var _this = this;
-        this.waitNextID = setTimeout(function () {
+        setTimeout(function () {
           _this.onSourceEnded.call(_this3);
         }, audioSource.buffer.duration * 1000 - 10);
         this._currentBuffer = this._nextBuffer;
@@ -3221,6 +3238,11 @@
         this.context.close();
       }
     }, {
+      key: 'mute',
+      value: function mute() {
+        this.gainNode.gain.value = 0;
+      }
+    }, {
       key: 'currentTime',
       get: function get() {
         return this._currentTime;
@@ -3240,7 +3262,7 @@
     }, {
       key: 'volume',
       get: function get() {
-        if (this.context.state === 'suspended' || this.paused) {
+        if (this.context.state === 'suspended' || this.paused || this.muted) {
           return 0;
         }
         return this._volume;
@@ -3361,7 +3383,12 @@
         var _this = this;
 
         var vCurTime = this.vCtx.currentTime || 0;
-        var aCurTime = (this.aCtx.currentTime || 0) * 1000;
+        var aCurTime = void 0;
+        if (this.video.noAudio) {
+          aCurTime = vCurTime;
+        } else {
+          aCurTime = this.aCtx.currentTime || 0;
+        }
 
         var gap = vCurTime - aCurTime;
         if (this.timeoutId) {
@@ -3469,6 +3496,7 @@
       _this.handleAudioSourceEnd = _this.handleAudioSourceEnd.bind(_this);
       _this.played = false;
       _this.pendingPlayTask = null;
+      _this._waiting = false;
       _this._paused = true;
       _this.videoMetaInited = false;
       _this.audioMetaInited = false;
@@ -3481,10 +3509,18 @@
       value: function init() {
         var _this2 = this;
 
+        var attrVolume = this.getAttribute('volume');
+        var volume = this.muted ? 0 : attrVolume;
+
         this.vCtx = new VideoCanvas(Object.assign({
           canvas: this._canvas
         }, { style: { width: this.width, height: this.height } }));
-        this.aCtx = new AudioCtx({});
+        if (!this.noAudio) {
+          this.aCtx = new AudioCtx({
+            volume: volume
+          });
+        }
+
         this.ticker = new (getTicker())();
         this.reconciler = new AVReconciler({
           vCtx: this.vCtx,
@@ -3499,8 +3535,9 @@
           }
           _this2.dispatchEvent(new Event('canplay'));
         };
-
-        this.aCtx.on('AUDIO_SOURCE_END', this.handleAudioSourceEnd);
+        if (!this.noAudio) {
+          this.aCtx.on('AUDIO_SOURCE_END', this.handleAudioSourceEnd);
+        }
       }
     }, {
       key: 'handleAudioSourceEnd',
@@ -3518,9 +3555,10 @@
       value: function destroy() {
         this.videoMetaInited = false;
         this.audioMetaInited = false;
-
-        this.aCtx.on('AUDIO_SOURCE_END', this.handleAudioSourceEnd);
-        this.aCtx.destroy();
+        if (!this.noAudio) {
+          this.aCtx.on('AUDIO_SOURCE_END', this.handleAudioSourceEnd);
+          this.aCtx.destroy();
+        }
         this.vCtx.destroy();
         this.ticker.stop();
         this.start = null;
@@ -3532,13 +3570,17 @@
     }, {
       key: 'onDemuxComplete',
       value: function onDemuxComplete(videoTrack, audioTrack) {
-        // MobileVideo.resolveVideoGOP(videoTrack)
-        this.aCtx.decodeAudio(audioTrack);
+        if (!this.noAudio) {
+          this.aCtx.decodeAudio(audioTrack);
+        }
         this.vCtx.decodeVideo(videoTrack);
       }
     }, {
       key: 'setAudioMeta',
       value: function setAudioMeta(meta) {
+        if (this.noAudio) {
+          return;
+        }
         if (this.audioMetaInited) {
           this.aCtx.destroy();
           this.aCtx = new AudioCtx({});
@@ -3571,8 +3613,13 @@
           this.destroy();
           this.init();
         }
-        this.dispatchEvent(new Event('play'));
-        this.pendingPlayTask = Promise.all([this.vCtx.play(), this.aCtx.play().then(function () {
+        var audioPlayTask = null;
+        if (this.noAudio) {
+          audioPlayTask = Promise.resolve();
+        } else {
+          audioPlayTask = this.aCtx.play();
+        }
+        this.pendingPlayTask = Promise.all([this.vCtx.play(), audioPlayTask.then(function () {
           // this.aCtx.muted = true
         })]).then(function () {
           // this.aCtx.muted = false
@@ -3580,13 +3627,32 @@
             if (!_this3.start) {
               _this3.start = Date.now();
             }
+            var prevTime = _this3._currentTime;
             _this3._currentTime = Date.now() - _this3.start;
-            _this3.vCtx._onTimer(_this3._currentTime);
+
+            var rendered = _this3.vCtx._onTimer(_this3._currentTime);
+            if (rendered) {
+              if (_this3._waiting) {
+                _this3.dispatchEvent(new Event('playing'));
+                _this3._waiting = false;
+              }
+              _this3.dispatchEvent(new Event('timeupdate'));
+            } else {
+              _this3._currentTime = prevTime;
+              if (!_this3._waiting) {
+                _this3._waiting = true;
+                _this3.dispatchEvent(new Event('waiting'));
+              }
+            }
+            if (_this3.noAudio) {
+              _this3.vCtx.cleanBuffer();
+            }
           });
 
           _this3.pendingPlayTask = null;
           _this3.played = true;
           _this3.dispatchEvent(new Event('playing'));
+          _this3.dispatchEvent(new Event('play'));
           _this3._paused = false;
         });
       }
@@ -3594,10 +3660,17 @@
       key: 'pause',
       value: function pause() {
         this._paused = true;
-        this.aCtx.pause();
+        if (!this.noAudio) {
+          this.aCtx.pause();
+        }
         this.vCtx.pause();
 
         this.dispatchEvent(new Event('pause'));
+      }
+    }, {
+      key: 'load',
+      value: function load() {
+        // no-op for now
       }
     }, {
       key: 'width',
@@ -3683,7 +3756,9 @@
       },
       set: function set(val) {
         this.setAttribute('playbackrate', val);
-        this.aCtx.playbackRate = val;
+        if (!this.noAudio) {
+          this.aCtx.playbackRate = val;
+        }
         this.vCtx.playbackRate = val;
 
         this.dispatchEvent(new Event('ratechange'));
@@ -3711,11 +3786,20 @@
     }, {
       key: 'volume',
       get: function get() {
+        if (this.noAudio) {
+          return 0;
+        }
         return this.aCtx.volume;
       },
       set: function set(vol) {
+        if (this.noAudio) {
+          return;
+        }
         this.setAttribute('volume', vol);
         this.aCtx.volume = vol;
+        if (vol > 0 && this.muted) {
+          this.aCtx.mute();
+        }
         this.dispatchEvent(new Event('volumechange'));
       }
     }, {
@@ -3731,6 +3815,9 @@
         }
       },
       set: function set(val) {
+        if (this.noAudio) {
+          return;
+        }
         this.setAttribute('muted', val);
         if (!val) {
           this.aCtx.muted = false;
@@ -3742,12 +3829,17 @@
     }, {
       key: 'error',
       get: function get() {
-        return this.vCtx.error || this.aCtx.error;
+        return this.vCtx.error || (this.noAudio ? null : this.aCtx.error);
       }
     }, {
       key: 'buffered',
       get: function get() {
         return this.vCtx.buffered;
+      }
+    }, {
+      key: 'noAudio',
+      get: function get() {
+        return this.getAttribute('noaudio') === 'true';
       }
     }]);
 

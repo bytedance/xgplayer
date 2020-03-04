@@ -5,7 +5,7 @@ const umd = {
   entry: polyfill.concat(['./src/index.js']),
   output: {
     path: path.resolve(__dirname, './dist'),
-    filename: 'index.scss.js',
+    filename: 'index.js',
     library: 'xgplayer-logger',
     libraryTarget: 'umd'
   },

@@ -1,5 +1,22 @@
 .xgplayer .xgplayer-playnext {
-  display: none; }
-  .xgplayer .xgplayer-playnext .xgplayer-icon {
-    padding-top: 0;
-    margin-top: -1px; }
+  position: relative;
+  -webkit-order: 1;
+     -moz-box-ordinal-group: 2;
+          order: 1;
+  display: none;
+  cursor: pointer;
+  top: -2px; }
+  .xgplayer .xgplayer-playnext .xgplayer-icon div {
+    position: absolute; }
+  .xgplayer .xgplayer-playnext .xgplayer-tips .xgplayer-tip-playnext {
+    display: block; }
+  .xgplayer .xgplayer-playnext:hover {
+    opacity: 0.85; }
+    .xgplayer .xgplayer-playnext:hover .xgplayer-tips {
+      display: block; }
+
+.lang-is-en .xgplayer-playnext .xgplayer-tips {
+  margin-left: -25px; }
+
+.lang-is-jp .xgplayer-playnext .xgplayer-tips {
+  margin-left: -38px; }

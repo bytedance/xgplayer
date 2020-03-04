@@ -64,6 +64,7 @@ class MobileVideo extends HTMLElement {
     this.handleAudioSourceEnd = this.handleAudioSourceEnd.bind(this)
     this.played = false;
     this.pendingPlayTask = null
+    this._waiting = false;
     this._paused = true;
     this.videoMetaInited = false;
     this.audioMetaInited = false;
@@ -71,10 +72,18 @@ class MobileVideo extends HTMLElement {
   }
 
   init () {
+    const attrVolume = this.getAttribute('volume')
+    const volume = this.muted ? 0 : attrVolume
+
     this.vCtx = new VideoCtx(Object.assign({
       canvas: this._canvas
     }, { style: { width: this.width, height: this.height } }));
-    this.aCtx = new AudioCtx({});
+    if (!this.noAudio) {
+      this.aCtx = new AudioCtx({
+        volume
+      });
+    }
+
     this.ticker = new (getTicker())()
     this.reconciler = new AVReconciler({
       vCtx: this.vCtx,
@@ -89,8 +98,9 @@ class MobileVideo extends HTMLElement {
       }
       this.dispatchEvent(new Event('canplay'));
     }
-
-    this.aCtx.on('AUDIO_SOURCE_END', this.handleAudioSourceEnd)
+    if (!this.noAudio) {
+      this.aCtx.on('AUDIO_SOURCE_END', this.handleAudioSourceEnd)
+    }
   }
 
   handleAudioSourceEnd () {
@@ -105,9 +115,10 @@ class MobileVideo extends HTMLElement {
   destroy () {
     this.videoMetaInited = false;
     this.audioMetaInited = false;
-
-    this.aCtx.on('AUDIO_SOURCE_END', this.handleAudioSourceEnd)
-    this.aCtx.destroy()
+    if (!this.noAudio) {
+      this.aCtx.on('AUDIO_SOURCE_END', this.handleAudioSourceEnd)
+      this.aCtx.destroy()
+    }
     this.vCtx.destroy()
     this.ticker.stop()
     this.start = null;
@@ -118,12 +129,16 @@ class MobileVideo extends HTMLElement {
   }
 
   onDemuxComplete (videoTrack, audioTrack) {
-    // MobileVideo.resolveVideoGOP(videoTrack)
-    this.aCtx.decodeAudio(audioTrack);
+    if (!this.noAudio) {
+      this.aCtx.decodeAudio(audioTrack);
+    }
     this.vCtx.decodeVideo(videoTrack);
   }
 
   setAudioMeta (meta) {
+    if (this.noAudio) {
+      return;
+    }
     if (this.audioMetaInited) {
       this.aCtx.destroy();
       this.aCtx = new AudioCtx({});
@@ -219,7 +234,9 @@ class MobileVideo extends HTMLElement {
 
   set playbackRate (val) {
     this.setAttribute('playbackrate', val);
-    this.aCtx.playbackRate = val;
+    if (!this.noAudio) {
+      this.aCtx.playbackRate = val;
+    }
     this.vCtx.playbackRate = val;
 
     this.dispatchEvent(new Event('ratechange'))
@@ -251,10 +268,15 @@ class MobileVideo extends HTMLElement {
       this.destroy()
       this.init()
     }
-    this.dispatchEvent(new Event('play'))
+    let audioPlayTask = null
+    if (this.noAudio) {
+      audioPlayTask = Promise.resolve()
+    } else {
+      audioPlayTask = this.aCtx.play()
+    }
     this.pendingPlayTask = Promise.all([
       this.vCtx.play(),
-      this.aCtx.play().then(() => {
+      audioPlayTask.then(() => {
         // this.aCtx.muted = true
       })
     ]).then(() => {
@@ -263,32 +285,66 @@ class MobileVideo extends HTMLElement {
         if (!this.start) {
           this.start = Date.now()
         }
+        const prevTime = this._currentTime;
         this._currentTime = Date.now() - this.start
-        this.vCtx._onTimer(this._currentTime)
-      })
+
+        const rendered = this.vCtx._onTimer(this._currentTime)
+        if (rendered) {
+          if (this._waiting) {
+            this.dispatchEvent(new Event('playing'))
+            this._waiting = false;
+          }
+          this.dispatchEvent(new Event('timeupdate'))
+        } else {
+          this._currentTime = prevTime;
+          if (!this._waiting) {
+            this._waiting = true;
+            this.dispatchEvent(new Event('waiting'))
+          }
+        }
+        if (this.noAudio) {
+          this.vCtx.cleanBuffer();
+        }
+      });
 
       this.pendingPlayTask = null
       this.played = true;
       this.dispatchEvent(new Event('playing'))
+      this.dispatchEvent(new Event('play'))
       this._paused = false
     })
   }
 
   pause () {
     this._paused = true;
-    this.aCtx.pause()
+    if (!this.noAudio) {
+      this.aCtx.pause()
+    }
     this.vCtx.pause()
 
     this.dispatchEvent(new Event('pause'))
   }
 
+  load () {
+    // no-op for now
+  }
+
   get volume () {
+    if (this.noAudio) {
+      return 0;
+    }
     return this.aCtx.volume
   }
 
   set volume (vol) {
+    if (this.noAudio) {
+      return;
+    }
     this.setAttribute('volume', vol);
     this.aCtx.volume = vol
+    if (vol > 0 && this.muted) {
+      this.aCtx.mute()
+    }
     this.dispatchEvent(new Event('volumechange'))
   }
 
@@ -304,6 +360,9 @@ class MobileVideo extends HTMLElement {
   }
 
   set muted (val) {
+    if (this.noAudio) {
+      return;
+    }
     this.setAttribute('muted', val);
     if (!val) {
       this.aCtx.muted = false
@@ -314,11 +373,15 @@ class MobileVideo extends HTMLElement {
   }
 
   get error () {
-    return this.vCtx.error || this.aCtx.error;
+    return this.vCtx.error || (this.noAudio ? null : this.aCtx.error);
   }
 
   get buffered () {
     return this.vCtx.buffered
+  }
+
+  get noAudio () {
+    return this.getAttribute('noaudio') === 'true'
   }
 }
 // eslint-disable-next-line no-undef

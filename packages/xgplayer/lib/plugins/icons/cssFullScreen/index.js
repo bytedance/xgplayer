@@ -23,7 +23,9 @@ function _possibleConstructorReturn(self, call) { if (!self) { throw new Referen
 function _inherits(subClass, superClass) { if (typeof superClass !== "function" && superClass !== null) { throw new TypeError("Super expression must either be null or a function, not " + typeof superClass); } subClass.prototype = Object.create(superClass && superClass.prototype, { constructor: { value: subClass, enumerable: false, writable: true, configurable: true } }); if (superClass) Object.setPrototypeOf ? Object.setPrototypeOf(subClass, superClass) : subClass.__proto__ = superClass; }
 
 var Events = _plugin2.default.Events,
-    Util = _plugin2.default.Util;
+    Util = _plugin2.default.Util,
+    POSITIONS = _plugin2.default.POSITIONS,
+    ROOT_TYPES = _plugin2.default.ROOT_TYPES;
 
 var CssFullScreen = function (_Plugin) {
   _inherits(CssFullScreen, _Plugin);
@@ -32,6 +34,15 @@ var CssFullScreen = function (_Plugin) {
     key: 'pluginName',
     get: function get() {
       return 'cssFullscreen';
+    }
+  }, {
+    key: 'defaultConfig',
+    get: function get() {
+      return {
+        position: POSITIONS.RIGHT,
+        rootType: ROOT_TYPES.CONTROLS,
+        index: 1
+      };
     }
   }]);
 
@@ -85,6 +96,7 @@ var CssFullScreen = function (_Plugin) {
       }
       Util.addClass(player.root, 'xgplayer-is-cssfullscreen');
       this.isCssfullScreen = true;
+      this.switchTips();
       player.emit('cssFullscreen_change', this.isCssfullScreen);
     }
   }, {
@@ -99,7 +111,13 @@ var CssFullScreen = function (_Plugin) {
       }
       Util.removeClass(player.root, 'xgplayer-is-cssfullscreen');
       this.isCssfullScreen = false;
+      this.switchTips();
       player.emit('cssFullscreen_change', this.isCssfullScreen);
+    }
+  }, {
+    key: 'switchTips',
+    value: function switchTips() {
+      this.find('.xg-tips').innerHTML = this.isCssfullScreen ? this.text.exitCssFullscreen : this.text.cssFullscreen;
     }
   }, {
     key: 'registerIcons',

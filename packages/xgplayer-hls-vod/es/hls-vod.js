@@ -133,13 +133,14 @@ var HlsVodController = function () {
     value: function _onWaiting(container) {
       var end = true;
 
-      var playListLen = Object.keys(this._playlist.list).length;
+      var playList = Object.keys(this._playlist.list);
+      var playListLen = playList.length;
       if (!playListLen) {
         return;
       }
 
-      for (var i = 0; i < Object.keys(this._playlist.list).length; i++) {
-        if (this.container.currentTime * 1000 < parseInt(Object.keys(this._playlist.list)[i])) {
+      for (var i = 0; i < playListLen; i++) {
+        if (this.container.currentTime * 1000 < parseInt(playList[i])) {
           end = false;
         }
       }
@@ -201,8 +202,8 @@ var HlsVodController = function () {
     value: function _onLoaderCompete(buffer) {
       if (buffer.TAG === 'M3U8_BUFFER') {
         this.m3u8Text = buffer.shift();
-        var mdata = M3U8Parser.parse(this.m3u8Text, this.baseurl);
         try {
+          var mdata = M3U8Parser.parse(this.m3u8Text, this.baseurl);
           this._playlist.pushM3U8(mdata);
         } catch (error) {
           this._onError('M3U8_PARSER_ERROR', 'PLAYLIST', error, true);
@@ -238,7 +239,8 @@ var HlsVodController = function () {
       } else if (buffer.TAG === 'TS_BUFFER') {
         this._preload(this.mse.container.currentTime);
         this._playlist.downloaded(this._tsloader.url, true);
-        this.emit(DEMUX_EVENTS.DEMUX_START, Object.assign({ url: this._tsloader.url }, this._playlist._ts[this._tsloader.url]));
+        this._demuxer.demux(Object.assign({ url: this._tsloader.url }, this._playlist._ts[this._tsloader.url]));
+        // this.emit(DEMUX_EVENTS.DEMUX_START, Object.assign({url: this._tsloader.url}, this._playlist._ts[this._tsloader.url]));
       } else if (buffer.TAG === 'DECRYPT_BUFFER') {
         this.retrytimes = this.configs.retrytimes || 3;
         this._playlist.downloaded(this._tsloader.url, true);

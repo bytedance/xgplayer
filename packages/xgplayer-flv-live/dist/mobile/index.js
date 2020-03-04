@@ -1620,7 +1620,10 @@
           case 5:
             return SEIParser.user_data_unregistered(content);
           default:
-            return {};
+            return {
+              code: payloadType,
+              content: content
+            };
         }
       }
 
@@ -1828,7 +1831,8 @@
         // seperate
         var pos = buffer.position;
         var headerLength = 0;
-        while (headerLength !== 3 && headerLength !== 4 && pos < buffer.length - 4) {
+        var bufferLen = buffer.length;
+        while (headerLength !== 3 && headerLength !== 4 && pos < bufferLen - 4) {
           if (buffer.dataview.getInt16(pos) === 0) {
             if (buffer.dataview.getInt16(pos + 2) === 1) {
               // 0x000001
@@ -1843,7 +1847,7 @@
           }
         }
 
-        if (pos === buffer.length - 4) {
+        if (pos === bufferLen - 4) {
           if (buffer.dataview.getInt16(pos) === 0) {
             if (buffer.dataview.getInt16(pos + 2) === 1) {
               // 0x000001
@@ -1855,7 +1859,7 @@
               // 0x0000001
               headerLength = 3;
             } else {
-              pos = buffer.length;
+              pos = bufferLen;
             }
           }
         }
@@ -2478,12 +2482,220 @@
     }
   }
 
-  var Nalunit$1 = function () {
-    function Nalunit() {
-      _classCallCheck$a(this, Nalunit);
+  var RBSP$1 = function () {
+    function RBSP() {
+      _classCallCheck$a(this, RBSP);
     }
 
-    _createClass$a(Nalunit, null, [{
+    _createClass$a(RBSP, null, [{
+      key: "EBSP2RBSP",
+
+      /**
+       * convert EBSP to RBSP
+       * @param data {Uint8Array}
+       * @returns {Uint8Array}
+       * @constructor
+       */
+      value: function EBSP2RBSP(data) {
+        return data.filter(function (el, idx) {
+          if (idx < 2) {
+            return true;
+          } else {
+            return !(data[idx - 2] === 0 && data[idx - 1] === 0 && el === 3);
+          }
+        });
+      }
+
+      /**
+       * @param data {Uint8Array}
+       * @constructor
+       */
+
+    }, {
+      key: "EBSP2SODB",
+      value: function EBSP2SODB(data) {
+        var lastByte = data[data.byteLength - 1];
+        if (lastByte && lastByte === 128) {
+          return data.slice(0, data.byteLength - 1);
+        }
+
+        return data;
+      }
+    }]);
+
+    return RBSP;
+  }();
+
+  var _createClass$b = function () {
+    function defineProperties(target, props) {
+      for (var i = 0; i < props.length; i++) {
+        var descriptor = props[i];descriptor.enumerable = descriptor.enumerable || false;descriptor.configurable = true;if ("value" in descriptor) descriptor.writable = true;Object.defineProperty(target, descriptor.key, descriptor);
+      }
+    }return function (Constructor, protoProps, staticProps) {
+      if (protoProps) defineProperties(Constructor.prototype, protoProps);if (staticProps) defineProperties(Constructor, staticProps);return Constructor;
+    };
+  }();
+
+  function _classCallCheck$b(instance, Constructor) {
+    if (!(instance instanceof Constructor)) {
+      throw new TypeError("Cannot call a class as a function");
+    }
+  }
+
+  var u8aToString$1 = function u8aToString(data) {
+    var result = '';
+    for (var i = 0; i < data.byteLength; i++) {
+      result += String.fromCharCode(data[i]);
+    }
+    return result;
+  };
+
+  var SEIParser$1 = function () {
+    function SEIParser() {
+      _classCallCheck$b(this, SEIParser);
+    }
+
+    _createClass$b(SEIParser, null, [{
+      key: '_resolveNalu',
+      value: function _resolveNalu(data) {
+        if (data.length >= 1) {
+          return RBSP$1.EBSP2SODB(RBSP$1.EBSP2RBSP(data.slice(1)));
+        }
+        return null;
+      }
+      /**
+       *
+       * @param data {Uint8Array}
+       */
+
+    }, {
+      key: 'parse',
+      value: function parse(data) {
+        var sodb = SEIParser._resolveNalu(data);
+
+        var _SEIParser$switchPayl = SEIParser.switchPayloadType(sodb),
+            payloadType = _SEIParser$switchPayl.payloadType,
+            offset = _SEIParser$switchPayl.offset;
+
+        var content = sodb.slice(offset);
+
+        switch (payloadType) {
+          case 5:
+            return SEIParser.user_data_unregistered(content);
+          default:
+            return {
+              code: payloadType,
+              content: content
+            };
+        }
+      }
+
+      /**
+       *
+       * @param data
+       * @returns {{payloadType: number, offset: number}}
+       */
+
+    }, {
+      key: 'switchPayloadType',
+      value: function switchPayloadType(data) {
+        var dv = new DataView(data.buffer);
+        var payloadType = 0;
+        var offset = 0;
+        while (dv.getUint8(offset) === 255) {
+          offset++;
+          payloadType += 255;
+        }
+        payloadType += dv.getUint8(offset++);
+
+        return {
+          payloadType: payloadType,
+          offset: offset
+        };
+      }
+
+      /**
+       *
+       * @param data {Uint8Array}
+       * @return {{ payloadLength: number, offset: number }}
+       */
+
+    }, {
+      key: 'getPayloadLength',
+      value: function getPayloadLength(data) {
+        var dv = new DataView(data.buffer);
+
+        var payloadLength = 0;
+        var offset = 0;
+        while (dv.getUint8(offset) === 255) {
+          offset++;
+          payloadLength += 255;
+        }
+        payloadLength += dv.getUint8(offset++);
+
+        return {
+          payloadLength: payloadLength,
+          offset: offset
+        };
+      }
+
+      /**
+       * resolve 0x05 user data unregistered
+       * @param data {Uint8Array}
+       */
+      // eslint-disable-next-line camelcase
+
+    }, {
+      key: 'user_data_unregistered',
+      value: function user_data_unregistered(data) {
+        var _SEIParser$getPayload = SEIParser.getPayloadLength(data),
+            payloadLength = _SEIParser$getPayload.payloadLength,
+            offset = _SEIParser$getPayload.offset;
+
+        if (payloadLength < 16) {
+          return {
+            uuid: '',
+            content: null
+          };
+        }
+        var payload = data.slice(offset);
+
+        var uuid = u8aToString$1(payload.slice(0, 16));
+        var content = u8aToString$1(payload.slice(16, payloadLength));
+
+        return {
+          code: 5, // for user data unregistered
+          uuid: uuid,
+          content: content
+        };
+      }
+    }]);
+
+    return SEIParser;
+  }();
+
+  var _createClass$c = function () {
+    function defineProperties(target, props) {
+      for (var i = 0; i < props.length; i++) {
+        var descriptor = props[i];descriptor.enumerable = descriptor.enumerable || false;descriptor.configurable = true;if ("value" in descriptor) descriptor.writable = true;Object.defineProperty(target, descriptor.key, descriptor);
+      }
+    }return function (Constructor, protoProps, staticProps) {
+      if (protoProps) defineProperties(Constructor.prototype, protoProps);if (staticProps) defineProperties(Constructor, staticProps);return Constructor;
+    };
+  }();
+
+  function _classCallCheck$c(instance, Constructor) {
+    if (!(instance instanceof Constructor)) {
+      throw new TypeError("Cannot call a class as a function");
+    }
+  }
+
+  var Nalunit$1 = function () {
+    function Nalunit() {
+      _classCallCheck$c(this, Nalunit);
+    }
+
+    _createClass$c(Nalunit, null, [{
       key: 'getNalunits',
       value: function getNalunits(buffer) {
         if (buffer.length - buffer.position < 4) {
@@ -2672,11 +2884,12 @@
             break;
           case 39:
             // PREFIX_SEI
-            unit.prefix_sei = true;
+            // unit.prefix_sei = true;
+            unit.sei = SEIParser$1.parse(unit.body.slice(1));
             break;
           case 40:
             // SUFFIX_SEI
-            unit.suffix_sei = true;
+            unit.sei = SEIParser$1.parse(unit.body.slice(1));
             break;
           // case 1:
           //   // NDR
@@ -2710,7 +2923,8 @@
         // seperate
         var pos = buffer.position;
         var headerLength = 0;
-        while (headerLength !== 3 && headerLength !== 4 && pos < buffer.length - 4) {
+        var bufferLen = buffer.length;
+        while (headerLength !== 3 && headerLength !== 4 && pos < bufferLen - 4) {
           if (buffer.dataview.getInt16(pos) === 0) {
             if (buffer.dataview.getInt16(pos + 2) === 1) {
               // 0x000001
@@ -2725,7 +2939,7 @@
           }
         }
 
-        if (pos === buffer.length - 4) {
+        if (pos === bufferLen - 4) {
           if (buffer.dataview.getInt16(pos) === 0) {
             if (buffer.dataview.getInt16(pos + 2) === 1) {
               // 0x000001
@@ -2737,7 +2951,7 @@
               // 0x0000001
               headerLength = 3;
             } else {
-              pos = buffer.length;
+              pos = bufferLen;
             }
           }
         }
@@ -2779,7 +2993,7 @@
 
   var _typeof$1 = typeof Symbol === "function" && typeof Symbol.iterator === "symbol" ? function (obj) { return typeof obj; } : function (obj) { return obj && typeof Symbol === "function" && obj.constructor === Symbol && obj !== Symbol.prototype ? "symbol" : typeof obj; };
 
-  var _createClass$b = function () {
+  var _createClass$d = function () {
     function defineProperties(target, props) {
       for (var i = 0; i < props.length; i++) {
         var descriptor = props[i];descriptor.enumerable = descriptor.enumerable || false;descriptor.configurable = true;if ("value" in descriptor) descriptor.writable = true;Object.defineProperty(target, descriptor.key, descriptor);
@@ -2801,7 +3015,7 @@
     }subClass.prototype = Object.create(superClass && superClass.prototype, { constructor: { value: subClass, enumerable: false, writable: true, configurable: true } });if (superClass) Object.setPrototypeOf ? Object.setPrototypeOf(subClass, superClass) : subClass.__proto__ = superClass;
   }
 
-  function _classCallCheck$b(instance, Constructor) {
+  function _classCallCheck$d(instance, Constructor) {
     if (!(instance instanceof Constructor)) {
       throw new TypeError("Cannot call a class as a function");
     }
@@ -2812,7 +3026,7 @@
      * The constructor.
      */
     function Track() {
-      _classCallCheck$b(this, Track);
+      _classCallCheck$d(this, Track);
 
       this.id = -1;
       this.sequenceNumber = 0;
@@ -2825,7 +3039,7 @@
      * Reset the track.
      */
 
-    _createClass$b(Track, [{
+    _createClass$d(Track, [{
       key: 'reset',
       value: function reset() {
         this.sequenceNumber = 0;
@@ -2854,7 +3068,7 @@
      * The constructor for audio track.
      */
     function AudioTrack() {
-      _classCallCheck$b(this, AudioTrack);
+      _classCallCheck$d(this, AudioTrack);
 
       var _this = _possibleConstructorReturn$1(this, (AudioTrack.__proto__ || Object.getPrototypeOf(AudioTrack)).call(this));
 
@@ -2873,7 +3087,7 @@
      * The constructor for video track.
      */
     function VideoTrack() {
-      _classCallCheck$b(this, VideoTrack);
+      _classCallCheck$d(this, VideoTrack);
 
       var _this2 = _possibleConstructorReturn$1(this, (VideoTrack.__proto__ || Object.getPrototypeOf(VideoTrack)).call(this));
 
@@ -2886,7 +3100,7 @@
      * reset the video track.
      */
 
-    _createClass$b(VideoTrack, [{
+    _createClass$d(VideoTrack, [{
       key: 'reset',
       value: function reset() {
         this.sequenceNumber = 0;
@@ -2901,13 +3115,13 @@
 
   var Tracks = function () {
     function Tracks() {
-      _classCallCheck$b(this, Tracks);
+      _classCallCheck$d(this, Tracks);
 
       this.audioTrack = null;
       this.videoTrack = null;
     }
 
-    _createClass$b(Tracks, [{
+    _createClass$d(Tracks, [{
       key: 'destroy',
       value: function destroy() {
         this.audioTrack = null;
@@ -2918,7 +3132,7 @@
     return Tracks;
   }();
 
-  var _createClass$c = function () {
+  var _createClass$e = function () {
     function defineProperties(target, props) {
       for (var i = 0; i < props.length; i++) {
         var descriptor = props[i];descriptor.enumerable = descriptor.enumerable || false;descriptor.configurable = true;if ("value" in descriptor) descriptor.writable = true;Object.defineProperty(target, descriptor.key, descriptor);
@@ -2928,7 +3142,7 @@
     };
   }();
 
-  function _classCallCheck$c(instance, Constructor) {
+  function _classCallCheck$e(instance, Constructor) {
     if (!(instance instanceof Constructor)) {
       throw new TypeError("Cannot call a class as a function");
     }
@@ -2952,7 +3166,7 @@
 
   var PageVisibility = function () {
     function PageVisibility() {
-      _classCallCheck$c(this, PageVisibility);
+      _classCallCheck$e(this, PageVisibility);
 
       this.callbacks = {
         onShow: [],
@@ -2962,7 +3176,7 @@
       this.init();
     }
 
-    _createClass$c(PageVisibility, [{
+    _createClass$e(PageVisibility, [{
       key: 'init',
       value: function init() {
         document.addEventListener(visibilityChange, this.handleVisibilityChange, false);
@@ -3033,7 +3247,7 @@
 
   var PageVisibility$1 = PageVisibility;
 
-  var _createClass$d = function () {
+  var _createClass$f = function () {
     function defineProperties(target, props) {
       for (var i = 0; i < props.length; i++) {
         var descriptor = props[i];descriptor.enumerable = descriptor.enumerable || false;descriptor.configurable = true;if ("value" in descriptor) descriptor.writable = true;Object.defineProperty(target, descriptor.key, descriptor);
@@ -3043,7 +3257,7 @@
     };
   }();
 
-  function _classCallCheck$d(instance, Constructor) {
+  function _classCallCheck$f(instance, Constructor) {
     if (!(instance instanceof Constructor)) {
       throw new TypeError("Cannot call a class as a function");
     }
@@ -3051,10 +3265,10 @@
 
   var UTF8 = function () {
     function UTF8() {
-      _classCallCheck$d(this, UTF8);
+      _classCallCheck$f(this, UTF8);
     }
 
-    _createClass$d(UTF8, null, [{
+    _createClass$f(UTF8, null, [{
       key: 'decode',
       value: function decode(uint8array) {
         var out = [];
@@ -3123,7 +3337,7 @@
     return UTF8;
   }();
 
-  var _createClass$e = function () {
+  var _createClass$g = function () {
     function defineProperties(target, props) {
       for (var i = 0; i < props.length; i++) {
         var descriptor = props[i];descriptor.enumerable = descriptor.enumerable || false;descriptor.configurable = true;if ("value" in descriptor) descriptor.writable = true;Object.defineProperty(target, descriptor.key, descriptor);
@@ -3133,7 +3347,7 @@
     };
   }();
 
-  function _classCallCheck$e(instance, Constructor) {
+  function _classCallCheck$g(instance, Constructor) {
     if (!(instance instanceof Constructor)) {
       throw new TypeError("Cannot call a class as a function");
     }
@@ -3158,13 +3372,13 @@
   };
   var AMFParser = function () {
     function AMFParser() {
-      _classCallCheck$e(this, AMFParser);
+      _classCallCheck$g(this, AMFParser);
 
       this.offset = 0;
       this.readOffset = this.offset;
     }
 
-    _createClass$e(AMFParser, [{
+    _createClass$g(AMFParser, [{
       key: 'resolve',
       value: function resolve(meta, size) {
         if (size < 3) {
@@ -3409,7 +3623,7 @@
     return AMFParser;
   }();
 
-  var _createClass$f = function () {
+  var _createClass$h = function () {
     function defineProperties(target, props) {
       for (var i = 0; i < props.length; i++) {
         var descriptor = props[i];descriptor.enumerable = descriptor.enumerable || false;descriptor.configurable = true;if ("value" in descriptor) descriptor.writable = true;Object.defineProperty(target, descriptor.key, descriptor);
@@ -3419,7 +3633,7 @@
     };
   }();
 
-  function _classCallCheck$f(instance, Constructor) {
+  function _classCallCheck$h(instance, Constructor) {
     if (!(instance instanceof Constructor)) {
       throw new TypeError("Cannot call a class as a function");
     }
@@ -3427,7 +3641,7 @@
 
   var Stream = function () {
     function Stream(buffer) {
-      _classCallCheck$f(this, Stream);
+      _classCallCheck$h(this, Stream);
 
       if (buffer instanceof ArrayBuffer) {
         this.buffer = buffer;
@@ -3438,7 +3652,7 @@
       }
     }
 
-    _createClass$f(Stream, [{
+    _createClass$h(Stream, [{
       key: 'back',
       value: function back(count) {
         this.position -= count;
@@ -3575,7 +3789,7 @@
     return Stream;
   }();
 
-  var _createClass$g = function () {
+  var _createClass$i = function () {
     function defineProperties(target, props) {
       for (var i = 0; i < props.length; i++) {
         var descriptor = props[i];descriptor.enumerable = descriptor.enumerable || false;descriptor.configurable = true;if ("value" in descriptor) descriptor.writable = true;Object.defineProperty(target, descriptor.key, descriptor);
@@ -3585,7 +3799,7 @@
     };
   }();
 
-  function _classCallCheck$g(instance, Constructor) {
+  function _classCallCheck$i(instance, Constructor) {
     if (!(instance instanceof Constructor)) {
       throw new TypeError("Cannot call a class as a function");
     }
@@ -3595,14 +3809,16 @@
 
   var FlvDemuxer = function () {
     function FlvDemuxer() {
-      _classCallCheck$g(this, FlvDemuxer);
+      _classCallCheck$i(this, FlvDemuxer);
 
       this._firstFragmentLoaded = false;
       this._trackNum = 0;
       this._hasScript = false;
+      this._videoMetaChange = false;
+      this._audioMetaChange = false;
     }
 
-    _createClass$g(FlvDemuxer, [{
+    _createClass$i(FlvDemuxer, [{
       key: 'init',
       value: function init() {
         this.on(DEMUX_EVENTS$1.DEMUX_START, this.doParseFlv.bind(this));
@@ -3991,13 +4207,13 @@
           }
           this._hasAudioSequence = true;
 
-          this._metaChange = true;
+          this._audioMetaChange = true;
         } else {
-          if (this._metaChange) {
+          if (this._audioMetaChange) {
             chunk.options = {
               meta: track.meta
             };
-            this._metaChange = false;
+            this._audioMetaChange = false;
           }
 
           chunk.data = chunk.data.slice(1, chunk.data.length);
@@ -4067,7 +4283,7 @@
               }
               this._hasVideoSequence = true;
             }
-            this._metaChange = true;
+            this._videoMetaChange = true;
           } else {
             if (!this._datasizeValidator(chunk.datasize)) {
               this.emit(DEMUX_EVENTS$1.DEMUX_ERROR, this.TAG, new Error('invalid video tag datasize: ' + chunk.datasize), false);
@@ -4082,11 +4298,11 @@
               }
             }
             codecID === 12 ? this.tracks.videoTrack.meta.streamType = 0x24 : this.tracks.videoTrack.meta.streamType = 0x1b;
-            if (this._metaChange) {
+            if (this._videoMetaChange) {
               chunk.options = {
                 meta: Object.assign({}, this.tracks.videoTrack.meta)
               };
-              this._metaChange = false;
+              this._videoMetaChange = false;
             }
             this.tracks.videoTrack.samples.push(chunk);
             // this.emit(DEMUX_EVENTS.DEMUX_COMPLETE)
@@ -4428,7 +4644,7 @@
     return obj && typeof Symbol === "function" && obj.constructor === Symbol && obj !== Symbol.prototype ? "symbol" : typeof obj === "undefined" ? "undefined" : _typeof2(obj);
   };
 
-  var _createClass$h = function () {
+  var _createClass$j = function () {
     function defineProperties(target, props) {
       for (var i = 0; i < props.length; i++) {
         var descriptor = props[i];descriptor.enumerable = descriptor.enumerable || false;descriptor.configurable = true;if ("value" in descriptor) descriptor.writable = true;Object.defineProperty(target, descriptor.key, descriptor);
@@ -4438,7 +4654,7 @@
     };
   }();
 
-  function _classCallCheck$h(instance, Constructor) {
+  function _classCallCheck$j(instance, Constructor) {
     if (!(instance instanceof Constructor)) {
       throw new TypeError("Cannot call a class as a function");
     }
@@ -4452,7 +4668,7 @@
 
   var FetchLoader = function () {
     function FetchLoader(configs) {
-      _classCallCheck$h(this, FetchLoader);
+      _classCallCheck$j(this, FetchLoader);
 
       this.configs = Object.assign({}, configs);
       this.url = null;
@@ -4466,7 +4682,7 @@
       this._loaderTaskNo = 0;
     }
 
-    _createClass$h(FetchLoader, [{
+    _createClass$j(FetchLoader, [{
       key: 'init',
       value: function init() {
         this.on(LOADER_EVENTS$1.LADER_START, this.load.bind(this));
@@ -4681,7 +4897,7 @@
     return FetchLoader;
   }();
 
-  var _createClass$i = function () {
+  var _createClass$k = function () {
     function defineProperties(target, props) {
       for (var i = 0; i < props.length; i++) {
         var descriptor = props[i];descriptor.enumerable = descriptor.enumerable || false;descriptor.configurable = true;if ("value" in descriptor) descriptor.writable = true;Object.defineProperty(target, descriptor.key, descriptor);
@@ -4691,7 +4907,7 @@
     };
   }();
 
-  function _classCallCheck$i(instance, Constructor) {
+  function _classCallCheck$k(instance, Constructor) {
     if (!(instance instanceof Constructor)) {
       throw new TypeError("Cannot call a class as a function");
     }
@@ -4705,7 +4921,7 @@
      * @param {number} length - Optional the buffer size
      */
     function XgBuffer(length) {
-      _classCallCheck$i(this, XgBuffer);
+      _classCallCheck$k(this, XgBuffer);
 
       this.length = length || 0;
       this.historyLen = length || 0;
@@ -4719,7 +4935,7 @@
      * @param {number} data - The data to push into the buffer
      */
 
-    _createClass$i(XgBuffer, [{
+    _createClass$k(XgBuffer, [{
       key: "push",
       value: function push(data) {
         this.array.push(data);
@@ -4840,9 +5056,9 @@
     return XgBuffer;
   }();
 
-  var _createClass$j = function () { function defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ("value" in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } } return function (Constructor, protoProps, staticProps) { if (protoProps) defineProperties(Constructor.prototype, protoProps); if (staticProps) defineProperties(Constructor, staticProps); return Constructor; }; }();
+  var _createClass$l = function () { function defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ("value" in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } } return function (Constructor, protoProps, staticProps) { if (protoProps) defineProperties(Constructor.prototype, protoProps); if (staticProps) defineProperties(Constructor, staticProps); return Constructor; }; }();
 
-  function _classCallCheck$j(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } }
+  function _classCallCheck$l(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } }
 
   var DEMUX_EVENTS$2 = EVENTS.DEMUX_EVENTS;
   var LOADER_EVENTS$2 = EVENTS.LOADER_EVENTS;
@@ -4852,10 +5068,10 @@
 
   var Logger = function () {
     function Logger() {
-      _classCallCheck$j(this, Logger);
+      _classCallCheck$l(this, Logger);
     }
 
-    _createClass$j(Logger, [{
+    _createClass$l(Logger, [{
       key: 'warn',
       value: function warn() {}
     }]);
@@ -4867,7 +5083,7 @@
 
   var FlvController = function () {
     function FlvController(player) {
-      _classCallCheck$j(this, FlvController);
+      _classCallCheck$l(this, FlvController);
 
       this.TAG = Tag;
       this._player = player;
@@ -4879,7 +5095,7 @@
       this.bufferClearTimer = null;
     }
 
-    _createClass$j(FlvController, [{
+    _createClass$l(FlvController, [{
       key: 'init',
       value: function init() {
 
@@ -5562,7 +5778,7 @@
     }
   };
 
-  var _createClass$k = function () {
+  var _createClass$m = function () {
     function defineProperties(target, props) {
       for (var i = 0; i < props.length; i++) {
         var descriptor = props[i];descriptor.enumerable = descriptor.enumerable || false;descriptor.configurable = true;if ("value" in descriptor) descriptor.writable = true;Object.defineProperty(target, descriptor.key, descriptor);
@@ -5584,7 +5800,7 @@
     }subClass.prototype = Object.create(superClass && superClass.prototype, { constructor: { value: subClass, enumerable: false, writable: true, configurable: true } });if (superClass) Object.setPrototypeOf ? Object.setPrototypeOf(subClass, superClass) : subClass.__proto__ = superClass;
   }
 
-  function _classCallCheck$k(instance, Constructor) {
+  function _classCallCheck$m(instance, Constructor) {
     if (!(instance instanceof Constructor)) {
       throw new TypeError("Cannot call a class as a function");
     }
@@ -5596,7 +5812,7 @@
 
   var Ticker = function () {
     function Ticker(options) {
-      _classCallCheck$k(this, Ticker);
+      _classCallCheck$m(this, Ticker);
 
       this.options = Object.assign({}, options || {}, {
         interval: 16
@@ -5605,7 +5821,7 @@
       this.callbacks = [];
     }
 
-    _createClass$k(Ticker, [{
+    _createClass$m(Ticker, [{
       key: "start",
       value: function start() {
         for (var _len = arguments.length, callbacks = Array(_len), _key = 0; _key < _len; _key++) {
@@ -5641,7 +5857,7 @@
     _inherits$2(RafTicker, _Ticker);
 
     function RafTicker(props) {
-      _classCallCheck$k(this, RafTicker);
+      _classCallCheck$m(this, RafTicker);
 
       var _this = _possibleConstructorReturn$2(this, (RafTicker.__proto__ || Object.getPrototypeOf(RafTicker)).call(this, props));
 
@@ -5654,7 +5870,7 @@
       return _this;
     }
 
-    _createClass$k(RafTicker, [{
+    _createClass$m(RafTicker, [{
       key: "start",
       value: function start() {
         var _get2;
@@ -5721,7 +5937,7 @@
     _inherits$2(TimeoutTicker, _Ticker2);
 
     function TimeoutTicker(config) {
-      _classCallCheck$k(this, TimeoutTicker);
+      _classCallCheck$m(this, TimeoutTicker);
 
       var _this2 = _possibleConstructorReturn$2(this, (TimeoutTicker.__proto__ || Object.getPrototypeOf(TimeoutTicker)).call(this, config));
 
@@ -5729,7 +5945,7 @@
       return _this2;
     }
 
-    _createClass$k(TimeoutTicker, [{
+    _createClass$m(TimeoutTicker, [{
       key: "start",
       value: function start() {
         var _get3,
@@ -5948,7 +6164,7 @@
     }, false);
   });
 
-  var _createClass$l = function () {
+  var _createClass$n = function () {
     function defineProperties(target, props) {
       for (var i = 0; i < props.length; i++) {
         var descriptor = props[i];descriptor.enumerable = descriptor.enumerable || false;descriptor.configurable = true;if ("value" in descriptor) descriptor.writable = true;Object.defineProperty(target, descriptor.key, descriptor);
@@ -5958,7 +6174,7 @@
     };
   }();
 
-  function _classCallCheck$l(instance, Constructor) {
+  function _classCallCheck$n(instance, Constructor) {
     if (!(instance instanceof Constructor)) {
       throw new TypeError("Cannot call a class as a function");
     }
@@ -5966,7 +6182,7 @@
 
   var YUVCanvas = function () {
     function YUVCanvas(configs) {
-      _classCallCheck$l(this, YUVCanvas);
+      _classCallCheck$n(this, YUVCanvas);
 
       this.configs = Object.assign({}, configs);
       this.canvas = this.configs.canvas;
@@ -5985,7 +6201,7 @@
         this._initTextures();
       }  }
 
-    _createClass$l(YUVCanvas, [{
+    _createClass$n(YUVCanvas, [{
       key: '_initContextGL',
       value: function _initContextGL() {
         var canvas = this.canvas;
@@ -6240,7 +6456,7 @@
     return YUVCanvas;
   }();
 
-  var _createClass$m = function () {
+  var _createClass$o = function () {
     function defineProperties(target, props) {
       for (var i = 0; i < props.length; i++) {
         var descriptor = props[i];descriptor.enumerable = descriptor.enumerable || false;descriptor.configurable = true;if ("value" in descriptor) descriptor.writable = true;Object.defineProperty(target, descriptor.key, descriptor);
@@ -6250,7 +6466,7 @@
     };
   }();
 
-  function _classCallCheck$m(instance, Constructor) {
+  function _classCallCheck$o(instance, Constructor) {
     if (!(instance instanceof Constructor)) {
       throw new TypeError("Cannot call a class as a function");
     }
@@ -6258,7 +6474,7 @@
 
   var SourceBuffer = function () {
     function SourceBuffer(config) {
-      _classCallCheck$m(this, SourceBuffer);
+      _classCallCheck$o(this, SourceBuffer);
 
       this.config = Object.assign({}, config);
       this.type = this.config.type;
@@ -6267,7 +6483,7 @@
       this._lastGet = undefined;
     }
 
-    _createClass$m(SourceBuffer, [{
+    _createClass$o(SourceBuffer, [{
       key: 'push',
       value: function push(frame) {
         if (this.type === 'video') {
@@ -6370,7 +6586,7 @@
     return SourceBuffer;
   }();
 
-  var _createClass$n = function () {
+  var _createClass$p = function () {
     function defineProperties(target, props) {
       for (var i = 0; i < props.length; i++) {
         var descriptor = props[i];descriptor.enumerable = descriptor.enumerable || false;descriptor.configurable = true;if ("value" in descriptor) descriptor.writable = true;Object.defineProperty(target, descriptor.key, descriptor);
@@ -6380,7 +6596,7 @@
     };
   }();
 
-  function _classCallCheck$n(instance, Constructor) {
+  function _classCallCheck$p(instance, Constructor) {
     if (!(instance instanceof Constructor)) {
       throw new TypeError("Cannot call a class as a function");
     }
@@ -6388,12 +6604,12 @@
 
   var TimeRanges = function () {
     function TimeRanges(ranges) {
-      _classCallCheck$n(this, TimeRanges);
+      _classCallCheck$p(this, TimeRanges);
 
       this.ranges = ranges || [];
     }
 
-    _createClass$n(TimeRanges, [{
+    _createClass$p(TimeRanges, [{
       key: "start",
       value: function start(idx) {
         return this.ranges[idx] ? this.ranges[idx].start : 0;
@@ -6418,7 +6634,7 @@
     return TimeRanges;
   }();
 
-  var _createClass$o = function () {
+  var _createClass$q = function () {
     function defineProperties(target, props) {
       for (var i = 0; i < props.length; i++) {
         var descriptor = props[i];descriptor.enumerable = descriptor.enumerable || false;descriptor.configurable = true;if ("value" in descriptor) descriptor.writable = true;Object.defineProperty(target, descriptor.key, descriptor);
@@ -6428,7 +6644,7 @@
     };
   }();
 
-  function _classCallCheck$o(instance, Constructor) {
+  function _classCallCheck$q(instance, Constructor) {
     if (!(instance instanceof Constructor)) {
       throw new TypeError("Cannot call a class as a function");
     }
@@ -6436,7 +6652,7 @@
 
   var VideoCanvas = function () {
     function VideoCanvas(config) {
-      _classCallCheck$o(this, VideoCanvas);
+      _classCallCheck$q(this, VideoCanvas);
 
       this.config = Object.assign({}, config);
       this.canvas = this.config.canvas ? this.config.canvas : document.createElement('canvas');
@@ -6469,7 +6685,7 @@
       this.canvas.style.position = 'absolute';
     }
 
-    _createClass$o(VideoCanvas, [{
+    _createClass$q(VideoCanvas, [{
       key: 'pause',
       value: function pause() {
         this.paused = true;
@@ -6631,7 +6847,7 @@
       key: '_onTimer',
       value: function _onTimer(currentTime) {
         if (this.paused) {
-          return;
+          return false;
         }
 
         if (this.meta) {
@@ -6655,11 +6871,14 @@
               //   buf = [new Uint8Array(buf0), new Uint8Array(buf1), new Uint8Array(buf2)];
               // }
               this.yuvCanvas.render(frame.buffer, frame.width, frame.height, frame.yLinesize, frame.uvLinesize);
-            }
-            for (var _i2 = 0; _i2 < frameTimes.length; _i2++) {
-              if (Number.parseInt(frameTimes[_i2]) < frameTime) {
-                delete this._decodedFrames[frameTimes[_i2]];
+              for (var _i2 = 0; _i2 < frameTimes.length; _i2++) {
+                if (Number.parseInt(frameTimes[_i2]) < frameTime) {
+                  delete this._decodedFrames[frameTimes[_i2]];
+                }
               }
+              return true;
+            } else {
+              return false;
             }
           }
         }
@@ -6714,12 +6933,22 @@
         }
 
         if (currentRange.start !== null && currentRange.end !== null) {
-          currentRange.start = currentRange.start / 1000;
-          currentRange.end = currentRange.end / 1000;
+          currentRange.start = (currentRange.start - this._baseDts) / 1000;
+          currentRange.end = (currentRange.end - this._baseDts) / 1000;
           ranges.push(currentRange);
         }
 
         return new TimeRanges(ranges);
+      }
+    }, {
+      key: 'videoWidth',
+      get: function get() {
+        return this.canvas.width;
+      }
+    }, {
+      key: 'videoHeight',
+      get: function get() {
+        return this.canvas.height;
       }
     }]);
 
@@ -6728,7 +6957,7 @@
 
   var _typeof$4 = typeof Symbol === "function" && typeof Symbol.iterator === "symbol" ? function (obj) { return typeof obj; } : function (obj) { return obj && typeof Symbol === "function" && obj.constructor === Symbol && obj !== Symbol.prototype ? "symbol" : typeof obj; };
 
-  var _createClass$p = function () {
+  var _createClass$r = function () {
     function defineProperties(target, props) {
       for (var i = 0; i < props.length; i++) {
         var descriptor = props[i];descriptor.enumerable = descriptor.enumerable || false;descriptor.configurable = true;if ("value" in descriptor) descriptor.writable = true;Object.defineProperty(target, descriptor.key, descriptor);
@@ -6738,7 +6967,7 @@
     };
   }();
 
-  function _classCallCheck$p(instance, Constructor) {
+  function _classCallCheck$r(instance, Constructor) {
     if (!(instance instanceof Constructor)) {
       throw new TypeError("Cannot call a class as a function");
     }
@@ -6760,7 +6989,7 @@
     _inherits$3(AudioCtx, _EventEmitter);
 
     function AudioCtx(config) {
-      _classCallCheck$p(this, AudioCtx);
+      _classCallCheck$r(this, AudioCtx);
 
       var _this2 = _possibleConstructorReturn$3(this, (AudioCtx.__proto__ || Object.getPrototypeOf(AudioCtx)).call(this));
 
@@ -6780,8 +7009,8 @@
       _this2._preDecode = [];
       _this2._currentTime = 0;
       _this2._decoding = false;
-      _this2._volume = _this2.config.volume || 0.6;
-
+      _this2._volume = Number.parseInt(_this2.config.volume) === _this2.config.volume ? _this2.config.volume : 0.6;
+      _this2.gainNode.gain.value = _this2._volume;
       // 记录外部传输的状态
       _this2._played = false;
       _this2.paused = true;
@@ -6790,7 +7019,7 @@
       return _this2;
     }
 
-    _createClass$p(AudioCtx, [{
+    _createClass$r(AudioCtx, [{
       key: 'decodeAudio',
       value: function decodeAudio(audioTrack) {
         var samples = audioTrack.samples,
@@ -6890,7 +7119,7 @@
         audioSource.start();
         audioSource.connect(this.gainNode);
         var _this = this;
-        this.waitNextID = setTimeout(function () {
+        setTimeout(function () {
           _this.onSourceEnded.call(_this3);
         }, audioSource.buffer.duration * 1000 - 10);
         this._currentBuffer = this._nextBuffer;
@@ -6973,6 +7202,11 @@
         this.context.close();
       }
     }, {
+      key: 'mute',
+      value: function mute() {
+        this.gainNode.gain.value = 0;
+      }
+    }, {
       key: 'currentTime',
       get: function get() {
         return this._currentTime;
@@ -6992,7 +7226,7 @@
     }, {
       key: 'volume',
       get: function get() {
-        if (this.context.state === 'suspended' || this.paused) {
+        if (this.context.state === 'suspended' || this.paused || this.muted) {
           return 0;
         }
         return this._volume;
@@ -7089,7 +7323,7 @@
     return AudioCtx;
   }(EventEmitter);
 
-  var _createClass$q = function () {
+  var _createClass$s = function () {
     function defineProperties(target, props) {
       for (var i = 0; i < props.length; i++) {
         var descriptor = props[i];descriptor.enumerable = descriptor.enumerable || false;descriptor.configurable = true;if ("value" in descriptor) descriptor.writable = true;Object.defineProperty(target, descriptor.key, descriptor);
@@ -7099,7 +7333,7 @@
     };
   }();
 
-  function _classCallCheck$q(instance, Constructor) {
+  function _classCallCheck$s(instance, Constructor) {
     if (!(instance instanceof Constructor)) {
       throw new TypeError("Cannot call a class as a function");
     }
@@ -7110,7 +7344,7 @@
    */
   var AVReconciler = function () {
     function AVReconciler(props) {
-      _classCallCheck$q(this, AVReconciler);
+      _classCallCheck$s(this, AVReconciler);
 
       this.aCtx = props.aCtx;
       this.vCtx = props.vCtx;
@@ -7119,13 +7353,18 @@
       this.start = null;
     }
 
-    _createClass$q(AVReconciler, [{
+    _createClass$s(AVReconciler, [{
       key: "doReconcile",
       value: function doReconcile() {
         var _this = this;
 
         var vCurTime = this.vCtx.currentTime || 0;
-        var aCurTime = (this.aCtx.currentTime || 0) * 1000;
+        var aCurTime = void 0;
+        if (this.video.noAudio) {
+          aCurTime = vCurTime;
+        } else {
+          aCurTime = this.aCtx.currentTime || 0;
+        }
 
         var gap = vCurTime - aCurTime;
         if (this.timeoutId) {
@@ -7157,7 +7396,7 @@
 
   var _typeof$5 = typeof Symbol === "function" && typeof Symbol.iterator === "symbol" ? function (obj) { return typeof obj; } : function (obj) { return obj && typeof Symbol === "function" && obj.constructor === Symbol && obj !== Symbol.prototype ? "symbol" : typeof obj; };
 
-  var _createClass$r = function () {
+  var _createClass$t = function () {
     function defineProperties(target, props) {
       for (var i = 0; i < props.length; i++) {
         var descriptor = props[i];descriptor.enumerable = descriptor.enumerable || false;descriptor.configurable = true;if ("value" in descriptor) descriptor.writable = true;Object.defineProperty(target, descriptor.key, descriptor);
@@ -7167,7 +7406,7 @@
     };
   }();
 
-  function _classCallCheck$r(instance, Constructor) {
+  function _classCallCheck$t(instance, Constructor) {
     if (!(instance instanceof Constructor)) {
       throw new TypeError("Cannot call a class as a function");
     }
@@ -7190,7 +7429,7 @@
   var MobileVideo = function (_HTMLElement) {
     _inherits$4(MobileVideo, _HTMLElement);
 
-    _createClass$r(MobileVideo, null, [{
+    _createClass$t(MobileVideo, null, [{
       key: 'resolveVideoGOP',
 
       /**
@@ -7247,7 +7486,7 @@
     }]);
 
     function MobileVideo() {
-      _classCallCheck$r(this, MobileVideo);
+      _classCallCheck$t(this, MobileVideo);
 
       var _this = _possibleConstructorReturn$4(this, (MobileVideo.__proto__ || Object.getPrototypeOf(MobileVideo)).call(this));
 
@@ -7255,6 +7494,7 @@
       _this.handleAudioSourceEnd = _this.handleAudioSourceEnd.bind(_this);
       _this.played = false;
       _this.pendingPlayTask = null;
+      _this._waiting = false;
       _this._paused = true;
       _this.videoMetaInited = false;
       _this.audioMetaInited = false;
@@ -7262,15 +7502,23 @@
       return _this;
     }
 
-    _createClass$r(MobileVideo, [{
+    _createClass$t(MobileVideo, [{
       key: 'init',
       value: function init() {
         var _this2 = this;
 
+        var attrVolume = this.getAttribute('volume');
+        var volume = this.muted ? 0 : attrVolume;
+
         this.vCtx = new VideoCanvas(Object.assign({
           canvas: this._canvas
         }, { style: { width: this.width, height: this.height } }));
-        this.aCtx = new AudioCtx({});
+        if (!this.noAudio) {
+          this.aCtx = new AudioCtx({
+            volume: volume
+          });
+        }
+
         this.ticker = new (getTicker())();
         this.reconciler = new AVReconciler({
           vCtx: this.vCtx,
@@ -7285,8 +7533,9 @@
           }
           _this2.dispatchEvent(new Event('canplay'));
         };
-
-        this.aCtx.on('AUDIO_SOURCE_END', this.handleAudioSourceEnd);
+        if (!this.noAudio) {
+          this.aCtx.on('AUDIO_SOURCE_END', this.handleAudioSourceEnd);
+        }
       }
     }, {
       key: 'handleAudioSourceEnd',
@@ -7304,9 +7553,10 @@
       value: function destroy() {
         this.videoMetaInited = false;
         this.audioMetaInited = false;
-
-        this.aCtx.on('AUDIO_SOURCE_END', this.handleAudioSourceEnd);
-        this.aCtx.destroy();
+        if (!this.noAudio) {
+          this.aCtx.on('AUDIO_SOURCE_END', this.handleAudioSourceEnd);
+          this.aCtx.destroy();
+        }
         this.vCtx.destroy();
         this.ticker.stop();
         this.start = null;
@@ -7318,13 +7568,17 @@
     }, {
       key: 'onDemuxComplete',
       value: function onDemuxComplete(videoTrack, audioTrack) {
-        // MobileVideo.resolveVideoGOP(videoTrack)
-        this.aCtx.decodeAudio(audioTrack);
+        if (!this.noAudio) {
+          this.aCtx.decodeAudio(audioTrack);
+        }
         this.vCtx.decodeVideo(videoTrack);
       }
     }, {
       key: 'setAudioMeta',
       value: function setAudioMeta(meta) {
+        if (this.noAudio) {
+          return;
+        }
         if (this.audioMetaInited) {
           this.aCtx.destroy();
           this.aCtx = new AudioCtx({});
@@ -7357,8 +7611,13 @@
           this.destroy();
           this.init();
         }
-        this.dispatchEvent(new Event('play'));
-        this.pendingPlayTask = Promise.all([this.vCtx.play(), this.aCtx.play().then(function () {
+        var audioPlayTask = null;
+        if (this.noAudio) {
+          audioPlayTask = Promise.resolve();
+        } else {
+          audioPlayTask = this.aCtx.play();
+        }
+        this.pendingPlayTask = Promise.all([this.vCtx.play(), audioPlayTask.then(function () {
           // this.aCtx.muted = true
         })]).then(function () {
           // this.aCtx.muted = false
@@ -7366,13 +7625,32 @@
             if (!_this3.start) {
               _this3.start = Date.now();
             }
+            var prevTime = _this3._currentTime;
             _this3._currentTime = Date.now() - _this3.start;
-            _this3.vCtx._onTimer(_this3._currentTime);
+
+            var rendered = _this3.vCtx._onTimer(_this3._currentTime);
+            if (rendered) {
+              if (_this3._waiting) {
+                _this3.dispatchEvent(new Event('playing'));
+                _this3._waiting = false;
+              }
+              _this3.dispatchEvent(new Event('timeupdate'));
+            } else {
+              _this3._currentTime = prevTime;
+              if (!_this3._waiting) {
+                _this3._waiting = true;
+                _this3.dispatchEvent(new Event('waiting'));
+              }
+            }
+            if (_this3.noAudio) {
+              _this3.vCtx.cleanBuffer();
+            }
           });
 
           _this3.pendingPlayTask = null;
           _this3.played = true;
           _this3.dispatchEvent(new Event('playing'));
+          _this3.dispatchEvent(new Event('play'));
           _this3._paused = false;
         });
       }
@@ -7380,10 +7658,17 @@
       key: 'pause',
       value: function pause() {
         this._paused = true;
-        this.aCtx.pause();
+        if (!this.noAudio) {
+          this.aCtx.pause();
+        }
         this.vCtx.pause();
 
         this.dispatchEvent(new Event('pause'));
+      }
+    }, {
+      key: 'load',
+      value: function load() {
+        // no-op for now
       }
     }, {
       key: 'width',
@@ -7469,7 +7754,9 @@
       },
       set: function set(val) {
         this.setAttribute('playbackrate', val);
-        this.aCtx.playbackRate = val;
+        if (!this.noAudio) {
+          this.aCtx.playbackRate = val;
+        }
         this.vCtx.playbackRate = val;
 
         this.dispatchEvent(new Event('ratechange'));
@@ -7497,11 +7784,20 @@
     }, {
       key: 'volume',
       get: function get() {
+        if (this.noAudio) {
+          return 0;
+        }
         return this.aCtx.volume;
       },
       set: function set(vol) {
+        if (this.noAudio) {
+          return;
+        }
         this.setAttribute('volume', vol);
         this.aCtx.volume = vol;
+        if (vol > 0 && this.muted) {
+          this.aCtx.mute();
+        }
         this.dispatchEvent(new Event('volumechange'));
       }
     }, {
@@ -7517,6 +7813,9 @@
         }
       },
       set: function set(val) {
+        if (this.noAudio) {
+          return;
+        }
         this.setAttribute('muted', val);
         if (!val) {
           this.aCtx.muted = false;
@@ -7528,12 +7827,17 @@
     }, {
       key: 'error',
       get: function get() {
-        return this.vCtx.error || this.aCtx.error;
+        return this.vCtx.error || (this.noAudio ? null : this.aCtx.error);
       }
     }, {
       key: 'buffered',
       get: function get() {
         return this.vCtx.buffered;
+      }
+    }, {
+      key: 'noAudio',
+      get: function get() {
+        return this.getAttribute('noaudio') === 'true';
       }
     }]);
 
@@ -7544,9 +7848,9 @@
 
   customElements.define('mobile-video', MobileVideo);
 
-  var _createClass$s = function () { function defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ("value" in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } } return function (Constructor, protoProps, staticProps) { if (protoProps) defineProperties(Constructor.prototype, protoProps); if (staticProps) defineProperties(Constructor, staticProps); return Constructor; }; }();
+  var _createClass$u = function () { function defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ("value" in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } } return function (Constructor, protoProps, staticProps) { if (protoProps) defineProperties(Constructor.prototype, protoProps); if (staticProps) defineProperties(Constructor, staticProps); return Constructor; }; }();
 
-  function _classCallCheck$s(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } }
+  function _classCallCheck$u(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } }
 
   function _possibleConstructorReturn$5(self, call) { if (!self) { throw new ReferenceError("this hasn't been initialised - super() hasn't been called"); } return call && (typeof call === "object" || typeof call === "function") ? call : self; }
 
@@ -7558,12 +7862,12 @@
     _inherits$5(FlvPlayer, _BasePlugin);
 
     function FlvPlayer() {
-      _classCallCheck$s(this, FlvPlayer);
+      _classCallCheck$u(this, FlvPlayer);
 
       return _possibleConstructorReturn$5(this, (FlvPlayer.__proto__ || Object.getPrototypeOf(FlvPlayer)).apply(this, arguments));
     }
 
-    _createClass$s(FlvPlayer, [{
+    _createClass$u(FlvPlayer, [{
       key: 'beforePlayerInit',
       value: function beforePlayerInit() {
         this.context = new Context(flvAllowedEvents);
@@ -7612,9 +7916,6 @@
 
         var player = this.player;
 
-        player.on('timeupdate', function () {
-          _this2.loadData();
-        });
 
         player.on('seeking', function () {
           var time = _this2.currentTime;
@@ -7707,6 +8008,13 @@
         this.switchURL(url);
       }
     }], [{
+      key: 'isSupported',
+      value: function isSupported() {
+        var wasmSupported = 'WebAssembly' in window;
+        var WebComponentSupported = 'customElements' in window && window.customElements.define;
+        return wasmSupported && WebComponentSupported;
+      }
+    }, {
       key: 'pluginName',
       get: function get() {
         return 'flvLiveMobile';

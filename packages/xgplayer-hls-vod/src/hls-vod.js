@@ -49,7 +49,7 @@ class HlsVodController {
     this._tsloader = this._context.registry('TS_LOADER', FetchLoader)({ buffer: 'TS_BUFFER', readtype: 3 });
 
     // 初始化TS Demuxer
-    this._context.registry('TS_DEMUXER', TsDemuxer)({ inputbuffer: 'TS_BUFFER' });
+    this._demuxer = this._context.registry('TS_DEMUXER', TsDemuxer)({ inputbuffer: 'TS_BUFFER' });
 
     // 初始化MP4 Remuxer
     this._context.registry('MP4_REMUXER', Mp4Remuxer)(this._player.currentTime);
@@ -89,7 +89,7 @@ class HlsVodController {
   _onError (type, mod, err, fatal) {
     let error = {
       errorType: type,
-      errorDetails: `[${mod}]: ${err.message}`,
+      errorDetails: `[${mod}]: ${err ? err.message : ''}`,
       errorFatal: fatal
     }
     this._player && this._player.emit(HLS_ERROR, error);
@@ -117,13 +117,14 @@ class HlsVodController {
   _onWaiting () {
     let end = true;
 
-    const playListLen = Object.keys(this._playlist.list).length
+    const playList = Object.keys(this._playlist.list)
+    const playListLen = playList.length
     if (!playListLen) {
       return;
     }
 
-    for (let i = 0; i < Object.keys(this._playlist.list).length; i++) {
-      if (this._player.currentTime * 1000 < parseInt(Object.keys(this._playlist.list)[i])) {
+    for (let i = 0; i < playListLen; i++) {
+      if (this._player.currentTime * 1000 < parseInt(playList[i])) {
         end = false;
       }
     }
@@ -177,8 +178,8 @@ class HlsVodController {
   _onLoaderCompete (buffer) {
     if (buffer.TAG === 'M3U8_BUFFER') {
       this.m3u8Text = buffer.shift()
-      let mdata = M3U8Parser.parse(this.m3u8Text, this.baseurl);
       try {
+        let mdata = M3U8Parser.parse(this.m3u8Text, this.baseurl);
         this._playlist.pushM3U8(mdata);
       } catch (error) {
         this._onError('M3U8_PARSER_ERROR', 'PLAYLIST', error, true);
@@ -214,7 +215,8 @@ class HlsVodController {
     } else if (buffer.TAG === 'TS_BUFFER') {
       this._preload(this._player.currentTime);
       this._playlist.downloaded(this._tsloader.url, true);
-      this.emit(DEMUX_EVENTS.DEMUX_START, Object.assign({url: this._tsloader.url}, this._playlist._ts[this._tsloader.url]));
+      this._demuxer.demux(Object.assign({url: this._tsloader.url}, this._playlist._ts[this._tsloader.url]))
+      // this.emit(DEMUX_EVENTS.DEMUX_START, Object.assign({url: this._tsloader.url}, this._playlist._ts[this._tsloader.url]));
     } else if (buffer.TAG === 'DECRYPT_BUFFER') {
       this.retrytimes = this.configs.retrytimes || 3;
       this._playlist.downloaded(this._tsloader.url, true);
@@ -357,6 +359,7 @@ class HlsVodController {
     this._playlist = null;
     this.retrytimes = 3;
     this.preloadTime = 5;
+    this._demuxer = null;
     this._lastSeekTime = 0
     this.m3u8Text = null;
     this.mse = null

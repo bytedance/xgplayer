@@ -9,7 +9,9 @@ function _inherits(subClass, superClass) { if (typeof superClass !== "function" 
 import Plugin from '../../../plugin';
 
 var Util = Plugin.Util,
-    Events = Plugin.Events;
+    Events = Plugin.Events,
+    POSITIONS = Plugin.POSITIONS,
+    ROOT_TYPES = Plugin.ROOT_TYPES;
 
 var TimeIcon = function (_Plugin) {
   _inherits(TimeIcon, _Plugin);
@@ -92,6 +94,15 @@ var TimeIcon = function (_Plugin) {
     key: 'pluginName',
     get: function get() {
       return 'TimeIcon';
+    }
+  }, {
+    key: 'defaultConfig',
+    get: function get() {
+      return {
+        position: POSITIONS.LEFT,
+        rootType: ROOT_TYPES.CONTROLS,
+        index: 2
+      };
     }
   }]);
 

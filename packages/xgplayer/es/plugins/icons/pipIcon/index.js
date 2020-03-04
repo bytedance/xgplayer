@@ -8,7 +8,9 @@ function _inherits(subClass, superClass) { if (typeof superClass !== "function" 
 
 import Plugin from '../../../plugin';
 
-var Events = Plugin.Events;
+var Events = Plugin.Events,
+    POSITIONS = Plugin.POSITIONS,
+    ROOT_TYPES = Plugin.ROOT_TYPES;
 
 var PIPIcon = function (_Plugin) {
   _inherits(PIPIcon, _Plugin);
@@ -109,6 +111,15 @@ var PIPIcon = function (_Plugin) {
     key: 'pluginName',
     get: function get() {
       return 'PipIcon';
+    }
+  }, {
+    key: 'defaultConfig',
+    get: function get() {
+      return {
+        position: POSITIONS.RIGHT,
+        rootType: ROOT_TYPES.CONTROLS,
+        index: 6
+      };
     }
   }]);
 

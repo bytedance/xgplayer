@@ -54,9 +54,6 @@ class FlvPlayer extends BasePlugin {
     this.pause = this.pause.bind(this)
 
     const { player } = this;
-    player.on('timeupdate', () => {
-      this.loadData()
-    })
 
     player.on('seeking', () => {
       const time = this.currentTime

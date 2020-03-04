@@ -56,26 +56,26 @@ var MiniScreen = function (_Plugin) {
       _player.root.style.left = '';
       _player.root.style.width = '320px';
       _player.root.style.height = '180px';
-      if (_player.config.pipConfig) {
-        if (_player.config.pipConfig.top !== undefined) {
-          _player.root.style.top = _player.config.pipConfig.top + 'px';
+      if (this.config) {
+        if (this.config.top !== undefined) {
+          _player.root.style.top = this.config.top + 'px';
           _player.root.style.bottom = '';
         }
-        if (_player.config.pipConfig.bottom !== undefined) {
-          _player.root.style.bottom = _player.config.pipConfig.bottom + 'px';
+        if (this.config.bottom !== undefined) {
+          _player.root.style.bottom = this.config.bottom + 'px';
         }
-        if (_player.config.pipConfig.left !== undefined) {
-          _player.root.style.left = _player.config.pipConfig.left + 'px';
+        if (this.config.left !== undefined) {
+          _player.root.style.left = this.config.left + 'px';
           _player.root.style.right = '';
         }
-        if (_player.config.pipConfig.right !== undefined) {
-          _player.root.style.right = _player.config.pipConfig.right + 'px';
+        if (this.config.right !== undefined) {
+          _player.root.style.right = this.config.right + 'px';
         }
-        if (_player.config.pipConfig.width !== undefined) {
-          _player.root.style.width = _player.config.pipConfig.width + 'px';
+        if (this.config.width !== undefined) {
+          _player.root.style.width = this.config.width + 'px';
         }
-        if (_player.config.pipConfig.height !== undefined) {
-          _player.root.style.height = _player.config.pipConfig.height + 'px';
+        if (this.config.height !== undefined) {
+          _player.root.style.height = this.config.height + 'px';
         }
       }
       if (_player.config.fluid) {

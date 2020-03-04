@@ -233,7 +233,7 @@ var VideoCanvas = function () {
     key: '_onTimer',
     value: function _onTimer(currentTime) {
       if (this.paused) {
-        return;
+        return false;
       }
 
       if (this.meta) {
@@ -257,11 +257,14 @@ var VideoCanvas = function () {
             //   buf = [new Uint8Array(buf0), new Uint8Array(buf1), new Uint8Array(buf2)];
             // }
             this.yuvCanvas.render(frame.buffer, frame.width, frame.height, frame.yLinesize, frame.uvLinesize);
-          }
-          for (var _i2 = 0; _i2 < frameTimes.length; _i2++) {
-            if (Number.parseInt(frameTimes[_i2]) < frameTime) {
-              delete this._decodedFrames[frameTimes[_i2]];
+            for (var _i2 = 0; _i2 < frameTimes.length; _i2++) {
+              if (Number.parseInt(frameTimes[_i2]) < frameTime) {
+                delete this._decodedFrames[frameTimes[_i2]];
+              }
             }
+            return true;
+          } else {
+            return false;
           }
         }
       }
@@ -316,12 +319,22 @@ var VideoCanvas = function () {
       }
 
       if (currentRange.start !== null && currentRange.end !== null) {
-        currentRange.start = currentRange.start / 1000;
-        currentRange.end = currentRange.end / 1000;
+        currentRange.start = (currentRange.start - this._baseDts) / 1000;
+        currentRange.end = (currentRange.end - this._baseDts) / 1000;
         ranges.push(currentRange);
       }
 
       return new _timeRanges2.default(ranges);
+    }
+  }, {
+    key: 'videoWidth',
+    get: function get() {
+      return this.canvas.width;
+    }
+  }, {
+    key: 'videoHeight',
+    get: function get() {
+      return this.canvas.height;
     }
   }]);
 

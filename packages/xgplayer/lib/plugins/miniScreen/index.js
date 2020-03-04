@@ -6,9 +6,17 @@ Object.defineProperty(exports, "__esModule", {
 
 var _createClass = function () { function defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ("value" in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } } return function (Constructor, protoProps, staticProps) { if (protoProps) defineProperties(Constructor.prototype, protoProps); if (staticProps) defineProperties(Constructor, staticProps); return Constructor; }; }();
 
+var _draggabilly = require('draggabilly');
+
+var _draggabilly2 = _interopRequireDefault(_draggabilly);
+
 var _plugin = require('../../plugin');
 
 var _plugin2 = _interopRequireDefault(_plugin);
+
+var _miniScreenIcon = require('./miniScreenIcon');
+
+var _miniScreenIcon2 = _interopRequireDefault(_miniScreenIcon);
 
 require('./index.scss');
 
@@ -20,147 +28,213 @@ function _possibleConstructorReturn(self, call) { if (!self) { throw new Referen
 
 function _inherits(subClass, superClass) { if (typeof superClass !== "function" && superClass !== null) { throw new TypeError("Super expression must either be null or a function, not " + typeof superClass); } subClass.prototype = Object.create(superClass && superClass.prototype, { constructor: { value: subClass, enumerable: false, writable: true, configurable: true } }); if (superClass) Object.setPrototypeOf ? Object.setPrototypeOf(subClass, superClass) : subClass.__proto__ = superClass; }
 
-var Util = _plugin2.default.Util;
+var Util = _plugin2.default.Util,
+    Events = _plugin2.default.Events;
 
 var MiniScreen = function (_Plugin) {
   _inherits(MiniScreen, _Plugin);
 
-  function MiniScreen() {
+  _createClass(MiniScreen, null, [{
+    key: 'pluginName',
+    get: function get() {
+      return 'miniscreen';
+    }
+  }, {
+    key: 'defaultConfig',
+    get: function get() {
+      return {
+        width: 320,
+        height: 180,
+        left: 0,
+        top: 200,
+        'z-index': 110,
+        isShowIcon: true, // 是否显示icon
+        isCachePosition: true // 是否缓存位置信息
+      };
+    }
+  }]);
+
+  function MiniScreen(args) {
     _classCallCheck(this, MiniScreen);
 
-    return _possibleConstructorReturn(this, (MiniScreen.__proto__ || Object.getPrototypeOf(MiniScreen)).apply(this, arguments));
+    var _this = _possibleConstructorReturn(this, (MiniScreen.__proto__ || Object.getPrototypeOf(MiniScreen)).call(this, args));
+
+    _this.isMini = false;
+    _this.position = {
+      left: _this.config.left,
+      top: _this.config.top,
+      height: _this.config.height,
+      width: _this.config.width
+    };
+    _this.coordinate = {};
+    _this.lastStyle = null;
+    return _this;
   }
 
   _createClass(MiniScreen, [{
+    key: 'changPosition',
+    value: function changPosition() {
+      var position = arguments.length > 0 && arguments[0] !== undefined ? arguments[0] : { left: 0, rigth: 0, top: null, bottom: null };
+
+      console.log(position);
+    }
+  }, {
     key: 'afterCreate',
     value: function afterCreate() {
+      var _this2 = this;
+
       this.getMini = this.getMini.bind(this);
       this.exitMini = this.exitMini.bind(this);
-      this.bind(['click', 'touchend'], this.getMini);
+      this.onMousemove = this.onMousemove.bind(this);
+      this.onMousedown = this.onMousedown.bind(this);
+      this.onMouseup = this.onMouseup.bind(this);
+      var player = this.player;
+
+      if (this.config.isShowIcon) {
+        var options = {
+          onClick: function onClick() {
+            _this2.getMini();
+          }
+        };
+        this.miniIcon = player.controls.registerPlugin(_miniScreenIcon2.default.pluginName, _miniScreenIcon2.default, options);
+      }
+      this.bind('xg-mini-drag', 'click', function () {
+        console.log('xg-mini-drag');
+        _this2.exitMini();
+      });
+      // this.bind(['click', 'touchend'], this.getMini)
+      // this.bind('mousedown', this.onMousedown)
+      // this.bind('mouseup', this.onMouseup)
+      // this.draggie = new Draggabilly(this.player.root, {grid: [ 20, 20 ]})
+      // this.draggie.isEnabled = false
+      this.bind('mouseenter', function () {
+        console.log('onMouseEnter');
+      });
+      this.bind('mouseleave', function () {
+        console.log('onMouseLeave');
+      });
+    }
+  }, {
+    key: 'onMouseEnter',
+    value: function onMouseEnter() {
+      console.log('onMouseEnter');
+    }
+  }, {
+    key: 'onMouseLeave',
+    value: function onMouseLeave() {
+      console.log('onMouseLeave');
+    }
+  }, {
+    key: 'onMousedown',
+    value: function onMousedown(e) {
+      console.log('onMousedown');
+      console.log('x:' + e.clientX + '  y:' + e.clientY);
+      this.bind('mousemove', this.onMousemove);
+    }
+  }, {
+    key: 'onMouseup',
+    value: function onMouseup(e) {
+      console.log('onMouseup');
+      this.unbind('mousemove', this.onMousemove);
+    }
+  }, {
+    key: 'onMousemove',
+    value: function onMousemove(e) {
+      var nx = e.clientX;
+      var ny = e.clientY;
+      var _coordinate = this.coordinate,
+          x = _coordinate.x,
+          y = _coordinate.y;
+      var _position = this.position,
+          right = _position.right,
+          left = _position.left;
+
+      if (nx === x && ny === y) {
+        return;
+      }
+      if (right === 0) {} else if (left === 0) {}
+      this.coordinate.x = nx;
+      this.coordinate.y = ny;
+      console.log('coordinate', this.coordinate);
     }
   }, {
     key: 'getMini',
     value: function getMini() {
-      var _this2 = this;
+      var _this3 = this;
 
-      var _player = this.player;
-      // let ro = this.root.getBoundingClientRect()
-      // let Top = ro.top
-      // let Left = ro.left
-      var dragLay = Util.createDom('xg-pip-lay', '<div></div>', {}, 'xgplayer-pip-lay');
-      _player.root.appendChild(dragLay);
-      var dragHandle = Util.createDom('xg-pip-drag', '<div class="drag-handle"><span>点击按住可拖动视频</span></div>', { tabindex: 9 }, 'xgplayer-pip-drag');
-      _player.root.appendChild(dragHandle);
-      Util.addClass(this.root, 'xgplayer-pip-active');
-      _player.root.style.right = 0;
-      _player.root.style.bottom = '200px';
-      _player.root.style.top = '';
-      _player.root.style.left = '';
-      _player.root.style.width = '320px';
-      _player.root.style.height = '180px';
-      if (_player.config.pipConfig) {
-        if (_player.config.pipConfig.top !== undefined) {
-          _player.root.style.top = _player.config.pipConfig.top + 'px';
-          _player.root.style.bottom = '';
-        }
-        if (_player.config.pipConfig.bottom !== undefined) {
-          _player.root.style.bottom = _player.config.pipConfig.bottom + 'px';
-        }
-        if (_player.config.pipConfig.left !== undefined) {
-          _player.root.style.left = _player.config.pipConfig.left + 'px';
-          _player.root.style.right = '';
-        }
-        if (_player.config.pipConfig.right !== undefined) {
-          _player.root.style.right = _player.config.pipConfig.right + 'px';
-        }
-        if (_player.config.pipConfig.width !== undefined) {
-          _player.root.style.width = _player.config.pipConfig.width + 'px';
-        }
-        if (_player.config.pipConfig.height !== undefined) {
-          _player.root.style.height = _player.config.pipConfig.height + 'px';
-        }
+      if (this.isMini) {
+        return;
       }
-      if (_player.config.fluid) {
-        _player.root.style['padding-top'] = '';
-      }
-      ['click', 'touchend'].forEach(function (item) {
-        dragLay.addEventListener(item, function (e) {
-          e.preventDefault();
-          e.stopPropagation();
-          _this2.exitMini();
-          // player.root.style.top = `${Top}px`
-          // player.root.style.left = `${Left}px`
-        });
+      var player = this.player,
+          playerConfig = this.playerConfig;
+
+      player.isMini = this.isMini = true;
+      // this.draggie.enable()
+      this.lastStyle = {};
+      Util.addClass(player.root, 'xgplayer-mini');
+      this.show();
+      console.log('position', this.position);
+      Object.keys(this.position).map(function (key) {
+        _this3.lastStyle[key] = player.root.style[key];
+        player.root.style[key] = _this3.position[key] + 'px';
       });
+      if (playerConfig.fluid) {
+        player.root.style['padding-top'] = '';
+      }
+      console.log('this.lastStyle', this.lastStyle);
+      this.createDraggie();
+      this.emit(Events.MINI_STATE_CHANGE, true);
     }
   }, {
     key: 'exitMini',
     value: function exitMini() {
-      var player = this.player;
-      Util.removeClass(this.root, 'xgplayer-pip-active');
-      player.root.style.right = '';
-      player.root.style.bottom = '';
-      player.root.style.top = '';
-      player.root.style.left = '';
-      if (player.config.fluid) {
+      var _this4 = this;
+
+      this.hide();
+      if (!this.isMini) {
+        return false;
+      }
+      // this.draggie.disable()
+      var player = this.player,
+          playerConfig = this.playerConfig;
+
+      this.isMini = player.isMini = false;
+      Util.removeClass(player.root, 'xgplayer-mini');
+      if (this.lastStyle) {
+        console.log('this.lastStyle', this.lastStyle);
+        // player.root.removeAttribute('style')
+        // player.root.setAttribute('style', this.lastStyle)
+        Object.keys(this.lastStyle).map(function (key) {
+          player.root.style[key] = _this4.lastStyle[key];
+        });
+      }
+      this.lastStyle = null;
+      if (playerConfig.fluid) {
         player.root.style['width'] = '100%';
         player.root.style['height'] = '0';
-        player.root.style['padding-top'] = this.config.height * 100 / this.config.width + '%';
-      } else {
-        if (player.config.width) {
-          if (typeof this.config.width !== 'number') {
-            player.root.style.width = player.config.width;
-          } else {
-            player.root.style.width = player.config.width + 'px';
-          }
-        }
-        if (player.config.height) {
-          if (typeof player.config.height !== 'number') {
-            player.root.style.height = player.config.height;
-          } else {
-            player.root.style.height = player.config.height + 'px';
-          }
-        }
+        player.root.style['padding-top'] = playerConfig.height * 100 / playerConfig.width + '%';
       }
-
-      var dragLay = Util.findDom(player.root, '.xgplayer-pip-lay');
-      if (dragLay && dragLay.parentNode) {
-        dragLay.parentNode.removeChild(dragLay);
-      }
-      var dragHandle = Util.findDom(player.root, '.xgplayer-pip-drag');
-      if (dragHandle && dragHandle.parentNode) {
-        dragHandle.parentNode.removeChild(dragHandle);
-      }
+      this.draggie.destroy();
+      this.draggie = null;
+      this.emit(Events.MINI_STATE_CHANGE, false);
+    }
+  }, {
+    key: 'createDraggie',
+    value: function createDraggie() {
+      this.draggie = new _draggabilly2.default(this.player.root, {
+        // grid: [ 5, 5 ]
+        // handle: '.xg-mini-layer'
+      });
     }
   }, {
     key: 'destroy',
     value: function destroy() {
       this.unbind(['click', 'touchend'], this.getMini);
     }
-
-    // 扩展语言
-
-  }, {
-    key: 'registerLangauageTexts',
-    value: function registerLangauageTexts() {
-      return {
-        'miniscreen': {
-          jp: '日文text',
-          en: 'miniscreen',
-          zh: '小屏幕'
-        }
-      };
-    }
   }, {
     key: 'render',
     value: function render() {
-      var text = this.text.miniscreen;
-      return '\n      <xg-icon class="xgplayer-miniicon">\n       <p class="name"><span>' + text + '</span></p>\n      </xg-icon>';
-    }
-  }], [{
-    key: 'pluginName',
-    get: function get() {
-      return 'miniscreen';
+      return '\n      <xg-mini-layer class="xg-mini-layer">\n      <xg-mini-drag>\u5173\u95ED</xg-mini-drag>\n      </xg-mini-layer>';
     }
   }]);
 

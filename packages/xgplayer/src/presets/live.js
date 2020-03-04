@@ -7,23 +7,22 @@ import Keyboard from '../plugins/keyboard'
 import Loading from '../plugins/loading'
 import sniffer from '../utils/sniffer';
 
-import PlayIcon from '../plugins/icons/playIcon'
-import FullScreen from '../plugins/icons/fullscreen'
-import TimeIcon from '../plugins/icons/timeIcon'
-import VolumeIcon from '../plugins/icons/volumeIcon'
-import RotateIcon from '../plugins/icons/rotate'
-import PIPIcon from '../plugins/icons/pipIcon'
-import PlayNextIcon from '../plugins/icons/playNextIcon'
-// import DownLoadIcon from '../plugins/icons/downloadIcon'
-// import ScreenShotIcon from '../plugins/icons/screenShotIcon'
-import DefinitionIcon from '../plugins/icons/definitionIcon'
-import PlaybackRateIcon from '../plugins/icons/playbackRateIcon'
-import CssFullScreen from '../plugins/icons/cssFullScreen'
+import PlayIcon from '../plugins/playIcon'
+import FullScreen from '../plugins/fullscreen'
+import TimeIcon from '../plugins/timeIcon'
+import VolumeIcon from '../plugins/volumeIcon'
+import RotateIcon from '../plugins/rotate'
+import PIPIcon from '../plugins/pipIcon'
+// import DownLoadIcon from '../plugins/downloadIcon'
+// import ScreenShotIcon from '../plugins/screenShotIcon'
+import DefinitionIcon from '../plugins/definitionIcon'
+import PlaybackRateIcon from '../plugins/playbackRateIcon'
+import CssFullScreen from '../plugins/cssFullScreen'
 
 export default class DefaultPreset {
   constructor () {
     const contolsIcons = [PlayIcon, FullScreen, TimeIcon, VolumeIcon,
-      RotateIcon, PlayNextIcon, DefinitionIcon, PlaybackRateIcon, CssFullScreen, PIPIcon]
+      RotateIcon, DefinitionIcon, PlaybackRateIcon, CssFullScreen, PIPIcon]
     this.plugins = [Poster, Start, Loading, Enter, ...contolsIcons]
 
     switch (sniffer.device) {

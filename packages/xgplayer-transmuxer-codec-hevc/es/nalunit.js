@@ -3,6 +3,7 @@ var _createClass = function () { function defineProperties(target, props) { for 
 function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } }
 
 import SpsParser from './sps';
+import SEIParser from './sei';
 
 var Nalunit = function () {
   function Nalunit() {
@@ -198,11 +199,12 @@ var Nalunit = function () {
           break;
         case 39:
           // PREFIX_SEI
-          unit.prefix_sei = true;
+          // unit.prefix_sei = true;
+          unit.sei = SEIParser.parse(unit.body.slice(1));
           break;
         case 40:
           // SUFFIX_SEI
-          unit.suffix_sei = true;
+          unit.sei = SEIParser.parse(unit.body.slice(1));
           break;
         default:
           break;
@@ -238,7 +240,8 @@ var Nalunit = function () {
       // seperate
       var pos = buffer.position;
       var headerLength = 0;
-      while (headerLength !== 3 && headerLength !== 4 && pos < buffer.length - 4) {
+      var bufferLen = buffer.length;
+      while (headerLength !== 3 && headerLength !== 4 && pos < bufferLen - 4) {
         if (buffer.dataview.getInt16(pos) === 0) {
           if (buffer.dataview.getInt16(pos + 2) === 1) {
             // 0x000001
@@ -253,7 +256,7 @@ var Nalunit = function () {
         }
       }
 
-      if (pos === buffer.length - 4) {
+      if (pos === bufferLen - 4) {
         if (buffer.dataview.getInt16(pos) === 0) {
           if (buffer.dataview.getInt16(pos + 2) === 1) {
             // 0x000001
@@ -265,7 +268,7 @@ var Nalunit = function () {
             // 0x0000001
             headerLength = 3;
           } else {
-            pos = buffer.length;
+            pos = bufferLen;
           }
         }
       }

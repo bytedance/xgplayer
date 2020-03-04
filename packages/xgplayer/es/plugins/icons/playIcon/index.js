@@ -9,7 +9,9 @@ function _inherits(subClass, superClass) { if (typeof superClass !== "function" 
 import Plugin from '../../../plugin';
 import PlayPauseSvg from '../../assets/playPause.svg';
 
-var Events = Plugin.Events;
+var Events = Plugin.Events,
+    POSITIONS = Plugin.POSITIONS,
+    ROOT_TYPES = Plugin.ROOT_TYPES;
 
 var PlayIcon = function (_Plugin) {
   _inherits(PlayIcon, _Plugin);
@@ -98,6 +100,15 @@ var PlayIcon = function (_Plugin) {
     key: 'pluginName',
     get: function get() {
       return 'PlayIcon';
+    }
+  }, {
+    key: 'defaultConfig',
+    get: function get() {
+      return {
+        position: POSITIONS.LEFT,
+        rootType: ROOT_TYPES.CONTROLS,
+        index: 0
+      };
     }
   }]);
 

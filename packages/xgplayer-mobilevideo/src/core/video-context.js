@@ -187,7 +187,7 @@ class VideoCanvas {
 
   _onTimer (currentTime) {
     if (this.paused) {
-      return;
+      return false;
     }
 
     if (this.meta) {
@@ -212,12 +212,16 @@ class VideoCanvas {
           //   buf = [new Uint8Array(buf0), new Uint8Array(buf1), new Uint8Array(buf2)];
           // }
           this.yuvCanvas.render(frame.buffer, frame.width, frame.height, frame.yLinesize, frame.uvLinesize);
-        }
-        for (let i = 0; i < frameTimes.length; i++) {
-          if (Number.parseInt(frameTimes[i]) < frameTime) {
-            delete this._decodedFrames[frameTimes[i]];
+          for (let i = 0; i < frameTimes.length; i++) {
+            if (Number.parseInt(frameTimes[i]) < frameTime) {
+              delete this._decodedFrames[frameTimes[i]];
+            }
           }
+          return true;
+        } else {
+          return false;
         }
+
       }
     }
     this._lastRenderTime = Date.now()
@@ -265,12 +269,20 @@ class VideoCanvas {
     }
 
     if (currentRange.start !== null && currentRange.end !== null) {
-      currentRange.start = currentRange.start / 1000
-      currentRange.end = currentRange.end / 1000
+      currentRange.start = (currentRange.start - this._baseDts )/ 1000
+      currentRange.end = (currentRange.end - this._baseDts) / 1000
       ranges.push(currentRange)
     }
 
     return new TimeRanges(ranges)
+  }
+
+  get videoWidth () {
+    return this.canvas.width;
+  }
+
+  get videoHeight () {
+    return this.canvas.height;
   }
 
 }

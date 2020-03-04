@@ -12,7 +12,9 @@ import Plugin from '../../../plugin';
 
 var Events = Plugin.Events,
     Util = Plugin.Util,
-    Sniffer = Plugin.Sniffer;
+    Sniffer = Plugin.Sniffer,
+    POSITIONS = Plugin.POSITIONS,
+    ROOT_TYPES = Plugin.ROOT_TYPES;
 
 var PlaybackRateIcon = function (_Plugin) {
   _inherits(PlaybackRateIcon, _Plugin);
@@ -28,8 +30,9 @@ var PlaybackRateIcon = function (_Plugin) {
     key: 'defaultConfig',
     get: function get() {
       return {
-        position: 'left',
-        index: 2,
+        position: POSITIONS.RIGHT,
+        rootType: ROOT_TYPES.CONTROLS,
+        index: 4,
         rateList: [0.5, 0.75, { rate: 1, iconText: '倍速' }, 1.5, 2]
       };
     }

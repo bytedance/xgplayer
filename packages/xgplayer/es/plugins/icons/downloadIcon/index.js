@@ -9,6 +9,9 @@ function _inherits(subClass, superClass) { if (typeof superClass !== "function" 
 import downloadUtil from 'downloadjs';
 import Plugin from '../../../plugin';
 
+var POSITIONS = Plugin.POSITIONS,
+    ROOT_TYPES = Plugin.ROOT_TYPES;
+
 var DownloadIcon = function (_Plugin) {
   _inherits(DownloadIcon, _Plugin);
 
@@ -16,6 +19,15 @@ var DownloadIcon = function (_Plugin) {
     key: 'pluginName',
     get: function get() {
       return 'DownloadIcon';
+    }
+  }, {
+    key: 'defaultConfig',
+    get: function get() {
+      return {
+        position: POSITIONS.RIGHT,
+        rootType: ROOT_TYPES.CONTROLS,
+        index: 3
+      };
     }
   }]);
 

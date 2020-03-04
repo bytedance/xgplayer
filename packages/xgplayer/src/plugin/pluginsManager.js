@@ -64,10 +64,15 @@ const pluginsManager = {
     const plugins = this.pluginGroup[cgid]._plugins
     const originalOptions = this.pluginGroup[cgid]._originalOptions
     options.player = this.pluginGroup[cgid]._player
-    // console.log('plugin.pluginName', plugin.pluginName)
+
     const pluginName = options.pluginName || plugin.pluginName
     if (!pluginName) {
       throw new Error('The property pluginName is necessary')
+    }
+
+    if (plugin.isSupported && !plugin.isSupported()) {
+      console.warn(`not supported plugin [${pluginName}]`)
+      return;
     }
 
     if (!options.config) {

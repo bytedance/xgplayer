@@ -36,7 +36,7 @@ var _stateClassMap = require('./stateClassMap');
 
 var _stateClassMap2 = _interopRequireDefault(_stateClassMap);
 
-var _default = require('./plugins/presets/default');
+var _default = require('./presets/default');
 
 var _default2 = _interopRequireDefault(_default);
 
@@ -49,6 +49,10 @@ var _preset = require('./plugin/preset');
 var _controls = require('./plugins/controls');
 
 var _controls2 = _interopRequireDefault(_controls);
+
+var _baseBar = require('./plugins/baseBar');
+
+var _baseBar2 = _interopRequireDefault(_baseBar);
 
 var _package = require('../package.json');
 
@@ -73,8 +77,6 @@ var Player = function (_Proxy) {
     var _this = _possibleConstructorReturn(this, (Player.__proto__ || Object.getPrototypeOf(Player)).call(this, options));
 
     _this.config = _util2.default.deepCopy((0, _defaultConfig2.default)(), options);
-    _this.config.plugins = [_controls2.default].concat(_this.config.plugins);
-    console.log('this.config.plugins', _this.config.plugins);
     _this.config.presets = [_default2.default];
     // timer and flags
     _this.userTimer = null;
@@ -88,7 +90,6 @@ var Player = function (_Proxy) {
     _this._initDOM();
 
     _this._bindEvents();
-
     _this._registerPresets();
     _this._registerPlugins();
 
@@ -114,11 +115,9 @@ var Player = function (_Proxy) {
   _createClass(Player, [{
     key: '_initDOM',
     value: function _initDOM() {
+      var _this2 = this;
+
       this.root = _util2.default.findDom(document, '#' + this.config.id);
-      this.controls = _util2.default.createDom('xg-controls', '', {
-        unselectable: 'on',
-        onselectstart: 'return false'
-      }, 'xgplayer-controls');
       if (!this.root) {
         var el = this.config.el;
         if (el && el.nodeType === 1) {
@@ -132,79 +131,79 @@ var Player = function (_Proxy) {
           return false;
         }
       }
-
+      var baseBar = _plugin.pluginsManager.register(this, _baseBar2.default);
+      this.baseBar = baseBar;
+      var controls = _plugin.pluginsManager.register(this, _controls2.default, { isHide: !!this.config.controls });
+      this.controls = controls;
       this.addClass(_stateClassMap2.default.DEFAULT + ' xgplayer-' + _sniffer2.default.device + ' ' + _stateClassMap2.default.NO_START + ' ' + (this.config.controls ? '' : _stateClassMap2.default.NO_CONTROLS));
-      this.root.appendChild(this.controls);
       if (this.config.fluid) {
-        this.root.style['max-width'] = '100%';
-        this.root.style['width'] = '100%';
-        this.root.style['height'] = '0';
-        this.root.style['padding-top'] = this.config.height * 100 / this.config.width + '%';
-
-        this.video.style['position'] = 'absolute';
-        this.video.style['top'] = '0';
-        this.video.style['left'] = '0';
+        var style = {
+          'max-width': '100%',
+          'width': '100%',
+          'height': '0',
+          'padding-top': this.config.height * 100 / this.config.width + '%',
+          'position': 'position',
+          'top': '0',
+          'left': '0'
+        };
+        console.log('style', style);
+        Object.keys(style).map(function (key) {
+          _this2.root.style[key] = style[key];
+        });
       } else {
-        // this.root.style.width = `${this.config.width}px`
-        // this.root.style.height = `${this.config.height}px`
-        if (this.config.width) {
-          if (typeof this.config.width !== 'number') {
-            this.root.style.width = this.config.width;
-          } else {
-            this.root.style.width = this.config.width + 'px';
+        ['width', 'height'].map(function (key) {
+          if (_this2.config[key]) {
+            if (typeof _this2.config[key] !== 'number') {
+              _this2.root.style[key] = _this2.config[key];
+            } else {
+              _this2.root.style[key] = _this2.config[key] + 'px';
+            }
           }
-        }
-        if (this.config.height) {
-          if (typeof this.config.height !== 'number') {
-            this.root.style.height = this.config.height;
-          } else {
-            this.root.style.height = this.config.height + 'px';
-          }
-        }
+        });
       }
     }
   }, {
     key: '_bindEvents',
     value: function _bindEvents() {
-      var _this2 = this;
+      var _this3 = this;
 
       ['focus', 'blur'].forEach(function (item) {
-        _this2.on(item, _this2['on' + item.charAt(0).toUpperCase() + item.slice(1)]);
+        _this3.on(item, _this3['on' + item.charAt(0).toUpperCase() + item.slice(1)]);
       });
 
       // deal with the fullscreen state change callback
       this.onFullscreenChange = function () {
         var fullEl = _util2.default.getFullScreenEl();
-        if (fullEl && (fullEl === _this2._fullscreenEl || fullEl.tagName === 'VIDEO')) {
-          _this2.fullscreen = true;
-          _this2.addClass(_stateClassMap2.default.FULLSCREEN);
-          _this2.emit(Events.FULLSCREEN_CHANGE, true);
+        if (fullEl && (fullEl === _this3._fullscreenEl || fullEl.tagName === 'VIDEO')) {
+          _this3.fullscreen = true;
+          _this3.addClass(_stateClassMap2.default.FULLSCREEN);
+          _this3.emit(Events.FULLSCREEN_CHANGE, true);
         } else {
-          _this2.fullscreen = false;
-          _this2._fullscreenEl = null;
-          _this2.removeClass(_stateClassMap2.default.FULLSCREEN);
-          _this2.emit(Events.FULLSCREEN_CHANGE, false);
+          _this3.fullscreen = false;
+          _this3._fullscreenEl = null;
+          _this3.removeClass(_stateClassMap2.default.FULLSCREEN);
+          _this3.emit(Events.FULLSCREEN_CHANGE, false);
         }
       };
 
       FULLSCREEN_EVENTS.forEach(function (item) {
-        document.addEventListener(item, _this2.onFullscreenChange);
+        document.addEventListener(item, _this3.onFullscreenChange);
       });
 
       this.once('loadeddata', this.getVideoSize);
 
       this.mousemoveFunc = function () {
-        _this2.emit(Events.PLAYER_FOCUS);
-        if (!_this2.config.closeFocusVideoFocus) {
-          _this2.video.focus();
+        _this3.emit(Events.PLAYER_FOCUS);
+        if (!_this3.config.closeFocusVideoFocus) {
+          _this3.video.focus();
         }
       };
       this.root.addEventListener('mousemove', this.mousemoveFunc);
 
       this.playFunc = function () {
-        _this2.emit(Events.PLAYER_FOCUS);
-        if (!_this2.config.closePlayVideoFocus) {
-          _this2.video.focus();
+        _this3.emit(Events.PLAYER_FOCUS);
+        if (!_this3.config.closePlayVideoFocus) {
+          _this3.video.focus();
         }
       };
       this.once('play', this.playFunc);
@@ -222,11 +221,11 @@ var Player = function (_Proxy) {
       // }
       var player = this;
       function onDestroy() {
-        var _this3 = this;
+        var _this4 = this;
 
         player.root.removeEventListener('mousemove', player.mousemoveFunc);
         FULLSCREEN_EVENTS.forEach(function (item) {
-          document.removeEventListener(item, _this3.onFullscreenChange);
+          document.removeEventListener(item, _this4.onFullscreenChange);
         });
         player.off('destroy', onDestroy);
       }
@@ -235,7 +234,7 @@ var Player = function (_Proxy) {
   }, {
     key: '_startInit',
     value: function _startInit(url) {
-      var _this4 = this;
+      var _this5 = this;
 
       var root = this.root;
       var player = this;
@@ -252,7 +251,7 @@ var Player = function (_Proxy) {
         this.video.src = url;
       } else {
         url.forEach(function (item) {
-          _this4.video.appendChild(_util2.default.createDom('source', '', {
+          _this5.video.appendChild(_util2.default.createDom('source', '', {
             src: '' + item.src,
             type: '' + (item.type || '')
           }));
@@ -266,7 +265,7 @@ var Player = function (_Proxy) {
       }
       root.insertBefore(this.video, root.firstChild);
       setTimeout(function () {
-        _this4.emit(Events.COMPLETE);
+        _this5.emit(Events.COMPLETE);
       }, 1);
       this.hasStart = true;
       _plugin.pluginsManager.afterInit(this);
@@ -278,8 +277,9 @@ var Player = function (_Proxy) {
   }, {
     key: '_registerPlugins',
     value: function _registerPlugins() {
-      var _this5 = this;
+      var _this6 = this;
 
+      this._loadingPlugins = [];
       var ignores = this.config.ignores || [];
       var plugins = this.config.plugins || [];
       var ignoresStr = ignores.join('||');
@@ -289,10 +289,21 @@ var Player = function (_Proxy) {
           if (plugin.pluginName && ignoresStr.indexOf(plugin.pluginName.toLowerCase()) > -1) {
             return null;
           }
-          if (plugin.options) {
-            return _plugin.pluginsManager.register(_this5, plugin.plugin, plugin.options);
+          if (plugin.lazy && plugin.loader) {
+            var loadingPlugin = _plugin.pluginsManager.lazyRegister(_this6, plugin);
+            if (plugin.forceBeforeInited) {
+              loadingPlugin.then(function () {
+                _this6._loadingPlugins.splice(_this6._loadingPlugins.indexOf(loadingPlugin), 1);
+              }).catch(function () {
+                _this6._loadingPlugins.splice(_this6._loadingPlugins.indexOf(loadingPlugin), 1);
+              });
+              _this6._loadingPlugins.push(loadingPlugin);
+            }
+
+            return;
           }
-          return _plugin.pluginsManager.register(_this5, plugin);
+          console.log(plugin.pluginName);
+          return _this6.registerPlugin(plugin);
         } catch (err) {
           return null;
         }
@@ -301,15 +312,36 @@ var Player = function (_Proxy) {
   }, {
     key: '_registerPresets',
     value: function _registerPresets() {
-      var _this6 = this;
+      var _this7 = this;
 
       this.config.presets.forEach(function (preset) {
-        (0, _preset.usePreset)(_this6, preset);
+        (0, _preset.usePreset)(_this7, preset);
       });
     }
   }, {
     key: 'registerPlugin',
-    value: function registerPlugin() {}
+    value: function registerPlugin(plugin) {
+      var PLUFGIN = null;
+      var options = {};
+      if (plugin.plugin && typeof plugin.plugin === 'function') {
+        PLUFGIN = plugin.plugin;
+        options = plugin.options;
+      } else {
+        PLUFGIN = plugin;
+        options = {};
+      }
+      if (!options.root) {
+        var rootType = options.rootType ? options.rootType : PLUFGIN.defaultConfig && PLUFGIN.defaultConfig.rootType;
+        var ROOT_TYPES = _plugin2.default.ROOT_TYPES;
+
+        if (rootType === ROOT_TYPES.CONTROLS) {
+          return this.controls.registerPlugin(PLUFGIN.pluginName, PLUFGIN, options);
+        } else if (rootType === ROOT_TYPES.BASE_BAR) {
+          return this.baseBar.registerPlugin(PLUFGIN.pluginName, PLUFGIN, options);
+        }
+      }
+      return _plugin.pluginsManager.register(this, PLUFGIN, options);
+    }
   }, {
     key: 'unRegistePlugin',
     value: function unRegistePlugin() {}
@@ -344,7 +376,7 @@ var Player = function (_Proxy) {
   }, {
     key: 'start',
     value: function start(url) {
-      var _this7 = this;
+      var _this8 = this;
 
       // 已经开始初始化播放了 则直接调用play
       if (this.hasStart) {
@@ -352,9 +384,9 @@ var Player = function (_Proxy) {
       } else {
         return _plugin.pluginsManager.beforeInit(this).then(function () {
           if (!url) {
-            url = _this7.url || _this7.config.url;
+            url = _this8.url || _this8.config.url;
           }
-          return _this7._startInit(url);
+          return _this8._startInit(url);
         }).catch(function (e) {
           e.fileName = 'player';
           e.lineNumber = '236';
@@ -365,7 +397,7 @@ var Player = function (_Proxy) {
   }, {
     key: 'play',
     value: function play() {
-      var _this8 = this;
+      var _this9 = this;
 
       if (!this.hasStart) {
         this.start();
@@ -374,14 +406,14 @@ var Player = function (_Proxy) {
       var playPromise = _get(Player.prototype.__proto__ || Object.getPrototypeOf(Player.prototype), 'play', this).call(this);
       if (playPromise !== undefined && playPromise && playPromise.then) {
         playPromise.then(function () {
-          _this8.removeClass(_stateClassMap2.default.AUTOPLAY);
-          _this8.removeClass(_stateClassMap2.default.NO_START);
-          _this8.addClass(_stateClassMap2.default.PLAYING);
+          _this9.removeClass(_stateClassMap2.default.AUTOPLAY);
+          _this9.removeClass(_stateClassMap2.default.NO_START);
+          _this9.addClass(_stateClassMap2.default.PLAYING);
         }).catch(function (e) {
           // 避免AUTOPLAY_PREVENTED先于playing和play触发
           setTimeout(function () {
-            _this8.emit(Events.AUTOPLAY_PREVENTED);
-            _this8.addClass(_stateClassMap2.default.AUTOPLAY);
+            _this9.emit(Events.AUTOPLAY_PREVENTED);
+            _this9.addClass(_stateClassMap2.default.AUTOPLAY);
           }, 0);
           throw e;
         });
@@ -427,11 +459,11 @@ var Player = function (_Proxy) {
   }, {
     key: 'replay',
     value: function replay() {
-      var _this9 = this;
+      var _this10 = this;
 
       this.removeClass(_stateClassMap2.default.ENDED);
       this.once(Events.CANPLAY, function () {
-        var playPromise = _this9.play();
+        var playPromise = _this10.play();
         if (playPromise && playPromise.catch) {
           playPromise.catch(function (err) {
             console.log(err);
@@ -497,9 +529,10 @@ var Player = function (_Proxy) {
   }, {
     key: 'onFocus',
     value: function onFocus() {
+      console.log('onFocus');
       this.isActive = true;
       var player = this;
-      this.addClass(_stateClassMap2.default.ACTIVE);
+      this.removeClass(_stateClassMap2.default.ACTIVE);
       if (player.userTimer) {
         clearTimeout(player.userTimer);
       }
@@ -511,8 +544,9 @@ var Player = function (_Proxy) {
   }, {
     key: 'onBlur',
     value: function onBlur() {
+      console.log('onBlur');
       if (!this.paused && !this.ended) {
-        this.removeClass(_stateClassMap2.default.ACTIVE);
+        this.addClass(_stateClassMap2.default.ACTIVE);
       }
     }
   }, {
@@ -557,20 +591,20 @@ var Player = function (_Proxy) {
   }, {
     key: 'onWaiting',
     value: function onWaiting() {
-      var _this10 = this;
+      var _this11 = this;
 
       var self = this;
       if (self.waitTimer) {
         clearTimeout(self.waitTimer);
       }
       self.waitTimer = setTimeout(function () {
-        _this10.addClass(_stateClassMap2.default.LOADING);
+        _this11.addClass(_stateClassMap2.default.LOADING);
       }, 500);
     }
   }, {
     key: 'onPlaying',
     value: function onPlaying() {
-      var _this11 = this;
+      var _this12 = this;
 
       if (this.waitTimer) {
         clearTimeout(this.waitTimer);
@@ -584,7 +618,7 @@ var Player = function (_Proxy) {
 
       var clsList = [NO_START, PAUSED, ENDED, ERROR, REPLAY, LOADING];
       clsList.forEach(function (cls) {
-        _this11.removeClass(cls);
+        _this12.removeClass(cls);
       });
       this.addClass(_stateClassMap2.default.PLAYING);
     }

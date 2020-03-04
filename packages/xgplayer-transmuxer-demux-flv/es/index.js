@@ -19,6 +19,8 @@ var FlvDemuxer = function () {
     this._firstFragmentLoaded = false;
     this._trackNum = 0;
     this._hasScript = false;
+    this._videoMetaChange = false;
+    this._audioMetaChange = false;
   }
 
   _createClass(FlvDemuxer, [{
@@ -410,13 +412,13 @@ var FlvDemuxer = function () {
         }
         this._hasAudioSequence = true;
 
-        this._metaChange = true;
+        this._audioMetaChange = true;
       } else {
-        if (this._metaChange) {
+        if (this._audioMetaChange) {
           chunk.options = {
             meta: track.meta
           };
-          this._metaChange = false;
+          this._audioMetaChange = false;
         }
 
         chunk.data = chunk.data.slice(1, chunk.data.length);
@@ -486,7 +488,7 @@ var FlvDemuxer = function () {
             }
             this._hasVideoSequence = true;
           }
-          this._metaChange = true;
+          this._videoMetaChange = true;
         } else {
           if (!this._datasizeValidator(chunk.datasize)) {
             this.emit(DEMUX_EVENTS.DEMUX_ERROR, this.TAG, new Error('invalid video tag datasize: ' + chunk.datasize), false);
@@ -501,11 +503,11 @@ var FlvDemuxer = function () {
             }
           }
           codecID === 12 ? this.tracks.videoTrack.meta.streamType = 0x24 : this.tracks.videoTrack.meta.streamType = 0x1b;
-          if (this._metaChange) {
+          if (this._videoMetaChange) {
             chunk.options = {
               meta: Object.assign({}, this.tracks.videoTrack.meta)
             };
-            this._metaChange = false;
+            this._videoMetaChange = false;
           }
           this.tracks.videoTrack.samples.push(chunk);
           // this.emit(DEMUX_EVENTS.DEMUX_COMPLETE)

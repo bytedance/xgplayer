@@ -65,10 +65,11 @@ const buildESStyles = async () => {
   }
 };
 
-// build main css file
-const buildDistStyle = async () => {
+// build entry css file
+const buildDistStyle = async (entry) => {
   const rawCss = sass.renderSync({
-    file: path.resolve(__dirname, '../src/style/index.scss')
+    // file: path.resolve(__dirname, '../src/style/index.scss')
+    file: entry.input
   }).css.toString();
 
   const distCss = await postcss([autoprefixer]).process(rawCss, { from: 'undefined' }).then(result => {
@@ -91,7 +92,7 @@ const buildDistStyle = async () => {
   for (let i = 0, len = files.length; i < len; i++) {
     const isMinFile = i === 1;
 
-    const distPath = path.resolve(__dirname, `../dist/xgplayer${isMinFile ? '.min' : ''}.css`);
+    const distPath = path.resolve(__dirname, `../dist/xgplayer${entry.namespace ? '.' + entry.namespace : ''}${isMinFile ? '.min' : ''}.css`);
     const cssToWrite = isMinFile ? compressCss : distCss;
     const distDir = path.dirname(distPath);
     if (!fs.existsSync(distDir)) {
@@ -101,11 +102,21 @@ const buildDistStyle = async () => {
     }
     await writeFile(distPath, cssToWrite, 'utf-8');
   }
-
 };
 
 // entry
 (async function main () {
   await buildESStyles();
-  await buildDistStyle();
+  const entries = [{
+    input: path.resolve(__dirname, '../src/style/index.scss')
+  }, {
+    input: path.resolve(__dirname, '../src/presets/default.scss'),
+    namespace: 'vod'
+  }, {
+    input: path.resolve(__dirname, '../src/presets/live.scss'),
+    namespace: 'live'
+  }]
+  await Promise.all(entries.map((entry) => {
+    return buildDistStyle(entry)
+  }))
 })();

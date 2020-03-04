@@ -1,4 +1,4 @@
-"use strict";
+'use strict';
 
 Object.defineProperty(exports, "__esModule", {
   value: true
@@ -20,7 +20,7 @@ var usePreset = exports.usePreset = function usePreset(player, Preset) {
       plugins = _presetInst.plugins,
       ignores = _presetInst.ignores;
 
-
+  console.log('preset', plugins);
   if (!player.config.plugins) {
     player.config.plugins = [];
   }

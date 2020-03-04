@@ -9,7 +9,9 @@ function _inherits(subClass, superClass) { if (typeof superClass !== "function" 
 import Plugin from '../../../plugin';
 import FullScreenChangeSvg from '../../assets/fullscreenChange.svg';
 
-var Events = Plugin.Events;
+var Events = Plugin.Events,
+    POSITIONS = Plugin.POSITIONS,
+    ROOT_TYPES = Plugin.ROOT_TYPES;
 
 var Fullscreen = function (_Plugin) {
   _inherits(Fullscreen, _Plugin);
@@ -37,10 +39,26 @@ var Fullscreen = function (_Plugin) {
     value: function btnClick(e) {
       var player = this.player;
 
-      if (player.fullscreen) {
-        player.exitFullscreen();
+      var useCssFullscreen = false;
+      if (this.config.useCssFullscreen && this.config.useCssFullscreen()) {
+        useCssFullscreen = true;
+      }
+      if (useCssFullscreen) {
+        if (player.fullscreen) {
+          player.getCssFullscreen();
+          player.fullscreen = true;
+          this.emit(Events.FULLSCREEN_CHANGE, true);
+        } else {
+          player.exitCssFullscreen();
+          player.fullscreen = false;
+          this.emit(Events.FULLSCREEN_CHANGE, false);
+        }
       } else {
-        player.getFullscreen();
+        if (player.fullscreen) {
+          player.exitFullscreen();
+        } else {
+          player.getFullscreen();
+        }
       }
     }
   }, {
@@ -88,6 +106,15 @@ var Fullscreen = function (_Plugin) {
     key: 'pluginName',
     get: function get() {
       return 'fullscreen';
+    }
+  }, {
+    key: 'defaultConfig',
+    get: function get() {
+      return {
+        position: POSITIONS.RIGHT,
+        rootType: ROOT_TYPES.CONTROLS,
+        index: 0
+      };
     }
   }]);
 

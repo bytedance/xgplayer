@@ -10,7 +10,9 @@ import Plugin from '../../../plugin';
 import CssFullscreenChange from '../../assets/cssFullscreenChange.svg';
 
 var Events = Plugin.Events,
-    Util = Plugin.Util;
+    Util = Plugin.Util,
+    POSITIONS = Plugin.POSITIONS,
+    ROOT_TYPES = Plugin.ROOT_TYPES;
 
 var CssFullScreen = function (_Plugin) {
   _inherits(CssFullScreen, _Plugin);
@@ -19,6 +21,15 @@ var CssFullScreen = function (_Plugin) {
     key: 'pluginName',
     get: function get() {
       return 'cssFullscreen';
+    }
+  }, {
+    key: 'defaultConfig',
+    get: function get() {
+      return {
+        position: POSITIONS.RIGHT,
+        rootType: ROOT_TYPES.CONTROLS,
+        index: 1
+      };
     }
   }]);
 
@@ -72,6 +83,7 @@ var CssFullScreen = function (_Plugin) {
       }
       Util.addClass(player.root, 'xgplayer-is-cssfullscreen');
       this.isCssfullScreen = true;
+      this.switchTips();
       player.emit('cssFullscreen_change', this.isCssfullScreen);
     }
   }, {
@@ -86,7 +98,13 @@ var CssFullScreen = function (_Plugin) {
       }
       Util.removeClass(player.root, 'xgplayer-is-cssfullscreen');
       this.isCssfullScreen = false;
+      this.switchTips();
       player.emit('cssFullscreen_change', this.isCssfullScreen);
+    }
+  }, {
+    key: 'switchTips',
+    value: function switchTips() {
+      this.find('.xg-tips').innerHTML = this.isCssfullScreen ? this.text.exitCssFullscreen : this.text.cssFullscreen;
     }
   }, {
     key: 'registerIcons',
