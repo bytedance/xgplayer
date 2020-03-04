@@ -6,17 +6,30 @@ export default class PCPlugin extends BasePlugin {
   }
 
   afterCreate () {
-    this.onVideoClick = this.onVideoClick.bind(this)
-    this.onVideoDblClick = this.onVideoDblClick.bind(this)
-    this.onMouseEnter = this.onMouseEnter.bind(this)
-    this.onMouseLeave = this.onMouseLeave.bind(this)
-    this.onControlMouseEnter = this.onControlMouseEnter.bind(this)
-    this.onControlMouseLeave = this.onControlMouseLeave.bind(this)
-    this.onReady = this.onReady.bind(this)
+    const eventHandlers = ['onVideoClick', 'onVideoDblClick', 'onMouseEnter', 'onMouseLeave', 'onControlMouseEnter',
+    'onControlMouseLeave']
+    eventHandlers.map (key => {
+      if (this[key]) {
+        this[key] = this[key].bind(this)
+      }
+    })
+    // this.onVideoClick = this.onVideoClick.bind(this)
+    // this.onVideoDblClick = this.onVideoDblClick.bind(this)
+    // this.onMouseEnter = this.onMouseEnter.bind(this)
+    // this.onMouseLeave = this.onMouseLeave.bind(this)
+    // this.onControlMouseEnter = this.onControlMouseEnter.bind(this)
+    // this.onControlMouseLeave = this.onControlMouseLeave.bind(this)
     this.initEvents();
     const {playerConfig} = this
     if (playerConfig.autoplay) {
       this.onEnter()
+    }
+  }
+
+  onPlayerReady () {
+    const { player } = this;
+    if (player.config.autoplay) {
+      player.start()
     }
   }
 
@@ -63,7 +76,6 @@ export default class PCPlugin extends BasePlugin {
   }
 
   onVideoClick (e) {
-    console.log('onVideoClick')
     e.preventDefault()
     // e.stopPropagation()
     if (!this.config.closeVideoStopPropagation) {
@@ -133,13 +145,6 @@ export default class PCPlugin extends BasePlugin {
     const { player } = this;
     if (!player.config.closeControlsBlur) {
       player.emit('focus', player)
-    }
-  }
-
-  onReady () {
-    const { player } = this;
-    if (player.config.autoplay) {
-      player.start()
     }
   }
 

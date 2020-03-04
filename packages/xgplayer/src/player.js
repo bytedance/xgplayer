@@ -28,6 +28,7 @@ class Player extends Proxy {
     this.isPlaying = false
     this.isSeeking = false
     this.isActive = true
+    this.isCssfullScreen = false
 
     this._initDOM()
 
@@ -433,13 +434,23 @@ class Player extends Proxy {
   getCssFullscreen () {
     let player = this
     this.addClass(STATE_CLASS.CSS_FULLSCREEN)
-    player.emit('requestCssFullscreen')
+    if (this.config.fluid) {
+      this.root.style['padding-top'] = ''
+    }
+    this.isCssfullScreen = true
+    this.emit(Events.CSS_FULLSCREEN_CHANGE, true)
   }
 
   exitCssFullscreen () {
     let player = this
+    if (this.config.fluid) {
+      this.root.style['width'] = '100%'
+      this.root.style['height'] = '0'
+      this.root.style['padding-top'] = `${this.config.height * 100 / this.config.width}%`
+    }
     this.removeClass(STATE_CLASS.CSS_FULLSCREEN)
-    player.emit('exitCssFullscreen')
+    this.isCssfullScreen = false
+    this.emit(Events.CSS_FULLSCREEN_CHANGE, false)
   }
 
   onFocus () {

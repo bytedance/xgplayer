@@ -98,7 +98,6 @@ export default class RotateIcon extends Plugin {
   }
 
   rotate (clockwise = false, innerRotate = true, times = 1) {
-    console.log(`clockwise:${clockwise} innerRotate:${innerRotate} times:${times}`)
     let player = this.player;
     if (!this.rotateDeg) {
       this.rotateDeg = 0
@@ -106,7 +105,6 @@ export default class RotateIcon extends Plugin {
     let factor = clockwise ? 1 : -1
 
     this.rotateDeg = (this.rotateDeg + 1 + factor * 0.25 * times) % 1
-    console.log('this.rotateDeg', this.rotateDeg)
     this.updateRotateDeg()
     player.emit('rotate', this.rotateDeg * 360)
   }

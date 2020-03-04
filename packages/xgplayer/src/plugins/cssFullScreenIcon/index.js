@@ -17,10 +17,16 @@ export default class CssFullScreenIcon extends Plugin {
 
   constructor (args) {
     super(args)
-    this.isCssfullScreen = false
   }
 
   afterCreate () {
+    this.on (Events.CSS_FULLSCREEN_CHANGE, (isCssfullScreen) => {
+      this.animate(isCssfullScreen)
+    })
+    // 退出全屏的时候会同时退出网页全屏
+    this.on (Events.FULLSCREEN_CHANGE, (isFullScreen) => {
+      !isFullScreen && this.animate(isFullScreen)
+    })
   }
 
   onPlayerReady () {
@@ -31,13 +37,11 @@ export default class CssFullScreenIcon extends Plugin {
   btnClick (e) {
     e.preventDefault()
     e.stopPropagation()
-    if (!this.isCssfullScreen) {
-      this.getCssFullscreen()
+    if (!this.player.isCssfullScreen) {
+      this.player.getCssFullscreen()
     } else {
-      this.exitCssFullscreen()
+      this.player.exitCssFullscreen()
     }
-    this.animate(this.isCssfullScreen)
-    this.emit(Events.CSS_FULLSCREEN_CHANGE, this.isCssfullScreen)
   }
 
   animate (isFullScreen) {
