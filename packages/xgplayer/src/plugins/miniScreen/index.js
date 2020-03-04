@@ -17,7 +17,7 @@ class MiniScreen extends Plugin {
       height: 180,
       left: -1,              //默认左下角
       top: -1,               //默认左下角
-      isShowIcon: true,      // 是否显示icon
+      isShowIcon: false,      // 是否显示icon
       isScrollSwitch: false, // 滚动自动切换自动切换
       scrollTop: 0,          //触发滚动的高度
       disableDrag: false     //禁用拖拽

@@ -95,6 +95,8 @@ export default class Plugin extends BasePlugin {
     } else if (args.tag) {
       _el = _createElement(args.tag, args.name)
       _parent.appendChild(_el)
+    } else {
+      return
     }
 
     Plugin.defineGetterOrSetter(this, {
@@ -122,6 +124,9 @@ export default class Plugin extends BasePlugin {
   }
 
   __registeChildren () {
+    if (!this.el) {
+      return
+    }
     const children = this.children()
     if (children && typeof children === 'object') {
       if (!this._children) {
@@ -182,6 +187,9 @@ export default class Plugin extends BasePlugin {
   }
 
   find (qs) {
+    if (!this.el) {
+      return
+    }
     return this.el.querySelector(qs)
   }
 
@@ -196,6 +204,9 @@ export default class Plugin extends BasePlugin {
         this.bindEL(querySelector, eventType)
       }
     } else if (arguments.length === 3 && typeof callback === 'function') {
+      if (!this.el) {
+        return
+      }
       if (Array.isArray(eventType)) {
         eventType.forEach((item) => {
           delegate.bind(this.el, querySelector, item, callback, false)
@@ -228,6 +239,9 @@ export default class Plugin extends BasePlugin {
   }
 
   setStyle (name, value) {
+    if (!this.el) {
+      return
+    }
     if (typeof name === 'string') {
       this.style[name] = value
       return (this.el.style[name] = value)
@@ -240,6 +254,9 @@ export default class Plugin extends BasePlugin {
   }
 
   setAttr (name, value) {
+    if (!this.el) {
+      return
+    }
     if (typeof name === 'string') {
       return this.el.setAttribute(name, value)
     } else if (typeof name === 'object') {
@@ -251,6 +268,9 @@ export default class Plugin extends BasePlugin {
   }
 
   setHtml (htmlStr, callback) {
+    if (!this.el) {
+      return
+    }
     this.el.innerHtml = htmlStr
     if (typeof callback === 'function') {
       callback()
@@ -258,18 +278,27 @@ export default class Plugin extends BasePlugin {
   }
 
   bindEL (event, eventHandle, isBubble = false) {
+    if (!this.el) {
+      return
+    }
     if (`on${event}` in this.el && typeof eventHandle === 'function') {
       this.el.addEventListener(event, eventHandle, isBubble)
     }
   }
 
   unbindEL (event, eventHandle, isBubble = false) {
+    if (!this.el) {
+      return
+    }
     if (`on${event}` in this.el && typeof eventHandle === 'function') {
       this.el.removeEventListener(event, eventHandle, isBubble)
     }
   }
 
   show (value) {
+    if (!this.el) {
+      return;
+    }
     this.el.style.display = value !== undefined ? value : 'block'
     const cs = window.getComputedStyle(this.el, null)
     const cssDisplayValue = cs.getPropertyValue('display')
@@ -279,7 +308,7 @@ export default class Plugin extends BasePlugin {
   }
 
   hide () {
-    this.el.style.display = 'none'
+    this.el && (this.el.style.display = 'none')
   }
 
   render () {

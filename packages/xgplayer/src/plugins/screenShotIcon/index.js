@@ -3,7 +3,7 @@ import Plugin from '../../plugin'
 const { Events, POSITIONS, ROOT_TYPES } = Plugin
 export default class ScreenShotIcon extends Plugin {
   static get pluginName () {
-    return 'ScreenShotIcon'
+    return 'screenShot'
   }
 
   static get defaultConfig () {
@@ -89,6 +89,9 @@ export default class ScreenShotIcon extends Plugin {
   }
 
   render () {
+    if (!this.playerConfig.screenShot) {
+      return;
+    }
     const className = this.icons.screenshotIcon ? 'xgplayer-icon' : 'xgplayer-icon btn-definition'
     return `
       <xg-icon class="xgplayer-shot">

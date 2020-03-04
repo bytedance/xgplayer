@@ -23,6 +23,9 @@ export default class DownloadIcon extends Plugin {
   }
 
   afterCreate () {
+    if (!this.playerConfig.download) {
+      return;
+    }
     this.download = this.download.bind(this)
     this.bind(['click', 'touchend'], this.download)
   }
@@ -74,6 +77,9 @@ export default class DownloadIcon extends Plugin {
   }
 
   render () {
+    if (!this.playerConfig.download) {
+      return;
+    }
     return `<xg-icon class="xgplayer-download">
       <div class="xgplayer-icon">
       ${this.icons.download}

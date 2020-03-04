@@ -3,7 +3,7 @@ import Plugin from '../../plugin'
 const {Events, Util, Sniffer, POSITIONS, ROOT_TYPES} = Plugin
 export default class PlaybackRateIcon extends Plugin {
   static get pluginName () {
-    return 'PlaybackRateIcon'
+    return 'PlaybackRate'
   }
   // 默认配置信息
   static get defaultConfig () {
@@ -11,7 +11,7 @@ export default class PlaybackRateIcon extends Plugin {
       position: POSITIONS.RIGHT,
       rootType: ROOT_TYPES.CONTROLS,
       index: 4,
-      rateList: [0.5, 0.75, {rate: 1, iconText: '倍速'}, 1.5, 2]
+      playbackRate: [0.5, 0.75, {rate: 1, iconText: '倍速'}, 1.5, 2]
     }
   }
   constructor (args) {
@@ -20,6 +20,9 @@ export default class PlaybackRateIcon extends Plugin {
   }
 
   afterCreate () {
+    if (this.playerConfig.playbackRate) {
+      this.config.playbackRate = this.playerConfig.playbackRate
+    }
     this.once(Events.CANPLAY, () => {
       this.show()
     })
@@ -28,11 +31,19 @@ export default class PlaybackRateIcon extends Plugin {
     } else {
       this.activeEvent = 'mouseenter'
     }
+    this.renderItemList();
     this.onMouseenter = this.onMouseenter.bind(this)
     this.onItemClick = this.onItemClick.bind(this)
     this.bind(this.activeEvent, this.onMouseenter)
     this.bind('mouseleave', this.onMouseenter)
     this.bind('.icon-list li', ['touched', 'click'], this.onItemClick)
+  }
+
+  show () {
+    if (!this.config.playbackRate || this.config.playbackRate.length === 0) {
+      return;
+    }
+    super.show()
   }
 
   onMouseenter (e) {
@@ -60,11 +71,11 @@ export default class PlaybackRateIcon extends Plugin {
     this.unbind('.icon-list li', ['touched', 'click'], this.onItemClick)
   }
 
-  render () {
+  renderItemList () {
     const playbackRate = this.player.playbackRate || 1
     this.curRate = playbackRate
     let currentText = ''
-    const items = this.config.rateList.map((item) => {
+    const items = this.config.playbackRate.map((item) => {
       let itemInfo = typeof item === 'object' ? item : {rate: item}
       !itemInfo.text && (itemInfo.text = `${itemInfo.rate}x`)
       if (itemInfo.rate === playbackRate) {
@@ -73,11 +84,17 @@ export default class PlaybackRateIcon extends Plugin {
       }
       return `<li cname="${itemInfo.rate}" ctext="${item.iconText || itemInfo.text}" class="${itemInfo.isCurrent ? 'selected' : ''}">${itemInfo.text}</li>`
     })
+    this.find('.icon-list').innerHTML = items.join('')
+    this.find('.icon-text').innerHTML = currentText
+    this.show()
+  }
 
+  render () {
     return `<xg-icon class="xgplayer-playbackrate">
-    <div class="xgplayer-icon btn-definition"><span class="icon-text">${currentText}</span></div>
+    <div class="xgplayer-icon btn-definition">
+    <span class="icon-text"></span>
+    </div>
     <ul class="icon-list">
-      ${items.join('')}
     </ul>
    </xg-icon>`
   }

@@ -122,13 +122,13 @@ export default class DefinitionIcon extends Plugin {
       player.switchURL(lastATag.href)
     }
   }
+
   // 对外暴露 切换清晰度
   changeDefinition () {
 
   }
 
   onItemClick (e) {
-    console.log('onItemClick')
     const {player} = this
     const {itemList} = this.config
     e.preventDefault()

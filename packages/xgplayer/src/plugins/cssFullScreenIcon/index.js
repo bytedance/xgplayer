@@ -11,12 +11,14 @@ export default class CssFullScreenIcon extends Plugin {
     return {
       position: POSITIONS.RIGHT,
       rootType: ROOT_TYPES.CONTROLS,
-      index: 1
+      index: 1,
+      hide: true
     }
   }
 
   constructor (args) {
     super(args)
+    this.config.hide = !!this.playerConfig.cssFullscreen
   }
 
   afterCreate () {
@@ -45,34 +47,13 @@ export default class CssFullScreenIcon extends Plugin {
   }
 
   animate (isFullScreen) {
+    if (!this.el) {
+      return;
+    }
     const path = this.find('.path')
     const full = this.find('.path_full').getAttribute('d')
     const exit = this.find('.path_exitfull').getAttribute('d')
     isFullScreen ? path.setAttribute('d', exit) : path.setAttribute('d', full)
-  }
-
-  getCssFullscreen () {
-    const {player} = this
-    if (player.config.fluid) {
-      player.root.style['padding-top'] = ''
-    }
-    Util.addClass(player.root, 'xgplayer-is-cssfullscreen')
-    this.isCssfullScreen = true
-    this.switchTips()
-    player.emit('cssFullscreen_change', this.isCssfullScreen)
-  }
-
-  exitCssFullscreen () {
-    const {player} = this
-    if (player.config.fluid) {
-      player.root.style['width'] = '100%'
-      player.root.style['height'] = '0'
-      player.root.style['padding-top'] = `${player.config.height * 100 / player.config.width}%`
-    }
-    Util.removeClass(player.root, 'xgplayer-is-cssfullscreen')
-    this.isCssfullScreen = false
-    this.switchTips()
-    player.emit('cssFullscreen_change', this.isCssfullScreen)
   }
 
   switchTips () {
@@ -105,6 +86,9 @@ export default class CssFullScreenIcon extends Plugin {
   }
 
   render () {
+    if (!this.playerConfig.cssFullscreen) {
+      return
+    }
     return `<xg-icon class='xgplayer-cssfullscreen'>
     <div class="xgplayer-icon">
     ${this.icons.cssFullscreen}

@@ -9,7 +9,8 @@ class Keyboard extends BasePlugin {
   static get defaultConfig () {
     return {
       seekStep: 10,
-      keyCodeMap: {}
+      keyCodeMap: {},
+      disable: false
     }
   }
 
@@ -130,6 +131,9 @@ class Keyboard extends BasePlugin {
   }
 
   onBodyKeyDown (event) {
+    if (this.config.disable) {
+      return
+    }
     let e = event || window.event
     const keyCode = e.keyCode
     if (e.target === document.body && this.checkCode(keyCode, true)) {
@@ -143,6 +147,9 @@ class Keyboard extends BasePlugin {
   }
 
   onKeydown (event) {
+    if (this.config.disable) {
+      return
+    }
     const player = this.player
     let e = event || window.event
     if (e && (e.keyCode === 37 || this.checkCode(e.keyCode)) && (e.target === this.player.root || e.target === this.player.video || e.target === this.player.controls.el)) {

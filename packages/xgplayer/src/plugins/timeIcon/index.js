@@ -4,19 +4,23 @@ const { Util, Events, POSITIONS, ROOT_TYPES } = Plugin
 
 class TimeIcon extends Plugin {
   static get pluginName () {
-    return 'TimeIcon'
+    return 'time'
   }
 
   static get defaultConfig () {
     return {
       position: POSITIONS.LEFT,
       rootType: ROOT_TYPES.CONTROLS,
-      index: 2
+      index: 2,
+      hide: false
     }
   }
 
   onTimeUpdate () {
-    const { player } = this
+    const { player, config} = this
+    if ( config.hide ) {
+      return
+    }
     const current = player.currentTime
     this.timeDom.innerHTML = Util.format(current)
     if (player.duration !== Infinity) {
@@ -34,8 +38,11 @@ class TimeIcon extends Plugin {
     this.on(Events.TIME_UPDATE, () => {
       this.onTimeUpdate()
     })
+    console.log('this.config', this.config)
   }
+
   onPlayerReady () {
+    const {player,config} = this
     if (player.duration === Infinity || this.playerConfig.isLive) {
       Util.hide(this.durationDom)
       Util.hide(this.timeDom)
@@ -44,8 +51,13 @@ class TimeIcon extends Plugin {
     } else {
       Util.hide(this.find('.time-live-tag'))
     }
+    if (config.hide) {
+      this.hide()
+      return
+    }
     this.show();
   }
+
   changeLiveState (isLive) {
     if (isLive) {
       Util.hide(this.durationDom)

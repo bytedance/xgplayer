@@ -127,6 +127,9 @@ export default class RotateIcon extends Plugin {
   }
 
   render () {
+    if (!this.playerConfig.rotate) {
+      return;
+    }
     return `
     <xg-icon class="xgplayer-rotate">
       <div class="xgplayer-icon">

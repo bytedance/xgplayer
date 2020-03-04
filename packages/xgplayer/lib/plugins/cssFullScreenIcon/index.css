@@ -1,0 +1,4 @@
+.xgplayer .xgplayer-cssfullscreen .xgplayer-icon svg {
+  -webkit-transform: translateY(2px) scale(1.3);
+      -ms-transform: translateY(2px) scale(1.3);
+          transform: translateY(2px) scale(1.3); }
