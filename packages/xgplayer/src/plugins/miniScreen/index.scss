@@ -1,50 +1,172 @@
-$definitionUlBgColor: rgba(0, 0, 0, 0.54);
-$definitionLiColor: rgba(255, 255, 255, 0.80);
-$definitionLiActiveColor: #fff;
-$definitionNameColor: rgba(255, 255, 255, 1);
-$definitionNameBgColor: rgba(0, 0, 0, 0.38);
+@import "../../style/variable";
 .xgplayer {
   &.xgplayer-mini {
     position: fixed;
     width: 320px;
     height: 180px;
     z-index: 110;
+    &:hover {
+      cursor: move;
+      .xg-mini-layer {
+        display: block;
+      }
+    }
   }
-  &.xgplayer-inactive {
-    background-color: rgba(0,0,0,0);
-    xg-mini-drag {
+  &.xgplayer-ended {
+    .xg-mini-layer {
       display: none;
     }
   }
+  &.xgplayer-inactive {
+  }
   .xg-mini-layer {
-    pointer-events: none;
     display: none;
     position: absolute;
     top: 0;
     left: 0;
-    height: 100%;
     width: 100%;
-    background-color: rgba(0,0,0,.16);
-    // .xg-mask {
-    //   display: none;
-    //   position: absolute;
-    //   top: 0;
-    //   left: 0;
-    //   background-color: rgba(0,0,0,.16);
-    //   width: 100%;
-    //   height: 100%;
-    // }
-    
-    xg-mini-drag {
-      pointer-events: auto;
-      color: rgba(255,255,255,0.7);
+    height: 100%;
+    .mask {
+      pointer-events: none;
+      position: absolute;
+      top: 0;
+      left: 0;
+      height: 100%;
+      width: 100%;
+      background-color: rgba(0, 0, 0, 0.4);
     }
-    // &.hover {
-    //   background-color: rgba(0,0,0,.16);
-    //   xg-mini-drag {
-    //     display: block;
-    //   }
-    // }
+    xg-mini-header {
+      display: flex;
+      cursor: pointer;
+      top: 0;
+      left: 0;
+      right: 40px;
+      box-sizing: border-box;
+      padding: 10px 3px 0 8px;
+      justify-content: space-between;
+      color: #ffffff;
+      font-size: 14px;
+      position: absolute;
+      // 超过结束时的blur层
+      z-index: 22;
+      .xgplayer-pip-disableBtn {
+        pointer-events: all;
+      }
+      #disabledMini {
+        display: none;
+        position: relative;
+      }
+      #disabledMini + label {
+        cursor: pointer;
+        position: relative;
+        display: flex;
+        align-items: center;
+      }
+      #disabledMini + label::before {
+        content: "";
+        color: #ff142b;
+        background-color: transparent;
+        border-radius: 2px;
+        border: solid 1px #cdcdcd;
+        width: 16px;
+        height: 16px;
+        display: inline-block;
+        text-align: center;
+        vertical-align: middle;
+        line-height: 16px;
+        margin-right: 7px;
+      }
+      #disabledMini:checked {
+        + label {
+          color: #ff142b;
+        }
+        + label::before {
+          border-color: #ff142b;
+        }
+        + label:after {
+          content: "";
+          position: absolute;
+          width: 4px;
+          height: 8px;
+          border-color: #ff142b;
+          border-style: solid;
+          border-width: 0px 2px 2px 0px;
+          transform: rotate(45deg);
+          left: 6px;
+          top: 5px;
+        }
+      }
+      .xgplayer-mini-disableBtn {
+        xg-tips {
+          position: absolute;
+          padding: 4px 6px;
+          white-space: nowrap;
+          bottom: -30px;
+          right: 15px;
+          border-radius: 4px;
+          background-color: rgba(0, 0, 0, 0.54);
+          display: none;
+        }
+      }
+      .xgplayer-mini-disableBtn:hover {
+        #disabledMini {
+          + label::before {
+            border-color: #ff142b;
+          }
+          + label {
+            color: #ff142b;
+          }
+        }
+        xg-tips {
+          display: block;
+        }
+      }
+    }
+    .mini-cancel-btn {
+      cursor: pointer;
+      display: block;
+      color: #fff;
+      width: 40px;
+      height: 38px;
+      position: absolute;
+      right: 0;
+      top: 0;
+      text-align: center;
+      line-height: 38px;
+    }
+    .play-icon {
+      cursor: pointer;
+      height: 48px;
+      width: 48px;
+      position: absolute;
+      background: rgba(0,0,0,.54);
+      border-radius: 24px;
+      top: 50%;
+      left: 50%;
+      margin: -24px 0 0 -24px;
+      svg {
+        width: 40px;
+        height: 40px;
+        fill: #faf7f7;
+        transform: translate(7px, 7px);
+      }
+      &.play {
+        .play {
+          display: none;
+        }
+        .pause {
+          display: block;
+        }
+      }
+      &.pause {
+        .play {
+          display: block;
+        }
+        .pause {
+          display: none;
+        }
+      }
+    }
   }
   .xgplayer-miniicon {
     position: relative;
@@ -72,72 +194,72 @@ $definitionNameBgColor: rgba(0, 0, 0, 0.38);
     }
   }
 
-  .xgplayer-pip-lay{
-    position: absolute;
-    top: 26px;
-    left: 0;
-    width: 100%;
-    height: 100%;
-    z-index: 130;
-    cursor: pointer;
-    background-color: transparent;
-    display: none;
-    div{
-      width: 100%;
-      height: 100%;
-    }
-  }
+  // .xgplayer-mini-lay{
+  //   position: absolute;
+  //   top: 26px;
+  //   left: 0;
+  //   width: 100%;
+  //   height: 100%;
+  //   z-index: 130;
+  //   cursor: pointer;
+  //   background-color: transparent;
+  //   display: none;
+  //   div{
+  //     width: 100%;
+  //     height: 100%;
+  //   }
+  // }
 
-  .xgplayer-pip-drag{
-    cursor: move;
-    position: absolute;
-    top: 0;
-    left: 0;
-    width: 100%;
-    height: 26px;
-    line-height: 26px;
-    background-image: linear-gradient(rgba(0, 0, 0, 0.3), rgba(0, 0, 0, 0));
-    z-index: 130;
-    display: none;
-  }
-}
-
-.xgplayer-pip-active {
-  position: fixed;
-  right: 0;
-  bottom: 200px;
-  width: 320px !important;
-  height: 180px !important;
-  z-index: 110 !important;
-  .xgplayer-controls {
-    display: none;
-  }
-  .xgplayer-danmu {
-    display: none;
-  }
-  .xgplayer-pip-lay{
-    display: block;
-  }
+  // .xgplayer-pip-drag{
+  //   cursor: move;
+  //   position: absolute;
+  //   top: 0;
+  //   left: 0;
+  //   width: 100%;
+  //   height: 26px;
+  //   line-height: 26px;
+  //   background-image: linear-gradient(rgba(0, 0, 0, 0.3), rgba(0, 0, 0, 0));
+  //   z-index: 130;
+  //   display: none;
+  // }
 }
 
-.xgplayer.xgplayer-pip-active {
-  .xgplayer-pip-drag {
-    display: flex;
-  }
-}
+// .xgplayer-pip-active {
+//   position: fixed;
+//   right: 0;
+//   bottom: 200px;
+//   width: 320px !important;
+//   height: 180px !important;
+//   z-index: 110 !important;
+//   .xgplayer-controls {
+//     display: none;
+//   }
+//   .xgplayer-danmu {
+//     display: none;
+//   }
+//   .xgplayer-pip-lay{
+//     display: block;
+//   }
+// }
 
-.xgplayer.xgplayer-inactive {
-  .xgplayer-pip-drag {
-    display: none;
-  }
-}
-.lang-is-jp {
-  .xgplayer-pip {
-    .name {
-      span{
-        width: 70px;
-        height: 20px;
-      }
-    }
-  }
-}
+// .xgplayer.xgplayer-pip-active {
+//   .xgplayer-pip-drag {
+//     display: flex;
+//   }
+// }
+
+// .xgplayer.xgplayer-inactive {
+//   .xgplayer-pip-drag {
+//     display: none;
+//   }
+// }
+// .lang-is-jp {
+//   .xgplayer-pip {
+//     .name {
+//       span{
+//         width: 70px;
+//         height: 20px;
+//       }
+//     }
+//   }
+// }

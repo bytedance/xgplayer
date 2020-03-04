@@ -1,0 +1,26 @@
+$timeColor: #fff;
+$timeDurationColor: rgba(255, 255, 255, 0.50);
+
+.xgplayer {
+  .xgplayer-controls .xgplayer-time {
+    padding-top: 0;
+    width: auto;
+    font-family: PingFangSC;
+    font-size: 14px;
+    color: $timeColor;
+    line-height: 40px;
+    text-align: center;
+    display: inline-block;
+    span {
+      text-align: center;
+      vertical-align: middle;
+    }
+    .time-duration {
+      color: $timeDurationColor;
+    }
+
+    .live_tag {
+      display: none;
+    }
+  }
+}

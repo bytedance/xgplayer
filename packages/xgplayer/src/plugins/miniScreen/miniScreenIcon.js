@@ -15,7 +15,7 @@ class MiniScreenIcon extends Plugin {
   }
 
   afterCreate () {
-    console.log('miniscreenIcon', this.config)
+    console.log('111miniscreenIcon', this.config)
     this.getMini = this.getMini.bind(this)
     this.exitMini = this.exitMini.bind(this)
     this.bind(['click', 'touchend'], this.getMini)
@@ -49,7 +49,7 @@ class MiniScreenIcon extends Plugin {
     let text = this.text.miniscreen
     return `
       <xg-icon class="xgplayer-miniicon">
-       <p class="name"><span>${text}</span></p>
+      <div class="xgplayer-icon btn-definition"><span class="icon-text">${text}</span></div>
       </xg-icon>`
   }
 }

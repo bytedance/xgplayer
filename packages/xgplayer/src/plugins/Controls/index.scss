@@ -1,18 +1,12 @@
+@import "../../style/variable";
 //controls
 $controlHeight: 40px;
 //icon
-$iconMargin: 5px;
+$iconMargin: 10px;
 // tips
 $tipsColor: #fff;
-$tipsBgColor: rgba(0, 0, 0, 0.54);
-$tipsFontsize: 11px;
-// text
-$definitionUlBgColor: rgba(0, 0, 0, 0.54);
-$definitionLiColor: hsla(0,0%,100%,.8);
-$definitionLiActiveColor: #fff;
-
-$definitionNameColor: rgba(255, 255, 255, 1);
-$definitionNameBgColor: rgba(0, 0, 0, 0.38);
+$tipsBgColor: rgba(0, 0, 0, 0.8);
+$tipsFontsize: 12px;
 
 .xgplayer {
   &.xgplayer-inactive {
@@ -28,9 +22,8 @@ $definitionNameBgColor: rgba(0, 0, 0, 0.38);
     bottom: 0;
     right: 0;
     height: $controlHeight;
-    z-index: 10;
+    z-index: 20;
     background-image: linear-gradient(180deg,transparent,rgba(0,0,0,.37),rgba(0,0,0,.75),rgba(0,0,0,.75));
-    z-index: 10;
     // padding: 0 10px;
     .left-grid,  .right-grid {
       position: relative;
@@ -79,25 +72,29 @@ $definitionNameBgColor: rgba(0, 0, 0, 0.38);
     }
   }
   .xg-tips {
-    background:$tipsBgColor;
-    border-radius: 1px;
     display: none;
     position: absolute;
-    font-family: PingFangSC-Regular;
+    background:$tipsBgColor;
+    border-radius: 1px;
+    font-family: PingFangSC;
     font-size: $tipsFontsize;
     color: $tipsColor;
-    padding: 4px 4px;
+    padding: 4px 6px;
+    border-radius: 4px;
     text-align: center;
     top: -30px;
     left: 50%;
     margin-left: -16px;
+    opacity: 0.85;
     width: auto;
     white-space: nowrap;
   }
   xg-icon {
     position: relative;
-    height: 100%;
-    margin-right: $iconMargin;
+    height: 40px;
+    top: 40%;
+    margin-top: -20px;
+    margin-left: $iconMargin;
     cursor: pointer;
     box-sizing: border-box;
     &:hover {
@@ -106,28 +103,29 @@ $definitionNameBgColor: rgba(0, 0, 0, 0.38);
       }
     }
     .xgplayer-icon {
+      cursor: pointer;
+      height: 100%;
       fill: #fff;
-      padding-top: 4px;
+    }
+    svg {
+      height: 100%;
     }
     .btn-definition {
+      top: 50%;
+      margin-top: -8px;
+      position: relative;
       text-align: center;
       font-family: PingFangSC-Regular;
       font-size: 13px;
-      line-height: 20px;
-      height: 20px;
+      height: 24px;
       color: $definitionNameColor;
-      line-height: 40px;
       span {
-        font-family: PingFangSC-Regular;
-        font-size: 13px;
-        width: 60px;
-        height: 20px;
-        line-height: 20px;
+        min-width: 60px;
+        height: 24px;
+        line-height: 24px;
         background: $definitionNameBgColor;
-        border-radius: 10px;
+        border-radius: 12px;
         display:inline-block;
-        vertical-align:middle;
-        margin-bottom: 8px;
       }
     }
     ul, li {
@@ -187,8 +185,11 @@ $definitionNameBgColor: rgba(0, 0, 0, 0.38);
 
   .right-grid {
     xg-icon {
-      margin-right: 0;
-      margin-left: $iconMargin;
+      margin-right: $iconMargin;
+      margin-left: 0;
+    }
+    .xg-tips {
+      left: 0;
     }
   }
 }
