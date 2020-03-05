@@ -229,6 +229,13 @@ declare module 'xgplayer' {
 
         // 自定义配置
         customConfig?: Record<string, unknown>;
+
+        //播放媒体类型
+        mediaType?: string;
+
+        domain?: string;
+
+        kid?: string;
     }
 
     class Proxy extends EventEmitter {
