@@ -1,6 +1,5 @@
-import BasePlugin from '../../plugin/basePlugin';
+import BasePlugin from '../../plugin/basePlugin'
 
-const {Util} = BasePlugin
 class Keyboard extends BasePlugin {
   static get pluginName () {
     return 'Keyboard'
@@ -21,7 +20,7 @@ class Keyboard extends BasePlugin {
         if (!this.keyCodeMap[key]) {
           this.keyCodeMap[key] = extendkeyCodeMap[key]
         } else {
-          ['code', 'action','disable', 'isBodyTarget'].map(key1 => {
+          ['code', 'action', 'disable', 'isBodyTarget'].map(key1 => {
             extendkeyCodeMap[key][key1] && (this.keyCodeMap[key][key1] = extendkeyCodeMap[key][key1])
           })
         }
@@ -34,7 +33,7 @@ class Keyboard extends BasePlugin {
       'space': {
         code: 32,
         action: 'playPause',
-        noBodyTarget: false, //默认在body上触发
+        noBodyTarget: false // 默认在body上触发
       },
       'top': {
         code: 38,
@@ -53,13 +52,13 @@ class Keyboard extends BasePlugin {
         action: 'seek'
       },
       'esc': {
-        code:27,
+        code: 27,
         action: 'exitFullscreen'
       }
     }
     this.mergekeyCodeMap()
-    this.onKeydown = this.onKeydown.bind(this);
-    this.onBodyKeyDown = this.onBodyKeyDown.bind(this);
+    this.onKeydown = this.onKeydown.bind(this)
+    this.onBodyKeyDown = this.onBodyKeyDown.bind(this)
     this.player.root.addEventListener('keydown', this.onKeydown)
     document.addEventListener('keydown', this.onBodyKeyDown)
   }
@@ -73,7 +72,7 @@ class Keyboard extends BasePlugin {
     })
     return flag
   }
-  
+
   downVolume () {
     const {player} = this
     if (player.volume - 0.1 >= 0) {
@@ -114,7 +113,8 @@ class Keyboard extends BasePlugin {
     const {player} = this
     if (player.paused) {
       // eslint-disable-next-line handle-callback-err
-      player.play().catch(err => {})
+      player.play().catch(err => {
+      })
     } else {
       player.pause()
     }
@@ -164,6 +164,7 @@ class Keyboard extends BasePlugin {
   }
 
   handleKeyCode (keyCode) {
+    const {player} = this
     if (keyCode === 40 || keyCode === 38) {
       if (player.controls) {
         // let volumeSlider = player.controls.querySelector('.xgplayer-slider')
@@ -193,7 +194,7 @@ class Keyboard extends BasePlugin {
       }
     })
   }
-  
+
   destroy () {
     this.player.root.removeEventListener('keydown', this.onKeydown)
     document.removeEventListener('keydown', this.onBodyKeyDown)

@@ -11,7 +11,8 @@ class PIPIcon extends Plugin {
     return {
       position: POSITIONS.RIGHT,
       rootType: ROOT_TYPES.CONTROLS,
-      index: 6
+      index: 6,
+      disable: true
     }
   }
 
@@ -85,6 +86,9 @@ class PIPIcon extends Plugin {
   }
 
   render () {
+    if (this.config.disable) {
+      return;
+    }
     return `<xg-icon class="xgplayer-pip">
       <div class="xgplayer-icon btn-definition">
       ${this.icons.pipicon ? this.icons.pipicon : `<span>${this.text.pipicon}</span>`}

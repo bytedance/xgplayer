@@ -59,7 +59,7 @@ export default class DownloadIcon extends Plugin {
       this.timer = null
     }, 300)
   }
-  
+
   getAbsoluteURL (url) {
     // Check if absolute URL
     if (!url.match(/^https?:\/\//)) {

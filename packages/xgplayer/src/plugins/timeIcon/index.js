@@ -38,7 +38,6 @@ class TimeIcon extends Plugin {
     this.on(Events.TIME_UPDATE, () => {
       this.onTimeUpdate()
     })
-    console.log('this.config', this.config)
   }
 
   onPlayerReady () {

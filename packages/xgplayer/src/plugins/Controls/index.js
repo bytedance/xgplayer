@@ -46,7 +46,7 @@ class Controls extends Plugin {
 
   }
 
-  registerPlugin (plugin, options = {},name) {
+  registerPlugin (plugin, options = {}, name) {
     if (!options.root) {
       const position = options.config && options.config.position ? options.config.position : plugin.defaultConfig.position
       const root = this[position] || this.left

@@ -1,7 +1,7 @@
 import Plugin from '../../plugin'
 import CssFullscreenChange from '../assets/cssFullscreenChange.svg'
 
-const {Events, Util, POSITIONS, ROOT_TYPES} = Plugin
+const {Events, POSITIONS, ROOT_TYPES} = Plugin
 export default class CssFullScreenIcon extends Plugin {
   static get pluginName () {
     return 'cssFullscreenIcon'
@@ -22,11 +22,11 @@ export default class CssFullScreenIcon extends Plugin {
   }
 
   afterCreate () {
-    this.on (Events.CSS_FULLSCREEN_CHANGE, (isCssfullScreen) => {
+    this.on(Events.CSS_FULLSCREEN_CHANGE, (isCssfullScreen) => {
       this.animate(isCssfullScreen)
     })
     // 退出全屏的时候会同时退出网页全屏
-    this.on (Events.FULLSCREEN_CHANGE, (isFullScreen) => {
+    this.on(Events.FULLSCREEN_CHANGE, (isFullScreen) => {
       !isFullScreen && this.animate(isFullScreen)
     })
   }

@@ -1,8 +1,8 @@
 import Plugin from '../../plugin'
 import ProgressDots from './progressdots'
 
-const {Events, Util, POSITIONS, ROOT_TYPES,Sniffer} = Plugin
-console.log('Sniffer', Sniffer)
+const {Events, Util, POSITIONS, ROOT_TYPES, Sniffer} = Plugin
+
 const defaultThumbnailConfig = {
   isShow: false,
   urls: [],

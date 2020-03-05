@@ -86,7 +86,7 @@ class Danmu extends Plugin {
           defaultOpen: this.config.defaultOpen
         }
       }
-      this.danmuButton = player.controls.registerPlugin(DanmuIcon, buttonOptions,DanmuIcon.pluginName)
+      this.danmuButton = player.controls.registerPlugin(DanmuIcon, buttonOptions, DanmuIcon.pluginName)
     }
   }
 

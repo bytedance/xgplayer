@@ -7,8 +7,8 @@ export default class PCPlugin extends BasePlugin {
 
   afterCreate () {
     const eventHandlers = ['onVideoClick', 'onVideoDblClick', 'onMouseEnter', 'onMouseLeave', 'onControlMouseEnter',
-    'onControlMouseLeave']
-    eventHandlers.map (key => {
+      'onControlMouseLeave']
+    eventHandlers.map(key => {
       if (this[key]) {
         this[key] = this[key].bind(this)
       }
@@ -94,10 +94,11 @@ export default class PCPlugin extends BasePlugin {
             return false
           } else if (!player.ended) {
             if (player.paused) {
-              let playPromise = player.play()
-              if (playPromise !== undefined && playPromise) {
-                playPromise.catch(err => {})
-              }
+              player.play()
+              // let playPromise = player.play()
+              // if (playPromise !== undefined && playPromise) {
+              //   playPromise.catch(err => {})
+              // }
             } else {
               player.pause()
             }

@@ -3,7 +3,7 @@ import Plugin from '../../plugin'
 import PlaySvg from '../assets/play.svg'
 import PauseSvg from '../assets/pause.svg'
 
-const {Events, POSITIONS, ROOT_TYPES} = Plugin
+const {Events, POSITIONS, ROOT_TYPES, Sniffer} = Plugin
 class PlayIcon extends Plugin {
   static get pluginName () {
     return 'PlayIcon'
@@ -20,7 +20,8 @@ class PlayIcon extends Plugin {
   afterCreate () {
     const { player } = this;
     this.btnClick = this.btnClick.bind(this)
-    this.bind(['touchend', 'click'], this.btnClick)
+    const event = Sniffer.device === 'mobile' ? 'touchend' : 'click'
+    this.bind(event, this.btnClick)
 
     this.on(Events.PAUSE, () => {
       this.animate(player.paused)
@@ -31,6 +32,7 @@ class PlayIcon extends Plugin {
   }
 
   btnClick (e) {
+    console.log('PlayIcon')
     const {player} = this
     if (player.paused) {
       player.play();

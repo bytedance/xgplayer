@@ -5,7 +5,7 @@ import Plugin from '../../plugin'
 import Next from '../assets/playNext.svg'
 //import Next from '../assets/mPlayNext.svg';
 // console.log(MPlayNext)
-const { POSITIONS, ROOT_TYPES } = Plugin
+const { POSITIONS, ROOT_TYPES, Sniffer} = Plugin
 export default class PlayNextIcon extends Plugin {
   static get pluginName () {
     return 'PlayNextIcon'
@@ -34,7 +34,8 @@ export default class PlayNextIcon extends Plugin {
 
   initEvents () {
     this.playNext = this.playNext.bind(this);
-    this.bind(['touchend', 'click'], this.playNext)
+    const event = Sniffer.device === 'mobile' ? 'touchend' : 'click'
+    this.bind(event, this.playNext)
     this.show()
   }
 

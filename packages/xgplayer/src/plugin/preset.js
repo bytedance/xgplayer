@@ -2,11 +2,11 @@ export const usePreset = (player, Preset) => {
   let presetInst;
   if (Preset.preset && Preset.options) {
     // eslint-disable-next-line new-cap
-    presetInst = new (Preset.preset)(Preset.options);
+    presetInst = new (Preset.preset)(Preset.options, player.config);
   } else {
-    presetInst = new Preset()
+    presetInst = new Preset({}, player.config)
   }
-  const { plugins, ignores } = presetInst;
+  const { plugins, ignores, icons} = presetInst;
   if (!player.config.plugins) {
     player.config.plugins = []
   }
@@ -17,4 +17,5 @@ export const usePreset = (player, Preset) => {
 
   player.config.plugins.push(...plugins);
   player.config.ignores.push(...ignores);
+  player.config.icons = icons
 }
