@@ -32,7 +32,7 @@ var AVReconciler = function () {
       if (this.video.noAudio) {
         aCurTime = vCurTime;
       } else {
-        aCurTime = this.aCtx.currentTime || 0;
+        aCurTime = this.aCtx.currentTime * 1000 || 0;
       }
 
       var gap = vCurTime - aCurTime;

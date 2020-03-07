@@ -135,6 +135,10 @@ class MobileVideo extends HTMLElement {
     this.vCtx.decodeVideo(videoTrack);
   }
 
+  decodeVideoBuffer (buffer) {
+    this.vCtx.decodeVideoBuffer(buffer)
+  }
+
   setAudioMeta (meta) {
     if (this.noAudio) {
       return;
@@ -216,6 +220,17 @@ class MobileVideo extends HTMLElement {
     return this.videoMetaInited ? this.vCtx.currentTime / 1000 : 0
   }
 
+  set currentTime (val) {
+    const nVal = Number.parseFloat(val)
+    if (!isNaN(nVal)) {
+      if (this.start && this.currentTime) {
+        const gap = this.currentTime - nVal;
+        this.start += gap
+      }
+    }
+    return nVal;
+  }
+
   get duration () {
     return this.audioMetaInited ? this.aCtx.duration : 0
   }
@@ -260,6 +275,8 @@ class MobileVideo extends HTMLElement {
     this.setAttribute('autoplay', value)
   }
   play () {
+    this._paused = false;
+    this.dispatchEvent(new Event('play'))
     if (this.pendingPlayTask) {
       return;
     }
@@ -310,9 +327,10 @@ class MobileVideo extends HTMLElement {
       this.pendingPlayTask = null
       this.played = true;
       this.dispatchEvent(new Event('playing'))
-      this.dispatchEvent(new Event('play'))
       this._paused = false
     })
+
+    return this.pendingPlayTask;
   }
 
   pause () {
@@ -320,9 +338,11 @@ class MobileVideo extends HTMLElement {
     if (!this.noAudio) {
       this.aCtx.pause()
     }
-    this.vCtx.pause()
+    this.vCtx.pause();
 
-    this.dispatchEvent(new Event('pause'))
+    Promise.resolve().then(() => {
+      this.dispatchEvent(new Event('pause'))
+    })
   }
 
   load () {

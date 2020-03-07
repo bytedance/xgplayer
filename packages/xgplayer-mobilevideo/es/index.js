@@ -163,6 +163,11 @@ var MobileVideo = function (_HTMLElement) {
       this.vCtx.decodeVideo(videoTrack);
     }
   }, {
+    key: 'decodeVideoBuffer',
+    value: function decodeVideoBuffer(buffer) {
+      this.vCtx.decodeVideoBuffer(buffer);
+    }
+  }, {
     key: 'setAudioMeta',
     value: function setAudioMeta(meta) {
       if (this.noAudio) {
@@ -192,6 +197,8 @@ var MobileVideo = function (_HTMLElement) {
     value: function play() {
       var _this3 = this;
 
+      this._paused = false;
+      this.dispatchEvent(new Event('play'));
       if (this.pendingPlayTask) {
         return;
       }
@@ -239,20 +246,25 @@ var MobileVideo = function (_HTMLElement) {
         _this3.pendingPlayTask = null;
         _this3.played = true;
         _this3.dispatchEvent(new Event('playing'));
-        _this3.dispatchEvent(new Event('play'));
         _this3._paused = false;
       });
+
+      return this.pendingPlayTask;
     }
   }, {
     key: 'pause',
     value: function pause() {
+      var _this4 = this;
+
       this._paused = true;
       if (!this.noAudio) {
         this.aCtx.pause();
       }
       this.vCtx.pause();
 
-      this.dispatchEvent(new Event('pause'));
+      Promise.resolve().then(function () {
+        _this4.dispatchEvent(new Event('pause'));
+      });
     }
   }, {
     key: 'load',
@@ -321,6 +333,16 @@ var MobileVideo = function (_HTMLElement) {
     key: 'currentTime',
     get: function get() {
       return this.videoMetaInited ? this.vCtx.currentTime / 1000 : 0;
+    },
+    set: function set(val) {
+      var nVal = Number.parseFloat(val);
+      if (!isNaN(nVal)) {
+        if (this.start && this.currentTime) {
+          var gap = this.currentTime - nVal;
+          this.start += gap;
+        }
+      }
+      return nVal;
     }
   }, {
     key: 'duration',

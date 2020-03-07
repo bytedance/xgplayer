@@ -25,6 +25,7 @@ class AudioCtx extends EventEmitter {
     this.paused = true;
     this.playFinish = null; // pending play task
     this.waitNextID = null; // audio source end and next source not loaded
+    this.destroyed = false;
   }
 
   get currentTime () {
@@ -108,7 +109,7 @@ class AudioCtx extends EventEmitter {
   }
 
   onSourceEnded () {
-    if (this.paused) {
+    if (this.destroyed || this.paused) {
       return;
     }
     if (!this._nextBuffer || !this._played) {
@@ -193,8 +194,10 @@ class AudioCtx extends EventEmitter {
     if (this.waitNextID) {
       window.clearTimeout(this.waitNextID)
     }
+    this._preDecode = [];
     this.paused = true;
     this.context.close();
+    this.destroyed = true;
   }
 
   set muted (val) {
