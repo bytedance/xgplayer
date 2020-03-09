@@ -5,7 +5,6 @@ import Errors from './error'
 import * as Events from './events'
 import Plugin, {pluginsManager, BasePlugin} from './plugin'
 import STATE_CLASS from './stateClassMap'
-import defaultPreset from './presets/default'
 import getDefaultConfig from './defaultConfig'
 import { usePreset } from './plugin/preset';
 import Controls from './plugins/controls'
@@ -19,7 +18,17 @@ class Player extends Proxy {
   constructor (options) {
     super(options)
     this.config = util.deepCopy(getDefaultConfig(), options)
-    this.config.presets = [defaultPreset]
+    this.config.presets = []
+
+    // resolve default preset
+    if (this.config.presets.length) {
+      if (this.config.presets.indexOf('default') >= 0 && player.defaultPreset) {
+        this.config.presets.push(Player.defaultPreset);
+      }
+    } else if (Player.defaultPreset) {
+      this.config.presets.push(Player.defaultPreset)
+    }
+
     // timer and flags
     this.userTimer = null
     this.waitTimer = null
@@ -609,8 +618,8 @@ class Player extends Proxy {
   }
 }
 
-Player.util = util
-Player.sniffer = sniffer
+Player.Util = util
+Player.Sniffer = sniffer
 Player.Errors = Errors
 Player.Events = Events
 Player.Plugin = Plugin
