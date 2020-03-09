@@ -39,6 +39,7 @@ class VideoCanvas {
     this.canvas.style.right = 0;
     this.canvas.style.margin = 'auto';
     this.canvas.style.position = 'absolute';
+    this.handleMessage = this.handleMessage.bind(this);
   }
 
   pause () {
@@ -46,23 +47,13 @@ class VideoCanvas {
   }
 
   initWasmWorker () {
-    let _this = this;
     // eslint-disable-next-line no-undef
     this.wasmworker = new VideoWorker();
     this.wasmworker.postMessage({
       msg: 'init',
       meta: this.meta
     })
-    this.wasmworker.addEventListener('message', msg => {
-      switch (msg.data.msg) {
-        case 'DECODER_READY':
-          _this._decoderInited = true;
-          break;
-        case 'DECODED':
-          this._onDecoded(msg.data);
-          break;
-      }
-    });
+    this.wasmworker.addEventListener('message', this.handleMessage);
   }
 
   setVideoMetaData (meta) {
@@ -163,15 +154,26 @@ class VideoCanvas {
     })
   }
 
+  decodeVideoBuffer (buffer) {
+    if (!this._decoderInited) {
+      this.initWasmWorker();
+      return
+    }
+    this.wasmworker.postMessage({
+      msg: 'decode',
+      data: buffer
+    })
+  }
+
   _onDecoded (data) {
     let {dts} = data.info
     this._decodedFrames[dts] = data;
     if (Object.keys(this._decodedFrames).length > 10) {
+      if ((this.paused || this.playFinish )&& this.oncanplay) {
+        this.oncanplay();
+      }
       if (this.playFinish) {
         this.playFinish()
-      }
-      if (this.oncanplay) {
-        this.oncanplay();
       }
     }
   }
@@ -234,11 +236,24 @@ class VideoCanvas {
   }
 
   destroy () {
+    this.wasmworker.removeEventListener('message', this.handleMessage)
     this.wasmworker.postMessage({msg: 'destroy'})
     this.wasmworker = null;
     this.canvas = null
+    this._decodedFrames = {};
     this.source = null
     this._decoderInited = false;
+  }
+
+  handleMessage (msg) {
+    switch (msg.data.msg) {
+      case 'DECODER_READY':
+        this._decoderInited = true;
+        break;
+      case 'DECODED':
+        this._onDecoded(msg.data);
+        break;
+    }
   }
 
   get buffered () {

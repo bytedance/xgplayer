@@ -6090,7 +6090,7 @@
       var info = Object.assign({}, this.infolist[infoid]);
       var yRowcount = height;
       var uvRowcount = height / 2;
-      if (this.meta.chromaFormat === 444 || this.meta.chromaFormat === 422) {
+      if (this.meta && (this.meta.chromaFormat === 444 || this.meta.chromaFormat === 422)) {
         uvRowcount = height;
       }
       var data = this.toU8Array(offset, yLinesize * yRowcount + 2 * (uvLinesize * uvRowcount));
@@ -6135,7 +6135,7 @@
 
     function init(meta) {
       if (!decoder) {
-        self.importScripts('https://sf1-vcloudcdn.pstatp.com/obj/ttfe/media/decoder/h264/decoder.js');
+        self.importScripts('https://sf1-vcloudcdn.pstatp.com/obj/ttfe/media/decoder/h264/decoder_1583333072684.js');
       }
       addOnPostRun(onPostRun.bind(self));
     }
@@ -6683,6 +6683,7 @@
       this.canvas.style.right = 0;
       this.canvas.style.margin = 'auto';
       this.canvas.style.position = 'absolute';
+      this.handleMessage = this.handleMessage.bind(this);
     }
 
     _createClass$q(VideoCanvas, [{
@@ -6693,25 +6694,13 @@
     }, {
       key: 'initWasmWorker',
       value: function initWasmWorker() {
-        var _this2 = this;
-
-        var _this = this;
         // eslint-disable-next-line no-undef
         this.wasmworker = new VideoWorker();
         this.wasmworker.postMessage({
           msg: 'init',
           meta: this.meta
         });
-        this.wasmworker.addEventListener('message', function (msg) {
-          switch (msg.data.msg) {
-            case 'DECODER_READY':
-              _this._decoderInited = true;
-              break;
-            case 'DECODED':
-              _this2._onDecoded(msg.data);
-              break;
-          }
-        });
+        this.wasmworker.addEventListener('message', this.handleMessage);
       }
     }, {
       key: 'setVideoMetaData',
@@ -6817,30 +6806,42 @@
         });
       }
     }, {
+      key: 'decodeVideoBuffer',
+      value: function decodeVideoBuffer(buffer) {
+        if (!this._decoderInited) {
+          this.initWasmWorker();
+          return;
+        }
+        this.wasmworker.postMessage({
+          msg: 'decode',
+          data: buffer
+        });
+      }
+    }, {
       key: '_onDecoded',
       value: function _onDecoded(data) {
         var dts = data.info.dts;
 
         this._decodedFrames[dts] = data;
         if (Object.keys(this._decodedFrames).length > 10) {
+          if ((this.paused || this.playFinish) && this.oncanplay) {
+            this.oncanplay();
+          }
           if (this.playFinish) {
             this.playFinish();
-          }
-          if (this.oncanplay) {
-            this.oncanplay();
           }
         }
       }
     }, {
       key: 'play',
       value: function play() {
-        var _this3 = this;
+        var _this = this;
 
         this.paused = false;
         return new Promise(function (resolve) {
-          _this3.playFinish = resolve;
+          _this.playFinish = resolve;
         }).then(function () {
-          _this3.playFinish = null;
+          _this.playFinish = null;
         });
       }
     }, {
@@ -6894,11 +6895,25 @@
     }, {
       key: 'destroy',
       value: function destroy() {
+        this.wasmworker.removeEventListener('message', this.handleMessage);
         this.wasmworker.postMessage({ msg: 'destroy' });
         this.wasmworker = null;
         this.canvas = null;
+        this._decodedFrames = {};
         this.source = null;
         this._decoderInited = false;
+      }
+    }, {
+      key: 'handleMessage',
+      value: function handleMessage(msg) {
+        switch (msg.data.msg) {
+          case 'DECODER_READY':
+            this._decoderInited = true;
+            break;
+          case 'DECODED':
+            this._onDecoded(msg.data);
+            break;
+        }
       }
     }, {
       key: 'buffered',
@@ -7016,6 +7031,7 @@
       _this2.paused = true;
       _this2.playFinish = null; // pending play task
       _this2.waitNextID = null; // audio source end and next source not loaded
+      _this2.destroyed = false;
       return _this2;
     }
 
@@ -7106,7 +7122,7 @@
       value: function onSourceEnded() {
         var _this3 = this;
 
-        if (this.paused) {
+        if (this.destroyed || this.paused) {
           return;
         }
         if (!this._nextBuffer || !this._played) {
@@ -7198,8 +7214,10 @@
         if (this.waitNextID) {
           window.clearTimeout(this.waitNextID);
         }
+        this._preDecode = [];
         this.paused = true;
         this.context.close();
+        this.destroyed = true;
       }
     }, {
       key: 'mute',
@@ -7363,7 +7381,7 @@
         if (this.video.noAudio) {
           aCurTime = vCurTime;
         } else {
-          aCurTime = this.aCtx.currentTime || 0;
+          aCurTime = this.aCtx.currentTime * 1000 || 0;
         }
 
         var gap = vCurTime - aCurTime;
@@ -7574,6 +7592,11 @@
         this.vCtx.decodeVideo(videoTrack);
       }
     }, {
+      key: 'decodeVideoBuffer',
+      value: function decodeVideoBuffer(buffer) {
+        this.vCtx.decodeVideoBuffer(buffer);
+      }
+    }, {
       key: 'setAudioMeta',
       value: function setAudioMeta(meta) {
         if (this.noAudio) {
@@ -7603,6 +7626,8 @@
       value: function play() {
         var _this3 = this;
 
+        this._paused = false;
+        this.dispatchEvent(new Event('play'));
         if (this.pendingPlayTask) {
           return;
         }
@@ -7650,20 +7675,25 @@
           _this3.pendingPlayTask = null;
           _this3.played = true;
           _this3.dispatchEvent(new Event('playing'));
-          _this3.dispatchEvent(new Event('play'));
           _this3._paused = false;
         });
+
+        return this.pendingPlayTask;
       }
     }, {
       key: 'pause',
       value: function pause() {
+        var _this4 = this;
+
         this._paused = true;
         if (!this.noAudio) {
           this.aCtx.pause();
         }
         this.vCtx.pause();
 
-        this.dispatchEvent(new Event('pause'));
+        Promise.resolve().then(function () {
+          _this4.dispatchEvent(new Event('pause'));
+        });
       }
     }, {
       key: 'load',
@@ -7732,6 +7762,16 @@
       key: 'currentTime',
       get: function get() {
         return this.videoMetaInited ? this.vCtx.currentTime / 1000 : 0;
+      },
+      set: function set(val) {
+        var nVal = Number.parseFloat(val);
+        if (!isNaN(nVal)) {
+          if (this.start && this.currentTime) {
+            var gap = this.currentTime - nVal;
+            this.start += gap;
+          }
+        }
+        return nVal;
       }
     }, {
       key: 'duration',
@@ -7942,7 +7982,7 @@
       value: function play() {
         var player = this.player;
 
-        if (this.played && this.player.paused) {
+        if (this.played) {
           this._destroy();
           player.hasStart = false;
           player.start();

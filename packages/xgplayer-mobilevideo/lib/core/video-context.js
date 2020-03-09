@@ -69,6 +69,7 @@ var VideoCanvas = function () {
     this.canvas.style.right = 0;
     this.canvas.style.margin = 'auto';
     this.canvas.style.position = 'absolute';
+    this.handleMessage = this.handleMessage.bind(this);
   }
 
   _createClass(VideoCanvas, [{
@@ -79,25 +80,13 @@ var VideoCanvas = function () {
   }, {
     key: 'initWasmWorker',
     value: function initWasmWorker() {
-      var _this2 = this;
-
-      var _this = this;
       // eslint-disable-next-line no-undef
       this.wasmworker = new _worker2.default();
       this.wasmworker.postMessage({
         msg: 'init',
         meta: this.meta
       });
-      this.wasmworker.addEventListener('message', function (msg) {
-        switch (msg.data.msg) {
-          case 'DECODER_READY':
-            _this._decoderInited = true;
-            break;
-          case 'DECODED':
-            _this2._onDecoded(msg.data);
-            break;
-        }
-      });
+      this.wasmworker.addEventListener('message', this.handleMessage);
     }
   }, {
     key: 'setVideoMetaData',
@@ -203,30 +192,42 @@ var VideoCanvas = function () {
       });
     }
   }, {
+    key: 'decodeVideoBuffer',
+    value: function decodeVideoBuffer(buffer) {
+      if (!this._decoderInited) {
+        this.initWasmWorker();
+        return;
+      }
+      this.wasmworker.postMessage({
+        msg: 'decode',
+        data: buffer
+      });
+    }
+  }, {
     key: '_onDecoded',
     value: function _onDecoded(data) {
       var dts = data.info.dts;
 
       this._decodedFrames[dts] = data;
       if (Object.keys(this._decodedFrames).length > 10) {
+        if ((this.paused || this.playFinish) && this.oncanplay) {
+          this.oncanplay();
+        }
         if (this.playFinish) {
           this.playFinish();
-        }
-        if (this.oncanplay) {
-          this.oncanplay();
         }
       }
     }
   }, {
     key: 'play',
     value: function play() {
-      var _this3 = this;
+      var _this = this;
 
       this.paused = false;
       return new Promise(function (resolve) {
-        _this3.playFinish = resolve;
+        _this.playFinish = resolve;
       }).then(function () {
-        _this3.playFinish = null;
+        _this.playFinish = null;
       });
     }
   }, {
@@ -280,11 +281,25 @@ var VideoCanvas = function () {
   }, {
     key: 'destroy',
     value: function destroy() {
+      this.wasmworker.removeEventListener('message', this.handleMessage);
       this.wasmworker.postMessage({ msg: 'destroy' });
       this.wasmworker = null;
       this.canvas = null;
+      this._decodedFrames = {};
       this.source = null;
       this._decoderInited = false;
+    }
+  }, {
+    key: 'handleMessage',
+    value: function handleMessage(msg) {
+      switch (msg.data.msg) {
+        case 'DECODER_READY':
+          this._decoderInited = true;
+          break;
+        case 'DECODED':
+          this._onDecoded(msg.data);
+          break;
+      }
     }
   }, {
     key: 'buffered',

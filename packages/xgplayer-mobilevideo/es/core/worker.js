@@ -21,7 +21,7 @@ Decoder.prototype.broadwayOnPictureDecoded = function (offset, width, height, yL
   var info = Object.assign({}, this.infolist[infoid]);
   var yRowcount = height;
   var uvRowcount = height / 2;
-  if (this.meta.chromaFormat === 444 || this.meta.chromaFormat === 422) {
+  if (this.meta && (this.meta.chromaFormat === 444 || this.meta.chromaFormat === 422)) {
     uvRowcount = height;
   }
   var data = this.toU8Array(offset, yLinesize * yRowcount + 2 * (uvLinesize * uvRowcount));
@@ -66,7 +66,7 @@ function onPostRun() {
 
 function init(meta) {
   if (!decoder) {
-    self.importScripts('https://sf1-vcloudcdn.pstatp.com/obj/ttfe/media/decoder/h264/decoder.js');
+    self.importScripts('https://sf1-vcloudcdn.pstatp.com/obj/ttfe/media/decoder/h264/decoder_1583333072684.js');
   }
   addOnPostRun(onPostRun.bind(self));
 }

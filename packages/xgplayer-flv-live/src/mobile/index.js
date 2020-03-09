@@ -76,7 +76,7 @@ class FlvPlayer extends BasePlugin {
 
   play () {
     const { player } = this;
-    if (this.played && this.player.paused) {
+    if (this.played) {
       this._destroy()
       player.hasStart = false;
       player.start()

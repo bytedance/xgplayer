@@ -39,6 +39,7 @@ var AudioCtx = function (_EventEmitter) {
     _this2.paused = true;
     _this2.playFinish = null; // pending play task
     _this2.waitNextID = null; // audio source end and next source not loaded
+    _this2.destroyed = false;
     return _this2;
   }
 
@@ -129,7 +130,7 @@ var AudioCtx = function (_EventEmitter) {
     value: function onSourceEnded() {
       var _this3 = this;
 
-      if (this.paused) {
+      if (this.destroyed || this.paused) {
         return;
       }
       if (!this._nextBuffer || !this._played) {
@@ -221,8 +222,10 @@ var AudioCtx = function (_EventEmitter) {
       if (this.waitNextID) {
         window.clearTimeout(this.waitNextID);
       }
+      this._preDecode = [];
       this.paused = true;
       this.context.close();
+      this.destroyed = true;
     }
   }, {
     key: 'mute',
