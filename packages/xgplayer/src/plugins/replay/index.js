@@ -34,7 +34,7 @@ class Replay extends Plugin {
       if (!this.playerConfig.loop) {
         Plugin.Util.addClass(this.player.root, 'replay')
       }
-      let path = this.el.querySelector('path')
+      let path = this.root.querySelector('path')
       if (path) {
         let transform = window.getComputedStyle(path).getPropertyValue('transform')
         if (typeof transform === 'string' && transform.indexOf('none') > -1) {

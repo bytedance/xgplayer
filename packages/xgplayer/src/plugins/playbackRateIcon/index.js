@@ -49,7 +49,7 @@ export default class PlaybackRateIcon extends Plugin {
   onMouseenter (e) {
     e.preventDefault()
     e.stopPropagation()
-    Util.hasClass(this.el, 'list-show') ? Util.removeClass(this.el, 'list-show') : Util.addClass(this.el, 'list-show')
+    Util.hasClass(this.root, 'list-show') ? Util.removeClass(this.root, 'list-show') : Util.addClass(this.root, 'list-show')
   }
 
   onItemClick (e) {

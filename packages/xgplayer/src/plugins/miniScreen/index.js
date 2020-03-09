@@ -60,7 +60,7 @@ class MiniScreen extends Plugin {
     })
   }
 
-  onPlayerReady () {
+  onPluginsReady () {
     const {player} = this
     if (this.config.isShowIcon) {
       const options = {
@@ -110,7 +110,7 @@ class MiniScreen extends Plugin {
   }
 
   onMousedown (e) {
-    if (e.target !== this.el || this.isMoveing) {
+    if (e.target !== this.root || this.isMoveing) {
       return;
     }
     this.isMoveing = true
@@ -121,7 +121,7 @@ class MiniScreen extends Plugin {
   }
 
   onMouseup (e) {
-    if (e.target !== this.el || !this.isMoveing) {
+    if (e.target !== this.root || !this.isMoveing) {
       return;
     }
     this.isMoveing = false

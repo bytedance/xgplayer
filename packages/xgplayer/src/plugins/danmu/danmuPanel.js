@@ -58,7 +58,7 @@ class DanmuPanel extends Plugin {
   onToggle (e) {
     e.preventDefault()
     e.stopPropagation()
-    Util.hasClass(this.el, 'slider-show') ? Util.removeClass(this.el, 'slider-show') : Util.addClass(this.el, 'slider-show')
+    Util.hasClass(this.root, 'slider-show') ? Util.removeClass(this.root, 'slider-show') : Util.addClass(this.root, 'slider-show')
   }
 
   destroy () {

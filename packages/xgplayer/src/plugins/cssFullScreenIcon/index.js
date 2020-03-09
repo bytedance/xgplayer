@@ -12,7 +12,8 @@ export default class CssFullScreenIcon extends Plugin {
       position: POSITIONS.RIGHT,
       rootType: ROOT_TYPES.CONTROLS,
       index: 1,
-      hide: true
+      hide: true,
+      disable: false
     }
   }
 
@@ -31,7 +32,7 @@ export default class CssFullScreenIcon extends Plugin {
     })
   }
 
-  onPlayerReady () {
+  onPluginsReady () {
     this.btnClick = this.btnClick.bind(this);
     this.bind(['click', 'touchend'], this.btnClick)
   }
@@ -47,7 +48,7 @@ export default class CssFullScreenIcon extends Plugin {
   }
 
   animate (isFullScreen) {
-    if (!this.el) {
+    if (!this.root) {
       return;
     }
     const path = this.find('.path')

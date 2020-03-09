@@ -101,9 +101,9 @@ class Progress extends Plugin {
     this.mouseEnter = this.mouseEnter.bind(this)
     this.mouseLeave = this.mouseLeave.bind(this);
     ['touchstart', 'mousedown'].forEach(event => {
-      this.el.addEventListener(event, this.mouseDown);
+      this.root.addEventListener(event, this.mouseDown);
     })
-    this.el.addEventListener('mouseenter', this.mouseEnter, false)
+    this.root.addEventListener('mouseenter', this.mouseEnter, false)
   }
 
   mouseDown (e) {
@@ -118,8 +118,8 @@ class Progress extends Plugin {
     if (e.target === this.pointTip || (!player.config.allowSeekAfterEnded && player.ended)) {
       return true
     }
-    this.el.focus()
-    const containerWidth = this.el.getBoundingClientRect().width
+    this.root.focus()
+    const containerWidth = this.root.getBoundingClientRect().width
     let {left} = this.playedBar.getBoundingClientRect()
     let move = function (e) {
       e.preventDefault()
@@ -176,8 +176,8 @@ class Progress extends Plugin {
     if (!player.config.allowSeekAfterEnded && player.ended) {
       return true
     }
-    this.el.addEventListener('mousemove', this.mouseMove, false)
-    this.el.addEventListener('mouseleave', this.mouseLeave, false)
+    this.root.addEventListener('mousemove', this.mouseMove, false)
+    this.root.addEventListener('mouseleave', this.mouseLeave, false)
   }
 
   mouseLeave (e) {
@@ -187,14 +187,14 @@ class Progress extends Plugin {
     }
     this.pointTip.style.display = 'none'
     this.thumbnailDom.style.display = 'none'
-    this.el.removeEventListener('mousemove', this.mouseMove, false)
-    this.el.removeEventListener('mouseleave', this.mouseLeave, false)
+    this.root.removeEventListener('mousemove', this.mouseMove, false)
+    this.root.removeEventListener('mouseleave', this.mouseLeave, false)
   }
 
   mouseMove (e) {
     const {player} = this
-    let left = this.el.getBoundingClientRect().left
-    let width = this.el.getBoundingClientRect().width
+    let left = this.root.getBoundingClientRect().left
+    let width = this.root.getBoundingClientRect().width
     let now = (e.clientX - left) / width * player.duration
     now = now < 0 ? 0 : now
     this.pointTip.textContent = Util.format(now)
@@ -249,8 +249,8 @@ class Progress extends Plugin {
   }
 
   compute (e) {
-    const containerLeft = this.el.getBoundingClientRect().left
-    const containerWidth = this.el.getBoundingClientRect().width
+    const containerLeft = this.root.getBoundingClientRect().left
+    const containerWidth = this.root.getBoundingClientRect().width
     const pointWidth = this.pointTip.getBoundingClientRect().width
     let left = e.clientX - containerLeft - pointWidth / 2
     left = left > 0 ? left : 0
@@ -291,9 +291,9 @@ class Progress extends Plugin {
 
   destroy () {
     ['touchstart', 'mousedown'].forEach(event => {
-      this.el.removeEventListener(event, this.mouseDown);
+      this.root.removeEventListener(event, this.mouseDown);
     })
-    this.el.removeEventListener('mouseenter', this.mouseEnter, false)
+    this.root.removeEventListener('mouseenter', this.mouseEnter, false)
   }
 
   render () {

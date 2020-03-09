@@ -35,6 +35,7 @@ class Player extends Proxy {
     this._bindEvents()
     this._registerPresets()
     this._registerPlugins()
+    pluginsManager.onPluginsReady(this)
 
     setTimeout(() => {
       this.emit(Events.READY)
@@ -432,7 +433,6 @@ class Player extends Proxy {
   }
 
   getCssFullscreen () {
-    let player = this
     this.addClass(STATE_CLASS.CSS_FULLSCREEN)
     if (this.config.fluid) {
       this.root.style['padding-top'] = ''
@@ -442,7 +442,6 @@ class Player extends Proxy {
   }
 
   exitCssFullscreen () {
-    let player = this
     if (this.config.fluid) {
       this.root.style['width'] = '100%'
       this.root.style['height'] = '0'
@@ -491,10 +490,6 @@ class Player extends Proxy {
   onEnded () {
     this.addClass(STATE_CLASS.ENDED)
     this.removeClass(STATE_CLASS.PLAYING)
-  }
-
-  onReady () {
-    pluginsManager.onReady(this)
   }
 
   onSeeking () {

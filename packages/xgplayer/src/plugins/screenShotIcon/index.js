@@ -1,6 +1,6 @@
 import Plugin from '../../plugin'
 
-const { Events, POSITIONS, ROOT_TYPES } = Plugin
+const { POSITIONS, ROOT_TYPES } = Plugin
 export default class ScreenShotIcon extends Plugin {
   static get pluginName () {
     return 'screenShot'
@@ -22,7 +22,7 @@ export default class ScreenShotIcon extends Plugin {
   afterCreate () {
   }
 
-  onPlayerReady () {
+  onPluginsReady () {
     this.show()
     this.onClickBtn = this.onClickBtn.bind(this)
     this.bind(['click', 'touchend'], this.onClickBtn)

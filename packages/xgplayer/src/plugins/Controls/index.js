@@ -18,13 +18,13 @@ class Controls extends Plugin {
       height: `${height}px`
     }
     Object.keys(style).map(key => {
-      this.el.style[key] = style[key]
+      this.root.style[key] = style[key]
     })
     this.left = this.find('left-grid')
     this.center = this.find('center')
     this.right = this.find('right-grid')
     this.on(Events.MINI_STATE_CHANGE, (isMini) => {
-      isMini ? Util.addClass(this.el, 'mini') : Util.removeClass(this.el, 'mini')
+      isMini ? Util.addClass(this.root, 'mini') : Util.removeClass(this.root, 'mini')
     })
     this.bind('mouseenter', (e) => {
       this.mouseEnter(e)

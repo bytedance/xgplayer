@@ -1,7 +1,7 @@
 import Player from '../../player'
 import Plugin from '../../Plugin'
 
-export default class ErrorPlugin extends Plugin  {
+export default class ErrorPlugin extends Plugin {
   static get pluginName () {
     return 'error'
   }
@@ -29,7 +29,7 @@ export default class ErrorPlugin extends Plugin  {
       if (player.config.lang && player.config.lang === 'zh-cn') {
         textDOM.innerHTML = player.lang.ERROR
       } else {
-        this.el.innerHTML = `${player.lang.ERROR}，please try to <span class="xgplayer-error-refresh">refresh</span>`
+        this.root.innerHTML = `${player.lang.ERROR}，please try to <span class="xgplayer-error-refresh">refresh</span>`
       }
     }
   }
@@ -39,4 +39,3 @@ export default class ErrorPlugin extends Plugin  {
     </xg-error>`
   }
 }
-

@@ -45,7 +45,7 @@ class Danmu extends Plugin {
     })
   }
 
-  onPlayerReady () {
+  onPluginsReady () {
     // 添加点击触发事件触发 依赖pc插件
     const pcPlugin = this.player.plugins.pc
     if (pcPlugin) {
@@ -57,7 +57,7 @@ class Danmu extends Plugin {
   initDanmu () {
     const {player, config} = this
     const danmuConfig = {
-      container: this.el,
+      container: this.root,
       player: player.video,
       comments: config.comments,
       area: config.area

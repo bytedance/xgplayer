@@ -95,7 +95,7 @@ export default class DefinitionIcon extends Plugin {
   onToggle (e) {
     e.preventDefault()
     e.stopPropagation()
-    Util.hasClass(this.el, 'list-show') ? Util.removeClass(this.el, 'list-show') : Util.addClass(this.el, 'list-show')
+    Util.hasClass(this.root, 'list-show') ? Util.removeClass(this.root, 'list-show') : Util.addClass(this.root, 'list-show')
   }
 
   switchUrl (lastATag) {
@@ -173,7 +173,7 @@ export default class DefinitionIcon extends Plugin {
     this.find('.icon-text').innerHTML = to
     player.emit('definitionChange', {from, to})
     if (Sniffer.device === 'mobile') {
-      Util.removeClass(this.el, 'list-show')
+      Util.removeClass(this.root, 'list-show')
     }
   }
 

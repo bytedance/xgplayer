@@ -11,19 +11,16 @@ class BasePlugin {
   }
 
   constructor (args) {
+    if (Util.checkIsFunction(this.beforeCreate)) {
+      this.beforeCreate(args)
+    }
     this.__args = args
     this.__events = {} // 对player的事件监听缓存
     this.config = args.config || {}
-    if (Util.checkIsFunction(this.beforeCreate)) {
-      this.beforeCreate()
-    }
     this.__init(args)
-    if (Util.checkIsFunction(this.afterCreate)) {
-      this.afterCreate()
-    }
   }
 
-  onPlayerReady () {}
+  onPluginsReady () {}
 
   __init (args) {
     BasePlugin.defineGetterOrSetter(this, {
@@ -44,11 +41,6 @@ class BasePlugin {
           } else {
             return this.constructor.pluginName
           }
-        }
-      },
-      'root': {
-        get: () => {
-          return args.player.root
         }
       },
       'logger': {

@@ -1,8 +1,14 @@
-import {BasePlugin} from '../../plugin';
+import Plugin from '../../plugin';
 
-class MobilePlugin extends BasePlugin {
+class MobilePlugin extends Plugin {
   static get pluginName () {
     return 'mobile';
+  }
+
+  static get defaultConfig () {
+    return {
+      index: 0
+    }
   }
 
   constructor (options) {
@@ -27,7 +33,7 @@ class MobilePlugin extends BasePlugin {
 
   onTouchEnd (e) {
     e.preventDefault();
-    const util = BasePlugin.Util;
+    const util = Plugin.Util;
     e.stopPropagation();
     const {player, playerConfig} = this;
     if (util.hasClass(player.root, 'xgplayer-inactive')) {
@@ -49,6 +55,11 @@ class MobilePlugin extends BasePlugin {
         }
       }
     }
+  }
+  render () {
+    return `
+     <xg-trigger></xg-trigger>
+    `
   }
 }
 

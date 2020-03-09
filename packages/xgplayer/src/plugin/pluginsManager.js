@@ -108,6 +108,9 @@ const pluginsManager = {
       const _instance = new plugin(options)
       plugins[pluginName.toLowerCase()] = _instance
       plugins[pluginName.toLowerCase()].func = plugin
+      if (_instance && typeof _instance.afterCreate === 'function') {
+        _instance.afterCreate()
+      }
       return _instance
     } catch (err) {
       console.error(err)
@@ -143,6 +146,7 @@ const pluginsManager = {
   },
 
   beforeInit (player) {
+    console.log('beforeInit')
     function retPromise (fun) {
       if (!fun || !fun.then) {
         return new Promise((resolve) => {
@@ -180,6 +184,7 @@ const pluginsManager = {
   },
 
   afterInit (player) {
+    console.log('afterInit')
     let prevTask;
     if (player._loadingPlugins && player._loadingPlugins.length) {
       prevTask = Promise.all(player._loadingPlugins)
@@ -216,15 +221,16 @@ const pluginsManager = {
     }
   },
 
-  onReady (player) {
+  onPluginsReady (player) {
+    console.log('onPluginsReady')
     const cgid = player._pluginInfoId
     const plugins = this.pluginGroup[cgid]._plugins
     if (!cgid || !plugins) {
       return;
     }
     Object.keys(plugins).map(key => {
-      if(plugins[key].onPlayerReady && typeof plugins[key].onPlayerReady === 'function') {
-        plugins[key].onPlayerReady()
+      if (plugins[key].onPluginsReady && typeof plugins[key].onPluginsReady === 'function') {
+        plugins[key].onPluginsReady()
       }
     })
   },

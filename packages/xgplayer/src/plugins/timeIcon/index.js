@@ -17,8 +17,8 @@ class TimeIcon extends Plugin {
   }
 
   onTimeUpdate () {
-    const { player, config} = this
-    if ( config.hide ) {
+    const {player, config} = this
+    if (config.hide) {
       return
     }
     const current = player.currentTime
@@ -29,7 +29,6 @@ class TimeIcon extends Plugin {
   }
 
   afterCreate () {
-    const { player } = this
     this.durationDom = this.find('.time-duration')
     this.timeDom = this.find('.time-current')
     this.on(Events.DURATION_CHANGE, () => {
@@ -40,7 +39,7 @@ class TimeIcon extends Plugin {
     })
   }
 
-  onPlayerReady () {
+  onPluginsReady () {
     const {player,config} = this
     if (player.duration === Infinity || this.playerConfig.isLive) {
       Util.hide(this.durationDom)

@@ -8,7 +8,7 @@ import Mobile from '../plugins/mobile'
 import Keyboard from '../plugins/keyboard'
 import Loading from '../plugins/loading'
 import sniffer from '../utils/sniffer';
-import Danmu from '../plugins/danmu'
+// import Danmu from '../plugins/danmu'
 import Progress from '../plugins/progress'
 import PlayIcon from '../plugins/playIcon'
 import FullScreen from '../plugins/fullscreenIcon'
@@ -35,7 +35,7 @@ export default class DefaultPreset {
         rootType: PIPIcon.ROOT_TYPES.ROOT
       }}]
 
-    const layers = [Replay, Poster, Start, Loading, Enter, Miniscreen, Danmu]
+    const layers = [Replay, Poster, Start, Loading, Enter, Miniscreen]
 
     this.plugins = [...contolsIcons, ...layers, ...barIcons]
     switch (sniffer.device) {

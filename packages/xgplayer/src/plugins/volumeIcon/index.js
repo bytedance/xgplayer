@@ -99,13 +99,13 @@ class VolumeIcon extends Plugin {
   onMouseenter (e) {
     e.preventDefault()
     e.stopPropagation()
-    Util.addClass(this.el, 'slide-show')
+    Util.addClass(this.root, 'slide-show')
   }
   onMouseleave (e) {
     console.log('mouseleave')
     e.preventDefault()
     e.stopPropagation()
-    Util.removeClass(this.el, 'slide-show')
+    Util.removeClass(this.root, 'slide-show')
   }
 
   changeMuted () {

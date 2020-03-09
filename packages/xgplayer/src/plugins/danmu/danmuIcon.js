@@ -47,7 +47,7 @@ class DanmuIcon extends Plugin {
   }
 
   show () {
-    this.el.sytle.display = 'flex'
+    this.root.sytle.display = 'flex'
   }
 
   destroy () {

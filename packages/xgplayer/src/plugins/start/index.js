@@ -83,12 +83,12 @@ class Start extends Plugin {
   animate (isShowEnded) {
     addAnimate('pauseplay', 400, {
       start: () => {
-        Util.addClass(this.el, 'interact')
+        Util.addClass(this.root, 'interact')
         this.show()
-        this.el.innerHTML = this.player.paused ? this.icons.pause : this.icons.play
+        this.root.innerHTML = this.player.paused ? this.icons.pause : this.icons.play
       },
       end: () => {
-        Util.removeClass(this.el, 'interact');
+        Util.removeClass(this.root, 'interact');
         this.hide()
       }
     })

@@ -100,7 +100,7 @@ export default class Plugin extends BasePlugin {
     }
 
     Plugin.defineGetterOrSetter(this, {
-      'el': {
+      'root': {
         get: () => {
           return _el
         }
@@ -118,13 +118,13 @@ export default class Plugin extends BasePlugin {
     this.setAttr(attr)
     this.setStyle(style)
     if (this.config.index) {
-      this.el.setAttribute('data-index', this.config.index)
+      this.root.setAttribute('data-index', this.config.index)
     }
     this.__registeChildren()
   }
 
   __registeChildren () {
-    if (!this.el) {
+    if (!this.root) {
       return
     }
     const children = this.children()
@@ -137,7 +137,7 @@ export default class Plugin extends BasePlugin {
           const name = item
           let _plugin = children[name]
           const options = {
-            root: this.el
+            root: this.root
           }
           // eslint-disable-next-line no-unused-vars
           let config, Plugin
@@ -167,7 +167,7 @@ export default class Plugin extends BasePlugin {
   }
 
   registerPlugin (plugin, options = {}, name = '') {
-    options.root = options.root || this.el
+    options.root = options.root || this.root
     name && (options.pluginName = name)
     const _c = pluginsManager.register(this.player, plugin, options)
     this._children.push(_c)
@@ -187,10 +187,10 @@ export default class Plugin extends BasePlugin {
   }
 
   find (qs) {
-    if (!this.el) {
+    if (!this.root) {
       return
     }
-    return this.el.querySelector(qs)
+    return this.root.querySelector(qs)
   }
 
   bind (querySelector, eventType, callback) {
@@ -204,15 +204,15 @@ export default class Plugin extends BasePlugin {
         this.bindEL(querySelector, eventType)
       }
     } else if (arguments.length === 3 && typeof callback === 'function') {
-      if (!this.el) {
+      if (!this.root) {
         return
       }
       if (Array.isArray(eventType)) {
         eventType.forEach((item) => {
-          delegate.bind(this.el, querySelector, item, callback, false)
+          delegate.bind(this.root, querySelector, item, callback, false)
         })
       } else {
-        delegate.bind(this.el, querySelector, eventType, callback, false)
+        delegate.bind(this.root, querySelector, eventType, callback, false)
       }
     }
   }
@@ -230,85 +230,84 @@ export default class Plugin extends BasePlugin {
     } else if (typeof callback === 'function') {
       if (Array.isArray(eventType)) {
         eventType.forEach((item) => {
-          delegate.unbind(this.el, querySelector, item, callback, false)
+          delegate.unbind(this.root, querySelector, item, callback, false)
         })
       } else {
-        delegate.unbind(this.el, querySelector, eventType, callback, false)
+        delegate.unbind(this.root, querySelector, eventType, callback, false)
       }
     }
   }
 
   setStyle (name, value) {
-    if (!this.el) {
+    if (!this.root) {
       return
     }
     if (typeof name === 'string') {
-      this.style[name] = value
-      return (this.el.style[name] = value)
+      return (this.root.style[name] = value)
     } else if (typeof name === 'object') {
       const obj = name
       for (const item of Object.keys(obj)) {
-        this.el.style[item] = obj[item]
+        this.root.style[item] = obj[item]
       }
     }
   }
 
   setAttr (name, value) {
-    if (!this.el) {
+    if (!this.root) {
       return
     }
     if (typeof name === 'string') {
-      return this.el.setAttribute(name, value)
+      return this.root.setAttribute(name, value)
     } else if (typeof name === 'object') {
       const obj = name
       for (const item of Object.keys(obj)) {
-        this.el.setAttribute(item, obj[item])
+        this.root.setAttribute(item, obj[item])
       }
     }
   }
 
   setHtml (htmlStr, callback) {
-    if (!this.el) {
+    if (!this.root) {
       return
     }
-    this.el.innerHtml = htmlStr
+    this.root.innerHtml = htmlStr
     if (typeof callback === 'function') {
       callback()
     }
   }
 
   bindEL (event, eventHandle, isBubble = false) {
-    if (!this.el) {
+    if (!this.root) {
       return
     }
-    if (`on${event}` in this.el && typeof eventHandle === 'function') {
-      this.el.addEventListener(event, eventHandle, isBubble)
+    if (`on${event}` in this.root && typeof eventHandle === 'function') {
+      this.root.addEventListener(event, eventHandle, isBubble)
     }
   }
 
   unbindEL (event, eventHandle, isBubble = false) {
-    if (!this.el) {
+    if (!this.root) {
       return
     }
-    if (`on${event}` in this.el && typeof eventHandle === 'function') {
-      this.el.removeEventListener(event, eventHandle, isBubble)
+    if (`on${event}` in this.root && typeof eventHandle === 'function') {
+      this.root.removeEventListener(event, eventHandle, isBubble)
     }
   }
 
   show (value) {
-    if (!this.el) {
+    if (!this.root) {
       return;
     }
-    this.el.style.display = value !== undefined ? value : 'block'
-    const cs = window.getComputedStyle(this.el, null)
+    this.root.style.display = value !== undefined ? value : 'block'
+    const cs = window.getComputedStyle(this.root, null)
     const cssDisplayValue = cs.getPropertyValue('display')
     if (cssDisplayValue === 'none') {
-      return (this.el.style.display = 'block')
+      return (this.root.style.display = 'block')
     }
   }
 
   hide () {
-    this.el && (this.el.style.display = 'none')
+    this.root && (this.root.style.display = 'none')
   }
 
   render () {
@@ -320,11 +319,11 @@ export default class Plugin extends BasePlugin {
     if (BasePlugin.Util.checkIsFunction(this.destroy)) {
       this.destroy();
     }
-    if (this.el) {
-      if (this.el.hasOwnProperty('remove')) {
-        this.el.remove()
-      } else if (this.el.parentNode) {
-        this.el.parentNode.removeChild(this.el)
+    if (this.root) {
+      if (this.root.hasOwnProperty('remove')) {
+        this.root.remove()
+      } else if (this.root.parentNode) {
+        this.root.parentNode.removeChild(this.root)
       }
     }
   }
@@ -332,7 +331,6 @@ export default class Plugin extends BasePlugin {
 
 Plugin.ROOT_TYPES = {
   CONTROLS: 'controls',
-  BASE_BAR: 'base_bar',
   ROOT: 'root'
 }
 
@@ -341,4 +339,14 @@ Plugin.POSITIONS = {
   RIGHT: 'right',
   CENTER: 'center',
   TOP: 'top'
+}
+
+Plugin.ROOT_TYPES1 = {
+  ROOT: 0,
+  ROOT_LEFT: 11,
+  ROOT_RIGHT: 12,
+  ROOT_TOP: 13,
+  CONTROLS_LEFT: 21,
+  CONTROLS_RIGTH: 22,
+  CONTROLS_CENTER: 23
 }

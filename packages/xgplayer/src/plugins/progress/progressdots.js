@@ -92,7 +92,7 @@ export default class ProgressDot extends Plugin {
       dom.style[item] = style[item]
     })
     this.dotsList[dot.time] = dom
-    this.el.appendChild(dom)
+    this.root.appendChild(dom)
   }
 
   render () {
