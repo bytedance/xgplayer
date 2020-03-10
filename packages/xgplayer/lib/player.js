@@ -36,10 +36,6 @@ var _stateClassMap = require('./stateClassMap');
 
 var _stateClassMap2 = _interopRequireDefault(_stateClassMap);
 
-var _default = require('./presets/default');
-
-var _default2 = _interopRequireDefault(_default);
-
 var _defaultConfig = require('./defaultConfig');
 
 var _defaultConfig2 = _interopRequireDefault(_defaultConfig);
@@ -49,10 +45,6 @@ var _preset = require('./plugin/preset');
 var _controls = require('./plugins/controls');
 
 var _controls2 = _interopRequireDefault(_controls);
-
-var _baseBar = require('./plugins/baseBar');
-
-var _baseBar2 = _interopRequireDefault(_baseBar);
 
 var _package = require('../package.json');
 
@@ -77,7 +69,17 @@ var Player = function (_Proxy) {
     var _this = _possibleConstructorReturn(this, (Player.__proto__ || Object.getPrototypeOf(Player)).call(this, options));
 
     _this.config = _util2.default.deepCopy((0, _defaultConfig2.default)(), options);
-    _this.config.presets = [_default2.default];
+    _this.config.presets = [];
+
+    // resolve default preset
+    if (_this.config.presets.length) {
+      if (_this.config.presets.indexOf('default') >= 0 && Player.defaultPreset) {
+        _this.config.presets.push(Player.defaultPreset);
+      }
+    } else if (Player.defaultPreset) {
+      _this.config.presets.push(Player.defaultPreset);
+    }
+
     // timer and flags
     _this.userTimer = null;
     _this.waitTimer = null;
@@ -86,15 +88,18 @@ var Player = function (_Proxy) {
     _this.isPlaying = false;
     _this.isSeeking = false;
     _this.isActive = true;
+    _this.isCssfullScreen = false;
 
     _this._initDOM();
 
     _this._bindEvents();
     _this._registerPresets();
     _this._registerPlugins();
+    _plugin.pluginsManager.onPluginsReady(_this);
 
     setTimeout(function () {
       _this.emit(Events.READY);
+      _this.onReady && _this.onReady();
       _this.isReady = true;
     }, 0);
 
@@ -131,9 +136,15 @@ var Player = function (_Proxy) {
           return false;
         }
       }
-      var baseBar = _plugin.pluginsManager.register(this, _baseBar2.default);
-      this.baseBar = baseBar;
-      var controls = _plugin.pluginsManager.register(this, _controls2.default, { isHide: !!this.config.controls });
+      this.topBar = _util2.default.createDom('xg-bar', '', '', 'xg-top-bar');
+      this.leftBar = _util2.default.createDom('xg-bar', '', '', 'xg-left-bar');
+      this.rightBar = _util2.default.createDom('xg-bar', '', '', 'xg-right-bar');
+      this.root.appendChild(this.topBar);
+      this.root.appendChild(this.leftBar);
+      this.root.appendChild(this.rightBar);
+      // const baseBar = pluginsManager.register(this, BaseBar)
+      // this.baseBar = baseBar
+      var controls = _plugin.pluginsManager.register(this, _controls2.default);
       this.controls = controls;
       this.addClass(_stateClassMap2.default.DEFAULT + ' xgplayer-' + _sniffer2.default.device + ' ' + _stateClassMap2.default.NO_START + ' ' + (this.config.controls ? '' : _stateClassMap2.default.NO_CONTROLS));
       if (this.config.fluid) {
@@ -146,7 +157,6 @@ var Player = function (_Proxy) {
           'top': '0',
           'left': '0'
         };
-        console.log('style', style);
         Object.keys(style).map(function (key) {
           _this2.root.style[key] = style[key];
         });
@@ -193,6 +203,10 @@ var Player = function (_Proxy) {
       this.once('loadeddata', this.getVideoSize);
 
       this.mousemoveFunc = function () {
+        // 加上判断减少触发次数
+        if (_this3.isActive) {
+          return;
+        }
         _this3.emit(Events.PLAYER_FOCUS);
         if (!_this3.config.closeFocusVideoFocus) {
           _this3.video.focus();
@@ -267,8 +281,10 @@ var Player = function (_Proxy) {
       setTimeout(function () {
         _this5.emit(Events.COMPLETE);
       }, 1);
+      if (!this.hasStart) {
+        _plugin.pluginsManager.afterInit(this);
+      }
       this.hasStart = true;
-      _plugin.pluginsManager.afterInit(this);
     }
     /**
      * 注册组件 组件列表config.plugins
@@ -302,9 +318,9 @@ var Player = function (_Proxy) {
 
             return;
           }
-          console.log(plugin.pluginName);
           return _this6.registerPlugin(plugin);
         } catch (err) {
+          console.error(err);
           return null;
         }
       });
@@ -322,7 +338,7 @@ var Player = function (_Proxy) {
     key: 'registerPlugin',
     value: function registerPlugin(plugin) {
       var PLUFGIN = null;
-      var options = {};
+      var options = null;
       if (plugin.plugin && typeof plugin.plugin === 'function') {
         PLUFGIN = plugin.plugin;
         options = plugin.options;
@@ -330,15 +346,26 @@ var Player = function (_Proxy) {
         PLUFGIN = plugin;
         options = {};
       }
-      if (!options.root) {
-        var rootType = options.rootType ? options.rootType : PLUFGIN.defaultConfig && PLUFGIN.defaultConfig.rootType;
-        var ROOT_TYPES = _plugin2.default.ROOT_TYPES;
 
-        if (rootType === ROOT_TYPES.CONTROLS) {
-          return this.controls.registerPlugin(PLUFGIN.pluginName, PLUFGIN, options);
-        } else if (rootType === ROOT_TYPES.BASE_BAR) {
-          return this.baseBar.registerPlugin(PLUFGIN.pluginName, PLUFGIN, options);
-        }
+      var position = options.position ? options.position : PLUFGIN.defaultConfig && PLUFGIN.defaultConfig.position;
+      var POSITIONS = _plugin2.default.POSITIONS;
+
+      if (!options.root && typeof position === 'string' && position.indexOf('controls') > -1) {
+        return this.controls.registerPlugin(PLUFGIN, options, PLUFGIN.pluginName);
+      }
+      switch (position) {
+        case POSITIONS.ROOT_RIGHT:
+          options.root = this.rightBar;
+          break;
+        case POSITIONS.ROOT_LEFT:
+          options.root = this.leftBar;
+          break;
+        case POSITIONS.ROOT_TOP:
+          options.root = this.topBar;
+          break;
+        default:
+          options.root = this.root;
+          break;
       }
       return _plugin.pluginsManager.register(this, PLUFGIN, options);
     }
@@ -515,21 +542,28 @@ var Player = function (_Proxy) {
   }, {
     key: 'getCssFullscreen',
     value: function getCssFullscreen() {
-      var player = this;
       this.addClass(_stateClassMap2.default.CSS_FULLSCREEN);
-      player.emit('requestCssFullscreen');
+      if (this.config.fluid) {
+        this.root.style['padding-top'] = '';
+      }
+      this.isCssfullScreen = true;
+      this.emit(Events.CSS_FULLSCREEN_CHANGE, true);
     }
   }, {
     key: 'exitCssFullscreen',
     value: function exitCssFullscreen() {
-      var player = this;
+      if (this.config.fluid) {
+        this.root.style['width'] = '100%';
+        this.root.style['height'] = '0';
+        this.root.style['padding-top'] = this.config.height * 100 / this.config.width + '%';
+      }
       this.removeClass(_stateClassMap2.default.CSS_FULLSCREEN);
-      player.emit('exitCssFullscreen');
+      this.isCssfullScreen = false;
+      this.emit(Events.CSS_FULLSCREEN_CHANGE, false);
     }
   }, {
     key: 'onFocus',
     value: function onFocus() {
-      console.log('onFocus');
       this.isActive = true;
       var player = this;
       this.removeClass(_stateClassMap2.default.ACTIVE);
@@ -544,7 +578,7 @@ var Player = function (_Proxy) {
   }, {
     key: 'onBlur',
     value: function onBlur() {
-      console.log('onBlur');
+      this.isActive = false;
       if (!this.paused && !this.ended) {
         this.addClass(_stateClassMap2.default.ACTIVE);
       }
@@ -724,8 +758,8 @@ var Player = function (_Proxy) {
   return Player;
 }(_proxy2.default);
 
-Player.util = _util2.default;
-Player.sniffer = _sniffer2.default;
+Player.Util = _util2.default;
+Player.Sniffer = _sniffer2.default;
 Player.Errors = _error2.default;
 Player.Events = Events;
 Player.Plugin = _plugin2.default;

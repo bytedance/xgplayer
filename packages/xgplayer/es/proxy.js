@@ -19,7 +19,7 @@ var Proxy = function () {
     this._hasStart = false;
     this._currentTime = 0;
     this._duration = 0;
-    this.videoConfig = {
+    this.videoConfig = Object.assign({}, {
       controls: false,
       autoplay: options.autoplay,
       playsinline: options.playsinline,
@@ -32,7 +32,7 @@ var Proxy = function () {
       'webkit-airplay': options['airplay'],
       tabindex: 2,
       mediaType: options.mediaType || 'video'
-    };
+    }, options.videoConfig);
     if (options.videoAttrbutes) {
       Object.keys(options.videoAttrbutes).map(function (key) {
         _this.videoConfig[key] = options.videoAttrbutes[key];
@@ -41,8 +41,6 @@ var Proxy = function () {
     if (options.loop) {
       this.videoConfig.loop = 'loop';
     }
-
-    console.log('this.videoConfig', this.videoConfig);
     if (options.defaultPlaybackRate) {
       this.videoConfig.defaultPlaybackRate = options.defaultPlaybackRate;
     }
@@ -66,7 +64,7 @@ var Proxy = function () {
       var _this2 = this;
 
       var lastBuffer = '0,0';
-      this.ev = ['play', 'playing', 'pause', 'ended', 'error', 'seeking', 'seeked', 'timeupdate', 'waiting', 'canplay', 'canplaythrough', 'durationchange', 'volumechange', 'loadeddata'].map(function (item) {
+      this.ev = ['play', 'playing', 'pause', 'ended', 'error', 'seeking', 'seeked', 'timeupdate', 'waiting', 'canplay', 'canplaythrough', 'durationchange', 'volumechange', 'loadeddata', 'ratechange'].map(function (item) {
         return _defineProperty({}, item, 'on' + item.charAt(0).toUpperCase() + item.slice(1));
       });
       /**

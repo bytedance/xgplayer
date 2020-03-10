@@ -3,24 +3,142 @@
   width: 320px;
   height: 180px;
   z-index: 110; }
+  .xgplayer.xgplayer-mini:hover {
+    cursor: move; }
+    .xgplayer.xgplayer-mini:hover .xg-mini-layer {
+      display: block; }
 
-.xgplayer.xgplayer-inactive {
-  background-color: rgba(0, 0, 0, 0); }
-  .xgplayer.xgplayer-inactive xg-mini-drag {
-    display: none; }
+.xgplayer.xgplayer-ended .xg-mini-layer {
+  display: none; }
 
 .xgplayer .xg-mini-layer {
-  pointer-events: none;
   display: none;
   position: absolute;
   top: 0;
   left: 0;
-  height: 100%;
   width: 100%;
-  background-color: rgba(0, 0, 0, 0.16); }
-  .xgplayer .xg-mini-layer xg-mini-drag {
-    pointer-events: auto;
-    color: rgba(255, 255, 255, 0.7); }
+  height: 100%; }
+  .xgplayer .xg-mini-layer .mask {
+    pointer-events: none;
+    position: absolute;
+    top: 0;
+    left: 0;
+    height: 100%;
+    width: 100%;
+    background-color: rgba(0, 0, 0, 0.4); }
+  .xgplayer .xg-mini-layer xg-mini-header {
+    display: -webkit-flex;
+    display: -moz-box;
+    display: flex;
+    cursor: pointer;
+    top: 0;
+    left: 0;
+    right: 40px;
+    -moz-box-sizing: border-box;
+         box-sizing: border-box;
+    padding: 10px 3px 0 8px;
+    -webkit-justify-content: space-between;
+       -moz-box-pack: justify;
+            justify-content: space-between;
+    color: #ffffff;
+    font-size: 14px;
+    position: absolute;
+    z-index: 22; }
+    .xgplayer .xg-mini-layer xg-mini-header .xgplayer-pip-disableBtn {
+      pointer-events: all; }
+    .xgplayer .xg-mini-layer xg-mini-header #disabledMini {
+      display: none;
+      position: relative; }
+    .xgplayer .xg-mini-layer xg-mini-header #disabledMini + label {
+      cursor: pointer;
+      position: relative;
+      display: -webkit-flex;
+      display: -moz-box;
+      display: flex;
+      -webkit-align-items: center;
+         -moz-box-align: center;
+              align-items: center; }
+    .xgplayer .xg-mini-layer xg-mini-header #disabledMini + label::before {
+      content: "";
+      color: #ff142b;
+      background-color: transparent;
+      border-radius: 2px;
+      border: solid 1px #cdcdcd;
+      width: 16px;
+      height: 16px;
+      display: inline-block;
+      text-align: center;
+      vertical-align: middle;
+      line-height: 16px;
+      margin-right: 7px; }
+    .xgplayer .xg-mini-layer xg-mini-header #disabledMini:checked + label {
+      color: #ff142b; }
+    .xgplayer .xg-mini-layer xg-mini-header #disabledMini:checked + label::before {
+      border-color: #ff142b; }
+    .xgplayer .xg-mini-layer xg-mini-header #disabledMini:checked + label:after {
+      content: "";
+      position: absolute;
+      width: 4px;
+      height: 8px;
+      border-color: #ff142b;
+      border-style: solid;
+      border-width: 0px 2px 2px 0px;
+      -webkit-transform: rotate(45deg);
+          -ms-transform: rotate(45deg);
+              transform: rotate(45deg);
+      left: 6px;
+      top: 5px; }
+    .xgplayer .xg-mini-layer xg-mini-header .xgplayer-mini-disableBtn xg-tips {
+      position: absolute;
+      padding: 4px 6px;
+      white-space: nowrap;
+      bottom: -30px;
+      right: 15px;
+      border-radius: 4px;
+      background-color: rgba(0, 0, 0, 0.54);
+      display: none; }
+    .xgplayer .xg-mini-layer xg-mini-header .xgplayer-mini-disableBtn:hover #disabledMini + label::before {
+      border-color: #ff142b; }
+    .xgplayer .xg-mini-layer xg-mini-header .xgplayer-mini-disableBtn:hover #disabledMini + label {
+      color: #ff142b; }
+    .xgplayer .xg-mini-layer xg-mini-header .xgplayer-mini-disableBtn:hover xg-tips {
+      display: block; }
+  .xgplayer .xg-mini-layer .mini-cancel-btn {
+    cursor: pointer;
+    display: block;
+    color: #fff;
+    width: 40px;
+    height: 38px;
+    position: absolute;
+    right: 0;
+    top: 0;
+    text-align: center;
+    line-height: 38px; }
+  .xgplayer .xg-mini-layer .play-icon {
+    cursor: pointer;
+    height: 48px;
+    width: 48px;
+    position: absolute;
+    background: rgba(0, 0, 0, 0.54);
+    border-radius: 24px;
+    top: 50%;
+    left: 50%;
+    margin: -24px 0 0 -24px; }
+    .xgplayer .xg-mini-layer .play-icon svg {
+      width: 40px;
+      height: 40px;
+      fill: #faf7f7;
+      -webkit-transform: translate(7px, 7px);
+          -ms-transform: translate(7px, 7px);
+              transform: translate(7px, 7px); }
+    .xgplayer .xg-mini-layer .play-icon.play .play {
+      display: none; }
+    .xgplayer .xg-mini-layer .play-icon.play .pause {
+      display: block; }
+    .xgplayer .xg-mini-layer .play-icon.pause .play {
+      display: block; }
+    .xgplayer .xg-mini-layer .play-icon.pause .pause {
+      display: none; }
 
 .xgplayer .xgplayer-miniicon {
   position: relative;
@@ -32,7 +150,7 @@
     font-size: 13px;
     line-height: 20px;
     height: 20px;
-    color: white;
+    color: rgba(255, 255, 255, 0.8);
     line-height: 40px; }
     .xgplayer .xgplayer-miniicon .name span {
       font-family: PingFangSC-Regular;
@@ -44,55 +162,3 @@
       border-radius: 10px;
       display: inline-block;
       vertical-align: middle; }
-
-.xgplayer .xgplayer-pip-lay {
-  position: absolute;
-  top: 26px;
-  left: 0;
-  width: 100%;
-  height: 100%;
-  z-index: 130;
-  cursor: pointer;
-  background-color: transparent;
-  display: none; }
-  .xgplayer .xgplayer-pip-lay div {
-    width: 100%;
-    height: 100%; }
-
-.xgplayer .xgplayer-pip-drag {
-  cursor: move;
-  position: absolute;
-  top: 0;
-  left: 0;
-  width: 100%;
-  height: 26px;
-  line-height: 26px;
-  background-image: linear-gradient(rgba(0, 0, 0, 0.3), rgba(0, 0, 0, 0));
-  z-index: 130;
-  display: none; }
-
-.xgplayer-pip-active {
-  position: fixed;
-  right: 0;
-  bottom: 200px;
-  width: 320px !important;
-  height: 180px !important;
-  z-index: 110 !important; }
-  .xgplayer-pip-active .xgplayer-controls {
-    display: none; }
-  .xgplayer-pip-active .xgplayer-danmu {
-    display: none; }
-  .xgplayer-pip-active .xgplayer-pip-lay {
-    display: block; }
-
-.xgplayer.xgplayer-pip-active .xgplayer-pip-drag {
-  display: -webkit-flex;
-  display: -moz-box;
-  display: flex; }
-
-.xgplayer.xgplayer-inactive .xgplayer-pip-drag {
-  display: none; }
-
-.lang-is-jp .xgplayer-pip .name span {
-  width: 70px;
-  height: 20px; }

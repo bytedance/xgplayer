@@ -2,7 +2,7 @@
   display: -webkit-flex;
   display: -moz-box;
   display: flex;
-  padding-top: 2px; }
+  padding-top: 14px; }
 
 .xgplayer .danmu-switch {
   -webkit-order: 6;

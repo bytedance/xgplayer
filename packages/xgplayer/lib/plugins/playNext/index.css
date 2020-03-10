@@ -1,0 +1,22 @@
+.xgplayer .xgplayer-playnext {
+  position: relative;
+  display: none;
+  cursor: pointer; }
+  .xgplayer .xgplayer-playnext .xgplayer-icon {
+    width: 24px; }
+    .xgplayer .xgplayer-playnext .xgplayer-icon svg {
+      -webkit-transform: translate(-10px, -1px);
+          -ms-transform: translate(-10px, -1px);
+              transform: translate(-10px, -1px); }
+  .xgplayer .xgplayer-playnext .xgplayer-tips .xgplayer-tip-playnext {
+    display: block; }
+  .xgplayer .xgplayer-playnext:hover {
+    opacity: 0.85; }
+    .xgplayer .xgplayer-playnext:hover .xgplayer-tips {
+      display: block; }
+
+.lang-is-en .xgplayer-playnext .xgplayer-tips {
+  margin-left: -25px; }
+
+.lang-is-jp .xgplayer-playnext .xgplayer-tips {
+  margin-left: -38px; }

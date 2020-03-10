@@ -6,15 +6,22 @@ function _possibleConstructorReturn(self, call) { if (!self) { throw new Referen
 
 function _inherits(subClass, superClass) { if (typeof superClass !== "function" && superClass !== null) { throw new TypeError("Super expression must either be null or a function, not " + typeof superClass); } subClass.prototype = Object.create(superClass && superClass.prototype, { constructor: { value: subClass, enumerable: false, writable: true, configurable: true } }); if (superClass) Object.setPrototypeOf ? Object.setPrototypeOf(subClass, superClass) : subClass.__proto__ = superClass; }
 
-import { BasePlugin } from '../../plugin';
+import Plugin from '../../plugin';
 
-var MobilePlugin = function (_BasePlugin) {
-  _inherits(MobilePlugin, _BasePlugin);
+var MobilePlugin = function (_Plugin) {
+  _inherits(MobilePlugin, _Plugin);
 
   _createClass(MobilePlugin, null, [{
     key: 'pluginName',
     get: function get() {
       return 'mobile';
+    }
+  }, {
+    key: 'defaultConfig',
+    get: function get() {
+      return {
+        index: 0
+      };
     }
   }]);
 
@@ -50,7 +57,7 @@ var MobilePlugin = function (_BasePlugin) {
     key: 'onTouchEnd',
     value: function onTouchEnd(e) {
       e.preventDefault();
-      var util = BasePlugin.Util;
+      var util = Plugin.Util;
       e.stopPropagation();
       var player = this.player,
           playerConfig = this.playerConfig;
@@ -75,9 +82,14 @@ var MobilePlugin = function (_BasePlugin) {
         }
       }
     }
+  }, {
+    key: 'render',
+    value: function render() {
+      return '\n     <xg-trigger></xg-trigger>\n    ';
+    }
   }]);
 
   return MobilePlugin;
-}(BasePlugin);
+}(Plugin);
 
 export default MobilePlugin;

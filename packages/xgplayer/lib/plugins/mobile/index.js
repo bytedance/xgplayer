@@ -8,19 +8,30 @@ var _createClass = function () { function defineProperties(target, props) { for 
 
 var _plugin = require('../../plugin');
 
+var _plugin2 = _interopRequireDefault(_plugin);
+
+function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
+
 function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } }
 
 function _possibleConstructorReturn(self, call) { if (!self) { throw new ReferenceError("this hasn't been initialised - super() hasn't been called"); } return call && (typeof call === "object" || typeof call === "function") ? call : self; }
 
 function _inherits(subClass, superClass) { if (typeof superClass !== "function" && superClass !== null) { throw new TypeError("Super expression must either be null or a function, not " + typeof superClass); } subClass.prototype = Object.create(superClass && superClass.prototype, { constructor: { value: subClass, enumerable: false, writable: true, configurable: true } }); if (superClass) Object.setPrototypeOf ? Object.setPrototypeOf(subClass, superClass) : subClass.__proto__ = superClass; }
 
-var MobilePlugin = function (_BasePlugin) {
-  _inherits(MobilePlugin, _BasePlugin);
+var MobilePlugin = function (_Plugin) {
+  _inherits(MobilePlugin, _Plugin);
 
   _createClass(MobilePlugin, null, [{
     key: 'pluginName',
     get: function get() {
       return 'mobile';
+    }
+  }, {
+    key: 'defaultConfig',
+    get: function get() {
+      return {
+        index: 0
+      };
     }
   }]);
 
@@ -56,7 +67,7 @@ var MobilePlugin = function (_BasePlugin) {
     key: 'onTouchEnd',
     value: function onTouchEnd(e) {
       e.preventDefault();
-      var util = _plugin.BasePlugin.Util;
+      var util = _plugin2.default.Util;
       e.stopPropagation();
       var player = this.player,
           playerConfig = this.playerConfig;
@@ -81,9 +92,14 @@ var MobilePlugin = function (_BasePlugin) {
         }
       }
     }
+  }, {
+    key: 'render',
+    value: function render() {
+      return '\n     <xg-trigger></xg-trigger>\n    ';
+    }
   }]);
 
   return MobilePlugin;
-}(_plugin.BasePlugin);
+}(_plugin2.default);
 
 exports.default = MobilePlugin;

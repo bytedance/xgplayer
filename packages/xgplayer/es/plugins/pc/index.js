@@ -22,13 +22,20 @@ var PCPlugin = function (_BasePlugin) {
   _createClass(PCPlugin, [{
     key: 'afterCreate',
     value: function afterCreate() {
-      this.onVideoClick = this.onVideoClick.bind(this);
-      this.onVideoDblClick = this.onVideoDblClick.bind(this);
-      this.onMouseEnter = this.onMouseEnter.bind(this);
-      this.onMouseLeave = this.onMouseLeave.bind(this);
-      this.onControlMouseEnter = this.onControlMouseEnter.bind(this);
-      this.onControlMouseLeave = this.onControlMouseLeave.bind(this);
-      this.onReady = this.onReady.bind(this);
+      var _this2 = this;
+
+      var eventHandlers = ['onVideoClick', 'onVideoDblClick', 'onMouseEnter', 'onMouseLeave', 'onControlMouseEnter', 'onControlMouseLeave', 'onContextmenu'];
+      eventHandlers.map(function (key) {
+        if (_this2[key]) {
+          _this2[key] = _this2[key].bind(_this2);
+        }
+      });
+      // this.onVideoClick = this.onVideoClick.bind(this)
+      // this.onVideoDblClick = this.onVideoDblClick.bind(this)
+      // this.onMouseEnter = this.onMouseEnter.bind(this)
+      // this.onMouseLeave = this.onMouseLeave.bind(this)
+      // this.onControlMouseEnter = this.onControlMouseEnter.bind(this)
+      // this.onControlMouseLeave = this.onControlMouseLeave.bind(this)
       this.initEvents();
       var playerConfig = this.playerConfig;
 
@@ -39,7 +46,7 @@ var PCPlugin = function (_BasePlugin) {
   }, {
     key: 'initEvents',
     value: function initEvents() {
-      var _this2 = this;
+      var _this3 = this;
 
       var player = this.player;
 
@@ -47,10 +54,10 @@ var PCPlugin = function (_BasePlugin) {
       player.video.addEventListener('click', this.onVideoClick, false);
 
       player.video.addEventListener('dblclick', this.onVideoDblClick, false);
-
+      player.root.addEventListener('contextmenu', this.onContextmenu, false);
       this.once(Events.CANPLAY, this.onEntered.bind(this));
       this.once(Events.AUTOPLAY_PREVENTED, function () {
-        _this2.onAutoPlayPrevented();
+        _this3.onAutoPlayPrevented();
       });
 
       player.root.addEventListener('mouseenter', this.onMouseEnter);
@@ -60,6 +67,20 @@ var PCPlugin = function (_BasePlugin) {
       // player.controls.addEventListener('mouseenter', this.onControlMouseEnter, false)
 
       // player.controls.addEventListener('mouseleave', this.onControlMouseLeave, false)
+    }
+  }, {
+    key: 'onContextmenu',
+    value: function onContextmenu(e) {
+      e = e || window.event;
+      if (e.preventDefault) {
+        e.preventDefault();
+      }
+      if (e.stopPropagation) {
+        e.stopPropagation();
+      } else {
+        e.returnValue = false; // 解决IE8右键弹出
+        e.cancelBubble = true;
+      }
     }
   }, {
     key: 'onEnter',
@@ -78,14 +99,14 @@ var PCPlugin = function (_BasePlugin) {
   }, {
     key: 'onAutoPlayPrevented',
     value: function onAutoPlayPrevented() {
-      var _this3 = this;
+      var _this4 = this;
 
       var player = this.player;
 
       Util.removeClass(player.root, 'xgplayer-is-enter');
       this.once(Events.PLAY, function () {
         Util.addClass(player.root, 'xgplayer-is-enter');
-        _this3.once(Events.TIME_UPDATE, function () {
+        _this4.once(Events.TIME_UPDATE, function () {
           Util.removeClass(player.root, 'xgplayer-is-enter');
         });
       });
@@ -93,7 +114,6 @@ var PCPlugin = function (_BasePlugin) {
   }, {
     key: 'onVideoClick',
     value: function onVideoClick(e) {
-      console.log('onVideoClick');
       e.preventDefault();
       // e.stopPropagation()
       if (!this.config.closeVideoStopPropagation) {
@@ -113,10 +133,11 @@ var PCPlugin = function (_BasePlugin) {
               return false;
             } else if (!player.ended) {
               if (player.paused) {
-                var playPromise = player.play();
-                if (playPromise !== undefined && playPromise) {
-                  playPromise.catch(function (err) {});
-                }
+                player.play();
+                // let playPromise = player.play()
+                // if (playPromise !== undefined && playPromise) {
+                //   playPromise.catch(err => {})
+                // }
               } else {
                 player.pause();
               }
@@ -174,15 +195,6 @@ var PCPlugin = function (_BasePlugin) {
 
       if (!player.config.closeControlsBlur) {
         player.emit('focus', player);
-      }
-    }
-  }, {
-    key: 'onReady',
-    value: function onReady() {
-      var player = this.player;
-
-      if (player.config.autoplay) {
-        player.start();
       }
     }
   }, {

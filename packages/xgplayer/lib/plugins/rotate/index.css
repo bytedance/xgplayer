@@ -1,0 +1,7 @@
+.xgplayer .xgplayer-rotate .xgplayer-icon {
+  width: 24px; }
+
+.xgplayer .xgplayer-rotate svg {
+  -webkit-transform: translateY(5px);
+      -ms-transform: translateY(5px);
+          transform: translateY(5px); }

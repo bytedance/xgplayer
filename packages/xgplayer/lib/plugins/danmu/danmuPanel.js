@@ -24,8 +24,7 @@ function _inherits(subClass, superClass) { if (typeof superClass !== "function" 
 
 var Sniffer = _plugin2.default.Sniffer,
     Util = _plugin2.default.Util,
-    POSITIONS = _plugin2.default.POSITIONS,
-    ROOT_TYPES = _plugin2.default.ROOT_TYPES;
+    POSITIONS = _plugin2.default.POSITIONS;
 
 var DanmuPanel = function (_Plugin) {
   _inherits(DanmuPanel, _Plugin);
@@ -47,8 +46,7 @@ var DanmuPanel = function (_Plugin) {
     key: 'defaultConfig',
     get: function get() {
       return {
-        position: POSITIONS.RIGHT,
-        rootType: ROOT_TYPES.CONTROLS,
+        position: POSITIONS.CONTROLS_RIGTH,
         index: 11,
         onChangeSet: function onChangeSet(set) {
           console.log('DanmuPanel:' + set);
@@ -99,7 +97,7 @@ var DanmuPanel = function (_Plugin) {
     value: function onToggle(e) {
       e.preventDefault();
       e.stopPropagation();
-      Util.hasClass(this.el, 'slider-show') ? Util.removeClass(this.el, 'slider-show') : Util.addClass(this.el, 'slider-show');
+      Util.hasClass(this.root, 'slider-show') ? Util.removeClass(this.root, 'slider-show') : Util.addClass(this.root, 'slider-show');
     }
   }, {
     key: 'destroy',

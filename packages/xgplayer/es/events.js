@@ -12,6 +12,7 @@ export var CANPLAY_THROUGH = 'canplaythrough';
 export var DURATION_CHANGE = 'durationchange';
 export var VOLUME_CHANGE = 'volumechange';
 export var LOADED_DATA = 'loadeddata';
+export var RATE_CHANGE = 'rateChange';
 
 // player events
 export var BUFFER_CHANGE = 'bufferedChange';
@@ -30,3 +31,6 @@ export var URL_CHANGE = 'urlchange';
 export var FULLSCREEN_CHANGE = 'fullscreen_change';
 export var CSS_FULLSCREEN_CHANGE = 'cssFullscreen_change';
 export var MINI_STATE_CHANGE = 'mini_state_change';
+
+// transmuxer events
+export var SEI_PARSED = 'SEI_PARSED';

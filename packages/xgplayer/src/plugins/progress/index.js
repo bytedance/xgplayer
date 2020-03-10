@@ -26,7 +26,8 @@ class Progress extends Plugin {
     return {
       position: POSITIONS.CONTROLS_CENTER,
       index: 0,
-      progressDot: []
+      progressDot: [],
+      thumbnail: null
     }
   }
 
@@ -35,8 +36,8 @@ class Progress extends Plugin {
     this.useable = false
     this.isProgressMoving = false
 
-    if (args.thumbnail && Sniffer.device !== 'mobile') {
-      this.thumbnail = args.thumbnail
+    if (this.playerConfig.thumbnail && Sniffer.device !== 'mobile') {
+      this.config.thumbnail = this.playerConfig.thumbnail
     }
   }
 
@@ -78,8 +79,8 @@ class Progress extends Plugin {
   }
 
   initThumbnail () {
-    if (this.thumbnail) {
-      const {thumbnail} = this
+    if (this.config.thumbnail) {
+      const {thumbnail} = this.config
       this.thumbnailConfig = {}
       Object.keys(defaultThumbnailConfig).map(key => {
         if (typeof thumbnail[key] === 'undefined') {
@@ -147,7 +148,7 @@ class Progress extends Plugin {
       window.removeEventListener('touchmove', move, { passive: false })
       window.removeEventListener('mouseup', up)
       window.removeEventListener('touchend', up)
-      self.el.blur()
+      self.root.blur()
       if (!self.isProgressMoving || player.videoConfig.mediaType === 'audio' || player.dash || player.config.closeMoveSeek) {
         let w = e.clientX - left
         if (w > containerWidth) {
@@ -211,7 +212,7 @@ class Progress extends Plugin {
   }
 
   updateThumbnailPosition (e, now, containerWidth) {
-    if (!this.thumbnail) {
+    if (!this.config.thumbnail) {
       return;
     }
     const thumbnail = this.thumbnailConfig

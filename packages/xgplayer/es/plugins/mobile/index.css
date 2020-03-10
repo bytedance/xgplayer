@@ -1,0 +1,9 @@
+.xgplayer.xgplayer-mobile .xgplayer-controls {
+  background-image: initial; }
+
+.xgplayer xg-trigger {
+  position: absolute;
+  top: 0;
+  left: 0;
+  height: 100%;
+  width: 100%; }

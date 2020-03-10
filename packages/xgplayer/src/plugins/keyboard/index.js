@@ -20,7 +20,7 @@ class Keyboard extends BasePlugin {
         if (!this.keyCodeMap[key]) {
           this.keyCodeMap[key] = extendkeyCodeMap[key]
         } else {
-          ['code', 'action', 'disable', 'isBodyTarget'].map(key1 => {
+          ['keyCode', 'action', 'disable', 'isBodyTarget'].map(key1 => {
             extendkeyCodeMap[key][key1] && (this.keyCodeMap[key][key1] = extendkeyCodeMap[key][key1])
           })
         }
@@ -30,31 +30,38 @@ class Keyboard extends BasePlugin {
 
   afterCreate () {
     this.config.disable = !this.playerConfig.keyShortcut
+    this.seekStep = 10
     this.keyCodeMap = {
       'space': {
-        code: 32,
+        keyCode: 32,
         action: 'playPause',
+        disable: false,
         noBodyTarget: false // 默认在body上触发
       },
-      'top': {
-        code: 38,
-        action: 'upVolume'
+      'up': {
+        keyCode: 38,
+        action: 'upVolume',
+        disable: false
       },
-      'bottom': {
-        code: 40,
-        action: 'downVolume'
+      'down': {
+        keyCode: 40,
+        action: 'downVolume',
+        disable: false
       },
       'left': {
-        code: 37,
-        action: 'seekBack'
+        keyCode: 37,
+        action: 'seekBack',
+        disable: false
       },
       'right': {
-        code: 39,
-        action: 'seek'
+        keyCode: 39,
+        action: 'seek',
+        disable: false
       },
       'esc': {
-        code: 27,
-        action: 'exitFullscreen'
+        keyCode: 27,
+        action: 'exitFullscreen',
+        disable: false
       }
     }
     this.mergekeyCodeMap()
@@ -64,10 +71,17 @@ class Keyboard extends BasePlugin {
     document.addEventListener('keydown', this.onBodyKeyDown)
   }
 
+  afterPlayerInit () {
+    const seekStep = typeof this.config.seekStep === 'function' ? this.config.seekStep(this.player) : this.config.seekStep
+    if (!seekStep || typeof seekStep !== 'number') {
+      this.seekStep = seekStep
+    }
+  }
+
   checkCode (code, isBodyTarget) {
     let flag = false
     Object.keys(this.keyCodeMap).map(key => {
-      if (this.keyCodeMap[key] && code === this.keyCodeMap[key].code) {
+      if (this.keyCodeMap[key] && code === this.keyCodeMap[key].keyCode) {
         flag = !isBodyTarget || (isBodyTarget && !this.keyCodeMap[key].noBodyTarget)
       }
     })
@@ -93,18 +107,18 @@ class Keyboard extends BasePlugin {
   }
 
   seek () {
-    const {player, config} = this
-    if (player.currentTime + config.seekStep <= player.duration) {
-      player.currentTime += config.seekStep
+    const {player} = this
+    if (player.currentTime + this.seekStep <= player.duration) {
+      player.currentTime += this.seekStep
     } else {
       player.currentTime = player.duration - 1
     }
   }
 
   seekBack () {
-    const {player, config} = this
-    if (player.currentTime - config.seekStep >= 0) {
-      player.currentTime -= config.seekStep
+    const {player} = this
+    if (player.currentTime - this.seekStep >= 0) {
+      player.currentTime -= this.seekStep
     } else {
       player.currentTime = 0
     }
@@ -131,6 +145,7 @@ class Keyboard extends BasePlugin {
     }
   }
 
+  // TODO: 多播放器实例存在的情况下，body下的快捷键会触发所有实例的逻辑，需改进
   onBodyKeyDown (event) {
     if (this.config.disable) {
       return
@@ -183,7 +198,7 @@ class Keyboard extends BasePlugin {
       }
     }
     Object.keys(this.keyCodeMap).map(key => {
-      if (this.keyCodeMap[key].code === keyCode && !this.keyCodeMap[key].disable) {
+      if (this.keyCodeMap[key].keyCode === keyCode && !this.keyCodeMap[key].disable) {
         if (typeof this.keyCodeMap[key].action === 'function') {
           this.keyCodeMap[key].action()
         } else if (typeof this.keyCodeMap[key].action === 'string') {

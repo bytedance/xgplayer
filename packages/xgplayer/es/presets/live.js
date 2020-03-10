@@ -9,24 +9,24 @@ import Keyboard from '../plugins/keyboard';
 import Loading from '../plugins/loading';
 import sniffer from '../utils/sniffer';
 
-import PlayIcon from '../plugins/icons/playIcon';
-import FullScreen from '../plugins/icons/fullscreen';
-import TimeIcon from '../plugins/icons/timeIcon';
-import VolumeIcon from '../plugins/icons/volumeIcon';
-import RotateIcon from '../plugins/icons/rotate';
-import PIPIcon from '../plugins/icons/pipIcon';
-// import DownLoadIcon from '../plugins/icons/downloadIcon'
-// import ScreenShotIcon from '../plugins/icons/screenShotIcon'
-import DefinitionIcon from '../plugins/icons/definitionIcon';
-import PlaybackRateIcon from '../plugins/icons/playbackRateIcon';
-import CssFullScreen from '../plugins/icons/cssFullScreen';
+import PlayIcon from '../plugins/play';
+import FullScreen from '../plugins/fullscreen';
+import TimeIcon from '../plugins/time';
+import Volume from '../plugins/volume';
+import RotateIcon from '../plugins/rotate';
+import PIPIcon from '../plugins/pip';
+// import DownLoadIcon from '../plugins/download'
+// import ScreenShotIcon from '../plugins/screenShot'
+import DefinitionIcon from '../plugins/definition';
+import PlaybackRateIcon from '../plugins/playbackRate';
+import CssFullScreen from '../plugins/cssFullScreen';
 
 var DefaultPreset = function DefaultPreset() {
   var _plugins, _plugins2;
 
   _classCallCheck(this, DefaultPreset);
 
-  var contolsIcons = [PlayIcon, FullScreen, TimeIcon, VolumeIcon, RotateIcon, DefinitionIcon, PlaybackRateIcon, CssFullScreen, PIPIcon];
+  var contolsIcons = [PlayIcon, FullScreen, TimeIcon, Volume, RotateIcon, DefinitionIcon, PlaybackRateIcon, CssFullScreen, PIPIcon];
   this.plugins = [Poster, Start, Loading, Enter].concat(contolsIcons);
 
   switch (sniffer.device) {

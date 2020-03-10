@@ -3,16 +3,21 @@
 Object.defineProperty(exports, "__esModule", {
   value: true
 });
+exports.MiniScreenIcon = exports.default = undefined;
 
 var _createClass = function () { function defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ("value" in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } } return function (Constructor, protoProps, staticProps) { if (protoProps) defineProperties(Constructor.prototype, protoProps); if (staticProps) defineProperties(Constructor, staticProps); return Constructor; }; }();
-
-var _draggabilly = require('draggabilly');
-
-var _draggabilly2 = _interopRequireDefault(_draggabilly);
 
 var _plugin = require('../../plugin');
 
 var _plugin2 = _interopRequireDefault(_plugin);
+
+var _play = require('../assets/play.svg');
+
+var _play2 = _interopRequireDefault(_play);
+
+var _pause = require('../assets/pause.svg');
+
+var _pause2 = _interopRequireDefault(_pause);
 
 var _miniScreenIcon = require('./miniScreenIcon');
 
@@ -43,13 +48,15 @@ var MiniScreen = function (_Plugin) {
     key: 'defaultConfig',
     get: function get() {
       return {
+        disable: false,
         width: 320,
         height: 180,
-        left: 0,
-        top: 200,
-        'z-index': 110,
-        isShowIcon: true, // 是否显示icon
-        isCachePosition: true // 是否缓存位置信息
+        left: -1, // 默认左下角
+        top: -1, // 默认左下角
+        isShowIcon: false, // 是否显示icon
+        isScrollSwitch: false, // 滚动自动切换自动切换
+        scrollTop: 0, // 触发滚动的高度
+        disableDrag: false // 禁用拖拽
       };
     }
   }]);
@@ -60,107 +67,179 @@ var MiniScreen = function (_Plugin) {
     var _this = _possibleConstructorReturn(this, (MiniScreen.__proto__ || Object.getPrototypeOf(MiniScreen)).call(this, args));
 
     _this.isMini = false;
-    _this.position = {
-      left: _this.config.left,
-      top: _this.config.top,
+    var config = _this.config;
+
+    _this.pos = {
+      left: config.left < 0 ? window.innerWidth - config.width - 20 : config.left,
+      top: config.top < 0 ? window.innerHeight - config.height - 20 : config.top,
       height: _this.config.height,
       width: _this.config.width
     };
-    _this.coordinate = {};
+    _this.coordinate = {
+      currentX: 0,
+      currentY: 0,
+      scrollY: window.scrollY || 0
+    };
     _this.lastStyle = null;
+    _this.isMoveing = false;
     return _this;
   }
 
   _createClass(MiniScreen, [{
-    key: 'changPosition',
-    value: function changPosition() {
-      var position = arguments.length > 0 && arguments[0] !== undefined ? arguments[0] : { left: 0, rigth: 0, top: null, bottom: null };
-
-      console.log(position);
+    key: 'beforeCreate',
+    value: function beforeCreate(args) {
+      if (typeof args.player.config.mini === 'boolean') {
+        args.config.isShowIcon = args.player.config.mini;
+      }
     }
   }, {
     key: 'afterCreate',
     value: function afterCreate() {
       var _this2 = this;
 
-      this.getMini = this.getMini.bind(this);
-      this.exitMini = this.exitMini.bind(this);
-      this.onMousemove = this.onMousemove.bind(this);
-      this.onMousedown = this.onMousedown.bind(this);
-      this.onMouseup = this.onMouseup.bind(this);
-      var player = this.player;
+      var bindFunKeys = ['onMousemove', 'onMousedown', 'onMouseup', 'onCancelClick', 'onCenterClick', 'onScroll'];
+      bindFunKeys.map(function (key) {
+        _this2[key] = _this2[key].bind(_this2);
+      });
+      this.on(Events.PAUSE, function () {
+        var btn = _this2.find('.play-icon');
+        Util.addClass(btn, 'pause');
+        Util.removeClass(btn, 'play');
+      });
+      this.on(Events.PLAY, function () {
+        var btn = _this2.find('.play-icon');
+        Util.addClass(btn, 'play');
+        Util.removeClass(btn, 'pause');
+      });
+    }
+  }, {
+    key: 'onPluginsReady',
+    value: function onPluginsReady() {
+      var _this3 = this;
 
+      var player = this.player,
+          config = this.config;
+
+      if (config.disable) {
+        return;
+      }
       if (this.config.isShowIcon) {
         var options = {
-          onClick: function onClick() {
-            _this2.getMini();
+          config: {
+            onClick: function onClick() {
+              _this3.getMini();
+            }
           }
         };
-        this.miniIcon = player.controls.registerPlugin(_miniScreenIcon2.default.pluginName, _miniScreenIcon2.default, options);
+        this.miniIcon = player.controls.registerPlugin(_miniScreenIcon2.default, options, _miniScreenIcon2.default.pluginName);
       }
-      this.bind('xg-mini-drag', 'click', function () {
-        console.log('xg-mini-drag');
-        _this2.exitMini();
-      });
-      // this.bind(['click', 'touchend'], this.getMini)
-      // this.bind('mousedown', this.onMousedown)
-      // this.bind('mouseup', this.onMouseup)
-      // this.draggie = new Draggabilly(this.player.root, {grid: [ 20, 20 ]})
-      // this.draggie.isEnabled = false
-      this.bind('mouseenter', function () {
-        console.log('onMouseEnter');
-      });
-      this.bind('mouseleave', function () {
-        console.log('onMouseLeave');
-      });
+      this.bind('.mini-cancel-btn', 'click', this.onCancelClick);
+      this.bind('.play-icon', 'click', this.onCenterClick);
+      if (!this.config.disableDrag) {
+        this.bind('mousedown', this.onMousedown);
+      }
+      if (this.config.isScrollSwitch) {
+        window.addEventListener('scroll', this.onScroll);
+      }
     }
   }, {
-    key: 'onMouseEnter',
-    value: function onMouseEnter() {
-      console.log('onMouseEnter');
+    key: 'onCancelClick',
+    value: function onCancelClick(e) {
+      this.exitMini();
     }
   }, {
-    key: 'onMouseLeave',
-    value: function onMouseLeave() {
-      console.log('onMouseLeave');
+    key: 'onCenterClick',
+    value: function onCenterClick(e) {
+      var player = this.player;
+
+      player.paused ? player.play() : player.pause();
+    }
+  }, {
+    key: 'getCss',
+    value: function getCss(o, key) {
+      return o.currentStyle ? o.currentStyle[key] : document.defaultView.getComputedStyle(o, false)[key];
+    }
+  }, {
+    key: 'onScroll',
+    value: function onScroll(e) {
+      if (!window.scrollY && window.scrollY !== 0 || Math.abs(window.scrollY - this.coordinate.scrollY) < 50) {
+        return;
+      }
+      var scrollHeight = parseInt(this.getCss(this.player.root, 'height'));
+      scrollHeight += this.config.scrollTop;
+      this.coordinate.scrollY = window.scrollY;
+      if (window.scrollY > scrollHeight + 5 && !this.isMini) {
+        this.getMini();
+      } else if (window.scrollY <= scrollHeight && this.isMini) {
+        this.exitMini();
+      }
     }
   }, {
     key: 'onMousedown',
     value: function onMousedown(e) {
-      console.log('onMousedown');
-      console.log('x:' + e.clientX + '  y:' + e.clientY);
+      if (e.target !== this.root || this.isMoveing) {
+        return;
+      }
+      this.isMoveing = true;
+      this.coordinate.currentX = e.clientX;
+      this.coordinate.currentY = e.clientY;
+      this.bind('mouseup', this.onMouseup);
       this.bind('mousemove', this.onMousemove);
     }
   }, {
     key: 'onMouseup',
     value: function onMouseup(e) {
-      console.log('onMouseup');
+      if (e.target !== this.root || !this.isMoveing) {
+        return;
+      }
+      this.isMoveing = false;
+      var target = this.config.target || this.player.root;
+      this.pos.top = parseInt(this.getCss(target, 'top'));
+      this.pos.left = parseInt(this.getCss(target, 'left'));
       this.unbind('mousemove', this.onMousemove);
+      this.unbind('mouseup', this.onMouseup);
     }
   }, {
     key: 'onMousemove',
-    value: function onMousemove(e) {
-      var nx = e.clientX;
-      var ny = e.clientY;
-      var _coordinate = this.coordinate,
-          x = _coordinate.x,
-          y = _coordinate.y;
-      var _position = this.position,
-          right = _position.right,
-          left = _position.left;
+    value: function onMousemove(e, callback) {
+      e = e || window.event;
+      var target = this.config.target || this.player.root;
+      var maxTop = window.innerHeight - parseInt(this.getCss(target, 'height'));
+      var maxLeft = window.innerWidth - parseInt(this.getCss(target, 'width'));
+      if (this.isMoveing) {
+        var nowX = e.clientX;
+        var nowY = e.clientY;
+        var disX = nowX - this.coordinate.currentX;
+        var disY = nowY - this.coordinate.currentY;
+        var top = parseInt(this.pos.top) + disY;
+        var left = parseInt(this.pos.left) + disX;
+        if (left < 0) {
+          left = 0;
+        } else if (left > maxLeft) {
+          left = maxLeft;
+        }
 
-      if (nx === x && ny === y) {
-        return;
+        if (top < 0) {
+          top = 0;
+        } else if (top > maxTop) {
+          top = maxTop;
+        }
+        target.style.left = left + 'px';
+        target.style.top = top + 'px';
+        if (typeof callback === 'function') {
+          callback(left, top);
+        }
+
+        if (e.preventDefault) {
+          e.preventDefault();
+        }
+        return false;
       }
-      if (right === 0) {} else if (left === 0) {}
-      this.coordinate.x = nx;
-      this.coordinate.y = ny;
-      console.log('coordinate', this.coordinate);
     }
   }, {
     key: 'getMini',
     value: function getMini() {
-      var _this3 = this;
+      var _this4 = this;
 
       if (this.isMini) {
         return;
@@ -168,44 +247,36 @@ var MiniScreen = function (_Plugin) {
       var player = this.player,
           playerConfig = this.playerConfig;
 
-      player.isMini = this.isMini = true;
+      var target = this.config.target || this.player.root;
       // this.draggie.enable()
       this.lastStyle = {};
       Util.addClass(player.root, 'xgplayer-mini');
-      this.show();
-      console.log('position', this.position);
-      Object.keys(this.position).map(function (key) {
-        _this3.lastStyle[key] = player.root.style[key];
-        player.root.style[key] = _this3.position[key] + 'px';
+      Object.keys(this.pos).map(function (key) {
+        _this4.lastStyle[key] = target.style[key];
+        target.style[key] = _this4.pos[key] + 'px';
       });
       if (playerConfig.fluid) {
-        player.root.style['padding-top'] = '';
+        target.style['padding-top'] = '';
       }
-      console.log('this.lastStyle', this.lastStyle);
-      this.createDraggie();
       this.emit(Events.MINI_STATE_CHANGE, true);
+      player.isMini = this.isMini = true;
     }
   }, {
     key: 'exitMini',
     value: function exitMini() {
-      var _this4 = this;
+      var _this5 = this;
 
-      this.hide();
       if (!this.isMini) {
         return false;
       }
-      // this.draggie.disable()
       var player = this.player,
           playerConfig = this.playerConfig;
 
-      this.isMini = player.isMini = false;
+      var target = this.config.target || this.player.root;
       Util.removeClass(player.root, 'xgplayer-mini');
       if (this.lastStyle) {
-        console.log('this.lastStyle', this.lastStyle);
-        // player.root.removeAttribute('style')
-        // player.root.setAttribute('style', this.lastStyle)
         Object.keys(this.lastStyle).map(function (key) {
-          player.root.style[key] = _this4.lastStyle[key];
+          target.style[key] = _this5.lastStyle[key];
         });
       }
       this.lastStyle = null;
@@ -214,27 +285,22 @@ var MiniScreen = function (_Plugin) {
         player.root.style['height'] = '0';
         player.root.style['padding-top'] = playerConfig.height * 100 / playerConfig.width + '%';
       }
-      this.draggie.destroy();
-      this.draggie = null;
       this.emit(Events.MINI_STATE_CHANGE, false);
-    }
-  }, {
-    key: 'createDraggie',
-    value: function createDraggie() {
-      this.draggie = new _draggabilly2.default(this.player.root, {
-        // grid: [ 5, 5 ]
-        // handle: '.xg-mini-layer'
-      });
+      this.isMini = player.isMini = false;
     }
   }, {
     key: 'destroy',
     value: function destroy() {
-      this.unbind(['click', 'touchend'], this.getMini);
+      this.unbind('mousedown', this.onMousedown);
+      window.removeEventListener('scroll', this.onScroll);
     }
   }, {
     key: 'render',
     value: function render() {
-      return '\n      <xg-mini-layer class="xg-mini-layer">\n      <xg-mini-drag>\u5173\u95ED</xg-mini-drag>\n      </xg-mini-layer>';
+      if (this.config.disable) {
+        return;
+      }
+      return '\n      <xg-mini-layer class="xg-mini-layer">\n      <div class="mask"></div>\n      <xg-mini-header class="xgplayer-mini-header">\n        <div>\u6309\u4F4F\u753B\u9762\u53EF\u79FB\u52A8\u5C0F\u7A97</div>\n      </xg-mini-header>\n      <div class="mini-cancel-btn">X</div>\n      <div class="play-icon play">\n        ' + _pause2.default + '\n        ' + _play2.default + '\n      </div>\n      </xg-mini-layer>';
     }
   }]);
 
@@ -242,3 +308,4 @@ var MiniScreen = function (_Plugin) {
 }(_plugin2.default);
 
 exports.default = MiniScreen;
+exports.MiniScreenIcon = _miniScreenIcon2.default;

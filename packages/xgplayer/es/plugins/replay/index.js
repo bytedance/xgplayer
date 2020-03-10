@@ -7,7 +7,7 @@ function _possibleConstructorReturn(self, call) { if (!self) { throw new Referen
 function _inherits(subClass, superClass) { if (typeof superClass !== "function" && superClass !== null) { throw new TypeError("Super expression must either be null or a function, not " + typeof superClass); } subClass.prototype = Object.create(superClass && superClass.prototype, { constructor: { value: subClass, enumerable: false, writable: true, configurable: true } }); if (superClass) Object.setPrototypeOf ? Object.setPrototypeOf(subClass, superClass) : subClass.__proto__ = superClass; }
 
 import Plugin from '../../plugin';
-import ReplayIcon from '../../skin/assets/replay.svg';
+import ReplaySvg from '../assets/replay.svg';
 
 var Replay = function (_Plugin) {
   _inherits(Replay, _Plugin);
@@ -22,7 +22,7 @@ var Replay = function (_Plugin) {
     key: 'registerIcons',
     value: function registerIcons() {
       return {
-        'replay': ReplayIcon
+        'replay': ReplaySvg
       };
     }
 
@@ -54,7 +54,7 @@ var Replay = function (_Plugin) {
         if (!_this2.playerConfig.loop) {
           Plugin.Util.addClass(_this2.player.root, 'replay');
         }
-        var path = _this2.el.querySelector('path');
+        var path = _this2.root.querySelector('path');
         if (path) {
           var transform = window.getComputedStyle(path).getPropertyValue('transform');
           if (typeof transform === 'string' && transform.indexOf('none') > -1) {

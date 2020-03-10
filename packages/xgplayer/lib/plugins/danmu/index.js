@@ -3,6 +3,7 @@
 Object.defineProperty(exports, "__esModule", {
   value: true
 });
+exports.DanmuPanel = exports.DanmuIcon = exports.default = undefined;
 
 var _createClass = function () { function defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ("value" in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } } return function (Constructor, protoProps, staticProps) { if (protoProps) defineProperties(Constructor.prototype, protoProps); if (staticProps) defineProperties(Constructor, staticProps); return Constructor; }; }();
 
@@ -60,13 +61,23 @@ var Danmu = function (_Plugin) {
       });
     }
   }, {
+    key: 'onPluginsReady',
+    value: function onPluginsReady() {
+      // 添加点击触发事件触发 依赖pc插件
+      var pcPlugin = this.player.plugins.pc;
+      if (pcPlugin) {
+        pcPlugin.onVideoDblClick && this.bind('dblclick', pcPlugin.onVideoDblClick);
+        pcPlugin.onVideoClick && this.bind('click', pcPlugin.onVideoClick);
+      }
+    }
+  }, {
     key: 'initDanmu',
     value: function initDanmu() {
       var player = this.player,
           config = this.config;
 
       var danmuConfig = {
-        container: this.el,
+        container: this.root,
         player: player.video,
         comments: config.comments,
         area: config.area
@@ -100,7 +111,7 @@ var Danmu = function (_Plugin) {
             defaultOpen: this.config.defaultOpen
           }
         };
-        this.danmuButton = player.controls.registerPlugin(_danmuIcon2.default.pluginName, _danmuIcon2.default, buttonOptions);
+        this.danmuButton = player.controls.registerPlugin(_danmuIcon2.default, buttonOptions, _danmuIcon2.default.pluginName);
       }
     }
   }, {
@@ -132,7 +143,7 @@ var Danmu = function (_Plugin) {
   }, {
     key: 'render',
     value: function render() {
-      return '<xg-danmu class="xgplayer-danmu"></xg-danmu>';
+      return '<xg-danmu class="xgplayer-danmu">\n    <p>vrevtrbtr</p>\n    </xg-danmu>';
     }
   }], [{
     key: 'pluginName',
@@ -163,3 +174,5 @@ var Danmu = function (_Plugin) {
 }(_plugin2.default);
 
 exports.default = Danmu;
+exports.DanmuIcon = _danmuIcon2.default;
+exports.DanmuPanel = _danmuPanel2.default;

@@ -1,4 +1,4 @@
-'use strict';
+"use strict";
 
 Object.defineProperty(exports, "__esModule", {
   value: true
@@ -12,15 +12,15 @@ var usePreset = exports.usePreset = function usePreset(player, Preset) {
   var presetInst = void 0;
   if (Preset.preset && Preset.options) {
     // eslint-disable-next-line new-cap
-    presetInst = new Preset.preset(Preset.options);
+    presetInst = new Preset.preset(Preset.options, player.config);
   } else {
-    presetInst = new Preset();
+    presetInst = new Preset({}, player.config);
   }
   var _presetInst = presetInst,
       plugins = _presetInst.plugins,
-      ignores = _presetInst.ignores;
+      ignores = _presetInst.ignores,
+      icons = _presetInst.icons;
 
-  console.log('preset', plugins);
   if (!player.config.plugins) {
     player.config.plugins = [];
   }
@@ -31,4 +31,5 @@ var usePreset = exports.usePreset = function usePreset(player, Preset) {
 
   (_player$config$plugin = player.config.plugins).push.apply(_player$config$plugin, _toConsumableArray(plugins));
   (_player$config$ignore = player.config.ignores).push.apply(_player$config$ignore, _toConsumableArray(ignores));
+  player.config.icons = icons;
 };

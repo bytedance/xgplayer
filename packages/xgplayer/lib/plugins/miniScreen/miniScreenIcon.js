@@ -20,8 +20,7 @@ function _possibleConstructorReturn(self, call) { if (!self) { throw new Referen
 
 function _inherits(subClass, superClass) { if (typeof superClass !== "function" && superClass !== null) { throw new TypeError("Super expression must either be null or a function, not " + typeof superClass); } subClass.prototype = Object.create(superClass && superClass.prototype, { constructor: { value: subClass, enumerable: false, writable: true, configurable: true } }); if (superClass) Object.setPrototypeOf ? Object.setPrototypeOf(subClass, superClass) : subClass.__proto__ = superClass; }
 
-var ROOT_TYPES = _plugin2.default.ROOT_TYPES,
-    POSITIONS = _plugin2.default.POSITIONS;
+var POSITIONS = _plugin2.default.POSITIONS;
 
 var MiniScreenIcon = function (_Plugin) {
   _inherits(MiniScreenIcon, _Plugin);
@@ -35,7 +34,6 @@ var MiniScreenIcon = function (_Plugin) {
   _createClass(MiniScreenIcon, [{
     key: 'afterCreate',
     value: function afterCreate() {
-      console.log('miniscreenIcon', this.config);
       this.getMini = this.getMini.bind(this);
       this.exitMini = this.exitMini.bind(this);
       this.bind(['click', 'touchend'], this.getMini);
@@ -43,7 +41,6 @@ var MiniScreenIcon = function (_Plugin) {
   }, {
     key: 'getMini',
     value: function getMini() {
-      console.log('getMini');
       this.config.onClick && this.config.onClick();
     }
   }, {
@@ -74,7 +71,7 @@ var MiniScreenIcon = function (_Plugin) {
     key: 'render',
     value: function render() {
       var text = this.text.miniscreen;
-      return '\n      <xg-icon class="xgplayer-miniicon">\n       <p class="name"><span>' + text + '</span></p>\n      </xg-icon>';
+      return '\n      <xg-icon class="xgplayer-miniicon">\n      <div class="xgplayer-icon btn-definition"><span class="icon-text">' + text + '</span></div>\n      </xg-icon>';
     }
   }], [{
     key: 'pluginName',
@@ -85,8 +82,7 @@ var MiniScreenIcon = function (_Plugin) {
     key: 'defaultConfig',
     get: function get() {
       return {
-        position: POSITIONS.RIGHT,
-        rootType: ROOT_TYPES.CONTROLS,
+        position: POSITIONS.CONTROLS_RIGTH,
         index: 10
       };
     }

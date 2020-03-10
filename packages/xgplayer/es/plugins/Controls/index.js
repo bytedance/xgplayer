@@ -9,23 +9,9 @@ function _possibleConstructorReturn(self, call) { if (!self) { throw new Referen
 function _inherits(subClass, superClass) { if (typeof superClass !== "function" && superClass !== null) { throw new TypeError("Super expression must either be null or a function, not " + typeof superClass); } subClass.prototype = Object.create(superClass && superClass.prototype, { constructor: { value: subClass, enumerable: false, writable: true, configurable: true } }); if (superClass) Object.setPrototypeOf ? Object.setPrototypeOf(subClass, superClass) : subClass.__proto__ = superClass; }
 
 import Plugin from '../../plugin';
-// import Progress from '../icons/progress'
-// import PlayIcon from '../icons/playIcon'
-// import FullScreen from '../icons/fullscreen'
-// import TimeIcon from '../icons/timeIcon'
-// import VolumeIcon from '../icons/volumeIcon'
-// import RotateIcon from '../icons/rotate'
-// // import MiniScreen from '../icons/miniScreen'
-// import PIPIcon from '../icons/pipIcon'
-// import PlayNextIcon from '../icons/playNextIcon'
-// // import DownLoadIcon from '../icons/downloadIcon'
-// // import ScreenShotIcon from '../icons/screenShotIcon'
-// import DefinitionIcon from '../icons/definitionIcon'
-// import PlaybackRateIcon from '../icons/playbackRateIcon'
-// import CssFullScreen from '../icons/cssFullScreen'
-
 var Events = Plugin.Events,
-    Util = Plugin.Util;
+    Util = Plugin.Util,
+    POSITIONS = Plugin.POSITIONS;
 
 var Controls = function (_Plugin) {
   _inherits(Controls, _Plugin);
@@ -37,141 +23,97 @@ var Controls = function (_Plugin) {
   }
 
   _createClass(Controls, [{
+    key: 'beforeCreate',
+    value: function beforeCreate(args) {
+      if (typeof args.player.config.controls === 'boolean') {
+        args.config.disable = !args.player.config.controls;
+      }
+    }
+  }, {
     key: 'afterCreate',
     value: function afterCreate() {
       var _this2 = this;
 
-      this.on(Events.MINI_STATE_CHANGE, function (isMini) {
-        isMini ? Util.addClass(_this2.el, 'mini') : Util.removeClass(_this2.el, 'mini');
+      var height = this.config.height;
+
+      var style = {
+        height: height + 'px'
+      };
+      Object.keys(style).map(function (key) {
+        _this2.root.style[key] = style[key];
       });
-    }
-  }, {
-    key: 'children',
-    value: function children() {
       this.left = this.find('left-grid');
       this.center = this.find('center');
       this.right = this.find('right-grid');
-      return {
-        //   TimeIcon: {
-        //     plugin: TimeIcon,
-        //     options: {
-        //       index: 3,
-        //       root: this.left
-        //     }
-        //   },
-        //   PlayIcon: {
-        //     plugin: PlayIcon,
-        //     options: {
-        //       index: 0,
-        //       root: this.left
-        //     }
-        //   },
-        //   playNextIcon: {
-        //     plugin: PlayNextIcon,
-        //     options: {
-        //       index: 1,
-        //       root: this.left
-        //     }
-        //   },
-        //   // DownLoadIcon: {
-        //   //   plugin: DownLoadIcon,
-        //   //   options: {
-        //   //     index: 3,
-        //   //     root: this.right
-        //   //   }
-        //   // },
-        //   // ScreenShotIcon: {
-        //   //   plugin: ScreenShotIcon,
-        //   //   options: {
-        //   //     index: 4,
-        //   //     root: this.right
-        //   //   }
-        //   // },
-        //   FullScreen: {
-        //     plugin: FullScreen,
-        //     options: {
-        //       index: 0,
-        //       root: this.right
-        //     }
-        //   },
-        //   VolumeIcon: {
-        //     plugin: VolumeIcon,
-        //     options: {
-        //       index: 1,
-        //       root: this.right
-        //     }
-        //   },
-        //   RotateIcon: {
-        //     plugin: DefinitionIcon,
-        //     options: {
-        //       index: 2,
-        //       root: this.right
-        //     }
-        //   },
-        //   DefinitionIcon: {
-        //     plugin: RotateIcon,
-        //     options: {
-        //       index: 3,
-        //       root: this.right
-        //     }
-        //   },
-        //   PlaybackRateIcon: {
-        //     plugin: PlaybackRateIcon,
-        //     options: {
-        //       index: 4,
-        //       root: this.right
-        //     }
-        //   },
-        //   // MiniScreen: {
-        //   //   plugin: MiniScreen,
-        //   //   options: {
-        //   //     index: 1,
-        //   //     root: this.right
-        //   //   }
-        //   // },
-        //   PIPIcon: {
-        //     plugin: PIPIcon,
-        //     options: {
-        //       index: 1,
-        //       root: this.right
-        //     }
-        //   },
-        //   CssFullScreen: {
-        //     plugin: CssFullScreen,
-        //     options: {
-        //       index: 1,
-        //       root: this.right
-        //     }
-        //   },
-        //   Progress: {
-        //     plugin: Progress,
-        //     options: {
-        //       root: this.center
-        //     }
-        //   }
-      };
+      this.on(Events.MINI_STATE_CHANGE, function (isMini) {
+        isMini ? Util.addClass(_this2.root, 'mini') : Util.removeClass(_this2.root, 'mini');
+      });
+      this.bind('mouseenter', function (e) {
+        _this2.mouseEnter(e);
+      });
+      this.bind('mouseou', function (e) {
+        _this2.mouseOut(e);
+      });
     }
   }, {
+    key: 'mouseEnter',
+    value: function mouseEnter() {
+      console.log('mouseenter');
+    }
+  }, {
+    key: 'mouseOut',
+    value: function mouseOut() {
+      console.log('mouseout');
+    }
+  }, {
+    key: 'showTips',
+    value: function showTips() {}
+  }, {
     key: 'registerPlugin',
-    value: function registerPlugin(name, plugin) {
-      var options = arguments.length > 2 && arguments[2] !== undefined ? arguments[2] : {};
+    value: function registerPlugin(plugin) {
+      var options = arguments.length > 1 && arguments[1] !== undefined ? arguments[1] : {};
+      var name = arguments[2];
 
+      if (!this.root) {
+        return;
+      }
       if (!options.root) {
         var position = options.config && options.config.position ? options.config.position : plugin.defaultConfig.position;
-        var root = this[position] || this.left;
-        options.root = root;
+        switch (position) {
+          case POSITIONS.CONTROLS_LEFT:
+            options.root = this.left;
+            break;
+          case POSITIONS.CONTROLS_RIGTH:
+            options.root = this.right;
+            break;
+          case POSITIONS.CONTROLS_CENTER:
+            options.root = this.center;
+            break;
+          default:
+            options.root = this.left;
+        }
+        return _get(Controls.prototype.__proto__ || Object.getPrototypeOf(Controls.prototype), 'registerPlugin', this).call(this, plugin, options, name);
       }
-      return _get(Controls.prototype.__proto__ || Object.getPrototypeOf(Controls.prototype), 'registerPlugin', this).call(this, name, plugin, options);
     }
   }, {
     key: 'render',
     value: function render() {
+      if (this.config.disable) {
+        return;
+      }
       return '<xg-controls class="xgplayer-controls" unselectable="on" onselectstart="return false">\n    <left-grid class="left-grid">\n    </Left-grid>\n    <center class="center"></center>\n    <right-grid class="right-grid">\n    </right-grid>\n    </xg-controls>';
     }
   }], [{
     key: 'pluginName',
     get: function get() {
       return 'Controls';
+    }
+  }, {
+    key: 'defaultConfig',
+    get: function get() {
+      return {
+        disable: false
+      };
     }
   }]);
 

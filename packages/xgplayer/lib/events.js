@@ -17,6 +17,7 @@ var CANPLAY_THROUGH = exports.CANPLAY_THROUGH = 'canplaythrough';
 var DURATION_CHANGE = exports.DURATION_CHANGE = 'durationchange';
 var VOLUME_CHANGE = exports.VOLUME_CHANGE = 'volumechange';
 var LOADED_DATA = exports.LOADED_DATA = 'loadeddata';
+var RATE_CHANGE = exports.RATE_CHANGE = 'rateChange';
 
 // player events
 var BUFFER_CHANGE = exports.BUFFER_CHANGE = 'bufferedChange';
@@ -35,3 +36,6 @@ var URL_CHANGE = exports.URL_CHANGE = 'urlchange';
 var FULLSCREEN_CHANGE = exports.FULLSCREEN_CHANGE = 'fullscreen_change';
 var CSS_FULLSCREEN_CHANGE = exports.CSS_FULLSCREEN_CHANGE = 'cssFullscreen_change';
 var MINI_STATE_CHANGE = exports.MINI_STATE_CHANGE = 'mini_state_change';
+
+// transmuxer events
+var SEI_PARSED = exports.SEI_PARSED = 'SEI_PARSED';

@@ -8,8 +8,8 @@ function _inherits(subClass, superClass) { if (typeof superClass !== "function" 
 
 import Plugin from '../../plugin';
 import './index.scss';
-var ROOT_TYPES = Plugin.ROOT_TYPES,
-    POSITIONS = Plugin.POSITIONS;
+
+var POSITIONS = Plugin.POSITIONS;
 
 var MiniScreenIcon = function (_Plugin) {
   _inherits(MiniScreenIcon, _Plugin);
@@ -23,7 +23,6 @@ var MiniScreenIcon = function (_Plugin) {
   _createClass(MiniScreenIcon, [{
     key: 'afterCreate',
     value: function afterCreate() {
-      console.log('miniscreenIcon', this.config);
       this.getMini = this.getMini.bind(this);
       this.exitMini = this.exitMini.bind(this);
       this.bind(['click', 'touchend'], this.getMini);
@@ -31,7 +30,6 @@ var MiniScreenIcon = function (_Plugin) {
   }, {
     key: 'getMini',
     value: function getMini() {
-      console.log('getMini');
       this.config.onClick && this.config.onClick();
     }
   }, {
@@ -62,7 +60,7 @@ var MiniScreenIcon = function (_Plugin) {
     key: 'render',
     value: function render() {
       var text = this.text.miniscreen;
-      return '\n      <xg-icon class="xgplayer-miniicon">\n       <p class="name"><span>' + text + '</span></p>\n      </xg-icon>';
+      return '\n      <xg-icon class="xgplayer-miniicon">\n      <div class="xgplayer-icon btn-definition"><span class="icon-text">' + text + '</span></div>\n      </xg-icon>';
     }
   }], [{
     key: 'pluginName',
@@ -73,8 +71,7 @@ var MiniScreenIcon = function (_Plugin) {
     key: 'defaultConfig',
     get: function get() {
       return {
-        position: POSITIONS.RIGHT,
-        rootType: ROOT_TYPES.CONTROLS,
+        position: POSITIONS.CONTROLS_RIGTH,
         index: 10
       };
     }

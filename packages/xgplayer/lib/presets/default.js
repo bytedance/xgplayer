@@ -44,62 +44,62 @@ var _sniffer = require('../utils/sniffer');
 
 var _sniffer2 = _interopRequireDefault(_sniffer);
 
-var _danmu = require('../plugins/danmu');
-
-var _danmu2 = _interopRequireDefault(_danmu);
-
-var _progress = require('../plugins/icons/progress');
+var _progress = require('../plugins/progress');
 
 var _progress2 = _interopRequireDefault(_progress);
 
-var _playIcon = require('../plugins/icons/playIcon');
+var _play = require('../plugins/play');
 
-var _playIcon2 = _interopRequireDefault(_playIcon);
+var _play2 = _interopRequireDefault(_play);
 
-var _fullscreen = require('../plugins/icons/fullscreen');
+var _fullscreen = require('../plugins/fullscreen');
 
 var _fullscreen2 = _interopRequireDefault(_fullscreen);
 
-var _timeIcon = require('../plugins/icons/timeIcon');
+var _time = require('../plugins/time');
 
-var _timeIcon2 = _interopRequireDefault(_timeIcon);
+var _time2 = _interopRequireDefault(_time);
 
-var _volumeIcon = require('../plugins/icons/volumeIcon');
+var _volume = require('../plugins/volume');
 
-var _volumeIcon2 = _interopRequireDefault(_volumeIcon);
+var _volume2 = _interopRequireDefault(_volume);
 
-var _rotate = require('../plugins/icons/rotate');
+var _rotate = require('../plugins/rotate');
 
 var _rotate2 = _interopRequireDefault(_rotate);
 
-var _pipIcon = require('../plugins/icons/pipIcon');
+var _pip = require('../plugins/pip');
 
-var _pipIcon2 = _interopRequireDefault(_pipIcon);
+var _pip2 = _interopRequireDefault(_pip);
 
-var _playNextIcon = require('../plugins/icons/playNextIcon');
+var _playNext = require('../plugins/playNext');
 
-var _playNextIcon2 = _interopRequireDefault(_playNextIcon);
+var _playNext2 = _interopRequireDefault(_playNext);
 
-var _definitionIcon = require('../plugins/icons/definitionIcon');
+var _download = require('../plugins/download');
 
-var _definitionIcon2 = _interopRequireDefault(_definitionIcon);
+var _download2 = _interopRequireDefault(_download);
 
-var _playbackRateIcon = require('../plugins/icons/playbackRateIcon');
+var _screenShot = require('../plugins/screenShot');
 
-var _playbackRateIcon2 = _interopRequireDefault(_playbackRateIcon);
+var _screenShot2 = _interopRequireDefault(_screenShot);
 
-var _cssFullScreen = require('../plugins/icons/cssFullScreen');
+var _definition = require('../plugins/definition');
+
+var _definition2 = _interopRequireDefault(_definition);
+
+var _playbackRate = require('../plugins/playbackRate');
+
+var _playbackRate2 = _interopRequireDefault(_playbackRate);
+
+var _cssFullScreen = require('../plugins/cssFullScreen');
 
 var _cssFullScreen2 = _interopRequireDefault(_cssFullScreen);
 
 function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
 
 function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } }
-// import Miniscreen from '../Controls/mini';
-// import Rotate from '../Controls/rotate';
-
-// import DownLoadIcon from '../plugins/icons/downloadIcon'
-// import ScreenShotIcon from '../plugins/icons/screenShotIcon'
+// import Danmu from '../plugins/danmu'
 
 
 var DefaultPreset = function DefaultPreset() {
@@ -107,16 +107,18 @@ var DefaultPreset = function DefaultPreset() {
 
   _classCallCheck(this, DefaultPreset);
 
-  var contolsIcons = [_progress2.default, _playIcon2.default, _fullscreen2.default, _timeIcon2.default, _volumeIcon2.default, _rotate2.default, _playNextIcon2.default, _definitionIcon2.default, _playbackRateIcon2.default, _cssFullScreen2.default];
+  var contolsIcons = [_progress2.default, _play2.default, _fullscreen2.default, _time2.default, _volume2.default, _rotate2.default, _playNext2.default, _definition2.default, _playbackRate2.default, _cssFullScreen2.default, _download2.default, _screenShot2.default];
+
   var barIcons = [{
-    plugin: _pipIcon2.default,
+    plugin: _pip2.default,
     options: {
       index: 0,
-      rootType: _pipIcon2.default.ROOT_TYPES.BASE_BAR
+      position: _pip2.default.POSITIONS.ROOT_RIGHT
     } }];
-  var layers = [_replay2.default, _poster2.default, _start2.default, _loading2.default, _enter2.default, _miniScreen2.default, _danmu2.default];
 
-  this.plugins = [].concat(layers, barIcons, contolsIcons);
+  var layers = [_replay2.default, _poster2.default, _start2.default, _loading2.default, _enter2.default, _miniScreen2.default];
+
+  this.plugins = [].concat(contolsIcons, layers, barIcons);
   switch (_sniffer2.default.device) {
     case 'pc':
       (_plugins = this.plugins).push.apply(_plugins, [_keyboard2.default, _pc2.default]);

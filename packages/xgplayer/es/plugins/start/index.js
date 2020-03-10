@@ -6,9 +6,25 @@ function _possibleConstructorReturn(self, call) { if (!self) { throw new Referen
 
 function _inherits(subClass, superClass) { if (typeof superClass !== "function" && superClass !== null) { throw new TypeError("Super expression must either be null or a function, not " + typeof superClass); } subClass.prototype = Object.create(superClass && superClass.prototype, { constructor: { value: subClass, enumerable: false, writable: true, configurable: true } }); if (superClass) Object.setPrototypeOf ? Object.setPrototypeOf(subClass, superClass) : subClass.__proto__ = superClass; }
 
-import pasition from 'pasition';
 import Plugin from '../../plugin';
-import StartIcon from '../assets/start.svg';
+import PlaySvg from '../assets/play.svg';
+import PauseSvg from '../assets/pause.svg';
+
+var AnimateMap = {};
+function addAnimate(key, seconds) {
+  var callback = arguments.length > 2 && arguments[2] !== undefined ? arguments[2] : { start: null, end: null };
+
+  if (AnimateMap[key]) {
+    window.clearTimeout(AnimateMap[key].id);
+  }
+  AnimateMap[key] = {};
+  callback.start && callback.start();
+  AnimateMap[key].id = window.setTimeout(function () {
+    callback.end && callback.end();
+    window.clearTimeout(AnimateMap[key].id);
+    delete AnimateMap[key];
+  }, seconds);
+}
 
 var Util = Plugin.Util,
     Events = Plugin.Events;
@@ -66,12 +82,10 @@ var Start = function (_Plugin) {
         }
       });
       this.on([Events.PLAY, Events.PAUSE], function () {
-        // this.setInterval()
         _this2.animate();
       });
       this.on(Events.AUTOPLAY_PREVENTED, function () {
         _this2.show('inline-block');
-        // this.clearInterval()
         _this2.animate(true);
       });
     }
@@ -79,7 +93,8 @@ var Start = function (_Plugin) {
     key: 'registerIcons',
     value: function registerIcons() {
       return {
-        'start': StartIcon
+        play: PlaySvg,
+        pause: PauseSvg
       };
     }
   }, {
@@ -87,39 +102,42 @@ var Start = function (_Plugin) {
     value: function animate(isShowEnded) {
       var _this3 = this;
 
-      var path = this.find('.path');
-      var pathPlay = this.find('.path_play').getAttribute('d');
-      var pathPause = this.find('.path_pause').getAttribute('d');
-      var paused = this.player.paused;
-      pasition.animate({
-        from: path.getAttribute('d'),
-        to: paused ? pathPause : pathPlay,
-        time: 400,
-        begin: function begin(shapes) {
+      if (this.config.isShowPause && (isShowEnded || this.player.paused)) {
+        this.show();
+        this.root.innerHTML = this.icons.play;
+        return;
+      }
+      addAnimate('pauseplay', 400, {
+        start: function start() {
+          Util.addClass(_this3.root, 'interact');
           _this3.show();
-          Util.addClass(_this3.el, 'interact');
+          _this3.root.innerHTML = _this3.player.paused ? _this3.icons.pause : _this3.icons.play;
         },
-        end: function end(shapes) {
-          Util.removeClass(_this3.el, 'interact');
-          if (!_this3.player.paused) {
-            _this3.hide();
-            path.setAttribute('d', pathPause);
-          } else {
-            !_this3.config.isShowPause && !isShowEnded && _this3.hide();
-            path.setAttribute('d', pathPlay);
+        end: function end() {
+          Util.removeClass(_this3.root, 'interact');
+          if (_this3.config.isShowPause && (_this3.player.paused || isShowEnded)) {
+            return;
           }
+          _this3.hide();
         }
       });
     }
   }, {
     key: 'render',
     value: function render() {
-      return '\n    <xg-start class="xgplayer-start" >\n      ' + this.icons.start + '\n    </xg-start>';
+      return '\n    <xg-start class="xgplayer-start" >\n      <div class="play">\n      ' + this.icons.play + '\n      </div>\n    </xg-start>';
     }
   }], [{
     key: 'pluginName',
     get: function get() {
-      return 'startplugin';
+      return 'start';
+    }
+  }, {
+    key: 'defaultConfig',
+    get: function get() {
+      return {
+        isShowPause: false
+      };
     }
   }]);
 

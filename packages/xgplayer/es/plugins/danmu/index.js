@@ -41,13 +41,23 @@ var Danmu = function (_Plugin) {
       });
     }
   }, {
+    key: 'onPluginsReady',
+    value: function onPluginsReady() {
+      // 添加点击触发事件触发 依赖pc插件
+      var pcPlugin = this.player.plugins.pc;
+      if (pcPlugin) {
+        pcPlugin.onVideoDblClick && this.bind('dblclick', pcPlugin.onVideoDblClick);
+        pcPlugin.onVideoClick && this.bind('click', pcPlugin.onVideoClick);
+      }
+    }
+  }, {
     key: 'initDanmu',
     value: function initDanmu() {
       var player = this.player,
           config = this.config;
 
       var danmuConfig = {
-        container: this.el,
+        container: this.root,
         player: player.video,
         comments: config.comments,
         area: config.area
@@ -81,7 +91,7 @@ var Danmu = function (_Plugin) {
             defaultOpen: this.config.defaultOpen
           }
         };
-        this.danmuButton = player.controls.registerPlugin(DanmuIcon.pluginName, DanmuIcon, buttonOptions);
+        this.danmuButton = player.controls.registerPlugin(DanmuIcon, buttonOptions, DanmuIcon.pluginName);
       }
     }
   }, {
@@ -113,7 +123,7 @@ var Danmu = function (_Plugin) {
   }, {
     key: 'render',
     value: function render() {
-      return '<xg-danmu class="xgplayer-danmu"></xg-danmu>';
+      return '<xg-danmu class="xgplayer-danmu">\n    <p>vrevtrbtr</p>\n    </xg-danmu>';
     }
   }], [{
     key: 'pluginName',
@@ -143,4 +153,4 @@ var Danmu = function (_Plugin) {
   return Danmu;
 }(Plugin);
 
-export default Danmu;
+export { Danmu as default, DanmuIcon, DanmuPanel };

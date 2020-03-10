@@ -15,11 +15,9 @@ import Errors from './error';
 import * as Events from './events';
 import Plugin, { pluginsManager, BasePlugin } from './plugin';
 import STATE_CLASS from './stateClassMap';
-import defaultPreset from './presets/default';
 import getDefaultConfig from './defaultConfig';
 import { usePreset } from './plugin/preset';
 import Controls from './plugins/controls';
-import BaseBar from './plugins/baseBar';
 import { version } from '../package.json';
 
 var FULLSCREEN_EVENTS = ['fullscreenchange', 'webkitfullscreenchange', 'mozfullscreenchange', 'MSFullscreenChange'];
@@ -33,7 +31,17 @@ var Player = function (_Proxy) {
     var _this = _possibleConstructorReturn(this, (Player.__proto__ || Object.getPrototypeOf(Player)).call(this, options));
 
     _this.config = util.deepCopy(getDefaultConfig(), options);
-    _this.config.presets = [defaultPreset];
+    _this.config.presets = [];
+
+    // resolve default preset
+    if (_this.config.presets.length) {
+      if (_this.config.presets.indexOf('default') >= 0 && Player.defaultPreset) {
+        _this.config.presets.push(Player.defaultPreset);
+      }
+    } else if (Player.defaultPreset) {
+      _this.config.presets.push(Player.defaultPreset);
+    }
+
     // timer and flags
     _this.userTimer = null;
     _this.waitTimer = null;
@@ -42,15 +50,18 @@ var Player = function (_Proxy) {
     _this.isPlaying = false;
     _this.isSeeking = false;
     _this.isActive = true;
+    _this.isCssfullScreen = false;
 
     _this._initDOM();
 
     _this._bindEvents();
     _this._registerPresets();
     _this._registerPlugins();
+    pluginsManager.onPluginsReady(_this);
 
     setTimeout(function () {
       _this.emit(Events.READY);
+      _this.onReady && _this.onReady();
       _this.isReady = true;
     }, 0);
 
@@ -87,9 +98,15 @@ var Player = function (_Proxy) {
           return false;
         }
       }
-      var baseBar = pluginsManager.register(this, BaseBar);
-      this.baseBar = baseBar;
-      var controls = pluginsManager.register(this, Controls, { isHide: !!this.config.controls });
+      this.topBar = util.createDom('xg-bar', '', '', 'xg-top-bar');
+      this.leftBar = util.createDom('xg-bar', '', '', 'xg-left-bar');
+      this.rightBar = util.createDom('xg-bar', '', '', 'xg-right-bar');
+      this.root.appendChild(this.topBar);
+      this.root.appendChild(this.leftBar);
+      this.root.appendChild(this.rightBar);
+      // const baseBar = pluginsManager.register(this, BaseBar)
+      // this.baseBar = baseBar
+      var controls = pluginsManager.register(this, Controls);
       this.controls = controls;
       this.addClass(STATE_CLASS.DEFAULT + ' xgplayer-' + sniffer.device + ' ' + STATE_CLASS.NO_START + ' ' + (this.config.controls ? '' : STATE_CLASS.NO_CONTROLS));
       if (this.config.fluid) {
@@ -102,7 +119,6 @@ var Player = function (_Proxy) {
           'top': '0',
           'left': '0'
         };
-        console.log('style', style);
         Object.keys(style).map(function (key) {
           _this2.root.style[key] = style[key];
         });
@@ -149,6 +165,10 @@ var Player = function (_Proxy) {
       this.once('loadeddata', this.getVideoSize);
 
       this.mousemoveFunc = function () {
+        // 加上判断减少触发次数
+        if (_this3.isActive) {
+          return;
+        }
         _this3.emit(Events.PLAYER_FOCUS);
         if (!_this3.config.closeFocusVideoFocus) {
           _this3.video.focus();
@@ -223,8 +243,10 @@ var Player = function (_Proxy) {
       setTimeout(function () {
         _this5.emit(Events.COMPLETE);
       }, 1);
+      if (!this.hasStart) {
+        pluginsManager.afterInit(this);
+      }
       this.hasStart = true;
-      pluginsManager.afterInit(this);
     }
     /**
      * 注册组件 组件列表config.plugins
@@ -258,9 +280,9 @@ var Player = function (_Proxy) {
 
             return;
           }
-          console.log(plugin.pluginName);
           return _this6.registerPlugin(plugin);
         } catch (err) {
+          console.error(err);
           return null;
         }
       });
@@ -278,7 +300,7 @@ var Player = function (_Proxy) {
     key: 'registerPlugin',
     value: function registerPlugin(plugin) {
       var PLUFGIN = null;
-      var options = {};
+      var options = null;
       if (plugin.plugin && typeof plugin.plugin === 'function') {
         PLUFGIN = plugin.plugin;
         options = plugin.options;
@@ -286,15 +308,26 @@ var Player = function (_Proxy) {
         PLUFGIN = plugin;
         options = {};
       }
-      if (!options.root) {
-        var rootType = options.rootType ? options.rootType : PLUFGIN.defaultConfig && PLUFGIN.defaultConfig.rootType;
-        var ROOT_TYPES = Plugin.ROOT_TYPES;
 
-        if (rootType === ROOT_TYPES.CONTROLS) {
-          return this.controls.registerPlugin(PLUFGIN.pluginName, PLUFGIN, options);
-        } else if (rootType === ROOT_TYPES.BASE_BAR) {
-          return this.baseBar.registerPlugin(PLUFGIN.pluginName, PLUFGIN, options);
-        }
+      var position = options.position ? options.position : PLUFGIN.defaultConfig && PLUFGIN.defaultConfig.position;
+      var POSITIONS = Plugin.POSITIONS;
+
+      if (!options.root && typeof position === 'string' && position.indexOf('controls') > -1) {
+        return this.controls.registerPlugin(PLUFGIN, options, PLUFGIN.pluginName);
+      }
+      switch (position) {
+        case POSITIONS.ROOT_RIGHT:
+          options.root = this.rightBar;
+          break;
+        case POSITIONS.ROOT_LEFT:
+          options.root = this.leftBar;
+          break;
+        case POSITIONS.ROOT_TOP:
+          options.root = this.topBar;
+          break;
+        default:
+          options.root = this.root;
+          break;
       }
       return pluginsManager.register(this, PLUFGIN, options);
     }
@@ -471,21 +504,28 @@ var Player = function (_Proxy) {
   }, {
     key: 'getCssFullscreen',
     value: function getCssFullscreen() {
-      var player = this;
       this.addClass(STATE_CLASS.CSS_FULLSCREEN);
-      player.emit('requestCssFullscreen');
+      if (this.config.fluid) {
+        this.root.style['padding-top'] = '';
+      }
+      this.isCssfullScreen = true;
+      this.emit(Events.CSS_FULLSCREEN_CHANGE, true);
     }
   }, {
     key: 'exitCssFullscreen',
     value: function exitCssFullscreen() {
-      var player = this;
+      if (this.config.fluid) {
+        this.root.style['width'] = '100%';
+        this.root.style['height'] = '0';
+        this.root.style['padding-top'] = this.config.height * 100 / this.config.width + '%';
+      }
       this.removeClass(STATE_CLASS.CSS_FULLSCREEN);
-      player.emit('exitCssFullscreen');
+      this.isCssfullScreen = false;
+      this.emit(Events.CSS_FULLSCREEN_CHANGE, false);
     }
   }, {
     key: 'onFocus',
     value: function onFocus() {
-      console.log('onFocus');
       this.isActive = true;
       var player = this;
       this.removeClass(STATE_CLASS.ACTIVE);
@@ -500,7 +540,7 @@ var Player = function (_Proxy) {
   }, {
     key: 'onBlur',
     value: function onBlur() {
-      console.log('onBlur');
+      this.isActive = false;
       if (!this.paused && !this.ended) {
         this.addClass(STATE_CLASS.ACTIVE);
       }
@@ -680,8 +720,8 @@ var Player = function (_Proxy) {
   return Player;
 }(Proxy);
 
-Player.util = util;
-Player.sniffer = sniffer;
+Player.Util = util;
+Player.Sniffer = sniffer;
 Player.Errors = Errors;
 Player.Events = Events;
 Player.Plugin = Plugin;

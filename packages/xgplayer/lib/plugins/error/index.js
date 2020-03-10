@@ -61,7 +61,7 @@ var ErrorPlugin = function (_Plugin) {
         if (player.config.lang && player.config.lang === 'zh-cn') {
           textDOM.innerHTML = player.lang.ERROR;
         } else {
-          this.el.innerHTML = player.lang.ERROR + '\uFF0Cplease try to <span class="xgplayer-error-refresh">refresh</span>';
+          this.root.innerHTML = player.lang.ERROR + '\uFF0Cplease try to <span class="xgplayer-error-refresh">refresh</span>';
         }
       }
     }

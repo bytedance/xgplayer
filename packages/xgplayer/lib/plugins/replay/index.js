@@ -10,7 +10,7 @@ var _plugin = require('../../plugin');
 
 var _plugin2 = _interopRequireDefault(_plugin);
 
-var _replay = require('../../skin/assets/replay.svg');
+var _replay = require('../assets/replay.svg');
 
 var _replay2 = _interopRequireDefault(_replay);
 
@@ -67,7 +67,7 @@ var Replay = function (_Plugin) {
         if (!_this2.playerConfig.loop) {
           _plugin2.default.Util.addClass(_this2.player.root, 'replay');
         }
-        var path = _this2.el.querySelector('path');
+        var path = _this2.root.querySelector('path');
         if (path) {
           var transform = window.getComputedStyle(path).getPropertyValue('transform');
           if (typeof transform === 'string' && transform.indexOf('none') > -1) {

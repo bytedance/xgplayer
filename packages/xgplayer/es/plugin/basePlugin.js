@@ -20,19 +20,19 @@ var BasePlugin = function () {
   function BasePlugin(args) {
     _classCallCheck(this, BasePlugin);
 
+    if (Util.checkIsFunction(this.beforeCreate)) {
+      this.beforeCreate(args);
+    }
     this.__args = args;
     this.__events = {}; // 对player的事件监听缓存
     this.config = args.config || {};
-    if (Util.checkIsFunction(this.beforeCreate)) {
-      this.beforeCreate();
-    }
     this.__init(args);
-    if (Util.checkIsFunction(this.afterCreate)) {
-      this.afterCreate();
-    }
   }
 
   _createClass(BasePlugin, [{
+    key: 'onPluginsReady',
+    value: function onPluginsReady() {}
+  }, {
     key: '__init',
     value: function __init(args) {
       var _this = this;
@@ -55,11 +55,6 @@ var BasePlugin = function () {
             } else {
               return _this.constructor.pluginName;
             }
-          }
-        },
-        'root': {
-          get: function get() {
-            return args.player.root;
           }
         },
         'logger': {

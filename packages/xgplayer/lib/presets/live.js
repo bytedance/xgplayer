@@ -36,47 +36,47 @@ var _sniffer = require('../utils/sniffer');
 
 var _sniffer2 = _interopRequireDefault(_sniffer);
 
-var _playIcon = require('../plugins/icons/playIcon');
+var _play = require('../plugins/play');
 
-var _playIcon2 = _interopRequireDefault(_playIcon);
+var _play2 = _interopRequireDefault(_play);
 
-var _fullscreen = require('../plugins/icons/fullscreen');
+var _fullscreen = require('../plugins/fullscreen');
 
 var _fullscreen2 = _interopRequireDefault(_fullscreen);
 
-var _timeIcon = require('../plugins/icons/timeIcon');
+var _time = require('../plugins/time');
 
-var _timeIcon2 = _interopRequireDefault(_timeIcon);
+var _time2 = _interopRequireDefault(_time);
 
-var _volumeIcon = require('../plugins/icons/volumeIcon');
+var _volume = require('../plugins/volume');
 
-var _volumeIcon2 = _interopRequireDefault(_volumeIcon);
+var _volume2 = _interopRequireDefault(_volume);
 
-var _rotate = require('../plugins/icons/rotate');
+var _rotate = require('../plugins/rotate');
 
 var _rotate2 = _interopRequireDefault(_rotate);
 
-var _pipIcon = require('../plugins/icons/pipIcon');
+var _pip = require('../plugins/pip');
 
-var _pipIcon2 = _interopRequireDefault(_pipIcon);
+var _pip2 = _interopRequireDefault(_pip);
 
-var _definitionIcon = require('../plugins/icons/definitionIcon');
+var _definition = require('../plugins/definition');
 
-var _definitionIcon2 = _interopRequireDefault(_definitionIcon);
+var _definition2 = _interopRequireDefault(_definition);
 
-var _playbackRateIcon = require('../plugins/icons/playbackRateIcon');
+var _playbackRate = require('../plugins/playbackRate');
 
-var _playbackRateIcon2 = _interopRequireDefault(_playbackRateIcon);
+var _playbackRate2 = _interopRequireDefault(_playbackRate);
 
-var _cssFullScreen = require('../plugins/icons/cssFullScreen');
+var _cssFullScreen = require('../plugins/cssFullScreen');
 
 var _cssFullScreen2 = _interopRequireDefault(_cssFullScreen);
 
 function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
 
 function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } }
-// import DownLoadIcon from '../plugins/icons/downloadIcon'
-// import ScreenShotIcon from '../plugins/icons/screenShotIcon'
+// import DownLoadIcon from '../plugins/download'
+// import ScreenShotIcon from '../plugins/screenShot'
 
 
 var DefaultPreset = function DefaultPreset() {
@@ -84,7 +84,7 @@ var DefaultPreset = function DefaultPreset() {
 
   _classCallCheck(this, DefaultPreset);
 
-  var contolsIcons = [_playIcon2.default, _fullscreen2.default, _timeIcon2.default, _volumeIcon2.default, _rotate2.default, _definitionIcon2.default, _playbackRateIcon2.default, _cssFullScreen2.default, _pipIcon2.default];
+  var contolsIcons = [_play2.default, _fullscreen2.default, _time2.default, _volume2.default, _rotate2.default, _definition2.default, _playbackRate2.default, _cssFullScreen2.default, _pip2.default];
   this.plugins = [_poster2.default, _start2.default, _loading2.default, _enter2.default].concat(contolsIcons);
 
   switch (_sniffer2.default.device) {

@@ -72,11 +72,15 @@ var pluginsManager = {
     var plugins = this.pluginGroup[cgid]._plugins;
     var originalOptions = this.pluginGroup[cgid]._originalOptions;
     options.player = this.pluginGroup[cgid]._player;
-    // console.log('plugin.pluginName', plugin.pluginName)
+
     var pluginName = options.pluginName || plugin.pluginName;
-    console.log('pluginName:' + pluginName, options);
     if (!pluginName) {
       throw new Error('The property pluginName is necessary');
+    }
+
+    if (plugin.isSupported && !plugin.isSupported()) {
+      console.warn('not supported plugin [' + pluginName + ']');
+      return;
     }
 
     if (!options.config) {
@@ -95,7 +99,8 @@ var pluginsManager = {
           break;
         }
       }
-      // 获取插件添加的父节点
+
+      // 复制插件的默认配置项
     } catch (err) {
       _didIteratorError = true;
       _iteratorError = err;
@@ -111,13 +116,6 @@ var pluginsManager = {
       }
     }
 
-    if (!options.root) {
-      options.root = player.root;
-    } else if (typeof options.root === 'string') {
-      options.root = player[options.root];
-    }
-
-    // 复制插件的默认配置项
     if (plugin.defaultConfig) {
       Object.keys(plugin.defaultConfig).map(function (key) {
         if (typeof options.config[key] === 'undefined') {
@@ -126,12 +124,22 @@ var pluginsManager = {
       });
     }
 
+    // 获取插件添加的父节点
+    if (!options.root) {
+      options.root = player.root;
+    } else if (typeof options.root === 'string') {
+      options.root = player[options.root];
+    }
+
     options.index = options.config.index || 0;
     try {
       // eslint-disable-next-line new-cap
       var _instance = new plugin(options);
       plugins[pluginName.toLowerCase()] = _instance;
       plugins[pluginName.toLowerCase()].func = plugin;
+      if (_instance && typeof _instance.afterCreate === 'function') {
+        _instance.afterCreate();
+      }
       return _instance;
     } catch (err) {
       console.error(err);
@@ -167,6 +175,7 @@ var pluginsManager = {
   beforeInit: function beforeInit(player) {
     var _this2 = this;
 
+    console.log('beforeInit');
     function retPromise(fun) {
       if (!fun || !fun.then) {
         return new Promise(function (resolve) {
@@ -227,6 +236,7 @@ var pluginsManager = {
   afterInit: function afterInit(player) {
     var _this3 = this;
 
+    console.log('afterInit');
     var prevTask = void 0;
     if (player._loadingPlugins && player._loadingPlugins.length) {
       prevTask = Promise.all(player._loadingPlugins);
@@ -324,6 +334,18 @@ var pluginsManager = {
         }
       }
     }
+  },
+  onPluginsReady: function onPluginsReady(player) {
+    var cgid = player._pluginInfoId;
+    var plugins = this.pluginGroup[cgid]._plugins;
+    if (!cgid || !plugins) {
+      return;
+    }
+    Object.keys(plugins).map(function (key) {
+      if (plugins[key].onPluginsReady && typeof plugins[key].onPluginsReady === 'function') {
+        plugins[key].onPluginsReady();
+      }
+    });
   },
   destroy: function destroy(player) {
     var cgid = player._pluginInfoId;

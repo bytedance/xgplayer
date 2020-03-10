@@ -20,7 +20,7 @@ import * as delegate from 'delegate-events';
 
 function _createElement(tag, name) {
   var dom = document.createElement(tag);
-  dom.name = name;
+  dom.className = name;
   return dom;
 }
 
@@ -121,10 +121,12 @@ var Plugin = function (_BasePlugin) {
       } else if (args.tag) {
         _el = _createElement(args.tag, args.name);
         _parent.appendChild(_el);
+      } else {
+        return;
       }
 
       Plugin.defineGetterOrSetter(this, {
-        'el': {
+        'root': {
           get: function get() {
             return _el;
           }
@@ -142,13 +144,16 @@ var Plugin = function (_BasePlugin) {
       this.setAttr(attr);
       this.setStyle(style);
       if (this.config.index) {
-        this.el.setAttribute('data-index', this.config.index);
+        this.root.setAttribute('data-index', this.config.index);
       }
       this.__registeChildren();
     }
   }, {
     key: '__registeChildren',
     value: function __registeChildren() {
+      if (!this.root) {
+        return;
+      }
       var children = this.children();
       if (children && (typeof children === 'undefined' ? 'undefined' : _typeof(children)) === 'object') {
         if (!this._children) {
@@ -166,7 +171,7 @@ var Plugin = function (_BasePlugin) {
               var name = item;
               var _plugin = children[name];
               var options = {
-                root: this.el
+                root: this.root
                 // eslint-disable-next-line no-unused-vars
               };var config = void 0,
                   _Plugin = void 0;
@@ -180,7 +185,7 @@ var Plugin = function (_BasePlugin) {
               options.config = config;
               config.index !== undefined && (options.index = config.index);
               config.root && (options.root = config.root);
-              var c = this.registerPlugin(name, _Plugin, options);
+              var c = this.registerPlugin(_Plugin, options, name);
               this._children.push(c);
             }
           } catch (err) {
@@ -212,11 +217,13 @@ var Plugin = function (_BasePlugin) {
     }
   }, {
     key: 'registerPlugin',
-    value: function registerPlugin(name, plugin, options) {
-      var opts = (typeof options === 'undefined' ? 'undefined' : _typeof(options)) === 'object' ? options : {};
-      opts.root = options.root || this.el;
-      opts.pluginName = name;
-      var _c = pluginsManager.register(this.player, plugin, opts);
+    value: function registerPlugin(plugin) {
+      var options = arguments.length > 1 && arguments[1] !== undefined ? arguments[1] : {};
+      var name = arguments.length > 2 && arguments[2] !== undefined ? arguments[2] : '';
+
+      options.root = options.root || this.root;
+      name && (options.pluginName = name);
+      var _c = pluginsManager.register(this.player, plugin, options);
       this._children.push(_c);
       return _c;
     }
@@ -238,7 +245,10 @@ var Plugin = function (_BasePlugin) {
   }, {
     key: 'find',
     value: function find(qs) {
-      return this.el.querySelector(qs);
+      if (!this.root) {
+        return;
+      }
+      return this.root.querySelector(qs);
     }
   }, {
     key: 'bind',
@@ -255,12 +265,15 @@ var Plugin = function (_BasePlugin) {
           this.bindEL(querySelector, eventType);
         }
       } else if (arguments.length === 3 && typeof callback === 'function') {
+        if (!this.root) {
+          return;
+        }
         if (Array.isArray(eventType)) {
           eventType.forEach(function (item) {
-            delegate.bind(_this2.el, querySelector, item, callback, false);
+            delegate.bind(_this2.root, querySelector, item, callback, false);
           });
         } else {
-          delegate.bind(this.el, querySelector, eventType, callback, false);
+          delegate.bind(this.root, querySelector, eventType, callback, false);
         }
       }
     }
@@ -281,19 +294,21 @@ var Plugin = function (_BasePlugin) {
       } else if (typeof callback === 'function') {
         if (Array.isArray(eventType)) {
           eventType.forEach(function (item) {
-            delegate.unbind(_this3.el, querySelector, item, callback, false);
+            delegate.unbind(_this3.root, querySelector, item, callback, false);
           });
         } else {
-          delegate.unbind(this.el, querySelector, eventType, callback, false);
+          delegate.unbind(this.root, querySelector, eventType, callback, false);
         }
       }
     }
   }, {
     key: 'setStyle',
     value: function setStyle(name, value) {
+      if (!this.root) {
+        return;
+      }
       if (typeof name === 'string') {
-        this.style[name] = value;
-        return this.el.style[name] = value;
+        return this.root.style[name] = value;
       } else if ((typeof name === 'undefined' ? 'undefined' : _typeof(name)) === 'object') {
         var obj = name;
         var _iteratorNormalCompletion2 = true;
@@ -304,7 +319,7 @@ var Plugin = function (_BasePlugin) {
           for (var _iterator2 = Object.keys(obj)[Symbol.iterator](), _step2; !(_iteratorNormalCompletion2 = (_step2 = _iterator2.next()).done); _iteratorNormalCompletion2 = true) {
             var item = _step2.value;
 
-            this.el.style[item] = obj[item];
+            this.root.style[item] = obj[item];
           }
         } catch (err) {
           _didIteratorError2 = true;
@@ -325,8 +340,11 @@ var Plugin = function (_BasePlugin) {
   }, {
     key: 'setAttr',
     value: function setAttr(name, value) {
+      if (!this.root) {
+        return;
+      }
       if (typeof name === 'string') {
-        return this.el.setAttribute(name, value);
+        return this.root.setAttribute(name, value);
       } else if ((typeof name === 'undefined' ? 'undefined' : _typeof(name)) === 'object') {
         var obj = name;
         var _iteratorNormalCompletion3 = true;
@@ -337,7 +355,7 @@ var Plugin = function (_BasePlugin) {
           for (var _iterator3 = Object.keys(obj)[Symbol.iterator](), _step3; !(_iteratorNormalCompletion3 = (_step3 = _iterator3.next()).done); _iteratorNormalCompletion3 = true) {
             var item = _step3.value;
 
-            this.el.setAttribute(item, obj[item]);
+            this.root.setAttribute(item, obj[item]);
           }
         } catch (err) {
           _didIteratorError3 = true;
@@ -358,7 +376,10 @@ var Plugin = function (_BasePlugin) {
   }, {
     key: 'setHtml',
     value: function setHtml(htmlStr, callback) {
-      this.el.innerHtml = htmlStr;
+      if (!this.root) {
+        return;
+      }
+      this.root.innerHtml = htmlStr;
       if (typeof callback === 'function') {
         callback();
       }
@@ -368,8 +389,11 @@ var Plugin = function (_BasePlugin) {
     value: function bindEL(event, eventHandle) {
       var isBubble = arguments.length > 2 && arguments[2] !== undefined ? arguments[2] : false;
 
-      if ('on' + event in this.el && typeof eventHandle === 'function') {
-        this.el.addEventListener(event, eventHandle, isBubble);
+      if (!this.root) {
+        return;
+      }
+      if ('on' + event in this.root && typeof eventHandle === 'function') {
+        this.root.addEventListener(event, eventHandle, isBubble);
       }
     }
   }, {
@@ -377,24 +401,30 @@ var Plugin = function (_BasePlugin) {
     value: function unbindEL(event, eventHandle) {
       var isBubble = arguments.length > 2 && arguments[2] !== undefined ? arguments[2] : false;
 
-      if ('on' + event in this.el && typeof eventHandle === 'function') {
-        this.el.removeEventListener(event, eventHandle, isBubble);
+      if (!this.root) {
+        return;
+      }
+      if ('on' + event in this.root && typeof eventHandle === 'function') {
+        this.root.removeEventListener(event, eventHandle, isBubble);
       }
     }
   }, {
     key: 'show',
     value: function show(value) {
-      this.el.style.display = value !== undefined ? value : 'block';
-      var cs = window.getComputedStyle(this.el, null);
+      if (!this.root) {
+        return;
+      }
+      this.root.style.display = value !== undefined ? value : 'block';
+      var cs = window.getComputedStyle(this.root, null);
       var cssDisplayValue = cs.getPropertyValue('display');
       if (cssDisplayValue === 'none') {
-        return this.el.style.display = 'block';
+        return this.root.style.display = 'block';
       }
     }
   }, {
     key: 'hide',
     value: function hide() {
-      this.el.style.display = 'none';
+      this.root && (this.root.style.display = 'none');
     }
   }, {
     key: 'render',
@@ -408,11 +438,11 @@ var Plugin = function (_BasePlugin) {
       if (BasePlugin.Util.checkIsFunction(this.destroy)) {
         this.destroy();
       }
-      if (this.el) {
-        if (this.el.hasOwnProperty('remove')) {
-          this.el.remove();
-        } else if (this.el.parentNode) {
-          this.el.parentNode.removeChild(this.el);
+      if (this.root) {
+        if (this.root.hasOwnProperty('remove')) {
+          this.root.remove();
+        } else if (this.root.parentNode) {
+          this.root.parentNode.removeChild(this.root);
         }
       }
     }
@@ -426,12 +456,15 @@ export default Plugin;
 
 Plugin.ROOT_TYPES = {
   CONTROLS: 'controls',
-  BASE_BAR: 'base_bar',
   ROOT: 'root'
 };
 
 Plugin.POSITIONS = {
-  LEFT: 'left',
-  RIGHT: 'right',
-  CENTER: 'center'
+  ROOT: 'root',
+  ROOT_LEFT: 'rootLeft',
+  ROOT_RIGHT: 'rootRight',
+  ROOT_TOP: 'rootTop',
+  CONTROLS_LEFT: 'controlsLeft',
+  CONTROLS_RIGTH: 'controlsRight',
+  CONTROLS_CENTER: 'controlsCenter'
 };

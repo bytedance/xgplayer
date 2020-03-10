@@ -11,7 +11,6 @@ export default class CssFullScreen extends Plugin {
     return {
       position: POSITIONS.CONTROLS_RIGTH,
       index: 1,
-      hide: true,
       disable: false
     }
   }

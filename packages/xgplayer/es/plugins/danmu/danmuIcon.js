@@ -9,8 +9,7 @@ function _inherits(subClass, superClass) { if (typeof superClass !== "function" 
 import Plugin from '../../plugin';
 
 var Util = Plugin.Util,
-    POSITIONS = Plugin.POSITIONS,
-    ROOT_TYPES = Plugin.ROOT_TYPES;
+    POSITIONS = Plugin.POSITIONS;
 
 var DanmuIcon = function (_Plugin) {
   _inherits(DanmuIcon, _Plugin);
@@ -24,7 +23,6 @@ var DanmuIcon = function (_Plugin) {
   _createClass(DanmuIcon, [{
     key: 'afterCreate',
     value: function afterCreate() {
-      console.log('danmuIcon', this.config);
       this.onStateChange = this.onStateChange.bind(this);
       this.bind(['click', 'touchend'], this.onStateChange);
     }
@@ -36,7 +34,6 @@ var DanmuIcon = function (_Plugin) {
   }, {
     key: 'onStateChange',
     value: function onStateChange(e) {
-      console.log('onStateChange');
       var dom = this.find('.danmu-switch');
       var isOpen = Util.hasClass(dom, 'danmu-switch-active');
       if (isOpen) {
@@ -49,7 +46,7 @@ var DanmuIcon = function (_Plugin) {
   }, {
     key: 'show',
     value: function show() {
-      this.el.sytle.display = 'flex';
+      this.root.sytle.display = 'flex';
     }
   }, {
     key: 'destroy',
@@ -78,12 +75,9 @@ var DanmuIcon = function (_Plugin) {
     key: 'defaultConfig',
     get: function get() {
       return {
-        position: POSITIONS.RIGHT,
-        rootType: ROOT_TYPES.CONTROLS,
+        position: POSITIONS.CONTROLS_RIGTH,
         index: 11,
-        onSwitch: function onSwitch(state) {
-          console.log('DanmuIcon:' + state);
-        },
+        onSwitch: function onSwitch(state) {},
         defaultOpen: false
       };
     }

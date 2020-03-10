@@ -11,8 +11,7 @@ import PanelIcon from '../assets/panel.svg';
 
 var Sniffer = Plugin.Sniffer,
     Util = Plugin.Util,
-    POSITIONS = Plugin.POSITIONS,
-    ROOT_TYPES = Plugin.ROOT_TYPES;
+    POSITIONS = Plugin.POSITIONS;
 
 var DanmuPanel = function (_Plugin) {
   _inherits(DanmuPanel, _Plugin);
@@ -34,8 +33,7 @@ var DanmuPanel = function (_Plugin) {
     key: 'defaultConfig',
     get: function get() {
       return {
-        position: POSITIONS.RIGHT,
-        rootType: ROOT_TYPES.CONTROLS,
+        position: POSITIONS.CONTROLS_RIGTH,
         index: 11,
         onChangeSet: function onChangeSet(set) {
           console.log('DanmuPanel:' + set);
@@ -86,7 +84,7 @@ var DanmuPanel = function (_Plugin) {
     value: function onToggle(e) {
       e.preventDefault();
       e.stopPropagation();
-      Util.hasClass(this.el, 'slider-show') ? Util.removeClass(this.el, 'slider-show') : Util.addClass(this.el, 'slider-show');
+      Util.hasClass(this.root, 'slider-show') ? Util.removeClass(this.root, 'slider-show') : Util.addClass(this.root, 'slider-show');
     }
   }, {
     key: 'destroy',
