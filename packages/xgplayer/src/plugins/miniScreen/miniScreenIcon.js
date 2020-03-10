@@ -1,6 +1,8 @@
 import Plugin from '../../plugin'
 import './index.scss'
+
 const {POSITIONS} = Plugin
+
 class MiniScreenIcon extends Plugin {
   static get pluginName () {
     return 'miniscreenIcon'
@@ -8,7 +10,7 @@ class MiniScreenIcon extends Plugin {
 
   static get defaultConfig () {
     return {
-      position: POSITIONS.RIGHT,
+      position: POSITIONS.CONTROLS_RIGTH,
       index: 10
     }
   }

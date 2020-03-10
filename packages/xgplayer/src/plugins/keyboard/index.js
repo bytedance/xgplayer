@@ -29,6 +29,7 @@ class Keyboard extends BasePlugin {
   }
 
   afterCreate () {
+    this.config.disable = !this.playerConfig.keyShortcut
     this.keyCodeMap = {
       'space': {
         code: 32,

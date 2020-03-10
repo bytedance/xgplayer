@@ -241,8 +241,8 @@ class Progress extends Plugin {
 
   updateTime (time) {
     const {player} = this
-    let timeIcon = player.plugins.timeicon
-    if (timeIcon) {
+    let timeIcon = player.plugins.time
+    if (time) {
       timeIcon.updateTime(time)
     }
   }

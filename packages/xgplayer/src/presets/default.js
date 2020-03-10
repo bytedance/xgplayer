@@ -10,29 +10,29 @@ import Loading from '../plugins/loading'
 import sniffer from '../utils/sniffer';
 // import Danmu from '../plugins/danmu'
 import Progress from '../plugins/progress'
-import PlayIcon from '../plugins/playIcon'
-import FullScreen from '../plugins/fullscreenIcon'
-import TimeIcon from '../plugins/timeIcon'
-import VolumeIcon from '../plugins/volumeIcon'
-import RotateIcon from '../plugins/rotateIcon'
-import PIPIcon from '../plugins/pipIcon'
-import PlayNextIcon from '../plugins/playNextIcon'
-import DownLoadIcon from '../plugins/downloadIcon'
-import ScreenShotIcon from '../plugins/screenShotIcon'
-import DefinitionIcon from '../plugins/definitionIcon'
-import PlaybackRateIcon from '../plugins/playbackRateIcon'
-import CssFullScreen from '../plugins/cssFullScreenIcon'
+import PlayIcon from '../plugins/play'
+import FullScreen from '../plugins/fullscreen'
+import TimeIcon from '../plugins/time'
+import Volume from '../plugins/volume'
+import RotateIcon from '../plugins/rotate'
+import PIPIcon from '../plugins/pip'
+import PlayNextIcon from '../plugins/playNext'
+import DownLoadIcon from '../plugins/download'
+import ScreenShotIcon from '../plugins/screenShot'
+import DefinitionIcon from '../plugins/definition'
+import PlaybackRateIcon from '../plugins/playbackRate'
+import CssFullScreen from '../plugins/cssFullScreen'
 
 export default class DefaultPreset {
   constructor () {
-    const contolsIcons = [Progress, PlayIcon, FullScreen, TimeIcon, VolumeIcon,
+    const contolsIcons = [Progress, PlayIcon, FullScreen, TimeIcon, Volume,
       RotateIcon, PlayNextIcon, DefinitionIcon, PlaybackRateIcon, CssFullScreen, DownLoadIcon, ScreenShotIcon]
 
     const barIcons = [{
       plugin: PIPIcon,
       options: {
         index: 0,
-        rootType: PIPIcon.ROOT_TYPES.ROOT
+        position: PIPIcon.POSITIONS.ROOT_RIGHT
       }}]
 
     const layers = [Replay, Poster, Start, Loading, Enter, Miniscreen]

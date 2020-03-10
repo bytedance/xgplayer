@@ -118,4 +118,8 @@ class Danmu extends Plugin {
   }
 }
 
-export default Danmu
+export {
+  Danmu as default,
+  DanmuIcon,
+  DanmuPanel
+}
