@@ -13,6 +13,7 @@ class MiniScreen extends Plugin {
 
   static get defaultConfig () {
     return {
+      disable: false,
       width: 320,
       height: 180,
       left: -1, // 默认左下角
@@ -43,6 +44,12 @@ class MiniScreen extends Plugin {
     this.isMoveing = false
   }
 
+  beforeCreate (args) {
+    if (typeof args.player.config.mini === 'boolean') {
+      args.config.isShowIcon = args.player.config.mini
+    }
+  }
+
   afterCreate () {
     const bindFunKeys = ['onMousemove', 'onMousedown', 'onMouseup', 'onCancelClick', 'onCenterClick', 'onScroll']
     bindFunKeys.map(key => {
@@ -61,7 +68,10 @@ class MiniScreen extends Plugin {
   }
 
   onPluginsReady () {
-    const {player} = this
+    const {player, config} = this
+    if (config.disable) {
+      return
+    }
     if (this.config.isShowIcon) {
       const options = {
         config: {
@@ -216,6 +226,9 @@ class MiniScreen extends Plugin {
   }
 
   render () {
+    if (this.config.disable) {
+      return
+    }
     return `
       <xg-mini-layer class="xg-mini-layer">
       <div class="mask"></div>
@@ -231,4 +244,7 @@ class MiniScreen extends Plugin {
   }
 }
 
-export default MiniScreen
+export {
+  MiniScreen as default,
+  MiniScreenIcon
+}

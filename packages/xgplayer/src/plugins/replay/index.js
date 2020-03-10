@@ -1,5 +1,5 @@
 import Plugin from '../../plugin'
-import ReplayIcon from '../assets/replay.svg'
+import ReplaySvg from '../assets/replay.svg'
 
 class Replay extends Plugin {
   static get pluginName () {
@@ -8,7 +8,7 @@ class Replay extends Plugin {
 
   registerIcons () {
     return {
-      'replay': ReplayIcon
+      'replay': ReplaySvg
     }
   }
 

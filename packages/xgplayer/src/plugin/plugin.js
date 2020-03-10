@@ -8,7 +8,7 @@ import * as delegate from 'delegate-events'
 
 function _createElement (tag, name) {
   const dom = document.createElement(tag)
-  dom.name = name
+  dom.className = name
   return dom
 }
 
@@ -69,6 +69,7 @@ export default class Plugin extends BasePlugin {
   static get defaultConfig () {
     return {}
   }
+
   constructor (args = {}) {
     super(args)
   }
@@ -335,18 +336,11 @@ Plugin.ROOT_TYPES = {
 }
 
 Plugin.POSITIONS = {
-  LEFT: 'left',
-  RIGHT: 'right',
-  CENTER: 'center',
-  TOP: 'top'
-}
-
-Plugin.ROOT_TYPES1 = {
-  ROOT: 0,
-  ROOT_LEFT: 11,
-  ROOT_RIGHT: 12,
-  ROOT_TOP: 13,
-  CONTROLS_LEFT: 21,
-  CONTROLS_RIGTH: 22,
-  CONTROLS_CENTER: 23
+  ROOT: 'root',
+  ROOT_LEFT: 'rootLeft',
+  ROOT_RIGHT: 'rootRight',
+  ROOT_TOP: 'rootTop',
+  CONTROLS_LEFT: 'controlsLeft',
+  CONTROLS_RIGTH: 'controlsRight',
+  CONTROLS_CENTER: 'controlsCenter'
 }

@@ -86,7 +86,7 @@ class Player extends Proxy {
     this.root.appendChild(this.rightBar)
     // const baseBar = pluginsManager.register(this, BaseBar)
     // this.baseBar = baseBar
-    const controls = pluginsManager.register(this, Controls, {isHide: !!this.config.controls})
+    const controls = pluginsManager.register(this, Controls)
     this.controls = controls
     this.addClass(`${STATE_CLASS.DEFAULT} xgplayer-${sniffer.device} ${STATE_CLASS.NO_START} ${this.config.controls ? '' : STATE_CLASS.NO_CONTROLS}`)
     if (this.config.fluid) {
@@ -247,6 +247,7 @@ class Player extends Proxy {
         }
         return this.registerPlugin(plugin)
       } catch (err) {
+        console.error(err)
         return null
       }
     })
@@ -260,7 +261,7 @@ class Player extends Proxy {
 
   registerPlugin (plugin) {
     let PLUFGIN = null
-    let options = {}
+    let options = null
     if (plugin.plugin && typeof plugin.plugin === 'function') {
       PLUFGIN = plugin.plugin
       options = plugin.options
@@ -268,26 +269,25 @@ class Player extends Proxy {
       PLUFGIN = plugin
       options = {}
     }
-    const rootType = options.rootType ? options.rootType : (PLUFGIN.defaultConfig && PLUFGIN.defaultConfig.rootType)
-    const {ROOT_TYPES, POSITIONS} = Plugin
-    if (!options.root && rootType === ROOT_TYPES.CONTROLS) {
+
+    const position = options.position ? options.position : (PLUFGIN.defaultConfig && PLUFGIN.defaultConfig.position)
+    const {POSITIONS} = Plugin
+    if (!options.root && typeof position === 'string' && position.indexOf('controls') > -1) {
       return this.controls.registerPlugin(PLUFGIN, options, PLUFGIN.pluginName)
     }
-    // root位置选取
-    if (!rootType || rootType === ROOT_TYPES.ROOT) {
-      const position = options.position ? options.position : (PLUFGIN.defaultConfig && PLUFGIN.defaultConfig.position)
-      switch (position) {
-        case POSITIONS.RIGHT:
-          options.root = this.rightBar
-          break;
-        case POSITIONS.LEFT:
-          options.root = this.leftBar
-          break;
-        case POSITIONS.TOP:
-          options.root = this.topBar
-          break;
-        default:
-      }
+    switch (position) {
+      case POSITIONS.ROOT_RIGHT:
+        options.root = this.rightBar
+        break;
+      case POSITIONS.ROOT_LEFT:
+        options.root = this.leftBar
+        break;
+      case POSITIONS.ROOT_TOP:
+        options.root = this.topBar
+        break;
+      default:
+        options.root = this.root
+        break;
     }
     return pluginsManager.register(this, PLUFGIN, options)
   }

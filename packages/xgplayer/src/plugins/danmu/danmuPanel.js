@@ -1,7 +1,7 @@
 import Plugin from '../../plugin'
 import PanelIcon from '../assets/panel.svg'
 
-const {Sniffer, Util, POSITIONS, ROOT_TYPES} = Plugin
+const {Sniffer, Util, POSITIONS} = Plugin
 class DanmuPanel extends Plugin {
   static get pluginName () {
     return 'DanmuPanel'
@@ -16,8 +16,7 @@ class DanmuPanel extends Plugin {
 
   static get defaultConfig () {
     return {
-      position: POSITIONS.RIGHT,
-      rootType: ROOT_TYPES.CONTROLS,
+      position: POSITIONS.CONTROLS_RIGTH,
       index: 11,
       onChangeSet: (set) => {
         console.log(`DanmuPanel:${set}`)

@@ -28,7 +28,7 @@
 // xgplayer-is-fullscreen 9999
 // xgplayer-is-cssfullscreen 99999
 
-@import "../plugins/playIcon/index";
+@import "../plugins/play/index";
 @import "../plugins/start/index";
 @import "../plugins/enter/index";
 @import "../plugins/poster/index";
@@ -39,18 +39,18 @@
 @import "../plugins/replay/index";
 @import "../plugins/loading/index";
 @import "../plugins/progress/index";
-@import "../plugins/fullscreenIcon/index";
-@import "../plugins/cssFullScreenIcon/index";
-@import "../plugins/volumeIcon/index";
-@import "../plugins/definitionIcon/index";
-@import "../plugins/timeIcon/index";
-@import "../plugins/playbackRateIcon/index";
-@import "../plugins/downloadIcon/index";
+@import "../plugins/fullscreen/index";
+@import "../plugins/cssFullScreen/index";
+@import "../plugins/volume/index";
+@import "../plugins/definition/index";
+@import "../plugins/time/index";
+@import "../plugins/playbackRate/index";
+@import "../plugins/download/index";
 //@import "controls/danmu";
-@import "../plugins/playNextIcon/index";
-@import "../plugins/pipIcon/index";
-@import "../plugins/rotateIcon/index";
-@import "../plugins/screenShotIcon/index";
+@import "../plugins/playNext/index";
+@import "../plugins/pip/index";
+@import "../plugins/rotate/index";
+@import "../plugins/screenShot/index";
 //@import "../plugins/textTrack";
 //@import "controls/icon";
 //@import "controls/tips";
@@ -58,5 +58,5 @@
 // @import "../plugins/baseBar/index";
 @import "../plugins/miniScreen/index";
 @import "../plugins/danmu/index";
-@import "../plugins/playNext/playNext";
+@import "../plugins/playNext/index";
 //@import "controls/memoryPlay"

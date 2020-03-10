@@ -24,7 +24,7 @@ class Start extends Plugin {
 
   static get defaultConfig () {
     return {
-      isShowPause: true
+      isShowPause: false
     }
   }
 
@@ -81,6 +81,11 @@ class Start extends Plugin {
   }
 
   animate (isShowEnded) {
+    if (this.config.isShowPause && (isShowEnded || this.player.paused)) {
+      this.show()
+      this.root.innerHTML = this.icons.play
+      return;
+    }
     addAnimate('pauseplay', 400, {
       start: () => {
         Util.addClass(this.root, 'interact')
@@ -89,6 +94,9 @@ class Start extends Plugin {
       },
       end: () => {
         Util.removeClass(this.root, 'interact');
+        if (this.config.isShowPause && (this.player.paused || isShowEnded)) {
+          return;
+        }
         this.hide()
       }
     })

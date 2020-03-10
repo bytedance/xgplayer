@@ -2,56 +2,33 @@ import Replay from '../plugins/replay';
 import Poster from '../plugins/poster';
 import Start from '../plugins/start';
 import Enter from '../plugins/enter';
-import Miniscreen from '../plugins/miniScreen';
-// import Miniscreen from '../Controls/mini';
-// import Rotate from '../Controls/rotate';
-import PC from '../plugins/pc'
 import Mobile from '../plugins/mobile'
-import Keyboard from '../plugins/keyboard'
 import Loading from '../plugins/loading'
-import sniffer from '../utils/sniffer';
-import Danmu from '../plugins/danmu'
 import Progress from '../plugins/progress'
-import PlayIcon from '../plugins/playIcon'
-import FullScreen from '../plugins/fullscreenIcon'
-import TimeIcon from '../plugins/timeIcon'
-import VolumeIcon from '../plugins/volumeIcon'
-import RotateIcon from '../plugins/rotateIcon'
-import PIPIcon from '../plugins/pipIcon'
-import PlayNextIcon from '../plugins/playNextIcon'
-import DownLoadIcon from '../plugins/downloadIcon'
-// import PlayNext from '../plugins/playNext'
-// import DownLoadIcon from '../plugins/downloadIcon'
-// import ScreenShotIcon from '../plugins/screenShotIcon'
-import DefinitionIcon from '../plugins/definitionIcon'
-import PlaybackRateIcon from '../plugins/playbackRateIcon'
-import CssFullScreen from '../plugins/cssFullScreenIcon'
+import PlayIcon from '../plugins/play'
+import FullScreen from '../plugins/fullscreen'
+import TimeIcon from '../plugins/time'
+import RotateIcon from '../plugins/rotate'
+import PlayNextIcon from '../plugins/playNext'
+import DownLoadIcon from '../plugins/download'
+import ScreenShotIcon from '../plugins/screenShot'
+import DefinitionIcon from '../plugins/definition'
+import PlaybackRateIcon from '../plugins/playbackRate'
+
+import Play from '../plugins/assets/mPlay.svg'
+import Pause from '../plugins/assets/mPause.svg'
 
 export default class DefaultPreset {
   constructor () {
-    const contolsIcons = [Progress, PlayIcon, FullScreen, TimeIcon, VolumeIcon,
-      RotateIcon, PlayNextIcon, DefinitionIcon, PlaybackRateIcon, CssFullScreen, DownLoadIcon]
+    const contolsIcons = [Mobile, Progress, PlayIcon, FullScreen, TimeIcon,
+      RotateIcon, PlayNextIcon, DefinitionIcon, PlaybackRateIcon, DownLoadIcon, ScreenShotIcon]
+    const layers = [Replay, Poster, Start, Loading, Enter]
 
-    const barIcons = [{
-      plugin: PIPIcon,
-      options: {
-        index: 0,
-        rootType: PIPIcon.ROOT_TYPES.ROOT
-      }}]
-
-    const layers = [Replay, Poster, Start, Loading, Enter, Miniscreen, Danmu]
-
-    this.plugins = [...contolsIcons, ...layers, ...barIcons]
-    switch (sniffer.device) {
-      case 'pc':
-        this.plugins.push(...[Keyboard, PC]);
-        break;
-      case 'mobile':
-        this.plugins.push(Mobile);
-        break;
-      default:
-        this.plugins.push(...[Keyboard, PC])
-    }
+    this.plugins = [...contolsIcons, ...layers]
     this.ignores = []
+    this.icons = {
+      play: Play,
+      pause: Pause
+    }
   }
 }
