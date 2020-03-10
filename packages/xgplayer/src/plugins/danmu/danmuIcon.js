@@ -18,7 +18,6 @@ class DanmuIcon extends Plugin {
       position: POSITIONS.CONTROLS_RIGTH,
       index: 11,
       onSwitch: (state) => {
-        console.log(`DanmuIcon:${state}`)
       },
       defaultOpen: false
     }
@@ -34,7 +33,6 @@ class DanmuIcon extends Plugin {
   }
 
   onStateChange (e) {
-    console.log('onStateChange')
     const dom = this.find('.danmu-switch')
     const isOpen = Util.hasClass(dom, 'danmu-switch-active')
     if (isOpen) {

@@ -215,8 +215,10 @@ class Player extends Proxy {
     setTimeout(() => {
       this.emit(Events.COMPLETE)
     }, 1)
+    if (!this.hasStart) {
+      pluginsManager.afterInit(this)
+    }
     this.hasStart = true
-    pluginsManager.afterInit(this)
   }
   /**
    * 注册组件 组件列表config.plugins

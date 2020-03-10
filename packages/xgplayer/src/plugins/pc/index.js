@@ -26,13 +26,6 @@ export default class PCPlugin extends BasePlugin {
     }
   }
 
-  onPluginsReady () {
-    const { player } = this;
-    if (player.config.autoplay) {
-      player.start()
-    }
-  }
-
   initEvents () {
     const { player } = this;
 

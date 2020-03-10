@@ -221,7 +221,6 @@ const pluginsManager = {
   },
 
   onPluginsReady (player) {
-    console.log('onPluginsReady')
     const cgid = player._pluginInfoId
     const plugins = this.pluginGroup[cgid]._plugins
     if (!cgid || !plugins) {

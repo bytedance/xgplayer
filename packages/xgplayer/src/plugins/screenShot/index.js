@@ -51,7 +51,6 @@ export default class ScreenShot extends Plugin {
   onClickBtn (e) {
     e.preventDefault()
     e.stopPropagation()
-    console.log('onClickBtn')
     if (!this.canvas) {
       this.createCanvans();
     }

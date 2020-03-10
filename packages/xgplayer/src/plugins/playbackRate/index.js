@@ -16,7 +16,6 @@ export default class PlaybackRate extends Plugin {
   }
 
   constructor (args) {
-    console.log(args)
     super(args)
     this.curRate = 1
   }
@@ -26,7 +25,6 @@ export default class PlaybackRate extends Plugin {
     if (Array.isArray(playerConfig.playbackRate)) {
       config.list = playerConfig.playbackRate
     }
-    console.log(this.config)
     this.once(Events.CANPLAY, () => {
       this.show()
     })
