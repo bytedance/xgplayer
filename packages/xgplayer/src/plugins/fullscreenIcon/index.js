@@ -1,7 +1,7 @@
 import Plugin from '../../plugin'
 import FullScreenChangeSvg from '../assets/fullscreenChange.svg'
 
-const {Events, POSITIONS, ROOT_TYPES} = Plugin
+const {Events, POSITIONS} = Plugin
 
 export default class Fullscreen extends Plugin {
   static get pluginName () {
@@ -10,8 +10,7 @@ export default class Fullscreen extends Plugin {
 
   static get defaultConfig () {
     return {
-      position: POSITIONS.RIGHT,
-      rootType: ROOT_TYPES.CONTROLS,
+      position: POSITIONS.CONTROLS_RIGTH,
       index: 0
     }
   }

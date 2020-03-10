@@ -1,6 +1,6 @@
 import Plugin from '../../plugin'
 
-const {Events, POSITIONS, ROOT_TYPES} = Plugin
+const {Events, POSITIONS} = Plugin
 
 class PIPIcon extends Plugin {
   static get pluginName () {
@@ -9,8 +9,7 @@ class PIPIcon extends Plugin {
 
   static get defaultConfig () {
     return {
-      position: POSITIONS.RIGHT,
-      rootType: ROOT_TYPES.CONTROLS,
+      position: POSITIONS.CONTROLS_RIGTH,
       index: 6,
       disable: true
     }

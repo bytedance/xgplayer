@@ -1,6 +1,6 @@
 import Plugin from '../../plugin'
 
-const {Util, POSITIONS, ROOT_TYPES} = Plugin
+const {Util, POSITIONS} = Plugin
 class DanmuIcon extends Plugin {
   static get pluginName () {
     return 'danmuIcon'
@@ -15,8 +15,7 @@ class DanmuIcon extends Plugin {
 
   static get defaultConfig () {
     return {
-      position: POSITIONS.RIGHT,
-      rootType: ROOT_TYPES.CONTROLS,
+      position: POSITIONS.CONTROLS_RIGTH,
       index: 11,
       onSwitch: (state) => {
         console.log(`DanmuIcon:${state}`)

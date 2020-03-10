@@ -1,6 +1,6 @@
 import Plugin from '../../plugin'
 
-const { Events, Util, Sniffer, POSITIONS, ROOT_TYPES } = Plugin
+const { Events, Util, Sniffer, POSITIONS } = Plugin
 export default class DefinitionIcon extends Plugin {
   static get pluginName () {
     return 'DefinitionIcon'
@@ -9,8 +9,7 @@ export default class DefinitionIcon extends Plugin {
   // 默认配置信息
   static get defaultConfig () {
     return {
-      position: POSITIONS.RIGHT,
-      rootType: ROOT_TYPES.CONTROLS,
+      position: POSITIONS.CONTROLS_RIGTH,
       index: 3,
       itemList: null
     }

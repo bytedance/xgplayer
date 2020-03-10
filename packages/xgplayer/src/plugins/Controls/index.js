@@ -1,5 +1,6 @@
 import Plugin from '../../plugin'
-const {Events, Util} = Plugin
+const {Events, Util, POSITIONS} = Plugin
+
 class Controls extends Plugin {
   static get pluginName () {
     return 'Controls'
@@ -7,8 +8,13 @@ class Controls extends Plugin {
 
   static get defaultConfig () {
     return {
-      height: 48,
-      isHide: false
+      disable: false
+    }
+  }
+
+  beforeCreate (args) {
+    if (typeof args.player.config.controls === 'boolean') {
+      args.config.disable = !args.player.config.controls
     }
   }
 
@@ -47,15 +53,32 @@ class Controls extends Plugin {
   }
 
   registerPlugin (plugin, options = {}, name) {
+    if (!this.root) {
+      return;
+    }
     if (!options.root) {
       const position = options.config && options.config.position ? options.config.position : plugin.defaultConfig.position
-      const root = this[position] || this.left
-      options.root = root
+      switch (position) {
+        case POSITIONS.CONTROLS_LEFT:
+          options.root = this.left
+          break
+        case POSITIONS.CONTROLS_RIGTH:
+          options.root = this.right;
+          break;
+        case POSITIONS.CONTROLS_CENTER:
+          options.root = this.center;
+          break;
+        default:
+          options.root = this.left
+      }
+      return super.registerPlugin(plugin, options, name)
     }
-    return super.registerPlugin(plugin, options, name)
   }
 
   render () {
+    if (this.config.disable) {
+      return;
+    }
     return `<xg-controls class="xgplayer-controls" unselectable="on" onselectstart="return false">
     <left-grid class="left-grid">
     </Left-grid>

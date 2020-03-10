@@ -1,7 +1,7 @@
 import Plugin from '../../plugin'
 import RotateSvg from '../assets/rotate.svg'
 
-const {POSITIONS, ROOT_TYPES} = Plugin
+const {POSITIONS} = Plugin
 
 export default class RotateIcon extends Plugin {
   static get pluginName () {
@@ -10,8 +10,7 @@ export default class RotateIcon extends Plugin {
 
   static get defaultConfig () {
     return {
-      position: POSITIONS.RIGHT,
-      rootType: ROOT_TYPES.CONTROLS,
+      position: POSITIONS.CONTROLS_RIGTH,
       index: 6,
       innerRotate: false, // true为只有画面旋转，false为整个播放器旋转
       clockwise: false,

@@ -1,7 +1,7 @@
 import Plugin from '../../plugin'
 import CssFullscreenChange from '../assets/cssFullscreenChange.svg'
 
-const {Events, POSITIONS, ROOT_TYPES} = Plugin
+const {Events, POSITIONS} = Plugin
 export default class CssFullScreenIcon extends Plugin {
   static get pluginName () {
     return 'cssFullscreenIcon'
@@ -9,8 +9,7 @@ export default class CssFullScreenIcon extends Plugin {
 
   static get defaultConfig () {
     return {
-      position: POSITIONS.RIGHT,
-      rootType: ROOT_TYPES.CONTROLS,
+      position: POSITIONS.CONTROLS_RIGTH,
       index: 1,
       hide: true,
       disable: false

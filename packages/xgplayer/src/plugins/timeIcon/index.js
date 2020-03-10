@@ -1,6 +1,6 @@
 import Plugin from '../../plugin'
 
-const { Util, Events, POSITIONS, ROOT_TYPES } = Plugin
+const { Util, Events, POSITIONS } = Plugin
 
 class TimeIcon extends Plugin {
   static get pluginName () {
@@ -9,8 +9,7 @@ class TimeIcon extends Plugin {
 
   static get defaultConfig () {
     return {
-      position: POSITIONS.LEFT,
-      rootType: ROOT_TYPES.CONTROLS,
+      position: POSITIONS.CONTROLS_LEFT,
       index: 2,
       hide: false
     }

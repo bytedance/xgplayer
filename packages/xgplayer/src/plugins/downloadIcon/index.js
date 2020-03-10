@@ -1,7 +1,7 @@
 import downloadUtil from 'downloadjs'
 import Plugin from '../../plugin'
 import Download from '../assets/download.svg'
-const {POSITIONS, ROOT_TYPES} = Plugin
+const {POSITIONS} = Plugin
 
 export default class DownloadIcon extends Plugin {
   static get pluginName () {
@@ -10,8 +10,7 @@ export default class DownloadIcon extends Plugin {
 
   static get defaultConfig () {
     return {
-      position: POSITIONS.RIGHT,
-      rootType: ROOT_TYPES.CONTROLS,
+      position: POSITIONS.CONTROLS_RIGTH,
       index: 3
     }
   }

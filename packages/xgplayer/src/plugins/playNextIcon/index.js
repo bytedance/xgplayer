@@ -3,9 +3,9 @@
  */
 import Plugin from '../../plugin'
 import Next from '../assets/playNext.svg'
-//import Next from '../assets/mPlayNext.svg';
+// import Next from '../assets/mPlayNext.svg';
 // console.log(MPlayNext)
-const { POSITIONS, ROOT_TYPES, Sniffer} = Plugin
+const {POSITIONS, Sniffer} = Plugin
 export default class PlayNextIcon extends Plugin {
   static get pluginName () {
     return 'PlayNextIcon'
@@ -13,8 +13,7 @@ export default class PlayNextIcon extends Plugin {
 
   static get defaultConfig () {
     return {
-      position: POSITIONS.LEFT,
-      rootType: ROOT_TYPES.CONTROLS,
+      position: POSITIONS.CONTROLS_LEFT,
       index: 1,
       url: null
     }

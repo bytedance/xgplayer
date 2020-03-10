@@ -7,7 +7,7 @@ export default class PCPlugin extends BasePlugin {
 
   afterCreate () {
     const eventHandlers = ['onVideoClick', 'onVideoDblClick', 'onMouseEnter', 'onMouseLeave', 'onControlMouseEnter',
-      'onControlMouseLeave']
+      'onControlMouseLeave', 'onContextmenu']
     eventHandlers.map(key => {
       if (this[key]) {
         this[key] = this[key].bind(this)
@@ -39,7 +39,7 @@ export default class PCPlugin extends BasePlugin {
     player.video.addEventListener('click', this.onVideoClick, false)
 
     player.video.addEventListener('dblclick', this.onVideoDblClick, false)
-
+    player.root.addEventListener('contextmenu', this.onContextmenu, false)
     this.once(Events.CANPLAY, this.onEntered.bind(this));
     this.once(Events.AUTOPLAY_PREVENTED, () => {
       this.onAutoPlayPrevented()
@@ -54,6 +54,18 @@ export default class PCPlugin extends BasePlugin {
     // player.controls.addEventListener('mouseleave', this.onControlMouseLeave, false)
   }
 
+  onContextmenu (e) {
+    e = e || window.event
+    if (e.preventDefault) {
+      e.preventDefault()
+    }
+    if (e.stopPropagation) {
+      e.stopPropagation()
+    } else {
+      e.returnValue = false // 解决IE8右键弹出
+      e.cancelBubble = true
+    }
+  }
   onEnter () {
     const { player } = this;
     Util.addClass(player.root, 'xgplayer-is-enter')

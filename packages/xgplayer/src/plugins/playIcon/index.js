@@ -1,9 +1,8 @@
 import Plugin from '../../plugin'
-//import PlayPauseSvg from '../assets/playPause.svg'
 import PlaySvg from '../assets/play.svg'
 import PauseSvg from '../assets/pause.svg'
 
-const {Events, POSITIONS, ROOT_TYPES, Sniffer} = Plugin
+const {Events, POSITIONS, Sniffer} = Plugin
 class PlayIcon extends Plugin {
   static get pluginName () {
     return 'PlayIcon'
@@ -11,8 +10,7 @@ class PlayIcon extends Plugin {
 
   static get defaultConfig () {
     return {
-      position: POSITIONS.LEFT,
-      rootType: ROOT_TYPES.CONTROLS,
+      position: POSITIONS.CONTROLS_LEFT,
       index: 0
     }
   }
