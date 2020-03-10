@@ -12,12 +12,16 @@ class Play extends Plugin {
   static get defaultConfig () {
     return {
       position: POSITIONS.CONTROLS_LEFT,
-      index: 0
+      index: 0,
+      disable: false
     }
   }
 
   afterCreate () {
-    const { player } = this;
+    const { player, config } = this
+    if (config.disable) {
+      return
+    }
     this.btnClick = this.btnClick.bind(this)
     const event = Sniffer.device === 'mobile' ? 'touchend' : 'click'
     this.bind(event, this.btnClick)
@@ -81,6 +85,9 @@ class Play extends Plugin {
   }
 
   render () {
+    if (this.config.disable) {
+      return
+    }
     return `<xg-icon class="xgplayer-play">
     <div class="xgplayer-icon">
     ${this.icons.play}

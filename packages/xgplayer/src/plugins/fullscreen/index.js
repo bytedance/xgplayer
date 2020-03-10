@@ -11,11 +11,15 @@ export default class Fullscreen extends Plugin {
   static get defaultConfig () {
     return {
       position: POSITIONS.CONTROLS_RIGTH,
-      index: 0
+      index: 0,
+      useCssFullscreen: false,
+      switchCallback: null,
+      target: null
     }
   }
 
   afterCreate () {
+    this.isFullScreen = this.player.isFullScreen
     this.btnClick = this.btnClick.bind(this)
     this.bind(['click', 'touchend'], this.btnClick)
     this.on(Events.FULLSCREEN_CHANGE, (isFullScreen) => {
@@ -25,9 +29,9 @@ export default class Fullscreen extends Plugin {
   }
 
   btnClick (e) {
-    const {player} = this;
+    const {player, config} = this;
     let useCssFullscreen = false
-    if (this.config.useCssFullscreen && this.config.useCssFullscreen()) {
+    if (config.useCssFullscreen === true || (typeof config.useCssFullscreen === 'function' && config.useCssFullscreen())) {
       useCssFullscreen = true;
     }
     if (useCssFullscreen) {
@@ -41,10 +45,15 @@ export default class Fullscreen extends Plugin {
         this.emit(Events.FULLSCREEN_CHANGE, false)
       }
     } else {
+      if (config.switchCallback && typeof config.switchCallback === 'function') {
+        config.switchFullScreen(this.isFullScreen)
+        this.isFullScreen = !this.isFullScreen
+        return
+      }
       if (player.fullscreen) {
-        player.exitFullscreen()
+        player.exitFullscreen(config.target)
       } else {
-        player.getFullscreen()
+        player.getFullscreen(config.target)
       }
     }
   }

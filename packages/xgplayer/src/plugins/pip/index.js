@@ -11,23 +11,20 @@ class PIP extends Plugin {
     return {
       position: POSITIONS.CONTROLS_RIGTH,
       index: 6,
-      disable: false
+      showIcon: false
     }
   }
 
   beforeCreate (args) {
     if (typeof args.player.config.pip === 'boolean') {
-      args.config.disable = !args.player.config.pip
+      args.config.showIcon = args.player.config.pip
     }
   }
 
   afterCreate () {
-    if (this.config.disable) {
-      return;
-    }
     // video初始化之后再做判断是否显示
     this.once(Events.COMPLETE, () => {
-      if (this.isPIPAvailable()) {
+      if (this.config.showIcon && this.isPIPAvailable()) {
         this.show()
         this.switchPIP = this.switchPIP.bind(this)
         this.bind('click', this.switchPIP)
@@ -59,16 +56,29 @@ class PIP extends Plugin {
   }
 
   switchPIP () {
-    const {player} = this
+    const {player, playerConfig} = this
+    if (this.isPIPAvailable()) {
+      return false
+    }
     try {
-      if (!document.pictureInPictureElement) {
-        player.video && player.video.requestPictureInPicture()
-      } else {
+      if (document.pictureInPictureElement && document.pictureInPictureElement === player.video) {
         document.exitPictureInPicture();
+      } else {
+        if (playerConfig.poster) {
+          player.video.poster = playerConfig.poster
+        }
+        player.video && player.video.requestPictureInPicture()
       }
+      return true
     } catch (reason) {
       console.error('switchPIP', reason);
+      return false
     }
+  }
+
+  get isPip () {
+    const {player} = this
+    return document.pictureInPictureElement === player.video
   }
 
   isPIPAvailable () {
@@ -87,9 +97,6 @@ class PIP extends Plugin {
   }
 
   destroy () {
-    if (this.config.disable) {
-      return;
-    }
     const {player} = this
     player.video.removeEventListener('enterpictureinpicture', this.enterPIPCallback)
     player.video.removeEventListener('leavepictureinpicture', this.leavePIPCallback)
@@ -97,9 +104,6 @@ class PIP extends Plugin {
   }
 
   render () {
-    if (this.config.disable) {
-      return;
-    }
     return `<xg-icon class="xgplayer-pip">
       <div class="xgplayer-icon btn-definition">
       ${this.icons.pipicon ? this.icons.pipicon : `<span>${this.text.pipicon}</span>`}

@@ -12,7 +12,7 @@ class Volume extends Plugin {
     return {
       position: POSITIONS.CONTROLS_RIGTH,
       index: 1,
-      progressDot: []
+      disable: false
     }
   }
 
@@ -23,6 +23,9 @@ class Volume extends Plugin {
   }
 
   afterCreate () {
+    if (this.config.disable) {
+      return
+    }
     this.bar = this.find('.xgplayer-bar')
     this.drag = this.find('.xgplayer-drag')
     this.changeMuted = this.changeMuted.bind(this)
@@ -132,6 +135,9 @@ class Volume extends Plugin {
   }
 
   render () {
+    if (this.config.disable) {
+      return
+    }
     const {volume} = this.player
     return `
     <xg-icon class="xgplayer-volume">

@@ -31,9 +31,7 @@ export default class DefinitionIcon extends Plugin {
       }
     })
     this.once('resourceReady', (list) => {
-      this.config.list = list
-      this.renderItemList()
-      this.show()
+      this.changeDefinitionList(list)
     })
     if (Sniffer.device === 'mobile') {
       this.activeEvent = 'click'
@@ -75,7 +73,7 @@ export default class DefinitionIcon extends Plugin {
         return a.href === src
       }
     })
-    this.find('.icon-text').innerHTML = (cursrc[0] || {name: ''}).name
+    this.find('.icon-text').innerHTML = (cursrc[0] || {name: '清晰度'}).name
     this.find('.icon-list').innerHTML = liList.join('')
   }
 
@@ -124,8 +122,10 @@ export default class DefinitionIcon extends Plugin {
   }
 
   // 对外暴露 切换清晰度
-  changeDefinition () {
-
+  changeDefinitionList (list) {
+    this.config.list = list
+    this.renderItemList()
+    this.show()
   }
 
   onItemClick (e) {

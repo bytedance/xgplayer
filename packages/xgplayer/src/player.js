@@ -22,7 +22,7 @@ class Player extends Proxy {
 
     // resolve default preset
     if (this.config.presets.length) {
-      if (this.config.presets.indexOf('default') >= 0 && player.defaultPreset) {
+      if (this.config.presets.indexOf('default') >= 0 && Player.defaultPreset) {
         this.config.presets.push(Player.defaultPreset);
       }
     } else if (Player.defaultPreset) {
