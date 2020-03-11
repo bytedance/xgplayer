@@ -19,6 +19,9 @@ class Controls extends Plugin {
   }
 
   afterCreate () {
+    if (this.config.disable) {
+      return
+    }
     const {height} = this.config
     const style = {
       height: `${height}px`

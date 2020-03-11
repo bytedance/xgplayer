@@ -131,7 +131,7 @@ util.deepCopy = function (dst, src) {
     Object.keys(src).forEach(key => {
       // eslint-disable-next-line no-undef
       if (util.typeOf(src[key]) === 'Object' && !(src[key] instanceof Node)) {
-        if (dst[key] === undefined) {
+        if (dst[key] === undefined || dst[key] === undefined) {
           dst[key] = src[key]
         } else {
           util.deepCopy(dst[key], src[key])
@@ -145,6 +145,18 @@ util.deepCopy = function (dst, src) {
     return dst
   }
 }
+
+util.deepMerge = function (dst, src) {
+  Object.keys(src).map(key => {
+    if (typeof dst[key] === typeof src[key] && dst[key] !== null && typeof dst[key] === 'object' && !(src[key] instanceof Node)) {
+      util.deepMerge(dst[key], src[key])
+    } else {
+      dst[key] = src[key]
+    }
+  })
+  return dst
+}
+
 util.getBgImage = function (el) {
   // fix: return current page url when url is none
   let url = (el.currentStyle || window.getComputedStyle(el, null)).backgroundImage

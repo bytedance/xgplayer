@@ -17,7 +17,8 @@ const FULLSCREEN_EVENTS = ['fullscreenchange', 'webkitfullscreenchange', 'mozful
 class Player extends Proxy {
   constructor (options) {
     super(options)
-    this.config = util.deepCopy(getDefaultConfig(), options)
+    this.config = util.deepMerge(getDefaultConfig(), options)
+    console.log('this.config', this.config)
     this.config.presets = []
 
     // resolve default preset
