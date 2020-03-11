@@ -238,7 +238,7 @@ class Player extends Proxy {
         }
         if (plugin.lazy && plugin.loader) {
           const loadingPlugin = pluginsManager.lazyRegister(this, plugin)
-          if (plugin.forceBeforeInited) {
+          if (plugin.forceBeforeInit) {
             loadingPlugin.then(() => {
               this._loadingPlugins.splice(this._loadingPlugins.indexOf(loadingPlugin), 1);
             }).catch(() => {

@@ -159,49 +159,51 @@ const pluginsManager = {
       if (!this.pluginGroup) {
         return;
       }
-      const cgid = player._pluginInfoId
-      const plugins = this.pluginGroup[cgid]._plugins
-      const pluginsRet = []
-      for (const item of Object.keys(plugins)) {
-        if (plugins[item] && plugins[item].beforePlayerInit) {
-          try {
-            let ret = plugins[item].beforePlayerInit()
-            pluginsRet.push(retPromise(ret))
-          } catch (e) {
-            pluginsRet.push(retPromise(null))
-            throw e
+
+      let prevTask;
+      if (player._loadingPlugins && player._loadingPlugins.length) {
+        prevTask = Promise.all(player._loadingPlugins)
+      } else {
+        prevTask = Promise.resolve()
+      }
+
+      return prevTask.then(() => {
+        const cgid = player._pluginInfoId
+        const plugins = this.pluginGroup[cgid]._plugins
+        const pluginsRet = []
+        for (const item of Object.keys(plugins)) {
+          if (plugins[item] && plugins[item].beforePlayerInit) {
+            try {
+              let ret = plugins[item].beforePlayerInit()
+              pluginsRet.push(retPromise(ret))
+            } catch (e) {
+              pluginsRet.push(retPromise(null))
+              throw e
+            }
           }
         }
-      }
-      Promise.all(pluginsRet).then(() => {
-        resolve()
-      }).catch((e) => {
-        console.error(e)
-        resolve()
+
+        Promise.all([...pluginsRet]).then(() => {
+          resolve()
+        }).catch((e) => {
+          console.error(e)
+          resolve()
+        })
       })
     })
   },
 
   afterInit (player) {
-    console.log('afterInit')
-    let prevTask;
-    if (player._loadingPlugins && player._loadingPlugins.length) {
-      prevTask = Promise.all(player._loadingPlugins)
-    } else {
-      prevTask = Promise.resolve()
-    }
     if (!this.pluginGroup) {
       return;
     }
-    prevTask.then(() => {
-      const cgid = player._pluginInfoId
-      const plugins = this.pluginGroup[cgid]._plugins
-      for (const item of Object.keys(plugins)) {
-        if (plugins[item] && plugins[item].afterPlayerInit) {
-          plugins[item].afterPlayerInit()
-        }
+    const cgid = player._pluginInfoId
+    const plugins = this.pluginGroup[cgid]._plugins
+    for (const item of Object.keys(plugins)) {
+      if (plugins[item] && plugins[item].afterPlayerInit) {
+        plugins[item].afterPlayerInit()
       }
-    })
+    }
   },
 
   reRender (player) {
