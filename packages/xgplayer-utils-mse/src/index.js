@@ -11,8 +11,6 @@ class MSE {
     this.sourceBuffers = {};
     this.preloadTime = this.configs.preloadTime || 1;
     this.onSourceOpen = this.onSourceOpen.bind(this)
-    this.onTimeUpdate = this.onTimeUpdate.bind(this)
-    this.onUpdateEnd = this.onUpdateEnd.bind(this)
     this.onWaiting = this.onWaiting.bind(this)
   }
 
@@ -21,8 +19,6 @@ class MSE {
     this.mediaSource = new self.MediaSource();
     this.mediaSource.addEventListener('sourceopen', this.onSourceOpen);
     this._url = null;
-    this.container.addEventListener('timeupdate', this.onTimeUpdate);
-    this.container.addEventListener('waiting', this.onWaiting);
   }
 
   resetContext (newCtx) {
@@ -34,14 +30,6 @@ class MSE {
         MSE.clearBuffer(buffer)
       }
     }
-  }
-
-  onTimeUpdate () {
-    this.emit('TIME_UPDATE', this.container);
-  }
-
-  onWaiting () {
-    this.emit('WAITING', this.container);
   }
 
   onSourceOpen () {

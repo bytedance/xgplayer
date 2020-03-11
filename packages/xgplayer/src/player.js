@@ -19,12 +19,13 @@ class Player extends Proxy {
     super(options)
     this.config = util.deepMerge(getDefaultConfig(), options)
     console.log('this.config', this.config)
-    this.config.presets = []
 
     // resolve default preset
     if (this.config.presets.length) {
-      if (this.config.presets.indexOf('default') >= 0 && Player.defaultPreset) {
+      const defaultIdx = this.config.presets.indexOf('default');
+      if (defaultIdx >= 0 && Player.defaultPreset) {
         this.config.presets.push(Player.defaultPreset);
+        this.config.presets.splice(defaultIdx, 1);
       }
     } else if (Player.defaultPreset) {
       this.config.presets.push(Player.defaultPreset)

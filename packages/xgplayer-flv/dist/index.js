@@ -7345,8 +7345,6 @@
       this.sourceBuffers = {};
       this.preloadTime = this.configs.preloadTime || 1;
       this.onSourceOpen = this.onSourceOpen.bind(this);
-      this.onTimeUpdate = this.onTimeUpdate.bind(this);
-      this.onUpdateEnd = this.onUpdateEnd.bind(this);
       this.onWaiting = this.onWaiting.bind(this);
     }
 
@@ -7357,8 +7355,6 @@
         this.mediaSource = new self.MediaSource();
         this.mediaSource.addEventListener('sourceopen', this.onSourceOpen);
         this._url = null;
-        this.container.addEventListener('timeupdate', this.onTimeUpdate);
-        this.container.addEventListener('waiting', this.onWaiting);
       }
     }, {
       key: 'resetContext',
@@ -7371,16 +7367,6 @@
             MSE.clearBuffer(buffer);
           }
         }
-      }
-    }, {
-      key: 'onTimeUpdate',
-      value: function onTimeUpdate() {
-        this.emit('TIME_UPDATE', this.container);
-      }
-    }, {
-      key: 'onWaiting',
-      value: function onWaiting() {
-        this.emit('WAITING', this.container);
       }
     }, {
       key: 'onSourceOpen',
@@ -8753,6 +8739,13 @@
   function _classCallCheck$x(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } }
 
   var FlvPlayer$1 = function () {
+    _createClass$x(FlvPlayer$1, null, [{
+      key: 'pluginName',
+      get: function get() {
+        return 'FlvPlayer';
+      }
+    }]);
+
     function FlvPlayer$1(config) {
       _classCallCheck$x(this, FlvPlayer$1);
 

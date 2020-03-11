@@ -2,6 +2,10 @@ import FlvLivePlayer from 'xgplayer-flv-live'
 import FlvVodPlayer from 'xgplayer-flv-vod'
 
 class FlvPlayer {
+  static get pluginName () {
+    return 'FlvPlayer'
+  }
+
   constructor (config) {
     if (config.isLive) {
       this.plugins = [FlvLivePlayer]

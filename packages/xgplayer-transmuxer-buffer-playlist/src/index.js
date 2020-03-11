@@ -10,6 +10,7 @@ class Playlist {
     this.fragLength = 0;
     this._lastget = undefined;
     this._audoclear = configs.autoclear || false;
+    this.downloadedUrls = [];
   }
 
   get list () {
@@ -79,7 +80,7 @@ class Playlist {
       let newfraglist = []
       for (let i = 0; i < data.frags.length; i++) {
         let frag = data.frags[i];
-        if (!this._ts[frag.url]) {
+        if (!this._ts[frag.url] && this.downloadedUrls.indexOf(frag.url) < 0) {
           newfraglist.push(frag.url)
           this.push(frag.url, frag.duration, frag.discontinue);
         }
@@ -157,6 +158,8 @@ class Playlist {
         break;
       }
     }
+
+    this.downloadedUrls.push(ts.url);
     return ts;
   }
 

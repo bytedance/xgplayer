@@ -23,8 +23,6 @@ var MSE = function () {
     this.sourceBuffers = {};
     this.preloadTime = this.configs.preloadTime || 1;
     this.onSourceOpen = this.onSourceOpen.bind(this);
-    this.onTimeUpdate = this.onTimeUpdate.bind(this);
-    this.onUpdateEnd = this.onUpdateEnd.bind(this);
     this.onWaiting = this.onWaiting.bind(this);
   }
 
@@ -35,8 +33,6 @@ var MSE = function () {
       this.mediaSource = new self.MediaSource();
       this.mediaSource.addEventListener('sourceopen', this.onSourceOpen);
       this._url = null;
-      this.container.addEventListener('timeupdate', this.onTimeUpdate);
-      this.container.addEventListener('waiting', this.onWaiting);
     }
   }, {
     key: 'resetContext',
@@ -49,16 +45,6 @@ var MSE = function () {
           MSE.clearBuffer(buffer);
         }
       }
-    }
-  }, {
-    key: 'onTimeUpdate',
-    value: function onTimeUpdate() {
-      this.emit('TIME_UPDATE', this.container);
-    }
-  }, {
-    key: 'onWaiting',
-    value: function onWaiting() {
-      this.emit('WAITING', this.container);
     }
   }, {
     key: 'onSourceOpen',

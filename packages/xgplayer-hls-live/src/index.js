@@ -77,15 +77,18 @@ export default class HlsLivePlayer extends BasePlugin {
   }
 
   play () {
-    if (this.played) {
-      this._context.destroy();
-      this._context = new Context(HlsAllowedEvents);
-      this.hls = this._context.registry('HLS_LIVE_CONTROLLER', HlsLiveController)({player: this, container: this.video, preloadTime: this.config.preloadTime});
-      this._context.init();
-      this._initEvents();
-      this.hls.load(this.player.config.url);
+    if (this.played && this.player.played.length) {
+      this.played = false;
+      return this._destroy().then(() => {
+        this.context = new Context(HlsAllowedEvents)
+        this.player.hasStart = false;
+        this.player.start()
+        this.player.once('canplay', () => {
+          this.player.play();
+        })
+      })
     }
-    this.played = true;
+    this.played = true
   }
 
   destroy () {

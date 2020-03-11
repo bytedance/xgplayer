@@ -1,7 +1,7 @@
 (function (global, factory) {
 	typeof exports === 'object' && typeof module !== 'undefined' ? module.exports = factory(require('xgplayer')) :
 	typeof define === 'function' && define.amd ? define(['xgplayer'], factory) :
-	(global = global || self, global._mp4player = factory(global.Player));
+	(global = global || self, global.Mp4Player = factory(global.Player));
 }(this, (function (Player) { 'use strict';
 
 	Player = Player && Player.hasOwnProperty('default') ? Player['default'] : Player;

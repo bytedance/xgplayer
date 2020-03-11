@@ -36,6 +36,7 @@ export default function getDefaultConfig () {
     pip: false, // pip插件
     mini: false, // 迷你小窗插件
     cssFullscreen: true, // 页面全屏
-    keyShortcut: true // 是否开启快捷键
+    keyShortcut: true, // 是否开启快捷键
+    presets: []
   }
 }

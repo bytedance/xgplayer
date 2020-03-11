@@ -1,3 +1,5 @@
+import sniffer from '../utils/sniffer';
+// import Danmu from '../plugins/danmu'
 import Replay from '../plugins/replay';
 import Poster from '../plugins/poster';
 import Start from '../plugins/start';
@@ -7,8 +9,6 @@ import PC from '../plugins/pc'
 import Mobile from '../plugins/mobile'
 import Keyboard from '../plugins/keyboard'
 import Loading from '../plugins/loading'
-import sniffer from '../utils/sniffer';
-// import Danmu from '../plugins/danmu'
 import Progress from '../plugins/progress'
 import PlayIcon from '../plugins/play'
 import FullScreen from '../plugins/fullscreen'
