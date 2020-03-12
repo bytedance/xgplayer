@@ -252,9 +252,9 @@ let s_progress = function () {
       containerWidth = container.getBoundingClientRect().width
     }
     if (player.videoConfig.mediaType !== 'audio' || !player.isProgressMoving || !player.dash) {
-      const precent = player.currentTime * 100 / player.duration
-      const prevWidth = Number.parseFloat(progress.style.width || '0');
-      if (Math.abs(precent - prevWidth) <= 1) {
+      const precent = player.currentTime / player.duration
+      const prevPrecent = Number.parseFloat(progress.style.width || '0') / Number.parseFloat(container.style.width || '100');
+      if (Math.abs(precent - prevPrecent ) <= 1) {
         progress.style.width = `${player.currentTime * 100 / player.duration}%`
       }
     }
