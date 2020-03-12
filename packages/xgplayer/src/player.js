@@ -22,8 +22,10 @@ class Player extends Proxy {
 
     // resolve default preset
     if (this.config.presets.length) {
-      if (this.config.presets.indexOf('default') >= 0 && Player.defaultPreset) {
+      const defaultIdx = this.config.presets.indexOf('default');
+      if (defaultIdx >= 0 && Player.defaultPreset) {
         this.config.presets.push(Player.defaultPreset);
+        this.config.presets.splice(defaultIdx, 1);
       }
     } else if (Player.defaultPreset) {
       this.config.presets.push(Player.defaultPreset)
@@ -237,7 +239,7 @@ class Player extends Proxy {
         }
         if (plugin.lazy && plugin.loader) {
           const loadingPlugin = pluginsManager.lazyRegister(this, plugin)
-          if (plugin.forceBeforeInited) {
+          if (plugin.forceBeforeInit) {
             loadingPlugin.then(() => {
               this._loadingPlugins.splice(this._loadingPlugins.indexOf(loadingPlugin), 1);
             }).catch(() => {

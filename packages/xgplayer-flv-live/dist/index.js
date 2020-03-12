@@ -7345,8 +7345,6 @@
       this.sourceBuffers = {};
       this.preloadTime = this.configs.preloadTime || 1;
       this.onSourceOpen = this.onSourceOpen.bind(this);
-      this.onTimeUpdate = this.onTimeUpdate.bind(this);
-      this.onUpdateEnd = this.onUpdateEnd.bind(this);
       this.onWaiting = this.onWaiting.bind(this);
     }
 
@@ -7357,8 +7355,6 @@
         this.mediaSource = new self.MediaSource();
         this.mediaSource.addEventListener('sourceopen', this.onSourceOpen);
         this._url = null;
-        this.container.addEventListener('timeupdate', this.onTimeUpdate);
-        this.container.addEventListener('waiting', this.onWaiting);
       }
     }, {
       key: 'resetContext',
@@ -7371,16 +7367,6 @@
             MSE.clearBuffer(buffer);
           }
         }
-      }
-    }, {
-      key: 'onTimeUpdate',
-      value: function onTimeUpdate() {
-        this.emit('TIME_UPDATE', this.container);
-      }
-    }, {
-      key: 'onWaiting',
-      value: function onWaiting() {
-        this.emit('WAITING', this.container);
       }
     }, {
       key: 'onSourceOpen',
@@ -7995,7 +7981,7 @@
           BasePlugin.defineGetterOrSetter(this.player, {
             '__url': {
               get: function get() {
-                return _this2.flv.mse.url;
+                return _this2.mse.url;
               }
             }
           });
@@ -8088,6 +8074,7 @@
         var flv = this.context.registry('FLV_CONTROLLER', FlvController)(this.player);
         this.initFlvEvents(flv);
         this.player.flv = flv;
+        this.flv = flv;
         this.mse = flv.mse;
         return flv;
       }
@@ -8096,13 +8083,18 @@
       value: function play() {
         var _this6 = this;
 
-        if (this.played && this.player.played.length && this.player.paused) {
+        if (this.played && this.player.played.length) {
+          this.played = false;
           return this._destroy().then(function () {
             _this6.context = new Context(flvAllowedEvents);
             _this6.player.hasStart = false;
             _this6.player.start();
+            _this6.player.once('canplay', function () {
+              _this6.player.play();
+            });
           });
         }
+        this.played = true;
       }
     }, {
       key: 'pause',

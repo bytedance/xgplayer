@@ -1,4 +1,4 @@
-.xgplayer .xgplayer-controls .xgplayer-time {
+.xgplayer .xgplayer-time {
   padding-top: 0;
   width: auto;
   font-family: PingFangSC;
@@ -7,10 +7,14 @@
   line-height: 40px;
   text-align: center;
   display: inline-block; }
-  .xgplayer .xgplayer-controls .xgplayer-time span {
+  .xgplayer .xgplayer-time span {
     text-align: center;
     vertical-align: middle; }
-  .xgplayer .xgplayer-controls .xgplayer-time .time-duration {
+  .xgplayer .xgplayer-time .time-duration {
     color: rgba(255, 255, 255, 0.5); }
-  .xgplayer .xgplayer-controls .xgplayer-time .live_tag {
+  .xgplayer .xgplayer-time .live_tag {
     display: none; }
+
+.xgplayer.xgplayer-mobile .xgplayer-time {
+  font-family: PingFangSC-Regular;
+  font-size: 11px; }

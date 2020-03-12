@@ -33,7 +33,7 @@ class FlvPlayer extends BasePlugin {
       BasePlugin.defineGetterOrSetter(this.player, {
         '__url': {
           get: () => {
-            return this.flv.mse.url
+            return this.mse.url
           }
         }
       })
@@ -116,18 +116,24 @@ class FlvPlayer extends BasePlugin {
     const flv = this.context.registry('FLV_CONTROLLER', FLV)(this.player)
     this.initFlvEvents(flv)
     this.player.flv = flv
+    this.flv = flv
     this.mse = flv.mse;
     return flv;
   }
 
   play () {
-    if (this.played && this.player.played.length && this.player.paused) {
+    if (this.played && this.player.played.length) {
+      this.played = false;
       return this._destroy().then(() => {
         this.context = new Context(flvAllowedEvents)
         this.player.hasStart = false;
         this.player.start()
+        this.player.once('canplay', () => {
+          this.player.play();
+        })
       })
     }
+    this.played = true
   }
 
   pause () {

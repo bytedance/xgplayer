@@ -1002,8 +1002,6 @@
       this.sourceBuffers = {};
       this.preloadTime = this.configs.preloadTime || 1;
       this.onSourceOpen = this.onSourceOpen.bind(this);
-      this.onTimeUpdate = this.onTimeUpdate.bind(this);
-      this.onUpdateEnd = this.onUpdateEnd.bind(this);
       this.onWaiting = this.onWaiting.bind(this);
     }
 
@@ -1014,8 +1012,6 @@
         this.mediaSource = new self.MediaSource();
         this.mediaSource.addEventListener('sourceopen', this.onSourceOpen);
         this._url = null;
-        this.container.addEventListener('timeupdate', this.onTimeUpdate);
-        this.container.addEventListener('waiting', this.onWaiting);
       }
     }, {
       key: 'resetContext',
@@ -1028,16 +1024,6 @@
             MSE.clearBuffer(buffer);
           }
         }
-      }
-    }, {
-      key: 'onTimeUpdate',
-      value: function onTimeUpdate() {
-        this.emit('TIME_UPDATE', this.container);
-      }
-    }, {
-      key: 'onWaiting',
-      value: function onWaiting() {
-        this.emit('WAITING', this.container);
       }
     }, {
       key: 'onSourceOpen',
@@ -7827,6 +7813,7 @@
       this.fragLength = 0;
       this._lastget = undefined;
       this._audoclear = configs.autoclear || false;
+      this.downloadedUrls = [];
     }
 
     _createClass$u(Playlist, [{
@@ -7885,7 +7872,7 @@
           var newfraglist = [];
           for (var i = 0; i < data.frags.length; i++) {
             var frag = data.frags[i];
-            if (!this._ts[frag.url]) {
+            if (!this._ts[frag.url] && this.downloadedUrls.indexOf(frag.url) < 0) {
               newfraglist.push(frag.url);
               this.push(frag.url, frag.duration, frag.discontinue);
             }
@@ -7968,6 +7955,8 @@
             break;
           }
         }
+
+        this.downloadedUrls.push(ts.url);
         return ts;
       }
     }, {
@@ -8439,13 +8428,18 @@
     }, {
       key: 'play',
       value: function play() {
-        if (this.played) {
-          this._context.destroy();
-          this._context = new Context(HlsAllowedEvents$1);
-          this.hls = this._context.registry('HLS_LIVE_CONTROLLER', HlsLiveController)({ player: this, container: this.video, preloadTime: this.config.preloadTime });
-          this._context.init();
-          this._initEvents();
-          this.hls.load(this.player.config.url);
+        var _this5 = this;
+
+        if (this.played && this.player.played.length) {
+          this.played = false;
+          return this._destroy().then(function () {
+            _this5.context = new Context(HlsAllowedEvents$1);
+            _this5.player.hasStart = false;
+            _this5.player.start();
+            _this5.player.once('canplay', function () {
+              _this5.player.play();
+            });
+          });
         }
         this.played = true;
       }

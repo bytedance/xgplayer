@@ -127,17 +127,8 @@
     opacity: 0.85; }
   .xgplayer .xgplayer-start.interact {
     -webkit-animation: playPause .4s ease-out forwards;
-            animation: playPause .4s ease-out forwards; }
-
-.xgplayer.xgplayer-mobile .xgplayer-start {
-  border: none;
-  background: none;
-  height: 50px;
-  width: 50px;
-  line-height: 50px;
-  left: 50%;
-  top: 50%;
-  margin: -25px auto auto -25px; }
+            animation: playPause .4s ease-out forwards;
+    display: block; }
 
 .xgplayer-enter {
   display: none;
@@ -253,18 +244,21 @@
   display: block; }
 
 .xgplayer .xgplayer-poster {
-  display: none;
+  display: block;
   position: absolute;
   left: 0;
   top: 0;
   width: 100%;
   height: 100%;
-  z-index: 100;
+  z-index: 10;
   background-size: cover;
   background-position: center center; }
 
-.xgplayer.xgplayer-nostart .xgplayer-poster {
+.xgplayer.xgplayer-nostart .xgplayer-poster, .xgplayer.xgplayer-ended .xgplayer-poster, .xgplayer.not-allow-autoplay .xgplayer-poster {
   display: block; }
+
+.xgplayer.xgplayer-playing .xgplayer-poster {
+  display: none; }
 
 .xgplayer-placeholder {
   -webkit-flex: 1;
@@ -351,6 +345,7 @@
   display: none; }
 
 .xgplayer-definition {
+  display: none;
   width: 60px;
   height: 150px;
   z-index: 18;
@@ -410,7 +405,7 @@
 .xgplayer-is-definition .xgplayer-definition {
   display: block; }
 
-.xgplayer .xgplayer-controls .xgplayer-time {
+.xgplayer .xgplayer-time {
   padding-top: 0;
   width: auto;
   font-family: PingFangSC;
@@ -419,15 +414,22 @@
   line-height: 40px;
   text-align: center;
   display: inline-block; }
-  .xgplayer .xgplayer-controls .xgplayer-time span {
+  .xgplayer .xgplayer-time span {
     text-align: center;
     vertical-align: middle; }
-  .xgplayer .xgplayer-controls .xgplayer-time .time-duration {
+  .xgplayer .xgplayer-time .time-duration {
     color: rgba(255, 255, 255, 0.5); }
-  .xgplayer .xgplayer-controls .xgplayer-time .live_tag {
+  .xgplayer .xgplayer-time .live_tag {
     display: none; }
 
-.xgplayer.xgplayer-inactive .xgplayer-controls {
+.xgplayer.xgplayer-mobile .xgplayer-time {
+  font-family: PingFangSC-Regular;
+  font-size: 11px; }
+
+.xgplayer.not-allow-autoplay .xgplayer-controls, .xgplayer.not-allow-autoplay .flex, .xgplayer.xgplayer-nostart .xgplayer-controls, .xgplayer.xgplayer-nostart .flex {
+  display: none; }
+
+.xgplayer.xgplayer-inactive .control_autohide {
   display: none; }
 
 .xgplayer .xgplayer-controls {
@@ -438,7 +440,8 @@
   right: 0;
   height: 40px;
   z-index: 20;
-  background-image: linear-gradient(180deg, transparent, rgba(0, 0, 0, 0.37), rgba(0, 0, 0, 0.75), rgba(0, 0, 0, 0.75)); }
+  background-image: linear-gradient(180deg, transparent, rgba(0, 0, 0, 0.37), rgba(0, 0, 0, 0.75), rgba(0, 0, 0, 0.75));
+  padding-bottom: 10px; }
   .xgplayer .xgplayer-controls .left-grid, .xgplayer .xgplayer-controls .right-grid {
     position: relative;
     float: left;
@@ -462,29 +465,34 @@
     right: 0;
     outline: none;
     top: -15px;
-    z-index: 35; }
-  .xgplayer .xgplayer-controls.flex {
-    -webkit-justify-content: space-around;
-            justify-content: space-around;
+    z-index: 35;
+    padding: 0 10px; }
+
+.xgplayer .flex {
+  -webkit-justify-content: space-around;
+          justify-content: space-around;
+  display: -webkit-flex;
+  display: -moz-box;
+  display: flex; }
+  .xgplayer .flex .center {
     display: -webkit-flex;
     display: -moz-box;
-    display: flex; }
-    .xgplayer .xgplayer-controls.flex .center {
-      -webkit-flex: 1;
-         -moz-box-flex: 1;
-              flex: 1;
-      position: relative;
-      top: 0;
-      left: 0;
-      right: 0;
-      height: 100%; }
-  .xgplayer .xgplayer-controls.mini {
-    background-image: linear-gradient(180deg, transparent, rgba(0, 0, 0, 0), rgba(0, 0, 0, 0), rgba(0, 0, 0, 0)); }
-    .xgplayer .xgplayer-controls.mini .center {
-      bottom: -8px;
-      top: auto; }
-    .xgplayer .xgplayer-controls.mini .left-grid, .xgplayer .xgplayer-controls.mini .right-grid {
-      display: none; }
+    display: flex;
+    -webkit-flex: 1;
+       -moz-box-flex: 1;
+            flex: 1;
+    position: relative;
+    top: 0;
+    height: 100%; }
+
+.xgplayer .mini {
+  background-image: linear-gradient(180deg, transparent, rgba(0, 0, 0, 0), rgba(0, 0, 0, 0), rgba(0, 0, 0, 0)); }
+  .xgplayer .mini .center {
+    bottom: -8px;
+    top: auto;
+    padding: 0; }
+  .xgplayer .mini .left-grid, .xgplayer .mini .right-grid {
+    display: none; }
 
 .xgplayer .xg-tips {
   display: none;
@@ -507,7 +515,7 @@
 .xgplayer xg-icon {
   position: relative;
   height: 40px;
-  top: 40%;
+  top: 50%;
   margin-top: -20px;
   margin-left: 10px;
   cursor: pointer;
@@ -589,6 +597,9 @@
 .xgplayer .right-grid .xg-tips {
   left: 0; }
 
+.xgplayer.xgplayer-mobile xg-icon:hover .xg-tips {
+  display: none; }
+
 .xgplayer-replay {
   display: none; }
 
@@ -641,13 +652,20 @@
 
 .xgplayer .xgplayer-progress {
   display: block;
-  position: absolute;
+  position: relative;
   height: 20px;
   line-height: 20px;
-  left: 12px;
-  right: 12px;
+  left: 0;
+  right: 0;
+  top: 50%;
+  -webkit-transform: translateY(-10px);
+      -ms-transform: translateY(-10px);
+          transform: translateY(-10px);
   outline: none;
-  z-index: 35; }
+  z-index: 35;
+  -webkit-flex: 1;
+     -moz-box-flex: 1;
+          flex: 1; }
 
 .xgplayer .xgplayer-progress-outer {
   background: rgba(255, 255, 255, 0.3);
@@ -693,7 +711,8 @@
   -webkit-transform: translate(-50%, 0);
       -ms-transform: translate(-50%, 0);
           transform: translate(-50%, 0);
-  z-index: 17; }
+  z-index: 17;
+  box-shadow: 0 0 1px 5px rgba(255, 0, 0, 0.38); }
 
 .xgplayer .xgplayer-progress-point {
   position: absolute; }
@@ -748,9 +767,15 @@
   display: block;
   top: -3px; }
 
+.xgplayer .btn-move {
+  box-shadow: 0 0 1px 10px rgba(255, 0, 0, 0.38); }
+
 .xgplayer .xgplayer-controls.mini .xgplayer-progress {
   left: 0;
-  right: 0; }
+  right: 0;
+  -webkit-transform: initial;
+      -ms-transform: initial;
+          transform: initial; }
 
 .xgplayer .xgplayer-controls.mini .xgplayer-progress-point {
   display: none; }
@@ -767,6 +792,20 @@
 
 .xgplayer .xgplayer-controls.mini .xgplayer-progress:hover .xgplayer-progress-btn, .xgplayer .xgplayer-controls.mini .xgplayer-progress:focus .xgplayer-progress-btn {
   display: none; }
+
+.xgplayer-mobile .xgplayer-progress:hover .xgplayer-progress-outer, .xgplayer-mobile .xgplayer-progress:focus .xgplayer-progress-outer {
+  height: 3px;
+  margin-top: 8.5px; }
+
+.xgplayer-mobile .xgplayer-progress:hover .xgplayer-progress-btn, .xgplayer-mobile .xgplayer-progress:focus .xgplayer-progress-btn {
+  display: block;
+  top: -5px; }
+
+.xgplayer-mobile .xgplayer-progress-btn {
+  display: block; }
+
+.xgplayer-mobile .btn-move {
+  box-shadow: 0 0 1px 10px rgba(255, 0, 0, 0.38); }
 
 .xgplayer-loading {
   display: none;
@@ -1610,3 +1649,39 @@
 .xgplayer .slider-show .xgplayer-panel-slider {
   display: block;
   bottom: 30px; }
+
+.xgplayer-mobile {
+  font-family: PingFangSC-Semibold;
+  /**/ }
+  .xgplayer-mobile * {
+    text-decoration: none;
+    -webkit-tap-highlight-color: transparent; }
+  .xgplayer-mobile .xgplayer-controls {
+    background-image: initial; }
+  .xgplayer-mobile xg-trigger {
+    position: absolute;
+    top: 0;
+    left: 0;
+    height: 100%;
+    width: 100%;
+    z-index: 11; }
+  .xgplayer-mobile .gradient {
+    background-image: -webkit-linear-gradient(rgba(0, 0, 0, 0.6), rgba(0, 0, 0, 0.36) 20%, rgba(0, 0, 0, 0) 36%, rgba(0, 0, 0, 0) 70%, rgba(0, 0, 0, 0.24) 77%, rgba(0, 0, 0, 0.36) 83%, rgba(0, 0, 0, 0.6)); }
+  .xgplayer-mobile.xgplayer-inactive .gradient {
+    background-image: initial; }
+  .xgplayer-mobile .xgplayer-start {
+    height: 50px;
+    width: 50px; }
+    .xgplayer-mobile .xgplayer-start svg {
+      -webkit-transform: translate(-9px, -9px);
+          -ms-transform: translate(-9px, -9px);
+              transform: translate(-9px, -9px); }
+  .xgplayer-mobile .xgmask {
+    position: absolute;
+    height: 100%;
+    z-index: 200;
+    top: 0;
+    left: 0;
+    width: 100%;
+    pointer-events: none;
+    background-color: rgba(0, 0, 0, 0); }
