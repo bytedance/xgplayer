@@ -107,6 +107,7 @@ class Progress extends Plugin {
   }
 
   mouseDown (e) {
+    console.log('mousedown')
     const {player} = this
     if (player.isMini) {
       return
@@ -119,6 +120,7 @@ class Progress extends Plugin {
       return true
     }
     this.root.focus()
+    Util.addClass(this.progressBtn, 'btn-move')
     const containerWidth = this.root.getBoundingClientRect().width
     let {left} = this.playedBar.getBoundingClientRect()
     let move = function (e) {
@@ -130,45 +132,55 @@ class Progress extends Plugin {
       if (w > containerWidth) {
         w = containerWidth
       }
-      let now = w / containerWidth * player.duration
-      self.playedBar.style.width = `${w * 100 / containerWidth}%`
+      self.updatePercent(w / containerWidth)
+      // let now = w / containerWidth * player.duration
+      // self.playedBar.style.width = `${w * 100 / containerWidth}%`
 
-      if (player.videoConfig.mediaType === 'video' && !player.dash && !player.config.closeMoveSeek) {
-        player.currentTime = Number(now).toFixed(1)
-      } else {
-        self.updateTime(now)
-      }
+      // if (player.videoConfig.mediaType === 'video' && !player.dash && !player.config.closeMoveSeek) {
+      //   player.currentTime = Number(now).toFixed(1)
+      // } else {
+      //   self.updateTime(now)
+      // }
       player.emit('focus')
     }
     let up = function (e) {
       // e.preventDefault()
+      Util.removeClass(self.progressBtn, 'btn-move')
       e.stopPropagation()
       Util.event(e)
-      window.removeEventListener('mousemove', move)
-      window.removeEventListener('touchmove', move, { passive: false })
-      window.removeEventListener('mouseup', up)
-      window.removeEventListener('touchend', up)
+      if (Sniffer.device === 'mobile') {
+        self.root.removeEventListener('touchmove', move, { passive: false })
+        self.root.removeEventListener('touchend', up)
+      } else {
+        self.root.removeEventListener('mousemove', move)
+        self.root.removeEventListener('mouseup', up)
+      }
       self.root.blur()
       if (!self.isProgressMoving || player.videoConfig.mediaType === 'audio' || player.dash || player.config.closeMoveSeek) {
         let w = e.clientX - left
         if (w > containerWidth) {
           w = containerWidth
         }
-        let now = w / containerWidth * player.duration
-        self.playedBar.style.width = `${w * 100 / containerWidth}%`
-        player.currentTime = Number(now).toFixed(1)
+        // let now = w / containerWidth * player.duration
+        // self.playedBar.style.width = `${w * 100 / containerWidth}%`
+        // player.currentTime = Number(now).toFixed(1)
+        self.updatePercent(w / containerWidth)
       }
       player.emit('focus')
       self.isProgressMoving = false
     }
-    window.addEventListener('mousemove', move)
-    window.addEventListener('touchmove', move, { passive: false })
-    window.addEventListener('mouseup', up)
-    window.addEventListener('touchend', up)
+    if (Sniffer.device === 'mobile') {
+      self.root.addEventListener('touchmove', move, false)
+      self.root.addEventListener('touchend', up, false)
+    } else {
+      self.root.addEventListener('mousemove', move)
+      self.root.addEventListener('mouseup', up)
+    }
     return true
   }
 
   mouseEnter (e) {
+    console.log('mouseEnter')
     const {player} = this
     if (player.isMini) {
       return
@@ -241,10 +253,25 @@ class Progress extends Plugin {
   }
 
   updateTime (time) {
+    console.log('updateTime')
     const {player} = this
     let timeIcon = player.plugins.time
     if (time) {
       timeIcon.updateTime(time)
+    }
+  }
+
+  updatePercent (percent, notSeek) {
+    const {player} = this
+    let now = percent * player.duration
+    this.playedBar.style.width = `${percent * 100}%`
+    if (notSeek) {
+      return
+    }
+    if (player.videoConfig.mediaType === 'video' && !player.dash && !player.config.closeMoveSeek) {
+      player.currentTime = Number(now).toFixed(1)
+    } else {
+      this.updateTime(now)
     }
   }
 

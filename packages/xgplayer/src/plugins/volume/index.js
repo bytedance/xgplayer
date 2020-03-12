@@ -104,8 +104,8 @@ class Volume extends Plugin {
     e.stopPropagation()
     Util.addClass(this.root, 'slide-show')
   }
+
   onMouseleave (e) {
-    console.log('mouseleave')
     e.preventDefault()
     e.stopPropagation()
     Util.removeClass(this.root, 'slide-show')

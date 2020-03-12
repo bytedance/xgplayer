@@ -1,8 +1,11 @@
-.xgplayer {
-  &.xgplayer-mobile {
-    .xgplayer-controls {
-      background-image: initial;
-    }
+.xgplayer-mobile {
+  font-family: PingFangSC-Semibold;
+  * {
+    text-decoration: none;
+    -webkit-tap-highlight-color: transparent;
+  }
+  .xgplayer-controls {
+    background-image: initial;
   }
   xg-trigger {
     position: absolute;
@@ -10,5 +13,35 @@
     left: 0;
     height: 100%;
     width: 100%;
+    z-index: 11;
   }
+  .gradient {
+    background-image: -webkit-linear-gradient(rgba(0,0,0,.6),rgba(0,0,0,.36) 20%,rgba(0,0,0,0) 36%,rgba(0,0,0,0) 70%,rgba(0,0,0,0.24) 77%,rgba(0,0,0,0.36) 83%,rgba(0,0,0,.6));
+  }
+
+  &.xgplayer-inactive {
+    .gradient {
+      background-image: initial;
+    }
+  }
+
+  .xgplayer-start {
+    height: 50px;
+    width: 50px;
+    svg {
+      transform: translate(-9px, -9px);
+    }
+  }
+  .xgmask {
+    position: absolute;
+    height: 100%;
+    z-index: 200;
+    top: 0;
+    left: 0;
+    width: 100%;
+    pointer-events: none;
+    background-color: rgba(0,0,0,0);
+  }
+
+  /**/
 }
