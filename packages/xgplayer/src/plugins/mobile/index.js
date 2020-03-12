@@ -143,7 +143,10 @@ class MobilePlugin extends Plugin {
     time += this.pos.time
     time = time < 0 ? 0 : (time > player.duration ? player.duration : time)
     player.getPlugin('time') && player.getPlugin('time').updateTime(time)
-    player.getPlugin('progress') && player.getPlugin('progress').updatePercent(time / this.player.duration, !this.config.isTouchingSeek)
+    player.getPlugin('progress') && player.getPlugin('progress').updatePercent(time / this.player.duration, true)
+    if (this.config.isTouchingSeek) {
+      player.currentTime = Number(time).toFixed(1)
+    }
     this.pos.time = time
   }
 

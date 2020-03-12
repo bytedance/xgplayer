@@ -27,7 +27,8 @@ class Progress extends Plugin {
       position: POSITIONS.CONTROLS_CENTER,
       index: 0,
       progressDot: [],
-      thumbnail: null
+      thumbnail: null,
+      disable: false
     }
   }
 
@@ -36,7 +37,7 @@ class Progress extends Plugin {
     this.useable = false
     this.isProgressMoving = false
 
-    if (this.playerConfig.thumbnail && Sniffer.device !== 'mobile') {
+    if (Sniffer.device !== 'mobile' && this.playerConfig.thumbnail) {
       this.config.thumbnail = this.playerConfig.thumbnail
     }
   }
@@ -45,7 +46,16 @@ class Progress extends Plugin {
     this.useable = useable
   }
 
+  beforeCreate (args) {
+    if (typeof args.player.config.progress === 'boolean') {
+      args.config.disable = !args.player.config.progress
+    }
+  }
+
   afterCreate () {
+    if (this.config.disable) {
+      return;
+    }
     this.playedBar = this.find('.xgplayer-progress-played')
     this.cachedBar = this.find('.xgplayer-progress-cache')
     this.pointTip = this.find('.xgplayer-progress-point')
@@ -72,7 +82,7 @@ class Progress extends Plugin {
         plugin: ProgressDots,
         options: {
           root: this.find('xg-outer'),
-          dots: this.playerConfig.progressDot
+          dots: this.playerConfig.progressDot || this.config.progressDot
         }
       }
     }
@@ -133,14 +143,6 @@ class Progress extends Plugin {
         w = containerWidth
       }
       self.updatePercent(w / containerWidth)
-      // let now = w / containerWidth * player.duration
-      // self.playedBar.style.width = `${w * 100 / containerWidth}%`
-
-      // if (player.videoConfig.mediaType === 'video' && !player.dash && !player.config.closeMoveSeek) {
-      //   player.currentTime = Number(now).toFixed(1)
-      // } else {
-      //   self.updateTime(now)
-      // }
       player.emit('focus')
     }
     let up = function (e) {
@@ -253,7 +255,6 @@ class Progress extends Plugin {
   }
 
   updateTime (time) {
-    console.log('updateTime')
     const {player} = this
     let timeIcon = player.plugins.time
     if (time) {
@@ -262,6 +263,9 @@ class Progress extends Plugin {
   }
 
   updatePercent (percent, notSeek) {
+    if (this.config.disable) {
+      return;
+    }
     const {player} = this
     let now = percent * player.duration
     this.playedBar.style.width = `${percent * 100}%`
@@ -324,6 +328,9 @@ class Progress extends Plugin {
   }
 
   render () {
+    if (this.config.disable) {
+      return
+    }
     return `
       <xg-progress class="xgplayer-progress">
         <xg-outer class="xgplayer-progress-outer">
