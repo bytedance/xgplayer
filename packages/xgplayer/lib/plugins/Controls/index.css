@@ -1,4 +1,7 @@
-.xgplayer.xgplayer-inactive .xgplayer-controls {
+.xgplayer.not-allow-autoplay .xgplayer-controls, .xgplayer.not-allow-autoplay .flex, .xgplayer.xgplayer-nostart .xgplayer-controls, .xgplayer.xgplayer-nostart .flex {
+  display: none; }
+
+.xgplayer.xgplayer-inactive .control_autohide {
   display: none; }
 
 .xgplayer .xgplayer-controls {
@@ -9,7 +12,8 @@
   right: 0;
   height: 40px;
   z-index: 20;
-  background-image: linear-gradient(180deg, transparent, rgba(0, 0, 0, 0.37), rgba(0, 0, 0, 0.75), rgba(0, 0, 0, 0.75)); }
+  background-image: linear-gradient(180deg, transparent, rgba(0, 0, 0, 0.37), rgba(0, 0, 0, 0.75), rgba(0, 0, 0, 0.75));
+  padding-bottom: 10px; }
   .xgplayer .xgplayer-controls .left-grid, .xgplayer .xgplayer-controls .right-grid {
     position: relative;
     float: left;
@@ -33,29 +37,34 @@
     right: 0;
     outline: none;
     top: -15px;
-    z-index: 35; }
-  .xgplayer .xgplayer-controls.flex {
-    -webkit-justify-content: space-around;
-            justify-content: space-around;
+    z-index: 35;
+    padding: 0 10px; }
+
+.xgplayer .flex {
+  -webkit-justify-content: space-around;
+          justify-content: space-around;
+  display: -webkit-flex;
+  display: -moz-box;
+  display: flex; }
+  .xgplayer .flex .center {
     display: -webkit-flex;
     display: -moz-box;
-    display: flex; }
-    .xgplayer .xgplayer-controls.flex .center {
-      -webkit-flex: 1;
-         -moz-box-flex: 1;
-              flex: 1;
-      position: relative;
-      top: 0;
-      left: 0;
-      right: 0;
-      height: 100%; }
-  .xgplayer .xgplayer-controls.mini {
-    background-image: linear-gradient(180deg, transparent, rgba(0, 0, 0, 0), rgba(0, 0, 0, 0), rgba(0, 0, 0, 0)); }
-    .xgplayer .xgplayer-controls.mini .center {
-      bottom: -8px;
-      top: auto; }
-    .xgplayer .xgplayer-controls.mini .left-grid, .xgplayer .xgplayer-controls.mini .right-grid {
-      display: none; }
+    display: flex;
+    -webkit-flex: 1;
+       -moz-box-flex: 1;
+            flex: 1;
+    position: relative;
+    top: 0;
+    height: 100%; }
+
+.xgplayer .mini {
+  background-image: linear-gradient(180deg, transparent, rgba(0, 0, 0, 0), rgba(0, 0, 0, 0), rgba(0, 0, 0, 0)); }
+  .xgplayer .mini .center {
+    bottom: -8px;
+    top: auto;
+    padding: 0; }
+  .xgplayer .mini .left-grid, .xgplayer .mini .right-grid {
+    display: none; }
 
 .xgplayer .xg-tips {
   display: none;
@@ -78,7 +87,7 @@
 .xgplayer xg-icon {
   position: relative;
   height: 40px;
-  top: 40%;
+  top: 50%;
   margin-top: -20px;
   margin-left: 10px;
   cursor: pointer;
@@ -159,3 +168,6 @@
 
 .xgplayer .right-grid .xg-tips {
   left: 0; }
+
+.xgplayer.xgplayer-mobile xg-icon:hover .xg-tips {
+  display: none; }

@@ -89,6 +89,10 @@ util.findDom = function (el = document, sel) {
   return dom
 }
 
+util.getCss = function (dom, key) {
+  return dom.currentStyle ? dom.currentStyle[key] : document.defaultView.getComputedStyle(dom, false)[key]
+}
+
 util.padStart = function (str, length, pad) {
   let charstr = String(pad)
   let len = length >> 0
@@ -148,7 +152,7 @@ util.deepCopy = function (dst, src) {
 
 util.deepMerge = function (dst, src) {
   Object.keys(src).map(key => {
-    if (typeof dst[key] === typeof src[key] && dst[key] !== null && typeof dst[key] === 'object' && !(src[key] instanceof Node)) {
+    if (typeof dst[key] === typeof src[key] && dst[key] !== null && typeof dst[key] === 'object' && !(src[key] instanceof window.Node)) {
       util.deepMerge(dst[key], src[key])
     } else {
       dst[key] = src[key]

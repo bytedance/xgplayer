@@ -51,14 +51,5 @@
     opacity: 0.85; }
   .xgplayer .xgplayer-start.interact {
     -webkit-animation: playPause .4s ease-out forwards;
-            animation: playPause .4s ease-out forwards; }
-
-.xgplayer.xgplayer-mobile .xgplayer-start {
-  border: none;
-  background: none;
-  height: 50px;
-  width: 50px;
-  line-height: 50px;
-  left: 50%;
-  top: 50%;
-  margin: -25px auto auto -25px; }
+            animation: playPause .4s ease-out forwards;
+    display: block; }

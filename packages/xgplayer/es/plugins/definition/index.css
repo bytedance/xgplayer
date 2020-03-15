@@ -1,4 +1,5 @@
 .xgplayer-definition {
+  display: none;
   width: 60px;
   height: 150px;
   z-index: 18;

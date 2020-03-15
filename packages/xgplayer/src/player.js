@@ -18,7 +18,7 @@ class Player extends Proxy {
   constructor (options) {
     super(options)
     this.config = util.deepMerge(getDefaultConfig(), options)
-    console.log('this.config', this.config)
+    this.config.presets = []
 
     // resolve default preset
     if (this.config.presets.length) {
@@ -34,7 +34,6 @@ class Player extends Proxy {
     // timer and flags
     this.userTimer = null
     this.waitTimer = null
-    this.isProgressMoving = false
     this.isReady = false
     this.isPlaying = false
     this.isSeeking = false
@@ -153,7 +152,8 @@ class Player extends Proxy {
         this.video.focus()
       }
     }
-    this.root.addEventListener('mousemove', this.mousemoveFunc)
+    const eventkey = sniffer.service === 'mobile' ? 'touchstart' : 'mousemove'
+    this.root.addEventListener(eventkey, this.mousemoveFunc)
 
     this.playFunc = () => {
       this.emit(Events.PLAYER_FOCUS)
@@ -177,6 +177,7 @@ class Player extends Proxy {
     const player = this
     function onDestroy () {
       player.root.removeEventListener('mousemove', player.mousemoveFunc);
+      player.root.removeEventListener(eventkey, this.mousemoveFunc)
       FULLSCREEN_EVENTS.forEach(item => {
         document.removeEventListener(item, this.onFullscreenChange)
       });
@@ -351,14 +352,15 @@ class Player extends Proxy {
     const playPromise = super.play()
     if (playPromise !== undefined && playPromise && playPromise.then) {
       playPromise.then(() => {
-        this.removeClass(STATE_CLASS.AUTOPLAY)
+        this.removeClass(STATE_CLASS.NOT_ALLOW_AUTOPLAY)
         this.removeClass(STATE_CLASS.NO_START)
         this.addClass(STATE_CLASS.PLAYING)
+        this.isPlaying = true
       }).catch((e) => {
         // 避免AUTOPLAY_PREVENTED先于playing和play触发
         setTimeout(() => {
           this.emit(Events.AUTOPLAY_PREVENTED)
-          this.addClass(STATE_CLASS.AUTOPLAY)
+          this.addClass(STATE_CLASS.NOT_ALLOW_AUTOPLAY)
         }, 0)
         throw e
       })
@@ -404,8 +406,9 @@ class Player extends Proxy {
         })
       }
     })
-    this.emit(Events.REPLAY)
     this.currentTime = 0
+    this.play()
+    this.emit(Events.REPLAY)
   }
 
   getFullscreen (el) {
@@ -465,12 +468,15 @@ class Player extends Proxy {
     this.emit(Events.CSS_FULLSCREEN_CHANGE, false)
   }
 
-  onFocus () {
+  onFocus (notAutoHide) {
     this.isActive = true
     let player = this
     this.removeClass(STATE_CLASS.ACTIVE)
     if (player.userTimer) {
       clearTimeout(player.userTimer)
+    }
+    if (notAutoHide) {
+      return;
     }
     player.userTimer = setTimeout(function () {
       this.isActive = false
@@ -486,7 +492,7 @@ class Player extends Proxy {
   }
 
   onPlay () {
-    this.addClass(STATE_CLASS.PLAYING)
+    // this.addClass(STATE_CLASS.PLAYING)
     this.removeClass(STATE_CLASS.PAUSED)
     this.ended && this.removeClass(STATE_CLASS.ENDED)
     this.emit(Events.PLAYER_FOCUS)
@@ -538,7 +544,6 @@ class Player extends Proxy {
     clsList.forEach((cls) => {
       this.removeClass(cls)
     })
-    this.addClass(STATE_CLASS.PLAYING)
   }
 
   getVideoSize () {

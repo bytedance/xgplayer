@@ -101,15 +101,11 @@ class MiniScreen extends Plugin {
     player.paused ? player.play() : player.pause()
   }
 
-  getCss (o, key) {
-    return o.currentStyle ? o.currentStyle[key] : document.defaultView.getComputedStyle(o, false)[key]
-  }
-
   onScroll (e) {
     if ((!window.scrollY && window.scrollY !== 0) || Math.abs(window.scrollY - this.coordinate.scrollY) < 50) {
       return;
     }
-    let scrollHeight = parseInt(this.getCss(this.player.root, 'height'))
+    let scrollHeight = parseInt(Util.getCss(this.player.root, 'height'))
     scrollHeight += this.config.scrollTop
     this.coordinate.scrollY = window.scrollY
     if (window.scrollY > scrollHeight + 5 && !this.isMini) {
@@ -135,9 +131,10 @@ class MiniScreen extends Plugin {
       return;
     }
     this.isMoveing = false
+    this.clientWidth = window.innerWidth
     const target = this.config.target || this.player.root
-    this.pos.top = parseInt(this.getCss(target, 'top'))
-    this.pos.left = parseInt(this.getCss(target, 'left'))
+    this.pos.top = parseInt(Util.getCss(target, 'top'))
+    this.pos.left = parseInt(Util.getCss(target, 'left'))
     this.unbind('mousemove', this.onMousemove)
     this.unbind('mouseup', this.onMouseup)
   }
@@ -145,8 +142,8 @@ class MiniScreen extends Plugin {
   onMousemove (e, callback) {
     e = e || window.event
     const target = this.config.target || this.player.root
-    const maxTop = window.innerHeight - parseInt(this.getCss(target, 'height'))
-    const maxLeft = window.innerWidth - parseInt(this.getCss(target, 'width'))
+    const maxTop = window.innerHeight - parseInt(Util.getCss(target, 'height'))
+    const maxLeft = window.innerWidth - parseInt(Util.getCss(target, 'width'))
     if (this.isMoveing) {
       const nowX = e.clientX
       const nowY = e.clientY

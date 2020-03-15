@@ -2,7 +2,7 @@ $timeColor: #fff;
 $timeDurationColor: rgba(255, 255, 255, 0.50);
 
 .xgplayer {
-  .xgplayer-controls .xgplayer-time {
+  .xgplayer-time {
     padding-top: 0;
     width: auto;
     font-family: PingFangSC;
@@ -21,6 +21,12 @@ $timeDurationColor: rgba(255, 255, 255, 0.50);
 
     .live_tag {
       display: none;
+    }
+  }
+  &.xgplayer-mobile {
+    .xgplayer-time {
+      font-family: PingFangSC-Regular;
+      font-size: 11px;
     }
   }
 }

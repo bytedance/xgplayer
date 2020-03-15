@@ -1,5 +1,6 @@
 import Plugin from '../../plugin'
-const {Events, Util, POSITIONS} = Plugin
+
+const {Events, Util, POSITIONS, Sniffer} = Plugin
 
 class Controls extends Plugin {
   static get pluginName () {
@@ -8,13 +9,18 @@ class Controls extends Plugin {
 
   static get defaultConfig () {
     return {
-      disable: false
+      disable: false,
+      autoHide: true,
+      mode: ''
     }
   }
 
   beforeCreate (args) {
     if (typeof args.player.config.controls === 'boolean') {
       args.config.disable = !args.player.config.controls
+    }
+    if (!args.config.mode && Sniffer.device === 'mobile') {
+      args.config.mode = 'flex'
     }
   }
 
@@ -38,21 +44,25 @@ class Controls extends Plugin {
     this.bind('mouseenter', (e) => {
       this.mouseEnter(e)
     })
-    this.bind('mouseou', (e) => {
+    this.bind('mouseleave', (e) => {
       this.mouseOut(e)
     })
   }
 
   mouseEnter () {
-    console.log('mouseenter')
+    clearTimeout(this.player.userTimer)
   }
 
   mouseOut () {
-    console.log('mouseout')
+    const {player} = this
+    player.userTimer = setTimeout(function () {
+      this.isActive = false
+      player.emit(Events.PLAYER_BLUR)
+    }, player.config.inactive)
   }
 
-  showTips () {
-
+  show () {
+    this.root && (this.root.style.display = 'inline-block')
   }
 
   registerPlugin (plugin, options = {}, name) {
@@ -82,7 +92,10 @@ class Controls extends Plugin {
     if (this.config.disable) {
       return;
     }
-    return `<xg-controls class="xgplayer-controls" unselectable="on" onselectstart="return false">
+    let className = this.config.mode === 'flex' ? 'flex ' : ''
+    className += this.config.autoHide ? 'control_autohide' : ''
+
+    return `<xg-controls class="xgplayer-controls ${className}" unselectable="on" onselectstart="return false">
     <left-grid class="left-grid">
     </Left-grid>
     <center class="center"></center>
