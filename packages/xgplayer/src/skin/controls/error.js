@@ -5,7 +5,7 @@ let s_error = function () {
   let root = player.root
   let util = Player.util
 
-  let error = util.createDom('xg-error', '<em class="xgplayer-error-text">请<span class="xgplayer-error-refresh">刷新</span>试试</em>', {}, 'xgplayer-error')
+  let error = util.createDom('xg-error', '<span class="xgplayer-error-text">请<span class="xgplayer-error-refresh">刷新</span>试试</span>', {}, 'xgplayer-error')
   player.once('ready', () => {
     root.appendChild(error)
   });

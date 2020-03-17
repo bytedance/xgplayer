@@ -188,7 +188,7 @@ declare module 'xgplayer' {
 
         // 关闭内置控件
         // eslint-disable-next-line max-len
-        ignores?: Array<'time' | 'definition' | 'error' | 'fullscreen' | 'i18n' | 'loading' | 'mobile' | 'pc' | 'play' | 'poster' | 'progress' | 'replay' | 'start' | 'volume'>;
+        ignores?: Array<'cssFullscreen' | 'danmu' | 'download' | 'errorRetry' | 'time' | 'localPreview' | 'logger' | 'memoryPlay' | 'pip' | 'playNext' | 'reload' | 'rotate' | 'screenShot' | 'definition' | 'error' | 'fullscreen' | 'i18n' | 'loading' | 'mobile' | 'pc' | 'play' | 'playbackRate' | 'poster' | 'progress' | 'replay' | 'start' | 'volume'>;
 
         // 关闭控制条， 默认true
         controls?: boolean;

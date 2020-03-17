@@ -20,7 +20,7 @@ let s_textTrack = function () {
         tmp.push(`<li class='${item.default && this.textTrackShowDefault ? 'selected' : ''}'>${item.label}</li>`)
       })
       let controlText = player.lang.TEXTTRACK
-      tmp.push(`</ul><p class="name"><em>${controlText}</em></p>`)
+      tmp.push(`</ul><p class="name">${controlText}</p>`)
 
       let urlInRoot = root.querySelector('.xgplayer-texttrack')
       if (urlInRoot) {

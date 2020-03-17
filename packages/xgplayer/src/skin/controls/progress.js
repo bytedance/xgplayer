@@ -157,7 +157,7 @@ let s_progress = function () {
         } else {
           let time = util.findDom(player.controls, '.xgplayer-time')
           if (time) {
-            time.innerHTML = `<span>${util.format(now || 0)}</span><em>${util.format(player.duration)}`
+            time.innerHTML = `<span class="xgplayer-time-current">${util.format(now || 0)}</span><span>${util.format(player.duration)}</span>`
           }
         }
         player.emit('focus')
