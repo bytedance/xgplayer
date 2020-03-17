@@ -32,7 +32,7 @@ export default class DefaultPreset {
       plugin: PIPIcon,
       options: {
         index: 0,
-        position: PIPIcon.POSITIONS.ROOT_RIGHT
+        position: PIPIcon.POSITIONS.ROOT_TOP
       }}]
 
     const layers = [Replay, Poster, Start, Loading, Enter]

@@ -22,12 +22,15 @@ class PIP extends Plugin {
   }
 
   afterCreate () {
+    this.btnClick = (e) => {
+      this.switchPIP(e)
+    }
     // video初始化之后再做判断是否显示
     this.once(Events.COMPLETE, () => {
+      console.log(this.config.showIcon && this.isPIPAvailable())
       if (this.config.showIcon && this.isPIPAvailable()) {
         this.show()
-        this.switchPIP = this.switchPIP.bind(this)
-        this.bind('click', this.switchPIP)
+        this.bind('click', this.btnClick)
       }
       this.initPipEvents()
     })
@@ -57,17 +60,20 @@ class PIP extends Plugin {
 
   switchPIP () {
     const {player, playerConfig} = this
-    if (this.isPIPAvailable()) {
+    if (!this.isPIPAvailable()) {
       return false
     }
     try {
       if (document.pictureInPictureElement && document.pictureInPictureElement === player.video) {
         document.exitPictureInPicture();
       } else {
+        if (!player.video) {
+          return
+        }
         if (playerConfig.poster) {
           player.video.poster = playerConfig.poster
         }
-        player.video && player.video.requestPictureInPicture()
+        player.video.requestPictureInPicture()
       }
       return true
     } catch (reason) {
@@ -100,10 +106,13 @@ class PIP extends Plugin {
     const {player} = this
     player.video.removeEventListener('enterpictureinpicture', this.enterPIPCallback)
     player.video.removeEventListener('leavepictureinpicture', this.leavePIPCallback)
-    this.unbind('click', this.switchPIP)
+    this.unbind('click', this.btnClick)
   }
 
   render () {
+    if (!this.config.showIcon && this.isPIPAvailable()) {
+      return
+    }
     return `<xg-icon class="xgplayer-pip">
       <div class="xgplayer-icon btn-definition">
       ${this.icons.pipicon ? this.icons.pipicon : `<span>${this.text.pipicon}</span>`}

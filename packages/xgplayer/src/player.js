@@ -90,6 +90,9 @@ class Player extends Proxy {
     const controls = pluginsManager.register(this, Controls)
     this.controls = controls
     this.addClass(`${STATE_CLASS.DEFAULT} xgplayer-${sniffer.device} ${STATE_CLASS.NO_START} ${this.config.controls ? '' : STATE_CLASS.NO_CONTROLS}`)
+    if (this.config.autoplay) {
+      this.addClass(STATE_CLASS.ENTER)
+    }
     if (this.config.fluid) {
       const style = {
         'max-width': '100%',
@@ -188,14 +191,14 @@ class Player extends Proxy {
 
   _startInit (url) {
     let root = this.root
-    let player = this
     if (!url || url === '') {
       this.emit(Events.URL_NULL)
     }
     this.canPlayFunc = function () {
       this.volume = this.config.volume
       this.play()
-      player.off(Events.CANPLAY, this.canPlayFunc)
+      this.off(Events.CANPLAY, this.canPlayFunc)
+      this.removeClass(STATE_CLASS.ENTER)
     }
 
     if (util.typeOf(url) === 'String') {
@@ -346,7 +349,9 @@ class Player extends Proxy {
 
   play () {
     if (!this.hasStart) {
-      this.start()
+      this.start().then(resolve => {
+        this.play()
+      })
       return;
     }
     const playPromise = super.play()
