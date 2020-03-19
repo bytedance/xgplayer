@@ -50,24 +50,22 @@
         "Firefox > 20"
     ],
     "dependencies": {
-        "cross-env": "^6.0.3",
         "danmu.js": "0.1.0",
         "deepmerge": "^1.5.0",
         "delegate-events": "^1.1.1",
         "downloadjs": "1.4.7",
-        "draggabilly": "^2.2.0",
-        "event-emitter": "^0.3.5",
-        "http-server": "^0.12.0",
-        "pasition": "^1.0.1",
-        "request-frame": "^1.5.3",
-        "rollup": "^1.27.14",
-        "rollup-plugin-uglify-es": "^0.0.1"
+        "event-emitter": "^0.3.5"
     },
     "devDependencies": {
+        "http-server": "^0.12.0",
+        "cross-env": "^6.0.3",
         "autoprefixer": "^9.7.4",
         "cssnano": "^4.1.10",
         "node-sass": "^4.13.1",
         "postcss": "^7.0.26",
-        "recursive-readdir": "^2.2.2"
+        "recursive-readdir": "^2.2.2",
+        "request-frame": "^1.5.3",
+        "rollup": "^1.27.14",
+        "rollup-plugin-uglify-es": "^0.0.1"
     }
 }

@@ -342,5 +342,6 @@ Plugin.POSITIONS = {
   ROOT_TOP: 'rootTop',
   CONTROLS_LEFT: 'controlsLeft',
   CONTROLS_RIGTH: 'controlsRight',
-  CONTROLS_CENTER: 'controlsCenter'
+  CONTROLS_CENTER: 'controlsCenter',
+  CONTROLS: 'controls'
 }

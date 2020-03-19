@@ -1,5 +1,6 @@
 import Plugin from '../../plugin'
-const {Events, Util, POSITIONS} = Plugin
+
+const {Events, Util, POSITIONS, Sniffer} = Plugin
 
 class Controls extends Plugin {
   static get pluginName () {
@@ -8,13 +9,18 @@ class Controls extends Plugin {
 
   static get defaultConfig () {
     return {
-      disable: false
+      disable: false,
+      autoHide: true,
+      mode: ''
     }
   }
 
   beforeCreate (args) {
     if (typeof args.player.config.controls === 'boolean') {
       args.config.disable = !args.player.config.controls
+    }
+    if (!args.config.mode && Sniffer.device === 'mobile') {
+      args.config.mode = 'flex'
     }
   }
 
@@ -32,27 +38,34 @@ class Controls extends Plugin {
     this.left = this.find('left-grid')
     this.center = this.find('center')
     this.right = this.find('right-grid')
+    this.innerRoot = this.find('inner-controls')
     this.on(Events.MINI_STATE_CHANGE, (isMini) => {
-      isMini ? Util.addClass(this.root, 'mini') : Util.removeClass(this.root, 'mini')
+      isMini ? Util.addClass(this.root, 'mini-controls') : Util.removeClass(this.root, 'mini-controls')
     })
     this.bind('mouseenter', (e) => {
       this.mouseEnter(e)
     })
-    this.bind('mouseou', (e) => {
+    this.bind('mouseleave', (e) => {
       this.mouseOut(e)
     })
   }
 
   mouseEnter () {
-    console.log('mouseenter')
+    // console.log('controls mouseEnter')
+    clearTimeout(this.player.userTimer)
   }
 
   mouseOut () {
-    console.log('mouseout')
+    // console.log('controls mouseOut')
+    const {player} = this
+    player.userTimer = setTimeout(function () {
+      this.isActive = false
+      player.emit(Events.PLAYER_BLUR)
+    }, player.config.inactive)
   }
 
-  showTips () {
-
+  show () {
+    this.root && (this.root.style.display = 'inline-block')
   }
 
   registerPlugin (plugin, options = {}, name) {
@@ -71,6 +84,9 @@ class Controls extends Plugin {
         case POSITIONS.CONTROLS_CENTER:
           options.root = this.center;
           break;
+        case POSITIONS.CONTROLS:
+          options.root = this.root;
+          break;
         default:
           options.root = this.left
       }
@@ -82,12 +98,16 @@ class Controls extends Plugin {
     if (this.config.disable) {
       return;
     }
-    return `<xg-controls class="xgplayer-controls" unselectable="on" onselectstart="return false">
-    <left-grid class="left-grid">
-    </Left-grid>
-    <center class="center"></center>
-    <right-grid class="right-grid">
-    </right-grid>
+    let className = this.config.mode === 'flex' ? 'flex-controls ' : ''
+    className += this.config.autoHide ? 'control_autohide' : ''
+    return `<xg-controls class="xgplayer-controls ${className}" unselectable="on" onselectstart="return false">
+    <inner-controls class="inner-controls">
+      <left-grid class="left-grid">
+      </Left-grid>
+      <center class="center"></center>
+      <right-grid class="right-grid">
+      </right-grid>
+    </inner-controls>
     </xg-controls>`
   }
 }

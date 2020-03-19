@@ -27,7 +27,8 @@ class Progress extends Plugin {
       position: POSITIONS.CONTROLS_CENTER,
       index: 0,
       progressDot: [],
-      thumbnail: null
+      thumbnail: null,
+      disable: false
     }
   }
 
@@ -36,7 +37,7 @@ class Progress extends Plugin {
     this.useable = false
     this.isProgressMoving = false
 
-    if (this.playerConfig.thumbnail && Sniffer.device !== 'mobile') {
+    if (Sniffer.device !== 'mobile' && this.playerConfig.thumbnail) {
       this.config.thumbnail = this.playerConfig.thumbnail
     }
   }
@@ -45,7 +46,16 @@ class Progress extends Plugin {
     this.useable = useable
   }
 
+  beforeCreate (args) {
+    if (typeof args.player.config.progress === 'boolean') {
+      args.config.disable = !args.player.config.progress
+    }
+  }
+
   afterCreate () {
+    if (this.config.disable) {
+      return;
+    }
     this.playedBar = this.find('.xgplayer-progress-played')
     this.cachedBar = this.find('.xgplayer-progress-cache')
     this.pointTip = this.find('.xgplayer-progress-point')
@@ -72,7 +82,7 @@ class Progress extends Plugin {
         plugin: ProgressDots,
         options: {
           root: this.find('xg-outer'),
-          dots: this.playerConfig.progressDot
+          dots: this.playerConfig.progressDot || this.config.progressDot
         }
       }
     }
@@ -108,7 +118,7 @@ class Progress extends Plugin {
 
   mouseDown (e) {
     const {player} = this
-    if (player.isMini) {
+    if (player.isMini || player.config.closeMoveSeek) {
       return
     }
     const self = this
@@ -118,63 +128,47 @@ class Progress extends Plugin {
     if (e.target === this.pointTip || (!player.config.allowSeekAfterEnded && player.ended)) {
       return true
     }
-    this.root.focus()
-    const containerWidth = this.root.getBoundingClientRect().width
-    let {left} = this.playedBar.getBoundingClientRect()
+    this.isProgressMoving = true
+    Util.addClass(self.progressBtn, 'btn-move')
+    self.computeWidth(e)
+
     let move = function (e) {
       e.preventDefault()
       e.stopPropagation()
       Util.event(e)
-      self.isProgressMoving = true
-      let w = e.clientX - left
-      if (w > containerWidth) {
-        w = containerWidth
-      }
-      let now = w / containerWidth * player.duration
-      self.playedBar.style.width = `${w * 100 / containerWidth}%`
-
-      if (player.videoConfig.mediaType === 'video' && !player.dash && !player.config.closeMoveSeek) {
-        player.currentTime = Number(now).toFixed(1)
-      } else {
-        self.updateTime(now)
-      }
-      player.emit('focus')
+      this.isProgressMoving = true
+      self.computeWidth(e)
     }
+
     let up = function (e) {
-      // e.preventDefault()
+      Util.removeClass(self.progressBtn, 'btn-move')
+      e.preventDefault()
       e.stopPropagation()
       Util.event(e)
-      window.removeEventListener('mousemove', move)
-      window.removeEventListener('touchmove', move, { passive: false })
-      window.removeEventListener('mouseup', up)
-      window.removeEventListener('touchend', up)
-      self.root.blur()
-      if (!self.isProgressMoving || player.videoConfig.mediaType === 'audio' || player.dash || player.config.closeMoveSeek) {
-        let w = e.clientX - left
-        if (w > containerWidth) {
-          w = containerWidth
-        }
-        let now = w / containerWidth * player.duration
-        self.playedBar.style.width = `${w * 100 / containerWidth}%`
-        player.currentTime = Number(now).toFixed(1)
+      if (Sniffer.device === 'mobile') {
+        self.root.removeEventListener('touchmove', move)
+        self.root.removeEventListener('touchend', up)
+      } else {
+        self.root.removeEventListener('mousemove', move)
+        self.root.removeEventListener('mouseup', up)
       }
-      player.emit('focus')
       self.isProgressMoving = false
     }
-    window.addEventListener('mousemove', move)
-    window.addEventListener('touchmove', move, { passive: false })
-    window.addEventListener('mouseup', up)
-    window.addEventListener('touchend', up)
+
+    if (Sniffer.device === 'mobile') {
+      self.root.addEventListener('touchmove', move, false)
+      self.root.addEventListener('touchend', up, false)
+    } else {
+      self.root.addEventListener('mousemove', move)
+      self.root.addEventListener('mouseup', up)
+    }
     return true
   }
 
   mouseEnter (e) {
     const {player} = this
-    if (player.isMini) {
+    if (player.isMini || (!player.config.allowSeekAfterEnded && player.ended)) {
       return
-    }
-    if (!player.config.allowSeekAfterEnded && player.ended) {
-      return true
     }
     this.root.addEventListener('mousemove', this.mouseMove, false)
     this.root.addEventListener('mouseleave', this.mouseLeave, false)
@@ -240,11 +234,38 @@ class Progress extends Plugin {
     })
   }
 
+  computeWidth (e) {
+    const containerWidth = this.root.getBoundingClientRect().width
+    let {left} = this.playedBar.getBoundingClientRect()
+    let w = e.clientX - left
+    if (w > containerWidth) {
+      w = containerWidth
+    }
+    this.updatePercent(w / containerWidth)
+  }
+
   updateTime (time) {
     const {player} = this
     let timeIcon = player.plugins.time
     if (time) {
       timeIcon.updateTime(time)
+    }
+  }
+
+  updatePercent (percent, notSeek) {
+    if (this.config.disable) {
+      return;
+    }
+    const {player} = this
+    let now = percent * player.duration
+    this.playedBar.style.width = `${percent * 100}%`
+    if (notSeek) {
+      return
+    }
+    if (player.videoConfig.mediaType === 'video' && !player.dash && !player.config.closeMoveSeek) {
+      player.seek(Number(now).toFixed(1))
+    } else {
+      this.updateTime(now)
     }
   }
 
@@ -260,10 +281,10 @@ class Progress extends Plugin {
 
   onTimeupdate () {
     const {player} = this
-    if (player.isSeeking) {
+    if (player.isSeeking || this.isProgressMoving) {
       return;
     }
-    if (player.videoConfig.mediaType !== 'audio' || !this.isProgressMoving || !player.dash) {
+    if (player.videoConfig.mediaType !== 'audio' || !player.dash) {
       this.playedBar.style.width = `${player.currentTime * 100 / player.duration}%`
     }
   }
@@ -297,6 +318,9 @@ class Progress extends Plugin {
   }
 
   render () {
+    if (this.config.disable) {
+      return
+    }
     return `
       <xg-progress class="xgplayer-progress">
         <xg-outer class="xgplayer-progress-outer">

@@ -16,7 +16,7 @@ function addAnimate (key, seconds, callback = {start: null, end: null}) {
   }, seconds);
 }
 
-const { Util, Events } = Plugin
+const { Util, Events, Sniffer } = Plugin
 class Start extends Plugin {
   static get pluginName () {
     return 'start'
@@ -24,52 +24,40 @@ class Start extends Plugin {
 
   static get defaultConfig () {
     return {
-      isShowPause: false
+      isShowPause: false,
+      isShowEnd: false,
+      disableAmimate: false
     }
   }
 
   afterCreate () {
-    const {player, root, playerConfig} = this
+    const {player, playerConfig} = this
+    if (Sniffer.device === 'mobile') {
+      this.config.isShowPause = true
+    }
     this.once(Events.READY, () => {
       if (playerConfig) {
         if (playerConfig.lang && playerConfig.lang === 'en') {
-          Util.addClass(root, 'lang-is-en')
+          Util.addClass(player.root, 'lang-is-en')
         } else if (playerConfig.lang === 'jp') {
-          Util.addClass(root, 'lang-is-jp')
+          Util.addClass(player.root, 'lang-is-jp')
         }
       }
     })
 
-    if (!player.config.autoplay) {
+    if (!playerConfig.autoplay) {
       this.show();
     }
 
-    this.bind('click', (e) => {
-      e.preventDefault()
-      e.stopPropagation()
-      if (!player.isReady) {
-        return;
-      }
-      const paused = this.player.paused
-      if (!this.player.hasStart) {
-        this.player.start()
-        this.player.once('complete', () => {
-          this.player.play()
-        })
-      } else {
-        if (!paused) {
-          this.player.pause()
-        } else {
-          this.player.play()
-        }
-      }
-    })
+    this.onClick = this.onClick.bind(this)
+
+    this.bind('click', this.onClick)
+
     this.on([Events.PLAY, Events.PAUSE], () => {
-      this.animate()
+      this.player.isPlaying ? this.animate() : this.hide()
     })
     this.on(Events.AUTOPLAY_PREVENTED, () => {
-      this.show('inline-block');
-      this.animate(true)
+      this.show();
     })
   }
 
@@ -80,10 +68,16 @@ class Start extends Plugin {
     }
   }
 
-  animate (isShowEnded) {
-    if (this.config.isShowPause && (isShowEnded || this.player.paused)) {
+  animate (isEnded) {
+    if ((this.config.isShowPause && this.player.paused && !this.player.ended) || this.player.ended || isEnded) {
+      if (this.player.ended && !this.config.isShowEnd) {
+        return
+      }
       this.show()
-      this.root.innerHTML = this.icons.play
+      this.root.innerHTML = this.player.paused ? this.icons.play : this.icons.pause
+      return;
+    }
+    if (this.player.disableAmimate) {
       return;
     }
     addAnimate('pauseplay', 400, {
@@ -94,7 +88,7 @@ class Start extends Plugin {
       },
       end: () => {
         Util.removeClass(this.root, 'interact');
-        if (this.config.isShowPause && (this.player.paused || isShowEnded)) {
+        if (this.config.isShowPause && (this.player.paused || isEnded)) {
           return;
         }
         this.hide()
@@ -102,10 +96,36 @@ class Start extends Plugin {
     })
   }
 
+  onClick (e) {
+    const {player} = this
+    e.preventDefault()
+    e.stopPropagation()
+    if (!player.isReady) {
+      return;
+    }
+    const paused = this.player.paused
+    if (!player.hasStart) {
+      player.start()
+      player.once('complete', () => {
+        player.play()
+      })
+    } else {
+      if (!paused) {
+        player.pause()
+      } else {
+        player.play()
+      }
+    }
+  }
+
+  destroy () {
+    this.unbind('click', this.onClick)
+  }
+
   render () {
     return `
     <xg-start class="xgplayer-start" >
-      <div class="play">
+      <div class="icon">
       ${this.icons.play}
       </div>
     </xg-start>`
