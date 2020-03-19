@@ -14,15 +14,16 @@
     ul {
       display: none;
       list-style: none;
-      width: 78px;
+      min-width: 78px;
       background: $definitionUlBgColor;
       border-radius: 1px;
       position: absolute;
       bottom: 30px;
-      left: 0;
       text-align: center;
       white-space: nowrap;
-      margin-left: -10px;
+      left: 50%;
+      transform: translateX(-50%);
+      width: fit-content;
       z-index: 26;
       cursor: pointer;
       li {
@@ -30,6 +31,8 @@
         font-family: PingFangSC-Regular;
         font-size: 11px;
         color: $definitionLiColor;
+        width: fit-content;
+        margin: auto;
         padding: 6px 13px;
         &.selected {
           color: $definitionLiActiveColor;
