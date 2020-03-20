@@ -72,8 +72,9 @@ class Controls extends Plugin {
     if (!this.root) {
       return;
     }
+    const defaultConfig = plugin.defaultConfig || {}
     if (!options.root) {
-      const position = options.config && options.config.position ? options.config.position : plugin.defaultConfig.position
+      const position = options.config && options.config.position ? options.config.position : defaultConfig.position
       switch (position) {
         case POSITIONS.CONTROLS_LEFT:
           options.root = this.left

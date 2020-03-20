@@ -1,6 +1,6 @@
 @import "../../style/variable";
 //controls
-$controlHeight: 60px;
+$controlHeight: 48px;
 //icon
 $iconMargin: 10px;
 // tips
@@ -11,7 +11,7 @@ $tipsFontsize: 12px;
 .xgplayer {
   &.not-allow-autoplay,
   &.xgplayer-nostart{
-    .xgplayer-controls {
+    .xgplayer-controls, .flex-controls {
       display: none;
     }
   }
@@ -29,13 +29,13 @@ $tipsFontsize: 12px;
     bottom: 0;
     height: $controlHeight;
     z-index: 100;
+    background-image: linear-gradient(180deg,transparent,rgba(0,0,0,.37),rgba(0,0,0,.75),rgba(0,0,0,.75));
     .inner-controls {
       position: absolute;
       left: 0;
       right: 0;
-      bottom: 0;
+      bottom: 5px;
       height: 40px;
-      background-image: linear-gradient(180deg,transparent,rgba(0,0,0,.37),rgba(0,0,0,.75),rgba(0,0,0,.75));
     }
     .left-grid,  .right-grid {
       position: relative;
@@ -76,11 +76,12 @@ $tipsFontsize: 12px;
   }
 
   .mini-controls {
+    background-image: none;
     .inner-controls {
-      background-image: none;
+      bottom: 0;
     }
     .center {
-      bottom: 2px;
+      bottom: -17px;
       top: auto;
       padding: 0;
     }
@@ -130,7 +131,7 @@ $tipsFontsize: 12px;
     }
     .btn-definition {
       top: 50%;
-      margin-top: -8px;
+      margin-top: -10px;
       position: relative;
       text-align: center;
       font-family: PingFangSC-Regular;
@@ -154,7 +155,7 @@ $tipsFontsize: 12px;
       position: absolute;
       width: 78px;
       left: 50%;
-      bottom: 34px;
+      bottom: 42px;
       background: $definitionUlBgColor;
       border-radius: 1px;
       transform: translate(-50%);

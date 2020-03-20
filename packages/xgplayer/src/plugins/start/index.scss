@@ -33,16 +33,39 @@
     cursor: pointer;
     svg {
       fill: $startSvgFill;
-      margin: 14px;
-      width: 50px;
-      height: 50px;
+      width: 70px;
+      height: 70px;
     }
     &:hover{
       opacity: 0.85;
     }
+    .xg-icon-play {
+      display: none;
+    }
+    .xg-icon-pause {
+      display: block;
+    }
+    &[data-state=pause] {
+      .xg-icon-play {
+        display: block;
+      }
+      .xg-icon-pause {
+        display: none;
+      }
+    }
     &.interact {
       animation: playPause .4s ease-out forwards;
       display: block;
+    }
+  }
+  &.xgplayer-mobile {
+    .xgplayer-start {
+      height: 50px;
+      width: 50px;
+      svg {
+        height: 50px;
+        width: 50px;
+      }
     }
   }
 }

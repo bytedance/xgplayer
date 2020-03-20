@@ -180,7 +180,7 @@ export default class DefinitionIcon extends Plugin {
 
   render () {
     const text = '清晰度'
-    return `<xg-icon class="xgplayer-playbackrate">
+    return `<xg-icon class="xgplayer-definition">
     <div class="xgplayer-icon btn-definition"><span class="icon-text">${text}</span></div>
     <ul class="icon-list">
     </ul>

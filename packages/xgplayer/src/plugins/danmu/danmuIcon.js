@@ -1,16 +1,10 @@
 import Plugin from '../../plugin'
 
 const {Util, POSITIONS} = Plugin
+
 class DanmuIcon extends Plugin {
   static get pluginName () {
     return 'danmuIcon'
-  }
-
-  static get position () {
-    return {
-      index: 7,
-      gird: 'right'
-    }
   }
 
   static get defaultConfig () {

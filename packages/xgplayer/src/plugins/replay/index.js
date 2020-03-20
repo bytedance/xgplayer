@@ -24,6 +24,7 @@ class Replay extends Plugin {
   }
 
   afterCreate () {
+    this.appendChild(this.icons.replay)
     this.bind('svg', 'click', (e) => {
       e.preventDefault()
       this.player.replay()
@@ -48,7 +49,6 @@ class Replay extends Plugin {
 
   render () {
     return `<xg-replay class="xgplayer-replay">
-      ${this.icons.replay}
       <xg-replay-txt class="xgplayer-replay-txt">${this.text.replay}</xg-replay-txt>
     </xg-replay>`
   }

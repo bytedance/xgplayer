@@ -27,13 +27,22 @@ class PIP extends Plugin {
     }
     // video初始化之后再做判断是否显示
     this.once(Events.COMPLETE, () => {
-      console.log(this.config.showIcon && this.isPIPAvailable())
       if (this.config.showIcon && this.isPIPAvailable()) {
         this.show()
         this.bind('click', this.btnClick)
       }
       this.initPipEvents()
     })
+  }
+
+  registerLangauageTexts () {
+    return {
+      'pipicon': {
+        jp: 'picture-in-picture',
+        en: 'picture-in-picture',
+        zh: '画中画'
+      }
+    }
   }
 
   initPipEvents () {
@@ -92,16 +101,6 @@ class PIP extends Plugin {
     return document.pictureInPictureEnabled || !(player.video && player.video.disablePictureInPicture);
   }
 
-  registerLangauageTexts () {
-    return {
-      'pipicon': {
-        jp: 'picture-in-picture',
-        en: 'picture-in-picture',
-        zh: '画中画'
-      }
-    }
-  }
-
   destroy () {
     const {player} = this
     player.video.removeEventListener('enterpictureinpicture', this.enterPIPCallback)
@@ -115,9 +114,9 @@ class PIP extends Plugin {
     }
     return `<xg-icon class="xgplayer-pip">
       <div class="xgplayer-icon btn-definition">
-      ${this.icons.pipicon ? this.icons.pipicon : `<span>${this.text.pipicon}</span>`}
+      ${`<span>${this.text.pipicon}</span>`}
       </div>
-      ${this.icons.pipicon ? `<div class="xg-tips">${this.text.pipicon}</div>` : ''}
+      ${`<div class="xg-tips">${this.text.pipicon}</div>`}
     </xg-icon>`
   }
 }

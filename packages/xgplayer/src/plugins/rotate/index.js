@@ -34,6 +34,7 @@ export default class Rotate extends Plugin {
     if (this.config.disable) {
       return;
     }
+    this.appendChild('.xgplayer-icon', this.icons.rotate)
     this.onBtnClick = this.onBtnClick.bind(this);
     this.bind('.xgplayer-icon', ['click', 'touchend'], this.onBtnClick)
   }
@@ -142,7 +143,6 @@ export default class Rotate extends Plugin {
     return `
     <xg-icon class="xgplayer-rotate">
       <div class="xgplayer-icon">
-        ${this.icons.rotate}
       </div>
       <div class="xg-tips">
       ${this.text.rotate}

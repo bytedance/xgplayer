@@ -13,9 +13,12 @@ $sliderDragBgColor: #FA1F41;
 $sliderDragAfterBgColor: #fff;
 $sliderDragAfterShadow: 0 0 5px 0 rgba(0, 0, 0, 0.26);
 .xgplayer {
-  .danmu-switch {
-    order: 6;
-    z-index: 26;
+  .danmu-icon  {
+    display: flex;
+    .danmu-switch {
+      top: 50%;
+      margin-top: -10px;
+    }
   }
 
   .xgplayer-danmu {
@@ -128,7 +131,6 @@ $sliderDragAfterShadow: 0 0 5px 0 rgba(0, 0, 0, 0.26);
 .xgplayer {
   .xgplayer-panel{
     outline: none;
-    order: 7;
     width: 40px;
     height: 40px;
     display: inline-block;
@@ -143,8 +145,8 @@ $sliderDragAfterShadow: 0 0 5px 0 rgba(0, 0, 0, 0.26);
       // margin-top: 14px;
       cursor: pointer;
       position: absolute;
-      margin-left: 5px;
-      top: 10px;
+      // margin-left: 5px;
+      // top: 10px;
     }
   }
   // .selected-color {
@@ -161,7 +163,7 @@ $sliderDragAfterShadow: 0 0 5px 0 rgba(0, 0, 0, 0.26);
     padding: 10px 20px;
     outline: none;
     left: -115px;
-    bottom: 40px;
+    bottom: 42px;
     .xgplayer-hidemode {
       padding-bottom: 10px;
       &-radio li{
@@ -334,6 +336,5 @@ $sliderDragAfterShadow: 0 0 5px 0 rgba(0, 0, 0, 0.26);
   }
   .slider-show .xgplayer-panel-slider{
     display: block;
-    bottom: 30px;
   }
 }
