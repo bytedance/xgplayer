@@ -1,7 +1,7 @@
 import Util from '../utils/util'
 import Sniffer from '../utils/sniffer'
 import Errors from '../error'
-import * as event from '../events'
+import * as Events from '../events'
 
 class BasePlugin {
   static defineGetterOrSetter (Obj, map) {
@@ -100,5 +100,11 @@ class BasePlugin {
 BasePlugin.Util = Util
 BasePlugin.Sniffer = Sniffer
 BasePlugin.Errors = Errors
-BasePlugin.Events = event
-export default BasePlugin
+BasePlugin.Events = Events
+export {
+  BasePlugin as default,
+  Util,
+  Sniffer,
+  Errors,
+  Events
+}
