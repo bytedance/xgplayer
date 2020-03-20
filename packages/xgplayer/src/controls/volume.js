@@ -148,6 +148,10 @@ let volume = function () {
     player.off('volumeIconLeave', onVolumeIconLeave)
     player.off('volumechange', onVolumeChange)
     player.off('destroy', onDestroy)
+    if (_changeTimer) {
+      clearTimeout(_changeTimer);
+      _changeTimer = null;
+    }
   }
   player.once('destroy', onDestroy)
 }

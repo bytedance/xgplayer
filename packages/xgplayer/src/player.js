@@ -35,7 +35,7 @@ class Player extends Proxy {
       unselectable: 'on',
       onselectstart: 'return false'
     }, 'xgplayer-controls')
-    if(this.config.isShowControl) {
+    if (this.config.isShowControl) {
       this.controls.style.display = 'none'
     }
     if (!this.root) {
@@ -195,7 +195,7 @@ class Player extends Proxy {
     }
     this.logParams.playSrc = url
     this.canPlayFunc = function () {
-      let playPromise = player.play()
+      let playPromise = player.video.play()
       if (playPromise !== undefined && playPromise) {
         playPromise.then(function () {
           player.emit('autoplay started')
@@ -207,8 +207,8 @@ class Player extends Proxy {
       player.off('canplay', player.canPlayFunc)
     }
     if (util.typeOf(url) === 'String') {
-      if(url.indexOf('blob:') > -1 && url === this.video.src) {
-        //在Chromium环境下用mse url给video二次赋值会导致错误
+      if (url.indexOf('blob:') > -1 && url === this.video.src) {
+        // 在Chromium环境下用mse url给video二次赋值会导致错误
       } else {
         this.video.src = url
       }
@@ -257,6 +257,12 @@ class Player extends Proxy {
     for (let k in this._interval) {
       clearInterval(this._interval[k])
       this._interval[k] = null
+    }
+    if (this.checkTimer) {
+      clearInterval(this.checkTimer)
+    }
+    if (this.waitTimer) {
+      clearInterval(this.waitTimer)
     }
     this.ev.forEach((item) => {
       let evName = Object.keys(item)[0]
@@ -309,6 +315,7 @@ class Player extends Proxy {
           this.root.className = ''
         }
       }
+
       for (let k in this) {
         // if (k !== 'config') {
         delete this[k]
@@ -600,11 +607,11 @@ class Player extends Proxy {
     }
 
     if (player.config.rotate.innerRotate) {
-        player.video.style.transformOrigin = 'center center'
-        player.video.style.transform = `rotate(${player.rotateDeg}turn) scale(${scale})`
-        player.video.style.webKitTransform = `rotate(${player.rotateDeg}turn) scale(${scale})`
+      player.video.style.transformOrigin = 'center center'
+      player.video.style.transform = `rotate(${player.rotateDeg}turn) scale(${scale})`
+      player.video.style.webKitTransform = `rotate(${player.rotateDeg}turn) scale(${scale})`
     } else {
-      if(player.config.rotate.controlsFix) {
+      if (player.config.rotate.controlsFix) {
         player.video.style.transformOrigin = 'center center'
         player.video.style.transform = `rotate(${player.rotateDeg}turn) scale(${scale})`
         player.video.style.webKitTransform = `rotate(${player.rotateDeg}turn) scale(${scale})`
