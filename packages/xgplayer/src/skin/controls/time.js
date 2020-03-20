@@ -10,7 +10,7 @@ let s_time = function () {
     player.controls.appendChild(container)
   })
   let onTimeChange = function () {
-    let liveText = player.lang.LIVE
+    // let liveText = player.lang.LIVE
     // if(player.duration === Infinity) {
     //   util.addClass(player.root, 'xgplayer-is-live')
     //   if(!util.findDom(player.root, '.xgplayer-live')) {
