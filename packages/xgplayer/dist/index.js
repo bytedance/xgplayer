@@ -350,7 +350,7 @@ var Player = function (_Proxy) {
       }
       this.logParams.playSrc = url;
       this.canPlayFunc = function () {
-        var playPromise = player.play();
+        var playPromise = player.video.play();
         if (playPromise !== undefined && playPromise) {
           playPromise.then(function () {
             player.emit('autoplay started');
@@ -363,7 +363,7 @@ var Player = function (_Proxy) {
       };
       if (_util2.default.typeOf(url) === 'String') {
         if (url.indexOf('blob:') > -1 && url === this.video.src) {
-          //在Chromium环境下用mse url给video二次赋值会导致错误
+          // 在Chromium环境下用mse url给video二次赋值会导致错误
         } else {
           this.video.src = url;
         }
@@ -418,6 +418,12 @@ var Player = function (_Proxy) {
       for (var k in this._interval) {
         clearInterval(this._interval[k]);
         this._interval[k] = null;
+      }
+      if (this.checkTimer) {
+        clearInterval(this.checkTimer);
+      }
+      if (this.waitTimer) {
+        clearInterval(this.waitTimer);
       }
       this.ev.forEach(function (item) {
         var evName = Object.keys(item)[0];
@@ -474,6 +480,7 @@ var Player = function (_Proxy) {
             this.root.className = '';
           }
         }
+
         for (var _k in this) {
           // if (k !== 'config') {
           delete this[_k];
@@ -1403,7 +1410,7 @@ module.exports = exports['default'];
 /* 5 */
 /***/ (function(module) {
 
-module.exports = JSON.parse("{\"name\":\"xgplayer\",\"version\":\"2.6.5\",\"description\":\"video player\",\"main\":\"./dist/index.js\",\"typings\":\"./types/index.d.ts\",\"bin\":{\"xgplayer\":\"bin/xgplayer.js\"},\"scripts\":{\"prepare\":\"npm run build\",\"build\":\"webpack --progress --display-chunks -p\",\"watch\":\"webpack --progress --display-chunks -p --watch --mode development\"},\"keywords\":[\"video\",\"player\"],\"babel\":{\"presets\":[\"es2015\"],\"plugins\":[\"add-module-exports\",\"babel-plugin-bulk-import\"]},\"repository\":{\"type\":\"git\",\"url\":\"git+https://github.com/bytedance/xgplayer.git\"},\"author\":\"yinguohui@bytedance.com\",\"license\":\"MIT\",\"dependencies\":{\"chalk\":\"^2.3.2\",\"commander\":\"^2.15.1\",\"danmu.js\":\"^0.1.0\",\"deepmerge\":\"^1.5.0\",\"downloadjs\":\"1.4.7\",\"draggabilly\":\"^2.2.0\",\"event-emitter\":\"^0.3.5\",\"fs-extra\":\"^5.0.0\",\"install\":\"^0.13.0\",\"pasition\":\"^1.0.1\",\"request-frame\":\"^1.5.3\"},\"browserslist\":[\"> 5%\",\"IE 9\",\"iOS 7\",\"Firefox > 20\"],\"devDependencies\":{\"@types/events\":\"^3.0.0\",\"autoprefixer\":\"^9.1.5\",\"babel-core\":\"^6.26.3\",\"babel-loader\":\"^7.1.4\",\"babel-plugin-add-module-exports\":\"^0.2.1\",\"babel-plugin-bulk-import\":\"^1.0.2\",\"babel-plugin-transform-object-rest-spread\":\"^6.26.0\",\"babel-plugin-transform-runtime\":\"^6.23.0\",\"babel-preset-es2015\":\"^6.24.1\",\"chai\":\"^4.1.2\",\"core-js\":\"^2.5.4\",\"css-loader\":\"^0.28.11\",\"json-loader\":\"^0.5.7\",\"node-sass\":\"^4.8.3\",\"postcss-cssnext\":\"^3.1.0\",\"postcss-loader\":\"^2.1.5\",\"raw-loader\":\"^2.0.0\",\"sass-loader\":\"^6.0.7\",\"style-loader\":\"^0.20.3\",\"sugarss\":\"^1.0.1\",\"webpack\":\"^4.11.0\",\"webpack-cli\":\"^3.0.2\",\"zlib\":\"^1.0.5\"}}");
+module.exports = JSON.parse("{\"name\":\"xgplayer\",\"version\":\"2.6.6\",\"description\":\"video player\",\"main\":\"./dist/index.js\",\"typings\":\"./types/index.d.ts\",\"bin\":{\"xgplayer\":\"bin/xgplayer.js\"},\"scripts\":{\"prepare\":\"npm run build\",\"build\":\"webpack --progress --display-chunks -p\",\"watch\":\"webpack --progress --display-chunks -p --watch --mode development\"},\"keywords\":[\"video\",\"player\"],\"babel\":{\"presets\":[\"es2015\"],\"plugins\":[\"add-module-exports\",\"babel-plugin-bulk-import\"]},\"repository\":{\"type\":\"git\",\"url\":\"git+https://github.com/bytedance/xgplayer.git\"},\"author\":\"yinguohui@bytedance.com\",\"license\":\"MIT\",\"dependencies\":{\"chalk\":\"^2.3.2\",\"commander\":\"^2.15.1\",\"danmu.js\":\"^0.1.0\",\"deepmerge\":\"^1.5.0\",\"downloadjs\":\"1.4.7\",\"draggabilly\":\"^2.2.0\",\"event-emitter\":\"^0.3.5\",\"fs-extra\":\"^5.0.0\",\"install\":\"^0.13.0\",\"pasition\":\"^1.0.1\",\"request-frame\":\"^1.5.3\"},\"browserslist\":[\"> 5%\",\"IE 9\",\"iOS 7\",\"Firefox > 20\"],\"devDependencies\":{\"@types/events\":\"^3.0.0\",\"autoprefixer\":\"^9.1.5\",\"babel-core\":\"^6.26.3\",\"babel-loader\":\"^7.1.4\",\"babel-plugin-add-module-exports\":\"^0.2.1\",\"babel-plugin-bulk-import\":\"^1.0.2\",\"babel-plugin-transform-object-rest-spread\":\"^6.26.0\",\"babel-plugin-transform-runtime\":\"^6.23.0\",\"babel-preset-es2015\":\"^6.24.1\",\"chai\":\"^4.1.2\",\"core-js\":\"^2.5.4\",\"css-loader\":\"^0.28.11\",\"json-loader\":\"^0.5.7\",\"node-sass\":\"^4.8.3\",\"postcss-cssnext\":\"^3.1.0\",\"postcss-loader\":\"^2.1.5\",\"raw-loader\":\"^2.0.0\",\"sass-loader\":\"^6.0.7\",\"style-loader\":\"^0.20.3\",\"sugarss\":\"^1.0.1\",\"webpack\":\"^4.11.0\",\"webpack-cli\":\"^3.0.2\",\"zlib\":\"^1.0.5\"}}");
 
 /***/ }),
 /* 6 */
@@ -5292,6 +5299,10 @@ var volume = function volume() {
     player.off('volumeIconLeave', onVolumeIconLeave);
     player.off('volumechange', onVolumeChange);
     player.off('destroy', onDestroy);
+    if (_changeTimer) {
+      clearTimeout(_changeTimer);
+      _changeTimer = null;
+    }
   }
   player.once('destroy', onDestroy);
 };
@@ -10189,11 +10200,11 @@ var s_error = function s_error() {
     // if (player.error) {
     //   text.innerHTML = player.error
     // } else {
-    // if (player.config.lang && player.config.lang === 'zh-cn') {
-    //   text.innerHTML = `${player.lang.ERROR}，请<span class="xgplayer-error-refresh">刷新</span>试试`
-    // } else {
-    //   text.innerHTML = `${player.lang.ERROR}，please try to <span class="xgplayer-error-refresh">refresh</span>`
-    // }
+    if (player.config.lang && player.config.lang === 'zh-cn') {
+      text.innerHTML = player.config.errorTips || '\u8BF7<span class="xgplayer-error-refresh">\u5237\u65B0</span>\u8BD5\u8BD5';
+    } else {
+      text.innerHTML = player.config.errorTips || 'please try to <span class="xgplayer-error-refresh">refresh</span>';
+    }
     // }
     util.addClass(player.root, 'xgplayer-is-error');
     refresh = error.querySelector('.xgplayer-error-refresh');
