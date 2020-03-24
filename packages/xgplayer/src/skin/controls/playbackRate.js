@@ -9,7 +9,11 @@ let s_playbackRate = function () {
   } else {
     return false
   }
-  let ul = util.createDom('xg-playbackrate', " ", {}, 'xgplayer-playbackrate')
+  let container = util.createDom('xg-playbackrate', " ", {}, 'xgplayer-playbackrate')
+  if (sniffer.device === 'mobile') {
+    player.config.playbackRateActive = 'click'
+  }
+
   let list = []
   player.config.playbackRate.forEach(item => {
     list.push({name: `${item}`, rate: `${item}x`, selected: false})
@@ -32,36 +36,34 @@ let s_playbackRate = function () {
   let playbackDom = player.root.querySelector('.xgplayer-playbackrate')
   if (playbackDom) {
     playbackDom.innerHTML = tmp.join('')
-    let cur
-    if(playbackDom) {
-      cur = playbackDom.querySelector('.name')
-    } else return
-    cur.addEventListener('mouseenter', (e) => {
-      e.preventDefault()
-      e.stopPropagation()
-      util.addClass(player.root, 'xgplayer-playbackrate-active')
-      playbackDom.focus()
-    })
+    let cur = playbackDom.querySelector('.name')
+    if (!player.config.playbackRateActive || player.config.playbackRateActive === 'hover') {
+      cur.addEventListener('mouseenter', (e) => {
+        e.preventDefault()
+        e.stopPropagation()
+        util.addClass(player.root, 'xgplayer-playbackrate-active')
+        playbackDom.focus()
+      })
+    }
   } else {
-    ul.innerHTML = tmp.join('')
-    let cur
-    if(ul) {
-      cur = ul.querySelector('.name')
-    } else return
-    cur.addEventListener('mouseenter', (e) => {
-      e.preventDefault()
-      e.stopPropagation()
-      util.addClass(player.root, 'xgplayer-playbackrate-active')
-      ul.focus()
-    })
+    container.innerHTML = tmp.join('')
+    let cur = container.querySelector('.name')
+    if (!player.config.playbackRateActive || player.config.playbackRateActive === 'hover') {
+      cur.addEventListener('mouseenter', (e) => {
+        e.preventDefault()
+        e.stopPropagation()
+        util.addClass(player.root, 'xgplayer-playbackrate-active')
+        container.focus()
+      })
+    }
     player.once('ready', () => {
-      player.controls.appendChild(ul)
+      player.controls.appendChild(container)
     })
   }
 
   let ev = ['touchend', 'click']
   ev.forEach(item => {
-    ul.addEventListener(item, function(e) {
+    container.addEventListener(item, e => {
       e.stopPropagation()
       e.preventDefault()
       let li = e.target
@@ -88,18 +90,28 @@ let s_playbackRate = function () {
         if (sniffer.device === 'mobile') {
           util.removeClass(player.root, 'xgplayer-playbackrate-active')
         }
-      } else if (li && (li.tagName.toLocaleLowerCase() === 'p' || li.tagName.toLocaleLowerCase() === 'span')) {
-        util.addClass(player.root, 'xgplayer-playbackrate-active')
-        ul.focus()
+      } else if (player.config.playbackRateActive === 'click' && li && (li.tagName.toLocaleLowerCase() === 'p' || li.tagName.toLocaleLowerCase() === 'span')) {
+        if(sniffer.device === 'mobile') {
+          util.toggleClass(player.root, 'xgplayer-playbackrate-active')
+        } else {
+          util.addClass(player.root, 'xgplayer-playbackrate-active')
+        }
+        container.focus()
       }
       player.emit('focus')
     }, false)
   })
-  ul.addEventListener('mouseleave', (e) => {
+  container.addEventListener('mouseleave', (e) => {
     e.preventDefault()
     e.stopPropagation()
     util.removeClass(player.root, 'xgplayer-playbackrate-active')
   })
+
+  function onBlur () {
+    util.removeClass(player.root, 'xgplayer-playbackrate-active')
+  }
+  player.on('blur', onBlur)
+
   player.on('play', () => {
     if(player.video.playbackRate.toFixed(1) !== selectedSpeed.toFixed(1) ) {
       player.video.playbackRate = selectedSpeed

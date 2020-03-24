@@ -15,7 +15,8 @@
       border-radius: 1px;
       position: absolute;
       bottom: 20px;
-      left: 0px;
+      left: 50%;
+      transform: translateX(-50%);
       text-align: left;
       white-space: nowrap;
       z-index: 26;
