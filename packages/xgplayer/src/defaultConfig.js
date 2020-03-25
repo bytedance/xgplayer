@@ -38,6 +38,7 @@ export default function getDefaultConfig () {
     cssFullscreen: true, // 页面全屏
     keyShortcut: true, // 是否开启快捷键
     presets: [],
-    playbackRate: []
+    playbackRate: [],
+    icons: {}
   }
 }
