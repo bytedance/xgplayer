@@ -1,6 +1,6 @@
 import Plugin from '../../plugin'
 
-const { Util, Events, POSITIONS } = Plugin
+const { Util, Events, POSITIONS, Sniffer } = Plugin
 
 class Time extends Plugin {
   static get pluginName () {
@@ -11,13 +11,19 @@ class Time extends Plugin {
     return {
       position: POSITIONS.CONTROLS_LEFT,
       index: 2,
-      disable: false
+      disable: false,
+      mode: 'pc'
     }
   }
 
   afterCreate () {
+    this.mode = Sniffer.device === 'mobile' ? 'mobile' : 'pc'
     if (this.config.disable) {
       return
+    }
+    if (this.mode === 'mobile') {
+      this.createCenterTime()
+      this.hide()
     }
     this.durationDom = this.find('.time-duration')
     this.timeDom = this.find('.time-current')
@@ -25,8 +31,15 @@ class Time extends Plugin {
       this.onTimeUpdate()
     })
     this.on(Events.TIME_UPDATE, () => {
-      this.onTimeUpdate()
+      !this.player.isSeeking && this.onTimeUpdate()
     })
+  }
+
+  show () {
+    if (this.mode === 'mobile') {
+      return
+    }
+    super.show()
   }
 
   onTimeUpdate () {
@@ -35,10 +48,29 @@ class Time extends Plugin {
       return
     }
     const current = player.currentTime
-    this.timeDom.innerHTML = Util.format(current)
-    if (player.duration !== Infinity) {
-      this.durationDom.innerHTML = Util.format(player.duration)
+    if (this.mode === 'mobile') {
+      this.centerCurDom.innerHTML = Util.format(current)
+      if (player.duration !== Infinity) {
+        this.centerDurDom.innerHTML = Util.format(player.duration)
+      }
+    } else {
+      this.timeDom.innerHTML = Util.format(current)
+      if (player.duration !== Infinity) {
+        this.durationDom.innerHTML = Util.format(player.duration)
+      }
     }
+  }
+
+  createCenterTime () {
+    const {player} = this
+    if (!player.controls || !player.controls.center) {
+      return
+    }
+    const center = player.controls.center
+    this.centerCurDom = Util.createDom('xg-icon', '00:00', {style: 'margin-left:0px;margin-right:10px;'}, 'xgplayer-time')
+    this.centerDurDom = Util.createDom('xg-icon', '00:00', {}, 'xgplayer-time')
+    center.children.length > 0 ? center.insertBefore(this.centerCurDom, center.children[0]) : center.appendChild(this.centerCurDom)
+    center.appendChild(this.centerDurDom)
   }
 
   afterPlayerInit () {
@@ -75,6 +107,10 @@ class Time extends Plugin {
   updateTime (time) {
     const { player } = this
     if ((!time && time !== 0) || time > player.duration) {
+      return
+    }
+    if (this.mode === 'mobile') {
+      this.centerCurDom.innerHTML = Util.format(time)
       return
     }
     this.timeDom.innerHTML = Util.format(time)

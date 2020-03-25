@@ -12,7 +12,8 @@ export default class DefinitionIcon extends Plugin {
       position: POSITIONS.CONTROLS_RIGTH,
       index: 3,
       list: null,
-      disable: false
+      disable: false,
+      hideMobile: true // 是否在移动端竖屏状态下隐藏
     }
   }
 
@@ -179,7 +180,7 @@ export default class DefinitionIcon extends Plugin {
 
   render () {
     const text = '清晰度'
-    return `<xg-icon class="xgplayer-playbackrate" style="display: none;">
+    return `<xg-icon class="xgplayer-definition">
     <div class="xgplayer-icon btn-definition"><span class="icon-text">${text}</span></div>
     <ul class="icon-list">
     </ul>

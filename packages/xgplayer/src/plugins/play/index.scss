@@ -1,9 +1,19 @@
 .xgplayer {
   .xgplayer-play {
-    .xgplayer-icon {
-      width: 24px;
-      svg {
-        transform: translate(-4px,4px);
+    margin-left: 0;
+    width: 34px;
+    .xg-icon-play {
+      display: none;
+    }
+    .xg-icon-pause {
+      display: block;
+    }
+    &[data-state=pause] {
+      .xg-icon-play {
+        display: block;
+      }
+      .xg-icon-pause {
+        display: none;
       }
     }
   }

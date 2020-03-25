@@ -27,7 +27,6 @@ class Danmu extends Plugin {
       defaultOff: true, // TODO: 开启此项后弹幕不会初始化，默认初始化弹幕
       panel: false, // 是否安装配置面板
       panelConfig: {}, // 配置面板促使配置
-      switchButton: true, // 是否加载开关按钮
       switchConfig: {}, // 开关按钮配置信息
       defaultOpen: true // 是否默认开启弹幕
     }
@@ -66,6 +65,7 @@ class Danmu extends Plugin {
   }
 
   registerExtIcons () {
+    console.log('registerExtIcons')
     const {player, config} = this
     if (config.panel) {
       const panelOptions = {
@@ -75,9 +75,9 @@ class Danmu extends Plugin {
           }
         }
       }
-      this.danmuPanel = player.controls.registerPlugin(DanmuPanel.pluginName, DanmuPanel, panelOptions)
+      this.danmuPanel = player.controls.registerPlugin(DanmuPanel, panelOptions, DanmuPanel.pluginName)
     }
-    if (config.switchButton) {
+    if (!config.closeDefaultBtn) {
       const buttonOptions = {
         config: {
           onSwitch: (isOpen) => {

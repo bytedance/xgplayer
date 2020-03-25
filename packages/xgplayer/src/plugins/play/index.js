@@ -22,6 +22,7 @@ class Play extends Plugin {
     if (config.disable) {
       return
     }
+    this.initIcons()
     this.btnClick = this.btnClick.bind(this)
     const event = Sniffer.device === 'mobile' ? 'touchend' : 'click'
     this.bind(event, this.btnClick)
@@ -32,15 +33,6 @@ class Play extends Plugin {
     this.on(Events.PLAY, () => {
       this.animate(player.paused)
     })
-  }
-
-  btnClick (e) {
-    const {player} = this
-    if (player.paused) {
-      player.play();
-    } else {
-      player.pause();
-    }
   }
 
   // 扩展语言
@@ -61,23 +53,34 @@ class Play extends Plugin {
 
   registerIcons () {
     return {
-      play: PlaySvg,
-      pause: PauseSvg
+      play: {icon: PlaySvg, class: 'xg-icon-play'},
+      pause: {icon: PauseSvg, class: 'xg-icon-pause'}
     }
+  }
+
+  btnClick (e) {
+    const {player} = this
+    if (player.paused) {
+      player.play();
+    } else {
+      player.pause();
+    }
+  }
+
+  initIcons () {
+    const {icons} = this
+    this.appendChild('.xgplayer-icon', icons.play)
+    this.appendChild('.xgplayer-icon', icons.pause)
   }
 
   animate (paused) {
     if (paused) {
-      this.find('.xgplayer-icon').innerHTML = this.icons.play
+      this.setAttr('data-state', 'pause')
       this.find('.xg-tips').innerHTML = this.text.play
     } else {
-      this.find('.xgplayer-icon').innerHTML = this.icons.pause
+      this.setAttr('data-state', 'play')
       this.find('.xg-tips').innerHTML = this.text.pause
     }
-    // const path = this.find('.path')
-    // const pathPlay = this.find('.path_play').getAttribute('d')
-    // const pathPause = this.find('.path_pause').getAttribute('d')
-    // !paused ? path.setAttribute('d', pathPause) : path.setAttribute('d', pathPlay)
   }
 
   destroy () {
@@ -90,7 +93,6 @@ class Play extends Plugin {
     }
     return `<xg-icon class="xgplayer-play">
     <div class="xgplayer-icon">
-    ${this.icons.play}
     </div>
     <div class="xg-tips">${this.player.paused ? this.text.play : this.text.pause}</div>
     </xg-icon>`

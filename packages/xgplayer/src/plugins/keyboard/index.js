@@ -41,12 +41,14 @@ class Keyboard extends BasePlugin {
       'up': {
         keyCode: 38,
         action: 'upVolume',
-        disable: false
+        disable: false,
+        noBodyTarget: true // 默认不在body上触发
       },
       'down': {
         keyCode: 40,
         action: 'downVolume',
-        disable: false
+        disable: false,
+        noBodyTarget: true
       },
       'left': {
         keyCode: 37,
@@ -128,8 +130,7 @@ class Keyboard extends BasePlugin {
     const {player} = this
     if (player.paused) {
       // eslint-disable-next-line handle-callback-err
-      player.play().catch(err => {
-      })
+      player.play()
     } else {
       player.pause()
     }

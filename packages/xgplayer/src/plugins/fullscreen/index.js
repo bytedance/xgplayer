@@ -1,5 +1,6 @@
 import Plugin from '../../plugin'
-import FullScreenChangeSvg from '../assets/fullscreenChange.svg'
+import FullScreenSvg from '../assets/requestFull.svg'
+import ExitFullScreenSvg from '../assets/exitFull.svg'
 
 const {Events, POSITIONS} = Plugin
 
@@ -20,49 +21,13 @@ export default class Fullscreen extends Plugin {
 
   afterCreate () {
     this.isFullScreen = this.player.isFullScreen
+    this.initIcons()
     this.btnClick = this.btnClick.bind(this)
     this.bind(['click', 'touchend'], this.btnClick)
     this.on(Events.FULLSCREEN_CHANGE, (isFullScreen) => {
       this.find('.xg-tips').innerHTML = isFullScreen ? this.text.exitFullscreen : this.text.fullscreen
       this.animate(isFullScreen)
     })
-  }
-
-  btnClick (e) {
-    const {player, config} = this;
-    let useCssFullscreen = false
-    if (config.useCssFullscreen === true || (typeof config.useCssFullscreen === 'function' && config.useCssFullscreen())) {
-      useCssFullscreen = true;
-    }
-    if (useCssFullscreen) {
-      if (player.fullscreen) {
-        player.getCssFullscreen()
-        player.fullscreen = true
-        this.emit(Events.FULLSCREEN_CHANGE, true)
-      } else {
-        player.exitCssFullscreen()
-        player.fullscreen = false
-        this.emit(Events.FULLSCREEN_CHANGE, false)
-      }
-    } else {
-      if (config.switchCallback && typeof config.switchCallback === 'function') {
-        config.switchFullScreen(this.isFullScreen)
-        this.isFullScreen = !this.isFullScreen
-        return
-      }
-      if (player.fullscreen) {
-        player.exitFullscreen(config.target)
-      } else {
-        player.getFullscreen(config.target)
-      }
-    }
-  }
-
-  animate (isFullScreen) {
-    const path = this.find('.path')
-    const full = this.find('.path_full').getAttribute('d')
-    const exit = this.find('.path_exitfull').getAttribute('d')
-    isFullScreen ? path.setAttribute('d', exit) : path.setAttribute('d', full)
   }
 
   registerLangauageTexts () {
@@ -82,7 +47,8 @@ export default class Fullscreen extends Plugin {
 
   registerIcons () {
     return {
-      fullscreenChange: FullScreenChangeSvg
+      fullscreen: {icon: FullScreenSvg, class: 'xg-get-fullscreen'},
+      exitFullscreen: {icon: ExitFullScreenSvg, class: 'xg-exit-fullscreen'}
     }
   }
 
@@ -90,10 +56,50 @@ export default class Fullscreen extends Plugin {
     this.unbind(['click', 'touchend'], this.btnClick)
   }
 
+  initIcons () {
+    const {icons} = this
+    this.appendChild('.xgplayer-icon', icons.fullscreen)
+    this.appendChild('.xgplayer-icon', icons.exitFullscreen)
+  }
+
+  btnClick (e) {
+    const {player, config} = this;
+    let useCssFullscreen = false
+    if (config.useCssFullscreen === true || (typeof config.useCssFullscreen === 'function' && config.useCssFullscreen())) {
+      useCssFullscreen = true;
+    }
+    if (useCssFullscreen) {
+      if (player.fullscreen) {
+        player.getCssFullscreen()
+        player.fullscreen = true
+        this.emit(Events.FULLSCREEN_CHANGE, true)
+      } else {
+        player.exitCssFullscreen()
+        player.fullscreen = false
+        this.emit(Events.FULLSCREEN_CHANGE, false)
+      }
+      this.animate(player.fullscreen)
+    } else {
+      if (config.switchCallback && typeof config.switchCallback === 'function') {
+        config.switchFullScreen(this.isFullScreen)
+        this.isFullScreen = !this.isFullScreen
+        return
+      }
+      if (player.fullscreen) {
+        player.exitFullscreen(config.target)
+      } else {
+        player.getFullscreen(config.target)
+      }
+    }
+  }
+
+  animate (isFullScreen) {
+    isFullScreen ? this.setAttr('data-state', 'full') : this.setAttr('data-state', 'normal')
+  }
+
   render () {
     return `<xg-icon class="xgplayer-fullscreen">
     <div class="xgplayer-icon">
-    ${this.icons.fullscreenChange}
     </div>
     <div class="xg-tips">${this.player.isFullScreen ? this.text.exitFullscreen : this.text.fullscreen}</div>
     </xg-icon>`

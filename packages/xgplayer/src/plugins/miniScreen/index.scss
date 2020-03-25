@@ -17,8 +17,6 @@
       display: none;
     }
   }
-  &.xgplayer-inactive {
-  }
   .xg-mini-layer {
     display: none;
     position: absolute;
@@ -145,26 +143,24 @@
       left: 50%;
       margin: -24px 0 0 -24px;
       svg {
-        width: 40px;
-        height: 40px;
+        width: 50px;
+        height: 50px;
         fill: #faf7f7;
-        transform: translate(7px, 7px);
       }
-      &.play {
-        .play {
-          display: none;
-        }
-        .pause {
-          display: block;
-        }
+    }
+    .xg-icon-play {
+      display: none;
+    }
+    .xg-icon-pause {
+      display: block;
+    }
+
+    &[data-state=pause] {
+      .xg-icon-play {
+        display: block;
       }
-      &.pause {
-        .play {
-          display: block;
-        }
-        .pause {
-          display: none;
-        }
+      .xg-icon-pause {
+        display: none;
       }
     }
   }
@@ -223,43 +219,3 @@
   //   display: none;
   // }
 }
-
-// .xgplayer-pip-active {
-//   position: fixed;
-//   right: 0;
-//   bottom: 200px;
-//   width: 320px !important;
-//   height: 180px !important;
-//   z-index: 110 !important;
-//   .xgplayer-controls {
-//     display: none;
-//   }
-//   .xgplayer-danmu {
-//     display: none;
-//   }
-//   .xgplayer-pip-lay{
-//     display: block;
-//   }
-// }
-
-// .xgplayer.xgplayer-pip-active {
-//   .xgplayer-pip-drag {
-//     display: flex;
-//   }
-// }
-
-// .xgplayer.xgplayer-inactive {
-//   .xgplayer-pip-drag {
-//     display: none;
-//   }
-// }
-// .lang-is-jp {
-//   .xgplayer-pip {
-//     .name {
-//       span{
-//         width: 70px;
-//         height: 20px;
-//       }
-//     }
-//   }
-// }
