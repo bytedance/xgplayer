@@ -3,11 +3,7 @@ class YUVCanvas {
     this.configs = Object.assign({}, configs);
     this.canvas = this.configs.canvas;
     this.meta = Object.assign({}, this.configs.meta);
-    this.chroma = this.meta.chromaFormat;
-    this.height = this.meta.presentHeight;
-    this.width = this.meta.presentWidth;
-    this.canvas.width = this.meta.presentWidth;
-    this.canvas.height = this.meta.presentHeight;
+    this._initMeta()
     // this.canvas.style.width = configs.style.width;
     // this.canvas.style.height = configs.style.height;
     this._initContextGL();
@@ -16,6 +12,14 @@ class YUVCanvas {
       this._initBuffers();
       this._initTextures();
     };
+  }
+
+  _initMeta(){
+    this.chroma = this.meta.chromaFormat;
+    this.height = this.meta.presentHeight;
+    this.width = this.meta.presentWidth;
+    this.canvas.width = this.meta.presentWidth;
+    this.canvas.height = this.meta.presentHeight;
   }
 
   _initContextGL () {
@@ -297,6 +301,11 @@ class YUVCanvas {
     } else {
       this._drawPictureRGB(data);
     }
+  }
+
+  resetMeta(meta){
+    this.meta =  Object.assign({}, meta);
+    this._initMeta()
   }
 }
 

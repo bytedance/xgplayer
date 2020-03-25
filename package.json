@@ -8,7 +8,7 @@
     "bootstrap": "npm install & lerna bootstrap",
     "watch": "http-server --cors='Access-Control-Allow-Origin: *' & lerna run --parallel watch",
     "test": "node_modules/.bin/lerna-changelog",
-    "dev": "npx babel-node app.js",
+    "dev": "npm run watch",
     "publish": "lerna publish",
     "cz": "git cz",
     "precz": "lint-staged",
@@ -114,6 +114,7 @@
     "rollup-plugin-uglify": "^6.0.3",
     "rollup-plugin-uglify-es": "^0.0.1",
     "rollup-plugin-url": "^3.0.0",
+    "rollup-plugin-visualizer": "^3.3.2",
     "sass-loader": "^7.1.0",
     "style-loader": "^0.21.0",
     "sugarss": "^1.0.1",
@@ -166,6 +167,7 @@
     "xgplayer-utils-crypto": "file:packages/xgplayer-utils-crypto",
     "xgplayer-utils-mse": "file:packages/xgplayer-utils-mse",
     "xgplayer-utils-sniffer": "file:packages/xgplayer-utils-sniffer",
-    "xgplayer-utils-utf8": "file:packages/xgplayer-utils-utf8"
+    "xgplayer-utils-utf8": "file:packages/xgplayer-utils-utf8",
+    "xgplayer-raw264": "file:packages/xgplayer-raw264"
   }
 }

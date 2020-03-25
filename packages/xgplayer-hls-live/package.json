@@ -1,6 +1,6 @@
 {
   "name": "xgplayer-hls-live",
-  "version": "2.2.0-alpha.55",
+  "version": "2.2.0-alpha.72",
   "description": "",
   "main": "lib/index.js",
   "module": "es/index.js",
@@ -11,7 +11,8 @@
     "build:umd": "cross-env NODE_ENV=production rollup -c rollup.config.js",
     "build:es": "babel src --out-dir es",
     "build:lib": "babel src --out-dir lib --presets=env",
-    "watch": "cross-env NODE_ENV=development rollup -c rollup.config.js --watch"
+    "watch": "cross-env NODE_ENV=development rollup -c rollup.config.js --watch",
+    "watch:mobile": "cross-env NODE_ENV=development rollup -c ./rollup.config.mobile.js --watch"
   },
   "author": "",
   "babel": {
@@ -30,20 +31,20 @@
   },
   "license": "ISC",
   "dependencies": {
-    "xgplayer-utils": "^2.2.0-alpha.55",
-    "xgplayer-utils-crypto": "^2.2.0-alpha.55",
-    "xgplayer-utils-mse": "^2.2.0-alpha.55",
-    "xgplayer-transmuxer-constant-events": "^2.2.0-alpha.55",
-    "xgplayer-transmuxer-context": "^2.2.0-alpha.55",
-    "xgplayer-transmuxer-buffer-track": "^2.2.0-alpha.55",
-    "xgplayer-transmuxer-buffer-presource":  "^2.2.0-alpha.55",
-    "xgplayer-transmuxer-buffer-xgbuffer":  "^2.2.0-alpha.55",
-    "xgplayer-transmuxer-loader-fetch": "^2.2.0-alpha.55",
-    "xgplayer-transmuxer-remux-mp4": "^2.2.0-alpha.55",
-    "xgplayer-transmuxer-codec-compatibility":  "^2.2.0-alpha.55",
-    "xgplayer-transmuxer-demux-m3u8": "^2.2.0-alpha.55",
-    "xgplayer-transmuxer-demux-ts": "^2.2.0-alpha.55",
-    "xgplayer-transmuxer-buffer-playlist": "^2.2.0-alpha.55"
+    "xgplayer-utils": "^2.2.0-alpha.72",
+    "xgplayer-utils-crypto": "^2.2.0-alpha.72",
+    "xgplayer-utils-mse": "^2.2.0-alpha.72",
+    "xgplayer-transmuxer-constant-events": "^2.2.0-alpha.72",
+    "xgplayer-transmuxer-context": "^2.2.0-alpha.72",
+    "xgplayer-transmuxer-buffer-track": "^2.2.0-alpha.72",
+    "xgplayer-transmuxer-buffer-presource":  "^2.2.0-alpha.72",
+    "xgplayer-transmuxer-buffer-xgbuffer":  "^2.2.0-alpha.72",
+    "xgplayer-transmuxer-loader-fetch": "^2.2.0-alpha.72",
+    "xgplayer-transmuxer-remux-mp4": "^2.2.0-alpha.72",
+    "xgplayer-transmuxer-codec-compatibility":  "^2.2.0-alpha.72",
+    "xgplayer-transmuxer-demux-m3u8": "^2.2.0-alpha.72",
+    "xgplayer-transmuxer-demux-ts": "^2.2.0-alpha.72",
+    "xgplayer-transmuxer-buffer-playlist": "^2.2.0-alpha.72"
   },
   "devDependencies": {
     "cross-env": "^6.0.3"

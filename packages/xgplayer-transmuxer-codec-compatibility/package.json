@@ -1,6 +1,6 @@
 {
   "name": "xgplayer-transmuxer-codec-compatibility",
-  "version": "2.2.0-alpha.55",
+  "version": "2.2.0-alpha.72",
   "description": "",
   "main": "lib/index.js",
   "module": "es/index.js",
@@ -24,7 +24,9 @@
     ]
   },
   "dependencies": {
-    "xgplayer-transmuxer-constant-events":  "^2.2.0-alpha.55",
-    "xgplayer-transmuxer-codec-aac": "^2.2.0-alpha.55"
+    "xgplayer-transmuxer-constant-events":  "^2.2.0-alpha.72",
+    "xgplayer-transmuxer-codec-aac": "^2.2.0-alpha.72",
+    "xgplayer-utils": "^2.2.0-alpha.72",
+    "xgplayer-utils-sniffer": "^2.2.0-alpha.72"
   }
 }

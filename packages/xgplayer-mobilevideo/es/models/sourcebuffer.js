@@ -8,12 +8,17 @@ var SourceBuffer = function () {
 
     this.config = Object.assign({}, config);
     this.type = this.config.type;
-    this.buffer = [];
-    this.currentGop = undefined;
-    this._lastGet = undefined;
+    this.reset();
   }
 
   _createClass(SourceBuffer, [{
+    key: 'reset',
+    value: function reset() {
+      this.buffer = [];
+      this.currentGop = undefined;
+      this._lastGet = undefined;
+    }
+  }, {
     key: 'push',
     value: function push(frame) {
       if (this.type === 'video') {

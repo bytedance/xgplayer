@@ -1,4 +1,11 @@
-.xgplayer .xgplayer-cssfullscreen .xgplayer-icon svg {
-  -webkit-transform: translateY(2px) scale(1.3);
-      -ms-transform: translateY(2px) scale(1.3);
-          transform: translateY(2px) scale(1.3); }
+.xgplayer .xgplayer-cssfullscreen .xg-get-cssfull {
+  display: block; }
+
+.xgplayer .xgplayer-cssfullscreen .xg-exit-cssfull {
+  display: none; }
+
+.xgplayer .xgplayer-cssfullscreen[data-state=full] .xg-get-cssfull {
+  display: none; }
+
+.xgplayer .xgplayer-cssfullscreen[data-state=full] .xg-exit-cssfull {
+  display: block; }

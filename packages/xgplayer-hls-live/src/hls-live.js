@@ -28,7 +28,7 @@ class HlsLiveController {
     this.retrytimes = this.configs.retrytimes || 3;
     this.preloadTime = this.configs.preloadTime;
     this._m3u8lasttime = 0;
-    this._timmer = setInterval(this._checkStatus.bind(this), 50);
+    this._timmer = setInterval(this._checkStatus.bind(this), 300);
     this._lastCheck = 0;
     this._player = this.configs.player;
     this.m3u8Text = null

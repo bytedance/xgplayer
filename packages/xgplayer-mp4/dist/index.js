@@ -4,7 +4,7 @@
 	(global = global || self, global.Mp4Player = factory(global.Player));
 }(this, (function (Player) { 'use strict';
 
-	Player = Player && Player.hasOwnProperty('default') ? Player['default'] : Player;
+	Player = Player && Object.prototype.hasOwnProperty.call(Player, 'default') ? Player['default'] : Player;
 
 	function unwrapExports (x) {
 		return x && x.__esModule && Object.prototype.hasOwnProperty.call(x, 'default') ? x['default'] : x;

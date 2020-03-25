@@ -8,71 +8,15 @@ function _inherits(subClass, superClass) { if (typeof superClass !== "function" 
 
 import './polyfills/custom-elements.min';
 import './polyfills/native-element';
-import { getTicker } from './helpers/ticker';
-import VideoCtx from './core/video-context';
+import { getTicker, DEFAULT_FPS, validateFPS } from './helpers/ticker';
+import VideoCtx, { VIDEO_CANVAS_EVENTS } from './core/video-context';
 import AudioCtx from './core/audio-context';
 import AVReconciler from './helpers/reconciler';
-
+import WorkerTicker from './helpers/worker-ticker';
 // eslint-disable-next-line no-undef
 
 var MobileVideo = function (_HTMLElement) {
   _inherits(MobileVideo, _HTMLElement);
-
-  _createClass(MobileVideo, null, [{
-    key: 'resolveVideoGOP',
-
-    /**
-     * 保证当前播放的视频以gop为单位
-     * @param videoTrack
-     */
-    value: function resolveVideoGOP(videoTrack) {
-      var samples = videoTrack.samples;
-
-      if (!samples.length) {
-        return;
-      }
-
-      var firstIframeIdx = null;
-      var lastIframeIdx = null;
-
-      if (videoTrack.tempSamples && videoTrack.tempSamples.length) {
-        // 将缓存帧放置到队列的头部
-        samples.unshift.apply(samples, videoTrack.tempSamples);
-      }
-
-      // 寻找第一个I帧
-      for (var i = 0, len = samples.length; i < len; i++) {
-        var current = samples[i];
-        if (current.isKeyframe) {
-          firstIframeIdx = i;
-          break;
-        }
-      }
-
-      // 寻找最后一个I帧
-      for (var _i = samples.length - 1; _i > 0; _i++) {
-        var _current = samples[_i];
-
-        if (_current.isKeyframe) {
-          lastIframeIdx = _i;
-          break;
-        }
-      }
-
-      if (firstIframeIdx !== 0) {
-        samples.splice(0, firstIframeIdx - 1);
-      }
-
-      videoTrack.samples = samples.slice(0, lastIframeIdx);
-      var rest = samples.slice(lastIframeIdx);
-      if (videoTrack.tempSamples) {
-        videoTrack.tempSamples.push.apply(videoTrack.tempSamples, rest);
-      } else {
-        // 将剩下的帧缓存，等待一个完整的gop
-        videoTrack.tempSamples = rest;
-      }
-    }
-  }]);
 
   function MobileVideo() {
     _classCallCheck(this, MobileVideo);
@@ -87,7 +31,13 @@ var MobileVideo = function (_HTMLElement) {
     _this._paused = true;
     _this.videoMetaInited = false;
     _this.audioMetaInited = false;
+    _this.handleVCtxInnerEvent = _this.handleVCtxInnerEvent.bind(_this);
+    _this._err = null;
     _this.init();
+    _this._lastTimeupdateStamp = 0;
+    _this._volumeEventStamp = 0;
+    _this._hasDispatch = false;
+    _this._fps = DEFAULT_FPS;
     return _this;
   }
 
@@ -96,41 +46,58 @@ var MobileVideo = function (_HTMLElement) {
     value: function init() {
       var _this2 = this;
 
-      var attrVolume = this.getAttribute('volume');
-      var volume = this.muted ? 0 : attrVolume;
-
+      this._destroyed = false;
       this.vCtx = new VideoCtx(Object.assign({
-        canvas: this._canvas
+        canvas: this._canvas,
+        preloadTime: Infinity
       }, { style: { width: this.width, height: this.height } }));
+
+      // this._innerDispatchEvent('waiting')
+      this.vCtx.oncanplay = function () {
+        if (!_this2.played) {
+          if (!_this2.contains(_this2._canvas)) {
+            _this2.appendChild(_this2._canvas);
+            if (_this2.autoplay) {
+              _this2._innerDispatchEvent('play');
+            }
+          }
+        }
+      };
+      this.vCtx.on(VIDEO_CANVAS_EVENTS.VIDEO_EVENTS, this.handleVCtxInnerEvent);
+    }
+  }, {
+    key: '_initAudio',
+    value: function _initAudio() {
+      var attrVolume = this.getAttribute('volume');
+      var volume = this.muted ? 0 : Number.parseFloat(attrVolume);
       if (!this.noAudio) {
         this.aCtx = new AudioCtx({
           volume: volume
         });
       }
-
-      this.ticker = new (getTicker())();
+      this.ticker = new WorkerTicker({ interval: 1000 / this._fps });
+      // this.ticker = new (getTicker({interval: 1000 / this._fps}))()
       this.reconciler = new AVReconciler({
         vCtx: this.vCtx,
         aCtx: this.aCtx,
         video: this
       });
-
-      this.dispatchEvent(new Event('waiting'));
-      this.vCtx.oncanplay = function () {
-        if (!_this2.played) {
-          _this2.appendChild(_this2._canvas);
-        }
-        _this2.dispatchEvent(new Event('canplay'));
-      };
       if (!this.noAudio) {
         this.aCtx.on('AUDIO_SOURCE_END', this.handleAudioSourceEnd);
       }
+    }
+  }, {
+    key: 'handleVCtxInnerEvent',
+    value: function handleVCtxInnerEvent(eventName) {
+      this._innerDispatchEvent(eventName);
     }
   }, {
     key: 'handleAudioSourceEnd',
     value: function handleAudioSourceEnd() {
       this.reconciler.doReconcile();
       this.vCtx.cleanBuffer();
+      this.aCtx.preload();
+      this.vCtx.preload();
     }
   }, {
     key: '_cleanBuffer',
@@ -138,21 +105,39 @@ var MobileVideo = function (_HTMLElement) {
       this.vCtx.cleanBuffer();
     }
   }, {
-    key: 'destroy',
-    value: function destroy() {
-      this.videoMetaInited = false;
+    key: '_destroyAudio',
+    value: function _destroyAudio() {
       this.audioMetaInited = false;
       if (!this.noAudio) {
         this.aCtx.on('AUDIO_SOURCE_END', this.handleAudioSourceEnd);
         this.aCtx.destroy();
       }
-      this.vCtx.destroy();
       this.ticker.stop();
       this.start = null;
       this.reconciler.destroy();
       this.aCtx = null;
-      this.vCtx = null;
       this.ticker = null;
+      this.pendingPlayTask = null;
+      this.played = false;
+      this._hasDispatch = false;
+    }
+  }, {
+    key: '_destroyVideo',
+    value: function _destroyVideo() {
+      this.videoMetaInited = false;
+      this.vCtx.removeAllListeners();
+      this.vCtx.destroy();
+      this.vCtx = null;
+    }
+  }, {
+    key: 'destroy',
+    value: function destroy() {
+      if (this._destroyed) {
+        return;
+      }
+      this._destroyed = true;
+      this._destroyVideo();
+      this._destroyAudio();
     }
   }, {
     key: 'onDemuxComplete',
@@ -183,29 +168,59 @@ var MobileVideo = function (_HTMLElement) {
   }, {
     key: 'setVideoMeta',
     value: function setVideoMeta(meta) {
-      if (this.videoMetaInited) {
-        this.vCtx.destroy();
-        this.vCtx = new VideoCtx(Object.assign({
-          canvas: this._canvas
-        }, { style: { width: this.width, height: this.height } }));
-      }
       this.vCtx.setVideoMetaData(meta);
       this.videoMetaInited = true;
+    }
+  }, {
+    key: 'handleMediaInfo',
+    value: function handleMediaInfo() {
+      this._innerDispatchEvent('durationchange');
+      this._innerDispatchEvent('loadedmetadata');
+      this._innerDispatchEvent('seeking');
+      this._innerDispatchEvent('seeked');
+    }
+  }, {
+    key: 'handleEnded',
+    value: function handleEnded() {
+      this._innerDispatchEvent('ended');
+    }
+  }, {
+    key: 'handleErr',
+    value: function handleErr(code, message) {
+      this._err = {};
+      this._err.code = code;
+      this._err.message = message;
+      this._innerDispatchEvent('error');
+    }
+  }, {
+    key: '_innerDispatchEvent',
+    value: function _innerDispatchEvent(type) {
+      this.dispatchEvent(new Event(type));
+    }
+  }, {
+    key: 'disconnectedCallback',
+    value: function disconnectedCallback() {
+      this._destroyAudio();
+    }
+  }, {
+    key: 'connectedCallback',
+    value: function connectedCallback() {
+      this._initAudio();
+      this.vCtx.reset();
     }
   }, {
     key: 'play',
     value: function play() {
       var _this3 = this;
 
-      this._paused = false;
-      this.dispatchEvent(new Event('play'));
       if (this.pendingPlayTask) {
         return;
       }
-
-      if (this.played) {
-        this.destroy();
-        this.init();
+      this._innerDispatchEvent('play');
+      if (!this.autoplay && !this._hasDispatch) {
+        this._innerDispatchEvent('waiting');
+        this._hasDispatch = true;
+        this._waiting = true;
       }
       var audioPlayTask = null;
       if (this.noAudio) {
@@ -214,42 +229,49 @@ var MobileVideo = function (_HTMLElement) {
         audioPlayTask = this.aCtx.play();
       }
       this.pendingPlayTask = Promise.all([this.vCtx.play(), audioPlayTask.then(function () {
-        // this.aCtx.muted = true
+
+        if (_this3.aCtx) {
+          _this3.aCtx.muted = true;
+        }
       })]).then(function () {
-        // this.aCtx.muted = false
+        if (_this3.aCtx) {
+          _this3.aCtx.muted = false;
+        }
         _this3.ticker.start(function () {
           if (!_this3.start) {
             _this3.start = Date.now();
+            _this3._lastTimeupdateStamp = _this3.start;
           }
           var prevTime = _this3._currentTime;
           _this3._currentTime = Date.now() - _this3.start;
 
+          // console.log(this._currentTime, ' ', this.start)
           var rendered = _this3.vCtx._onTimer(_this3._currentTime);
           if (rendered) {
             if (_this3._waiting) {
-              _this3.dispatchEvent(new Event('playing'));
+              _this3._innerDispatchEvent('playing');
               _this3._waiting = false;
             }
-            _this3.dispatchEvent(new Event('timeupdate'));
+            var now = Date.now();
+            if (now - _this3._lastTimeupdateStamp >= 250) {
+              // debounce
+              _this3._lastTimeupdateStamp = now;
+              _this3._innerDispatchEvent('timeupdate');
+              _this3.vCtx.preload();
+            }
           } else {
             _this3._currentTime = prevTime;
-            if (!_this3._waiting) {
+            if (!_this3._waiting && !_this3.paused) {
               _this3._waiting = true;
-              _this3.dispatchEvent(new Event('waiting'));
+              _this3._innerDispatchEvent('waiting');
             }
           }
-          if (_this3.noAudio) {
-            _this3.vCtx.cleanBuffer();
-          }
         });
-
         _this3.pendingPlayTask = null;
         _this3.played = true;
-        _this3.dispatchEvent(new Event('playing'));
+        // this._innerDispatchEvent('playing')
         _this3._paused = false;
       });
-
-      return this.pendingPlayTask;
     }
   }, {
     key: 'pause',
@@ -263,13 +285,23 @@ var MobileVideo = function (_HTMLElement) {
       this.vCtx.pause();
 
       Promise.resolve().then(function () {
-        _this4.dispatchEvent(new Event('pause'));
+        _this4._innerDispatchEvent('pause');
       });
     }
   }, {
     key: 'load',
     value: function load() {
       // no-op for now
+    }
+  }, {
+    key: 'onValueChange',
+    value: function onValueChange() {
+      var now = Date.now();
+      if (now - this._volumeEventStamp < 200) {
+        return;
+      }
+      this._volumeEventStamp = now;
+      this._innerDispatchEvent('volumechange');
     }
   }, {
     key: 'width',
@@ -338,8 +370,9 @@ var MobileVideo = function (_HTMLElement) {
       var nVal = Number.parseFloat(val);
       if (!isNaN(nVal)) {
         if (this.start && this.currentTime) {
+          this.vCtx.setVideoSeeking();
           var gap = this.currentTime - nVal;
-          this.start += gap;
+          this.start += gap * 1000;
         }
       }
       return nVal;
@@ -370,7 +403,7 @@ var MobileVideo = function (_HTMLElement) {
       }
       this.vCtx.playbackRate = val;
 
-      this.dispatchEvent(new Event('ratechange'));
+      this._innerDispatchEvent('ratechange');
     }
   }, {
     key: 'ended',
@@ -384,7 +417,7 @@ var MobileVideo = function (_HTMLElement) {
     key: 'autoplay',
     get: function get() {
       if (this.hasAttribute('autoplay')) {
-        return this.getAttribute('autoplay');
+        return this.getAttribute('autoplay') == 'true';
       } else {
         return false;
       }
@@ -409,7 +442,7 @@ var MobileVideo = function (_HTMLElement) {
       if (vol > 0 && this.muted) {
         this.aCtx.mute();
       }
-      this.dispatchEvent(new Event('volumechange'));
+      this.onValueChange();
     }
   }, {
     key: 'muted',
@@ -433,12 +466,12 @@ var MobileVideo = function (_HTMLElement) {
       } else {
         this.aCtx.muted = true;
       }
-      this.dispatchEvent(new Event('volumechange'));
+      this.onValueChange();
     }
   }, {
     key: 'error',
     get: function get() {
-      return this.vCtx.error || (this.noAudio ? null : this.aCtx.error);
+      return this._err || this.vCtx.error || (this.noAudio ? null : this.aCtx.error);
     }
   }, {
     key: 'buffered',
@@ -449,6 +482,25 @@ var MobileVideo = function (_HTMLElement) {
     key: 'noAudio',
     get: function get() {
       return this.getAttribute('noaudio') === 'true';
+    }
+  }, {
+    key: 'networkState',
+    get: function get() {
+      return 0;
+    }
+  }, {
+    key: 'fps',
+    get: function get() {
+      return this._fps;
+    },
+    set: function set(val) {
+      if (!validateFPS(val)) {
+        val = DEFAULT_FPS;
+      }
+      this._fps = val;
+      if (this.ticker) {
+        this.ticker.setInterval(1000 / val);
+      }
     }
   }]);
 

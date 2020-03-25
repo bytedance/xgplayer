@@ -1,6 +1,6 @@
 {
   "name": "xgplayer-transmuxer-loader-fetch",
-  "version": "2.2.0-alpha.55",
+  "version": "2.2.0-alpha.72",
   "description": "",
   "main": "lib/index.js",
   "module": "es/index.js",
@@ -24,6 +24,6 @@
     ]
   },
   "dependencies": {
-    "xgplayer-transmuxer-constant-events": "^2.2.0-alpha.55"
+    "xgplayer-transmuxer-constant-events": "^2.2.0-alpha.72"
   }
 }

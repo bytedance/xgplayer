@@ -4,7 +4,7 @@
   (global = global || self, global.HlsVodPlayer = factory(global.Player));
 }(this, (function (Player) { 'use strict';
 
-  Player = Player && Player.hasOwnProperty('default') ? Player['default'] : Player;
+  Player = Player && Object.prototype.hasOwnProperty.call(Player, 'default') ? Player['default'] : Player;
 
   var BROWSER_EVENTS = {
     VISIBILITY_CHANGE: 'VISIBILITY_CHANGE'
@@ -212,7 +212,7 @@
     this.domain = null;
     if (EventEmitter.usingDomains) {
       // if there is an active domain, then attach to it.
-      if (domain.active && !(this instanceof domain.Domain)) ;
+      if (domain.active ) ;
     }
 
     if (!this._events || this._events === Object.getPrototypeOf(this)._events) {
@@ -1741,7 +1741,15 @@
     };
   });
 
+  var fixedFloat = function fixedFloat(num, fixed) {
+    return Number.parseFloat(Number(num).toFixed(fixed));
+  };
+  var _caculate = {
+    fixedFloat: fixedFloat
+  };
+
   var debounce = _debounce;
+  var caculate = _caculate;
 
   var _createClass$7 = function () {
     function defineProperties(target, props) {
@@ -1774,7 +1782,7 @@
       this.sourceBuffers = {};
       this.preloadTime = this.configs.preloadTime || 1;
       this.onSourceOpen = this.onSourceOpen.bind(this);
-      this.onWaiting = this.onWaiting.bind(this);
+      this.onUpdateEnd = this.onUpdateEnd.bind(this);
     }
 
     _createClass$7(MSE, [{
@@ -1829,20 +1837,20 @@
             // return;
           }
           if (track) {
-            var dur = type === 'audio' ? 21 : 40;
-            if (track.meta && track.meta.refSampleDuration) dur = track.meta.refSampleDuration;
-            if (sources[type].data.length >= this.preloadTime / dur) {
-              add = true;
-            }
+            add = true;
           }
         }
 
         if (add) {
-          if (Object.keys(this.sourceBuffers).length > 0) {
+          if (Object.keys(this.sourceBuffers).length > 1) {
             return;
           }
           for (var _i = 0, _k = Object.keys(sources).length; _i < _k; _i++) {
             var _type = Object.keys(sources)[_i];
+            if (this.sourceBuffers[_type]) {
+              continue;
+            }
+
             var source = sources[_type];
             var mime = _type === 'video' ? 'video/mp4;codecs=' + source.mimetype : 'audio/mp4;codecs=' + source.mimetype;
             var sourceBuffer = this.mediaSource.addSourceBuffer(mime);
@@ -1885,11 +1893,9 @@
     }, {
       key: 'endOfStream',
       value: function endOfStream() {
-        var _mediaSource = this.mediaSource,
-            readyState = _mediaSource.readyState,
-            activeSourceBuffers = _mediaSource.activeSourceBuffers;
+        var readyState = this.mediaSource.readyState;
 
-        if (readyState === 'open' && activeSourceBuffers.length === 0) {
+        if (readyState === 'open') {
           try {
             this.mediaSource.endOfStream();
           } catch (e) {
@@ -2033,8 +2039,6 @@
             delete _this3.sourceBuffers[Object.keys(_this3.sourceBuffers)[i]];
           }
 
-          _this3.container.removeEventListener('timeupdate', _this3.onTimeUpdate);
-          _this3.container.removeEventListener('waiting', _this3.onWaiting);
           _this3.mediaSource.removeEventListener('sourceopen', _this3.onSourceOpen);
 
           _this3.endOfStream();
@@ -2311,7 +2315,7 @@
     /**
      * The function to push data.
      *
-     * @param {number} data - The data to push into the buffer
+     * @param {Uint8Array} data - The data to push into the buffer
      */
 
     _createClass$a(XgBuffer, [{
@@ -2875,11 +2879,126 @@
     }
   }
 
+  var BROWSER_EVENTS$1 = EVENTS.BROWSER_EVENTS;
+  var hidden = void 0;
+  var visibilityChange = void 0;
+
+  if (typeof document.hidden !== 'undefined') {
+    // Opera 12.10 and Firefox 18 and later support
+    hidden = 'hidden';
+    visibilityChange = 'visibilitychange';
+  } else if (typeof document.msHidden !== 'undefined') {
+    hidden = 'msHidden';
+    visibilityChange = 'msvisibilitychange';
+  } else if (typeof document.webkitHidden !== 'undefined') {
+    hidden = 'webkitHidden';
+    visibilityChange = 'webkitvisibilitychange';
+  }
+
+  var PageVisibility = function () {
+    function PageVisibility() {
+      _classCallCheck$e(this, PageVisibility);
+
+      this.callbacks = {
+        onShow: [],
+        onHidden: []
+      };
+      this.handleVisibilityChange = this.handleVisibilityChange.bind(this);
+      this.init();
+    }
+
+    _createClass$e(PageVisibility, [{
+      key: 'init',
+      value: function init() {
+        document.addEventListener(visibilityChange, this.handleVisibilityChange, false);
+      }
+    }, {
+      key: 'handleVisibilityChange',
+      value: function handleVisibilityChange() {
+        this.emit(BROWSER_EVENTS$1.VISIBILITY_CHANGE, document[hidden]);
+      }
+    }, {
+      key: 'destroy',
+      value: function destroy() {
+        document.removeEventListener(visibilityChange, this.handleVisibilityChange);
+      }
+    }]);
+
+    return PageVisibility;
+  }();
+
+  var le = function () {
+    var buf = new ArrayBuffer(2);
+    new DataView(buf).setInt16(0, 256, true); // little-endian write
+    return new Int16Array(buf)[0] === 256; // platform-spec read, if equal then LE
+  }();
+
+  var sniffer = {
+    get device() {
+      var r = sniffer.os;
+      return r.isPc ? 'pc' : r.isTablet ? 'tablet' : 'mobile';
+    },
+    get browser() {
+      var ua = navigator.userAgent.toLowerCase();
+      var reg = {
+        ie: /rv:([\d.]+)\) like gecko/,
+        firfox: /firefox\/([\d.]+)/,
+        chrome: /chrome\/([\d.]+)/,
+        opera: /opera.([\d.]+)/,
+        safari: /version\/([\d.]+).*safari/
+      };
+      return [].concat(Object.keys(reg).filter(function (key) {
+        return reg[key].test(ua);
+      }))[0];
+    },
+    get os() {
+      var ua = navigator.userAgent;
+      var isWindowsPhone = /(?:Windows Phone)/.test(ua);
+      var isSymbian = /(?:SymbianOS)/.test(ua) || isWindowsPhone;
+      var isAndroid = /(?:Android)/.test(ua);
+      var isFireFox = /(?:Firefox)/.test(ua);
+      var isTablet = /(?:iPad|PlayBook)/.test(ua) || isAndroid && !/(?:Mobile)/.test(ua) || isFireFox && /(?:Tablet)/.test(ua);
+      var isPhone = /(?:iPhone)/.test(ua) && !isTablet;
+      var isPc = !isPhone && !isAndroid && !isSymbian;
+      return {
+        isTablet: isTablet,
+        isPhone: isPhone,
+        isAndroid: isAndroid,
+        isPc: isPc,
+        isSymbian: isSymbian,
+        isWindowsPhone: isWindowsPhone,
+        isFireFox: isFireFox
+      };
+    },
+
+    get isLe() {
+      return le;
+    }
+  };
+
+  var _createClass$f = function () {
+    function defineProperties(target, props) {
+      for (var i = 0; i < props.length; i++) {
+        var descriptor = props[i];descriptor.enumerable = descriptor.enumerable || false;descriptor.configurable = true;if ("value" in descriptor) descriptor.writable = true;Object.defineProperty(target, descriptor.key, descriptor);
+      }
+    }return function (Constructor, protoProps, staticProps) {
+      if (protoProps) defineProperties(Constructor.prototype, protoProps);if (staticProps) defineProperties(Constructor, staticProps);return Constructor;
+    };
+  }();
+
+  function _classCallCheck$f(instance, Constructor) {
+    if (!(instance instanceof Constructor)) {
+      throw new TypeError("Cannot call a class as a function");
+    }
+  }
+
+  var isSafari = sniffer.browser === 'safari';
+
   var REMUX_EVENTS$1 = EVENTS.REMUX_EVENTS;
 
   var Compatibility = function () {
     function Compatibility() {
-      _classCallCheck$e(this, Compatibility);
+      _classCallCheck$f(this, Compatibility);
 
       this.nextAudioDts = 0; // 模拟下一段音频数据的dts
       this.nextVideoDts = 0; // 模拟下一段视频数据的dts
@@ -2904,9 +3023,11 @@
 
       this._videoLargeGap = 0;
       this._audioLargeGap = 0;
+
+      this.audioUnsyncTime = 0;
     }
 
-    _createClass$e(Compatibility, [{
+    _createClass$f(Compatibility, [{
       key: 'init',
       value: function init() {
         this.before(REMUX_EVENTS$1.REMUX_MEDIA, this.doFix.bind(this));
@@ -2938,6 +3059,8 @@
 
         this.filledAudioSamples = []; // 补充音频帧（）
         this.filledVideoSamples = []; // 补充视频帧（）
+
+        this.audioUnsyncTime = 0;
       }
     }, {
       key: 'doFix',
@@ -2949,10 +3072,10 @@
         this.recordSamplesCount();
 
         if (this._firstVideoSample) {
-          this.fixRefSampleDuration(this.videoTrack.meta, this.videoTrack.samples);
+          this.fixVideoRefSampleDuration(this.videoTrack.meta, this.videoTrack.samples);
         }
-        if (this._firstAudioSample) {
-          this.fixRefSampleDuration(this.audioTrack.meta, this.audioTrack.samples);
+        if (this._firstAudioSample && isFirstAudioSamples) {
+          this.fixAudioRefSampleDuration(this.audioTrack.meta);
         }
 
         var _Compatibility$detect = Compatibility.detectChangeStream(this.videoTrack.samples, isFirstVideoSamples),
@@ -3007,6 +3130,7 @@
         for (var i = 0, len = videoSamples.length; i < len; i++) {
           var sample = videoSamples[i];
           sample.originDts = sample.dts;
+          sample.originPts = sample.pts;
         }
 
         if (!videoSamples || !videoSamples.length || !this._firstVideoSample) {
@@ -3075,6 +3199,17 @@
           videoSamples.unshift(this.videoLastSample);
         }
 
+        videoSamples.forEach(function (sample, idx) {
+          if (idx !== 0 && idx !== videoSamples.length - 1) {
+            var pre = videoSamples[idx - 1];
+            var next = videoSamples[idx + 1];
+            if (sample.dts - pre.dts < 5) {
+              sample.dts = (pre.dts + next.dts) / 2;
+              sample.pts = (pre.pts + next.pts) / 2;
+            }
+          }
+        });
+
         this.videoLastSample = curLastSample;
 
         this.videoTrack.samples = videoSamples;
@@ -3082,14 +3217,16 @@
     }, {
       key: 'doFixAudio',
       value: function doFixAudio(first, streamChangeStart) {
+        var _this = this;
+
         var _audioTrack = this.audioTrack,
             audioSamples = _audioTrack.samples,
             meta = _audioTrack.meta;
+        // console.log('dofixaudio')
 
         if (!audioSamples || !audioSamples.length) {
           return;
         }
-
         // console.log('next audio', this.nextAudioDts)
         for (var i = 0, len = audioSamples.length; i < len; i++) {
           var sample = audioSamples[i];
@@ -3100,6 +3237,7 @@
 
         var samplesLen = audioSamples.length;
         var silentFrame = AAC.getSilentFrame(meta.codec, meta.channelCount);
+        var iRefSampleDuration = Math.floor(meta.refSampleDuration);
 
         var firstSample = this._firstAudioSample;
 
@@ -3109,6 +3247,11 @@
           if (streamChangeStart) {
             streamChangeStart = _firstSample.options.start;
           }
+        }
+
+        if (!first && !streamChangeStart && this.nextAudioDts && Compatibility.detectLargeGap(this.nextAudioDts || 0, _firstSample.dts + this._audioLargeGap)) {
+          // large gap 不准确，出现了非换流场景的时间戳跳变
+          this._audioLargeGap = this.nextAudioDts + meta.refSampleDuration - _firstSample.dts;
         }
 
         // 对audioSamples按照dts做排序
@@ -3126,7 +3269,8 @@
         if (this._firstVideoSample && first) {
           var videoFirstPts = this._firstVideoSample.originDts || this._firstVideoSample.dts;
           var _gap = firstSample.dts - videoFirstPts;
-          if (_gap > meta.refSampleDuration && _gap < 10 * meta.refSampleDuration) {
+
+          if (_gap === this._videoLargeGap) ; else if (_gap > meta.refSampleDuration && _gap < 10 * meta.refSampleDuration) {
             var silentSampleCount = Math.floor((firstSample.dts - videoFirstPts) / meta.refSampleDuration);
 
             for (var _i3 = 0; _i3 < silentSampleCount; _i3++) {
@@ -3160,48 +3304,56 @@
           gap = firstDts - this.nextAudioDts;
           var absGap = Math.abs(gap);
 
-          if (absGap > meta.refSampleDuration && samplesLen === 1 && this.lastAudioSamplesLen === 1) {
-            meta.refSampleDurationFixed = undefined;
-          }
+          if (gap >= iRefSampleDuration && gap < 10 * iRefSampleDuration) {
+            var silentFrameCount = Math.ceil(gap / iRefSampleDuration);
 
-          if (gap > 2 * meta.refSampleDuration && gap < 10 * meta.refSampleDuration) {
-            if (samplesLen === 1 && this.lastAudioSamplesLen === 1) {
-              // 如果sample的length一直是1，而且一直不符合refSampleDuration，需要动态修改refSampleDuration
-              meta.refSampleDurationFixed = meta.refSampleDurationFixed !== undefined ? meta.refSampleDurationFixed + gap : meta.refSampleDuration + gap;
-            } else {
-              var silentFrameCount = Math.floor(gap / meta.refSampleDuration);
+            for (var _i4 = 0; _i4 < silentFrameCount; _i4++) {
+              var computed = firstDts - (_i4 + 1) * iRefSampleDuration;
+              var _silentSample = {
+                dts: computed > this.nextAudioDts ? computed : this.nextAudioDts,
+                pts: computed > this.nextAudioDts ? computed : this.nextAudioDts,
+                datasize: silentFrame.byteLength,
+                filtered: 0,
+                data: silentFrame
+              };
 
-              for (var _i4 = 0; _i4 < silentFrameCount; _i4++) {
-                var computed = firstDts - (_i4 + 1) * meta.refSampleDuration;
-                var _silentSample = Object.assign({}, audioSamples[0], {
-                  dts: computed > this.nextAudioDts ? computed : this.nextAudioDts
-                });
-
-                this.filledAudioSamples.push({
-                  dts: _silentSample.dts,
-                  size: _silentSample.data.byteLength
-                });
-                this.audioTrack.samples.unshift(_silentSample);
-              }
+              this.filledAudioSamples.push({
+                dts: _silentSample.dts,
+                size: _silentSample.data.byteLength
+              });
+              this.audioTrack.samples.unshift(_silentSample);
+              _firstSample = _silentSample;
             }
-          } else if (absGap <= meta.refSampleDuration && absGap > 0) {
+          } else if (absGap < meta.refSampleDuration && absGap > 0) {
             // 当差距比较小的时候将音频帧重定位
             // console.log('重定位音频帧dts', audioSamples[0].dts, this.nextAudioDts)
-            audioSamples[0].dts = this.nextAudioDts;
-            audioSamples[0].pts = this.nextAudioDts;
-          } else if (gap < 0 && absGap <= meta.refSampleDuration) {
+            _firstSample.dts = this.nextAudioDts;
+            _firstSample.pts = this.nextAudioDts;
+          } else if (gap < 0 && absGap < iRefSampleDuration) {
             Compatibility.doFixLargeGap(audioSamples, -1 * gap);
           }
         }
-        var lastOriginDts = audioSamples[audioSamples.length - 1].originDts;
-        var lastDts = audioSamples[audioSamples.length - 1].dts;
-        var lastSampleDuration = audioSamples.length >= 2 ? lastOriginDts - audioSamples[audioSamples.length - 2].originDts : meta.refSampleDuration;
+
+        var unSyncDuration = meta.refSampleDuration - iRefSampleDuration;
+        audioSamples.forEach(function (sample, idx) {
+          if (idx !== 0) {
+            var _lastSample = audioSamples[idx - 1];
+            sample.dts = sample.pts = _lastSample.dts + _lastSample.duration;
+          }
+          sample.duration = iRefSampleDuration;
+          _this.audioUnsyncTime = caculate.fixedFloat(_this.audioUnsyncTime + unSyncDuration, 2);
+          if (_this.audioUnsyncTime >= 1) {
+            sample.duration += 1;
+            _this.audioUnsyncTime -= 1;
+          }
+        });
+        var lastSample = audioSamples[audioSamples.length - 1];
+        var lastDts = lastSample.dts;
+        var lastDuration = lastSample.duration;
+        // const lastSampleDuration = audioSamples.length >= 2 ? lastOriginDts - audioSamples[audioSamples.length - 2].originDts : meta.refSampleDuration
 
         this.lastAudioSamplesLen = samplesLen;
-        this.nextAudioDts = meta.refSampleDurationFixed ? lastDts + meta.refSampleDurationFixed : lastDts + lastSampleDuration;
-        this.lastAudioDts = lastDts;
-
-        audioSamples[audioSamples.length - 1].duration = lastSampleDuration;
+        this.nextAudioDts = lastDts + (lastDuration || iRefSampleDuration);
 
         this.audioTrack.samples = Compatibility.sortAudioSamples(audioSamples);
       }
@@ -3334,12 +3486,11 @@
        */
 
     }, {
-      key: 'fixRefSampleDuration',
-      value: function fixRefSampleDuration(meta, samples) {
-        var isVideo = meta.type === 'video';
-        var allSamplesCount = isVideo ? this.allVideoSamplesCount : this.allAudioSamplesCount;
-        var firstDts = isVideo ? this._firstVideoSample.dts : this._firstAudioSample.dts;
-        var filledSamplesCount = isVideo ? this.filledVideoSamples.length : this.filledAudioSamples.length;
+      key: 'fixVideoRefSampleDuration',
+      value: function fixVideoRefSampleDuration(meta, samples) {
+        var allSamplesCount = this.allVideoSamplesCount;
+        var firstDts = this._firstVideoSample.dts;
+        var filledSamplesCount = this.filledVideoSamples.length;
         if (!Compatibility.isRefSampleDurationValid(meta.refSampleDuration)) {
           if (samples.length >= 1) {
             var lastDts = samples[samples.length - 1].dts;
@@ -3365,8 +3516,13 @@
         }
 
         if (!Compatibility.isRefSampleDurationValid(meta.refSampleDuration)) {
-          meta.refSampleDuration = 67;
+          meta.refSampleDuration = 66;
         }
+      }
+    }, {
+      key: 'fixAudioRefSampleDuration',
+      value: function fixAudioRefSampleDuration(meta) {
+        meta.refSampleDuration = caculate.fixedFloat(meta.timescale * 1024 / meta.sampleRate, isSafari ? 0 : 2);
       }
 
       /**
@@ -3571,119 +3727,6 @@
 
     return Compatibility;
   }();
-
-  var _createClass$f = function () {
-    function defineProperties(target, props) {
-      for (var i = 0; i < props.length; i++) {
-        var descriptor = props[i];descriptor.enumerable = descriptor.enumerable || false;descriptor.configurable = true;if ("value" in descriptor) descriptor.writable = true;Object.defineProperty(target, descriptor.key, descriptor);
-      }
-    }return function (Constructor, protoProps, staticProps) {
-      if (protoProps) defineProperties(Constructor.prototype, protoProps);if (staticProps) defineProperties(Constructor, staticProps);return Constructor;
-    };
-  }();
-
-  function _classCallCheck$f(instance, Constructor) {
-    if (!(instance instanceof Constructor)) {
-      throw new TypeError("Cannot call a class as a function");
-    }
-  }
-
-  var BROWSER_EVENTS$1 = EVENTS.BROWSER_EVENTS;
-  var hidden = void 0;
-  var visibilityChange = void 0;
-
-  if (typeof document.hidden !== 'undefined') {
-    // Opera 12.10 and Firefox 18 and later support
-    hidden = 'hidden';
-    visibilityChange = 'visibilitychange';
-  } else if (typeof document.msHidden !== 'undefined') {
-    hidden = 'msHidden';
-    visibilityChange = 'msvisibilitychange';
-  } else if (typeof document.webkitHidden !== 'undefined') {
-    hidden = 'webkitHidden';
-    visibilityChange = 'webkitvisibilitychange';
-  }
-
-  var PageVisibility = function () {
-    function PageVisibility() {
-      _classCallCheck$f(this, PageVisibility);
-
-      this.callbacks = {
-        onShow: [],
-        onHidden: []
-      };
-      this.handleVisibilityChange = this.handleVisibilityChange.bind(this);
-      this.init();
-    }
-
-    _createClass$f(PageVisibility, [{
-      key: 'init',
-      value: function init() {
-        document.addEventListener(visibilityChange, this.handleVisibilityChange, false);
-      }
-    }, {
-      key: 'handleVisibilityChange',
-      value: function handleVisibilityChange() {
-        this.emit(BROWSER_EVENTS$1.VISIBILITY_CHANGE, document[hidden]);
-      }
-    }, {
-      key: 'destroy',
-      value: function destroy() {
-        document.removeEventListener(visibilityChange, this.handleVisibilityChange);
-      }
-    }]);
-
-    return PageVisibility;
-  }();
-
-  var le = function () {
-    var buf = new ArrayBuffer(2);
-    new DataView(buf).setInt16(0, 256, true); // little-endian write
-    return new Int16Array(buf)[0] === 256; // platform-spec read, if equal then LE
-  }();
-
-  var sniffer = {
-    get device() {
-      var r = sniffer.os;
-      return r.isPc ? 'pc' : r.isTablet ? 'tablet' : 'mobile';
-    },
-    get browser() {
-      var ua = navigator.userAgent.toLowerCase();
-      var reg = {
-        ie: /rv:([\d.]+)\) like gecko/,
-        firfox: /firefox\/([\d.]+)/,
-        chrome: /chrome\/([\d.]+)/,
-        opera: /opera.([\d.]+)/,
-        safari: /version\/([\d.]+).*safari/
-      };
-      return [].concat(Object.keys(reg).filter(function (key) {
-        return reg[key].test(ua);
-      }))[0];
-    },
-    get os() {
-      var ua = navigator.userAgent;
-      var isWindowsPhone = /(?:Windows Phone)/.test(ua);
-      var isSymbian = /(?:SymbianOS)/.test(ua) || isWindowsPhone;
-      var isAndroid = /(?:Android)/.test(ua);
-      var isFireFox = /(?:Firefox)/.test(ua);
-      var isTablet = /(?:iPad|PlayBook)/.test(ua) || isAndroid && !/(?:Mobile)/.test(ua) || isFireFox && /(?:Tablet)/.test(ua);
-      var isPhone = /(?:iPhone)/.test(ua) && !isTablet;
-      var isPc = !isPhone && !isAndroid && !isSymbian;
-      return {
-        isTablet: isTablet,
-        isPhone: isPhone,
-        isAndroid: isAndroid,
-        isPc: isPc,
-        isSymbian: isSymbian,
-        isWindowsPhone: isWindowsPhone,
-        isFireFox: isFireFox
-      };
-    },
-
-    get isLe() {
-      return le;
-    }
-  };
 
   function unwrapExports (x) {
   	return x && x.__esModule && Object.prototype.hasOwnProperty.call(x, 'default') ? x['default'] : x;
@@ -4560,6 +4603,9 @@
 
       this.videoAllDuration = 0;
       this.audioAllDuration = 0;
+
+      this.audioRemuxed = 0;
+      this.videoRemuxed = 0;
     }
 
     _createClass$i(Mp4Remuxer, [{
@@ -4585,7 +4631,11 @@
 
         !this._isDtsBaseInited && this.calcDtsBase(audioTrack, videoTrack);
 
+        // if (videoTrack.samples.length && this.videoRemuxed <= 1) {
+        //   this.videoRemuxed += 1
+        // }
         this._remuxVideo(videoTrack);
+        // console.log('remux audio');
         this._remuxAudio(audioTrack);
       }
     }, {
@@ -4754,7 +4804,7 @@
             }
           }
           this.videoAllDuration += sampleDuration;
-          console.log('video dts ' + dts, 'pts ' + pts, isKeyframe, 'originDts ' + avcSample.originDts, 'duration ' + sampleDuration);
+          // console.log(`video dts ${dts}`, `pts ${pts}`, isKeyframe, `originDts ${avcSample.originDts}`, `duration ${sampleDuration}`)
           if (sampleDuration >= 0) {
             mdatBox.samples.push(mdatSample);
             mdatSample.buffer.push(avcSample.data);
@@ -7652,6 +7702,7 @@
           sampleRate: pes.ES.frequence,
           channelCount: pes.ES.channel,
           codec: 'mp4a.40.' + pes.ES.audioObjectType,
+          originCodec: 'mp4a.40.' + pes.ES.originAudioObjectType,
           config: pes.ES.audioConfig,
           id: 2,
           sampleRateIndex: pes.ES.frequencyIndex
@@ -7728,11 +7779,13 @@
         var sampleLength = 0;
         var sps = false;
         var pps = false;
+        var sei = null;
         for (var i = 0; i < nals.length; i++) {
           var nal = nals[i];
           if (nal.sps) {
             sps = nal;
             track.sps = nal.body;
+            meta.sps = nal.body;
             meta.chromaFormat = sps.sps.chroma_format;
             meta.codec = 'avc1.';
             for (var j = 1; j < 4; j++) {
@@ -7754,9 +7807,10 @@
             meta.sarRatio = sps.sps.sar_ratio ? sps.sps.sar_ratio : sps.sps.par_ratio;
           } else if (nal.pps) {
             track.pps = nal.body;
+            meta.pps = nal.body;
             pps = nal;
           } else if (nal.sei) {
-            this.emit(DEMUX_EVENTS$1.SEI_PARSED, nal.sei);
+            sei = nal.sei;
           } else if (nal.type < 9) {
             sampleLength += 4 + nal.body.byteLength;
           }
@@ -7798,10 +7852,17 @@
             offset += length;
           }
         }
+        var dts = parseInt(pes.dts / 90);
+        var pts = parseInt(pes.pts / 90);
+
+        if (sei) {
+          sei.dts = dts;
+          this.emit(DEMUX_EVENTS$1.SEI_PARSED, sei);
+        }
         var sample = new VideoTrackSample({
-          dts: parseInt(pes.dts / 90),
-          pts: parseInt(pes.pts / 90),
-          cts: (pes.pts - pes.dts) / 90,
+          dts: dts,
+          pts: pts,
+          cts: pts - dts,
           originDts: pes.dts,
           isKeyframe: isKeyframe,
           data: data,
@@ -7827,6 +7888,7 @@
         var vps = false;
         var sps = false;
         var pps = false;
+        var sei = null;
         var hasVPS = false;
         var hasSPS = false;
         var hasPPS = false;
@@ -7892,7 +7954,7 @@
             track.vps = nal.body;
             vps = nal;
           } else if (nal.sei) {
-            this.emit(DEMUX_EVENTS$1.SEI_PARSED, nal.sei);
+            sei = nal.sei;
           }
           if (nal.type <= 40) {
             sampleLength += 4 + nal.body.byteLength;
@@ -7958,10 +8020,18 @@
           offset += length;
           // }
         }
+        var dts = parseInt(pes.dts / 90);
+        var pts = parseInt(pes.pts / 90);
+
+        if (sei) {
+          sei.dts = dts;
+          this.emit(DEMUX_EVENTS$1.SEI_PARSED, sei);
+        }
+
         var sample = new VideoTrackSample({
-          dts: parseInt(pes.dts / 90),
-          pts: parseInt(pes.pts / 90),
-          cts: (pes.pts - pes.dts) / 90,
+          dts: dts,
+          pts: pts,
+          cts: pts - dts,
           originDts: pes.dts,
           isKeyframe: isKeyframe,
           data: data,
@@ -8510,6 +8580,7 @@
         var userAgent = navigator.userAgent.toLowerCase();
         var config = void 0;
         var extensionSampleIndex = void 0;
+        ret.originAudioObjectType = ret.audioObjectType;
         if (/firefox/i.test(userAgent)) {
           if (ret.frequencyIndex >= 6) {
             ret.audioObjectType = 5;
@@ -8548,6 +8619,7 @@
           config[2] |= 2 << 2;
           config[3] = 0;
         }
+
         ret.audioConfig = config;
       }
     }]);
@@ -8883,9 +8955,9 @@
 
         this.on(REMUX_EVENTS$3.REMUX_ERROR, this._onRemuxError.bind(this));
 
-        this.on('TIME_UPDATE', this._onTimeUpdate.bind(this));
+        this._player.on('timeupdate', this._onTimeUpdate.bind(this));
 
-        this.on('WAITING', this._onWaiting.bind(this));
+        this._player.on('waiting', this._onWaiting.bind(this));
       }
     }, {
       key: '_onError',
@@ -8924,6 +8996,7 @@
       value: function _onWaiting() {
         var end = true;
 
+        this._seekToBufferStart();
         var playList = Object.keys(this._playlist.list);
         var playListLen = playList.length;
         if (!playListLen) {
@@ -8949,9 +9022,33 @@
         }
       }
     }, {
+      key: '_seekToBufferStart',
+      value: function _seekToBufferStart() {
+        var video = this._player.video;
+        var buffered = video.buffered;
+        var range = [0, 0];
+        var currentTime = video.currentTime;
+        if (buffered) {
+          for (var i = 0, len = buffered.length; i < len; i++) {
+            range[0] = buffered.start(i);
+            range[1] = buffered.end(i);
+            if (range[0] <= currentTime && currentTime <= range[1]) {
+              return;
+            }
+          }
+        }
+
+        var bufferStart = range[0];
+
+        if (currentTime === 0 && currentTime < bufferStart && Math.abs(currentTime - bufferStart) < 3) {
+          video.currentTime = bufferStart;
+        }
+      }
+    }, {
       key: '_onTimeUpdate',
-      value: function _onTimeUpdate(container) {
-        this._preload(container.currentTime);
+      value: function _onTimeUpdate() {
+        this._seekToBufferStart();
+        this._preload(this._player.currentTime);
       }
     }, {
       key: '_onDemuxComplete',
@@ -9194,19 +9291,15 @@
         this.off(DEMUX_EVENTS$2.METADATA_PARSED, this._onMetadataParsed);
 
         this.off(DEMUX_EVENTS$2.DEMUX_COMPLETE, this._onDemuxComplete);
-
-        this.off('TIME_UPDATE', this._onTimeUpdate);
-
-        this.off('WAITING', this._onWaiting);
       }
     }]);
 
     return HlsVodController;
   }();
 
-  var _createClass$B = function () { function defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ("value" in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } } return function (Constructor, protoProps, staticProps) { if (protoProps) defineProperties(Constructor.prototype, protoProps); if (staticProps) defineProperties(Constructor, staticProps); return Constructor; }; }();
-
   var _get$2 = function get(object, property, receiver) { if (object === null) object = Function.prototype; var desc = Object.getOwnPropertyDescriptor(object, property); if (desc === undefined) { var parent = Object.getPrototypeOf(object); if (parent === null) { return undefined; } else { return get(parent, property, receiver); } } else if ("value" in desc) { return desc.value; } else { var getter = desc.get; if (getter === undefined) { return undefined; } return getter.call(receiver); } };
+
+  var _createClass$B = function () { function defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ("value" in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } } return function (Constructor, protoProps, staticProps) { if (protoProps) defineProperties(Constructor.prototype, protoProps); if (staticProps) defineProperties(Constructor, staticProps); return Constructor; }; }();
 
   function _classCallCheck$B(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } }
 
@@ -9225,13 +9318,19 @@
   var HlsVodPlayer = function (_BasePlugin) {
     _inherits$3(HlsVodPlayer, _BasePlugin);
 
+    _createClass$B(HlsVodPlayer, null, [{
+      key: 'pluginName',
+      get: function get() {
+        return 'hlsVod';
+      }
+    }]);
+
     function HlsVodPlayer(options) {
       _classCallCheck$B(this, HlsVodPlayer);
 
       var _this = _possibleConstructorReturn$3(this, (HlsVodPlayer.__proto__ || Object.getPrototypeOf(HlsVodPlayer)).call(this, options));
 
       _this._handleSetCurrentTime = debounce(_this._handleSetCurrentTime.bind(_this), 200);
-      _this.onWaiting = _this.onWaiting.bind(_this);
       _this.destroy = _this.destroy.bind(_this);
       _this.handleUrlChange = _this.handleUrlChange.bind(_this);
       return _this;
@@ -9242,6 +9341,9 @@
       value: function beforePlayerInit() {
         var _this2 = this;
 
+        if (!this._context) {
+          this._context = new Context(HlsAllowedEvents$1);
+        }
         this.hls = this._context.registry('HLS_VOD_CONTROLLER', HlsVodController)({ player: this.player, preloadTime: this.player.config.preloadTime });
         this._context.init();
         this.hls.load(this.player.config.url);
@@ -9295,11 +9397,11 @@
       value: function play() {
         var _this4 = this;
 
-        return _get$2(HlsVodPlayer.prototype.__proto__ || Object.getPrototypeOf(HlsVodPlayer.prototype), 'play', this).call(this).catch(function (e) {
+        return this.player.play().catch(function (e) {
           if (e && e.code === 20) {
             // fix: chrome The play() request was interrupted by a new load request.
-            _this4.once('canplay', function () {
-              _this4.video.play();
+            _this4.player.once('canplay', function () {
+              _this4.player.play();
             });
           }
         });
@@ -9349,35 +9451,20 @@
     }, {
       key: '_onSourceUpdateEnd',
       value: function _onSourceUpdateEnd() {
-        if (Player.util.hasClass(this.root, 'xgplayer-isloading')) {
+        if (this.player.video.readyState === 1 || this.player.video.readyState === 2) {
           var _detectBufferGap = this.detectBufferGap(),
               gap = _detectBufferGap.gap,
               start = _detectBufferGap.start,
               method = _detectBufferGap.method;
 
           if (gap) {
-            this.currentTime = Math[method](start);
+            if (method === 'ceil' && this.player.currentTime < Math[method](start)) {
+              this.player.currentTime = Math[method](start);
+            } else if (method === 'floor' && this.player.currentTime > Math[method](start)) {
+              this.player.currentTime = Math[method](start);
+            }
           }
         }
-      }
-    }, {
-      key: 'start',
-      value: function start() {
-        var url = arguments.length > 0 && arguments[0] !== undefined ? arguments[0] : this.config.url;
-
-        if (!url || this.started) {
-          return;
-        }
-        if (!this._context) {
-          this._context = new Context(HlsAllowedEvents$1);
-        }
-
-        this.hls = this._context.registry('HLS_VOD_CONTROLLER', HlsVodController)({ player: this, container: this.video, preloadTime: this.config.preloadTime });
-        this._context.init();
-        this.hls.load(url);
-        this.__initEvents();
-
-        this.started = true;
       }
     }, {
       key: 'swithURL',
@@ -9421,7 +9508,7 @@
     }, {
       key: 'detectBufferGap',
       value: function detectBufferGap() {
-        var video = this.video;
+        var video = this.player.video;
 
         var result = {
           gap: false,
@@ -9429,12 +9516,29 @@
         };
         for (var i = 0; i < video.buffered.length; i++) {
           var bufferStart = video.buffered.start(i);
+          var bufferEnd = video.buffered.end(i);
+          if (!video.played.length || bufferStart <= this.currentTime && bufferEnd - this.currentTime >= 0.5) {
+            break;
+          }
           var startGap = bufferStart - this.currentTime;
-          if (startGap > 0.1 && startGap <= 4) {
+          var endGap = this.currentTime - bufferEnd;
+          if (startGap > 0.01 && startGap <= 2) {
             result = {
               gap: true,
               start: bufferStart,
               method: 'ceil'
+            };
+            break;
+          } else if (endGap > 0.1 && endGap <= 2) {
+            result = {
+              gap: true,
+              start: bufferEnd,
+              method: 'floor'
+            };
+          } else {
+            result = {
+              gap: false,
+              start: -1
             };
           }
         }

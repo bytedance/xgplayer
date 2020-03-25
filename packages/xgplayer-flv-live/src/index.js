@@ -128,6 +128,7 @@ class FlvPlayer extends BasePlugin {
         this.context = new Context(flvAllowedEvents)
         this.player.hasStart = false;
         this.player.start()
+        this.player.onWaiting();
         this.player.once('canplay', () => {
           this.player.play();
         })
@@ -149,10 +150,12 @@ class FlvPlayer extends BasePlugin {
   }
 
   destroy () {
+    super._destroy();
     return this._destroy()
   }
 
   _destroy () {
+
     return this.flv.mse.destroy().then(() => {
       this.context.destroy()
       this.flv = null

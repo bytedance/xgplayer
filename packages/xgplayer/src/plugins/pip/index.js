@@ -27,6 +27,7 @@ class PIP extends Plugin {
     }
     // video初始化之后再做判断是否显示
     this.once(Events.COMPLETE, () => {
+      console.log(this.config.showIcon && this.isPIPAvailable())
       if (this.config.showIcon && this.isPIPAvailable()) {
         this.show()
         this.bind('click', this.btnClick)

@@ -2,6 +2,10 @@ var _createClass = function () { function defineProperties(target, props) { for 
 
 function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } }
 
+function _possibleConstructorReturn(self, call) { if (!self) { throw new ReferenceError("this hasn't been initialised - super() hasn't been called"); } return call && (typeof call === "object" || typeof call === "function") ? call : self; }
+
+function _inherits(subClass, superClass) { if (typeof superClass !== "function" && superClass !== null) { throw new TypeError("Super expression must either be null or a function, not " + typeof superClass); } subClass.prototype = Object.create(superClass && superClass.prototype, { constructor: { value: subClass, enumerable: false, writable: true, configurable: true } }); if (superClass) Object.setPrototypeOf ? Object.setPrototypeOf(subClass, superClass) : subClass.__proto__ = superClass; }
+
 // import Workerify from 'webworkify-webpack'
 // eslint-disable-next-line import/no-webpack-loader-syntax
 import VideoWorker from 'worker!./worker.js';
@@ -11,44 +15,72 @@ import { NalUnit } from 'xgplayer-transmuxer-codec-avc';
 import Render from './yuv-canvas';
 import SourceBuffer from '../models/sourcebuffer';
 import TimeRanges from '../models/time-ranges';
+import EventEmitter from 'events';
 
-var VideoCanvas = function () {
+var HAVE_NOTHING = 0;
+var HAVE_METADATA = 1;
+var HAVE_CURRENT_DATA = 2;
+var HAVE_FUTURE_DATA = 3;
+var HAVE_ENOUGH_DATA = 4;
+
+var NOT_SEEK = 1;
+var SEEKING = 2;
+var SEEKED = 4;
+
+export var VIDEO_CANVAS_EVENTS = {
+  VIDEO_EVENTS: 'VIDEO_EVENTS'
+};
+
+var VideoCanvas = function (_EventEmitter) {
+  _inherits(VideoCanvas, _EventEmitter);
+
   function VideoCanvas(config) {
     _classCallCheck(this, VideoCanvas);
 
-    this.config = Object.assign({}, config);
-    this.canvas = this.config.canvas ? this.config.canvas : document.createElement('canvas');
-    this.source = new SourceBuffer({ type: 'video' });
-    this.preloadTime = this.config.preloadTime || 3;
-    this.oncanplay = undefined;
-    this.onFirstFrame = undefined;
-    this.meta = undefined;
-    this.readyStatus = 0;
-    this.paused = true;
-    this.count = 0;
-    this.currentTime = 0;
-    this.lastPlayed = 0;
+    var _this = _possibleConstructorReturn(this, (VideoCanvas.__proto__ || Object.getPrototypeOf(VideoCanvas)).call(this));
 
-    this._decoderInited = false;
-    this._avccpushed = false;
-    this._decodedFrames = {};
-    this._lastSampleDts = undefined;
-    this._baseDts = undefined;
-    this._lastRenderTime = null;
-    this.playFinish = null;
-
-    this.canvas.style.maxWidth = '100%';
-    this.canvas.style.maxHeight = '100%';
-    this.canvas.style.top = 0;
-    this.canvas.style.bottom = 0;
-    this.canvas.style.left = 0;
-    this.canvas.style.right = 0;
-    this.canvas.style.margin = 'auto';
-    this.canvas.style.position = 'absolute';
-    this.handleMessage = this.handleMessage.bind(this);
+    _this.config = Object.assign({}, config);
+    _this.canvas = _this.config.canvas ? _this.config.canvas : document.createElement('canvas');
+    _this.source = new SourceBuffer({ type: 'video' });
+    _this.preloadTime = _this.config.preloadTime || 3;
+    _this.onFirstFrame = undefined;
+    _this.oncanplay = undefined;
+    _this.initParameters();
+    _this.canvas.style.maxWidth = '100%';
+    _this.canvas.style.maxHeight = '100%';
+    _this.canvas.style.top = 0;
+    _this.canvas.style.bottom = 0;
+    _this.canvas.style.left = 0;
+    _this.canvas.style.right = 0;
+    _this.canvas.style.margin = 'auto';
+    _this.canvas.style.position = 'absolute';
+    _this.handleMessage = _this.handleMessage.bind(_this);
+    return _this;
   }
 
   _createClass(VideoCanvas, [{
+    key: 'initParameters',
+    value: function initParameters() {
+      this.meta = undefined;
+      this.readyStatus = HAVE_NOTHING;
+      this.paused = true;
+      this.currentTime = 0;
+      this._seekState = NOT_SEEK;
+      this._avccpushed = false;
+      this._decodedFrames = {};
+      this._lastSampleDts = undefined;
+      this._baseDts = undefined;
+      this._lastRenderTime = null;
+      this.playFinish = null;
+      this._seekState = NOT_SEEK;
+    }
+  }, {
+    key: 'reset',
+    value: function reset() {
+      this.initParameters();
+      this.source.reset();
+    }
+  }, {
     key: 'pause',
     value: function pause() {
       this.paused = true;
@@ -72,6 +104,15 @@ var VideoCanvas = function () {
         this.initWasmWorker();
         return;
       }
+      this.wasmworker.postMessage({
+        msg: 'updatemeta',
+        meta: this.meta
+      });
+      this.pushAvcc(meta);
+    }
+  }, {
+    key: 'pushAvcc',
+    value: function pushAvcc(meta) {
       this._avccpushed = true;
       var data = new Uint8Array(meta.sps.byteLength + 4);
       data.set([0, 0, 0, 1]);
@@ -92,8 +133,10 @@ var VideoCanvas = function () {
       if (!this.yuvCanvas) {
         var config = Object.assign({ meta: meta, canvas: this.canvas }, this.config);
         this.yuvCanvas = new Render(config);
+      } else {
+        this.yuvCanvas.resetMeta(meta);
       }
-      this.readyStatus = 1;
+      this.readyStatus = HAVE_METADATA;
     }
   }, {
     key: 'decodeVideo',
@@ -101,9 +144,8 @@ var VideoCanvas = function () {
       if (!this._decoderInited) {
         return;
       }
-
       if (!this._avccpushed) {
-        this.setVideoMetaData(this.meta);
+        this.pushAvcc(this.meta);
       }
       var samples = videoTrack.samples;
 
@@ -117,11 +159,11 @@ var VideoCanvas = function () {
         sample = samples.shift();
       }
 
-      this._preload();
+      this.preload();
     }
   }, {
-    key: '_preload',
-    value: function _preload() {
+    key: 'preload',
+    value: function preload() {
       if (!this._lastSampleDts || this._lastSampleDts - this._baseDts < this.currentTime + this.preloadTime * 1000) {
         var sample = this.source.get();
         if (sample) {
@@ -141,7 +183,7 @@ var VideoCanvas = function () {
   }, {
     key: '_analyseNal',
     value: function _analyseNal(sample) {
-      var nals = NalUnit.getAvccNals(new Stream(sample.data.buffer));
+      var nals = NalUnit.getNalunits(new Stream(sample.data.buffer));
 
       var length = 0;
       for (var i = 0; i < nals.length; i++) {
@@ -185,25 +227,45 @@ var VideoCanvas = function () {
       var dts = data.info.dts;
 
       this._decodedFrames[dts] = data;
-      if (Object.keys(this._decodedFrames).length > 10) {
-        if ((this.paused || this.playFinish) && this.oncanplay) {
-          this.oncanplay();
-        }
+      var decodedFrameLen = Object.keys(this._decodedFrames).length;
+      if (this.readyStatus == HAVE_METADATA && decodedFrameLen > 0) {
+        this.readyStatus = HAVE_CURRENT_DATA;
+        this.emit(VIDEO_CANVAS_EVENTS.VIDEO_EVENTS, 'loadeddata');
+      }
+      if (this._seekState == SEEKED) {
+        this.readyStatus = HAVE_CURRENT_DATA;
+        this._seekState = NOT_SEEK;
+      }
+      if (decodedFrameLen > 10) {
         if (this.playFinish) {
           this.playFinish();
         }
+        if (this.readyStatus == HAVE_CURRENT_DATA) {
+          this.readyStatus = HAVE_FUTURE_DATA;
+          this.emit(VIDEO_CANVAS_EVENTS.VIDEO_EVENTS, 'canplay');
+        }
+        if (this.oncanplay) {
+          this.oncanplay();
+        }
+        // 2s的时间
+        if (this.readyStatus == HAVE_FUTURE_DATA && decodedFrameLen > 2 * (this.meta.frameRate.fps || 60)) {
+          this.readyStatus = HAVE_ENOUGH_DATA;
+          this.emit(VIDEO_CANVAS_EVENTS.VIDEO_EVENTS, 'canplaythrough');
+        }
+      } else {
+        this.readyStatus = HAVE_CURRENT_DATA;
       }
     }
   }, {
     key: 'play',
     value: function play() {
-      var _this = this;
+      var _this2 = this;
 
       this.paused = false;
       return new Promise(function (resolve) {
-        _this.playFinish = resolve;
+        _this2.playFinish = resolve;
       }).then(function () {
-        _this.playFinish = null;
+        _this2.playFinish = null;
       });
     }
   }, {
@@ -214,7 +276,6 @@ var VideoCanvas = function () {
       }
 
       if (this.meta) {
-        if (this.meta.frameRate && this.meta.frameRate.fixed && this.meta.frameRate.fps) {}
         var frameTimes = Object.keys(this._decodedFrames);
         if (frameTimes.length > 0) {
           this.currentTime = currentTime;
@@ -233,12 +294,12 @@ var VideoCanvas = function () {
             //   let buf2 = frame.buffer.slice(frame.yLinesize * frame.height * 1.25, frame.yLinesize * frame.height * 1.5);
             //   buf = [new Uint8Array(buf0), new Uint8Array(buf1), new Uint8Array(buf2)];
             // }
-            this.yuvCanvas.render(frame.buffer, frame.width, frame.height, frame.yLinesize, frame.uvLinesize);
-            for (var _i2 = 0; _i2 < frameTimes.length; _i2++) {
-              if (Number.parseInt(frameTimes[_i2]) < frameTime) {
-                delete this._decodedFrames[frameTimes[_i2]];
-              }
+            if (this._seekState == SEEKING) {
+              this._seekState = SEEKED;
+              this.emit(VIDEO_CANVAS_EVENTS.VIDEO_EVENTS, 'seeked');
             }
+            this.yuvCanvas.render(frame.buffer, frame.width, frame.height, frame.yLinesize, frame.uvLinesize);
+
             return true;
           } else {
             return false;
@@ -253,17 +314,32 @@ var VideoCanvas = function () {
       if (this.currentTime > 1) {
         this.source.remove(0, this.currentTime - 1);
       }
+      var frameTimes = Object.keys(this._decodedFrames);
+
+      for (var i = 0; i < frameTimes.length; i++) {
+        if (Number.parseInt(frameTimes[i]) < this.currentTime) {
+          delete this._decodedFrames[frameTimes[i]];
+        }
+      }
     }
   }, {
     key: 'destroy',
     value: function destroy() {
-      this.wasmworker.removeEventListener('message', this.handleMessage);
-      this.wasmworker.postMessage({ msg: 'destroy' });
-      this.wasmworker = null;
+      this.destroyWorker();
       this.canvas = null;
       this._decodedFrames = {};
       this.source = null;
       this._decoderInited = false;
+      this._isSeeking = false;
+    }
+  }, {
+    key: 'destroyWorker',
+    value: function destroyWorker() {
+      if (this.wasmworker) {
+        this.wasmworker.removeEventListener('message', this.handleMessage);
+        this.wasmworker.postMessage({ msg: 'destroy' });
+      }
+      this.wasmworker = null;
     }
   }, {
     key: 'handleMessage',
@@ -271,11 +347,18 @@ var VideoCanvas = function () {
       switch (msg.data.msg) {
         case 'DECODER_READY':
           this._decoderInited = true;
+          this.pushAvcc(this.meta);
           break;
         case 'DECODED':
           this._onDecoded(msg.data);
           break;
       }
+    }
+  }, {
+    key: 'setVideoSeeking',
+    value: function setVideoSeeking() {
+      this._seekState = SEEKING;
+      this.emit(VIDEO_CANVAS_EVENTS.VIDEO_EVENTS, 'seeking');
     }
   }, {
     key: 'buffered',
@@ -285,28 +368,10 @@ var VideoCanvas = function () {
         start: null,
         end: null
       };
-      for (var i = 0; i < this.source.buffer.length; i++) {
-        var _source$buffer$i = this.source.buffer[i],
-            start = _source$buffer$i.start,
-            end = _source$buffer$i.end;
-
-        if (!currentRange.start) {
-          currentRange.start = start;
-        }
-        if (!currentRange.end) {
-          currentRange.end = end;
-        }
-
-        if (start - currentRange.end > 1000) {
-          currentRange.start = currentRange.start / 1000;
-          currentRange.end = currentRange.end / 1000;
-          currentRange = {
-            start: start,
-            end: end
-          };
-        } else {
-          currentRange.end = end;
-        }
+      var decodedTimes = Object.keys(this._decodedFrames);
+      if (decodedTimes.length) {
+        currentRange.start = Number.parseInt(decodedTimes[0]);
+        currentRange.end = Number.parseInt(decodedTimes[decodedTimes.length - 1]);
       }
 
       if (currentRange.start !== null && currentRange.end !== null) {
@@ -327,9 +392,19 @@ var VideoCanvas = function () {
     get: function get() {
       return this.canvas.height;
     }
+  }, {
+    key: 'seeking',
+    get: function get() {
+      return this._seekState == SEEKING;
+    }
+  }, {
+    key: 'readyState',
+    get: function get() {
+      return this.readyStatus;
+    }
   }]);
 
   return VideoCanvas;
-}();
+}(EventEmitter);
 
 export default VideoCanvas;

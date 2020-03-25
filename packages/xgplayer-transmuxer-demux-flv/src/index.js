@@ -489,8 +489,11 @@ class FlvDemuxer {
         for (let i = 0; i < nals.length; i++) {
           const unit = nals[i]
           codecID === 12 ? NalUnitHEVC.analyseNal(unit) : NalUnit.analyseNal(unit)
+
           if (unit.sei) {
-            this.emit(DEMUX_EVENTS.SEI_PARSED, unit.sei)
+            this.emit(DEMUX_EVENTS.SEI_PARSED, Object.assign(unit.sei, {
+              dts: chunk.dts
+            }))
           }
         }
         codecID === 12 ? this.tracks.videoTrack.meta.streamType = 0x24 : this.tracks.videoTrack.meta.streamType = 0x1b

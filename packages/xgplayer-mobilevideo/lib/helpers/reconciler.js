@@ -57,6 +57,9 @@ var AVReconciler = function () {
       this.start = null;
       this.aCtx = null;
       this.vCtx = null;
+      if (this.timeoutId) {
+        clearTimeout(this.timeoutId);
+      }
     }
   }]);
 

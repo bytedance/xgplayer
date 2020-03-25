@@ -1,9 +1,53 @@
-.xgplayer.xgplayer-mobile .xgplayer-controls {
-  background-image: initial; }
-
-.xgplayer xg-trigger {
-  position: absolute;
-  top: 0;
-  left: 0;
-  height: 100%;
-  width: 100%; }
+.xgplayer-mobile {
+  font-family: PingFangSC-Semibold;
+  /**/ }
+  .xgplayer-mobile * {
+    text-decoration: none;
+    -webkit-tap-highlight-color: transparent; }
+  .xgplayer-mobile .xgplayer-controls {
+    background-image: initial; }
+  .xgplayer-mobile xg-trigger {
+    position: absolute;
+    top: 0;
+    left: 0;
+    height: 100%;
+    width: 100%;
+    z-index: 11; }
+    .xgplayer-mobile xg-trigger .timenote {
+      height: 40px;
+      width: 200px;
+      position: relative;
+      margin: 0 auto;
+      top: 50%;
+      margin-top: -20px;
+      width: 200px;
+      color: #ff0000;
+      font-size: 21px;
+      background: rgba(0, 0, 0, 0.5);
+      padding: 0 20px;
+      text-align: center; }
+      .xgplayer-mobile xg-trigger .timenote span {
+        line-height: 21px; }
+      .xgplayer-mobile xg-trigger .timenote .bar {
+        width: 100px;
+        height: 1px;
+        background-color: #fff;
+        margin: 0 auto;
+        margin-top: 14px;
+        border-radius: 3px;
+        border: solid 1px #c4c4c4;
+        -moz-box-sizing: content-box;
+             box-sizing: content-box; }
+  .xgplayer-mobile .gradient {
+    background-image: -webkit-linear-gradient(rgba(0, 0, 0, 0.6), rgba(0, 0, 0, 0.36) 20%, rgba(0, 0, 0, 0) 36%, rgba(0, 0, 0, 0) 70%, rgba(0, 0, 0, 0.24) 77%, rgba(0, 0, 0, 0.36) 83%, rgba(0, 0, 0, 0.6)); }
+  .xgplayer-mobile.xgplayer-inactive .gradient {
+    background-image: initial; }
+  .xgplayer-mobile .xgmask {
+    position: absolute;
+    height: 100%;
+    z-index: 200;
+    top: 0;
+    left: 0;
+    width: 100%;
+    pointer-events: none;
+    background-color: rgba(0, 0, 0, 0); }

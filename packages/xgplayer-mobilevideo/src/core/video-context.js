@@ -7,30 +7,32 @@ import { NalUnit } from 'xgplayer-transmuxer-codec-avc';
 import Render from './yuv-canvas'
 import SourceBuffer from '../models/sourcebuffer';
 import TimeRanges from '../models/time-ranges';
+import EventEmitter from 'events';
 
-class VideoCanvas {
+const HAVE_NOTHING = 0;
+const HAVE_METADATA = 1;
+const HAVE_CURRENT_DATA = 2;
+const HAVE_FUTURE_DATA = 3;
+const HAVE_ENOUGH_DATA = 4;
+
+const NOT_SEEK = 1;
+const SEEKING = 2;
+const SEEKED = 4;
+
+export const VIDEO_CANVAS_EVENTS = {
+  VIDEO_EVENTS: 'VIDEO_EVENTS'
+}
+
+class VideoCanvas extends EventEmitter {
   constructor (config) {
+    super();
     this.config = Object.assign({}, config);
     this.canvas = this.config.canvas ? this.config.canvas : document.createElement('canvas');
     this.source = new SourceBuffer({type: 'video'});
     this.preloadTime = this.config.preloadTime || 3;
-    this.oncanplay = undefined;
     this.onFirstFrame = undefined;
-    this.meta = undefined;
-    this.readyStatus = 0;
-    this.paused = true;
-    this.count = 0;
-    this.currentTime = 0;
-    this.lastPlayed = 0;
-
-    this._decoderInited = false;
-    this._avccpushed = false;
-    this._decodedFrames = {};
-    this._lastSampleDts = undefined;
-    this._baseDts = undefined;
-    this._lastRenderTime = null
-    this.playFinish = null
-
+    this.oncanplay = undefined;
+    this.initParameters()
     this.canvas.style.maxWidth = '100%';
     this.canvas.style.maxHeight = '100%';
     this.canvas.style.top = 0;
@@ -40,6 +42,26 @@ class VideoCanvas {
     this.canvas.style.margin = 'auto';
     this.canvas.style.position = 'absolute';
     this.handleMessage = this.handleMessage.bind(this);
+  }
+
+  initParameters () {
+    this.meta = undefined;
+    this.readyStatus = HAVE_NOTHING;
+    this.paused = true;
+    this.currentTime = 0;
+    this._seekState = NOT_SEEK;
+    this._avccpushed = false;
+    this._decodedFrames = {};
+    this._lastSampleDts = undefined;
+    this._baseDts = undefined;
+    this._lastRenderTime = null
+    this.playFinish = null
+    this._seekState = NOT_SEEK;
+  }
+
+  reset () {
+    this.initParameters()
+    this.source.reset();
   }
 
   pause () {
@@ -62,6 +84,14 @@ class VideoCanvas {
       this.initWasmWorker();
       return
     }
+    this.wasmworker.postMessage({
+      msg: 'updatemeta',
+      meta: this.meta
+    })
+    this.pushAvcc(meta)
+  }
+
+  pushAvcc (meta) {
     this._avccpushed = true;
     let data = new Uint8Array(meta.sps.byteLength + 4);
     data.set([0, 0, 0, 1])
@@ -82,17 +112,17 @@ class VideoCanvas {
     if (!this.yuvCanvas) {
       let config = Object.assign({meta, canvas: this.canvas}, this.config);
       this.yuvCanvas = new Render(config);
+    } else {
+      this.yuvCanvas.resetMeta(meta);
     }
-    this.readyStatus = 1;
+    this.readyStatus = HAVE_METADATA;
   }
-
   decodeVideo (videoTrack) {
     if (!this._decoderInited) {
       return
     }
-
     if (!this._avccpushed) {
-      this.setVideoMetaData(this.meta);
+      this.pushAvcc(this.meta);
     }
     let { samples } = videoTrack;
     let sample = samples.shift();
@@ -105,10 +135,10 @@ class VideoCanvas {
       sample = samples.shift();
     }
 
-    this._preload();
+    this.preload();
   }
 
-  _preload () {
+  preload () {
     if (!this._lastSampleDts || this._lastSampleDts - this._baseDts < this.currentTime + this.preloadTime * 1000) {
       let sample = this.source.get();
       if (sample) {
@@ -127,7 +157,7 @@ class VideoCanvas {
   }
 
   _analyseNal (sample) {
-    let nals = NalUnit.getAvccNals(new Stream(sample.data.buffer));
+    let nals = NalUnit.getNalunits(new Stream(sample.data.buffer));
 
     let length = 0;
     for (let i = 0; i < nals.length; i++) {
@@ -168,13 +198,33 @@ class VideoCanvas {
   _onDecoded (data) {
     let {dts} = data.info
     this._decodedFrames[dts] = data;
-    if (Object.keys(this._decodedFrames).length > 10) {
-      if ((this.paused || this.playFinish )&& this.oncanplay) {
-        this.oncanplay();
-      }
+    let decodedFrameLen = Object.keys(this._decodedFrames).length;
+    if (this.readyStatus == HAVE_METADATA && decodedFrameLen > 0) {
+      this.readyStatus = HAVE_CURRENT_DATA
+      this.emit(VIDEO_CANVAS_EVENTS.VIDEO_EVENTS, 'loadeddata')
+    }
+    if (this._seekState == SEEKED) {
+      this.readyStatus = HAVE_CURRENT_DATA
+      this._seekState = NOT_SEEK
+    }
+    if (decodedFrameLen > 10) {
       if (this.playFinish) {
         this.playFinish()
       }
+      if (this.readyStatus == HAVE_CURRENT_DATA) {
+        this.readyStatus = HAVE_FUTURE_DATA
+        this.emit(VIDEO_CANVAS_EVENTS.VIDEO_EVENTS, 'canplay')
+      }
+      if (this.oncanplay) {
+        this.oncanplay();
+      }
+      // 2s的时间
+      if (this.readyStatus == HAVE_FUTURE_DATA && decodedFrameLen > 2 * (this.meta.frameRate.fps || 60)) {
+        this.readyStatus = HAVE_ENOUGH_DATA;
+        this.emit(VIDEO_CANVAS_EVENTS.VIDEO_EVENTS, 'canplaythrough')
+      }
+    } else {
+      this.readyStatus = HAVE_CURRENT_DATA
     }
   }
 
@@ -193,8 +243,6 @@ class VideoCanvas {
     }
 
     if (this.meta) {
-      if (this.meta.frameRate && this.meta.frameRate.fixed && this.meta.frameRate.fps) {
-      }
       let frameTimes = Object.keys(this._decodedFrames);
       if (frameTimes.length > 0) {
         this.currentTime = currentTime;
@@ -213,17 +261,16 @@ class VideoCanvas {
           //   let buf2 = frame.buffer.slice(frame.yLinesize * frame.height * 1.25, frame.yLinesize * frame.height * 1.5);
           //   buf = [new Uint8Array(buf0), new Uint8Array(buf1), new Uint8Array(buf2)];
           // }
-          this.yuvCanvas.render(frame.buffer, frame.width, frame.height, frame.yLinesize, frame.uvLinesize);
-          for (let i = 0; i < frameTimes.length; i++) {
-            if (Number.parseInt(frameTimes[i]) < frameTime) {
-              delete this._decodedFrames[frameTimes[i]];
-            }
+          if (this._seekState == SEEKING) {
+            this._seekState = SEEKED
+            this.emit(VIDEO_CANVAS_EVENTS.VIDEO_EVENTS, 'seeked')
           }
+          this.yuvCanvas.render(frame.buffer, frame.width, frame.height, frame.yLinesize, frame.uvLinesize);
+
           return true;
         } else {
           return false;
         }
-
       }
     }
     this._lastRenderTime = Date.now()
@@ -233,27 +280,47 @@ class VideoCanvas {
     if (this.currentTime > 1) {
       this.source.remove(0, this.currentTime - 1);
     }
+    let frameTimes = Object.keys(this._decodedFrames);
+
+    for (let i = 0; i < frameTimes.length; i++) {
+      if (Number.parseInt(frameTimes[i]) < this.currentTime) {
+        delete this._decodedFrames[frameTimes[i]];
+      }
+    }
   }
 
   destroy () {
-    this.wasmworker.removeEventListener('message', this.handleMessage)
-    this.wasmworker.postMessage({msg: 'destroy'})
-    this.wasmworker = null;
+    this.destroyWorker()
     this.canvas = null
     this._decodedFrames = {};
     this.source = null
     this._decoderInited = false;
+    this._isSeeking = false;
+  }
+
+  destroyWorker () {
+    if (this.wasmworker) {
+      this.wasmworker.removeEventListener('message', this.handleMessage)
+      this.wasmworker.postMessage({msg: 'destroy'})
+    }
+    this.wasmworker = null;
   }
 
   handleMessage (msg) {
     switch (msg.data.msg) {
       case 'DECODER_READY':
         this._decoderInited = true;
+        this.pushAvcc(this.meta)
         break;
       case 'DECODED':
         this._onDecoded(msg.data);
         break;
     }
+  }
+
+  setVideoSeeking () {
+    this._seekState = SEEKING
+    this.emit(VIDEO_CANVAS_EVENTS.VIDEO_EVENTS, 'seeking')
   }
 
   get buffered () {
@@ -262,29 +329,14 @@ class VideoCanvas {
       start: null,
       end: null
     }
-    for (let i = 0; i < this.source.buffer.length; i++) {
-      const { start, end } = this.source.buffer[i];
-      if (!currentRange.start) {
-        currentRange.start = start;
-      }
-      if (!currentRange.end) {
-        currentRange.end = end;
-      }
-
-      if (start - currentRange.end > 1000) {
-        currentRange.start = currentRange.start / 1000
-        currentRange.end = currentRange.end / 1000
-        currentRange = {
-          start,
-          end
-        }
-      } else {
-        currentRange.end = end
-      }
+    const decodedTimes = Object.keys(this._decodedFrames);
+    if (decodedTimes.length) {
+      currentRange.start = Number.parseInt(decodedTimes[0])
+      currentRange.end = Number.parseInt(decodedTimes[decodedTimes.length - 1])
     }
 
     if (currentRange.start !== null && currentRange.end !== null) {
-      currentRange.start = (currentRange.start - this._baseDts )/ 1000
+      currentRange.start = (currentRange.start - this._baseDts) / 1000
       currentRange.end = (currentRange.end - this._baseDts) / 1000
       ranges.push(currentRange)
     }
@@ -300,5 +352,12 @@ class VideoCanvas {
     return this.canvas.height;
   }
 
+  get seeking () {
+    return this._seekState == SEEKING
+  }
+
+  get readyState () {
+    return this.readyStatus
+  }
 }
 export default VideoCanvas;

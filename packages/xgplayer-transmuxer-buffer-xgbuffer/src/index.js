@@ -15,7 +15,7 @@ class XgBuffer {
   /**
    * The function to push data.
    *
-   * @param {number} data - The data to push into the buffer
+   * @param {Uint8Array} data - The data to push into the buffer
    */
   push (data) {
     this.array.push(data)

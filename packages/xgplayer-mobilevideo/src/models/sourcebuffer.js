@@ -2,6 +2,10 @@ class SourceBuffer {
   constructor (config) {
     this.config = Object.assign({}, config);
     this.type = this.config.type;
+    this.reset();
+  }
+
+  reset(){
     this.buffer = [];
     this.currentGop = undefined;
     this._lastGet = undefined;

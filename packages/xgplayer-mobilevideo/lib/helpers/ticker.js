@@ -8,6 +8,8 @@ var _get = function get(object, property, receiver) { if (object === null) objec
 
 var _createClass = function () { function defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ("value" in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } } return function (Constructor, protoProps, staticProps) { if (protoProps) defineProperties(Constructor.prototype, protoProps); if (staticProps) defineProperties(Constructor, staticProps); return Constructor; }; }();
 
+exports.validateFPS = validateFPS;
+
 function _possibleConstructorReturn(self, call) { if (!self) { throw new ReferenceError("this hasn't been initialised - super() hasn't been called"); } return call && (typeof call === "object" || typeof call === "function") ? call : self; }
 
 function _inherits(subClass, superClass) { if (typeof superClass !== "function" && superClass !== null) { throw new TypeError("Super expression must either be null or a function, not " + typeof superClass); } subClass.prototype = Object.create(superClass && superClass.prototype, { constructor: { value: subClass, enumerable: false, writable: true, configurable: true } }); if (superClass) Object.setPrototypeOf ? Object.setPrototypeOf(subClass, superClass) : subClass.__proto__ = superClass; }
@@ -18,14 +20,23 @@ function _classCallCheck(instance, Constructor) { if (!(instance instanceof Cons
  * @author fuyuhao@bytedance.com
  */
 
+var DEFAULT_FPS = exports.DEFAULT_FPS = 30;
+
+function validateFPS(fps) {
+  if (fps < 20 || fps > 80) {
+    return false;
+  }
+  return true;
+}
+
 var Ticker = function () {
   function Ticker(options) {
     _classCallCheck(this, Ticker);
 
-    this.options = Object.assign({}, options || {}, {
-      interval: 16
-    });
-
+    this.options = Object.assign({}, options || {});
+    if (!this.options.interval || !validateFPS(1000 / this.options.interval)) {
+      this.options.interval = 1000 / 30;
+    }
     this.callbacks = [];
   }
 
@@ -49,6 +60,9 @@ var Ticker = function () {
   }, {
     key: "setInterval",
     value: function setInterval(interval) {
+      if (!validateFPS(1000 / interval)) {
+        interval = 1000 / 30;
+      }
       this.options.interval = interval;
       return this;
     }
@@ -62,7 +76,9 @@ var Ticker = function () {
  */
 
 
-var RafTicker = function (_Ticker) {
+exports.default = Ticker;
+
+var RafTicker = exports.RafTicker = function (_Ticker) {
   _inherits(RafTicker, _Ticker);
 
   function RafTicker(props) {
@@ -143,7 +159,7 @@ var RafTicker = function (_Ticker) {
  */
 
 
-var TimeoutTicker = function (_Ticker2) {
+var TimeoutTicker = exports.TimeoutTicker = function (_Ticker2) {
   _inherits(TimeoutTicker, _Ticker2);
 
   function TimeoutTicker(config) {
@@ -158,23 +174,36 @@ var TimeoutTicker = function (_Ticker2) {
   _createClass(TimeoutTicker, [{
     key: "start",
     value: function start() {
-      var _get3,
-          _this3 = this;
+      var _get3;
 
       for (var _len3 = arguments.length, callbacks = Array(_len3), _key3 = 0; _key3 < _len3; _key3++) {
         callbacks[_key3] = arguments[_key3];
       }
 
-      (_get3 = _get(TimeoutTicker.prototype.__proto__ || Object.getPrototypeOf(TimeoutTicker.prototype), "nextTick", this)).call.apply(_get3, [this].concat(callbacks));
-      this.timeoutId = window.setInterval(function () {
-        _this3.onTick();
-      }, this.options.interval || 16);
+      (_get3 = _get(TimeoutTicker.prototype.__proto__ || Object.getPrototypeOf(TimeoutTicker.prototype), "start", this)).call.apply(_get3, [this].concat(callbacks));
+      this.tick();
+    }
+  }, {
+    key: "tick",
+    value: function tick() {
+      this.nextTick();
+      this.onTick();
+    }
+  }, {
+    key: "nextTick",
+    value: function nextTick() {
+      var _this3 = this;
+
+      this.timeoutId = window.setTimeout(function () {
+        _this3.stop();
+        _this3.tick();
+      }, this.options.interval);
     }
   }, {
     key: "stop",
     value: function stop() {
       if (this.timeoutId) {
-        window.clearInterval(this.timeoutId);
+        window.clearTimeout(this.timeoutId);
       }
     }
   }]);
@@ -185,13 +214,14 @@ var TimeoutTicker = function (_Ticker2) {
 /**
  * 返回Ticker构造函数
  * @returns {Ticker}
+ * 使用TimeoutTicker 1.可控制间隔 2.防止页面切换降频
  */
 
 
 var getTicker = exports.getTicker = function getTicker() {
-  if (RafTicker.isSupported()) {
-    return RafTicker;
-  } else {
-    return TimeoutTicker;
-  }
+  // if (RafTicker.isSupported()) {
+  //   return RafTicker
+  // } else {
+  return TimeoutTicker;
+  // }
 };

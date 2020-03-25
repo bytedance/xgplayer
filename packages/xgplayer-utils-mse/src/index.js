@@ -11,7 +11,7 @@ class MSE {
     this.sourceBuffers = {};
     this.preloadTime = this.configs.preloadTime || 1;
     this.onSourceOpen = this.onSourceOpen.bind(this)
-    this.onWaiting = this.onWaiting.bind(this)
+    this.onUpdateEnd = this.onUpdateEnd.bind(this)
   }
 
   init () {
@@ -59,20 +59,20 @@ class MSE {
         // return;
       }
       if (track) {
-        let dur = type === 'audio' ? 21 : 40;
-        if (track.meta && track.meta.refSampleDuration) dur = track.meta.refSampleDuration;
-        if (sources[type].data.length >= (this.preloadTime / dur)) {
-          add = true;
-        }
+        add = true;
       }
     }
 
     if (add) {
-      if (Object.keys(this.sourceBuffers).length > 0) {
+      if (Object.keys(this.sourceBuffers).length > 1) {
         return;
       }
       for (let i = 0, k = Object.keys(sources).length; i < k; i++) {
         let type = Object.keys(sources)[i];
+        if (this.sourceBuffers[type]) {
+          continue;
+        }
+
         let source = sources[type]
         let mime = (type === 'video') ? 'video/mp4;codecs=' + source.mimetype : 'audio/mp4;codecs=' + source.mimetype
         let sourceBuffer = this.mediaSource.addSourceBuffer(mime);
@@ -113,8 +113,8 @@ class MSE {
   }
 
   endOfStream () {
-    const { readyState, activeSourceBuffers } = this.mediaSource;
-    if (readyState === 'open' && activeSourceBuffers.length === 0) {
+    const { readyState } = this.mediaSource;
+    if (readyState === 'open') {
       try {
         this.mediaSource.endOfStream()
       } catch (e) {
@@ -236,8 +236,6 @@ class MSE {
         delete this.sourceBuffers[Object.keys(this.sourceBuffers)[i]];
       }
 
-      this.container.removeEventListener('timeupdate', this.onTimeUpdate);
-      this.container.removeEventListener('waiting', this.onWaiting);
       this.mediaSource.removeEventListener('sourceopen', this.onSourceOpen);
 
       this.endOfStream()
