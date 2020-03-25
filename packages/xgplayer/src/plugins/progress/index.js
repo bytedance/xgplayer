@@ -117,9 +117,8 @@ class Progress extends Plugin {
   }
 
   mouseDown (e) {
-    console.log('mousedown')
     const {player} = this
-    if (player.isMini) {
+    if (player.isMini || player.config.closeMoveSeek) {
       return
     }
     const self = this
@@ -129,48 +128,33 @@ class Progress extends Plugin {
     if (e.target === this.pointTip || (!player.config.allowSeekAfterEnded && player.ended)) {
       return true
     }
-    this.root.focus()
-    Util.addClass(this.progressBtn, 'btn-move')
-    const containerWidth = this.root.getBoundingClientRect().width
-    let {left} = this.playedBar.getBoundingClientRect()
+    this.isProgressMoving = true
+    Util.addClass(self.progressBtn, 'btn-move')
+    self.computeWidth(e)
+
     let move = function (e) {
       e.preventDefault()
       e.stopPropagation()
       Util.event(e)
-      self.isProgressMoving = true
-      let w = e.clientX - left
-      if (w > containerWidth) {
-        w = containerWidth
-      }
-      self.updatePercent(w / containerWidth)
-      player.emit('focus')
+      this.isProgressMoving = true
+      self.computeWidth(e)
     }
+
     let up = function (e) {
-      // e.preventDefault()
       Util.removeClass(self.progressBtn, 'btn-move')
+      e.preventDefault()
       e.stopPropagation()
       Util.event(e)
       if (Sniffer.device === 'mobile') {
-        self.root.removeEventListener('touchmove', move, { passive: false })
+        self.root.removeEventListener('touchmove', move)
         self.root.removeEventListener('touchend', up)
       } else {
         self.root.removeEventListener('mousemove', move)
         self.root.removeEventListener('mouseup', up)
       }
-      self.root.blur()
-      if (!self.isProgressMoving || player.videoConfig.mediaType === 'audio' || player.dash || player.config.closeMoveSeek) {
-        let w = e.clientX - left
-        if (w > containerWidth) {
-          w = containerWidth
-        }
-        // let now = w / containerWidth * player.duration
-        // self.playedBar.style.width = `${w * 100 / containerWidth}%`
-        // player.currentTime = Number(now).toFixed(1)
-        self.updatePercent(w / containerWidth)
-      }
-      player.emit('focus')
       self.isProgressMoving = false
     }
+
     if (Sniffer.device === 'mobile') {
       self.root.addEventListener('touchmove', move, false)
       self.root.addEventListener('touchend', up, false)
@@ -182,13 +166,9 @@ class Progress extends Plugin {
   }
 
   mouseEnter (e) {
-    console.log('mouseEnter')
     const {player} = this
-    if (player.isMini) {
+    if (player.isMini || (!player.config.allowSeekAfterEnded && player.ended)) {
       return
-    }
-    if (!player.config.allowSeekAfterEnded && player.ended) {
-      return true
     }
     this.root.addEventListener('mousemove', this.mouseMove, false)
     this.root.addEventListener('mouseleave', this.mouseLeave, false)
@@ -254,6 +234,16 @@ class Progress extends Plugin {
     })
   }
 
+  computeWidth (e) {
+    const containerWidth = this.root.getBoundingClientRect().width
+    let {left} = this.playedBar.getBoundingClientRect()
+    let w = e.clientX - left
+    if (w > containerWidth) {
+      w = containerWidth
+    }
+    this.updatePercent(w / containerWidth)
+  }
+
   updateTime (time) {
     const {player} = this
     let timeIcon = player.plugins.time
@@ -273,7 +263,7 @@ class Progress extends Plugin {
       return
     }
     if (player.videoConfig.mediaType === 'video' && !player.dash && !player.config.closeMoveSeek) {
-      player.currentTime = Number(now).toFixed(1)
+      player.seek(Number(now).toFixed(1))
     } else {
       this.updateTime(now)
     }
@@ -291,10 +281,10 @@ class Progress extends Plugin {
 
   onTimeupdate () {
     const {player} = this
-    if (player.isSeeking) {
+    if (player.isSeeking || this.isProgressMoving) {
       return;
     }
-    if (player.videoConfig.mediaType !== 'audio' || !this.isProgressMoving || !player.dash) {
+    if (player.videoConfig.mediaType !== 'audio' || !player.dash) {
       this.playedBar.style.width = `${player.currentTime * 100 / player.duration}%`
     }
   }

@@ -25,6 +25,10 @@ export default class ScreenShot extends Plugin {
     }
   }
 
+  afterCreate () {
+    this.appendChild('xgplayer-icon', this.icons.screenshotIcon)
+  }
+
   onPluginsReady () {
     this.show()
     this.onClickBtn = this.onClickBtn.bind(this)
@@ -98,7 +102,7 @@ export default class ScreenShot extends Plugin {
     return `
       <xg-icon class="xgplayer-shot">
       <div class="${className}">
-      ${this.icons.screenshotIcon ? `${this.icons.screenshotIcon}` : `<span>${this.text.screenshot}</span>`} 
+      ${this.icons.screenshotIcon ? `` : `<span>${this.text.screenshot}</span>`} 
       </div>
     </xg-icon>`
   }

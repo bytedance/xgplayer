@@ -191,7 +191,19 @@ class MobilePlugin extends Plugin {
   render () {
     const className = this.config.gradient ? 'gradient' : ''
     return `
-     <xg-trigger class="trigger ${className}"></xg-trigger>
+     <xg-trigger class="trigger ${className}">
+     <!--<div class="bar">
+        <span class=""></span>
+     </div>
+     <div class="timenote">
+        <span class="cur">00:00</span>
+        <span>/</span>
+        <span class="dur">00:00</span>
+        <div class="bar timebar">
+          <span class=""></span>
+        </class>
+     </div>-->
+     </xg-trigger>
     `
   }
 }

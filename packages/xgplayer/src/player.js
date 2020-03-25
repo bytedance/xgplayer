@@ -568,6 +568,14 @@ class Player extends Proxy {
     }
   }
 
+  seek (time) {
+    if (!this.video || isNaN(Number(time)) || time > this.duration) {
+      return
+    }
+    time = time < 0 ? 0 : time
+    this.currentTime = time
+  }
+
   get version () {
     return version
   }

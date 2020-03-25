@@ -55,15 +55,12 @@ class MiniScreen extends Plugin {
     bindFunKeys.map(key => {
       this[key] = this[key].bind(this)
     })
+    this.initIcons()
     this.on(Events.PAUSE, () => {
-      const btn = this.find('.play-icon')
-      Util.addClass(btn, 'pause')
-      Util.removeClass(btn, 'play')
+      this.setAttr('data-state', 'pause')
     })
     this.on(Events.PLAY, () => {
-      const btn = this.find('.play-icon')
-      Util.addClass(btn, 'play')
-      Util.removeClass(btn, 'pause')
+      this.setAttr('data-state', 'play')
     })
   }
 
@@ -90,6 +87,19 @@ class MiniScreen extends Plugin {
     if (this.config.isScrollSwitch) {
       window.addEventListener('scroll', this.onScroll)
     }
+  }
+
+  registerIcons () {
+    return {
+      play: {icon: PlayIcon, class: 'xg-icon-play'},
+      pause: {icon: PauseIcon, class: 'xg-icon-pause'}
+    }
+  }
+
+  initIcons () {
+    const {icons} = this
+    this.appendChild('.play-icon', icons.play)
+    this.appendChild('.play-icon', icons.pause)
   }
 
   onCancelClick (e) {
@@ -233,9 +243,7 @@ class MiniScreen extends Plugin {
         <div>按住画面可移动小窗</div>
       </xg-mini-header>
       <div class="mini-cancel-btn">X</div>
-      <div class="play-icon play">
-        ${PauseIcon}
-        ${PlayIcon}
+      <div class="play-icon">
       </div>
       </xg-mini-layer>`
   }

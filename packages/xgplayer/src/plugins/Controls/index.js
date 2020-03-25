@@ -38,8 +38,9 @@ class Controls extends Plugin {
     this.left = this.find('left-grid')
     this.center = this.find('center')
     this.right = this.find('right-grid')
+    this.innerRoot = this.find('inner-controls')
     this.on(Events.MINI_STATE_CHANGE, (isMini) => {
-      isMini ? Util.addClass(this.root, 'mini') : Util.removeClass(this.root, 'mini')
+      isMini ? Util.addClass(this.root, 'mini-controls') : Util.removeClass(this.root, 'mini-controls')
     })
     this.bind('mouseenter', (e) => {
       this.mouseEnter(e)
@@ -50,10 +51,12 @@ class Controls extends Plugin {
   }
 
   mouseEnter () {
+    // console.log('controls mouseEnter')
     clearTimeout(this.player.userTimer)
   }
 
   mouseOut () {
+    // console.log('controls mouseOut')
     const {player} = this
     player.userTimer = setTimeout(function () {
       this.isActive = false
@@ -69,8 +72,9 @@ class Controls extends Plugin {
     if (!this.root) {
       return;
     }
+    const defaultConfig = plugin.defaultConfig || {}
     if (!options.root) {
-      const position = options.config && options.config.position ? options.config.position : plugin.defaultConfig.position
+      const position = options.config && options.config.position ? options.config.position : defaultConfig.position
       switch (position) {
         case POSITIONS.CONTROLS_LEFT:
           options.root = this.left
@@ -80,6 +84,9 @@ class Controls extends Plugin {
           break;
         case POSITIONS.CONTROLS_CENTER:
           options.root = this.center;
+          break;
+        case POSITIONS.CONTROLS:
+          options.root = this.root;
           break;
         default:
           options.root = this.left
@@ -92,15 +99,16 @@ class Controls extends Plugin {
     if (this.config.disable) {
       return;
     }
-    let className = this.config.mode === 'flex' ? 'flex ' : ''
+    let className = this.config.mode === 'flex' ? 'flex-controls ' : ''
     className += this.config.autoHide ? 'control_autohide' : ''
-
     return `<xg-controls class="xgplayer-controls ${className}" unselectable="on" onselectstart="return false">
-    <left-grid class="left-grid">
-    </Left-grid>
-    <center class="center"></center>
-    <right-grid class="right-grid">
-    </right-grid>
+    <inner-controls class="inner-controls">
+      <left-grid class="left-grid">
+      </Left-grid>
+      <center class="center"></center>
+      <right-grid class="right-grid">
+      </right-grid>
+    </inner-controls>
     </xg-controls>`
   }
 }

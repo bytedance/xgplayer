@@ -5,7 +5,32 @@
   .xgplayer-icon {
     width: 24px;
   }
-  svg {
-    transform: translate(-4px, 5px)
+  
+  // svg {
+  //   transform: translate(-4px, 5px)
+  // }
+
+  // &[data-state=normal] {
+  //   .xg-exit-fullscreen {
+  //     display: block;
+  //   }
+  //   .xg-get-fullscreen {
+  //     display: none;
+  //   }
+  // }
+  .xg-exit-fullscreen {
+    display: none;
+  }
+  .xg-get-fullscreen {
+    display: block;
+  }
+
+  &[data-state=full] {
+    .xg-exit-fullscreen {
+      display: block;
+    }
+    .xg-get-fullscreen {
+      display: none;
+    }
   }
 }

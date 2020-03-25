@@ -1,5 +1,7 @@
 import Plugin from '../../plugin'
-import volumeChange from '../assets/volumeChange.svg'
+import volumeLargeSvg from '../assets/volumeLarge.svg'
+import volumeSmallSvg from '../assets/volumeSmall.svg'
+import volumeMutedSvg from '../assets/volumeMuted.svg'
 
 const {Util, Events, POSITIONS} = Plugin
 
@@ -18,7 +20,9 @@ class Volume extends Plugin {
 
   registerIcons () {
     return {
-      volumeChange: volumeChange
+      volumeSmall: {icon: volumeSmallSvg, class: 'xg-volume-small'},
+      volumeLarge: {icon: volumeLargeSvg, class: 'xg-volume'},
+      volumeMuted: {icon: volumeMutedSvg, class: 'xg-volume-mute'}
     }
   }
 
@@ -26,19 +30,20 @@ class Volume extends Plugin {
     if (this.config.disable) {
       return
     }
-    this.bar = this.find('.xgplayer-bar')
-    this.drag = this.find('.xgplayer-drag')
+
+    this.initIcons()
+
     this.changeMuted = this.changeMuted.bind(this)
-
     this.onBarMousedown = this.onBarMousedown.bind(this)
-
     this.onMouseenter = this.onMouseenter.bind(this)
     this.onMouseleave = this.onMouseleave.bind(this)
+
     this.bind('mouseenter', this.onMouseenter)
 
     this.bind(['blur', 'mouseleave'], this.onMouseleave)
 
     this.bind('.xgplayer-bar', 'mousedown', this.onBarMousedown)
+
     this.bind('.xgplayer-icon', ['click', 'touched'], this.changeMuted)
 
     this.on(Events.VOLUME_CHANGE, this.onVolumeChange.bind(this))
@@ -46,28 +51,32 @@ class Volume extends Plugin {
 
   onBarMousedown (e) {
     const {player} = this
-    player.video.muted = false
-    const drag = this.drag
+    const drag = this.find('.xgplayer-drag')
     const slider = this.find('.xgplayer-slider')
+    const bar = this.find('.xgplayer-bar')
     slider.focus()
     Util.event(e)
 
-    let barRect = this.bar.getBoundingClientRect()
+    let barRect = bar.getBoundingClientRect()
     let pos = {x: e.clientX, y: e.clientY}
     let height = drag.getBoundingClientRect().height
-    let isMove = false
-    let onMove = function (e) {
+    this.isMoveing = false
+    let onMove = (e) => {
       e.preventDefault()
       e.stopPropagation()
       Util.event(e)
-      isMove = true
+      this.isMoveing = true
       let w = height - e.clientY + pos.y
+      if (w > barRect.height) {
+        return
+      }
       let now = w / barRect.height
       drag.style.height = `${w}px`
       player.volume = Math.max(Math.min(now, 1), 0)
+      player.muted = false
     }
 
-    let onUp = function (e) {
+    let onUp = (e) => {
       e.preventDefault()
       e.stopPropagation()
       Util.event(e)
@@ -76,21 +85,14 @@ class Volume extends Plugin {
       window.removeEventListener('mouseup', onUp)
       window.removeEventListener('touchend', onUp)
 
-      if (!isMove) {
+      if (!this.isMoveing) {
         let w = barRect.height - (e.clientY - barRect.top)
         let now = w / barRect.height
         drag.style.height = `${w}px`
-        if (now <= 0) {
-          if (player.volume > 0) {
-            drag.volume = player.video.volume
-          } else {
-            now = drag.volume
-          }
-        }
         player.volume = Math.max(Math.min(now, 1), 0)
+        player.muted = false
       }
-      slider.volume = player.volume
-      isMove = false
+      this.isMoveing = false
     }
     window.addEventListener('mousemove', onMove)
     window.addEventListener('touchmove', onMove)
@@ -118,20 +120,27 @@ class Volume extends Plugin {
 
   onVolumeChange () {
     const {muted, volume} = this.player
-    this.find('.xgplayer-drag').style.height = muted || volume === 0 ? `0px` : `${volume * 100}%`
+    if (!this.isMoveing) {
+      this.find('.xgplayer-drag').style.height = muted || volume === 0 ? `0px` : `${volume * 100}%`
+    }
     this.animate(muted, volume)
   }
 
   animate (muted, volume) {
-    const path = this.find('.path')
-    const pathLarge = this.find('.path_large').getAttribute('d')
-    const pathSmall = this.find('.path_small').getAttribute('d')
-    const pathMuted = this.find('.path_muted').getAttribute('d')
     if (muted || volume === 0) {
-      path.setAttribute('d', pathMuted)
+      this.setAttr('data-state', 'mute')
+    } else if (volume < 0.5 && this.icons.volumeSmall) {
+      this.setAttr('data-state', 'small')
     } else {
-      volume >= 0.5 ? path.setAttribute('d', pathLarge) : path.setAttribute('d', pathSmall)
+      this.setAttr('data-state', 'normal')
     }
+  }
+
+  initIcons () {
+    const {icons} = this
+    this.appendChild('.xgplayer-icon', icons.volumeSmall)
+    this.appendChild('.xgplayer-icon', icons.volumeLarge)
+    this.appendChild('.xgplayer-icon', icons.volumeMuted)
   }
 
   render () {
@@ -140,14 +149,13 @@ class Volume extends Plugin {
     }
     const {volume} = this.player
     return `
-    <xg-icon class="xgplayer-volume">
+    <xg-icon class="xgplayer-volume" data-state="normal">
       <div class="xgplayer-icon">
-      ${this.icons.volumeChange}
       </div>
       <xg-slider class="xgplayer-slider">
-        <xg-bar class="xgplayer-bar">
+        <div class="xgplayer-bar">
           <xg-drag class="xgplayer-drag" style="height: ${volume * 100}%"></xg-drag>
-        </xg-bar>
+        </div>
       </xg-slider>
     </xg-icon>`
   }

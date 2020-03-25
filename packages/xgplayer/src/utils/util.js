@@ -18,6 +18,28 @@ util.createDom = function (el = 'div', tpl = '', attrs = {}, cname = '') {
   return dom
 }
 
+util.createDomFromHtml = function (html, attrs = {}, classname = '') {
+  try {
+    let doc = document.createElement('div')
+    doc.innerHTML = html
+    let dom = doc.children
+    doc = null
+    if (dom.length > 0) {
+      dom = dom[0]
+      classname && util.addClass(dom, classname)
+      if (attrs) {
+        Object.keys(attrs).forEach(key => {
+          dom.setAttribute(key, attrs[key])
+        })
+      }
+      return dom
+    }
+    return null
+  } catch (err) {
+    return null
+  }
+}
+
 util.hasClass = function (el, className) {
   if (!el) {
     return false;

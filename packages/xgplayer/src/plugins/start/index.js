@@ -17,6 +17,7 @@ function addAnimate (key, seconds, callback = {start: null, end: null}) {
 }
 
 const { Util, Events, Sniffer } = Plugin
+
 class Start extends Plugin {
   static get pluginName () {
     return 'start'
@@ -32,6 +33,7 @@ class Start extends Plugin {
 
   afterCreate () {
     const {player, playerConfig} = this
+    this.initIcons()
     if (Sniffer.device === 'mobile') {
       this.config.isShowPause = true
     }
@@ -63,9 +65,15 @@ class Start extends Plugin {
 
   registerIcons () {
     return {
-      play: PlaySvg,
-      pause: PauseSvg
+      startPlay: {icon: PlaySvg, class: 'xg-icon-play'},
+      startPause: {icon: PauseSvg, class: 'xg-icon-pause'}
     }
+  }
+
+  initIcons () {
+    const {icons} = this
+    this.appendChild('.icon', icons.startPlay)
+    this.appendChild('.icon', icons.startPause)
   }
 
   animate (isEnded) {
@@ -74,7 +82,7 @@ class Start extends Plugin {
         return
       }
       this.show()
-      this.root.innerHTML = this.player.paused ? this.icons.play : this.icons.pause
+      this.setAttr('data-state', this.player.paused ? 'pause' : 'play')
       return;
     }
     if (this.player.disableAmimate) {
@@ -84,7 +92,7 @@ class Start extends Plugin {
       start: () => {
         Util.addClass(this.root, 'interact')
         this.show()
-        this.root.innerHTML = this.player.paused ? this.icons.pause : this.icons.play
+        this.setAttr('data-state', this.player.paused ? 'pause' : 'play')
       },
       end: () => {
         Util.removeClass(this.root, 'interact');
@@ -126,7 +134,6 @@ class Start extends Plugin {
     return `
     <xg-start class="xgplayer-start" >
       <div class="icon">
-      ${this.icons.play}
       </div>
     </xg-start>`
   }

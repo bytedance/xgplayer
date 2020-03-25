@@ -45,9 +45,13 @@
     to {opacity: 0.25;}
   }
 }
-
 .xgplayer-is-enter {
   .xgplayer-enter {
     display: block;
   }
 }
+// .not-allow-autoplay, .xgplayer-playing, .xgplayer-nostart{
+//   .xgplayer-enter {
+//     display: none;
+//   }
+// }

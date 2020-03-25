@@ -13,10 +13,14 @@ class Loading extends Plugin {
     }
   }
 
+  afterCreate () {
+    console.log('this.icons.loadingIcon', this.icons.loadingIcon)
+    this.appendChild(this.icons.loadingIcon)
+  }
+
   render () {
     return `
     <xg-loading class="xgplayer-loading">
-      ${this.icons.loadingIcon}
     </xg-loading>`
   }
 }

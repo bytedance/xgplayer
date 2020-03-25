@@ -7,13 +7,6 @@ class DanmuPanel extends Plugin {
     return 'DanmuPanel'
   }
 
-  static get position () {
-    return {
-      index: 8,
-      gird: 'right'
-    }
-  }
-
   static get defaultConfig () {
     return {
       position: POSITIONS.CONTROLS_RIGTH,
@@ -27,6 +20,7 @@ class DanmuPanel extends Plugin {
       fonSize: 'middle'
     }
   }
+
   constructor (args) {
     super(args)
     this.set = {

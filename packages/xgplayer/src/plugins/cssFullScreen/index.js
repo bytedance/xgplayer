@@ -1,7 +1,9 @@
 import Plugin from '../../plugin'
-import CssFullscreenChange from '../assets/cssFullscreenChange.svg'
+import CssFullSceenSvg from '../assets/requestCssFull.svg'
+import ExitCssFullSceenSvg from '../assets/exitCssFull.svg'
 
 const {Events, POSITIONS} = Plugin
+
 export default class CssFullScreen extends Plugin {
   static get pluginName () {
     return 'cssFullscreen'
@@ -22,6 +24,7 @@ export default class CssFullScreen extends Plugin {
   }
 
   afterCreate () {
+    this.initIcons()
     this.on(Events.CSS_FULLSCREEN_CHANGE, (isCssfullScreen) => {
       this.animate(isCssfullScreen)
     })
@@ -29,6 +32,13 @@ export default class CssFullScreen extends Plugin {
     this.on(Events.FULLSCREEN_CHANGE, (isFullScreen) => {
       !isFullScreen && this.animate(isFullScreen)
     })
+  }
+
+  initIcons () {
+    const {icons} = this
+    const contentIcon = this.find('.xgplayer-icon')
+    contentIcon.appendChild(icons.cssFullscreen)
+    contentIcon.appendChild(icons.exitCssFullscreen)
   }
 
   afterPlayerInit () {
@@ -50,10 +60,10 @@ export default class CssFullScreen extends Plugin {
     if (!this.root) {
       return;
     }
-    const path = this.find('.path')
-    const full = this.find('.path_full').getAttribute('d')
-    const exit = this.find('.path_exitfull').getAttribute('d')
-    isFullScreen ? path.setAttribute('d', exit) : path.setAttribute('d', full)
+    // const path = this.find('.path')
+    // const full = this.find('.path_full').getAttribute('d')
+    // const exit = this.find('.path_exitfull').getAttribute('d')
+    isFullScreen ? this.setAttr('data-state', 'full') : this.setAttr('data-state', 'normal')
   }
 
   switchTips () {
@@ -62,7 +72,8 @@ export default class CssFullScreen extends Plugin {
 
   registerIcons () {
     return {
-      cssFullscreen: CssFullscreenChange
+      cssFullscreen: { icon: CssFullSceenSvg, class: 'xg-get-cssfull' },
+      exitCssFullscreen: { icon: ExitCssFullSceenSvg, class: 'xg-exit-cssfull' }
     }
   }
 
@@ -91,7 +102,6 @@ export default class CssFullScreen extends Plugin {
     }
     return `<xg-icon class='xgplayer-cssfullscreen'>
     <div class="xgplayer-icon">
-    ${this.icons.cssFullscreen}
     </div>
     <div class="xg-tips">${this.isCssfullScreen ? this.text.exitCssFullscreen : this.text.cssFullscreen}</div>
     </xg-icon>`
