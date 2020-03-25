@@ -87,7 +87,8 @@ class Nv12 extends Filter {
     gl.framebufferTexture2D(gl.FRAMEBUFFER, gl.COLOR_ATTACHMENT0, gl.TEXTURE_2D, this.outputTexuture, 0);
 
     gl.useProgram(program);
-
+    gl.viewport(0, 0, this.canvas.width, this.canvas.height);
+    
     gl.pixelStorei(gl.UNPACK_ALIGNMENT, 1);
     gl.activeTexture(gl.TEXTURE0);
     gl.bindTexture(gl.TEXTURE_2D, yTextureRef);
