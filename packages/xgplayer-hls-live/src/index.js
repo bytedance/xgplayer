@@ -44,12 +44,6 @@ export default class HlsLivePlayer extends BasePlugin {
       BasePlugin.Util.addClass(this.root, 'xgplayer-is-live');
     });
 
-    this.once('canplay', () => {
-      if (this.player.config.autoplay) {
-        this.player.play()
-      }
-    });
-
     this.on(Events.URL_CHANGE, this.handleUrlChange)
     this.on(Events.DESTROY, this.destroy)
     this.on(Events.PLAY, this.play)
@@ -80,9 +74,10 @@ export default class HlsLivePlayer extends BasePlugin {
     if (this.played && this.player.played.length) {
       this.played = false;
       return this._destroy().then(() => {
-        this.context = new Context(HlsAllowedEvents)
+        this._context = new Context(HlsAllowedEvents)
         this.player.hasStart = false;
         this.player.start()
+        this.player.onWaiting();
         this.player.once('canplay', () => {
           this.player.play();
         })
@@ -91,7 +86,16 @@ export default class HlsLivePlayer extends BasePlugin {
     this.played = true
   }
 
+  _destroy () {
+    return this.hls.mse.destroy().then(() => {
+      this._context.destroy()
+      this.hls = null
+      this._context = null
+    })
+  }
+
   destroy () {
+    super._destroy();
     this._context.destroy();
   }
 }

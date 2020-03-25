@@ -21,7 +21,7 @@ var XgBuffer = function () {
   /**
    * The function to push data.
    *
-   * @param {number} data - The data to push into the buffer
+   * @param {Uint8Array} data - The data to push into the buffer
    */
 
 

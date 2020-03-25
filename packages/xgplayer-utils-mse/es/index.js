@@ -17,7 +17,7 @@ var MSE = function () {
     this.sourceBuffers = {};
     this.preloadTime = this.configs.preloadTime || 1;
     this.onSourceOpen = this.onSourceOpen.bind(this);
-    this.onWaiting = this.onWaiting.bind(this);
+    this.onUpdateEnd = this.onUpdateEnd.bind(this);
   }
 
   _createClass(MSE, [{
@@ -72,20 +72,20 @@ var MSE = function () {
           // return;
         }
         if (track) {
-          var dur = type === 'audio' ? 21 : 40;
-          if (track.meta && track.meta.refSampleDuration) dur = track.meta.refSampleDuration;
-          if (sources[type].data.length >= this.preloadTime / dur) {
-            add = true;
-          }
+          add = true;
         }
       }
 
       if (add) {
-        if (Object.keys(this.sourceBuffers).length > 0) {
+        if (Object.keys(this.sourceBuffers).length > 1) {
           return;
         }
         for (var _i = 0, _k = Object.keys(sources).length; _i < _k; _i++) {
           var _type = Object.keys(sources)[_i];
+          if (this.sourceBuffers[_type]) {
+            continue;
+          }
+
           var source = sources[_type];
           var mime = _type === 'video' ? 'video/mp4;codecs=' + source.mimetype : 'audio/mp4;codecs=' + source.mimetype;
           var sourceBuffer = this.mediaSource.addSourceBuffer(mime);
@@ -128,11 +128,9 @@ var MSE = function () {
   }, {
     key: 'endOfStream',
     value: function endOfStream() {
-      var _mediaSource = this.mediaSource,
-          readyState = _mediaSource.readyState,
-          activeSourceBuffers = _mediaSource.activeSourceBuffers;
+      var readyState = this.mediaSource.readyState;
 
-      if (readyState === 'open' && activeSourceBuffers.length === 0) {
+      if (readyState === 'open') {
         try {
           this.mediaSource.endOfStream();
         } catch (e) {
@@ -276,8 +274,6 @@ var MSE = function () {
           delete _this3.sourceBuffers[Object.keys(_this3.sourceBuffers)[i]];
         }
 
-        _this3.container.removeEventListener('timeupdate', _this3.onTimeUpdate);
-        _this3.container.removeEventListener('waiting', _this3.onWaiting);
         _this3.mediaSource.removeEventListener('sourceopen', _this3.onSourceOpen);
 
         _this3.endOfStream();

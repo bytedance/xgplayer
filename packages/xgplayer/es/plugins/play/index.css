@@ -1,6 +1,11 @@
-.xgplayer .xgplayer-play .xgplayer-icon {
-  width: 24px; }
-  .xgplayer .xgplayer-play .xgplayer-icon svg {
-    -webkit-transform: translate(-4px, 4px);
-        -ms-transform: translate(-4px, 4px);
-            transform: translate(-4px, 4px); }
+.xgplayer .xgplayer-play {
+  margin-left: 0;
+  width: 34px; }
+  .xgplayer .xgplayer-play .xg-icon-play {
+    display: none; }
+  .xgplayer .xgplayer-play .xg-icon-pause {
+    display: block; }
+  .xgplayer .xgplayer-play[data-state=pause] .xg-icon-play {
+    display: block; }
+  .xgplayer .xgplayer-play[data-state=pause] .xg-icon-pause {
+    display: none; }

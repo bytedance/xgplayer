@@ -12,16 +12,21 @@ const HLS_EVENTS = EVENTS.HLS_EVENTS;
 const MSE_EVENTS = EVENTS.MSE_EVENTS;
 
 class HlsVodPlayer extends BasePlugin {
+  static get pluginName () {
+    return 'hlsVod'
+  }
   constructor (options) {
     super(options)
     this._handleSetCurrentTime = debounce(this._handleSetCurrentTime.bind(this), 200)
-    this.onWaiting = this.onWaiting.bind(this)
     this.destroy = this.destroy.bind(this)
     this.handleUrlChange = this.handleUrlChange.bind(this)
   }
 
 
   beforePlayerInit () {
+    if (!this._context) {
+      this._context = new Context(HlsAllowedEvents)
+    }
     this.hls = this._context.registry('HLS_VOD_CONTROLLER', HlsVodController)({player: this.player, preloadTime: this.player.config.preloadTime});
     this._context.init();
     this.hls.load(this.player.config.url);
@@ -67,10 +72,10 @@ class HlsVodPlayer extends BasePlugin {
     }
   }
   play () {
-    return super.play().catch((e) => {
+    return this.player.play().catch((e) => {
       if (e && e.code === 20) { // fix: chrome The play() request was interrupted by a new load request.
-        this.once('canplay', () => {
-          this.video.play()
+        this.player.once('canplay', () => {
+          this.player.play()
         })
       }
     })
@@ -113,28 +118,16 @@ class HlsVodPlayer extends BasePlugin {
   }
 
   _onSourceUpdateEnd () {
-    if (Player.util.hasClass(this.root, 'xgplayer-isloading')) {
+    if (this.player.video.readyState === 1 || this.player.video.readyState === 2) {
       const { gap, start, method } = this.detectBufferGap()
       if (gap) {
-        this.currentTime = Math[method](start);
+        if (method === 'ceil' && this.player.currentTime < Math[method](start)) {
+          this.player.currentTime = Math[method](start);
+        } else if (method === 'floor' && this.player.currentTime > Math[method](start)) {
+          this.player.currentTime = Math[method](start);
+        }
       }
     }
-  }
-
-  start (url = this.config.url) {
-    if (!url || this.started) {
-      return;
-    }
-    if (!this._context) {
-      this._context = new Context(HlsAllowedEvents);
-    }
-
-    this.hls = this._context.registry('HLS_VOD_CONTROLLER', HlsVodController)({player: this, container: this.video, preloadTime: this.config.preloadTime});
-    this._context.init();
-    this.hls.load(url);
-    this.__initEvents();
-
-    this.started = true;
   }
 
   swithURL (url) {
@@ -173,20 +166,37 @@ class HlsVodPlayer extends BasePlugin {
   }
 
   detectBufferGap () {
-    const { video } = this;
+    const { video } = this.player;
     let result = {
       gap: false,
       start: -1
     }
     for (let i = 0; i < video.buffered.length; i++) {
       const bufferStart = video.buffered.start(i)
+      const bufferEnd = video.buffered.end(i)
+      if (!video.played.length || (bufferStart <= this.currentTime && bufferEnd - this.currentTime >= 0.5)) {
+        break;
+      }
       const startGap = bufferStart - this.currentTime;
-      if (startGap > 0.1 && startGap <= 4) {
+      const endGap = this.currentTime - bufferEnd;
+      if (startGap > 0.01 && startGap <= 2) {
         result = {
           gap: true,
           start: bufferStart,
           method: 'ceil'
         };
+        break;
+      } else if (endGap > 0.1 && endGap <= 2) {
+        result = {
+          gap: true,
+          start: bufferEnd,
+          method: 'floor'
+        };
+      } else {
+        result = {
+          gap: false,
+          start: -1
+        }
       }
     }
 

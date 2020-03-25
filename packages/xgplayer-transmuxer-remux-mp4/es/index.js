@@ -30,6 +30,9 @@ var Mp4Remuxer = function () {
 
     this.videoAllDuration = 0;
     this.audioAllDuration = 0;
+
+    this.audioRemuxed = 0;
+    this.videoRemuxed = 0;
   }
 
   _createClass(Mp4Remuxer, [{
@@ -55,7 +58,11 @@ var Mp4Remuxer = function () {
 
       !this._isDtsBaseInited && this.calcDtsBase(audioTrack, videoTrack);
 
+      // if (videoTrack.samples.length && this.videoRemuxed <= 1) {
+      //   this.videoRemuxed += 1
+      // }
       this._remuxVideo(videoTrack);
+      // console.log('remux audio');
       this._remuxAudio(audioTrack);
     }
   }, {
@@ -224,7 +231,7 @@ var Mp4Remuxer = function () {
           }
         }
         this.videoAllDuration += sampleDuration;
-        console.log('video dts ' + dts, 'pts ' + pts, isKeyframe, 'originDts ' + avcSample.originDts, 'duration ' + sampleDuration);
+        // console.log(`video dts ${dts}`, `pts ${pts}`, isKeyframe, `originDts ${avcSample.originDts}`, `duration ${sampleDuration}`)
         if (sampleDuration >= 0) {
           mdatBox.samples.push(mdatSample);
           mdatSample.buffer.push(avcSample.data);

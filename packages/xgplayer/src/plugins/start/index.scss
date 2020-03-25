@@ -40,17 +40,17 @@
       opacity: 0.85;
     }
     .xg-icon-play {
-      display: none;
+      display: block;
     }
     .xg-icon-pause {
-      display: block;
+      display: none;
     }
     &[data-state=pause] {
       .xg-icon-play {
-        display: block;
+        display: none;
       }
       .xg-icon-pause {
-        display: none;
+        display: block;
       }
     }
     &.interact {

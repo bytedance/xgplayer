@@ -18,7 +18,7 @@ class AudioCtx extends EventEmitter {
     this._preDecode = [];
     this._currentTime = 0;
     this._decoding = false;
-    this._volume = Number.parseInt(this.config.volume) === this.config.volume ? this.config.volume : 0.6
+    this._volume = Number.parseFloat(this.config.volume) === this.config.volume ? this.config.volume : 0.6
     this.gainNode.gain.value = this._volume
     // 记录外部传输的状态
     this._played = false;
@@ -45,6 +45,10 @@ class AudioCtx extends EventEmitter {
       data[i].pts = (data[i].pts === undefined) ? data[i].dts : data[i].pts;
       this._preDecode.push(data[i]);
     }
+    this.preload()
+  }
+
+  preload () {
     if (this._preDecode.length > 0) {
       if (this._lastpts === undefined) {
         this._lastpts = this._preDecode[0].pts;
@@ -109,7 +113,7 @@ class AudioCtx extends EventEmitter {
   }
 
   onSourceEnded () {
-    if (this.destroyed || this.paused) {
+    if (this.destroyed) {
       return;
     }
     if (!this._nextBuffer || !this._played) {
@@ -124,7 +128,7 @@ class AudioCtx extends EventEmitter {
     let _this = this;
     setTimeout(() => {
       _this.onSourceEnded.call(this);
-    }, audioSource.buffer.duration * 1000 - 10);
+    }, audioSource.buffer.duration * 1000 - 3);
     this._currentBuffer = this._nextBuffer;
     this._currentTime = this._currentBuffer.time;
     this._nextBuffer = this.getTimeBuffer(this.currentTime);

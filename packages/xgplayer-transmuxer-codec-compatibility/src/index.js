@@ -1,5 +1,9 @@
 import EVENTS from 'xgplayer-transmuxer-constant-events'
 import AAC from 'xgplayer-transmuxer-codec-aac'
+import Sniffer from 'xgplayer-utils-sniffer';
+import { caculate } from 'xgplayer-utils';
+
+const isSafari = Sniffer.browser === 'safari'
 
 const { REMUX_EVENTS } = EVENTS
 
@@ -28,6 +32,8 @@ class Compatibility {
 
     this._videoLargeGap = 0
     this._audioLargeGap = 0
+
+    this.audioUnsyncTime = 0;
   }
 
   init () {
@@ -59,6 +65,8 @@ class Compatibility {
 
     this.filledAudioSamples = [] // 补充音频帧（）
     this.filledVideoSamples = [] // 补充视频帧（）
+
+    this.audioUnsyncTime = 0;
   }
 
   doFix () {
@@ -67,10 +75,10 @@ class Compatibility {
     this.recordSamplesCount()
 
     if (this._firstVideoSample) {
-      this.fixRefSampleDuration(this.videoTrack.meta, this.videoTrack.samples)
+      this.fixVideoRefSampleDuration(this.videoTrack.meta, this.videoTrack.samples)
     }
-    if (this._firstAudioSample) {
-      this.fixRefSampleDuration(this.audioTrack.meta, this.audioTrack.samples)
+    if (this._firstAudioSample && isFirstAudioSamples) {
+      this.fixAudioRefSampleDuration(this.audioTrack.meta)
     }
 
     const { changed: videoChanged, changedIdxes: videoChangedIdxes } = Compatibility.detectChangeStream(this.videoTrack.samples, isFirstVideoSamples)
@@ -115,6 +123,7 @@ class Compatibility {
     for (let i = 0, len = videoSamples.length; i < len; i++) {
       const sample = videoSamples[i]
       sample.originDts = sample.dts
+      sample.originPts = sample.pts
     }
 
     if (!videoSamples || !videoSamples.length || !this._firstVideoSample) {
@@ -183,6 +192,17 @@ class Compatibility {
       videoSamples.unshift(this.videoLastSample)
     }
 
+    videoSamples.forEach((sample, idx) => {
+      if (idx !== 0 && idx !== videoSamples.length - 1) {
+        const pre = videoSamples[idx - 1];
+        const next = videoSamples[idx + 1];
+        if (sample.dts - pre.dts < 5) {
+          sample.dts = (pre.dts + next.dts) / 2
+          sample.pts = (pre.pts + next.pts) / 2
+        }
+      }
+    })
+
     this.videoLastSample = curLastSample;
 
     this.videoTrack.samples = videoSamples;
@@ -190,11 +210,10 @@ class Compatibility {
 
   doFixAudio (first, streamChangeStart) {
     let {samples: audioSamples, meta} = this.audioTrack
-
+    // console.log('dofixaudio')
     if (!audioSamples || !audioSamples.length) {
       return
     }
-
     // console.log('next audio', this.nextAudioDts)
     for (let i = 0, len = audioSamples.length; i < len; i++) {
       const sample = audioSamples[i]
@@ -205,15 +224,21 @@ class Compatibility {
 
     const samplesLen = audioSamples.length;
     const silentFrame = AAC.getSilentFrame(meta.codec, meta.channelCount)
+    const iRefSampleDuration = Math.floor(meta.refSampleDuration)
 
     const firstSample = this._firstAudioSample
 
-    const _firstSample = audioSamples[0]
+    let _firstSample = audioSamples[0]
 
     if (!first && (this.nextAudioDts === null && _firstSample.options.start)) {
       if (streamChangeStart) {
         streamChangeStart = _firstSample.options.start;
       }
+    }
+
+    if (!first && !streamChangeStart && this.nextAudioDts && Compatibility.detectLargeGap(this.nextAudioDts || 0, _firstSample.dts + this._audioLargeGap)) {
+      // large gap 不准确，出现了非换流场景的时间戳跳变
+      this._audioLargeGap = this.nextAudioDts + meta.refSampleDuration - _firstSample.dts;
     }
 
     // 对audioSamples按照dts做排序
@@ -231,7 +256,10 @@ class Compatibility {
     if (this._firstVideoSample && first) {
       const videoFirstPts = this._firstVideoSample.originDts || this._firstVideoSample.dts
       const gap = firstSample.dts - videoFirstPts
-      if (gap > meta.refSampleDuration && gap < (10 * meta.refSampleDuration)) {
+
+      if (gap === this._videoLargeGap) {
+        // already fixed by doFixVideo
+      } else if (gap > meta.refSampleDuration && gap < (10 * meta.refSampleDuration)) {
         const silentSampleCount = Math.floor((firstSample.dts - videoFirstPts) / meta.refSampleDuration)
 
         for (let i = 0; i < silentSampleCount; i++) {
@@ -265,48 +293,56 @@ class Compatibility {
       gap = firstDts - this.nextAudioDts
       const absGap = Math.abs(gap)
 
-      if (absGap > meta.refSampleDuration && samplesLen === 1 && this.lastAudioSamplesLen === 1) {
-        meta.refSampleDurationFixed = undefined
-      }
+      if (gap >= iRefSampleDuration && gap < (10 * iRefSampleDuration)) {
+        const silentFrameCount = Math.ceil(gap / iRefSampleDuration)
 
-      if (gap > (2 * meta.refSampleDuration) && gap < (10 * meta.refSampleDuration)) {
-        if (samplesLen === 1 && this.lastAudioSamplesLen === 1) {
-          // 如果sample的length一直是1，而且一直不符合refSampleDuration，需要动态修改refSampleDuration
-          meta.refSampleDurationFixed = meta.refSampleDurationFixed !== undefined ? meta.refSampleDurationFixed + gap : meta.refSampleDuration + gap
-        } else {
-          const silentFrameCount = Math.floor(gap / meta.refSampleDuration)
-
-          for (let i = 0; i < silentFrameCount; i++) {
-            const computed = firstDts - (i + 1) * meta.refSampleDuration
-            const silentSample = Object.assign({}, audioSamples[0], {
-              dts: computed > this.nextAudioDts ? computed : this.nextAudioDts
-            })
-
-            this.filledAudioSamples.push({
-              dts: silentSample.dts,
-              size: silentSample.data.byteLength
-            })
-            this.audioTrack.samples.unshift(silentSample)
+        for (let i = 0; i < silentFrameCount; i++) {
+          const computed = firstDts - (i + 1) * iRefSampleDuration
+          const silentSample = {
+            dts: computed > this.nextAudioDts ? computed : this.nextAudioDts,
+            pts: computed > this.nextAudioDts ? computed : this.nextAudioDts,
+            datasize: silentFrame.byteLength,
+            filtered: 0,
+            data: silentFrame
           }
+
+          this.filledAudioSamples.push({
+            dts: silentSample.dts,
+            size: silentSample.data.byteLength
+          })
+          this.audioTrack.samples.unshift(silentSample)
+          _firstSample = silentSample;
         }
-      } else if (absGap <= meta.refSampleDuration && absGap > 0) {
+      } else if (absGap < meta.refSampleDuration && absGap > 0) {
         // 当差距比较小的时候将音频帧重定位
         // console.log('重定位音频帧dts', audioSamples[0].dts, this.nextAudioDts)
-        audioSamples[0].dts = this.nextAudioDts
-        audioSamples[0].pts = this.nextAudioDts
-      } else if (gap < 0 && absGap <= meta.refSampleDuration) {
+        _firstSample.dts = this.nextAudioDts
+        _firstSample.pts = this.nextAudioDts
+      } else if (gap < 0 && absGap < iRefSampleDuration) {
         Compatibility.doFixLargeGap(audioSamples, (-1 * gap))
       }
     }
-    const lastOriginDts = audioSamples[audioSamples.length - 1].originDts;
-    const lastDts = audioSamples[audioSamples.length - 1].dts;
-    const lastSampleDuration = audioSamples.length >= 2 ? lastOriginDts - audioSamples[audioSamples.length - 2].originDts : meta.refSampleDuration
+
+    const unSyncDuration = meta.refSampleDuration - iRefSampleDuration
+    audioSamples.forEach((sample, idx) => {
+      if (idx !== 0) {
+        const lastSample = audioSamples[idx - 1]
+        sample.dts = sample.pts = lastSample.dts + lastSample.duration
+      }
+      sample.duration = iRefSampleDuration;
+      this.audioUnsyncTime = caculate.fixedFloat(this.audioUnsyncTime + unSyncDuration, 2)
+      if (this.audioUnsyncTime >= 1) {
+        sample.duration += 1;
+        this.audioUnsyncTime -= 1;
+      }
+    });
+    const lastSample = audioSamples[audioSamples.length - 1];
+    const lastDts = lastSample.dts;
+    const lastDuration = lastSample.duration;
+    // const lastSampleDuration = audioSamples.length >= 2 ? lastOriginDts - audioSamples[audioSamples.length - 2].originDts : meta.refSampleDuration
 
     this.lastAudioSamplesLen = samplesLen;
-    this.nextAudioDts = meta.refSampleDurationFixed ? lastDts + meta.refSampleDurationFixed : lastDts + lastSampleDuration
-    this.lastAudioDts = lastDts
-
-    audioSamples[audioSamples.length - 1].duration = lastSampleDuration
+    this.nextAudioDts = lastDts + (lastDuration || iRefSampleDuration)
 
     this.audioTrack.samples = Compatibility.sortAudioSamples(audioSamples)
   }
@@ -431,11 +467,10 @@ class Compatibility {
   /**
    * 在没有refSampleDuration的问题流中，
    */
-  fixRefSampleDuration (meta, samples) {
-    const isVideo = meta.type === 'video'
-    const allSamplesCount = isVideo ? this.allVideoSamplesCount : this.allAudioSamplesCount
-    const firstDts = isVideo ? this._firstVideoSample.dts : this._firstAudioSample.dts
-    const filledSamplesCount = isVideo ? this.filledVideoSamples.length : this.filledAudioSamples.length
+  fixVideoRefSampleDuration (meta, samples) {
+    const allSamplesCount = this.allVideoSamplesCount;
+    const firstDts = this._firstVideoSample.dts;
+    const filledSamplesCount = this.filledVideoSamples.length;
     if (!Compatibility.isRefSampleDurationValid(meta.refSampleDuration)) {
       if (samples.length >= 1) {
         const lastDts = samples[samples.length - 1].dts
@@ -461,9 +496,12 @@ class Compatibility {
     }
 
     if (!Compatibility.isRefSampleDurationValid(meta.refSampleDuration)) {
-      meta.refSampleDuration = 67;
+      meta.refSampleDuration = 66;
     }
+  }
 
+  fixAudioRefSampleDuration (meta) {
+    meta.refSampleDuration = caculate.fixedFloat(meta.timescale * 1024 / meta.sampleRate, isSafari ? 0 : 2);
   }
 
   /**
@@ -519,7 +557,6 @@ class Compatibility {
       return a.dts - b.dts
     })
   }
-
 
   static isRefSampleDurationValid (refSampleDuration) {
     return refSampleDuration && refSampleDuration > 0 && !Number.isNaN(refSampleDuration)

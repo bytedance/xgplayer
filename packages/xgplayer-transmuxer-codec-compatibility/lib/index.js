@@ -14,9 +14,17 @@ var _xgplayerTransmuxerCodecAac = require('xgplayer-transmuxer-codec-aac');
 
 var _xgplayerTransmuxerCodecAac2 = _interopRequireDefault(_xgplayerTransmuxerCodecAac);
 
+var _xgplayerUtilsSniffer = require('xgplayer-utils-sniffer');
+
+var _xgplayerUtilsSniffer2 = _interopRequireDefault(_xgplayerUtilsSniffer);
+
+var _xgplayerUtils = require('xgplayer-utils');
+
 function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
 
 function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } }
+
+var isSafari = _xgplayerUtilsSniffer2.default.browser === 'safari';
 
 var REMUX_EVENTS = _xgplayerTransmuxerConstantEvents2.default.REMUX_EVENTS;
 
@@ -47,6 +55,8 @@ var Compatibility = function () {
 
     this._videoLargeGap = 0;
     this._audioLargeGap = 0;
+
+    this.audioUnsyncTime = 0;
   }
 
   _createClass(Compatibility, [{
@@ -81,6 +91,8 @@ var Compatibility = function () {
 
       this.filledAudioSamples = []; // 补充音频帧（）
       this.filledVideoSamples = []; // 补充视频帧（）
+
+      this.audioUnsyncTime = 0;
     }
   }, {
     key: 'doFix',
@@ -92,10 +104,10 @@ var Compatibility = function () {
       this.recordSamplesCount();
 
       if (this._firstVideoSample) {
-        this.fixRefSampleDuration(this.videoTrack.meta, this.videoTrack.samples);
+        this.fixVideoRefSampleDuration(this.videoTrack.meta, this.videoTrack.samples);
       }
-      if (this._firstAudioSample) {
-        this.fixRefSampleDuration(this.audioTrack.meta, this.audioTrack.samples);
+      if (this._firstAudioSample && isFirstAudioSamples) {
+        this.fixAudioRefSampleDuration(this.audioTrack.meta);
       }
 
       var _Compatibility$detect = Compatibility.detectChangeStream(this.videoTrack.samples, isFirstVideoSamples),
@@ -150,6 +162,7 @@ var Compatibility = function () {
       for (var i = 0, len = videoSamples.length; i < len; i++) {
         var sample = videoSamples[i];
         sample.originDts = sample.dts;
+        sample.originPts = sample.pts;
       }
 
       if (!videoSamples || !videoSamples.length || !this._firstVideoSample) {
@@ -218,6 +231,17 @@ var Compatibility = function () {
         videoSamples.unshift(this.videoLastSample);
       }
 
+      videoSamples.forEach(function (sample, idx) {
+        if (idx !== 0 && idx !== videoSamples.length - 1) {
+          var pre = videoSamples[idx - 1];
+          var next = videoSamples[idx + 1];
+          if (sample.dts - pre.dts < 5) {
+            sample.dts = (pre.dts + next.dts) / 2;
+            sample.pts = (pre.pts + next.pts) / 2;
+          }
+        }
+      });
+
       this.videoLastSample = curLastSample;
 
       this.videoTrack.samples = videoSamples;
@@ -225,15 +249,16 @@ var Compatibility = function () {
   }, {
     key: 'doFixAudio',
     value: function doFixAudio(first, streamChangeStart) {
+      var _this = this;
+
       var _audioTrack = this.audioTrack,
           audioSamples = _audioTrack.samples,
           meta = _audioTrack.meta;
-
+      // console.log('dofixaudio')
 
       if (!audioSamples || !audioSamples.length) {
         return;
       }
-
       // console.log('next audio', this.nextAudioDts)
       for (var i = 0, len = audioSamples.length; i < len; i++) {
         var sample = audioSamples[i];
@@ -244,6 +269,7 @@ var Compatibility = function () {
 
       var samplesLen = audioSamples.length;
       var silentFrame = _xgplayerTransmuxerCodecAac2.default.getSilentFrame(meta.codec, meta.channelCount);
+      var iRefSampleDuration = Math.floor(meta.refSampleDuration);
 
       var firstSample = this._firstAudioSample;
 
@@ -253,6 +279,11 @@ var Compatibility = function () {
         if (streamChangeStart) {
           streamChangeStart = _firstSample.options.start;
         }
+      }
+
+      if (!first && !streamChangeStart && this.nextAudioDts && Compatibility.detectLargeGap(this.nextAudioDts || 0, _firstSample.dts + this._audioLargeGap)) {
+        // large gap 不准确，出现了非换流场景的时间戳跳变
+        this._audioLargeGap = this.nextAudioDts + meta.refSampleDuration - _firstSample.dts;
       }
 
       // 对audioSamples按照dts做排序
@@ -270,7 +301,10 @@ var Compatibility = function () {
       if (this._firstVideoSample && first) {
         var videoFirstPts = this._firstVideoSample.originDts || this._firstVideoSample.dts;
         var _gap = firstSample.dts - videoFirstPts;
-        if (_gap > meta.refSampleDuration && _gap < 10 * meta.refSampleDuration) {
+
+        if (_gap === this._videoLargeGap) {
+          // already fixed by doFixVideo
+        } else if (_gap > meta.refSampleDuration && _gap < 10 * meta.refSampleDuration) {
           var silentSampleCount = Math.floor((firstSample.dts - videoFirstPts) / meta.refSampleDuration);
 
           for (var _i3 = 0; _i3 < silentSampleCount; _i3++) {
@@ -304,48 +338,56 @@ var Compatibility = function () {
         gap = firstDts - this.nextAudioDts;
         var absGap = Math.abs(gap);
 
-        if (absGap > meta.refSampleDuration && samplesLen === 1 && this.lastAudioSamplesLen === 1) {
-          meta.refSampleDurationFixed = undefined;
-        }
+        if (gap >= iRefSampleDuration && gap < 10 * iRefSampleDuration) {
+          var silentFrameCount = Math.ceil(gap / iRefSampleDuration);
 
-        if (gap > 2 * meta.refSampleDuration && gap < 10 * meta.refSampleDuration) {
-          if (samplesLen === 1 && this.lastAudioSamplesLen === 1) {
-            // 如果sample的length一直是1，而且一直不符合refSampleDuration，需要动态修改refSampleDuration
-            meta.refSampleDurationFixed = meta.refSampleDurationFixed !== undefined ? meta.refSampleDurationFixed + gap : meta.refSampleDuration + gap;
-          } else {
-            var silentFrameCount = Math.floor(gap / meta.refSampleDuration);
+          for (var _i4 = 0; _i4 < silentFrameCount; _i4++) {
+            var computed = firstDts - (_i4 + 1) * iRefSampleDuration;
+            var _silentSample = {
+              dts: computed > this.nextAudioDts ? computed : this.nextAudioDts,
+              pts: computed > this.nextAudioDts ? computed : this.nextAudioDts,
+              datasize: silentFrame.byteLength,
+              filtered: 0,
+              data: silentFrame
+            };
 
-            for (var _i4 = 0; _i4 < silentFrameCount; _i4++) {
-              var computed = firstDts - (_i4 + 1) * meta.refSampleDuration;
-              var _silentSample = Object.assign({}, audioSamples[0], {
-                dts: computed > this.nextAudioDts ? computed : this.nextAudioDts
-              });
-
-              this.filledAudioSamples.push({
-                dts: _silentSample.dts,
-                size: _silentSample.data.byteLength
-              });
-              this.audioTrack.samples.unshift(_silentSample);
-            }
+            this.filledAudioSamples.push({
+              dts: _silentSample.dts,
+              size: _silentSample.data.byteLength
+            });
+            this.audioTrack.samples.unshift(_silentSample);
+            _firstSample = _silentSample;
           }
-        } else if (absGap <= meta.refSampleDuration && absGap > 0) {
+        } else if (absGap < meta.refSampleDuration && absGap > 0) {
           // 当差距比较小的时候将音频帧重定位
           // console.log('重定位音频帧dts', audioSamples[0].dts, this.nextAudioDts)
-          audioSamples[0].dts = this.nextAudioDts;
-          audioSamples[0].pts = this.nextAudioDts;
-        } else if (gap < 0 && absGap <= meta.refSampleDuration) {
+          _firstSample.dts = this.nextAudioDts;
+          _firstSample.pts = this.nextAudioDts;
+        } else if (gap < 0 && absGap < iRefSampleDuration) {
           Compatibility.doFixLargeGap(audioSamples, -1 * gap);
         }
       }
-      var lastOriginDts = audioSamples[audioSamples.length - 1].originDts;
-      var lastDts = audioSamples[audioSamples.length - 1].dts;
-      var lastSampleDuration = audioSamples.length >= 2 ? lastOriginDts - audioSamples[audioSamples.length - 2].originDts : meta.refSampleDuration;
+
+      var unSyncDuration = meta.refSampleDuration - iRefSampleDuration;
+      audioSamples.forEach(function (sample, idx) {
+        if (idx !== 0) {
+          var _lastSample = audioSamples[idx - 1];
+          sample.dts = sample.pts = _lastSample.dts + _lastSample.duration;
+        }
+        sample.duration = iRefSampleDuration;
+        _this.audioUnsyncTime = _xgplayerUtils.caculate.fixedFloat(_this.audioUnsyncTime + unSyncDuration, 2);
+        if (_this.audioUnsyncTime >= 1) {
+          sample.duration += 1;
+          _this.audioUnsyncTime -= 1;
+        }
+      });
+      var lastSample = audioSamples[audioSamples.length - 1];
+      var lastDts = lastSample.dts;
+      var lastDuration = lastSample.duration;
+      // const lastSampleDuration = audioSamples.length >= 2 ? lastOriginDts - audioSamples[audioSamples.length - 2].originDts : meta.refSampleDuration
 
       this.lastAudioSamplesLen = samplesLen;
-      this.nextAudioDts = meta.refSampleDurationFixed ? lastDts + meta.refSampleDurationFixed : lastDts + lastSampleDuration;
-      this.lastAudioDts = lastDts;
-
-      audioSamples[audioSamples.length - 1].duration = lastSampleDuration;
+      this.nextAudioDts = lastDts + (lastDuration || iRefSampleDuration);
 
       this.audioTrack.samples = Compatibility.sortAudioSamples(audioSamples);
     }
@@ -480,12 +522,11 @@ var Compatibility = function () {
      */
 
   }, {
-    key: 'fixRefSampleDuration',
-    value: function fixRefSampleDuration(meta, samples) {
-      var isVideo = meta.type === 'video';
-      var allSamplesCount = isVideo ? this.allVideoSamplesCount : this.allAudioSamplesCount;
-      var firstDts = isVideo ? this._firstVideoSample.dts : this._firstAudioSample.dts;
-      var filledSamplesCount = isVideo ? this.filledVideoSamples.length : this.filledAudioSamples.length;
+    key: 'fixVideoRefSampleDuration',
+    value: function fixVideoRefSampleDuration(meta, samples) {
+      var allSamplesCount = this.allVideoSamplesCount;
+      var firstDts = this._firstVideoSample.dts;
+      var filledSamplesCount = this.filledVideoSamples.length;
       if (!Compatibility.isRefSampleDurationValid(meta.refSampleDuration)) {
         if (samples.length >= 1) {
           var lastDts = samples[samples.length - 1].dts;
@@ -511,8 +552,13 @@ var Compatibility = function () {
       }
 
       if (!Compatibility.isRefSampleDurationValid(meta.refSampleDuration)) {
-        meta.refSampleDuration = 67;
+        meta.refSampleDuration = 66;
       }
+    }
+  }, {
+    key: 'fixAudioRefSampleDuration',
+    value: function fixAudioRefSampleDuration(meta) {
+      meta.refSampleDuration = _xgplayerUtils.caculate.fixedFloat(meta.timescale * 1024 / meta.sampleRate, isSafari ? 0 : 2);
     }
 
     /**

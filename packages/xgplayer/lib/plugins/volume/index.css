@@ -1,8 +1,3 @@
-.xgplayer .xgplayer-volume .xgplayer-icon svg {
-  -webkit-transform: translateY(4px);
-      -ms-transform: translateY(4px);
-          transform: translateY(4px); }
-
 .xgplayer .xgplayer-volume.slide-show .xgplayer-slider {
   display: block; }
 
@@ -53,6 +48,30 @@
     border-radius: 50%;
     left: -2px;
     top: -6px; }
+
+.xgplayer .xgplayer-volume[data-state=normal] .xg-volume-small {
+  display: none; }
+
+.xgplayer .xgplayer-volume[data-state=normal] .xg-volume-mute {
+  display: none; }
+
+.xgplayer .xgplayer-volume[data-state=small] .xg-volume {
+  display: none; }
+
+.xgplayer .xgplayer-volume[data-state=small] .xg-volume-small {
+  display: block; }
+
+.xgplayer .xgplayer-volume[data-state=small] .xg-volume-mute {
+  display: none; }
+
+.xgplayer .xgplayer-volume[data-state=mute] .xg-volume {
+  display: none; }
+
+.xgplayer .xgplayer-volume[data-state=mute] .xg-volume-small {
+  display: none; }
+
+.xgplayer .xgplayer-volume[data-state=mute] .xg-volume-mute {
+  display: block; }
 
 .xgplayer.xgplayer-mobile .xgplayer-volume .xgplayer-slider {
   display: none; }

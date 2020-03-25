@@ -149,6 +149,7 @@ var TsDemuxer = function () {
         sampleRate: pes.ES.frequence,
         channelCount: pes.ES.channel,
         codec: 'mp4a.40.' + pes.ES.audioObjectType,
+        originCodec: 'mp4a.40.' + pes.ES.originAudioObjectType,
         config: pes.ES.audioConfig,
         id: 2,
         sampleRateIndex: pes.ES.frequencyIndex
@@ -225,11 +226,13 @@ var TsDemuxer = function () {
       var sampleLength = 0;
       var sps = false;
       var pps = false;
+      var sei = null;
       for (var i = 0; i < nals.length; i++) {
         var nal = nals[i];
         if (nal.sps) {
           sps = nal;
           track.sps = nal.body;
+          meta.sps = nal.body;
           meta.chromaFormat = sps.sps.chroma_format;
           meta.codec = 'avc1.';
           for (var j = 1; j < 4; j++) {
@@ -251,9 +254,10 @@ var TsDemuxer = function () {
           meta.sarRatio = sps.sps.sar_ratio ? sps.sps.sar_ratio : sps.sps.par_ratio;
         } else if (nal.pps) {
           track.pps = nal.body;
+          meta.pps = nal.body;
           pps = nal;
         } else if (nal.sei) {
-          this.emit(DEMUX_EVENTS.SEI_PARSED, nal.sei);
+          sei = nal.sei;
         } else if (nal.type < 9) {
           sampleLength += 4 + nal.body.byteLength;
         }
@@ -295,10 +299,17 @@ var TsDemuxer = function () {
           offset += length;
         }
       }
+      var dts = parseInt(pes.dts / 90);
+      var pts = parseInt(pes.pts / 90);
+
+      if (sei) {
+        sei.dts = dts;
+        this.emit(DEMUX_EVENTS.SEI_PARSED, sei);
+      }
       var sample = new VideoTrackSample({
-        dts: parseInt(pes.dts / 90),
-        pts: parseInt(pes.pts / 90),
-        cts: (pes.pts - pes.dts) / 90,
+        dts: dts,
+        pts: pts,
+        cts: pts - dts,
         originDts: pes.dts,
         isKeyframe: isKeyframe,
         data: data,
@@ -324,6 +335,7 @@ var TsDemuxer = function () {
       var vps = false;
       var sps = false;
       var pps = false;
+      var sei = null;
       var hasVPS = false;
       var hasSPS = false;
       var hasPPS = false;
@@ -389,7 +401,7 @@ var TsDemuxer = function () {
           track.vps = nal.body;
           vps = nal;
         } else if (nal.sei) {
-          this.emit(DEMUX_EVENTS.SEI_PARSED, nal.sei);
+          sei = nal.sei;
         }
         if (nal.type <= 40) {
           sampleLength += 4 + nal.body.byteLength;
@@ -455,10 +467,18 @@ var TsDemuxer = function () {
         offset += length;
         // }
       }
+      var dts = parseInt(pes.dts / 90);
+      var pts = parseInt(pes.pts / 90);
+
+      if (sei) {
+        sei.dts = dts;
+        this.emit(DEMUX_EVENTS.SEI_PARSED, sei);
+      }
+
       var sample = new VideoTrackSample({
-        dts: parseInt(pes.dts / 90),
-        pts: parseInt(pes.pts / 90),
-        cts: (pes.pts - pes.dts) / 90,
+        dts: dts,
+        pts: pts,
+        cts: pts - dts,
         originDts: pes.dts,
         isKeyframe: isKeyframe,
         data: data,
@@ -1012,6 +1032,7 @@ var TsDemuxer = function () {
       var userAgent = navigator.userAgent.toLowerCase();
       var config = void 0;
       var extensionSampleIndex = void 0;
+      ret.originAudioObjectType = ret.audioObjectType;
       if (/firefox/i.test(userAgent)) {
         if (ret.frequencyIndex >= 6) {
           ret.audioObjectType = 5;
@@ -1050,6 +1071,7 @@ var TsDemuxer = function () {
         config[2] |= 2 << 2;
         config[3] = 0;
       }
+
       ret.audioConfig = config;
     }
   }]);

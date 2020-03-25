@@ -8,6 +8,7 @@ const { string } = require('rollup-plugin-string')
 const context = require('rollup-plugin-require-context')
 const builtins = require('rollup-plugin-node-builtins')
 const bundleWorker = require('rollup-plugin-bundle-worker');
+const analyzer = require('rollup-plugin-visualizer');
 
 const defaultRollup = {
   input: 'src/index.js',
@@ -73,7 +74,8 @@ const commonRollup = function (config = {}) {
         ...rollupConfig.commonjs
       }),
       builtins(),
-      context()
+      context(),
+      process.env.ANALYZE ? analyzer() : undefined
     ],
     watch: {
       ...config.watch

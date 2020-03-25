@@ -497,6 +497,31 @@
 	  return dom;
 	};
 
+	util.createDomFromHtml = function (html) {
+	  var attrs = arguments.length > 1 && arguments[1] !== undefined ? arguments[1] : {};
+	  var classname = arguments.length > 2 && arguments[2] !== undefined ? arguments[2] : '';
+
+	  try {
+	    var doc = document.createElement('div');
+	    doc.innerHTML = html;
+	    var dom = doc.children;
+	    doc = null;
+	    if (dom.length > 0) {
+	      dom = dom[0];
+	      classname && util.addClass(dom, classname);
+	      if (attrs) {
+	        Object.keys(attrs).forEach(function (key) {
+	          dom.setAttribute(key, attrs[key]);
+	        });
+	      }
+	      return dom;
+	    }
+	    return null;
+	  } catch (err) {
+	    return null;
+	  }
+	};
+
 	util.hasClass = function (el, className) {
 	  if (!el) {
 	    return false;
@@ -866,7 +891,7 @@
 	// transmuxer events
 	var SEI_PARSED = 'SEI_PARSED';
 
-	var event = /*#__PURE__*/Object.freeze({
+	var Events = /*#__PURE__*/Object.freeze({
 		__proto__: null,
 		PLAY: PLAY,
 		PLAYING: PLAYING,
@@ -1473,7 +1498,7 @@
 	BasePlugin.Util = util;
 	BasePlugin.Sniffer = sniffer;
 	BasePlugin.Errors = Errors;
-	BasePlugin.Events = event;
+	BasePlugin.Events = Events;
 
 	/**
 	* a plugins manager to register and search
@@ -2001,24 +2026,55 @@
 	*
 	**/
 
+	// const {Util} = BasePlugin
 	function _createElement(tag, name) {
+	  var attr = arguments.length > 2 && arguments[2] !== undefined ? arguments[2] : {};
+
 	  var dom = document.createElement(tag);
 	  dom.className = name;
+	  attr && Object.keys(attr).map(function (key) {
+	    dom.setAttribute(key, attr[key]);
+	  });
 	  return dom;
 	}
 
+	function isUrl(str) {
+	  return str.indexOf('http') > 0;
+	}
+
 	function registerIconsObj(iconsConfig, plugin) {
-	  Object.keys(iconsConfig).map(function (iconKey) {
-	    Object.defineProperty(plugin.icons, iconKey, {
-	      get: function get() {
-	        var _icons = plugin.config.icons || plugin.playerConfig.icons;
-	        if (_icons && _icons[iconKey]) {
-	          return _icons[iconKey];
-	        } else {
-	          return iconsConfig[iconKey];
+	  var _icons = plugin.config.icons || plugin.playerConfig.icons;
+	  Object.keys(iconsConfig).map(function (key) {
+	    var orgIcon = iconsConfig[key] || {};
+	    var classname = orgIcon.class || '';
+	    var attr = orgIcon.attr || {};
+	    var _icon = null;
+	    if (_icons && _icons[key]) {
+	      _icon = _icons[key];
+	      if (_icon instanceof window.Element) {
+	        util.addClass(_icon, classname);
+	        Object.keys(attr).map(function (key) {
+	          _icon.setAttribute(key, attr[key]);
+	        });
+	      } else if (isUrl(_icon)) {
+	        _icon = util.createDom('img', '', { src: _icon }, attr, 'xg-img ' + classname);
+	      } else if (typeof _icon === 'function') {
+	        _icon = _icon(classname, attr);
+	        if (_icon instanceof window.Element) {
+	          util.addClass(_icon, classname);
+	          Object.keys(attr).map(function (key) {
+	            _icon.setAttribute(key, attr[key]);
+	          });
 	        }
+	      } else {
+	        _icon = util.createDomFromHtml(_icon, attr, classname);
 	      }
-	    });
+	    }
+	    if (!_icon) {
+	      _icon = orgIcon.icon ? orgIcon.icon : orgIcon;
+	      _icon = _icon instanceof window.Element ? _icon : util.createDomFromHtml(_icon, attr, classname);
+	    }
+	    plugin.icons[key] = _icon;
 	  });
 	}
 
@@ -2084,8 +2140,8 @@
 	      var _parent = args.root;
 	      var _el = null;
 	      this.icons = {};
-	      var defaultIcons = this.registerIcons() || {};
-	      registerIconsObj(defaultIcons, this);
+	      var _orgicons = this.registerIcons() || {};
+	      registerIconsObj(_orgicons, this);
 
 	      this.text = {};
 	      var defaultTexConfig = this.registerLangauageTexts() || {};
@@ -2407,6 +2463,26 @@
 	      this.root && (this.root.style.display = 'none');
 	    }
 	  }, {
+	    key: 'appendChild',
+	    value: function appendChild(pdom, child) {
+	      if (arguments.length < 2 && arguments[0] instanceof window.Element) {
+	        return this.root.appendChild(arguments[0]);
+	      }
+	      if (!child || !(child instanceof window.Element)) {
+	        return null;
+	      }
+	      try {
+	        if (typeof pdom === 'string') {
+	          return this.find(pdom).appendChild(child);
+	        } else {
+	          return pdom.appendChild(child);
+	        }
+	      } catch (err) {
+	        console.warn(err);
+	        return null;
+	      }
+	    }
+	  }, {
 	    key: 'render',
 	    value: function render() {
 	      return '';
@@ -2443,7 +2519,8 @@
 	  ROOT_TOP: 'rootTop',
 	  CONTROLS_LEFT: 'controlsLeft',
 	  CONTROLS_RIGTH: 'controlsRight',
-	  CONTROLS_CENTER: 'controlsCenter'
+	  CONTROLS_CENTER: 'controlsCenter',
+	  CONTROLS: 'controls'
 	};
 
 	var STATE_CLASS = {
@@ -2542,7 +2619,7 @@
 	  player.config.icons = icons;
 	};
 
-	var Events = Plugin.Events,
+	var Events$1 = Plugin.Events,
 	    Util = Plugin.Util,
 	    POSITIONS = Plugin.POSITIONS,
 	    Sniffer = Plugin.Sniffer;
@@ -2584,8 +2661,9 @@
 	      this.left = this.find('left-grid');
 	      this.center = this.find('center');
 	      this.right = this.find('right-grid');
-	      this.on(Events.MINI_STATE_CHANGE, function (isMini) {
-	        isMini ? Util.addClass(_this2.root, 'mini') : Util.removeClass(_this2.root, 'mini');
+	      this.innerRoot = this.find('inner-controls');
+	      this.on(Events$1.MINI_STATE_CHANGE, function (isMini) {
+	        isMini ? Util.addClass(_this2.root, 'mini-controls') : Util.removeClass(_this2.root, 'mini-controls');
 	      });
 	      this.bind('mouseenter', function (e) {
 	        _this2.mouseEnter(e);
@@ -2597,16 +2675,18 @@
 	  }, {
 	    key: 'mouseEnter',
 	    value: function mouseEnter() {
+	      // console.log('controls mouseEnter')
 	      clearTimeout(this.player.userTimer);
 	    }
 	  }, {
 	    key: 'mouseOut',
 	    value: function mouseOut() {
+	      // console.log('controls mouseOut')
 	      var player = this.player;
 
 	      player.userTimer = setTimeout(function () {
 	        this.isActive = false;
-	        player.emit(Events.PLAYER_BLUR);
+	        player.emit(Events$1.PLAYER_BLUR);
 	      }, player.config.inactive);
 	    }
 	  }, {
@@ -2623,8 +2703,9 @@
 	      if (!this.root) {
 	        return;
 	      }
+	      var defaultConfig = plugin.defaultConfig || {};
 	      if (!options.root) {
-	        var position = options.config && options.config.position ? options.config.position : plugin.defaultConfig.position;
+	        var position = options.config && options.config.position ? options.config.position : defaultConfig.position;
 	        switch (position) {
 	          case POSITIONS.CONTROLS_LEFT:
 	            options.root = this.left;
@@ -2634,6 +2715,9 @@
 	            break;
 	          case POSITIONS.CONTROLS_CENTER:
 	            options.root = this.center;
+	            break;
+	          case POSITIONS.CONTROLS:
+	            options.root = this.root;
 	            break;
 	          default:
 	            options.root = this.left;
@@ -2647,10 +2731,9 @@
 	      if (this.config.disable) {
 	        return;
 	      }
-	      var className = this.config.mode === 'flex' ? 'flex ' : '';
+	      var className = this.config.mode === 'flex' ? 'flex-controls ' : '';
 	      className += this.config.autoHide ? 'control_autohide' : '';
-
-	      return '<xg-controls class="xgplayer-controls ' + className + '" unselectable="on" onselectstart="return false">\n    <left-grid class="left-grid">\n    </Left-grid>\n    <center class="center"></center>\n    <right-grid class="right-grid">\n    </right-grid>\n    </xg-controls>';
+	      return '<xg-controls class="xgplayer-controls ' + className + '" unselectable="on" onselectstart="return false">\n    <inner-controls class="inner-controls">\n      <left-grid class="left-grid">\n      </Left-grid>\n      <center class="center"></center>\n      <right-grid class="right-grid">\n      </right-grid>\n    </inner-controls>\n    </xg-controls>';
 	    }
 	  }], [{
 	    key: 'pluginName',
@@ -3299,6 +3382,15 @@
 	      }
 	    }
 	  }, {
+	    key: 'seek',
+	    value: function seek(time) {
+	      if (!this.video || isNaN(Number(time)) || time > this.duration) {
+	        return;
+	      }
+	      time = time < 0 ? 0 : time;
+	      this.currentTime = time;
+	    }
+	  }, {
 	    key: 'plugins',
 	    get: function get() {
 	      return pluginsManager.getPlugins(this);
@@ -3384,7 +3476,7 @@
 	Player.Util = util;
 	Player.Sniffer = sniffer;
 	Player.Errors = Errors;
-	Player.Events = event;
+	Player.Events = Events;
 	Player.Plugin = Plugin;
 	Player.BasePlugin = BasePlugin;
 
@@ -3450,6 +3542,7 @@
 	    value: function afterCreate() {
 	      var _this2 = this;
 
+	      this.appendChild(this.icons.replay);
 	      this.bind('svg', 'click', function (e) {
 	        e.preventDefault();
 	        _this2.player.replay();
@@ -3474,7 +3567,7 @@
 	  }, {
 	    key: 'render',
 	    value: function render() {
-	      return '<xg-replay class="xgplayer-replay">\n      ' + this.icons.replay + '\n      <xg-replay-txt class="xgplayer-replay-txt">' + this.text.replay + '</xg-replay-txt>\n    </xg-replay>';
+	      return '<xg-replay class="xgplayer-replay">\n      <xg-replay-txt class="xgplayer-replay-txt">' + this.text.replay + '</xg-replay-txt>\n    </xg-replay>';
 	    }
 	  }], [{
 	    key: 'pluginName',
@@ -3485,9 +3578,9 @@
 	  return Replay;
 	}(Plugin);
 
-	var PlaySvg = "<svg class=\"play\" xmlns=\"http://www.w3.org/2000/svg\" width=\"40\" height=\"40\" viewBox=\"0 0 40 40\">\n  <path transform=\"scale(0.0320625 0.0320625)\" d=\"M576,363L810,512L576,661zM342,214L576,363L576,661L342,810z\"></path>\n</svg>\n";
+	var PlaySvg = "<svg class=\"play\" xmlns=\"http://www.w3.org/2000/svg\" width=\"40\" height=\"40\" viewBox=\"-3 -4 40 40\">\n  <path transform=\"scale(0.0320625 0.0320625)\" d=\"M576,363L810,512L576,661zM342,214L576,363L576,661L342,810z\"></path>\n</svg>\n";
 
-	var PauseSvg = "<svg class=\"pause\" xmlns=\"http://www.w3.org/2000/svg\" width=\"40\" height=\"40\" viewBox=\"0 0 40 40\">\n  <path transform=\"scale(0.0320625 0.0320625)\" d=\"M598,214h170v596h-170v-596zM256 810v-596h170v596h-170z\"></path>\n</svg>\n";
+	var PauseSvg = "<svg class=\"pause\" xmlns=\"http://www.w3.org/2000/svg\" width=\"40\" height=\"40\" viewBox=\"-3 -4 40 40\">\n  <path transform=\"scale(0.0320625 0.0320625)\" d=\"M598,214h170v596h-170v-596zM256 810v-596h170v596h-170z\"></path>\n</svg>\n";
 
 	function styleInject(css, ref) {
 	  if (ref === void 0) ref = {};
@@ -3518,8 +3611,8 @@
 	  }
 	}
 
-	var css = ".xgplayer.xgplayer-mini {\n  position: fixed;\n  width: 320px;\n  height: 180px;\n  z-index: 110; }\n  .xgplayer.xgplayer-mini:hover {\n    cursor: move; }\n    .xgplayer.xgplayer-mini:hover .xg-mini-layer {\n      display: block; }\n\n.xgplayer.xgplayer-ended .xg-mini-layer {\n  display: none; }\n\n.xgplayer .xg-mini-layer {\n  display: none;\n  position: absolute;\n  top: 0;\n  left: 0;\n  width: 100%;\n  height: 100%; }\n  .xgplayer .xg-mini-layer .mask {\n    pointer-events: none;\n    position: absolute;\n    top: 0;\n    left: 0;\n    height: 100%;\n    width: 100%;\n    background-color: rgba(0, 0, 0, .4); }\n  .xgplayer .xg-mini-layer xg-mini-header {\n    display: -webkit-flex;\n    display: -moz-box;\n    display: flex;\n    cursor: pointer;\n    top: 0;\n    left: 0;\n    right: 40px;\n    -moz-box-sizing: border-box;\n         box-sizing: border-box;\n    padding: 10px 3px 0 8px;\n    -webkit-justify-content: space-between;\n       -moz-box-pack: justify;\n            justify-content: space-between;\n    color: #ffffff;\n    font-size: 14px;\n    position: absolute;\n    z-index: 22; }\n    .xgplayer .xg-mini-layer xg-mini-header .xgplayer-pip-disableBtn {\n      pointer-events: all; }\n    .xgplayer .xg-mini-layer xg-mini-header #disabledMini {\n      display: none;\n      position: relative; }\n    .xgplayer .xg-mini-layer xg-mini-header #disabledMini + label {\n      cursor: pointer;\n      position: relative;\n      display: -webkit-flex;\n      display: -moz-box;\n      display: flex;\n      -webkit-align-items: center;\n         -moz-box-align: center;\n              align-items: center; }\n    .xgplayer .xg-mini-layer xg-mini-header #disabledMini + label::before {\n      content: \"\";\n      color: #ff142b;\n      background-color: transparent;\n      border-radius: 2px;\n      border: solid 1px #cdcdcd;\n      width: 16px;\n      height: 16px;\n      display: inline-block;\n      text-align: center;\n      vertical-align: middle;\n      line-height: 16px;\n      margin-right: 7px; }\n    .xgplayer .xg-mini-layer xg-mini-header #disabledMini:checked + label {\n      color: #ff142b; }\n    .xgplayer .xg-mini-layer xg-mini-header #disabledMini:checked + label::before {\n      border-color: #ff142b; }\n    .xgplayer .xg-mini-layer xg-mini-header #disabledMini:checked + label:after {\n      content: \"\";\n      position: absolute;\n      width: 4px;\n      height: 8px;\n      border-color: #ff142b;\n      border-style: solid;\n      border-width: 0px 2px 2px 0px;\n      -webkit-transform: rotate(45deg);\n          -ms-transform: rotate(45deg);\n              transform: rotate(45deg);\n      left: 6px;\n      top: 5px; }\n    .xgplayer .xg-mini-layer xg-mini-header .xgplayer-mini-disableBtn xg-tips {\n      position: absolute;\n      padding: 4px 6px;\n      white-space: nowrap;\n      bottom: -30px;\n      right: 15px;\n      border-radius: 4px;\n      background-color: rgba(0, 0, 0, .54);\n      display: none; }\n    .xgplayer .xg-mini-layer xg-mini-header .xgplayer-mini-disableBtn:hover #disabledMini + label::before {\n      border-color: #ff142b; }\n    .xgplayer .xg-mini-layer xg-mini-header .xgplayer-mini-disableBtn:hover #disabledMini + label {\n      color: #ff142b; }\n    .xgplayer .xg-mini-layer xg-mini-header .xgplayer-mini-disableBtn:hover xg-tips {\n      display: block; }\n  .xgplayer .xg-mini-layer .mini-cancel-btn {\n    cursor: pointer;\n    display: block;\n    color: #fff;\n    width: 40px;\n    height: 38px;\n    position: absolute;\n    right: 0;\n    top: 0;\n    text-align: center;\n    line-height: 38px; }\n  .xgplayer .xg-mini-layer .play-icon {\n    cursor: pointer;\n    height: 48px;\n    width: 48px;\n    position: absolute;\n    background: rgba(0, 0, 0, .54);\n    border-radius: 24px;\n    top: 50%;\n    left: 50%;\n    margin: -24px 0 0 -24px; }\n    .xgplayer .xg-mini-layer .play-icon svg {\n      width: 40px;\n      height: 40px;\n      fill: #faf7f7;\n      -webkit-transform: translate(7px, 7px);\n          -ms-transform: translate(7px, 7px);\n              transform: translate(7px, 7px); }\n    .xgplayer .xg-mini-layer .play-icon.play .play {\n      display: none; }\n    .xgplayer .xg-mini-layer .play-icon.play .pause {\n      display: block; }\n    .xgplayer .xg-mini-layer .play-icon.pause .play {\n      display: block; }\n    .xgplayer .xg-mini-layer .play-icon.pause .pause {\n      display: none; }\n\n.xgplayer .xgplayer-miniicon {\n  position: relative;\n  outline: none;\n  display: block; }\n  .xgplayer .xgplayer-miniicon .name {\n    text-align: center;\n    font-family: PingFangSC-Regular;\n    font-size: 13px;\n    line-height: 20px;\n    height: 20px;\n    color: rgba(255, 255, 255, .8);\n    line-height: 40px; }\n    .xgplayer .xgplayer-miniicon .name span {\n      font-family: PingFangSC-Regular;\n      font-size: 13px;\n      width: 60px;\n      height: 20px;\n      line-height: 20px;\n      background: rgba(0, 0, 0, .38);\n      border-radius: 10px;\n      display: inline-block;\n      vertical-align: middle; }\n";
-	styleInject(css);
+	var css_248z = ".xgplayer.xgplayer-mini {\n  position: fixed;\n  width: 320px;\n  height: 180px;\n  z-index: 110; }\n  .xgplayer.xgplayer-mini:hover {\n    cursor: move; }\n    .xgplayer.xgplayer-mini:hover .xg-mini-layer {\n      display: block; }\n\n.xgplayer.xgplayer-ended .xg-mini-layer {\n  display: none; }\n\n.xgplayer .xg-mini-layer {\n  display: none;\n  position: absolute;\n  top: 0;\n  left: 0;\n  width: 100%;\n  height: 100%; }\n  .xgplayer .xg-mini-layer .mask {\n    pointer-events: none;\n    position: absolute;\n    top: 0;\n    left: 0;\n    height: 100%;\n    width: 100%;\n    background-color: rgba(0, 0, 0, .4); }\n  .xgplayer .xg-mini-layer xg-mini-header {\n    display: -webkit-flex;\n    display: -moz-box;\n    display: flex;\n    cursor: pointer;\n    top: 0;\n    left: 0;\n    right: 40px;\n    -moz-box-sizing: border-box;\n         box-sizing: border-box;\n    padding: 10px 3px 0 8px;\n    -webkit-justify-content: space-between;\n       -moz-box-pack: justify;\n            justify-content: space-between;\n    color: #ffffff;\n    font-size: 14px;\n    position: absolute;\n    z-index: 22; }\n    .xgplayer .xg-mini-layer xg-mini-header .xgplayer-pip-disableBtn {\n      pointer-events: all; }\n    .xgplayer .xg-mini-layer xg-mini-header #disabledMini {\n      display: none;\n      position: relative; }\n    .xgplayer .xg-mini-layer xg-mini-header #disabledMini + label {\n      cursor: pointer;\n      position: relative;\n      display: -webkit-flex;\n      display: -moz-box;\n      display: flex;\n      -webkit-align-items: center;\n         -moz-box-align: center;\n              align-items: center; }\n    .xgplayer .xg-mini-layer xg-mini-header #disabledMini + label::before {\n      content: \"\";\n      color: #ff142b;\n      background-color: transparent;\n      border-radius: 2px;\n      border: solid 1px #cdcdcd;\n      width: 16px;\n      height: 16px;\n      display: inline-block;\n      text-align: center;\n      vertical-align: middle;\n      line-height: 16px;\n      margin-right: 7px; }\n    .xgplayer .xg-mini-layer xg-mini-header #disabledMini:checked + label {\n      color: #ff142b; }\n    .xgplayer .xg-mini-layer xg-mini-header #disabledMini:checked + label::before {\n      border-color: #ff142b; }\n    .xgplayer .xg-mini-layer xg-mini-header #disabledMini:checked + label:after {\n      content: \"\";\n      position: absolute;\n      width: 4px;\n      height: 8px;\n      border-color: #ff142b;\n      border-style: solid;\n      border-width: 0px 2px 2px 0px;\n      -webkit-transform: rotate(45deg);\n          -ms-transform: rotate(45deg);\n              transform: rotate(45deg);\n      left: 6px;\n      top: 5px; }\n    .xgplayer .xg-mini-layer xg-mini-header .xgplayer-mini-disableBtn xg-tips {\n      position: absolute;\n      padding: 4px 6px;\n      white-space: nowrap;\n      bottom: -30px;\n      right: 15px;\n      border-radius: 4px;\n      background-color: rgba(0, 0, 0, .54);\n      display: none; }\n    .xgplayer .xg-mini-layer xg-mini-header .xgplayer-mini-disableBtn:hover #disabledMini + label::before {\n      border-color: #ff142b; }\n    .xgplayer .xg-mini-layer xg-mini-header .xgplayer-mini-disableBtn:hover #disabledMini + label {\n      color: #ff142b; }\n    .xgplayer .xg-mini-layer xg-mini-header .xgplayer-mini-disableBtn:hover xg-tips {\n      display: block; }\n  .xgplayer .xg-mini-layer .mini-cancel-btn {\n    cursor: pointer;\n    display: block;\n    color: #fff;\n    width: 40px;\n    height: 38px;\n    position: absolute;\n    right: 0;\n    top: 0;\n    text-align: center;\n    line-height: 38px; }\n  .xgplayer .xg-mini-layer .play-icon {\n    cursor: pointer;\n    height: 48px;\n    width: 48px;\n    position: absolute;\n    background: rgba(0, 0, 0, .54);\n    border-radius: 24px;\n    top: 50%;\n    left: 50%;\n    margin: -24px 0 0 -24px; }\n    .xgplayer .xg-mini-layer .play-icon svg {\n      width: 50px;\n      height: 50px;\n      fill: #faf7f7; }\n  .xgplayer .xg-mini-layer .xg-icon-play {\n    display: none; }\n  .xgplayer .xg-mini-layer .xg-icon-pause {\n    display: block; }\n  .xgplayer .xg-mini-layer[data-state=pause] .xg-icon-play {\n    display: block; }\n  .xgplayer .xg-mini-layer[data-state=pause] .xg-icon-pause {\n    display: none; }\n\n.xgplayer .xgplayer-miniicon {\n  position: relative;\n  outline: none;\n  display: block; }\n  .xgplayer .xgplayer-miniicon .name {\n    text-align: center;\n    font-family: PingFangSC-Regular;\n    font-size: 13px;\n    line-height: 20px;\n    height: 20px;\n    color: rgba(255, 255, 255, .8);\n    line-height: 40px; }\n    .xgplayer .xgplayer-miniicon .name span {\n      font-family: PingFangSC-Regular;\n      font-size: 13px;\n      width: 60px;\n      height: 20px;\n      line-height: 20px;\n      background: rgba(0, 0, 0, .38);\n      border-radius: 10px;\n      display: inline-block;\n      vertical-align: middle; }\n";
+	styleInject(css_248z);
 
 	var POSITIONS$1 = Plugin.POSITIONS;
 
@@ -3591,7 +3684,7 @@
 	}(Plugin);
 
 	var Util$1 = Plugin.Util,
-	    Events$1 = Plugin.Events;
+	    Events$2 = Plugin.Events;
 
 	var MiniScreen = function (_Plugin) {
 	  inherits(MiniScreen, _Plugin);
@@ -3657,15 +3750,12 @@
 	      bindFunKeys.map(function (key) {
 	        _this2[key] = _this2[key].bind(_this2);
 	      });
-	      this.on(Events$1.PAUSE, function () {
-	        var btn = _this2.find('.play-icon');
-	        Util$1.addClass(btn, 'pause');
-	        Util$1.removeClass(btn, 'play');
+	      this.initIcons();
+	      this.on(Events$2.PAUSE, function () {
+	        _this2.setAttr('data-state', 'pause');
 	      });
-	      this.on(Events$1.PLAY, function () {
-	        var btn = _this2.find('.play-icon');
-	        Util$1.addClass(btn, 'play');
-	        Util$1.removeClass(btn, 'pause');
+	      this.on(Events$2.PLAY, function () {
+	        _this2.setAttr('data-state', 'play');
 	      });
 	    }
 	  }, {
@@ -3697,6 +3787,22 @@
 	      if (this.config.isScrollSwitch) {
 	        window.addEventListener('scroll', this.onScroll);
 	      }
+	    }
+	  }, {
+	    key: 'registerIcons',
+	    value: function registerIcons() {
+	      return {
+	        play: { icon: PlaySvg, class: 'xg-icon-play' },
+	        pause: { icon: PauseSvg, class: 'xg-icon-pause' }
+	      };
+	    }
+	  }, {
+	    key: 'initIcons',
+	    value: function initIcons() {
+	      var icons = this.icons;
+
+	      this.appendChild('.play-icon', icons.play);
+	      this.appendChild('.play-icon', icons.pause);
 	    }
 	  }, {
 	    key: 'onCancelClick',
@@ -3810,7 +3916,7 @@
 	      if (playerConfig.fluid) {
 	        target.style['padding-top'] = '';
 	      }
-	      this.emit(Events$1.MINI_STATE_CHANGE, true);
+	      this.emit(Events$2.MINI_STATE_CHANGE, true);
 	      player.isMini = this.isMini = true;
 	    }
 	  }, {
@@ -3837,7 +3943,7 @@
 	        player.root.style['height'] = '0';
 	        player.root.style['padding-top'] = playerConfig.height * 100 / playerConfig.width + '%';
 	      }
-	      this.emit(Events$1.MINI_STATE_CHANGE, false);
+	      this.emit(Events$2.MINI_STATE_CHANGE, false);
 	      this.isMini = player.isMini = false;
 	    }
 	  }, {
@@ -3852,13 +3958,13 @@
 	      if (this.config.disable) {
 	        return;
 	      }
-	      return '\n      <xg-mini-layer class="xg-mini-layer">\n      <div class="mask"></div>\n      <xg-mini-header class="xgplayer-mini-header">\n        <div>\u6309\u4F4F\u753B\u9762\u53EF\u79FB\u52A8\u5C0F\u7A97</div>\n      </xg-mini-header>\n      <div class="mini-cancel-btn">X</div>\n      <div class="play-icon play">\n        ' + PauseSvg + '\n        ' + PlaySvg + '\n      </div>\n      </xg-mini-layer>';
+	      return '\n      <xg-mini-layer class="xg-mini-layer">\n      <div class="mask"></div>\n      <xg-mini-header class="xgplayer-mini-header">\n        <div>\u6309\u4F4F\u753B\u9762\u53EF\u79FB\u52A8\u5C0F\u7A97</div>\n      </xg-mini-header>\n      <div class="mini-cancel-btn">X</div>\n      <div class="play-icon">\n      </div>\n      </xg-mini-layer>';
 	    }
 	  }]);
 	  return MiniScreen;
 	}(Plugin);
 
-	var Events$2 = Plugin.Events,
+	var Events$3 = Plugin.Events,
 	    Util$2 = Plugin.Util,
 	    POSITIONS$2 = Plugin.POSITIONS,
 	    Sniffer$1 = Plugin.Sniffer;
@@ -3900,8 +4006,9 @@
 	      this.left = this.find('left-grid');
 	      this.center = this.find('center');
 	      this.right = this.find('right-grid');
-	      this.on(Events$2.MINI_STATE_CHANGE, function (isMini) {
-	        isMini ? Util$2.addClass(_this2.root, 'mini') : Util$2.removeClass(_this2.root, 'mini');
+	      this.innerRoot = this.find('inner-controls');
+	      this.on(Events$3.MINI_STATE_CHANGE, function (isMini) {
+	        isMini ? Util$2.addClass(_this2.root, 'mini-controls') : Util$2.removeClass(_this2.root, 'mini-controls');
 	      });
 	      this.bind('mouseenter', function (e) {
 	        _this2.mouseEnter(e);
@@ -3913,16 +4020,18 @@
 	  }, {
 	    key: 'mouseEnter',
 	    value: function mouseEnter() {
+	      // console.log('controls mouseEnter')
 	      clearTimeout(this.player.userTimer);
 	    }
 	  }, {
 	    key: 'mouseOut',
 	    value: function mouseOut() {
+	      // console.log('controls mouseOut')
 	      var player = this.player;
 
 	      player.userTimer = setTimeout(function () {
 	        this.isActive = false;
-	        player.emit(Events$2.PLAYER_BLUR);
+	        player.emit(Events$3.PLAYER_BLUR);
 	      }, player.config.inactive);
 	    }
 	  }, {
@@ -3939,8 +4048,9 @@
 	      if (!this.root) {
 	        return;
 	      }
+	      var defaultConfig = plugin.defaultConfig || {};
 	      if (!options.root) {
-	        var position = options.config && options.config.position ? options.config.position : plugin.defaultConfig.position;
+	        var position = options.config && options.config.position ? options.config.position : defaultConfig.position;
 	        switch (position) {
 	          case POSITIONS$2.CONTROLS_LEFT:
 	            options.root = this.left;
@@ -3950,6 +4060,9 @@
 	            break;
 	          case POSITIONS$2.CONTROLS_CENTER:
 	            options.root = this.center;
+	            break;
+	          case POSITIONS$2.CONTROLS:
+	            options.root = this.root;
 	            break;
 	          default:
 	            options.root = this.left;
@@ -3963,10 +4076,9 @@
 	      if (this.config.disable) {
 	        return;
 	      }
-	      var className = this.config.mode === 'flex' ? 'flex ' : '';
+	      var className = this.config.mode === 'flex' ? 'flex-controls ' : '';
 	      className += this.config.autoHide ? 'control_autohide' : '';
-
-	      return '<xg-controls class="xgplayer-controls ' + className + '" unselectable="on" onselectstart="return false">\n    <left-grid class="left-grid">\n    </Left-grid>\n    <center class="center"></center>\n    <right-grid class="right-grid">\n    </right-grid>\n    </xg-controls>';
+	      return '<xg-controls class="xgplayer-controls ' + className + '" unselectable="on" onselectstart="return false">\n    <inner-controls class="inner-controls">\n      <left-grid class="left-grid">\n      </Left-grid>\n      <center class="center"></center>\n      <right-grid class="right-grid">\n      </right-grid>\n    </inner-controls>\n    </xg-controls>';
 	    }
 	  }], [{
 	    key: 'pluginName',
@@ -4030,7 +4142,26 @@
 	      if (!this.config.urlList || this.config.urlList.length === 0) {
 	        return;
 	      }
+	      this.appendChild('.xgplayer-icon', this.icons.playNext);
 	      this.initEvents();
+	    }
+	  }, {
+	    key: 'registerIcons',
+	    value: function registerIcons() {
+	      return {
+	        playNext: Next
+	      };
+	    }
+	  }, {
+	    key: 'registerLangauageTexts',
+	    value: function registerLangauageTexts() {
+	      return {
+	        'playNext': {
+	          jp: 'play',
+	          en: 'play',
+	          zh: '播放'
+	        }
+	      };
 	    }
 	  }, {
 	    key: 'initEvents',
@@ -4057,24 +4188,6 @@
 	      }
 	    }
 	  }, {
-	    key: 'registerIcons',
-	    value: function registerIcons() {
-	      return {
-	        playNext: Next
-	      };
-	    }
-	  }, {
-	    key: 'registerLangauageTexts',
-	    value: function registerLangauageTexts() {
-	      return {
-	        'playNext': {
-	          jp: 'play',
-	          en: 'play',
-	          zh: '播放'
-	        }
-	      };
-	    }
-	  }, {
 	    key: 'destroy',
 	    value: function destroy() {
 	      this.unbind(['touchend', 'click'], this.playNext);
@@ -4085,13 +4198,13 @@
 	      if (!this.config.urlList || this.config.urlList.length === 0) {
 	        return;
 	      }
-	      return '\n     <xg-icon class="xgplayer-playnext">\n      <div class="xgplayer-icon">\n        ' + this.icons.playNext + '\n      </div>\n      <div class="xg-tips">' + this.text.playNext + '</div>\n     </xg-icon>\n    ';
+	      return '\n     <xg-icon class="xgplayer-playnext">\n      <div class="xgplayer-icon">\n      </div>\n      <div class="xg-tips">' + this.text.playNext + '</div>\n     </xg-icon>\n    ';
 	    }
 	  }]);
 	  return PlayNextIcon;
 	}(Plugin);
 
-	var Events$3 = BasePlugin.Events,
+	var Events$4 = BasePlugin.Events,
 	    Util$3 = BasePlugin.Util;
 
 	var PCPlugin = function (_BasePlugin) {
@@ -4138,8 +4251,8 @@
 
 	      player.video.addEventListener('dblclick', this.onVideoDblClick, false);
 	      player.root.addEventListener('contextmenu', this.onContextmenu, false);
-	      this.once(Events$3.CANPLAY, this.onEntered.bind(this));
-	      this.once(Events$3.AUTOPLAY_PREVENTED, function () {
+	      this.once(Events$4.CANPLAY, this.onEntered.bind(this));
+	      this.once(Events$4.AUTOPLAY_PREVENTED, function () {
 	        _this3.onAutoPlayPrevented();
 	      });
 
@@ -4187,9 +4300,9 @@
 	      var player = this.player;
 
 	      Util$3.removeClass(player.root, 'xgplayer-is-enter');
-	      this.once(Events$3.PLAY, function () {
+	      this.once(Events$4.PLAY, function () {
 	        Util$3.addClass(player.root, 'xgplayer-is-enter');
-	        _this4.once(Events$3.TIME_UPDATE, function () {
+	        _this4.once(Events$4.TIME_UPDATE, function () {
 	          Util$3.removeClass(player.root, 'xgplayer-is-enter');
 	        });
 	      });
@@ -4298,7 +4411,7 @@
 	  return PCPlugin;
 	}(BasePlugin);
 
-	var Events$4 = Plugin.Events,
+	var Events$5 = Plugin.Events,
 	    Util$4 = Plugin.Util;
 
 	var MobilePlugin = function (_Plugin) {
@@ -4395,7 +4508,7 @@
 	        this.pos.scopeR = (1 - config.scopeR) * this.pos.width;
 	        this.root.addEventListener('touchmove', this.onTouchMove, false);
 	        this.root.addEventListener('touchend', this.onTouchEnd, false);
-	        this.player.emit(Events$4.PLAYER_FOCUS, true);
+	        this.player.emit(Events$5.PLAYER_FOCUS, true);
 	      }
 	    }
 	  }, {
@@ -4444,14 +4557,14 @@
 
 	      root.removeEventListener('touchmove', this.onTouchMove, false);
 	      root.removeEventListener('touchend', this.onTouchEnd, false);
-	      player.emit(Events$4.PLAYER_FOCUS, false);
+	      player.emit(Events$5.PLAYER_FOCUS, false);
 	      if (pos.op === 1) {
 	        if (pos.time > player.duration) {
 	          player.currentTime = player.duration;
 	        } else {
 	          player.currentTime = pos.time < 0 ? 0 : pos.time;
 	        }
-	        this.once(Events$4.CANPLAY, function () {
+	        this.once(Events$5.CANPLAY, function () {
 	          _this2.player.isSeeking = false;
 	        });
 	      }
@@ -4518,7 +4631,7 @@
 	    key: 'render',
 	    value: function render() {
 	      var className = this.config.gradient ? 'gradient' : '';
-	      return '\n     <xg-trigger class="trigger ' + className + '"></xg-trigger>\n    ';
+	      return '\n     <xg-trigger class="trigger ' + className + '">\n     <!--<div class="bar">\n        <span class=""></span>\n     </div>\n     <div class="timenote">\n        <span class="cur">00:00</span>\n        <span>/</span>\n        <span class="dur">00:00</span>\n        <div class="bar timebar">\n          <span class=""></span>\n        </class>\n     </div>-->\n     </xg-trigger>\n    ';
 	    }
 	  }]);
 	  return MobilePlugin;
@@ -4563,7 +4676,7 @@
 	}
 
 	var Util$5 = Plugin.Util,
-	    Events$5 = Plugin.Events,
+	    Events$6 = Plugin.Events,
 	    Sniffer$3 = Plugin.Sniffer;
 
 	var Start = function (_Plugin) {
@@ -4582,10 +4695,11 @@
 	      var player = this.player,
 	          playerConfig = this.playerConfig;
 
+	      this.initIcons();
 	      if (Sniffer$3.device === 'mobile') {
 	        this.config.isShowPause = true;
 	      }
-	      this.once(Events$5.READY, function () {
+	      this.once(Events$6.READY, function () {
 	        if (playerConfig) {
 	          if (playerConfig.lang && playerConfig.lang === 'en') {
 	            Util$5.addClass(player.root, 'lang-is-en');
@@ -4603,10 +4717,10 @@
 
 	      this.bind('click', this.onClick);
 
-	      this.on([Events$5.PLAY, Events$5.PAUSE], function () {
+	      this.on([Events$6.PLAY, Events$6.PAUSE], function () {
 	        _this2.player.isPlaying ? _this2.animate() : _this2.hide();
 	      });
-	      this.on(Events$5.AUTOPLAY_PREVENTED, function () {
+	      this.on(Events$6.AUTOPLAY_PREVENTED, function () {
 	        _this2.show();
 	      });
 	    }
@@ -4614,9 +4728,17 @@
 	    key: 'registerIcons',
 	    value: function registerIcons() {
 	      return {
-	        play: PlaySvg,
-	        pause: PauseSvg
+	        startPlay: { icon: PlaySvg, class: 'xg-icon-play' },
+	        startPause: { icon: PauseSvg, class: 'xg-icon-pause' }
 	      };
+	    }
+	  }, {
+	    key: 'initIcons',
+	    value: function initIcons() {
+	      var icons = this.icons;
+
+	      this.appendChild('.icon', icons.startPlay);
+	      this.appendChild('.icon', icons.startPause);
 	    }
 	  }, {
 	    key: 'animate',
@@ -4628,7 +4750,7 @@
 	          return;
 	        }
 	        this.show();
-	        this.root.innerHTML = this.player.paused ? this.icons.play : this.icons.pause;
+	        this.setAttr('data-state', this.player.paused ? 'pause' : 'play');
 	        return;
 	      }
 	      if (this.player.disableAmimate) {
@@ -4638,7 +4760,7 @@
 	        start: function start() {
 	          Util$5.addClass(_this3.root, 'interact');
 	          _this3.show();
-	          _this3.root.innerHTML = _this3.player.paused ? _this3.icons.pause : _this3.icons.play;
+	          _this3.setAttr('data-state', _this3.player.paused ? 'pause' : 'play');
 	        },
 	        end: function end() {
 	          Util$5.removeClass(_this3.root, 'interact');
@@ -4681,7 +4803,7 @@
 	  }, {
 	    key: 'render',
 	    value: function render() {
-	      return '\n    <xg-start class="xgplayer-start" >\n      <div class="icon">\n      ' + this.icons.play + '\n      </div>\n    </xg-start>';
+	      return '\n    <xg-start class="xgplayer-start" >\n      <div class="icon">\n      </div>\n    </xg-start>';
 	    }
 	  }], [{
 	    key: 'pluginName',
@@ -4902,7 +5024,7 @@
 	BasePlugin$1.Util = util;
 	BasePlugin$1.Sniffer = sniffer;
 	BasePlugin$1.Errors = Errors;
-	BasePlugin$1.Events = event;
+	BasePlugin$1.Events = Events;
 
 	/**
 	* a plugins manager to register and search
@@ -5284,24 +5406,55 @@
 	*
 	**/
 
+	// const {Util} = BasePlugin
 	function _createElement$1(tag, name) {
+	  var attr = arguments.length > 2 && arguments[2] !== undefined ? arguments[2] : {};
+
 	  var dom = document.createElement(tag);
 	  dom.className = name;
+	  attr && Object.keys(attr).map(function (key) {
+	    dom.setAttribute(key, attr[key]);
+	  });
 	  return dom;
 	}
 
+	function isUrl$1(str) {
+	  return str.indexOf('http') > 0;
+	}
+
 	function registerIconsObj$1(iconsConfig, plugin) {
-	  Object.keys(iconsConfig).map(function (iconKey) {
-	    Object.defineProperty(plugin.icons, iconKey, {
-	      get: function get() {
-	        var _icons = plugin.config.icons || plugin.playerConfig.icons;
-	        if (_icons && _icons[iconKey]) {
-	          return _icons[iconKey];
-	        } else {
-	          return iconsConfig[iconKey];
+	  var _icons = plugin.config.icons || plugin.playerConfig.icons;
+	  Object.keys(iconsConfig).map(function (key) {
+	    var orgIcon = iconsConfig[key] || {};
+	    var classname = orgIcon.class || '';
+	    var attr = orgIcon.attr || {};
+	    var _icon = null;
+	    if (_icons && _icons[key]) {
+	      _icon = _icons[key];
+	      if (_icon instanceof window.Element) {
+	        util.addClass(_icon, classname);
+	        Object.keys(attr).map(function (key) {
+	          _icon.setAttribute(key, attr[key]);
+	        });
+	      } else if (isUrl$1(_icon)) {
+	        _icon = util.createDom('img', '', { src: _icon }, attr, 'xg-img ' + classname);
+	      } else if (typeof _icon === 'function') {
+	        _icon = _icon(classname, attr);
+	        if (_icon instanceof window.Element) {
+	          util.addClass(_icon, classname);
+	          Object.keys(attr).map(function (key) {
+	            _icon.setAttribute(key, attr[key]);
+	          });
 	        }
+	      } else {
+	        _icon = util.createDomFromHtml(_icon, attr, classname);
 	      }
-	    });
+	    }
+	    if (!_icon) {
+	      _icon = orgIcon.icon ? orgIcon.icon : orgIcon;
+	      _icon = _icon instanceof window.Element ? _icon : util.createDomFromHtml(_icon, attr, classname);
+	    }
+	    plugin.icons[key] = _icon;
 	  });
 	}
 
@@ -5367,8 +5520,8 @@
 	      var _parent = args.root;
 	      var _el = null;
 	      this.icons = {};
-	      var defaultIcons = this.registerIcons() || {};
-	      registerIconsObj$1(defaultIcons, this);
+	      var _orgicons = this.registerIcons() || {};
+	      registerIconsObj$1(_orgicons, this);
 
 	      this.text = {};
 	      var defaultTexConfig = this.registerLangauageTexts() || {};
@@ -5690,6 +5843,26 @@
 	      this.root && (this.root.style.display = 'none');
 	    }
 	  }, {
+	    key: 'appendChild',
+	    value: function appendChild(pdom, child) {
+	      if (arguments.length < 2 && arguments[0] instanceof window.Element) {
+	        return this.root.appendChild(arguments[0]);
+	      }
+	      if (!child || !(child instanceof window.Element)) {
+	        return null;
+	      }
+	      try {
+	        if (typeof pdom === 'string') {
+	          return this.find(pdom).appendChild(child);
+	        } else {
+	          return pdom.appendChild(child);
+	        }
+	      } catch (err) {
+	        console.warn(err);
+	        return null;
+	      }
+	    }
+	  }, {
 	    key: 'render',
 	    value: function render() {
 	      return '';
@@ -5726,7 +5899,8 @@
 	  ROOT_TOP: 'rootTop',
 	  CONTROLS_LEFT: 'controlsLeft',
 	  CONTROLS_RIGTH: 'controlsRight',
-	  CONTROLS_CENTER: 'controlsCenter'
+	  CONTROLS_CENTER: 'controlsCenter',
+	  CONTROLS: 'controls'
 	};
 
 	var ErrorPlugin = function (_Plugin) {
@@ -5785,31 +5959,71 @@
 	  return ErrorPlugin;
 	}(Plugin$1);
 
-	var EnterPlugin = function (_Plugin) {
-	  inherits(EnterPlugin, _Plugin);
+	var Events$7 = Plugin.Events,
+	    Util$6 = Plugin.Util;
 
-	  function EnterPlugin() {
-	    classCallCheck(this, EnterPlugin);
-	    return possibleConstructorReturn(this, (EnterPlugin.__proto__ || Object.getPrototypeOf(EnterPlugin)).apply(this, arguments));
+	var Enter = function (_Plugin) {
+	  inherits(Enter, _Plugin);
+
+	  function Enter() {
+	    classCallCheck(this, Enter);
+	    return possibleConstructorReturn(this, (Enter.__proto__ || Object.getPrototypeOf(Enter)).apply(this, arguments));
 	  }
 
-	  createClass(EnterPlugin, [{
+	  createClass(Enter, [{
+	    key: 'afterPlayerInit',
+	    value: function afterPlayerInit() {
+	      var _this2 = this;
+
+	      var player = this.player,
+	          playerConfig = this.playerConfig;
+
+	      if (!playerConfig.autoplay || !playerConfig.videoInit) {
+	        this.once(Events$7.CANPLAY, function () {
+	          _this2.isCanPlay = true;
+	        });
+	        this.on(Events$7.PLAY, function () {
+	          if (!_this2.isCanPlay) {
+	            player.addClass('xgplayer-is-enter');
+	          }
+	        });
+	      }
+	    }
+	  }, {
 	    key: 'render',
 	    value: function render() {
-	      var barStr = '';
-	      for (var i = 1; i <= 12; i++) {
-	        barStr += '<div class="xgplayer-enter-bar' + i + '"></div>';
-	      }
+	      var innerHtml = this.config.innerHtml;
 
-	      return '<xg-enter class="xgplayer-enter"><div class="xgplayer-enter-spinner">\n      ' + barStr + '\n    </div></xg-enter>';
+	      var root = Util$6.createDom('xg-enter', '', {}, 'xgplayer-enter');
+
+	      if (innerHtml && innerHtml instanceof window.HTMLElement) {
+	        root.appendChild(innerHtml);
+	      } else if (innerHtml && typeof innerHtml === 'string') {
+	        root.innerHTML = innerHtml;
+	      } else {
+	        var barStr = '';
+	        for (var i = 1; i <= 12; i++) {
+	          barStr += '<div class="xgplayer-enter-bar' + i + '"></div>';
+	        }
+	        root.innerHTML = '<div class="xgplayer-enter-spinner">' + barStr + '</div>';
+	      }
+	      return root;
 	    }
 	  }], [{
 	    key: 'pluginName',
 	    get: function get() {
-	      return 'index.scss';
+	      return 'enter';
+	    }
+	  }, {
+	    key: 'defaultConfig',
+	    get: function get() {
+	      return {
+	        innerHtml: '',
+	        logo: ''
+	      };
 	    }
 	  }]);
-	  return EnterPlugin;
+	  return Enter;
 	}(Plugin);
 
 	var Keyboard = function (_BasePlugin) {
@@ -5853,12 +6067,14 @@
 	        'up': {
 	          keyCode: 38,
 	          action: 'upVolume',
-	          disable: false
+	          disable: false,
+	          noBodyTarget: true // 默认不在body上触发
 	        },
 	        'down': {
 	          keyCode: 40,
 	          action: 'downVolume',
-	          disable: false
+	          disable: false,
+	          noBodyTarget: true
 	        },
 	        'left': {
 	          keyCode: 37,
@@ -5954,7 +6170,7 @@
 
 	      if (player.paused) {
 	        // eslint-disable-next-line handle-callback-err
-	        player.play().catch(function (err) {});
+	        player.play();
 	      } else {
 	        player.pause();
 	      }
@@ -6072,7 +6288,7 @@
 		Start: Start,
 		track: TextTrackPlugin,
 		Error: ErrorPlugin,
-		Enter: EnterPlugin
+		Enter: Enter
 	});
 
 	var loadingIcon = "<svg xmlns=\"http://www.w3.org/2000/svg\" width=\"100\" height=\"100\" viewbox=\"0 0 100 100\">\n  <path d=\"M100,50A50,50,0,1,1,50,0\"></path>\n</svg>\n";
@@ -6093,9 +6309,15 @@
 	      };
 	    }
 	  }, {
+	    key: 'afterCreate',
+	    value: function afterCreate() {
+	      console.log('this.icons.loadingIcon', this.icons.loadingIcon);
+	      this.appendChild(this.icons.loadingIcon);
+	    }
+	  }, {
 	    key: 'render',
 	    value: function render() {
-	      return '\n    <xg-loading class="xgplayer-loading">\n      ' + this.icons.loadingIcon + '\n    </xg-loading>';
+	      return '\n    <xg-loading class="xgplayer-loading">\n    </xg-loading>';
 	    }
 	  }], [{
 	    key: 'pluginName',
@@ -6114,8 +6336,8 @@
 	  color: '#fff' // 颜色
 	};
 
-	var Util$6 = Plugin.Util,
-	    Events$6 = Plugin.Events;
+	var Util$7 = Plugin.Util,
+	    Events$8 = Plugin.Events;
 
 	var ProgressDot = function (_Plugin) {
 	  inherits(ProgressDot, _Plugin);
@@ -6147,7 +6369,7 @@
 	    value: function afterCreate() {
 	      var _this2 = this;
 
-	      this.once(Events$6.CANPLAY, function () {
+	      this.once(Events$8.CANPLAY, function () {
 	        var dots = _this2.config.dots;
 
 	        if (!dots || !Array.isArray(dots)) {
@@ -6182,7 +6404,7 @@
 	          duration: duration
 	        };
 	      }
-	      newDots = Util$6.deepCopy(arguments[0], defaultDot);
+	      newDots = Util$7.deepCopy(arguments[0], defaultDot);
 	      this.createDotDom(newDots);
 	    }
 	  }, {
@@ -6216,7 +6438,7 @@
 	    value: function createDotDom(dot) {
 	      var player = this.player;
 
-	      var dom = Util$6.createDom('xg-progress-dot', '' + (dot.text ? '<span class="xgplayer-progress-tip">' + dot.text + '</span>' : ''), {}, 'xgplayer-progress-dot');
+	      var dom = Util$7.createDom('xg-progress-dot', '' + (dot.text ? '<span class="xgplayer-progress-tip">' + dot.text + '</span>' : ''), {}, 'xgplayer-progress-dot');
 	      var style = dot.style || {};
 	      style.left = dot.time / player.duration * 100 + '%';
 	      style.width = Math.min(dot.duration, player.duration - dot.time) / player.duration * 100 + '%';
@@ -6238,8 +6460,8 @@
 	  return ProgressDot;
 	}(Plugin);
 
-	var Events$7 = Plugin.Events,
-	    Util$7 = Plugin.Util,
+	var Events$9 = Plugin.Events,
+	    Util$8 = Plugin.Util,
 	    POSITIONS$4 = Plugin.POSITIONS,
 	    Sniffer$4 = Plugin.Sniffer;
 
@@ -6320,15 +6542,15 @@
 	      this.progressBtn = this.find('.xgplayer-progress-btn');
 	      this.thumbnailDom = this.find('xg-thumbnail');
 	      this.initThumbnail();
-	      this.on(Events$7.TIME_UPDATE, function () {
+	      this.on(Events$9.TIME_UPDATE, function () {
 	        _this2.onTimeupdate();
 	        _this2.onCacheUpdate();
 	      });
-	      this.on(Events$7.SEEKING, function () {
+	      this.on(Events$9.SEEKING, function () {
 	        _this2.onTimeupdate();
 	        _this2.onCacheUpdate();
 	      });
-	      this.on([Events$7.BUFFER_CHANGE, Events$7.ENDED], function () {
+	      this.on([Events$9.BUFFER_CHANGE, Events$9.ENDED], function () {
 	        _this2.onCacheUpdate();
 	      });
 	      this.bindDomEvents();
@@ -6388,64 +6610,45 @@
 	  }, {
 	    key: 'mouseDown',
 	    value: function mouseDown(e) {
-	      console.log('mousedown');
 	      var player = this.player;
 
-	      if (player.isMini) {
+	      if (player.isMini || player.config.closeMoveSeek) {
 	        return;
 	      }
 	      var self = this;
 	      e.stopPropagation();
-	      Util$7.event(e);
+	      Util$8.event(e);
 	      // this.pointTip为tip信息 不做seek操作
 	      if (e.target === this.pointTip || !player.config.allowSeekAfterEnded && player.ended) {
 	        return true;
 	      }
-	      this.root.focus();
-	      Util$7.addClass(this.progressBtn, 'btn-move');
-	      var containerWidth = this.root.getBoundingClientRect().width;
-
-	      var _playedBar$getBoundin = this.playedBar.getBoundingClientRect(),
-	          left = _playedBar$getBoundin.left;
+	      this.isProgressMoving = true;
+	      Util$8.addClass(self.progressBtn, 'btn-move');
+	      self.computeWidth(e);
 
 	      var move = function move(e) {
 	        e.preventDefault();
 	        e.stopPropagation();
-	        Util$7.event(e);
-	        self.isProgressMoving = true;
-	        var w = e.clientX - left;
-	        if (w > containerWidth) {
-	          w = containerWidth;
-	        }
-	        self.updatePercent(w / containerWidth);
-	        player.emit('focus');
+	        Util$8.event(e);
+	        this.isProgressMoving = true;
+	        self.computeWidth(e);
 	      };
+
 	      var up = function up(e) {
-	        // e.preventDefault()
-	        Util$7.removeClass(self.progressBtn, 'btn-move');
+	        Util$8.removeClass(self.progressBtn, 'btn-move');
+	        e.preventDefault();
 	        e.stopPropagation();
-	        Util$7.event(e);
+	        Util$8.event(e);
 	        if (Sniffer$4.device === 'mobile') {
-	          self.root.removeEventListener('touchmove', move, { passive: false });
+	          self.root.removeEventListener('touchmove', move);
 	          self.root.removeEventListener('touchend', up);
 	        } else {
 	          self.root.removeEventListener('mousemove', move);
 	          self.root.removeEventListener('mouseup', up);
 	        }
-	        self.root.blur();
-	        if (!self.isProgressMoving || player.videoConfig.mediaType === 'audio' || player.dash || player.config.closeMoveSeek) {
-	          var w = e.clientX - left;
-	          if (w > containerWidth) {
-	            w = containerWidth;
-	          }
-	          // let now = w / containerWidth * player.duration
-	          // self.playedBar.style.width = `${w * 100 / containerWidth}%`
-	          // player.currentTime = Number(now).toFixed(1)
-	          self.updatePercent(w / containerWidth);
-	        }
-	        player.emit('focus');
 	        self.isProgressMoving = false;
 	      };
+
 	      if (Sniffer$4.device === 'mobile') {
 	        self.root.addEventListener('touchmove', move, false);
 	        self.root.addEventListener('touchend', up, false);
@@ -6458,14 +6661,10 @@
 	  }, {
 	    key: 'mouseEnter',
 	    value: function mouseEnter(e) {
-	      console.log('mouseEnter');
 	      var player = this.player;
 
-	      if (player.isMini) {
+	      if (player.isMini || !player.config.allowSeekAfterEnded && player.ended) {
 	        return;
-	      }
-	      if (!player.config.allowSeekAfterEnded && player.ended) {
-	        return true;
 	      }
 	      this.root.addEventListener('mousemove', this.mouseMove, false);
 	      this.root.addEventListener('mouseleave', this.mouseLeave, false);
@@ -6492,7 +6691,7 @@
 	      var width = this.root.getBoundingClientRect().width;
 	      var now = (e.clientX - left) / width * player.duration;
 	      now = now < 0 ? 0 : now;
-	      this.pointTip.textContent = Util$7.format(now);
+	      this.pointTip.textContent = Util$8.format(now);
 	      var pointWidth = this.pointTip.getBoundingClientRect().width;
 	      var pleft = e.clientX - left - pointWidth / 2;
 	      pleft = pleft > 0 ? pleft : 0;
@@ -6544,6 +6743,20 @@
 	      });
 	    }
 	  }, {
+	    key: 'computeWidth',
+	    value: function computeWidth(e) {
+	      var containerWidth = this.root.getBoundingClientRect().width;
+
+	      var _playedBar$getBoundin = this.playedBar.getBoundingClientRect(),
+	          left = _playedBar$getBoundin.left;
+
+	      var w = e.clientX - left;
+	      if (w > containerWidth) {
+	        w = containerWidth;
+	      }
+	      this.updatePercent(w / containerWidth);
+	    }
+	  }, {
 	    key: 'updateTime',
 	    value: function updateTime(time) {
 	      var player = this.player;
@@ -6567,7 +6780,7 @@
 	        return;
 	      }
 	      if (player.videoConfig.mediaType === 'video' && !player.dash && !player.config.closeMoveSeek) {
-	        player.currentTime = Number(now).toFixed(1);
+	        player.seek(Number(now).toFixed(1));
 	      } else {
 	        this.updateTime(now);
 	      }
@@ -6588,10 +6801,10 @@
 	    value: function onTimeupdate() {
 	      var player = this.player;
 
-	      if (player.isSeeking) {
+	      if (player.isSeeking || this.isProgressMoving) {
 	        return;
 	      }
-	      if (player.videoConfig.mediaType !== 'audio' || !this.isProgressMoving || !player.dash) {
+	      if (player.videoConfig.mediaType !== 'audio' || !player.dash) {
 	        this.playedBar.style.width = player.currentTime * 100 / player.duration + '%';
 	      }
 	    }
@@ -6640,7 +6853,7 @@
 	  return Progress;
 	}(Plugin);
 
-	var Events$8 = Plugin.Events,
+	var Events$a = Plugin.Events,
 	    POSITIONS$5 = Plugin.POSITIONS,
 	    Sniffer$5 = Plugin.Sniffer;
 
@@ -6663,27 +6876,17 @@
 	      if (config.disable) {
 	        return;
 	      }
+	      this.initIcons();
 	      this.btnClick = this.btnClick.bind(this);
 	      var event = Sniffer$5.device === 'mobile' ? 'touchend' : 'click';
 	      this.bind(event, this.btnClick);
 
-	      this.on(Events$8.PAUSE, function () {
+	      this.on(Events$a.PAUSE, function () {
 	        _this2.animate(player.paused);
 	      });
-	      this.on(Events$8.PLAY, function () {
+	      this.on(Events$a.PLAY, function () {
 	        _this2.animate(player.paused);
 	      });
-	    }
-	  }, {
-	    key: 'btnClick',
-	    value: function btnClick(e) {
-	      var player = this.player;
-
-	      if (player.paused) {
-	        player.play();
-	      } else {
-	        player.pause();
-	      }
 	    }
 
 	    // 扩展语言
@@ -6708,24 +6911,39 @@
 	    key: 'registerIcons',
 	    value: function registerIcons() {
 	      return {
-	        play: PlaySvg,
-	        pause: PauseSvg
+	        play: { icon: PlaySvg, class: 'xg-icon-play' },
+	        pause: { icon: PauseSvg, class: 'xg-icon-pause' }
 	      };
+	    }
+	  }, {
+	    key: 'btnClick',
+	    value: function btnClick(e) {
+	      var player = this.player;
+
+	      if (player.paused) {
+	        player.play();
+	      } else {
+	        player.pause();
+	      }
+	    }
+	  }, {
+	    key: 'initIcons',
+	    value: function initIcons() {
+	      var icons = this.icons;
+
+	      this.appendChild('.xgplayer-icon', icons.play);
+	      this.appendChild('.xgplayer-icon', icons.pause);
 	    }
 	  }, {
 	    key: 'animate',
 	    value: function animate(paused) {
 	      if (paused) {
-	        this.find('.xgplayer-icon').innerHTML = this.icons.play;
+	        this.setAttr('data-state', 'pause');
 	        this.find('.xg-tips').innerHTML = this.text.play;
 	      } else {
-	        this.find('.xgplayer-icon').innerHTML = this.icons.pause;
+	        this.setAttr('data-state', 'play');
 	        this.find('.xg-tips').innerHTML = this.text.pause;
 	      }
-	      // const path = this.find('.path')
-	      // const pathPlay = this.find('.path_play').getAttribute('d')
-	      // const pathPause = this.find('.path_pause').getAttribute('d')
-	      // !paused ? path.setAttribute('d', pathPause) : path.setAttribute('d', pathPlay)
 	    }
 	  }, {
 	    key: 'destroy',
@@ -6738,7 +6956,7 @@
 	      if (this.config.disable) {
 	        return;
 	      }
-	      return '<xg-icon class="xgplayer-play">\n    <div class="xgplayer-icon">\n    ' + this.icons.play + '\n    </div>\n    <div class="xg-tips">' + (this.player.paused ? this.text.play : this.text.pause) + '</div>\n    </xg-icon>';
+	      return '<xg-icon class="xgplayer-play">\n    <div class="xgplayer-icon">\n    </div>\n    <div class="xg-tips">' + (this.player.paused ? this.text.play : this.text.pause) + '</div>\n    </xg-icon>';
 	    }
 	  }], [{
 	    key: 'pluginName',
@@ -6758,9 +6976,11 @@
 	  return Play;
 	}(Plugin);
 
-	var FullScreenChangeSvg = "<svg xmlns=\"http://www.w3.org/2000/svg\" width=\"40\" height=\"40\" viewBox=\"0 0 40 40\">\n  <defs>\n  <path class=\"path_full\" transform=\"scale(0.0320625 0.0320625)\" d=\"M598 214h212v212h-84v-128h-128v-84zM726 726v-128h84v212h-212v-84h128zM214 426v-212h212v84h-128v128h-84zM298 598v128h128v84h-212v-212h84z\"></path>\n  <path class=\"path_exitfull\" transform=\"scale(0.0320625 0.0320625)\" d=\"M682 342h128v84h-212v-212h84v128zM598 810v-212h212v84h-128v128h-84zM342 342v-128h84v212h-212v-84h128zM214 682v-84h212v212h-84v-128h-128z\"></path>\n  </defs>\n  <path class=\"path\" transform=\"scale(0.0320625 0.0320625)\" d=\"M598 214h212v212h-84v-128h-128v-84zM726 726v-128h84v212h-212v-84h128zM214 426v-212h212v84h-128v128h-84zM298 598v128h128v84h-212v-212h84z\"></path>\n</svg>";
+	var FullScreenSvg = "<svg xmlns=\"http://www.w3.org/2000/svg\" width=\"40\" height=\"40\" viewBox=\"0 0 40 40\" transform=\"translate(-4, 5)\">\n  <path transform=\"scale(0.0320625 0.0320625)\" d=\"M598 214h212v212h-84v-128h-128v-84zM726 726v-128h84v212h-212v-84h128zM214 426v-212h212v84h-128v128h-84zM298 598v128h128v84h-212v-212h84z\"></path>\n</svg>\n";
 
-	var Events$9 = Plugin.Events,
+	var ExitFullScreenSvg = "<svg xmlns=\"http://www.w3.org/2000/svg\" width=\"40\" height=\"40\" viewBox=\"0 0 40 40\" transform=\"translate(-4, 5)\">\n  <path transform=\"scale(0.0320625 0.0320625)\" d=\"M682 342h128v84h-212v-212h84v128zM598 810v-212h212v84h-128v128h-84zM342 342v-128h84v212h-212v-84h128zM214 682v-84h212v212h-84v-128h-128z\"></path>\n</svg>\n";
+
+	var Events$b = Plugin.Events,
 	    POSITIONS$6 = Plugin.POSITIONS;
 
 	var Fullscreen = function (_Plugin) {
@@ -6777,53 +6997,13 @@
 	      var _this2 = this;
 
 	      this.isFullScreen = this.player.isFullScreen;
+	      this.initIcons();
 	      this.btnClick = this.btnClick.bind(this);
 	      this.bind(['click', 'touchend'], this.btnClick);
-	      this.on(Events$9.FULLSCREEN_CHANGE, function (isFullScreen) {
+	      this.on(Events$b.FULLSCREEN_CHANGE, function (isFullScreen) {
 	        _this2.find('.xg-tips').innerHTML = isFullScreen ? _this2.text.exitFullscreen : _this2.text.fullscreen;
 	        _this2.animate(isFullScreen);
 	      });
-	    }
-	  }, {
-	    key: 'btnClick',
-	    value: function btnClick(e) {
-	      var player = this.player,
-	          config = this.config;
-
-	      var useCssFullscreen = false;
-	      if (config.useCssFullscreen === true || typeof config.useCssFullscreen === 'function' && config.useCssFullscreen()) {
-	        useCssFullscreen = true;
-	      }
-	      if (useCssFullscreen) {
-	        if (player.fullscreen) {
-	          player.getCssFullscreen();
-	          player.fullscreen = true;
-	          this.emit(Events$9.FULLSCREEN_CHANGE, true);
-	        } else {
-	          player.exitCssFullscreen();
-	          player.fullscreen = false;
-	          this.emit(Events$9.FULLSCREEN_CHANGE, false);
-	        }
-	      } else {
-	        if (config.switchCallback && typeof config.switchCallback === 'function') {
-	          config.switchFullScreen(this.isFullScreen);
-	          this.isFullScreen = !this.isFullScreen;
-	          return;
-	        }
-	        if (player.fullscreen) {
-	          player.exitFullscreen(config.target);
-	        } else {
-	          player.getFullscreen(config.target);
-	        }
-	      }
-	    }
-	  }, {
-	    key: 'animate',
-	    value: function animate(isFullScreen) {
-	      var path = this.find('.path');
-	      var full = this.find('.path_full').getAttribute('d');
-	      var exit = this.find('.path_exitfull').getAttribute('d');
-	      isFullScreen ? path.setAttribute('d', exit) : path.setAttribute('d', full);
 	    }
 	  }, {
 	    key: 'registerLangauageTexts',
@@ -6845,7 +7025,8 @@
 	    key: 'registerIcons',
 	    value: function registerIcons() {
 	      return {
-	        fullscreenChange: FullScreenChangeSvg
+	        fullscreen: { icon: FullScreenSvg, class: 'xg-get-fullscreen' },
+	        exitFullscreen: { icon: ExitFullScreenSvg, class: 'xg-exit-fullscreen' }
 	      };
 	    }
 	  }, {
@@ -6854,9 +7035,56 @@
 	      this.unbind(['click', 'touchend'], this.btnClick);
 	    }
 	  }, {
+	    key: 'initIcons',
+	    value: function initIcons() {
+	      var icons = this.icons;
+
+	      this.appendChild('.xgplayer-icon', icons.fullscreen);
+	      this.appendChild('.xgplayer-icon', icons.exitFullscreen);
+	    }
+	  }, {
+	    key: 'btnClick',
+	    value: function btnClick(e) {
+	      var player = this.player,
+	          config = this.config;
+
+	      var useCssFullscreen = false;
+	      if (config.useCssFullscreen === true || typeof config.useCssFullscreen === 'function' && config.useCssFullscreen()) {
+	        useCssFullscreen = true;
+	      }
+	      if (useCssFullscreen) {
+	        if (player.fullscreen) {
+	          player.getCssFullscreen();
+	          player.fullscreen = true;
+	          this.emit(Events$b.FULLSCREEN_CHANGE, true);
+	        } else {
+	          player.exitCssFullscreen();
+	          player.fullscreen = false;
+	          this.emit(Events$b.FULLSCREEN_CHANGE, false);
+	        }
+	        this.animate(player.fullscreen);
+	      } else {
+	        if (config.switchCallback && typeof config.switchCallback === 'function') {
+	          config.switchFullScreen(this.isFullScreen);
+	          this.isFullScreen = !this.isFullScreen;
+	          return;
+	        }
+	        if (player.fullscreen) {
+	          player.exitFullscreen(config.target);
+	        } else {
+	          player.getFullscreen(config.target);
+	        }
+	      }
+	    }
+	  }, {
+	    key: 'animate',
+	    value: function animate(isFullScreen) {
+	      isFullScreen ? this.setAttr('data-state', 'full') : this.setAttr('data-state', 'normal');
+	    }
+	  }, {
 	    key: 'render',
 	    value: function render() {
-	      return '<xg-icon class="xgplayer-fullscreen">\n    <div class="xgplayer-icon">\n    ' + this.icons.fullscreenChange + '\n    </div>\n    <div class="xg-tips">' + (this.player.isFullScreen ? this.text.exitFullscreen : this.text.fullscreen) + '</div>\n    </xg-icon>';
+	      return '<xg-icon class="xgplayer-fullscreen">\n    <div class="xgplayer-icon">\n    </div>\n    <div class="xg-tips">' + (this.player.isFullScreen ? this.text.exitFullscreen : this.text.fullscreen) + '</div>\n    </xg-icon>';
 	    }
 	  }], [{
 	    key: 'pluginName',
@@ -6878,8 +7106,8 @@
 	  return Fullscreen;
 	}(Plugin);
 
-	var Util$8 = Plugin.Util,
-	    Events$a = Plugin.Events,
+	var Util$9 = Plugin.Util,
+	    Events$c = Plugin.Events,
 	    POSITIONS$7 = Plugin.POSITIONS,
 	    Sniffer$6 = Plugin.Sniffer;
 
@@ -6906,10 +7134,10 @@
 	      }
 	      this.durationDom = this.find('.time-duration');
 	      this.timeDom = this.find('.time-current');
-	      this.on(Events$a.DURATION_CHANGE, function () {
+	      this.on(Events$c.DURATION_CHANGE, function () {
 	        _this2.onTimeUpdate();
 	      });
-	      this.on(Events$a.TIME_UPDATE, function () {
+	      this.on(Events$c.TIME_UPDATE, function () {
 	        !_this2.player.isSeeking && _this2.onTimeUpdate();
 	      });
 	    }
@@ -6932,14 +7160,14 @@
 	      }
 	      var current = player.currentTime;
 	      if (this.mode === 'mobile') {
-	        this.centerCurDom.innerHTML = Util$8.format(current);
+	        this.centerCurDom.innerHTML = Util$9.format(current);
 	        if (player.duration !== Infinity) {
-	          this.centerDurDom.innerHTML = Util$8.format(player.duration);
+	          this.centerDurDom.innerHTML = Util$9.format(player.duration);
 	        }
 	      } else {
-	        this.timeDom.innerHTML = Util$8.format(current);
+	        this.timeDom.innerHTML = Util$9.format(current);
 	        if (player.duration !== Infinity) {
-	          this.durationDom.innerHTML = Util$8.format(player.duration);
+	          this.durationDom.innerHTML = Util$9.format(player.duration);
 	        }
 	      }
 	    }
@@ -6952,8 +7180,8 @@
 	        return;
 	      }
 	      var center = player.controls.center;
-	      this.centerCurDom = Util$8.createDom('xg-icon', '00:00', { style: 'margin-left:0px;margin-right:10px;' }, 'xgplayer-time');
-	      this.centerDurDom = Util$8.createDom('xg-icon', '00:00', {}, 'xgplayer-time');
+	      this.centerCurDom = Util$9.createDom('xg-icon', '00:00', { style: 'margin-left:0px;margin-right:10px;' }, 'xgplayer-time');
+	      this.centerDurDom = Util$9.createDom('xg-icon', '00:00', {}, 'xgplayer-time');
 	      center.children.length > 0 ? center.insertBefore(this.centerCurDom, center.children[0]) : center.appendChild(this.centerCurDom);
 	      center.appendChild(this.centerDurDom);
 	    }
@@ -6964,12 +7192,12 @@
 	          config = this.config;
 
 	      if (player.duration === Infinity || this.playerConfig.isLive) {
-	        Util$8.hide(this.durationDom);
-	        Util$8.hide(this.timeDom);
-	        Util$8.hide(this.find('.time-separator'));
-	        Util$8.show(this.find('.time-live-tag'));
+	        Util$9.hide(this.durationDom);
+	        Util$9.hide(this.timeDom);
+	        Util$9.hide(this.find('.time-separator'));
+	        Util$9.show(this.find('.time-live-tag'));
 	      } else {
-	        Util$8.hide(this.find('.time-live-tag'));
+	        Util$9.hide(this.find('.time-live-tag'));
 	      }
 	      if (config.hide) {
 	        this.hide();
@@ -6981,15 +7209,15 @@
 	    key: 'changeLiveState',
 	    value: function changeLiveState(isLive) {
 	      if (isLive) {
-	        Util$8.hide(this.durationDom);
-	        Util$8.hide(this.timeDom);
-	        Util$8.hide(this.find('.time-separator'));
-	        Util$8.show(this.find('.time-live-tag'));
+	        Util$9.hide(this.durationDom);
+	        Util$9.hide(this.timeDom);
+	        Util$9.hide(this.find('.time-separator'));
+	        Util$9.show(this.find('.time-live-tag'));
 	      } else {
-	        Util$8.hide(this.find('.time-live-tag'));
-	        Util$8.show(this.find('.time-separator'));
-	        Util$8.show(this.durationDom);
-	        Util$8.show(this.timeDom);
+	        Util$9.hide(this.find('.time-live-tag'));
+	        Util$9.show(this.find('.time-separator'));
+	        Util$9.show(this.durationDom);
+	        Util$9.show(this.timeDom);
 	      }
 	    }
 	  }, {
@@ -7001,10 +7229,10 @@
 	        return;
 	      }
 	      if (this.mode === 'mobile') {
-	        this.centerCurDom.innerHTML = Util$8.format(time);
+	        this.centerCurDom.innerHTML = Util$9.format(time);
 	        return;
 	      }
-	      this.timeDom.innerHTML = Util$8.format(time);
+	      this.timeDom.innerHTML = Util$9.format(time);
 	    }
 	  }, {
 	    key: 'render',
@@ -7033,10 +7261,14 @@
 	  return Time;
 	}(Plugin);
 
-	var volumeChange = "<svg xmlns=\"http://www.w3.org/2000/svg\" width=\"28\" height=\"28\" viewBox=\"0 0 28 28\">\n  <path transform=\"scale(0.0220625 0.0220625)\" d=\"M358.4 358.4h-204.8v307.2h204.8l256 256v-819.2l-256 256z\"></path>\n  <defs>\n  <path class=\"path_large\" transform=\"scale(0.0220625 0.0220625)\" d=\"M940.632 837.632l-72.192-72.192c65.114-64.745 105.412-154.386 105.412-253.44s-40.299-188.695-105.396-253.424l-0.016-0.016 72.192-72.192c83.639 83.197 135.401 198.37 135.401 325.632s-51.762 242.434-135.381 325.612l-0.020 0.020zM795.648 693.248l-72.704-72.704c27.756-27.789 44.921-66.162 44.921-108.544s-17.165-80.755-44.922-108.546l0.002 0.002 72.704-72.704c46.713 46.235 75.639 110.363 75.639 181.248s-28.926 135.013-75.617 181.227l-0.021 0.021z\"></path>\n  <!--muted-->\n  <path class=\"path_muted\" transform=\"scale(0.0220625 0.0220625)\" d=\"M920.4 439.808l-108.544-109.056-72.704 72.704 109.568 108.544-109.056 108.544 72.704 72.704 108.032-109.568 108.544 109.056 72.704-72.704-109.568-108.032 109.056-108.544-72.704-72.704-108.032 109.568z\"></path>\n  <!--small-->\n  <path class=\"path_small\" transform=\"scale(0.0220625 0.0220625)\" d=\"M795.648 693.248l-72.704-72.704c27.756-27.789 44.921-66.162 44.921-108.544s-17.165-80.755-44.922-108.546l0.002 0.002 72.704-72.704c46.713 46.235 75.639 110.363 75.639 181.248s-28.926 135.013-75.617 181.227l-0.021 0.021zM795.648 693.248l-72.704-72.704c27.756-27.789 44.921-66.162 44.921-108.544s-17.165-80.755-44.922-108.546l0.002 0.002 72.704-72.704c46.713 46.235 75.639 110.363 75.639 181.248s-28.926 135.013-75.617 181.227l-0.021 0.021z\"></path>\n  </defs>\n  <path class=\"path\" transform=\"scale(0.0220625 0.0220625)\" d=\"M940.632 837.632l-72.192-72.192c65.114-64.745 105.412-154.386 105.412-253.44s-40.299-188.695-105.396-253.424l-0.016-0.016 72.192-72.192c83.639 83.197 135.401 198.37 135.401 325.632s-51.762 242.434-135.381 325.612l-0.020 0.020zM795.648 693.248l-72.704-72.704c27.756-27.789 44.921-66.162 44.921-108.544s-17.165-80.755-44.922-108.546l0.002 0.002 72.704-72.704c46.713 46.235 75.639 110.363 75.639 181.248s-28.926 135.013-75.617 181.227l-0.021 0.021z\"></path>\n</svg>";
+	var volumeLargeSvg = "<svg xmlns=\"http://www.w3.org/2000/svg\" width=\"28\" height=\"28\" viewBox=\"0 0 28 28\" transform=\"translate(2, 4)\">\n  <path transform=\"scale(0.0220625 0.0220625)\" d=\"M358.4 358.4h-204.8v307.2h204.8l256 256v-819.2l-256 256z\"></path>\n  <path transform=\"scale(0.0220625 0.0220625)\" d=\"M940.632 837.632l-72.192-72.192c65.114-64.745 105.412-154.386 105.412-253.44s-40.299-188.695-105.396-253.424l-0.016-0.016 72.192-72.192c83.639 83.197 135.401 198.37 135.401 325.632s-51.762 242.434-135.381 325.612l-0.020 0.020zM795.648 693.248l-72.704-72.704c27.756-27.789 44.921-66.162 44.921-108.544s-17.165-80.755-44.922-108.546l0.002 0.002 72.704-72.704c46.713 46.235 75.639 110.363 75.639 181.248s-28.926 135.013-75.617 181.227l-0.021 0.021z\"></path>\n</svg>\n";
 
-	var Util$9 = Plugin.Util,
-	    Events$b = Plugin.Events,
+	var volumeSmallSvg = "<svg xmlns=\"http://www.w3.org/2000/svg\" width=\"28\" height=\"28\" viewBox=\"0 0 28 28\" transform=\"translate(2, 4)\">\n  <path transform=\"scale(0.0220625 0.0220625)\" d=\"M358.4 358.4h-204.8v307.2h204.8l256 256v-819.2l-256 256z\"></path>\n  <path transform=\"scale(0.0220625 0.0220625)\" d=\"M795.648 693.248l-72.704-72.704c27.756-27.789 44.921-66.162 44.921-108.544s-17.165-80.755-44.922-108.546l0.002 0.002 72.704-72.704c46.713 46.235 75.639 110.363 75.639 181.248s-28.926 135.013-75.617 181.227l-0.021 0.021zM795.648 693.248l-72.704-72.704c27.756-27.789 44.921-66.162 44.921-108.544s-17.165-80.755-44.922-108.546l0.002 0.002 72.704-72.704c46.713 46.235 75.639 110.363 75.639 181.248s-28.926 135.013-75.617 181.227l-0.021 0.021z\"></path>\n</svg>\n";
+
+	var volumeMutedSvg = "<svg xmlns=\"http://www.w3.org/2000/svg\" width=\"28\" height=\"28\" viewBox=\"0 0 28 28\" transform=\"translate(2, 4)\">\n  <path transform=\"scale(0.0220625 0.0220625)\" d=\"M358.4 358.4h-204.8v307.2h204.8l256 256v-819.2l-256 256z\"></path>\n  <path transform=\"scale(0.0220625 0.0220625)\" d=\"M920.4 439.808l-108.544-109.056-72.704 72.704 109.568 108.544-109.056 108.544 72.704 72.704 108.032-109.568 108.544 109.056 72.704-72.704-109.568-108.032 109.056-108.544-72.704-72.704-108.032 109.568z\"></path>\n</svg>\n";
+
+	var Util$a = Plugin.Util,
+	    Events$d = Plugin.Events,
 	    POSITIONS$8 = Plugin.POSITIONS;
 
 	var Volume = function (_Plugin) {
@@ -7051,7 +7283,9 @@
 	    key: 'registerIcons',
 	    value: function registerIcons() {
 	      return {
-	        volumeChange: volumeChange
+	        volumeSmall: { icon: volumeSmallSvg, class: 'xg-volume-small' },
+	        volumeLarge: { icon: volumeLargeSvg, class: 'xg-volume' },
+	        volumeMuted: { icon: volumeMutedSvg, class: 'xg-volume-mute' }
 	      };
 	    }
 	  }, {
@@ -7060,73 +7294,73 @@
 	      if (this.config.disable) {
 	        return;
 	      }
-	      this.bar = this.find('.xgplayer-bar');
-	      this.drag = this.find('.xgplayer-drag');
+
+	      this.initIcons();
+
 	      this.changeMuted = this.changeMuted.bind(this);
-
 	      this.onBarMousedown = this.onBarMousedown.bind(this);
-
 	      this.onMouseenter = this.onMouseenter.bind(this);
 	      this.onMouseleave = this.onMouseleave.bind(this);
+
 	      this.bind('mouseenter', this.onMouseenter);
 
 	      this.bind(['blur', 'mouseleave'], this.onMouseleave);
 
 	      this.bind('.xgplayer-bar', 'mousedown', this.onBarMousedown);
+
 	      this.bind('.xgplayer-icon', ['click', 'touched'], this.changeMuted);
 
-	      this.on(Events$b.VOLUME_CHANGE, this.onVolumeChange.bind(this));
+	      this.on(Events$d.VOLUME_CHANGE, this.onVolumeChange.bind(this));
 	    }
 	  }, {
 	    key: 'onBarMousedown',
 	    value: function onBarMousedown(e) {
+	      var _this2 = this;
+
 	      var player = this.player;
 
-	      player.video.muted = false;
-	      var drag = this.drag;
+	      var drag = this.find('.xgplayer-drag');
 	      var slider = this.find('.xgplayer-slider');
+	      var bar = this.find('.xgplayer-bar');
 	      slider.focus();
-	      Util$9.event(e);
+	      Util$a.event(e);
 
-	      var barRect = this.bar.getBoundingClientRect();
+	      var barRect = bar.getBoundingClientRect();
 	      var pos = { x: e.clientX, y: e.clientY };
 	      var height = drag.getBoundingClientRect().height;
-	      var isMove = false;
+	      this.isMoveing = false;
 	      var onMove = function onMove(e) {
 	        e.preventDefault();
 	        e.stopPropagation();
-	        Util$9.event(e);
-	        isMove = true;
+	        Util$a.event(e);
+	        _this2.isMoveing = true;
 	        var w = height - e.clientY + pos.y;
+	        if (w > barRect.height) {
+	          return;
+	        }
 	        var now = w / barRect.height;
 	        drag.style.height = w + 'px';
 	        player.volume = Math.max(Math.min(now, 1), 0);
+	        player.muted = false;
 	      };
 
 	      var onUp = function onUp(e) {
 	        e.preventDefault();
 	        e.stopPropagation();
-	        Util$9.event(e);
+	        Util$a.event(e);
 	        window.removeEventListener('mousemove', onMove);
 	        window.removeEventListener('touchmove', onMove);
 	        window.removeEventListener('mouseup', onUp);
 	        window.removeEventListener('touchend', onUp);
 
-	        if (!isMove) {
+	        if (!_this2.isMoveing) {
 	          var w = barRect.height - (e.clientY - barRect.top);
 	          var now = w / barRect.height;
 	          drag.style.height = w + 'px';
-	          if (now <= 0) {
-	            if (player.volume > 0) {
-	              drag.volume = player.video.volume;
-	            } else {
-	              now = drag.volume;
-	            }
-	          }
 	          player.volume = Math.max(Math.min(now, 1), 0);
+	          player.muted = false;
 	        }
-	        slider.volume = player.volume;
-	        isMove = false;
+	        _this2.isMoveing = false;
 	      };
 	      window.addEventListener('mousemove', onMove);
 	      window.addEventListener('touchmove', onMove);
@@ -7139,14 +7373,14 @@
 	    value: function onMouseenter(e) {
 	      e.preventDefault();
 	      e.stopPropagation();
-	      Util$9.addClass(this.root, 'slide-show');
+	      Util$a.addClass(this.root, 'slide-show');
 	    }
 	  }, {
 	    key: 'onMouseleave',
 	    value: function onMouseleave(e) {
 	      e.preventDefault();
 	      e.stopPropagation();
-	      Util$9.removeClass(this.root, 'slide-show');
+	      Util$a.removeClass(this.root, 'slide-show');
 	    }
 	  }, {
 	    key: 'changeMuted',
@@ -7162,21 +7396,30 @@
 	          muted = _player.muted,
 	          volume = _player.volume;
 
-	      this.find('.xgplayer-drag').style.height = muted || volume === 0 ? '0px' : volume * 100 + '%';
+	      if (!this.isMoveing) {
+	        this.find('.xgplayer-drag').style.height = muted || volume === 0 ? '0px' : volume * 100 + '%';
+	      }
 	      this.animate(muted, volume);
 	    }
 	  }, {
 	    key: 'animate',
 	    value: function animate(muted, volume) {
-	      var path = this.find('.path');
-	      var pathLarge = this.find('.path_large').getAttribute('d');
-	      var pathSmall = this.find('.path_small').getAttribute('d');
-	      var pathMuted = this.find('.path_muted').getAttribute('d');
 	      if (muted || volume === 0) {
-	        path.setAttribute('d', pathMuted);
+	        this.setAttr('data-state', 'mute');
+	      } else if (volume < 0.5 && this.icons.volumeSmall) {
+	        this.setAttr('data-state', 'small');
 	      } else {
-	        volume >= 0.5 ? path.setAttribute('d', pathLarge) : path.setAttribute('d', pathSmall);
+	        this.setAttr('data-state', 'normal');
 	      }
+	    }
+	  }, {
+	    key: 'initIcons',
+	    value: function initIcons() {
+	      var icons = this.icons;
+
+	      this.appendChild('.xgplayer-icon', icons.volumeSmall);
+	      this.appendChild('.xgplayer-icon', icons.volumeLarge);
+	      this.appendChild('.xgplayer-icon', icons.volumeMuted);
 	    }
 	  }, {
 	    key: 'render',
@@ -7186,7 +7429,7 @@
 	      }
 	      var volume = this.player.volume;
 
-	      return '\n    <xg-icon class="xgplayer-volume">\n      <div class="xgplayer-icon">\n      ' + this.icons.volumeChange + '\n      </div>\n      <xg-slider class="xgplayer-slider">\n        <xg-bar class="xgplayer-bar">\n          <xg-drag class="xgplayer-drag" style="height: ' + volume * 100 + '%"></xg-drag>\n        </xg-bar>\n      </xg-slider>\n    </xg-icon>';
+	      return '\n    <xg-icon class="xgplayer-volume" data-state="normal">\n      <div class="xgplayer-icon">\n      </div>\n      <xg-slider class="xgplayer-slider">\n        <div class="xgplayer-bar">\n          <xg-drag class="xgplayer-drag" style="height: ' + volume * 100 + '%"></xg-drag>\n        </div>\n      </xg-slider>\n    </xg-icon>';
 	    }
 	  }], [{
 	    key: 'pluginName',
@@ -7206,7 +7449,7 @@
 	  return Volume;
 	}(Plugin);
 
-	var RotateSvg = "<svg xmlns=\"http://www.w3.org/2000/svg\" width=\"32\" height=\"32\" viewBox=\"0 0 40 40\" fill=\"none\">\n  <g clip-path=\"url(#clip0)\">\n    <path transform=\"scale(1.5 1.5)\" d=\"M11.6665 9.16663H4.1665C2.78579 9.16663 1.6665 10.2859 1.6665 11.6666V15.8333C1.6665 17.214 2.78579 18.3333 4.1665 18.3333H11.6665C13.0472 18.3333 14.1665 17.214 14.1665 15.8333V11.6666C14.1665 10.2859 13.0472 9.16663 11.6665 9.16663Z\" fill=\"white\"/>\n    <path transform=\"scale(1.5 1.5)\" fill-rule=\"evenodd\" clip-rule=\"evenodd\" d=\"M3.88148 4.06298C3.75371 4.21005 3.67667 4.40231 3.67749 4.61242C3.67847 4.87253 3.79852 5.10435 3.98581 5.25646L6.99111 8.05895C7.32771 8.37283 7.85502 8.35443 8.16891 8.01782C8.48279 7.68122 8.46437 7.15391 8.12778 6.84003L6.62061 5.43457L9.8198 5.4224C9.82848 5.42239 9.8372 5.42221 9.84591 5.4219C10.9714 5.38233 12.0885 5.6285 13.0931 6.13744C14.0976 6.64635 14.957 7.40148 15.5908 8.33234C16.2246 9.2632 16.6122 10.3394 16.7177 11.4606C16.823 12.5819 16.6427 13.7115 16.1934 14.7442C16.0098 15.1661 16.203 15.6571 16.6251 15.8408C17.0471 16.0243 17.5381 15.8311 17.7216 15.4091C18.2833 14.1183 18.5087 12.7063 18.3771 11.3047C18.2453 9.90318 17.7607 8.55792 16.9684 7.39433C16.1761 6.23073 15.1021 5.28683 13.8463 4.65065C12.5946 4.01651 11.203 3.70872 9.80072 3.75583L6.43415 3.76862L7.96326 2.12885C8.27715 1.79225 8.25872 1.26494 7.92213 0.951061C7.58553 0.63718 7.05822 0.655585 6.74433 0.99219L3.90268 4.0395C3.89545 4.04724 3.88841 4.05509 3.88154 4.06303L3.88148 4.06298Z\" fill=\"white\"/>\n  </g>\n  <defs>\n    <clipPath id=\"clip0\">\n      <rect width=\"40\" height=\"40\" fill=\"white\"/>\n    </clipPath>\n  </defs>\n</svg>\n";
+	var RotateSvg = "<svg xmlns=\"http://www.w3.org/2000/svg\" width=\"32\" height=\"32\" viewBox=\"-4 -6 40 40\" fill=\"none\">\n  <g clip-path=\"url(#clip0)\">\n    <path transform=\"scale(1.5 1.5)\" d=\"M11.6665 9.16663H4.1665C2.78579 9.16663 1.6665 10.2859 1.6665 11.6666V15.8333C1.6665 17.214 2.78579 18.3333 4.1665 18.3333H11.6665C13.0472 18.3333 14.1665 17.214 14.1665 15.8333V11.6666C14.1665 10.2859 13.0472 9.16663 11.6665 9.16663Z\" fill=\"white\"/>\n    <path transform=\"scale(1.5 1.5)\" fill-rule=\"evenodd\" clip-rule=\"evenodd\" d=\"M3.88148 4.06298C3.75371 4.21005 3.67667 4.40231 3.67749 4.61242C3.67847 4.87253 3.79852 5.10435 3.98581 5.25646L6.99111 8.05895C7.32771 8.37283 7.85502 8.35443 8.16891 8.01782C8.48279 7.68122 8.46437 7.15391 8.12778 6.84003L6.62061 5.43457L9.8198 5.4224C9.82848 5.42239 9.8372 5.42221 9.84591 5.4219C10.9714 5.38233 12.0885 5.6285 13.0931 6.13744C14.0976 6.64635 14.957 7.40148 15.5908 8.33234C16.2246 9.2632 16.6122 10.3394 16.7177 11.4606C16.823 12.5819 16.6427 13.7115 16.1934 14.7442C16.0098 15.1661 16.203 15.6571 16.6251 15.8408C17.0471 16.0243 17.5381 15.8311 17.7216 15.4091C18.2833 14.1183 18.5087 12.7063 18.3771 11.3047C18.2453 9.90318 17.7607 8.55792 16.9684 7.39433C16.1761 6.23073 15.1021 5.28683 13.8463 4.65065C12.5946 4.01651 11.203 3.70872 9.80072 3.75583L6.43415 3.76862L7.96326 2.12885C8.27715 1.79225 8.25872 1.26494 7.92213 0.951061C7.58553 0.63718 7.05822 0.655585 6.74433 0.99219L3.90268 4.0395C3.89545 4.04724 3.88841 4.05509 3.88154 4.06303L3.88148 4.06298Z\" fill=\"white\"/>\n  </g>\n  <defs>\n    <clipPath id=\"clip0\">\n      <rect width=\"40\" height=\"40\" fill=\"white\"/>\n    </clipPath>\n  </defs>\n</svg>\n";
 
 	var POSITIONS$9 = Plugin.POSITIONS;
 
@@ -7253,6 +7496,7 @@
 	      if (this.config.disable) {
 	        return;
 	      }
+	      this.appendChild('.xgplayer-icon', this.icons.rotate);
 	      this.onBtnClick = this.onBtnClick.bind(this);
 	      this.bind('.xgplayer-icon', ['click', 'touchend'], this.onBtnClick);
 	    }
@@ -7372,13 +7616,13 @@
 	      if (this.config.disable) {
 	        return;
 	      }
-	      return '\n    <xg-icon class="xgplayer-rotate">\n      <div class="xgplayer-icon">\n        ' + this.icons.rotate + '\n      </div>\n      <div class="xg-tips">\n      ' + this.text.rotate + '\n      </div>\n    </xg-icon>';
+	      return '\n    <xg-icon class="xgplayer-rotate">\n      <div class="xgplayer-icon">\n      </div>\n      <div class="xg-tips">\n      ' + this.text.rotate + '\n      </div>\n    </xg-icon>';
 	    }
 	  }]);
 	  return Rotate;
 	}(Plugin);
 
-	var Events$c = Plugin.Events,
+	var Events$e = Plugin.Events,
 	    POSITIONS$a = Plugin.POSITIONS;
 
 	var PIP = function (_Plugin) {
@@ -7405,7 +7649,7 @@
 	        _this2.switchPIP(e);
 	      };
 	      // video初始化之后再做判断是否显示
-	      this.once(Events$c.COMPLETE, function () {
+	      this.once(Events$e.COMPLETE, function () {
 	        console.log(_this2.config.showIcon && _this2.isPIPAvailable());
 	        if (_this2.config.showIcon && _this2.isPIPAvailable()) {
 	          _this2.show();
@@ -7413,6 +7657,17 @@
 	        }
 	        _this2.initPipEvents();
 	      });
+	    }
+	  }, {
+	    key: 'registerLangauageTexts',
+	    value: function registerLangauageTexts() {
+	      return {
+	        'pipicon': {
+	          jp: 'picture-in-picture',
+	          en: 'picture-in-picture',
+	          zh: '画中画'
+	        }
+	      };
 	    }
 	  }, {
 	    key: 'initPipEvents',
@@ -7473,17 +7728,6 @@
 	      return document.pictureInPictureEnabled || !(player.video && player.video.disablePictureInPicture);
 	    }
 	  }, {
-	    key: 'registerLangauageTexts',
-	    value: function registerLangauageTexts() {
-	      return {
-	        'pipicon': {
-	          jp: 'picture-in-picture',
-	          en: 'picture-in-picture',
-	          zh: '画中画'
-	        }
-	      };
-	    }
-	  }, {
 	    key: 'destroy',
 	    value: function destroy() {
 	      var player = this.player;
@@ -7498,7 +7742,7 @@
 	      if (!this.config.showIcon && this.isPIPAvailable()) {
 	        return;
 	      }
-	      return '<xg-icon class="xgplayer-pip">\n      <div class="xgplayer-icon btn-definition">\n      ' + (this.icons.pipicon ? this.icons.pipicon : '<span>' + this.text.pipicon + '</span>') + '\n      </div>\n      ' + (this.icons.pipicon ? '<div class="xg-tips">' + this.text.pipicon + '</div>' : '') + '\n    </xg-icon>';
+	      return '<xg-icon class="xgplayer-pip">\n      <div class="xgplayer-icon btn-definition">\n      ' + ('<span>' + this.text.pipicon + '</span>') + '\n      </div>\n      ' + ('<div class="xg-tips">' + this.text.pipicon + '</div>') + '\n    </xg-icon>';
 	    }
 	  }, {
 	    key: 'isPip',
@@ -7706,7 +7950,7 @@
 	      return {
 	        position: POSITIONS$b.CONTROLS_RIGTH,
 	        index: 3,
-	        disable: false
+	        disable: true
 	      };
 	    }
 	  }]);
@@ -7731,9 +7975,10 @@
 	  }, {
 	    key: 'afterCreate',
 	    value: function afterCreate() {
-	      if (!this.config.download) {
+	      if (this.config.disable) {
 	        return;
 	      }
+	      this.appendChild('.xgplayer-icon', this.icons.download);
 	      this.download = this.download.bind(this);
 	      this.bind(['click', 'touchend'], this.download);
 	    }
@@ -7793,10 +8038,10 @@
 	  }, {
 	    key: 'render',
 	    value: function render() {
-	      if (!this.config.download) {
+	      if (this.config.disable) {
 	        return;
 	      }
-	      return '<xg-icon class="xgplayer-download">\n      <div class="xgplayer-icon">\n      ' + this.icons.download + '\n      </div>\n      <div class="xg-tips">' + this.text.download + '</div>\n    </xg-icon>';
+	      return '<xg-icon class="xgplayer-download">\n      <div class="xgplayer-icon">\n      </div>\n      <div class="xg-tips">' + this.text.download + '</div>\n    </xg-icon>';
 	    }
 	  }]);
 	  return Download;
@@ -7818,6 +8063,11 @@
 	      if (typeof args.player.config.screenShot === 'boolean') {
 	        args.config.disable = !args.player.config.screenShot;
 	      }
+	    }
+	  }, {
+	    key: 'afterCreate',
+	    value: function afterCreate() {
+	      this.appendChild('xgplayer-icon', this.icons.screenshotIcon);
 	    }
 	  }, {
 	    key: 'onPluginsReady',
@@ -7898,7 +8148,7 @@
 	        return;
 	      }
 	      var className = this.icons.screenshotIcon ? 'xgplayer-icon' : 'xgplayer-icon btn-definition';
-	      return '\n      <xg-icon class="xgplayer-shot">\n      <div class="' + className + '">\n      ' + (this.icons.screenshotIcon ? '' + this.icons.screenshotIcon : '<span>' + this.text.screenshot + '</span>') + ' \n      </div>\n    </xg-icon>';
+	      return '\n      <xg-icon class="xgplayer-shot">\n      <div class="' + className + '">\n      ' + (this.icons.screenshotIcon ? '' : '<span>' + this.text.screenshot + '</span>') + ' \n      </div>\n    </xg-icon>';
 	    }
 	  }], [{
 	    key: 'pluginName',
@@ -7923,8 +8173,8 @@
 	  return ScreenShot;
 	}(Plugin);
 
-	var Events$d = Plugin.Events,
-	    Util$a = Plugin.Util,
+	var Events$f = Plugin.Events,
+	    Util$b = Plugin.Util,
 	    Sniffer$7 = Plugin.Sniffer,
 	    POSITIONS$d = Plugin.POSITIONS;
 
@@ -7967,7 +8217,7 @@
 	    value: function afterCreate() {
 	      var _this2 = this;
 
-	      this.once(Events$d.CANPLAY, function () {
+	      this.once(Events$f.CANPLAY, function () {
 	        if (_this2.config.list && _this2.config.list.length > 0) {
 	          _this2.renderItemList();
 	          _this2.show();
@@ -8041,7 +8291,7 @@
 	    value: function onToggle(e) {
 	      e.preventDefault();
 	      e.stopPropagation();
-	      Util$a.hasClass(this.root, 'list-show') ? Util$a.removeClass(this.root, 'list-show') : Util$a.addClass(this.root, 'list-show');
+	      Util$b.hasClass(this.root, 'list-show') ? Util$b.removeClass(this.root, 'list-show') : Util$b.addClass(this.root, 'list-show');
 	    }
 	  }, {
 	    key: 'switchUrl',
@@ -8104,8 +8354,8 @@
 	        });
 	      }
 	      var curlSelected = this.find('.selected');
-	      Util$a.addClass(e.target, 'selected');
-	      curlSelected && Util$a.removeClass(curlSelected, 'selected');
+	      Util$b.addClass(e.target, 'selected');
+	      curlSelected && Util$b.removeClass(curlSelected, 'selected');
 	      var from = curlSelected ? curlSelected.getAttribute('cname') : '';
 	      var to = e.target.getAttribute('cname');
 	      a.href = e.target.getAttribute('url');
@@ -8130,21 +8380,21 @@
 	      this.find('.icon-text').innerHTML = to;
 	      player.emit('definitionChange', { from: from, to: to });
 	      if (Sniffer$7.device === 'mobile') {
-	        Util$a.removeClass(this.root, 'list-show');
+	        Util$b.removeClass(this.root, 'list-show');
 	      }
 	    }
 	  }, {
 	    key: 'render',
 	    value: function render() {
 	      var text = '清晰度';
-	      return '<xg-icon class="xgplayer-playbackrate">\n    <div class="xgplayer-icon btn-definition"><span class="icon-text">' + text + '</span></div>\n    <ul class="icon-list">\n    </ul>\n   </xg-icon>';
+	      return '<xg-icon class="xgplayer-definition">\n    <div class="xgplayer-icon btn-definition"><span class="icon-text">' + text + '</span></div>\n    <ul class="icon-list">\n    </ul>\n   </xg-icon>';
 	    }
 	  }]);
 	  return DefinitionIcon;
 	}(Plugin);
 
-	var Events$e = Plugin.Events,
-	    Util$b = Plugin.Util,
+	var Events$g = Plugin.Events,
+	    Util$c = Plugin.Util,
 	    Sniffer$8 = Plugin.Sniffer,
 	    POSITIONS$e = Plugin.POSITIONS;
 
@@ -8188,7 +8438,7 @@
 	      if (Array.isArray(playerConfig.playbackRate)) {
 	        config.list = playerConfig.playbackRate;
 	      }
-	      this.once(Events$e.CANPLAY, function () {
+	      this.once(Events$g.CANPLAY, function () {
 	        _this2.show();
 	      });
 	      if (Sniffer$8.device === 'mobile') {
@@ -8216,7 +8466,7 @@
 	    value: function onMouseenter(e) {
 	      e.preventDefault();
 	      e.stopPropagation();
-	      Util$b.hasClass(this.root, 'list-show') ? Util$b.removeClass(this.root, 'list-show') : Util$b.addClass(this.root, 'list-show');
+	      Util$c.hasClass(this.root, 'list-show') ? Util$c.removeClass(this.root, 'list-show') : Util$c.addClass(this.root, 'list-show');
 	    }
 	  }, {
 	    key: 'onItemClick',
@@ -8226,8 +8476,8 @@
 	      if (Number(cname) === this.curRate) {
 	        return false;
 	      }
-	      Util$b.removeClass(this.find('.selected'), 'selected');
-	      Util$b.addClass(target, 'selected');
+	      Util$c.removeClass(this.find('.selected'), 'selected');
+	      Util$c.addClass(target, 'selected');
 	      this.curRate = Number(cname);
 	      this.player.playbackRate = Number(cname);
 	      this.find('.icon-text').innerHTML = target.getAttribute('ctext');
@@ -8267,9 +8517,11 @@
 	  return PlaybackRate;
 	}(Plugin);
 
-	var CssFullscreenChange = "<svg xmlns=\"http://www.w3.org/2000/svg\" width=\"24\" height=\"24\" viewBox=\"0 0 24 24\" transform=\"scale(1.3)\">\n  <defs>\n  <path class='path_exitfull' d=\"M9,10V9a.9.9,0,0,1,1-1,.9.9,0,0,1,1,1v2a.9.9,0,0,1-1,1H8a.9.9,0,0,1-1-1,.9.9,0,0,1,1-1Zm6,4v1a1,1,0,0,1-2,0V13a.9.9,0,0,1,1-1h2a1,1,0,0,1,0,2Zm3-7H6V17H18Zm2,0V17a2,2,0,0,1-2,2H6a2,2,0,0,1-2-2V7A2,2,0,0,1,6,5H18A2,2,0,0,1,20,7Z\"></path>\n  <path class='path_full' d=\"M9,10v1a.9.9,0,0,1-1,1,.9.9,0,0,1-1-1V9A.9.9,0,0,1,8,8h2a.9.9,0,0,1,1,1,.9.9,0,0,1-1,1Zm6,4V13a1,1,0,0,1,2,0v2a.9.9,0,0,1-1,1H14a1,1,0,0,1,0-2Zm3-7H6V17H18Zm2,0V17a2,2,0,0,1-2,2H6a2,2,0,0,1-2-2V7A2,2,0,0,1,6,5H18A2,2,0,0,1,20,7Z\"></path>\n </defs>\n  <path class=\"path\" d=\"M9,10v1a.9.9,0,0,1-1,1,.9.9,0,0,1-1-1V9A.9.9,0,0,1,8,8h2a.9.9,0,0,1,1,1,.9.9,0,0,1-1,1Zm6,4V13a1,1,0,0,1,2,0v2a.9.9,0,0,1-1,1H14a1,1,0,0,1,0-2Zm3-7H6V17H18Zm2,0V17a2,2,0,0,1-2,2H6a2,2,0,0,1-2-2V7A2,2,0,0,1,6,5H18A2,2,0,0,1,20,7Z\"></path>\n</svg>\n";
+	var CssFullSceenSvg = "<svg xmlns=\"http://www.w3.org/2000/svg\" width=\"24\" height=\"24\" viewBox=\"0 0 24 24\" transform=\"translate(0, 2) scale(1.3, 1.3)\">\n  <path class='path_full' d=\"M9,10v1a.9.9,0,0,1-1,1,.9.9,0,0,1-1-1V9A.9.9,0,0,1,8,8h2a.9.9,0,0,1,1,1,.9.9,0,0,1-1,1Zm6,4V13a1,1,0,0,1,2,0v2a.9.9,0,0,1-1,1H14a1,1,0,0,1,0-2Zm3-7H6V17H18Zm2,0V17a2,2,0,0,1-2,2H6a2,2,0,0,1-2-2V7A2,2,0,0,1,6,5H18A2,2,0,0,1,20,7Z\"></path>\n</svg>\n";
 
-	var Events$f = Plugin.Events,
+	var ExitCssFullSceenSvg = "<svg xmlns=\"http://www.w3.org/2000/svg\" width=\"24\" height=\"24\" viewBox=\"0 0 24 24\" transform=\"translate(0, 2) scale(1.3, 1.3)\">\n  <path d=\"M9,10V9a.9.9,0,0,1,1-1,.9.9,0,0,1,1,1v2a.9.9,0,0,1-1,1H8a.9.9,0,0,1-1-1,.9.9,0,0,1,1-1Zm6,4v1a1,1,0,0,1-2,0V13a.9.9,0,0,1,1-1h2a1,1,0,0,1,0,2Zm3-7H6V17H18Zm2,0V17a2,2,0,0,1-2,2H6a2,2,0,0,1-2-2V7A2,2,0,0,1,6,5H18A2,2,0,0,1,20,7Z\"></path>\n</svg>\n";
+
+	var Events$h = Plugin.Events,
 	    POSITIONS$f = Plugin.POSITIONS;
 
 	var CssFullScreen = function (_Plugin) {
@@ -8292,13 +8544,23 @@
 	    value: function afterCreate() {
 	      var _this2 = this;
 
-	      this.on(Events$f.CSS_FULLSCREEN_CHANGE, function (isCssfullScreen) {
+	      this.initIcons();
+	      this.on(Events$h.CSS_FULLSCREEN_CHANGE, function (isCssfullScreen) {
 	        _this2.animate(isCssfullScreen);
 	      });
 	      // 退出全屏的时候会同时退出网页全屏
-	      this.on(Events$f.FULLSCREEN_CHANGE, function (isFullScreen) {
+	      this.on(Events$h.FULLSCREEN_CHANGE, function (isFullScreen) {
 	        !isFullScreen && _this2.animate(isFullScreen);
 	      });
+	    }
+	  }, {
+	    key: 'initIcons',
+	    value: function initIcons() {
+	      var icons = this.icons;
+
+	      var contentIcon = this.find('.xgplayer-icon');
+	      contentIcon.appendChild(icons.cssFullscreen);
+	      contentIcon.appendChild(icons.exitCssFullscreen);
 	    }
 	  }, {
 	    key: 'afterPlayerInit',
@@ -8323,10 +8585,10 @@
 	      if (!this.root) {
 	        return;
 	      }
-	      var path = this.find('.path');
-	      var full = this.find('.path_full').getAttribute('d');
-	      var exit = this.find('.path_exitfull').getAttribute('d');
-	      isFullScreen ? path.setAttribute('d', exit) : path.setAttribute('d', full);
+	      // const path = this.find('.path')
+	      // const full = this.find('.path_full').getAttribute('d')
+	      // const exit = this.find('.path_exitfull').getAttribute('d')
+	      isFullScreen ? this.setAttr('data-state', 'full') : this.setAttr('data-state', 'normal');
 	    }
 	  }, {
 	    key: 'switchTips',
@@ -8337,7 +8599,8 @@
 	    key: 'registerIcons',
 	    value: function registerIcons() {
 	      return {
-	        cssFullscreen: CssFullscreenChange
+	        cssFullscreen: { icon: CssFullSceenSvg, class: 'xg-get-cssfull' },
+	        exitCssFullscreen: { icon: ExitCssFullSceenSvg, class: 'xg-exit-cssfull' }
 	      };
 	    }
 	  }, {
@@ -8367,7 +8630,7 @@
 	      if (!this.playerConfig.cssFullscreen) {
 	        return;
 	      }
-	      return '<xg-icon class=\'xgplayer-cssfullscreen\'>\n    <div class="xgplayer-icon">\n    ' + this.icons.cssFullscreen + '\n    </div>\n    <div class="xg-tips">' + (this.isCssfullScreen ? this.text.exitCssFullscreen : this.text.cssFullscreen) + '</div>\n    </xg-icon>';
+	      return '<xg-icon class=\'xgplayer-cssfullscreen\'>\n    <div class="xgplayer-icon">\n    </div>\n    <div class="xg-tips">' + (this.isCssfullScreen ? this.text.exitCssFullscreen : this.text.cssFullscreen) + '</div>\n    </xg-icon>';
 	    }
 	  }], [{
 	    key: 'pluginName',
@@ -8401,7 +8664,7 @@
 	      position: PIP.POSITIONS.ROOT_TOP
 	    } }];
 
-	  var layers = [Replay, Poster, Start, Loading, EnterPlugin];
+	  var layers = [Replay, Poster, Start, Loading, Enter];
 
 	  this.plugins = [].concat(contolsIcons, layers);
 	  switch (sniffer.device) {

@@ -518,8 +518,11 @@ var FlvDemuxer = function () {
           for (var _i = 0; _i < nals.length; _i++) {
             var unit = nals[_i];
             codecID === 12 ? _xgplayerTransmuxerCodecHevc.NalUnitHEVC.analyseNal(unit) : _xgplayerTransmuxerCodecAvc.NalUnit.analyseNal(unit);
+
             if (unit.sei) {
-              this.emit(DEMUX_EVENTS.SEI_PARSED, unit.sei);
+              this.emit(DEMUX_EVENTS.SEI_PARSED, Object.assign(unit.sei, {
+                dts: chunk.dts
+              }));
             }
           }
           codecID === 12 ? this.tracks.videoTrack.meta.streamType = 0x24 : this.tracks.videoTrack.meta.streamType = 0x1b;

@@ -42,7 +42,7 @@ var AudioCtx = function (_EventEmitter) {
     _this2._preDecode = [];
     _this2._currentTime = 0;
     _this2._decoding = false;
-    _this2._volume = Number.parseInt(_this2.config.volume) === _this2.config.volume ? _this2.config.volume : 0.6;
+    _this2._volume = Number.parseFloat(_this2.config.volume) === _this2.config.volume ? _this2.config.volume : 0.6;
     _this2.gainNode.gain.value = _this2._volume;
     // 记录外部传输的状态
     _this2._played = false;
@@ -72,6 +72,11 @@ var AudioCtx = function (_EventEmitter) {
         data[i].pts = data[i].pts === undefined ? data[i].dts : data[i].pts;
         this._preDecode.push(data[i]);
       }
+      this.preload();
+    }
+  }, {
+    key: 'preload',
+    value: function preload() {
       if (this._preDecode.length > 0) {
         if (this._lastpts === undefined) {
           this._lastpts = this._preDecode[0].pts;
@@ -140,7 +145,7 @@ var AudioCtx = function (_EventEmitter) {
     value: function onSourceEnded() {
       var _this3 = this;
 
-      if (this.destroyed || this.paused) {
+      if (this.destroyed) {
         return;
       }
       if (!this._nextBuffer || !this._played) {
@@ -155,7 +160,7 @@ var AudioCtx = function (_EventEmitter) {
       var _this = this;
       setTimeout(function () {
         _this.onSourceEnded.call(_this3);
-      }, audioSource.buffer.duration * 1000 - 10);
+      }, audioSource.buffer.duration * 1000 - 3);
       this._currentBuffer = this._nextBuffer;
       this._currentTime = this._currentBuffer.time;
       this._nextBuffer = this.getTimeBuffer(this.currentTime);
