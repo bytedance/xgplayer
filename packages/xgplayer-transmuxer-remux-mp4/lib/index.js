@@ -249,7 +249,7 @@ var Mp4Remuxer = function () {
           }
         }
         this.videoAllDuration += sampleDuration;
-        console.log('video dts ' + dts, 'pts ' + pts, isKeyframe, 'originDts ' + avcSample.originDts, 'duration ' + sampleDuration);
+        // console.log(`video dts ${dts}`, `pts ${pts}`, isKeyframe, `originDts ${avcSample.originDts}`, `duration ${sampleDuration}`)
         if (sampleDuration >= 0) {
           mdatBox.samples.push(mdatSample);
           mdatSample.buffer.push(avcSample.data);
