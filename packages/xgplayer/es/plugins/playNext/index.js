@@ -51,7 +51,26 @@ var PlayNextIcon = function (_Plugin) {
       if (!this.config.urlList || this.config.urlList.length === 0) {
         return;
       }
+      this.appendChild('.xgplayer-icon', this.icons.playNext);
       this.initEvents();
+    }
+  }, {
+    key: 'registerIcons',
+    value: function registerIcons() {
+      return {
+        playNext: Next
+      };
+    }
+  }, {
+    key: 'registerLangauageTexts',
+    value: function registerLangauageTexts() {
+      return {
+        'playNext': {
+          jp: 'play',
+          en: 'play',
+          zh: '播放'
+        }
+      };
     }
   }, {
     key: 'initEvents',
@@ -78,24 +97,6 @@ var PlayNextIcon = function (_Plugin) {
       }
     }
   }, {
-    key: 'registerIcons',
-    value: function registerIcons() {
-      return {
-        playNext: Next
-      };
-    }
-  }, {
-    key: 'registerLangauageTexts',
-    value: function registerLangauageTexts() {
-      return {
-        'playNext': {
-          jp: 'play',
-          en: 'play',
-          zh: '播放'
-        }
-      };
-    }
-  }, {
     key: 'destroy',
     value: function destroy() {
       this.unbind(['touchend', 'click'], this.playNext);
@@ -106,7 +107,7 @@ var PlayNextIcon = function (_Plugin) {
       if (!this.config.urlList || this.config.urlList.length === 0) {
         return;
       }
-      return '\n     <xg-icon class="xgplayer-playnext">\n      <div class="xgplayer-icon">\n        ' + this.icons.playNext + '\n      </div>\n      <div class="xg-tips">' + this.text.playNext + '</div>\n     </xg-icon>\n    ';
+      return '\n     <xg-icon class="xgplayer-playnext">\n      <div class="xgplayer-icon">\n      </div>\n      <div class="xg-tips">' + this.text.playNext + '</div>\n     </xg-icon>\n    ';
     }
   }]);
 

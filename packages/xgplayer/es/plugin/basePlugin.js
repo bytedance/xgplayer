@@ -5,7 +5,7 @@ function _classCallCheck(instance, Constructor) { if (!(instance instanceof Cons
 import Util from '../utils/util';
 import Sniffer from '../utils/sniffer';
 import Errors from '../error';
-import * as event from '../events';
+import * as Events from '../events';
 
 var BasePlugin = function () {
   _createClass(BasePlugin, null, [{
@@ -148,5 +148,5 @@ var BasePlugin = function () {
 BasePlugin.Util = Util;
 BasePlugin.Sniffer = Sniffer;
 BasePlugin.Errors = Errors;
-BasePlugin.Events = event;
-export default BasePlugin;
+BasePlugin.Events = Events;
+export { BasePlugin as default, Util, Sniffer, Errors, Events };

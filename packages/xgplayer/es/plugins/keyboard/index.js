@@ -50,12 +50,14 @@ var Keyboard = function (_BasePlugin) {
         'up': {
           keyCode: 38,
           action: 'upVolume',
-          disable: false
+          disable: false,
+          noBodyTarget: true // 默认不在body上触发
         },
         'down': {
           keyCode: 40,
           action: 'downVolume',
-          disable: false
+          disable: false,
+          noBodyTarget: true
         },
         'left': {
           keyCode: 37,
@@ -151,7 +153,7 @@ var Keyboard = function (_BasePlugin) {
 
       if (player.paused) {
         // eslint-disable-next-line handle-callback-err
-        player.play().catch(function (err) {});
+        player.play();
       } else {
         player.pause();
       }

@@ -435,7 +435,7 @@
 
 	var deepmerge_1 = deepmerge;
 
-	var version = "1.1.8";
+	var version = "3.0.0-alpha.0";
 
 	var _typeof = typeof Symbol === "function" && typeof Symbol.iterator === "symbol" ? function (obj) {
 	  return typeof obj;

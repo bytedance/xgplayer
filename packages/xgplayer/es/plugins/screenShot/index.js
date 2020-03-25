@@ -27,6 +27,11 @@ var ScreenShot = function (_Plugin) {
       }
     }
   }, {
+    key: 'afterCreate',
+    value: function afterCreate() {
+      this.appendChild('xgplayer-icon', this.icons.screenshotIcon);
+    }
+  }, {
     key: 'onPluginsReady',
     value: function onPluginsReady() {
       this.show();
@@ -105,7 +110,7 @@ var ScreenShot = function (_Plugin) {
         return;
       }
       var className = this.icons.screenshotIcon ? 'xgplayer-icon' : 'xgplayer-icon btn-definition';
-      return '\n      <xg-icon class="xgplayer-shot">\n      <div class="' + className + '">\n      ' + (this.icons.screenshotIcon ? '' + this.icons.screenshotIcon : '<span>' + this.text.screenshot + '</span>') + ' \n      </div>\n    </xg-icon>';
+      return '\n      <xg-icon class="xgplayer-shot">\n      <div class="' + className + '">\n      ' + (this.icons.screenshotIcon ? '' : '<span>' + this.text.screenshot + '</span>') + ' \n      </div>\n    </xg-icon>';
     }
   }], [{
     key: 'pluginName',

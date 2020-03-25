@@ -57,7 +57,8 @@ var Progress = function (_Plugin) {
         position: POSITIONS.CONTROLS_CENTER,
         index: 0,
         progressDot: [],
-        thumbnail: null
+        thumbnail: null,
+        disable: false
       };
     }
   }]);
@@ -70,7 +71,7 @@ var Progress = function (_Plugin) {
     _this.useable = false;
     _this.isProgressMoving = false;
 
-    if (_this.playerConfig.thumbnail && Sniffer.device !== 'mobile') {
+    if (Sniffer.device !== 'mobile' && _this.playerConfig.thumbnail) {
       _this.config.thumbnail = _this.playerConfig.thumbnail;
     }
     return _this;
@@ -84,10 +85,20 @@ var Progress = function (_Plugin) {
       this.useable = useable;
     }
   }, {
+    key: 'beforeCreate',
+    value: function beforeCreate(args) {
+      if (typeof args.player.config.progress === 'boolean') {
+        args.config.disable = !args.player.config.progress;
+      }
+    }
+  }, {
     key: 'afterCreate',
     value: function afterCreate() {
       var _this2 = this;
 
+      if (this.config.disable) {
+        return;
+      }
       this.playedBar = this.find('.xgplayer-progress-played');
       this.cachedBar = this.find('.xgplayer-progress-cache');
       this.pointTip = this.find('.xgplayer-progress-point');
@@ -115,7 +126,7 @@ var Progress = function (_Plugin) {
           plugin: _progressdots2.default,
           options: {
             root: this.find('xg-outer'),
-            dots: this.playerConfig.progressDot
+            dots: this.playerConfig.progressDot || this.config.progressDot
           }
         }
       };
@@ -164,7 +175,7 @@ var Progress = function (_Plugin) {
     value: function mouseDown(e) {
       var player = this.player;
 
-      if (player.isMini) {
+      if (player.isMini || player.config.closeMoveSeek) {
         return;
       }
       var self = this;
@@ -174,56 +185,40 @@ var Progress = function (_Plugin) {
       if (e.target === this.pointTip || !player.config.allowSeekAfterEnded && player.ended) {
         return true;
       }
-      this.root.focus();
-      var containerWidth = this.root.getBoundingClientRect().width;
-
-      var _playedBar$getBoundin = this.playedBar.getBoundingClientRect(),
-          left = _playedBar$getBoundin.left;
+      this.isProgressMoving = true;
+      Util.addClass(self.progressBtn, 'btn-move');
+      self.computeWidth(e);
 
       var move = function move(e) {
         e.preventDefault();
         e.stopPropagation();
         Util.event(e);
-        self.isProgressMoving = true;
-        var w = e.clientX - left;
-        if (w > containerWidth) {
-          w = containerWidth;
-        }
-        var now = w / containerWidth * player.duration;
-        self.playedBar.style.width = w * 100 / containerWidth + '%';
-
-        if (player.videoConfig.mediaType === 'video' && !player.dash && !player.config.closeMoveSeek) {
-          player.currentTime = Number(now).toFixed(1);
-        } else {
-          self.updateTime(now);
-        }
-        player.emit('focus');
+        this.isProgressMoving = true;
+        self.computeWidth(e);
       };
+
       var up = function up(e) {
-        // e.preventDefault()
+        Util.removeClass(self.progressBtn, 'btn-move');
+        e.preventDefault();
         e.stopPropagation();
         Util.event(e);
-        window.removeEventListener('mousemove', move);
-        window.removeEventListener('touchmove', move, { passive: false });
-        window.removeEventListener('mouseup', up);
-        window.removeEventListener('touchend', up);
-        self.root.blur();
-        if (!self.isProgressMoving || player.videoConfig.mediaType === 'audio' || player.dash || player.config.closeMoveSeek) {
-          var w = e.clientX - left;
-          if (w > containerWidth) {
-            w = containerWidth;
-          }
-          var now = w / containerWidth * player.duration;
-          self.playedBar.style.width = w * 100 / containerWidth + '%';
-          player.currentTime = Number(now).toFixed(1);
+        if (Sniffer.device === 'mobile') {
+          self.root.removeEventListener('touchmove', move);
+          self.root.removeEventListener('touchend', up);
+        } else {
+          self.root.removeEventListener('mousemove', move);
+          self.root.removeEventListener('mouseup', up);
         }
-        player.emit('focus');
         self.isProgressMoving = false;
       };
-      window.addEventListener('mousemove', move);
-      window.addEventListener('touchmove', move, { passive: false });
-      window.addEventListener('mouseup', up);
-      window.addEventListener('touchend', up);
+
+      if (Sniffer.device === 'mobile') {
+        self.root.addEventListener('touchmove', move, false);
+        self.root.addEventListener('touchend', up, false);
+      } else {
+        self.root.addEventListener('mousemove', move);
+        self.root.addEventListener('mouseup', up);
+      }
       return true;
     }
   }, {
@@ -231,11 +226,8 @@ var Progress = function (_Plugin) {
     value: function mouseEnter(e) {
       var player = this.player;
 
-      if (player.isMini) {
+      if (player.isMini || !player.config.allowSeekAfterEnded && player.ended) {
         return;
-      }
-      if (!player.config.allowSeekAfterEnded && player.ended) {
-        return true;
       }
       this.root.addEventListener('mousemove', this.mouseMove, false);
       this.root.addEventListener('mouseleave', this.mouseLeave, false);
@@ -314,6 +306,20 @@ var Progress = function (_Plugin) {
       });
     }
   }, {
+    key: 'computeWidth',
+    value: function computeWidth(e) {
+      var containerWidth = this.root.getBoundingClientRect().width;
+
+      var _playedBar$getBoundin = this.playedBar.getBoundingClientRect(),
+          left = _playedBar$getBoundin.left;
+
+      var w = e.clientX - left;
+      if (w > containerWidth) {
+        w = containerWidth;
+      }
+      this.updatePercent(w / containerWidth);
+    }
+  }, {
     key: 'updateTime',
     value: function updateTime(time) {
       var player = this.player;
@@ -321,6 +327,25 @@ var Progress = function (_Plugin) {
       var timeIcon = player.plugins.time;
       if (time) {
         timeIcon.updateTime(time);
+      }
+    }
+  }, {
+    key: 'updatePercent',
+    value: function updatePercent(percent, notSeek) {
+      if (this.config.disable) {
+        return;
+      }
+      var player = this.player;
+
+      var now = percent * player.duration;
+      this.playedBar.style.width = percent * 100 + '%';
+      if (notSeek) {
+        return;
+      }
+      if (player.videoConfig.mediaType === 'video' && !player.dash && !player.config.closeMoveSeek) {
+        player.seek(Number(now).toFixed(1));
+      } else {
+        this.updateTime(now);
       }
     }
   }, {
@@ -339,10 +364,10 @@ var Progress = function (_Plugin) {
     value: function onTimeupdate() {
       var player = this.player;
 
-      if (player.isSeeking) {
+      if (player.isSeeking || this.isProgressMoving) {
         return;
       }
-      if (player.videoConfig.mediaType !== 'audio' || !this.isProgressMoving || !player.dash) {
+      if (player.videoConfig.mediaType !== 'audio' || !player.dash) {
         this.playedBar.style.width = player.currentTime * 100 / player.duration + '%';
       }
     }
@@ -382,6 +407,9 @@ var Progress = function (_Plugin) {
   }, {
     key: 'render',
     value: function render() {
+      if (this.config.disable) {
+        return;
+      }
       return '\n      <xg-progress class="xgplayer-progress">\n        <xg-outer class="xgplayer-progress-outer">\n          <xg-cache class="xgplayer-progress-cache" style="width:0">\n          </xg-cache>\n          <xg-played class="xgplayer-progress-played" style="width:0">\n            <xg-progress-btn class="xgplayer-progress-btn"></xg-progress-btn>\n            <xg-point class="xgplayer-progress-point xg-tips">00:00</xg-point>\n            <xg-thumbnail class="xgplayer-progress-thumbnail xg-tips"></xg-thumbnail>\n          </xg-played>\n        </xg-outer>\n      </xg-progress>\n    ';
     }
   }]);

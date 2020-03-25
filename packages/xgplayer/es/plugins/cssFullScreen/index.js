@@ -7,7 +7,8 @@ function _possibleConstructorReturn(self, call) { if (!self) { throw new Referen
 function _inherits(subClass, superClass) { if (typeof superClass !== "function" && superClass !== null) { throw new TypeError("Super expression must either be null or a function, not " + typeof superClass); } subClass.prototype = Object.create(superClass && superClass.prototype, { constructor: { value: subClass, enumerable: false, writable: true, configurable: true } }); if (superClass) Object.setPrototypeOf ? Object.setPrototypeOf(subClass, superClass) : subClass.__proto__ = superClass; }
 
 import Plugin from '../../plugin';
-import CssFullscreenChange from '../assets/cssFullscreenChange.svg';
+import CssFullSceenSvg from '../assets/requestCssFull.svg';
+import ExitCssFullSceenSvg from '../assets/exitCssFull.svg';
 
 var Events = Plugin.Events,
     POSITIONS = Plugin.POSITIONS;
@@ -33,6 +34,7 @@ var CssFullScreen = function (_Plugin) {
     value: function afterCreate() {
       var _this2 = this;
 
+      this.initIcons();
       this.on(Events.CSS_FULLSCREEN_CHANGE, function (isCssfullScreen) {
         _this2.animate(isCssfullScreen);
       });
@@ -40,6 +42,15 @@ var CssFullScreen = function (_Plugin) {
       this.on(Events.FULLSCREEN_CHANGE, function (isFullScreen) {
         !isFullScreen && _this2.animate(isFullScreen);
       });
+    }
+  }, {
+    key: 'initIcons',
+    value: function initIcons() {
+      var icons = this.icons;
+
+      var contentIcon = this.find('.xgplayer-icon');
+      contentIcon.appendChild(icons.cssFullscreen);
+      contentIcon.appendChild(icons.exitCssFullscreen);
     }
   }, {
     key: 'afterPlayerInit',
@@ -64,10 +75,10 @@ var CssFullScreen = function (_Plugin) {
       if (!this.root) {
         return;
       }
-      var path = this.find('.path');
-      var full = this.find('.path_full').getAttribute('d');
-      var exit = this.find('.path_exitfull').getAttribute('d');
-      isFullScreen ? path.setAttribute('d', exit) : path.setAttribute('d', full);
+      // const path = this.find('.path')
+      // const full = this.find('.path_full').getAttribute('d')
+      // const exit = this.find('.path_exitfull').getAttribute('d')
+      isFullScreen ? this.setAttr('data-state', 'full') : this.setAttr('data-state', 'normal');
     }
   }, {
     key: 'switchTips',
@@ -78,7 +89,8 @@ var CssFullScreen = function (_Plugin) {
     key: 'registerIcons',
     value: function registerIcons() {
       return {
-        cssFullscreen: CssFullscreenChange
+        cssFullscreen: { icon: CssFullSceenSvg, class: 'xg-get-cssfull' },
+        exitCssFullscreen: { icon: ExitCssFullSceenSvg, class: 'xg-exit-cssfull' }
       };
     }
   }, {
@@ -108,7 +120,7 @@ var CssFullScreen = function (_Plugin) {
       if (!this.playerConfig.cssFullscreen) {
         return;
       }
-      return '<xg-icon class=\'xgplayer-cssfullscreen\'>\n    <div class="xgplayer-icon">\n    ' + this.icons.cssFullscreen + '\n    </div>\n    <div class="xg-tips">' + (this.isCssfullScreen ? this.text.exitCssFullscreen : this.text.cssFullscreen) + '</div>\n    </xg-icon>';
+      return '<xg-icon class=\'xgplayer-cssfullscreen\'>\n    <div class="xgplayer-icon">\n    </div>\n    <div class="xg-tips">' + (this.isCssfullScreen ? this.text.exitCssFullscreen : this.text.cssFullscreen) + '</div>\n    </xg-icon>';
     }
   }], [{
     key: 'pluginName',

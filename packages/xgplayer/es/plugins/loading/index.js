@@ -27,9 +27,15 @@ var Loading = function (_Plugin) {
       };
     }
   }, {
+    key: 'afterCreate',
+    value: function afterCreate() {
+      console.log('this.icons.loadingIcon', this.icons.loadingIcon);
+      this.appendChild(this.icons.loadingIcon);
+    }
+  }, {
     key: 'render',
     value: function render() {
-      return '\n    <xg-loading class="xgplayer-loading">\n      ' + this.icons.loadingIcon + '\n    </xg-loading>';
+      return '\n    <xg-loading class="xgplayer-loading">\n    </xg-loading>';
     }
   }], [{
     key: 'pluginName',

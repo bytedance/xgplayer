@@ -17,8 +17,10 @@ var usePreset = exports.usePreset = function usePreset(player, Preset) {
     presetInst = new Preset({}, player.config);
   }
   var _presetInst = presetInst,
-      plugins = _presetInst.plugins,
-      ignores = _presetInst.ignores,
+      _presetInst$plugins = _presetInst.plugins,
+      plugins = _presetInst$plugins === undefined ? [] : _presetInst$plugins,
+      _presetInst$ignores = _presetInst.ignores,
+      ignores = _presetInst$ignores === undefined ? [] : _presetInst$ignores,
       icons = _presetInst.icons;
 
   if (!player.config.plugins) {

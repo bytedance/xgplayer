@@ -17,7 +17,7 @@ function _createElement (tag, name, attr = {}) {
 }
 
 function isUrl (str) {
-  return str.indexOf('http') > 0
+  return str.indexOf && /^http/.test(str);
 }
 
 function registerIconsObj (iconsConfig, plugin) {

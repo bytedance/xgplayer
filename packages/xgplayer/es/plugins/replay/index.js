@@ -44,6 +44,7 @@ var Replay = function (_Plugin) {
     value: function afterCreate() {
       var _this2 = this;
 
+      this.appendChild(this.icons.replay);
       this.bind('svg', 'click', function (e) {
         e.preventDefault();
         _this2.player.replay();
@@ -68,7 +69,7 @@ var Replay = function (_Plugin) {
   }, {
     key: 'render',
     value: function render() {
-      return '<xg-replay class="xgplayer-replay">\n      ' + this.icons.replay + '\n      <xg-replay-txt class="xgplayer-replay-txt">' + this.text.replay + '</xg-replay-txt>\n    </xg-replay>';
+      return '<xg-replay class="xgplayer-replay">\n      <xg-replay-txt class="xgplayer-replay-txt">' + this.text.replay + '</xg-replay-txt>\n    </xg-replay>';
     }
   }], [{
     key: 'pluginName',

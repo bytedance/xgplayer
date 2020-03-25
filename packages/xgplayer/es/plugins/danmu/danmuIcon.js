@@ -64,14 +64,6 @@ var DanmuIcon = function (_Plugin) {
       return 'danmuIcon';
     }
   }, {
-    key: 'position',
-    get: function get() {
-      return {
-        index: 7,
-        gird: 'right'
-      };
-    }
-  }, {
     key: 'defaultConfig',
     get: function get() {
       return {

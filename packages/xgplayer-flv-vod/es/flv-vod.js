@@ -165,7 +165,7 @@ var FlvController = function () {
     value: function _onError(type, mod, err, fatal) {
       var error = {
         errorType: type,
-        errorDetails: '[' + mod + ']: ' + err.message,
+        errorDetails: '[' + mod + ']: ' + (err ? err.message : ''),
         errorFatal: fatal || false
       };
       this._player.emit(FLV_ERROR, error);

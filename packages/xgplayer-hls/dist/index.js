@@ -4767,7 +4767,7 @@
             break;
           }
 
-          var dts = avcSample.dts - this.videoDtsBase;
+          var dts = Math.max(avcSample.dts - this.videoDtsBase, 0);
           if (firstDts === -1) {
             firstDts = dts;
           }
@@ -4804,7 +4804,7 @@
             }
           }
           this.videoAllDuration += sampleDuration;
-          // console.log(`video dts ${dts}`, `pts ${pts}`, isKeyframe, `originDts ${avcSample.originDts}`, `duration ${sampleDuration}`)
+          console.log('video dts ' + dts, 'pts ' + pts, isKeyframe, 'originDts ' + avcSample.originDts, 'duration ' + sampleDuration);
           if (sampleDuration >= 0) {
             mdatBox.samples.push(mdatSample);
             mdatSample.buffer.push(avcSample.data);
@@ -8910,9 +8910,8 @@
       this._playlist = null;
       this.retrytimes = this.configs.retrytimes || 3;
       this.preloadTime = this.configs.preloadTime;
-      this.container = this.configs.container;
       this._m3u8lasttime = 0;
-      this._timmer = setInterval(this._checkStatus.bind(this), 50);
+      this._timmer = setInterval(this._checkStatus.bind(this), 300);
       this._lastCheck = 0;
       this._player = this.configs.player;
       this.m3u8Text = null;
@@ -8942,7 +8941,7 @@
         this._context.registry('MP4_REMUXER', Mp4Remuxer);
 
         // 初始化MSE
-        this.mse = this._context.registry('MSE', MSE)({ container: this.container });
+        this.mse = this._context.registry('MSE', MSE)();
         this.initEvents();
       }
     }, {
@@ -8952,7 +8951,7 @@
 
         this.on(REMUX_EVENTS$3.INIT_SEGMENT, this.mse.addSourceBuffers.bind(this.mse));
 
-        this.on(REMUX_EVENTS$3.MEDIA_SEGMENT, this.mse.doAppend.bind(this.mse));
+        this.on(REMUX_EVENTS$3.MEDIA_SEGMENT, this._onMediaSegment.bind(this));
 
         this.on(DEMUX_EVENTS$2.METADATA_PARSED, this._onMetadataParsed.bind(this));
 
@@ -8985,6 +8984,12 @@
       key: '_onMetadataParsed',
       value: function _onMetadataParsed(type) {
         this.emit(REMUX_EVENTS$3.REMUX_METADATA, type);
+      }
+    }, {
+      key: '_onMediaSegment',
+      value: function _onMediaSegment() {
+        this.mse.addSourceBuffers();
+        this.mse.doAppend();
       }
     }, {
       key: '_onLoadError',
@@ -9108,23 +9113,23 @@
           return;
         }
         this._lastCheck = new Date().getTime();
-        if (this.container.buffered.length < 1) {
+        if (this._player.buffered.length < 1) {
           this._preload();
         } else {
           // Check for load.
-          var currentTime = this.container.currentTime;
-          var bufferstart = this.container.buffered.start(this.container.buffered.length - 1);
-          if (this.container.readyState <= 2) {
+          var currentTime = this._player.currentTime;
+          var bufferstart = this._player.buffered.start(this._player.buffered.length - 1);
+          if (this._player.readyState <= 2) {
             if (currentTime < bufferstart) {
-              this.container.currentTime = bufferstart;
+              this._player.currentTime = bufferstart;
               currentTime = bufferstart;
             } else {
               this._preload();
             }
           }
-          var bufferend = this.container.buffered.end(this.container.buffered.length - 1);
+          var bufferend = this._player.buffered.end(this._player.buffered.length - 1);
           if (currentTime < bufferend - this.preloadTime * 2) {
-            this.container.currentTime = bufferend - this.preloadTime * 2;
+            this._player.currentTime = bufferend - this.preloadTime * 2;
           }
           if (bufferend > this.preloadTime * 2) {
             this.mse.remove(bufferend - this.preloadTime * 2);
@@ -9165,12 +9170,6 @@
       key: 'destroy',
       value: function destroy() {
         clearInterval(this._timmer);
-        this.off(LOADER_EVENTS$2.LOADER_COMPLETE, this._onLoadComplete);
-        this.off(REMUX_EVENTS$3.INIT_SEGMENT, this.mse.addSourceBuffers);
-        this.off(REMUX_EVENTS$3.MEDIA_SEGMENT, this.mse.doAppend);
-        // this.off(REMUX_EVENTS.REMUX_ERROR);
-        this.off(DEMUX_EVENTS$2.METADATA_PARSED, this._onMetadataParsed);
-        this.off(DEMUX_EVENTS$2.DEMUX_COMPLETE, this._onDemuxComplete);
 
         this.mse = null;
         this.m3u8Text = null;
@@ -9181,16 +9180,6 @@
   }();
 
   var _typeof$5 = typeof Symbol === "function" && typeof Symbol.iterator === "symbol" ? function (obj) { return typeof obj; } : function (obj) { return obj && typeof Symbol === "function" && obj.constructor === Symbol && obj !== Symbol.prototype ? "symbol" : typeof obj; };
-
-  var _createClass$B = function () {
-    function defineProperties(target, props) {
-      for (var i = 0; i < props.length; i++) {
-        var descriptor = props[i];descriptor.enumerable = descriptor.enumerable || false;descriptor.configurable = true;if ("value" in descriptor) descriptor.writable = true;Object.defineProperty(target, descriptor.key, descriptor);
-      }
-    }return function (Constructor, protoProps, staticProps) {
-      if (protoProps) defineProperties(Constructor.prototype, protoProps);if (staticProps) defineProperties(Constructor, staticProps);return Constructor;
-    };
-  }();
 
   var _get$2 = function get(object, property, receiver) {
     if (object === null) object = Function.prototype;var desc = Object.getOwnPropertyDescriptor(object, property);if (desc === undefined) {
@@ -9207,6 +9196,16 @@
       }return getter.call(receiver);
     }
   };
+
+  var _createClass$B = function () {
+    function defineProperties(target, props) {
+      for (var i = 0; i < props.length; i++) {
+        var descriptor = props[i];descriptor.enumerable = descriptor.enumerable || false;descriptor.configurable = true;if ("value" in descriptor) descriptor.writable = true;Object.defineProperty(target, descriptor.key, descriptor);
+      }
+    }return function (Constructor, protoProps, staticProps) {
+      if (protoProps) defineProperties(Constructor.prototype, protoProps);if (staticProps) defineProperties(Constructor, staticProps);return Constructor;
+    };
+  }();
 
   function _classCallCheck$B(instance, Constructor) {
     if (!(instance instanceof Constructor)) {
@@ -9228,89 +9227,132 @@
   var HlsAllowedEvents$1 = EVENTS.HlsAllowedEvents;
   var REMUX_EVENTS$4 = EVENTS.REMUX_EVENTS;
 
-  var HlsLivePlayer = function (_Player) {
-    _inherits$3(HlsLivePlayer, _Player);
+  var BasePlugin = Player.BasePlugin,
+      Events = Player.Events;
+
+  var HlsLivePlayer = function (_BasePlugin) {
+    _inherits$3(HlsLivePlayer, _BasePlugin);
+
+    _createClass$B(HlsLivePlayer, null, [{
+      key: 'pluginName',
+      get: function get() {
+        return 'hlsLive';
+      }
+    }]);
 
     function HlsLivePlayer(options) {
       _classCallCheck$B(this, HlsLivePlayer);
 
       var _this = _possibleConstructorReturn$3(this, (HlsLivePlayer.__proto__ || Object.getPrototypeOf(HlsLivePlayer)).call(this, options));
 
-      _this.hlsOps = {};
-      _this.util = Player.util;
-      _this.util.deepCopy(_this.hlsOps, options);
+      _this.played = false;
+      _this.handleUrlChange = _this.handleUrlChange.bind(_this);
+      _this.destroy = _this.destroy.bind(_this);
+      _this.play = _this.play.bind(_this);
       _this._context = new Context(HlsAllowedEvents$1);
-      _this.started = false;
       return _this;
     }
 
     _createClass$B(HlsLivePlayer, [{
-      key: '_initEvents',
-      value: function _initEvents() {
+      key: 'beforePlayerInit',
+      value: function beforePlayerInit() {
         var _this2 = this;
 
-        this.__core__.once(REMUX_EVENTS$4.INIT_SEGMENT, function () {
-          var mse = _this2._context.getInstance('MSE');
-          if (!_this2.started) {
-            var live = _this2.util.createDom('xg-live', '正在直播', {}, 'xgplayer-live');
-            _this2.util.addClass(_this2.root, 'xgplayer-is-live');
-            _this2.controls.appendChild(live);
-          }
-          _this2.started = true;
-          _get$2(HlsLivePlayer.prototype.__proto__ || Object.getPrototypeOf(HlsLivePlayer.prototype), 'start', _this2).call(_this2, mse.url);
-        });
+        var url = this.player.config.url;
 
-        this.once('canplay', function () {
-          _this2.video.play();
-        });
+        this.hls = this._context.registry('HLS_LIVE_CONTROLLER', HlsLiveController)({ player: this.player, preloadTime: this.player.config.preloadTime });
+        this._context.init();
+        this.hls.load(url);
+        this._initEvents();
+        try {
+          BasePlugin.defineGetterOrSetter(this.player, {
+            '__url': {
+              get: function get() {
+                return _this2.hls.mse.url;
+              }
+            }
+          });
+        } catch (e) {
+          // NOOP
+        }
       }
     }, {
-      key: 'start',
-      value: function start() {
-        var url = arguments.length > 0 && arguments[0] !== undefined ? arguments[0] : this.config.url;
+      key: '_initEvents',
+      value: function _initEvents() {
+        var _this3 = this;
 
-        if (!url || this.started) {
-          return;
-        }
-        this.__core__ = this._context.registry('HLS_LIVE_CONTROLLER', HlsLiveController)({ player: this, container: this.video, preloadTime: this.config.preloadTime });
-        this._context.init();
-        this.url = url;
-        this.__core__.load(url);
-        this._initEvents();
+        this.hls.once(REMUX_EVENTS$4.INIT_SEGMENT, function () {
+          BasePlugin.Util.addClass(_this3.root, 'xgplayer-is-live');
+        });
+
+        this.on(Events.URL_CHANGE, this.handleUrlChange);
+        this.on(Events.DESTROY, this.destroy);
+        this.on(Events.PLAY, this.play);
+      }
+    }, {
+      key: 'handleUrlChange',
+      value: function handleUrlChange(url) {
+        var _this4 = this;
+
+        this.hls.mse.destroy().then(function () {
+          _this4.player.config.url = url;
+          _this4._context.destroy();
+          _this4._context = null;
+          _this4.video.currentTime = 0;
+
+          if (!_this4.paused) {
+            _this4.pause();
+            _this4.once('canplay', function () {
+              _this4.play();
+            });
+          } else {
+            _this4.play();
+          }
+
+          _this4.player.started = false;
+          _this4.player.start();
+        });
       }
     }, {
       key: 'play',
       value: function play() {
-        if (this.started) {
-          this._context.destroy();
-          this._context = new Context(HlsAllowedEvents$1);
-          this.__core__ = this._context.registry('HLS_LIVE_CONTROLLER', HlsLiveController)({ player: this, container: this.video, preloadTime: this.config.preloadTime });
-          this._context.init();
-          this._initEvents();
-          this.__core__.load(this.url);
+        var _this5 = this;
+
+        if (this.played && this.player.played.length) {
+          this.played = false;
+          return this._destroy().then(function () {
+            _this5._context = new Context(HlsAllowedEvents$1);
+            _this5.player.hasStart = false;
+            _this5.player.start();
+            _this5.player.onWaiting();
+            _this5.player.once('canplay', function () {
+              _this5.player.play();
+            });
+          });
         }
-        _get$2(HlsLivePlayer.prototype.__proto__ || Object.getPrototypeOf(HlsLivePlayer.prototype), 'play', this).call(this);
+        this.played = true;
+      }
+    }, {
+      key: '_destroy',
+      value: function _destroy() {
+        var _this6 = this;
+
+        return this.hls.mse.destroy().then(function () {
+          _this6._context.destroy();
+          _this6.hls = null;
+          _this6._context = null;
+        });
       }
     }, {
       key: 'destroy',
       value: function destroy() {
+        _get$2(HlsLivePlayer.prototype.__proto__ || Object.getPrototypeOf(HlsLivePlayer.prototype), '_destroy', this).call(this);
         this._context.destroy();
-        _get$2(HlsLivePlayer.prototype.__proto__ || Object.getPrototypeOf(HlsLivePlayer.prototype), 'destroy', this).call(this);
-      }
-    }, {
-      key: 'src',
-      set: function set(url) {
-        this._context.destroy();
-        this._context = new Context(HlsAllowedEvents$1);
-        this.__core__ = this._context.registry('HLS_LIVE_CONTROLLER', HlsLiveController)({ player: this, container: this.video, preloadTime: this.config.preloadTime });
-        this._context.init();
-        this._initEvents();
-        this.__core__.load(url);
       }
     }]);
 
     return HlsLivePlayer;
-  }(Player);
+  }(BasePlugin);
 
   var _createClass$C = function () {
     function defineProperties(target, props) {
@@ -9345,7 +9387,6 @@
       this.sequence = 0;
       this._playlist = null;
       this.retrytimes = this.configs.retrytimes || 3;
-      this.container = this.configs.container;
       this.preloadTime = this.configs.preloadTime || 5;
       this.mse = this.configs.mse;
       this._lastSeekTime = 0;
@@ -9371,14 +9412,14 @@
         this._tsloader = this._context.registry('TS_LOADER', FetchLoader)({ buffer: 'TS_BUFFER', readtype: 3 });
 
         // 初始化TS Demuxer
-        this._context.registry('TS_DEMUXER', TsDemuxer)({ inputbuffer: 'TS_BUFFER' });
+        this._demuxer = this._context.registry('TS_DEMUXER', TsDemuxer)({ inputbuffer: 'TS_BUFFER' });
 
         // 初始化MP4 Remuxer
         this._context.registry('MP4_REMUXER', Mp4Remuxer)(this._player.currentTime);
 
         // 初始化MSE
         if (!this.mse) {
-          this.mse = new MSE({ container: this.container, preloadTime: this.preloadTime }, this._context);
+          this.mse = new MSE({ preloadTime: this.preloadTime }, this._context);
           this.mse.init();
         }
         this.initEvents();
@@ -9404,16 +9445,16 @@
 
         this.on(REMUX_EVENTS$5.REMUX_ERROR, this._onRemuxError.bind(this));
 
-        this.on('TIME_UPDATE', this._onTimeUpdate.bind(this));
+        this._player.on('timeupdate', this._onTimeUpdate.bind(this));
 
-        this.on('WAITING', this._onWaiting.bind(this));
+        this._player.on('waiting', this._onWaiting.bind(this));
       }
     }, {
       key: '_onError',
       value: function _onError(type, mod, err, fatal) {
         var error = {
           errorType: type,
-          errorDetails: '[' + mod + ']: ' + err.message,
+          errorDetails: '[' + mod + ']: ' + (err ? err.message : ''),
           errorFatal: fatal
         };
         this._player && this._player.emit(HLS_ERROR$1, error);
@@ -9442,9 +9483,10 @@
       }
     }, {
       key: '_onWaiting',
-      value: function _onWaiting(container) {
+      value: function _onWaiting() {
         var end = true;
 
+        this._seekToBufferStart();
         var playList = Object.keys(this._playlist.list);
         var playListLen = playList.length;
         if (!playListLen) {
@@ -9452,12 +9494,12 @@
         }
 
         for (var i = 0; i < playListLen; i++) {
-          if (this.container.currentTime * 1000 < parseInt(playList[i])) {
+          if (this._player.currentTime * 1000 < parseInt(playList[i])) {
             end = false;
           }
         }
         if (end) {
-          var ts = this._playlist.getTs(this.container.currentTime * 1000);
+          var ts = this._playlist.getTs(this._player.currentTime * 1000);
           if (!ts) {
             this._player.emit('ended');
             this.mse.endOfStream();
@@ -9470,9 +9512,33 @@
         }
       }
     }, {
+      key: '_seekToBufferStart',
+      value: function _seekToBufferStart() {
+        var video = this._player.video;
+        var buffered = video.buffered;
+        var range = [0, 0];
+        var currentTime = video.currentTime;
+        if (buffered) {
+          for (var i = 0, len = buffered.length; i < len; i++) {
+            range[0] = buffered.start(i);
+            range[1] = buffered.end(i);
+            if (range[0] <= currentTime && currentTime <= range[1]) {
+              return;
+            }
+          }
+        }
+
+        var bufferStart = range[0];
+
+        if (currentTime === 0 && currentTime < bufferStart && Math.abs(currentTime - bufferStart) < 3) {
+          video.currentTime = bufferStart;
+        }
+      }
+    }, {
       key: '_onTimeUpdate',
-      value: function _onTimeUpdate(container) {
-        this._preload(container.currentTime);
+      value: function _onTimeUpdate() {
+        this._seekToBufferStart();
+        this._preload(this._player.currentTime);
       }
     }, {
       key: '_onDemuxComplete',
@@ -9549,7 +9615,7 @@
             }
           }
         } else if (buffer.TAG === 'TS_BUFFER') {
-          this._preload(this.mse.container.currentTime);
+          this._preload(this._player.currentTime);
           this._playlist.downloaded(this._tsloader.url, true);
           this._demuxer.demux(Object.assign({ url: this._tsloader.url }, this._playlist._ts[this._tsloader.url]));
           // this.emit(DEMUX_EVENTS.DEMUX_START, Object.assign({url: this._tsloader.url}, this._playlist._ts[this._tsloader.url]));
@@ -9643,7 +9709,7 @@
         if (this._tsloader.loading) {
           return;
         }
-        var video = this.mse.container;
+        var video = this._player.video;
         // Get current time range
         var currentbufferend = -1;
         if (!time && video.buffered.length) {
@@ -9700,8 +9766,8 @@
         this.sequence = 0;
         this._playlist = null;
         this.retrytimes = 3;
-        this.container = undefined;
         this.preloadTime = 5;
+        this._demuxer = null;
         this._lastSeekTime = 0;
         this.m3u8Text = null;
         this.mse = null;
@@ -9715,10 +9781,6 @@
         this.off(DEMUX_EVENTS$3.METADATA_PARSED, this._onMetadataParsed);
 
         this.off(DEMUX_EVENTS$3.DEMUX_COMPLETE, this._onDemuxComplete);
-
-        this.off('TIME_UPDATE', this._onTimeUpdate);
-
-        this.off('WAITING', this._onWaiting);
       }
     }]);
 
@@ -9726,30 +9788,6 @@
   }();
 
   var _typeof$6 = typeof Symbol === "function" && typeof Symbol.iterator === "symbol" ? function (obj) { return typeof obj; } : function (obj) { return obj && typeof Symbol === "function" && obj.constructor === Symbol && obj !== Symbol.prototype ? "symbol" : typeof obj; };
-
-  var _createClass$D = function () {
-    function defineProperties(target, props) {
-      for (var i = 0; i < props.length; i++) {
-        var descriptor = props[i];descriptor.enumerable = descriptor.enumerable || false;descriptor.configurable = true;if ("value" in descriptor) descriptor.writable = true;Object.defineProperty(target, descriptor.key, descriptor);
-      }
-    }return function (Constructor, protoProps, staticProps) {
-      if (protoProps) defineProperties(Constructor.prototype, protoProps);if (staticProps) defineProperties(Constructor, staticProps);return Constructor;
-    };
-  }();
-
-  var _set = function set(object, property, value, receiver) {
-    var desc = Object.getOwnPropertyDescriptor(object, property);if (desc === undefined) {
-      var parent = Object.getPrototypeOf(object);if (parent !== null) {
-        set(parent, property, value, receiver);
-      }
-    } else if ("value" in desc && desc.writable) {
-      desc.value = value;
-    } else {
-      var setter = desc.set;if (setter !== undefined) {
-        setter.call(receiver, value);
-      }
-    }return value;
-  };
 
   var _get$3 = function get(object, property, receiver) {
     if (object === null) object = Function.prototype;var desc = Object.getOwnPropertyDescriptor(object, property);if (desc === undefined) {
@@ -9766,6 +9804,16 @@
       }return getter.call(receiver);
     }
   };
+
+  var _createClass$D = function () {
+    function defineProperties(target, props) {
+      for (var i = 0; i < props.length; i++) {
+        var descriptor = props[i];descriptor.enumerable = descriptor.enumerable || false;descriptor.configurable = true;if ("value" in descriptor) descriptor.writable = true;Object.defineProperty(target, descriptor.key, descriptor);
+      }
+    }return function (Constructor, protoProps, staticProps) {
+      if (protoProps) defineProperties(Constructor.prototype, protoProps);if (staticProps) defineProperties(Constructor, staticProps);return Constructor;
+    };
+  }();
 
   function _classCallCheck$D(instance, Constructor) {
     if (!(instance instanceof Constructor)) {
@@ -9785,83 +9833,139 @@
     }subClass.prototype = Object.create(superClass && superClass.prototype, { constructor: { value: subClass, enumerable: false, writable: true, configurable: true } });if (superClass) Object.setPrototypeOf ? Object.setPrototypeOf(subClass, superClass) : subClass.__proto__ = superClass;
   }
 
-  var HlsAllowedEvents$2 = EVENTS.HlsAllowedEvents;
-  var REMUX_EVENTS$6 = EVENTS.REMUX_EVENTS;
-  var HLS_EVENTS$3 = EVENTS.HLS_EVENTS;
+  var Events$1 = Player.Events,
+      BasePlugin$1 = Player.BasePlugin;
 
-  var HlsVodPlayer = function (_Player) {
-    _inherits$4(HlsVodPlayer, _Player);
+  var HlsAllowedEvents$2 = EVENTS.HlsAllowedEvents;
+  var HLS_EVENTS$3 = EVENTS.HLS_EVENTS;
+  var MSE_EVENTS$1 = EVENTS.MSE_EVENTS;
+
+  var HlsVodPlayer = function (_BasePlugin) {
+    _inherits$4(HlsVodPlayer, _BasePlugin);
+
+    _createClass$D(HlsVodPlayer, null, [{
+      key: 'pluginName',
+      get: function get() {
+        return 'hlsVod';
+      }
+    }]);
 
     function HlsVodPlayer(options) {
       _classCallCheck$D(this, HlsVodPlayer);
 
       var _this = _possibleConstructorReturn$4(this, (HlsVodPlayer.__proto__ || Object.getPrototypeOf(HlsVodPlayer)).call(this, options));
 
-      _this.hlsOps = {};
-      _this.util = Player.util;
-      _this.util.deepCopy(_this.hlsOps, options);
-      _this._context = new Context(HlsAllowedEvents$2);
       _this._handleSetCurrentTime = debounce(_this._handleSetCurrentTime.bind(_this), 200);
-      _this.onWaiting = _this.onWaiting.bind(_this);
-      _this.started = false;
+      _this.destroy = _this.destroy.bind(_this);
+      _this.handleUrlChange = _this.handleUrlChange.bind(_this);
       return _this;
     }
 
     _createClass$D(HlsVodPlayer, [{
+      key: 'beforePlayerInit',
+      value: function beforePlayerInit() {
+        var _this2 = this;
+
+        if (!this._context) {
+          this._context = new Context(HlsAllowedEvents$2);
+        }
+        this.hls = this._context.registry('HLS_VOD_CONTROLLER', HlsVodController)({ player: this.player, preloadTime: this.player.config.preloadTime });
+        this._context.init();
+        this.hls.load(this.player.config.url);
+        this.__initEvents();
+
+        try {
+          BasePlugin$1.defineGetterOrSetter(this.player, {
+            '__url': {
+              get: function get() {
+                return _this2.hls.mse.url;
+              }
+            }
+          });
+        } catch (e) {
+          // NOOP
+        }
+      }
+    }, {
+      key: 'handleUrlChange',
+      value: function handleUrlChange(url) {
+        var _this3 = this;
+
+        this.hls.mse.destroy().then(function () {
+          _this3.player.config.url = url;
+          _this3._context.destroy();
+          _this3._context = null;
+          _this3.player.started = false;
+          _this3.video.currentTime = 0;
+
+          if (!_this3.paused) {
+            _this3.pause();
+            _this3.once('canplay', function () {
+              _this3.play();
+            });
+          } else {
+            _this3.play();
+          }
+          _this3.player.start();
+        });
+      }
+    }, {
       key: '_handleSetCurrentTime',
       value: function _handleSetCurrentTime(time) {
         time = parseFloat(time);
-        _set(HlsVodPlayer.prototype.__proto__ || Object.getPrototypeOf(HlsVodPlayer.prototype), 'currentTime', parseInt(time), this);
         if (this._context) {
-          this.__core__.seek(time);
+          this.hls.seek(time);
         }
       }
     }, {
       key: 'play',
       value: function play() {
-        var _this2 = this;
+        var _this4 = this;
 
-        return this.video.play().catch(function (e) {
+        return this.player.play().catch(function (e) {
           if (e && e.code === 20) {
             // fix: chrome The play() request was interrupted by a new load request.
-            _this2.once('canplay', function () {
-              _this2.video.play();
+            _this4.player.once('canplay', function () {
+              _this4.player.play();
             });
           }
         });
       }
     }, {
-      key: '_initEvents',
-      value: function _initEvents() {
-        var _this3 = this;
+      key: '__initEvents',
+      value: function __initEvents() {
+        var _this5 = this;
 
-        this.__core__.once(REMUX_EVENTS$6.INIT_SEGMENT, function () {
-          var mse = _this3.__core__.mse;
-          _get$3(HlsVodPlayer.prototype.__proto__ || Object.getPrototypeOf(HlsVodPlayer.prototype), 'start', _this3).call(_this3, mse.url);
+        this.hls.once(HLS_EVENTS$3.RETRY_TIME_EXCEEDED, function () {
+          _this5.emit('error', new Player.Errors('network', _this5.config.url));
         });
 
-        this.__core__.once(HLS_EVENTS$3.RETRY_TIME_EXCEEDED, function () {
-          _this3.emit('error', new Player.Errors('network', _this3.config.url));
+        this.hls.on(MSE_EVENTS$1.SOURCE_UPDATE_END, function () {
+          _this5._onSourceUpdateEnd();
         });
 
         this.once('canplay', function () {
-          if (_this3.config.autoplay) {
-            _this3.play();
+          if (_this5.config.autoplay) {
+            _this5.play();
           }
         });
+
+        this.on(Events$1.SEEKING, this._handleSetCurrentTime);
+        this.on(Events$1.URL_CHANGE, this.handleUrlChange);
+        this.on(Events$1.DESTROY, this.destroy);
       }
     }, {
       key: 'initHlsBackupEvents',
       value: function initHlsBackupEvents(hls, ctx) {
-        var _this4 = this;
+        var _this6 = this;
 
         hls.once(EVENTS.REMUX_EVENTS.MEDIA_SEGMENT, function () {
-          _this4.__core__ = hls;
-          _this4.__core__.mse.cleanBuffers().then(function () {
-            _this4.__core__.mse.resetContext(ctx);
-            _this4.__core__.mse.doAppend();
-            _this4._context.destroy();
-            _this4._context = ctx;
+          _this6.hls = hls;
+          _this6.hls.mse.cleanBuffers().then(function () {
+            _this6.hls.mse.resetContext(ctx);
+            _this6.hls.mse.doAppend();
+            _this6._context.destroy();
+            _this6._context = ctx;
           });
         });
 
@@ -9870,44 +9974,22 @@
         });
       }
     }, {
-      key: 'onWaiting',
-      value: function onWaiting() {
-        var _this5 = this;
+      key: '_onSourceUpdateEnd',
+      value: function _onSourceUpdateEnd() {
+        if (this.player.video.readyState === 1 || this.player.video.readyState === 2) {
+          var _detectBufferGap = this.detectBufferGap(),
+              gap = _detectBufferGap.gap,
+              start = _detectBufferGap.start,
+              method = _detectBufferGap.method;
 
-        var _self = this;
-        _get$3(HlsVodPlayer.prototype.__proto__ || Object.getPrototypeOf(HlsVodPlayer.prototype), 'onWaiting', this).call(this);
-        var retryTime = 10;
-        var timer = setInterval(function () {
-          if (Player.util.hasClass(_self.root, 'xgplayer-isloading')) {
-            var _detectBufferGap = _this5.detectBufferGap(),
-                gap = _detectBufferGap.gap,
-                start = _detectBufferGap.start,
-                method = _detectBufferGap.method;
-
-            if (gap) {
-              _this5.currentTime = Math[method](start);
+          if (gap) {
+            if (method === 'ceil' && this.player.currentTime < Math[method](start)) {
+              this.player.currentTime = Math[method](start);
+            } else if (method === 'floor' && this.player.currentTime > Math[method](start)) {
+              this.player.currentTime = Math[method](start);
             }
           }
-          if (retryTime-- <= 0) {
-            clearInterval(timer);
-          }
-        }, 500);
-      }
-    }, {
-      key: 'start',
-      value: function start() {
-        var url = arguments.length > 0 && arguments[0] !== undefined ? arguments[0] : this.config.url;
-
-        if (!url || this.started) {
-          return;
         }
-
-        this.__core__ = this._context.registry('HLS_VOD_CONTROLLER', HlsVodController)({ player: this, container: this.video, preloadTime: this.config.preloadTime });
-        this._context.init();
-        this.__core__.load(url);
-        this._initEvents();
-
-        this.started = true;
       }
     }, {
       key: 'swithURL',
@@ -9917,7 +9999,7 @@
         var hls = context.registry('HLS_VOD_CONTROLLER', HlsVodController)({
           player: this,
           container: this.video,
-          mse: this.__core__.mse,
+          mse: this.hls.mse,
           preloadTime: this.config.preloadTime
         });
         context.init();
@@ -9927,15 +10009,31 @@
     }, {
       key: 'destroy',
       value: function destroy() {
-        if (this._context) {
-          this._context.destroy();
-        }
-        _get$3(HlsVodPlayer.prototype.__proto__ || Object.getPrototypeOf(HlsVodPlayer.prototype), 'destroy', this).call(this);
+        var _this7 = this;
+
+        return new Promise(function (resolve) {
+          if (_this7.hls.mse) {
+            _this7.hls.mse.destroy().then(function () {
+              if (_this7._context) {
+                _this7._context.destroy();
+              }
+              _get$3(HlsVodPlayer.prototype.__proto__ || Object.getPrototypeOf(HlsVodPlayer.prototype), 'destroy', _this7).call(_this7);
+              setTimeout(function () {
+                resolve();
+              }, 50);
+            });
+          } else {
+            _get$3(HlsVodPlayer.prototype.__proto__ || Object.getPrototypeOf(HlsVodPlayer.prototype), 'destroy', _this7).call(_this7);
+            setTimeout(function () {
+              resolve();
+            }, 50);
+          }
+        });
       }
     }, {
       key: 'detectBufferGap',
       value: function detectBufferGap() {
-        var video = this.video;
+        var video = this.player.video;
 
         var result = {
           gap: false,
@@ -9943,54 +10041,39 @@
         };
         for (var i = 0; i < video.buffered.length; i++) {
           var bufferStart = video.buffered.start(i);
+          var bufferEnd = video.buffered.end(i);
+          if (!video.played.length || bufferStart <= this.currentTime && bufferEnd - this.currentTime >= 0.5) {
+            break;
+          }
           var startGap = bufferStart - this.currentTime;
-          if (startGap > 0.1 && startGap <= 2) {
+          var endGap = this.currentTime - bufferEnd;
+          if (startGap > 0.01 && startGap <= 2) {
             result = {
               gap: true,
               start: bufferStart,
               method: 'ceil'
+            };
+            break;
+          } else if (endGap > 0.1 && endGap <= 2) {
+            result = {
+              gap: true,
+              start: bufferEnd,
+              method: 'floor'
+            };
+          } else {
+            result = {
+              gap: false,
+              start: -1
             };
           }
         }
 
         return result;
       }
-    }, {
-      key: 'currentTime',
-      get: function get() {
-        return _get$3(HlsVodPlayer.prototype.__proto__ || Object.getPrototypeOf(HlsVodPlayer.prototype), 'currentTime', this);
-      },
-      set: function set(time) {
-        this._handleSetCurrentTime(time);
-      }
-    }, {
-      key: 'src',
-      get: function get() {
-        return this.currentSrc;
-      },
-      set: function set(url) {
-        var _this6 = this;
-
-        this.currentTime = 0;
-        this.__core__.destroy();
-        this._context = new Context(HlsAllowedEvents$2);
-        this.onWaiting = this.onWaiting.bind(this);
-        this.started = false;
-        this.start(url);
-        if (!this.paused) {
-          this.pause();
-          this.once('canplay', function () {
-            _this6.play();
-          });
-        } else {
-          this.play();
-        }
-        // this.swithURL(url)
-      }
     }]);
 
     return HlsVodPlayer;
-  }(Player);
+  }(BasePlugin$1);
 
   var _createClass$E = function () { function defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ("value" in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } } return function (Constructor, protoProps, staticProps) { if (protoProps) defineProperties(Constructor.prototype, protoProps); if (staticProps) defineProperties(Constructor, staticProps); return Constructor; }; }();
 

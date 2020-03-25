@@ -3,6 +3,7 @@
 Object.defineProperty(exports, "__esModule", {
   value: true
 });
+exports.Events = exports.Errors = exports.Sniffer = exports.Util = exports.default = undefined;
 
 var _createClass = function () { function defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ("value" in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } } return function (Constructor, protoProps, staticProps) { if (protoProps) defineProperties(Constructor.prototype, protoProps); if (staticProps) defineProperties(Constructor, staticProps); return Constructor; }; }();
 
@@ -20,7 +21,7 @@ var _error2 = _interopRequireDefault(_error);
 
 var _events = require('../events');
 
-var event = _interopRequireWildcard(_events);
+var Events = _interopRequireWildcard(_events);
 
 function _interopRequireWildcard(obj) { if (obj && obj.__esModule) { return obj; } else { var newObj = {}; if (obj != null) { for (var key in obj) { if (Object.prototype.hasOwnProperty.call(obj, key)) newObj[key] = obj[key]; } } newObj.default = obj; return newObj; } }
 
@@ -169,5 +170,9 @@ var BasePlugin = function () {
 BasePlugin.Util = _util2.default;
 BasePlugin.Sniffer = _sniffer2.default;
 BasePlugin.Errors = _error2.default;
-BasePlugin.Events = event;
+BasePlugin.Events = Events;
 exports.default = BasePlugin;
+exports.Util = _util2.default;
+exports.Sniffer = _sniffer2.default;
+exports.Errors = _error2.default;
+exports.Events = Events;

@@ -2076,7 +2076,7 @@
             break;
           }
 
-          var dts = avcSample.dts - this.videoDtsBase;
+          var dts = Math.max(avcSample.dts - this.videoDtsBase, 0);
           if (firstDts === -1) {
             firstDts = dts;
           }
@@ -2113,7 +2113,7 @@
             }
           }
           this.videoAllDuration += sampleDuration;
-          // console.log(`video dts ${dts}`, `pts ${pts}`, isKeyframe, `originDts ${avcSample.originDts}`, `duration ${sampleDuration}`)
+          console.log('video dts ' + dts, 'pts ' + pts, isKeyframe, 'originDts ' + avcSample.originDts, 'duration ' + sampleDuration);
           if (sampleDuration >= 0) {
             mdatBox.samples.push(mdatSample);
             mdatSample.buffer.push(avcSample.data);

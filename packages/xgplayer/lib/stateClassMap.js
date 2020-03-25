@@ -19,7 +19,7 @@ exports.default = {
   FULLSCREEN: 'xgplayer-is-fullscreen',
   CSS_FULLSCREEN: 'xgplayer-is-cssfullscreen',
   NO_CONTROLS: 'no-controls',
-  AUTOPLAY: 'xgplayer-is-autoplay',
+  NOT_ALLOW_AUTOPLAY: 'not-allow-autoplay',
   PC: 'xgplayer-pc',
   MOBILE: 'xgplayer-mobile',
   MINI: 'xgplayer-mini'

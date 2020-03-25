@@ -4,6 +4,10 @@ Object.defineProperty(exports, "__esModule", {
   value: true
 });
 
+var _sniffer = require('../utils/sniffer');
+
+var _sniffer2 = _interopRequireDefault(_sniffer);
+
 var _poster = require('../plugins/poster');
 
 var _poster2 = _interopRequireDefault(_poster);
@@ -32,10 +36,6 @@ var _loading = require('../plugins/loading');
 
 var _loading2 = _interopRequireDefault(_loading);
 
-var _sniffer = require('../utils/sniffer');
-
-var _sniffer2 = _interopRequireDefault(_sniffer);
-
 var _play = require('../plugins/play');
 
 var _play2 = _interopRequireDefault(_play);
@@ -60,6 +60,10 @@ var _pip = require('../plugins/pip');
 
 var _pip2 = _interopRequireDefault(_pip);
 
+var _cssFullScreen = require('../plugins/cssFullScreen');
+
+var _cssFullScreen2 = _interopRequireDefault(_cssFullScreen);
+
 var _definition = require('../plugins/definition');
 
 var _definition2 = _interopRequireDefault(_definition);
@@ -68,16 +72,12 @@ var _playbackRate = require('../plugins/playbackRate');
 
 var _playbackRate2 = _interopRequireDefault(_playbackRate);
 
-var _cssFullScreen = require('../plugins/cssFullScreen');
-
-var _cssFullScreen2 = _interopRequireDefault(_cssFullScreen);
-
 function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
 
 function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } }
+
 // import DownLoadIcon from '../plugins/download'
 // import ScreenShotIcon from '../plugins/screenShot'
-
 
 var DefaultPreset = function DefaultPreset() {
   var _plugins, _plugins2;

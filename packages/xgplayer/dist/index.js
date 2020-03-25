@@ -777,7 +777,7 @@
 	  dom.style.display = display || 'block';
 	};
 
-	var version = "2.3.5";
+	var version = "3.0.0-alpha.0";
 
 	var ErrorTypes = {
 	  network: {
@@ -2039,7 +2039,7 @@
 	}
 
 	function isUrl(str) {
-	  return str.indexOf('http') > 0;
+	  return str.indexOf && /^http/.test(str);
 	}
 
 	function registerIconsObj(iconsConfig, plugin) {
@@ -2585,7 +2585,8 @@
 	    cssFullscreen: true, // 页面全屏
 	    keyShortcut: true, // 是否开启快捷键
 	    presets: [],
-	    playbackRate: []
+	    playbackRate: [],
+	    icons: {}
 	  };
 	}
 
@@ -2604,7 +2605,8 @@
 	      plugins = _presetInst$plugins === undefined ? [] : _presetInst$plugins,
 	      _presetInst$ignores = _presetInst.ignores,
 	      ignores = _presetInst$ignores === undefined ? [] : _presetInst$ignores,
-	      icons = _presetInst.icons;
+	      _presetInst$icons = _presetInst.icons,
+	      icons = _presetInst$icons === undefined ? {} : _presetInst$icons;
 
 	  if (!player.config.plugins) {
 	    player.config.plugins = [];
@@ -2616,7 +2618,11 @@
 
 	  (_player$config$plugin = player.config.plugins).push.apply(_player$config$plugin, toConsumableArray(plugins));
 	  (_player$config$ignore = player.config.ignores).push.apply(_player$config$ignore, toConsumableArray(ignores));
-	  player.config.icons = icons;
+	  Object.keys(icons).map(function (key) {
+	    if (!player.config.icons[key]) {
+	      player.config.icons[key] = icons[key];
+	    }
+	  });
 	};
 
 	var Events$1 = Plugin.Events,
@@ -2999,7 +3005,7 @@
 	      this._loadingPlugins = [];
 	      var ignores = this.config.ignores || [];
 	      var plugins = this.config.plugins || [];
-	      var ignoresStr = ignores.join('||');
+	      var ignoresStr = ignores.join('||').toLowerCase().split('||');
 	      plugins.map(function (plugin) {
 	        try {
 	          // 在ignores中的不做组装
@@ -4753,7 +4759,7 @@
 	        this.setAttr('data-state', this.player.paused ? 'pause' : 'play');
 	        return;
 	      }
-	      if (this.player.disableAmimate) {
+	      if (this.player.disableAmimate || this.config.disableAnimate) {
 	        return;
 	      }
 	      addAnimate('pauseplay', 400, {
@@ -5419,7 +5425,7 @@
 	}
 
 	function isUrl$1(str) {
-	  return str.indexOf('http') > 0;
+	  return str.indexOf && /^http/.test(str);
 	}
 
 	function registerIconsObj$1(iconsConfig, plugin) {
@@ -6293,6 +6299,8 @@
 
 	var loadingIcon = "<svg xmlns=\"http://www.w3.org/2000/svg\" width=\"100\" height=\"100\" viewbox=\"0 0 100 100\">\n  <path d=\"M100,50A50,50,0,1,1,50,0\"></path>\n</svg>\n";
 
+	var POSITIONS$4 = Plugin.POSITIONS;
+
 	var Loading = function (_Plugin) {
 	  inherits(Loading, _Plugin);
 
@@ -6323,6 +6331,13 @@
 	    key: 'pluginName',
 	    get: function get() {
 	      return 'loading';
+	    }
+	  }, {
+	    key: 'defaultConfig',
+	    get: function get() {
+	      return {
+	        position: POSITIONS$4.ROOT
+	      };
 	    }
 	  }]);
 	  return Loading;
@@ -6462,7 +6477,7 @@
 
 	var Events$9 = Plugin.Events,
 	    Util$8 = Plugin.Util,
-	    POSITIONS$4 = Plugin.POSITIONS,
+	    POSITIONS$5 = Plugin.POSITIONS,
 	    Sniffer$4 = Plugin.Sniffer;
 
 
@@ -6491,7 +6506,7 @@
 	    key: 'defaultConfig',
 	    get: function get() {
 	      return {
-	        position: POSITIONS$4.CONTROLS_CENTER,
+	        position: POSITIONS$5.CONTROLS_CENTER,
 	        index: 0,
 	        progressDot: [],
 	        thumbnail: null,
@@ -6854,7 +6869,7 @@
 	}(Plugin);
 
 	var Events$a = Plugin.Events,
-	    POSITIONS$5 = Plugin.POSITIONS,
+	    POSITIONS$6 = Plugin.POSITIONS,
 	    Sniffer$5 = Plugin.Sniffer;
 
 	var Play = function (_Plugin) {
@@ -6967,7 +6982,7 @@
 	    key: 'defaultConfig',
 	    get: function get() {
 	      return {
-	        position: POSITIONS$5.CONTROLS_LEFT,
+	        position: POSITIONS$6.CONTROLS_LEFT,
 	        index: 0,
 	        disable: false
 	      };
@@ -6981,7 +6996,7 @@
 	var ExitFullScreenSvg = "<svg xmlns=\"http://www.w3.org/2000/svg\" width=\"40\" height=\"40\" viewBox=\"0 0 40 40\" transform=\"translate(-4, 5)\">\n  <path transform=\"scale(0.0320625 0.0320625)\" d=\"M682 342h128v84h-212v-212h84v128zM598 810v-212h212v84h-128v128h-84zM342 342v-128h84v212h-212v-84h128zM214 682v-84h212v212h-84v-128h-128z\"></path>\n</svg>\n";
 
 	var Events$b = Plugin.Events,
-	    POSITIONS$6 = Plugin.POSITIONS;
+	    POSITIONS$7 = Plugin.POSITIONS;
 
 	var Fullscreen = function (_Plugin) {
 	  inherits(Fullscreen, _Plugin);
@@ -7095,7 +7110,7 @@
 	    key: 'defaultConfig',
 	    get: function get() {
 	      return {
-	        position: POSITIONS$6.CONTROLS_RIGTH,
+	        position: POSITIONS$7.CONTROLS_RIGTH,
 	        index: 0,
 	        useCssFullscreen: false,
 	        switchCallback: null,
@@ -7108,7 +7123,7 @@
 
 	var Util$9 = Plugin.Util,
 	    Events$c = Plugin.Events,
-	    POSITIONS$7 = Plugin.POSITIONS,
+	    POSITIONS$8 = Plugin.POSITIONS,
 	    Sniffer$6 = Plugin.Sniffer;
 
 	var Time = function (_Plugin) {
@@ -7251,7 +7266,7 @@
 	    key: 'defaultConfig',
 	    get: function get() {
 	      return {
-	        position: POSITIONS$7.CONTROLS_LEFT,
+	        position: POSITIONS$8.CONTROLS_LEFT,
 	        index: 2,
 	        disable: false,
 	        mode: 'pc'
@@ -7269,7 +7284,7 @@
 
 	var Util$a = Plugin.Util,
 	    Events$d = Plugin.Events,
-	    POSITIONS$8 = Plugin.POSITIONS;
+	    POSITIONS$9 = Plugin.POSITIONS;
 
 	var Volume = function (_Plugin) {
 	  inherits(Volume, _Plugin);
@@ -7440,7 +7455,7 @@
 	    key: 'defaultConfig',
 	    get: function get() {
 	      return {
-	        position: POSITIONS$8.CONTROLS_RIGTH,
+	        position: POSITIONS$9.CONTROLS_RIGTH,
 	        index: 1,
 	        disable: false
 	      };
@@ -7451,7 +7466,7 @@
 
 	var RotateSvg = "<svg xmlns=\"http://www.w3.org/2000/svg\" width=\"32\" height=\"32\" viewBox=\"-4 -6 40 40\" fill=\"none\">\n  <g clip-path=\"url(#clip0)\">\n    <path transform=\"scale(1.5 1.5)\" d=\"M11.6665 9.16663H4.1665C2.78579 9.16663 1.6665 10.2859 1.6665 11.6666V15.8333C1.6665 17.214 2.78579 18.3333 4.1665 18.3333H11.6665C13.0472 18.3333 14.1665 17.214 14.1665 15.8333V11.6666C14.1665 10.2859 13.0472 9.16663 11.6665 9.16663Z\" fill=\"white\"/>\n    <path transform=\"scale(1.5 1.5)\" fill-rule=\"evenodd\" clip-rule=\"evenodd\" d=\"M3.88148 4.06298C3.75371 4.21005 3.67667 4.40231 3.67749 4.61242C3.67847 4.87253 3.79852 5.10435 3.98581 5.25646L6.99111 8.05895C7.32771 8.37283 7.85502 8.35443 8.16891 8.01782C8.48279 7.68122 8.46437 7.15391 8.12778 6.84003L6.62061 5.43457L9.8198 5.4224C9.82848 5.42239 9.8372 5.42221 9.84591 5.4219C10.9714 5.38233 12.0885 5.6285 13.0931 6.13744C14.0976 6.64635 14.957 7.40148 15.5908 8.33234C16.2246 9.2632 16.6122 10.3394 16.7177 11.4606C16.823 12.5819 16.6427 13.7115 16.1934 14.7442C16.0098 15.1661 16.203 15.6571 16.6251 15.8408C17.0471 16.0243 17.5381 15.8311 17.7216 15.4091C18.2833 14.1183 18.5087 12.7063 18.3771 11.3047C18.2453 9.90318 17.7607 8.55792 16.9684 7.39433C16.1761 6.23073 15.1021 5.28683 13.8463 4.65065C12.5946 4.01651 11.203 3.70872 9.80072 3.75583L6.43415 3.76862L7.96326 2.12885C8.27715 1.79225 8.25872 1.26494 7.92213 0.951061C7.58553 0.63718 7.05822 0.655585 6.74433 0.99219L3.90268 4.0395C3.89545 4.04724 3.88841 4.05509 3.88154 4.06303L3.88148 4.06298Z\" fill=\"white\"/>\n  </g>\n  <defs>\n    <clipPath id=\"clip0\">\n      <rect width=\"40\" height=\"40\" fill=\"white\"/>\n    </clipPath>\n  </defs>\n</svg>\n";
 
-	var POSITIONS$9 = Plugin.POSITIONS;
+	var POSITIONS$a = Plugin.POSITIONS;
 
 	var Rotate = function (_Plugin) {
 	  inherits(Rotate, _Plugin);
@@ -7464,7 +7479,7 @@
 	    key: 'defaultConfig',
 	    get: function get() {
 	      return {
-	        position: POSITIONS$9.CONTROLS_RIGTH,
+	        position: POSITIONS$a.CONTROLS_RIGTH,
 	        index: 6,
 	        innerRotate: false, // true为只有画面旋转，false为整个播放器旋转
 	        clockwise: false,
@@ -7623,7 +7638,7 @@
 	}(Plugin);
 
 	var Events$e = Plugin.Events,
-	    POSITIONS$a = Plugin.POSITIONS;
+	    POSITIONS$b = Plugin.POSITIONS;
 
 	var PIP = function (_Plugin) {
 	  inherits(PIP, _Plugin);
@@ -7760,7 +7775,7 @@
 	    key: 'defaultConfig',
 	    get: function get() {
 	      return {
-	        position: POSITIONS$a.CONTROLS_RIGTH,
+	        position: POSITIONS$b.CONTROLS_RIGTH,
 	        index: 6,
 	        showIcon: false
 	      };
@@ -7935,7 +7950,7 @@
 
 	var DownloadSvg = "<svg xmlns=\"http://www.w3.org/2000/svg\" width=\"24px\" height=\"24px\" viewBox=\"0 0 24 24\">\n  <g id=\"Page-1\" stroke=\"none\" stroke-width=\"1\" fill=\"none\" fill-rule=\"evenodd\">\n    <g transform=\"translate(-488.000000, -340.000000)\" fill=\"#FFFFFF\">\n      <g id=\"Group-2\">\n        <g id=\"volme_big-copy\" transform=\"translate(488.000000, 340.000000)\">\n          <rect id=\"Rectangle-18\" x=\"11\" y=\"4\" width=\"2\" height=\"12\" rx=\"1\"></rect>\n          <rect id=\"Rectangle-2\" x=\"3\" y=\"18\" width=\"18\" height=\"2\" rx=\"1\"></rect>\n          <rect id=\"Rectangle-2\" transform=\"translate(4.000000, 17.500000) rotate(90.000000) translate(-4.000000, -17.500000) \" x=\"1.5\" y=\"16.5\" width=\"5\" height=\"2\" rx=\"1\"></rect><rect id=\"Rectangle-2-Copy-3\" transform=\"translate(20.000000, 17.500000) rotate(90.000000) translate(-20.000000, -17.500000) \" x=\"17.5\" y=\"16.5\" width=\"5\" height=\"2\" rx=\"1\"></rect>\n          <path d=\"M9.48791171,8.26502656 L9.48791171,14.2650266 C9.48791171,14.8173113 9.04019646,15.2650266 8.48791171,15.2650266 C7.93562696,15.2650266 7.48791171,14.8173113 7.48791171,14.2650266 L7.48791171,7.26502656 C7.48791171,6.71274181 7.93562696,6.26502656 8.48791171,6.26502656 L15.4879117,6.26502656 C16.0401965,6.26502656 16.4879117,6.71274181 16.4879117,7.26502656 C16.4879117,7.81731131 16.0401965,8.26502656 15.4879117,8.26502656 L9.48791171,8.26502656 Z\" id=\"Combined-Shape\" transform=\"translate(11.987912, 10.765027) scale(1, -1) rotate(45.000000) translate(-11.987912, -10.765027) \"></path>\n        </g>\n      </g>\n    </g>\n  </g>\n</svg>\n";
 
-	var POSITIONS$b = Plugin.POSITIONS;
+	var POSITIONS$c = Plugin.POSITIONS;
 
 	var Download = function (_Plugin) {
 	  inherits(Download, _Plugin);
@@ -7948,7 +7963,7 @@
 	    key: 'defaultConfig',
 	    get: function get() {
 	      return {
-	        position: POSITIONS$b.CONTROLS_RIGTH,
+	        position: POSITIONS$c.CONTROLS_RIGTH,
 	        index: 3,
 	        disable: true
 	      };
@@ -8047,7 +8062,7 @@
 	  return Download;
 	}(Plugin);
 
-	var POSITIONS$c = Plugin.POSITIONS;
+	var POSITIONS$d = Plugin.POSITIONS;
 
 	var ScreenShot = function (_Plugin) {
 	  inherits(ScreenShot, _Plugin);
@@ -8159,7 +8174,7 @@
 	    key: 'defaultConfig',
 	    get: function get() {
 	      return {
-	        position: POSITIONS$c.CONTROLS_RIGTH,
+	        position: POSITIONS$d.CONTROLS_RIGTH,
 	        index: 5,
 	        quality: 0.92,
 	        type: 'image/png',
@@ -8176,7 +8191,7 @@
 	var Events$f = Plugin.Events,
 	    Util$b = Plugin.Util,
 	    Sniffer$7 = Plugin.Sniffer,
-	    POSITIONS$d = Plugin.POSITIONS;
+	    POSITIONS$e = Plugin.POSITIONS;
 
 	var DefinitionIcon = function (_Plugin) {
 	  inherits(DefinitionIcon, _Plugin);
@@ -8192,7 +8207,7 @@
 	    key: 'defaultConfig',
 	    get: function get() {
 	      return {
-	        position: POSITIONS$d.CONTROLS_RIGTH,
+	        position: POSITIONS$e.CONTROLS_RIGTH,
 	        index: 3,
 	        list: null,
 	        disable: false,
@@ -8396,7 +8411,7 @@
 	var Events$g = Plugin.Events,
 	    Util$c = Plugin.Util,
 	    Sniffer$8 = Plugin.Sniffer,
-	    POSITIONS$e = Plugin.POSITIONS;
+	    POSITIONS$f = Plugin.POSITIONS;
 
 	var PlaybackRate = function (_Plugin) {
 	  inherits(PlaybackRate, _Plugin);
@@ -8411,7 +8426,7 @@
 	    key: 'defaultConfig',
 	    get: function get() {
 	      return {
-	        position: POSITIONS$e.CONTROLS_RIGTH,
+	        position: POSITIONS$f.CONTROLS_RIGTH,
 	        index: 4,
 	        list: [0.5, 0.75, { rate: 1, iconText: '倍速' }, 1.5, 2]
 	      };
@@ -8522,7 +8537,7 @@
 	var ExitCssFullSceenSvg = "<svg xmlns=\"http://www.w3.org/2000/svg\" width=\"24\" height=\"24\" viewBox=\"0 0 24 24\" transform=\"translate(0, 2) scale(1.3, 1.3)\">\n  <path d=\"M9,10V9a.9.9,0,0,1,1-1,.9.9,0,0,1,1,1v2a.9.9,0,0,1-1,1H8a.9.9,0,0,1-1-1,.9.9,0,0,1,1-1Zm6,4v1a1,1,0,0,1-2,0V13a.9.9,0,0,1,1-1h2a1,1,0,0,1,0,2Zm3-7H6V17H18Zm2,0V17a2,2,0,0,1-2,2H6a2,2,0,0,1-2-2V7A2,2,0,0,1,6,5H18A2,2,0,0,1,20,7Z\"></path>\n</svg>\n";
 
 	var Events$h = Plugin.Events,
-	    POSITIONS$f = Plugin.POSITIONS;
+	    POSITIONS$g = Plugin.POSITIONS;
 
 	var CssFullScreen = function (_Plugin) {
 	  inherits(CssFullScreen, _Plugin);
@@ -8641,7 +8656,7 @@
 	    key: 'defaultConfig',
 	    get: function get() {
 	      return {
-	        position: POSITIONS$f.CONTROLS_RIGTH,
+	        position: POSITIONS$g.CONTROLS_RIGTH,
 	        index: 1,
 	        disable: false
 	      };

@@ -35,14 +35,6 @@ var DanmuPanel = function (_Plugin) {
       return 'DanmuPanel';
     }
   }, {
-    key: 'position',
-    get: function get() {
-      return {
-        index: 8,
-        gird: 'right'
-      };
-    }
-  }, {
     key: 'defaultConfig',
     get: function get() {
       return {

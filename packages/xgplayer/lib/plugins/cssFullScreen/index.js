@@ -10,9 +10,13 @@ var _plugin = require('../../plugin');
 
 var _plugin2 = _interopRequireDefault(_plugin);
 
-var _cssFullscreenChange = require('../assets/cssFullscreenChange.svg');
+var _requestCssFull = require('../assets/requestCssFull.svg');
 
-var _cssFullscreenChange2 = _interopRequireDefault(_cssFullscreenChange);
+var _requestCssFull2 = _interopRequireDefault(_requestCssFull);
+
+var _exitCssFull = require('../assets/exitCssFull.svg');
+
+var _exitCssFull2 = _interopRequireDefault(_exitCssFull);
 
 function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
 
@@ -46,6 +50,7 @@ var CssFullScreen = function (_Plugin) {
     value: function afterCreate() {
       var _this2 = this;
 
+      this.initIcons();
       this.on(Events.CSS_FULLSCREEN_CHANGE, function (isCssfullScreen) {
         _this2.animate(isCssfullScreen);
       });
@@ -53,6 +58,15 @@ var CssFullScreen = function (_Plugin) {
       this.on(Events.FULLSCREEN_CHANGE, function (isFullScreen) {
         !isFullScreen && _this2.animate(isFullScreen);
       });
+    }
+  }, {
+    key: 'initIcons',
+    value: function initIcons() {
+      var icons = this.icons;
+
+      var contentIcon = this.find('.xgplayer-icon');
+      contentIcon.appendChild(icons.cssFullscreen);
+      contentIcon.appendChild(icons.exitCssFullscreen);
     }
   }, {
     key: 'afterPlayerInit',
@@ -77,10 +91,10 @@ var CssFullScreen = function (_Plugin) {
       if (!this.root) {
         return;
       }
-      var path = this.find('.path');
-      var full = this.find('.path_full').getAttribute('d');
-      var exit = this.find('.path_exitfull').getAttribute('d');
-      isFullScreen ? path.setAttribute('d', exit) : path.setAttribute('d', full);
+      // const path = this.find('.path')
+      // const full = this.find('.path_full').getAttribute('d')
+      // const exit = this.find('.path_exitfull').getAttribute('d')
+      isFullScreen ? this.setAttr('data-state', 'full') : this.setAttr('data-state', 'normal');
     }
   }, {
     key: 'switchTips',
@@ -91,7 +105,8 @@ var CssFullScreen = function (_Plugin) {
     key: 'registerIcons',
     value: function registerIcons() {
       return {
-        cssFullscreen: _cssFullscreenChange2.default
+        cssFullscreen: { icon: _requestCssFull2.default, class: 'xg-get-cssfull' },
+        exitCssFullscreen: { icon: _exitCssFull2.default, class: 'xg-exit-cssfull' }
       };
     }
   }, {
@@ -121,7 +136,7 @@ var CssFullScreen = function (_Plugin) {
       if (!this.playerConfig.cssFullscreen) {
         return;
       }
-      return '<xg-icon class=\'xgplayer-cssfullscreen\'>\n    <div class="xgplayer-icon">\n    ' + this.icons.cssFullscreen + '\n    </div>\n    <div class="xg-tips">' + (this.isCssfullScreen ? this.text.exitCssFullscreen : this.text.cssFullscreen) + '</div>\n    </xg-icon>';
+      return '<xg-icon class=\'xgplayer-cssfullscreen\'>\n    <div class="xgplayer-icon">\n    </div>\n    <div class="xg-tips">' + (this.isCssfullScreen ? this.text.exitCssFullscreen : this.text.cssFullscreen) + '</div>\n    </xg-icon>';
     }
   }], [{
     key: 'pluginName',

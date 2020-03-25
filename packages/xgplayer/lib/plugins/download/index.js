@@ -42,7 +42,7 @@ var Download = function (_Plugin) {
       return {
         position: POSITIONS.CONTROLS_RIGTH,
         index: 3,
-        disable: false
+        disable: true
       };
     }
   }]);
@@ -67,9 +67,10 @@ var Download = function (_Plugin) {
   }, {
     key: 'afterCreate',
     value: function afterCreate() {
-      if (!this.config.download) {
+      if (this.config.disable) {
         return;
       }
+      this.appendChild('.xgplayer-icon', this.icons.download);
       this.download = this.download.bind(this);
       this.bind(['click', 'touchend'], this.download);
     }
@@ -129,10 +130,10 @@ var Download = function (_Plugin) {
   }, {
     key: 'render',
     value: function render() {
-      if (!this.config.download) {
+      if (this.config.disable) {
         return;
       }
-      return '<xg-icon class="xgplayer-download">\n      <div class="xgplayer-icon">\n      ' + this.icons.download + '\n      </div>\n      <div class="xg-tips">' + this.text.download + '</div>\n    </xg-icon>';
+      return '<xg-icon class="xgplayer-download">\n      <div class="xgplayer-icon">\n      </div>\n      <div class="xg-tips">' + this.text.download + '</div>\n    </xg-icon>';
     }
   }]);
 

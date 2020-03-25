@@ -25,6 +25,31 @@ util.createDom = function () {
   return dom;
 };
 
+util.createDomFromHtml = function (html) {
+  var attrs = arguments.length > 1 && arguments[1] !== undefined ? arguments[1] : {};
+  var classname = arguments.length > 2 && arguments[2] !== undefined ? arguments[2] : '';
+
+  try {
+    var doc = document.createElement('div');
+    doc.innerHTML = html;
+    var dom = doc.children;
+    doc = null;
+    if (dom.length > 0) {
+      dom = dom[0];
+      classname && util.addClass(dom, classname);
+      if (attrs) {
+        Object.keys(attrs).forEach(function (key) {
+          dom.setAttribute(key, attrs[key]);
+        });
+      }
+      return dom;
+    }
+    return null;
+  } catch (err) {
+    return null;
+  }
+};
+
 util.hasClass = function (el, className) {
   if (!el) {
     return false;
@@ -101,6 +126,10 @@ util.findDom = function () {
   return dom;
 };
 
+util.getCss = function (dom, key) {
+  return dom.currentStyle ? dom.currentStyle[key] : document.defaultView.getComputedStyle(dom, false)[key];
+};
+
 util.padStart = function (str, length, pad) {
   var charstr = String(pad);
   var len = length >> 0;
@@ -143,7 +172,7 @@ util.deepCopy = function (dst, src) {
     Object.keys(src).forEach(function (key) {
       // eslint-disable-next-line no-undef
       if (util.typeOf(src[key]) === 'Object' && !(src[key] instanceof Node)) {
-        if (dst[key] === undefined) {
+        if (dst[key] === undefined || dst[key] === undefined) {
           dst[key] = src[key];
         } else {
           util.deepCopy(dst[key], src[key]);
@@ -157,6 +186,18 @@ util.deepCopy = function (dst, src) {
     return dst;
   }
 };
+
+util.deepMerge = function (dst, src) {
+  Object.keys(src).map(function (key) {
+    if (_typeof(dst[key]) === _typeof(src[key]) && dst[key] !== null && _typeof(dst[key]) === 'object' && !(src[key] instanceof window.Node)) {
+      util.deepMerge(dst[key], src[key]);
+    } else {
+      dst[key] = src[key];
+    }
+  });
+  return dst;
+};
+
 util.getBgImage = function (el) {
   // fix: return current page url when url is none
   var url = (el.currentStyle || window.getComputedStyle(el, null)).backgroundImage;

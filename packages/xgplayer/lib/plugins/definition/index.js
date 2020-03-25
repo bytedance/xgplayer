@@ -41,7 +41,8 @@ var DefinitionIcon = function (_Plugin) {
         position: POSITIONS.CONTROLS_RIGTH,
         index: 3,
         list: null,
-        disable: false
+        disable: false,
+        hideMobile: true // 是否在移动端竖屏状态下隐藏
       };
     }
   }]);
@@ -232,7 +233,7 @@ var DefinitionIcon = function (_Plugin) {
     key: 'render',
     value: function render() {
       var text = '清晰度';
-      return '<xg-icon class="xgplayer-playbackrate" style="display: none;">\n    <div class="xgplayer-icon btn-definition"><span class="icon-text">' + text + '</span></div>\n    <ul class="icon-list">\n    </ul>\n   </xg-icon>';
+      return '<xg-icon class="xgplayer-definition">\n    <div class="xgplayer-icon btn-definition"><span class="icon-text">' + text + '</span></div>\n    <ul class="icon-list">\n    </ul>\n   </xg-icon>';
     }
   }]);
 

@@ -233,7 +233,7 @@ class Player extends Proxy {
     this._loadingPlugins = []
     const ignores = this.config.ignores || []
     const plugins = this.config.plugins || []
-    const ignoresStr = ignores.join('||')
+    const ignoresStr = ignores.join('||').toLowerCase().split('||');
     plugins.map(plugin => {
       try {
         // 在ignores中的不做组装

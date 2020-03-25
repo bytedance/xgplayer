@@ -6,6 +6,8 @@ Object.defineProperty(exports, "__esModule", {
 
 var _createClass = function () { function defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ("value" in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } } return function (Constructor, protoProps, staticProps) { if (protoProps) defineProperties(Constructor.prototype, protoProps); if (staticProps) defineProperties(Constructor, staticProps); return Constructor; }; }();
 
+var _get = function get(object, property, receiver) { if (object === null) object = Function.prototype; var desc = Object.getOwnPropertyDescriptor(object, property); if (desc === undefined) { var parent = Object.getPrototypeOf(object); if (parent === null) { return undefined; } else { return get(parent, property, receiver); } } else if ("value" in desc) { return desc.value; } else { var getter = desc.get; if (getter === undefined) { return undefined; } return getter.call(receiver); } };
+
 var _plugin = require('../../plugin');
 
 var _plugin2 = _interopRequireDefault(_plugin);
@@ -20,7 +22,8 @@ function _inherits(subClass, superClass) { if (typeof superClass !== "function" 
 
 var Util = _plugin2.default.Util,
     Events = _plugin2.default.Events,
-    POSITIONS = _plugin2.default.POSITIONS;
+    POSITIONS = _plugin2.default.POSITIONS,
+    Sniffer = _plugin2.default.Sniffer;
 
 var Time = function (_Plugin) {
   _inherits(Time, _Plugin);
@@ -36,8 +39,13 @@ var Time = function (_Plugin) {
     value: function afterCreate() {
       var _this2 = this;
 
+      this.mode = Sniffer.device === 'mobile' ? 'mobile' : 'pc';
       if (this.config.disable) {
         return;
+      }
+      if (this.mode === 'mobile') {
+        this.createCenterTime();
+        this.hide();
       }
       this.durationDom = this.find('.time-duration');
       this.timeDom = this.find('.time-current');
@@ -45,8 +53,16 @@ var Time = function (_Plugin) {
         _this2.onTimeUpdate();
       });
       this.on(Events.TIME_UPDATE, function () {
-        _this2.onTimeUpdate();
+        !_this2.player.isSeeking && _this2.onTimeUpdate();
       });
+    }
+  }, {
+    key: 'show',
+    value: function show() {
+      if (this.mode === 'mobile') {
+        return;
+      }
+      _get(Time.prototype.__proto__ || Object.getPrototypeOf(Time.prototype), 'show', this).call(this);
     }
   }, {
     key: 'onTimeUpdate',
@@ -58,10 +74,31 @@ var Time = function (_Plugin) {
         return;
       }
       var current = player.currentTime;
-      this.timeDom.innerHTML = Util.format(current);
-      if (player.duration !== Infinity) {
-        this.durationDom.innerHTML = Util.format(player.duration);
+      if (this.mode === 'mobile') {
+        this.centerCurDom.innerHTML = Util.format(current);
+        if (player.duration !== Infinity) {
+          this.centerDurDom.innerHTML = Util.format(player.duration);
+        }
+      } else {
+        this.timeDom.innerHTML = Util.format(current);
+        if (player.duration !== Infinity) {
+          this.durationDom.innerHTML = Util.format(player.duration);
+        }
       }
+    }
+  }, {
+    key: 'createCenterTime',
+    value: function createCenterTime() {
+      var player = this.player;
+
+      if (!player.controls || !player.controls.center) {
+        return;
+      }
+      var center = player.controls.center;
+      this.centerCurDom = Util.createDom('xg-icon', '00:00', { style: 'margin-left:0px;margin-right:10px;' }, 'xgplayer-time');
+      this.centerDurDom = Util.createDom('xg-icon', '00:00', {}, 'xgplayer-time');
+      center.children.length > 0 ? center.insertBefore(this.centerCurDom, center.children[0]) : center.appendChild(this.centerCurDom);
+      center.appendChild(this.centerDurDom);
     }
   }, {
     key: 'afterPlayerInit',
@@ -106,6 +143,10 @@ var Time = function (_Plugin) {
       if (!time && time !== 0 || time > player.duration) {
         return;
       }
+      if (this.mode === 'mobile') {
+        this.centerCurDom.innerHTML = Util.format(time);
+        return;
+      }
       this.timeDom.innerHTML = Util.format(time);
     }
   }, {
@@ -127,7 +168,8 @@ var Time = function (_Plugin) {
       return {
         position: POSITIONS.CONTROLS_LEFT,
         index: 2,
-        disable: false
+        disable: false,
+        mode: 'pc'
       };
     }
   }]);
