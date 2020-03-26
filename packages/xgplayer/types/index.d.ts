@@ -72,6 +72,9 @@ declare module 'xgplayer' {
         // 自动播放（默认false）
         autoplay?: boolean;
 
+        // 静音自动播放（默认false）
+        autoplayMuted?: boolean;
+
         // 循环播放(默认false)
         loop?: boolean;
 

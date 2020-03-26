@@ -28,17 +28,17 @@ let mobile = function () {
       }
     }
   }
-  player.video.addEventListener('touchend', function (e) { player.onElementTouchend(e, player.video) }, false)
-
-  player.video.addEventListener('touchstart', () => {
-    player.isTouchMove = false
-  })
-
-  player.video.addEventListener('touchmove', () => {
-    player.isTouchMove = true
-  })
 
   function onReady (e) {
+    player.video.addEventListener('touchend', function (e) {
+      player.onElementTouchend(e, player.video)
+    })
+    player.video.addEventListener('touchstart', () => {
+      player.isTouchMove = false
+    })
+    player.video.addEventListener('touchmove', () => {
+      player.isTouchMove = true
+    })
     if (player.config.autoplay) {
       player.start()
     }
