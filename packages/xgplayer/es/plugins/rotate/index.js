@@ -55,6 +55,7 @@ var Rotate = function (_Plugin) {
       if (this.config.disable) {
         return;
       }
+      this.appendChild('.xgplayer-icon', this.icons.rotate);
       this.onBtnClick = this.onBtnClick.bind(this);
       this.bind('.xgplayer-icon', ['click', 'touchend'], this.onBtnClick);
     }
@@ -178,7 +179,7 @@ var Rotate = function (_Plugin) {
       if (this.config.disable) {
         return;
       }
-      return '\n    <xg-icon class="xgplayer-rotate">\n      <div class="xgplayer-icon">\n        ' + this.icons.rotate + '\n      </div>\n      <div class="xg-tips">\n      ' + this.text.rotate + '\n      </div>\n    </xg-icon>';
+      return '\n    <xg-icon class="xgplayer-rotate">\n      <div class="xgplayer-icon">\n      </div>\n      <div class="xg-tips">\n      ' + this.text.rotate + '\n      </div>\n    </xg-icon>';
     }
   }]);
 

@@ -189,93 +189,92 @@ var pluginsManager = {
       if (!_this2.pluginGroup) {
         return;
       }
-      var cgid = player._pluginInfoId;
-      var plugins = _this2.pluginGroup[cgid]._plugins;
-      var pluginsRet = [];
-      var _iteratorNormalCompletion2 = true;
-      var _didIteratorError2 = false;
-      var _iteratorError2 = undefined;
 
-      try {
-        for (var _iterator2 = Object.keys(plugins)[Symbol.iterator](), _step2; !(_iteratorNormalCompletion2 = (_step2 = _iterator2.next()).done); _iteratorNormalCompletion2 = true) {
-          var item = _step2.value;
+      var prevTask = void 0;
+      if (player._loadingPlugins && player._loadingPlugins.length) {
+        prevTask = Promise.all(player._loadingPlugins);
+      } else {
+        prevTask = Promise.resolve();
+      }
 
-          if (plugins[item] && plugins[item].beforePlayerInit) {
-            try {
-              var ret = plugins[item].beforePlayerInit();
-              pluginsRet.push(retPromise(ret));
-            } catch (e) {
-              pluginsRet.push(retPromise(null));
-              throw e;
+      return prevTask.then(function () {
+        var cgid = player._pluginInfoId;
+        var plugins = _this2.pluginGroup[cgid]._plugins;
+        var pluginsRet = [];
+        var _iteratorNormalCompletion2 = true;
+        var _didIteratorError2 = false;
+        var _iteratorError2 = undefined;
+
+        try {
+          for (var _iterator2 = Object.keys(plugins)[Symbol.iterator](), _step2; !(_iteratorNormalCompletion2 = (_step2 = _iterator2.next()).done); _iteratorNormalCompletion2 = true) {
+            var item = _step2.value;
+
+            if (plugins[item] && plugins[item].beforePlayerInit) {
+              try {
+                var ret = plugins[item].beforePlayerInit();
+                pluginsRet.push(retPromise(ret));
+              } catch (e) {
+                pluginsRet.push(retPromise(null));
+                throw e;
+              }
+            }
+          }
+        } catch (err) {
+          _didIteratorError2 = true;
+          _iteratorError2 = err;
+        } finally {
+          try {
+            if (!_iteratorNormalCompletion2 && _iterator2.return) {
+              _iterator2.return();
+            }
+          } finally {
+            if (_didIteratorError2) {
+              throw _iteratorError2;
             }
           }
         }
-      } catch (err) {
-        _didIteratorError2 = true;
-        _iteratorError2 = err;
-      } finally {
-        try {
-          if (!_iteratorNormalCompletion2 && _iterator2.return) {
-            _iterator2.return();
-          }
-        } finally {
-          if (_didIteratorError2) {
-            throw _iteratorError2;
-          }
-        }
-      }
 
-      Promise.all(pluginsRet).then(function () {
-        resolve();
-      }).catch(function (e) {
-        console.error(e);
-        resolve();
+        Promise.all([].concat(pluginsRet)).then(function () {
+          resolve();
+        }).catch(function (e) {
+          console.error(e);
+          resolve();
+        });
       });
     });
   },
   afterInit: function afterInit(player) {
-    var _this3 = this;
-
-    console.log('afterInit');
-    var prevTask = void 0;
-    if (player._loadingPlugins && player._loadingPlugins.length) {
-      prevTask = Promise.all(player._loadingPlugins);
-    } else {
-      prevTask = Promise.resolve();
-    }
     if (!this.pluginGroup) {
       return;
     }
-    prevTask.then(function () {
-      var cgid = player._pluginInfoId;
-      var plugins = _this3.pluginGroup[cgid]._plugins;
-      var _iteratorNormalCompletion3 = true;
-      var _didIteratorError3 = false;
-      var _iteratorError3 = undefined;
+    var cgid = player._pluginInfoId;
+    var plugins = this.pluginGroup[cgid]._plugins;
+    var _iteratorNormalCompletion3 = true;
+    var _didIteratorError3 = false;
+    var _iteratorError3 = undefined;
 
-      try {
-        for (var _iterator3 = Object.keys(plugins)[Symbol.iterator](), _step3; !(_iteratorNormalCompletion3 = (_step3 = _iterator3.next()).done); _iteratorNormalCompletion3 = true) {
-          var item = _step3.value;
+    try {
+      for (var _iterator3 = Object.keys(plugins)[Symbol.iterator](), _step3; !(_iteratorNormalCompletion3 = (_step3 = _iterator3.next()).done); _iteratorNormalCompletion3 = true) {
+        var item = _step3.value;
 
-          if (plugins[item] && plugins[item].afterPlayerInit) {
-            plugins[item].afterPlayerInit();
-          }
-        }
-      } catch (err) {
-        _didIteratorError3 = true;
-        _iteratorError3 = err;
-      } finally {
-        try {
-          if (!_iteratorNormalCompletion3 && _iterator3.return) {
-            _iterator3.return();
-          }
-        } finally {
-          if (_didIteratorError3) {
-            throw _iteratorError3;
-          }
+        if (plugins[item] && plugins[item].afterPlayerInit) {
+          plugins[item].afterPlayerInit();
         }
       }
-    });
+    } catch (err) {
+      _didIteratorError3 = true;
+      _iteratorError3 = err;
+    } finally {
+      try {
+        if (!_iteratorNormalCompletion3 && _iterator3.return) {
+          _iterator3.return();
+        }
+      } finally {
+        if (_didIteratorError3) {
+          throw _iteratorError3;
+        }
+      }
+    }
   },
   reRender: function reRender(player) {
     var cgid = player._pluginInfoId;

@@ -33,7 +33,6 @@ var HlsVodController = function () {
     this.sequence = 0;
     this._playlist = null;
     this.retrytimes = this.configs.retrytimes || 3;
-    this.container = this.configs.container;
     this.preloadTime = this.configs.preloadTime || 5;
     this.mse = this.configs.mse;
     this._lastSeekTime = 0;
@@ -59,14 +58,14 @@ var HlsVodController = function () {
       this._tsloader = this._context.registry('TS_LOADER', FetchLoader)({ buffer: 'TS_BUFFER', readtype: 3 });
 
       // 初始化TS Demuxer
-      this._context.registry('TS_DEMUXER', TsDemuxer)({ inputbuffer: 'TS_BUFFER' });
+      this._demuxer = this._context.registry('TS_DEMUXER', TsDemuxer)({ inputbuffer: 'TS_BUFFER' });
 
       // 初始化MP4 Remuxer
       this._context.registry('MP4_REMUXER', Mp4Remuxer)(this._player.currentTime);
 
       // 初始化MSE
       if (!this.mse) {
-        this.mse = new Mse({ container: this.container, preloadTime: this.preloadTime }, this._context);
+        this.mse = new Mse({ preloadTime: this.preloadTime }, this._context);
         this.mse.init();
       }
       this.initEvents();
@@ -92,16 +91,16 @@ var HlsVodController = function () {
 
       this.on(REMUX_EVENTS.REMUX_ERROR, this._onRemuxError.bind(this));
 
-      this.on('TIME_UPDATE', this._onTimeUpdate.bind(this));
+      this._player.on('timeupdate', this._onTimeUpdate.bind(this));
 
-      this.on('WAITING', this._onWaiting.bind(this));
+      this._player.on('waiting', this._onWaiting.bind(this));
     }
   }, {
     key: '_onError',
     value: function _onError(type, mod, err, fatal) {
       var error = {
         errorType: type,
-        errorDetails: '[' + mod + ']: ' + err.message,
+        errorDetails: '[' + mod + ']: ' + (err ? err.message : ''),
         errorFatal: fatal
       };
       this._player && this._player.emit(HLS_ERROR, error);
@@ -130,9 +129,10 @@ var HlsVodController = function () {
     }
   }, {
     key: '_onWaiting',
-    value: function _onWaiting(container) {
+    value: function _onWaiting() {
       var end = true;
 
+      this._seekToBufferStart();
       var playList = Object.keys(this._playlist.list);
       var playListLen = playList.length;
       if (!playListLen) {
@@ -140,12 +140,12 @@ var HlsVodController = function () {
       }
 
       for (var i = 0; i < playListLen; i++) {
-        if (this.container.currentTime * 1000 < parseInt(playList[i])) {
+        if (this._player.currentTime * 1000 < parseInt(playList[i])) {
           end = false;
         }
       }
       if (end) {
-        var ts = this._playlist.getTs(this.container.currentTime * 1000);
+        var ts = this._playlist.getTs(this._player.currentTime * 1000);
         if (!ts) {
           this._player.emit('ended');
           this.mse.endOfStream();
@@ -158,9 +158,33 @@ var HlsVodController = function () {
       }
     }
   }, {
+    key: '_seekToBufferStart',
+    value: function _seekToBufferStart() {
+      var video = this._player.video;
+      var buffered = video.buffered;
+      var range = [0, 0];
+      var currentTime = video.currentTime;
+      if (buffered) {
+        for (var i = 0, len = buffered.length; i < len; i++) {
+          range[0] = buffered.start(i);
+          range[1] = buffered.end(i);
+          if (range[0] <= currentTime && currentTime <= range[1]) {
+            return;
+          }
+        }
+      }
+
+      var bufferStart = range[0];
+
+      if (currentTime === 0 && currentTime < bufferStart && Math.abs(currentTime - bufferStart) < 3) {
+        video.currentTime = bufferStart;
+      }
+    }
+  }, {
     key: '_onTimeUpdate',
-    value: function _onTimeUpdate(container) {
-      this._preload(container.currentTime);
+    value: function _onTimeUpdate() {
+      this._seekToBufferStart();
+      this._preload(this._player.currentTime);
     }
   }, {
     key: '_onDemuxComplete',
@@ -237,7 +261,7 @@ var HlsVodController = function () {
           }
         }
       } else if (buffer.TAG === 'TS_BUFFER') {
-        this._preload(this.mse.container.currentTime);
+        this._preload(this._player.currentTime);
         this._playlist.downloaded(this._tsloader.url, true);
         this._demuxer.demux(Object.assign({ url: this._tsloader.url }, this._playlist._ts[this._tsloader.url]));
         // this.emit(DEMUX_EVENTS.DEMUX_START, Object.assign({url: this._tsloader.url}, this._playlist._ts[this._tsloader.url]));
@@ -331,7 +355,7 @@ var HlsVodController = function () {
       if (this._tsloader.loading) {
         return;
       }
-      var video = this.mse.container;
+      var video = this._player.video;
       // Get current time range
       var currentbufferend = -1;
       if (!time && video.buffered.length) {
@@ -388,8 +412,8 @@ var HlsVodController = function () {
       this.sequence = 0;
       this._playlist = null;
       this.retrytimes = 3;
-      this.container = undefined;
       this.preloadTime = 5;
+      this._demuxer = null;
       this._lastSeekTime = 0;
       this.m3u8Text = null;
       this.mse = null;
@@ -403,10 +427,6 @@ var HlsVodController = function () {
       this.off(DEMUX_EVENTS.METADATA_PARSED, this._onMetadataParsed);
 
       this.off(DEMUX_EVENTS.DEMUX_COMPLETE, this._onDemuxComplete);
-
-      this.off('TIME_UPDATE', this._onTimeUpdate);
-
-      this.off('WAITING', this._onWaiting);
     }
   }]);
 

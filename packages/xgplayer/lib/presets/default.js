@@ -4,6 +4,10 @@ Object.defineProperty(exports, "__esModule", {
   value: true
 });
 
+var _sniffer = require('../utils/sniffer');
+
+var _sniffer2 = _interopRequireDefault(_sniffer);
+
 var _replay = require('../plugins/replay');
 
 var _replay2 = _interopRequireDefault(_replay);
@@ -39,10 +43,6 @@ var _keyboard2 = _interopRequireDefault(_keyboard);
 var _loading = require('../plugins/loading');
 
 var _loading2 = _interopRequireDefault(_loading);
-
-var _sniffer = require('../utils/sniffer');
-
-var _sniffer2 = _interopRequireDefault(_sniffer);
 
 var _progress = require('../plugins/progress');
 
@@ -107,21 +107,21 @@ var DefaultPreset = function DefaultPreset() {
 
   _classCallCheck(this, DefaultPreset);
 
-  var contolsIcons = [_progress2.default, _play2.default, _fullscreen2.default, _time2.default, _volume2.default, _rotate2.default, _playNext2.default, _definition2.default, _playbackRate2.default, _cssFullScreen2.default, _download2.default, _screenShot2.default];
+  var contolsIcons = [_progress2.default, _play2.default, _fullscreen2.default, _time2.default, _rotate2.default, _playNext2.default, _definition2.default, _playbackRate2.default, _download2.default, _screenShot2.default];
 
   var barIcons = [{
     plugin: _pip2.default,
     options: {
       index: 0,
-      position: _pip2.default.POSITIONS.ROOT_RIGHT
+      position: _pip2.default.POSITIONS.ROOT_TOP
     } }];
 
-  var layers = [_replay2.default, _poster2.default, _start2.default, _loading2.default, _enter2.default, _miniScreen2.default];
+  var layers = [_replay2.default, _poster2.default, _start2.default, _loading2.default, _enter2.default];
 
-  this.plugins = [].concat(contolsIcons, layers, barIcons);
+  this.plugins = [].concat(contolsIcons, layers);
   switch (_sniffer2.default.device) {
     case 'pc':
-      (_plugins = this.plugins).push.apply(_plugins, [_keyboard2.default, _pc2.default]);
+      (_plugins = this.plugins).push.apply(_plugins, [_keyboard2.default, _pc2.default, _cssFullScreen2.default, _volume2.default].concat(barIcons, [_miniScreen2.default]));
       break;
     case 'mobile':
       this.plugins.push(_mobile2.default);

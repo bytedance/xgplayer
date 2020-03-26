@@ -19,13 +19,20 @@ function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { de
 function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } }
 
 var FlvPlayer = function () {
+  _createClass(FlvPlayer, null, [{
+    key: 'pluginName',
+    get: function get() {
+      return 'FlvPlayer';
+    }
+  }]);
+
   function FlvPlayer(config) {
     _classCallCheck(this, FlvPlayer);
 
     if (config.isLive) {
-      return new _xgplayerFlvLive2.default(config);
+      this.plugins = [_xgplayerFlvLive2.default];
     } else {
-      return new _xgplayerFlvVod2.default(config);
+      this.plugins = [_xgplayerFlvVod2.default];
     }
   }
 

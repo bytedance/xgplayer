@@ -34,6 +34,7 @@ var Play = function (_Plugin) {
       if (config.disable) {
         return;
       }
+      this.initIcons();
       this.btnClick = this.btnClick.bind(this);
       var event = Sniffer.device === 'mobile' ? 'touchend' : 'click';
       this.bind(event, this.btnClick);
@@ -44,17 +45,6 @@ var Play = function (_Plugin) {
       this.on(Events.PLAY, function () {
         _this2.animate(player.paused);
       });
-    }
-  }, {
-    key: 'btnClick',
-    value: function btnClick(e) {
-      var player = this.player;
-
-      if (player.paused) {
-        player.play();
-      } else {
-        player.pause();
-      }
     }
 
     // 扩展语言
@@ -79,24 +69,39 @@ var Play = function (_Plugin) {
     key: 'registerIcons',
     value: function registerIcons() {
       return {
-        play: PlaySvg,
-        pause: PauseSvg
+        play: { icon: PlaySvg, class: 'xg-icon-play' },
+        pause: { icon: PauseSvg, class: 'xg-icon-pause' }
       };
+    }
+  }, {
+    key: 'btnClick',
+    value: function btnClick(e) {
+      var player = this.player;
+
+      if (player.paused) {
+        player.play();
+      } else {
+        player.pause();
+      }
+    }
+  }, {
+    key: 'initIcons',
+    value: function initIcons() {
+      var icons = this.icons;
+
+      this.appendChild('.xgplayer-icon', icons.play);
+      this.appendChild('.xgplayer-icon', icons.pause);
     }
   }, {
     key: 'animate',
     value: function animate(paused) {
       if (paused) {
-        this.find('.xgplayer-icon').innerHTML = this.icons.play;
+        this.setAttr('data-state', 'pause');
         this.find('.xg-tips').innerHTML = this.text.play;
       } else {
-        this.find('.xgplayer-icon').innerHTML = this.icons.pause;
+        this.setAttr('data-state', 'play');
         this.find('.xg-tips').innerHTML = this.text.pause;
       }
-      // const path = this.find('.path')
-      // const pathPlay = this.find('.path_play').getAttribute('d')
-      // const pathPause = this.find('.path_pause').getAttribute('d')
-      // !paused ? path.setAttribute('d', pathPause) : path.setAttribute('d', pathPlay)
     }
   }, {
     key: 'destroy',
@@ -109,7 +114,7 @@ var Play = function (_Plugin) {
       if (this.config.disable) {
         return;
       }
-      return '<xg-icon class="xgplayer-play">\n    <div class="xgplayer-icon">\n    ' + this.icons.play + '\n    </div>\n    <div class="xg-tips">' + (this.player.paused ? this.text.play : this.text.pause) + '</div>\n    </xg-icon>';
+      return '<xg-icon class="xgplayer-play">\n    <div class="xgplayer-icon">\n    </div>\n    <div class="xg-tips">' + (this.player.paused ? this.text.play : this.text.pause) + '</div>\n    </xg-icon>';
     }
   }], [{
     key: 'pluginName',

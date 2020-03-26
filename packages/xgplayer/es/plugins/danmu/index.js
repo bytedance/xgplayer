@@ -69,6 +69,7 @@ var Danmu = function (_Plugin) {
     value: function registerExtIcons() {
       var _this3 = this;
 
+      console.log('registerExtIcons');
       var player = this.player,
           config = this.config;
 
@@ -80,9 +81,9 @@ var Danmu = function (_Plugin) {
             }
           }
         };
-        this.danmuPanel = player.controls.registerPlugin(DanmuPanel.pluginName, DanmuPanel, panelOptions);
+        this.danmuPanel = player.controls.registerPlugin(DanmuPanel, panelOptions, DanmuPanel.pluginName);
       }
-      if (config.switchButton) {
+      if (!config.closeDefaultBtn) {
         var buttonOptions = {
           config: {
             onSwitch: function onSwitch(isOpen) {
@@ -143,7 +144,6 @@ var Danmu = function (_Plugin) {
         defaultOff: true, // TODO: 开启此项后弹幕不会初始化，默认初始化弹幕
         panel: false, // 是否安装配置面板
         panelConfig: {}, // 配置面板促使配置
-        switchButton: true, // 是否加载开关按钮
         switchConfig: {}, // 开关按钮配置信息
         defaultOpen: true // 是否默认开启弹幕
       };

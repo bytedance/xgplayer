@@ -2123,7 +2123,7 @@
             break;
           }
 
-          var dts = avcSample.dts - this.videoDtsBase;
+          var dts = Math.max(avcSample.dts - this.videoDtsBase, 0);
           if (firstDts === -1) {
             firstDts = dts;
           }
@@ -8601,10 +8601,13 @@
         }
 
         var bufferEnd = video.buffered.end(length - 1);
-        if (bufferEnd - time > preloadTime * 2) {
+        if (bufferEnd - time > preloadTime * 2 && !this._player.paused) {
           this._player.currentTime = bufferEnd - preloadTime;
         }
         this.mse.doAppend();
+        if (this._player.paused) {
+          this._handleTimeUpdate();
+        }
       }
     }, {
       key: '_handleTimeUpdate',
@@ -8733,16 +8736,6 @@
 
   var _typeof$4 = typeof Symbol === "function" && typeof Symbol.iterator === "symbol" ? function (obj) { return typeof obj; } : function (obj) { return obj && typeof Symbol === "function" && obj.constructor === Symbol && obj !== Symbol.prototype ? "symbol" : typeof obj; };
 
-  var _createClass$z = function () {
-    function defineProperties(target, props) {
-      for (var i = 0; i < props.length; i++) {
-        var descriptor = props[i];descriptor.enumerable = descriptor.enumerable || false;descriptor.configurable = true;if ("value" in descriptor) descriptor.writable = true;Object.defineProperty(target, descriptor.key, descriptor);
-      }
-    }return function (Constructor, protoProps, staticProps) {
-      if (protoProps) defineProperties(Constructor.prototype, protoProps);if (staticProps) defineProperties(Constructor, staticProps);return Constructor;
-    };
-  }();
-
   var _get$2 = function get(object, property, receiver) {
     if (object === null) object = Function.prototype;var desc = Object.getOwnPropertyDescriptor(object, property);if (desc === undefined) {
       var parent = Object.getPrototypeOf(object);if (parent === null) {
@@ -8758,6 +8751,16 @@
       }return getter.call(receiver);
     }
   };
+
+  var _createClass$z = function () {
+    function defineProperties(target, props) {
+      for (var i = 0; i < props.length; i++) {
+        var descriptor = props[i];descriptor.enumerable = descriptor.enumerable || false;descriptor.configurable = true;if ("value" in descriptor) descriptor.writable = true;Object.defineProperty(target, descriptor.key, descriptor);
+      }
+    }return function (Constructor, protoProps, staticProps) {
+      if (protoProps) defineProperties(Constructor.prototype, protoProps);if (staticProps) defineProperties(Constructor, staticProps);return Constructor;
+    };
+  }();
 
   function _classCallCheck$z(instance, Constructor) {
     if (!(instance instanceof Constructor)) {
@@ -8776,10 +8779,20 @@
       throw new TypeError("Super expression must either be null or a function, not " + (typeof superClass === "undefined" ? "undefined" : _typeof$4(superClass)));
     }subClass.prototype = Object.create(superClass && superClass.prototype, { constructor: { value: subClass, enumerable: false, writable: true, configurable: true } });if (superClass) Object.setPrototypeOf ? Object.setPrototypeOf(subClass, superClass) : subClass.__proto__ = superClass;
   }
-  var flvAllowedEvents = EVENTS.FlvAllowedEvents;
 
-  var FlvPlayer = function (_Player) {
-    _inherits$3(FlvPlayer, _Player);
+  var flvAllowedEvents = EVENTS.FlvAllowedEvents;
+  var BasePlugin = Player.BasePlugin,
+      Events = Player.Events;
+
+  var FlvPlayer = function (_BasePlugin) {
+    _inherits$3(FlvPlayer, _BasePlugin);
+
+    _createClass$z(FlvPlayer, null, [{
+      key: 'pluginName',
+      get: function get() {
+        return 'flvLive';
+      }
+    }]);
 
     function FlvPlayer(config) {
       _classCallCheck$z(this, FlvPlayer);
@@ -8787,47 +8800,56 @@
       var _this = _possibleConstructorReturn$3(this, (FlvPlayer.__proto__ || Object.getPrototypeOf(FlvPlayer)).call(this, config));
 
       _this.context = new Context(flvAllowedEvents);
-      _this.initEvents();
       _this.loaderCompleteTimer = null;
-      _this.started = false;
-      // const preloadTime = player.config.preloadTime || 15
+      _this.play = _this.play.bind(_this);
+      _this.pause = _this.pause.bind(_this);
+      _this.destroy = _this.destroy.bind(_this);
+      _this.switchURL = _this.switchURL.bind(_this);
+
+      _this.played = false;
+      _this.initEvents();
       return _this;
     }
 
     _createClass$z(FlvPlayer, [{
-      key: 'start',
-      value: function start() {
-        if (this.started) {
-          return;
-        }
+      key: 'beforePlayerInit',
+      value: function beforePlayerInit() {
+        var _this2 = this;
+
         this.initFlv();
         this.context.init();
-        _get$2(FlvPlayer.prototype.__proto__ || Object.getPrototypeOf(FlvPlayer.prototype), 'start', this).call(this, this.flv.mse.url);
         this.loadData();
-        this.started = true;
+        this.player.swithURL = this.swithURL;
+        try {
+          BasePlugin.defineGetterOrSetter(this.player, {
+            '__url': {
+              get: function get() {
+                return _this2.mse.url;
+              }
+            }
+          });
+        } catch (e) {
+          // NOOP
+        }
       }
     }, {
       key: 'initFlvEvents',
       value: function initFlvEvents(flv) {
-        var _this2 = this;
+        var _this3 = this;
 
-        var player = this;
+        var player = this.player;
         flv.once(EVENTS.REMUX_EVENTS.INIT_SEGMENT, function () {
-          Player.util.addClass(player.root, 'xgplayer-is-live');
-          if (!Player.util.findDom(_this2.root, 'xg-live')) {
-            var live = Player.util.createDom('xg-live', '正在直播', {}, 'xgplayer-live');
-            player.controls.appendChild(live);
-          }
+          BasePlugin.Util.addClass(player.root, 'xgplayer-is-live');
         });
 
         flv.once(EVENTS.LOADER_EVENTS.LOADER_COMPLETE, function () {
           // 直播完成，待播放器播完缓存后发送关闭事件
           if (!player.paused) {
-            _this2.loaderCompleteTimer = setInterval(function () {
+            _this3.loaderCompleteTimer = setInterval(function () {
               var end = player.getBufferedRange()[1];
               if (Math.abs(player.currentTime - end) < 0.5) {
                 player.emit('ended');
-                window.clearInterval(_this2.loaderCompleteTimer);
+                window.clearInterval(_this3.loaderCompleteTimer);
               }
             }, 200);
           } else {
@@ -8838,32 +8860,32 @@
     }, {
       key: 'initFlvBackupEvents',
       value: function initFlvBackupEvents(flv, ctx) {
-        var _this3 = this;
+        var _this4 = this;
 
         var mediaLength = 3;
         flv.on(EVENTS.REMUX_EVENTS.MEDIA_SEGMENT, function () {
           mediaLength -= 1;
           if (mediaLength === 0) {
             // ensure switch smoothly
-            _this3.flv = flv;
-            _this3.mse.resetContext(ctx);
-            _this3.context.destroy();
-            _this3.context = ctx;
+            _this4.flv = flv;
+            _this4.mse.resetContext(ctx);
+            _this4.context.destroy();
+            _this4.context = ctx;
           }
         });
 
         flv.once(EVENTS.LOADER_EVENTS.LOADER_COMPLETE, function () {
           // 直播完成，待播放器播完缓存后发送关闭事件
-          if (!_this3.paused) {
-            _this3.loaderCompleteTimer = setInterval(function () {
-              var end = _this3.getBufferedRange()[1];
-              if (Math.abs(_this3.currentTime - end) < 0.5) {
-                _this3.emit('ended');
-                window.clearInterval(_this3.loaderCompleteTimer);
+          if (!_this4.paused) {
+            _this4.loaderCompleteTimer = setInterval(function () {
+              var end = _this4.getBufferedRange()[1];
+              if (Math.abs(_this4.player.currentTime - end) < 0.5) {
+                _this4.emit('ended');
+                window.clearInterval(_this4.loaderCompleteTimer);
               }
             }, 200);
           } else {
-            _this3.emit('ended');
+            _this4.emit('ended');
           }
         });
 
@@ -8874,21 +8896,27 @@
     }, {
       key: 'initEvents',
       value: function initEvents() {
-        var _this4 = this;
+        var _this5 = this;
 
         this.on('seeking', function () {
-          var time = _this4.currentTime;
-          var range = _this4.getBufferedRange();
+          var time = _this5.player.currentTime;
+          var range = _this5.player.getBufferedRange();
           if (time > range[1] || time < range[0]) {
-            _this4.flv.seek(_this4.currentTime);
+            _this5.flv.seek(_this5.player.currentTime);
           }
         });
+
+        this.on(Events.PLAY, this.play);
+        this.on(Events.PAUSE, this.pause);
+        this.on(Events.DESTROY, this.destroy);
+        this.on(Events.URL_CHANGE, this.switchURL);
       }
     }, {
       key: 'initFlv',
       value: function initFlv() {
-        var flv = this.context.registry('FLV_CONTROLLER', FlvController)(this);
+        var flv = this.context.registry('FLV_CONTROLLER', FlvController)(this.player);
         this.initFlvEvents(flv);
+        this.player.flv = flv;
         this.flv = flv;
         this.mse = flv.mse;
         return flv;
@@ -8896,22 +8924,25 @@
     }, {
       key: 'play',
       value: function play() {
-        var _this5 = this;
+        var _this6 = this;
 
-        if (this._hasStart) {
+        if (this.played && this.player.played.length) {
+          this.played = false;
           return this._destroy().then(function () {
-            _this5.context = new Context(flvAllowedEvents);
-            _this5.start();
-            return _get$2(FlvPlayer.prototype.__proto__ || Object.getPrototypeOf(FlvPlayer.prototype), 'play', _this5).call(_this5);
+            _this6.context = new Context(flvAllowedEvents);
+            _this6.player.hasStart = false;
+            _this6.player.start();
+            _this6.player.onWaiting();
+            _this6.player.once('canplay', function () {
+              _this6.player.play();
+            });
           });
-        } else {
-          return _get$2(FlvPlayer.prototype.__proto__ || Object.getPrototypeOf(FlvPlayer.prototype), 'play', this).call(this);
         }
+        this.played = true;
       }
     }, {
       key: 'pause',
       value: function pause() {
-        _get$2(FlvPlayer.prototype.__proto__ || Object.getPrototypeOf(FlvPlayer.prototype), 'pause', this).call(this);
         if (this.flv) {
           this.flv.pause();
         }
@@ -8919,20 +8950,17 @@
     }, {
       key: 'loadData',
       value: function loadData() {
-        var time = arguments.length > 0 && arguments[0] !== undefined ? arguments[0] : this.currentTime;
+        var time = arguments.length > 0 && arguments[0] !== undefined ? arguments[0] : this.player.currentTime;
 
-        if (this.flv) {
-          this.flv.seek(time);
+        if (this.player.flv) {
+          this.player.flv.seek(time);
         }
       }
     }, {
       key: 'destroy',
       value: function destroy() {
-        var _this6 = this;
-
-        this._destroy().then(function () {
-          _get$2(FlvPlayer.prototype.__proto__ || Object.getPrototypeOf(FlvPlayer.prototype), 'destroy', _this6).call(_this6);
-        });
+        _get$2(FlvPlayer.prototype.__proto__ || Object.getPrototypeOf(FlvPlayer.prototype), '_destroy', this).call(this);
+        return this._destroy();
       }
     }, {
       key: '_destroy',
@@ -8952,18 +8980,10 @@
       key: 'switchURL',
       value: function switchURL(url) {
         var context = new Context(flvAllowedEvents);
-        var flv = context.registry('FLV_CONTROLLER', FlvController)(this, this.mse);
+        var flv = context.registry('FLV_CONTROLLER', FlvController)(this.player, this.mse);
         context.init();
         this.initFlvBackupEvents(flv, context);
         flv.loadData(url);
-      }
-    }, {
-      key: 'src',
-      get: function get() {
-        return this.currentSrc;
-      },
-      set: function set(url) {
-        this.switchURL(url);
       }
     }], [{
       key: 'isSupported',
@@ -8973,7 +8993,7 @@
     }]);
 
     return FlvPlayer;
-  }(Player);
+  }(BasePlugin);
 
   var _createClass$A = function () {
     function defineProperties(target, props) {
@@ -9617,7 +9637,7 @@
       value: function _onError(type, mod, err, fatal) {
         var error = {
           errorType: type,
-          errorDetails: '[' + mod + ']: ' + err.message,
+          errorDetails: '[' + mod + ']: ' + (err ? err.message : ''),
           errorFatal: fatal || false
         };
         this._player.emit(FLV_ERROR$1, error);
@@ -9820,22 +9840,6 @@
     };
   }();
 
-  var _get$4 = function get(object, property, receiver) {
-    if (object === null) object = Function.prototype;var desc = Object.getOwnPropertyDescriptor(object, property);if (desc === undefined) {
-      var parent = Object.getPrototypeOf(object);if (parent === null) {
-        return undefined;
-      } else {
-        return get(parent, property, receiver);
-      }
-    } else if ("value" in desc) {
-      return desc.value;
-    } else {
-      var getter = desc.get;if (getter === undefined) {
-        return undefined;
-      }return getter.call(receiver);
-    }
-  };
-
   function _classCallCheck$D(instance, Constructor) {
     if (!(instance instanceof Constructor)) {
       throw new TypeError("Cannot call a class as a function");
@@ -9853,6 +9857,8 @@
       throw new TypeError("Super expression must either be null or a function, not " + (typeof superClass === "undefined" ? "undefined" : _typeof$6(superClass)));
     }subClass.prototype = Object.create(superClass && superClass.prototype, { constructor: { value: subClass, enumerable: false, writable: true, configurable: true } });if (superClass) Object.setPrototypeOf ? Object.setPrototypeOf(subClass, superClass) : subClass.__proto__ = superClass;
   }
+  var BasePlugin$1 = Player.BasePlugin,
+      Events$1 = Player.Events;
 
   var flvAllowedEvents$1 = EVENTS.FlvAllowedEvents;
 
@@ -9868,39 +9874,48 @@
     }
   };
 
-  var FlvVodPlayer = function (_Player) {
-    _inherits$5(FlvVodPlayer, _Player);
+  var FlvVodPlayer = function (_BasePlugin) {
+    _inherits$5(FlvVodPlayer, _BasePlugin);
 
-    function FlvVodPlayer(config) {
+    function FlvVodPlayer() {
       _classCallCheck$D(this, FlvVodPlayer);
 
-      var _this = _possibleConstructorReturn$5(this, (FlvVodPlayer.__proto__ || Object.getPrototypeOf(FlvVodPlayer)).call(this, config));
-
-      _this.context = new Context$2(flvAllowedEvents$1);
-      _this.initEvents();
-      // const preloadTime = player.config.preloadTime || 15
-      _this.started = false;
-      return _this;
+      return _possibleConstructorReturn$5(this, (FlvVodPlayer.__proto__ || Object.getPrototypeOf(FlvVodPlayer)).apply(this, arguments));
     }
 
     _createClass$D(FlvVodPlayer, [{
-      key: 'start',
-      value: function start() {
-        if (this.started) {
-          return;
-        }
-        this.started = true;
-        var flv = this.initFlv();
+      key: 'beforePlayerInit',
+      value: function beforePlayerInit() {
+        var _this2 = this;
 
+        this.context = new Context$2(flvAllowedEvents$1);
+
+        this.initEvents();
+        var flv = this.initFlv();
+        this.context.init();
+        var remuxer = this.remuxer;
+        remuxer._dtsBase = 0;
         flv.loadMeta();
-        _get$4(FlvVodPlayer.prototype.__proto__ || Object.getPrototypeOf(FlvVodPlayer.prototype), 'start', this).call(this, flv.mse.url);
-        this.started = true;
+        this.player.swithURL = this.swithURL;
+        try {
+          BasePlugin$1.defineGetterOrSetter(this.player, {
+            '__url': {
+              get: function get() {
+                return _this2.flv.mse.url;
+              }
+            }
+          });
+        } catch (e) {
+          // NOOP
+        }
       }
     }, {
       key: 'initFlv',
       value: function initFlv() {
-        var flv = this.context.registry('FLV_CONTROLLER', FlvController$1)(this);
-        this.context.init();
+        var player = this.player;
+
+        var flv = this.context.registry('FLV_CONTROLLER', FlvController$1)(player);
+
         this.flv = flv;
         this.mse = flv.mse;
         return flv;
@@ -9908,7 +9923,7 @@
     }, {
       key: 'initFlvBackupEvents',
       value: function initFlvBackupEvents(flv, ctx) {
-        var _this2 = this;
+        var _this3 = this;
 
         flv.once(EVENTS.REMUX_EVENTS.INIT_SEGMENT, function () {
           var mediaLength = 3;
@@ -9916,10 +9931,10 @@
             mediaLength -= 1;
             if (mediaLength === 0) {
               // ensure switch smoothly
-              _this2.flv = flv;
-              _this2.mse.resetContext(ctx);
-              _this2.context.destroy();
-              _this2.context = ctx;
+              _this3.flv = flv;
+              _this3.mse.resetContext(ctx);
+              _this3.context.destroy();
+              _this3.context = ctx;
             }
           });
         });
@@ -9931,25 +9946,26 @@
     }, {
       key: 'initEvents',
       value: function initEvents() {
-        this.on('timeupdate', this.handleTimeUpdate.bind(this));
+        this.on(Events$1.TIME_UPDATE, this.handleTimeUpdate.bind(this));
 
-        this.on('seeking', this.handleSeek.bind(this));
+        this.on(Events$1.SEEKING, this.handleSeek.bind(this));
+        this.on(Events$1.URL_CHANGE, this.swithURL.bind(this));
 
-        this.once('destroy', this._destroy.bind(this));
+        this.once(Events$1.DESTROY, this._destroy.bind(this));
       }
     }, {
       key: 'handleTimeUpdate',
       value: function handleTimeUpdate() {
         this.loadData();
-        isEnded(this, this.flv);
+        isEnded(this.player, this.flv);
       }
     }, {
       key: 'handleSeek',
       value: function handleSeek() {
-        var time = this.currentTime;
-        var range = this.getBufferedRange();
+        var time = this.player.currentTime;
+        var range = this.player.getBufferedRange();
         if (time > range[1] || time < range[0]) {
-          this.flv.seek(this.currentTime);
+          this.flv.seek(time);
         }
       }
     }, {
@@ -9957,52 +9973,59 @@
       value: function _destroy() {
         this.context.destroy();
         this.context = null;
-        this.flv = null;
       }
     }, {
       key: 'loadData',
       value: function loadData() {
-        var time = arguments.length > 0 && arguments[0] !== undefined ? arguments[0] : this.currentTime;
+        var time = arguments.length > 0 && arguments[0] !== undefined ? arguments[0] : this.player.currentTime;
+        var player = this.player;
 
-        var range = this.getBufferedRange();
-        if (range[1] - time < (this.config.preloadTime || 15) - 5) {
+        var range = player.getBufferedRange();
+        if (range[1] - time < (player.config.preloadTime || 15) - 5) {
           this.flv.loadNext(range[1] + 1);
         }
       }
     }, {
       key: 'swithURL',
       value: function swithURL(url) {
-        this.config.url = url;
-        var context = new Context$2(flvAllowedEvents$1);
-        var flv = context.registry('FLV_CONTROLLER', FlvController$1)(this, this.mse);
-        context.init();
-        var remuxer = context.getInstance('MP4_REMUXER');
-        remuxer._dtsBase = 0;
-        this.initFlvBackupEvents(flv, context);
-        flv.loadMeta();
+        var player = this.player;
+
+        player.config.url = url;
+        player.hasStart = false;
+        if (!player.paused) {
+          player.pause();
+          player.once('pause', function () {
+            player.start();
+          });
+          player.once('canplay', function () {
+            player.play();
+          });
+        } else {
+          player.start();
+        }
+        player.once('canplay', function () {
+          player.currentTime = 0;
+        });
       }
     }, {
       key: 'remuxer',
       get: function get() {
         return this.context.getInstance('MP4_REMUXER');
       }
-    }, {
-      key: 'src',
-      get: function get() {
-        return this.currentSrc;
-      },
-      set: function set(url) {
-        return this.swithURL(url);
-      }
     }], [{
       key: 'isSupported',
       value: function isSupported() {
         return window.MediaSource && window.MediaSource.isTypeSupported('video/mp4; codecs="avc1.42E01E,mp4a.40.2"');
       }
+    }, {
+      key: 'pluginName',
+      get: function get() {
+        return 'flvVod';
+      }
     }]);
 
     return FlvVodPlayer;
-  }(Player);
+  }(BasePlugin$1);
 
   var _createClass$E = function () { function defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ("value" in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } } return function (Constructor, protoProps, staticProps) { if (protoProps) defineProperties(Constructor.prototype, protoProps); if (staticProps) defineProperties(Constructor, staticProps); return Constructor; }; }();
 

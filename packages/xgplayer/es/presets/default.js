@@ -1,5 +1,7 @@
 function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } }
 
+import sniffer from '../utils/sniffer';
+// import Danmu from '../plugins/danmu'
 import Replay from '../plugins/replay';
 import Poster from '../plugins/poster';
 import Start from '../plugins/start';
@@ -9,8 +11,6 @@ import PC from '../plugins/pc';
 import Mobile from '../plugins/mobile';
 import Keyboard from '../plugins/keyboard';
 import Loading from '../plugins/loading';
-import sniffer from '../utils/sniffer';
-// import Danmu from '../plugins/danmu'
 import Progress from '../plugins/progress';
 import PlayIcon from '../plugins/play';
 import FullScreen from '../plugins/fullscreen';
@@ -30,21 +30,21 @@ var DefaultPreset = function DefaultPreset() {
 
   _classCallCheck(this, DefaultPreset);
 
-  var contolsIcons = [Progress, PlayIcon, FullScreen, TimeIcon, Volume, RotateIcon, PlayNextIcon, DefinitionIcon, PlaybackRateIcon, CssFullScreen, DownLoadIcon, ScreenShotIcon];
+  var contolsIcons = [Progress, PlayIcon, FullScreen, TimeIcon, RotateIcon, PlayNextIcon, DefinitionIcon, PlaybackRateIcon, DownLoadIcon, ScreenShotIcon];
 
   var barIcons = [{
     plugin: PIPIcon,
     options: {
       index: 0,
-      position: PIPIcon.POSITIONS.ROOT_RIGHT
+      position: PIPIcon.POSITIONS.ROOT_TOP
     } }];
 
-  var layers = [Replay, Poster, Start, Loading, Enter, Miniscreen];
+  var layers = [Replay, Poster, Start, Loading, Enter];
 
-  this.plugins = [].concat(contolsIcons, layers, barIcons);
+  this.plugins = [].concat(contolsIcons, layers);
   switch (sniffer.device) {
     case 'pc':
-      (_plugins = this.plugins).push.apply(_plugins, [Keyboard, PC]);
+      (_plugins = this.plugins).push.apply(_plugins, [Keyboard, PC, CssFullScreen, Volume].concat(barIcons, [Miniscreen]));
       break;
     case 'mobile':
       this.plugins.push(Mobile);

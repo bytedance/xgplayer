@@ -1,6 +1,6 @@
 {
   "name": "xgplayer-raw264",
-  "version": "2.2.0-alpha.72",
+  "version": "3.0.0-alpha.0",
   "description": "",
   "main": "lib/index.js",
   "module": "es/index.js",
@@ -30,12 +30,12 @@
     ]
   },
   "dependencies": {
-    "xgplayer-transmuxer-buffer-xgbuffer": "^2.2.0-alpha.72",
-    "xgplayer-transmuxer-demux-flv": "^2.2.0-alpha.72",
-    "xgplayer-transmuxer-codec-avc": "^2.2.0-alpha.72",
-    "xgplayer-transmuxer-constant-events": "^2.2.0-alpha.72",
-    "xgplayer-transmuxer-context": "^2.2.0-alpha.72",
-    "xgplayer-mobilevideo": "^2.2.0-alpha.72"
+    "xgplayer-transmuxer-buffer-xgbuffer": "^3.0.0-alpha.0",
+    "xgplayer-transmuxer-demux-flv": "^3.0.0-alpha.0",
+    "xgplayer-transmuxer-codec-avc": "^3.0.0-alpha.0",
+    "xgplayer-transmuxer-constant-events": "^3.0.0-alpha.0",
+    "xgplayer-transmuxer-context": "^3.0.0-alpha.0",
+    "xgplayer-mobilevideo": "^3.0.0-alpha.0"
   },
   "devDependencies": {
     "cross-env": "^6.0.3"

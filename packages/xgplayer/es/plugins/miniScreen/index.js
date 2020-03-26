@@ -80,15 +80,12 @@ var MiniScreen = function (_Plugin) {
       bindFunKeys.map(function (key) {
         _this2[key] = _this2[key].bind(_this2);
       });
+      this.initIcons();
       this.on(Events.PAUSE, function () {
-        var btn = _this2.find('.play-icon');
-        Util.addClass(btn, 'pause');
-        Util.removeClass(btn, 'play');
+        _this2.setAttr('data-state', 'pause');
       });
       this.on(Events.PLAY, function () {
-        var btn = _this2.find('.play-icon');
-        Util.addClass(btn, 'play');
-        Util.removeClass(btn, 'pause');
+        _this2.setAttr('data-state', 'play');
       });
     }
   }, {
@@ -122,6 +119,22 @@ var MiniScreen = function (_Plugin) {
       }
     }
   }, {
+    key: 'registerIcons',
+    value: function registerIcons() {
+      return {
+        play: { icon: PlayIcon, class: 'xg-icon-play' },
+        pause: { icon: PauseIcon, class: 'xg-icon-pause' }
+      };
+    }
+  }, {
+    key: 'initIcons',
+    value: function initIcons() {
+      var icons = this.icons;
+
+      this.appendChild('.play-icon', icons.play);
+      this.appendChild('.play-icon', icons.pause);
+    }
+  }, {
     key: 'onCancelClick',
     value: function onCancelClick(e) {
       this.exitMini();
@@ -134,17 +147,12 @@ var MiniScreen = function (_Plugin) {
       player.paused ? player.play() : player.pause();
     }
   }, {
-    key: 'getCss',
-    value: function getCss(o, key) {
-      return o.currentStyle ? o.currentStyle[key] : document.defaultView.getComputedStyle(o, false)[key];
-    }
-  }, {
     key: 'onScroll',
     value: function onScroll(e) {
       if (!window.scrollY && window.scrollY !== 0 || Math.abs(window.scrollY - this.coordinate.scrollY) < 50) {
         return;
       }
-      var scrollHeight = parseInt(this.getCss(this.player.root, 'height'));
+      var scrollHeight = parseInt(Util.getCss(this.player.root, 'height'));
       scrollHeight += this.config.scrollTop;
       this.coordinate.scrollY = window.scrollY;
       if (window.scrollY > scrollHeight + 5 && !this.isMini) {
@@ -172,9 +180,10 @@ var MiniScreen = function (_Plugin) {
         return;
       }
       this.isMoveing = false;
+      this.clientWidth = window.innerWidth;
       var target = this.config.target || this.player.root;
-      this.pos.top = parseInt(this.getCss(target, 'top'));
-      this.pos.left = parseInt(this.getCss(target, 'left'));
+      this.pos.top = parseInt(Util.getCss(target, 'top'));
+      this.pos.left = parseInt(Util.getCss(target, 'left'));
       this.unbind('mousemove', this.onMousemove);
       this.unbind('mouseup', this.onMouseup);
     }
@@ -183,8 +192,8 @@ var MiniScreen = function (_Plugin) {
     value: function onMousemove(e, callback) {
       e = e || window.event;
       var target = this.config.target || this.player.root;
-      var maxTop = window.innerHeight - parseInt(this.getCss(target, 'height'));
-      var maxLeft = window.innerWidth - parseInt(this.getCss(target, 'width'));
+      var maxTop = window.innerHeight - parseInt(Util.getCss(target, 'height'));
+      var maxLeft = window.innerWidth - parseInt(Util.getCss(target, 'width'));
       if (this.isMoveing) {
         var nowX = e.clientX;
         var nowY = e.clientY;
@@ -279,7 +288,7 @@ var MiniScreen = function (_Plugin) {
       if (this.config.disable) {
         return;
       }
-      return '\n      <xg-mini-layer class="xg-mini-layer">\n      <div class="mask"></div>\n      <xg-mini-header class="xgplayer-mini-header">\n        <div>\u6309\u4F4F\u753B\u9762\u53EF\u79FB\u52A8\u5C0F\u7A97</div>\n      </xg-mini-header>\n      <div class="mini-cancel-btn">X</div>\n      <div class="play-icon play">\n        ' + PauseIcon + '\n        ' + PlayIcon + '\n      </div>\n      </xg-mini-layer>';
+      return '\n      <xg-mini-layer class="xg-mini-layer">\n      <div class="mask"></div>\n      <xg-mini-header class="xgplayer-mini-header">\n        <div>\u6309\u4F4F\u753B\u9762\u53EF\u79FB\u52A8\u5C0F\u7A97</div>\n      </xg-mini-header>\n      <div class="mini-cancel-btn">X</div>\n      <div class="play-icon">\n      </div>\n      </xg-mini-layer>';
     }
   }]);
 

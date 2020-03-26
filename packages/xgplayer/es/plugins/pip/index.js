@@ -32,15 +32,29 @@ var PIP = function (_Plugin) {
     value: function afterCreate() {
       var _this2 = this;
 
+      this.btnClick = function (e) {
+        _this2.switchPIP(e);
+      };
       // video初始化之后再做判断是否显示
       this.once(Events.COMPLETE, function () {
+        console.log(_this2.config.showIcon && _this2.isPIPAvailable());
         if (_this2.config.showIcon && _this2.isPIPAvailable()) {
           _this2.show();
-          _this2.switchPIP = _this2.switchPIP.bind(_this2);
-          _this2.bind('click', _this2.switchPIP);
+          _this2.bind('click', _this2.btnClick);
         }
         _this2.initPipEvents();
       });
+    }
+  }, {
+    key: 'registerLangauageTexts',
+    value: function registerLangauageTexts() {
+      return {
+        'pipicon': {
+          jp: 'picture-in-picture',
+          en: 'picture-in-picture',
+          zh: '画中画'
+        }
+      };
     }
   }, {
     key: 'initPipEvents',
@@ -72,17 +86,20 @@ var PIP = function (_Plugin) {
       var player = this.player,
           playerConfig = this.playerConfig;
 
-      if (this.isPIPAvailable()) {
+      if (!this.isPIPAvailable()) {
         return false;
       }
       try {
         if (document.pictureInPictureElement && document.pictureInPictureElement === player.video) {
           document.exitPictureInPicture();
         } else {
+          if (!player.video) {
+            return;
+          }
           if (playerConfig.poster) {
             player.video.poster = playerConfig.poster;
           }
-          player.video && player.video.requestPictureInPicture();
+          player.video.requestPictureInPicture();
         }
         return true;
       } catch (reason) {
@@ -98,29 +115,21 @@ var PIP = function (_Plugin) {
       return document.pictureInPictureEnabled || !(player.video && player.video.disablePictureInPicture);
     }
   }, {
-    key: 'registerLangauageTexts',
-    value: function registerLangauageTexts() {
-      return {
-        'pipicon': {
-          jp: 'picture-in-picture',
-          en: 'picture-in-picture',
-          zh: '画中画'
-        }
-      };
-    }
-  }, {
     key: 'destroy',
     value: function destroy() {
       var player = this.player;
 
       player.video.removeEventListener('enterpictureinpicture', this.enterPIPCallback);
       player.video.removeEventListener('leavepictureinpicture', this.leavePIPCallback);
-      this.unbind('click', this.switchPIP);
+      this.unbind('click', this.btnClick);
     }
   }, {
     key: 'render',
     value: function render() {
-      return '<xg-icon class="xgplayer-pip">\n      <div class="xgplayer-icon btn-definition">\n      ' + (this.icons.pipicon ? this.icons.pipicon : '<span>' + this.text.pipicon + '</span>') + '\n      </div>\n      ' + (this.icons.pipicon ? '<div class="xg-tips">' + this.text.pipicon + '</div>' : '') + '\n    </xg-icon>';
+      if (!this.config.showIcon && this.isPIPAvailable()) {
+        return;
+      }
+      return '<xg-icon class="xgplayer-pip">\n      <div class="xgplayer-icon btn-definition">\n      ' + ('<span>' + this.text.pipicon + '</span>') + '\n      </div>\n      ' + ('<div class="xg-tips">' + this.text.pipicon + '</div>') + '\n    </xg-icon>';
     }
   }, {
     key: 'isPip',

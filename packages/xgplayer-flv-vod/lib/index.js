@@ -6,8 +6,6 @@ Object.defineProperty(exports, "__esModule", {
 
 var _createClass = function () { function defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ("value" in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } } return function (Constructor, protoProps, staticProps) { if (protoProps) defineProperties(Constructor.prototype, protoProps); if (staticProps) defineProperties(Constructor, staticProps); return Constructor; }; }();
 
-var _get = function get(object, property, receiver) { if (object === null) object = Function.prototype; var desc = Object.getOwnPropertyDescriptor(object, property); if (desc === undefined) { var parent = Object.getPrototypeOf(object); if (parent === null) { return undefined; } else { return get(parent, property, receiver); } } else if ("value" in desc) { return desc.value; } else { var getter = desc.get; if (getter === undefined) { return undefined; } return getter.call(receiver); } };
-
 var _xgplayer = require('xgplayer');
 
 var _xgplayer2 = _interopRequireDefault(_xgplayer);
@@ -32,6 +30,10 @@ function _possibleConstructorReturn(self, call) { if (!self) { throw new Referen
 
 function _inherits(subClass, superClass) { if (typeof superClass !== "function" && superClass !== null) { throw new TypeError("Super expression must either be null or a function, not " + typeof superClass); } subClass.prototype = Object.create(superClass && superClass.prototype, { constructor: { value: subClass, enumerable: false, writable: true, configurable: true } }); if (superClass) Object.setPrototypeOf ? Object.setPrototypeOf(subClass, superClass) : subClass.__proto__ = superClass; }
 
+var BasePlugin = _xgplayer2.default.BasePlugin,
+    Events = _xgplayer2.default.Events;
+
+
 var flvAllowedEvents = _xgplayerTransmuxerConstantEvents2.default.FlvAllowedEvents;
 
 var isEnded = function isEnded(player, flv) {
@@ -46,39 +48,48 @@ var isEnded = function isEnded(player, flv) {
   }
 };
 
-var FlvVodPlayer = function (_Player) {
-  _inherits(FlvVodPlayer, _Player);
+var FlvVodPlayer = function (_BasePlugin) {
+  _inherits(FlvVodPlayer, _BasePlugin);
 
-  function FlvVodPlayer(config) {
+  function FlvVodPlayer() {
     _classCallCheck(this, FlvVodPlayer);
 
-    var _this = _possibleConstructorReturn(this, (FlvVodPlayer.__proto__ || Object.getPrototypeOf(FlvVodPlayer)).call(this, config));
-
-    _this.context = new _xgplayerTransmuxerContext2.default(flvAllowedEvents);
-    _this.initEvents();
-    // const preloadTime = player.config.preloadTime || 15
-    _this.started = false;
-    return _this;
+    return _possibleConstructorReturn(this, (FlvVodPlayer.__proto__ || Object.getPrototypeOf(FlvVodPlayer)).apply(this, arguments));
   }
 
   _createClass(FlvVodPlayer, [{
-    key: 'start',
-    value: function start() {
-      if (this.started) {
-        return;
-      }
-      this.started = true;
-      var flv = this.initFlv();
+    key: 'beforePlayerInit',
+    value: function beforePlayerInit() {
+      var _this2 = this;
 
+      this.context = new _xgplayerTransmuxerContext2.default(flvAllowedEvents);
+
+      this.initEvents();
+      var flv = this.initFlv();
+      this.context.init();
+      var remuxer = this.remuxer;
+      remuxer._dtsBase = 0;
       flv.loadMeta();
-      _get(FlvVodPlayer.prototype.__proto__ || Object.getPrototypeOf(FlvVodPlayer.prototype), 'start', this).call(this, flv.mse.url);
-      this.started = true;
+      this.player.swithURL = this.swithURL;
+      try {
+        BasePlugin.defineGetterOrSetter(this.player, {
+          '__url': {
+            get: function get() {
+              return _this2.flv.mse.url;
+            }
+          }
+        });
+      } catch (e) {
+        // NOOP
+      }
     }
   }, {
     key: 'initFlv',
     value: function initFlv() {
-      var flv = this.context.registry('FLV_CONTROLLER', _flvVod2.default)(this);
-      this.context.init();
+      var player = this.player;
+
+      var flv = this.context.registry('FLV_CONTROLLER', _flvVod2.default)(player);
+
       this.flv = flv;
       this.mse = flv.mse;
       return flv;
@@ -86,7 +97,7 @@ var FlvVodPlayer = function (_Player) {
   }, {
     key: 'initFlvBackupEvents',
     value: function initFlvBackupEvents(flv, ctx) {
-      var _this2 = this;
+      var _this3 = this;
 
       flv.once(_xgplayerTransmuxerConstantEvents2.default.REMUX_EVENTS.INIT_SEGMENT, function () {
         var mediaLength = 3;
@@ -94,10 +105,10 @@ var FlvVodPlayer = function (_Player) {
           mediaLength -= 1;
           if (mediaLength === 0) {
             // ensure switch smoothly
-            _this2.flv = flv;
-            _this2.mse.resetContext(ctx);
-            _this2.context.destroy();
-            _this2.context = ctx;
+            _this3.flv = flv;
+            _this3.mse.resetContext(ctx);
+            _this3.context.destroy();
+            _this3.context = ctx;
           }
         });
       });
@@ -109,25 +120,26 @@ var FlvVodPlayer = function (_Player) {
   }, {
     key: 'initEvents',
     value: function initEvents() {
-      this.on('timeupdate', this.handleTimeUpdate.bind(this));
+      this.on(Events.TIME_UPDATE, this.handleTimeUpdate.bind(this));
 
-      this.on('seeking', this.handleSeek.bind(this));
+      this.on(Events.SEEKING, this.handleSeek.bind(this));
+      this.on(Events.URL_CHANGE, this.swithURL.bind(this));
 
-      this.once('destroy', this._destroy.bind(this));
+      this.once(Events.DESTROY, this._destroy.bind(this));
     }
   }, {
     key: 'handleTimeUpdate',
     value: function handleTimeUpdate() {
       this.loadData();
-      isEnded(this, this.flv);
+      isEnded(this.player, this.flv);
     }
   }, {
     key: 'handleSeek',
     value: function handleSeek() {
-      var time = this.currentTime;
-      var range = this.getBufferedRange();
+      var time = this.player.currentTime;
+      var range = this.player.getBufferedRange();
       if (time > range[1] || time < range[0]) {
-        this.flv.seek(this.currentTime);
+        this.flv.seek(time);
       }
     }
   }, {
@@ -135,51 +147,58 @@ var FlvVodPlayer = function (_Player) {
     value: function _destroy() {
       this.context.destroy();
       this.context = null;
-      this.flv = null;
     }
   }, {
     key: 'loadData',
     value: function loadData() {
-      var time = arguments.length > 0 && arguments[0] !== undefined ? arguments[0] : this.currentTime;
+      var time = arguments.length > 0 && arguments[0] !== undefined ? arguments[0] : this.player.currentTime;
+      var player = this.player;
 
-      var range = this.getBufferedRange();
-      if (range[1] - time < (this.config.preloadTime || 15) - 5) {
+      var range = player.getBufferedRange();
+      if (range[1] - time < (player.config.preloadTime || 15) - 5) {
         this.flv.loadNext(range[1] + 1);
       }
     }
   }, {
     key: 'swithURL',
     value: function swithURL(url) {
-      this.config.url = url;
-      var context = new _xgplayerTransmuxerContext2.default(flvAllowedEvents);
-      var flv = context.registry('FLV_CONTROLLER', _flvVod2.default)(this, this.mse);
-      context.init();
-      var remuxer = context.getInstance('MP4_REMUXER');
-      remuxer._dtsBase = 0;
-      this.initFlvBackupEvents(flv, context);
-      flv.loadMeta();
+      var player = this.player;
+
+      player.config.url = url;
+      player.hasStart = false;
+      if (!player.paused) {
+        player.pause();
+        player.once('pause', function () {
+          player.start();
+        });
+        player.once('canplay', function () {
+          player.play();
+        });
+      } else {
+        player.start();
+      }
+      player.once('canplay', function () {
+        player.currentTime = 0;
+      });
     }
   }, {
     key: 'remuxer',
     get: function get() {
       return this.context.getInstance('MP4_REMUXER');
     }
-  }, {
-    key: 'src',
-    get: function get() {
-      return this.currentSrc;
-    },
-    set: function set(url) {
-      return this.swithURL(url);
-    }
   }], [{
     key: 'isSupported',
     value: function isSupported() {
       return window.MediaSource && window.MediaSource.isTypeSupported('video/mp4; codecs="avc1.42E01E,mp4a.40.2"');
     }
+  }, {
+    key: 'pluginName',
+    get: function get() {
+      return 'flvVod';
+    }
   }]);
 
   return FlvVodPlayer;
-}(_xgplayer2.default);
+}(BasePlugin);
 
 exports.default = FlvVodPlayer;

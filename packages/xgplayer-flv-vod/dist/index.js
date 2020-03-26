@@ -5937,7 +5937,7 @@
             break;
           }
 
-          var dts = avcSample.dts - this.videoDtsBase;
+          var dts = Math.max(avcSample.dts - this.videoDtsBase, 0);
           if (firstDts === -1) {
             firstDts = dts;
           }

@@ -109,7 +109,7 @@ var Proxy = function () {
           }
 
           if (name === 'timeupdate') {
-            _this2._currentTime = _this2.video.currentTime;
+            _this2._currentTime = _this2.video && _this2.video.currentTime;
           }
 
           if (name === 'durationchange') {

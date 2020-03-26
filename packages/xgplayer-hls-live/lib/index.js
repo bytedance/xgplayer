@@ -4,9 +4,9 @@ Object.defineProperty(exports, "__esModule", {
   value: true
 });
 
-var _createClass = function () { function defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ("value" in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } } return function (Constructor, protoProps, staticProps) { if (protoProps) defineProperties(Constructor.prototype, protoProps); if (staticProps) defineProperties(Constructor, staticProps); return Constructor; }; }();
-
 var _get = function get(object, property, receiver) { if (object === null) object = Function.prototype; var desc = Object.getOwnPropertyDescriptor(object, property); if (desc === undefined) { var parent = Object.getPrototypeOf(object); if (parent === null) { return undefined; } else { return get(parent, property, receiver); } } else if ("value" in desc) { return desc.value; } else { var getter = desc.get; if (getter === undefined) { return undefined; } return getter.call(receiver); } };
+
+var _createClass = function () { function defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ("value" in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } } return function (Constructor, protoProps, staticProps) { if (protoProps) defineProperties(Constructor.prototype, protoProps); if (staticProps) defineProperties(Constructor, staticProps); return Constructor; }; }();
 
 var _xgplayer = require('xgplayer');
 
@@ -35,88 +35,131 @@ function _inherits(subClass, superClass) { if (typeof superClass !== "function" 
 var HlsAllowedEvents = _xgplayerTransmuxerConstantEvents2.default.HlsAllowedEvents;
 var REMUX_EVENTS = _xgplayerTransmuxerConstantEvents2.default.REMUX_EVENTS;
 
-var HlsLivePlayer = function (_Player) {
-  _inherits(HlsLivePlayer, _Player);
+var BasePlugin = _xgplayer2.default.BasePlugin,
+    Events = _xgplayer2.default.Events;
+
+var HlsLivePlayer = function (_BasePlugin) {
+  _inherits(HlsLivePlayer, _BasePlugin);
+
+  _createClass(HlsLivePlayer, null, [{
+    key: 'pluginName',
+    get: function get() {
+      return 'hlsLive';
+    }
+  }]);
 
   function HlsLivePlayer(options) {
     _classCallCheck(this, HlsLivePlayer);
 
     var _this = _possibleConstructorReturn(this, (HlsLivePlayer.__proto__ || Object.getPrototypeOf(HlsLivePlayer)).call(this, options));
 
-    _this.hlsOps = {};
-    _this.util = _xgplayer2.default.util;
-    _this.util.deepCopy(_this.hlsOps, options);
+    _this.played = false;
+    _this.handleUrlChange = _this.handleUrlChange.bind(_this);
+    _this.destroy = _this.destroy.bind(_this);
+    _this.play = _this.play.bind(_this);
     _this._context = new _xgplayerTransmuxerContext2.default(HlsAllowedEvents);
-    _this.started = false;
     return _this;
   }
 
   _createClass(HlsLivePlayer, [{
-    key: '_initEvents',
-    value: function _initEvents() {
+    key: 'beforePlayerInit',
+    value: function beforePlayerInit() {
       var _this2 = this;
 
-      this.__core__.once(REMUX_EVENTS.INIT_SEGMENT, function () {
-        var mse = _this2._context.getInstance('MSE');
-        if (!_this2.started) {
-          var live = _this2.util.createDom('xg-live', '正在直播', {}, 'xgplayer-live');
-          _this2.util.addClass(_this2.root, 'xgplayer-is-live');
-          _this2.controls.appendChild(live);
-        }
-        _this2.started = true;
-        _get(HlsLivePlayer.prototype.__proto__ || Object.getPrototypeOf(HlsLivePlayer.prototype), 'start', _this2).call(_this2, mse.url);
-      });
+      var url = this.player.config.url;
 
-      this.once('canplay', function () {
-        _this2.video.play();
-      });
+      this.hls = this._context.registry('HLS_LIVE_CONTROLLER', _hlsLive2.default)({ player: this.player, preloadTime: this.player.config.preloadTime });
+      this._context.init();
+      this.hls.load(url);
+      this._initEvents();
+      try {
+        BasePlugin.defineGetterOrSetter(this.player, {
+          '__url': {
+            get: function get() {
+              return _this2.hls.mse.url;
+            }
+          }
+        });
+      } catch (e) {
+        // NOOP
+      }
     }
   }, {
-    key: 'start',
-    value: function start() {
-      var url = arguments.length > 0 && arguments[0] !== undefined ? arguments[0] : this.config.url;
+    key: '_initEvents',
+    value: function _initEvents() {
+      var _this3 = this;
 
-      if (!url || this.started) {
-        return;
-      }
-      this.__core__ = this._context.registry('HLS_LIVE_CONTROLLER', _hlsLive2.default)({ player: this, container: this.video, preloadTime: this.config.preloadTime });
-      this._context.init();
-      this.url = url;
-      this.__core__.load(url);
-      this._initEvents();
+      this.hls.once(REMUX_EVENTS.INIT_SEGMENT, function () {
+        BasePlugin.Util.addClass(_this3.root, 'xgplayer-is-live');
+      });
+
+      this.on(Events.URL_CHANGE, this.handleUrlChange);
+      this.on(Events.DESTROY, this.destroy);
+      this.on(Events.PLAY, this.play);
+    }
+  }, {
+    key: 'handleUrlChange',
+    value: function handleUrlChange(url) {
+      var _this4 = this;
+
+      this.hls.mse.destroy().then(function () {
+        _this4.player.config.url = url;
+        _this4._context.destroy();
+        _this4._context = null;
+        _this4.video.currentTime = 0;
+
+        if (!_this4.paused) {
+          _this4.pause();
+          _this4.once('canplay', function () {
+            _this4.play();
+          });
+        } else {
+          _this4.play();
+        }
+
+        _this4.player.started = false;
+        _this4.player.start();
+      });
     }
   }, {
     key: 'play',
     value: function play() {
-      if (this.started) {
-        this._context.destroy();
-        this._context = new _xgplayerTransmuxerContext2.default(HlsAllowedEvents);
-        this.__core__ = this._context.registry('HLS_LIVE_CONTROLLER', _hlsLive2.default)({ player: this, container: this.video, preloadTime: this.config.preloadTime });
-        this._context.init();
-        this._initEvents();
-        this.__core__.load(this.url);
+      var _this5 = this;
+
+      if (this.played && this.player.played.length) {
+        this.played = false;
+        return this._destroy().then(function () {
+          _this5._context = new _xgplayerTransmuxerContext2.default(HlsAllowedEvents);
+          _this5.player.hasStart = false;
+          _this5.player.start();
+          _this5.player.onWaiting();
+          _this5.player.once('canplay', function () {
+            _this5.player.play();
+          });
+        });
       }
-      _get(HlsLivePlayer.prototype.__proto__ || Object.getPrototypeOf(HlsLivePlayer.prototype), 'play', this).call(this);
+      this.played = true;
+    }
+  }, {
+    key: '_destroy',
+    value: function _destroy() {
+      var _this6 = this;
+
+      return this.hls.mse.destroy().then(function () {
+        _this6._context.destroy();
+        _this6.hls = null;
+        _this6._context = null;
+      });
     }
   }, {
     key: 'destroy',
     value: function destroy() {
+      _get(HlsLivePlayer.prototype.__proto__ || Object.getPrototypeOf(HlsLivePlayer.prototype), '_destroy', this).call(this);
       this._context.destroy();
-      _get(HlsLivePlayer.prototype.__proto__ || Object.getPrototypeOf(HlsLivePlayer.prototype), 'destroy', this).call(this);
-    }
-  }, {
-    key: 'src',
-    set: function set(url) {
-      this._context.destroy();
-      this._context = new _xgplayerTransmuxerContext2.default(HlsAllowedEvents);
-      this.__core__ = this._context.registry('HLS_LIVE_CONTROLLER', _hlsLive2.default)({ player: this, container: this.video, preloadTime: this.config.preloadTime });
-      this._context.init();
-      this._initEvents();
-      this.__core__.load(url);
     }
   }]);
 
   return HlsLivePlayer;
-}(_xgplayer2.default);
+}(BasePlugin);
 
 exports.default = HlsLivePlayer;

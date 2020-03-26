@@ -36,24 +36,55 @@ function _inherits(subClass, superClass) { if (typeof superClass !== "function" 
                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                **/
 
 
+// const {Util} = BasePlugin
 function _createElement(tag, name) {
+  var attr = arguments.length > 2 && arguments[2] !== undefined ? arguments[2] : {};
+
   var dom = document.createElement(tag);
   dom.className = name;
+  attr && Object.keys(attr).map(function (key) {
+    dom.setAttribute(key, attr[key]);
+  });
   return dom;
 }
 
+function isUrl(str) {
+  return str.indexOf('http') > 0;
+}
+
 function registerIconsObj(iconsConfig, plugin) {
-  Object.keys(iconsConfig).map(function (iconKey) {
-    Object.defineProperty(plugin.icons, iconKey, {
-      get: function get() {
-        var _icons = plugin.config.icons || plugin.playerConfig.icons;
-        if (_icons && _icons[iconKey]) {
-          return _icons[iconKey];
-        } else {
-          return iconsConfig[iconKey];
+  var _icons = plugin.config.icons || plugin.playerConfig.icons;
+  Object.keys(iconsConfig).map(function (key) {
+    var orgIcon = iconsConfig[key] || {};
+    var classname = orgIcon.class || '';
+    var attr = orgIcon.attr || {};
+    var _icon = null;
+    if (_icons && _icons[key]) {
+      _icon = _icons[key];
+      if (_icon instanceof window.Element) {
+        _basePlugin.Util.addClass(_icon, classname);
+        Object.keys(attr).map(function (key) {
+          _icon.setAttribute(key, attr[key]);
+        });
+      } else if (isUrl(_icon)) {
+        _icon = _basePlugin.Util.createDom('img', '', { src: _icon }, attr, 'xg-img ' + classname);
+      } else if (typeof _icon === 'function') {
+        _icon = _icon(classname, attr);
+        if (_icon instanceof window.Element) {
+          _basePlugin.Util.addClass(_icon, classname);
+          Object.keys(attr).map(function (key) {
+            _icon.setAttribute(key, attr[key]);
+          });
         }
+      } else {
+        _icon = _basePlugin.Util.createDomFromHtml(_icon, attr, classname);
       }
-    });
+    }
+    if (!_icon) {
+      _icon = orgIcon.icon ? orgIcon.icon : orgIcon;
+      _icon = _icon instanceof window.Element ? _icon : _basePlugin.Util.createDomFromHtml(_icon, attr, classname);
+    }
+    plugin.icons[key] = _icon;
   });
 }
 
@@ -122,8 +153,8 @@ var Plugin = function (_BasePlugin) {
       var _parent = args.root;
       var _el = null;
       this.icons = {};
-      var defaultIcons = this.registerIcons() || {};
-      registerIconsObj(defaultIcons, this);
+      var _orgicons = this.registerIcons() || {};
+      registerIconsObj(_orgicons, this);
 
       this.text = {};
       var defaultTexConfig = this.registerLangauageTexts() || {};
@@ -445,6 +476,26 @@ var Plugin = function (_BasePlugin) {
       this.root && (this.root.style.display = 'none');
     }
   }, {
+    key: 'appendChild',
+    value: function appendChild(pdom, child) {
+      if (arguments.length < 2 && arguments[0] instanceof window.Element) {
+        return this.root.appendChild(arguments[0]);
+      }
+      if (!child || !(child instanceof window.Element)) {
+        return null;
+      }
+      try {
+        if (typeof pdom === 'string') {
+          return this.find(pdom).appendChild(child);
+        } else {
+          return pdom.appendChild(child);
+        }
+      } catch (err) {
+        console.warn(err);
+        return null;
+      }
+    }
+  }, {
     key: 'render',
     value: function render() {
       return '';
@@ -484,5 +535,6 @@ Plugin.POSITIONS = {
   ROOT_TOP: 'rootTop',
   CONTROLS_LEFT: 'controlsLeft',
   CONTROLS_RIGTH: 'controlsRight',
-  CONTROLS_CENTER: 'controlsCenter'
+  CONTROLS_CENTER: 'controlsCenter',
+  CONTROLS: 'controls'
 };

@@ -7,7 +7,9 @@ function _possibleConstructorReturn(self, call) { if (!self) { throw new Referen
 function _inherits(subClass, superClass) { if (typeof superClass !== "function" && superClass !== null) { throw new TypeError("Super expression must either be null or a function, not " + typeof superClass); } subClass.prototype = Object.create(superClass && superClass.prototype, { constructor: { value: subClass, enumerable: false, writable: true, configurable: true } }); if (superClass) Object.setPrototypeOf ? Object.setPrototypeOf(subClass, superClass) : subClass.__proto__ = superClass; }
 
 import Plugin from '../../plugin';
-import volumeChange from '../assets/volumeChange.svg';
+import volumeLargeSvg from '../assets/volumeLarge.svg';
+import volumeSmallSvg from '../assets/volumeSmall.svg';
+import volumeMutedSvg from '../assets/volumeMuted.svg';
 
 var Util = Plugin.Util,
     Events = Plugin.Events,
@@ -26,7 +28,9 @@ var Volume = function (_Plugin) {
     key: 'registerIcons',
     value: function registerIcons() {
       return {
-        volumeChange: volumeChange
+        volumeSmall: { icon: volumeSmallSvg, class: 'xg-volume-small' },
+        volumeLarge: { icon: volumeLargeSvg, class: 'xg-volume' },
+        volumeMuted: { icon: volumeMutedSvg, class: 'xg-volume-mute' }
       };
     }
   }, {
@@ -35,19 +39,20 @@ var Volume = function (_Plugin) {
       if (this.config.disable) {
         return;
       }
-      this.bar = this.find('.xgplayer-bar');
-      this.drag = this.find('.xgplayer-drag');
+
+      this.initIcons();
+
       this.changeMuted = this.changeMuted.bind(this);
-
       this.onBarMousedown = this.onBarMousedown.bind(this);
-
       this.onMouseenter = this.onMouseenter.bind(this);
       this.onMouseleave = this.onMouseleave.bind(this);
+
       this.bind('mouseenter', this.onMouseenter);
 
       this.bind(['blur', 'mouseleave'], this.onMouseleave);
 
       this.bind('.xgplayer-bar', 'mousedown', this.onBarMousedown);
+
       this.bind('.xgplayer-icon', ['click', 'touched'], this.changeMuted);
 
       this.on(Events.VOLUME_CHANGE, this.onVolumeChange.bind(this));
@@ -55,27 +60,33 @@ var Volume = function (_Plugin) {
   }, {
     key: 'onBarMousedown',
     value: function onBarMousedown(e) {
+      var _this2 = this;
+
       var player = this.player;
 
-      player.video.muted = false;
-      var drag = this.drag;
+      var drag = this.find('.xgplayer-drag');
       var slider = this.find('.xgplayer-slider');
+      var bar = this.find('.xgplayer-bar');
       slider.focus();
       Util.event(e);
 
-      var barRect = this.bar.getBoundingClientRect();
+      var barRect = bar.getBoundingClientRect();
       var pos = { x: e.clientX, y: e.clientY };
       var height = drag.getBoundingClientRect().height;
-      var isMove = false;
+      this.isMoveing = false;
       var onMove = function onMove(e) {
         e.preventDefault();
         e.stopPropagation();
         Util.event(e);
-        isMove = true;
+        _this2.isMoveing = true;
         var w = height - e.clientY + pos.y;
+        if (w > barRect.height) {
+          return;
+        }
         var now = w / barRect.height;
         drag.style.height = w + 'px';
         player.volume = Math.max(Math.min(now, 1), 0);
+        player.muted = false;
       };
 
       var onUp = function onUp(e) {
@@ -87,21 +98,14 @@ var Volume = function (_Plugin) {
         window.removeEventListener('mouseup', onUp);
         window.removeEventListener('touchend', onUp);
 
-        if (!isMove) {
+        if (!_this2.isMoveing) {
           var w = barRect.height - (e.clientY - barRect.top);
           var now = w / barRect.height;
           drag.style.height = w + 'px';
-          if (now <= 0) {
-            if (player.volume > 0) {
-              drag.volume = player.video.volume;
-            } else {
-              now = drag.volume;
-            }
-          }
           player.volume = Math.max(Math.min(now, 1), 0);
+          player.muted = false;
         }
-        slider.volume = player.volume;
-        isMove = false;
+        _this2.isMoveing = false;
       };
       window.addEventListener('mousemove', onMove);
       window.addEventListener('touchmove', onMove);
@@ -119,7 +123,6 @@ var Volume = function (_Plugin) {
   }, {
     key: 'onMouseleave',
     value: function onMouseleave(e) {
-      console.log('mouseleave');
       e.preventDefault();
       e.stopPropagation();
       Util.removeClass(this.root, 'slide-show');
@@ -138,21 +141,30 @@ var Volume = function (_Plugin) {
           muted = _player.muted,
           volume = _player.volume;
 
-      this.find('.xgplayer-drag').style.height = muted || volume === 0 ? '0px' : volume * 100 + '%';
+      if (!this.isMoveing) {
+        this.find('.xgplayer-drag').style.height = muted || volume === 0 ? '0px' : volume * 100 + '%';
+      }
       this.animate(muted, volume);
     }
   }, {
     key: 'animate',
     value: function animate(muted, volume) {
-      var path = this.find('.path');
-      var pathLarge = this.find('.path_large').getAttribute('d');
-      var pathSmall = this.find('.path_small').getAttribute('d');
-      var pathMuted = this.find('.path_muted').getAttribute('d');
       if (muted || volume === 0) {
-        path.setAttribute('d', pathMuted);
+        this.setAttr('data-state', 'mute');
+      } else if (volume < 0.5 && this.icons.volumeSmall) {
+        this.setAttr('data-state', 'small');
       } else {
-        volume >= 0.5 ? path.setAttribute('d', pathLarge) : path.setAttribute('d', pathSmall);
+        this.setAttr('data-state', 'normal');
       }
+    }
+  }, {
+    key: 'initIcons',
+    value: function initIcons() {
+      var icons = this.icons;
+
+      this.appendChild('.xgplayer-icon', icons.volumeSmall);
+      this.appendChild('.xgplayer-icon', icons.volumeLarge);
+      this.appendChild('.xgplayer-icon', icons.volumeMuted);
     }
   }, {
     key: 'render',
@@ -162,7 +174,7 @@ var Volume = function (_Plugin) {
       }
       var volume = this.player.volume;
 
-      return '\n    <xg-icon class="xgplayer-volume">\n      <div class="xgplayer-icon">\n      ' + this.icons.volumeChange + '\n      </div>\n      <xg-slider class="xgplayer-slider">\n        <xg-bar class="xgplayer-bar">\n          <xg-drag class="xgplayer-drag" style="height: ' + volume * 100 + '%"></xg-drag>\n        </xg-bar>\n      </xg-slider>\n    </xg-icon>';
+      return '\n    <xg-icon class="xgplayer-volume" data-state="normal">\n      <div class="xgplayer-icon">\n      </div>\n      <xg-slider class="xgplayer-slider">\n        <div class="xgplayer-bar">\n          <xg-drag class="xgplayer-drag" style="height: ' + volume * 100 + '%"></xg-drag>\n        </div>\n      </xg-slider>\n    </xg-icon>';
     }
   }], [{
     key: 'pluginName',

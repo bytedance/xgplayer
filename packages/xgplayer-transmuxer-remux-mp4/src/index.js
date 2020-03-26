@@ -165,7 +165,7 @@ export default class Mp4Remuxer {
         break;
       }
 
-      let dts = avcSample.dts - this.videoDtsBase
+      let dts = Math.max(avcSample.dts - this.videoDtsBase, 0)
       if (firstDts === -1) {
         firstDts = dts
       }

@@ -22,7 +22,8 @@ function _inherits(subClass, superClass) { if (typeof superClass !== "function" 
 
 var Events = _plugin2.default.Events,
     Util = _plugin2.default.Util,
-    POSITIONS = _plugin2.default.POSITIONS;
+    POSITIONS = _plugin2.default.POSITIONS,
+    Sniffer = _plugin2.default.Sniffer;
 
 var Controls = function (_Plugin) {
   _inherits(Controls, _Plugin);
@@ -39,12 +40,18 @@ var Controls = function (_Plugin) {
       if (typeof args.player.config.controls === 'boolean') {
         args.config.disable = !args.player.config.controls;
       }
+      if (!args.config.mode && Sniffer.device === 'mobile') {
+        args.config.mode = 'flex';
+      }
     }
   }, {
     key: 'afterCreate',
     value: function afterCreate() {
       var _this2 = this;
 
+      if (this.config.disable) {
+        return;
+      }
       var height = this.config.height;
 
       var style = {
@@ -56,29 +63,39 @@ var Controls = function (_Plugin) {
       this.left = this.find('left-grid');
       this.center = this.find('center');
       this.right = this.find('right-grid');
+      this.innerRoot = this.find('inner-controls');
       this.on(Events.MINI_STATE_CHANGE, function (isMini) {
-        isMini ? Util.addClass(_this2.root, 'mini') : Util.removeClass(_this2.root, 'mini');
+        isMini ? Util.addClass(_this2.root, 'mini-controls') : Util.removeClass(_this2.root, 'mini-controls');
       });
       this.bind('mouseenter', function (e) {
         _this2.mouseEnter(e);
       });
-      this.bind('mouseou', function (e) {
+      this.bind('mouseleave', function (e) {
         _this2.mouseOut(e);
       });
     }
   }, {
     key: 'mouseEnter',
     value: function mouseEnter() {
-      console.log('mouseenter');
+      // console.log('controls mouseEnter')
+      clearTimeout(this.player.userTimer);
     }
   }, {
     key: 'mouseOut',
     value: function mouseOut() {
-      console.log('mouseout');
+      // console.log('controls mouseOut')
+      var player = this.player;
+
+      player.userTimer = setTimeout(function () {
+        this.isActive = false;
+        player.emit(Events.PLAYER_BLUR);
+      }, player.config.inactive);
     }
   }, {
-    key: 'showTips',
-    value: function showTips() {}
+    key: 'show',
+    value: function show() {
+      this.root && (this.root.style.display = 'inline-block');
+    }
   }, {
     key: 'registerPlugin',
     value: function registerPlugin(plugin) {
@@ -88,8 +105,9 @@ var Controls = function (_Plugin) {
       if (!this.root) {
         return;
       }
+      var defaultConfig = plugin.defaultConfig || {};
       if (!options.root) {
-        var position = options.config && options.config.position ? options.config.position : plugin.defaultConfig.position;
+        var position = options.config && options.config.position ? options.config.position : defaultConfig.position;
         switch (position) {
           case POSITIONS.CONTROLS_LEFT:
             options.root = this.left;
@@ -99,6 +117,9 @@ var Controls = function (_Plugin) {
             break;
           case POSITIONS.CONTROLS_CENTER:
             options.root = this.center;
+            break;
+          case POSITIONS.CONTROLS:
+            options.root = this.root;
             break;
           default:
             options.root = this.left;
@@ -112,7 +133,9 @@ var Controls = function (_Plugin) {
       if (this.config.disable) {
         return;
       }
-      return '<xg-controls class="xgplayer-controls" unselectable="on" onselectstart="return false">\n    <left-grid class="left-grid">\n    </Left-grid>\n    <center class="center"></center>\n    <right-grid class="right-grid">\n    </right-grid>\n    </xg-controls>';
+      var className = this.config.mode === 'flex' ? 'flex-controls ' : '';
+      className += this.config.autoHide ? 'control_autohide' : '';
+      return '<xg-controls class="xgplayer-controls ' + className + '" unselectable="on" onselectstart="return false">\n    <inner-controls class="inner-controls">\n      <left-grid class="left-grid">\n      </Left-grid>\n      <center class="center"></center>\n      <right-grid class="right-grid">\n      </right-grid>\n    </inner-controls>\n    </xg-controls>';
     }
   }], [{
     key: 'pluginName',
@@ -123,7 +146,9 @@ var Controls = function (_Plugin) {
     key: 'defaultConfig',
     get: function get() {
       return {
-        disable: false
+        disable: false,
+        autoHide: true,
+        mode: ''
       };
     }
   }]);

@@ -6,13 +6,20 @@ import FlvLivePlayer from 'xgplayer-flv-live';
 import FlvVodPlayer from 'xgplayer-flv-vod';
 
 var FlvPlayer = function () {
+  _createClass(FlvPlayer, null, [{
+    key: 'pluginName',
+    get: function get() {
+      return 'FlvPlayer';
+    }
+  }]);
+
   function FlvPlayer(config) {
     _classCallCheck(this, FlvPlayer);
 
     if (config.isLive) {
-      return new FlvLivePlayer(config);
+      this.plugins = [FlvLivePlayer];
     } else {
-      return new FlvVodPlayer(config);
+      this.plugins = [FlvVodPlayer];
     }
   }
 

@@ -30,13 +30,15 @@ var Player = function (_Proxy) {
 
     var _this = _possibleConstructorReturn(this, (Player.__proto__ || Object.getPrototypeOf(Player)).call(this, options));
 
-    _this.config = util.deepCopy(getDefaultConfig(), options);
+    _this.config = util.deepMerge(getDefaultConfig(), options);
     _this.config.presets = [];
 
     // resolve default preset
     if (_this.config.presets.length) {
-      if (_this.config.presets.indexOf('default') >= 0 && Player.defaultPreset) {
+      var defaultIdx = _this.config.presets.indexOf('default');
+      if (defaultIdx >= 0 && Player.defaultPreset) {
         _this.config.presets.push(Player.defaultPreset);
+        _this.config.presets.splice(defaultIdx, 1);
       }
     } else if (Player.defaultPreset) {
       _this.config.presets.push(Player.defaultPreset);
@@ -45,7 +47,6 @@ var Player = function (_Proxy) {
     // timer and flags
     _this.userTimer = null;
     _this.waitTimer = null;
-    _this.isProgressMoving = false;
     _this.isReady = false;
     _this.isPlaying = false;
     _this.isSeeking = false;
@@ -109,6 +110,9 @@ var Player = function (_Proxy) {
       var controls = pluginsManager.register(this, Controls);
       this.controls = controls;
       this.addClass(STATE_CLASS.DEFAULT + ' xgplayer-' + sniffer.device + ' ' + STATE_CLASS.NO_START + ' ' + (this.config.controls ? '' : STATE_CLASS.NO_CONTROLS));
+      if (this.config.autoplay) {
+        this.addClass(STATE_CLASS.ENTER);
+      }
       if (this.config.fluid) {
         var style = {
           'max-width': '100%',
@@ -174,7 +178,8 @@ var Player = function (_Proxy) {
           _this3.video.focus();
         }
       };
-      this.root.addEventListener('mousemove', this.mousemoveFunc);
+      var eventkey = sniffer.service === 'mobile' ? 'touchstart' : 'mousemove';
+      this.root.addEventListener(eventkey, this.mousemoveFunc);
 
       this.playFunc = function () {
         _this3.emit(Events.PLAYER_FOCUS);
@@ -200,6 +205,7 @@ var Player = function (_Proxy) {
         var _this4 = this;
 
         player.root.removeEventListener('mousemove', player.mousemoveFunc);
+        player.root.removeEventListener(eventkey, this.mousemoveFunc);
         FULLSCREEN_EVENTS.forEach(function (item) {
           document.removeEventListener(item, _this4.onFullscreenChange);
         });
@@ -213,14 +219,14 @@ var Player = function (_Proxy) {
       var _this5 = this;
 
       var root = this.root;
-      var player = this;
       if (!url || url === '') {
         this.emit(Events.URL_NULL);
       }
       this.canPlayFunc = function () {
         this.volume = this.config.volume;
         this.play();
-        player.off(Events.CANPLAY, this.canPlayFunc);
+        this.off(Events.CANPLAY, this.canPlayFunc);
+        this.removeClass(STATE_CLASS.ENTER);
       };
 
       if (util.typeOf(url) === 'String') {
@@ -269,7 +275,7 @@ var Player = function (_Proxy) {
           }
           if (plugin.lazy && plugin.loader) {
             var loadingPlugin = pluginsManager.lazyRegister(_this6, plugin);
-            if (plugin.forceBeforeInited) {
+            if (plugin.forceBeforeInit) {
               loadingPlugin.then(function () {
                 _this6._loadingPlugins.splice(_this6._loadingPlugins.indexOf(loadingPlugin), 1);
               }).catch(function () {
@@ -389,20 +395,23 @@ var Player = function (_Proxy) {
       var _this9 = this;
 
       if (!this.hasStart) {
-        this.start();
+        this.start().then(function (resolve) {
+          _this9.play();
+        });
         return;
       }
       var playPromise = _get(Player.prototype.__proto__ || Object.getPrototypeOf(Player.prototype), 'play', this).call(this);
       if (playPromise !== undefined && playPromise && playPromise.then) {
         playPromise.then(function () {
-          _this9.removeClass(STATE_CLASS.AUTOPLAY);
+          _this9.removeClass(STATE_CLASS.NOT_ALLOW_AUTOPLAY);
           _this9.removeClass(STATE_CLASS.NO_START);
           _this9.addClass(STATE_CLASS.PLAYING);
+          _this9.isPlaying = true;
         }).catch(function (e) {
           // 避免AUTOPLAY_PREVENTED先于playing和play触发
           setTimeout(function () {
             _this9.emit(Events.AUTOPLAY_PREVENTED);
-            _this9.addClass(STATE_CLASS.AUTOPLAY);
+            _this9.addClass(STATE_CLASS.NOT_ALLOW_AUTOPLAY);
           }, 0);
           throw e;
         });
@@ -459,8 +468,9 @@ var Player = function (_Proxy) {
           });
         }
       });
-      this.emit(Events.REPLAY);
       this.currentTime = 0;
+      this.play();
+      this.emit(Events.REPLAY);
     }
   }, {
     key: 'getFullscreen',
@@ -525,12 +535,15 @@ var Player = function (_Proxy) {
     }
   }, {
     key: 'onFocus',
-    value: function onFocus() {
+    value: function onFocus(notAutoHide) {
       this.isActive = true;
       var player = this;
       this.removeClass(STATE_CLASS.ACTIVE);
       if (player.userTimer) {
         clearTimeout(player.userTimer);
+      }
+      if (notAutoHide) {
+        return;
       }
       player.userTimer = setTimeout(function () {
         this.isActive = false;
@@ -548,7 +561,7 @@ var Player = function (_Proxy) {
   }, {
     key: 'onPlay',
     value: function onPlay() {
-      this.addClass(STATE_CLASS.PLAYING);
+      // this.addClass(STATE_CLASS.PLAYING)
       this.removeClass(STATE_CLASS.PAUSED);
       this.ended && this.removeClass(STATE_CLASS.ENDED);
       this.emit(Events.PLAYER_FOCUS);
@@ -616,7 +629,6 @@ var Player = function (_Proxy) {
       clsList.forEach(function (cls) {
         _this12.removeClass(cls);
       });
-      this.addClass(STATE_CLASS.PLAYING);
     }
   }, {
     key: 'getVideoSize',
@@ -635,6 +647,15 @@ var Player = function (_Proxy) {
           this.root.style.width = this.video.videoWidth / this.video.videoHeight * containerSize.height + 'px';
         }
       }
+    }
+  }, {
+    key: 'seek',
+    value: function seek(time) {
+      if (!this.video || isNaN(Number(time)) || time > this.duration) {
+        return;
+      }
+      time = time < 0 ? 0 : time;
+      this.currentTime = time;
     }
   }, {
     key: 'plugins',

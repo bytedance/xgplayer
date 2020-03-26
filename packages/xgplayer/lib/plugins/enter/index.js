@@ -18,33 +18,73 @@ function _possibleConstructorReturn(self, call) { if (!self) { throw new Referen
 
 function _inherits(subClass, superClass) { if (typeof superClass !== "function" && superClass !== null) { throw new TypeError("Super expression must either be null or a function, not " + typeof superClass); } subClass.prototype = Object.create(superClass && superClass.prototype, { constructor: { value: subClass, enumerable: false, writable: true, configurable: true } }); if (superClass) Object.setPrototypeOf ? Object.setPrototypeOf(subClass, superClass) : subClass.__proto__ = superClass; }
 
-var EnterPlugin = function (_Plugin) {
-  _inherits(EnterPlugin, _Plugin);
+var Events = _plugin2.default.Events,
+    Util = _plugin2.default.Util;
 
-  function EnterPlugin() {
-    _classCallCheck(this, EnterPlugin);
+var Enter = function (_Plugin) {
+  _inherits(Enter, _Plugin);
 
-    return _possibleConstructorReturn(this, (EnterPlugin.__proto__ || Object.getPrototypeOf(EnterPlugin)).apply(this, arguments));
+  function Enter() {
+    _classCallCheck(this, Enter);
+
+    return _possibleConstructorReturn(this, (Enter.__proto__ || Object.getPrototypeOf(Enter)).apply(this, arguments));
   }
 
-  _createClass(EnterPlugin, [{
+  _createClass(Enter, [{
+    key: 'afterPlayerInit',
+    value: function afterPlayerInit() {
+      var _this2 = this;
+
+      var player = this.player,
+          playerConfig = this.playerConfig;
+
+      if (!playerConfig.autoplay || !playerConfig.videoInit) {
+        this.once(Events.CANPLAY, function () {
+          _this2.isCanPlay = true;
+        });
+        this.on(Events.PLAY, function () {
+          if (!_this2.isCanPlay) {
+            player.addClass('xgplayer-is-enter');
+          }
+        });
+      }
+    }
+  }, {
     key: 'render',
     value: function render() {
-      var barStr = '';
-      for (var i = 1; i <= 12; i++) {
-        barStr += '<div class="xgplayer-enter-bar' + i + '"></div>';
-      }
+      var innerHtml = this.config.innerHtml;
 
-      return '<xg-enter class="xgplayer-enter"><div class="xgplayer-enter-spinner">\n      ' + barStr + '\n    </div></xg-enter>';
+      var root = Util.createDom('xg-enter', '', {}, 'xgplayer-enter');
+
+      if (innerHtml && innerHtml instanceof window.HTMLElement) {
+        root.appendChild(innerHtml);
+      } else if (innerHtml && typeof innerHtml === 'string') {
+        root.innerHTML = innerHtml;
+      } else {
+        var barStr = '';
+        for (var i = 1; i <= 12; i++) {
+          barStr += '<div class="xgplayer-enter-bar' + i + '"></div>';
+        }
+        root.innerHTML = '<div class="xgplayer-enter-spinner">' + barStr + '</div>';
+      }
+      return root;
     }
   }], [{
     key: 'pluginName',
     get: function get() {
-      return 'index.scss';
+      return 'enter';
+    }
+  }, {
+    key: 'defaultConfig',
+    get: function get() {
+      return {
+        innerHtml: '',
+        logo: ''
+      };
     }
   }]);
 
-  return EnterPlugin;
+  return Enter;
 }(_plugin2.default);
 
-exports.default = EnterPlugin;
+exports.default = Enter;
