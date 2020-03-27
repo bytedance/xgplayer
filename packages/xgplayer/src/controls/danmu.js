@@ -21,9 +21,11 @@ let danmu = function () {
           e.stopPropagation()
           util.toggleClass(player.danmuBtn, 'danmu-switch-active')
           if (util.hasClass(player.danmuBtn, 'danmu-switch-active')) {
+            player.emit('danmuBtnOn')
             util.addClass(container, 'xgplayer-has-danmu')
             player.once('timeupdate', onTimeupdate)
           } else {
+            player.emit('danmuBtnOff')
             util.removeClass(container, 'xgplayer-has-danmu')
             danmujs.stop()
           }
