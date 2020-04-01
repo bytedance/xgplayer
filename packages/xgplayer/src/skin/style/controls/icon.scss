@@ -5,5 +5,8 @@
       height: 40px;
       overflow: hidden;
       fill:$playerIconColor;
+      svg {
+        position: absolute;
+      }
   }
 }
