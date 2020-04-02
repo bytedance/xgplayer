@@ -116,6 +116,11 @@ class Music extends Player {
       }
       if(this.config.abCycle) {
         if(this.currentTime >= this.config.abCycle.end) {
+          if(!this.config.abCycle.loop) {
+            this.pause()
+          }
+          this.currentTime = this.config.abCycle.start
+        } else if(this.currentTime < this.config.abCycle.start) {
           this.currentTime = this.config.abCycle.start
         }
       }
@@ -328,6 +333,11 @@ class Music extends Player {
       this.prevComput()
     }
     this.index = this.prevIndex
+    this.change()
+  }
+  setIndex (index = 0) {
+    this.nextIndex = index
+    this.index = index
     this.change()
   }
   forward () {
