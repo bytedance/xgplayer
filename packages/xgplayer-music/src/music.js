@@ -252,6 +252,15 @@ class Music extends Player {
       this.list.splice(idx, 1)
     }
   }
+  updateList (list = []) {
+    this.removeAbCycle()
+    this.pause()
+    this.currentTime = 0
+    this.list = list
+    this.nextIndex = 0
+    this.index = 0
+    this.change()
+  }
   change () {
     let self = this
     let offlineVid = self.list[self.index].vid || self.list[self.index].name
@@ -265,7 +274,7 @@ class Music extends Player {
         self.emit('change', {src: url, name: self.name, vid: self.vid, poster: self.poster})
       } else {
         self.video.pause()
-        if(this.config.switchKeepProgress) {
+        if(this.config.switchKeepProgress && !this.ended) {
           let currentTime = self.currentTime
           this.once('playing', () => {
             self.currentTime = currentTime
