@@ -58,12 +58,9 @@ function registerIconsObj (iconsConfig, plugin) {
 
 function registerTextObj (textConfig, plugin) {
   Object.keys(textConfig).map((key) => {
-    Object.defineProperty(plugin.text, key, {
+    Object.defineProperty(plugin.langText, key, {
       get: () => {
-        let lang = plugin.playerConfig.lang || 'zh'
-        if (lang.indexOf('-') > 0) {
-          lang = lang.split('-')[0]
-        }
+        let lang = plugin.lang
         return textConfig[key][lang]
       }
     })
@@ -111,7 +108,7 @@ export default class Plugin extends BasePlugin {
     const _orgicons = this.registerIcons() || {}
     registerIconsObj(_orgicons, this)
 
-    this.text = {}
+    this.langText = {}
     const defaultTexConfig = this.registerLangauageTexts() || {}
     registerTextObj(defaultTexConfig, this)
     let renderStr = ''
@@ -186,6 +183,40 @@ export default class Plugin extends BasePlugin {
         }
       }
     }
+  }
+
+  set lang (lang) {
+    this.config.lang = lang
+    function checkChildren (node, callback) {
+      for (let i = 0; i < node.children.length; i++) {
+        if (node.children[i].children.length > 0) {
+          checkChildren(node.children[i], callback)
+        } else {
+          callback(node.children[i])
+        }
+      }
+    }
+    if (this.root) {
+      checkChildren(this.root, (node) => {
+        const langKey = node.getAttribute && node.getAttribute('lang-key')
+        if (langKey && this.langText[langKey]) {
+          node.innerHTML = this.langText[langKey]
+        }
+      })
+    }
+  }
+
+  get lang () {
+    let lang = this.config.lang || this.playerConfig.lang || 'zh'
+    if (lang.indexOf('-') > 0) {
+      lang = lang.split('-')[0]
+    }
+    return lang
+  }
+
+  changeLangTextKey (dom, key) {
+    dom.getAttribute && dom.setAttribute('lang-key', key)
+    dom.innerHTML = this.langText[key]
   }
 
   plugins () {

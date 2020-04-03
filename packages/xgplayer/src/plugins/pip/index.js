@@ -115,9 +115,9 @@ class PIP extends Plugin {
     }
     return `<xg-icon class="xgplayer-pip">
       <div class="xgplayer-icon btn-definition">
-      ${`<span>${this.text.pipicon}</span>`}
+      ${`<span lany-key="pipicon">${this.langText.pipicon}</span>`}
       </div>
-      ${`<div class="xg-tips">${this.text.pipicon}</div>`}
+      ${`<div class="xg-tips" lany-key="pipicon">${this.langText.pipicon}</div>`}
     </xg-icon>`
   }
 }

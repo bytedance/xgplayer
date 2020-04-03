@@ -576,6 +576,11 @@ class Player extends Proxy {
     this.currentTime = time
   }
 
+  set lang (lang) {
+    this.config.lang = lang
+    pluginsManager.setLang(lang, this)
+  }
+
   get version () {
     return version
   }

@@ -49,7 +49,7 @@ class Replay extends Plugin {
 
   render () {
     return `<xg-replay class="xgplayer-replay">
-      <xg-replay-txt class="xgplayer-replay-txt">${this.text.replay}</xg-replay-txt>
+      <xg-replay-txt class="xgplayer-replay-txt" lang-key="replay">${this.langText.replay}</xg-replay-txt>
     </xg-replay>`
   }
 }

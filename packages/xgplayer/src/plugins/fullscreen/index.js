@@ -25,7 +25,7 @@ export default class Fullscreen extends Plugin {
     this.btnClick = this.btnClick.bind(this)
     this.bind(['click', 'touchend'], this.btnClick)
     this.on(Events.FULLSCREEN_CHANGE, (isFullScreen) => {
-      this.find('.xg-tips').innerHTML = isFullScreen ? this.text.exitFullscreen : this.text.fullscreen
+      this.changeLangTextKey(this.find('.xg-tips'), isFullScreen ? 'exitFullscreen' : 'fullscreen')
       this.animate(isFullScreen)
     })
   }
@@ -101,7 +101,7 @@ export default class Fullscreen extends Plugin {
     return `<xg-icon class="xgplayer-fullscreen">
     <div class="xgplayer-icon">
     </div>
-    <div class="xg-tips">${this.player.isFullScreen ? this.text.exitFullscreen : this.text.fullscreen}</div>
+    <div class="xg-tips" lang-key="fullscreen">${this.player.isFullScreen ? this.langText.exitFullscreen : this.langText.fullscreen}</div>
     </xg-icon>`
   }
 }

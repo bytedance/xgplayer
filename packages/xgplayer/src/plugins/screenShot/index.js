@@ -77,8 +77,8 @@ export default class ScreenShot extends Plugin {
   registerLangauageTexts () {
     return {
       'screenshot': {
-        jp: 'play',
-        en: 'play',
+        jp: 'screenshot',
+        en: 'screenshot',
         zh: '截图'
       }
     }
@@ -102,7 +102,7 @@ export default class ScreenShot extends Plugin {
     return `
       <xg-icon class="xgplayer-shot">
       <div class="${className}">
-      ${this.icons.screenshotIcon ? `` : `<span>${this.text.screenshot}</span>`} 
+      ${this.icons.screenshotIcon ? `` : `<span lang-key="screenshot">${this.langText.screenshot}</span>`} 
       </div>
     </xg-icon>`
   }
