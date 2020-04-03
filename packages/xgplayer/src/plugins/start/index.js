@@ -85,7 +85,7 @@ class Start extends Plugin {
       this.setAttr('data-state', this.player.paused ? 'pause' : 'play')
       return;
     }
-    if (this.player.disableAmimate) {
+    if (this.player.disableAmimate || this.config.disableAnimate) {
       return;
     }
     addAnimate('pauseplay', 400, {

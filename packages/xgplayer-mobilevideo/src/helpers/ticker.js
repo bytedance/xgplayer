@@ -2,12 +2,20 @@
  * @author fuyuhao@bytedance.com
  */
 
-class Ticker {
-  constructor (options) {
-    this.options = Object.assign({}, options || {}, {
-      interval: 16
-    })
+ export const DEFAULT_FPS = 30
 
+ export function  validateFPS(fps){
+  if(fps < 20 || fps > 80){
+    return false
+  }
+  return true
+}
+export default class Ticker {
+  constructor (options) {
+    this.options = Object.assign({}, options || {})
+    if(!this.options.interval || !validateFPS(1000 / this.options.interval)){
+      this.options.interval = 1000 / 30;
+    }
     this.callbacks = []
   }
 
@@ -23,6 +31,9 @@ class Ticker {
   }
 
   setInterval (interval) {
+    if(!validateFPS(1000 / interval)){
+      interval = 1000 / 30
+    }
     this.options.interval = interval
     return this;
   }
@@ -31,7 +42,7 @@ class Ticker {
 /**
  * ticker use requestAnimationFrame
  */
-class RafTicker extends Ticker {
+export class RafTicker extends Ticker {
   constructor (props) {
     super(props);
     this.prev = null;
@@ -85,22 +96,32 @@ class RafTicker extends Ticker {
 /**
  * use setTimeout for browsers without raf support
  */
-class TimeoutTicker extends Ticker {
+export class TimeoutTicker extends Ticker {
   constructor (config) {
     super(config)
     this.timeoutId = null
   }
 
   start (...callbacks) {
-    super.nextTick(...callbacks)
-    this.timeoutId = window.setInterval(() => {
-      this.onTick();
-    }, this.options.interval || 16)
+    super.start(...callbacks)
+    this.tick()
+  }
+
+  tick () {
+    this.nextTick();
+    this.onTick()
+  }
+
+  nextTick () {
+    this.timeoutId = window.setTimeout(() => {
+      this.stop();
+      this.tick();
+    }, this.options.interval)
   }
 
   stop () {
     if (this.timeoutId) {
-      window.clearInterval(this.timeoutId)
+      window.clearTimeout(this.timeoutId)
     }
   }
 }
@@ -108,11 +129,12 @@ class TimeoutTicker extends Ticker {
 /**
  * 返回Ticker构造函数
  * @returns {Ticker}
+ * 使用TimeoutTicker 1.可控制间隔 2.防止页面切换降频
  */
 export const getTicker = () => {
-  if (RafTicker.isSupported()) {
-    return RafTicker
-  } else {
+  // if (RafTicker.isSupported()) {
+  //   return RafTicker
+  // } else {
     return TimeoutTicker
-  }
+  // }
 }

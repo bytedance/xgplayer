@@ -21,6 +21,9 @@ export default class Mp4Remuxer {
 
     this.videoAllDuration = 0
     this.audioAllDuration = 0
+
+    this.audioRemuxed = 0;
+    this.videoRemuxed = 0;
   }
 
   init () {
@@ -39,7 +42,11 @@ export default class Mp4Remuxer {
     const { audioTrack, videoTrack } = this._context.getInstance('TRACKS')
     !this._isDtsBaseInited && this.calcDtsBase(audioTrack, videoTrack)
 
+    // if (videoTrack.samples.length && this.videoRemuxed <= 1) {
+    //   this.videoRemuxed += 1
+    // }
     this._remuxVideo(videoTrack)
+    // console.log('remux audio');
     this._remuxAudio(audioTrack)
   }
 
@@ -158,7 +165,7 @@ export default class Mp4Remuxer {
         break;
       }
 
-      let dts = avcSample.dts - this.videoDtsBase
+      let dts = Math.max(avcSample.dts - this.videoDtsBase, 0)
       if (firstDts === -1) {
         firstDts = dts
       }
@@ -432,5 +439,4 @@ export default class Mp4Remuxer {
   destroy () {
     this._player = null;
   }
-
 }

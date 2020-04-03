@@ -81,9 +81,9 @@ class HlsVodController {
 
     this.on(REMUX_EVENTS.REMUX_ERROR, this._onRemuxError.bind(this));
 
-    this.on('TIME_UPDATE', this._onTimeUpdate.bind(this));
+    this._player.on('timeupdate', this._onTimeUpdate.bind(this));
 
-    this.on('WAITING', this._onWaiting.bind(this));
+    this._player.on('waiting', this._onWaiting.bind(this));
   }
 
   _onError (type, mod, err, fatal) {
@@ -117,6 +117,7 @@ class HlsVodController {
   _onWaiting () {
     let end = true;
 
+    this._seekToBufferStart();
     const playList = Object.keys(this._playlist.list)
     const playListLen = playList.length
     if (!playListLen) {
@@ -142,8 +143,30 @@ class HlsVodController {
     }
   }
 
-  _onTimeUpdate (container) {
-    this._preload(container.currentTime);
+  _seekToBufferStart () {
+    const video = this._player.video;
+    let buffered = video.buffered
+    let range = [0, 0]
+    let currentTime = video.currentTime
+    if (buffered) {
+      for (let i = 0, len = buffered.length; i < len; i++) {
+        range[0] = buffered.start(i)
+        range[1] = buffered.end(i)
+        if (range[0] <= currentTime && currentTime <= range[1]) {
+          return;
+        }
+      }
+    }
+
+    const bufferStart = range[0]
+
+    if (currentTime === 0 && currentTime < bufferStart && Math.abs(currentTime - bufferStart) < 3) {
+      video.currentTime = bufferStart;
+    }
+  }
+  _onTimeUpdate () {
+    this._seekToBufferStart();
+    this._preload(this._player.currentTime);
   }
   _onDemuxComplete () {
     this.emit(REMUX_EVENTS.REMUX_MEDIA)
@@ -373,10 +396,6 @@ class HlsVodController {
     this.off(DEMUX_EVENTS.METADATA_PARSED, this._onMetadataParsed);
 
     this.off(DEMUX_EVENTS.DEMUX_COMPLETE, this._onDemuxComplete)
-
-    this.off('TIME_UPDATE', this._onTimeUpdate);
-
-    this.off('WAITING', this._onWaiting);
   }
 }
 export default HlsVodController;

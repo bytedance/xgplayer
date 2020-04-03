@@ -57,6 +57,10 @@ Decoder.prototype.destroy = function () {
   Module._broadwayExit();
 }
 
+Decoder.prototype.updateMeta = function(meta){
+  this.meta = meta
+}
+
 var decoder;
 
 function onPostRun () {
@@ -83,6 +87,10 @@ self.addEventListener('message', function (e) {
         console.log(data);
         self.meta = data.meta;
         init()
+        break;
+      case 'updatemeta':
+        self.meta = data.meta;
+        decoder.updateMeta(data.meta)
         break;
       case 'decode':
         decoder.decode(data.data, data.info);

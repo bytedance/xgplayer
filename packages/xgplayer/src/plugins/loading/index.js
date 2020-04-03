@@ -1,10 +1,16 @@
 import loadingIcon from '../assets/loading.svg';
-
 import Plugin from '../../plugin/plugin';
+const {POSITIONS} = Plugin;
 
 class Loading extends Plugin {
   static get pluginName () {
     return 'loading'
+  }
+
+  static get defaultConfig () {
+    return {
+      position: POSITIONS.ROOT
+    }
   }
 
   registerIcons () {
