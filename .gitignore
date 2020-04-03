@@ -75,7 +75,7 @@ typings/
 
 #editor workspace file
 .idea/
-
+.vscode/
 
 .DS_Store
 
