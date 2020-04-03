@@ -22,12 +22,8 @@ class Proxy {
       'webkit-airplay': options['airplay'],
       tabindex: 2,
       mediaType: options.mediaType || 'video'
-    }, options.videoConfig);
-    if (options.videoAttrbutes) {
-      Object.keys(options.videoAttrbutes).map((key) => {
-        this.videoConfig[key] = options.videoAttrbutes[key]
-      })
-    }
+    }, options.videoConfig, options.videoAttrbutes);
+
     if (options.loop) {
       this.videoConfig.loop = 'loop'
     }
