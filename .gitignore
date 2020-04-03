@@ -76,6 +76,10 @@ typings/
 #editor workspace file
 .idea/
 .vscode/
+es/
+lib/
+browser/
+dist/
 
 .DS_Store
 
