@@ -19,6 +19,7 @@ class HlsVodPlayer extends BasePlugin {
     super(options)
     this._handleSetCurrentTime = debounce(this._handleSetCurrentTime.bind(this), 200)
     this.destroy = this.destroy.bind(this)
+    this.handleDefinitionChange = this.handleDefinitionChange.bind(this)
     this.handleUrlChange = this.handleUrlChange.bind(this)
   }
 
@@ -63,6 +64,11 @@ class HlsVodPlayer extends BasePlugin {
       }
       this.player.start()
     })
+  }
+
+  handleDefinitionChange (change) {
+    const { to } = change;
+    this.handleUrlChange(to);
   }
 
   _handleSetCurrentTime (time) {
