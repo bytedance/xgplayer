@@ -474,6 +474,9 @@ class Player extends Proxy {
   }
 
   onFocus (notAutoHide) {
+    if (this.isActive) {
+      return;
+    }
     this.isActive = true
     let player = this
     this.removeClass(STATE_CLASS.ACTIVE)
@@ -490,6 +493,9 @@ class Player extends Proxy {
   }
 
   onBlur () {
+    if (!this.isActive) {
+      return;
+    }
     this.isActive = false
     if (!this.paused && !this.ended) {
       this.addClass(STATE_CLASS.ACTIVE)
