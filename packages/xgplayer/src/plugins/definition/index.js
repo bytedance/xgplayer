@@ -88,7 +88,7 @@ export default class DefinitionIcon extends Plugin {
         playPromise.catch(err => {})
       }
     }
-    player.emit('afterdefinitionChange')
+    player.emit(Events.AFTER_DEFINITION_CHANGE)
   }
 
   onToggle (e) {
@@ -138,7 +138,7 @@ export default class DefinitionIcon extends Plugin {
       return false
     }
     const a = document.createElement('a')
-    player.emit('beforeDefinitionChange', a.href)
+    player.emit(Events.BEFORE_DEFINITION_CHANGE, a.href)
     if (player.dash) {
       list.forEach(item => {
         item.selected = false
@@ -172,7 +172,7 @@ export default class DefinitionIcon extends Plugin {
       }
     }
     this.find('.icon-text').innerHTML = to
-    player.emit('definitionChange', {from, to})
+    player.emit(Events.DEFINITION_CHANGE, {from, to})
     if (Sniffer.device === 'mobile') {
       Util.removeClass(this.root, 'list-show')
     }

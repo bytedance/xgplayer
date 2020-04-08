@@ -104,9 +104,41 @@ const buildDistStyle = async (entry) => {
   }
 };
 
+const copyAssets = async () => {
+  const ignoreFunc = (file, stats) => {
+    const fileBase = path.basename(file);
+    return !stats.isDirectory() && !fileBase.endsWith('.svg');
+  };
+
+  try {
+    const files = await readdir(path.resolve(__dirname, '../src'), [ignoreFunc]);
+    for (let i = 0; i < files.length; i++) {
+      ['es', 'lib'].forEach((dir) => {
+        const walk = async () => {
+          const distFile = files[i].replace('src', dir);
+          const distDir = path.dirname(distFile);
+          if (!fs.existsSync(distDir)) {
+            await mkdirsPromise(distDir, {
+              recursive: true
+            });
+          }
+          const readStream = fs.createReadStream(path.resolve(files[i]));
+          const writeStream = fs.createWriteStream(distFile);
+          readStream.pipe(writeStream);
+        }
+        walk()
+      })
+
+    }
+  } catch (e) {
+    // NOTHING
+  }
+}
+
 // entry
 (async function main () {
   await buildESStyles();
+  await copyAssets();
   const entries = [{
     input: path.resolve(__dirname, '../src/style/index.scss')
   }, {

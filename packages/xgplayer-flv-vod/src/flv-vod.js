@@ -1,11 +1,11 @@
 import FetchLoader from 'xgplayer-transmuxer-loader-fetch';
-import FlvDemuxer from 'xgplayer-transmuxer-demux-flv'
-import Remuxer from 'xgplayer-transmuxer-remux-mp4'
-import EVENTS from 'xgplayer-transmuxer-constant-events'
-import Tracks from 'xgplayer-transmuxer-buffer-track'
-import PreSource from 'xgplayer-transmuxer-buffer-presource'
-import XgBuffer from 'xgplayer-transmuxer-buffer-xgbuffer'
-import Compatibility from 'xgplayer-transmuxer-codec-compatibility'
+import FlvDemuxer from 'xgplayer-transmuxer-demux-flv';
+import Remuxer from 'xgplayer-transmuxer-remux-mp4';
+import EVENTS from 'xgplayer-transmuxer-constant-events';
+import Tracks from 'xgplayer-transmuxer-buffer-track';
+import PreSource from 'xgplayer-transmuxer-buffer-presource';
+import XgBuffer from 'xgplayer-transmuxer-buffer-xgbuffer';
+import Compatibility from 'xgplayer-transmuxer-codec-compatibility';
 
 import Mse from 'xgplayer-utils-mse'
 
