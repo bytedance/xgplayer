@@ -82,10 +82,9 @@ class FlvVodPlayer extends BasePlugin {
 
   initEvents () {
     this.on(Events.TIME_UPDATE, this.handleTimeUpdate.bind(this))
-
     this.on(Events.SEEKING, this.handleSeek.bind(this))
     this.on(Events.URL_CHANGE, this.swithURL.bind(this))
-
+    this.on(Events.DEFINITION_CHANGE, this.handleDefinitionChange.bind(this));
     this.once(Events.DESTROY, this._destroy.bind(this))
   }
 
@@ -113,6 +112,11 @@ class FlvVodPlayer extends BasePlugin {
     if (range[1] - time < (player.config.preloadTime || 15) - 5) {
       this.flv.loadNext(range[1] + 1)
     }
+  }
+
+  handleDefinitionChange (change) {
+    const { to } = change;
+    this.switchURL(to);
   }
 
   swithURL (url) {

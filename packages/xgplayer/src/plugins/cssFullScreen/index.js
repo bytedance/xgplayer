@@ -60,14 +60,11 @@ export default class CssFullScreen extends Plugin {
     if (!this.root) {
       return;
     }
-    // const path = this.find('.path')
-    // const full = this.find('.path_full').getAttribute('d')
-    // const exit = this.find('.path_exitfull').getAttribute('d')
     isFullScreen ? this.setAttr('data-state', 'full') : this.setAttr('data-state', 'normal')
   }
 
   switchTips () {
-    this.find('.xg-tips').innerHTML = this.isCssfullScreen ? this.text.exitCssFullscreen : this.text.cssFullscreen
+    this.changeLangTextKey(this.find('.xg-tips'), this.isCssfullScreen ? 'exitCssFullscreen' : 'cssFullscreen')
   }
 
   registerIcons () {
@@ -103,7 +100,7 @@ export default class CssFullScreen extends Plugin {
     return `<xg-icon class='xgplayer-cssfullscreen'>
     <div class="xgplayer-icon">
     </div>
-    <div class="xg-tips">${this.isCssfullScreen ? this.text.exitCssFullscreen : this.text.cssFullscreen}</div>
+    <div class="xg-tips" lang-key="cssFullscreen">${this.isCssfullScreen ? this.langText.exitCssFullscreen : this.langText.cssFullscreen}</div>
     </xg-icon>`
   }
 }

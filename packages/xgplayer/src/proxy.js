@@ -347,9 +347,14 @@ class Proxy {
     if (!this.ended) {
       this.emit(URL_CHANGE, url)
     }
-    this.video.pause()
+    // this.video.pause()
     this._currentTime = 0;
     this._duration = 0;
+
+    if (/^blob/.test(this.video.currentSrc)) { // has transmuxer core
+      this.onWaiting();
+      return;
+    }
     this.video.src = url
   }
 

@@ -57,11 +57,11 @@ class Controls extends Plugin {
 
   mouseOut () {
     // console.log('controls mouseOut')
-    const {player} = this
-    player.userTimer = setTimeout(function () {
-      this.isActive = false
-      player.emit(Events.PLAYER_BLUR)
-    }, player.config.inactive)
+    // const {player} = this
+    // player.userTimer = setTimeout(function () {
+    //   this.isActive = false
+    //   player.emit(Events.PLAYER_BLUR)
+    // }, player.config.inactive)
   }
 
   show () {

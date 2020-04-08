@@ -76,10 +76,10 @@ class Play extends Plugin {
   animate (paused) {
     if (paused) {
       this.setAttr('data-state', 'pause')
-      this.find('.xg-tips').innerHTML = this.text.play
+      this.changeLangTextKey(this.find('.xg-tips'), 'play')
     } else {
       this.setAttr('data-state', 'play')
-      this.find('.xg-tips').innerHTML = this.text.pause
+      this.changeLangTextKey(this.find('.xg-tips'), 'pause')
     }
   }
 
@@ -94,7 +94,7 @@ class Play extends Plugin {
     return `<xg-icon class="xgplayer-play">
     <div class="xgplayer-icon">
     </div>
-    <div class="xg-tips">${this.player.paused ? this.text.play : this.text.pause}</div>
+    <div class="xg-tips" lang-key="play">${this.player.paused ? this.langText.play : this.langText.pause}</div>
     </xg-icon>`
   }
 }

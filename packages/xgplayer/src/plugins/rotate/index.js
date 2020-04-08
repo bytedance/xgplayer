@@ -144,8 +144,8 @@ export default class Rotate extends Plugin {
     <xg-icon class="xgplayer-rotate">
       <div class="xgplayer-icon">
       </div>
-      <div class="xg-tips">
-      ${this.text.rotate}
+      <div class="xg-tips" lang-key="rotate">
+      ${this.langText.rotate}
       </div>
     </xg-icon>`
   }

@@ -42,8 +42,8 @@ export default class PlayNextIcon extends Plugin {
   registerLangauageTexts () {
     return {
       'playNext': {
-        jp: 'play',
-        en: 'play',
+        jp: 'playNext',
+        en: 'playNext',
         zh: '播放'
       }
     }
@@ -82,7 +82,7 @@ export default class PlayNextIcon extends Plugin {
      <xg-icon class="xgplayer-playnext">
       <div class="xgplayer-icon">
       </div>
-      <div class="xg-tips">${this.text.playNext}</div>
+      <div class="xg-tips" lang-key="playNext">${this.langText.playNext}</div>
      </xg-icon>
     `
   }

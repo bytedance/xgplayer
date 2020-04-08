@@ -206,6 +206,17 @@ const pluginsManager = {
     }
   },
 
+  setLang (lang, player) {
+    if (!this.pluginGroup) {
+      return;
+    }
+    const cgid = player._pluginInfoId
+    const plugins = this.pluginGroup[cgid]._plugins
+    for (const item of Object.keys(plugins)) {
+      plugins[item].lang = lang
+    }
+  },
+
   reRender (player) {
     const cgid = player._pluginInfoId
     const pluginsMap = {}
