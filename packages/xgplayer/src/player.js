@@ -262,7 +262,7 @@ class Player extends Proxy {
       clearInterval(this.checkTimer)
     }
     if (this.waitTimer) {
-      clearInterval(this.waitTimer)
+      clearTimeout(this.waitTimer)
     }
     this.ev.forEach((item) => {
       let evName = Object.keys(item)[0]
