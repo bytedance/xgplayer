@@ -45,10 +45,10 @@ class MiniScreenIcon extends Plugin {
   }
 
   render () {
-    let text = this.text.miniscreen
+    let text = this.langText.miniscreen
     return `
       <xg-icon class="xgplayer-miniicon">
-      <div class="xgplayer-icon btn-definition"><span class="icon-text">${text}</span></div>
+      <div class="xgplayer-icon btn-definition"><span class="icon-text" lang-key="miniscreen">${text}</span></div>
       </xg-icon>`
   }
 }

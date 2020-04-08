@@ -90,7 +90,7 @@ export default class Download extends Plugin {
     return `<xg-icon class="xgplayer-download">
       <div class="xgplayer-icon">
       </div>
-      <div class="xg-tips">${this.text.download}</div>
+      <div class="xg-tips" lang-key="download">${this.langText.download}</div>
     </xg-icon>`
   }
 }
