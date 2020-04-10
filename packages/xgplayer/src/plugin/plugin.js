@@ -79,7 +79,7 @@ export default class Plugin extends BasePlugin {
     const insertIdx = Number(index)
     const isDomElement = html instanceof window.HTMLElement
 
-    if (parent.children.length) {
+    if (len) {
       let i = 0;
       let coordinate = null;
       let mode = '';
