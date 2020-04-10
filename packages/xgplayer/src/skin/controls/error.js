@@ -31,6 +31,7 @@ let s_error = function () {
         refresh.addEventListener(item, function (e) {
           e.preventDefault()
           e.stopPropagation()
+          player.autoplay = true
           player.once('playing', () => {
             util.removeClass(player.root, 'xgplayer-is-error')
           })
