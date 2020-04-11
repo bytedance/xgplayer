@@ -31,6 +31,20 @@ declare module 'xgplayer' {
         mode?: DanmuModelType;
     }
 
+    interface Util {
+        createDom: (el: string, tpl?: string, attrs?: object, cname?: string) => HTMLElement;
+        hasClass: (el: HTMLElement, cname: string) => boolean
+        addClass: (el: HTMLElement, cname: string) => void;
+        removeClass: (el: HTMLElement, cname: string) => void;
+        toggleClass: (el: HTMLElement, cname: string) => void;
+        findDom: (el: HTMLElement, sel: string) => HTMLElement | null;
+        padStart: (str: string, num: number, pad: string) => string;
+        format: (f: number) => string;
+        deepCopy: (src: object, dist: object) => object;
+        getBgImage: (el: HTMLElement) => string;
+        Hex2RGBA: (hex: string, alpha: number) => string;
+    }
+
     export interface TextTrack {
         src: string;
         kind: string;
@@ -395,6 +409,8 @@ declare module 'xgplayer' {
          * @param descriptor 插件函数
          */
         public static install(name: string, descriptor: (this: Player, player: Player) => void): void;
+
+        public static util: Util;
 
         public danmu: Danmu;
 
