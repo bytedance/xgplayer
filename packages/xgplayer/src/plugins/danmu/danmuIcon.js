@@ -22,7 +22,6 @@ class DanmuIcon extends Plugin {
   }
 
   afterCreate () {
-    console.log('config', this.config)
     this.initIcons()
     this.switchState(this.config.defaultOpen)
     this.onStateChange = this.onStateChange.bind(this)
@@ -63,7 +62,6 @@ class DanmuIcon extends Plugin {
 
   initIcons () {
     const {icons} = this
-    console.log(icons)
     const contentIcon = this.find('.xgplayer-icon')
     contentIcon.appendChild(icons.openDanmu)
   }
