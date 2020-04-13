@@ -1,5 +1,3 @@
-@import "./danmuIcon.scss";
-@import "./danmuPanel.scss";
 // definition
 $definitionLiColor: rgba(255, 255, 255, 0.80);
 $definitionLiActiveColor: #fff;
@@ -14,10 +12,16 @@ $sliderDragAfterBgColor: #fff;
 $sliderDragAfterShadow: 0 0 5px 0 rgba(0, 0, 0, 0.26);
 .xgplayer {
   .danmu-icon  {
-    display: flex;
     .danmu-switch {
+      display: flex;
       top: 50%;
       margin-top: -10px;
+    }
+    &[data-state=active] {
+      .danmu-switch {
+        padding-left: 12px;
+        background-color: #f85959;
+      }
     }
   }
 

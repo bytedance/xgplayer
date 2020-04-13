@@ -1,6 +1,10 @@
 import Plugin from '../../plugin'
 
-const {Util, POSITIONS} = Plugin
+const {POSITIONS} = Plugin
+
+const DANMU_OPEN = `<dk-switch class="danmu-switch">
+<span class="txt">弹</span>
+</dk-switch>`
 
 class DanmuIcon extends Plugin {
   static get pluginName () {
@@ -18,23 +22,59 @@ class DanmuIcon extends Plugin {
   }
 
   afterCreate () {
+    console.log('config', this.config)
+    this.initIcons()
+    this.switchState(this.config.defaultOpen)
     this.onStateChange = this.onStateChange.bind(this)
     this.bind(['click', 'touchend'], this.onStateChange)
   }
 
-  switchState () {
-    this.onStateChange()
+  registerIcons () {
+    return {
+      openDanmu: { icon: DANMU_OPEN, class: '' }
+    }
+  }
+
+  registerLangauageTexts () {
+    return {
+      danmuClose: {
+        jp: '閉じる',
+        en: 'close',
+        zh: '关闭'
+      },
+      dammuOpen: {
+        jp: 'オンにする',
+        en: 'open',
+        zh: '开启'
+      }
+    }
+  }
+
+  switchState (isOpen) {
+    if (isOpen === 'normal') {
+      this.switchTips(false)
+      this.setAttr('data-state', 'active')
+    } else {
+      this.setAttr('data-state', 'normal')
+      this.switchTips(true)
+    }
+    this.config.onSwitch && this.config.onSwitch(!isOpen)
+  }
+
+  initIcons () {
+    const {icons} = this
+    console.log(icons)
+    const contentIcon = this.find('.xgplayer-icon')
+    contentIcon.appendChild(icons.openDanmu)
+  }
+
+  switchTips (isOpen) {
+    this.changeLangTextKey(this.find('.xg-tips'), isOpen ? 'dammuOpen' : 'danmuClose')
   }
 
   onStateChange (e) {
-    const dom = this.find('.danmu-switch')
-    const isOpen = Util.hasClass(dom, 'danmu-switch-active')
-    if (isOpen) {
-      Util.removeClass(dom, 'danmu-switch-active')
-    } else {
-      Util.addClass(dom, 'danmu-switch-active')
-    }
-    this.config.onSwitch && this.config.onSwitch(!isOpen)
+    const isOpen = this.root.getAttribute('data-state')
+    this.switchState(isOpen)
   }
 
   show () {
@@ -48,9 +88,9 @@ class DanmuIcon extends Plugin {
   render () {
     return `
     <xg-icon class="danmu-icon">
-      <dk-switch class="danmu-switch ${this.config.defaultOpen ? 'danmu-switch-active' : ''}">
-        <span class="txt">弹</span>
-      </dk-switch>
+      <div class="xgplayer-icon">
+      </div>
+      <div class="xg-tips" lang-key="dammuOpen"></div>
     </xg-icon>`
   }
 }

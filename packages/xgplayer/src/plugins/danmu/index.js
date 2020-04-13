@@ -77,6 +77,7 @@ class Danmu extends Plugin {
       }
       this.danmuPanel = player.controls.registerPlugin(DanmuPanel, panelOptions, DanmuPanel.pluginName)
     }
+    const {switchConfig} = config
     if (!config.closeDefaultBtn) {
       const buttonOptions = {
         config: {
@@ -86,6 +87,9 @@ class Danmu extends Plugin {
           defaultOpen: this.config.defaultOpen
         }
       }
+      Object.keys(switchConfig).map(key => {
+        buttonOptions.config[key] = switchConfig[key]
+      })
       this.danmuButton = player.controls.registerPlugin(DanmuIcon, buttonOptions, DanmuIcon.pluginName)
     }
   }
@@ -113,7 +117,6 @@ class Danmu extends Plugin {
   }
   render () {
     return `<xg-danmu class="xgplayer-danmu">
-    <p>vrevtrbtr</p>
     </xg-danmu>`
   }
 }
