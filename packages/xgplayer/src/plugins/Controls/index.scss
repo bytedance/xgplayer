@@ -101,9 +101,6 @@ $tipsFontsize: 12px;
     padding: 4px 6px;
     border-radius: 4px;
     text-align: center;
-    top: -30px;
-    left: 50%;
-    margin-left: -16px;
     opacity: 0.85;
     width: auto;
     white-space: nowrap;
@@ -116,6 +113,11 @@ $tipsFontsize: 12px;
     margin-left: $iconMargin;
     cursor: pointer;
     box-sizing: border-box;
+    .xg-tips {
+      top: -30px;
+      left: 50%;
+      transform: translateX(-50%);
+    }
     &:hover {
       .xg-tips {
         display: block;
@@ -206,9 +208,6 @@ $tipsFontsize: 12px;
     xg-icon {
       margin-right: $iconMargin;
       margin-left: 0;
-    }
-    .xg-tips {
-      left: 0;
     }
   }
 
