@@ -272,6 +272,7 @@ var Music = function (_Player) {
         if (_this.currentTime >= _this.config.abCycle.end) {
           if (!_this.config.abCycle.loop) {
             _this.pause();
+            _this.emit('abCycle ended');
           }
           _this.currentTime = _this.config.abCycle.start;
         } else if (_this.currentTime < _this.config.abCycle.start) {

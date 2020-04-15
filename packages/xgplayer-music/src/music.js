@@ -118,6 +118,7 @@ class Music extends Player {
         if(this.currentTime >= this.config.abCycle.end) {
           if(!this.config.abCycle.loop) {
             this.pause()
+            this.emit('abCycle ended')
           }
           this.currentTime = this.config.abCycle.start
         } else if(this.currentTime < this.config.abCycle.start) {
