@@ -1,1 +1,2645 @@
-!function(e,t){"object"==typeof exports&&"object"==typeof module?module.exports=t(require("xgplayer")):"function"==typeof define&&define.amd?define(["xgplayer"],t):"object"==typeof exports?exports["xgplayer-music.js"]=t(require("xgplayer")):e["xgplayer-music.js"]=t(e.xgplayer)}(window,(function(e){return function(e){var t={};function n(r){if(t[r])return t[r].exports;var i=t[r]={i:r,l:!1,exports:{}};return e[r].call(i.exports,i,i.exports,n),i.l=!0,i.exports}return n.m=e,n.c=t,n.d=function(e,t,r){n.o(e,t)||Object.defineProperty(e,t,{enumerable:!0,get:r})},n.r=function(e){"undefined"!=typeof Symbol&&Symbol.toStringTag&&Object.defineProperty(e,Symbol.toStringTag,{value:"Module"}),Object.defineProperty(e,"__esModule",{value:!0})},n.t=function(e,t){if(1&t&&(e=n(e)),8&t)return e;if(4&t&&"object"==typeof e&&e&&e.__esModule)return e;var r=Object.create(null);if(n.r(r),Object.defineProperty(r,"default",{enumerable:!0,value:e}),2&t&&"string"!=typeof e)for(var i in e)n.d(r,i,function(t){return e[t]}.bind(null,i));return r},n.n=function(e){var t=e&&e.__esModule?function(){return e.default}:function(){return e};return n.d(t,"a",t),t},n.o=function(e,t){return Object.prototype.hasOwnProperty.call(e,t)},n.p="",n(n.s=4)}([function(e,t,n){"use strict";Object.defineProperty(t,"__esModule",{value:!0}),t.Analyze=t.Lyric=void 0;var r=function(){function e(e,t){for(var n=0;n<t.length;n++){var r=t[n];r.enumerable=r.enumerable||!1,r.configurable=!0,"value"in r&&(r.writable=!0),Object.defineProperty(e,r.key,r)}}return function(t,n,r){return n&&e(t.prototype,n),r&&e(t,r),t}}(),i=y(n(2)),o=y(n(11)),a=y(n(12)),s=y(n(14)),l=y(n(34)),c=y(n(35)),u=y(n(36)),f=y(n(37)),p=y(n(38)),d=y(n(39));function y(e){return e&&e.__esModule?e:{default:e}}function h(e,t){if(!e)throw new ReferenceError("this hasn't been initialised - super() hasn't been called");return!t||"object"!=typeof t&&"function"!=typeof t?e:t}var g=void 0,x=15,m=i.default.util,v=function(e){function t(e){!function(e,t){if(!(e instanceof t))throw new TypeError("Cannot call a class as a function")}(this,t);var n=m.deepCopy({controls:!0,mediaType:"audio",ignores:["fullscreen","start","definition","makeBullet","textTrack","loading","pc","mobile","playbackRate","replay","error","poster"]},e);n.volumeShow||n.ignores.push("volume");var r=h(this,(t.__proto__||Object.getPrototypeOf(t)).call(this,n)),i=r;return i.config.ignores.indexOf("backward")<0&&new l.default(i),i.config.ignores.indexOf("cover")<0&&new c.default(i),i.config.ignores.indexOf("forward")<0&&new u.default(i),i.config.ignores.indexOf("meta")<0&&new f.default(i),i.config.ignores.indexOf("next")<0&&new p.default(i),i.config.ignores.indexOf("prev")<0&&new d.default(i),r.rawConfig=e,r.list="Array"===m.typeOf(n.url)?n.url:[{src:n.url,name:n.name,vid:n.vid,poster:n.poster}],r.name=r.list[0].name,r.vid=r.list[0].vid,r.poster=r.list[0].poster,r.nextIndex=1,r.prevIndex=r.list.length-1,r.halfPass=!1,r.history=[],r.index=0,n.controls?(m.addClass(r.root,"xgplayer-music"),n.width||(r.config.width="100%",r.root.style.width="100%"),n.height||(r.config.height="50px",r.root.style.height="50px"),Object.defineProperty(r,"src",{get:function(){return this.video.currentSrc},set:function(e){var t="String"===m.typeOf(e)?{src:e,name:""}:e;this.history.push(t),this.video.src=t.src},configurable:!0}),r.config.autoplayMuted&&(r.config.volume=r.config.autoplay?0:r.config.volume),r.once("ready",(function(){m.addClass(i.root,"xgplayer-skin-default"),r.config.lang&&"en"===r.config.lang?m.addClass(r.root,"lang-is-en"):"jp"===r.config.lang&&m.addClass(r.root,"lang-is-jp")})),r.once("canplay",(function(){this.config.autoplay&&this.config.autoplayMuted?this.volume=0:this.volume=this.config.volume,this.config.abCycle&&"function"==typeof this.addProgressDot&&(this.addProgressDot(this.config.abCycle.start),this.addProgressDot(this.config.abCycle.end))})),r.on("timeupdate",(function(){!r.halfPass&&r.currentTime>r.duration/2&&r.confirmOrder(),r.config.abCycle&&(r.currentTime>=r.config.abCycle.end?(r.config.abCycle.loop||r.pause(),r.currentTime=r.config.abCycle.start):r.currentTime<r.config.abCycle.start&&(r.currentTime=r.config.abCycle.start))})),r.on("ended",(function(){if("order"===r.mode&&r.index+1>=r.list.length)return r.pause(),void(r.currentTime=0);switch(r.mode){case"sloop":r.change();break;case"order":case"loop":default:r.next()}})),r.config.segPlay||r.checkOffline(i.list[0].src,i.list[0].vid||i.list[0].name).then((function(e){i.config.url=e,i.start(e)})),r):(r.root.style.display="none",h(r))}return function(e,t){if("function"!=typeof t&&null!==t)throw new TypeError("Super expression must either be null or a function, not "+typeof t);e.prototype=Object.create(t&&t.prototype,{constructor:{value:e,enumerable:!1,writable:!0,configurable:!0}}),t&&(Object.setPrototypeOf?Object.setPrototypeOf(e,t):e.__proto__=t)}(t,e),r(t,[{key:"lyric",value:function(e,t){return this.__lyric__&&this.__lyric__.unbind(this),"Array"!==i.default.util.typeOf(e)&&(e=[].concat(e)),this.__lyric__=new o.default(e,t,this.config.lyricOpts||{}),this.__lyric__.bind(this),this.__lyric__}},{key:"confirmOrder",value:function(){var e=this;this.halfPass=!0,this.nextComput(),this.prevComput(),this.config.preloadNext&&this.checkOffline(this.list[this.nextIndex].src,this.list[this.nextIndex].vid||this.list[this.nextIndex].name).then((function(t){if(t.indexOf("blob:")<0){var n=e.list[e.nextIndex].vid||e.list[e.nextIndex].name;new s.default(e.list[e.nextIndex].src,(function(t){e.database.openDB((function(){e.database.addData(e.database.myDB.ojstore.name,[{vid:n,blob:new Blob([t],{type:'audio/mp4; codecs="mp4a.40.5"'})}]),setTimeout((function(){e.database.closeDB()}),5e3)}))}))}}))}},{key:"nextComput",value:function(){switch(this.mode){case"sloop":case"order":case"loop":this.index+1<this.list.length?this.nextIndex=this.index+1:this.nextIndex=0;break;default:this.nextIndex=Math.ceil(Math.random()*this.list.length)}}},{key:"prevComput",value:function(){switch(this.mode){case"sloop":case"order":case"loop":this.index-1>=0?this.prevIndev=this.index-1:this.prevIndev=this.list.length-1;break;default:this.prevIndev=Math.ceil(Math.random()*this.list.length)}}},{key:"add",value:function(e){this.list.push({src:e.src,name:e.name,vid:e.vid,poster:e.poster})}},{key:"remove",value:function(e){var t=-1;this.list.every((function(n,r){return n.src!==e&&n.name!==e&&n.vid!==e||(t=r,!1)})),t>-1&&this.list.splice(t,1)}},{key:"updateList",value:function(){var e=arguments.length>0&&void 0!==arguments[0]?arguments[0]:[];this.removeAbCycle(),this.pause(),this.currentTime=0,this.list=e,this.nextIndex=0,this.index=0,this.change()}},{key:"change",value:function(){var e=this,t=this,n=t.list[t.index].vid||t.list[t.index].name;this.halfPass=!1,this.checkOffline(t.list[t.index].src,n).then((function(n){if(i.default.m4a)t.video.load(),t.name=t.list[t.index].name,t.vid=t.list[t.index].vid,t.poster=t.list[t.index].poster,t.emit("change",{src:n,name:t.name,vid:t.vid,poster:t.poster});else{if(t.video.pause(),e.config.switchKeepProgress&&!e.ended){var r=t.currentTime;e.once("playing",(function(){t.currentTime=r}))}else t.currentTime=0;t.src=n,t.name=t.list[t.index].name,t.vid=t.list[t.index].vid,t.poster=t.list[t.index].poster,setTimeout((function(){t.video.play().then((function(){t.emit("change",{src:n,name:t.name,vid:t.vid,poster:t.poster})}))}),60)}}))}},{key:"checkOffline",value:function(e,t){var n=this;return new Promise((function(r){n.config.offline||r(e),n.database.openDB((function(){n.database.getDataByKey(n.database.myDB.ojstore.name,t,(function(t){setTimeout((function(){n.database.closeDB()}),5e3),r(t?URL.createObjectURL(t.blob):e)}))}))}))}},{key:"next",value:function(){this.halfPass||(this.halfPass=!0,this.nextComput()),this.index=this.nextIndex,this.change()}},{key:"prev",value:function(){this.halfPass||(this.halfPass=!0,this.prevComput()),this.index=this.prevIndex,this.change()}},{key:"setIndex",value:function(){var e=arguments.length>0&&void 0!==arguments[0]?arguments[0]:0;this.nextIndex=e,this.index=e,this.change()}},{key:"forward",value:function(){this.currentTime=this.currentTime+x<this.duration?this.currentTime+x:this.duration-.1}},{key:"backward",value:function(){this.currentTime=this.currentTime-x>0?this.currentTime-x:0}},{key:"analyze",value:function(e){return new a.default(this,e)}},{key:"setAbCycle",value:function(e,t){this.config.abCycle={start:e,end:t},"function"==typeof this.removeAllProgressDot&&this.removeAllProgressDot(),"function"==typeof this.addProgressDot&&(this.addProgressDot(this.config.abCycle.start),this.addProgressDot(this.config.abCycle.end))}},{key:"removeAbCycle",value:function(){this.config.abCycle=null,"function"==typeof this.removeAllProgressDot&&this.removeAllProgressDot()}},{key:"mode",get:function(){return g||t.ModeType[2]},set:function(e){switch(e){case 0:case 1:case 2:case 3:g=t.ModeType[e]}this.confirmOrder()}},{key:"timeScale",get:function(){return x||15},set:function(e){x=e}}],[{key:"AudioCtx",get:function(){return window.AudioContext||window.webkitAudioContext}},{key:"ModeType",get:function(){return["order","random","loop","sloop"]}}]),t}(i.default);t.default=v,t.Lyric=o.default,t.Analyze=a.default},function(e,t,n){"use strict";var r=n(27)();e.exports=function(e){return e!==r&&null!==e}},function(t,n){t.exports=e},function(e,t,n){"use strict";e.exports=function(e){return null!=e}},function(e,t,n){e.exports=n(5)},function(e,t,n){"use strict";Object.defineProperty(t,"__esModule",{value:!0}),n(6);var r,i=n(0),o=(r=i)&&r.__esModule?r:{default:r};t.default=o.default,e.exports=t.default},function(e,t,n){var r=n(7);"string"==typeof r&&(r=[[e.i,r,""]]);var i={hmr:!0,transform:void 0,insertInto:void 0};n(9)(r,i);r.locals&&(e.exports=r.locals)},function(e,t,n){(e.exports=n(8)(!1)).push([e.i,'.xgplayer-skin-default.xgplayer-music .xgplayer-controls{display:-webkit-box;display:-ms-flexbox;display:flex;height:50px;cursor:default}.xgplayer-skin-default.xgplayer-music .xgplayer-controls .xgplayer-backward,.xgplayer-skin-default.xgplayer-music .xgplayer-controls .xgplayer-backward-img{-webkit-box-ordinal-group:1;-ms-flex-order:0;order:0;cursor:pointer}.xgplayer-skin-default.xgplayer-music .xgplayer-controls .xgplayer-backward-img:hover,.xgplayer-skin-default.xgplayer-music .xgplayer-controls .xgplayer-backward:hover{opacity:.85}.xgplayer-skin-default.xgplayer-music .xgplayer-controls .xgplayer-prev,.xgplayer-skin-default.xgplayer-music .xgplayer-controls .xgplayer-prev-img{-webkit-box-ordinal-group:2;-ms-flex-order:1;order:1;cursor:pointer}.xgplayer-skin-default.xgplayer-music .xgplayer-controls .xgplayer-prev-img:hover,.xgplayer-skin-default.xgplayer-music .xgplayer-controls .xgplayer-prev:hover{opacity:.85}.xgplayer-skin-default.xgplayer-music .xgplayer-controls .xgplayer-play,.xgplayer-skin-default.xgplayer-music .xgplayer-controls .xgplayer-play-img{-webkit-box-ordinal-group:3;-ms-flex-order:2;order:2;margin-right:-5px}.xgplayer-skin-default.xgplayer-music .xgplayer-controls .xgplayer-play-img .xgplayer-tips,.xgplayer-skin-default.xgplayer-music .xgplayer-controls .xgplayer-play .xgplayer-tips{display:none}.xgplayer-skin-default.xgplayer-music .xgplayer-controls .xgplayer-next,.xgplayer-skin-default.xgplayer-music .xgplayer-controls .xgplayer-next-img{-webkit-box-ordinal-group:4;-ms-flex-order:3;order:3;cursor:pointer}.xgplayer-skin-default.xgplayer-music .xgplayer-controls .xgplayer-next-img:hover,.xgplayer-skin-default.xgplayer-music .xgplayer-controls .xgplayer-next:hover{opacity:.85}.xgplayer-skin-default.xgplayer-music .xgplayer-controls .xgplayer-forward,.xgplayer-skin-default.xgplayer-music .xgplayer-controls .xgplayer-forward-img{-webkit-box-ordinal-group:5;-ms-flex-order:4;order:4;cursor:pointer}.xgplayer-skin-default.xgplayer-music .xgplayer-controls .xgplayer-forward-img:hover,.xgplayer-skin-default.xgplayer-music .xgplayer-controls .xgplayer-forward:hover{opacity:.85}.xgplayer-skin-default.xgplayer-music .xgplayer-controls .xgplayer-volume{-webkit-box-ordinal-group:6;-ms-flex-order:5;order:5;cursor:pointer}.xgplayer-skin-default.xgplayer-music .xgplayer-controls .xgplayer-volume .xgplayer-icon{bottom:-13px}.xgplayer-skin-default.xgplayer-music .xgplayer-controls .xgplayer-cover{position:static;-webkit-box-ordinal-group:7;-ms-flex-order:6;order:6;width:40px;height:40px;text-align:center;vertical-align:middle;position:relative;top:50%;margin-top:-17px}.xgplayer-skin-default.xgplayer-music .xgplayer-controls .xgplayer-cover img{max-width:100%;max-height:100%}.xgplayer-skin-default.xgplayer-music .xgplayer-controls .xgplayer-progress{position:relative;-webkit-box-ordinal-group:8;-ms-flex-order:7;order:7;top:70%;left:20px;margin-top:-11px;-webkit-box-flex:99;-ms-flex:99;flex:99}.xgplayer-skin-default.xgplayer-music .xgplayer-controls .xgplayer-progress .xgplayer-name{position:absolute;left:0;top:-120%;font-size:12px;color:#ddd}.xgplayer-skin-default.xgplayer-music .xgplayer-controls .xgplayer-progress>*{height:3px;margin-top:8.5px}.xgplayer-skin-default.xgplayer-music .xgplayer-controls .xgplayer-progress .xgplayer-progress-played:after{top:-4px;width:10px;height:10px;content:" ";display:block}.xgplayer-skin-default.xgplayer-music .xgplayer-controls .xgplayer-progress .xgplayer-tips{display:none!important}.xgplayer-skin-default.xgplayer-music .xgplayer-controls .xgplayer-progress:focus .xgplayer-progress-btn,.xgplayer-skin-default.xgplayer-music .xgplayer-controls .xgplayer-progress:hover .xgplayer-progress-btn{top:-5px}.xgplayer-skin-default.xgplayer-music .xgplayer-controls .xgplayer-time{-webkit-box-ordinal-group:9;-ms-flex-order:8;order:8;margin-left:30px;line-height:1;position:relative;top:55%}.xgplayer-skin-default.xgplayer-music .xgplayer-controls .xgplayer-placeholder{-webkit-box-ordinal-group:1000;-ms-flex-order:999;order:999;width:0}.xgplayer-skin-default.xgplayer-music .xgplayer-controls .xgplayer-icon{padding-top:5px}.xgplayer-skin-default.xgplayer-music.xgplayer-ended .xgplayer-controls,.xgplayer-skin-default.xgplayer-music.xgplayer-nostart .xgplayer-controls{display:-webkit-box;display:-ms-flexbox;display:flex}.xgplayer-skin-default .xgplayer-lyric-item{display:block;line-height:22px;font-size:14px;color:#000}.xgplayer-skin-default .xgplayer-lyric-item.xgplayer-lyric-item-active{color:#7fffd4}.xgplayer-skin-default .xgplayer-lrcWrap{overflow:auto;height:300px;border:1px solid #ddd;padding:20px}.xgplayer-skin-default .xgplayer-lrcForward{position:absolute;top:20%;left:300px;cursor:pointer;width:0;height:0;border-width:0 10px 10px;border-style:solid;border-color:transparent transparent #333}.xgplayer-skin-default .xgplayer-lrcBack{position:absolute;top:80%;left:300px;cursor:pointer;width:0;height:0;border-width:10px 10px 0;border-style:solid;border-color:#333 transparent transparent}',""])},function(e,t){e.exports=function(e){var t=[];return t.toString=function(){return this.map((function(t){var n=function(e,t){var n=e[1]||"",r=e[3];if(!r)return n;if(t&&"function"==typeof btoa){var i=(a=r,"/*# sourceMappingURL=data:application/json;charset=utf-8;base64,"+btoa(unescape(encodeURIComponent(JSON.stringify(a))))+" */"),o=r.sources.map((function(e){return"/*# sourceURL="+r.sourceRoot+e+" */"}));return[n].concat(o).concat([i]).join("\n")}var a;return[n].join("\n")}(t,e);return t[2]?"@media "+t[2]+"{"+n+"}":n})).join("")},t.i=function(e,n){"string"==typeof e&&(e=[[null,e,""]]);for(var r={},i=0;i<this.length;i++){var o=this[i][0];"number"==typeof o&&(r[o]=!0)}for(i=0;i<e.length;i++){var a=e[i];"number"==typeof a[0]&&r[a[0]]||(n&&!a[2]?a[2]=n:n&&(a[2]="("+a[2]+") and ("+n+")"),t.push(a))}},t}},function(e,t,n){var r,i,o={},a=(r=function(){return window&&document&&document.all&&!window.atob},function(){return void 0===i&&(i=r.apply(this,arguments)),i}),s=function(e){return document.querySelector(e)},l=function(e){var t={};return function(e){if("function"==typeof e)return e();if(void 0===t[e]){var n=s.call(this,e);if(window.HTMLIFrameElement&&n instanceof window.HTMLIFrameElement)try{n=n.contentDocument.head}catch(e){n=null}t[e]=n}return t[e]}}(),c=null,u=0,f=[],p=n(10);function d(e,t){for(var n=0;n<e.length;n++){var r=e[n],i=o[r.id];if(i){i.refs++;for(var a=0;a<i.parts.length;a++)i.parts[a](r.parts[a]);for(;a<r.parts.length;a++)i.parts.push(v(r.parts[a],t))}else{var s=[];for(a=0;a<r.parts.length;a++)s.push(v(r.parts[a],t));o[r.id]={id:r.id,refs:1,parts:s}}}}function y(e,t){for(var n=[],r={},i=0;i<e.length;i++){var o=e[i],a=t.base?o[0]+t.base:o[0],s={css:o[1],media:o[2],sourceMap:o[3]};r[a]?r[a].parts.push(s):n.push(r[a]={id:a,parts:[s]})}return n}function h(e,t){var n=l(e.insertInto);if(!n)throw new Error("Couldn't find a style target. This probably means that the value for the 'insertInto' parameter is invalid.");var r=f[f.length-1];if("top"===e.insertAt)r?r.nextSibling?n.insertBefore(t,r.nextSibling):n.appendChild(t):n.insertBefore(t,n.firstChild),f.push(t);else if("bottom"===e.insertAt)n.appendChild(t);else{if("object"!=typeof e.insertAt||!e.insertAt.before)throw new Error("[Style Loader]\n\n Invalid value for parameter 'insertAt' ('options.insertAt') found.\n Must be 'top', 'bottom', or Object.\n (https://github.com/webpack-contrib/style-loader#insertat)\n");var i=l(e.insertInto+" "+e.insertAt.before);n.insertBefore(t,i)}}function g(e){if(null===e.parentNode)return!1;e.parentNode.removeChild(e);var t=f.indexOf(e);t>=0&&f.splice(t,1)}function x(e){var t=document.createElement("style");return void 0===e.attrs.type&&(e.attrs.type="text/css"),m(t,e.attrs),h(e,t),t}function m(e,t){Object.keys(t).forEach((function(n){e.setAttribute(n,t[n])}))}function v(e,t){var n,r,i,o;if(t.transform&&e.css){if(!(o=t.transform(e.css)))return function(){};e.css=o}if(t.singleton){var a=u++;n=c||(c=x(t)),r=w.bind(null,n,a,!1),i=w.bind(null,n,a,!0)}else e.sourceMap&&"function"==typeof URL&&"function"==typeof URL.createObjectURL&&"function"==typeof URL.revokeObjectURL&&"function"==typeof Blob&&"function"==typeof btoa?(n=function(e){var t=document.createElement("link");return void 0===e.attrs.type&&(e.attrs.type="text/css"),e.attrs.rel="stylesheet",m(t,e.attrs),h(e,t),t}(t),r=O.bind(null,n,t),i=function(){g(n),n.href&&URL.revokeObjectURL(n.href)}):(n=x(t),r=k.bind(null,n),i=function(){g(n)});return r(e),function(t){if(t){if(t.css===e.css&&t.media===e.media&&t.sourceMap===e.sourceMap)return;r(e=t)}else i()}}e.exports=function(e,t){if("undefined"!=typeof DEBUG&&DEBUG&&"object"!=typeof document)throw new Error("The style-loader cannot be used in a non-browser environment");(t=t||{}).attrs="object"==typeof t.attrs?t.attrs:{},t.singleton||"boolean"==typeof t.singleton||(t.singleton=a()),t.insertInto||(t.insertInto="head"),t.insertAt||(t.insertAt="bottom");var n=y(e,t);return d(n,t),function(e){for(var r=[],i=0;i<n.length;i++){var a=n[i];(s=o[a.id]).refs--,r.push(s)}e&&d(y(e,t),t);for(i=0;i<r.length;i++){var s;if(0===(s=r[i]).refs){for(var l=0;l<s.parts.length;l++)s.parts[l]();delete o[s.id]}}}};var _,b=(_=[],function(e,t){return _[e]=t,_.filter(Boolean).join("\n")});function w(e,t,n,r){var i=n?"":r.css;if(e.styleSheet)e.styleSheet.cssText=b(t,i);else{var o=document.createTextNode(i),a=e.childNodes;a[t]&&e.removeChild(a[t]),a.length?e.insertBefore(o,a[t]):e.appendChild(o)}}function k(e,t){var n=t.css,r=t.media;if(r&&e.setAttribute("media",r),e.styleSheet)e.styleSheet.cssText=n;else{for(;e.firstChild;)e.removeChild(e.firstChild);e.appendChild(document.createTextNode(n))}}function O(e,t,n){var r=n.css,i=n.sourceMap,o=void 0===t.convertToAbsoluteUrls&&i;(t.convertToAbsoluteUrls||o)&&(r=p(r)),i&&(r+="\n/*# sourceMappingURL=data:application/json;base64,"+btoa(unescape(encodeURIComponent(JSON.stringify(i))))+" */");var a=new Blob([r],{type:"text/css"}),s=e.href;e.href=URL.createObjectURL(a),s&&URL.revokeObjectURL(s)}},function(e,t){e.exports=function(e){var t="undefined"!=typeof window&&window.location;if(!t)throw new Error("fixUrls requires window.location");if(!e||"string"!=typeof e)return e;var n=t.protocol+"//"+t.host,r=n+t.pathname.replace(/\/[^\/]*$/,"/");return e.replace(/url\s*\(((?:[^)(]|\((?:[^)(]+|\([^)(]*\))*\))*)\)/gi,(function(e,t){var i,o=t.trim().replace(/^"(.*)"$/,(function(e,t){return t})).replace(/^'(.*)'$/,(function(e,t){return t}));return/^(#|data:|http:\/\/|https:\/\/|file:\/\/\/|\s*$)/i.test(o)?e:(i=0===o.indexOf("//")?o:0===o.indexOf("/")?n+o:r+o.replace(/^\.\//,""),"url("+JSON.stringify(i)+")")}))}},function(e,t,n){"use strict";Object.defineProperty(t,"__esModule",{value:!0}),t.LyricTime=void 0;var r,i=function(){function e(e,t){for(var n=0;n<t.length;n++){var r=t[n];r.enumerable=r.enumerable||!1,r.configurable=!0,"value"in r&&(r.writable=!0),Object.defineProperty(e,r.key,r)}}return function(t,n,r){return n&&e(t.prototype,n),r&&e(t,r),t}}(),o=n(2),a=(r=o)&&r.__esModule?r:{default:r};function s(e,t){if(!(e instanceof t))throw new TypeError("Cannot call a class as a function")}var l=function e(t){s(this,e),this.regRule=/(\d{2}(?=:)):(\d{2}(?=\.))\.(\d{2,3})/g,this.regRule.test(t)?this.time=60*RegExp.$1+1*RegExp.$2+1*("0."+RegExp.$3):this.time=-1};t.LyricTime=l;var c=function(){function e(t,n,r){var i=this;s(this,e),this.rawTxts=t,this.txts=t.map((function(e){return e.replace(/^[\r\n]|[\r\n]$/g,"").match(/(\[.*\])[^[]+/g)})),this.isDynamics=t.map((function(e,t){return[].concat(e.match(/\[\d{2}:\d{2}\.\d{2,3}\]/g)).length>0&&i.txts[t].length===i.txts[0].length&&i.txts[t].length>1})),this.isDynamic=this.isDynamics.some((function(e){return e})),this.__ainimateInterval__=0,this.__offset__=0,this.__offsetScale__=.5,this.dom=n,this.lists=[],this.isDynamics.map((function(e,t){e&&i.lists.push(i.txts[t].map((function(e,t){var n=/(\[[\d:\S]+\])([^[]+)/g.test(e),r=RegExp.$1,i=RegExp.$2;return{time:n?new l(r).time:-1,lyric:i,idx:t}})))})),this.list=this.lists.reduce((function(e,t){return e.map((function(e,n){return{time:e.time,lyric:"\n"===e.lyric?""+e.lyric+t[n].lyric:e.lyric+"<br/>"+t[n].lyric,idx:n}}))})).filter((function(e){return!r.removeBlankLine||"\r\n"!==e.lyric&&"\n"!==e.lyric&&""!==e.lyric})),this.line=0}return i(e,[{key:"adjust",value:function(){for(var e,t,n=this.list,r=0,i=n.length;r<i;r++){for(e=r+1;e<i&&!(n[e].time>n[r].time);e++);if(e<i){var o=(n[e].time-n[r].time)/(e-r);for(t=r+1;t<e;t++)n[t].time=n[t-1].time+o}}}},{key:"find",value:function(e){var t=this.list,n=this.__ainimateInterval__,r=this.__offset__;return e=e+r>0?e+r:0,t.filter((function(r,i){var o=r.time,a=i+1;return e>=o&&(t[a]&&1*e+1*n<=t[a].time||a>=t.length)}))}},{key:"bind",value:function(e){var t=this,n=this;return this.__player__=e,!!n.isDynamic&&(n.__handle__=function(){var n=t.find(e.currentTime)[0];n&&n.idx!==t.line&&(t.line=n.idx,e.emit("lyricUpdate",n))}.bind(n,e),e.on("timeupdate",n.__handle__),n.__startHandle__=function(){e.emit("lyricUpdate",n.list[0])}.bind(n,e),e.once("playing",n.__startHandle__),!0)}},{key:"unbind",value:function(e){delete this.__player__,this.__handle__&&(e.off("lyricUpdate",this.__handle__),delete this.__handle__)}},{key:"show",value:function(){var e=this,t=this.dom,n=[],r=this,i=["click","touchstart"];if(t&&1===t.nodeType){var o=a.default.util.createDom("div","<div></div>",{},"xgplayer-lrcWrap");t.appendChild(o),this.list.forEach((function(e){n.push('<xg-lyric-item class="xgplayer-lyric-item" data-idx="'+e.idx+'">'+e.lyric.replace(/[\r\n]/g,"")+"</xg-lyric-item>")})),o.innerHTML=n.join("");var s=a.default.util.createDom("xg-lrcForward","<div></div>",{},"xgplayer-lrcForward");t.appendChild(s),i.forEach((function(e){s.addEventListener(e,(function(e){e.preventDefault(),e.stopPropagation(),r.offset-=r.offsetScale,console.log("lyric go forward "+r.offsetScale+"s")}),!1)}));var l=a.default.util.createDom("xg-lrcBack","<div></div>",{},"xgplayer-lrcBack");t.appendChild(l),i.forEach((function(e){l.addEventListener(e,(function(e){e.preventDefault(),e.stopPropagation(),r.offset+=r.offsetScale,console.log("lyric go back "+r.offsetScale+"s")}),!1)})),this.__updateHandle__=function(t){var n=e.dom.querySelector(".xgplayer-lrcWrap"),r=n.querySelector(".xgplayer-lyric-item-active"),i=n.offsetHeight,o=void 0;r&&(r.className="xgplayer-lyric-item"),(r=n.querySelector('.xgplayer-lyric-item[data-idx="'+t.idx+'"]'))&&(r.className="xgplayer-lyric-item xgplayer-lyric-item-active",(o=r.getBoundingClientRect().top-n.getBoundingClientRect().top+n.scrollTop-i/2)&&(n.scrollTop=o))},this.__player__.on("lyricUpdate",this.__updateHandle__)}else this.__player__.emit("error","lyric container can not be empty")}},{key:"hide",value:function(){this.__updateHandle__.off("lyricUpdate",this.__updateHandle__)}},{key:"interval",set:function(e){this.__ainimateInterval__=e},get:function(){return this.__ainimateInterval__}},{key:"offset",set:function(e){this.__offset__=e},get:function(){return this.__offset__}},{key:"offsetScale",set:function(e){this.__offsetScale__=e},get:function(){return this.__offsetScale__}}]),e}();t.default=c},function(e,t,n){"use strict";Object.defineProperty(t,"__esModule",{value:!0});var r=function(){function e(e,t){for(var n=0;n<t.length;n++){var r=t[n];r.enumerable=r.enumerable||!1,r.configurable=!0,"value"in r&&(r.writable=!0),Object.defineProperty(e,r.key,r)}}return function(t,n,r){return n&&e(t.prototype,n),r&&e(t,r),t}}(),i=n(13);var o=function(){function e(t,n){var r=this;if(function(e,t){if(!(e instanceof t))throw new TypeError("Cannot call a class as a function")}(this,e),this.canvas=n,this.player=t,e.AudioCtx){var o=new e.AudioCtx,a=o.createAnalyser(),s=o.createGain();a.minDecibels=-90,a.maxDecibels=-10,a.smoothingTimeConstant=.85,s.gain.setValueAtTime(t.volume,t.currentTime),this.er=o.createMediaElementSource(t.video),this.analyser=a,this.ctx=n.getContext("2d"),this.er.connect(a),a.connect(s),s.connect(o.destination),this.style={bgColor:"#c8c8c8",color:"#643232"},this.__type__="bars",this.__size__=256,this.__status__={switch:"on"},["play","playing","seeked"].forEach((function(e){t.on(e,(function(){r["__"+r.__type__+"__"]()}))})),["seeking","waiting","pause","ended"].forEach((function(e){(0,i.cancelAnimationFrame)(r.__status__[r.__type__])})),t.on("volumechange",(function(){s.gain.setValueAtTime(t.volume,t.currentTime)})),t.on("destroy",(function(){o.close()}))}}return r(e,[{key:"__wave__",value:function(){var e=this;if((0,i.cancelAnimationFrame)(this.__status__.wave),(0,i.cancelAnimationFrame)(this.__status__.bars),"off"!==this.__status__.switch){var t=this.analyser,n=this.canvas,r=this.ctx,o=t.frequencyBinCount,a=new Uint8Array(o),s=n.width,l=n.height,c=new i.Color(this.style.color).toRGB(),u=new i.Color(this.style.color).toRGB();t.fftSize=this.__size__;!function f(){e.__status__.wave=(0,i.requestAnimationFrame)(f),t.getByteTimeDomainData(a),r.clearRect(0,0,s,l),r.fillStyle=u,r.lineWidth=2,r.strokeStyle=c,r.beginPath();for(var p=1*s/o,d=0,y=0;y<o;y++){var h=a[y]/128*l/2;0===y?r.moveTo(d,h):r.lineTo(d,h),d+=p}r.lineTo(n.width,n.height/2),r.stroke()}()}}},{key:"__bars__",value:function(){var e=this;if((0,i.cancelAnimationFrame)(this.__status__.wave),(0,i.cancelAnimationFrame)(this.__status__.bars),"off"!==this.__status__.switch){var t=this.analyser,n=this.canvas,r=this.ctx,o=t.frequencyBinCount,a=new Uint8Array(o),s=n.width,l=n.height,c=new i.Color(this.style.color).toArray(),u=new i.Color(this.style.color).toRGB();t.fftSize=this.__size__;!function n(){e.__status__.bars=(0,i.requestAnimationFrame)(n),t.getByteFrequencyData(a),r.clearRect(0,0,s,l),r.fillStyle=u,r.fillRect(0,0,s,l);for(var f=s/o*2.5,p=void 0,d=0,y=0;y<o;y++)p=a[y],r.fillStyle="rgb("+(p+c[0])+","+c[1]+","+c[2]+")",r.fillRect(d,l-p/2,f,p/2),d+=f+1}()}}},{key:"on",value:function(){this.__status__.switch="on",this["__"+this.__type__+"__"]()}},{key:"off",value:function(){this.__status__.switch="off",(0,i.cancelAnimationFrame)(this.__status__.wave),(0,i.cancelAnimationFrame)(this.__status__.bars)}},{key:"mode",set:function(t){e.Mode.filter((function(e){return e===t})).length&&(this.__type__=t,"on"===this.__status__.switch&&this["__"+t+"__"]())},get:function(){return this.__type__}},{key:"size",set:function(e){e<65536&&(0,i.isSqrt)(e,2)&&(this.__size__=e,this.analyser.fftSize=e,this["__"+this.__type__+"__"]())},get:function(){return this.__size__}},{key:"status",get:function(){return this.__status__.switch}}],[{key:"AudioCtx",get:function(){return window.AudioContext||window.webkitAudioContext}},{key:"Mode",get:function(){return["wave","bars"]}}]),e}();t.default=o,e.exports=t.default},function(e,t,n){"use strict";Object.defineProperty(t,"__esModule",{value:!0});var r=function(){function e(e,t){for(var n=0;n<t.length;n++){var r=t[n];r.enumerable=r.enumerable||!1,r.configurable=!0,"value"in r&&(r.writable=!0),Object.defineProperty(e,r.key,r)}}return function(t,n,r){return n&&e(t.prototype,n),r&&e(t,r),t}}();function i(e,t){if(!(e instanceof t))throw new TypeError("Cannot call a class as a function")}for(var o,a=0,s="webkit moz ms o".split(" "),l=window.requestAnimationFrame,c=window.cancelAnimationFrame,u=0;u<s.length&&(!l||!c);u++)o=s[u],l=l||window[o+"RequestAnimationFrame"],c=c||window[o+"CancelAnimationFrame"]||window[o+"CancelRequestAnimationFrame"];l&&c||(l=function(e,t){var n=(new Date).getTime(),r=Math.max(0,16-(n-a)),i=window.setTimeout((function(){e.call(n+r)}),r);return a=n+r,i},c=function(e){window.clearTimeout(e)});var f=function(){function e(t){var n=arguments.length>1&&void 0!==arguments[1]?arguments[1]:1;i(this,e),this.color=e.Valid.test(t)?t:"#ffffff",this.opacity=n}return r(e,[{key:"toArray",value:function(){var e=this.color.slice(1),t=[];return 6===e.length&&(t=(e=e.match(/\d{2}/g)).map((function(e){return Number("0x"+e)}))),t}},{key:"toRGB",value:function(){var e=this.toArray();return 3===e.length?"rgb("+e[0]+","+e[1]+","+e[2]+")":""}},{key:"toGRBA",value:function(){var e=this.toArray();return 3===e.length?"rgba("+e[0]+","+e[1]+","+e[2]+","+this.opacity+")":""}}],[{key:"Valid",get:function(){return/^#[0-9A-F]{6}$|^#[0-9A-F]{3}$/i}}]),e}();t.default={requestAnimationFrame:l,cancelAnimationFrame:c,isSqrt:function(e,t){if(1!==e){for(;1!==e;){if(e%t!=0)return!1;e/=t}return!0}return!0},Color:f},e.exports=t.default},function(e,t,n){"use strict";Object.defineProperty(t,"__esModule",{value:!0});var r,i=function(){function e(e,t){for(var n=0;n<t.length;n++){var r=t[n];r.enumerable=r.enumerable||!1,r.configurable=!0,"value"in r&&(r.writable=!0),Object.defineProperty(e,r.key,r)}}return function(t,n,r){return n&&e(t.prototype,n),r&&e(t,r),t}}(),o=n(15),a=(r=o)&&r.__esModule?r:{default:r};var s=function(){function e(t,n){!function(e,t){if(!(e instanceof t))throw new TypeError("Cannot call a class as a function")}(this,e),(0,a.default)(this),this.url=t;var r=new window.XMLHttpRequest;r.target=this,r.responseType="arraybuffer",r.open("get",t),r.onload=function(){200!==r.status&&206!==r.status||n&&n instanceof Function&&n(r.response)},r.onerror=function(e){r.target.emit("error"+e.message)},this.xhr=r,this.run()}return i(e,[{key:"cancel",value:function(){this.xhr.abort()}},{key:"run",value:function(){1===this.xhr.readyState&&this.xhr.send()}}]),e}();t.default=s,e.exports=t.default},function(e,t,n){"use strict";var r,i,o,a,s,l,c,u=n(16),f=n(33),p=Function.prototype.apply,d=Function.prototype.call,y=Object.create,h=Object.defineProperty,g=Object.defineProperties,x=Object.prototype.hasOwnProperty,m={configurable:!0,enumerable:!1,writable:!0};i=function(e,t){var n,i;return f(t),i=this,r.call(this,e,n=function(){o.call(i,e,n),p.call(t,this,arguments)}),n.__eeOnceListener__=t,this},s={on:r=function(e,t){var n;return f(t),x.call(this,"__ee__")?n=this.__ee__:(n=m.value=y(null),h(this,"__ee__",m),m.value=null),n[e]?"object"==typeof n[e]?n[e].push(t):n[e]=[n[e],t]:n[e]=t,this},once:i,off:o=function(e,t){var n,r,i,o;if(f(t),!x.call(this,"__ee__"))return this;if(!(n=this.__ee__)[e])return this;if("object"==typeof(r=n[e]))for(o=0;i=r[o];++o)i!==t&&i.__eeOnceListener__!==t||(2===r.length?n[e]=r[o?0:1]:r.splice(o,1));else r!==t&&r.__eeOnceListener__!==t||delete n[e];return this},emit:a=function(e){var t,n,r,i,o;if(x.call(this,"__ee__")&&(i=this.__ee__[e]))if("object"==typeof i){for(n=arguments.length,o=new Array(n-1),t=1;t<n;++t)o[t-1]=arguments[t];for(i=i.slice(),t=0;r=i[t];++t)p.call(r,this,o)}else switch(arguments.length){case 1:d.call(i,this);break;case 2:d.call(i,this,arguments[1]);break;case 3:d.call(i,this,arguments[1],arguments[2]);break;default:for(n=arguments.length,o=new Array(n-1),t=1;t<n;++t)o[t-1]=arguments[t];p.call(i,this,o)}}},l={on:u(r),once:u(i),off:u(o),emit:u(a)},c=g({},l),e.exports=t=function(e){return null==e?y(c):g(Object(e),l)},t.methods=s},function(e,t,n){"use strict";var r=n(3),i=n(17),o=n(21),a=n(29),s=n(30);(e.exports=function(e,t){var n,i,l,c,u;return arguments.length<2||"string"!=typeof e?(c=t,t=e,e=null):c=arguments[2],r(e)?(n=s.call(e,"c"),i=s.call(e,"e"),l=s.call(e,"w")):(n=l=!0,i=!1),u={value:t,configurable:n,enumerable:i,writable:l},c?o(a(c),u):u}).gs=function(e,t,n){var l,c,u,f;return"string"!=typeof e?(u=n,n=t,t=e,e=null):u=arguments[3],r(t)?i(t)?r(n)?i(n)||(u=n,n=void 0):n=void 0:(u=t,t=n=void 0):t=void 0,r(e)?(l=s.call(e,"c"),c=s.call(e,"e")):(l=!0,c=!1),f={get:t,set:n,configurable:l,enumerable:c},u?o(a(u),f):f}},function(e,t,n){"use strict";var r=n(18),i=/^\s*class[\s{/}]/,o=Function.prototype.toString;e.exports=function(e){return!!r(e)&&!i.test(o.call(e))}},function(e,t,n){"use strict";var r=n(19);e.exports=function(e){if("function"!=typeof e)return!1;if(!hasOwnProperty.call(e,"length"))return!1;try{if("number"!=typeof e.length)return!1;if("function"!=typeof e.call)return!1;if("function"!=typeof e.apply)return!1}catch(e){return!1}return!r(e)}},function(e,t,n){"use strict";var r=n(20);e.exports=function(e){if(!r(e))return!1;try{return!!e.constructor&&e.constructor.prototype===e}catch(e){return!1}}},function(e,t,n){"use strict";var r=n(3),i={object:!0,function:!0,undefined:!0};e.exports=function(e){return!!r(e)&&hasOwnProperty.call(i,typeof e)}},function(e,t,n){"use strict";e.exports=n(22)()?Object.assign:n(23)},function(e,t,n){"use strict";e.exports=function(){var e,t=Object.assign;return"function"==typeof t&&(t(e={foo:"raz"},{bar:"dwa"},{trzy:"trzy"}),e.foo+e.bar+e.trzy==="razdwatrzy")}},function(e,t,n){"use strict";var r=n(24),i=n(28),o=Math.max;e.exports=function(e,t){var n,a,s,l=o(arguments.length,2);for(e=Object(i(e)),s=function(r){try{e[r]=t[r]}catch(e){n||(n=e)}},a=1;a<l;++a)t=arguments[a],r(t).forEach(s);if(void 0!==n)throw n;return e}},function(e,t,n){"use strict";e.exports=n(25)()?Object.keys:n(26)},function(e,t,n){"use strict";e.exports=function(){try{return Object.keys("primitive"),!0}catch(e){return!1}}},function(e,t,n){"use strict";var r=n(1),i=Object.keys;e.exports=function(e){return i(r(e)?Object(e):e)}},function(e,t,n){"use strict";e.exports=function(){}},function(e,t,n){"use strict";var r=n(1);e.exports=function(e){if(!r(e))throw new TypeError("Cannot use null or undefined");return e}},function(e,t,n){"use strict";var r=n(1),i=Array.prototype.forEach,o=Object.create,a=function(e,t){var n;for(n in e)t[n]=e[n]};e.exports=function(e){var t=o(null);return i.call(arguments,(function(e){r(e)&&a(Object(e),t)})),t}},function(e,t,n){"use strict";e.exports=n(31)()?String.prototype.contains:n(32)},function(e,t,n){"use strict";var r="razdwatrzy";e.exports=function(){return"function"==typeof r.contains&&(!0===r.contains("dwa")&&!1===r.contains("foo"))}},function(e,t,n){"use strict";var r=String.prototype.indexOf;e.exports=function(e){return r.call(this,e,arguments[1])>-1}},function(e,t,n){"use strict";e.exports=function(e){if("function"!=typeof e)throw new TypeError(e+" is not a function");return e}},function(e,t,n){"use strict";Object.defineProperty(t,"__esModule",{value:!0});var r,i=n(0),o=(r=i)&&r.__esModule?r:{default:r};t.default=function e(t){!function(e,t){if(!(e instanceof t))throw new TypeError("Cannot call a class as a function")}(this,e);var n=o.default.util,r=t.controls,i=t.config.backwardBtn?t.config.backwardBtn:{},a=void 0;a="img"===i.type?o.default.util.createImgBtn("backward",i.url,i.width,i.height):n.createDom("xg-backward",'<xg-icon class="xgplayer-icon"><svg xmlns="http://www.w3.org/2000/svg" width="1024" height="1024" viewBox="0 0 1024 1024">\n                <path transform = "scale(1.5 1.5) translate(8 4.5)"\n                d="m 14,2.99996 0,10 -7,-5 7,-5 z m -7,5 0,5 -7,-5 7,-5 0,5 z m -7,0 0,0 z"></path>\n            </svg></xg-icon>',{},"xgplayer-backward"),r.appendChild(a),["click","touchstart"].forEach((function(e){a.addEventListener(e,(function(e){e.preventDefault(),e.stopPropagation(),t.backward()}),!1)}))},e.exports=t.default},function(e,t,n){"use strict";Object.defineProperty(t,"__esModule",{value:!0});var r,i=n(0),o=(r=i)&&r.__esModule?r:{default:r};t.default=function e(t){!function(e,t){if(!(e instanceof t))throw new TypeError("Cannot call a class as a function")}(this,e);var n=o.default.util,r=t.controls,i=n.createDom("xg-cover",'<img src="'+(t.config.poster||t.config.url[0].poster)+'">',{},"xgplayer-cover");r.appendChild(i),t.on("change",(function(e){i.innerHTML='<img src="'+e.poster+'">'}))},e.exports=t.default},function(e,t,n){"use strict";Object.defineProperty(t,"__esModule",{value:!0});var r,i=n(0),o=(r=i)&&r.__esModule?r:{default:r};t.default=function e(t){!function(e,t){if(!(e instanceof t))throw new TypeError("Cannot call a class as a function")}(this,e);var n=o.default.util,r=t.controls,i=t.config.forwardBtn?t.config.forwardBtn:{},a=void 0;a="img"===i.type?o.default.util.createImgBtn("forward",i.url,i.width,i.height):n.createDom("xg-forward",'<xg-icon class="xgplayer-icon"><svg xmlns="http://www.w3.org/2000/svg" width="1024" height="1024" viewBox="0 0 1024 1024">\n                <path transform = "scale(1.5 1.5) translate(-2 4.5)"\n                d="m 2,2.99996 0,10 7,-5 -7,-5 z m 7,5 0,5 7,-5 -7,-5 0,5 z m 7,0 0,0 z"></path>\n            </svg></xg-icon>',{},"xgplayer-forward"),r.appendChild(a),["click","touchstart"].forEach((function(e){a.addEventListener(e,(function(e){e.preventDefault(),e.stopPropagation(),t.forward()}),!1)}))},e.exports=t.default},function(e,t,n){"use strict";Object.defineProperty(t,"__esModule",{value:!0});var r,i=n(0),o=(r=i)&&r.__esModule?r:{default:r};t.default=function e(t){!function(e,t){if(!(e instanceof t))throw new TypeError("Cannot call a class as a function")}(this,e);var n=o.default.util,r=t.controls.querySelector(".xgplayer-progress"),i=n.createDom("xg-name",""+(t.config.name||t.config.url[0].name),{},"xgplayer-name");r.appendChild(i),t.on("change",(function(e){i.innerHTML=""+e.name}))},e.exports=t.default},function(e,t,n){"use strict";Object.defineProperty(t,"__esModule",{value:!0});var r,i=n(0),o=(r=i)&&r.__esModule?r:{default:r};t.default=function e(t){!function(e,t){if(!(e instanceof t))throw new TypeError("Cannot call a class as a function")}(this,e);var n=o.default.util,r=t.controls,i=t.config.nextBtn?t.config.nextBtn:{},a=void 0;a="img"===i.type?o.default.util.createImgBtn("next",i.url,i.width,i.height):n.createDom("xg-next",'<xg-icon class="xgplayer-icon"><svg xmlns="http://www.w3.org/2000/svg" width="1024" height="1024" viewBox="0 0 1024 1024">\n                <path transform="scale(0.025 0.025)"\n                d="M800 380v768h-128v-352l-320 320v-704l320 320v-352z"></path>\n            </svg></xg-icon>',{},"xgplayer-next"),r.appendChild(a),["click","touchstart"].forEach((function(e){a.addEventListener(e,(function(e){e.preventDefault(),e.stopPropagation(),t.next()}),!1)}))},e.exports=t.default},function(e,t,n){"use strict";Object.defineProperty(t,"__esModule",{value:!0});var r,i=n(0),o=(r=i)&&r.__esModule?r:{default:r};t.default=function e(t){!function(e,t){if(!(e instanceof t))throw new TypeError("Cannot call a class as a function")}(this,e);var n=o.default.util,r=t.controls,i=t.config.prevBtn?t.config.prevBtn:{},a=void 0;a="img"===i.type?o.default.util.createImgBtn("prev",i.url,i.width,i.height):n.createDom("xg-prev",'<xg-icon class="xgplayer-icon"><svg xmlns="http://www.w3.org/2000/svg" width="1024" height="1024" viewBox="0 0 1024 1024">\n                <path transform = "scale(0.025 0.025)"\n                d="M600 1140v-768h128v352l320-320v704l-320-320v352zz"></path>\n            </svg></xg-icon>',{},"xgplayer-prev"),r.appendChild(a),["click","touchstart"].forEach((function(e){a.addEventListener(e,(function(e){e.preventDefault(),e.stopPropagation(),t.prev()}),!1)}))},e.exports=t.default}])}));
+(function webpackUniversalModuleDefinition(root, factory) {
+	if(typeof exports === 'object' && typeof module === 'object')
+		module.exports = factory(require("xgplayer"));
+	else if(typeof define === 'function' && define.amd)
+		define(["xgplayer"], factory);
+	else if(typeof exports === 'object')
+		exports["xgplayer-music.js"] = factory(require("xgplayer"));
+	else
+		root["xgplayer-music.js"] = factory(root["xgplayer"]);
+})(window, function(__WEBPACK_EXTERNAL_MODULE__2__) {
+return /******/ (function(modules) { // webpackBootstrap
+/******/ 	// The module cache
+/******/ 	var installedModules = {};
+/******/
+/******/ 	// The require function
+/******/ 	function __webpack_require__(moduleId) {
+/******/
+/******/ 		// Check if module is in cache
+/******/ 		if(installedModules[moduleId]) {
+/******/ 			return installedModules[moduleId].exports;
+/******/ 		}
+/******/ 		// Create a new module (and put it into the cache)
+/******/ 		var module = installedModules[moduleId] = {
+/******/ 			i: moduleId,
+/******/ 			l: false,
+/******/ 			exports: {}
+/******/ 		};
+/******/
+/******/ 		// Execute the module function
+/******/ 		modules[moduleId].call(module.exports, module, module.exports, __webpack_require__);
+/******/
+/******/ 		// Flag the module as loaded
+/******/ 		module.l = true;
+/******/
+/******/ 		// Return the exports of the module
+/******/ 		return module.exports;
+/******/ 	}
+/******/
+/******/
+/******/ 	// expose the modules object (__webpack_modules__)
+/******/ 	__webpack_require__.m = modules;
+/******/
+/******/ 	// expose the module cache
+/******/ 	__webpack_require__.c = installedModules;
+/******/
+/******/ 	// define getter function for harmony exports
+/******/ 	__webpack_require__.d = function(exports, name, getter) {
+/******/ 		if(!__webpack_require__.o(exports, name)) {
+/******/ 			Object.defineProperty(exports, name, { enumerable: true, get: getter });
+/******/ 		}
+/******/ 	};
+/******/
+/******/ 	// define __esModule on exports
+/******/ 	__webpack_require__.r = function(exports) {
+/******/ 		if(typeof Symbol !== 'undefined' && Symbol.toStringTag) {
+/******/ 			Object.defineProperty(exports, Symbol.toStringTag, { value: 'Module' });
+/******/ 		}
+/******/ 		Object.defineProperty(exports, '__esModule', { value: true });
+/******/ 	};
+/******/
+/******/ 	// create a fake namespace object
+/******/ 	// mode & 1: value is a module id, require it
+/******/ 	// mode & 2: merge all properties of value into the ns
+/******/ 	// mode & 4: return value when already ns object
+/******/ 	// mode & 8|1: behave like require
+/******/ 	__webpack_require__.t = function(value, mode) {
+/******/ 		if(mode & 1) value = __webpack_require__(value);
+/******/ 		if(mode & 8) return value;
+/******/ 		if((mode & 4) && typeof value === 'object' && value && value.__esModule) return value;
+/******/ 		var ns = Object.create(null);
+/******/ 		__webpack_require__.r(ns);
+/******/ 		Object.defineProperty(ns, 'default', { enumerable: true, value: value });
+/******/ 		if(mode & 2 && typeof value != 'string') for(var key in value) __webpack_require__.d(ns, key, function(key) { return value[key]; }.bind(null, key));
+/******/ 		return ns;
+/******/ 	};
+/******/
+/******/ 	// getDefaultExport function for compatibility with non-harmony modules
+/******/ 	__webpack_require__.n = function(module) {
+/******/ 		var getter = module && module.__esModule ?
+/******/ 			function getDefault() { return module['default']; } :
+/******/ 			function getModuleExports() { return module; };
+/******/ 		__webpack_require__.d(getter, 'a', getter);
+/******/ 		return getter;
+/******/ 	};
+/******/
+/******/ 	// Object.prototype.hasOwnProperty.call
+/******/ 	__webpack_require__.o = function(object, property) { return Object.prototype.hasOwnProperty.call(object, property); };
+/******/
+/******/ 	// __webpack_public_path__
+/******/ 	__webpack_require__.p = "";
+/******/
+/******/
+/******/ 	// Load entry module and return exports
+/******/ 	return __webpack_require__(__webpack_require__.s = 4);
+/******/ })
+/************************************************************************/
+/******/ ([
+/* 0 */
+/***/ (function(module, exports, __webpack_require__) {
+
+"use strict";
+
+
+Object.defineProperty(exports, "__esModule", {
+  value: true
+});
+exports.Analyze = exports.Lyric = undefined;
+
+var _createClass = function () { function defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ("value" in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } } return function (Constructor, protoProps, staticProps) { if (protoProps) defineProperties(Constructor.prototype, protoProps); if (staticProps) defineProperties(Constructor, staticProps); return Constructor; }; }();
+
+var _xgplayer = __webpack_require__(2);
+
+var _xgplayer2 = _interopRequireDefault(_xgplayer);
+
+var _lyric = __webpack_require__(11);
+
+var _lyric2 = _interopRequireDefault(_lyric);
+
+var _analyze = __webpack_require__(12);
+
+var _analyze2 = _interopRequireDefault(_analyze);
+
+var _xhr = __webpack_require__(14);
+
+var _xhr2 = _interopRequireDefault(_xhr);
+
+var _backward = __webpack_require__(34);
+
+var _backward2 = _interopRequireDefault(_backward);
+
+var _cover = __webpack_require__(35);
+
+var _cover2 = _interopRequireDefault(_cover);
+
+var _forward = __webpack_require__(36);
+
+var _forward2 = _interopRequireDefault(_forward);
+
+var _meta = __webpack_require__(37);
+
+var _meta2 = _interopRequireDefault(_meta);
+
+var _next = __webpack_require__(38);
+
+var _next2 = _interopRequireDefault(_next);
+
+var _prev = __webpack_require__(39);
+
+var _prev2 = _interopRequireDefault(_prev);
+
+function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
+
+function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } }
+
+function _possibleConstructorReturn(self, call) { if (!self) { throw new ReferenceError("this hasn't been initialised - super() hasn't been called"); } return call && (typeof call === "object" || typeof call === "function") ? call : self; }
+
+function _inherits(subClass, superClass) { if (typeof superClass !== "function" && superClass !== null) { throw new TypeError("Super expression must either be null or a function, not " + typeof superClass); } subClass.prototype = Object.create(superClass && superClass.prototype, { constructor: { value: subClass, enumerable: false, writable: true, configurable: true } }); if (superClass) Object.setPrototypeOf ? Object.setPrototypeOf(subClass, superClass) : subClass.__proto__ = superClass; }
+
+var mode = void 0;
+var timeScale = 15;
+
+var util = _xgplayer2.default.util;
+
+var Music = function (_Player) {
+  _inherits(Music, _Player);
+
+  function Music(options) {
+    _classCallCheck(this, Music);
+
+    var opts = util.deepCopy({
+      controls: true,
+      mediaType: 'audio',
+      ignores: ['fullscreen', 'start', 'definition', 'makeBullet', 'textTrack', 'loading', 'pc', 'mobile', 'playbackRate', 'replay', 'error', 'poster']
+    }, options);
+    if (!opts.volumeShow) {
+      opts.ignores.push('volume');
+    }
+
+    var _this = _possibleConstructorReturn(this, (Music.__proto__ || Object.getPrototypeOf(Music)).call(this, opts));
+
+    var player = _this;
+
+    if (player.config.ignores.indexOf('backward') < 0) {
+      new _backward2.default(player);
+    }
+    if (player.config.ignores.indexOf('cover') < 0) {
+      new _cover2.default(player);
+    }
+    if (player.config.ignores.indexOf('forward') < 0) {
+      new _forward2.default(player);
+    }
+    if (player.config.ignores.indexOf('meta') < 0) {
+      new _meta2.default(player);
+    }
+    if (player.config.ignores.indexOf('next') < 0) {
+      new _next2.default(player);
+    }
+    if (player.config.ignores.indexOf('prev') < 0) {
+      new _prev2.default(player);
+    }
+
+    _this.rawConfig = options;
+    _this.list = util.typeOf(opts.url) === 'Array' ? opts.url : [{
+      src: opts.url,
+      name: opts.name,
+      vid: opts.vid,
+      poster: opts.poster
+    }];
+    _this.name = _this.list[0].name;
+    _this.vid = _this.list[0].vid;
+    _this.poster = _this.list[0].poster;
+    _this.nextIndex = 1;
+    _this.prevIndex = _this.list.length - 1;
+    _this.halfPass = false;
+    _this.history = [];
+    _this.index = 0;
+    if (!opts.controls) {
+      _this.root.style.display = 'none';
+      return _possibleConstructorReturn(_this);
+    }
+
+    util.addClass(_this.root, 'xgplayer-music');
+    if (!opts.width) {
+      _this.config.width = '100%';
+      _this.root.style.width = '100%';
+    }
+    if (!opts.height) {
+      _this.config.height = '50px';
+      _this.root.style.height = '50px';
+    }
+    Object.defineProperty(_this, 'src', {
+      get: function get() {
+        return this.video.currentSrc;
+      },
+      set: function set(v) {
+        var cur = util.typeOf(v) === 'String' ? { src: v, name: '' } : v;
+        this.history.push(cur);
+        this.video.src = cur.src;
+      },
+
+      configurable: true
+    });
+    if (_this.config.autoplayMuted) {
+      _this.config.volume = _this.config.autoplay ? 0 : _this.config.volume;
+    }
+    _this.once('ready', function () {
+      util.addClass(player.root, 'xgplayer-skin-default');
+      if (_this.config.lang && _this.config.lang === 'en') {
+        util.addClass(_this.root, 'lang-is-en');
+      } else if (_this.config.lang === 'jp') {
+        util.addClass(_this.root, 'lang-is-jp');
+      }
+    });
+    _this.once('canplay', function () {
+      if (this.config.autoplay && this.config.autoplayMuted) {
+        this.volume = 0;
+      } else {
+        this.volume = this.config.volume;
+      }
+      if (this.config.abCycle) {
+        if (typeof this.addProgressDot === 'function') {
+          this.addProgressDot(this.config.abCycle.start);
+          this.addProgressDot(this.config.abCycle.end);
+        }
+      }
+    });
+    _this.on('timeupdate', function () {
+      if (!_this.halfPass && _this.currentTime > _this.duration / 2) {
+        _this.confirmOrder();
+      }
+      if (_this.config.abCycle) {
+        if (_this.currentTime >= _this.config.abCycle.end) {
+          if (!_this.config.abCycle.loop) {
+            _this.pause();
+          }
+          _this.currentTime = _this.config.abCycle.start;
+        } else if (_this.currentTime < _this.config.abCycle.start) {
+          _this.currentTime = _this.config.abCycle.start;
+        }
+      }
+    });
+    _this.on('ended', function () {
+      if (_this.mode === 'order' && _this.index + 1 >= _this.list.length) {
+        _this.pause();
+        _this.currentTime = 0;
+        return;
+      }
+      switch (_this.mode) {
+        case 'sloop':
+          _this.change();
+          break;
+        case 'order':
+        case 'loop':
+        default:
+          _this.next();
+          break;
+      }
+    });
+    if (!_this.config.segPlay) {
+      _this.checkOffline(player.list[0].src, player.list[0].vid || player.list[0].name).then(function (url) {
+        player.config.url = url;
+        player.start(url);
+      });
+    }
+    return _this;
+  }
+
+  _createClass(Music, [{
+    key: 'lyric',
+    value: function lyric(lyricTxts, Dom) {
+      if (this.__lyric__) {
+        this.__lyric__.unbind(this);
+      }
+      if (_xgplayer2.default.util.typeOf(lyricTxts) !== 'Array') {
+        lyricTxts = [].concat(lyricTxts);
+      }
+      this.__lyric__ = new _lyric2.default(lyricTxts, Dom, this.config.lyricOpts || {});
+      this.__lyric__.bind(this);
+      return this.__lyric__;
+    }
+  }, {
+    key: 'confirmOrder',
+    value: function confirmOrder() {
+      var player = this;
+      this.halfPass = true;
+      this.nextComput();
+      this.prevComput();
+      if (this.config.preloadNext) {
+        this.checkOffline(this.list[this.nextIndex].src, this.list[this.nextIndex].vid || this.list[this.nextIndex].name).then(function (url) {
+          if (url.indexOf('blob:') < 0) {
+            var offlineVid = player.list[player.nextIndex].vid || player.list[player.nextIndex].name;
+            var xhr = new _xhr2.default(player.list[player.nextIndex].src, function (res) {
+              player.database.openDB(function () {
+                player.database.addData(player.database.myDB.ojstore.name, [{ vid: offlineVid, blob: new Blob([res], { type: 'audio/mp4; codecs="mp4a.40.5"' }) }]);
+                setTimeout(function () {
+                  player.database.closeDB();
+                }, 5000);
+              });
+            });
+          }
+        });
+      }
+    }
+  }, {
+    key: 'nextComput',
+    value: function nextComput() {
+      switch (this.mode) {
+        case 'sloop':
+        case 'order':
+        case 'loop':
+          if (this.index + 1 < this.list.length) {
+            this.nextIndex = this.index + 1;
+          } else {
+            this.nextIndex = 0;
+          }
+          break;
+        default:
+          this.nextIndex = Math.ceil(Math.random() * this.list.length);
+          break;
+      }
+    }
+  }, {
+    key: 'prevComput',
+    value: function prevComput() {
+      switch (this.mode) {
+        case 'sloop':
+        case 'order':
+        case 'loop':
+          if (this.index - 1 >= 0) {
+            this.prevIndev = this.index - 1;
+          } else {
+            this.prevIndev = this.list.length - 1;
+          }
+          break;
+        default:
+          this.prevIndev = Math.ceil(Math.random() * this.list.length);
+          break;
+      }
+    }
+  }, {
+    key: 'add',
+    value: function add(meta) {
+      this.list.push({
+        src: meta.src,
+        name: meta.name,
+        vid: meta.vid,
+        poster: meta.poster
+      });
+    }
+  }, {
+    key: 'remove',
+    value: function remove(url) {
+      var idx = -1;
+      this.list.every(function (item, index) {
+        if (item.src === url || item.name === url || item.vid === url) {
+          idx = index;
+          return false;
+        } else {
+          return true;
+        }
+      });
+      if (idx > -1) {
+        this.list.splice(idx, 1);
+      }
+    }
+  }, {
+    key: 'updateList',
+    value: function updateList() {
+      var list = arguments.length > 0 && arguments[0] !== undefined ? arguments[0] : [];
+
+      this.removeAbCycle();
+      this.pause();
+      this.currentTime = 0;
+      this.list = list;
+      this.nextIndex = 0;
+      this.index = 0;
+      this.change();
+    }
+  }, {
+    key: 'change',
+    value: function change() {
+      var _this2 = this;
+
+      var self = this;
+      var offlineVid = self.list[self.index].vid || self.list[self.index].name;
+      this.halfPass = false;
+      this.checkOffline(self.list[self.index].src, offlineVid).then(function (url) {
+        if (_xgplayer2.default.m4a) {
+          self.video.load();
+          self.name = self.list[self.index].name;
+          self.vid = self.list[self.index].vid;
+          self.poster = self.list[self.index].poster;
+          self.emit('change', { src: url, name: self.name, vid: self.vid, poster: self.poster });
+        } else {
+          self.video.pause();
+          if (_this2.config.switchKeepProgress && !_this2.ended) {
+            var currentTime = self.currentTime;
+            _this2.once('playing', function () {
+              self.currentTime = currentTime;
+            });
+          } else {
+            self.currentTime = 0;
+          }
+          self.src = url;
+          self.name = self.list[self.index].name;
+          self.vid = self.list[self.index].vid;
+          self.poster = self.list[self.index].poster;
+          setTimeout(function () {
+            self.video.play().then(function () {
+              self.emit('change', { src: url, name: self.name, vid: self.vid, poster: self.poster });
+            });
+          }, 60);
+        }
+      });
+    }
+  }, {
+    key: 'checkOffline',
+    value: function checkOffline(url, offlineVid) {
+      var self = this;
+      return new Promise(function (resolve) {
+        if (!self.config.offline) {
+          resolve(url);
+        }
+        self.database.openDB(function () {
+          self.database.getDataByKey(self.database.myDB.ojstore.name, offlineVid, function (result) {
+            setTimeout(function () {
+              self.database.closeDB();
+            }, 5000);
+            if (result) {
+              resolve(URL.createObjectURL(result.blob));
+            } else {
+              resolve(url);
+            }
+          });
+        });
+      });
+    }
+  }, {
+    key: 'next',
+    value: function next() {
+      if (!this.halfPass) {
+        this.halfPass = true;
+        this.nextComput();
+      }
+      this.index = this.nextIndex;
+      this.change();
+    }
+  }, {
+    key: 'prev',
+    value: function prev() {
+      if (!this.halfPass) {
+        this.halfPass = true;
+        this.prevComput();
+      }
+      this.index = this.prevIndex;
+      this.change();
+    }
+  }, {
+    key: 'setIndex',
+    value: function setIndex() {
+      var index = arguments.length > 0 && arguments[0] !== undefined ? arguments[0] : 0;
+
+      this.nextIndex = index;
+      this.index = index;
+      this.change();
+    }
+  }, {
+    key: 'forward',
+    value: function forward() {
+      // console.log(`music go forward ${timeScale}s`)
+      this.currentTime = this.currentTime + timeScale < this.duration ? this.currentTime + timeScale : this.duration - 0.1;
+    }
+  }, {
+    key: 'backward',
+    value: function backward() {
+      // console.log(`music go backward ${timeScale}s`)
+      this.currentTime = this.currentTime - timeScale > 0 ? this.currentTime - timeScale : 0;
+    }
+  }, {
+    key: 'analyze',
+    value: function analyze(canvas) {
+      return new _analyze2.default(this, canvas);
+    }
+  }, {
+    key: 'setAbCycle',
+    value: function setAbCycle(start, end) {
+      this.config.abCycle = {
+        start: start,
+        end: end
+      };
+      if (typeof this.removeAllProgressDot === 'function') {
+        this.removeAllProgressDot();
+      }
+      if (typeof this.addProgressDot === 'function') {
+        this.addProgressDot(this.config.abCycle.start);
+        this.addProgressDot(this.config.abCycle.end);
+      }
+    }
+  }, {
+    key: 'removeAbCycle',
+    value: function removeAbCycle() {
+      this.config.abCycle = null;
+      if (typeof this.removeAllProgressDot === 'function') {
+        this.removeAllProgressDot();
+      }
+    }
+  }, {
+    key: 'mode',
+    get: function get() {
+      return mode || Music.ModeType[2];
+    },
+    set: function set(idx) {
+      switch (idx) {
+        case 0:
+        case 1:
+        case 2:
+        case 3:
+          mode = Music.ModeType[idx];
+      }
+      this.confirmOrder();
+    }
+  }, {
+    key: 'timeScale',
+    get: function get() {
+      return timeScale || 15;
+    },
+    set: function set(scale) {
+      timeScale = scale;
+    }
+  }], [{
+    key: 'AudioCtx',
+    get: function get() {
+      return window.AudioContext || window.webkitAudioContext;
+    }
+  }, {
+    key: 'ModeType',
+    get: function get() {
+      return ['order', 'random', 'loop', 'sloop'];
+    }
+  }]);
+
+  return Music;
+}(_xgplayer2.default);
+
+exports.default = Music;
+exports.Lyric = _lyric2.default;
+exports.Analyze = _analyze2.default;
+
+/***/ }),
+/* 1 */
+/***/ (function(module, exports, __webpack_require__) {
+
+"use strict";
+
+
+var _undefined = __webpack_require__(27)(); // Support ES3 engines
+
+module.exports = function (val) { return val !== _undefined && val !== null; };
+
+
+/***/ }),
+/* 2 */
+/***/ (function(module, exports) {
+
+module.exports = __WEBPACK_EXTERNAL_MODULE__2__;
+
+/***/ }),
+/* 3 */
+/***/ (function(module, exports, __webpack_require__) {
+
+"use strict";
+
+
+// ES3 safe
+var _undefined = void 0;
+
+module.exports = function (value) { return value !== _undefined && value !== null; };
+
+
+/***/ }),
+/* 4 */
+/***/ (function(module, exports, __webpack_require__) {
+
+module.exports = __webpack_require__(5);
+
+
+/***/ }),
+/* 5 */
+/***/ (function(module, exports, __webpack_require__) {
+
+"use strict";
+
+
+Object.defineProperty(exports, "__esModule", {
+  value: true
+});
+
+__webpack_require__(6);
+
+var _music = __webpack_require__(0);
+
+var _music2 = _interopRequireDefault(_music);
+
+function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
+
+exports.default = _music2.default;
+module.exports = exports['default'];
+
+/***/ }),
+/* 6 */
+/***/ (function(module, exports, __webpack_require__) {
+
+
+var content = __webpack_require__(7);
+
+if(typeof content === 'string') content = [[module.i, content, '']];
+
+var transform;
+var insertInto;
+
+
+
+var options = {"hmr":true}
+
+options.transform = transform
+options.insertInto = undefined;
+
+var update = __webpack_require__(9)(content, options);
+
+if(content.locals) module.exports = content.locals;
+
+if(false) {}
+
+/***/ }),
+/* 7 */
+/***/ (function(module, exports, __webpack_require__) {
+
+exports = module.exports = __webpack_require__(8)(false);
+// imports
+
+
+// module
+exports.push([module.i, ".xgplayer-skin-default.xgplayer-music .xgplayer-controls{display:-webkit-box;display:-ms-flexbox;display:flex;height:50px;cursor:default}.xgplayer-skin-default.xgplayer-music .xgplayer-controls .xgplayer-backward,.xgplayer-skin-default.xgplayer-music .xgplayer-controls .xgplayer-backward-img{-webkit-box-ordinal-group:1;-ms-flex-order:0;order:0;cursor:pointer}.xgplayer-skin-default.xgplayer-music .xgplayer-controls .xgplayer-backward-img:hover,.xgplayer-skin-default.xgplayer-music .xgplayer-controls .xgplayer-backward:hover{opacity:.85}.xgplayer-skin-default.xgplayer-music .xgplayer-controls .xgplayer-prev,.xgplayer-skin-default.xgplayer-music .xgplayer-controls .xgplayer-prev-img{-webkit-box-ordinal-group:2;-ms-flex-order:1;order:1;cursor:pointer}.xgplayer-skin-default.xgplayer-music .xgplayer-controls .xgplayer-prev-img:hover,.xgplayer-skin-default.xgplayer-music .xgplayer-controls .xgplayer-prev:hover{opacity:.85}.xgplayer-skin-default.xgplayer-music .xgplayer-controls .xgplayer-play,.xgplayer-skin-default.xgplayer-music .xgplayer-controls .xgplayer-play-img{-webkit-box-ordinal-group:3;-ms-flex-order:2;order:2;margin-right:-5px}.xgplayer-skin-default.xgplayer-music .xgplayer-controls .xgplayer-play-img .xgplayer-tips,.xgplayer-skin-default.xgplayer-music .xgplayer-controls .xgplayer-play .xgplayer-tips{display:none}.xgplayer-skin-default.xgplayer-music .xgplayer-controls .xgplayer-next,.xgplayer-skin-default.xgplayer-music .xgplayer-controls .xgplayer-next-img{-webkit-box-ordinal-group:4;-ms-flex-order:3;order:3;cursor:pointer}.xgplayer-skin-default.xgplayer-music .xgplayer-controls .xgplayer-next-img:hover,.xgplayer-skin-default.xgplayer-music .xgplayer-controls .xgplayer-next:hover{opacity:.85}.xgplayer-skin-default.xgplayer-music .xgplayer-controls .xgplayer-forward,.xgplayer-skin-default.xgplayer-music .xgplayer-controls .xgplayer-forward-img{-webkit-box-ordinal-group:5;-ms-flex-order:4;order:4;cursor:pointer}.xgplayer-skin-default.xgplayer-music .xgplayer-controls .xgplayer-forward-img:hover,.xgplayer-skin-default.xgplayer-music .xgplayer-controls .xgplayer-forward:hover{opacity:.85}.xgplayer-skin-default.xgplayer-music .xgplayer-controls .xgplayer-volume{-webkit-box-ordinal-group:6;-ms-flex-order:5;order:5;cursor:pointer}.xgplayer-skin-default.xgplayer-music .xgplayer-controls .xgplayer-volume .xgplayer-icon{bottom:-13px}.xgplayer-skin-default.xgplayer-music .xgplayer-controls .xgplayer-cover{position:static;-webkit-box-ordinal-group:7;-ms-flex-order:6;order:6;width:40px;height:40px;text-align:center;vertical-align:middle;position:relative;top:50%;margin-top:-17px}.xgplayer-skin-default.xgplayer-music .xgplayer-controls .xgplayer-cover img{max-width:100%;max-height:100%}.xgplayer-skin-default.xgplayer-music .xgplayer-controls .xgplayer-progress{position:relative;-webkit-box-ordinal-group:8;-ms-flex-order:7;order:7;top:70%;left:20px;margin-top:-11px;-webkit-box-flex:99;-ms-flex:99;flex:99}.xgplayer-skin-default.xgplayer-music .xgplayer-controls .xgplayer-progress .xgplayer-name{position:absolute;left:0;top:-120%;font-size:12px;color:#ddd}.xgplayer-skin-default.xgplayer-music .xgplayer-controls .xgplayer-progress>*{height:3px;margin-top:8.5px}.xgplayer-skin-default.xgplayer-music .xgplayer-controls .xgplayer-progress .xgplayer-progress-played:after{top:-4px;width:10px;height:10px;content:\" \";display:block}.xgplayer-skin-default.xgplayer-music .xgplayer-controls .xgplayer-progress .xgplayer-tips{display:none!important}.xgplayer-skin-default.xgplayer-music .xgplayer-controls .xgplayer-progress:focus .xgplayer-progress-btn,.xgplayer-skin-default.xgplayer-music .xgplayer-controls .xgplayer-progress:hover .xgplayer-progress-btn{top:-5px}.xgplayer-skin-default.xgplayer-music .xgplayer-controls .xgplayer-time{-webkit-box-ordinal-group:9;-ms-flex-order:8;order:8;margin-left:30px;line-height:1;position:relative;top:55%}.xgplayer-skin-default.xgplayer-music .xgplayer-controls .xgplayer-placeholder{-webkit-box-ordinal-group:1000;-ms-flex-order:999;order:999;width:0}.xgplayer-skin-default.xgplayer-music .xgplayer-controls .xgplayer-icon{padding-top:5px}.xgplayer-skin-default.xgplayer-music.xgplayer-ended .xgplayer-controls,.xgplayer-skin-default.xgplayer-music.xgplayer-nostart .xgplayer-controls{display:-webkit-box;display:-ms-flexbox;display:flex}.xgplayer-skin-default .xgplayer-lyric-item{display:block;line-height:22px;font-size:14px;color:#000}.xgplayer-skin-default .xgplayer-lyric-item.xgplayer-lyric-item-active{color:#7fffd4}.xgplayer-skin-default .xgplayer-lrcWrap{overflow:auto;height:300px;border:1px solid #ddd;padding:20px}.xgplayer-skin-default .xgplayer-lrcForward{position:absolute;top:20%;left:300px;cursor:pointer;width:0;height:0;border-width:0 10px 10px;border-style:solid;border-color:transparent transparent #333}.xgplayer-skin-default .xgplayer-lrcBack{position:absolute;top:80%;left:300px;cursor:pointer;width:0;height:0;border-width:10px 10px 0;border-style:solid;border-color:#333 transparent transparent}", ""]);
+
+// exports
+
+
+/***/ }),
+/* 8 */
+/***/ (function(module, exports) {
+
+/*
+	MIT License http://www.opensource.org/licenses/mit-license.php
+	Author Tobias Koppers @sokra
+*/
+// css base code, injected by the css-loader
+module.exports = function(useSourceMap) {
+	var list = [];
+
+	// return the list of modules as css string
+	list.toString = function toString() {
+		return this.map(function (item) {
+			var content = cssWithMappingToString(item, useSourceMap);
+			if(item[2]) {
+				return "@media " + item[2] + "{" + content + "}";
+			} else {
+				return content;
+			}
+		}).join("");
+	};
+
+	// import a list of modules into the list
+	list.i = function(modules, mediaQuery) {
+		if(typeof modules === "string")
+			modules = [[null, modules, ""]];
+		var alreadyImportedModules = {};
+		for(var i = 0; i < this.length; i++) {
+			var id = this[i][0];
+			if(typeof id === "number")
+				alreadyImportedModules[id] = true;
+		}
+		for(i = 0; i < modules.length; i++) {
+			var item = modules[i];
+			// skip already imported module
+			// this implementation is not 100% perfect for weird media query combinations
+			//  when a module is imported multiple times with different media queries.
+			//  I hope this will never occur (Hey this way we have smaller bundles)
+			if(typeof item[0] !== "number" || !alreadyImportedModules[item[0]]) {
+				if(mediaQuery && !item[2]) {
+					item[2] = mediaQuery;
+				} else if(mediaQuery) {
+					item[2] = "(" + item[2] + ") and (" + mediaQuery + ")";
+				}
+				list.push(item);
+			}
+		}
+	};
+	return list;
+};
+
+function cssWithMappingToString(item, useSourceMap) {
+	var content = item[1] || '';
+	var cssMapping = item[3];
+	if (!cssMapping) {
+		return content;
+	}
+
+	if (useSourceMap && typeof btoa === 'function') {
+		var sourceMapping = toComment(cssMapping);
+		var sourceURLs = cssMapping.sources.map(function (source) {
+			return '/*# sourceURL=' + cssMapping.sourceRoot + source + ' */'
+		});
+
+		return [content].concat(sourceURLs).concat([sourceMapping]).join('\n');
+	}
+
+	return [content].join('\n');
+}
+
+// Adapted from convert-source-map (MIT)
+function toComment(sourceMap) {
+	// eslint-disable-next-line no-undef
+	var base64 = btoa(unescape(encodeURIComponent(JSON.stringify(sourceMap))));
+	var data = 'sourceMappingURL=data:application/json;charset=utf-8;base64,' + base64;
+
+	return '/*# ' + data + ' */';
+}
+
+
+/***/ }),
+/* 9 */
+/***/ (function(module, exports, __webpack_require__) {
+
+/*
+	MIT License http://www.opensource.org/licenses/mit-license.php
+	Author Tobias Koppers @sokra
+*/
+
+var stylesInDom = {};
+
+var	memoize = function (fn) {
+	var memo;
+
+	return function () {
+		if (typeof memo === "undefined") memo = fn.apply(this, arguments);
+		return memo;
+	};
+};
+
+var isOldIE = memoize(function () {
+	// Test for IE <= 9 as proposed by Browserhacks
+	// @see http://browserhacks.com/#hack-e71d8692f65334173fee715c222cb805
+	// Tests for existence of standard globals is to allow style-loader
+	// to operate correctly into non-standard environments
+	// @see https://github.com/webpack-contrib/style-loader/issues/177
+	return window && document && document.all && !window.atob;
+});
+
+var getTarget = function (target) {
+  return document.querySelector(target);
+};
+
+var getElement = (function (fn) {
+	var memo = {};
+
+	return function(target) {
+                // If passing function in options, then use it for resolve "head" element.
+                // Useful for Shadow Root style i.e
+                // {
+                //   insertInto: function () { return document.querySelector("#foo").shadowRoot }
+                // }
+                if (typeof target === 'function') {
+                        return target();
+                }
+                if (typeof memo[target] === "undefined") {
+			var styleTarget = getTarget.call(this, target);
+			// Special case to return head of iframe instead of iframe itself
+			if (window.HTMLIFrameElement && styleTarget instanceof window.HTMLIFrameElement) {
+				try {
+					// This will throw an exception if access to iframe is blocked
+					// due to cross-origin restrictions
+					styleTarget = styleTarget.contentDocument.head;
+				} catch(e) {
+					styleTarget = null;
+				}
+			}
+			memo[target] = styleTarget;
+		}
+		return memo[target]
+	};
+})();
+
+var singleton = null;
+var	singletonCounter = 0;
+var	stylesInsertedAtTop = [];
+
+var	fixUrls = __webpack_require__(10);
+
+module.exports = function(list, options) {
+	if (typeof DEBUG !== "undefined" && DEBUG) {
+		if (typeof document !== "object") throw new Error("The style-loader cannot be used in a non-browser environment");
+	}
+
+	options = options || {};
+
+	options.attrs = typeof options.attrs === "object" ? options.attrs : {};
+
+	// Force single-tag solution on IE6-9, which has a hard limit on the # of <style>
+	// tags it will allow on a page
+	if (!options.singleton && typeof options.singleton !== "boolean") options.singleton = isOldIE();
+
+	// By default, add <style> tags to the <head> element
+        if (!options.insertInto) options.insertInto = "head";
+
+	// By default, add <style> tags to the bottom of the target
+	if (!options.insertAt) options.insertAt = "bottom";
+
+	var styles = listToStyles(list, options);
+
+	addStylesToDom(styles, options);
+
+	return function update (newList) {
+		var mayRemove = [];
+
+		for (var i = 0; i < styles.length; i++) {
+			var item = styles[i];
+			var domStyle = stylesInDom[item.id];
+
+			domStyle.refs--;
+			mayRemove.push(domStyle);
+		}
+
+		if(newList) {
+			var newStyles = listToStyles(newList, options);
+			addStylesToDom(newStyles, options);
+		}
+
+		for (var i = 0; i < mayRemove.length; i++) {
+			var domStyle = mayRemove[i];
+
+			if(domStyle.refs === 0) {
+				for (var j = 0; j < domStyle.parts.length; j++) domStyle.parts[j]();
+
+				delete stylesInDom[domStyle.id];
+			}
+		}
+	};
+};
+
+function addStylesToDom (styles, options) {
+	for (var i = 0; i < styles.length; i++) {
+		var item = styles[i];
+		var domStyle = stylesInDom[item.id];
+
+		if(domStyle) {
+			domStyle.refs++;
+
+			for(var j = 0; j < domStyle.parts.length; j++) {
+				domStyle.parts[j](item.parts[j]);
+			}
+
+			for(; j < item.parts.length; j++) {
+				domStyle.parts.push(addStyle(item.parts[j], options));
+			}
+		} else {
+			var parts = [];
+
+			for(var j = 0; j < item.parts.length; j++) {
+				parts.push(addStyle(item.parts[j], options));
+			}
+
+			stylesInDom[item.id] = {id: item.id, refs: 1, parts: parts};
+		}
+	}
+}
+
+function listToStyles (list, options) {
+	var styles = [];
+	var newStyles = {};
+
+	for (var i = 0; i < list.length; i++) {
+		var item = list[i];
+		var id = options.base ? item[0] + options.base : item[0];
+		var css = item[1];
+		var media = item[2];
+		var sourceMap = item[3];
+		var part = {css: css, media: media, sourceMap: sourceMap};
+
+		if(!newStyles[id]) styles.push(newStyles[id] = {id: id, parts: [part]});
+		else newStyles[id].parts.push(part);
+	}
+
+	return styles;
+}
+
+function insertStyleElement (options, style) {
+	var target = getElement(options.insertInto)
+
+	if (!target) {
+		throw new Error("Couldn't find a style target. This probably means that the value for the 'insertInto' parameter is invalid.");
+	}
+
+	var lastStyleElementInsertedAtTop = stylesInsertedAtTop[stylesInsertedAtTop.length - 1];
+
+	if (options.insertAt === "top") {
+		if (!lastStyleElementInsertedAtTop) {
+			target.insertBefore(style, target.firstChild);
+		} else if (lastStyleElementInsertedAtTop.nextSibling) {
+			target.insertBefore(style, lastStyleElementInsertedAtTop.nextSibling);
+		} else {
+			target.appendChild(style);
+		}
+		stylesInsertedAtTop.push(style);
+	} else if (options.insertAt === "bottom") {
+		target.appendChild(style);
+	} else if (typeof options.insertAt === "object" && options.insertAt.before) {
+		var nextSibling = getElement(options.insertInto + " " + options.insertAt.before);
+		target.insertBefore(style, nextSibling);
+	} else {
+		throw new Error("[Style Loader]\n\n Invalid value for parameter 'insertAt' ('options.insertAt') found.\n Must be 'top', 'bottom', or Object.\n (https://github.com/webpack-contrib/style-loader#insertat)\n");
+	}
+}
+
+function removeStyleElement (style) {
+	if (style.parentNode === null) return false;
+	style.parentNode.removeChild(style);
+
+	var idx = stylesInsertedAtTop.indexOf(style);
+	if(idx >= 0) {
+		stylesInsertedAtTop.splice(idx, 1);
+	}
+}
+
+function createStyleElement (options) {
+	var style = document.createElement("style");
+
+	if(options.attrs.type === undefined) {
+		options.attrs.type = "text/css";
+	}
+
+	addAttrs(style, options.attrs);
+	insertStyleElement(options, style);
+
+	return style;
+}
+
+function createLinkElement (options) {
+	var link = document.createElement("link");
+
+	if(options.attrs.type === undefined) {
+		options.attrs.type = "text/css";
+	}
+	options.attrs.rel = "stylesheet";
+
+	addAttrs(link, options.attrs);
+	insertStyleElement(options, link);
+
+	return link;
+}
+
+function addAttrs (el, attrs) {
+	Object.keys(attrs).forEach(function (key) {
+		el.setAttribute(key, attrs[key]);
+	});
+}
+
+function addStyle (obj, options) {
+	var style, update, remove, result;
+
+	// If a transform function was defined, run it on the css
+	if (options.transform && obj.css) {
+	    result = options.transform(obj.css);
+
+	    if (result) {
+	    	// If transform returns a value, use that instead of the original css.
+	    	// This allows running runtime transformations on the css.
+	    	obj.css = result;
+	    } else {
+	    	// If the transform function returns a falsy value, don't add this css.
+	    	// This allows conditional loading of css
+	    	return function() {
+	    		// noop
+	    	};
+	    }
+	}
+
+	if (options.singleton) {
+		var styleIndex = singletonCounter++;
+
+		style = singleton || (singleton = createStyleElement(options));
+
+		update = applyToSingletonTag.bind(null, style, styleIndex, false);
+		remove = applyToSingletonTag.bind(null, style, styleIndex, true);
+
+	} else if (
+		obj.sourceMap &&
+		typeof URL === "function" &&
+		typeof URL.createObjectURL === "function" &&
+		typeof URL.revokeObjectURL === "function" &&
+		typeof Blob === "function" &&
+		typeof btoa === "function"
+	) {
+		style = createLinkElement(options);
+		update = updateLink.bind(null, style, options);
+		remove = function () {
+			removeStyleElement(style);
+
+			if(style.href) URL.revokeObjectURL(style.href);
+		};
+	} else {
+		style = createStyleElement(options);
+		update = applyToTag.bind(null, style);
+		remove = function () {
+			removeStyleElement(style);
+		};
+	}
+
+	update(obj);
+
+	return function updateStyle (newObj) {
+		if (newObj) {
+			if (
+				newObj.css === obj.css &&
+				newObj.media === obj.media &&
+				newObj.sourceMap === obj.sourceMap
+			) {
+				return;
+			}
+
+			update(obj = newObj);
+		} else {
+			remove();
+		}
+	};
+}
+
+var replaceText = (function () {
+	var textStore = [];
+
+	return function (index, replacement) {
+		textStore[index] = replacement;
+
+		return textStore.filter(Boolean).join('\n');
+	};
+})();
+
+function applyToSingletonTag (style, index, remove, obj) {
+	var css = remove ? "" : obj.css;
+
+	if (style.styleSheet) {
+		style.styleSheet.cssText = replaceText(index, css);
+	} else {
+		var cssNode = document.createTextNode(css);
+		var childNodes = style.childNodes;
+
+		if (childNodes[index]) style.removeChild(childNodes[index]);
+
+		if (childNodes.length) {
+			style.insertBefore(cssNode, childNodes[index]);
+		} else {
+			style.appendChild(cssNode);
+		}
+	}
+}
+
+function applyToTag (style, obj) {
+	var css = obj.css;
+	var media = obj.media;
+
+	if(media) {
+		style.setAttribute("media", media)
+	}
+
+	if(style.styleSheet) {
+		style.styleSheet.cssText = css;
+	} else {
+		while(style.firstChild) {
+			style.removeChild(style.firstChild);
+		}
+
+		style.appendChild(document.createTextNode(css));
+	}
+}
+
+function updateLink (link, options, obj) {
+	var css = obj.css;
+	var sourceMap = obj.sourceMap;
+
+	/*
+		If convertToAbsoluteUrls isn't defined, but sourcemaps are enabled
+		and there is no publicPath defined then lets turn convertToAbsoluteUrls
+		on by default.  Otherwise default to the convertToAbsoluteUrls option
+		directly
+	*/
+	var autoFixUrls = options.convertToAbsoluteUrls === undefined && sourceMap;
+
+	if (options.convertToAbsoluteUrls || autoFixUrls) {
+		css = fixUrls(css);
+	}
+
+	if (sourceMap) {
+		// http://stackoverflow.com/a/26603875
+		css += "\n/*# sourceMappingURL=data:application/json;base64," + btoa(unescape(encodeURIComponent(JSON.stringify(sourceMap)))) + " */";
+	}
+
+	var blob = new Blob([css], { type: "text/css" });
+
+	var oldSrc = link.href;
+
+	link.href = URL.createObjectURL(blob);
+
+	if(oldSrc) URL.revokeObjectURL(oldSrc);
+}
+
+
+/***/ }),
+/* 10 */
+/***/ (function(module, exports) {
+
+
+/**
+ * When source maps are enabled, `style-loader` uses a link element with a data-uri to
+ * embed the css on the page. This breaks all relative urls because now they are relative to a
+ * bundle instead of the current page.
+ *
+ * One solution is to only use full urls, but that may be impossible.
+ *
+ * Instead, this function "fixes" the relative urls to be absolute according to the current page location.
+ *
+ * A rudimentary test suite is located at `test/fixUrls.js` and can be run via the `npm test` command.
+ *
+ */
+
+module.exports = function (css) {
+  // get current location
+  var location = typeof window !== "undefined" && window.location;
+
+  if (!location) {
+    throw new Error("fixUrls requires window.location");
+  }
+
+	// blank or null?
+	if (!css || typeof css !== "string") {
+	  return css;
+  }
+
+  var baseUrl = location.protocol + "//" + location.host;
+  var currentDir = baseUrl + location.pathname.replace(/\/[^\/]*$/, "/");
+
+	// convert each url(...)
+	/*
+	This regular expression is just a way to recursively match brackets within
+	a string.
+
+	 /url\s*\(  = Match on the word "url" with any whitespace after it and then a parens
+	   (  = Start a capturing group
+	     (?:  = Start a non-capturing group
+	         [^)(]  = Match anything that isn't a parentheses
+	         |  = OR
+	         \(  = Match a start parentheses
+	             (?:  = Start another non-capturing groups
+	                 [^)(]+  = Match anything that isn't a parentheses
+	                 |  = OR
+	                 \(  = Match a start parentheses
+	                     [^)(]*  = Match anything that isn't a parentheses
+	                 \)  = Match a end parentheses
+	             )  = End Group
+              *\) = Match anything and then a close parens
+          )  = Close non-capturing group
+          *  = Match anything
+       )  = Close capturing group
+	 \)  = Match a close parens
+
+	 /gi  = Get all matches, not the first.  Be case insensitive.
+	 */
+	var fixedCss = css.replace(/url\s*\(((?:[^)(]|\((?:[^)(]+|\([^)(]*\))*\))*)\)/gi, function(fullMatch, origUrl) {
+		// strip quotes (if they exist)
+		var unquotedOrigUrl = origUrl
+			.trim()
+			.replace(/^"(.*)"$/, function(o, $1){ return $1; })
+			.replace(/^'(.*)'$/, function(o, $1){ return $1; });
+
+		// already a full url? no change
+		if (/^(#|data:|http:\/\/|https:\/\/|file:\/\/\/|\s*$)/i.test(unquotedOrigUrl)) {
+		  return fullMatch;
+		}
+
+		// convert the url to a full url
+		var newUrl;
+
+		if (unquotedOrigUrl.indexOf("//") === 0) {
+		  	//TODO: should we add protocol?
+			newUrl = unquotedOrigUrl;
+		} else if (unquotedOrigUrl.indexOf("/") === 0) {
+			// path should be relative to the base url
+			newUrl = baseUrl + unquotedOrigUrl; // already starts with '/'
+		} else {
+			// path should be relative to current directory
+			newUrl = currentDir + unquotedOrigUrl.replace(/^\.\//, ""); // Strip leading './'
+		}
+
+		// send back the fixed url(...)
+		return "url(" + JSON.stringify(newUrl) + ")";
+	});
+
+	// send back the fixed css
+	return fixedCss;
+};
+
+
+/***/ }),
+/* 11 */
+/***/ (function(module, exports, __webpack_require__) {
+
+"use strict";
+
+
+Object.defineProperty(exports, "__esModule", {
+  value: true
+});
+exports.LyricTime = undefined;
+
+var _createClass = function () { function defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ("value" in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } } return function (Constructor, protoProps, staticProps) { if (protoProps) defineProperties(Constructor.prototype, protoProps); if (staticProps) defineProperties(Constructor, staticProps); return Constructor; }; }();
+
+var _xgplayer = __webpack_require__(2);
+
+var _xgplayer2 = _interopRequireDefault(_xgplayer);
+
+function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
+
+function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } }
+
+var LyricTime = function LyricTime(timeTxt) {
+  _classCallCheck(this, LyricTime);
+
+  this.regRule = /(\d{2}(?=:)):(\d{2}(?=\.))\.(\d{2,3})/g;
+  if (this.regRule.test(timeTxt)) {
+    this.time = RegExp.$1 * 60 + RegExp.$2 * 1 + ('0.' + RegExp.$3) * 1;
+  } else {
+    this.time = -1;
+  }
+};
+
+exports.LyricTime = LyricTime;
+
+var Lyric = function () {
+  function Lyric(txts, dom, options) {
+    var _this = this;
+
+    _classCallCheck(this, Lyric);
+
+    this.rawTxts = txts;
+    this.txts = txts.map(function (item) {
+      return item.replace(/^[\r\n]|[\r\n]$/g, '').match(/(\[.*\])[^[]+/g);
+    });
+    this.isDynamics = txts.map(function (item, idx) {
+      return [].concat(item.match(/\[\d{2}:\d{2}\.\d{2,3}\]/g)).length > 0 && _this.txts[idx].length === _this.txts[0].length && _this.txts[idx].length > 1;
+    });
+    this.isDynamic = this.isDynamics.some(function (item) {
+      return item;
+    });
+    this.__ainimateInterval__ = 0;
+    this.__offset__ = 0;
+    this.__offsetScale__ = 0.5;
+    this.dom = dom;
+    this.lists = [];
+    this.isDynamics.map(function (item, idx) {
+      if (item) {
+        _this.lists.push(_this.txts[idx].map(function (txt, index) {
+          var reg = /(\[[\d:\S]+\])([^[]+)/g.test(txt);
+          var time = RegExp.$1;
+          var lyric = RegExp.$2;
+          return {
+            time: reg ? new LyricTime(time).time : -1,
+            lyric: lyric,
+            idx: index
+          };
+        }));
+      }
+    });
+    this.list = this.lists.reduce(function (pre, cur) {
+      return pre.map(function (item, idx) {
+        return {
+          time: item.time,
+          lyric: item.lyric === '\n' ? '' + item.lyric + cur[idx].lyric : item.lyric + '<br/>' + cur[idx].lyric,
+          idx: idx
+        };
+      });
+    }).filter(function (item) {
+      if (options.removeBlankLine) return item.lyric !== '\r\n' && item.lyric !== '\n' && item.lyric !== '';else return true;
+    });
+
+    this.line = 0;
+  }
+
+  _createClass(Lyric, [{
+    key: 'adjust',
+    value: function adjust() {
+      var list = this.list;
+      for (var i = 0, j, k, len = list.length; i < len; i++) {
+        for (j = i + 1; j < len; j++) {
+          if (list[j].time > list[i].time) {
+            break;
+          }
+        }
+        if (j < len) {
+          var sep = (list[j].time - list[i].time) / (j - i);
+          for (k = i + 1; k < j; k++) {
+            list[k].time = list[k - 1].time + sep;
+          }
+        }
+      }
+    }
+  }, {
+    key: 'find',
+    value: function find(curTime) {
+      var list = this.list;
+      var interval = this.__ainimateInterval__;
+      var offset = this.__offset__;
+      curTime = curTime + offset > 0 ? curTime + offset : 0;
+      return list.filter(function (_ref, idx) {
+        var time = _ref.time;
+
+        var idxy = idx + 1;
+        return curTime >= time && (list[idxy] && curTime * 1 + interval * 1 <= list[idxy].time || idxy >= list.length);
+      });
+    }
+  }, {
+    key: 'bind',
+    value: function bind(player) {
+      var _this2 = this;
+
+      var self = this;
+      this.__player__ = player;
+      if (self.isDynamic) {
+        self.__handle__ = function () {
+          var f = _this2.find(player.currentTime)[0];
+          if (f && f.idx !== _this2.line) {
+            _this2.line = f.idx;
+            player.emit('lyricUpdate', f);
+          }
+        }.bind(self, player);
+        player.on('timeupdate', self.__handle__);
+
+        self.__startHandle__ = function () {
+          player.emit('lyricUpdate', self.list[0]);
+        }.bind(self, player);
+        player.once('playing', self.__startHandle__);
+        //
+        // self.__endHandle__ = (() => {
+        //   player.emit('lyricUpdate', self.list[self.list.length - 1])
+        // }).bind(self, player)
+        // player.on('ended', self.__endHandle__)
+        return true;
+      } else {
+        return false;
+      }
+    }
+  }, {
+    key: 'unbind',
+    value: function unbind(player) {
+      delete this.__player__;
+      if (this.__handle__) {
+        player.off('lyricUpdate', this.__handle__);
+        delete this.__handle__;
+      }
+    }
+  }, {
+    key: 'show',
+    value: function show() {
+      var _this3 = this;
+
+      var dom = this.dom;
+      var lyrbicTxts = [];
+      var self = this;
+      var ev = ['click', 'touchstart'];
+      if (dom && dom.nodeType === 1) {
+        var lrcWrap = _xgplayer2.default.util.createDom('div', '<div></div>', {}, 'xgplayer-lrcWrap');
+        dom.appendChild(lrcWrap);
+        this.list.forEach(function (item) {
+          lyrbicTxts.push('<xg-lyric-item class="xgplayer-lyric-item" data-idx="' + item.idx + '">' + item.lyric.replace(/[\r\n]/g, '') + '</xg-lyric-item>');
+        });
+        lrcWrap.innerHTML = lyrbicTxts.join('');
+        var lrcForward = _xgplayer2.default.util.createDom('xg-lrcForward', '<div></div>', {}, 'xgplayer-lrcForward');
+        dom.appendChild(lrcForward);
+        ev.forEach(function (item) {
+          lrcForward.addEventListener(item, function (e) {
+            e.preventDefault();
+            e.stopPropagation();
+            self.offset -= self.offsetScale;
+            console.log('lyric go forward ' + self.offsetScale + 's');
+          }, false);
+        });
+
+        var lrcBack = _xgplayer2.default.util.createDom('xg-lrcBack', '<div></div>', {}, 'xgplayer-lrcBack');
+        dom.appendChild(lrcBack);
+        ev.forEach(function (item) {
+          lrcBack.addEventListener(item, function (e) {
+            e.preventDefault();
+            e.stopPropagation();
+            self.offset += self.offsetScale;
+            console.log('lyric go back ' + self.offsetScale + 's');
+          }, false);
+        });
+        this.__updateHandle__ = function (item) {
+          var domWrap = _this3.dom.querySelector('.xgplayer-lrcWrap');
+          var activeDom = domWrap.querySelector('.xgplayer-lyric-item-active');
+          var offsetHeight = domWrap.offsetHeight;
+          var activeTop = void 0;
+          if (activeDom) {
+            activeDom.className = 'xgplayer-lyric-item';
+          }
+          activeDom = domWrap.querySelector('.xgplayer-lyric-item[data-idx="' + item.idx + '"]');
+          if (activeDom) {
+            activeDom.className = 'xgplayer-lyric-item xgplayer-lyric-item-active';
+            activeTop = activeDom.getBoundingClientRect().top - domWrap.getBoundingClientRect().top + domWrap.scrollTop - offsetHeight / 2;
+            if (activeTop) {
+              domWrap.scrollTop = activeTop;
+            }
+          }
+        };
+        this.__player__.on('lyricUpdate', this.__updateHandle__);
+      } else {
+        this.__player__.emit('error', 'lyric container can not be empty');
+      }
+    }
+  }, {
+    key: 'hide',
+    value: function hide() {
+      this.__updateHandle__.off('lyricUpdate', this.__updateHandle__);
+    }
+  }, {
+    key: 'interval',
+    set: function set(val) {
+      this.__ainimateInterval__ = val;
+    },
+    get: function get() {
+      return this.__ainimateInterval__;
+    }
+  }, {
+    key: 'offset',
+    set: function set(val) {
+      this.__offset__ = val;
+    },
+    get: function get() {
+      return this.__offset__;
+    }
+  }, {
+    key: 'offsetScale',
+    set: function set(val) {
+      this.__offsetScale__ = val;
+    },
+    get: function get() {
+      return this.__offsetScale__;
+    }
+  }]);
+
+  return Lyric;
+}();
+
+exports.default = Lyric;
+
+/***/ }),
+/* 12 */
+/***/ (function(module, exports, __webpack_require__) {
+
+"use strict";
+
+
+Object.defineProperty(exports, "__esModule", {
+  value: true
+});
+
+var _createClass = function () { function defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ("value" in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } } return function (Constructor, protoProps, staticProps) { if (protoProps) defineProperties(Constructor.prototype, protoProps); if (staticProps) defineProperties(Constructor, staticProps); return Constructor; }; }();
+
+var _util = __webpack_require__(13);
+
+function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } }
+
+var Analyze = function () {
+  function Analyze(player, canvas) {
+    var _this = this;
+
+    _classCallCheck(this, Analyze);
+
+    this.canvas = canvas;
+    this.player = player;
+    if (!Analyze.AudioCtx) {
+      return;
+    }
+    var audioCtx = new Analyze.AudioCtx();
+    var analyser = audioCtx.createAnalyser();
+    var gainNode = audioCtx.createGain();
+    analyser.minDecibels = -90;
+    analyser.maxDecibels = -10;
+    analyser.smoothingTimeConstant = 0.85;
+    gainNode.gain.setValueAtTime(player.volume, player.currentTime);
+    this.er = audioCtx.createMediaElementSource(player.video);
+    this.analyser = analyser;
+    this.ctx = canvas.getContext('2d');
+    this.er.connect(analyser);
+    analyser.connect(gainNode);
+    gainNode.connect(audioCtx.destination);
+
+    this.style = {
+      bgColor: '#c8c8c8',
+      color: '#643232'
+    };
+    this.__type__ = 'bars';
+    this.__size__ = 256;
+    this.__status__ = {
+      switch: 'on'
+    };
+    ['play', 'playing', 'seeked'].forEach(function (name) {
+      player.on(name, function () {
+        _this['__' + _this.__type__ + '__']();
+      });
+    });
+    ['seeking', 'waiting', 'pause', 'ended'].forEach(function (name) {
+      (0, _util.cancelAnimationFrame)(_this.__status__[_this.__type__]);
+    });
+    player.on('volumechange', function () {
+      gainNode.gain.setValueAtTime(player.volume, player.currentTime);
+    });
+    player.on('destroy', function () {
+      audioCtx.close();
+    });
+  }
+
+  _createClass(Analyze, [{
+    key: '__wave__',
+    value: function __wave__() {
+      var _this2 = this;
+
+      (0, _util.cancelAnimationFrame)(this.__status__['wave']);
+      (0, _util.cancelAnimationFrame)(this.__status__['bars']);
+      if (this.__status__.switch === 'off') {
+        return;
+      }
+      var analyser = this.analyser;
+      var canvas = this.canvas;
+      var ctx = this.ctx;
+      var bufferLen = analyser.frequencyBinCount;
+      var dataArray = new Uint8Array(bufferLen);
+      var WIDTH = canvas.width;
+      var HEIGHT = canvas.height;
+      var color = new _util.Color(this.style.color).toRGB();
+      var bgColor = new _util.Color(this.style.color).toRGB();
+      analyser.fftSize = this.__size__;
+      var draw = function draw() {
+        _this2.__status__['wave'] = (0, _util.requestAnimationFrame)(draw);
+        analyser.getByteTimeDomainData(dataArray);
+        ctx.clearRect(0, 0, WIDTH, HEIGHT);
+        ctx.fillStyle = bgColor;
+        ctx.lineWidth = 2;
+        ctx.strokeStyle = color;
+        ctx.beginPath();
+        var sliceWidth = WIDTH * 1.0 / bufferLen;
+        var x = 0;
+        for (var i = 0; i < bufferLen; i++) {
+          var v = dataArray[i] / 128.0;
+          var y = v * HEIGHT / 2;
+          if (i === 0) {
+            ctx.moveTo(x, y);
+          } else {
+            ctx.lineTo(x, y);
+          }
+          x += sliceWidth;
+        }
+        ctx.lineTo(canvas.width, canvas.height / 2);
+        ctx.stroke();
+      };
+      draw();
+    }
+  }, {
+    key: '__bars__',
+    value: function __bars__() {
+      var _this3 = this;
+
+      (0, _util.cancelAnimationFrame)(this.__status__['wave']);
+      (0, _util.cancelAnimationFrame)(this.__status__['bars']);
+      if (this.__status__.switch === 'off') {
+        return;
+      }
+      var analyser = this.analyser;
+      var canvas = this.canvas;
+      var ctx = this.ctx;
+      var bufferLen = analyser.frequencyBinCount;
+      var dataArray = new Uint8Array(bufferLen);
+      var WIDTH = canvas.width;
+      var HEIGHT = canvas.height;
+      var color = new _util.Color(this.style.color).toArray();
+      var bgColor = new _util.Color(this.style.color).toRGB();
+      analyser.fftSize = this.__size__;
+
+      var draw = function draw() {
+        _this3.__status__['bars'] = (0, _util.requestAnimationFrame)(draw);
+        analyser.getByteFrequencyData(dataArray);
+        ctx.clearRect(0, 0, WIDTH, HEIGHT);
+        ctx.fillStyle = bgColor;
+        ctx.fillRect(0, 0, WIDTH, HEIGHT);
+        var barWidth = WIDTH / bufferLen * 2.5;
+        var barHeight = void 0;
+        var x = 0;
+        for (var i = 0; i < bufferLen; i++) {
+          barHeight = dataArray[i];
+          ctx.fillStyle = 'rgb(' + (barHeight + color[0]) + ',' + color[1] + ',' + color[2] + ')';
+          ctx.fillRect(x, HEIGHT - barHeight / 2, barWidth, barHeight / 2);
+          x += barWidth + 1;
+        }
+      };
+      draw();
+    }
+  }, {
+    key: 'on',
+    value: function on() {
+      this.__status__.switch = 'on';
+      this['__' + this.__type__ + '__']();
+    }
+  }, {
+    key: 'off',
+    value: function off() {
+      this.__status__.switch = 'off';
+      (0, _util.cancelAnimationFrame)(this.__status__['wave']);
+      (0, _util.cancelAnimationFrame)(this.__status__['bars']);
+    }
+  }, {
+    key: 'mode',
+    set: function set(mode) {
+      if (Analyze.Mode.filter(function (item) {
+        return item === mode;
+      }).length) {
+        this.__type__ = mode;
+        if (this.__status__.switch === 'on') {
+          this['__' + mode + '__']();
+        }
+      }
+    },
+    get: function get() {
+      return this.__type__;
+    }
+  }, {
+    key: 'size',
+    set: function set(num) {
+      if (num < 65536 && (0, _util.isSqrt)(num, 2)) {
+        this.__size__ = num;
+        this.analyser.fftSize = num;
+        this['__' + this.__type__ + '__']();
+      }
+    },
+    get: function get() {
+      return this.__size__;
+    }
+  }, {
+    key: 'status',
+    get: function get() {
+      return this.__status__.switch;
+    }
+  }], [{
+    key: 'AudioCtx',
+    get: function get() {
+      return window.AudioContext || window.webkitAudioContext;
+    }
+  }, {
+    key: 'Mode',
+    get: function get() {
+      return ['wave', 'bars'];
+    }
+  }]);
+
+  return Analyze;
+}();
+
+exports.default = Analyze;
+module.exports = exports['default'];
+
+/***/ }),
+/* 13 */
+/***/ (function(module, exports, __webpack_require__) {
+
+"use strict";
+
+
+Object.defineProperty(exports, "__esModule", {
+  value: true
+});
+
+var _createClass = function () { function defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ("value" in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } } return function (Constructor, protoProps, staticProps) { if (protoProps) defineProperties(Constructor.prototype, protoProps); if (staticProps) defineProperties(Constructor, staticProps); return Constructor; }; }();
+
+function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } }
+
+// @filename https://gist.github.com/chaping/88813f56e75b0fd43f8c
+var lastTime = 0;
+var prefixes = 'webkit moz ms o'.split(' '); // 各浏览器前缀
+
+var requestAnimationFrame = window.requestAnimationFrame;
+var cancelAnimationFrame = window.cancelAnimationFrame;
+
+var prefix;
+// 通过遍历各浏览器前缀，来得到requestAnimationFrame和cancelAnimationFrame在当前浏览器的实现形式
+for (var i = 0; i < prefixes.length; i++) {
+  if (requestAnimationFrame && cancelAnimationFrame) {
+    break;
+  }
+  prefix = prefixes[i];
+  requestAnimationFrame = requestAnimationFrame || window[prefix + 'RequestAnimationFrame'];
+  cancelAnimationFrame = cancelAnimationFrame || window[prefix + 'CancelAnimationFrame'] || window[prefix + 'CancelRequestAnimationFrame'];
+}
+
+// 如果当前浏览器不支持requestAnimationFrame和cancelAnimationFrame，则会退到setTimeout
+if (!requestAnimationFrame || !cancelAnimationFrame) {
+  requestAnimationFrame = function requestAnimationFrame(callback, element) {
+    var currTime = new Date().getTime();
+    // 为了使setTimteout的尽可能的接近每秒60帧的效果
+    var timeToCall = Math.max(0, 16 - (currTime - lastTime));
+    var id = window.setTimeout(function () {
+      callback.call(currTime + timeToCall);
+    }, timeToCall);
+    lastTime = currTime + timeToCall;
+    return id;
+  };
+
+  cancelAnimationFrame = function cancelAnimationFrame(id) {
+    window.clearTimeout(id);
+  };
+}
+
+var isSqrt = function isSqrt(num, base) {
+  if (num !== 1) {
+    while (num !== 1) {
+      if (num % base === 0) {
+        num = num / base;
+      } else {
+        return false;
+      }
+    }
+    return true;
+  } else {
+    return true;
+  }
+};
+
+var Color = function () {
+  function Color(color) {
+    var opacity = arguments.length > 1 && arguments[1] !== undefined ? arguments[1] : 1;
+
+    _classCallCheck(this, Color);
+
+    this.color = Color.Valid.test(color) ? color : '#ffffff';
+    this.opacity = opacity;
+  }
+
+  _createClass(Color, [{
+    key: 'toArray',
+    value: function toArray() {
+      var color = this.color.slice(1);
+      var rgb = [];
+      if (color.length === 6) {
+        color = color.match(/\d{2}/g);
+        rgb = color.map(function (item) {
+          return Number('0x' + item);
+        });
+      }
+      return rgb;
+    }
+  }, {
+    key: 'toRGB',
+    value: function toRGB() {
+      var rgb = this.toArray();
+      return rgb.length === 3 ? 'rgb(' + rgb[0] + ',' + rgb[1] + ',' + rgb[2] + ')' : '';
+    }
+  }, {
+    key: 'toGRBA',
+    value: function toGRBA() {
+      var rgb = this.toArray();
+      return rgb.length === 3 ? 'rgba(' + rgb[0] + ',' + rgb[1] + ',' + rgb[2] + ',' + this.opacity + ')' : '';
+    }
+  }], [{
+    key: 'Valid',
+    get: function get() {
+      return (/^#[0-9A-F]{6}$|^#[0-9A-F]{3}$/i
+      );
+    }
+  }]);
+
+  return Color;
+}();
+
+exports.default = {
+  requestAnimationFrame: requestAnimationFrame,
+  cancelAnimationFrame: cancelAnimationFrame,
+  isSqrt: isSqrt,
+  Color: Color
+};
+module.exports = exports['default'];
+
+/***/ }),
+/* 14 */
+/***/ (function(module, exports, __webpack_require__) {
+
+"use strict";
+
+
+Object.defineProperty(exports, "__esModule", {
+  value: true
+});
+
+var _createClass = function () { function defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ("value" in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } } return function (Constructor, protoProps, staticProps) { if (protoProps) defineProperties(Constructor.prototype, protoProps); if (staticProps) defineProperties(Constructor, staticProps); return Constructor; }; }();
+
+var _eventEmitter = __webpack_require__(15);
+
+var _eventEmitter2 = _interopRequireDefault(_eventEmitter);
+
+function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
+
+function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } }
+
+var Xhr = function () {
+  function Xhr(url, callback) {
+    _classCallCheck(this, Xhr);
+
+    (0, _eventEmitter2.default)(this);
+    this.url = url;
+    var xhr = new window.XMLHttpRequest();
+    xhr.target = this;
+    xhr.responseType = 'arraybuffer';
+    xhr.open('get', url);
+    xhr.onload = function () {
+      if (xhr.status === 200 || xhr.status === 206) {
+        if (callback && callback instanceof Function) {
+          callback(xhr.response);
+        }
+      }
+    };
+    xhr.onerror = function (e) {
+      xhr.target.emit('error' + e.message);
+    };
+    this.xhr = xhr;
+    this.run();
+  }
+
+  _createClass(Xhr, [{
+    key: 'cancel',
+    value: function cancel() {
+      this.xhr.abort();
+    }
+  }, {
+    key: 'run',
+    value: function run() {
+      if (this.xhr.readyState === 1) {
+        this.xhr.send();
+      }
+    }
+  }]);
+
+  return Xhr;
+}();
+
+exports.default = Xhr;
+module.exports = exports['default'];
+
+/***/ }),
+/* 15 */
+/***/ (function(module, exports, __webpack_require__) {
+
+"use strict";
+
+
+var d        = __webpack_require__(16)
+  , callable = __webpack_require__(33)
+
+  , apply = Function.prototype.apply, call = Function.prototype.call
+  , create = Object.create, defineProperty = Object.defineProperty
+  , defineProperties = Object.defineProperties
+  , hasOwnProperty = Object.prototype.hasOwnProperty
+  , descriptor = { configurable: true, enumerable: false, writable: true }
+
+  , on, once, off, emit, methods, descriptors, base;
+
+on = function (type, listener) {
+	var data;
+
+	callable(listener);
+
+	if (!hasOwnProperty.call(this, '__ee__')) {
+		data = descriptor.value = create(null);
+		defineProperty(this, '__ee__', descriptor);
+		descriptor.value = null;
+	} else {
+		data = this.__ee__;
+	}
+	if (!data[type]) data[type] = listener;
+	else if (typeof data[type] === 'object') data[type].push(listener);
+	else data[type] = [data[type], listener];
+
+	return this;
+};
+
+once = function (type, listener) {
+	var once, self;
+
+	callable(listener);
+	self = this;
+	on.call(this, type, once = function () {
+		off.call(self, type, once);
+		apply.call(listener, this, arguments);
+	});
+
+	once.__eeOnceListener__ = listener;
+	return this;
+};
+
+off = function (type, listener) {
+	var data, listeners, candidate, i;
+
+	callable(listener);
+
+	if (!hasOwnProperty.call(this, '__ee__')) return this;
+	data = this.__ee__;
+	if (!data[type]) return this;
+	listeners = data[type];
+
+	if (typeof listeners === 'object') {
+		for (i = 0; (candidate = listeners[i]); ++i) {
+			if ((candidate === listener) ||
+					(candidate.__eeOnceListener__ === listener)) {
+				if (listeners.length === 2) data[type] = listeners[i ? 0 : 1];
+				else listeners.splice(i, 1);
+			}
+		}
+	} else {
+		if ((listeners === listener) ||
+				(listeners.__eeOnceListener__ === listener)) {
+			delete data[type];
+		}
+	}
+
+	return this;
+};
+
+emit = function (type) {
+	var i, l, listener, listeners, args;
+
+	if (!hasOwnProperty.call(this, '__ee__')) return;
+	listeners = this.__ee__[type];
+	if (!listeners) return;
+
+	if (typeof listeners === 'object') {
+		l = arguments.length;
+		args = new Array(l - 1);
+		for (i = 1; i < l; ++i) args[i - 1] = arguments[i];
+
+		listeners = listeners.slice();
+		for (i = 0; (listener = listeners[i]); ++i) {
+			apply.call(listener, this, args);
+		}
+	} else {
+		switch (arguments.length) {
+		case 1:
+			call.call(listeners, this);
+			break;
+		case 2:
+			call.call(listeners, this, arguments[1]);
+			break;
+		case 3:
+			call.call(listeners, this, arguments[1], arguments[2]);
+			break;
+		default:
+			l = arguments.length;
+			args = new Array(l - 1);
+			for (i = 1; i < l; ++i) {
+				args[i - 1] = arguments[i];
+			}
+			apply.call(listeners, this, args);
+		}
+	}
+};
+
+methods = {
+	on: on,
+	once: once,
+	off: off,
+	emit: emit
+};
+
+descriptors = {
+	on: d(on),
+	once: d(once),
+	off: d(off),
+	emit: d(emit)
+};
+
+base = defineProperties({}, descriptors);
+
+module.exports = exports = function (o) {
+	return (o == null) ? create(base) : defineProperties(Object(o), descriptors);
+};
+exports.methods = methods;
+
+
+/***/ }),
+/* 16 */
+/***/ (function(module, exports, __webpack_require__) {
+
+"use strict";
+
+
+var isValue         = __webpack_require__(3)
+  , isPlainFunction = __webpack_require__(17)
+  , assign          = __webpack_require__(21)
+  , normalizeOpts   = __webpack_require__(29)
+  , contains        = __webpack_require__(30);
+
+var d = (module.exports = function (dscr, value/*, options*/) {
+	var c, e, w, options, desc;
+	if (arguments.length < 2 || typeof dscr !== "string") {
+		options = value;
+		value = dscr;
+		dscr = null;
+	} else {
+		options = arguments[2];
+	}
+	if (isValue(dscr)) {
+		c = contains.call(dscr, "c");
+		e = contains.call(dscr, "e");
+		w = contains.call(dscr, "w");
+	} else {
+		c = w = true;
+		e = false;
+	}
+
+	desc = { value: value, configurable: c, enumerable: e, writable: w };
+	return !options ? desc : assign(normalizeOpts(options), desc);
+});
+
+d.gs = function (dscr, get, set/*, options*/) {
+	var c, e, options, desc;
+	if (typeof dscr !== "string") {
+		options = set;
+		set = get;
+		get = dscr;
+		dscr = null;
+	} else {
+		options = arguments[3];
+	}
+	if (!isValue(get)) {
+		get = undefined;
+	} else if (!isPlainFunction(get)) {
+		options = get;
+		get = set = undefined;
+	} else if (!isValue(set)) {
+		set = undefined;
+	} else if (!isPlainFunction(set)) {
+		options = set;
+		set = undefined;
+	}
+	if (isValue(dscr)) {
+		c = contains.call(dscr, "c");
+		e = contains.call(dscr, "e");
+	} else {
+		c = true;
+		e = false;
+	}
+
+	desc = { get: get, set: set, configurable: c, enumerable: e };
+	return !options ? desc : assign(normalizeOpts(options), desc);
+};
+
+
+/***/ }),
+/* 17 */
+/***/ (function(module, exports, __webpack_require__) {
+
+"use strict";
+
+
+var isFunction = __webpack_require__(18);
+
+var classRe = /^\s*class[\s{/}]/, functionToString = Function.prototype.toString;
+
+module.exports = function (value) {
+	if (!isFunction(value)) return false;
+	if (classRe.test(functionToString.call(value))) return false;
+	return true;
+};
+
+
+/***/ }),
+/* 18 */
+/***/ (function(module, exports, __webpack_require__) {
+
+"use strict";
+
+
+var isPrototype = __webpack_require__(19);
+
+module.exports = function (value) {
+	if (typeof value !== "function") return false;
+
+	if (!hasOwnProperty.call(value, "length")) return false;
+
+	try {
+		if (typeof value.length !== "number") return false;
+		if (typeof value.call !== "function") return false;
+		if (typeof value.apply !== "function") return false;
+	} catch (error) {
+		return false;
+	}
+
+	return !isPrototype(value);
+};
+
+
+/***/ }),
+/* 19 */
+/***/ (function(module, exports, __webpack_require__) {
+
+"use strict";
+
+
+var isObject = __webpack_require__(20);
+
+module.exports = function (value) {
+	if (!isObject(value)) return false;
+	try {
+		if (!value.constructor) return false;
+		return value.constructor.prototype === value;
+	} catch (error) {
+		return false;
+	}
+};
+
+
+/***/ }),
+/* 20 */
+/***/ (function(module, exports, __webpack_require__) {
+
+"use strict";
+
+
+var isValue = __webpack_require__(3);
+
+// prettier-ignore
+var possibleTypes = { "object": true, "function": true, "undefined": true /* document.all */ };
+
+module.exports = function (value) {
+	if (!isValue(value)) return false;
+	return hasOwnProperty.call(possibleTypes, typeof value);
+};
+
+
+/***/ }),
+/* 21 */
+/***/ (function(module, exports, __webpack_require__) {
+
+"use strict";
+
+
+module.exports = __webpack_require__(22)() ? Object.assign : __webpack_require__(23);
+
+
+/***/ }),
+/* 22 */
+/***/ (function(module, exports, __webpack_require__) {
+
+"use strict";
+
+
+module.exports = function () {
+	var assign = Object.assign, obj;
+	if (typeof assign !== "function") return false;
+	obj = { foo: "raz" };
+	assign(obj, { bar: "dwa" }, { trzy: "trzy" });
+	return obj.foo + obj.bar + obj.trzy === "razdwatrzy";
+};
+
+
+/***/ }),
+/* 23 */
+/***/ (function(module, exports, __webpack_require__) {
+
+"use strict";
+
+
+var keys  = __webpack_require__(24)
+  , value = __webpack_require__(28)
+  , max   = Math.max;
+
+module.exports = function (dest, src/*, …srcn*/) {
+	var error, i, length = max(arguments.length, 2), assign;
+	dest = Object(value(dest));
+	assign = function (key) {
+		try {
+			dest[key] = src[key];
+		} catch (e) {
+			if (!error) error = e;
+		}
+	};
+	for (i = 1; i < length; ++i) {
+		src = arguments[i];
+		keys(src).forEach(assign);
+	}
+	if (error !== undefined) throw error;
+	return dest;
+};
+
+
+/***/ }),
+/* 24 */
+/***/ (function(module, exports, __webpack_require__) {
+
+"use strict";
+
+
+module.exports = __webpack_require__(25)() ? Object.keys : __webpack_require__(26);
+
+
+/***/ }),
+/* 25 */
+/***/ (function(module, exports, __webpack_require__) {
+
+"use strict";
+
+
+module.exports = function () {
+	try {
+		Object.keys("primitive");
+		return true;
+	} catch (e) {
+		return false;
+	}
+};
+
+
+/***/ }),
+/* 26 */
+/***/ (function(module, exports, __webpack_require__) {
+
+"use strict";
+
+
+var isValue = __webpack_require__(1);
+
+var keys = Object.keys;
+
+module.exports = function (object) { return keys(isValue(object) ? Object(object) : object); };
+
+
+/***/ }),
+/* 27 */
+/***/ (function(module, exports, __webpack_require__) {
+
+"use strict";
+
+
+// eslint-disable-next-line no-empty-function
+module.exports = function () {};
+
+
+/***/ }),
+/* 28 */
+/***/ (function(module, exports, __webpack_require__) {
+
+"use strict";
+
+
+var isValue = __webpack_require__(1);
+
+module.exports = function (value) {
+	if (!isValue(value)) throw new TypeError("Cannot use null or undefined");
+	return value;
+};
+
+
+/***/ }),
+/* 29 */
+/***/ (function(module, exports, __webpack_require__) {
+
+"use strict";
+
+
+var isValue = __webpack_require__(1);
+
+var forEach = Array.prototype.forEach, create = Object.create;
+
+var process = function (src, obj) {
+	var key;
+	for (key in src) obj[key] = src[key];
+};
+
+// eslint-disable-next-line no-unused-vars
+module.exports = function (opts1/*, …options*/) {
+	var result = create(null);
+	forEach.call(arguments, function (options) {
+		if (!isValue(options)) return;
+		process(Object(options), result);
+	});
+	return result;
+};
+
+
+/***/ }),
+/* 30 */
+/***/ (function(module, exports, __webpack_require__) {
+
+"use strict";
+
+
+module.exports = __webpack_require__(31)() ? String.prototype.contains : __webpack_require__(32);
+
+
+/***/ }),
+/* 31 */
+/***/ (function(module, exports, __webpack_require__) {
+
+"use strict";
+
+
+var str = "razdwatrzy";
+
+module.exports = function () {
+	if (typeof str.contains !== "function") return false;
+	return str.contains("dwa") === true && str.contains("foo") === false;
+};
+
+
+/***/ }),
+/* 32 */
+/***/ (function(module, exports, __webpack_require__) {
+
+"use strict";
+
+
+var indexOf = String.prototype.indexOf;
+
+module.exports = function (searchString/*, position*/) {
+	return indexOf.call(this, searchString, arguments[1]) > -1;
+};
+
+
+/***/ }),
+/* 33 */
+/***/ (function(module, exports, __webpack_require__) {
+
+"use strict";
+
+
+module.exports = function (fn) {
+	if (typeof fn !== "function") throw new TypeError(fn + " is not a function");
+	return fn;
+};
+
+
+/***/ }),
+/* 34 */
+/***/ (function(module, exports, __webpack_require__) {
+
+"use strict";
+
+
+Object.defineProperty(exports, "__esModule", {
+  value: true
+});
+
+var _music = __webpack_require__(0);
+
+var _music2 = _interopRequireDefault(_music);
+
+function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
+
+function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } }
+
+var Backward = function Backward(player) {
+  _classCallCheck(this, Backward);
+
+  var util = _music2.default.util;
+  var controlEl = player.controls;
+  var ev = ['click', 'touchstart'];
+  var backwardBtn = player.config.backwardBtn ? player.config.backwardBtn : {};
+  var backward = void 0;
+  if (backwardBtn.type === 'img') {
+    backward = _music2.default.util.createImgBtn('backward', backwardBtn.url, backwardBtn.width, backwardBtn.height);
+  } else {
+    backward = util.createDom('xg-backward', '<xg-icon class="xgplayer-icon"><svg xmlns="http://www.w3.org/2000/svg" width="1024" height="1024" viewBox="0 0 1024 1024">\n                <path transform = "scale(1.5 1.5) translate(8 4.5)"\n                d="m 14,2.99996 0,10 -7,-5 7,-5 z m -7,5 0,5 -7,-5 7,-5 0,5 z m -7,0 0,0 z"></path>\n            </svg></xg-icon>', {}, 'xgplayer-backward');
+  }
+  controlEl.appendChild(backward);
+  ev.forEach(function (item) {
+    backward.addEventListener(item, function (e) {
+      e.preventDefault();
+      e.stopPropagation();
+      player.backward();
+    }, false);
+  });
+};
+
+exports.default = Backward;
+module.exports = exports['default'];
+
+/***/ }),
+/* 35 */
+/***/ (function(module, exports, __webpack_require__) {
+
+"use strict";
+
+
+Object.defineProperty(exports, "__esModule", {
+  value: true
+});
+
+var _music = __webpack_require__(0);
+
+var _music2 = _interopRequireDefault(_music);
+
+function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
+
+function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } }
+
+var Cover = function Cover(player) {
+  _classCallCheck(this, Cover);
+
+  var util = _music2.default.util;
+  var controlEl = player.controls;
+  var poster = util.createDom('xg-cover', '<img src="' + (player.config.poster || player.config.url[0].poster) + '">', {}, 'xgplayer-cover');
+  controlEl.appendChild(poster);
+  player.on('change', function (item) {
+    poster.innerHTML = '<img src="' + item.poster + '">';
+  });
+};
+
+exports.default = Cover;
+module.exports = exports['default'];
+
+/***/ }),
+/* 36 */
+/***/ (function(module, exports, __webpack_require__) {
+
+"use strict";
+
+
+Object.defineProperty(exports, "__esModule", {
+  value: true
+});
+
+var _music = __webpack_require__(0);
+
+var _music2 = _interopRequireDefault(_music);
+
+function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
+
+function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } }
+
+var Forward = function Forward(player) {
+  _classCallCheck(this, Forward);
+
+  var util = _music2.default.util;
+  var controlEl = player.controls;
+  var ev = ['click', 'touchstart'];
+  var forwardBtn = player.config.forwardBtn ? player.config.forwardBtn : {};
+  var forward = void 0;
+  if (forwardBtn.type === 'img') {
+    forward = _music2.default.util.createImgBtn('forward', forwardBtn.url, forwardBtn.width, forwardBtn.height);
+  } else {
+    forward = util.createDom('xg-forward', '<xg-icon class="xgplayer-icon"><svg xmlns="http://www.w3.org/2000/svg" width="1024" height="1024" viewBox="0 0 1024 1024">\n                <path transform = "scale(1.5 1.5) translate(-2 4.5)"\n                d="m 2,2.99996 0,10 7,-5 -7,-5 z m 7,5 0,5 7,-5 -7,-5 0,5 z m 7,0 0,0 z"></path>\n            </svg></xg-icon>', {}, 'xgplayer-forward');
+  }
+  controlEl.appendChild(forward);
+  ev.forEach(function (item) {
+    forward.addEventListener(item, function (e) {
+      e.preventDefault();
+      e.stopPropagation();
+      player.forward();
+    }, false);
+  });
+};
+
+exports.default = Forward;
+module.exports = exports['default'];
+
+/***/ }),
+/* 37 */
+/***/ (function(module, exports, __webpack_require__) {
+
+"use strict";
+
+
+Object.defineProperty(exports, "__esModule", {
+  value: true
+});
+
+var _music = __webpack_require__(0);
+
+var _music2 = _interopRequireDefault(_music);
+
+function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
+
+function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } }
+
+var Meta = function Meta(player) {
+  _classCallCheck(this, Meta);
+
+  var util = _music2.default.util;
+  var progressEl = player.controls.querySelector('.xgplayer-progress');
+  var name = util.createDom('xg-name', '' + (player.config.name || player.config.url[0].name), {}, 'xgplayer-name');
+  progressEl.appendChild(name);
+  player.on('change', function (item) {
+    name.innerHTML = '' + item.name;
+  });
+};
+
+exports.default = Meta;
+module.exports = exports['default'];
+
+/***/ }),
+/* 38 */
+/***/ (function(module, exports, __webpack_require__) {
+
+"use strict";
+
+
+Object.defineProperty(exports, "__esModule", {
+  value: true
+});
+
+var _music = __webpack_require__(0);
+
+var _music2 = _interopRequireDefault(_music);
+
+function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
+
+function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } }
+
+var Next = function Next(player) {
+  _classCallCheck(this, Next);
+
+  var util = _music2.default.util;
+  var controlEl = player.controls;
+  var ev = ['click', 'touchstart'];
+  var nextBtn = player.config.nextBtn ? player.config.nextBtn : {};
+  var next = void 0;
+  if (nextBtn.type === 'img') {
+    next = _music2.default.util.createImgBtn('next', nextBtn.url, nextBtn.width, nextBtn.height);
+  } else {
+    next = util.createDom('xg-next', '<xg-icon class="xgplayer-icon"><svg xmlns="http://www.w3.org/2000/svg" width="1024" height="1024" viewBox="0 0 1024 1024">\n                <path transform="scale(0.025 0.025)"\n                d="M800 380v768h-128v-352l-320 320v-704l320 320v-352z"></path>\n            </svg></xg-icon>', {}, 'xgplayer-next');
+  }
+  controlEl.appendChild(next);
+  ev.forEach(function (item) {
+    next.addEventListener(item, function (e) {
+      e.preventDefault();
+      e.stopPropagation();
+      player.next();
+    }, false);
+  });
+};
+
+exports.default = Next;
+module.exports = exports['default'];
+
+/***/ }),
+/* 39 */
+/***/ (function(module, exports, __webpack_require__) {
+
+"use strict";
+
+
+Object.defineProperty(exports, "__esModule", {
+  value: true
+});
+
+var _music = __webpack_require__(0);
+
+var _music2 = _interopRequireDefault(_music);
+
+function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
+
+function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } }
+
+var Prev = function Prev(player) {
+  _classCallCheck(this, Prev);
+
+  var util = _music2.default.util;
+  var controlEl = player.controls;
+  var ev = ['click', 'touchstart'];
+  var prevBtn = player.config.prevBtn ? player.config.prevBtn : {};
+  var prev = void 0;
+  if (prevBtn.type === 'img') {
+    prev = _music2.default.util.createImgBtn('prev', prevBtn.url, prevBtn.width, prevBtn.height);
+  } else {
+    prev = util.createDom('xg-prev', '<xg-icon class="xgplayer-icon"><svg xmlns="http://www.w3.org/2000/svg" width="1024" height="1024" viewBox="0 0 1024 1024">\n                <path transform = "scale(0.025 0.025)"\n                d="M600 1140v-768h128v352l320-320v704l-320-320v352zz"></path>\n            </svg></xg-icon>', {}, 'xgplayer-prev');
+  }
+  controlEl.appendChild(prev);
+
+  ev.forEach(function (item) {
+    prev.addEventListener(item, function (e) {
+      e.preventDefault();
+      e.stopPropagation();
+      player.prev();
+    }, false);
+  });
+};
+
+exports.default = Prev;
+module.exports = exports['default'];
+
+/***/ })
+/******/ ]);
+});
