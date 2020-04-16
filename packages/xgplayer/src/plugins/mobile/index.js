@@ -43,10 +43,11 @@ class MobilePlugin extends Plugin {
   }
 
   afterCreate () {
+    const {playerConfig} = this
     this.config.disableGesture = !!this.playerConfig.disableGesture
 
     this.xgMask = Util.createDom('xg-mask', '', {}, 'xgmask')
-    this.player.root.append(this.xgMask)
+    this.player.root.appendChild(this.xgMask)
 
     this.onTouchMove = this.onTouchMove.bind(this)
     this.onTouchStart = this.onTouchStart.bind(this)
@@ -54,6 +55,34 @@ class MobilePlugin extends Plugin {
     this.onClick = this.onClick.bind(this)
     this.root.addEventListener('touchstart', this.onTouchStart)
     this.root.addEventListener('click', this.onClick, false)
+    this.once(Events.AUTOPLAY_PREVENTED, () => {
+      this.onAutoPlayPrevented()
+    })
+    this.once(Events.CANPLAY, this.onEntered.bind(this));
+    if (playerConfig.autoplay) {
+      this.onEnter()
+    }
+  }
+
+  onEnter () {
+    const { player } = this;
+    Util.addClass(player.root, 'xgplayer-is-enter')
+  }
+
+  onEntered () {
+    const { player } = this;
+    Util.removeClass(player.root, 'xgplayer-is-enter')
+  }
+
+  onAutoPlayPrevented () {
+    const { player } = this;
+    Util.removeClass(player.root, 'xgplayer-is-enter')
+    this.once(Events.PLAY, () => {
+      Util.addClass(player.root, 'xgplayer-is-enter')
+      this.once(Events.TIME_UPDATE, () => {
+        Util.removeClass(player.root, 'xgplayer-is-enter')
+      })
+    })
   }
 
   getTouche (touches) {
