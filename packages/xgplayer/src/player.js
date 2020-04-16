@@ -146,10 +146,6 @@ class Player extends Proxy {
     this.once('loadeddata', this.getVideoSize)
 
     this.mousemoveFunc = () => {
-      // 加上判断减少触发次数
-      if (this.isActive) {
-        return
-      }
       this.emit(Events.PLAYER_FOCUS)
       if (!this.config.closeFocusVideoFocus) {
         this.video.focus()
@@ -165,18 +161,6 @@ class Player extends Proxy {
       }
     }
     this.once('play', this.playFunc)
-    // if (!this.config.closeVideoClick) {
-    //   ['touched', 'click'].map((key) => {
-    //     this.video.addEventListener(key, () => {
-    //       console.log('this.video.addEventListener')
-    //       if (this.paused) {
-    //         this.play()
-    //       } else {
-    //         this.pause()
-    //       }
-    //     })
-    //   })
-    // }
     const player = this
     function onDestroy () {
       player.root.removeEventListener('mousemove', player.mousemoveFunc);
@@ -474,9 +458,6 @@ class Player extends Proxy {
   }
 
   onFocus (notAutoHide) {
-    if (this.isActive) {
-      return;
-    }
     this.isActive = true
     let player = this
     this.removeClass(STATE_CLASS.ACTIVE)
@@ -487,7 +468,6 @@ class Player extends Proxy {
       return;
     }
     player.userTimer = setTimeout(function () {
-      this.isActive = false
       player.emit(Events.PLAYER_BLUR)
     }, player.config.inactive)
   }
