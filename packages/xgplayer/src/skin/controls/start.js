@@ -10,12 +10,18 @@ let s_start = function () {
                                       <div class="xgplayer-icon-pause">${StartPauseIcon}</div>`, {}, 'xgplayer-start')
   function onPlayerReady(player) {
     util.addClass(player.root, 'xgplayer-skin-default')
-    player.config.autoplay && util.addClass(player.root, 'xgplayer-is-enter')
     if (player.config) {
+      player.config.autoplay && !util.isWeiXin() && util.addClass(player.root, 'xgplayer-is-enter')
       if (player.config.lang && player.config.lang === 'en') {
         util.addClass(player.root, 'lang-is-en')
       } else if (player.config.lang === 'jp') {
         util.addClass(player.root, 'lang-is-jp')
+      }
+      if(!player.config.enableContextmenu) {
+        player.video.addEventListener('contextmenu', e => {
+          e.preventDefault()
+          e.stopPropagation()
+        })
       }
     }
   }

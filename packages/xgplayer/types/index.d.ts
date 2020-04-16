@@ -33,7 +33,7 @@ declare module 'xgplayer' {
 
     interface Util {
         createDom: (el: string, tpl?: string, attrs?: object, cname?: string) => HTMLElement;
-        hasClass: (el: HTMLElement, cname: string) => boolean
+        hasClass: (el: HTMLElement, cname: string) => boolean;
         addClass: (el: HTMLElement, cname: string) => void;
         removeClass: (el: HTMLElement, cname: string) => void;
         toggleClass: (el: HTMLElement, cname: string) => void;
@@ -43,6 +43,7 @@ declare module 'xgplayer' {
         deepCopy: (src: object, dist: object) => object;
         getBgImage: (el: HTMLElement) => string;
         Hex2RGBA: (hex: string, alpha: number) => string;
+        isWeiXin: () => boolean;
     }
 
     export interface TextTrack {
@@ -199,6 +200,12 @@ declare module 'xgplayer' {
 
         // 关闭播放器触发play事件时触发video focus
         closePlayVideoFocus?: boolean;
+
+        // 禁止拖动进度条
+        disableProgress?: boolean;
+
+        // 打开右键菜单
+        enableContextmenu?: boolean;
 
         // 清晰度切换配置
         definitionActive?: 'hover' | 'click';

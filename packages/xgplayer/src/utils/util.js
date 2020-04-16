@@ -227,4 +227,9 @@ util.Hex2RGBA = function (hex, alpha) {
   }
 }
 
+util.isWeiXin = function () {
+    let ua = window.navigator.userAgent.toLowerCase()
+    return ua.indexOf('micromessenger') > -1
+}
+
 export default util

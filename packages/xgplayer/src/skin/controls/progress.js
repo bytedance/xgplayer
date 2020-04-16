@@ -121,6 +121,7 @@ let s_progress = function () {
     thumbnail.style.height = `${tnailHeight}px`
   };
   ['touchstart', 'mousedown'].forEach(item => {
+    if(player.config.disableProgress) return;
     container.addEventListener(item, function (e) {
       // e.preventDefault()
       e.stopPropagation()
