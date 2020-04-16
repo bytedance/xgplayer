@@ -22,9 +22,6 @@
     height: 70px;
     background: $startBgColor;
     overflow: hidden;
-    text-align: center;
-    line-height: 70px;
-    vertical-align: middle;
     position: absolute;
     left: 50%;
     top: 50%;
@@ -62,6 +59,7 @@
     .xgplayer-start {
       height: 50px;
       width: 50px;
+      margin: -25px auto auto -25px;
       svg {
         height: 50px;
         width: 50px;

@@ -59,6 +59,7 @@ export default class PCPlugin extends BasePlugin {
       e.cancelBubble = true
     }
   }
+
   onEnter () {
     const { player } = this;
     Util.addClass(player.root, 'xgplayer-is-enter')
