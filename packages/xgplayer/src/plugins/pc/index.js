@@ -6,19 +6,12 @@ export default class PCPlugin extends BasePlugin {
   }
 
   afterCreate () {
-    const eventHandlers = ['onVideoClick', 'onVideoDblClick', 'onMouseEnter', 'onMouseLeave', 'onControlMouseEnter',
-      'onControlMouseLeave', 'onContextmenu']
+    const eventHandlers = ['onVideoClick', 'onVideoDblClick', 'onContextmenu']
     eventHandlers.map(key => {
       if (this[key]) {
         this[key] = this[key].bind(this)
       }
     })
-    // this.onVideoClick = this.onVideoClick.bind(this)
-    // this.onVideoDblClick = this.onVideoDblClick.bind(this)
-    // this.onMouseEnter = this.onMouseEnter.bind(this)
-    // this.onMouseLeave = this.onMouseLeave.bind(this)
-    // this.onControlMouseEnter = this.onControlMouseEnter.bind(this)
-    // this.onControlMouseLeave = this.onControlMouseLeave.bind(this)
     this.initEvents();
     const {playerConfig} = this
     if (playerConfig.autoplay) {
@@ -29,22 +22,14 @@ export default class PCPlugin extends BasePlugin {
   initEvents () {
     const { player } = this;
 
-    player.video.addEventListener('click', this.onVideoClick, false)
-
+    player.root.addEventListener('click', this.onVideoClick, false)
     player.video.addEventListener('dblclick', this.onVideoDblClick, false)
-    player.root.addEventListener('contextmenu', this.onContextmenu, false)
+    player.video.addEventListener('contextmenu', this.onContextmenu, false)
+
     this.once(Events.CANPLAY, this.onEntered.bind(this));
     this.once(Events.AUTOPLAY_PREVENTED, () => {
       this.onAutoPlayPrevented()
     })
-
-    player.root.addEventListener('mouseenter', this.onMouseEnter)
-
-    player.root.addEventListener('mouseleave', this.onMouseLeave)
-
-    // player.controls.addEventListener('mouseenter', this.onControlMouseEnter, false)
-
-    // player.controls.addEventListener('mouseleave', this.onControlMouseLeave, false)
   }
 
   onContextmenu (e) {
@@ -59,6 +44,7 @@ export default class PCPlugin extends BasePlugin {
       e.cancelBubble = true
     }
   }
+
   onEnter () {
     const { player } = this;
     Util.addClass(player.root, 'xgplayer-is-enter')
@@ -82,7 +68,6 @@ export default class PCPlugin extends BasePlugin {
 
   onVideoClick (e) {
     e.preventDefault()
-    // e.stopPropagation()
     if (!this.config.closeVideoStopPropagation) {
       e.stopPropagation()
     }
@@ -100,10 +85,6 @@ export default class PCPlugin extends BasePlugin {
           } else if (!player.ended) {
             if (player.paused) {
               player.play()
-              // let playPromise = player.play()
-              // if (playPromise !== undefined && playPromise) {
-              //   playPromise.catch(err => {})
-              // }
             } else {
               player.pause()
             }
@@ -122,21 +103,6 @@ export default class PCPlugin extends BasePlugin {
     const { player } = this
     if (!player.config.closeVideoDblclick) {
       player.fullscreen ? player.exitFullscreen() : player.getFullscreen()
-    }
-  }
-
-  onMouseEnter () {
-    const { player } = this
-    clearTimeout(player.leavePlayerTimer)
-    player.emit('focus', player)
-  }
-
-  onMouseLeave () {
-    const { player } = this;
-    if (!player.config.closePlayerBlur) {
-      player.leavePlayerTimer = setTimeout(function () {
-        player.emit('blur', player)
-      }, player.config.leavePlayerTime || 1500)
     }
   }
 

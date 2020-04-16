@@ -15,11 +15,21 @@ export default class Fullscreen extends Plugin {
       index: 0,
       useCssFullscreen: false,
       switchCallback: null,
-      target: null
+      target: null,
+      disable: false
+    }
+  }
+
+  beforeCreate (args) {
+    if (typeof args.player.config.fullscreen === 'boolean') {
+      args.config.disable = !args.player.config.fullscreen
     }
   }
 
   afterCreate () {
+    if (this.config.disable) {
+      return
+    }
     this.isFullScreen = this.player.isFullScreen
     this.initIcons()
     this.btnClick = this.btnClick.bind(this)
@@ -98,6 +108,9 @@ export default class Fullscreen extends Plugin {
   }
 
   render () {
+    if (this.config.disable) {
+      return
+    }
     return `<xg-icon class="xgplayer-fullscreen">
     <div class="xgplayer-icon">
     </div>

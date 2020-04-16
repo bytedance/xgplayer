@@ -43,10 +43,11 @@ class MobilePlugin extends Plugin {
   }
 
   afterCreate () {
+    const {playerConfig} = this
     this.config.disableGesture = !!this.playerConfig.disableGesture
 
     this.xgMask = Util.createDom('xg-mask', '', {}, 'xgmask')
-    this.player.root.append(this.xgMask)
+    this.player.root.appendChild(this.xgMask)
 
     this.onTouchMove = this.onTouchMove.bind(this)
     this.onTouchStart = this.onTouchStart.bind(this)
@@ -54,6 +55,34 @@ class MobilePlugin extends Plugin {
     this.onClick = this.onClick.bind(this)
     this.root.addEventListener('touchstart', this.onTouchStart)
     this.root.addEventListener('click', this.onClick, false)
+    this.once(Events.AUTOPLAY_PREVENTED, () => {
+      this.onAutoPlayPrevented()
+    })
+    this.once(Events.CANPLAY, this.onEntered.bind(this));
+    if (playerConfig.autoplay) {
+      this.onEnter()
+    }
+  }
+
+  onEnter () {
+    const { player } = this;
+    Util.addClass(player.root, 'xgplayer-is-enter')
+  }
+
+  onEntered () {
+    const { player } = this;
+    Util.removeClass(player.root, 'xgplayer-is-enter')
+  }
+
+  onAutoPlayPrevented () {
+    const { player } = this;
+    Util.removeClass(player.root, 'xgplayer-is-enter')
+    this.once(Events.PLAY, () => {
+      Util.addClass(player.root, 'xgplayer-is-enter')
+      this.once(Events.TIME_UPDATE, () => {
+        Util.removeClass(player.root, 'xgplayer-is-enter')
+      })
+    })
   }
 
   getTouche (touches) {
@@ -81,7 +110,7 @@ class MobilePlugin extends Plugin {
       this.pos.scopeR = (1 - config.scopeR) * this.pos.width
       this.root.addEventListener('touchmove', this.onTouchMove, false)
       this.root.addEventListener('touchend', this.onTouchEnd, false)
-      this.player.emit(Events.PLAYER_FOCUS, true)
+      // this.player.emit(Events.PLAYER_FOCUS, true)
     }
   }
 
@@ -121,7 +150,7 @@ class MobilePlugin extends Plugin {
     const {root, player, pos} = this
     root.removeEventListener('touchmove', this.onTouchMove, false)
     root.removeEventListener('touchend', this.onTouchEnd, false)
-    player.emit(Events.PLAYER_FOCUS, false)
+    // player.emit(Events.PLAYER_FOCUS, false)
     if (pos.op === 1) {
       if (pos.time > player.duration) {
         player.currentTime = player.duration
@@ -167,23 +196,23 @@ class MobilePlugin extends Plugin {
   }
 
   onClick (e) {
-    e.preventDefault();
+    const {playerConfig, player} = this
     const util = Plugin.Util;
+    if (playerConfig.closeVideoClick || player.isTouchMove) {
+      return
+    }
+    e.preventDefault();
     e.stopPropagation();
-    const {player, playerConfig} = this;
-
-    if (!playerConfig.closeVideoTouch && !player.isTouchMove) {
-      if (util.hasClass(player.root, 'xgplayer-nostart')) {
-        return false;
-      } else if (!player.ended) {
-        if (player.paused) {
-          let playPromise = player.play();
-          if (playPromise !== undefined && playPromise) {
-            // playPromise.catch(err => {});
-          }
-        } else {
-          player.pause();
+    if (util.hasClass(player.root, 'xgplayer-nostart')) {
+      return false;
+    } else if (!player.ended) {
+      if (player.paused) {
+        let playPromise = player.play();
+        if (playPromise !== undefined && playPromise) {
+          // playPromise.catch(err => {});
         }
+      } else {
+        player.pause();
       }
     }
   }

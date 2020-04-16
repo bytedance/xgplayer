@@ -24,6 +24,9 @@ export default class CssFullScreen extends Plugin {
   }
 
   afterCreate () {
+    if (!this.config.disable) {
+      return
+    }
     this.initIcons()
     this.on(Events.CSS_FULLSCREEN_CHANGE, (isCssfullScreen) => {
       this.animate(isCssfullScreen)
@@ -94,7 +97,7 @@ export default class CssFullScreen extends Plugin {
   }
 
   render () {
-    if (!this.playerConfig.cssFullscreen) {
+    if (!this.config.disable) {
       return
     }
     return `<xg-icon class='xgplayer-cssfullscreen'>

@@ -55,11 +55,20 @@ class Start extends Plugin {
 
     this.bind('click', this.onClick)
 
-    this.on([Events.PLAY, Events.PAUSE], () => {
+    this.on(Events.AUTOPLAY_PREVENTED, () => {
+      this.setAttr('data-state', 'play')
+      this.show();
+    })
+
+    this.on(Events.PLAY, () => {
       this.player.isPlaying ? this.animate() : this.hide()
     })
-    this.on(Events.AUTOPLAY_PREVENTED, () => {
-      this.show();
+
+    this.on(Events.PAUSE, () => {
+      if (!this.player.isPlaying) {
+        return
+      }
+      this.animate()
     })
   }
 
@@ -77,13 +86,10 @@ class Start extends Plugin {
   }
 
   animate (isEnded) {
-    if ((this.config.isShowPause && this.player.paused && !this.player.ended) || this.player.ended || isEnded) {
-      if (this.player.ended && !this.config.isShowEnd) {
-        return
-      }
+    if ((this.config.isShowPause && this.player.paused && !this.player.ended) || (this.config.isShowEnd && this.player.ended)) {
       this.show()
-      this.setAttr('data-state', this.player.paused ? 'pause' : 'play')
-      return;
+      this.setAttr('data-state', this.player.paused ? 'play' : 'pause')
+      return
     }
     if (this.player.disableAmimate || this.config.disableAnimate) {
       return;
@@ -96,9 +102,6 @@ class Start extends Plugin {
       },
       end: () => {
         Util.removeClass(this.root, 'interact');
-        if (this.config.isShowPause && (this.player.paused || isEnded)) {
-          return;
-        }
         this.hide()
       }
     })
