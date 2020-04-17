@@ -24,7 +24,9 @@ class Replay extends Plugin {
   }
 
   afterCreate () {
-    this.appendChild(this.icons.replay)
+    Plugin.insert(this.icons.replay, this.root, 0)
+
+    // this.appendChild(this.icons.replay)
     this.bind('svg', 'click', (e) => {
       e.preventDefault()
       this.player.replay()

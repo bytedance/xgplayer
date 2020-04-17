@@ -15,8 +15,8 @@ import ScreenShotIcon from '../plugins/screenShot'
 import DefinitionIcon from '../plugins/definition'
 import PlaybackRateIcon from '../plugins/playbackRate'
 
-import Play from '../plugins/assets/mPlay.svg'
-import Pause from '../plugins/assets/mPause.svg'
+import Play from '../plugins/assets/play.svg'
+import Pause from '../plugins/assets/pause.svg'
 
 export default class DefaultPreset {
   constructor () {

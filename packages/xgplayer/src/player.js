@@ -7,7 +7,7 @@ import Plugin, {pluginsManager, BasePlugin} from './plugin'
 import STATE_CLASS from './stateClassMap'
 import getDefaultConfig from './defaultConfig'
 import { usePreset } from './plugin/preset';
-import Controls from './plugins/controls'
+import Controls from './plugins/Controls'
 import {
   version
 } from '../package.json'

@@ -66,4 +66,9 @@
       }
     }
   }
+  &.xgplayer-ended {
+    .xgplayer-start {
+      display: none;
+    }
+  }
 }

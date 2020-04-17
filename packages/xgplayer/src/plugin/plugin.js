@@ -70,14 +70,14 @@ function registerTextObj (textConfig, plugin) {
 export default class Plugin extends BasePlugin {
   /**
     * 插入dom结构
-    * @param {String} html html字符串或者dom
-    * @param {DocumentElemebt } parent
+    * @param {String | Element} html html字符串或者dom
+    * @param {Element} parent
     * @param {*} index
     */
   static insert (html, parent, index = 0) {
     const len = parent.children.length
     const insertIdx = Number(index)
-    const isDomElement = html instanceof window.HTMLElement
+    const isDomElement = html instanceof window.Node
 
     if (len) {
       let i = 0;
