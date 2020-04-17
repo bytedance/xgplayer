@@ -1,5 +1,21 @@
 @import '../../style/variable';
 
+@keyframes loadingRotate {
+  0% {
+    transform: rotate(0);
+  }
+  100% {
+    transform: rotate(360deg);
+  }
+}
+@keyframes loadingDashOffset {
+  0% {
+    stroke-dashoffset: 236;
+  }
+  100% {
+    stroke-dashoffset: 0;
+  }
+}
 .xgplayer-loading {
   display: none;
   width: 100px;
@@ -9,7 +25,7 @@
   position: absolute;
   left: 50%;
   top: 50%;
-  margin: -70px auto auto -50px;
+  margin: -50px auto auto -50px;
   svg{
     border-radius: 50%;
     transform-origin: center;
@@ -25,6 +41,11 @@
   }
 }
 
+.xgplayer-mobile {
+  .xgplayer-loading {
+    transform:scale(0.5);
+  }
+}
 .xgplayer-nostart {
   .xgplayer-loading{
     display: none;

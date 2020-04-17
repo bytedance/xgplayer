@@ -59,6 +59,8 @@ class Play extends Plugin {
   }
 
   btnClick (e) {
+    e.preventDefault();
+    e.stopPropagation();
     const {player} = this
     if (player.paused) {
       player.play();

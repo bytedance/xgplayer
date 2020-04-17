@@ -15,9 +15,6 @@ import ScreenShotIcon from '../plugins/screenShot'
 import DefinitionIcon from '../plugins/definition'
 import PlaybackRateIcon from '../plugins/playbackRate'
 
-import Play from '../plugins/assets/play.svg'
-import Pause from '../plugins/assets/pause.svg'
-
 export default class DefaultPreset {
   constructor () {
     const contolsIcons = [Mobile, Progress, PlayIcon, FullScreen, TimeIcon,
@@ -26,9 +23,9 @@ export default class DefaultPreset {
 
     this.plugins = [...contolsIcons, ...layers]
     this.ignores = []
-    this.icons = {
-      play: Play,
-      pause: Pause
-    }
+    // this.icons = {
+    //   play: Play,
+    //   pause: Pause
+    // }
   }
 }
