@@ -67,6 +67,7 @@ class Play extends Plugin {
     } else {
       player.pause();
     }
+    return false
   }
 
   initIcons () {
