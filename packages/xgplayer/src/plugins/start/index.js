@@ -34,9 +34,6 @@ class Start extends Plugin {
   afterCreate () {
     const {player, playerConfig} = this
     this.initIcons()
-    if (Sniffer.device === 'mobile') {
-      this.config.isShowPause = true
-    }
     this.once(Events.READY, () => {
       if (playerConfig) {
         if (playerConfig.lang && playerConfig.lang === 'en') {
