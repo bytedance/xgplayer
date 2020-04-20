@@ -10,6 +10,8 @@ import I420 from "./fmt/i420";
 import Rgba from './fmt/rgba';
 import Rgb from './fmt/rgb';
 
+import {rgb2yuv} from "./converter";
+
 class Render {
   constructor (config) {
     this.canvas = config.canvas;
@@ -173,5 +175,5 @@ class Render {
     }
   }
 }
-
+export {rgb2yuv};
 export default Render;
