@@ -1,8 +1,8 @@
 (function (global, factory) {
-  typeof exports === 'object' && typeof module !== 'undefined' ? module.exports = factory() :
-  typeof define === 'function' && define.amd ? define(factory) :
-  (global = global || self, global.Render = factory());
-}(this, (function () { 'use strict';
+  typeof exports === 'object' && typeof module !== 'undefined' ? factory(exports) :
+  typeof define === 'function' && define.amd ? define(['exports'], factory) :
+  (global = global || self, factory(global.Render = {}));
+}(this, (function (exports) { 'use strict';
 
   function _classCallCheck(instance, Constructor) {
     if (!(instance instanceof Constructor)) {
@@ -908,6 +908,169 @@
     return Rgb;
   }(Filter);
 
+  var Converter =
+  /*#__PURE__*/
+  function (_Filter) {
+    _inherits(Converter, _Filter);
+
+    function Converter() {
+      var _this;
+
+      _classCallCheck(this, Converter);
+
+      _this = _possibleConstructorReturn(this, _getPrototypeOf(Converter).call(this));
+      _this.canvas = document.createElement('canvas');
+      _this.vShader = "\n            attribute vec4 vertexPos;\n            attribute vec2 texturePos;\n            varying vec2 textureCoord;\n            void main() {\n                gl_Position = vertexPos;\n                textureCoord = texturePos;\n            }\n        ";
+      _this.fShader = "\n            precision highp float;\n            varying highp vec2 textureCoord;\n            uniform sampler2D sampler;\n            uniform mat4 rgb2yuv;\n            void main(void) {\n                vec4 color = texture2D(sampler, vec2(textureCoord.x,1.0 - textureCoord.y));\n                vec4 yuv = color * rgb2yuv;\n                gl_FragColor = vec4(yuv.xyz,1.0);\n            }\n        ";
+      _this.inputTextures = [];
+
+      _this._init = function () {
+        _this._initContext();
+
+        _this._initShader();
+      };
+
+      _this._initContext = function () {
+        var canvas = _this.canvas;
+        var gl = null;
+        var validContextNames = ['webgl', 'experimental-webgl', 'moz-webgl', 'webkit-3d'];
+        var nameIndex = 0;
+
+        while (!gl && nameIndex < validContextNames.length) {
+          var contextName = validContextNames[nameIndex];
+
+          try {
+            gl = canvas.getContext(contextName);
+          } catch (e) {
+            gl = null;
+          }
+
+          if (!gl || typeof gl.getParameter !== 'function') {
+            gl = null;
+          }
+
+          ++nameIndex;
+        }
+        _this.gl = gl;
+      };
+
+      _this._initShader = function () {
+        var gl = _this.gl;
+        var canvas = _this.canvas;
+        _this.pw = GLUtil.createProgram(gl, _this.vShader, _this.fShader);
+        _this.program = _this.pw.program;
+        gl.useProgram(_this.program); // vertexPos
+
+        var vertexPosBuffer = GLUtil.createBuffer(gl, new Float32Array([1, 1, -1, 1, 1, -1, -1, -1]));
+        GLUtil.bindAttribute(gl, vertexPosBuffer, _this.pw.vertexPos, 2);
+        _this.texturePosBuffer = GLUtil.createBuffer(gl, new Float32Array([1, 0, 0, 0, 1, 1, 0, 1]));
+        GLUtil.bindAttribute(gl, _this.texturePosBuffer, _this.pw.texturePos, 2);
+        var textureRef = GLUtil.createTexture(gl, gl.LINEAR);
+        gl.uniform1i(_this.pw.sampler, 0);
+
+        _this.inputTextures.push(textureRef); // ycbcr
+
+
+        var rgb2yuv = [0.2578125, 0.50390625, 0.09765625, 0.0625, -0.1484375, -0.291, 0.439, 0.5, 0.439, -0.368, -0.071, 0.5, 0, 0, 0, 1];
+        gl.uniformMatrix4fv(_this.pw.rgb2yuv, false, rgb2yuv);
+      };
+
+      _this._exportPixels = function (width, height) {
+        var type = arguments.length > 2 && arguments[2] !== undefined ? arguments[2] : 'yuv444';
+        var rs = {
+          y: [],
+          u: [],
+          v: []
+        };
+
+        var loop = function loop(widthLimit, heightLimit, cb) {
+          var u8a = new Uint8Array(widthLimit * heightLimit * 4);
+
+          _this.gl.readPixels(0, 0, widthLimit, heightLimit, _this.gl.RGBA, _this.gl.UNSIGNED_BYTE, u8a);
+
+          for (var i = 0; i < u8a.length;) {
+            cb([u8a[i], u8a[i + 1], u8a[i + 2]]);
+            i += 4;
+          }
+        };
+
+        if (type === 'yuv444') {
+          loop(width, height, function (yuvArr) {
+            rs.y.push(yuvArr[0]);
+            rs.u.push(yuvArr[1]);
+            rs.v.push(yuvArr[2]);
+          });
+        } else if (type === 'yuv420') {
+          loop(width, height, function (yuvArr) {
+            rs.y.push(yuvArr[0]);
+          }); // 420 重画一次
+
+          {
+            var gl = _this.gl;
+            gl.viewport(0, 0, width / 2, height / 2); // gl.clear(gl.COLOR_BUFFER_BIT);
+
+            gl.drawArrays(gl.TRIANGLE_STRIP, 0, 4);
+          }
+          loop(width / 2, height / 2, function (yuvArr) {
+            rs.u.push(yuvArr[1]);
+            rs.v.push(yuvArr[2]);
+          });
+        }
+
+        return {
+          y: new Uint8Array(rs.y),
+          u: new Uint8Array(rs.u),
+          v: new Uint8Array(rs.v)
+        };
+      };
+
+      _this._init();
+
+      return _this;
+    }
+
+    _createClass(Converter, [{
+      key: "render",
+      value: function render(data, width, height) {
+        var gl = this.gl;
+        var textureRef = this.inputTextures[0];
+        {
+          this.canvas.width = width;
+          this.canvas.height = height;
+        }
+        gl.activeTexture(gl.TEXTURE0);
+        gl.bindTexture(gl.TEXTURE_2D, textureRef);
+        gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA, width, height, 0, gl.RGBA, gl.UNSIGNED_BYTE, data);
+        gl.viewport(0, 0, width, height);
+        gl.drawArrays(gl.TRIANGLE_STRIP, 0, 4);
+      }
+    }, {
+      key: "convert",
+      value: function convert(imageData) {
+        var type = arguments.length > 1 && arguments[1] !== undefined ? arguments[1] : 'yuv444';
+        var data = imageData.data,
+            width = imageData.width,
+            height = imageData.height;
+        var supportList = ['yuv420', "yuv444"];
+
+        if (!supportList.includes(type)) {
+          throw new Error('illegal video format');
+        }
+
+        this.render(data, width, height);
+        return this._exportPixels(width, height, type);
+      }
+    }]);
+
+    return Converter;
+  }(Filter);
+
+  var rgb2yuv = function rgb2yuv(imageData) {
+    var type = arguments.length > 1 && arguments[1] !== undefined ? arguments[1] : 'yuv444';
+    var c = new Converter();
+    return c.convert(imageData, type.toLocaleLowerCase());
+  };
+
   var Render =
   /*#__PURE__*/
   function () {
@@ -1100,6 +1263,9 @@
     return Render;
   }();
 
-  return Render;
+  exports.default = Render;
+  exports.rgb2yuv = rgb2yuv;
+
+  Object.defineProperty(exports, '__esModule', { value: true });
 
 })));

@@ -10,7 +10,7 @@ import I420 from "./fmt/i420";
 import Rgba from './fmt/rgba';
 import Rgb from './fmt/rgb';
 
-import {rgb2yuv} from "./converter";
+import {rgb2yuv} from "./converter/index";
 
 class Render {
   constructor (config) {
