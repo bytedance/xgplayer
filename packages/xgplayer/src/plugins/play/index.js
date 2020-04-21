@@ -2,7 +2,7 @@ import Plugin from '../../plugin'
 import PlaySvg from '../assets/play.svg'
 import PauseSvg from '../assets/pause.svg'
 
-const {Events, POSITIONS, Sniffer} = Plugin
+const {Events, POSITIONS} = Plugin
 
 class Play extends Plugin {
   static get pluginName () {
@@ -24,8 +24,7 @@ class Play extends Plugin {
     }
     this.initIcons()
     this.btnClick = this.btnClick.bind(this)
-    const event = Sniffer.device === 'mobile' ? 'touchend' : 'click'
-    this.bind(event, this.btnClick)
+    this.bind(['touchend', 'click'], this.btnClick)
 
     this.on(Events.PAUSE, () => {
       this.animate(player.paused)
