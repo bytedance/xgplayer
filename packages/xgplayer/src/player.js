@@ -18,7 +18,6 @@ class Player extends Proxy {
   constructor (options) {
     super(options)
     this.config = util.deepMerge(getDefaultConfig(), options)
-    this.config.presets = []
 
     // resolve default preset
     if (this.config.presets.length) {
