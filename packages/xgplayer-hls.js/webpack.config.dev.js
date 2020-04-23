@@ -8,7 +8,7 @@ const umd = {
     library: 'xgplayer-hlsjs.js',
     libraryTarget: 'umd'
   },
-  mode: 'production',
+  mode: 'development',
   module: {
     rules: [{
       test: /\.js$/,
@@ -33,9 +33,7 @@ const umd = {
   externals: {
     'xgplayer': 'xgplayer'
   },
-  optimization: {
-    minimize: true
-  }
+  devtool: 'inline-source-map'
 }
 
 const client = {
@@ -70,10 +68,8 @@ const client = {
   externals: {
     'xgplayer': 'Player'
   },
-  mode: 'production',
-  optimization: {
-    minimize: true
-  }
+  mode: 'development',
+  devtool: 'inline-source-map'
 }
 
 module.exports = [umd, client]

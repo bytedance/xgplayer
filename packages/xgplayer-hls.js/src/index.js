@@ -8,6 +8,17 @@ class HlsJsPlayer extends Player {
     this.hlsOpts = options.hlsOpts || {}
     let util = Player.util
     let player = this
+
+    player.once('complete', () => {
+      if(player.config.isLive) {
+        util.addClass(player.root, 'xgplayer-is-live')
+        if(!util.findDom(player.controls, '.xgplayer-live')) {
+          const live = util.createDom('xg-live', '正在直播', {}, 'xgplayer-live')
+          player.controls.appendChild(live)
+        }
+      }
+    })
+
     this.browser = utils.getBrowserVersion()
     if(player.config.useHls === undefined) {
       if ((Player.sniffer.device === 'mobile' && navigator.platform !== 'MacIntel' && navigator.platform !== 'Win32') || this.browser.indexOf('Safari') > -1) {
@@ -67,13 +78,6 @@ class HlsJsPlayer extends Player {
           player.play().catch(err => {})
         }
       })
-      if(player.config.isLive) {
-        util.addClass(player.root, 'xgplayer-is-live')
-        if(!util.findDom(player.root, '.xgplayer-live')) {
-          const live = util.createDom('xg-live', '正在直播', {}, 'xgplayer-live')
-          player.controls.appendChild(live)
-        }
-      }
     })
     this.once('destroy', () => {
       hls.stopLoad()

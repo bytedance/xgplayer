@@ -177,7 +177,7 @@ class BufferController extends EventHandler {
     // This is important because the MSE spec allows implementations to throw QuotaExceededErrors if creating new sourceBuffers after
     // data has been appended to existing ones.
     // 2 tracks is the max (one for audio, one for video). If we've reach this max go ahead and create the buffers.
-    
+
     const pendingTracksCount = Object.keys(pendingTracks).length;
     if ((pendingTracksCount && !bufferCodecEventsExpected) || pendingTracksCount === 2) {
       // ok, let's create them now !
@@ -185,7 +185,7 @@ class BufferController extends EventHandler {
       this.pendingTracks = {};
       // append any pending segments now !
       this.doAppending();
-    } 
+    }
   }
 
   onMediaSourceClose () {
@@ -226,10 +226,10 @@ class BufferController extends EventHandler {
     }
 
     // 寻找可播放的起始点。如果没有自动播放，需要手动Seek
-    if(this._paused === false 
+    if(this._paused === false
       && timeRanges["video"] && timeRanges["video"].length > 0
       && timeRanges["audio"] && timeRanges["audio"].length > 0) {
-      
+
       if(timeRanges["video"].end(0) - timeRanges["video"].start(0) > 1
       && timeRanges["audio"].end(0) - timeRanges["audio"].start(0) > 1) {
         // Seek to the point that can play;
@@ -242,8 +242,8 @@ class BufferController extends EventHandler {
         let endTime = Math.max(timeRanges["video"].end(0),timeRanges["audio"].end(0))
         this.media.currentTime = endTime;
         this.media.play();
-      } 
-      
+      }
+
     }
 
     this.hls.trigger(Event.BUFFER_APPENDED, { parent, pending, timeRanges });
@@ -544,7 +544,7 @@ class BufferController extends EventHandler {
   }
 
   doAppending () {
-    
+
     let { hls, segments, sourceBuffer } = this;
     if (Object.keys(sourceBuffer).length) {
       if (this.media.error) {
@@ -566,6 +566,7 @@ class BufferController extends EventHandler {
               sb.ended = false;
               // logger.log(`appending ${segment.content} ${type} SB, size:${segment.data.length}, ${segment.parent}`);
               this.parent = segment.parent;
+              console.log('append buffer ', segment)
               sb.appendBuffer(segment.data);
               this.appendError = 0;
               this.appended++;
