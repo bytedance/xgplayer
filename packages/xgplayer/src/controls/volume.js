@@ -73,9 +73,11 @@ let volume = function () {
       // util.removeClass(root, 'xgplayer-volume-large')
       if(player.video.muted) {
         player.video.muted = false
+        player.emit('unmute')
         // util.addClass(root, 'xgplayer-volume-large')
       } else {
         player.video.muted = true
+        player.emit('mute')
         // util.addClass(root, 'xgplayer-volume-muted')
       }
     } else {
@@ -86,8 +88,10 @@ let volume = function () {
         } else {
           player.volume = slider.volume
         }
+        player.emit('unmute')
       } else {
         player.volume = 0
+        player.emit('mute')
       }
     }
     // onVolumeChange ()
