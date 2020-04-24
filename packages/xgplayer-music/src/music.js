@@ -127,6 +127,12 @@ class Music extends Player {
       }
     })
     this.on('ended', () => {
+      if(this.config.abCycle) {
+        if(this.config.abCycle.loop) {
+          this.change()
+        }
+        return
+      }
       if (this.mode === 'order' && this.index + 1 >= this.list.length) {
         this.pause()
         this.currentTime = 0

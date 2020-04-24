@@ -281,6 +281,12 @@ var Music = function (_Player) {
       }
     });
     _this.on('ended', function () {
+      if (_this.config.abCycle) {
+        if (_this.config.abCycle.loop) {
+          _this.change();
+        }
+        return;
+      }
       if (_this.mode === 'order' && _this.index + 1 >= _this.list.length) {
         _this.pause();
         _this.currentTime = 0;
