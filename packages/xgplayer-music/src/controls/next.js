@@ -10,7 +10,7 @@ class Next {
     if (nextBtn.type === 'img') {
       next = Player.util.createImgBtn('next', nextBtn.url, nextBtn.width, nextBtn.height)
     } else {
-      next = util.createDom('xg-next', `<xg-icon class="xgplayer-icon"><svg xmlns="http://www.w3.org/2000/svg" width="1024" height="1024" viewBox="0 0 1024 1024">
+      next = util.createDom('xg-next', `<xg-icon class="xgplayer-icon"><svg xmlns="http://www.w3.org/2000/svg" width="40" height="40" viewBox="0 0 40 40">
                 <path transform="scale(0.025 0.025)"
                 d="M800 380v768h-128v-352l-320 320v-704l320 320v-352z"></path>
             </svg></xg-icon>`, {}, 'xgplayer-next')

@@ -10,7 +10,7 @@ class Prev {
     if (prevBtn.type === 'img') {
       prev = Player.util.createImgBtn('prev', prevBtn.url, prevBtn.width, prevBtn.height)
     } else {
-      prev = util.createDom('xg-prev', `<xg-icon class="xgplayer-icon"><svg xmlns="http://www.w3.org/2000/svg" width="1024" height="1024" viewBox="0 0 1024 1024">
+      prev = util.createDom('xg-prev', `<xg-icon class="xgplayer-icon"><svg xmlns="http://www.w3.org/2000/svg" width="40" height="40" viewBox="0 0 40 40">
                 <path transform = "scale(0.025 0.025)"
                 d="M600 1140v-768h128v352l320-320v704l-320-320v352zz"></path>
             </svg></xg-icon>`, {}, 'xgplayer-prev')

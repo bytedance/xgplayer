@@ -259,8 +259,8 @@ var Music = function (_Player) {
       }
       if (this.config.abCycle) {
         if (typeof this.addProgressDot === 'function') {
-          this.addProgressDot(this.config.abCycle.start);
-          this.addProgressDot(this.config.abCycle.end);
+          this.addProgressDot(this.config.abCycle.start || 0);
+          this.addProgressDot(this.config.abCycle.end || this.duration);
         }
       }
     });
@@ -269,14 +269,14 @@ var Music = function (_Player) {
         _this.confirmOrder();
       }
       if (_this.config.abCycle) {
-        if (_this.currentTime >= _this.config.abCycle.end) {
+        if (_this.currentTime >= (_this.config.abCycle.end || _this.duration)) {
           if (!_this.config.abCycle.loop) {
             _this.pause();
             _this.emit('abCycle ended');
           }
-          _this.currentTime = _this.config.abCycle.start;
-        } else if (_this.currentTime < _this.config.abCycle.start) {
-          _this.currentTime = _this.config.abCycle.start;
+          _this.currentTime = _this.config.abCycle.start || 0;
+        } else if (_this.currentTime < (_this.config.abCycle.start || 0)) {
+          _this.currentTime = _this.config.abCycle.start || 0;
         }
       }
     });
@@ -524,10 +524,11 @@ var Music = function (_Player) {
     }
   }, {
     key: 'setAbCycle',
-    value: function setAbCycle(start, end) {
+    value: function setAbCycle(start, end, loop) {
       this.config.abCycle = {
-        start: start,
-        end: end
+        start: start || 0,
+        end: end || this.duration,
+        loop: loop
       };
       if (typeof this.removeAllProgressDot === 'function') {
         this.removeAllProgressDot();
@@ -2422,7 +2423,7 @@ var Backward = function Backward(player) {
   if (backwardBtn.type === 'img') {
     backward = _music2.default.util.createImgBtn('backward', backwardBtn.url, backwardBtn.width, backwardBtn.height);
   } else {
-    backward = util.createDom('xg-backward', '<xg-icon class="xgplayer-icon"><svg xmlns="http://www.w3.org/2000/svg" width="1024" height="1024" viewBox="0 0 1024 1024">\n                <path transform = "scale(1.5 1.5) translate(8 4.5)"\n                d="m 14,2.99996 0,10 -7,-5 7,-5 z m -7,5 0,5 -7,-5 7,-5 0,5 z m -7,0 0,0 z"></path>\n            </svg></xg-icon>', {}, 'xgplayer-backward');
+    backward = util.createDom('xg-backward', '<xg-icon class="xgplayer-icon"><svg xmlns="http://www.w3.org/2000/svg" width="40" height="40" viewBox="0 0 40 40">\n                <path transform = "scale(1.5 1.5) translate(8 4.5)"\n                d="m 14,2.99996 0,10 -7,-5 7,-5 z m -7,5 0,5 -7,-5 7,-5 0,5 z m -7,0 0,0 z"></path>\n            </svg></xg-icon>', {}, 'xgplayer-backward');
   }
   controlEl.appendChild(backward);
   ev.forEach(function (item) {
@@ -2501,7 +2502,7 @@ var Forward = function Forward(player) {
   if (forwardBtn.type === 'img') {
     forward = _music2.default.util.createImgBtn('forward', forwardBtn.url, forwardBtn.width, forwardBtn.height);
   } else {
-    forward = util.createDom('xg-forward', '<xg-icon class="xgplayer-icon"><svg xmlns="http://www.w3.org/2000/svg" width="1024" height="1024" viewBox="0 0 1024 1024">\n                <path transform = "scale(1.5 1.5) translate(-2 4.5)"\n                d="m 2,2.99996 0,10 7,-5 -7,-5 z m 7,5 0,5 7,-5 -7,-5 0,5 z m 7,0 0,0 z"></path>\n            </svg></xg-icon>', {}, 'xgplayer-forward');
+    forward = util.createDom('xg-forward', '<xg-icon class="xgplayer-icon"><svg xmlns="http://www.w3.org/2000/svg" width="40" height="40" viewBox="0 0 40 40">\n                <path transform = "scale(1.5 1.5) translate(-2 4.5)"\n                d="m 2,2.99996 0,10 7,-5 -7,-5 z m 7,5 0,5 7,-5 -7,-5 0,5 z m 7,0 0,0 z"></path>\n            </svg></xg-icon>', {}, 'xgplayer-forward');
   }
   controlEl.appendChild(forward);
   ev.forEach(function (item) {
@@ -2580,7 +2581,7 @@ var Next = function Next(player) {
   if (nextBtn.type === 'img') {
     next = _music2.default.util.createImgBtn('next', nextBtn.url, nextBtn.width, nextBtn.height);
   } else {
-    next = util.createDom('xg-next', '<xg-icon class="xgplayer-icon"><svg xmlns="http://www.w3.org/2000/svg" width="1024" height="1024" viewBox="0 0 1024 1024">\n                <path transform="scale(0.025 0.025)"\n                d="M800 380v768h-128v-352l-320 320v-704l320 320v-352z"></path>\n            </svg></xg-icon>', {}, 'xgplayer-next');
+    next = util.createDom('xg-next', '<xg-icon class="xgplayer-icon"><svg xmlns="http://www.w3.org/2000/svg" width="40" height="40" viewBox="0 0 40 40">\n                <path transform="scale(0.025 0.025)"\n                d="M800 380v768h-128v-352l-320 320v-704l320 320v-352z"></path>\n            </svg></xg-icon>', {}, 'xgplayer-next');
   }
   controlEl.appendChild(next);
   ev.forEach(function (item) {
@@ -2625,7 +2626,7 @@ var Prev = function Prev(player) {
   if (prevBtn.type === 'img') {
     prev = _music2.default.util.createImgBtn('prev', prevBtn.url, prevBtn.width, prevBtn.height);
   } else {
-    prev = util.createDom('xg-prev', '<xg-icon class="xgplayer-icon"><svg xmlns="http://www.w3.org/2000/svg" width="1024" height="1024" viewBox="0 0 1024 1024">\n                <path transform = "scale(0.025 0.025)"\n                d="M600 1140v-768h128v352l320-320v704l-320-320v352zz"></path>\n            </svg></xg-icon>', {}, 'xgplayer-prev');
+    prev = util.createDom('xg-prev', '<xg-icon class="xgplayer-icon"><svg xmlns="http://www.w3.org/2000/svg" width="40" height="40" viewBox="0 0 40 40">\n                <path transform = "scale(0.025 0.025)"\n                d="M600 1140v-768h128v352l320-320v704l-320-320v352zz"></path>\n            </svg></xg-icon>', {}, 'xgplayer-prev');
   }
   controlEl.appendChild(prev);
 

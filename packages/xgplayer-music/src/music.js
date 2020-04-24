@@ -105,8 +105,8 @@ class Music extends Player {
       }
       if(this.config.abCycle) {
         if(typeof this.addProgressDot === 'function') {
-          this.addProgressDot(this.config.abCycle.start)
-          this.addProgressDot(this.config.abCycle.end)
+          this.addProgressDot(this.config.abCycle.start || 0)
+          this.addProgressDot(this.config.abCycle.end || this.duration)
         }
       }
     })
@@ -115,14 +115,14 @@ class Music extends Player {
         this.confirmOrder()
       }
       if(this.config.abCycle) {
-        if(this.currentTime >= this.config.abCycle.end) {
+        if(this.currentTime >= (this.config.abCycle.end || this.duration)) {
           if(!this.config.abCycle.loop) {
             this.pause()
             this.emit('abCycle ended')
           }
-          this.currentTime = this.config.abCycle.start
-        } else if(this.currentTime < this.config.abCycle.start) {
-          this.currentTime = this.config.abCycle.start
+          this.currentTime = this.config.abCycle.start || 0
+        } else if(this.currentTime < (this.config.abCycle.start || 0)) {
+          this.currentTime = this.config.abCycle.start || 0
         }
       }
     })
@@ -352,10 +352,11 @@ class Music extends Player {
   analyze (canvas) {
     return new Analyze(this, canvas)
   }
-  setAbCycle(start, end) {
+  setAbCycle(start, end, loop) {
     this.config.abCycle = {
-      start,
-      end
+      start: start || 0,
+      end: end || this.duration,
+      loop
     }
     if(typeof this.removeAllProgressDot === 'function') {
       this.removeAllProgressDot()
