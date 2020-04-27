@@ -3,7 +3,7 @@ import FlvVodPlayer from 'xgplayer-flv-vod'
 
 class FlvPlayer {
   static get pluginName () {
-    return 'FlvPlayer'
+    return 'flvPlayer'
   }
 
   constructor (config) {

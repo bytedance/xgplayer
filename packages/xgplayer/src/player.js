@@ -78,12 +78,7 @@ class Player extends Proxy {
         return false
       }
     }
-    this.topBar = util.createDom('xg-bar', '', '', 'xg-top-bar')
-    this.leftBar = util.createDom('xg-bar', '', '', 'xg-left-bar')
-    this.rightBar = util.createDom('xg-bar', '', '', 'xg-right-bar')
-    this.root.appendChild(this.topBar)
-    this.root.appendChild(this.leftBar)
-    this.root.appendChild(this.rightBar)
+    this._initBars();
     // const baseBar = pluginsManager.register(this, BaseBar)
     // this.baseBar = baseBar
     const controls = pluginsManager.register(this, Controls)
@@ -116,6 +111,22 @@ class Player extends Proxy {
         }
       })
     }
+  }
+
+  _initBars () {
+    this.topBar = util.createDom('xg-bar', '', '', 'xg-top-bar');
+    this.leftBar = util.createDom('xg-bar', '', '', 'xg-left-bar');
+    this.rightBar = util.createDom('xg-bar', '', '', 'xg-right-bar');
+
+    ['click', 'touchend'].forEach((k) => {
+      this.topBar.addEventListener(k, (e) => {
+        e && e.stopPropagation()
+      })
+    });
+
+    this.root.appendChild(this.topBar);
+    this.root.appendChild(this.leftBar);
+    this.root.appendChild(this.rightBar);
   }
 
   _bindEvents () {
@@ -219,8 +230,9 @@ class Player extends Proxy {
     const ignoresStr = ignores.join('||').toLowerCase().split('||');
     plugins.map(plugin => {
       try {
+        const pluginName = plugin.plugin ? plugin.plugin.pluginName : plugin.pluginName
         // 在ignores中的不做组装
-        if (plugin.pluginName && ignoresStr.indexOf(plugin.pluginName.toLowerCase()) > -1) {
+        if (pluginName && ignoresStr.indexOf(pluginName.toLowerCase()) > -1) {
           return null
         }
         if (plugin.lazy && plugin.loader) {
@@ -261,7 +273,14 @@ class Player extends Proxy {
       options = {}
     }
 
-    const position = options.position ? options.position : (PLUFGIN.defaultConfig && PLUFGIN.defaultConfig.position)
+    for (const item of Object.keys(this.config)) {
+      if (PLUFGIN.pluginName.toLowerCase() === item.toLowerCase()) {
+        options.config = Object.assign({}, options.config, this.config[item])
+        break;
+      }
+    }
+
+    const position = options.position ? options.position : (options.config && options.config.position) || (PLUFGIN.defaultConfig && PLUFGIN.defaultConfig.position)
     const {POSITIONS} = Plugin
     if (!options.root && typeof position === 'string' && position.indexOf('controls') > -1) {
       return this.controls.registerPlugin(PLUFGIN, options, PLUFGIN.pluginName)

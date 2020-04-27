@@ -80,13 +80,13 @@ export default class Fullscreen extends Plugin {
     }
     if (useCssFullscreen) {
       if (player.fullscreen) {
-        player.getCssFullscreen()
-        player.fullscreen = true
-        this.emit(Events.FULLSCREEN_CHANGE, true)
-      } else {
         player.exitCssFullscreen()
         player.fullscreen = false
         this.emit(Events.FULLSCREEN_CHANGE, false)
+      } else {
+        player.getCssFullscreen()
+        player.fullscreen = true
+        this.emit(Events.FULLSCREEN_CHANGE, true)
       }
       this.animate(player.fullscreen)
     } else {

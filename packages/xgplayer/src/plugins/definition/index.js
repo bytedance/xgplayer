@@ -3,7 +3,7 @@ import Plugin from '../../plugin'
 const { Events, Util, Sniffer, POSITIONS } = Plugin
 export default class DefinitionIcon extends Plugin {
   static get pluginName () {
-    return 'Definition'
+    return 'definition'
   }
 
   // 默认配置信息
@@ -54,7 +54,8 @@ export default class DefinitionIcon extends Plugin {
     if (player.switchURL) {
       this.switchUrl()
     } else {
-      src = player.currentSrc || player.src
+      const currentSrc = player.currentSrc || player.src;
+      src = /^http/.test(currentSrc) ? currentSrc : src;
     }
     if (player['hls']) {
       a.href = player['hls'].url

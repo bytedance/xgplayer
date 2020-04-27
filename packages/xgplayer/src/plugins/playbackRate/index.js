@@ -4,7 +4,7 @@ const {Events, Util, Sniffer, POSITIONS} = Plugin
 
 export default class PlaybackRate extends Plugin {
   static get pluginName () {
-    return 'PlaybackRate'
+    return 'playbackRate'
   }
   // 默认配置信息
   static get defaultConfig () {

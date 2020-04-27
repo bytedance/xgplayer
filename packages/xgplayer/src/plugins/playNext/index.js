@@ -8,7 +8,7 @@ import Next from '../assets/playNext.svg'
 const {POSITIONS, Sniffer} = Plugin
 export default class PlayNextIcon extends Plugin {
   static get pluginName () {
-    return 'PlayNext'
+    return 'playNext'
   }
 
   static get defaultConfig () {

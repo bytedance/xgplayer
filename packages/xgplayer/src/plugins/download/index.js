@@ -5,7 +5,7 @@ const {POSITIONS} = Plugin
 
 export default class Download extends Plugin {
   static get pluginName () {
-    return 'DownloadIcon'
+    return 'downloadIcon'
   }
 
   static get defaultConfig () {

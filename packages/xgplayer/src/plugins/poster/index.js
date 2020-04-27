@@ -2,7 +2,7 @@ import Plugin from '../../plugin'
 
 class Poster extends Plugin {
   static get pluginName () {
-    return 'Poster'
+    return 'poster'
   }
 
   render () {

@@ -3,7 +3,7 @@ import ReplaySvg from '../assets/replay.svg'
 
 class Replay extends Plugin {
   static get pluginName () {
-    return 'Replay'
+    return 'replay'
   }
 
   registerIcons () {

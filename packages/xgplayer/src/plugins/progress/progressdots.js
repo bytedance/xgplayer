@@ -10,7 +10,7 @@ const defaultDot = {
 const {Util, Events} = Plugin
 export default class ProgressDot extends Plugin {
   static get pluginName () {
-    return 'ProgressDots'
+    return 'progressDots'
   }
 
   static get defaultConfig () {

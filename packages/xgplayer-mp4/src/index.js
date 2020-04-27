@@ -9,7 +9,7 @@ const {BasePlugin, Events} = Player;
 
 export default class Mp4Player extends BasePlugin {
   static get pluginName () {
-    return 'Mp4Player'
+    return 'mp4Player'
   }
 
   constructor (options) {

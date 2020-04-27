@@ -6,7 +6,7 @@ const {Events, POSITIONS} = Plugin
 
 class Play extends Plugin {
   static get pluginName () {
-    return 'Play'
+    return 'play'
   }
 
   static get defaultConfig () {
