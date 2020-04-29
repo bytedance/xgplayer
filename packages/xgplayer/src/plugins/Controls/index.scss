@@ -1,6 +1,6 @@
 @import "../../style/variable";
 //controls
-$controlHeight: 40px;
+$controlHeight: 48px;
 //icon
 $iconMargin: 10px;
 // tips
@@ -9,22 +9,34 @@ $tipsBgColor: rgba(0, 0, 0, 0.8);
 $tipsFontsize: 12px;
 
 .xgplayer {
-  &.xgplayer-inactive {
-    .xgplayer-controls {
+  &.not-allow-autoplay,
+  &.xgplayer-nostart{
+    .xgplayer-controls, .flex-controls {
       display: none;
     }
   }
 
+  &.xgplayer-inactive {
+    .control_autohide {
+      display: none;
+    }
+  }
   .xgplayer-controls {
-    display: inline-block;
+    display: block;
     position: absolute;
     left: 0;
-    bottom: 0;
     right: 0;
+    bottom: 0;
     height: $controlHeight;
-    z-index: 20;
+    z-index: 100;
     background-image: linear-gradient(180deg,transparent,rgba(0,0,0,.37),rgba(0,0,0,.75),rgba(0,0,0,.75));
-    // padding: 0 10px;
+    .inner-controls {
+      position: absolute;
+      left: 0;
+      right: 0;
+      bottom: 5px;
+      height: 40px;
+    }
     .left-grid,  .right-grid {
       position: relative;
       float: left;
@@ -39,38 +51,45 @@ $tipsFontsize: 12px;
     .center {
       display: block;
       position: absolute;
-      height: 20px;
-      line-height: 20px;
       left: 0;
       right: 0;
       outline: none;
-      top: -15px;
+      top: -5px;
       z-index: 35;
     }
+  }
 
-    &.flex {
+  .flex-controls {
+    .inner-controls {
       justify-content: space-around;
       display: flex;
-      .center {
-        flex: 1;
-        position: relative;
-        top: 0;
-        left: 0;
-        right: 0;
-        height: 100%;
-      }
     }
-    &.mini {
-      background-image: linear-gradient(180deg,transparent,rgba(0,0,0,0),rgba(0,0,0,0),rgba(0,0,0,0));
-      .center {
-        bottom: -8px;
-        top: auto;
-      }
-      .left-grid,  .right-grid {
-        display: none;
-      }
+    .center {
+      display: flex;
+      flex: 1;
+      position: relative;
+      top: 0;
+      height: 100%;
+      justify-content: space-between;
+      padding: 0 10px;
     }
   }
+
+  .mini-controls {
+    background-image: none;
+    .inner-controls {
+      bottom: 0;
+    }
+    .center {
+      bottom: -17px;
+      top: auto;
+      padding: 0;
+    }
+    .left-grid,  .right-grid {
+      display: none;
+    }
+  }
+  
   .xg-tips {
     display: none;
     position: absolute;
@@ -82,9 +101,6 @@ $tipsFontsize: 12px;
     padding: 4px 6px;
     border-radius: 4px;
     text-align: center;
-    top: -30px;
-    left: 50%;
-    margin-left: -16px;
     opacity: 0.85;
     width: auto;
     white-space: nowrap;
@@ -92,11 +108,16 @@ $tipsFontsize: 12px;
   xg-icon {
     position: relative;
     height: 40px;
-    top: 40%;
+    top: 50%;
     margin-top: -20px;
     margin-left: $iconMargin;
     cursor: pointer;
     box-sizing: border-box;
+    .xg-tips {
+      top: -30px;
+      left: 50%;
+      transform: translateX(-50%);
+    }
     &:hover {
       .xg-tips {
         display: block;
@@ -112,7 +133,7 @@ $tipsFontsize: 12px;
     }
     .btn-definition {
       top: 50%;
-      margin-top: -8px;
+      margin-top: -10px;
       position: relative;
       text-align: center;
       font-family: PingFangSC-Regular;
@@ -136,7 +157,7 @@ $tipsFontsize: 12px;
       position: absolute;
       width: 78px;
       left: 50%;
-      bottom: 34px;
+      bottom: 40px;
       background: $definitionUlBgColor;
       border-radius: 1px;
       transform: translate(-50%);
@@ -188,8 +209,16 @@ $tipsFontsize: 12px;
       margin-right: $iconMargin;
       margin-left: 0;
     }
-    .xg-tips {
-      left: 0;
+  }
+
+  // mobile
+  &.xgplayer-mobile {
+    xg-icon {
+      &:hover {
+        .xg-tips {
+          display: none;
+        }
+      }
     }
   }
 }

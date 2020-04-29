@@ -1,11 +1,11 @@
 import FetchLoader from 'xgplayer-transmuxer-loader-fetch';
-import FlvDemuxer from 'xgplayer-transmuxer-demux-flv'
-import Remuxer from 'xgplayer-transmuxer-remux-mp4'
-import EVENTS from 'xgplayer-transmuxer-constant-events'
-import Tracks from 'xgplayer-transmuxer-buffer-track'
-import PreSource from 'xgplayer-transmuxer-buffer-presource'
-import XgBuffer from 'xgplayer-transmuxer-buffer-xgbuffer'
-import Compatibility from 'xgplayer-transmuxer-codec-compatibility'
+import FlvDemuxer from 'xgplayer-transmuxer-demux-flv';
+import Remuxer from 'xgplayer-transmuxer-remux-mp4';
+import EVENTS from 'xgplayer-transmuxer-constant-events';
+import Tracks from 'xgplayer-transmuxer-buffer-track';
+import PreSource from 'xgplayer-transmuxer-buffer-presource';
+import XgBuffer from 'xgplayer-transmuxer-buffer-xgbuffer';
+import Compatibility from 'xgplayer-transmuxer-codec-compatibility';
 
 import Mse from 'xgplayer-utils-mse'
 
@@ -14,7 +14,6 @@ import Player from 'xgplayer'
 const REMUX_EVENTS = EVENTS.REMUX_EVENTS;
 const DEMUX_EVENTS = EVENTS.DEMUX_EVENTS;
 const LOADER_EVENTS = EVENTS.LOADER_EVENTS
-const MSE_EVENTS = EVENTS.MSE_EVENTS
 
 const Tag = 'FLVController'
 
@@ -149,7 +148,7 @@ class FlvController {
   _onError (type, mod, err, fatal) {
     let error = {
       errorType: type,
-      errorDetails: `[${mod}]: ${err.message}`,
+      errorDetails: `[${mod}]: ${err ? err.message : ''}`,
       errorFatal: fatal || false
     }
     this._player.emit(FLV_ERROR, error);

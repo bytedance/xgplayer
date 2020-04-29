@@ -16,7 +16,8 @@ function addAnimate (key, seconds, callback = {start: null, end: null}) {
   }, seconds);
 }
 
-const { Util, Events } = Plugin
+const { Util, Events, Sniffer } = Plugin
+
 class Start extends Plugin {
   static get pluginName () {
     return 'start'
@@ -24,89 +25,115 @@ class Start extends Plugin {
 
   static get defaultConfig () {
     return {
-      isShowPause: false
+      isShowPause: false,
+      isShowEnd: false,
+      disableAmimate: false
     }
   }
 
   afterCreate () {
-    const {player, root, playerConfig} = this
+    const {player, playerConfig} = this
+    this.initIcons()
     this.once(Events.READY, () => {
       if (playerConfig) {
         if (playerConfig.lang && playerConfig.lang === 'en') {
-          Util.addClass(root, 'lang-is-en')
+          Util.addClass(player.root, 'lang-is-en')
         } else if (playerConfig.lang === 'jp') {
-          Util.addClass(root, 'lang-is-jp')
+          Util.addClass(player.root, 'lang-is-jp')
         }
       }
     })
 
-    if (!player.config.autoplay) {
+    if (!playerConfig.autoplay) {
       this.show();
     }
 
-    this.bind('click', (e) => {
-      e.preventDefault()
-      e.stopPropagation()
-      if (!player.isReady) {
-        return;
-      }
-      const paused = this.player.paused
-      if (!this.player.hasStart) {
-        this.player.start()
-        this.player.once('complete', () => {
-          this.player.play()
-        })
-      } else {
-        if (!paused) {
-          this.player.pause()
-        } else {
-          this.player.play()
-        }
-      }
-    })
-    this.on([Events.PLAY, Events.PAUSE], () => {
-      this.animate()
-    })
+    this.onClick = this.onClick.bind(this)
+
+    this.bind('click', this.onClick)
+
     this.on(Events.AUTOPLAY_PREVENTED, () => {
-      this.show('inline-block');
-      this.animate(true)
+      this.setAttr('data-state', 'play')
+      this.show();
+    })
+
+    this.on(Events.PLAY, () => {
+      this.player.isPlaying ? this.animate() : this.hide()
+    })
+
+    this.on(Events.PAUSE, () => {
+      if (!this.player.isPlaying) {
+        return
+      }
+      this.animate()
     })
   }
 
   registerIcons () {
     return {
-      play: PlaySvg,
-      pause: PauseSvg
+      startPlay: {icon: PlaySvg, class: 'xg-icon-play'},
+      startPause: {icon: PauseSvg, class: 'xg-icon-pause'}
     }
   }
 
-  animate (isShowEnded) {
-    if (this.config.isShowPause && (isShowEnded || this.player.paused)) {
+  initIcons () {
+    const {icons} = this
+    this.appendChild('.icon', icons.startPlay)
+    this.appendChild('.icon', icons.startPause)
+  }
+
+  animate (isEnded) {
+    if ((this.config.isShowPause && this.player.paused && !this.player.ended) || (this.config.isShowEnd && this.player.ended)) {
       this.show()
-      this.root.innerHTML = this.icons.play
+      this.setAttr('data-state', this.player.paused ? 'play' : 'pause')
+      return
+    }
+    if (this.player.disableAmimate || this.config.disableAnimate) {
       return;
     }
     addAnimate('pauseplay', 400, {
       start: () => {
         Util.addClass(this.root, 'interact')
         this.show()
-        this.root.innerHTML = this.player.paused ? this.icons.pause : this.icons.play
+        this.setAttr('data-state', this.player.paused ? 'pause' : 'play')
       },
       end: () => {
         Util.removeClass(this.root, 'interact');
-        if (this.config.isShowPause && (this.player.paused || isShowEnded)) {
-          return;
-        }
         this.hide()
       }
     })
   }
 
+  onClick (e) {
+    const {player} = this
+    e.preventDefault()
+    e.stopPropagation()
+    if (!player.isReady) {
+      return;
+    }
+    const paused = this.player.paused
+    if (!player.hasStart) {
+      player.start()
+      player.once('complete', () => {
+        player.play()
+      })
+    } else {
+      if (!paused) {
+        player.pause()
+      } else {
+        player.play()
+      }
+    }
+  }
+
+  destroy () {
+    this.unbind('click', this.onClick)
+  }
+
   render () {
     return `
     <xg-start class="xgplayer-start" >
-      <div class="play">
-      ${this.icons.play}
+      <div class="icon">
       </div>
     </xg-start>`
   }

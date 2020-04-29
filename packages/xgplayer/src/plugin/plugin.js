@@ -3,38 +3,64 @@
 *
 **/
 import pluginsManager from './pluginsManager'
-import BasePlugin from './basePlugin'
+import BasePlugin, {Util} from './basePlugin'
 import * as delegate from 'delegate-events'
 
-function _createElement (tag, name) {
+// const {Util} = BasePlugin
+function _createElement (tag, name, attr = {}) {
   const dom = document.createElement(tag)
   dom.className = name
+  attr && Object.keys(attr).map(key => {
+    dom.setAttribute(key, attr[key])
+  })
   return dom
 }
 
+function isUrl (str) {
+  return str.indexOf && /^http/.test(str);
+}
+
 function registerIconsObj (iconsConfig, plugin) {
-  Object.keys(iconsConfig).map((iconKey) => {
-    Object.defineProperty(plugin.icons, iconKey, {
-      get: () => {
-        const _icons = plugin.config.icons || plugin.playerConfig.icons
-        if (_icons && _icons[iconKey]) {
-          return _icons[iconKey]
-        } else {
-          return iconsConfig[iconKey]
+  const _icons = plugin.config.icons || plugin.playerConfig.icons
+  Object.keys(iconsConfig).map(key => {
+    const orgIcon = iconsConfig[key] || {}
+    const classname = orgIcon.class || ''
+    const attr = orgIcon.attr || {}
+    let _icon = null
+    if (_icons && _icons[key]) {
+      _icon = _icons[key]
+      if (_icon instanceof window.Element) {
+        Util.addClass(_icon, classname)
+        Object.keys(attr).map(key => {
+          _icon.setAttribute(key, attr[key])
+        })
+      } else if (isUrl(_icon)) {
+        _icon = Util.createDom('img', '', {src: _icon}, attr, `xg-img ${classname}`)
+      } else if (typeof _icon === 'function') {
+        _icon = _icon(classname, attr)
+        if (_icon instanceof window.Element) {
+          Util.addClass(_icon, classname)
+          Object.keys(attr).map(key => {
+            _icon.setAttribute(key, attr[key])
+          })
         }
+      } else {
+        _icon = Util.createDomFromHtml(_icon, attr, classname)
       }
-    })
+    }
+    if (!_icon) {
+      _icon = orgIcon.icon ? orgIcon.icon : orgIcon
+      _icon = _icon instanceof window.Element ? _icon : Util.createDomFromHtml(_icon, attr, classname)
+    }
+    plugin.icons[key] = _icon
   })
 }
 
 function registerTextObj (textConfig, plugin) {
   Object.keys(textConfig).map((key) => {
-    Object.defineProperty(plugin.text, key, {
+    Object.defineProperty(plugin.langText, key, {
       get: () => {
-        let lang = plugin.playerConfig.lang || 'zh'
-        if (lang.indexOf('-') > 0) {
-          lang = lang.split('-')[0]
-        }
+        let lang = plugin.lang
         return textConfig[key][lang]
       }
     })
@@ -79,10 +105,10 @@ export default class Plugin extends BasePlugin {
     let _parent = args.root
     let _el = null
     this.icons = {}
-    const defaultIcons = this.registerIcons() || {}
-    registerIconsObj(defaultIcons, this)
+    const _orgicons = this.registerIcons() || {}
+    registerIconsObj(_orgicons, this)
 
-    this.text = {}
+    this.langText = {}
     const defaultTexConfig = this.registerLangauageTexts() || {}
     registerTextObj(defaultTexConfig, this)
     let renderStr = ''
@@ -157,6 +183,40 @@ export default class Plugin extends BasePlugin {
         }
       }
     }
+  }
+
+  set lang (lang) {
+    this.config.lang = lang
+    function checkChildren (node, callback) {
+      for (let i = 0; i < node.children.length; i++) {
+        if (node.children[i].children.length > 0) {
+          checkChildren(node.children[i], callback)
+        } else {
+          callback(node.children[i])
+        }
+      }
+    }
+    if (this.root) {
+      checkChildren(this.root, (node) => {
+        const langKey = node.getAttribute && node.getAttribute('lang-key')
+        if (langKey && this.langText[langKey]) {
+          node.innerHTML = this.langText[langKey]
+        }
+      })
+    }
+  }
+
+  get lang () {
+    let lang = this.config.lang || this.playerConfig.lang || 'zh'
+    if (lang.indexOf('-') > 0) {
+      lang = lang.split('-')[0]
+    }
+    return lang
+  }
+
+  changeLangTextKey (dom, key) {
+    dom.getAttribute && dom.setAttribute('lang-key', key)
+    dom.innerHTML = this.langText[key]
   }
 
   plugins () {
@@ -311,6 +371,25 @@ export default class Plugin extends BasePlugin {
     this.root && (this.root.style.display = 'none')
   }
 
+  appendChild (pdom, child) {
+    if (arguments.length < 2 && arguments[0] instanceof window.Element) {
+      return this.root.appendChild(arguments[0])
+    }
+    if (!child || !(child instanceof window.Element)) {
+      return null
+    }
+    try {
+      if (typeof pdom === 'string') {
+        return this.find(pdom).appendChild(child)
+      } else {
+        return pdom.appendChild(child)
+      }
+    } catch (err) {
+      console.warn(err)
+      return null
+    }
+  }
+
   render () {
     return ''
   }
@@ -342,5 +421,6 @@ Plugin.POSITIONS = {
   ROOT_TOP: 'rootTop',
   CONTROLS_LEFT: 'controlsLeft',
   CONTROLS_RIGTH: 'controlsRight',
-  CONTROLS_CENTER: 'controlsCenter'
+  CONTROLS_CENTER: 'controlsCenter',
+  CONTROLS: 'controls'
 }

@@ -12,7 +12,7 @@ export default class Download extends Plugin {
     return {
       position: POSITIONS.CONTROLS_RIGTH,
       index: 3,
-      disable: false
+      disable: true
     }
   }
 
@@ -29,9 +29,10 @@ export default class Download extends Plugin {
   }
 
   afterCreate () {
-    if (!this.config.download) {
+    if (this.config.disable) {
       return;
     }
+    this.appendChild('.xgplayer-icon', this.icons.download)
     this.download = this.download.bind(this)
     this.bind(['click', 'touchend'], this.download)
   }
@@ -83,14 +84,13 @@ export default class Download extends Plugin {
   }
 
   render () {
-    if (!this.config.download) {
+    if (this.config.disable) {
       return;
     }
     return `<xg-icon class="xgplayer-download">
       <div class="xgplayer-icon">
-      ${this.icons.download}
       </div>
-      <div class="xg-tips">${this.text.download}</div>
+      <div class="xg-tips" lang-key="download">${this.langText.download}</div>
     </xg-icon>`
   }
 }

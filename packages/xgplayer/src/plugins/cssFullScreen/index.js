@@ -1,7 +1,9 @@
 import Plugin from '../../plugin'
-import CssFullscreenChange from '../assets/cssFullscreenChange.svg'
+import CssFullSceenSvg from '../assets/requestCssFull.svg'
+import ExitCssFullSceenSvg from '../assets/exitCssFull.svg'
 
 const {Events, POSITIONS} = Plugin
+
 export default class CssFullScreen extends Plugin {
   static get pluginName () {
     return 'cssFullscreen'
@@ -22,6 +24,10 @@ export default class CssFullScreen extends Plugin {
   }
 
   afterCreate () {
+    if (!this.config.disable) {
+      return
+    }
+    this.initIcons()
     this.on(Events.CSS_FULLSCREEN_CHANGE, (isCssfullScreen) => {
       this.animate(isCssfullScreen)
     })
@@ -29,6 +35,13 @@ export default class CssFullScreen extends Plugin {
     this.on(Events.FULLSCREEN_CHANGE, (isFullScreen) => {
       !isFullScreen && this.animate(isFullScreen)
     })
+  }
+
+  initIcons () {
+    const {icons} = this
+    const contentIcon = this.find('.xgplayer-icon')
+    contentIcon.appendChild(icons.cssFullscreen)
+    contentIcon.appendChild(icons.exitCssFullscreen)
   }
 
   afterPlayerInit () {
@@ -50,19 +63,17 @@ export default class CssFullScreen extends Plugin {
     if (!this.root) {
       return;
     }
-    const path = this.find('.path')
-    const full = this.find('.path_full').getAttribute('d')
-    const exit = this.find('.path_exitfull').getAttribute('d')
-    isFullScreen ? path.setAttribute('d', exit) : path.setAttribute('d', full)
+    isFullScreen ? this.setAttr('data-state', 'full') : this.setAttr('data-state', 'normal')
   }
 
   switchTips () {
-    this.find('.xg-tips').innerHTML = this.isCssfullScreen ? this.text.exitCssFullscreen : this.text.cssFullscreen
+    this.changeLangTextKey(this.find('.xg-tips'), this.isCssfullScreen ? 'exitCssFullscreen' : 'cssFullscreen')
   }
 
   registerIcons () {
     return {
-      cssFullscreen: CssFullscreenChange
+      cssFullscreen: { icon: CssFullSceenSvg, class: 'xg-get-cssfull' },
+      exitCssFullscreen: { icon: ExitCssFullSceenSvg, class: 'xg-exit-cssfull' }
     }
   }
 
@@ -86,14 +97,13 @@ export default class CssFullScreen extends Plugin {
   }
 
   render () {
-    if (!this.playerConfig.cssFullscreen) {
+    if (!this.config.disable) {
       return
     }
     return `<xg-icon class='xgplayer-cssfullscreen'>
     <div class="xgplayer-icon">
-    ${this.icons.cssFullscreen}
     </div>
-    <div class="xg-tips">${this.isCssfullScreen ? this.text.exitCssFullscreen : this.text.cssFullscreen}</div>
+    <div class="xg-tips" lang-key="cssFullscreen">${this.isCssfullScreen ? this.langText.exitCssFullscreen : this.langText.cssFullscreen}</div>
     </xg-icon>`
   }
 }

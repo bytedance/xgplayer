@@ -18,6 +18,28 @@ util.createDom = function (el = 'div', tpl = '', attrs = {}, cname = '') {
   return dom
 }
 
+util.createDomFromHtml = function (html, attrs = {}, classname = '') {
+  try {
+    let doc = document.createElement('div')
+    doc.innerHTML = html
+    let dom = doc.children
+    doc = null
+    if (dom.length > 0) {
+      dom = dom[0]
+      classname && util.addClass(dom, classname)
+      if (attrs) {
+        Object.keys(attrs).forEach(key => {
+          dom.setAttribute(key, attrs[key])
+        })
+      }
+      return dom
+    }
+    return null
+  } catch (err) {
+    return null
+  }
+}
+
 util.hasClass = function (el, className) {
   if (!el) {
     return false;
@@ -89,6 +111,10 @@ util.findDom = function (el = document, sel) {
   return dom
 }
 
+util.getCss = function (dom, key) {
+  return dom.currentStyle ? dom.currentStyle[key] : document.defaultView.getComputedStyle(dom, false)[key]
+}
+
 util.padStart = function (str, length, pad) {
   let charstr = String(pad)
   let len = length >> 0
@@ -148,7 +174,7 @@ util.deepCopy = function (dst, src) {
 
 util.deepMerge = function (dst, src) {
   Object.keys(src).map(key => {
-    if (typeof dst[key] === typeof src[key] && dst[key] !== null && typeof dst[key] === 'object' && !(src[key] instanceof Node)) {
+    if (typeof dst[key] === typeof src[key] && dst[key] !== null && typeof dst[key] === 'object' && !(src[key] instanceof window.Node)) {
       util.deepMerge(dst[key], src[key])
     } else {
       dst[key] = src[key]

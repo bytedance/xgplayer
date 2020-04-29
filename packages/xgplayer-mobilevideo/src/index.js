@@ -1,63 +1,12 @@
 import './polyfills/custom-elements.min';
 import './polyfills/native-element';
-import { getTicker } from './helpers/ticker';
-import VideoCtx from './core/video-context';
+import { getTicker, DEFAULT_FPS, validateFPS } from './helpers/ticker';
+import VideoCtx, {VIDEO_CANVAS_EVENTS} from './core/video-context';
 import AudioCtx from './core/audio-context';
 import AVReconciler from './helpers/reconciler';
-
+import WorkerTicker from './helpers/worker-ticker'
 // eslint-disable-next-line no-undef
 class MobileVideo extends HTMLElement {
-  /**
-   * 保证当前播放的视频以gop为单位
-   * @param videoTrack
-   */
-  static resolveVideoGOP (videoTrack) {
-    const { samples } = videoTrack;
-    if (!samples.length) {
-      return;
-    }
-
-    let firstIframeIdx = null
-    let lastIframeIdx = null
-
-    if (videoTrack.tempSamples && videoTrack.tempSamples.length) {
-      // 将缓存帧放置到队列的头部
-      samples.unshift.apply(samples, videoTrack.tempSamples);
-    }
-
-    // 寻找第一个I帧
-    for (let i = 0, len = samples.length; i < len; i++) {
-      const current = samples[i];
-      if (current.isKeyframe) {
-        firstIframeIdx = i;
-        break;
-      }
-    }
-
-    // 寻找最后一个I帧
-    for (let i = samples.length - 1; i > 0; i++) {
-      const current = samples[i]
-
-      if (current.isKeyframe) {
-        lastIframeIdx = i;
-        break;
-      }
-    }
-
-    if (firstIframeIdx !== 0) {
-      samples.splice(0, firstIframeIdx - 1)
-    }
-
-    videoTrack.samples = samples.slice(0, lastIframeIdx)
-    const rest = samples.slice(lastIframeIdx)
-    if (videoTrack.tempSamples) {
-      videoTrack.tempSamples.push.apply(videoTrack.tempSamples, rest)
-    } else {
-      // 将剩下的帧缓存，等待一个完整的gop
-      videoTrack.tempSamples = rest
-    }
-  }
-
   constructor () {
     super();
     this._canvas = document.createElement('canvas')
@@ -68,64 +17,101 @@ class MobileVideo extends HTMLElement {
     this._paused = true;
     this.videoMetaInited = false;
     this.audioMetaInited = false;
+    this.handleVCtxInnerEvent = this.handleVCtxInnerEvent.bind(this)
+    this._err = null
     this.init()
+    this._lastTimeupdateStamp = 0
+    this._volumeEventStamp = 0
+    this._hasDispatch = false
+    this._fps = DEFAULT_FPS
   }
 
   init () {
-    const attrVolume = this.getAttribute('volume')
-    const volume = this.muted ? 0 : attrVolume
-
+    this._destroyed = false
     this.vCtx = new VideoCtx(Object.assign({
-      canvas: this._canvas
+      canvas: this._canvas,
+      preloadTime: Infinity
     }, { style: { width: this.width, height: this.height } }));
+
+    // this._innerDispatchEvent('waiting')
+    this.vCtx.oncanplay = () => {
+      if (!this.played) {
+        if (!this.contains(this._canvas)) {
+          this.appendChild(this._canvas);
+          if (this.autoplay) {
+            this._innerDispatchEvent('play')
+          }
+        }
+      }
+    }
+    this.vCtx.on(VIDEO_CANVAS_EVENTS.VIDEO_EVENTS, this.handleVCtxInnerEvent)
+  }
+
+  _initAudio () {
+    let attrVolume = this.getAttribute('volume')
+    const volume = this.muted ? 0 : Number.parseFloat(attrVolume)
     if (!this.noAudio) {
       this.aCtx = new AudioCtx({
         volume
       });
     }
-
-    this.ticker = new (getTicker())()
+    this.ticker = new WorkerTicker({interval: 1000 / this._fps})
+    // this.ticker = new (getTicker({interval: 1000 / this._fps}))()
     this.reconciler = new AVReconciler({
       vCtx: this.vCtx,
       aCtx: this.aCtx,
       video: this
     })
-
-    this.dispatchEvent(new Event('waiting'));
-    this.vCtx.oncanplay = () => {
-      if (!this.played) {
-        this.appendChild(this._canvas);
-      }
-      this.dispatchEvent(new Event('canplay'));
-    }
     if (!this.noAudio) {
       this.aCtx.on('AUDIO_SOURCE_END', this.handleAudioSourceEnd)
     }
   }
 
+  handleVCtxInnerEvent (eventName) {
+    this._innerDispatchEvent(eventName)
+  }
+
   handleAudioSourceEnd () {
     this.reconciler.doReconcile()
     this.vCtx.cleanBuffer();
+    this.aCtx.preload();
+    this.vCtx.preload();
   }
 
   _cleanBuffer () {
     this.vCtx.cleanBuffer()
   }
 
-  destroy () {
-    this.videoMetaInited = false;
+  _destroyAudio () {
     this.audioMetaInited = false;
     if (!this.noAudio) {
       this.aCtx.on('AUDIO_SOURCE_END', this.handleAudioSourceEnd)
       this.aCtx.destroy()
     }
-    this.vCtx.destroy()
     this.ticker.stop()
     this.start = null;
     this.reconciler.destroy()
     this.aCtx = null;
-    this.vCtx = null;
     this.ticker = null;
+    this.pendingPlayTask = null;
+    this.played = false;
+    this._hasDispatch = false;
+  }
+
+  _destroyVideo () {
+    this.videoMetaInited = false;
+    this.vCtx.removeAllListeners();
+    this.vCtx.destroy()
+    this.vCtx = null;
+  }
+
+  destroy () {
+    if (this._destroyed) {
+      return
+    }
+    this._destroyed = true
+    this._destroyVideo()
+    this._destroyAudio()
   }
 
   onDemuxComplete (videoTrack, audioTrack) {
@@ -152,14 +138,39 @@ class MobileVideo extends HTMLElement {
   }
 
   setVideoMeta (meta) {
-    if (this.videoMetaInited) {
-      this.vCtx.destroy();
-      this.vCtx = new VideoCtx(Object.assign({
-        canvas: this._canvas
-      }, { style: { width: this.width, height: this.height } }));
-    }
     this.vCtx.setVideoMetaData(meta);
     this.videoMetaInited = true;
+  }
+
+  handleMediaInfo () {
+    this._innerDispatchEvent('durationchange');
+    this._innerDispatchEvent('loadedmetadata');
+    this._innerDispatchEvent('seeking');
+    this._innerDispatchEvent('seeked');
+  }
+
+  handleEnded () {
+    this._innerDispatchEvent('ended');
+  }
+
+  handleErr (code, message) {
+    this._err = {}
+    this._err.code = code
+    this._err.message = message
+    this._innerDispatchEvent('error')
+  }
+
+  _innerDispatchEvent (type) {
+    this.dispatchEvent(new Event(type))
+  }
+
+  disconnectedCallback () {
+    this._destroyAudio()
+  }
+
+  connectedCallback () {
+    this._initAudio()
+    this.vCtx.reset()
   }
 
   get width () {
@@ -224,8 +235,9 @@ class MobileVideo extends HTMLElement {
     const nVal = Number.parseFloat(val)
     if (!isNaN(nVal)) {
       if (this.start && this.currentTime) {
+        this.vCtx.setVideoSeeking()
         const gap = this.currentTime - nVal;
-        this.start += gap
+        this.start += (gap * 1000)
       }
     }
     return nVal;
@@ -254,7 +266,7 @@ class MobileVideo extends HTMLElement {
     }
     this.vCtx.playbackRate = val;
 
-    this.dispatchEvent(new Event('ratechange'))
+    this._innerDispatchEvent('ratechange')
   }
 
   get ended () {
@@ -266,7 +278,7 @@ class MobileVideo extends HTMLElement {
 
   get autoplay () {
     if (this.hasAttribute('autoplay')) {
-      return this.getAttribute('autoplay')
+      return this.getAttribute('autoplay') == 'true'
     } else {
       return false
     }
@@ -275,15 +287,14 @@ class MobileVideo extends HTMLElement {
     this.setAttribute('autoplay', value)
   }
   play () {
-    this._paused = false;
-    this.dispatchEvent(new Event('play'))
     if (this.pendingPlayTask) {
       return;
     }
-
-    if (this.played) {
-      this.destroy()
-      this.init()
+    this._innerDispatchEvent('play')
+    if (!this.autoplay && !this._hasDispatch) {
+      this._innerDispatchEvent('waiting')
+      this._hasDispatch = true
+      this._waiting = true
     }
     let audioPlayTask = null
     if (this.noAudio) {
@@ -294,43 +305,49 @@ class MobileVideo extends HTMLElement {
     this.pendingPlayTask = Promise.all([
       this.vCtx.play(),
       audioPlayTask.then(() => {
-        // this.aCtx.muted = true
+
+        if (this.aCtx){
+          this.aCtx.muted = true
+        }
       })
     ]).then(() => {
-      // this.aCtx.muted = false
+      if (this.aCtx){
+        this.aCtx.muted = false
+      }
       this.ticker.start(() => {
         if (!this.start) {
           this.start = Date.now()
+          this._lastTimeupdateStamp = this.start
         }
         const prevTime = this._currentTime;
         this._currentTime = Date.now() - this.start
 
+        // console.log(this._currentTime, ' ', this.start)
         const rendered = this.vCtx._onTimer(this._currentTime)
         if (rendered) {
           if (this._waiting) {
-            this.dispatchEvent(new Event('playing'))
+            this._innerDispatchEvent('playing')
             this._waiting = false;
           }
-          this.dispatchEvent(new Event('timeupdate'))
+          let now = Date.now()
+          if (now - this._lastTimeupdateStamp >= 250) { // debounce
+            this._lastTimeupdateStamp = now
+            this._innerDispatchEvent('timeupdate')
+            this.vCtx.preload()
+          }
         } else {
           this._currentTime = prevTime;
-          if (!this._waiting) {
+          if (!this._waiting && !this.paused) {
             this._waiting = true;
-            this.dispatchEvent(new Event('waiting'))
+            this._innerDispatchEvent('waiting')
           }
         }
-        if (this.noAudio) {
-          this.vCtx.cleanBuffer();
-        }
       });
-
       this.pendingPlayTask = null
       this.played = true;
-      this.dispatchEvent(new Event('playing'))
+      // this._innerDispatchEvent('playing')
       this._paused = false
     })
-
-    return this.pendingPlayTask;
   }
 
   pause () {
@@ -341,7 +358,7 @@ class MobileVideo extends HTMLElement {
     this.vCtx.pause();
 
     Promise.resolve().then(() => {
-      this.dispatchEvent(new Event('pause'))
+      this._innerDispatchEvent('pause')
     })
   }
 
@@ -365,7 +382,16 @@ class MobileVideo extends HTMLElement {
     if (vol > 0 && this.muted) {
       this.aCtx.mute()
     }
-    this.dispatchEvent(new Event('volumechange'))
+    this.onValueChange()
+  }
+
+  onValueChange () {
+    let now = Date.now()
+    if (now - this._volumeEventStamp < 200) {
+      return
+    }
+    this._volumeEventStamp = now
+    this._innerDispatchEvent('volumechange')
   }
 
   get muted () {
@@ -389,11 +415,11 @@ class MobileVideo extends HTMLElement {
     } else {
       this.aCtx.muted = true
     }
-    this.dispatchEvent(new Event('volumechange'))
+    this.onValueChange()
   }
 
   get error () {
-    return this.vCtx.error || (this.noAudio ? null : this.aCtx.error);
+    return this._err || this.vCtx.error || (this.noAudio ? null : this.aCtx.error);
   }
 
   get buffered () {
@@ -402,6 +428,24 @@ class MobileVideo extends HTMLElement {
 
   get noAudio () {
     return this.getAttribute('noaudio') === 'true'
+  }
+
+  get networkState () {
+    return 0
+  }
+
+  get fps(){
+    return this._fps
+  }
+
+  set fps(val){
+    if(!validateFPS(val)){
+      val = DEFAULT_FPS
+    }
+    this._fps = val
+    if(this.ticker){
+      this.ticker.setInterval(1000/val)
+    }
   }
 }
 // eslint-disable-next-line no-undef

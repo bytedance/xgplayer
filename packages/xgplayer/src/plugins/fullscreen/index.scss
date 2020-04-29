@@ -1,11 +1,20 @@
 .xgplayer .xgplayer-fullscreen {
-  .xg-tips {
-    margin-left: -80%;
-  }
   .xgplayer-icon {
     width: 24px;
   }
-  svg {
-    transform: translate(-4px, 5px)
+  .xg-exit-fullscreen {
+    display: none;
+  }
+  .xg-get-fullscreen {
+    display: block;
+  }
+
+  &[data-state=full] {
+    .xg-exit-fullscreen {
+      display: block;
+    }
+    .xg-get-fullscreen {
+      display: none;
+    }
   }
 }

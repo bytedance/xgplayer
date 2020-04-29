@@ -7,11 +7,6 @@
   $sliderDragAfterShadow: 0 0 5px 0 rgba(0, 0, 0, 0.26);
   
   .xgplayer-volume {
-    .xgplayer-icon {
-      svg {
-        transform: translateY(4px);
-      }
-    }
     &.slide-show {
       .xgplayer-slider {
         display: block;
@@ -70,6 +65,39 @@
       top: -6px;
     }
   }
+
+  .xgplayer-volume[data-state=normal] {
+    .xg-volume-small {
+      display: none;
+    }
+    .xg-volume-mute {
+      display: none;
+    }
+  }
+  .xgplayer-volume[data-state=small] {
+    .xg-volume {
+      display: none;
+    }
+    .xg-volume-small {
+      display: block;
+    }
+    .xg-volume-mute {
+      display: none;
+    }
+
+  }
+  .xgplayer-volume[data-state=mute] {
+    .xg-volume {
+      display: none;
+    }
+    .xg-volume-small {
+      display: none;
+    }
+    .xg-volume-mute {
+      display: block;
+    }
+  }
+
   &.xgplayer-mobile {
     .xgplayer-volume {
       .xgplayer-slider {

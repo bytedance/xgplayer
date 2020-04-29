@@ -55,15 +55,12 @@ class MiniScreen extends Plugin {
     bindFunKeys.map(key => {
       this[key] = this[key].bind(this)
     })
+    this.initIcons()
     this.on(Events.PAUSE, () => {
-      const btn = this.find('.play-icon')
-      Util.addClass(btn, 'pause')
-      Util.removeClass(btn, 'play')
+      this.setAttr('data-state', 'pause')
     })
     this.on(Events.PLAY, () => {
-      const btn = this.find('.play-icon')
-      Util.addClass(btn, 'play')
-      Util.removeClass(btn, 'pause')
+      this.setAttr('data-state', 'play')
     })
   }
 
@@ -92,6 +89,19 @@ class MiniScreen extends Plugin {
     }
   }
 
+  registerIcons () {
+    return {
+      play: {icon: PlayIcon, class: 'xg-icon-play'},
+      pause: {icon: PauseIcon, class: 'xg-icon-pause'}
+    }
+  }
+
+  initIcons () {
+    const {icons} = this
+    this.appendChild('.play-icon', icons.play)
+    this.appendChild('.play-icon', icons.pause)
+  }
+
   onCancelClick (e) {
     this.exitMini()
   }
@@ -101,15 +111,11 @@ class MiniScreen extends Plugin {
     player.paused ? player.play() : player.pause()
   }
 
-  getCss (o, key) {
-    return o.currentStyle ? o.currentStyle[key] : document.defaultView.getComputedStyle(o, false)[key]
-  }
-
   onScroll (e) {
     if ((!window.scrollY && window.scrollY !== 0) || Math.abs(window.scrollY - this.coordinate.scrollY) < 50) {
       return;
     }
-    let scrollHeight = parseInt(this.getCss(this.player.root, 'height'))
+    let scrollHeight = parseInt(Util.getCss(this.player.root, 'height'))
     scrollHeight += this.config.scrollTop
     this.coordinate.scrollY = window.scrollY
     if (window.scrollY > scrollHeight + 5 && !this.isMini) {
@@ -135,9 +141,10 @@ class MiniScreen extends Plugin {
       return;
     }
     this.isMoveing = false
+    this.clientWidth = window.innerWidth
     const target = this.config.target || this.player.root
-    this.pos.top = parseInt(this.getCss(target, 'top'))
-    this.pos.left = parseInt(this.getCss(target, 'left'))
+    this.pos.top = parseInt(Util.getCss(target, 'top'))
+    this.pos.left = parseInt(Util.getCss(target, 'left'))
     this.unbind('mousemove', this.onMousemove)
     this.unbind('mouseup', this.onMouseup)
   }
@@ -145,8 +152,8 @@ class MiniScreen extends Plugin {
   onMousemove (e, callback) {
     e = e || window.event
     const target = this.config.target || this.player.root
-    const maxTop = window.innerHeight - parseInt(this.getCss(target, 'height'))
-    const maxLeft = window.innerWidth - parseInt(this.getCss(target, 'width'))
+    const maxTop = window.innerHeight - parseInt(Util.getCss(target, 'height'))
+    const maxLeft = window.innerWidth - parseInt(Util.getCss(target, 'width'))
     if (this.isMoveing) {
       const nowX = e.clientX
       const nowY = e.clientY
@@ -236,9 +243,7 @@ class MiniScreen extends Plugin {
         <div>按住画面可移动小窗</div>
       </xg-mini-header>
       <div class="mini-cancel-btn">X</div>
-      <div class="play-icon play">
-        ${PauseIcon}
-        ${PlayIcon}
+      <div class="play-icon">
       </div>
       </xg-mini-layer>`
   }

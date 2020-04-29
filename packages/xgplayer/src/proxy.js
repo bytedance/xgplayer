@@ -21,7 +21,7 @@ class Proxy {
       airplay: options['airplay'],
       'webkit-airplay': options['airplay'],
       tabindex: 2,
-      mediaType: options.mediaType || 'video',
+      mediaType: options.mediaType || 'video'
     }, options.videoConfig);
     if (options.videoAttrbutes) {
       Object.keys(options.videoAttrbutes).map((key) => {
@@ -51,7 +51,7 @@ class Proxy {
   _initEvents () {
     let lastBuffer = '0,0'
     this.ev = ['play', 'playing', 'pause', 'ended', 'error', 'seeking', 'seeked',
-      'timeupdate', 'waiting', 'canplay', 'canplaythrough', 'durationchange', 'volumechange', 'loadeddata','ratechange'
+      'timeupdate', 'waiting', 'canplay', 'canplaythrough', 'durationchange', 'volumechange', 'loadeddata', 'ratechange'
     ].map((item) => {
       return {
         [item]: `on${item.charAt(0).toUpperCase()}${item.slice(1)}`
@@ -79,7 +79,7 @@ class Proxy {
         }
 
         if (name === 'timeupdate') {
-          this._currentTime = this.video.currentTime
+          this._currentTime = this.video && this.video.currentTime
         }
 
         if (name === 'durationchange') {
@@ -351,9 +351,14 @@ class Proxy {
     if (!this.ended) {
       this.emit(URL_CHANGE, url)
     }
-    this.video.pause()
+    // this.video.pause()
     this._currentTime = 0;
     this._duration = 0;
+
+    if (/^blob/.test(this.video.currentSrc)) { // has transmuxer core
+      this.onWaiting();
+      return;
+    }
     this.video.src = url
   }
 

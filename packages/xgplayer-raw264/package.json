@@ -1,0 +1,43 @@
+{
+  "name": "xgplayer-raw264",
+  "version": "3.0.0-alpha.0",
+  "description": "",
+  "main": "lib/index.js",
+  "module": "es/index.js",
+  "browser": "dist/index.min.js",
+  "scripts": {
+    "prepare": "npm run build",
+    "build": "npm run build:umd && npm run build:es && npm run build:lib",
+    "build:umd": "cross-env NODE_ENV=production rollup -c rollup.config.js",
+    "build:es": "rm -rf es && babel src --out-dir es",
+    "build:lib": "rm -rf lib && babel src --out-dir lib --presets=es2015",
+    "watch": "cross-env NODE_ENV=development rollup -c ./rollup.config.js --watch"
+  },
+  "author": "",
+  "license": "ISC",
+  "babel": {
+    "presets": [
+      [
+        "env",
+        {
+          "targets": {
+            "chrome": 58,
+            "ie": 10
+          },
+          "modules": false
+        }
+      ]
+    ]
+  },
+  "dependencies": {
+    "xgplayer-transmuxer-buffer-xgbuffer": "^3.0.0-alpha.0",
+    "xgplayer-transmuxer-demux-flv": "^3.0.0-alpha.0",
+    "xgplayer-transmuxer-codec-avc": "^3.0.0-alpha.0",
+    "xgplayer-transmuxer-constant-events": "^3.0.0-alpha.0",
+    "xgplayer-transmuxer-context": "^3.0.0-alpha.0",
+    "xgplayer-mobilevideo": "^3.0.0-alpha.0"
+  },
+  "devDependencies": {
+    "cross-env": "^6.0.3"
+  }
+}

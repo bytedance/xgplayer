@@ -29,7 +29,24 @@ export default class PlayNextIcon extends Plugin {
     if (!this.config.urlList || this.config.urlList.length === 0) {
       return
     }
+    this.appendChild('.xgplayer-icon', this.icons.playNext)
     this.initEvents()
+  }
+
+  registerIcons () {
+    return {
+      playNext: Next
+    }
+  }
+
+  registerLangauageTexts () {
+    return {
+      'playNext': {
+        jp: 'playNext',
+        en: 'playNext',
+        zh: '播放'
+      }
+    }
   }
 
   initEvents () {
@@ -53,22 +70,6 @@ export default class PlayNextIcon extends Plugin {
     }
   }
 
-  registerIcons () {
-    return {
-      playNext: Next
-    }
-  }
-
-  registerLangauageTexts () {
-    return {
-      'playNext': {
-        jp: 'play',
-        en: 'play',
-        zh: '播放'
-      }
-    }
-  }
-
   destroy () {
     this.unbind(['touchend', 'click'], this.playNext)
   }
@@ -80,9 +81,8 @@ export default class PlayNextIcon extends Plugin {
     return `
      <xg-icon class="xgplayer-playnext">
       <div class="xgplayer-icon">
-        ${this.icons.playNext}
       </div>
-      <div class="xg-tips">${this.text.playNext}</div>
+      <div class="xg-tips" lang-key="playNext">${this.langText.playNext}</div>
      </xg-icon>
     `
   }

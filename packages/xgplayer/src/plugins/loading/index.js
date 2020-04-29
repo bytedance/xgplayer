@@ -1,10 +1,16 @@
 import loadingIcon from '../assets/loading.svg';
-
 import Plugin from '../../plugin/plugin';
+const {POSITIONS} = Plugin;
 
 class Loading extends Plugin {
   static get pluginName () {
     return 'loading'
+  }
+
+  static get defaultConfig () {
+    return {
+      position: POSITIONS.ROOT
+    }
   }
 
   registerIcons () {
@@ -13,10 +19,13 @@ class Loading extends Plugin {
     }
   }
 
+  afterCreate () {
+    this.appendChild(this.icons.loadingIcon)
+  }
+
   render () {
     return `
     <xg-loading class="xgplayer-loading">
-      ${this.icons.loadingIcon}
     </xg-loading>`
   }
 }

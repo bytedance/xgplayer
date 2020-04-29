@@ -3,6 +3,9 @@
 SRC_DIR=$(pwd)
 
 
+cd ${SRC_DIR}/packages/xgplayer && npm publish --tag=alpha --registry https://registry.npmjs.org
+cd ${SRC_DIR}/packages/xgplayer-dash && npm publish --tag=alpha --registry https://registry.npmjs.org
+cd ${SRC_DIR}/packages/xgplayer-mp4 && npm publish --tag=alpha --registry https://registry.npmjs.org
 cd ${SRC_DIR}/packages/xgplayer-transmuxer-buffer-playlist && npm publish --tag=alpha --registry https://registry.npmjs.org
 cd ${SRC_DIR}/packages/xgplayer-transmuxer-buffer-presource && npm publish --tag=alpha --registry https://registry.npmjs.org
 cd ${SRC_DIR}/packages/xgplayer-transmuxer-buffer-stream && npm publish --tag=alpha --registry https://registry.npmjs.org
@@ -29,7 +32,10 @@ cd ${SRC_DIR}/packages/xgplayer-utils-crypto && npm publish --tag=alpha --regist
 cd ${SRC_DIR}/packages/xgplayer-utils-mse && npm publish --tag=alpha --registry https://registry.npmjs.org
 cd ${SRC_DIR}/packages/xgplayer-utils-sniffer && npm publish --tag=alpha --registry https://registry.npmjs.org
 cd ${SRC_DIR}/packages/xgplayer-utils-utf8 && npm publish --tag=alpha --registry https://registry.npmjs.org
+cd ${SRC_DIR}/packages/xgplayer-raw264 && npm publish --tag=alpha --registry https://registry.npmjs.org
 cd ${SRC_DIR}/packages/xgplayer-flv-vod && npm publish --tag=alpha --registry https://registry.npmjs.org
 cd ${SRC_DIR}/packages/xgplayer-flv-live && npm publish --tag=alpha --registry https://registry.npmjs.org
 cd ${SRC_DIR}/packages/xgplayer-hls-live && npm publish --tag=alpha --registry https://registry.npmjs.org
 cd ${SRC_DIR}/packages/xgplayer-hls-vod && npm publish --tag=alpha --registry https://registry.npmjs.org
+cd ${SRC_DIR}/packages/xgplayer-hls && npm publish --tag=alpha --registry https://registry.npmjs.org
+cd ${SRC_DIR}/packages/xgplayer-flv && npm publish --tag=alpha --registry https://registry.npmjs.org

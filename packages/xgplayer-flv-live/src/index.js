@@ -12,13 +12,14 @@ class FlvPlayer extends BasePlugin {
   }
 
   constructor (config) {
-    super(config)
-    this.context = new Context(flvAllowedEvents)
-    this.loaderCompleteTimer = null
-    this.play = this.play.bind(this)
-    this.pause = this.pause.bind(this)
-    this.destroy = this.destroy.bind(this)
-    this.switchURL = this.switchURL.bind(this)
+    super(config);
+    this.context = new Context(flvAllowedEvents);
+    this.loaderCompleteTimer = null;
+    this.play = this.play.bind(this);
+    this.pause = this.pause.bind(this);
+    this.destroy = this.destroy.bind(this);
+    this.switchURL = this.switchURL.bind(this);
+    this.handleDefinitionChange = this.handleDefinitionChange.bind(this);
 
     this.played = false;
     this.initEvents()
@@ -110,6 +111,7 @@ class FlvPlayer extends BasePlugin {
     this.on(Events.PAUSE, this.pause)
     this.on(Events.DESTROY, this.destroy)
     this.on(Events.URL_CHANGE, this.switchURL)
+    this.on(Events.DEFINITION_CHANGE, this.switchURL)
   }
 
   initFlv () {
@@ -128,6 +130,7 @@ class FlvPlayer extends BasePlugin {
         this.context = new Context(flvAllowedEvents)
         this.player.hasStart = false;
         this.player.start()
+        this.player.onWaiting();
         this.player.once('canplay', () => {
           this.player.play();
         })
@@ -149,6 +152,7 @@ class FlvPlayer extends BasePlugin {
   }
 
   destroy () {
+    super._destroy();
     return this._destroy()
   }
 
@@ -161,6 +165,11 @@ class FlvPlayer extends BasePlugin {
         window.clearInterval(this.loaderCompleteTimer)
       }
     })
+  }
+
+  handleDefinitionChange (change) {
+    const { to } = change;
+    this.switchURL(to);
   }
 
   switchURL (url) {

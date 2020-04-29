@@ -12,7 +12,8 @@ export default class DefinitionIcon extends Plugin {
       position: POSITIONS.CONTROLS_RIGTH,
       index: 3,
       list: null,
-      disable: false
+      disable: false,
+      hideMobile: true // 是否在移动端竖屏状态下隐藏
     }
   }
 
@@ -87,7 +88,7 @@ export default class DefinitionIcon extends Plugin {
         playPromise.catch(err => {})
       }
     }
-    player.emit('afterdefinitionChange')
+    player.emit(Events.AFTER_DEFINITION_CHANGE)
   }
 
   onToggle (e) {
@@ -137,7 +138,7 @@ export default class DefinitionIcon extends Plugin {
       return false
     }
     const a = document.createElement('a')
-    player.emit('beforeDefinitionChange', a.href)
+    player.emit(Events.BEFORE_DEFINITION_CHANGE, a.href)
     if (player.dash) {
       list.forEach(item => {
         item.selected = false
@@ -171,7 +172,7 @@ export default class DefinitionIcon extends Plugin {
       }
     }
     this.find('.icon-text').innerHTML = to
-    player.emit('definitionChange', {from, to})
+    player.emit(Events.DEFINITION_CHANGE, {from, to})
     if (Sniffer.device === 'mobile') {
       Util.removeClass(this.root, 'list-show')
     }
@@ -179,7 +180,7 @@ export default class DefinitionIcon extends Plugin {
 
   render () {
     const text = '清晰度'
-    return `<xg-icon class="xgplayer-playbackrate" style="display: none;">
+    return `<xg-icon class="xgplayer-definition">
     <div class="xgplayer-icon btn-definition"><span class="icon-text">${text}</span></div>
     <ul class="icon-list">
     </ul>
