@@ -4,7 +4,7 @@ const {Events, POSITIONS} = Plugin
 
 class PIP extends Plugin {
   static get pluginName () {
-    return 'Pip'
+    return 'pip'
   }
 
   static get defaultConfig () {

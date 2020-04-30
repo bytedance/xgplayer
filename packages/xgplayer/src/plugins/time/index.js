@@ -11,13 +11,12 @@ class Time extends Plugin {
     return {
       position: POSITIONS.CONTROLS_LEFT,
       index: 2,
-      disable: false,
-      mode: 'pc'
+      disable: false
     }
   }
 
   afterCreate () {
-    this.mode = Sniffer.device === 'mobile' ? 'mobile' : 'pc'
+    this.mode = this.config.mode ? this.config.mode : Sniffer.device === 'mobile' ? 'mobile' : 'pc'
     if (this.config.disable) {
       return
     }

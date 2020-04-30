@@ -147,6 +147,9 @@ const copyAssets = async () => {
   }, {
     input: path.resolve(__dirname, '../src/presets/live.scss'),
     namespace: 'live'
+  }, {
+    input: path.resolve(__dirname, '../src/presets/mobile.scss'),
+    namespace: 'mobile'
   }]
   await Promise.all(entries.map((entry) => {
     return buildDistStyle(entry)

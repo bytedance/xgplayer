@@ -70,25 +70,44 @@ function registerTextObj (textConfig, plugin) {
 export default class Plugin extends BasePlugin {
   /**
     * 插入dom结构
-    * @param {String} html html字符串或者dom
-    * @param {DocumentElemebt } parent
+    * @param {String | Element} html html字符串或者dom
+    * @param {Element} parent
     * @param {*} index
     */
-  static insert (html, parent, index) {
+  static insert (html, parent, index = 0) {
     const len = parent.children.length
-    const insertIdx = parseInt(index)
-    const isDomElement = html instanceof window.HTMLElement
-    if (typeof index === 'undefined' || len <= insertIdx) {
+    const insertIdx = Number(index)
+    const isDomElement = html instanceof window.Node
+
+    if (len) {
+      let i = 0;
+      let coordinate = null;
+      let mode = '';
+      for (;i < len; i++) {
+        coordinate = parent.children[i];
+        const curIdx = Number(coordinate.getAttribute('data-index'));
+        if (curIdx >= insertIdx) {
+          mode = 'beforebegin';
+          break;
+        } else if (curIdx < insertIdx) {
+          mode = 'afterend';
+        }
+      }
+
+      if (isDomElement) {
+        if (mode === 'afterend') {
+          // as last element
+          parent.appendChild(html)
+        } else {
+          parent.insertBefore(html, coordinate)
+        }
+      } else {
+        coordinate.insertAdjacentHTML(mode, html)
+      }
+      return mode === 'afterend' ? parent.children[parent.children.length - 1] : parent.children[i];
+    } else {
       isDomElement ? parent.appendChild(html) : parent.insertAdjacentHTML('beforeend', html)
-      return parent.children[parent.children.length - 1]
-    } else if (insertIdx === 0) {
-      isDomElement ? parent.insertBefore(html, parent.children.length > 0 ? parent.children[0] : null) : parent.insertAdjacentHTML('afterbegin', html)
-      return parent.children[0]
-    }
-    const el = parent.children[insertIdx]
-    if (el && el.insertAdjacentHTML) {
-      isDomElement ? parent.insertBefore(html, el) : el.insertAdjacentHTML('beforebegin', html)
-      return parent.children[insertIdx]
+      return parent.children[parent.children.length - 1];
     }
   }
 

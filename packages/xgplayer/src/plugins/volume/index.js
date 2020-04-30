@@ -7,7 +7,7 @@ const {Util, Events, POSITIONS} = Plugin
 
 class Volume extends Plugin {
   static get pluginName () {
-    return 'Volume'
+    return 'volume'
   }
 
   static get defaultConfig () {

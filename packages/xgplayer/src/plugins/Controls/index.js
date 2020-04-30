@@ -4,7 +4,7 @@ const {Events, Util, POSITIONS, Sniffer} = Plugin
 
 class Controls extends Plugin {
   static get pluginName () {
-    return 'Controls'
+    return 'controls'
   }
 
   static get defaultConfig () {
@@ -47,6 +47,10 @@ class Controls extends Plugin {
     })
     this.bind('mouseleave', (e) => {
       this.mouseOut(e)
+    })
+
+    this.bind(['click', 'touchend'], (e) => {
+      e && e.stopPropagation();
     })
   }
 

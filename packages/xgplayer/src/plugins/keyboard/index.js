@@ -2,7 +2,7 @@ import BasePlugin from '../../plugin/basePlugin'
 
 class Keyboard extends BasePlugin {
   static get pluginName () {
-    return 'Keyboard'
+    return 'keyboard'
   }
 
   static get defaultConfig () {

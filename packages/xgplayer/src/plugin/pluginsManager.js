@@ -78,12 +78,6 @@ const pluginsManager = {
     if (!options.config) {
       options.config = {}
     }
-    for (const item of Object.keys(originalOptions)) {
-      if (pluginName.toLowerCase() === item.toLowerCase()) {
-        options.config = Object.assign({}, options.config, originalOptions[item])
-        break;
-      }
-    }
 
     // 复制插件的默认配置项
     if (plugin.defaultConfig) {
@@ -92,6 +86,13 @@ const pluginsManager = {
           options.config[key] = plugin.defaultConfig[key]
         }
       })
+    }
+
+    for (const item of Object.keys(originalOptions)) {
+      if (pluginName.toLowerCase() === item.toLowerCase()) {
+        options.config = Object.assign({}, options.config, originalOptions[item])
+        break;
+      }
     }
 
     // 获取插件添加的父节点

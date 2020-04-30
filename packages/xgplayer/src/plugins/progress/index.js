@@ -19,7 +19,7 @@ const defaultThumbnailConfig = {
  */
 class Progress extends Plugin {
   static get pluginName () {
-    return 'Progress'
+    return 'progress'
   }
 
   static get defaultConfig () {
