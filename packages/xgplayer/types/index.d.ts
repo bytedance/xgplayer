@@ -260,6 +260,14 @@ declare module 'xgplayer' {
         domain?: string;
 
         kid?: string;
+
+        disableSwipeHandler?: VoidFunction;
+
+        enableSwipeHandler?: VoidFunction;
+
+        allowSeekAfterEnded?: boolean;
+
+        allowPlayAfterEnded?: boolean;
     }
 
     class Proxy extends EventEmitter {

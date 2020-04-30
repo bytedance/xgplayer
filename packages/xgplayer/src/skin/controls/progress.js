@@ -120,6 +120,28 @@ let s_progress = function () {
     thumbnail.style.width = `${tnailWidth}px`
     thumbnail.style.height = `${tnailHeight}px`
   };
+
+  if(typeof player.config.disableSwipeHandler === 'function' && typeof player.config.enableSwipeHandler === 'function') {
+    player.root.addEventListener('touchmove', e => {
+        e.preventDefault();
+        // e.stopPropagation();
+        if(!player.disableSwipe) {
+            player.disableSwipe = true
+            player.config.disableSwipeHandler.call(player);
+        }
+    });
+    player.root.addEventListener('touchstart', e => {
+        // e.preventDefault();
+        player.disableSwipe = true
+        player.config.disableSwipeHandler.call(player);
+    });
+    player.root.addEventListener('touchend', e => {
+        // e.preventDefault();
+        player.disableSwipe = false
+        player.config.enableSwipeHandler.call(player);
+    });
+  };
+
   ['touchstart', 'mousedown'].forEach(item => {
     if(player.config.disableProgress) return;
     container.addEventListener(item, function (e) {
@@ -129,6 +151,10 @@ let s_progress = function () {
       if (e._target === point || (!player.config.allowSeekAfterEnded && player.ended)) {
         return true
       }
+
+      player.disableSwipe = true
+      console.log('bytedance://disable_swipe')
+
       container.focus()
       let {left} = progress.getBoundingClientRect()
 
