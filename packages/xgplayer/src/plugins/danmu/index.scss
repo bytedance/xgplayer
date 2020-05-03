@@ -16,11 +16,25 @@ $sliderDragAfterShadow: 0 0 5px 0 rgba(0, 0, 0, 0.26);
       display: flex;
       top: 50%;
       margin-top: -10px;
+      &-open {
+        display: none;
+      }
+
+      &-closed {
+        display: block;
+      }
     }
     &[data-state=active] {
       .danmu-switch {
         padding-left: 12px;
         background-color: #f85959;
+        &-open {
+          display: block;
+        }
+
+        &-closed {
+          display: none;
+        }
       }
     }
   }
@@ -40,6 +54,7 @@ $sliderDragAfterShadow: 0 0 5px 0 rgba(0, 0, 0, 0.26);
       white-space: nowrap;
       // z-index: 9;
     }
+
   }
 }
 

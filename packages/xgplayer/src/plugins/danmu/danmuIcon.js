@@ -23,14 +23,15 @@ class DanmuIcon extends Plugin {
 
   afterCreate () {
     this.initIcons()
-    this.switchState(this.config.defaultOpen)
+    this.switchState(!this.config.defaultOpen)
     this.onStateChange = this.onStateChange.bind(this)
     this.bind(['click', 'touchend'], this.onStateChange)
   }
 
   registerIcons () {
     return {
-      openDanmu: { icon: DANMU_OPEN, class: '' }
+      openDanmu: { icon: DANMU_OPEN, class: 'danmu-switch-open' },
+      closeDanmu: { icon: DANMU_OPEN, class: 'danmu-switch-closed' }
     }
   }
 
@@ -64,6 +65,7 @@ class DanmuIcon extends Plugin {
     const {icons} = this
     const contentIcon = this.find('.xgplayer-icon')
     contentIcon.appendChild(icons.openDanmu)
+    contentIcon.appendChild(icons.closeDanmu)
   }
 
   switchTips (isOpen) {
