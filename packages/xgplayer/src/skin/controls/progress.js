@@ -152,9 +152,6 @@ let s_progress = function () {
         return true
       }
 
-      player.disableSwipe = true
-      console.log('bytedance://disable_swipe')
-
       container.focus()
       let {left} = progress.getBoundingClientRect()
 

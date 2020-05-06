@@ -121,82 +121,6 @@ let logger = function () {
     }
     player.on('routechange', userLeave)
 
-    function endedFunc () {
-      let played = player.video.played
-      let watch_dur = computeWatchDur(player.logParams.played)
-      let et = new Date().getTime()
-      judgePtVt()
-      let obj = {
-        url: player.logParams.pluginSrc ? player.logParams.pluginSrc : player.logParams.playSrc,
-        vid: player.config.vid,
-        bc: player.logParams.bc - 1 > 0 ? player.logParams.bc - 1 : 0,
-        bb: player.logParams.bc - 1 > 0 ? 1 : 0,
-        bu_acu_t: player.logParams.bu_acu_t,
-        pt: player.logParams.pt,
-        vt: player.logParams.vt,
-        vd: player.logParams.vd * 1000,
-        watch_dur: parseFloat((watch_dur * 1000).toFixed(3)),
-        cur_play_pos: parseFloat((player.currentTime * 1000).toFixed(3)),
-        et
-      }
-      window.__xigua_log_sdk__('c', obj)
-    }
-    player.on('ended', endedFunc)
-
-    function urlchangeFunc () {
-      let played = player.video.played
-      let watch_dur = computeWatchDur(player.logParams.played)
-      let lt = new Date().getTime()
-      judgePtVt()
-      let obj = {
-        url: player.logParams.pluginSrc ? player.logParams.pluginSrc : player.logParams.playSrc,
-        vid: player.config.vid,
-        bc: player.logParams.bc - 1 > 0 ? player.logParams.bc - 1 : 0,
-        bb: player.logParams.bc - 1 > 0 ? 1 : 0,
-        bu_acu_t: player.logParams.bu_acu_t,
-        pt: player.logParams.pt,
-        vt: player.logParams.vt,
-        vd: player.logParams.vd * 1000,
-        watch_dur: parseFloat((watch_dur * 1000).toFixed(3)),
-        cur_play_pos: parseFloat((player.currentTime * 1000).toFixed(3)),
-        lt
-      }
-      window.__xigua_log_sdk__('d', obj)
-    }
-    player.on('urlchange', urlchangeFunc)
-
-    function errorFunc (err) {
-      let played = player.video.played
-      let watch_dur = computeWatchDur(player.logParams.played)
-      judgePtVt()
-      let et = new Date().getTime()
-      if (player.logParams.lastErrLog && et - player.logParams.lastErrLog <= 1000 * 3 ) {
-        return
-      }
-      player.logParams.lastErrLog = et
-      let obj = {
-        url: player.logParams.pluginSrc ? player.logParams.pluginSrc : player.logParams.playSrc,
-        vid: player.config.vid,
-        bc: player.logParams.bc - 1 > 0 ? player.logParams.bc - 1 : 0,
-        bb: player.logParams.bc - 1 > 0 ? 1 : 0,
-        bu_acu_t: player.logParams.bu_acu_t,
-        pt: player.logParams.pt,
-        vt: player.logParams.vt,
-        vd: player.logParams.vd * 1000,
-        watch_dur: parseFloat((watch_dur * 1000).toFixed(3)),
-        err_msg: err.errd.msg,
-        line: err.errd.line,
-        et,
-        cur_play_pos: parseFloat((player.currentTime * 1000).toFixed(3))
-      }
-      if(player.logParams.nologFunc && player.logParams.nologFunc(player)) {
-        return true
-      } else {
-        window.__xigua_log_sdk__('e', obj)
-      }
-    }
-    player.on('error', errorFunc)
-
     function destroyFunc () {
       if (sniffer.device === 'pc') {
         window.removeEventListener('beforeunload', userLeave)
@@ -204,9 +128,6 @@ let logger = function () {
         window.removeEventListener('pagehide', userLeave)
       }
       player.off('routechange', userLeave)
-      player.off('ended', endedFunc)
-      player.off('urlchange', urlchangeFunc)
-      player.off('error', errorFunc)
       player.off('destroy', destroyFunc)
     }
     player.once('destroy', destroyFunc)

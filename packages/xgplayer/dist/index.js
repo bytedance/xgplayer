@@ -1415,7 +1415,7 @@ module.exports = exports['default'];
 /* 5 */
 /***/ (function(module) {
 
-module.exports = {"name":"xgplayer","version":"2.6.18","description":"video player","main":"./dist/index.js","typings":"./types/index.d.ts","bin":{"xgplayer":"bin/xgplayer.js"},"scripts":{"prepare":"npm run build","build":"webpack --progress --display-chunks -p","watch":"webpack --progress --display-chunks -p --watch --mode development"},"keywords":["video","player"],"babel":{"presets":["es2015"],"plugins":["add-module-exports","babel-plugin-bulk-import"]},"repository":{"type":"git","url":"git+https://github.com/bytedance/xgplayer.git"},"author":"yinguohui@bytedance.com","license":"MIT","dependencies":{"chalk":"^2.3.2","commander":"^2.15.1","danmu.js":"^0.1.0","deepmerge":"^1.5.0","downloadjs":"1.4.7","draggabilly":"^2.2.0","event-emitter":"^0.3.5","fs-extra":"^5.0.0","install":"^0.13.0","pasition":"^1.0.1","request-frame":"^1.5.3"},"browserslist":["> 5%","IE 9","iOS 7","Firefox > 20"],"devDependencies":{"@types/events":"^3.0.0","autoprefixer":"^9.1.5","babel-core":"^6.26.3","babel-loader":"^7.1.4","babel-plugin-add-module-exports":"^0.2.1","babel-plugin-bulk-import":"^1.0.2","babel-plugin-transform-object-rest-spread":"^6.26.0","babel-plugin-transform-runtime":"^6.23.0","babel-preset-es2015":"^6.24.1","chai":"^4.1.2","core-js":"^2.5.4","css-loader":"^0.28.11","json-loader":"^0.5.7","node-sass":"^4.8.3","postcss-cssnext":"^3.1.0","postcss-loader":"^2.1.5","raw-loader":"^2.0.0","sass-loader":"^6.0.7","style-loader":"^0.20.3","sugarss":"^1.0.1","webpack":"^4.11.0","webpack-cli":"^3.0.2","zlib":"^1.0.5"}};
+module.exports = {"name":"xgplayer","version":"2.6.19","description":"video player","main":"./dist/index.js","typings":"./types/index.d.ts","bin":{"xgplayer":"bin/xgplayer.js"},"scripts":{"prepare":"npm run build","build":"webpack --progress --display-chunks -p","watch":"webpack --progress --display-chunks -p --watch --mode development"},"keywords":["video","player"],"babel":{"presets":["es2015"],"plugins":["add-module-exports","babel-plugin-bulk-import"]},"repository":{"type":"git","url":"git+https://github.com/bytedance/xgplayer.git"},"author":"yinguohui@bytedance.com","license":"MIT","dependencies":{"chalk":"^2.3.2","commander":"^2.15.1","danmu.js":"^0.1.0","deepmerge":"^1.5.0","downloadjs":"1.4.7","draggabilly":"^2.2.0","event-emitter":"^0.3.5","fs-extra":"^5.0.0","install":"^0.13.0","pasition":"^1.0.1","request-frame":"^1.5.3"},"browserslist":["> 5%","IE 9","iOS 7","Firefox > 20"],"devDependencies":{"@types/events":"^3.0.0","autoprefixer":"^9.1.5","babel-core":"^6.26.3","babel-loader":"^7.1.4","babel-plugin-add-module-exports":"^0.2.1","babel-plugin-bulk-import":"^1.0.2","babel-plugin-transform-object-rest-spread":"^6.26.0","babel-plugin-transform-runtime":"^6.23.0","babel-preset-es2015":"^6.24.1","chai":"^4.1.2","core-js":"^2.5.4","css-loader":"^0.28.11","json-loader":"^0.5.7","node-sass":"^4.8.3","postcss-cssnext":"^3.1.0","postcss-loader":"^2.1.5","raw-loader":"^2.0.0","sass-loader":"^6.0.7","style-loader":"^0.20.3","sugarss":"^1.0.1","webpack":"^4.11.0","webpack-cli":"^3.0.2","zlib":"^1.0.5"}};
 
 /***/ }),
 /* 6 */
@@ -5911,79 +5911,6 @@ var logger = function logger() {
   var player = this;
   var util = _player2.default.util;
   if (player.config.noLog !== true) {
-    var endedFunc = function endedFunc() {
-      var played = player.video.played;
-      var watch_dur = computeWatchDur(player.logParams.played);
-      var et = new Date().getTime();
-      judgePtVt();
-      var obj = {
-        url: player.logParams.pluginSrc ? player.logParams.pluginSrc : player.logParams.playSrc,
-        vid: player.config.vid,
-        bc: player.logParams.bc - 1 > 0 ? player.logParams.bc - 1 : 0,
-        bb: player.logParams.bc - 1 > 0 ? 1 : 0,
-        bu_acu_t: player.logParams.bu_acu_t,
-        pt: player.logParams.pt,
-        vt: player.logParams.vt,
-        vd: player.logParams.vd * 1000,
-        watch_dur: parseFloat((watch_dur * 1000).toFixed(3)),
-        cur_play_pos: parseFloat((player.currentTime * 1000).toFixed(3)),
-        et: et
-      };
-      window.__xigua_log_sdk__('c', obj);
-    };
-
-    var urlchangeFunc = function urlchangeFunc() {
-      var played = player.video.played;
-      var watch_dur = computeWatchDur(player.logParams.played);
-      var lt = new Date().getTime();
-      judgePtVt();
-      var obj = {
-        url: player.logParams.pluginSrc ? player.logParams.pluginSrc : player.logParams.playSrc,
-        vid: player.config.vid,
-        bc: player.logParams.bc - 1 > 0 ? player.logParams.bc - 1 : 0,
-        bb: player.logParams.bc - 1 > 0 ? 1 : 0,
-        bu_acu_t: player.logParams.bu_acu_t,
-        pt: player.logParams.pt,
-        vt: player.logParams.vt,
-        vd: player.logParams.vd * 1000,
-        watch_dur: parseFloat((watch_dur * 1000).toFixed(3)),
-        cur_play_pos: parseFloat((player.currentTime * 1000).toFixed(3)),
-        lt: lt
-      };
-      window.__xigua_log_sdk__('d', obj);
-    };
-
-    var errorFunc = function errorFunc(err) {
-      var played = player.video.played;
-      var watch_dur = computeWatchDur(player.logParams.played);
-      judgePtVt();
-      var et = new Date().getTime();
-      if (player.logParams.lastErrLog && et - player.logParams.lastErrLog <= 1000 * 3) {
-        return;
-      }
-      player.logParams.lastErrLog = et;
-      var obj = {
-        url: player.logParams.pluginSrc ? player.logParams.pluginSrc : player.logParams.playSrc,
-        vid: player.config.vid,
-        bc: player.logParams.bc - 1 > 0 ? player.logParams.bc - 1 : 0,
-        bb: player.logParams.bc - 1 > 0 ? 1 : 0,
-        bu_acu_t: player.logParams.bu_acu_t,
-        pt: player.logParams.pt,
-        vt: player.logParams.vt,
-        vd: player.logParams.vd * 1000,
-        watch_dur: parseFloat((watch_dur * 1000).toFixed(3)),
-        err_msg: err.errd.msg,
-        line: err.errd.line,
-        et: et,
-        cur_play_pos: parseFloat((player.currentTime * 1000).toFixed(3))
-      };
-      if (player.logParams.nologFunc && player.logParams.nologFunc(player)) {
-        return true;
-      } else {
-        window.__xigua_log_sdk__('e', obj);
-      }
-    };
-
     var destroyFunc = function destroyFunc() {
       if (_sniffer2.default.device === 'pc') {
         window.removeEventListener('beforeunload', userLeave);
@@ -5991,9 +5918,6 @@ var logger = function logger() {
         window.removeEventListener('pagehide', userLeave);
       }
       player.off('routechange', userLeave);
-      player.off('ended', endedFunc);
-      player.off('urlchange', urlchangeFunc);
-      player.off('error', errorFunc);
       player.off('destroy', destroyFunc);
     };
 
@@ -6112,12 +6036,6 @@ var logger = function logger() {
       window.addEventListener('pagehide', userLeave, false);
     }
     player.on('routechange', userLeave);
-
-    player.on('ended', endedFunc);
-
-    player.on('urlchange', urlchangeFunc);
-
-    player.on('error', errorFunc);
 
     player.once('destroy', destroyFunc);
   }
@@ -8226,9 +8144,6 @@ var s_progress = function s_progress() {
       if (e._target === point || !player.config.allowSeekAfterEnded && player.ended) {
         return true;
       }
-
-      player.disableSwipe = true;
-      console.log('bytedance://disable_swipe');
 
       container.focus();
 
