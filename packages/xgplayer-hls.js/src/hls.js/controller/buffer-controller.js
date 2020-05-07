@@ -566,7 +566,7 @@ class BufferController extends EventHandler {
               sb.ended = false;
               // logger.log(`appending ${segment.content} ${type} SB, size:${segment.data.length}, ${segment.parent}`);
               this.parent = segment.parent;
-              console.log('append buffer ', segment)
+              // console.log('append buffer ', segment)
               sb.appendBuffer(segment.data);
               this.appendError = 0;
               this.appended++;
