@@ -10,26 +10,38 @@ class Raw264Player extends Player {
   constructor (props) {
     if (!props.mediaType) {
       props.mediaType = 'mobile-video'
+      if (props.videoConfig) {
+        props.videoConfig.preloadtime = props.preloadTime || 5;
+      } else {
+        props.videoConfig = {
+          preloadtime: props.preloadTime || 5
+        }
+      }
     }
     super(props);
-
+    this.video.setAttribute('noaudio', true)
     this.handleTimeupdate = this.handleTimeupdate.bind(this)
     this.hasPlayed = false;
+    this.hasStart = false;
   }
 
   start () {
-
+    if (this.hasStart) {
+      return;
+    } else {
+      this.hasStart = true;
+    }
     this.context = new Context(Events.HlsAllowedEvents);
     this.context.registry('LOADER_BUFFER', LoaderBuffer);
     this.core = this.context.registry('RAW_264_CONTROLLER', Core)({ player: this, fps: this.config.fps })
-    if  (!this.config.isLive) {
-      this.context.registry('FETCH_LOADER', FetchLoader);
+    this.context.registry('FETCH_LOADER', FetchLoader);
+    this.context.init();
+    if (!this.config.isLive) {
       this.core.load(this.config.url)
     }
-    this.context.init();
 
     super.start()
-    this.video.setAttribute('noaudio', true)
+    this.video.preloadTime = this.config.preloadTime;
     this.video.addEventListener('timeupdate', this.handleTimeupdate, false)
   }
 
@@ -41,13 +53,12 @@ class Raw264Player extends Player {
   }
 
   handleTimeupdate () {
-    if (this.config.isLive) {
+    if (!this.config.isLive && this.currentTime >= this.duration) {
       this.video._cleanBuffer();
-    } else {
-      if (this.currentTime >= this.duration) {
-        this.pause();
-        this.emit('ended')
-      }
+      this.pause();
+      this.emit('ended')
+    } else if (this.config.isLive && this.buffered.end(0) - this.currentTime > 0.1){
+      this.currentTime = this.buffered.end(0) - 0.1
     }
   }
 
@@ -60,6 +71,9 @@ class Raw264Player extends Player {
   }
 
   pushBuffer(arr) {
+    if (!this.hasStart) {
+      return this.start();
+    }
     if (this.buffer) {
       this.buffer.push(arr)
       this.core.handleDataLoaded()

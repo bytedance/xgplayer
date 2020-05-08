@@ -53,7 +53,10 @@ var WorkerTicker = function (_Ticker) {
       this.worker.postMessage({
         msg: 'stop'
       });
+      this.worker.removeEventListener('message', this.handleMessage);
       this.worker = null;
+      this.handleMessage = function () {};
+      this.callbacks = [];
     }
   }, {
     key: 'setInterval',

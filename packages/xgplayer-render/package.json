@@ -1,6 +1,6 @@
 {
   "name": "xgplayer-render",
-  "version": "3.0.0-alpha.0",
+  "version": "3.0.0-alpha.9",
   "description": "",
   "main": "lib/index.js",
   "module": "es/index.js",

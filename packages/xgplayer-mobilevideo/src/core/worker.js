@@ -13,6 +13,10 @@ Decoder.prototype.toU8Array = function (ptr, length) {
 }
 
 Decoder.prototype.init = function () {
+  self.postMessage({
+    msg: 'LOG',
+    log: 'init decoder'
+  })
   Module._broadwayInit();
   this.streamBuffer = this.toU8Array(Module._broadwayCreateStream(MAX_STREAM_BUFFER_LENGTH), MAX_STREAM_BUFFER_LENGTH);
 }
@@ -29,6 +33,13 @@ Decoder.prototype.broadwayOnPictureDecoded = function (offset, width, height, yL
   let datetemp = new Uint8Array(data.length);
   datetemp.set(data);
   let buffer = datetemp.buffer;
+  if (info) {
+    self.postMessage({
+      msg: 'LOG',
+      log: `sample ${info.dts} decoded startAt${info.decodeTime} cost: ${ Date.now() - info.decodeTime}`
+    })
+  }
+
   this.self.postMessage({
     msg: 'DECODED',
     width,
@@ -42,6 +53,10 @@ Decoder.prototype.broadwayOnPictureDecoded = function (offset, width, height, yL
 
 Decoder.prototype.broadwayOnBroadwayInited = function () {
   this.inited = true;
+  self.postMessage({
+    msg: 'LOG',
+    log: 'decoder inited'
+  })
   this.self.postMessage({msg: 'DECODER_READY'});
 }
 
@@ -50,6 +65,12 @@ Decoder.prototype.decode = function (data, info) {
   let infoid = time - (Math.floor(time / 10e8) * 10e8);
   this.infolist[infoid] = info;
   this.streamBuffer.set(data);
+  if (info) {
+    // self.postMessage({
+    //   msg: 'LOG',
+    //   log: 'decode sample ' + info.dts + ' cost ' + Date.now()
+    // })
+  }
   Module._broadwayPlayStream(data.length, infoid);
 }
 
@@ -64,18 +85,26 @@ Decoder.prototype.updateMeta = function(meta){
 var decoder;
 
 function onPostRun () {
+  self.postMessage({
+    msg: 'LOG',
+    log: 'decoder script ' + Decoder
+  })
   decoder = new Decoder(this);
   decoder.init();
 }
 
 function init (meta) {
   if (!decoder) {
+    self.postMessage({
+      msg: 'LOG',
+      log: 'decoder script import' + self.importScripts
+    })
     self.importScripts('https://sf1-vcloudcdn.pstatp.com/obj/ttfe/media/decoder/h264/decoder_1583333072684.js');
   }
   addOnPostRun(onPostRun.bind(self));
 }
 
-self.addEventListener('message', function (e) {
+self.onmessage = function (e) {
   var data = e.data;
   if (!data.msg) {
     self.postMessage({
@@ -84,8 +113,11 @@ self.addEventListener('message', function (e) {
   } else {
     switch (data.msg) {
       case 'init':
-        console.log(data);
         self.meta = data.meta;
+        self.postMessage({
+          msg: 'LOG',
+          log: 'worker inited'
+        })
         init()
         break;
       case 'updatemeta':
@@ -102,4 +134,4 @@ self.addEventListener('message', function (e) {
         break;
     }
   }
-}, false);
+}

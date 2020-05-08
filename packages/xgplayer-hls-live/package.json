@@ -1,6 +1,6 @@
 {
   "name": "xgplayer-hls-live",
-  "version": "3.0.0-alpha.0",
+  "version": "3.0.0-alpha.9",
   "description": "",
   "main": "lib/index.js",
   "module": "es/index.js",
@@ -31,25 +31,27 @@
   },
   "license": "ISC",
   "dependencies": {
-    "xgplayer-utils": "^3.0.0-alpha.0",
-    "xgplayer-utils-crypto": "^3.0.0-alpha.0",
-    "xgplayer-utils-mse": "^3.0.0-alpha.0",
-    "xgplayer-transmuxer-constant-events": "^3.0.0-alpha.0",
-    "xgplayer-transmuxer-context": "^3.0.0-alpha.0",
-    "xgplayer-transmuxer-buffer-track": "^3.0.0-alpha.0",
-    "xgplayer-transmuxer-buffer-presource":  "^3.0.0-alpha.0",
-    "xgplayer-transmuxer-buffer-xgbuffer":  "^3.0.0-alpha.0",
-    "xgplayer-transmuxer-loader-fetch": "^3.0.0-alpha.0",
-    "xgplayer-transmuxer-remux-mp4": "^3.0.0-alpha.0",
-    "xgplayer-transmuxer-codec-compatibility":  "^3.0.0-alpha.0",
-    "xgplayer-transmuxer-demux-m3u8": "^3.0.0-alpha.0",
-    "xgplayer-transmuxer-demux-ts": "^3.0.0-alpha.0",
-    "xgplayer-transmuxer-buffer-playlist": "^3.0.0-alpha.0"
+    "xgplayer-utils": "^3.0.0-alpha.9",
+    "xgplayer-utils-crypto": "^3.0.0-alpha.9",
+    "xgplayer-utils-mse": "^3.0.0-alpha.9",
+    "xgplayer-transmuxer-constant-events": "^3.0.0-alpha.9",
+    "xgplayer-transmuxer-context": "^3.0.0-alpha.9",
+    "xgplayer-transmuxer-buffer-track": "^3.0.0-alpha.9",
+    "xgplayer-transmuxer-buffer-presource":  "^3.0.0-alpha.9",
+    "xgplayer-transmuxer-buffer-xgbuffer":  "^3.0.0-alpha.9",
+    "xgplayer-transmuxer-buffer-stream":  "^3.0.0-alpha.9",
+    "xgplayer-transmuxer-loader-fetch": "^3.0.0-alpha.9",
+    "xgplayer-transmuxer-remux-mp4": "^3.0.0-alpha.9",
+    "xgplayer-transmuxer-codec-compatibility":  "^3.0.0-alpha.9",
+    "xgplayer-transmuxer-demux-m3u8": "^3.0.0-alpha.9",
+    "xgplayer-transmuxer-demux-ts": "^3.0.0-alpha.9",
+    "xgplayer-transmuxer-buffer-playlist": "^3.0.0-alpha.9",
+    "xgplayer-transmuxer-codec-avc": "^3.0.0-alpha.9"
   },
   "devDependencies": {
     "cross-env": "^6.0.3"
   },
   "peerDependencies": {
-    "xgplayer": "3.0.0-alpha.0"
+    "xgplayer": "3.0.0-alpha.9"
   }
 }

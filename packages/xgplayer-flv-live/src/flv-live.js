@@ -82,6 +82,7 @@ export default class FlvController {
     this.on(REMUX_EVENTS.RANDOM_ACCESS_POINT, this._handleAddRAP.bind(this))
 
     this.on(MSE_EVENTS.SOURCE_UPDATE_END, this._handleSourceUpdateEnd.bind(this))
+    this.on(MSE_EVENTS.MSE_ERROR, this._handleMseError.bind(this))
 
     this._player.on('timeupdate', this._handleTimeUpdate)
   }
@@ -100,7 +101,7 @@ export default class FlvController {
     this.emit(REMUX_EVENTS.REMUX_METADATA, type)
   }
 
-  _handleSEIParsed(sei) {
+  _handleSEIParsed (sei) {
     this._player.emit('SEI_PARSED', sei)
   }
 
@@ -206,6 +207,14 @@ export default class FlvController {
     this._onError(DEMUX_EVENTS.DEMUX_ERROR, tag, err, fatal)
   }
 
+  _handleMseError (tag, err, fatal) {
+    if (fatal === undefined) {
+      fatal = false;
+    }
+    this._player.emit('error', new Player.Errors('parse', this._player.config.url))
+    this._onError(MSE_EVENTS.MSE_ERROR, tag, err, fatal)
+  }
+
   _handleAddRAP (rap) {
     if (this.state.randomAccessPoints) {
       this.state.randomAccessPoints.push(rap)
@@ -215,7 +224,7 @@ export default class FlvController {
   _onError (type, mod, err, fatal) {
     let error = {
       errorType: type,
-      errorDetails: `[${mod}]: ${err.message}`,
+      errorDetails: `[${mod}]: ${err ? err.message : ''}`,
       errorFatal: fatal || false
     }
     this._player.emit(FLV_ERROR, error);

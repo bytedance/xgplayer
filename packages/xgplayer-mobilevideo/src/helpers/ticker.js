@@ -132,9 +132,9 @@ export class TimeoutTicker extends Ticker {
  * 使用TimeoutTicker 1.可控制间隔 2.防止页面切换降频
  */
 export const getTicker = () => {
-  // if (RafTicker.isSupported()) {
-  //   return RafTicker
-  // } else {
+  if (RafTicker.isSupported()) {
+    return RafTicker
+  } else {
     return TimeoutTicker
-  // }
+  }
 }

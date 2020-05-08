@@ -103,6 +103,7 @@
     "postcss-loader": "^3.0.0",
     "rollup": "^1.27.0",
     "rollup-plugin-babel": "3",
+    "rollup-plugin-bundle-worker": "^0.1.0",
     "rollup-plugin-commonjs": "^10.1.0",
     "rollup-plugin-json": "^4.0.0",
     "rollup-plugin-multi-entry": "^2.1.0",
@@ -115,6 +116,7 @@
     "rollup-plugin-uglify-es": "^0.0.1",
     "rollup-plugin-url": "^3.0.0",
     "rollup-plugin-visualizer": "^3.3.2",
+    "rollup-plugin-web-worker-loader": "^0.9.1",
     "sass-loader": "^7.1.0",
     "style-loader": "^0.21.0",
     "sugarss": "^1.0.1",
@@ -125,8 +127,7 @@
     "webpack-cli": "^3.0.2",
     "webworkify-webpack": "2.1.5",
     "webworkify-webpack-dropin": "^1.1.9",
-    "zlib": "^1.0.5",
-    "rollup-plugin-bundle-worker": "^0.1.0"
+    "zlib": "^1.0.5"
   },
   "dependencies": {
     "xgplayer": "file:packages/xgplayer",

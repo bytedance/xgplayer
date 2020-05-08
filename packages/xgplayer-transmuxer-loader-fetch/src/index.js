@@ -27,16 +27,28 @@ class FetchLoader {
     return 'loader'
   }
 
-  load (url, opts) {
-    this.url = url;
+  fetch (url, params) {
+    let timer = null
+    return Promise.race([
+      fetch(url, params),
+      new Promise((resolve, reject) => {
+        timer = setTimeout(() => {
+          reject(new Error('fetch timeout'))
+        }, 1e4) // 10s
+      })
+    ]).then((response) => {
+      if (timer) {
+        clearTimeout(timer)
+        timer = null
+      }
+      return response
+    })
+  }
 
-    this._canceled = false;
-
-    // TODO: Add Ranges
-    let params = this.getParams(opts)
-    this.loading = true
-    return fetch(this.url, params).then((response) => {
+  internalLoad (url, params, retryTime) {
+    return this.fetch(this.url, params).then((response) => {
       if (response.ok) {
+        this.emit(LOADER_EVENTS.LOADER_RESPONSE_HEADERS, this.TAG, response.headers)
         this.status = response.status
         Promise.resolve().then(() => {
           this._onFetchResponse(response);
@@ -45,12 +57,32 @@ class FetchLoader {
         return Promise.resolve(response)
       }
       this.loading = false;
-      this.emit(LOADER_EVENTS.LOADER_ERROR, this.TAG, new Error(`${response.status} (${response.statusText})`));
+      if (retryTime-- > 0) {
+        this.internalLoad(url, params, retryTime)
+      } else {
+        this.emit(LOADER_EVENTS.LOADER_ERROR, this.TAG, new Error(`${response.status} (${response.statusText})`));
+      }
     }).catch((error) => {
       this.loading = false;
-      this.emit(LOADER_EVENTS.LOADER_ERROR, this.TAG, error);
-      throw error;
+      if (retryTime-- > 0) {
+        this.internalLoad(url, params, retryTime)
+      } else {
+        this.emit(LOADER_EVENTS.LOADER_ERROR, this.TAG, error);
+        throw error;
+      }
     })
+  }
+
+  load (url, opts) {
+    this.url = url;
+
+    this._canceled = false;
+
+    // TODO: Add Ranges
+    let params = this.getParams(opts)
+    let retryTime = 3
+    this.loading = true
+    this.internalLoad(url, params, retryTime)
   }
 
   _onFetchResponse (response) {

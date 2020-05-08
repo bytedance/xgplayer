@@ -1,6 +1,6 @@
 {
   "name": "xgplayer-transmuxer-demux-flv",
-  "version": "3.0.0-alpha.0",
+  "version": "3.0.0-alpha.9",
   "description": "",
   "main": "lib/index.js",
   "module": "es/index.js",
@@ -24,14 +24,14 @@
     ]
   },
   "dependencies": {
-    "xgplayer-transmuxer-constant-events":  "3.0.0-alpha.0",
-    "xgplayer-transmuxer-model-trackmeta": "3.0.0-alpha.0",
-    "xgplayer-transmuxer-codec-avc":  "3.0.0-alpha.0",
-    "xgplayer-transmuxer-codec-hevc":  "3.0.0-alpha.0",
-    "xgplayer-transmuxer-buffer-track": "3.0.0-alpha.0",
-    "xgplayer-utils-utf8": "^3.0.0-alpha.0",
-    "xgplayer-utils-sniffer": "^3.0.0-alpha.0",
-    "xgplayer-transmuxer-context": "^3.0.0-alpha.0",
-    "xgplayer-transmuxer-buffer-stream": "^3.0.0-alpha.0"
+    "xgplayer-transmuxer-constant-events":  "3.0.0-alpha.9",
+    "xgplayer-transmuxer-model-trackmeta": "3.0.0-alpha.9",
+    "xgplayer-transmuxer-codec-avc":  "3.0.0-alpha.9",
+    "xgplayer-transmuxer-codec-hevc":  "3.0.0-alpha.9",
+    "xgplayer-transmuxer-buffer-track": "3.0.0-alpha.9",
+    "xgplayer-utils-utf8": "^3.0.0-alpha.9",
+    "xgplayer-utils-sniffer": "^3.0.0-alpha.9",
+    "xgplayer-transmuxer-context": "^3.0.0-alpha.9",
+    "xgplayer-transmuxer-buffer-stream": "^3.0.0-alpha.9"
   }
 }

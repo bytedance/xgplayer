@@ -1,114 +1,139 @@
 import Player from 'xgplayer'
-import EVENTS from 'xgplayer-transmuxer-constant-events'
 import Context from 'xgplayer-transmuxer-context';
-import HlsLiveController from './hls-live-mobile';
-// import 'xgplayer-mobilevideo'
-const HlsAllowedEvents = EVENTS.HlsAllowedEvents;
+import EVENTS from 'xgplayer-transmuxer-constant-events'
+import HLS from './hls-live-mobile'
+const hlsAllowedEvents = EVENTS.HlsAllowedEvents;
+const { BasePlugin } = Player;
 
-export default class HlsLivePlayer extends Player {
+class HlsPlayer extends BasePlugin {
+  static get pluginName () {
+    return 'hlsLiveMobile'
+  }
+
+  static get defaultConfig () {
+    return {
+      preloadTime: 4
+    }
+  }
+
   static isSupported () {
     const wasmSupported = 'WebAssembly' in window;
     const WebComponentSupported = 'customElements' in window && window.customElements.define;
-    let isComponentDefined = false;
+    let isComponentDefined;
     if (WebComponentSupported) {
       isComponentDefined = window.customElements.get('mobile-video');
     }
     return wasmSupported && isComponentDefined
   }
 
-  constructor (options) {
-    if (!options.mediaType) {
-      options.mediaType = 'mobile-video'
+  beforePlayerInit () {
+    const { player } = this;
+    if (player.video) {
+      player.video.setAttribute('preloadtime', this.config.preloadTime)
     }
-    super(options)
-    this.hlsOps = {};
-    this.util = Player.util;
-    this.util.deepCopy(this.hlsOps, options);
-    if (!this.playerInited) {
-      this.initPlayer()
-    }
-    // this.started = false;
+    this.context = new Context(hlsAllowedEvents)
+    this.initHls()
+    this.context.init()
+    this.loadData()
+    this.initEvents()
   }
 
-  initPlayer () {
-    this.video.width = Number.parseInt(this.hlsOps.width || 600)
-    this.video.height = Number.parseInt(this.hlsOps.height || 337.5)
-    this.video.style.outline = 'none';
-    this.playerInited = true;
+  afterCreate () {
+    const { video, config } = this.player;
+    video.width = Number.parseInt(config.width || 600)
+    video.height = Number.parseInt(config.height || 337.5)
+    video.style.outline = 'none';
   }
 
-  _initEvents () {
-    this.once('canplay', () => {
-      this.video.play()
-    });
-  }
+  initHlsEvents (hls) {
+    const { player } = this;
 
-  set src (url) {
-    this.onWaiting = this.onWaiting.bind(this)
-    this._context.destroy();
-    this._context = null;
-    this.started = false;
-    this.video.currentTime = 0;
-
-    this.start(url)
-  }
-
-  start (url = this.hlsOps.url) {
-    if (!url || this.started) {
-      return;
-    }
-
-    if (!this.playerInited) {
-      this.initPlayer()
-    }
-
-    if (!this._context) {
-      this._context = new Context(HlsAllowedEvents);
-    }
-
-    this.__core__ = this._context.registry('HLS_LIVE_CONTROLLER', HlsLiveController)({player: this, container: this.video, preloadTime: this.config.preloadTime});
-    this._context.init();
-    this.url = url;
-    this.__core__.load(url);
-    super.start(url)
-    this._initEvents();
-    this.started = true;
-  }
-
-  play () {
-    if (this.started) {
-      this._context.destroy();
-      this._context = new Context(HlsAllowedEvents);
-      this.__core__ = this._context.registry('HLS_LIVE_CONTROLLER', HlsLiveController)({player: this, container: this.video, preloadTime: this.config.preloadTime});
-      this._context.init();
-      this._initEvents();
-      this.__core__.load(this.url);
-    }
-    super.play();
-  }
-
-  destroy (isDelDOM = true) {
-    return new Promise((resolve) => {
-      super.destroy();
-      let { video, root } = this;
-      super.destroy(isDelDOM);
-      if (video && video.remove) {
-        video.remove()
-      } else if (root) {
-        root.removeChild(video);
+    hls.once(EVENTS.LOADER_EVENTS.LOADER_COMPLETE, () => {
+      // 直播完成，待播放器播完缓存后发送关闭事件
+      if (!player.paused) {
+        const timer = setInterval(() => {
+          const end = player.getBufferedRange()[1]
+          if (Math.abs(player.currentTime - end) < 0.5) {
+            player.emit('ended')
+            window.clearInterval(timer)
+          }
+        }, 200)
       }
-      if (video) {
-        video.destroy()
-      }
-      setTimeout(() => {
-        resolve()
-      }, 50)
     })
   }
 
-  static install (name, plugin) {
-    return Player.install(name, plugin)
+  initEvents () {
+    this.play = this.play.bind(this)
+
+    const { player } = this;
+
+    player.on('seeking', () => {
+      const time = this.currentTime
+      const range = player.getBufferedRange()
+      if (time > range[1] || time < range[0]) {
+        this.hls.seek(this.currentTime)
+      }
+    })
+
+    player.on('play', this.play)
+  }
+
+  initHls () {
+    const { player, config } = this;
+    const hls = this.context.registry('HLS_CONTROLLER', HLS)({player, preloadTime: config.preloadTime, retryTimes: config.retryTimes })
+    this.initHlsEvents(hls)
+    this.hls = hls
+  }
+
+  play () {
+    const { player } = this;
+    if (this.played) {
+      this._destroy()
+      player.hasStart = false;
+      player.start()
+    } else {
+      this.addLiveFlag();
+    }
+    this.played = true
+  }
+
+  loadData () {
+    const { player } = this;
+    if (this.hls) {
+      this.hls.load(player.config.url)
+    }
+  }
+  destroy () {
+    this._destroy()
+  }
+
+  addLiveFlag () {
+    const { player } = this;
+    Player.Util.addClass(player.root, 'xgplayer-is-live')
+  }
+
+  _destroy () {
+    this.context.destroy()
+    this.hls = null
+    this.context = null
+  }
+
+  get src () {
+    return this.player.currentSrc
+  }
+
+  set src (url) {
+    this.switchURL(url)
+  }
+
+  switchURL (url) {
+    const context = new Context(hlsAllowedEvents);
+    const hls = context.registry('FLV_CONTROLLER', FLV)(this.player)
+    context.init()
+    this.this.hls = hls;
+    this.initFlvBackupEvents(hls, context);
+    hls.loadData(url);
   }
 }
 
-HlsLivePlayer.install = Player.install.bind(Player)
+export default HlsPlayer

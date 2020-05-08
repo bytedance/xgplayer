@@ -325,8 +325,10 @@ class TsDemuxer {
     let hasVPS = false;
     let hasSPS = false;
     let hasPPS = false;
+    let hasKeyframe = false;
     for (let i = 0; i < nals.length; i++) {
       let nal = nals[i];
+
       if (nal.vps) {
         if (hasVPS) {
           continue;
@@ -345,6 +347,14 @@ class TsDemuxer {
         } else {
           hasPPS = true;
         }
+      } else if (nal.key) {
+        hasKeyframe = true
+      } else if (nal.type === 0) {
+        if (!hasKeyframe) {
+          continue;
+        }
+      } else if (nal.type === 35) {
+        continue
       }
       if (nal.sps) {
         sps = nal;
@@ -418,11 +428,13 @@ class TsDemuxer {
     hasVPS = false;
     hasSPS = false;
     hasPPS = false;
+    hasKeyframe = false;
     for (let i = 0; i < nals.length; i++) {
       let nal = nals[i];
       if (nal.type && nal.type > 40) {
         continue;
       }
+
       if (nal.vps) {
         if (hasVPS) {
           continue;
@@ -441,6 +453,14 @@ class TsDemuxer {
         } else {
           hasPPS = true;
         }
+      } else if (nal.key) {
+        hasKeyframe = true
+      } else if (nal.type === 0) {
+        if (!hasKeyframe) {
+          continue;
+        }
+      } else if (nal.type === 35) {
+        continue
       }
       let length = nal.body.byteLength;
       if (nal.key) {

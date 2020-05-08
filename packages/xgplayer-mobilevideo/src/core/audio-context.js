@@ -142,16 +142,22 @@ class AudioCtx extends EventEmitter {
     if (this.playFinish) {
       return;
     }
-    this._played = true;
+
     if (this.context.state === 'suspended') {
       this.context.resume()
     }
+    this._played = true;
+
     let _this = this;
     const playStart = () => {
       let audioSource = this._currentBuffer.data;
-      audioSource.start();
+      try {
+        audioSource.start();
+      } catch (e) {
+        // NOTHING
+      }
       audioSource.connect(this.gainNode);
-      this.paused  = false;
+      this.paused = false;
       setTimeout(() => {
         _this.onSourceEnded.call(this);
       }, audioSource.buffer.duration * 1000 - 20);
@@ -175,6 +181,11 @@ class AudioCtx extends EventEmitter {
     if (audioCtx.state === 'running') {
       audioCtx.suspend()
     }
+    this._currentBuffer = undefined;
+    this._nextBuffer = undefined;
+    this._lastpts = undefined;
+    // this.duration = 0;
+    this.samples = []
     this.paused = true;
   }
 

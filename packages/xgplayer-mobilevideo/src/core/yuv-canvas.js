@@ -238,7 +238,7 @@ class YUVCanvas {
     var yDataPerRow = yLinesize;
     var yRowCnt = height;
 
-    var uDataPerRow = width / 2;
+    var uDataPerRow = uvLinesize;
     var uRowCnt = height / 2;
 
     if (this.chroma === 422 || this.chroma === 444) {
@@ -296,6 +296,7 @@ class YUVCanvas {
 
   render (data, width, height, yLinesize, uvLinesize) {
     var gl = this.contextGL;
+    // console.log(data, width, height, yLinesize, uvLinesize)
     if (gl) {
       this._drawPictureGL(data, width, height, yLinesize, uvLinesize);
     } else {

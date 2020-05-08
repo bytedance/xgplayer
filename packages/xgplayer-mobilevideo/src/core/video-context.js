@@ -1,12 +1,11 @@
 // import Workerify from 'webworkify-webpack'
 // eslint-disable-next-line import/no-webpack-loader-syntax
 import VideoWorker from 'worker!./worker.js';
-import Stream from 'xgplayer-transmuxer-buffer-stream';
-import { NalUnit } from 'xgplayer-transmuxer-codec-avc';
-// import Render from 'xgplayer-render/src';
+import BackupVideoWorker from 'worker!./backupWorker.js';
 import Render from './yuv-canvas'
 import SourceBuffer from '../models/sourcebuffer';
 import TimeRanges from '../models/time-ranges';
+// import BackUpCodec from './backup-codec';
 import EventEmitter from 'events';
 
 const HAVE_NOTHING = 0;
@@ -29,7 +28,6 @@ class VideoCanvas extends EventEmitter {
     this.config = Object.assign({}, config);
     this.canvas = this.config.canvas ? this.config.canvas : document.createElement('canvas');
     this.source = new SourceBuffer({type: 'video'});
-    this.preloadTime = this.config.preloadTime || 3;
     this.onFirstFrame = undefined;
     this.oncanplay = undefined;
     this.initParameters()
@@ -42,6 +40,7 @@ class VideoCanvas extends EventEmitter {
     this.canvas.style.margin = 'auto';
     this.canvas.style.position = 'absolute';
     this.handleMessage = this.handleMessage.bind(this);
+    this.useBackupTimer = null;
   }
 
   initParameters () {
@@ -71,11 +70,45 @@ class VideoCanvas extends EventEmitter {
   initWasmWorker () {
     // eslint-disable-next-line no-undef
     this.wasmworker = new VideoWorker();
+    // this.wasmworker = new Worker('./worker.js');
+    this.wasmworker.onmessage = this.handleMessage;
+    this.wasmworker.onerror = function (event) {
+      this.emit('error', new Error('wasm worker init failed'))
+      throw new Error(event.message + ' (' + event.filename + ':' + event.lineno + ')');
+    };
     this.wasmworker.postMessage({
       msg: 'init',
       meta: this.meta
     })
-    this.wasmworker.addEventListener('message', this.handleMessage);
+    this.setBackUpWorker();
+  }
+
+  setBackUpWorker () {
+    if (this.useBackupTimer) {
+      return;
+    }
+    this.useBackupTimer = setTimeout(() => {
+      window.clearTimeout(this.useBackupTimer);
+      this.useBackupTimer = null;
+      if (this._decoderInited) {
+        return;
+      } else if (this.meta.profile !== 'Baseline') {
+        this.emit('error', new Error('wasm worker init timeout'));
+        return;
+      }
+
+      this.destroyWorker()
+      this.wasmworker = new BackupVideoWorker();
+      this.wasmworker.onmessage = this.handleMessage;
+      this.wasmworker.onerror = function (event) {
+        this.emit('error', new Error('wasm worker init failed'))
+        throw new Error(event.message + ' (' + event.filename + ':' + event.lineno + ')');
+      };
+      this.wasmworker.postMessage({
+        msg: 'init',
+        meta: this.meta
+      });
+    }, 10000)
   }
 
   setVideoMetaData (meta) {
@@ -139,15 +172,16 @@ class VideoCanvas extends EventEmitter {
   }
 
   preload () {
-    if (!this._lastSampleDts || this._lastSampleDts - this._baseDts < this.currentTime + this.preloadTime * 1000) {
+    if (!this._lastSampleDts || this._lastSampleDts - this._baseDts < this.currentTime + this.config.preloadTime * 1000) {
       let sample = this.source.get();
       if (sample) {
         this._lastSampleDts = sample.dts;
         this._analyseNal(sample);
       }
 
-      while (sample && this._lastSampleDts - this._baseDts < this.currentTime + this.preloadTime * 1000) {
+      while (sample && this._lastSampleDts - this._baseDts < this.currentTime + this.config.preloadTime * 2000) {
         sample = this.source.get();
+        // console.log(sample)
         if (sample) {
           this._analyseNal(sample);
           this._lastSampleDts = sample.dts;
@@ -157,26 +191,12 @@ class VideoCanvas extends EventEmitter {
   }
 
   _analyseNal (sample) {
-    let nals = NalUnit.getNalunits(new Stream(sample.data.buffer));
-
-    let length = 0;
-    for (let i = 0; i < nals.length; i++) {
-      let nal = nals[i];
-      length += nal.body.byteLength + 4;
-    }
-    let offset = 0;
-    let data = new Uint8Array(length);
-    for (let i = 0; i < nals.length; i++) {
-      let nal = nals[i];
-      data.set([0, 0, 0, 1], offset);
-      offset += 4;
-      data.set(new Uint8Array(nal.body), offset);
-      offset += nal.body.byteLength;
-    }
+    // console.log('送入解码', sample.dts,data)
     this.wasmworker.postMessage({
       msg: 'decode',
-      data: data,
+      data: sample.data,
       info: {
+        decodeTime: Date.now(),
         dts: sample.dts,
         pts: sample.pts ? sample.pts : sample.dts + sample.cts,
         key: sample.isKeyframe
@@ -196,7 +216,10 @@ class VideoCanvas extends EventEmitter {
   }
 
   _onDecoded (data) {
-    let {dts} = data.info
+    if (!data.info) {
+      return;
+    }
+    let {dts} = data.info;
     this._decodedFrames[dts] = data;
     let decodedFrameLen = Object.keys(this._decodedFrames).length;
     if (this.readyStatus == HAVE_METADATA && decodedFrameLen > 0) {
@@ -238,21 +261,25 @@ class VideoCanvas extends EventEmitter {
   }
 
   _onTimer (currentTime) {
+    // console.log(currentTime)
     if (this.paused) {
       return false;
     }
 
     if (this.meta) {
       let frameTimes = Object.keys(this._decodedFrames);
+      // console.log(frameTimes)
       if (frameTimes.length > 0) {
         this.currentTime = currentTime;
         let frameTime = -1;
         for (let i = 0; i < frameTimes.length && Number.parseInt(frameTimes[i]) - this._baseDts <= this.currentTime; i++) {
-          frameTime = Number.parseInt(frameTimes[i - 1]);
+          frameTime = Number.parseInt(frameTimes[Math.max(i - 1, 0)]);
         }
-
         let frame = this._decodedFrames[frameTime];
+        // console.log('source', this.source)
+        // console.log('frametime,', frameTime)
         if (frame) {
+          // console.log('render frame ', frameTime, Date.now())
           // let buf = []
           // if (this.meta.chromaFormat === 420) {
           //
@@ -265,6 +292,11 @@ class VideoCanvas extends EventEmitter {
             this._seekState = SEEKED
             this.emit(VIDEO_CANVAS_EVENTS.VIDEO_EVENTS, 'seeked')
           }
+          frameTimes.forEach((time) => {
+            if (Number.parseInt(time) < frameTime) {
+              delete this._decodedFrames[time]
+            }
+          })
           this.yuvCanvas.render(frame.buffer, frame.width, frame.height, frame.yLinesize, frame.uvLinesize);
 
           return true;
@@ -309,12 +341,18 @@ class VideoCanvas extends EventEmitter {
   handleMessage (msg) {
     switch (msg.data.msg) {
       case 'DECODER_READY':
+        // console.log('wasm worker ready')
         this._decoderInited = true;
         this.pushAvcc(this.meta)
         break;
       case 'DECODED':
         this._onDecoded(msg.data);
         break;
+      case 'LOG':
+        // console.log(msg.data.log);
+        break;
+      default:
+        console.error('invalid messaeg', msg);
     }
   }
 
