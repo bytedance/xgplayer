@@ -37,7 +37,7 @@ var AudioCtx = function (_EventEmitter) {
     // 记录外部传输的状态
     _this2._played = false;
     _this2.paused = true;
-    _this2.playFinish = null; // pending play task
+    _this2.loadFinish = null; // pending play task
     _this2.waitNextID = null; // audio source end and next source not loaded
     _this2.destroyed = false;
     return _this2;
@@ -120,8 +120,8 @@ var AudioCtx = function (_EventEmitter) {
             _this.decodeAAC();
           }
 
-          if (_this.playFinish) {
-            _this.playFinish();
+          if (_this.loadFinish) {
+            _this.loadFinish();
           }
         }, function (e) {
           console.error(e);
@@ -164,13 +164,10 @@ var AudioCtx = function (_EventEmitter) {
     value: function play() {
       var _this4 = this;
 
-      if (this.playFinish) {
+      if (this.loadFinish) {
         return;
       }
 
-      if (this.context.state === 'suspended') {
-        this.context.resume();
-      }
       this._played = true;
 
       var _this = this;
@@ -183,21 +180,40 @@ var AudioCtx = function (_EventEmitter) {
         }
         audioSource.connect(_this4.gainNode);
         _this4.paused = false;
+        if (_this4.context.state !== 'running' && _this4.playFailed) {
+          _this4.context.resume().then(function () {
+            if (_this4.context.state === 'running' && _this4.playFinish) {
+              _this4.playFinish();
+            }
+          });
+          setTimeout(function () {
+            _this4.playFailed(new Error('audio context suspended'));
+          });
+        } else if (_this4.playFinish) {
+          _this4.playFinish();
+        }
         setTimeout(function () {
           _this.onSourceEnded.call(_this4);
-        }, audioSource.buffer.duration * 1000 - 20);
+        }, audioSource.buffer.duration * 1000 - 10);
       };
 
       if (!this._currentBuffer) {
-        return new Promise(function (resolve) {
+        return new Promise(function (resolve, reject) {
+          _this4.loadFinish = playStart;
           _this4.playFinish = resolve;
+          _this4.playFailed = reject;
         }).then(function () {
+          _this4.loadFinish = null;
           _this4.playFinish = null;
+          _this4.playFailed = null;
           playStart();
         });
       } else {
-        playStart();
-        return Promise.resolve();
+        return new Promise(function (resolve, reject) {
+          _this4.playFinish = resolve;
+          _this4.playFailed = reject;
+          playStart();
+        });
       }
     }
   }, {
@@ -268,7 +284,7 @@ var AudioCtx = function (_EventEmitter) {
   }, {
     key: 'volume',
     get: function get() {
-      if (this.context.state === 'suspended' || this.paused || this.muted) {
+      if (this.context.state === 'suspended' || this.muted) {
         return 0;
       }
       return this._volume;

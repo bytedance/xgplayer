@@ -133,6 +133,7 @@ class TsDemuxer {
       sampleRate: pes.ES.frequence,
       channelCount: pes.ES.channel,
       codec: 'mp4a.40.' + pes.ES.audioObjectType,
+      objectType: pes.ES.audioObjectType,
       originCodec: 'mp4a.40.' + pes.ES.originAudioObjectType,
       config: pes.ES.audioConfig,
       id: 2,
@@ -1025,7 +1026,7 @@ class TsDemuxer {
         config = new Array(2);
         extensionSampleIndex = ret.frequencyIndex;
       }
-    } else if (userAgent.indexOf('android') !== -1) {
+    } else if (userAgent.indexOf('android') !== -1 || userAgent.indexOf('safari') !== -1) {
       ret.audioObjectType = 2;
       config = new Array(2);
       extensionSampleIndex = ret.frequencyIndex;

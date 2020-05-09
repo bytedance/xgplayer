@@ -30,6 +30,8 @@ class HlsLiveController {
     this._lastCheck = 0;
     this._player = this.configs.player;
     this.m3u8Text = null
+
+    this.setDataInterval = null;
   }
 
   init () {
@@ -95,7 +97,17 @@ class HlsLiveController {
 
         sample.data = newData;
       })
-      this._player.video.onDemuxComplete(videoTrack, audioTrack);
+      if (this.setDataInterval) {
+        return;
+      }
+      this.setDataInterval = setInterval(() => {
+        if (videoTrack.samples.length || audioTrack.samples.length) {
+          this._player.video.onDemuxComplete(videoTrack, audioTrack);
+        } else {
+          clearInterval(this.setDataInterval);
+          this.setDataInterval = null;
+        }
+      }, 200)
     }
   }
   _onMetadataParsed (type) {

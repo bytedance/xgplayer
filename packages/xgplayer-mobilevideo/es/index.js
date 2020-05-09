@@ -229,6 +229,7 @@ var MobileVideo = function (_HTMLElement) {
         this._hasDispatch = true;
         this._waiting = true;
       }
+
       this._paused = false;
       this._innerDispatchEvent('play');
       var audioPlayTask = null;
@@ -253,6 +254,7 @@ var MobileVideo = function (_HTMLElement) {
             _this3._lastTimeupdateStamp = _this3.start;
           }
           var prevTime = _this3._currentTime;
+
           _this3._currentTime = Date.now() - _this3.start;
 
           // console.log(this._currentTime, ' ', this.start)
@@ -270,6 +272,7 @@ var MobileVideo = function (_HTMLElement) {
             }
           } else {
             _this3._currentTime = prevTime;
+            _this3.start += Date.now() - _this3.start - prevTime;
             if (!_this3._waiting && !_this3.paused) {
               _this3._waiting = true;
               _this3._innerDispatchEvent('waiting');
@@ -279,6 +282,11 @@ var MobileVideo = function (_HTMLElement) {
         _this3.pendingPlayTask = null;
         _this3.played = true;
         // this._innerDispatchEvent('playing')
+      }).catch(function (e) {
+        _this3.pendingPlayTask = null;
+        _this3._paused = true;
+        console.error(e);
+        throw e;
       });
       return this.pendingPlayTask;
     }

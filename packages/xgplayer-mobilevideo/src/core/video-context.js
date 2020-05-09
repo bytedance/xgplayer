@@ -253,6 +253,9 @@ class VideoCanvas extends EventEmitter {
 
   play () {
     this.paused = false;
+    if (!this.paused) {
+      return Promise.resolve();
+    }
     return new Promise((resolve) => {
       this.playFinish = resolve
     }).then(() => {
@@ -293,7 +296,7 @@ class VideoCanvas extends EventEmitter {
             this.emit(VIDEO_CANVAS_EVENTS.VIDEO_EVENTS, 'seeked')
           }
           frameTimes.forEach((time) => {
-            if (Number.parseInt(time) < frameTime) {
+            if (Number.parseInt(time) <= frameTime) {
               delete this._decodedFrames[time]
             }
           })
@@ -301,6 +304,9 @@ class VideoCanvas extends EventEmitter {
 
           return true;
         } else {
+          if (frameTimes.length && Number(frameTimes[0]) > currentTime) {
+            return true;
+          }
           return false;
         }
       }

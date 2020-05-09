@@ -288,6 +288,9 @@ var VideoCanvas = function (_EventEmitter) {
       var _this3 = this;
 
       this.paused = false;
+      if (!this.paused) {
+        return Promise.resolve();
+      }
       return new Promise(function (resolve) {
         _this3.playFinish = resolve;
       }).then(function () {
@@ -331,7 +334,7 @@ var VideoCanvas = function (_EventEmitter) {
               this.emit(VIDEO_CANVAS_EVENTS.VIDEO_EVENTS, 'seeked');
             }
             frameTimes.forEach(function (time) {
-              if (Number.parseInt(time) < frameTime) {
+              if (Number.parseInt(time) <= frameTime) {
                 delete _this4._decodedFrames[time];
               }
             });
@@ -339,6 +342,9 @@ var VideoCanvas = function (_EventEmitter) {
 
             return true;
           } else {
+            if (frameTimes.length && Number(frameTimes[0]) > currentTime) {
+              return true;
+            }
             return false;
           }
         }

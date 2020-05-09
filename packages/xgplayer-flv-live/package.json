@@ -41,7 +41,8 @@
     "xgplayer-transmuxer-constant-events": "^3.0.0-alpha.9",
     "xgplayer-transmuxer-codec-compatibility": "^3.0.0-alpha.9",
     "xgplayer-utils-sniffer": "^3.0.0-alpha.9",
-    "xgplayer-mobilevideo": "^3.0.0-alpha.9"
+    "xgplayer-transmuxer-codec-avc": "^3.0.0-alpha.9",
+    "xgplayer-transmuxer-buffer-stream": "^3.0.0-alpha.9"
   },
   "devDependencies": {
     "cross-env": "^6.0.3"

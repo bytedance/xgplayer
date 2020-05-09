@@ -2,7 +2,6 @@ import Player from 'xgplayer'
 import Context from 'xgplayer-transmuxer-context';
 import EVENTS from 'xgplayer-transmuxer-constant-events'
 import FLV from './flv-live-mobile'
-import 'xgplayer-mobilevideo'
 const flvAllowedEvents = EVENTS.FlvAllowedEvents;
 const { BasePlugin } = Player;
 

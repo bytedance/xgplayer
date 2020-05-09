@@ -13,4 +13,25 @@ const config = {
   }
 }
 
-module.exports = commonRollup(config)
+const mobileConfig = {
+  input: 'src/mobile/index.js',
+  output: [
+    {
+      file: uglify ? 'dist/mobile.min.js' : 'dist/mobile.js',
+      name: 'FlvLiveMobilePlayer',
+      format: 'umd',
+      sourcemap: false,
+      globals: {
+        'xgplayer': 'Player'
+      }
+    }
+  ],
+  name: 'FlvLiveMobilePlayer',
+  uglify: uglify,
+  external: ['xgplayer'],
+  globals: {
+    'xgplayer': 'Player'
+  }
+}
+
+module.exports = [commonRollup(config), commonRollup(mobileConfig)]

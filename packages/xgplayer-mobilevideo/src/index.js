@@ -303,6 +303,7 @@ class MobileVideo extends HTMLElement {
       this._hasDispatch = true
       this._waiting = true
     }
+
     this._paused = false
     this._innerDispatchEvent('play')
     let audioPlayTask = null
@@ -330,6 +331,7 @@ class MobileVideo extends HTMLElement {
           this._lastTimeupdateStamp = this.start
         }
         const prevTime = this._currentTime;
+
         this._currentTime = Date.now() - this.start
 
         // console.log(this._currentTime, ' ', this.start)
@@ -346,6 +348,7 @@ class MobileVideo extends HTMLElement {
           }
         } else {
           this._currentTime = prevTime;
+          this.start += (Date.now() - this.start - prevTime);
           if (!this._waiting && !this.paused) {
             this._waiting = true;
             this._innerDispatchEvent('waiting')
@@ -355,6 +358,11 @@ class MobileVideo extends HTMLElement {
       this.pendingPlayTask = null
       this.played = true;
       // this._innerDispatchEvent('playing')
+    }).catch((e) => {
+      this.pendingPlayTask = null
+      this._paused = true;
+      console.error(e);
+      throw e;
     })
     return this.pendingPlayTask;
   }

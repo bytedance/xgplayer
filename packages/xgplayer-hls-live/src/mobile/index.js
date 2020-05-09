@@ -86,15 +86,15 @@ class HlsPlayer extends BasePlugin {
   }
 
   play () {
-    const { player } = this;
-    if (this.played) {
-      this._destroy()
-      player.hasStart = false;
-      player.start()
-    } else {
-      this.addLiveFlag();
-    }
-    this.played = true
+    // const { player } = this;
+    // if (this.played) {
+    //   this._destroy()
+    //   player.hasStart = false;
+    //   player.start()
+    // } else {
+    //   this.addLiveFlag();
+    // }
+    // this.played = true
   }
 
   loadData () {
