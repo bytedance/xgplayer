@@ -1,6 +1,6 @@
 import Proxy from './proxy'
-import util from './utils/util'
-import sniffer from './utils/sniffer'
+import Util from './utils/util'
+import sniffer from './Utils/sniffer'
 import Errors from './error'
 import * as Events from './events'
 import Plugin, {pluginsManager, BasePlugin} from './plugin'
@@ -17,7 +17,7 @@ const FULLSCREEN_EVENTS = ['fullscreenchange', 'webkitfullscreenchange', 'mozful
 class Player extends Proxy {
   constructor (options) {
     super(options)
-    this.config = util.deepMerge(getDefaultConfig(), options)
+    this.config = Util.deepMerge(getDefaultConfig(), options)
     this.config.presets = []
 
     // resolve default preset
@@ -54,6 +54,7 @@ class Player extends Proxy {
     }, 0)
 
     if (this.config.videoInit || this.config.autoplay) {
+      console.log('start')
       if (!this.hasStart) {
         this.start()
       }
@@ -65,7 +66,7 @@ class Player extends Proxy {
    * @private
    */
   _initDOM () {
-    this.root = util.findDom(document, `#${this.config.id}`)
+    this.root = Util.findDom(document, `#${this.config.id}`)
     if (!this.root) {
       let el = this.config.el
       if (el && el.nodeType === 1) {
@@ -79,9 +80,9 @@ class Player extends Proxy {
         return false
       }
     }
-    this.topBar = util.createDom('xg-bar', '', '', 'xg-top-bar')
-    this.leftBar = util.createDom('xg-bar', '', '', 'xg-left-bar')
-    this.rightBar = util.createDom('xg-bar', '', '', 'xg-right-bar')
+    this.topBar = Util.createDom('xg-bar', '', '', 'xg-top-bar')
+    this.leftBar = Util.createDom('xg-bar', '', '', 'xg-left-bar')
+    this.rightBar = Util.createDom('xg-bar', '', '', 'xg-right-bar')
     this.root.appendChild(this.topBar)
     this.root.appendChild(this.leftBar)
     this.root.appendChild(this.rightBar)
@@ -126,7 +127,7 @@ class Player extends Proxy {
 
     // deal with the fullscreen state change callback
     this.onFullscreenChange = () => {
-      const fullEl = util.getFullScreenEl()
+      const fullEl = Util.getFullScreenEl()
       if (fullEl && (fullEl === this._fullscreenEl || fullEl.tagName === 'VIDEO')) {
         this.fullscreen = true
         this.addClass(STATE_CLASS.FULLSCREEN)
@@ -185,11 +186,11 @@ class Player extends Proxy {
       this.removeClass(STATE_CLASS.ENTER)
     }
 
-    if (util.typeOf(url) === 'String') {
+    if (Util.typeOf(url) === 'String') {
       this.video.src = url
     } else {
       url.forEach(item => {
-        this.video.appendChild(util.createDom('source', '', {
+        this.video.appendChild(Util.createDom('source', '', {
           src: `${item.src}`,
           type: `${item.type || ''}`
         }))
@@ -301,8 +302,8 @@ class Player extends Proxy {
     if (!this.root) {
       return;
     }
-    if (!util.hasClass(this.root, className)) {
-      util.addClass(this.root, className)
+    if (!Util.hasClass(this.root, className)) {
+      Util.addClass(this.root, className)
     }
   }
 
@@ -310,7 +311,7 @@ class Player extends Proxy {
     if (!this.root) {
       return;
     }
-    util.removeClass(this.root, className)
+    Util.removeClass(this.root, className)
   }
 
   start (url) {
@@ -319,10 +320,12 @@ class Player extends Proxy {
       return this.play()
     } else {
       return pluginsManager.beforeInit(this).then(() => {
+        console.log('this', url)
         if (!url) {
           url = this.url || this.config.url;
         }
-        return this._startInit(url)
+        const ret = this._startInit(url)
+        return ret
       }).catch((e) => {
         e.fileName = 'player'
         e.lineNumber = '236'
@@ -346,6 +349,7 @@ class Player extends Proxy {
         this.addClass(STATE_CLASS.PLAYING)
         this.isPlaying = true
       }).catch((e) => {
+        // console.log('AUTOPLAY_PREVENTED', e)
         // 避免AUTOPLAY_PREVENTED先于playing和play触发
         setTimeout(() => {
           this.emit(Events.AUTOPLAY_PREVENTED)
@@ -355,6 +359,21 @@ class Player extends Proxy {
       })
     }
     return playPromise
+  }
+
+  seek (time) {
+    if (!this.video || isNaN(Number(time))) {
+      return
+    }
+    time = time < 0 ? 0 : time > this.duration ? this.duration : time
+    this.once(Events.CANPLAY, () => {
+      console.log('Events.CANPLAY')
+      this.isSeeking = false
+      if (this.paused) {
+        this.play()
+      }
+    })
+    this.currentTime = time
   }
 
   reload () {
@@ -484,6 +503,7 @@ class Player extends Proxy {
 
   onPlay () {
     // this.addClass(STATE_CLASS.PLAYING)
+    this.removeClass(STATE_CLASS.NOT_ALLOW_AUTOPLAY)
     this.removeClass(STATE_CLASS.PAUSED)
     this.ended && this.removeClass(STATE_CLASS.ENDED)
     this.emit(Events.PLAYER_FOCUS)
@@ -504,16 +524,22 @@ class Player extends Proxy {
 
   onSeeking () {
     this.isSeeking = true
-    // util.addClass(this.root, 'seeking');
+    this.addClass(STATE_CLASS.SEEKING)
   }
 
   onSeeked () {
+    console.log('onSeeked')
     this.isSeeking = false
     // for ie,playing fired before waiting
     if (this.waitTimer) {
       clearTimeout(this.waitTimer)
     }
     this.removeClass(STATE_CLASS.LOADING)
+    this.removeClass(STATE_CLASS.SEEKING)
+    if (!this.isPlaying) {
+      this.addClass(STATE_CLASS.PLAYING)
+      this.isPlaying = true
+    }
   }
 
   onWaiting () {
@@ -527,6 +553,7 @@ class Player extends Proxy {
   }
 
   onPlaying () {
+    console.log('onPlaying')
     if (this.waitTimer) {
       clearTimeout(this.waitTimer)
     }
@@ -538,28 +565,26 @@ class Player extends Proxy {
   }
 
   getVideoSize () {
+    const {fitVideoSize} = this.config
+    if (!fitVideoSize || fitVideoSize === 'fixed') {
+      return
+    }
     if (this.video.videoWidth && this.video.videoHeight) {
       let containerSize = this.root.getBoundingClientRect()
-      if (this.config.fitVideoSize === 'auto') {
+      console.log(`containerSize.width:${containerSize.width} containerSize.height:${containerSize.height} per: ${containerSize.width / containerSize.height}`)
+      console.log(`video per:${this.video.videoWidth / this.video.videoHeight}`)
+      if (fitVideoSize === 'auto') {
         if (containerSize.width / containerSize.height > this.video.videoWidth / this.video.videoHeight) {
           this.root.style.height = `${this.video.videoHeight / this.video.videoWidth * containerSize.width}px`
         } else {
           this.root.style.width = `${this.video.videoWidth / this.video.videoHeight * containerSize.height}px`
         }
-      } else if (this.config.fitVideoSize === 'fixWidth') {
+      } else if (fitVideoSize === 'fixWidth') {
         this.root.style.height = `${this.video.videoHeight / this.video.videoWidth * containerSize.width}px`
       } else if (this.config.fitVideoSize === 'fixHeight') {
         this.root.style.width = `${this.video.videoWidth / this.video.videoHeight * containerSize.height}px`
       }
     }
-  }
-
-  seek (time) {
-    if (!this.video || isNaN(Number(time)) || time > this.duration) {
-      return
-    }
-    time = time < 0 ? 0 : time
-    this.currentTime = time
   }
 
   set lang (lang) {
@@ -580,7 +605,7 @@ class Player extends Proxy {
   }
 
   set poster (posterUrl) {
-    let poster = util.findDom(this.root, '.xgplayer-poster')
+    let poster = Util.findDom(this.root, '.xgplayer-poster')
     if (poster) {
       poster.style.backgroundImage = `url(${posterUrl})`
     }
@@ -595,15 +620,15 @@ class Player extends Proxy {
   }
 
   get bullet () {
-    return util.findDom(this.root, 'xg-bullet') ? util.hasClass(util.findDom(this.root, 'xg-bullet'), 'xgplayer-has-bullet') : false
+    return Util.findDom(this.root, 'xg-bullet') ? Util.hasClass(Util.findDom(this.root, 'xg-bullet'), 'xgplayer-has-bullet') : false
   }
 
   get textTrack () {
-    return util.hasClass(this.root, 'xgplayer-is-textTrack')
+    return Util.hasClass(this.root, 'xgplayer-is-textTrack')
   }
 
   get pip () {
-    return util.hasClass(this.root, 'xgplayer-pip-active')
+    return Util.hasClass(this.root, 'xgplayer-pip-active')
   }
 
   /***
@@ -631,7 +656,7 @@ class Player extends Proxy {
   }
 }
 
-Player.Util = util
+Player.Util = Util
 Player.Sniffer = sniffer
 Player.Errors = Errors
 Player.Events = Events
