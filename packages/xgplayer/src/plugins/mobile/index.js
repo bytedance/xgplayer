@@ -54,7 +54,6 @@ class MobilePlugin extends Plugin {
     this.onTouchEnd = this.onTouchEnd.bind(this)
     this.root.addEventListener('touchstart', this.onTouchStart)
     this.once(Events.AUTOPLAY_PREVENTED, () => {
-      console.log('AUTOPLAY_PREVENTED')
       this.onAutoPlayPrevented()
     })
     this.once(Events.CANPLAY, this.onEntered.bind(this))
@@ -225,7 +224,6 @@ class MobilePlugin extends Plugin {
   }
 
   activeSeekNote (time) {
-    console.log('time', time)
     if (!time || typeof time !== 'number') {
       return
     }
