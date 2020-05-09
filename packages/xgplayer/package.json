@@ -12,8 +12,8 @@
         "prepare": "npm run build",
         "build": "npm run build:es && npm run build:lib && npm run build:main && npm run build:style",
         "build:main": "cross-env NODE_ENV=production rollup -c rollup.config.js",
-        "build:es": "babel src --out-dir es",
-        "build:lib": "babel src --out-dir lib --presets=es2015",
+        "build:es": "babel src --out-dir es --ignore 'src/plugin/','src/plugins/assets','src/style','src/defaultConfig.js','src/events.js','src/stateClassMap.js','src/error.js'",
+        "build:lib": "babel src --out-dir lib --presets=es2015 --ignore 'src/plugin/','src/style','src/defaultConfig.js','src/events.js','src/stateClassMap.js','src/error.js'",
         "build:style": "node scripts/buildStyles.js",
         "watch": "cross-env NODE_ENV=development rollup -c rollup.config.js --watch"
     },
