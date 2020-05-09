@@ -1,61 +1,23 @@
 @import "../style/variable";
 @import "../style/common";
-// order:
-// xgplayer-play  0
-// xgplayer-playNext  1
-// xgplayer-time  2
-// xgplayer-placeholder 3
-// xgplayer-volume 4
-// xgplayer-definition 5
-// xgplayer-bullet-btn 6
-// xgplayer-textTrack 7
-// xgplayer-playback 8
-// xgplayer-download 9
-// xgplayer-rotate 10
-// xgplayer-screenShot 11
-// xgplayer-cssFullscreen 12
-// xgplayer-fullscreen 13
-
-// z-index:
-// xgplayer-poster 100
-// xgplayer-progress-point 100
-// xgplayer-replay 105
-// xgplayer-pip-active 110
-// xgplayer-start 115
-// xgplayer-enter 120
-// xgplayer-error 125
-// xgplayer-pip-lay 130
-// xgplayer-pip-drag 135
-// xgplayer-is-fullscreen 9999
-// xgplayer-is-cssfullscreen 99999
-
 @import "../plugins/play/index";
 @import "../plugins/start/index";
 @import "../plugins/enter/index";
 @import "../plugins/poster/index";
-@import "../plugins/placeholder/index";
 @import "../plugins/fullscreen/index";
 @import "../plugins/cssFullScreen/index";
 @import "../plugins/volume/index";
 @import "../plugins/definition/index";
 @import "../plugins/time/index";
 @import "../plugins/Controls/index";
-//@import "controls/live";
 @import "../plugins/replay/index";
 @import "../plugins/progress/index";
 @import "../plugins/loading/index";
 @import "../plugins/playbackRate/index";
 @import "../plugins/download/index";
-//@import "controls/danmu";
 @import "../plugins/playNext/index";
 @import "../plugins/pip/index";
 @import "../plugins/rotate/index";
 @import "../plugins/screenShot/index";
-//@import "../plugins/textTrack";
-//@import "controls/icon";
-//@import "controls/tips";
 @import "../plugins/error/index";
-@import "../plugins/miniScreen/index";
-@import "../plugins/danmu/index";
 @import "../plugins/mobile/index";
-//@import "controls/memoryPlay"
