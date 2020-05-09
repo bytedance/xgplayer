@@ -14,7 +14,7 @@ class MobilePlugin extends Plugin {
       gestureX: true, // 是否启用水平手势
       gestureY: true, // 是否启用垂直手势
       updateGesture: () => {}, // 手势处理回调
-      gradient: true, // 是否启用阴影
+      gradient: 'normal', // 是否启用阴影
       isTouchingSeek: false, // 是否在touchMove的同时更新currentTime
       miniMoveStep: 5, // 最小差异，用于move节流
       scopeL: 0.4, // 左侧手势范围比例
@@ -27,7 +27,7 @@ class MobilePlugin extends Plugin {
   constructor (options) {
     super(options);
     this.isTouchMove = false;
-    this.isMoving = false
+    this.isTouchStart = false
     this.pos = {
       x: 0,
       y: 0,
@@ -52,13 +52,13 @@ class MobilePlugin extends Plugin {
     this.onTouchMove = this.onTouchMove.bind(this)
     this.onTouchStart = this.onTouchStart.bind(this)
     this.onTouchEnd = this.onTouchEnd.bind(this)
-    this.onClick = this.onClick.bind(this)
     this.root.addEventListener('touchstart', this.onTouchStart)
-    this.root.addEventListener('click', this.onClick, false)
     this.once(Events.AUTOPLAY_PREVENTED, () => {
+      console.log('AUTOPLAY_PREVENTED')
       this.onAutoPlayPrevented()
     })
-    this.once(Events.CANPLAY, this.onEntered.bind(this));
+    this.once(Events.CANPLAY, this.onEntered.bind(this))
+    // this.on(Events.SEEKING, this.onSeeking.bind(this))
     if (playerConfig.autoplay) {
       this.onEnter()
     }
@@ -94,37 +94,45 @@ class MobilePlugin extends Plugin {
   }
 
   onTouchStart (e) {
-    const {player, config} = this
+    const {player, config, pos} = this
     // 直播或者duration没有获取到之前不做操作
-    if (!(this.player.duration !== Infinity && this.player.duration > 0) || this.isMoving || config.disableGesture) {
+    if (!(this.player.duration !== Infinity && this.player.duration > 0) || this.isTouchStart || config.disableGesture) {
       return;
     }
-    this.isMoving = true
+    this.find('.dur').innerHTML = Util.format(this.player.duration)
+    this.isTouchStart = true
+    e.preventDefault()
+    e.stopPropagation()
     const touche = this.getTouche(e.touches)
     if (touche) {
-      this.pos.time = player.currentTime
-      this.pos.volume = player.volume
-      this.pos.width = parseInt(Util.getCss(this.root, 'width'), 10)
-      this.pos.height = parseInt(Util.getCss(this.root, 'height'), 10) - 48
-      this.pos.scopeL = config.scopeL * this.pos.width
-      this.pos.scopeR = (1 - config.scopeR) * this.pos.width
+      pos.x = parseInt(touche.pageX, 10)
+      pos.y = parseInt(touche.pageY, 10)
+      pos.time = player.currentTime * 1000
+      pos.volume = player.volume
+      pos.width = parseInt(Util.getCss(this.root, 'width'), 10)
+      pos.height = parseInt(Util.getCss(this.root, 'height'), 10) - 48
+      pos.scopeL = config.scopeL * pos.width
+      pos.scopeR = (1 - config.scopeR) * pos.width
       this.root.addEventListener('touchmove', this.onTouchMove, false)
       this.root.addEventListener('touchend', this.onTouchEnd, false)
-      // this.player.emit(Events.PLAYER_FOCUS, true)
     }
   }
 
   onTouchMove (e) {
+    e.preventDefault()
+    e.stopPropagation()
+    this.isTouchMove = true
     const touche = this.getTouche(e.touches)
     if (!touche) {
       return
     }
     if (Math.abs(touche.pageX - this.pos.x) > this.config.miniMoveStep || Math.abs(touche.pageX - this.pos.x) > this.config.miniMoveStep) {
+      this.player.emit(Events.PLAYER_FOCUS, true)
       const {pos, config} = this
       const x = parseInt(touche.pageX, 10)
       const y = parseInt(touche.pageY, 10)
-      const diffx = x - this.pos.x
-      const diffy = y - this.pos.y
+      const diffx = x - pos.x
+      const diffy = y - pos.y
       const tan = Math.abs(diffy) / Math.abs(diffx)
       if (config.gestureY && tan > 1.73 && (x < pos.scopeL || x > pos.scopeR)) {
         if (x < pos.scopeL && config.darkness) {
@@ -147,34 +155,55 @@ class MobilePlugin extends Plugin {
   }
 
   onTouchEnd (e) {
+    e.preventDefault()
+    e.stopPropagation()
     const {root, player, pos} = this
     root.removeEventListener('touchmove', this.onTouchMove, false)
     root.removeEventListener('touchend', this.onTouchEnd, false)
-    // player.emit(Events.PLAYER_FOCUS, false)
-    if (pos.op === 1) {
-      if (pos.time > player.duration) {
-        player.currentTime = player.duration
-      } else {
-        player.currentTime = pos.time < 0 ? 0 : pos.time
+    if (this.isTouchMove) {
+      const time = pos.time / 1000
+      if (pos.op === 1) {
+        if (time > player.duration) {
+          player.currentTime = player.duration
+        } else {
+          player.currentTime = time < 0 ? 0 : time
+        }
+        this.once(Events.CANPLAY, () => {
+          this.player.isSeeking = false
+        })
       }
-      this.once(Events.CANPLAY, () => {
-        this.player.isSeeking = false
-      })
+      pos.op = 0
+      this.player.emit(Events.PLAYER_FOCUS)
+    } else {
+      if (!this.playerConfig.closeVideoClick && player.isActive) {
+        this.switchPlayPause(e)
+      } else {
+        if (player.isActive) {
+          this.player.emit(Events.PLAYER_BLUR)
+        } else {
+          this.player.emit(Events.PLAYER_FOCUS)
+        }
+      }
     }
-    pos.op = 0
-    this.isMoving = false
+    this.isTouchStart = false
+    this.isTouchMove = false
   }
 
   updateTime (percent) {
     const {player} = this
+    percent = Number(percent.toFixed(4))
     player.isSeeking = true
-    let time = percent * player.duration
+    let time = parseInt(percent * player.duration * 1000, 10)
     time += this.pos.time
-    time = time < 0 ? 0 : (time > player.duration ? player.duration : time)
-    player.getPlugin('time') && player.getPlugin('time').updateTime(time)
-    player.getPlugin('progress') && player.getPlugin('progress').updatePercent(time / this.player.duration, true)
+    time = time < 0 ? 0 : (time > player.duration * 1000 ? player.duration * 1000 : time)
+    player.getPlugin('time') && player.getPlugin('time').updateTime(time / 1000)
+    player.getPlugin('progress') && player.getPlugin('progress').updatePercent(time / 1000 / this.player.duration, true)
+    this.activeSeekNote(time / 1000)
+    this.player.onSeeking()
+    // this.emit(Events.SEEKING, time / 1000)
+    // 在滑动的同时实时seek
     if (this.config.isTouchingSeek) {
-      player.currentTime = Number(time).toFixed(1)
+      player.currentTime = time / 1000
     }
     this.pos.time = time
   }
@@ -195,22 +224,23 @@ class MobilePlugin extends Plugin {
     this.pos.light = light
   }
 
-  onClick (e) {
-    const {playerConfig, player} = this
-    const util = Plugin.Util;
-    if (playerConfig.closeVideoClick || player.isTouchMove) {
+  activeSeekNote (time) {
+    console.log('time', time)
+    if (!time || typeof time !== 'number') {
       return
     }
-    e.preventDefault();
-    e.stopPropagation();
-    if (util.hasClass(player.root, 'xgplayer-nostart')) {
+    this.find('.cur').innerHTML = Util.format(time)
+    // Util.addClass(this.player.root, 'xgplayer-seeking')
+    this.find('.curbar').style.width = `${time / this.player.duration * 100}%`
+  }
+
+  switchPlayPause () {
+    const {player} = this
+    if (!player.hasStart) {
       return false;
     } else if (!player.ended) {
       if (player.paused) {
-        let playPromise = player.play();
-        if (playPromise !== undefined && playPromise) {
-          // playPromise.catch(err => {});
-        }
+        player.play();
       } else {
         player.pause();
       }
@@ -218,20 +248,18 @@ class MobilePlugin extends Plugin {
   }
 
   render () {
-    const className = this.config.gradient ? 'gradient' : ''
+    const className = this.config.gradient !== 'normal' ? `gradient ${this.config.gradient}` : 'gradient'
     return `
-     <xg-trigger class="trigger ${className}">
-     <!--<div class="bar">
-        <span class=""></span>
-     </div>
+     <xg-trigger class="trigger">
+     <div class="${className}"></div>
      <div class="timenote">
         <span class="cur">00:00</span>
         <span>/</span>
         <span class="dur">00:00</span>
         <div class="bar timebar">
-          <span class=""></span>
+          <div class="curbar"></div>
         </class>
-     </div>-->
+     </div>
      </xg-trigger>
     `
   }
