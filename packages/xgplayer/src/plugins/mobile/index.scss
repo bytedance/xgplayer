@@ -7,50 +7,94 @@
   .xgplayer-controls {
     background-image: initial;
   }
+
   xg-trigger {
     position: absolute;
     top: 0;
     left: 0;
     height: 100%;
     width: 100%;
-    z-index: 11;
+    z-index: 80;
     .timenote {
+      display: none;
+      position: relative;
       height: 40px;
       width: 200px;
-      position: relative;
       margin: 0 auto;
       top: 50%;
       margin-top: -20px;
-      width: 200px;
-      color: #ff0000;
-      font-size: 21px;
-      background: rgba(0,0,0,.5);
       padding: 0 20px;
+      color: #fff;
+      text-shadow: 0 0 2px rgba(0,0,0,0.54);
+      font-size: 21px;
+      font-family: PingFangSC-Medium;
       text-align: center;
       span {
         line-height: 21px;
+        &.cur {
+          color: #FF0000;
+        }
       }
       .bar {
-        width: 100px;
-        height: 1px;
-        background-color: #fff;
+        width: 96px;
+        height: 2px;
         margin: 0 auto;
         margin-top: 14px;
-        border-radius: 3px;
-        border: solid 1px #c4c4c4;
+        border-radius: 50px;
         box-sizing: content-box;
+        background: rgba(255,255,255,0.3);
+        .curbar {
+          width: 0;
+          height: 100%;
+          background-color: #FF0000;
+        }
       }
     }
   }
-  .gradient {
-    background-image: -webkit-linear-gradient(rgba(0,0,0,.6),rgba(0,0,0,.36) 20%,rgba(0,0,0,0) 36%,rgba(0,0,0,0) 70%,rgba(0,0,0,0.24) 77%,rgba(0,0,0,0.36) 83%,rgba(0,0,0,.6));
+
+  &.seeking {
+    xg-trigger {
+      .timenote {
+        display: block;
+      } 
+    }
   }
 
+  .gradient {
+    display: none;
+    position: absolute;
+    top: 0;
+    left: 0;
+    height: 100%;
+    width: 100%;
+    pointer-events: none;
+    background-image: linear-gradient(rgba(0,0,0,.6),rgba(0,0,0,.36) 20%,rgba(0,0,0,0) 36%,rgba(0,0,0,0) 70%,rgba(0,0,0,0.24) 77%,rgba(0,0,0,0.36) 83%,rgba(0,0,0,.6));
+    
+    &.top {
+      background-image: linear-gradient(rgba(0,0,0,.6),rgba(0,0,0,.36) 20%,rgba(0,0,0,0) 36%,rgba(0,0,0,0) 70%);
+    }
+    
+    &.bottom {
+      background-image: linear-gradient(rgba(0,0,0,0) 70%,rgba(0,0,0,0.24) 77%,rgba(0,0,0,0.36) 83%,rgba(0,0,0,.6));
+    }
+
+    &.none {
+      background-image: initial;
+    }
+  }
+
+  &.xgplayer-playing {
+    .gradient {
+      display: block;
+    }
+  }
+  
   &.xgplayer-inactive {
     .gradient {
       background-image: initial;
     }
   }
+
   .xgmask {
     position: absolute;
     height: 100%;

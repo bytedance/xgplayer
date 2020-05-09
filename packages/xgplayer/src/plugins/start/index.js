@@ -16,7 +16,7 @@ function addAnimate (key, seconds, callback = {start: null, end: null}) {
   }, seconds);
 }
 
-const { Util, Events, Sniffer } = Plugin
+const { Util, Events } = Plugin
 
 class Start extends Plugin {
   static get pluginName () {
