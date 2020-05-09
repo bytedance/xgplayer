@@ -319,7 +319,6 @@ class Player extends Proxy {
       return this.play()
     } else {
       return pluginsManager.beforeInit(this).then(() => {
-        console.log('this', url)
         if (!url) {
           url = this.url || this.config.url;
         }
@@ -552,7 +551,6 @@ class Player extends Proxy {
   }
 
   onPlaying () {
-    console.log('onPlaying')
     if (this.waitTimer) {
       clearTimeout(this.waitTimer)
     }
