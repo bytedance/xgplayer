@@ -4,7 +4,7 @@ const playNext = function () {
   let player = this
   const util = Player.util
   const controlEl = player.controls
-  let nextBtn = player.config.playNextBtn
+  let nextBtn = player.config.playNext
   let index = -1
   if (nextBtn && nextBtn.urlList) {
     let next
