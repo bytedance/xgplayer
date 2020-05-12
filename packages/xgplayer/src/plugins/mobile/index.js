@@ -61,6 +61,11 @@ class MobilePlugin extends Plugin {
     if (playerConfig.autoplay) {
       this.onEnter()
     }
+    // 绑定拖拽事件回调
+    let progressPlugin = this.player.plugins.progress
+    progressPlugin && progressPlugin.addDragCallBack((data) => {
+      this.activeSeekNote(data.currentTime)
+    })
   }
 
   onEnter () {
