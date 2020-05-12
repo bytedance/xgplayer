@@ -1,13 +1,13 @@
 import Proxy from './proxy'
 import Util from './utils/util'
-import sniffer from './Utils/sniffer'
+import sniffer from './utils/sniffer'
 import Errors from './error'
 import * as Events from './events'
 import Plugin, {pluginsManager, BasePlugin} from './plugin'
 import STATE_CLASS from './stateClassMap'
 import getDefaultConfig from './defaultConfig'
 import { usePreset } from './plugin/preset';
-import Controls from './plugins/Controls'
+import Controls from './plugins/controls'
 import {
   version
 } from '../package.json'

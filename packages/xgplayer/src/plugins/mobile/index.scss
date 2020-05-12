@@ -1,13 +1,4 @@
-.xgplayer-mobile {
-  font-family: PingFangSC-Semibold;
-  * {
-    text-decoration: none;
-    -webkit-tap-highlight-color: transparent;
-  }
-  .xgplayer-controls {
-    background-image: initial;
-  }
-
+.xgplayer {
   xg-trigger {
     position: absolute;
     top: 0;
@@ -51,15 +42,6 @@
       }
     }
   }
-
-  &.seeking {
-    xg-trigger {
-      .timenote {
-        display: block;
-      } 
-    }
-  }
-
   .gradient {
     display: none;
     position: absolute;
@@ -80,6 +62,24 @@
 
     &.none {
       background-image: initial;
+    }
+  }
+}
+.xgplayer-mobile {
+  font-family: PingFangSC-Semibold;
+  * {
+    text-decoration: none;
+    -webkit-tap-highlight-color: transparent;
+  }
+  .xgplayer-controls {
+    background-image: initial;
+  }
+
+  &.seeking {
+    xg-trigger {
+      .timenote {
+        display: block;
+      } 
     }
   }
 
