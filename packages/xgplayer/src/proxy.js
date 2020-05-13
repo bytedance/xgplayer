@@ -29,7 +29,7 @@ class Proxy {
     }
     let textTrackDom = ''
     this.textTrackShowDefault = true
-    if (options.textTrack && Array.isArray(options.textTrack) && (navigator.userAgent.indexOf('Chrome') > -1 || navigator.userAgent.indexOf('Firefox') > -1)) {
+    if (options.textTrack && Array.isArray(options.textTrack)) {
       if(options.textTrack.length > 0 && !options.textTrack.some(track => { return track.default })) {
         options.textTrack[0].default = true
         this.textTrackShowDefault = false

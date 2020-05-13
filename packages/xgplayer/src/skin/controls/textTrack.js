@@ -1,9 +1,9 @@
 import Player from '../../player'
 
 let s_textTrack = function () {
-  if (navigator.userAgent.indexOf('Chrome') < 0) {
-    return
-  }
+  // if (navigator.userAgent.indexOf('Chrome') < 0) {
+  //   return
+  // }
   let player = this
   let root = player.root
   let util = Player.util
