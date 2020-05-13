@@ -16,6 +16,18 @@ import TimeRanges from '../models/time-ranges';
 // import BackUpCodec from './backup-codec';
 import EventEmitter from 'events';
 
+var asmSupported = function asmSupported() {
+  try {
+    (function MyAsmModule() {
+      'use asm';
+    })();
+    return true;
+  } catch (err) {
+    // will never show...
+    return false;
+  }
+};
+
 var HAVE_NOTHING = 0;
 var HAVE_METADATA = 1;
 var HAVE_CURRENT_DATA = 2;
@@ -88,17 +100,9 @@ var VideoCanvas = function (_EventEmitter) {
     key: 'initWasmWorker',
     value: function initWasmWorker() {
       // eslint-disable-next-line no-undef
-      this.wasmworker = new VideoWorker();
-      // this.wasmworker = new Worker('./worker.js');
-      this.wasmworker.onmessage = this.handleMessage;
-      this.wasmworker.onerror = function (event) {
-        this.emit('error', new Error('wasm worker init failed'));
-        throw new Error(event.message + ' (' + event.filename + ':' + event.lineno + ')');
-      };
-      this.wasmworker.postMessage({
-        msg: 'init',
-        meta: this.meta
-      });
+      window._shimWorkerDocument = document;
+      window._shimWorkerWindow = window;
+      this.initWorker(false);
       this.setBackUpWorker();
     }
   }, {
@@ -112,25 +116,36 @@ var VideoCanvas = function (_EventEmitter) {
       this.useBackupTimer = setTimeout(function () {
         window.clearTimeout(_this2.useBackupTimer);
         _this2.useBackupTimer = null;
-        if (_this2._decoderInited) {
-          return;
-        } else if (_this2.meta.profile !== 'Baseline') {
-          _this2.emit('error', new Error('wasm worker init timeout'));
+        if (_this2._decoderInited || !asmSupported()) {
           return;
         }
+        _this2.initWorker(true);
+      }, 5000);
+    }
+  }, {
+    key: 'initWorker',
+    value: function initWorker(isBackup) {
+      var _this3 = this;
 
-        _this2.destroyWorker();
-        _this2.wasmworker = new BackupVideoWorker();
-        _this2.wasmworker.onmessage = _this2.handleMessage;
-        _this2.wasmworker.onerror = function (event) {
-          this.emit('error', new Error('wasm worker init failed'));
-          throw new Error(event.message + ' (' + event.filename + ':' + event.lineno + ')');
-        };
-        _this2.wasmworker.postMessage({
-          msg: 'init',
-          meta: _this2.meta
-        });
-      }, 10000);
+      var VideoWorkerCls = isBackup ? BackupVideoWorker : VideoWorker;
+      this.wasmworker = new VideoWorkerCls(false);
+      this.wasmworker.onmessage = function (e) {
+        if (e.data.msg === 'INIT_FAILED') {
+          _this3.destroyWorker();
+          _this3.wasmworker = new VideoWorkerCls(true);
+          _this3.wasmworker.postMessage({
+            msg: 'init',
+            meta: _this3.meta
+          });
+          _this3.wasmworker.onmessage = _this3.handleMessage;
+        } else {
+          _this3.handleMessage(e);
+        }
+      };
+      this.wasmworker.postMessage({
+        msg: 'init',
+        meta: this.meta
+      });
     }
   }, {
     key: 'setVideoMetaData',
@@ -285,22 +300,22 @@ var VideoCanvas = function (_EventEmitter) {
   }, {
     key: 'play',
     value: function play() {
-      var _this3 = this;
+      var _this4 = this;
 
       this.paused = false;
       if (!this.paused) {
         return Promise.resolve();
       }
       return new Promise(function (resolve) {
-        _this3.playFinish = resolve;
+        _this4.playFinish = resolve;
       }).then(function () {
-        _this3.playFinish = null;
+        _this4.playFinish = null;
       });
     }
   }, {
     key: '_onTimer',
     value: function _onTimer(currentTime) {
-      var _this4 = this;
+      var _this5 = this;
 
       // console.log(currentTime)
       if (this.paused) {
@@ -335,7 +350,7 @@ var VideoCanvas = function (_EventEmitter) {
             }
             frameTimes.forEach(function (time) {
               if (Number.parseInt(time) <= frameTime) {
-                delete _this4._decodedFrames[time];
+                delete _this5._decodedFrames[time];
               }
             });
             this.yuvCanvas.render(frame.buffer, frame.width, frame.height, frame.yLinesize, frame.uvLinesize);
@@ -389,7 +404,7 @@ var VideoCanvas = function (_EventEmitter) {
     value: function handleMessage(msg) {
       switch (msg.data.msg) {
         case 'DECODER_READY':
-          // console.log('wasm worker ready')
+          console.log('wasm worker ready');
           this._decoderInited = true;
           this.pushAvcc(this.meta);
           break;
@@ -397,7 +412,7 @@ var VideoCanvas = function (_EventEmitter) {
           this._onDecoded(msg.data);
           break;
         case 'LOG':
-          // console.log(msg.data.log);
+          console.log(msg.data.log);
           break;
         default:
           console.error('invalid messaeg', msg);

@@ -772,25 +772,37 @@
 
   var VideoWorker = new shimWorker("./worker.js", function (window, document) {
     var self = this;
+    function shimImportScripts(src) {
+      return new Promise(function (resolve, reject) {
+        var s;
+        s = _shimWorkerDocument.createElement('script');
+        s.src = src;
+        s.onload = resolve;
+        s.onerror = reject;
+        _shimWorkerDocument.head.appendChild(s);
+      });
+    }
+
     var MAX_STREAM_BUFFER_LENGTH = 1024 * 1024;
     var Decoder = function Decoder(self) {
       this.inited = false;
       this.self = self;
       this.meta = this.self.meta;
       this.infolist = {};
-      self.par_broadwayOnBroadwayInited = this.broadwayOnBroadwayInited.bind(this);
-      self.par_broadwayOnPictureDecoded = this.broadwayOnPictureDecoded.bind(this);
+      if (self.importScripts) {
+        self.par_broadwayOnBroadwayInited = this.broadwayOnBroadwayInited.bind(this);
+        self.par_broadwayOnPictureDecoded = this.broadwayOnPictureDecoded.bind(this);
+      } else {
+        _shimWorkerWindow.par_broadwayOnBroadwayInited = this.broadwayOnBroadwayInited.bind(this);
+        _shimWorkerWindow.par_broadwayOnPictureDecoded = this.broadwayOnPictureDecoded.bind(this);
+      }
     };
 
     Decoder.prototype.toU8Array = function (ptr, length) {
-      return this.self.HEAPU8.subarray(ptr, ptr + length);
+      return Module.HEAPU8.subarray(ptr, ptr + length);
     };
 
     Decoder.prototype.init = function () {
-      self.postMessage({
-        msg: 'LOG',
-        log: 'init decoder'
-      });
       Module._broadwayInit();
       this.streamBuffer = this.toU8Array(Module._broadwayCreateStream(MAX_STREAM_BUFFER_LENGTH), MAX_STREAM_BUFFER_LENGTH);
     };
@@ -808,7 +820,7 @@
       datetemp.set(data);
       var buffer = datetemp.buffer;
       if (info) {
-        self.postMessage({
+        this.self.postMessage({
           msg: 'LOG',
           log: 'sample ' + info.dts + ' decoded startAt' + info.decodeTime + ' cost: ' + (Date.now() - info.decodeTime)
         });
@@ -827,7 +839,7 @@
 
     Decoder.prototype.broadwayOnBroadwayInited = function () {
       this.inited = true;
-      self.postMessage({
+      this.self.postMessage({
         msg: 'LOG',
         log: 'decoder inited'
       });
@@ -855,21 +867,47 @@
     function onPostRun() {
       self.postMessage({
         msg: 'LOG',
-        log: 'decoder script ' + Decoder
+        log: 'do post run'
       });
       decoder = new Decoder(this);
       decoder.init();
     }
 
     function init(meta) {
+      var _this = this;
+
       if (!decoder) {
-        self.postMessage({
-          msg: 'LOG',
-          log: 'decoder script import' + self.importScripts
-        });
-        self.importScripts('https://sf1-vcloudcdn.pstatp.com/obj/ttfe/media/decoder/h264/decoder_1583333072684.js');
+        if (!self.importScripts) {
+          shimImportScripts('https://sf1-vcloudcdn.pstatp.com/obj/media-fe/decoder/h264/decoder_1583333072685.js').then(function () {
+            console.log(Module);
+            console.log(addOnPostRun);
+            addOnPostRun(onPostRun.bind(self));
+          });
+        } else {
+          self.postMessage({
+            msg: 'LOG',
+            log: 'do import script '
+          });
+          try {
+            self.importScripts('https://sf1-vcloudcdn.pstatp.com/obj/media-fe/decoder/h264/decoder_worker_1583333072685.js');
+          } catch (e) {
+            self.postMessage({
+              msg: 'LOG',
+              log: 'import script error' + e.message
+            });
+          }
+          addOnPostRun(onPostRun.bind(self));
+          self.postMessage({
+            msg: 'LOG',
+            log: 'import script done' + Module.toString()
+          });
+          setTimeout(function () {
+            if (!decoder) {
+              onPostRun.call(_this);
+            }
+          }, 5000);
+        }
       }
-      addOnPostRun(onPostRun.bind(self));
     }
 
     self.onmessage = function (e) {
@@ -905,43 +943,62 @@
 
   var BackupVideoWorker = new shimWorker("./backupWorker.js", function (window, document) {
     var self = this;
+    function shimImportScripts(src) {
+      return new Promise(function (resolve, reject) {
+        var s;
+        s = _shimWorkerDocument.createElement('script');
+        s.src = src;
+        s.onload = resolve;
+        s.onerror = reject;
+        _shimWorkerDocument.head.appendChild(s);
+      });
+    }
+
     var MAX_STREAM_BUFFER_LENGTH = 1024 * 1024;
     var Decoder = function Decoder(self) {
       this.inited = false;
       this.self = self;
       this.meta = this.self.meta;
-      this.infolist = [];
-      self.par_broadwayOnPictureDecoded = this.broadwayOnPictureDecoded.bind(this);
-      self.par_broadwayOnHeadersDecoded = function () {};
+      this.infolist = {};
+      if (self.importScripts) {
+        self.par_broadwayOnBroadwayInited = this.broadwayOnBroadwayInited.bind(this);
+        self.par_broadwayOnPictureDecoded = this.broadwayOnPictureDecoded.bind(this);
+      } else {
+        _shimWorkerWindow.par_broadwayOnBroadwayInited = this.broadwayOnBroadwayInited.bind(this);
+        _shimWorkerWindow.par_broadwayOnPictureDecoded = this.broadwayOnPictureDecoded.bind(this);
+      }
     };
 
     Decoder.prototype.toU8Array = function (ptr, length) {
-      return this.self.HEAPU8.subarray(ptr, ptr + length);
+      return Module.HEAPU8.subarray(ptr, ptr + length);
     };
 
     Decoder.prototype.init = function () {
-      self.postMessage({
-        msg: 'LOG',
-        log: 'init decoder'
-      });
       Module._broadwayInit();
       this.streamBuffer = this.toU8Array(Module._broadwayCreateStream(MAX_STREAM_BUFFER_LENGTH), MAX_STREAM_BUFFER_LENGTH);
-      this.broadwayOnBroadwayInited();
     };
 
-    Decoder.prototype.broadwayOnPictureDecoded = function (offset, width, height) {
-      var info = this.infolist.shift();
+    Decoder.prototype.broadwayOnPictureDecoded = function (offset, width, height, yLinesize, uvLinesize, infoid) {
+      var info = Object.assign({}, this.infolist[infoid]);
       var yRowcount = height;
       var uvRowcount = height / 2;
-      var yLinesize = width;
-      var uvLinesize = width / 2;
+      if (!uvLinesize) {
+        uvLinesize = yLinesize / 2;
+      }
       if (this.meta && (this.meta.chromaFormat === 444 || this.meta.chromaFormat === 422)) {
         uvRowcount = height;
       }
       var data = this.toU8Array(offset, yLinesize * yRowcount + 2 * (uvLinesize * uvRowcount));
+      this.infolist[infoid] = null;
       var datetemp = new Uint8Array(data.length);
       datetemp.set(data);
       var buffer = datetemp.buffer;
+      if (info) {
+        this.self.postMessage({
+          msg: 'LOG',
+          log: 'sample ' + info.dts + ' decoded startAt' + info.decodeTime + ' cost: ' + (Date.now() - info.decodeTime)
+        });
+      }
 
       this.self.postMessage({
         msg: 'DECODED',
@@ -956,7 +1013,7 @@
 
     Decoder.prototype.broadwayOnBroadwayInited = function () {
       this.inited = true;
-      self.postMessage({
+      this.self.postMessage({
         msg: 'LOG',
         log: 'decoder inited'
       });
@@ -964,9 +1021,11 @@
     };
 
     Decoder.prototype.decode = function (data, info) {
-      this.infolist.push(info);
+      var time = parseInt(new Date().getTime());
+      var infoid = time - Math.floor(time / 10e8) * 10e8;
+      this.infolist[infoid] = info;
       this.streamBuffer.set(data);
-      Module._broadwayPlayStream(data.length);
+      Module._broadwayPlayStream(data.length, infoid);
     };
 
     Decoder.prototype.destroy = function () {
@@ -982,16 +1041,31 @@
     function onPostRun() {
       decoder = new Decoder(this);
       decoder.init();
+      self.postMessage({
+        msg: 'LOG',
+        log: 'decoder inited'
+      });
+      decoder.broadwayOnBroadwayInited();
     }
 
     function init(meta) {
       if (!decoder) {
-        self.postMessage({
-          msg: 'LOG',
-          log: 'decoder script import' + self.importScripts
-        });
-        self.importScripts('https://sf1-vcloudcdn.pstatp.com/obj/media-site/decoder3.js');
-        addOnPostRun(onPostRun.bind(self));
+        if (!self.importScripts) {
+          shimImportScripts('https://sf1-vcloudcdn.pstatp.com/obj/media-fe/decoder/h264/decoder_asm_1589261792455.js').then(function () {
+            self.postMessage({
+              msg: 'LOG',
+              log: Module
+            });
+            onPostRun.call(self);
+          });
+        } else {
+          self.importScripts('https://sf1-vcloudcdn.pstatp.com/obj/media-fe/decoder/h264/decoder_asm_1589261792455.js');
+          self.postMessage({
+            msg: 'LOG',
+            log: Module.toString()
+          });
+          onPostRun.call(self);
+        }
       }
     }
 
@@ -1887,6 +1961,18 @@
 
   function _inherits$1(subClass, superClass) { if (typeof superClass !== "function" && superClass !== null) { throw new TypeError("Super expression must either be null or a function, not " + typeof superClass); } subClass.prototype = Object.create(superClass && superClass.prototype, { constructor: { value: subClass, enumerable: false, writable: true, configurable: true } }); if (superClass) Object.setPrototypeOf ? Object.setPrototypeOf(subClass, superClass) : subClass.__proto__ = superClass; }
 
+  var asmSupported = function asmSupported() {
+    try {
+      (function MyAsmModule() {
+        'use asm';
+      })();
+      return true;
+    } catch (err) {
+      // will never show...
+      return false;
+    }
+  };
+
   var HAVE_NOTHING = 0;
   var HAVE_METADATA = 1;
   var HAVE_CURRENT_DATA = 2;
@@ -1959,13 +2045,11 @@
       key: 'initWasmWorker',
       value: function initWasmWorker() {
         // eslint-disable-next-line no-undef
-        this.wasmworker = new VideoWorker();
+        this.wasmworker = new VideoWorker(false);
+        window._shimWorkerDocument = document;
+        window._shimWorkerWindow = window;
         // this.wasmworker = new Worker('./worker.js');
         this.wasmworker.onmessage = this.handleMessage;
-        this.wasmworker.onerror = function (event) {
-          this.emit('error', new Error('wasm worker init failed'));
-          throw new Error(event.message + ' (' + event.filename + ':' + event.lineno + ')');
-        };
         this.wasmworker.postMessage({
           msg: 'init',
           meta: this.meta
@@ -1983,24 +2067,18 @@
         this.useBackupTimer = setTimeout(function () {
           window.clearTimeout(_this2.useBackupTimer);
           _this2.useBackupTimer = null;
-          if (_this2._decoderInited) {
-            return;
-          } else if (_this2.meta.profile !== 'Baseline') {
-            _this2.emit('error', new Error('wasm worker init timeout'));
+          if (_this2._decoderInited || !asmSupported()) {
             return;
           }
 
-          _this2.destroyWorker();
-          _this2.wasmworker = new BackupVideoWorker();
+          // this.destroyWorker()
+          _this2.wasmworker = new BackupVideoWorker(false);
           _this2.wasmworker.onmessage = _this2.handleMessage;
-          _this2.wasmworker.onerror = function (event) {
-            this.emit('error', new Error('wasm worker init failed'));
-            throw new Error(event.message + ' (' + event.filename + ':' + event.lineno + ')');
-          };
           _this2.wasmworker.postMessage({
             msg: 'init',
             meta: _this2.meta
           });
+          // this._decoderInited = true;
         }, 10000);
       }
     }, {
@@ -2253,6 +2331,8 @@
           this.wasmworker.removeEventListener('message', this.handleMessage);
           this.wasmworker.postMessage({ msg: 'destroy' });
         }
+        window._shimWorkerDocument = null;
+        window._shimWorkerWindow = null;
         this.wasmworker = null;
       }
     }, {
@@ -2260,7 +2340,7 @@
       value: function handleMessage(msg) {
         switch (msg.data.msg) {
           case 'DECODER_READY':
-            // console.log('wasm worker ready')
+            console.log('wasm worker ready');
             this._decoderInited = true;
             this.pushAvcc(this.meta);
             break;
@@ -2268,7 +2348,7 @@
             this._onDecoded(msg.data);
             break;
           case 'LOG':
-            // console.log(msg.data.log);
+            console.log(msg.data.log);
             break;
           default:
             console.error('invalid messaeg', msg);

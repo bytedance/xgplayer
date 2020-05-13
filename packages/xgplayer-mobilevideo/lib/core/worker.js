@@ -1,25 +1,38 @@
 'use strict';
 
+function shimImportScripts(src) {
+  return new Promise(function (resolve, reject) {
+    var s;
+    s = _shimWorkerDocument.createElement('script');
+    s.src = src;
+    s.onload = resolve;
+    s.onerror = reject;
+    _shimWorkerDocument.head.appendChild(s);
+  });
+}
+
 var MAX_STREAM_BUFFER_LENGTH = 1024 * 1024;
 var Decoder = function Decoder(self) {
   this.inited = false;
   this.self = self;
   this.meta = this.self.meta;
   this.infolist = {};
-  self.par_broadwayOnBroadwayInited = this.broadwayOnBroadwayInited.bind(this);
-  self.par_broadwayOnPictureDecoded = this.broadwayOnPictureDecoded.bind(this);
+  if (self.importScripts) {
+    self.par_broadwayOnBroadwayInited = this.broadwayOnBroadwayInited.bind(this);
+    self.par_broadwayOnPictureDecoded = this.broadwayOnPictureDecoded.bind(this);
+  } else {
+    _shimWorkerWindow.par_broadwayOnBroadwayInited = this.broadwayOnBroadwayInited.bind(this);
+    _shimWorkerWindow.par_broadwayOnPictureDecoded = this.broadwayOnPictureDecoded.bind(this);
+  }
 };
 
 Decoder.prototype.toU8Array = function (ptr, length) {
-  return this.self.HEAPU8.subarray(ptr, ptr + length);
+  return Module.HEAPU8.subarray(ptr, ptr + length);
 };
 
 Decoder.prototype.init = function () {
-  self.postMessage({
-    msg: 'LOG',
-    log: 'init decoder'
-  });
   Module._broadwayInit();
+  this.broadwayOnBroadwayInited();
   this.streamBuffer = this.toU8Array(Module._broadwayCreateStream(MAX_STREAM_BUFFER_LENGTH), MAX_STREAM_BUFFER_LENGTH);
 };
 
@@ -36,7 +49,7 @@ Decoder.prototype.broadwayOnPictureDecoded = function (offset, width, height, yL
   datetemp.set(data);
   var buffer = datetemp.buffer;
   if (info) {
-    self.postMessage({
+    this.self.postMessage({
       msg: 'LOG',
       log: 'sample ' + info.dts + ' decoded startAt' + info.decodeTime + ' cost: ' + (Date.now() - info.decodeTime)
     });
@@ -55,7 +68,7 @@ Decoder.prototype.broadwayOnPictureDecoded = function (offset, width, height, yL
 
 Decoder.prototype.broadwayOnBroadwayInited = function () {
   this.inited = true;
-  self.postMessage({
+  this.self.postMessage({
     msg: 'LOG',
     log: 'decoder inited'
   });
@@ -89,21 +102,50 @@ var decoder;
 function onPostRun() {
   self.postMessage({
     msg: 'LOG',
-    log: 'decoder script ' + Decoder
+    log: 'do post run'
   });
   decoder = new Decoder(this);
   decoder.init();
 }
 
 function init(meta) {
+  var _this = this;
+
   if (!decoder) {
-    self.postMessage({
-      msg: 'LOG',
-      log: 'decoder script import' + self.importScripts
-    });
-    self.importScripts('https://sf1-vcloudcdn.pstatp.com/obj/ttfe/media/decoder/h264/decoder_1583333072684.js');
+    if (!self.importScripts) {
+      shimImportScripts('https://sf1-vcloudcdn.pstatp.com/obj/media-fe/decoder/h264/decoder_1583333072685.js').then(function () {
+        console.log(Module);
+        self.postMessage({
+          msg: 'LOG',
+          log: addOnPostRun
+        });
+        addOnPostRun(onPostRun.bind(self));
+      });
+    } else {
+      self.postMessage({
+        msg: 'LOG',
+        log: 'do import script '
+      });
+      try {
+        self.importScripts('https://sf1-vcloudcdn.pstatp.com/obj/media-fe/decoder/h264/decoder_2.js');
+      } catch (e) {
+        self.postMessage({
+          msg: 'INIT_FAILED'
+        });
+        return;
+      }
+      addOnPostRun(onPostRun.bind(self));
+      self.postMessage({
+        msg: 'LOG',
+        log: 'import script done' + Module.toString()
+      });
+      setTimeout(function () {
+        if (!decoder) {
+          onPostRun.call(_this);
+        }
+      }, 5000);
+    }
   }
-  addOnPostRun(onPostRun.bind(self));
 }
 
 self.onmessage = function (e) {
