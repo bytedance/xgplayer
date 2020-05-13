@@ -34,7 +34,7 @@ const umd = {
     'xgplayer': 'xgplayer'
   },
   optimization: {
-    minimize: true
+    minimize: false
   }
 }
 
