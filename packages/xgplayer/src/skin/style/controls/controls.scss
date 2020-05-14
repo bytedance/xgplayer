@@ -30,18 +30,10 @@
 }
 .xgplayer-skin-default.xgplayer-is-live {
   .xgplayer-controls {
-    > *{
+    .xgplayer-time {
       display: none;
     }
-    .xgplayer-play,
-    .xgplayer-play-img,
-    .xgplayer-placeholder,
-    .xgplayer-volume,
-    .xgplayer-reload,
-    .xgplayer-live,
-    .xgplayer-definition,
-    .xgplayer-cssfullscreen,
-    .xgplayer-fullscreen {
+    .xgplayer-live {
       display: block;
     }
   }
