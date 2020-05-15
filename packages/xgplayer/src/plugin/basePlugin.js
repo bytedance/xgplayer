@@ -89,7 +89,7 @@ class BasePlugin {
     this.player.emit(event, res)
   }
 
-  _destroy () {
+  __destroy () {
     this.offAll()
     if (Util.checkIsFunction(this.destroy)) {
       this.destroy();

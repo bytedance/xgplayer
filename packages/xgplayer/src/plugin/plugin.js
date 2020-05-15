@@ -413,11 +413,8 @@ export default class Plugin extends BasePlugin {
     return ''
   }
 
-  _destroy () {
-    this.offAll()
-    if (BasePlugin.Util.checkIsFunction(this.destroy)) {
-      this.destroy();
-    }
+  __destroy () {
+    super.__destroy();
     if (this.root) {
       if (this.root.hasOwnProperty('remove')) {
         this.root.remove()
