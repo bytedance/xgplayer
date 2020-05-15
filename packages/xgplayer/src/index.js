@@ -1,7 +1,6 @@
 import Player from './player'
-import defaultPreset from './presets/default';
-// import defaultPreset from './presets/mobile';
+import defaultPreset from './presets/default'
 
-Player.defaultPreset = defaultPreset;
+Player.defaultPreset = defaultPreset
 
 export default Player

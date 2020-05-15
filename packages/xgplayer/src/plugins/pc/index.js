@@ -122,8 +122,6 @@ export default class PCPlugin extends BasePlugin {
 
   destroy () {
     const { player } = this;
-    player.root.removeEventListener('mouseenter', this.onMouseEnter)
-    player.root.removeEventListener('mouseleave', this.onMouseLeave)
     player.off('ready', this.onReady)
   }
 }

@@ -112,17 +112,10 @@ class Start extends Plugin {
       return;
     }
     const paused = this.player.paused
-    if (!player.hasStart) {
-      player.start()
-      player.once('complete', () => {
-        player.play()
-      })
+    if (!paused) {
+      player.pause()
     } else {
-      if (!paused) {
-        player.pause()
-      } else {
-        player.play()
-      }
+      player.play()
     }
   }
 

@@ -1,10 +1,10 @@
-import Plugin from '../../plugin';
+import Plugin from '../../plugin'
 
 const {Events, Util} = Plugin
 
 class MobilePlugin extends Plugin {
   static get pluginName () {
-    return 'mobile';
+    return 'mobile'
   }
 
   static get defaultConfig () {
@@ -20,13 +20,14 @@ class MobilePlugin extends Plugin {
       scopeL: 0.4, // 左侧手势范围比例
       scopeR: 0.4, // 右侧手势范围比例
       darkness: true, // 是否启用右侧调暗功能
-      maxDarkness: 0.6 // 调暗最大暗度，即蒙层最大透明度
+      maxDarkness: 0.6, // 调暗最大暗度，即蒙层最大透明度
+      disableActive: false // 事件面板
     }
   }
 
   constructor (options) {
-    super(options);
-    this.isTouchMove = false;
+    super(options)
+    this.isTouchMove = false
     this.isTouchStart = false
     this.pos = {
       x: 0,
@@ -43,7 +44,7 @@ class MobilePlugin extends Plugin {
   }
 
   afterCreate () {
-    const {playerConfig} = this
+    const {playerConfig, config} = this
     this.config.disableGesture = !!this.playerConfig.disableGesture
 
     this.xgMask = Util.createDom('xg-mask', '', {}, 'xgmask')
@@ -61,25 +62,29 @@ class MobilePlugin extends Plugin {
     if (playerConfig.autoplay) {
       this.onEnter()
     }
-    // 绑定拖拽事件回调
-    let progressPlugin = this.player.plugins.progress
-    progressPlugin && progressPlugin.addDragCallBack((data) => {
-      this.activeSeekNote(data.currentTime)
-    })
+    if (config.disableActive) {
+      this.find('.timenote').style.display = 'none'
+    } else {
+      // 绑定拖拽事件回调
+      let progressPlugin = this.player.plugins.progress
+      progressPlugin && progressPlugin.addDragCallBack((data) => {
+        this.activeSeekNote(data.currentTime)
+      })
+    }
   }
 
   onEnter () {
-    const { player } = this;
+    const { player } = this
     Util.addClass(player.root, 'xgplayer-is-enter')
   }
 
   onEntered () {
-    const { player } = this;
+    const { player } = this
     Util.removeClass(player.root, 'xgplayer-is-enter')
   }
 
   onAutoPlayPrevented () {
-    const { player } = this;
+    const { player } = this
     Util.removeClass(player.root, 'xgplayer-is-enter')
     this.once(Events.PLAY, () => {
       Util.addClass(player.root, 'xgplayer-is-enter')
@@ -101,7 +106,7 @@ class MobilePlugin extends Plugin {
     const {player, config, pos} = this
     // 直播或者duration没有获取到之前不做操作
     if (!(this.player.duration !== Infinity && this.player.duration > 0) || this.isTouchStart || config.disableGesture) {
-      return;
+      return
     }
     this.find('.dur').innerHTML = Util.format(this.player.duration)
     this.isTouchStart = true
@@ -229,7 +234,7 @@ class MobilePlugin extends Plugin {
   }
 
   activeSeekNote (time) {
-    if (!time || typeof time !== 'number') {
+    if (!time || typeof time !== 'number' || this.config.disableActive) {
       return
     }
     this.find('.cur').innerHTML = Util.format(time)
@@ -240,12 +245,12 @@ class MobilePlugin extends Plugin {
   switchPlayPause () {
     const {player} = this
     if (!player.hasStart) {
-      return false;
+      return false
     } else if (!player.ended) {
       if (player.paused) {
-        player.play();
+        player.play()
       } else {
-        player.pause();
+        player.pause()
       }
     }
   }
@@ -268,4 +273,4 @@ class MobilePlugin extends Plugin {
   }
 }
 
-export default MobilePlugin;
+export default MobilePlugin
