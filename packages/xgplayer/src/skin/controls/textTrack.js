@@ -13,7 +13,7 @@ let s_textTrack = function () {
   let list = player.config.textTrack
   if (list && Array.isArray(list) && list.length > 0) {
     util.addClass(player.root, 'xgplayer-is-texttrack')
-    player.on('canplay', function () {
+    player.once('canplay', function () {
       let tmp = ['<ul>']
       tmp.push(`<li class='${this.textTrackShowDefault ? '' : 'selected'}'}'>关闭</li>`)
       list.forEach(item => {
@@ -63,8 +63,10 @@ let s_textTrack = function () {
         let trackDoms = player.root.getElementsByTagName('Track')
         if (li.innerHTML === '关闭') {
           trackDoms[0].track.mode = 'hidden'
+          trackDoms[0].src = ''
           util.removeClass(player.root, 'xgplayer-texttrack-active')
         } else {
+          trackDoms[0].style.display = 'block'
           util.addClass(player.root, 'xgplayer-texttrack-active')
           trackDoms[0].track.mode = 'showing'
 
@@ -88,6 +90,56 @@ let s_textTrack = function () {
         container.focus()
       }
     }, false)
+  })
+
+  player.on('play', () => {
+    let ul = root.querySelector('.xgplayer-texttrack ul')
+    let trackDoms = root.getElementsByTagName('Track')
+    if (!player['hls'] || !ul || !trackDoms) return
+    trackDoms[0].src = ''
+    Array.prototype.forEach.call(ul.childNodes, li => {
+      if (util.hasClass(li, 'selected')) {
+        if (li.innerHTML === '关闭') {
+          trackDoms[0].track.mode = 'hidden'
+          trackDoms[0].src = ''
+          util.removeClass(player.root, 'xgplayer-texttrack-active')
+        } else {
+          util.addClass(player.root, 'xgplayer-texttrack-active')
+          trackDoms[0].track.mode = 'hidden'
+
+          list.some(item => {
+            if (item.label !== li.innerHTML) {
+              trackDoms[0].src = item.src
+              if (item.kind) {
+                trackDoms[0].kind = item.kind
+              }
+              trackDoms[0].label = item.label
+              if (item.srclang) {
+                trackDoms[0].srclang = item.srclang
+              }
+              return true
+            }
+          })
+
+          list.some(item => {
+            if (item.label === li.innerHTML) {
+              setTimeout(() => {
+                trackDoms[0].src = item.src
+                if (item.kind) {
+                  trackDoms[0].kind = item.kind
+                }
+                trackDoms[0].label = item.label
+                if (item.srclang) {
+                  trackDoms[0].srclang = item.srclang
+                }
+                trackDoms[0].track.mode = 'showing'
+              })
+              return true
+            }
+          })
+        }
+      }
+    })
   })
 
   container.addEventListener('mouseleave', e => {
