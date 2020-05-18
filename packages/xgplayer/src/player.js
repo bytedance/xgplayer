@@ -686,6 +686,7 @@ class Player extends Proxy {
       clearTimeout(this.waitTimer)
     }
     util.removeClass(this.root, 'xgplayer-isloading')
+
   }
 
   onSeeked () {
@@ -789,6 +790,14 @@ class Player extends Proxy {
         player.pause()
       }
     }
+  }
+
+  get cumulateTime () {
+    if (this.logParams && this.logParams.played instanceof Array) {
+      const accTime  = util.computeWatchDur(this.logParams.played) || 0
+      return Number(accTime.toFixed(3))
+    }
+    return 0
   }
 
   static install (name, descriptor) {
