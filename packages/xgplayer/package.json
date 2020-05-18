@@ -1,6 +1,6 @@
 {
     "name": "xgplayer",
-    "version": "3.0.0-alpha.13",
+    "version": "3.0.0-alpha.14",
     "description": "video player",
     "main": "./dist/index.min.js",
     "module": "./es/index.min.js",
@@ -11,9 +11,9 @@
     "scripts": {
         "prepare": "npm run build",
         "build": "npm run build:es && npm run build:lib && npm run build:main && npm run build:style",
-        "build:main": "cross-env NODE_ENV=production rollup -c rollup.config.js",
-        "build:es": "babel src --out-dir es",
-        "build:lib": "babel src --out-dir lib --presets=es2015",
+        "build:main": "rimraf ./dist && cross-env NODE_ENV=production rollup -c rollup.config.js",
+        "build:es": "rimraf ./es && babel src --out-dir es",
+        "build:lib": "rimraf ./lib && babel src --out-dir lib --presets=es2015",
         "build:style": "node scripts/buildStyles.js",
         "watch": "cross-env NODE_ENV=development rollup -c rollup.config.js --watch"
     },
@@ -35,6 +35,9 @@
                     "corejs": 3
                 }
             ]
+        ],
+        "plugins": [
+            "inline-svg"
         ]
     },
     "repository": {
@@ -50,6 +53,7 @@
         "Firefox > 20"
     ],
     "dependencies": {
+        "babel-plugin-inline-svg": "^1.0.1",
         "danmu.js": "0.1.0",
         "deepmerge": "^1.5.0",
         "delegate-events": "^1.1.1",
@@ -57,14 +61,15 @@
         "event-emitter": "^0.3.5"
     },
     "devDependencies": {
-        "http-server": "^0.12.0",
-        "cross-env": "^6.0.3",
         "autoprefixer": "^9.7.4",
+        "cross-env": "^6.0.3",
         "cssnano": "^4.1.10",
+        "http-server": "^0.12.0",
         "node-sass": "^4.13.1",
         "postcss": "^7.0.26",
         "recursive-readdir": "^2.2.2",
         "request-frame": "^1.5.3",
+        "rimraf": "^3.0.2",
         "rollup": "^1.27.14",
         "rollup-plugin-uglify-es": "^0.0.1"
     }
