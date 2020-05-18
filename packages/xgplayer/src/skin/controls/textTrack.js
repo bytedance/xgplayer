@@ -102,9 +102,7 @@ let s_textTrack = function () {
         if (li.innerHTML === '关闭') {
           trackDoms[0].track.mode = 'hidden'
           trackDoms[0].src = ''
-          util.removeClass(player.root, 'xgplayer-texttrack-active')
         } else {
-          util.addClass(player.root, 'xgplayer-texttrack-active')
           trackDoms[0].track.mode = 'hidden'
 
           list.some(item => {
@@ -140,6 +138,7 @@ let s_textTrack = function () {
         }
       }
     })
+    util.removeClass(player.root, 'xgplayer-texttrack-active')
   })
 
   container.addEventListener('mouseleave', e => {
