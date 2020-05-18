@@ -232,4 +232,43 @@ util.isWeiXin = function () {
     return ua.indexOf('micromessenger') > -1
 }
 
+util.computeWatchDur = function (played = []) {
+  let minBegin = 0
+  let end = 0
+  let arr = []
+  for (let i = 0; i < played.length; i++) {
+    if(!played[i].end || played[i].begin < 0 || played[i].end < 0 || played[i].end < played[i].begin) {
+      continue
+    }
+    if(arr.length < 1) {
+      arr.push({begin: played[i].begin, end: played[i].end})
+    } else {
+      for (let j = 0; j < arr.length; j++) {
+        let begin = played[i].begin
+        let end = played[i].end
+        if(end < arr[j].begin) {
+          arr.splice(j, 0, {begin, end})
+          break
+        } else if(begin > arr[j].end) {
+          if(j > arr.length - 2) {
+            arr.push({begin, end})
+            break
+          }
+        } else {
+          let b = arr[j].begin
+          let e = arr[j].end
+          arr[j].begin = Math.min(begin, b)
+          arr[j].end = Math.max(end, e)
+          break
+        }
+      }
+    }
+  }
+  let watch_dur = 0
+  for (let i = 0; i < arr.length; i++) {
+    watch_dur += arr[i].end - arr[i].begin
+  }
+  return watch_dur
+}
+
 export default util
