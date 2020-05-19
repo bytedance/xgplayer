@@ -30,7 +30,7 @@ class Proxy {
     let textTrackDom = ''
     this.textTrackShowDefault = true
     if (options.textTrack && Array.isArray(options.textTrack)) {
-      if(options.textTrack.length > 0 && !options.textTrack.some(track => { return track.default })) {
+      if (options.textTrack.length > 0 && !options.textTrack.some(track => { return track.default })) {
         options.textTrack[0].default = true
         this.textTrackShowDefault = false
       }
@@ -66,7 +66,7 @@ class Proxy {
       }
     }
     this.video = util.createDom(this.videoConfig.mediaType, textTrackDom, this.videoConfig, '')
-    if(!this.textTrackShowDefault && textTrackDom) {
+    if (!this.textTrackShowDefault && textTrackDom) {
       let trackDoms = this.video.getElementsByTagName('Track')
       trackDoms[0].track.mode = 'hidden'
     }
@@ -99,10 +99,13 @@ class Proxy {
         }
         if (name === 'play') {
           self.hasStart = true
+        } else if (name === 'canplay') {
+          util.removeClass(self.root, 'xgplayer-is-enter')
         } else if (name === 'waiting') {
           self.logParams.bc++
           self.inWaitingStart = new Date().getTime()
         } else if (name === 'playing') {
+          util.removeClass(self.root, 'xgplayer-is-enter')
           if (self.inWaitingStart) {
             self.logParams.bu_acu_t += new Date().getTime() - self.inWaitingStart
             self.inWaitingStart = undefined
@@ -137,7 +140,7 @@ class Proxy {
           if (['ended', 'error', 'timeupdate'].indexOf(name) < 0) {
             clearInterval(self._interval['bufferedChange'])
             util.setInterval(self, 'bufferedChange', function () {
-              if(self.video && self.video.buffered) {
+              if (self.video && self.video.buffered) {
                 let curBuffer = []
                 for (let i = 0, len = self.video.buffered.length; i < len; i++) {
                   curBuffer.push([self.video.buffered.start(i), self.video.buffered.end(i)])
@@ -239,7 +242,7 @@ class Proxy {
     return this.video.currentTime
   }
   set currentTime (time) {
-    if(typeof isFinite === 'function' && !isFinite(time)) return
+    if (typeof isFinite === 'function' && !isFinite(time)) return
     this.video.currentTime = time
     this.emit('currentTimeChange')
   }

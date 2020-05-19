@@ -18,9 +18,21 @@ let s_playNext = function () {
     btn.addEventListener(item, e => {
       e.preventDefault()
       e.stopPropagation()
+      Player.util.addClass(player.root, 'xgplayer-is-enter')
       player.emit('playNextBtnClick')
     })
   })
+
+  let onUrlListEnd = function () {
+    Player.util.addClass(player.root, 'xgplayer-playnext-inactive')
+  }
+  player.on('urlListEnd', onUrlListEnd)
+
+  function onDestroy () {
+    player.off('urlListEnd', onUrlListEnd)
+    player.off('destroy', onDestroy)
+  }
+  player.once('destroy', onDestroy)
 }
 
 Player.install('s_playNext', s_playNext)
