@@ -16,18 +16,6 @@ import TimeRanges from '../models/time-ranges';
 // import BackUpCodec from './backup-codec';
 import EventEmitter from 'events';
 
-var asmSupported = function asmSupported() {
-  try {
-    (function MyAsmModule() {
-      'use asm';
-    })();
-    return true;
-  } catch (err) {
-    // will never show...
-    return false;
-  }
-};
-
 var HAVE_NOTHING = 0;
 var HAVE_METADATA = 1;
 var HAVE_CURRENT_DATA = 2;
@@ -103,45 +91,25 @@ var VideoCanvas = function (_EventEmitter) {
       window._shimWorkerDocument = document;
       window._shimWorkerWindow = window;
       this.initWorker(false);
-      this.setBackUpWorker();
-    }
-  }, {
-    key: 'setBackUpWorker',
-    value: function setBackUpWorker() {
-      var _this2 = this;
-
-      if (this.useBackupTimer) {
-        return;
-      }
-      this.useBackupTimer = setTimeout(function () {
-        window.clearTimeout(_this2.useBackupTimer);
-        _this2.useBackupTimer = null;
-        if (_this2._decoderInited || !asmSupported()) {
-          return;
-        }
-        _this2.initWorker(true);
-      }, 5000);
     }
   }, {
     key: 'initWorker',
     value: function initWorker(isBackup) {
-      var _this3 = this;
+      var _this2 = this;
 
+      if (this.wasmworker) {
+        this.destroyWorker();
+      }
       var VideoWorkerCls = isBackup ? BackupVideoWorker : VideoWorker;
       this.wasmworker = new VideoWorkerCls(false);
-      this.wasmworker.onmessage = function (e) {
-        if (e.data.msg === 'INIT_FAILED') {
-          _this3.destroyWorker();
-          _this3.wasmworker = new VideoWorkerCls(true);
-          _this3.wasmworker.postMessage({
-            msg: 'init',
-            meta: _this3.meta
-          });
-          _this3.wasmworker.onmessage = _this3.handleMessage;
+      this.wasmworker.onmessage = isBackup ? function (msg) {
+        if (msg.data.msg === 'INIT_FAILED') {
+          _this2.emit('error', new Error('backup worker init failed'));
         } else {
-          _this3.handleMessage(e);
+          _this2.handleMessage(msg);
         }
-      };
+      } : this.handleMessage;
+
       this.wasmworker.postMessage({
         msg: 'init',
         meta: this.meta
@@ -215,7 +183,8 @@ var VideoCanvas = function (_EventEmitter) {
   }, {
     key: 'preload',
     value: function preload() {
-      if (!this._lastSampleDts || this._lastSampleDts - this._baseDts < this.currentTime + this.config.preloadTime * 1000) {
+      var bufferedEnd = this.buffered.end(0);
+      if (!this._lastSampleDts || bufferedEnd - this.currentTime / 1000 < 4) {
         var sample = this.source.get();
         if (sample) {
           this._lastSampleDts = sample.dts;
@@ -267,7 +236,7 @@ var VideoCanvas = function (_EventEmitter) {
       }
       var dts = data.info.dts;
 
-      this._decodedFrames[dts] = data;
+      this._decodedFrames[dts - this._baseDts] = data;
       var decodedFrameLen = Object.keys(this._decodedFrames).length;
       if (this.readyStatus == HAVE_METADATA && decodedFrameLen > 0) {
         this.readyStatus = HAVE_CURRENT_DATA;
@@ -300,22 +269,22 @@ var VideoCanvas = function (_EventEmitter) {
   }, {
     key: 'play',
     value: function play() {
-      var _this4 = this;
+      var _this3 = this;
 
       this.paused = false;
       if (!this.paused) {
         return Promise.resolve();
       }
       return new Promise(function (resolve) {
-        _this4.playFinish = resolve;
+        _this3.playFinish = resolve;
       }).then(function () {
-        _this4.playFinish = null;
+        _this3.playFinish = null;
       });
     }
   }, {
     key: '_onTimer',
     value: function _onTimer(currentTime) {
-      var _this5 = this;
+      var _this4 = this;
 
       // console.log(currentTime)
       if (this.paused) {
@@ -328,7 +297,7 @@ var VideoCanvas = function (_EventEmitter) {
         if (frameTimes.length > 0) {
           this.currentTime = currentTime;
           var frameTime = -1;
-          for (var i = 0; i < frameTimes.length && Number.parseInt(frameTimes[i]) - this._baseDts <= this.currentTime; i++) {
+          for (var i = 0; i < frameTimes.length && Number.parseInt(frameTimes[i]) <= this.currentTime; i++) {
             frameTime = Number.parseInt(frameTimes[Math.max(i - 1, 0)]);
           }
           var frame = this._decodedFrames[frameTime];
@@ -350,7 +319,7 @@ var VideoCanvas = function (_EventEmitter) {
             }
             frameTimes.forEach(function (time) {
               if (Number.parseInt(time) <= frameTime) {
-                delete _this5._decodedFrames[time];
+                delete _this4._decodedFrames[time];
               }
             });
             this.yuvCanvas.render(frame.buffer, frame.width, frame.height, frame.yLinesize, frame.uvLinesize);
@@ -439,8 +408,8 @@ var VideoCanvas = function (_EventEmitter) {
       }
 
       if (currentRange.start !== null && currentRange.end !== null) {
-        currentRange.start = (currentRange.start - this._baseDts) / 1000;
-        currentRange.end = (currentRange.end - this._baseDts) / 1000;
+        currentRange.start = currentRange.start / 1000;
+        currentRange.end = currentRange.end / 1000;
         ranges.push(currentRange);
       }
 

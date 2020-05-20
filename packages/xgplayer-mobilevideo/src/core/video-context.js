@@ -8,20 +8,6 @@ import TimeRanges from '../models/time-ranges';
 // import BackUpCodec from './backup-codec';
 import EventEmitter from 'events';
 
-
-
-const asmSupported = () => {
-  try {
-    (function MyAsmModule () {
-      'use asm';
-    })();
-    return true;
-  } catch (err) {
-    // will never show...
-    return false;
-  }
-};
-
 const HAVE_NOTHING = 0;
 const HAVE_METADATA = 1;
 const HAVE_CURRENT_DATA = 2;
@@ -86,39 +72,22 @@ class VideoCanvas extends EventEmitter {
     window._shimWorkerDocument = document;
     window._shimWorkerWindow = window;
     this.initWorker(false)
-    this.setBackUpWorker();
-  }
-
-  setBackUpWorker () {
-    if (this.useBackupTimer) {
-      return;
-    }
-    this.useBackupTimer = setTimeout(() => {
-      window.clearTimeout(this.useBackupTimer);
-      this.useBackupTimer = null;
-      if (this._decoderInited || !asmSupported()) {
-        return;
-      }
-      this.initWorker(true)
-    }, 5000)
   }
 
   initWorker (isBackup) {
+    if (this.wasmworker) {
+      this.destroyWorker();
+    }
     const VideoWorkerCls = isBackup ? BackupVideoWorker : VideoWorker;
     this.wasmworker = new VideoWorkerCls(false);
-    this.wasmworker.onmessage = (e) => {
-      if (e.data.msg === 'INIT_FAILED') {
-        this.destroyWorker();
-        this.wasmworker = new VideoWorkerCls(true);
-        this.wasmworker.postMessage({
-          msg: 'init',
-          meta: this.meta
-        });
-        this.wasmworker.onmessage = this.handleMessage;
+    this.wasmworker.onmessage = isBackup ? (msg) => {
+      if (msg.data.msg === 'INIT_FAILED') {
+        this.emit('error', new Error('backup worker init failed'));
       } else {
-        this.handleMessage(e)
+        this.handleMessage(msg);
       }
-    };
+    } : this.handleMessage;
+
     this.wasmworker.postMessage({
       msg: 'init',
       meta: this.meta
@@ -186,7 +155,8 @@ class VideoCanvas extends EventEmitter {
   }
 
   preload () {
-    if (!this._lastSampleDts || this._lastSampleDts - this._baseDts < this.currentTime + this.config.preloadTime * 1000) {
+    const bufferedEnd = this.buffered.end(0)
+    if (!this._lastSampleDts || bufferedEnd - (this.currentTime / 1000) < 4) {
       let sample = this.source.get();
       if (sample) {
         this._lastSampleDts = sample.dts;
@@ -234,7 +204,7 @@ class VideoCanvas extends EventEmitter {
       return;
     }
     let {dts} = data.info;
-    this._decodedFrames[dts] = data;
+    this._decodedFrames[dts - this._baseDts] = data;
     let decodedFrameLen = Object.keys(this._decodedFrames).length;
     if (this.readyStatus == HAVE_METADATA && decodedFrameLen > 0) {
       this.readyStatus = HAVE_CURRENT_DATA
@@ -289,7 +259,7 @@ class VideoCanvas extends EventEmitter {
       if (frameTimes.length > 0) {
         this.currentTime = currentTime;
         let frameTime = -1;
-        for (let i = 0; i < frameTimes.length && Number.parseInt(frameTimes[i]) - this._baseDts <= this.currentTime; i++) {
+        for (let i = 0; i < frameTimes.length && Number.parseInt(frameTimes[i]) <= this.currentTime; i++) {
           frameTime = Number.parseInt(frameTimes[Math.max(i - 1, 0)]);
         }
         let frame = this._decodedFrames[frameTime];
@@ -394,8 +364,8 @@ class VideoCanvas extends EventEmitter {
     }
 
     if (currentRange.start !== null && currentRange.end !== null) {
-      currentRange.start = (currentRange.start - this._baseDts) / 1000
-      currentRange.end = (currentRange.end - this._baseDts) / 1000
+      currentRange.start = currentRange.start / 1000
+      currentRange.end = currentRange.end / 1000
       ranges.push(currentRange)
     }
 

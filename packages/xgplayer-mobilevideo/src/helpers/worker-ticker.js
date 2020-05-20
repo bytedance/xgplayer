@@ -24,11 +24,13 @@ export default class WorkerTicker extends Ticker {
   }
 
   stop () {
-    this.worker.postMessage({
-      msg: 'stop'
-    });
-    this.worker.removeEventListener('message', this.handleMessage);
-    this.worker = null;
+    if (this.worker) {
+      this.worker.postMessage({
+        msg: 'stop'
+      });
+      this.worker.removeEventListener('message', this.handleMessage);
+      this.worker = null;
+    }
     this.handleMessage = () => {};
     this.callbacks = [];
   }

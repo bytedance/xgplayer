@@ -89,6 +89,7 @@ Decoder.prototype.decode = function (data, info) {
 
 Decoder.prototype.destroy = function () {
   Module._broadwayExit();
+  this.streamBuffer = null;
 };
 
 Decoder.prototype.updateMeta = function (meta) {
@@ -125,7 +126,7 @@ function init(meta) {
         log: 'do import script '
       });
       try {
-        self.importScripts('https://sf1-vcloudcdn.pstatp.com/obj/media-fe/decoder/h264/decoder_2.js');
+        self.importScripts('https://sf1-vcloudcdn.pstatp.com/obj/media-fe/decoder/h264/decoder_1583333072684.js');
       } catch (e) {
         self.postMessage({
           msg: 'INIT_FAILED'
@@ -167,10 +168,17 @@ self.onmessage = function (e) {
         decoder.updateMeta(data.meta);
         break;
       case 'decode':
+        if (!decoder) {
+          return;
+        }
         decoder.decode(data.data, data.info);
         break;
       case 'destory':
+        if (!decoder) {
+          return;
+        }
         decoder.destroy();
+        self.close();
         break;
       default:
         break;

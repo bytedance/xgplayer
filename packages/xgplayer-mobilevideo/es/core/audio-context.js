@@ -251,6 +251,9 @@ var AudioCtx = function (_EventEmitter) {
   }, {
     key: 'destroy',
     value: function destroy() {
+      if (this.destroyed) {
+        return;
+      }
       if (this.waitNextID) {
         window.clearTimeout(this.waitNextID);
       }

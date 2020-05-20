@@ -63,11 +63,13 @@ var WorkerTicker = function (_Ticker) {
   }, {
     key: 'stop',
     value: function stop() {
-      this.worker.postMessage({
-        msg: 'stop'
-      });
-      this.worker.removeEventListener('message', this.handleMessage);
-      this.worker = null;
+      if (this.worker) {
+        this.worker.postMessage({
+          msg: 'stop'
+        });
+        this.worker.removeEventListener('message', this.handleMessage);
+        this.worker = null;
+      }
       this.handleMessage = function () {};
       this.callbacks = [];
     }

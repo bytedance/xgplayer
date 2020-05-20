@@ -804,6 +804,7 @@
 
     Decoder.prototype.init = function () {
       Module._broadwayInit();
+      this.broadwayOnBroadwayInited();
       this.streamBuffer = this.toU8Array(Module._broadwayCreateStream(MAX_STREAM_BUFFER_LENGTH), MAX_STREAM_BUFFER_LENGTH);
     };
 
@@ -856,6 +857,7 @@
 
     Decoder.prototype.destroy = function () {
       Module._broadwayExit();
+      this.streamBuffer = null;
     };
 
     Decoder.prototype.updateMeta = function (meta) {
@@ -880,7 +882,10 @@
         if (!self.importScripts) {
           shimImportScripts('https://sf1-vcloudcdn.pstatp.com/obj/media-fe/decoder/h264/decoder_1583333072685.js').then(function () {
             console.log(Module);
-            console.log(addOnPostRun);
+            self.postMessage({
+              msg: 'LOG',
+              log: addOnPostRun
+            });
             addOnPostRun(onPostRun.bind(self));
           });
         } else {
@@ -889,12 +894,12 @@
             log: 'do import script '
           });
           try {
-            self.importScripts('https://sf1-vcloudcdn.pstatp.com/obj/media-fe/decoder/h264/decoder_worker_1583333072685.js');
+            self.importScripts('https://sf1-vcloudcdn.pstatp.com/obj/media-fe/decoder/h264/decoder_1583333072684.js');
           } catch (e) {
             self.postMessage({
-              msg: 'LOG',
-              log: 'import script error' + e.message
+              msg: 'INIT_FAILED'
             });
+            return;
           }
           addOnPostRun(onPostRun.bind(self));
           self.postMessage({
@@ -931,10 +936,17 @@
             decoder.updateMeta(data.meta);
             break;
           case 'decode':
+            if (!decoder) {
+              return;
+            }
             decoder.decode(data.data, data.info);
             break;
           case 'destory':
+            if (!decoder) {
+              return;
+            }
             decoder.destroy();
+            self.close();
             break;
         }
       }
@@ -1094,6 +1106,7 @@
             break;
           case 'destory':
             decoder.destroy();
+            self.close();
             break;
         }
       }
@@ -1961,18 +1974,6 @@
 
   function _inherits$1(subClass, superClass) { if (typeof superClass !== "function" && superClass !== null) { throw new TypeError("Super expression must either be null or a function, not " + typeof superClass); } subClass.prototype = Object.create(superClass && superClass.prototype, { constructor: { value: subClass, enumerable: false, writable: true, configurable: true } }); if (superClass) Object.setPrototypeOf ? Object.setPrototypeOf(subClass, superClass) : subClass.__proto__ = superClass; }
 
-  var asmSupported = function asmSupported() {
-    try {
-      (function MyAsmModule() {
-        'use asm';
-      })();
-      return true;
-    } catch (err) {
-      // will never show...
-      return false;
-    }
-  };
-
   var HAVE_NOTHING = 0;
   var HAVE_METADATA = 1;
   var HAVE_CURRENT_DATA = 2;
@@ -2045,41 +2046,32 @@
       key: 'initWasmWorker',
       value: function initWasmWorker() {
         // eslint-disable-next-line no-undef
-        this.wasmworker = new VideoWorker(false);
         window._shimWorkerDocument = document;
         window._shimWorkerWindow = window;
-        // this.wasmworker = new Worker('./worker.js');
-        this.wasmworker.onmessage = this.handleMessage;
+        this.initWorker(false);
+      }
+    }, {
+      key: 'initWorker',
+      value: function initWorker(isBackup) {
+        var _this2 = this;
+
+        if (this.wasmworker) {
+          this.destroyWorker();
+        }
+        var VideoWorkerCls = isBackup ? BackupVideoWorker : VideoWorker;
+        this.wasmworker = new VideoWorkerCls(false);
+        this.wasmworker.onmessage = isBackup ? function (msg) {
+          if (msg.data.msg === 'INIT_FAILED') {
+            _this2.emit('error', new Error('backup worker init failed'));
+          } else {
+            _this2.handleMessage(msg);
+          }
+        } : this.handleMessage;
+
         this.wasmworker.postMessage({
           msg: 'init',
           meta: this.meta
         });
-        this.setBackUpWorker();
-      }
-    }, {
-      key: 'setBackUpWorker',
-      value: function setBackUpWorker() {
-        var _this2 = this;
-
-        if (this.useBackupTimer) {
-          return;
-        }
-        this.useBackupTimer = setTimeout(function () {
-          window.clearTimeout(_this2.useBackupTimer);
-          _this2.useBackupTimer = null;
-          if (_this2._decoderInited || !asmSupported()) {
-            return;
-          }
-
-          // this.destroyWorker()
-          _this2.wasmworker = new BackupVideoWorker(false);
-          _this2.wasmworker.onmessage = _this2.handleMessage;
-          _this2.wasmworker.postMessage({
-            msg: 'init',
-            meta: _this2.meta
-          });
-          // this._decoderInited = true;
-        }, 10000);
       }
     }, {
       key: 'setVideoMetaData',
@@ -2149,7 +2141,8 @@
     }, {
       key: 'preload',
       value: function preload() {
-        if (!this._lastSampleDts || this._lastSampleDts - this._baseDts < this.currentTime + this.config.preloadTime * 1000) {
+        var bufferedEnd = this.buffered.end(0);
+        if (!this._lastSampleDts || bufferedEnd - this.currentTime / 1000 < 4) {
           var sample = this.source.get();
           if (sample) {
             this._lastSampleDts = sample.dts;
@@ -2201,7 +2194,7 @@
         }
         var dts = data.info.dts;
 
-        this._decodedFrames[dts] = data;
+        this._decodedFrames[dts - this._baseDts] = data;
         var decodedFrameLen = Object.keys(this._decodedFrames).length;
         if (this.readyStatus == HAVE_METADATA && decodedFrameLen > 0) {
           this.readyStatus = HAVE_CURRENT_DATA;
@@ -2262,7 +2255,7 @@
           if (frameTimes.length > 0) {
             this.currentTime = currentTime;
             var frameTime = -1;
-            for (var i = 0; i < frameTimes.length && Number.parseInt(frameTimes[i]) - this._baseDts <= this.currentTime; i++) {
+            for (var i = 0; i < frameTimes.length && Number.parseInt(frameTimes[i]) <= this.currentTime; i++) {
               frameTime = Number.parseInt(frameTimes[Math.max(i - 1, 0)]);
             }
             var frame = this._decodedFrames[frameTime];
@@ -2331,8 +2324,6 @@
           this.wasmworker.removeEventListener('message', this.handleMessage);
           this.wasmworker.postMessage({ msg: 'destroy' });
         }
-        window._shimWorkerDocument = null;
-        window._shimWorkerWindow = null;
         this.wasmworker = null;
       }
     }, {
@@ -2375,8 +2366,8 @@
         }
 
         if (currentRange.start !== null && currentRange.end !== null) {
-          currentRange.start = (currentRange.start - this._baseDts) / 1000;
-          currentRange.end = (currentRange.end - this._baseDts) / 1000;
+          currentRange.start = currentRange.start / 1000;
+          currentRange.end = currentRange.end / 1000;
           ranges.push(currentRange);
         }
 
@@ -2658,6 +2649,9 @@
     }, {
       key: 'destroy',
       value: function destroy() {
+        if (this.destroyed) {
+          return;
+        }
         if (this.waitNextID) {
           window.clearTimeout(this.waitNextID);
         }
@@ -2865,6 +2859,7 @@
                   break;
               case 'stop':
                   clearInterval(interval);
+                  self.close();
                   break;
           }    }, false);
   });
@@ -2918,11 +2913,13 @@
     }, {
       key: 'stop',
       value: function stop() {
-        this.worker.postMessage({
-          msg: 'stop'
-        });
-        this.worker.removeEventListener('message', this.handleMessage);
-        this.worker = null;
+        if (this.worker) {
+          this.worker.postMessage({
+            msg: 'stop'
+          });
+          this.worker.removeEventListener('message', this.handleMessage);
+          this.worker = null;
+        }
         this.handleMessage = function () {};
         this.callbacks = [];
       }

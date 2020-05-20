@@ -222,6 +222,9 @@ class AudioCtx extends EventEmitter {
   }
 
   destroy () {
+    if (this.destroyed) {
+      return;
+    }
     if (this.waitNextID) {
       window.clearTimeout(this.waitNextID)
     }

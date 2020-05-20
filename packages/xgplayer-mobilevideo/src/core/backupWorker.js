@@ -150,6 +150,7 @@ self.onmessage = function (e) {
         break;
       case 'destory':
         decoder.destroy();
+        self.close();
         break
       default:
         break;

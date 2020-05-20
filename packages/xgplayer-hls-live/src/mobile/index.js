@@ -86,15 +86,10 @@ class HlsPlayer extends BasePlugin {
   }
 
   play () {
-    // const { player } = this;
-    // if (this.played) {
-    //   this._destroy()
-    //   player.hasStart = false;
-    //   player.start()
-    // } else {
-    //   this.addLiveFlag();
-    // }
-    // this.played = true
+    if (this.hls) {
+      this.hls._onMetadataParsed('video');
+      this.hls._onMetadataParsed('audio');
+    }
   }
 
   loadData () {
