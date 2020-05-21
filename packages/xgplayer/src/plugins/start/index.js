@@ -27,7 +27,7 @@ class Start extends Plugin {
       isShowPause: false, // 暂停是否常驻
       isShowEnd: false, // 播放结束常驻
       disableAmimate: false, // 禁用点击动画
-      mode: 'resident' // 控制模式: default 常驻: resident 跟随：follow
+      mode: 'default' // 控制模式: default 常驻: resident 跟随：follow
     }
   }
 
