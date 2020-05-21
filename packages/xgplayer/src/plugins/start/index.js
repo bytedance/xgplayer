@@ -27,7 +27,7 @@ class Start extends Plugin {
       isShowPause: false, // 暂停是否常驻
       isShowEnd: false, // 播放结束常驻
       disableAmimate: false, // 禁用点击动画
-      mode: 'default' // 控制模式: default 常驻: resident 跟随：follow
+      mode: 'hide' // 控制模式: hide 常驻: show 跟随：auto
     }
   }
 
@@ -130,7 +130,7 @@ class Start extends Plugin {
 
   onPlayPause (status) {
     const {config, player} = this
-    if (config.mode === 'resident') {
+    if (config.mode === 'show') {
       this.switchStatus()
       this.show()
       return
