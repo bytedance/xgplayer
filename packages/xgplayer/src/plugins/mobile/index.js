@@ -130,7 +130,6 @@ class MobilePlugin extends Plugin {
   onTouchMove (e) {
     e.preventDefault()
     e.stopPropagation()
-    this.isTouchMove = true
     const touche = this.getTouche(e.touches)
     if (!touche) {
       return
@@ -160,6 +159,7 @@ class MobilePlugin extends Plugin {
       if (config.updateGesture && typeof config.updateGesture === 'function') {
         config.updateGesture({diffx: diffx, diffy: diffy, x: x, y: y}, pos)
       }
+      this.isTouchMove = true
     }
   }
 

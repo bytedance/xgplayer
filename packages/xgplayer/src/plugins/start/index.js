@@ -1,6 +1,7 @@
 import Plugin from '../../plugin'
 import PlaySvg from '../assets/play.svg'
 import PauseSvg from '../assets/pause.svg'
+const { Util, Events } = Plugin
 
 const AnimateMap = {}
 function addAnimate (key, seconds, callback = {start: null, end: null}) {
@@ -16,8 +17,6 @@ function addAnimate (key, seconds, callback = {start: null, end: null}) {
   }, seconds);
 }
 
-const { Util, Events } = Plugin
-
 class Start extends Plugin {
   static get pluginName () {
     return 'start'
@@ -25,9 +24,10 @@ class Start extends Plugin {
 
   static get defaultConfig () {
     return {
-      isShowPause: false,
-      isShowEnd: false,
-      disableAmimate: false
+      isShowPause: false, // 暂停是否常驻
+      isShowEnd: false, // 播放结束常驻
+      disableAmimate: false, // 禁用点击动画
+      mode: 'hide' // 控制模式: hide 常驻: show 跟随：auto
     }
   }
 
@@ -48,25 +48,22 @@ class Start extends Plugin {
       this.show();
     }
 
-    this.onClick = this.onClick.bind(this)
-
-    this.bind('click', this.onClick)
-
     this.on(Events.AUTOPLAY_PREVENTED, () => {
       this.setAttr('data-state', 'play')
       this.show();
     })
 
     this.on(Events.PLAY, () => {
-      this.player.isPlaying ? this.animate() : this.hide()
+      this.onPlayPause('play')
     })
 
     this.on(Events.PAUSE, () => {
-      if (!this.player.isPlaying) {
-        return
-      }
-      this.animate()
+      this.onPlayPause('pause')
     })
+
+    this.onClick = this.onClick.bind(this)
+
+    this.bind('click', this.onClick)
   }
 
   registerIcons () {
@@ -82,10 +79,22 @@ class Start extends Plugin {
     this.appendChild('.icon', icons.startPause)
   }
 
-  animate (isEnded) {
+  hide () {
+    Util.addClass(this.root, 'hide')
+  }
+
+  show () {
+    Util.removeClass(this.root, 'hide')
+  }
+
+  switchStatus () {
+    this.setAttr('data-state', this.player.paused ? 'play' : 'pause')
+  }
+
+  animate (endShow) {
     if ((this.config.isShowPause && this.player.paused && !this.player.ended) || (this.config.isShowEnd && this.player.ended)) {
       this.show()
-      this.setAttr('data-state', this.player.paused ? 'play' : 'pause')
+      this.switchStatus()
       return
     }
     if (this.player.disableAmimate || this.config.disableAnimate) {
@@ -95,11 +104,11 @@ class Start extends Plugin {
       start: () => {
         Util.addClass(this.root, 'interact')
         this.show()
-        this.setAttr('data-state', this.player.paused ? 'pause' : 'play')
+        this.switchStatus()
       },
       end: () => {
         Util.removeClass(this.root, 'interact');
-        this.hide()
+        !endShow && this.hide()
       }
     })
   }
@@ -119,13 +128,35 @@ class Start extends Plugin {
     }
   }
 
+  onPlayPause (status) {
+    const {config, player} = this
+    if (config.mode === 'show') {
+      this.switchStatus()
+      this.show()
+      return
+    }
+    if ((config.isShowPause && player.paused && !player.ended) || (config.isShowEnd && player.ended)) {
+      this.show()
+      this.switchStatus()
+      return
+    }
+    if (status === 'play') {
+      this.player.isPlaying ? this.animate() : this.hide()
+    } else {
+      if (!this.player.isPlaying) {
+        return
+      }
+      this.animate()
+    }
+  }
+
   destroy () {
     this.unbind('click', this.onClick)
   }
 
   render () {
     return `
-    <xg-start class="xgplayer-start" >
+    <xg-start class="xgplayer-start hide">
       <div class="icon">
       </div>
     </xg-start>`

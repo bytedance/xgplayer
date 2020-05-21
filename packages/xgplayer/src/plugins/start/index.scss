@@ -4,22 +4,21 @@
   @keyframes playPause {
     0%{
       transform:scale(1);
-      opacity:1
+      opacity:1;
     }
     99%{
       transform:scale(1.3);
-      opacity:0
+      opacity:0;
     }
     to {
       transform:scale(0);
-      opacity:1
+      opacity:1;
     }
   }
   .xgplayer-start {
-    border-radius: 50%;
-    display: none;
     width: 70px;
     height: 70px;
+    border-radius: 50%;
     background: $startBgColor;
     overflow: hidden;
     position: absolute;
@@ -29,7 +28,7 @@
     margin: -35px auto auto -35px;
     cursor: pointer;
     svg {
-      fill: $startSvgFill;
+      fill: rgb(255, 255, 255);
       width: 70px;
       height: 70px;
     }
@@ -52,6 +51,12 @@
     }
     &.interact {
       animation: playPause .4s ease-out forwards;
+      display: block;
+    }
+    &.hide {
+      display: none;
+    }
+    &.show {
       display: block;
     }
   }

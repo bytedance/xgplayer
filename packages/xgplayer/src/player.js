@@ -53,7 +53,6 @@ class Player extends Proxy {
     }, 0)
 
     if (this.config.videoInit || this.config.autoplay) {
-      console.log('start')
       if (!this.hasStart) {
         this.start()
       }
@@ -191,7 +190,6 @@ class Player extends Proxy {
     }
     this.canPlayFunc = function () {
       this.volume = this.config.volume
-      this.play()
       this.off(Events.CANPLAY, this.canPlayFunc)
       this.removeClass(STATE_CLASS.ENTER)
     }
@@ -211,6 +209,8 @@ class Player extends Proxy {
 
     if (this.config.autoplay) {
       this.once(Events.CANPLAY, this.canPlayFunc)
+      this.load()
+      this.play()
     }
     root.insertBefore(this.video, root.firstChild)
     setTimeout(() => {
@@ -351,6 +351,10 @@ class Player extends Proxy {
     }
   }
 
+  load () {
+    this.video && this.video.load()
+  }
+
   play () {
     if (!this.hasStart) {
       this.start().then(resolve => {
@@ -361,12 +365,13 @@ class Player extends Proxy {
     const playPromise = super.play()
     if (playPromise !== undefined && playPromise && playPromise.then) {
       playPromise.then(() => {
+        console.log('>>>>playPromise.then')
         this.removeClass(STATE_CLASS.NOT_ALLOW_AUTOPLAY)
         this.removeClass(STATE_CLASS.NO_START)
         this.addClass(STATE_CLASS.PLAYING)
         this.isPlaying = true
       }).catch((e) => {
-        // console.log('AUTOPLAY_PREVENTED', e)
+        console.log('>>>>playPromise.catch')
         // 避免AUTOPLAY_PREVENTED先于playing和play触发
         setTimeout(() => {
           this.emit(Events.AUTOPLAY_PREVENTED)
@@ -393,7 +398,7 @@ class Player extends Proxy {
   }
 
   reload () {
-    this.video.load()
+    this.load()
     this.reloadFunc = function () {
       this.play().catch(err => { console.log(err) })
     }
@@ -544,7 +549,6 @@ class Player extends Proxy {
   }
 
   onSeeked () {
-    console.log('onSeeked')
     this.isSeeking = false
     // for ie,playing fired before waiting
     if (this.waitTimer) {
@@ -586,8 +590,6 @@ class Player extends Proxy {
     }
     if (this.video.videoWidth && this.video.videoHeight) {
       let containerSize = this.root.getBoundingClientRect()
-      console.log(`containerSize.width:${containerSize.width} containerSize.height:${containerSize.height} per: ${containerSize.width / containerSize.height}`)
-      console.log(`video per:${this.video.videoWidth / this.video.videoHeight}`)
       if (fitVideoSize === 'auto') {
         if (containerSize.width / containerSize.height > this.video.videoWidth / this.video.videoHeight) {
           this.root.style.height = `${this.video.videoHeight / this.video.videoWidth * containerSize.width}px`
