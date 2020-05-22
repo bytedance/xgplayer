@@ -17,7 +17,10 @@ const REMUX_EVENTS = EVENTS.REMUX_EVENTS;
 const DEMUX_EVENTS = EVENTS.DEMUX_EVENTS;
 const HLS_EVENTS = EVENTS.HLS_EVENTS;
 const CRYTO_EVENTS = EVENTS.CRYTO_EVENTS;
+const MSE_EVENTS = EVENTS.MSE_EVENTS;
 const HLS_ERROR = 'HLS_ERROR';
+
+const MASTER_PLAYLIST_REGEX = /#EXT-X-STREAM-INF:([^\n\r]*)[\r\n]+([^\r\n]+)/g;
 class HlsLiveController {
   constructor (configs) {
     this.configs = Object.assign({}, configs);
@@ -78,6 +81,8 @@ class HlsLiveController {
     this.on(DEMUX_EVENTS.DEMUX_ERROR, this._onDemuxError.bind(this));
 
     this.on(REMUX_EVENTS.REMUX_ERROR, this._onRemuxError.bind(this));
+
+    this.on(MSE_EVENTS.MSE_ERROR, this._handleMseError.bind(this))
   }
 
   _onError (type, mod, err, fatal) {
@@ -102,7 +107,7 @@ class HlsLiveController {
   }
 
   _onLoadError (loader, error) {
-    if (!this._tsloader.loading && !this._m3u8loader.loading && this.retrytimes > 1) {
+    if (!this._tsloader.loading && !this._m3u8loader.loading && this.retrytimes >= 1) {
       this.retrytimes--;
       this._onError(LOADER_EVENTS.LOADER_ERROR, loader, error, false);
     } else if (this.retrytimes <= 1) {
@@ -126,6 +131,14 @@ class HlsLiveController {
     this._onError(REMUX_EVENTS.REMUX_ERROR, mod, error, fatal);
   }
 
+  _handleMseError (tag, err, fatal) {
+    if (fatal === undefined) {
+      fatal = false;
+    }
+    this._player.emit('error', new Player.Errors('parse', this._player.config.url))
+    this._onError(MSE_EVENTS.MSE_ERROR, tag, err, fatal)
+  }
+
   _handleSEIParsed (sei) {
     this._player.emit('SEI_PARSED', sei)
   }
@@ -135,7 +148,13 @@ class HlsLiveController {
       let mdata;
       try {
         this.m3u8Text = buffer.shift();
-        mdata = M3U8Parser.parse(this.m3u8Text, this.baseurl);
+        let result = MASTER_PLAYLIST_REGEX.exec(this.m3u8Text)
+        if (result && result[2]) {
+          // redirect
+          this.load(result[2])
+        } else {
+          mdata = M3U8Parser.parse(this.m3u8Text, this.baseurl);
+        }
       } catch (error) {
         this._onError('M3U8_PARSER_ERROR', 'M3U8_PARSER', error, false);
       }
@@ -209,8 +228,10 @@ class HlsLiveController {
     }
   }
   _checkStatus () {
-    if (this.retrytimes < 1 && (new Date().getTime() - this._lastCheck < 10000)) {
+    if (this.retrytimes < 1 && (Date.now() - this._lastCheck < 4000)) {
       return;
+    } else if (this.retrytimes < 1) {
+      clearInterval(this._timmer)
     }
     this._lastCheck = new Date().getTime();
     if (this._player.buffered.length < 1) {
@@ -231,9 +252,7 @@ class HlsLiveController {
       if (currentTime < bufferend - (this.preloadTime * 2)) {
         this._player.currentTime = bufferend - (this.preloadTime * 2);
       }
-      if (bufferend > this.preloadTime * 2) {
-        this.mse.remove(bufferend - (this.preloadTime * 2));
-      }
+
       if (currentTime > bufferend - this.preloadTime) {
         this._preload();
       }

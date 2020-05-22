@@ -31,7 +31,6 @@ Decoder.prototype.toU8Array = function (ptr, length) {
 
 Decoder.prototype.init = function () {
   Module._broadwayInit();
-  this.broadwayOnBroadwayInited()
   this.streamBuffer = this.toU8Array(Module._broadwayCreateStream(MAX_STREAM_BUFFER_LENGTH), MAX_STREAM_BUFFER_LENGTH);
 }
 
@@ -39,6 +38,9 @@ Decoder.prototype.broadwayOnPictureDecoded = function (offset, width, height, yL
   let info = Object.assign({}, this.infolist[infoid]);
   let yRowcount = height;
   let uvRowcount = height / 2;
+  if (!uvLinesize) {
+    uvLinesize = yLinesize / 2;
+  }
   if (this.meta && (this.meta.chromaFormat === 444 || this.meta.chromaFormat === 422)) {
     uvRowcount = height;
   }
@@ -79,18 +81,11 @@ Decoder.prototype.decode = function (data, info) {
   let infoid = time - (Math.floor(time / 10e8) * 10e8);
   this.infolist[infoid] = info;
   this.streamBuffer.set(data);
-  if (info) {
-    // self.postMessage({
-    //   msg: 'LOG',
-    //   log: 'decode sample ' + info.dts + ' cost ' + Date.now()
-    // })
-  }
   Module._broadwayPlayStream(data.length, infoid);
 }
 
 Decoder.prototype.destroy = function () {
   Module._broadwayExit();
-  this.streamBuffer = null;
 }
 
 Decoder.prototype.updateMeta = function(meta){
@@ -100,48 +95,32 @@ Decoder.prototype.updateMeta = function(meta){
 var decoder;
 
 function onPostRun () {
-  self.postMessage({
-    msg: 'LOG',
-    log: 'do post run'
-  })
   decoder = new Decoder(this);
   decoder.init();
+  self.postMessage({
+    msg: 'LOG',
+    log: 'decoder inited'
+  })
+  decoder.broadwayOnBroadwayInited();
 }
 
 function init (meta) {
   if (!decoder) {
     if (!self.importScripts) {
-      shimImportScripts('https://sf1-vcloudcdn.pstatp.com/obj/media-fe/decoder/h264/decoder_1583333072685.js').then(() => {
-        console.log(Module)
+      shimImportScripts('https://sf1-vcloudcdn.pstatp.com/obj/media-fe/decoder/h264/decoder_asm_1589261792455.js').then(() => {
         self.postMessage({
           msg: 'LOG',
-          log: addOnPostRun
+          log: Module
         })
-        addOnPostRun(onPostRun.bind(self));
+        onPostRun.call(self)
       })
     } else {
+      self.importScripts('https://sf1-vcloudcdn.pstatp.com/obj/media-fe/decoder/h264/decoder_asm_1589261792455.js');
       self.postMessage({
         msg: 'LOG',
-        log: 'do import script '
+        log: Module.toString()
       })
-      try {
-        self.importScripts('https://sf1-vcloudcdn.pstatp.com/obj/media-fe/decoder/h264/decoder_1583333072684.js');
-      } catch (e) {
-        self.postMessage({
-          msg: 'INIT_FAILED'
-        })
-        return;
-      }
-      addOnPostRun(onPostRun.bind(self));
-      self.postMessage({
-        msg: 'LOG',
-        log: 'import script done' + Module.toString()
-      })
-      setTimeout(() => {
-        if (!decoder) {
-          onPostRun.call(this);
-        }
-      }, 5000)
+      onPostRun.call(self)
     }
   }
 }
@@ -167,15 +146,9 @@ self.onmessage = function (e) {
         decoder.updateMeta(data.meta)
         break;
       case 'decode':
-        if (!decoder) {
-          return;
-        }
         decoder.decode(data.data, data.info);
         break;
       case 'destory':
-        if (!decoder) {
-          return;
-        }
         decoder.destroy();
         self.close();
         break

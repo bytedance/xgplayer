@@ -1,41 +1,46 @@
-import Ticker from './ticker'
+import Ticker from './ticker';
 import Worker from 'worker!./tickworker.js';
 
-export default class WorkerTicker extends Ticker{
-    constructor (config) {
-        super(config)
-        this.timeoutId = null
-        this.worker = new Worker();
-        this.handleMessage = this.handleMessage.bind(this);
-        this.worker.addEventListener('message', this.handleMessage);
-      }
-    
-      handleMessage(){
-        this.onTick()
-      }
+export default class WorkerTicker extends Ticker {
+  constructor (config) {
+    super(config);
+    this.timeoutId = null;
+    this.worker = new Worker();
+    this.handleMessage = this.handleMessage.bind(this);
+    this.worker.addEventListener('message', this.handleMessage);
+  }
 
-      start (...callbacks) {
-        super.start(...callbacks)
-        this.onTick()
-        this.worker.postMessage({
-            msg: 'start',
-            interval: this.options.interval,
-        })
-      }
-    
-      stop () {
-        this.worker.postMessage({
-            msg: 'stop'
-        })
-        this.worker = null
-      }
+  handleMessage () {
+    this.onTick();
+  }
 
-      setInterval (interval) {
-        super.setInterval(interval)
-        this.onTick()
-        this.worker.postMessage({
-            msg: 'start',
-            interval: this.config.interval,
-        })
-      }
+  start (...callbacks) {
+    super.start(...callbacks);
+    this.onTick();
+    this.worker.postMessage({
+      msg: 'start',
+      interval: this.options.interval,
+    });
+  }
+
+  stop () {
+    if (this.worker) {
+      this.worker.postMessage({
+        msg: 'stop'
+      });
+      this.worker.removeEventListener('message', this.handleMessage);
+      this.worker = null;
+    }
+    this.handleMessage = () => {};
+    this.callbacks = [];
+  }
+
+  setInterval (interval) {
+    super.setInterval(interval);
+    this.onTick();
+    this.worker.postMessage({
+      msg: 'start',
+      interval: this.config.interval,
+    });
+  }
 }

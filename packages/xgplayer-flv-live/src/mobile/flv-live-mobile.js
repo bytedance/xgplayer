@@ -2,6 +2,8 @@ import FlvDemuxer from 'xgplayer-transmuxer-demux-flv'
 import FetchLoader from 'xgplayer-transmuxer-loader-fetch'
 import EVENTS from 'xgplayer-transmuxer-constant-events'
 import Tracks from 'xgplayer-transmuxer-buffer-track'
+import { NalUnit } from 'xgplayer-transmuxer-codec-avc';
+import Stream from 'xgplayer-transmuxer-buffer-stream'
 import XgBuffer from 'xgplayer-transmuxer-buffer-xgbuffer'
 import { PageVisibility } from 'xgplayer-utils-sniffer';
 import Player from 'xgplayer'
@@ -78,6 +80,24 @@ export default class FlvController {
   _handleDemuxComplete () {
     if (this._player.video) {
       const { videoTrack, audioTrack } = this._context.getInstance('TRACKS');
+      videoTrack.samples.forEach((sample) => {
+        const buffer = new Stream(sample.data.buffer)
+        const nals = NalUnit.getNalunits(buffer);
+        const nalsLength = nals.reduce((len, current) => {
+          return len + 4 + current.body.byteLength;
+        }, 0);
+        const newData = new Uint8Array(nalsLength);
+        let offset = 0;
+        nals.forEach((nal) => {
+          newData.set([0, 0, 0, 1], offset)
+          offset += 4;
+          newData.set(new Uint8Array(nal.body), offset);
+          offset += nal.body.byteLength;
+
+        })
+
+        sample.data = newData;
+      })
       this._player.video.onDemuxComplete(videoTrack, audioTrack);
     }
   }

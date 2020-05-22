@@ -19,7 +19,6 @@ class MobileVideo extends HTMLElement {
     this.audioMetaInited = false;
     this.handleVCtxInnerEvent = this.handleVCtxInnerEvent.bind(this)
     this._err = null
-    this.init()
     this._lastTimeupdateStamp = 0
     this._volumeEventStamp = 0
     this._hasDispatch = false
@@ -28,9 +27,12 @@ class MobileVideo extends HTMLElement {
 
   init () {
     this._destroyed = false
+    if (this.vCtx) {
+      this.vCtx.destroy();
+    }
     this.vCtx = new VideoCtx(Object.assign({
       canvas: this._canvas,
-      preloadTime: Infinity
+      preloadTime: this.preloadTime
     }, { style: { width: this.width, height: this.height } }));
 
     // this._innerDispatchEvent('waiting')
@@ -38,9 +40,9 @@ class MobileVideo extends HTMLElement {
       if (!this.played) {
         if (!this.contains(this._canvas)) {
           this.appendChild(this._canvas);
-          if (this.autoplay) {
-            this._innerDispatchEvent('play')
-          }
+          // if (this.autoplay) {
+          //   this._innerDispatchEvent('play')
+          // }
         }
       }
     }
@@ -84,14 +86,13 @@ class MobileVideo extends HTMLElement {
 
   _destroyAudio () {
     this.audioMetaInited = false;
-    if (!this.noAudio) {
-      this.aCtx.on('AUDIO_SOURCE_END', this.handleAudioSourceEnd)
+    if (!this.noAudio && this.aCtx) {
+      this.aCtx.removeListener('AUDIO_SOURCE_END', this.handleAudioSourceEnd)
       this.aCtx.destroy()
     }
-    this.ticker.stop()
     this.start = null;
-    this.reconciler.destroy()
     this.aCtx = null;
+    this.ticker.stop()
     this.ticker = null;
     this.pendingPlayTask = null;
     this.played = false;
@@ -109,6 +110,8 @@ class MobileVideo extends HTMLElement {
     if (this._destroyed) {
       return
     }
+
+    this.reconciler.destroy()
     this._destroyed = true
     this._destroyVideo()
     this._destroyAudio()
@@ -128,10 +131,6 @@ class MobileVideo extends HTMLElement {
   setAudioMeta (meta) {
     if (this.noAudio) {
       return;
-    }
-    if (this.audioMetaInited) {
-      this.aCtx.destroy();
-      this.aCtx = new AudioCtx({});
     }
     this.aCtx.setAudioMetaData(meta);
     this.audioMetaInited = true;
@@ -165,11 +164,15 @@ class MobileVideo extends HTMLElement {
   }
 
   disconnectedCallback () {
-    this._destroyAudio()
+    this.destroy()
   }
 
   connectedCallback () {
-    this._initAudio()
+    // console.log('connected callback', this.noAudio)
+    this._currentTime = 0;
+    this.start = undefined;
+    this.init()
+    this._initAudio();
     this.vCtx.reset()
   }
 
@@ -290,13 +293,21 @@ class MobileVideo extends HTMLElement {
     if (this.pendingPlayTask) {
       return;
     }
-    this._innerDispatchEvent('play')
+
+    if (this.played) {
+      this.connectedCallback()
+    }
+
     if (!this.autoplay && !this._hasDispatch) {
       this._innerDispatchEvent('waiting')
       this._hasDispatch = true
       this._waiting = true
     }
+
+    this._paused = false
+    this._innerDispatchEvent('play')
     let audioPlayTask = null
+
     if (this.noAudio) {
       audioPlayTask = Promise.resolve()
     } else {
@@ -305,21 +316,22 @@ class MobileVideo extends HTMLElement {
     this.pendingPlayTask = Promise.all([
       this.vCtx.play(),
       audioPlayTask.then(() => {
-
-        if (this.aCtx){
+        if (this.aCtx) {
           this.aCtx.muted = true
         }
       })
     ]).then(() => {
-      if (this.aCtx){
+      if (this.aCtx) {
         this.aCtx.muted = false
       }
       this.ticker.start(() => {
+        this.vCtx.preload()
         if (!this.start) {
           this.start = Date.now()
           this._lastTimeupdateStamp = this.start
         }
         const prevTime = this._currentTime;
+
         this._currentTime = Date.now() - this.start
 
         // console.log(this._currentTime, ' ', this.start)
@@ -333,10 +345,10 @@ class MobileVideo extends HTMLElement {
           if (now - this._lastTimeupdateStamp >= 250) { // debounce
             this._lastTimeupdateStamp = now
             this._innerDispatchEvent('timeupdate')
-            this.vCtx.preload()
           }
         } else {
           this._currentTime = prevTime;
+          this.start += (Date.now() - this.start - prevTime);
           if (!this._waiting && !this.paused) {
             this._waiting = true;
             this._innerDispatchEvent('waiting')
@@ -346,16 +358,25 @@ class MobileVideo extends HTMLElement {
       this.pendingPlayTask = null
       this.played = true;
       // this._innerDispatchEvent('playing')
-      this._paused = false
+    }).catch((e) => {
+      this.pendingPlayTask = null
+      this._paused = true;
+      console.error(e);
+      throw e;
     })
+    return this.pendingPlayTask;
   }
 
   pause () {
     this._paused = true;
     if (!this.noAudio) {
-      this.aCtx.pause()
+      this.aCtx.pause();
+      this.aCtx.destroy();
     }
+
     this.vCtx.pause();
+
+    this.ticker.stop()
 
     Promise.resolve().then(() => {
       this._innerDispatchEvent('pause')
@@ -370,7 +391,7 @@ class MobileVideo extends HTMLElement {
     if (this.noAudio) {
       return 0;
     }
-    return this.aCtx.volume
+    return this.aCtx ? this.aCtx.volume : 0;
   }
 
   set volume (vol) {
@@ -434,17 +455,35 @@ class MobileVideo extends HTMLElement {
     return 0
   }
 
-  get fps(){
+  get fps () {
     return this._fps
   }
 
-  set fps(val){
-    if(!validateFPS(val)){
+  set fps (val) {
+    if (!validateFPS(val)) {
       val = DEFAULT_FPS
     }
     this._fps = val
-    if(this.ticker){
-      this.ticker.setInterval(1000/val)
+    if (this.ticker) {
+      this.ticker.setInterval(1000 / val)
+    }
+  }
+
+  get preloadTime () {
+    const attrPreloadTime = this.getAttribute('preloadtime');
+    if (attrPreloadTime) {
+      const preloadTime = Number.parseFloat(attrPreloadTime);
+      if (preloadTime > 0 && !Number.isNaN(preloadTime)) {
+        return preloadTime;
+      }
+    }
+    return Infinity;
+  }
+
+  set preloadTime (val) {
+    if (val && Number(val) > 0) {
+      this.setAttribute('preloadtime', val);
+      this.vCtx.config.preloadTime = this.preloadTime;
     }
   }
 }

@@ -133,6 +133,7 @@ class TsDemuxer {
       sampleRate: pes.ES.frequence,
       channelCount: pes.ES.channel,
       codec: 'mp4a.40.' + pes.ES.audioObjectType,
+      objectType: pes.ES.audioObjectType,
       originCodec: 'mp4a.40.' + pes.ES.originAudioObjectType,
       config: pes.ES.audioConfig,
       id: 2,
@@ -325,8 +326,10 @@ class TsDemuxer {
     let hasVPS = false;
     let hasSPS = false;
     let hasPPS = false;
+    let hasKeyframe = false;
     for (let i = 0; i < nals.length; i++) {
       let nal = nals[i];
+
       if (nal.vps) {
         if (hasVPS) {
           continue;
@@ -345,6 +348,14 @@ class TsDemuxer {
         } else {
           hasPPS = true;
         }
+      } else if (nal.key) {
+        hasKeyframe = true
+      } else if (nal.type === 0) {
+        if (!hasKeyframe) {
+          continue;
+        }
+      } else if (nal.type === 35) {
+        continue
       }
       if (nal.sps) {
         sps = nal;
@@ -418,11 +429,13 @@ class TsDemuxer {
     hasVPS = false;
     hasSPS = false;
     hasPPS = false;
+    hasKeyframe = false;
     for (let i = 0; i < nals.length; i++) {
       let nal = nals[i];
       if (nal.type && nal.type > 40) {
         continue;
       }
+
       if (nal.vps) {
         if (hasVPS) {
           continue;
@@ -441,6 +454,14 @@ class TsDemuxer {
         } else {
           hasPPS = true;
         }
+      } else if (nal.key) {
+        hasKeyframe = true
+      } else if (nal.type === 0) {
+        if (!hasKeyframe) {
+          continue;
+        }
+      } else if (nal.type === 35) {
+        continue
       }
       let length = nal.body.byteLength;
       if (nal.key) {
@@ -1005,7 +1026,7 @@ class TsDemuxer {
         config = new Array(2);
         extensionSampleIndex = ret.frequencyIndex;
       }
-    } else if (userAgent.indexOf('android') !== -1) {
+    } else if (userAgent.indexOf('android') !== -1 || userAgent.indexOf('safari') !== -1) {
       ret.audioObjectType = 2;
       config = new Array(2);
       extensionSampleIndex = ret.frequencyIndex;

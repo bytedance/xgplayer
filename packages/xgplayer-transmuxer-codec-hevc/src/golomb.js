@@ -58,6 +58,9 @@ class Golomb {
   }
 
   _skipLeadingZero () {
+    if (this._currentWordBitsLeft === 0) {
+      return 0;
+    }
     let zeroCount
     for (zeroCount = 0; zeroCount < this._currentWordBitsLeft; zeroCount++) {
       if ((this._currentWord & (0x80000000 >>> zeroCount)) !== 0) {

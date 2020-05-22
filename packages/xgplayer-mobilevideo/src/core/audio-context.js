@@ -23,7 +23,7 @@ class AudioCtx extends EventEmitter {
     // 记录外部传输的状态
     this._played = false;
     this.paused = true;
-    this.playFinish = null; // pending play task
+    this.loadFinish = null; // pending play task
     this.waitNextID = null; // audio source end and next source not loaded
     this.destroyed = false;
   }
@@ -101,8 +101,8 @@ class AudioCtx extends EventEmitter {
           _this.decodeAAC();
         }
 
-        if (_this.playFinish) {
-          _this.playFinish()
+        if (_this.loadFinish) {
+          _this.loadFinish()
         }
       }, (e) => {
         console.error(e)
@@ -139,34 +139,56 @@ class AudioCtx extends EventEmitter {
   }
 
   play () {
-    if (this.playFinish) {
+    if (this.loadFinish) {
       return;
     }
+
     this._played = true;
-    if (this.context.state === 'suspended') {
-      this.context.resume()
-    }
+
     let _this = this;
     const playStart = () => {
       let audioSource = this._currentBuffer.data;
-      audioSource.start();
+      try {
+        audioSource.start();
+      } catch (e) {
+        // NOTHING
+      }
       audioSource.connect(this.gainNode);
-      this.paused  = false;
+      this.paused = false;
+      if (this.context.state !== 'running' && this.playFailed) {
+        this.context.resume().then(() => {
+          if (this.context.state === 'running' && this.playFinish) {
+            this.playFinish();
+          }
+        })
+        setTimeout(() => {
+          this.playFailed(new Error('audio context suspended'));
+        })
+      } else if (this.playFinish) {
+        this.playFinish();
+      }
       setTimeout(() => {
         _this.onSourceEnded.call(this);
-      }, audioSource.buffer.duration * 1000 - 20);
+      }, audioSource.buffer.duration * 1000 - 10);
     }
 
     if (!this._currentBuffer) {
-      return new Promise((resolve) => {
+      return new Promise((resolve, reject) => {
+        this.loadFinish = playStart;
         this.playFinish = resolve;
+        this.playFailed = reject;
       }).then(() => {
+        this.loadFinish = null;
         this.playFinish = null;
+        this.playFailed = null;
         playStart()
       });
     } else {
-      playStart();
-      return Promise.resolve()
+      return new Promise((resolve, reject) => {
+        this.playFinish = resolve;
+        this.playFailed = reject;
+        playStart();
+      })
     }
   }
 
@@ -175,6 +197,11 @@ class AudioCtx extends EventEmitter {
     if (audioCtx.state === 'running') {
       audioCtx.suspend()
     }
+    this._currentBuffer = undefined;
+    this._nextBuffer = undefined;
+    this._lastpts = undefined;
+    // this.duration = 0;
+    this.samples = []
     this.paused = true;
   }
 
@@ -195,6 +222,9 @@ class AudioCtx extends EventEmitter {
   }
 
   destroy () {
+    if (this.destroyed) {
+      return;
+    }
     if (this.waitNextID) {
       window.clearTimeout(this.waitNextID)
     }
@@ -216,7 +246,7 @@ class AudioCtx extends EventEmitter {
   }
 
   get volume () {
-    if (this.context.state === 'suspended' || this.paused || this.muted) {
+    if (this.context.state === 'suspended' || this.muted) {
       return 0;
     }
     return this._volume

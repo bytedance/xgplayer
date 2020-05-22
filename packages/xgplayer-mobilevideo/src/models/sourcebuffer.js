@@ -12,46 +12,38 @@ class SourceBuffer {
   }
 
   push (frame) {
-    if (this.type === 'video') {
-      if (frame.isKeyframe) {
-        let currentGop = {
-          samples: [],
-          start: frame.dts,
-          end: frame.dts,
-          nextGop: undefined
-        };
-        if (this.currentGop) {
-          this.currentGop.nextGop = currentGop;
-        }
-        this.currentGop = currentGop;
-        this.buffer.push(this.currentGop);
-      }
-
-      if (this.currentGop) {
-        this.currentGop.samples.push(frame);
-
-        if (frame.dts < this.currentGop.start) {
-          this.currentGop.start = frame.dts;
-        }
-
-        if (frame.dts > this.currentGop.end) {
-          this.currentGop.end = frame.dts;
-        }
-      }
-    }
+    // if (this.type === 'video') {
+    //   if (frame.isKeyframe) {
+    //     let currentGop = {
+    //       samples: [],
+    //       start: frame.dts,
+    //       end: frame.dts,
+    //       nextGop: undefined
+    //     };
+    //     if (this.currentGop) {
+    //       this.currentGop.nextGop = currentGop;
+    //     }
+    //     this.currentGop = currentGop;
+    //     this.buffer.push(this.currentGop);
+    //   }
+    //
+    //   if (this.currentGop) {
+    //     this.currentGop.samples.push(frame);
+    //
+    //     if (frame.dts < this.currentGop.start) {
+    //       this.currentGop.start = frame.dts;
+    //     }
+    //
+    //     if (frame.dts > this.currentGop.end) {
+    //       this.currentGop.end = frame.dts;
+    //     }
+    //   }
+    // }
+    this.buffer.push(frame)
   }
 
   get (time) {
-    if (this.type === 'video') {
-      if (this.buffer.length < 1) {
-        return;
-      }
-
-      if (time === undefined) {
-        let sample = this._getNext();
-        return sample;
-      }
-    }
+    return this.buffer.shift()
   }
 
   _getNext () {

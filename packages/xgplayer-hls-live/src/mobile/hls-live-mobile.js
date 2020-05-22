@@ -1,12 +1,15 @@
 import EVENTS from 'xgplayer-transmuxer-constant-events'
 import Tracks from 'xgplayer-transmuxer-buffer-track'
 import XgBuffer from 'xgplayer-transmuxer-buffer-xgbuffer'
+import Stream from 'xgplayer-transmuxer-buffer-stream'
 import FetchLoader from 'xgplayer-transmuxer-loader-fetch'
 import Crypto from 'xgplayer-utils-crypto';
 
 import M3U8Parser from 'xgplayer-transmuxer-demux-m3u8';
 import TsDemuxer from 'xgplayer-transmuxer-demux-ts';
+import { NalUnit } from 'xgplayer-transmuxer-codec-avc';
 import Playlist from 'xgplayer-transmuxer-buffer-playlist';
+import Player from 'xgplayer';
 
 const LOADER_EVENTS = EVENTS.LOADER_EVENTS;
 const DEMUX_EVENTS = EVENTS.DEMUX_EVENTS;
@@ -22,12 +25,13 @@ class HlsLiveController {
     this._playlist = null;
     this.retrytimes = this.configs.retrytimes || 3;
     this.preloadTime = this.configs.preloadTime;
-    this.container = this.configs.container;
     this._m3u8lasttime = 0;
     this._timmer = setInterval(this._checkStatus.bind(this), 50);
     this._lastCheck = 0;
     this._player = this.configs.player;
     this.m3u8Text = null
+
+    this.setDataInterval = null;
   }
 
   init () {
@@ -69,12 +73,41 @@ class HlsLiveController {
       errorFatal: fatal
     }
     this._player.emit(HLS_ERROR, error);
+    this._player.emit('error', new Player.Errors('network', this._player.config.url))
   }
 
   _onDemuxComplete () {
     if (this._player.video) {
       const { videoTrack, audioTrack } = this._context.getInstance('TRACKS');
-      this._player.video.onDemuxComplete(videoTrack, audioTrack);
+      videoTrack.samples.forEach((sample) => {
+        const buffer = new Stream(sample.data.buffer)
+        const nals = NalUnit.getNalunits(buffer);
+        const nalsLength = nals.reduce((len, current) => {
+          return len + 4 + current.body.byteLength;
+        }, 0);
+        const newData = new Uint8Array(nalsLength);
+        let offset = 0;
+        nals.forEach((nal) => {
+          newData.set([0, 0, 0, 1], offset)
+          offset += 4;
+          newData.set(new Uint8Array(nal.body), offset);
+          offset += nal.body.byteLength;
+
+        })
+
+        sample.data = newData;
+      })
+      if (this.setDataInterval) {
+        return;
+      }
+      this.setDataInterval = setInterval(() => {
+        if (videoTrack.samples.length || audioTrack.samples.length) {
+          this._player.video.onDemuxComplete(videoTrack, audioTrack);
+        } else {
+          clearInterval(this.setDataInterval);
+          this.setDataInterval = null;
+        }
+      }, 200)
     }
   }
   _onMetadataParsed (type) {
@@ -109,6 +142,7 @@ class HlsLiveController {
       this.retrytimes--;
       this._onError(LOADER_EVENTS.LOADER_ERROR, loader, error, false);
     } else if (this.retrytimes <= 1) {
+      this.retrytimes--;
       this._onError(LOADER_EVENTS.LOADER_ERROR, loader, error, true);
       this.emit(HLS_EVENTS.RETRY_TIME_EXCEEDED);
       if (this._player.video) {
@@ -211,28 +245,27 @@ class HlsLiveController {
     }
   }
   _checkStatus () {
-    if (this.retrytimes < 1 && (new Date().getTime() - this._lastCheck < 10000)) {
+    if (this.retrytimes < 1 && (new Date().getTime() - this._lastCheck < 4000)) {
       return;
+    } else if (this.retrytimes < 1) {
+      window.clearInterval(this._timmer);
     }
     this._lastCheck = new Date().getTime();
-    if (this.container.buffered.length < 1) {
+    if (this._player.buffered.length < 1) {
       this._preload()
     } else {
       // Check for load.
-      let currentTime = this.container.currentTime;
-      let bufferstart = this.container.buffered.start(this.container.buffered.length - 1);
-      if (this.container.readyState <= 2) {
+      let currentTime = this._player.currentTime;
+      let bufferstart = this._player.buffered.start(this._player.buffered.length - 1);
+      if (this._player.readyState <= 2) {
         if (currentTime < bufferstart) {
-          this.container.currentTime = bufferstart;
+          this._player.currentTime = bufferstart;
           currentTime = bufferstart;
         } else {
           this._preload();
         }
       }
-      let bufferend = this.container.buffered.end(this.container.buffered.length - 1);
-      if (currentTime < bufferend - (this.preloadTime * 2)) {
-        this.container.currentTime = bufferend - (this.preloadTime * 2);
-      }
+      let bufferend = this._player.buffered.end(this._player.buffered.length - 1);
       if (currentTime > bufferend - this.preloadTime) {
         this._preload();
       }
@@ -240,7 +273,7 @@ class HlsLiveController {
   }
 
   _preload () {
-    if (this._tsloader.loading || this._m3u8loader.loading) {
+    if (this.retrytimes < 1 || this._tsloader.loading || this._m3u8loader.loading) {
       return;
     }
     let frag = this._playlist.getTs();

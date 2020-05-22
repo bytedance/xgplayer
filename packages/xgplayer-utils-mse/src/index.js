@@ -1,3 +1,6 @@
+import EVENTS from 'xgplayer-transmuxer-constant-events';
+
+const { MSE_EVENTS } = EVENTS;
 class MSE {
   constructor (configs, context) {
     if (context) {
@@ -11,7 +14,10 @@ class MSE {
     this.sourceBuffers = {};
     this.preloadTime = this.configs.preloadTime || 1;
     this.onSourceOpen = this.onSourceOpen.bind(this)
+    this.onTimeUpdate = this.onTimeUpdate.bind(this)
     this.onUpdateEnd = this.onUpdateEnd.bind(this)
+    this.onWaiting = this.onWaiting.bind(this)
+    this.opened = false;
   }
 
   init () {
@@ -19,6 +25,8 @@ class MSE {
     this.mediaSource = new self.MediaSource();
     this.mediaSource.addEventListener('sourceopen', this.onSourceOpen);
     this._url = null;
+    this.container.addEventListener('timeupdate', this.onTimeUpdate);
+    this.container.addEventListener('waiting', this.onWaiting);
   }
 
   resetContext (newCtx) {
@@ -32,16 +40,25 @@ class MSE {
     }
   }
 
+  onTimeUpdate () {
+    this.emit('TIME_UPDATE', this.container);
+  }
+
+  onWaiting () {
+    this.emit('WAITING', this.container);
+  }
+
   onSourceOpen () {
+    this.opened = true;
     this.addSourceBuffers();
   }
 
   onUpdateEnd () {
-    this.emit('SOURCE_UPDATE_END');
+    this.emit(MSE_EVENTS.SOURCE_UPDATE_END);
     this.doAppend()
   }
   addSourceBuffers () {
-    if (this.mediaSource.readyState !== 'open') {
+    if (this.mediaSource.readyState !== 'open' || !this.opened) {
       return;
     }
     let sources = this._context.getInstance('PRE_SOURCE_BUFFER');
@@ -72,13 +89,16 @@ class MSE {
         if (this.sourceBuffers[type]) {
           continue;
         }
-
         let source = sources[type]
         let mime = (type === 'video') ? 'video/mp4;codecs=' + source.mimetype : 'audio/mp4;codecs=' + source.mimetype
-        let sourceBuffer = this.mediaSource.addSourceBuffer(mime);
-        this.sourceBuffers[type] = sourceBuffer;
-        sourceBuffer.addEventListener('updateend', this.onUpdateEnd);
-        this.doAppend();
+
+        try {
+          let sourceBuffer = this.mediaSource.addSourceBuffer(mime);
+          this.sourceBuffers[type] = sourceBuffer;
+          sourceBuffer.addEventListener('updateend', this.onUpdateEnd);
+        } catch (e) {
+          this.emit(MSE_EVENTS.MSE_ERROR);
+        }
       }
     }
   }
@@ -229,14 +249,15 @@ class MSE {
   }
 
   destroy () {
+    this.container.removeEventListener('timeupdate', this.onTimeUpdate);
+    this.container.removeEventListener('waiting', this.onWaiting);
+    this.mediaSource.removeEventListener('sourceopen', this.onSourceOpen);
     return this.removeBuffers().then(() => {
       for (let i = 0; i < Object.keys(this.sourceBuffers).length; i++) {
         let buffer = this.sourceBuffers[Object.keys(this.sourceBuffers)[i]];
         this.mediaSource.removeSourceBuffer(buffer);
         delete this.sourceBuffers[Object.keys(this.sourceBuffers)[i]];
       }
-
-      this.mediaSource.removeEventListener('sourceopen', this.onSourceOpen);
 
       this.endOfStream()
       window.URL.revokeObjectURL(this.url);
@@ -247,6 +268,11 @@ class MSE {
       this.mediaSource = null;
       this.sourceBuffers = {};
       this.preloadTime = 1;
+
+      this.onSourceOpen = null;
+      this.onTimeUpdate = null;
+      this.onUpdateEnd = null;
+      this.onWaiting = null;
     })
   }
 

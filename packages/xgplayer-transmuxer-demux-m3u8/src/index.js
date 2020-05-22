@@ -76,6 +76,10 @@ class M3U8Parser {
       baseurl = baseurl.match(/.*\/\/.*\.\w+/g)[0];
     }
     if (nextline.match(/.*:\/\/.*/)) {
+      const isHTTPS = M3U8Parser.isHTTPS
+      if ((M3U8Parser.envisHttps || (M3U8Parser.envisHttps = isHTTPS(window.location.href))) && !isHTTPS(nextline)) {
+        nextline = nextline.replace('http:', 'https:')
+      }
       freg.url = nextline;
     } else {
       freg.url = baseurl + nextline;
@@ -120,6 +124,11 @@ class M3U8Parser {
         ret.encrypt.iv = iv;
       }
     };
+  }
+
+  static isHTTPS (url) {
+    const httpsUrlRegex = /^https:\/\//i;
+    return httpsUrlRegex.test(url)
   }
 }
 

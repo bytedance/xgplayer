@@ -158,8 +158,9 @@ class Playlist {
         break;
       }
     }
-
-    this.downloadedUrls.push(ts.url);
+    if (ts) {
+      this.downloadedUrls.push(ts.url);
+    }
     return ts;
   }
 

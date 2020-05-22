@@ -46,7 +46,8 @@ export default class Mp4Remuxer {
     //   this.videoRemuxed += 1
     // }
     this._remuxVideo(videoTrack)
-    // console.log('remux audio');
+    //
+    // ('remux audio');
     this._remuxAudio(audioTrack)
   }
 
@@ -103,15 +104,22 @@ export default class Mp4Remuxer {
 
   calcDtsBase (audioTrack, videoTrack) {
     if (!audioTrack && videoTrack.samples.length) {
-      return videoTrack.samples[0].dts
+      const firstSample = videoTrack.samples[0];
+      let start;
+      if (firstSample.options && firstSample.options.start) {
+        start = firstSample.options.start
+      }
+      this._videoDtsBase = firstSample.dts - (start || this._dtsBase)
+      this._isDtsBaseInited = true
+      return;
     }
 
     if (!audioTrack.samples.length && !videoTrack.samples.length) {
       return;
     }
 
-    let audioBase = Infinity
-    let videoBase = Infinity
+    let audioBase = null
+    let videoBase = null
     let start = null;
     if (audioTrack.samples && audioTrack.samples.length) {
       const firstSample = audioTrack.samples[0];
@@ -128,9 +136,9 @@ export default class Mp4Remuxer {
       }
     }
 
-    this._dtsBase = Math.min(audioBase, videoBase) - (start || this._dtsBase);
-    this._videoDtsBase = this._dtsBase
-    this._audioDtsBase = this._dtsBase
+    this._videoDtsBase = (videoBase || audioBase) - (start || this._dtsBase);
+    this._audioDtsBase = (audioBase || videoBase) - (start || this._dtsBase);
+    this._dtsBase = Math.min(videoBase, audioBase)
     this._isDtsBaseInited = true
   }
 
@@ -165,7 +173,7 @@ export default class Mp4Remuxer {
         break;
       }
 
-      let dts = Math.max(avcSample.dts - this.videoDtsBase, 0)
+      let dts = Math.max(0, avcSample.dts - this.videoDtsBase)
       if (firstDts === -1) {
         firstDts = dts
       }
@@ -289,7 +297,7 @@ export default class Mp4Remuxer {
         break;
       }
 
-      let dts = sample.dts - this.audioDtsBase
+      let dts = Math.max(0, sample.dts - this.audioDtsBase);
       let originDts = sample.originDts;
       if (!isFirstDtsInited) {
         firstDts = dts
@@ -311,7 +319,8 @@ export default class Mp4Remuxer {
           sampleDuration = this.audioMeta.refSampleDuration
         }
       }
-      // console.log(`audio dts ${dts}`, `pts ${dts}`, `originDts ${originDts}`, `duration ${sampleDuration}`)
+      //
+      // (`audio dts ${dts}`, `pts ${dts}`, `originDts ${originDts}`, `duration ${sampleDuration}`)
       this.audioAllDuration += sampleDuration
       const mp4Sample = {
         dts,

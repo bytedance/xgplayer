@@ -14,6 +14,7 @@ import Player from 'xgplayer'
 const REMUX_EVENTS = EVENTS.REMUX_EVENTS;
 const DEMUX_EVENTS = EVENTS.DEMUX_EVENTS;
 const LOADER_EVENTS = EVENTS.LOADER_EVENTS
+const MSE_EVENTS = EVENTS.MSE_EVENTS;
 
 const Tag = 'FLVController'
 
@@ -82,7 +83,7 @@ class FlvController {
     this.on(DEMUX_EVENTS.DEMUX_COMPLETE, this._handleDemuxComplete.bind(this))
     this.on(DEMUX_EVENTS.DEMUX_ERROR, this._handleDemuxError.bind(this))
     this.on(DEMUX_EVENTS.SEI_PARSED, this._handleSEIParsed.bind(this))
-
+    this.on(MSE_EVENTS.MSE_ERROR, this._handleMseError.bind(this))
     this.on(REMUX_EVENTS.INIT_SEGMENT, this._handleAppendInitSegment.bind(this))
     this.on(REMUX_EVENTS.MEDIA_SEGMENT, this._handleMediaSegment.bind(this))
   }
@@ -114,7 +115,7 @@ class FlvController {
     this.emit(REMUX_EVENTS.REMUX_METADATA, type)
   }
 
-  _handleSEIParsed(sei) {
+  _handleSEIParsed (sei) {
     this._player.emit('SEI_PARSED', sei)
   }
 
@@ -143,6 +144,14 @@ class FlvController {
     }
     this._player.emit('error', new Player.Errors('parse', this._player.config.url))
     this._onError(LOADER_EVENTS.LOADER_ERROR, tag, err, fatal)
+  }
+
+  _handleMseError (tag, err, fatal) {
+    if (fatal === undefined) {
+      fatal = false;
+    }
+    this._player.emit('error', new Player.Errors('parse', this._player.config.url))
+    this._onError(MSE_EVENTS.MSE_ERROR, tag, err, fatal)
   }
 
   _onError (type, mod, err, fatal) {

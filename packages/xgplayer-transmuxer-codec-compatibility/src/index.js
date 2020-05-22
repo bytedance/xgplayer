@@ -192,16 +192,16 @@ class Compatibility {
       videoSamples.unshift(this.videoLastSample)
     }
 
-    videoSamples.forEach((sample, idx) => {
-      if (idx !== 0 && idx !== videoSamples.length - 1) {
-        const pre = videoSamples[idx - 1];
-        const next = videoSamples[idx + 1];
-        if (sample.dts - pre.dts < 5) {
-          sample.dts = (pre.dts + next.dts) / 2
-          sample.pts = (pre.pts + next.pts) / 2
-        }
-      }
-    })
+    // videoSamples.forEach((sample, idx) => {
+    //   if (idx !== 0 && idx !== videoSamples.length - 1) {
+    //     const pre = videoSamples[idx - 1];
+    //     const next = videoSamples[idx + 1];
+    //     if (sample.dts - pre.dts < 5) {
+    //       sample.dts = (pre.dts + next.dts) / 2
+    //       sample.pts = (pre.pts + next.pts) / 2
+    //     }
+    //   }
+    // })
 
     this.videoLastSample = curLastSample;
 
@@ -258,7 +258,7 @@ class Compatibility {
       const gap = firstSample.dts - videoFirstPts
 
       if (gap === this._videoLargeGap) {
-        // already fixed by doFixVideo
+        // already fixed by doFixVideo\
       } else if (gap > meta.refSampleDuration && gap < (10 * meta.refSampleDuration)) {
         const silentSampleCount = Math.floor((firstSample.dts - videoFirstPts) / meta.refSampleDuration)
 
@@ -293,7 +293,7 @@ class Compatibility {
       gap = firstDts - this.nextAudioDts
       const absGap = Math.abs(gap)
 
-      if (gap >= iRefSampleDuration && gap < (10 * iRefSampleDuration)) {
+      if (gap >= iRefSampleDuration && gap < (100 * iRefSampleDuration)) {
         const silentFrameCount = Math.ceil(gap / iRefSampleDuration)
 
         for (let i = 0; i < silentFrameCount; i++) {
@@ -527,7 +527,7 @@ class Compatibility {
         if (sample === firstAudioSample) {
           return true;
         }
-        return sample.dts > firstAudioSample.dts
+        return sample.dts >= firstAudioSample.dts
       })
     }
 
@@ -536,7 +536,7 @@ class Compatibility {
         if (sample === firstVideoSample) {
           return true;
         }
-        return sample.dts > firstVideoSample.dts
+        return sample.dts >= firstVideoSample.dts
       })
     }
   }
@@ -553,7 +553,7 @@ class Compatibility {
       return samples
     }
 
-    return samples.sort((a, b) => {
+    return [...samples].sort((a, b) => {
       return a.dts - b.dts
     })
   }
@@ -578,7 +578,7 @@ class Compatibility {
       return null
     }
 
-    const sorted = samples.sort((a, b) => {
+    const sorted = [...samples].sort((a, b) => {
       return a.dts - b.dts;
     })
 
