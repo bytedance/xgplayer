@@ -1,6 +1,7 @@
 import Plugin from '../../plugin'
 
 const {Events, Util} = Plugin
+const ACTIONS = {AUTO: 'auto', SEEKING: 'seeking'}
 
 class MobilePlugin extends Plugin {
   static get pluginName () {
@@ -44,11 +45,11 @@ class MobilePlugin extends Plugin {
   }
 
   afterCreate () {
-    const {playerConfig, config} = this
+    const {playerConfig, config, player} = this
     this.config.disableGesture = !!this.playerConfig.disableGesture
 
     this.xgMask = Util.createDom('xg-mask', '', {}, 'xgmask')
-    this.player.root.appendChild(this.xgMask)
+    player.root.appendChild(this.xgMask)
 
     this.onTouchMove = this.onTouchMove.bind(this)
     this.onTouchStart = this.onTouchStart.bind(this)
@@ -58,19 +59,25 @@ class MobilePlugin extends Plugin {
       this.onAutoPlayPrevented()
     })
     this.once(Events.CANPLAY, this.onEntered.bind(this))
-    // this.on(Events.SEEKING, this.onSeeking.bind(this))
     if (playerConfig.autoplay) {
       this.onEnter()
     }
-    if (config.disableActive) {
-      this.find('.timenote').style.display = 'none'
-    } else {
-      // 绑定拖拽事件回调
-      let progressPlugin = this.player.plugins.progress
-      progressPlugin && progressPlugin.addDragCallBack((data) => {
-        this.activeSeekNote(data.currentTime)
-      })
+    if (!config.disableActive) {
+      // 添加进度条拖拽事件回调
+      const progressPlugin = player.plugins.progress
+      if (progressPlugin) {
+        progressPlugin.addDragCallBack('drag', (data) => {
+          this.activeSeekNote(data.currentTime)
+        })
+        progressPlugin.addDragCallBack('dragend', () => {
+          this.changeAction(ACTIONS.AUTO)
+        })
+      }
     }
+  }
+
+  changeAction (action) {
+    this.root.setAttribute('data-xg-action', action)
   }
 
   onEnter () {
@@ -105,10 +112,10 @@ class MobilePlugin extends Plugin {
   onTouchStart (e) {
     const {player, config, pos} = this
     // 直播或者duration没有获取到之前不做操作
-    if (!(this.player.duration !== Infinity && this.player.duration > 0) || this.isTouchStart || config.disableGesture) {
+    if (!(player.duration !== Infinity && player.duration > 0) || this.isTouchStart || config.disableGesture) {
       return
     }
-    this.find('.dur').innerHTML = Util.format(this.player.duration)
+    this.find('.dur').innerHTML = Util.format(player.duration)
     this.isTouchStart = true
     e.preventDefault()
     e.stopPropagation()
@@ -194,6 +201,7 @@ class MobilePlugin extends Plugin {
         }
       }
     }
+    this.changeAction(ACTIONS.AUTO)
     this.isTouchStart = false
     this.isTouchMove = false
   }
@@ -237,6 +245,7 @@ class MobilePlugin extends Plugin {
     if (!time || typeof time !== 'number' || this.config.disableActive) {
       return
     }
+    this.changeAction(ACTIONS.SEEKING)
     this.find('.cur').innerHTML = Util.format(time)
     // Util.addClass(this.player.root, 'xgplayer-seeking')
     this.find('.curbar').style.width = `${time / this.player.duration * 100}%`

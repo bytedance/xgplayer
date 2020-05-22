@@ -41,6 +41,11 @@
         }
       }
     }
+    &[data-xg-action=seeking] {
+      .timenote {
+        display: block;
+      }
+    }
   }
   .gradient {
     display: none;
@@ -71,16 +76,9 @@
     text-decoration: none;
     -webkit-tap-highlight-color: transparent;
   }
+
   .xgplayer-controls {
     background-image: initial;
-  }
-
-  &.seeking {
-    xg-trigger {
-      .timenote {
-        display: block;
-      } 
-    }
   }
 
   &.xgplayer-playing {
