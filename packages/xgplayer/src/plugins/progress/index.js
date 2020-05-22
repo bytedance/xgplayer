@@ -88,8 +88,10 @@ class Progress extends Plugin {
     }
   }
 
-  addDragCallBack (event) {
-    event && typeof event === 'function' && this.__dragCallBacks.push(event)
+  addDragCallBack (type, event) {
+    if (event && typeof event === 'function') {
+      this.__dragCallBacks.push({type: type, handler: event})
+    }
   }
 
   initThumbnail () {
@@ -113,11 +115,13 @@ class Progress extends Plugin {
     this.mouseDown = this.mouseDown.bind(this)
     this.mouseMove = this.mouseMove.bind(this)
     this.mouseEnter = this.mouseEnter.bind(this)
-    this.mouseLeave = this.mouseLeave.bind(this);
-    ['touchstart', 'mousedown'].forEach(event => {
-      this.root.addEventListener(event, this.mouseDown);
-    })
-    this.root.addEventListener('mouseenter', this.mouseEnter, false)
+    this.mouseLeave = this.mouseLeave.bind(this)
+    if (Sniffer.device === 'mobile') {
+      this.root.addEventListener('touchstart', this.mouseDown, false)
+    } else {
+      this.root.addEventListener('mousedown', this.mouseDown, false)
+      this.root.addEventListener('mouseenter', this.mouseEnter, false)
+    }
   }
 
   mouseDown (e) {
@@ -126,6 +130,7 @@ class Progress extends Plugin {
       return
     }
     const self = this
+    e.preventDefault()
     e.stopPropagation()
     Util.event(e)
     // this.pointTip为tip信息 不做seek操作
@@ -135,21 +140,21 @@ class Progress extends Plugin {
     self.player.emit(Events.PLAYER_FOCUS, true)
     this.isProgressMoving = true
     Util.addClass(self.progressBtn, 'btn-move')
-    self.computeWidth(e)
+    self.computeWidth(e, false)
 
     let move = function (e) {
       e.preventDefault()
       e.stopPropagation()
       Util.event(e)
       self.isProgressMoving = true
-      self.computeWidth(e)
+      self.computeWidth(e, true)
     }
 
     let up = function (e) {
-      Util.removeClass(self.progressBtn, 'btn-move')
       e.preventDefault()
       e.stopPropagation()
       Util.event(e)
+      Util.removeClass(self.progressBtn, 'btn-move')
       if (Sniffer.device === 'mobile') {
         self.root.removeEventListener('touchmove', move)
         self.root.removeEventListener('touchend', up)
@@ -157,6 +162,8 @@ class Progress extends Plugin {
         self.root.removeEventListener('mousemove', move)
         self.root.removeEventListener('mouseup', up)
       }
+      self.triggerCallbacks('dragend', {})
+      self.player.onSeeking()
       self.isProgressMoving = false
       self.player.emit(Events.PLAYER_FOCUS)
     }
@@ -240,7 +247,7 @@ class Progress extends Plugin {
     })
   }
 
-  computeWidth (e) {
+  computeWidth (e, isMove) {
     const containerWidth = this.root.getBoundingClientRect().width
     let {left} = this.playedBar.getBoundingClientRect()
     let w = e.clientX - left
@@ -249,12 +256,8 @@ class Progress extends Plugin {
     }
     const percent = w / containerWidth
     const currentTime = percent * this.player.duration
+    isMove && this.triggerCallbacks('drag', {percent, currentTime})
     this.updatePercent(w / containerWidth)
-    if (this.__dragCallBacks.length > 0) {
-      this.__dragCallBacks.map(fun => {
-        fun({percent, currentTime})
-      })
-    }
   }
 
   updateTime (time) {
@@ -292,6 +295,14 @@ class Progress extends Plugin {
     this.pointTip.style.left = `${left}px`
   }
 
+  triggerCallbacks (type, data) {
+    if (this.__dragCallBacks.length > 0) {
+      this.__dragCallBacks.map(item => {
+        item.type === type && item.handler(data)
+      })
+    }
+  }
+
   onTimeupdate () {
     const {player} = this
     if (player.isSeeking || this.isProgressMoving) {
@@ -324,10 +335,12 @@ class Progress extends Plugin {
   }
 
   destroy () {
-    ['touchstart', 'mousedown'].forEach(event => {
-      this.root.removeEventListener(event, this.mouseDown);
-    })
-    this.root.removeEventListener('mouseenter', this.mouseEnter, false)
+    if (Sniffer.device === 'mobile') {
+      this.root.removeEventListener('touchstart', this.mouseDown, false)
+    } else {
+      this.root.removeEventListener('mousedown', this.mouseDown, false)
+      this.root.removeEventListener('mouseenter', this.mouseEnter, false)
+    }
   }
 
   render () {
