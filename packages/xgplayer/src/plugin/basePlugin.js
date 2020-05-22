@@ -69,11 +69,11 @@ class BasePlugin {
 
   off (event, callback) {
     if (typeof event === 'string') {
-      this.__events[event] = undefined
+      delete this.__events[event]
       this.player.off(event, callback)
     } else if (Array.isArray(event)) {
       event.forEach((item) => {
-        this.__events[item] = undefined
+        delete this.__events[event]
         this.player.off(item, callback)
       })
     }
@@ -81,7 +81,7 @@ class BasePlugin {
 
   offAll () {
     for (const item of Object.keys(this.__events)) {
-      this.off(item, this.__events[item])
+      this.__events[item] && this.off(item, this.__events[item])
     }
   }
 
@@ -89,7 +89,7 @@ class BasePlugin {
     this.player.emit(event, res)
   }
 
-  _destroy () {
+  __destroy () {
     this.offAll()
     if (Util.checkIsFunction(this.destroy)) {
       this.destroy();

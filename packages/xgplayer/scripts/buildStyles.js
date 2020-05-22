@@ -77,6 +77,8 @@ const buildDistStyle = async (entry) => {
       console.warn(warn.toString());
     });
     return result.css;
+  }).catch(err => {
+    console.error('distCss error', err)
   });
 
   const compressCss = await postcss([autoprefixer]).process(rawCss, { from: 'undefined' }).then(async (result) => {
@@ -128,7 +130,6 @@ const copyAssets = async () => {
         }
         walk()
       })
-
     }
   } catch (e) {
     // NOTHING

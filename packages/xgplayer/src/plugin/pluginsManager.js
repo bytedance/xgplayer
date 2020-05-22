@@ -120,7 +120,7 @@ const pluginsManager = {
 
   unRegister (cgid, name) {
     try {
-      this.pluginGroup[cgid]._plugins[name]._destroy()
+      this.pluginGroup[cgid]._plugins[name].__destroy()
       this.pluginGroup[cgid]._plugins[name] = null
     } catch (e) {
       this.pluginGroup[cgid]._plugins[name] = null

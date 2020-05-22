@@ -36,7 +36,7 @@ class Progress extends Plugin {
     super(args)
     this.useable = false
     this.isProgressMoving = false
-
+    this.__dragCallBacks = []
     if (Sniffer.device !== 'mobile' && this.playerConfig.thumbnail) {
       this.config.thumbnail = this.playerConfig.thumbnail
     }
@@ -88,6 +88,10 @@ class Progress extends Plugin {
     }
   }
 
+  addDragCallBack (event) {
+    event && typeof event === 'function' && this.__dragCallBacks.push(event)
+  }
+
   initThumbnail () {
     if (this.config.thumbnail) {
       const {thumbnail} = this.config
@@ -128,6 +132,7 @@ class Progress extends Plugin {
     if (e.target === this.pointTip || (!player.config.allowSeekAfterEnded && player.ended)) {
       return true
     }
+    self.player.emit(Events.PLAYER_FOCUS, true)
     this.isProgressMoving = true
     Util.addClass(self.progressBtn, 'btn-move')
     self.computeWidth(e)
@@ -136,7 +141,7 @@ class Progress extends Plugin {
       e.preventDefault()
       e.stopPropagation()
       Util.event(e)
-      this.isProgressMoving = true
+      self.isProgressMoving = true
       self.computeWidth(e)
     }
 
@@ -153,6 +158,7 @@ class Progress extends Plugin {
         self.root.removeEventListener('mouseup', up)
       }
       self.isProgressMoving = false
+      self.player.emit(Events.PLAYER_FOCUS)
     }
 
     if (Sniffer.device === 'mobile') {
@@ -241,7 +247,14 @@ class Progress extends Plugin {
     if (w > containerWidth) {
       w = containerWidth
     }
+    const percent = w / containerWidth
+    const currentTime = percent * this.player.duration
     this.updatePercent(w / containerWidth)
+    if (this.__dragCallBacks.length > 0) {
+      this.__dragCallBacks.map(fun => {
+        fun({percent, currentTime})
+      })
+    }
   }
 
   updateTime (time) {

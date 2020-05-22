@@ -1,9 +1,6 @@
 import Player from './player'
-import * as Plugins from './plugins'
-import defaultPreset from './presets/default';
-// import defaultPreset from './presets/mobile';
+import defaultPreset from './presets/default'
 
-Player.defaultPreset = defaultPreset;
-Player.defaultPlugins = Plugins;
+Player.defaultPreset = defaultPreset
 
 export default Player

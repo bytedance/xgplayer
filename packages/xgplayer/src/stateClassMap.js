@@ -15,6 +15,7 @@ export default {
   CSS_FULLSCREEN: 'xgplayer-is-cssfullscreen',
   NO_CONTROLS: 'no-controls',
   NOT_ALLOW_AUTOPLAY: 'not-allow-autoplay',
+  SEEKING: 'seeking',
   PC: 'xgplayer-pc',
   MOBILE: 'xgplayer-mobile',
   MINI: 'xgplayer-mini'
