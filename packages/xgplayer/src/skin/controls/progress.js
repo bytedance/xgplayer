@@ -13,7 +13,7 @@ let s_progress = function () {
                                                      <xg-progress-btn class="xgplayer-progress-btn"></xg-progress-btn>
                                                      <xg-point class="xgplayer-progress-point xgplayer-tips"></xg-point>
                                                      <xg-thumbnail class="xgplayer-progress-thumbnail xgplayer-tips"></xg-thumbnail>
-                                                   </xgplayer-played>
+                                                   </xg-played>
                                                  </xg-outer>`, {tabindex: 1}, 'xgplayer-progress')
   let containerWidth
   player.controls.appendChild(container)
@@ -41,7 +41,7 @@ let s_progress = function () {
       // e.preventDefault()
       e.stopPropagation()
       if (text) {
-        if(!util.hasClass(dotItem, 'xgplayer-progress-dot-show')) {
+        if (!util.hasClass(dotItem, 'xgplayer-progress-dot-show')) {
           Object.keys(player.dotArr).forEach(function (key) {
             if (player.dotArr[key]) {
               util.removeClass(player.dotArr[key], 'xgplayer-progress-dot-show')
@@ -59,7 +59,7 @@ let s_progress = function () {
         if (item.time >= 0 && item.time <= player.duration) {
           let dot = util.createDom('xg-progress-dot', item.text ? `<span class="xgplayer-progress-tip">${item.text}</span>` : '', {}, 'xgplayer-progress-dot')
           dot.style.left = (item.time / player.duration) * 100 + '%'
-          if(item.duration >= 0) {
+          if (item.duration >= 0) {
             dot.style.width = (Math.min(item.duration, player.duration - item.time) / player.duration) * 100 + '%'
           }
           outer.appendChild(dot)
@@ -77,7 +77,7 @@ let s_progress = function () {
     if (time >= 0 && time <= player.duration) {
       let dot = util.createDom('xg-progress-dot', '', {}, 'xgplayer-progress-dot')
       dot.style.left = (time / player.duration) * 100 + '%'
-      if(duration >= 0) {
+      if (duration >= 0) {
         dot.style.width = (Math.min(duration, player.duration - time) / player.duration) * 100 + '%'
       }
       outer.appendChild(dot)
@@ -121,29 +121,29 @@ let s_progress = function () {
     thumbnail.style.height = `${tnailHeight}px`
   };
 
-  if(typeof player.config.disableSwipeHandler === 'function' && typeof player.config.enableSwipeHandler === 'function') {
+  if (typeof player.config.disableSwipeHandler === 'function' && typeof player.config.enableSwipeHandler === 'function') {
     player.root.addEventListener('touchmove', e => {
-        e.preventDefault();
-        // e.stopPropagation();
-        if(!player.disableSwipe) {
-            player.disableSwipe = true
-            player.config.disableSwipeHandler.call(player);
-        }
-    });
-    player.root.addEventListener('touchstart', e => {
-        // e.preventDefault();
+      e.preventDefault();
+      // e.stopPropagation();
+      if (!player.disableSwipe) {
         player.disableSwipe = true
         player.config.disableSwipeHandler.call(player);
+      }
+    });
+    player.root.addEventListener('touchstart', e => {
+      // e.preventDefault();
+      player.disableSwipe = true
+      player.config.disableSwipeHandler.call(player);
     });
     player.root.addEventListener('touchend', e => {
-        // e.preventDefault();
-        player.disableSwipe = false
-        player.config.enableSwipeHandler.call(player);
+      // e.preventDefault();
+      player.disableSwipe = false
+      player.config.enableSwipeHandler.call(player);
     });
   };
 
   ['touchstart', 'mousedown'].forEach(item => {
-    if(player.config.disableProgress) return;
+    if (player.config.disableProgress) return;
     container.addEventListener(item, function (e) {
       // e.preventDefault()
       e.stopPropagation()
@@ -156,7 +156,7 @@ let s_progress = function () {
       let {left} = progress.getBoundingClientRect()
 
       const isRotate = isRotateFullscreen(player)
-      if(isRotate) {
+      if (isRotate) {
         left = progress.getBoundingClientRect().top
         containerWidth = container.getBoundingClientRect().height
       } else {
@@ -197,7 +197,7 @@ let s_progress = function () {
         container.blur()
         if (!player.isProgressMoving || player.videoConfig.mediaType === 'audio' || player.dash || player.config.closeMoveSeek) {
           let w = (isRotate ? e.clientY : e.clientX) - left
-          if(w > containerWidth) {
+          if (w > containerWidth) {
             w = containerWidth
           }
           let now = w / containerWidth * player.duration
@@ -278,7 +278,7 @@ let s_progress = function () {
     if (player.videoConfig.mediaType !== 'audio' || !player.isProgressMoving || !player.dash) {
       const precent = player.currentTime / player.duration
       const prevPrecent = Number.parseFloat(progress.style.width || '0') / Number.parseFloat(container.style.width || '100');
-      if (Math.abs(precent - prevPrecent ) <= 1) {
+      if (Math.abs(precent - prevPrecent) <= 1) {
         progress.style.width = `${player.currentTime * 100 / player.duration}%`
       }
     }
