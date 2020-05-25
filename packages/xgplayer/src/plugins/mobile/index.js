@@ -179,14 +179,7 @@ class MobilePlugin extends Plugin {
     if (this.isTouchMove) {
       const time = pos.time / 1000
       if (pos.op === 1) {
-        if (time > player.duration) {
-          player.currentTime = player.duration
-        } else {
-          player.currentTime = time < 0 ? 0 : time
-        }
-        this.once(Events.CANPLAY, () => {
-          this.player.isSeeking = false
-        })
+        player.seek(Number(time).toFixed(1))
       }
       setTimeout(() => {
         player.getPlugin('progress') && (player.getPlugin('progress').isProgressMoving = false)
@@ -244,6 +237,11 @@ class MobilePlugin extends Plugin {
   activeSeekNote (time) {
     if (!time || typeof time !== 'number' || this.config.disableActive) {
       return
+    }
+    if (time < 0) {
+      time = 0
+    } else if (time > this.player.duration) {
+      time = this.player.duration
     }
     this.changeAction(ACTIONS.SEEKING)
     this.find('.cur').innerHTML = Util.format(time)
