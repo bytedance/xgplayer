@@ -188,6 +188,9 @@ class MobilePlugin extends Plugin {
           this.player.isSeeking = false
         })
       }
+      setTimeout(() => {
+        player.getPlugin('progress') && (player.getPlugin('progress').isProgressMoving = false)
+      }, 0)
       pos.op = 0
       this.player.emit(Events.PLAYER_FOCUS)
     } else {
@@ -209,15 +212,12 @@ class MobilePlugin extends Plugin {
   updateTime (percent) {
     const {player} = this
     percent = Number(percent.toFixed(4))
-    player.isSeeking = true
     let time = parseInt(percent * player.duration * 1000, 10)
     time += this.pos.time
     time = time < 0 ? 0 : (time > player.duration * 1000 ? player.duration * 1000 : time)
     player.getPlugin('time') && player.getPlugin('time').updateTime(time / 1000)
     player.getPlugin('progress') && player.getPlugin('progress').updatePercent(time / 1000 / this.player.duration, true)
     this.activeSeekNote(time / 1000)
-    this.player.onSeeking()
-    // this.emit(Events.SEEKING, time / 1000)
     // 在滑动的同时实时seek
     if (this.config.isTouchingSeek) {
       player.currentTime = time / 1000

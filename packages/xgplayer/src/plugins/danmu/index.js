@@ -10,6 +10,7 @@ class Danmu extends Plugin {
     super(args)
     this.danmujs = null;
     this.danmuPanel = null
+    this.isOpen = false
   }
 
   static get pluginName () {
@@ -24,23 +25,20 @@ class Danmu extends Plugin {
         end: 1 // 区域底部到播放器顶部所占播放器高度的比例
       },
       closeDefaultBtn: true, // TODO: 开启此项后不使用默认提供的弹幕开关，默认使用西瓜播放器提供的开关
-      defaultOff: true, // TODO: 开启此项后弹幕不会初始化，默认初始化弹幕
+      defaultOff: false, // TODO: 开启此项后弹幕不会初始化，默认初始化弹幕
       panel: false, // 是否安装配置面板
       panelConfig: {}, // 配置面板促使配置
       switchConfig: {}, // 开关按钮配置信息
-      defaultOpen: true // 是否默认开启弹幕
+      defaultOpen: false // 是否默认开启弹幕
     }
   }
 
   afterCreate () {
-    this.once(Events.COMPLETE, () => {
-      this.initDanmu()
-      this.registerExtIcons()
-    })
+    this.initDanmu()
+    this.registerExtIcons()
 
-    this.config.defaultOpen &&
     this.once(Events.TIME_UPDATE, () => {
-      this.start()
+      this.config.defaultOpen && this.start()
     })
   }
 
@@ -58,14 +56,16 @@ class Danmu extends Plugin {
     const danmuConfig = {
       container: this.root,
       player: player.video,
-      comments: config.comments,
-      area: config.area
+      comments: this.config.comments,
+      area: config.area,
+      defaultOff: config.defaultOff
     }
-    player.danmu = this.danmujs = new DanmuJs(danmuConfig)
+    const danmu = new DanmuJs(danmuConfig)
+    this.danmujs = danmu
+    player.danmu = this.danmujs = danmu
   }
 
   registerExtIcons () {
-    console.log('registerExtIcons')
     const {player, config} = this
     if (config.panel) {
       const panelOptions = {
@@ -83,14 +83,14 @@ class Danmu extends Plugin {
         config: {
           onSwitch: (isOpen) => {
             this.onSwitch(isOpen)
-          },
-          defaultOpen: this.config.defaultOpen
+          }
         }
       }
       Object.keys(switchConfig).map(key => {
         buttonOptions.config[key] = switchConfig[key]
       })
       this.danmuButton = player.controls.registerPlugin(DanmuIcon, buttonOptions, DanmuIcon.pluginName)
+      this.config.defaultOpen && this.danmuButton.switchState(true)
     }
   }
 
@@ -107,14 +107,27 @@ class Danmu extends Plugin {
   }
 
   start () {
-    this.danmujs && this.danmujs.start()
+    if (this.isOpen || !this.danmujs) {
+      return
+    }
+    this.danmujs.start()
+    this.isOpen = true
     this.show()
   }
 
   stop () {
-    this.danmujs && this.danmujs.stop()
+    if (!this.isOpen || !this.danmujs) {
+      return
+    }
+    this.danmujs.stop()
+    this.isOpen = false
     this.hide()
   }
+
+  sendComment (comments) {
+    this.danmujs && this.danmujs.sendComment(comments)
+  }
+
   render () {
     return `<xg-danmu class="xgplayer-danmu">
     </xg-danmu>`

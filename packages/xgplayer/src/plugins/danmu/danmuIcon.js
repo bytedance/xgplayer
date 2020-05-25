@@ -16,14 +16,12 @@ class DanmuIcon extends Plugin {
       position: POSITIONS.CONTROLS_RIGTH,
       index: 11,
       onSwitch: (state) => {
-      },
-      defaultOpen: false
+      }
     }
   }
 
   afterCreate () {
     this.initIcons()
-    this.switchState(!this.config.defaultOpen)
     this.onStateChange = this.onStateChange.bind(this)
     this.bind(['click', 'touchend'], this.onStateChange)
   }
@@ -51,14 +49,12 @@ class DanmuIcon extends Plugin {
   }
 
   switchState (isOpen) {
-    if (isOpen === 'normal') {
-      this.switchTips(false)
+    if (isOpen) {
       this.setAttr('data-state', 'active')
     } else {
       this.setAttr('data-state', 'normal')
-      this.switchTips(true)
     }
-    this.config.onSwitch && this.config.onSwitch(!isOpen)
+    this.switchTips(isOpen)
   }
 
   initIcons () {
@@ -75,8 +71,10 @@ class DanmuIcon extends Plugin {
   onStateChange (e) {
     e.preventDefault();
     e.stopPropagation();
-    const isOpen = this.root.getAttribute('data-state')
-    this.switchState(isOpen)
+    const state = this.root.getAttribute('data-state')
+    const isOpen = state === 'active'
+    this.switchState(!isOpen)
+    this.config.onSwitch && this.config.onSwitch(!isOpen)
   }
 
   show () {
