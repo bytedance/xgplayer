@@ -37,13 +37,11 @@ class MobileVideo extends HTMLElement {
 
     // this._innerDispatchEvent('waiting')
     this.vCtx.oncanplay = () => {
-      if (!this.played) {
-        if (!this.contains(this._canvas)) {
-          this.appendChild(this._canvas);
-          // if (this.autoplay) {
-          //   this._innerDispatchEvent('play')
-          // }
-        }
+      if (!this.contains(this._canvas)) {
+        this.appendChild(this._canvas);
+        // if (this.autoplay) {
+        //   this._innerDispatchEvent('play')
+        // }
       }
     }
     this.vCtx.on(VIDEO_CANVAS_EVENTS.VIDEO_EVENTS, this.handleVCtxInnerEvent)

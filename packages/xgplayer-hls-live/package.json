@@ -1,11 +1,12 @@
 {
   "name": "xgplayer-hls-live",
-  "version": "3.0.0-alpha.9",
+  "version": "3.0.0-alpha.12",
   "description": "",
   "main": "lib/index.js",
   "module": "es/index.js",
   "browser": "dist/index.min.js",
   "scripts": {
+    "prepare": "npm run build",
     "build": "npm run build:umd && npm run build:es && npm run build:lib",
     "build:umd": "cross-env NODE_ENV=production rollup -c rollup.config.js",
     "build:es": "babel src --out-dir es",

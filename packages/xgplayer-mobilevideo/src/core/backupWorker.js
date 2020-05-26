@@ -9,7 +9,7 @@ function shimImportScripts(src) {
   });
 }
 
-const MAX_STREAM_BUFFER_LENGTH = 1024 * 1024;
+var MAX_STREAM_BUFFER_LENGTH = 1024 * 1024;
 var Decoder = function (self) {
   this.inited = false;
   this.self = self;
@@ -71,7 +71,7 @@ Decoder.prototype.broadwayOnBroadwayInited = function () {
   this.inited = true;
   this.self.postMessage({
     msg: 'LOG',
-    log: 'decoder inited'
+    log: 'backup decoder inited'
   })
   this.self.postMessage({msg: 'DECODER_READY'});
 }
@@ -115,10 +115,29 @@ function init (meta) {
         onPostRun.call(self)
       })
     } else {
-      self.importScripts('https://sf1-vcloudcdn.pstatp.com/obj/media-fe/decoder/h264/decoder_asm_1589261792455.js');
+      try {
+        if (!self.console) {
+          self.console = {
+            log: function () {},
+            warn: function () {},
+            info: function () {},
+            error: function () {}
+          }
+        }
+        self.importScripts('https://sf1-vcloudcdn.pstatp.com/obj/media-fe/decoder/h264/decoder_asm_1589261792455.js');
+      } catch (e) {
+        self.postMessage({
+          msg: 'INIT_FAILED'
+        })
+        self.postMessage({
+          msg: 'LOG',
+          log: e.message
+        })
+        return;
+      }
       self.postMessage({
         msg: 'LOG',
-        log: Module.toString()
+        log: 'backup script import done' + Module
       })
       onPostRun.call(self)
     }
@@ -137,7 +156,7 @@ self.onmessage = function (e) {
         self.meta = data.meta;
         self.postMessage({
           msg: 'LOG',
-          log: 'worker inited'
+          log: 'backup worker inited'
         })
         init()
         break;
@@ -150,7 +169,6 @@ self.onmessage = function (e) {
         break;
       case 'destory':
         decoder.destroy();
-        self.close();
         break
       default:
         break;

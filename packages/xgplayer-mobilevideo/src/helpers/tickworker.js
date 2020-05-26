@@ -11,7 +11,6 @@ self.addEventListener('message', function(e){
             break;
         case 'stop':
             clearInterval(interval);
-            self.close();
             break;
     };
 }, false);

@@ -94,7 +94,7 @@
     "koa": "^2.5.1",
     "koa-range": "^0.3.0",
     "koa-static": "^4.0.3",
-    "lerna": "^3.17.0",
+    "lerna": "^3.20.2",
     "lerna-changelog": "^0.8.0",
     "lint-staged": "^7.2.0",
     "mocha": "^5.2.0",
@@ -142,8 +142,10 @@
     "xgplayer-hls.js": "file:packages/xgplayer-hls.js",
     "xgplayer-logger": "file:packages/xgplayer-logger",
     "xgplayer-m4a": "file:packages/xgplayer-m4a",
+    "xgplayer-mobilevideo": "file:packages/xgplayer-mobilevideo",
     "xgplayer-mp4": "file:packages/xgplayer-mp4",
     "xgplayer-music": "file:packages/xgplayer-music",
+    "xgplayer-raw264": "file:packages/xgplayer-raw264",
     "xgplayer-shaka": "file:packages/xgplayer-shaka",
     "xgplayer-transmuxer-buffer-playlist": "file:packages/xgplayer-transmuxer-buffer-playlist",
     "xgplayer-transmuxer-buffer-presource": "file:packages/xgplayer-transmuxer-buffer-presource",
@@ -164,11 +166,9 @@
     "xgplayer-transmuxer-model-tracksample": "file:packages/xgplayer-transmuxer-model-tracksample",
     "xgplayer-transmuxer-remux-mp4": "file:packages/xgplayer-transmuxer-remux-mp4",
     "xgplayer-utils": "file:packages/xgplayer-utils",
-    "xgplayer-mobilevideo": "file:packages/xgplayer-mobilevideo",
     "xgplayer-utils-crypto": "file:packages/xgplayer-utils-crypto",
     "xgplayer-utils-mse": "file:packages/xgplayer-utils-mse",
     "xgplayer-utils-sniffer": "file:packages/xgplayer-utils-sniffer",
-    "xgplayer-utils-utf8": "file:packages/xgplayer-utils-utf8",
-    "xgplayer-raw264": "file:packages/xgplayer-raw264"
+    "xgplayer-utils-utf8": "file:packages/xgplayer-utils-utf8"
   }
 }

@@ -45,23 +45,6 @@ class HlsPlayer extends BasePlugin {
     video.style.outline = 'none';
   }
 
-  initHlsEvents (hls) {
-    const { player } = this;
-
-    hls.once(EVENTS.LOADER_EVENTS.LOADER_COMPLETE, () => {
-      // 直播完成，待播放器播完缓存后发送关闭事件
-      if (!player.paused) {
-        const timer = setInterval(() => {
-          const end = player.getBufferedRange()[1]
-          if (Math.abs(player.currentTime - end) < 0.5) {
-            player.emit('ended')
-            window.clearInterval(timer)
-          }
-        }, 200)
-      }
-    })
-  }
-
   initEvents () {
     this.play = this.play.bind(this)
 
@@ -80,9 +63,7 @@ class HlsPlayer extends BasePlugin {
 
   initHls () {
     const { player, config } = this;
-    const hls = this.context.registry('HLS_CONTROLLER', HLS)({player, preloadTime: config.preloadTime, retryTimes: config.retryTimes })
-    this.initHlsEvents(hls)
-    this.hls = hls
+    this.hls = this.context.registry('HLS_CONTROLLER', HLS)({player, preloadTime: config.preloadTime, retryTimes: config.retryTimes })
   }
 
   play () {
