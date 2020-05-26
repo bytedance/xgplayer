@@ -49,7 +49,8 @@ class Controls extends Plugin {
       this.mouseOut(e)
     })
 
-    this.bind(['click', 'touchend'], (e) => {
+    this.bind(['click', 'touchend', 'touchmove'], (e) => {
+      e.preventDefault()
       e && e.stopPropagation();
     })
   }
