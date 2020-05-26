@@ -207,14 +207,18 @@ class Player extends Proxy {
 
     this.loadeddataFunc && this.once('loadeddata', this.loadeddataFunc)
 
-    if (this.config.autoplay) {
-      this.once(Events.CANPLAY, this.canPlayFunc)
-      this.load()
-      this.play()
-    }
+
     if (root.firstChild !== this.video) {
       root.insertBefore(this.video, root.firstChild)
     }
+
+    if (this.config.autoplay) {
+      this.once(Events.CANPLAY, this.canPlayFunc)
+      this.load()
+      this.video.play()
+    }
+
+
     setTimeout(() => {
       this.emit(Events.COMPLETE)
     }, 1)

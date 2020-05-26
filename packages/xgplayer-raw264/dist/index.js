@@ -3642,11 +3642,23 @@
             msg: 'LOG',
             log: 'do import script '
           });
+          if (!self.console) {
+            self.console = {
+              log: function log() {},
+              warn: function warn() {},
+              info: function info() {},
+              error: function error() {}
+            };
+          }
           try {
-            self.importScripts('https://sf1-vcloudcdn.pstatp.com/obj/media-fe/decoder/h264/decoder_2.js');
+            self.importScripts('https://sf1-vcloudcdn.pstatp.com/obj/media-fe/decoder/h264/decoder_1583333072684.js');
           } catch (e) {
             self.postMessage({
               msg: 'INIT_FAILED'
+            });
+            self.postMessage({
+              msg: 'LOG',
+              log: e.message
             });
             return;
           }
@@ -3769,7 +3781,7 @@
       this.inited = true;
       this.self.postMessage({
         msg: 'LOG',
-        log: 'decoder inited'
+        log: 'backup decoder inited'
       });
       this.self.postMessage({ msg: 'DECODER_READY' });
     };
@@ -3813,10 +3825,29 @@
             onPostRun.call(self);
           });
         } else {
-          self.importScripts('https://sf1-vcloudcdn.pstatp.com/obj/media-fe/decoder/h264/decoder_asm_1589261792455.js');
+          try {
+            if (!self.console) {
+              self.console = {
+                log: function log() {},
+                warn: function warn() {},
+                info: function info() {},
+                error: function error() {}
+              };
+            }
+            self.importScripts('https://sf1-vcloudcdn.pstatp.com/obj/media-fe/decoder/h264/decoder_asm_1589261792455.js');
+          } catch (e) {
+            self.postMessage({
+              msg: 'INIT_FAILED'
+            });
+            self.postMessage({
+              msg: 'LOG',
+              log: e.message
+            });
+            return;
+          }
           self.postMessage({
             msg: 'LOG',
-            log: Module.toString()
+            log: 'backup script import done' + Module
           });
           onPostRun.call(self);
         }
@@ -3835,7 +3866,7 @@
             self.meta = data.meta;
             self.postMessage({
               msg: 'LOG',
-              log: 'worker inited'
+              log: 'backup worker inited'
             });
             init();
             break;
@@ -4363,18 +4394,6 @@
     }subClass.prototype = Object.create(superClass && superClass.prototype, { constructor: { value: subClass, enumerable: false, writable: true, configurable: true } });if (superClass) Object.setPrototypeOf ? Object.setPrototypeOf(subClass, superClass) : subClass.__proto__ = superClass;
   }
 
-  var asmSupported = function asmSupported() {
-    try {
-      (function MyAsmModule() {
-        'use asm';
-      })();
-      return true;
-    } catch (err) {
-      // will never show...
-      return false;
-    }
-  };
-
   var HAVE_NOTHING = 0;
   var HAVE_METADATA = 1;
   var HAVE_CURRENT_DATA = 2;
@@ -4450,45 +4469,25 @@
         window._shimWorkerDocument = document;
         window._shimWorkerWindow = window;
         this.initWorker(false);
-        this.setBackUpWorker();
-      }
-    }, {
-      key: 'setBackUpWorker',
-      value: function setBackUpWorker() {
-        var _this2 = this;
-
-        if (this.useBackupTimer) {
-          return;
-        }
-        this.useBackupTimer = setTimeout(function () {
-          window.clearTimeout(_this2.useBackupTimer);
-          _this2.useBackupTimer = null;
-          if (_this2._decoderInited || !asmSupported()) {
-            return;
-          }
-          _this2.initWorker(true);
-        }, 5000);
       }
     }, {
       key: 'initWorker',
       value: function initWorker(isBackup) {
-        var _this3 = this;
+        var _this2 = this;
 
+        if (this.wasmworker) {
+          this.destroyWorker();
+        }
         var VideoWorkerCls = isBackup ? BackupVideoWorker : VideoWorker;
         this.wasmworker = new VideoWorkerCls(false);
-        this.wasmworker.onmessage = function (e) {
-          if (e.data.msg === 'INIT_FAILED') {
-            _this3.destroyWorker();
-            _this3.wasmworker = new VideoWorkerCls(true);
-            _this3.wasmworker.postMessage({
-              msg: 'init',
-              meta: _this3.meta
-            });
-            _this3.wasmworker.onmessage = _this3.handleMessage;
+        this.wasmworker.onmessage = isBackup ? function (msg) {
+          if (msg.data.msg === 'INIT_FAILED') {
+            _this2.emit('error', new Error('backup worker init failed'));
           } else {
-            _this3.handleMessage(e);
+            _this2.handleMessage(msg);
           }
-        };
+        } : this.handleMessage;
+
         this.wasmworker.postMessage({
           msg: 'init',
           meta: this.meta
@@ -4647,22 +4646,22 @@
     }, {
       key: 'play',
       value: function play() {
-        var _this4 = this;
+        var _this3 = this;
 
         this.paused = false;
         if (!this.paused) {
           return Promise.resolve();
         }
         return new Promise(function (resolve) {
-          _this4.playFinish = resolve;
+          _this3.playFinish = resolve;
         }).then(function () {
-          _this4.playFinish = null;
+          _this3.playFinish = null;
         });
       }
     }, {
       key: '_onTimer',
       value: function _onTimer(currentTime) {
-        var _this5 = this;
+        var _this4 = this;
 
         // console.log(currentTime)
         if (this.paused) {
@@ -4697,7 +4696,7 @@
               }
               frameTimes.forEach(function (time) {
                 if (Number.parseInt(time) <= frameTime) {
-                  delete _this5._decodedFrames[time];
+                  delete _this4._decodedFrames[time];
                 }
               });
               this.yuvCanvas.render(frame.buffer, frame.width, frame.height, frame.yLinesize, frame.uvLinesize);
@@ -4759,7 +4758,11 @@
             this._onDecoded(msg.data);
             break;
           case 'LOG':
-            console.log(msg.data.log);
+            // console.log(msg.data.log);
+            break;
+          case 'INIT_FAILED':
+            this.destroyWorker();
+            this.initWorker(true);
             break;
           default:
             console.error('invalid messaeg', msg);
@@ -5494,13 +5497,11 @@
 
         // this._innerDispatchEvent('waiting')
         this.vCtx.oncanplay = function () {
-          if (!_this2.played) {
-            if (!_this2.contains(_this2._canvas)) {
-              _this2.appendChild(_this2._canvas);
-              // if (this.autoplay) {
-              //   this._innerDispatchEvent('play')
-              // }
-            }
+          if (!_this2.contains(_this2._canvas)) {
+            _this2.appendChild(_this2._canvas);
+            // if (this.autoplay) {
+            //   this._innerDispatchEvent('play')
+            // }
           }
         };
         this.vCtx.on(VIDEO_CANVAS_EVENTS.VIDEO_EVENTS, this.handleVCtxInnerEvent);
@@ -5998,7 +5999,7 @@
 
   function _inherits$6(subClass, superClass) { if (typeof superClass !== "function" && superClass !== null) { throw new TypeError("Super expression must either be null or a function, not " + typeof superClass); } subClass.prototype = Object.create(superClass && superClass.prototype, { constructor: { value: subClass, enumerable: false, writable: true, configurable: true } }); if (superClass) Object.setPrototypeOf ? Object.setPrototypeOf(subClass, superClass) : subClass.__proto__ = superClass; }
 
-  var asmSupported$1 = function asmSupported() {
+  var asmSupported = function asmSupported() {
     try {
       (function MyAsmModule() {
         'use asm';
@@ -6023,7 +6024,7 @@
         if (WebComponentSupported) {
           isComponentDefined = window.customElements.get('mobile-video');
         }
-        return (wasmSupported || asmSupported$1) && isComponentDefined;
+        return (wasmSupported || asmSupported) && isComponentDefined;
       }
     }]);
 
