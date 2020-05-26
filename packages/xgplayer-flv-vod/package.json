@@ -31,17 +31,16 @@
     ]
   },
   "dependencies": {
-    "xgplayer-utils-mse": "^3.0.0-alpha.9",
-    "xgplayer-transmuxer-context": "^3.0.0-alpha.9",
-    "xgplayer-transmuxer-buffer-xgbuffer": "^3.0.0-alpha.9",
-    "xgplayer-transmuxer-buffer-track": "^3.0.0-alpha.9",
-    "xgplayer-transmuxer-buffer-presource": "^3.0.0-alpha.9",
-    "xgplayer-transmuxer-demux-flv": "^3.0.0-alpha.9",
-    "xgplayer-transmuxer-loader-fetch": "^3.0.0-alpha.9",
-    "xgplayer-transmuxer-remux-mp4": "^3.0.0-alpha.9",
-    "xgplayer-transmuxer-constant-events": "^3.0.0-alpha.9",
-    "xgplayer-transmuxer-codec-compatibility": "^3.0.0-alpha.9",
-    "xgplayer-mobilevideo": "^3.0.0-alpha.9"
+    "xgplayer-utils-mse": "3.0.0-alpha.9",
+    "xgplayer-transmuxer-context": "3.0.0-alpha.9",
+    "xgplayer-transmuxer-buffer-xgbuffer": "3.0.0-alpha.9",
+    "xgplayer-transmuxer-buffer-track": "3.0.0-alpha.9",
+    "xgplayer-transmuxer-buffer-presource": "3.0.0-alpha.9",
+    "xgplayer-transmuxer-demux-flv": "3.0.0-alpha.9",
+    "xgplayer-transmuxer-loader-fetch": "3.0.0-alpha.9",
+    "xgplayer-transmuxer-remux-mp4": "3.0.0-alpha.9",
+    "xgplayer-transmuxer-constant-events": "3.0.0-alpha.9",
+    "xgplayer-transmuxer-codec-compatibility": "3.0.0-alpha.9"
   },
   "devDependencies": {
     "cross-env": "^6.0.3"
