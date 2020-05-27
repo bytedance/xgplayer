@@ -92,7 +92,6 @@ class HlsLiveController {
           offset += 4;
           newData.set(new Uint8Array(nal.body), offset);
           offset += nal.body.byteLength;
-
         })
 
         sample.data = newData;
@@ -245,6 +244,10 @@ class HlsLiveController {
     }
   }
   _checkStatus () {
+    if (this._player.paused) {
+      return;
+    }
+
     if (this.retrytimes < 1 && (new Date().getTime() - this._lastCheck < 4000)) {
       return;
     } else if (this.retrytimes < 1) {
