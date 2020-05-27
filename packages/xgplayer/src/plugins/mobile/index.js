@@ -183,7 +183,7 @@ class MobilePlugin extends Plugin {
       }
       setTimeout(() => {
         player.getPlugin('progress') && (player.getPlugin('progress').isProgressMoving = false)
-      }, 0)
+      }, 10)
       pos.op = 0
       this.player.emit(Events.PLAYER_FOCUS)
     } else {
