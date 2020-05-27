@@ -215,7 +215,7 @@ class Player extends Proxy {
     if (this.config.autoplay) {
       this.once(Events.CANPLAY, this.canPlayFunc)
       this.load()
-      this.video.play()
+      this.play()
     }
 
 
