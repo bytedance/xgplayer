@@ -121,7 +121,7 @@ class Start extends Plugin {
       return;
     }
     const paused = this.player.paused
-    if (!paused) {
+    if (!paused && player.isPlaying) {
       player.pause()
     } else {
       player.play()
@@ -130,6 +130,9 @@ class Start extends Plugin {
 
   onPlayPause (status) {
     const {config, player} = this
+    if (!player.isPlaying) {
+      return
+    }
     if (config.mode === 'show') {
       this.switchStatus()
       this.show()

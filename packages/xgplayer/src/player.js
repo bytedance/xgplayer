@@ -343,6 +343,7 @@ class Player extends Proxy {
     if (this.hasStart) {
       return this.play()
     } else {
+      this.hasStart = true
       return pluginsManager.beforeInit(this).then(() => {
         if (!url) {
           url = this.url || this.config.url;
@@ -376,6 +377,8 @@ class Player extends Proxy {
         this.removeClass(STATE_CLASS.NO_START)
         this.addClass(STATE_CLASS.PLAYING)
         this.isPlaying = true
+        // 自动播放异常 点击播放之后不触发play问题
+        this.emit(Events.PLAY)
       }).catch((e) => {
         console.log('>>>>playPromise.catch')
         // 避免AUTOPLAY_PREVENTED先于playing和play触发
@@ -383,7 +386,7 @@ class Player extends Proxy {
           this.emit(Events.AUTOPLAY_PREVENTED)
           this.addClass(STATE_CLASS.NOT_ALLOW_AUTOPLAY)
         }, 0)
-        throw e
+        // throw e
       })
     }
     return playPromise
@@ -530,7 +533,7 @@ class Player extends Proxy {
 
   onPlay () {
     // this.addClass(STATE_CLASS.PLAYING)
-    this.removeClass(STATE_CLASS.NOT_ALLOW_AUTOPLAY)
+    // this.removeClass(STATE_CLASS.NOT_ALLOW_AUTOPLAY)
     this.removeClass(STATE_CLASS.PAUSED)
     this.ended && this.removeClass(STATE_CLASS.ENDED)
     this.emit(Events.PLAYER_FOCUS)

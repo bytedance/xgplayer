@@ -269,6 +269,7 @@ class Progress extends Plugin {
   }
 
   updatePercent (percent, notSeek) {
+    this.isProgressMoving = true
     if (this.config.disable) {
       return;
     }
