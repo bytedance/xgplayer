@@ -17,6 +17,7 @@ class Time extends Plugin {
 
   afterCreate () {
     this.mode = this.config.mode ? this.config.mode : Sniffer.device === 'mobile' ? 'mobile' : 'pc'
+    console.log('this.config.disable', this.config.disable, this.mode)
     if (this.config.disable) {
       return
     }
@@ -35,6 +36,7 @@ class Time extends Plugin {
   }
 
   show () {
+    console.log('this.mode', this.mode)
     if (this.mode === 'mobile') {
       return
     }
@@ -119,7 +121,7 @@ class Time extends Plugin {
     if (this.config.disable) {
       return
     }
-    return `<xg-icon class="xgplayer-time" style="display:none">
+    return `<xg-icon class="xgplayer-time">
     <span class="time-current">00:00</span>
     <span class="time-separator">/</span>
     <span class="time-duration">00:00</span>

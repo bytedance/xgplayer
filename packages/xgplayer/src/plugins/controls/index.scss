@@ -52,8 +52,8 @@ $tipsFontsize: 12px;
     .center {
       display: block;
       position: absolute;
-      left: 0;
-      right: 0;
+      left: 5px;
+      right: 5px;
       outline: none;
       top: -5px;
       z-index: 35;
@@ -73,6 +73,8 @@ $tipsFontsize: 12px;
       height: 100%;
       justify-content: space-between;
       padding: 0 10px;
+      left: 0;
+      right: 0;
     }
   }
 
