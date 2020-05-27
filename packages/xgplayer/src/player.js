@@ -207,7 +207,6 @@ class Player extends Proxy {
 
     this.loadeddataFunc && this.once('loadeddata', this.loadeddataFunc)
 
-
     if (root.firstChild !== this.video) {
       root.insertBefore(this.video, root.firstChild)
     }
@@ -217,7 +216,6 @@ class Player extends Proxy {
       this.load()
       this.play()
     }
-
 
     setTimeout(() => {
       this.emit(Events.COMPLETE)
