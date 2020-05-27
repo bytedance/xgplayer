@@ -156,7 +156,7 @@ class VideoCanvas extends EventEmitter {
 
   preload () {
     const bufferedEnd = this.buffered.end(0)
-    if (!this._lastSampleDts || bufferedEnd - (this.currentTime / 1000) < 4) {
+    if (!this._lastSampleDts || bufferedEnd - (this.currentTime / 1000) < this.config.preloadTime) {
       let sample = this.source.get();
       if (sample) {
         this._lastSampleDts = sample.dts;
