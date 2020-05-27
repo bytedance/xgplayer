@@ -24,7 +24,7 @@
     ]
   },
   "dependencies": {
-    "xgplayer-transmuxer-model-mediainfo": "^3.0.0-alpha.9",
-    "xgplayer-transmuxer-constant-events": "^3.0.0-alpha.9"
+    "xgplayer-transmuxer-model-mediainfo": "3.0.0-alpha.9",
+    "xgplayer-transmuxer-constant-events": "3.0.0-alpha.9"
   }
 }

@@ -24,9 +24,9 @@
     ]
   },
   "dependencies": {
-    "xgplayer-transmuxer-constant-events":  "^3.0.0-alpha.9",
-    "xgplayer-transmuxer-codec-aac": "^3.0.0-alpha.9",
-    "xgplayer-utils": "^3.0.0-alpha.9",
-    "xgplayer-utils-sniffer": "^3.0.0-alpha.9"
+    "xgplayer-transmuxer-constant-events":  "3.0.0-alpha.9",
+    "xgplayer-transmuxer-codec-aac": "3.0.0-alpha.9",
+    "xgplayer-utils": "3.0.0-alpha.9",
+    "xgplayer-utils-sniffer": "3.0.0-alpha.9"
   }
 }

@@ -30,6 +30,6 @@
     "xgplayer-transmuxer-buffer-track": "3.0.0-alpha.9",
     "xgplayer-transmuxer-model-trackmeta":  "3.0.0-alpha.9",
     "xgplayer-transmuxer-model-tracksample": "3.0.0-alpha.9",
-    "xgplayer-transmuxer-codec-hevc": "^3.0.0-alpha.9"
+    "xgplayer-transmuxer-codec-hevc": "3.0.0-alpha.9"
   }
 }

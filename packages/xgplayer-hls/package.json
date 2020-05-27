@@ -36,8 +36,8 @@
   "author": "yinguohui@bytedance.com",
   "license": "MIT",
   "dependencies": {
-    "xgplayer-hls-live": "^3.0.0-alpha.9",
-    "xgplayer-hls-vod": "^3.0.0-alpha.9"
+    "xgplayer-hls-live": "3.0.0-alpha.9",
+    "xgplayer-hls-vod": "3.0.0-alpha.9"
   },
   "peerDependencies": {
     "xgplayer": "3.0.0-alpha.9"
