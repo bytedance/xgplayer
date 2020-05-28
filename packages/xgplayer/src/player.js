@@ -443,6 +443,7 @@ class Player extends Proxy {
       }
     })
     this.currentTime = 0
+    this.isSeeking = false
     this.play()
     this.emit(Events.REPLAY)
   }
