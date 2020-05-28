@@ -6,7 +6,8 @@ export default function getDefaultConfig () {
     width: 600, // 播放器宽度,单位px
     height: 337.5, // 播放器高度,单位px
     fluid: false, // 是否启用流式布局
-    fitVideoSize: '', // fixWidth/fixHeight/auto
+    fitVideoSize: 'fixed', // 播放器容器适配方式 fixWidth/fixHeight/fixed
+    videoFillMode: 'auto', // video画面填充模式 fillHeight/fillwidth/fill/auto
     volume: 0.6, // 默认音量
     autoplay: false, // 是否自动播放
     autoplayMuted: false, // 是否自动静音

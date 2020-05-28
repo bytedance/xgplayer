@@ -30,11 +30,23 @@
   &.xgplayer-is-fullscreen.xgplayer-inactive{
       cursor: none;
   }
-  video{
+  video {
       width:100%;
       height: 100%;
       outline: none;
   }
+  &[data-xgfill=cover] {
+    video {
+      object-fit: cover;
+    }
+  }
+
+  &[data-xgfill=fill] {
+    video {
+      object-fit: fill;
+    }
+  }
+  
   /** xgplayer cssFullscreen style  begain**/
   &.xgplayer-is-cssfullscreen {
     position: fixed;

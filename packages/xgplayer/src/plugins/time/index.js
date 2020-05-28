@@ -1,6 +1,6 @@
 import Plugin from '../../plugin'
 
-const { Util, Events, POSITIONS, Sniffer } = Plugin
+const { Util, Events, POSITIONS } = Plugin
 
 class Time extends Plugin {
   static get pluginName () {
@@ -16,12 +16,12 @@ class Time extends Plugin {
   }
 
   afterCreate () {
-    this.mode = this.config.mode ? this.config.mode : Sniffer.device === 'mobile' ? 'mobile' : 'pc'
-    console.log('this.config.disable', this.config.disable, this.mode)
+    const constrolsMode = this.player.controls.config.mode
+    this.mode = constrolsMode === 'flex' ? 'flex' : 'normal'
     if (this.config.disable) {
       return
     }
-    if (this.mode === 'mobile') {
+    if (this.mode === 'flex') {
       this.createCenterTime()
       this.hide()
     }
@@ -36,8 +36,7 @@ class Time extends Plugin {
   }
 
   show () {
-    console.log('this.mode', this.mode)
-    if (this.mode === 'mobile') {
+    if (this.mode === 'flex') {
       return
     }
     super.show()
@@ -49,7 +48,7 @@ class Time extends Plugin {
       return
     }
     const current = player.currentTime
-    if (this.mode === 'mobile') {
+    if (this.mode === 'flex') {
       this.centerCurDom.innerHTML = Util.format(current)
       if (player.duration !== Infinity) {
         this.centerDurDom.innerHTML = Util.format(player.duration)
@@ -110,7 +109,7 @@ class Time extends Plugin {
     if ((!time && time !== 0) || time > player.duration) {
       return
     }
-    if (this.mode === 'mobile') {
+    if (this.mode === 'flex') {
       this.centerCurDom.innerHTML = Util.format(time)
       return
     }
