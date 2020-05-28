@@ -75,7 +75,7 @@ class Playlist {
     }
 
     // 新分片信息
-    if (data.sequence > this.sequence) {
+    if (data.sequence >= this.sequence) {
       this.sequence = data.sequence;
       let newfraglist = []
       for (let i = 0; i < data.frags.length; i++) {
