@@ -243,7 +243,12 @@ class Proxy {
   }
   set currentTime (time) {
     if (typeof isFinite === 'function' && !isFinite(time)) return
-    this.video.currentTime = time
+    if (util.hasClass(this.root, 'xgplayer-ended')) {
+      this.once('playing', () => { this.video.currentTime = time })
+      this.replay()
+    } else {
+      this.video.currentTime = time
+    }
     this.emit('currentTimeChange')
   }
   get defaultMuted () {
