@@ -408,7 +408,7 @@ class Player extends Proxy {
     if (!this.video || isNaN(Number(time))) {
       return
     }
-    time = time < 0 ? 0 : time > this.duration ? this.duration : time
+    time = time < 0 ? 0 : time > this.duration ? parseInt(this.duration, 10) : time
     this.once(Events.CANPLAY, () => {
       this.isSeeking = false
       if (this.paused) {
@@ -636,7 +636,7 @@ class Player extends Proxy {
     // video填充模式
     if (videoFillMode === 'fill') {
       this.setAttribute('data-xgfill', 'fill')
-    } else if ((videoFillMode === 'fillHeight' && fit < videoFit) || (videoFillMode === 'fillWidth' && fit > videoFit)) {
+    } else if ((videoFillMode === 'fillHeight' && fit < videoFit) || (videoFillMode === 'fillWidth' && fit > videoFit) || videoFillMode === 'cover') {
       this.setAttribute('data-xgfill', 'cover')
     } else {
       this.removeAttribute('data-xgfill')

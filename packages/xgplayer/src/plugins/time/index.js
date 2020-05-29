@@ -15,6 +15,11 @@ class Time extends Plugin {
     }
   }
 
+  constructor (args) {
+    super(args)
+    this.isActiving = false
+  }
+
   afterCreate () {
     const constrolsMode = this.player.controls.config.mode
     this.mode = constrolsMode === 'flex' ? 'flex' : 'normal'
@@ -44,7 +49,7 @@ class Time extends Plugin {
 
   onTimeUpdate () {
     const {player, config} = this
-    if (config.disable) {
+    if (config.disable || this.isActiving || player.isSeeking) {
       return
     }
     const current = player.currentTime
@@ -105,6 +110,7 @@ class Time extends Plugin {
   }
 
   updateTime (time) {
+    this.isActiving = true
     const { player } = this
     if ((!time && time !== 0) || time > player.duration) {
       return
@@ -114,6 +120,10 @@ class Time extends Plugin {
       return
     }
     this.timeDom.innerHTML = Util.format(time)
+  }
+
+  resetActive () {
+    this.isActiving = false
   }
 
   render () {

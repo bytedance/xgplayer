@@ -167,7 +167,7 @@ class Progress extends Plugin {
       }
       this.computeWidth(e, false)
       setTimeout(() => {
-        this.isProgressMoving = false
+        this.resetSeekState()
       }, 10)
       this.triggerCallbacks('dragend', {})
       this.player.emit(Events.PLAYER_FOCUS)
@@ -281,9 +281,15 @@ class Progress extends Plugin {
       time = 0
     }
     let timeIcon = player.plugins.time
-    if (time) {
+    if (timeIcon) {
       timeIcon.updateTime(time)
     }
+  }
+
+  resetSeekState () {
+    this.isProgressMoving = false
+    let timeIcon = this.player.plugins.time
+    timeIcon && timeIcon.resetActive()
   }
 
   updatePercent (percent, notSeek) {

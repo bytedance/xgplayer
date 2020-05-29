@@ -182,7 +182,7 @@ class MobilePlugin extends Plugin {
         player.seek(Number(time).toFixed(1))
       }
       setTimeout(() => {
-        player.getPlugin('progress') && (player.getPlugin('progress').isProgressMoving = false)
+        player.getPlugin('progress') && player.getPlugin('progress').resetSeekState()
       }, 10)
       pos.op = 0
       this.player.emit(Events.PLAYER_FOCUS)
