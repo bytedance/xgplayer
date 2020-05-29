@@ -69,7 +69,6 @@ export default class ScreenShot extends Plugin {
     this.emit('screenShot', screenShotImg)
     this.saveScreenShot(screenShotImg, '截图' + format)
     img.onload = () => {
-      console.log('img.onload')
       img = null;
     }
   }
@@ -91,14 +90,14 @@ export default class ScreenShot extends Plugin {
   }
 
   destroy () {
-    this.bind(['click', 'touchend'], this.onClickBtn)
+    this.unbind(['click', 'touchend'], this.onClickBtn)
   }
 
   render () {
     if (this.config.disable) {
       return;
     }
-    const className = this.icons.screenshotIcon ? 'xgplayer-icon' : 'xgplayer-icon btn-definition'
+    const className = this.icons.screenshotIcon ? 'xgplayer-icon' : 'xgplayer-icon btn-text'
     return `
       <xg-icon class="xgplayer-shot">
       <div class="${className}">

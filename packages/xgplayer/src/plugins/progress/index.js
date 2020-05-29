@@ -141,7 +141,7 @@ class Progress extends Plugin {
     if (e.target === this.pointTip || (!player.config.allowSeekAfterEnded && player.ended)) {
       return true
     }
-    this.player.emit(Events.PLAYER_FOCUS, true)
+    this.player.emit(Events.PLAYER_FOCUS, {autoHide: false})
     this.isProgressMoving = true
     Util.addClass(this.progressBtn, 'btn-move')
     this.computeWidth(e, false)

@@ -520,14 +520,14 @@ class Player extends Proxy {
     this.emit(Events.CSS_FULLSCREEN_CHANGE, false)
   }
 
-  onFocus (notAutoHide) {
+  onFocus (data = {autoHide: true}) {
     this.isActive = true
     let player = this
     this.removeClass(STATE_CLASS.ACTIVE)
     if (player.userTimer) {
       clearTimeout(player.userTimer)
     }
-    if (notAutoHide) {
+    if (!data.autoHide) {
       return;
     }
     player.userTimer = setTimeout(function () {
@@ -607,7 +607,6 @@ class Player extends Proxy {
   }
 
   getVideoSize () {
-    console.log('getVideoSize')
     const videoWidth = this.video.videoWidth
     const videoHeight = this.video.videoHeight
     const {fitVideoSize, videoFillMode} = this.config

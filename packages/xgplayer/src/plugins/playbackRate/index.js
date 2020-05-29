@@ -29,7 +29,7 @@ export default class PlaybackRate extends Plugin {
       this.show()
     })
     if (Sniffer.device === 'mobile') {
-      this.activeEvent = 'click'
+      this.activeEvent = 'touchend'
     } else {
       this.activeEvent = 'mouseenter'
     }
@@ -38,7 +38,7 @@ export default class PlaybackRate extends Plugin {
     this.onItemClick = this.onItemClick.bind(this)
     this.bind(this.activeEvent, this.onMouseenter)
     this.bind('mouseleave', this.onMouseenter)
-    this.bind('.icon-list li', ['touched', 'click'], this.onItemClick)
+    this.bind('.option-list li', ['touchend', 'click'], this.onItemClick)
   }
 
   show () {
@@ -51,7 +51,14 @@ export default class PlaybackRate extends Plugin {
   onMouseenter (e) {
     e.preventDefault()
     e.stopPropagation()
-    Util.hasClass(this.root, 'list-show') ? Util.removeClass(this.root, 'list-show') : Util.addClass(this.root, 'list-show')
+    const ulDom = this.find('.option-list')
+    if (Util.hasClass(ulDom, 'active')) {
+      this.player.controls.unFocus()
+      Util.removeClass(ulDom, 'active')
+    } else {
+      this.player.controls.focus()
+      Util.addClass(ulDom, 'active')
+    }
   }
 
   onItemClick (e) {
@@ -70,7 +77,7 @@ export default class PlaybackRate extends Plugin {
   destroy () {
     this.unbind(this.activeEvent, this.onMouseenter)
     this.unbind('mouseleave', this.onMouseenter)
-    this.unbind('.icon-list li', ['touched', 'click'], this.onItemClick)
+    this.unbind('.option-list li', ['touched', 'click'], this.onItemClick)
   }
 
   renderItemList () {
@@ -86,17 +93,17 @@ export default class PlaybackRate extends Plugin {
       }
       return `<li cname="${itemInfo.rate}" ctext="${item.iconText || itemInfo.text}" class="${itemInfo.isCurrent ? 'selected' : ''}">${itemInfo.text}</li>`
     })
-    this.find('.icon-list').innerHTML = items.join('')
+    this.find('.option-list').innerHTML = items.join('')
     this.find('.icon-text').innerHTML = currentText
     this.show()
   }
 
   render () {
     return `<xg-icon class="xgplayer-playbackrate">
-    <div class="xgplayer-icon btn-definition">
+    <div class="xgplayer-icon btn-text">
     <span class="icon-text"></span>
     </div>
-    <ul class="icon-list">
+    <ul class="option-list">
     </ul>
    </xg-icon>`
   }

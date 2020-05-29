@@ -25,7 +25,7 @@
     left: 50%;
     top: 50%;
     z-index: 115;
-    margin: -35px auto auto -35px;
+    transform: translate(-50%, -50%);
     cursor: pointer;
     svg {
       fill: rgb(255, 255, 255);
@@ -64,7 +64,6 @@
     .xgplayer-start {
       height: 50px;
       width: 50px;
-      margin: -25px auto auto -25px;
       background: initial;
       svg {
         height: 50px;

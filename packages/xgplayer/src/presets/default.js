@@ -26,7 +26,7 @@ import CssFullScreen from '../plugins/cssFullScreen'
 export default class DefaultPreset {
   constructor () {
     const contolsIcons = [Progress, PlayIcon, FullScreen, TimeIcon,
-      RotateIcon, PlayNextIcon, DefinitionIcon, PlaybackRateIcon, DownLoadIcon, ScreenShotIcon]
+      RotateIcon, PlayNextIcon, DefinitionIcon, PlaybackRateIcon, DownLoadIcon, ScreenShotIcon, Volume]
 
     const barIcons = [{
       plugin: PIPIcon,
@@ -40,7 +40,7 @@ export default class DefaultPreset {
     this.plugins = [...contolsIcons, ...layers]
     switch (sniffer.device) {
       case 'pc':
-        this.plugins.push(...[Keyboard, PC, CssFullScreen, Volume], ...barIcons, Miniscreen);
+        this.plugins.push(...[Keyboard, PC, CssFullScreen], ...barIcons, Miniscreen);
         break;
       case 'mobile':
         this.plugins.push(Mobile);
