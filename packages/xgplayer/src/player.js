@@ -522,17 +522,16 @@ class Player extends Proxy {
 
   onFocus (data = {autoHide: true}) {
     this.isActive = true
-    let player = this
     this.removeClass(STATE_CLASS.ACTIVE)
-    if (player.userTimer) {
-      clearTimeout(player.userTimer)
+    if (this.userTimer) {
+      clearTimeout(this.userTimer)
     }
     if (!data.autoHide) {
       return;
     }
-    player.userTimer = setTimeout(function () {
-      player.emit(Events.PLAYER_BLUR)
-    }, player.config.inactive)
+    this.userTimer = setTimeout(function () {
+      this.emit(Events.PLAYER_BLUR)
+    }, this.config.inactive)
   }
 
   onBlur () {
