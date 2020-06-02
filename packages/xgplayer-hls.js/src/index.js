@@ -74,9 +74,7 @@ class HlsJsPlayer extends Player {
     this.once('complete', () => {
       hls.attachMedia(player.video)
       player.once('canplay', () => {
-        if(player.config.autoplay) {
-          player.play().catch(err => {})
-        }
+        player.play().catch(err => {})
       })
     })
     this.once('destroy', () => {

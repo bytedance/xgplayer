@@ -6087,9 +6087,7 @@ var HlsJsPlayer = function (_Player) {
     _this.once('complete', function () {
       hls.attachMedia(player.video);
       player.once('canplay', function () {
-        if (player.config.autoplay) {
-          player.play().catch(function (err) {});
-        }
+        player.play().catch(function (err) {});
       });
     });
     _this.once('destroy', function () {
