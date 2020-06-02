@@ -529,7 +529,7 @@ class Player extends Proxy {
     if (!data.autoHide) {
       return;
     }
-    this.userTimer = setTimeout(function () {
+    this.userTimer = setTimeout(() => {
       this.emit(Events.PLAYER_BLUR)
     }, this.config.inactive)
   }

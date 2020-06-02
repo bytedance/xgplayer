@@ -69,13 +69,12 @@ class Progress extends Plugin {
     this.initThumbnail()
     this.on(Events.TIME_UPDATE, () => {
       this.onTimeupdate()
-      this.onCacheUpdate()
     });
     this.on(Events.SEEKING, () => {
       this.onTimeupdate()
       this.onCacheUpdate()
     });
-    this.on([Events.BUFFER_CHANGE, Events.ENDED], () => {
+    this.on([Events.PROGRESS, Events.ENDED], () => {
       this.onCacheUpdate()
     })
     this.bindDomEvents()
@@ -330,23 +329,8 @@ class Progress extends Plugin {
 
   onCacheUpdate () {
     const {player} = this
-    let buffered = player.buffered
-    if (buffered && buffered.length > 0) {
-      let end = buffered.end(buffered.length - 1)
-      for (let i = 0, len = buffered.length; i < len; i++) {
-        if (player.currentTime >= buffered.start(i) && player.currentTime <= buffered.end(i)) {
-          end = buffered.end(i)
-          for (let j = i + 1; j < buffered.length; j++) {
-            if (buffered.start(j) - buffered.end(j - 1) >= 2) {
-              end = buffered.end(j - 1)
-              break
-            }
-          }
-          break
-        }
-      }
-      this.cachedBar.style.width = `${end / player.duration * 100}%`
-    }
+    const point = player.bufferedPoint
+    this.cachedBar.style.width = `${point.end / player.duration * 100}%`
   }
 
   destroy () {
