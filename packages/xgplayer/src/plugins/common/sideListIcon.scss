@@ -1,0 +1,114 @@
+.xgplayer {
+  .xgplayer-sidelisticon {
+    display: none;
+    cursor: pointer;
+    &.show {
+      display: block;
+    }
+  }
+  
+  @keyframes sidelistactive {
+    0% {
+      left: 115%;
+    }
+    100% {
+      left: 86%;
+    }
+  }
+
+  @keyframes sidelisthide {
+    0% {
+      left: 86%;
+    }
+    100% {
+      left: 115%;
+    }
+  }
+
+  .xgplayer-side-list {
+    position: absolute;
+    width: 78px;
+    left: 50%;
+    bottom: 40px;
+    background: $definitionUlBgColor;
+    border-radius: 1px;
+    transform: translate(-50%);
+    text-align: left;
+    white-space: nowrap;
+    z-index: 26;
+    cursor: pointer;
+    overflow: hidden;
+    height: 0;
+    li {
+      width: 73px;
+      height: 20px;
+      line-height: 20px;
+      opacity: 0.85;
+      font-family: PingFangSC;
+      font-size: 14px;
+      color: $definitionLiColor;
+      position: relative;
+      padding: 4px 0 4px 0px;
+      text-align: center;
+      &.selected{
+        color: $definitionLiActiveColor;
+        opacity: 1;
+      }
+      &:hover{
+        color: $definitionLiActiveColor;
+        opacity: 1;
+      }
+    }
+    li:nth-child(1) {
+      position: relative;
+      margin-top: 12px;
+    }
+    li:last-child {
+      position: relative;
+      margin-bottom: 12px;
+    }
+    &:hover {
+      opacity: 1;
+    }
+    &.active {
+      height: auto;
+    }
+  }
+
+  .mobile {
+    width: 30%;
+    height: 100%;
+    left: 115%;
+    bottom: 0;
+    z-index: 81;
+    background: rgba(0,0,0,0.9);
+    display: flex;
+    flex-direction: column;
+    box-sizing: border-box;
+    li {
+      flex:1;
+      width: 100%;
+      padding: 0;
+      position: relative;
+      span {
+        top: 50%;
+        position: absolute;
+        margin: -10px;
+      }
+    }
+    li:nth-child(1) {
+      margin-top: 20px;
+    }
+    li:last-child {
+      margin-bottom: 20px;
+    }
+    &.active {
+      height: 100%;
+      animation: sidelistactive .3s ease-out forwards;
+    }
+    &.hide {
+      height: 100%;
+      animation: sidelisthide .3s ease-in forwards;
+    }
+  }
+}

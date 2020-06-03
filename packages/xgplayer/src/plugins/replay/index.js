@@ -36,7 +36,6 @@ class Replay extends Plugin {
     this.bind('svg', 'click', handleReplay)
     this.bind('.xgplayer-replay-txt', 'click', handleReplay)
 
-
     this.on(Plugin.Events.ENDED, () => {
       if (!this.playerConfig.loop) {
         Plugin.Util.addClass(this.player.root, 'replay')

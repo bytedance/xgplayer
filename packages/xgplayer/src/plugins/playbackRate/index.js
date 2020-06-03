@@ -1,8 +1,9 @@
 import Plugin from '../../plugin'
+import SideListIcon from '../common/sideListIcon'
 
-const {Events, Util, Sniffer, POSITIONS} = Plugin
+const {POSITIONS} = Plugin
 
-export default class PlaybackRate extends Plugin {
+export default class PlaybackRate extends SideListIcon {
   static get pluginName () {
     return 'playbackRate'
   }
@@ -11,7 +12,9 @@ export default class PlaybackRate extends Plugin {
     return {
       position: POSITIONS.CONTROLS_RIGTH,
       index: 4,
-      list: [0.5, 0.75, {rate: 1, iconText: '倍速'}, 1.5, 2]
+      list: [0.5, 0.75, {rate: 1, iconText: '倍速'}, 1.5, 2],
+      className: 'xgplayer-playbackrate',
+      pluginName: 'playbackRate'
     }
   }
 
@@ -25,20 +28,7 @@ export default class PlaybackRate extends Plugin {
     if (Array.isArray(playerConfig.playbackRate)) {
       config.list = playerConfig.playbackRate
     }
-    this.once(Events.CANPLAY, () => {
-      this.show()
-    })
-    if (Sniffer.device === 'mobile') {
-      this.activeEvent = 'touchend'
-    } else {
-      this.activeEvent = 'mouseenter'
-    }
-    this.renderItemList();
-    this.onMouseenter = this.onMouseenter.bind(this)
-    this.onItemClick = this.onItemClick.bind(this)
-    this.bind(this.activeEvent, this.onMouseenter)
-    this.bind('mouseleave', this.onMouseenter)
-    this.bind('.option-list li', ['touchend', 'click'], this.onItemClick)
+    super.afterCreate()
   }
 
   show () {
@@ -48,41 +38,25 @@ export default class PlaybackRate extends Plugin {
     super.show()
   }
 
-  onMouseenter (e) {
-    e.preventDefault()
-    e.stopPropagation()
-    const ulDom = this.find('.option-list')
-    if (Util.hasClass(ulDom, 'active')) {
-      this.player.controls.unFocus()
-      Util.removeClass(ulDom, 'active')
-    } else {
-      this.player.controls.focus()
-      Util.addClass(ulDom, 'active')
-    }
-  }
-
   onItemClick (e) {
-    const target = e.target
-    const cname = target.getAttribute('cname')
-    if (Number(cname) === this.curRate) {
+    const target = e.delegateTarget
+    const rate = target.getAttribute('rate')
+    if (Number(rate) === this.curValue) {
       return false
     }
-    Util.removeClass(this.find('.selected'), 'selected')
-    Util.addClass(target, 'selected')
-    this.curRate = Number(cname)
-    this.player.playbackRate = Number(cname)
-    this.find('.icon-text').innerHTML = target.getAttribute('ctext')
+    this.player.playbackRate = Number(rate)
+    this.changeCurrent(rate, target.getAttribute('text'))
+    super.onItemClick(e)
   }
 
   destroy () {
     this.unbind(this.activeEvent, this.onMouseenter)
     this.unbind('mouseleave', this.onMouseenter)
-    this.unbind('.option-list li', ['touched', 'click'], this.onItemClick)
   }
 
   renderItemList () {
     const playbackRate = this.player.playbackRate || 1
-    this.curRate = playbackRate
+    this.curValue = playbackRate
     let currentText = ''
     const items = this.config.list.map((item) => {
       let itemInfo = typeof item === 'object' ? item : {rate: item}
@@ -91,20 +65,8 @@ export default class PlaybackRate extends Plugin {
         itemInfo.isCurrent = true
         currentText = item.iconText || itemInfo.text
       }
-      return `<li cname="${itemInfo.rate}" ctext="${item.iconText || itemInfo.text}" class="${itemInfo.isCurrent ? 'selected' : ''}">${itemInfo.text}</li>`
+      return itemInfo
     })
-    this.find('.option-list').innerHTML = items.join('')
-    this.find('.icon-text').innerHTML = currentText
-    this.show()
-  }
-
-  render () {
-    return `<xg-icon class="xgplayer-playbackrate">
-    <div class="xgplayer-icon btn-text">
-    <span class="icon-text"></span>
-    </div>
-    <ul class="option-list">
-    </ul>
-   </xg-icon>`
+    super.renderItemList(items, currentText)
   }
 }

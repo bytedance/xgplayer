@@ -1,7 +1,7 @@
-import Plugin from '../../plugin'
+import SideListIcon from '../common/sideListIcon'
 
-const { Events, Util, Sniffer, POSITIONS } = Plugin
-export default class DefinitionIcon extends Plugin {
+const { Events, POSITIONS } = SideListIcon
+export default class DefinitionIcon extends SideListIcon {
   static get pluginName () {
     return 'definition'
   }
@@ -11,9 +11,11 @@ export default class DefinitionIcon extends Plugin {
     return {
       position: POSITIONS.CONTROLS_RIGTH,
       index: 3,
-      list: null,
+      list: [],
       disable: false,
-      hideMobile: true // 是否在移动端竖屏状态下隐藏
+      hideMobile: true, // 是否在移动端竖屏状态下隐藏
+      classname: 'xgplayer-definition',
+      pluginName: 'definition'
     }
   }
 
@@ -25,61 +27,59 @@ export default class DefinitionIcon extends Plugin {
   }
 
   afterCreate () {
-    this.once(Events.CANPLAY, () => {
-      if (this.config.list && this.config.list.length > 0) {
-        this.renderItemList()
-        this.show()
-      }
-    })
+    super.afterCreate()
     this.once('resourceReady', (list) => {
       this.changeDefinitionList(list)
     })
-    if (Sniffer.device === 'mobile') {
-      this.activeEvent = 'touchend'
-    } else {
-      this.activeEvent = 'mouseenter'
-    }
-    this.onToggle = this.onToggle.bind(this)
-    this.onItemClick = this.onItemClick.bind(this)
-    this.bind(this.activeEvent, this.onToggle)
-    this.bind('mouseleave', this.onToggle)
-    this.bind('.option-list li', ['touchend', 'click'], this.onItemClick)
   }
 
-  renderItemList () {
-    const {player} = this
-    const {list} = this.config
-    let src = player.config.url;
-    const a = document.createElement('a')
-    if (player.switchURL) {
-      this.switchUrl()
-    } else {
-      const currentSrc = player.currentSrc || player.src;
-      src = /^http/.test(currentSrc) ? currentSrc : src;
-    }
-    if (player['hls']) {
-      a.href = player['hls'].url
-      src = a.href
-    }
+  // renderItemList () {
+  //   const {player} = this
+  //   const {list} = this.config
+  //   let src = player.config.url
+  //   const a = document.createElement('a')
+  //   if (player.switchURL) {
+  //     this.switchUrl()
+  //   } else {
+  //     const currentSrc = player.currentSrc || player.src;
+  //     src = /^http/.test(currentSrc) ? currentSrc : src;
+  //   }
+  //   if (player['hls']) {
+  //     a.href = player['hls'].url
+  //     src = a.href
+  //   }
 
-    const liList = list.map(item => {
-      a.href = item.url
-      const className = player.dash ? (item.selected ? 'selected' : '') : (a.href === src ? 'selected' : '')
-      return `<li class="${className}" cname="${item.name}" url="${item.url}">${item.name}</li>`
-    })
-    let cursrc = list.filter(item => {
-      a.href = item.url
-      if (player.dash) {
-        return item.selected === true
-      } else {
-        return a.href === src
+  //   const liList = list.map(item => {
+  //     a.href = item.url
+  //     const className = player.dash ? (item.selected ? 'selected' : '') : (a.href === src ? 'selected' : '')
+  //     return `<li class="${className}" cname="${item.name}" url="${item.url}">${item.name}</li>`
+  //   })
+  //   let cursrc = list.filter(item => {
+  //     a.href = item.url
+  //     if (player.dash) {
+  //       return item.selected === true
+  //     } else {
+  //       return a.href === src
+  //     }
+  //   })
+  //   this.find('.icon-text').innerHTML = (cursrc[0] || {name: '清晰度'}).name
+  //   this.find('.option-list').innerHTML = liList.join('')
+  // }
+  renderItemList () {
+    const { player } = this
+    const {list} = this.config
+    const currentSrc = player.currentSrc || player.src
+    const currentText = '清晰度'
+    list.map((item) => {
+      if (item.url === currentSrc) {
+        item.isCurrent = true
       }
     })
-    this.find('.icon-text').innerHTML = (cursrc[0] || {name: '清晰度'}).name
-    this.find('.option-list').innerHTML = liList.join('')
+    super.renderItemList(list, currentText)
   }
 
   onCanplayChangeDefinition () {
+    console.log('onCanplayChangeDefinition')
     const {player} = this
     player.currentTime = this.curTime
     if (!this.isPaused) {
@@ -90,19 +90,6 @@ export default class DefinitionIcon extends Plugin {
       }
     }
     player.emit(Events.AFTER_DEFINITION_CHANGE)
-  }
-
-  onToggle (e) {
-    // e.preventDefault()
-    // e.stopPropagation()
-    const ulDom = this.find('.option-list')
-    if (Util.hasClass(ulDom, 'active')) {
-      this.player.controls.unFocus()
-      Util.removeClass(ulDom, 'active')
-    } else {
-      this.player.controls.focus()
-      Util.addClass(ulDom, 'active')
-    }
   }
 
   switchUrl (lastATag) {
@@ -137,61 +124,32 @@ export default class DefinitionIcon extends Plugin {
     this.show()
   }
 
-  onItemClick (e) {
+  changeDefinition (to) {
     const {player} = this
-    const {list} = this.config
-    e.preventDefault()
-    e.stopPropagation()
-    if (e.target && e.target.className === 'selected') {
-      return false
-    }
-    const a = document.createElement('a')
-    player.emit(Events.BEFORE_DEFINITION_CHANGE, a.href)
-    if (player.dash) {
-      list.forEach(item => {
-        item.selected = false
-        if (item.name === e.target.innerHTML) {
-          item.selected = true
-        }
-      })
-    }
-    const curlSelected = this.find('.selected')
-    Util.addClass(e.target, 'selected')
-    curlSelected && Util.removeClass(curlSelected, 'selected')
-    const from = curlSelected ? curlSelected.getAttribute('cname') : ''
-    const to = e.target.getAttribute('cname')
-    a.href = e.target.getAttribute('url')
-    this.curTime = player.currentTime;
-    this.isPaused = player.paused
     if (player.switchURL) {
-      this.switchUrl(a)
+      this.switchUrl(to)
     } else {
-      // if (player['hls']) {
-      //   let curRUL = document.createElement('a')
-      //   curRUL = player['hls'].url
-      // }
-      if (a.href !== player.currentSrc) {
+      // TODO: 兼容hls和flv
+      if (to.url !== player.currentSrc) {
+        this.curTime = player.currentTime
+        this.isPaused = player.paused
         if (!player.ended) {
-          player.src = a.href
+          player.video.src = to.url
           this.once('canplay', () => {
             this.onCanplayChangeDefinition()
           })
         }
       }
     }
-    this.find('.icon-text').innerHTML = to
-    player.emit(Events.DEFINITION_CHANGE, {from, to})
-    if (Sniffer.device === 'mobile') {
-      Util.removeClass(this.find('.option-list'), 'active')
-    }
+    this.find('.icon-text').innerHTML = to.name
   }
 
-  render () {
-    const text = '清晰度'
-    return `<xg-icon class="xgplayer-definition">
-    <div class="xgplayer-icon btn-text"><span class="icon-text">${text}</span></div>
-    <ul class="option-list">
-    </ul>
-   </xg-icon>`
+  onItemClick (e, data) {
+    const {player} = this
+    const target = e.delegateTarget
+    const url = target.getAttribute('url')
+    player.emit(Events.BEFORE_DEFINITION_CHANGE, url)
+    this.changeDefinition(data.to)
+    player.emit(Events.DEFINITION_CHANGE, {from: data.from, to: data.to})
   }
 }
