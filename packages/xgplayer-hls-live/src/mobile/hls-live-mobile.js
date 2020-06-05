@@ -43,8 +43,8 @@ class HlsLiveController {
     this._playlist = this._context.registry('PLAYLIST', Playlist)({autoclear: true});
 
     // 初始化M3U8Loader;
-    this._m3u8loader = this._context.registry('M3U8_LOADER', FetchLoader)({ buffer: 'M3U8_BUFFER', readtype: 1 });
-    this._tsloader = this._context.registry('TS_LOADER', FetchLoader)({ buffer: 'TS_BUFFER', readtype: 3 });
+    this._m3u8loader = this._context.registry('M3U8_LOADER', FetchLoader)({ buffer: 'M3U8_BUFFER', readtype: 1, retryTime: 0 });
+    this._tsloader = this._context.registry('TS_LOADER', FetchLoader)({ buffer: 'TS_BUFFER', readtype: 3, retryTime: 1 });
 
     // 初始化TS Demuxer
     this._context.registry('TS_DEMUXER', TsDemuxer)({ inputbuffer: 'TS_BUFFER' });
@@ -137,6 +137,10 @@ class HlsLiveController {
   }
 
   _onLoadError (loader, error) {
+    if (loader !== 'M3U8_LOADER') {
+      this.retrytimes = 3;
+      return
+    }
     if (!this._tsloader.loading && !this._m3u8loader.loading && this.retrytimes > 1) {
       this.retrytimes--;
       this._onError(LOADER_EVENTS.LOADER_ERROR, loader, error, false);

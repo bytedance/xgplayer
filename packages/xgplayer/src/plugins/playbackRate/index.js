@@ -38,6 +38,43 @@ export default class PlaybackRate extends SideListIcon {
     super.show()
   }
 
+  registerLangauageTexts () {
+    console.log('registerLangauageTexts')
+    return {
+      'currate-text': {
+        jp: (langkey) => {
+          return this.getCurrentText(langkey)
+        },
+        en: (langkey) => {
+          return this.getCurrentText(langkey)
+        },
+        zh: (langkey) => {
+          return this.getCurrentText(langkey)
+        }
+      }
+    }
+  }
+
+  getCurrentText (lang) {
+    const {curRate, config, player} = this
+    if (!lang) {
+      lang = player.lang
+    }
+    let text = ''
+    config.list.map(item => {
+      if (Number(item) === curRate || Number(item.rate) === curRate) {
+        if (item[lang]) {
+          text = item[lang]
+        } else if (item.iconText) {
+          text = item.iconText[lang] ? item.iconText[lang] : (typeof item.iconText === 'string' && (!lang || lang === 'zh') ? item.iconText : '')
+        } else {
+          text = typeof item === 'number' ? `${item}x` : `${item.rate}x`
+        }
+      }
+    })
+    return text
+  }
+
   onItemClick (e) {
     const target = e.delegateTarget
     const rate = target.getAttribute('rate')
@@ -63,7 +100,6 @@ export default class PlaybackRate extends SideListIcon {
       !itemInfo.text && (itemInfo.text = `${itemInfo.rate}x`)
       if (itemInfo.rate === playbackRate) {
         itemInfo.isCurrent = true
-        currentText = item.iconText || itemInfo.text
       }
       return itemInfo
     })

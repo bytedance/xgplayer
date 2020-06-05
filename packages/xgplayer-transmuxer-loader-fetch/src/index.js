@@ -15,6 +15,7 @@ class FetchLoader {
     this._canceled = false;
     this._destroyed = false;
     this.readtype = this.configs.readtype;
+    this.retryTime = this.configs.retryTime === undefined ? 3 : this.configs.retryTime;
     this.buffer = this.configs.buffer || 'LOADER_BUFFER';
     this._loaderTaskNo = 0;
   }
@@ -80,9 +81,8 @@ class FetchLoader {
 
     // TODO: Add Ranges
     let params = this.getParams(opts)
-    let retryTime = 3
     this.loading = true
-    this.internalLoad(url, params, retryTime)
+    this.internalLoad(url, params, this.retryTime)
   }
 
   _onFetchResponse (response) {
