@@ -219,7 +219,8 @@ export default class Plugin extends BasePlugin {
       checkChildren(this.root, (node) => {
         const langKey = node.getAttribute && node.getAttribute('lang-key')
         if (langKey && this.langText[langKey]) {
-          node.innerHTML = this.langText[langKey]
+          const langTextShow = this.langText[langKey]
+          node.innerHTML = typeof langTextShow === 'function' ? langTextShow(lang) : langTextShow
         }
       })
     }

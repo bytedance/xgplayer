@@ -35,7 +35,7 @@ export default class DefinitionIcon extends Plugin {
       this.changeDefinitionList(list)
     })
     if (Sniffer.device === 'mobile') {
-      this.activeEvent = 'click'
+      this.activeEvent = 'touchend'
     } else {
       this.activeEvent = 'mouseenter'
     }
@@ -43,7 +43,7 @@ export default class DefinitionIcon extends Plugin {
     this.onItemClick = this.onItemClick.bind(this)
     this.bind(this.activeEvent, this.onToggle)
     this.bind('mouseleave', this.onToggle)
-    this.bind('.icon-list li', ['touched', 'click'], this.onItemClick)
+    this.bind('.option-list li', ['touchend', 'click'], this.onItemClick)
   }
 
   renderItemList () {
@@ -76,7 +76,7 @@ export default class DefinitionIcon extends Plugin {
       }
     })
     this.find('.icon-text').innerHTML = (cursrc[0] || {name: '清晰度'}).name
-    this.find('.icon-list').innerHTML = liList.join('')
+    this.find('.option-list').innerHTML = liList.join('')
   }
 
   onCanplayChangeDefinition () {
@@ -93,9 +93,16 @@ export default class DefinitionIcon extends Plugin {
   }
 
   onToggle (e) {
-    e.preventDefault()
-    e.stopPropagation()
-    Util.hasClass(this.root, 'list-show') ? Util.removeClass(this.root, 'list-show') : Util.addClass(this.root, 'list-show')
+    // e.preventDefault()
+    // e.stopPropagation()
+    const ulDom = this.find('.option-list')
+    if (Util.hasClass(ulDom, 'active')) {
+      this.player.controls.unFocus()
+      Util.removeClass(ulDom, 'active')
+    } else {
+      this.player.controls.focus()
+      Util.addClass(ulDom, 'active')
+    }
   }
 
   switchUrl (lastATag) {
@@ -175,15 +182,15 @@ export default class DefinitionIcon extends Plugin {
     this.find('.icon-text').innerHTML = to
     player.emit(Events.DEFINITION_CHANGE, {from, to})
     if (Sniffer.device === 'mobile') {
-      Util.removeClass(this.root, 'list-show')
+      Util.removeClass(this.find('.option-list'), 'active')
     }
   }
 
   render () {
     const text = '清晰度'
     return `<xg-icon class="xgplayer-definition">
-    <div class="xgplayer-icon btn-definition"><span class="icon-text">${text}</span></div>
-    <ul class="icon-list">
+    <div class="xgplayer-icon btn-text"><span class="icon-text">${text}</span></div>
+    <ul class="option-list">
     </ul>
    </xg-icon>`
   }

@@ -146,7 +146,6 @@ const pluginsManager = {
   },
 
   beforeInit (player) {
-    console.log('beforeInit')
     function retPromise (fun) {
       if (!fun || !fun.then) {
         return new Promise((resolve) => {

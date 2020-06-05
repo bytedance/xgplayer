@@ -1,33 +1,4 @@
 @import "variable";
-// order:
-// xgplayer-play  0
-// xgplayer-playNext  1
-// xgplayer-time  2
-// xgplayer-placeholder 3
-// xgplayer-volume 4
-// xgplayer-definition 5
-// xgplayer-bullet-btn 6
-// xgplayer-textTrack 7
-// xgplayer-playback 8
-// xgplayer-download 9
-// xgplayer-rotate 10
-// xgplayer-screenShot 11
-// xgplayer-cssFullscreen 12
-// xgplayer-fullscreen 13
-
-// z-index:
-// xgplayer-poster 100
-// xgplayer-progress-point 100
-// xgplayer-replay 105
-// xgplayer-pip-active 110
-// xgplayer-start 115
-// xgplayer-enter 120
-// xgplayer-error 125
-// xgplayer-pip-lay 130
-// xgplayer-pip-drag 135
-// xgplayer-is-fullscreen 9999
-// xgplayer-is-cssfullscreen 99999
-
 @import "../plugins/play/index";
 @import "../plugins/start/index";
 @import "../plugins/enter/index";

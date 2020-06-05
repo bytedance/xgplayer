@@ -40,7 +40,7 @@ export default class DefaultPreset {
     this.plugins = [...contolsIcons, ...layers]
     switch (sniffer.device) {
       case 'pc':
-        this.plugins.push(...[Keyboard, PC, CssFullScreen, Volume], ...barIcons, Miniscreen);
+        this.plugins.push(...[Keyboard, PC, CssFullScreen], ...barIcons, Miniscreen, Volume);
         break;
       case 'mobile':
         this.plugins.push(Mobile);
