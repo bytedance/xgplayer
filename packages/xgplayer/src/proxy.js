@@ -2,7 +2,7 @@ import EventEmitter from 'event-emitter'
 import allOff from 'event-emitter/all-off'
 import util from './utils/util'
 import Errors from './error'
-import {URL_CHANGE, BUFFER_CHANGE, DESTROY} from './events'
+import {URL_CHANGE, DESTROY} from './events'
 
 class Proxy {
   constructor (options) {
@@ -45,9 +45,9 @@ class Proxy {
   }
 
   _initEvents () {
-    let lastBuffer = '0,0'
     this.ev = ['play', 'playing', 'pause', 'ended', 'error', 'seeking', 'seeked',
-      'timeupdate', 'waiting', 'canplay', 'canplaythrough', 'durationchange', 'volumechange', 'loadeddata', 'ratechange'
+      'timeupdate', 'waiting', 'canplay', 'canplaythrough', 'durationchange', 'volumechange',
+      'loadeddata', 'loadstart', 'emptied', 'ratechange', 'progress', 'stalled', 'suspend', 'abort'
     ].map((item) => {
       return {
         [item]: `on${item.charAt(0).toUpperCase()}${item.slice(1)}`
@@ -57,21 +57,22 @@ class Proxy {
      * 和video事件对应的on[EventKey]接口的触发
      * @param {String} funName
      */
-    function _emitEvent (funName, player) {
-      player[funName] && typeof player[funName] === 'function' && player[funName](player)
+    function _emitEvent (funName, player, e) {
+      player[funName] && typeof player[funName] === 'function' && player[funName](e)
     }
     this.ev.forEach(item => {
       this.evItem = Object.keys(item)[0]
       let name = Object.keys(item)[0]
       const funName = item[name]
 
-      this.videoEventHandler = () => {
+      this.videoEventHandler = (e) => {
+        e.player = this
         if (name === 'error') {
           this.errorHandler(name)
-          _emitEvent(funName, this)
+          _emitEvent(funName, this, e)
         } else {
-          this.emit(name, this)
-          _emitEvent(funName, this)
+          this.emit(name, e)
+          _emitEvent(funName, this, e)
         }
 
         if (name === 'timeupdate') {
@@ -82,25 +83,26 @@ class Proxy {
           this._duration = this.video.duration
         }
 
-        if (this.hasOwnProperty('_interval')) {
-          if (['ended', 'error', 'timeupdate'].indexOf(name) < 0) {
-            clearInterval(this._interval['bufferedChange'])
-            util.setInterval(this, 'bufferedChange', function () {
-              let curBuffer = []
-              for (let i = 0, len = this.video.buffered.length; i < len; i++) {
-                curBuffer.push([this.video.buffered.start(i), this.video.buffered.end(i)])
-              }
-              if (curBuffer.toString() !== lastBuffer) {
-                lastBuffer = curBuffer.toString()
-                this.emit(BUFFER_CHANGE, curBuffer)
-              }
-            }, 200)
-          } else {
-            if (name !== 'timeupdate') {
-              util.clearInterval(this, 'bufferedChange')
-            }
-          }
-        }
+        // if (this.hasOwnProperty('_interval')) {
+        //   if (['ended', 'error', 'timeupdate'].indexOf(name) < 0) {
+        //     clearInterval(this._interval['bufferedChange'])
+        //     util.setInterval(this, 'bufferedChange', function () {
+        //       let curBuffer = []
+        //       for (let i = 0, len = this.video.buffered.length; i < len; i++) {
+        //         curBuffer.push([this.video.buffered.start(i), this.video.buffered.end(i)])
+        //       }
+        //       if (curBuffer.toString() !== lastBuffer) {
+        //         lastBuffer = curBuffer.toString()
+        //         console.lpg('curBuffer', curBuffer)
+        //         this.emit(BUFFER_CHANGE, curBuffer)
+        //       }
+        //     }, 200)
+        //   } else {
+        //     if (name !== 'timeupdate') {
+        //       util.clearInterval(this, 'bufferedChange')
+        //     }
+        //   }
+        // }
       }
       this.video.addEventListener(Object.keys(item)[0], this.videoEventHandler, false)
     })
@@ -194,8 +196,29 @@ class Proxy {
   get autoplay () {
     return this.video.autoplay
   }
+
   get buffered () {
     return this.video.buffered
+  }
+
+  get bufferedPoint () {
+    const _buffered = this.video.buffered
+    const ret = {
+      start: 0,
+      end: 0
+    }
+    if (!_buffered || _buffered.length === 0) {
+      return ret
+    }
+    for (let i = 0; i < _buffered.length; i++) {
+      if (_buffered.start(i) <= this.currentTime && _buffered.end(i) >= this.currentTime) {
+        return {
+          start: _buffered.start(i),
+          end: _buffered.end(i)
+        }
+      }
+    }
+    return ret
   }
 
   get crossOrigin () {

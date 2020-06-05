@@ -29,7 +29,7 @@ export default class PlaybackRate extends Plugin {
       this.show()
     })
     if (Sniffer.device === 'mobile') {
-      this.activeEvent = 'click'
+      this.activeEvent = 'touchend'
     } else {
       this.activeEvent = 'mouseenter'
     }
@@ -38,7 +38,7 @@ export default class PlaybackRate extends Plugin {
     this.onItemClick = this.onItemClick.bind(this)
     this.bind(this.activeEvent, this.onMouseenter)
     this.bind('mouseleave', this.onMouseenter)
-    this.bind('.icon-list li', ['touched', 'click'], this.onItemClick)
+    this.bind('.option-list li', ['touchend', 'click'], this.onItemClick)
   }
 
   show () {
@@ -48,10 +48,54 @@ export default class PlaybackRate extends Plugin {
     super.show()
   }
 
+  registerLangauageTexts () {
+    console.log('registerLangauageTexts')
+    return {
+      'currate-text': {
+        jp: (langkey) => {
+          return this.getCurrentText(langkey)
+        },
+        en: (langkey) => {
+          return this.getCurrentText(langkey)
+        },
+        zh: (langkey) => {
+          return this.getCurrentText(langkey)
+        }
+      }
+    }
+  }
+
+  getCurrentText (lang) {
+    const {curRate, config, player} = this
+    if (!lang) {
+      lang = player.lang
+    }
+    let text = ''
+    config.list.map(item => {
+      if (Number(item) === curRate || Number(item.rate) === curRate) {
+        if (item[lang]) {
+          text = item[lang]
+        } else if (item.iconText) {
+          text = item.iconText[lang] ? item.iconText[lang] : (typeof item.iconText === 'string' && (!lang || lang === 'zh') ? item.iconText : '')
+        } else {
+          text = typeof item === 'number' ? `${item}x` : `${item.rate}x`
+        }
+      }
+    })
+    return text
+  }
+
   onMouseenter (e) {
     e.preventDefault()
     e.stopPropagation()
-    Util.hasClass(this.root, 'list-show') ? Util.removeClass(this.root, 'list-show') : Util.addClass(this.root, 'list-show')
+    const ulDom = this.find('.option-list')
+    if (Util.hasClass(ulDom, 'active')) {
+      this.player.controls.unFocus()
+      Util.removeClass(ulDom, 'active')
+    } else {
+      this.player.controls.focus()
+      Util.addClass(ulDom, 'active')
+    }
   }
 
   onItemClick (e) {
@@ -64,39 +108,37 @@ export default class PlaybackRate extends Plugin {
     Util.addClass(target, 'selected')
     this.curRate = Number(cname)
     this.player.playbackRate = Number(cname)
-    this.find('.icon-text').innerHTML = target.getAttribute('ctext')
+    this.find('.icon-text').innerHTML = this.getCurrentText()
   }
 
   destroy () {
     this.unbind(this.activeEvent, this.onMouseenter)
     this.unbind('mouseleave', this.onMouseenter)
-    this.unbind('.icon-list li', ['touched', 'click'], this.onItemClick)
+    this.unbind('.option-list li', ['touched', 'click'], this.onItemClick)
   }
 
   renderItemList () {
     const playbackRate = this.player.playbackRate || 1
     this.curRate = playbackRate
-    let currentText = ''
     const items = this.config.list.map((item) => {
       let itemInfo = typeof item === 'object' ? item : {rate: item}
       !itemInfo.text && (itemInfo.text = `${itemInfo.rate}x`)
       if (itemInfo.rate === playbackRate) {
         itemInfo.isCurrent = true
-        currentText = item.iconText || itemInfo.text
       }
       return `<li cname="${itemInfo.rate}" ctext="${item.iconText || itemInfo.text}" class="${itemInfo.isCurrent ? 'selected' : ''}">${itemInfo.text}</li>`
     })
-    this.find('.icon-list').innerHTML = items.join('')
-    this.find('.icon-text').innerHTML = currentText
+    this.find('.option-list').innerHTML = items.join('')
+    this.find('.icon-text').innerHTML = this.getCurrentText()
     this.show()
   }
 
   render () {
     return `<xg-icon class="xgplayer-playbackrate">
-    <div class="xgplayer-icon btn-definition">
-    <span class="icon-text"></span>
+    <div class="xgplayer-icon btn-text">
+    <span class="icon-text" lang-key="currate-text"></span>
     </div>
-    <ul class="icon-list">
+    <ul class="option-list">
     </ul>
    </xg-icon>`
   }

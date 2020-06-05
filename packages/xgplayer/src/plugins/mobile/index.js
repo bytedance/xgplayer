@@ -142,7 +142,7 @@ class MobilePlugin extends Plugin {
       return
     }
     if (Math.abs(touche.pageX - this.pos.x) > this.config.miniMoveStep || Math.abs(touche.pageX - this.pos.x) > this.config.miniMoveStep) {
-      this.player.emit(Events.PLAYER_FOCUS, true)
+      this.player.emit(Events.PLAYER_FOCUS, {autoHide: false})
       const {pos, config} = this
       const x = parseInt(touche.pageX, 10)
       const y = parseInt(touche.pageY, 10)
@@ -182,7 +182,7 @@ class MobilePlugin extends Plugin {
         player.seek(Number(time).toFixed(1))
       }
       setTimeout(() => {
-        player.getPlugin('progress') && (player.getPlugin('progress').isProgressMoving = false)
+        player.getPlugin('progress') && player.getPlugin('progress').resetSeekState()
       }, 10)
       pos.op = 0
       this.player.emit(Events.PLAYER_FOCUS)

@@ -1,6 +1,6 @@
 import Plugin from '../../plugin'
 
-const { Util, Events, POSITIONS, Sniffer } = Plugin
+const { Util, Events, POSITIONS } = Plugin
 
 class Time extends Plugin {
   static get pluginName () {
@@ -15,13 +15,18 @@ class Time extends Plugin {
     }
   }
 
+  constructor (args) {
+    super(args)
+    this.isActiving = false
+  }
+
   afterCreate () {
-    this.mode = this.config.mode ? this.config.mode : Sniffer.device === 'mobile' ? 'mobile' : 'pc'
-    console.log('this.config.disable', this.config.disable, this.mode)
+    const constrolsMode = this.player.controls.config.mode
+    this.mode = constrolsMode === 'flex' ? 'flex' : 'normal'
     if (this.config.disable) {
       return
     }
-    if (this.mode === 'mobile') {
+    if (this.mode === 'flex') {
       this.createCenterTime()
       this.hide()
     }
@@ -36,8 +41,7 @@ class Time extends Plugin {
   }
 
   show () {
-    console.log('this.mode', this.mode)
-    if (this.mode === 'mobile') {
+    if (this.mode === 'flex') {
       return
     }
     super.show()
@@ -45,11 +49,11 @@ class Time extends Plugin {
 
   onTimeUpdate () {
     const {player, config} = this
-    if (config.disable) {
+    if (config.disable || this.isActiving || player.isSeeking) {
       return
     }
     const current = player.currentTime
-    if (this.mode === 'mobile') {
+    if (this.mode === 'flex') {
       this.centerCurDom.innerHTML = Util.format(current)
       if (player.duration !== Infinity) {
         this.centerDurDom.innerHTML = Util.format(player.duration)
@@ -106,15 +110,20 @@ class Time extends Plugin {
   }
 
   updateTime (time) {
+    this.isActiving = true
     const { player } = this
     if ((!time && time !== 0) || time > player.duration) {
       return
     }
-    if (this.mode === 'mobile') {
+    if (this.mode === 'flex') {
       this.centerCurDom.innerHTML = Util.format(time)
       return
     }
     this.timeDom.innerHTML = Util.format(time)
+  }
+
+  resetActive () {
+    this.isActiving = false
   }
 
   render () {
