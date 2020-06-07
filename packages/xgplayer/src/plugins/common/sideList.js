@@ -4,24 +4,54 @@ import { Sniffer } from '../../plugin/basePlugin'
 const { Util } = Plugin
 export default class SideList extends Plugin {
   static get pluginName () {
-    return 'definition'
+    return 'sidelist'
   }
 
   static defaultConfig () {
     return {
-      data: [],
-      className: '',
-      onItemClick: null,
-      index: 7
+      data: [], // item的value必须是string number 或者 boolean
+      className: '', // 自定义类型名
+      onItemClick: null // 列表item点击回调
     }
   }
 
+  constructor (args) {
+    super(args)
+    this.objKey = new Date().getTime()
+  }
+
   afterCreate () {
+    console.log('data', this.config.data)
     this.attrKeys = []
     this.onItemClick = this.onItemClick.bind(this)
     const eventName = Sniffer.device === 'mobile' ? 'touchend' : 'click'
     this.bind('li', eventName, this.onItemClick)
     this.renderItemList()
+  }
+
+  registerLangauageTexts () {
+    const {config, pluginName} = this
+    const langMap = {}
+    config.data.map((item, index) => {
+      console.log('index', `${pluginName}_${index}`)
+      langMap[`${pluginName}_${index}`] = {
+        zh: (langkey) => {
+          return this.getTextByLang(langkey)
+        },
+        en: (langkey) => {
+          return this.getTextByLang(langkey)
+        },
+        jp: (langkey) => {
+          return this.getTextByLang(langkey)
+        }
+      }
+    })
+    return {}
+  }
+
+  getTextByLang (lang) {
+    console.log('lang', lang)
+    return lang
   }
 
   getAttrObj (dom, keys) {

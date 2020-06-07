@@ -56,13 +56,13 @@ export default class PlaybackRate extends SideListIcon {
   }
 
   getCurrentText (lang) {
-    const {curRate, config, player} = this
+    const {curValue, config, player} = this
     if (!lang) {
       lang = player.lang
     }
     let text = ''
     config.list.map(item => {
-      if (Number(item) === curRate || Number(item.rate) === curRate) {
+      if (Number(item) === curValue || Number(item.rate) === curValue) {
         if (item[lang]) {
           text = item[lang]
         } else if (item.iconText) {
@@ -75,6 +75,15 @@ export default class PlaybackRate extends SideListIcon {
     return text
   }
 
+  changeCurrent (val, text) {
+    this.curValue = val
+    if (!text) {
+      text = this.getCurrentText()
+    }
+    console.log('text', text)
+    super.changeCurrent(val, text)
+  }
+
   onItemClick (e) {
     const target = e.delegateTarget
     const rate = target.getAttribute('rate')
@@ -82,7 +91,7 @@ export default class PlaybackRate extends SideListIcon {
       return false
     }
     this.player.playbackRate = Number(rate)
-    this.changeCurrent(rate, target.getAttribute('text'))
+    this.changeCurrent(rate)
     super.onItemClick(e)
   }
 

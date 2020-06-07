@@ -20,7 +20,7 @@ export default class SideListIcon extends Plugin {
   constructor (args) {
     super(args)
     this.isActive = false
-    this.curValue = null
+    this.curValue = null // 当前值
   }
 
   afterCreate () {
@@ -69,6 +69,7 @@ export default class SideListIcon extends Plugin {
     this.onToggle(false)
   }
 
+  // 状态切换
   onToggle (isActive) {
     if (isActive === this.isActive) return
     const {controls} = this.player
@@ -84,6 +85,7 @@ export default class SideListIcon extends Plugin {
     this.isActive = isActive
   }
 
+  // 列表点击回调
   onItemClick (e) {
     Sniffer.device === 'mobile' && this.onToggle(false)
   }
@@ -94,10 +96,24 @@ export default class SideListIcon extends Plugin {
     this.curValue = val
   }
 
-  destroy () {
-    this.unbind(this.activeEvent, this.onToggle)
-    this.unbind('mouseleave', this.onToggle)
-    this.sideList && this.sideList.destroy()
+  getCurrentIconText (lang) {
+    const {curRate, config, player} = this
+    if (!lang) {
+      lang = player.lang
+    }
+    let text = ''
+    config.list.map(item => {
+      if (Number(item) === curRate || Number(item.rate) === curRate) {
+        if (item[lang]) {
+          text = item[lang]
+        } else if (item.iconText) {
+          text = item.iconText[lang] ? item.iconText[lang] : (typeof item.iconText === 'string' && (!lang || lang === 'zh') ? item.iconText : '')
+        } else {
+          text = typeof item === 'number' ? `${item}x` : `${item.rate}x`
+        }
+      }
+    })
+    return text
   }
 
   renderItemList (list, currentText) {
@@ -119,8 +135,14 @@ export default class SideListIcon extends Plugin {
     }
     this.find('.icon-text').innerHTML = currentText
     this.show()
-    const listPluginName = `${this.config.pluginName}_sidelist`
+    const listPluginName = `${this.pluginName}_sidelist`
     this.sideList = this.registerPlugin(SideList, options, listPluginName)
+  }
+
+  destroy () {
+    this.unbind(this.activeEvent, this.onToggle)
+    this.unbind('mouseleave', this.onToggle)
+    this.sideList && this.sideList.destroy()
   }
 
   render () {
