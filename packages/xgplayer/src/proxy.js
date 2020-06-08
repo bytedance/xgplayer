@@ -24,6 +24,9 @@ class Proxy {
       tabindex: 2,
       mediaType: options.mediaType || 'video'
     }
+    if (options.muted) {
+      this.videoConfig.muted = 'muted'
+    }
     if (options.loop) {
       this.videoConfig.loop = 'loop'
     }

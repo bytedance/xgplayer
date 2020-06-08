@@ -6,7 +6,8 @@ let volume = function () {
   let util = Player.util
   let container, slider, bar, selected, icon
   function onCanplay () {
-    player.volume = Player.sniffer.device === 'mobile' ? 1 : player.config.volume
+    // player.volume = Player.sniffer.device === 'mobile' ? 1 : player.config.volume
+    player.volume = player.config.volume
     container = player.controls.querySelector('.xgplayer-volume')
     slider = container.querySelector('.xgplayer-slider')
     bar = container.querySelector('.xgplayer-bar')
@@ -68,10 +69,10 @@ let volume = function () {
   player.on('volumeBarClick', onVolumeBarClick)
 
   function onVolumeIconClick () {
-    if(Player.sniffer.device === 'mobile') {
+    if (Player.sniffer.device === 'mobile') {
       // util.removeClass(root, 'xgplayer-volume-muted')
       // util.removeClass(root, 'xgplayer-volume-large')
-      if(player.video.muted) {
+      if (player.video.muted) {
         player.video.muted = false
         player.emit('unmute')
         // util.addClass(root, 'xgplayer-volume-large')
@@ -83,7 +84,7 @@ let volume = function () {
     } else {
       player.video.muted = false
       if (player.volume < 0.1) {
-        if(slider.volume < 0.1) {
+        if (slider.volume < 0.1) {
           player.volume = 0.6
         } else {
           player.volume = slider.volume
@@ -100,7 +101,7 @@ let volume = function () {
 
   function onVolumeIconEnter () {
     util.addClass(root, 'xgplayer-volume-active')
-    if(container) {
+    if (container) {
       container.focus()
     }
   }
@@ -117,10 +118,10 @@ let volume = function () {
       clearTimeout(_changeTimer)
     }
     _changeTimer = setTimeout(() => {
-      if(Player.sniffer.device === 'mobile') {
+      if (Player.sniffer.device === 'mobile') {
         util.removeClass(root, 'xgplayer-volume-muted')
         util.removeClass(root, 'xgplayer-volume-large')
-        if(player.video.muted) {
+        if (player.video.muted) {
           util.addClass(root, 'xgplayer-volume-muted')
         } else {
           util.addClass(root, 'xgplayer-volume-large')
