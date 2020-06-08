@@ -4,7 +4,7 @@ let volume = function () {
   let player = this
   let root = player.root
   let util = Player.util
-  let container, slider, bar, selected, icon
+  let container, slider, bar, selected
   function onCanplay () {
     // player.volume = Player.sniffer.device === 'mobile' ? 1 : player.config.volume
     player.volume = player.config.volume
@@ -12,7 +12,9 @@ let volume = function () {
     slider = container.querySelector('.xgplayer-slider')
     bar = container.querySelector('.xgplayer-bar')
     selected = container.querySelector('.xgplayer-drag')
-    icon = container.querySelector('.xgplayer-icon')
+    if (Player.sniffer.device === 'mobile') {
+      onVolumeChange()
+    }
   }
   player.once('canplay', onCanplay)
 
@@ -70,16 +72,14 @@ let volume = function () {
 
   function onVolumeIconClick () {
     if (Player.sniffer.device === 'mobile') {
-      // util.removeClass(root, 'xgplayer-volume-muted')
-      // util.removeClass(root, 'xgplayer-volume-large')
       if (player.video.muted) {
         player.video.muted = false
         player.emit('unmute')
-        // util.addClass(root, 'xgplayer-volume-large')
+        player.volume = 1
       } else {
         player.video.muted = true
         player.emit('mute')
-        // util.addClass(root, 'xgplayer-volume-muted')
+        player.volume = 0
       }
     } else {
       player.video.muted = false
@@ -121,7 +121,11 @@ let volume = function () {
       if (Player.sniffer.device === 'mobile') {
         util.removeClass(root, 'xgplayer-volume-muted')
         util.removeClass(root, 'xgplayer-volume-large')
-        if (player.video.muted) {
+        if (player.video.muted || player.video.defaultMuted) {
+          if (!player.video.muted) {
+            player.video.muted = true
+          }
+          player.video.defaultMuted = false
           util.addClass(root, 'xgplayer-volume-muted')
         } else {
           util.addClass(root, 'xgplayer-volume-large')
