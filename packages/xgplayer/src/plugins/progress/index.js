@@ -28,7 +28,9 @@ class Progress extends Plugin {
       index: 0,
       progressDot: [],
       thumbnail: null,
-      disable: false
+      disable: false,
+      isDragingSeek: true, // 是否在拖拽的过程中更新currentTime
+      closeMoveSeek: false // 是否关闭滑块seek能力
     }
   }
 
@@ -56,6 +58,9 @@ class Progress extends Plugin {
     if (this.config.disable) {
       return;
     }
+    if (Sniffer.device === 'mobile') {
+      this.config.isDragingSeek = false
+    }
     this.playedBar = this.find('.xgplayer-progress-played')
     this.cachedBar = this.find('.xgplayer-progress-cache')
     this.pointTip = this.find('.xgplayer-progress-point')
@@ -64,13 +69,12 @@ class Progress extends Plugin {
     this.initThumbnail()
     this.on(Events.TIME_UPDATE, () => {
       this.onTimeupdate()
-      this.onCacheUpdate()
     });
     this.on(Events.SEEKING, () => {
       this.onTimeupdate()
       this.onCacheUpdate()
     });
-    this.on([Events.BUFFER_CHANGE, Events.ENDED], () => {
+    this.on([Events.PROGRESS, Events.ENDED], () => {
       this.onCacheUpdate()
     })
     this.bindDomEvents()
@@ -126,10 +130,9 @@ class Progress extends Plugin {
 
   mouseDown (e) {
     const {player} = this
-    if (player.isMini || player.config.closeMoveSeek) {
+    if (player.isMini || this.config.closeMoveSeek) {
       return
     }
-    const self = this
     e.preventDefault()
     e.stopPropagation()
     Util.event(e)
@@ -137,43 +140,44 @@ class Progress extends Plugin {
     if (e.target === this.pointTip || (!player.config.allowSeekAfterEnded && player.ended)) {
       return true
     }
-    self.player.emit(Events.PLAYER_FOCUS, true)
+    this.player.emit(Events.PLAYER_FOCUS, {autoHide: false})
     this.isProgressMoving = true
-    Util.addClass(self.progressBtn, 'btn-move')
-    self.computeWidth(e, false)
-
-    let move = function (e) {
+    Util.addClass(this.progressBtn, 'btn-move')
+    this.computeWidth(e, false)
+    const move = (e) => {
       e.preventDefault()
       e.stopPropagation()
       Util.event(e)
-      self.isProgressMoving = true
-      self.computeWidth(e, true)
+      this.isProgressMoving = true
+      this.computeWidth(e, true)
     }
 
-    let up = function (e) {
+    const up = (e) => {
       e.preventDefault()
       e.stopPropagation()
       Util.event(e)
-      Util.removeClass(self.progressBtn, 'btn-move')
+      Util.removeClass(this.progressBtn, 'btn-move')
       if (Sniffer.device === 'mobile') {
-        self.root.removeEventListener('touchmove', move)
-        self.root.removeEventListener('touchend', up)
+        this.root.removeEventListener('touchmove', move)
+        this.root.removeEventListener('touchend', up)
       } else {
-        self.root.removeEventListener('mousemove', move)
-        self.root.removeEventListener('mouseup', up)
+        this.root.removeEventListener('mousemove', move)
+        this.root.removeEventListener('mouseup', up)
       }
-      self.triggerCallbacks('dragend', {})
-      self.player.onSeeking()
-      self.isProgressMoving = false
-      self.player.emit(Events.PLAYER_FOCUS)
+      this.computeWidth(e, false)
+      setTimeout(() => {
+        this.resetSeekState()
+      }, 10)
+      this.triggerCallbacks('dragend', {})
+      this.player.emit(Events.PLAYER_FOCUS)
     }
 
     if (Sniffer.device === 'mobile') {
-      self.root.addEventListener('touchmove', move, false)
-      self.root.addEventListener('touchend', up, false)
+      this.root.addEventListener('touchmove', move, false)
+      this.root.addEventListener('touchend', up, false)
     } else {
-      self.root.addEventListener('mousemove', move)
-      self.root.addEventListener('mouseup', up)
+      this.root.addEventListener('mousemove', move)
+      this.root.addEventListener('mouseup', up)
     }
     return true
   }
@@ -249,6 +253,7 @@ class Progress extends Plugin {
 
   computeWidth (e, isMove) {
     const containerWidth = this.root.getBoundingClientRect().width
+    const {player, config} = this
     let {left} = this.playedBar.getBoundingClientRect()
     let w = e.clientX - left
     if (w > containerWidth) {
@@ -256,16 +261,34 @@ class Progress extends Plugin {
     }
     const percent = w / containerWidth
     const currentTime = percent * this.player.duration
+    const now = percent * player.duration
     isMove && this.triggerCallbacks('drag', {percent, currentTime})
     this.updatePercent(w / containerWidth)
+    this.updateTime(now)
+    if (!isMove || config.isDragingSeek) {
+      if (player.videoConfig.mediaType === 'video') {
+        player.seek(Number(now).toFixed(1))
+      }
+    }
   }
 
   updateTime (time) {
     const {player} = this
+    if (time > player.duration) {
+      time = player.duration
+    } else if (time < 0) {
+      time = 0
+    }
     let timeIcon = player.plugins.time
-    if (time) {
+    if (timeIcon) {
       timeIcon.updateTime(time)
     }
+  }
+
+  resetSeekState () {
+    this.isProgressMoving = false
+    let timeIcon = this.player.plugins.time
+    timeIcon && timeIcon.resetActive()
   }
 
   updatePercent (percent, notSeek) {
@@ -273,17 +296,7 @@ class Progress extends Plugin {
     if (this.config.disable) {
       return;
     }
-    const {player} = this
-    let now = percent * player.duration
     this.playedBar.style.width = `${percent * 100}%`
-    if (notSeek) {
-      return
-    }
-    if (player.videoConfig.mediaType === 'video' && !player.dash && !player.config.closeMoveSeek) {
-      player.seek(Number(now).toFixed(1))
-    } else {
-      this.updateTime(now)
-    }
   }
 
   compute (e) {
@@ -316,23 +329,8 @@ class Progress extends Plugin {
 
   onCacheUpdate () {
     const {player} = this
-    let buffered = player.buffered
-    if (buffered && buffered.length > 0) {
-      let end = buffered.end(buffered.length - 1)
-      for (let i = 0, len = buffered.length; i < len; i++) {
-        if (player.currentTime >= buffered.start(i) && player.currentTime <= buffered.end(i)) {
-          end = buffered.end(i)
-          for (let j = i + 1; j < buffered.length; j++) {
-            if (buffered.start(j) - buffered.end(j - 1) >= 2) {
-              end = buffered.end(j - 1)
-              break
-            }
-          }
-          break
-        }
-      }
-      this.cachedBar.style.width = `${end / player.duration * 100}%`
-    }
+    const point = player.bufferedPoint
+    this.cachedBar.style.width = `${point.end / player.duration * 100}%`
   }
 
   destroy () {

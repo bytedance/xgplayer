@@ -1,6 +1,6 @@
 {
     "name": "xgplayer",
-    "version": "3.0.0-alpha.20",
+    "version": "3.0.0-alpha.25",
     "description": "video player",
     "main": "./dist/index.min.js",
     "module": "./es/index.min.js",
@@ -54,7 +54,7 @@
     ],
     "dependencies": {
         "babel-plugin-inline-svg": "^1.0.1",
-        "danmu.js": "^0.2.16",
+        "danmu.js": "^0.2.15",
         "deepmerge": "^1.5.0",
         "delegate-events": "^1.1.1",
         "downloadjs": "1.4.7",

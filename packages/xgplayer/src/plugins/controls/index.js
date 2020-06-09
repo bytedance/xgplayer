@@ -57,7 +57,7 @@ class Controls extends Plugin {
 
   mouseEnter () {
     // console.log('controls mouseEnter')
-    clearTimeout(this.player.userTimer)
+    // clearTimeout(this.player.userTimer)
   }
 
   mouseOut () {
@@ -67,6 +67,18 @@ class Controls extends Plugin {
     //   this.isActive = false
     //   player.emit(Events.PLAYER_BLUR)
     // }, player.config.inactive)
+  }
+
+  focus () {
+    this.player.emit(Events.PLAYER_FOCUS, {autoHide: false})
+  }
+
+  unFocus () {
+    this.player.emit(Events.PLAYER_FOCUS, {autoHide: true})
+  }
+
+  blur () {
+    this.player.emit(Events.PLAYER_BLUR)
   }
 
   show () {

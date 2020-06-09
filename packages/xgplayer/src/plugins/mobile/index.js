@@ -142,7 +142,7 @@ class MobilePlugin extends Plugin {
       return
     }
     if (Math.abs(touche.pageX - this.pos.x) > this.config.miniMoveStep || Math.abs(touche.pageX - this.pos.x) > this.config.miniMoveStep) {
-      this.player.emit(Events.PLAYER_FOCUS, true)
+      this.player.emit(Events.PLAYER_FOCUS, {autoHide: false})
       const {pos, config} = this
       const x = parseInt(touche.pageX, 10)
       const y = parseInt(touche.pageY, 10)
@@ -182,8 +182,8 @@ class MobilePlugin extends Plugin {
         player.seek(Number(time).toFixed(1))
       }
       setTimeout(() => {
-        player.getPlugin('progress') && (player.getPlugin('progress').isProgressMoving = false)
-      }, 0)
+        player.getPlugin('progress') && player.getPlugin('progress').resetSeekState()
+      }, 10)
       pos.op = 0
       this.player.emit(Events.PLAYER_FOCUS)
     } else {
@@ -213,7 +213,8 @@ class MobilePlugin extends Plugin {
     this.activeSeekNote(time / 1000)
     // 在滑动的同时实时seek
     if (this.config.isTouchingSeek) {
-      player.currentTime = time / 1000
+      // player.currentTime = time / 1000
+      player.seek(Number(time / 1000).toFixed(1))
     }
     this.pos.time = time
   }
@@ -235,7 +236,9 @@ class MobilePlugin extends Plugin {
   }
 
   activeSeekNote (time) {
-    if (!time || typeof time !== 'number' || this.config.disableActive) {
+    const {player, config} = this
+    const isLive = !(player.duration !== Infinity && player.duration > 0)
+    if (!time || typeof time !== 'number' || isLive || config.disableActive) {
       return
     }
     if (time < 0) {
@@ -244,9 +247,9 @@ class MobilePlugin extends Plugin {
       time = this.player.duration
     }
     this.changeAction(ACTIONS.SEEKING)
+    this.find('.dur').innerHTML = Util.format(player.duration)
     this.find('.cur').innerHTML = Util.format(time)
-    // Util.addClass(this.player.root, 'xgplayer-seeking')
-    this.find('.curbar').style.width = `${time / this.player.duration * 100}%`
+    this.find('.curbar').style.width = `${time / player.duration * 100}%`
   }
 
   switchPlayPause () {

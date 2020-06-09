@@ -29,7 +29,7 @@ class Danmu extends Plugin {
       panel: false, // 是否安装配置面板
       panelConfig: {}, // 配置面板促使配置
       switchConfig: {}, // 开关按钮配置信息
-      defaultOpen: false // 是否默认开启弹幕
+      defaultOpen: true // 是否默认开启弹幕
     }
   }
 
@@ -39,6 +39,14 @@ class Danmu extends Plugin {
 
     this.once(Events.TIME_UPDATE, () => {
       this.config.defaultOpen && this.start()
+    })
+
+    this.on(Events.PAUSE, () => {
+      this.danmujs && this.danmujs.pause()
+    })
+
+    this.on(Events.PLAY, () => {
+      this.danmujs && this.danmujs.play()
     })
   }
 

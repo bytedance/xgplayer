@@ -13,6 +13,12 @@ export const DURATION_CHANGE = 'durationchange'
 export const VOLUME_CHANGE = 'volumechange'
 export const LOADED_DATA = 'loadeddata'
 export const RATE_CHANGE = 'rateChange'
+export const PROGRESS = 'progress'
+export const LOAD_START = 'loadstart'
+export const EMPTIED = 'emptied'
+export const STALLED = 'stalled'
+export const SUSPEND = 'suspend'
+export const ABORT = 'abort'
 
 // player events
 export const BUFFER_CHANGE = 'bufferedChange'

@@ -24,7 +24,7 @@ export default class CssFullScreen extends Plugin {
   }
 
   afterCreate () {
-    if (!this.config.disable) {
+    if (this.config.disable) {
       return
     }
     this.initIcons()
@@ -97,7 +97,7 @@ export default class CssFullScreen extends Plugin {
   }
 
   render () {
-    if (!this.config.disable) {
+    if (this.config.disable) {
       return
     }
     return `<xg-icon class='xgplayer-cssfullscreen'>

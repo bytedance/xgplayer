@@ -207,7 +207,6 @@ class Player extends Proxy {
 
     this.loadeddataFunc && this.once('loadeddata', this.loadeddataFunc)
 
-
     if (root.firstChild !== this.video) {
       root.insertBefore(this.video, root.firstChild)
     }
@@ -217,7 +216,6 @@ class Player extends Proxy {
       this.load()
       this.play()
     }
-
 
     setTimeout(() => {
       this.emit(Events.COMPLETE)
@@ -338,6 +336,20 @@ class Player extends Proxy {
     Util.removeClass(this.root, className)
   }
 
+  setAttribute (key, value) {
+    if (!this.root) {
+      return;
+    }
+    this.root.setAttribute(key, value)
+  }
+
+  removeAttribute (key, value) {
+    if (!this.root) {
+      return;
+    }
+    this.root.removeAttribute(key, value)
+  }
+
   start (url) {
     // 已经开始初始化播放了 则直接调用play
     if (this.hasStart) {
@@ -396,7 +408,7 @@ class Player extends Proxy {
     if (!this.video || isNaN(Number(time))) {
       return
     }
-    time = time < 0 ? 0 : time > this.duration ? this.duration : time
+    time = time < 0 ? 0 : time > this.duration ? parseInt(this.duration, 10) : time
     this.once(Events.CANPLAY, () => {
       this.isSeeking = false
       if (this.paused) {
@@ -426,6 +438,7 @@ class Player extends Proxy {
       } else {
         this.root.className = ''
       }
+      this.removeAttribute('data-xgfill')
     }
     for (let k in this) {
       // if (k !== 'config') {
@@ -445,6 +458,7 @@ class Player extends Proxy {
       }
     })
     this.currentTime = 0
+    this.isSeeking = false
     this.play()
     this.emit(Events.REPLAY)
   }
@@ -506,19 +520,18 @@ class Player extends Proxy {
     this.emit(Events.CSS_FULLSCREEN_CHANGE, false)
   }
 
-  onFocus (notAutoHide) {
+  onFocus (data = {autoHide: true}) {
     this.isActive = true
-    let player = this
     this.removeClass(STATE_CLASS.ACTIVE)
-    if (player.userTimer) {
-      clearTimeout(player.userTimer)
+    if (this.userTimer) {
+      clearTimeout(this.userTimer)
     }
-    if (notAutoHide) {
+    if (!data.autoHide) {
       return;
     }
-    player.userTimer = setTimeout(function () {
-      player.emit(Events.PLAYER_BLUR)
-    }, player.config.inactive)
+    this.userTimer = setTimeout(() => {
+      this.emit(Events.PLAYER_BLUR)
+    }, this.config.inactive)
   }
 
   onBlur () {
@@ -593,23 +606,38 @@ class Player extends Proxy {
   }
 
   getVideoSize () {
-    const {fitVideoSize} = this.config
-    if (!fitVideoSize || fitVideoSize === 'fixed') {
+    const videoWidth = this.video.videoWidth
+    const videoHeight = this.video.videoHeight
+    const {fitVideoSize, videoFillMode} = this.config
+    if (!videoHeight || !videoWidth) {
       return
     }
-    if (this.video.videoWidth && this.video.videoHeight) {
-      let containerSize = this.root.getBoundingClientRect()
-      if (fitVideoSize === 'auto') {
-        if (containerSize.width / containerSize.height > this.video.videoWidth / this.video.videoHeight) {
-          this.root.style.height = `${this.video.videoHeight / this.video.videoWidth * containerSize.width}px`
-        } else {
-          this.root.style.width = `${this.video.videoWidth / this.video.videoHeight * containerSize.height}px`
-        }
-      } else if (fitVideoSize === 'fixWidth') {
-        this.root.style.height = `${this.video.videoHeight / this.video.videoWidth * containerSize.width}px`
-      } else if (this.config.fitVideoSize === 'fixHeight') {
-        this.root.style.width = `${this.video.videoWidth / this.video.videoHeight * containerSize.height}px`
+    // if (!fitVideoSize || fitVideoSize === 'fixed') {
+    //   return
+    // }
+    let containerSize = this.root.getBoundingClientRect()
+    const width = containerSize.width
+    const height = containerSize.height
+    const videoFit = parseInt(videoWidth / videoHeight * 1000, 10)
+    const fit = parseInt(width / height * 1000, 10)
+    if (fitVideoSize === 'auto') {
+      if (fit > videoFit) {
+        this.root.style.height = `${width / videoFit * 1000}px`
+      } else {
+        this.root.style.width = `${videoFit * height / 1000}px`
       }
+    } else if (fitVideoSize === 'fixWidth') {
+      this.root.style.height = `${width / videoFit * 1000}px`
+    } else if (fitVideoSize === 'fixHeight') {
+      this.root.style.width = `${videoFit * height / 1000}px`
+    }
+    // video填充模式
+    if (videoFillMode === 'fill') {
+      this.setAttribute('data-xgfill', 'fill')
+    } else if ((videoFillMode === 'fillHeight' && fit < videoFit) || (videoFillMode === 'fillWidth' && fit > videoFit) || videoFillMode === 'cover') {
+      this.setAttribute('data-xgfill', 'cover')
+    } else {
+      this.removeAttribute('data-xgfill')
     }
   }
 

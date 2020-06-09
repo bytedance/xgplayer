@@ -44,7 +44,7 @@ class Volume extends Plugin {
 
     this.bind('.xgplayer-bar', 'mousedown', this.onBarMousedown)
 
-    this.bind('.xgplayer-icon', ['click', 'touched'], this.changeMuted)
+    this.bind('.xgplayer-icon', ['click', 'touchend'], this.changeMuted)
 
     this.on(Events.VOLUME_CHANGE, this.onVolumeChange.bind(this))
   }
