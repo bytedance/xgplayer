@@ -255,7 +255,11 @@ class MSE {
     return this.removeBuffers().then(() => {
       for (let i = 0; i < Object.keys(this.sourceBuffers).length; i++) {
         let buffer = this.sourceBuffers[Object.keys(this.sourceBuffers)[i]];
-        this.mediaSource.removeSourceBuffer(buffer);
+        try {
+          this.mediaSource.removeSourceBuffer(buffer);
+        } catch (e) {
+          // nothing
+        }
         delete this.sourceBuffers[Object.keys(this.sourceBuffers)[i]];
       }
 

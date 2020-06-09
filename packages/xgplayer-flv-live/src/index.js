@@ -152,7 +152,6 @@ class FlvPlayer extends BasePlugin {
   }
 
   destroy () {
-    super._destroy();
     return this._destroy()
   }
 
@@ -164,6 +163,7 @@ class FlvPlayer extends BasePlugin {
       if (this.loaderCompleteTimer) {
         window.clearInterval(this.loaderCompleteTimer)
       }
+      super.offAll();
     })
   }
 
