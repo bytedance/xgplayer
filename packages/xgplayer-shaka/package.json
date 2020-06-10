@@ -5,7 +5,7 @@
   "main": "dist/index.min.js",
   "module": "es/index.min.js",
   "scripts": {
-    "prepare": "npm run build",
+    "prepublishOnly": "npm run build",
     "build": "cross-env NODE_ENV=production rollup -c rollup.config.js",
     "watch": "cross-env NODE_ENV=development rollup -c rollup.config.js --watch"
   },

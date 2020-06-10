@@ -1,12 +1,12 @@
 {
   "name": "xgplayer-flv-live",
-  "version": "3.0.0-alpha.9",
+  "version": "3.0.0-alpha.13",
   "description": "",
   "main": "lib/index.js",
   "module": "es/index.js",
   "browser": "dist/index.min.js",
   "scripts": {
-    "prepare": "npm run build",
+    "prepublishOnly": "npm run build",
     "build": "npm run build:umd && npm run build:es && npm run build:lib",
     "build:umd": "cross-env NODE_ENV=production rollup -c rollup.config.js && cross-env NODE_ENV=production rollup -c rollup.config.mobile.js ",
     "build:es": "rm -rf es && babel src --out-dir es",
@@ -31,23 +31,20 @@
     ]
   },
   "dependencies": {
-    "xgplayer-utils-mse": "3.0.0-alpha.9",
-    "xgplayer-transmuxer-buffer-track": "3.0.0-alpha.9",
-    "xgplayer-transmuxer-buffer-presource": "3.0.0-alpha.9",
-    "xgplayer-transmuxer-buffer-xgbuffer": "3.0.0-alpha.9",
-    "xgplayer-transmuxer-loader-fetch": "3.0.0-alpha.9",
-    "xgplayer-transmuxer-demux-flv": "3.0.0-alpha.9",
-    "xgplayer-transmuxer-remux-mp4": "3.0.0-alpha.9",
-    "xgplayer-transmuxer-constant-events": "3.0.0-alpha.9",
-    "xgplayer-transmuxer-codec-compatibility": "3.0.0-alpha.9",
-    "xgplayer-utils-sniffer": "3.0.0-alpha.9",
-    "xgplayer-transmuxer-codec-avc": "3.0.0-alpha.9",
-    "xgplayer-transmuxer-buffer-stream": "3.0.0-alpha.9"
+    "xgplayer-transmuxer-buffer-presource": "3.0.0-alpha.13",
+    "xgplayer-transmuxer-buffer-stream": "3.0.0-alpha.13",
+    "xgplayer-transmuxer-buffer-track": "3.0.0-alpha.13",
+    "xgplayer-transmuxer-buffer-xgbuffer": "3.0.0-alpha.13",
+    "xgplayer-transmuxer-codec-avc": "3.0.0-alpha.13",
+    "xgplayer-transmuxer-codec-compatibility": "3.0.0-alpha.13",
+    "xgplayer-transmuxer-constant-events": "3.0.0-alpha.13",
+    "xgplayer-transmuxer-demux-flv": "3.0.0-alpha.13",
+    "xgplayer-transmuxer-loader-fetch": "3.0.0-alpha.13",
+    "xgplayer-transmuxer-remux-mp4": "3.0.0-alpha.13",
+    "xgplayer-utils-mse": "3.0.0-alpha.13",
+    "xgplayer-utils-sniffer": "3.0.0-alpha.13"
   },
   "devDependencies": {
     "cross-env": "^6.0.3"
-  },
-  "peerDependencies": {
-    "xgplayer": "3.0.0-alpha.9"
   }
 }

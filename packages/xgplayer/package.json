@@ -9,7 +9,7 @@
         "xgplayer": "bin/xgplayer.js"
     },
     "scripts": {
-        "prepare": "npm run build",
+        "prepublishOnly": "npm run build",
         "build": "npm run build:es && npm run build:lib && npm run build:main && npm run build:style",
         "build:main": "rimraf ./dist && cross-env NODE_ENV=production rollup -c rollup.config.js",
         "build:es": "rimraf ./es && babel src --out-dir es",
@@ -59,18 +59,5 @@
         "delegate-events": "^1.1.1",
         "downloadjs": "1.4.7",
         "event-emitter": "^0.3.5"
-    },
-    "devDependencies": {
-        "autoprefixer": "^9.7.4",
-        "cross-env": "^6.0.3",
-        "cssnano": "^4.1.10",
-        "http-server": "^0.12.0",
-        "node-sass": "^4.13.1",
-        "postcss": "^7.0.26",
-        "recursive-readdir": "^2.2.2",
-        "request-frame": "^1.5.3",
-        "rimraf": "^3.0.2",
-        "rollup": "^1.27.14",
-        "rollup-plugin-uglify-es": "^0.0.1"
     }
 }
