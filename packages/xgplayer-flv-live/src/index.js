@@ -129,6 +129,7 @@ class FlvPlayer extends BasePlugin {
     if (this.player.hasStart || this.player.played.length) {
       this.played = false;
       return this._destroy().then(() => {
+        this.initEvents();
         this.context = new Context(flvAllowedEvents)
         this.player.hasStart = false;
         this.player.start()
@@ -172,6 +173,7 @@ class FlvPlayer extends BasePlugin {
   }
 
   switchURL (url) {
+    this.player.currentTime = 0;
     const context = new Context(flvAllowedEvents);
     const flv = context.registry('FLV_CONTROLLER', FLV)(this.player, this.mse)
     context.init()

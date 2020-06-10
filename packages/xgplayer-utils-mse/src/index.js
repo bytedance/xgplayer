@@ -292,7 +292,15 @@ class MSE {
   }
 
   static clearBuffer (buffer) {
-    const buffered = buffer.buffered;
+    let buffered
+    try {
+      buffered = buffer.buffered;
+    } catch (e) {
+      // DO NOTHING
+    }
+    if (!buffered) {
+      return;
+    }
     let bEnd = 0.1
     for (let i = 0, len = buffered.length; i < len; i++) {
       bEnd = buffered.end(i)

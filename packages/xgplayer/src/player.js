@@ -188,10 +188,13 @@ class Player extends Proxy {
     if (!url || url === '') {
       this.emit(Events.URL_NULL)
     }
-    this.canPlayFunc = function () {
+    this.canPlayFunc = () => {
       this.volume = this.config.volume
       this.off(Events.CANPLAY, this.canPlayFunc)
       this.removeClass(STATE_CLASS.ENTER)
+      if (!this.isPlaying) {
+        this.play()
+      }
     }
 
     if (Util.typeOf(url) === 'String') {
@@ -214,7 +217,6 @@ class Player extends Proxy {
     if (this.config.autoplay) {
       this.once(Events.CANPLAY, this.canPlayFunc)
       this.load()
-      this.play()
     }
 
     setTimeout(() => {

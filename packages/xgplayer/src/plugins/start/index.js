@@ -53,7 +53,10 @@ class Start extends Plugin {
       this.show();
     })
 
-    this.on(Events.PLAY, () => {
+    this.on(Events.PLAY, (e) => {
+      if (!e) {
+        return;
+      }
       this.onPlayPause('play')
     })
 
@@ -80,10 +83,12 @@ class Start extends Plugin {
   }
 
   hide () {
+    console.log('hide')
     Util.addClass(this.root, 'hide')
   }
 
   show () {
+    console.log('show')
     Util.removeClass(this.root, 'hide')
   }
 
@@ -130,9 +135,9 @@ class Start extends Plugin {
 
   onPlayPause (status) {
     const {config, player} = this
-    if (!player.isPlaying) {
-      return
-    }
+    // if (!player.isPlaying) {
+    //   return
+    // }
     if (config.mode === 'show') {
       this.switchStatus()
       this.show()
