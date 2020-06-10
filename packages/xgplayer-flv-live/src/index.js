@@ -106,7 +106,6 @@ class FlvPlayer extends BasePlugin {
         this.flv.seek(this.player.currentTime)
       }
     })
-
     this.on(Events.PLAY, this.play)
     this.on(Events.PAUSE, this.pause)
     this.on(Events.DESTROY, this.destroy)
@@ -123,17 +122,17 @@ class FlvPlayer extends BasePlugin {
     return flv;
   }
 
-  play () {
-    if (this.played && this.player.played.length) {
+  play (e) {
+    if (e) {
+      return;
+    }
+    if (this.player.hasStart || this.player.played.length) {
       this.played = false;
       return this._destroy().then(() => {
         this.context = new Context(flvAllowedEvents)
         this.player.hasStart = false;
         this.player.start()
         this.player.onWaiting();
-        this.player.once('canplay', () => {
-          this.player.play();
-        })
       })
     }
     this.played = true
@@ -152,7 +151,6 @@ class FlvPlayer extends BasePlugin {
   }
 
   destroy () {
-    super._destroy();
     return this._destroy()
   }
 
@@ -164,6 +162,7 @@ class FlvPlayer extends BasePlugin {
       if (this.loaderCompleteTimer) {
         window.clearInterval(this.loaderCompleteTimer)
       }
+      super.offAll();
     })
   }
 

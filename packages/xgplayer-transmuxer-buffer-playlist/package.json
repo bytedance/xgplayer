@@ -1,11 +1,11 @@
 {
   "name": "xgplayer-transmuxer-buffer-playlist",
-  "version": "3.0.0-alpha.9",
+  "version": "3.0.0-alpha.13",
   "description": "",
   "main": "lib/index.js",
   "module": "es/index.js",
   "scripts": {
-    "prepare": "npm run build",
+    "prepublishOnly": "npm run build",
     "watch": "babel src --out-dir es --watch & babel src --out-dir lib --presets=es2015 --watch",
     "build": "npm run build:es && npm run build:lib",
     "build:es": "babel src --out-dir es",

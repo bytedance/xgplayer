@@ -1,12 +1,12 @@
 {
   "name": "xgplayer-mobilevideo",
-  "version": "2.3.10-beta.8",
+  "version": "2.3.10-beta.10",
   "description": "",
   "main": "lib/index.js",
   "module": "es/index.js",
   "browser": "dist/index.min.js",
   "scripts": {
-    "prepare": "npm run build",
+    "prepublishOnly": "npm run build",
     "build": "npm run build:umd && npm run build:es && npm run build:lib",
     "build:umd": "cross-env NODE_ENV=production rollup -c rollup.config.js",
     "build:es": "rm -rf ./es && babel src --out-dir es",
@@ -35,8 +35,5 @@
   "dependencies": {
     "xgplayer-transmuxer-buffer-stream": "^2.3.7",
     "xgplayer-transmuxer-codec-avc": "^2.3.7"
-  },
-  "devDependencies": {
-    "cross-env": "^6.0.3"
   }
 }

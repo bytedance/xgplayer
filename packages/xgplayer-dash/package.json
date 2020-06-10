@@ -1,6 +1,6 @@
 {
   "name": "xgplayer-dash",
-  "version": "3.0.0-alpha.9",
+  "version": "3.0.0-alpha.13",
   "description": "xgplayer plugin for MPEG-DASH",
   "main": "./dist/index.js",
   "browser": "./browser/index.js",
@@ -44,9 +44,5 @@
   },
   "peerDependency": {
     "xgplayer": "^0.1.0"
-  },
-  "devDependencies": {
-    "webpack": "^4.41.6",
-    "webpack-cli": "^3.3.11"
   }
 }

@@ -1,11 +1,11 @@
 {
   "name": "xgplayer-mp4",
-  "version": "3.0.0-alpha.9",
+  "version": "3.0.0-alpha.13",
   "description": "xgplayer plugin for mp4 transform to fmp4",
   "main": "./dist/index.min.js",
   "module": "./dist/index.min.js",
   "scripts": {
-    "prepare": "npm run build",
+    "prepublishOnly": "npm run build",
     "build": "cross-env NODE_ENV=production rollup -c rollup.config.js",
     "watch": "cross-env NODE_ENV=development rollup -c rollup.config.js --watch",
     "test": "karma start --single-run",
@@ -48,6 +48,6 @@
     "event-emitter": "^0.3.5"
   },
   "peerDependencies": {
-    "xgplayer": "3.0.0-alpha.9"
+    "xgplayer": "3.0.0-alpha.13"
   }
 }
