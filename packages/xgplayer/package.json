@@ -58,6 +58,11 @@
         "deepmerge": "^1.5.0",
         "delegate-events": "^1.1.1",
         "downloadjs": "1.4.7",
-        "event-emitter": "^0.3.5"
+        "event-emitter": "^0.3.5",
+        "event-emitter3": "^1.0.4"
+    },
+    "devDependencies": {
+        "cross-env": "^7.0.2",
+        "recursive-readdir": "^2.2.2"
     }
 }
