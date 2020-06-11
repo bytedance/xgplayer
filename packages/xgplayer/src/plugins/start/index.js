@@ -31,6 +31,11 @@ class Start extends Plugin {
     }
   }
 
+  constructor (args) {
+    super(args)
+    this.autoPlayStart = false
+  }
+
   afterCreate () {
     const {player, playerConfig} = this
     this.initIcons()
@@ -44,6 +49,11 @@ class Start extends Plugin {
       }
     })
 
+    this.on(Events.AUTOPLAY_STARTED, () => {
+      this.autoPlayStart = true
+      this.onPlayPause('play')
+    })
+
     if (!playerConfig.autoplay) {
       this.show();
     }
@@ -53,10 +63,7 @@ class Start extends Plugin {
       this.show();
     })
 
-    this.on(Events.PLAY, (e) => {
-      if (!e) {
-        return;
-      }
+    this.on(Events.PLAY, () => {
       this.onPlayPause('play')
     })
 
@@ -83,17 +90,20 @@ class Start extends Plugin {
   }
 
   hide () {
-    console.log('hide')
     Util.addClass(this.root, 'hide')
   }
 
   show () {
-    console.log('show')
     Util.removeClass(this.root, 'hide')
   }
 
-  switchStatus () {
-    this.setAttr('data-state', this.player.paused ? 'play' : 'pause')
+  switchStatus (isAnimate) {
+    console.log('switchStatus', this.player.paused)
+    if (isAnimate) {
+      this.setAttr('data-state', !this.player.paused ? 'play' : 'pause')
+    } else {
+      this.setAttr('data-state', this.player.paused ? 'play' : 'pause')
+    }
   }
 
   animate (endShow) {
@@ -109,7 +119,7 @@ class Start extends Plugin {
       start: () => {
         Util.addClass(this.root, 'interact')
         this.show()
-        this.switchStatus()
+        this.switchStatus(true)
       },
       end: () => {
         Util.removeClass(this.root, 'interact');
@@ -135,9 +145,9 @@ class Start extends Plugin {
 
   onPlayPause (status) {
     const {config, player} = this
-    // if (!player.isPlaying) {
-    //   return
-    // }
+    if (!player.isPlaying || !this.autoPlayStart) {
+      return
+    }
     if (config.mode === 'show') {
       this.switchStatus()
       this.show()
@@ -149,9 +159,9 @@ class Start extends Plugin {
       return
     }
     if (status === 'play') {
-      this.player.isPlaying ? this.animate() : this.hide()
+      this.autoPlayStart ? this.animate() : this.hide()
     } else {
-      if (!this.player.isPlaying) {
+      if (!this.autoPlayStart) {
         return
       }
       this.animate()

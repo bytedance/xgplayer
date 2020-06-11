@@ -21,6 +21,7 @@ class FlvPlayer extends BasePlugin {
     this.switchURL = this.switchURL.bind(this);
     this.handleDefinitionChange = this.handleDefinitionChange.bind(this);
 
+    this.autoPlayStarted = false;
     this.played = false;
     this.initEvents()
   }
@@ -111,6 +112,11 @@ class FlvPlayer extends BasePlugin {
     this.on(Events.DESTROY, this.destroy)
     this.on(Events.URL_CHANGE, this.switchURL)
     this.on(Events.DEFINITION_CHANGE, this.switchURL)
+    if (this.playerConfig.autoplay) {
+      this.on(Events.AUTOPLAY_STARTED, () => {
+        this.autoPlayStarted = true;
+      })
+    }
   }
 
   initFlv () {
@@ -122,8 +128,10 @@ class FlvPlayer extends BasePlugin {
     return flv;
   }
 
-  play (e) {
-    if (e) {
+  play () {
+    if (this.playerConfig.autoplay && this.autoPlayStarted === false) {
+      // autoplay not started
+      this.played = true;
       return;
     }
     if (this.played && (this.player.hasStart || this.player.played.length)) {
@@ -136,11 +144,11 @@ class FlvPlayer extends BasePlugin {
         this.player.onWaiting();
       })
     }
-    this.played = true
+    this.played = true;
   }
 
   pause () {
-    if (!this.played) {
+    if (this.playerConfig.autoplay && this.autoPlayStarted === false) {
       return;
     }
     if (this.flv) {
