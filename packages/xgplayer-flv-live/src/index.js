@@ -21,6 +21,7 @@ class FlvPlayer extends BasePlugin {
     this.switchURL = this.switchURL.bind(this);
     this.handleDefinitionChange = this.handleDefinitionChange.bind(this);
 
+    this.autoPlayStarted = false;
     this.played = false;
     this.initEvents()
   }
@@ -111,6 +112,11 @@ class FlvPlayer extends BasePlugin {
     this.on(Events.DESTROY, this.destroy)
     this.on(Events.URL_CHANGE, this.switchURL)
     this.on(Events.DEFINITION_CHANGE, this.switchURL)
+    if (this.playerConfig.autoplay) {
+      this.on(Events.AUTOPLAY_STARTED, () => {
+        this.autoPlayStarted = true;
+      })
+    }
   }
 
   initFlv () {
@@ -122,23 +128,29 @@ class FlvPlayer extends BasePlugin {
     return flv;
   }
 
-  play (e) {
-    if (e) {
+  play () {
+    if (this.playerConfig.autoplay && this.autoPlayStarted === false) {
+      // autoplay not started
+      this.played = true;
       return;
     }
-    if (this.player.hasStart || this.player.played.length) {
+    if (this.played && (this.player.hasStart || this.player.played.length)) {
       this.played = false;
       return this._destroy().then(() => {
+        this.initEvents();
         this.context = new Context(flvAllowedEvents)
         this.player.hasStart = false;
         this.player.start()
         this.player.onWaiting();
       })
     }
-    this.played = true
+    this.played = true;
   }
 
   pause () {
+    if (this.playerConfig.autoplay && this.autoPlayStarted === false) {
+      return;
+    }
     if (this.flv) {
       this.flv.pause()
     }
@@ -172,6 +184,7 @@ class FlvPlayer extends BasePlugin {
   }
 
   switchURL (url) {
+    this.player.currentTime = 0;
     const context = new Context(flvAllowedEvents);
     const flv = context.registry('FLV_CONTROLLER', FLV)(this.player, this.mse)
     context.init()
