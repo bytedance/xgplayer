@@ -126,7 +126,7 @@ class FlvPlayer extends BasePlugin {
     if (e) {
       return;
     }
-    if (this.player.hasStart || this.player.played.length) {
+    if (this.played && (this.player.hasStart || this.player.played.length)) {
       this.played = false;
       return this._destroy().then(() => {
         this.initEvents();
@@ -140,6 +140,9 @@ class FlvPlayer extends BasePlugin {
   }
 
   pause () {
+    if (!this.played) {
+      return;
+    }
     if (this.flv) {
       this.flv.pause()
     }
