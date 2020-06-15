@@ -1,6 +1,6 @@
 {
   "name": "xgplayer-hls-vod",
-  "version": "3.0.0-alpha.13",
+  "version": "3.0.0-alpha.15",
   "description": "",
   "main": "lib/index.js",
   "module": "es/index.js",
@@ -31,20 +31,20 @@
   },
   "license": "ISC",
   "dependencies": {
-    "xgplayer-utils": "3.0.0-alpha.13",
-    "xgplayer-utils-crypto": "3.0.0-alpha.13",
-    "xgplayer-utils-mse": "3.0.0-alpha.13",
-    "xgplayer-transmuxer-constant-events": "3.0.0-alpha.13",
-    "xgplayer-transmuxer-context": "3.0.0-alpha.13",
-    "xgplayer-transmuxer-buffer-track": "3.0.0-alpha.13",
-    "xgplayer-transmuxer-buffer-presource": "3.0.0-alpha.13",
-    "xgplayer-transmuxer-buffer-xgbuffer": "3.0.0-alpha.13",
-    "xgplayer-transmuxer-loader-fetch": "3.0.0-alpha.13",
-    "xgplayer-transmuxer-remux-mp4": "3.0.0-alpha.13",
-    "xgplayer-transmuxer-codec-compatibility": "3.0.0-alpha.13",
-    "xgplayer-transmuxer-demux-m3u8": "3.0.0-alpha.13",
-    "xgplayer-transmuxer-demux-ts": "3.0.0-alpha.13",
-    "xgplayer-transmuxer-buffer-playlist": "3.0.0-alpha.13"
+    "xgplayer-utils": "3.0.0-alpha.15",
+    "xgplayer-utils-crypto": "3.0.0-alpha.15",
+    "xgplayer-utils-mse": "3.0.0-alpha.15",
+    "xgplayer-transmuxer-constant-events": "3.0.0-alpha.15",
+    "xgplayer-transmuxer-context": "3.0.0-alpha.15",
+    "xgplayer-transmuxer-buffer-track": "3.0.0-alpha.15",
+    "xgplayer-transmuxer-buffer-presource": "3.0.0-alpha.15",
+    "xgplayer-transmuxer-buffer-xgbuffer": "3.0.0-alpha.15",
+    "xgplayer-transmuxer-loader-fetch": "3.0.0-alpha.15",
+    "xgplayer-transmuxer-remux-mp4": "3.0.0-alpha.15",
+    "xgplayer-transmuxer-codec-compatibility": "3.0.0-alpha.15",
+    "xgplayer-transmuxer-demux-m3u8": "3.0.0-alpha.15",
+    "xgplayer-transmuxer-demux-ts": "3.0.0-alpha.15",
+    "xgplayer-transmuxer-buffer-playlist": "3.0.0-alpha.15"
   },
   "devDependencies": {
     "cross-env": "^6.0.3"

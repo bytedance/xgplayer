@@ -596,7 +596,6 @@ class Player extends Proxy {
   }
 
   onPlaying () {
-    console.log('onPlaying')
     if (this.waitTimer) {
       clearTimeout(this.waitTimer)
     }

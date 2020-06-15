@@ -1,6 +1,6 @@
 {
     "name": "xgplayer",
-    "version": "3.0.0-alpha.25",
+    "version": "3.0.0-alpha.26",
     "description": "video player",
     "main": "./dist/index.min.js",
     "module": "./es/index.min.js",
@@ -63,6 +63,7 @@
     },
     "devDependencies": {
         "cross-env": "^7.0.2",
-        "recursive-readdir": "^2.2.2"
+        "recursive-readdir": "^2.2.2",
+        "rimraf": "^3.0.2"
     }
 }
