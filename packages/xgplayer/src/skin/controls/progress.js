@@ -143,8 +143,8 @@ let s_progress = function () {
   };
 
   ['touchstart', 'mousedown'].forEach(item => {
-    if (player.config.disableProgress) return;
     container.addEventListener(item, function (e) {
+      if (player.config.disableProgress) return;
       // e.preventDefault()
       e.stopPropagation()
       util.event(e)

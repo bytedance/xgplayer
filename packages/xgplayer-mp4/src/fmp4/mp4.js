@@ -26,18 +26,22 @@ class FMP4 {
     return buffer.buffer
   }
   static moov (data) {
+    console.log('moov duration: ', data.duration)
     let buffer = new Buffer(); let size = 8
     let mvhd = FMP4.mvhd(data.duration, data.timeScale)
     let trak1 = FMP4.videoTrak(data)
-    let trak2 = FMP4.audioTrak(data)
+    // let trak2 = FMP4.audioTrak(data)
     let mvex = FMP4.mvex(data.duration, data.timeScale);
-    [mvhd, trak1, trak2, mvex].forEach(item => {
+    // [mvhd, trak1, trak2, mvex].forEach(item => {
+    [mvhd, trak1, mvex].forEach(item => {
       size += item.byteLength
     })
-    buffer.write(FMP4.size(size), FMP4.type('moov'), mvhd, trak1, trak2, mvex)
+    // buffer.write(FMP4.size(size), FMP4.type('moov'), mvhd, trak1, trak2, mvex)
+    buffer.write(FMP4.size(size), FMP4.type('moov'), mvhd, trak1, mvex)
     return buffer.buffer
   }
   static mvhd (duration, timescale) {
+    console.log('mvhd duration: ', duration)
     let buffer = new Buffer()
     duration *= timescale
     const upperWordDuration = Math.floor(duration / (UINT32_MAX + 1))
@@ -85,6 +89,7 @@ class FMP4 {
     return buffer.buffer
   }
   static videoTrak (data) {
+    console.log('videoTrak duration: ', data.videoDuration)
     let buffer = new Buffer(); let size = 8
     let tkhd = FMP4.tkhd({
       id: 1,
@@ -111,6 +116,7 @@ class FMP4 {
     return buffer.buffer
   }
   static audioTrak (data) {
+    console.log('audioTrack duration: ', data.audioDuration)
     let buffer = new Buffer(); let size = 8
     let tkhd = FMP4.tkhd({
       id: 2,
@@ -135,6 +141,7 @@ class FMP4 {
     return buffer.buffer
   }
   static tkhd (data) {
+    console.log('tkhd duration: ', data.duration)
     let buffer = new Buffer()
     let id = data.id
 
@@ -193,6 +200,7 @@ class FMP4 {
     return buffer.buffer
   }
   static edts (data) {
+    console.log('edts duration: ', data.duration)
     let buffer = new Buffer(); let duration = data.duration; let mediaTime = data.mediaTime
     buffer.write(FMP4.size(36), FMP4.type('edts'))
     // elst
@@ -207,7 +215,7 @@ class FMP4 {
   }
   static mdia (data) {
     let buffer = new Buffer(); let size = 8
-    let mdhd = FMP4.mdhd(data.timescale)
+    let mdhd = FMP4.mdhd(data.timescale, data.duration)
     let hdlr = FMP4.hdlr(data.type)
     let minf = FMP4.minf(data);
     [mdhd, hdlr, minf].forEach(item => {
@@ -217,6 +225,7 @@ class FMP4 {
     return buffer.buffer
   }
   static mdhd (timescale, duration = 0) {
+    console.log('mdhd duration: ', duration)
     let buffer = new Buffer()
     duration *= timescale
     const upperWordDuration = Math.floor(duration / (UINT32_MAX + 1))
@@ -485,6 +494,7 @@ class FMP4 {
     return buffer.buffer
   }
   static mvex (duration, timeScale) {
+    console.log('mvex duration: ', duration)
     let buffer = new Buffer()
     let mehd = Buffer.writeUint32(duration * timeScale)
     buffer.write(FMP4.size(88), FMP4.type('mvex'), FMP4.size(16), FMP4.type('mehd'), FMP4.extension(0, 0), mehd, FMP4.trex(1), FMP4.trex(2))

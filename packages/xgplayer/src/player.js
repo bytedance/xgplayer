@@ -650,7 +650,7 @@ class Player extends Proxy {
 
   onBlur () {
     // this.video.blur()
-    if (!this.paused && !this.ended && !this.config.closeInactive) {
+    if ((this.config.enablePausedInactive || !this.paused) && !this.ended && !this.config.closeInactive) {
       util.addClass(this.root, 'xgplayer-inactive')
     }
   }
