@@ -1,4 +1,13 @@
 # 版本更新记录
+## 3.0.0-alpha.27
+>* 增加创建browser目录
+
+## 3.0.0-alpha.26
+>* 修复safari下的autoplay触发问题
+
+## 3.0.0-alpha.25
+>* 解决倍速切换组件的多语言问题
+
 ## 3.0.0-alpha.24
 >* 解决ios下video seeking事件回调时机和android不同导致的seek回调问题
 ## 3.0.0-alpha.23
