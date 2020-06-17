@@ -237,6 +237,9 @@ class Player extends Proxy {
     root.insertBefore(this.video, root.firstChild)
     setTimeout(() => {
       this.emit('complete')
+      if(this.danmu && typeof this.danmu.resize === 'function') {
+        this.danmu.resize()
+      }
     }, 1)
   }
 

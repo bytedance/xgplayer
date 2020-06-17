@@ -392,6 +392,9 @@ var Player = function (_Proxy) {
       root.insertBefore(this.video, root.firstChild);
       setTimeout(function () {
         _this2.emit('complete');
+        if (_this2.danmu && typeof _this2.danmu.resize === 'function') {
+          _this2.danmu.resize();
+        }
       }, 1);
     }
   }, {
@@ -1365,6 +1368,56 @@ util.computeWatchDur = function () {
   return watch_dur;
 };
 
+util.downloadFile = function (url) {
+  var me = this;
+  return new Promise(function (resolve, reject) {
+    var xhr = new XMLHttpRequest();
+    xhr.open("get", url);
+    xhr.responseType = "arraybuffer";
+    xhr.onload = function () {
+      var blob = void 0;
+      var ctx = xhr.response;
+      try {
+        blob = new Blob([ctx], { type: 'application/x-mpegURL' });
+      } catch (e) {
+        // Backwards-compatibility
+        window.BlobBuilder = window.BlobBuilder || window.WebKitBlobBuilder || window.MozBlobBuilder;
+        blob = new BlobBuilder();
+        blob.append(ctx);
+        blob = blob.getBlob();
+      }
+      var blobUrl = URL.createObjectURL(blob);
+      me.cacheBuffer[url] = {
+        blobUrl: blobUrl,
+        blob: blob
+      };
+      if (me.options.backupUrls && me.options.backupUrls.length && !me.backup_download_success) {
+        if (me.options.backupUrls.every(function (url) {
+          return me.cacheBuffer[url] && !isPromise(me.cacheBuffer[url]);
+        })) {
+          me.emit('backup_download_success');
+          me.backup_download_success = true;
+        }
+      }
+      resolve({
+        blobUrl: blobUrl,
+        blob: blob
+      });
+    };
+    xhr.onerror = function (e) {
+      delete me.cacheBuffer[url];
+      resolve(url);
+    };
+    xhr.onprogress = function (e) {
+      if (me.cacheBuffer[url] == -1 && xhr) {
+        xhr.abort();
+        delete me.cacheBuffer[url];
+      }
+    };
+    xhr.send();
+  });
+};
+
 exports.default = util;
 module.exports = exports['default'];
 
@@ -1466,7 +1519,7 @@ module.exports = exports['default'];
 /* 5 */
 /***/ (function(module) {
 
-module.exports = {"name":"xgplayer","version":"2.9.3","description":"video player","main":"./dist/index.js","typings":"./types/index.d.ts","bin":{"xgplayer":"bin/xgplayer.js"},"scripts":{"prepare":"npm run build","build":"webpack --progress --display-chunks -p","watch":"webpack --progress --display-chunks -p --watch --mode development"},"keywords":["video","player"],"babel":{"presets":["es2015"],"plugins":["add-module-exports","babel-plugin-bulk-import"]},"repository":{"type":"git","url":"git+https://github.com/bytedance/xgplayer.git"},"author":"yinguohui@bytedance.com","license":"MIT","dependencies":{"chalk":"^2.3.2","commander":"^2.15.1","danmu.js":"^0.1.0","deepmerge":"^1.5.0","downloadjs":"1.4.7","draggabilly":"^2.2.0","event-emitter":"^0.3.5","fs-extra":"^5.0.0","install":"^0.13.0","pasition":"^1.0.1","request-frame":"^1.5.3"},"browserslist":["> 5%","IE 9","iOS 7","Firefox > 20"],"devDependencies":{"@types/events":"^3.0.0","autoprefixer":"^9.1.5","babel-core":"^6.26.3","babel-loader":"^7.1.4","babel-plugin-add-module-exports":"^0.2.1","babel-plugin-bulk-import":"^1.0.2","babel-plugin-transform-object-rest-spread":"^6.26.0","babel-plugin-transform-runtime":"^6.23.0","babel-preset-es2015":"^6.24.1","chai":"^4.1.2","core-js":"^2.5.4","css-loader":"^0.28.11","json-loader":"^0.5.7","node-sass":"^4.8.3","postcss-cssnext":"^3.1.0","postcss-loader":"^2.1.5","raw-loader":"^2.0.0","sass-loader":"^6.0.7","style-loader":"^0.20.3","sugarss":"^1.0.1","webpack":"^4.11.0","webpack-cli":"^3.0.2","zlib":"^1.0.5"}};
+module.exports = {"name":"xgplayer","version":"2.9.4","description":"video player","main":"./dist/index.js","typings":"./types/index.d.ts","bin":{"xgplayer":"bin/xgplayer.js"},"scripts":{"prepare":"npm run build","build":"webpack --progress --display-chunks -p","watch":"webpack --progress --display-chunks -p --watch --mode development"},"keywords":["video","player"],"babel":{"presets":["es2015"],"plugins":["add-module-exports","babel-plugin-bulk-import"]},"repository":{"type":"git","url":"git+https://github.com/bytedance/xgplayer.git"},"author":"yinguohui@bytedance.com","license":"MIT","dependencies":{"chalk":"^2.3.2","commander":"^2.15.1","danmu.js":"^0.2.17","deepmerge":"^1.5.0","downloadjs":"1.4.7","draggabilly":"^2.2.0","event-emitter":"^0.3.5","fs-extra":"^5.0.0","install":"^0.13.0","pasition":"^1.0.1","request-frame":"^1.5.3"},"browserslist":["> 5%","IE 9","iOS 7","Firefox > 20"],"devDependencies":{"@types/events":"^3.0.0","autoprefixer":"^9.1.5","babel-core":"^6.26.3","babel-loader":"^7.1.4","babel-plugin-add-module-exports":"^0.2.1","babel-plugin-bulk-import":"^1.0.2","babel-plugin-transform-object-rest-spread":"^6.26.0","babel-plugin-transform-runtime":"^6.23.0","babel-preset-es2015":"^6.24.1","chai":"^4.1.2","core-js":"^2.5.4","css-loader":"^0.28.11","json-loader":"^0.5.7","node-sass":"^4.8.3","postcss-cssnext":"^3.1.0","postcss-loader":"^2.1.5","raw-loader":"^2.0.0","sass-loader":"^6.0.7","style-loader":"^0.20.3","sugarss":"^1.0.1","webpack":"^4.11.0","webpack-cli":"^3.0.2","zlib":"^1.0.5"}};
 
 /***/ }),
 /* 6 */
@@ -6275,6 +6328,9 @@ var fullscreen = function fullscreen() {
       util.removeClass(root, 'xgplayer-is-fullscreen');
       player.emit('exitFullscreen');
     }
+    if (player.danmu && typeof player.danmu.resize === 'function') {
+      player.danmu.resize();
+    }
   };
   ['fullscreenchange', 'webkitfullscreenchange', 'mozfullscreenchange', 'MSFullscreenChange'].forEach(function (item) {
     document.addEventListener(item, onFullscreenChange);
@@ -8883,11 +8939,11 @@ var _typeof = typeof Symbol === "function" && typeof Symbol.iterator === "symbol
       };return n.d(e, "a", e), e;
     }, n.o = function (t, e) {
       return Object.prototype.hasOwnProperty.call(t, e);
-    }, n.p = "", n(n.s = 2);
+    }, n.p = "", n(n.s = 3);
   }([function (t, e, n) {
     "use strict";
     Object.defineProperty(e, "__esModule", { value: !0 });var i,
-        o = n(22),
+        o = n(26),
         r = (i = o) && i.__esModule ? i : { default: i };var a = {};a.domObj = new r.default(), a.createDom = function () {
       var t = arguments.length > 0 && void 0 !== arguments[0] ? arguments[0] : "div",
           e = arguments.length > 1 && void 0 !== arguments[1] ? arguments[1] : "",
@@ -8940,16 +8996,21 @@ var _typeof = typeof Symbol === "function" && typeof Symbol.iterator === "symbol
     }, e.default = a, t.exports = e.default;
   }, function (t, e, n) {
     "use strict";
-    var i = n(13)();t.exports = function (t) {
+    var i = n(18)();t.exports = function (t) {
       return t !== i && null !== t;
     };
   }, function (t, e, n) {
-    t.exports = n(3);
+    "use strict";
+    t.exports = function (t) {
+      return null != t;
+    };
+  }, function (t, e, n) {
+    t.exports = n(4);
   }, function (t, e, n) {
     "use strict";
     Object.defineProperty(e, "__esModule", { value: !0 });var i,
-        o = n(4),
-        r = (i = o) && i.__esModule ? i : { default: i };n(26), e.default = r.default, t.exports = e.default;
+        o = n(5),
+        r = (i = o) && i.__esModule ? i : { default: i };n(30), e.default = r.default, t.exports = e.default;
   }, function (t, e, n) {
     "use strict";
     Object.defineProperty(e, "__esModule", { value: !0 });var i = function () {
@@ -8961,21 +9022,21 @@ var _typeof = typeof Symbol === "function" && typeof Symbol.iterator === "symbol
         return n && t(e.prototype, n), i && t(e, i), e;
       };
     }(),
-        o = s(n(5)),
-        r = s(n(21)),
+        o = s(n(6)),
+        r = s(n(25)),
         a = s(n(0));function s(t) {
       return t && t.__esModule ? t : { default: t };
-    }var c = function () {
+    }var u = function () {
       function t(e) {
         !function (t, e) {
           if (!(t instanceof e)) throw new TypeError("Cannot call a class as a function");
-        }(this, t), this.config = a.default.deepCopy({ overlap: !1, area: { start: 0, end: 1 }, live: !1, comments: [], direction: "r2l" }, e), this.hideArr = [], (0, o.default)(this);var n = this;if (this.config.comments.forEach(function (t) {
-          t.duration = t.duration < 5e3 ? 5e3 : t.duration, t.mode || (t.mode = "scroll");
-        }), !this.config.container || 1 !== this.config.container.nodeType) return this.emit("error", "container id can't be empty"), !1;if (this.container = this.config.container, this.config.containerStyle) {
-          var i = this.config.containerStyle;Object.keys(i).forEach(function (t) {
+        }(this, t);var n = this;if (n.config = a.default.deepCopy({ overlap: !1, area: { start: 0, end: 1 }, live: !1, comments: [], direction: "r2l" }, e), n.hideArr = [], (0, o.default)(n), n.config.comments.forEach(function (t) {
+          t.duration = t.duration ? t.duration : 5e3, t.mode || (t.mode = "scroll");
+        }), !n.config.container || 1 !== n.config.container.nodeType) return n.emit("error", "container id can't be empty"), !1;if (n.container = n.config.container, n.config.containerStyle) {
+          var i = n.config.containerStyle;Object.keys(i).forEach(function (t) {
             n.container.style[t] = i[t];
           });
-        }this.live = this.config.live, this.player = this.config.player, this.direction = this.config.direction, a.default.addClass(this.container, "danmu"), this.bulletBtn = new r.default(this), this.emit("ready");
+        }n.live = n.config.live, n.player = n.config.player, n.direction = n.config.direction, a.default.addClass(n.container, "danmu"), n.bulletBtn = new r.default(n), n.emit("ready");
       }return i(t, [{ key: "start", value: function value() {
           this.bulletBtn.main.start();
         } }, { key: "pause", value: function value() {
@@ -8985,31 +9046,64 @@ var _typeof = typeof Symbol === "function" && typeof Symbol.iterator === "symbol
         } }, { key: "stop", value: function value() {
           this.bulletBtn.main.stop();
         } }, { key: "sendComment", value: function value(t) {
-          t && t.id && t.duration && (t.el || t.txt) && (t.duration = t.duration < 5e3 ? 5e3 : t.duration, this.bulletBtn.main.data.push(t));
+          t.duration || (t.duration = 15e3), t && t.id && t.duration && (t.el || t.txt) && (t.duration = t.duration ? t.duration : 5e3, t.style && (this.opacity && this.opacity !== t.style.opacity && (t.style.opacity = this.opacity), this.fontSize && this.fontSize !== t.style.fontSize && (t.style.fontSize = this.fontSize), this.like && (t.like = t.like ? t.like : this.like)), t.prior || t.realTime ? (this.bulletBtn.main.data.unshift(t), t.realTime && (this.bulletBtn.main.readData(), this.bulletBtn.main.dataHandle())) : this.bulletBtn.main.data.push(t));
         } }, { key: "setCommentID", value: function value(t, e) {
-          var n = this.container.getBoundingClientRect();t && e && (this.bulletBtn.main.data.some(function (n) {
+          var n = this,
+              i = this.container.getBoundingClientRect();t && e && (this.bulletBtn.main.data.some(function (n) {
             return n.id === t && (n.id = e, !0);
-          }), this.bulletBtn.main.queue.some(function (i) {
-            return i.id === t && (i.id = e, i.pauseMove(n), i.startMove(n), !0);
+          }), this.bulletBtn.main.queue.some(function (o) {
+            return o.id === t && (o.id = e, o.pauseMove(i), "paused" !== n.bulletBtn.main.status && o.startMove(i), !0);
           }));
         } }, { key: "setCommentDuration", value: function value(t, e) {
-          var n = this.container.getBoundingClientRect();t && e && (e = e < 5e3 ? 5e3 : e, this.bulletBtn.main.data.some(function (n) {
+          var n = this,
+              i = this.container.getBoundingClientRect();t && e && (e = e || 5e3, this.bulletBtn.main.data.some(function (n) {
             return n.id === t && (n.duration = e, !0);
+          }), this.bulletBtn.main.queue.some(function (o) {
+            return o.id === t && (o.duration = e, o.pauseMove(i), "paused" !== n.bulletBtn.main.status && o.startMove(i), !0);
+          }));
+        } }, { key: "setCommentLike", value: function value(t, e) {
+          var n = this.container.getBoundingClientRect();this.like = e, t && e && (this.bulletBtn.main.data.some(function (n) {
+            return n.id === t && (n.like = e, !0);
           }), this.bulletBtn.main.queue.some(function (i) {
-            return i.id === t && (i.duration = e, i.pauseMove(n), i.startMove(n), !0);
+            return i.id === t && (i.pauseMove(n), i.setLikeDom(e.el, e.style), "paused" !== i.danmu.bulletBtn.main.status && i.startMove(n), !0);
+          }));
+        } }, { key: "restartComment", value: function value(t) {
+          this.mouseControl = !1;var e = this.container.getBoundingClientRect();t && this.bulletBtn.main.queue.some(function (n) {
+            return n.id === t && ("paused" !== n.danmu.bulletBtn.main.status ? n.startMove(e, !0) : n.status = "paused", !0);
+          });
+        } }, { key: "freezeComment", value: function value(t) {
+          this.mouseControl = !0;var e = this.container.getBoundingClientRect();t && this.bulletBtn.main.queue.some(function (n) {
+            return n.id === t && (n.status = "forcedPause", n.pauseMove(e), n.el && n.el.style && (n.el.style.zIndex = 10), !0);
+          });
+        } }, { key: "removeComment", value: function value(t) {
+          t && (this.bulletBtn.main.queue.some(function (e) {
+            return e.id === t && (e.remove(), !0);
+          }), this.bulletBtn.main.data = this.bulletBtn.main.data.filter(function (e) {
+            return e.id !== t;
           }));
         } }, { key: "setAllDuration", value: function value() {
           var t = arguments.length > 0 && void 0 !== arguments[0] ? arguments[0] : "scroll",
               e = arguments[1],
-              n = this.container.getBoundingClientRect();e && (e = e < 5e3 ? 5e3 : e, this.bulletBtn.main.data.forEach(function (n) {
+              n = !(arguments.length > 2 && void 0 !== arguments[2]) || arguments[2],
+              i = this.container.getBoundingClientRect();e && (e = e || 5e3, n && (this.bulletBtn.main.forceDuration = e), this.bulletBtn.main.data.forEach(function (n) {
             t === n.mode && (n.duration = e);
-          }), this.bulletBtn.main.queue.forEach(function (i) {
-            t === i.mode && (i.duration = e, i.pauseMove(n), i.startMove(n));
+          }), this.bulletBtn.main.queue.forEach(function (n) {
+            t === n.mode && (n.duration = e, n.pauseMove(i), "paused" !== n.danmu.bulletBtn.main.status && n.startMove(i));
           }));
+        } }, { key: "setOpacity", value: function value(t) {
+          this.container.style.opacity = t;
+        } }, { key: "setFontSize", value: function value(t, e) {
+          var n = this;this.fontSize = t + "px", t && (this.bulletBtn.main.data.forEach(function (t) {
+            t.style && (t.style.fontSize = n.fontSize);
+          }), this.bulletBtn.main.queue.forEach(function (t) {
+            t.options.style || (t.options.style = {}), t.options.style.fontSize = n.fontSize, t.setFontSize(n.fontSize), e && (t.top = t.channel_id[0] * e, t.topInit());
+          })), e && (this.config.channelSize = e, this.bulletBtn.main.channel.resize(!0));
+        } }, { key: "setArea", value: function value(t) {
+          this.config.area = t, this.bulletBtn.main.channel.resize(!0);
         } }, { key: "hide", value: function value() {
-          var t = arguments.length > 0 && void 0 !== arguments[0] ? arguments[0] : "scroll";this.hideArr.indexOf(t) < 0 && this.hideArr.push(t), this.bulletBtn.main.queue.filter(function (e) {
+          var t = arguments.length > 0 && void 0 !== arguments[0] ? arguments[0] : "scroll";this.hideArr.indexOf(t) < 0 && this.hideArr.push(t);var e = this.bulletBtn.main.queue.filter(function (e) {
             return t === e.mode || "color" === t && e.color;
-          }).forEach(function (t) {
+          });e.forEach(function (t) {
             return t.remove();
           });
         } }, { key: "show", value: function value() {
@@ -9017,8 +9111,10 @@ var _typeof = typeof Symbol === "function" && typeof Symbol.iterator === "symbol
               e = this.hideArr.indexOf(t);e > -1 && this.hideArr.splice(e, 1);
         } }, { key: "setDirection", value: function value() {
           var t = arguments.length > 0 && void 0 !== arguments[0] ? arguments[0] : "r2l";this.emit("changeDirection", t);
+        } }, { key: "resize", value: function value() {
+          this.emit("channel_resize");
         } }]), t;
-    }();e.default = c, t.exports = e.default;
+    }();e.default = u, t.exports = e.default;
   }, function (t, e, n) {
     "use strict";
     var i,
@@ -9026,14 +9122,14 @@ var _typeof = typeof Symbol === "function" && typeof Symbol.iterator === "symbol
         r,
         a,
         s,
-        c,
         u,
-        l = n(6),
-        h = n(20),
+        l,
+        c = n(7),
+        h = n(24),
         f = Function.prototype.apply,
         d = Function.prototype.call,
-        p = Object.create,
-        m = Object.defineProperty,
+        m = Object.create,
+        p = Object.defineProperty,
         g = Object.defineProperties,
         v = Object.prototype.hasOwnProperty,
         b = { configurable: !0, enumerable: !1, writable: !0 };o = function o(t, e) {
@@ -9041,7 +9137,7 @@ var _typeof = typeof Symbol === "function" && typeof Symbol.iterator === "symbol
         r.call(o, t, _n), f.call(e, this, arguments);
       }), _n.__eeOnceListener__ = e, this;
     }, s = { on: i = function i(t, e) {
-        var n;return h(e), v.call(this, "__ee__") ? n = this.__ee__ : (n = b.value = p(null), m(this, "__ee__", b), b.value = null), n[t] ? "object" == _typeof(n[t]) ? n[t].push(e) : n[t] = [n[t], e] : n[t] = e, this;
+        var n;return h(e), v.call(this, "__ee__") ? n = this.__ee__ : (n = b.value = m(null), p(this, "__ee__", b), b.value = null), n[t] ? "object" == _typeof(n[t]) ? n[t].push(e) : n[t] = [n[t], e] : n[t] = e, this;
       }, once: o, off: r = function r(t, e) {
         var n, i, o, r;if (h(e), !v.call(this, "__ee__")) return this;if (!(n = this.__ee__)[t]) return this;if ("object" == _typeof(i = n[t])) for (r = 0; o = i[r]; ++r) {
           o !== e && o.__eeOnceListener__ !== e || (2 === i.length ? n[t] = i[r ? 0 : 1] : i.splice(r, 1));
@@ -9060,22 +9156,54 @@ var _typeof = typeof Symbol === "function" && typeof Symbol.iterator === "symbol
             for (n = arguments.length, r = new Array(n - 1), e = 1; e < n; ++e) {
               r[e - 1] = arguments[e];
             }f.call(o, this, r);}
-      } }, c = { on: l(i), once: l(o), off: l(r), emit: l(a) }, u = g({}, c), t.exports = e = function e(t) {
-      return null == t ? p(u) : g(Object(t), c);
+      } }, u = { on: c(i), once: c(o), off: c(r), emit: c(a) }, l = g({}, u), t.exports = e = function e(t) {
+      return null == t ? m(l) : g(Object(t), u);
     }, e.methods = s;
   }, function (t, e, n) {
     "use strict";
-    var i = n(7),
-        o = n(15),
-        r = n(16),
-        a = n(17);(t.exports = function (t, e) {
-      var n, r, s, c, u;return arguments.length < 2 || "string" != typeof t ? (c = e, e = t, t = null) : c = arguments[2], null == t ? (n = s = !0, r = !1) : (n = a.call(t, "c"), r = a.call(t, "e"), s = a.call(t, "w")), u = { value: e, configurable: n, enumerable: r, writable: s }, c ? i(o(c), u) : u;
+    var i = n(2),
+        o = n(8),
+        r = n(12),
+        a = n(20),
+        s = n(21);(t.exports = function (t, e) {
+      var n, o, u, l, c;return arguments.length < 2 || "string" != typeof t ? (l = e, e = t, t = null) : l = arguments[2], i(t) ? (n = s.call(t, "c"), o = s.call(t, "e"), u = s.call(t, "w")) : (n = u = !0, o = !1), c = { value: e, configurable: n, enumerable: o, writable: u }, l ? r(a(l), c) : c;
     }).gs = function (t, e, n) {
-      var s, c, u, l;return "string" != typeof t ? (u = n, n = e, e = t, t = null) : u = arguments[3], null == e ? e = void 0 : r(e) ? null == n ? n = void 0 : r(n) || (u = n, n = void 0) : (u = e, e = n = void 0), null == t ? (s = !0, c = !1) : (s = a.call(t, "c"), c = a.call(t, "e")), l = { get: e, set: n, configurable: s, enumerable: c }, u ? i(o(u), l) : l;
+      var u, l, c, h;return "string" != typeof t ? (c = n, n = e, e = t, t = null) : c = arguments[3], i(e) ? o(e) ? i(n) ? o(n) || (c = n, n = void 0) : n = void 0 : (c = e, e = n = void 0) : e = void 0, i(t) ? (u = s.call(t, "c"), l = s.call(t, "e")) : (u = !0, l = !1), h = { get: e, set: n, configurable: u, enumerable: l }, c ? r(a(c), h) : h;
     };
   }, function (t, e, n) {
     "use strict";
-    t.exports = n(8)() ? Object.assign : n(9);
+    var i = n(9),
+        o = /^\s*class[\s{/}]/,
+        r = Function.prototype.toString;t.exports = function (t) {
+      return !!i(t) && !o.test(r.call(t));
+    };
+  }, function (t, e, n) {
+    "use strict";
+    var i = n(10);t.exports = function (t) {
+      if ("function" != typeof t) return !1;if (!hasOwnProperty.call(t, "length")) return !1;try {
+        if ("number" != typeof t.length) return !1;if ("function" != typeof t.call) return !1;if ("function" != typeof t.apply) return !1;
+      } catch (t) {
+        return !1;
+      }return !i(t);
+    };
+  }, function (t, e, n) {
+    "use strict";
+    var i = n(11);t.exports = function (t) {
+      if (!i(t)) return !1;try {
+        return !!t.constructor && t.constructor.prototype === t;
+      } catch (t) {
+        return !1;
+      }
+    };
+  }, function (t, e, n) {
+    "use strict";
+    var i = n(2),
+        o = { object: !0, function: !0, undefined: !0 };t.exports = function (t) {
+      return !!i(t) && hasOwnProperty.call(o, typeof t === "undefined" ? "undefined" : _typeof(t));
+    };
+  }, function (t, e, n) {
+    "use strict";
+    t.exports = n(13)() ? Object.assign : n(14);
   }, function (t, e, n) {
     "use strict";
     t.exports = function () {
@@ -9084,25 +9212,25 @@ var _typeof = typeof Symbol === "function" && typeof Symbol.iterator === "symbol
     };
   }, function (t, e, n) {
     "use strict";
-    var i = n(10),
-        o = n(14),
+    var i = n(15),
+        o = n(19),
         r = Math.max;t.exports = function (t, e) {
       var n,
           a,
           s,
-          c = r(arguments.length, 2);for (t = Object(o(t)), s = function s(i) {
+          u = r(arguments.length, 2);for (t = Object(o(t)), s = function s(i) {
         try {
           t[i] = e[i];
         } catch (t) {
           n || (n = t);
         }
-      }, a = 1; a < c; ++a) {
+      }, a = 1; a < u; ++a) {
         e = arguments[a], i(e).forEach(s);
       }if (void 0 !== n) throw n;return t;
     };
   }, function (t, e, n) {
     "use strict";
-    t.exports = n(11)() ? Object.keys : n(12);
+    t.exports = n(16)() ? Object.keys : n(17);
   }, function (t, e, n) {
     "use strict";
     t.exports = function () {
@@ -9130,23 +9258,19 @@ var _typeof = typeof Symbol === "function" && typeof Symbol.iterator === "symbol
     "use strict";
     var i = n(1),
         o = Array.prototype.forEach,
-        r = Object.create;t.exports = function (t) {
+        r = Object.create,
+        a = function a(t, e) {
+      var n;for (n in t) {
+        e[n] = t[n];
+      }
+    };t.exports = function (t) {
       var e = r(null);return o.call(arguments, function (t) {
-        i(t) && function (t, e) {
-          var n;for (n in t) {
-            e[n] = t[n];
-          }
-        }(Object(t), e);
+        i(t) && a(Object(t), e);
       }), e;
     };
   }, function (t, e, n) {
     "use strict";
-    t.exports = function (t) {
-      return "function" == typeof t;
-    };
-  }, function (t, e, n) {
-    "use strict";
-    t.exports = n(18)() ? String.prototype.contains : n(19);
+    t.exports = n(22)() ? String.prototype.contains : n(23);
   }, function (t, e, n) {
     "use strict";
     var i = "razdwatrzy";t.exports = function () {
@@ -9174,7 +9298,7 @@ var _typeof = typeof Symbol === "function" && typeof Symbol.iterator === "symbol
       };
     }(),
         o = a(n(0)),
-        r = a(n(23));function a(t) {
+        r = a(n(27));function a(t) {
       return t && t.__esModule ? t : { default: t };
     }var s = function () {
       function t(e) {
@@ -9225,56 +9349,52 @@ var _typeof = typeof Symbol === "function" && typeof Symbol.iterator === "symbol
         return n && t(e.prototype, n), i && t(e, i), e;
       };
     }(),
-        o = s(n(24)),
-        r = s(n(25)),
+        o = s(n(28)),
+        r = s(n(29)),
         a = s(n(0));function s(t) {
       return t && t.__esModule ? t : { default: t };
-    }var c = function () {
+    }var u = function () {
       function t(e) {
         !function (t, e) {
           if (!(t instanceof e)) throw new TypeError("Cannot call a class as a function");
-        }(this, t), this.danmu = e, this.container = e.container, this.channel = new o.default(e), this.data = [].concat(e.config.comments), this.queue = [], this.timer = null, this.retryTimer = null, this.interval = 2e3, this.status = "idle", e.on("bullet_remove", this.updateQueue.bind(this));var n = this;this.danmu.on("changeDirection", function (t) {
+        }(this, t), this.danmu = e, this.container = e.container, this.channel = new o.default(e), this.data = [].concat(e.config.comments), this.playedData = [], this.queue = [], this.timer = null, this.retryTimer = null, this.retryStatus = "normal", this.interval = e.config.interval || 2e3, this.status = "idle", e.on("bullet_remove", this.updateQueue.bind(this));var n = this;this.danmu.on("changeDirection", function (t) {
           n.danmu.direction = t;
-        });
+        }), this.nums = 0;
       }return i(t, [{ key: "updateQueue", value: function value(t) {
           var e = this;e.queue.some(function (n, i) {
             return n.id === t.bullet.id && (e.queue.splice(i, 1), !0);
           });
         } }, { key: "init", value: function value(t, e) {
-          e || (e = this), e.data.sort(function (t, e) {
+          e || (e = this), e.retryStatus = "normal", e.data.sort(function (t, e) {
             return t.start - e.start;
-          }), e.retryTimer || (e.retryTimer = setInterval(function () {
-            e.readData(), e.dataHandle();
-          }, e.interval - 1e3));
+          });e.retryTimer || function t() {
+            "closed" === e.status && "stop" === e.retryStatus || ("playing" === e.status && (e.readData(), e.dataHandle()), "stop" === e.retryStatus && "paused" !== this.status || setTimeout(function () {
+              t();
+            }, e.interval - 1e3));
+          }();
         } }, { key: "start", value: function value() {
           this.status = "playing", this.queue = [], this.container.innerHTML = "", this.channel.resetWithCb(this.init, this);
         } }, { key: "stop", value: function value() {
-          this.status = "closed", clearInterval(this.retryTimer), this.retryTimer = null, this.channel.reset(), this.queue = [], this.container.innerHTML = "";
+          this.status = "closed", this.retryTimer = null, this.retryStatus = "stop", this.channel.reset(), this.queue = [], this.container.innerHTML = "";
         } }, { key: "play", value: function value() {
-          this.status = "playing";var t = this.channel.channels,
-              e = this.danmu.container.getBoundingClientRect();t && t.length > 0 && ["scroll", "top", "bottom"].forEach(function (n) {
-            for (var i = 0; i < t.length; i++) {
-              t[i].queue[n].forEach(function (t) {
-                t.resized || (t.startMove(e), t.resized = !0);
-              });
-            }for (var o = 0; o < t.length; o++) {
-              t[o].queue[n].forEach(function (t) {
+          var t = this;this.status = "playing";var e = this.channel.channels,
+              n = this.danmu.container.getBoundingClientRect();e && e.length > 0 && ["scroll", "top", "bottom"].forEach(function (i) {
+            t.queue.forEach(function (t) {
+              t.startMove(n), t.resized = !0;
+            });for (var o = 0; o < e.length; o++) {
+              e[o].queue[i].forEach(function (t) {
                 t.resized = !1;
               });
             }
           });
         } }, { key: "pause", value: function value() {
           this.status = "paused";var t = this.channel.channels,
-              e = this.danmu.container.getBoundingClientRect();t && t.length > 0 && ["scroll", "top", "bottom"].forEach(function (n) {
-            for (var i = 0; i < t.length; i++) {
-              t[i].queue[n].forEach(function (t) {
-                t.pauseMove(e);
-              });
-            }
+              e = this.danmu.container.getBoundingClientRect();t && t.length > 0 && this.queue.forEach(function (t) {
+            t.pauseMove(e);
           });
         } }, { key: "dataHandle", value: function value() {
           var t = this;"paused" !== this.status && "closed" !== this.status && t.queue.length && t.queue.forEach(function (e) {
-            "waiting" !== e.status && "paused" !== e.status || e.startMove(t.channel.containerPos);
+            "waiting" === e.status && e.startMove(t.channel.containerPos);
           });
         } }, { key: "readData", value: function value() {
           var t = this,
@@ -9282,17 +9402,15 @@ var _typeof = typeof Symbol === "function" && typeof Symbol.iterator === "symbol
               n = 0;e.player && e.player.currentTime && (n = a.default.formatTime(e.player.currentTime));var i = void 0,
               o = t.interval,
               s = t.channel,
-              c = void 0;e.player ? (c = t.data.filter(function (e) {
+              u = void 0;e.player ? (u = t.data.filter(function (e) {
             return !e.start && t.danmu.hideArr.indexOf(e.mode) < 0 && (!e.color || t.danmu.hideArr.indexOf("color") < 0) && (e.start = n), t.danmu.hideArr.indexOf(e.mode) < 0 && (!e.color || t.danmu.hideArr.indexOf("color") < 0) && e.start - o <= n && n <= e.start + o;
           }), e.live && (t.data = t.data.filter(function (t) {
             return t.start || (t.start = n), t.start > n - 3 * o;
-          }))) : c = t.data.filter(function (e) {
-            return t.danmu.hideArr.indexOf(e.mode) < 0 && (!e.color || t.danmu.hideArr.indexOf("color") < 0);
-          }), c.length > 0 && c.forEach(function (n) {
-            (i = new r.default(e, n)).attach(), s.addBullet(i).result ? (t.queue.push(i), i.topInit()) : i.detach();
+          }))) : 0 === (u = t.data.splice(0, 1)).length && (u = t.playedData.splice(0, 1)), u.length > 0 && u.forEach(function (n) {
+            t.forceDuration && t.forceDuration != n.duration && (n.duration = t.forceDuration), i = new r.default(e, n), n.hasAttached || (i.attach(), n.hasAttach = !0), s.addBullet(i).result ? (t.queue.push(i), t.nums++, i.topInit()) : (i.detach(), n.noDiscard && (n.prior ? t.data.unshift(n) : t.data.push(n)));
           });
         } }]), t;
-    }();e.default = c, t.exports = e.default;
+    }();e.default = u, t.exports = e.default;
   }, function (t, e, n) {
     "use strict";
     Object.defineProperty(e, "__esModule", { value: !0 });var i = function () {
@@ -9311,65 +9429,65 @@ var _typeof = typeof Symbol === "function" && typeof Symbol.iterator === "symbol
           n.removeBullet(t.bullet);
         }), this.direction = e.direction, this.danmu.on("changeDirection", function (t) {
           n.direction = t;
-        }), this.containerPos = this.danmu.container.getBoundingClientRect(), this.containerWidth = this.containerPos.width, this.containerHeight = this.containerPos.height, this.containerLeft = this.containerPos.left, this.containerRight = this.containerPos.right, this.danmu.bulletResizeTimer = setInterval(function () {
-          n.containerPos = n.danmu.container.getBoundingClientRect(), (Math.abs(n.containerPos.width - n.containerWidth) >= 2 || Math.abs(n.containerPos.height - n.containerHeight) >= 2 || Math.abs(n.containerPos.left - n.containerLeft) >= 2 || Math.abs(n.containerPos.right - n.containerRight) >= 2) && (n.containerWidth = n.containerPos.width, n.containerHeight = n.containerPos.height, n.containerLeft = n.containerPos.left, n.containerRight = n.containerPos.right, n.resize(!0));
-        }, 50);
+        }), this.containerPos = this.danmu.container.getBoundingClientRect(), this.containerWidth = this.containerPos.width, this.containerHeight = this.containerPos.height, this.containerLeft = this.containerPos.left, this.containerRight = this.containerPos.right, this.danmu.on("channel_resize", function () {
+          n.containerPos = n.danmu.container.getBoundingClientRect(), n.resizeing || (n.containerWidth = n.containerPos.width, n.containerHeight = n.containerPos.height, n.containerLeft = n.containerPos.left, n.containerRight = n.containerPos.right, n.resize(!0));
+        });
       }return i(t, [{ key: "resize", value: function value() {
           var t = arguments.length > 0 && void 0 !== arguments[0] && arguments[0],
               e = this.danmu.container,
-              n = this;setTimeout(function () {
-            n.danmu.bulletBtn.main.data && n.danmu.bulletBtn.main.data.forEach(function (t) {
+              n = this;n.resizeing || (n.resizeing = !0, setTimeout(function () {
+            n.danmu.bulletBtn.main.status;n.danmu.bulletBtn.main.data && n.danmu.bulletBtn.main.data.forEach(function (t) {
               t.bookChannelId && delete t.bookChannelId;
-            });var i = e.getBoundingClientRect();n.width = i.width, n.height = i.height, n.danmu.config.area && n.danmu.config.area.start >= 0 && n.danmu.config.area.end >= n.danmu.config.area.start && ("b2t" === n.direction ? n.width = n.width * (n.danmu.config.area.end - n.danmu.config.area.start) : n.height = n.height * (n.danmu.config.area.end - n.danmu.config.area.start)), n.container = e;var o = /mobile/gi.test(navigator.userAgent) ? 10 : 12,
+            });var i = e.getBoundingClientRect();n.width = i.width, n.height = i.height, n.danmu.config.area && n.danmu.config.area.start >= 0 && n.danmu.config.area.end >= n.danmu.config.area.start && ("b2t" === n.direction ? n.width = n.width * (n.danmu.config.area.end - n.danmu.config.area.start) : n.height = n.height * (n.danmu.config.area.end - n.danmu.config.area.start)), n.container = e;var o = n.danmu.config.channelSize || (/mobile/gi.test(navigator.userAgent) ? 10 : 12),
                 r = void 0;r = "b2t" === n.direction ? Math.floor(n.width / o) : Math.floor(n.height / o);for (var a = [], s = 0; s < r; s++) {
               a[s] = { id: s, queue: { scroll: [], top: [], bottom: [] }, operating: { scroll: !1, top: !1, bottom: !1 }, bookId: {} };
             }if (n.channels && n.channels.length <= a.length) {
-              for (var c = function c(e) {
+              for (var u = function u(e) {
                 a[e] = { id: e, queue: { scroll: [], top: [], bottom: [] }, operating: { scroll: !1, top: !1, bottom: !1 }, bookId: {} }, ["scroll", "top"].forEach(function (i) {
                   n.channels[e].queue[i].forEach(function (o) {
-                    o.el && (a[e].queue[i].push(o), o.resized || (o.pauseMove(n.containerPos, t), o.startMove(n.containerPos), o.resized = !0));
+                    o.el && (a[e].queue[i].push(o), o.resized || (o.pauseMove(n.containerPos, t), "paused" !== o.danmu.bulletBtn.main.status && o.startMove(n.containerPos), o.resized = !0));
                   });
                 }), n.channels[e].queue.bottom.forEach(function (i) {
                   if (i.el) {
                     if (a[e + a.length - n.channels.length].queue.bottom.push(i), i.channel_id[0] + i.channel_id[1] - 1 === e) {
                       var r = [].concat(i.channel_id);i.channel_id = [r[0] - n.channels.length + a.length, r[1]], i.top = i.channel_id[0] * o, n.danmu.config.area && n.danmu.config.area.start && (i.top += n.containerHeight * n.danmu.config.area.start), i.topInit();
-                    }i.resized || (i.pauseMove(n.containerPos, t), i.startMove(n.containerPos), i.resized = !0);
+                    }i.resized || (i.pauseMove(n.containerPos, t), "paused" !== i.danmu.bulletBtn.main.status && i.startMove(n.containerPos), i.resized = !0);
                   }
                 });
-              }, u = 0; u < n.channels.length; u++) {
-                c(u);
-              }for (var l = function l(t) {
+              }, l = 0; l < n.channels.length; l++) {
+                u(l);
+              }for (var c = function c(t) {
                 ["scroll", "top", "bottom"].forEach(function (e) {
                   a[t].queue[e].forEach(function (t) {
                     t.resized = !1;
                   });
                 });
               }, h = 0; h < a.length; h++) {
-                l(h);
+                c(h);
               }n.channels = a, "b2t" === n.direction ? n.channelWidth = o : n.channelHeight = o;
             } else if (n.channels && n.channels.length > a.length) {
               for (var f = function f(e) {
                 a[e] = { id: e, queue: { scroll: [], top: [], bottom: [] }, operating: { scroll: !1, top: !1, bottom: !1 }, bookId: {} }, ["scroll", "top", "bottom"].forEach(function (i) {
                   if ("top" === i && e > Math.floor(a.length / 2)) ;else if ("bottom" === i && e <= Math.floor(a.length / 2)) ;else {
-                    var r = "bottom" === i ? e - a.length + n.channels.length : e;n.channels[r].queue[i].forEach(function (s, c) {
+                    var r = "bottom" === i ? e - a.length + n.channels.length : e;n.channels[r].queue[i].forEach(function (s, u) {
                       if (s.el) {
                         if (a[e].queue[i].push(s), "bottom" === i && s.channel_id[0] + s.channel_id[1] - 1 === r) {
-                          var u = [].concat(s.channel_id);s.channel_id = [u[0] - n.channels.length + a.length, u[1]], s.top = s.channel_id[0] * o, n.danmu.config.area && n.danmu.config.area.start && (s.top += n.containerHeight * n.danmu.config.area.start), s.topInit();
-                        }s.resized || (s.pauseMove(n.containerPos, t), s.startMove(n.containerPos), s.resized = !0);
-                      }n.channels[r].queue[i].splice(c, 1);
+                          var l = [].concat(s.channel_id);s.channel_id = [l[0] - n.channels.length + a.length, l[1]], s.top = s.channel_id[0] * o, n.danmu.config.area && n.danmu.config.area.start && (s.top += n.containerHeight * n.danmu.config.area.start), s.topInit();
+                        }s.pauseMove(n.containerPos, t), "paused" !== s.danmu.bulletBtn.main.status && s.startMove(n.containerPos), s.resized || (s.resized = !0);
+                      }n.channels[r].queue[i].splice(u, 1);
                     });
                   }
                 });
               }, d = 0; d < a.length; d++) {
                 f(d);
-              }for (var p = function p(t) {
+              }for (var m = function m(t) {
                 ["scroll", "top", "bottom"].forEach(function (e) {
                   n.channels[t].queue[e].forEach(function (t) {
                     t.pauseMove(n.containerPos), t.remove();
                   });
                 });
-              }, m = a.length; m < n.channels.length; m++) {
-                p(m);
+              }, p = a.length; p < n.channels.length; p++) {
+                m(p);
               }for (var g = function g(t) {
                 ["scroll", "top", "bottom"].forEach(function (e) {
                   a[t].queue[e].forEach(function (t) {
@@ -9379,93 +9497,103 @@ var _typeof = typeof Symbol === "function" && typeof Symbol.iterator === "symbol
               }, v = 0; v < a.length; v++) {
                 g(v);
               }n.channels = a, "b2t" === n.direction ? n.channelWidth = o : n.channelHeight = o;
-            }
-          }, 10);
+            }n.resizeing = !1;
+          }, 10));
         } }, { key: "addBullet", value: function value(t) {
-          var e = this.danmu,
-              n = this.channels,
-              i = void 0,
+          var e = this,
+              n = this.danmu,
+              i = this.channels,
               o = void 0,
-              r = void 0;if ("b2t" === this.direction ? (o = this.channelWidth, r = Math.ceil(t.width / o)) : (i = this.channelHeight, r = Math.ceil(t.height / i)), r > n.length) return { result: !1, message: "exceed channels.length, occupy=" + r + ",channelsSize=" + n.length };for (var a = !0, s = void 0, c = -1, u = 0, l = n.length; u < l; u++) {
-            if (n[u].queue[t.mode].some(function (e) {
+              r = void 0,
+              a = void 0;if ("b2t" === e.direction ? (r = this.channelWidth, a = Math.ceil(t.width / r)) : (o = this.channelHeight, a = Math.ceil(t.height / o)), a > i.length) return { result: !1, message: "exceed channels.length, occupy=" + a + ",channelsSize=" + i.length };for (var s = !0, u = void 0, l = -1, c = 0, h = i.length; c < h; c++) {
+            if (i[c].queue[t.mode].some(function (e) {
               return e.id === t.id;
-            })) return { result: !1, message: "exsited, channelOrder=" + u + ",danmu_id=" + t.id };
-          }if ("scroll" === t.mode) for (var h = 0, f = n.length - r; h <= f; h++) {
-            a = !0;for (var d = h; d < h + r; d++) {
-              if ((s = n[d]).operating.scroll) {
-                a = !1;break;
-              }if ((s.bookId.scroll || t.prior) && s.bookId.scroll !== t.id) {
-                a = !1;break;
-              }s.operating.scroll = !0;var p = s.queue.scroll[0];if (p) {
-                var m = p.el.getBoundingClientRect();if ("b2t" === this.direction) {
-                  if (m.bottom > this.containerPos.bottom) {
-                    a = !1, s.operating.scroll = !1;break;
+            })) return { result: !1, message: "exsited, channelOrder=" + c + ",danmu_id=" + t.id };
+          }if ("scroll" === t.mode) for (var f = 0, d = i.length - a; f <= d; f++) {
+            s = !0;for (var m = f; m < f + a; m++) {
+              if ((u = i[m]).operating.scroll) {
+                s = !1;break;
+              }if ((u.bookId.scroll || t.prior) && u.bookId.scroll !== t.id) {
+                s = !1;break;
+              }u.operating.scroll = !0;var p = u.queue.scroll[0];if (p) {
+                var g = p.el.getBoundingClientRect();if ("b2t" === e.direction) {
+                  if (g.bottom > e.containerPos.bottom) {
+                    s = !1, u.operating.scroll = !1;break;
                   }
-                } else if (m.right > this.containerPos.right) {
-                  a = !1, s.operating.scroll = !1;break;
-                }var g,
-                    v = void 0,
+                } else if (g.right > e.containerPos.right) {
+                  s = !1, u.operating.scroll = !1;break;
+                }var v,
                     b = void 0,
                     y = void 0,
-                    w = void 0;if ("b2t" === this.direction ? (b = (m.top - this.containerPos.top + m.height) / (v = (this.containerPos.height + m.height) / p.duration), y = this.containerPos.height, w = (this.containerPos.height + t.height) / t.duration) : (b = (m.left - this.containerPos.left + m.width) / (v = (this.containerPos.width + m.width) / p.duration), y = this.containerPos.width, w = (this.containerPos.width + t.width) / t.duration), g = y / w, e.config.bOffset || (e.config.bOffset = 0), v < w && b + e.config.bOffset > g) {
-                  a = !1, s.operating.scroll = !1;break;
+                    w = void 0,
+                    k = void 0;if ("b2t" === e.direction ? (y = (g.top - e.containerPos.top + g.height) / (b = (e.containerPos.height + g.height) / p.duration), w = e.containerPos.height, k = (e.containerPos.height + t.height) / t.duration) : (y = (g.left - e.containerPos.left + g.width) / (b = (e.containerPos.width + g.width) / p.duration), w = e.containerPos.width, k = (e.containerPos.width + t.width) / t.duration), v = w / k, n.config.bOffset || (n.config.bOffset = 0), b < k && y + n.config.bOffset > v) {
+                  s = !1, u.operating.scroll = !1;break;
                 }
-              }s.operating.scroll = !1;
-            }if (a) {
-              c = h;break;
+              }u.operating.scroll = !1;
+            }if (s) {
+              l = f;break;
             }
-          } else if ("top" === t.mode) for (var x = 0, k = n.length - r; x <= k; x++) {
-            a = !0;for (var _ = x; _ < x + r; _++) {
-              if (_ > Math.floor(n.length / 2)) {
-                a = !1;break;
-              }if ((s = n[_]).operating[t.mode]) {
-                a = !1;break;
-              }if ((s.bookId[t.mode] || t.prior) && s.bookId[t.mode] !== t.id) {
-                a = !1;break;
-              }if (s.operating[t.mode] = !0, s.queue[t.mode].length > 0) {
-                a = !1, s.operating[t.mode] = !1;break;
-              }s.operating[t.mode] = !1;
-            }if (a) {
-              c = x;break;
+          } else if ("top" === t.mode) for (var x = 0, _ = i.length - a; x <= _; x++) {
+            s = !0;for (var M = x; M < x + a; M++) {
+              if (M > Math.floor(i.length / 2)) {
+                s = !1;break;
+              }if ((u = i[M]).operating[t.mode]) {
+                s = !1;break;
+              }if ((u.bookId[t.mode] || t.prior) && u.bookId[t.mode] !== t.id) {
+                s = !1;break;
+              }if (u.operating[t.mode] = !0, u.queue[t.mode].length > 0) {
+                s = !1, u.operating[t.mode] = !1;break;
+              }u.operating[t.mode] = !1;
+            }if (s) {
+              l = x;break;
             }
-          } else if ("bottom" === t.mode) for (var M = n.length - r; M >= 0; M--) {
-            a = !0;for (var O = M; O < M + r; O++) {
-              if (O <= Math.floor(n.length / 2)) {
-                a = !1;break;
-              }if ((s = n[O]).operating[t.mode]) {
-                a = !1;break;
-              }if ((s.bookId[t.mode] || t.prior) && s.bookId[t.mode] !== t.id) {
-                a = !1;break;
-              }if (s.operating[t.mode] = !0, s.queue[t.mode].length > 0) {
-                a = !1, s.operating[t.mode] = !1;break;
-              }s.operating[t.mode] = !1;
-            }if (a) {
-              c = M;break;
+          } else if ("bottom" === t.mode) for (var C = i.length - a; C >= 0; C--) {
+            s = !0;for (var O = C; O < C + a; O++) {
+              if (O <= Math.floor(i.length / 2)) {
+                s = !1;break;
+              }if ((u = i[O]).operating[t.mode]) {
+                s = !1;break;
+              }if ((u.bookId[t.mode] || t.prior) && u.bookId[t.mode] !== t.id) {
+                s = !1;break;
+              }if (u.operating[t.mode] = !0, u.queue[t.mode].length > 0) {
+                s = !1, u.operating[t.mode] = !1;break;
+              }u.operating[t.mode] = !1;
+            }if (s) {
+              l = C;break;
             }
-          }if (-1 !== c) {
-            for (var C = c, j = c + r; C < j; C++) {
-              (s = n[C]).operating[t.mode] = !0, s.queue[t.mode].unshift(t), t.prior && delete s.bookId[t.mode], s.operating[t.mode] = !1;
-            }if (t.prior) delete t.bookChannelId, e.bulletBtn.main.data.some(function (e) {
+          }if (-1 !== l) {
+            for (var B = l, E = l + a; B < E; B++) {
+              (u = i[B]).operating[t.mode] = !0, u.queue[t.mode].unshift(t), t.prior && delete u.bookId[t.mode], u.operating[t.mode] = !1;
+            }if (t.prior) if (delete t.bookChannelId, n.player) n.bulletBtn.main.data.some(function (e) {
               return e.id === t.id && (delete e.bookChannelId, !0);
-            });return t.channel_id = [c, r], "b2t" === this.direction ? (t.top = c * o, this.danmu.config.area && this.danmu.config.area.start && (t.top += this.containerWidth * this.danmu.config.area.start)) : (t.top = c * i, this.danmu.config.area && this.danmu.config.area.start && (t.top += this.containerHeight * this.danmu.config.area.start)), { result: t, message: "success" };
+            });return t.channel_id = [l, a], "b2t" === e.direction ? (t.top = l * r, e.danmu.config.area && e.danmu.config.area.start && (t.top += e.containerWidth * e.danmu.config.area.start)) : (t.top = l * o, e.danmu.config.area && e.danmu.config.area.start && (t.top += e.containerHeight * e.danmu.config.area.start)), { result: t, message: "success" };
+          }if (t.options.realTime) {
+            var j = 0,
+                P = null;if (e.danmu.bulletBtn.main.queue.forEach(function (t, n) {
+              t.el && t.el.getBoundingClientRect().right > e.containerPos.right && t.start >= j && (j = t.start, n, P = t);
+            }), P) {
+              t.channel_id = P.channel_id;for (var T = P.channel_id[0], z = P.channel_id[0] + P.channel_id[1]; T < z; T++) {
+                (u = i[T]).operating[t.mode] = !0, u.queue[t.mode].unshift(t), t.prior && delete u.bookId[t.mode], u.operating[t.mode] = !1;
+              }return t.top = P.top, e.danmu.config.area && e.danmu.config.area.start && (t.top += e.containerHeight * e.danmu.config.area.start), { result: t, message: "success" };
+            }
           }if (t.prior) if (t.bookChannelId) {
-            e.bulletBtn.main.data.some(function (e) {
+            if (n.player) n.bulletBtn.main.data.some(function (e) {
               return e.id === t.id && (e.start += 2e3, !0);
             });
           } else {
-            c = -1;for (var E = 0, P = n.length - r; E <= P; E++) {
-              a = !0;for (var T = E; T < E + r; T++) {
-                if (n[T].bookId[t.mode]) {
-                  a = !1;break;
+            l = -1;for (var q = 0, S = i.length - a; q <= S; q++) {
+              s = !0;for (var L = q; L < q + a; L++) {
+                if (i[L].bookId[t.mode]) {
+                  s = !1;break;
                 }
-              }if (a) {
-                c = E;break;
+              }if (s) {
+                l = q;break;
               }
-            }if (-1 !== c) {
-              for (var B = c; B < c + r; B++) {
-                n[B].bookId[t.mode] = t.id;
-              }e.bulletBtn.main.data.some(function (e) {
-                return e.id === t.id && (e.start += 2e3, e.bookChannelId = [c, r], !0);
+            }if (-1 !== l) {
+              for (var D = l; D < l + a; D++) {
+                i[D].bookId[t.mode] = t.id;
+              }if (n.player) n.bulletBtn.main.data.some(function (e) {
+                return e.id === t.id && (e.start += 2e3, e.bookChannelId = [l, a], !0);
               });
             }
           }return { result: !1, message: "no surplus will right" };
@@ -9476,11 +9604,11 @@ var _typeof = typeof Symbol === "function" && typeof Symbol.iterator === "symbol
                 return e.id === t.id && (a = n, !0);
               }), a > -1 && i.queue[t.mode].splice(a, 1), i.operating[t.mode] = !1;
             }
-          }
+          }t.options.loop && this.danmu.bulletBtn.main.playedData.push(t.options);
         } }, { key: "resetArea", value: function value() {
           var t = this.danmu.container,
               e = this,
-              n = t.getBoundingClientRect();e.width = n.width, e.height = n.height, e.danmu.config.area && e.danmu.config.area.start >= 0 && e.danmu.config.area.end >= e.danmu.config.area.start && ("b2t" === e.direction ? e.width = e.width * (e.danmu.config.area.end - e.danmu.config.area.start) : e.height = e.height * (e.danmu.config.area.end - e.danmu.config.area.start)), e.container = t;var i = /mobile/gi.test(navigator.userAgent) ? 10 : 12,
+              n = t.getBoundingClientRect();e.width = n.width, e.height = n.height, e.danmu.config.area && e.danmu.config.area.start >= 0 && e.danmu.config.area.end >= e.danmu.config.area.start && ("b2t" === e.direction ? e.width = e.width * (e.danmu.config.area.end - e.danmu.config.area.start) : e.height = e.height * (e.danmu.config.area.end - e.danmu.config.area.start)), e.container = t;var i = e.danmu.config.channelSize || (/mobile/gi.test(navigator.userAgent) ? 10 : 12),
               o = void 0;o = "b2t" === e.direction ? Math.floor(e.width / i) : Math.floor(e.height / i);for (var r = [], a = 0; a < o; a++) {
             r[a] = { id: a, queue: { scroll: [], top: [], bottom: [] }, operating: { scroll: !1, top: !1, bottom: !1 }, bookId: {} };
           }if (e.channels && e.channels.length <= r.length) {
@@ -9496,16 +9624,16 @@ var _typeof = typeof Symbol === "function" && typeof Symbol.iterator === "symbol
                   }n.resized || (n.pauseMove(e.containerPos, !1), n.startMove(e.containerPos), n.resized = !0);
                 }
               });
-            }, c = 0; c < e.channels.length; c++) {
-              s(c);
-            }for (var u = function u(t) {
+            }, u = 0; u < e.channels.length; u++) {
+              s(u);
+            }for (var l = function l(t) {
               ["scroll", "top", "bottom"].forEach(function (e) {
                 r[t].queue[e].forEach(function (t) {
                   t.resized = !1;
                 });
               });
-            }, l = 0; l < r.length; l++) {
-              u(l);
+            }, c = 0; c < r.length; c++) {
+              l(c);
             }e.channels = r, "b2t" === e.direction ? e.channelWidth = i : e.channelHeight = i;
           } else if (e.channels && e.channels.length > r.length) {
             for (var h = function h(t) {
@@ -9514,7 +9642,7 @@ var _typeof = typeof Symbol === "function" && typeof Symbol.iterator === "symbol
                   var o = "bottom" === n ? t - r.length + e.channels.length : t;e.channels[o].queue[n].forEach(function (a, s) {
                     if (a.el) {
                       if (r[t].queue[n].push(a), "bottom" === n && a.channel_id[0] + a.channel_id[1] - 1 === o) {
-                        var c = [].concat(a.channel_id);a.channel_id = [c[0] - e.channels.length + r.length, c[1]], a.top = a.channel_id[0] * i, e.danmu.config.area && e.danmu.config.area.start && (a.top += e.containerHeight * e.danmu.config.area.start), a.topInit();
+                        var u = [].concat(a.channel_id);a.channel_id = [u[0] - e.channels.length + r.length, u[1]], a.top = a.channel_id[0] * i, e.danmu.config.area && e.danmu.config.area.start && (a.top += e.containerHeight * e.danmu.config.area.start), a.topInit();
                       }a.resized || (a.pauseMove(e.containerPos, !1), a.startMove(e.containerPos), a.resized = !0);
                     }e.channels[o].queue[n].splice(s, 1);
                   });
@@ -9528,20 +9656,22 @@ var _typeof = typeof Symbol === "function" && typeof Symbol.iterator === "symbol
                   t.resized = !1;
                 });
               });
-            }, p = 0; p < r.length; p++) {
-              d(p);
+            }, m = 0; m < r.length; m++) {
+              d(m);
             }e.channels = r, "b2t" === e.direction ? e.channelWidth = i : e.channelHeight = i;
           }
         } }, { key: "reset", value: function value() {
           var t = this.danmu.container,
-              e = this;e.channels && e.channels.length > 0 && ["scroll", "top", "bottom"].forEach(function (t) {
+              e = this;e.danmu.bulletBtn && e.danmu.bulletBtn.main ? e.danmu.bulletBtn.main.queue.forEach(function (t) {
+            t.pauseMove(e.containerPos), t.remove();
+          }) : e.channels && e.channels.length > 0 && ["scroll", "top", "bottom"].forEach(function (t) {
             for (var n = 0; n < e.channels.length; n++) {
               e.channels[n].queue[t].forEach(function (t) {
                 t.pauseMove(e.containerPos), t.remove();
               });
             }
           }), setTimeout(function () {
-            var n = t.getBoundingClientRect();e.width = n.width, e.height = n.height, e.danmu.config.area && e.danmu.config.area.start >= 0 && e.danmu.config.area.end >= e.danmu.config.area.start && ("b2t" === e.direction ? e.width = e.width * (e.danmu.config.area.end - e.danmu.config.area.start) : e.height = e.height * (e.danmu.config.area.end - e.danmu.config.area.start)), e.container = t;var i = /mobile/gi.test(navigator.userAgent) ? 10 : 12,
+            var n = t.getBoundingClientRect();e.width = n.width, e.height = n.height, e.danmu.config.area && e.danmu.config.area.start >= 0 && e.danmu.config.area.end >= e.danmu.config.area.start && ("b2t" === e.direction ? e.width = e.width * (e.danmu.config.area.end - e.danmu.config.area.start) : e.height = e.height * (e.danmu.config.area.end - e.danmu.config.area.start)), e.container = t;var i = e.danmu.config.channelSize || (/mobile/gi.test(navigator.userAgent) ? 10 : 12),
                 o = void 0;o = "b2t" === e.direction ? Math.floor(e.width / i) : Math.floor(e.height / i);for (var r = [], a = 0; a < o; a++) {
               r[a] = { id: a, queue: { scroll: [], top: [], bottom: [] }, operating: { scroll: !1, top: !1, bottom: !1 }, bookId: {} };
             }e.channels = r, "b2t" === e.direction ? e.channelWidth = i : e.channelHeight = i;
@@ -9554,9 +9684,9 @@ var _typeof = typeof Symbol === "function" && typeof Symbol.iterator === "symbol
                 t.pauseMove(i.containerPos), t.remove();
               });
             }
-          });var o = n.getBoundingClientRect();i.width = o.width, i.height = o.height, i.danmu.config.area && i.danmu.config.area.start >= 0 && i.danmu.config.area.end >= i.danmu.config.area.start && ("b2t" === i.direction ? i.width = i.width * (i.danmu.config.area.end - i.danmu.config.area.start) : i.height = i.height * (i.danmu.config.area.end - i.danmu.config.area.start)), i.container = n;var r = /mobile/gi.test(navigator.userAgent) ? 10 : 12,
-              a = void 0;a = "b2t" === i.direction ? Math.floor(i.width / r) : Math.floor(i.height / r);for (var s = [], c = 0; c < a; c++) {
-            s[c] = { id: c, queue: { scroll: [], top: [], bottom: [] }, operating: { scroll: !1, top: !1, bottom: !1 }, bookId: {} };
+          });var o = n.getBoundingClientRect();i.width = o.width, i.height = o.height, i.danmu.config.area && i.danmu.config.area.start >= 0 && i.danmu.config.area.end >= i.danmu.config.area.start && ("b2t" === i.direction ? i.width = i.width * (i.danmu.config.area.end - i.danmu.config.area.start) : i.height = i.height * (i.danmu.config.area.end - i.danmu.config.area.start)), i.container = n;var r = i.danmu.config.channelSize || (/mobile/gi.test(navigator.userAgent) ? 10 : 12),
+              a = void 0;a = "b2t" === i.direction ? Math.floor(i.width / r) : Math.floor(i.height / r);for (var s = [], u = 0; u < a; u++) {
+            s[u] = { id: u, queue: { scroll: [], top: [], bottom: [] }, operating: { scroll: !1, top: !1, bottom: !1 }, bookId: {} };
           }i.channels = s, i.channelHeight = r, t && t(!0, e);
         } }]), t;
     }();e.default = o, t.exports = e.default;
@@ -9577,59 +9707,76 @@ var _typeof = typeof Symbol === "function" && typeof Symbol.iterator === "symbol
       function t(e, n) {
         !function (t, e) {
           if (!(t instanceof e)) throw new TypeError("Cannot call a class as a function");
-        }(this, t), this.danmu = e, this.duration = n.duration, this.id = n.id, this.container = e.container, this.start = n.start, this.prior = n.prior, this.color = n.color, this.bookChannelId = n.bookChannelId, this.direction = e.direction;var i = this;this.danmu.on("changeDirection", function (t) {
+        }(this, t), this.danmu = e, this.options = n, this.duration = n.duration, this.moveV = n.moveV, this.id = n.id, this.container = e.container, this.start = n.start, this.prior = n.prior, this.color = n.color, this.bookChannelId = n.bookChannelId, this.direction = e.direction;var i = this;this.danmu.on("changeDirection", function (t) {
           i.direction = t;
         });var o = void 0;if (this.domObj = a.default.domObj, n.el && 1 === n.el.nodeType) (o = this.domObj.use()).appendChild(a.default.copyDom(n.el));else if ((o = this.domObj.use()).textContent = n.txt, n.style) {
           var r = n.style;Object.keys(r).forEach(function (t) {
             o.style[t] = r[t];
           });
-        }"top" === n.mode || "bottom" === n.mode ? this.mode = n.mode : this.mode = "scroll", this.el = o, this.status = "waiting";var s = this.container.getBoundingClientRect();this.el.style.left = s.width + "px";
+        }"top" === n.mode || "bottom" === n.mode ? this.mode = n.mode : this.mode = "scroll", this.el = o, n.like && n.like.el && this.setLikeDom(n.like.el, n.like.style), this.status = "waiting";var s = this.container.getBoundingClientRect(),
+            u = Math.floor(Math.random() * (s.width / 10 > 100 ? 200 : s.width / 10));n.realTime && (u = 0), this.el.style.left = s.width + u + "px", this.containerPos = s;
       }return o(t, [{ key: "attach", value: function value() {
-          this.container.appendChild(this.el), this.elPos = this.el.getBoundingClientRect(), "b2t" === this.direction ? (this.width = this.elPos.height, this.height = this.elPos.width) : (this.width = this.elPos.width, this.height = this.elPos.height);
+          if (this.container.appendChild(this.el), this.elPos = this.el.getBoundingClientRect(), "b2t" === this.direction ? (this.width = this.elPos.height, this.height = this.elPos.width) : (this.width = this.elPos.width, this.height = this.elPos.height), this.moveV) {
+            var t = this.containerPos;this.duration = (t.width + this.width) / this.moveV * 1e3;
+          }this.danmu.config.mouseControl && this.el.addEventListener("mouseover", this.mouseoverFun.bind(this));
+        } }, { key: "mouseoverFun", value: function value(t) {
+          this.danmu.mouseControl && this.danmu.config.mouseControlPause || "waiting" === this.status || "end" === this.status || this.danmu.emit("bullet_hover", { bullet: this, event: t });
         } }, { key: "detach", value: function value() {
-          this.container && this.el && (this.domObj.unuse(this.el), this.container.removeChild(this.el));var t = this;this.danmu.off("changeDirection", function (e) {
+          var t = this;t.container && t.el && t.domObj.unuse(t.el), t.danmu.off("changeDirection", function (e) {
             t.direction = e;
-          }), this.el = null;
+          });
         } }, { key: "topInit", value: function value() {
           if ("b2t" === this.direction) {
-            var t = this.container.getBoundingClientRect();this.el.style.transformOrigin = "left top", this.el.style.transform = "translateX(-" + this.top + "px) translateY(" + t.height + "px) translateZ(0px) rotate(90deg)", this.el.style.transition = "transform 0s linear 0s";
+            var t = this.containerPos;this.el.style.transformOrigin = "left top", this.el.style.transform = "translateX(-" + this.top + "px) translateY(" + t.height + "px) translateZ(0px) rotate(90deg)", this.el.style.transition = "transform 0s linear 0s";
           } else this.el.style.top = this.top + "px";
         } }, { key: "pauseMove", value: function value(t) {
-          var e = arguments.length > 1 && void 0 !== arguments[1] && arguments[1];if ("paused" !== this.status && (this.status = "paused", clearTimeout(this.removeTimer), this.el)) if (this.el.style.willChange = "auto", "scroll" === this.mode) {
+          var e = arguments.length > 1 && void 0 !== arguments[1] && arguments[1],
+              n = this;if ("paused" !== this.status && ("forcedPause" !== n.status && (this.status = "paused"), clearTimeout(n.removeTimer), this.el)) if (this.el.style.willChange = "auto", "scroll" === this.mode) {
             if (e) {
-              var n = (new Date().getTime() - this.moveTime) / 1e3 * this.moveV,
-                  i = 0;i = this.moveMoreS - n >= 0 ? "b2t" === this.direction ? (this.moveMoreS - n) / this.moveContainerHeight * t.height : (this.moveMoreS - n) / this.moveContainerWidth * t.width : this.moveMoreS - n, "b2t" === this.direction ? this.el.style.transform = "translateX(-" + this.top + "px) translateY(" + i + "px) translateZ(0px) rotate(90deg)" : this.el.style.left = i + "px";
-            } else "b2t" === this.direction ? this.el.style.transform = "translateX(-" + this.top + "px) translateY(" + (this.el.getBoundingClientRect().top - t.top) + "px) translateZ(0px) rotate(90deg)" : this.el.style.left = this.el.getBoundingClientRect().left - t.left + "px";"b2t" === this.direction ? this.el.style.transition = "transform 0s linear 0s" : (this.el.style.transform = "translateX(0px) translateY(0px) translateZ(0px)", this.el.style.transition = "transform 0s linear 0s");
+              var i = (new Date().getTime() - n.moveTime) / 1e3,
+                  o = i * this.moveV,
+                  r = 0;r = n.moveMoreS - o >= 0 ? "b2t" === this.direction ? (n.moveMoreS - o) / n.moveContainerHeight * t.height : (n.moveMoreS - o) / n.moveContainerWidth * t.width : n.moveMoreS - o, "b2t" === this.direction ? this.el.style.transform = "translateX(-" + this.top + "px) translateY(" + r + "px) translateZ(0px) rotate(90deg)" : this.el.style.left = r + "px";
+            } else "b2t" === this.direction ? this.el.style.transform = "translateX(-" + this.top + "px) translateY(" + (this.el.getBoundingClientRect().top - t.top) + "px) translateZ(0px) rotate(90deg)" : this.el.style.left = this.el.getBoundingClientRect().left - t.left + "px";"b2t" === this.direction || (this.el.style.transform = "translateX(0px) translateY(0px) translateZ(0px)"), this.el.style.transition = "transform 0s linear 0s";
           } else this.pastDuration && this.startTime ? this.pastDuration = this.pastDuration + new Date().getTime() - this.startTime : this.pastDuration = 1;
-        } }, { key: "startMove", value: function value(t) {
-          var e = this;if (this.el && "start" !== this.status) if (this.status = "start", this.el.style.willChange = "transform", "scroll" === this.mode) {
+        } }, { key: "startMove", value: function value(t, e) {
+          var n = this;if (n.hasMove || (n.danmu.emit("bullet_start", n), n.hasMove = !0), ("forcedPause" !== n.status || e) && this.el && "start" !== this.status) if (this.status = "start", this.el.style.willChange = "transform", "scroll" === this.mode) {
             if ("b2t" === this.direction) {
-              this.moveV = (t.height + this.height) / this.duration * 1e3;var n = (e.el.getBoundingClientRect().bottom - t.top) / this.moveV;this.el.style.transition = "transform " + n + "s linear 0s", setTimeout(function () {
-                e.el && (e.el.style.transform = "translateX(-" + e.top + "px) translateY(-" + e.height + "px) translateZ(0px) rotate(90deg)", e.moveTime = new Date().getTime(), e.moveMoreS = e.el.getBoundingClientRect().top - t.top, e.moveContainerHeight = t.height, e.removeTimer = setTimeout(r, 1e3 * n));
+              this.moveV = (t.height + this.height) / this.duration * 1e3;var i = (n.el.getBoundingClientRect().bottom - t.top) / this.moveV;this.el.style.transition = "transform " + i + "s linear 0s", setTimeout(function () {
+                n.el && (n.el.style.transform = "translateX(-" + n.top + "px) translateY(-" + n.height + "px) translateZ(0px) rotate(90deg)", n.moveTime = new Date().getTime(), n.moveMoreS = n.el.getBoundingClientRect().top - t.top, n.moveContainerHeight = t.height, n.removeTimer = setTimeout(a, 1e3 * i));
               }, 20);
             } else {
-              this.moveV = (t.width + this.width) / this.duration * 1e3;var i = (e.el.getBoundingClientRect().right - t.left) / this.moveV;this.el.style.transition = "transform " + i + "s linear 0s", setTimeout(function () {
-                e.el && (e.el.style.transform = "translateX(-" + (e.el.getBoundingClientRect().right - t.left) + "px) translateY(0px) translateZ(0px)", e.moveTime = new Date().getTime(), e.moveMoreS = e.el.getBoundingClientRect().left - t.left, e.moveContainerWidth = t.width, e.removeTimer = setTimeout(r, 1e3 * i));
+              this.moveV = (t.width + this.width) / this.duration * 1e3;var o = (n.el.getBoundingClientRect().right - t.left) / this.moveV;this.el.style.transition = "transform " + o + "s linear 0s", setTimeout(function () {
+                n.el && (n.el.style.transform = "translateX(-" + (n.el.getBoundingClientRect().right - t.left) + "px) translateY(0px) translateZ(0px)", n.moveTime = new Date().getTime(), n.moveMoreS = n.el.getBoundingClientRect().left - t.left, n.moveContainerWidth = t.width, n.removeTimer = setTimeout(a, 1e3 * o));
               }, 20);
             }
           } else {
-            this.el.style.left = "50%", this.el.style.margin = "0 0 0 -" + this.width / 2 + "px", this.pastDuration || (this.pastDuration = 1);var o = this.duration >= this.pastDuration ? this.duration - this.pastDuration : 0;this.removeTimer = setTimeout(r, o), this.startTime = new Date().getTime();
-          }function r() {
-            if (e.el) if ("scroll" === e.mode) {
-              var t = e.danmu.container.getBoundingClientRect(),
-                  n = e.el.getBoundingClientRect();"b2t" === e.direction ? n && n.bottom <= t.top + 100 ? (e.status = "end", e.remove()) : (e.pauseMove(t), e.startMove(t)) : n && n.right <= t.left + 100 ? (e.status = "end", e.remove()) : (e.pauseMove(t), e.startMove(t));
-            } else e.status = "end", e.remove();
+            this.el.style.left = "50%", this.el.style.margin = "0 0 0 -" + this.width / 2 + "px", this.pastDuration || (this.pastDuration = 1);var r = this.duration >= this.pastDuration ? this.duration - this.pastDuration : 0;this.removeTimer = setTimeout(a, r), this.startTime = new Date().getTime();
+          }function a() {
+            if (n.el) if ("scroll" === n.mode) {
+              var t = n.containerPos,
+                  e = n.el.getBoundingClientRect();"b2t" === n.direction ? e && e.bottom <= t.top + 100 ? (n.status = "end", n.remove()) : (n.pauseMove(t), "paused" !== n.danmu.bulletBtn.main.status && n.startMove(t)) : e && e.right <= t.left + 100 ? (n.status = "end", n.remove()) : (n.pauseMove(t), "paused" !== n.danmu.bulletBtn.main.status && n.startMove(t));
+            } else n.status = "end", n.remove();
           }
         } }, { key: "remove", value: function value() {
           var t = this;(this.removeTimer && clearTimeout(this.removeTimer), t.el && t.el.parentNode) && (t.el.style.willChange = "auto", this.danmu.off("changeDirection", function (e) {
             t.direction = e;
           }), this.domObj.unuse(t.el), t.el.parentNode.removeChild(t.el), t.el = null, t.danmu.emit("bullet_remove", { bullet: t }));
+        } }, { key: "setFontSize", value: function value(t) {
+          this.el && (this.el.style.fontSize = t);
+        } }, { key: "setLikeDom", value: function value(t, e) {
+          if (t) {
+            Object.keys(e).forEach(function (n) {
+              t.style[n] = e[n];
+            });if (t.className = "danmu-like", this.el) {
+              var n = this.el.querySelector(".danmu-like");n && this.el.removeChild(n), this.el.innerHTML = "" + this.el.innerHTML + t.outerHTML;
+            }
+          }return t;
         } }]), t;
     }();e.default = s, t.exports = e.default;
   }, function (t, e, n) {
-    var i = n(27);"string" == typeof i && (i = [[t.i, i, ""]]);var o = { hmr: !0, transform: void 0, insertInto: void 0 };n(29)(i, o);i.locals && (t.exports = i.locals);
+    var i = n(31);"string" == typeof i && (i = [[t.i, i, ""]]);var o = { hmr: !0, transform: void 0, insertInto: void 0 };n(33)(i, o);i.locals && (t.exports = i.locals);
   }, function (t, e, n) {
-    (t.exports = n(28)(!1)).push([t.i, ".danmu{overflow:hidden;-webkit-user-select:none;-moz-user-select:none;user-select:none;-ms-user-select:none}.danmu>*{position:absolute;white-space:nowrap}.danmu-switch{width:32px;height:20px;border-radius:100px;background-color:#ccc;-webkit-box-sizing:border-box;box-sizing:border-box;outline:none;cursor:pointer;position:relative;text-align:center;margin:10px auto}.danmu-switch.danmu-switch-active{padding-left:12px;background-color:#f85959}.danmu-switch span.txt{width:20px;height:20px;line-height:20px;text-align:center;display:block;border-radius:100px;background-color:#ffffff;-webkit-box-shadow:-2px 0 0 0 rgba(0, 0, 0, .04);box-shadow:-2px 0 0 0 rgba(0, 0, 0, .04);font-family:PingFangSC;font-size:10px;font-weight:500;color:#f44336}\n", ""]);
+    (t.exports = n(32)(!1)).push([t.i, ".danmu{overflow:hidden;-webkit-user-select:none;-moz-user-select:none;user-select:none;-ms-user-select:none}.danmu>*{position:absolute;white-space:nowrap}.danmu-switch{width:32px;height:20px;border-radius:100px;background-color:#ccc;-webkit-box-sizing:border-box;box-sizing:border-box;outline:none;cursor:pointer;position:relative;text-align:center;margin:10px auto}.danmu-switch.danmu-switch-active{padding-left:12px;background-color:#f85959}.danmu-switch span.txt{width:20px;height:20px;line-height:20px;text-align:center;display:block;border-radius:100px;background-color:#ffffff;-webkit-box-shadow:-2px 0 0 0 rgba(0, 0, 0, .04);box-shadow:-2px 0 0 0 rgba(0, 0, 0, .04);font-family:PingFangSC;font-size:10px;font-weight:500;color:#f44336}\n", ""]);
   }, function (t, e) {
     t.exports = function (t) {
       var e = [];return e.toString = function () {
@@ -9661,12 +9808,13 @@ var _typeof = typeof Symbol === "function" && typeof Symbol.iterator === "symbol
     }, function () {
       return void 0 === o && (o = i.apply(this, arguments)), o;
     }),
-        s = function (t) {
+        s = function s(t) {
+      return document.querySelector(t);
+    },
+        u = function (t) {
       var e = {};return function (t) {
         if ("function" == typeof t) return t();if (void 0 === e[t]) {
-          var n = function (t) {
-            return document.querySelector(t);
-          }.call(this, t);if (window.HTMLIFrameElement && n instanceof window.HTMLIFrameElement) try {
+          var n = s.call(this, t);if (window.HTMLIFrameElement && n instanceof window.HTMLIFrameElement) try {
             n = n.contentDocument.head;
           } catch (t) {
             n = null;
@@ -9674,90 +9822,90 @@ var _typeof = typeof Symbol === "function" && typeof Symbol.iterator === "symbol
         }return e[t];
       };
     }(),
-        c = null,
-        u = 0,
-        l = [],
-        h = n(30);function f(t, e) {
+        l = null,
+        c = 0,
+        h = [],
+        f = n(34);function d(t, e) {
       for (var n = 0; n < t.length; n++) {
         var i = t[n],
             o = r[i.id];if (o) {
           o.refs++;for (var a = 0; a < o.parts.length; a++) {
             o.parts[a](i.parts[a]);
           }for (; a < i.parts.length; a++) {
-            o.parts.push(b(i.parts[a], e));
+            o.parts.push(y(i.parts[a], e));
           }
         } else {
           var s = [];for (a = 0; a < i.parts.length; a++) {
-            s.push(b(i.parts[a], e));
+            s.push(y(i.parts[a], e));
           }r[i.id] = { id: i.id, refs: 1, parts: s };
         }
       }
-    }function d(t, e) {
+    }function m(t, e) {
       for (var n = [], i = {}, o = 0; o < t.length; o++) {
         var r = t[o],
             a = e.base ? r[0] + e.base : r[0],
             s = { css: r[1], media: r[2], sourceMap: r[3] };i[a] ? i[a].parts.push(s) : n.push(i[a] = { id: a, parts: [s] });
       }return n;
     }function p(t, e) {
-      var n = s(t.insertInto);if (!n) throw new Error("Couldn't find a style target. This probably means that the value for the 'insertInto' parameter is invalid.");var i = l[l.length - 1];if ("top" === t.insertAt) i ? i.nextSibling ? n.insertBefore(e, i.nextSibling) : n.appendChild(e) : n.insertBefore(e, n.firstChild), l.push(e);else if ("bottom" === t.insertAt) n.appendChild(e);else {
-        if ("object" != _typeof(t.insertAt) || !t.insertAt.before) throw new Error("[Style Loader]\n\n Invalid value for parameter 'insertAt' ('options.insertAt') found.\n Must be 'top', 'bottom', or Object.\n (https://github.com/webpack-contrib/style-loader#insertat)\n");var o = s(t.insertInto + " " + t.insertAt.before);n.insertBefore(e, o);
+      var n = u(t.insertInto);if (!n) throw new Error("Couldn't find a style target. This probably means that the value for the 'insertInto' parameter is invalid.");var i = h[h.length - 1];if ("top" === t.insertAt) i ? i.nextSibling ? n.insertBefore(e, i.nextSibling) : n.appendChild(e) : n.insertBefore(e, n.firstChild), h.push(e);else if ("bottom" === t.insertAt) n.appendChild(e);else {
+        if ("object" != _typeof(t.insertAt) || !t.insertAt.before) throw new Error("[Style Loader]\n\n Invalid value for parameter 'insertAt' ('options.insertAt') found.\n Must be 'top', 'bottom', or Object.\n (https://github.com/webpack-contrib/style-loader#insertat)\n");var o = u(t.insertInto + " " + t.insertAt.before);n.insertBefore(e, o);
       }
-    }function m(t) {
-      if (null === t.parentNode) return !1;t.parentNode.removeChild(t);var e = l.indexOf(t);e >= 0 && l.splice(e, 1);
     }function g(t) {
-      var e = document.createElement("style");return void 0 === t.attrs.type && (t.attrs.type = "text/css"), v(e, t.attrs), p(t, e), e;
-    }function v(t, e) {
+      if (null === t.parentNode) return !1;t.parentNode.removeChild(t);var e = h.indexOf(t);e >= 0 && h.splice(e, 1);
+    }function v(t) {
+      var e = document.createElement("style");return void 0 === t.attrs.type && (t.attrs.type = "text/css"), b(e, t.attrs), p(t, e), e;
+    }function b(t, e) {
       Object.keys(e).forEach(function (n) {
         t.setAttribute(n, e[n]);
       });
-    }function b(t, e) {
+    }function y(t, e) {
       var n, i, o, r;if (e.transform && t.css) {
         if (!(r = e.transform(t.css))) return function () {};t.css = r;
       }if (e.singleton) {
-        var a = u++;n = c || (c = g(e)), i = x.bind(null, n, a, !1), o = x.bind(null, n, a, !0);
+        var a = c++;n = l || (l = v(e)), i = x.bind(null, n, a, !1), o = x.bind(null, n, a, !0);
       } else t.sourceMap && "function" == typeof URL && "function" == typeof URL.createObjectURL && "function" == typeof URL.revokeObjectURL && "function" == typeof Blob && "function" == typeof btoa ? (n = function (t) {
-        var e = document.createElement("link");return void 0 === t.attrs.type && (t.attrs.type = "text/css"), t.attrs.rel = "stylesheet", v(e, t.attrs), p(t, e), e;
-      }(e), i = function (t, e, n) {
-        var i = n.css,
-            o = n.sourceMap,
-            r = void 0 === e.convertToAbsoluteUrls && o;(e.convertToAbsoluteUrls || r) && (i = h(i));o && (i += "\n/*# sourceMappingURL=data:application/json;base64," + btoa(unescape(encodeURIComponent(JSON.stringify(o)))) + " */");var a = new Blob([i], { type: "text/css" }),
-            s = t.href;t.href = URL.createObjectURL(a), s && URL.revokeObjectURL(s);
-      }.bind(null, n, e), o = function o() {
-        m(n), n.href && URL.revokeObjectURL(n.href);
-      }) : (n = g(e), i = function (t, e) {
-        var n = e.css,
-            i = e.media;i && t.setAttribute("media", i);if (t.styleSheet) t.styleSheet.cssText = n;else {
-          for (; t.firstChild;) {
-            t.removeChild(t.firstChild);
-          }t.appendChild(document.createTextNode(n));
-        }
-      }.bind(null, n), o = function o() {
-        m(n);
+        var e = document.createElement("link");return void 0 === t.attrs.type && (t.attrs.type = "text/css"), t.attrs.rel = "stylesheet", b(e, t.attrs), p(t, e), e;
+      }(e), i = M.bind(null, n, e), o = function o() {
+        g(n), n.href && URL.revokeObjectURL(n.href);
+      }) : (n = v(e), i = _.bind(null, n), o = function o() {
+        g(n);
       });return i(t), function (e) {
         if (e) {
           if (e.css === t.css && e.media === t.media && e.sourceMap === t.sourceMap) return;i(t = e);
         } else o();
       };
     }t.exports = function (t, e) {
-      if ("undefined" != typeof DEBUG && DEBUG && "object" != (typeof document === "undefined" ? "undefined" : _typeof(document))) throw new Error("The style-loader cannot be used in a non-browser environment");(e = e || {}).attrs = "object" == _typeof(e.attrs) ? e.attrs : {}, e.singleton || "boolean" == typeof e.singleton || (e.singleton = a()), e.insertInto || (e.insertInto = "head"), e.insertAt || (e.insertAt = "bottom");var n = d(t, e);return f(n, e), function (t) {
+      if ("undefined" != typeof DEBUG && DEBUG && "object" != (typeof document === "undefined" ? "undefined" : _typeof(document))) throw new Error("The style-loader cannot be used in a non-browser environment");(e = e || {}).attrs = "object" == _typeof(e.attrs) ? e.attrs : {}, e.singleton || "boolean" == typeof e.singleton || (e.singleton = a()), e.insertInto || (e.insertInto = "head"), e.insertAt || (e.insertAt = "bottom");var n = m(t, e);return d(n, e), function (t) {
         for (var i = [], o = 0; o < n.length; o++) {
           var a = n[o];(s = r[a.id]).refs--, i.push(s);
-        }t && f(d(t, e), e);for (o = 0; o < i.length; o++) {
+        }t && d(m(t, e), e);for (o = 0; o < i.length; o++) {
           var s;if (0 === (s = i[o]).refs) {
-            for (var c = 0; c < s.parts.length; c++) {
-              s.parts[c]();
+            for (var u = 0; u < s.parts.length; u++) {
+              s.parts[u]();
             }delete r[s.id];
           }
         }
       };
-    };var y,
-        w = (y = [], function (t, e) {
-      return y[t] = e, y.filter(Boolean).join("\n");
+    };var w,
+        k = (w = [], function (t, e) {
+      return w[t] = e, w.filter(Boolean).join("\n");
     });function x(t, e, n, i) {
-      var o = n ? "" : i.css;if (t.styleSheet) t.styleSheet.cssText = w(e, o);else {
+      var o = n ? "" : i.css;if (t.styleSheet) t.styleSheet.cssText = k(e, o);else {
         var r = document.createTextNode(o),
             a = t.childNodes;a[e] && t.removeChild(a[e]), a.length ? t.insertBefore(r, a[e]) : t.appendChild(r);
       }
+    }function _(t, e) {
+      var n = e.css,
+          i = e.media;if (i && t.setAttribute("media", i), t.styleSheet) t.styleSheet.cssText = n;else {
+        for (; t.firstChild;) {
+          t.removeChild(t.firstChild);
+        }t.appendChild(document.createTextNode(n));
+      }
+    }function M(t, e, n) {
+      var i = n.css,
+          o = n.sourceMap,
+          r = void 0 === e.convertToAbsoluteUrls && o;(e.convertToAbsoluteUrls || r) && (i = f(i)), o && (i += "\n/*# sourceMappingURL=data:application/json;base64," + btoa(unescape(encodeURIComponent(JSON.stringify(o)))) + " */");var a = new Blob([i], { type: "text/css" }),
+          s = t.href;t.href = URL.createObjectURL(a), s && URL.revokeObjectURL(s);
     }
   }, function (t, e) {
     t.exports = function (t) {
