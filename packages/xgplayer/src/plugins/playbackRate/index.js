@@ -49,7 +49,6 @@ export default class PlaybackRate extends Plugin {
   }
 
   registerLangauageTexts () {
-    console.log('registerLangauageTexts')
     return {
       'currate-text': {
         jp: (langkey) => {

@@ -156,8 +156,8 @@ class Player extends Proxy {
     this.once('loadeddata', this.getVideoSize)
 
     this.mousemoveFunc = () => {
-      this.emit(Events.PLAYER_FOCUS)
       if (!this.config.closeFocusVideoFocus) {
+        this.emit(Events.PLAYER_FOCUS)
         this.video.focus()
       }
     }
@@ -384,11 +384,11 @@ class Player extends Proxy {
     if (playPromise !== undefined && playPromise && playPromise.then) {
       playPromise.then(() => {
         console.log('>>>>playPromise.then')
-        this.isPlaying = true
         this.removeClass(STATE_CLASS.NOT_ALLOW_AUTOPLAY)
         this.removeClass(STATE_CLASS.NO_START)
         this.addClass(STATE_CLASS.PLAYING)
-        this.config.closePlayVideoFocus && this.addClass(STATE_CLASS.ACTIVE)
+        this.config.closePlayVideoFocus && !this.isPlaying && this.emit(Events.PLAYER_BLUR)
+        this.isPlaying = true
         this.emit(Events.AUTOPLAY_STARTED)
       }).catch((e) => {
         console.log('>>>>playPromise.catch')
@@ -553,7 +553,6 @@ class Player extends Proxy {
   }
 
   onPause () {
-    console.log('onPause')
     this.addClass(STATE_CLASS.PAUSED)
     if (this.userTimer) {
       clearTimeout(this.userTimer)
@@ -596,7 +595,6 @@ class Player extends Proxy {
   }
 
   onPlaying () {
-    console.log('onPlaying')
     if (this.waitTimer) {
       clearTimeout(this.waitTimer)
     }

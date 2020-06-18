@@ -3,6 +3,32 @@ import allOff from 'event-emitter/all-off'
 import util from './utils/util'
 import Errors from './error'
 import {URL_CHANGE, DESTROY} from './events'
+const VIDEO_EVENTS = ['play', 'playing', 'pause', 'ended', 'error', 'seeking', 'seeked',
+  'timeupdate', 'waiting', 'canplay', 'canplaythrough', 'durationchange', 'volumechange',
+  'loadeddata', 'loadstart', 'emptied', 'ratechange', 'progress', 'stalled', 'suspend', 'abort']
+
+function getHandler (eventName, player) {
+  return (e) => {
+    let eventKey = eventName
+    const funName = `on${eventName.charAt(0).toUpperCase()}${eventName.slice(1)}`
+    e.player = player
+    if (eventKey === 'error') {
+      player.errorHandler(eventKey)
+      player[funName] && typeof player[funName] === 'function' && player[funName](e)
+    } else {
+      player.emit(eventKey, e)
+      player[funName] && typeof player[funName] === 'function' && player[funName](e)
+    }
+
+    if (eventKey === 'timeupdate') {
+      player._currentTime = player.video && player.video.currentTime
+    }
+
+    if (eventName === 'durationchange') {
+      player._duration = player.video.duration
+    }
+  }
+}
 
 class Proxy {
   constructor (options) {
@@ -41,70 +67,36 @@ class Proxy {
 
     EventEmitter(this)
     this._interval = {}
-    this._initEvents()
+    this.attachVideoEvents()
   }
 
-  _initEvents () {
-    this.ev = ['play', 'playing', 'pause', 'ended', 'error', 'seeking', 'seeked',
-      'timeupdate', 'waiting', 'canplay', 'canplaythrough', 'durationchange', 'volumechange',
-      'loadeddata', 'loadstart', 'emptied', 'ratechange', 'progress', 'stalled', 'suspend', 'abort'
-    ].map((item) => {
-      return {
-        [item]: `on${item.charAt(0).toUpperCase()}${item.slice(1)}`
-      }
-    })
-    /**
-     * 和video事件对应的on[EventKey]接口的触发
-     * @param {String} funName
-     */
-    function _emitEvent (funName, player, e) {
-      player[funName] && typeof player[funName] === 'function' && player[funName](e)
+  attachVideoEvents (video) {
+    if (!this.evHandlers) {
+      this._evHandlers = VIDEO_EVENTS.map(item => {
+        return {
+          [item]: getHandler(item, this)
+        }
+      })
     }
-    this.ev.forEach(item => {
-      this.evItem = Object.keys(item)[0]
-      let name = Object.keys(item)[0]
-      const funName = item[name]
+    if (!video) {
+      video = this.video
+    }
+    this._evHandlers.map(item => {
+      const eventKey = Object.keys(item)[0]
+      video.addEventListener(eventKey, item[eventKey], false)
+    })
+  }
 
-      this.videoEventHandler = (e) => {
-        e.player = this
-        if (name === 'error') {
-          this.errorHandler(name)
-          _emitEvent(funName, this, e)
-        } else {
-          this.emit(name, e)
-          _emitEvent(funName, this, e)
-        }
-
-        if (name === 'timeupdate') {
-          this._currentTime = this.video && this.video.currentTime
-        }
-
-        if (name === 'durationchange') {
-          this._duration = this.video.duration
-        }
-
-        // if (this.hasOwnProperty('_interval')) {
-        //   if (['ended', 'error', 'timeupdate'].indexOf(name) < 0) {
-        //     clearInterval(this._interval['bufferedChange'])
-        //     util.setInterval(this, 'bufferedChange', function () {
-        //       let curBuffer = []
-        //       for (let i = 0, len = this.video.buffered.length; i < len; i++) {
-        //         curBuffer.push([this.video.buffered.start(i), this.video.buffered.end(i)])
-        //       }
-        //       if (curBuffer.toString() !== lastBuffer) {
-        //         lastBuffer = curBuffer.toString()
-        //         console.lpg('curBuffer', curBuffer)
-        //         this.emit(BUFFER_CHANGE, curBuffer)
-        //       }
-        //     }, 200)
-        //   } else {
-        //     if (name !== 'timeupdate') {
-        //       util.clearInterval(this, 'bufferedChange')
-        //     }
-        //   }
-        // }
-      }
-      this.video.addEventListener(Object.keys(item)[0], this.videoEventHandler, false)
+  /**
+   * 解除video事件回调
+   */
+  detachVideoEvents (video) {
+    if (!video) {
+      video = this.video
+    }
+    this._evHandlers.map(item => {
+      const eventName = Object.keys(item)[0]
+      video.removeEventListener(Object.keys(item)[0], item[eventName], false)
     })
   }
 
@@ -144,15 +136,7 @@ class Proxy {
       this._interval[k] = null
     }
     this.emit(DESTROY)
-    this.ev.forEach((item) => {
-      const evName = Object.keys(item)[0]
-      const evFunc = this[item[evName]]
-      if (evFunc) {
-        this.off(evName, evFunc)
-      }
-
-      this.video.removeEventListener(evName, this.videoEventHandler, false)
-    });
+    this.detachVideoEvents()
     allOff(this)
   }
 

@@ -22,7 +22,7 @@ class MobilePlugin extends Plugin {
       scopeR: 0.4, // 右侧手势范围比例
       darkness: true, // 是否启用右侧调暗功能
       maxDarkness: 0.6, // 调暗最大暗度，即蒙层最大透明度
-      disableActive: false // 事件面板
+      disableActive: false // 是否禁用时间面板
     }
   }
 
@@ -51,6 +51,8 @@ class MobilePlugin extends Plugin {
     this.xgMask = Util.createDom('xg-mask', '', {}, 'xgmask')
     player.root.appendChild(this.xgMask)
 
+    this.initCustomStyle()
+
     this.onTouchMove = this.onTouchMove.bind(this)
     this.onTouchStart = this.onTouchStart.bind(this)
     this.onTouchEnd = this.onTouchEnd.bind(this)
@@ -73,6 +75,19 @@ class MobilePlugin extends Plugin {
           this.changeAction(ACTIONS.AUTO)
         })
       }
+    }
+  }
+
+  initCustomStyle () {
+    const {commonStyle} = this.playerConfig || {}
+    const {playedColor, progressColor} = commonStyle
+    if (playedColor) {
+      this.find('.curbar').style.backgroundColor = playedColor
+      this.find('.cur').style.color = playedColor
+    }
+    if (progressColor) {
+      this.find('.bar').style.backgroundColor = progressColor
+      this.find('.timenote').style.color = progressColor
     }
   }
 
@@ -269,7 +284,7 @@ class MobilePlugin extends Plugin {
     const className = this.config.gradient !== 'normal' ? `gradient ${this.config.gradient}` : 'gradient'
     return `
      <xg-trigger class="trigger">
-     <div class="${className}"></div>
+     ${this.config.gradient === 'none' ? '' : `<div class="${className}"></div>`}
      <div class="timenote">
         <span class="cur">00:00</span>
         <span>/</span>
