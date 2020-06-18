@@ -16,6 +16,7 @@ export default function getDefaultConfig () {
     poster: '', // 封面图地址
     defaultPlaybackRate: 1, // 默认播放倍数
     execBeforePluginsCall: null, // 默认插件组装前回调
+    allowSeekAfterEnded: true, // 播放结束之后是否允许seek
     closeVideoClick: false, // 是否通过video的click/touchend行为切换播放暂停
     closeVideoDblclick: false, // 是否通过双击行为触发全屏切换
     closePlayerBlur: false, // 是个否启用鼠标移动激活行为
@@ -27,7 +28,7 @@ export default function getDefaultConfig () {
     // 是否删除
     ignores: [],
     whitelist: [],
-    inactive: 3000,
+    inactive: 3000, // 进度条自动消失延时
     lang: (document.documentElement.getAttribute('lang') || navigator.language || 'zh-cn').toLocaleLowerCase(),
     controls: true,
     controlsList: [],
@@ -40,6 +41,12 @@ export default function getDefaultConfig () {
     keyShortcut: true, // 是否开启快捷键
     presets: [],
     playbackRate: [],
-    icons: {}
+    icons: {},
+    commonStyle: { // 用于配置一些通用样式结构
+      progressColor: '', // 进度条底色
+      playedColor: '', // 播放完成部分进度条底色
+      cachedColor: '', // 缓存部分进度条底色
+      sliderBtnStyle: '' // 进度条滑块样式
+    }
   }
 }

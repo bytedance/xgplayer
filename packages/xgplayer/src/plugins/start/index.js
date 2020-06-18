@@ -98,7 +98,6 @@ class Start extends Plugin {
   }
 
   switchStatus (isAnimate) {
-    console.log('switchStatus', this.player.paused)
     if (isAnimate) {
       this.setAttr('data-state', !this.player.paused ? 'play' : 'pause')
     } else {
@@ -153,6 +152,10 @@ class Start extends Plugin {
       this.show()
       return
     }
+    if (config.mode === 'auto') {
+      this.switchStatus()
+      return
+    }
     if ((config.isShowPause && player.paused && !player.ended) || (config.isShowEnd && player.ended)) {
       this.show()
       this.switchStatus()
@@ -173,8 +176,9 @@ class Start extends Plugin {
   }
 
   render () {
+    const className = this.config.mode === 'auto' ? 'auto-hide' : 'hide'
     return `
-    <xg-start class="xgplayer-start hide">
+    <xg-start class="xgplayer-start ${className}">
       <div class="icon">
       </div>
     </xg-start>`

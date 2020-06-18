@@ -24,13 +24,16 @@
     position: absolute;
     left: 50%;
     top: 50%;
-    z-index: 115;
+    z-index: 99;
     transform: translate(-50%, -50%);
     cursor: pointer;
     svg {
       fill: rgb(255, 255, 255);
       width: 70px;
       height: 70px;
+    }
+    &.hide {
+      display: none;
     }
     &:hover{
       opacity: 0.85;
@@ -74,6 +77,13 @@
   &.xgplayer-ended {
     .xgplayer-start {
       display: none;
+    }
+  }
+  &.xgplayer-inactive {
+    .xgplayer-start {
+      &.auto-hide {
+        display: none;
+      }
     }
   }
 }

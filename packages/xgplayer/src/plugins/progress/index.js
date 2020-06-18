@@ -66,11 +66,12 @@ class Progress extends Plugin {
     this.pointTip = this.find('.xgplayer-progress-point')
     this.progressBtn = this.find('.xgplayer-progress-btn')
     this.thumbnailDom = this.find('xg-thumbnail')
+    this.initCustomStyle()
     this.initThumbnail()
     this.on(Events.TIME_UPDATE, () => {
       this.onTimeupdate()
     });
-    this.on(Events.SEEKING, () => {
+    this.on(Events.SEEKED, () => {
       this.onTimeupdate()
       this.onCacheUpdate()
     });
@@ -88,6 +89,33 @@ class Progress extends Plugin {
           root: this.find('xg-outer'),
           dots: this.playerConfig.progressDot || this.config.progressDot
         }
+      }
+    }
+  }
+
+  initCustomStyle () {
+    const {commonStyle} = this.playerConfig || {}
+    const {playedColor, cachedColor, sliderBtnStyle, progressColor} = commonStyle
+    const {playedBar, cachedBar, progressBtn} = this
+    if (playedColor) {
+      playedBar.style.backgroundImage = 'initilal';
+      playedBar.style.background = playedColor;
+    }
+    if (cachedColor) {
+      cachedBar.style.background = cachedColor;
+    }
+
+    if (progressColor) {
+      this.find('.xgplayer-progress-outer').style.backgroundColor = progressColor;
+    }
+
+    if (sliderBtnStyle) {
+      if (typeof sliderBtnStyle === 'string') {
+        progressBtn.style.boxShadow = sliderBtnStyle;
+      } else if (typeof sliderBtnStyle === 'object') {
+        Object.keys(sliderBtnStyle).map(key => {
+          progressBtn.style[key] = sliderBtnStyle[key];
+        })
       }
     }
   }
@@ -142,7 +170,7 @@ class Progress extends Plugin {
     }
     this.player.emit(Events.PLAYER_FOCUS, {autoHide: false})
     this.isProgressMoving = true
-    Util.addClass(this.progressBtn, 'btn-move')
+    Util.addClass(this.progressBtn, 'moving')
     this.computeWidth(e, false)
     const move = (e) => {
       e.preventDefault()
@@ -156,7 +184,7 @@ class Progress extends Plugin {
       e.preventDefault()
       e.stopPropagation()
       Util.event(e)
-      Util.removeClass(this.progressBtn, 'btn-move')
+      Util.removeClass(this.progressBtn, 'moving')
       if (Sniffer.device === 'mobile') {
         this.root.removeEventListener('touchmove', move)
         this.root.removeEventListener('touchend', up)
