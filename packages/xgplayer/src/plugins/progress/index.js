@@ -1,18 +1,8 @@
 import Plugin from '../../plugin'
 import ProgressDots from './progressdots'
+import Thumbnail from '../common/thumbnail'
 
 const {Events, Util, POSITIONS, Sniffer} = Plugin
-
-const defaultThumbnailConfig = {
-  isShow: false,
-  urls: [],
-  pic_num: 0,
-  row: 0,
-  col: 0,
-  height: 160,
-  width: 90,
-  scale: 1
-}
 
 /**
  * 进度条组件
@@ -39,9 +29,6 @@ class Progress extends Plugin {
     this.useable = false
     this.isProgressMoving = false
     this.__dragCallBacks = []
-    if (Sniffer.device !== 'mobile' && this.playerConfig.thumbnail) {
-      this.config.thumbnail = this.playerConfig.thumbnail
-    }
   }
 
   changeState (useable = true) {
@@ -65,9 +52,8 @@ class Progress extends Plugin {
     this.cachedBar = this.find('.xgplayer-progress-cache')
     this.pointTip = this.find('.xgplayer-progress-point')
     this.progressBtn = this.find('.xgplayer-progress-btn')
-    this.thumbnailDom = this.find('xg-thumbnail')
     this.initCustomStyle()
-    this.initThumbnail()
+    this.registerThumbnail()
     this.on(Events.TIME_UPDATE, () => {
       this.onTimeupdate()
     });
@@ -126,21 +112,16 @@ class Progress extends Plugin {
     }
   }
 
-  initThumbnail () {
-    if (this.config.thumbnail) {
-      const {thumbnail} = this.config
-      this.thumbnailConfig = {}
-      Object.keys(defaultThumbnailConfig).map(key => {
-        if (typeof thumbnail[key] === 'undefined') {
-          this.thumbnailConfig[key] = defaultThumbnailConfig[key]
-        } else {
-          this.thumbnailConfig[key] = thumbnail[key]
-        }
-      })
-      const {width, height, scale} = this.thumbnailConfig
-      this.thumbnailDom.style.width = `${width * scale}px`
-      this.thumbnailDom.style.height = `${height * scale}px`
+  registerThumbnail () {
+    const {thumbnail} = this.playerConfig
+    // 移动端缩略图预览不在进度条上
+    if (!thumbnail || Sniffer.device === 'mobile') {
+      return;
     }
+    thumbnail.className = 'progress-thumbnail xg-tips'
+    this.thumbnailPlugin = this.registerPlugin(Thumbnail, {
+      root: this.find('.xgplayer-progress-played')
+    })
   }
 
   bindDomEvents () {
@@ -220,20 +201,19 @@ class Progress extends Plugin {
   }
 
   mouseLeave (e) {
-    const {player} = this
+    const {player, root, pointTip, thumbnailPlugin} = this
     if (player.isMini) {
       return
     }
-    this.pointTip.style.display = 'none'
-    this.thumbnailDom.style.display = 'none'
-    this.root.removeEventListener('mousemove', this.mouseMove, false)
-    this.root.removeEventListener('mouseleave', this.mouseLeave, false)
+    pointTip.style.display = 'none'
+    thumbnailPlugin && thumbnailPlugin.hide()
+    root.removeEventListener('mousemove', this.mouseMove, false)
+    root.removeEventListener('mouseleave', this.mouseLeave, false)
   }
 
   mouseMove (e) {
-    const {player} = this
-    let left = this.root.getBoundingClientRect().left
-    let width = this.root.getBoundingClientRect().width
+    const {player, thumbnailPlugin, root} = this
+    const { left, width } = root.getBoundingClientRect()
     let now = (e.clientX - left) / width * player.duration
     now = now < 0 ? 0 : now
     this.pointTip.textContent = Util.format(now)
@@ -247,36 +227,7 @@ class Progress extends Plugin {
     } else {
       this.pointTip.style.display = 'block'
     }
-    this.updateThumbnailPosition(e, now, width)
-  }
-
-  updateThumbnailPosition (e, now, containerWidth) {
-    if (!this.config.thumbnail) {
-      return;
-    }
-    const thumbnail = this.thumbnailConfig
-    if (!thumbnail || !thumbnail.pic_num === 0 || thumbnail.urls.length === 0) {
-      return
-    }
-    this.interval = this.player.duration / thumbnail.pic_num
-    let index = Math.floor(now / this.interval)
-    const {urls, row, col, height, width, scale} = thumbnail
-    const indexInPage = index + 1 - (col * row) * (Math.ceil((index + 1) / (col * row)) - 1)
-    const rowIndex = Math.ceil(indexInPage / row) - 1
-    const colIndex = indexInPage - rowIndex * row - 1
-    let left = e.clientX - width * scale / 2
-    left = left > 0 ? left : 0
-    left = left < containerWidth - width * scale ? left : containerWidth - width * scale
-    const style = {
-      backgroundImage: `url(${urls[Math.ceil((index + 1) / (col * row)) - 1]})`,
-      'background-position': `-${colIndex * width}px -${rowIndex * height}px`,
-      left: `${left}px`,
-      top: `${-10 - height * scale}px`,
-      display: 'block'
-    }
-    Object.keys(style).map((key) => {
-      this.thumbnailDom.style[key] = style[key]
-    })
+    thumbnailPlugin && thumbnailPlugin.update(now, e.clientX, width)
   }
 
   computeWidth (e, isMove) {
@@ -362,6 +313,7 @@ class Progress extends Plugin {
   }
 
   destroy () {
+    this.thumbnailPlugin = null
     if (Sniffer.device === 'mobile') {
       this.root.removeEventListener('touchstart', this.mouseDown, false)
     } else {
@@ -382,7 +334,6 @@ class Progress extends Plugin {
           <xg-played class="xgplayer-progress-played" style="width:0">
             <xg-progress-btn class="xgplayer-progress-btn"></xg-progress-btn>
             <xg-point class="xgplayer-progress-point xg-tips">00:00</xg-point>
-            <xg-thumbnail class="xgplayer-progress-thumbnail xg-tips"></xg-thumbnail>
           </xg-played>
         </xg-outer>
       </xg-progress>

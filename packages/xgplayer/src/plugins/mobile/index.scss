@@ -1,3 +1,4 @@
+@import '../common/thumbnail.scss';
 .xgplayer {
   xg-trigger {
     position: absolute;
@@ -6,22 +7,23 @@
     height: 100%;
     width: 100%;
     z-index: 80;
-    .timenote {
+    .time-preview {
       display: none;
-      position: relative;
-      height: 40px;
+      pointer-events: none;
+      position: absolute;
       width: 200px;
       margin: 0 auto;
+      padding: 0 20px 30px;
       top: 50%;
-      margin-top: -20px;
-      padding: 0 20px;
+      left: 50%;
+      transform: translate(-50%, -50%);
       color: #fff;
-      text-shadow: 0 0 2px rgba(0,0,0,0.54);
-      font-size: 21px;
+      text-shadow: 0 0 1px rgba(0,0,0,0.54);
+      font-size: 17px;
       font-family: PingFangSC-Medium;
       text-align: center;
       span {
-        line-height: 21px;
+        line-height: 24px;
         &.cur {
           color: #FF0000;
         }
@@ -30,8 +32,8 @@
         width: 96px;
         height: 2px;
         margin: 0 auto;
-        margin-top: 14px;
-        border-radius: 50px;
+        margin-top: 8px;
+        border-radius: 10px;
         box-sizing: content-box;
         background: rgba(255,255,255,0.3);
         .curbar {
@@ -39,10 +41,13 @@
           height: 100%;
           background-color: #FF0000;
         }
+        &.hide {
+          display: none;
+        }
       }
     }
     &[data-xg-action=seeking] {
-      .timenote {
+      .time-preview {
         display: block;
       }
     }

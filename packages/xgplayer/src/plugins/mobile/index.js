@@ -1,4 +1,5 @@
 import Plugin from '../../plugin'
+import Thumbnail from '../common/thumbnail'
 
 const {Events, Util} = Plugin
 const ACTIONS = {AUTO: 'auto', SEEKING: 'seeking'}
@@ -22,7 +23,8 @@ class MobilePlugin extends Plugin {
       scopeR: 0.4, // 右侧手势范围比例
       darkness: true, // 是否启用右侧调暗功能
       maxDarkness: 0.6, // 调暗最大暗度，即蒙层最大透明度
-      disableActive: false // 是否禁用时间面板
+      disableActive: false, // 是否禁用时间面板
+      disableTimeProgress: false // 是否禁用时间进度条
     }
   }
 
@@ -53,6 +55,8 @@ class MobilePlugin extends Plugin {
 
     this.initCustomStyle()
 
+    this.registerThumbnail()
+
     this.onTouchMove = this.onTouchMove.bind(this)
     this.onTouchStart = this.onTouchStart.bind(this)
     this.onTouchEnd = this.onTouchEnd.bind(this)
@@ -78,6 +82,15 @@ class MobilePlugin extends Plugin {
     }
   }
 
+  registerThumbnail () {
+    if (!this.playerConfig.thumbnail) {
+      return;
+    }
+    this.thumbnailPlugin = this.registerPlugin(Thumbnail, {
+      root: this.find('.time-preview')
+    })
+  }
+
   initCustomStyle () {
     const {commonStyle} = this.playerConfig || {}
     const {playedColor, progressColor} = commonStyle
@@ -87,8 +100,9 @@ class MobilePlugin extends Plugin {
     }
     if (progressColor) {
       this.find('.bar').style.backgroundColor = progressColor
-      this.find('.timenote').style.color = progressColor
+      this.find('.time-preview').style.color = progressColor
     }
+    this.config.disableTimeProgress && Util.addClass(this.find('.bar'), 'hide')
   }
 
   changeAction (action) {
@@ -265,6 +279,7 @@ class MobilePlugin extends Plugin {
     this.find('.dur').innerHTML = Util.format(player.duration)
     this.find('.cur').innerHTML = Util.format(time)
     this.find('.curbar').style.width = `${time / player.duration * 100}%`
+    this.thumbnailPlugin && this.thumbnailPlugin.update(time)
   }
 
   switchPlayPause () {
@@ -280,19 +295,27 @@ class MobilePlugin extends Plugin {
     }
   }
 
+  destroy () {
+    const {root} = this
+    this.thumbnailPlugin = null
+    root.removeEventListener('touchstart', this.onTouchStart)
+    root.removeEventListener('touchmove', this.onTouchMove, false)
+    root.removeEventListener('touchend', this.onTouchEnd, false)
+  }
+
   render () {
     const className = this.config.gradient !== 'normal' ? `gradient ${this.config.gradient}` : 'gradient'
     return `
      <xg-trigger class="trigger">
-     ${this.config.gradient === 'none' ? '' : `<div class="${className}"></div>`}
-     <div class="timenote">
-        <span class="cur">00:00</span>
-        <span>/</span>
-        <span class="dur">00:00</span>
-        <div class="bar timebar">
-          <div class="curbar"></div>
-        </class>
-     </div>
+     <div class="${className}"></div>
+        <div class="time-preview">
+            <span class="cur">00:00</span>
+            <span>/</span>
+            <span class="dur">00:00</span>
+            <div class="bar timebar">
+              <div class="curbar"></div>
+            </class>
+        </div>
      </xg-trigger>
     `
   }
