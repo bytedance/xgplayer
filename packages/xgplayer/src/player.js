@@ -534,12 +534,12 @@ class Player extends Proxy {
     }, this.config.inactive)
   }
 
-  onBlur () {
+  onBlur (data = {ignoreStatus: false}) {
     if (!this.isActive) {
       return;
     }
     this.isActive = false
-    if (!this.paused && !this.ended) {
+    if (data.ignoreStatus || (!this.paused && !this.ended)) {
       this.addClass(STATE_CLASS.ACTIVE)
     }
   }
