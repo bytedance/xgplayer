@@ -78,7 +78,7 @@ class Controls extends Plugin {
   }
 
   blur () {
-    this.player.emit(Events.PLAYER_BLUR)
+    this.player.emit(Events.PLAYER_BLUR, {ignoreStatus: true})
   }
 
   show () {

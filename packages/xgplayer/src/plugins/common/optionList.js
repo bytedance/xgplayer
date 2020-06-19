@@ -2,9 +2,9 @@ import Plugin from '../../plugin'
 import { Sniffer } from '../../plugin/basePlugin'
 
 const { Util } = Plugin
-export default class SideList extends Plugin {
+export default class OptionList extends Plugin {
   static get pluginName () {
-    return 'sidelist'
+    return 'optionList'
   }
 
   static defaultConfig () {
@@ -29,28 +29,26 @@ export default class SideList extends Plugin {
     this.renderItemList()
   }
 
-  registerLangauageTexts () {
-    const {config, pluginName} = this
-    const langMap = {}
-    config.data.map((item, index) => {
-      console.log('index', `${pluginName}_${index}`)
-      langMap[`${pluginName}_${index}`] = {
-        zh: (langkey) => {
-          return this.getTextByLang(langkey)
-        },
-        en: (langkey) => {
-          return this.getTextByLang(langkey)
-        },
-        jp: (langkey) => {
-          return this.getTextByLang(langkey)
-        }
-      }
-    })
-    return {}
-  }
+  // registerLangauageTexts () {
+  //   const {config, pluginName} = this
+  //   const langMap = {}
+  //   config.data.map((item, index) => {
+  //     langMap[`${pluginName}_${index}`] = {
+  //       zh: (langkey) => {
+  //         return this.getTextByLang(langkey)
+  //       },
+  //       en: (langkey) => {
+  //         return this.getTextByLang(langkey)
+  //       },
+  //       jp: (langkey) => {
+  //         return this.getTextByLang(langkey)
+  //       }
+  //     }
+  //   })
+  //   return {}
+  // }
 
   getTextByLang (lang) {
-    console.log('lang', lang)
     return lang
   }
 
@@ -77,7 +75,7 @@ export default class SideList extends Plugin {
     }
 
     data.map(item => {
-      const className = item.isCurrent ? 'sideitem selected' : 'sideitem'
+      const className = item.isCurrent ? 'option-item selected' : 'option-item'
       const li = Util.createDom('li', `<span>${item.name || item.text}</span>`, item, className)
       this.root.appendChild(li)
     })
@@ -116,7 +114,7 @@ export default class SideList extends Plugin {
   }
 
   render () {
-    return `<ul class="xgplayer-side-list ${this.config.className}">
+    return `<ul class="xg-options-list ${this.config.className}">
     </ul>`
   }
 }

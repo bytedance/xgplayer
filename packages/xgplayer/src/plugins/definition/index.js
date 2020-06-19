@@ -1,7 +1,7 @@
-import SideListIcon from '../common/sideListIcon'
+import OptionsIcon from '../common/optionsIcon'
 
-const { Events, POSITIONS } = SideListIcon
-export default class DefinitionIcon extends SideListIcon {
+const { Events, POSITIONS } = OptionsIcon
+export default class DefinitionIcon extends OptionsIcon {
   static get pluginName () {
     return 'definition'
   }
@@ -79,7 +79,6 @@ export default class DefinitionIcon extends SideListIcon {
   }
 
   onCanplayChangeDefinition () {
-    console.log('onCanplayChangeDefinition')
     const {player} = this
     player.currentTime = this.curTime
     if (!this.isPaused) {
@@ -148,6 +147,7 @@ export default class DefinitionIcon extends SideListIcon {
     const {player} = this
     const target = e.delegateTarget
     const url = target.getAttribute('url')
+    super.onItemClick(e)
     player.emit(Events.BEFORE_DEFINITION_CHANGE, url)
     this.changeDefinition(data.to)
     player.emit(Events.DEFINITION_CHANGE, {from: data.from, to: data.to})

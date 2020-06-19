@@ -1,9 +1,9 @@
 import Plugin from '../../plugin'
-import SideListIcon from '../common/sideListIcon'
+import OptionsIcon from '../common/optionsIcon'
 
 const {POSITIONS} = Plugin
 
-export default class PlaybackRate extends SideListIcon {
+export default class PlaybackRate extends OptionsIcon {
   static get pluginName () {
     return 'playbackRate'
   }
@@ -57,7 +57,7 @@ export default class PlaybackRate extends SideListIcon {
   getCurrentText (lang) {
     const {curValue, config, player} = this
     if (!lang) {
-      lang = player.lang
+      lang = player.lang || 'zh'
     }
     let text = ''
     config.list.map(item => {
@@ -79,11 +79,11 @@ export default class PlaybackRate extends SideListIcon {
     if (!text) {
       text = this.getCurrentText()
     }
-    console.log('text', text)
     super.changeCurrent(val, text)
   }
 
   onItemClick (e) {
+    super.onItemClick(e)
     const target = e.delegateTarget
     const rate = target.getAttribute('rate')
     if (Number(rate) === this.curValue) {
@@ -91,7 +91,6 @@ export default class PlaybackRate extends SideListIcon {
     }
     this.player.playbackRate = Number(rate)
     this.changeCurrent(rate)
-    super.onItemClick(e)
   }
 
   destroy () {
@@ -108,6 +107,7 @@ export default class PlaybackRate extends SideListIcon {
       !itemInfo.text && (itemInfo.text = `${itemInfo.rate}x`)
       if (itemInfo.rate === playbackRate) {
         itemInfo.isCurrent = true
+        currentText = itemInfo.iconText || itemInfo.text
       }
       return itemInfo
     })
