@@ -9,6 +9,7 @@
   -ms-user-select:none;
   user-select:none;
   overflow: hidden;
+  cursor: pointer;
   * {
       margin: 0;
       padding: 0;
@@ -24,15 +25,15 @@
   .xgplayer-none {
       display: none
   }
+  &.xgplayer-inactive{
+    cursor: none;
+  }
   &.xgplayer-is-fullscreen{
       width: 100%;
       height: 100%;
       // Undo any aspect ratio padding for fluid layouts
       padding-top: 0;
       z-index: 9999;
-  }
-  &.xgplayer-is-fullscreen.xgplayer-inactive{
-    cursor: none;
   }
   video {
     width:100%;

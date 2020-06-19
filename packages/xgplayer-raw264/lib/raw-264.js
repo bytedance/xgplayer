@@ -34,9 +34,14 @@ var H264Demuxer = function () {
     this.videoTrack = {
       samples: []
     };
+    this.unusedUnits = [];
     this.fps = options.fps || 30;
     this.currentSampleIdx = 0;
     this.duration = 0;
+    this.sps = null;
+    this.pps = null;
+
+    this.dataLoadedTimer = null;
   }
 
   _createClass(H264Demuxer, [{
@@ -48,7 +53,7 @@ var H264Demuxer = function () {
     key: 'initEvents',
     value: function initEvents() {
       this.on(_xgplayerTransmuxerConstantEvents2.default.LOADER_EVENTS.LOADER_DATALOADED, this.handleDataLoaded.bind(this));
-      // this.on(Events.LOADER_EVENTS.LOADER_COMPLETE, this.handleDataLoaded.bind(this))
+      this.on(_xgplayerTransmuxerConstantEvents2.default.LOADER_EVENTS.LOADER_COMPLETE, this.handleDataLoaded.bind(this));
     }
   }, {
     key: 'load',
@@ -61,58 +66,83 @@ var H264Demuxer = function () {
       var _this = this;
 
       var buffer = this.buffer;
+
+      if (!buffer) {
+        return;
+      }
+      if (this.dataLoadedTimer) {
+        clearTimeout(this.dataLoadedTimer);
+        this.dataLoadedTimer = null;
+      }
+
       var data = buffer.shift(buffer.length);
       buffer.clear();
       var stream = new _xgplayerTransmuxerBufferStream2.default(data.buffer);
-      var units = _xgplayerTransmuxerCodecAvc.NalUnit.getNalunits(stream);
 
-      var lastUnit = units.pop();
-      var lastUnitData = new Uint8Array(lastUnit.body.byteLength + 4);
-      lastUnitData.set(new Uint8Array(lastUnit.header), 0);
-      lastUnitData.set(new Uint8Array(lastUnit.body), 4);
-      buffer.push(lastUnitData);
+      var units = this.unusedUnits.concat(_xgplayerTransmuxerCodecAvc.NalUnit.getNalunits(stream));
 
-      var sps = void 0;
-      var pps = void 0;
-      units.forEach(function (unit) {
-        var ts = Math.floor(1000 * _this.currentSampleIdx++ / _this.fps);
-        var currentSample = {
-          dts: ts,
-          pts: ts,
-          data: null,
-          isKeyframe: false
-        };
-        if (unit.sps) {
-          sps = true;
-          _this.videoMeta.sps = unit.body;
-          _this.videoMeta.presentHeight = unit.sps.present_size.height;
-          _this.videoMeta.presentWidth = unit.sps.present_size.width;
-        } else if (unit.pps) {
-          pps = true;
-          _this.videoMeta.pps = unit.body;
+      if (!this._player.config.isLive) {
+        if (units.length > 1) {
+          var lastUnit = units.pop();
+          var pushBackData = new Uint8Array(lastUnit.body.byteLength + 4);
+          pushBackData.set(new Uint8Array(lastUnit.header), 0);
+          pushBackData.set(lastUnit.body, 4);
+          buffer.push(pushBackData);
+
+          this.pushToMobileVideo(units);
+          if (this.buffer.length) {
+            this.dataLoadedTimer = setTimeout(function () {
+              _this.handleDataLoaded();
+            }, 500);
+          }
+        } else if (units.length === 1) {
+          buffer.push(new Uint8Array(data));
+          this.dataLoadedTimer = setTimeout(function () {
+            _this.handleDataLoaded();
+          }, 500);
         }
+      } else {
+        this.pushToMobileVideo(units);
+      }
+    }
+  }, {
+    key: 'pushToMobileVideo',
+    value: function pushToMobileVideo(units) {
+      var _this2 = this;
 
-        var data = new Uint8Array(unit.body.byteLength + 4);
-        data.set([0, 0, 0, 1], 0);
-        data.set(unit.body, 4);
-        currentSample.data = data;
-        currentSample.isKeyframe = unit.idr;
+      var _H264Demuxer$unitsToS = H264Demuxer.unitsToSamples(units),
+          samples = _H264Demuxer$unitsToS.samples,
+          unused = _H264Demuxer$unitsToS.unused;
 
-        _this.videoTrack.samples.push(currentSample);
+      this.unusedUnits = unused;
+
+      samples.forEach(function (sample) {
+        var ts = Math.floor(1000 * _this2.currentSampleIdx++ / _this2.fps);
+        sample.dts = sample.pts = ts;
+        if (sample.sps) {
+          _this2.sps = true;
+          _this2.videoMeta.sps = sample.data.slice(4);
+          _this2.videoMeta.presentHeight = sample.sps.present_size.height;
+          _this2.videoMeta.presentWidth = sample.sps.present_size.width;
+        } else if (sample.pps) {
+          _this2.pps = true;
+          _this2.videoMeta.pps = sample.data.slice(4);
+        } else {
+          _this2.videoTrack.samples.push(sample);
+        }
       });
 
-      if (sps && pps && !this.videoMetaInited) {
+      if (this.sps && this.pps) {
         this._player.video.setVideoMeta(this.videoMeta);
-        this.videoMetaInited = true;
+        this.sps = null;
+        this.pps = null;
       }
-      if (!this.intervalId) {
+      if (!this.intervalId && !this._player.config.isLive) {
         this.intervalId = setInterval(function () {
-          if (_this.videoTrack.samples.length) {
-            _this._player.video.onDemuxComplete(_this.videoTrack);
-          } else {
-            clearInterval(_this.intervalId);
-          }
+          _this2.handleDataLoaded();
         }, 500);
+      } else {
+        this._player.video.onDemuxComplete(this.videoTrack);
       }
       this.duration = Math.round(Math.floor(this.currentSampleIdx / this.fps));
       this._player.emit('durationchange');
@@ -127,11 +157,73 @@ var H264Demuxer = function () {
       };
       this.fps = null;
       this.currentSampleIdx = null;
+      if (this.intervalId) {
+        window.clearInterval(this.intervalId);
+        this.intervalId = null;
+      }
     }
   }, {
     key: 'buffer',
     get: function get() {
       return this._context.getInstance('LOADER_BUFFER');
+    }
+  }], [{
+    key: 'unitsToSamples',
+    value: function unitsToSamples(units) {
+      var temp = [];
+      var samples = [];
+      units.forEach(function (unit) {
+        var golomb = new _xgplayerTransmuxerCodecAvc.Golomb(new Uint8Array(unit.body));
+        golomb.readByte();
+        if (!golomb.readUEG() || unit.sps || unit.pps) {
+          // first_mb_slice
+          if (temp.length) {
+            samples.push(H264Demuxer.combineUnits(temp));
+          }
+          temp = [unit];
+        } else {
+          temp.push(unit);
+        }
+      });
+
+      return {
+        samples: samples,
+        unused: temp
+      };
+    }
+  }, {
+    key: 'combineUnits',
+    value: function combineUnits(units) {
+      var sps = void 0,
+          pps = void 0;
+      var dataSize = units.reduce(function (result, unit) {
+        if (unit.sps) {
+          sps = unit.sps;
+        } else if (unit.pps) {
+          pps = unit.pps;
+        }
+        return result + unit.header.byteLength + unit.body.byteLength;
+      }, 0);
+
+      var data = new Uint8Array(dataSize);
+      var offset = 0;
+      var isKeyframe = void 0;
+      units.forEach(function (unit) {
+        data.set(new Uint8Array(unit.header), offset);
+        offset += unit.header.byteLength;
+        data.set(unit.body, offset);
+        offset += unit.body.byteLength;
+        if (unit.idr) {
+          isKeyframe = true;
+        }
+      });
+
+      return {
+        data: data,
+        sps: sps,
+        pps: pps,
+        isKeyframe: isKeyframe
+      };
     }
   }]);
 

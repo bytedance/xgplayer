@@ -4,7 +4,7 @@
   "description": "xgplayer plugin for m4a transform to fmp4",
   "main": "./dist/index.js",
   "scripts": {
-    "prepare": "npm run build",
+    "prepublishOnly": "npm run build",
     "build": "cross-env NODE_ENV=production rollup -c rollup.config.js",
     "watch": "cross-env NODE_ENV=development rollup -c rollup.config.js --watch"
   },

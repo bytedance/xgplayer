@@ -39,7 +39,6 @@ export default class PlaybackRate extends SideListIcon {
   }
 
   registerLangauageTexts () {
-    console.log('registerLangauageTexts')
     return {
       'currate-text': {
         jp: (langkey) => {

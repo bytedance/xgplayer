@@ -31,6 +31,11 @@ class Start extends Plugin {
     }
   }
 
+  constructor (args) {
+    super(args)
+    this.autoPlayStart = false
+  }
+
   afterCreate () {
     const {player, playerConfig} = this
     this.initIcons()
@@ -42,6 +47,11 @@ class Start extends Plugin {
           Util.addClass(player.root, 'lang-is-jp')
         }
       }
+    })
+
+    this.on(Events.AUTOPLAY_STARTED, () => {
+      this.autoPlayStart = true
+      this.onPlayPause('play')
     })
 
     if (!playerConfig.autoplay) {
@@ -87,8 +97,12 @@ class Start extends Plugin {
     Util.removeClass(this.root, 'hide')
   }
 
-  switchStatus () {
-    this.setAttr('data-state', this.player.paused ? 'play' : 'pause')
+  switchStatus (isAnimate) {
+    if (isAnimate) {
+      this.setAttr('data-state', !this.player.paused ? 'play' : 'pause')
+    } else {
+      this.setAttr('data-state', this.player.paused ? 'play' : 'pause')
+    }
   }
 
   animate (endShow) {
@@ -104,7 +118,7 @@ class Start extends Plugin {
       start: () => {
         Util.addClass(this.root, 'interact')
         this.show()
-        this.switchStatus()
+        this.switchStatus(true)
       },
       end: () => {
         Util.removeClass(this.root, 'interact');
@@ -130,12 +144,16 @@ class Start extends Plugin {
 
   onPlayPause (status) {
     const {config, player} = this
-    if (!player.isPlaying) {
+    if (!player.isPlaying || !this.autoPlayStart) {
       return
     }
     if (config.mode === 'show') {
       this.switchStatus()
       this.show()
+      return
+    }
+    if (config.mode === 'auto') {
+      this.switchStatus()
       return
     }
     if ((config.isShowPause && player.paused && !player.ended) || (config.isShowEnd && player.ended)) {
@@ -144,9 +162,9 @@ class Start extends Plugin {
       return
     }
     if (status === 'play') {
-      this.player.isPlaying ? this.animate() : this.hide()
+      this.autoPlayStart ? this.animate() : this.hide()
     } else {
-      if (!this.player.isPlaying) {
+      if (!this.autoPlayStart) {
         return
       }
       this.animate()
@@ -158,8 +176,9 @@ class Start extends Plugin {
   }
 
   render () {
+    const className = this.config.mode === 'auto' ? 'auto-hide' : 'hide'
     return `
-    <xg-start class="xgplayer-start hide">
+    <xg-start class="xgplayer-start ${className}">
       <div class="icon">
       </div>
     </xg-start>`

@@ -103,6 +103,7 @@ class AudioCtx extends EventEmitter {
 
         if (_this.loadFinish) {
           _this.loadFinish()
+          _this.loadFinish = null;
         }
       }, (e) => {
         console.error(e)
@@ -181,7 +182,6 @@ class AudioCtx extends EventEmitter {
         this.loadFinish = null;
         this.playFinish = null;
         this.playFailed = null;
-        playStart()
       });
     } else {
       return new Promise((resolve, reject) => {

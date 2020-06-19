@@ -34,8 +34,5 @@
   },
   "peerDependency": {
     "xgplayer": "^0.1.0"
-  },
-  "devDependencies": {
-    "webpack-cli": "^3.3.10"
   }
 }

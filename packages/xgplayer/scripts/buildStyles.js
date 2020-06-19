@@ -141,7 +141,7 @@ const copyAssets = async () => {
   await buildESStyles();
   await copyAssets();
   const entries = [{
-    input: path.resolve(__dirname, '../src/style/index.scss')
+    input: path.resolve(__dirname, '../src/presets/default.scss')
   }, {
     input: path.resolve(__dirname, '../src/presets/default.scss'),
     namespace: 'vod'

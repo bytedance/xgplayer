@@ -1,6 +1,6 @@
-var _createClass = function () { function defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ("value" in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } } return function (Constructor, protoProps, staticProps) { if (protoProps) defineProperties(Constructor.prototype, protoProps); if (staticProps) defineProperties(Constructor, staticProps); return Constructor; }; }();
-
 var _get = function get(object, property, receiver) { if (object === null) object = Function.prototype; var desc = Object.getOwnPropertyDescriptor(object, property); if (desc === undefined) { var parent = Object.getPrototypeOf(object); if (parent === null) { return undefined; } else { return get(parent, property, receiver); } } else if ("value" in desc) { return desc.value; } else { var getter = desc.get; if (getter === undefined) { return undefined; } return getter.call(receiver); } };
+
+var _createClass = function () { function defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ("value" in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } } return function (Constructor, protoProps, staticProps) { if (protoProps) defineProperties(Constructor.prototype, protoProps); if (staticProps) defineProperties(Constructor, staticProps); return Constructor; }; }();
 
 function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } }
 
@@ -16,38 +16,77 @@ import LoaderBuffer from 'xgplayer-transmuxer-buffer-xgbuffer';
 import FetchLoader from 'xgplayer-transmuxer-loader-fetch';
 import 'xgplayer-mobilevideo';
 
+var asmSupported = function asmSupported() {
+  try {
+    (function MyAsmModule() {
+      'use asm';
+    })();
+    return true;
+  } catch (err) {
+    // will never show...
+    return false;
+  }
+};
+
 var Raw264Player = function (_Player) {
   _inherits(Raw264Player, _Player);
+
+  _createClass(Raw264Player, null, [{
+    key: 'isSupported',
+    value: function isSupported() {
+      var wasmSupported = 'WebAssembly' in window;
+
+      var WebComponentSupported = 'customElements' in window && window.customElements.define;
+      var isComponentDefined = void 0;
+      if (WebComponentSupported) {
+        isComponentDefined = window.customElements.get('mobile-video');
+      }
+      return (wasmSupported || asmSupported) && isComponentDefined;
+    }
+  }]);
 
   function Raw264Player(props) {
     _classCallCheck(this, Raw264Player);
 
     if (!props.mediaType) {
       props.mediaType = 'mobile-video';
+      if (props.videoConfig) {
+        props.videoConfig.preloadtime = props.preloadTime || 5;
+      } else {
+        props.videoConfig = {
+          preloadtime: props.preloadTime || 5
+        };
+      }
     }
 
     var _this = _possibleConstructorReturn(this, (Raw264Player.__proto__ || Object.getPrototypeOf(Raw264Player)).call(this, props));
 
+    _this.video.setAttribute('noaudio', true);
     _this.handleTimeupdate = _this.handleTimeupdate.bind(_this);
     _this.hasPlayed = false;
+    _this.hasStart = false;
     return _this;
   }
 
   _createClass(Raw264Player, [{
     key: 'start',
     value: function start() {
-
+      if (this.hasStart) {
+        return;
+      } else {
+        this.hasStart = true;
+      }
       this.context = new Context(Events.HlsAllowedEvents);
       this.context.registry('LOADER_BUFFER', LoaderBuffer);
       this.core = this.context.registry('RAW_264_CONTROLLER', Core)({ player: this, fps: this.config.fps });
+      this.context.registry('FETCH_LOADER', FetchLoader);
+      this.context.init();
       if (!this.config.isLive) {
-        this.context.registry('FETCH_LOADER', FetchLoader);
         this.core.load(this.config.url);
       }
-      this.context.init();
 
       _get(Raw264Player.prototype.__proto__ || Object.getPrototypeOf(Raw264Player.prototype), 'start', this).call(this);
-      this.video.setAttribute('noaudio', true);
+      this.video.preloadTime = this.config.preloadTime;
       this.video.addEventListener('timeupdate', this.handleTimeupdate, false);
     }
   }, {
@@ -61,13 +100,12 @@ var Raw264Player = function (_Player) {
   }, {
     key: 'handleTimeupdate',
     value: function handleTimeupdate() {
-      if (this.config.isLive) {
+      if (!this.config.isLive && this.currentTime >= this.duration) {
         this.video._cleanBuffer();
-      } else {
-        if (this.currentTime >= this.duration) {
-          this.pause();
-          this.emit('ended');
-        }
+        this.pause();
+        this.emit('ended');
+      } else if (this.config.isLive && this.buffered.end(0) - this.currentTime > 0.1) {
+        this.currentTime = this.buffered.end(0) - 0.1;
       }
     }
   }, {
@@ -82,6 +120,9 @@ var Raw264Player = function (_Player) {
   }, {
     key: 'pushBuffer',
     value: function pushBuffer(arr) {
+      if (!this.hasStart) {
+        return this.start();
+      }
       if (this.buffer) {
         this.buffer.push(arr);
         this.core.handleDataLoaded();

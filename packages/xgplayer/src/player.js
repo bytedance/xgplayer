@@ -156,8 +156,8 @@ class Player extends Proxy {
     this.once('loadeddata', this.getVideoSize)
 
     this.mousemoveFunc = () => {
-      this.emit(Events.PLAYER_FOCUS)
       if (!this.config.closeFocusVideoFocus) {
+        this.emit(Events.PLAYER_FOCUS)
         this.video.focus()
       }
     }
@@ -165,8 +165,8 @@ class Player extends Proxy {
     this.root.addEventListener(eventkey, this.mousemoveFunc)
 
     this.playFunc = () => {
-      this.emit(Events.PLAYER_FOCUS)
       if (!this.config.closePlayVideoFocus) {
+        this.emit(Events.PLAYER_FOCUS)
         this.video.focus()
       }
     }
@@ -188,7 +188,7 @@ class Player extends Proxy {
     if (!url || url === '') {
       this.emit(Events.URL_NULL)
     }
-    this.canPlayFunc = function () {
+    this.canPlayFunc = () => {
       this.volume = this.config.volume
       this.off(Events.CANPLAY, this.canPlayFunc)
       this.removeClass(STATE_CLASS.ENTER)
@@ -214,7 +214,7 @@ class Player extends Proxy {
     if (this.config.autoplay) {
       this.once(Events.CANPLAY, this.canPlayFunc)
       this.load()
-      this.play()
+      !this.isPlaying && this.play()
     }
 
     setTimeout(() => {
@@ -353,21 +353,20 @@ class Player extends Proxy {
   start (url) {
     // 已经开始初始化播放了 则直接调用play
     if (this.hasStart) {
-      return this.play()
-    } else {
-      this.hasStart = true
-      return pluginsManager.beforeInit(this).then(() => {
-        if (!url) {
-          url = this.url || this.config.url;
-        }
-        const ret = this._startInit(url)
-        return ret
-      }).catch((e) => {
-        e.fileName = 'player'
-        e.lineNumber = '236'
-        throw e
-      })
+      return
     }
+    this.hasStart = true
+    return pluginsManager.beforeInit(this).then(() => {
+      if (!url) {
+        url = this.url || this.config.url;
+      }
+      const ret = this._startInit(url)
+      return ret
+    }).catch((e) => {
+      e.fileName = 'player'
+      e.lineNumber = '236'
+      throw e
+    })
   }
 
   load () {
@@ -388,15 +387,16 @@ class Player extends Proxy {
         this.removeClass(STATE_CLASS.NOT_ALLOW_AUTOPLAY)
         this.removeClass(STATE_CLASS.NO_START)
         this.addClass(STATE_CLASS.PLAYING)
+        this.config.closePlayVideoFocus && !this.isPlaying && this.emit(Events.PLAYER_BLUR)
         this.isPlaying = true
-        // 自动播放异常 点击播放之后不触发play问题
-        this.emit(Events.PLAY)
+        this.emit(Events.AUTOPLAY_STARTED)
       }).catch((e) => {
         console.log('>>>>playPromise.catch')
         // 避免AUTOPLAY_PREVENTED先于playing和play触发
         setTimeout(() => {
           this.emit(Events.AUTOPLAY_PREVENTED)
           this.addClass(STATE_CLASS.NOT_ALLOW_AUTOPLAY)
+          this.pause()
         }, 0)
         // throw e
       })
@@ -549,7 +549,7 @@ class Player extends Proxy {
     // this.removeClass(STATE_CLASS.NOT_ALLOW_AUTOPLAY)
     this.removeClass(STATE_CLASS.PAUSED)
     this.ended && this.removeClass(STATE_CLASS.ENDED)
-    this.emit(Events.PLAYER_FOCUS)
+    !this.config.closePlayVideoFocus && this.emit(Events.PLAYER_FOCUS)
   }
 
   onPause () {
