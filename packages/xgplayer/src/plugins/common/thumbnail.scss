@@ -1,0 +1,29 @@
+.xgplayer {
+  xg-thumbnail {
+    display: none;
+    position: relative;
+    box-sizing: border-box;
+    border-radius: 4px;
+    margin: 0 auto 10px;
+    &.show {
+      display: block;
+    }
+  }
+
+  @media only screen and (min-width: 480px){
+    xg-thumbnail {
+      width: 160px;
+      height: 90px;
+    }
+  }
+
+  @media only screen and (max-width: 480px) {
+    xg-thumbnail {
+      width: 120px;
+      height: 67px;
+      &.portrait {
+        display: none;
+      }
+    }
+  }
+}

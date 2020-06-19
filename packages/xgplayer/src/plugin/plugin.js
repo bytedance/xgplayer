@@ -64,7 +64,6 @@ function createIcon (icon, key, classname = '', attr = {}) {
   }
 
   if (typeof icon === 'string') {
-    console.log('icon', icon)
     return Util.createDomFromHtml(icon, attr, classname);
   }
   console.warn(`[xgplayer]warn>>config of icons.${key} is invalid`);
