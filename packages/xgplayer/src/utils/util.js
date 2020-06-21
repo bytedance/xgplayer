@@ -273,7 +273,7 @@ util.getFullScreenEl = function () {
 }
 
 util.checkIsFunction = function (fun) {
-  return typeof fun === 'function'
+  return fun && typeof fun === 'function'
 }
 
 util.checkIsObject = function (obj) {
@@ -287,4 +287,11 @@ util.hide = function (dom) {
 util.show = function (dom, display) {
   dom.style.display = display || 'block'
 }
+
+util.isUndefined = function (val) {
+  if (typeof val === 'undefined' || val === null) {
+    return true
+  }
+}
+
 export default util
