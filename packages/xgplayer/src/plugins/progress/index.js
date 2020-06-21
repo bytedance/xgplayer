@@ -20,7 +20,10 @@ class Progress extends Plugin {
       thumbnail: null,
       disable: false,
       isDragingSeek: true, // 是否在拖拽的过程中更新currentTime
-      closeMoveSeek: false // 是否关闭滑块seek能力
+      closeMoveSeek: false, // 是否关闭滑块seek能力
+      onMoveStart: () => {
+      }, // 手势开始移动回调
+      onMoveEnd: () => {} // 手势移动结束回调
     }
   }
 
@@ -138,21 +141,26 @@ class Progress extends Plugin {
   }
 
   mouseDown (e) {
-    const {player} = this
-    if (player.isMini || this.config.closeMoveSeek) {
+    const {player, config, playerConfig, pointTip} = this
+    if (player.isMini || config.closeMoveSeek) {
       return
     }
     e.preventDefault()
     e.stopPropagation()
     Util.event(e)
     // this.pointTip为tip信息 不做seek操作
-    if (e.target === this.pointTip || (!player.config.allowSeekAfterEnded && player.ended)) {
+    if (e.target === pointTip || (!playerConfig.allowSeekAfterEnded && player.ended)) {
       return true
     }
-    this.player.emit(Events.PLAYER_FOCUS, {autoHide: false})
+
+    Util.checkIsFunction(config.onMoveStart) && config.onMoveStart()
+
+    player.emit(Events.PLAYER_FOCUS, {autoHide: false})
     this.isProgressMoving = true
     Util.addClass(this.progressBtn, 'moving')
+
     this.computeWidth(e, false)
+
     const move = (e) => {
       e.preventDefault()
       e.stopPropagation()
@@ -162,6 +170,7 @@ class Progress extends Plugin {
     }
 
     const up = (e) => {
+      const {player, config} = this
       e.preventDefault()
       e.stopPropagation()
       Util.event(e)
@@ -173,12 +182,13 @@ class Progress extends Plugin {
         this.root.removeEventListener('mousemove', move)
         this.root.removeEventListener('mouseup', up)
       }
+      Util.checkIsFunction(config.onMoveEnd) && config.onMoveEnd()
       this.computeWidth(e, false)
       setTimeout(() => {
         this.resetSeekState()
       }, 10)
       this.triggerCallbacks('dragend', {})
-      this.player.emit(Events.PLAYER_FOCUS)
+      player.emit(Events.PLAYER_FOCUS)
     }
 
     if (Sniffer.device === 'mobile') {
