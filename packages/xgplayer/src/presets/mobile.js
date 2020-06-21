@@ -14,11 +14,12 @@ import DownLoadIcon from '../plugins/download'
 import ScreenShotIcon from '../plugins/screenShot'
 import DefinitionIcon from '../plugins/definition'
 import PlaybackRateIcon from '../plugins/playbackRate'
+import Volume from '../plugins/volume'
 
 export default class DefaultPreset {
   constructor () {
     const contolsIcons = [Mobile, Progress, PlayIcon, FullScreen, TimeIcon,
-      RotateIcon, PlayNextIcon, DefinitionIcon, PlaybackRateIcon, DownLoadIcon, ScreenShotIcon]
+      RotateIcon, PlayNextIcon, DefinitionIcon, PlaybackRateIcon, DownLoadIcon, ScreenShotIcon, Volume]
     const layers = [Replay, Poster, Start, Loading, Enter]
 
     this.plugins = [...contolsIcons, ...layers]
