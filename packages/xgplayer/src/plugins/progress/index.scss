@@ -14,6 +14,7 @@
     outline: none;
     z-index: 35;
     flex: 1;
+    cursor: pointer;
   }
   .xgplayer-progress-outer {
     background: $progressOuterBgColor;
@@ -59,6 +60,9 @@
     transform: translate(-50%, 0);
     z-index: 17;
     box-shadow: 0 0 1px 5px rgba(255,0,0,0.38);
+    &.moving {
+      box-shadow: 0 0 1px 10px rgba(255,0,0,0.38)
+    }
   }
   .xgplayer-progress-point {
     position: absolute;
@@ -98,14 +102,12 @@
       }
     }
   }
-  .xgplayer-progress-thumbnail {
+  .progress-thumbnail {
     position: absolute;
     box-sizing: border-box;
-    &.xgplayer-tips {
-      margin-left: 0;
-      display: none;
-      z-index: 99;
-    }
+    top: -10px;
+    transform: translateY(-100%);
+    opacity: 1;
   }
 
   .xgplayer-progress:hover,.xgplayer-progress:focus {
@@ -118,10 +120,6 @@
       display: block;
       top: -3px;
     }
-  }
-
-  .btn-move {
-    box-shadow: 0 0 1px 10px rgba(255,0,0,0.38)
   }
 
   .mini-controls {
@@ -138,7 +136,7 @@
         opacity: 0;
       }
     }
-    .xgplayer-progress-thumbnail {
+    .progress-thumbnail {
       opacity: 0;
     }
 
@@ -158,8 +156,8 @@
 .xgplayer-mobile {
   .xgplayer-progress:hover,.xgplayer-progress:focus {
     .xgplayer-progress-outer {
-      height: 3px;
-      margin-top: 8.5px;
+      height: 2px;
+      margin-top: 8px;
     }
 
     .xgplayer-progress-btn {
@@ -169,9 +167,11 @@
   }
   .xgplayer-progress-btn {
     display: block;
-  }
-
-  .btn-move {
-    box-shadow: 0 0 1px 10px rgba(255,0,0,0.38)
+    top: -4px;
+    width: 10px;
+    height: 10px;
+    &.moving {
+      box-shadow: 0 0 1px 10px rgba(255,0,0,0.38)
+    }
   }
 }

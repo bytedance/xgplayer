@@ -6,53 +6,87 @@ import pluginsManager from './pluginsManager'
 import BasePlugin, {Util} from './basePlugin'
 import * as delegate from 'delegate-events'
 
-// const {Util} = BasePlugin
-function _createElement (tag, name, attr = {}) {
-  const dom = document.createElement(tag)
-  dom.className = name
-  attr && Object.keys(attr).map(key => {
-    dom.setAttribute(key, attr[key])
-  })
-  return dom
+function isUrl (str) {
+  if (!str) {
+    return false;
+  }
+  return str.indexOf && /^http/.test(str);
 }
 
-function isUrl (str) {
-  return str.indexOf && /^http/.test(str);
+function mergeIconClass (icon, classname) {
+  if (typeof icon === 'object' && icon.class && typeof icon.class === 'string') {
+    return `${classname} ${icon.class}`
+  }
+  return classname
+}
+
+function mergeIconAttr (icon, attr) {
+  if (typeof icon === 'object' && icon.attr && typeof icon.attr === 'object') {
+    Object.keys(icon.attr).map(key => {
+      attr[key] = icon.attr[key]
+    })
+  }
+  return attr
+}
+
+function createIcon (icon, key, classname = '', attr = {}) {
+  let newIcon = null;
+  if (icon instanceof window.Element) {
+    Util.addClass(icon, classname);
+    Object.keys(attr).map(key => {
+      icon.setAttribute(key, attr[key]);
+    })
+    return icon;
+  }
+
+  if (isUrl(icon) || isUrl(icon.url)) {
+    attr.src = isUrl(icon) ? icon : (icon.url || '');
+    newIcon = Util.createDom(icon.tag || 'img', '', attr, `xg-img ${classname}`);
+    return newIcon;
+  }
+
+  if (typeof icon === 'function') {
+    try {
+      newIcon = icon();
+      if (newIcon instanceof window.Element) {
+        Util.addClass(newIcon, classname);
+        Object.keys(attr).map(key => {
+          newIcon.setAttribute(key, attr[key]);
+        })
+        return newIcon;
+      } else {
+        console.warn(`[xgplayer]warn>>config of icons.${key} is a function mast return an Element Object`)
+      }
+      return null;
+    } catch (e) {
+      return null;
+    }
+  }
+
+  if (typeof icon === 'string') {
+    return Util.createDomFromHtml(icon, attr, classname);
+  }
+  console.warn(`[xgplayer]warn>>config of icons.${key} is invalid`);
+  return null;
 }
 
 function registerIconsObj (iconsConfig, plugin) {
   const _icons = plugin.config.icons || plugin.playerConfig.icons
   Object.keys(iconsConfig).map(key => {
-    const orgIcon = iconsConfig[key] || {}
-    const classname = orgIcon.class || ''
-    const attr = orgIcon.attr || {}
-    let _icon = null
+    const orgIcon = iconsConfig[key] || {};
+    let classname = orgIcon.class || '';
+    let attr = orgIcon.attr || {};
+    let newIcon = null;
     if (_icons && _icons[key]) {
-      _icon = _icons[key]
-      if (_icon instanceof window.Element) {
-        Util.addClass(_icon, classname)
-        Object.keys(attr).map(key => {
-          _icon.setAttribute(key, attr[key])
-        })
-      } else if (isUrl(_icon)) {
-        _icon = Util.createDom('img', '', {src: _icon}, attr, `xg-img ${classname}`)
-      } else if (typeof _icon === 'function') {
-        _icon = _icon(classname, attr)
-        if (_icon instanceof window.Element) {
-          Util.addClass(_icon, classname)
-          Object.keys(attr).map(key => {
-            _icon.setAttribute(key, attr[key])
-          })
-        }
-      } else {
-        _icon = Util.createDomFromHtml(_icon, attr, classname)
-      }
+      classname = mergeIconClass(_icons[key], classname);
+      attr = mergeIconAttr(_icons[key], attr);
+      newIcon = createIcon(_icons[key], key, classname, attr)
     }
-    if (!_icon) {
-      _icon = orgIcon.icon ? orgIcon.icon : orgIcon
-      _icon = _icon instanceof window.Element ? _icon : Util.createDomFromHtml(_icon, attr, classname)
+    if (!newIcon) {
+      newIcon = orgIcon.icon ? orgIcon.icon : orgIcon
+      newIcon = newIcon instanceof window.Element ? newIcon : Util.createDomFromHtml(newIcon, attr, classname)
     }
-    plugin.icons[key] = _icon
+    plugin.icons[key] = newIcon
   })
 }
 
@@ -139,7 +173,7 @@ export default class Plugin extends BasePlugin {
     if (renderStr) {
       _el = Plugin.insert(renderStr, _parent, args.index)
     } else if (args.tag) {
-      _el = _createElement(args.tag, args.name)
+      _el = Util.createDom(args.tag, '', args.attr, args.name)
       _parent.appendChild(_el)
     } else {
       return

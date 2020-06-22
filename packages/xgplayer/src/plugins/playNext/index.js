@@ -3,8 +3,7 @@
  */
 import Plugin from '../../plugin'
 import Next from '../assets/playNext.svg'
-// import Next from '../assets/mPlayNext.svg';
-// console.log(MPlayNext)
+
 const {POSITIONS, Sniffer} = Plugin
 export default class PlayNextIcon extends Plugin {
   static get pluginName () {
