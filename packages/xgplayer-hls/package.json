@@ -1,6 +1,6 @@
 {
   "name": "xgplayer-hls",
-  "version": "3.0.0-alpha.15",
+  "version": "3.0.0-alpha.16",
   "description": "xgplayer plugin for hls",
   "main": "./lib/index.js",
   "module": "./es/index.js",
@@ -36,8 +36,8 @@
   "author": "yinguohui@bytedance.com",
   "license": "MIT",
   "dependencies": {
-    "xgplayer-hls-live": "3.0.0-alpha.15",
-    "xgplayer-hls-vod": "3.0.0-alpha.15"
+    "xgplayer-hls-live": "3.0.0-alpha.16",
+    "xgplayer-hls-vod": "3.0.0-alpha.16"
   },
   "devDependencies": {
     "cross-env": "^6.0.3"

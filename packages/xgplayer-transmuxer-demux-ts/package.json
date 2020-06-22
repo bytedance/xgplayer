@@ -1,6 +1,6 @@
 {
   "name": "xgplayer-transmuxer-demux-ts",
-  "version": "3.0.0-alpha.15",
+  "version": "3.0.0-alpha.16",
   "description": "",
   "main": "lib/index.js",
   "module": "es/index.js",
@@ -24,12 +24,12 @@
     ]
   },
   "dependencies": {
-    "xgplayer-transmuxer-constant-events":  "3.0.0-alpha.15",
-    "xgplayer-transmuxer-buffer-stream": "3.0.0-alpha.15",
-    "xgplayer-transmuxer-codec-avc":  "3.0.0-alpha.15",
-    "xgplayer-transmuxer-buffer-track": "3.0.0-alpha.15",
-    "xgplayer-transmuxer-model-trackmeta":  "3.0.0-alpha.15",
-    "xgplayer-transmuxer-model-tracksample": "3.0.0-alpha.15",
-    "xgplayer-transmuxer-codec-hevc": "3.0.0-alpha.15"
+    "xgplayer-transmuxer-constant-events":  "3.0.0-alpha.16",
+    "xgplayer-transmuxer-buffer-stream": "3.0.0-alpha.16",
+    "xgplayer-transmuxer-codec-avc":  "3.0.0-alpha.16",
+    "xgplayer-transmuxer-buffer-track": "3.0.0-alpha.16",
+    "xgplayer-transmuxer-model-trackmeta":  "3.0.0-alpha.16",
+    "xgplayer-transmuxer-model-tracksample": "3.0.0-alpha.16",
+    "xgplayer-transmuxer-codec-hevc": "3.0.0-alpha.16"
   }
 }
