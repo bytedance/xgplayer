@@ -268,6 +268,8 @@ declare module 'xgplayer' {
         allowSeekAfterEnded?: boolean;
 
         allowPlayAfterEnded?: boolean;
+
+        disableStartLoad?: boolean;
     }
 
     class Proxy extends EventEmitter {

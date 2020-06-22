@@ -233,7 +233,9 @@ class Player extends Proxy {
         })
       }
     }
-    this.video.load()
+    if(!this.config.disableStartLoad) {
+      this.video.load()
+    }
     root.insertBefore(this.video, root.firstChild)
     setTimeout(() => {
       this.emit('complete')
