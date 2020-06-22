@@ -1799,9 +1799,21 @@
 
   var NalUnit = Nalunit;
 
-  var _createClass$7 = function () { function defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ("value" in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } } return function (Constructor, protoProps, staticProps) { if (protoProps) defineProperties(Constructor.prototype, protoProps); if (staticProps) defineProperties(Constructor, staticProps); return Constructor; }; }();
+  var _createClass$7 = function () {
+    function defineProperties(target, props) {
+      for (var i = 0; i < props.length; i++) {
+        var descriptor = props[i];descriptor.enumerable = descriptor.enumerable || false;descriptor.configurable = true;if ("value" in descriptor) descriptor.writable = true;Object.defineProperty(target, descriptor.key, descriptor);
+      }
+    }return function (Constructor, protoProps, staticProps) {
+      if (protoProps) defineProperties(Constructor.prototype, protoProps);if (staticProps) defineProperties(Constructor, staticProps);return Constructor;
+    };
+  }();
 
-  function _classCallCheck$7(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } }
+  function _classCallCheck$7(instance, Constructor) {
+    if (!(instance instanceof Constructor)) {
+      throw new TypeError("Cannot call a class as a function");
+    }
+  }
 
   var Stream = function () {
     function Stream(buffer) {
@@ -1953,9 +1965,21 @@
     return Stream;
   }();
 
-  var _createClass$8 = function () { function defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ("value" in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } } return function (Constructor, protoProps, staticProps) { if (protoProps) defineProperties(Constructor.prototype, protoProps); if (staticProps) defineProperties(Constructor, staticProps); return Constructor; }; }();
+  var _createClass$8 = function () {
+    function defineProperties(target, props) {
+      for (var i = 0; i < props.length; i++) {
+        var descriptor = props[i];descriptor.enumerable = descriptor.enumerable || false;descriptor.configurable = true;if ("value" in descriptor) descriptor.writable = true;Object.defineProperty(target, descriptor.key, descriptor);
+      }
+    }return function (Constructor, protoProps, staticProps) {
+      if (protoProps) defineProperties(Constructor.prototype, protoProps);if (staticProps) defineProperties(Constructor, staticProps);return Constructor;
+    };
+  }();
 
-  function _classCallCheck$8(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } }
+  function _classCallCheck$8(instance, Constructor) {
+    if (!(instance instanceof Constructor)) {
+      throw new TypeError("Cannot call a class as a function");
+    }
+  }
 
   var AudioTrackMeta = function () {
     function AudioTrackMeta(meta) {
@@ -3027,8 +3051,6 @@
     }T && !T.forcePolyfill && "function" == typeof T.define && "function" == typeof T.get || Ja();window.__CE_installPolyfill = Ja;
   }).call(self);
 
-  //# sourceMappingURL=custom-elements.min.js.map
-
   /**
    * @license
    * Copyright (c) 2016 The Polymer Project Authors. All rights reserved.
@@ -3673,9 +3695,837 @@
     }
   }
 
+  var Golomb$1 = function () {
+    function Golomb(uint8array) {
+      _classCallCheck$e(this, Golomb);
+
+      this.TAG = 'Golomb';
+      this._buffer = uint8array;
+      this._bufferIndex = 0;
+      this._totalBytes = uint8array.byteLength;
+      this._totalBits = uint8array.byteLength * 8;
+      this._currentWord = 0;
+      this._currentWordBitsLeft = 0;
+    }
+
+    _createClass$e(Golomb, [{
+      key: 'destroy',
+      value: function destroy() {
+        this._buffer = null;
+      }
+    }, {
+      key: '_fillCurrentWord',
+      value: function _fillCurrentWord() {
+        var bufferBytesLeft = this._totalBytes - this._bufferIndex;
+
+        var bytesRead = Math.min(4, bufferBytesLeft);
+        var word = new Uint8Array(4);
+        word.set(this._buffer.subarray(this._bufferIndex, this._bufferIndex + bytesRead));
+        this._currentWord = new DataView(word.buffer).getUint32(0);
+
+        this._bufferIndex += bytesRead;
+        this._currentWordBitsLeft = bytesRead * 8;
+      }
+    }, {
+      key: 'readBits',
+      value: function readBits(size) {
+        var bits = Math.min(this._currentWordBitsLeft, size); // :uint
+        var valu = this._currentWord >>> 32 - bits;
+        if (size > 32) {
+          throw new Error('Cannot read more than 32 bits at a time');
+        }
+        this._currentWordBitsLeft -= bits;
+        if (this._currentWordBitsLeft > 0) {
+          this._currentWord <<= bits;
+        } else if (this._totalBytes - this._bufferIndex > 0) {
+          this._fillCurrentWord();
+        }
+
+        bits = size - bits;
+        if (bits > 0 && this._currentWordBitsLeft) {
+          return valu << bits | this.readBits(bits);
+        } else {
+          return valu;
+        }
+      }
+    }, {
+      key: 'readBool',
+      value: function readBool() {
+        return this.readBits(1) === 1;
+      }
+    }, {
+      key: 'readByte',
+      value: function readByte() {
+        return this.readBits(8);
+      }
+    }, {
+      key: '_skipLeadingZero',
+      value: function _skipLeadingZero() {
+        var zeroCount = void 0;
+        for (zeroCount = 0; zeroCount < this._currentWordBitsLeft; zeroCount++) {
+          if ((this._currentWord & 0x80000000 >>> zeroCount) !== 0) {
+            this._currentWord <<= zeroCount;
+            this._currentWordBitsLeft -= zeroCount;
+            return zeroCount;
+          }
+        }
+        this._fillCurrentWord();
+        return zeroCount + this._skipLeadingZero();
+      }
+    }, {
+      key: 'readUEG',
+      value: function readUEG() {
+        // unsigned exponential golomb
+        var leadingZeros = this._skipLeadingZero();
+        return this.readBits(leadingZeros + 1) - 1;
+      }
+    }, {
+      key: 'readSEG',
+      value: function readSEG() {
+        // signed exponential golomb
+        var value = this.readUEG();
+        if (value & 0x01) {
+          return value + 1 >>> 1;
+        } else {
+          return -1 * (value >>> 1);
+        }
+      }
+    }]);
+
+    return Golomb;
+  }();
+
+  var _createClass$f = function () {
+    function defineProperties(target, props) {
+      for (var i = 0; i < props.length; i++) {
+        var descriptor = props[i];descriptor.enumerable = descriptor.enumerable || false;descriptor.configurable = true;if ("value" in descriptor) descriptor.writable = true;Object.defineProperty(target, descriptor.key, descriptor);
+      }
+    }return function (Constructor, protoProps, staticProps) {
+      if (protoProps) defineProperties(Constructor.prototype, protoProps);if (staticProps) defineProperties(Constructor, staticProps);return Constructor;
+    };
+  }();
+
+  function _classCallCheck$f(instance, Constructor) {
+    if (!(instance instanceof Constructor)) {
+      throw new TypeError("Cannot call a class as a function");
+    }
+  }
+
+  var SPSParser$1 = function () {
+    function SPSParser() {
+      _classCallCheck$f(this, SPSParser);
+    }
+
+    _createClass$f(SPSParser, null, [{
+      key: '_ebsp2rbsp',
+      value: function _ebsp2rbsp(uint8array) {
+        var src = uint8array;
+        var srcLength = src.byteLength;
+        var dst = new Uint8Array(srcLength);
+        var dstIdx = 0;
+
+        for (var i = 0; i < srcLength; i++) {
+          if (i >= 2) {
+            if (src[i] === 0x03 && src[i - 1] === 0x00 && src[i - 2] === 0x00) {
+              continue;
+            }
+          }
+          dst[dstIdx] = src[i];
+          dstIdx++;
+        }
+
+        return new Uint8Array(dst.buffer, 0, dstIdx);
+      }
+    }, {
+      key: 'parseSPS',
+      value: function parseSPS(uint8array) {
+        var rbsp = SPSParser._ebsp2rbsp(uint8array);
+        var gb = new Golomb$1(rbsp);
+
+        gb.readByte();
+        var profileIdc = gb.readByte();
+        gb.readByte();
+        var levelIdc = gb.readByte();
+        gb.readUEG();
+
+        var profile_string = SPSParser.getProfileString(profileIdc);
+        var level_string = SPSParser.getLevelString(levelIdc);
+        var chroma_format_idc = 1;
+        var chroma_format = 420;
+        var chroma_format_table = [0, 420, 422, 444];
+        var bit_depth = 8;
+
+        if (profileIdc === 100 || profileIdc === 110 || profileIdc === 122 || profileIdc === 244 || profileIdc === 44 || profileIdc === 83 || profileIdc === 86 || profileIdc === 118 || profileIdc === 128 || profileIdc === 138 || profileIdc === 144) {
+          chroma_format_idc = gb.readUEG();
+          if (chroma_format_idc === 3) {
+            gb.readBits(1);
+          }
+          if (chroma_format_idc <= 3) {
+            chroma_format = chroma_format_table[chroma_format_idc];
+          }
+
+          bit_depth = gb.readUEG() + 8;
+          gb.readUEG();
+          gb.readBits(1);
+          if (gb.readBool()) {
+            var scaling_list_count = chroma_format_idc !== 3 ? 8 : 12;
+            for (var i = 0; i < scaling_list_count; i++) {
+              if (gb.readBool()) {
+                if (i < 6) {
+                  SPSParser._skipScalingList(gb, 16);
+                } else {
+                  SPSParser._skipScalingList(gb, 64);
+                }
+              }
+            }
+          }
+        }
+        gb.readUEG();
+        var pic_order_cnt_type = gb.readUEG();
+        if (pic_order_cnt_type === 0) {
+          gb.readUEG();
+        } else if (pic_order_cnt_type === 1) {
+          gb.readBits(1);
+          gb.readSEG();
+          gb.readSEG();
+          var num_ref_frames_in_pic_order_cnt_cycle = gb.readUEG();
+          for (var _i = 0; _i < num_ref_frames_in_pic_order_cnt_cycle; _i++) {
+            gb.readSEG();
+          }
+        }
+        gb.readUEG();
+        gb.readBits(1);
+
+        var pic_width_in_mbs_minus1 = gb.readUEG();
+        var pic_height_in_map_units_minus1 = gb.readUEG();
+
+        var frame_mbs_only_flag = gb.readBits(1);
+        if (frame_mbs_only_flag === 0) {
+          gb.readBits(1);
+        }
+        gb.readBits(1);
+
+        var frame_crop_left_offset = 0;
+        var frame_crop_right_offset = 0;
+        var frame_crop_top_offset = 0;
+        var frame_crop_bottom_offset = 0;
+
+        var frame_cropping_flag = gb.readBool();
+        if (frame_cropping_flag) {
+          frame_crop_left_offset = gb.readUEG();
+          frame_crop_right_offset = gb.readUEG();
+          frame_crop_top_offset = gb.readUEG();
+          frame_crop_bottom_offset = gb.readUEG();
+        }
+
+        var par_width = 1,
+            par_height = 1;
+        var fps = 0,
+            fps_fixed = true,
+            fps_num = 0,
+            fps_den = 0;
+
+        var vui_parameters_present_flag = gb.readBool();
+        if (vui_parameters_present_flag) {
+          if (gb.readBool()) {
+            // aspect_ratio_info_present_flag
+            var aspect_ratio_idc = gb.readByte();
+            var par_w_table = [1, 12, 10, 16, 40, 24, 20, 32, 80, 18, 15, 64, 160, 4, 3, 2];
+            var par_h_table = [1, 11, 11, 11, 33, 11, 11, 11, 33, 11, 11, 33, 99, 3, 2, 1];
+
+            if (aspect_ratio_idc > 0 && aspect_ratio_idc < 16) {
+              par_width = par_w_table[aspect_ratio_idc - 1];
+              par_height = par_h_table[aspect_ratio_idc - 1];
+            } else if (aspect_ratio_idc === 255) {
+              par_width = gb.readByte() << 8 | gb.readByte();
+              par_height = gb.readByte() << 8 | gb.readByte();
+            }
+          }
+
+          if (gb.readBool()) {
+            gb.readBool();
+          }
+          if (gb.readBool()) {
+            gb.readBits(4);
+            if (gb.readBool()) {
+              gb.readBits(24);
+            }
+          }
+          if (gb.readBool()) {
+            gb.readUEG();
+            gb.readUEG();
+          }
+          if (gb.readBool()) {
+            var num_units_in_tick = gb.readBits(32);
+            var time_scale = gb.readBits(32);
+            fps_fixed = gb.readBool();
+
+            fps_num = time_scale;
+            fps_den = num_units_in_tick * 2;
+            fps = fps_num / fps_den;
+          }
+        }
+
+        var parScale = 1;
+        if (par_width !== 1 || par_height !== 1) {
+          parScale = par_width / par_height;
+        }
+
+        var crop_unit_x = 0,
+            crop_unit_y = 0;
+        if (chroma_format_idc === 0) {
+          crop_unit_x = 1;
+          crop_unit_y = 2 - frame_mbs_only_flag;
+        } else {
+          var sub_wc = chroma_format_idc === 3 ? 1 : 2;
+          var sub_hc = chroma_format_idc === 1 ? 2 : 1;
+          crop_unit_x = sub_wc;
+          crop_unit_y = sub_hc * (2 - frame_mbs_only_flag);
+        }
+
+        var codec_width = (pic_width_in_mbs_minus1 + 1) * 16;
+        var codec_height = (2 - frame_mbs_only_flag) * ((pic_height_in_map_units_minus1 + 1) * 16);
+
+        codec_width -= (frame_crop_left_offset + frame_crop_right_offset) * crop_unit_x;
+        codec_height -= (frame_crop_top_offset + frame_crop_bottom_offset) * crop_unit_y;
+
+        var present_width = Math.ceil(codec_width * parScale);
+
+        gb.destroy();
+        gb = null;
+
+        return {
+          profile_string: profile_string,
+          level_string: level_string,
+          bit_depth: bit_depth,
+          chroma_format: chroma_format,
+          chroma_format_string: SPSParser.getChromaFormatString(chroma_format),
+
+          frame_rate: {
+            fixed: fps_fixed,
+            fps: fps,
+            fps_den: fps_den,
+            fps_num: fps_num
+          },
+
+          par_ratio: {
+            width: par_width,
+            height: par_height
+          },
+
+          codec_size: {
+            width: codec_width,
+            height: codec_height
+          },
+
+          present_size: {
+            width: present_width,
+            height: codec_height
+          }
+        };
+      }
+    }, {
+      key: '_skipScalingList',
+      value: function _skipScalingList(gb, count) {
+        var lastScale = 8;
+        var nextScale = 8;
+        var deltaScale = 0;
+        for (var i = 0; i < count; i++) {
+          if (nextScale !== 0) {
+            deltaScale = gb.readSEG();
+            nextScale = (lastScale + deltaScale + 256) % 256;
+          }
+          lastScale = nextScale === 0 ? lastScale : nextScale;
+        }
+      }
+    }, {
+      key: 'getProfileString',
+      value: function getProfileString(profileIdc) {
+        switch (profileIdc) {
+          case 66:
+            return 'Baseline';
+          case 77:
+            return 'Main';
+          case 88:
+            return 'Extended';
+          case 100:
+            return 'High';
+          case 110:
+            return 'High10';
+          case 122:
+            return 'High422';
+          case 244:
+            return 'High444';
+          default:
+            return 'Unknown';
+        }
+      }
+    }, {
+      key: 'getLevelString',
+      value: function getLevelString(levelIdc) {
+        return (levelIdc / 10).toFixed(1);
+      }
+    }, {
+      key: 'getChromaFormatString',
+      value: function getChromaFormatString(chroma) {
+        switch (chroma) {
+          case 420:
+            return '4:2:0';
+          case 422:
+            return '4:2:2';
+          case 444:
+            return '4:4:4';
+          default:
+            return 'Unknown';
+        }
+      }
+    }, {
+      key: 'toVideoMeta',
+      value: function toVideoMeta(spsConfig) {
+        var meta = {};
+        if (spsConfig && spsConfig.codec_size) {
+          meta.codecWidth = spsConfig.codec_size.width;
+          meta.codecHeight = spsConfig.codec_size.height;
+          meta.presentWidth = spsConfig.present_size.width;
+          meta.presentHeight = spsConfig.present_size.height;
+        }
+
+        meta.profile = spsConfig.profile_string;
+        meta.level = spsConfig.level_string;
+        meta.bitDepth = spsConfig.bit_depth;
+        meta.chromaFormat = spsConfig.chroma_format;
+
+        meta.parRatio = {
+          width: spsConfig.par_ratio.width,
+          height: spsConfig.par_ratio.height
+        };
+
+        meta.frameRate = spsConfig.frame_rate;
+
+        var fpsDen = meta.frameRate.fps_den;
+        var fpsNum = meta.frameRate.fps_num;
+        meta.refSampleDuration = Math.floor(meta.timescale * (fpsDen / fpsNum));
+        return meta;
+      }
+    }]);
+
+    return SPSParser;
+  }();
+
+  var _createClass$g = function () {
+    function defineProperties(target, props) {
+      for (var i = 0; i < props.length; i++) {
+        var descriptor = props[i];descriptor.enumerable = descriptor.enumerable || false;descriptor.configurable = true;if ("value" in descriptor) descriptor.writable = true;Object.defineProperty(target, descriptor.key, descriptor);
+      }
+    }return function (Constructor, protoProps, staticProps) {
+      if (protoProps) defineProperties(Constructor.prototype, protoProps);if (staticProps) defineProperties(Constructor, staticProps);return Constructor;
+    };
+  }();
+
+  function _classCallCheck$g(instance, Constructor) {
+    if (!(instance instanceof Constructor)) {
+      throw new TypeError("Cannot call a class as a function");
+    }
+  }
+
+  var RBSP$1 = function () {
+    function RBSP() {
+      _classCallCheck$g(this, RBSP);
+    }
+
+    _createClass$g(RBSP, null, [{
+      key: "EBSP2RBSP",
+
+      /**
+       * convert EBSP to RBSP
+       * @param data {Uint8Array}
+       * @returns {Uint8Array}
+       * @constructor
+       */
+      value: function EBSP2RBSP(data) {
+        return data.filter(function (el, idx) {
+          if (idx < 2) {
+            return true;
+          } else {
+            return !(data[idx - 2] === 0 && data[idx - 1] === 0 && el === 3);
+          }
+        });
+      }
+
+      /**
+       * @param data {Uint8Array}
+       * @constructor
+       */
+
+    }, {
+      key: "EBSP2SODB",
+      value: function EBSP2SODB(data) {
+        var lastByte = data[data.byteLength - 1];
+        if (lastByte && lastByte === 128) {
+          return data.slice(0, data.byteLength - 1);
+        }
+
+        return data;
+      }
+    }]);
+
+    return RBSP;
+  }();
+
+  var _createClass$h = function () {
+    function defineProperties(target, props) {
+      for (var i = 0; i < props.length; i++) {
+        var descriptor = props[i];descriptor.enumerable = descriptor.enumerable || false;descriptor.configurable = true;if ("value" in descriptor) descriptor.writable = true;Object.defineProperty(target, descriptor.key, descriptor);
+      }
+    }return function (Constructor, protoProps, staticProps) {
+      if (protoProps) defineProperties(Constructor.prototype, protoProps);if (staticProps) defineProperties(Constructor, staticProps);return Constructor;
+    };
+  }();
+
+  function _classCallCheck$h(instance, Constructor) {
+    if (!(instance instanceof Constructor)) {
+      throw new TypeError("Cannot call a class as a function");
+    }
+  }
+
+  var u8aToString$1 = function u8aToString(data) {
+    var result = '';
+    for (var i = 0; i < data.byteLength; i++) {
+      result += String.fromCharCode(data[i]);
+    }
+    return result;
+  };
+
+  var SEIParser$1 = function () {
+    function SEIParser() {
+      _classCallCheck$h(this, SEIParser);
+    }
+
+    _createClass$h(SEIParser, null, [{
+      key: '_resolveNalu',
+      value: function _resolveNalu(data) {
+        if (data.length >= 1) {
+          return RBSP$1.EBSP2SODB(RBSP$1.EBSP2RBSP(data.slice(1)));
+        }
+        return null;
+      }
+      /**
+       *
+       * @param data {Uint8Array}
+       */
+
+    }, {
+      key: 'parse',
+      value: function parse(data) {
+        var sodb = SEIParser._resolveNalu(data);
+
+        var _SEIParser$switchPayl = SEIParser.switchPayloadType(sodb),
+            payloadType = _SEIParser$switchPayl.payloadType,
+            offset = _SEIParser$switchPayl.offset;
+
+        var content = sodb.slice(offset);
+
+        switch (payloadType) {
+          case 5:
+            return SEIParser.user_data_unregistered(content);
+          default:
+            return {
+              code: payloadType,
+              content: content
+            };
+        }
+      }
+
+      /**
+       *
+       * @param data
+       * @returns {{payloadType: number, offset: number}}
+       */
+
+    }, {
+      key: 'switchPayloadType',
+      value: function switchPayloadType(data) {
+        var dv = new DataView(data.buffer);
+        var payloadType = 0;
+        var offset = 0;
+        while (dv.getUint8(offset) === 255) {
+          offset++;
+          payloadType += 255;
+        }
+        payloadType += dv.getUint8(offset++);
+
+        return {
+          payloadType: payloadType,
+          offset: offset
+        };
+      }
+
+      /**
+       *
+       * @param data {Uint8Array}
+       * @return {{ payloadLength: number, offset: number }}
+       */
+
+    }, {
+      key: 'getPayloadLength',
+      value: function getPayloadLength(data) {
+        var dv = new DataView(data.buffer);
+
+        var payloadLength = 0;
+        var offset = 0;
+        while (dv.getUint8(offset) === 255) {
+          offset++;
+          payloadLength += 255;
+        }
+        payloadLength += dv.getUint8(offset++);
+
+        return {
+          payloadLength: payloadLength,
+          offset: offset
+        };
+      }
+
+      /**
+       * resolve 0x05 user data unregistered
+       * @param data {Uint8Array}
+       */
+      // eslint-disable-next-line camelcase
+
+    }, {
+      key: 'user_data_unregistered',
+      value: function user_data_unregistered(data) {
+        var _SEIParser$getPayload = SEIParser.getPayloadLength(data),
+            payloadLength = _SEIParser$getPayload.payloadLength,
+            offset = _SEIParser$getPayload.offset;
+
+        if (payloadLength < 16) {
+          return {
+            uuid: '',
+            content: null
+          };
+        }
+        var payload = data.slice(offset);
+
+        var uuid = u8aToString$1(payload.slice(0, 16));
+        var content = u8aToString$1(payload.slice(16, payloadLength));
+
+        return {
+          code: 5, // for user data unregistered
+          uuid: uuid,
+          content: content
+        };
+      }
+    }]);
+
+    return SEIParser;
+  }();
+
+  var _createClass$i = function () {
+    function defineProperties(target, props) {
+      for (var i = 0; i < props.length; i++) {
+        var descriptor = props[i];descriptor.enumerable = descriptor.enumerable || false;descriptor.configurable = true;if ("value" in descriptor) descriptor.writable = true;Object.defineProperty(target, descriptor.key, descriptor);
+      }
+    }return function (Constructor, protoProps, staticProps) {
+      if (protoProps) defineProperties(Constructor.prototype, protoProps);if (staticProps) defineProperties(Constructor, staticProps);return Constructor;
+    };
+  }();
+
+  function _classCallCheck$i(instance, Constructor) {
+    if (!(instance instanceof Constructor)) {
+      throw new TypeError("Cannot call a class as a function");
+    }
+  }
+
+  var Nalunit$1 = function () {
+    function Nalunit() {
+      _classCallCheck$i(this, Nalunit);
+    }
+
+    _createClass$i(Nalunit, null, [{
+      key: 'getNalunits',
+      value: function getNalunits(buffer) {
+        if (buffer.length - buffer.position < 4) {
+          return [];
+        }
+
+        var buf = buffer.dataview;
+        var position = buffer.position;
+        if (buf.getInt32(position) === 1 || buf.getInt16(position) === 0 && buf.getInt8(position + 2) === 1) {
+          return Nalunit.getAnnexbNals(buffer);
+        } else {
+          return Nalunit.getAvccNals(buffer);
+        }
+      }
+    }, {
+      key: 'getAnnexbNals',
+      value: function getAnnexbNals(buffer) {
+        var nals = [];
+        var position = Nalunit.getHeaderPositionAnnexB(buffer);
+        var start = position.pos;
+        var end = start;
+        while (start < buffer.length - 4) {
+          var header = buffer.buffer.slice(start, start + position.headerLength);
+          if (position.pos === buffer.position) {
+            buffer.skip(position.headerLength);
+          }
+          position = Nalunit.getHeaderPositionAnnexB(buffer);
+          end = position.pos;
+          var body = new Uint8Array(buffer.buffer.slice(start + header.byteLength, end));
+          var unit = { header: header, body: body };
+          Nalunit.analyseNal(unit);
+          if (unit.type <= 9 && unit.type !== 0) {
+            nals.push(unit);
+          }
+          buffer.skip(end - buffer.position);
+          start = end;
+        }
+        return nals;
+      }
+    }, {
+      key: 'getAvccNals',
+      value: function getAvccNals(buffer) {
+        // buffer.buffer = RBSP.EBSP2RBSP(new Uint8Array(buffer.buffer)).buffer;
+        // buffer.dataview = new DataView(buffer.buffer)
+        // buffer.dataview.position = 0;
+        var nals = [];
+        while (buffer.position < buffer.length - 4) {
+          var length = buffer.dataview.getInt32(buffer.dataview.position);
+          if (buffer.length - buffer.position >= length) {
+            var header = buffer.buffer.slice(buffer.position, buffer.position + 4);
+            buffer.skip(4);
+            var body = new Uint8Array(buffer.buffer.slice(buffer.position, buffer.position + length));
+            buffer.skip(length);
+            var unit = { header: header, body: body };
+            Nalunit.analyseNal(unit);
+            if (unit.type <= 9 && unit.type !== 0) {
+              nals.push(unit);
+            }
+          } else {
+            break;
+          }
+        }
+        return nals;
+      }
+    }, {
+      key: 'analyseNal',
+      value: function analyseNal(unit) {
+        var type = unit.body[0] & 0x1f;
+        unit.type = type;
+        switch (type) {
+          case 1:
+            // NDR
+            unit.ndr = true;
+            break;
+          case 5:
+            // IDR
+            unit.idr = true;
+            break;
+          case 6:
+            // SEI
+            unit.sei = SEIParser$1.parse(unit.body);
+            break;
+          case 7:
+            // SPS
+            unit.sps = SPSParser$1.parseSPS(unit.body);
+            break;
+          case 8:
+            // PPS
+            unit.pps = true;
+            break;
+        }
+      }
+    }, {
+      key: 'getHeaderPositionAnnexB',
+      value: function getHeaderPositionAnnexB(buffer) {
+        // seperate
+        var pos = buffer.position;
+        var headerLength = 0;
+        var bufferLen = buffer.length;
+        while (headerLength !== 3 && headerLength !== 4 && pos < bufferLen - 4) {
+          if (buffer.dataview.getInt16(pos) === 0) {
+            if (buffer.dataview.getInt16(pos + 2) === 1) {
+              // 0x000001
+              headerLength = 4;
+            } else if (buffer.dataview.getInt8(pos + 2) === 1) {
+              headerLength = 3;
+            } else {
+              pos++;
+            }
+          } else {
+            pos++;
+          }
+        }
+
+        if (pos === bufferLen - 4) {
+          if (buffer.dataview.getInt16(pos) === 0) {
+            if (buffer.dataview.getInt16(pos + 2) === 1) {
+              // 0x000001
+              headerLength = 4;
+            }
+          } else {
+            pos++;
+            if (buffer.dataview.getInt16(pos) === 0 && buffer.dataview.getInt8(pos) === 1) {
+              // 0x0000001
+              headerLength = 3;
+            } else {
+              pos = bufferLen;
+            }
+          }
+        }
+        return { pos: pos, headerLength: headerLength };
+      }
+    }, {
+      key: 'getAvcc',
+      value: function getAvcc(sps, pps) {
+        var ret = new Uint8Array(sps.byteLength + pps.byteLength + 11);
+        ret[0] = 0x01;
+        ret[1] = sps[1];
+        ret[2] = sps[2];
+        ret[3] = sps[3];
+        ret[4] = 255;
+        ret[5] = 225;
+
+        var offset = 6;
+
+        ret.set(new Uint8Array([sps.byteLength >>> 8 & 0xff, sps.byteLength & 0xff]), offset);
+        offset += 2;
+        ret.set(sps, offset);
+        offset += sps.byteLength;
+
+        ret[offset] = 1;
+        offset++;
+
+        ret.set(new Uint8Array([pps.byteLength >>> 8 & 0xff, pps.byteLength & 0xff]), offset);
+        offset += 2;
+        ret.set(pps, offset);
+        return ret;
+      }
+    }]);
+
+    return Nalunit;
+  }();
+
+  var NalUnit$1 = Nalunit$1;
+
+  var _createClass$j = function () {
+    function defineProperties(target, props) {
+      for (var i = 0; i < props.length; i++) {
+        var descriptor = props[i];descriptor.enumerable = descriptor.enumerable || false;descriptor.configurable = true;if ("value" in descriptor) descriptor.writable = true;Object.defineProperty(target, descriptor.key, descriptor);
+      }
+    }return function (Constructor, protoProps, staticProps) {
+      if (protoProps) defineProperties(Constructor.prototype, protoProps);if (staticProps) defineProperties(Constructor, staticProps);return Constructor;
+    };
+  }();
+
+  function _classCallCheck$j(instance, Constructor) {
+    if (!(instance instanceof Constructor)) {
+      throw new TypeError("Cannot call a class as a function");
+    }
+  }
+
   var YUVCanvas = function () {
     function YUVCanvas(configs) {
-      _classCallCheck$e(this, YUVCanvas);
+      _classCallCheck$j(this, YUVCanvas);
 
       this.configs = Object.assign({}, configs);
       this.canvas = this.configs.canvas;
@@ -3690,7 +4540,7 @@
         this._initTextures();
       }  }
 
-    _createClass$e(YUVCanvas, [{
+    _createClass$j(YUVCanvas, [{
       key: '_initMeta',
       value: function _initMeta() {
         this.chroma = this.meta.chromaFormat;
@@ -3960,7 +4810,7 @@
     return YUVCanvas;
   }();
 
-  var _createClass$f = function () {
+  var _createClass$k = function () {
     function defineProperties(target, props) {
       for (var i = 0; i < props.length; i++) {
         var descriptor = props[i];descriptor.enumerable = descriptor.enumerable || false;descriptor.configurable = true;if ("value" in descriptor) descriptor.writable = true;Object.defineProperty(target, descriptor.key, descriptor);
@@ -3970,7 +4820,7 @@
     };
   }();
 
-  function _classCallCheck$f(instance, Constructor) {
+  function _classCallCheck$k(instance, Constructor) {
     if (!(instance instanceof Constructor)) {
       throw new TypeError("Cannot call a class as a function");
     }
@@ -3978,14 +4828,14 @@
 
   var SourceBuffer = function () {
     function SourceBuffer(config) {
-      _classCallCheck$f(this, SourceBuffer);
+      _classCallCheck$k(this, SourceBuffer);
 
       this.config = Object.assign({}, config);
       this.type = this.config.type;
       this.reset();
     }
 
-    _createClass$f(SourceBuffer, [{
+    _createClass$k(SourceBuffer, [{
       key: 'reset',
       value: function reset() {
         this.buffer = [];
@@ -4095,7 +4945,7 @@
     return SourceBuffer;
   }();
 
-  var _createClass$g = function () {
+  var _createClass$l = function () {
     function defineProperties(target, props) {
       for (var i = 0; i < props.length; i++) {
         var descriptor = props[i];descriptor.enumerable = descriptor.enumerable || false;descriptor.configurable = true;if ("value" in descriptor) descriptor.writable = true;Object.defineProperty(target, descriptor.key, descriptor);
@@ -4105,7 +4955,7 @@
     };
   }();
 
-  function _classCallCheck$g(instance, Constructor) {
+  function _classCallCheck$l(instance, Constructor) {
     if (!(instance instanceof Constructor)) {
       throw new TypeError("Cannot call a class as a function");
     }
@@ -4113,12 +4963,12 @@
 
   var TimeRanges = function () {
     function TimeRanges(ranges) {
-      _classCallCheck$g(this, TimeRanges);
+      _classCallCheck$l(this, TimeRanges);
 
       this.ranges = ranges || [];
     }
 
-    _createClass$g(TimeRanges, [{
+    _createClass$l(TimeRanges, [{
       key: "start",
       value: function start(idx) {
         return this.ranges[idx] ? this.ranges[idx].start : 0;
@@ -4145,7 +4995,7 @@
 
   var _typeof$3 = typeof Symbol === "function" && typeof Symbol.iterator === "symbol" ? function (obj) { return typeof obj; } : function (obj) { return obj && typeof Symbol === "function" && obj.constructor === Symbol && obj !== Symbol.prototype ? "symbol" : typeof obj; };
 
-  var _createClass$h = function () {
+  var _createClass$m = function () {
     function defineProperties(target, props) {
       for (var i = 0; i < props.length; i++) {
         var descriptor = props[i];descriptor.enumerable = descriptor.enumerable || false;descriptor.configurable = true;if ("value" in descriptor) descriptor.writable = true;Object.defineProperty(target, descriptor.key, descriptor);
@@ -4155,7 +5005,7 @@
     };
   }();
 
-  function _classCallCheck$h(instance, Constructor) {
+  function _classCallCheck$m(instance, Constructor) {
     if (!(instance instanceof Constructor)) {
       throw new TypeError("Cannot call a class as a function");
     }
@@ -4191,7 +5041,7 @@
     _inherits$2(VideoCanvas, _EventEmitter);
 
     function VideoCanvas(config) {
-      _classCallCheck$h(this, VideoCanvas);
+      _classCallCheck$m(this, VideoCanvas);
 
       var _this = _possibleConstructorReturn$2(this, (VideoCanvas.__proto__ || Object.getPrototypeOf(VideoCanvas)).call(this));
 
@@ -4214,7 +5064,7 @@
       return _this;
     }
 
-    _createClass$h(VideoCanvas, [{
+    _createClass$m(VideoCanvas, [{
       key: 'initParameters',
       value: function initParameters() {
         this.meta = undefined;
@@ -4339,7 +5189,7 @@
     }, {
       key: '_analyseNal',
       value: function _analyseNal(sample) {
-        var nals = NalUnit.getNalunits(new Stream$1(sample.data.buffer));
+        var nals = NalUnit$1.getNalunits(new Stream$1(sample.data.buffer));
 
         var length = 0;
         for (var i = 0; i < nals.length; i++) {
@@ -4565,7 +5415,7 @@
 
   var _typeof$4 = typeof Symbol === "function" && typeof Symbol.iterator === "symbol" ? function (obj) { return typeof obj; } : function (obj) { return obj && typeof Symbol === "function" && obj.constructor === Symbol && obj !== Symbol.prototype ? "symbol" : typeof obj; };
 
-  var _createClass$i = function () {
+  var _createClass$n = function () {
     function defineProperties(target, props) {
       for (var i = 0; i < props.length; i++) {
         var descriptor = props[i];descriptor.enumerable = descriptor.enumerable || false;descriptor.configurable = true;if ("value" in descriptor) descriptor.writable = true;Object.defineProperty(target, descriptor.key, descriptor);
@@ -4575,7 +5425,7 @@
     };
   }();
 
-  function _classCallCheck$i(instance, Constructor) {
+  function _classCallCheck$n(instance, Constructor) {
     if (!(instance instanceof Constructor)) {
       throw new TypeError("Cannot call a class as a function");
     }
@@ -4597,7 +5447,7 @@
     _inherits$3(AudioCtx, _EventEmitter);
 
     function AudioCtx(config) {
-      _classCallCheck$i(this, AudioCtx);
+      _classCallCheck$n(this, AudioCtx);
 
       var _this2 = _possibleConstructorReturn$3(this, (AudioCtx.__proto__ || Object.getPrototypeOf(AudioCtx)).call(this));
 
@@ -4628,7 +5478,7 @@
       return _this2;
     }
 
-    _createClass$i(AudioCtx, [{
+    _createClass$n(AudioCtx, [{
       key: 'decodeAudio',
       value: function decodeAudio(audioTrack) {
         var samples = audioTrack.samples,
@@ -4939,7 +5789,7 @@
     return AudioCtx;
   }(EventEmitter);
 
-  var _createClass$j = function () {
+  var _createClass$o = function () {
     function defineProperties(target, props) {
       for (var i = 0; i < props.length; i++) {
         var descriptor = props[i];descriptor.enumerable = descriptor.enumerable || false;descriptor.configurable = true;if ("value" in descriptor) descriptor.writable = true;Object.defineProperty(target, descriptor.key, descriptor);
@@ -4949,7 +5799,7 @@
     };
   }();
 
-  function _classCallCheck$j(instance, Constructor) {
+  function _classCallCheck$o(instance, Constructor) {
     if (!(instance instanceof Constructor)) {
       throw new TypeError("Cannot call a class as a function");
     }
@@ -4960,7 +5810,7 @@
    */
   var AVReconciler = function () {
     function AVReconciler(props) {
-      _classCallCheck$j(this, AVReconciler);
+      _classCallCheck$o(this, AVReconciler);
 
       this.aCtx = props.aCtx;
       this.vCtx = props.vCtx;
@@ -4969,7 +5819,7 @@
       this.start = null;
     }
 
-    _createClass$j(AVReconciler, [{
+    _createClass$o(AVReconciler, [{
       key: "doReconcile",
       value: function doReconcile() {
         var _this = this;
@@ -5034,7 +5884,7 @@
 
   var _typeof$5 = typeof Symbol === "function" && typeof Symbol.iterator === "symbol" ? function (obj) { return typeof obj; } : function (obj) { return obj && typeof Symbol === "function" && obj.constructor === Symbol && obj !== Symbol.prototype ? "symbol" : typeof obj; };
 
-  var _createClass$k = function () {
+  var _createClass$p = function () {
     function defineProperties(target, props) {
       for (var i = 0; i < props.length; i++) {
         var descriptor = props[i];descriptor.enumerable = descriptor.enumerable || false;descriptor.configurable = true;if ("value" in descriptor) descriptor.writable = true;Object.defineProperty(target, descriptor.key, descriptor);
@@ -5060,7 +5910,7 @@
     }
   };
 
-  function _classCallCheck$k(instance, Constructor) {
+  function _classCallCheck$p(instance, Constructor) {
     if (!(instance instanceof Constructor)) {
       throw new TypeError("Cannot call a class as a function");
     }
@@ -5082,7 +5932,7 @@
     _inherits$4(WorkerTicker, _Ticker);
 
     function WorkerTicker(config) {
-      _classCallCheck$k(this, WorkerTicker);
+      _classCallCheck$p(this, WorkerTicker);
 
       var _this = _possibleConstructorReturn$4(this, (WorkerTicker.__proto__ || Object.getPrototypeOf(WorkerTicker)).call(this, config));
 
@@ -5093,7 +5943,7 @@
       return _this;
     }
 
-    _createClass$k(WorkerTicker, [{
+    _createClass$p(WorkerTicker, [{
       key: 'handleMessage',
       value: function handleMessage() {
         this.onTick();
@@ -5139,7 +5989,7 @@
 
   var _typeof$6 = typeof Symbol === "function" && typeof Symbol.iterator === "symbol" ? function (obj) { return typeof obj; } : function (obj) { return obj && typeof Symbol === "function" && obj.constructor === Symbol && obj !== Symbol.prototype ? "symbol" : typeof obj; };
 
-  var _createClass$l = function () {
+  var _createClass$q = function () {
     function defineProperties(target, props) {
       for (var i = 0; i < props.length; i++) {
         var descriptor = props[i];descriptor.enumerable = descriptor.enumerable || false;descriptor.configurable = true;if ("value" in descriptor) descriptor.writable = true;Object.defineProperty(target, descriptor.key, descriptor);
@@ -5149,7 +5999,7 @@
     };
   }();
 
-  function _classCallCheck$l(instance, Constructor) {
+  function _classCallCheck$q(instance, Constructor) {
     if (!(instance instanceof Constructor)) {
       throw new TypeError("Cannot call a class as a function");
     }
@@ -5172,7 +6022,7 @@
     _inherits$5(MobileVideo, _HTMLElement);
 
     function MobileVideo() {
-      _classCallCheck$l(this, MobileVideo);
+      _classCallCheck$q(this, MobileVideo);
 
       var _this = _possibleConstructorReturn$5(this, (MobileVideo.__proto__ || Object.getPrototypeOf(MobileVideo)).call(this));
 
@@ -5186,7 +6036,6 @@
       _this.audioMetaInited = false;
       _this.handleVCtxInnerEvent = _this.handleVCtxInnerEvent.bind(_this);
       _this._err = null;
-      _this.init();
       _this._lastTimeupdateStamp = 0;
       _this._volumeEventStamp = 0;
       _this._hasDispatch = false;
@@ -5194,26 +6043,27 @@
       return _this;
     }
 
-    _createClass$l(MobileVideo, [{
+    _createClass$q(MobileVideo, [{
       key: 'init',
       value: function init() {
         var _this2 = this;
 
         this._destroyed = false;
+        if (this.vCtx) {
+          this.vCtx.destroy();
+        }
         this.vCtx = new VideoCanvas(Object.assign({
           canvas: this._canvas,
-          preloadTime: Infinity
+          preloadTime: this.preloadTime
         }, { style: { width: this.width, height: this.height } }));
 
         // this._innerDispatchEvent('waiting')
         this.vCtx.oncanplay = function () {
-          if (!_this2.played) {
-            if (!_this2.contains(_this2._canvas)) {
-              _this2.appendChild(_this2._canvas);
-              if (_this2.autoplay) {
-                _this2._innerDispatchEvent('play');
-              }
-            }
+          if (!_this2.contains(_this2._canvas)) {
+            _this2.appendChild(_this2._canvas);
+            // if (this.autoplay) {
+            //   this._innerDispatchEvent('play')
+            // }
           }
         };
         this.vCtx.on(VIDEO_CANVAS_EVENTS.VIDEO_EVENTS, this.handleVCtxInnerEvent);
@@ -5261,14 +6111,13 @@
       key: '_destroyAudio',
       value: function _destroyAudio() {
         this.audioMetaInited = false;
-        if (!this.noAudio) {
-          this.aCtx.on('AUDIO_SOURCE_END', this.handleAudioSourceEnd);
+        if (!this.noAudio && this.aCtx) {
+          this.aCtx.removeListener('AUDIO_SOURCE_END', this.handleAudioSourceEnd);
           this.aCtx.destroy();
         }
-        this.ticker.stop();
         this.start = null;
-        this.reconciler.destroy();
         this.aCtx = null;
+        this.ticker.stop();
         this.ticker = null;
         this.pendingPlayTask = null;
         this.played = false;
@@ -5288,6 +6137,8 @@
         if (this._destroyed) {
           return;
         }
+
+        this.reconciler.destroy();
         this._destroyed = true;
         this._destroyVideo();
         this._destroyAudio();
@@ -5310,10 +6161,6 @@
       value: function setAudioMeta(meta) {
         if (this.noAudio) {
           return;
-        }
-        if (this.audioMetaInited) {
-          this.aCtx.destroy();
-          this.aCtx = new AudioCtx({});
         }
         this.aCtx.setAudioMetaData(meta);
         this.audioMetaInited = true;
@@ -5353,11 +6200,15 @@
     }, {
       key: 'disconnectedCallback',
       value: function disconnectedCallback() {
-        this._destroyAudio();
+        this.destroy();
       }
     }, {
       key: 'connectedCallback',
       value: function connectedCallback() {
+        // console.log('connected callback', this.noAudio)
+        this._currentTime = 0;
+        this.start = undefined;
+        this.init();
         this._initAudio();
         this.vCtx.reset();
       }
@@ -5369,20 +6220,27 @@
         if (this.pendingPlayTask) {
           return;
         }
-        this._innerDispatchEvent('play');
+
+        if (this.played) {
+          this.connectedCallback();
+        }
+
         if (!this.autoplay && !this._hasDispatch) {
           this._innerDispatchEvent('waiting');
           this._hasDispatch = true;
           this._waiting = true;
         }
+
+        this._paused = false;
+        this._innerDispatchEvent('play');
         var audioPlayTask = null;
+
         if (this.noAudio) {
           audioPlayTask = Promise.resolve();
         } else {
           audioPlayTask = this.aCtx.play();
         }
         this.pendingPlayTask = Promise.all([this.vCtx.play(), audioPlayTask.then(function () {
-
           if (_this3.aCtx) {
             _this3.aCtx.muted = true;
           }
@@ -5391,11 +6249,13 @@
             _this3.aCtx.muted = false;
           }
           _this3.ticker.start(function () {
+            _this3.vCtx.preload();
             if (!_this3.start) {
               _this3.start = Date.now();
               _this3._lastTimeupdateStamp = _this3.start;
             }
             var prevTime = _this3._currentTime;
+
             _this3._currentTime = Date.now() - _this3.start;
 
             // console.log(this._currentTime, ' ', this.start)
@@ -5410,10 +6270,10 @@
                 // debounce
                 _this3._lastTimeupdateStamp = now;
                 _this3._innerDispatchEvent('timeupdate');
-                _this3.vCtx.preload();
               }
             } else {
               _this3._currentTime = prevTime;
+              _this3.start += Date.now() - _this3.start - prevTime;
               if (!_this3._waiting && !_this3.paused) {
                 _this3._waiting = true;
                 _this3._innerDispatchEvent('waiting');
@@ -5423,8 +6283,13 @@
           _this3.pendingPlayTask = null;
           _this3.played = true;
           // this._innerDispatchEvent('playing')
-          _this3._paused = false;
+        }).catch(function (e) {
+          _this3.pendingPlayTask = null;
+          _this3._paused = true;
+          console.error(e);
+          throw e;
         });
+        return this.pendingPlayTask;
       }
     }, {
       key: 'pause',
@@ -5434,8 +6299,12 @@
         this._paused = true;
         if (!this.noAudio) {
           this.aCtx.pause();
+          this.aCtx.destroy();
         }
+
         this.vCtx.pause();
+
+        this.ticker.stop();
 
         Promise.resolve().then(function () {
           _this4._innerDispatchEvent('pause');
@@ -5584,7 +6453,7 @@
         if (this.noAudio) {
           return 0;
         }
-        return this.aCtx.volume;
+        return this.aCtx ? this.aCtx.volume : 0;
       },
       set: function set(vol) {
         if (this.noAudio) {
@@ -5655,6 +6524,24 @@
           this.ticker.setInterval(1000 / val);
         }
       }
+    }, {
+      key: 'preloadTime',
+      get: function get() {
+        var attrPreloadTime = this.getAttribute('preloadtime');
+        if (attrPreloadTime) {
+          var preloadTime = Number.parseFloat(attrPreloadTime);
+          if (preloadTime > 0 && !Number.isNaN(preloadTime)) {
+            return preloadTime;
+          }
+        }
+        return Infinity;
+      },
+      set: function set(val) {
+        if (val && Number(val) > 0) {
+          this.setAttribute('preloadtime', val);
+          this.vCtx.config.preloadTime = this.preloadTime;
+        }
+      }
     }]);
 
     return MobileVideo;
@@ -5664,11 +6551,11 @@
 
   customElements.define('mobile-video', MobileVideo);
 
-  var _createClass$m = function () { function defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ("value" in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } } return function (Constructor, protoProps, staticProps) { if (protoProps) defineProperties(Constructor.prototype, protoProps); if (staticProps) defineProperties(Constructor, staticProps); return Constructor; }; }();
+  var _createClass$r = function () { function defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ("value" in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } } return function (Constructor, protoProps, staticProps) { if (protoProps) defineProperties(Constructor.prototype, protoProps); if (staticProps) defineProperties(Constructor, staticProps); return Constructor; }; }();
 
   var _get$3 = function get(object, property, receiver) { if (object === null) object = Function.prototype; var desc = Object.getOwnPropertyDescriptor(object, property); if (desc === undefined) { var parent = Object.getPrototypeOf(object); if (parent === null) { return undefined; } else { return get(parent, property, receiver); } } else if ("value" in desc) { return desc.value; } else { var getter = desc.get; if (getter === undefined) { return undefined; } return getter.call(receiver); } };
 
-  function _classCallCheck$m(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } }
+  function _classCallCheck$r(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } }
 
   function _possibleConstructorReturn$6(self, call) { if (!self) { throw new ReferenceError("this hasn't been initialised - super() hasn't been called"); } return call && (typeof call === "object" || typeof call === "function") ? call : self; }
 
@@ -5678,7 +6565,7 @@
     _inherits$6(Raw264Player, _Player);
 
     function Raw264Player(props) {
-      _classCallCheck$m(this, Raw264Player);
+      _classCallCheck$r(this, Raw264Player);
 
       if (!props.mediaType) {
         props.mediaType = 'mobile-video';
@@ -5691,7 +6578,7 @@
       return _this;
     }
 
-    _createClass$m(Raw264Player, [{
+    _createClass$r(Raw264Player, [{
       key: 'start',
       value: function start() {
 

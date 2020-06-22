@@ -209,30 +209,28 @@ class HlsLiveController {
     }
   }
   _checkStatus () {
-    if (this.retrytimes < 1 && (new Date().getTime() - this._lastCheck < 10000)) {
+    if (this.retrytimes < 1 && (new Date().getTime() - this._lastCheck < 4000)) {
       return;
     }
     this._lastCheck = new Date().getTime();
-    if (this._player.buffered.length < 1) {
+    const container = this._player.video
+    if (container.buffered.length < 1) {
       this._preload()
     } else {
       // Check for load.
-      let currentTime = this._player.currentTime;
-      let bufferstart = this._player.buffered.start(this._player.buffered.length - 1);
-      if (this._player.readyState <= 2) {
+      let currentTime = container.currentTime;
+      let bufferstart = container.buffered.start(container.buffered.length - 1);
+      if (container.readyState <= 2) {
         if (currentTime < bufferstart) {
-          this._player.currentTime = bufferstart;
+          container.currentTime = bufferstart;
           currentTime = bufferstart;
         } else {
           this._preload();
         }
       }
-      let bufferend = this._player.buffered.end(this._player.buffered.length - 1);
+      let bufferend = container.buffered.end(container.buffered.length - 1);
       if (currentTime < bufferend - (this.preloadTime * 2)) {
-        this._player.currentTime = bufferend - (this.preloadTime * 2);
-      }
-      if (bufferend > this.preloadTime * 2) {
-        this.mse.remove(bufferend - (this.preloadTime * 2));
+        container.currentTime = bufferend - (this.preloadTime * 2);
       }
       if (currentTime > bufferend - this.preloadTime) {
         this._preload();
