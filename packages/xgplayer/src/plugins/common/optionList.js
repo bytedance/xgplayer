@@ -1,83 +1,42 @@
 import Plugin from '../../plugin'
-import { Sniffer } from '../../plugin/basePlugin'
 
-const { Util } = Plugin
-export default class OptionList extends Plugin {
-  static get pluginName () {
-    return 'optionList'
-  }
+const { Util, Sniffer } = Plugin
 
-  static defaultConfig () {
-    return {
-      data: [], // item的value必须是string number 或者 boolean
-      className: '', // 自定义类型名
-      onItemClick: null // 列表item点击回调
-    }
-  }
-
+export default class OptionList {
   constructor (args) {
-    super(args)
-    this.objKey = new Date().getTime()
-  }
-
-  afterCreate () {
-    console.log('data', this.config.data)
-    this.attrKeys = []
+    this.config = args.config
+    this.root = Util.createDom('ul', '', {}, `xg-options-list ${this.config.className}`)
+    args.root.appendChild(this.root)
     this.onItemClick = this.onItemClick.bind(this)
-    const eventName = Sniffer.device === 'mobile' ? 'touchend' : 'click'
-    this.bind('li', eventName, this.onItemClick)
     this.renderItemList()
-  }
-
-  // registerLangauageTexts () {
-  //   const {config, pluginName} = this
-  //   const langMap = {}
-  //   config.data.map((item, index) => {
-  //     langMap[`${pluginName}_${index}`] = {
-  //       zh: (langkey) => {
-  //         return this.getTextByLang(langkey)
-  //       },
-  //       en: (langkey) => {
-  //         return this.getTextByLang(langkey)
-  //       },
-  //       jp: (langkey) => {
-  //         return this.getTextByLang(langkey)
-  //       }
-  //     }
-  //   })
-  //   return {}
-  // }
-
-  getTextByLang (lang) {
-    return lang
-  }
-
-  getAttrObj (dom, keys) {
-    if (!dom || !keys) {
-      return {}
-    }
-    const obj = {}
-    keys.map(key => {
-      obj[key] = dom.getAttribute(key)
-    })
-    return obj
+    const eventName = Sniffer.device === 'mobile' ? 'touchend' : 'click'
+    Plugin.delegate.call(this, 'li', eventName, this.onItemClick)
   }
 
   renderItemList (data) {
+    const {config, root} = this
     if (data) {
-      this.config.data = data
+      config.data = data
     } else {
-      data = this.config.data
+      data = config.data
+    }
+
+    if (config.style) {
+      Object.keys(config.style).map(key => {
+        root.style[key] = config[key]
+      })
     }
 
     if (data.length > 0) {
       this.attrKeys = Object.keys(data[0])
     }
 
-    data.map(item => {
+    this.root.innerHTML = ''
+
+    data.map((item, index) => {
       const className = item.isCurrent ? 'option-item selected' : 'option-item'
-      const li = Util.createDom('li', `<span>${item.name || item.text}</span>`, item, className)
-      this.root.appendChild(li)
+      item['data-index'] = index
+      this.root.appendChild(Util.createDom('li', `<span>${item.showText}</span>`, item, className))
     })
   }
 
@@ -90,13 +49,28 @@ export default class OptionList extends Plugin {
       return false
     }
     const changeCallback = typeof this.config.onItemClick === 'function' ? this.config.onItemClick : null
-    const curlSelected = this.find('.selected')
+    const curlSelected = this.root.querySelector('.selected')
     Util.addClass(target, 'selected')
     curlSelected && Util.removeClass(curlSelected, 'selected')
     changeCallback(e, {
-      from: this.getAttrObj(curlSelected, this.attrKeys),
+      from: curlSelected ? this.getAttrObj(curlSelected, this.attrKeys) : null,
       to: this.getAttrObj(target, this.attrKeys)
     })
+  }
+
+  getAttrObj (dom, keys) {
+    if (!dom || !keys) {
+      return {}
+    }
+    const obj = {}
+    keys.map(key => {
+      obj[key] = dom.getAttribute(key)
+    })
+    const index = dom.getAttribute('data-index')
+    if (index) {
+      obj.index = Number(index)
+    }
+    return obj
   }
 
   show () {
@@ -110,11 +84,8 @@ export default class OptionList extends Plugin {
   }
 
   destroy () {
-    this.unbind('li', ['touchend', 'click'], this.onItemClick)
-  }
-
-  render () {
-    return `<ul class="xg-options-list ${this.config.className}">
-    </ul>`
+    Plugin.removeDelegate.call(this, 'li', ['touchend', 'click'], this.onItemClick)
+    this.root.innerHTML = null
+    this.root = null
   }
 }

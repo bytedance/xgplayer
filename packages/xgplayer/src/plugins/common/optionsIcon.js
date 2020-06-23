@@ -1,6 +1,7 @@
 
 import Plugin from '../../plugin'
 import OptionList from './optionList'
+
 const {Events, Util, Sniffer, POSITIONS} = Plugin
 const IS_MOBILE = Sniffer.device === 'mobile'
 export default class OptionsIcon extends Plugin {
@@ -14,7 +15,8 @@ export default class OptionsIcon extends Plugin {
       position: POSITIONS.CONTROLS_RIGTH,
       index: 100,
       list: [],
-      listType: '' // 模式 rightSide-右侧边栏  middle-中间显示
+      listType: 'middle', // 模式 rightSide-右侧边栏  middle-中间显示
+      listStyle: {}
     }
   }
 
@@ -22,6 +24,12 @@ export default class OptionsIcon extends Plugin {
     super(args)
     this.isActive = false
     this.curValue = null // 当前值
+    this.curIndex = 0
+  }
+
+  set lang (value) {
+    super.lang = value
+    this.renderItemList(this.config.list, this.curIndex)
   }
 
   afterCreate () {
@@ -30,8 +38,8 @@ export default class OptionsIcon extends Plugin {
       config.listType = 'rightSide'
     }
     this.once(Events.CANPLAY, () => {
-      if (this.config.list && this.config.list.length > 0) {
-        this.renderItemList()
+      if (config.list && config.list.length > 0) {
+        this.renderItemList(config.list)
         this.show()
       }
     })
@@ -57,10 +65,30 @@ export default class OptionsIcon extends Plugin {
     Util.addClass(this.root, 'show')
   }
 
+  getTextByLang (item, key, lang) {
+    if (item === undefined) {
+      return ''
+    }
+    const {list} = this.config
+    !lang && (lang = this.player.lang)
+    key = (!key || Util.isUndefined(item[key])) ? 'text' : key
+    typeof item === 'number' && (item = list[item])
+    try {
+      if (typeof item[key] === 'object') {
+        return item[key][lang] || item[key]['zh']
+      } else {
+        return item[key]
+      }
+    } catch (err) {
+      console.warn(err)
+      return ''
+    }
+  }
+
   onEnter (e) {
     e.preventDefault()
     e.stopPropagation()
-    !this.isActive && this.onToggle(true)
+    this.onToggle(true)
   }
 
   onLeave (e) {
@@ -85,61 +113,51 @@ export default class OptionsIcon extends Plugin {
   }
 
   // 列表点击回调
-  onItemClick (e) {
+  onItemClick (e, data) {
     e.preventDefault()
     e.stopPropagation()
-    const {listType} = this.config;
+    const {listType, list} = this.config;
     (IS_MOBILE || listType === 'rightSide') && this.onToggle(false)
+    this.curIndex = data.to.index
+    this.curItem = list[this.curIndex]
+    this.changeCurrentText()
   }
 
-  changeCurrent (val, text) {
-    if (!val) return
-    this.find('.icon-text').innerHTML = text || val
-    this.curValue = val
+  changeCurrentText () {
+    const {list} = this.config
+    let index = this.curIndex < list.length ? this.curIndex : 0
+    const curItem = list[index]
+    if (!curItem) return
+    this.find('.icon-text').innerHTML = this.getTextByLang(curItem, 'iconText')
   }
 
-  getCurrentIconText (lang) {
-    const {curRate, config, player} = this
-    if (!lang) {
-      lang = player.lang
+  renderItemList (itemList, curIndex) {
+    const {config, optionsPlugin, player} = this
+    if (typeof curIndex === 'number') {
+      this.curIndex = curIndex
+      this.curItem = config.list[curIndex]
     }
-    let text = ''
-    config.list.map(item => {
-      if (Number(item) === curRate || Number(item.rate) === curRate) {
-        if (item[lang]) {
-          text = item[lang]
-        } else if (item.iconText) {
-          text = item.iconText[lang] ? item.iconText[lang] : (typeof item.iconText === 'string' && (!lang || lang === 'zh') ? item.iconText : '')
-        } else {
-          text = typeof item === 'number' ? `${item}x` : `${item.rate}x`
-        }
-      }
-    })
-    return text
-  }
 
-  renderItemList (list, currentText) {
-    const {listType} = this.config
-    if (this.optionsPlugin) {
-      this.optionsPlugin.renderItemList(list)
-      this.find('.icon-text').innerHTML = currentText
+    if (optionsPlugin) {
+      optionsPlugin.renderItemList(itemList)
+      this.changeCurrentText()
       return
     }
 
     const options = {
       config: {
-        data: list,
-        className: listType === 'rightSide' ? 'right-side' : '',
+        data: itemList || [],
+        className: config.listType === 'rightSide' ? 'right-side' : '',
         onItemClick: (e, data) => {
           this.onItemClick(e, data)
         }
       },
-      root: listType === 'rightSide' ? this.player.root : this.root
+      root: config.listType === 'rightSide' ? player.root : this.root
     }
-    this.find('.icon-text').innerHTML = currentText
+
+    this.optionsPlugin = new OptionList(options)
+    this.changeCurrentText()
     this.show()
-    const listPluginName = `${this.pluginName}_optionslist`
-    this.optionsPlugin = this.registerPlugin(OptionList, options, listPluginName)
   }
 
   destroy () {

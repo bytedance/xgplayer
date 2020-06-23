@@ -646,6 +646,10 @@ class Player extends Proxy {
     pluginsManager.setLang(lang, this)
   }
 
+  get lang () {
+    return this.config.lang
+  }
+
   get version () {
     return version
   }

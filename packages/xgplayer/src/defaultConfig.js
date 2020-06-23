@@ -40,7 +40,7 @@ export default function getDefaultConfig () {
     cssFullscreen: true, // 页面全屏
     keyShortcut: true, // 是否开启快捷键
     presets: [],
-    playbackRate: [],
+    playbackRate: [0.5, 0.75, 1, 1.5, 2],
     icons: {},
     commonStyle: { // 用于配置一些通用样式结构
       progressColor: '', // 进度条底色

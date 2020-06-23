@@ -13,8 +13,7 @@ export default class PlaybackRate extends OptionsIcon {
       position: POSITIONS.CONTROLS_RIGTH,
       index: 4,
       list: [0.5, 0.75, {rate: 1, iconText: '倍速'}, 1.5, 2],
-      className: 'xgplayer-playbackrate',
-      pluginName: 'playbackRate'
+      className: 'xgplayer-playbackrate'
     }
   }
 
@@ -23,12 +22,22 @@ export default class PlaybackRate extends OptionsIcon {
     this.curRate = 1
   }
 
-  afterCreate () {
-    const {playerConfig, config} = this
-    if (Array.isArray(playerConfig.playbackRate)) {
-      config.list = playerConfig.playbackRate
+  beforeCreate (args) {
+    const {playbackRate} = args.player.config
+    let list = !playbackRate ? [] : Array.isArray(playbackRate) ? playbackRate : args.config.list
+    if (Array.isArray(list)) {
+      args.config.list = list.map(item => {
+        if (typeof item === 'number') {
+          item = {
+            rate: item,
+            text: `${item}x`
+          }
+        } else if (!item.text && item.rate) {
+          item.text = `${item.rate}x`
+        }
+        return item
+      })
     }
-    super.afterCreate()
   }
 
   show () {
@@ -38,59 +47,16 @@ export default class PlaybackRate extends OptionsIcon {
     super.show()
   }
 
-  registerLangauageTexts () {
-    return {
-      'currate-text': {
-        jp: (langkey) => {
-          return this.getCurrentText(langkey)
-        },
-        en: (langkey) => {
-          return this.getCurrentText(langkey)
-        },
-        zh: (langkey) => {
-          return this.getCurrentText(langkey)
-        }
-      }
-    }
-  }
-
-  getCurrentText (lang) {
-    const {curValue, config, player} = this
-    if (!lang) {
-      lang = player.lang || 'zh'
-    }
-    let text = ''
-    config.list.map(item => {
-      if (Number(item) === curValue || Number(item.rate) === curValue) {
-        if (item[lang]) {
-          text = item[lang]
-        } else if (item.iconText) {
-          text = item.iconText[lang] ? item.iconText[lang] : (typeof item.iconText === 'string' && (!lang || lang === 'zh') ? item.iconText : '')
-        } else {
-          text = typeof item === 'number' ? `${item}x` : `${item.rate}x`
-        }
-      }
-    })
-    return text
-  }
-
-  changeCurrent (val, text) {
-    this.curValue = val
-    if (!text) {
-      text = this.getCurrentText()
-    }
-    super.changeCurrent(val, text)
-  }
-
-  onItemClick (e) {
-    super.onItemClick(e)
+  onItemClick (e, data) {
+    super.onItemClick(...arguments)
     const target = e.delegateTarget
     const rate = target.getAttribute('rate')
     if (Number(rate) === this.curValue) {
       return false
     }
     this.player.playbackRate = Number(rate)
-    this.changeCurrent(rate)
+    // this.curIndex = data.to.index
+    // this.changeCurrentText(rate)
   }
 
   destroy () {
@@ -101,16 +67,18 @@ export default class PlaybackRate extends OptionsIcon {
   renderItemList () {
     const playbackRate = this.player.playbackRate || 1
     this.curValue = playbackRate
-    let currentText = ''
-    const items = this.config.list.map((item) => {
-      let itemInfo = typeof item === 'object' ? item : {rate: item}
-      !itemInfo.text && (itemInfo.text = `${itemInfo.rate}x`)
+    let curIndex = 0
+    const items = this.config.list.map((item, index) => {
+      const itemInfo = {
+        rate: item.rate
+      }
       if (itemInfo.rate === playbackRate) {
         itemInfo.isCurrent = true
-        currentText = itemInfo.iconText || itemInfo.text
+        curIndex = index
       }
+      itemInfo.showText = this.getTextByLang(item)
       return itemInfo
     })
-    super.renderItemList(items, currentText)
+    super.renderItemList(items, curIndex)
   }
 }

@@ -1,6 +1,6 @@
 import OptionsIcon from '../common/optionsIcon'
 
-const { Events, POSITIONS } = OptionsIcon
+const { Events, POSITIONS, Util } = OptionsIcon
 export default class DefinitionIcon extends OptionsIcon {
   static get pluginName () {
     return 'definition'
@@ -14,8 +14,19 @@ export default class DefinitionIcon extends OptionsIcon {
       list: [],
       disable: false,
       hideMobile: true, // 是否在移动端竖屏状态下隐藏
-      classname: 'xgplayer-definition',
-      pluginName: 'definition'
+      classname: 'xgplayer-definition'
+    }
+  }
+
+  beforeCreate (args) {
+    const {list} = args.config
+    if (Array.isArray(list) && list.length > 0) {
+      args.config.list = list.map(item => {
+        if (!item.text && item.name) {
+          item.text = item.name
+        }
+        return item
+      })
     }
   }
 
@@ -28,54 +39,29 @@ export default class DefinitionIcon extends OptionsIcon {
 
   afterCreate () {
     super.afterCreate()
-    this.once('resourceReady', (list) => {
+    this.on('resourceReady', (list) => {
       this.changeDefinitionList(list)
     })
   }
 
-  // renderItemList () {
-  //   const {player} = this
-  //   const {list} = this.config
-  //   let src = player.config.url
-  //   const a = document.createElement('a')
-  //   if (player.switchURL) {
-  //     this.switchUrl()
-  //   } else {
-  //     const currentSrc = player.currentSrc || player.src;
-  //     src = /^http/.test(currentSrc) ? currentSrc : src;
-  //   }
-  //   if (player['hls']) {
-  //     a.href = player['hls'].url
-  //     src = a.href
-  //   }
-
-  //   const liList = list.map(item => {
-  //     a.href = item.url
-  //     const className = player.dash ? (item.selected ? 'selected' : '') : (a.href === src ? 'selected' : '')
-  //     return `<li class="${className}" cname="${item.name}" url="${item.url}">${item.name}</li>`
-  //   })
-  //   let cursrc = list.filter(item => {
-  //     a.href = item.url
-  //     if (player.dash) {
-  //       return item.selected === true
-  //     } else {
-  //       return a.href === src
-  //     }
-  //   })
-  //   this.find('.icon-text').innerHTML = (cursrc[0] || {name: '清晰度'}).name
-  //   this.find('.option-list').innerHTML = liList.join('')
-  // }
   renderItemList () {
     const { player } = this
     const {list} = this.config
     const currentSrc = player.currentSrc || player.src
-    const currentText = '清晰度'
-    list.map((item) => {
-      if (item.url === currentSrc) {
-        item.isCurrent = true
+    let curIndex = 0
+    const items = list.map((item, index) => {
+      const showItem = {
+        url: item.url,
+        definition: item.definition || '',
+        showText: this.getTextByLang(item)
       }
+      if (item.url === currentSrc || (!Util.isUndefined(item.definition) && item.definition === this.config.defaultDefinition)) {
+        showItem.isCurrent = true
+        curIndex = index
+      }
+      return showItem
     })
-    super.renderItemList(list, currentText)
+    super.renderItemList(items, curIndex)
   }
 
   onCanplayChangeDefinition () {
@@ -118,7 +104,15 @@ export default class DefinitionIcon extends OptionsIcon {
 
   // 对外暴露 切换清晰度
   changeDefinitionList (list) {
-    this.config.list = list
+    if (!Array.isArray(list)) {
+      return
+    }
+    this.config.list = list.map(item => {
+      if (!item.text && item.name) {
+        item.text = item.name
+      }
+      return item
+    })
     this.renderItemList()
     this.show()
   }
@@ -140,14 +134,13 @@ export default class DefinitionIcon extends OptionsIcon {
         }
       }
     }
-    this.find('.icon-text').innerHTML = to.name
   }
 
   onItemClick (e, data) {
+    super.onItemClick(...arguments)
     const {player} = this
     const target = e.delegateTarget
     const url = target.getAttribute('url')
-    super.onItemClick(e)
     player.emit(Events.BEFORE_DEFINITION_CHANGE, url)
     this.changeDefinition(data.to)
     player.emit(Events.DEFINITION_CHANGE, {from: data.from, to: data.to})

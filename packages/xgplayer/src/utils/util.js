@@ -174,10 +174,10 @@ util.deepCopy = function (dst, src) {
 
 util.deepMerge = function (dst, src) {
   Object.keys(src).map(key => {
-    if (typeof dst[key] === typeof src[key] && dst[key] !== null && typeof dst[key] === 'object' && !(src[key] instanceof window.Node)) {
+    if (util.typeOf(dst[key]) === util.typeOf(src[key]) && dst[key] !== null && typeof dst[key] === 'object' && !(src[key] instanceof window.Node)) {
       util.deepMerge(dst[key], src[key])
     } else {
-      dst[key] = src[key]
+      src[key] !== null && (dst[key] = src[key])
     }
   })
   return dst
