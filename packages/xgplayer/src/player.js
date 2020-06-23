@@ -38,6 +38,8 @@ class Player extends Proxy {
     this.isSeeking = false
     this.isActive = true
     this.isCssfullScreen = false
+    this._fullscreenEl = null
+    this._originCssText = ''
 
     this._initDOM()
 
@@ -144,6 +146,10 @@ class Player extends Proxy {
       } else {
         this.fullscreen = false
         this._fullscreenEl = null
+        if (this._originCssText) {
+          Util.setStyleFromCsstext(this.root, this._originCssText)
+          this._originCssText = ''
+        }
         this.removeClass(STATE_CLASS.FULLSCREEN)
         this.emit(Events.FULLSCREEN_CHANGE, false)
       }
@@ -464,10 +470,12 @@ class Player extends Proxy {
   }
 
   getFullscreen (el) {
-    let player = this
+    const {root, video} = this
     if (!el) {
-      el = this.root
+      el = root
     }
+    this._originCssText = root.style.cssText
+    root.removeAttribute('style')
     this._fullscreenEl = el
     if (el.requestFullscreen) {
       el.requestFullscreen()
@@ -475,8 +483,8 @@ class Player extends Proxy {
       el.mozRequestFullScreen()
     } else if (el.webkitRequestFullscreen) {
       el.webkitRequestFullscreen(window.Element.ALLOW_KEYBOARD_INPUT)
-    } else if (player.video.webkitSupportsFullscreen) {
-      player.video.webkitEnterFullscreen()
+    } else if (video.webkitSupportsFullscreen) {
+      video.webkitEnterFullscreen()
     } else if (el.msRequestFullscreen) {
       el.msRequestFullscreen()
     } else {
@@ -485,9 +493,12 @@ class Player extends Proxy {
   }
 
   exitFullscreen (el) {
+    const {root, _originCssText} = this
     if (el) {
-      el = this.root
+      el = root
     }
+    _originCssText && Util.setStyleFromCsstext(root, _originCssText)
+    this._originCssText = ''
     if (document.exitFullscreen) {
       document.exitFullscreen()
     } else if (document.webkitExitFullscreen) {
@@ -502,21 +513,16 @@ class Player extends Proxy {
 
   getCssFullscreen () {
     this.addClass(STATE_CLASS.CSS_FULLSCREEN)
-    if (this.config.fluid) {
-      this.root.style['padding-top'] = ''
-    }
+    this._originCssText = this.root.style.cssText
+    this.root.removeAttribute('style')
     this.isCssfullScreen = true
     this.emit(Events.CSS_FULLSCREEN_CHANGE, true)
   }
 
   exitCssFullscreen () {
-    if (this.config.fluid) {
-      this.root.style['width'] = '100%'
-      this.root.style['height'] = '0'
-      this.root.style['padding-top'] = `${this.config.height * 100 / this.config.width}%`
-    }
     this.removeClass(STATE_CLASS.CSS_FULLSCREEN)
-    this.isCssfullScreen = false
+    this._originCssText && Util.setStyleFromCsstext(this.root, this._originCssText)
+    this._originCssText = ''
     this.emit(Events.CSS_FULLSCREEN_CHANGE, false)
   }
 

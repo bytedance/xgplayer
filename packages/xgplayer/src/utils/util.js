@@ -294,4 +294,16 @@ util.isUndefined = function (val) {
   }
 }
 
+util.setStyleFromCsstext = function (dom, text) {
+  const styleArr = text.replace(/\s+/g, '').split(';')
+  styleArr.map(item => {
+    if (item) {
+      const arr = item.split(':')
+      if (arr.length > 1) {
+        dom.style[arr[0]] = arr[1]
+      }
+    }
+  })
+}
+
 export default util
