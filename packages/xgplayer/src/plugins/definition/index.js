@@ -13,8 +13,8 @@ export default class DefinitionIcon extends OptionsIcon {
       index: 3,
       list: [],
       disable: false,
-      hideMobile: true, // 是否在移动端竖屏状态下隐藏
-      classname: 'xgplayer-definition'
+      hidePortrait: false, // 是否在移动端竖屏状态下隐藏
+      className: 'xgplayer-definition'
     }
   }
 

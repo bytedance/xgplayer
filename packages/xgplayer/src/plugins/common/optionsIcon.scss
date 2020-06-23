@@ -111,3 +111,11 @@
     }
   }
 }
+
+@media only screen and (max-width: 480px) {
+  .xgplayer-mobile .xg-options-icon {
+    &.portrait {
+      display: none;
+    }
+  }
+}

@@ -13,7 +13,8 @@ export default class PlaybackRate extends OptionsIcon {
       position: POSITIONS.CONTROLS_RIGTH,
       index: 4,
       list: [0.5, 0.75, {rate: 1, iconText: '倍速'}, 1.5, 2],
-      className: 'xgplayer-playbackrate'
+      className: 'xgplayer-playbackrate',
+      hidePortrait: false
     }
   }
 

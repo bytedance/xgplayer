@@ -11,12 +11,12 @@ export default class OptionsIcon extends Plugin {
 
   static get defaultConfig () {
     return {
-      pluginName: '',
       position: POSITIONS.CONTROLS_RIGTH,
       index: 100,
       list: [],
       listType: 'middle', // 模式 rightSide-右侧边栏  middle-中间显示
-      listStyle: {}
+      listStyle: {},
+      hidePortrait: true
     }
   }
 
@@ -37,6 +37,9 @@ export default class OptionsIcon extends Plugin {
     if (IS_MOBILE && config.listType !== 'middle') {
       config.listType = 'rightSide'
     }
+
+    config.hidePortrait && Util.addClass(this.root, 'portrait')
+
     this.once(Events.CANPLAY, () => {
       if (config.list && config.list.length > 0) {
         this.renderItemList(config.list)
