@@ -35,6 +35,8 @@ export default class CssFullScreen extends Plugin {
     this.on(Events.FULLSCREEN_CHANGE, (isFullScreen) => {
       !isFullScreen && this.animate(isFullScreen)
     })
+    this.btnClick = this.btnClick.bind(this);
+    this.bind(['click', 'touchend'], this.btnClick)
   }
 
   initIcons () {
@@ -42,11 +44,6 @@ export default class CssFullScreen extends Plugin {
     const contentIcon = this.find('.xgplayer-icon')
     contentIcon.appendChild(icons.cssFullscreen)
     contentIcon.appendChild(icons.exitCssFullscreen)
-  }
-
-  afterPlayerInit () {
-    this.btnClick = this.btnClick.bind(this);
-    this.bind(['click', 'touchend'], this.btnClick)
   }
 
   btnClick (e) {
