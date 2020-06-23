@@ -56,7 +56,7 @@ class HlsLiveController {
     this._context.registry('MP4_REMUXER', Mp4Remuxer);
 
     // 初始化MSE
-    this.mse = this._context.registry('MSE', Mse)();
+    this.mse = this._context.registry('MSE', Mse)({container: this._player.video});
     this.initEvents();
   }
 
