@@ -29,8 +29,9 @@
     cursor: none;
   }
   &.xgplayer-is-fullscreen{
-      width: 100%;
-      height: 100%;
+      width: 100%!important;
+      height: 100%!important;
+      position: fixed;
       // Undo any aspect ratio padding for fluid layouts
       padding-top: 0;
       z-index: 9999;
