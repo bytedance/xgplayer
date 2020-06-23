@@ -9,19 +9,19 @@
   
   @keyframes xg_options_active {
     0% {
-      left: 115%;
+      transform: translateX(0);
     }
     100% {
-      left: 86%;
+      transform: translateX(-50%);
     }
   }
 
   @keyframes xg_options_hide {
     0% {
-      left: 86%;
+      transform: translateX(-50%);
     }
     100% {
-      left: 115%;
+      transform: translateX(50%);
     }
   }
 
@@ -30,13 +30,11 @@
     position: absolute;
     z-index: 101;
     width: 78px;
-    left: 50%;
-    bottom: 40px;
+    right: 50%;
+    bottom: 100%;
     background: $definitionUlBgColor;
     border-radius: 1px;
-    transform: translate(-50%);
-    text-align: left;
-    white-space: nowrap;
+    transform: translateX(50%);
     cursor: pointer;
     overflow: hidden;
     height: 0;
@@ -45,11 +43,10 @@
     font-size: 14px;
     color: $definitionLiColor;
     li {
-      width: 73px;
       height: 20px;
       line-height: 20px;
       position: relative;
-      padding: 4px 0 4px 0px;
+      padding: 4px 0;
       text-align: center;
       &:hover{
         color: $definitionLiActiveColor;
@@ -78,7 +75,7 @@
     &.right-side {
       width: 30%;
       height: 100%;
-      left: 115%;
+      right: -15.5%;
       bottom: 0;
       background: rgba(0,0,0,0.9);
       display: flex;
@@ -90,9 +87,11 @@
         padding: 0;
         position: relative;
         span {
+          display: block;
+          position: relative;
           top: 50%;
-          position: absolute;
-          margin: -10px;
+          transform: translateY(-50%);
+          pointer-events: none;
         }
       }
       li:nth-child(1) {
