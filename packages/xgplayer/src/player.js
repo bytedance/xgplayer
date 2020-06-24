@@ -296,19 +296,21 @@ class Player extends Proxy {
     if (!options.root && typeof position === 'string' && position.indexOf('controls') > -1) {
       return this.controls.registerPlugin(PLUFGIN, options, PLUFGIN.pluginName)
     }
-    switch (position) {
-      case POSITIONS.ROOT_RIGHT:
-        options.root = this.rightBar
-        break;
-      case POSITIONS.ROOT_LEFT:
-        options.root = this.leftBar
-        break;
-      case POSITIONS.ROOT_TOP:
-        options.root = this.topBar
-        break;
-      default:
-        options.root = this.root
-        break;
+    if (!options.root) {
+      switch (position) {
+        case POSITIONS.ROOT_RIGHT:
+          options.root = this.rightBar
+          break;
+        case POSITIONS.ROOT_LEFT:
+          options.root = this.leftBar
+          break;
+        case POSITIONS.ROOT_TOP:
+          options.root = this.topBar
+          break;
+        default:
+          options.root = this.root
+          break;
+      }
     }
     return pluginsManager.register(this, PLUFGIN, options)
   }
