@@ -11,6 +11,7 @@ import Controls from './plugins/controls'
 import {
   version
 } from '../package.json'
+import { Sniffer } from './plugin/basePlugin'
 
 const FULLSCREEN_EVENTS = ['fullscreenchange', 'webkitfullscreenchange', 'mozfullscreenchange', 'MSFullscreenChange']
 
@@ -138,6 +139,7 @@ class Player extends Proxy {
 
     // deal with the fullscreen state change callback
     this.onFullscreenChange = () => {
+      console.log('onFullscreenChange')
       const fullEl = Util.getFullScreenEl()
       if (fullEl && (fullEl === this._fullscreenEl || fullEl.tagName === 'VIDEO')) {
         this.fullscreen = true
@@ -476,8 +478,10 @@ class Player extends Proxy {
     if (!el) {
       el = root
     }
-    this._originCssText = root.style.cssText
-    root.removeAttribute('style')
+    if (!Sniffer.os.isPhone) {
+      this._originCssText = root.style.cssText
+      root.removeAttribute('style')
+    }
     this._fullscreenEl = el
     if (el.requestFullscreen) {
       el.requestFullscreen()

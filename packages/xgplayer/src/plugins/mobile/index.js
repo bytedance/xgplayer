@@ -11,8 +11,9 @@ class MobilePlugin extends Plugin {
 
   static get defaultConfig () {
     return {
+      stopPropagation: true, // 是否阻止冒泡
       index: 0,
-      disableGesture: false, // 是否禁用手势
+      disableGesture: true, // 是否禁用手势
       gestureX: true, // 是否启用水平手势
       gestureY: true, // 是否启用垂直手势
       updateGesture: () => {}, // 手势处理回调
@@ -52,7 +53,7 @@ class MobilePlugin extends Plugin {
 
   afterCreate () {
     const {playerConfig, config, player} = this
-    if (Util.isUndefined(playerConfig.disableGesture)) {
+    if (!Util.isUndefined(playerConfig.disableGesture)) {
       config.disableGesture = !!playerConfig.disableGesture
     }
 
@@ -152,8 +153,10 @@ class MobilePlugin extends Plugin {
     }
     this.find('.dur').innerHTML = Util.format(player.duration)
     this.isTouchStart = true
-    e.preventDefault()
-    e.stopPropagation()
+    if (!config.stopPropagation) {
+      e.preventDefault()
+      e.stopPropagation()
+    }
     const touche = this.getTouche(e.touches)
     if (touche) {
       pos.x = parseInt(touche.pageX, 10)
@@ -170,8 +173,6 @@ class MobilePlugin extends Plugin {
   }
 
   onTouchMove (e) {
-    e.preventDefault()
-    e.stopPropagation()
     const touche = this.getTouche(e.touches)
     if (!touche) {
       return
@@ -186,6 +187,8 @@ class MobilePlugin extends Plugin {
       const diffy = y - pos.y
       const tan = Math.abs(diffy) / Math.abs(diffx)
       if (config.gestureY && tan > 1.73 && (x < pos.scopeL || x > pos.scopeR)) {
+        e.preventDefault()
+        e.stopPropagation()
         if (x < pos.scopeL && config.darkness) {
           pos.op = 3
           this.updateBrightness(diffy / pos.height)
@@ -194,6 +197,8 @@ class MobilePlugin extends Plugin {
           this.updateVolume(diffy / pos.height)
         }
       } else if (config.gestureX && tan < 0.27) {
+        e.preventDefault()
+        e.stopPropagation()
         pos.op = 1
         this.updateTime(diffx / pos.width)
       }
@@ -207,12 +212,12 @@ class MobilePlugin extends Plugin {
   }
 
   onTouchEnd (e) {
-    e.preventDefault()
-    e.stopPropagation()
     const {root, player, pos, config, playerConfig} = this
     root.removeEventListener('touchmove', this.onTouchMove, false)
     root.removeEventListener('touchend', this.onTouchEnd, false)
     if (this.isTouchMove) {
+      e.preventDefault()
+      e.stopPropagation()
       const time = pos.time / 1000
       if (pos.op === 1) {
         player.seek(Number(time).toFixed(1))
@@ -223,6 +228,10 @@ class MobilePlugin extends Plugin {
       pos.op = 0
       !config.hideControlsEnd && this.player.emit(Events.PLAYER_FOCUS)
     } else {
+      if (player.isActive && config.stopPropagation) {
+        e.preventDefault()
+        e.stopPropagation()
+      }
       if (!playerConfig.closeVideoClick && player.isActive) {
         this.switchPlayPause(e)
       } else {
