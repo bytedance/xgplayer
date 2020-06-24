@@ -102,7 +102,7 @@ export default class HlsLivePlayer extends BasePlugin {
   }
 
   destroy () {
-    super._destroy();
-    this._context.destroy();
+    super.offAll();
+    this._destroy();
   }
 }
