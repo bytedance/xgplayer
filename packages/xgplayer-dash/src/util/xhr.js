@@ -1,3 +1,5 @@
+
+import querystring from 'querystring'
 class XHR {
   constructor ({url, method = 'GET', type = 'arraybuffer', data = {}} = {}) {
     return new Promise((resolve, reject) => {
@@ -7,11 +9,14 @@ class XHR {
       if (type) {
         R.responseType = type
       }
-      for (let k in data) {
-        _data.push(`k=${data[k]}`)
+      let splitUrls = url.split('?');
+      let search = data;
+      if(splitUrls[1]){
+        Object.assign(search, querystring.parse(splitUrls[1])) ;
       }
       if (_method === 'GET') {
-        R.open(_method, `${url}?${_data.join('&')}`)
+        let u = Object.keys(search).length > 0 ? `${splitUrls[0]}?${querystring.stringify(search)}` : splitUrls[0];
+        R.open(_method, u) 
         R.send()
       } else if (_method === 'post') {
         if (url.indexOf('data:application/json;base64') === 0) {
