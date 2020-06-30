@@ -32,6 +32,7 @@ let i18n = function () {
     PIP: 'Pip',
     SCREENSHOT: 'Screenshot',
     LIVE: 'LIVE',
+    OFF: 'Off',
   }
   lang['zh-cn'] = {
     HAVE_NOTHING: '没有关于音频/视频是否就绪的信息',
@@ -63,6 +64,7 @@ let i18n = function () {
     PIP: '画中画',
     SCREENSHOT: '截图',
     LIVE: '正在直播',
+    OFF: '关闭',
   }
   lang['jp'] = {
     HAVE_NOTHING: 'オーディオ/ビデオが準備できているか情報がありません',
@@ -94,6 +96,7 @@ let i18n = function () {
     PIP: 'ミニプレーヤー',
     SCREENSHOT: 'スクリーンショット',
     LIVE: '生放送',
+    OFF: 'オフ',
   }
 
   Object.defineProperty(player, 'lang', {

@@ -1521,7 +1521,7 @@ module.exports = exports['default'];
 /* 5 */
 /***/ (function(module) {
 
-module.exports = {"name":"xgplayer","version":"2.9.5","description":"video player","main":"./dist/index.js","typings":"./types/index.d.ts","bin":{"xgplayer":"bin/xgplayer.js"},"scripts":{"prepare":"npm run build","build":"webpack --progress --display-chunks -p","watch":"webpack --progress --display-chunks -p --watch --mode development"},"keywords":["video","player"],"babel":{"presets":["es2015"],"plugins":["add-module-exports","babel-plugin-bulk-import"]},"repository":{"type":"git","url":"git+https://github.com/bytedance/xgplayer.git"},"author":"yinguohui@bytedance.com","license":"MIT","dependencies":{"chalk":"^2.3.2","commander":"^2.15.1","danmu.js":"^0.2.17","deepmerge":"^1.5.0","downloadjs":"1.4.7","draggabilly":"^2.2.0","event-emitter":"^0.3.5","fs-extra":"^5.0.0","install":"^0.13.0","pasition":"^1.0.1","request-frame":"^1.5.3"},"browserslist":["> 5%","IE 9","iOS 7","Firefox > 20"],"devDependencies":{"@types/events":"^3.0.0","autoprefixer":"^9.1.5","babel-core":"^6.26.3","babel-loader":"^7.1.4","babel-plugin-add-module-exports":"^0.2.1","babel-plugin-bulk-import":"^1.0.2","babel-plugin-transform-object-rest-spread":"^6.26.0","babel-plugin-transform-runtime":"^6.23.0","babel-preset-es2015":"^6.24.1","chai":"^4.1.2","core-js":"^2.5.4","css-loader":"^0.28.11","json-loader":"^0.5.7","node-sass":"^4.8.3","postcss-cssnext":"^3.1.0","postcss-loader":"^2.1.5","raw-loader":"^2.0.0","sass-loader":"^6.0.7","style-loader":"^0.20.3","sugarss":"^1.0.1","webpack":"^4.11.0","webpack-cli":"^3.0.2","zlib":"^1.0.5"}};
+module.exports = {"name":"xgplayer","version":"2.9.6","description":"video player","main":"./dist/index.js","typings":"./types/index.d.ts","bin":{"xgplayer":"bin/xgplayer.js"},"scripts":{"prepare":"npm run build","build":"webpack --progress --display-chunks -p","watch":"webpack --progress --display-chunks -p --watch --mode development"},"keywords":["video","player"],"babel":{"presets":["es2015"],"plugins":["add-module-exports","babel-plugin-bulk-import"]},"repository":{"type":"git","url":"git+https://github.com/bytedance/xgplayer.git"},"author":"yinguohui@bytedance.com","license":"MIT","dependencies":{"chalk":"^2.3.2","commander":"^2.15.1","danmu.js":"^0.2.17","deepmerge":"^1.5.0","downloadjs":"1.4.7","draggabilly":"^2.2.0","event-emitter":"^0.3.5","fs-extra":"^5.0.0","install":"^0.13.0","pasition":"^1.0.1","request-frame":"^1.5.3"},"browserslist":["> 5%","IE 9","iOS 7","Firefox > 20"],"devDependencies":{"@types/events":"^3.0.0","autoprefixer":"^9.1.5","babel-core":"^6.26.3","babel-loader":"^7.1.4","babel-plugin-add-module-exports":"^0.2.1","babel-plugin-bulk-import":"^1.0.2","babel-plugin-transform-object-rest-spread":"^6.26.0","babel-plugin-transform-runtime":"^6.23.0","babel-preset-es2015":"^6.24.1","chai":"^4.1.2","core-js":"^2.5.4","css-loader":"^0.28.11","json-loader":"^0.5.7","node-sass":"^4.8.3","postcss-cssnext":"^3.1.0","postcss-loader":"^2.1.5","raw-loader":"^2.0.0","sass-loader":"^6.0.7","style-loader":"^0.20.3","sugarss":"^1.0.1","webpack":"^4.11.0","webpack-cli":"^3.0.2","zlib":"^1.0.5"}};
 
 /***/ }),
 /* 6 */
@@ -6201,7 +6201,8 @@ var i18n = function i18n() {
     TEXTTRACK: 'Caption',
     PIP: 'Pip',
     SCREENSHOT: 'Screenshot',
-    LIVE: 'LIVE'
+    LIVE: 'LIVE',
+    OFF: 'Off'
   };
   lang['zh-cn'] = {
     HAVE_NOTHING: '没有关于音频/视频是否就绪的信息',
@@ -6232,7 +6233,8 @@ var i18n = function i18n() {
     TEXTTRACK: '字幕',
     PIP: '画中画',
     SCREENSHOT: '截图',
-    LIVE: '正在直播'
+    LIVE: '正在直播',
+    OFF: '关闭'
   };
   lang['jp'] = {
     HAVE_NOTHING: 'オーディオ/ビデオが準備できているか情報がありません',
@@ -6263,7 +6265,8 @@ var i18n = function i18n() {
     TEXTTRACK: '字幕',
     PIP: 'ミニプレーヤー',
     SCREENSHOT: 'スクリーンショット',
-    LIVE: '生放送'
+    LIVE: '生放送',
+    OFF: 'オフ'
   };
 
   Object.defineProperty(player, 'lang', {
@@ -9432,12 +9435,12 @@ var _typeof = typeof Symbol === "function" && typeof Symbol.iterator === "symbol
         }), this.direction = e.direction, this.danmu.on("changeDirection", function (t) {
           n.direction = t;
         }), this.containerPos = this.danmu.container.getBoundingClientRect(), this.containerWidth = this.containerPos.width, this.containerHeight = this.containerPos.height, this.containerLeft = this.containerPos.left, this.containerRight = this.containerPos.right, this.danmu.on("channel_resize", function () {
-          n.containerPos = n.danmu.container.getBoundingClientRect(), n.resizeing || (n.containerWidth = n.containerPos.width, n.containerHeight = n.containerPos.height, n.containerLeft = n.containerPos.left, n.containerRight = n.containerPos.right, n.resize(!0));
+          n.containerPos = n.danmu.container.getBoundingClientRect(), n.resizing || (n.containerWidth = n.containerPos.width, n.containerHeight = n.containerPos.height, n.containerLeft = n.containerPos.left, n.containerRight = n.containerPos.right, n.resize(!0));
         });
       }return i(t, [{ key: "resize", value: function value() {
           var t = arguments.length > 0 && void 0 !== arguments[0] && arguments[0],
               e = this.danmu.container,
-              n = this;n.resizeing || (n.resizeing = !0, setTimeout(function () {
+              n = this;n.resizing || (n.resizing = !0, setTimeout(function () {
             n.danmu.bulletBtn.main.status;n.danmu.bulletBtn.main.data && n.danmu.bulletBtn.main.data.forEach(function (t) {
               t.bookChannelId && delete t.bookChannelId;
             });var i = e.getBoundingClientRect();n.width = i.width, n.height = i.height, n.danmu.config.area && n.danmu.config.area.start >= 0 && n.danmu.config.area.end >= n.danmu.config.area.start && ("b2t" === n.direction ? n.width = n.width * (n.danmu.config.area.end - n.danmu.config.area.start) : n.height = n.height * (n.danmu.config.area.end - n.danmu.config.area.start)), n.container = e;var o = n.danmu.config.channelSize || (/mobile/gi.test(navigator.userAgent) ? 10 : 12),
@@ -9484,22 +9487,14 @@ var _typeof = typeof Symbol === "function" && typeof Symbol.iterator === "symbol
                 f(d);
               }for (var m = function m(t) {
                 ["scroll", "top", "bottom"].forEach(function (e) {
-                  n.channels[t].queue[e].forEach(function (t) {
-                    t.pauseMove(n.containerPos), t.remove();
-                  });
-                });
-              }, p = a.length; p < n.channels.length; p++) {
-                m(p);
-              }for (var g = function g(t) {
-                ["scroll", "top", "bottom"].forEach(function (e) {
                   a[t].queue[e].forEach(function (t) {
                     t.resized = !1;
                   });
                 });
-              }, v = 0; v < a.length; v++) {
-                g(v);
+              }, p = 0; p < a.length; p++) {
+                m(p);
               }n.channels = a, "b2t" === n.direction ? n.channelWidth = o : n.channelHeight = o;
-            }n.resizeing = !1;
+            }n.resizing = !1;
           }, 10));
         } }, { key: "addBullet", value: function value(t) {
           var e = this,
@@ -9564,15 +9559,15 @@ var _typeof = typeof Symbol === "function" && typeof Symbol.iterator === "symbol
               l = C;break;
             }
           }if (-1 !== l) {
-            for (var B = l, E = l + a; B < E; B++) {
+            for (var B = l, j = l + a; B < j; B++) {
               (u = i[B]).operating[t.mode] = !0, u.queue[t.mode].unshift(t), t.prior && delete u.bookId[t.mode], u.operating[t.mode] = !1;
             }if (t.prior) if (delete t.bookChannelId, n.player) n.bulletBtn.main.data.some(function (e) {
               return e.id === t.id && (delete e.bookChannelId, !0);
             });return t.channel_id = [l, a], "b2t" === e.direction ? (t.top = l * r, e.danmu.config.area && e.danmu.config.area.start && (t.top += e.containerWidth * e.danmu.config.area.start)) : (t.top = l * o, e.danmu.config.area && e.danmu.config.area.start && (t.top += e.containerHeight * e.danmu.config.area.start)), { result: t, message: "success" };
           }if (t.options.realTime) {
-            var j = 0,
+            var E = 0,
                 P = null;if (e.danmu.bulletBtn.main.queue.forEach(function (t, n) {
-              t.el && t.el.getBoundingClientRect().right > e.containerPos.right && t.start >= j && (j = t.start, n, P = t);
+              t.el && t.el.getBoundingClientRect().right > e.containerPos.right && t.start >= E && (E = t.start, n, P = t);
             }), P) {
               t.channel_id = P.channel_id;for (var T = P.channel_id[0], z = P.channel_id[0] + P.channel_id[1]; T < z; T++) {
                 (u = i[T]).operating[t.mode] = !0, u.queue[t.mode].unshift(t), t.prior && delete u.bookId[t.mode], u.operating[t.mode] = !1;
@@ -10233,7 +10228,7 @@ var s_textTrack = function s_textTrack() {
       var _this = this;
 
       var tmp = ['<ul>'];
-      tmp.push('<li class=\'' + (this.textTrackShowDefault ? '' : 'selected') + '\'}\'>\u5173\u95ED</li>');
+      tmp.push('<li class=\'' + (this.textTrackShowDefault ? '' : 'selected') + '\'}\'>' + player.lang.OFF + '</li>');
       list.forEach(function (item) {
         tmp.push('<li class=\'' + (item.default && _this.textTrackShowDefault ? 'selected' : '') + '\'>' + item.label + '</li>');
       });
@@ -10279,7 +10274,7 @@ var s_textTrack = function s_textTrack() {
         });
         util.addClass(li, 'selected');
         var trackDoms = player.root.getElementsByTagName('Track');
-        if (li.innerHTML === '关闭') {
+        if (li.innerHTML === player.lang.OFF) {
           trackDoms[0].track.mode = 'hidden';
           trackDoms[0].src = '';
           util.removeClass(player.root, 'xgplayer-texttrack-active');
@@ -10317,7 +10312,7 @@ var s_textTrack = function s_textTrack() {
     trackDoms[0].src = '';
     Array.prototype.forEach.call(ul.childNodes, function (li) {
       if (util.hasClass(li, 'selected')) {
-        if (li.innerHTML === '关闭') {
+        if (li.innerHTML === player.lang.OFF) {
           trackDoms[0].track.mode = 'hidden';
           trackDoms[0].src = '';
         } else {
