@@ -303,6 +303,7 @@ class Proxy {
   }
 
   set playbackRate (rate) {
+    this.video.defaultPlaybackRate = rate
     this.video.playbackRate = rate
   }
 
