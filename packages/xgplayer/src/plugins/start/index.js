@@ -172,7 +172,7 @@ class Start extends Plugin {
   }
 
   destroy () {
-    this.unbind('click', this.onClick)
+    this.unbind(['click', 'touchend'], this.onClick)
   }
 
   render () {

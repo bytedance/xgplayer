@@ -18,7 +18,7 @@ export default class Fullscreen extends Plugin {
       switchCallback: null,
       target: null,
       disable: false,
-      needBackIcon: true
+      needBackIcon: false
     }
   }
 

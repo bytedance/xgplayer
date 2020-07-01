@@ -28,7 +28,7 @@ export default function getDefaultConfig () {
     videoAttrbutes: {}, // video扩展属性
     disableSwipeHandler: () => {
     },
-    enableSwiperHandler: () => {
+    enableSwipeHandler: () => {
     },
     // 是否删除
     ignores: [],

@@ -173,7 +173,7 @@ class Progress extends Plugin {
       const {player, config} = this
       e.preventDefault()
       e.stopPropagation()
-      Util.checkIsFunction(playerConfig.enableSwiperHandler) && playerConfig.enableSwiperHandler()
+      Util.checkIsFunction(playerConfig.enableSwipeHandler) && playerConfig.enableSwipeHandler()
       Util.event(e)
       Util.removeClass(this.progressBtn, 'moving')
       if (Sniffer.device === 'mobile') {

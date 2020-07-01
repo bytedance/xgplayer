@@ -215,7 +215,7 @@ class MobilePlugin extends Plugin {
     const {root, player, pos, config, playerConfig} = this
     root.removeEventListener('touchmove', this.onTouchMove, false)
     root.removeEventListener('touchend', this.onTouchEnd, false)
-    Util.checkIsFunction(playerConfig.enableSwiperHandler) && playerConfig.enableSwiperHandler()
+    Util.checkIsFunction(playerConfig.enableSwipeHandler) && playerConfig.enableSwipeHandler()
     if (this.isTouchMove) {
       e.preventDefault()
       e.stopPropagation()
