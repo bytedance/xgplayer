@@ -21,6 +21,7 @@
         "build:style": "node scripts/buildStyles.js",
         "watch": "cross-env NODE_ENV=development rollup -c rollup.config.js --watch & npm run build:style"
     },
+    "unpkgFiles":["browser"],
     "keywords": [
         "video",
         "player"
