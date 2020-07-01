@@ -41,7 +41,7 @@ export default class PlayNextIcon extends Plugin {
   registerLangauageTexts () {
     return {
       'playNext': {
-        jp: 'playNext',
+        jp: '次をプレイ',
         en: 'playNext',
         zh: '播放'
       }
