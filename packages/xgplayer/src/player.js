@@ -538,8 +538,9 @@ class Player extends Proxy {
     if (!this.isActive) {
       return;
     }
+    const {closePauseVideoFocus} = this.config
     this.isActive = false
-    if (!this.paused && !this.ended) {
+    if (closePauseVideoFocus || (!this.paused && !this.ended)) {
       this.addClass(STATE_CLASS.ACTIVE)
     }
   }
@@ -557,7 +558,7 @@ class Player extends Proxy {
     if (this.userTimer) {
       clearTimeout(this.userTimer)
     }
-    this.emit(Events.PLAYER_FOCUS)
+    !this.config.closePauseVideoFocus && this.emit(Events.PLAYER_FOCUS)
   }
 
   onEnded () {
