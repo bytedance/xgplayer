@@ -428,10 +428,15 @@ class Player extends Proxy {
 
   destroy (isDelDom = true) {
     pluginsManager.destroy(this)
+    this.root.removeChild(this.topBar)
+    this.root.removeChild(this.leftBar)
+    this.root.removeChild(this.rightBar)
+    // this.root.removeChild(this.video)
     super.destroy()
+    this.root.removeChild(this.video)
     if (isDelDom) {
       // parentNode.removeChild(this.root)
-      this.root.innerHTML = ''
+      // this.root.innerHTML = ''
       let classNameList = this.root.className.split(' ')
       if (classNameList.length > 0) {
         this.root.className = classNameList.filter(name => name.indexOf('xgplayer') < 0).join(' ')
