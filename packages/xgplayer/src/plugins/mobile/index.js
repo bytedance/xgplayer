@@ -13,7 +13,7 @@ class MobilePlugin extends Plugin {
     return {
       stopPropagation: true, // 是否阻止冒泡
       index: 0,
-      disableGesture: true, // 是否禁用手势
+      disableGesture: false, // 是否禁用手势
       gestureX: true, // 是否启用水平手势
       gestureY: true, // 是否启用垂直手势
       updateGesture: () => {}, // 手势处理回调
@@ -146,11 +146,12 @@ class MobilePlugin extends Plugin {
   }
 
   onTouchStart (e) {
-    const {player, config, pos} = this
+    const {player, config, pos, playerConfig} = this
     // 直播或者duration没有获取到之前不做操作
-    if (!(player.duration !== Infinity && player.duration > 0) || this.isTouchStart || config.disableGesture) {
-      return
+    if (!(player.duration !== Infinity && player.duration > 0) || this.isTouchStart) {
+      return true
     }
+    Util.checkIsFunction(playerConfig.disableSwipeHandler) && playerConfig.disableSwipeHandler()
     this.find('.dur').innerHTML = Util.format(player.duration)
     this.isTouchStart = true
     if (!config.stopPropagation) {
@@ -174,11 +175,10 @@ class MobilePlugin extends Plugin {
 
   onTouchMove (e) {
     const touche = this.getTouche(e.touches)
-    if (!touche) {
+    const {pos, config, player} = this
+    if (!touche || config.disableGesture) {
       return
     }
-    const {pos, config, player} = this
-
     if (Math.abs(touche.pageX - this.pos.x) > this.config.miniMoveStep || Math.abs(touche.pageY - pos.y) > this.config.miniMoveStep) {
       !config.hideControlsActive ? player.emit(Events.PLAYER_FOCUS, {autoHide: false}) : player.emit(Events.PLAYER_BLUR)
       const x = parseInt(touche.pageX, 10)
@@ -215,6 +215,7 @@ class MobilePlugin extends Plugin {
     const {root, player, pos, config, playerConfig} = this
     root.removeEventListener('touchmove', this.onTouchMove, false)
     root.removeEventListener('touchend', this.onTouchEnd, false)
+    Util.checkIsFunction(playerConfig.enableSwiperHandler) && playerConfig.enableSwiperHandler()
     if (this.isTouchMove) {
       e.preventDefault()
       e.stopPropagation()

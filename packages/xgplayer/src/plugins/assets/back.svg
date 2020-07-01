@@ -1,0 +1,29 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg width="24px" height="24px" viewBox="0 0 24 24" version="1.1" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink">
+    <!-- Generator: Sketch 63.1 (92452) - https://sketch.com -->
+    <title>back</title>
+    <desc>Created with Sketch.</desc>
+    <defs>
+        <path d="M9.41421356,12.0710678 L15.7781746,18.4350288 C16.1686989,18.8255531 16.1686989,19.4587181 15.7781746,19.8492424 C15.3876503,20.2397667 14.7544853,20.2397667 14.363961,19.8492424 L7.29289322,12.7781746 C6.90236893,12.3876503 6.90236893,11.7544853 7.29289322,11.363961 L14.363961,4.29289322 C14.7544853,3.90236893 15.3876503,3.90236893 15.7781746,4.29289322 C16.1686989,4.68341751 16.1686989,5.31658249 15.7781746,5.70710678 L9.41421356,12.0710678 Z" id="path-1"></path>
+    </defs>
+    <g id="定稿" stroke="none" stroke-width="1" fill="none" fill-rule="evenodd">
+        <g id="预约新片落地页-播控" transform="translate(-12.000000, -30.000000)">
+            <g id="编组-6" transform="translate(12.000000, 30.000000)">
+                <g id="ICON/返回">
+                    <g id="图标/24/返回">
+                        <g id="安全/24*24" fill-rule="nonzero" opacity="0.400000006">
+                            <rect x="0" y="0" width="24" height="24"></rect>
+                        </g>
+                        <mask id="mask-2" fill="white">
+                            <use xlink:href="#path-1"></use>
+                        </mask>
+                        <g id="ICON" fill-rule="nonzero"></g>
+                        <g id="颜色/白/100%" mask="url(#mask-2)" fill="#FFFFFF" fill-rule="evenodd">
+                            <rect x="0" y="0" width="24" height="24"></rect>
+                        </g>
+                    </g>
+                </g>
+            </g>
+        </g>
+    </g>
+</svg>

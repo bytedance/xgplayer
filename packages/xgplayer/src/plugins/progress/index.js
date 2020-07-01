@@ -147,6 +147,7 @@ class Progress extends Plugin {
     }
     e.preventDefault()
     e.stopPropagation()
+    Util.checkIsFunction(playerConfig.disableSwipeHandler) && playerConfig.disableSwipeHandler()
     Util.event(e)
     // this.pointTip为tip信息 不做seek操作
     if (e.target === pointTip || (!playerConfig.allowSeekAfterEnded && player.ended)) {
@@ -154,7 +155,6 @@ class Progress extends Plugin {
     }
 
     Util.checkIsFunction(config.onMoveStart) && config.onMoveStart()
-
     player.emit(Events.PLAYER_FOCUS, {autoHide: false})
     this.isProgressMoving = true
     Util.addClass(this.progressBtn, 'moving')
@@ -173,6 +173,7 @@ class Progress extends Plugin {
       const {player, config} = this
       e.preventDefault()
       e.stopPropagation()
+      Util.checkIsFunction(playerConfig.enableSwiperHandler) && playerConfig.enableSwiperHandler()
       Util.event(e)
       Util.removeClass(this.progressBtn, 'moving')
       if (Sniffer.device === 'mobile') {
