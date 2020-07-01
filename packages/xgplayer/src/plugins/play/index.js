@@ -38,12 +38,12 @@ class Play extends Plugin {
   registerLangauageTexts () {
     return {
       'play': {
-        jp: 'play',
+        jp: 'プレイ',
         en: 'play',
         zh: '播放'
       },
       'pause': {
-        jp: 'pause',
+        jp: '一時停止',
         en: 'pause',
         zh: '暂停'
       }

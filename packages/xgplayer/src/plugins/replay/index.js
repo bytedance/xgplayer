@@ -16,7 +16,7 @@ class Replay extends Plugin {
   registerLangauageTexts () {
     return {
       'replay': {
-        jp: '日文text',
+        jp: 'リプレイ',
         en: 'rePlay',
         zh: '重播'
       }
@@ -54,7 +54,7 @@ class Replay extends Plugin {
 
   render () {
     return `<xg-replay class="xgplayer-replay">
-      <xg-replay-txt class="xgplayer-replay-txt" lang-key="replay">${this.langText.replay}</xg-replay-txt>
+      <xg-replay-txt class="xgplayer-replay-txt" lang-key="replay">${this.langText.replay || '重播'}</xg-replay-txt>
     </xg-replay>`
   }
 }
