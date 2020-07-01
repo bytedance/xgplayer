@@ -76,7 +76,7 @@ export default class ScreenShot extends Plugin {
   registerLangauageTexts () {
     return {
       'screenshot': {
-        jp: 'screenshot',
+        jp: 'スクリーンショット',
         en: 'screenshot',
         zh: '截图'
       }
