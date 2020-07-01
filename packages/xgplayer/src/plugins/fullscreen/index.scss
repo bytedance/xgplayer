@@ -1,17 +1,26 @@
-.xgplayer .xgplayer-fullscreen {
-  .xg-exit-fullscreen {
-    display: none;
-  }
-  .xg-get-fullscreen {
-    display: block;
-  }
-
-  &[data-state=full] {
+.xgplayer {
+  .xgplayer-fullscreen {
     .xg-exit-fullscreen {
-      display: block;
+      display: none;
     }
     .xg-get-fullscreen {
-      display: none;
+      display: block;
+    }
+
+    &[data-state=full] {
+      .xg-exit-fullscreen {
+        display: block;
+      }
+      .xg-get-fullscreen {
+        display: none;
+      }
+    }
+  }
+  .xgplayer-back {
+    margin: 10px;
+    display: none;
+    &.show {
+      display: inline-block;
     }
   }
 }

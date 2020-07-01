@@ -103,6 +103,7 @@ $barBottom: 50px;
   }
   .xg-top-bar {
     position: absolute;
+    z-index: 81;
     top: 0;
     left: 0;
     width: 100%;
@@ -110,6 +111,7 @@ $barBottom: 50px;
   }
   .xg-left-bar, .xg-right-bar {
     position: absolute;
+    z-index: 81;
     top: 0;
     bottom: $barWidth;
     margin-top: $barWidth;
