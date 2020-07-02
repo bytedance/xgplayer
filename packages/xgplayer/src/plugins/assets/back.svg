@@ -1,20 +1,8 @@
-<svg width="24px" height="40px" viewBox="-2 -2 24 24" version="1.1" xmlns="http://www.w3.org/2000/svg">
-  <g id="定稿" stroke="none" stroke-width="1" fill="none" fill-rule="evenodd">
-    <g id="预约新片落地页-播控" transform="translate(-12.000000, -30.000000)">
-      <g id="编组-6" transform="translate(12.000000, 30.000000)">
-        <g id="安全/24*24" fill-rule="nonzero" opacity="0.400000006">
-          <rect x="0" y="0" width="24" height="24"></rect>
-        </g>
-        <mask id="mask-2" fill="white">
-          <path
-            d="M9.41421356,12.0710678 L15.7781746,18.4350288 C16.1686989,18.8255531 16.1686989,19.4587181 15.7781746,19.8492424 C15.3876503,20.2397667 14.7544853,20.2397667 14.363961,19.8492424 L7.29289322,12.7781746 C6.90236893,12.3876503 6.90236893,11.7544853 7.29289322,11.363961 L14.363961,4.29289322 C14.7544853,3.90236893 15.3876503,3.90236893 15.7781746,4.29289322 C16.1686989,4.68341751 16.1686989,5.31658249 15.7781746,5.70710678 L9.41421356,12.0710678 Z"
-            id="path-1"></path>
-        </mask>
-        <g id="ICON" fill-rule="nonzero"></g>
-        <g id="颜色/白/100%" mask="url(#mask-2)" fill="#FFFFFF" fill-rule="evenodd">
-          <rect x="0" y="0" width="24" height="24"></rect>
-        </g>
-      </g>
-    </g>
-  </g>
+<svg class="icon" style="width: 24px;height: 40px;vertical-align: middle;fill: currentColor;overflow: hidden;"
+    viewBox="0 0 1024 1024" version="1.1" xmlns="http://www.w3.org/2000/svg" p-id="445">
+    <path
+        d="M748.804657 1023.999977a38.297142 38.297142 0 0 1-27.154285-11.245714L248.004668 539.177131a38.388571 38.388571 0 0 1 0-54.297142L721.604658 11.28a38.422856 38.422856 0 0 1 54.399999 54.274284L329.501809 511.999989 776.004657 958.457121A38.399999 38.399999 0 0 1 748.850371 1023.999977z"
+        p-id="446" style="
+    fill: #fff;
+"></path>
 </svg>
