@@ -7,7 +7,7 @@ export default {
   ENDED: 'xgplayer-ended',
   CANPLAY: 'xgplayer-canplay',
   LOADING: 'xgplayer-isloading',
-  ERROR: 'xgplayer-error',
+  ERROR: 'xgplayer-is-error',
   REPLAY: 'xgplayer-replay',
   NO_START: 'xgplayer-nostart',
   ACTIVE: 'xgplayer-inactive',

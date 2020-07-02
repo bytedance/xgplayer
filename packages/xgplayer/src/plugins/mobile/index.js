@@ -315,8 +315,10 @@ class MobilePlugin extends Plugin {
   }
 
   destroy () {
-    const {root} = this
+    const {root, player} = this
     this.thumbnailPlugin = null
+    player.root.removeChild(this.xgMask)
+    this.xgMask = null
     root.removeEventListener('touchstart', this.onTouchStart)
     root.removeEventListener('touchmove', this.onTouchMove, false)
     root.removeEventListener('touchend', this.onTouchEnd, false)

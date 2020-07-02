@@ -400,7 +400,12 @@ class Player extends Proxy {
         this.isPlaying = true
         this.emit(Events.AUTOPLAY_STARTED)
       }).catch((e) => {
-        console.log('>>>>playPromise.catch')
+        console.error('>>>>playPromise.catch', e)
+        if (this.video.error) {
+          this.onError()
+          this.errorHandler('error')
+          return
+        }
         // 避免AUTOPLAY_PREVENTED先于playing和play触发
         setTimeout(() => {
           this.emit(Events.AUTOPLAY_PREVENTED)
@@ -437,10 +442,15 @@ class Player extends Proxy {
 
   destroy (isDelDom = true) {
     pluginsManager.destroy(this)
+    this.root.removeChild(this.topBar)
+    this.root.removeChild(this.leftBar)
+    this.root.removeChild(this.rightBar)
+    // this.root.removeChild(this.video)
     super.destroy()
+    this.root.removeChild(this.video)
     if (isDelDom) {
       // parentNode.removeChild(this.root)
-      this.root.innerHTML = ''
+      // this.root.innerHTML = ''
       let classNameList = this.root.className.split(' ')
       if (classNameList.length > 0) {
         this.root.className = classNameList.filter(name => name.indexOf('xgplayer') < 0).join(' ')
@@ -575,6 +585,13 @@ class Player extends Proxy {
   onEnded () {
     this.addClass(STATE_CLASS.ENDED)
     this.removeClass(STATE_CLASS.PLAYING)
+  }
+
+  onError () {
+    this.removeClass(STATE_CLASS.NOT_ALLOW_AUTOPLAY)
+    this.removeClass(STATE_CLASS.NO_START)
+    this.removeClass(STATE_CLASS.ENTER)
+    this.addClass(STATE_CLASS.ERROR)
   }
 
   onSeeking () {
