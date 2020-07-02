@@ -136,15 +136,21 @@ class FlvPlayer extends BasePlugin {
     }
     if (this.played && (this.player.hasStart || this.player.played.length)) {
       this.played = false;
-      return this._destroy().then(() => {
-        this.initEvents();
-        this.context = new Context(flvAllowedEvents)
-        this.player.hasStart = false;
-        this.player.start()
-        this.player.onWaiting();
-      })
+      return this.reload();
     }
     this.played = true;
+  }
+
+  reload () {
+    return this._destroy().then(() => {
+      this.initEvents();
+      this.context = new Context(flvAllowedEvents)
+      this.player.hasStart = false;
+      setTimeout(() => {
+        this.player.start()
+      })
+      this.player.onWaiting();
+    })
   }
 
   pause () {
