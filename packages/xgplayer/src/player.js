@@ -392,6 +392,13 @@ class Player extends Proxy {
         this.emit(Events.AUTOPLAY_STARTED)
       }).catch((e) => {
         console.log('>>>>playPromise.catch')
+        if (this.video.error) {
+          this.removeClass(STATE_CLASS.NOT_ALLOW_AUTOPLAY)
+          this.removeClass(STATE_CLASS.NO_START)
+          this.removeClass(STATE_CLASS.ENTER)
+          this.errorHandler('error')
+          return
+        }
         // 避免AUTOPLAY_PREVENTED先于playing和play触发
         setTimeout(() => {
           this.emit(Events.AUTOPLAY_PREVENTED)
