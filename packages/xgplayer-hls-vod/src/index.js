@@ -71,8 +71,8 @@ class HlsVodPlayer extends BasePlugin {
     this.handleUrlChange(to);
   }
 
-  _handleSetCurrentTime (time) {
-    time = parseFloat(time);
+  _handleSetCurrentTime () {
+    const time = parseFloat(this.player.video.currentTime);
     if (this._context) {
       this.hls.seek(time);
     }
