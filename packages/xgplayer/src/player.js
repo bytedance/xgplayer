@@ -391,11 +391,9 @@ class Player extends Proxy {
         this.isPlaying = true
         this.emit(Events.AUTOPLAY_STARTED)
       }).catch((e) => {
-        console.log('>>>>playPromise.catch')
+        console.error('>>>>playPromise.catch', e)
         if (this.video.error) {
-          this.removeClass(STATE_CLASS.NOT_ALLOW_AUTOPLAY)
-          this.removeClass(STATE_CLASS.NO_START)
-          this.removeClass(STATE_CLASS.ENTER)
+          this.onError()
           this.errorHandler('error')
           return
         }
@@ -575,6 +573,13 @@ class Player extends Proxy {
   onEnded () {
     this.addClass(STATE_CLASS.ENDED)
     this.removeClass(STATE_CLASS.PLAYING)
+  }
+
+  onError () {
+    this.removeClass(STATE_CLASS.NOT_ALLOW_AUTOPLAY)
+    this.removeClass(STATE_CLASS.NO_START)
+    this.removeClass(STATE_CLASS.ENTER)
+    this.addClass(STATE_CLASS.ERROR)
   }
 
   onSeeking () {
