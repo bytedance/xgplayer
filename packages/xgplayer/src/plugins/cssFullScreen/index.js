@@ -80,12 +80,12 @@ export default class CssFullScreen extends Plugin {
   registerLangauageTexts () {
     return {
       'cssFullscreen': {
-        jp: 'Cssfullscreen',
+        jp: 'シアターモード',
         en: 'Cssfullscreen',
         zh: '进入样式全屏'
       },
       exitCssFullscreen: {
-        jp: 'Exit cssfullscreen',
+        jp: 'シアターモードを終了',
         en: 'Exit cssfullscreen',
         zh: '退出样式全屏'
       }
