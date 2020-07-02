@@ -263,7 +263,7 @@ class Proxy {
       en: 'MEDIA_ERR_SRC_NOT_SUPPORTED',
       cn: '不支持音频/视频'
     }]
-    return this.lang ? this.lang[status[err.code - 1].en] : status[err.code - 1].en
+    return this.lang ? this.lang[status[err.code - 1].en] : status[err.code - 1].cn
   }
   get loop () {
     return this.video.loop
