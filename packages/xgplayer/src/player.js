@@ -139,7 +139,6 @@ class Player extends Proxy {
 
     // deal with the fullscreen state change callback
     this.onFullscreenChange = () => {
-      console.log('onFullscreenChange')
       const fullEl = Util.getFullScreenEl()
       if (fullEl && (fullEl === this._fullscreenEl || fullEl.tagName === 'VIDEO')) {
         this.fullscreen = true
@@ -197,7 +196,7 @@ class Player extends Proxy {
       this.emit(Events.URL_NULL)
     }
     this.canPlayFunc = () => {
-      this.volume = this.config.volume
+      this.volume = typeof this.config.volume === 'number' ? this.config.volume : 0.6
       this.off(Events.CANPLAY, this.canPlayFunc)
       this.removeClass(STATE_CLASS.ENTER)
     }

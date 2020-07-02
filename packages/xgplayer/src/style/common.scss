@@ -102,11 +102,12 @@ $barBottom: 50px;
   }
   .xg-top-bar {
     position: absolute;
-    z-index: 81;
+    z-index: 83;
     top: 0;
     left: 0;
     width: 100%;
     height: $barWidth;
+    display: flex;
   }
   .xg-left-bar, .xg-right-bar {
     position: absolute;

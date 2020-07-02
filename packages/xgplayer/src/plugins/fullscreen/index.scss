@@ -17,10 +17,18 @@
     }
   }
   .xgplayer-back {
-    margin: 10px;
+    position: relative;
+    left: 0;
+    top: 10px;
+    width: 34px;
+    height: 40px;
+    margin-left: 20px;
     display: none;
+    svg {
+      display: block;
+    }
     &.show {
-      display: inline-block;
+      display: block;
     }
   }
 }

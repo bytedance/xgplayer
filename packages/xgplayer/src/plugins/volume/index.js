@@ -14,7 +14,8 @@ class Volume extends Plugin {
     return {
       position: POSITIONS.CONTROLS_RIGTH,
       index: 1,
-      disable: false
+      disable: false,
+      default: 0.6
     }
   }
 
@@ -47,6 +48,8 @@ class Volume extends Plugin {
     this.bind('.xgplayer-icon', ['click', 'touchend'], this.changeMuted)
 
     this.on(Events.VOLUME_CHANGE, this.onVolumeChange.bind(this))
+    console.log('this.config.default', this.config.default)
+    this.player.volume = this.config.default
   }
 
   onBarMousedown (e) {
@@ -113,7 +116,9 @@ class Volume extends Plugin {
     Util.removeClass(this.root, 'slide-show')
   }
 
-  changeMuted () {
+  changeMuted (e) {
+    e.preventDefault()
+    e.stopPropagation()
     const {player} = this
     player.muted = !player.muted
   }
@@ -147,7 +152,7 @@ class Volume extends Plugin {
     if (this.config.disable) {
       return
     }
-    const {volume} = this.player
+    const volume = this.config.default || this.player.volume
     return `
     <xg-icon class="xgplayer-volume" data-state="normal">
       <div class="xgplayer-icon">

@@ -145,6 +145,18 @@ $tipsFontsize: 12px;
     }
   }
 
+  .xg-top-bar {
+    xg-icon {
+        position: relative;
+        width: 34px;
+        margin-top: 0;
+        margin-left: 0;
+        top: 10px;
+        left: 0;
+        margin-left: 10px;
+    }
+  }
+
   // mobile
   &.xgplayer-mobile {
     xg-icon {

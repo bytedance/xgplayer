@@ -132,12 +132,10 @@ export default class Fullscreen extends Plugin {
   }
 
   show () {
-    console.log('>>>>>>>show')
     super.show()
   }
 
   hide () {
-    console.log('>>>>>>>hide')
     super.hide()
   }
 
