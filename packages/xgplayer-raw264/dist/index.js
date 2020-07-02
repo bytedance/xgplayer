@@ -17,6 +17,7 @@
     LADER_START: 'LOADER_START',
     LOADER_DATALOADED: 'LOADER_DATALOADED',
     LOADER_COMPLETE: 'LOADER_COMPLETE',
+    LOADER_RESPONSE_HEADERS: 'LOADER_RESPONSE_HEADERS',
     LOADER_ERROR: 'LOADER_ERROR'
   };
 
@@ -43,7 +44,8 @@
   };
 
   var MSE_EVENTS = {
-    SOURCE_UPDATE_END: 'SOURCE_UPDATE_END'
+    SOURCE_UPDATE_END: 'SOURCE_UPDATE_END',
+    MSE_ERROR: 'MSE_ERROR'
 
     // hls专有events
   };var HLS_EVENTS = {
@@ -1798,6 +1800,7 @@
   }();
 
   var NalUnit = Nalunit;
+  var Golomb$1 = Golomb;
 
   var _createClass$7 = function () {
     function defineProperties(target, props) {
@@ -2080,9 +2083,14 @@
       this.videoTrack = {
         samples: []
       };
+      this.unusedUnits = [];
       this.fps = options.fps || 30;
       this.currentSampleIdx = 0;
       this.duration = 0;
+      this.sps = null;
+      this.pps = null;
+
+      this.dataLoadedTimer = null;
     }
 
     _createClass$9(H264Demuxer, [{
@@ -2094,7 +2102,7 @@
       key: 'initEvents',
       value: function initEvents() {
         this.on(Events.LOADER_EVENTS.LOADER_DATALOADED, this.handleDataLoaded.bind(this));
-        // this.on(Events.LOADER_EVENTS.LOADER_COMPLETE, this.handleDataLoaded.bind(this))
+        this.on(Events.LOADER_EVENTS.LOADER_COMPLETE, this.handleDataLoaded.bind(this));
       }
     }, {
       key: 'load',
@@ -2107,58 +2115,83 @@
         var _this = this;
 
         var buffer = this.buffer;
+
+        if (!buffer) {
+          return;
+        }
+        if (this.dataLoadedTimer) {
+          clearTimeout(this.dataLoadedTimer);
+          this.dataLoadedTimer = null;
+        }
+
         var data = buffer.shift(buffer.length);
         buffer.clear();
         var stream = new Stream(data.buffer);
-        var units = NalUnit.getNalunits(stream);
 
-        var lastUnit = units.pop();
-        var lastUnitData = new Uint8Array(lastUnit.body.byteLength + 4);
-        lastUnitData.set(new Uint8Array(lastUnit.header), 0);
-        lastUnitData.set(new Uint8Array(lastUnit.body), 4);
-        buffer.push(lastUnitData);
+        var units = this.unusedUnits.concat(NalUnit.getNalunits(stream));
 
-        var sps = void 0;
-        var pps = void 0;
-        units.forEach(function (unit) {
-          var ts = Math.floor(1000 * _this.currentSampleIdx++ / _this.fps);
-          var currentSample = {
-            dts: ts,
-            pts: ts,
-            data: null,
-            isKeyframe: false
-          };
-          if (unit.sps) {
-            sps = true;
-            _this.videoMeta.sps = unit.body;
-            _this.videoMeta.presentHeight = unit.sps.present_size.height;
-            _this.videoMeta.presentWidth = unit.sps.present_size.width;
-          } else if (unit.pps) {
-            pps = true;
-            _this.videoMeta.pps = unit.body;
+        if (!this._player.config.isLive) {
+          if (units.length > 1) {
+            var lastUnit = units.pop();
+            var pushBackData = new Uint8Array(lastUnit.body.byteLength + 4);
+            pushBackData.set(new Uint8Array(lastUnit.header), 0);
+            pushBackData.set(lastUnit.body, 4);
+            buffer.push(pushBackData);
+
+            this.pushToMobileVideo(units);
+            if (this.buffer.length) {
+              this.dataLoadedTimer = setTimeout(function () {
+                _this.handleDataLoaded();
+              }, 500);
+            }
+          } else if (units.length === 1) {
+            buffer.push(new Uint8Array(data));
+            this.dataLoadedTimer = setTimeout(function () {
+              _this.handleDataLoaded();
+            }, 500);
           }
+        } else {
+          this.pushToMobileVideo(units);
+        }
+      }
+    }, {
+      key: 'pushToMobileVideo',
+      value: function pushToMobileVideo(units) {
+        var _this2 = this;
 
-          var data = new Uint8Array(unit.body.byteLength + 4);
-          data.set([0, 0, 0, 1], 0);
-          data.set(unit.body, 4);
-          currentSample.data = data;
-          currentSample.isKeyframe = unit.idr;
+        var _H264Demuxer$unitsToS = H264Demuxer.unitsToSamples(units),
+            samples = _H264Demuxer$unitsToS.samples,
+            unused = _H264Demuxer$unitsToS.unused;
 
-          _this.videoTrack.samples.push(currentSample);
+        this.unusedUnits = unused;
+
+        samples.forEach(function (sample) {
+          var ts = Math.floor(1000 * _this2.currentSampleIdx++ / _this2.fps);
+          sample.dts = sample.pts = ts;
+          if (sample.sps) {
+            _this2.sps = true;
+            _this2.videoMeta.sps = sample.data.slice(4);
+            _this2.videoMeta.presentHeight = sample.sps.present_size.height;
+            _this2.videoMeta.presentWidth = sample.sps.present_size.width;
+          } else if (sample.pps) {
+            _this2.pps = true;
+            _this2.videoMeta.pps = sample.data.slice(4);
+          } else {
+            _this2.videoTrack.samples.push(sample);
+          }
         });
 
-        if (sps && pps && !this.videoMetaInited) {
+        if (this.sps && this.pps) {
           this._player.video.setVideoMeta(this.videoMeta);
-          this.videoMetaInited = true;
+          this.sps = null;
+          this.pps = null;
         }
-        if (!this.intervalId) {
+        if (!this.intervalId && !this._player.config.isLive) {
           this.intervalId = setInterval(function () {
-            if (_this.videoTrack.samples.length) {
-              _this._player.video.onDemuxComplete(_this.videoTrack);
-            } else {
-              clearInterval(_this.intervalId);
-            }
+            _this2.handleDataLoaded();
           }, 500);
+        } else {
+          this._player.video.onDemuxComplete(this.videoTrack);
         }
         this.duration = Math.round(Math.floor(this.currentSampleIdx / this.fps));
         this._player.emit('durationchange');
@@ -2173,11 +2206,73 @@
         };
         this.fps = null;
         this.currentSampleIdx = null;
+        if (this.intervalId) {
+          window.clearInterval(this.intervalId);
+          this.intervalId = null;
+        }
       }
     }, {
       key: 'buffer',
       get: function get() {
         return this._context.getInstance('LOADER_BUFFER');
+      }
+    }], [{
+      key: 'unitsToSamples',
+      value: function unitsToSamples(units) {
+        var temp = [];
+        var samples = [];
+        units.forEach(function (unit) {
+          var golomb = new Golomb$1(new Uint8Array(unit.body));
+          golomb.readByte();
+          if (!golomb.readUEG() || unit.sps || unit.pps) {
+            // first_mb_slice
+            if (temp.length) {
+              samples.push(H264Demuxer.combineUnits(temp));
+            }
+            temp = [unit];
+          } else {
+            temp.push(unit);
+          }
+        });
+
+        return {
+          samples: samples,
+          unused: temp
+        };
+      }
+    }, {
+      key: 'combineUnits',
+      value: function combineUnits(units) {
+        var sps = void 0,
+            pps = void 0;
+        var dataSize = units.reduce(function (result, unit) {
+          if (unit.sps) {
+            sps = unit.sps;
+          } else if (unit.pps) {
+            pps = unit.pps;
+          }
+          return result + unit.header.byteLength + unit.body.byteLength;
+        }, 0);
+
+        var data = new Uint8Array(dataSize);
+        var offset = 0;
+        var isKeyframe = void 0;
+        units.forEach(function (unit) {
+          data.set(new Uint8Array(unit.header), offset);
+          offset += unit.header.byteLength;
+          data.set(unit.body, offset);
+          offset += unit.body.byteLength;
+          if (unit.idr) {
+            isKeyframe = true;
+          }
+        });
+
+        return {
+          data: data,
+          sps: sps,
+          pps: pps,
+          isKeyframe: isKeyframe
+        };
       }
     }]);
 
@@ -2385,6 +2480,7 @@
       this._canceled = false;
       this._destroyed = false;
       this.readtype = this.configs.readtype;
+      this.retryTime = this.configs.retryTime === undefined ? 3 : this.configs.retryTime;
       this.buffer = this.configs.buffer || 'LOADER_BUFFER';
       this._loaderTaskNo = 0;
     }
@@ -2395,19 +2491,39 @@
         this.on(LOADER_EVENTS$1.LADER_START, this.load.bind(this));
       }
     }, {
-      key: 'load',
-      value: function load(url, opts) {
+      key: 'fetch',
+      value: function (_fetch) {
+        function fetch(_x, _x2) {
+          return _fetch.apply(this, arguments);
+        }
+
+        fetch.toString = function () {
+          return _fetch.toString();
+        };
+
+        return fetch;
+      }(function (url, params) {
+        var timer = null;
+        return Promise.race([fetch(url, params), new Promise(function (resolve, reject) {
+          timer = setTimeout(function () {
+            reject(new Error('fetch timeout'));
+          }, 1e4); // 10s
+        })]).then(function (response) {
+          if (timer) {
+            clearTimeout(timer);
+            timer = null;
+          }
+          return response;
+        });
+      })
+    }, {
+      key: 'internalLoad',
+      value: function internalLoad(url, params, retryTime) {
         var _this2 = this;
 
-        this.url = url;
-
-        this._canceled = false;
-
-        // TODO: Add Ranges
-        var params = this.getParams(opts);
-        this.loading = true;
-        return fetch(this.url, params).then(function (response) {
+        return this.fetch(this.url, params).then(function (response) {
           if (response.ok) {
+            _this2.emit(LOADER_EVENTS$1.LOADER_RESPONSE_HEADERS, _this2.TAG, response.headers);
             _this2.status = response.status;
             Promise.resolve().then(function () {
               _this2._onFetchResponse(response);
@@ -2416,12 +2532,32 @@
             return Promise.resolve(response);
           }
           _this2.loading = false;
-          _this2.emit(LOADER_EVENTS$1.LOADER_ERROR, _this2.TAG, new Error(response.status + ' (' + response.statusText + ')'));
+          if (retryTime-- > 0) {
+            _this2.internalLoad(url, params, retryTime);
+          } else {
+            _this2.emit(LOADER_EVENTS$1.LOADER_ERROR, _this2.TAG, new Error(response.status + ' (' + response.statusText + ')'));
+          }
         }).catch(function (error) {
           _this2.loading = false;
-          _this2.emit(LOADER_EVENTS$1.LOADER_ERROR, _this2.TAG, error);
-          throw error;
+          if (retryTime-- > 0) {
+            _this2.internalLoad(url, params, retryTime);
+          } else {
+            _this2.emit(LOADER_EVENTS$1.LOADER_ERROR, _this2.TAG, error);
+            throw error;
+          }
         });
+      }
+    }, {
+      key: 'load',
+      value: function load(url, opts) {
+        this.url = url;
+
+        this._canceled = false;
+
+        // TODO: Add Ranges
+        var params = this.getParams(opts);
+        this.loading = true;
+        this.internalLoad(url, params, this.retryTime);
       }
     }, {
       key: '_onFetchResponse',
@@ -3051,6 +3187,8 @@
     }T && !T.forcePolyfill && "function" == typeof T.define && "function" == typeof T.get || Ja();window.__CE_installPolyfill = Ja;
   }).call(self);
 
+  //# sourceMappingURL=custom-elements.min.js.map
+
   /**
    * @license
    * Copyright (c) 2016 The Polymer Project Authors. All rights reserved.
@@ -3408,22 +3546,39 @@
 
   var VideoWorker = new shimWorker("./worker.js", function (window, document) {
     var self = this;
+    function shimImportScripts(src) {
+      return new Promise(function (resolve, reject) {
+        var s;
+        s = _shimWorkerDocument.createElement('script');
+        s.src = src;
+        s.onload = resolve;
+        s.onerror = reject;
+        _shimWorkerDocument.head.appendChild(s);
+      });
+    }
+
     var MAX_STREAM_BUFFER_LENGTH = 1024 * 1024;
     var Decoder = function Decoder(self) {
       this.inited = false;
       this.self = self;
       this.meta = this.self.meta;
       this.infolist = {};
-      self.par_broadwayOnBroadwayInited = this.broadwayOnBroadwayInited.bind(this);
-      self.par_broadwayOnPictureDecoded = this.broadwayOnPictureDecoded.bind(this);
+      if (self.importScripts) {
+        self.par_broadwayOnBroadwayInited = this.broadwayOnBroadwayInited.bind(this);
+        self.par_broadwayOnPictureDecoded = this.broadwayOnPictureDecoded.bind(this);
+      } else {
+        _shimWorkerWindow.par_broadwayOnBroadwayInited = this.broadwayOnBroadwayInited.bind(this);
+        _shimWorkerWindow.par_broadwayOnPictureDecoded = this.broadwayOnPictureDecoded.bind(this);
+      }
     };
 
     Decoder.prototype.toU8Array = function (ptr, length) {
-      return this.self.HEAPU8.subarray(ptr, ptr + length);
+      return Module.HEAPU8.subarray(ptr, ptr + length);
     };
 
     Decoder.prototype.init = function () {
       Module._broadwayInit();
+      this.broadwayOnBroadwayInited();
       this.streamBuffer = this.toU8Array(Module._broadwayCreateStream(MAX_STREAM_BUFFER_LENGTH), MAX_STREAM_BUFFER_LENGTH);
     };
 
@@ -3439,6 +3594,13 @@
       var datetemp = new Uint8Array(data.length);
       datetemp.set(data);
       var buffer = datetemp.buffer;
+      if (info) {
+        this.self.postMessage({
+          msg: 'LOG',
+          log: 'sample ' + info.dts + ' decoded startAt' + info.decodeTime + ' cost: ' + (Date.now() - info.decodeTime)
+        });
+      }
+
       this.self.postMessage({
         msg: 'DECODED',
         width: width,
@@ -3452,6 +3614,199 @@
 
     Decoder.prototype.broadwayOnBroadwayInited = function () {
       this.inited = true;
+      this.self.postMessage({
+        msg: 'LOG',
+        log: 'decoder inited'
+      });
+      this.self.postMessage({ msg: 'DECODER_READY' });
+    };
+
+    Decoder.prototype.decode = function (data, info) {
+      var time = parseInt(new Date().getTime());
+      var infoid = time - Math.floor(time / 10e8) * 10e8;
+      this.infolist[infoid] = info;
+      this.streamBuffer.set(data);
+      Module._broadwayPlayStream(data.length, infoid);
+    };
+
+    Decoder.prototype.destroy = function () {
+      Module._broadwayExit();
+    };
+
+    Decoder.prototype.updateMeta = function (meta) {
+      this.meta = meta;
+    };
+
+    var decoder;
+
+    function onPostRun() {
+      self.postMessage({
+        msg: 'LOG',
+        log: 'do post run'
+      });
+      decoder = new Decoder(this);
+      decoder.init();
+    }
+
+    function init(meta) {
+      var _this = this;
+
+      if (!decoder) {
+        if (!self.importScripts) {
+          shimImportScripts('https://sf1-vcloudcdn.pstatp.com/obj/ttfe/media/decoder/h264/decoder_1583333072684.js').then(function () {
+            console.log(Module);
+            self.postMessage({
+              msg: 'LOG',
+              log: addOnPostRun
+            });
+            addOnPostRun(onPostRun.bind(self));
+          });
+        } else {
+          self.postMessage({
+            msg: 'LOG',
+            log: 'do import script '
+          });
+          if (!self.console) {
+            self.console = {
+              log: function log() {},
+              warn: function warn() {},
+              info: function info() {},
+              error: function error() {}
+            };
+          }
+          try {
+            self.importScripts('https://sf1-vcloudcdn.pstatp.com/obj/ttfe/media/decoder/h264/decoder_1583333072684.js');
+          } catch (e) {
+            self.postMessage({
+              msg: 'INIT_FAILED'
+            });
+            self.postMessage({
+              msg: 'LOG',
+              log: e.message
+            });
+            return;
+          }
+          addOnPostRun(onPostRun.bind(self));
+          self.postMessage({
+            msg: 'LOG',
+            log: 'import script done' + Module.toString()
+          });
+          setTimeout(function () {
+            if (!decoder) {
+              onPostRun.call(_this);
+            }
+          }, 5000);
+        }
+      }
+    }
+
+    self.onmessage = function (e) {
+      var data = e.data;
+      if (!data.msg) {
+        self.postMessage({
+          msg: 'ERROR:invalid message'
+        });
+      } else {
+        switch (data.msg) {
+          case 'init':
+            self.meta = data.meta;
+            self.postMessage({
+              msg: 'LOG',
+              log: 'worker inited'
+            });
+            init();
+            break;
+          case 'updatemeta':
+            self.meta = data.meta;
+            decoder.updateMeta(data.meta);
+            break;
+          case 'decode':
+            decoder.decode(data.data, data.info);
+            break;
+          case 'destory':
+            decoder.destroy();
+            break;
+        }
+      }
+    };
+  });
+
+  var BackupVideoWorker = new shimWorker("./backupWorker.js", function (window, document) {
+    var self = this;
+    function shimImportScripts(src) {
+      return new Promise(function (resolve, reject) {
+        var s;
+        s = _shimWorkerDocument.createElement('script');
+        s.src = src;
+        s.onload = resolve;
+        s.onerror = reject;
+        _shimWorkerDocument.head.appendChild(s);
+      });
+    }
+
+    var MAX_STREAM_BUFFER_LENGTH = 1024 * 1024;
+    var Decoder = function Decoder(self) {
+      this.inited = false;
+      this.self = self;
+      this.meta = this.self.meta;
+      this.infolist = {};
+      if (self.importScripts) {
+        self.par_broadwayOnBroadwayInited = this.broadwayOnBroadwayInited.bind(this);
+        self.par_broadwayOnPictureDecoded = this.broadwayOnPictureDecoded.bind(this);
+      } else {
+        _shimWorkerWindow.par_broadwayOnBroadwayInited = this.broadwayOnBroadwayInited.bind(this);
+        _shimWorkerWindow.par_broadwayOnPictureDecoded = this.broadwayOnPictureDecoded.bind(this);
+      }
+    };
+
+    Decoder.prototype.toU8Array = function (ptr, length) {
+      return Module.HEAPU8.subarray(ptr, ptr + length);
+    };
+
+    Decoder.prototype.init = function () {
+      Module._broadwayInit();
+      this.streamBuffer = this.toU8Array(Module._broadwayCreateStream(MAX_STREAM_BUFFER_LENGTH), MAX_STREAM_BUFFER_LENGTH);
+    };
+
+    Decoder.prototype.broadwayOnPictureDecoded = function (offset, width, height, yLinesize, uvLinesize, infoid) {
+      var info = Object.assign({}, this.infolist[infoid]);
+      var yRowcount = height;
+      var uvRowcount = height / 2;
+      if (!uvLinesize) {
+        uvLinesize = yLinesize / 2;
+      }
+      if (this.meta && (this.meta.chromaFormat === 444 || this.meta.chromaFormat === 422)) {
+        uvRowcount = height;
+      }
+      var data = this.toU8Array(offset, yLinesize * yRowcount + 2 * (uvLinesize * uvRowcount));
+      this.infolist[infoid] = null;
+      var datetemp = new Uint8Array(data.length);
+      datetemp.set(data);
+      var buffer = datetemp.buffer;
+      if (info) {
+        this.self.postMessage({
+          msg: 'LOG',
+          log: 'sample ' + info.dts + ' decoded startAt' + info.decodeTime + ' cost: ' + (Date.now() - info.decodeTime)
+        });
+      }
+
+      this.self.postMessage({
+        msg: 'DECODED',
+        width: width,
+        height: height,
+        yLinesize: yLinesize,
+        uvLinesize: uvLinesize,
+        info: info,
+        buffer: buffer
+      }, [buffer]);
+    };
+
+    Decoder.prototype.broadwayOnBroadwayInited = function () {
+      this.inited = true;
+      this.self.postMessage({
+        msg: 'LOG',
+        log: 'backup decoder inited'
+      });
       this.self.postMessage({ msg: 'DECODER_READY' });
     };
 
@@ -3476,16 +3831,54 @@
     function onPostRun() {
       decoder = new Decoder(this);
       decoder.init();
+      self.postMessage({
+        msg: 'LOG',
+        log: 'decoder inited'
+      });
+      decoder.broadwayOnBroadwayInited();
     }
 
     function init(meta) {
       if (!decoder) {
-        self.importScripts('https://sf1-vcloudcdn.pstatp.com/obj/ttfe/media/decoder/h264/decoder_1583333072684.js');
+        if (!self.importScripts) {
+          shimImportScripts('https://sf1-vcloudcdn.pstatp.com/obj/media-fe/decoder/h264/decoder_asm_1589261792455.js').then(function () {
+            self.postMessage({
+              msg: 'LOG',
+              log: Module
+            });
+            onPostRun.call(self);
+          });
+        } else {
+          try {
+            if (!self.console) {
+              self.console = {
+                log: function log() {},
+                warn: function warn() {},
+                info: function info() {},
+                error: function error() {}
+              };
+            }
+            self.importScripts('https://sf1-vcloudcdn.pstatp.com/obj/media-fe/decoder/h264/decoder_asm_1589261792455.js');
+          } catch (e) {
+            self.postMessage({
+              msg: 'INIT_FAILED'
+            });
+            self.postMessage({
+              msg: 'LOG',
+              log: e.message
+            });
+            return;
+          }
+          self.postMessage({
+            msg: 'LOG',
+            log: 'backup script import done' + Module
+          });
+          onPostRun.call(self);
+        }
       }
-      addOnPostRun(onPostRun.bind(self));
     }
 
-    self.addEventListener('message', function (e) {
+    self.onmessage = function (e) {
       var data = e.data;
       if (!data.msg) {
         self.postMessage({
@@ -3494,8 +3887,11 @@
       } else {
         switch (data.msg) {
           case 'init':
-            console.log(data);
             self.meta = data.meta;
+            self.postMessage({
+              msg: 'LOG',
+              log: 'backup worker inited'
+            });
             init();
             break;
           case 'updatemeta':
@@ -3510,7 +3906,7 @@
             break;
         }
       }
-    }, false);
+    };
   });
 
   var _createClass$d = function () {
@@ -3529,1003 +3925,9 @@
     }
   }
 
-  var Stream$1 = function () {
-    function Stream(buffer) {
-      _classCallCheck$d(this, Stream);
-
-      if (buffer instanceof ArrayBuffer) {
-        this.buffer = buffer;
-        this.dataview = new DataView(buffer);
-        this.dataview.position = 0;
-      } else {
-        throw new Error('data is invalid');
-      }
-    }
-
-    _createClass$d(Stream, [{
-      key: 'back',
-      value: function back(count) {
-        this.position -= count;
-      }
-    }, {
-      key: 'skip',
-      value: function skip(count) {
-        var loop = Math.floor(count / 4);
-        var last = count % 4;
-        for (var i = 0; i < loop; i++) {
-          Stream.readByte(this.dataview, 4);
-        }
-        if (last > 0) {
-          Stream.readByte(this.dataview, last);
-        }
-      }
-
-      /**
-       * [readByte 从DataView中读取数据]
-       * @param  {DataView} buffer [DataView实例]
-       * @param  {Number} size   [读取字节数]
-       * @return {Number}        [整数]
-       */
-
-    }, {
-      key: 'readUint8',
-      value: function readUint8() {
-        return Stream.readByte(this.dataview, 1);
-      }
-    }, {
-      key: 'readUint16',
-      value: function readUint16() {
-        return Stream.readByte(this.dataview, 2);
-      }
-    }, {
-      key: 'readUint24',
-      value: function readUint24() {
-        return Stream.readByte(this.dataview, 3);
-      }
-    }, {
-      key: 'readUint32',
-      value: function readUint32() {
-        return Stream.readByte(this.dataview, 4);
-      }
-    }, {
-      key: 'readUint64',
-      value: function readUint64() {
-        return Stream.readByte(this.dataview, 8);
-      }
-    }, {
-      key: 'readInt8',
-      value: function readInt8() {
-        return Stream.readByte(this.dataview, 1, true);
-      }
-    }, {
-      key: 'readInt16',
-      value: function readInt16() {
-        return Stream.readByte(this.dataview, 2, true);
-      }
-    }, {
-      key: 'readInt32',
-      value: function readInt32() {
-        return Stream.readByte(this.dataview, 4, true);
-      }
-    }, {
-      key: 'writeUint32',
-      value: function writeUint32(value) {
-        return new Uint8Array([value >>> 24 & 0xff, value >>> 16 & 0xff, value >>> 8 & 0xff, value & 0xff]);
-      }
-    }, {
-      key: 'length',
-      get: function get() {
-        return this.buffer.byteLength;
-      }
-    }, {
-      key: 'position',
-      set: function set(value) {
-        this.dataview.position = value;
-      },
-      get: function get() {
-        return this.dataview.position;
-      }
-    }], [{
-      key: 'readByte',
-      value: function readByte(buffer, size, sign) {
-        var res = void 0;
-        switch (size) {
-          case 1:
-            if (sign) {
-              res = buffer.getInt8(buffer.position);
-            } else {
-              res = buffer.getUint8(buffer.position);
-            }
-            break;
-          case 2:
-            if (sign) {
-              res = buffer.getInt16(buffer.position);
-            } else {
-              res = buffer.getUint16(buffer.position);
-            }
-            break;
-          case 3:
-            if (sign) {
-              throw new Error('not supported for readByte 3');
-            } else {
-              res = buffer.getUint8(buffer.position) << 16;
-              res |= buffer.getUint8(buffer.position + 1) << 8;
-              res |= buffer.getUint8(buffer.position + 2);
-            }
-            break;
-          case 4:
-            if (sign) {
-              res = buffer.getInt32(buffer.position);
-            } else {
-              res = buffer.getUint32(buffer.position);
-            }
-            break;
-          case 8:
-            if (sign) {
-              throw new Error('not supported for readBody 8');
-            } else {
-              res = buffer.getUint32(buffer.position) << 32;
-              res |= buffer.getUint32(buffer.position + 4);
-            }
-            break;
-          default:
-            res = '';
-        }
-        buffer.position += size;
-        return res;
-      }
-    }]);
-
-    return Stream;
-  }();
-
-  var _createClass$e = function () {
-    function defineProperties(target, props) {
-      for (var i = 0; i < props.length; i++) {
-        var descriptor = props[i];descriptor.enumerable = descriptor.enumerable || false;descriptor.configurable = true;if ("value" in descriptor) descriptor.writable = true;Object.defineProperty(target, descriptor.key, descriptor);
-      }
-    }return function (Constructor, protoProps, staticProps) {
-      if (protoProps) defineProperties(Constructor.prototype, protoProps);if (staticProps) defineProperties(Constructor, staticProps);return Constructor;
-    };
-  }();
-
-  function _classCallCheck$e(instance, Constructor) {
-    if (!(instance instanceof Constructor)) {
-      throw new TypeError("Cannot call a class as a function");
-    }
-  }
-
-  var Golomb$1 = function () {
-    function Golomb(uint8array) {
-      _classCallCheck$e(this, Golomb);
-
-      this.TAG = 'Golomb';
-      this._buffer = uint8array;
-      this._bufferIndex = 0;
-      this._totalBytes = uint8array.byteLength;
-      this._totalBits = uint8array.byteLength * 8;
-      this._currentWord = 0;
-      this._currentWordBitsLeft = 0;
-    }
-
-    _createClass$e(Golomb, [{
-      key: 'destroy',
-      value: function destroy() {
-        this._buffer = null;
-      }
-    }, {
-      key: '_fillCurrentWord',
-      value: function _fillCurrentWord() {
-        var bufferBytesLeft = this._totalBytes - this._bufferIndex;
-
-        var bytesRead = Math.min(4, bufferBytesLeft);
-        var word = new Uint8Array(4);
-        word.set(this._buffer.subarray(this._bufferIndex, this._bufferIndex + bytesRead));
-        this._currentWord = new DataView(word.buffer).getUint32(0);
-
-        this._bufferIndex += bytesRead;
-        this._currentWordBitsLeft = bytesRead * 8;
-      }
-    }, {
-      key: 'readBits',
-      value: function readBits(size) {
-        var bits = Math.min(this._currentWordBitsLeft, size); // :uint
-        var valu = this._currentWord >>> 32 - bits;
-        if (size > 32) {
-          throw new Error('Cannot read more than 32 bits at a time');
-        }
-        this._currentWordBitsLeft -= bits;
-        if (this._currentWordBitsLeft > 0) {
-          this._currentWord <<= bits;
-        } else if (this._totalBytes - this._bufferIndex > 0) {
-          this._fillCurrentWord();
-        }
-
-        bits = size - bits;
-        if (bits > 0 && this._currentWordBitsLeft) {
-          return valu << bits | this.readBits(bits);
-        } else {
-          return valu;
-        }
-      }
-    }, {
-      key: 'readBool',
-      value: function readBool() {
-        return this.readBits(1) === 1;
-      }
-    }, {
-      key: 'readByte',
-      value: function readByte() {
-        return this.readBits(8);
-      }
-    }, {
-      key: '_skipLeadingZero',
-      value: function _skipLeadingZero() {
-        var zeroCount = void 0;
-        for (zeroCount = 0; zeroCount < this._currentWordBitsLeft; zeroCount++) {
-          if ((this._currentWord & 0x80000000 >>> zeroCount) !== 0) {
-            this._currentWord <<= zeroCount;
-            this._currentWordBitsLeft -= zeroCount;
-            return zeroCount;
-          }
-        }
-        this._fillCurrentWord();
-        return zeroCount + this._skipLeadingZero();
-      }
-    }, {
-      key: 'readUEG',
-      value: function readUEG() {
-        // unsigned exponential golomb
-        var leadingZeros = this._skipLeadingZero();
-        return this.readBits(leadingZeros + 1) - 1;
-      }
-    }, {
-      key: 'readSEG',
-      value: function readSEG() {
-        // signed exponential golomb
-        var value = this.readUEG();
-        if (value & 0x01) {
-          return value + 1 >>> 1;
-        } else {
-          return -1 * (value >>> 1);
-        }
-      }
-    }]);
-
-    return Golomb;
-  }();
-
-  var _createClass$f = function () {
-    function defineProperties(target, props) {
-      for (var i = 0; i < props.length; i++) {
-        var descriptor = props[i];descriptor.enumerable = descriptor.enumerable || false;descriptor.configurable = true;if ("value" in descriptor) descriptor.writable = true;Object.defineProperty(target, descriptor.key, descriptor);
-      }
-    }return function (Constructor, protoProps, staticProps) {
-      if (protoProps) defineProperties(Constructor.prototype, protoProps);if (staticProps) defineProperties(Constructor, staticProps);return Constructor;
-    };
-  }();
-
-  function _classCallCheck$f(instance, Constructor) {
-    if (!(instance instanceof Constructor)) {
-      throw new TypeError("Cannot call a class as a function");
-    }
-  }
-
-  var SPSParser$1 = function () {
-    function SPSParser() {
-      _classCallCheck$f(this, SPSParser);
-    }
-
-    _createClass$f(SPSParser, null, [{
-      key: '_ebsp2rbsp',
-      value: function _ebsp2rbsp(uint8array) {
-        var src = uint8array;
-        var srcLength = src.byteLength;
-        var dst = new Uint8Array(srcLength);
-        var dstIdx = 0;
-
-        for (var i = 0; i < srcLength; i++) {
-          if (i >= 2) {
-            if (src[i] === 0x03 && src[i - 1] === 0x00 && src[i - 2] === 0x00) {
-              continue;
-            }
-          }
-          dst[dstIdx] = src[i];
-          dstIdx++;
-        }
-
-        return new Uint8Array(dst.buffer, 0, dstIdx);
-      }
-    }, {
-      key: 'parseSPS',
-      value: function parseSPS(uint8array) {
-        var rbsp = SPSParser._ebsp2rbsp(uint8array);
-        var gb = new Golomb$1(rbsp);
-
-        gb.readByte();
-        var profileIdc = gb.readByte();
-        gb.readByte();
-        var levelIdc = gb.readByte();
-        gb.readUEG();
-
-        var profile_string = SPSParser.getProfileString(profileIdc);
-        var level_string = SPSParser.getLevelString(levelIdc);
-        var chroma_format_idc = 1;
-        var chroma_format = 420;
-        var chroma_format_table = [0, 420, 422, 444];
-        var bit_depth = 8;
-
-        if (profileIdc === 100 || profileIdc === 110 || profileIdc === 122 || profileIdc === 244 || profileIdc === 44 || profileIdc === 83 || profileIdc === 86 || profileIdc === 118 || profileIdc === 128 || profileIdc === 138 || profileIdc === 144) {
-          chroma_format_idc = gb.readUEG();
-          if (chroma_format_idc === 3) {
-            gb.readBits(1);
-          }
-          if (chroma_format_idc <= 3) {
-            chroma_format = chroma_format_table[chroma_format_idc];
-          }
-
-          bit_depth = gb.readUEG() + 8;
-          gb.readUEG();
-          gb.readBits(1);
-          if (gb.readBool()) {
-            var scaling_list_count = chroma_format_idc !== 3 ? 8 : 12;
-            for (var i = 0; i < scaling_list_count; i++) {
-              if (gb.readBool()) {
-                if (i < 6) {
-                  SPSParser._skipScalingList(gb, 16);
-                } else {
-                  SPSParser._skipScalingList(gb, 64);
-                }
-              }
-            }
-          }
-        }
-        gb.readUEG();
-        var pic_order_cnt_type = gb.readUEG();
-        if (pic_order_cnt_type === 0) {
-          gb.readUEG();
-        } else if (pic_order_cnt_type === 1) {
-          gb.readBits(1);
-          gb.readSEG();
-          gb.readSEG();
-          var num_ref_frames_in_pic_order_cnt_cycle = gb.readUEG();
-          for (var _i = 0; _i < num_ref_frames_in_pic_order_cnt_cycle; _i++) {
-            gb.readSEG();
-          }
-        }
-        gb.readUEG();
-        gb.readBits(1);
-
-        var pic_width_in_mbs_minus1 = gb.readUEG();
-        var pic_height_in_map_units_minus1 = gb.readUEG();
-
-        var frame_mbs_only_flag = gb.readBits(1);
-        if (frame_mbs_only_flag === 0) {
-          gb.readBits(1);
-        }
-        gb.readBits(1);
-
-        var frame_crop_left_offset = 0;
-        var frame_crop_right_offset = 0;
-        var frame_crop_top_offset = 0;
-        var frame_crop_bottom_offset = 0;
-
-        var frame_cropping_flag = gb.readBool();
-        if (frame_cropping_flag) {
-          frame_crop_left_offset = gb.readUEG();
-          frame_crop_right_offset = gb.readUEG();
-          frame_crop_top_offset = gb.readUEG();
-          frame_crop_bottom_offset = gb.readUEG();
-        }
-
-        var par_width = 1,
-            par_height = 1;
-        var fps = 0,
-            fps_fixed = true,
-            fps_num = 0,
-            fps_den = 0;
-
-        var vui_parameters_present_flag = gb.readBool();
-        if (vui_parameters_present_flag) {
-          if (gb.readBool()) {
-            // aspect_ratio_info_present_flag
-            var aspect_ratio_idc = gb.readByte();
-            var par_w_table = [1, 12, 10, 16, 40, 24, 20, 32, 80, 18, 15, 64, 160, 4, 3, 2];
-            var par_h_table = [1, 11, 11, 11, 33, 11, 11, 11, 33, 11, 11, 33, 99, 3, 2, 1];
-
-            if (aspect_ratio_idc > 0 && aspect_ratio_idc < 16) {
-              par_width = par_w_table[aspect_ratio_idc - 1];
-              par_height = par_h_table[aspect_ratio_idc - 1];
-            } else if (aspect_ratio_idc === 255) {
-              par_width = gb.readByte() << 8 | gb.readByte();
-              par_height = gb.readByte() << 8 | gb.readByte();
-            }
-          }
-
-          if (gb.readBool()) {
-            gb.readBool();
-          }
-          if (gb.readBool()) {
-            gb.readBits(4);
-            if (gb.readBool()) {
-              gb.readBits(24);
-            }
-          }
-          if (gb.readBool()) {
-            gb.readUEG();
-            gb.readUEG();
-          }
-          if (gb.readBool()) {
-            var num_units_in_tick = gb.readBits(32);
-            var time_scale = gb.readBits(32);
-            fps_fixed = gb.readBool();
-
-            fps_num = time_scale;
-            fps_den = num_units_in_tick * 2;
-            fps = fps_num / fps_den;
-          }
-        }
-
-        var parScale = 1;
-        if (par_width !== 1 || par_height !== 1) {
-          parScale = par_width / par_height;
-        }
-
-        var crop_unit_x = 0,
-            crop_unit_y = 0;
-        if (chroma_format_idc === 0) {
-          crop_unit_x = 1;
-          crop_unit_y = 2 - frame_mbs_only_flag;
-        } else {
-          var sub_wc = chroma_format_idc === 3 ? 1 : 2;
-          var sub_hc = chroma_format_idc === 1 ? 2 : 1;
-          crop_unit_x = sub_wc;
-          crop_unit_y = sub_hc * (2 - frame_mbs_only_flag);
-        }
-
-        var codec_width = (pic_width_in_mbs_minus1 + 1) * 16;
-        var codec_height = (2 - frame_mbs_only_flag) * ((pic_height_in_map_units_minus1 + 1) * 16);
-
-        codec_width -= (frame_crop_left_offset + frame_crop_right_offset) * crop_unit_x;
-        codec_height -= (frame_crop_top_offset + frame_crop_bottom_offset) * crop_unit_y;
-
-        var present_width = Math.ceil(codec_width * parScale);
-
-        gb.destroy();
-        gb = null;
-
-        return {
-          profile_string: profile_string,
-          level_string: level_string,
-          bit_depth: bit_depth,
-          chroma_format: chroma_format,
-          chroma_format_string: SPSParser.getChromaFormatString(chroma_format),
-
-          frame_rate: {
-            fixed: fps_fixed,
-            fps: fps,
-            fps_den: fps_den,
-            fps_num: fps_num
-          },
-
-          par_ratio: {
-            width: par_width,
-            height: par_height
-          },
-
-          codec_size: {
-            width: codec_width,
-            height: codec_height
-          },
-
-          present_size: {
-            width: present_width,
-            height: codec_height
-          }
-        };
-      }
-    }, {
-      key: '_skipScalingList',
-      value: function _skipScalingList(gb, count) {
-        var lastScale = 8;
-        var nextScale = 8;
-        var deltaScale = 0;
-        for (var i = 0; i < count; i++) {
-          if (nextScale !== 0) {
-            deltaScale = gb.readSEG();
-            nextScale = (lastScale + deltaScale + 256) % 256;
-          }
-          lastScale = nextScale === 0 ? lastScale : nextScale;
-        }
-      }
-    }, {
-      key: 'getProfileString',
-      value: function getProfileString(profileIdc) {
-        switch (profileIdc) {
-          case 66:
-            return 'Baseline';
-          case 77:
-            return 'Main';
-          case 88:
-            return 'Extended';
-          case 100:
-            return 'High';
-          case 110:
-            return 'High10';
-          case 122:
-            return 'High422';
-          case 244:
-            return 'High444';
-          default:
-            return 'Unknown';
-        }
-      }
-    }, {
-      key: 'getLevelString',
-      value: function getLevelString(levelIdc) {
-        return (levelIdc / 10).toFixed(1);
-      }
-    }, {
-      key: 'getChromaFormatString',
-      value: function getChromaFormatString(chroma) {
-        switch (chroma) {
-          case 420:
-            return '4:2:0';
-          case 422:
-            return '4:2:2';
-          case 444:
-            return '4:4:4';
-          default:
-            return 'Unknown';
-        }
-      }
-    }, {
-      key: 'toVideoMeta',
-      value: function toVideoMeta(spsConfig) {
-        var meta = {};
-        if (spsConfig && spsConfig.codec_size) {
-          meta.codecWidth = spsConfig.codec_size.width;
-          meta.codecHeight = spsConfig.codec_size.height;
-          meta.presentWidth = spsConfig.present_size.width;
-          meta.presentHeight = spsConfig.present_size.height;
-        }
-
-        meta.profile = spsConfig.profile_string;
-        meta.level = spsConfig.level_string;
-        meta.bitDepth = spsConfig.bit_depth;
-        meta.chromaFormat = spsConfig.chroma_format;
-
-        meta.parRatio = {
-          width: spsConfig.par_ratio.width,
-          height: spsConfig.par_ratio.height
-        };
-
-        meta.frameRate = spsConfig.frame_rate;
-
-        var fpsDen = meta.frameRate.fps_den;
-        var fpsNum = meta.frameRate.fps_num;
-        meta.refSampleDuration = Math.floor(meta.timescale * (fpsDen / fpsNum));
-        return meta;
-      }
-    }]);
-
-    return SPSParser;
-  }();
-
-  var _createClass$g = function () {
-    function defineProperties(target, props) {
-      for (var i = 0; i < props.length; i++) {
-        var descriptor = props[i];descriptor.enumerable = descriptor.enumerable || false;descriptor.configurable = true;if ("value" in descriptor) descriptor.writable = true;Object.defineProperty(target, descriptor.key, descriptor);
-      }
-    }return function (Constructor, protoProps, staticProps) {
-      if (protoProps) defineProperties(Constructor.prototype, protoProps);if (staticProps) defineProperties(Constructor, staticProps);return Constructor;
-    };
-  }();
-
-  function _classCallCheck$g(instance, Constructor) {
-    if (!(instance instanceof Constructor)) {
-      throw new TypeError("Cannot call a class as a function");
-    }
-  }
-
-  var RBSP$1 = function () {
-    function RBSP() {
-      _classCallCheck$g(this, RBSP);
-    }
-
-    _createClass$g(RBSP, null, [{
-      key: "EBSP2RBSP",
-
-      /**
-       * convert EBSP to RBSP
-       * @param data {Uint8Array}
-       * @returns {Uint8Array}
-       * @constructor
-       */
-      value: function EBSP2RBSP(data) {
-        return data.filter(function (el, idx) {
-          if (idx < 2) {
-            return true;
-          } else {
-            return !(data[idx - 2] === 0 && data[idx - 1] === 0 && el === 3);
-          }
-        });
-      }
-
-      /**
-       * @param data {Uint8Array}
-       * @constructor
-       */
-
-    }, {
-      key: "EBSP2SODB",
-      value: function EBSP2SODB(data) {
-        var lastByte = data[data.byteLength - 1];
-        if (lastByte && lastByte === 128) {
-          return data.slice(0, data.byteLength - 1);
-        }
-
-        return data;
-      }
-    }]);
-
-    return RBSP;
-  }();
-
-  var _createClass$h = function () {
-    function defineProperties(target, props) {
-      for (var i = 0; i < props.length; i++) {
-        var descriptor = props[i];descriptor.enumerable = descriptor.enumerable || false;descriptor.configurable = true;if ("value" in descriptor) descriptor.writable = true;Object.defineProperty(target, descriptor.key, descriptor);
-      }
-    }return function (Constructor, protoProps, staticProps) {
-      if (protoProps) defineProperties(Constructor.prototype, protoProps);if (staticProps) defineProperties(Constructor, staticProps);return Constructor;
-    };
-  }();
-
-  function _classCallCheck$h(instance, Constructor) {
-    if (!(instance instanceof Constructor)) {
-      throw new TypeError("Cannot call a class as a function");
-    }
-  }
-
-  var u8aToString$1 = function u8aToString(data) {
-    var result = '';
-    for (var i = 0; i < data.byteLength; i++) {
-      result += String.fromCharCode(data[i]);
-    }
-    return result;
-  };
-
-  var SEIParser$1 = function () {
-    function SEIParser() {
-      _classCallCheck$h(this, SEIParser);
-    }
-
-    _createClass$h(SEIParser, null, [{
-      key: '_resolveNalu',
-      value: function _resolveNalu(data) {
-        if (data.length >= 1) {
-          return RBSP$1.EBSP2SODB(RBSP$1.EBSP2RBSP(data.slice(1)));
-        }
-        return null;
-      }
-      /**
-       *
-       * @param data {Uint8Array}
-       */
-
-    }, {
-      key: 'parse',
-      value: function parse(data) {
-        var sodb = SEIParser._resolveNalu(data);
-
-        var _SEIParser$switchPayl = SEIParser.switchPayloadType(sodb),
-            payloadType = _SEIParser$switchPayl.payloadType,
-            offset = _SEIParser$switchPayl.offset;
-
-        var content = sodb.slice(offset);
-
-        switch (payloadType) {
-          case 5:
-            return SEIParser.user_data_unregistered(content);
-          default:
-            return {
-              code: payloadType,
-              content: content
-            };
-        }
-      }
-
-      /**
-       *
-       * @param data
-       * @returns {{payloadType: number, offset: number}}
-       */
-
-    }, {
-      key: 'switchPayloadType',
-      value: function switchPayloadType(data) {
-        var dv = new DataView(data.buffer);
-        var payloadType = 0;
-        var offset = 0;
-        while (dv.getUint8(offset) === 255) {
-          offset++;
-          payloadType += 255;
-        }
-        payloadType += dv.getUint8(offset++);
-
-        return {
-          payloadType: payloadType,
-          offset: offset
-        };
-      }
-
-      /**
-       *
-       * @param data {Uint8Array}
-       * @return {{ payloadLength: number, offset: number }}
-       */
-
-    }, {
-      key: 'getPayloadLength',
-      value: function getPayloadLength(data) {
-        var dv = new DataView(data.buffer);
-
-        var payloadLength = 0;
-        var offset = 0;
-        while (dv.getUint8(offset) === 255) {
-          offset++;
-          payloadLength += 255;
-        }
-        payloadLength += dv.getUint8(offset++);
-
-        return {
-          payloadLength: payloadLength,
-          offset: offset
-        };
-      }
-
-      /**
-       * resolve 0x05 user data unregistered
-       * @param data {Uint8Array}
-       */
-      // eslint-disable-next-line camelcase
-
-    }, {
-      key: 'user_data_unregistered',
-      value: function user_data_unregistered(data) {
-        var _SEIParser$getPayload = SEIParser.getPayloadLength(data),
-            payloadLength = _SEIParser$getPayload.payloadLength,
-            offset = _SEIParser$getPayload.offset;
-
-        if (payloadLength < 16) {
-          return {
-            uuid: '',
-            content: null
-          };
-        }
-        var payload = data.slice(offset);
-
-        var uuid = u8aToString$1(payload.slice(0, 16));
-        var content = u8aToString$1(payload.slice(16, payloadLength));
-
-        return {
-          code: 5, // for user data unregistered
-          uuid: uuid,
-          content: content
-        };
-      }
-    }]);
-
-    return SEIParser;
-  }();
-
-  var _createClass$i = function () {
-    function defineProperties(target, props) {
-      for (var i = 0; i < props.length; i++) {
-        var descriptor = props[i];descriptor.enumerable = descriptor.enumerable || false;descriptor.configurable = true;if ("value" in descriptor) descriptor.writable = true;Object.defineProperty(target, descriptor.key, descriptor);
-      }
-    }return function (Constructor, protoProps, staticProps) {
-      if (protoProps) defineProperties(Constructor.prototype, protoProps);if (staticProps) defineProperties(Constructor, staticProps);return Constructor;
-    };
-  }();
-
-  function _classCallCheck$i(instance, Constructor) {
-    if (!(instance instanceof Constructor)) {
-      throw new TypeError("Cannot call a class as a function");
-    }
-  }
-
-  var Nalunit$1 = function () {
-    function Nalunit() {
-      _classCallCheck$i(this, Nalunit);
-    }
-
-    _createClass$i(Nalunit, null, [{
-      key: 'getNalunits',
-      value: function getNalunits(buffer) {
-        if (buffer.length - buffer.position < 4) {
-          return [];
-        }
-
-        var buf = buffer.dataview;
-        var position = buffer.position;
-        if (buf.getInt32(position) === 1 || buf.getInt16(position) === 0 && buf.getInt8(position + 2) === 1) {
-          return Nalunit.getAnnexbNals(buffer);
-        } else {
-          return Nalunit.getAvccNals(buffer);
-        }
-      }
-    }, {
-      key: 'getAnnexbNals',
-      value: function getAnnexbNals(buffer) {
-        var nals = [];
-        var position = Nalunit.getHeaderPositionAnnexB(buffer);
-        var start = position.pos;
-        var end = start;
-        while (start < buffer.length - 4) {
-          var header = buffer.buffer.slice(start, start + position.headerLength);
-          if (position.pos === buffer.position) {
-            buffer.skip(position.headerLength);
-          }
-          position = Nalunit.getHeaderPositionAnnexB(buffer);
-          end = position.pos;
-          var body = new Uint8Array(buffer.buffer.slice(start + header.byteLength, end));
-          var unit = { header: header, body: body };
-          Nalunit.analyseNal(unit);
-          if (unit.type <= 9 && unit.type !== 0) {
-            nals.push(unit);
-          }
-          buffer.skip(end - buffer.position);
-          start = end;
-        }
-        return nals;
-      }
-    }, {
-      key: 'getAvccNals',
-      value: function getAvccNals(buffer) {
-        // buffer.buffer = RBSP.EBSP2RBSP(new Uint8Array(buffer.buffer)).buffer;
-        // buffer.dataview = new DataView(buffer.buffer)
-        // buffer.dataview.position = 0;
-        var nals = [];
-        while (buffer.position < buffer.length - 4) {
-          var length = buffer.dataview.getInt32(buffer.dataview.position);
-          if (buffer.length - buffer.position >= length) {
-            var header = buffer.buffer.slice(buffer.position, buffer.position + 4);
-            buffer.skip(4);
-            var body = new Uint8Array(buffer.buffer.slice(buffer.position, buffer.position + length));
-            buffer.skip(length);
-            var unit = { header: header, body: body };
-            Nalunit.analyseNal(unit);
-            if (unit.type <= 9 && unit.type !== 0) {
-              nals.push(unit);
-            }
-          } else {
-            break;
-          }
-        }
-        return nals;
-      }
-    }, {
-      key: 'analyseNal',
-      value: function analyseNal(unit) {
-        var type = unit.body[0] & 0x1f;
-        unit.type = type;
-        switch (type) {
-          case 1:
-            // NDR
-            unit.ndr = true;
-            break;
-          case 5:
-            // IDR
-            unit.idr = true;
-            break;
-          case 6:
-            // SEI
-            unit.sei = SEIParser$1.parse(unit.body);
-            break;
-          case 7:
-            // SPS
-            unit.sps = SPSParser$1.parseSPS(unit.body);
-            break;
-          case 8:
-            // PPS
-            unit.pps = true;
-            break;
-        }
-      }
-    }, {
-      key: 'getHeaderPositionAnnexB',
-      value: function getHeaderPositionAnnexB(buffer) {
-        // seperate
-        var pos = buffer.position;
-        var headerLength = 0;
-        var bufferLen = buffer.length;
-        while (headerLength !== 3 && headerLength !== 4 && pos < bufferLen - 4) {
-          if (buffer.dataview.getInt16(pos) === 0) {
-            if (buffer.dataview.getInt16(pos + 2) === 1) {
-              // 0x000001
-              headerLength = 4;
-            } else if (buffer.dataview.getInt8(pos + 2) === 1) {
-              headerLength = 3;
-            } else {
-              pos++;
-            }
-          } else {
-            pos++;
-          }
-        }
-
-        if (pos === bufferLen - 4) {
-          if (buffer.dataview.getInt16(pos) === 0) {
-            if (buffer.dataview.getInt16(pos + 2) === 1) {
-              // 0x000001
-              headerLength = 4;
-            }
-          } else {
-            pos++;
-            if (buffer.dataview.getInt16(pos) === 0 && buffer.dataview.getInt8(pos) === 1) {
-              // 0x0000001
-              headerLength = 3;
-            } else {
-              pos = bufferLen;
-            }
-          }
-        }
-        return { pos: pos, headerLength: headerLength };
-      }
-    }, {
-      key: 'getAvcc',
-      value: function getAvcc(sps, pps) {
-        var ret = new Uint8Array(sps.byteLength + pps.byteLength + 11);
-        ret[0] = 0x01;
-        ret[1] = sps[1];
-        ret[2] = sps[2];
-        ret[3] = sps[3];
-        ret[4] = 255;
-        ret[5] = 225;
-
-        var offset = 6;
-
-        ret.set(new Uint8Array([sps.byteLength >>> 8 & 0xff, sps.byteLength & 0xff]), offset);
-        offset += 2;
-        ret.set(sps, offset);
-        offset += sps.byteLength;
-
-        ret[offset] = 1;
-        offset++;
-
-        ret.set(new Uint8Array([pps.byteLength >>> 8 & 0xff, pps.byteLength & 0xff]), offset);
-        offset += 2;
-        ret.set(pps, offset);
-        return ret;
-      }
-    }]);
-
-    return Nalunit;
-  }();
-
-  var NalUnit$1 = Nalunit$1;
-
-  var _createClass$j = function () {
-    function defineProperties(target, props) {
-      for (var i = 0; i < props.length; i++) {
-        var descriptor = props[i];descriptor.enumerable = descriptor.enumerable || false;descriptor.configurable = true;if ("value" in descriptor) descriptor.writable = true;Object.defineProperty(target, descriptor.key, descriptor);
-      }
-    }return function (Constructor, protoProps, staticProps) {
-      if (protoProps) defineProperties(Constructor.prototype, protoProps);if (staticProps) defineProperties(Constructor, staticProps);return Constructor;
-    };
-  }();
-
-  function _classCallCheck$j(instance, Constructor) {
-    if (!(instance instanceof Constructor)) {
-      throw new TypeError("Cannot call a class as a function");
-    }
-  }
-
   var YUVCanvas = function () {
     function YUVCanvas(configs) {
-      _classCallCheck$j(this, YUVCanvas);
+      _classCallCheck$d(this, YUVCanvas);
 
       this.configs = Object.assign({}, configs);
       this.canvas = this.configs.canvas;
@@ -4540,7 +3942,7 @@
         this._initTextures();
       }  }
 
-    _createClass$j(YUVCanvas, [{
+    _createClass$d(YUVCanvas, [{
       key: '_initMeta',
       value: function _initMeta() {
         this.chroma = this.meta.chromaFormat;
@@ -4735,7 +4137,7 @@
         var yDataPerRow = yLinesize;
         var yRowCnt = height;
 
-        var uDataPerRow = width / 2;
+        var uDataPerRow = uvLinesize;
         var uRowCnt = height / 2;
 
         if (this.chroma === 422 || this.chroma === 444) {
@@ -4793,6 +4195,7 @@
       key: 'render',
       value: function render(data, width, height, yLinesize, uvLinesize) {
         var gl = this.contextGL;
+        // console.log(data, width, height, yLinesize, uvLinesize)
         if (gl) {
           this._drawPictureGL(data, width, height, yLinesize, uvLinesize);
         } else {
@@ -4810,7 +4213,7 @@
     return YUVCanvas;
   }();
 
-  var _createClass$k = function () {
+  var _createClass$e = function () {
     function defineProperties(target, props) {
       for (var i = 0; i < props.length; i++) {
         var descriptor = props[i];descriptor.enumerable = descriptor.enumerable || false;descriptor.configurable = true;if ("value" in descriptor) descriptor.writable = true;Object.defineProperty(target, descriptor.key, descriptor);
@@ -4820,7 +4223,7 @@
     };
   }();
 
-  function _classCallCheck$k(instance, Constructor) {
+  function _classCallCheck$e(instance, Constructor) {
     if (!(instance instanceof Constructor)) {
       throw new TypeError("Cannot call a class as a function");
     }
@@ -4828,67 +4231,59 @@
 
   var SourceBuffer = function () {
     function SourceBuffer(config) {
-      _classCallCheck$k(this, SourceBuffer);
+      _classCallCheck$e(this, SourceBuffer);
 
       this.config = Object.assign({}, config);
       this.type = this.config.type;
       this.reset();
     }
 
-    _createClass$k(SourceBuffer, [{
-      key: 'reset',
+    _createClass$e(SourceBuffer, [{
+      key: "reset",
       value: function reset() {
         this.buffer = [];
         this.currentGop = undefined;
         this._lastGet = undefined;
       }
     }, {
-      key: 'push',
+      key: "push",
       value: function push(frame) {
-        if (this.type === 'video') {
-          if (frame.isKeyframe) {
-            var currentGop = {
-              samples: [],
-              start: frame.dts,
-              end: frame.dts,
-              nextGop: undefined
-            };
-            if (this.currentGop) {
-              this.currentGop.nextGop = currentGop;
-            }
-            this.currentGop = currentGop;
-            this.buffer.push(this.currentGop);
-          }
-
-          if (this.currentGop) {
-            this.currentGop.samples.push(frame);
-
-            if (frame.dts < this.currentGop.start) {
-              this.currentGop.start = frame.dts;
-            }
-
-            if (frame.dts > this.currentGop.end) {
-              this.currentGop.end = frame.dts;
-            }
-          }
-        }
+        // if (this.type === 'video') {
+        //   if (frame.isKeyframe) {
+        //     let currentGop = {
+        //       samples: [],
+        //       start: frame.dts,
+        //       end: frame.dts,
+        //       nextGop: undefined
+        //     };
+        //     if (this.currentGop) {
+        //       this.currentGop.nextGop = currentGop;
+        //     }
+        //     this.currentGop = currentGop;
+        //     this.buffer.push(this.currentGop);
+        //   }
+        //
+        //   if (this.currentGop) {
+        //     this.currentGop.samples.push(frame);
+        //
+        //     if (frame.dts < this.currentGop.start) {
+        //       this.currentGop.start = frame.dts;
+        //     }
+        //
+        //     if (frame.dts > this.currentGop.end) {
+        //       this.currentGop.end = frame.dts;
+        //     }
+        //   }
+        // }
+        this.buffer.push(frame);
       }
     }, {
-      key: 'get',
+      key: "get",
       value: function get(time) {
-        if (this.type === 'video') {
-          if (this.buffer.length < 1) {
-            return;
-          }
-
-          if (time === undefined) {
-            var sample = this._getNext();
-            return sample;
-          }
-        }
+        return this.buffer.shift();
       }
     }, {
-      key: '_getNext',
+      key: "_getNext",
       value: function _getNext() {
         if (!this._lastGet) {
           var gop = this.buffer[0];
@@ -4922,7 +4317,7 @@
         }
       }
     }, {
-      key: 'remove',
+      key: "remove",
       value: function remove(start, end) {
         if (this.buffer.length < 0) {
           return;
@@ -4945,7 +4340,7 @@
     return SourceBuffer;
   }();
 
-  var _createClass$l = function () {
+  var _createClass$f = function () {
     function defineProperties(target, props) {
       for (var i = 0; i < props.length; i++) {
         var descriptor = props[i];descriptor.enumerable = descriptor.enumerable || false;descriptor.configurable = true;if ("value" in descriptor) descriptor.writable = true;Object.defineProperty(target, descriptor.key, descriptor);
@@ -4955,7 +4350,7 @@
     };
   }();
 
-  function _classCallCheck$l(instance, Constructor) {
+  function _classCallCheck$f(instance, Constructor) {
     if (!(instance instanceof Constructor)) {
       throw new TypeError("Cannot call a class as a function");
     }
@@ -4963,12 +4358,12 @@
 
   var TimeRanges = function () {
     function TimeRanges(ranges) {
-      _classCallCheck$l(this, TimeRanges);
+      _classCallCheck$f(this, TimeRanges);
 
       this.ranges = ranges || [];
     }
 
-    _createClass$l(TimeRanges, [{
+    _createClass$f(TimeRanges, [{
       key: "start",
       value: function start(idx) {
         return this.ranges[idx] ? this.ranges[idx].start : 0;
@@ -4995,7 +4390,7 @@
 
   var _typeof$3 = typeof Symbol === "function" && typeof Symbol.iterator === "symbol" ? function (obj) { return typeof obj; } : function (obj) { return obj && typeof Symbol === "function" && obj.constructor === Symbol && obj !== Symbol.prototype ? "symbol" : typeof obj; };
 
-  var _createClass$m = function () {
+  var _createClass$g = function () {
     function defineProperties(target, props) {
       for (var i = 0; i < props.length; i++) {
         var descriptor = props[i];descriptor.enumerable = descriptor.enumerable || false;descriptor.configurable = true;if ("value" in descriptor) descriptor.writable = true;Object.defineProperty(target, descriptor.key, descriptor);
@@ -5005,7 +4400,7 @@
     };
   }();
 
-  function _classCallCheck$m(instance, Constructor) {
+  function _classCallCheck$g(instance, Constructor) {
     if (!(instance instanceof Constructor)) {
       throw new TypeError("Cannot call a class as a function");
     }
@@ -5041,14 +4436,13 @@
     _inherits$2(VideoCanvas, _EventEmitter);
 
     function VideoCanvas(config) {
-      _classCallCheck$m(this, VideoCanvas);
+      _classCallCheck$g(this, VideoCanvas);
 
       var _this = _possibleConstructorReturn$2(this, (VideoCanvas.__proto__ || Object.getPrototypeOf(VideoCanvas)).call(this));
 
       _this.config = Object.assign({}, config);
       _this.canvas = _this.config.canvas ? _this.config.canvas : document.createElement('canvas');
       _this.source = new SourceBuffer({ type: 'video' });
-      _this.preloadTime = _this.config.preloadTime || 3;
       _this.onFirstFrame = undefined;
       _this.oncanplay = undefined;
       _this.initParameters();
@@ -5061,10 +4455,11 @@
       _this.canvas.style.margin = 'auto';
       _this.canvas.style.position = 'absolute';
       _this.handleMessage = _this.handleMessage.bind(_this);
+      _this.useBackupTimer = null;
       return _this;
     }
 
-    _createClass$m(VideoCanvas, [{
+    _createClass$g(VideoCanvas, [{
       key: 'initParameters',
       value: function initParameters() {
         this.meta = undefined;
@@ -5095,12 +4490,32 @@
       key: 'initWasmWorker',
       value: function initWasmWorker() {
         // eslint-disable-next-line no-undef
-        this.wasmworker = new VideoWorker();
+        window._shimWorkerDocument = document;
+        window._shimWorkerWindow = window;
+        this.initWorker(false);
+      }
+    }, {
+      key: 'initWorker',
+      value: function initWorker(isBackup) {
+        var _this2 = this;
+
+        if (this.wasmworker) {
+          this.destroyWorker();
+        }
+        var VideoWorkerCls = isBackup ? BackupVideoWorker : VideoWorker;
+        this.wasmworker = new VideoWorkerCls(false);
+        this.wasmworker.onmessage = isBackup ? function (msg) {
+          if (msg.data.msg === 'INIT_FAILED') {
+            _this2.emit('error', new Error('backup worker init failed'));
+          } else {
+            _this2.handleMessage(msg);
+          }
+        } : this.handleMessage;
+
         this.wasmworker.postMessage({
           msg: 'init',
           meta: this.meta
         });
-        this.wasmworker.addEventListener('message', this.handleMessage);
       }
     }, {
       key: 'setVideoMetaData',
@@ -5170,15 +4585,17 @@
     }, {
       key: 'preload',
       value: function preload() {
-        if (!this._lastSampleDts || this._lastSampleDts - this._baseDts < this.currentTime + this.preloadTime * 1000) {
+        var bufferedEnd = this.buffered.end(0);
+        if (!this._lastSampleDts || bufferedEnd - this.currentTime / 1000 < this.config.preloadTime) {
           var sample = this.source.get();
           if (sample) {
             this._lastSampleDts = sample.dts;
             this._analyseNal(sample);
           }
 
-          while (sample && this._lastSampleDts - this._baseDts < this.currentTime + this.preloadTime * 1000) {
+          while (sample && this._lastSampleDts - this._baseDts < this.currentTime + this.config.preloadTime * 2000) {
             sample = this.source.get();
+            // console.log(sample)
             if (sample) {
               this._analyseNal(sample);
               this._lastSampleDts = sample.dts;
@@ -5189,26 +4606,12 @@
     }, {
       key: '_analyseNal',
       value: function _analyseNal(sample) {
-        var nals = NalUnit$1.getNalunits(new Stream$1(sample.data.buffer));
-
-        var length = 0;
-        for (var i = 0; i < nals.length; i++) {
-          var nal = nals[i];
-          length += nal.body.byteLength + 4;
-        }
-        var offset = 0;
-        var data = new Uint8Array(length);
-        for (var _i = 0; _i < nals.length; _i++) {
-          var _nal = nals[_i];
-          data.set([0, 0, 0, 1], offset);
-          offset += 4;
-          data.set(new Uint8Array(_nal.body), offset);
-          offset += _nal.body.byteLength;
-        }
+        // console.log('送入解码', sample.dts,data)
         this.wasmworker.postMessage({
           msg: 'decode',
-          data: data,
+          data: sample.data,
           info: {
+            decodeTime: Date.now(),
             dts: sample.dts,
             pts: sample.pts ? sample.pts : sample.dts + sample.cts,
             key: sample.isKeyframe
@@ -5230,9 +4633,12 @@
     }, {
       key: '_onDecoded',
       value: function _onDecoded(data) {
+        if (!data.info) {
+          return;
+        }
         var dts = data.info.dts;
 
-        this._decodedFrames[dts] = data;
+        this._decodedFrames[dts - this._baseDts] = data;
         var decodedFrameLen = Object.keys(this._decodedFrames).length;
         if (this.readyStatus == HAVE_METADATA && decodedFrameLen > 0) {
           this.readyStatus = HAVE_CURRENT_DATA;
@@ -5242,7 +4648,7 @@
           this.readyStatus = HAVE_CURRENT_DATA;
           this._seekState = NOT_SEEK;
         }
-        if (decodedFrameLen > 10) {
+        if (decodedFrameLen > 1) {
           if (this.playFinish) {
             this.playFinish();
           }
@@ -5265,33 +4671,42 @@
     }, {
       key: 'play',
       value: function play() {
-        var _this2 = this;
+        var _this3 = this;
 
         this.paused = false;
+        if (!this.paused) {
+          return Promise.resolve();
+        }
         return new Promise(function (resolve) {
-          _this2.playFinish = resolve;
+          _this3.playFinish = resolve;
         }).then(function () {
-          _this2.playFinish = null;
+          _this3.playFinish = null;
         });
       }
     }, {
       key: '_onTimer',
       value: function _onTimer(currentTime) {
+        var _this4 = this;
+
+        // console.log(currentTime)
         if (this.paused) {
           return false;
         }
 
         if (this.meta) {
           var frameTimes = Object.keys(this._decodedFrames);
+          // console.log(frameTimes)
           if (frameTimes.length > 0) {
             this.currentTime = currentTime;
             var frameTime = -1;
-            for (var i = 0; i < frameTimes.length && Number.parseInt(frameTimes[i]) - this._baseDts <= this.currentTime; i++) {
-              frameTime = Number.parseInt(frameTimes[i - 1]);
+            for (var i = 0; i < frameTimes.length && Number.parseInt(frameTimes[i]) <= this.currentTime; i++) {
+              frameTime = Number.parseInt(frameTimes[Math.max(i - 1, 0)]);
             }
-
             var frame = this._decodedFrames[frameTime];
+            // console.log('source', this.source)
+            // console.log('frametime,', frameTime)
             if (frame) {
+              // console.log('render frame ', frameTime, Date.now())
               // let buf = []
               // if (this.meta.chromaFormat === 420) {
               //
@@ -5304,10 +4719,18 @@
                 this._seekState = SEEKED;
                 this.emit(VIDEO_CANVAS_EVENTS.VIDEO_EVENTS, 'seeked');
               }
+              frameTimes.forEach(function (time) {
+                if (Number.parseInt(time) <= frameTime) {
+                  delete _this4._decodedFrames[time];
+                }
+              });
               this.yuvCanvas.render(frame.buffer, frame.width, frame.height, frame.yLinesize, frame.uvLinesize);
 
               return true;
             } else {
+              if (frameTimes.length && Number(frameTimes[0]) > currentTime) {
+                return true;
+              }
               return false;
             }
           }
@@ -5352,12 +4775,22 @@
       value: function handleMessage(msg) {
         switch (msg.data.msg) {
           case 'DECODER_READY':
+            console.log('wasm worker ready');
             this._decoderInited = true;
             this.pushAvcc(this.meta);
             break;
           case 'DECODED':
             this._onDecoded(msg.data);
             break;
+          case 'LOG':
+            // console.log(msg.data.log);
+            break;
+          case 'INIT_FAILED':
+            this.destroyWorker();
+            this.initWorker(true);
+            break;
+          default:
+            console.error('invalid messaeg', msg);
         }
       }
     }, {
@@ -5381,8 +4814,8 @@
         }
 
         if (currentRange.start !== null && currentRange.end !== null) {
-          currentRange.start = (currentRange.start - this._baseDts) / 1000;
-          currentRange.end = (currentRange.end - this._baseDts) / 1000;
+          currentRange.start = currentRange.start / 1000;
+          currentRange.end = currentRange.end / 1000;
           ranges.push(currentRange);
         }
 
@@ -5415,7 +4848,7 @@
 
   var _typeof$4 = typeof Symbol === "function" && typeof Symbol.iterator === "symbol" ? function (obj) { return typeof obj; } : function (obj) { return obj && typeof Symbol === "function" && obj.constructor === Symbol && obj !== Symbol.prototype ? "symbol" : typeof obj; };
 
-  var _createClass$n = function () {
+  var _createClass$h = function () {
     function defineProperties(target, props) {
       for (var i = 0; i < props.length; i++) {
         var descriptor = props[i];descriptor.enumerable = descriptor.enumerable || false;descriptor.configurable = true;if ("value" in descriptor) descriptor.writable = true;Object.defineProperty(target, descriptor.key, descriptor);
@@ -5425,7 +4858,7 @@
     };
   }();
 
-  function _classCallCheck$n(instance, Constructor) {
+  function _classCallCheck$h(instance, Constructor) {
     if (!(instance instanceof Constructor)) {
       throw new TypeError("Cannot call a class as a function");
     }
@@ -5447,7 +4880,7 @@
     _inherits$3(AudioCtx, _EventEmitter);
 
     function AudioCtx(config) {
-      _classCallCheck$n(this, AudioCtx);
+      _classCallCheck$h(this, AudioCtx);
 
       var _this2 = _possibleConstructorReturn$3(this, (AudioCtx.__proto__ || Object.getPrototypeOf(AudioCtx)).call(this));
 
@@ -5472,13 +4905,13 @@
       // 记录外部传输的状态
       _this2._played = false;
       _this2.paused = true;
-      _this2.playFinish = null; // pending play task
+      _this2.loadFinish = null; // pending play task
       _this2.waitNextID = null; // audio source end and next source not loaded
       _this2.destroyed = false;
       return _this2;
     }
 
-    _createClass$n(AudioCtx, [{
+    _createClass$h(AudioCtx, [{
       key: 'decodeAudio',
       value: function decodeAudio(audioTrack) {
         var samples = audioTrack.samples,
@@ -5555,8 +4988,9 @@
               _this.decodeAAC();
             }
 
-            if (_this.playFinish) {
-              _this.playFinish();
+            if (_this.loadFinish) {
+              _this.loadFinish();
+              _this.loadFinish = null;
             }
           }, function (e) {
             console.error(e);
@@ -5599,34 +5033,55 @@
       value: function play() {
         var _this4 = this;
 
-        if (this.playFinish) {
+        if (this.loadFinish) {
           return;
         }
+
         this._played = true;
-        if (this.context.state === 'suspended') {
-          this.context.resume();
-        }
+
         var _this = this;
         var playStart = function playStart() {
           var audioSource = _this4._currentBuffer.data;
-          audioSource.start();
+          try {
+            audioSource.start();
+          } catch (e) {
+            // NOTHING
+          }
           audioSource.connect(_this4.gainNode);
           _this4.paused = false;
+          if (_this4.context.state !== 'running' && _this4.playFailed) {
+            _this4.context.resume().then(function () {
+              if (_this4.context.state === 'running' && _this4.playFinish) {
+                _this4.playFinish();
+              }
+            });
+            setTimeout(function () {
+              _this4.playFailed(new Error('audio context suspended'));
+            });
+          } else if (_this4.playFinish) {
+            _this4.playFinish();
+          }
           setTimeout(function () {
             _this.onSourceEnded.call(_this4);
-          }, audioSource.buffer.duration * 1000 - 20);
+          }, audioSource.buffer.duration * 1000 - 10);
         };
 
         if (!this._currentBuffer) {
-          return new Promise(function (resolve) {
+          return new Promise(function (resolve, reject) {
+            _this4.loadFinish = playStart;
             _this4.playFinish = resolve;
+            _this4.playFailed = reject;
           }).then(function () {
+            _this4.loadFinish = null;
             _this4.playFinish = null;
-            playStart();
+            _this4.playFailed = null;
           });
         } else {
-          playStart();
-          return Promise.resolve();
+          return new Promise(function (resolve, reject) {
+            _this4.playFinish = resolve;
+            _this4.playFailed = reject;
+            playStart();
+          });
         }
       }
     }, {
@@ -5636,6 +5091,11 @@
         if (audioCtx.state === 'running') {
           audioCtx.suspend();
         }
+        this._currentBuffer = undefined;
+        this._nextBuffer = undefined;
+        this._lastpts = undefined;
+        // this.duration = 0;
+        this.samples = [];
         this.paused = true;
       }
     }, {
@@ -5692,7 +5152,7 @@
     }, {
       key: 'volume',
       get: function get() {
-        if (this.context.state === 'suspended' || this.paused || this.muted) {
+        if (this.context.state === 'suspended' || this.muted) {
           return 0;
         }
         return this._volume;
@@ -5789,7 +5249,7 @@
     return AudioCtx;
   }(EventEmitter);
 
-  var _createClass$o = function () {
+  var _createClass$i = function () {
     function defineProperties(target, props) {
       for (var i = 0; i < props.length; i++) {
         var descriptor = props[i];descriptor.enumerable = descriptor.enumerable || false;descriptor.configurable = true;if ("value" in descriptor) descriptor.writable = true;Object.defineProperty(target, descriptor.key, descriptor);
@@ -5799,7 +5259,7 @@
     };
   }();
 
-  function _classCallCheck$o(instance, Constructor) {
+  function _classCallCheck$i(instance, Constructor) {
     if (!(instance instanceof Constructor)) {
       throw new TypeError("Cannot call a class as a function");
     }
@@ -5810,7 +5270,7 @@
    */
   var AVReconciler = function () {
     function AVReconciler(props) {
-      _classCallCheck$o(this, AVReconciler);
+      _classCallCheck$i(this, AVReconciler);
 
       this.aCtx = props.aCtx;
       this.vCtx = props.vCtx;
@@ -5819,7 +5279,7 @@
       this.start = null;
     }
 
-    _createClass$o(AVReconciler, [{
+    _createClass$i(AVReconciler, [{
       key: "doReconcile",
       value: function doReconcile() {
         var _this = this;
@@ -5884,7 +5344,7 @@
 
   var _typeof$5 = typeof Symbol === "function" && typeof Symbol.iterator === "symbol" ? function (obj) { return typeof obj; } : function (obj) { return obj && typeof Symbol === "function" && obj.constructor === Symbol && obj !== Symbol.prototype ? "symbol" : typeof obj; };
 
-  var _createClass$p = function () {
+  var _createClass$j = function () {
     function defineProperties(target, props) {
       for (var i = 0; i < props.length; i++) {
         var descriptor = props[i];descriptor.enumerable = descriptor.enumerable || false;descriptor.configurable = true;if ("value" in descriptor) descriptor.writable = true;Object.defineProperty(target, descriptor.key, descriptor);
@@ -5910,7 +5370,7 @@
     }
   };
 
-  function _classCallCheck$p(instance, Constructor) {
+  function _classCallCheck$j(instance, Constructor) {
     if (!(instance instanceof Constructor)) {
       throw new TypeError("Cannot call a class as a function");
     }
@@ -5932,7 +5392,7 @@
     _inherits$4(WorkerTicker, _Ticker);
 
     function WorkerTicker(config) {
-      _classCallCheck$p(this, WorkerTicker);
+      _classCallCheck$j(this, WorkerTicker);
 
       var _this = _possibleConstructorReturn$4(this, (WorkerTicker.__proto__ || Object.getPrototypeOf(WorkerTicker)).call(this, config));
 
@@ -5943,7 +5403,7 @@
       return _this;
     }
 
-    _createClass$p(WorkerTicker, [{
+    _createClass$j(WorkerTicker, [{
       key: 'handleMessage',
       value: function handleMessage() {
         this.onTick();
@@ -5970,7 +5430,10 @@
         this.worker.postMessage({
           msg: 'stop'
         });
+        this.worker.removeEventListener('message', this.handleMessage);
         this.worker = null;
+        this.handleMessage = function () {};
+        this.callbacks = [];
       }
     }, {
       key: 'setInterval',
@@ -5989,7 +5452,7 @@
 
   var _typeof$6 = typeof Symbol === "function" && typeof Symbol.iterator === "symbol" ? function (obj) { return typeof obj; } : function (obj) { return obj && typeof Symbol === "function" && obj.constructor === Symbol && obj !== Symbol.prototype ? "symbol" : typeof obj; };
 
-  var _createClass$q = function () {
+  var _createClass$k = function () {
     function defineProperties(target, props) {
       for (var i = 0; i < props.length; i++) {
         var descriptor = props[i];descriptor.enumerable = descriptor.enumerable || false;descriptor.configurable = true;if ("value" in descriptor) descriptor.writable = true;Object.defineProperty(target, descriptor.key, descriptor);
@@ -5999,7 +5462,7 @@
     };
   }();
 
-  function _classCallCheck$q(instance, Constructor) {
+  function _classCallCheck$k(instance, Constructor) {
     if (!(instance instanceof Constructor)) {
       throw new TypeError("Cannot call a class as a function");
     }
@@ -6022,7 +5485,7 @@
     _inherits$5(MobileVideo, _HTMLElement);
 
     function MobileVideo() {
-      _classCallCheck$q(this, MobileVideo);
+      _classCallCheck$k(this, MobileVideo);
 
       var _this = _possibleConstructorReturn$5(this, (MobileVideo.__proto__ || Object.getPrototypeOf(MobileVideo)).call(this));
 
@@ -6043,7 +5506,7 @@
       return _this;
     }
 
-    _createClass$q(MobileVideo, [{
+    _createClass$k(MobileVideo, [{
       key: 'init',
       value: function init() {
         var _this2 = this;
@@ -6551,48 +6014,87 @@
 
   customElements.define('mobile-video', MobileVideo);
 
-  var _createClass$r = function () { function defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ("value" in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } } return function (Constructor, protoProps, staticProps) { if (protoProps) defineProperties(Constructor.prototype, protoProps); if (staticProps) defineProperties(Constructor, staticProps); return Constructor; }; }();
-
   var _get$3 = function get(object, property, receiver) { if (object === null) object = Function.prototype; var desc = Object.getOwnPropertyDescriptor(object, property); if (desc === undefined) { var parent = Object.getPrototypeOf(object); if (parent === null) { return undefined; } else { return get(parent, property, receiver); } } else if ("value" in desc) { return desc.value; } else { var getter = desc.get; if (getter === undefined) { return undefined; } return getter.call(receiver); } };
 
-  function _classCallCheck$r(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } }
+  var _createClass$l = function () { function defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ("value" in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } } return function (Constructor, protoProps, staticProps) { if (protoProps) defineProperties(Constructor.prototype, protoProps); if (staticProps) defineProperties(Constructor, staticProps); return Constructor; }; }();
+
+  function _classCallCheck$l(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } }
 
   function _possibleConstructorReturn$6(self, call) { if (!self) { throw new ReferenceError("this hasn't been initialised - super() hasn't been called"); } return call && (typeof call === "object" || typeof call === "function") ? call : self; }
 
   function _inherits$6(subClass, superClass) { if (typeof superClass !== "function" && superClass !== null) { throw new TypeError("Super expression must either be null or a function, not " + typeof superClass); } subClass.prototype = Object.create(superClass && superClass.prototype, { constructor: { value: subClass, enumerable: false, writable: true, configurable: true } }); if (superClass) Object.setPrototypeOf ? Object.setPrototypeOf(subClass, superClass) : subClass.__proto__ = superClass; }
 
+  var asmSupported = function asmSupported() {
+    try {
+      (function MyAsmModule() {
+        'use asm';
+      })();
+      return true;
+    } catch (err) {
+      // will never show...
+      return false;
+    }
+  };
+
   var Raw264Player = function (_Player) {
     _inherits$6(Raw264Player, _Player);
 
+    _createClass$l(Raw264Player, null, [{
+      key: 'isSupported',
+      value: function isSupported() {
+        var wasmSupported = 'WebAssembly' in window;
+
+        var WebComponentSupported = 'customElements' in window && window.customElements.define;
+        var isComponentDefined = void 0;
+        if (WebComponentSupported) {
+          isComponentDefined = window.customElements.get('mobile-video');
+        }
+        return (wasmSupported || asmSupported) && isComponentDefined;
+      }
+    }]);
+
     function Raw264Player(props) {
-      _classCallCheck$r(this, Raw264Player);
+      _classCallCheck$l(this, Raw264Player);
 
       if (!props.mediaType) {
         props.mediaType = 'mobile-video';
+        if (props.videoConfig) {
+          props.videoConfig.preloadtime = props.preloadTime || 5;
+        } else {
+          props.videoConfig = {
+            preloadtime: props.preloadTime || 5
+          };
+        }
       }
 
       var _this = _possibleConstructorReturn$6(this, (Raw264Player.__proto__ || Object.getPrototypeOf(Raw264Player)).call(this, props));
 
+      _this.video.setAttribute('noaudio', true);
       _this.handleTimeupdate = _this.handleTimeupdate.bind(_this);
       _this.hasPlayed = false;
+      _this.hasStart = false;
       return _this;
     }
 
-    _createClass$r(Raw264Player, [{
+    _createClass$l(Raw264Player, [{
       key: 'start',
       value: function start() {
-
+        if (this.hasStart) {
+          return;
+        } else {
+          this.hasStart = true;
+        }
         this.context = new Context(Events.HlsAllowedEvents);
         this.context.registry('LOADER_BUFFER', XgBuffer);
         this.core = this.context.registry('RAW_264_CONTROLLER', H264Demuxer)({ player: this, fps: this.config.fps });
+        this.context.registry('FETCH_LOADER', FetchLoader);
+        this.context.init();
         if (!this.config.isLive) {
-          this.context.registry('FETCH_LOADER', FetchLoader);
           this.core.load(this.config.url);
         }
-        this.context.init();
 
         _get$3(Raw264Player.prototype.__proto__ || Object.getPrototypeOf(Raw264Player.prototype), 'start', this).call(this);
-        this.video.setAttribute('noaudio', true);
+        this.video.preloadTime = this.config.preloadTime;
         this.video.addEventListener('timeupdate', this.handleTimeupdate, false);
       }
     }, {
@@ -6606,13 +6108,12 @@
     }, {
       key: 'handleTimeupdate',
       value: function handleTimeupdate() {
-        if (this.config.isLive) {
+        if (!this.config.isLive && this.currentTime >= this.duration) {
           this.video._cleanBuffer();
-        } else {
-          if (this.currentTime >= this.duration) {
-            this.pause();
-            this.emit('ended');
-          }
+          this.pause();
+          this.emit('ended');
+        } else if (this.config.isLive && this.buffered.end(0) - this.currentTime > 0.1) {
+          this.currentTime = this.buffered.end(0) - 0.1;
         }
       }
     }, {
@@ -6627,6 +6128,9 @@
     }, {
       key: 'pushBuffer',
       value: function pushBuffer(arr) {
+        if (!this.hasStart) {
+          return this.start();
+        }
         if (this.buffer) {
           this.buffer.push(arr);
           this.core.handleDataLoaded();

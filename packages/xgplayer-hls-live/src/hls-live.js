@@ -56,7 +56,7 @@ class HlsLiveController {
     this._context.registry('MP4_REMUXER', Mp4Remuxer);
 
     // 初始化MSE
-    this.mse = this._context.registry('MSE', Mse)();
+    this.mse = this._context.registry('MSE', Mse)({container: this._player.video});
     this.initEvents();
   }
 
@@ -132,6 +132,7 @@ class HlsLiveController {
 
   _onLoadComplete (buffer) {
     if (buffer.TAG === 'M3U8_BUFFER') {
+      this.retrytimes = this.configs.retrytimes || 3;
       let mdata;
       try {
         this.m3u8Text = buffer.shift();
@@ -146,7 +147,7 @@ class HlsLiveController {
           this._preload();
         } else {
           this.emit(HLS_EVENTS.RETRY_TIME_EXCEEDED);
-          this.mse.endOfStream();
+          // this.mse.endOfStream();
         }
         return;
       }
@@ -204,7 +205,7 @@ class HlsLiveController {
         this._preload();
       } else {
         this.emit(HLS_EVENTS.RETRY_TIME_EXCEEDED);
-        this.mse.endOfStream();
+        // this.mse.endOfStream();
       }
     }
   }

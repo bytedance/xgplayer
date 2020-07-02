@@ -56,7 +56,7 @@ class HlsVodController {
 
     // 初始化MSE
     if (!this.mse) {
-      this.mse = new Mse({ preloadTime: this.preloadTime }, this._context);
+      this.mse = new Mse({ preloadTime: this.preloadTime, container: this._player.video }, this._context);
       this.mse.init();
     }
     this.initEvents();

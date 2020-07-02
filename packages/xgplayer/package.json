@@ -67,6 +67,7 @@
     },
     "devDependencies": {
         "cross-env": "^7.0.2",
-        "recursive-readdir": "^2.2.2"
+        "recursive-readdir": "^2.2.2",
+        "rimraf": "^3.0.2"
     }
 }
