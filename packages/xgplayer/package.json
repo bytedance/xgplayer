@@ -1,6 +1,6 @@
 {
     "name": "xgplayer",
-    "version": "3.0.0-alpha.29",
+    "version": "3.0.0-alpha.30",
     "description": "video player",
     "main": "./dist/index.min.js",
     "module": "./es/index.min.js",
@@ -9,7 +9,6 @@
         "xgplayer": "bin/xgplayer.js"
     },
     "scripts": {
-        "prepublishOnly": "npm run build",
         "release:alpha": "npm version prerelease --preid=alpha && npm publish --tag alpha",
         "release:alpha-test": "npm publish --tag alpha-test",
         "release:3.0": "npm version patch && npm publish --tag 3.0",
@@ -19,7 +18,7 @@
         "build:es": "rm -rf ./es && babel src --out-dir es",
         "build:lib": "rm -rf ./lib && babel src --out-dir lib --presets=es2015",
         "build:style": "node scripts/buildStyles.js",
-        "watch": "cross-env NODE_ENV=development rollup -c rollup.config.js --watch & npm run build:style"
+        "watch": "cross-env NODE_ENV=development rollup -c rollup.config.js --watch"
     },
     "keywords": [
         "video",
