@@ -104,8 +104,8 @@ const pluginsManager = {
 
     options.index = options.config.index || 0
     try {
-      // eslint-disable-next-line new-cap
       if (!plugins[pluginName.toLowerCase()]) {
+        // eslint-disable-next-line new-cap
         const _instance = new plugin(options)
         plugins[pluginName.toLowerCase()] = _instance
         plugins[pluginName.toLowerCase()].func = plugin
@@ -115,6 +115,7 @@ const pluginsManager = {
         return _instance
       } else {
         console.warn(`the is one plugin with same pluginName [${pluginName}] exist!!!`)
+        return null
       }
     } catch (err) {
       console.error(err)
