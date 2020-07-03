@@ -6,6 +6,12 @@ class Replay extends Plugin {
     return 'replay'
   }
 
+  static get defaultConfig () {
+    return {
+      disable: true
+    }
+  }
+
   registerIcons () {
     return {
       'replay': ReplaySvg
@@ -40,6 +46,10 @@ class Replay extends Plugin {
       if (!this.playerConfig.loop) {
         Plugin.Util.addClass(this.player.root, 'replay')
       }
+      if (this.config.disable) {
+        return
+      }
+      this.show()
       let path = this.root.querySelector('path')
       if (path) {
         let transform = window.getComputedStyle(path).getPropertyValue('transform')
@@ -50,6 +60,26 @@ class Replay extends Plugin {
         }
       }
     })
+
+    this.on(Plugin.Events.PLAY, () => {
+      this.hide()
+    })
+  }
+
+  show () {
+    if (this.config.disable) {
+      return
+    }
+    this.root.style.display = 'flex'
+  }
+
+  enable () {
+    this.config.disable = false
+  }
+
+  disable () {
+    this.config.disable = true
+    this.hide()
   }
 
   render () {

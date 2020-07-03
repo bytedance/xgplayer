@@ -634,6 +634,13 @@ class Player extends Proxy {
     })
   }
 
+  onTimeupdate () {
+    if (this.waitTimer) {
+      clearTimeout(this.waitTimer)
+      this.removeClass(STATE_CLASS.LOADING)
+    }
+  }
+
   getVideoSize () {
     const videoWidth = this.video.videoWidth
     const videoHeight = this.video.videoHeight

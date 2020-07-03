@@ -8,6 +8,7 @@ import Crypto from 'xgplayer-utils-crypto';
 import M3U8Parser from 'xgplayer-transmuxer-demux-m3u8';
 import TsDemuxer from 'xgplayer-transmuxer-demux-ts';
 import { NalUnit } from 'xgplayer-transmuxer-codec-avc';
+import { NalUnitHEVC } from 'xgplayer-transmuxer-codec-hevc';
 import Playlist from 'xgplayer-transmuxer-buffer-playlist';
 import Player from 'xgplayer';
 
@@ -73,15 +74,23 @@ class HlsLiveController {
       errorFatal: fatal
     }
     this._player.emit(HLS_ERROR, error);
-    this._player.emit('error', new Player.Errors('network', this._player.config.url))
   }
 
   _onDemuxComplete () {
     if (this._player.video) {
       const { videoTrack, audioTrack } = this._context.getInstance('TRACKS');
       videoTrack.samples.forEach((sample) => {
+        if (sample.analyzed) {
+          return;
+        }
+        sample.analyzed = true;
         const buffer = new Stream(sample.data.buffer)
-        const nals = NalUnit.getNalunits(buffer);
+        let nals
+        if (this._isHEVC(videoTrack.meta)) {
+          nals = NalUnitHEVC.getHvccNals(buffer);
+        } else {
+          nals = NalUnit.getAvccNals(buffer);
+        }
         const nalsLength = nals.reduce((len, current) => {
           return len + 4 + current.body.byteLength;
         }, 0);
@@ -297,6 +306,10 @@ class HlsLiveController {
         this.emitTo('M3U8_LOADER', LOADER_EVENTS.LADER_START, this.url);
       }
     }
+  }
+
+  _isHEVC (meta) {
+    return meta && meta.codec === 'hev1.1.6.L93.B0'
   }
 
   load (url) {

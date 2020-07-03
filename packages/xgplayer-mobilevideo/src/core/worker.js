@@ -110,7 +110,7 @@ function onPostRun () {
 function init (meta) {
   if (!decoder) {
     if (!self.importScripts) {
-      shimImportScripts('https://sf1-vcloudcdn.pstatp.com/obj/media-fe/decoder/h264/decoder_1583333072685.js').then(() => {
+      shimImportScripts('https://sf1-vcloudcdn.pstatp.com/obj/ttfe/media/decoder/h264/decoder_1583333072684.js').then(() => {
         console.log(Module)
         self.postMessage({
           msg: 'LOG',
@@ -132,7 +132,7 @@ function init (meta) {
         }
       }
       try {
-        self.importScripts('https://sf1-vcloudcdn.pstatp.com/obj/media-fe/decoder/h264/decoder_1583333072684.js');
+        self.importScripts('https://sf1-vcloudcdn.pstatp.com/obj/ttfe/media/decoder/h264/decoder_1583333072684.js');
       } catch (e) {
         self.postMessage({
           msg: 'INIT_FAILED'

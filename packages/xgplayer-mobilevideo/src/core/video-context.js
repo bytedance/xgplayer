@@ -214,7 +214,7 @@ class VideoCanvas extends EventEmitter {
       this.readyStatus = HAVE_CURRENT_DATA
       this._seekState = NOT_SEEK
     }
-    if (decodedFrameLen > 10) {
+    if (decodedFrameLen > 1) {
       if (this.playFinish) {
         this.playFinish()
       }
