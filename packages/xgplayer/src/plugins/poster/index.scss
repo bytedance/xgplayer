@@ -20,6 +20,13 @@
       display: block;
     }
   }
+  &.xgplayer-ended {
+    .xgplayer-poster {
+      &.hide {
+        display: none;
+      }
+    }
+  }
 }
 .xgplayer.xgplayer-playing {
   .xgplayer-poster{
