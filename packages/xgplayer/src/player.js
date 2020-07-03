@@ -168,8 +168,8 @@ class Player extends Proxy {
         this.video.focus()
       }
     }
-    const eventkey = sniffer.service === 'mobile' ? 'touchstart' : 'mousemove'
-    this.root.addEventListener(eventkey, this.mousemoveFunc)
+
+    this.root.addEventListener('mousemove', this.mousemoveFunc)
 
     this.playFunc = () => {
       if (!this.config.closePlayVideoFocus) {
@@ -181,7 +181,6 @@ class Player extends Proxy {
     const player = this
     function onDestroy () {
       player.root.removeEventListener('mousemove', player.mousemoveFunc);
-      player.root.removeEventListener(eventkey, this.mousemoveFunc)
       FULLSCREEN_EVENTS.forEach(item => {
         document.removeEventListener(item, this.onFullscreenChange)
       });
