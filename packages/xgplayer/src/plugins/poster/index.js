@@ -49,7 +49,7 @@ class Poster extends Plugin {
     if (!poster) {
       return ''
     }
-    return `<xg-poster class="xgplayer-poster show" style="background-image:url(${poster})">
+    return `<xg-poster class="xgplayer-poster" style="background-image:url(${poster})">
     </xg-poster>`
   }
 }
