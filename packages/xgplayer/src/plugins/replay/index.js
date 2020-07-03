@@ -8,7 +8,7 @@ class Replay extends Plugin {
 
   static get defaultConfig () {
     return {
-      disable: false
+      disable: true
     }
   }
 
@@ -49,6 +49,7 @@ class Replay extends Plugin {
       if (this.config.disable) {
         return
       }
+      this.show()
       let path = this.root.querySelector('path')
       if (path) {
         let transform = window.getComputedStyle(path).getPropertyValue('transform')
@@ -59,20 +60,17 @@ class Replay extends Plugin {
         }
       }
     })
+
+    this.on(Plugin.Events.PLAY, () => {
+      this.hide()
+    })
   }
 
   show () {
     if (this.config.disable) {
       return
     }
-    super.show()
-  }
-
-  hide () {
-    if (this.config.disable) {
-      return
-    }
-    super.hide()
+    this.root.style.display = 'flex'
   }
 
   enable () {
