@@ -168,7 +168,7 @@ class Player extends Proxy {
       }
     }
 
-    this.root.addEventListener('mousemove', this.mousemoveFunc)
+    sniffer.device !== 'mobile' && this.root.addEventListener('mousemove', this.mousemoveFunc)
 
     this.playFunc = () => {
       if (!this.config.closePlayVideoFocus) {

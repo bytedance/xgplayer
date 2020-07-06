@@ -32,7 +32,6 @@ class Poster extends Plugin {
   }
 
   afterCreate () {
-    console.log('ths.cinfig', this.config)
     this.on(Events.ENDED, () => {
       if (!this.isEndedShow) {
         Util.addClass(this.root, 'hide')

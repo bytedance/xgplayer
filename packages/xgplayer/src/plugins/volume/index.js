@@ -48,7 +48,7 @@ class Volume extends Plugin {
     this.bind('.xgplayer-icon', ['click', 'touchend'], this.changeMuted)
 
     this.on(Events.VOLUME_CHANGE, this.onVolumeChange.bind(this))
-    console.log('this.config.default', this.config.default)
+
     this.player.volume = this.config.default
   }
 
