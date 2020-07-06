@@ -16,19 +16,21 @@
       }
     }
   }
-  .xgplayer-back {
-    position: relative;
-    left: 0;
-    top: 10px;
-    width: 34px;
-    height: 40px;
-    margin-left: 30px;
-    display: none;
-    svg {
-      display: block;
-    }
-    &.show {
-      display: block;
+  .xg-top-bar {
+    .xgplayer-back {
+      position: relative;
+      left: 0;
+      top: 22px;
+      width: 34px;
+      height: 40px;
+      margin-left: 33px;
+      display: none;
+      svg {
+        display: block;
+      }
+      &.show {
+        display: block;
+      }
     }
   }
 }

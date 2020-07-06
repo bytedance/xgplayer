@@ -15,17 +15,25 @@ export default class TopBackIcon extends Plugin {
     }
   }
 
-  constructor (args) {
-    super(args)
-    console.log(args)
-  }
-
   afterCreate () {
+    this.initIcons()
     this.onClick = (e) => {
       this.config.onClick(e)
     }
 
     this.bind('touchend', this.onClick)
+  }
+
+  registerIcons () {
+    return {
+      screenBack: {icon: BackSVG, class: 'xg-fullscreen-back'}
+    }
+  }
+
+  initIcons () {
+    const {icons} = this
+    console.log('icons.screenBack', icons.screenBack)
+    this.appendChild(this.root, icons.screenBack)
   }
 
   show () {
@@ -37,8 +45,7 @@ export default class TopBackIcon extends Plugin {
   }
 
   render () {
-    return `<div class="xgplayer-back">
-    ${BackSVG}
-    </div>`
+    return `<xg-icon class="xgplayer-back">
+    </xg-icon>`
   }
 }
