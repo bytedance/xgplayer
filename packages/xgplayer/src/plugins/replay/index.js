@@ -8,7 +8,7 @@ class Replay extends Plugin {
 
   static get defaultConfig () {
     return {
-      disable: true
+      disable: false
     }
   }
 

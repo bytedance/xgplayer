@@ -24,8 +24,7 @@ class Player extends Proxy {
     if (this.config.presets.length) {
       const defaultIdx = this.config.presets.indexOf('default')
       if (defaultIdx >= 0 && Player.defaultPreset) {
-        this.config.presets.push(Player.defaultPreset)
-        this.config.presets.splice(defaultIdx, 1)
+        this.config.presets[defaultIdx] = Player.defaultPreset;
       }
     } else if (Player.defaultPreset) {
       this.config.presets.push(Player.defaultPreset)
