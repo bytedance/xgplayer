@@ -126,8 +126,10 @@ $tipsFontsize: 12px;
       }
     }
     .xgplayer-icon {
+      position: relative;
+      top: 50%;
+      transform: translateY(-50%);
       cursor: pointer;
-      height: 100%;
       fill: #fff;
       .xg-img {
         width: 100%;
