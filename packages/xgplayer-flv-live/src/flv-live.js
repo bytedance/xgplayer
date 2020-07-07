@@ -38,6 +38,9 @@ export default class FlvController {
     this.bufferClearTimer = null;
 
     this._handleTimeUpdate = this._handleTimeUpdate.bind(this)
+    if (player.config.netAdaption) {
+      this._timer = setInterval(this._checkStatus.bind(this), 300)
+    }
   }
 
   init () {
@@ -230,6 +233,19 @@ export default class FlvController {
     this._player.emit(FLV_ERROR, error);
   }
 
+  _checkStatus () {
+    const container = this._player.video
+    if (container.currentTime < 2 || !container.buffered.length) return
+    const diff = container.buffered.end(container.buffered.length - 1) - container.currentTime;
+    if (diff > 15) {
+      container.playbackRate = 1.2;
+    } else if (diff < 3) {
+      container.playbackRate = 0.8
+    } else {
+      container.playbackRate = 1
+    }
+  }
+
   seek () {
     if (!this.state.initSegmentArrived) {
       this.loadData()
@@ -253,5 +269,6 @@ export default class FlvController {
     this._player = null
     this.mse = null
     this.state.randomAccessPoints = []
+    if (this._timer) clearInterval(this._timer)
   }
 }
