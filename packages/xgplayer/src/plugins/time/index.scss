@@ -9,6 +9,7 @@ $timeDurationColor: rgba(255, 255, 255, 0.50);
     color: $timeColor;
     text-align: center;
     display: inline-block;
+    line-height: 40px;
     span {
       display: inline-block;
       line-height: 40px;
@@ -27,14 +28,6 @@ $timeDurationColor: rgba(255, 255, 255, 0.50);
   &.xgplayer-mobile {
     .xgplayer-time {
       font-size: 13px;
-      &.left {
-        margin-left: 0px;
-        margin-right: 10px;
-      }
-      &.right {
-        margin-left: 10px;
-        margin-right: 0;
-      }
     }
   }
 }
