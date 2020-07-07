@@ -19,6 +19,7 @@ class Controls extends Plugin {
     if (typeof args.player.config.controls === 'boolean') {
       args.config.disable = !args.player.config.controls
     }
+    console.log('args.config.mode', args.config.mode)
     if (!args.config.mode && Sniffer.device === 'mobile') {
       args.config.mode = 'flex'
     }

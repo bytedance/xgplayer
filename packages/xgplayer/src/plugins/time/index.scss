@@ -4,8 +4,8 @@ $timeDurationColor: rgba(255, 255, 255, 0.50);
 .xgplayer {
   .xgplayer-time {
     width: auto;
-    font-family: ArialMT;
     font-size: 14px;
+    font-family: PingFangSC-Semibold;
     color: $timeColor;
     line-height: 40px;
     text-align: center;
@@ -24,8 +24,15 @@ $timeDurationColor: rgba(255, 255, 255, 0.50);
   }
   &.xgplayer-mobile {
     .xgplayer-time {
-      font-family: PingFangSC-Regular;
-      font-size: 12px;
+      font-size: 13px;
+      &.left {
+        margin-left: 0px;
+        margin-right: 10px;
+      }
+      &.right {
+        margin-left: 10px;
+        margin-right: 0;
+      }
     }
   }
 }

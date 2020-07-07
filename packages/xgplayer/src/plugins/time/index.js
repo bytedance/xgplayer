@@ -72,8 +72,8 @@ class Time extends Plugin {
       return
     }
     const center = player.controls.center
-    this.centerCurDom = Util.createDom('xg-icon', '00:00', {style: 'margin-left:0px;margin-right:10px;'}, 'xgplayer-time')
-    this.centerDurDom = Util.createDom('xg-icon', '00:00', {}, 'xgplayer-time')
+    this.centerCurDom = Util.createDom('xg-icon', '00:00', {}, 'xgplayer-time left')
+    this.centerDurDom = Util.createDom('xg-icon', '00:00', {}, 'xgplayer-time right')
     center.children.length > 0 ? center.insertBefore(this.centerCurDom, center.children[0]) : center.appendChild(this.centerCurDom)
     center.appendChild(this.centerDurDom)
   }
