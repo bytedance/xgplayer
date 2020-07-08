@@ -36,7 +36,7 @@ class Time extends Plugin {
       this.onTimeUpdate()
     })
     this.on(Events.TIME_UPDATE, () => {
-      !this.player.isSeeking && this.onTimeUpdate()
+      this.onTimeUpdate()
     })
   }
 
@@ -49,7 +49,7 @@ class Time extends Plugin {
 
   onTimeUpdate () {
     const {player, config} = this
-    if (config.disable || this.isActiving || player.isSeeking) {
+    if (config.disable || this.isActiving) {
       return
     }
     const current = player.currentTime
@@ -123,7 +123,16 @@ class Time extends Plugin {
   }
 
   resetActive () {
-    this.isActiving = false
+    const {player} = this
+    const updateState = () => {
+      this.isActiving = false
+    }
+    this.off(Events.SEEKED, updateState)
+    if (player.isSeeking) {
+      this.once(Events.SEEKED, updateState)
+    } else {
+      this.isActiving = false
+    }
   }
 
   render () {
