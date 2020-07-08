@@ -30,7 +30,10 @@ class Keyboard extends BasePlugin {
 
   afterCreate () {
     this.config.disable = !this.playerConfig.keyShortcut
-    this.seekStep = 10
+    const seekStep = typeof this.config.seekStep === 'function' ? this.config.seekStep(this.player) : this.config.seekStep
+    if (!seekStep || typeof seekStep !== 'number') {
+      this.seekStep = seekStep
+    }
     this.keyCodeMap = {
       'space': {
         keyCode: 32,
@@ -71,13 +74,6 @@ class Keyboard extends BasePlugin {
     this.onBodyKeyDown = this.onBodyKeyDown.bind(this)
     this.player.root.addEventListener('keydown', this.onKeydown)
     document.addEventListener('keydown', this.onBodyKeyDown)
-  }
-
-  afterPlayerInit () {
-    const seekStep = typeof this.config.seekStep === 'function' ? this.config.seekStep(this.player) : this.config.seekStep
-    if (!seekStep || typeof seekStep !== 'number') {
-      this.seekStep = seekStep
-    }
   }
 
   checkCode (code, isBodyTarget) {

@@ -105,7 +105,6 @@ $tipsFontsize: 12px;
     border-radius: 4px;
     text-align: center;
     opacity: 0.85;
-    width: auto;
     white-space: nowrap;
   }
   xg-icon {
@@ -127,8 +126,10 @@ $tipsFontsize: 12px;
       }
     }
     .xgplayer-icon {
+      position: relative;
+      top: 50%;
+      transform: translateY(-50%);
       cursor: pointer;
-      height: 100%;
       fill: #fff;
       .xg-img {
         width: 100%;
@@ -143,6 +144,18 @@ $tipsFontsize: 12px;
     xg-icon {
       margin-right: $iconMargin;
       margin-left: 0;
+    }
+  }
+
+  .xg-top-bar {
+    xg-icon {
+        position: relative;
+        width: 34px;
+        margin-top: 0;
+        margin-left: 0;
+        top: 10px;
+        left: 0;
+        margin-left: 10px;
     }
   }
 

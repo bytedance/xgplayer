@@ -77,9 +77,10 @@
 }
 .xgplayer-mobile {
   font-family: PingFangSC-Semibold;
+  -webkit-tap-highlight-color: rgba(0,0,0,0);
   * {
     text-decoration: none;
-    -webkit-tap-highlight-color: transparent;
+    -webkit-tap-highlight-color: rgba(0,0,0,0);
   }
 
   .xgplayer-controls {
@@ -101,7 +102,7 @@
   .xgmask {
     position: absolute;
     height: 100%;
-    z-index: 200;
+    z-index: 97;
     top: 0;
     left: 0;
     width: 100%;

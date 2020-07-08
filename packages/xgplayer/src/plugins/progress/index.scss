@@ -69,7 +69,7 @@
     &.xg-tips {
       top: -29px;
       display: none;
-      z-index: 100;
+      z-index: 90;
     }
   }
   .xgplayer-progress-dot {
@@ -154,7 +154,7 @@
 }
 // 移动端样式
 .xgplayer-mobile {
-  .xgplayer-progress:hover,.xgplayer-progress:focus {
+  .xgplayer-progress, .xgplayer-progress:hover, .xgplayer-progress:focus {
     .xgplayer-progress-outer {
       height: 2px;
       margin-top: 8px;

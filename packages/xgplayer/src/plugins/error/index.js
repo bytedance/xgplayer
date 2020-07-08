@@ -29,7 +29,7 @@ export default class ErrorPlugin extends Plugin {
       if (player.config.lang && player.config.lang === 'zh-cn') {
         textDOM.innerHTML = player.lang.ERROR
       } else {
-        this.root.innerHTML = `${player.lang.ERROR}，please try to <span class="xgplayer-error-refresh">refresh</span>`
+        this.root.innerHTML = `${player.lang.ERROR || 'play error'}，please try to <span class="xgplayer-error-refresh">refresh</span>`
       }
     }
   }

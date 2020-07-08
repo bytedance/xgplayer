@@ -15,6 +15,7 @@ import PIPIcon from '../plugins/pip'
 import CssFullScreen from '../plugins/cssFullScreen'
 import DefinitionIcon from '../plugins/definition'
 import PlaybackRateIcon from '../plugins/playbackRate'
+import Error from '../plugins/error'
 // import DownLoadIcon from '../plugins/download'
 // import ScreenShotIcon from '../plugins/screenShot'
 
@@ -22,7 +23,7 @@ export default class DefaultPreset {
   constructor () {
     const contolsIcons = [PlayIcon, FullScreen, TimeIcon, Volume,
       RotateIcon, DefinitionIcon, PlaybackRateIcon, CssFullScreen, PIPIcon]
-    this.plugins = [Poster, Start, Loading, Enter, ...contolsIcons]
+    this.plugins = [Poster, Start, Loading, Enter, Error, ...contolsIcons]
 
     switch (sniffer.device) {
       case 'pc':

@@ -22,11 +22,12 @@ import ScreenShotIcon from '../plugins/screenShot'
 import DefinitionIcon from '../plugins/definition'
 import PlaybackRateIcon from '../plugins/playbackRate'
 import CssFullScreen from '../plugins/cssFullScreen'
+import Error from '../plugins/error'
 
 export default class DefaultPreset {
   constructor () {
     const contolsIcons = [Progress, PlayIcon, FullScreen, TimeIcon,
-      RotateIcon, PlayNextIcon, DefinitionIcon, PlaybackRateIcon, DownLoadIcon, ScreenShotIcon]
+      RotateIcon, PlayNextIcon, DefinitionIcon, PlaybackRateIcon, DownLoadIcon, ScreenShotIcon, Volume]
 
     const barIcons = [{
       plugin: PIPIcon,
@@ -35,12 +36,12 @@ export default class DefaultPreset {
         position: PIPIcon.POSITIONS.ROOT_TOP
       }}]
 
-    const layers = [Replay, Poster, Start, Loading, Enter]
+    const layers = [Replay, Poster, Start, Loading, Enter, Error]
 
     this.plugins = [...contolsIcons, ...layers]
     switch (sniffer.device) {
       case 'pc':
-        this.plugins.push(...[Keyboard, PC, CssFullScreen], ...barIcons, Miniscreen, Volume);
+        this.plugins.push(...[Keyboard, PC, CssFullScreen], ...barIcons, Miniscreen);
         break;
       case 'mobile':
         this.plugins.push(Mobile);
