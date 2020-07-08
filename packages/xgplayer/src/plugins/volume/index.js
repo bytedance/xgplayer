@@ -34,6 +34,10 @@ class Volume extends Plugin {
 
     this.initIcons()
 
+    const {commonStyle} = this.playerConfig
+    if (commonStyle.volumeColor) {
+      this.find('.xgplayer-drag').style.backgroundColor = commonStyle.volumeColor
+    }
     this.changeMuted = this.changeMuted.bind(this)
     this.onBarMousedown = this.onBarMousedown.bind(this)
     this.onMouseenter = this.onMouseenter.bind(this)
@@ -146,6 +150,16 @@ class Volume extends Plugin {
     this.appendChild('.xgplayer-icon', icons.volumeSmall)
     this.appendChild('.xgplayer-icon', icons.volumeLarge)
     this.appendChild('.xgplayer-icon', icons.volumeMuted)
+  }
+
+  destroy () {
+    this.unbind('mouseenter', this.onMouseenter)
+
+    this.unbind(['blur', 'mouseleave'], this.onMouseleave)
+
+    this.unbind('.xgplayer-bar', 'mousedown', this.onBarMousedown)
+
+    this.unbind('.xgplayer-icon', ['click', 'touchend'], this.changeMuted)
   }
 
   render () {

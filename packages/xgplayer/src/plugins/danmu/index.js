@@ -4,6 +4,7 @@ import DanmuPanel from './danmuPanel'
 import DanmuIcon from './danmuIcon'
 
 const {Events} = Plugin
+const MIN_INTERVAL = 300
 
 class Danmu extends Plugin {
   constructor (args) {
@@ -11,6 +12,8 @@ class Danmu extends Plugin {
     this.danmujs = null;
     this.danmuPanel = null
     this.isOpen = false
+    this.seekCost = 0
+    this.intervalId = 0
   }
 
   static get pluginName () {
@@ -47,6 +50,32 @@ class Danmu extends Plugin {
 
     this.on(Events.PLAY, () => {
       this.danmujs && this.danmujs.play()
+    })
+
+    this.on(Events.SEEKING, () => {
+      this.seekCost = window.performance.now()
+      this.danmujs && this.danmujs.stop()
+    })
+
+    this.on(Events.SEEKED, () => {
+      if (!this.danmujs || !this.isOpen) {
+        return
+      }
+      console.log('this.seekCost:' + parseInt(window.performance.now() - this.seekCost, 10))
+      if (this.intervalId) {
+        clearTimeout(this.intervalId)
+        this.intervalId = null
+      }
+      const now = window.performance.now()
+      if (now - this.seekCost > MIN_INTERVAL) {
+        this.danmujs.start()
+      } else {
+        this.intervalId = setTimeout(() => {
+          this.danmujs.start()
+          clearTimeout(this.intervalId)
+          this.intervalId = null
+        }, MIN_INTERVAL)
+      }
     })
   }
 
@@ -137,6 +166,15 @@ class Danmu extends Plugin {
 
   sendComment (comments) {
     this.danmujs && this.danmujs.sendComment(comments)
+  }
+
+  destoy () {
+    this.danmujs.stop()
+    this.danmujs.destroy()
+    this.danmuButton && this.danmuButton.__destroy()
+    this.danmuPanel && this.danmuPanel.__destroy()
+    this.danmuButton = null
+    this.danmuPanel = null
   }
 
   render () {
