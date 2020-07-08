@@ -118,9 +118,12 @@ class Danmu extends Plugin {
     if (this.isOpen || !this.danmujs) {
       return
     }
-    this.danmujs.start()
-    this.isOpen = true
     this.show()
+    // 避免弹幕弹层还没展开 导致轨道计算异常
+    setTimeout(() => {
+      this.danmujs.start()
+      this.isOpen = true
+    }, 0)
   }
 
   stop () {
