@@ -151,6 +151,9 @@ class Danmu extends Plugin {
     // 避免弹幕弹层还没展开 导致轨道计算异常
     setTimeout(() => {
       this.danmujs.start()
+      if (this.player.paused) {
+        this.danmujs.pause()
+      }
       this.isOpen = true
     }, 0)
   }

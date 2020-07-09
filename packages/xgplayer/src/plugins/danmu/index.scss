@@ -14,8 +14,6 @@ $sliderDragAfterShadow: 0 0 5px 0 rgba(0, 0, 0, 0.26);
   .danmu-icon  {
     .danmu-switch {
       display: flex;
-      top: 50%;
-      margin-top: -10px;
       &-open {
         display: none;
       }
