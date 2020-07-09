@@ -335,6 +335,13 @@ class Player extends Proxy {
     Util.removeClass(this.root, className)
   }
 
+  hasClass (className) {
+    if (!this.root) {
+      return;
+    }
+    return Util.hasClass(this.root, className)
+  }
+
   setAttribute (key, value) {
     if (!this.root) {
       return;
@@ -622,8 +629,7 @@ class Player extends Proxy {
   }
 
   onTimeupdate () {
-    if (this.waitTimer) {
-      clearTimeout(this.waitTimer)
+    if (this.hasClass(STATE_CLASS.LOADING)) {
       this.removeClass(STATE_CLASS.LOADING)
     }
   }
