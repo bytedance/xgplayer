@@ -167,6 +167,50 @@ class Danmu extends Plugin {
     this.hide()
   }
 
+  setCommentLike (id, data) {
+    this.danmujs && this.danmujs.setCommentLike(id, data)
+  }
+
+  // 按照id改变某一个弹幕的持续显示时间
+  setCommentDuration (id, duration) {
+    this.danmujs && this.danmujs.setCommentDuration(id, duration)
+  }
+
+  // 改变所有已加入队列弹幕的持续显示时间
+  setAllDuration (mode, duration) {
+    this.danmujs && this.danmujs.setAllDuration(mode, duration)
+  }
+
+  // 改变某一个弹幕的id
+  setCommentID (oldID, newID) {
+    this.danmujs && this.danmujs.setCommentID(oldID, newID)
+  }
+
+  // 屏蔽某一类弹幕(参数可选值 scroll | top | bottom | color)
+  hideMode (mode) {
+    this.danmujs && this.danmujs.hide(mode)
+  }
+
+  // 显示某一类弹幕(参数可选值 scroll | top | bottom | color)
+  showMode (mode) {
+    this.danmujs && this.danmujs.show(mode)
+  }
+
+  // 修改弹幕显示区域
+  setArea (area) {
+    this.danmujs && this.danmujs.setArea(area)
+  }
+
+  // 设置透明度
+  setOpacity (opacity) {
+    this.danmujs && this.danmujs.setOpacity(opacity)
+  }
+
+  // 设置字体
+  setFontSize (size, channelSize) {
+    this.danmujs && this.danmujs.setFontSize(size, channelSize)
+  }
+
   sendComment (comments) {
     this.danmujs && this.danmujs.sendComment(comments)
   }
