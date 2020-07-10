@@ -83,7 +83,7 @@ class FlvPlayer extends BasePlugin {
       // 直播完成，待播放器播完缓存后发送关闭事件
       if (!this.paused) {
         this.loaderCompleteTimer = setInterval(() => {
-          const end = this.getBufferedRange()[1]
+          const end = this.player.getBufferedRange()[1]
           if (Math.abs(this.player.currentTime - end) < 0.5) {
             this.emit('ended')
             window.clearInterval(this.loaderCompleteTimer)
