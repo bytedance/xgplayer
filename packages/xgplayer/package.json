@@ -1,6 +1,6 @@
 {
     "name": "xgplayer",
-    "version": "3.0.0-alpha.33",
+    "version": "3.0.0-alpha.34",
     "description": "video player",
     "main": "./dist/index.min.js",
     "module": "./es/index.min.js",
@@ -10,7 +10,7 @@
     },
     "scripts": {
         "prepublishOnly": "npm run build",
-        "release:alpha": "npm version prerelease --preid=alpha && npm publish --tag alpha",
+        "release:alpha": "npm version prerelease --preid=alpha && npm publish --tag alpha --registry http://registry.npmjs.org",
         "release:alpha-test": "npm publish --tag alpha-test",
         "release:3.0": "npm version patch && npm publish --tag 3.0",
         "build": "npm run build:es && npm run build:lib && npm run build:main && npm run build:style && npm run build:browser",
