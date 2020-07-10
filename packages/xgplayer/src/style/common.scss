@@ -17,7 +17,6 @@
       font-size: 100%;
       font: inherit;
       vertical-align: baseline;
-      -webkit-tap-highlight-color: rgba(0,0,0,0);
   }
   ul, li {
     list-style: none;
@@ -31,8 +30,11 @@
   &.xgplayer-is-fullscreen{
       width: 100%;
       height: 100%;
-      // Undo any aspect ratio padding for fluid layouts
-      padding-top: 0;
+      position: fixed;
+      top:0;
+      left: 0;
+      padding: 0;
+      margin: 0;
       z-index: 9999;
   }
   video {
@@ -57,7 +59,6 @@
 
   .btn-text {
     top: 50%;
-    margin-top: -10px;
     position: relative;
     text-align: center;
     font-family: PingFangSC-Regular;
@@ -71,83 +72,6 @@
       background: $definitionNameBgColor;
       border-radius: 12px;
       display:inline-block;
-    }
-  }
-  @keyframes optionShow {
-    0%{
-      height: 0;
-      opacity:1;
-    }
-    99%{
-      transform:scale(1.3);
-      opacity:0;
-    }
-    to {
-      height: auto;
-      opacity:1;
-    }
-  }
-  @keyframes optionHide {
-    0%{
-      transform:scale(1);
-      opacity:1;
-    }
-    99%{
-      transform:scale(1.3);
-      opacity:0;
-    }
-    to {
-      transform:scale(0);
-      opacity:1;
-    }
-  }
-  .option-list {
-    position: absolute;
-    width: 78px;
-    left: 50%;
-    bottom: 40px;
-    background: $definitionUlBgColor;
-    border-radius: 1px;
-    transform: translate(-50%);
-    text-align: left;
-    white-space: nowrap;
-    z-index: 26;
-    cursor: pointer;
-    overflow: hidden;
-    height: 0;
-    li {
-      width: 73px;
-      height: 20px;
-      line-height: 20px;
-      opacity: 0.85;
-      font-family: PingFangSC;
-      font-size: 14px;
-      color: $definitionLiColor;
-      position: relative;
-      padding: 4px 0 4px 0px;
-      text-align: center;
-      &.selected{
-        color: $definitionLiActiveColor;
-        opacity: 1;
-      }
-      &:hover{
-        color: $definitionLiActiveColor;
-        opacity: 1;
-      }
-    }
-    li:nth-child(1) {
-      position: relative;
-      margin-top: 12px;
-    }
-    li:last-child {
-      position: relative;
-      margin-bottom: 12px;
-    }
-    &:hover {
-      opacity: 1;
-    }
-    &.active {
-      height: auto;
     }
   }
   
@@ -177,13 +101,16 @@ $barBottom: 50px;
   }
   .xg-top-bar {
     position: absolute;
+    z-index: 83;
     top: 0;
     left: 0;
     width: 100%;
     height: $barWidth;
+    display: flex;
   }
   .xg-left-bar, .xg-right-bar {
     position: absolute;
+    z-index: 81;
     top: 0;
     bottom: $barWidth;
     margin-top: $barWidth;

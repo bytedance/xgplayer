@@ -11,6 +11,7 @@ import Controls from './plugins/controls'
 import {
   version
 } from '../package.json'
+import { Sniffer } from './plugin/basePlugin'
 
 const FULLSCREEN_EVENTS = ['fullscreenchange', 'webkitfullscreenchange', 'mozfullscreenchange', 'MSFullscreenChange']
 
@@ -37,6 +38,8 @@ class Player extends Proxy {
     this.isSeeking = false
     this.isActive = true
     this.isCssfullScreen = false
+    this._fullscreenEl = null
+    this._originCssText = ''
 
     this._initDOM()
 
@@ -143,6 +146,10 @@ class Player extends Proxy {
       } else {
         this.fullscreen = false
         this._fullscreenEl = null
+        if (this._originCssText) {
+          Util.setStyleFromCsstext(this.root, this._originCssText)
+          this._originCssText = ''
+        }
         this.removeClass(STATE_CLASS.FULLSCREEN)
         this.emit(Events.FULLSCREEN_CHANGE, false)
       }
@@ -160,8 +167,8 @@ class Player extends Proxy {
         this.video.focus()
       }
     }
-    const eventkey = sniffer.service === 'mobile' ? 'touchstart' : 'mousemove'
-    this.root.addEventListener(eventkey, this.mousemoveFunc)
+
+    sniffer.device !== 'mobile' && this.root.addEventListener('mousemove', this.mousemoveFunc)
 
     this.playFunc = () => {
       if (!this.config.closePlayVideoFocus) {
@@ -173,7 +180,6 @@ class Player extends Proxy {
     const player = this
     function onDestroy () {
       player.root.removeEventListener('mousemove', player.mousemoveFunc);
-      player.root.removeEventListener(eventkey, this.mousemoveFunc)
       FULLSCREEN_EVENTS.forEach(item => {
         document.removeEventListener(item, this.onFullscreenChange)
       });
@@ -188,7 +194,7 @@ class Player extends Proxy {
       this.emit(Events.URL_NULL)
     }
     this.canPlayFunc = () => {
-      this.volume = this.config.volume
+      this.volume = typeof this.config.volume === 'number' ? this.config.volume : 0.6
       this.off(Events.CANPLAY, this.canPlayFunc)
       this.removeClass(STATE_CLASS.ENTER)
     }
@@ -289,19 +295,21 @@ class Player extends Proxy {
     if (!options.root && typeof position === 'string' && position.indexOf('controls') > -1) {
       return this.controls.registerPlugin(PLUFGIN, options, PLUFGIN.pluginName)
     }
-    switch (position) {
-      case POSITIONS.ROOT_RIGHT:
-        options.root = this.rightBar
-        break;
-      case POSITIONS.ROOT_LEFT:
-        options.root = this.leftBar
-        break;
-      case POSITIONS.ROOT_TOP:
-        options.root = this.topBar
-        break;
-      default:
-        options.root = this.root
-        break;
+    if (!options.root) {
+      switch (position) {
+        case POSITIONS.ROOT_RIGHT:
+          options.root = this.rightBar
+          break;
+        case POSITIONS.ROOT_LEFT:
+          options.root = this.leftBar
+          break;
+        case POSITIONS.ROOT_TOP:
+          options.root = this.topBar
+          break;
+        default:
+          options.root = this.root
+          break;
+      }
     }
     return pluginsManager.register(this, PLUFGIN, options)
   }
@@ -480,9 +488,13 @@ class Player extends Proxy {
   }
 
   getFullscreen (el) {
-    let player = this
+    const {root, video} = this
     if (!el) {
-      el = this.root
+      el = root
+    }
+    if (!Sniffer.os.isPhone) {
+      this._originCssText = root.style.cssText
+      root.removeAttribute('style')
     }
     this._fullscreenEl = el
     if (el.requestFullscreen) {
@@ -491,8 +503,8 @@ class Player extends Proxy {
       el.mozRequestFullScreen()
     } else if (el.webkitRequestFullscreen) {
       el.webkitRequestFullscreen(window.Element.ALLOW_KEYBOARD_INPUT)
-    } else if (player.video.webkitSupportsFullscreen) {
-      player.video.webkitEnterFullscreen()
+    } else if (video.webkitSupportsFullscreen) {
+      video.webkitEnterFullscreen()
     } else if (el.msRequestFullscreen) {
       el.msRequestFullscreen()
     } else {
@@ -501,9 +513,12 @@ class Player extends Proxy {
   }
 
   exitFullscreen (el) {
+    const {root, _originCssText} = this
     if (el) {
-      el = this.root
+      el = root
     }
+    _originCssText && Util.setStyleFromCsstext(root, _originCssText)
+    this._originCssText = ''
     if (document.exitFullscreen) {
       document.exitFullscreen()
     } else if (document.webkitExitFullscreen) {
@@ -518,21 +533,16 @@ class Player extends Proxy {
 
   getCssFullscreen () {
     this.addClass(STATE_CLASS.CSS_FULLSCREEN)
-    if (this.config.fluid) {
-      this.root.style['padding-top'] = ''
-    }
+    this._originCssText = this.root.style.cssText
+    this.root.removeAttribute('style')
     this.isCssfullScreen = true
     this.emit(Events.CSS_FULLSCREEN_CHANGE, true)
   }
 
   exitCssFullscreen () {
-    if (this.config.fluid) {
-      this.root.style['width'] = '100%'
-      this.root.style['height'] = '0'
-      this.root.style['padding-top'] = `${this.config.height * 100 / this.config.width}%`
-    }
     this.removeClass(STATE_CLASS.CSS_FULLSCREEN)
-    this.isCssfullScreen = false
+    this._originCssText && Util.setStyleFromCsstext(this.root, this._originCssText)
+    this._originCssText = ''
     this.emit(Events.CSS_FULLSCREEN_CHANGE, false)
   }
 
@@ -550,12 +560,13 @@ class Player extends Proxy {
     }, this.config.inactive)
   }
 
-  onBlur () {
+  onBlur (data = {ignoreStatus: false}) {
     if (!this.isActive) {
       return;
     }
+    const {closePauseVideoFocus} = this.config
     this.isActive = false
-    if (!this.paused && !this.ended) {
+    if (data.ignoreStatus || closePauseVideoFocus || (!this.paused && !this.ended)) {
       this.addClass(STATE_CLASS.ACTIVE)
     }
   }
@@ -573,7 +584,7 @@ class Player extends Proxy {
     if (this.userTimer) {
       clearTimeout(this.userTimer)
     }
-    this.emit(Events.PLAYER_FOCUS)
+    !this.config.closePauseVideoFocus && this.emit(Events.PLAYER_FOCUS)
   }
 
   onEnded () {
@@ -673,6 +684,10 @@ class Player extends Proxy {
   set lang (lang) {
     this.config.lang = lang
     pluginsManager.setLang(lang, this)
+  }
+
+  get lang () {
+    return this.config.lang
   }
 
   get version () {

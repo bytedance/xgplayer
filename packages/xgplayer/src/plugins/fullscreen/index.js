@@ -1,8 +1,9 @@
 import Plugin from '../../plugin'
+import TopBackIcon from './backicon'
 import FullScreenSvg from '../assets/requestFull.svg'
 import ExitFullScreenSvg from '../assets/exitFull.svg'
 
-const {Events, POSITIONS} = Plugin
+const {Events, POSITIONS, Sniffer} = Plugin
 
 export default class Fullscreen extends Plugin {
   static get pluginName () {
@@ -16,7 +17,8 @@ export default class Fullscreen extends Plugin {
       useCssFullscreen: false,
       switchCallback: null,
       target: null,
-      disable: false
+      disable: false,
+      needBackIcon: false
     }
   }
 
@@ -38,6 +40,19 @@ export default class Fullscreen extends Plugin {
       this.changeLangTextKey(this.find('.xg-tips'), isFullScreen ? 'exitFullscreen' : 'fullscreen')
       this.animate(isFullScreen)
     })
+    if (Sniffer.device === 'mobile' && this.config.needBackIcon) {
+      this.topBackIcon = this.player.registerPlugin({
+        plugin: TopBackIcon,
+        options: {
+          config: {
+            onClick: (e) => {
+              this.show()
+              this.btnClick(e)
+            }
+          }
+        }
+      })
+    }
   }
 
   registerLangauageTexts () {
@@ -105,6 +120,23 @@ export default class Fullscreen extends Plugin {
 
   animate (isFullScreen) {
     isFullScreen ? this.setAttr('data-state', 'full') : this.setAttr('data-state', 'normal')
+    if (this.topBackIcon) {
+      if (isFullScreen) {
+        this.topBackIcon.show()
+        this.hide()
+      } else {
+        this.topBackIcon.hide()
+        this.show()
+      }
+    }
+  }
+
+  show () {
+    super.show()
+  }
+
+  hide () {
+    super.hide()
   }
 
   render () {

@@ -67,6 +67,9 @@
   }
 
   .xgplayer-volume[data-state=normal] {
+    .xg-volume {
+      display: block;
+    }
     .xg-volume-small {
       display: none;
     }

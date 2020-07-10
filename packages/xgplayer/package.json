@@ -9,18 +9,19 @@
         "xgplayer": "bin/xgplayer.js"
     },
     "scripts": {
-        "prepublishOnly": "npm run build",
-        "release:alpha": "npm version prerelease --preid=alpha && npm publish --tag alpha --registry http://registry.npmjs.org",
-        "release:alpha-test": "npm publish --tag alpha-test --registry http://registry.npmjs.org",
-        "release:3.0": "npm version patch && npm publish --tag 3.0 --registry http://registry.npmjs.org",
+        "release:alpha": "npm version prerelease --preid=alpha && npm publish --tag alpha",
+        "release:alpha-test": "npm publish --tag alpha-test",
+        "release:3.0": "npm version patch && npm publish --tag 3.0",
+        "prepare": "npm run build",
         "build": "npm run build:es && npm run build:lib && npm run build:main && npm run build:style && npm run build:browser",
         "build:main": "rm -rf ./dist && cross-env NODE_ENV=production rollup -c rollup.config.js",
         "build:browser": "rm -rf ./browser && node scripts/buildBrowser.js",
         "build:es": "rm -rf ./es && babel src --out-dir es",
         "build:lib": "rm -rf ./lib && babel src --out-dir lib --presets=es2015",
         "build:style": "node scripts/buildStyles.js",
-        "watch": "cross-env NODE_ENV=development rollup -c rollup.config.js --watch & npm run build:style"
+        "watch": "cross-env NODE_ENV=development rollup -c rollup.config.js --watch"
     },
+    "unpkgFiles":["browser"],
     "keywords": [
         "video",
         "player"

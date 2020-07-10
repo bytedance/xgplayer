@@ -174,10 +174,10 @@ util.deepCopy = function (dst, src) {
 
 util.deepMerge = function (dst, src) {
   Object.keys(src).map(key => {
-    if (typeof dst[key] === typeof src[key] && dst[key] !== null && typeof dst[key] === 'object' && !(src[key] instanceof window.Node)) {
+    if (util.typeOf(dst[key]) === util.typeOf(src[key]) && dst[key] !== null && typeof dst[key] === 'object' && !(src[key] instanceof window.Node)) {
       util.deepMerge(dst[key], src[key])
     } else {
-      dst[key] = src[key]
+      src[key] !== null && (dst[key] = src[key])
     }
   })
   return dst
@@ -273,7 +273,7 @@ util.getFullScreenEl = function () {
 }
 
 util.checkIsFunction = function (fun) {
-  return typeof fun === 'function'
+  return fun && typeof fun === 'function'
 }
 
 util.checkIsObject = function (obj) {
@@ -287,4 +287,23 @@ util.hide = function (dom) {
 util.show = function (dom, display) {
   dom.style.display = display || 'block'
 }
+
+util.isUndefined = function (val) {
+  if (typeof val === 'undefined' || val === null) {
+    return true
+  }
+}
+
+util.setStyleFromCsstext = function (dom, text) {
+  const styleArr = text.replace(/\s+/g, '').split(';')
+  styleArr.map(item => {
+    if (item) {
+      const arr = item.split(':')
+      if (arr.length > 1) {
+        dom.style[arr[0]] = arr[1]
+      }
+    }
+  })
+}
+
 export default util

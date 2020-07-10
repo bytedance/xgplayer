@@ -73,7 +73,7 @@ class Start extends Plugin {
 
     this.onClick = this.onClick.bind(this)
 
-    this.bind('click', this.onClick)
+    this.bind(['click', 'touchend'], this.onClick)
   }
 
   registerIcons () {
@@ -172,7 +172,7 @@ class Start extends Plugin {
   }
 
   destroy () {
-    this.unbind('click', this.onClick)
+    this.unbind(['click', 'touchend'], this.onClick)
   }
 
   render () {

@@ -149,6 +149,50 @@ export default class Plugin extends BasePlugin {
     return {}
   }
 
+  static delegate (querySelector, eventType, callback) {
+    // if no querySelector passed to the method
+    if (arguments.length < 3 && typeof eventType === 'function') {
+      if (Array.isArray(querySelector)) {
+        querySelector.forEach((item) => {
+          this.bindEL(item, eventType)
+        })
+      } else {
+        this.bindEL(querySelector, eventType)
+      }
+    } else if (arguments.length === 3 && typeof callback === 'function') {
+      if (!this.root) {
+        return
+      }
+      if (Array.isArray(eventType)) {
+        eventType.forEach((item) => {
+          delegate.bind(this.root, querySelector, item, callback, false)
+        })
+      } else {
+        delegate.bind(this.root, querySelector, eventType, callback, false)
+      }
+    }
+  }
+
+  static removeDelegate (querySelector, eventType, callback) {
+    if (arguments.length < 3 && typeof eventType === 'function') {
+      if (Array.isArray(querySelector)) {
+        querySelector.forEach((item) => {
+          this.unbindEL(item, eventType)
+        })
+      } else {
+        this.unbindEL(querySelector, eventType)
+      }
+    } else if (typeof callback === 'function') {
+      if (Array.isArray(eventType)) {
+        eventType.forEach((item) => {
+          delegate.unbind(this.root, querySelector, item, callback, false)
+        })
+      } else {
+        delegate.unbind(this.root, querySelector, eventType, callback, false)
+      }
+    }
+  }
+
   constructor (args = {}) {
     super(args)
   }
@@ -239,6 +283,9 @@ export default class Plugin extends BasePlugin {
   }
 
   set lang (lang) {
+    if (lang === this.config.lang) {
+      return
+    }
     this.config.lang = lang
     function checkChildren (node, callback) {
       for (let i = 0; i < node.children.length; i++) {
@@ -262,9 +309,6 @@ export default class Plugin extends BasePlugin {
 
   get lang () {
     let lang = this.config.lang || this.playerConfig.lang || 'zh'
-    if (lang.indexOf('-') > 0) {
-      lang = lang.split('-')[0]
-    }
     return lang
   }
 
@@ -309,48 +353,11 @@ export default class Plugin extends BasePlugin {
   }
 
   bind (querySelector, eventType, callback) {
-    // if no querySelector passed to the method
-    if (arguments.length < 3 && typeof eventType === 'function') {
-      if (Array.isArray(querySelector)) {
-        querySelector.forEach((item) => {
-          this.bindEL(item, eventType)
-        })
-      } else {
-        this.bindEL(querySelector, eventType)
-      }
-    } else if (arguments.length === 3 && typeof callback === 'function') {
-      if (!this.root) {
-        return
-      }
-      if (Array.isArray(eventType)) {
-        eventType.forEach((item) => {
-          delegate.bind(this.root, querySelector, item, callback, false)
-        })
-      } else {
-        delegate.bind(this.root, querySelector, eventType, callback, false)
-      }
-    }
+    Plugin.delegate.call(this, ...arguments)
   }
 
   unbind (querySelector, eventType, callback) {
-    // if no querySelector passed to the method
-    if (arguments.length < 3 && typeof eventType === 'function') {
-      if (Array.isArray(querySelector)) {
-        querySelector.forEach((item) => {
-          this.unbindEL(item, eventType)
-        })
-      } else {
-        this.unbindEL(querySelector, eventType)
-      }
-    } else if (typeof callback === 'function') {
-      if (Array.isArray(eventType)) {
-        eventType.forEach((item) => {
-          delegate.unbind(this.root, querySelector, item, callback, false)
-        })
-      } else {
-        delegate.unbind(this.root, querySelector, eventType, callback, false)
-      }
-    }
+    Plugin.removeDelegate.call(this, ...arguments)
   }
 
   setStyle (name, value) {

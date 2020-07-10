@@ -11,20 +11,25 @@ class MobilePlugin extends Plugin {
 
   static get defaultConfig () {
     return {
+      stopPropagation: true, // 是否阻止冒泡
       index: 0,
       disableGesture: false, // 是否禁用手势
       gestureX: true, // 是否启用水平手势
       gestureY: true, // 是否启用垂直手势
       updateGesture: () => {}, // 手势处理回调
+      onTouchStart: () => {}, // 手势开始移动回调
+      onTouchEnd: () => {}, // 手势移动结束回调
       gradient: 'normal', // 是否启用阴影
       isTouchingSeek: false, // 是否在touchMove的同时更新currentTime
-      miniMoveStep: 5, // 最小差异，用于move节流
+      miniMoveStep: 10, // 最小差异，用于move节流
       scopeL: 0.4, // 左侧手势范围比例
       scopeR: 0.4, // 右侧手势范围比例
       darkness: true, // 是否启用右侧调暗功能
       maxDarkness: 0.6, // 调暗最大暗度，即蒙层最大透明度
       disableActive: false, // 是否禁用时间面板
-      disableTimeProgress: false // 是否禁用时间进度条
+      disableTimeProgress: false, // 是否禁用时间进度条
+      hideControlsActive: true, // 手势拖动的时候是否隐控制栏
+      hideControlsEnd: false // 手势结束的时候隐控制栏
     }
   }
 
@@ -48,7 +53,9 @@ class MobilePlugin extends Plugin {
 
   afterCreate () {
     const {playerConfig, config, player} = this
-    this.config.disableGesture = !!this.playerConfig.disableGesture
+    if (!Util.isUndefined(playerConfig.disableGesture)) {
+      config.disableGesture = !!playerConfig.disableGesture
+    }
 
     this.xgMask = Util.createDom('xg-mask', '', {}, 'xgmask')
     player.root.appendChild(this.xgMask)
@@ -139,21 +146,24 @@ class MobilePlugin extends Plugin {
   }
 
   onTouchStart (e) {
-    const {player, config, pos} = this
+    const {player, config, pos, playerConfig} = this
     // 直播或者duration没有获取到之前不做操作
-    if (!(player.duration !== Infinity && player.duration > 0) || this.isTouchStart || config.disableGesture) {
-      return
+    if (!(player.duration !== Infinity && player.duration > 0) || this.isTouchStart) {
+      return true
     }
+    Util.checkIsFunction(playerConfig.disableSwipeHandler) && playerConfig.disableSwipeHandler()
     this.find('.dur').innerHTML = Util.format(player.duration)
     this.isTouchStart = true
-    e.preventDefault()
-    e.stopPropagation()
+    if (!config.stopPropagation) {
+      e.preventDefault()
+      e.stopPropagation()
+    }
     const touche = this.getTouche(e.touches)
     if (touche) {
       pos.x = parseInt(touche.pageX, 10)
       pos.y = parseInt(touche.pageY, 10)
       pos.time = player.currentTime * 1000
-      pos.volume = player.volume
+      pos.volume = player.volume * 100
       pos.width = parseInt(Util.getCss(this.root, 'width'), 10)
       pos.height = parseInt(Util.getCss(this.root, 'height'), 10) - 48
       pos.scopeL = config.scopeL * pos.width
@@ -164,29 +174,31 @@ class MobilePlugin extends Plugin {
   }
 
   onTouchMove (e) {
-    e.preventDefault()
-    e.stopPropagation()
     const touche = this.getTouche(e.touches)
-    if (!touche) {
+    const {pos, config, player} = this
+    if (!touche || config.disableGesture) {
       return
     }
-    if (Math.abs(touche.pageX - this.pos.x) > this.config.miniMoveStep || Math.abs(touche.pageX - this.pos.x) > this.config.miniMoveStep) {
-      this.player.emit(Events.PLAYER_FOCUS, {autoHide: false})
-      const {pos, config} = this
+    if (Math.abs(touche.pageX - this.pos.x) > this.config.miniMoveStep || Math.abs(touche.pageY - pos.y) > this.config.miniMoveStep) {
+      !config.hideControlsActive ? player.emit(Events.PLAYER_FOCUS, {autoHide: false}) : player.emit(Events.PLAYER_BLUR)
       const x = parseInt(touche.pageX, 10)
       const y = parseInt(touche.pageY, 10)
       const diffx = x - pos.x
       const diffy = y - pos.y
       const tan = Math.abs(diffy) / Math.abs(diffx)
       if (config.gestureY && tan > 1.73 && (x < pos.scopeL || x > pos.scopeR)) {
+        e.preventDefault()
+        e.stopPropagation()
         if (x < pos.scopeL && config.darkness) {
           pos.op = 3
-          this.updateBrightness(diffy / this.pos.height)
+          this.updateBrightness(diffy / pos.height)
         } else {
           pos.op = 2
-          this.updateVolume(diffy / this.pos.height)
+          this.updateVolume(diffy / pos.height)
         }
       } else if (config.gestureX && tan < 0.27) {
+        e.preventDefault()
+        e.stopPropagation()
         pos.op = 1
         this.updateTime(diffx / pos.width)
       }
@@ -200,12 +212,13 @@ class MobilePlugin extends Plugin {
   }
 
   onTouchEnd (e) {
-    e.preventDefault()
-    e.stopPropagation()
-    const {root, player, pos} = this
+    const {root, player, pos, config, playerConfig} = this
     root.removeEventListener('touchmove', this.onTouchMove, false)
     root.removeEventListener('touchend', this.onTouchEnd, false)
+    Util.checkIsFunction(playerConfig.enableSwipeHandler) && playerConfig.enableSwipeHandler()
     if (this.isTouchMove) {
+      e.preventDefault()
+      e.stopPropagation()
       const time = pos.time / 1000
       if (pos.op === 1) {
         player.seek(Number(time).toFixed(1))
@@ -214,9 +227,13 @@ class MobilePlugin extends Plugin {
         player.getPlugin('progress') && player.getPlugin('progress').resetSeekState()
       }, 10)
       pos.op = 0
-      this.player.emit(Events.PLAYER_FOCUS)
+      !config.hideControlsEnd && this.player.emit(Events.PLAYER_FOCUS)
     } else {
-      if (!this.playerConfig.closeVideoClick && player.isActive) {
+      if (player.isActive && config.stopPropagation) {
+        e.preventDefault()
+        e.stopPropagation()
+      }
+      if (!playerConfig.closeVideoClick && player.isActive) {
         this.switchPlayPause(e)
       } else {
         if (player.isActive) {
@@ -249,19 +266,21 @@ class MobilePlugin extends Plugin {
   }
 
   updateVolume (percent) {
-    let volume = this.pos.volume - percent
-    this.pos.volume = volume < 0.1 ? 0 : (volume > 1 ? 1 : volume)
-    this.player.volume = this.pos.volume
-    this.pos.volume > 0 && (this.player.muted = false)
+    const {pos, player} = this
+    const volume = pos.volume - parseInt(percent * 100)
+    pos.volume = volume < 1 ? 0 : (volume > 100 ? 100 : volume)
+    player.volume = pos.volume / 100
+    pos.volume > 0 && (player.muted = false)
   }
 
   updateBrightness (percent) {
-    let light = this.pos.light - (0.8 * percent)
-    light = light > this.config.maxDarkness ? this.config.maxDarkness : (light < 0 ? 0 : light)
-    if (this.xgMask) {
-      this.xgMask.style.backgroundColor = `rgba(0,0,0,${light})`
+    const {pos, config, xgMask} = this
+    let light = pos.light - (0.8 * percent)
+    light = light > config.maxDarkness ? config.maxDarkness : (light < 0 ? 0 : light)
+    if (xgMask) {
+      xgMask.style.backgroundColor = `rgba(0,0,0,${light})`
     }
-    this.pos.light = light
+    pos.light = light
   }
 
   activeSeekNote (time) {

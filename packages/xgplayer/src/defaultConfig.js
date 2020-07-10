@@ -22,9 +22,14 @@ export default function getDefaultConfig () {
     closePlayerBlur: false, // 是个否启用鼠标移动激活行为
     leavePlayerTime: 0, // 延迟触发时间
     closePlayVideoFocus: false, // 是否关闭play时触发focus
-    closeFocusVideoFocus: false, // 是否支持播放器移动鼠标时触发focus
+    closePauseVideoFocus: false, // 是否关闭pause时触发focus
+    closeFocusVideoFocus: false, // 是否关闭播放器移动鼠标时触发focus
     closeControlsBlur: false, // 鼠标移出播放器控制条范围时触发focus事件
     videoAttrbutes: {}, // video扩展属性
+    disableSwipeHandler: () => {
+    },
+    enableSwipeHandler: () => {
+    },
     // 是否删除
     ignores: [],
     whitelist: [],
@@ -40,7 +45,7 @@ export default function getDefaultConfig () {
     cssFullscreen: true, // 页面全屏
     keyShortcut: true, // 是否开启快捷键
     presets: [],
-    playbackRate: [],
+    playbackRate: [0.5, 0.75, 1, 1.5, 2],
     icons: {},
     commonStyle: { // 用于配置一些通用样式结构
       progressColor: '', // 进度条底色

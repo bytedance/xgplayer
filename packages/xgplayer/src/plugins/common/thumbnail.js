@@ -11,10 +11,10 @@ export default class Thumbnail extends Plugin {
   static get defaultConfig () {
     return {
       isShow: false,
-      urls: [],
-      pic_num: 0,
-      row: 0,
-      col: 0,
+      urls: [], // 有多张大图就多个url就好
+      pic_num: 0, // 每张图含有几个雪碧图
+      col: 0, // 截图列数
+      row: 0, // 截图行数
       height: 0,
       width: 0,
       scale: 1,
