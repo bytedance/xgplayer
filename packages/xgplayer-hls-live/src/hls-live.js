@@ -211,18 +211,6 @@ class HlsLiveController {
   }
   _checkStatus () {
     const container = this._player.video
-    if (this._player.config.netAdaption && container.buffered.length) {
-      const diff = container.buffered.end(container.buffered.length - 1) - container.currentTime;
-      if (container.currentTime > 2) {
-        if (diff > 15) {
-          container.playbackRate = 1.2;
-        } else if (diff < 3) {
-          container.playbackRate = 0.8
-        } else {
-          container.playbackRate = 1
-        }
-      }
-    }
     if (this.retrytimes < 1 && (new Date().getTime() - this._lastCheck < 4000)) {
       return;
     }

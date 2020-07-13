@@ -82,7 +82,7 @@ class FetchLoader {
     // TODO: Add Ranges
     let params = this.getParams(opts)
     this.loading = true
-    this.internalLoad(url, params, this.retryTime)
+    return this.internalLoad(url, params, this.retryTime)
   }
 
   _onFetchResponse (response) {
