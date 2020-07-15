@@ -56,7 +56,7 @@ export default class HlsLivePlayer extends BasePlugin {
       this.player.config.url = url
       this._context.destroy();
       this._context = null;
-      this.video.currentTime = 0;
+      this.player.currentTime = 0;
 
       if (!this.paused) {
         this.pause()
