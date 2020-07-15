@@ -1,16 +1,10 @@
-import EVENTS from 'xgplayer-transmuxer-constant-events'
-import Tracks from 'xgplayer-transmuxer-buffer-track'
-import XgBuffer from 'xgplayer-transmuxer-buffer-xgbuffer'
-import Stream from 'xgplayer-transmuxer-buffer-stream'
-import FetchLoader from 'xgplayer-transmuxer-loader-fetch'
-import Crypto from 'xgplayer-utils-crypto';
+import { EVENTS, FetchLoader, Crypto } from 'xgplayer-helper-utils'
+import { TsDemuxer, M3U8Parser } from 'xgplayer-helper-transmuxer';
+import { hevc, avc } from 'xgplayer-helper-codec'
+import { Playlist, Buffer as XgBuffer, Tracks, Stream } from 'xgplayer-helper-models';
 
-import M3U8Parser from 'xgplayer-transmuxer-demux-m3u8';
-import TsDemuxer from 'xgplayer-transmuxer-demux-ts';
-import { NalUnit } from 'xgplayer-transmuxer-codec-avc';
-import { NalUnitHEVC } from 'xgplayer-transmuxer-codec-hevc';
-import Playlist from 'xgplayer-transmuxer-buffer-playlist';
-import Player from 'xgplayer';
+const { NalUnitHEVC } = hevc;
+const { NalUnit } = avc;
 
 const LOADER_EVENTS = EVENTS.LOADER_EVENTS;
 const DEMUX_EVENTS = EVENTS.DEMUX_EVENTS;

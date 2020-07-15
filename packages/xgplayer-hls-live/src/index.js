@@ -1,6 +1,5 @@
 import Player from 'xgplayer'
-import EVENTS from 'xgplayer-transmuxer-constant-events'
-import Context from 'xgplayer-transmuxer-context';
+import { Context, EVENTS } from 'xgplayer-helper-utils'
 import HlsLiveController from './hls-live';
 const HlsAllowedEvents = EVENTS.HlsAllowedEvents;
 const REMUX_EVENTS = EVENTS.REMUX_EVENTS;
