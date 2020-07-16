@@ -57,13 +57,13 @@ export default class HlsLivePlayer extends BasePlugin {
       this._context = null;
       this.player.currentTime = 0;
 
-      if (!this.paused) {
-        this.pause()
+      if (!this.player.paused) {
+        this.player.pause()
         this.once('canplay', () => {
-          this.play()
+          this.player.play()
         })
       } else {
-        this.play()
+        this.player.play()
       }
 
       this.player.started = false;
