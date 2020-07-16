@@ -91,7 +91,7 @@ return /******/ (function(modules) { // webpackBootstrap
 /******/
 /******/
 /******/ 	// Load entry module and return exports
-/******/ 	return __webpack_require__(__webpack_require__.s = 8);
+/******/ 	return __webpack_require__(__webpack_require__.s = 6);
 /******/ })
 /************************************************************************/
 /******/ ([
@@ -109,7 +109,7 @@ var _createClass = function () { function defineProperties(target, props) { for 
 
 var _get = function get(object, property, receiver) { if (object === null) object = Function.prototype; var desc = Object.getOwnPropertyDescriptor(object, property); if (desc === undefined) { var parent = Object.getPrototypeOf(object); if (parent === null) { return undefined; } else { return get(parent, property, receiver); } } else if ("value" in desc) { return desc.value; } else { var getter = desc.get; if (getter === undefined) { return undefined; } return getter.call(receiver); } };
 
-var _proxy = __webpack_require__(10);
+var _proxy = __webpack_require__(8);
 
 var _proxy2 = _interopRequireDefault(_proxy);
 
@@ -117,11 +117,11 @@ var _util = __webpack_require__(3);
 
 var _util2 = _interopRequireDefault(_util);
 
-var _database = __webpack_require__(30);
+var _database = __webpack_require__(28);
 
 var _database2 = _interopRequireDefault(_database);
 
-var _sniffer = __webpack_require__(6);
+var _sniffer = __webpack_require__(29);
 
 var _sniffer2 = _interopRequireDefault(_sniffer);
 
@@ -129,13 +129,13 @@ var _error = __webpack_require__(4);
 
 var _error2 = _interopRequireDefault(_error);
 
-var _draggabilly = __webpack_require__(31);
+var _draggabilly = __webpack_require__(30);
 
 var _draggabilly2 = _interopRequireDefault(_draggabilly);
 
-var _url = __webpack_require__(36);
+var _url = __webpack_require__(35);
 
-var _downloadjs = __webpack_require__(37);
+var _downloadjs = __webpack_require__(36);
 
 var _downloadjs2 = _interopRequireDefault(_downloadjs);
 
@@ -1052,7 +1052,7 @@ module.exports = exports['default'];
 "use strict";
 
 
-var _undefined = __webpack_require__(23)(); // Support ES3 engines
+var _undefined = __webpack_require__(21)(); // Support ES3 engines
 
 module.exports = function (val) {
   return val !== _undefined && val !== null;
@@ -1521,904 +1521,17 @@ module.exports = exports['default'];
 /* 5 */
 /***/ (function(module) {
 
-module.exports = {"name":"xgplayer","version":"2.9.8","description":"video player","main":"./dist/index.js","typings":"./types/index.d.ts","bin":{"xgplayer":"bin/xgplayer.js"},"scripts":{"prepare":"npm run build","build":"webpack --progress --display-chunks -p","watch":"webpack --progress --display-chunks -p --watch --mode development"},"keywords":["video","player"],"babel":{"presets":["es2015"],"plugins":["add-module-exports","babel-plugin-bulk-import"]},"repository":{"type":"git","url":"git+https://github.com/bytedance/xgplayer.git"},"author":"yinguohui@bytedance.com","license":"MIT","dependencies":{"chalk":"^2.3.2","commander":"^2.15.1","danmu.js":"^0.2.17","deepmerge":"^1.5.0","downloadjs":"1.4.7","draggabilly":"^2.2.0","event-emitter":"^0.3.5","fs-extra":"^5.0.0","install":"^0.13.0","pasition":"^1.0.1","request-frame":"^1.5.3"},"browserslist":["> 5%","IE 9","iOS 7","Firefox > 20"],"devDependencies":{"@types/events":"^3.0.0","autoprefixer":"^9.1.5","babel-core":"^6.26.3","babel-loader":"^7.1.4","babel-plugin-add-module-exports":"^0.2.1","babel-plugin-bulk-import":"^1.0.2","babel-plugin-transform-object-rest-spread":"^6.26.0","babel-plugin-transform-runtime":"^6.23.0","babel-preset-es2015":"^6.24.1","chai":"^4.1.2","core-js":"^2.5.4","css-loader":"^0.28.11","json-loader":"^0.5.7","node-sass":"^4.8.3","postcss-cssnext":"^3.1.0","postcss-loader":"^2.1.5","raw-loader":"^2.0.0","sass-loader":"^6.0.7","style-loader":"^0.20.3","sugarss":"^1.0.1","webpack":"^4.11.0","webpack-cli":"^3.0.2","zlib":"^1.0.5"}};
+module.exports = {"name":"xgplayer","version":"2.9.9","description":"video player","main":"./dist/index.js","typings":"./types/index.d.ts","bin":{"xgplayer":"bin/xgplayer.js"},"scripts":{"prepare":"npm run build","build":"webpack --progress --display-chunks -p","watch":"webpack --progress --display-chunks -p --watch --mode development"},"keywords":["video","player"],"babel":{"presets":["es2015"],"plugins":["add-module-exports","babel-plugin-bulk-import"]},"repository":{"type":"git","url":"git+https://github.com/bytedance/xgplayer.git"},"author":"yinguohui@bytedance.com","license":"MIT","dependencies":{"chalk":"^2.3.2","commander":"^2.15.1","danmu.js":"^0.2.17","deepmerge":"^1.5.0","downloadjs":"1.4.7","draggabilly":"^2.2.0","event-emitter":"^0.3.5","fs-extra":"^5.0.0","install":"^0.13.0","pasition":"^1.0.1","request-frame":"^1.5.3"},"browserslist":["> 5%","IE 9","iOS 7","Firefox > 20"],"devDependencies":{"@types/events":"^3.0.0","autoprefixer":"^9.1.5","babel-core":"^6.26.3","babel-loader":"^7.1.4","babel-plugin-add-module-exports":"^0.2.1","babel-plugin-bulk-import":"^1.0.2","babel-plugin-transform-object-rest-spread":"^6.26.0","babel-plugin-transform-runtime":"^6.23.0","babel-preset-es2015":"^6.24.1","chai":"^4.1.2","core-js":"^2.5.4","css-loader":"^0.28.11","json-loader":"^0.5.7","node-sass":"^4.8.3","postcss-cssnext":"^3.1.0","postcss-loader":"^2.1.5","raw-loader":"^2.0.0","sass-loader":"^6.0.7","style-loader":"^0.20.3","sugarss":"^1.0.1","webpack":"^4.11.0","webpack-cli":"^3.0.2","zlib":"^1.0.5"}};
 
 /***/ }),
 /* 6 */
 /***/ (function(module, exports, __webpack_require__) {
 
-"use strict";
+module.exports = __webpack_require__(7);
 
-
-Object.defineProperty(exports, "__esModule", {
-  value: true
-});
-var sniffer = {
-  get device() {
-    var r = sniffer.os;
-    return r.isPc ? 'pc' : 'mobile';
-    // return r.isPc ? 'pc' : r.isTablet ? 'tablet' : 'mobile'
-  },
-  get browser() {
-    var ua = navigator.userAgent.toLowerCase();
-    var reg = {
-      ie: /rv:([\d.]+)\) like gecko/,
-      firfox: /firefox\/([\d.]+)/,
-      chrome: /chrome\/([\d.]+)/,
-      opera: /opera.([\d.]+)/,
-      safari: /version\/([\d.]+).*safari/
-    };
-    return [].concat(Object.keys(reg).filter(function (key) {
-      return reg[key].test(ua);
-    }))[0];
-  },
-  get os() {
-    var ua = navigator.userAgent;
-    var isWindowsPhone = /(?:Windows Phone)/.test(ua);
-    var isSymbian = /(?:SymbianOS)/.test(ua) || isWindowsPhone;
-    var isAndroid = /(?:Android)/.test(ua);
-    var isFireFox = /(?:Firefox)/.test(ua);
-    var isTablet = /(?:iPad|PlayBook)/.test(ua) || isAndroid && !/(?:Mobile)/.test(ua) || isFireFox && /(?:Tablet)/.test(ua);
-    var isPhone = /(?:iPhone)/.test(ua) && !isTablet;
-    var isPc = !isPhone && !isAndroid && !isSymbian && !isTablet;
-    return {
-      isTablet: isTablet,
-      isPhone: isPhone,
-      isAndroid: isAndroid,
-      isPc: isPc,
-      isSymbian: isSymbian,
-      isWindowsPhone: isWindowsPhone,
-      isFireFox: isFireFox
-    };
-  }
-};
-
-exports.default = sniffer;
-module.exports = exports['default'];
 
 /***/ }),
 /* 7 */
-/***/ (function(module, exports, __webpack_require__) {
-
-"use strict";
-
-
-Object.defineProperty(exports, "__esModule", {
-  value: true
-});
-
-var _typeof2 = typeof Symbol === "function" && typeof Symbol.iterator === "symbol" ? function (obj) { return typeof obj; } : function (obj) { return obj && typeof Symbol === "function" && obj.constructor === Symbol && obj !== Symbol.prototype ? "symbol" : typeof obj; };
-
-/* eslint-disable */
-var _extends = Object.assign || function (e) {
-  for (var r = 1; r < arguments.length; r++) {
-    var n = arguments[r];for (var t in n) {
-      if (Object.prototype.hasOwnProperty.call(n, t)) {
-        e[t] = n[t];
-      }
-    }
-  }return e;
-};function _classCallCheck(e, r) {
-  if (!(e instanceof r)) {
-    throw new TypeError("Cannot call a class as a function");
-  }
-}var undef = undefined;var Env = function e() {
-  var A = this;_classCallCheck(this, e);this.set = function (e, r) {
-    var n = e;var t = r;if (t === null) {
-      return false;
-    }var i = "";if (n.indexOf(".") > -1) {
-      var s = n.split(".");i = s[0];n = s[1];
-    }if (n === "os_version") {
-      t = "" + t;
-    }if (i) {
-      if (i === "user" || i === "header") {
-        A.envInfo[i][n] = t;
-      } else if (i === "headers") {
-        A.envInfo.header.headers[n] = t;
-      } else {
-        A.envInfo.header.headers.custom[n] = t;
-      }
-    } else if (A.envInfo.user.hasOwnProperty(n)) {
-      if (["user_type", "device_id", "ip_addr_id"].indexOf(n) > -1) {
-        A.envInfo.user[n] = Number(t);
-      } else if (["user_id", "web_id", "user_unique_id", "ssid"].indexOf(n) > -1) {
-        A.envInfo.user[n] = String(t);
-      } else if (["user_is_auth", "user_is_login"].indexOf(n) > -1) {
-        A.envInfo.user[n] = Boolean(t);
-      }
-    } else if (A.envInfo.header.hasOwnProperty(n)) {
-      A.envInfo.header[n] = t;
-    } else if (A.envInfo.header.headers.hasOwnProperty(n)) {
-      A.envInfo.header.headers[n] = t;
-    } else {
-      A.envInfo.header.headers.custom[n] = t;
-    }
-  };this.get = function () {
-    var e = { user: {}, header: { headers: { custom: {} } } };var r = A.envInfo;var n = r.user;var t = Object.keys(n);for (var i = t, s = Array.isArray(i), o = 0, i = s ? i : i[Symbol.iterator]();;) {
-      var a;if (s) {
-        if (o >= i.length) break;a = i[o++];
-      } else {
-        o = i.next();if (o.done) break;a = o.value;
-      }var u = a;if (n[u] !== undef) {
-        e.user[u] = n[u];
-      }
-    }var f = r.header;var c = Object.keys(f);for (var d = c, l = Array.isArray(d), _ = 0, d = l ? d : d[Symbol.iterator]();;) {
-      var v;if (l) {
-        if (_ >= d.length) break;v = d[_++];
-      } else {
-        _ = d.next();if (_.done) break;v = _.value;
-      }var h = v;if (f[h] !== undef && h !== "headers") {
-        e.header[h] = f[h];
-      }
-    }var p = r.header.headers;var g = Object.keys(p);for (var b = g, y = Array.isArray(b), m = 0, b = y ? b : b[Symbol.iterator]();;) {
-      var w;if (y) {
-        if (m >= b.length) break;w = b[m++];
-      } else {
-        m = b.next();if (m.done) break;w = m.value;
-      }var O = w;if (O !== "custom" && p[O] !== undef) {
-        e.header.headers[O] = p[O];
-      }
-    }var k = r.header.headers.custom;var C = Object.keys(k);if (C.length) {
-      for (var S = C, E = Array.isArray(S), R = 0, S = E ? S : S[Symbol.iterator]();;) {
-        var x;if (E) {
-          if (R >= S.length) break;x = S[R++];
-        } else {
-          R = S.next();if (R.done) break;x = R.value;
-        }var z = x;e.header.headers.custom[z] = k[z];
-      }
-    }var T = { user: e.user, header: _extends({}, e.header, { headers: e.header.headers }) };return T;
-  };this.envInfo = { user: { user_unique_id: undef, user_type: undef, user_id: undef, user_is_auth: undef, user_is_login: undef, device_id: undef, web_id: undef, ip_addr_id: undef, ssid: undef }, header: { app_id: undef, app_name: undef, app_install_id: undef, app_package: undef, app_channel: undef, app_version: undef, os_name: undef, os_version: undef, device_model: undef, ab_client: undef, ab_version: undef, traffic_type: undef, utm_source: undef, utm_medium: undef, utm_campaign: undef, client_ip: undef, device_brand: undef, os_api: undef, access: undef, language: undef, region: undef, app_language: undef, app_region: undef, creative_id: undef, ad_id: undef, campaign_id: undef, log_type: undef, rnd: undef, platform: undef, sdk_version: undef, province: undef, city: undef, timezone: undef, tz_offset: undef, tz_name: undef, sim_region: undef, carrier: undef, resolution: undef, browser: undef, browser_version: undef, referrer: undef, referrer_host: undef, headers: { utm_term: undef, utm_content: undef, custom: {} } } };
-};var parseURL = function e(r) {
-  var n = document.createElement("a");n.href = r;return n;
-};var parseUrlQuery = function e(r) {
-  var n = parseURL(r).search;n = n.slice(1);var i = {};n.split("&").forEach(function (e) {
-    var r = e.split("="),
-        n = r[0],
-        t = r[1];i[n] = decodeURIComponent(typeof t === "undefined" ? "" : t);
-  });return i;
-};var undef$1 = "";var screen_width = window.screen && window.screen.width || 0;var screen_height = window.screen && window.screen.height || 0;var screen_size = screen_width + " x " + screen_height;var appVersion = navigator.appVersion;var userAgent = navigator.userAgent;var language = navigator.language;var referrer = document.referrer;var referrer_host = parseURL(referrer).hostname;var urlQueryObj = parseUrlQuery(location.href);var os_name = undef$1;var os_version = undef$1;var browser = "";var browser_version = "" + parseFloat(appVersion);var versionOffset = void 0;var semiIndex = void 0;if ((versionOffset = userAgent.indexOf("Opera")) !== -1) {
-  browser = "Opera";browser_version = userAgent.substring(versionOffset + 6);if ((versionOffset = userAgent.indexOf("Version")) !== -1) {
-    browser_version = userAgent.substring(versionOffset + 8);
-  }
-}if ((versionOffset = userAgent.indexOf("Edge")) !== -1) {
-  browser = "Microsoft Edge";browser_version = userAgent.substring(versionOffset + 5);
-} else if ((versionOffset = userAgent.indexOf("MSIE")) !== -1) {
-  browser = "Microsoft Internet Explorer";browser_version = userAgent.substring(versionOffset + 5);
-} else if ((versionOffset = userAgent.indexOf("Chrome")) !== -1) {
-  browser = "Chrome";browser_version = userAgent.substring(versionOffset + 7);
-} else if ((versionOffset = userAgent.indexOf("Safari")) !== -1) {
-  browser = "Safari";browser_version = userAgent.substring(versionOffset + 7);if ((versionOffset = userAgent.indexOf("Version")) !== -1) {
-    browser_version = userAgent.substring(versionOffset + 8);
-  }
-} else if ((versionOffset = userAgent.indexOf("Firefox")) !== -1) {
-  browser = "Firefox";browser_version = userAgent.substring(versionOffset + 8);
-}if ((semiIndex = browser_version.indexOf(";")) !== -1) {
-  browser_version = browser_version.substring(0, semiIndex);
-}if ((semiIndex = browser_version.indexOf(" ")) !== -1) {
-  browser_version = browser_version.substring(0, semiIndex);
-}if ((semiIndex = browser_version.indexOf(")")) !== -1) {
-  browser_version = browser_version.substring(0, semiIndex);
-}var platform = /Mobile|htc|mini|Android|iP(ad|od|hone)/.test(appVersion) ? "wap" : "web";var clientOpts = [{ s: "Windows 10", r: /(Windows 10.0|Windows NT 10.0)/ }, { s: "Windows 8.1", r: /(Windows 8.1|Windows NT 6.3)/ }, { s: "Windows 8", r: /(Windows 8|Windows NT 6.2)/ }, { s: "Windows 7", r: /(Windows 7|Windows NT 6.1)/ }, { s: "Android", r: /Android/ }, { s: "Sun OS", r: /SunOS/ }, { s: "Linux", r: /(Linux|X11)/ }, { s: "iOS", r: /(iPhone|iPad|iPod)/ }, { s: "Mac OS X", r: /Mac OS X/ }, { s: "Mac OS", r: /(MacPPC|MacIntel|Mac_PowerPC|Macintosh)/ }];for (var i = 0; i < clientOpts.length; i++) {
-  var cs = clientOpts[i];if (cs.r.test(userAgent)) {
-    os_name = cs.s;break;
-  }
-}function getVersion(e, r) {
-  var n = e.exec(r);if (n && n[1]) {
-    return n[1];
-  }return "";
-}if (/Windows/.test(os_name)) {
-  os_version = getVersion(/Windows (.*)/, os_name);os_name = "windows";
-}function getAndroidVersion(e) {
-  var r = getVersion(/Android ([\.\_\d]+)/, e);if (!r) {
-    r = getVersion(/Android\/([\.\_\d]+)/, e);
-  }return r;
-}switch (os_name) {case "Mac OS X":
-    os_version = getVersion(/Mac OS X (10[\.\_\d]+)/, userAgent);os_name = "mac";break;case "Android":
-    os_version = getAndroidVersion(userAgent);os_name = "android";break;case "iOS":
-    os_version = /OS (\d+)_(\d+)_?(\d+)?/.exec(appVersion);if (!os_version) {
-      os_version = "";
-    } else {
-      os_version = os_version[1] + "." + os_version[2] + "." + (os_version[3] | 0);
-    }os_name = "ios";break;}var browser$1 = { screen_size: screen_size, browser: browser, browser_version: browser_version, platform: platform, os_name: os_name, os_version: os_version, userAgent: userAgent, screen_width: screen_width, screen_height: screen_height, device_model: os_name, language: language, referrer: referrer, referrer_host: referrer_host, utm_source: urlQueryObj.utm_source, utm_medium: urlQueryObj.utm_medium, utm_campaign: urlQueryObj.utm_campaign, utm_term: urlQueryObj.utm_term, utm_content: urlQueryObj.utm_content };var StorageCache = { get: function e(r) {
-    var n = 'no localStorage';if (localStorage && localStorage.getItem) {
-      n = localStorage.getItem(r);
-    }var t = n;try {
-      if (n && typeof n === "string") {
-        t = JSON.parse(n);
-      }
-    } catch (e) {}return t;
-  }, set: function e(r, n) {
-    try {
-      var t = typeof n === "string" ? n : JSON.stringify(n);if (localStorage && localStorage.setItem) {
-        localStorage.setItem(r, t);
-      }
-    } catch (e) {}
-  } };var TEA_CACHE_PREFIX = "__tea_cache_";var TEA_LOGGER_PREFIX = "[tea-sdk]";var ERROR_CODE = { NO_URL_PREFIX: 4001, IMG_ON_ERROR: 4e3, IMG_CATCH_ERROR: 4002, BEACON_STATUS_FALSE: 4003, XHR_ON_ERROR: 500, RESPONSE_DATA_ERROR: 5001 };var _typeof = typeof Symbol === "function" && _typeof2(Symbol.iterator) === "symbol" ? function (e) {
-  return typeof e === "undefined" ? "undefined" : _typeof2(e);
-} : function (e) {
-  return e && typeof Symbol === "function" && e.constructor === Symbol && e !== Symbol.prototype ? "symbol" : typeof e === "undefined" ? "undefined" : _typeof2(e);
-};function _classCallCheck$1(e, r) {
-  if (!(e instanceof r)) {
-    throw new TypeError("Cannot call a class as a function");
-  }
-}var Logger = function e() {
-  var s = this;var r = arguments.length > 0 && arguments[0] !== undefined ? arguments[0] : "";_classCallCheck$1(this, e);this.init = function (e) {
-    s.isLog = e;
-  };this.info = function (e) {
-    for (var r = arguments.length, n = Array(r > 1 ? r - 1 : 0), t = 1; t < r; t++) {
-      n[t - 1] = arguments[t];
-    }if (s.isLog) {
-      var i;(i = console).log.apply(i, [s.prefix + e].concat(n));
-    }
-  };this.warn = function (e) {
-    for (var r = arguments.length, n = Array(r > 1 ? r - 1 : 0), t = 1; t < r; t++) {
-      n[t - 1] = arguments[t];
-    }if (s.isLog) {
-      var i;(i = console).warn.apply(i, [s.prefix + e].concat(n));
-    }
-  };this.error = function (e) {
-    for (var r = arguments.length, n = Array(r > 1 ? r - 1 : 0), t = 1; t < r; t++) {
-      n[t - 1] = arguments[t];
-    }if (s.isLog) {
-      var i;(i = console).error.apply(i, [s.prefix + e].concat(n));
-    }
-  };this.dir = function () {
-    if (s.isLog) {
-      var e;(e = console).dir.apply(e, arguments);
-    }
-  };this.table = function (e) {
-    if (s.isLog) {
-      console.table(e);
-    }
-  };this.logJSON = function (e) {
-    if ((typeof e === "undefined" ? "undefined" : _typeof(e)) === "object" && s.isLog) {
-      s.info("", JSON.stringify(e, null, 2));
-    }
-  };this.deprecated = function (e) {
-    for (var r = arguments.length, n = Array(r > 1 ? r - 1 : 0), t = 1; t < r; t++) {
-      n[t - 1] = arguments[t];
-    }s.warn.apply(s, ["[DEPRECATED]" + e].concat(n));
-  };this.throw = function (e) {
-    s.error(s.prefix);throw new Error(e);
-  };var n = r ? "[" + r + "]" : "";this.prefix = TEA_LOGGER_PREFIX + n;
-};var logger = new Logger();var fetchTokens = function e(r, n, t, i) {
-  var s = new XMLHttpRequest();s.open("POST", r, true);s.setRequestHeader("Content-Type", "application/json; charset=utf-8");s.onload = function () {
-    try {
-      var e = JSON.parse(s.responseText);if (t) {
-        t(e);
-      }
-    } catch (e) {
-      if (i) {
-        i();
-      }
-    }
-  };s.onerror = function () {
-    if (i) {
-      i();
-    }
-  };s.send(JSON.stringify(n));
-};function _classCallCheck$2(e, r) {
-  if (!(e instanceof r)) {
-    throw new TypeError("Cannot call a class as a function");
-  }
-}function _possibleConstructorReturn(e, r) {
-  if (!e) {
-    throw new ReferenceError("this hasn't been initialised - super() hasn't been called");
-  }return r && ((typeof r === "undefined" ? "undefined" : _typeof2(r)) === "object" || typeof r === "function") ? r : e;
-}function _inherits(e, r) {
-  if (typeof r !== "function" && r !== null) {
-    throw new TypeError("Super expression must either be null or a function, not " + (typeof r === "undefined" ? "undefined" : _typeof2(r)));
-  }e.prototype = Object.create(r && r.prototype, { constructor: { value: e, enumerable: false, writable: true, configurable: true } });if (r) Object.setPrototypeOf ? Object.setPrototypeOf(e, r) : e.__proto__ = r;
-}var date = new Date();var timeZoneMin = date.getTimezoneOffset();var timezone = parseInt(-timeZoneMin / 60, 10);var tz_offset = timeZoneMin * 60;var sdk_version = void 0;try {
-  sdk_version = "3.2.7";
-} catch (e) {
-  sdk_version = "2.x";
-}var ClientEnv = function (r) {
-  _inherits(n, r);function n() {
-    _classCallCheck$2(this, n);var e = _possibleConstructorReturn(this, r.call(this));e.initClientEnv = function () {
-      e.set("os_name", browser$1.os_name);e.set("os_version", browser$1.os_version);e.set("device_model", browser$1.device_model);e.set("platform", browser$1.platform);e.set("sdk_version", sdk_version);e.set("browser", browser$1.browser);e.set("browser_version", browser$1.browser_version);e.set("language", browser$1.language);e.set("timezone", timezone);e.set("tz_offset", tz_offset);e.set("resolution", browser$1.screen_width + "x" + browser$1.screen_height);e.set("screen_width", browser$1.screen_width);e.set("screen_height", browser$1.screen_height);e.set("referrer", browser$1.referrer);e.set("referrer_host", browser$1.referrer_host);e.set("utm_source", browser$1.utm_source);e.set("utm_medium", browser$1.utm_medium);e.set("utm_campaign", browser$1.utm_campaign);e.set("utm_term", browser$1.utm_term);e.set("utm_content", browser$1.utm_content);
-    };e.initClientEnv();return e;
-  }return n;
-}(Env);var clientEnvManager = new ClientEnv();function _classCallCheck$3(e, r) {
-  if (!(e instanceof r)) {
-    throw new TypeError("Cannot call a class as a function");
-  }
-}var Type = function () {
-  function e() {
-    _classCallCheck$3(this, e);
-  }e.prototype.isString = function e(r) {
-    return Object.prototype.toString.call(r).slice(8, -1) === "String";
-  };e.prototype.isNumber = function e(r) {
-    return Object.prototype.toString.call(r).slice(8, -1) === "Number";
-  };e.prototype.isBoolean = function e(r) {
-    return Object.prototype.toString.call(r).slice(8, -1) === "Boolean";
-  };e.prototype.isFunction = function e(r) {
-    return Object.prototype.toString.call(r).slice(8, -1) === "Function";
-  };e.prototype.isNull = function e(r) {
-    return Object.prototype.toString.call(r).slice(8, -1) === "Null";
-  };e.prototype.isUndefined = function e(r) {
-    return Object.prototype.toString.call(r).slice(8, -1) === "Undefined";
-  };e.prototype.isObj = function e(r) {
-    return Object.prototype.toString.call(r).slice(8, -1) === "Object";
-  };e.prototype.isArray = function e(r) {
-    return Object.prototype.toString.call(r).slice(8, -1) === "Array";
-  };e.prototype.isFalse = function e(r) {
-    if (r === "" || r === undefined || r === null || r === "null" || r === "undefined" || r === 0 || r === false || r === NaN) return true;return false;
-  };e.prototype.isTrue = function e(r) {
-    return !this.isFalse(r);
-  };e.prototype.isLowIE = function e() {
-    return window.XDomainRequest;
-  };return e;
-}();var types = new Type();function decrypto(e, r, n) {
-  if (typeof e !== "string" || typeof r !== "number" || typeof n !== "number") {
-    return;
-  }var t = [];var i = [];n = n <= 25 ? n : n % 25;var s = String.fromCharCode(n + 97);t = e.split(s);for (var o = 0; o < t.length; o++) {
-    var a = parseInt(t[o], n);a = a * 1 ^ r;var u = String.fromCharCode(a);i.push(u);
-  }var f = i.join("");return f;
-}var decodeXXX = function e(r) {
-  return decrypto(r, 64, 25);
-};function b(e) {
-  return e ? (e ^ Math.random() * 16 >> e / 4).toString(10) : ([1e7] + -1e3 + -4e3 + -8e3 + -1e11).replace(/[018]/g, b);
-}var webid = function e() {
-  return b().replace(/-/g, "").slice(0, 19);
-};var _extends$1 = Object.assign || function (e) {
-  for (var r = 1; r < arguments.length; r++) {
-    var n = arguments[r];for (var t in n) {
-      if (Object.prototype.hasOwnProperty.call(n, t)) {
-        e[t] = n[t];
-      }
-    }
-  }return e;
-};function _classCallCheck$4(e, r) {
-  if (!(e instanceof r)) {
-    throw new TypeError("Cannot call a class as a function");
-  }
-}function _possibleConstructorReturn$1(e, r) {
-  if (!e) {
-    throw new ReferenceError("this hasn't been initialised - super() hasn't been called");
-  }return r && ((typeof r === "undefined" ? "undefined" : _typeof2(r)) === "object" || typeof r === "function") ? r : e;
-}function _inherits$1(e, r) {
-  if (typeof r !== "function" && r !== null) {
-    throw new TypeError("Super expression must either be null or a function, not " + (typeof r === "undefined" ? "undefined" : _typeof2(r)));
-  }e.prototype = Object.create(r && r.prototype, { constructor: { value: e, enumerable: false, writable: true, configurable: true } });if (r) Object.setPrototypeOf ? Object.setPrototypeOf(e, r) : e.__proto__ = r;
-}var urlPrefix = { cn: "1fz22z22z1nz21z4mz4bz4bz1kz1az21z4az21z1lz21z21z1bz1iz4az1az1mz1k", sg: "1fz22z22z1nz21z4mz4bz4bz21z1ez18z1jz1gz49z1kz1az21z4az19z27z22z1cz1mz24z1cz20z21z1cz18z4az1az1mz1k", va: "1fz22z22z1nz21z4mz4bz4bz1kz18z1jz1gz24z18z49z1kz1az21z4az19z27z22z1cz1mz24z1cz20z21z1cz18z4az1az1mz1k" };var getCookie = function e(r) {
-  try {
-    var n = document.cookie.match(new RegExp("(?:^|;)\\s*" + r + "=([^;]+)"));return decodeURIComponent(n ? n[1] : "");
-  } catch (e) {
-    return "";
-  }
-};var AppChannelEnv = function (e) {
-  _inherits$1(r, e);function r() {
-    _classCallCheck$4(this, r);var f = _possibleConstructorReturn$1(this, e.call(this));f.init = function (e) {
-      var r = e.app_id,
-          n = e.channel,
-          t = e.log,
-          i = e.channel_domain,
-          s = e.name;if (typeof r !== "number") {
-        throw new Error("app_id 必须是一个数字，注意检查是否是以`string`的方式传入的？");
-      }f.logger = new Logger(s);f.logger.init(t);f.initConfigs(e);f.initUrls(n, i);f.setEnv("app_id", r);
-    };f.initConfigs = function (e) {
-      var r = e.app_id,
-          n = e.disable_ssid,
-          t = e.disable_webid,
-          i = e.disable_sdk_monitor;f.app_id = r;f.evtDataCacheKey = TEA_CACHE_PREFIX + "events_" + r;if (n) {
-        f.logger.info("ssid已禁用，设置user_unique_id不会请求ssid接口。");f.isSsidDisabled = true;
-      }if (t) {
-        f.logger.info("webid服务已禁用，ssid同时被禁用。将本地生成webid。");f.isWebidDisabled = true;f.isSsidDisabled = true;
-      }if (i) {
-        f.logger.info("SDK监控已禁用。");f.isSdkMonitorDisabled = true;
-      }
-    };f.initUrls = function (e, r) {
-      if (e === "internal") {
-        f.logger.warn("channel 的值 internal 已被废弃，已自动改为 cn。");e = "cn";
-      }if (!r && !urlPrefix[e]) {
-        throw new Error("channel 变量只能是 `cn`, `sg`,`va`");
-      }var n = r || decodeXXX(urlPrefix[e]);n = n.replace(/\/+$/, "");f.reportUrl = n + "/v1/list";f.userTokensPrefix = "" + n;
-    };f.setEnv = function (e, r) {
-      if (e === "app_id") {
-        f.checkUserToken(r);
-      }if (e === "user_unique_id") {
-        if (f.blackUuid.some(function (e) {
-          return e === String(r);
-        })) {
-          f.logger.warn('设置了无效的值 {user_unique_id："%s"}。该操作已忽略。', r);return;
-        }f.verifyTokens(r);
-      }if (e === "web_id") {
-        if (!r) {
-          return;
-        }if (!f.envInfo.user.user_unique_id || f.envInfo.user.user_unique_id && f.envInfo.user.user_unique_id === f.envInfo.user.web_id) {
-          f.set("user_unique_id", r);
-        }
-      }f.set(e, r);
-    };f.transferFromCookie = function () {
-      var e = f.tokensCacheKey;var r = "tt_webid";var n = "__tea_sdk__ssid";var t = "__tea_sdk__user_unique_id";var i = getCookie(r);var s = getCookie(n);var o = getCookie(t);if (types.isLowIE()) {
-        if (i) {
-          var a = { web_id: i, ssid: i, user_unique_id: i };StorageCache.set(e, JSON.stringify(a));
-        }return false;
-      }if (i && s && o) {
-        var u = { web_id: i, ssid: s, user_unique_id: o };StorageCache.set(e, JSON.stringify(u));
-      }
-    };f.purifyBlackUuid = function () {
-      var r = arguments.length > 0 && arguments[0] !== undefined ? arguments[0] : {};if (f.blackUuid.some(function (e) {
-        return e === r.user_unique_id;
-      })) {
-        var e = {};f.setUserTokens(e);f.logger.warn('检测到无效的用户标识，已重置用户状态。{user_unique_id: "%s"}', r.user_unique_id);return e;
-      }return r;
-    };f.getUserTokens = function () {
-      return StorageCache.get(f.tokensCacheKey) || {};
-    };f.setUserTokens = function () {
-      var e = arguments.length > 0 && arguments[0] !== undefined ? arguments[0] : {};return StorageCache.set(f.tokensCacheKey, e);
-    };f.checkUserToken = function (e) {
-      var r = TEA_CACHE_PREFIX + "tokens_" + e;f.tokensCacheKey = r;f.transferFromCookie();var n = f.purifyBlackUuid(f.getUserTokens());if (n.user_unique_id && n.web_id) {
-        f.envInfo.user.user_unique_id = n.user_unique_id;f.envInfo.user.web_id = n.web_id;f.envInfo.user.ssid = n.ssid || "";f.logger.info("初始化已经检测到了 webid user_unique_id，一般情况下不需要再次验证 id 了");f.unlock();
-      } else {
-        f.requestWebId(e);
-      }
-    };f.saveTokenToStorage = function (e) {
-      var r = e.web_id,
-          n = e.ssid,
-          t = e.user_unique_id;f.setUserTokens({ web_id: r, ssid: n, user_unique_id: t });
-    };f.requestWebId = function () {
-      f.isRequestWebId = true;var n = function e(r) {
-        var n = f.envInfo.user.web_id || r.web_id;var t = r.ssid;f.isRequestWebId = false;f.envInfo.user.ssid = t;f.envInfo.user.web_id = n;f.envInfo.user.user_unique_id = n;f.saveTokenToStorage({ web_id: n, ssid: t, user_unique_id: n });if (f.waitForVerifyTokens) {
-          f.lock();f.verifyTokens(f.realUuid);
-        } else {
-          f.unlock();if (f.callback) {
-            f.callback();
-          }
-        }
-      };var e = function e() {
-        n({ web_id: webid(), ssid: "" });
-      };var r = function e() {
-        var r = f.userTokensPrefix + "/v1/user/webid";fetchTokens(r, { app_id: f.app_id, url: location.href, user_agent: browser$1.userAgent, referer: browser$1.referrer, user_unique_id: "" }, function (e) {
-          if (e.e !== 0) {
-            f.logger.error("请求 webid 失败。请联系管理员。");
-          } else {
-            n(e);
-          }
-        }, function () {
-          f.isRequestWebId = false;f.logger.error("获取 webid 失败，数据将不会被上报");
-        });
-      };if (f.isWebidDisabled) {
-        e();
-      } else {
-        r();
-      }
-    };f.verifyTokens = function (e) {
-      var r = f.tokensCacheKey;f.waitForVerifyTokens = false;f.realUuid = "" + e;if (f.isRequestWebId) {
-        f.waitForVerifyTokens = true;f.logger.info("正在请求 webid，requestSsid 将会在前者请求完毕之后被调用");return false;
-      }var n = f.getUserTokens();if (n.user_unique_id === f.realUuid && n.ssid && n.web_id) {
-        f.logger.info("传入的 user_id/user_unique_id 与 缓存中的完全一致，无需再次请求");f.unlock();
-      } else {
-        f.lock();f.envInfo.user.user_unique_id = f.realUuid;var t = _extends$1({}, f.getUserTokens(), { user_unique_id: f.realUuid });StorageCache.set(r, JSON.stringify(t));if (types.isLowIE()) {
-          f.unlock();return false;
-        }if (f.isSsidDisabled) {
-          f.unlock();if (f.callback) {
-            f.callback();
-          }
-        } else {
-          f.requestSsid();
-        }
-      }
-    };f.requestSsid = function () {
-      var n = f.getUserTokens();var e = f.userTokensPrefix + "/v1/user/ssid";fetchTokens(e, { app_id: f.app_id, web_id: n.web_id, user_unique_id: "" + n.user_unique_id }, function (e) {
-        f.unlock();if (e.e !== 0) {
-          f.logger.error("请求 ssid 失败~");
-        } else {
-          f.envInfo.user.ssid = e.ssid;var r = _extends$1({}, n, { ssid: e.ssid });f.setUserTokens(r);f.logger.info("根据 user_unique_id 更新 ssid 成功！注意：在这之前不应该有数据被发出去");if (f.callback) {
-            f.callback();
-          }
-        }
-      }, function () {
-        f.unlock();f.logger.error("根据 user_unique_id 获取新 ssid 失败");
-      });
-    };f.setEvtParams = function (e) {
-      var r = _extends$1({}, e);Object.keys(r).forEach(function (e) {
-        f.evtParams[e] = r[e];
-      });
-    };f.mergeEnvToEvents = function (e) {
-      var r = f.mergeEnv();var n = [];var t = 0;var i = void 0;e.forEach(function (e) {
-        var r = !!e.params.__disable_storage__;if (typeof i === "undefined") {
-          i = r;
-        } else if (r !== i || n[t].length >= 5) {
-          t += 1;i = !i;
-        }n[t] = n[t] || [];n[t].push(e);
-      });var s = n.map(function (e) {
-        return { events: e.map(function (e) {
-            var r = _extends$1({}, f.evtParams, e.params);delete r.__disable_storage__;return _extends$1({}, e, { params: JSON.stringify(r) });
-          }), user: r.user, header: r.header, verbose: f.debugMode ? 1 : undefined, __disable_storage__: e[0].params.__disable_storage__ };
-      });return s;
-    };f.mergeEnv = function () {
-      var e = f.get();var r = clientEnvManager.get();var n = _extends$1({}, e.user);var t = _extends$1({}, r.header.headers.custom, e.header.headers.custom);var i = _extends$1({}, r.header.headers, e.header.headers, { custom: t });var s = _extends$1({}, r.header, e.header);var o = { user: n, header: _extends$1({}, s, { headers: JSON.stringify(i) }) };return o;
-    };f.evtParams = {};f.reportUrl = "";f.userTokensPrefix = "";f.isSsidDisabled = false;f.isWebidDisabled = false;f.isSdkMonitorDisabled = false;f.debugMode = false;f.blackUuid = ["null", "undefined", "0", "", "None"];f.logger = function () {};return f;
-  }r.prototype.lock = function e() {
-    this.isUserTokensReady = false;
-  };r.prototype.unlock = function e() {
-    this.isUserTokensReady = true;
-  };r.prototype.enableDebugMode = function e(r) {
-    this.debugMode = r;
-  };return r;
-}(Env);function _classCallCheck$5(e, r) {
-  if (!(e instanceof r)) {
-    throw new TypeError("Cannot call a class as a function");
-  }
-}var MemoryCache = function e() {
-  var n = this;_classCallCheck$5(this, e);this.set = function (e, r) {
-    n.cache[e] = r;
-  };this.get = function (e) {
-    return n.cache[e];
-  };this.clean = function (e) {
-    n.cache[e] = undefined;
-  };this.cache = {};
-};var memoryCacheManager = new MemoryCache();function _classCallCheck$6(e, r) {
-  if (!(e instanceof r)) {
-    throw new TypeError("Cannot call a class as a function");
-  }
-}var EventStorageManager = function () {
-  function t(e) {
-    var r = e.disable_storage,
-        n = r === undefined ? false : r;_classCallCheck$6(this, t);this._isPersistent = !n;this._storage = this._isPersistent ? StorageCache : new MemoryCache();this._storageKey = "";this._data = undefined;
-  }t.prototype.setStorageKey = function e(r) {
-    this._storageKey = r;
-  };t.prototype.getAllEvents = function e() {
-    var n = this.getData();Object.keys(n).reduce(function (e, r) {
-      return e.concat(n[r] || []);
-    }, []);
-  };t.prototype.getData = function e() {
-    this._checkIsDataInit();return this._data;
-  };t.prototype.add = function e(r) {
-    var n = arguments.length > 1 && arguments[1] !== undefined ? arguments[1] : [];this._checkIsDataInit();if (n.length !== 0) {
-      this._data[r] = n;this._save();
-    }
-  };t.prototype.delete = function e(r) {
-    this._checkIsDataInit();if (this._data[r]) {
-      delete this._data[r];this._save();
-    }
-  };t.prototype._checkIsDataInit = function e() {
-    if (typeof this._data === "undefined") {
-      try {
-        var r = this._getDataFromStorage();if (types.isArray(r)) {
-          var n;this._data = (n = {}, n[webid()] = r, n);this._save();
-        } else {
-          this._data = r;
-        }
-      } catch (e) {
-        this._data = {};
-      }
-    }
-  };t.prototype._checkStorageKey = function e() {
-    if (!this._storageKey) {
-      throw new Error("must call setStorageKey('xxx') first");
-    }
-  };t.prototype._getDataFromStorage = function e() {
-    this._checkStorageKey();return this._storage.get(this._storageKey) || {};
-  };t.prototype._save = function e() {
-    this._checkStorageKey();this._storage.set(this._storageKey, this._data);
-  };return t;
-}();var encodePayload = function e(r) {
-  var n = "";for (var t in r) {
-    if (r.hasOwnProperty(t)) {
-      n += "&" + t + "=" + encodeURIComponent(JSON.stringify(r[t]));
-    }
-  }n = n[0] === "&" ? n.slice(1) : n;return n;
-};var sendByImg = function e(r, n) {
-  try {
-    var t = r.split("v1")[0];n.forEach(function (e) {
-      var r = encodePayload(e);var n = new Image(1, 1);n.onload = function () {
-        n = null;
-      };n.onerror = function () {
-        n = null;
-      };n.src = t + "/v1/gif?" + r;
-    });
-  } catch (e) {}
-};var postSdkLog = function e(r, n) {
-  if (window.XDomainRequest) {
-    return sendByImg(r, n);
-  }var t = new XMLHttpRequest();t.open("POST", r + "?rdn=" + Math.random(), true);t.onload = function () {};t.onerror = function () {
-    t.abort();
-  };t.send(JSON.stringify(n));
-};var encodePayload$1 = function e(r) {
-  var n = "";for (var t in r) {
-    if (r.hasOwnProperty(t)) {
-      n += "&" + t + "=" + encodeURIComponent(JSON.stringify(r[t]));
-    }
-  }n = n[0] === "&" ? n.slice(1) : n;return n;
-};var sendByImg$1 = function e(t, i, s, o) {
-  try {
-    var a = t.split("v1")[0];if (!a) {
-      o(t, i, ERROR_CODE.NO_URL_PREFIX);return;
-    }i.forEach(function (e) {
-      var r = encodePayload$1(e);var n = new Image(1, 1);n.onload = function () {
-        n = null;s();
-      };n.onerror = function () {
-        n = null;o(t, i, ERROR_CODE.IMG_ON_ERROR);
-      };n.src = a + "/v1/gif?" + r;
-    });
-  } catch (e) {
-    o(t, i, ERROR_CODE.IMG_CATCH_ERROR, e.message);
-  }
-};var request = function e(r) {
-  var n = r.url,
-      t = r.data,
-      i = r.success,
-      s = r.fail,
-      o = r.notSure,
-      a = r.isUnload;var u = t;if (window.XDomainRequest) {
-    sendByImg$1(n, u, i, s);return;
-  }if (a) {
-    if (window.navigator && window.navigator.sendBeacon) {
-      o();var f = window.navigator.sendBeacon(n, JSON.stringify(u));if (f) {
-        i();
-      } else {
-        s(n, t, ERROR_CODE.BEACON_STATUS_FALSE);
-      }return;
-    }sendByImg$1(n, u, i, s);return;
-  }var c = new XMLHttpRequest();c.open("POST", n + "?rdn=" + Math.random(), true);c.onload = function () {
-    i(n, u, c.responseText);
-  };c.onerror = function () {
-    c.abort();s(n, u, ERROR_CODE.XHR_ON_ERROR);
-  };c.send(JSON.stringify(u));
-};function _classCallCheck$7(e, r) {
-  if (!(e instanceof r)) {
-    throw new TypeError("Cannot call a class as a function");
-  }
-}var EventSender = function e(r) {
-  var c = this;_classCallCheck$7(this, e);this.send = function (e) {
-    var r = e.url,
-        n = e.data,
-        a = e.success,
-        i = e.fail,
-        u = e.eventError,
-        t = e.notSure,
-        s = e.isUnload;request({ url: r, data: n, success: function e(r, n, t) {
-        a();try {
-          var i = JSON.parse(t);var s = i.e;if (s !== 0) {
-            var o = "未知错误";if (s === -2) {
-              o = "事件格式错误！请检查字段类型是否正确。";
-            }c.logger.error("数据上报失败！", "错误码：" + s + "。错误信息：" + o);u(n, s);sdkMonitorOnError(r, n, s);
-          }
-        } catch (e) {
-          sdkMonitorOnError(r, n, ERROR_CODE.RESPONSE_DATA_ERROR);
-        }
-      }, fail: function e(r, n, t) {
-        c.logger.error("数据上报失败！", "错误码：" + t);i(n, t);sdkMonitorOnError(r, n, t);
-      }, notSure: t, isUnload: s });if (!c.isSdkMonitorDisabled && !c.isSdkOnLoadEventReady) {
-      c.isSdkOnLoadEventReady = true;try {
-        var o = n[0].header;var f = n[0].user;sdkMonitorOnload(r, { app_id: o.app_id, app_name: o.app_name, sdk_version: o.sdk_version, web_id: f.web_id });
-      } catch (e) {}
-    }
-  };this.logger = r.logger || logger;this.isSdkOnLoadEventReady = false;this.isSdkMonitorDisabled = false;
-};var sdkMonitorOnload = function e(r, n) {
-  try {
-    var t = { event: "onload", params: JSON.stringify({ app_id: n.app_id, app_name: n.app_name || "", sdk_version: n.sdk_version }), local_time_ms: Date.now() };var i = { events: [t], user: { user_unique_id: n.web_id }, header: { app_id: 1338 } };setTimeout(function () {
-      postSdkLog(r, [i]);
-    }, 16);
-  } catch (e) {}
-};var sdkMonitorOnError = function e(r, n, t) {
-  try {
-    var i = n[0].user;var s = n[0].header;var o = [];n.forEach(function (e) {
-      e.events.forEach(function (e) {
-        o.push(e);
-      });
-    });var a = o.map(function (e) {
-      return { event: "on_error", params: JSON.stringify({ error_code: t, app_id: s.app_id, app_name: s.app_name || "", error_event: e.event, local_time_ms: e.local_time_ms, tea_event_index: Date.now(), params: e.params, header: JSON.stringify(s), user: JSON.stringify(i) }), local_time_ms: Date.now() };
-    });var u = { events: a, user: { user_unique_id: i.user_unique_id }, header: { app_id: 1338 } };setTimeout(function () {
-      postSdkLog(r, [u]);
-    }, 16);
-  } catch (e) {}
-};function _classCallCheck$8(e, r) {
-  if (!(e instanceof r)) {
-    throw new TypeError("Cannot call a class as a function");
-  }
-}function _possibleConstructorReturn$2(e, r) {
-  if (!e) {
-    throw new ReferenceError("this hasn't been initialised - super() hasn't been called");
-  }return r && ((typeof r === "undefined" ? "undefined" : _typeof2(r)) === "object" || typeof r === "function") ? r : e;
-}function _inherits$2(e, r) {
-  if (typeof r !== "function" && r !== null) {
-    throw new TypeError("Super expression must either be null or a function, not " + (typeof r === "undefined" ? "undefined" : _typeof2(r)));
-  }e.prototype = Object.create(r && r.prototype, { constructor: { value: e, enumerable: false, writable: true, configurable: true } });if (r) Object.setPrototypeOf ? Object.setPrototypeOf(e, r) : e.__proto__ = r;
-}var AppChannel = function (u) {
-  _inherits$2(f, u);function f(e) {
-    _classCallCheck$8(this, f);var o = _possibleConstructorReturn$2(this, u.call(this));o.addListener = function () {
-      window.addEventListener("unload", function () {
-        o.report(true);
-      }, false);window.addEventListener("beforeunload", function () {
-        o.report(true);
-      }, false);document.addEventListener("visibilitychange", function () {
-        if (document.visibilityState === "hidden") {
-          o.report(true);
-        }
-      }, false);
-    };o.setReady = function (e) {
-      o.isReady = e;o.eventSender.isSdkMonitorDisabled = o.isSdkMonitorDisabled;o.checkAndSendCachedStorageEvents();o.report();
-    };o.eventReportTimer = null;o.event = function () {
-      var e = arguments.length > 0 && arguments[0] !== undefined ? arguments[0] : [];var r = arguments.length > 1 && arguments[1] !== undefined ? arguments[1] : false;var n = memoryCacheManager.get(o.evtDataCacheKey) || [];var t = r ? [].concat(e, n) : [].concat(n, e);memoryCacheManager.set(o.evtDataCacheKey, t);if (t.length >= 5) {
-        o.report();
-      } else {
-        if (o.eventReportTimer) {
-          clearTimeout(o.eventReportTimer);
-        }o.eventReportTimer = setTimeout(function () {
-          o.report();o.eventReportTimer = null;
-        }, o.waitForBatchTime);
-      }
-    };o.report = function () {
-      var e = arguments.length > 0 && arguments[0] !== undefined ? arguments[0] : false;if (!o.isUserTokensReady) {
-        return false;
-      }if (!o.isReady) {
-        return false;
-      }var r = memoryCacheManager.get(o.evtDataCacheKey) || [];memoryCacheManager.clean(o.evtDataCacheKey);var n = o.mergeEnvToEvents(r);o.sendData(n, e);
-    };o.sendData = function (e, n) {
-      var t = [];var i = 0;var s = void 0;e.forEach(function (e) {
-        var r = !!e.__disable_storage__;if (typeof s === "undefined") {
-          s = r;
-        } else if (r !== s || t[i].length >= 5) {
-          i += 1;s = !s;
-        }t[i] = t[i] || [];t[i].push(e);
-      });t.forEach(function (e) {
-        var r = webid();if (!e[0].__disable_storage__) {
-          o.eventStorage.add(r, e);
-        }o._sendData(r, e, n);
-      });
-    };o.checkAndSendCachedStorageEvents = function () {
-      var r = o.eventStorage.getData();var e = Object.keys(r);if (e.length > 0) {
-        e.forEach(function (e) {
-          o._sendData(e, r[e]);
-        });
-      }
-    };o._sendData = function (r, e, n) {
-      o.isReporting = true;var t = function e() {
-        o.isReporting = false;
-      };o.eventSender.send({ url: o.reportUrl, data: e, success: function e() {
-          t();o.sendDataSuccess(r);
-        }, fail: function e(r, n) {
-          t();o.reportErrorCallback(r, n);setTimeout(function () {
-            o.report();
-          }, 3e3);
-        }, eventError: function e(r, n) {
-          o.reportErrorCallback(r, n);
-        }, notSure: t, isUnload: n });
-    };o.sendDataSuccess = function (e) {
-      o.eventStorage.delete(e);o.report();
-    };var r = e.log,
-        n = e.disable_storage,
-        t = e.max_batch_num,
-        i = t === undefined ? 5 : t,
-        s = e.batch_time,
-        a = s === undefined ? 30 : s;o.init(e);o.maxBatchNum = i;o.waitForBatchTime = a;o.isReady = false;o.addListener();o.enableDebugMode(!!r);o.eventStorage = new EventStorageManager({ disable_storage: n });o.eventStorage.setStorageKey(o.evtDataCacheKey);o.eventSender = new EventSender({ logger: o.logger });o.reportErrorCallback = function () {};return o;
-  }return f;
-}(AppChannelEnv);var _extends$2 = Object.assign || function (e) {
-  for (var r = 1; r < arguments.length; r++) {
-    var n = arguments[r];for (var t in n) {
-      if (Object.prototype.hasOwnProperty.call(n, t)) {
-        e[t] = n[t];
-      }
-    }
-  }return e;
-};function _classCallCheck$9(e, r) {
-  if (!(e instanceof r)) {
-    throw new TypeError("Cannot call a class as a function");
-  }
-}var getEventIndex = function () {
-  var e = +Date.now() + Number(("" + Math.random()).slice(2, 8));return function () {
-    e += 1;return e;
-  };
-}();var preprocessEvent = function e(r, n) {
-  var t = /^event\./;var i = r;if (t.test(r)) {
-    i = r.slice(6);
-  }var s = n;if (!types.isObj(s)) {
-    s = {};
-  }s.event_index = getEventIndex();var o = { event: i, params: s, local_time_ms: +new Date() };return o;
-};var Collector = function e(r) {
-  var u = this;_classCallCheck$9(this, e);this.init = function (e) {
-    if (!types.isObj(e)) {
-      throw new Error("init 的参数必须是Object类型");
-    }u.logger.init(e.log);u.channel = new AppChannel(_extends$2({}, e, { name: u.name }));u.channel.callback = function () {
-      if (u.callbackSend) {
-        u.start();
-      }
-    };
-  };this.config = function (e) {
-    if (!types.isObj(e)) {
-      u.logger.throw("config 参数必须是 {} 的格式");
-    }if (e.log) {
-      u.logger.init(true);u.channel.enableDebugMode(true);e.log = null;
-    }var r = Object.keys(e);if (!r.length) {
-      return false;
-    }for (var n = r, t = Array.isArray(n), i = 0, n = t ? n : n[Symbol.iterator]();;) {
-      var s;if (t) {
-        if (i >= n.length) break;s = n[i++];
-      } else {
-        i = n.next();if (i.done) break;s = i.value;
-      }var o = s;var a = e[o];switch (o) {case "evtParams":
-          u.channel.setEvtParams(a);break;case "disable_ssid":
-          u.logger.deprecated("(disable_ssid)请通过init函数来设置。");if (a) {
-            u.logger.info("ssid已禁用，设置user_unique_id不会请求ssid接口。");u.channel.isSsidDisabled = a;
-          }break;case "disable_auto_pv":
-          if (a) {
-            u.logger.info("已禁止默认上报predefine_pageview事件，需手动上报。");u._autoSendPV = false;
-          }break;case "_staging_flag":
-          if ("" + a === "1") {
-            u.logger.info("根据_staging_flag设置，数据将会上报到stag 表。");
-          }u.channel.setEvtParams({ _staging_flag: Number(a) });break;case "reportErrorCallback":
-          if (typeof a === "function") {
-            u.channel.reportErrorCallback = a;
-          }break;default:
-          u.channel.setEnv(o, a);}
-    }
-  };this.send = function () {
-    u.start();
-  };this.start = function () {
-    if (u.channel.isUserTokensReady) {
-      if (u._isSendFuncCalled) {
-        return;
-      }u._isSendFuncCalled = true;u.logger.info("看到本提示，意味着用户信息已完全就绪，上报通道打开。用户标识如下：");u.logger.logJSON(u.channel.get().user);if (u._autoSendPV) {
-        u.predefinePageView();
-      }u.channel.setReady(true);
-    } else {
-      u.callbackSend = true;
-    }
-  };this.predefinePageView = function () {
-    var e = arguments.length > 0 && arguments[0] !== undefined ? arguments[0] : {};var r = { title: document.title || location.pathname, url: location.href, url_path: location.pathname };var n = _extends$2({}, r, e);u.event("predefine_pageview", n, true);
-  };this.event = function () {
-    for (var e = arguments.length, r = Array(e), n = 0; n < e; n++) {
-      r[n] = arguments[n];
-    }var t = types.isBoolean(r[r.length - 1]);var i = t ? r[r.length - 1] : false;var s = t ? r.slice(0, r.length - 1) : r;var o = s[0];var a = [];if (!types.isArray(o)) {
-      a[0] = s;
-    } else {
-      a = s;
-    }a = a.map(function (e) {
-      return preprocessEvent.apply(undefined, e);
-    });u.channel.event(a, i);
-  };this._isSendFuncCalled = false;this._autoSendPV = true;this.name = r;this.logger = new Logger(r);
-};Collector.exportMethods = ["init", "config", "send", "start", "predefinePageView"];function _classCallCheck$a(e, r) {
-  if (!(e instanceof r)) {
-    throw new TypeError("Cannot call a class as a function");
-  }
-}var CollectorAsync = function e(r) {
-  var o = this;_classCallCheck$a(this, e);this._exportCollect = function () {
-    for (var e = arguments.length, r = Array(e), n = 0; n < e; n++) {
-      r[n] = arguments[n];
-    }if (o._isQueueProcessed) {
-      o._executeCmd.apply(o, r);return;
-    }o.cmdQueue.push(r);o._processCmdQueue();
-  };this._processCmdQueue = function () {
-    if (o.cmdQueue.length === 0) {
-      return;
-    }var e = function e(r, t, i) {
-      var s = -1;r.forEach(function (e, r) {
-        var n = typeof i !== "undefined" ? e[i] : e;if (n === t) {
-          s = r;
-        }
-      });return s;
-    };var n = e(o.cmdQueue, "init", "0");if (n !== -1) {
-      o._isQueueProcessed = true;o._executeCmd.apply(o, o.cmdQueue[n]);o.cmdQueue.forEach(function (e, r) {
-        if (r !== n) {
-          o._executeCmd.apply(o, e);
-        }
-      });o.cmdQueue = [];
-    }
-  };this._executeCmd = function () {
-    for (var e = arguments.length, r = Array(e), n = 0; n < e; n++) {
-      r[n] = arguments[n];
-    }var t = r[0];if (Collector.exportMethods.indexOf(t) > -1) {
-      var i;(i = o.colloctor)[t].apply(i, r.slice(1));
-    } else {
-      var s;(s = o.colloctor).event.apply(s, r);
-    }
-  };this.name = r || "Collector" + +new Date();this.cmdQueue = [];this.colloctor = new Collector(this.name);this._isQueueProcessed = false;this._processCmdQueue();this._exportCollect.init = this._exportCollect.bind(this, "init");this._exportCollect.config = this._exportCollect.bind(this, "config");this._exportCollect.send = this._exportCollect.bind(this, "send");this._exportCollect.start = this._exportCollect.bind(this, "start");this._exportCollect.predefinePageView = this._exportCollect.bind(this, "predefinePageView");return this._exportCollect;
-};exports.default = CollectorAsync;
-module.exports = exports["default"];
-
-/***/ }),
-/* 8 */
-/***/ (function(module, exports, __webpack_require__) {
-
-module.exports = __webpack_require__(9);
-
-
-/***/ }),
-/* 9 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
@@ -2432,95 +1545,87 @@ var _player = __webpack_require__(0);
 
 var _player2 = _interopRequireDefault(_player);
 
-var _volume = __webpack_require__(38);
+var _volume = __webpack_require__(37);
 
 var _volume2 = _interopRequireDefault(_volume);
 
-var _start = __webpack_require__(39);
+var _start = __webpack_require__(38);
 
 var _start2 = _interopRequireDefault(_start);
 
-var _screenShot = __webpack_require__(40);
+var _screenShot = __webpack_require__(39);
 
 var _screenShot2 = _interopRequireDefault(_screenShot);
 
-var _rotate = __webpack_require__(41);
+var _rotate = __webpack_require__(40);
 
 var _rotate2 = _interopRequireDefault(_rotate);
 
-var _replay = __webpack_require__(42);
+var _replay = __webpack_require__(41);
 
 var _replay2 = _interopRequireDefault(_replay);
 
-var _reload = __webpack_require__(43);
+var _reload = __webpack_require__(42);
 
 var _reload2 = _interopRequireDefault(_reload);
 
-var _playNext = __webpack_require__(44);
+var _playNext = __webpack_require__(43);
 
 var _playNext2 = _interopRequireDefault(_playNext);
 
-var _play = __webpack_require__(45);
+var _play = __webpack_require__(44);
 
 var _play2 = _interopRequireDefault(_play);
 
-var _pip = __webpack_require__(46);
+var _pip = __webpack_require__(45);
 
 var _pip2 = _interopRequireDefault(_pip);
 
-var _pc = __webpack_require__(47);
+var _pc = __webpack_require__(46);
 
 var _pc2 = _interopRequireDefault(_pc);
 
-var _mobile = __webpack_require__(48);
+var _mobile = __webpack_require__(47);
 
 var _mobile2 = _interopRequireDefault(_mobile);
 
-var _memoryPlay = __webpack_require__(49);
+var _memoryPlay = __webpack_require__(48);
 
 var _memoryPlay2 = _interopRequireDefault(_memoryPlay);
 
-var _logger = __webpack_require__(50);
-
-var _logger2 = _interopRequireDefault(_logger);
-
-var _localPreview = __webpack_require__(51);
+var _localPreview = __webpack_require__(49);
 
 var _localPreview2 = _interopRequireDefault(_localPreview);
 
-var _i18n = __webpack_require__(52);
+var _i18n = __webpack_require__(50);
 
 var _i18n2 = _interopRequireDefault(_i18n);
 
-var _fullscreen = __webpack_require__(53);
+var _fullscreen = __webpack_require__(51);
 
 var _fullscreen2 = _interopRequireDefault(_fullscreen);
 
-var _errorRetry = __webpack_require__(54);
+var _errorRetry = __webpack_require__(52);
 
 var _errorRetry2 = _interopRequireDefault(_errorRetry);
 
-var _download = __webpack_require__(55);
+var _download = __webpack_require__(53);
 
 var _download2 = _interopRequireDefault(_download);
 
-var _definition = __webpack_require__(56);
+var _definition = __webpack_require__(54);
 
 var _definition2 = _interopRequireDefault(_definition);
 
-var _danmu = __webpack_require__(57);
+var _danmu = __webpack_require__(55);
 
 var _danmu2 = _interopRequireDefault(_danmu);
 
-var _cssFullscreen = __webpack_require__(58);
+var _cssFullscreen = __webpack_require__(56);
 
 var _cssFullscreen2 = _interopRequireDefault(_cssFullscreen);
 
-var _collect = __webpack_require__(7);
-
-var _collect2 = _interopRequireDefault(_collect);
-
-var _skin = __webpack_require__(59);
+var _skin = __webpack_require__(57);
 
 var _skin2 = _interopRequireDefault(_skin);
 
@@ -2535,8 +1640,6 @@ function _buildTree(v, p, a) {
     o = o[_];
   });
 }
-
-_buildTree(Controls, ['controls', 'collect'], _collect2.default);
 
 _buildTree(Controls, ['controls', 'cssFullscreen'], _cssFullscreen2.default);
 
@@ -2553,8 +1656,6 @@ _buildTree(Controls, ['controls', 'fullscreen'], _fullscreen2.default);
 _buildTree(Controls, ['controls', 'i18n'], _i18n2.default);
 
 _buildTree(Controls, ['controls', 'localPreview'], _localPreview2.default);
-
-_buildTree(Controls, ['controls', 'logger'], _logger2.default);
 
 _buildTree(Controls, ['controls', 'memoryPlay'], _memoryPlay2.default);
 
@@ -2584,7 +1685,7 @@ exports.default = _player2.default;
 module.exports = exports['default'];
 
 /***/ }),
-/* 10 */
+/* 8 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
@@ -2596,7 +1697,7 @@ Object.defineProperty(exports, "__esModule", {
 
 var _createClass = function () { function defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ("value" in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } } return function (Constructor, protoProps, staticProps) { if (protoProps) defineProperties(Constructor.prototype, protoProps); if (staticProps) defineProperties(Constructor, staticProps); return Constructor; }; }();
 
-var _eventEmitter = __webpack_require__(11);
+var _eventEmitter = __webpack_require__(9);
 
 var _eventEmitter2 = _interopRequireDefault(_eventEmitter);
 
@@ -3104,7 +2205,7 @@ exports.default = Proxy;
 module.exports = exports['default'];
 
 /***/ }),
-/* 11 */
+/* 9 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
@@ -3112,8 +2213,8 @@ module.exports = exports['default'];
 
 var _typeof = typeof Symbol === "function" && typeof Symbol.iterator === "symbol" ? function (obj) { return typeof obj; } : function (obj) { return obj && typeof Symbol === "function" && obj.constructor === Symbol && obj !== Symbol.prototype ? "symbol" : typeof obj; };
 
-var d = __webpack_require__(12),
-    callable = __webpack_require__(29),
+var d = __webpack_require__(10),
+    callable = __webpack_require__(27),
     apply = Function.prototype.apply,
     call = Function.prototype.call,
     create = Object.create,
@@ -3245,17 +2346,17 @@ module.exports = exports = function exports(o) {
 exports.methods = methods;
 
 /***/ }),
-/* 12 */
+/* 10 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
 
 
 var isValue = __webpack_require__(2),
-    isPlainFunction = __webpack_require__(13),
-    assign = __webpack_require__(17),
-    normalizeOpts = __webpack_require__(25),
-    contains = __webpack_require__(26);
+    isPlainFunction = __webpack_require__(11),
+    assign = __webpack_require__(15),
+    normalizeOpts = __webpack_require__(23),
+    contains = __webpack_require__(24);
 
 var d = module.exports = function (dscr, value /*, options*/) {
 	var c, e, w, options, desc;
@@ -3313,13 +2414,13 @@ d.gs = function (dscr, get, set /*, options*/) {
 };
 
 /***/ }),
-/* 13 */
+/* 11 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
 
 
-var isFunction = __webpack_require__(14);
+var isFunction = __webpack_require__(12);
 
 var classRe = /^\s*class[\s{/}]/,
     functionToString = Function.prototype.toString;
@@ -3331,13 +2432,13 @@ module.exports = function (value) {
 };
 
 /***/ }),
-/* 14 */
+/* 12 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
 
 
-var isPrototype = __webpack_require__(15);
+var isPrototype = __webpack_require__(13);
 
 module.exports = function (value) {
 	if (typeof value !== "function") return false;
@@ -3356,13 +2457,13 @@ module.exports = function (value) {
 };
 
 /***/ }),
-/* 15 */
+/* 13 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
 
 
-var isObject = __webpack_require__(16);
+var isObject = __webpack_require__(14);
 
 module.exports = function (value) {
 	if (!isObject(value)) return false;
@@ -3375,7 +2476,7 @@ module.exports = function (value) {
 };
 
 /***/ }),
-/* 16 */
+/* 14 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
@@ -3394,16 +2495,16 @@ module.exports = function (value) {
 };
 
 /***/ }),
-/* 17 */
+/* 15 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
 
 
-module.exports = __webpack_require__(18)() ? Object.assign : __webpack_require__(19);
+module.exports = __webpack_require__(16)() ? Object.assign : __webpack_require__(17);
 
 /***/ }),
-/* 18 */
+/* 16 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
@@ -3419,14 +2520,14 @@ module.exports = function () {
 };
 
 /***/ }),
-/* 19 */
+/* 17 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
 
 
-var keys = __webpack_require__(20),
-    value = __webpack_require__(24),
+var keys = __webpack_require__(18),
+    value = __webpack_require__(22),
     max = Math.max;
 
 module.exports = function (dest, src /*, …srcn*/) {
@@ -3451,16 +2552,16 @@ module.exports = function (dest, src /*, …srcn*/) {
 };
 
 /***/ }),
-/* 20 */
+/* 18 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
 
 
-module.exports = __webpack_require__(21)() ? Object.keys : __webpack_require__(22);
+module.exports = __webpack_require__(19)() ? Object.keys : __webpack_require__(20);
 
 /***/ }),
-/* 21 */
+/* 19 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
@@ -3476,7 +2577,7 @@ module.exports = function () {
 };
 
 /***/ }),
-/* 22 */
+/* 20 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
@@ -3491,7 +2592,7 @@ module.exports = function (object) {
 };
 
 /***/ }),
-/* 23 */
+/* 21 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
@@ -3502,7 +2603,7 @@ module.exports = function (object) {
 module.exports = function () {};
 
 /***/ }),
-/* 24 */
+/* 22 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
@@ -3516,7 +2617,7 @@ module.exports = function (value) {
 };
 
 /***/ }),
-/* 25 */
+/* 23 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
@@ -3545,16 +2646,16 @@ module.exports = function (opts1 /*, …options*/) {
 };
 
 /***/ }),
-/* 26 */
+/* 24 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
 
 
-module.exports = __webpack_require__(27)() ? String.prototype.contains : __webpack_require__(28);
+module.exports = __webpack_require__(25)() ? String.prototype.contains : __webpack_require__(26);
 
 /***/ }),
-/* 27 */
+/* 25 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
@@ -3568,7 +2669,7 @@ module.exports = function () {
 };
 
 /***/ }),
-/* 28 */
+/* 26 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
@@ -3581,7 +2682,7 @@ module.exports = function (searchString /*, position*/) {
 };
 
 /***/ }),
-/* 29 */
+/* 27 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
@@ -3593,7 +2694,7 @@ module.exports = function (fn) {
 };
 
 /***/ }),
-/* 30 */
+/* 28 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
@@ -3735,7 +2836,60 @@ exports.default = INDEXDB;
 module.exports = exports['default'];
 
 /***/ }),
-/* 31 */
+/* 29 */
+/***/ (function(module, exports, __webpack_require__) {
+
+"use strict";
+
+
+Object.defineProperty(exports, "__esModule", {
+  value: true
+});
+var sniffer = {
+  get device() {
+    var r = sniffer.os;
+    return r.isPc ? 'pc' : 'mobile';
+    // return r.isPc ? 'pc' : r.isTablet ? 'tablet' : 'mobile'
+  },
+  get browser() {
+    var ua = navigator.userAgent.toLowerCase();
+    var reg = {
+      ie: /rv:([\d.]+)\) like gecko/,
+      firfox: /firefox\/([\d.]+)/,
+      chrome: /chrome\/([\d.]+)/,
+      opera: /opera.([\d.]+)/,
+      safari: /version\/([\d.]+).*safari/
+    };
+    return [].concat(Object.keys(reg).filter(function (key) {
+      return reg[key].test(ua);
+    }))[0];
+  },
+  get os() {
+    var ua = navigator.userAgent;
+    var isWindowsPhone = /(?:Windows Phone)/.test(ua);
+    var isSymbian = /(?:SymbianOS)/.test(ua) || isWindowsPhone;
+    var isAndroid = /(?:Android)/.test(ua);
+    var isFireFox = /(?:Firefox)/.test(ua);
+    var isTablet = /(?:iPad|PlayBook)/.test(ua) || isAndroid && !/(?:Mobile)/.test(ua) || isFireFox && /(?:Tablet)/.test(ua);
+    var isPhone = /(?:iPhone)/.test(ua) && !isTablet;
+    var isPc = !isPhone && !isAndroid && !isSymbian && !isTablet;
+    return {
+      isTablet: isTablet,
+      isPhone: isPhone,
+      isAndroid: isAndroid,
+      isPc: isPc,
+      isSymbian: isSymbian,
+      isWindowsPhone: isWindowsPhone,
+      isFireFox: isFireFox
+    };
+  }
+};
+
+exports.default = sniffer;
+module.exports = exports['default'];
+
+/***/ }),
+/* 30 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
@@ -3757,7 +2911,7 @@ var _typeof = typeof Symbol === "function" && typeof Symbol.iterator === "symbol
   /* jshint strict: false */ /*globals define, module, require */
   if (true) {
     // AMD
-    !(__WEBPACK_AMD_DEFINE_ARRAY__ = [__webpack_require__(32), __webpack_require__(33)], __WEBPACK_AMD_DEFINE_RESULT__ = (function (getSize, Unidragger) {
+    !(__WEBPACK_AMD_DEFINE_ARRAY__ = [__webpack_require__(31), __webpack_require__(32)], __WEBPACK_AMD_DEFINE_RESULT__ = (function (getSize, Unidragger) {
       return factory(window, getSize, Unidragger);
     }).apply(exports, __WEBPACK_AMD_DEFINE_ARRAY__),
 				__WEBPACK_AMD_DEFINE_RESULT__ !== undefined && (module.exports = __WEBPACK_AMD_DEFINE_RESULT__));
@@ -4166,7 +3320,7 @@ var _typeof = typeof Symbol === "function" && typeof Symbol.iterator === "symbol
 });
 
 /***/ }),
-/* 32 */
+/* 31 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
@@ -4364,7 +3518,7 @@ var _typeof = typeof Symbol === "function" && typeof Symbol.iterator === "symbol
 });
 
 /***/ }),
-/* 33 */
+/* 32 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
@@ -4386,7 +3540,7 @@ var _typeof = typeof Symbol === "function" && typeof Symbol.iterator === "symbol
 
   if (true) {
     // AMD
-    !(__WEBPACK_AMD_DEFINE_ARRAY__ = [__webpack_require__(34)], __WEBPACK_AMD_DEFINE_RESULT__ = (function (Unipointer) {
+    !(__WEBPACK_AMD_DEFINE_ARRAY__ = [__webpack_require__(33)], __WEBPACK_AMD_DEFINE_RESULT__ = (function (Unipointer) {
       return factory(window, Unipointer);
     }).apply(exports, __WEBPACK_AMD_DEFINE_ARRAY__),
 				__WEBPACK_AMD_DEFINE_RESULT__ !== undefined && (module.exports = __WEBPACK_AMD_DEFINE_RESULT__));
@@ -4638,7 +3792,7 @@ var _typeof = typeof Symbol === "function" && typeof Symbol.iterator === "symbol
 });
 
 /***/ }),
-/* 34 */
+/* 33 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
@@ -4659,7 +3813,7 @@ var _typeof = typeof Symbol === "function" && typeof Symbol.iterator === "symbol
   /* jshint strict: false */ /*global define, module, require */
   if (true) {
     // AMD
-    !(__WEBPACK_AMD_DEFINE_ARRAY__ = [__webpack_require__(35)], __WEBPACK_AMD_DEFINE_RESULT__ = (function (EvEmitter) {
+    !(__WEBPACK_AMD_DEFINE_ARRAY__ = [__webpack_require__(34)], __WEBPACK_AMD_DEFINE_RESULT__ = (function (EvEmitter) {
       return factory(window, EvEmitter);
     }).apply(exports, __WEBPACK_AMD_DEFINE_ARRAY__),
 				__WEBPACK_AMD_DEFINE_RESULT__ !== undefined && (module.exports = __WEBPACK_AMD_DEFINE_RESULT__));
@@ -4934,7 +4088,7 @@ var _typeof = typeof Symbol === "function" && typeof Symbol.iterator === "symbol
 });
 
 /***/ }),
-/* 35 */
+/* 34 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
@@ -5052,7 +4206,7 @@ var _typeof = typeof Symbol === "function" && typeof Symbol.iterator === "symbol
 });
 
 /***/ }),
-/* 36 */
+/* 35 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
@@ -5072,7 +4226,7 @@ var getAbsoluteURL = exports.getAbsoluteURL = function getAbsoluteURL(url) {
 };
 
 /***/ }),
-/* 37 */
+/* 36 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
@@ -5261,7 +4415,7 @@ var _typeof = typeof Symbol === "function" && typeof Symbol.iterator === "symbol
 });
 
 /***/ }),
-/* 38 */
+/* 37 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
@@ -5444,7 +4598,7 @@ var volume = function volume() {
 _player2.default.install('volume', volume);
 
 /***/ }),
-/* 39 */
+/* 38 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
@@ -5496,7 +4650,7 @@ var start = function start() {
 _player2.default.install('start', start);
 
 /***/ }),
-/* 40 */
+/* 39 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
@@ -5564,7 +4718,7 @@ var screenShot = function screenShot() {
 _player2.default.install('screenShot', screenShot);
 
 /***/ }),
-/* 41 */
+/* 40 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
@@ -5598,7 +4752,7 @@ var rotate = function rotate() {
 _player2.default.install('rotate', rotate);
 
 /***/ }),
-/* 42 */
+/* 41 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
@@ -5638,7 +4792,7 @@ var replay = function replay() {
 _player2.default.install('replay', replay);
 
 /***/ }),
-/* 43 */
+/* 42 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
@@ -5673,7 +4827,7 @@ var reload = function reload() {
 _player2.default.install('reload', reload);
 
 /***/ }),
-/* 44 */
+/* 43 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
@@ -5713,7 +4867,7 @@ var playNext = function playNext() {
 _player2.default.install('playNext', playNext);
 
 /***/ }),
-/* 45 */
+/* 44 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
@@ -5753,7 +4907,7 @@ var play = function play() {
 _player2.default.install('play', play);
 
 /***/ }),
-/* 46 */
+/* 45 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
@@ -5788,7 +4942,7 @@ var pip = function pip() {
 _player2.default.install('pip', pip);
 
 /***/ }),
-/* 47 */
+/* 46 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
@@ -5911,7 +5065,7 @@ var pc = function pc() {
 _player2.default.install('pc', pc);
 
 /***/ }),
-/* 48 */
+/* 47 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
@@ -5978,7 +5132,7 @@ var mobile = function mobile() {
 _player2.default.install('mobile', mobile);
 
 /***/ }),
-/* 49 */
+/* 48 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
@@ -6000,124 +5154,7 @@ var memoryPlay = function memoryPlay() {
 _player2.default.install('memoryPlay', memoryPlay);
 
 /***/ }),
-/* 50 */
-/***/ (function(module, exports, __webpack_require__) {
-
-"use strict";
-
-
-var _player = __webpack_require__(0);
-
-var _player2 = _interopRequireDefault(_player);
-
-var _sniffer = __webpack_require__(6);
-
-var _sniffer2 = _interopRequireDefault(_sniffer);
-
-var _collect = __webpack_require__(7);
-
-var _collect2 = _interopRequireDefault(_collect);
-
-function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
-
-var logger = function logger() {
-  var player = this;
-  var util = _player2.default.util;
-  if (player.config.noLog !== true) {
-    var destroyFunc = function destroyFunc() {
-      if (_sniffer2.default.device === 'pc') {
-        window.removeEventListener('beforeunload', userLeave);
-      } else if (_sniffer2.default.device === 'mobile') {
-        window.removeEventListener('pagehide', userLeave);
-      }
-      player.off('routechange', userLeave);
-      player.off('destroy', destroyFunc);
-    };
-
-    if (!window.__xigua_log_sdk__) {
-      window.__xigua_log_sdk__ = new _collect2.default('tracker');
-      window.__xigua_log_sdk__.init({
-        app_id: 1300,
-        channel: 'cn',
-        log: false,
-        disable_sdk_monitor: true
-      });
-
-      window.__xigua_log_sdk__('config', {
-        evtParams: {
-          log_type: 'logger',
-          page_url: document.URL,
-          domain: window.location.host,
-          pver: player.version,
-          ua: navigator.userAgent.toLowerCase()
-        },
-        disable_auto_pv: true
-      });
-      window.__xigua_log_sdk__.start();
-    }
-
-    if (player.config.uid) {
-      window.__xigua_log_sdk__('config', {
-        user_unique_id: player.config.uid
-      });
-    }
-
-    var judgePtVt = function judgePtVt() {
-      if (!player.logParams.pt || !player.logParams.vt) {
-        player.logParams.pt = new Date().getTime();
-        player.logParams.vt = player.logParams.pt;
-      }
-      if (player.logParams.pt > player.logParams.vt) {
-        player.logParams.pt = player.logParams.vt;
-      }
-    };
-
-    var userLeave = function userLeave(event) {
-      if (util.hasClass(player.root, 'xgplayer-is-enter')) {
-        var lt = new Date().getTime();
-        var obj = {
-          url: player.logParams.pluginSrc ? player.logParams.pluginSrc : player.logParams.playSrc,
-          vid: player.config.vid,
-          pt: player.logParams.pt,
-          lt: lt
-        };
-        window.__xigua_log_sdk__('b', obj);
-      } else if (util.hasClass(player.root, 'xgplayer-playing')) {
-        var watch_dur = util.computeWatchDur(player.logParams.played);
-        var _lt = new Date().getTime();
-        judgePtVt();
-        var _obj = {
-          url: player.logParams.pluginSrc ? player.logParams.pluginSrc : player.logParams.playSrc,
-          vid: player.config.vid,
-          bc: player.logParams.bc - 1 > 0 ? player.logParams.bc - 1 : 0,
-          bb: player.logParams.bc - 1 > 0 ? 1 : 0,
-          bu_acu_t: player.logParams.bu_acu_t,
-          pt: player.logParams.pt,
-          vt: player.logParams.vt,
-          vd: player.logParams.vd * 1000,
-          watch_dur: parseFloat((watch_dur * 1000).toFixed(3)),
-          cur_play_pos: parseFloat((player.currentTime * 1000).toFixed(3)),
-          lt: _lt
-        };
-        window.__xigua_log_sdk__('d', _obj);
-      }
-    };
-    if (_sniffer2.default.device === 'pc') {
-      window.addEventListener('beforeunload', userLeave, false);
-    } else if (_sniffer2.default.device === 'mobile') {
-      window.addEventListener('pagehide', userLeave, false);
-    }
-    player.on('routechange', userLeave);
-
-    player.once('destroy', destroyFunc);
-  }
-}; /* eslint-disable */
-
-
-_player2.default.install('logger', logger);
-
-/***/ }),
-/* 51 */
+/* 49 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
@@ -6158,7 +5195,7 @@ var localPreview = function localPreview() {
 _player2.default.install('localPreview', localPreview);
 
 /***/ }),
-/* 52 */
+/* 50 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
@@ -6290,7 +5327,7 @@ var i18n = function i18n() {
 _player2.default.install('i18n', i18n);
 
 /***/ }),
-/* 53 */
+/* 51 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
@@ -6354,7 +5391,7 @@ var fullscreen = function fullscreen() {
 _player2.default.install('fullscreen', fullscreen);
 
 /***/ }),
-/* 54 */
+/* 52 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
@@ -6498,7 +5535,7 @@ function errorRetry() {
 _player2.default.install('errorretry', errorRetry);
 
 /***/ }),
-/* 55 */
+/* 53 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
@@ -6529,7 +5566,7 @@ var download = function download() {
 _player2.default.install('download', download);
 
 /***/ }),
-/* 56 */
+/* 54 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
@@ -6554,7 +5591,7 @@ var definition = function definition() {
 _player2.default.install('definition', definition);
 
 /***/ }),
-/* 57 */
+/* 55 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
@@ -6648,7 +5685,7 @@ var danmu = function danmu() {
 _player2.default.install('danmu', danmu);
 
 /***/ }),
-/* 58 */
+/* 56 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
@@ -6687,49 +5724,51 @@ var cssFullscreen = function cssFullscreen() {
 _player2.default.install('cssFullscreen', cssFullscreen);
 
 /***/ }),
-/* 59 */
+/* 57 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
 
 
-__webpack_require__(60);
+__webpack_require__(58);
 
-__webpack_require__(65);
+__webpack_require__(63);
 
-__webpack_require__(66);
+__webpack_require__(64);
 
-__webpack_require__(69);
+__webpack_require__(67);
+
+__webpack_require__(70);
+
+__webpack_require__(71);
 
 __webpack_require__(72);
 
-__webpack_require__(73);
+__webpack_require__(75);
 
-__webpack_require__(74);
+__webpack_require__(78);
 
-__webpack_require__(77);
+__webpack_require__(82);
 
-__webpack_require__(80);
-
-__webpack_require__(84);
+__webpack_require__(83);
 
 __webpack_require__(85);
 
-__webpack_require__(87);
+__webpack_require__(86);
 
-__webpack_require__(88);
+__webpack_require__(87);
 
 __webpack_require__(89);
 
-__webpack_require__(91);
+__webpack_require__(90);
 
-__webpack_require__(92);
+__webpack_require__(91);
 
 __webpack_require__(93);
 
-__webpack_require__(95);
+__webpack_require__(97);
 
-__webpack_require__(99);
+__webpack_require__(98);
 
 __webpack_require__(100);
 
@@ -6737,20 +5776,18 @@ __webpack_require__(102);
 
 __webpack_require__(104);
 
+__webpack_require__(105);
+
 __webpack_require__(106);
 
 __webpack_require__(107);
 
-__webpack_require__(108);
-
-__webpack_require__(109);
-
 /***/ }),
-/* 60 */
+/* 58 */
 /***/ (function(module, exports, __webpack_require__) {
 
 
-var content = __webpack_require__(61);
+var content = __webpack_require__(59);
 
 if(typeof content === 'string') content = [[module.i, content, '']];
 
@@ -6764,17 +5801,17 @@ var options = {"hmr":true}
 options.transform = transform
 options.insertInto = undefined;
 
-var update = __webpack_require__(63)(content, options);
+var update = __webpack_require__(61)(content, options);
 
 if(content.locals) module.exports = content.locals;
 
 if(false) {}
 
 /***/ }),
-/* 61 */
+/* 59 */
 /***/ (function(module, exports, __webpack_require__) {
 
-exports = module.exports = __webpack_require__(62)(false);
+exports = module.exports = __webpack_require__(60)(false);
 // imports
 
 
@@ -6785,7 +5822,7 @@ exports.push([module.i, ".xgplayer-skin-default{background:#000;width:100%;heigh
 
 
 /***/ }),
-/* 62 */
+/* 60 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
@@ -6867,7 +5904,7 @@ function toComment(sourceMap) {
 }
 
 /***/ }),
-/* 63 */
+/* 61 */
 /***/ (function(module, exports, __webpack_require__) {
 
 /*
@@ -6933,7 +5970,7 @@ var singleton = null;
 var	singletonCounter = 0;
 var	stylesInsertedAtTop = [];
 
-var	fixUrls = __webpack_require__(64);
+var	fixUrls = __webpack_require__(62);
 
 module.exports = function(list, options) {
 	if (typeof DEBUG !== "undefined" && DEBUG) {
@@ -7249,7 +6286,7 @@ function updateLink (link, options, obj) {
 
 
 /***/ }),
-/* 64 */
+/* 62 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
@@ -7344,7 +6381,7 @@ module.exports = function (css) {
 };
 
 /***/ }),
-/* 65 */
+/* 63 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
@@ -7372,7 +6409,7 @@ var s_enter = function s_enter() {
 _player2.default.install('s_enter', s_enter);
 
 /***/ }),
-/* 66 */
+/* 64 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
@@ -7382,11 +6419,11 @@ var _player = __webpack_require__(0);
 
 var _player2 = _interopRequireDefault(_player);
 
-var _play = __webpack_require__(67);
+var _play = __webpack_require__(65);
 
 var _play2 = _interopRequireDefault(_play);
 
-var _pause = __webpack_require__(68);
+var _pause = __webpack_require__(66);
 
 var _pause2 = _interopRequireDefault(_pause);
 
@@ -7426,7 +6463,7 @@ var s_play = function s_play() {
 _player2.default.install('s_play', s_play);
 
 /***/ }),
-/* 67 */
+/* 65 */
 /***/ (function(module, __webpack_exports__, __webpack_require__) {
 
 "use strict";
@@ -7434,7 +6471,7 @@ __webpack_require__.r(__webpack_exports__);
 /* harmony default export */ __webpack_exports__["default"] = ("<svg xmlns=\"http://www.w3.org/2000/svg\" width=\"40\" height=\"40\" viewBox=\"0 0 40 40\">\n  <path transform=\"translate(2,2) scale(0.0320625 0.0320625)\" d=\"M576,363L810,512L576,661zM342,214L576,363L576,661L342,810z\"></path>\n</svg>\n");
 
 /***/ }),
-/* 68 */
+/* 66 */
 /***/ (function(module, __webpack_exports__, __webpack_require__) {
 
 "use strict";
@@ -7442,7 +6479,7 @@ __webpack_require__.r(__webpack_exports__);
 /* harmony default export */ __webpack_exports__["default"] = ("<svg xmlns=\"http://www.w3.org/2000/svg\" width=\"40\" height=\"40\" viewBox=\"0 0 40 40\">\n  <path transform=\"translate(2,2) scale(0.0320625 0.0320625)\" d=\"M598,214h170v596h-170v-596zM256 810v-596h170v596h-170z\"></path>\n</svg>\n");
 
 /***/ }),
-/* 69 */
+/* 67 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
@@ -7452,11 +6489,11 @@ var _player = __webpack_require__(0);
 
 var _player2 = _interopRequireDefault(_player);
 
-var _startPlay = __webpack_require__(70);
+var _startPlay = __webpack_require__(68);
 
 var _startPlay2 = _interopRequireDefault(_startPlay);
 
-var _startPause = __webpack_require__(71);
+var _startPause = __webpack_require__(69);
 
 var _startPause2 = _interopRequireDefault(_startPause);
 
@@ -7514,7 +6551,7 @@ var s_start = function s_start() {
 _player2.default.install('s_start', s_start);
 
 /***/ }),
-/* 70 */
+/* 68 */
 /***/ (function(module, __webpack_exports__, __webpack_require__) {
 
 "use strict";
@@ -7522,7 +6559,7 @@ __webpack_require__.r(__webpack_exports__);
 /* harmony default export */ __webpack_exports__["default"] = ("<svg xmlns=\"http://www.w3.org/2000/svg\" width=\"70\" height=\"70\" viewBox=\"0 0 70 70\">\n  <path transform=\"translate(15,15) scale(0.04,0.04)\" d=\"M576,363L810,512L576,661zM342,214L576,363L576,661L342,810z\"></path>\n</svg>\n");
 
 /***/ }),
-/* 71 */
+/* 69 */
 /***/ (function(module, __webpack_exports__, __webpack_require__) {
 
 "use strict";
@@ -7530,7 +6567,7 @@ __webpack_require__.r(__webpack_exports__);
 /* harmony default export */ __webpack_exports__["default"] = ("<svg xmlns=\"http://www.w3.org/2000/svg\" width=\"70\" height=\"70\" viewBox=\"0 0 70 70\">\n  <path transform=\"translate(15,15) scale(0.04 0.04)\" d=\"M598,214h170v596h-170v-596zM256 810v-596h170v596h-170z\"></path>\n</svg>\n");
 
 /***/ }),
-/* 72 */
+/* 70 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
@@ -7557,7 +6594,7 @@ var s_poster = function s_poster() {
 _player2.default.install('s_poster', s_poster);
 
 /***/ }),
-/* 73 */
+/* 71 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
@@ -7580,7 +6617,7 @@ var s_flex = function s_flex() {
 _player2.default.install('s_flex', s_flex);
 
 /***/ }),
-/* 74 */
+/* 72 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
@@ -7590,11 +6627,11 @@ var _player = __webpack_require__(0);
 
 var _player2 = _interopRequireDefault(_player);
 
-var _requestFull = __webpack_require__(75);
+var _requestFull = __webpack_require__(73);
 
 var _requestFull2 = _interopRequireDefault(_requestFull);
 
-var _exitFull = __webpack_require__(76);
+var _exitFull = __webpack_require__(74);
 
 var _exitFull2 = _interopRequireDefault(_exitFull);
 
@@ -7634,7 +6671,7 @@ var s_fullscreen = function s_fullscreen() {
 _player2.default.install('s_fullscreen', s_fullscreen);
 
 /***/ }),
-/* 75 */
+/* 73 */
 /***/ (function(module, __webpack_exports__, __webpack_require__) {
 
 "use strict";
@@ -7642,7 +6679,7 @@ __webpack_require__.r(__webpack_exports__);
 /* harmony default export */ __webpack_exports__["default"] = ("<svg xmlns=\"http://www.w3.org/2000/svg\" width=\"40\" height=\"40\" viewBox=\"0 0 40 40\">\n  <path transform=\"scale(0.0320625 0.0320625)\" d=\"M598 214h212v212h-84v-128h-128v-84zM726 726v-128h84v212h-212v-84h128zM214 426v-212h212v84h-128v128h-84zM298 598v128h128v84h-212v-212h84z\"></path>\n</svg>\n");
 
 /***/ }),
-/* 76 */
+/* 74 */
 /***/ (function(module, __webpack_exports__, __webpack_require__) {
 
 "use strict";
@@ -7650,7 +6687,7 @@ __webpack_require__.r(__webpack_exports__);
 /* harmony default export */ __webpack_exports__["default"] = ("<svg xmlns=\"http://www.w3.org/2000/svg\" width=\"40\" height=\"40\" viewBox=\"0 0 40 40\">\n  <path transform=\"scale(0.0320625 0.0320625)\" d=\"M682 342h128v84h-212v-212h84v128zM598 810v-212h212v84h-128v128h-84zM342 342v-128h84v212h-212v-84h128zM214 682v-84h212v212h-84v-128h-128z\"></path>\n</svg>\n");
 
 /***/ }),
-/* 77 */
+/* 75 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
@@ -7660,11 +6697,11 @@ var _player = __webpack_require__(0);
 
 var _player2 = _interopRequireDefault(_player);
 
-var _requestCssFull = __webpack_require__(78);
+var _requestCssFull = __webpack_require__(76);
 
 var _requestCssFull2 = _interopRequireDefault(_requestCssFull);
 
-var _exitCssFull = __webpack_require__(79);
+var _exitCssFull = __webpack_require__(77);
 
 var _exitCssFull2 = _interopRequireDefault(_exitCssFull);
 
@@ -7699,7 +6736,7 @@ var s_cssFullscreen = function s_cssFullscreen() {
 _player2.default.install('s_cssFullscreen', s_cssFullscreen);
 
 /***/ }),
-/* 78 */
+/* 76 */
 /***/ (function(module, __webpack_exports__, __webpack_require__) {
 
 "use strict";
@@ -7707,7 +6744,7 @@ __webpack_require__.r(__webpack_exports__);
 /* harmony default export */ __webpack_exports__["default"] = ("<svg xmlns=\"http://www.w3.org/2000/svg\" width=\"40\" height=\"40\" viewBox=\"0 0 40 40\">\n  <path transform=\"scale(0.028 0.028)\" d=\"M843.617212 67.898413 175.411567 67.898413c-61.502749 0-111.367437 49.856501-111.367437 111.367437l0 668.205645c0 61.510936 49.864688 111.367437 111.367437 111.367437L843.617212 958.838931c61.510936 0 111.367437-49.856501 111.367437-111.367437L954.984648 179.26585C954.984648 117.754914 905.12917 67.898413 843.617212 67.898413zM398.146441 736.104057c15.380292 0 27.842115 12.461823 27.842115 27.842115 0 15.379269-12.461823 27.841092-27.842115 27.841092L259.725858 791.787264c-7.785314 0-14.781658-3.217275-19.838837-8.365528-5.383614-4.577249-8.791224-11.228739-8.791224-19.475564L231.095797 624.736621c0-15.371082 12.471033-27.842115 27.842115-27.842115 15.380292 0 27.842115 12.471033 27.842115 27.842115l-0.61603 71.426773 133.036969-133.037992 39.378869 39.378869L324.962651 736.113267 398.146441 736.104057zM419.199942 463.611943 286.162974 330.565764l0.61603 71.435982c0 15.380292-12.461823 27.842115-27.842115 27.842115-15.371082 0-27.842115-12.461823-27.842115-27.842115L231.094774 262.791172c0-8.256034 3.40761-14.908548 8.791224-19.476587 5.057179-5.148253 12.053524-8.374738 19.838837-8.374738l138.420583 0.00921c15.380292 0 27.842115 12.461823 27.842115 27.842115s-12.461823 27.842115-27.842115 27.842115l-73.175603-0.00921 133.607974 133.607974L419.199942 463.611943zM787.932981 763.946172c0 8.247848-3.40761 14.899338-8.791224 19.475564-5.057179 5.148253-12.053524 8.365528-19.839861 8.365528L620.881314 791.787264c-15.379269 0-27.841092-12.461823-27.841092-27.841092 0-15.380292 12.461823-27.842115 27.841092-27.842115l73.185836 0.00921L560.449967 602.50427l39.378869-39.378869L732.875015 696.163393l-0.62524-71.426773c0-15.371082 12.462846-27.842115 27.842115-27.842115 15.380292 0 27.842115 12.471033 27.842115 27.842115L787.934005 763.946172zM787.932981 402.000724c0 15.380292-12.461823 27.842115-27.842115 27.842115-15.379269 0-27.842115-12.461823-27.842115-27.842115l0.62524-71.435982L599.828836 463.611943l-39.378869-39.378869 133.617184-133.607974-73.185836 0.00921c-15.379269 0-27.841092-12.461823-27.841092-27.842115s12.461823-27.842115 27.841092-27.842115l138.421606-0.00921c7.785314 0 14.781658 3.226484 19.839861 8.374738 5.383614 4.568039 8.791224 11.219529 8.791224 19.476587L787.934005 402.000724z\"></path>\n</svg>\n");
 
 /***/ }),
-/* 79 */
+/* 77 */
 /***/ (function(module, __webpack_exports__, __webpack_require__) {
 
 "use strict";
@@ -7715,7 +6752,7 @@ __webpack_require__.r(__webpack_exports__);
 /* harmony default export */ __webpack_exports__["default"] = ("<svg xmlns=\"http://www.w3.org/2000/svg\" width=\"40\" height=\"40\" viewBox=\"0 0 40 40\">\n  <path transform=\"scale(0.028 0.028)\" d=\"M834.56 81.92H189.44c-59.392 0-107.52 48.128-107.52 107.52v645.12c0 59.392 48.128 107.52 107.52 107.52h645.12c59.392 0 107.52-48.128 107.52-107.52V189.44c0-59.392-48.128-107.52-107.52-107.52zM458.24 727.04c0 14.848-12.288 26.624-26.624 26.624S404.48 741.888 404.48 727.04v-69.632L289.28 773.12c-10.752 10.24-27.648 10.24-37.888 0-10.24-10.752-10.24-27.648 0-37.888L366.592 619.52H296.96c-14.848 0-26.624-12.288-26.624-26.624s12.288-26.624 26.624-26.624h134.144c14.848 0 26.624 12.288 26.624 26.624V727.04z m0-295.936c0 14.848-12.288 26.624-26.624 26.624H296.96c-14.848 0-26.624-12.288-26.624-26.624S282.112 404.48 296.96 404.48h69.632L251.392 289.28c-10.24-10.752-10.24-27.648 0-37.888 5.12-5.12 12.288-7.68 18.944-7.68 6.656 0 13.824 2.56 18.944 7.68L404.48 366.592V296.96c0-14.848 12.288-26.624 26.624-26.624s26.624 12.288 26.624 26.624v134.144zM773.12 773.12c-10.752 10.24-27.648 10.24-37.888 0L619.52 657.408V727.04c0 14.848-12.288 26.624-26.624 26.624s-26.624-11.776-26.624-26.624v-134.144c0-14.848 12.288-26.624 26.624-26.624H727.04c14.848 0 26.624 12.288 26.624 26.624s-12.288 26.624-26.624 26.624h-69.632l115.2 115.2c10.752 10.752 10.752 27.648 0.512 38.4z m0-483.84L657.408 404.48H727.04c14.848 0 26.624 12.288 26.624 26.624 0 14.848-12.288 26.624-26.624 26.624h-134.144c-14.848 0-26.624-12.288-26.624-26.624V296.96c0-14.848 12.288-26.624 26.624-26.624s26.624 12.288 26.624 26.624v69.632L734.72 250.88c5.12-5.12 12.288-7.68 18.944-7.68s13.824 2.56 18.944 7.68c10.752 10.752 10.752 27.648 0.512 38.4z\"></path>\n</svg>\n");
 
 /***/ }),
-/* 80 */
+/* 78 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
@@ -7725,15 +6762,15 @@ var _player = __webpack_require__(0);
 
 var _player2 = _interopRequireDefault(_player);
 
-var _volumeMuted = __webpack_require__(81);
+var _volumeMuted = __webpack_require__(79);
 
 var _volumeMuted2 = _interopRequireDefault(_volumeMuted);
 
-var _volumeSmall = __webpack_require__(82);
+var _volumeSmall = __webpack_require__(80);
 
 var _volumeSmall2 = _interopRequireDefault(_volumeSmall);
 
-var _volumeLarge = __webpack_require__(83);
+var _volumeLarge = __webpack_require__(81);
 
 var _volumeLarge2 = _interopRequireDefault(_volumeLarge);
 
@@ -7785,7 +6822,7 @@ var s_volume = function s_volume() {
 _player2.default.install('s_volume', s_volume);
 
 /***/ }),
-/* 81 */
+/* 79 */
 /***/ (function(module, __webpack_exports__, __webpack_require__) {
 
 "use strict";
@@ -7793,7 +6830,7 @@ __webpack_require__.r(__webpack_exports__);
 /* harmony default export */ __webpack_exports__["default"] = ("<svg xmlns=\"http://www.w3.org/2000/svg\" width=\"28\" height=\"28\" viewBox=\"0 0 28 28\">\n  <path transform=\"scale(0.0220625 0.0220625)\" d=\"M358.4 358.4h-204.8v307.2h204.8l256 256v-819.2l-256 256z\"></path>\n  <path transform=\"scale(0.0220625 0.0220625)\" d=\"M920.4 439.808l-108.544-109.056-72.704 72.704 109.568 108.544-109.056 108.544 72.704 72.704 108.032-109.568 108.544 109.056 72.704-72.704-109.568-108.032 109.056-108.544-72.704-72.704-108.032 109.568z\"></path>\n</svg>\n");
 
 /***/ }),
-/* 82 */
+/* 80 */
 /***/ (function(module, __webpack_exports__, __webpack_require__) {
 
 "use strict";
@@ -7801,7 +6838,7 @@ __webpack_require__.r(__webpack_exports__);
 /* harmony default export */ __webpack_exports__["default"] = ("<svg xmlns=\"http://www.w3.org/2000/svg\" width=\"28\" height=\"28\" viewBox=\"0 0 28 28\">\n  <path transform=\"scale(0.0220625 0.0220625)\" d=\"M358.4 358.4h-204.8v307.2h204.8l256 256v-819.2l-256 256z\"></path>\n  <path transform=\"scale(0.0220625 0.0220625)\" d=\"M795.648 693.248l-72.704-72.704c27.756-27.789 44.921-66.162 44.921-108.544s-17.165-80.755-44.922-108.546l0.002 0.002 72.704-72.704c46.713 46.235 75.639 110.363 75.639 181.248s-28.926 135.013-75.617 181.227l-0.021 0.021zM795.648 693.248l-72.704-72.704c27.756-27.789 44.921-66.162 44.921-108.544s-17.165-80.755-44.922-108.546l0.002 0.002 72.704-72.704c46.713 46.235 75.639 110.363 75.639 181.248s-28.926 135.013-75.617 181.227l-0.021 0.021z\"></path>\n</svg>\n");
 
 /***/ }),
-/* 83 */
+/* 81 */
 /***/ (function(module, __webpack_exports__, __webpack_require__) {
 
 "use strict";
@@ -7809,7 +6846,7 @@ __webpack_require__.r(__webpack_exports__);
 /* harmony default export */ __webpack_exports__["default"] = ("<svg xmlns=\"http://www.w3.org/2000/svg\" width=\"28\" height=\"28\" viewBox=\"0 0 28 28\">\n  <path transform=\"scale(0.0220625 0.0220625)\" d=\"M358.4 358.4h-204.8v307.2h204.8l256 256v-819.2l-256 256z\"></path>\n  <path transform=\"scale(0.0220625 0.0220625)\" d=\"M940.632 837.632l-72.192-72.192c65.114-64.745 105.412-154.386 105.412-253.44s-40.299-188.695-105.396-253.424l-0.016-0.016 72.192-72.192c83.639 83.197 135.401 198.37 135.401 325.632s-51.762 242.434-135.381 325.612l-0.020 0.020zM795.648 693.248l-72.704-72.704c27.756-27.789 44.921-66.162 44.921-108.544s-17.165-80.755-44.922-108.546l0.002 0.002 72.704-72.704c46.713 46.235 75.639 110.363 75.639 181.248s-28.926 135.013-75.617 181.227l-0.021 0.021z\"></path>\n</svg>\n");
 
 /***/ }),
-/* 84 */
+/* 82 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
@@ -8029,7 +7066,7 @@ var s_definition = function s_definition() {
 _player2.default.install('s_definition', s_definition);
 
 /***/ }),
-/* 85 */
+/* 83 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
@@ -8039,7 +7076,7 @@ var _player = __webpack_require__(0);
 
 var _player2 = _interopRequireDefault(_player);
 
-var _loading = __webpack_require__(86);
+var _loading = __webpack_require__(84);
 
 var _loading2 = _interopRequireDefault(_loading);
 
@@ -8058,7 +7095,7 @@ var s_loading = function s_loading() {
 _player2.default.install('s_loading', s_loading);
 
 /***/ }),
-/* 86 */
+/* 84 */
 /***/ (function(module, __webpack_exports__, __webpack_require__) {
 
 "use strict";
@@ -8066,7 +7103,7 @@ __webpack_require__.r(__webpack_exports__);
 /* harmony default export */ __webpack_exports__["default"] = ("<svg xmlns=\"http://www.w3.org/2000/svg\" width=\"100\" height=\"100\" viewbox=\"0 0 100 100\">\n  <path d=\"M100,50A50,50,0,1,1,50,0\"></path>\n</svg>\n");
 
 /***/ }),
-/* 87 */
+/* 85 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
@@ -8409,7 +7446,7 @@ var s_progress = function s_progress() {
 _player2.default.install('s_progress', s_progress);
 
 /***/ }),
-/* 88 */
+/* 86 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
@@ -8456,7 +7493,7 @@ var s_time = function s_time() {
 _player2.default.install('s_time', s_time);
 
 /***/ }),
-/* 89 */
+/* 87 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
@@ -8466,7 +7503,7 @@ var _player = __webpack_require__(0);
 
 var _player2 = _interopRequireDefault(_player);
 
-var _replay = __webpack_require__(90);
+var _replay = __webpack_require__(88);
 
 var _replay2 = _interopRequireDefault(_replay);
 
@@ -8516,7 +7553,7 @@ var s_replay = function s_replay() {
 _player2.default.install('s_replay', s_replay);
 
 /***/ }),
-/* 90 */
+/* 88 */
 /***/ (function(module, __webpack_exports__, __webpack_require__) {
 
 "use strict";
@@ -8524,7 +7561,7 @@ __webpack_require__.r(__webpack_exports__);
 /* harmony default export */ __webpack_exports__["default"] = ("<svg class=\"xgplayer-replay-svg\" xmlns=\"http://www.w3.org/2000/svg\" width=\"78\" height=\"78\" viewbox=\"0 0 78 78\">\n  <path d=\"M8.22708362,13.8757234 L11.2677371,12.6472196 C11.7798067,12.4403301 12.3626381,12.6877273 12.5695276,13.1997969 L12.9441342,14.1269807 C13.1510237,14.6390502 12.9036264,15.2218816 12.3915569,15.4287712 L6.8284538,17.6764107 L5.90126995,18.0510173 C5.38920044,18.2579068 4.80636901,18.0105096 4.5994795,17.49844 L1.97723335,11.0081531 C1.77034384,10.4960836 2.0177411,9.91325213 2.52981061,9.70636262 L3.45699446,9.33175602 C3.96906396,9.12486652 4.5518954,9.37226378 4.75878491,9.88433329 L5.67885163,12.1615783 C7.99551726,6.6766934 13.3983951,3 19.5,3 C27.7842712,3 34.5,9.71572875 34.5,18 C34.5,26.2842712 27.7842712,33 19.5,33 C15.4573596,33 11.6658607,31.3912946 8.87004692,28.5831991 C8.28554571,27.9961303 8.28762719,27.0463851 8.87469603,26.4618839 C9.46176488,25.8773827 10.4115101,25.8794641 10.9960113,26.466533 C13.2344327,28.7147875 16.263503,30 19.5,30 C26.127417,30 31.5,24.627417 31.5,18 C31.5,11.372583 26.127417,6 19.5,6 C14.4183772,6 9.94214483,9.18783811 8.22708362,13.8757234 Z\"></path>\n</svg>\n");
 
 /***/ }),
-/* 91 */
+/* 89 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
@@ -8663,7 +7700,7 @@ var s_playbackRate = function s_playbackRate() {
 _player2.default.install('s_playbackRate', s_playbackRate);
 
 /***/ }),
-/* 92 */
+/* 90 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
@@ -8692,7 +7729,7 @@ var s_localPreview = function s_localPreview() {
 _player2.default.install('s_localPreview', s_localPreview);
 
 /***/ }),
-/* 93 */
+/* 91 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
@@ -8702,7 +7739,7 @@ var _player = __webpack_require__(0);
 
 var _player2 = _interopRequireDefault(_player);
 
-var _download = __webpack_require__(94);
+var _download = __webpack_require__(92);
 
 var _download2 = _interopRequireDefault(_download);
 
@@ -8735,7 +7772,7 @@ var s_download = function s_download() {
 _player2.default.install('s_download', s_download);
 
 /***/ }),
-/* 94 */
+/* 92 */
 /***/ (function(module, __webpack_exports__, __webpack_require__) {
 
 "use strict";
@@ -8743,7 +7780,7 @@ __webpack_require__.r(__webpack_exports__);
 /* harmony default export */ __webpack_exports__["default"] = ("<svg xmlns=\"http://www.w3.org/2000/svg\" width=\"24px\" height=\"24px\" viewBox=\"0 0 24 24\">\n  <g id=\"Page-1\" stroke=\"none\" stroke-width=\"1\" fill=\"none\" fill-rule=\"evenodd\">\n    <g transform=\"translate(-488.000000, -340.000000)\" fill=\"#FFFFFF\">\n      <g id=\"Group-2\">\n        <g id=\"volme_big-copy\" transform=\"translate(488.000000, 340.000000)\">\n          <rect id=\"Rectangle-18\" x=\"11\" y=\"4\" width=\"2\" height=\"12\" rx=\"1\"></rect>\n          <rect id=\"Rectangle-2\" x=\"3\" y=\"18\" width=\"18\" height=\"2\" rx=\"1\"></rect>\n          <rect id=\"Rectangle-2\" transform=\"translate(4.000000, 17.500000) rotate(90.000000) translate(-4.000000, -17.500000) \" x=\"1.5\" y=\"16.5\" width=\"5\" height=\"2\" rx=\"1\"></rect><rect id=\"Rectangle-2-Copy-3\" transform=\"translate(20.000000, 17.500000) rotate(90.000000) translate(-20.000000, -17.500000) \" x=\"17.5\" y=\"16.5\" width=\"5\" height=\"2\" rx=\"1\"></rect>\n          <path d=\"M9.48791171,8.26502656 L9.48791171,14.2650266 C9.48791171,14.8173113 9.04019646,15.2650266 8.48791171,15.2650266 C7.93562696,15.2650266 7.48791171,14.8173113 7.48791171,14.2650266 L7.48791171,7.26502656 C7.48791171,6.71274181 7.93562696,6.26502656 8.48791171,6.26502656 L15.4879117,6.26502656 C16.0401965,6.26502656 16.4879117,6.71274181 16.4879117,7.26502656 C16.4879117,7.81731131 16.0401965,8.26502656 15.4879117,8.26502656 L9.48791171,8.26502656 Z\" id=\"Combined-Shape\" transform=\"translate(11.987912, 10.765027) scale(1, -1) rotate(45.000000) translate(-11.987912, -10.765027) \"></path>\n        </g>\n      </g>\n    </g>\n  </g>\n</svg>\n");
 
 /***/ }),
-/* 95 */
+/* 93 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
@@ -8753,11 +7790,11 @@ var _player = __webpack_require__(0);
 
 var _player2 = _interopRequireDefault(_player);
 
-var _danmu = __webpack_require__(96);
+var _danmu = __webpack_require__(94);
 
 var _danmu2 = _interopRequireDefault(_danmu);
 
-var _panel = __webpack_require__(98);
+var _panel = __webpack_require__(96);
 
 var _panel2 = _interopRequireDefault(_panel);
 
@@ -8909,7 +7946,7 @@ var s_danmu = function s_danmu() {
 _player2.default.install('s_danmu', s_danmu);
 
 /***/ }),
-/* 96 */
+/* 94 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
@@ -8947,58 +7984,66 @@ var _typeof = typeof Symbol === "function" && typeof Symbol.iterator === "symbol
     }, n.p = "", n(n.s = 3);
   }([function (t, e, n) {
     "use strict";
-    Object.defineProperty(e, "__esModule", { value: !0 });var i,
-        o = n(26),
-        r = (i = o) && i.__esModule ? i : { default: i };var a = {};a.domObj = new r.default(), a.createDom = function () {
-      var t = arguments.length > 0 && void 0 !== arguments[0] ? arguments[0] : "div",
-          e = arguments.length > 1 && void 0 !== arguments[1] ? arguments[1] : "",
-          n = arguments.length > 2 && void 0 !== arguments[2] ? arguments[2] : {},
-          i = arguments.length > 3 && void 0 !== arguments[3] ? arguments[3] : "",
-          o = document.createElement(t);return o.className = i, o.innerHTML = e, Object.keys(n).forEach(function (e) {
-        var i = e,
-            r = n[e];"video" === t || "audio" === t ? r && o.setAttribute(i, r) : o.setAttribute(i, r);
-      }), o;
-    }, a.hasClass = function (t, e) {
-      return t.classList ? Array.prototype.some.call(t.classList, function (t) {
-        return t === e;
-      }) : !!t.className.match(new RegExp("(\\s|^)" + e + "(\\s|$)"));
-    }, a.addClass = function (t, e) {
-      t.classList ? e.replace(/(^\s+|\s+$)/g, "").split(/\s+/g).forEach(function (e) {
-        e && t.classList.add(e);
-      }) : a.hasClass(t, e) || (t.className += " " + e);
-    }, a.removeClass = function (t, e) {
-      t.classList ? e.split(/\s+/g).forEach(function (e) {
-        t.classList.remove(e);
-      }) : a.hasClass(t, e) && e.split(/\s+/g).forEach(function (e) {
-        var n = new RegExp("(\\s|^)" + e + "(\\s|$)");t.className = t.className.replace(n, " ");
-      });
-    }, a.toggleClass = function (t, e) {
-      e.split(/\s+/g).forEach(function (e) {
-        a.hasClass(t, e) ? a.removeClass(t, e) : a.addClass(t, e);
-      });
-    }, a.findDom = function () {
-      var t = arguments.length > 0 && void 0 !== arguments[0] ? arguments[0] : document,
-          e = arguments[1],
-          n = void 0;try {
-        n = t.querySelector(e);
-      } catch (i) {
-        e.startsWith("#") && (n = t.getElementById(e.slice(1)));
-      }return n;
-    }, a.deepCopy = function (t, e) {
-      if ("Object" === a.typeOf(e) && "Object" === a.typeOf(t)) return Object.keys(e).forEach(function (n) {
-        "Object" !== a.typeOf(e[n]) || e[n] instanceof Node ? "Array" === a.typeOf(e[n]) ? t[n] = "Array" === a.typeOf(t[n]) ? t[n].concat(e[n]) : e[n] : t[n] = e[n] : t[n] ? a.deepCopy(t[n], e[n]) : t[n] = e[n];
-      }), t;
-    }, a.typeOf = function (t) {
-      return Object.prototype.toString.call(t).match(/([^\s.*]+)(?=]$)/g)[0];
-    }, a.copyDom = function (t) {
-      if (t && 1 === t.nodeType) {
-        var e = document.createElement(t.tagName);return Array.prototype.forEach.call(t.attributes, function (t) {
-          e.setAttribute(t.name, t.value);
-        }), t.innerHTML && (e.innerHTML = t.innerHTML), e;
-      }return "";
-    }, a.formatTime = function (t) {
-      var e = Math.floor(t);return 1e3 * e + (t - e);
-    }, e.default = a, t.exports = e.default;
+    Object.defineProperty(e, "__esModule", { value: !0 });var i = { createDom: function createDom() {
+        var t = arguments.length > 0 && void 0 !== arguments[0] ? arguments[0] : "div",
+            e = arguments.length > 1 && void 0 !== arguments[1] ? arguments[1] : "",
+            n = arguments.length > 2 && void 0 !== arguments[2] ? arguments[2] : {},
+            i = arguments.length > 3 && void 0 !== arguments[3] ? arguments[3] : "",
+            o = document.createElement(t);return o.className = i, o.innerHTML = e, Object.keys(n).forEach(function (e) {
+          var i = e,
+              r = n[e];"video" === t || "audio" === t ? r && o.setAttribute(i, r) : o.setAttribute(i, r);
+        }), o;
+      }, hasClass: function hasClass(t, e) {
+        return t.classList ? Array.prototype.some.call(t.classList, function (t) {
+          return t === e;
+        }) : !!t.className.match(new RegExp("(\\s|^)" + e + "(\\s|$)"));
+      }, addClass: function addClass(t, e) {
+        t.classList ? e.replace(/(^\s+|\s+$)/g, "").split(/\s+/g).forEach(function (e) {
+          e && t.classList.add(e);
+        }) : i.hasClass(t, e) || (t.className += " " + e);
+      }, removeClass: function removeClass(t, e) {
+        t.classList ? e.split(/\s+/g).forEach(function (e) {
+          t.classList.remove(e);
+        }) : i.hasClass(t, e) && e.split(/\s+/g).forEach(function (e) {
+          var n = new RegExp("(\\s|^)" + e + "(\\s|$)");t.className = t.className.replace(n, " ");
+        });
+      }, toggleClass: function toggleClass(t, e) {
+        e.split(/\s+/g).forEach(function (e) {
+          i.hasClass(t, e) ? i.removeClass(t, e) : i.addClass(t, e);
+        });
+      }, findDom: function findDom() {
+        var t = arguments.length > 0 && void 0 !== arguments[0] ? arguments[0] : document,
+            e = arguments[1],
+            n = void 0;try {
+          n = t.querySelector(e);
+        } catch (i) {
+          e.startsWith("#") && (n = t.getElementById(e.slice(1)));
+        }return n;
+      }, deepCopy: function deepCopy(t, e) {
+        if ("Object" === i.typeOf(e) && "Object" === i.typeOf(t)) return Object.keys(e).forEach(function (n) {
+          "Object" !== i.typeOf(e[n]) || e[n] instanceof Node ? "Array" === i.typeOf(e[n]) ? t[n] = "Array" === i.typeOf(t[n]) ? t[n].concat(e[n]) : e[n] : t[n] = e[n] : t[n] ? i.deepCopy(t[n], e[n]) : t[n] = e[n];
+        }), t;
+      }, typeOf: function typeOf(t) {
+        return Object.prototype.toString.call(t).match(/([^\s.*]+)(?=]$)/g)[0];
+      }, copyDom: function copyDom(t) {
+        if (t && 1 === t.nodeType) {
+          var e = document.createElement(t.tagName);return Array.prototype.forEach.call(t.attributes, function (t) {
+            e.setAttribute(t.name, t.value);
+          }), t.innerHTML && (e.innerHTML = t.innerHTML), e;
+        }return "";
+      }, formatTime: function formatTime(t) {
+        var e = Math.floor(t);return 1e3 * e + (t - e);
+      }, offInDestroy: function offInDestroy(t, e, n, i) {
+        t.once(i, function o() {
+          t.off(e, n), t.off(i, o);
+        });
+      }, on: function on(t, e, n, o) {
+        if (o) t.on(e, n), i.offInDestroy(t, e, n, o);else {
+          t.on(e, function i(o) {
+            n(o), t.off(e, i);
+          });
+        }
+      } };e.default = i, t.exports = e.default;
   }, function (t, e, n) {
     "use strict";
     var i = n(18)();t.exports = function (t) {
@@ -9027,21 +8072,22 @@ var _typeof = typeof Symbol === "function" && typeof Symbol.iterator === "symbol
         return n && t(e.prototype, n), i && t(e, i), e;
       };
     }(),
-        o = s(n(6)),
-        r = s(n(25)),
-        a = s(n(0));function s(t) {
+        o = u(n(6)),
+        r = u(n(25)),
+        a = u(n(29)),
+        s = u(n(0));function u(t) {
       return t && t.__esModule ? t : { default: t };
-    }var u = function () {
+    }var l = function () {
       function t(e) {
         !function (t, e) {
           if (!(t instanceof e)) throw new TypeError("Cannot call a class as a function");
-        }(this, t);var n = this;if (n.config = a.default.deepCopy({ overlap: !1, area: { start: 0, end: 1 }, live: !1, comments: [], direction: "r2l" }, e), n.hideArr = [], (0, o.default)(n), n.config.comments.forEach(function (t) {
+        }(this, t);var n = this;if (n.config = s.default.deepCopy({ overlap: !1, area: { start: 0, end: 1 }, live: !1, comments: [], direction: "r2l" }, e), n.hideArr = [], n.domObj = new a.default(), (0, o.default)(n), n.config.comments.forEach(function (t) {
           t.duration = t.duration ? t.duration : 5e3, t.mode || (t.mode = "scroll");
         }), !n.config.container || 1 !== n.config.container.nodeType) return n.emit("error", "container id can't be empty"), !1;if (n.container = n.config.container, n.config.containerStyle) {
           var i = n.config.containerStyle;Object.keys(i).forEach(function (t) {
             n.container.style[t] = i[t];
           });
-        }n.live = n.config.live, n.player = n.config.player, n.direction = n.config.direction, a.default.addClass(n.container, "danmu"), n.bulletBtn = new r.default(n), n.emit("ready");
+        }n.live = n.config.live, n.player = n.config.player, n.direction = n.config.direction, s.default.addClass(n.container, "danmu"), n.bulletBtn = new r.default(n), n.emit("ready");
       }return i(t, [{ key: "start", value: function value() {
           this.bulletBtn.main.start();
         } }, { key: "pause", value: function value() {
@@ -9050,6 +8096,10 @@ var _typeof = typeof Symbol === "function" && typeof Symbol.iterator === "symbol
           this.bulletBtn.main.play();
         } }, { key: "stop", value: function value() {
           this.bulletBtn.main.stop();
+        } }, { key: "destroy", value: function value() {
+          for (var t in this.stop(), this.bulletBtn.destroy(), this.domObj.destroy(), this) {
+            delete this[t];
+          }this.emit("destroy");
         } }, { key: "sendComment", value: function value(t) {
           t.duration || (t.duration = 15e3), t && t.id && t.duration && (t.el || t.txt) && (t.duration = t.duration ? t.duration : 5e3, t.style && (this.opacity && this.opacity !== t.style.opacity && (t.style.opacity = this.opacity), this.fontSize && this.fontSize !== t.style.fontSize && (t.style.fontSize = this.fontSize), this.like && (t.like = t.like ? t.like : this.like)), t.prior || t.realTime ? (this.bulletBtn.main.data.unshift(t), t.realTime && (this.bulletBtn.main.readData(), this.bulletBtn.main.dataHandle())) : this.bulletBtn.main.data.push(t));
         } }, { key: "setCommentID", value: function value(t, e) {
@@ -9119,7 +8169,7 @@ var _typeof = typeof Symbol === "function" && typeof Symbol.iterator === "symbol
         } }, { key: "resize", value: function value() {
           this.emit("channel_resize");
         } }]), t;
-    }();e.default = u, t.exports = e.default;
+    }();e.default = l, t.exports = e.default;
   }, function (t, e, n) {
     "use strict";
     var i,
@@ -9303,7 +8353,7 @@ var _typeof = typeof Symbol === "function" && typeof Symbol.iterator === "symbol
       };
     }(),
         o = a(n(0)),
-        r = a(n(27));function a(t) {
+        r = a(n(26));function a(t) {
       return t && t.__esModule ? t : { default: t };
     }var s = function () {
       function t(e) {
@@ -9312,6 +8362,10 @@ var _typeof = typeof Symbol === "function" && typeof Symbol.iterator === "symbol
         }(this, t), this.danmu = e, this.main = new r.default(e), e.config.defaultOff || this.main.start();
       }return i(t, [{ key: "createSwitch", value: function value() {
           var t = !(arguments.length > 0 && void 0 !== arguments[0]) || arguments[0];return this.switchBtn = o.default.createDom("dk-switch", '<span class="txt">弹</span>', {}, "danmu-switch " + (t ? "danmu-switch-active" : "")), this.switchBtn;
+        } }, { key: "destroy", value: function value() {
+          for (var t in this.main.destroy(), this) {
+            delete this[t];
+          }
         } }]), t;
     }();e.default = s, t.exports = e.default;
   }, function (t, e, n) {
@@ -9324,48 +8378,23 @@ var _typeof = typeof Symbol === "function" && typeof Symbol.iterator === "symbol
       }return function (e, n, i) {
         return n && t(e.prototype, n), i && t(e, i), e;
       };
-    }();var o = function () {
-      function t(e) {
-        !function (t, e) {
-          if (!(t instanceof e)) throw new TypeError("Cannot call a class as a function");
-        }(this, t), e = { initDOM: function initDOM() {
-            return document.createElement("div");
-          }, initSize: 10 }, this.init(e);
-      }return i(t, [{ key: "init", value: function value(t) {
-          this.idleList = [], this.usingList = [], this._id = 0, this.options = t, this._expand(t.initSize);
-        } }, { key: "use", value: function value() {
-          this.idleList.length || this._expand(1);var t = this.idleList.shift();return this.usingList.push(t), t;
-        } }, { key: "unuse", value: function value(t) {
-          var e = this.usingList.indexOf(t);e < 0 || (this.usingList.splice(e, 1), t.innerHTML = "", t.textcontent = "", t.style = "", this.idleList.push(t));
-        } }, { key: "_expand", value: function value(t) {
-          for (var e = 0; e < t; e++) {
-            this.idleList.push(this.options.initDOM(this._id++));
-          }
-        } }]), t;
-    }();e.default = o, t.exports = e.default;
-  }, function (t, e, n) {
-    "use strict";
-    Object.defineProperty(e, "__esModule", { value: !0 });var i = function () {
-      function t(t, e) {
-        for (var n = 0; n < e.length; n++) {
-          var i = e[n];i.enumerable = i.enumerable || !1, i.configurable = !0, "value" in i && (i.writable = !0), Object.defineProperty(t, i.key, i);
-        }
-      }return function (e, n, i) {
-        return n && t(e.prototype, n), i && t(e, i), e;
-      };
     }(),
-        o = s(n(28)),
-        r = s(n(29)),
+        o = s(n(27)),
+        r = s(n(28)),
         a = s(n(0));function s(t) {
       return t && t.__esModule ? t : { default: t };
     }var u = function () {
       function t(e) {
         !function (t, e) {
           if (!(t instanceof e)) throw new TypeError("Cannot call a class as a function");
-        }(this, t), this.danmu = e, this.container = e.container, this.channel = new o.default(e), this.data = [].concat(e.config.comments), this.playedData = [], this.queue = [], this.timer = null, this.retryTimer = null, this.retryStatus = "normal", this.interval = e.config.interval || 2e3, this.status = "idle", e.on("bullet_remove", this.updateQueue.bind(this));var n = this;this.danmu.on("changeDirection", function (t) {
+        }(this, t), this.danmu = e, this.container = e.container, this.channel = new o.default(e), this.data = [].concat(e.config.comments), this.playedData = [], this.queue = [], this.timer = null, this.retryTimer = null, this.retryStatus = "normal", this.interval = e.config.interval || 2e3, this.status = "idle", a.default.on(e, "bullet_remove", this.updateQueue.bind(this), "destroy");var n = this;a.default.on(this.danmu, "changeDirection", function (t) {
           n.danmu.direction = t;
-        }), this.nums = 0;
-      }return i(t, [{ key: "updateQueue", value: function value(t) {
+        }, "destroy"), this.nums = 0;
+      }return i(t, [{ key: "destroy", value: function value() {
+          for (var t in clearTimeout(this.dataHandleTimer), this.channel.destroy(), this.data = [], this) {
+            delete this[t];
+          }
+        } }, { key: "updateQueue", value: function value(t) {
           var e = this;e.queue.some(function (n, i) {
             return n.id === t.bullet.id && (e.queue.splice(i, 1), !0);
           });
@@ -9373,9 +8402,9 @@ var _typeof = typeof Symbol === "function" && typeof Symbol.iterator === "symbol
           e || (e = this), e.retryStatus = "normal", e.data.sort(function (t, e) {
             return t.start - e.start;
           });e.retryTimer || function t() {
-            "closed" === e.status && "stop" === e.retryStatus || ("playing" === e.status && (e.readData(), e.dataHandle()), "stop" === e.retryStatus && "paused" !== this.status || setTimeout(function () {
+            "closed" === e.status && "stop" === e.retryStatus || ("playing" === e.status && (e.readData(), e.dataHandle()), "stop" === e.retryStatus && "paused" !== this.status || (e.dataHandleTimer = setTimeout(function () {
               t();
-            }, e.interval - 1e3));
+            }, e.interval - 1e3)));
           }();
         } }, { key: "start", value: function value() {
           this.status = "playing", this.queue = [], this.container.innerHTML = "", this.channel.resetWithCb(this.init, this);
@@ -9418,7 +8447,8 @@ var _typeof = typeof Symbol === "function" && typeof Symbol.iterator === "symbol
     }();e.default = u, t.exports = e.default;
   }, function (t, e, n) {
     "use strict";
-    Object.defineProperty(e, "__esModule", { value: !0 });var i = function () {
+    Object.defineProperty(e, "__esModule", { value: !0 });var i,
+        o = function () {
       function t(t, e) {
         for (var n = 0; n < e.length; n++) {
           var i = e[n];i.enumerable = i.enumerable || !1, i.configurable = !0, "value" in i && (i.writable = !0), Object.defineProperty(t, i.key, i);
@@ -9426,21 +8456,27 @@ var _typeof = typeof Symbol === "function" && typeof Symbol.iterator === "symbol
       }return function (e, n, i) {
         return n && t(e.prototype, n), i && t(e, i), e;
       };
-    }();var o = function () {
+    }(),
+        r = n(0),
+        a = (i = r) && i.__esModule ? i : { default: i };var s = function () {
       function t(e) {
         !function (t, e) {
           if (!(t instanceof e)) throw new TypeError("Cannot call a class as a function");
-        }(this, t), this.danmu = e, this.reset();var n = this;this.danmu.on("bullet_remove", function (t) {
+        }(this, t), this.danmu = e, this.reset();var n = this;a.default.on(this.danmu, "bullet_remove", function (t) {
           n.removeBullet(t.bullet);
-        }), this.direction = e.direction, this.danmu.on("changeDirection", function (t) {
+        }, "destroy"), this.direction = e.direction, a.default.on(this.danmu, "changeDirection", function (t) {
           n.direction = t;
-        }), this.containerPos = this.danmu.container.getBoundingClientRect(), this.containerWidth = this.containerPos.width, this.containerHeight = this.containerPos.height, this.containerLeft = this.containerPos.left, this.containerRight = this.containerPos.right, this.danmu.on("channel_resize", function () {
+        }, "destroy"), this.containerPos = this.danmu.container.getBoundingClientRect(), this.containerWidth = this.containerPos.width, this.containerHeight = this.containerPos.height, this.containerLeft = this.containerPos.left, this.containerRight = this.containerPos.right, a.default.on(this.danmu, "channel_resize", function () {
           n.containerPos = n.danmu.container.getBoundingClientRect(), n.resizing || (n.containerWidth = n.containerPos.width, n.containerHeight = n.containerPos.height, n.containerLeft = n.containerPos.left, n.containerRight = n.containerPos.right, n.resize(!0));
-        });
-      }return i(t, [{ key: "resize", value: function value() {
+        }, "destroy");
+      }return o(t, [{ key: "destroy", value: function value() {
+          for (var t in clearTimeout(this.resizeTimer), clearTimeout(this.resetTimer), this.channels = [], this) {
+            delete this[t];
+          }
+        } }, { key: "resize", value: function value() {
           var t = arguments.length > 0 && void 0 !== arguments[0] && arguments[0],
               e = this.danmu.container,
-              n = this;n.resizing || (n.resizing = !0, setTimeout(function () {
+              n = this;n.resizing || (n.resizing = !0, this.resizeTimer = setTimeout(function () {
             n.danmu.bulletBtn.main.status;n.danmu.bulletBtn.main.data && n.danmu.bulletBtn.main.data.forEach(function (t) {
               t.bookChannelId && delete t.bookChannelId;
             });var i = e.getBoundingClientRect();n.width = i.width, n.height = i.height, n.danmu.config.area && n.danmu.config.area.start >= 0 && n.danmu.config.area.end >= n.danmu.config.area.start && ("b2t" === n.direction ? n.width = n.width * (n.danmu.config.area.end - n.danmu.config.area.start) : n.height = n.height * (n.danmu.config.area.end - n.danmu.config.area.start)), n.container = e;var o = n.danmu.config.channelSize || (/mobile/gi.test(navigator.userAgent) ? 10 : 12),
@@ -9559,28 +8595,28 @@ var _typeof = typeof Symbol === "function" && typeof Symbol.iterator === "symbol
               l = C;break;
             }
           }if (-1 !== l) {
-            for (var B = l, j = l + a; B < j; B++) {
+            for (var B = l, T = l + a; B < T; B++) {
               (u = i[B]).operating[t.mode] = !0, u.queue[t.mode].unshift(t), t.prior && delete u.bookId[t.mode], u.operating[t.mode] = !1;
             }if (t.prior) if (delete t.bookChannelId, n.player) n.bulletBtn.main.data.some(function (e) {
               return e.id === t.id && (delete e.bookChannelId, !0);
             });return t.channel_id = [l, a], "b2t" === e.direction ? (t.top = l * r, e.danmu.config.area && e.danmu.config.area.start && (t.top += e.containerWidth * e.danmu.config.area.start)) : (t.top = l * o, e.danmu.config.area && e.danmu.config.area.start && (t.top += e.containerHeight * e.danmu.config.area.start)), { result: t, message: "success" };
           }if (t.options.realTime) {
-            var E = 0,
-                P = null;if (e.danmu.bulletBtn.main.queue.forEach(function (t, n) {
-              t.el && t.el.getBoundingClientRect().right > e.containerPos.right && t.start >= E && (E = t.start, n, P = t);
-            }), P) {
-              t.channel_id = P.channel_id;for (var T = P.channel_id[0], z = P.channel_id[0] + P.channel_id[1]; T < z; T++) {
-                (u = i[T]).operating[t.mode] = !0, u.queue[t.mode].unshift(t), t.prior && delete u.bookId[t.mode], u.operating[t.mode] = !1;
-              }return t.top = P.top, e.danmu.config.area && e.danmu.config.area.start && (t.top += e.containerHeight * e.danmu.config.area.start), { result: t, message: "success" };
+            var j = 0,
+                E = null;if (e.danmu.bulletBtn.main.queue.forEach(function (t, n) {
+              t.el && t.el.getBoundingClientRect().right > e.containerPos.right && t.start >= j && (j = t.start, n, E = t);
+            }), E) {
+              t.channel_id = E.channel_id;for (var P = E.channel_id[0], z = E.channel_id[0] + E.channel_id[1]; P < z; P++) {
+                (u = i[P]).operating[t.mode] = !0, u.queue[t.mode].unshift(t), t.prior && delete u.bookId[t.mode], u.operating[t.mode] = !1;
+              }return t.top = E.top, e.danmu.config.area && e.danmu.config.area.start && (t.top += e.containerHeight * e.danmu.config.area.start), { result: t, message: "success" };
             }
           }if (t.prior) if (t.bookChannelId) {
             if (n.player) n.bulletBtn.main.data.some(function (e) {
               return e.id === t.id && (e.start += 2e3, !0);
             });
           } else {
-            l = -1;for (var q = 0, S = i.length - a; q <= S; q++) {
-              s = !0;for (var L = q; L < q + a; L++) {
-                if (i[L].bookId[t.mode]) {
+            l = -1;for (var q = 0, L = i.length - a; q <= L; q++) {
+              s = !0;for (var S = q; S < q + a; S++) {
+                if (i[S].bookId[t.mode]) {
                   s = !1;break;
                 }
               }if (s) {
@@ -9659,15 +8695,15 @@ var _typeof = typeof Symbol === "function" && typeof Symbol.iterator === "symbol
           }
         } }, { key: "reset", value: function value() {
           var t = this.danmu.container,
-              e = this;e.danmu.bulletBtn && e.danmu.bulletBtn.main ? e.danmu.bulletBtn.main.queue.forEach(function (t) {
+              e = this;e.danmu.bulletBtn && e.danmu.bulletBtn.main && e.danmu.bulletBtn.main.queue.forEach(function (t) {
             t.pauseMove(e.containerPos), t.remove();
-          }) : e.channels && e.channels.length > 0 && ["scroll", "top", "bottom"].forEach(function (t) {
+          }), e.channels && e.channels.length > 0 && ["scroll", "top", "bottom"].forEach(function (t) {
             for (var n = 0; n < e.channels.length; n++) {
               e.channels[n].queue[t].forEach(function (t) {
                 t.pauseMove(e.containerPos), t.remove();
               });
             }
-          }), setTimeout(function () {
+          }), this.resetTimer = setTimeout(function () {
             var n = t.getBoundingClientRect();e.width = n.width, e.height = n.height, e.danmu.config.area && e.danmu.config.area.start >= 0 && e.danmu.config.area.end >= e.danmu.config.area.start && ("b2t" === e.direction ? e.width = e.width * (e.danmu.config.area.end - e.danmu.config.area.start) : e.height = e.height * (e.danmu.config.area.end - e.danmu.config.area.start)), e.container = t;var i = e.danmu.config.channelSize || (/mobile/gi.test(navigator.userAgent) ? 10 : 12),
                 o = void 0;o = "b2t" === e.direction ? Math.floor(e.width / i) : Math.floor(e.height / i);for (var r = [], a = 0; a < o; a++) {
               r[a] = { id: a, queue: { scroll: [], top: [], bottom: [] }, operating: { scroll: !1, top: !1, bottom: !1 }, bookId: {} };
@@ -9686,7 +8722,7 @@ var _typeof = typeof Symbol === "function" && typeof Symbol.iterator === "symbol
             s[u] = { id: u, queue: { scroll: [], top: [], bottom: [] }, operating: { scroll: !1, top: !1, bottom: !1 }, bookId: {} };
           }i.channels = s, i.channelHeight = r, t && t(!0, e);
         } }]), t;
-    }();e.default = o, t.exports = e.default;
+    }();e.default = s, t.exports = e.default;
   }, function (t, e, n) {
     "use strict";
     Object.defineProperty(e, "__esModule", { value: !0 });var i,
@@ -9704,9 +8740,9 @@ var _typeof = typeof Symbol === "function" && typeof Symbol.iterator === "symbol
       function t(e, n) {
         !function (t, e) {
           if (!(t instanceof e)) throw new TypeError("Cannot call a class as a function");
-        }(this, t), this.danmu = e, this.options = n, this.duration = n.duration, this.moveV = n.moveV, this.id = n.id, this.container = e.container, this.start = n.start, this.prior = n.prior, this.color = n.color, this.bookChannelId = n.bookChannelId, this.direction = e.direction;var i = this;this.danmu.on("changeDirection", function (t) {
+        }(this, t), this.danmu = e, this.options = n, this.duration = n.duration, this.moveV = n.moveV, this.id = n.id, this.container = e.container, this.start = n.start, this.prior = n.prior, this.color = n.color, this.bookChannelId = n.bookChannelId, this.direction = e.direction;var i = this;this.onChangeDirection = function (t) {
           i.direction = t;
-        });var o = void 0;if (this.domObj = a.default.domObj, n.el && 1 === n.el.nodeType) (o = this.domObj.use()).appendChild(a.default.copyDom(n.el));else if ((o = this.domObj.use()).textContent = n.txt, n.style) {
+        }, this.danmu.on("changeDirection", this.onChangeDirection);var o = void 0;if (this.domObj = e.domObj, n.el && 1 === n.el.nodeType) (o = this.domObj.use()).appendChild(a.default.copyDom(n.el));else if ((o = this.domObj.use()).textContent = n.txt, n.style) {
           var r = n.style;Object.keys(r).forEach(function (t) {
             o.style[t] = r[t];
           });
@@ -9719,9 +8755,7 @@ var _typeof = typeof Symbol === "function" && typeof Symbol.iterator === "symbol
         } }, { key: "mouseoverFun", value: function value(t) {
           this.danmu.mouseControl && this.danmu.config.mouseControlPause || "waiting" === this.status || "end" === this.status || this.danmu.emit("bullet_hover", { bullet: this, event: t });
         } }, { key: "detach", value: function value() {
-          var t = this;t.container && t.el && t.domObj.unuse(t.el), t.danmu.off("changeDirection", function (e) {
-            t.direction = e;
-          });
+          this.container && this.el && this.domObj.unuse(this.el), this.danmu.off("changeDirection", this.onChangeDirection);
         } }, { key: "topInit", value: function value() {
           if ("b2t" === this.direction) {
             var t = this.containerPos;this.el.style.transformOrigin = "left top", this.el.style.transform = "translateX(-" + this.top + "px) translateY(" + t.height + "px) translateZ(0px) rotate(90deg)", this.el.style.transition = "transform 0s linear 0s";
@@ -9738,11 +8772,11 @@ var _typeof = typeof Symbol === "function" && typeof Symbol.iterator === "symbol
         } }, { key: "startMove", value: function value(t, e) {
           var n = this;if (n.hasMove || (n.danmu.emit("bullet_start", n), n.hasMove = !0), ("forcedPause" !== n.status || e) && this.el && "start" !== this.status) if (this.status = "start", this.el.style.willChange = "transform", "scroll" === this.mode) {
             if ("b2t" === this.direction) {
-              this.moveV = (t.height + this.height) / this.duration * 1e3;var i = (n.el.getBoundingClientRect().bottom - t.top) / this.moveV;this.el.style.transition = "transform " + i + "s linear 0s", setTimeout(function () {
+              this.moveV = (t.height + this.height) / this.duration * 1e3;var i = (n.el.getBoundingClientRect().bottom - t.top) / this.moveV;this.el.style.transition = "transform " + i + "s linear 0s", this.startMoveTimer = setTimeout(function () {
                 n.el && (n.el.style.transform = "translateX(-" + n.top + "px) translateY(-" + n.height + "px) translateZ(0px) rotate(90deg)", n.moveTime = new Date().getTime(), n.moveMoreS = n.el.getBoundingClientRect().top - t.top, n.moveContainerHeight = t.height, n.removeTimer = setTimeout(a, 1e3 * i));
               }, 20);
             } else {
-              this.moveV = (t.width + this.width) / this.duration * 1e3;var o = (n.el.getBoundingClientRect().right - t.left) / this.moveV;this.el.style.transition = "transform " + o + "s linear 0s", setTimeout(function () {
+              this.moveV = (t.width + this.width) / this.duration * 1e3;var o = (n.el.getBoundingClientRect().right - t.left) / this.moveV;this.el.style.transition = "transform " + o + "s linear 0s", this.startMoveTimer = setTimeout(function () {
                 n.el && (n.el.style.transform = "translateX(-" + (n.el.getBoundingClientRect().right - t.left) + "px) translateY(0px) translateZ(0px)", n.moveTime = new Date().getTime(), n.moveMoreS = n.el.getBoundingClientRect().left - t.left, n.moveContainerWidth = t.width, n.removeTimer = setTimeout(a, 1e3 * o));
               }, 20);
             }
@@ -9755,9 +8789,7 @@ var _typeof = typeof Symbol === "function" && typeof Symbol.iterator === "symbol
             } else n.status = "end", n.remove();
           }
         } }, { key: "remove", value: function value() {
-          var t = this;(this.removeTimer && clearTimeout(this.removeTimer), t.el && t.el.parentNode) && (t.el.style.willChange = "auto", this.danmu.off("changeDirection", function (e) {
-            t.direction = e;
-          }), this.domObj.unuse(t.el), t.el.parentNode.removeChild(t.el), t.el = null, t.danmu.emit("bullet_remove", { bullet: t }));
+          (this.removeTimer && clearTimeout(this.removeTimer), this.startMoveTimer && clearTimeout(this.startMoveTimer), this.el && this.el.parentNode) && (this.el.style.willChange = "auto", this.danmu.off("changeDirection", this.onChangeDirection), this.domObj.unuse(this.el), this.el.parentNode.removeChild(this.el), this.el = null, this.danmu.emit("bullet_remove", { bullet: this }));
         } }, { key: "setFontSize", value: function value(t) {
           this.el && (this.el.style.fontSize = t);
         } }, { key: "setLikeDom", value: function value(t, e) {
@@ -9770,6 +8802,43 @@ var _typeof = typeof Symbol === "function" && typeof Symbol.iterator === "symbol
           }return t;
         } }]), t;
     }();e.default = s, t.exports = e.default;
+  }, function (t, e, n) {
+    "use strict";
+    Object.defineProperty(e, "__esModule", { value: !0 });var i = function () {
+      function t(t, e) {
+        for (var n = 0; n < e.length; n++) {
+          var i = e[n];i.enumerable = i.enumerable || !1, i.configurable = !0, "value" in i && (i.writable = !0), Object.defineProperty(t, i.key, i);
+        }
+      }return function (e, n, i) {
+        return n && t(e.prototype, n), i && t(e, i), e;
+      };
+    }();var o = function () {
+      function t(e) {
+        !function (t, e) {
+          if (!(t instanceof e)) throw new TypeError("Cannot call a class as a function");
+        }(this, t), e = { initDOM: function initDOM() {
+            return document.createElement("div");
+          }, initSize: 10 }, this.init(e);
+      }return i(t, [{ key: "init", value: function value(t) {
+          this.idleList = [], this.usingList = [], this._id = 0, this.options = t, this._expand(t.initSize);
+        } }, { key: "use", value: function value() {
+          this.idleList.length || this._expand(1);var t = this.idleList.shift();return this.usingList.push(t), t;
+        } }, { key: "unuse", value: function value(t) {
+          var e = this.usingList.indexOf(t);e < 0 || (this.usingList.splice(e, 1), t.innerHTML = "", t.textcontent = "", t.style = "", this.idleList.push(t));
+        } }, { key: "_expand", value: function value(t) {
+          for (var e = 0; e < t; e++) {
+            this.idleList.push(this.options.initDOM(this._id++));
+          }
+        } }, { key: "destroy", value: function value() {
+          for (var t = 0; t < this.idleList.length; t++) {
+            this.idleList[t].innerHTML = "", this.idleList[t].textcontent = "", this.idleList[t].style = "";
+          }for (var e = 0; e < this.usingList.length; e++) {
+            this.usingList[e].innerHTML = "", this.usingList[e].textcontent = "", this.usingList[e].style = "";
+          }for (var n in this) {
+            delete this[n];
+          }
+        } }]), t;
+    }();e.default = o, t.exports = e.default;
   }, function (t, e, n) {
     var i = n(31);"string" == typeof i && (i = [[t.i, i, ""]]);var o = { hmr: !0, transform: void 0, insertInto: void 0 };n(33)(i, o);i.locals && (t.exports = i.locals);
   }, function (t, e, n) {
@@ -9920,10 +8989,10 @@ var _typeof = typeof Symbol === "function" && typeof Symbol.iterator === "symbol
   }]);
 });
 //# sourceMappingURL=index.js.map
-/* WEBPACK VAR INJECTION */}.call(this, __webpack_require__(97)(module)))
+/* WEBPACK VAR INJECTION */}.call(this, __webpack_require__(95)(module)))
 
 /***/ }),
-/* 97 */
+/* 95 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
@@ -9953,7 +9022,7 @@ module.exports = function (module) {
 };
 
 /***/ }),
-/* 98 */
+/* 96 */
 /***/ (function(module, __webpack_exports__, __webpack_require__) {
 
 "use strict";
@@ -9961,7 +9030,7 @@ __webpack_require__.r(__webpack_exports__);
 /* harmony default export */ __webpack_exports__["default"] = ("<svg xmlns=\"http://www.w3.org/2000/svg\" viewBox=\"0 0 40 40\" width=\"40\" height=\"40\">\n  <path fill=\"#f85959\" transform=\"scale(0.8 0.8)\" d=\"M36.5,18.73a1.19,1.19,0,0,0,1-1.14V16.33a1.2,1.2,0,0,0-1-1.13l-.61-.08a1.75,1.75,0,0,1-1.3-.86l-.21-.36-.2-.36A1.72,1.72,0,0,1,34,12l.23-.58a1.18,1.18,0,0,0-.5-1.42l-1.1-.62a1.18,1.18,0,0,0-1.47.3l-.39.51a1.82,1.82,0,0,1-1.41.72c-.44,0-1.88-.27-2.22-.7l-.39-.49a1.18,1.18,0,0,0-1.48-.28l-1.09.64a1.19,1.19,0,0,0-.47,1.43l.25.59a1.87,1.87,0,0,1-.08,1.58c-.26.37-1.17,1.5-1.71,1.58l-.63.09a1.19,1.19,0,0,0-1,1.14l0,1.27a1.17,1.17,0,0,0,1,1.12l.61.08a1.74,1.74,0,0,1,1.3.87l.21.36.2.35A1.69,1.69,0,0,1,24,22.08l-.23.59a1.19,1.19,0,0,0,.5,1.42l1.1.62a1.19,1.19,0,0,0,1.48-.31l.38-.5a1.83,1.83,0,0,1,1.41-.72c.44,0,1.88.25,2.22.69l.39.49a1.18,1.18,0,0,0,1.48.28L33.86,24a1.19,1.19,0,0,0,.47-1.43L34.09,22a1.84,1.84,0,0,1,.07-1.58c.26-.37,1.17-1.5,1.72-1.58ZM31,18.94a2.76,2.76,0,0,1-4.65-1.2A2.71,2.71,0,0,1,27,15.13a2.76,2.76,0,0,1,4.64,1.2A2.7,2.7,0,0,1,31,18.94Z\"/>\n  <path fill=\"#f85959\" transform=\"scale(0.8 0.8)\" d=\"M32,0H3.59A3.59,3.59,0,0,0,0,3.59v17A3.59,3.59,0,0,0,3.59,24.2H19.72a12.59,12.59,0,0,1-.81-1.2A11.73,11.73,0,0,1,35.54,7.28V3.59A3.59,3.59,0,0,0,32,0ZM13,14.18H4.29a1.52,1.52,0,0,1,0-3H13a1.52,1.52,0,0,1,0,3ZM16.45,8H4.29a1.51,1.51,0,0,1,0-3H16.45a1.51,1.51,0,1,1,0,3Z\"/>\n</svg>\n");
 
 /***/ }),
-/* 99 */
+/* 97 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
@@ -9998,7 +9067,7 @@ var s_pip = function s_pip() {
 _player2.default.install('s_pip', s_pip);
 
 /***/ }),
-/* 100 */
+/* 98 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
@@ -10008,7 +9077,7 @@ var _player = __webpack_require__(0);
 
 var _player2 = _interopRequireDefault(_player);
 
-var _playNext = __webpack_require__(101);
+var _playNext = __webpack_require__(99);
 
 var _playNext2 = _interopRequireDefault(_playNext);
 
@@ -10053,7 +9122,7 @@ var s_playNext = function s_playNext() {
 _player2.default.install('s_playNext', s_playNext);
 
 /***/ }),
-/* 101 */
+/* 99 */
 /***/ (function(module, __webpack_exports__, __webpack_require__) {
 
 "use strict";
@@ -10061,7 +9130,7 @@ __webpack_require__.r(__webpack_exports__);
 /* harmony default export */ __webpack_exports__["default"] = ("<svg xmlns=\"http://www.w3.org/2000/svg\" width=\"40\" height=\"40\" viewBox=\"0 0 40 40\">\n  <path transform=\"scale(0.038 0.028)\" d=\"M800 380v768h-128v-352l-320 320v-704l320 320v-352z\"></path>\n</svg>\n");
 
 /***/ }),
-/* 102 */
+/* 100 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
@@ -10071,7 +9140,7 @@ var _player = __webpack_require__(0);
 
 var _player2 = _interopRequireDefault(_player);
 
-var _rotate = __webpack_require__(103);
+var _rotate = __webpack_require__(101);
 
 var _rotate2 = _interopRequireDefault(_rotate);
 
@@ -10104,7 +9173,7 @@ var s_rotate = function s_rotate() {
 _player2.default.install('s_rotate', s_rotate);
 
 /***/ }),
-/* 103 */
+/* 101 */
 /***/ (function(module, __webpack_exports__, __webpack_require__) {
 
 "use strict";
@@ -10112,7 +9181,7 @@ __webpack_require__.r(__webpack_exports__);
 /* harmony default export */ __webpack_exports__["default"] = ("<svg xmlns=\"http://www.w3.org/2000/svg\" width=\"32\" height=\"32\" viewBox=\"0 0 40 40\" fill=\"none\">\n  <g clip-path=\"url(#clip0)\">\n    <path transform=\"scale(1.5 1.5)\" d=\"M11.6665 9.16663H4.1665C2.78579 9.16663 1.6665 10.2859 1.6665 11.6666V15.8333C1.6665 17.214 2.78579 18.3333 4.1665 18.3333H11.6665C13.0472 18.3333 14.1665 17.214 14.1665 15.8333V11.6666C14.1665 10.2859 13.0472 9.16663 11.6665 9.16663Z\" fill=\"white\"/>\n    <path transform=\"scale(1.5 1.5)\" fill-rule=\"evenodd\" clip-rule=\"evenodd\" d=\"M3.88148 4.06298C3.75371 4.21005 3.67667 4.40231 3.67749 4.61242C3.67847 4.87253 3.79852 5.10435 3.98581 5.25646L6.99111 8.05895C7.32771 8.37283 7.85502 8.35443 8.16891 8.01782C8.48279 7.68122 8.46437 7.15391 8.12778 6.84003L6.62061 5.43457L9.8198 5.4224C9.82848 5.42239 9.8372 5.42221 9.84591 5.4219C10.9714 5.38233 12.0885 5.6285 13.0931 6.13744C14.0976 6.64635 14.957 7.40148 15.5908 8.33234C16.2246 9.2632 16.6122 10.3394 16.7177 11.4606C16.823 12.5819 16.6427 13.7115 16.1934 14.7442C16.0098 15.1661 16.203 15.6571 16.6251 15.8408C17.0471 16.0243 17.5381 15.8311 17.7216 15.4091C18.2833 14.1183 18.5087 12.7063 18.3771 11.3047C18.2453 9.90318 17.7607 8.55792 16.9684 7.39433C16.1761 6.23073 15.1021 5.28683 13.8463 4.65065C12.5946 4.01651 11.203 3.70872 9.80072 3.75583L6.43415 3.76862L7.96326 2.12885C8.27715 1.79225 8.25872 1.26494 7.92213 0.951061C7.58553 0.63718 7.05822 0.655585 6.74433 0.99219L3.90268 4.0395C3.89545 4.04724 3.88841 4.05509 3.88154 4.06303L3.88148 4.06298Z\" fill=\"white\"/>\n  </g>\n  <defs>\n    <clipPath id=\"clip0\">\n      <rect width=\"40\" height=\"40\" fill=\"white\"/>\n    </clipPath>\n  </defs>\n</svg>\n");
 
 /***/ }),
-/* 104 */
+/* 102 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
@@ -10122,7 +9191,7 @@ var _player = __webpack_require__(0);
 
 var _player2 = _interopRequireDefault(_player);
 
-var _reload = __webpack_require__(105);
+var _reload = __webpack_require__(103);
 
 var _reload2 = _interopRequireDefault(_reload);
 
@@ -10155,7 +9224,7 @@ var s_reload = function s_reload() {
 _player2.default.install('s_reload', s_reload);
 
 /***/ }),
-/* 105 */
+/* 103 */
 /***/ (function(module, __webpack_exports__, __webpack_require__) {
 
 "use strict";
@@ -10163,7 +9232,7 @@ __webpack_require__.r(__webpack_exports__);
 /* harmony default export */ __webpack_exports__["default"] = ("<svg xmlns=\"http://www.w3.org/2000/svg\" width=\"28\" height=\"28\" viewBox=\"0 0 28 28\">\n    <path fill=\"#FFF\" fill-opacity=\"1\" fill-rule=\"nonzero\" d=\"M18.17 19.988a7.182 7.182 0 0 1-4.256 1.318 7.806 7.806 0 0 1-.595-.03c-.08-.008-.16-.021-.242-.031a8.004 8.004 0 0 1-.458-.071c-.094-.018-.185-.042-.276-.063a7.743 7.743 0 0 1-.439-.113c-.068-.022-.136-.047-.205-.07a7.03 7.03 0 0 1-.492-.181c-.037-.015-.072-.032-.108-.049a7.295 7.295 0 0 1-.554-.269l-.025-.012a7.347 7.347 0 0 1-2.111-1.753c-.03-.036-.057-.074-.086-.11a7.305 7.305 0 0 1-1.594-4.557h1.686a.123.123 0 0 0 .108-.064.119.119 0 0 0-.006-.125L5.684 9.532a.123.123 0 0 0-.103-.056.123.123 0 0 0-.102.056l-2.834 4.276a.121.121 0 0 0-.005.125c.022.04.064.064.107.064h1.687c0 2.025.627 3.902 1.693 5.454.013.021.022.044.037.066.11.159.233.305.352.455.043.057.085.116.13.171.175.213.36.413.55.61.02.018.036.038.054.055a9.447 9.447 0 0 0 2.91 1.996c.058.026.115.054.175.079.202.084.41.158.619.228.098.034.196.069.296.1.183.054.37.1.558.145.125.029.249.06.376.085.052.01.102.027.155.035.177.032.355.05.533.071.064.007.128.018.19.026.32.03.639.052.956.052a9.46 9.46 0 0 0 5.47-1.746 1.16 1.16 0 0 0 .282-1.608 1.143 1.143 0 0 0-1.6-.283zm5.397-5.991a9.604 9.604 0 0 0-1.685-5.441c-.016-.027-.026-.054-.043-.078-.132-.19-.276-.366-.419-.543-.017-.022-.032-.044-.05-.065a9.467 9.467 0 0 0-3.571-2.7l-.114-.051a11.2 11.2 0 0 0-.673-.248c-.082-.027-.163-.057-.247-.082a9.188 9.188 0 0 0-.6-.156c-.113-.026-.224-.055-.337-.077-.057-.011-.109-.028-.164-.037-.151-.027-.304-.039-.455-.058-.104-.013-.208-.03-.313-.04a10.05 10.05 0 0 0-.759-.039c-.045 0-.09-.007-.136-.007l-.025.003a9.45 9.45 0 0 0-5.46 1.737 1.16 1.16 0 0 0-.284 1.608c.363.523 1.08.65 1.6.284a7.182 7.182 0 0 1 4.222-1.32c.217.002.429.013.639.033.065.007.129.017.193.025.173.021.344.046.513.08.075.014.149.033.221.05.166.037.331.077.494.127l.152.051c.185.061.366.127.545.201l.054.025a7.308 7.308 0 0 1 2.741 2.067l.013.018a7.302 7.302 0 0 1 1.652 4.633h-1.686a.123.123 0 0 0-.108.064.12.12 0 0 0 .006.124l2.834 4.277c.022.033.06.054.103.054.042 0 .08-.021.102-.054l2.833-4.277a.12.12 0 0 0 .005-.124.123.123 0 0 0-.108-.064h-1.685z\"/>\n</svg>\n");
 
 /***/ }),
-/* 106 */
+/* 104 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
@@ -10199,7 +9268,7 @@ var s_screenShot = function s_screenShot() {
 _player2.default.install('s_screenShot', s_screenShot);
 
 /***/ }),
-/* 107 */
+/* 105 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
@@ -10364,7 +9433,7 @@ var s_textTrack = function s_textTrack() {
 _player2.default.install('s_textTrack', s_textTrack);
 
 /***/ }),
-/* 108 */
+/* 106 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
@@ -10427,7 +9496,7 @@ var s_error = function s_error() {
 _player2.default.install('s_error', s_error);
 
 /***/ }),
-/* 109 */
+/* 107 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
