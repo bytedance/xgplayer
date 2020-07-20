@@ -4,6 +4,7 @@ import DanmuPanel from './danmuPanel'
 import DanmuIcon from './danmuIcon'
 
 const {Events} = Plugin
+const MIN_INTERVAL = 300
 
 class Danmu extends Plugin {
   constructor (args) {
@@ -11,6 +12,8 @@ class Danmu extends Plugin {
     this.danmujs = null;
     this.danmuPanel = null
     this.isOpen = false
+    this.seekCost = 0
+    this.intervalId = 0
   }
 
   static get pluginName () {
@@ -47,6 +50,32 @@ class Danmu extends Plugin {
 
     this.on(Events.PLAY, () => {
       this.danmujs && this.danmujs.play()
+    })
+
+    this.on(Events.SEEKING, () => {
+      this.seekCost = window.performance.now()
+      this.danmujs && this.danmujs.stop()
+    })
+
+    this.on(Events.SEEKED, () => {
+      if (!this.danmujs || !this.isOpen) {
+        return
+      }
+      console.log('this.seekCost:' + parseInt(window.performance.now() - this.seekCost, 10))
+      if (this.intervalId) {
+        clearTimeout(this.intervalId)
+        this.intervalId = null
+      }
+      const now = window.performance.now()
+      if (now - this.seekCost > MIN_INTERVAL) {
+        this.danmujs.start()
+      } else {
+        this.intervalId = setTimeout(() => {
+          this.danmujs.start()
+          clearTimeout(this.intervalId)
+          this.intervalId = null
+        }, MIN_INTERVAL)
+      }
     })
   }
 
@@ -118,9 +147,15 @@ class Danmu extends Plugin {
     if (this.isOpen || !this.danmujs) {
       return
     }
-    this.danmujs.start()
-    this.isOpen = true
     this.show()
+    // 避免弹幕弹层还没展开 导致轨道计算异常
+    setTimeout(() => {
+      this.danmujs.start()
+      if (this.player.paused) {
+        this.danmujs.pause()
+      }
+      this.isOpen = true
+    }, 0)
   }
 
   stop () {
@@ -132,8 +167,61 @@ class Danmu extends Plugin {
     this.hide()
   }
 
+  setCommentLike (id, data) {
+    this.danmujs && this.danmujs.setCommentLike(id, data)
+  }
+
+  // 按照id改变某一个弹幕的持续显示时间
+  setCommentDuration (id, duration) {
+    this.danmujs && this.danmujs.setCommentDuration(id, duration)
+  }
+
+  // 改变所有已加入队列弹幕的持续显示时间
+  setAllDuration (mode, duration) {
+    this.danmujs && this.danmujs.setAllDuration(mode, duration)
+  }
+
+  // 改变某一个弹幕的id
+  setCommentID (oldID, newID) {
+    this.danmujs && this.danmujs.setCommentID(oldID, newID)
+  }
+
+  // 屏蔽某一类弹幕(参数可选值 scroll | top | bottom | color)
+  hideMode (mode) {
+    this.danmujs && this.danmujs.hide(mode)
+  }
+
+  // 显示某一类弹幕(参数可选值 scroll | top | bottom | color)
+  showMode (mode) {
+    this.danmujs && this.danmujs.show(mode)
+  }
+
+  // 修改弹幕显示区域
+  setArea (area) {
+    this.danmujs && this.danmujs.setArea(area)
+  }
+
+  // 设置透明度
+  setOpacity (opacity) {
+    this.danmujs && this.danmujs.setOpacity(opacity)
+  }
+
+  // 设置字体
+  setFontSize (size, channelSize) {
+    this.danmujs && this.danmujs.setFontSize(size, channelSize)
+  }
+
   sendComment (comments) {
     this.danmujs && this.danmujs.sendComment(comments)
+  }
+
+  destoy () {
+    this.danmujs.stop()
+    this.danmujs.destroy()
+    this.danmuButton && this.danmuButton.__destroy()
+    this.danmuPanel && this.danmuPanel.__destroy()
+    this.danmuButton = null
+    this.danmuPanel = null
   }
 
   render () {

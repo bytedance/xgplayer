@@ -20,7 +20,6 @@
       color: #fff;
       text-shadow: 0 0 1px rgba(0,0,0,0.54);
       font-size: 17px;
-      font-family: PingFangSC-Medium;
       text-align: center;
       span {
         line-height: 24px;
@@ -76,7 +75,7 @@
   }
 }
 .xgplayer-mobile {
-  font-family: PingFangSC-Semibold;
+  font-family: PingFangSC-Regular;
   -webkit-tap-highlight-color: rgba(0,0,0,0);
   * {
     text-decoration: none;
@@ -110,4 +109,17 @@
     background-color: rgba(0,0,0,0);
   }
   /**/
+}
+
+@media only screen and (min-width: 480px) {
+  .xgplayer-mobile.xgplayer-is-fullscreen {
+    .xg-top-bar {
+      padding: 0 6%;
+    }
+
+    .inner-controls {
+      margin: 0 6%;
+      bottom: 15px;
+    }
+  }
 }

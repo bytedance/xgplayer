@@ -43,12 +43,18 @@ class Poster extends Plugin {
     })
   }
 
+  update (poster) {
+    if (!poster) {
+      return
+    }
+    this.config.poster = poster
+    this.root.style.backgroundImage = `url:${poster}`
+  }
+
   render () {
     const {poster} = this.config
-    if (!poster) {
-      return ''
-    }
-    return `<xg-poster class="xgplayer-poster" style="background-image:url(${poster})">
+    const style = poster ? `background-image:url(${poster});` : ''
+    return `<xg-poster class="xgplayer-poster" style="${style}">
     </xg-poster>`
   }
 }

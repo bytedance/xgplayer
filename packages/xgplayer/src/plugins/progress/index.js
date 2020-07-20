@@ -182,6 +182,7 @@ class Progress extends Plugin {
       } else {
         this.root.removeEventListener('mousemove', move)
         this.root.removeEventListener('mouseup', up)
+        this.root.removeEventListener('mouseleave', up)
       }
       Util.checkIsFunction(config.onMoveEnd) && config.onMoveEnd()
       this.computeWidth(e, false)
@@ -198,6 +199,7 @@ class Progress extends Plugin {
     } else {
       this.root.addEventListener('mousemove', move)
       this.root.addEventListener('mouseup', up)
+      this.root.addEventListener('mouseleave', up)
     }
     return true
   }

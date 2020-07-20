@@ -73,6 +73,8 @@ export default class DefinitionIcon extends OptionsIcon {
         // eslint-disable-next-line handle-callback-err
         playPromise.catch(err => {})
       }
+    } else {
+      player.pause()
     }
     player.emit(Events.AFTER_DEFINITION_CHANGE)
   }
