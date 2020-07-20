@@ -1,12 +1,9 @@
-import FlvDemuxer from 'xgplayer-transmuxer-demux-flv'
-import FetchLoader from 'xgplayer-transmuxer-loader-fetch'
-import EVENTS from 'xgplayer-transmuxer-constant-events'
-import Tracks from 'xgplayer-transmuxer-buffer-track'
-import { NalUnit } from 'xgplayer-transmuxer-codec-avc';
-import Stream from 'xgplayer-transmuxer-buffer-stream'
-import XgBuffer from 'xgplayer-transmuxer-buffer-xgbuffer'
-import { PageVisibility } from 'xgplayer-utils-sniffer';
+import { EVENTS, PageVisibility, FetchLoader } from 'xgplayer-helper-utils'
+import { avc } from 'xgplayer-helper-codec';
+import { FlvDemuxer } from 'xgplayer-helper-transmuxers'
+import { Buffer as XgBuffer, Tracks, Stream } from 'xgplayer-helper-models';
 import Player from 'xgplayer'
+const { NalUnit } = avc;
 
 const DEMUX_EVENTS = EVENTS.DEMUX_EVENTS;
 const LOADER_EVENTS = EVENTS.LOADER_EVENTS;
@@ -30,11 +27,9 @@ export default class FlvController {
     }
 
     this.bufferClearTimer = null;
-
   }
 
   init () {
-
     this.initComponents();
     this.initListeners()
   }
@@ -60,7 +55,6 @@ export default class FlvController {
     this.on(DEMUX_EVENTS.DEMUX_ERROR, this._handleDemuxError.bind(this))
     this.on(DEMUX_EVENTS.SEI_PARSED, this._handleSEIParsed.bind(this))
     this.on(BROWSER_EVENTS.VISIBILITY_CHANGE, this._handleVisibilityChange.bind(this))
-
   }
 
   _handleMediaInfo () {
@@ -73,7 +67,7 @@ export default class FlvController {
     this.emitTo('FLV_DEMUXER', DEMUX_EVENTS.DEMUX_START)
   }
 
-  _handleSEIParsed(sei) {
+  _handleSEIParsed (sei) {
     this._player.emit('SEI_PARSED', sei)
   }
 
@@ -93,7 +87,6 @@ export default class FlvController {
           offset += 4;
           newData.set(new Uint8Array(nal.body), offset);
           offset += nal.body.byteLength;
-
         })
 
         sample.data = newData;

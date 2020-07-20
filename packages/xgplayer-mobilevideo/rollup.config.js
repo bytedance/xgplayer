@@ -2,7 +2,7 @@ const commonRollup = require('../../rollup.config');
 const uglify = process.env.NODE_ENV === 'production';
 
 const config = {
-  name: 'MobileVideo',
+  name: 'MVideo',
   uglify: uglify,
   external: ['xgplayer'],
   globals: {

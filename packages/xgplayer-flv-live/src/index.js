@@ -1,6 +1,5 @@
 import Player from 'xgplayer'
-import EVENTS from 'xgplayer-transmuxer-constant-events'
-import Context from 'xgplayer-transmuxer-context';
+import { EVENTS, Context } from 'xgplayer-helper-utils'
 import FLV from './flv-live'
 
 const flvAllowedEvents = EVENTS.FlvAllowedEvents;

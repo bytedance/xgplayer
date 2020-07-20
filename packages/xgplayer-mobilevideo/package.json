@@ -1,42 +1,41 @@
 {
-  "name": "xgplayer-mobilevideo",
-  "version": "2.3.10-beta.12",
-  "description": "",
-  "main": "lib/index.js",
-  "module": "es/index.js",
-  "browser": "dist/index.min.js",
-  "scripts": {
-    "prepublishOnly": "npm run build",
-    "build": "npm run build:umd && npm run build:es && npm run build:lib",
-    "build:umd": "cross-env NODE_ENV=production rollup -c rollup.config.js",
-    "build:es": "rm -rf ./es && babel src --out-dir es",
-    "build:lib": "rm -rf ./lib &&babel src --out-dir lib --presets=es2015",
-    "dev": "rollup -c rollup.config.js",
-    "analyze": "cross-env NODE_ENV=production ANALYZE=1 rollup -c rollup.config.js",
-    "watch": "babel src --out-dir es --watch & babel src --out-dir lib --presets=es2015 --watch",
-    "watch:umd": "rollup -c rollup.config.js --watch"
-  },
-  "author": "",
-  "license": "ISC",
-  "babel": {
-    "presets": [
-      [
-        "env",
-        {
-          "targets": {
-            "chrome": 58,
-            "ie": 10
-          },
-          "modules": false
-        }
+    "name": "xgplayer-mobilevideo",
+    "version": "2.3.15",
+    "description": "",
+    "main": "lib/index.js",
+    "module": "es/index.js",
+    "browser": "dist/index.min.js",
+    "scripts": {
+      "prepare": "npm run build",
+      "build": "npm run build:umd && npm run build:es && npm run build:lib",
+      "build:umd": "cross-env NODE_ENV=production rollup -c rollup.config.js",
+      "build:es": "rm -rf ./es && babel src --out-dir es",
+      "build:lib": "rm -rf ./lib &&babel src --out-dir lib --presets=es2015",
+      "dev": "rollup -c rollup.config.js",
+      "analyze": "cross-env NODE_ENV=production ANALYZE=1 rollup -c rollup.config.js",
+      "watch": "babel src --out-dir es --watch & babel src --out-dir lib --presets=es2015 --watch & npm run watch:umd",
+      "watch:umd": "rollup -c rollup.config.js --watch"
+    },
+    "author": "",
+    "license": "ISC",
+    "babel": {
+      "presets": [
+        [
+          "env",
+          {
+            "targets": {
+              "chrome": 58,
+              "ie": 10
+            },
+            "modules": false
+          }
+        ]
       ]
-    ]
-  },
-  "dependencies": {
-    "xgplayer-transmuxer-buffer-stream": "^2.3.7",
-    "xgplayer-transmuxer-codec-avc": "^2.3.7"
-  },
-  "devDependencies": {
-    "cross-env": "^7.0.2"
+    },
+    "dependencies": {
+      "xgplayer-helper-utils": "2.3.15"
+    },
+    "devDependencies": {
+      "cross-env": "^6.0.3"
+    }
   }
-}
