@@ -36,7 +36,7 @@ class Time extends Plugin {
       this.onTimeUpdate()
     })
     this.on(Events.TIME_UPDATE, () => {
-      !this.player.isSeeking && this.onTimeUpdate()
+      this.onTimeUpdate()
     })
   }
 
@@ -49,7 +49,7 @@ class Time extends Plugin {
 
   onTimeUpdate () {
     const {player, config} = this
-    if (config.disable || this.isActiving || player.isSeeking) {
+    if (config.disable || this.isActiving) {
       return
     }
     const current = player.currentTime
@@ -72,8 +72,8 @@ class Time extends Plugin {
       return
     }
     const center = player.controls.center
-    this.centerCurDom = Util.createDom('xg-icon', '00:00', {style: 'margin-left:0px;margin-right:10px;'}, 'xgplayer-time')
-    this.centerDurDom = Util.createDom('xg-icon', '00:00', {}, 'xgplayer-time')
+    this.centerCurDom = Util.createDom('xg-icon', '00:00', {}, 'xgplayer-time left')
+    this.centerDurDom = Util.createDom('xg-icon', '00:00', {}, 'xgplayer-time right')
     center.children.length > 0 ? center.insertBefore(this.centerCurDom, center.children[0]) : center.appendChild(this.centerCurDom)
     center.appendChild(this.centerDurDom)
   }
@@ -123,7 +123,16 @@ class Time extends Plugin {
   }
 
   resetActive () {
-    this.isActiving = false
+    const {player} = this
+    const updateState = () => {
+      this.isActiving = false
+    }
+    this.off(Events.SEEKED, updateState)
+    if (player.isSeeking) {
+      this.once(Events.SEEKED, updateState)
+    } else {
+      this.isActiving = false
+    }
   }
 
   render () {

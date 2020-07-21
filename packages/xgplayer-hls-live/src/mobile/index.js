@@ -1,6 +1,6 @@
 import Player from 'xgplayer'
-import Context from 'xgplayer-transmuxer-context';
-import EVENTS from 'xgplayer-transmuxer-constant-events'
+import { EVENTS, Context } from 'xgplayer-helper-utils'
+
 import HLS from './hls-live-mobile'
 const hlsAllowedEvents = EVENTS.HlsAllowedEvents;
 const { BasePlugin } = Player;
@@ -63,7 +63,7 @@ class HlsPlayer extends BasePlugin {
 
   initHls () {
     const { player, config } = this;
-    this.hls = this.context.registry('HLS_CONTROLLER', HLS)({player, preloadTime: config.preloadTime, retryTimes: config.retryTimes })
+    this.hls = this.context.registry('HLS_CONTROLLER', HLS)({ player, preloadTime: config.preloadTime, retryTimes: config.retryTimes })
   }
 
   play () {
@@ -104,7 +104,7 @@ class HlsPlayer extends BasePlugin {
 
   switchURL (url) {
     const context = new Context(hlsAllowedEvents);
-    const hls = context.registry('FLV_CONTROLLER', FLV)(this.player)
+    const hls = context.registry('HLS_CONTROLLER', HLS)(this.player)
     context.init()
     this.this.hls = hls;
     this.initFlvBackupEvents(hls, context);

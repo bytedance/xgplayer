@@ -51,7 +51,8 @@ export default function getDefaultConfig () {
       progressColor: '', // 进度条底色
       playedColor: '', // 播放完成部分进度条底色
       cachedColor: '', // 缓存部分进度条底色
-      sliderBtnStyle: '' // 进度条滑块样式
+      sliderBtnStyle: '', // 进度条滑块样式
+      volumeColor: ''
     }
   }
 }

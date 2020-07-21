@@ -2,7 +2,9 @@
 //controls
 $controlHeight: 48px;
 //icon
-$iconMargin: 10px;
+$iconMargin: 16px;
+//
+$miniMargin: 12px;
 // tips
 $tipsColor: #fff;
 $tipsBgColor: rgba(0, 0, 0, 0.8);
@@ -31,33 +33,34 @@ $tipsFontsize: 12px;
     height: $controlHeight;
     z-index: 100;
     background-image: linear-gradient(180deg,transparent,rgba(0,0,0,.37),rgba(0,0,0,.75),rgba(0,0,0,.75));
-    .inner-controls {
-      position: absolute;
-      left: 0;
-      right: 0;
-      bottom: 5px;
-      height: 40px;
-    }
-    .left-grid,  .right-grid {
-      position: relative;
-      float: left;
-      display: flex;
-      height: 100%;
-      z-index: 36;
-    }
-    .right-grid {
-      float: right;
-      flex-direction: row-reverse;
-    }
-    .center {
-      display: block;
-      position: absolute;
-      left: 10px;
-      right: 10px;
-      outline: none;
-      top: -5px;
-      z-index: 35;
-    }
+  }
+
+  .inner-controls {
+    position: absolute;
+    left: 0;
+    right: 0;
+    bottom: 5px;
+    height: 40px;
+  }
+  .left-grid,  .right-grid {
+    position: relative;
+    float: left;
+    display: flex;
+    height: 100%;
+    z-index: 36;
+  }
+  .right-grid {
+    float: right;
+    flex-direction: row-reverse;
+  }
+  .center {
+    display: block;
+    position: absolute;
+    left: 0;
+    right: 0;
+    outline: none;
+    top: -5px;
+    z-index: 35;
   }
 
   .flex-controls {
@@ -72,9 +75,12 @@ $tipsFontsize: 12px;
       top: 0;
       height: 100%;
       justify-content: space-between;
-      padding: 0 10px;
       left: 0;
       right: 0;
+      xg-icon {
+        margin-left: $iconMargin;
+        margin-right: $iconMargin;
+      }
     }
   }
 
@@ -98,7 +104,6 @@ $tipsFontsize: 12px;
     position: absolute;
     background:$tipsBgColor;
     border-radius: 1px;
-    font-family: PingFangSC;
     font-size: $tipsFontsize;
     color: $tipsColor;
     padding: 4px 6px;
@@ -110,8 +115,6 @@ $tipsFontsize: 12px;
   xg-icon {
     position: relative;
     height: 40px;
-    top: 50%;
-    margin-top: -20px;
     margin-left: $iconMargin;
     cursor: pointer;
     box-sizing: border-box;
@@ -148,24 +151,51 @@ $tipsFontsize: 12px;
   }
 
   .xg-top-bar {
+    padding: 0 $iconMargin;
     xg-icon {
         position: relative;
         width: 34px;
         margin-top: 0;
-        margin-left: 0;
+        // margin-left: $iconMargin;
         top: 10px;
         left: 0;
-        margin-left: 10px;
     }
   }
+}
+// mobile
+.xgplayer-mobile {
+  xg-icon {
+    &:hover {
+      .xg-tips {
+        display: none;
+      }
+    }
+  }
+  .center {
+    left: $iconMargin;
+    right: $iconMargin;
+  }
+}
 
-  // mobile
-  &.xgplayer-mobile {
+@media only screen and (max-width: 480px) {
+  .xgplayer-mobile {
     xg-icon {
-      &:hover {
-        .xg-tips {
-          display: none;
-        }
+      margin-left: $miniMargin;
+    }
+
+    .xg-top-bar {
+      padding: 0 $miniMargin;
+    }
+
+    .right-grid {
+      xg-icon {
+        margin-right: $miniMargin;
+      }
+    }
+    .flex-controls .center {
+      xg-icon {
+        margin-left: $miniMargin;
+        margin-right: $miniMargin;
       }
     }
   }

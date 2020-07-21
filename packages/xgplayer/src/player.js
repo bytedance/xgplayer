@@ -156,7 +156,7 @@ class Player extends Proxy {
     }
 
     FULLSCREEN_EVENTS.forEach(item => {
-      document.addEventListener(item, this.onFullscreenChange)
+      document && document.addEventListener(item, this.onFullscreenChange)
     })
 
     this.once('loadeddata', this.getVideoSize)

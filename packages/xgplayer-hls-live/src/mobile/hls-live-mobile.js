@@ -1,22 +1,19 @@
-import EVENTS from 'xgplayer-transmuxer-constant-events'
-import Tracks from 'xgplayer-transmuxer-buffer-track'
-import XgBuffer from 'xgplayer-transmuxer-buffer-xgbuffer'
-import Stream from 'xgplayer-transmuxer-buffer-stream'
-import FetchLoader from 'xgplayer-transmuxer-loader-fetch'
-import Crypto from 'xgplayer-utils-crypto';
+import { EVENTS, FetchLoader, Crypto } from 'xgplayer-helper-utils'
+import { TsDemuxer, M3U8Parser } from 'xgplayer-helper-transmuxers';
+import { hevc, avc } from 'xgplayer-helper-codec'
+import { Playlist, Buffer as XgBuffer, Tracks, Stream } from 'xgplayer-helper-models';
 
-import M3U8Parser from 'xgplayer-transmuxer-demux-m3u8';
-import TsDemuxer from 'xgplayer-transmuxer-demux-ts';
-import { NalUnit } from 'xgplayer-transmuxer-codec-avc';
-import { NalUnitHEVC } from 'xgplayer-transmuxer-codec-hevc';
-import Playlist from 'xgplayer-transmuxer-buffer-playlist';
-import Player from 'xgplayer';
+const { NalUnitHEVC } = hevc;
+const { NalUnit } = avc;
 
 const LOADER_EVENTS = EVENTS.LOADER_EVENTS;
 const DEMUX_EVENTS = EVENTS.DEMUX_EVENTS;
 const HLS_EVENTS = EVENTS.HLS_EVENTS;
 const CRYTO_EVENTS = EVENTS.CRYTO_EVENTS;
 const HLS_ERROR = 'HLS_ERROR';
+
+const MASTER_PLAYLIST_REGEX = /#EXT-X-STREAM-INF:([^\n\r]*)[\r\n]+([^\r\n]+)/g;
+
 class HlsLiveController {
   constructor (configs) {
     this.configs = Object.assign({}, configs);
@@ -179,7 +176,13 @@ class HlsLiveController {
       let mdata;
       try {
         this.m3u8Text = buffer.shift();
-        mdata = M3U8Parser.parse(this.m3u8Text, this.baseurl);
+        let result = MASTER_PLAYLIST_REGEX.exec(this.m3u8Text)
+        if (result && result[2]) {
+          // redirect
+          this.load(result[2])
+        } else {
+          mdata = M3U8Parser.parse(this.m3u8Text, this.baseurl);
+        }
       } catch (error) {
         this._onError('M3U8_PARSER_ERROR', 'M3U8_PARSER', error, false);
       }
@@ -212,6 +215,7 @@ class HlsLiveController {
       } else {
         this._m3u8Loaded(mdata);
       }
+
     } else if (buffer.TAG === 'TS_BUFFER') {
       this.retrytimes = this.configs.retrytimes || 3;
       this._playlist.downloaded(this._tsloader.url, true);
@@ -242,7 +246,7 @@ class HlsLiveController {
     if (!this.preloadTime) {
       this.preloadTime = this._playlist.targetduration ? this._playlist.targetduration : 5;
     }
-    if (this._playlist.fragLength > 0 && this._playlist.sequence < mdata.sequence) {
+    if (this._playlist.fragLength > 0) {
       this.retrytimes = this.configs.retrytimes || 3;
     } else {
       if (this.retrytimes > 0) {
@@ -257,14 +261,8 @@ class HlsLiveController {
     }
   }
   _checkStatus () {
-    if (this._player.paused) {
+    if (this.retrytimes < 1 && (new Date().getTime() - this._lastCheck < 10000)) {
       return;
-    }
-
-    if (this.retrytimes < 1 && (new Date().getTime() - this._lastCheck < 4000)) {
-      return;
-    } else if (this.retrytimes < 1) {
-      window.clearInterval(this._timmer);
     }
     this._lastCheck = new Date().getTime();
     if (this._player.buffered.length < 1) {
@@ -272,16 +270,11 @@ class HlsLiveController {
     } else {
       // Check for load.
       let currentTime = this._player.currentTime;
-      let bufferstart = this._player.buffered.start(this._player.buffered.length - 1);
       if (this._player.readyState <= 2) {
-        if (currentTime < bufferstart) {
-          this._player.currentTime = bufferstart;
-          currentTime = bufferstart;
-        } else {
-          this._preload();
-        }
+        this._preload();
       }
       let bufferend = this._player.buffered.end(this._player.buffered.length - 1);
+
       if (currentTime > bufferend - this.preloadTime) {
         this._preload();
       }

@@ -95,7 +95,7 @@ function registerTextObj (textConfig, plugin) {
     Object.defineProperty(plugin.langText, key, {
       get: () => {
         let lang = plugin.lang
-        return textConfig[key][lang]
+        return textConfig[key][lang] || textConfig[key]['zh']
       }
     })
   })
