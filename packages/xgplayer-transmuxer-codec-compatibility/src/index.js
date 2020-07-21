@@ -230,7 +230,7 @@ class Compatibility {
 
     let _firstSample = audioSamples[0]
 
-    if (!first && (this.nextAudioDts === null && _firstSample.options.start)) {
+    if (!first && (this.nextAudioDts === null && _firstSample.options && _firstSample.options.start)) {
       if (streamChangeStart) {
         streamChangeStart = _firstSample.options.start;
       }
@@ -412,6 +412,7 @@ class Compatibility {
     }
     this.emit(REMUX_EVENTS.DETECT_CHANGE_STREAM_DISCONTINUE)
     this._audioLargeGap = 0;
+    const cacheNextAudioDts = this.nextAudioDts
     this.nextAudioDts = null;
     const firstPartSamples = samples.slice(0, changeIdx);
     const secondPartSamples = samples.slice(changeIdx);
@@ -421,7 +422,7 @@ class Compatibility {
     if (changeSample.options && changeSample.options.start) {
       streamChangeStart = changeSample.options.start;
     } else {
-      streamChangeStart = prevDts - this.audioDtsBase;
+      streamChangeStart = cacheNextAudioDts;
       changeSample.options.isContinue = true;
     }
 
