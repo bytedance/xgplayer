@@ -55,7 +55,8 @@ export default class HlsLivePlayer extends BasePlugin {
       this.player.config.url = url
       this._context.destroy();
       this._context = null;
-      this.player.currentTime = 0;
+      this.player.video.currentTime = 0;
+      this.played = false;
 
       if (!this.player.paused) {
         this.player.pause()
@@ -67,6 +68,8 @@ export default class HlsLivePlayer extends BasePlugin {
       }
 
       this.player.started = false;
+      this.player.hasStart = false;
+      this._context = new Context(HlsAllowedEvents);
       this.player.start()
     })
   }

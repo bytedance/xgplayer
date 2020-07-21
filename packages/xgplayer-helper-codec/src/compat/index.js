@@ -283,7 +283,7 @@ class Compatibility {
 
     logger.log(this.TAG, `doFixAudio::  _audioLargeGap: ${this._audioLargeGap}, streamChangeStart:${streamChangeStart} ,  nextAudioDts:${this.nextAudioDts},  audio: firstDTS:${_firstSample.dts} ,firstPTS:${_firstSample.pts} ,lastDTS:${audioSamples[samplesLen - 1].dts} , lastPTS: ${audioSamples[samplesLen - 1].pts}`);
 
-    if (!first && (this.nextAudioDts === null && _firstSample.options.start)) {
+    if (!first && (this.nextAudioDts === null && _firstSample.options && _firstSample.options.start)) {
       if (streamChangeStart !== undefined) {
         streamChangeStart = _firstSample.options.start;
       }
