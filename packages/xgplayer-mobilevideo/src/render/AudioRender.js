@@ -1,22 +1,22 @@
-import EventEmitter from "events";
-import { logger } from "xgplayer-helper-utils";
-import Events from "../events";
-import AudioTimeRange from "./AudioTimeRange";
-import { initBgSilenceAudio, playSlienceAudio } from "./audio-helper";
+import EventEmitter from 'events';
+import {logger} from 'xgplayer-helper-utils';
+import Events from '../events';
+import AudioTimeRange from './AudioTimeRange';
+import {initBgSilenceAudio, playSlienceAudio} from './audio-helper';
 
 const AudioContext = window.AudioContext || window.webkitAudioContext;
 
 const MEDIA_ERR_DECODE = 3;
 
 const ERROR_MSG = {
-  INIT_AUDIO_ERR: "create new AudioContext error",
-  DECODE_ERR: "audio data decode error",
+  INIT_AUDIO_ERR: 'create new AudioContext error',
+  DECODE_ERR: 'audio data decode error'
 };
 
 export default class AudioRender extends EventEmitter {
-  constructor(config, parent) {
+  constructor (config, parent) {
     super();
-    this.TAG = "AudioRender";
+    this.TAG = 'AudioRender';
     this._config = config;
     this._parent = parent;
     this._timeRange = new AudioTimeRange();
@@ -30,51 +30,51 @@ export default class AudioRender extends EventEmitter {
     this._bindEvents();
   }
 
-  get currentTime() {
+  get currentTime () {
     if (!this._audioCtx) return 0;
     return this._audioCtx.currentTime;
   }
 
-  get duration() {
+  get duration () {
     return this._timeRange.duration;
   }
 
-  get preloadTime() {
+  get preloadTime () {
     return this._config.preloadTime === Infinity ? 3 : this._config.preloadTime;
   }
 
-  get timescale() {
+  get timescale () {
     if (!this._meta) return 1000;
     return this._meta.timescale || 1000;
   }
 
-  get buffered() {
+  get buffered () {
     return this._timeRange.buffered;
   }
 
-  get ctxState() {
+  get ctxState () {
     return this._audioCtx.state;
   }
 
-  resume() {
+  resume () {
     return this._audioCtx.resume();
   }
 
-  _assembleErr(msg) {
+  _assembleErr (msg) {
     let err = new Error(msg);
     err.code = MEDIA_ERR_DECODE;
     return err;
   }
 
-  _initAudioCtx(volume) {
+  _initAudioCtx (volume) {
     this._audioCtx = new AudioContext();
     if (!this._audioCtx) {
-      logger.warn(this.TAG, "create webaudio error!");
-      //AudioRender在Timeline constructor中实例化,timeline error handler还未绑定,异步触发
+      logger.warn(this.TAG, 'create webaudio error!');
+      // AudioRender在Timeline constructor中实例化,timeline error handler还未绑定,异步触发
       setTimeout(() => {
         this._emitTimelineEvents(
           Events.TIMELINE.PLAY_EVENT,
-          "error",
+          'error',
           this._assembleErr(ERROR_MSG.INIT_AUDIO_ERR)
         );
       });
@@ -86,24 +86,22 @@ export default class AudioRender extends EventEmitter {
     this._audioCtx.suspend();
   }
 
-  _emitTimelineEvents(e, v, d) {
+  _emitTimelineEvents (e, v, d) {
     this._parent.emit(e, v, d);
   }
 
-  _bindEvents() {
-    this._audioCtx.addEventListener("statechange", () => {
+  _bindEvents () {
+    this._audioCtx.addEventListener('statechange', () => {
       if (!this._audioCtx) return;
-      if (this._audioCtx.state === "running") {
-        this._emitTimelineEvents(Events.TIMELINE.PLAY_EVENT, Events.VIDEO_EVENTS.PLAY);
+      if (this._audioCtx.state === 'running') {
         this._emitTimelineEvents(Events.TIMELINE.PLAY_EVENT, Events.VIDEO_EVENTS.PLAYING);
-        return;
       }
     });
 
     this._parent.on(Events.TIMELINE.SET_METADATA, (type, meta) => {
-      if (type == "video") return;
+      if (type === 'video') return;
       if (this._noAudio) return;
-      logger.warn(this.TAG, "audio set metadata");
+      logger.warn(this.TAG, 'audio set metadata');
       this._meta = meta;
     });
 
@@ -138,10 +136,10 @@ export default class AudioRender extends EventEmitter {
   }
 
   // receive new compressed samples
-  _appendChunk(_, audioTrack) {
+  _appendChunk (_, audioTrack) {
     if (this._noAudio) return;
 
-    let { samples, meta } = audioTrack;
+    let {samples, meta} = audioTrack;
 
     if (meta && samples.length) {
       this._sampleQueue = this._sampleQueue.concat(samples);
@@ -150,7 +148,7 @@ export default class AudioRender extends EventEmitter {
     }
   }
 
-  _checkMetaChange(sampleQueue, len) {
+  _checkMetaChange (sampleQueue, len) {
     let index = -1;
     for (let i = 0; i < len; i++) {
       let op = sampleQueue[i].options;
@@ -166,20 +164,21 @@ export default class AudioRender extends EventEmitter {
     return index;
   }
 
-  _assembleAAC() {
+  _assembleAAC () {
     let len = this._sampleQueue.length;
     let samp0 = this._sampleQueue[0];
     let sampLast = this._sampleQueue[len - 1];
     let metaChangeIndex = this._checkMetaChange(this._sampleQueue, len);
 
-    if (metaChangeIndex == -1) {
-      if ((sampLast.dts - samp0.dts) / this.timescale < this.preloadTime)
+    if (metaChangeIndex === -1) {
+      if ((sampLast.dts - samp0.dts) / this.timescale < this.preloadTime) {
         return;
+      }
     }
 
     let toDecode;
 
-    if (metaChangeIndex == -1) {
+    if (metaChangeIndex === -1) {
       toDecode = this._sampleQueue;
       this._sampleQueue = [];
     } else {
@@ -201,10 +200,15 @@ export default class AudioRender extends EventEmitter {
     this._audioCtx.decodeAudioData(
       chunkBuffer.buffer,
       (uncompress) => {
+        let _source = this._audioCtx.createBufferSource();
+        _source.buffer = uncompress;
+        _source.loop = false;
         this._timeRange.append(
-          uncompress,
-          metaChangeIndex == -1 ? samp0.dts : 0
+          _source,
+          uncompress.duration,
+          metaChangeIndex === -1 ? samp0.dts : 0
         );
+
         if (!this._ready) {
           // init background Audio ele
           initBgSilenceAudio();
@@ -216,14 +220,14 @@ export default class AudioRender extends EventEmitter {
       () => {
         this._emitTimelineEvents(
           Events.TIMELINE.PLAY_EVENT,
-          "error",
+          'error',
           this._assembleErr(ERROR_MSG.DECODE_ERR)
         );
       }
     );
   }
 
-  _onSourceBufferEnded() {
+  _onSourceBufferEnded () {
     if (logger.long) {
       logger.log(
         this.TAG,
@@ -233,11 +237,15 @@ export default class AudioRender extends EventEmitter {
     this._startRender();
   }
 
-  _startRender() {
+  _startRender () {
     if (this._noAudio) return;
 
     playSlienceAudio();
-    this._audioCtx.resume();
+
+    if (this._audioCtx.state === 'suspended') {
+      this._audioCtx.resume();
+    }
+
     let buffer = this._timeRange.shift();
     if (!buffer) {
       this._ready = false;
@@ -245,28 +253,30 @@ export default class AudioRender extends EventEmitter {
       this.emit(Events.AUDIO.AUDIO_WAITING);
       return;
     }
+
+    this._source = null;
+
+    let _source = buffer.source;
+    // 保存引用,移动浏览器下,对source的回收机制有差异，不保存引用会提前回收,导致ended事件不触发
+    this._source = _source;
+    _source.addEventListener('ended', this._onSourceBufferEnded);
+    _source.connect(this._gainNode);
+    _source.start();
+
     if (buffer.startDts) {
       this._emitTimelineEvents(Events.TIMELINE.SYNC_DTS, buffer.startDts);
     }
-    let _source = this._audioCtx.createBufferSource();
-    // 保存引用,移动浏览器下,对source的回收机制有差异，不保存引用会提前回收,导致ended事件不触发
-    this._source = _source;
-    _source.buffer = buffer.buffer;
-    _source.loop = false;
-    _source.addEventListener("ended", this._onSourceBufferEnded);
-    _source.connect(this._gainNode);
-    _source.start(0);
   }
 
-  _destroy() {
-    logger.log(this.TAG, "destroy audio...");
+  _destroy () {
+    logger.log(this.TAG, 'destroy audio...');
     this._audioCtx.close();
     this._audioCtx = null;
     this._sampleQueue = null;
     this._timeRange = null;
   }
 
-  static getAACData(meta, sample) {
+  static getAACData (meta, sample) {
     let buffer = new Uint8Array(sample.data.byteLength + 7);
     let adts = AudioRender.getAdts(meta, sample.data);
     buffer.set(adts);
@@ -274,7 +284,7 @@ export default class AudioRender extends EventEmitter {
     return buffer;
   }
 
-  static combileData(samples) {
+  static combileData (samples) {
     // get length
     let length = 0;
     for (let i = 0, k = samples.length; i < k; i++) {
@@ -291,7 +301,7 @@ export default class AudioRender extends EventEmitter {
     return ret;
   }
 
-  static getAdts(meta, data) {
+  static getAdts (meta, data) {
     let adts = new Uint8Array(7);
 
     // 设置同步位 0xfff 12bit

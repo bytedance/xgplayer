@@ -1,6 +1,6 @@
 {
   "name": "xgplayer-helper-transmuxers",
-  "version": "2.3.15",
+  "version": "2.3.16-beta.1",
   "description": "",
   "main": "lib/index.js",
   "module": "es/index.js",
@@ -24,8 +24,8 @@
     ]
   },
   "dependencies": {
-    "xgplayer-helper-utils": "2.3.15",
-    "xgplayer-helper-codec": "2.3.15",
-    "xgplayer-helper-models": "2.3.15"
+    "xgplayer-helper-utils": "2.3.16-beta.1",
+    "xgplayer-helper-codec": "2.3.16-beta.1",
+    "xgplayer-helper-models": "2.3.16-beta.1"
   }
 }

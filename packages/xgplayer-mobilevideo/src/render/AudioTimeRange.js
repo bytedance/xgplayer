@@ -1,37 +1,34 @@
+export default class AudioTimeRange {
 
+  constructor () {
+    this._buffers = [];
+    this._duration = 0;
+  }
 
-export default class AudioTimeRange{
+  get duration () {
+    return this._duration;
+  }
 
-    constructor(){
-        this._buffers = [];
-        this._duration = 0;
-    }
+  get buffered () {
+    return {
+      length: 1,
+      start: () => 0,
+      end: () => this._duration
+    };
+  }
 
-    get duration(){
-        return this._duration;
-    }
+  append (source, duration, startDts) {
+    this._buffers.push({
+      start: this._duration,
+      end: this._duration + duration,
+      startDts,
+      source
+    });
+    this._duration += duration;
+  }
 
-    get buffered(){
-        return {
-            length:1,
-            start:()=> 0,
-            end:()=> this._duration
-        }
-    }
-
-    append(audioBuffer,startDts){
-        this._buffers.push({
-            start:this._duration,
-            end:this._duration + audioBuffer.duration,
-            startDts,
-            buffer:audioBuffer
-        })
-        this._duration += audioBuffer.duration;
-    }
-
-
-    shift(){
-       return this._buffers.shift();
-    }
+  shift () {
+    return this._buffers.shift();
+  }
 
 }

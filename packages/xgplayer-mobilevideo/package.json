@@ -1,41 +1,47 @@
 {
-    "name": "xgplayer-mobilevideo",
-    "version": "2.3.15",
-    "description": "",
-    "main": "lib/index.js",
-    "module": "es/index.js",
-    "browser": "dist/index.min.js",
-    "scripts": {
-      "prepare": "npm run build",
-      "build": "npm run build:umd && npm run build:es && npm run build:lib",
-      "build:umd": "cross-env NODE_ENV=production rollup -c rollup.config.js",
-      "build:es": "rm -rf ./es && babel src --out-dir es",
-      "build:lib": "rm -rf ./lib &&babel src --out-dir lib --presets=es2015",
-      "dev": "rollup -c rollup.config.js",
-      "analyze": "cross-env NODE_ENV=production ANALYZE=1 rollup -c rollup.config.js",
-      "watch": "babel src --out-dir es --watch & babel src --out-dir lib --presets=es2015 --watch & npm run watch:umd",
-      "watch:umd": "rollup -c rollup.config.js --watch"
-    },
-    "author": "",
-    "license": "ISC",
-    "babel": {
-      "presets": [
-        [
-          "env",
-          {
-            "targets": {
-              "chrome": 58,
-              "ie": 10
-            },
-            "modules": false
-          }
-        ]
+  "name": "xgplayer-mobilevideo",
+  "version": "2.3.16-beta.2",
+  "description": "",
+  "main": "lib/index.js",
+  "module": "es/index.js",
+  "browser": "dist/index.min.js",
+  "scripts": {
+    "prepare": "npm run build",
+    "build": "npm run build:umd && npm run build:es && npm run build:lib",
+    "build:umd": "cross-env NODE_ENV=production rollup -c rollup.config.js",
+    "build:es": "rm -rf ./es && babel src --out-dir es",
+    "build:lib": "rm -rf ./lib &&babel src --out-dir lib --presets=es2015",
+    "dev": "rollup -c rollup.config.js",
+    "analyze": "cross-env NODE_ENV=production ANALYZE=1 rollup -c rollup.config.js",
+    "watch": "babel src --out-dir es --watch & babel src --out-dir lib --presets=es2015 --watch & npm run watch:umd",
+    "watch:umd": "rollup -c rollup.config.js --watch"
+  },
+  "author": "",
+  "license": "ISC",
+  "babel": {
+    "presets": [
+      [
+        "env",
+        {
+          "targets": {
+            "chrome": 58,
+            "ie": 10
+          },
+          "modules": false
+        }
       ]
-    },
-    "dependencies": {
-      "xgplayer-helper-utils": "2.3.15"
-    },
-    "devDependencies": {
-      "cross-env": "^6.0.3"
-    }
+    ],
+    "plugins": [
+      "transform-custom-element-classes",
+      "transform-es2015-classes"
+    ]
+  },
+  "dependencies": {
+    "xgplayer-helper-utils": "2.3.16-beta.1"
+  },
+  "devDependencies": {
+    "babel-plugin-transform-custom-element-classes": "^0.1.0",
+    "babel-plugin-transform-es2015-classes": "^6.24.1",
+    "cross-env": "^6.0.3"
   }
+}

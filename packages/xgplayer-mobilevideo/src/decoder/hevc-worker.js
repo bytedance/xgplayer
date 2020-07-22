@@ -1,7 +1,7 @@
 // 目前仅支持yuv420
 
-const H265_DECODER_URL =
-  "https://sf1-vcloudcdn.pstatp.com/obj/media-fe/decoder/h265/decoder_1592202936266.js";
+// const H265_DECODER_URL =
+//   "https://sf1-vcloudcdn.pstatp.com/obj/media-fe/decoder/h265/decoder_1592202936266.js";
 
 function shimImportScripts(src) {
   return fetch(src)
@@ -29,14 +29,6 @@ var Decoder = function (self) {
   );
 };
 
-Decoder.prototype.dot = function () {
-  this.ts = performance.now();
-};
-
-Decoder.prototype.elapse = function () {
-  return performance.now() - this.ts;
-};
-
 Decoder.prototype.toU8Array = function (ptr, length) {
   return Module.HEAPU8.subarray(ptr, ptr + length);
 };
@@ -53,10 +45,6 @@ Decoder.prototype.broadwayOnPictureDecoded = function (
   infoid,
   sliceType
 ) {
-  // this.self.postMessage({
-  //   msg: 'LOG',
-  //   log: `[decoded] info ${infoid}`
-  // })
   if (this.infolist[0] && this.infolist[0].isGop && sliceType !== 2) {
     this.self.postMessage({
       msg: "LOG",
@@ -84,15 +72,6 @@ Decoder.prototype.broadwayOnPictureDecoded = function (
   let datetemp = new Uint8Array(data.length);
   datetemp.set(data);
   let buffer = datetemp.buffer;
-  if (info) {
-    const now = Date.now();
-    this.self.postMessage({
-      msg: "LOG",
-      log: `[decoded] sample ${info.dts}, isGop: ${info.isGop} gopId: ${
-        info.gopId
-      } startAt ${info.decodeTime} endAt: ${now} cost ${now - info.decodeTime}`,
-    });
-  }
 
   this.self.postMessage(
     {
@@ -103,7 +82,6 @@ Decoder.prototype.broadwayOnPictureDecoded = function (
       uvLinesize,
       info,
       buffer,
-      elapse: this.elapse(),
     },
     [buffer]
   );
@@ -130,12 +108,6 @@ Decoder.prototype.decode = function (data, info) {
     Module._broadwayFlushStream(infoid);
   }
   Module.HEAPU8.set(data, this.offset);
-  // if (info) {
-  //   self.postMessage({
-  //     msg: "LOG",
-  //     log: `[decode] infoid ${infoid} sample ${info.dts},isGop: ${info.isGop} gopId: ${info.gopId} startAt${info.decodeTime}`,
-  //   });
-  // }
   Module._broadwayPlayStream(data.length, this.infoId);
 };
 
@@ -158,12 +130,12 @@ function onPostRun() {
   decoder.init();
 }
 
-function init(meta) {
+function init(url) {
   if (!decoder) {
     let task;
 
     if (!self.importScripts) {
-      task = shimImportScripts(H265_DECODER_URL);
+      task = shimImportScripts(url);
     } else {
       task = new Promise((resolve, reject) => {
         if (!self.console) {
@@ -175,7 +147,7 @@ function init(meta) {
           };
         }
         try {
-          self.importScripts(H265_DECODER_URL);
+          self.importScripts(url);
           resolve();
         } catch (e) {
           reject(e);
@@ -216,14 +188,13 @@ self.onmessage = function (e) {
           msg: "LOG",
           log: "worker inited",
         });
-        init();
+        init(data.url);
         break;
       case "updatemeta":
         self.meta = data.meta;
         decoder.updateMeta(data.meta);
         break;
       case "decode":
-        decoder.dot();
         decoder.decode(data.data, data.info);
         break;
       case "destory":

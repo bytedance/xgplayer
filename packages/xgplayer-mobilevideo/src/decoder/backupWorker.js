@@ -1,27 +1,24 @@
+const ASM_H264_DECODER_URL = 'https://sf1-vcloudcdn.pstatp.com/obj/media-fe/decoder/h264/decoder_asm_1589261792455.js';
+
 function shimImportScripts(src) {
-  return new Promise(function (resolve, reject) {
-    var s;
-    s = _shimWorkerDocument.createElement('script');
-    s.src = src;
-    s.onload = resolve;
-    s.onerror = reject;
-    _shimWorkerDocument.head.appendChild(s);
-  });
+  return fetch(src)
+    .then((res) => res.text())
+    .then((text) => {
+      eval(text);
+      self.Module = Module;
+      self.addOnPostRun = addOnPostRun;
+    });
 }
 
 var MAX_STREAM_BUFFER_LENGTH = 1024 * 1024;
+
 var Decoder = function (self) {
   this.inited = false;
   this.self = self;
   this.meta = this.self.meta;
   this.infolist = {};
-  if (self.importScripts) {
-    self.par_broadwayOnBroadwayInited = this.broadwayOnBroadwayInited.bind(this);
-    self.par_broadwayOnPictureDecoded = this.broadwayOnPictureDecoded.bind(this);
-  } else {
-    _shimWorkerWindow.par_broadwayOnBroadwayInited = this.broadwayOnBroadwayInited.bind(this);
-    _shimWorkerWindow.par_broadwayOnPictureDecoded = this.broadwayOnPictureDecoded.bind(this);
-  }
+  self.par_broadwayOnBroadwayInited = this.broadwayOnBroadwayInited.bind(this);
+  self.par_broadwayOnPictureDecoded = this.broadwayOnPictureDecoded.bind(this);
 
 }
 
@@ -107,7 +104,7 @@ function onPostRun () {
 function init (meta) {
   if (!decoder) {
     if (!self.importScripts) {
-      shimImportScripts('https://sf1-vcloudcdn.pstatp.com/obj/media-fe/decoder/h264/decoder_asm_1589261792455.js').then(() => {
+      shimImportScripts(ASM_H264_DECODER_URL).then(() => {
         self.postMessage({
           msg: 'LOG',
           log: Module
@@ -124,7 +121,7 @@ function init (meta) {
             error: function () {}
           }
         }
-        self.importScripts('https://sf1-vcloudcdn.pstatp.com/obj/media-fe/decoder/h264/decoder_asm_1589261792455.js');
+        self.importScripts(ASM_H264_DECODER_URL);
       } catch (e) {
         self.postMessage({
           msg: 'INIT_FAILED'

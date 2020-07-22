@@ -24,6 +24,22 @@ export default class TimeLine extends EventEmitter {
     return this._readyStatus.video && this._readyStatus.audio;
   }
 
+  get played() {
+    return {
+      length: this.currentTime ? 1 : 0,
+      start: () => 0,
+      end: () => this.currentTime,
+    };
+  }
+
+  get decodeFps(){
+    return this.videoRender.decodeFps;
+  }
+
+  get fps() {
+    return this.videoRender.fps;
+  }
+
   get currentTime() {
     if (this._noAudio) return this.videoRender.currentTime;
     return this.audioRender.currentTime;
@@ -40,10 +56,6 @@ export default class TimeLine extends EventEmitter {
 
   get readyState() {
     return this.videoRender.readyState;
-  }
-
-  get fps() {
-    return this.videoRender.fps;
   }
 
   get buffered() {
@@ -110,23 +122,36 @@ export default class TimeLine extends EventEmitter {
 
     this.videoRender.on(Events.VIDEO.VIDEO_READY, this.onVideoReady);
 
+    this.videoRender.on(Events.VIDEO.DECODE_LOW_FPS,()=>{
+      if(this.currentTime < 25) return;
+      
+      this.pause();
+      this.emit(Events.TIMELINE.LOW_DECODE);
+    })
+
+    this.on(Events.TIMELINE.NO_AUDIO, () => {
+      this._noAudio = true;
+      this._readyStatus.audio = true;
+    });
+
+
     this.on(Events.TIMELINE.PLAY_EVENT, (status) => {
-      if (status === "play") {
+      if (status === "playing") {
         this._paused = false;
+        // for 安卓暂停后切后台 再切回自动播放
+        if(!this.videoRender.running){
+            this.videoRender.emit(Events.VIDEO.AUTO_RUN)
+        }
       }
       if (status === "error") {
         this._reset = true;
       }
     });
 
-    this.on(Events.TIMELINE.NO_AUDIO, () => {
-      this._noAudio = true;
-      this._readyStatus.audio = true;
-    });
   }
 
   _startRender() {
-    this.emit(Events.READY);
+    this.emit(Events.TIMELINE.READY)
     if (this._noAudio) {
       this.emit(Events.TIMELINE.SYNC_DTS, 0);
     }
@@ -149,12 +174,14 @@ export default class TimeLine extends EventEmitter {
 
       setTimeout(() => {
         if (!resumed) {
+          logger.log(this.TAG,'audioCtx 不能自动播放');
           this._reset = true; // 不能自动播放
           reject();
           return;
         }
+        this.emit(Events.TIMELINE.PLAY_EVENT, Events.VIDEO_EVENTS.PLAY);
         resolve();
-      }, 10);
+      }, 30);
     });
   }
 

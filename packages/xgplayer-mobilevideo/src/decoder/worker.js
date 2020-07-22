@@ -1,5 +1,5 @@
-const H264_DECODER_URL =
-  "https://sf1-vcloudcdn.pstatp.com/obj/ttfe/media/decoder/h264/decoder_1583333072684.js";
+// const H264_DECODER_URL =
+//   "https://sf1-vcloudcdn.pstatp.com/obj/ttfe/media/decoder/h264/decoder_1583333072684.js";
 
 function shimImportScripts(src) {
   return fetch(src)
@@ -65,15 +65,6 @@ Decoder.prototype.broadwayOnPictureDecoded = function (
   datetemp.set(data);
   let buffer = datetemp.buffer;
 
-  // if (info) {
-  //   this.self.postMessage({
-  //     msg: "LOG",
-  //     log: `sample ${info.dts} decoded startAt${info.decodeTime} cost: ${
-  //       Date.now() - info.decodeTime
-  //     }`,
-  //   });
-  // }
-
   this.self.postMessage(
     {
       msg: "DECODED",
@@ -125,11 +116,11 @@ function onPostRun() {
   decoder.init();
 }
 
-function init(meta) {
+function init(url) {
   if (!decoder) {
     let task;
     if (!self.importScripts) {
-      task = shimImportScripts(H264_DECODER_URL);
+      task = shimImportScripts(url);
     } else {
       task = new Promise((resolve, reject) => {
         if (!self.console) {
@@ -141,7 +132,7 @@ function init(meta) {
           };
         }
         try {
-          self.importScripts(H264_DECODER_URL);
+          self.importScripts(url);
           resolve();
         } catch (e) {
           reject(e);
@@ -183,7 +174,7 @@ self.onmessage = function (e) {
           msg: "LOG",
           log: "worker inited",
         });
-        init();
+        init(data.url);
         break;
       case "updatemeta":
         self.meta = data.meta;

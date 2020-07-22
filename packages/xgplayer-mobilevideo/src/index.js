@@ -57,12 +57,6 @@ class MVideo extends HTMLElement {
   }
 
   play () {
-    if (!this.timeline || !this.timeline.ready) {
-      return new Promise((resolve) => {
-        this.timeline.once('READY', resolve);
-      })
-    }
-
     logger.log(this.TAG, 'mvideo called play(),to reset video:', this.timeline.needReset);
 
     // 暂停后起播
@@ -70,11 +64,15 @@ class MVideo extends HTMLElement {
     if (this.timeline.needReset) {
       this.destroy();
       this._init();
+    }
+
+    return new Promise((resolve,reject) => {
       this._innerDispatchEvent('waiting');
       this._innerDispatchEvent('play');
-      return Promise.resolve();
-    }
-    return this.timeline.play();
+      this.timeline.once('ready', ()=>{
+        this.timeline.play().then(resolve).catch(reject);
+      });
+    })
   }
 
   pause () {
@@ -90,11 +88,11 @@ class MVideo extends HTMLElement {
     if (!this.timeline) return;
     if (!this._logFirstFrame) {
       let vSam0 = videoTrack.samples[0];
-      let aSam0 = audioTrack.samples[0];
-      if (vSam0 && aSam0) {
+      let aSam0 = this.noAudio ? null : audioTrack.samples[0];
+      if ((vSam0 && aSam0) || (vSam0 && this.noAudio)) {
         logger.log(
           this.TAG,
-          `video firstDts:${vSam0.dts} , audio firstDts:${aSam0.dts}`
+          `video firstDts:${vSam0.dts} , audio firstDts:${this.noAudio ? 0 : aSam0.dts}`
         );
         this._logFirstFrame = true;
       }
@@ -205,8 +203,10 @@ class MVideo extends HTMLElement {
     this.timeline.emit(Events.TIMELINE.UPDATE_VOLUME, v ? 0 : this.volume);
   }
 
-  get currentTime () {
-    return this.timeline.currentTime;
+  get currentTime() {
+    let c = this.timeline.currentTime;
+    let d = this.timeline.duration;
+    return c > d ? d-0.5 :c;
   }
 
   set currentTime (v) {
@@ -229,7 +229,11 @@ class MVideo extends HTMLElement {
     return this.timeline.fps;
   }
 
-  get readyState () {
+  get decodeFps(){
+    return this.timeline.decodeFps;
+  }
+
+  get readyState() {
     return this.timeline.readyState;
   }
 

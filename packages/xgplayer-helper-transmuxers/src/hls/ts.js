@@ -135,6 +135,7 @@ class TsDemuxer {
       channelCount: pes.ES.channel,
       codec: 'mp4a.40.' + pes.ES.audioObjectType,
       originCodec: 'mp4a.40.' + pes.ES.originAudioObjectType,
+      originObjectType:pes.ES.originAudioObjectType,
       config: pes.ES.audioConfig,
       id: 2,
       sampleRateIndex: pes.ES.frequencyIndex
