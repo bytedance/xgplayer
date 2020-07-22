@@ -1,16 +1,7 @@
-import EVENTS from 'xgplayer-transmuxer-constant-events'
-import Mse from 'xgplayer-utils-mse'
-import Tracks from 'xgplayer-transmuxer-buffer-track'
-import PreSource from 'xgplayer-transmuxer-buffer-presource'
-import XgBuffer from 'xgplayer-transmuxer-buffer-xgbuffer'
-import FetchLoader from 'xgplayer-transmuxer-loader-fetch'
-import Compatibility from 'xgplayer-transmuxer-codec-compatibility'
-import Mp4Remuxer from 'xgplayer-transmuxer-remux-mp4'
-import Crypto from 'xgplayer-utils-crypto';
-
-import M3U8Parser from 'xgplayer-transmuxer-demux-m3u8';
-import TsDemuxer from 'xgplayer-transmuxer-demux-ts';
-import Playlist from 'xgplayer-transmuxer-buffer-playlist';
+import { EVENTS, Mse, Crypto, FetchLoader } from 'xgplayer-helper-utils'
+import { PreSource, Tracks, Buffer as XgBuffer, Playlist } from 'xgplayer-helper-models'
+import { Compat as Compatibility } from 'xgplayer-helper-codec';
+import { Mp4Remuxer, M3U8Parser, TsDemuxer } from 'xgplayer-helper-transmuxers'
 
 const LOADER_EVENTS = EVENTS.LOADER_EVENTS;
 const REMUX_EVENTS = EVENTS.REMUX_EVENTS;

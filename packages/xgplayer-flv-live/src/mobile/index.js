@@ -1,6 +1,5 @@
 import Player from 'xgplayer'
-import Context from 'xgplayer-transmuxer-context';
-import EVENTS from 'xgplayer-transmuxer-constant-events'
+import { EVENTS, Context } from 'xgplayer-helper-utils'
 import FLV from './flv-live-mobile'
 const flvAllowedEvents = EVENTS.FlvAllowedEvents;
 const { BasePlugin } = Player;
@@ -86,14 +85,12 @@ class FlvPlayer extends BasePlugin {
   }
 
   pause () {
-    const { player } = this;
     if (this.flv) {
       this.flv.pause()
     }
   }
 
   loadData (time = this.player.currentTime) {
-    const { player } = this;
     if (this.flv) {
       this.flv.seek(time)
     }

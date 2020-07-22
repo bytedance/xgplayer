@@ -1,13 +1,11 @@
 import Player from 'xgplayer'
-import EVENTS from 'xgplayer-transmuxer-constant-events'
-import Context from 'xgplayer-transmuxer-context';
-import { debounce } from 'xgplayer-utils';
+import { EVENTS, Context, common } from 'xgplayer-helper-utils'
 import HlsVodController from './hls-vod';
 
+const { debounce } = common;
 const { Events, BasePlugin } = Player;
 
 const HlsAllowedEvents = EVENTS.HlsAllowedEvents;
-const REMUX_EVENTS = EVENTS.REMUX_EVENTS;
 const HLS_EVENTS = EVENTS.HLS_EVENTS;
 const MSE_EVENTS = EVENTS.MSE_EVENTS;
 
@@ -22,7 +20,6 @@ class HlsVodPlayer extends BasePlugin {
     this.handleDefinitionChange = this.handleDefinitionChange.bind(this)
     this.handleUrlChange = this.handleUrlChange.bind(this)
   }
-
 
   beforePlayerInit () {
     if (!this._context) {

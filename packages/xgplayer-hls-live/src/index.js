@@ -1,6 +1,5 @@
 import Player from 'xgplayer'
-import EVENTS from 'xgplayer-transmuxer-constant-events'
-import Context from 'xgplayer-transmuxer-context';
+import { Context, EVENTS } from 'xgplayer-helper-utils'
 import HlsLiveController from './hls-live';
 const HlsAllowedEvents = EVENTS.HlsAllowedEvents;
 const REMUX_EVENTS = EVENTS.REMUX_EVENTS;
@@ -56,18 +55,21 @@ export default class HlsLivePlayer extends BasePlugin {
       this.player.config.url = url
       this._context.destroy();
       this._context = null;
-      this.video.currentTime = 0;
+      this.player.video.currentTime = 0;
+      this.played = false;
 
-      if (!this.paused) {
-        this.pause()
+      if (!this.player.paused) {
+        this.player.pause()
         this.once('canplay', () => {
-          this.play()
+          this.player.play()
         })
       } else {
-        this.play()
+        this.player.play()
       }
 
       this.player.started = false;
+      this.player.hasStart = false;
+      this._context = new Context(HlsAllowedEvents);
       this.player.start()
     })
   }
