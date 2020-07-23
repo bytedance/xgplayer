@@ -54,6 +54,8 @@ class Volume extends Plugin {
     this.on(Events.VOLUME_CHANGE, this.onVolumeChange.bind(this))
 
     this.player.volume = this.config.default
+
+    this.onVolumeChange()
   }
 
   onBarMousedown (e) {

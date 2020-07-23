@@ -9,6 +9,7 @@
         "xgplayer": "bin/xgplayer.js"
     },
     "scripts": {
+        "postpublish": "git push origin --tags",
         "release:alpha": "npm version prerelease --preid=alpha && npm publish --tag alpha --registry=http://registry.npmjs.org",
         "release:alpha-test": "npm publish --tag alpha-test",
         "release:3.0": "npm version patch && npm publish --tag 3.0",
