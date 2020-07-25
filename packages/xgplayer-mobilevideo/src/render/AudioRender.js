@@ -2,7 +2,7 @@ import EventEmitter from 'events';
 import {logger} from 'xgplayer-helper-utils';
 import Events from '../events';
 import AudioTimeRange from './AudioTimeRange';
-import {initBgSilenceAudio, playSlienceAudio} from './audio-helper';
+import {initBgSilenceAudio, playSlienceAudio} from '../helper/audio-helper';
 
 const AudioContext = window.AudioContext || window.webkitAudioContext;
 
@@ -40,7 +40,7 @@ export default class AudioRender extends EventEmitter {
   }
 
   get preloadTime () {
-    return this._config.preloadTime === Infinity ? 3 : this._config.preloadTime;
+    return 2;
   }
 
   get timescale () {
@@ -84,6 +84,7 @@ export default class AudioRender extends EventEmitter {
     this._gainNode.gain.value = volume;
     this._gainNode.connect(this._audioCtx.destination);
     this._audioCtx.suspend();
+    initBgSilenceAudio();
   }
 
   _emitTimelineEvents (e, v, d) {
@@ -93,7 +94,7 @@ export default class AudioRender extends EventEmitter {
   _bindEvents () {
     this._audioCtx.addEventListener('statechange', () => {
       if (!this._audioCtx) return;
-      if (this._audioCtx.state === 'running') {
+      if (this._audioCtx.state === 'running' && this._ready) {
         this._emitTimelineEvents(Events.TIMELINE.PLAY_EVENT, Events.VIDEO_EVENTS.PLAYING);
       }
     });
@@ -122,9 +123,9 @@ export default class AudioRender extends EventEmitter {
       this._emitTimelineEvents(Events.TIMELINE.PLAY_EVENT, Events.VIDEO_EVENTS.VOLUME_CHANGE);
     });
 
-    this._parent.on(Events.TIMELINE.UPDATE_PRELOAD_TIME, (v) => {
-      this._config.preloadTime = v;
-    });
+    // this._parent.on(Events.TIMELINE.UPDATE_PRELOAD_TIME, (v) => {
+    //   this._config.preloadTime = v;
+    // });
 
     this._parent.on(Events.TIMELINE.DESTROY, () => {
       this._destroy();
@@ -137,7 +138,7 @@ export default class AudioRender extends EventEmitter {
 
   // receive new compressed samples
   _appendChunk (_, audioTrack) {
-    if (this._noAudio) return;
+    if (this._noAudio || !this._meta) return;
 
     let {samples, meta} = audioTrack;
 
@@ -211,7 +212,6 @@ export default class AudioRender extends EventEmitter {
 
         if (!this._ready) {
           // init background Audio ele
-          initBgSilenceAudio();
           this._ready = true;
           this.emit(Events.AUDIO.AUDIO_READY);
         }
@@ -240,12 +240,10 @@ export default class AudioRender extends EventEmitter {
   _startRender () {
     if (this._noAudio) return;
 
-    playSlienceAudio();
-
     if (this._audioCtx.state === 'suspended') {
       this._audioCtx.resume();
+      playSlienceAudio();
     }
-
     let buffer = this._timeRange.shift();
     if (!buffer) {
       this._ready = false;

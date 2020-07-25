@@ -1,7 +1,7 @@
 // const H264_DECODER_URL =
 //   "https://sf1-vcloudcdn.pstatp.com/obj/ttfe/media/decoder/h264/decoder_1583333072684.js";
 
-function shimImportScripts(src) {
+function shimImportScripts (src) {
   return fetch(src)
     .then((res) => res.text())
     .then((text) => {
@@ -67,13 +67,13 @@ Decoder.prototype.broadwayOnPictureDecoded = function (
 
   this.self.postMessage(
     {
-      msg: "DECODED",
+      msg: 'DECODED',
       width,
       height,
       yLinesize,
       uvLinesize,
       info,
-      buffer,
+      buffer
     },
     [buffer]
   );
@@ -82,10 +82,10 @@ Decoder.prototype.broadwayOnPictureDecoded = function (
 Decoder.prototype.broadwayOnBroadwayInited = function () {
   this.inited = true;
   this.self.postMessage({
-    msg: "LOG",
-    log: "decoder inited",
+    msg: 'LOG',
+    log: 'decoder inited'
   });
-  this.self.postMessage({ msg: "DECODER_READY" });
+  this.self.postMessage({ msg: 'DECODER_READY' });
 };
 
 Decoder.prototype.decode = function (data, info) {
@@ -106,17 +106,17 @@ Decoder.prototype.updateMeta = function (meta) {
 
 var decoder;
 
-function onPostRun() {
+function onPostRun () {
   self.postMessage({
-    msg: "LOG",
-    log: "do post run",
+    msg: 'LOG',
+    log: 'do post run'
   });
 
   decoder = new Decoder(this);
   decoder.init();
 }
 
-function init(url) {
+function init (url) {
   if (!decoder) {
     let task;
     if (!self.importScripts) {
@@ -128,7 +128,7 @@ function init(url) {
             log: function () {},
             warn: function () {},
             info: function () {},
-            error: function () {},
+            error: function () {}
           };
         }
         try {
@@ -146,15 +146,15 @@ function init(url) {
 
         setTimeout(() => {
           if (!decoder || !decoder.inited) {
-            console.log("auto instance Decoder!");
+            console.log('auto instance Decoder!');
             onPostRun.call(self);
           }
         }, 5000);
       })
       .catch((e) => {
         self.postMessage({
-          msg: "INIT_FAILED",
-          log: e.message,
+          msg: 'INIT_FAILED',
+          log: e.message
         });
       });
   }
@@ -164,26 +164,30 @@ self.onmessage = function (e) {
   var data = e.data;
   if (!data.msg) {
     self.postMessage({
-      msg: "ERROR:invalid message",
+      msg: 'ERROR:invalid message'
     });
   } else {
     switch (data.msg) {
-      case "init":
+      case 'init':
         self.meta = data.meta;
         self.postMessage({
-          msg: "LOG",
-          log: "worker inited",
+          msg: 'LOG',
+          log: 'worker inited'
         });
         init(data.url);
         break;
-      case "updatemeta":
+      case 'updatemeta':
         self.meta = data.meta;
         decoder.updateMeta(data.meta);
         break;
-      case "decode":
+      case 'decode':
         decoder.decode(data.data, data.info);
+        self.postMessage({
+          msg:'DECODE_FINISH',
+          dts: data.info ? data.info.dts:0
+        })
         break;
-      case "destory":
+      case 'destory':
         decoder.destroy();
         break;
       default:

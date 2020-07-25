@@ -1,3 +1,4 @@
+import NoSleep from './helper/nosleep';
 import './polyfills/custom-elements.min';
 import './polyfills/native-element';
 import { logger } from 'xgplayer-helper-utils';
@@ -14,26 +15,33 @@ class MVideo extends HTMLElement {
   _init () {
     this.timeline = new TimeLine({
       preloadTime: this.preloadTime,
-      volume: this.volume
-    });
+      volume: this.volume,
+      canvas: this.querySelector('canvas')
+    }, this);
+    this._noSleep = new NoSleep();
     this._logFirstFrame = false;
+    this._playRequest = null;
     this._bindEvents();
     setTimeout(() => {
       if (this.noAudio) {
         this.setNoAudio();
       }
-    })
+    });
   }
 
   _bindEvents () {
     this.timeline.on(Events.TIMELINE.PLAY_EVENT, (status, data) => {
       if (status === 'canplay') {
-        if (!this.contains(this.canvas)) {
+        if (!this.querySelector('canvas')) {
           this.appendChild(this.canvas);
         }
       }
       if (status === 'error') {
         this._err = data;
+        logger.warn(this.TAG, 'detect error:', data.message)
+        this.pause();
+      }
+      if (status === 'ended') {
         this.pause();
       }
       this._innerDispatchEvent(status);
@@ -57,42 +65,57 @@ class MVideo extends HTMLElement {
   }
 
   play () {
-    logger.log(this.TAG, 'mvideo called play(),to reset video:', this.timeline.needReset);
+    logger.log(
+      this.TAG,
+      'mvideo called play(),to reset video:',
+      this.timeline.ready,
+      this.timeline.paused
+    );
 
     // 暂停后起播
     // 初始化后不能自动播放,手动播放
-    if (this.timeline.needReset) {
+    if (this.timeline.ready && this.timeline.paused) {
       this.destroy();
       this._init();
+      this.timeline.resetReadyStatus();
+      this._playRequest = null;
     }
 
-    return new Promise((resolve,reject) => {
-      this._innerDispatchEvent('waiting');
-      this._innerDispatchEvent('play');
-      this.timeline.once('ready', ()=>{
-        this.timeline.play().then(resolve).catch(reject);
+    this._playRequest =
+      this._playRequest ||
+      new Promise((resolve, reject) => {
+        this._innerDispatchEvent('timeupdate');
+        this._innerDispatchEvent('play');
+        this._innerDispatchEvent('waiting');
+        this._noSleep.enable();
+        this.timeline.once('ready', () => {
+          this._playRequest = null;
+          this.timeline.play().then(resolve).catch(reject);
+        });
       });
-    })
+
+    return this._playRequest;
   }
 
   pause () {
+    this._playRequest = null;
     this.timeline.pause();
+    this._noSleep.disable();
   }
 
-  load () {
-
-  }
+  load () {}
 
   onDemuxComplete (videoTrack, audioTrack) {
-    if (this.error) return;
-    if (!this.timeline) return;
+    if (this.error || !this.timeline) return;
     if (!this._logFirstFrame) {
       let vSam0 = videoTrack.samples[0];
       let aSam0 = this.noAudio ? null : audioTrack.samples[0];
       if ((vSam0 && aSam0) || (vSam0 && this.noAudio)) {
         logger.log(
           this.TAG,
-          `video firstDts:${vSam0.dts} , audio firstDts:${this.noAudio ? 0 : aSam0.dts}`
+          `video firstDts:${vSam0.dts} , audio firstDts:${
+            this.noAudio ? 0 : aSam0.dts
+          }`
         );
         this._logFirstFrame = true;
       }
@@ -103,7 +126,7 @@ class MVideo extends HTMLElement {
   setNoAudio () {
     logger.log(this.TAG, 'video set noAudio!');
     this.timeline.emit(Events.TIMELINE.NO_AUDIO);
-    this.noAudio = true
+    this.noAudio = true;
   }
 
   setAudioMeta (meta) {
@@ -115,14 +138,14 @@ class MVideo extends HTMLElement {
   }
 
   handleEnded () {
-    this._innerDispatchEvent('ended');
+    this.timeline.emit(Events.TIMELINE.PLAY_EVENT, 'ended');
   }
 
   handleErr (code, message) {
     this._err = {};
     this._err.code = code;
     this._err.message = message;
-    this._innerDispatchEvent('error');
+    this.timeline.emit(Events.TIMELINE.PLAY_EVENT, 'error');
   }
 
   _innerDispatchEvent (type) {
@@ -133,10 +156,12 @@ class MVideo extends HTMLElement {
     logger.log(this.TAG, 'call destroy');
     this.timeline.emit(Events.TIMELINE.DESTROY);
     this.timeline = null;
+    this._err = null;
+    this._noSleep = null;
   }
 
   get noAudio () {
-    return this.getAttribute('noaudio') === 'true'
+    return this.getAttribute('noaudio') === 'true';
   }
 
   set noAudio (val) {
@@ -148,35 +173,35 @@ class MVideo extends HTMLElement {
   }
 
   get width () {
-    return this.getAttribute('width') || this.videoWidth
+    return this.getAttribute('width') || this.videoWidth;
   }
 
   set width (val) {
-    this.style.display = 'inline-block'
-    const pxVal = typeof val === 'number' ? `${val}px` : val
-    this.setAttribute('width', pxVal)
-    this.style.width = pxVal
+    this.style.display = 'inline-block';
+    const pxVal = typeof val === 'number' ? `${val}px` : val;
+    this.setAttribute('width', pxVal);
+    this.style.width = pxVal;
     this.canvas.width = val;
   }
 
   get height () {
-    return this.getAttribute('height')
+    return this.getAttribute('height');
   }
 
   set height (val) {
-    this.style.display = 'inline-block'
-    const pxVal = typeof val === 'number' ? `${val}px` : val
-    this.setAttribute('height', pxVal)
-    this.style.height = pxVal
+    this.style.display = 'inline-block';
+    const pxVal = typeof val === 'number' ? `${val}px` : val;
+    this.setAttribute('height', pxVal);
+    this.style.height = pxVal;
     this.canvas.height = val;
   }
 
   get videoWidth () {
-    return this.canvas.width
+    return this.canvas.width;
   }
 
   get videoHeight () {
-    return this.canvas.height
+    return this.canvas.height;
   }
 
   get volume () {
@@ -203,10 +228,10 @@ class MVideo extends HTMLElement {
     this.timeline.emit(Events.TIMELINE.UPDATE_VOLUME, v ? 0 : this.volume);
   }
 
-  get currentTime() {
+  get currentTime () {
     let c = this.timeline.currentTime;
     let d = this.timeline.duration;
-    return c > d ? d-0.5 :c;
+    return c > d ? d : c;
   }
 
   set currentTime (v) {
@@ -229,11 +254,19 @@ class MVideo extends HTMLElement {
     return this.timeline.fps;
   }
 
-  get decodeFps(){
+  get decodeFps () {
     return this.timeline.decodeFps;
   }
 
-  get readyState() {
+  get decodeCost () {
+    return this.timeline.decodeCost;
+  }
+
+  get bitrate () {
+    return this.timeline.bitrate;
+  }
+
+  get readyState () {
     return this.timeline.readyState;
   }
 

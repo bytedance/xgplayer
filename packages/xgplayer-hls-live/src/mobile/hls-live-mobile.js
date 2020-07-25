@@ -16,12 +16,13 @@ const MASTER_PLAYLIST_REGEX = /#EXT-X-STREAM-INF:([^\n\r]*)[\r\n]+([^\r\n]+)/g;
 
 class HlsLiveController {
   constructor (configs) {
+    this.TAG = 'HlsLiveMobile'
     this.configs = Object.assign({}, configs);
     this.url = '';
     this.baseurl = '';
     this.sequence = 0;
     this._playlist = null;
-    this.retrytimes = this.configs.retrytimes || 3;
+    this.retryTimes = this.configs.retryTimes || 3;
     this.preloadTime = this.configs.preloadTime;
     this._m3u8lasttime = 0;
     this._timmer = setInterval(this._checkStatus.bind(this), 50);
@@ -144,14 +145,14 @@ class HlsLiveController {
 
   _onLoadError (loader, error) {
     if (loader !== 'M3U8_LOADER') {
-      this.retrytimes = 3;
+      this.retryTimes = 3;
       return
     }
-    if (!this._tsloader.loading && !this._m3u8loader.loading && this.retrytimes > 1) {
-      this.retrytimes--;
+    if (!this._tsloader.loading && !this._m3u8loader.loading && this.retryTimes > 1) {
+      this.retryTimes--;
       this._onError(LOADER_EVENTS.LOADER_ERROR, loader, error, false);
-    } else if (this.retrytimes <= 1) {
-      this.retrytimes--;
+    } else if (this.retryTimes <= 1) {
+      this.retryTimes--;
       this._onError(LOADER_EVENTS.LOADER_ERROR, loader, error, true);
       this.emit(HLS_EVENTS.RETRY_TIME_EXCEEDED);
       if (this._player.video) {
@@ -188,8 +189,8 @@ class HlsLiveController {
       }
 
       if (!mdata) {
-        if (this.retrytimes > 0) {
-          this.retrytimes--;
+        if (this.retryTimes > 0) {
+          this.retryTimes--;
           this._preload();
         } else {
           this.emit(HLS_EVENTS.RETRY_TIME_EXCEEDED);
@@ -215,17 +216,16 @@ class HlsLiveController {
       } else {
         this._m3u8Loaded(mdata);
       }
-
     } else if (buffer.TAG === 'TS_BUFFER') {
-      this.retrytimes = this.configs.retrytimes || 3;
+      this.retryTimes = this.configs.retryTimes || 3;
       this._playlist.downloaded(this._tsloader.url, true);
       this.emit(DEMUX_EVENTS.DEMUX_START);
     } else if (buffer.TAG === 'DECRYPT_BUFFER') {
-      this.retrytimes = this.configs.retrytimes || 3;
+      this.retryTimes = this.configs.retryTimes || 3;
       this._playlist.downloaded(this._tsloader.url, true);
       this.emitTo('CRYPTO', CRYTO_EVENTS.START_DECRYPT);
     } else if (buffer.TAG === 'KEY_BUFFER') {
-      this.retrytimes = this.configs.retrytimes || 3;
+      this.retryTimes = this.configs.retryTimes || 3;
       this._playlist.encrypt.key = buffer.shift();
       this._crypto = this._context.registry('CRYPTO', Crypto)({
         key: this._playlist.encrypt.key,
@@ -247,10 +247,10 @@ class HlsLiveController {
       this.preloadTime = this._playlist.targetduration ? this._playlist.targetduration : 5;
     }
     if (this._playlist.fragLength > 0) {
-      this.retrytimes = this.configs.retrytimes || 3;
+      this.retryTimes = this.configs.retryTimes || 3;
     } else {
-      if (this.retrytimes > 0) {
-        this.retrytimes--;
+      if (this.retryTimes > 0) {
+        this.retryTimes--;
         this._preload();
       } else {
         this.emit(HLS_EVENTS.RETRY_TIME_EXCEEDED);
@@ -261,7 +261,7 @@ class HlsLiveController {
     }
   }
   _checkStatus () {
-    if (this.retrytimes < 1 && (new Date().getTime() - this._lastCheck < 10000)) {
+    if (this.retryTimes < 1 && (new Date().getTime() - this._lastCheck < 10000)) {
       return;
     }
     this._lastCheck = new Date().getTime();
@@ -274,7 +274,6 @@ class HlsLiveController {
         this._preload();
       }
       let bufferend = this._player.buffered.end(this._player.buffered.length - 1);
-
       if (currentTime > bufferend - this.preloadTime) {
         this._preload();
       }
@@ -282,11 +281,10 @@ class HlsLiveController {
   }
 
   _preload () {
-    if (this.retrytimes < 1 || this._tsloader.loading || this._m3u8loader.loading) {
+    if (this.retryTimes < 1 || this._tsloader.loading || this._m3u8loader.loading) {
       return;
     }
     let frag = this._playlist.getTs();
-
     if (frag && !frag.downloaded && !frag.downloading) {
       this._playlist.downloading(frag.url, true);
       this.emitTo('TS_LOADER', LOADER_EVENTS.LADER_START, frag.url)
@@ -309,6 +307,15 @@ class HlsLiveController {
     this.baseurl = M3U8Parser.parseURL(url);
     this.url = url;
     this._preload();
+  }
+
+  resetLoaderIdle () {
+    this._m3u8loader.loading = false;
+    this._tsloader.loading = false;
+  }
+
+  resetPlayList () {
+    this._playlist.clear();
   }
 
   destroy () {

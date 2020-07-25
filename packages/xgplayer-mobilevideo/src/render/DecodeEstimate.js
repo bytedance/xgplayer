@@ -10,6 +10,7 @@ export default class DecodeEstimate {
     this._needEstimate = true;
     this._parent = parent;
     this._lastDecodeDot = 0;
+    this._lastDecodeCost = 0;
     this._lastFrameDts = 0;
     this._dtsDeltas = [];
     this._decodeCosts = [];
@@ -26,6 +27,10 @@ export default class DecodeEstimate {
     return this._decodeFps;
   }
 
+  get decodeCost () {
+    return this._lastDecodeCost;
+  }
+
   needEstimateFps () {
     this._needEstimate = true;
   }
@@ -33,6 +38,10 @@ export default class DecodeEstimate {
   addDecodeInfo (frameInfo = {dts: 0}) {
     this._estimateDecodeFps();
     this._estimateFps(frameInfo);
+  }
+
+  resetDecodeDot () {
+    this._lastDecodeDot = 0;
   }
 
   _estimateFps (frameInfo) {
@@ -67,20 +76,19 @@ export default class DecodeEstimate {
 
     let now = performance.now();
     let cost = now - this._lastDecodeDot;
-    let len = this._decodeCosts.length;
-    let last = this._decodeCosts[len - 1];
     this._lastDecodeDot = now;
 
-    if (cost < 0.5 || cost / last > 10) return;
+    if (cost < 0.5) return;
 
+    this._lastDecodeCost = cost;
     this._decodeCosts.push(cost);
+    let len = this._decodeCosts.length;
 
     if (len < MAX_QUEUE_LENGTH) return;
 
     let avg = this._avg(this._decodeCosts, len);
     this._decodeFps = Math.floor(1000 / avg);
-
-    this._decodeCosts.splice(0, 5);
+    this._decodeCosts = [];
     this._lowDecodeDetect();
   }
 
@@ -100,6 +108,7 @@ export default class DecodeEstimate {
       this._lowDecodeQueue.pop();
     }
     if (this._lowDecodeQueue.length > MAX_LOW_FPS_RECORD) {
+      // 大约连续的 20 * 10 = 200帧 解码效率比较低时
       this._lowDecodeQueue = [];
       logger.log(this.TAG, '解码效率过低,应该降级');
       this._parent.emit(Events.VIDEO.DECODE_LOW_FPS);

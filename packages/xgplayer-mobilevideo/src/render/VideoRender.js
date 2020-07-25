@@ -41,6 +41,8 @@ export default class VideoRender extends EventEmitter {
     this._degrade = false;
     this._avccpushed = false;
     this._lastTimeupdate = 0;
+    this._inDecoding = false;
+    this._lastDecodingDts = 0;
     this._startRender = this._startRender.bind(this);
     this._initCanvas();
     this._bindEvents();
@@ -67,6 +69,14 @@ export default class VideoRender extends EventEmitter {
 
   get decodeFps () {
     return this._decodeEstimate.decodeFps;
+  }
+
+  get decodeCost () {
+    return this._decodeEstimate.decodeCost;
+  }
+
+  get bitrate () {
+    return this._timeRange.bitrate;
   }
 
   get duration () {
@@ -130,7 +140,7 @@ export default class VideoRender extends EventEmitter {
   }
 
   get readyState () {
-    let len = this._frameQueue.length;
+    let len = this._frameQueue && this._frameQueue.length;
     if (!len) return HAVE_NOTHING;
     if (len >= 8) return HAVE_ENOUGH_DATA;
     if (len >= 4) return HAVE_FUTURE_DATA;
@@ -139,7 +149,7 @@ export default class VideoRender extends EventEmitter {
   }
 
   updateReady () {
-    this._ready = true;
+    this._whenReady();
   }
 
   _assembleErr (msg) {
@@ -165,7 +175,7 @@ export default class VideoRender extends EventEmitter {
 
   _bindEvents () {
     this._parent.on(Events.TIMELINE.SET_METADATA, (type, meta) => {
-      if (type == 'audio') return;
+      if (type === 'audio') return;
       logger.warn(this.TAG, 'video set metadata');
       this._setMetadata(meta);
     });
@@ -247,6 +257,12 @@ export default class VideoRender extends EventEmitter {
           this._decodeEstimate.addDecodeInfo(e.data.info)
           this._checkToDecode();
           break;
+        case 'DECODE_FINISH':
+          if (this._lastDecodingDts === e.data.dts) {
+            this._inDecoding = false;
+            this._decodeEstimate.resetDecodeDot();
+          }
+          break;
         case 'LOG':
           // console.log('video decoder worker: LOG:',msg,e.data.log, performance.now());
           break;
@@ -288,7 +304,7 @@ export default class VideoRender extends EventEmitter {
     }
     if (!this._decoder) {
       this._initWorker();
-    } else {
+    } else if (this._wasmReady) {
       this._pushAvcc(this._decoder, meta)
     }
   }
@@ -379,12 +395,27 @@ export default class VideoRender extends EventEmitter {
   // 1. decoder初始化预解码几帧
   // 2. render 过程,帧数过少时解码新帧
   _startDecode () {
-    let len = 10;
+    let len = 15;
     while (len >= 0) {
-      let sample = this._timeRange.shift();
+      let sample = this._timeRange && this._timeRange.shift();
       if (!sample) break;
       this._decodeSample(sample);
       len--;
+    }
+  }
+
+  _whenReady () {
+    this._ready = true;
+    this.emit(Events.VIDEO.VIDEO_READY);
+    this._emitTimelineEvents(
+      Events.TIMELINE.PLAY_EVENT,
+      Events.VIDEO_EVENTS.LOADEDDATA
+    );
+    if (this._noAudio) {
+      this._emitTimelineEvents(
+        Events.TIMELINE.PLAY_EVENT,
+        Events.VIDEO_EVENTS.PLAYING
+      );
     }
   }
 
@@ -394,22 +425,11 @@ export default class VideoRender extends EventEmitter {
   _checkToDecode () {
     if (!this._ready) {
       if (this.readyState >= HAVE_FUTURE_DATA) {
-        this._ready = true;
-        this.emit(Events.VIDEO.VIDEO_READY);
-        this._emitTimelineEvents(
-          Events.TIMELINE.PLAY_EVENT,
-          Events.VIDEO_EVENTS.LOADEDDATA
-        );
-        if (this._noAudio) {
-          this._emitTimelineEvents(
-            Events.TIMELINE.PLAY_EVENT,
-            Events.VIDEO_EVENTS.PLAYING
-          );
-        }
+        this._whenReady();
       }
       return;
     }
-    if (this.readyState < HAVE_ENOUGH_DATA) {
+    if (!this._inDecoding && this.readyState < HAVE_FUTURE_DATA) {
       this._startDecode();
     }
   }
@@ -419,8 +439,8 @@ export default class VideoRender extends EventEmitter {
       clearTimeout(this._clearId);
     }
 
-    let frame = this._frameQueue[0];
-    if (!frame) {
+    let frame = this._frameQueue && this._frameQueue[0];
+    if (!frame || !this._timeRange) {
       logger.log(this.TAG, 'lack frame');
       this._checkToDecode();
       this._clearId = setTimeout(this._startRender, this.interval);
@@ -433,6 +453,13 @@ export default class VideoRender extends EventEmitter {
     }
 
     let { info } = frame;
+
+    if (!info) {
+      this._frameQueue.shift();
+      this._clearId = setTimeout(this._startRender, this.interval);
+      return;
+    }
+
     let _renderDelay = info.dts - this.preciseVideoDts;
 
     if (_renderDelay > this.interval) {
@@ -481,6 +508,8 @@ export default class VideoRender extends EventEmitter {
       gopId = sample.gopId - 1;
     }
     // const worker = this.wasmworkers[gopId % MAX_WORKER_NUM];
+    this._inDecoding = true;
+    this._lastDecodingDts = sample.dts;
     this._decoder.postMessage({
       msg: 'decode',
       data: sample.data,

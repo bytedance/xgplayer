@@ -1,11 +1,19 @@
 import {logger} from 'xgplayer-helper-utils';
 
+function bitRateFormate (v) {
+  if (v > 1000) {
+    return (v / 1000).toFixed(2) + 'MB/s';
+  }
+  return (v).toFixed(2) + 'KB/s';
+}
+
 export default class VideoTimeRange {
   constructor () {
     this.TAG = 'VideoTimeRange';
     this._baseDts = -1;
     this._lastDuration = 0;
     this._duration = 0;
+    this._bitrate = '0KB/s';
     this._compressFrame = [];
   }
 
@@ -21,8 +29,12 @@ export default class VideoTimeRange {
     return {
       length: 1,
       start: () => 0,
-      end: () => this._duration,
+      end: () => this._duration
     };
+  }
+
+  get bitrate () {
+    return this._bitrate;
   }
 
   get lastDuration () {
@@ -64,12 +76,26 @@ export default class VideoTimeRange {
     }
   }
 
+  _estimateBitRate (frames) {
+    let len = frames.length;
+    if (len <= 1) return;
+    let sum = 0;
+    for (let i = 0; i < len; i++) {
+      sum += frames[i].data.length;
+    }
+    let delta = frames[len - 1].dts - frames[0].dts;
+
+    let bitrate = sum / delta // KB/s
+    this._bitrate = bitRateFormate(bitrate);
+  }
+
   append (frames, upDuration) {
     this._caclBaseDts(frames[0]);
 
     if (upDuration) {
       this._updateDuration(frames);
     }
+    this._estimateBitRate(frames);
     this._compressFrame = this._compressFrame.concat(frames);
   }
 
