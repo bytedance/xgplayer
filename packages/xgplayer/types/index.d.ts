@@ -188,13 +188,10 @@ declare module 'xgplayer' {
 
         // 关闭内置控件
         // eslint-disable-next-line max-len
-        ignores?: Array<'time' | 'definition' | 'error' | 'fullscreen' | 'i18n' | 'loading' | 'mobile' | 'pc' | 'play' | 'poster' | 'progress' | 'replay' | 'start' | 'volume'>;
+        ignores?: Array<'cssfullscreen' | 'screenshot' | 'pip' | 'miniscreen' | 'keyboard' | 'download' | 'playbackrate' | 'time' | 'definition' | 'error' | 'fullscreen' | 'loading' | 'mobile' | 'pc' | 'play' | 'poster' | 'progress' | 'replay' | 'start' | 'volume'>;
 
         // 关闭控制条， 默认true
         controls?: boolean;
-
-        // 控制条选项配置
-        controlsList?: Array<'nodownload' | 'nofullscreen' | 'noremoteplayback'>;
 
         // 播放镜像 https://support.apple.com/en-us/HT204289
         airplay?: boolean;
@@ -484,4 +481,5 @@ declare module 'xgplayer' {
     }
 
     export default Player;
+    
 }
