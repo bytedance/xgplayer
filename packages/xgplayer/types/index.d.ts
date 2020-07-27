@@ -384,39 +384,6 @@ declare module 'xgplayer' {
 
     }
 
-    class Danmu {
-
-        // 弹幕初始化并播放(内部默认已调用)
-        public start(): void;
-
-        // 弹幕暂停
-        public pause(): void;
-
-        // 弹幕继续播放
-        public play(): void;
-
-        // 弹幕停止并消失
-        public stop(): void;
-
-        // 发一条弹幕
-        public sendComment(option: DanmuCommentOptions): void;
-
-        // 按照id改变某一个弹幕的持续显示时间
-        public setCommentDuration(id: string, duration: number): void;
-
-        // 改变所有已加入队列弹幕的持续显示时间
-        public setAllDuration(mode: DanmuModelType, duration: number): void
-
-        // 改变某一个弹幕的id
-        public setCommentID(oldID: string, newID: string): void
-
-        // 屏蔽某一类弹幕(参数可选值 scroll | top | bottom | color)
-        public hide(mode: DanmuModelType): void
-
-        // 显示某一类弹幕(参数可选值 scroll | top | bottom | color)
-        public show(mode: DanmuModelType): void;
-    }
-
     class Player extends Proxy {
 
         /**
@@ -426,8 +393,6 @@ declare module 'xgplayer' {
          * @param descriptor 插件函数
          */
         public static install(name: string, descriptor: (this: Player, player: Player) => void): void;
-
-        public danmu: Danmu;
         
         /**
          * 插件存储对象
