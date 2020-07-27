@@ -8,8 +8,8 @@ export default {
     VIDEO_DECODER_INIT: 'video_decode_init',
     VIDEO_READY: 'video_ready',
     VIDEO_WAITING: 'video_waiting',
-    AUTO_RUN:"auto_run",
-    DECODE_LOW_FPS:'decode_low_fps'
+    AUTO_RUN: 'auto_run',
+    DECODE_LOW_FPS: 'decode_low_fps'
   },
   TIMELINE: {
     PLAY_EVENT: 'play_event',

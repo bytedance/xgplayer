@@ -27,7 +27,7 @@ class YUVCanvas {
       var canvas = this.canvas;
       var gl = null;
 
-      var validContextNames = ['webgl','webgl', 'experimental-webgl', 'moz-webgl', 'webkit-3d'];
+      var validContextNames = ['webgl', 'experimental-webgl', 'moz-webgl', 'webkit-3d'];
       var nameIndex = 0;
 
       while (!gl && nameIndex < validContextNames.length) {

@@ -28,7 +28,7 @@ class Playlist {
     return this._baseURL;
   }
 
-  push (ts, duration, discontinue,id) {
+  push (ts, duration, discontinue, id) {
     if (!this._ts[ts]) {
       this._ts[ts] = {duration: duration,
         downloaded: false,
@@ -52,7 +52,7 @@ class Playlist {
           downloaded: false,
           downloading: false,
           url: url,
-          id:this._ts[url].id
+          id: this._ts[url].id
         }
       }
       delete this._list[this._ts[url].start];
@@ -84,7 +84,7 @@ class Playlist {
         let frag = data.frags[i];
         if (!this._ts[frag.url] && this.downloadedUrls.indexOf(frag.url) < 0) {
           newfraglist.push(frag.url)
-          this.push(frag.url, frag.duration, frag.discontinue,frag.id);
+          this.push(frag.url, frag.duration, frag.discontinue, frag.id);
         }
       }
 
@@ -101,7 +101,7 @@ class Playlist {
         }
       }
     } else {
-      throw new Error(`Old m3u8 file received, ${data.sequence}`);
+      throw new Error(`Old m3u8 file received, ${data.sequence} , ${this.sequence}`);
     }
   }
 
@@ -151,12 +151,12 @@ class Playlist {
         let downloaded = this._ts[url].downloaded;
         let downloading = this._ts[url].downloading;
         ts = {
-          url, 
-          downloaded, 
-          downloading, 
-          time: parseInt(timelist[i]), 
+          url,
+          downloaded,
+          downloading,
+          time: parseInt(timelist[i]),
           duration: parseInt(this._ts[url].duration),
-          id:this._ts[url].id
+          id: this._ts[url].id
         };
         if (this.autoclear) {
           delete this._ts[this._lastget.url];
@@ -198,6 +198,7 @@ class Playlist {
     this.sequence = -1;
     this.targetduration = 0;
     this.duration = 0;
+    this._lastget = undefined;
   }
 
   clearDownloaded () {

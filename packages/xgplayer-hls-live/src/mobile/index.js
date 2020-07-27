@@ -68,6 +68,10 @@ class HlsPlayer extends BasePlugin {
 
   play () {
     if (this.hls) {
+      // 解决 fetch catch不到: Failed to load resource: 未能完成该操作。软件导致连接中止
+      this.hls.resetLoaderIdle();
+      this.hls.resetPlayList();
+      this.hls.retryTimes = this.config.retryTimes || 3;
       this.hls._onMetadataParsed('video');
       this.hls._onMetadataParsed('audio');
     }

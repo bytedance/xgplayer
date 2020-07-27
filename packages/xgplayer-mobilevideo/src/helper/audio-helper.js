@@ -5,7 +5,6 @@
  * 在 ios safari、飞书webview、chrome下WebAudio可正常
  */
 
-
 function initBgSilenceAudio () {
   if (document.querySelector('#hackAudioPP')) return;
 
@@ -33,11 +32,9 @@ function playSlienceAudio () {
     initBgSilenceAudio();
     return;
   }
-  ;
   if (audio.muted) {
     audio.muted = false;
-    audio.play().catch(e => {
-    });
+    audio.play().catch(e => {});
   }
 }
 

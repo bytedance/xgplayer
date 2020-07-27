@@ -50,19 +50,20 @@ class FlvPlayer extends BasePlugin {
   initEvents () {
     this.play = this.play.bind(this)
     this.pause = this.pause.bind(this)
+    this.seeking = this.seeking.bind(this);
 
     const { player } = this;
 
-    player.on('seeking', () => {
-      const time = this.currentTime
-      const range = this.getBufferedRange()
-      if (time > range[1] || time < range[0]) {
-        this.flv.seek(this.currentTime)
-      }
-    })
-
+    player.on('seeking', this.seeking)
     player.on('play', this.play)
     player.on('pause', this.pause)
+  }
+
+  offEvents () {
+    const { player } = this;
+    player.off('seeking', this.seeking)
+    player.off('play', this.play)
+    player.off('pause', this.pause)
   }
 
   initFlv () {
@@ -70,6 +71,14 @@ class FlvPlayer extends BasePlugin {
     const flv = this.context.registry('FLV_CONTROLLER', FLV)(player)
     this.initFlvEvents(flv)
     this.flv = flv
+  }
+
+  seeking () {
+    const time = this.currentTime
+    const range = this.getBufferedRange()
+    if (time > range[1] || time < range[0]) {
+      this.flv.seek(this.currentTime)
+    }
   }
 
   play () {
@@ -101,10 +110,12 @@ class FlvPlayer extends BasePlugin {
 
   addLiveFlag () {
     const { player } = this;
-    Player.util.addClass(player.root, 'xgplayer-is-live')
+    BasePlugin.Util.addClass(player.root, 'xgplayer-is-live')
   }
 
   _destroy () {
+    if (!this.context) return;
+    this.offEvents();
     this.context.destroy()
     this.flv = null
     this.context = null
