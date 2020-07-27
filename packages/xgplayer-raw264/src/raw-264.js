@@ -1,8 +1,8 @@
-import { NalUnit, SpsParser, SEIParser, Golomb } from 'xgplayer-transmuxer-codec-avc'
-import XgStream from 'xgplayer-transmuxer-buffer-stream'
-import { VideoTrackMeta } from 'xgplayer-transmuxer-model-trackmeta';
-import Events from 'xgplayer-transmuxer-constant-events'
+import { avc } from 'xgplayer-helper-codec';
+import { Stream as XgStream, VideoTrackMeta } from 'xgplayer-helper-models'
+import { EVENTS as Events } from 'xgplayer-helper-utils'
 
+const { NalUnit, Golomb } = avc;
 class H264Demuxer {
   constructor (options = {}) {
     this._player = options.player;

@@ -1,9 +1,7 @@
 import Player from 'xgplayer';
-import Context from 'xgplayer-transmuxer-context';
 import Core from './raw-264';
-import Events from 'xgplayer-transmuxer-constant-events';
-import LoaderBuffer from 'xgplayer-transmuxer-buffer-xgbuffer';
-import FetchLoader from 'xgplayer-transmuxer-loader-fetch';
+import { Buffer as LoaderBuffer } from 'xgplayer-helper-models';
+import { FetchLoader, Context, EVENTS as Events } from 'xgplayer-helper-utils';
 import 'xgplayer-mobilevideo';
 
 const asmSupported = () => {
