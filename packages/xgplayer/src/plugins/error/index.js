@@ -1,5 +1,5 @@
 import Player from '../../player'
-import Plugin from '../../Plugin'
+import Plugin from '../../plugin'
 
 export default class ErrorPlugin extends Plugin {
   static get pluginName () {
