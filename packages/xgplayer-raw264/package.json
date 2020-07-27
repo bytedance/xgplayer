@@ -30,11 +30,10 @@
     ]
   },
   "dependencies": {
-    "xgplayer-transmuxer-buffer-xgbuffer": "3.0.0-alpha.16",
-    "xgplayer-transmuxer-demux-flv": "3.0.0-alpha.16",
-    "xgplayer-transmuxer-codec-avc": "3.0.0-alpha.16",
-    "xgplayer-transmuxer-constant-events": "3.0.0-alpha.16",
-    "xgplayer-transmuxer-context": "3.0.0-alpha.16"
+    "xgplayer-mobilevideo": "2.3.16-beta.1",
+    "xgplayer-helper-utils": "2.3.16-beta.1",
+    "xgplayer-helper-codec": "2.3.16-beta.1",
+    "xgplayer-helper-models": "2.3.16-beta.1"
   },
   "devDependencies": {
     "cross-env": "^6.0.3"
