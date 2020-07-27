@@ -104,7 +104,12 @@ declare module 'xgplayer' {
         // 倍速播放
         // 播放器支持设置视频的当前播放速度。可通过defaultPlaybackRate设置初始速度。
         playbackRate?: any;
+
+        // 默认播放速度
         defaultPlaybackRate?: number;
+
+        // 清晰度切换插件配置
+        definition?: any;
 
         // 视频旋转按钮配置项
         rotate?: any;
@@ -173,7 +178,10 @@ declare module 'xgplayer' {
 
         // 关闭播放器范围时移动鼠标时触发video focus
         closeFocusVideoFocus?: boolean;
-
+        
+        // 是否关闭pause时触发focus
+        closePauseVideoFocus: boolean;
+    
         // 关闭播放器触发play事件时触发video focus
         closePlayVideoFocus?: boolean;
 
@@ -182,7 +190,7 @@ declare module 'xgplayer' {
 
         // 关闭内置控件
         // eslint-disable-next-line max-len
-        ignores?: Array<'cssfullscreen' | 'screenshot' | 'pip' | 'miniscreen' | 'keyboard' | 'download' | 'playbackrate' | 'time' | 'definition' | 'error' | 'fullscreen' | 'loading' | 'mobile' | 'pc' | 'play' | 'poster' | 'progress' | 'replay' | 'start' | 'volume'>;
+        ignores?: Array<'cssfullscreen' | 'screenshot' | 'pip' | 'miniscreen' | 'keyboard' | 'download' | 'playbackrate' | 'time' | 'definition' | 'error' | 'fullscreen' | 'loading' | 'mobile' | 'pc' | 'play' | 'poster' | 'progress' | 'replay' | 'start' | 'volume' | string>;
 
         // 关闭控制条， 默认true
         controls?: any;
@@ -193,10 +201,6 @@ declare module 'xgplayer' {
 
         // 国际化
         lang?: 'zh-cn' | 'en' | 'jp' | 'zh';
-
-        // 白名单
-        // 手机上video表现各异，自定义UI会有意想不到的情况发生，为了安全起见，播放器在手机上会关掉自定义UI功能，开发者可以通过白名单的方式开启此项功能
-        whitelist?: [string | RegExp | ((ua: string) => boolean)];
 
         // 内联模式 https://webkit.org/blog/6784/new-video-policies-for-ios/
         // 该选项在手机观看时，开启ios和微信的内联模式
@@ -217,7 +221,41 @@ declare module 'xgplayer' {
 
         // 自定义配置
         customConfig?: Record<string, unknown>;
+        
+        // 需要安装的插件列表
+        plugins?: any[];
 
+        // 需要使用的preset列表
+        presets?: any[];
+
+        // video标签扩展属性
+        videoAttrbutes?: any;
+        
+        // 按钮配置列表
+        icons?: any;
+       
+        // 用于配置一些通用样式结构
+        commonStyle?: {
+            // 进度条底色
+            progressColor?: string,
+            // 播放完成部分进度条底色
+            playedColor?: string,
+            // 播放完成部分进度条底色
+            cachedColor?: string,
+            // 进度条滑块样式
+            sliderBtnStyle?: any,
+            // 进度条滑块样式
+            volumeColor?: string
+          };
+        
+        // 进度条自动消失延时
+        inactive?: number;
+        
+        // 移动端滑动进行快进/快退开始时回调
+        disableSwipeHandler?: () => void = function(): void {};
+        
+        enableSwipeHandler?: () => void = function(): void {};
+       
         //扩展定义
         [propName: string]: any;
     }
