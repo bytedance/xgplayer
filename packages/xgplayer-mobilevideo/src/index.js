@@ -259,7 +259,7 @@ class MVideo extends HTMLElement {
   }
 
   get decodeCost () {
-    return this.timeline.decodeCost;
+    return parseInt(this.timeline.decodeCost);
   }
 
   get bitrate () {
