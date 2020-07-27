@@ -16,6 +16,7 @@ export default class TimeLine extends EventEmitter {
       video: false
     };
     this._paused = true;
+    this._reset = false;
     this._noAudio = false;
     this._bindEvent();
   }
@@ -80,6 +81,10 @@ export default class TimeLine extends EventEmitter {
     return this._paused;
   }
 
+  get reset () {
+    return this._reset;
+  }
+
   _bindEvent () {
     this.audioRender.on(Events.AUDIO.AUDIO_READY, () => {
       logger.log(this.TAG, 'audio ready!');
@@ -140,6 +145,12 @@ export default class TimeLine extends EventEmitter {
       this._noAudio = true;
       this._readyStatus.audio = true;
     });
+
+    this.on(Events.TIMELINE.DESTROY, () => {
+      this.removeAllListeners();
+      this.videoRender = null;
+      this.audioRender = null;
+    })
   }
 
   _startRender () {
@@ -179,6 +190,7 @@ export default class TimeLine extends EventEmitter {
           Events.VIDEO_EVENTS.TIMEUPDATE
         );
         if (!resumed) {
+          this._reset = true;
           logger.log(this.TAG, 'audioCtx 不能自动播放');
           reject();
           return;
@@ -195,6 +207,7 @@ export default class TimeLine extends EventEmitter {
     this.emit(Events.TIMELINE.DO_PAUSE);
     setTimeout(() => {
       this._paused = true;
+      this._reset = true;
       this.emit(Events.TIMELINE.PLAY_EVENT, Events.VIDEO_EVENTS.PAUSE);
     }, 10);
   }

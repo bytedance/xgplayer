@@ -275,6 +275,8 @@ export default class AudioRender extends EventEmitter {
     this._audioCtx = null;
     this._sampleQueue = null;
     this._timeRange = null;
+    this._parent = null;
+    this.removeAllListeners();
   }
 
   static getAACData (meta, sample) {

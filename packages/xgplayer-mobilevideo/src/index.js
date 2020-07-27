@@ -74,7 +74,7 @@ class MVideo extends HTMLElement {
 
     // 暂停后起播
     // 初始化后不能自动播放,手动播放
-    if (this.timeline.ready && this.timeline.paused) {
+    if (this.timeline.ready && this.timeline.reset) {
       this.destroy();
       this._init();
       this.timeline.resetReadyStatus();
