@@ -65,12 +65,27 @@ declare module 'xgplayer' {
         //  2、fitVideoSize设置为fixHeight，表示容器高度固定，容器宽度按照视频内容比例增大或减小；
         //  3、fitVideoSize设置为auto，表示容器高度或宽度按照视频内容比例增大
         fitVideoSize?: 'fixWidth' | 'fixHeight' | 'auto';
+        /**
+         * video画面填充模式
+         */
+        videoFillMode?: 'fillHeight' | 'fillWidth' | 'fill' | 'auto';
 
-        // 音量（默认0.6,参考值：0 ~ 1)
-        volume?: number;
+        /**
+         * 音量配置
+         * 可以是音量值/音量插件的配置对象/是否显示音量插件
+         */
+        volume?: number | boolean | {
+           position?: string,
+           index?: number,
+           disable?: boolean,
+           default?: number
+        };
 
         // 自动播放（默认false）
         autoplay?: boolean;
+        // 默认静音自动播放
+
+        autoplayMuted?: boolean;
 
         // 循环播放(默认false)
         loop?: boolean;
@@ -78,45 +93,24 @@ declare module 'xgplayer' {
         // 初始化显示视频首帧（默认false,该配置在移动端无效)
         videoInit?: boolean;
 
-        // 封面图
-        poster?: string;
+        // 封面图 或者是封面图的配置对象
+        poster?: string | {
+            position?: string,
+            index?: number,
+            isEndedShow?: boolean,
+            poster?: string
+        };
 
         // 倍速播放
         // 播放器支持设置视频的当前播放速度。可通过defaultPlaybackRate设置初始速度。
-        playbackRate?: number[];
+        playbackRate?: any;
         defaultPlaybackRate?: number;
 
         // 视频旋转按钮配置项
-        rotate?: {
-
-            // 只旋转内部video(默认false)
-            innerRotate?: boolean;
-
-            // 旋转方向是否为顺时针(默认false)
-            clockwise?: boolean;
-        };
+        rotate?: any;
 
         // 预览
-        thumbnail?: {
-
-            // 该视频资源所需预览小图数量
-            pic_num: number;
-
-            // 预览小图宽度
-            width: number;
-
-            // 预览小图高度
-            height: number;
-
-            // 	sprite图每列的预览小图数量
-            col: number;
-
-            // sprite图每行的预览小图数量
-            row: number;
-
-            // sprite图的源地址数组
-            urls: string[];
-        };
+        thumbnail?: any;
 
         // 下一集
         playNext?: {
@@ -154,7 +148,7 @@ declare module 'xgplayer' {
         progressDot?: Array<{time: number; text?: string; duration?: number}>;
 
         // 键盘快捷键 默认值：'on'
-        keyShortcut?: 'on' | 'off';
+        keyShortcut?: boolean;
 
         // 插件生效前执行
         execBeforePluginsCall?: VoidFunction[];
@@ -191,17 +185,14 @@ declare module 'xgplayer' {
         ignores?: Array<'cssfullscreen' | 'screenshot' | 'pip' | 'miniscreen' | 'keyboard' | 'download' | 'playbackrate' | 'time' | 'definition' | 'error' | 'fullscreen' | 'loading' | 'mobile' | 'pc' | 'play' | 'poster' | 'progress' | 'replay' | 'start' | 'volume'>;
 
         // 关闭控制条， 默认true
-        controls?: boolean;
+        controls?: any;
 
         // 播放镜像 https://support.apple.com/en-us/HT204289
         airplay?: boolean;
 
-        // 功能插件开关配置
-        // 通过播放器的配置可以实现插件动态开启和关闭，只要在功能插件读取该配置即可。
-        pluginRule?: () => boolean;
 
         // 国际化
-        lang?: 'zh-cn' | 'en' | 'jp';
+        lang?: 'zh-cn' | 'en' | 'jp' | 'zh';
 
         // 白名单
         // 手机上video表现各异，自定义UI会有意想不到的情况发生，为了安全起见，播放器在手机上会关掉自定义UI功能，开发者可以通过白名单的方式开启此项功能
@@ -226,6 +217,9 @@ declare module 'xgplayer' {
 
         // 自定义配置
         customConfig?: Record<string, unknown>;
+
+        //扩展定义
+        [propName: string]: any;
     }
 
     class Proxy extends EventEmitter {
@@ -338,6 +332,18 @@ declare module 'xgplayer' {
          *
          */
         public replay(): void;
+        
+        /**
+         * 绑定video对象
+         */
+        public attachVideoEvents(el: HTMLElement): void;
+
+        /**
+         * 解除绑定video元素
+         */
+
+        public detachVideoEvents(el: HTMLElement): void;
+
     }
 
     class Danmu {
@@ -384,6 +390,11 @@ declare module 'xgplayer' {
         public static install(name: string, descriptor: (this: Player, player: Player) => void): void;
 
         public danmu: Danmu;
+        
+        /**
+         * 插件存储对象
+         */
+        public plugins: any;
 
         constructor(options: IPlayerOptions);
 
@@ -459,27 +470,25 @@ declare module 'xgplayer' {
          */
         public rotate(clockwise?: boolean, innerRotate?: boolean, times?: number): void;
 
+        /**
+         * 注册插件
+         * @param 插件配置
+         */
+        public registerPlugin(plugin: any) : any
+        
+        /**
+         * 根据插件名称获取插件对象
+         * @param pluginName 
+         */
+        public getPlugin(pluginName: string) : any
 
         /**
-         * 添加标记
-         *
-         * @param time 标记时间
+         * 快进/快退
+         * @param time 
          */
-        public addProgressDot(time: number, text?: string, duration?: number): void;
-
-        /**
-         * 删除标记
-         * @param time 标记时间
-         */
-        public removeProgressDot(time: number): void;
-
-        /**
-         * 删除所有标记
-         *
-         */
-        public removeAllProgressDot(): void;
+        public seek (time:  number): void
     }
 
     export default Player;
-    
+
 }
