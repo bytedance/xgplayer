@@ -114,6 +114,9 @@ export default class AudioRender extends EventEmitter {
     this._parent.on(Events.TIMELINE.START_RENDER, this._startRender.bind(this));
 
     this._parent.on(Events.TIMELINE.DO_PAUSE, () => {
+      if (this._noAudio) {
+        return;
+      }
       this._audioCtx.suspend();
     });
 
