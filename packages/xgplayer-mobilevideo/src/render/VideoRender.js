@@ -528,6 +528,7 @@ export default class VideoRender extends EventEmitter {
       logger.log(this.TAG, 'destroy worker...');
       this._decoder.postMessage({ msg: 'destroy' });
       this._decoder.terminate();
+      this._decoder = null;
     }
   }
 
@@ -538,6 +539,8 @@ export default class VideoRender extends EventEmitter {
     this._frameQueue = null;
     this._decodeEstimate = null;
     this._frameRender = null;
+    this._parent = null;
+    this.removeAllListeners();
     clearTimeout(this._clearId);
   }
 }
