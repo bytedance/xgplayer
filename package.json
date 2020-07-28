@@ -31,7 +31,7 @@
   "main": "index.js",
   "scripts": {
     "test": "node_modules/.bin/lerna-changelog",
-    "dev": "npx babel-node app.js",
+    "dev": "node app.js",
     "publish": "lerna publish",
     "cz": "git cz",
     "precz": "lint-staged",
