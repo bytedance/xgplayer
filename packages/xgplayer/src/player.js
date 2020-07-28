@@ -419,6 +419,9 @@ class Player extends Proxy {
         }, 0)
         // throw e
       })
+    } else {
+      this.removeClass(STATE_CLASS.NOT_ALLOW_AUTOPLAY)
+      this.removeClass(STATE_CLASS.NO_START)
     }
     return playPromise
   }
@@ -642,6 +645,11 @@ class Player extends Proxy {
   onTimeupdate () {
     if (this.hasClass(STATE_CLASS.LOADING)) {
       this.removeClass(STATE_CLASS.LOADING)
+    }
+    if (!this.isPlaying) {
+      this.isPlaying = true
+      this.addClass(STATE_CLASS.PLAYING)
+      this.emit(Events.AUTOPLAY_STARTED)
     }
   }
 
