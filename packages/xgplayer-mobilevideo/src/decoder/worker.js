@@ -143,13 +143,12 @@ function init (url) {
     task
       .then(() => {
         addOnPostRun(onPostRun.bind(self));
-
-        setTimeout(() => {
-          if (!decoder || !decoder.inited) {
-            console.log('auto instance Decoder!');
-            onPostRun.call(self);
-          }
-        }, 5000);
+        // setTimeout(() => {
+        //   if (!decoder || !decoder.inited) {
+        //     console.log('auto instance Decoder!');
+        //     onPostRun.call(self);
+        //   }
+        // }, 5000);
       })
       .catch((e) => {
         self.postMessage({

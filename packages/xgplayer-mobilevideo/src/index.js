@@ -9,6 +9,7 @@ class MVideo extends HTMLElement {
   constructor () {
     super();
     this.TAG = 'MVideo';
+    this._vMeta = null;
     this._init();
   }
 
@@ -22,10 +23,14 @@ class MVideo extends HTMLElement {
     this._logFirstFrame = false;
     this._playRequest = null;
     this._bindEvents();
+    if (this._vMeta) {
+      this.setVideoMeta(this._vMeta);
+    }
     setTimeout(() => {
       if (this.noAudio) {
         this.setNoAudio();
       }
+      this.muted = this.muted;
     });
   }
 
@@ -84,6 +89,7 @@ class MVideo extends HTMLElement {
     this._playRequest =
       this._playRequest ||
       new Promise((resolve, reject) => {
+        this.timeline._paused = false;
         this._innerDispatchEvent('timeupdate');
         this._innerDispatchEvent('play');
         this._innerDispatchEvent('waiting');
@@ -134,6 +140,7 @@ class MVideo extends HTMLElement {
   }
 
   setVideoMeta (meta) {
+    this._vMeta = meta;
     this.timeline.emit(Events.TIMELINE.SET_METADATA, 'video', meta);
   }
 
@@ -216,11 +223,12 @@ class MVideo extends HTMLElement {
       v = 1;
     }
     this.setAttribute('volume', v);
+    if (this.muted) return;
     this.timeline.emit(Events.TIMELINE.UPDATE_VOLUME, v);
   }
 
   get muted () {
-    return this.getAttribute('muted') === 'true' || this.volume == 0;
+    return this.getAttribute('muted') === 'true';
   }
 
   set muted (v) {
