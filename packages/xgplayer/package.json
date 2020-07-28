@@ -1,6 +1,6 @@
 {
     "name": "xgplayer",
-    "version": "3.0.0-alpha.36",
+    "version": "3.0.0-alpha.38",
     "description": "video player",
     "main": "./dist/index.min.js",
     "module": "./es/index.min.js",
@@ -67,7 +67,7 @@
         "delegate-events": "^1.1.1",
         "downloadjs": "1.4.7",
         "event-emitter": "^0.3.5",
-        "event-emitter3": "^1.0.4"
+        "node-sass": "^4.14.1"
     },
     "devDependencies": {
         "cross-env": "^7.0.2",

@@ -252,22 +252,25 @@ class Proxy {
     }
     let status = [{
       en: 'MEDIA_ERR_ABORTED',
-      cn: '取回过程被用户中止'
+      zh: '取回过程被用户中止'
     }, {
       en: 'MEDIA_ERR_NETWORK',
-      cn: '当下载时发生错误'
+      zh: '当下载时发生错误'
     }, {
       en: 'MEDIA_ERR_DECODE',
-      cn: '当解码时发生错误'
+      zh: '当解码时发生错误'
     }, {
       en: 'MEDIA_ERR_SRC_NOT_SUPPORTED',
-      cn: '不支持音频/视频'
+      zh: '不支持音频/视频'
     }]
-    return this.lang ? this.lang[status[err.code - 1].en] : status[err.code - 1].cn
+    const curState = status[err.code - 1]
+    return curState[this.lang] || curState.zh
   }
+
   get loop () {
     return this.video.loop
   }
+
   set loop (isTrue) {
     this.video.loop = isTrue
   }
