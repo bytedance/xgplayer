@@ -22,20 +22,16 @@ export default class ErrorPlugin extends Plugin {
 
   handleError () {
     const { player } = this;
-    const textDOM = this.find('.xgplayer-error-text');
-    if (player.error) {
-      textDOM.innerHTML = player.error
+    const errorNote = player.error
+    if (player.config.lang && player.config.lang.indexOf('zh') > -1) {
+      this.root.innerHTML = `<em class="xgplayer-error-text">${errorNote}</em>请<span class="xgplayer-error-refresh">刷新</span>试试`
     } else {
-      if (player.config.lang && player.config.lang === 'zh-cn') {
-        textDOM.innerHTML = player.lang.ERROR
-      } else {
-        this.root.innerHTML = `${player.lang.ERROR || 'play error'}，please try to <span class="xgplayer-error-refresh">refresh</span>`
-      }
+      this.root.innerHTML = `<em class="xgplayer-error-text">${errorNote}</em>please try to <span class="xgplayer-error-refresh">refresh</span>`
     }
   }
   render () {
     return `<xg-error class="xgplayer-error">
-      <em class="xgplayer-error-text"></em>请<span class="xgplayer-error-refresh">刷新</span>试试
+      <em class="xgplayer-error-text"></em>请试试<span class="xgplayer-error-refresh">刷新</span>
     </xg-error>`
   }
 }
