@@ -8,6 +8,7 @@ export default class VideoTimeRange {
     this._duration = 0;
     this._bitrate = 0;
     this._compressFrame = [];
+    this._delayEstimateList = [];
   }
 
   get baseDts () {
@@ -71,7 +72,13 @@ export default class VideoTimeRange {
 
   _estimateBitRate (frames) {
     let len = frames.length;
-    if (len <= 1) return;
+    if (len <= 2) {
+      this._delayEstimateList = this._delayEstimateList.concat(frames);
+      len = this._delayEstimateList.length;
+      if (len <= 10) return;
+      frames = this._delayEstimateList;
+      this._delayEstimateList = [];
+    };
     let sum = 0;
     for (let i = 0; i < len; i++) {
       sum += frames[i].data.length;

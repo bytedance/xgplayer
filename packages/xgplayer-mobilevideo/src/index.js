@@ -231,7 +231,7 @@ class MVideo extends HTMLElement {
   get currentTime () {
     let c = this.timeline.currentTime;
     let d = this.timeline.duration;
-    return c > d ? d : c;
+    return Math.min(c, d);
   }
 
   set currentTime (v) {

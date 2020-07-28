@@ -213,6 +213,6 @@ export default class TimeLine extends EventEmitter {
   }
 
   seek () {
-    this._paused = true;
+    this._reset = true;
   }
 }
