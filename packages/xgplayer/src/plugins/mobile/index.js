@@ -154,7 +154,7 @@ class MobilePlugin extends Plugin {
     Util.checkIsFunction(playerConfig.disableSwipeHandler) && playerConfig.disableSwipeHandler()
     this.find('.dur').innerHTML = Util.format(player.duration)
     this.isTouchStart = true
-    if (!config.stopPropagation) {
+    if (config.stopPropagation) {
       e.preventDefault()
       e.stopPropagation()
     }

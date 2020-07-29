@@ -252,9 +252,9 @@ declare module 'xgplayer' {
         inactive?: number;
         
         // 移动端滑动进行快进/快退开始时回调
-        disableSwipeHandler?: () => void = function(): void {};
+        disableSwipeHandler?: () => void;
         
-        enableSwipeHandler?: () => void = function(): void {};
+        enableSwipeHandler?: () => void;
        
         //扩展定义
         [propName: string]: any;
