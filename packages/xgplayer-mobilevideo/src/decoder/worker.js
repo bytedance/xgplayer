@@ -117,6 +117,7 @@ function onPostRun () {
 }
 
 function init (url) {
+  let isDegrade = /asm/.test(url);
   if (!decoder) {
     let task;
     if (!self.importScripts) {
@@ -142,14 +143,28 @@ function init (url) {
 
     task
       .then(() => {
-        addOnPostRun(onPostRun.bind(self));
-
-        setTimeout(() => {
-          if (!decoder || !decoder.inited) {
-            console.log('auto instance Decoder!');
+        if (isDegrade) {
+          console.log('auto instance Decoder!');
+          setTimeout(() => {
             onPostRun.call(self);
-          }
-        }, 5000);
+          })
+        } else {
+          return new Promise((resolve, reject) => {
+            addOnPostRun(onPostRun.bind(self));
+
+            Module.onRuntimeInitialized = () => {
+              resolve();
+            }
+
+            Module.onAbort = (e) => {
+              resolve(e && e.message ? e : new Error('wasm init error'));
+            }
+
+            setTimeout(() => {
+              reject(new Error('wasm load timeout'))
+            }, 6000)
+          })
+        }
       })
       .catch((e) => {
         self.postMessage({
@@ -183,8 +198,8 @@ self.onmessage = function (e) {
       case 'decode':
         decoder.decode(data.data, data.info);
         self.postMessage({
-          msg:'DECODE_FINISH',
-          dts: data.info ? data.info.dts:0
+          msg: 'DECODE_FINISH',
+          dts: data.info ? data.info.dts : 0
         })
         break;
       case 'destory':
