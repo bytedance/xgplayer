@@ -32,7 +32,6 @@ export default class TopBackIcon extends Plugin {
 
   initIcons () {
     const {icons} = this
-    console.log('icons.screenBack', icons.screenBack)
     this.appendChild(this.root, icons.screenBack)
   }
 

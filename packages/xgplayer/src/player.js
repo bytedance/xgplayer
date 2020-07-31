@@ -41,7 +41,11 @@ class Player extends Proxy {
     this._fullscreenEl = null
     this._originCssText = ''
 
-    this._initDOM()
+    const rootInit = this._initDOM()
+    if (!rootInit) {
+      console.error(new Error(`can't find the dom which id is ${this.config.id} or this.config.el does not exist`))
+      return
+    }
 
     this._bindEvents()
     this._registerPresets()
@@ -113,6 +117,7 @@ class Player extends Proxy {
         }
       })
     }
+    return true
   }
 
   _initBars () {
