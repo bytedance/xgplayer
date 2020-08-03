@@ -207,7 +207,7 @@ export default class TimeLine extends EventEmitter {
         }
         this._paused = false;
         resolve();
-      }, 30);
+      }, 50);
     });
   }
 
@@ -218,7 +218,7 @@ export default class TimeLine extends EventEmitter {
       this._paused = true;
       this._reset = true;
       this.emit(Events.TIMELINE.PLAY_EVENT, Events.VIDEO_EVENTS.PAUSE);
-    }, 10);
+    });
   }
 
   seek () {
