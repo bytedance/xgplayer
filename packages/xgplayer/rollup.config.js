@@ -6,7 +6,10 @@ module.exports = commonRollup({
   uglify: uglify,
   babel: {
     // runtimeHelpers: true,
-    plugins: ['external-helpers'],
+    plugins: [
+      'external-helpers',
+      'transform-class-properties'
+    ],
     babelrc: false,
     'presets': [
       [

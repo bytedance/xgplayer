@@ -135,6 +135,14 @@ class Time extends Plugin {
     }
   }
 
+  destroy () {
+    const {center} = this.player.controls
+    this.centerCurDom && center.removeChild(this.centerCurDom)
+    this.centerCurDom = null
+    this.centerDurDom && center.removeChild(this.centerDurDom)
+    this.centerDurDom = null
+  }
+
   render () {
     if (this.config.disable) {
       return

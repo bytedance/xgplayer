@@ -126,9 +126,7 @@ class Player extends Proxy {
     this.rightBar = Util.createDom('xg-bar', '', '', 'xg-right-bar');
 
     ['click', 'touchend'].forEach((k) => {
-      this.topBar.addEventListener(k, (e) => {
-        e && e.stopPropagation()
-      })
+      this.topBar.addEventListener(k, Util.stopPropagation)
     });
 
     this.root.appendChild(this.topBar);
@@ -454,6 +452,9 @@ class Player extends Proxy {
   }
 
   destroy (isDelDom = true) {
+    ['click', 'touchend'].forEach((k) => {
+      this.topBar.removeEventListener(k, Util.stopPropagation)
+    });
     pluginsManager.destroy(this)
     this.root.removeChild(this.topBar)
     this.root.removeChild(this.leftBar)
@@ -651,7 +652,7 @@ class Player extends Proxy {
     if (this.hasClass(STATE_CLASS.LOADING)) {
       this.removeClass(STATE_CLASS.LOADING)
     }
-    if (!this.isPlaying) {
+    if (!this.isPlaying && !this.paused) {
       this.isPlaying = true
       this.addClass(STATE_CLASS.PLAYING)
       this.emit(Events.AUTOPLAY_STARTED)

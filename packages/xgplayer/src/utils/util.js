@@ -306,4 +306,10 @@ util.setStyleFromCsstext = function (dom, text) {
   })
 }
 
+util.stopPropagation = (e) => {
+  if (e) {
+    e.stopPropagation()
+    e.cancelable && e.preventDefault()
+  }
+}
 export default util

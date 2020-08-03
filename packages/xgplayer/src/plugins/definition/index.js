@@ -147,4 +147,8 @@ export default class DefinitionIcon extends OptionsIcon {
     this.changeDefinition(data.to)
     player.emit(Events.DEFINITION_CHANGE, {from: data.from, to: data.to})
   }
+
+  destroy () {
+    super.destroy()
+  }
 }

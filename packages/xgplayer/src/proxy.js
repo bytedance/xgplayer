@@ -126,7 +126,7 @@ class Proxy {
   }
 
   destroy () {
-    this.pause()
+    this.video.pause()
     this.video.removeAttribute('src') // empty source
     this.video.load()
     this._currentTime = 0;
