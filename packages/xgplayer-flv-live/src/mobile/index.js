@@ -10,9 +10,37 @@ class FlvPlayer extends BasePlugin {
   }
 
   static isSupported () {
-    const wasmSupported = 'WebAssembly' in window;
+    let webAudioEnable = false;
+    let webglEnable = false;
+
+    try {
+      const AudioContext = window.AudioContext || window.webkitAudioContext;
+      let ctx = new AudioContext();
+      ctx.close();
+      ctx = null;
+      webAudioEnable = true;
+    } catch (e) {}
+
+    try {
+      let cvs = document.createElement('canvas');
+      var validContextNames = ['webgl', 'experimental-webgl', 'moz-webgl', 'webkit-3d'];
+      for (let i = 0; i < validContextNames.length; i++) {
+        let glCtx = cvs.getContext(validContextNames[i]);
+        if (glCtx) {
+          glCtx = null;
+          cvs = null;
+          webglEnable = true;
+          break;
+        }
+      }
+    } catch (e) {}
+
     const WebComponentSupported = 'customElements' in window && window.customElements.define;
-    return wasmSupported && WebComponentSupported;
+    let isComponentDefined;
+    if (WebComponentSupported) {
+      isComponentDefined = window.customElements.get('mobile-video');
+    }
+    return webAudioEnable && webglEnable && isComponentDefined;
   }
 
   beforePlayerInit () {

@@ -38,7 +38,7 @@ export default class VideoRender extends EventEmitter {
     this._noAudio = false;
     this._wasmReady = false;
     this._clearId = -1;
-    this._degrade = false;
+    this._degrade = !window.WebAssembly;
     this._avccpushed = false;
     this._lastTimeupdate = 0;
     this._inDecoding = false;
