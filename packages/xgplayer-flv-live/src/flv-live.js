@@ -190,7 +190,12 @@ export default class FlvController {
   }
 
   _handleNetworkError (tag, err) {
-    this._player.emit('error', new Player.Errors('network', this._player.config.url))
+    this._player.emit('error', {
+      code: err.code,
+      errorType: 'network',
+      ex: `[${tag}]: ${err.message}`,
+      errd: {}
+    })
     this._onError(LOADER_EVENTS.LOADER_ERROR, tag, err, true)
   }
 
@@ -218,6 +223,7 @@ export default class FlvController {
 
   _onError (type, mod, err, fatal) {
     let error = {
+      code: err.code,
       errorType: type,
       errorDetails: `[${mod}]: ${err ? err.message : ''}`,
       errorFatal: fatal || false
