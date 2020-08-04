@@ -33,6 +33,7 @@ let i18n = function () {
     SCREENSHOT: 'Screenshot',
     LIVE: 'LIVE',
     OFF: 'Off',
+    PIP_DRAG: 'Click and hold to drag',
   }
   lang['zh-cn'] = {
     HAVE_NOTHING: '没有关于音频/视频是否就绪的信息',
@@ -65,6 +66,40 @@ let i18n = function () {
     SCREENSHOT: '截图',
     LIVE: '正在直播',
     OFF: '关闭',
+    PIP_DRAG: '点击按住可拖动视频',
+  }
+  lang['zh-hk'] = {
+    HAVE_NOTHING: '沒有關於音頻/視頻是否就緒的信息',
+    HAVE_METADATA: '音頻/視頻的元數據已就緒',
+    HAVE_CURRENT_DATA: '關於當前播放位置的數據是可用的，但沒有足夠的數據來播放下壹幀/毫秒',
+    HAVE_FUTURE_DATA: '當前及至少下壹幀的數據是可用的',
+    HAVE_ENOUGH_DATA: '可用數據足以開始播放',
+    NETWORK_EMPTY: '音頻/視頻尚未初始化',
+    NETWORK_IDLE: '音頻/視頻是活動的且已選取資源，但並未使用網絡',
+    NETWORK_LOADING: '瀏覽器正在下載數據',
+    NETWORK_NO_SOURCE: '未找到音頻/視頻來源',
+    MEDIA_ERR_ABORTED: '取回過程被用戶中止',
+    MEDIA_ERR_NETWORK: '當下載時發生錯誤',
+    MEDIA_ERR_DECODE: '當解碼時發生錯誤',
+    MEDIA_ERR_SRC_NOT_SUPPORTED: '不支持的音頻/視頻格式',
+    REPLAY: '重播',
+    ERROR: '網絡連接似乎出現了問題',
+    PLAY_TIPS: '播放',
+    PAUSE_TIPS: '暫停',
+    PLAYNEXT_TIPS: '下壹集',
+    DOWNLOAD_TIPS: '下載',
+    ROTATE_TIPS: '旋轉',
+    RELOAD_TIPS: '重新載入',
+    FULLSCREEN_TIPS: "進入全屏",
+    EXITFULLSCREEN_TIPS: '退出全屏',
+    CSSFULLSCREEN_TIPS: '進入樣式全屏',
+    EXITCSSFULLSCREEN_TIPS: '退出樣式全屏',
+    TEXTTRACK: '字幕',
+    PIP: '畫中畫',
+    SCREENSHOT: '截圖',
+    LIVE: '正在直播',
+    OFF: '關閉',
+    PIP_DRAG: '點擊按住可拖動視頻',
   }
   lang['jp'] = {
     HAVE_NOTHING: 'オーディオ/ビデオが準備できているか情報がありません',
@@ -97,6 +132,7 @@ let i18n = function () {
     SCREENSHOT: 'スクリーンショット',
     LIVE: '生放送',
     OFF: 'オフ',
+    PIP_DRAG: 'ボタンを押して働画をドラッグする',
   }
 
   Object.defineProperty(player, 'lang', {

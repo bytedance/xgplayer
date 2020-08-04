@@ -477,7 +477,7 @@ class Player extends Proxy {
     // let Left = ro.left
     let dragLay = util.createDom('xg-pip-lay', '<div></div>', {}, 'xgplayer-pip-lay')
     this.root.appendChild(dragLay)
-    let dragHandle = util.createDom('xg-pip-drag', '<div class="drag-handle"><span>点击按住可拖动视频</span></div>', {tabindex: 9}, 'xgplayer-pip-drag')
+    let dragHandle = util.createDom('xg-pip-drag', `<div class="drag-handle"><span>${this.lang.PIP_DRAG}</span></div>`, {tabindex: 9}, 'xgplayer-pip-drag')
     this.root.appendChild(dragHandle)
     // eslint-disable-next-line no-unused-vars
     let draggie = new Draggabilly('.xgplayer', {
