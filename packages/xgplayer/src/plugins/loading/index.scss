@@ -28,6 +28,8 @@
   top: 50%;
   margin: -50px auto auto -50px;
   svg{
+    width: 100%;
+    height: 100%;
     border-radius: 50%;
     transform-origin: center;
     animation: loadingRotate 1s linear infinite;
@@ -47,20 +49,15 @@
     transform:scale(0.5);
   }
 }
-.xgplayer-nostart {
-  .xgplayer-loading{
-    display: none;
-  }
-}
-
-.xgplayer-pause {
-  .xgplayer-loading{
-    display: none !important;
-  }
-}
 
 .xgplayer-isloading {
   .xgplayer-loading{
     display: block;
+  }
+}
+
+.xgplayer-nostart,.xgplayer-pause,.xgplayer-is-enter{
+  .xgplayer-loading{
+    display: none;
   }
 }

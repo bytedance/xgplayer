@@ -90,9 +90,7 @@ class Player extends Proxy {
     const controls = pluginsManager.register(this, Controls)
     this.controls = controls
     this.addClass(`${STATE_CLASS.DEFAULT} xgplayer-${sniffer.device} ${STATE_CLASS.NO_START} ${this.config.controls ? '' : STATE_CLASS.NO_CONTROLS}`)
-    if (this.config.autoplay) {
-      this.addClass(STATE_CLASS.ENTER)
-    }
+    this.addClass(STATE_CLASS.ENTER)
     if (this.config.fluid) {
       const style = {
         'max-width': '100%',
@@ -219,8 +217,9 @@ class Player extends Proxy {
       root.insertBefore(this.video, root.firstChild)
     }
 
+    this.once(Events.CANPLAY, this.canPlayFunc)
+
     if (this.config.autoplay) {
-      this.once(Events.CANPLAY, this.canPlayFunc)
       this.load()
       !this.isPlaying && this.play()
     }
@@ -392,6 +391,7 @@ class Player extends Proxy {
 
   play () {
     if (!this.hasStart) {
+      this.removeClass(STATE_CLASS.NO_START)
       this.start().then(resolve => {
         this.play()
       })
@@ -402,7 +402,6 @@ class Player extends Proxy {
       playPromise.then(() => {
         console.log('>>>>playPromise.then')
         this.removeClass(STATE_CLASS.NOT_ALLOW_AUTOPLAY)
-        this.removeClass(STATE_CLASS.NO_START)
         this.addClass(STATE_CLASS.PLAYING)
         this.config.closePlayVideoFocus && !this.isPlaying && this.emit(Events.PLAYER_BLUR)
         this.isPlaying = true

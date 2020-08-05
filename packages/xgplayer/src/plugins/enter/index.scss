@@ -14,11 +14,11 @@
   .xgplayer-enter-spinner {
     display: block;
     position: absolute;
+    z-index: 1;
     left: 50%;
     top: 50%;
     height: 100px;
     width: 100px;
-    position: relative;
     transform: translate(-50%,-50%);
   }
 
@@ -49,11 +49,20 @@
     to {opacity: 0.25;}
   }
 }
+
 .xgplayer-is-enter {
   .xgplayer-enter {
     display: block;
+    opacity: 1;
+    transition: opacity 0.3s
   }
 }
+.xgplayer-nostart {
+  .xgplayer-enter {
+    display: none;
+  }
+}
+
 // .not-allow-autoplay, .xgplayer-playing, .xgplayer-nostart{
 //   .xgplayer-enter {
 //     display: none;

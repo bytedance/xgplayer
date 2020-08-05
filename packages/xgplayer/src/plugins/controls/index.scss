@@ -12,7 +12,8 @@ $tipsFontsize: 12px;
 
 .xgplayer {
   &.not-allow-autoplay,
-  &.xgplayer-nostart{
+  &.xgplayer-nostart,
+  &.xgplayer-is-error{
     .xgplayer-controls, .flex-controls {
       display: none;
     }
@@ -176,6 +177,7 @@ $tipsFontsize: 12px;
     right: $iconMargin;
   }
 }
+
 
 @media only screen and (max-width: 480px) {
   .xgplayer-mobile {
