@@ -81,6 +81,10 @@ export default class TimeLine extends EventEmitter {
     return this._paused;
   }
 
+  set paused (v) {
+    this._paused = v;
+  }
+
   get reset () {
     return this._reset;
   }
@@ -180,6 +184,11 @@ export default class TimeLine extends EventEmitter {
       } else {
         this.audioRender.resume().then(() => {
           logger.log(this.TAG, 'audioCtx 开始播放');
+          if (this._paused) {
+            // resume()返回晚于timer时
+            this.emit(Events.TIMELINE.DO_PAUSE);
+            return;
+          };
           resumed = true;
         })
       }
@@ -191,14 +200,14 @@ export default class TimeLine extends EventEmitter {
         );
         if (!resumed) {
           this._reset = true;
+          this._paused = true;
           logger.log(this.TAG, 'audioCtx 不能自动播放');
           reject();
           return;
         }
         this._paused = false;
-        this.emit(Events.TIMELINE.PLAY_EVENT, Events.VIDEO_EVENTS.PLAY);
         resolve();
-      }, 30);
+      }, 50);
     });
   }
 
@@ -209,7 +218,7 @@ export default class TimeLine extends EventEmitter {
       this._paused = true;
       this._reset = true;
       this.emit(Events.TIMELINE.PLAY_EVENT, Events.VIDEO_EVENTS.PAUSE);
-    }, 10);
+    });
   }
 
   seek () {

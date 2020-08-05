@@ -102,7 +102,7 @@ export default class AudioRender extends EventEmitter {
     this._parent.on(Events.TIMELINE.SET_METADATA, (type, meta) => {
       if (type === 'video') return;
       if (this._noAudio) return;
-      logger.warn(this.TAG, 'audio set metadata');
+      logger.warn(this.TAG, 'audio set metadata',meta);
       this._meta = meta;
     });
 
@@ -152,52 +152,20 @@ export default class AudioRender extends EventEmitter {
     }
   }
 
-  _checkMetaChange (sampleQueue, len) {
-    let index = -1;
-    for (let i = 0; i < len; i++) {
-      let op = sampleQueue[i].options;
-      if (op && op.meta) {
-        index = i;
-        logger.warn(
-          this.TAG,
-          `detect metadata! index=${i} ,dts=${sampleQueue[i].dts}`
-        );
-        break;
-      }
-    }
-    return index;
-  }
-
   _assembleAAC () {
     let len = this._sampleQueue.length;
     let samp0 = this._sampleQueue[0];
     let sampLast = this._sampleQueue[len - 1];
-    let metaChangeIndex = this._checkMetaChange(this._sampleQueue, len);
 
-    if (metaChangeIndex === -1) {
-      if ((sampLast.dts - samp0.dts) / this.timescale < this.preloadTime) {
-        return;
-      }
+    if ((sampLast.dts - samp0.dts) / this.timescale < this.preloadTime) {
+      return;
     }
 
-    let toDecode;
-
-    if (metaChangeIndex === -1) {
-      toDecode = this._sampleQueue;
-      this._sampleQueue = [];
-    } else {
-      // 采样队列中间换流,前后部分分开
-      toDecode = this._sampleQueue.splice(0, metaChangeIndex || len);
-    }
-
-    if (!toDecode.length) return;
-
-    let adtss = toDecode.map((sample, index) => {
-      if (index === metaChangeIndex) {
-        this._meta = sample.options.meta;
-      }
+    let adtss = this._sampleQueue.map((sample) => {
       return AudioRender.getAACData(this._meta, sample);
     });
+
+    this._sampleQueue = [];
 
     let chunkBuffer = AudioRender.combileData(adtss);
 
@@ -210,7 +178,7 @@ export default class AudioRender extends EventEmitter {
         this._timeRange.append(
           _source,
           uncompress.duration,
-          metaChangeIndex === -1 ? samp0.dts : 0
+          samp0.dts
         );
 
         if (!this._ready) {
