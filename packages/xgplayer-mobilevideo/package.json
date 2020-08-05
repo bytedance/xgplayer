@@ -37,7 +37,7 @@
     ]
   },
   "dependencies": {
-    "xgplayer-helper-utils": "2.3.16-beta.1"
+    "xgplayer-helper-utils": "2.3.20"
   },
   "devDependencies": {
     "babel-plugin-transform-custom-element-classes": "^0.1.0",

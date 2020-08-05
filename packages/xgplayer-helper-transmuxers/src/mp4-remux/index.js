@@ -225,7 +225,7 @@ export default class Mp4Remuxer {
         mdatSample.size += avcSample.data.byteLength
         mp4Samples.push({
           dts,
-          cts,
+          cts: Math.abs(cts) > 2000 ? sampleDuration : cts,
           pts,
           data: avcSample.data,
           size: avcSample.data.byteLength,

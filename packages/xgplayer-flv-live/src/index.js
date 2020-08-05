@@ -72,6 +72,7 @@ class FlvPlayer extends BasePlugin {
       if (mediaLength === 0) {
         // ensure switch smoothly
         this.flv = flv;
+        this.player.flv = flv
         this.mse.resetContext(ctx);
         this.context.destroy();
         this.context = ctx;
@@ -190,6 +191,7 @@ class FlvPlayer extends BasePlugin {
 
   switchURL (url) {
     this.player.currentTime = 0;
+    this.player.config.url = url;
     const context = new Context(flvAllowedEvents);
     const flv = context.registry('FLV_CONTROLLER', FLV)(this.player, this.mse)
     context.init()

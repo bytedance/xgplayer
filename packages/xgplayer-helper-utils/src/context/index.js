@@ -138,7 +138,8 @@ class Context {
         if (beforeList) {
           for (let i = 0, len = beforeList.length; i < len; i++) {
             const callback = beforeList[i]
-            callback()
+            // eslint-disable-next-line standard/no-callback-literal
+            callback(...args)
           }
         }
         return emitter.emit(messageName, ...args)
