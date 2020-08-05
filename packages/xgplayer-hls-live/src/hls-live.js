@@ -77,6 +77,7 @@ class HlsLiveController {
 
   _onError (type, mod, err, fatal) {
     let error = {
+      code: err.code,
       errorType: type,
       errorDetails: `[${mod}]: ${err ? err.message : ''}`,
       errorFatal: fatal
@@ -102,6 +103,7 @@ class HlsLiveController {
       this._onError(LOADER_EVENTS.LOADER_ERROR, loader, error, false);
     } else if (this.retrytimes <= 1) {
       this._player.emit('error', {
+        code: error.code,
         errorType: 'network',
         ex: `[${loader}]: ${error.message}`,
         errd: {}
