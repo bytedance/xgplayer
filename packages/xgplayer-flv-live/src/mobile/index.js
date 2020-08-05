@@ -2,7 +2,7 @@ import Player from 'xgplayer'
 import { EVENTS, Context } from 'xgplayer-helper-utils'
 import FLV from './flv-live-mobile'
 const flvAllowedEvents = EVENTS.FlvAllowedEvents;
-const { BasePlugin } = Player;
+const { BasePlugin, Events } = Player;
 
 class FlvPlayer extends BasePlugin {
   static get pluginName () {
@@ -43,6 +43,15 @@ class FlvPlayer extends BasePlugin {
     return webAudioEnable && webglEnable && isComponentDefined;
   }
 
+  constructor (options) {
+    super(options);
+    this.play = this.play.bind(this)
+    this.pause = this.pause.bind(this)
+    this.seeking = this.seeking.bind(this);
+    this.switchURL = this.switchURL.bind(this);
+    this.handleDefinitionChange = this.handleDefinitionChange.bind(this);
+  }
+
   beforePlayerInit () {
     this.context = new Context(flvAllowedEvents)
     this.initFlv()
@@ -76,22 +85,24 @@ class FlvPlayer extends BasePlugin {
   }
 
   initEvents () {
-    this.play = this.play.bind(this)
-    this.pause = this.pause.bind(this)
-    this.seeking = this.seeking.bind(this);
-
-    const { player } = this;
-
-    player.on('seeking', this.seeking)
-    player.on('play', this.play)
-    player.on('pause', this.pause)
+    this.lowdecode = () => {
+      this.emit('lowdecode', this.player.video.degradeInfo);
+    }
+    this.on(Events.SEEKING, this.seeking);
+    this.on(Events.PLAY, this.play);
+    this.on(Events.PAUSE, this.pause);
+    this.on(Events.URL_CHANGE, this.switchURL);
+    this.on(Events.DEFINITION_CHANGE, this.handleDefinitionChange);
+    this.player.video.addEventListener('lowdecode', this.lowdecode)
   }
 
   offEvents () {
-    const { player } = this;
-    player.off('seeking', this.seeking)
-    player.off('play', this.play)
-    player.off('pause', this.pause)
+    this.off(Events.SEEKING, this.seeking);
+    this.off(Events.PLAY, this.play);
+    this.off(Events.PAUSE, this.pause);
+    this.off(Events.URL_CHANGE, this.switchURL);
+    this.off(Events.DEFINITION_CHANGE, this.handleDefinitionChange);
+    this.player.video.removeEventListener('lowdecode', this.lowdecode)
   }
 
   initFlv () {
@@ -132,6 +143,20 @@ class FlvPlayer extends BasePlugin {
       this.flv.seek(time)
     }
   }
+
+  switchURL (url) {
+    this._destroy()
+    const {player} = this;
+    player.config.url = url;
+    player.hasStart = false;
+    player.start()
+  }
+
+  handleDefinitionChange (change) {
+    const { to } = change;
+    this.switchURL(to);
+  }
+
   destroy () {
     this._destroy()
   }
@@ -147,23 +172,6 @@ class FlvPlayer extends BasePlugin {
     this.context.destroy()
     this.flv = null
     this.context = null
-  }
-
-  get src () {
-    return this.player.currentSrc
-  }
-
-  set src (url) {
-    this.switchURL(url)
-  }
-
-  switchURL (url) {
-    const context = new Context(flvAllowedEvents);
-    const flv = context.registry('FLV_CONTROLLER', FLV)(this.player)
-    context.init()
-    this.this.flv = flv;
-    this.initFlvBackupEvents(flv, context);
-    flv.loadData(url);
   }
 }
 

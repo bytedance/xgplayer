@@ -2,7 +2,7 @@ import Player from 'xgplayer';
 import Core from './raw-264';
 import { Buffer as LoaderBuffer } from 'xgplayer-helper-models';
 import { FetchLoader, Context, EVENTS as Events } from 'xgplayer-helper-utils';
-import 'xgplayer-mobilevideo';
+// import 'xgplayer-mobilevideo';
 
 const asmSupported = () => {
   try {

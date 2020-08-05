@@ -10,7 +10,26 @@ class MVideo extends HTMLElement {
     super();
     this.TAG = 'MVideo';
     this._vMeta = null;
+    this._degradeVideo = document.createElement('video');
+    this._eventsBackup = [];
     this._init();
+  }
+
+  addEventListener (eventName, handler, capture) {
+    HTMLElement.prototype.addEventListener.call(this, eventName, handler, capture);
+    this._eventsBackup.push([eventName, handler]);
+    this._degradeVideo.addEventListener(eventName, handler, capture);
+  }
+
+  removeEventListener (eventName, handler, capture) {
+    HTMLElement.prototype.removeEventListener.call(this, eventName, handler, capture)
+    this._degradeVideo.removeEventListener(eventName, handler, capture);
+  }
+
+  setAttribute (k, v) {
+    HTMLElement.prototype.setAttribute.call(this, k, v);
+    if (k === 'src') return;
+    this._degradeVideo.setAttribute(k, v);
   }
 
   _init () {
@@ -27,6 +46,7 @@ class MVideo extends HTMLElement {
       this.setVideoMeta(this._vMeta);
     }
     setTimeout(() => {
+      if (!this.timeline) return;
       if (this.noAudio) {
         this.setNoAudio();
       }
@@ -41,16 +61,63 @@ class MVideo extends HTMLElement {
           this.appendChild(this.canvas);
         }
       }
+
       if (status === 'error') {
-        this._err = data;
-        logger.warn(this.TAG, 'detect error:', data.message)
+        logger.warn(this.TAG, 'detect error:', data.message);
         this.pause();
+        if (this.innerDegrade) {
+          // 内部降级的话,不对外emit error,改成lowdecode
+          this.degradeInfo = {
+            decodeFps: this.decodeFps,
+            bitrate: this.bitrate,
+            fps: this.fps,
+            url: this.src,
+            msg: data.message
+          };
+          this._innerDispatchEvent('lowdecode');
+          return;
+        }
+        this._err = data;
       }
+
+      if (status === 'lowdecode') {
+        this.degradeInfo = {
+          decodeFps: this.decodeFps,
+          bitrate: this.bitrate,
+          fps: this.fps,
+          url: this.src
+        };
+        this._innerDispatchEvent(status);
+        return;
+      }
+
       if (status === 'ended') {
         this.pause();
       }
+
       this._innerDispatchEvent(status);
     });
+  }
+
+  // 降级到video播放
+  degrade () {
+    let url = this.src;
+    let canvasAppended = !!this.querySelector('canvas');
+    if (canvasAppended) {
+      this.replaceChild(this._degradeVideo, this.canvas);
+    } else {
+      this.appendChild(this._degradeVideo);
+    }
+    this._degradeVideo.src = url;
+    this.destroy();
+    this._degradeVideo.play().catch(e => {});
+
+    // 销毁MVideo上的事件
+    this._eventsBackup.forEach(([eName, eHandler]) => {
+      HTMLElement.prototype.removeEventListener.call(this, eName, eHandler)
+    })
+    this._eventsBackup = [];
+    this._degradeVideo = null;
   }
 
   disconnectedCallback () {
@@ -69,17 +136,15 @@ class MVideo extends HTMLElement {
     this._logFirstFrame = false;
   }
 
-  play () {
+  play (destroy) {
     logger.log(
       this.TAG,
-      'mvideo called play(),to reset video:',
-      this.timeline.ready,
-      this.timeline.paused
+      `mvideo called play(),ready:${this.timeline.ready} , paused:${this.timeline.paused}`
     );
 
     // 暂停后起播
     // 初始化后不能自动播放,手动播放
-    if (this.timeline.ready && this.timeline.reset) {
+    if ((this.timeline.ready && this.timeline.reset) || destroy) {
       this.destroy();
       this._init();
       this.timeline.resetReadyStatus();
@@ -93,7 +158,9 @@ class MVideo extends HTMLElement {
         this._innerDispatchEvent('timeupdate');
         this._innerDispatchEvent('play');
         this._innerDispatchEvent('waiting');
-        this._noSleep.enable();
+        try {
+          this._noSleep.enable();
+        } catch (e) {}
         this.timeline.once('ready', () => {
           this._playRequest = null;
           this.timeline.play().then(resolve).catch(reject);
@@ -106,7 +173,9 @@ class MVideo extends HTMLElement {
   pause () {
     this._playRequest = null;
     this.timeline.pause();
-    this._noSleep.disable();
+    try {
+      this._noSleep.disable();
+    } catch (e) {}
   }
 
   load () {}
@@ -237,6 +306,7 @@ class MVideo extends HTMLElement {
   }
 
   get currentTime () {
+    if (!this.timeline) return 0;
     let c = this.timeline.currentTime;
     let d = this.timeline.duration;
     return Math.min(c, d);
@@ -288,6 +358,9 @@ class MVideo extends HTMLElement {
 
   set src (val) {
     this.setAttribute('src', val);
+    if (this.timeline.ready) {
+      this.play('destroy');
+    }
   }
 
   set playbackRate (v) {}
@@ -317,8 +390,29 @@ class MVideo extends HTMLElement {
     }
   }
 
+  // 移动端软解 启用内部降级
+  get innerDegrade () {
+    return this.getAttribute('innerdegrade');
+  }
+
   get error () {
     return this._err;
+  }
+
+  set error (v) {
+    this.timeline.emit(Events.TIMELINE.PLAY_EVENT, 'error', v);
+  }
+
+  get degradeVideo () {
+    return this._degradeVideo;
+  }
+
+  set degradeInfo (v) {
+    this._deradeInfo = v;
+  }
+
+  get degradeInfo () {
+    return this._deradeInfo;
   }
 }
 

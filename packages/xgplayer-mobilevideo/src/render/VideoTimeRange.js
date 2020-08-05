@@ -21,14 +21,22 @@ export default class VideoTimeRange {
 
   get buffered () {
     return {
-      length: 1,
+      length: this._duration ? 1 : 0,
       start: () => 0,
       end: () => this._duration
     };
   }
 
+  get frameLength () {
+    return this._compressFrame.length;
+  }
+
   get bitrate () {
     return this._bitrate;
+  }
+
+  set bitrate (v) {
+    this._bitrate = v;
   }
 
   get lastDuration () {
@@ -75,7 +83,7 @@ export default class VideoTimeRange {
     if (len <= 2) {
       this._delayEstimateList = this._delayEstimateList.concat(frames);
       len = this._delayEstimateList.length;
-      if (len <= 10) return;
+      if (len <= 30) return;
       frames = this._delayEstimateList;
       this._delayEstimateList = [];
     };

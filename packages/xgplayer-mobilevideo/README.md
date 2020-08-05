@@ -70,10 +70,21 @@ mobilevideo的事件基本向HTML video看齐，同时有一些专有的事件�
 | ------ | -------- | -----|
 | lowdecode  | undefined | 解码效率低，建议降级/降低分辨率 |
 
+监听到lowdecode,可以通过 video.degradeInfo拿到一些降级信息。
+
+| 字段名 | 含义     |
+| ------ | -------- |
+| fps    | 视频帧率 |
+| decodeFps    | 解码效率 |
+| bitrate   | 视频码率   |
+| url | video src 值|
+|msg (option)| 错误信息 |
+
+
 ### video属性
 大部分video属性向HTML video看齐，同时有一些特有的动态属性可以供业务访问
 
-| 事件名 | 类型 | 含义 |
+| 属性名名 | 类型 | 含义 |
 | ------ | -------- | -----|
 | decodeFps  | number | 真实的解码速率 |
 | decodeCost | number | 最近一帧的解码耗时 |

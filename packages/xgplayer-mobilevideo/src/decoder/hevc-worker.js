@@ -172,7 +172,7 @@ function init (url) {
             }
 
             Module.onAbort = (e) => {
-              resolve(e && e.message ? e : new Error('wasm init error'));
+              reject(e && e.message ? e : new Error('wasm init error'));
             }
 
             setTimeout(() => {
