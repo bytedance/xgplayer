@@ -196,6 +196,15 @@ class Player extends Proxy {
     this.logParams.playSrc = url
     this.canPlayFunc = function () {
       player.off('canplay', player.canPlayFunc)
+      let playPromise = player.video.play()
+      if (playPromise !== undefined && playPromise) {
+        playPromise.then(function () {
+          player.emit('autoplay started')
+        }).catch(function () {
+          player.emit('autoplay was prevented')
+          Player.util.addClass(player.root, 'xgplayer-is-autoplay')
+        })
+      }
     }
     if (util.typeOf(url) === 'String') {
       if (url.indexOf('blob:') > -1 && url === this.video.src) {
@@ -223,15 +232,6 @@ class Player extends Proxy {
     this.once('loadeddata', this.loadeddataFunc)
     if (this.config.autoplay) {
       this.on('canplay', this.canPlayFunc)
-      let playPromise = player.video.play()
-      if (playPromise !== undefined && playPromise) {
-        playPromise.then(function () {
-          player.emit('autoplay started')
-        }).catch(function () {
-          player.emit('autoplay was prevented')
-          Player.util.addClass(player.root, 'xgplayer-is-autoplay')
-        })
-      }
     }
     this.video.load()
     root.insertBefore(this.video, root.firstChild)
