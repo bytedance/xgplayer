@@ -106,14 +106,14 @@ class MSE {
           this.emit(MSE_EVENTS.MSE_ERROR, this.TAG, new Error(e.message));
         }
       }
-      if (Object.keys(this.sourceBuffers).length === 2) {
+      if (Object.keys(this.sourceBuffers).length === this.sourceBufferLen) {
         this.doAppend();
       }
     }
   }
 
   doAppend () {
-    if (Object.keys(this.sourceBuffers).length < 2) {
+    if (Object.keys(this.sourceBuffers).length < this.sourceBufferLen) {
       return;
     }
     let sources = this._context.getInstance('PRE_SOURCE_BUFFER');
@@ -148,6 +148,10 @@ class MSE {
     const { readyState } = this.mediaSource;
     if (readyState === 'open') {
       try {
+        const sourceBuffers = Array.prototype.slice.call(this.mediaSource.activeSourceBuffers, 0)
+        for (let i in sourceBuffers) {
+          this.mediaSource.removeSourceBuffer(sourceBuffers[i]);
+        }
         this.mediaSource.endOfStream()
       } catch (e) {
         // log
@@ -266,8 +270,6 @@ class MSE {
     this.mediaSource.removeEventListener('sourceopen', this.onSourceOpen);
     return this.removeBuffers().then(() => {
       for (let i = 0; i < Object.keys(this.sourceBuffers).length; i++) {
-        let buffer = this.sourceBuffers[Object.keys(this.sourceBuffers)[i]];
-        this.mediaSource.removeSourceBuffer(buffer);
         delete this.sourceBuffers[Object.keys(this.sourceBuffers)[i]];
       }
 
@@ -286,6 +288,11 @@ class MSE {
       this.onUpdateEnd = null;
       this.onWaiting = null;
     })
+  }
+
+  get sourceBufferLen () {
+    if (!this._context.mediaInfo) return 2;
+    return !!this._context.mediaInfo.hasVideo + !!this._context.mediaInfo.hasAudio;
   }
 
   set url (val) {
