@@ -15,7 +15,7 @@ let s_textTrack = function () {
     util.addClass(player.root, 'xgplayer-is-texttrack')
     player.once('canplay', function () {
       let tmp = ['<ul>']
-      tmp.push(`<li class='${this.textTrackShowDefault ? '' : 'selected'}'}'>关闭</li>`)
+      tmp.push(`<li class='${this.textTrackShowDefault ? '' : 'selected'}'}'>${player.lang.OFF}</li>`)
       list.forEach(item => {
         tmp.push(`<li class='${item.default && this.textTrackShowDefault ? 'selected' : ''}'>${item.label}</li>`)
       })
@@ -61,7 +61,7 @@ let s_textTrack = function () {
         })
         util.addClass(li, 'selected')
         let trackDoms = player.root.getElementsByTagName('Track')
-        if (li.innerHTML === '关闭') {
+        if (li.innerHTML === player.lang.OFF) {
           trackDoms[0].track.mode = 'hidden'
           trackDoms[0].src = ''
           util.removeClass(player.root, 'xgplayer-texttrack-active')
@@ -99,7 +99,7 @@ let s_textTrack = function () {
     trackDoms[0].src = ''
     Array.prototype.forEach.call(ul.childNodes, li => {
       if (util.hasClass(li, 'selected')) {
-        if (li.innerHTML === '关闭') {
+        if (li.innerHTML === player.lang.OFF) {
           trackDoms[0].track.mode = 'hidden'
           trackDoms[0].src = ''
         } else {

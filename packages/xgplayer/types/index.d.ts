@@ -93,6 +93,9 @@ declare module 'xgplayer' {
         // 循环播放(默认false)
         loop?: boolean;
 
+        // 预加载
+        preload?: string;
+
         // 初始化显示视频首帧（默认false,该配置在移动端无效)
         videoInit?: boolean;
 
@@ -228,7 +231,7 @@ declare module 'xgplayer' {
         pluginRule?: () => boolean;
 
         // 国际化
-        lang?: 'zh-cn' | 'en' | 'jp';
+        lang?: string | object;
 
         // 白名单
         // 手机上video表现各异，自定义UI会有意想不到的情况发生，为了安全起见，播放器在手机上会关掉自定义UI功能，开发者可以通过白名单的方式开启此项功能
@@ -268,6 +271,8 @@ declare module 'xgplayer' {
         allowSeekAfterEnded?: boolean;
 
         allowPlayAfterEnded?: boolean;
+
+        disableStartLoad?: boolean;
     }
 
     class Proxy extends EventEmitter {

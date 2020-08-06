@@ -31,6 +31,9 @@ let fullscreen = function () {
       util.removeClass(root, 'xgplayer-is-fullscreen')
       player.emit('exitFullscreen')
     }
+    if(player.danmu && typeof player.danmu.resize === 'function') {
+      player.danmu.resize()
+    }
   };
   ['fullscreenchange', 'webkitfullscreenchange', 'mozfullscreenchange', 'MSFullscreenChange'].forEach(item => {
     document.addEventListener(item, onFullscreenChange)

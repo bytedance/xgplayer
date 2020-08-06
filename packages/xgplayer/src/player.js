@@ -233,10 +233,15 @@ class Player extends Proxy {
     if (this.config.autoplay) {
       this.on('canplay', this.canPlayFunc)
     }
-    this.video.load()
+    if(!this.config.disableStartLoad) {
+      this.video.load()
+    }
     root.insertBefore(this.video, root.firstChild)
     setTimeout(() => {
       this.emit('complete')
+      if(this.danmu && typeof this.danmu.resize === 'function') {
+        this.danmu.resize()
+      }
     }, 1)
   }
 
@@ -472,7 +477,7 @@ class Player extends Proxy {
     // let Left = ro.left
     let dragLay = util.createDom('xg-pip-lay', '<div></div>', {}, 'xgplayer-pip-lay')
     this.root.appendChild(dragLay)
-    let dragHandle = util.createDom('xg-pip-drag', '<div class="drag-handle"><span>点击按住可拖动视频</span></div>', {tabindex: 9}, 'xgplayer-pip-drag')
+    let dragHandle = util.createDom('xg-pip-drag', `<div class="drag-handle"><span>${this.lang.PIP_DRAG}</span></div>`, {tabindex: 9}, 'xgplayer-pip-drag')
     this.root.appendChild(dragHandle)
     // eslint-disable-next-line no-unused-vars
     let draggie = new Draggabilly('.xgplayer', {
@@ -650,7 +655,7 @@ class Player extends Proxy {
 
   onBlur () {
     // this.video.blur()
-    if (!this.paused && !this.ended && !this.config.closeInactive) {
+    if ((this.config.enablePausedInactive || !this.paused) && !this.ended && !this.config.closeInactive) {
       util.addClass(this.root, 'xgplayer-inactive')
     }
   }

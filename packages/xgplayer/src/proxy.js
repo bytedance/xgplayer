@@ -97,7 +97,7 @@ class Proxy {
       let name = Object.keys(item)[0]
       self.video.addEventListener(Object.keys(item)[0], function () {
         // fix when video destroy called and video reload
-        if (!self.logParams) {
+        if (!self || !self.logParams) {
           return
         }
         if (name === 'play') {
