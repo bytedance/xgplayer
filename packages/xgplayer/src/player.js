@@ -231,7 +231,11 @@ class Player extends Proxy {
     }
     this.once('loadeddata', this.loadeddataFunc)
     if (this.config.autoplay) {
-      this.on('canplay', this.canPlayFunc)
+      if (sniffer.os.isPhone) {
+        this.canPlayFunc()
+      } else {
+        this.on('canplay', this.canPlayFunc)
+      }
     }
     if(!this.config.disableStartLoad) {
       this.video.load()
