@@ -611,7 +611,7 @@ class Player extends Proxy {
           scale = height / width
         }
       }
-      scale = parseFloat(scale.toFixed(5))
+      scale = Number(scale.toFixed(5))
     } else {
       scale = 1
     }
@@ -766,13 +766,13 @@ class Player extends Proxy {
       }
       if (e && e.keyCode === 40) { // 按 down
         if (player.volume - 0.1 >= 0) {
-          player.volume = parseFloat((player.volume - 0.1).toFixed(1))
+          player.volume = Number((player.volume - 0.1).toFixed(1))
         } else {
           player.volume = 0
         }
       } else if (e && e.keyCode === 38) { // 按 up
         if (player.volume + 0.1 <= 1) {
-          player.volume = parseFloat((player.volume + 0.1).toFixed(1))
+          player.volume = Number((player.volume + 0.1).toFixed(1))
         } else {
           player.volume = 1
         }
