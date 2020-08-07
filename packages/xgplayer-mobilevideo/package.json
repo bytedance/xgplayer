@@ -1,6 +1,6 @@
 {
   "name": "xgplayer-mobilevideo",
-  "version": "2.3.20",
+  "version": "2.3.21",
   "description": "",
   "main": "lib/index.js",
   "module": "es/index.js",
@@ -37,7 +37,7 @@
     ]
   },
   "dependencies": {
-    "xgplayer-helper-utils": "2.3.20"
+    "xgplayer-helper-utils": "2.3.21"
   },
   "devDependencies": {
     "babel-plugin-transform-custom-element-classes": "^0.1.0",

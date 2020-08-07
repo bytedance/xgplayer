@@ -98,20 +98,15 @@ class HlsLiveController {
   }
 
   _onLoadError (loader, error) {
-    if (!this._tsloader.loading && !this._m3u8loader.loading && this.retrytimes >= 1) {
-      this.retrytimes--;
-      this._onError(LOADER_EVENTS.LOADER_ERROR, loader, error, false);
-    } else if (this.retrytimes <= 1) {
-      this._player.emit('error', {
-        code: error.code,
-        errorType: 'network',
-        ex: `[${loader}]: ${error.message}`,
-        errd: {}
-      })
-      this._onError(LOADER_EVENTS.LOADER_ERROR, loader, error, true);
-      this.emit(HLS_EVENTS.RETRY_TIME_EXCEEDED);
-      this.mse.endOfStream();
-    }
+    this._player.emit('error', {
+      code: error.code,
+      errorType: 'network',
+      ex: `[${loader}]: ${error.message}`,
+      errd: {}
+    })
+    this._onError(LOADER_EVENTS.LOADER_ERROR, loader, error, true);
+    this.emit(HLS_EVENTS.RETRY_TIME_EXCEEDED);
+    this.mse.endOfStream();
   }
 
   _onDemuxError (mod, error, fatal) {
@@ -271,7 +266,7 @@ class HlsLiveController {
       if ((!frag || frag.downloaded) &&
         (current - this._m3u8lasttime) / 1000 > preloadTime) {
         this._m3u8lasttime = current
-        this.emitTo('M3U8_LOADER', LOADER_EVENTS.LADER_START, this.url, {}, 0);
+        this.emitTo('M3U8_LOADER', LOADER_EVENTS.LADER_START, this.url, {}, 3);
       }
     }
   }
