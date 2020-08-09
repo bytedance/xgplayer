@@ -30,10 +30,10 @@
     ]
   },
   "dependencies": {
-    "xgplayer-mobilevideo": "2.3.21",
-    "xgplayer-helper-utils": "2.3.21",
-    "xgplayer-helper-codec": "2.3.21",
-    "xgplayer-helper-models": "2.3.21"
+    "xgplayer-mobilevideo": "2.3.23",
+    "xgplayer-helper-utils": "2.3.23",
+    "xgplayer-helper-codec": "2.3.23",
+    "xgplayer-helper-models": "2.3.23"
   },
   "devDependencies": {
     "cross-env": "^6.0.3"
