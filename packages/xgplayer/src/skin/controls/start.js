@@ -11,7 +11,7 @@ let s_start = function () {
   function onPlayerReady(player) {
     util.addClass(player.root, 'xgplayer-skin-default')
     if (player.config) {
-      player.config.autoplay && !util.isWeiXin() && util.addClass(player.root, 'xgplayer-is-enter')
+      player.config.autoplay && !util.isWeiXin() && !util.isUc() && util.addClass(player.root, 'xgplayer-is-enter')
       if (player.config.lang && player.config.lang === 'en') {
         util.addClass(player.root, 'lang-is-en')
       } else if (player.config.lang === 'jp') {

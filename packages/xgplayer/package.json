@@ -9,8 +9,12 @@
     },
     "scripts": {
         "prepare": "npm run build",
+        "postpublish": "git push --tags",
         "build": "webpack --progress --display-chunks -p",
-        "watch": "webpack --progress --display-chunks -p --watch --mode development"
+        "watch": "webpack --progress --display-chunks -p --watch --mode development",
+        "release:stable": "npm version patch && npm publish --registry=http://registry.npmjs.org",
+        "release:alpha": "npm version prerelease --preid=alpha && npm publish --tag alpha --registry=http://registry.npmjs.org",
+        "release:alpha-test": "npm publish --tag alpha-test --registry=http://registry.npmjs.org"
     },
     "keywords": [
         "video",

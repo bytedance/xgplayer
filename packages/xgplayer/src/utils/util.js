@@ -188,8 +188,8 @@ util.createImgBtn = function (name, imgUrl, width, height) {
     let w, h, unit
     ['px', 'rem', 'em', 'pt', 'dp', 'vw', 'vh', 'vm', '%'].every((item) => {
       if (width.indexOf(item) > -1 && height.indexOf(item) > -1) {
-        w = parseFloat(width.slice(0, width.indexOf(item)).trim())
-        h = parseFloat(height.slice(0, height.indexOf(item)).trim())
+        w = Number(width.slice(0, width.indexOf(item)).trim())
+        h = Number(height.slice(0, height.indexOf(item)).trim())
         unit = item
         return false
       } else {
@@ -230,6 +230,11 @@ util.Hex2RGBA = function (hex, alpha) {
 util.isWeiXin = function () {
     let ua = window.navigator.userAgent.toLowerCase()
     return ua.indexOf('micromessenger') > -1
+}
+
+util.isUc = function () {
+  let ua = window.navigator.userAgent.toLowerCase()
+  return ua.indexOf('ucbrowser') > -1
 }
 
 util.computeWatchDur = function (played = []) {

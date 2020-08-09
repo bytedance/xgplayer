@@ -74,7 +74,7 @@ let s_playbackRate = function () {
           if (li.textContent.replace(/\s+/g,"") === item.rate) {
             Array.prototype.forEach.call(li.parentNode.childNodes, item => {
               if(util.hasClass(item, 'selected')) {
-                from = parseFloat(item.getAttribute('cname'))
+                from = Number(item.getAttribute('cname'))
                 util.removeClass(item, 'selected')
               }
             })
@@ -84,7 +84,7 @@ let s_playbackRate = function () {
           }
         })
         util.addClass(li, 'selected')
-        to = parseFloat(li.getAttribute('cname'))
+        to = Number(li.getAttribute('cname'))
         li.parentNode.nextSibling.innerHTML = `${li.getAttribute('cname')}x`
         player.emit('playbackrateChange', {from, to})
         if (sniffer.device === 'mobile') {

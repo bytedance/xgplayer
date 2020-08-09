@@ -41,7 +41,7 @@
       transform:rotate(330deg) translate(0, -142%);
       animation-delay: -0.0833s;
     }
-    @-webkit-keyframes fade {
+    @keyframes fade {
       from {opacity: 1;}
       to {opacity: 0.25;}
     }
