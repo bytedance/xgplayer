@@ -277,7 +277,7 @@ let s_progress = function () {
     }
     if (player.videoConfig.mediaType !== 'audio' || !player.isProgressMoving || !player.dash) {
       const precent = player.currentTime / player.duration
-      const prevPrecent = Number(progress.style.width || '0') / Number(container.style.width || '100');
+      const prevPrecent = Number(progress.style.width.replace('%', '') || '0') / Number(container.style.width || '100');
       if (Math.abs(precent - prevPrecent) <= 1) {
         progress.style.width = `${player.currentTime * 100 / player.duration}%`
       }
