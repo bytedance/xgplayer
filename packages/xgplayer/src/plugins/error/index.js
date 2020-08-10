@@ -15,8 +15,7 @@ export default class ErrorPlugin extends Plugin {
 
   errorRetry (e) {
     e.preventDefault()
-    this.player.replay()
-    Plugin.Util.removeClass(this.player.root, 'replay')
+    this.player.retry()
   }
 
   handleCanPlay () {

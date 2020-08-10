@@ -2,6 +2,7 @@ import Util from '../utils/util'
 import Sniffer from '../utils/sniffer'
 import Errors from '../error'
 import * as Events from '../events'
+import DEBUG from '../utils/debug'
 
 class BasePlugin {
   static defineGetterOrSetter (Obj, map) {
@@ -115,10 +116,12 @@ BasePlugin.Util = Util
 BasePlugin.Sniffer = Sniffer
 BasePlugin.Errors = Errors
 BasePlugin.Events = Events
+BasePlugin.DEBUG = DEBUG
 export {
   BasePlugin as default,
   Util,
   Sniffer,
   Errors,
-  Events
+  Events,
+  DEBUG
 }

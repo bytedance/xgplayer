@@ -31,10 +31,6 @@ export default class CssFullScreen extends Plugin {
     this.on(Events.CSS_FULLSCREEN_CHANGE, (isCssfullScreen) => {
       this.animate(isCssfullScreen)
     })
-    // 退出全屏的时候会同时退出网页全屏
-    this.on(Events.FULLSCREEN_CHANGE, (isFullScreen) => {
-      !isFullScreen && this.animate(isFullScreen)
-    })
     this.btnClick = this.btnClick.bind(this);
     this.bind(['click', 'touchend'], this.btnClick)
   }
@@ -61,10 +57,11 @@ export default class CssFullScreen extends Plugin {
       return;
     }
     isFullScreen ? this.setAttr('data-state', 'full') : this.setAttr('data-state', 'normal')
+    this.switchTips(isFullScreen)
   }
 
-  switchTips () {
-    this.changeLangTextKey(this.find('.xg-tips'), this.isCssfullScreen ? 'exitCssFullscreen' : 'cssFullscreen')
+  switchTips (isFullScreen) {
+    this.changeLangTextKey(this.find('.xg-tips'), isFullScreen ? 'exitCssFullscreen' : 'cssFullscreen')
   }
 
   registerIcons () {

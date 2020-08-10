@@ -54,7 +54,7 @@ export default class Download extends Plugin {
   }
 
   download () {
-    if (!this.isLock) {
+    if (this.isLock) {
       return
     }
     const url = this.getAbsoluteURL(this.player.src)

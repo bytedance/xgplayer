@@ -8,6 +8,8 @@ import STATE_CLASS from './stateClassMap'
 import getDefaultConfig from './defaultConfig'
 import { usePreset } from './plugin/preset';
 import Controls from './plugins/controls'
+import {bindDebug} from './utils/debug'
+
 import {
   version
 } from '../package.json'
@@ -19,7 +21,7 @@ class Player extends Proxy {
   constructor (options) {
     super(options)
     this.config = Util.deepMerge(getDefaultConfig(), options)
-
+    bindDebug(this)
     // resolve default preset
     if (this.config.presets.length) {
       const defaultIdx = this.config.presets.indexOf('default')
@@ -89,8 +91,10 @@ class Player extends Proxy {
     // this.baseBar = baseBar
     const controls = pluginsManager.register(this, Controls)
     this.controls = controls
-    this.addClass(`${STATE_CLASS.DEFAULT} xgplayer-${sniffer.device} ${STATE_CLASS.NO_START} ${this.config.controls ? '' : STATE_CLASS.NO_CONTROLS}`)
-    this.addClass(STATE_CLASS.ENTER)
+    this.addClass(`${STATE_CLASS.DEFAULT} xgplayer-${sniffer.device} ${STATE_CLASS.NO_START} ${this.config.controls ? '' : STATE_CLASS.NO_CONTROLS}`);
+    if (this.config.autoplay) {
+      this.addClass(STATE_CLASS.ENTER)
+    }
     if (this.config.fluid) {
       const style = {
         'max-width': '100%',
@@ -119,9 +123,9 @@ class Player extends Proxy {
   }
 
   _initBars () {
-    this.topBar = Util.createDom('xg-bar', '', '', 'xg-top-bar');
-    this.leftBar = Util.createDom('xg-bar', '', '', 'xg-left-bar');
-    this.rightBar = Util.createDom('xg-bar', '', '', 'xg-right-bar');
+    this.topBar = Util.createDom('xg-bar', '', {}, 'xg-top-bar');
+    this.leftBar = Util.createDom('xg-bar', '', {}, 'xg-left-bar');
+    this.rightBar = Util.createDom('xg-bar', '', {}, 'xg-right-bar');
 
     ['click', 'touchend'].forEach((k) => {
       this.topBar.addEventListener(k, Util.stopPropagation)
@@ -144,10 +148,15 @@ class Player extends Proxy {
         this.fullscreen = true
         this.addClass(STATE_CLASS.FULLSCREEN)
         this.emit(Events.FULLSCREEN_CHANGE, true)
+        if (this.isCssfullScreen) {
+          this.exitCssFullscreen()
+        }
       } else {
         this.fullscreen = false
+        // 保证页面scroll的情况下退出全屏 页面定位在播放器位置
+        this.video.focus()
         this._fullscreenEl = null
-        if (this._originCssText) {
+        if (this._originCssText && !this.isCssfullScreen) {
           Util.setStyleFromCsstext(this.root, this._originCssText)
           this._originCssText = ''
         }
@@ -165,7 +174,6 @@ class Player extends Proxy {
     this.mousemoveFunc = () => {
       if (!this.config.closeFocusVideoFocus) {
         this.emit(Events.PLAYER_FOCUS)
-        this.video.focus()
       }
     }
 
@@ -195,7 +203,9 @@ class Player extends Proxy {
       this.emit(Events.URL_NULL)
     }
     this.canPlayFunc = () => {
+      this.logInfo('player', 'canPlayFunc')
       this.volume = typeof this.config.volume === 'number' ? this.config.volume : 0.6
+      this.config.autoplay && this.play()
       this.off(Events.CANPLAY, this.canPlayFunc)
       this.removeClass(STATE_CLASS.ENTER)
     }
@@ -221,7 +231,6 @@ class Player extends Proxy {
 
     if (this.config.autoplay) {
       this.load()
-      !this.isPlaying && this.play()
     }
 
     setTimeout(() => {
@@ -252,7 +261,8 @@ class Player extends Proxy {
           if (plugin.forceBeforeInit) {
             loadingPlugin.then(() => {
               this._loadingPlugins.splice(this._loadingPlugins.indexOf(loadingPlugin), 1);
-            }).catch(() => {
+            }).catch((e) => {
+              this.logError('_registerPlugins:loadingPlugin', e)
               this._loadingPlugins.splice(this._loadingPlugins.indexOf(loadingPlugin), 1);
             })
             this._loadingPlugins.push(loadingPlugin)
@@ -262,7 +272,7 @@ class Player extends Proxy {
         }
         return this.registerPlugin(plugin)
       } catch (err) {
-        console.error(err)
+        this.logError('_registerPlugins:', err)
         return null
       }
     })
@@ -381,6 +391,7 @@ class Player extends Proxy {
     }).catch((e) => {
       e.fileName = 'player'
       e.lineNumber = '236'
+      this.logError('start:beforeInit:', e)
       throw e
     })
   }
@@ -397,17 +408,18 @@ class Player extends Proxy {
       })
       return;
     }
+
     const playPromise = super.play()
     if (playPromise !== undefined && playPromise && playPromise.then) {
       playPromise.then(() => {
-        console.log('>>>>playPromise.then')
+        !this.isPlaying && this.logInfo('>>>>playPromise.then')
         this.removeClass(STATE_CLASS.NOT_ALLOW_AUTOPLAY)
         this.addClass(STATE_CLASS.PLAYING)
         this.config.closePlayVideoFocus && !this.isPlaying && this.emit(Events.PLAYER_BLUR)
         this.isPlaying = true
         this.emit(Events.AUTOPLAY_STARTED)
       }).catch((e) => {
-        console.error('>>>>playPromise.catch', e)
+        this.logWarn('>>>>playPromise.catch', e)
         if (this.video.error) {
           this.onError()
           this.errorHandler('error')
@@ -422,8 +434,12 @@ class Player extends Proxy {
         // throw e
       })
     } else {
+      this.logWarn('video.play not return promise')
+      this.isPlaying = true
       this.removeClass(STATE_CLASS.NOT_ALLOW_AUTOPLAY)
       this.removeClass(STATE_CLASS.NO_START)
+      this.addClass(STATE_CLASS.PLAYING)
+      this.emit(Events.AUTOPLAY_STARTED)
     }
     return playPromise
   }
@@ -493,6 +509,13 @@ class Player extends Proxy {
     this.isSeeking = false
     this.play()
     this.emit(Events.REPLAY)
+    this.onPlay()
+  }
+
+  retry () {
+    this.video.pause()
+    this.src = this.config.url
+    this.video.play()
   }
 
   getFullscreen (el) {
@@ -500,7 +523,7 @@ class Player extends Proxy {
     if (!el) {
       el = root
     }
-    if (!Sniffer.os.isPhone) {
+    if (!Sniffer.os.isPhone && root.getAttribute('style')) {
       this._originCssText = root.style.cssText
       root.removeAttribute('style')
     }
@@ -521,12 +544,10 @@ class Player extends Proxy {
   }
 
   exitFullscreen (el) {
-    const {root, _originCssText} = this
+    const {root} = this
     if (el) {
       el = root
     }
-    _originCssText && Util.setStyleFromCsstext(root, _originCssText)
-    this._originCssText = ''
     if (document.exitFullscreen) {
       document.exitFullscreen()
     } else if (document.webkitExitFullscreen) {
@@ -535,22 +556,31 @@ class Player extends Proxy {
       document.mozCancelFullScreen()
     } else if (document.msExitFullscreen) {
       document.msExitFullscreen()
+    } else {
+      this.removeClass(STATE_CLASS.CSS_FULLSCREEN)
     }
-    this.removeClass(STATE_CLASS.CSS_FULLSCREEN)
   }
 
   getCssFullscreen () {
     this.addClass(STATE_CLASS.CSS_FULLSCREEN)
-    this._originCssText = this.root.style.cssText
-    this.root.removeAttribute('style')
+    if (this.root.getAttribute('style')) {
+      this._originCssText = this.root.style.cssText
+      this.root.removeAttribute('style')
+    }
     this.isCssfullScreen = true
     this.emit(Events.CSS_FULLSCREEN_CHANGE, true)
+    if (this.fullscreen) {
+      this.exitFullscreen()
+    }
   }
 
   exitCssFullscreen () {
     this.removeClass(STATE_CLASS.CSS_FULLSCREEN)
-    this._originCssText && Util.setStyleFromCsstext(this.root, this._originCssText)
-    this._originCssText = ''
+    if (!this.fullscreen) {
+      this._originCssText && Util.setStyleFromCsstext(this.root, this._originCssText)
+      this._originCssText = ''
+    }
+    this.isCssfullScreen = false
     this.emit(Events.CSS_FULLSCREEN_CHANGE, false)
   }
 
@@ -596,6 +626,7 @@ class Player extends Proxy {
   }
 
   onEnded () {
+    console.log ('onEnded', this.paused)
     this.addClass(STATE_CLASS.ENDED)
     this.removeClass(STATE_CLASS.PLAYING)
   }
@@ -627,12 +658,13 @@ class Player extends Proxy {
   }
 
   onWaiting () {
-    let self = this
-    if (self.waitTimer) {
-      clearTimeout(self.waitTimer)
+    if (this.waitTimer) {
+      clearTimeout(this.waitTimer)
     }
-    self.waitTimer = setTimeout(() => {
+    this.waitTimer = setTimeout(() => {
       this.addClass(STATE_CLASS.LOADING)
+      clearTimeout(this.waitTimer)
+      this.waitTimer = null
     }, 500)
   }
 
@@ -651,10 +683,9 @@ class Player extends Proxy {
     if (this.hasClass(STATE_CLASS.LOADING)) {
       this.removeClass(STATE_CLASS.LOADING)
     }
-    if (!this.isPlaying && !this.paused) {
-      this.isPlaying = true
-      this.addClass(STATE_CLASS.PLAYING)
-      this.emit(Events.AUTOPLAY_STARTED)
+    if (this.waitTimer) {
+      clearTimeout(this.waitTimer)
+      this.waitTimer = null
     }
   }
 

@@ -3,7 +3,7 @@
 *
 **/
 import pluginsManager from './pluginsManager'
-import BasePlugin, {Util} from './basePlugin'
+import BasePlugin, {Util, DEBUG} from './basePlugin'
 import * as delegate from 'delegate-events'
 
 function isUrl (str) {
@@ -55,10 +55,11 @@ function createIcon (icon, key, classname = '', attr = {}) {
         })
         return newIcon;
       } else {
-        console.warn(`[xgplayer]warn>>config of icons.${key} is a function mast return an Element Object`)
+        DEBUG.logWarn(`warn>>config of icons.${key} is a function mast return an Element Object`)
       }
       return null;
     } catch (e) {
+      DEBUG.logError('Plugin:createIcon', e)
       return null;
     }
   }
@@ -66,7 +67,7 @@ function createIcon (icon, key, classname = '', attr = {}) {
   if (typeof icon === 'string') {
     return Util.createDomFromHtml(icon, attr, classname);
   }
-  console.warn(`[xgplayer]warn>>config of icons.${key} is invalid`);
+  DEBUG.logWarn(`warn>>config of icons.${key} is invalid`)
   return null;
 }
 
@@ -192,6 +193,7 @@ export default class Plugin extends BasePlugin {
     try {
       renderStr = this.render()
     } catch (e) {
+      DEBUG.logError(`Plugin:${this.pluginName}:render`, e)
       throw (new Error(`Plugin:${this.pluginName}:render:${e.message}`))
     }
     if (renderStr) {
@@ -446,7 +448,7 @@ export default class Plugin extends BasePlugin {
         return pdom.appendChild(child)
       }
     } catch (err) {
-      console.warn(err)
+      DEBUG.logError('Plugin:appendChild', err)
       return null
     }
   }
