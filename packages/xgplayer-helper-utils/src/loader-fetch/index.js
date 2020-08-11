@@ -50,6 +50,7 @@ class FetchLoader {
   }
 
   internalLoad (url, params, retryTimes) {
+    this.loading = true;
     return this.fetch(this.url, params, !retryTimes && 1e5).then((response) => {
       this.emit(LOADER_EVENTS.LOADER_RESPONSE_HEADERS, this.TAG, response.headers)
 
@@ -89,7 +90,7 @@ class FetchLoader {
 
     // TODO: Add Ranges
     let params = this.getParams(opts)
-    this.loading = true
+
     return this.internalLoad(url, params, retryTimes)
   }
 

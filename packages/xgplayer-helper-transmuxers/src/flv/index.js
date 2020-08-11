@@ -154,8 +154,7 @@ class FlvDemuxer {
     chunk.datasize = this.loaderBuffer.toInt(offset, 3)
     offset += 3
 
-    if ((chunk.tagType !== 8 && chunk.tagType !== 9 && chunk.tagType !== 11 && chunk.tagType !== 18) ||
-      this.loaderBuffer.toInt(8, 3) !== 0) {
+    if (chunk.tagType !== 8 && chunk.tagType !== 9 && chunk.tagType !== 11 && chunk.tagType !== 18) {
       if (this.loaderBuffer && this.loaderBuffer.length > 0) {
         this.loaderBuffer.shift(1)
       }
@@ -419,7 +418,7 @@ class FlvDemuxer {
       meta.config = aacHeader.config
       meta.objectType = aacHeader.objectType
       meta.originObjectType = aacHeader.originObjectType;
-      
+
       const audioMedia = this._context.mediaInfo.audio
 
       // fill audio media info

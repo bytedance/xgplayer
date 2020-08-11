@@ -151,10 +151,10 @@ class Playlist {
         let downloaded = this._ts[url].downloaded;
         let downloading = this._ts[url].downloading;
         ts = {
-          url, 
-          downloaded, 
-          downloading, 
-          time: parseInt(timelist[i]), 
+          url,
+          downloaded,
+          downloading,
+          time: parseInt(timelist[i]),
           duration: parseInt(this._ts[url].duration),
           id:this._ts[url].id
         };
@@ -174,7 +174,10 @@ class Playlist {
   }
 
   getLastDownloadedTs () {
-    let timelist = Object.keys(this._list);
+    let timelist = Object.keys(this._list).sort((a, b) => {
+      const result = Number(a) - Number(b)
+      return result;
+    });
     let found;
     for (let i = 0; i < timelist.length; i++) {
       let url = this._list[timelist[i]];
