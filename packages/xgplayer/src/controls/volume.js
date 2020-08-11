@@ -7,8 +7,10 @@ let volume = function () {
   let container, slider, bar, selected
   function onCanplay () {
     // player.volume = Player.sniffer.device === 'mobile' ? 1 : player.config.volume
+    if(!player.controls) return
     player.volume = player.config.volume
     container = player.controls.querySelector('.xgplayer-volume')
+    if(!container) return
     slider = container.querySelector('.xgplayer-slider')
     bar = container.querySelector('.xgplayer-bar')
     selected = container.querySelector('.xgplayer-drag')
