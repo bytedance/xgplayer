@@ -11,7 +11,7 @@ export default class AudioTimeRange {
 
   get buffered () {
     return {
-      length: 1,
+      length: this._duration ? 1 : 0,
       start: () => 0,
       end: () => this._duration
     };

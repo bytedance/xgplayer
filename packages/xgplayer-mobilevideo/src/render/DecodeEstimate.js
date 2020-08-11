@@ -36,12 +36,12 @@ export default class DecodeEstimate {
   }
 
   addDecodeInfo (frameInfo = {dts: 0}) {
-    this._estimateDecodeFps();
+    this._estimateDecodeFps(frameInfo);
     this._estimateFps(frameInfo);
   }
 
-  resetDecodeDot () {
-    this._lastDecodeDot = 0;
+  resetDecodeDot (v) {
+    this._lastDecodeDot = v || 0;
   }
 
   _estimateFps (frameInfo) {
@@ -68,7 +68,7 @@ export default class DecodeEstimate {
     this._needEstimate = false;
   }
 
-  _estimateDecodeFps () {
+  _estimateDecodeFps (frameInfo) {
     if (!this._lastDecodeDot) {
       this._lastDecodeDot = performance.now();
       return;
@@ -77,6 +77,7 @@ export default class DecodeEstimate {
     let now = performance.now();
     let cost = now - this._lastDecodeDot;
     this._lastDecodeDot = now;
+    frameInfo.cost = cost;
 
     if (cost < 0.5) return;
 
@@ -102,6 +103,12 @@ export default class DecodeEstimate {
 
   // 低延迟检测逻辑
   _lowDecodeDetect () {
+    // 解码太低
+    if (this._decodeFps <= 5) {
+      this._parent.emit(Events.VIDEO.DECODE_LOW_FPS);
+      return;
+    }
+
     if (this._decodeFps < this._fps) {
       this._lowDecodeQueue.push(this._decodeFps);
     } else {

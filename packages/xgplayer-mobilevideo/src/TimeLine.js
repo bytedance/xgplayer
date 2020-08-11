@@ -140,8 +140,6 @@ export default class TimeLine extends EventEmitter {
 
     this.videoRender.on(Events.VIDEO.DECODE_LOW_FPS, () => {
       if (this.currentTime < 20) return;
-      if (this._paused) return;
-      this.pause();
       this.emit(Events.TIMELINE.PLAY_EVENT, Events.VIDEO_EVENTS.LOW_DECODE);
     })
 

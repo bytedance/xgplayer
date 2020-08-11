@@ -37,13 +37,14 @@ export default class VideoRender extends EventEmitter {
     this._ready = false; // 初始解码ready,可播
     this._noAudio = false;
     this._wasmReady = false;
-    this._clearId = -1;
     this._degrade = !window.WebAssembly;
     this._avccpushed = false;
     this._lastTimeupdate = 0;
     this._inDecoding = false;
     this._lastDecodingDts = 0;
     this._startRender = this._startRender.bind(this);
+    this._render = this._render.bind(this);
+    this._tickTimer = null;
     this._initCanvas();
     this._bindEvents();
   }
@@ -79,6 +80,10 @@ export default class VideoRender extends EventEmitter {
     return this._timeRange.bitrate;
   }
 
+  set bitrate (v) {
+    this._timeRange.bitrate = v;
+  }
+
   get duration () {
     return this._timeRange.duartion;
   }
@@ -89,10 +94,6 @@ export default class VideoRender extends EventEmitter {
 
   get interval () {
     return Math.floor(1000 / this.fps);
-  }
-
-  get running () {
-    return this._clearId !== 0;
   }
 
   // video first frame dts
@@ -174,6 +175,7 @@ export default class VideoRender extends EventEmitter {
   }
 
   _bindEvents () {
+    let waitingTimer;
     this._parent.on(Events.TIMELINE.SET_METADATA, (type, meta) => {
       if (type === 'audio') return;
       logger.warn(this.TAG, 'video set metadata');
@@ -224,8 +226,7 @@ export default class VideoRender extends EventEmitter {
     });
 
     this._parent.on(Events.TIMELINE.DO_PAUSE, () => {
-      clearTimeout(this._clearId);
-      this._clearId = 0;
+      clearInterval(this._tickTimer);
     });
 
     this._parent.on(Events.TIMELINE.DESTROY, () => {
@@ -237,6 +238,25 @@ export default class VideoRender extends EventEmitter {
     });
 
     this.on(Events.VIDEO.AUTO_RUN, this._startRender.bind(this));
+
+    this.on(Events.VIDEO.VIDEO_WAITING, () => {
+      if (this.bitrate === 0) return;
+      clearInterval(waitingTimer);
+      let i = 1;
+      waitingTimer = setInterval(() => {
+        logger.log(this.TAG, '卡顿', i);
+        i++;
+        this.bitrate = this.bitrate / i;
+        if (this.bitrate < 40000) { // 5KB
+          this.bitrate = 0;
+          clearInterval(waitingTimer);
+        }
+      }, 1000);
+    })
+
+    this._parent.on(Events.TIMELINE.START_RENDER, () => {
+      clearInterval(waitingTimer);
+    });
   }
 
   _bindWorkerEvent (decoder) {
@@ -274,6 +294,7 @@ export default class VideoRender extends EventEmitter {
               this._assembleErr(e.data.log)
             );
           } else {
+            logger.log(this.TAG, 'use asm: ', e.data.log);
             this._degrade = true;
             this._destroyWorker();
             this._initWorker();
@@ -396,10 +417,11 @@ export default class VideoRender extends EventEmitter {
   // 2. render 过程,帧数过少时解码新帧
   _startDecode () {
     let len = 15;
+    let onlyOne = this._timeRange && this._timeRange.frameLength === 1;
     while (len >= 0) {
       let sample = this._timeRange && this._timeRange.shift();
       if (!sample) break;
-      this._decodeSample(sample);
+      this._decodeSample(sample, onlyOne);
       len--;
     }
   }
@@ -435,15 +457,15 @@ export default class VideoRender extends EventEmitter {
   }
 
   _startRender () {
-    if (this._clearId) {
-      clearTimeout(this._clearId);
-    }
+    clearInterval(this._tickTimer);
+    this._tickTimer = setInterval(this._render, 25);
+  }
 
+  _render () {
     let frame = this._frameQueue && this._frameQueue[0];
     if (!frame || !this._timeRange) {
       logger.log(this.TAG, 'lack frame');
       this._checkToDecode();
-      this._clearId = setTimeout(this._startRender, this.interval);
       // waiting
       if (this._noAudio) {
         this._ready = false;
@@ -456,14 +478,12 @@ export default class VideoRender extends EventEmitter {
 
     if (!info) {
       this._frameQueue.shift();
-      this._clearId = setTimeout(this._startRender, this.interval);
       return;
     }
 
     let _renderDelay = info.dts - this.preciseVideoDts;
 
     if (_renderDelay > this.interval) {
-      this._clearId = setTimeout(this._startRender, this.interval);
       return;
     }
 
@@ -478,7 +498,7 @@ export default class VideoRender extends EventEmitter {
     }
 
     if (logger.long) {
-      logger.log(this.TAG, `render delay:${_renderDelay} , timelinePosition:${this.preciseVideoDts} , dts:${info.dts} , rest:${this._frameQueue.length}`)
+      logger.log(this.TAG, `render delay:${_renderDelay} , timelinePosition:${this.preciseVideoDts} , dts:${info.dts} , cost:${info.cost} rest:${this._frameQueue.length}`)
     }
 
     this._frameRender.render(
@@ -489,10 +509,9 @@ export default class VideoRender extends EventEmitter {
       frame.uvLinesize
     );
     this._checkToDecode();
-    this._clearId = setTimeout(this._startRender, 25);
   }
 
-  _decodeSample (sample) {
+  _decodeSample (sample, onlyOne) {
     if (sample.options && sample.options.meta) {
       this._meta = sample.options.meta;
       logger.warn(this.TAG, 'detect metadata! flush decoder');
@@ -510,6 +529,9 @@ export default class VideoRender extends EventEmitter {
     // const worker = this.wasmworkers[gopId % MAX_WORKER_NUM];
     this._inDecoding = true;
     this._lastDecodingDts = sample.dts;
+    if (onlyOne) {
+      this._decodeEstimate.resetDecodeDot(performance.now());
+    }
     this._decoder.postMessage({
       msg: 'decode',
       data: sample.data,
@@ -541,6 +563,6 @@ export default class VideoRender extends EventEmitter {
     this._frameRender = null;
     this._parent = null;
     this.removeAllListeners();
-    clearTimeout(this._clearId);
+    clearInterval(this._tickTimer);
   }
 }

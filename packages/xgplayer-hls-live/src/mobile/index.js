@@ -3,7 +3,7 @@ import { EVENTS, Context } from 'xgplayer-helper-utils'
 
 import HLS from './hls-live-mobile'
 const hlsAllowedEvents = EVENTS.HlsAllowedEvents;
-const { BasePlugin } = Player;
+const { BasePlugin, Events } = Player;
 
 class HlsPlayer extends BasePlugin {
   static get pluginName () {
@@ -50,16 +50,28 @@ class HlsPlayer extends BasePlugin {
     return webAudioEnable && webglEnable && isComponentDefined;
   }
 
+  constructor (options) {
+    super(options);
+    this.play = this.play.bind(this)
+    this.switchURL = this.switchURL.bind(this);
+    this.handleDefinitionChange = this.handleDefinitionChange.bind(this);
+  }
+
   beforePlayerInit () {
     const { player } = this;
     if (player.video) {
-      player.video.setAttribute('preloadtime', this.config.preloadTime)
+      player.video.setAttribute('preloadtime', this.config.preloadTime);
+      player.video.setAttribute('innerdegrade', player.config.innerDegrade);
     }
+    this._initProcess();
+    this.initEvents()
+  }
+
+  _initProcess () {
     this.context = new Context(hlsAllowedEvents)
     this.initHls()
     this.context.init()
     this.loadData()
-    this.initEvents()
   }
 
   afterCreate () {
@@ -70,19 +82,32 @@ class HlsPlayer extends BasePlugin {
   }
 
   initEvents () {
-    this.play = this.play.bind(this)
+    const {player} = this;
 
-    const { player } = this;
-
-    player.on('seeking', () => {
+    this.seeking = () => {
       const time = this.currentTime
       const range = player.getBufferedRange()
       if (time > range[1] || time < range[0]) {
         this.hls.seek(this.currentTime)
       }
-    })
+    }
 
-    player.on('play', this.play)
+    this.lowdecode = () => {
+      this.emit('lowdecode', player.video.degradeInfo);
+      if (player.config.innerDegrade) {
+        let mVideo = player.video;
+        let newVideo = player.video.degradeVideo;
+        this.destroy();
+        player.video = newVideo;
+        mVideo.degrade();
+      }
+    }
+
+    this.on(Events.PLAY, this.play);
+    this.on(Events.SEEKING, this.seeking);
+    this.on(Events.URL_CHANGE, this.switchURL);
+    this.on(Events.DEFINITION_CHANGE, this.handleDefinitionChange);
+    player.video.addEventListener('lowdecode', this.lowdecode);
   }
 
   initHls () {
@@ -91,14 +116,13 @@ class HlsPlayer extends BasePlugin {
   }
 
   play () {
-    if (this.hls) {
-      // 解决 fetch catch不到: Failed to load resource: 未能完成该操作。软件导致连接中止
-      this.hls.resetLoaderIdle();
-      this.hls.resetPlayList();
-      this.hls.retryTimes = this.config.retryTimes || 3;
-      this.hls._onMetadataParsed('video');
-      this.hls._onMetadataParsed('audio');
+    if (this.played) {
+      this._destroy();
+      this._initProcess();
+    } else {
+      this.addLiveFlag();
     }
+    this.played = true
   }
 
   loadData () {
@@ -107,8 +131,16 @@ class HlsPlayer extends BasePlugin {
       this.hls.load(player.config.url)
     }
   }
-  destroy () {
-    this._destroy()
+
+  handleDefinitionChange (change) {
+    const { to } = change;
+    this.switchURL(to);
+  }
+
+  switchURL (url) {
+    this.player.config.url = url
+    this._destroy();
+    this._initProcess();
   }
 
   addLiveFlag () {
@@ -116,27 +148,15 @@ class HlsPlayer extends BasePlugin {
     Player.Util.addClass(player.root, 'xgplayer-is-live')
   }
 
+  destroy () {
+    super.offAll();
+    this._destroy()
+  }
+
   _destroy () {
     this.context.destroy()
     this.hls = null
     this.context = null
-  }
-
-  get src () {
-    return this.player.currentSrc
-  }
-
-  set src (url) {
-    this.switchURL(url)
-  }
-
-  switchURL (url) {
-    const context = new Context(hlsAllowedEvents);
-    const hls = context.registry('HLS_CONTROLLER', HLS)(this.player)
-    context.init()
-    this.this.hls = hls;
-    this.initFlvBackupEvents(hls, context);
-    hls.loadData(url);
   }
 }
 

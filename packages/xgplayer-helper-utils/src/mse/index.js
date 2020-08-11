@@ -318,6 +318,5 @@ class MSE {
       // DO NOTHING
     }
   }
-
 }
 export default MSE;
