@@ -27,14 +27,18 @@ class FetchLoader {
     return 'loader'
   }
 
-  fetch (url, params) {
+  fetch (url, params, timeout) {
     let timer = null
     return Promise.race([
       fetch(url, params),
       new Promise((resolve, reject) => {
         timer = setTimeout(() => {
-          reject(new Error('fetch timeout'))
-        }, 1e4) // 10s
+          /* eslint-disable-next-line */
+          reject({
+            code: 999,
+            message: 'fetch timeout'
+          })
+        }, timeout || 1e4) // 10s
       })
     ]).then((response) => {
       if (timer) {
@@ -46,7 +50,7 @@ class FetchLoader {
   }
 
   internalLoad (url, params, retryTimes) {
-    return this.fetch(this.url, params).then((response) => {
+    return this.fetch(this.url, params, !retryTimes && 1e5).then((response) => {
       this.emit(LOADER_EVENTS.LOADER_RESPONSE_HEADERS, this.TAG, response.headers)
 
       if (response.ok) {
@@ -62,7 +66,10 @@ class FetchLoader {
         return this.internalLoad(url, params, retryTimes)
       } else {
         this.loading = false;
-        this.emit(LOADER_EVENTS.LOADER_ERROR, this.TAG, new Error(`${response.status} (${response.statusText})`));
+        this.emit(LOADER_EVENTS.LOADER_ERROR, this.TAG, {
+          code: response.status,
+          message: `${response.status} (${response.statusText})`
+        });
       }
     }).catch((error) => {
       this.loading = false;

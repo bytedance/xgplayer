@@ -83,6 +83,9 @@ class FlvDemuxer {
       this._firstFragmentLoaded = true
       // const playType = FlvDemuxer.getPlayType(header[4])
 
+      this._context.mediaInfo.hasAudio = (header[4] >>> 2) === 1
+      this._context.mediaInfo.hasVideo = (header[4] & 1) === 1
+
       this.initVideoTrack()
       this.initAudioTrack()
     }
@@ -223,8 +226,12 @@ class FlvDemuxer {
 
     // fill mediaInfo
     this._context.mediaInfo.duration = onMetaData.duration
-    this._context.mediaInfo.hasVideo = onMetaData.hasVideo
-    this._context.mediaInfo.hsaAudio = onMetaData.hasAudio
+    if (typeof onMetaData.hasAudio === 'boolean') {
+      this._context.mediaInfo.hsaAudio = onMetaData.hasAudio
+    }
+    if (typeof onMetaData.hasVideo === 'boolean') {
+      this._context.mediaInfo.hasVideo = onMetaData.hasVideo
+    }
 
     let validate = this._datasizeValidator(chunk.datasize)
     if (validate) {
@@ -367,6 +374,7 @@ class FlvDemuxer {
     if (!meta) {
       track.meta = new AudioTrackMeta()
       meta = track.meta;
+      this._context.mediaInfo.hasAudio = true;
     }
 
     let info = this.loaderBuffer.shift(1)[0]
@@ -582,6 +590,7 @@ class FlvDemuxer {
 
     if (!track.meta) {
       track.meta = new VideoTrackMeta()
+      this._context.mediaInfo.hasVideo = true;
     }
     let meta = track.meta
 
@@ -705,6 +714,7 @@ class FlvDemuxer {
 
     if (!track.meta) {
       track.meta = new VideoTrackMeta()
+      this._context.mediaInfo.hasVideo = true;
     }
     let meta = track.meta
 
