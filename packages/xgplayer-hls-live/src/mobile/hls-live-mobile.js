@@ -82,13 +82,13 @@ class HlsLiveController {
           return;
         }
         sample.analyzed = true;
-        const buffer = new Stream(sample.data.buffer)
-        let nals
-        if (this._isHEVC(videoTrack.meta)) {
-          nals = NalUnitHEVC.getHvccNals(buffer);
-        } else {
-          nals = NalUnit.getAvccNals(buffer);
-        }
+        let nals = sample.nals;
+        // const buffer = new Stream(sample.data.buffer)
+        // if (this._isHEVC(videoTrack.meta)) {
+        //   nals = NalUnitHEVC.getHvccNals(buffer);
+        // } else {
+        //   nals = NalUnit.getAvccNals(buffer);
+        // }
         const nalsLength = nals.reduce((len, current) => {
           return len + 4 + current.body.byteLength;
         }, 0);
@@ -100,7 +100,7 @@ class HlsLiveController {
           newData.set(new Uint8Array(nal.body), offset);
           offset += nal.body.byteLength;
         })
-
+        sample.nals = null;
         sample.data = newData;
       })
       if (this.setDataInterval) {

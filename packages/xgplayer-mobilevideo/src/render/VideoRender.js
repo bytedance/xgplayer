@@ -260,6 +260,22 @@ export default class VideoRender extends EventEmitter {
   }
 
   _bindWorkerEvent (decoder) {
+
+    const _whenFail = msg => {
+      if (this._degrade) {
+        this._emitTimelineEvents(
+          Events.TIMELINE.PLAY_EVENT,
+          'error',
+          this._assembleErr(msg)
+        );
+      } else {
+        logger.log(this.TAG, 'use asm: ', msg);
+        this._degrade = true;
+        this._destroyWorker();
+        this._initWorker();
+      }
+    }
+
     decoder.addEventListener('message', (e) => {
       const { msg } = e.data;
       switch (msg) {
@@ -287,19 +303,7 @@ export default class VideoRender extends EventEmitter {
           // console.log('video decoder worker: LOG:',msg,e.data.log, performance.now());
           break;
         case 'INIT_FAILED':
-          if (this._degrade) {
-            this._emitTimelineEvents(
-              Events.TIMELINE.PLAY_EVENT,
-              'error',
-              this._assembleErr(e.data.log)
-            );
-          } else {
-            logger.log(this.TAG, 'use asm: ', e.data.log);
-            this._degrade = true;
-            this._destroyWorker();
-            this._initWorker();
-          }
-
+          _whenFail(e.data.log);
           break;
         default:
           console.error('invalid messaeg', e);
@@ -307,11 +311,7 @@ export default class VideoRender extends EventEmitter {
     });
 
     decoder.addEventListener('error', (e) => {
-      this._emitTimelineEvents(
-        Events.TIMELINE.PLAY_EVENT,
-        'error',
-        this._assembleErr(e.message)
-      );
+      _whenFail(e.message);
     });
   }
 

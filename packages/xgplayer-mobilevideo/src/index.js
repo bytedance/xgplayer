@@ -359,6 +359,7 @@ class MVideo extends HTMLElement {
   set src (val) {
     this.setAttribute('src', val);
     if (this.timeline.ready) {
+      this._vMeta = null;
       this.play('destroy');
     }
   }

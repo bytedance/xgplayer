@@ -2,7 +2,7 @@ import {logger} from 'xgplayer-helper-utils';
 import Events from '../events';
 
 const MAX_QUEUE_LENGTH = 10;
-const MAX_LOW_FPS_RECORD = 20;
+const MAX_LOW_FPS_RECORD = 30;
 
 export default class DecodeEstimate {
   constructor (parent) {
@@ -78,7 +78,6 @@ export default class DecodeEstimate {
     let cost = now - this._lastDecodeDot;
     this._lastDecodeDot = now;
     frameInfo.cost = cost;
-
     if (cost < 0.5) return;
 
     this._lastDecodeCost = cost;
@@ -115,7 +114,7 @@ export default class DecodeEstimate {
       this._lowDecodeQueue.pop();
     }
     if (this._lowDecodeQueue.length > MAX_LOW_FPS_RECORD) {
-      // 大约连续的 20 * 10 = 200帧 解码效率比较低时
+      // 大约连续的 30 * 10 = 300帧 解码效率比较低时
       this._lowDecodeQueue = [];
       logger.log(this.TAG, '解码效率过低,应该降级');
       this._parent.emit(Events.VIDEO.DECODE_LOW_FPS);

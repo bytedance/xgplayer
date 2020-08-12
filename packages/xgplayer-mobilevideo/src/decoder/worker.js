@@ -151,7 +151,7 @@ function init (url) {
         } else {
           return new Promise((resolve, reject) => {
             addOnPostRun(onPostRun.bind(self));
-
+            
             Module.onRuntimeInitialized = () => {
               resolve();
             }
