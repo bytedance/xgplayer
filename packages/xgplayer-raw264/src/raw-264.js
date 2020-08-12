@@ -65,7 +65,7 @@ class H264Demuxer {
             this.handleDataLoaded();
           }, 500)
         }
-      } else if (units.length === 1){
+      } else if (units.length === 1) {
         buffer.push(new Uint8Array(data))
         this.dataLoadedTimer = setTimeout(() => {
           this.handleDataLoaded();
@@ -77,7 +77,6 @@ class H264Demuxer {
   }
 
   pushToMobileVideo (units) {
-
     const { samples, unused } = H264Demuxer.unitsToSamples(units);
 
     this.unusedUnits = unused;
@@ -90,13 +89,20 @@ class H264Demuxer {
         this.videoMeta.sps = sample.data.slice(4)
         this.videoMeta.presentHeight = sample.sps.present_size.height;
         this.videoMeta.presentWidth = sample.sps.present_size.width;
-      } else if (sample.pps) {
+      }
+      if (sample.pps) {
         this.pps = true;
         this.videoMeta.pps = sample.data.slice(4)
-      } else {
-        this.videoTrack.samples.push(sample);
       }
-
+      if (sample.sps || sample.pps) {
+        sample.options = {
+          meta: this.videoMeta
+        }
+      }
+      if (sample.sei) {
+        this._player.emit('SEI_PARSED', sample.sei);
+      }
+      this.videoTrack.samples.push(sample);
     })
 
     if (this.sps && this.pps) {
@@ -152,12 +158,14 @@ class H264Demuxer {
   }
 
   static combineUnits (units) {
-    let sps, pps;
+    let sps, pps, sei;
     const dataSize = units.reduce((result, unit) => {
       if (unit.sps) {
         sps = unit.sps;
       } else if (unit.pps) {
         pps = unit.pps;
+      } else if (unit.sei) {
+        sei = unit.sei
       }
       return result + unit.header.byteLength + unit.body.byteLength;
     }, 0)
@@ -179,6 +187,7 @@ class H264Demuxer {
       data,
       sps,
       pps,
+      sei,
       isKeyframe
     }
   }

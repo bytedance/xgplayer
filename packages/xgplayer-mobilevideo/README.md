@@ -85,7 +85,7 @@ mobilevideo的事件基本向HTML video看齐，同时有一些专有的事件�
 大部分video属性向HTML video看齐，同时有一些特有的动态属性可以供业务访问
 
 | 属性名名 | 类型 | 含义 |
-| ------ | -------- | -----|
+| ------ | -------- | ----- |
 | decodeFps  | number | 真实的解码速率 |
 | decodeCost | number | 最近一帧的解码耗时 |
 | bitrate | number | 平均码率（最近10帧数据） |

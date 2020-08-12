@@ -64,6 +64,25 @@ class Raw264Player extends Player {
     super.start();
     this.video.preloadTime = this.config.preloadTime;
     this.video.addEventListener('timeupdate', this.handleTimeupdate, false);
+    this.setVideoStyle();
+  }
+
+  setVideoStyle () {
+    this.video.style.width = '100%';
+    this.video.style.height = '100%';
+    this.video.style.position = '100%';
+    this.once('canplay', () => {
+      if (this.video.canvas) {
+        if (this.config.stretch) {
+          this.video.canvas.style.width = '100%';
+          this.video.canvas.style.height = '100%';
+        }
+        if (this.config.quality) {
+          this.video.canvas.width = Number.parseInt(this.video.canvas.width) * this.config.quality;
+          this.video.canvas.height = Number.parseInt(this.video.canvas.height) * this.config.quality;
+        }
+      }
+    })
   }
 
   replay () {
