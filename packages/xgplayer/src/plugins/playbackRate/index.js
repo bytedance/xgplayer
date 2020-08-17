@@ -60,11 +60,6 @@ export default class PlaybackRate extends OptionsIcon {
     // this.changeCurrentText(rate)
   }
 
-  destroy () {
-    this.unbind(this.activeEvent, this.onMouseenter)
-    this.unbind('mouseleave', this.onMouseenter)
-  }
-
   renderItemList () {
     const playbackRate = this.player.playbackRate || 1
     this.curValue = playbackRate
@@ -81,5 +76,9 @@ export default class PlaybackRate extends OptionsIcon {
       return itemInfo
     })
     super.renderItemList(items, curIndex)
+  }
+
+  destroy () {
+    super.destroy()
   }
 }

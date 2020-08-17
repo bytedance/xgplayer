@@ -1,4 +1,5 @@
 import Plugin from '../../plugin'
+import util from '../../utils/util'
 
 const {Events, Util, POSITIONS, Sniffer} = Plugin
 
@@ -42,31 +43,8 @@ class Controls extends Plugin {
     this.on(Events.MINI_STATE_CHANGE, (isMini) => {
       isMini ? Util.addClass(this.root, 'mini-controls') : Util.removeClass(this.root, 'mini-controls')
     })
-    this.bind('mouseenter', (e) => {
-      this.mouseEnter(e)
-    })
-    this.bind('mouseleave', (e) => {
-      this.mouseOut(e)
-    })
 
-    this.bind(['click', 'touchend', 'touchmove'], (e) => {
-      e.preventDefault()
-      e && e.stopPropagation();
-    })
-  }
-
-  mouseEnter () {
-    // console.log('controls mouseEnter')
-    // clearTimeout(this.player.userTimer)
-  }
-
-  mouseOut () {
-    // console.log('controls mouseOut')
-    // const {player} = this
-    // player.userTimer = setTimeout(function () {
-    //   this.isActive = false
-    //   player.emit(Events.PLAYER_BLUR)
-    // }, player.config.inactive)
+    this.bind(['click', 'touchend'], util.stopPropagation)
   }
 
   focus () {
@@ -110,6 +88,10 @@ class Controls extends Plugin {
       }
       return super.registerPlugin(plugin, options, name)
     }
+  }
+
+  destroy () {
+    this.unbind(['click', 'touchend'], util.stopPropagation)
   }
 
   render () {

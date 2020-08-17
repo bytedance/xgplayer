@@ -27,14 +27,6 @@ class Enter extends Plugin {
     }
   }
 
-  show () {
-    Util.addClass(this.bindEL, 'show')
-  }
-
-  hide () {
-    Util.removeClass(this.bindEL, 'show')
-  }
-
   render () {
     const {innerHtml} = this.config
     const root = Util.createDom('xg-enter', '', {}, 'xgplayer-enter')

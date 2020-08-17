@@ -230,6 +230,9 @@ class MiniScreen extends Plugin {
   destroy () {
     this.unbind('mousedown', this.onMousedown)
     window.removeEventListener('scroll', this.onScroll)
+    this.unbind('.mini-cancel-btn', 'click', this.onCancelClick)
+    this.unbind('.play-icon', 'click', this.onCenterClick)
+    this.unbind('mousedown', this.onMousedown)
   }
 
   render () {

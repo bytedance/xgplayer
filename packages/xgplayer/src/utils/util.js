@@ -1,3 +1,4 @@
+import DEBUG from './debug'
 let util = {}
 
 util.createDom = function (el = 'div', tpl = '', attrs = {}, cname = '') {
@@ -36,6 +37,7 @@ util.createDomFromHtml = function (html, attrs = {}, classname = '') {
     }
     return null
   } catch (err) {
+    DEBUG.logError('util.createDomFromHtml', err)
     return null
   }
 }
@@ -44,11 +46,11 @@ util.hasClass = function (el, className) {
   if (!el) {
     return false;
   }
-
   if (el.classList) {
     return Array.prototype.some.call(el.classList, item => item === className)
   } else {
-    return !!el.className.match(new RegExp('(\\s|^)' + className + '(\\s|$)'))
+    const orgClassName = el.className && typeof el.className === 'object' ? el.getAttribute('class') : el.className
+    return orgClassName && !!orgClassName.match(new RegExp('(\\s|^)' + className + '(\\s|$)'))
   }
 }
 
@@ -62,7 +64,11 @@ util.addClass = function (el, className) {
       item && el.classList.add(item)
     })
   } else if (!util.hasClass(el, className)) {
-    el.className += ' ' + className
+    if (el.className && typeof el.className === 'object') {
+      el.setAttribute('class', el.getAttribute('class') + ' ' + className)
+    } else {
+      el.className += ' ' + className
+    }
   }
 }
 
@@ -78,7 +84,11 @@ util.removeClass = function (el, className) {
   } else if (util.hasClass(el, className)) {
     className.split(/\s+/g).forEach(item => {
       let reg = new RegExp('(\\s|^)' + item + '(\\s|$)')
-      el.className = el.className.replace(reg, ' ')
+      if (el.className && typeof el.className === 'object') {
+        el.setAttribute('class', el.getAttribute('class').replace(reg, ' '))
+      } else {
+        el.className = el.className.replace(reg, ' ')
+      }
     })
   }
 }
@@ -104,6 +114,7 @@ util.findDom = function (el = document, sel) {
   try {
     dom = el.querySelector(sel)
   } catch (e) {
+    DEBUG.logError('util.findDom', e)
     if (sel.indexOf('#') === 0) {
       dom = el.getElementById(sel.slice(1))
     }
@@ -306,4 +317,10 @@ util.setStyleFromCsstext = function (dom, text) {
   })
 }
 
+util.stopPropagation = (e) => {
+  if (e) {
+    e.stopPropagation()
+    e.cancelable && e.preventDefault()
+  }
+}
 export default util

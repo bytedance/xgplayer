@@ -2,6 +2,7 @@ import Util from '../utils/util'
 import Sniffer from '../utils/sniffer'
 import Errors from '../error'
 import * as Events from '../events'
+import DEBUG from '../utils/debug'
 
 class BasePlugin {
   static defineGetterOrSetter (Obj, map) {
@@ -27,12 +28,14 @@ class BasePlugin {
       'player': {
         get: () => {
           return args.player
-        }
+        },
+        configurable: true
       },
       'playerConfig': {
         get: () => {
           return args.player && args.player.config
-        }
+        },
+        configurable: true
       },
       'pluginName': {
         get: () => {
@@ -41,12 +44,14 @@ class BasePlugin {
           } else {
             return this.constructor.pluginName
           }
-        }
+        },
+        configurable: true
       },
       'logger': {
         get: () => {
           return args.player.logger
-        }
+        },
+        configurable: true
       }
     })
   }
@@ -82,7 +87,9 @@ class BasePlugin {
   offAll () {
     for (const item of Object.keys(this.__events)) {
       this.__events[item] && this.off(item, this.__events[item])
+      delete this.__events[item]
     }
+    this.__events = {}
   }
 
   emit (event, res) {
@@ -94,6 +101,14 @@ class BasePlugin {
     if (Util.checkIsFunction(this.destroy)) {
       this.destroy();
     }
+    ['player', 'playerConfig', 'pluginName', 'logger'].map(item => {
+      Object.defineProperty(this, item, {
+        writable: true
+      });
+    })
+    Object.keys(this).map(key => {
+      delete this[key]
+    })
   }
 }
 
@@ -101,10 +116,12 @@ BasePlugin.Util = Util
 BasePlugin.Sniffer = Sniffer
 BasePlugin.Errors = Errors
 BasePlugin.Events = Events
+BasePlugin.DEBUG = DEBUG
 export {
   BasePlugin as default,
   Util,
   Sniffer,
   Errors,
-  Events
+  Events,
+  DEBUG
 }

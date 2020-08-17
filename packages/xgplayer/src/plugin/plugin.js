@@ -3,7 +3,7 @@
 *
 **/
 import pluginsManager from './pluginsManager'
-import BasePlugin, {Util} from './basePlugin'
+import BasePlugin, {Util, DEBUG} from './basePlugin'
 import * as delegate from 'delegate-events'
 
 function isUrl (str) {
@@ -55,10 +55,11 @@ function createIcon (icon, key, classname = '', attr = {}) {
         })
         return newIcon;
       } else {
-        console.warn(`[xgplayer]warn>>config of icons.${key} is a function mast return an Element Object`)
+        DEBUG.logWarn(`warn>>config of icons.${key} is a function mast return an Element Object`)
       }
       return null;
     } catch (e) {
+      DEBUG.logError('Plugin:createIcon', e)
       return null;
     }
   }
@@ -66,7 +67,7 @@ function createIcon (icon, key, classname = '', attr = {}) {
   if (typeof icon === 'string') {
     return Util.createDomFromHtml(icon, attr, classname);
   }
-  console.warn(`[xgplayer]warn>>config of icons.${key} is invalid`);
+  DEBUG.logWarn(`warn>>config of icons.${key} is invalid`)
   return null;
 }
 
@@ -149,46 +150,26 @@ export default class Plugin extends BasePlugin {
     return {}
   }
 
-  static delegate (querySelector, eventType, callback) {
-    // if no querySelector passed to the method
-    if (arguments.length < 3 && typeof eventType === 'function') {
-      if (Array.isArray(querySelector)) {
-        querySelector.forEach((item) => {
-          this.bindEL(item, eventType)
-        })
-      } else {
-        this.bindEL(querySelector, eventType)
-      }
-    } else if (arguments.length === 3 && typeof callback === 'function') {
-      if (!this.root) {
-        return
-      }
+  static delegate (root, querySelector, eventType, callback, capture = false) {
+    if (root instanceof window.Node && typeof callback === 'function') {
       if (Array.isArray(eventType)) {
         eventType.forEach((item) => {
-          delegate.bind(this.root, querySelector, item, callback, false)
+          delegate.bind(root, querySelector, item, callback, capture)
         })
       } else {
-        delegate.bind(this.root, querySelector, eventType, callback, false)
+        delegate.bind(root, querySelector, eventType, callback, capture)
       }
     }
   }
 
-  static removeDelegate (querySelector, eventType, callback) {
-    if (arguments.length < 3 && typeof eventType === 'function') {
-      if (Array.isArray(querySelector)) {
-        querySelector.forEach((item) => {
-          this.unbindEL(item, eventType)
-        })
-      } else {
-        this.unbindEL(querySelector, eventType)
-      }
-    } else if (typeof callback === 'function') {
+  static removeDelegate (root, eventType, callback, capture = false) {
+    if (root instanceof window.Node && typeof callback === 'function') {
       if (Array.isArray(eventType)) {
         eventType.forEach((item) => {
-          delegate.unbind(this.root, querySelector, item, callback, false)
+          delegate.unbind(root, item, callback, capture)
         })
       } else {
-        delegate.unbind(this.root, querySelector, eventType, callback, false)
+        delegate.unbind(root, eventType, callback, capture)
       }
     }
   }
@@ -212,6 +193,7 @@ export default class Plugin extends BasePlugin {
     try {
       renderStr = this.render()
     } catch (e) {
+      DEBUG.logError(`Plugin:${this.pluginName}:render`, e)
       throw (new Error(`Plugin:${this.pluginName}:render:${e.message}`))
     }
     if (renderStr) {
@@ -353,11 +335,31 @@ export default class Plugin extends BasePlugin {
   }
 
   bind (querySelector, eventType, callback) {
-    Plugin.delegate.call(this, ...arguments)
+    if (arguments.length < 3 && typeof eventType === 'function') {
+      if (Array.isArray(querySelector)) {
+        querySelector.forEach((item) => {
+          this.bindEL(item, eventType)
+        })
+      } else {
+        this.bindEL(querySelector, eventType)
+      }
+    } else {
+      Plugin.delegate.call(this, this.root, querySelector, eventType, callback)
+    }
   }
 
   unbind (querySelector, eventType, callback) {
-    Plugin.removeDelegate.call(this, ...arguments)
+    if (arguments.length < 3 && typeof eventType === 'function') {
+      if (Array.isArray(querySelector)) {
+        querySelector.forEach((item) => {
+          this.unbindEL(item, eventType)
+        })
+      } else {
+        this.unbindEL(querySelector, eventType)
+      }
+    } else {
+      Plugin.removeDelegate.call(this, this.root, eventType, callback)
+    }
   }
 
   setStyle (name, value) {
@@ -446,7 +448,7 @@ export default class Plugin extends BasePlugin {
         return pdom.appendChild(child)
       }
     } catch (err) {
-      console.warn(err)
+      DEBUG.logError('Plugin:appendChild', err)
       return null
     }
   }
@@ -464,6 +466,11 @@ export default class Plugin extends BasePlugin {
         this.root.parentNode.removeChild(this.root)
       }
     }
+    ['root', 'parent'].map(item => {
+      Object.defineProperty(this, item, {
+        writable: true
+      });
+    })
   }
 }
 

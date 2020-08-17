@@ -151,15 +151,16 @@ class MobilePlugin extends Plugin {
     if (!(player.duration !== Infinity && player.duration > 0) || this.isTouchStart) {
       return true
     }
-    Util.checkIsFunction(playerConfig.disableSwipeHandler) && playerConfig.disableSwipeHandler()
-    this.find('.dur').innerHTML = Util.format(player.duration)
     this.isTouchStart = true
-    if (config.stopPropagation) {
-      e.preventDefault()
-      e.stopPropagation()
-    }
     const touche = this.getTouche(e.touches)
-    if (touche) {
+
+    if (touche && !config.disableGesture) {
+      // if (config.stopPropagation) {
+      //   e.preventDefault()
+      //   e.stopPropagation()
+      // }
+      Util.checkIsFunction(playerConfig.disableSwipeHandler) && playerConfig.disableSwipeHandler()
+      this.find('.dur').innerHTML = Util.format(player.duration)
       pos.x = parseInt(touche.pageX, 10)
       pos.y = parseInt(touche.pageY, 10)
       pos.time = player.currentTime * 1000
@@ -169,6 +170,8 @@ class MobilePlugin extends Plugin {
       pos.scopeL = config.scopeL * pos.width
       pos.scopeR = (1 - config.scopeR) * pos.width
       this.root.addEventListener('touchmove', this.onTouchMove, false)
+      this.root.addEventListener('touchend', this.onTouchEnd, false)
+    } else {
       this.root.addEventListener('touchend', this.onTouchEnd, false)
     }
   }
@@ -187,8 +190,6 @@ class MobilePlugin extends Plugin {
       const diffy = y - pos.y
       const tan = Math.abs(diffy) / Math.abs(diffx)
       if (config.gestureY && tan > 1.73 && (x < pos.scopeL || x > pos.scopeR)) {
-        e.preventDefault()
-        e.stopPropagation()
         if (x < pos.scopeL && config.darkness) {
           pos.op = 3
           this.updateBrightness(diffy / pos.height)
@@ -197,11 +198,12 @@ class MobilePlugin extends Plugin {
           this.updateVolume(diffy / pos.height)
         }
       } else if (config.gestureX && tan < 0.27) {
-        e.preventDefault()
-        e.stopPropagation()
         pos.op = 1
         this.updateTime(diffx / pos.width)
+      } else {
+        pos.op = 0
       }
+      Util.stopPropagation(e)
       pos.x = x
       pos.y = y
       if (config.updateGesture && typeof config.updateGesture === 'function') {
@@ -215,10 +217,11 @@ class MobilePlugin extends Plugin {
     const {root, player, pos, config, playerConfig} = this
     root.removeEventListener('touchmove', this.onTouchMove, false)
     root.removeEventListener('touchend', this.onTouchEnd, false)
-    Util.checkIsFunction(playerConfig.enableSwipeHandler) && playerConfig.enableSwipeHandler()
+    !config.disableGesture && Util.checkIsFunction(playerConfig.enableSwipeHandler) && playerConfig.enableSwipeHandler()
     if (this.isTouchMove) {
-      e.preventDefault()
-      e.stopPropagation()
+      if (config.stopPropagation) {
+        Util.stopPropagation(e)
+      }
       const time = pos.time / 1000
       if (pos.op === 1) {
         player.seek(Number(time).toFixed(1))
@@ -230,11 +233,10 @@ class MobilePlugin extends Plugin {
       !config.hideControlsEnd && this.player.emit(Events.PLAYER_FOCUS)
     } else {
       if (player.isActive && config.stopPropagation) {
-        e.preventDefault()
-        e.stopPropagation()
+        Util.stopPropagation(e)
       }
       if (!playerConfig.closeVideoClick && player.isActive) {
-        this.switchPlayPause(e)
+        e.cancelable && this.switchPlayPause(e)
       } else {
         if (player.isActive) {
           this.player.emit(Events.PLAYER_BLUR)

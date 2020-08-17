@@ -5,12 +5,13 @@ const { Util, Sniffer } = Plugin
 export default class OptionList {
   constructor (args) {
     this.config = args.config
+    this.parent = args.root
     this.root = Util.createDom('ul', '', {}, `xg-options-list ${this.config.className}`)
     args.root.appendChild(this.root)
     this.onItemClick = this.onItemClick.bind(this)
     this.renderItemList()
     const eventName = Sniffer.device === 'mobile' ? 'touchend' : 'click'
-    Plugin.delegate.call(this, 'li', eventName, this.onItemClick)
+    Plugin.delegate.call(this, this.root, 'li', eventName, this.onItemClick)
   }
 
   renderItemList (data) {
@@ -84,8 +85,9 @@ export default class OptionList {
   }
 
   destroy () {
-    Plugin.removeDelegate.call(this, 'li', ['touchend', 'click'], this.onItemClick)
+    Plugin.removeDelegate.call(this, this.root, ['touchend', 'click'], this.onItemClick)
     this.root.innerHTML = null
+    this.parent.removeChild(this.root)
     this.root = null
   }
 }

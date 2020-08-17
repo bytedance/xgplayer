@@ -31,16 +31,9 @@ class Replay extends Plugin {
 
   afterCreate () {
     Plugin.insert(this.icons.replay, this.root, 0)
-
-    const handleReplay = (e) => {
-      e.preventDefault()
-      e.stopPropagation()
-      this.player.replay()
-      Plugin.Util.removeClass(this.player.root, 'replay')
-    }
-
-    this.bind('svg', 'click', handleReplay)
-    this.bind('.xgplayer-replay-txt', 'click', handleReplay)
+    this.handleReplay = this.handleReplay.bind(this)
+    this.bind('svg', 'click', this.handleReplay)
+    this.bind('.xgplayer-replay-txt', 'click', this.handleReplay)
 
     this.on(Plugin.Events.ENDED, () => {
       if (!this.playerConfig.loop) {
@@ -66,6 +59,13 @@ class Replay extends Plugin {
     })
   }
 
+  handleReplay (e) {
+    e.preventDefault()
+    e.stopPropagation()
+    this.player.replay()
+    Plugin.Util.removeClass(this.player.root, 'replay')
+  }
+
   show () {
     if (this.config.disable) {
       return
@@ -80,6 +80,11 @@ class Replay extends Plugin {
   disable () {
     this.config.disable = true
     this.hide()
+  }
+
+  destroy () {
+    this.unbind('svg', 'click', this.handleReplay)
+    this.unbind('.xgplayer-replay-txt', 'click', this.handleReplay)
   }
 
   render () {

@@ -7,13 +7,15 @@ export default class ErrorPlugin extends Plugin {
   }
 
   afterCreate () {
-    this.bind('.xgplayer-error-refresh', 'click', (e) => {
-      e.preventDefault()
-      this.player.replay()
-      Plugin.Util.removeClass(this.player.root, 'replay')
-    })
+    this.errorRetry = this.errorRetry.bind(this)
+    this.bind('.xgplayer-error-refresh', 'click', this.errorRetry)
     this.on(Player.Events.CANPLAY, this.handleCanPlay.bind(this))
     this.on(Player.Events.ERROR, this.handleError.bind(this))
+  }
+
+  errorRetry (e) {
+    e.preventDefault()
+    this.player.retry()
   }
 
   handleCanPlay () {
@@ -29,6 +31,11 @@ export default class ErrorPlugin extends Plugin {
       this.root.innerHTML = `<em class="xgplayer-error-text">${errorNote}</em>please try to <span class="xgplayer-error-refresh">refresh</span>`
     }
   }
+
+  destroy () {
+    this.unbind('.xgplayer-error-refresh', 'click', this.errorRetry)
+  }
+
   render () {
     return `<xg-error class="xgplayer-error">
       <em class="xgplayer-error-text"></em>请试试<span class="xgplayer-error-refresh">刷新</span>
