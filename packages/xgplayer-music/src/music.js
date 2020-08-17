@@ -1,31 +1,34 @@
-import Player from 'xgplayer'
+import { Util, SimplePlayer } from 'xgplayer'
 import Lyric from './lyric'
 import Analyze from './analyze'
 import Xhr from './xhr'
+import MusicPreset from './preset'
 let mode
 let timeScale = 15
 
-const util = Player.util
-
-class Music extends Player {
+class Music extends SimplePlayer {
   constructor (options) {
-    let opts = util.deepCopy({
+    const opts = Util.deepCopy({
       controls: true,
       mediaType: 'audio',
-      ignores: ['fullscreen', 'start', 'definition', 'makeBullet', 'textTrack', 'loading', 'pc', 'mobile', 'playbackRate', 'replay', 'error', 'poster']
+      ignores: []
     }, options)
     if (!opts.volumeShow) {
       opts.ignores.push('volume')
     }
+    opts.presets = [MusicPreset]
     super(opts)
-    let player = this
+    const player = this
+
     this.rawConfig = options
-    this.list = util.typeOf(opts.url) === 'Array' ? opts.url : [{
-      src: opts.url,
-      name: opts.name,
-      vid: opts.vid,
-      poster: opts.poster
-    }]
+    this.list = Util.typeOf(opts.url) === 'Array'
+      ? opts.url
+      : [{
+          src: opts.url,
+          name: opts.name,
+          vid: opts.vid,
+          poster: opts.poster
+        }]
     this.name = this.list[0].name
     this.vid = this.list[0].vid
     this.poster = this.list[0].poster
@@ -39,7 +42,7 @@ class Music extends Player {
       return
     }
 
-    util.addClass(this.root, 'xgplayer-music')
+    Util.addClass(this.root, 'xgplayer-music')
     if (!opts.width) {
       this.config.width = '100%'
       this.root.style.width = '100%'
@@ -53,7 +56,7 @@ class Music extends Player {
         return this.video.currentSrc
       },
       set (v) {
-        let cur = util.typeOf(v) === 'String' ? {src: v, name: ''} : v
+        const cur = Util.typeOf(v) === 'String' ? { src: v, name: '' } : v
         this.history.push(cur)
         this.video.src = cur.src
       },
@@ -62,12 +65,11 @@ class Music extends Player {
     if (this.config.autoplayMuted) {
       this.config.volume = this.config.autoplay ? 0 : this.config.volume
     }
-    player.once('ready', () => {
-      util.addClass(player.root, 'xgplayer-skin-default')
-      if(player.config.lang && player.config.lang === 'en') {
-        util.addClass(player.root, 'lang-is-en')
-      } else if(player.config.lang === 'jp') {
-        util.addClass(player.root, 'lang-is-jp')
+    this.once('ready', () => {
+      if (this.config.lang && this.config.lang === 'en') {
+        Util.addClass(this.root, 'lang-is-en')
+      } else if (this.config.lang === 'jp') {
+        Util.addClass(this.root, 'lang-is-jp')
       }
     })
     this.once('canplay', function () {
@@ -106,34 +108,37 @@ class Music extends Player {
       })
     }
   }
+
   lyric (lyricTxts, Dom) {
     if (this.__lyric__) {
       this.__lyric__.unbind(this)
     }
-    if (Player.util.typeOf(lyricTxts) !== 'Array') {
+    if (Util.typeOf(lyricTxts) !== 'Array') {
       lyricTxts = [].concat(lyricTxts)
     }
     this.__lyric__ = new Lyric(lyricTxts, Dom)
     this.__lyric__.bind(this)
     return this.__lyric__
   }
+
   confirmOrder () {
-    let player = this
+    const player = this
     this.halfPass = true
     this.nextComput()
     this.prevComput()
     if (this.config.preloadNext) {
       this.checkOffline(this.list[this.nextIndex].src, this.list[this.nextIndex].vid || this.list[this.nextIndex].name).then(url => {
         if (url.indexOf('blob:') < 0) {
-          let offlineVid = player.list[player.nextIndex].vid || player.list[player.nextIndex].name
-          let xhr = new Xhr(player.list[player.nextIndex].src, res => {
+          const offlineVid = player.list[player.nextIndex].vid || player.list[player.nextIndex].name
+          const xhr = new Xhr(player.list[player.nextIndex].src, res => {
             player.database.openDB(() => {
-              player.database.addData(player.database.myDB.ojstore.name, [{vid: offlineVid, blob: new Blob([res], {type: 'audio/mp4; codecs="mp4a.40.5"'})}])
+              player.database.addData(player.database.myDB.ojstore.name, [{ vid: offlineVid, blob: new window.Blob([res], { type: 'audio/mp4; codecs="mp4a.40.5"' }) }])
               setTimeout(() => {
                 player.database.closeDB()
               }, 5000)
             })
           })
+          console.log('xhr', xhr)
         }
       })
     }
@@ -142,6 +147,7 @@ class Music extends Player {
   get mode () {
     return mode || Music.ModeType[2]
   }
+
   set mode (idx) {
     switch (idx) {
       case 0:
@@ -169,6 +175,7 @@ class Music extends Player {
         break
     }
   }
+
   prevComput () {
     switch (this.mode) {
       case 'sloop':
@@ -185,9 +192,11 @@ class Music extends Player {
         break
     }
   }
+
   get timeScale () {
     return timeScale || 15
   }
+
   set timeScale (scale) {
     timeScale = scale
   }
@@ -200,6 +209,7 @@ class Music extends Player {
       poster: meta.poster
     })
   }
+
   remove (url) {
     let idx = -1
     this.list.every((item, index) => {
@@ -214,17 +224,19 @@ class Music extends Player {
       this.list.splice(idx, 1)
     }
   }
+
   change () {
-    let self = this
-    let offlineVid = self.list[self.index].vid || self.list[self.index].name
+    const self = this
+    const offlineVid = self.list[self.index].vid || self.list[self.index].name
     this.halfPass = false
     this.checkOffline(self.list[self.index].src, offlineVid).then(url => {
-      if (Player.m4a) {
+      // if (Player.m4a) {
+      if (SimplePlayer.m4a) {
         self.video.load()
         self.name = self.list[self.index].name
         self.vid = self.list[self.index].vid
         self.poster = self.list[self.index].poster
-        self.emit('change', {src: url, name: self.name, vid: self.vid, poster: self.poster})
+        self.emit('change', { src: url, name: self.name, vid: self.vid, poster: self.poster })
       } else {
         self.video.pause()
         self.currentTime = 0
@@ -234,14 +246,15 @@ class Music extends Player {
         self.poster = self.list[self.index].poster
         setTimeout(() => {
           self.video.play().then(() => {
-            self.emit('change', {src: url, name: self.name, vid: self.vid, poster: self.poster})
+            self.emit('change', { src: url, name: self.name, vid: self.vid, poster: self.poster })
           })
         }, 60)
       }
     })
   }
+
   checkOffline (url, offlineVid) {
-    let self = this
+    const self = this
     return new Promise((resolve) => {
       if (!self.config.offline) {
         resolve(url)
@@ -260,6 +273,7 @@ class Music extends Player {
       })
     })
   }
+
   next () {
     if (!this.halfPass) {
       this.halfPass = true
@@ -268,6 +282,7 @@ class Music extends Player {
     this.index = this.nextIndex
     this.change()
   }
+
   prev () {
     if (!this.halfPass) {
       this.halfPass = true
@@ -276,20 +291,25 @@ class Music extends Player {
     this.index = this.prevIndex
     this.change()
   }
+
   forward () {
     // console.log(`music go forward ${timeScale}s`)
     this.currentTime = this.currentTime + timeScale < this.duration ? this.currentTime + timeScale : this.duration - 0.1
   }
+
   backward () {
     // console.log(`music go backward ${timeScale}s`)
     this.currentTime = this.currentTime - timeScale > 0 ? this.currentTime - timeScale : 0
   }
+
   analyze (canvas) {
     return new Analyze(this, canvas)
   }
+
   static get AudioCtx () {
     return window.AudioContext || window.webkitAudioContext
   }
+
   static get ModeType () {
     return ['order', 'random', 'loop', 'sloop']
   }
