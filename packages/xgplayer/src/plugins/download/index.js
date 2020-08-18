@@ -37,16 +37,6 @@ export default class Download extends Plugin {
     this.bind(['click', 'touchend'], this.download)
   }
 
-  registerLangauageTexts () {
-    return {
-      download: {
-        jp: 'フルスクリーン',
-        en: 'download',
-        zh: '下载'
-      }
-    }
-  }
-
   registerIcons () {
     return {
       download: DownloadSvg
@@ -90,7 +80,7 @@ export default class Download extends Plugin {
     return `<xg-icon class="xgplayer-download">
       <div class="xgplayer-icon">
       </div>
-      <div class="xg-tips" lang-key="download">${this.langText.download}</div>
+      <div class="xg-tips" lang-key="${this.i18nKeys.DOWNLOAD_TIPS}">${this.i18n.DOWNLOAD_TIPS}</div>
     </xg-icon>`
   }
 }

@@ -14,10 +14,15 @@ import {
   version
 } from '../package.json'
 import { Sniffer } from './plugin/basePlugin'
+import I18N from './lang'
 
 const FULLSCREEN_EVENTS = ['fullscreenchange', 'webkitfullscreenchange', 'mozfullscreenchange', 'MSFullscreenChange']
 
 class Player extends Proxy {
+  static get I18N () {
+    return I18N
+  }
+
   constructor (options) {
     super(options)
     this.config = Util.deepMerge(getDefaultConfig(), options)
@@ -726,12 +731,26 @@ class Player extends Proxy {
   }
 
   set lang (lang) {
+    const result = I18N.langKeys.filter(key => key === lang)
+    if (result.length === 0 && lang !== 'zh') {
+      console.error(`Sorry, set lang fail, because the language [${lang}] is not supported now, list of all supported languages is [${I18N.langKeys.join()}] `)
+      return
+    }
     this.config.lang = lang
     pluginsManager.setLang(lang, this)
   }
 
   get lang () {
     return this.config.lang
+  }
+
+  get i18n () {
+    const {lang} = this.config
+    return I18N.lang[lang] || {}
+  }
+
+  get i18nKeys () {
+    return I18N.textKeys || {}
   }
 
   get version () {
@@ -771,6 +790,21 @@ class Player extends Proxy {
 
   get pip () {
     return Util.hasClass(this.root, 'xgplayer-pip-active')
+  }
+
+  get readyState () {
+    const key = super.readyState
+    return this.i18n[key] || key
+  }
+
+  get error () {
+    const key = super.error
+    return this.i18n[key] || key
+  }
+
+  get networkState () {
+    const key = super.networkState
+    return this.i18n[key] || key
   }
 
   /***

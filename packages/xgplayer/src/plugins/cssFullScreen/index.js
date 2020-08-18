@@ -61,28 +61,14 @@ export default class CssFullScreen extends Plugin {
   }
 
   switchTips (isFullScreen) {
-    this.changeLangTextKey(this.find('.xg-tips'), isFullScreen ? 'exitCssFullscreen' : 'cssFullscreen')
+    const {i18nKeys} = this
+    this.changeLangTextKey(this.find('.xg-tips'), isFullScreen ? i18nKeys.EXITCSSFULLSCREEN_TIPS : i18nKeys.CSSFULLSCREEN_TIPS)
   }
 
   registerIcons () {
     return {
       cssFullscreen: { icon: CssFullSceenSvg, class: 'xg-get-cssfull' },
       exitCssFullscreen: { icon: ExitCssFullSceenSvg, class: 'xg-exit-cssfull' }
-    }
-  }
-
-  registerLangauageTexts () {
-    return {
-      'cssFullscreen': {
-        jp: 'シアターモード',
-        en: 'Cssfullscreen',
-        zh: '进入样式全屏'
-      },
-      exitCssFullscreen: {
-        jp: 'シアターモードを終了',
-        en: 'Exit cssfullscreen',
-        zh: '退出样式全屏'
-      }
     }
   }
 
@@ -97,7 +83,7 @@ export default class CssFullScreen extends Plugin {
     return `<xg-icon class='xgplayer-cssfullscreen'>
     <div class="xgplayer-icon">
     </div>
-    <div class="xg-tips" lang-key="cssFullscreen">${this.isCssfullScreen ? this.langText.exitCssFullscreen : this.langText.cssFullscreen}</div>
+    <div class="xg-tips" lang-key="${this.i18nKeys.EXITCSSFULLSCREEN_TIPS}">${this.i18n.CSSFULLSCREEN_TIPS}</div>
     </xg-icon>`
   }
 }

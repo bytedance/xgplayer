@@ -18,17 +18,6 @@ class Replay extends Plugin {
     }
   }
 
-  // 扩展语言
-  registerLangauageTexts () {
-    return {
-      'replay': {
-        jp: 'リプレイ',
-        en: 'rePlay',
-        zh: '重播'
-      }
-    }
-  }
-
   afterCreate () {
     Plugin.insert(this.icons.replay, this.root, 0)
     this.handleReplay = this.handleReplay.bind(this)
@@ -89,7 +78,7 @@ class Replay extends Plugin {
 
   render () {
     return `<xg-replay class="xgplayer-replay">
-      <xg-replay-txt class="xgplayer-replay-txt" lang-key="replay">${this.langText.replay || '重播'}</xg-replay-txt>
+      <xg-replay-txt class="xgplayer-replay-txt" lang-key="${this.i18nKeys.REPLAY}">${this.i18n.REPLAY || '重播'}</xg-replay-txt>
     </xg-replay>`
   }
 }

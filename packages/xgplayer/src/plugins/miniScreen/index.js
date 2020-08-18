@@ -243,7 +243,7 @@ class MiniScreen extends Plugin {
       <xg-mini-layer class="xg-mini-layer">
       <div class="mask"></div>
       <xg-mini-header class="xgplayer-mini-header">
-        <div>按住画面可移动小窗</div>
+      <div lang-key="${this.i18nKeys.MINI_DRAG}">${this.i18n.MINI_DRAG}</div>
       </xg-mini-header>
       <div class="mini-cancel-btn">X</div>
       <div class="play-icon">
