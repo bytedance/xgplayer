@@ -56,6 +56,24 @@ class BasePlugin {
     })
   }
 
+  updateLang (lang) {
+    if (!lang) {
+      lang = this.lang
+    }
+  }
+
+  get lang () {
+    return this.player.lang
+  }
+
+  get i18n () {
+    return this.player.i18n
+  }
+
+  get i18nKeys () {
+    return this.player.i18nKeys
+  }
+
   on (event, callback) {
     if (typeof event === 'string') {
       this.__events[event] = callback

@@ -38,16 +38,6 @@ export default class PlayNextIcon extends Plugin {
     }
   }
 
-  registerLangauageTexts () {
-    return {
-      'playNext': {
-        jp: '次をプレイ',
-        en: 'playNext',
-        zh: '播放'
-      }
-    }
-  }
-
   initEvents () {
     this.playNext = this.playNext.bind(this);
     const event = Sniffer.device === 'mobile' ? 'touchend' : 'click'
@@ -81,7 +71,7 @@ export default class PlayNextIcon extends Plugin {
      <xg-icon class="xgplayer-playnext">
       <div class="xgplayer-icon">
       </div>
-      <div class="xg-tips" lang-key="playNext">${this.langText.playNext}</div>
+      <div class="xg-tips" lang-key="PLAYNEXT_TIPS">${this.i18n.PLAYNEXT_TIPS}</div>
      </xg-icon>
     `
   }

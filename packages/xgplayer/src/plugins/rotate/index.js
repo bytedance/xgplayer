@@ -125,17 +125,6 @@ export default class Rotate extends Plugin {
     }
   }
 
-  // 扩展语言
-  registerLangauageTexts () {
-    return {
-      'rotate': {
-        jp: '日文text',
-        en: 'rotate',
-        zh: '旋转屏幕'
-      }
-    }
-  }
-
   render () {
     if (this.config.disable) {
       return;
@@ -144,8 +133,8 @@ export default class Rotate extends Plugin {
     <xg-icon class="xgplayer-rotate">
       <div class="xgplayer-icon">
       </div>
-      <div class="xg-tips" lang-key="rotate">
-      ${this.langText.rotate}
+      <div class="xg-tips" lang-key="${this.i18nKeys.ROTATE_TIPS}">
+      ${this.i18n.ROTATE_TIPS}
       </div>
     </xg-icon>`
   }

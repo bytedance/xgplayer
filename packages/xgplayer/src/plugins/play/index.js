@@ -34,22 +34,6 @@ class Play extends Plugin {
     })
   }
 
-  // 扩展语言
-  registerLangauageTexts () {
-    return {
-      'play': {
-        jp: 'プレイ',
-        en: 'play',
-        zh: '播放'
-      },
-      'pause': {
-        jp: '一時停止',
-        en: 'pause',
-        zh: '暂停'
-      }
-    }
-  }
-
   registerIcons () {
     return {
       play: {icon: PlaySvg, class: 'xg-icon-play'},
@@ -76,12 +60,13 @@ class Play extends Plugin {
   }
 
   animate (paused) {
+    const {i18nKeys} = this
     if (paused) {
       this.setAttr('data-state', 'pause')
-      this.changeLangTextKey(this.find('.xg-tips'), 'play')
+      this.changeLangTextKey(this.find('.xg-tips'), i18nKeys.PLAY_TIPS)
     } else {
       this.setAttr('data-state', 'play')
-      this.changeLangTextKey(this.find('.xg-tips'), 'pause')
+      this.changeLangTextKey(this.find('.xg-tips'), i18nKeys.PAUSE_TIPS)
     }
   }
 
@@ -96,7 +81,7 @@ class Play extends Plugin {
     return `<xg-icon class="xgplayer-play">
     <div class="xgplayer-icon">
     </div>
-    <div class="xg-tips" lang-key="play">${this.player.paused ? this.langText.play : this.langText.pause}</div>
+    <div class="xg-tips" lang-key="${this.i18nKeys.PLAY_TIPS}">${this.i18n.PLAY_TIPS}</div>
     </xg-icon>`
   }
 }

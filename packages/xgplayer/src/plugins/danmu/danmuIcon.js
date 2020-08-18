@@ -32,22 +32,6 @@ class DanmuIcon extends Plugin {
       closeDanmu: { icon: DANMU_OPEN, class: 'danmu-switch-closed' }
     }
   }
-
-  registerLangauageTexts () {
-    return {
-      danmuClose: {
-        jp: '閉じる',
-        en: 'close',
-        zh: '关闭'
-      },
-      dammuOpen: {
-        jp: 'オンにする',
-        en: 'open',
-        zh: '开启'
-      }
-    }
-  }
-
   switchState (isOpen) {
     if (isOpen) {
       this.setAttr('data-state', 'active')
@@ -65,7 +49,7 @@ class DanmuIcon extends Plugin {
   }
 
   switchTips (isOpen) {
-    this.changeLangTextKey(this.find('.xg-tips'), isOpen ? 'dammuOpen' : 'danmuClose')
+    this.changeLangTextKey(this.find('.xg-tips'), isOpen ? 'OPEN' : 'OFF')
   }
 
   onStateChange (e) {
@@ -86,11 +70,12 @@ class DanmuIcon extends Plugin {
   }
 
   render () {
+    const langKey = 'OPEN'
     return `
     <xg-icon class="danmu-icon">
       <div class="xgplayer-icon">
       </div>
-      <div class="xg-tips" lang-key="dammuOpen"></div>
+      <div class="xg-tips" lang-key="${this.i18nKeys[langKey]}">${this.i18n[langKey]}</div>
     </xg-icon>`
   }
 }

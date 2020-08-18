@@ -33,22 +33,11 @@ class MiniScreenIcon extends Plugin {
     this.unbind(['click', 'touchend'], this.getMini)
   }
 
-  // 扩展语言
-  registerLangauageTexts () {
-    return {
-      'miniscreen': {
-        jp: '日文text',
-        en: 'miniscreen',
-        zh: '小屏幕'
-      }
-    }
-  }
-
   render () {
-    let text = this.langText.miniscreen
+    const langKey = 'MINISCREEN'
     return `
       <xg-icon class="xgplayer-miniicon">
-      <div class="xgplayer-icon btn-text"><span class="icon-text" lang-key="miniscreen">${text}</span></div>
+      <div class="xgplayer-icon btn-text"><span class="icon-text" lang-key="${this.i18nKeys[langKey]}">${this.i18n[langKey]}</span></div>
       </xg-icon>`
   }
 }

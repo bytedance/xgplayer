@@ -35,16 +35,6 @@ class PIP extends Plugin {
     })
   }
 
-  registerLangauageTexts () {
-    return {
-      'pipicon': {
-        jp: 'picture-in-picture',
-        en: 'picture-in-picture',
-        zh: '画中画'
-      }
-    }
-  }
-
   initPipEvents () {
     const {player} = this
     this.leavePIPCallback = () => {
@@ -113,10 +103,10 @@ class PIP extends Plugin {
       return
     }
     return `<xg-icon class="xgplayer-pip">
-      <div class="xgplayer-icon btn-definition">
-      ${`<span lany-key="pipicon">${this.langText.pipicon}</span>`}
+      <div class="xgplayer-icon btn-text">
+      ${`<span class="icon-text" lang-key="pip">${this.i18n.PIP}</span>`}
       </div>
-      ${`<div class="xg-tips" lany-key="pipicon">${this.langText.pipicon}</div>`}
+      ${`<div class="xg-tips" lang-key="pip">${this.i18n.PIP}</div>`}
     </xg-icon>`
   }
 }

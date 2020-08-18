@@ -37,7 +37,7 @@ export default class Fullscreen extends Plugin {
     this.btnClick = this.btnClick.bind(this)
     this.bind(['click', 'touchend'], this.btnClick)
     this.on(Events.FULLSCREEN_CHANGE, (isFullScreen) => {
-      this.changeLangTextKey(this.find('.xg-tips'), isFullScreen ? 'exitFullscreen' : 'fullscreen')
+      this.changeLangTextKey(this.find('.xg-tips'), isFullScreen ? this.i18nKeys.EXITFULLSCREEN_TIPS : this.i18nKeys.FULLSCREEN_TIPS)
       this.animate(isFullScreen)
     })
     if (Sniffer.device === 'mobile' && this.config.needBackIcon) {
@@ -52,21 +52,6 @@ export default class Fullscreen extends Plugin {
           }
         }
       })
-    }
-  }
-
-  registerLangauageTexts () {
-    return {
-      fullscreen: {
-        jp: 'フルスクリーン',
-        en: 'Fullscreen',
-        zh: '进入全屏'
-      },
-      exitFullscreen: {
-        jp: 'フルスクリーン',
-        en: 'Exit fullscreen',
-        zh: '退出全屏'
-      }
     }
   }
 
@@ -143,10 +128,11 @@ export default class Fullscreen extends Plugin {
     if (this.config.disable) {
       return
     }
+    const langKey = 'FULLSCREEN_TIPS'
     return `<xg-icon class="xgplayer-fullscreen">
     <div class="xgplayer-icon">
     </div>
-    <div class="xg-tips" lang-key="fullscreen">${this.player.isFullScreen ? this.langText.exitFullscreen : this.langText.fullscreen}</div>
+    <div class="xg-tips" lang-key="${this.i18nKeys[langKey]}">${this.i18n[langKey]}</div>
     </xg-icon>`
   }
 }

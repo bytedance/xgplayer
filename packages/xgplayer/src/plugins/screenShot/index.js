@@ -73,16 +73,6 @@ export default class ScreenShot extends Plugin {
     }
   }
 
-  registerLangauageTexts () {
-    return {
-      'screenshot': {
-        jp: 'スクリーンショット',
-        en: 'screenshot',
-        zh: '截图'
-      }
-    }
-  }
-
   registerIcons () {
     return {
       'screenshotIcon': null
@@ -98,10 +88,11 @@ export default class ScreenShot extends Plugin {
       return;
     }
     const className = this.icons.screenshotIcon ? 'xgplayer-icon' : 'xgplayer-icon btn-text'
+    const langKey = 'SCREENSHOT'
     return `
       <xg-icon class="xgplayer-shot">
       <div class="${className}">
-      ${this.icons.screenshotIcon ? `` : `<span lang-key="screenshot">${this.langText.screenshot}</span>`} 
+      ${this.icons.screenshotIcon ? `` : `<span lang-key="${this.i18nKeys[langKey]}">${this.i18n[langKey]}</span>`} 
       </div>
     </xg-icon>`
   }

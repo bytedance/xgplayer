@@ -264,11 +264,10 @@ export default class Plugin extends BasePlugin {
     }
   }
 
-  set lang (lang) {
-    if (lang === this.config.lang) {
-      return
+  updateLang (lang) {
+    if (!lang) {
+      lang = this.lang
     }
-    this.config.lang = lang
     function checkChildren (node, callback) {
       for (let i = 0; i < node.children.length; i++) {
         if (node.children[i].children.length > 0) {
@@ -278,11 +277,15 @@ export default class Plugin extends BasePlugin {
         }
       }
     }
-    if (this.root) {
-      checkChildren(this.root, (node) => {
+    const {root, i18n, langText} = this
+    if (root) {
+      checkChildren(root, (node) => {
         const langKey = node.getAttribute && node.getAttribute('lang-key')
-        if (langKey && this.langText[langKey]) {
-          const langTextShow = this.langText[langKey]
+        if (!langKey) {
+          return
+        }
+        const langTextShow = i18n[langKey.toUpperCase()] || langText[langKey]
+        if (langTextShow) {
           node.innerHTML = typeof langTextShow === 'function' ? langTextShow(lang) : langTextShow
         }
       })
@@ -290,13 +293,17 @@ export default class Plugin extends BasePlugin {
   }
 
   get lang () {
-    let lang = this.config.lang || this.playerConfig.lang || 'zh'
-    return lang
+    return this.player.lang
   }
 
-  changeLangTextKey (dom, key) {
-    dom.getAttribute && dom.setAttribute('lang-key', key)
-    dom.innerHTML = this.langText[key]
+  changeLangTextKey (dom, key = '') {
+    const i18n = this.i18n || {}
+    const langText = this.langText
+    dom.setAttribute && dom.setAttribute('lang-key', key)
+    const text = i18n[key.toUpperCase()] || langText[key]
+    if (text) {
+      dom.innerHTML = text
+    }
   }
 
   plugins () {

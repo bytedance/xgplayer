@@ -13,6 +13,7 @@ function getHandler (eventName, player) {
     const funName = `on${eventName.charAt(0).toUpperCase()}${eventName.slice(1)}`
     e.player = player
     if (eventKey === 'error') {
+      console.log('error')
       player.errorHandler(eventKey)
       player[funName] && typeof player[funName] === 'function' && player[funName](e)
     } else {
@@ -250,21 +251,13 @@ class Proxy {
     if (!err) {
       return null
     }
-    let status = [{
-      en: 'MEDIA_ERR_ABORTED',
-      zh: '取回过程被用户中止'
-    }, {
-      en: 'MEDIA_ERR_NETWORK',
-      zh: '当下载时发生错误'
-    }, {
-      en: 'MEDIA_ERR_DECODE',
-      zh: '当解码时发生错误'
-    }, {
-      en: 'MEDIA_ERR_SRC_NOT_SUPPORTED',
-      zh: '不支持音频/视频'
-    }]
-    const curState = status[err.code - 1]
-    return curState[this.lang] || curState.zh
+    let status = [
+      'MEDIA_ERR_ABORTED',
+      'MEDIA_ERR_NETWORK',
+      'MEDIA_ERR_DECODE',
+      'MEDIA_ERR_SRC_NOT_SUPPORTED'
+    ]
+    return status[err.code - 1]
   }
 
   get loop () {
@@ -281,20 +274,13 @@ class Proxy {
     this.video.muted = isTrue
   }
   get networkState () {
-    let status = [{
-      en: 'NETWORK_EMPTY',
-      cn: '音频/视频尚未初始化'
-    }, {
-      en: 'NETWORK_IDLE',
-      cn: '音频/视频是活动的且已选取资源，但并未使用网络'
-    }, {
-      en: 'NETWORK_LOADING',
-      cn: '浏览器正在下载数据'
-    }, {
-      en: 'NETWORK_NO_SOURCE',
-      cn: '未找到音频/视频来源'
-    }]
-    return this.lang ? this.lang[status[this.video.networkState].en] : status[this.video.networkState].en
+    let status = [
+      'NETWORK_EMPTY',
+      'NETWORK_IDLE',
+      'NETWORK_LOADING',
+      'NETWORK_NO_SOURCE'
+    ]
+    return status[this.video.networkState]
   }
 
   get paused () {
@@ -323,23 +309,13 @@ class Proxy {
   }
 
   get readyState () {
-    let status = [{
-      en: 'HAVE_NOTHING',
-      cn: '没有关于音频/视频是否就绪的信息'
-    }, {
-      en: 'HAVE_METADATA',
-      cn: '关于音频/视频就绪的元数据'
-    }, {
-      en: 'HAVE_CURRENT_DATA',
-      cn: '关于当前播放位置的数据是可用的，但没有足够的数据来播放下一帧/毫秒'
-    }, {
-      en: 'HAVE_FUTURE_DATA',
-      cn: '当前及至少下一帧的数据是可用的'
-    }, {
-      en: 'HAVE_ENOUGH_DATA',
-      cn: '可用数据足以开始播放'
-    }]
-    return this.lang ? this.lang[status[this.video.readyState].en] : status[this.video.readyState]
+    let status = [
+      'HAVE_NOTHING',
+      'HAVE_METADATA',
+      'HAVE_CURRENT_DATA',
+      'HAVE_FUTURE_DATA',
+      'HAVE_ENOUGH_DATA']
+    return status[this.video.readyState]
   }
 
   get seekable () {

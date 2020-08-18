@@ -219,7 +219,7 @@ const pluginsManager = {
     const cgid = player._pluginInfoId
     const plugins = this.pluginGroup[cgid]._plugins
     for (const item of Object.keys(plugins)) {
-      plugins[item].lang = lang
+      plugins[item].updateLang && plugins[item].updateLang(lang)
     }
   },
 
