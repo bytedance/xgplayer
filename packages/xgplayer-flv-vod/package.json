@@ -31,18 +31,15 @@
     ]
   },
   "dependencies": {
-    "xgplayer-utils-mse": "3.0.0-alpha.16",
-    "xgplayer-transmuxer-context": "3.0.0-alpha.16",
-    "xgplayer-transmuxer-buffer-xgbuffer": "3.0.0-alpha.16",
-    "xgplayer-transmuxer-buffer-track": "3.0.0-alpha.16",
     "xgplayer-transmuxer-buffer-presource": "3.0.0-alpha.16",
+    "xgplayer-transmuxer-buffer-track": "3.0.0-alpha.16",
+    "xgplayer-transmuxer-buffer-xgbuffer": "3.0.0-alpha.16",
+    "xgplayer-transmuxer-codec-compatibility": "3.0.0-alpha.16",
+    "xgplayer-transmuxer-constant-events": "3.0.0-alpha.16",
+    "xgplayer-transmuxer-context": "3.0.0-alpha.16",
     "xgplayer-transmuxer-demux-flv": "3.0.0-alpha.16",
     "xgplayer-transmuxer-loader-fetch": "3.0.0-alpha.16",
     "xgplayer-transmuxer-remux-mp4": "3.0.0-alpha.16",
-    "xgplayer-transmuxer-constant-events": "3.0.0-alpha.16",
-    "xgplayer-transmuxer-codec-compatibility": "3.0.0-alpha.16"
-  },
-  "devDependencies": {
-    "cross-env": "^6.0.3"
+    "xgplayer-utils-mse": "3.0.0-alpha.16"
   }
 }

@@ -38,8 +38,5 @@
   "dependencies": {
     "xgplayer-hls-live": "3.0.0-alpha.16",
     "xgplayer-hls-vod": "3.0.0-alpha.16"
-  },
-  "devDependencies": {
-    "cross-env": "^6.0.3"
   }
 }

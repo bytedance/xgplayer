@@ -37,11 +37,6 @@
     ]
   },
   "dependencies": {
-    "xgplayer-helper-utils": "2.3.26"
-  },
-  "devDependencies": {
-    "babel-plugin-transform-custom-element-classes": "^0.1.0",
-    "babel-plugin-transform-es2015-classes": "^6.24.1",
-    "cross-env": "^6.0.3"
+    "xgplayer-helper-utils": "file:../xgplayer-helper-utils"
   }
 }

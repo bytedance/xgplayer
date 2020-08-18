@@ -31,12 +31,9 @@
   },
   "license": "ISC",
   "dependencies": {
-    "xgplayer-helper-models": "2.3.26",
-    "xgplayer-helper-codec": "2.3.26",
-    "xgplayer-helper-utils": "2.3.26",
-    "xgplayer-helper-transmuxers": "2.3.26"
-  },
-  "devDependencies": {
-    "cross-env": "^6.0.3"
+    "xgplayer-helper-codec": "file:../xgplayer-helper-codec",
+    "xgplayer-helper-models": "file:../xgplayer-helper-models",
+    "xgplayer-helper-transmuxers": "file:../xgplayer-helper-transmuxers",
+    "xgplayer-helper-utils": "file:../xgplayer-helper-utils"
   }
 }

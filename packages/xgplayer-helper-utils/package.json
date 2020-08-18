@@ -24,6 +24,6 @@
     ]
   },
   "dependencies": {
-    "xgplayer-helper-models": "2.3.26"
+    "xgplayer-helper-models": "file:../xgplayer-helper-models"
   }
 }
