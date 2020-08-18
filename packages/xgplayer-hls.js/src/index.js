@@ -56,6 +56,10 @@ class HlsJsPlayer extends Player {
       },
       configurable: true
     })
+    player._replay = function () {
+      player.src = player.config.url
+      player.play()
+    }
     this.register()
     this.once('complete', () => {
       hls.attachMedia(player.video)
