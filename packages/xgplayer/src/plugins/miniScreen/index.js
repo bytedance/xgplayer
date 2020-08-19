@@ -2,7 +2,6 @@ import Plugin from '../../plugin'
 import PlayIcon from '../assets/play.svg'
 import PauseIcon from '../assets/pause.svg'
 import MiniScreenIcon from './miniScreenIcon'
-import './index.scss'
 
 const {Util, Events} = Plugin
 

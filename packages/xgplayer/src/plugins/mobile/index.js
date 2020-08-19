@@ -68,13 +68,7 @@ class MobilePlugin extends Plugin {
     this.onTouchStart = this.onTouchStart.bind(this)
     this.onTouchEnd = this.onTouchEnd.bind(this)
     this.root.addEventListener('touchstart', this.onTouchStart)
-    this.once(Events.AUTOPLAY_PREVENTED, () => {
-      this.onAutoPlayPrevented()
-    })
-    this.once(Events.CANPLAY, this.onEntered.bind(this))
-    if (playerConfig.autoplay) {
-      this.onEnter()
-    }
+    
     if (!config.disableActive) {
       // 添加进度条拖拽事件回调
       const progressPlugin = player.plugins.progress
@@ -116,27 +110,6 @@ class MobilePlugin extends Plugin {
     this.root.setAttribute('data-xg-action', action)
   }
 
-  onEnter () {
-    const { player } = this
-    Util.addClass(player.root, 'xgplayer-is-enter')
-  }
-
-  onEntered () {
-    const { player } = this
-    Util.removeClass(player.root, 'xgplayer-is-enter')
-  }
-
-  onAutoPlayPrevented () {
-    const { player } = this
-    Util.removeClass(player.root, 'xgplayer-is-enter')
-    this.once(Events.PLAY, () => {
-      Util.addClass(player.root, 'xgplayer-is-enter')
-      this.once(Events.TIME_UPDATE, () => {
-        Util.removeClass(player.root, 'xgplayer-is-enter')
-      })
-    })
-  }
-
   getTouche (touches) {
     if (touches && touches.length > 0) {
       return touches[touches.length - 1]
@@ -148,13 +121,13 @@ class MobilePlugin extends Plugin {
   onTouchStart (e) {
     const {player, config, pos, playerConfig} = this
     // 直播或者duration没有获取到之前不做操作
-    if (!(player.duration !== Infinity && player.duration > 0) || this.isTouchStart) {
+    if (this.isTouchStart) {
       return true
     }
     this.isTouchStart = true
     const touche = this.getTouche(e.touches)
 
-    if (touche && !config.disableGesture) {
+    if (touche && !config.disableGesture && player.duration > 0) {
       // if (config.stopPropagation) {
       //   e.preventDefault()
       //   e.stopPropagation()

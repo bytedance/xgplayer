@@ -257,11 +257,11 @@ class Progress extends Plugin {
     isMove && this.triggerCallbacks('drag', {percent, currentTime})
     this.updatePercent(w / containerWidth)
     this.updateTime(now)
-    if (!isMove || config.isDragingSeek) {
-      if (player.videoConfig.mediaType === 'video') {
-        player.seek(Number(now).toFixed(1))
-      }
+    // 音频在移动move的时候不做seek
+    if (isMove && (!config.isDragingSeek || player.videoConfig.mediaType === 'audio')) {
+      return
     }
+    player.seek(Number(now).toFixed(1))
   }
 
   updateTime (time) {

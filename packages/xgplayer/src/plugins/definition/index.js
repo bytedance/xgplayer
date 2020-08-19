@@ -130,6 +130,7 @@ export default class DefinitionIcon extends OptionsIcon {
         this.isPaused = player.paused
         if (!player.ended) {
           player.video.src = to.url
+          player.play()
           this.once('canplay', () => {
             this.onCanplayChangeDefinition()
           })

@@ -13,20 +13,6 @@ class Enter extends Plugin {
     }
   }
 
-  afterPlayerInit () {
-    const {player, playerConfig} = this
-    if (!playerConfig.autoplay || !playerConfig.videoInit) {
-      this.once(Events.CANPLAY, () => {
-        this.isCanPlay = true
-      })
-      this.on(Events.PLAY, () => {
-        if (!this.isCanPlay) {
-          player.addClass('xgplayer-is-enter')
-        }
-      })
-    }
-  }
-
   render () {
     const {innerHtml} = this.config
     const root = Util.createDom('xg-enter', '', {}, 'xgplayer-enter')

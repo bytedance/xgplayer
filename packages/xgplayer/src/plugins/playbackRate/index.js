@@ -1,5 +1,6 @@
 import Plugin from '../../plugin'
 import OptionsIcon from '../common/optionsIcon'
+import { Events } from '../../plugin/basePlugin'
 
 const {POSITIONS} = Plugin
 
@@ -41,6 +42,16 @@ export default class PlaybackRate extends OptionsIcon {
     }
   }
 
+  afterCreate () {
+    super.afterCreate()
+    this.on(Events.RATE_CHANGE, () => {
+      if (this.curValue === this.player.playbackRate) {
+        return;
+      }
+      this.renderItemList()
+    })
+  }
+
   show () {
     if (!this.config.list || this.config.list.length === 0) {
       return;
@@ -55,9 +66,8 @@ export default class PlaybackRate extends OptionsIcon {
     if (Number(rate) === this.curValue) {
       return false
     }
+    this.curValue = Number(rate)
     this.player.playbackRate = Number(rate)
-    // this.curIndex = data.to.index
-    // this.changeCurrentText(rate)
   }
 
   renderItemList () {

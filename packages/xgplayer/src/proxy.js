@@ -12,21 +12,21 @@ function getHandler (eventName, player) {
     let eventKey = eventName
     const funName = `on${eventName.charAt(0).toUpperCase()}${eventName.slice(1)}`
     e.player = player
-    if (eventKey === 'error') {
-      console.log('error')
-      player.errorHandler(eventKey)
-      player[funName] && typeof player[funName] === 'function' && player[funName](e)
-    } else {
-      player.emit(eventKey, e)
-      player[funName] && typeof player[funName] === 'function' && player[funName](e)
-    }
-
+    
     if (eventKey === 'timeupdate') {
       player._currentTime = player.video && player.video.currentTime
     }
 
     if (eventName === 'durationchange') {
       player._duration = player.video.duration
+    }
+
+    if (eventKey === 'error') {
+      player.errorHandler(eventKey)
+      player[funName] && typeof player[funName] === 'function' && player[funName](e)
+    } else {
+      player.emit(eventKey, e)
+      player[funName] && typeof player[funName] === 'function' && player[funName](e)
     }
   }
 }
@@ -127,9 +127,11 @@ class Proxy {
   }
 
   destroy () {
-    this.video.pause()
-    this.video.removeAttribute('src') // empty source
-    this.video.load()
+    if (this.video) {
+      this.video.pause()
+      this.video.removeAttribute('src') // empty source
+      this.video.load()
+    }
     this._currentTime = 0;
     this._duration = 0;
     for (let k in this._interval) {
