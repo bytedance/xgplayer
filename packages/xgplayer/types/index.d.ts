@@ -273,6 +273,9 @@ declare module 'xgplayer' {
         allowPlayAfterEnded?: boolean;
 
         disableStartLoad?: boolean;
+
+        //播放错误提示
+        errorTips?: string;
     }
 
     class Proxy extends EventEmitter {

@@ -27,7 +27,7 @@ let fullscreen = function () {
     if (fullscreenEl && fullscreenEl === root) {
       util.addClass(root, 'xgplayer-is-fullscreen')
       player.emit('requestFullscreen')
-    } else {
+    } else if (util.hasClass(root, 'xgplayer-is-fullscreen')) {
       util.removeClass(root, 'xgplayer-is-fullscreen')
       player.emit('exitFullscreen')
     }
