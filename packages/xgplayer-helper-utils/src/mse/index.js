@@ -113,31 +113,52 @@ class MSE {
   }
 
   doAppend () {
-    if (Object.keys(this.sourceBuffers).length < this.sourceBufferLen) {
-      return;
-    }
     let sources = this._context.getInstance('PRE_SOURCE_BUFFER');
-    if (sources) {
-      for (let i = 0; i < Object.keys(this.sourceBuffers).length; i++) {
-        let type = Object.keys(this.sourceBuffers)[i]
-        let sourceBuffer = this.sourceBuffers[type];
-        let source = sources.sources[type];
-        if (source && !source.inited) {
+    if (!sources) return;
+    if (Object.keys(this.sourceBuffers).length < this.sourceBufferLen) {
+      if (this.sourceBufferLen < 2) return;
+      if (sources.sources.video && (sources.sources.video.bufferDuration > 2000)) {
+        this._context.mediaInfo.hasAudio = false;
+        this.noaudio = true
+        if (this.sourceBuffers.audio) {
+          this.mediaSource.removeSourceBuffer(this.sourceBuffers.audio)
+          delete this.sourceBuffers.audio
+        }
+      } else if (sources.sources.audio && (sources.sources.audio.bufferDuration > 2000)) {
+        this._context.mediaInfo.hasVideo = false;
+        this.novideo = true
+        if (this.sourceBuffers.video) {
+          this.mediaSource.removeSourceBuffer(this.sourceBuffers.video)
+          delete this.sourceBuffers.video
+        }
+      } else {
+        return;
+      }
+    }
+    for (let i = 0; i < Object.keys(this.sourceBuffers).length; i++) {
+      let type = Object.keys(this.sourceBuffers)[i]
+      let sourceBuffer = this.sourceBuffers[type];
+      let source = sources.sources[type];
+      if (this[`no${type}`]) {
+        source.data = []
+        source.init.buffer = null
+        continue
+      }
+      if (source && !source.inited) {
+        try {
+          // console.log('append buffser init: ', type, source.init)
+          sourceBuffer.appendBuffer(source.init.buffer.buffer);
+          source.inited = true;
+        } catch (e) {
+          // DO NOTHING
+        }
+      } else if (source) {
+        let data = source.data.shift();
+        if (data) {
           try {
-            // console.log('append buffser init: ', type, source.init)
-            sourceBuffer.appendBuffer(source.init.buffer.buffer);
-            source.inited = true;
+            sourceBuffer.appendBuffer(data.buffer.buffer);
           } catch (e) {
-            // DO NOTHING
-          }
-        } else if (source) {
-          let data = source.data.shift();
-          if (data) {
-            try {
-              sourceBuffer.appendBuffer(data.buffer.buffer);
-            } catch (e) {
-              source.data.unshift(data);
-            }
+            source.data.unshift(data);
           }
         }
       }
@@ -287,12 +308,17 @@ class MSE {
       this.onTimeUpdate = null;
       this.onUpdateEnd = null;
       this.onWaiting = null;
+      this.noaudio = undefined;
+      this.novideo = undefined;
     })
   }
 
   get sourceBufferLen () {
-    if (!this._context.mediaInfo) return 2;
-    return !!this._context.mediaInfo.hasVideo + !!this._context.mediaInfo.hasAudio;
+    if (!this._context.mediaInfo) {
+      if (this.noaudio || this.novideo) return 1;
+      return 2;
+    }
+    return (!!this._context.mediaInfo.hasVideo && !this.novideo) + (!!this._context.mediaInfo.hasAudio && !this.noaudio);
   }
 
   set url (val) {
