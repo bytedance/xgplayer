@@ -139,7 +139,7 @@ export default class TimeLine extends EventEmitter {
     this.videoRender.on(Events.VIDEO.VIDEO_READY, this.onVideoReady);
 
     this.videoRender.on(Events.VIDEO.DECODE_LOW_FPS, () => {
-      if (this.currentTime < 20) return;
+      if (this.currentTime < 10) return;
       this.emit(Events.TIMELINE.PLAY_EVENT, Events.VIDEO_EVENTS.LOW_DECODE);
     })
 
@@ -210,7 +210,7 @@ export default class TimeLine extends EventEmitter {
   }
 
   pause () {
-    if (this._paused) return;
+    if (this._paused || !this.ready) return;
     this.emit(Events.TIMELINE.DO_PAUSE);
     setTimeout(() => {
       this._paused = true;

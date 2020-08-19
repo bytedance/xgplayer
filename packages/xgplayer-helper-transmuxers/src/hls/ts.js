@@ -303,6 +303,7 @@ class TsDemuxer {
       originDts: pes.dts,
       isKeyframe,
       data,
+      nals,
       options
     });
     track.samples.push(sample);
@@ -498,6 +499,7 @@ class TsDemuxer {
       originDts: pes.dts,
       isKeyframe,
       data,
+      nals,
       options,
       isGop: isGop,
       gopId: isGop ? ++this.gopId : this.gopId

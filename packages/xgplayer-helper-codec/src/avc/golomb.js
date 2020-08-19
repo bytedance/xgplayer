@@ -83,6 +83,15 @@ class Golomb {
       return -1 * (value >>> 1)
     }
   }
+
+  readSliceType () {
+    // skip NALu type Nal unit header 8bit
+    this.readByte();
+    // discard first_mb_in_slice
+    this.readUEG();
+    // return slice_type
+    return this.readUEG();
+  }
 }
 
 export default Golomb

@@ -297,7 +297,6 @@ class FlvDemuxer {
     ret.dependsOnCoreCoder = (data[2] & 2) >>> 1
     ret.extensionFlagIndex = data[2] & 1
 
-
     let userAgent = window.navigator.userAgent.toLowerCase();
     let extensionSamplingIndex;
 
@@ -453,7 +452,6 @@ class FlvDemuxer {
     }
   }
 
-
   // parse hevc/avc video data
   // *  TagType == 9时
   // *                      filter == 1         filter == 1
@@ -481,6 +479,7 @@ class FlvDemuxer {
 
     // 12 for hevc, 7 for avc
     if (codecID === 7 || codecID === 12) {
+      let hevc = codecID === 12;
       let data = this.loaderBuffer.shift(chunk.datasize - 5) // 减5字节header信息
       if (data[4] === 0 && data[5] === 0 && data[6] === 0 && data[7] === 1) {
         let avcclength = 0
@@ -500,7 +499,7 @@ class FlvDemuxer {
       chunk.data = data
       // If it is AVC sequece Header.
       if (chunk.avcPacketType === 0) {
-        if(codecID === 12) {
+        if (hevc) {
           this._hevcSequenceHeaderParser(chunk.data)
         } else {
           this._avcSequenceHeaderParser(chunk.data)
@@ -521,19 +520,21 @@ class FlvDemuxer {
           this.emit(DEMUX_EVENTS.DEMUX_ERROR, this.TAG, new Error(`invalid video tag datasize: ${chunk.datasize}`), false)
           return;
         }
-        const nals = codecID === 12 ? NalUnitHEVC.getHvccNals(new Stream(chunk.data.buffer)) : NalUnit.getAvccNals(new Stream(chunk.data.buffer))
+        const nals = hevc ? NalUnitHEVC.getHvccNals(new Stream(chunk.data.buffer)) : NalUnit.getAvccNals(new Stream(chunk.data.buffer))
         for (let i = 0; i < nals.length; i++) {
           const unit = nals[i]
-          codecID === 12 ? NalUnitHEVC.analyseNal(unit) : NalUnit.analyseNal(unit)
+          hevc ? NalUnitHEVC.analyseNal(unit) : NalUnit.analyseNal(unit)
 
           if (unit.sei) {
             this.emit(DEMUX_EVENTS.SEI_PARSED, Object.assign(unit.sei, {
               dts: chunk.dts
             }))
           }
-          if ([19, 20].indexOf(unit.type) > -1) {
-            chunk.isGop = true
-            this.gopId++
+          if (hevc) {
+            if ([19, 20].indexOf(unit.type) > -1) {
+              chunk.isGop = true
+              this.gopId++
+            }
           }
         }
         codecID === 12 ? this.tracks.videoTrack.meta.streamType = 0x24 : this.tracks.videoTrack.meta.streamType = 0x1b
@@ -544,6 +545,7 @@ class FlvDemuxer {
           this._videoMetaChange = false
         }
         chunk.gopId = this.gopId
+        chunk.nals = nals;
         this.tracks.videoTrack.samples.push(chunk)
         // this.emit(DEMUX_EVENTS.DEMUX_COMPLETE)
       }
@@ -765,7 +767,7 @@ class FlvDemuxer {
         nalUnitSize = data[offset] * 256 + data[offset + 1]
         switch (nalUnitType) {
           case 32:
-            if(!hasVPS) {
+            if (!hasVPS) {
               hasVPS = true
               vps = data.slice(offset + 2, offset + 2 + nalUnitSize)
               this.tracks.videoTrack.meta.vps = SpsParserHEVC._ebsp2rbsp(vps)
@@ -773,7 +775,7 @@ class FlvDemuxer {
             }
             break;
           case 33:
-            if(!hasSPS) {
+            if (!hasSPS) {
               hasSPS = true
               sps = data.slice(offset + 2, offset + 2 + nalUnitSize)
               this.tracks.videoTrack.meta.sps = SpsParserHEVC._ebsp2rbsp(sps)
@@ -783,7 +785,7 @@ class FlvDemuxer {
             }
             break;
           case 34:
-            if(!hasPPS) {
+            if (!hasPPS) {
               hasPPS = true
               pps = data.slice(offset + 2, offset + 2 + nalUnitSize)
               this.tracks.videoTrack.meta.pps = SpsParserHEVC._ebsp2rbsp(pps)

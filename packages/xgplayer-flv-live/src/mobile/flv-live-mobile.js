@@ -75,8 +75,9 @@ export default class FlvController {
     if (this._player.video) {
       const { videoTrack, audioTrack } = this._context.getInstance('TRACKS');
       videoTrack.samples.forEach((sample) => {
-        const buffer = new Stream(sample.data.buffer)
-        const nals = NalUnit.getNalunits(buffer);
+        // const buffer = new Stream(sample.data.buffer)
+        // const nals = NalUnit.getNalunits(buffer);
+        const nals = sample.nals;
         const nalsLength = nals.reduce((len, current) => {
           return len + 4 + current.body.byteLength;
         }, 0);
@@ -88,7 +89,7 @@ export default class FlvController {
           newData.set(new Uint8Array(nal.body), offset);
           offset += nal.body.byteLength;
         })
-
+        sample.nals = null;
         sample.data = newData;
       })
       this._player.video.onDemuxComplete(videoTrack, audioTrack);
