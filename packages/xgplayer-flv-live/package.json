@@ -1,6 +1,6 @@
 {
   "name": "xgplayer-flv-live",
-  "version": "3.0.0-alpha.33",
+  "version": "3.0.0-alpha.37",
   "description": "",
   "main": "lib/index.js",
   "module": "es/index.js",
@@ -31,9 +31,9 @@
     ]
   },
   "dependencies": {
-    "xgplayer-helper-codec": "file:../xgplayer-helper-codec",
-    "xgplayer-helper-models": "file:../xgplayer-helper-models",
-    "xgplayer-helper-transmuxers": "file:../xgplayer-helper-transmuxers",
-    "xgplayer-helper-utils": "file:../xgplayer-helper-utils"
+    "xgplayer-helper-codec": "2.3.29",
+    "xgplayer-helper-models": "2.3.29",
+    "xgplayer-helper-transmuxers": "2.3.29",
+    "xgplayer-helper-utils": "2.3.29"
   }
 }

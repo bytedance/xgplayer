@@ -169,10 +169,6 @@ class MSE {
     const { readyState } = this.mediaSource;
     if (readyState === 'open') {
       try {
-        const sourceBuffers = Array.prototype.slice.call(this.mediaSource.activeSourceBuffers, 0)
-        for (let i in sourceBuffers) {
-          this.mediaSource.removeSourceBuffer(sourceBuffers[i]);
-        }
         this.mediaSource.endOfStream()
       } catch (e) {
         // log
@@ -290,8 +286,14 @@ class MSE {
     this.container.removeEventListener('waiting', this.onWaiting);
     this.mediaSource.removeEventListener('sourceopen', this.onSourceOpen);
     return this.removeBuffers().then(() => {
-      for (let i = 0; i < Object.keys(this.sourceBuffers).length; i++) {
-        delete this.sourceBuffers[Object.keys(this.sourceBuffers)[i]];
+      let sources = Object.keys(this.sourceBuffers);
+      for (let i = 0; i < sources.length; i++) {
+        let buffer = this.sourceBuffers[sources[i]];
+        delete this.sourceBuffers[sources[i]];
+
+        if (this.mediaSource.readyState === 'open') {
+          this.mediaSource.removeSourceBuffer(buffer);
+        }
       }
 
       this.endOfStream()

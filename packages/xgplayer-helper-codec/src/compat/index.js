@@ -230,9 +230,12 @@ class Compatibility {
       }
     }
 
-    const curLastSample = videoSamples.pop();
+    let curLastSample = videoSamples.pop();
     if (videoSamples.length) {
       videoSamples[videoSamples.length - 1].duration = curLastSample.dts - videoSamples[videoSamples.length - 1].dts
+    } else if (curLastSample) {
+      videoSamples.push(curLastSample);
+      curLastSample = null;
     }
 
     if (this.videoLastSample) {
@@ -279,7 +282,7 @@ class Compatibility {
 
     const firstSample = this._firstAudioSample
 
-    let _firstSample = audioSamples[0]
+    let _firstSample = audioSamples[0];
 
     logger.log(this.TAG, `doFixAudio::  _audioLargeGap: ${this._audioLargeGap}, streamChangeStart:${streamChangeStart} ,  nextAudioDts:${this.nextAudioDts},  audio: firstDTS:${_firstSample.dts} ,firstPTS:${_firstSample.pts} ,lastDTS:${audioSamples[samplesLen - 1].dts} , lastPTS: ${audioSamples[samplesLen - 1].pts}`);
 
@@ -378,6 +381,41 @@ class Compatibility {
       }
     }
 
+    // 分片内采样间补帧
+    let nextDts = audioSamples[0].dts + iRefSampleDuration;
+    for (let i = 1; i < audioSamples.length;) {
+      let sample = audioSamples[i];
+      let delta = sample.dts - nextDts;
+      if (delta <= -1 * iRefSampleDuration) {
+        logger.warn(`drop 1 audio sample for ${delta} ms overlap`);
+        audioSamples.splice(i, 1);
+        continue;
+      }
+      if (delta >= 10 * iRefSampleDuration) {
+        let missingCount = Math.round(delta / iRefSampleDuration);
+        logger.warn(this.TAG, `inject ${missingCount} audio frame for ${delta} ms gap`);
+        for (let j = 0; j < missingCount; j++) {
+          const silentSample = {
+            data: silentFrame,
+            datasize: silentFrame.byteLength,
+            dts: nextDts,
+            originDts: nextDts,
+            filtered: 0
+          }
+          audioSamples.splice(i, 0, silentSample);
+          nextDts += iRefSampleDuration;
+          i++;
+        }
+        sample.dts = sample.pts = sample.originDts = nextDts;
+        nextDts += iRefSampleDuration;
+        i++;
+      } else {
+        sample.dts = sample.pts = sample.originDts = nextDts;
+        nextDts += iRefSampleDuration;
+        i++;
+      }
+    }
+
     const unSyncDuration = meta.refSampleDuration - iRefSampleDuration
     audioSamples.forEach((sample, idx) => {
       if (idx !== 0) {
@@ -391,6 +429,7 @@ class Compatibility {
         this.audioUnsyncTime -= 1;
       }
     });
+
     const lastSample = audioSamples[audioSamples.length - 1];
     const lastDts = lastSample.dts;
     const lastDuration = lastSample.duration;

@@ -31,9 +31,9 @@
     ]
   },
   "dependencies": {
-    "xgplayer-helper-codec": "file:../xgplayer-helper-codec",
-    "xgplayer-helper-models": "file:../xgplayer-helper-models",
-    "xgplayer-helper-utils": "file:../xgplayer-helper-utils",
-    "xgplayer-mobilevideo": "file:../xgplayer-mobilevideo"
+    "xgplayer-helper-codec": "2.3.29",
+    "xgplayer-helper-models": "2.3.29",
+    "xgplayer-helper-utils": "2.3.29",
+    "xgplayer-mobilevideo": "2.3.29"
   }
 }

@@ -1,6 +1,6 @@
 {
   "name": "xgplayer-helper-utils",
-  "version": "2.3.26",
+  "version": "2.3.29",
   "description": "",
   "main": "lib/index.js",
   "module": "es/index.js",
@@ -24,6 +24,6 @@
     ]
   },
   "dependencies": {
-    "xgplayer-helper-models": "file:../xgplayer-helper-models"
+    "xgplayer-helper-models": "2.3.29"
   }
 }

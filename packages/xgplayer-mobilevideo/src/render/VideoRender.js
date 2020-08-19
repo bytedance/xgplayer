@@ -260,7 +260,6 @@ export default class VideoRender extends EventEmitter {
   }
 
   _bindWorkerEvent (decoder) {
-
     const _whenFail = msg => {
       if (this._degrade) {
         this._emitTimelineEvents(

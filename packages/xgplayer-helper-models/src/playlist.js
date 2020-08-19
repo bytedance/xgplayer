@@ -28,7 +28,7 @@ class Playlist {
     return this._baseURL;
   }
 
-  push (ts, duration, discontinue,id) {
+  push (ts, duration, discontinue, id) {
     if (!this._ts[ts]) {
       this._ts[ts] = {duration: duration,
         downloaded: false,
@@ -52,7 +52,7 @@ class Playlist {
           downloaded: false,
           downloading: false,
           url: url,
-          id:this._ts[url].id
+          id: this._ts[url].id
         }
       }
       delete this._list[this._ts[url].start];
@@ -84,7 +84,7 @@ class Playlist {
         let frag = data.frags[i];
         if (!this._ts[frag.url] && this.downloadedUrls.indexOf(frag.url) < 0) {
           newfraglist.push(frag.url)
-          this.push(frag.url, frag.duration, frag.discontinue,frag.id);
+          this.push(frag.url, frag.duration, frag.discontinue, frag.id);
         }
       }
 
@@ -156,7 +156,7 @@ class Playlist {
           downloading,
           time: parseInt(timelist[i]),
           duration: parseInt(this._ts[url].duration),
-          id:this._ts[url].id
+          id: this._ts[url].id
         };
         if (this.autoclear) {
           delete this._ts[this._lastget.url];
@@ -204,8 +204,9 @@ class Playlist {
   }
 
   clearDownloaded () {
-    for (let i = 0, l = Object.keys(this._ts).length; i < l; i++) {
-      let ts = this._ts[Object.keys(this._ts)[i]];
+    let list = Object.keys(this._ts);
+    for (let i = 0, l = list.length; i < l; i++) {
+      let ts = this._ts[list[i]];
       ts.downloaded = false;
       ts.downloading = false;
     }

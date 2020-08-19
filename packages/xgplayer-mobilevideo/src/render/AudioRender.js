@@ -102,7 +102,7 @@ export default class AudioRender extends EventEmitter {
     this._parent.on(Events.TIMELINE.SET_METADATA, (type, meta) => {
       if (type === 'video') return;
       if (this._noAudio) return;
-      logger.warn(this.TAG, 'audio set metadata',meta);
+      logger.warn(this.TAG, 'audio set metadata', meta);
       this._meta = meta;
     });
 
