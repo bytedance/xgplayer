@@ -261,7 +261,7 @@ export default class Mp4Remuxer {
       const mdat = Fmp4.mdat(mdatBox)
       moofMdat.write(moof, mdat)
 
-      this.writeToSource('video', moofMdat)
+      this.writeToSource('video', moofMdat, mp4Samples[mp4Samples.length - 1].pts)
     }
 
     if (initSegment) {
@@ -380,7 +380,7 @@ export default class Mp4Remuxer {
       const mdat = Fmp4.mdat(mdatBox)
       moofMdat.write(moof, mdat)
 
-      this.writeToSource('audio', moofMdat)
+      this.writeToSource('audio', moofMdat, mp4Samples[mp4Samples.length - 1].dts)
     }
 
     if (initSegment) {
@@ -399,13 +399,16 @@ export default class Mp4Remuxer {
     track.length = 0
   }
 
-  writeToSource (type, buffer) {
+  writeToSource (type, buffer, bufferDuration) {
     let presourcebuffer = this._context.getInstance('PRE_SOURCE_BUFFER');
     let source = presourcebuffer.getSource(type);
     if (!source) {
       source = presourcebuffer.createSource(type);
     }
     source.data.push(buffer)
+    if (bufferDuration) {
+      source.bufferDuration = bufferDuration
+    }
   }
 
   initSilentAudio (dts, duration) {
