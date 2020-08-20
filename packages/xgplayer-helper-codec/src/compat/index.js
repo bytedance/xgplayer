@@ -238,10 +238,15 @@ class Compatibility {
       curLastSample = null;
     }
 
-    if (this.videoLastSample) {
+    if (this.videoLastSample && curLastSample) {
       const videoLastSample = this.videoLastSample;
       videoLastSample.duration = firstSample.dts - videoLastSample.dts;
-      videoSamples.unshift(this.videoLastSample)
+      videoSamples.unshift(this.videoLastSample);
+
+      this.videoLastSample = curLastSample;
+    } else if (curLastSample) {
+      this.videoLastSample = curLastSample;
+      videoSamples = [];
     }
 
     // videoSamples.forEach((sample, idx) => {
@@ -254,8 +259,6 @@ class Compatibility {
     //     }
     //   }
     // })
-
-    this.videoLastSample = curLastSample;
 
     this.videoTrack.samples = videoSamples;
   }
