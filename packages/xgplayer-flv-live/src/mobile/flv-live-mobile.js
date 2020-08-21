@@ -54,7 +54,7 @@ export default class FlvController {
     this.on(DEMUX_EVENTS.DEMUX_COMPLETE, this._handleDemuxComplete.bind(this))
     this.on(DEMUX_EVENTS.DEMUX_ERROR, this._handleDemuxError.bind(this))
     this.on(DEMUX_EVENTS.SEI_PARSED, this._handleSEIParsed.bind(this))
-    this.on(BROWSER_EVENTS.VISIBILITY_CHANGE, this._handleVisibilityChange.bind(this))
+    // this.on(BROWSER_EVENTS.VISIBILITY_CHANGE, this._handleVisibilityChange.bind(this))
   }
 
   _handleMediaInfo () {

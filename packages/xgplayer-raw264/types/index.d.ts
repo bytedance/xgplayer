@@ -6,6 +6,7 @@
 declare module 'xgplayer-raw264' {
 
   import {EventEmitter} from 'events';
+  import HTMLMobileVideoElement from "xgplayer-mobilevideo"
 
   type DanmuModelType = 'top' | 'bottom' | 'scroll' | string;
 
@@ -336,6 +337,8 @@ declare module 'xgplayer-raw264' {
 
     // 播放器画中画是否开启
     public readonly pip: boolean;
+
+    public readonly video: HTMLMobileVideoElement;
 
     /**
      * 播放

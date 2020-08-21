@@ -45,6 +45,9 @@ class MVideo extends HTMLElement {
     if (this._vMeta) {
       this.setVideoMeta(this._vMeta);
     }
+    if (this._glCtxOptions) {
+      this.glCtxOptions = this._glCtxOptions;
+    }
     setTimeout(() => {
       if (!this.timeline) return;
       if (this.noAudio) {
@@ -394,6 +397,11 @@ class MVideo extends HTMLElement {
   // 移动端软解 启用内部降级
   get innerDegrade () {
     return this.getAttribute('innerdegrade');
+  }
+
+  set glCtxOptions (v) {
+    this._glCtxOptions = v;
+    this.timeline.emit(Events.TIMELINE.UPDATE_GL_OPTIONS, v);
   }
 
   get error () {
