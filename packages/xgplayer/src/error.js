@@ -1,4 +1,4 @@
-import {version} from '../package.json'
+import {version} from '../version.json'
 const ErrorTypes = {
   network: {
     code: 1,

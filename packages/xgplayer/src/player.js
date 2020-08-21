@@ -9,7 +9,7 @@ import downloadUtil from 'downloadjs'
 
 import {
   version
-} from '../package.json'
+} from '../version.json'
 class Player extends Proxy {
   constructor (options) {
     super(options)

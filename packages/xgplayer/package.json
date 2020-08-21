@@ -1,6 +1,6 @@
 {
     "name": "xgplayer",
-    "version": "2.9.15",
+    "version": "2.10.0",
     "description": "video player",
     "main": "./dist/index.js",
     "typings": "./types/index.d.ts",
@@ -10,7 +10,7 @@
     "scripts": {
         "prepare": "npm run build",
         "postpublish": "git push --tags",
-        "build": "webpack --progress --display-chunks -p",
+        "build": "node ./src/version.js && webpack --progress --display-chunks -p",
         "watch": "webpack --progress --display-chunks -p --watch --mode development",
         "release:stable": "npm version patch && npm publish --registry=http://registry.npmjs.org",
         "release:alpha": "npm version prerelease --preid=alpha && npm publish --tag alpha --registry=http://registry.npmjs.org",
@@ -38,7 +38,7 @@
     "dependencies": {
         "chalk": "^2.3.2",
         "commander": "^2.15.1",
-        "danmu.js": "^0.2.17",
+        "danmu.js": "^0.2.21",
         "deepmerge": "^1.5.0",
         "downloadjs": "1.4.7",
         "draggabilly": "^2.2.0",
