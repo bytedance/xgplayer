@@ -22,7 +22,8 @@ export default {
     UPDATE_PRELOAD_TIME: 'update_preloadtime',
     NO_AUDIO: 'no_audio',
     DESTROY: 'destroy',
-    READY: 'ready'
+    READY: 'ready',
+    UPDATE_GL_OPTIONS: 'update_gl_options'
   },
   VIDEO_EVENTS: {
     WAITING: 'waiting',

@@ -237,6 +237,10 @@ export default class VideoRender extends EventEmitter {
       this._noAudio = true;
     });
 
+    this._parent.on(Events.TIMELINE.UPDATE_GL_OPTIONS, (v) => {
+      this._config.glCtxOptions = v;
+    })
+
     this.on(Events.VIDEO.AUTO_RUN, this._startRender.bind(this));
 
     this.on(Events.VIDEO.VIDEO_WAITING, () => {
@@ -391,7 +395,7 @@ export default class VideoRender extends EventEmitter {
     });
 
     if (!this._frameRender) {
-      let config = Object.assign({ meta, canvas: this._canvas }, this.config);
+      let config = Object.assign(this._config, { meta, canvas: this._canvas });
       this._frameRender = new FrameRender(config);
     } else {
       this._frameRender.resetMeta(meta);
