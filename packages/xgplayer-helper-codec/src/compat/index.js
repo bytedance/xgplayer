@@ -238,15 +238,10 @@ class Compatibility {
       curLastSample = null;
     }
 
-    if (this.videoLastSample && curLastSample) {
+    if (this.videoLastSample) {
       const videoLastSample = this.videoLastSample;
       videoLastSample.duration = firstSample.dts - videoLastSample.dts;
-      videoSamples.unshift(this.videoLastSample);
-
-      this.videoLastSample = curLastSample;
-    } else if (curLastSample) {
-      this.videoLastSample = curLastSample;
-      videoSamples = [];
+      videoSamples.unshift(this.videoLastSample)
     }
 
     // videoSamples.forEach((sample, idx) => {
@@ -260,6 +255,8 @@ class Compatibility {
     //   }
     // })
 
+    this.videoLastSample = curLastSample;
+    this.lastVideoDts = videoSamples[videoSamples.length - 1].dts;
     this.videoTrack.samples = videoSamples;
   }
 
@@ -446,9 +443,9 @@ class Compatibility {
 
   fixChangeStreamVideo (changeIdx) {
     const { samples } = this.videoTrack;
-    const prevDts = changeIdx === 0 ? this.videoLastSample ? this.videoLastSample.dts : this.getStreamChangeStart(samples[0]) : samples[changeIdx - 1].dts;
+    const prevDts = changeIdx === 0 ? this.lastVideoDts ? this.lastVideoDts : this.getStreamChangeStart(samples[0]) : samples[changeIdx - 1].dts;
     const curDts = samples[changeIdx].dts;
-    const isContinue = Math.abs(prevDts - curDts) <= 100
+    const isContinue = Math.abs(prevDts - curDts) <= 10000
 
     if (isContinue) {
       if (!samples[changeIdx].options) {
@@ -471,6 +468,7 @@ class Compatibility {
 
     this._videoLargeGap = 0;
     this.videoLastSample = null;
+    this.lastVideoDts = null;
     if (changeSample.options && changeSample.options.start !== undefined) {
       streamChangeStart = changeSample.options.start;
     } else {
@@ -495,7 +493,7 @@ class Compatibility {
 
     const prevDts = changeIdx === 0 ? this.lastAudioDts : samples[changeIdx - 1].dts;
     const curDts = samples[changeIdx].dts;
-    const isContinue = Math.abs(prevDts - curDts) <= 1000;
+    const isContinue = Math.abs(prevDts - curDts) <= 10000;
 
     if (isContinue) {
       if (!samples[changeIdx].options) {
@@ -697,7 +695,7 @@ class Compatibility {
     if (nextDts === null) {
       return;
     }
-    return nextDts - firstSampleDts >= 1000 || firstSampleDts - nextDts >= 1000 // fix hls流出现大量流dts间距问题
+    return nextDts - firstSampleDts >= 10000 || firstSampleDts - nextDts >= 10000 // fix hls流出现大量流dts间距问题
   }
 
   static doFixLargeGap (samples, gap) {

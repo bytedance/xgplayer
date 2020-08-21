@@ -1,6 +1,6 @@
 {
   "name": "xgplayer-hls-vod",
-  "version": "3.0.0-alpha.38",
+  "version": "3.0.0-alpha.39",
   "description": "",
   "main": "lib/index.js",
   "module": "es/index.js",

@@ -141,8 +141,8 @@ export default class Mp4Remuxer {
       }
     }
 
-    this._videoDtsBase = (videoBase) - (start || this._dtsBase);
-    this._audioDtsBase = (audioBase) - (start || this._dtsBase);
+    this._videoDtsBase = (videoBase || audioBase) - (start || this._dtsBase);
+    this._audioDtsBase = (audioBase || videoBase) - (start || this._dtsBase);
     this._dtsBase = Math.min(videoBase, audioBase)
     this._isDtsBaseInited = true
 
