@@ -306,7 +306,9 @@ class Compatibility {
       }
       this._audioLargeGap = this.nextAudioDts - _firstSample.dts
 
-      Compatibility.doFixLargeGap(audioSamples, this._audioLargeGap)
+      if (_firstSample.options.start && !_firstSample.options.start.isContinue) {
+        Compatibility.doFixLargeGap(audioSamples, this._audioLargeGap)
+      }
     }
     // step0. 首帧与video首帧间距大的问题
     if (this._firstVideoSample && first) {
@@ -349,7 +351,7 @@ class Compatibility {
       gap = firstDts - this.nextAudioDts
       const absGap = Math.abs(gap)
 
-      if (gap >= iRefSampleDuration && gap < (100 * iRefSampleDuration)) {
+      if (gap >= iRefSampleDuration && gap < 10000) {
         const silentFrameCount = Math.ceil(gap / iRefSampleDuration)
 
         for (let i = 0; i < silentFrameCount; i++) {

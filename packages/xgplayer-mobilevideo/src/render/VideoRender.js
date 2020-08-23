@@ -5,7 +5,7 @@ import { logger } from 'xgplayer-helper-utils';
 import VideoTimeRange from './VideoTimeRange';
 import FrameRender from './FrameRender';
 import DecodeEstimate from './DecodeEstimate';
-import TickTimer from "../helper/TickTimer";
+import TickTimer from '../helper/TickTimer';
 import Events from '../events';
 import {
   H264_DECODER_URL,

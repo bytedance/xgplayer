@@ -261,7 +261,7 @@ export default class Mp4Remuxer {
       const mdat = Fmp4.mdat(mdatBox)
       moofMdat.write(moof, mdat)
 
-      this.writeToSource('video', moofMdat, mp4Samples[mp4Samples.length - 1].pts)
+      this.writeToSource('video', moofMdat, mp4Samples[mp4Samples.length - 1].pts - mp4Samples[0].pts)
     }
 
     if (initSegment) {
@@ -380,7 +380,7 @@ export default class Mp4Remuxer {
       const mdat = Fmp4.mdat(mdatBox)
       moofMdat.write(moof, mdat)
 
-      this.writeToSource('audio', moofMdat, mp4Samples[mp4Samples.length - 1].dts)
+      this.writeToSource('audio', moofMdat, mp4Samples[mp4Samples.length - 1].dts - mp4Samples[0].dts)
     }
 
     if (initSegment) {
@@ -407,7 +407,7 @@ export default class Mp4Remuxer {
     }
     source.data.push(buffer)
     if (bufferDuration) {
-      source.bufferDuration = bufferDuration
+      source.bufferDuration += bufferDuration
     }
   }
 
