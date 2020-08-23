@@ -197,10 +197,15 @@ export default class TimeLine extends EventEmitter {
           Events.VIDEO_EVENTS.TIMEUPDATE
         );
         if (!resumed) {
-          this._reset = true;
-          this._paused = true;
           logger.log(this.TAG, 'audioCtx 不能自动播放');
-          reject();
+          if (this._parent.firstWebAudio) {
+            this._reset = true;
+            this._paused = true;
+            reject()
+          } else {
+            this.pause();
+            resolve();
+          }
           return;
         }
         this._paused = false;
@@ -219,7 +224,10 @@ export default class TimeLine extends EventEmitter {
     });
   }
 
-  seek () {
+  seek (time) {
     this._reset = true;
+    if (this._noAudio) {
+      this.emit(Events.TIMELINE.SYNC_DTS, this.videoRender.getDtsOfTime(time));
+    }
   }
 }

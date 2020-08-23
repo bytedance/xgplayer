@@ -13,6 +13,7 @@ class MVideo extends HTMLElement {
     this._degradeVideo = document.createElement('video');
     this._eventsBackup = [];
     this._init();
+    this._firstWebAudio = true;
   }
 
   addEventListener (eventName, handler, capture) {
@@ -38,6 +39,7 @@ class MVideo extends HTMLElement {
       volume: this.volume,
       canvas: this.querySelector('canvas')
     }, this);
+    this._firstWebAudio = false;
     this._noSleep = new NoSleep();
     this._logFirstFrame = false;
     this._playRequest = null;
@@ -237,6 +239,10 @@ class MVideo extends HTMLElement {
     this.timeline = null;
     this._err = null;
     this._noSleep = null;
+  }
+
+  get firstWebAudio () {
+    return this._firstWebAudio;
   }
 
   get noAudio () {

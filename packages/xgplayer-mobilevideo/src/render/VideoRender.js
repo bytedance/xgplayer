@@ -150,6 +150,10 @@ export default class VideoRender extends EventEmitter {
     return HAVE_METADATA;
   }
 
+  getDtsOfTime (time) {
+    return this._timeRange.getDtsOfTime(time);
+  }
+
   updateReady () {
     this._whenReady();
   }
@@ -214,15 +218,22 @@ export default class VideoRender extends EventEmitter {
 
       // 1. 换流 音频播完,视频还存在几帧之前的流没播完时
       // 2. 暂时的 a > v
+      let unSync = false;
       while (nextFrame) {
         let delta = nextFrame.info.dts - dts;
         if (delta > 10000 || delta < -100) {
           logger.warn(this.TAG, 'detect a-v sync problem,delete nextFrame');
           this._frameQueue.shift();
           nextFrame = this._frameQueue[0];
+          unSync = true;
           continue;
         }
         break;
+      }
+
+      if (this._noAudio && unSync) {
+        let len = this._timeRange.deletePassed(dts);
+        console.warn(`delete ${len} compressed frame`);
       }
     });
 
@@ -450,7 +461,7 @@ export default class VideoRender extends EventEmitter {
   // 2. 渲染ticker中
   _checkToDecode () {
     if (!this._ready) {
-      if (this.readyState >= HAVE_FUTURE_DATA) {
+      if (this.readyState >= HAVE_METADATA) {
         this._whenReady();
       }
       return;
@@ -470,7 +481,7 @@ export default class VideoRender extends EventEmitter {
       logger.log(this.TAG, 'lack frame');
       this._checkToDecode();
       // waiting
-      if (this._noAudio) {
+      if (this._noAudio && !this._timeRange.frameLength) {
         this._ready = false;
         this.emit(Events.VIDEO.VIDEO_WAITING);
       }
@@ -486,7 +497,7 @@ export default class VideoRender extends EventEmitter {
 
     let _renderDelay = info.dts - this.preciseVideoDts;
 
-    if (_renderDelay > this.interval) {
+    if (_renderDelay > 0) {
       return;
     }
 
@@ -501,7 +512,7 @@ export default class VideoRender extends EventEmitter {
     }
 
     if (logger.long) {
-      logger.log(this.TAG, `render delay:${_renderDelay} , timelinePosition:${this.preciseVideoDts} , dts:${info.dts} , cost:${info.cost} rest:${this._frameQueue.length}`)
+      logger.log(this.TAG, `render delay:${_renderDelay} , timelinePosition:${this.preciseVideoDts} , dts:${info.dts} , cost:${info.cost} rest:${this._frameQueue.length}, buffer frame:${this._timeRange.frameLength}`)
     }
 
     this._frameRender.render(
