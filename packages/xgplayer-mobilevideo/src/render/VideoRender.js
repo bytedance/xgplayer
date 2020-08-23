@@ -4,7 +4,8 @@ import AvcWorker from 'worker!../decoder/worker.js';
 import { logger } from 'xgplayer-helper-utils';
 import VideoTimeRange from './VideoTimeRange';
 import FrameRender from './FrameRender';
-import DecodeEstimate from './DecodeEstimate'
+import DecodeEstimate from './DecodeEstimate';
+import TickTimer from "../helper/TickTimer";
 import Events from '../events';
 import {
   H264_DECODER_URL,
@@ -44,7 +45,7 @@ export default class VideoRender extends EventEmitter {
     this._lastDecodingDts = 0;
     this._startRender = this._startRender.bind(this);
     this._render = this._render.bind(this);
-    this._tickTimer = null;
+    this._tickTimer = new TickTimer(this._render);
     this._initCanvas();
     this._bindEvents();
   }
@@ -226,7 +227,7 @@ export default class VideoRender extends EventEmitter {
     });
 
     this._parent.on(Events.TIMELINE.DO_PAUSE, () => {
-      clearInterval(this._tickTimer);
+      this._tickTimer.stop();
     });
 
     this._parent.on(Events.TIMELINE.DESTROY, () => {
@@ -275,7 +276,7 @@ export default class VideoRender extends EventEmitter {
         logger.log(this.TAG, 'use asm: ', msg);
         this._degrade = true;
         this._destroyWorker();
-        this._initWorker();
+        this._initDecodeWorker();
       }
     }
 
@@ -327,7 +328,7 @@ export default class VideoRender extends EventEmitter {
       logger.warn(this.TAG, 'no detect fps,start estimate');
     }
     if (!this._decoder) {
-      this._initWorker();
+      this._initDecodeWorker();
     } else if (this._wasmReady) {
       this._pushAvcc(this._decoder, meta)
     }
@@ -347,7 +348,7 @@ export default class VideoRender extends EventEmitter {
     };
   }
 
-  _initWorker () {
+  _initDecodeWorker () {
     const { decoder, url } = this._selectWorker();
     this._decoder = decoder;
     this._bindWorkerEvent(this._decoder);
@@ -460,8 +461,7 @@ export default class VideoRender extends EventEmitter {
   }
 
   _startRender () {
-    clearInterval(this._tickTimer);
-    this._tickTimer = setInterval(this._render, 25);
+    this._tickTimer.start();
   }
 
   _render () {
@@ -559,6 +559,7 @@ export default class VideoRender extends EventEmitter {
 
   _destroy () {
     this._destroyWorker();
+    this._tickTimer.destroy();
     this._canvas = null;
     this._timeRange = null;
     this._frameQueue = null;
@@ -566,6 +567,5 @@ export default class VideoRender extends EventEmitter {
     this._frameRender = null;
     this._parent = null;
     this.removeAllListeners();
-    clearInterval(this._tickTimer);
   }
 }
