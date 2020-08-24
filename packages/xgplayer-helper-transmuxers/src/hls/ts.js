@@ -73,6 +73,7 @@ class TsDemuxer {
       let pes = peses[ts.header.pid];
       if (ts.pes) {
         ts.pes.codec = ts.header.codec;
+        ts.pes.streamType = ts.header.streamType;
         if (!peses[ts.header.pid]) {
           peses[ts.header.pid] = [];
         }
@@ -87,19 +88,25 @@ class TsDemuxer {
       let AudioOptions = Object.assign({}, frag);
       let VideoOptions = Object.assign({}, frag);
 
+      let noAudio = this._hasVideoMeta && !this._hasAudioMeta;
+      let noVideo = this._hasAudioMeta && !this._hasVideoMeta;
+
       // Get Frames data
       for (let i = 0; i < Object.keys(peses).length; i++) {
         let epeses = peses[Object.keys(peses)[i]];
         for (let j = 0; j < epeses.length; j++) {
-          epeses[j].id = Object.keys(peses)[i];
+          let cPes = epeses[j];
+          cPes.id = Object.keys(peses)[i];
 
-          if (epeses[j].type === 'audio') {
-            epeses[j].ES.buffer = TsDemuxer.mergeAudioES(epeses[j].ES.buffer);
-            this.pushAudioSample(epeses[j], AudioOptions);
+          // 1. !noAudio 首片无音频,后续分片当无音频处理
+          // 2. cPes.streamType === 0x0f || cPes.streamType === 0x11 只处理aac,其他音频格式当无音频
+          if (cPes.type === 'audio' && !noAudio && (cPes.streamType === 0x0f || cPes.streamType === 0x11)) {
+            cPes.ES.buffer = TsDemuxer.mergeAudioES(cPes.ES.buffer);
+            this.pushAudioSample(cPes, AudioOptions);
             AudioOptions = {};
-          } else if (epeses[j].type === 'video') {
-            epeses[j].ES.buffer = TsDemuxer.mergeVideoES(epeses[j].ES.buffer);
-            if (epeses[j].codec === 'HVC.H265') {
+          } else if (cPes.type === 'video' && !noVideo) {
+            cPes.ES.buffer = TsDemuxer.mergeVideoES(cPes.ES.buffer);
+            if (cPes.codec === 'HVC.H265') {
               this.pushVideoSampleHEVC(epeses[j], VideoOptions);
             } else {
               this.pushVideoSample(epeses[j], VideoOptions);
@@ -107,6 +114,13 @@ class TsDemuxer {
             VideoOptions = {};
           }
         }
+      }
+
+      // 缺少 sps,pps信息场景,当无视频流播放
+      let videoTrack = this._tracks.videoTrack;
+      if (videoTrack && !videoTrack.meta) {
+        videoTrack.samples = [];
+        logger.warn(this.TAG, 'no sps detected');
       }
     });
     setTimeout(() => {
@@ -177,10 +191,8 @@ class TsDemuxer {
           if (options.meta) {
             streamChanged = true;
           }
-          if (sample.data.byteLength > 10) {
-            samples.push(sample);
-            frameIndex++;
-          }
+          samples.push(sample);
+          frameIndex++;
         } else {
           // logger.log('Unable to parse AAC frame');
           break;
@@ -664,8 +676,8 @@ class TsDemuxer {
             }
           }
           if (sts.length > 0) {
-            TsDemuxer.Media(stream, ts, StreamType[sts[0].streamType][0]);
-            ts.header.codec = StreamType[sts[0].streamType][1];
+            let streamType = sts[0].streamType;
+            TsDemuxer.Media(stream, ts, streamType);
           } else {
             ts.unknownPIDs = true;
           }
@@ -774,10 +786,14 @@ class TsDemuxer {
     ts.payload = ret;
   }
 
-  static Media (stream, ts, type) {
+  static Media (stream, ts, streamType) {
     let header = ts.header;
     let payload = {};
+    const [type, codec] = StreamType[streamType];
+    header.streamType = streamType;
     header.type = type;
+    header.codec = codec;
+
     if (header.adaptation === 0x03) {
       payload.adaptationLength = stream.readUint8();
       if (payload.adaptationLength > 0) {
@@ -970,7 +986,7 @@ class TsDemuxer {
         if (N1 > 0) {
           buffer.skip(N1);
         }
-        ret.ES = TsDemuxer.ES(buffer, ret.type);
+        ret.ES = TsDemuxer.ES(buffer, ret.type, ts.header.streamType);
       } else {
         throw new Error('format is not supported');
       }
@@ -978,8 +994,7 @@ class TsDemuxer {
     return ret;
   }
 
-  static ES (buffer, type) {
-    let next;
+  static ES (buffer, type, streamType) {
     let ret = {};
     if (type === 'video') {
       // next = buffer.readUint32();
@@ -994,29 +1009,38 @@ class TsDemuxer {
       // TODO readnalu
       ret.buffer = buffer;
     } else if (type === 'audio') {
-      next = buffer.readUint16();
-      // adts的同步字节，12位
-      if (next >>> 4 !== 0xfff) {
-        throw new Error('aac ES parse Error');
+      if (streamType === 0x0f || streamType === 0x11) {
+        ret = TsDemuxer.parseADTSHeader(buffer);
       }
-      const fq = [96000, 88200, 64000, 48000, 44100, 32000, 24000, 22050, 16000, 12000, 11025, 8000, 7350];
-      ret.id = (next >>> 3 & 0x01) === 0 ? 'MPEG-4' : 'MPEG-2';
-      ret.layer = next >>> 1 & 0x03;
-      ret.absent = next & 0x01;
-      next = buffer.readUint16();
-      ret.audioObjectType = (next >>> 14 & 0x03) + 1;
-      ret.profile = ret.audioObjectType - 1;
-      ret.frequencyIndex = next >>> 10 & 0x0f;
-      ret.frequence = fq[ret.frequencyIndex];
-      ret.channel = next >>> 6 & 0x07;
-      ret.frameLength = (next & 0x03) << 11 | (buffer.readUint16() >>> 5);
-      TsDemuxer.getAudioConfig(ret);
-      buffer.skip(1);
       ret.buffer = buffer;
     } else {
       throw new Error(`ES ${type} is not supported`);
     }
 
+    return ret;
+  }
+
+  static parseADTSHeader (buffer) {
+    let ret = {};
+    let next = buffer.readUint16();
+    // adts的同步字节，12位
+    if (next >>> 4 !== 0xfff) {
+      throw new Error('aac ES parse Error');
+    }
+    const fq = [96000, 88200, 64000, 48000, 44100, 32000, 24000, 22050, 16000, 12000, 11025, 8000, 7350];
+    ret.id = (next >>> 3 & 0x01) === 0 ? 'MPEG-4' : 'MPEG-2';
+    ret.layer = next >>> 1 & 0x03;
+    ret.absent = next & 0x01;
+    next = buffer.readUint16();
+    ret.audioObjectType = (next >>> 14 & 0x03) + 1;
+    ret.profile = ret.audioObjectType - 1;
+    ret.frequencyIndex = next >>> 10 & 0x0f;
+    ret.frequence = fq[ret.frequencyIndex];
+    ret.channel = next >>> 6 & 0x07;
+    ret.frameLength = (next & 0x03) << 11 | (buffer.readUint16() >>> 5);
+    TsDemuxer.getAudioConfig(ret);
+    buffer.skip(1);
+    ret.buffer = buffer;
     return ret;
   }
 
