@@ -253,6 +253,9 @@ class Compatibility {
     // })
 
     this.videoLastSample = curLastSample;
+    if (videoSamples[videoSamples.length - 1]) {
+      this.lastVideoDts = videoSamples[videoSamples.length - 1].dts;
+    }
     this.videoTrack.samples = videoSamples;
   }
 
