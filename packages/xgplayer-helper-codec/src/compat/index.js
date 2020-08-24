@@ -233,9 +233,6 @@ class Compatibility {
     let curLastSample = videoSamples.pop();
     if (videoSamples.length) {
       videoSamples[videoSamples.length - 1].duration = curLastSample.dts - videoSamples[videoSamples.length - 1].dts
-    } else if (curLastSample) {
-      videoSamples.push(curLastSample);
-      curLastSample = null;
     }
 
     if (this.videoLastSample) {
@@ -256,7 +253,6 @@ class Compatibility {
     // })
 
     this.videoLastSample = curLastSample;
-    this.lastVideoDts = videoSamples[videoSamples.length - 1].dts;
     this.videoTrack.samples = videoSamples;
   }
 
