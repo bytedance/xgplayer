@@ -20,12 +20,12 @@ class HlsLiveController {
     this.baseurl = '';
     this.sequence = 0;
     this._playlist = null;
-    this.retrytimes = this.configs.retrytimes || 3;
     this.preloadTime = this.configs.preloadTime;
     this._m3u8lasttime = 0;
     this._timmer = setInterval(this._checkStatus.bind(this), 300);
     this._lastCheck = 0;
     this._player = this.configs.player;
+    this.retrytimes = this.configs.retrytimes || 3;
     this.m3u8Text = null
   }
 
@@ -57,6 +57,7 @@ class HlsLiveController {
 
   initEvents () {
     this.on(LOADER_EVENTS.LOADER_COMPLETE, this._onLoadComplete.bind(this));
+    this.on(LOADER_EVENTS.LOADER_RETRY, this._handleFetchRetry.bind(this))
 
     this.on(REMUX_EVENTS.INIT_SEGMENT, this.mse.addSourceBuffers.bind(this.mse));
 
@@ -173,7 +174,8 @@ class HlsLiveController {
         this._context.registry('KEY_BUFFER', XgBuffer)();
         this._tsloader.buffer = 'DECRYPT_BUFFER';
         this._keyLoader = this._context.registry('KEY_LOADER', FetchLoader)({buffer: 'KEY_BUFFER', readtype: 3});
-        this.emitTo('KEY_LOADER', LOADER_EVENTS.LADER_START, this._playlist.encrypt.uri);
+        const { times, delayTime } = this._player.config.fetchRetry || {};
+        this.emitTo('KEY_LOADER', LOADER_EVENTS.LADER_START, this._playlist.encrypt.uri, {}, times, delayTime);
       } else {
         this._m3u8Loaded(mdata);
       }
@@ -197,6 +199,12 @@ class HlsLiveController {
       });
       this._crypto.on(CRYTO_EVENTS.DECRYPTED, this._onDcripted.bind(this));
     }
+  }
+
+  _handleFetchRetry (tag, info) {
+    this._player.emit('fetch_retry', Object.assign({
+      tag
+    }, info))
   }
 
   _onDcripted () {
@@ -256,17 +264,17 @@ class HlsLiveController {
       return;
     }
     let frag = this._playlist.getTs();
-
+    const { times, delayTime } = this._player.config.fetchRetry || {};
     if (frag && !frag.downloaded && !frag.downloading) {
       this._playlist.downloading(frag.url, true);
-      this.emitTo('TS_LOADER', LOADER_EVENTS.LADER_START, frag.url)
+      this.emitTo('TS_LOADER', LOADER_EVENTS.LADER_START, frag.url, {}, times, delayTime)
     } else {
       let preloadTime = this.preloadTime ? this.preloadTime : 0;
       let current = new Date().getTime();
       if ((!frag || frag.downloaded) &&
         (current - this._m3u8lasttime) / 1000 > preloadTime) {
         this._m3u8lasttime = current
-        this.emitTo('M3U8_LOADER', LOADER_EVENTS.LADER_START, this.url, {}, 3);
+        this.emitTo('M3U8_LOADER', LOADER_EVENTS.LADER_START, this.url, {}, times, delayTime);
       }
     }
   }

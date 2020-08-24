@@ -49,7 +49,7 @@ class FetchLoader {
     })
   }
 
-  internalLoad (url, params, retryTimes) {
+  internalLoad (url, params, retryTimes, delayTime = 0) {
     this.loading = true;
     return this.fetch(this.url, params, !retryTimes && 1e5).then((response) => {
       this.emit(LOADER_EVENTS.LOADER_RESPONSE_HEADERS, this.TAG, response.headers)
@@ -64,7 +64,13 @@ class FetchLoader {
       }
 
       if (retryTimes-- > 0) {
-        return this.internalLoad(url, params, retryTimes)
+        this._retryTimer = setTimeout(() => {
+          this.emit(LOADER_EVENTS.LOADER_RETRY, this.TAG, {
+            response: response,
+            reason: 'response not ok'
+          })
+          return this.internalLoad(url, params, retryTimes, delayTime)
+        }, delayTime)
       } else {
         this.loading = false;
         this.emit(LOADER_EVENTS.LOADER_ERROR, this.TAG, {
@@ -75,7 +81,13 @@ class FetchLoader {
     }).catch((error) => {
       this.loading = false;
       if (retryTimes-- > 0) {
-        return this.internalLoad(url, params, retryTimes)
+        this._retryTimer = setTimeout(() => {
+          this.emit(LOADER_EVENTS.LOADER_RETRY, this.TAG, {
+            error: error,
+            reason: 'fetch error'
+          })
+          return this.internalLoad(url, params, retryTimes, delayTime)
+        }, delayTime)
       } else {
         this.emit(LOADER_EVENTS.LOADER_ERROR, this.TAG, error);
         throw error;
@@ -83,7 +95,7 @@ class FetchLoader {
     })
   }
 
-  load (url, opts = {}, retryTimes = 3) {
+  load (url, opts = {}, retryTimes = 3, delayTime) {
     this.url = url;
 
     this._canceled = false;
@@ -91,7 +103,7 @@ class FetchLoader {
     // TODO: Add Ranges
     let params = this.getParams(opts)
 
-    return this.internalLoad(url, params, retryTimes)
+    return this.internalLoad(url, params, retryTimes, delayTime)
   }
 
   _onFetchResponse (response) {
@@ -256,6 +268,7 @@ class FetchLoader {
 
   destroy () {
     this._destroyed = true
+    clearTimeout(this._retryTimer);
     this.cancel();
   }
 }
