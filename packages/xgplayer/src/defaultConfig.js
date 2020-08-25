@@ -12,7 +12,7 @@ export default function getDefaultConfig () {
     autoplay: false, // 是否自动播放
     autoplayMuted: false, // 是否自动静音
     loop: false, // 是否循环播放
-    videoInit: false, // 是否优先显示视频首帧， mobile模式下无效
+    videoInit: true, // 是否优先显示视频首帧
     poster: '', // 封面图地址
     defaultPlaybackRate: 1, // 默认播放倍数
     execBeforePluginsCall: null, // 默认插件组装前回调

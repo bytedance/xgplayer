@@ -1,20 +1,28 @@
 
 const DEBUG_OPEN = typeof (window) !== 'undefined' && window.location && window.location.href.indexOf('xgplayerdebug=1') > -1
 
+const STYLE = {
+  info: 'color: #525252; background-color: #90ee90;',
+  error: 'color: #525252; background-color: #90ee90;',
+  warn: 'color: #525252; background-color: red; '
+}
+
+const XGTAG = '%c[xgplayer]》》' // : '%c[xgplayer]》》'
+
 const DEBUG = {
   config: {
     debug: typeof (window) !== 'undefined' && window.location && window.location.href.indexOf('playerdebug') > -1
   },
   logInfo: function (message, ...optionalParams) {
-    (DEBUG_OPEN || this.config.debug) && console.log('%c[xgplayer]》》', 'color: #525252; background-color: #90ee90; padding: 2px 5px;', message, ...optionalParams)
+    (DEBUG_OPEN || this.config.debug) && console.log(XGTAG, STYLE.info, message, ...optionalParams)
   },
 
   logWarn: function (message, ...optionalParams) {
-    (DEBUG_OPEN || this.config.debug) && console.warn('%c[xgplayer]》》', 'color: #525252; background-color: #ffff00', message, ...optionalParams)
+    (DEBUG_OPEN || this.config.debug) && console.warn(XGTAG, STYLE.warn, message, ...optionalParams)
   },
 
   logError: function (message, ...optionalParams) {
-    (DEBUG_OPEN || this.config.debug) && console.error('%c[xgplayer]》》', 'color: #fff; background-color: #ff322e; padding: 2px 5px;', message, ...optionalParams)
+    (DEBUG_OPEN || this.config.debug) && console.error(XGTAG, STYLE.error, message, ...optionalParams)
   }
 }
 

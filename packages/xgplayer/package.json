@@ -1,13 +1,20 @@
 {
     "name": "xgplayer",
-    "version": "3.0.0-alpha.41",
+    "version": "3.0.0-alpha.42-2",
     "description": "video player",
     "main": "./dist/index.min.js",
-    "module": "./es/index.min.js",
+    "module": "./es/index.js",
     "typings": "./types/index.d.ts",
     "bin": {
         "xgplayer": "bin/xgplayer.js"
     },
+    "files": [
+        "/lib",
+        "/es",
+        "/browser",
+        "/dist",
+        "/types"
+    ],
     "scripts": {
         "postpublish": "git push --tags",
         "release:alpha": "npm version prerelease --preid=alpha && npm publish --tag alpha --registry=http://registry.npmjs.org",
@@ -43,9 +50,6 @@
                     "corejs": 3
                 }
             ]
-        ],
-        "plugins": [
-            "inline-svg"
         ]
     },
     "repository": {
@@ -61,11 +65,17 @@
         "Firefox > 20"
     ],
     "dependencies": {
+        "babel-runtime": "^6.26.0",
         "danmu.js": "0.2.15",
         "deepmerge": "^1.5.0",
         "delegate-events": "^1.1.1",
         "downloadjs": "1.4.7",
-        "event-emitter": "^0.3.5",
-        "node-sass": "^4.14.1"
+        "event-emitter": "^0.3.5"
+    },
+    "devDependencies": {
+        "babel-plugin-transform-class-properties": "^6.24.1",
+        "babel-plugin-transform-object-assign": "^6.22.0",
+        "babel-plugin-transform-proto-to-assign": "^6.26.0",
+        "babel-plugin-transform-runtime": "^6.23.0"
     }
 }

@@ -5,7 +5,7 @@
   top: 0;
   width: 100%;
   height: 100%;
-  background: black;
+  background: rgba(0,0,0,.8);
   // z-index: 120;
   z-index: 95;
   .show {
@@ -44,20 +44,23 @@
     transform:rotate(330deg) translate(0, -142%);
     animation-delay: -0.0833s;
   }
-  @-webkit-keyframes fade {
+  @keyframes fade {
     from {opacity: 1;}
     to {opacity: 0.25;}
   }
 }
 
-.xgplayer-is-enter {
+.xgplayer.xgplayer-is-enter {
   .xgplayer-enter {
     display: block;
     opacity: 1;
     transition: opacity 0.3s
   }
+  .xgplayer-controls {
+    display: none;
+  }
 }
-.xgplayer-nostart {
+.xgplayer.xgplayer-nostart {
   .xgplayer-enter {
     display: none;
   }

@@ -25,7 +25,7 @@ const mkdirsPromise = util.promisify(mkdirs);
 const buildESStyles = async () => {
   const ignoreFunc = (file, stats) => {
     const fileBase = path.basename(file);
-    if (file.includes('skin') || file.includes('style')) {
+    if (file.includes('skin')) {
       return true;
     }
     return !stats.isDirectory() && !fileBase.endsWith('.scss');
