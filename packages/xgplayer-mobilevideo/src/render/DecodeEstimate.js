@@ -108,7 +108,7 @@ export default class DecodeEstimate {
       return;
     }
 
-    if (this._decodeFps < this._fps) {
+    if (this._decodeFps < this._fps + 2) {
       this._lowDecodeQueue.push(this._decodeFps);
     } else {
       this._lowDecodeQueue.pop();
