@@ -1,5 +1,4 @@
 import Plugin from '../../plugin'
-import './index.scss'
 
 const {POSITIONS} = Plugin
 
