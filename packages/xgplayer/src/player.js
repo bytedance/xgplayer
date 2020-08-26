@@ -1,6 +1,7 @@
 import Proxy from './proxy'
 import Util from './utils/util'
 import sniffer from './utils/sniffer'
+import Database from './utils/database'
 import Errors from './error'
 import * as Events from './events'
 import Plugin, {pluginsManager, BasePlugin} from './plugin'
@@ -13,7 +14,6 @@ import {bindDebug} from './utils/debug'
 import {
   version
 } from '../package.json'
-import { Sniffer } from './plugin/basePlugin'
 import I18N from './lang'
 
 const FULLSCREEN_EVENTS = ['fullscreenchange', 'webkitfullscreenchange', 'mozfullscreenchange', 'MSFullscreenChange']
@@ -41,12 +41,18 @@ class Player extends Proxy {
     this.userTimer = null
     this.waitTimer = null
     this.isReady = false
+    // 是否进入正常播放流程
     this.isPlaying = false
+    // 是否处于seeking进行状态
     this.isSeeking = false
+    // 当前是否处于焦点状态
     this.isActive = true
     this.isCssfullScreen = false
+    this.fullscreen = false
     this._fullscreenEl = null
     this._originCssText = ''
+    
+    this.database = new Database()
 
     const rootInit = this._initDOM()
     if (!rootInit) {
@@ -92,13 +98,13 @@ class Player extends Proxy {
       }
     }
     this._initBars();
-    // const baseBar = pluginsManager.register(this, BaseBar)
-    // this.baseBar = baseBar
     const controls = pluginsManager.register(this, Controls)
     this.controls = controls
-    this.addClass(`${STATE_CLASS.DEFAULT} xgplayer-${sniffer.device} ${STATE_CLASS.NO_START} ${this.config.controls ? '' : STATE_CLASS.NO_CONTROLS}`);
+    this.addClass(`${STATE_CLASS.DEFAULT} xgplayer-${sniffer.device} ${this.config.controls ? '' : STATE_CLASS.NO_CONTROLS}`);
     if (this.config.autoplay) {
       this.addClass(STATE_CLASS.ENTER)
+    } else {
+      this.addClass(STATE_CLASS.NO_START)
     }
     if (this.config.fluid) {
       const style = {
@@ -233,9 +239,11 @@ class Player extends Proxy {
     }
 
     this.once(Events.CANPLAY, this.canPlayFunc)
-
+    this.logInfo('_startInit')
     if (this.config.autoplay) {
       this.load()
+      //ios端无法自动播放的场景下，不调用play不会触发canplay loadeddata等事件
+      sniffer.os.isPhone && this.play()
     }
 
     setTimeout(() => {
@@ -408,6 +416,7 @@ class Player extends Proxy {
   play () {
     if (!this.hasStart) {
       this.removeClass(STATE_CLASS.NO_START)
+      this.addClass(STATE_CLASS.ENTER)
       this.start().then(resolve => {
         this.play()
       })
@@ -434,6 +443,7 @@ class Player extends Proxy {
         setTimeout(() => {
           this.emit(Events.AUTOPLAY_PREVENTED)
           this.addClass(STATE_CLASS.NOT_ALLOW_AUTOPLAY)
+          this.removeClass(STATE_CLASS.ENTER)
           this.pause()
         }, 0)
         // throw e
@@ -472,6 +482,9 @@ class Player extends Proxy {
   }
 
   destroy (isDelDom = true) {
+    if (!this.root) {
+      return
+    }
     ['click', 'touchend'].forEach((k) => {
       this.topBar.removeEventListener(k, Util.stopPropagation)
     });
@@ -479,12 +492,9 @@ class Player extends Proxy {
     this.root.removeChild(this.topBar)
     this.root.removeChild(this.leftBar)
     this.root.removeChild(this.rightBar)
-    // this.root.removeChild(this.video)
     super.destroy()
-    this.root.removeChild(this.video)
+    this.hasStart && this.root.removeChild(this.video)
     if (isDelDom) {
-      // parentNode.removeChild(this.root)
-      // this.root.innerHTML = ''
       let classNameList = this.root.className.split(' ')
       if (classNameList.length > 0) {
         this.root.className = classNameList.filter(name => name.indexOf('xgplayer') < 0).join(' ')
@@ -518,8 +528,12 @@ class Player extends Proxy {
   }
 
   retry () {
+    this.removeClass(STATE_CLASS.ERROR)
+    this.removeClass(STATE_CLASS.LOADING)
+    const cur = this.currentTime
     this.video.pause()
     this.src = this.config.url
+    this.currentTime = cur
     this.video.play()
   }
 
@@ -528,7 +542,7 @@ class Player extends Proxy {
     if (!el) {
       el = root
     }
-    if (!Sniffer.os.isPhone && root.getAttribute('style')) {
+    if (!sniffer.os.isPhone && root.getAttribute('style')) {
       this._originCssText = root.style.cssText
       root.removeAttribute('style')
     }
@@ -614,6 +628,10 @@ class Player extends Proxy {
     }
   }
 
+  onCanplay () {
+    this.logInfo('onCanplay')
+  }
+
   onPlay () {
     // this.addClass(STATE_CLASS.PLAYING)
     // this.removeClass(STATE_CLASS.NOT_ALLOW_AUTOPLAY)
@@ -631,7 +649,6 @@ class Player extends Proxy {
   }
 
   onEnded () {
-    console.log ('onEnded', this.paused)
     this.addClass(STATE_CLASS.ENDED)
     this.removeClass(STATE_CLASS.PLAYING)
   }
@@ -685,9 +702,7 @@ class Player extends Proxy {
   }
 
   onTimeupdate () {
-    if (this.hasClass(STATE_CLASS.LOADING)) {
-      this.removeClass(STATE_CLASS.LOADING)
-    }
+    this.removeClass(STATE_CLASS.LOADING)
     if (this.waitTimer) {
       clearTimeout(this.waitTimer)
       this.waitTimer = null

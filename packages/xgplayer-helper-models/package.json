@@ -1,6 +1,6 @@
 {
   "name": "xgplayer-helper-models",
-  "version": "2.3.31",
+  "version": "2.3.32-beta.2",
   "description": "",
   "main": "lib/index.js",
   "module": "es/index.js",

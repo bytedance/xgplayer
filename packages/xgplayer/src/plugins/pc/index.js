@@ -13,10 +13,6 @@ export default class PCPlugin extends BasePlugin {
       }
     })
     this.initEvents();
-    const {playerConfig} = this
-    if (playerConfig.autoplay) {
-      this.onEnter()
-    }
   }
 
   initEvents () {
@@ -25,11 +21,7 @@ export default class PCPlugin extends BasePlugin {
     player.root.addEventListener('click', this.onVideoClick, false)
     player.video.addEventListener('dblclick', this.onVideoDblClick, false)
     player.video.addEventListener('contextmenu', this.onContextmenu, false)
-
-    this.once(Events.CANPLAY, this.onEntered.bind(this));
-    this.once(Events.AUTOPLAY_PREVENTED, () => {
-      this.onAutoPlayPrevented()
-    })
+  
   }
 
   onContextmenu (e) {
@@ -43,27 +35,6 @@ export default class PCPlugin extends BasePlugin {
       e.returnValue = false // 解决IE8右键弹出
       e.cancelBubble = true
     }
-  }
-
-  onEnter () {
-    const { player } = this;
-    Util.addClass(player.root, 'xgplayer-is-enter')
-  }
-
-  onEntered () {
-    const { player } = this;
-    Util.removeClass(player.root, 'xgplayer-is-enter')
-  }
-
-  onAutoPlayPrevented () {
-    const { player } = this;
-    Util.removeClass(player.root, 'xgplayer-is-enter')
-    this.once(Events.PLAY, () => {
-      Util.addClass(player.root, 'xgplayer-is-enter')
-      this.once(Events.TIME_UPDATE, () => {
-        Util.removeClass(player.root, 'xgplayer-is-enter')
-      })
-    })
   }
 
   onVideoClick (e) {

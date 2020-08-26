@@ -59,7 +59,6 @@ class Volume extends Plugin {
   }
 
   onBarMousedown (e) {
-    const {player} = this
     const drag = this.find('.xgplayer-drag')
     const slider = this.find('.xgplayer-slider')
     const bar = this.find('.xgplayer-bar')
@@ -68,7 +67,9 @@ class Volume extends Plugin {
 
     let barRect = bar.getBoundingClientRect()
     let pos = {x: e.clientX, y: e.clientY}
-    let height = drag.getBoundingClientRect().height
+    const height = barRect.height - (e.clientY - barRect.top)
+    this.updateVolumePos(height)
+
     this.isMoveing = false
     let onMove = (e) => {
       e.preventDefault()
@@ -79,10 +80,7 @@ class Volume extends Plugin {
       if (w > barRect.height) {
         return
       }
-      let now = w / barRect.height
-      drag.style.height = `${w}px`
-      player.volume = Math.max(Math.min(now, 1), 0)
-      player.muted = false
+      this.updateVolumePos(w)
     }
 
     let onUp = (e) => {
@@ -93,14 +91,6 @@ class Volume extends Plugin {
       window.removeEventListener('touchmove', onMove)
       window.removeEventListener('mouseup', onUp)
       window.removeEventListener('touchend', onUp)
-
-      if (!this.isMoveing) {
-        let w = barRect.height - (e.clientY - barRect.top)
-        let now = w / barRect.height
-        drag.style.height = `${w}px`
-        player.volume = Math.max(Math.min(now, 1), 0)
-        player.muted = false
-      }
       this.isMoveing = false
     }
     window.addEventListener('mousemove', onMove)
@@ -108,6 +98,16 @@ class Volume extends Plugin {
     window.addEventListener('mouseup', onUp)
     window.addEventListener('touchend', onUp)
     return false
+  }
+
+  updateVolumePos (height) {
+    const {player} = this
+    const drag = this.find('.xgplayer-drag')
+    const bar = this.find('.xgplayer-bar')
+    const now = height / bar.getBoundingClientRect().height
+    drag.style.height = `${height}px`
+    player.volume = Math.max(Math.min(now, 1), 0)
+    player.muted = false
   }
 
   onMouseenter (e) {

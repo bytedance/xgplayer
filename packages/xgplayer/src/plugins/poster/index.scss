@@ -12,6 +12,12 @@
   }
 }
 
+.xgplayer.xgplayer-playing {
+  .xgplayer-poster{
+    display: none;
+  }
+}
+
 .xgplayer {
   &.xgplayer-nostart, 
   &.xgplayer-ended,
@@ -28,8 +34,4 @@
     }
   }
 }
-.xgplayer.xgplayer-playing {
-  .xgplayer-poster{
-    display: none;
-  }
-}
+

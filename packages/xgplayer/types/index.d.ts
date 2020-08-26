@@ -393,11 +393,31 @@ declare module 'xgplayer' {
          * @param descriptor 插件函数
          */
         public static install(name: string, descriptor: (this: Player, player: Player) => void): void;
+
+        /**
+         * 多语言包
+         */
+        public static I18N: object;
         
         /**
          * 插件存储对象
          */
         public plugins: any;
+        
+        /**
+         * 当前语言包
+         */
+        public i18n: object;
+        
+        /**
+         * 当前语言包包含的信息
+         */
+        public i18nKeys: object;
+
+        /**
+         * 当前语言
+         */
+        public lang: string;
 
         constructor(options: IPlayerOptions);
 

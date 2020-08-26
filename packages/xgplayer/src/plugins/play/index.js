@@ -32,6 +32,7 @@ class Play extends Plugin {
     this.on(Events.PLAY, () => {
       this.animate(player.paused)
     })
+    this.animate(true)
   }
 
   registerIcons () {

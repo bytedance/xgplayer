@@ -188,7 +188,7 @@ class Compatibility {
         streamChangeStart = firstSample.options.start;
       }
     }
-    if (!first && streamChangeStart === undefined && this.videoLastSample && Compatibility.detectLargeGap(this.videoLastSample ? this.videoLastSample.dts : 0, firstSample.dts + this._videoLargeGap)) {
+    if (!first && streamChangeStart === undefined && this.videoLastSample && Compatibility.detectVideoLargeGap(this.videoLastSample ? this.videoLastSample.dts : 0, firstSample.dts + this._videoLargeGap)) {
       // large gap 不准确，出现了非换流场景的时间戳跳变
       this._videoLargeGap = this.videoLastSample.dts + meta.refSampleDuration - firstSample.dts
     }
@@ -230,11 +230,44 @@ class Compatibility {
       }
     }
 
+    // 分片中间时间戳跳变
+    let segLen = videoSamples.length;
+    for (let i = 1; i < segLen; i++) {
+      let c = videoSamples[i];
+      let pre = videoSamples[i - 1];
+      let cts = c.dts - c.pts;
+      if (Math.abs(cts) < 2000) { // 单帧 dts、pts差距不大
+        if (Math.abs(c.dts - pre.dts) > 10000) {
+          c.dts = pre.dts + meta.refSampleDuration;
+          c.pts = pre.pts + meta.refSampleDuration;
+        }
+      }
+    }
+
     let curLastSample = videoSamples.pop();
     if (videoSamples.length) {
       videoSamples[videoSamples.length - 1].duration = curLastSample.dts - videoSamples[videoSamples.length - 1].dts
-    } else if (curLastSample) {
-      videoSamples.push(curLastSample);
+    }
+
+    // 分片 < 4帧,不能起播的
+    if (this._format === 'ts' && segLen < 4) {
+      let sample = videoSamples[videoSamples.length - 1];
+      let duration = sample.options && sample.options.duration;
+      let refDuration = meta.refSampleDuration;
+      if (duration && refDuration && duration / refDuration > 5) {
+        let pts = sample.pts;
+        let dts = sample.dts;
+        for (let i = 0; i < 3; i++) {
+          dts += refDuration;
+          pts += refDuration;
+          let sam = Object.assign({}, sample, {dts: dts, pts: pts});
+          if (i === 2) {
+            // 最后一帧拉长duration
+            sam.duration = duration;
+          }
+          videoSamples.push(sam)
+        }
+      }
       curLastSample = null;
     }
 
@@ -256,7 +289,9 @@ class Compatibility {
     // })
 
     this.videoLastSample = curLastSample;
-    this.lastVideoDts = videoSamples[videoSamples.length - 1].dts;
+    if (videoSamples[videoSamples.length - 1]) {
+      this.lastVideoDts = videoSamples[videoSamples.length - 1].dts;
+    }
     this.videoTrack.samples = videoSamples;
   }
 
@@ -292,7 +327,7 @@ class Compatibility {
       }
     }
 
-    if (!first && streamChangeStart === undefined && this.nextAudioDts && Compatibility.detectLargeGap(this.nextAudioDts || 0, _firstSample.dts + this._audioLargeGap)) {
+    if (!first && streamChangeStart === undefined && this.nextAudioDts && Compatibility.detectAudioLargeGap(this.nextAudioDts || 0, _firstSample.dts + this._audioLargeGap)) {
       // large gap 不准确，出现了非换流场景的时间戳跳变
       this._audioLargeGap = this.nextAudioDts + meta.refSampleDuration - _firstSample.dts;
     }
@@ -300,7 +335,7 @@ class Compatibility {
     // 对audioSamples按照dts做排序
     if (this._audioLargeGap !== 0) {
       Compatibility.doFixLargeGap(audioSamples, this._audioLargeGap)
-    } else if (!first && (streamChangeStart !== undefined || Compatibility.detectLargeGap(this.nextAudioDts, _firstSample.dts))) {
+    } else if (!first && (streamChangeStart !== undefined || Compatibility.detectAudioLargeGap(this.nextAudioDts, _firstSample.dts))) {
       if (streamChangeStart !== undefined) {
         this.nextAudioDts = streamChangeStart // FIX: Hls中途切codec，在如果直接seek到后面的点会导致largeGap计算失败
       }
@@ -395,6 +430,9 @@ class Compatibility {
       }
       if (delta >= 10 * iRefSampleDuration) {
         let missingCount = Math.round(delta / iRefSampleDuration);
+        if (missingCount > 1000) {
+          break;
+        }
         logger.warn(this.TAG, `inject ${missingCount} audio frame for ${delta} ms gap`);
         for (let j = 0; j < missingCount; j++) {
           const silentSample = {
@@ -474,7 +512,7 @@ class Compatibility {
     if (changeSample.options && changeSample.options.start !== undefined) {
       streamChangeStart = changeSample.options.start;
     } else {
-      streamChangeStart = prevDts - this.videoDtsBase
+      streamChangeStart = prevDts - this.videoDtsBase;
     }
 
     this.videoTrack.samples = samples.slice(0, changeIdx);
@@ -693,11 +731,18 @@ class Compatibility {
     }
   }
 
-  static detectLargeGap (nextDts, firstSampleDts) {
+  static detectVideoLargeGap (nextDts, firstSampleDts) {
     if (nextDts === null) {
       return;
     }
     return nextDts - firstSampleDts >= 10000 || firstSampleDts - nextDts >= 10000 // fix hls流出现大量流dts间距问题
+  }
+
+  static detectAudioLargeGap (nextDts, firstSampleDts) {
+    if (nextDts === null) {
+      return;
+    }
+    return nextDts - firstSampleDts >= 1000 || firstSampleDts - nextDts >= 1000 // fix hls流出现大量流dts间距问题
   }
 
   static doFixLargeGap (samples, gap) {

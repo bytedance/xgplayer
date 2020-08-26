@@ -254,6 +254,9 @@ const pluginsManager = {
 
   destroy (player) {
     const cgid = player._pluginInfoId
+    if (!this.pluginGroup[cgid]) {
+      return
+    }
     const plugins = this.pluginGroup[cgid]._plugins
     for (const item of Object.keys(plugins)) {
       this.unRegister(cgid, item)

@@ -119,21 +119,21 @@ export default class Mp4Remuxer {
       return;
     }
 
-    if (!audioTrack.samples.length && !videoTrack.samples.length) {
+    if ((!audioTrack || !audioTrack.samples.length) && (!videoTrack || !videoTrack.samples.length)) {
       return;
     }
 
     let audioBase = null
     let videoBase = null
     let start = null;
-    if (audioTrack.samples && audioTrack.samples.length) {
+    if (audioTrack && audioTrack.samples && audioTrack.samples.length) {
       const firstSample = audioTrack.samples[0];
       audioBase = firstSample.dts;
       if (firstSample.options && firstSample.options.start) {
         start = firstSample.options.start
       }
     }
-    if (videoTrack.samples && videoTrack.samples.length) {
+    if (videoTrack && videoTrack.samples && videoTrack.samples.length) {
       const firstSample = videoTrack.samples[0];
       videoBase = firstSample.dts;
       if (firstSample.options && firstSample.options.start) {
@@ -154,7 +154,7 @@ export default class Mp4Remuxer {
   _remuxVideo (videoTrack) {
     const track = videoTrack || {}
 
-    if (!videoTrack.samples || !videoTrack.samples.length) {
+    if (!videoTrack || !videoTrack.samples || !videoTrack.samples.length) {
       return
     }
 

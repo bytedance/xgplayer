@@ -9,19 +9,17 @@ export default class ErrorPlugin extends Plugin {
   afterCreate () {
     this.errorRetry = this.errorRetry.bind(this)
     this.bind('.xgplayer-error-refresh', 'click', this.errorRetry)
-    this.on(Player.Events.CANPLAY, this.handleCanPlay.bind(this))
-    this.on(Player.Events.ERROR, this.handleError)
+    this.on(Player.Events.CANPLAY, () => {
+      this.handleCanPlay()
+    })
+    this.on(Player.Events.ERROR, () => {
+      this.handleError()
+    })
   }
 
   errorRetry (e) {
     e.preventDefault()
     e.stopPropagation()
-    this.player.replay()
-    Plugin.Util.removeClass(this.player.root, 'replay')
-  }
-
-  errorRetry (e) {
-    e.preventDefault()
     this.player.retry()
   }
 
