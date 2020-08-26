@@ -65,6 +65,7 @@ export default class FlvController {
   initListeners () {
     this.on(LOADER_EVENTS.LOADER_DATALOADED, this._handleLoaderDataLoaded.bind(this))
     this.on(LOADER_EVENTS.LOADER_ERROR, this._handleNetworkError.bind(this))
+    this.on(LOADER_EVENTS.LOADER_RETRY, this._handleFetchRetry.bind(this))
 
     this.on(DEMUX_EVENTS.MEDIA_INFO, this._handleMediaInfo.bind(this))
     this.on(DEMUX_EVENTS.METADATA_PARSED, this._handleMetadataParsed.bind(this))
@@ -201,6 +202,12 @@ export default class FlvController {
     this._onError(LOADER_EVENTS.LOADER_ERROR, tag, err, true)
   }
 
+  _handleFetchRetry (tag, info) {
+    this._player.emit('retry', Object.assign({
+      tag
+    }, info))
+  }
+
   _handleDemuxError (tag, err, fatal) {
     if (fatal === undefined) {
       fatal = false;
@@ -240,7 +247,8 @@ export default class FlvController {
   }
 
   loadData (url = this._player.config.url) {
-    this.emit(LOADER_EVENTS.LADER_START, url)
+    const { times, delayTime } = this._player.config.fetchRetry || {};
+    this.emit(LOADER_EVENTS.LADER_START, url, {}, times, delayTime)
   }
 
   pause () {
