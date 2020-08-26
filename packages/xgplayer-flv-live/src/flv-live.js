@@ -203,7 +203,7 @@ export default class FlvController {
   }
 
   _handleFetchRetry (tag, info) {
-    this._player.emit('fetch_retry', Object.assign({
+    this._player.emit('retry', Object.assign({
       tag
     }, info))
   }

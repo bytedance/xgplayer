@@ -49,7 +49,7 @@ class FetchLoader {
     })
   }
 
-  internalLoad (url, params, retryTimes, delayTime = 0) {
+  internalLoad (url, params, retryTimes, totalRetry, delayTime = 0) {
     this.loading = true;
     return this.fetch(this.url, params, !retryTimes && 1e5).then((response) => {
       this.emit(LOADER_EVENTS.LOADER_RESPONSE_HEADERS, this.TAG, response.headers)
@@ -67,9 +67,10 @@ class FetchLoader {
         this._retryTimer = setTimeout(() => {
           this.emit(LOADER_EVENTS.LOADER_RETRY, this.TAG, {
             response: response,
-            reason: 'response not ok'
+            reason: 'response not ok',
+            retryTime: totalRetry - retryTimes
           })
-          return this.internalLoad(url, params, retryTimes, delayTime)
+          return this.internalLoad(url, params, retryTimes, totalRetry, delayTime)
         }, delayTime)
       } else {
         this.loading = false;
@@ -84,9 +85,10 @@ class FetchLoader {
         this._retryTimer = setTimeout(() => {
           this.emit(LOADER_EVENTS.LOADER_RETRY, this.TAG, {
             error: error,
-            reason: 'fetch error'
+            reason: 'fetch error',
+            retryTime: totalRetry - retryTimes
           })
-          return this.internalLoad(url, params, retryTimes, delayTime)
+          return this.internalLoad(url, params, retryTimes, totalRetry, delayTime)
         }, delayTime)
       } else {
         this.emit(LOADER_EVENTS.LOADER_ERROR, this.TAG, error);
@@ -95,7 +97,8 @@ class FetchLoader {
     })
   }
 
-  load (url, opts = {}, retryTimes = 3, delayTime) {
+  load (url, opts = {}, retryTimes, delayTime) {
+    retryTimes = retryTimes === undefined ? 3 : retryTimes
     this.url = url;
 
     this._canceled = false;
@@ -103,7 +106,7 @@ class FetchLoader {
     // TODO: Add Ranges
     let params = this.getParams(opts)
 
-    return this.internalLoad(url, params, retryTimes, delayTime)
+    return this.internalLoad(url, params, retryTimes, retryTimes, delayTime)
   }
 
   _onFetchResponse (response) {
