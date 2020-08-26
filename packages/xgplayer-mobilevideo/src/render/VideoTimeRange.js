@@ -117,4 +117,9 @@ export default class VideoTimeRange {
     let f = this._compressFrame.shift();
     return f;
   }
+
+  getDtsOfTime (time) {
+    let delta = time - this._lastDuration;
+    return this._baseDts + delta * 1000;
+  }
 }
