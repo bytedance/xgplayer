@@ -247,7 +247,7 @@ export default class FlvController {
   }
 
   loadData (url = this._player.config.url) {
-    const { times, delayTime } = this._player.config.fetchRetry || {};
+    const { count: times, delay: delayTime } = this._player.config.retry || {};
     this.emit(LOADER_EVENTS.LADER_START, url, {}, times, delayTime)
   }
 
