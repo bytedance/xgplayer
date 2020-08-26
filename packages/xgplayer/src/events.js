@@ -44,3 +44,5 @@ export const AFTER_DIFINITION_CHANGE = 'after_definition_change';
 
 // transmuxer events
 export const SEI_PARSED = 'SEI_PARSED';
+
+export const RETRY = 'retry';
