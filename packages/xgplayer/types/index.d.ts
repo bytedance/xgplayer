@@ -178,10 +178,10 @@ declare module 'xgplayer' {
 
         // 关闭播放器范围时移动鼠标时触发video focus
         closeFocusVideoFocus?: boolean;
-        
+
         // 是否关闭pause时触发focus
         closePauseVideoFocus: boolean;
-    
+
         // 关闭播放器触发play事件时触发video focus
         closePlayVideoFocus?: boolean;
 
@@ -221,7 +221,7 @@ declare module 'xgplayer' {
 
         // 自定义配置
         customConfig?: Record<string, unknown>;
-        
+
         // 需要安装的插件列表
         plugins?: any[];
 
@@ -230,10 +230,10 @@ declare module 'xgplayer' {
 
         // video标签扩展属性
         videoAttrbutes?: any;
-        
+
         // 按钮配置列表
         icons?: any;
-       
+
         // 用于配置一些通用样式结构
         commonStyle?: {
             // 进度条底色
@@ -247,17 +247,27 @@ declare module 'xgplayer' {
             // 进度条滑块样式
             volumeColor?: string
           };
-        
+
         // 进度条自动消失延时
         inactive?: number;
-        
+
         // 移动端滑动进行快进/快退开始时回调
         disableSwipeHandler?: () => void;
-        
+
         enableSwipeHandler?: () => void;
-       
+
         //扩展定义
         [propName: string]: any;
+    }
+
+    type XGI18nTextKeys = {
+        [k: string]: string;
+    };
+    type XGI18nLangKeys = string[];
+
+    type XGI18nLang = {
+        LANG: string;
+        TEXT: XGI18nTextKeys
     }
 
     class Proxy extends EventEmitter {
@@ -370,7 +380,7 @@ declare module 'xgplayer' {
          *
          */
         public replay(): void;
-        
+
         /**
          * 绑定video对象
          */
@@ -397,18 +407,32 @@ declare module 'xgplayer' {
         /**
          * 多语言包
          */
-        public static I18N: object;
-        
+        public static I18N: {
+            textKeys: XGI18nTextKeys;
+            langKeys: XGI18nLangKeys;
+            lang: {
+                [key: string]: {
+                    [key: string]: string;
+                }
+            };
+            extend: (data: {
+                [key: string]: {
+                    [key: string]: string;
+                }
+            }) => void;
+            use: (data: XGI18nLang) => void;
+        };
+
         /**
          * 插件存储对象
          */
         public plugins: any;
-        
+
         /**
          * 当前语言包
          */
         public i18n: object;
-        
+
         /**
          * 当前语言包包含的信息
          */
@@ -498,16 +522,16 @@ declare module 'xgplayer' {
          * @param 插件配置
          */
         public registerPlugin(plugin: any) : any
-        
+
         /**
          * 根据插件名称获取插件对象
-         * @param pluginName 
+         * @param pluginName
          */
         public getPlugin(pluginName: string) : any
 
         /**
          * 快进/快退
-         * @param time 
+         * @param time
          */
         public seek (time:  number): void
     }
