@@ -19,11 +19,12 @@ export default {
     DO_PAUSE: 'do_pause',
     SYNC_DTS: 'sync_dts',
     UPDATE_VOLUME: 'update_volume',
-    UPDATE_PRELOAD_TIME: 'update_preloadtime',
     NO_AUDIO: 'no_audio',
     DESTROY: 'destroy',
     READY: 'ready',
-    UPDATE_GL_OPTIONS: 'update_gl_options'
+    UPDATE_GL_OPTIONS: 'update_gl_options',
+    UPDATE_CAPABILITY_LEVEL: 'update_capability_level',
+    INNER_DEGRADE: 'inner_degrade'
   },
   VIDEO_EVENTS: {
     WAITING: 'waiting',

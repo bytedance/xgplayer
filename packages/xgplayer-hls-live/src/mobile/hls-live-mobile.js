@@ -77,18 +77,13 @@ class HlsLiveController {
   _onDemuxComplete () {
     if (this._player.video) {
       const { videoTrack, audioTrack } = this._context.getInstance('TRACKS');
+      if (!videoTrack) return;
       videoTrack.samples.forEach((sample) => {
         if (sample.analyzed) {
           return;
         }
         sample.analyzed = true;
         let nals = sample.nals;
-        // const buffer = new Stream(sample.data.buffer)
-        // if (this._isHEVC(videoTrack.meta)) {
-        //   nals = NalUnitHEVC.getHvccNals(buffer);
-        // } else {
-        //   nals = NalUnit.getAvccNals(buffer);
-        // }
         const nalsLength = nals.reduce((len, current) => {
           return len + 4 + current.body.byteLength;
         }, 0);
@@ -103,17 +98,7 @@ class HlsLiveController {
         sample.nals = null;
         sample.data = newData;
       })
-      if (this.setDataInterval) {
-        return;
-      }
-      this.setDataInterval = setInterval(() => {
-        if (videoTrack.samples.length || audioTrack.samples.length) {
-          this._player.video.onDemuxComplete(videoTrack, audioTrack);
-        } else {
-          clearInterval(this.setDataInterval);
-          this.setDataInterval = null;
-        }
-      }, 200)
+      this._player.video.onDemuxComplete(videoTrack, audioTrack);
     }
   }
   _onMetadataParsed (type) {

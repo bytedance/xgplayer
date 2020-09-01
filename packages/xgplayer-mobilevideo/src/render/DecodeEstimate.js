@@ -4,6 +4,7 @@ import Events from '../events';
 const MAX_QUEUE_LENGTH = 10;
 const MAX_LOW_FPS_RECORD = 30;
 
+const ls = localStorage;
 export default class DecodeEstimate {
   constructor (parent) {
     this.TAG = 'DecodeEstimate';
@@ -17,6 +18,7 @@ export default class DecodeEstimate {
     this._lowDecodeQueue = [];
     this._fps = 0;
     this._decodeFps = 0;
+    this._gopLength = 0;
   }
 
   get fps () {
@@ -31,6 +33,14 @@ export default class DecodeEstimate {
     return this._lastDecodeCost;
   }
 
+  get gopLength () {
+    return this._gopLength;
+  }
+
+  updateGopCount () {
+    this._gopLength++;
+  }
+
   needEstimateFps () {
     this._needEstimate = true;
   }
@@ -42,6 +52,11 @@ export default class DecodeEstimate {
 
   resetDecodeDot (v) {
     this._lastDecodeDot = v || 0;
+  }
+
+  reset () {
+    this._decodeCosts = [];
+    this._lowDecodeQueue = [];
   }
 
   _estimateFps (frameInfo) {
@@ -78,6 +93,7 @@ export default class DecodeEstimate {
     let cost = now - this._lastDecodeDot;
     this._lastDecodeDot = now;
     frameInfo.cost = cost;
+
     if (cost < 0.5) return;
 
     this._lastDecodeCost = cost;
@@ -108,7 +124,7 @@ export default class DecodeEstimate {
       return;
     }
 
-    if (this._decodeFps < this._fps + 2) {
+    if (this._decodeFps < this._fps + 3) {
       this._lowDecodeQueue.push(this._decodeFps);
     } else {
       this._lowDecodeQueue.pop();
@@ -118,6 +134,44 @@ export default class DecodeEstimate {
       this._lowDecodeQueue = [];
       logger.log(this.TAG, '解码效率过低,应该降级');
       this._parent.emit(Events.VIDEO.DECODE_LOW_FPS);
+    }
+  }
+
+  // 播放能力
+  // 1: 发生过降级或出错
+  // 2: 能播放 < 720p
+  // 3: 评估能播放720p
+  // type: 1=出错 2=降级
+  _estimateCapabilityLevel (type) {
+    if (!this._parent.innerDegrade) return;
+
+    if (type === 1) {
+      // decoder error
+      ls.setItem('cl', 1);
+      return;
+    }
+
+    if (type === 2 && this._parent.bitrate < 1200000) { // 1.2Mbps
+      // 540p 发生降级
+      ls.setItem('cl', 1);
+      return;
+    }
+
+    if (this._parent.is540p) {
+      if (this._decodeFps / this._fps >= 3) {
+        ls.setItem('cl', 3);
+      } else if (this._decodeFps > this._fps) {
+        ls.setItem('cl', 2);
+      } else {
+        ls.setItem('cl', 1);
+      }
+      return;
+    }
+
+    if (this._decodeFps > this._fps) {
+      ls.setItem('cl', 3);
+    } else {
+      ls.setItem('cl', 2);
     }
   }
 }
