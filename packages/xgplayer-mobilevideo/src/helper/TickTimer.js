@@ -2,12 +2,12 @@
 let shell = `
     let timer;
 
-    function initTimer () {
+    function initTimer (interval) {
       destroy()
       clearInterval(timer);
       timer = setInterval(() => {
           self.postMessage({type: 'NEXT_TICK'});
-      }, 25)
+      }, interval)
     }
 
     function destroy () {
@@ -15,10 +15,10 @@ let shell = `
     }
 
     self.onmessage = function (e) {
-      const {type} = e.data;
+      const {type,interval} = e.data;
       switch (type) {
           case 'START':
-            initTimer();
+            initTimer(interval);
             break;
           case 'DESTROY':
             destroy();
@@ -41,8 +41,15 @@ export default class TickTimer {
     })
   }
 
-  start () {
-    this._worker.postMessage({type: 'START'});
+  start (interval) {
+    interval = parseInt(interval);
+    if (interval < 10) {
+      interval = 10;
+    }
+    if (interval > 25) {
+      interval = 25;
+    }
+    this._worker.postMessage({type: 'START', interval});
   }
 
   stop () {

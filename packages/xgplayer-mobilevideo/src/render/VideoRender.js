@@ -65,7 +65,7 @@ export default class VideoRender extends EventEmitter {
 
   get fps () {
     return (
-      (this._meta && this._meta.frameRate && this._meta.frameRate.fps) || this._decodeEstimate.fps || 24
+      this._decodeEstimate.fps || (this._meta && this._meta.frameRate && this._meta.frameRate.fps)  || 24
     );
   }
 
@@ -472,7 +472,7 @@ export default class VideoRender extends EventEmitter {
   }
 
   _startRender () {
-    this._tickTimer.start();
+    this._tickTimer.start(this.interval);
   }
 
   _render () {
