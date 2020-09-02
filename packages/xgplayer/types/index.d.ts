@@ -180,7 +180,7 @@ declare module 'xgplayer' {
         closeFocusVideoFocus?: boolean;
 
         // 是否关闭pause时触发focus
-        closePauseVideoFocus: boolean;
+        closePauseVideoFocus?: boolean;
 
         // 关闭播放器触发play事件时触发video focus
         closePlayVideoFocus?: boolean;
