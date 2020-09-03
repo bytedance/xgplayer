@@ -1,6 +1,6 @@
-import Player from '../player'
+import Player from '../../player'
 
-let i18n = function () {
+let s_i18n = function () {
   let player = this; let lang = {}; let util = player.constructor.util
   lang.en = {
     HAVE_NOTHING: 'There is no information on whether audio/video is ready',
@@ -154,4 +154,4 @@ let i18n = function () {
 
 }
 
-Player.install('i18n', i18n)
+Player.install('s_i18n', s_i18n)
