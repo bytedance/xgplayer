@@ -420,41 +420,47 @@ class Player extends Proxy {
       this.start().then(resolve => {
         this.play()
       })
-      return;
+      return
     }
 
     const playPromise = super.play()
     if (playPromise !== undefined && playPromise && playPromise.then) {
       playPromise.then(() => {
-        !this.isPlaying && this.logInfo('>>>>playPromise.then')
         this.removeClass(STATE_CLASS.NOT_ALLOW_AUTOPLAY)
         this.addClass(STATE_CLASS.PLAYING)
-        this.config.closePlayVideoFocus && !this.isPlaying && this.emit(Events.PLAYER_BLUR)
-        this.isPlaying = true
-        this.emit(Events.AUTOPLAY_STARTED)
+        this.config.closePlayVideoFocus && this.emit(Events.PLAYER_BLUR)
+        if (!this.isPlaying) {
+          this.logInfo('>>>>playPromise.then')
+          this.isPlaying = true
+          this.emit(Events.AUTOPLAY_STARTED)
+        }
       }).catch((e) => {
-        this.logWarn('>>>>playPromise.catch', e)
+        this.logWarn('>>>>playPromise.catch', e.name)
         if (this.video.error) {
           this.onError()
           this.errorHandler('error')
           return
         }
         // 避免AUTOPLAY_PREVENTED先于playing和play触发
-        setTimeout(() => {
-          this.emit(Events.AUTOPLAY_PREVENTED)
-          this.addClass(STATE_CLASS.NOT_ALLOW_AUTOPLAY)
-          this.removeClass(STATE_CLASS.ENTER)
-          this.pause()
-        }, 0)
-        // throw e
+        if (e.name === "NotAllowedError") {
+          setTimeout(() => {
+            this.emit(Events.AUTOPLAY_PREVENTED)
+            this.addClass(STATE_CLASS.NOT_ALLOW_AUTOPLAY)
+            this.removeClass(STATE_CLASS.ENTER)
+            this.pause()
+          }, 0)
+        }
       })
     } else {
       this.logWarn('video.play not return promise')
-      this.isPlaying = true
-      this.removeClass(STATE_CLASS.NOT_ALLOW_AUTOPLAY)
-      this.removeClass(STATE_CLASS.NO_START)
-      this.addClass(STATE_CLASS.PLAYING)
-      this.emit(Events.AUTOPLAY_STARTED)
+      if (!this.isPlaying) {
+        this.isPlaying = true
+        this.removeClass(STATE_CLASS.NOT_ALLOW_AUTOPLAY)
+        this.removeClass(STATE_CLASS.NO_START)
+        this.removeClass(STATE_CLASS.ENTER)
+        this.addClass(STATE_CLASS.PLAYING)
+        this.emit(Events.AUTOPLAY_STARTED)
+      }
     }
     return playPromise
   }
@@ -529,7 +535,7 @@ class Player extends Proxy {
 
   retry () {
     this.removeClass(STATE_CLASS.ERROR)
-    this.removeClass(STATE_CLASS.LOADING)
+    this.addClass(STATE_CLASS.LOADING)
     const cur = this.currentTime
     this.video.pause()
     this.src = this.config.url
