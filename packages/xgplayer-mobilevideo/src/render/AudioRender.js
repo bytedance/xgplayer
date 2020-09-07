@@ -20,6 +20,7 @@ export default class AudioRender extends BaseRender {
     this._timeRange = new AudioTimeRange();
     this._sampleQueue = [];
     this._source = null;
+    this._audioCanAutoPlay = false;
     this._onSourceBufferEnded = this._onSourceBufferEnded.bind(this);
     this._initAudioCtx(config.volume || 0.6);
     this._bindEvents();
@@ -51,6 +52,11 @@ export default class AudioRender extends BaseRender {
     return this._audioCtx.state;
   }
 
+  // 实例化 webAudio 后可以确定是否允许自动播放
+  get audioCanAutoPlay () {
+    return this._audioCanAutoPlay;
+  }
+
   resume () {
     return this._audioCtx.resume();
   }
@@ -78,6 +84,8 @@ export default class AudioRender extends BaseRender {
     this._gainNode = this._audioCtx.createGain();
     this._gainNode.gain.value = volume;
     this._gainNode.connect(this._audioCtx.destination);
+    this._audioCanAutoPlay = this._audioCtx.state === 'running';
+    logger.log(this.TAG, 'webAudio state:', this._audioCtx.state);
     this._audioCtx.suspend();
     initBgSilenceAudio();
   }

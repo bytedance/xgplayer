@@ -1,7 +1,18 @@
-const H264_DECODER_URL =
-  'https://sf1-vcloudcdn.pstatp.com/obj/media-fe/decoder/h264/decoder_1599450196791.js';
 
-const ASM_H264_DECODER_URL = 'https://sf1-vcloudcdn.pstatp.com/obj/media-fe/decoder/h264/decoder_asm_1599450196791.js';
+let H264_DECODER_URL;
+let ASM_H264_DECODER_URL;
+
+let tv = /wasmversion=1/.test(location.href);
+
+if (tv) {
+  H264_DECODER_URL = 'https://sf1-vcloudcdn.pstatp.com/obj/media-fe/decoder/h264/n_decoder_1599551996077.js';
+
+  ASM_H264_DECODER_URL = 'https://sf1-vcloudcdn.pstatp.com/obj/media-fe/decoder/h264/n_decoder_asm_1599551996077.js'
+} else {
+  H264_DECODER_URL = 'https://sf1-vcloudcdn.pstatp.com/obj/media-fe/decoder/h264/decoder_1599450196791.js';
+
+  ASM_H264_DECODER_URL = 'https://sf1-vcloudcdn.pstatp.com/obj/media-fe/decoder/h264/decoder_asm_1599450196791.js';
+}
 
 const H265_DECODER_URL = 'https://sf1-vcloudcdn.pstatp.com/obj/media-fe/decoder/h265/decoder_1596185762157.js'
 

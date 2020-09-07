@@ -307,6 +307,12 @@ class YUVCanvas {
     this.meta = Object.assign({}, meta);
     this._initMeta()
   }
+
+  destroy () {
+    this.contextGL = null;
+    this.shaderProgram = null;
+    this.canvas = null;
+  }
 }
 
 export default YUVCanvas;
