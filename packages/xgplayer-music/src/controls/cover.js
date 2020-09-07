@@ -7,7 +7,9 @@ class Cover {
     const poster = util.createDom('xg-cover', `<img src="${player.config.poster || player.config.url[0].poster}">`, {}, 'xgplayer-cover')
     controlEl.appendChild(poster)
     player.on('change', item => {
-      poster.innerHTML = `<img src="${item.poster}">`
+      if(item.poster) {
+        poster.innerHTML = `<img src="${item.poster}">`
+      }
     })
   }
 }

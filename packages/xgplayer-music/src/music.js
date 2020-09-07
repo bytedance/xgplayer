@@ -134,7 +134,9 @@ class Music extends Player {
         return
       }
       if (this.mode === 'order' && this.index + 1 >= this.list.length) {
-        this.pause()
+        this.once('playing', () => {
+          this.pause()
+        })
         this.currentTime = 0
         return
       }

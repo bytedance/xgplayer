@@ -6,6 +6,9 @@
         .xgplayer-backward, .xgplayer-backward-img {
             order: 0;
             cursor: pointer;
+            .xgplayer-icon {
+                margin-top: 4px;
+            }
             &:hover{
                 opacity: 0.85;
             }
@@ -13,13 +16,16 @@
         .xgplayer-prev, .xgplayer-prev-img {
             order: 1;
             cursor: pointer;
+            .xgplayer-icon {
+                margin-top: 3px;
+            }
             &:hover{
                 opacity: 0.85;
             }
         }
         .xgplayer-play, .xgplayer-play-img {
             order: 2;
-            margin-right: -5px;
+            margin: 1px -5px 0px;
             .xgplayer-tips {
                 display: none;
             }
@@ -27,6 +33,9 @@
         .xgplayer-next, .xgplayer-next-img {
             order: 3;
             cursor: pointer;
+            .xgplayer-icon {
+                margin-top: 3px;
+            }
             &:hover{
                 opacity: 0.85;
             }
@@ -34,6 +43,9 @@
         .xgplayer-forward, .xgplayer-forward-img {
             order: 4;
             cursor: pointer;
+            .xgplayer-icon {
+                margin-top: 4px;
+            }
             &:hover{
                 opacity: 0.85;
             }
@@ -96,9 +108,9 @@
         }
         .xgplayer-time {
             order: 8;
-            margin-left: 30px;
             line-height: 1;
             position: relative;
+            margin: 0px 8px 0px 30px;
             top: 55%;
         }
         .xgplayer-placeholder {
