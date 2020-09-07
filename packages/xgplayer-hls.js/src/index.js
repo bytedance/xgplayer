@@ -146,16 +146,16 @@ class HlsJsPlayer extends Player {
     })
 
     hls.on(Hls.Events.FRAG_PARSING_INIT_SEGMENT, (flag,payload) =>{
-      mediainfo.hasAudio = (payload.tracks && payload.tracks.audio)? true: false;
-      mediainfo.hasVideo = (payload.tracks && payload.tracks.audio)? true: false;
+      mediainfo.hasAudio = (payload && payload.tracks && payload.tracks.audio)? true: false;
+      mediainfo.hasVideo = (payload && payload.tracks && payload.tracks.video)? true: false;
 
-      if(mediainfo.hasAudio) {
+      if(mediainfo.hasAudio && payload.tracks.audio) {
         let track = payload.tracks.audio;
         mediainfo.audioChannelCount = (track.metadata && track.metadata.channelCount) ? track.metadata.channelCount:0;
         mediainfo.audioCodec = track.codec;
       }
 
-      if(mediainfo.hasVideo) {
+      if(mediainfo.hasVideo && payload.tracks.video) {
         let track = payload.tracks.video;
         mediainfo.videoCodec = track.codec;
         mediainfo.width = (track.metadata && track.metadata.width) ? track.metadata.width:0;

@@ -1321,23 +1321,20 @@ function computeReloadInterval(currentPlaylist, newPlaylist, lastRequestTime) {
 
 // see https://tools.ietf.org/html/rfc1808
 
-/* jshint ignore:start */
-(function(root) { 
-/* jshint ignore:end */
-
-  var URL_REGEX = /^((?:[a-zA-Z0-9+\-.]+:)?)(\/\/[^\/?#]*)?((?:[^\/\?#]*\/)*.*?)??(;.*?)?(\?.*?)?(#.*?)?$/;
+(function (root) {
+  var URL_REGEX = /^((?:[a-zA-Z0-9+\-.]+:)?)(\/\/[^\/?#]*)?((?:[^\/?#]*\/)*[^;?#]*)?(;[^?#]*)?(\?[^#]*)?(#.*)?$/;
   var FIRST_SEGMENT_REGEX = /^([^\/?#]*)(.*)$/;
   var SLASH_DOT_REGEX = /(?:\/|^)\.(?=\/)/g;
-  var SLASH_DOT_DOT_REGEX = /(?:\/|^)\.\.\/(?!\.\.\/).*?(?=\/)/g;
+  var SLASH_DOT_DOT_REGEX = /(?:\/|^)\.\.\/(?!\.\.\/)[^\/]*(?=\/)/g;
 
-  var URLToolkit = { // jshint ignore:line
+  var URLToolkit = {
     // If opts.alwaysNormalize is true then the path will always be normalized even when it starts with / or //
     // E.g
     // With opts.alwaysNormalize = false (default, spec compliant)
     // http://a.com/b/cd + /e/f/../g => http://a.com/e/f/../g
     // With opts.alwaysNormalize = true (not spec compliant)
     // http://a.com/b/cd + /e/f/../g => http://a.com/e/g
-    buildAbsoluteURL: function(baseURL, relativeURL, opts) {
+    buildAbsoluteURL: function (baseURL, relativeURL, opts) {
       opts = opts || {};
       // remove any remaining space and CRLF
       baseURL = baseURL.trim();
@@ -1353,7 +1350,9 @@ function computeReloadInterval(currentPlaylist, newPlaylist, lastRequestTime) {
         if (!basePartsForNormalise) {
           throw new Error('Error trying to parse base URL.');
         }
-        basePartsForNormalise.path = URLToolkit.normalizePath(basePartsForNormalise.path);
+        basePartsForNormalise.path = URLToolkit.normalizePath(
+          basePartsForNormalise.path
+        );
         return URLToolkit.buildURLFromParts(basePartsForNormalise);
       }
       var relativeParts = URLToolkit.parseURL(relativeURL);
@@ -1391,7 +1390,7 @@ function computeReloadInterval(currentPlaylist, newPlaylist, lastRequestTime) {
         path: null,
         params: relativeParts.params,
         query: relativeParts.query,
-        fragment: relativeParts.fragment
+        fragment: relativeParts.fragment,
       };
       if (!relativeParts.netLoc) {
         // 3) If the embedded URL's <net_loc> is non-empty, we skip to
@@ -1423,17 +1422,21 @@ function computeReloadInterval(currentPlaylist, newPlaylist, lastRequestTime) {
             // slash is present) is removed and the embedded URL's path is
             // appended in its place.
             var baseURLPath = baseParts.path;
-            var newPath = baseURLPath.substring(0, baseURLPath.lastIndexOf('/') + 1) + relativeParts.path;
+            var newPath =
+              baseURLPath.substring(0, baseURLPath.lastIndexOf('/') + 1) +
+              relativeParts.path;
             builtParts.path = URLToolkit.normalizePath(newPath);
           }
         }
       }
       if (builtParts.path === null) {
-        builtParts.path = opts.alwaysNormalize ? URLToolkit.normalizePath(relativeParts.path) : relativeParts.path;
+        builtParts.path = opts.alwaysNormalize
+          ? URLToolkit.normalizePath(relativeParts.path)
+          : relativeParts.path;
       }
       return URLToolkit.buildURLFromParts(builtParts);
     },
-    parseURL: function(url) {
+    parseURL: function (url) {
       var parts = URL_REGEX.exec(url);
       if (!parts) {
         return null;
@@ -1444,10 +1447,10 @@ function computeReloadInterval(currentPlaylist, newPlaylist, lastRequestTime) {
         path: parts[3] || '',
         params: parts[4] || '',
         query: parts[5] || '',
-        fragment: parts[6] || ''
+        fragment: parts[6] || '',
       };
     },
-    normalizePath: function(path) {
+    normalizePath: function (path) {
       // The following operations are
       // then applied, in order, to the new path:
       // 6a) All occurrences of "./", where "." is a complete path
@@ -1463,20 +1466,27 @@ function computeReloadInterval(currentPlaylist, newPlaylist, lastRequestTime) {
       // 6d) If the path ends with "<segment>/..", where <segment> is a
       // complete path segment not equal to "..", that
       // "<segment>/.." is removed.
-      while (path.length !== (path = path.replace(SLASH_DOT_DOT_REGEX, '')).length) {} // jshint ignore:line
+      while (
+        path.length !== (path = path.replace(SLASH_DOT_DOT_REGEX, '')).length
+      ) {}
       return path.split('').reverse().join('');
     },
-    buildURLFromParts: function(parts) {
-      return parts.scheme + parts.netLoc + parts.path + parts.params + parts.query + parts.fragment;
-    }
+    buildURLFromParts: function (parts) {
+      return (
+        parts.scheme +
+        parts.netLoc +
+        parts.path +
+        parts.params +
+        parts.query +
+        parts.fragment
+      );
+    },
   };
 
-/* jshint ignore:start */
-  if(true)
+  if (true)
     module.exports = URLToolkit;
   else {}
 })(this);
-/* jshint ignore:end */
 
 
 /***/ }),
@@ -3930,6 +3940,7 @@ function EventEmitter() {
   EventEmitter.init.call(this);
 }
 module.exports = EventEmitter;
+module.exports.once = once;
 
 // Backwards-compat with node 0.10.x
 EventEmitter.EventEmitter = EventEmitter;
@@ -4319,6 +4330,35 @@ function unwrapListeners(arr) {
     ret[i] = arr[i].listener || arr[i];
   }
   return ret;
+}
+
+function once(emitter, name) {
+  return new Promise(function (resolve, reject) {
+    function eventListener() {
+      if (errorListener !== undefined) {
+        emitter.removeListener('error', errorListener);
+      }
+      resolve([].slice.call(arguments));
+    };
+    var errorListener;
+
+    // Adding an error listener is not optional because
+    // if an error is thrown on an event emitter we cannot
+    // guarantee that the actual event we are waiting will
+    // be fired. The result could be a silent way to create
+    // memory or file descriptor leaks, which is something
+    // we should avoid.
+    if (name !== 'error') {
+      errorListener = function errorListener(err) {
+        emitter.removeListener(name, eventListener);
+        reject(err);
+      };
+
+      emitter.once('error', errorListener);
+    }
+
+    emitter.once(name, eventListener);
+  });
 }
 
 
@@ -6164,16 +6204,16 @@ var HlsJsPlayer = function (_Player) {
       });
 
       hls.on(_hls2.default.Events.FRAG_PARSING_INIT_SEGMENT, function (flag, payload) {
-        mediainfo.hasAudio = payload.tracks && payload.tracks.audio ? true : false;
-        mediainfo.hasVideo = payload.tracks && payload.tracks.audio ? true : false;
+        mediainfo.hasAudio = payload && payload.tracks && payload.tracks.audio ? true : false;
+        mediainfo.hasVideo = payload && payload.tracks && payload.tracks.video ? true : false;
 
-        if (mediainfo.hasAudio) {
+        if (mediainfo.hasAudio && payload.tracks.audio) {
           var track = payload.tracks.audio;
           mediainfo.audioChannelCount = track.metadata && track.metadata.channelCount ? track.metadata.channelCount : 0;
           mediainfo.audioCodec = track.codec;
         }
 
-        if (mediainfo.hasVideo) {
+        if (mediainfo.hasVideo && payload.tracks.video) {
           var _track = payload.tracks.video;
           mediainfo.videoCodec = _track.codec;
           mediainfo.width = _track.metadata && _track.metadata.width ? _track.metadata.width : 0;
