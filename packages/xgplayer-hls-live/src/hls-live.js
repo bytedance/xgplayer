@@ -250,7 +250,7 @@ class HlsLiveController {
         }
       }
       let bufferend = container.buffered.end(container.buffered.length - 1);
-      if (currentTime < bufferend - (this.preloadTime * 2)) {
+      if (currentTime < bufferend - (this.preloadTime * 2) && this.configs.limitCache) {
         container.currentTime = bufferend - this.preloadTime;
       }
       if (currentTime > bufferend - this.preloadTime) {

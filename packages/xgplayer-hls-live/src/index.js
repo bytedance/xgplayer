@@ -10,6 +10,12 @@ export default class HlsLivePlayer extends BasePlugin {
   static get pluginName () {
     return 'hlsLive';
   }
+
+  static get defaultConfig () {
+    return {
+      limitCache: true
+    }
+  }
   constructor (options) {
     super(options)
     this.played = false;
@@ -22,7 +28,7 @@ export default class HlsLivePlayer extends BasePlugin {
 
   beforePlayerInit () {
     const { url } = this.player.config
-    this.hls = this._context.registry('HLS_LIVE_CONTROLLER', HlsLiveController)({player: this.player, preloadTime: this.player.config.preloadTime});
+    this.hls = this._context.registry('HLS_LIVE_CONTROLLER', HlsLiveController)({player: this.player, preloadTime: this.player.config.preloadTime, limitCache: this.config.limitCache});
     this._context.init();
     this.hls.load(url);
     this._initEvents();
