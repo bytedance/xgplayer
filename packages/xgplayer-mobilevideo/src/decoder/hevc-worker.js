@@ -212,9 +212,10 @@ self.onmessage = function (e) {
         break;
       case 'decode':
         decoder.decode(data.data, data.info);
+        break;
+      case 'finish_flag':
         self.postMessage({
-          msg: 'DECODE_FINISH',
-          dts: data.info ? data.info.dts : 0
+          msg: 'BATCH_FINISH_FLAG'
         })
         break;
       case 'destory':

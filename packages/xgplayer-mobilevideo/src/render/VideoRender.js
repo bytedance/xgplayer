@@ -1,9 +1,10 @@
-import EventEmitter from 'events';
+import BaseRender from './BaseRender'
 import HevcWorker from 'worker!../decoder/hevc-worker.js';
 import AvcWorker from 'worker!../decoder/worker.js';
 import { logger } from 'xgplayer-helper-utils';
 import VideoTimeRange from './VideoTimeRange';
 import FrameRender from './FrameRender';
+import FrameQueue from './FrameQueue';
 import DecodeEstimate from './DecodeEstimate';
 import TickTimer from '../helper/TickTimer';
 import Events from '../events';
@@ -22,28 +23,28 @@ const HAVE_ENOUGH_DATA = 4;
 
 const MEDIA_ERR_DECODE = 3;
 
-export default class VideoRender extends EventEmitter {
+const MAX_DECODE_ONCE_DEFAULT = 16;
+const CONTINUE_DECODE_THRESHOLD_DEFAULT = MAX_DECODE_ONCE_DEFAULT / 2;
+
+const MAX_DECODE_ONCE_FAST = 80;
+
+export default class VideoRender extends BaseRender {
   constructor (config, parent) {
-    super();
+    super(config, parent);
     this.TAG = 'VideoRender';
-    this._config = config;
-    this._parent = parent;
     this._timeRange = new VideoTimeRange();
     this._decodeEstimate = new DecodeEstimate(this);
-    this._frameQueue = []; // the queue of uncompressed frame
+    this._frameQueue = new FrameQueue(this); // the queue of uncompressed frame
     this._canvas = config.canvas || document.createElement('canvas');
-    this._meta = null;
-    this._decoder = null; //  decoder worker instance
+    this._wasmWorkers = []; //  decoder worker instance
     this._frameRender = null; // FrameRender instance
-    this._ready = false; // 初始解码ready,可播
-    this._noAudio = false;
     this._wasmReady = false;
     this._degrade = !window.WebAssembly;
     this._avccpushed = false;
-    this._lastTimeupdate = 0;
     this._inDecoding = false;
-    this._lastDecodingDts = 0;
-    this._startRender = this._startRender.bind(this);
+    this._lastTimeupdate = 0;
+    this._maxDecodeOnce = MAX_DECODE_ONCE_DEFAULT;
+    this._continueDecodeThreshold = CONTINUE_DECODE_THRESHOLD_DEFAULT;
     this._render = this._render.bind(this);
     this._tickTimer = new TickTimer(this._render);
     this._initCanvas();
@@ -65,7 +66,7 @@ export default class VideoRender extends EventEmitter {
 
   get fps () {
     return (
-      this._decodeEstimate.fps || (this._meta && this._meta.frameRate && this._meta.frameRate.fps)  || 24
+      this._decodeEstimate.fps || (this._meta && this._meta.frameRate && this._meta.frameRate.fps) || 24
     );
   }
 
@@ -83,6 +84,14 @@ export default class VideoRender extends EventEmitter {
 
   set bitrate (v) {
     this._timeRange.bitrate = v;
+  }
+
+  get gopLength () {
+    return this._decodeEstimate.gopLength;
+  }
+
+  get is540p () {
+    return this._canvas.height < 720
   }
 
   get duration () {
@@ -142,7 +151,7 @@ export default class VideoRender extends EventEmitter {
   }
 
   get readyState () {
-    let len = this._frameQueue && this._frameQueue.length;
+    let len = this._frameQueue.length;
     if (!len) return HAVE_NOTHING;
     if (len >= 8) return HAVE_ENOUGH_DATA;
     if (len >= 4) return HAVE_FUTURE_DATA;
@@ -156,6 +165,44 @@ export default class VideoRender extends EventEmitter {
 
   updateReady () {
     this._whenReady();
+  }
+
+  switchToMultiWorker (preloadTime) {
+    // 新建worker
+    this._initDecodeWorker(true);
+    this.once(Events.VIDEO.VIDEO_DECODER_INIT, (decoder) => {
+      // ready 之后才可用
+      if (this._wasmWorkers.length >= 2) return;
+
+      let nextFrame = this._timeRange.nextFrame();
+      let currentGopId = nextFrame ? nextFrame.gopId : 0;
+
+      // 当前正在解码的gop沿用老worker
+      let odd = (currentGopId - 1) % 2;
+
+      if (odd) {
+        this._wasmWorkers.unshift(decoder);
+      } else {
+        this._wasmWorkers.push(decoder)
+      }
+
+      this._decodeEstimate.reset();
+    })
+
+    logger.log(this.TAG, `fps:${this.fps} , gopLength:${this._decodeEstimate.gopLength}`)
+
+    // 大约 [80,120] 帧
+    let maxDecodeOnce = Math.max(
+      Math.min( // 防止gop过大、preloadTime过大
+        (this._decodeEstimate.gopLength) * 2,
+        (preloadTime || 2) * this.fps
+      ),
+      MAX_DECODE_ONCE_FAST
+    )
+    this._maxDecodeOnce = maxDecodeOnce;
+    this._continueDecodeThreshold = parseInt(maxDecodeOnce / 2);
+
+    logger.log(this.TAG, `maxDecodeOnce = ${maxDecodeOnce}`);
   }
 
   _assembleErr (msg) {
@@ -180,25 +227,15 @@ export default class VideoRender extends EventEmitter {
   }
 
   _bindEvents () {
+    super._bindEvents();
+
     let waitingTimer;
-    this._parent.on(Events.TIMELINE.SET_METADATA, (type, meta) => {
-      if (type === 'audio') return;
-      logger.warn(this.TAG, 'video set metadata');
-      this._setMetadata(meta);
-    });
-
-    this._parent.on(
-      Events.TIMELINE.APPEND_CHUNKS,
-      this._appendChunk.bind(this)
-    );
-
-    this._parent.on(Events.TIMELINE.START_RENDER, this._startRender);
 
     // 同步时机
     // 1. 音频一小段buffer起播时
     // 2. 对noAudio的场景 1. 视频变流时,dts发生变化 2. 卡顿waiting后,_parent.timelinePosition已不准确
     this._parent.on(Events.TIMELINE.SYNC_DTS, (dts) => {
-      let nextFrame = this._frameQueue[0];
+      let nextFrame = this._frameQueue.nextFrame();
       this.lastTimelinePosition = this.timelinePosition;
       if (this._noAudio) {
         dts = dts || (nextFrame && nextFrame.info.dts) || 0;
@@ -216,37 +253,11 @@ export default class VideoRender extends EventEmitter {
         );
       }
 
-      // 1. 换流 音频播完,视频还存在几帧之前的流没播完时
-      // 2. 暂时的 a > v
-      let unSync = false;
-      while (nextFrame) {
-        let delta = nextFrame.info.dts - dts;
-        if (delta > 10000 || delta < -100) {
-          logger.warn(this.TAG, 'detect a-v sync problem,delete nextFrame');
-          this._frameQueue.shift();
-          nextFrame = this._frameQueue[0];
-          unSync = true;
-          continue;
-        }
-        break;
-      }
-
+      let unSync = this._frameQueue.avSync(dts);
       if (this._noAudio && unSync) {
         let len = this._timeRange.deletePassed(dts);
         console.warn(`delete ${len} compressed frame`);
       }
-    });
-
-    this._parent.on(Events.TIMELINE.DO_PAUSE, () => {
-      this._tickTimer.stop();
-    });
-
-    this._parent.on(Events.TIMELINE.DESTROY, () => {
-      this._destroy();
-    });
-
-    this._parent.on(Events.TIMELINE.NO_AUDIO, () => {
-      this._noAudio = true;
     });
 
     this._parent.on(Events.TIMELINE.UPDATE_GL_OPTIONS, (v) => {
@@ -275,62 +286,10 @@ export default class VideoRender extends EventEmitter {
     });
   }
 
-  _bindWorkerEvent (decoder) {
-    const _whenFail = msg => {
-      if (this._degrade) {
-        this._emitTimelineEvents(
-          Events.TIMELINE.PLAY_EVENT,
-          'error',
-          this._assembleErr(msg)
-        );
-      } else {
-        logger.log(this.TAG, 'use asm: ', msg);
-        this._degrade = true;
-        this._destroyWorker();
-        this._initDecodeWorker();
-      }
-    }
+  _setMetadata (type, meta) {
+    if (type === 'audio') return;
+    logger.warn(this.TAG, 'video set metadata');
 
-    decoder.addEventListener('message', (e) => {
-      const { msg } = e.data;
-      switch (msg) {
-        case 'DECODER_READY':
-          logger.log(this.TAG, 'wasm worker ready ', performance.now());
-          this._wasmReady = true;
-          this.emit(Events.VIDEO.VIDEO_DECODER_INIT);
-          if (!this._avccpushed) {
-            this._pushAvcc(this._decoder, this._meta);
-          }
-          this._startDecode();
-          break;
-        case 'DECODED':
-          this._frameQueue.push(e.data);
-          this._decodeEstimate.addDecodeInfo(e.data.info)
-          this._checkToDecode();
-          break;
-        case 'DECODE_FINISH':
-          if (this._lastDecodingDts === e.data.dts) {
-            this._inDecoding = false;
-            this._decodeEstimate.resetDecodeDot();
-          }
-          break;
-        case 'LOG':
-          // console.log('video decoder worker: LOG:',msg,e.data.log, performance.now());
-          break;
-        case 'INIT_FAILED':
-          _whenFail(e.data.log);
-          break;
-        default:
-          console.error('invalid messaeg', e);
-      }
-    });
-
-    decoder.addEventListener('error', (e) => {
-      _whenFail(e.message);
-    });
-  }
-
-  _setMetadata (meta) {
     this._meta = meta;
     let fps = meta && meta.frameRate && meta.frameRate.fps;
     if (fps) {
@@ -338,10 +297,12 @@ export default class VideoRender extends EventEmitter {
     } else {
       logger.warn(this.TAG, 'no detect fps,start estimate');
     }
-    if (!this._decoder) {
+    if (!this._wasmWorkers.length) {
       this._initDecodeWorker();
     } else if (this._wasmReady) {
-      this._pushAvcc(this._decoder, meta)
+      this._wasmWorkers.forEach(x => {
+        this._pushAvcc(x, meta)
+      })
     }
   }
 
@@ -359,15 +320,77 @@ export default class VideoRender extends EventEmitter {
     };
   }
 
-  _initDecodeWorker () {
+  _initDecodeWorker (delay) {
     const { decoder, url } = this._selectWorker();
-    this._decoder = decoder;
-    this._bindWorkerEvent(this._decoder);
-    this._decoder.postMessage({
+    this._avccpushed = false;
+    this._bindWorkerEvent(decoder);
+    decoder.postMessage({
       msg: 'init',
       meta: this._meta,
       url
     });
+    if (!delay) {
+      this._wasmWorkers.push(decoder)
+    }
+  }
+
+  _bindWorkerEvent (decoder) {
+    const _whenFail = msg => {
+      if (this._degrade) {
+        this._emitTimelineEvents(
+          Events.TIMELINE.PLAY_EVENT,
+          'error',
+          this._assembleErr(msg)
+        );
+      } else {
+        logger.log(this.TAG, 'use asm: ', msg);
+        this._degrade = true;
+        this._destroyWorker(decoder);
+        this._initDecodeWorker();
+      }
+    }
+
+    decoder.addEventListener('message', (e) => {
+      const { msg } = e.data;
+      switch (msg) {
+        case 'DECODER_READY':
+          logger.log(this.TAG, 'wasm worker ready ', performance.now());
+          this._wasmReady = true;
+          this.emit(Events.VIDEO.VIDEO_DECODER_INIT, decoder);
+          if (!this._avccpushed) {
+            this._pushAvcc(decoder, this._meta);
+          }
+          this._startDecode();
+          break;
+        case 'DECODED':
+          this._inDecoding = true;
+          this._decodeEstimate.addDecodeInfo(e.data.info)
+          this._frameQueue.append(e.data)
+          this._checkToDecode();
+          break;
+        case 'BATCH_FINISH_FLAG':
+          decoder.using = 0;
+          this._inDecoding = false;
+          this._decodeEstimate.resetDecodeDot();
+          break;
+        case 'LOG':
+          // console.log('video decoder worker: LOG:',msg,e.data.log, performance.now());
+          break;
+        case 'INIT_FAILED':
+          _whenFail(e.data.log);
+          break;
+        default:
+          console.error('invalid messaeg', e);
+      }
+    });
+
+    decoder.addEventListener('error', (e) => {
+      _whenFail(e.message);
+    });
+  }
+
+  _doPause () {
+    this._tickTimer.stop();
   }
 
   _pushAvcc (worker, meta) {
@@ -431,13 +454,24 @@ export default class VideoRender extends EventEmitter {
   // 1. decoder初始化预解码几帧
   // 2. render 过程,帧数过少时解码新帧
   _startDecode () {
-    let len = 15;
-    let onlyOne = this._timeRange && this._timeRange.frameLength === 1;
+    let len = this._maxDecodeOnce;
+    let rest = this._timeRange.frameLength
+    let onlyOne = rest === 1;
+
     while (len >= 0) {
       let sample = this._timeRange && this._timeRange.shift();
       if (!sample) break;
       this._decodeSample(sample, onlyOne);
       len--;
+    }
+
+    if (rest) {
+      this._inDecoding = true;
+      this._wasmWorkers.filter(x => x.using).forEach(worker => {
+        worker.postMessage({
+          msg: 'finish_flag'
+        })
+      })
     }
   }
 
@@ -466,7 +500,7 @@ export default class VideoRender extends EventEmitter {
       }
       return;
     }
-    if (!this._inDecoding && this.readyState < HAVE_FUTURE_DATA) {
+    if (this._frameQueue.length < this._continueDecodeThreshold && !this._inDecoding) {
       this._startDecode();
     }
   }
@@ -476,9 +510,9 @@ export default class VideoRender extends EventEmitter {
   }
 
   _render () {
-    let frame = this._frameQueue && this._frameQueue[0];
+    let frame = this._frameQueue.nextFrame();
     if (!frame || !this._timeRange) {
-      logger.log(this.TAG, 'lack frame');
+      logger.log(this.TAG, 'lack frame', this._inDecoding);
       this._checkToDecode();
       // waiting
       if (this._noAudio && !this._timeRange.frameLength) {
@@ -512,7 +546,7 @@ export default class VideoRender extends EventEmitter {
     }
 
     if (logger.long) {
-      logger.log(this.TAG, `render delay:${_renderDelay} , timelinePosition:${this.preciseVideoDts} , dts:${info.dts} , cost:${info.cost} rest:${this._frameQueue.length}, buffer frame:${this._timeRange.frameLength}`)
+      logger.log(this.TAG, `render delay:${_renderDelay} , timelinePosition:${this.preciseVideoDts} , dts:${info.dts} , cost:${info.cost} , gopID:${info.gopId} , rest:${this._frameQueue.length}, buffer frame:${this._timeRange.frameLength}`)
     }
 
     this._frameRender.render(
@@ -526,27 +560,33 @@ export default class VideoRender extends EventEmitter {
   }
 
   _decodeSample (sample, onlyOne) {
+    let len = this._wasmWorkers.length;
+    let gopId = 0;
+    if (sample.gopId) {
+      gopId = sample.gopId - 1;
+    }
+
+    if (gopId === 0) {
+      this._decodeEstimate.updateGopCount();
+    }
+
+    const worker = this._wasmWorkers[gopId % len];
+    worker.using = 1;
     if (sample.options && sample.options.meta) {
       this._meta = sample.options.meta;
       logger.warn(this.TAG, 'detect metadata! flush decoder');
-      this._pushAvcc(this._decoder, sample.options.meta);
+      this._pushAvcc(worker, sample.options.meta);
       // 换流更新
       if (this._noAudio) {
         this._emitTimelineEvents(Events.TIMELINE.SYNC_DTS, sample.dts);
       }
     }
 
-    let gopId = 0;
-    if (sample.gopId) {
-      gopId = sample.gopId - 1;
-    }
-    // const worker = this.wasmworkers[gopId % MAX_WORKER_NUM];
-    this._inDecoding = true;
-    this._lastDecodingDts = sample.dts;
     if (onlyOne) {
       this._decodeEstimate.resetDecodeDot(performance.now());
     }
-    this._decoder.postMessage({
+
+    worker.postMessage({
       msg: 'decode',
       data: sample.data,
       info: {
@@ -554,26 +594,34 @@ export default class VideoRender extends EventEmitter {
         pts: sample.pts || sample.dts + sample.cts,
         key: sample.isKeyframe,
         gopId,
-        isGop: sample.isGop || false
+        isGop: sample.isGop
       }
     });
   }
 
-  _destroyWorker () {
-    if (this._decoder) {
-      logger.log(this.TAG, 'destroy worker...');
-      this._decoder.postMessage({ msg: 'destroy' });
-      this._decoder.terminate();
-      this._decoder = null;
+  _destroyWorker (decoder) {
+    logger.log(this.TAG, 'destroy worker...');
+
+    if (decoder) {
+      decoder.postMessage({ msg: 'destroy' });
+      decoder.terminate();
+      this._wasmWorkers = this._wasmWorkers.filter(x => x !== decoder);
+      return;
     }
+
+    this._wasmWorkers.forEach(worker => {
+      worker.postMessage({ msg: 'destroy' });
+      worker.terminate();
+    })
+    this._wasmWorkers = [];
   }
 
   _destroy () {
     this._destroyWorker();
     this._tickTimer.destroy();
+    this._frameQueue.destroy();
     this._canvas = null;
     this._timeRange = null;
-    this._frameQueue = null;
     this._decodeEstimate = null;
     this._frameRender = null;
     this._parent = null;

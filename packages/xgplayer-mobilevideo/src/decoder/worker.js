@@ -1,6 +1,7 @@
 // const H264_DECODER_URL =
 //   "https://sf1-vcloudcdn.pstatp.com/obj/ttfe/media/decoder/h264/decoder_1583333072684.js";
 
+
 function shimImportScripts (src) {
   return fetch(src)
     .then((res) => res.text())
@@ -17,7 +18,7 @@ var Decoder = function (self) {
   this.inited = false;
   this.self = self;
   this.meta = this.self.meta;
-  this.infolist = {};
+  this.infolist = [];
   self.par_broadwayOnBroadwayInited = this.broadwayOnBroadwayInited.bind(
     this
   );
@@ -45,9 +46,14 @@ Decoder.prototype.broadwayOnPictureDecoded = function (
   height,
   yLinesize,
   uvLinesize,
-  infoid
+  infoid,
+  keyFrame
 ) {
-  let info = Object.assign({}, this.infolist[infoid]);
+  let firstFrame = this.infolist[0];
+
+  if (firstFrame && firstFrame.isGop && !keyFrame) return;
+
+  let info = Object.assign({}, this.infolist.shift());
   let yRowcount = height;
   let uvRowcount = height / 2;
   if (
@@ -60,7 +66,6 @@ Decoder.prototype.broadwayOnPictureDecoded = function (
     offset,
     yLinesize * yRowcount + 2 * (uvLinesize * uvRowcount)
   );
-  this.infolist[infoid] = null;
   let datetemp = new Uint8Array(data.length);
   datetemp.set(data);
   let buffer = datetemp.buffer;
@@ -89,11 +94,13 @@ Decoder.prototype.broadwayOnBroadwayInited = function () {
 };
 
 Decoder.prototype.decode = function (data, info) {
-  let time = parseInt(new Date().getTime());
-  let infoid = time - Math.floor(time / 10e8) * 10e8;
-  this.infolist[infoid] = info;
+
+  this.infolist.push(info);
+  if (info && info.isGop) {
+    this.infolist = [info];
+  }
   this.streamBuffer.set(data);
-  Module._broadwayPlayStream(data.length, infoid);
+  Module._broadwayPlayStream(data.length, 0);
 };
 
 Decoder.prototype.destroy = function () {
@@ -197,9 +204,10 @@ self.onmessage = function (e) {
         break;
       case 'decode':
         decoder.decode(data.data, data.info);
+        break;
+      case 'finish_flag':
         self.postMessage({
-          msg: 'DECODE_FINISH',
-          dts: data.info ? data.info.dts : 0
+          msg: 'BATCH_FINISH_FLAG'
         })
         break;
       case 'destory':

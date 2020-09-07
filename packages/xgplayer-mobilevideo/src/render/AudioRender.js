@@ -1,7 +1,7 @@
-import EventEmitter from 'events';
 import {logger} from 'xgplayer-helper-utils';
 import Events from '../events';
 import AudioTimeRange from './AudioTimeRange';
+import BaseRender from './BaseRender';
 import {initBgSilenceAudio, playSlienceAudio} from '../helper/audio-helper';
 
 const AudioContext = window.AudioContext || window.webkitAudioContext;
@@ -13,17 +13,12 @@ const ERROR_MSG = {
   DECODE_ERR: 'audio data decode error'
 };
 
-export default class AudioRender extends EventEmitter {
+export default class AudioRender extends BaseRender {
   constructor (config, parent) {
-    super();
+    super(config, parent);
     this.TAG = 'AudioRender';
-    this._config = config;
-    this._parent = parent;
     this._timeRange = new AudioTimeRange();
     this._sampleQueue = [];
-    this._ready = false;
-    this._meta = null;
-    this._noAudio = false;
     this._source = null;
     this._onSourceBufferEnded = this._onSourceBufferEnded.bind(this);
     this._initAudioCtx(config.volume || 0.6);
@@ -92,6 +87,8 @@ export default class AudioRender extends EventEmitter {
   }
 
   _bindEvents () {
+    super._bindEvents();
+
     this._audioCtx.addEventListener('statechange', () => {
       if (!this._audioCtx) return;
       if (this._audioCtx.state === 'running' && this._ready) {
@@ -99,44 +96,18 @@ export default class AudioRender extends EventEmitter {
       }
     });
 
-    this._parent.on(Events.TIMELINE.SET_METADATA, (type, meta) => {
-      if (type === 'video') return;
-      if (this._noAudio) return;
-      logger.warn(this.TAG, 'audio set metadata', meta);
-      this._meta = meta;
-    });
-
-    this._parent.on(
-      Events.TIMELINE.APPEND_CHUNKS,
-      this._appendChunk.bind(this)
-    );
-
-    this._parent.on(Events.TIMELINE.START_RENDER, this._startRender.bind(this));
-
-    this._parent.on(Events.TIMELINE.DO_PAUSE, () => {
-      if (this._noAudio) {
-        return;
-      }
-      this._audioCtx.suspend();
-    });
-
     this._parent.on(Events.TIMELINE.UPDATE_VOLUME, (v) => {
       if (!this._gainNode) return;
       this._gainNode.gain.value = v;
       this._emitTimelineEvents(Events.TIMELINE.PLAY_EVENT, Events.VIDEO_EVENTS.VOLUME_CHANGE);
     });
+  }
 
-    // this._parent.on(Events.TIMELINE.UPDATE_PRELOAD_TIME, (v) => {
-    //   this._config.preloadTime = v;
-    // });
-
-    this._parent.on(Events.TIMELINE.DESTROY, () => {
-      this._destroy();
-    });
-
-    this._parent.on(Events.TIMELINE.NO_AUDIO, () => {
-      this._noAudio = true;
-    });
+  _setMetadata (type, meta) {
+    if (type === 'video') return;
+    if (this._noAudio) return;
+    logger.warn(this.TAG, 'audio set metadata', meta);
+    this._meta = meta;
   }
 
   // receive new compressed samples
@@ -152,12 +123,20 @@ export default class AudioRender extends EventEmitter {
     }
   }
 
+  _doPause () {
+    if (this._noAudio) {
+      return;
+    }
+    this._audioCtx.suspend();
+  }
+
   _assembleAAC () {
     let len = this._sampleQueue.length;
     let samp0 = this._sampleQueue[0];
     let sampLast = this._sampleQueue[len - 1];
+    let less = (sampLast.dts - samp0.dts) / this.timescale < this.preloadTime;
 
-    if ((sampLast.dts - samp0.dts) / this.timescale < this.preloadTime) {
+    if (len < 500 && less) {
       return;
     }
 

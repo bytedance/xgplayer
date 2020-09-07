@@ -17,25 +17,24 @@ class MVideo extends HTMLElement {
   }
 
   addEventListener (eventName, handler, capture) {
-    HTMLElement.prototype.addEventListener.call(this, eventName, handler, capture);
+    super.addEventListener(eventName, handler, capture);
     this._eventsBackup.push([eventName, handler]);
     this._degradeVideo.addEventListener(eventName, handler, capture);
   }
 
   removeEventListener (eventName, handler, capture) {
-    HTMLElement.prototype.removeEventListener.call(this, eventName, handler, capture)
+    super.removeEventListener(eventName, handler, capture)
     this._degradeVideo.removeEventListener(eventName, handler, capture);
   }
 
   setAttribute (k, v) {
-    HTMLElement.prototype.setAttribute.call(this, k, v);
+    super.setAttribute(k, v);
     if (k === 'src') return;
     this._degradeVideo.setAttribute(k, v);
   }
 
   _init () {
     this.timeline = new TimeLine({
-      preloadTime: this.preloadTime,
       volume: this.volume,
       canvas: this.querySelector('canvas')
     }, this);
@@ -51,6 +50,9 @@ class MVideo extends HTMLElement {
       this.glCtxOptions = this._glCtxOptions;
     }
     setTimeout(() => {
+      if (this.innerDegrade) {
+        this.timeline.emit(Events.TIMELINE.INNER_DEGRADE);
+      }
       if (!this.timeline) return;
       if (this.noAudio) {
         this.setNoAudio();
@@ -119,7 +121,7 @@ class MVideo extends HTMLElement {
 
     // 销毁MVideo上的事件
     this._eventsBackup.forEach(([eName, eHandler]) => {
-      HTMLElement.prototype.removeEventListener.call(this, eName, eHandler)
+      super.removeEventListener.call(this, eName, eHandler)
     })
     this._eventsBackup = [];
     this._degradeVideo = null;
@@ -351,6 +353,10 @@ class MVideo extends HTMLElement {
 
   get bitrate () {
     return this.timeline.bitrate;
+  }
+
+  get gopLength () {
+    return this.timeline.gopLength;
   }
 
   get readyState () {

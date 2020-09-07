@@ -36,7 +36,6 @@ class TsDemuxer {
     this.pmt = [];
     this._hasVideoMeta = false;
     this._hasAudioMeta = false;
-
     this.gopId = 0;
   }
 
@@ -318,7 +317,9 @@ class TsDemuxer {
       isKeyframe,
       data,
       nals,
-      options
+      options,
+      isGop: isKeyframe,
+      gopId: isKeyframe ? ++this.gopId : this.gopId
     });
     track.samples.push(sample);
   }

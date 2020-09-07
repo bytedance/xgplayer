@@ -18,6 +18,7 @@ export default class TimeLine extends EventEmitter {
     this._paused = true;
     this._reset = false;
     this._noAudio = false;
+    this._switchToMultiWorker = false;
     this._bindEvent();
   }
 
@@ -47,6 +48,10 @@ export default class TimeLine extends EventEmitter {
 
   get bitrate () {
     return this.videoRender.bitrate;
+  }
+
+  get gopLength () {
+    return this.videoRender.gopLength;
   }
 
   get currentTime () {
@@ -140,6 +145,14 @@ export default class TimeLine extends EventEmitter {
 
     this.videoRender.on(Events.VIDEO.DECODE_LOW_FPS, () => {
       if (this.currentTime < 10) return;
+
+      let canSwitchToMultiWorker = !this._switchToMultiWorker && !this._noAudio && (this.fps / this.decodeFps < 2)
+      if (canSwitchToMultiWorker) {
+        logger.warn(this.TAG, `switch to multi worker , decodeFps:${this.decodeFps} , fps:${this.fps}`)
+        this._switchToMultiWorker = true;
+        this.videoRender.switchToMultiWorker(this._parent.preloadTime);
+        return;
+      }
       this.emit(Events.TIMELINE.PLAY_EVENT, Events.VIDEO_EVENTS.LOW_DECODE);
     })
 
