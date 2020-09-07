@@ -323,4 +323,38 @@ util.downloadFile = function (url) {
   })
 }
 
+util.offInDestroy = (object, event, fn, offEvent) => {
+  function onDestroy () {
+    object.off(event, fn)
+    object.off(offEvent, onDestroy)
+  }
+  object.once(offEvent, onDestroy)
+}
+
+util.on = (object, event, fn, offEvent) => {
+  if (offEvent) {
+    object.on(event, fn)
+    util.offInDestroy(object, event, fn, offEvent)
+  } else {
+    let _fn = data => {
+      fn(data)
+      object.off(event, _fn)
+    }
+    object.on(event, _fn)
+  }
+}
+
+util.once = (object, event, fn, offEvent) => {
+  if (offEvent) {
+    object.once(event, fn)
+    util.offInDestroy(object, event, fn, offEvent)
+  } else {
+    let _fn = data => {
+      fn(data)
+      object.off(event, _fn)
+    }
+    object.once(event, _fn)
+  }
+}
+
 export default util
