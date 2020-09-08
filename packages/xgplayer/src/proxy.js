@@ -242,7 +242,11 @@ class Proxy {
     this.video.currentSrc = src
   }
   get currentTime () {
-    return this.video.currentTime
+    if(this.video) {
+      return this.video.currentTime || 0
+    } else {
+      return 0
+    }
   }
   set currentTime (time) {
     if (typeof isFinite === 'function' && !isFinite(time)) return
