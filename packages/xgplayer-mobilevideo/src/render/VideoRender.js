@@ -335,7 +335,7 @@ export default class VideoRender extends BaseRender {
   }
 
   _bindWorkerEvent (decoder) {
-    const _whenFail = msg => {
+    const _whenFail = (msg, from) => {
       if (this._degrade) {
         this._emitTimelineEvents(
           Events.TIMELINE.PLAY_EVENT,
@@ -343,14 +343,14 @@ export default class VideoRender extends BaseRender {
           this._assembleErr(msg)
         );
       } else {
-        logger.log(this.TAG, 'use asm: ', msg);
+        logger.log(this.TAG, 'use asm: ', msg, from);
         this._degrade = true;
         this._destroyWorker(decoder);
         this._initDecodeWorker();
       }
     }
 
-    decoder.addEventListener('message', (e) => {
+    decoder.onMessage = (e) => {
       const { msg } = e.data;
       switch (msg) {
         case 'DECODER_READY':
@@ -377,16 +377,20 @@ export default class VideoRender extends BaseRender {
           // console.log('video decoder worker: LOG:',msg,e.data.log, performance.now());
           break;
         case 'INIT_FAILED':
-          _whenFail(e.data.log);
+          _whenFail(e.data.log, 1);
           break;
         default:
           console.error('invalid messaeg', e);
       }
-    });
+    };
 
-    decoder.addEventListener('error', (e) => {
-      _whenFail(e.message);
-    });
+    decoder.onError = e => {
+      _whenFail(e.message, 2);
+    }
+
+    decoder.addEventListener('message', decoder.onMessage);
+
+    decoder.addEventListener('error', decoder.onError);
   }
 
   _doPause () {
@@ -564,12 +568,10 @@ export default class VideoRender extends BaseRender {
     let gopId = 0;
     if (sample.gopId) {
       gopId = sample.gopId - 1;
+      if (gopId === 0) {
+        this._decodeEstimate.updateGopCount();
+      }
     }
-
-    if (gopId === 0) {
-      this._decodeEstimate.updateGopCount();
-    }
-
     const worker = this._wasmWorkers[gopId % len];
     worker.using = 1;
     if (sample.options && sample.options.meta) {
@@ -603,6 +605,8 @@ export default class VideoRender extends BaseRender {
     logger.log(this.TAG, 'destroy worker...');
 
     if (decoder) {
+      decoder.removeEventListener('message', decoder.onMessage);
+      decoder.removeEventListener('error', decoder.onError);
       decoder.postMessage({ msg: 'destroy' });
       decoder.terminate();
       this._wasmWorkers = this._wasmWorkers.filter(x => x !== decoder);
@@ -620,10 +624,10 @@ export default class VideoRender extends BaseRender {
     this._destroyWorker();
     this._tickTimer.destroy();
     this._frameQueue.destroy();
+    this._frameRender.destroy();
     this._canvas = null;
     this._timeRange = null;
     this._decodeEstimate = null;
-    this._frameRender = null;
     this._parent = null;
     this.removeAllListeners();
   }

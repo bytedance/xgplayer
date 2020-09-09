@@ -119,7 +119,7 @@ export default class DecodeEstimate {
   // 低延迟检测逻辑
   _lowDecodeDetect () {
     // 解码太低
-    if (this._decodeFps <= 5) {
+    if (!this._decodeFps) {
       this._parent.emit(Events.VIDEO.DECODE_LOW_FPS);
       return;
     }

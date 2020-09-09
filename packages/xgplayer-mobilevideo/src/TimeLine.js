@@ -188,7 +188,7 @@ export default class TimeLine extends EventEmitter {
 
   play () {
     return new Promise((resolve, reject) => {
-      let resumed = false;
+      let resumed = this.audioRender.audioCanAutoPlay;
 
       if (this._noAudio) {
         resumed = true;
