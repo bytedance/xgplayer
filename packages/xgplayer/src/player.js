@@ -8,9 +8,9 @@ import Plugin, {pluginsManager, BasePlugin} from './plugin'
 import STATE_CLASS from './stateClassMap'
 import getDefaultConfig from './defaultConfig'
 import { usePreset } from './plugin/preset';
+import HOOK from './plugin/hooks'
 import Controls from './plugins/controls'
 import {bindDebug} from './utils/debug'
-
 import {
   version
 } from '../package.json'
@@ -25,6 +25,7 @@ class Player extends Proxy {
 
   constructor (options) {
     super(options)
+    HOOK(this)
     this.config = Util.deepMerge(getDefaultConfig(), options)
     bindDebug(this)
     // resolve default preset
@@ -214,9 +215,13 @@ class Player extends Proxy {
       this.emit(Events.URL_NULL)
     }
     this.canPlayFunc = () => {
+      const {autoplay, startTime, volume} = this.config
       this.logInfo('player', 'canPlayFunc')
-      this.volume = typeof this.config.volume === 'number' ? this.config.volume : 0.6
-      this.config.autoplay && this.play()
+      this.volume = typeof volume === 'number' ? volume : 0.6
+      if (startTime) {
+        this.currentTime = startTime > this.duration ? this.duration : startTime
+      }
+      autoplay && this.play()
       this.off(Events.CANPLAY, this.canPlayFunc)
       this.removeClass(STATE_CLASS.ENTER)
     }
