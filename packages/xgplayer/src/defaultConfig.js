@@ -26,6 +26,7 @@ export default function getDefaultConfig () {
     closeFocusVideoFocus: false, // 是否关闭播放器移动鼠标时触发focus
     closeControlsBlur: false, // 鼠标移出播放器控制条范围时触发focus事件
     videoAttrbutes: {}, // video扩展属性
+    startTime: 0, // 自动播放起始时间点
     disableSwipeHandler: () => {
     },
     enableSwipeHandler: () => {

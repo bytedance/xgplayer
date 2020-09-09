@@ -71,9 +71,12 @@ class Start extends Plugin {
       this.onPlayPause('pause')
     })
 
-    this.onClick = this.onClick.bind(this)
+    this.clickHandler = this.hook.call(this, 'click', this.switchPausePlay, (e) => {
+      e.preventDefault()
+      e.stopPropagation()
+    })
 
-    this.bind(['click', 'touchend'], this.onClick)
+    this.bind(['click', 'touchend'], this.clickHandler)
   }
 
   registerIcons () {
@@ -127,7 +130,7 @@ class Start extends Plugin {
     })
   }
 
-  onClick (e) {
+  switchPausePlay (e) {
     const {player} = this
     e.preventDefault()
     e.stopPropagation()
