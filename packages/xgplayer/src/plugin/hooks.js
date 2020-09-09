@@ -1,50 +1,50 @@
-function hook(hookname, hander, before) {
+function hook(hookName, handler, before) {
   if (!this.__hooks) {
     this.__hooks = {}
   }
-  !this.__hooks[hookname] && (this.__hooks[hookname] = null)
+  !this.__hooks[hookName] && (this.__hooks[hookName] = null)
   return function () {
     if (before) {
       try {
         before.call(this, ...arguments)
       } catch (e) {
-        e.message = `[pluginName: ${this.pluginName}:${hookname}:before error] >> ${e.message}`
+        e.message = `[pluginName: ${this.pluginName}:${hookName}:before error] >> ${e.message}`
         throw e
       }
     }
-    if (this.__hooks && this.__hooks[hookname]) {
+    if (this.__hooks && this.__hooks[hookName]) {
       try {
-        const beforeRet = this.__hooks[hookname].call(this, ...arguments)
+        const beforeRet = this.__hooks[hookName].call(this, ...arguments)
         if (beforeRet) {
           if (beforeRet.then) {
             beforeRet.then((isContinue) => {
               if (isContinue) {
-                hander.call(this, ...arguments)
+                handler.call(this, ...arguments)
               }
             }).catch(e => {
               throw e
             })
           } else {
-            hander.call(this, ...arguments)
+            handler.call(this, ...arguments)
           }
         }
       } catch (e) {
-        e.message = `[pluginName: ${this.pluginName}:${hookname}] >> ${e.message}`
+        e.message = `[pluginName: ${this.pluginName}:${hookName}] >> ${e.message}`
         throw e
       }
     } else {
-      hander.call(this, ...arguments)
+      handler.call(this, ...arguments)
     }
   }.bind(this)
 }
 
-function useHooks (hookname, handler) {
+function useHooks (hookName, handler) {
   const {__hooks} = this
-  if (!__hooks.hasOwnProperty(hookname)) {
-    console.warn(`plugin:${this.pluginName} has no hook which name [${hookname}]`)
+  if (!__hooks.hasOwnProperty(hookName)) {
+    console.warn(`plugin:${this.pluginName} has no hook which name [${hookName}]`)
     return
   }
-  __hooks[hookname] = handler
+  __hooks[hookName] = handler
 }
 
 function usePluginHooks (pluginName, ...args) {

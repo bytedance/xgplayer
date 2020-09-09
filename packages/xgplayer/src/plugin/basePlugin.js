@@ -127,6 +127,7 @@ class BasePlugin {
       });
     })
     Object.keys(this).map(key => {
+      this[key] = null
       delete this[key]
     })
   }
