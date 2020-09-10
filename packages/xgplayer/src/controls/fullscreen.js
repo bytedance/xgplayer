@@ -39,6 +39,16 @@ let fullscreen = function () {
     document.addEventListener(item, onFullscreenChange)
   })
 
+  player.video.addEventListener("webkitbeginfullscreen", function(){
+    util.addClass(root, 'xgplayer-is-fullscreen')
+    player.emit('requestFullscreen')
+  })
+
+  player.video.addEventListener("webkitendfullscreen", function(){
+    util.removeClass(root, 'xgplayer-is-fullscreen')
+    player.emit('exitFullscreen')
+  })
+
   function onDestroy () {
     player.off('fullscreenBtnClick', onFullscreenBtnClick);
     ['fullscreenchange', 'webkitfullscreenchange', 'mozfullscreenchange', 'MSFullscreenChange'].forEach(item => {
