@@ -1,4 +1,4 @@
-import Plugin from '../../plugin'
+import Plugin, {hooksDescriptor} from '../../plugin'
 import PlaySvg from '../assets/play.svg'
 import PauseSvg from '../assets/pause.svg'
 const { Util, Events } = Plugin
@@ -38,6 +38,8 @@ class Start extends Plugin {
 
   afterCreate () {
     const {player, playerConfig} = this
+    hooksDescriptor(this)
+
     this.initIcons()
     this.once(Events.READY, () => {
       if (playerConfig) {
@@ -71,10 +73,11 @@ class Start extends Plugin {
       this.onPlayPause('pause')
     })
 
-    this.clickHandler = this.hook.call(this, 'click', this.switchPausePlay, (e) => {
-      e.preventDefault()
-      e.stopPropagation()
-    })
+    this.clickHandler = this.hook('click', this.switchPausePlay, {
+      pre: (e) => {
+        e.preventDefault()
+        e.stopPropagation()
+      }})
 
     this.bind(['click', 'touchend'], this.clickHandler)
   }

@@ -1,6 +1,6 @@
 import Plugin from '../../plugin';
 
-const {Events, Util} = Plugin
+const {Util} = Plugin
 class Enter extends Plugin {
   static get pluginName () {
     return 'enter';

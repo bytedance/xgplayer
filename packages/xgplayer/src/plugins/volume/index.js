@@ -59,7 +59,6 @@ class Volume extends Plugin {
   }
 
   onBarMousedown (e) {
-    const drag = this.find('.xgplayer-drag')
     const slider = this.find('.xgplayer-slider')
     const bar = this.find('.xgplayer-bar')
     slider.focus()

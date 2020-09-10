@@ -1,5 +1,5 @@
 import Player from '../../player'
-import Plugin from '../../plugin'
+import Plugin, {hooksDescriptor} from '../../plugin'
 
 export default class ErrorPlugin extends Plugin {
   static get pluginName () {
@@ -7,10 +7,14 @@ export default class ErrorPlugin extends Plugin {
   }
 
   afterCreate () {
-    this.clickHandler = this.hook.call(this, 'errorRetry', this.errorRetry, (e) => {
-      e.preventDefault()
-      e.stopPropagation()
-    })
+    hooksDescriptor(this)
+
+    this.clickHandler = this.hook('errorRetry', this.errorRetry, {
+      pre: (e) => {
+        e.preventDefault()
+        e.stopPropagation()
+      }})
+
     this.bind('.xgplayer-error-refresh', 'click', this.clickHandler)
     this.on(Player.Events.CANPLAY, () => {
       this.handleCanPlay()

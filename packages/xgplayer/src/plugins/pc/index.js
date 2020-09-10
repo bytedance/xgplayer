@@ -1,5 +1,5 @@
 import BasePlugin from '../../plugin/basePlugin';
-const {Events, Util} = BasePlugin
+const {Util} = BasePlugin
 export default class PCPlugin extends BasePlugin {
   static get pluginName () {
     return 'pc'
@@ -21,7 +21,6 @@ export default class PCPlugin extends BasePlugin {
     player.root.addEventListener('click', this.onVideoClick, false)
     player.video.addEventListener('dblclick', this.onVideoDblClick, false)
     player.video.addEventListener('contextmenu', this.onContextmenu, false)
-  
   }
 
   onContextmenu (e) {

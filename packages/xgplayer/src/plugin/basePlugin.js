@@ -3,7 +3,6 @@ import Sniffer from '../utils/sniffer'
 import Errors from '../error'
 import * as Events from '../events'
 import DEBUG from '../utils/debug'
-import HOOK from './hooks'
 
 class BasePlugin {
   static defineGetterOrSetter (Obj, map) {
@@ -20,7 +19,6 @@ class BasePlugin {
     this.__events = {} // 对player的事件监听缓存
     this.config = args.config || {}
     this.__init(args)
-    HOOK(this)
   }
 
   onPluginsReady () {}
