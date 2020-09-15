@@ -229,6 +229,10 @@ class HlsLiveController {
   }
   _checkStatus () {
     const container = this._player.video
+    if (!container) {
+      clearInterval(this._timmer)
+      return
+    }
     if (this.retrytimes < 1 && (new Date().getTime() - this._lastCheck < 4000)) {
       return;
     } else if (this.retrytimes < 1) {
