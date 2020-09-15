@@ -2,7 +2,7 @@ import EventEmitter from 'event-emitter'
 import Errors from '../error'
 
 class MSE {
-  constructor (codecs = 'video/mp4; codecs="avc1.64001E"') {
+  constructor (codecs = 'video/mp4; codecs="avc1.64001E, mp4a.40.5"') {
     let self = this
     EventEmitter(this)
     this.codecs = codecs

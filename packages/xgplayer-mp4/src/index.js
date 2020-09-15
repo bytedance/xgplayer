@@ -61,11 +61,11 @@ let mp4player = function () {
     }, 50)
   }
   let init = (url) => {
-    let mp4 = new MP4(url, player.config.withCredentials)
+    let mp4 = new MP4(url, player.config)
     let mse
     return new Promise((resolve, reject) => {
       mp4.once('moovReady', () => {
-        mse = new MSE()
+        mse = new MSE(player.config.videoOnly ? 'video/mp4; codecs="avc1.64001E"' : 'video/mp4; codecs="avc1.64001E, mp4a.40.5"')
         mse.on('sourceopen', function () {
           mse.appendBuffer(mp4.packMeta())
           mse.once('updateend', loadData.bind(player))
@@ -140,6 +140,7 @@ let mp4player = function () {
         player.logParams.pluginSrc = url
         player.mp4 = mp4
         player.mse = mse
+        player.play()
         mp4.on('error', err => {
           errorHandle(player, err)
         })
@@ -158,7 +159,7 @@ let mp4player = function () {
 
     player.cut = function (start = 0, end) {
       let segment = new Buffer()
-      let mp4 = new MP4(url, player.config.withCredentials)
+      let mp4 = new MP4(url, player.config)
       return new Promise((resolve, reject) => {
         mp4.once('moovReady', () => {
           if (!end || end <= start) {
@@ -191,7 +192,7 @@ let mp4player = function () {
     }
 
     player.switchURL = (url) => {
-      let mp5 = new MP4(url, player.config.withCredentials)
+      let mp5 = new MP4(url, player.config)
       let mp4 = player.mp4
       mp5.on('moovReady', () => {
         let timeRange = mp4.timeRage; let curTime = player.currentTime
@@ -219,9 +220,7 @@ let mp4player = function () {
         player.mse.appendBuffer(mp5.packMeta())
 
         player.logParams.pt = new Date().getTime()
-        // console.log('pt: ' + player.logParams.pt)
         player.logParams.vt = new Date().getTime()
-        // console.log('vt: ' + player.logParams.vt)
         player.logParams.vd = player.video.duration
         player.logParams.pluginSrc = url
       })
@@ -231,7 +230,7 @@ let mp4player = function () {
     }
 
     player.playNext = (url) => {
-      let mp5 = new MP4(url, player.config.withCredentials)
+      let mp5 = new MP4(url, player.config)
       let mp4 = player.mp4
       mp5.on('moovReady', () => {
         let range = [0, 0]

@@ -1,6 +1,6 @@
 {
   "name": "xgplayer-mp4",
-  "version": "1.1.8",
+  "version": "1.2.0",
   "description": "xgplayer plugin for mp4 transform to fmp4",
   "main": "./dist/index.js",
   "scripts": {
@@ -54,6 +54,7 @@
     "karma-chrome-launcher": "^2.2.0",
     "karma-webpack": "^4.0.0-rc.1",
     "mocha": "^5.2.0",
-    "webpack": "^4.11.0"
+    "webpack": "^4.11.0",
+    "webpack-cli": "^3.0.2"
   }
 }
