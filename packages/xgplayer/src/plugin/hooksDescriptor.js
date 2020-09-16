@@ -17,7 +17,11 @@ function callHandler (obj, handler, next, ...args) {
  * 给某个处理函数添加hook能力
  * @param {String} hookName
  * @param {Function} handler
- * @param {Function} pre
+ * @param {Object} preset
+ * {
+ *   pre: () => { // run beafore hook},
+ *   next: () => { // run after hook return}
+ * }
  */
 function hook (hookName, handler, preset = {pre: null, next: null}) {
   if (!this.__hooks) {
