@@ -386,7 +386,7 @@ class Compatibility {
       gap = firstDts - this.nextAudioDts
       const absGap = Math.abs(gap)
 
-      if (gap >= iRefSampleDuration && gap < 10000) {
+      if (gap >= iRefSampleDuration && gap < 10000 && silentFrame) {
         const silentFrameCount = Math.ceil(gap / iRefSampleDuration)
 
         for (let i = 0; i < silentFrameCount; i++) {

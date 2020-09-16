@@ -60,7 +60,7 @@ class MSE {
     this.doAppend()
   }
   addSourceBuffers () {
-    if (this.mediaSource.readyState !== 'open' || !this.opened) {
+    if (!this.mediaSource || this.mediaSource.readyState !== 'open' || !this.opened) {
       return;
     }
     let sources = this._context.getInstance('PRE_SOURCE_BUFFER');
