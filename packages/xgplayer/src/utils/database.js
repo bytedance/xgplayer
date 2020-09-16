@@ -20,7 +20,9 @@ class INDEXDB {
     }
     request.onupgradeneeded = e => {
       let db = e.target.result
+      // eslint-disable-next-line no-unused-vars
       let transaction = e.target.transaction
+      // eslint-disable-next-line no-unused-vars
       let store
       if (!db.objectStoreNames.contains(self.myDB.ojstore.name)) {
         // 没有该对象空间时创建该对象空间

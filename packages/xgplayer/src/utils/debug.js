@@ -7,7 +7,7 @@ const STYLE = {
   warn: 'color: #525252; background-color: red; '
 }
 
-const XGTAG = '%c[xgplayer]》》' // : '%c[xgplayer]》》'
+const XGTAG = '%c[xgplayer]》》'
 
 const DEBUG = {
   config: {

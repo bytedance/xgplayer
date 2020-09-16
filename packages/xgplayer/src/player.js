@@ -1,6 +1,6 @@
 import Proxy from './proxy'
 import Util from './utils/util'
-import sniffer from './utils/sniffer'
+import Sniffer from './utils/Sniffer'
 import Database from './utils/database'
 import Errors from './error'
 import * as Events from './events'
@@ -8,7 +8,7 @@ import Plugin, {pluginsManager, BasePlugin} from './plugin'
 import STATE_CLASS from './stateClassMap'
 import getDefaultConfig from './defaultConfig'
 import { usePreset } from './plugin/preset';
-import HOOK from './plugin/hooks'
+import hooksDescriptor from './plugin/hooksDescriptor'
 import Controls from './plugins/controls'
 import {bindDebug} from './utils/debug'
 import {
@@ -25,7 +25,7 @@ class Player extends Proxy {
 
   constructor (options) {
     super(options)
-    HOOK(this)
+    hooksDescriptor(this)
     this.config = Util.deepMerge(getDefaultConfig(), options)
     bindDebug(this)
     // resolve default preset
@@ -52,7 +52,7 @@ class Player extends Proxy {
     this.fullscreen = false
     this._fullscreenEl = null
     this._originCssText = ''
-    
+
     this.database = new Database()
 
     const rootInit = this._initDOM()
@@ -101,7 +101,7 @@ class Player extends Proxy {
     this._initBars();
     const controls = pluginsManager.register(this, Controls)
     this.controls = controls
-    this.addClass(`${STATE_CLASS.DEFAULT} xgplayer-${sniffer.device} ${this.config.controls ? '' : STATE_CLASS.NO_CONTROLS}`);
+    this.addClass(`${STATE_CLASS.DEFAULT} xgplayer-${Sniffer.device} ${this.config.controls ? '' : STATE_CLASS.NO_CONTROLS}`);
     if (this.config.autoplay) {
       this.addClass(STATE_CLASS.ENTER)
     } else {
@@ -189,7 +189,7 @@ class Player extends Proxy {
       }
     }
 
-    sniffer.device !== 'mobile' && this.root.addEventListener('mousemove', this.mousemoveFunc)
+    Sniffer.device !== 'mobile' && this.root.addEventListener('mousemove', this.mousemoveFunc)
 
     this.playFunc = () => {
       if (!this.config.closePlayVideoFocus) {
@@ -247,8 +247,8 @@ class Player extends Proxy {
     this.logInfo('_startInit')
     if (this.config.autoplay) {
       this.load()
-      //ios端无法自动播放的场景下，不调用play不会触发canplay loadeddata等事件
-      sniffer.os.isPhone && this.play()
+      // ios端无法自动播放的场景下，不调用play不会触发canplay loadeddata等事件
+      Sniffer.os.isPhone && this.play()
     }
 
     setTimeout(() => {
@@ -447,7 +447,7 @@ class Player extends Proxy {
           return
         }
         // 避免AUTOPLAY_PREVENTED先于playing和play触发
-        if (e.name === "NotAllowedError") {
+        if (e.name === 'NotAllowedError') {
           setTimeout(() => {
             this.emit(Events.AUTOPLAY_PREVENTED)
             this.addClass(STATE_CLASS.NOT_ALLOW_AUTOPLAY)
@@ -553,7 +553,7 @@ class Player extends Proxy {
     if (!el) {
       el = root
     }
-    if (!sniffer.os.isPhone && root.getAttribute('style')) {
+    if (!Sniffer.os.isPhone && root.getAttribute('style')) {
       this._originCssText = root.style.cssText
       root.removeAttribute('style')
     }
@@ -859,9 +859,17 @@ class Player extends Proxy {
 }
 
 Player.Util = Util
-Player.Sniffer = sniffer
+Player.Sniffer = Sniffer
 Player.Errors = Errors
 Player.Events = Events
 Player.Plugin = Plugin
 Player.BasePlugin = BasePlugin
-export default Player
+export {
+  Player as default,
+  BasePlugin,
+  Plugin,
+  Events,
+  Errors,
+  Sniffer,
+  Util
+}

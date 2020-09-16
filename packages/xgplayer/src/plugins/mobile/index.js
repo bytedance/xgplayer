@@ -68,7 +68,7 @@ class MobilePlugin extends Plugin {
     this.onTouchStart = this.onTouchStart.bind(this)
     this.onTouchEnd = this.onTouchEnd.bind(this)
     this.root.addEventListener('touchstart', this.onTouchStart)
-    
+
     if (!config.disableActive) {
       // 添加进度条拖拽事件回调
       const progressPlugin = player.plugins.progress
