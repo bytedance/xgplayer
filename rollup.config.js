@@ -4,7 +4,6 @@ const postcss = require('rollup-plugin-postcss')
 const babel = require('rollup-plugin-babel')
 const resolve = require('rollup-plugin-node-resolve')
 const commonjs = require('rollup-plugin-commonjs')
-const { string } = require('rollup-plugin-string')
 const context = require('rollup-plugin-require-context')
 const builtins = require('rollup-plugin-node-builtins')
 const bundleWorker = require('rollup-plugin-bundle-worker');
@@ -65,9 +64,6 @@ const commonRollup = function (config = {}) {
         preferBuiltins: true,
         extensions: [ '.mjs', '.js', '.jsx', '.json' ],
         ...rollupConfig.resolve
-      }),
-      string({
-        include: '**/*.svg'
       }),
       commonjs({
         include: [/node_modules/],
