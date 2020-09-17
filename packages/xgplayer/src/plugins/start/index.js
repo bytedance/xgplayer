@@ -26,7 +26,7 @@ class Start extends Plugin {
     return {
       isShowPause: false, // 暂停是否常驻
       isShowEnd: false, // 播放结束常驻
-      disableAmimate: false, // 禁用点击动画
+      disableAnimate: false, // 禁用点击动画
       mode: 'hide' // 控制模式: hide 常驻: show 跟随：auto
     }
   }
@@ -112,14 +112,6 @@ class Start extends Plugin {
   }
 
   animate (endShow) {
-    if ((this.config.isShowPause && this.player.paused && !this.player.ended) || (this.config.isShowEnd && this.player.ended)) {
-      this.show()
-      this.switchStatus()
-      return
-    }
-    if (this.player.disableAmimate || this.config.disableAnimate) {
-      return;
-    }
     addAnimate('pauseplay', 400, {
       start: () => {
         Util.addClass(this.root, 'interact')
@@ -153,20 +145,31 @@ class Start extends Plugin {
     if (!player.isPlaying || !this.autoPlayStart) {
       return
     }
+    // 一直显示
     if (config.mode === 'show') {
       this.switchStatus()
       this.show()
       return
     }
+
+    // 跟随播放器的focus状态显示和隐藏
     if (config.mode === 'auto') {
       this.switchStatus()
       return
     }
+    // 暂停/播放结束状态强制显示
     if ((config.isShowPause && player.paused && !player.ended) || (config.isShowEnd && player.ended)) {
-      this.show()
       this.switchStatus()
+      this.show()
       return
     }
+
+    if (config.disableAnimate) {
+      this.switchStatus()
+      this.hide()
+      return
+    }
+
     if (status === 'play') {
       this.autoPlayStart ? this.animate() : this.hide()
     } else {

@@ -1,6 +1,6 @@
 import Proxy from './proxy'
 import Util from './utils/util'
-import Sniffer from './utils/Sniffer'
+import Sniffer from './utils/sniffer'
 import Database from './utils/database'
 import Errors from './error'
 import * as Events from './events'
@@ -684,10 +684,6 @@ class Player extends Proxy {
     }
     this.removeClass(STATE_CLASS.LOADING)
     this.removeClass(STATE_CLASS.SEEKING)
-    if (!this.isPlaying) {
-      this.addClass(STATE_CLASS.PLAYING)
-      this.isPlaying = true
-    }
   }
 
   onWaiting () {
