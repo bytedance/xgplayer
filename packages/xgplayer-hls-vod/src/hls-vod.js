@@ -95,6 +95,12 @@ class HlsVodController {
     if (fatal === undefined) {
       fatal = true;
     }
+    this._player.emit('error', {
+      code: '31',
+      errorType: 'parse',
+      ex: `[${tag}]: ${err ? err.message : ''}`,
+      errd: {}
+    });
     this._onError(LOADER_EVENTS.LOADER_ERROR, mod, error, fatal);
   }
 

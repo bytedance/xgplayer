@@ -212,7 +212,12 @@ export default class FlvController {
     if (fatal === undefined) {
       fatal = false;
     }
-    this._player.emit('error', new Player.Errors('parse', this._player.config.url))
+    this._player.emit('error', {
+      code: '31',
+      errorType: 'parse',
+      ex: `[${tag}]: ${err ? err.message : ''}`,
+      errd: {}
+    });
     this._onError(DEMUX_EVENTS.DEMUX_ERROR, tag, err, fatal)
   }
 
@@ -220,7 +225,12 @@ export default class FlvController {
     if (fatal === undefined) {
       fatal = false;
     }
-    this._player.emit('error', new Player.Errors('parse', this._player.config.url))
+    this._player.emit('error', {
+      code: '31',
+      errorType: 'parse',
+      ex: `[${tag}]: ${err ? err.message : ''}`,
+      errd: {}
+    });
     this._onError(MSE_EVENTS.MSE_ERROR, tag, err, fatal)
   }
 

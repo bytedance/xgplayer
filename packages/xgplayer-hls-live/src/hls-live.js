@@ -107,14 +107,20 @@ class HlsLiveController {
     })
     this._onError(LOADER_EVENTS.LOADER_ERROR, loader, error, true);
     this.emit(HLS_EVENTS.RETRY_TIME_EXCEEDED);
-    this.mse.endOfStream();
+    this.destroy();
   }
 
   _onDemuxError (mod, error, fatal) {
     if (fatal === undefined) {
       fatal = true;
     }
-    this._onError(LOADER_EVENTS.LOADER_ERROR, mod, error, fatal);
+    this._player.emit('error', {
+      code: '31',
+      errorType: 'parse',
+      ex: `[${tag}]: ${err ? err.message : ''}`,
+      errd: {}
+    });
+    this._onError(DEMUX_EVENTS.DEMUX_ERROR, mod, error, fatal);
   }
 
   _onRemuxError (mod, error, fatal) {
@@ -128,7 +134,12 @@ class HlsLiveController {
     if (fatal === undefined) {
       fatal = false;
     }
-    this._player.emit('error', new Player.Errors('parse', this._player.config.url))
+    this._player.emit('error', {
+      code: '31',
+      errorType: 'parse',
+      ex: `[${tag}]: ${err ? err.message : ''}`,
+      errd: {}
+    });
     this._onError(MSE_EVENTS.MSE_ERROR, tag, err, fatal)
   }
 
@@ -290,7 +301,9 @@ class HlsLiveController {
   }
 
   destroy () {
-    clearInterval(this._timmer);
+    if (this._timmer) {
+      clearInterval(this._timmer);
+    }
 
     this.mse = null
     this.m3u8Text = null

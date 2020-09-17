@@ -77,7 +77,7 @@ class FlvDemuxer {
 
   parseFlvHeader (header) {
     if (!FlvDemuxer.isFlvFile(header)) {
-      this.emit(DEMUX_EVENTS.DEMUX_ERROR, new Error('invalid flv file'))
+      this.emit(DEMUX_EVENTS.DEMUX_ERROR, this.TAG, new Error('invalid flv file'))
       this.doParseFlv()
     } else {
       this._firstFragmentLoaded = true
@@ -384,7 +384,8 @@ class FlvDemuxer {
     track.format = format
 
     if (format !== 10) {
-      this.emit(DEMUX_EVENTS.DEMUX_ERROR, new Error(`invalid audio format: ${format}`))
+      this.emit(DEMUX_EVENTS.DEMUX_ERROR, this.TAG, new Error(`invalid audio format: ${format}`))
+      return;
     }
 
     if (format === 10 && !this._hasAudioSequence) {
@@ -878,7 +879,7 @@ class FlvDemuxer {
     if (buffer) {
       return buffer
     } else {
-      this.emit(DEMUX_EVENTS.DEMUX_ERROR, new Error('找不到 loaderBuffer 实例'))
+      this.emit(DEMUX_EVENTS.DEMUX_ERROR, this.TAG, new Error('找不到 loaderBuffer 实例'))
     }
   }
 

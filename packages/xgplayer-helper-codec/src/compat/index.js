@@ -33,9 +33,30 @@ class Compatibility {
     this.videoLastSample = null
     this.audioLastSample = null // stash last sample for duration compat
 
-    this._videoLargeGap = 0
-    this._audioLargeGap = 0
-
+    Object.defineProperties(this, {
+      _videoLargeGap: {
+        set: (value) => {
+          this.___videoLargeGap = value;
+          if (value !== 0) {
+            this.emit(REMUX_EVENTS.DETECT_LARGE_GAP, 'video', value);
+          }
+        },
+        get: () => {
+          return this.___videoLargeGap || 0;
+        }
+      },
+      _audioLargeGap: {
+        set: (value) => {
+          this.___audioLargeGap = value;
+          if (value !== 0) {
+            this.emit(REMUX_EVENTS.DETECT_LARGE_GAP, 'audio', value);
+          }
+        },
+        get: () => {
+          return this.___audioLargeGap || 0;
+        }
+      }
+    })
     this.audioUnsyncTime = 0;
   }
 
@@ -486,7 +507,7 @@ class Compatibility {
     const prevDts = changeIdx === 0 ? this.lastVideoDts ? this.lastVideoDts : this.getStreamChangeStart(samples[0]) : samples[changeIdx - 1].dts;
     const curDts = samples[changeIdx].dts;
     const isContinue = Math.abs(prevDts - curDts) <= 10000
-
+    this.emit(REMUX_EVENTS.DETECT_CHANGE_STREAM, 'video', curDts);
     if (isContinue) {
       if (!samples[changeIdx].options) {
         samples[changeIdx].options = {
@@ -498,7 +519,7 @@ class Compatibility {
       return false
     }
 
-    this.emit(REMUX_EVENTS.DETECT_CHANGE_STREAM_DISCONTINUE)
+    this.emit(REMUX_EVENTS.DETECT_CHANGE_STREAM_DISCONTINUE, 'video', {prevDts, curDts})
 
     const firstPartSamples = samples.slice(0, changeIdx);
     const secondPartSamples = samples.slice(changeIdx);
@@ -534,7 +555,7 @@ class Compatibility {
     const prevDts = changeIdx === 0 ? this.lastAudioDts : samples[changeIdx - 1].dts;
     const curDts = samples[changeIdx].dts;
     const isContinue = Math.abs(prevDts - curDts) <= 10000;
-
+    this.emit(REMUX_EVENTS.DETECT_CHANGE_STREAM, 'audio', curDts);
     if (isContinue) {
       if (!samples[changeIdx].options) {
         samples[changeIdx].options = {
@@ -545,7 +566,7 @@ class Compatibility {
       }
       return false
     }
-    this.emit(REMUX_EVENTS.DETECT_CHANGE_STREAM_DISCONTINUE)
+    this.emit(REMUX_EVENTS.DETECT_CHANGE_STREAM_DISCONTINUE, 'audio', {prevDts, curDts})
     this._audioLargeGap = 0;
     const cacheNextAudioDts = this.nextAudioDts
     this.nextAudioDts = null;
