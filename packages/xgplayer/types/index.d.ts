@@ -204,6 +204,9 @@ declare module 'xgplayer' {
         // 关闭播放器触发play事件时触发video focus
         closePlayVideoFocus?: boolean;
 
+        // 关闭播放器的点击阻止冒泡
+        closeVideoStopPropagation?: boolean;
+
         // 禁止拖动进度条
         disableProgress?: boolean;
 

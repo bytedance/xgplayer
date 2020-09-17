@@ -6,7 +6,9 @@ let mobile = function () {
 
   player.onElementTouchend = function (e, element) {
     e.preventDefault()
-    e.stopPropagation()
+    if(!this.config.closeVideoStopPropagation) {
+      e.stopPropagation()
+    }
     let player = this
     if (util.hasClass(root, 'xgplayer-inactive')) {
       player.emit('focus')
