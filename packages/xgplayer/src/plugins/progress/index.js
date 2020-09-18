@@ -1,6 +1,7 @@
 import Plugin from '../../plugin'
 import ProgressDots from './progressdots'
 import Thumbnail from '../common/thumbnail'
+import InnerList from './innerList'
 
 const {Events, Util, POSITIONS, Sniffer} = Plugin
 
@@ -21,6 +22,7 @@ class Progress extends Plugin {
       disable: false,
       isDragingSeek: true, // 是否在拖拽的过程中更新currentTime
       closeMoveSeek: false, // 是否关闭滑块seek能力
+      fragments: [{percent: 1}],
       onMoveStart: () => {
       }, // 手势开始移动回调
       onMoveEnd: () => {} // 手势移动结束回调
@@ -44,29 +46,49 @@ class Progress extends Plugin {
     }
   }
 
+  /**
+   * @description 创建内部进度条，并挂载到xg-outer上,
+   *              并把一些对外API绑定在progress上供外部调用
+   *
+   */
+  createInner () {
+    const outer = this.find('xg-outer')
+    this.innerList = new InnerList({
+      fragments: this.config.fragments,
+      style: this.playerConfig.commonStyle || {}
+    })
+    outer.insertBefore(this.innerList.render(), outer.children[0]);
+    ['findHightLight', 'unHightLight', 'setHightLight', 'findFragment'].map(item => {
+      this[item] = this.innerList[item].bind(this.innerList)
+    })
+  }
+
   afterCreate () {
     if (this.config.disable) {
       return;
     }
+    this.createInner()
     if (Sniffer.device === 'mobile') {
       this.config.isDragingSeek = false
     }
-    this.playedBar = this.find('.xgplayer-progress-played')
-    this.cachedBar = this.find('.xgplayer-progress-cache')
     this.pointTip = this.find('.xgplayer-progress-point')
     this.progressBtn = this.find('.xgplayer-progress-btn')
-    this.initCustomStyle()
+
     this.registerThumbnail()
+
     this.on(Events.TIME_UPDATE, () => {
       this.onTimeupdate()
     });
+
     this.on(Events.SEEKED, () => {
       this.onTimeupdate()
       this.onCacheUpdate()
     });
+
     this.on([Events.PROGRESS, Events.ENDED], () => {
       this.onCacheUpdate()
     })
+
     this.bindDomEvents()
   }
 
@@ -84,20 +106,8 @@ class Progress extends Plugin {
 
   initCustomStyle () {
     const {commonStyle} = this.playerConfig || {}
-    const {playedColor, cachedColor, sliderBtnStyle, progressColor} = commonStyle
-    const {playedBar, cachedBar, progressBtn} = this
-    if (playedColor) {
-      playedBar.style.backgroundImage = 'initilal';
-      playedBar.style.background = playedColor;
-    }
-    if (cachedColor) {
-      cachedBar.style.background = cachedColor;
-    }
-
-    if (progressColor) {
-      this.find('.xgplayer-progress-outer').style.backgroundColor = progressColor;
-    }
-
+    const {sliderBtnStyle} = commonStyle
+    const {progressBtn} = this
     if (sliderBtnStyle) {
       if (typeof sliderBtnStyle === 'string') {
         progressBtn.style.boxShadow = sliderBtnStyle;
@@ -109,6 +119,24 @@ class Progress extends Plugin {
     }
   }
 
+  /**
+   * 触发某一类回调监听
+   * @param {*} type 类型 drag/dragend
+   * @param {Object} data 具体数据
+   */
+  triggerCallbacks (type, data) {
+    if (this.__dragCallBacks.length > 0) {
+      this.__dragCallBacks.map(item => {
+        item.type === type && item.handler(data)
+      })
+    }
+  }
+
+  /**
+   * 供外部插件添加回调
+   * @param {String} type 类型 drag/dragend
+   * @param {Function} event 回调函数句柄
+   */
   addDragCallBack (type, event) {
     if (event && typeof event === 'function') {
       this.__dragCallBacks.push({type: type, handler: event})
@@ -155,6 +183,7 @@ class Progress extends Plugin {
     }
 
     Util.checkIsFunction(config.onMoveStart) && config.onMoveStart()
+    // 交互开始 禁止控制栏的自动隐藏功能
     player.emit(Events.PLAYER_FOCUS, {autoHide: false})
     this.isProgressMoving = true
     Util.addClass(this.progressBtn, 'moving')
@@ -186,10 +215,12 @@ class Progress extends Plugin {
       }
       Util.checkIsFunction(config.onMoveEnd) && config.onMoveEnd()
       this.computeWidth(e, false)
+      // 延迟复位，状态复位要在dom相关时间回调执行之后
       setTimeout(() => {
         this.resetSeekState()
       }, 10)
       this.triggerCallbacks('dragend', {})
+      // 交互结束 恢复控制栏的隐藏流程
       player.emit(Events.PLAYER_FOCUS)
     }
 
@@ -243,10 +274,15 @@ class Progress extends Plugin {
     thumbnailPlugin && thumbnailPlugin.update(now, e.clientX, width)
   }
 
+  /**
+   * @description 根据事件回调计算位置
+   * @param {Event} e
+   * @param {Boolean} isMove
+   */
   computeWidth (e, isMove) {
     const containerWidth = this.root.getBoundingClientRect().width
     const {player, config} = this
-    let {left} = this.playedBar.getBoundingClientRect()
+    let {left} = this.root.getBoundingClientRect()
     let w = e.clientX - left
     if (w > containerWidth) {
       w = containerWidth
@@ -264,6 +300,11 @@ class Progress extends Plugin {
     player.seek(Number(now).toFixed(1))
   }
 
+  /**
+   * @description 更新时间插件，在拖拽状态下要接管时间插件的更新状态
+   *             本位置会和time插件交互
+   * @param {number} time 根据拖拽距离计算出的时间
+   */
   updateTime (time) {
     const {player} = this
     if (time > player.duration) {
@@ -277,56 +318,65 @@ class Progress extends Plugin {
     }
   }
 
+  /**
+   * @description 复位正在拖拽状态 ，拖拽的时候要避免timeupdate更新
+   */
   resetSeekState () {
     this.isProgressMoving = false
     let timeIcon = this.player.plugins.time
     timeIcon && timeIcon.resetActive()
   }
 
+  /**
+   * @description 拖拽过程中更新UI
+   * @param {number} percent 小于0的小数
+   *
+   */
   updatePercent (percent, notSeek) {
     this.isProgressMoving = true
     if (this.config.disable) {
       return;
     }
-    this.playedBar.style.width = `${percent * 100}%`
+    percent = percent > 1 ? 1 : (percent < 0 ? 0 : percent)
+    this.progressBtn.style.left = `${percent * 100}%`
+    this.innerList.update({played: percent * this.player.duration}, this.player.duration)
   }
 
-  compute (e) {
-    const containerLeft = this.root.getBoundingClientRect().left
-    const containerWidth = this.root.getBoundingClientRect().width
-    const pointWidth = this.pointTip.getBoundingClientRect().width
-    let left = e.clientX - containerLeft - pointWidth / 2
-    left = left > 0 ? left : 0
-    left = left > containerWidth - pointWidth ? containerWidth - pointWidth : left
-    this.pointTip.style.left = `${left}px`
-  }
+  // compute (e) {
+  //   const containerLeft = this.root.getBoundingClientRect().left
+  //   const containerWidth = this.root.getBoundingClientRect().width
+  //   const pointWidth = this.pointTip.getBoundingClientRect().width
+  //   let left = e.clientX - containerLeft - pointWidth / 2
+  //   left = left > 0 ? left : 0
+  //   left = left > containerWidth - pointWidth ? containerWidth - pointWidth : left
+  //   this.pointTip.style.left = `${left}px`
+  // }
 
-  triggerCallbacks (type, data) {
-    if (this.__dragCallBacks.length > 0) {
-      this.__dragCallBacks.map(item => {
-        item.type === type && item.handler(data)
-      })
-    }
-  }
-
+  /**
+   * @description 播放进度更新
+   */
   onTimeupdate () {
     const {player} = this
     if (player.isSeeking || this.isProgressMoving) {
       return;
     }
-    if (player.videoConfig.mediaType !== 'audio' || !player.dash) {
-      this.playedBar.style.width = `${player.currentTime * 100 / player.duration}%`
-    }
+    this.innerList.update({played: player.currentTime}, player.duration)
+    this.progressBtn.style.left = `${player.currentTime / player.duration * 100}%`
   }
 
+  /**
+   * @description 缓存进度更新
+   */
   onCacheUpdate () {
     const {player} = this
     const point = player.bufferedPoint
-    this.cachedBar.style.width = `${point.end / player.duration * 100}%`
+    this.innerList.update({cached: point.end}, player.duration)
   }
 
   destroy () {
     this.thumbnailPlugin = null
+    this.innerList.destroy()
+    this.innerList = null
     if (Sniffer.device === 'mobile') {
       this.root.removeEventListener('touchstart', this.mouseDown, false)
     } else {
@@ -340,16 +390,12 @@ class Progress extends Plugin {
       return
     }
     return `
-      <xg-progress class="xgplayer-progress">
-        <xg-outer class="xgplayer-progress-outer">
-          <xg-cache class="xgplayer-progress-cache" style="width:0">
-          </xg-cache>
-          <xg-played class="xgplayer-progress-played" style="width:0">
-            <xg-progress-btn class="xgplayer-progress-btn"></xg-progress-btn>
-            <xg-point class="xgplayer-progress-point xg-tips">00:00</xg-point>
-          </xg-played>
-        </xg-outer>
-      </xg-progress>
+    <xg-progress class="xgplayer-progress">
+      <xg-outer class="xgplayer-progress-outer">
+        <xg-progress-btn class="xgplayer-progress-btn"></xg-progress-btn>
+        <xg-point class="xgplayer-progress-point">00:00</xg-point>
+      </xg-outer>
+    </xg-progress>
     `
   }
 }

@@ -13,27 +13,45 @@ $tipsFontsize: 12px;
 .xgplayer {
   &.not-allow-autoplay,
   &.xgplayer-nostart,
-  &.xgplayer-is-error{
+  &.xgplayer-is-error,
+  &.xgplayer-ended,
+  &.xgplayer-is-enter {
     .xgplayer-controls, .flex-controls {
-      display: none;
+      pointer-events: none;
+      visibility: hidden;
+      cursor: default;
+      opacity: 0;
     }
   }
 
   &.xgplayer-inactive {
     .control_autohide {
-      display: none;
+      // display: none;
+      pointer-events: none;
+      visibility: hidden;
+      cursor: default;
+      opacity: 0;
     }
   }
   
   .xgplayer-controls {
     display: block;
     position: absolute;
+    visibility: visible;
+    height: $controlHeight;
     left: 0;
     right: 0;
     bottom: 0;
-    height: $controlHeight;
+    opacity: 1;
     z-index: 100;
     background-image: linear-gradient(180deg,transparent,rgba(0,0,0,.37),rgba(0,0,0,.75),rgba(0,0,0,.75));
+    transition: opacity .5s ease,visibility .5s ease;
+    &.show {
+      display: block;
+      opacity: 1;
+      visibility: visible;
+      pointer-events: auto;
+    }
   }
 
   .inner-controls {
@@ -60,7 +78,7 @@ $tipsFontsize: 12px;
     left: 0;
     right: 0;
     outline: none;
-    top: -5px;
+    // top: -5px;
     z-index: 35;
   }
 
@@ -76,6 +94,7 @@ $tipsFontsize: 12px;
       top: 0;
       height: 100%;
       justify-content: space-between;
+      align-items: center;
       left: 0;
       right: 0;
       xg-icon {
@@ -162,6 +181,25 @@ $tipsFontsize: 12px;
         left: 0;
     }
   }
+  // class witch position follow controls start
+  .controls-follow {
+    bottom: 70px;
+    transition: bottom .3s ease;
+  }
+
+  &.flex-controls {
+    .controls-follow {
+      bottom: 45px;
+    }
+  }
+
+  &.xgplayer-inactive, &.no-controls, &.mini-controls {
+    .controls-follow {
+      bottom: 10px;
+    }
+  }
+  // class witch position follow controls end
+
 }
 // mobile
 .xgplayer-mobile {

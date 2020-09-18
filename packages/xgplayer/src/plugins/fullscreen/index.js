@@ -73,6 +73,8 @@ export default class Fullscreen extends Plugin {
   }
 
   btnClick (e) {
+    e.preventDefault();
+    e.stopPropagation();
     const {player, config} = this;
     let useCssFullscreen = false
     if (config.useCssFullscreen === true || (typeof config.useCssFullscreen === 'function' && config.useCssFullscreen())) {
