@@ -94,7 +94,11 @@ class Compatibility {
   }
 
   _isSegmentsContinuous () {
-    return this._format === 'ts' && this._currentSegmentId - this._lastSegmentId === 1
+    return this.isTs && this._currentSegmentId - this._lastSegmentId === 1
+  }
+
+  get isTs () {
+    return this._format === 'ts';
   }
 
   doFix (format) {
@@ -209,7 +213,7 @@ class Compatibility {
         streamChangeStart = firstSample.options.start;
       }
     }
-    if (!first && streamChangeStart === undefined && this.videoLastSample && Compatibility.detectVideoLargeGap(this.videoLastSample ? this.videoLastSample.dts : 0, firstSample.dts + this._videoLargeGap)) {
+    if (!first && streamChangeStart === undefined && this.videoLastSample && Compatibility.detectVideoLargeGap(this.isTs, this.videoLastSample ? this.videoLastSample.dts : 0, firstSample.dts + this._videoLargeGap)) {
       // large gap 不准确，出现了非换流场景的时间戳跳变
       this._videoLargeGap = this.videoLastSample.dts + meta.refSampleDuration - firstSample.dts
     }
@@ -271,7 +275,7 @@ class Compatibility {
     }
 
     // 分片 < 4帧,不能起播的
-    if (this._format === 'ts' && segLen < 4) {
+    if (this.isTs && segLen < 4) {
       let sample = videoSamples[videoSamples.length - 1];
       let duration = sample.options && sample.options.duration;
       let refDuration = meta.refSampleDuration;
@@ -752,11 +756,12 @@ class Compatibility {
     }
   }
 
-  static detectVideoLargeGap (nextDts, firstSampleDts) {
+  static detectVideoLargeGap (isTs, nextDts, firstSampleDts) {
     if (nextDts === null) {
       return;
     }
-    return nextDts - firstSampleDts >= 10000 || firstSampleDts - nextDts >= 10000 // fix hls流出现大量流dts间距问题
+    let delta = isTs ? 1000 : 10000;
+    return nextDts - firstSampleDts >= delta || firstSampleDts - nextDts >= delta // fix hls流出现大量流dts间距问题
   }
 
   static detectAudioLargeGap (nextDts, firstSampleDts) {
