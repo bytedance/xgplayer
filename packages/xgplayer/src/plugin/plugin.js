@@ -84,8 +84,7 @@ function registerIconsObj (iconsConfig, plugin) {
       newIcon = createIcon(_icons[key], key, classname, attr)
     }
     if (!newIcon) {
-      newIcon = orgIcon.icon ? orgIcon.icon : orgIcon
-      newIcon = newIcon instanceof window.Element ? newIcon : Util.createDomFromHtml(newIcon, attr, classname)
+      newIcon = createIcon((orgIcon.icon ? orgIcon.icon : orgIcon), attr, classname)
     }
     plugin.icons[key] = newIcon
   })
