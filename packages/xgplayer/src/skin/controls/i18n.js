@@ -34,6 +34,7 @@ let s_i18n = function () {
     LIVE: 'LIVE',
     OFF: 'Off',
     PIP_DRAG: 'Click and hold to drag',
+    AIRPLAY_TIPS: 'Airplay',
   }
   lang['zh-cn'] = {
     HAVE_NOTHING: '没有关于音频/视频是否就绪的信息',
@@ -67,6 +68,7 @@ let s_i18n = function () {
     LIVE: '正在直播',
     OFF: '关闭',
     PIP_DRAG: '点击按住可拖动视频',
+    AIRPLAY_TIPS: '隔空播放',
   }
   lang['zh-hk'] = {
     HAVE_NOTHING: '沒有關於音頻/視頻是否就緒的信息',
@@ -100,6 +102,7 @@ let s_i18n = function () {
     LIVE: '正在直播',
     OFF: '關閉',
     PIP_DRAG: '點擊按住可拖動視頻',
+    AIRPLAY_TIPS: '隔空播放',
   }
   lang['jp'] = {
     HAVE_NOTHING: 'オーディオ/ビデオが準備できているか情報がありません',
@@ -133,6 +136,7 @@ let s_i18n = function () {
     LIVE: '生放送',
     OFF: 'オフ',
     PIP_DRAG: 'ボタンを押して働画をドラッグする',
+    AIRPLAY_TIPS: '隔空放送',
   }
 
   Object.defineProperty(player, 'lang', {

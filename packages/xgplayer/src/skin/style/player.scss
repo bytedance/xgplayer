@@ -12,6 +12,7 @@
 // xgplayer-download 9
 // xgplayer-rotate 10
 // xgplayer-screenShot 11
+// xgplayer-airplay 11
 // xgplayer-cssFullscreen 12
 // xgplayer-fullscreen 13
 
@@ -106,4 +107,5 @@
 @import "controls/icon";
 @import "controls/tips";
 @import "controls/error";
-@import "controls/memoryPlay"
+@import "controls/memoryPlay";
+@import "controls/airplay";
