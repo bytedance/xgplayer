@@ -1,0 +1,51 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport"
+          content="width=device-width,initial-scale=1,maximum-scale=1,minimum-scale=1,user-scalable=no,minimal-ui">
+    <meta name="referrer" content="no-referrer">
+    <meta name="renderer" content="webkit">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1"/>
+    <title>西瓜播放器-全景播放器</title>
+    <link rel="stylesheet" href="../layout.css">
+    <link rel="stylesheet" href="../../packages/xgplayer-panoramic/browser/main.css">
+</head>
+<body>
+<section id="wrapper">
+    <div id="vs"></div>
+    <p>
+        V0.1.0 support panoramic video
+    </p>
+    <p>
+        V0.2.0 support dragging
+    </p>
+    <p>
+        V0.3.0 support drag-end animation
+    </p>
+    <p>
+        V0.4.0 support scale and rotate widget on PC（TODO）
+    </p>
+</section>
+<script src="../../packages/xgplayer-panoramic/browser/index.js" charset="utf-8"></script>
+<script type="text/javascript">
+  let player = new Player({
+    id: 'vs',
+    url: './explore_world.mp4',
+    // poster: './poster.png',
+    width: 900,
+    height: 500,
+    playbackRate: [0.5, 0.75, 1, 1.5, 2],
+    whitelist: [function () {
+      return true
+    }]
+  })
+  player.on('error', function (err) {
+    console.log(JSON.stringify(err));
+  });
+</script>
+
+
+</body>
+
+</html>

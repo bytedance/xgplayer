@@ -25,7 +25,8 @@ const TransmuxingEvents = {
     RECOVERED_EARLY_EOF: 'recovered_early_eof',
     MEDIA_INFO: 'media_info',
     STATISTICS_INFO: 'statistics_info',
-    RECOMMEND_SEEKPOINT: 'recommend_seekpoint'
+    RECOMMEND_SEEKPOINT: 'recommend_seekpoint',
+    LOADED_SEI: 'loaded_sei'
 };
 
 export default TransmuxingEvents;

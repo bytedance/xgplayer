@@ -1,0 +1,55 @@
+.xgplayer-skin-default {
+  .xgplayer-enter {
+    display: none;
+    position: absolute;
+    left: 0;
+    top: 0;
+    width: 100%;
+    height: 100%;
+    background: black;
+    z-index: 120;
+    .xgplayer-enter-spinner {
+      display: block;
+      position: absolute;
+      left: 50%;
+      top: 50%;
+      height: 100px;
+      width: 100px;
+      position: relative;
+      transform: translate(-50%,-50%);
+    }
+
+    .xgplayer-enter-spinner div {
+      width: 12%;
+      height: 26%;
+      background-color: rgba(255,255,255,0.7);
+      position: absolute;
+      left: 44%;
+      top: 37%;
+      opacity: 0;
+      border-radius: 30px;
+      animation: fade 1s linear infinite;
+    }
+
+    @for $i from 1 to 12 {
+      .xgplayer-enter-spinner div.xgplayer-enter-bar#{$i} {
+        transform: rotate(#{($i - 1) * 30 }deg) translate(0, -142%);
+        animation-delay: -#{(13 - $i)%12 * 0.0833}s;
+      }
+    }
+    .xgplayer-enter-spinner div.xgplayer-enter-bar12 {
+      transform:rotate(330deg) translate(0, -142%);
+      animation-delay: -0.0833s;
+    }
+    @keyframes fade {
+      from {opacity: 1;}
+      to {opacity: 0.25;}
+    }
+  }
+}
+
+.xgplayer-skin-default.xgplayer-is-enter {
+  .xgplayer-enter {
+    display: block;
+  }
+}

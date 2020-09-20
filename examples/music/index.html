@@ -1,0 +1,129 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,minimum-scale=1,user-scalable=no,minimal-ui">
+    <meta name="referrer" content="no-referrer">
+    <meta name="renderer" content="webkit">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1" />
+    <title>西瓜播放器-音频播放</title>
+    <link rel="stylesheet" href="../layout.css">
+    <style>
+        canvas{
+            margin: 20px;
+        }
+        .lyric{
+            display: block;
+            position: relative;
+        }
+    </style>
+</head>
+
+<body>
+    <section id="wrapper">
+        <div id="vs"></div>
+        <div id="canvas">
+            <canvas width="800" height="20"></canvas>
+        </div>
+        <div class="lyric"></div>
+    </section>
+
+    <script src="../../packages/xgplayer/browser/index.js" charset="utf-8"></script>
+    <script src="../../packages/xgplayer-music/browser/index.js" charset="utf-8"></script>
+    <script type="text/javascript">
+        var lyricTxt=`[00:00.00] 作曲 : 林家谦\n[00:00.00] 作词 : 徐世珍/吴辉福\n[00:00.000]编曲：林家谦\n[00:00.000]时钟不要走\n[00:04.220]让我脆弱一分钟\n[00:07.440]要多久才能
+        习惯被放手\n[00:15.800]马克杯空了 暖暖的温热\n[00:22.660]却还在我手中停留\n[00:27.960]\n[00:29.790]勇气不要走\n[00:32.200]给我理由再冲动\n[00:35.690]去相信爱情 就算还在痛\n[00:43.960]如果我不说
+        不会有人懂\n[00:50.720]失去你我有多寂寞\n[00:55.610]还是愿意\n[00:57.580]付出一切仅仅为了一个好梦\n[01:03.980]梦里有人真心爱我 陪我快乐也陪我沉默\n[01:11.260]没有无缘无故的痛
+        承受越多越成熟\n[01:18.630]能让你拥抱更好的我\n[01:25.030] 谁也不要走\n[01:28.270]应该是一种奢求\n[01:31.900]可是我只想 握紧你的手\n[01:39.780]我宁愿等候 也不愿错过\n[01:46.630]你对我微笑的时候\n[01:56.780]\n[02:18.910]还是愿意\n[02:21.320]用尽全力仅仅为了一个以后\n[02:27.870]哪怕生命并不温柔
+        哪怕被幸福一再反驳\n[02:34.870]也要相信伤痕累累 其实只是在琢磨\n[02:42.070]能让你为之一亮 的我\n[02:53.910]\n[02:56.350]制作人：林宥嘉\n[02:57.750]制作助理：张婕汝\n[02:59.010]录音师：陈文骏、叶育轩\n[03:00.410]录音室：白金录音室\n[03:01.740]混音师：Simon
+        Li @ nOiz\n[03:03.000]OP: Terence Lam Production & Co. (Warner/Chappell Music, HK Ltd.)\n[03:04.050]SP: Warner/Chappell Music
+        Taiwan Ltd.\n[03:04.910]OP：Universal Ms Publ Ltd Taiwan\n`;
+
+        // var lyricTxt=[`[00:00.43]PLANET - ラムジ\n[00:01.38]詞：ラムジ\n[00:02.27]曲：ラムジ\n[00:02.99]\n[00:10.57]どうやってこうやって\n[00:14.36]またほら君と話そうか\n[00:18.66]\n[00:19.59]あれだってこれだって\n[00:23.37]今すぐ気付いてくれ\n[00:27.44]\n[00:28.58]僕は君の惑星\n[00:31.30]\n[00:33.20]回り続けて\n[00:35.28]\n[00:37.69]いつも君のそばで\n[00:40.19]\n[00:42.25]黒点数えてたけれど\n[00:45.87]\n[00:47.21]サヨナラなんてないよ\n[00:50.89]\n[00:51.76]今日から軌道を外れんだ\n[00:55.62]\n[00:56.23]最後まで見送ってよ\n[00:59.98]\n[01:00.85]永遠に離れてくんだ\n[01:04.84]\n[01:05.37]ラララ\n[01:09.13]\n[01:33.14]どうなってこうなって\n[01:36.98]結局独り伫んで\n[01:41.30]\n[01:42.18]失って勘づいて\n[01:46.07]今さら戻れやしない\n[01:50.35]\n[01:51.37]君のいない場所で\n[01:53.90]\n[01:55.82]途方に暮れて\n[01:57.85]\n[02:00.37]もう一度引力を\n[02:02.89]\n[02:04.89]感じたかったんだけれど\n[02:08.90]神様なんていないよ\n[02:12.52]\n[02:13.29]いつまで待っても巡回中\n[02:17.07]\n[02:17.79]選ばれない悲しみを\n[02:21.57]\n[02:22.35]何度でも噛みしめるんだ\n[02:27.22]\n[02:44.61]君は僕の太陽\n[02:47.19]\n[02:48.94]全てを燃やしたけれど\n[02:52.63]\n[02:53.94]サヨナラなんてないよ\n[02:57.84]\n[02:58.52]今日から軌道を外れんだ\n[03:02.36]\n[03:03.00]最後まで見送ってよ\n[03:06.76]\n[03:07.68]永遠に離れてくんだ\n[03:11.65]\n[03:12.17]ラララ\n[03:20.07]\n[03:21.25]ラララ\n`,
+        // `[00:00.43]PLANET - ラムジ\n[00:01.38]詞：ラムジ\n[00:02.27]曲：ラムジ\n[00:02.99]\n[00:10.57]要怎么做？就这么做\n[00:14.36]嗯...现在还能和你说话吧\n[00:18.66]\n[00:19.59]那样也好，这样也好\n[00:23.37]真希望现在你能快点觉察到我\n[00:27.44]\n[00:28.58]我是一颗行星\n[00:31.30]\n[00:33.20]不停地围绕你转动\n[00:35.28]\n[00:37.69]我本会一直在你的身边\n[00:40.19]\n[00:42.25]即使只是细数你的小缺点\n[00:45.87]\n[00:47.21]不要说再见...\n[00:50.89]\n[00:51.76]今天我要开始偏离你的轨道\n[00:55.62]\n[00:56.23]目送你，直到最后\n[00:59.98]\n[01:00.85]因为我将要永远与你分离\n[01:04.84]\n[01:05.37]啦啦啦\n[01:09.13]\n[01:33.14]为什么会变成这样\n[01:36.98]最终仍旧是我独自一人伫立在这\n[01:41.30]\n[01:42.18]失去之后 才意识到\n[01:46.07]事到如今 再也回不去了\n[01:50.35]\n[01:51.37]在没有你的场所\n[01:53.90]\n[01:55.82]我完全不知所措\n[01:57.85]\n[02:00.37]你对我的吸引力\n[02:02.89]\n[02:04.89]到现在都还想感受一下\n[02:08.90]可是这世上并没有什么神明\n[02:12.52]\n[02:13.29]无论期盼到何时都只能在自己的轨道中巡回\n[02:17.07]\n[02:17.79]没有被选择的悲伤\n[02:21.57]\n[02:22.35]究竟还要再尝多少次\n[02:27.22]\n[02:44.61]你就是我的太阳\n[02:47.19]\n[02:48.94]已将我的精力全部燃尽\n[02:52.63]\n[02:53.94]不要说再见...\n[02:57.84]\n[02:58.52]从今天起就要偏离你的轨道\n[03:02.36]\n[03:03.00]目送你，直到最后\n[03:06.76]\n[03:07.68]因为我将要永远与你分离\n[03:11.65]\n[03:12.17]...啦啦啦\n[03:20.07]\n[03:21.25]...啦啦啦\n`]
+
+        let player = new window.Music({
+          id: 'vs',
+          url: [
+            {
+              src: './audio.mp3',
+              name: '林宥嘉·脆弱一分钟',
+              vid: '10000000',
+              poster: './sintel-poster.png'
+            }
+          ],
+          width: 900,
+          height: 50,
+          volume: 0.6,
+          preloadNext: true
+        });
+        player.on('lyricUpdate', (res) => {
+          console.log(res);
+        });
+        var an=player.analyze(document.querySelector('canvas'));
+        var ly=player.lyric(lyricTxt,document.querySelector('.lyric'))
+        ly.show()
+        player.on('error', function (err) {
+          console.log(JSON.stringify(err))
+        })
+    </script>
+
+    <!-- 或者 -->
+    <!-- <a id='cut' href='#'>Cut</a>
+    <script src="../../packages/xgplayer/browser/index.js" charset="utf-8"></script>
+    <script src="../../packages/xgplayer-music/browser/index.js" charset="utf-8"></script>
+    <script src="../../packages/xgplayer-m4a/browser/index.js" charset="utf-8"></script>
+    <script type="text/javascript">
+        var player = new window.Music({
+          id: 'vs',
+          url: [
+            {
+              src: './1-Snow_Fight.m4a',
+              name: '1-Snow_Fight',
+              vid: '00000001',
+              poster: './sintel-poster.png'
+            },
+            {
+              src: './2-Finding_Scales-Chicken_Run.m4a',
+              name: '2-Finding_Scales-Chicken_Run',
+              vid: '00000002',
+              poster: './sintel-poster.png'
+            },
+            {
+              src: './3-The_Ziggurat.m4a',
+              name: '3-The_Ziggurat',
+              vid: '00000003',
+              poster: './sintel-poster.png'
+            },
+            {
+              src: './4-Expedition.m4a',
+              name: '4-Expedition',
+              vid: '00000004',
+              poster: './sintel-poster.png'
+            }
+          ],
+          width: 900,
+          height: 50,
+          volume: 0.6,
+          reqTimeLength: 15,
+          offline: true,
+          preloadNext: true
+        });
+        player.on('error', function (err) {
+          console.log(JSON.stringify(err))
+        })
+
+        let aLink = document.getElementById('cut')
+        player.cut(30, 50).then(blob => {
+          if (blob) {
+            aLink.href = URL.createObjectURL(blob)
+            aLink.download = 'segment.m4a'
+          }
+        }, () => {
+          console.log('error')
+        })
+    </script> -->
+</body>
+
+</html>

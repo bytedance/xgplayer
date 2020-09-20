@@ -1,8 +1,12609 @@
-!function(e,t){"object"==typeof exports&&"object"==typeof module?module.exports=t(require("xgplayer")):"function"==typeof define&&define.amd?define(["xgplayer"],t):"object"==typeof exports?exports["xgplayer-flv.js"]=t(require("xgplayer")):e["xgplayer-flv.js"]=t(e.xgplayer)}(window,function(e){return function(e){var t={};function n(i){if(t[i])return t[i].exports;var r=t[i]={i:i,l:!1,exports:{}};return e[i].call(r.exports,r,r.exports,n),r.l=!0,r.exports}return n.m=e,n.c=t,n.d=function(e,t,i){n.o(e,t)||Object.defineProperty(e,t,{enumerable:!0,get:i})},n.r=function(e){"undefined"!=typeof Symbol&&Symbol.toStringTag&&Object.defineProperty(e,Symbol.toStringTag,{value:"Module"}),Object.defineProperty(e,"__esModule",{value:!0})},n.t=function(e,t){if(1&t&&(e=n(e)),8&t)return e;if(4&t&&"object"==typeof e&&e&&e.__esModule)return e;var i=Object.create(null);if(n.r(i),Object.defineProperty(i,"default",{enumerable:!0,value:e}),2&t&&"string"!=typeof e)for(var r in e)n.d(i,r,function(t){return e[t]}.bind(null,r));return i},n.n=function(e){var t=e&&e.__esModule?function(){return e.default}:function(){return e};return n.d(t,"a",t),t},n.o=function(e,t){return Object.prototype.hasOwnProperty.call(e,t)},n.p="",n(n.s=18)}([function(e,t,n){"use strict";Object.defineProperty(t,"__esModule",{value:!0});var i,r=function(){function e(e,t){for(var n=0;n<t.length;n++){var i=t[n];i.enumerable=i.enumerable||!1,i.configurable=!0,"value"in i&&(i.writable=!0),Object.defineProperty(e,i.key,i)}}return function(t,n,i){return n&&e(t.prototype,n),i&&e(t,i),t}}(),a=n(2),s=(i=a)&&i.__esModule?i:{default:i};var o=function(){function e(){!function(e,t){if(!(e instanceof t))throw new TypeError("Cannot call a class as a function")}(this,e)}return r(e,null,[{key:"e",value:function(t,n){t&&!e.FORCE_GLOBAL_TAG||(t=e.GLOBAL_TAG);var i="["+t+"] > "+n;e.ENABLE_CALLBACK&&e.emitter.emit("log","error",i),e.ENABLE_ERROR&&(console.error?console.error(i):console.warn?console.warn(i):console.log(i))}},{key:"i",value:function(t,n){t&&!e.FORCE_GLOBAL_TAG||(t=e.GLOBAL_TAG);var i="["+t+"] > "+n;e.ENABLE_CALLBACK&&e.emitter.emit("log","info",i),e.ENABLE_INFO&&(console.info?console.info(i):console.log(i))}},{key:"w",value:function(t,n){t&&!e.FORCE_GLOBAL_TAG||(t=e.GLOBAL_TAG);var i="["+t+"] > "+n;e.ENABLE_CALLBACK&&e.emitter.emit("log","warn",i),e.ENABLE_WARN&&(console.warn?console.warn(i):console.log(i))}},{key:"d",value:function(t,n){t&&!e.FORCE_GLOBAL_TAG||(t=e.GLOBAL_TAG);var i="["+t+"] > "+n;e.ENABLE_CALLBACK&&e.emitter.emit("log","debug",i),e.ENABLE_DEBUG&&(console.debug?console.debug(i):console.log(i))}},{key:"v",value:function(t,n){t&&!e.FORCE_GLOBAL_TAG||(t=e.GLOBAL_TAG);var i="["+t+"] > "+n;e.ENABLE_CALLBACK&&e.emitter.emit("log","verbose",i),e.ENABLE_VERBOSE&&console.log(i)}}]),e}();o.GLOBAL_TAG="flv.js",o.FORCE_GLOBAL_TAG=!1,o.ENABLE_ERROR=!0,o.ENABLE_INFO=!0,o.ENABLE_WARN=!0,o.ENABLE_DEBUG=!0,o.ENABLE_VERBOSE=!0,o.ENABLE_CALLBACK=!1,o.emitter=new s.default,t.default=o,e.exports=t.default},function(e,t,n){"use strict";Object.defineProperty(t,"__esModule",{value:!0});var i=function(){function e(e,t){for(var n=0;n<t.length;n++){var i=t[n];i.enumerable=i.enumerable||!1,i.configurable=!0,"value"in i&&(i.writable=!0),Object.defineProperty(e,i.key,i)}}return function(t,n,i){return n&&e(t.prototype,n),i&&e(t,i),t}}();function r(e,t){if(!e)throw new ReferenceError("this hasn't been initialised - super() hasn't been called");return!t||"object"!=typeof t&&"function"!=typeof t?e:t}function a(e,t){if("function"!=typeof t&&null!==t)throw new TypeError("Super expression must either be null or a function, not "+typeof t);e.prototype=Object.create(t&&t.prototype,{constructor:{value:e,enumerable:!1,writable:!0,configurable:!0}}),t&&(Object.setPrototypeOf?Object.setPrototypeOf(e,t):e.__proto__=t)}function s(e,t){if(!(e instanceof t))throw new TypeError("Cannot call a class as a function")}var o=t.RuntimeException=function(){function e(t){s(this,e),this._message=t}return i(e,[{key:"toString",value:function(){return this.name+": "+this.message}},{key:"name",get:function(){return"RuntimeException"}},{key:"message",get:function(){return this._message}}]),e}();t.IllegalStateException=function(e){function t(e){return s(this,t),r(this,(t.__proto__||Object.getPrototypeOf(t)).call(this,e))}return a(t,o),i(t,[{key:"name",get:function(){return"IllegalStateException"}}]),t}(),t.InvalidArgumentException=function(e){function t(e){return s(this,t),r(this,(t.__proto__||Object.getPrototypeOf(t)).call(this,e))}return a(t,o),i(t,[{key:"name",get:function(){return"InvalidArgumentException"}}]),t}(),t.NotImplementedException=function(e){function t(e){return s(this,t),r(this,(t.__proto__||Object.getPrototypeOf(t)).call(this,e))}return a(t,o),i(t,[{key:"name",get:function(){return"NotImplementedException"}}]),t}()},function(e,t,n){"use strict";var i,r="object"==typeof Reflect?Reflect:null,a=r&&"function"==typeof r.apply?r.apply:function(e,t,n){return Function.prototype.apply.call(e,t,n)};i=r&&"function"==typeof r.ownKeys?r.ownKeys:Object.getOwnPropertySymbols?function(e){return Object.getOwnPropertyNames(e).concat(Object.getOwnPropertySymbols(e))}:function(e){return Object.getOwnPropertyNames(e)};var s=Number.isNaN||function(e){return e!=e};function o(){o.init.call(this)}e.exports=o,o.EventEmitter=o,o.prototype._events=void 0,o.prototype._eventsCount=0,o.prototype._maxListeners=void 0;var u=10;function l(e){return void 0===e._maxListeners?o.defaultMaxListeners:e._maxListeners}function d(e,t,n,i){var r,a,s,o;if("function"!=typeof n)throw new TypeError('The "listener" argument must be of type Function. Received type '+typeof n);if(void 0===(a=e._events)?(a=e._events=Object.create(null),e._eventsCount=0):(void 0!==a.newListener&&(e.emit("newListener",t,n.listener?n.listener:n),a=e._events),s=a[t]),void 0===s)s=a[t]=n,++e._eventsCount;else if("function"==typeof s?s=a[t]=i?[n,s]:[s,n]:i?s.unshift(n):s.push(n),(r=l(e))>0&&s.length>r&&!s.warned){s.warned=!0;var u=new Error("Possible EventEmitter memory leak detected. "+s.length+" "+String(t)+" listeners added. Use emitter.setMaxListeners() to increase limit");u.name="MaxListenersExceededWarning",u.emitter=e,u.type=t,u.count=s.length,o=u,console&&console.warn&&console.warn(o)}return e}function h(e,t,n){var i={fired:!1,wrapFn:void 0,target:e,type:t,listener:n},r=function(){for(var e=[],t=0;t<arguments.length;t++)e.push(arguments[t]);this.fired||(this.target.removeListener(this.type,this.wrapFn),this.fired=!0,a(this.listener,this.target,e))}.bind(i);return r.listener=n,i.wrapFn=r,r}function f(e,t,n){var i=e._events;if(void 0===i)return[];var r=i[t];return void 0===r?[]:"function"==typeof r?n?[r.listener||r]:[r]:n?function(e){for(var t=new Array(e.length),n=0;n<t.length;++n)t[n]=e[n].listener||e[n];return t}(r):_(r,r.length)}function c(e){var t=this._events;if(void 0!==t){var n=t[e];if("function"==typeof n)return 1;if(void 0!==n)return n.length}return 0}function _(e,t){for(var n=new Array(t),i=0;i<t;++i)n[i]=e[i];return n}Object.defineProperty(o,"defaultMaxListeners",{enumerable:!0,get:function(){return u},set:function(e){if("number"!=typeof e||e<0||s(e))throw new RangeError('The value of "defaultMaxListeners" is out of range. It must be a non-negative number. Received '+e+".");u=e}}),o.init=function(){void 0!==this._events&&this._events!==Object.getPrototypeOf(this)._events||(this._events=Object.create(null),this._eventsCount=0),this._maxListeners=this._maxListeners||void 0},o.prototype.setMaxListeners=function(e){if("number"!=typeof e||e<0||s(e))throw new RangeError('The value of "n" is out of range. It must be a non-negative number. Received '+e+".");return this._maxListeners=e,this},o.prototype.getMaxListeners=function(){return l(this)},o.prototype.emit=function(e){for(var t=[],n=1;n<arguments.length;n++)t.push(arguments[n]);var i="error"===e,r=this._events;if(void 0!==r)i=i&&void 0===r.error;else if(!i)return!1;if(i){var s;if(t.length>0&&(s=t[0]),s instanceof Error)throw s;var o=new Error("Unhandled error."+(s?" ("+s.message+")":""));throw o.context=s,o}var u=r[e];if(void 0===u)return!1;if("function"==typeof u)a(u,this,t);else{var l=u.length,d=_(u,l);for(n=0;n<l;++n)a(d[n],this,t)}return!0},o.prototype.addListener=function(e,t){return d(this,e,t,!1)},o.prototype.on=o.prototype.addListener,o.prototype.prependListener=function(e,t){return d(this,e,t,!0)},o.prototype.once=function(e,t){if("function"!=typeof t)throw new TypeError('The "listener" argument must be of type Function. Received type '+typeof t);return this.on(e,h(this,e,t)),this},o.prototype.prependOnceListener=function(e,t){if("function"!=typeof t)throw new TypeError('The "listener" argument must be of type Function. Received type '+typeof t);return this.prependListener(e,h(this,e,t)),this},o.prototype.removeListener=function(e,t){var n,i,r,a,s;if("function"!=typeof t)throw new TypeError('The "listener" argument must be of type Function. Received type '+typeof t);if(void 0===(i=this._events))return this;if(void 0===(n=i[e]))return this;if(n===t||n.listener===t)0==--this._eventsCount?this._events=Object.create(null):(delete i[e],i.removeListener&&this.emit("removeListener",e,n.listener||t));else if("function"!=typeof n){for(r=-1,a=n.length-1;a>=0;a--)if(n[a]===t||n[a].listener===t){s=n[a].listener,r=a;break}if(r<0)return this;0===r?n.shift():function(e,t){for(;t+1<e.length;t++)e[t]=e[t+1];e.pop()}(n,r),1===n.length&&(i[e]=n[0]),void 0!==i.removeListener&&this.emit("removeListener",e,s||t)}return this},o.prototype.off=o.prototype.removeListener,o.prototype.removeAllListeners=function(e){var t,n,i;if(void 0===(n=this._events))return this;if(void 0===n.removeListener)return 0===arguments.length?(this._events=Object.create(null),this._eventsCount=0):void 0!==n[e]&&(0==--this._eventsCount?this._events=Object.create(null):delete n[e]),this;if(0===arguments.length){var r,a=Object.keys(n);for(i=0;i<a.length;++i)"removeListener"!==(r=a[i])&&this.removeAllListeners(r);return this.removeAllListeners("removeListener"),this._events=Object.create(null),this._eventsCount=0,this}if("function"==typeof(t=n[e]))this.removeListener(e,t);else if(void 0!==t)for(i=t.length-1;i>=0;i--)this.removeListener(e,t[i]);return this},o.prototype.listeners=function(e){return f(this,e,!0)},o.prototype.rawListeners=function(e){return f(this,e,!1)},o.listenerCount=function(e,t){return"function"==typeof e.listenerCount?e.listenerCount(t):c.call(e,t)},o.prototype.listenerCount=c,o.prototype.eventNames=function(){return this._eventsCount>0?i(this._events):[]}},function(e,t,n){"use strict";Object.defineProperty(t,"__esModule",{value:!0}),t.BaseLoader=t.LoaderErrors=t.LoaderStatus=void 0;var i=function(){function e(e,t){for(var n=0;n<t.length;n++){var i=t[n];i.enumerable=i.enumerable||!1,i.configurable=!0,"value"in i&&(i.writable=!0),Object.defineProperty(e,i.key,i)}}return function(t,n,i){return n&&e(t.prototype,n),i&&e(t,i),t}}(),r=n(1);var a=t.LoaderStatus={kIdle:0,kConnecting:1,kBuffering:2,kError:3,kComplete:4};t.LoaderErrors={OK:"OK",EXCEPTION:"Exception",HTTP_STATUS_CODE_INVALID:"HttpStatusCodeInvalid",CONNECTING_TIMEOUT:"ConnectingTimeout",EARLY_EOF:"EarlyEof",UNRECOVERABLE_EARLY_EOF:"UnrecoverableEarlyEof"},t.BaseLoader=function(){function e(t){!function(e,t){if(!(e instanceof t))throw new TypeError("Cannot call a class as a function")}(this,e),this._type=t||"undefined",this._status=a.kIdle,this._needStash=!1,this._onContentLengthKnown=null,this._onURLRedirect=null,this._onDataArrival=null,this._onError=null,this._onComplete=null}return i(e,[{key:"destroy",value:function(){this._status=a.kIdle,this._onContentLengthKnown=null,this._onURLRedirect=null,this._onDataArrival=null,this._onError=null,this._onComplete=null}},{key:"isWorking",value:function(){return this._status===a.kConnecting||this._status===a.kBuffering}},{key:"open",value:function(e,t){throw new r.NotImplementedException("Unimplemented abstract function!")}},{key:"abort",value:function(){throw new r.NotImplementedException("Unimplemented abstract function!")}},{key:"type",get:function(){return this._type}},{key:"status",get:function(){return this._status}},{key:"needStashBuffer",get:function(){return this._needStash}},{key:"onContentLengthKnown",get:function(){return this._onContentLengthKnown},set:function(e){this._onContentLengthKnown=e}},{key:"onURLRedirect",get:function(){return this._onURLRedirect},set:function(e){this._onURLRedirect=e}},{key:"onDataArrival",get:function(){return this._onDataArrival},set:function(e){this._onDataArrival=e}},{key:"onError",get:function(){return this._onError},set:function(e){this._onError=e}},{key:"onComplete",get:function(){return this._onComplete},set:function(e){this._onComplete=e}}]),e}()},function(e,t,n){"use strict";Object.defineProperty(t,"__esModule",{value:!0});var i={};!function(){var e=self.navigator.userAgent.toLowerCase(),t=/(edge)\/([\w.]+)/.exec(e)||/(opr)[\/]([\w.]+)/.exec(e)||/(chrome)[ \/]([\w.]+)/.exec(e)||/(iemobile)[\/]([\w.]+)/.exec(e)||/(version)(applewebkit)[ \/]([\w.]+).*(safari)[ \/]([\w.]+)/.exec(e)||/(webkit)[ \/]([\w.]+).*(version)[ \/]([\w.]+).*(safari)[ \/]([\w.]+)/.exec(e)||/(webkit)[ \/]([\w.]+)/.exec(e)||/(opera)(?:.*version|)[ \/]([\w.]+)/.exec(e)||/(msie) ([\w.]+)/.exec(e)||e.indexOf("trident")>=0&&/(rv)(?::| )([\w.]+)/.exec(e)||e.indexOf("compatible")<0&&/(firefox)[ \/]([\w.]+)/.exec(e)||[],n=/(ipad)/.exec(e)||/(ipod)/.exec(e)||/(windows phone)/.exec(e)||/(iphone)/.exec(e)||/(kindle)/.exec(e)||/(android)/.exec(e)||/(windows)/.exec(e)||/(mac)/.exec(e)||/(linux)/.exec(e)||/(cros)/.exec(e)||[],r={browser:t[5]||t[3]||t[1]||"",version:t[2]||t[4]||"0",majorVersion:t[4]||t[2]||"0",platform:n[0]||""},a={};if(r.browser){a[r.browser]=!0;var s=r.majorVersion.split(".");a.version={major:parseInt(r.majorVersion,10),string:r.version},s.length>1&&(a.version.minor=parseInt(s[1],10)),s.length>2&&(a.version.build=parseInt(s[2],10))}r.platform&&(a[r.platform]=!0),(a.chrome||a.opr||a.safari)&&(a.webkit=!0),(a.rv||a.iemobile)&&(a.rv&&delete a.rv,r.browser="msie",a.msie=!0);a.edge&&(delete a.edge,r.browser="msedge",a.msedge=!0);a.opr&&(r.browser="opera",a.opera=!0);a.safari&&a.android&&(r.browser="android",a.android=!0);for(var o in a.name=r.browser,a.platform=r.platform,i)i.hasOwnProperty(o)&&delete i[o];Object.assign(i,a)}(),t.default=i,e.exports=t.default},function(e,t,n){"use strict";Object.defineProperty(t,"__esModule",{value:!0});t.default={IO_ERROR:"io_error",DEMUX_ERROR:"demux_error",INIT_SEGMENT:"init_segment",MEDIA_SEGMENT:"media_segment",LOADING_COMPLETE:"loading_complete",RECOVERED_EARLY_EOF:"recovered_early_eof",MEDIA_INFO:"media_info",STATISTICS_INFO:"statistics_info",RECOMMEND_SEEKPOINT:"recommend_seekpoint"},e.exports=t.default},function(e,t,n){"use strict";Object.defineProperty(t,"__esModule",{value:!0}),t.createDefaultConfig=function(){return Object.assign({},i)};var i=t.defaultConfig={enableWorker:!1,enableStashBuffer:!0,stashInitialSize:void 0,isLive:!1,lazyLoad:!0,lazyLoadMaxDuration:180,lazyLoadRecoverDuration:30,deferLoadAfterSourceOpen:!0,autoCleanupMaxBackwardDuration:180,autoCleanupMinBackwardDuration:120,statisticsInfoReportInterval:600,fixAudioTimestampGap:!0,accurateSeek:!1,seekType:"range",seekParamStart:"bstart",seekParamEnd:"bend",rangeLoadZeroStart:!1,customSeekHandler:void 0,reuseRedirectedURL:!1}},function(e,t,n){"use strict";Object.defineProperty(t,"__esModule",{value:!0});t.default={ERROR:"error",LOADING_COMPLETE:"loading_complete",RECOVERED_EARLY_EOF:"recovered_early_eof",MEDIA_INFO:"media_info",STATISTICS_INFO:"statistics_info"},e.exports=t.default},function(e,t,n){"use strict";Object.defineProperty(t,"__esModule",{value:!0});var i=function(){function e(e,t){for(var n=0;n<t.length;n++){var i=t[n];i.enumerable=i.enumerable||!1,i.configurable=!0,"value"in i&&(i.writable=!0),Object.defineProperty(e,i.key,i)}}return function(t,n,i){return n&&e(t.prototype,n),i&&e(t,i),t}}(),r=s(n(2)),a=s(n(0));function s(e){return e&&e.__esModule?e:{default:e}}var o=function(){function e(){!function(e,t){if(!(e instanceof t))throw new TypeError("Cannot call a class as a function")}(this,e)}return i(e,null,[{key:"getConfig",value:function(){return{globalTag:a.default.GLOBAL_TAG,forceGlobalTag:a.default.FORCE_GLOBAL_TAG,enableVerbose:a.default.ENABLE_VERBOSE,enableDebug:a.default.ENABLE_DEBUG,enableInfo:a.default.ENABLE_INFO,enableWarn:a.default.ENABLE_WARN,enableError:a.default.ENABLE_ERROR,enableCallback:a.default.ENABLE_CALLBACK}}},{key:"applyConfig",value:function(e){a.default.GLOBAL_TAG=e.globalTag,a.default.FORCE_GLOBAL_TAG=e.forceGlobalTag,a.default.ENABLE_VERBOSE=e.enableVerbose,a.default.ENABLE_DEBUG=e.enableDebug,a.default.ENABLE_INFO=e.enableInfo,a.default.ENABLE_WARN=e.enableWarn,a.default.ENABLE_ERROR=e.enableError,a.default.ENABLE_CALLBACK=e.enableCallback}},{key:"_notifyChange",value:function(){var t=e.emitter;if(t.listenerCount("change")>0){var n=e.getConfig();t.emit("change",n)}}},{key:"registerListener",value:function(t){e.emitter.addListener("change",t)}},{key:"removeListener",value:function(t){e.emitter.removeListener("change",t)}},{key:"addLogListener",value:function(t){a.default.emitter.addListener("log",t),a.default.emitter.listenerCount("log")>0&&(a.default.ENABLE_CALLBACK=!0,e._notifyChange())}},{key:"removeLogListener",value:function(t){a.default.emitter.removeListener("log",t),0===a.default.emitter.listenerCount("log")&&(a.default.ENABLE_CALLBACK=!1,e._notifyChange())}},{key:"forceGlobalTag",get:function(){return a.default.FORCE_GLOBAL_TAG},set:function(t){a.default.FORCE_GLOBAL_TAG=t,e._notifyChange()}},{key:"globalTag",get:function(){return a.default.GLOBAL_TAG},set:function(t){a.default.GLOBAL_TAG=t,e._notifyChange()}},{key:"enableAll",get:function(){return a.default.ENABLE_VERBOSE&&a.default.ENABLE_DEBUG&&a.default.ENABLE_INFO&&a.default.ENABLE_WARN&&a.default.ENABLE_ERROR},set:function(t){a.default.ENABLE_VERBOSE=t,a.default.ENABLE_DEBUG=t,a.default.ENABLE_INFO=t,a.default.ENABLE_WARN=t,a.default.ENABLE_ERROR=t,e._notifyChange()}},{key:"enableDebug",get:function(){return a.default.ENABLE_DEBUG},set:function(t){a.default.ENABLE_DEBUG=t,e._notifyChange()}},{key:"enableVerbose",get:function(){return a.default.ENABLE_VERBOSE},set:function(t){a.default.ENABLE_VERBOSE=t,e._notifyChange()}},{key:"enableInfo",get:function(){return a.default.ENABLE_INFO},set:function(t){a.default.ENABLE_INFO=t,e._notifyChange()}},{key:"enableWarn",get:function(){return a.default.ENABLE_WARN},set:function(t){a.default.ENABLE_WARN=t,e._notifyChange()}},{key:"enableError",get:function(){return a.default.ENABLE_ERROR},set:function(t){a.default.ENABLE_ERROR=t,e._notifyChange()}}]),e}();o.emitter=new r.default,t.default=o,e.exports=t.default},function(e,t,n){"use strict";Object.defineProperty(t,"__esModule",{value:!0});var i=function(){function e(e,t){for(var n=0;n<t.length;n++){var i=t[n];i.enumerable=i.enumerable||!1,i.configurable=!0,"value"in i&&(i.writable=!0),Object.defineProperty(e,i.key,i)}}return function(t,n,i){return n&&e(t.prototype,n),i&&e(t,i),t}}();var r=function(){function e(){!function(e,t){if(!(e instanceof t))throw new TypeError("Cannot call a class as a function")}(this,e),this.mimeType=null,this.duration=null,this.hasAudio=null,this.hasVideo=null,this.audioCodec=null,this.videoCodec=null,this.audioDataRate=null,this.videoDataRate=null,this.audioSampleRate=null,this.audioChannelCount=null,this.width=null,this.height=null,this.fps=null,this.profile=null,this.level=null,this.refFrames=null,this.chromaFormat=null,this.sarNum=null,this.sarDen=null,this.metadata=null,this.segments=null,this.segmentCount=null,this.hasKeyframesIndex=null,this.keyframesIndex=null}return i(e,[{key:"isComplete",value:function(){var e=!1===this.hasAudio||!0===this.hasAudio&&null!=this.audioCodec&&null!=this.audioSampleRate&&null!=this.audioChannelCount,t=!1===this.hasVideo||!0===this.hasVideo&&null!=this.videoCodec&&null!=this.width&&null!=this.height&&null!=this.fps&&null!=this.profile&&null!=this.level&&null!=this.refFrames&&null!=this.chromaFormat&&null!=this.sarNum&&null!=this.sarDen;return null!=this.mimeType&&null!=this.duration&&null!=this.metadata&&null!=this.hasKeyframesIndex&&e&&t}},{key:"isSeekable",value:function(){return!0===this.hasKeyframesIndex}},{key:"getNearestKeyframe",value:function(e){if(null==this.keyframesIndex)return null;var t=this.keyframesIndex,n=this._search(t.times,e);return{index:n,milliseconds:t.times[n],fileposition:t.filepositions[n]}}},{key:"_search",value:function(e,t){var n=0,i=e.length-1,r=0,a=0,s=i;for(t<e[0]&&(n=0,a=s+1);a<=s;){if((r=a+Math.floor((s-a)/2))===i||t>=e[r]&&t<e[r+1]){n=r;break}e[r]<t?a=r+1:s=r-1}return n}}]),e}();t.default=r,e.exports=t.default},function(e,t,n){"use strict";Object.defineProperty(t,"__esModule",{value:!0});t.default={OK:"OK",FORMAT_ERROR:"FormatError",FORMAT_UNSUPPORTED:"FormatUnsupported",CODEC_UNSUPPORTED:"CodecUnsupported"},e.exports=t.default},function(e,t,n){"use strict";Object.defineProperty(t,"__esModule",{value:!0});var i=function(){function e(e,t){for(var n=0;n<t.length;n++){var i=t[n];i.enumerable=i.enumerable||!1,i.configurable=!0,"value"in i&&(i.writable=!0),Object.defineProperty(e,i.key,i)}}return function(t,n,i){return n&&e(t.prototype,n),i&&e(t,i),t}}();var r=function(){function e(){!function(e,t){if(!(e instanceof t))throw new TypeError("Cannot call a class as a function")}(this,e)}return i(e,null,[{key:"install",value:function(){Object.setPrototypeOf=Object.setPrototypeOf||function(e,t){return e.__proto__=t,e},Object.assign=Object.assign||function(e){if(null==e)throw new TypeError("Cannot convert undefined or null to object");for(var t=Object(e),n=1;n<arguments.length;n++){var i=arguments[n];if(null!=i)for(var r in i)i.hasOwnProperty(r)&&(t[r]=i[r])}return t},"function"!=typeof self.Promise&&n(22).polyfill()}}]),e}();r.install(),t.default=r,e.exports=t.default},function(e,t,n){"use strict";Object.defineProperty(t,"__esModule",{value:!0});var i=function(){function e(e,t){for(var n=0;n<t.length;n++){var i=t[n];i.enumerable=i.enumerable||!1,i.configurable=!0,"value"in i&&(i.writable=!0),Object.defineProperty(e,i.key,i)}}return function(t,n,i){return n&&e(t.prototype,n),i&&e(t,i),t}}(),r=_(n(0)),a=_(n(13)),s=n(3),o=_(n(26)),u=_(n(27)),l=(_(n(28)),_(n(29))),d=_(n(30)),h=_(n(31)),f=_(n(32)),c=n(1);function _(e){return e&&e.__esModule?e:{default:e}}var m=function(){function e(t,n,i){!function(e,t){if(!(e instanceof t))throw new TypeError("Cannot call a class as a function")}(this,e),this.TAG="IOController",this._config=n,this._extraData=i,this._stashInitialSize=393216,null!=n.stashInitialSize&&n.stashInitialSize>0&&(this._stashInitialSize=n.stashInitialSize),this._stashUsed=0,this._stashSize=this._stashInitialSize,this._bufferSize=3145728,this._stashBuffer=new ArrayBuffer(this._bufferSize),this._stashByteStart=0,this._enableStash=!0,!1===n.enableStashBuffer&&(this._enableStash=!1),this._loader=null,this._loaderClass=null,this._seekHandler=null,this._dataSource=t,this._isWebSocketURL=/wss?:\/\/(.+?)/.test(t.url),this._refTotalLength=t.filesize?t.filesize:null,this._totalLength=this._refTotalLength,this._fullRequestFlag=!1,this._currentRange=null,this._redirectedURL=null,this._speedNormalized=0,this._speedSampler=new a.default,this._speedNormalizeList=[64,128,256,384,512,768,1024,1536,2048,3072,4096],this._isEarlyEofReconnecting=!1,this._paused=!1,this._resumeFrom=0,this._onDataArrival=null,this._onSeeked=null,this._onError=null,this._onComplete=null,this._onRedirect=null,this._onRecoveredEarlyEof=null,this._selectSeekHandler(),this._selectLoader(),this._createLoader()}return i(e,[{key:"destroy",value:function(){this._loader.isWorking()&&this._loader.abort(),this._loader.destroy(),this._loader=null,this._loaderClass=null,this._dataSource=null,this._stashBuffer=null,this._stashUsed=this._stashSize=this._bufferSize=this._stashByteStart=0,this._currentRange=null,this._speedSampler=null,this._isEarlyEofReconnecting=!1,this._onDataArrival=null,this._onSeeked=null,this._onError=null,this._onComplete=null,this._onRedirect=null,this._onRecoveredEarlyEof=null,this._extraData=null}},{key:"isWorking",value:function(){return this._loader&&this._loader.isWorking()&&!this._paused}},{key:"isPaused",value:function(){return this._paused}},{key:"_selectSeekHandler",value:function(){var e=this._config;if("range"===e.seekType)this._seekHandler=new h.default(this._config.rangeLoadZeroStart);else if("param"===e.seekType){var t=e.seekParamStart||"bstart",n=e.seekParamEnd||"bend";this._seekHandler=new f.default(t,n)}else{if("custom"!==e.seekType)throw new c.InvalidArgumentException("Invalid seekType in config: "+e.seekType);if("function"!=typeof e.customSeekHandler)throw new c.InvalidArgumentException("Custom seekType specified in config but invalid customSeekHandler!");this._seekHandler=new e.customSeekHandler}}},{key:"_selectLoader",value:function(){if(this._isWebSocketURL)this._loaderClass=d.default;else if(o.default.isSupported())this._loaderClass=o.default;else if(u.default.isSupported())this._loaderClass=u.default;else{if(!l.default.isSupported())throw new c.RuntimeException("Your browser doesn't support xhr with arraybuffer responseType!");this._loaderClass=l.default}}},{key:"_createLoader",value:function(){this._loader=new this._loaderClass(this._seekHandler,this._config),!1===this._loader.needStashBuffer&&(this._enableStash=!1),this._loader.onContentLengthKnown=this._onContentLengthKnown.bind(this),this._loader.onURLRedirect=this._onURLRedirect.bind(this),this._loader.onDataArrival=this._onLoaderChunkArrival.bind(this),this._loader.onComplete=this._onLoaderComplete.bind(this),this._loader.onError=this._onLoaderError.bind(this)}},{key:"open",value:function(e){this._currentRange={from:0,to:-1},e&&(this._currentRange.from=e),this._speedSampler.reset(),e||(this._fullRequestFlag=!0),this._loader.open(this._dataSource,Object.assign({},this._currentRange))}},{key:"abort",value:function(){this._loader.abort(),this._paused&&(this._paused=!1,this._resumeFrom=0)}},{key:"pause",value:function(){this.isWorking()&&(this._loader.abort(),0!==this._stashUsed?(this._resumeFrom=this._stashByteStart,this._currentRange.to=this._stashByteStart-1):this._resumeFrom=this._currentRange.to+1,this._stashUsed=0,this._stashByteStart=0,this._paused=!0)}},{key:"resume",value:function(){if(this._paused){this._paused=!1;var e=this._resumeFrom;this._resumeFrom=0,this._internalSeek(e,!0)}}},{key:"seek",value:function(e){this._paused=!1,this._stashUsed=0,this._stashByteStart=0,this._internalSeek(e,!0)}},{key:"_internalSeek",value:function(e,t){this._loader.isWorking()&&this._loader.abort(),this._flushStashBuffer(t),this._loader.destroy(),this._loader=null;var n={from:e,to:-1};this._currentRange={from:n.from,to:-1},this._speedSampler.reset(),this._stashSize=this._stashInitialSize,this._createLoader(),this._loader.open(this._dataSource,n),this._onSeeked&&this._onSeeked()}},{key:"updateUrl",value:function(e){if(!e||"string"!=typeof e||0===e.length)throw new c.InvalidArgumentException("Url must be a non-empty string!");this._dataSource.url=e}},{key:"_expandBuffer",value:function(e){for(var t=this._stashSize;t+1048576<e;)t*=2;if((t+=1048576)!==this._bufferSize){var n=new ArrayBuffer(t);if(this._stashUsed>0){var i=new Uint8Array(this._stashBuffer,0,this._stashUsed);new Uint8Array(n,0,t).set(i,0)}this._stashBuffer=n,this._bufferSize=t}}},{key:"_normalizeSpeed",value:function(e){var t=this._speedNormalizeList,n=t.length-1,i=0,r=0,a=n;if(e<t[0])return t[0];for(;r<=a;){if((i=r+Math.floor((a-r)/2))===n||e>=t[i]&&e<t[i+1])return t[i];t[i]<e?r=i+1:a=i-1}}},{key:"_adjustStashSize",value:function(e){var t=0;(t=this._config.isLive?e:e<512?e:e>=512&&e<=1024?Math.floor(1.5*e):2*e)>8192&&(t=8192);var n=1024*t+1048576;this._bufferSize<n&&this._expandBuffer(n),this._stashSize=1024*t}},{key:"_dispatchChunks",value:function(e,t){return this._currentRange.to=t+e.byteLength-1,this._onDataArrival(e,t)}},{key:"_onURLRedirect",value:function(e){this._redirectedURL=e,this._onRedirect&&this._onRedirect(e)}},{key:"_onContentLengthKnown",value:function(e){e&&this._fullRequestFlag&&(this._totalLength=e,this._fullRequestFlag=!1)}},{key:"_onLoaderChunkArrival",value:function(e,t,n){if(!this._onDataArrival)throw new c.IllegalStateException("IOController: No existing consumer (onDataArrival) callback!");if(!this._paused){this._isEarlyEofReconnecting&&(this._isEarlyEofReconnecting=!1,this._onRecoveredEarlyEof&&this._onRecoveredEarlyEof()),this._speedSampler.addBytes(e.byteLength);var i=this._speedSampler.lastSecondKBps;if(0!==i){var r=this._normalizeSpeed(i);this._speedNormalized!==r&&(this._speedNormalized=r,this._adjustStashSize(r))}if(this._enableStash)if(0===this._stashUsed&&0===this._stashByteStart&&(this._stashByteStart=t),this._stashUsed+e.byteLength<=this._stashSize){new Uint8Array(this._stashBuffer,0,this._stashSize).set(new Uint8Array(e),this._stashUsed),this._stashUsed+=e.byteLength}else{var a=new Uint8Array(this._stashBuffer,0,this._bufferSize);if(this._stashUsed>0){var s=this._stashBuffer.slice(0,this._stashUsed),o=this._dispatchChunks(s,this._stashByteStart);if(o<s.byteLength){if(o>0){var u=new Uint8Array(s,o);a.set(u,0),this._stashUsed=u.byteLength,this._stashByteStart+=o}}else this._stashUsed=0,this._stashByteStart+=o;this._stashUsed+e.byteLength>this._bufferSize&&(this._expandBuffer(this._stashUsed+e.byteLength),a=new Uint8Array(this._stashBuffer,0,this._bufferSize)),a.set(new Uint8Array(e),this._stashUsed),this._stashUsed+=e.byteLength}else{var l=this._dispatchChunks(e,t);if(l<e.byteLength){var d=e.byteLength-l;d>this._bufferSize&&(this._expandBuffer(d),a=new Uint8Array(this._stashBuffer,0,this._bufferSize)),a.set(new Uint8Array(e,l),0),this._stashUsed+=d,this._stashByteStart=t+l}}}else if(0===this._stashUsed){var h=this._dispatchChunks(e,t);if(h<e.byteLength){var f=e.byteLength-h;f>this._bufferSize&&this._expandBuffer(f),new Uint8Array(this._stashBuffer,0,this._bufferSize).set(new Uint8Array(e,h),0),this._stashUsed+=f,this._stashByteStart=t+h}}else{this._stashUsed+e.byteLength>this._bufferSize&&this._expandBuffer(this._stashUsed+e.byteLength);var _=new Uint8Array(this._stashBuffer,0,this._bufferSize);_.set(new Uint8Array(e),this._stashUsed),this._stashUsed+=e.byteLength;var m=this._dispatchChunks(this._stashBuffer.slice(0,this._stashUsed),this._stashByteStart);if(m<this._stashUsed&&m>0){var p=new Uint8Array(this._stashBuffer,m);_.set(p,0)}this._stashUsed-=m,this._stashByteStart+=m}}}},{key:"_flushStashBuffer",value:function(e){if(this._stashUsed>0){var t=this._stashBuffer.slice(0,this._stashUsed),n=this._dispatchChunks(t,this._stashByteStart),i=t.byteLength-n;if(n<t.byteLength){if(!e){if(n>0){var a=new Uint8Array(this._stashBuffer,0,this._bufferSize),s=new Uint8Array(t,n);a.set(s,0),this._stashUsed=s.byteLength,this._stashByteStart+=n}return 0}r.default.w(this.TAG,i+" bytes unconsumed data remain when flush buffer, dropped")}return this._stashUsed=0,this._stashByteStart=0,i}return 0}},{key:"_onLoaderComplete",value:function(e,t){this._flushStashBuffer(!0),this._onComplete&&this._onComplete(this._extraData)}},{key:"_onLoaderError",value:function(e,t){switch(r.default.e(this.TAG,"Loader error, code = "+t.code+", msg = "+t.msg),this._flushStashBuffer(!1),this._isEarlyEofReconnecting&&(this._isEarlyEofReconnecting=!1,e=s.LoaderErrors.UNRECOVERABLE_EARLY_EOF),e){case s.LoaderErrors.EARLY_EOF:if(!this._config.isLive&&this._totalLength){var n=this._currentRange.to+1;return void(n<this._totalLength&&(r.default.w(this.TAG,"Connection lost, trying reconnect..."),this._isEarlyEofReconnecting=!0,this._internalSeek(n,!1)))}e=s.LoaderErrors.UNRECOVERABLE_EARLY_EOF;break;case s.LoaderErrors.UNRECOVERABLE_EARLY_EOF:case s.LoaderErrors.CONNECTING_TIMEOUT:case s.LoaderErrors.HTTP_STATUS_CODE_INVALID:case s.LoaderErrors.EXCEPTION:}if(!this._onError)throw new c.RuntimeException("IOException: "+t.msg);this._onError(e,t)}},{key:"status",get:function(){return this._loader.status}},{key:"extraData",get:function(){return this._extraData},set:function(e){this._extraData=e}},{key:"onDataArrival",get:function(){return this._onDataArrival},set:function(e){this._onDataArrival=e}},{key:"onSeeked",get:function(){return this._onSeeked},set:function(e){this._onSeeked=e}},{key:"onError",get:function(){return this._onError},set:function(e){this._onError=e}},{key:"onComplete",get:function(){return this._onComplete},set:function(e){this._onComplete=e}},{key:"onRedirect",get:function(){return this._onRedirect},set:function(e){this._onRedirect=e}},{key:"onRecoveredEarlyEof",get:function(){return this._onRecoveredEarlyEof},set:function(e){this._onRecoveredEarlyEof=e}},{key:"currentURL",get:function(){return this._dataSource.url}},{key:"hasRedirect",get:function(){return null!=this._redirectedURL||null!=this._dataSource.redirectedURL}},{key:"currentRedirectedURL",get:function(){return this._redirectedURL||this._dataSource.redirectedURL}},{key:"currentSpeed",get:function(){return this._loaderClass===l.default?this._loader.currentSpeed:this._speedSampler.lastSecondKBps}},{key:"loaderType",get:function(){return this._loader.type}}]),e}();t.default=m,e.exports=t.default},function(e,t,n){"use strict";Object.defineProperty(t,"__esModule",{value:!0});var i=function(){function e(e,t){for(var n=0;n<t.length;n++){var i=t[n];i.enumerable=i.enumerable||!1,i.configurable=!0,"value"in i&&(i.writable=!0),Object.defineProperty(e,i.key,i)}}return function(t,n,i){return n&&e(t.prototype,n),i&&e(t,i),t}}();var r=function(){function e(){!function(e,t){if(!(e instanceof t))throw new TypeError("Cannot call a class as a function")}(this,e),this._firstCheckpoint=0,this._lastCheckpoint=0,this._intervalBytes=0,this._totalBytes=0,this._lastSecondBytes=0,self.performance&&self.performance.now?this._now=self.performance.now.bind(self.performance):this._now=Date.now}return i(e,[{key:"reset",value:function(){this._firstCheckpoint=this._lastCheckpoint=0,this._totalBytes=this._intervalBytes=0,this._lastSecondBytes=0}},{key:"addBytes",value:function(e){0===this._firstCheckpoint?(this._firstCheckpoint=this._now(),this._lastCheckpoint=this._firstCheckpoint,this._intervalBytes+=e,this._totalBytes+=e):this._now()-this._lastCheckpoint<1e3?(this._intervalBytes+=e,this._totalBytes+=e):(this._lastSecondBytes=this._intervalBytes,this._intervalBytes=e,this._totalBytes+=e,this._lastCheckpoint=this._now())}},{key:"currentKBps",get:function(){this.addBytes(0);var e=(this._now()-this._lastCheckpoint)/1e3;return 0==e&&(e=1),this._intervalBytes/e/1024}},{key:"lastSecondKBps",get:function(){return this.addBytes(0),0!==this._lastSecondBytes?this._lastSecondBytes/1024:this._now()-this._lastCheckpoint>=500?this.currentKBps:0}},{key:"averageKBps",get:function(){var e=(this._now()-this._firstCheckpoint)/1e3;return this._totalBytes/e/1024}}]),e}();t.default=r,e.exports=t.default},function(e,t,n){"use strict";Object.defineProperty(t,"__esModule",{value:!0});var i=function(){function e(e,t){for(var n=0;n<t.length;n++){var i=t[n];i.enumerable=i.enumerable||!1,i.configurable=!0,"value"in i&&(i.writable=!0),Object.defineProperty(e,i.key,i)}}return function(t,n,i){return n&&e(t.prototype,n),i&&e(t,i),t}}(),r=c(n(2)),a=c(n(0)),s=c(n(4)),o=c(n(9)),u=c(n(35)),l=c(n(40)),d=c(n(10)),h=c(n(12)),f=c(n(5));n(3);function c(e){return e&&e.__esModule?e:{default:e}}var _=function(){function e(t,n){!function(e,t){if(!(e instanceof t))throw new TypeError("Cannot call a class as a function")}(this,e),this.TAG="TransmuxingController",this._emitter=new r.default,this._config=n,t.segments||(t.segments=[{duration:t.duration,filesize:t.filesize,url:t.url}]),"boolean"!=typeof t.cors&&(t.cors=!0),"boolean"!=typeof t.withCredentials&&(t.withCredentials=!1),this._mediaDataSource=t,this._currentSegmentIndex=0;var i=0;this._mediaDataSource.segments.forEach(function(e){e.timestampBase=i,i+=e.duration,e.cors=t.cors,e.withCredentials=t.withCredentials,n.referrerPolicy&&(e.referrerPolicy=n.referrerPolicy)}),isNaN(i)||this._mediaDataSource.duration===i||(this._mediaDataSource.duration=i),this._mediaInfo=null,this._demuxer=null,this._remuxer=null,this._ioctl=null,this._pendingSeekTime=null,this._pendingResolveSeekPoint=null,this._statisticsReporter=null}return i(e,[{key:"destroy",value:function(){this._mediaInfo=null,this._mediaDataSource=null,this._statisticsReporter&&this._disableStatisticsReporter(),this._ioctl&&(this._ioctl.destroy(),this._ioctl=null),this._demuxer&&(this._demuxer.destroy(),this._demuxer=null),this._remuxer&&(this._remuxer.destroy(),this._remuxer=null),this._emitter.removeAllListeners(),this._emitter=null}},{key:"on",value:function(e,t){this._emitter.addListener(e,t)}},{key:"off",value:function(e,t){this._emitter.removeListener(e,t)}},{key:"start",value:function(){this._loadSegment(0),this._enableStatisticsReporter()}},{key:"_loadSegment",value:function(e,t){this._currentSegmentIndex=e;var n=this._mediaDataSource.segments[e],i=this._ioctl=new h.default(n,this._config,e);i.onError=this._onIOException.bind(this),i.onSeeked=this._onIOSeeked.bind(this),i.onComplete=this._onIOComplete.bind(this),i.onRedirect=this._onIORedirect.bind(this),i.onRecoveredEarlyEof=this._onIORecoveredEarlyEof.bind(this),t?this._demuxer.bindDataSource(this._ioctl):i.onDataArrival=this._onInitChunkArrival.bind(this),i.open(t)}},{key:"stop",value:function(){this._internalAbort(),this._disableStatisticsReporter()}},{key:"_internalAbort",value:function(){this._ioctl&&(this._ioctl.destroy(),this._ioctl=null)}},{key:"pause",value:function(){this._ioctl&&this._ioctl.isWorking()&&(this._ioctl.pause(),this._disableStatisticsReporter())}},{key:"resume",value:function(){this._ioctl&&this._ioctl.isPaused()&&(this._ioctl.resume(),this._enableStatisticsReporter())}},{key:"seek",value:function(e){if(null!=this._mediaInfo&&this._mediaInfo.isSeekable()){var t=this._searchSegmentIndexContains(e);if(t===this._currentSegmentIndex){var n=this._mediaInfo.segments[t];if(null==n)this._pendingSeekTime=e;else{var i=n.getNearestKeyframe(e);this._remuxer.seek(i.milliseconds),this._ioctl.seek(i.fileposition),this._pendingResolveSeekPoint=i.milliseconds}}else{var r=this._mediaInfo.segments[t];if(null==r)this._pendingSeekTime=e,this._internalAbort(),this._remuxer.seek(),this._remuxer.insertDiscontinuity(),this._loadSegment(t);else{var a=r.getNearestKeyframe(e);this._internalAbort(),this._remuxer.seek(e),this._remuxer.insertDiscontinuity(),this._demuxer.resetMediaInfo(),this._demuxer.timestampBase=this._mediaDataSource.segments[t].timestampBase,this._loadSegment(t,a.fileposition),this._pendingResolveSeekPoint=a.milliseconds,this._reportSegmentMediaInfo(t)}}this._enableStatisticsReporter()}}},{key:"_searchSegmentIndexContains",value:function(e){for(var t=this._mediaDataSource.segments,n=t.length-1,i=0;i<t.length;i++)if(e<t[i].timestampBase){n=i-1;break}return n}},{key:"_onInitChunkArrival",value:function(e,t){var n=this,i=null,r=0;if(t>0)this._demuxer.bindDataSource(this._ioctl),this._demuxer.timestampBase=this._mediaDataSource.segments[this._currentSegmentIndex].timestampBase,r=this._demuxer.parseChunks(e,t);else if((i=u.default.probe(e)).match){this._demuxer=new u.default(i,this._config),this._demuxer._emitter.on("metadata_arrived",function(e){n._emitter.emit("metadata_arrived",e)}),this._remuxer||(this._remuxer=new l.default(this._config));var s=this._mediaDataSource;null==s.duration||isNaN(s.duration)||(this._demuxer.overridedDuration=s.duration),"boolean"==typeof s.hasAudio&&(this._demuxer.overridedHasAudio=s.hasAudio),"boolean"==typeof s.hasVideo&&(this._demuxer.overridedHasVideo=s.hasVideo),this._demuxer.timestampBase=s.segments[this._currentSegmentIndex].timestampBase,this._demuxer.onError=this._onDemuxException.bind(this),this._demuxer.onMediaInfo=this._onMediaInfo.bind(this),this._remuxer.bindDataSource(this._demuxer.bindDataSource(this._ioctl)),this._remuxer.onInitSegment=this._onRemuxerInitSegmentArrival.bind(this),this._remuxer.onMediaSegment=this._onRemuxerMediaSegmentArrival.bind(this),r=this._demuxer.parseChunks(e,t)}else i=null,a.default.e(this.TAG,"Non-FLV, Unsupported media type!"),Promise.resolve().then(function(){n._internalAbort()}),this._emitter.emit(f.default.DEMUX_ERROR,d.default.FORMAT_UNSUPPORTED,"Non-FLV, Unsupported media type"),r=0;return r}},{key:"_onMediaInfo",value:function(e){var t=this;null==this._mediaInfo&&(this._mediaInfo=Object.assign({},e),this._mediaInfo.keyframesIndex=null,this._mediaInfo.segments=[],this._mediaInfo.segmentCount=this._mediaDataSource.segments.length,Object.setPrototypeOf(this._mediaInfo,o.default.prototype));var n=Object.assign({},e);Object.setPrototypeOf(n,o.default.prototype),this._mediaInfo.segments[this._currentSegmentIndex]=n,this._reportSegmentMediaInfo(this._currentSegmentIndex),null!=this._pendingSeekTime&&Promise.resolve().then(function(){var e=t._pendingSeekTime;t._pendingSeekTime=null,t.seek(e)})}},{key:"_onIOSeeked",value:function(){this._remuxer.insertDiscontinuity()}},{key:"_onIOComplete",value:function(e){var t=e+1;t<this._mediaDataSource.segments.length?(this._internalAbort(),this._loadSegment(t)):(this._remuxer.flushStashedSamples(),this._emitter.emit(f.default.LOADING_COMPLETE),this._disableStatisticsReporter())}},{key:"_onIORedirect",value:function(e){var t=this._ioctl.extraData;this._mediaDataSource.segments[t].redirectedURL=e}},{key:"_onIORecoveredEarlyEof",value:function(){this._emitter.emit(f.default.RECOVERED_EARLY_EOF)}},{key:"_onIOException",value:function(e,t){a.default.e(this.TAG,"IOException: type = "+e+", code = "+t.code+", msg = "+t.msg),this._emitter.emit(f.default.IO_ERROR,e,t),this._disableStatisticsReporter()}},{key:"_onDemuxException",value:function(e,t){a.default.e(this.TAG,"DemuxException: type = "+e+", info = "+t),this._emitter.emit(f.default.DEMUX_ERROR,e,t)}},{key:"_onRemuxerInitSegmentArrival",value:function(e,t){this._emitter.emit(f.default.INIT_SEGMENT,e,t)}},{key:"_onRemuxerMediaSegmentArrival",value:function(e,t){if(null==this._pendingSeekTime&&(this._emitter.emit(f.default.MEDIA_SEGMENT,e,t),null!=this._pendingResolveSeekPoint&&"video"===e)){var n=t.info.syncPoints,i=this._pendingResolveSeekPoint;this._pendingResolveSeekPoint=null,s.default.safari&&n.length>0&&n[0].originalDts===i&&(i=n[0].pts),this._emitter.emit(f.default.RECOMMEND_SEEKPOINT,i)}}},{key:"_enableStatisticsReporter",value:function(){null==this._statisticsReporter&&(this._statisticsReporter=self.setInterval(this._reportStatisticsInfo.bind(this),this._config.statisticsInfoReportInterval))}},{key:"_disableStatisticsReporter",value:function(){this._statisticsReporter&&(self.clearInterval(this._statisticsReporter),this._statisticsReporter=null)}},{key:"_reportSegmentMediaInfo",value:function(e){var t=this._mediaInfo.segments[e],n=Object.assign({},t);n.duration=this._mediaInfo.duration,n.segmentCount=this._mediaInfo.segmentCount,delete n.segments,delete n.keyframesIndex,this._emitter.emit(f.default.MEDIA_INFO,n)}},{key:"_reportStatisticsInfo",value:function(){var e={};e.url=this._ioctl.currentURL,e.hasRedirect=this._ioctl.hasRedirect,e.hasRedirect&&(e.redirectedURL=this._ioctl.currentRedirectedURL),e.speed=this._ioctl.currentSpeed,e.loaderType=this._ioctl.loaderType,e.currentSegmentIndex=this._currentSegmentIndex,e.totalSegmentCount=this._mediaDataSource.segments.length,this._emitter.emit(f.default.STATISTICS_INFO,e)}}]),e}();t.default=_,e.exports=t.default},function(e,t,n){"use strict";Object.defineProperty(t,"__esModule",{value:!0});var i=function(){function e(e,t){for(var n=0;n<t.length;n++){var i=t[n];i.enumerable=i.enumerable||!1,i.configurable=!0,"value"in i&&(i.writable=!0),Object.defineProperty(e,i.key,i)}}return function(t,n,i){return n&&e(t.prototype,n),i&&e(t,i),t}}();function r(e,t){if(!(e instanceof t))throw new TypeError("Cannot call a class as a function")}t.SampleInfo=function e(t,n,i,a,s){r(this,e),this.dts=t,this.pts=n,this.duration=i,this.originalDts=a,this.isSyncPoint=s,this.fileposition=null},t.MediaSegmentInfo=function(){function e(){r(this,e),this.beginDts=0,this.endDts=0,this.beginPts=0,this.endPts=0,this.originalBeginDts=0,this.originalEndDts=0,this.syncPoints=[],this.firstSample=null,this.lastSample=null}return i(e,[{key:"appendSyncPoint",value:function(e){e.isSyncPoint=!0,this.syncPoints.push(e)}}]),e}(),t.IDRSampleList=function(){function e(){r(this,e),this._list=[]}return i(e,[{key:"clear",value:function(){this._list=[]}},{key:"appendArray",value:function(e){var t=this._list;0!==e.length&&(t.length>0&&e[0].originalDts<t[t.length-1].originalDts&&this.clear(),Array.prototype.push.apply(t,e))}},{key:"getLastSyncPointBeforeDts",value:function(e){if(0==this._list.length)return null;var t=this._list,n=0,i=t.length-1,r=0,a=0,s=i;for(e<t[0].dts&&(n=0,a=s+1);a<=s;){if((r=a+Math.floor((s-a)/2))===i||e>=t[r].dts&&e<t[r+1].dts){n=r;break}t[r].dts<e?a=r+1:s=r-1}return this._list[n]}}]),e}(),t.MediaSegmentInfoList=function(){function e(t){r(this,e),this._type=t,this._list=[],this._lastAppendLocation=-1}return i(e,[{key:"isEmpty",value:function(){return 0===this._list.length}},{key:"clear",value:function(){this._list=[],this._lastAppendLocation=-1}},{key:"_searchNearestSegmentBefore",value:function(e){var t=this._list;if(0===t.length)return-2;var n=t.length-1,i=0,r=0,a=n,s=0;if(e<t[0].originalBeginDts)return s=-1;for(;r<=a;){if((i=r+Math.floor((a-r)/2))===n||e>t[i].lastSample.originalDts&&e<t[i+1].originalBeginDts){s=i;break}t[i].originalBeginDts<e?r=i+1:a=i-1}return s}},{key:"_searchNearestSegmentAfter",value:function(e){return this._searchNearestSegmentBefore(e)+1}},{key:"append",value:function(e){var t=this._list,n=e,i=this._lastAppendLocation,r=0;-1!==i&&i<t.length&&n.originalBeginDts>=t[i].lastSample.originalDts&&(i===t.length-1||i<t.length-1&&n.originalBeginDts<t[i+1].originalBeginDts)?r=i+1:t.length>0&&(r=this._searchNearestSegmentBefore(n.originalBeginDts)+1),this._lastAppendLocation=r,this._list.splice(r,0,n)}},{key:"getLastSegmentBefore",value:function(e){var t=this._searchNearestSegmentBefore(e);return t>=0?this._list[t]:null}},{key:"getLastSampleBefore",value:function(e){var t=this.getLastSegmentBefore(e);return null!=t?t.lastSample:null}},{key:"getLastSyncPointBefore",value:function(e){for(var t=this._searchNearestSegmentBefore(e),n=this._list[t].syncPoints;0===n.length&&t>0;)t--,n=this._list[t].syncPoints;return n.length>0?n[n.length-1]:null}},{key:"type",get:function(){return this._type}},{key:"length",get:function(){return this._list.length}}]),e}()},function(e,t,n){"use strict";Object.defineProperty(t,"__esModule",{value:!0});t.default={ERROR:"error",SOURCE_OPEN:"source_open",UPDATE_END:"update_end",BUFFER_FULL:"buffer_full"},e.exports=t.default},function(e,t,n){"use strict";Object.defineProperty(t,"__esModule",{value:!0}),t.ErrorDetails=t.ErrorTypes=void 0;var i,r=n(3),a=n(10),s=(i=a)&&i.__esModule?i:{default:i};t.ErrorTypes={NETWORK_ERROR:"NetworkError",MEDIA_ERROR:"MediaError",OTHER_ERROR:"OtherError"},t.ErrorDetails={NETWORK_EXCEPTION:r.LoaderErrors.EXCEPTION,NETWORK_STATUS_CODE_INVALID:r.LoaderErrors.HTTP_STATUS_CODE_INVALID,NETWORK_TIMEOUT:r.LoaderErrors.CONNECTING_TIMEOUT,NETWORK_UNRECOVERABLE_EARLY_EOF:r.LoaderErrors.UNRECOVERABLE_EARLY_EOF,MEDIA_MSE_ERROR:"MediaMSEError",MEDIA_FORMAT_ERROR:s.default.FORMAT_ERROR,MEDIA_FORMAT_UNSUPPORTED:s.default.FORMAT_UNSUPPORTED,MEDIA_CODEC_UNSUPPORTED:s.default.CODEC_UNSUPPORTED}},function(e,t,n){e.exports=n(19)},function(e,t,n){"use strict";Object.defineProperty(t,"__esModule",{value:!0});var i=function(){function e(e,t){for(var n=0;n<t.length;n++){var i=t[n];i.enumerable=i.enumerable||!1,i.configurable=!0,"value"in i&&(i.writable=!0),Object.defineProperty(e,i.key,i)}}return function(t,n,i){return n&&e(t.prototype,n),i&&e(t,i),t}}(),r=s(n(20)),a=s(n(21));function s(e){return e&&e.__esModule?e:{default:e}}var o=function(e){function t(e){!function(e,t){if(!(e instanceof t))throw new TypeError("Cannot call a class as a function")}(this,t);var n=function(e,t){if(!e)throw new ReferenceError("this hasn't been initialised - super() hasn't been called");return!t||"object"!=typeof t&&"function"!=typeof t?e:t}(this,(t.__proto__||Object.getPrototypeOf(t)).call(this,e));n.flvOpts={type:"flv"},r.default.util.deepCopy(n.flvOpts,e);var i=n;return i.once("complete",function(){i.__flv__=a.default.createPlayer(n.flvOpts),i.createInstance(i.__flv__)}),n}return function(e,t){if("function"!=typeof t&&null!==t)throw new TypeError("Super expression must either be null or a function, not "+typeof t);e.prototype=Object.create(t&&t.prototype,{constructor:{value:e,enumerable:!1,writable:!0,configurable:!0}}),t&&(Object.setPrototypeOf?Object.setPrototypeOf(e,t):e.__proto__=t)}(t,r.default),i(t,[{key:"createInstance",value:function(e){var t=this,n=r.default.util;if(e.attachMediaElement(t.video),e.load(),e.play(),this.flvOpts.isLive){n.addClass(t.root,"xgplayer-is-live");var i=n.createDom("xg-live","正在直播",{},"xgplayer-live");t.controls.appendChild(i)}e.on(a.default.Events.ERROR,function(e){t.emit("error",new r.default.Errors("other",t.config.url))}),t.once("destroy",function(){e.destroy(),t.__flv__=null})}},{key:"switchURL",value:function(e){var t=this.__flv__;if(this.config.url=e,this.config.isLive){var n=a.default.createPlayer(this.flvOpts);t.destroy(),this.createInstance(n),this.__flv__=n}else t.onDefinitionChange(e,this.config.retryTimes)}}]),t}();o.isSupported=a.default.isSupported,t.default=o,e.exports=t.default},function(t,n){t.exports=e},function(e,t,n){"use strict";Object.defineProperty(t,"__esModule",{value:!0});var i="function"==typeof Symbol&&"symbol"==typeof Symbol.iterator?function(e){return typeof e}:function(e){return e&&"function"==typeof Symbol&&e.constructor===Symbol&&e!==Symbol.prototype?"symbol":typeof e},r=f(n(11)),a=f(n(25)),s=f(n(33)),o=f(n(46)),u=f(n(7)),l=n(17),d=f(n(8)),h=n(1);function f(e){return e&&e.__esModule?e:{default:e}}r.default.install();var c={createPlayer:function(e,t){var n=e;if(null==n||"object"!==(void 0===n?"undefined":i(n)))throw new h.InvalidArgumentException("MediaDataSource must be an javascript object!");if(!n.hasOwnProperty("type"))throw new h.InvalidArgumentException("MediaDataSource must has type field to indicate video file type!");switch(n.type){case"flv":return new s.default(n,t);default:return new o.default(n,t)}},isSupported:function(){return a.default.supportMSEH264Playback()},getFeatureList:function(){return a.default.getFeatureList()}};c.Events=u.default,c.ErrorTypes=l.ErrorTypes,c.ErrorDetails=l.ErrorDetails,c.FlvPlayer=s.default,c.NativePlayer=o.default,c.LoggingControl=d.default,Object.defineProperty(c,"version",{enumerable:!0,get:function(){return"__VERSION__"}}),t.default=c,e.exports=t.default},function(e,t,n){(function(t,n){
-/*!
+(function webpackUniversalModuleDefinition(root, factory) {
+	if(typeof exports === 'object' && typeof module === 'object')
+		module.exports = factory(require("xgplayer"));
+	else if(typeof define === 'function' && define.amd)
+		define(["xgplayer"], factory);
+	else if(typeof exports === 'object')
+		exports["xgplayer-flv.js"] = factory(require("xgplayer"));
+	else
+		root["xgplayer-flv.js"] = factory(root["xgplayer"]);
+})(window, function(__WEBPACK_EXTERNAL_MODULE__20__) {
+return /******/ (function(modules) { // webpackBootstrap
+/******/ 	// The module cache
+/******/ 	var installedModules = {};
+/******/
+/******/ 	// The require function
+/******/ 	function __webpack_require__(moduleId) {
+/******/
+/******/ 		// Check if module is in cache
+/******/ 		if(installedModules[moduleId]) {
+/******/ 			return installedModules[moduleId].exports;
+/******/ 		}
+/******/ 		// Create a new module (and put it into the cache)
+/******/ 		var module = installedModules[moduleId] = {
+/******/ 			i: moduleId,
+/******/ 			l: false,
+/******/ 			exports: {}
+/******/ 		};
+/******/
+/******/ 		// Execute the module function
+/******/ 		modules[moduleId].call(module.exports, module, module.exports, __webpack_require__);
+/******/
+/******/ 		// Flag the module as loaded
+/******/ 		module.l = true;
+/******/
+/******/ 		// Return the exports of the module
+/******/ 		return module.exports;
+/******/ 	}
+/******/
+/******/
+/******/ 	// expose the modules object (__webpack_modules__)
+/******/ 	__webpack_require__.m = modules;
+/******/
+/******/ 	// expose the module cache
+/******/ 	__webpack_require__.c = installedModules;
+/******/
+/******/ 	// define getter function for harmony exports
+/******/ 	__webpack_require__.d = function(exports, name, getter) {
+/******/ 		if(!__webpack_require__.o(exports, name)) {
+/******/ 			Object.defineProperty(exports, name, { enumerable: true, get: getter });
+/******/ 		}
+/******/ 	};
+/******/
+/******/ 	// define __esModule on exports
+/******/ 	__webpack_require__.r = function(exports) {
+/******/ 		if(typeof Symbol !== 'undefined' && Symbol.toStringTag) {
+/******/ 			Object.defineProperty(exports, Symbol.toStringTag, { value: 'Module' });
+/******/ 		}
+/******/ 		Object.defineProperty(exports, '__esModule', { value: true });
+/******/ 	};
+/******/
+/******/ 	// create a fake namespace object
+/******/ 	// mode & 1: value is a module id, require it
+/******/ 	// mode & 2: merge all properties of value into the ns
+/******/ 	// mode & 4: return value when already ns object
+/******/ 	// mode & 8|1: behave like require
+/******/ 	__webpack_require__.t = function(value, mode) {
+/******/ 		if(mode & 1) value = __webpack_require__(value);
+/******/ 		if(mode & 8) return value;
+/******/ 		if((mode & 4) && typeof value === 'object' && value && value.__esModule) return value;
+/******/ 		var ns = Object.create(null);
+/******/ 		__webpack_require__.r(ns);
+/******/ 		Object.defineProperty(ns, 'default', { enumerable: true, value: value });
+/******/ 		if(mode & 2 && typeof value != 'string') for(var key in value) __webpack_require__.d(ns, key, function(key) { return value[key]; }.bind(null, key));
+/******/ 		return ns;
+/******/ 	};
+/******/
+/******/ 	// getDefaultExport function for compatibility with non-harmony modules
+/******/ 	__webpack_require__.n = function(module) {
+/******/ 		var getter = module && module.__esModule ?
+/******/ 			function getDefault() { return module['default']; } :
+/******/ 			function getModuleExports() { return module; };
+/******/ 		__webpack_require__.d(getter, 'a', getter);
+/******/ 		return getter;
+/******/ 	};
+/******/
+/******/ 	// Object.prototype.hasOwnProperty.call
+/******/ 	__webpack_require__.o = function(object, property) { return Object.prototype.hasOwnProperty.call(object, property); };
+/******/
+/******/ 	// __webpack_public_path__
+/******/ 	__webpack_require__.p = "";
+/******/
+/******/
+/******/ 	// Load entry module and return exports
+/******/ 	return __webpack_require__(__webpack_require__.s = 18);
+/******/ })
+/************************************************************************/
+/******/ ([
+/* 0 */
+/***/ (function(module, exports, __webpack_require__) {
+
+"use strict";
+
+
+Object.defineProperty(exports, "__esModule", {
+    value: true
+});
+
+var _createClass = function () { function defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ("value" in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } } return function (Constructor, protoProps, staticProps) { if (protoProps) defineProperties(Constructor.prototype, protoProps); if (staticProps) defineProperties(Constructor, staticProps); return Constructor; }; }(); /*
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                      * Copyright (C) 2016 Bilibili. All Rights Reserved.
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                      *
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                      * @author zheng qian <xqq@xqq.im>
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                      *
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                      * Licensed under the Apache License, Version 2.0 (the "License");
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                      * you may not use this file except in compliance with the License.
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                      * You may obtain a copy of the License at
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                      *
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                      *     http://www.apache.org/licenses/LICENSE-2.0
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                      *
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                      * Unless required by applicable law or agreed to in writing, software
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                      * distributed under the License is distributed on an "AS IS" BASIS,
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                      * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                      * See the License for the specific language governing permissions and
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                      * limitations under the License.
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                      */
+
+var _events = __webpack_require__(2);
+
+var _events2 = _interopRequireDefault(_events);
+
+function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
+
+function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } }
+
+var Log = function () {
+    function Log() {
+        _classCallCheck(this, Log);
+    }
+
+    _createClass(Log, null, [{
+        key: 'e',
+        value: function e(tag, msg) {
+            if (!tag || Log.FORCE_GLOBAL_TAG) tag = Log.GLOBAL_TAG;
+
+            var str = '[' + tag + '] > ' + msg;
+
+            if (Log.ENABLE_CALLBACK) {
+                Log.emitter.emit('log', 'error', str);
+            }
+
+            if (!Log.ENABLE_ERROR) {
+                return;
+            }
+        }
+    }, {
+        key: 'i',
+        value: function i(tag, msg) {
+            if (!tag || Log.FORCE_GLOBAL_TAG) tag = Log.GLOBAL_TAG;
+
+            var str = '[' + tag + '] > ' + msg;
+
+            if (Log.ENABLE_CALLBACK) {
+                Log.emitter.emit('log', 'info', str);
+            }
+
+            if (!Log.ENABLE_INFO) {
+                return;
+            }
+        }
+    }, {
+        key: 'w',
+        value: function w(tag, msg) {
+            if (!tag || Log.FORCE_GLOBAL_TAG) tag = Log.GLOBAL_TAG;
+
+            var str = '[' + tag + '] > ' + msg;
+
+            if (Log.ENABLE_CALLBACK) {
+                Log.emitter.emit('log', 'warn', str);
+            }
+
+            if (!Log.ENABLE_WARN) {
+                return;
+            }
+        }
+    }, {
+        key: 'd',
+        value: function d(tag, msg) {
+            if (!tag || Log.FORCE_GLOBAL_TAG) tag = Log.GLOBAL_TAG;
+
+            var str = '[' + tag + '] > ' + msg;
+
+            if (Log.ENABLE_CALLBACK) {
+                Log.emitter.emit('log', 'debug', str);
+            }
+
+            if (!Log.ENABLE_DEBUG) {
+                return;
+            }
+        }
+    }, {
+        key: 'v',
+        value: function v(tag, msg) {
+            if (!tag || Log.FORCE_GLOBAL_TAG) tag = Log.GLOBAL_TAG;
+
+            var str = '[' + tag + '] > ' + msg;
+
+            if (Log.ENABLE_CALLBACK) {
+                Log.emitter.emit('log', 'verbose', str);
+            }
+
+            if (!Log.ENABLE_VERBOSE) {
+                return;
+            }
+        }
+    }]);
+
+    return Log;
+}();
+
+Log.GLOBAL_TAG = 'flv.js';
+Log.FORCE_GLOBAL_TAG = false;
+Log.ENABLE_ERROR = true;
+Log.ENABLE_INFO = true;
+Log.ENABLE_WARN = true;
+Log.ENABLE_DEBUG = true;
+Log.ENABLE_VERBOSE = true;
+
+Log.ENABLE_CALLBACK = false;
+
+Log.emitter = new _events2.default();
+
+exports.default = Log;
+module.exports = exports['default'];
+
+/***/ }),
+/* 1 */
+/***/ (function(module, exports, __webpack_require__) {
+
+"use strict";
+
+
+Object.defineProperty(exports, "__esModule", {
+    value: true
+});
+
+var _createClass = function () { function defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ("value" in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } } return function (Constructor, protoProps, staticProps) { if (protoProps) defineProperties(Constructor.prototype, protoProps); if (staticProps) defineProperties(Constructor, staticProps); return Constructor; }; }();
+
+function _possibleConstructorReturn(self, call) { if (!self) { throw new ReferenceError("this hasn't been initialised - super() hasn't been called"); } return call && (typeof call === "object" || typeof call === "function") ? call : self; }
+
+function _inherits(subClass, superClass) { if (typeof superClass !== "function" && superClass !== null) { throw new TypeError("Super expression must either be null or a function, not " + typeof superClass); } subClass.prototype = Object.create(superClass && superClass.prototype, { constructor: { value: subClass, enumerable: false, writable: true, configurable: true } }); if (superClass) Object.setPrototypeOf ? Object.setPrototypeOf(subClass, superClass) : subClass.__proto__ = superClass; }
+
+function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } }
+
+/*
+ * Copyright (C) 2016 Bilibili. All Rights Reserved.
+ *
+ * @author zheng qian <xqq@xqq.im>
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+
+var RuntimeException = exports.RuntimeException = function () {
+    function RuntimeException(message) {
+        _classCallCheck(this, RuntimeException);
+
+        this._message = message;
+    }
+
+    _createClass(RuntimeException, [{
+        key: 'toString',
+        value: function toString() {
+            return this.name + ': ' + this.message;
+        }
+    }, {
+        key: 'name',
+        get: function get() {
+            return 'RuntimeException';
+        }
+    }, {
+        key: 'message',
+        get: function get() {
+            return this._message;
+        }
+    }]);
+
+    return RuntimeException;
+}();
+
+var IllegalStateException = exports.IllegalStateException = function (_RuntimeException) {
+    _inherits(IllegalStateException, _RuntimeException);
+
+    function IllegalStateException(message) {
+        _classCallCheck(this, IllegalStateException);
+
+        return _possibleConstructorReturn(this, (IllegalStateException.__proto__ || Object.getPrototypeOf(IllegalStateException)).call(this, message));
+    }
+
+    _createClass(IllegalStateException, [{
+        key: 'name',
+        get: function get() {
+            return 'IllegalStateException';
+        }
+    }]);
+
+    return IllegalStateException;
+}(RuntimeException);
+
+var InvalidArgumentException = exports.InvalidArgumentException = function (_RuntimeException2) {
+    _inherits(InvalidArgumentException, _RuntimeException2);
+
+    function InvalidArgumentException(message) {
+        _classCallCheck(this, InvalidArgumentException);
+
+        return _possibleConstructorReturn(this, (InvalidArgumentException.__proto__ || Object.getPrototypeOf(InvalidArgumentException)).call(this, message));
+    }
+
+    _createClass(InvalidArgumentException, [{
+        key: 'name',
+        get: function get() {
+            return 'InvalidArgumentException';
+        }
+    }]);
+
+    return InvalidArgumentException;
+}(RuntimeException);
+
+var NotImplementedException = exports.NotImplementedException = function (_RuntimeException3) {
+    _inherits(NotImplementedException, _RuntimeException3);
+
+    function NotImplementedException(message) {
+        _classCallCheck(this, NotImplementedException);
+
+        return _possibleConstructorReturn(this, (NotImplementedException.__proto__ || Object.getPrototypeOf(NotImplementedException)).call(this, message));
+    }
+
+    _createClass(NotImplementedException, [{
+        key: 'name',
+        get: function get() {
+            return 'NotImplementedException';
+        }
+    }]);
+
+    return NotImplementedException;
+}(RuntimeException);
+
+/***/ }),
+/* 2 */
+/***/ (function(module, exports, __webpack_require__) {
+
+"use strict";
+// Copyright Joyent, Inc. and other Node contributors.
+//
+// Permission is hereby granted, free of charge, to any person obtaining a
+// copy of this software and associated documentation files (the
+// "Software"), to deal in the Software without restriction, including
+// without limitation the rights to use, copy, modify, merge, publish,
+// distribute, sublicense, and/or sell copies of the Software, and to permit
+// persons to whom the Software is furnished to do so, subject to the
+// following conditions:
+//
+// The above copyright notice and this permission notice shall be included
+// in all copies or substantial portions of the Software.
+//
+// THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS
+// OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF
+// MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN
+// NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM,
+// DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR
+// OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE
+// USE OR OTHER DEALINGS IN THE SOFTWARE.
+
+
+
+var R = typeof Reflect === 'object' ? Reflect : null
+var ReflectApply = R && typeof R.apply === 'function'
+  ? R.apply
+  : function ReflectApply(target, receiver, args) {
+    return Function.prototype.apply.call(target, receiver, args);
+  }
+
+var ReflectOwnKeys
+if (R && typeof R.ownKeys === 'function') {
+  ReflectOwnKeys = R.ownKeys
+} else if (Object.getOwnPropertySymbols) {
+  ReflectOwnKeys = function ReflectOwnKeys(target) {
+    return Object.getOwnPropertyNames(target)
+      .concat(Object.getOwnPropertySymbols(target));
+  };
+} else {
+  ReflectOwnKeys = function ReflectOwnKeys(target) {
+    return Object.getOwnPropertyNames(target);
+  };
+}
+
+function ProcessEmitWarning(warning) {
+  if (console && console.warn) console.warn(warning);
+}
+
+var NumberIsNaN = Number.isNaN || function NumberIsNaN(value) {
+  return value !== value;
+}
+
+function EventEmitter() {
+  EventEmitter.init.call(this);
+}
+module.exports = EventEmitter;
+
+// Backwards-compat with node 0.10.x
+EventEmitter.EventEmitter = EventEmitter;
+
+EventEmitter.prototype._events = undefined;
+EventEmitter.prototype._eventsCount = 0;
+EventEmitter.prototype._maxListeners = undefined;
+
+// By default EventEmitters will print a warning if more than 10 listeners are
+// added to it. This is a useful default which helps finding memory leaks.
+var defaultMaxListeners = 10;
+
+function checkListener(listener) {
+  if (typeof listener !== 'function') {
+    throw new TypeError('The "listener" argument must be of type Function. Received type ' + typeof listener);
+  }
+}
+
+Object.defineProperty(EventEmitter, 'defaultMaxListeners', {
+  enumerable: true,
+  get: function() {
+    return defaultMaxListeners;
+  },
+  set: function(arg) {
+    if (typeof arg !== 'number' || arg < 0 || NumberIsNaN(arg)) {
+      throw new RangeError('The value of "defaultMaxListeners" is out of range. It must be a non-negative number. Received ' + arg + '.');
+    }
+    defaultMaxListeners = arg;
+  }
+});
+
+EventEmitter.init = function() {
+
+  if (this._events === undefined ||
+      this._events === Object.getPrototypeOf(this)._events) {
+    this._events = Object.create(null);
+    this._eventsCount = 0;
+  }
+
+  this._maxListeners = this._maxListeners || undefined;
+};
+
+// Obviously not all Emitters should be limited to 10. This function allows
+// that to be increased. Set to zero for unlimited.
+EventEmitter.prototype.setMaxListeners = function setMaxListeners(n) {
+  if (typeof n !== 'number' || n < 0 || NumberIsNaN(n)) {
+    throw new RangeError('The value of "n" is out of range. It must be a non-negative number. Received ' + n + '.');
+  }
+  this._maxListeners = n;
+  return this;
+};
+
+function _getMaxListeners(that) {
+  if (that._maxListeners === undefined)
+    return EventEmitter.defaultMaxListeners;
+  return that._maxListeners;
+}
+
+EventEmitter.prototype.getMaxListeners = function getMaxListeners() {
+  return _getMaxListeners(this);
+};
+
+EventEmitter.prototype.emit = function emit(type) {
+  var args = [];
+  for (var i = 1; i < arguments.length; i++) args.push(arguments[i]);
+  var doError = (type === 'error');
+
+  var events = this._events;
+  if (events !== undefined)
+    doError = (doError && events.error === undefined);
+  else if (!doError)
+    return false;
+
+  // If there is no 'error' event listener then throw.
+  if (doError) {
+    var er;
+    if (args.length > 0)
+      er = args[0];
+    if (er instanceof Error) {
+      // Note: The comments on the `throw` lines are intentional, they show
+      // up in Node's output if this results in an unhandled exception.
+      throw er; // Unhandled 'error' event
+    }
+    // At least give some kind of context to the user
+    var err = new Error('Unhandled error.' + (er ? ' (' + er.message + ')' : ''));
+    err.context = er;
+    throw err; // Unhandled 'error' event
+  }
+
+  var handler = events[type];
+
+  if (handler === undefined)
+    return false;
+
+  if (typeof handler === 'function') {
+    ReflectApply(handler, this, args);
+  } else {
+    var len = handler.length;
+    var listeners = arrayClone(handler, len);
+    for (var i = 0; i < len; ++i)
+      ReflectApply(listeners[i], this, args);
+  }
+
+  return true;
+};
+
+function _addListener(target, type, listener, prepend) {
+  var m;
+  var events;
+  var existing;
+
+  checkListener(listener);
+
+  events = target._events;
+  if (events === undefined) {
+    events = target._events = Object.create(null);
+    target._eventsCount = 0;
+  } else {
+    // To avoid recursion in the case that type === "newListener"! Before
+    // adding it to the listeners, first emit "newListener".
+    if (events.newListener !== undefined) {
+      target.emit('newListener', type,
+                  listener.listener ? listener.listener : listener);
+
+      // Re-assign `events` because a newListener handler could have caused the
+      // this._events to be assigned to a new object
+      events = target._events;
+    }
+    existing = events[type];
+  }
+
+  if (existing === undefined) {
+    // Optimize the case of one listener. Don't need the extra array object.
+    existing = events[type] = listener;
+    ++target._eventsCount;
+  } else {
+    if (typeof existing === 'function') {
+      // Adding the second element, need to change to array.
+      existing = events[type] =
+        prepend ? [listener, existing] : [existing, listener];
+      // If we've already got an array, just append.
+    } else if (prepend) {
+      existing.unshift(listener);
+    } else {
+      existing.push(listener);
+    }
+
+    // Check for listener leak
+    m = _getMaxListeners(target);
+    if (m > 0 && existing.length > m && !existing.warned) {
+      existing.warned = true;
+      // No error code for this since it is a Warning
+      // eslint-disable-next-line no-restricted-syntax
+      var w = new Error('Possible EventEmitter memory leak detected. ' +
+                          existing.length + ' ' + String(type) + ' listeners ' +
+                          'added. Use emitter.setMaxListeners() to ' +
+                          'increase limit');
+      w.name = 'MaxListenersExceededWarning';
+      w.emitter = target;
+      w.type = type;
+      w.count = existing.length;
+      ProcessEmitWarning(w);
+    }
+  }
+
+  return target;
+}
+
+EventEmitter.prototype.addListener = function addListener(type, listener) {
+  return _addListener(this, type, listener, false);
+};
+
+EventEmitter.prototype.on = EventEmitter.prototype.addListener;
+
+EventEmitter.prototype.prependListener =
+    function prependListener(type, listener) {
+      return _addListener(this, type, listener, true);
+    };
+
+function onceWrapper() {
+  if (!this.fired) {
+    this.target.removeListener(this.type, this.wrapFn);
+    this.fired = true;
+    if (arguments.length === 0)
+      return this.listener.call(this.target);
+    return this.listener.apply(this.target, arguments);
+  }
+}
+
+function _onceWrap(target, type, listener) {
+  var state = { fired: false, wrapFn: undefined, target: target, type: type, listener: listener };
+  var wrapped = onceWrapper.bind(state);
+  wrapped.listener = listener;
+  state.wrapFn = wrapped;
+  return wrapped;
+}
+
+EventEmitter.prototype.once = function once(type, listener) {
+  checkListener(listener);
+  this.on(type, _onceWrap(this, type, listener));
+  return this;
+};
+
+EventEmitter.prototype.prependOnceListener =
+    function prependOnceListener(type, listener) {
+      checkListener(listener);
+      this.prependListener(type, _onceWrap(this, type, listener));
+      return this;
+    };
+
+// Emits a 'removeListener' event if and only if the listener was removed.
+EventEmitter.prototype.removeListener =
+    function removeListener(type, listener) {
+      var list, events, position, i, originalListener;
+
+      checkListener(listener);
+
+      events = this._events;
+      if (events === undefined)
+        return this;
+
+      list = events[type];
+      if (list === undefined)
+        return this;
+
+      if (list === listener || list.listener === listener) {
+        if (--this._eventsCount === 0)
+          this._events = Object.create(null);
+        else {
+          delete events[type];
+          if (events.removeListener)
+            this.emit('removeListener', type, list.listener || listener);
+        }
+      } else if (typeof list !== 'function') {
+        position = -1;
+
+        for (i = list.length - 1; i >= 0; i--) {
+          if (list[i] === listener || list[i].listener === listener) {
+            originalListener = list[i].listener;
+            position = i;
+            break;
+          }
+        }
+
+        if (position < 0)
+          return this;
+
+        if (position === 0)
+          list.shift();
+        else {
+          spliceOne(list, position);
+        }
+
+        if (list.length === 1)
+          events[type] = list[0];
+
+        if (events.removeListener !== undefined)
+          this.emit('removeListener', type, originalListener || listener);
+      }
+
+      return this;
+    };
+
+EventEmitter.prototype.off = EventEmitter.prototype.removeListener;
+
+EventEmitter.prototype.removeAllListeners =
+    function removeAllListeners(type) {
+      var listeners, events, i;
+
+      events = this._events;
+      if (events === undefined)
+        return this;
+
+      // not listening for removeListener, no need to emit
+      if (events.removeListener === undefined) {
+        if (arguments.length === 0) {
+          this._events = Object.create(null);
+          this._eventsCount = 0;
+        } else if (events[type] !== undefined) {
+          if (--this._eventsCount === 0)
+            this._events = Object.create(null);
+          else
+            delete events[type];
+        }
+        return this;
+      }
+
+      // emit removeListener for all listeners on all events
+      if (arguments.length === 0) {
+        var keys = Object.keys(events);
+        var key;
+        for (i = 0; i < keys.length; ++i) {
+          key = keys[i];
+          if (key === 'removeListener') continue;
+          this.removeAllListeners(key);
+        }
+        this.removeAllListeners('removeListener');
+        this._events = Object.create(null);
+        this._eventsCount = 0;
+        return this;
+      }
+
+      listeners = events[type];
+
+      if (typeof listeners === 'function') {
+        this.removeListener(type, listeners);
+      } else if (listeners !== undefined) {
+        // LIFO order
+        for (i = listeners.length - 1; i >= 0; i--) {
+          this.removeListener(type, listeners[i]);
+        }
+      }
+
+      return this;
+    };
+
+function _listeners(target, type, unwrap) {
+  var events = target._events;
+
+  if (events === undefined)
+    return [];
+
+  var evlistener = events[type];
+  if (evlistener === undefined)
+    return [];
+
+  if (typeof evlistener === 'function')
+    return unwrap ? [evlistener.listener || evlistener] : [evlistener];
+
+  return unwrap ?
+    unwrapListeners(evlistener) : arrayClone(evlistener, evlistener.length);
+}
+
+EventEmitter.prototype.listeners = function listeners(type) {
+  return _listeners(this, type, true);
+};
+
+EventEmitter.prototype.rawListeners = function rawListeners(type) {
+  return _listeners(this, type, false);
+};
+
+EventEmitter.listenerCount = function(emitter, type) {
+  if (typeof emitter.listenerCount === 'function') {
+    return emitter.listenerCount(type);
+  } else {
+    return listenerCount.call(emitter, type);
+  }
+};
+
+EventEmitter.prototype.listenerCount = listenerCount;
+function listenerCount(type) {
+  var events = this._events;
+
+  if (events !== undefined) {
+    var evlistener = events[type];
+
+    if (typeof evlistener === 'function') {
+      return 1;
+    } else if (evlistener !== undefined) {
+      return evlistener.length;
+    }
+  }
+
+  return 0;
+}
+
+EventEmitter.prototype.eventNames = function eventNames() {
+  return this._eventsCount > 0 ? ReflectOwnKeys(this._events) : [];
+};
+
+function arrayClone(arr, n) {
+  var copy = new Array(n);
+  for (var i = 0; i < n; ++i)
+    copy[i] = arr[i];
+  return copy;
+}
+
+function spliceOne(list, index) {
+  for (; index + 1 < list.length; index++)
+    list[index] = list[index + 1];
+  list.pop();
+}
+
+function unwrapListeners(arr) {
+  var ret = new Array(arr.length);
+  for (var i = 0; i < ret.length; ++i) {
+    ret[i] = arr[i].listener || arr[i];
+  }
+  return ret;
+}
+
+
+/***/ }),
+/* 3 */
+/***/ (function(module, exports, __webpack_require__) {
+
+"use strict";
+
+
+Object.defineProperty(exports, "__esModule", {
+    value: true
+});
+exports.BaseLoader = exports.LoaderErrors = exports.LoaderStatus = undefined;
+
+var _createClass = function () { function defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ("value" in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } } return function (Constructor, protoProps, staticProps) { if (protoProps) defineProperties(Constructor.prototype, protoProps); if (staticProps) defineProperties(Constructor, staticProps); return Constructor; }; }(); /*
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                      * Copyright (C) 2016 Bilibili. All Rights Reserved.
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                      *
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                      * @author zheng qian <xqq@xqq.im>
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                      *
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                      * Licensed under the Apache License, Version 2.0 (the "License");
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                      * you may not use this file except in compliance with the License.
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                      * You may obtain a copy of the License at
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                      *
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                      *     http://www.apache.org/licenses/LICENSE-2.0
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                      *
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                      * Unless required by applicable law or agreed to in writing, software
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                      * distributed under the License is distributed on an "AS IS" BASIS,
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                      * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                      * See the License for the specific language governing permissions and
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                      * limitations under the License.
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                      */
+
+var _exception = __webpack_require__(1);
+
+function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } }
+
+var LoaderStatus = exports.LoaderStatus = {
+    kIdle: 0,
+    kConnecting: 1,
+    kBuffering: 2,
+    kError: 3,
+    kComplete: 4
+};
+
+var LoaderErrors = exports.LoaderErrors = {
+    OK: 'OK',
+    EXCEPTION: 'Exception',
+    HTTP_STATUS_CODE_INVALID: 'HttpStatusCodeInvalid',
+    CONNECTING_TIMEOUT: 'ConnectingTimeout',
+    EARLY_EOF: 'EarlyEof',
+    UNRECOVERABLE_EARLY_EOF: 'UnrecoverableEarlyEof'
+};
+
+/* Loader has callbacks which have following prototypes:
+ *     function onContentLengthKnown(contentLength: number): void
+ *     function onURLRedirect(url: string): void
+ *     function onDataArrival(chunk: ArrayBuffer, byteStart: number, receivedLength: number): void
+ *     function onError(errorType: number, errorInfo: {code: number, msg: string}): void
+ *     function onComplete(rangeFrom: number, rangeTo: number): void
+ */
+
+var BaseLoader = exports.BaseLoader = function () {
+    function BaseLoader(typeName) {
+        _classCallCheck(this, BaseLoader);
+
+        this._type = typeName || 'undefined';
+        this._status = LoaderStatus.kIdle;
+        this._needStash = false;
+        // callbacks
+        this._onContentLengthKnown = null;
+        this._onURLRedirect = null;
+        this._onDataArrival = null;
+        this._onError = null;
+        this._onComplete = null;
+    }
+
+    _createClass(BaseLoader, [{
+        key: 'destroy',
+        value: function destroy() {
+            this._status = LoaderStatus.kIdle;
+            this._onContentLengthKnown = null;
+            this._onURLRedirect = null;
+            this._onDataArrival = null;
+            this._onError = null;
+            this._onComplete = null;
+        }
+    }, {
+        key: 'isWorking',
+        value: function isWorking() {
+            return this._status === LoaderStatus.kConnecting || this._status === LoaderStatus.kBuffering;
+        }
+    }, {
+        key: 'open',
+
+
+        // pure virtual
+        value: function open(dataSource, range) {
+            throw new _exception.NotImplementedException('Unimplemented abstract function!');
+        }
+    }, {
+        key: 'abort',
+        value: function abort() {
+            throw new _exception.NotImplementedException('Unimplemented abstract function!');
+        }
+    }, {
+        key: 'type',
+        get: function get() {
+            return this._type;
+        }
+    }, {
+        key: 'status',
+        get: function get() {
+            return this._status;
+        }
+    }, {
+        key: 'needStashBuffer',
+        get: function get() {
+            return this._needStash;
+        }
+    }, {
+        key: 'onContentLengthKnown',
+        get: function get() {
+            return this._onContentLengthKnown;
+        },
+        set: function set(callback) {
+            this._onContentLengthKnown = callback;
+        }
+    }, {
+        key: 'onURLRedirect',
+        get: function get() {
+            return this._onURLRedirect;
+        },
+        set: function set(callback) {
+            this._onURLRedirect = callback;
+        }
+    }, {
+        key: 'onDataArrival',
+        get: function get() {
+            return this._onDataArrival;
+        },
+        set: function set(callback) {
+            this._onDataArrival = callback;
+        }
+    }, {
+        key: 'onError',
+        get: function get() {
+            return this._onError;
+        },
+        set: function set(callback) {
+            this._onError = callback;
+        }
+    }, {
+        key: 'onComplete',
+        get: function get() {
+            return this._onComplete;
+        },
+        set: function set(callback) {
+            this._onComplete = callback;
+        }
+    }]);
+
+    return BaseLoader;
+}();
+
+/***/ }),
+/* 4 */
+/***/ (function(module, exports, __webpack_require__) {
+
+"use strict";
+
+
+Object.defineProperty(exports, "__esModule", {
+    value: true
+});
+/*
+ * Copyright (C) 2016 Bilibili. All Rights Reserved.
+ *
+ * @author zheng qian <xqq@xqq.im>
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+
+var Browser = {};
+
+function detect() {
+    // modified from jquery-browser-plugin
+
+    var ua = self.navigator.userAgent.toLowerCase();
+
+    var match = /(edge)\/([\w.]+)/.exec(ua) || /(opr)[\/]([\w.]+)/.exec(ua) || /(chrome)[ \/]([\w.]+)/.exec(ua) || /(iemobile)[\/]([\w.]+)/.exec(ua) || /(version)(applewebkit)[ \/]([\w.]+).*(safari)[ \/]([\w.]+)/.exec(ua) || /(webkit)[ \/]([\w.]+).*(version)[ \/]([\w.]+).*(safari)[ \/]([\w.]+)/.exec(ua) || /(webkit)[ \/]([\w.]+)/.exec(ua) || /(opera)(?:.*version|)[ \/]([\w.]+)/.exec(ua) || /(msie) ([\w.]+)/.exec(ua) || ua.indexOf('trident') >= 0 && /(rv)(?::| )([\w.]+)/.exec(ua) || ua.indexOf('compatible') < 0 && /(firefox)[ \/]([\w.]+)/.exec(ua) || [];
+
+    var platform_match = /(ipad)/.exec(ua) || /(ipod)/.exec(ua) || /(windows phone)/.exec(ua) || /(iphone)/.exec(ua) || /(kindle)/.exec(ua) || /(android)/.exec(ua) || /(windows)/.exec(ua) || /(mac)/.exec(ua) || /(linux)/.exec(ua) || /(cros)/.exec(ua) || [];
+
+    var matched = {
+        browser: match[5] || match[3] || match[1] || '',
+        version: match[2] || match[4] || '0',
+        majorVersion: match[4] || match[2] || '0',
+        platform: platform_match[0] || ''
+    };
+
+    var browser = {};
+    if (matched.browser) {
+        browser[matched.browser] = true;
+
+        var versionArray = matched.majorVersion.split('.');
+        browser.version = {
+            major: parseInt(matched.majorVersion, 10),
+            string: matched.version
+        };
+        if (versionArray.length > 1) {
+            browser.version.minor = parseInt(versionArray[1], 10);
+        }
+        if (versionArray.length > 2) {
+            browser.version.build = parseInt(versionArray[2], 10);
+        }
+    }
+
+    if (matched.platform) {
+        browser[matched.platform] = true;
+    }
+
+    if (browser.chrome || browser.opr || browser.safari) {
+        browser.webkit = true;
+    }
+
+    // MSIE. IE11 has 'rv' identifer
+    if (browser.rv || browser.iemobile) {
+        if (browser.rv) {
+            delete browser.rv;
+        }
+        var msie = 'msie';
+        matched.browser = msie;
+        browser[msie] = true;
+    }
+
+    // Microsoft Edge
+    if (browser.edge) {
+        delete browser.edge;
+        var msedge = 'msedge';
+        matched.browser = msedge;
+        browser[msedge] = true;
+    }
+
+    // Opera 15+
+    if (browser.opr) {
+        var opera = 'opera';
+        matched.browser = opera;
+        browser[opera] = true;
+    }
+
+    // Stock android browsers are marked as Safari
+    if (browser.safari && browser.android) {
+        var android = 'android';
+        matched.browser = android;
+        browser[android] = true;
+    }
+
+    browser.name = matched.browser;
+    browser.platform = matched.platform;
+
+    for (var key in Browser) {
+        if (Browser.hasOwnProperty(key)) {
+            delete Browser[key];
+        }
+    }
+    Object.assign(Browser, browser);
+}
+
+detect();
+
+exports.default = Browser;
+module.exports = exports['default'];
+
+/***/ }),
+/* 5 */
+/***/ (function(module, exports, __webpack_require__) {
+
+"use strict";
+
+
+Object.defineProperty(exports, "__esModule", {
+  value: true
+});
+/*
+ * Copyright (C) 2016 Bilibili. All Rights Reserved.
+ *
+ * @author zheng qian <xqq@xqq.im>
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+
+var TransmuxingEvents = {
+  IO_ERROR: 'io_error',
+  DEMUX_ERROR: 'demux_error',
+  INIT_SEGMENT: 'init_segment',
+  MEDIA_SEGMENT: 'media_segment',
+  LOADING_COMPLETE: 'loading_complete',
+  RECOVERED_EARLY_EOF: 'recovered_early_eof',
+  MEDIA_INFO: 'media_info',
+  STATISTICS_INFO: 'statistics_info',
+  RECOMMEND_SEEKPOINT: 'recommend_seekpoint',
+  LOADED_SEI: 'loaded_sei'
+};
+
+exports.default = TransmuxingEvents;
+module.exports = exports['default'];
+
+/***/ }),
+/* 6 */
+/***/ (function(module, exports, __webpack_require__) {
+
+"use strict";
+
+
+Object.defineProperty(exports, "__esModule", {
+    value: true
+});
+exports.createDefaultConfig = createDefaultConfig;
+/*
+ * Copyright (C) 2016 Bilibili. All Rights Reserved.
+ *
+ * @author zheng qian <xqq@xqq.im>
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+
+var defaultConfig = exports.defaultConfig = {
+    enableWorker: false,
+    enableStashBuffer: true,
+    stashInitialSize: undefined,
+
+    isLive: false,
+
+    lazyLoad: true,
+    lazyLoadMaxDuration: 3 * 60,
+    lazyLoadRecoverDuration: 30,
+    deferLoadAfterSourceOpen: true,
+
+    // autoCleanupSourceBuffer: default as false, leave unspecified
+    autoCleanupMaxBackwardDuration: 3 * 60,
+    autoCleanupMinBackwardDuration: 2 * 60,
+
+    statisticsInfoReportInterval: 600,
+
+    fixAudioTimestampGap: true,
+
+    accurateSeek: false,
+    seekType: 'range', // [range, param, custom]
+    seekParamStart: 'bstart',
+    seekParamEnd: 'bend',
+    rangeLoadZeroStart: false,
+    customSeekHandler: undefined,
+    reuseRedirectedURL: false
+    // referrerPolicy: leave as unspecified
+};
+
+function createDefaultConfig() {
+    return Object.assign({}, defaultConfig);
+}
+
+/***/ }),
+/* 7 */
+/***/ (function(module, exports, __webpack_require__) {
+
+"use strict";
+
+
+Object.defineProperty(exports, "__esModule", {
+  value: true
+});
+/*
+ * Copyright (C) 2016 Bilibili. All Rights Reserved.
+ *
+ * @author zheng qian <xqq@xqq.im>
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+
+var PlayerEvents = {
+  ERROR: 'error',
+  LOADING_COMPLETE: 'loading_complete',
+  RECOVERED_EARLY_EOF: 'recovered_early_eof',
+  MEDIA_INFO: 'media_info',
+  STATISTICS_INFO: 'statistics_info',
+  LOADED_SEI: 'loaded_sei'
+};
+
+exports.default = PlayerEvents;
+module.exports = exports['default'];
+
+/***/ }),
+/* 8 */
+/***/ (function(module, exports, __webpack_require__) {
+
+"use strict";
+
+
+Object.defineProperty(exports, "__esModule", {
+    value: true
+});
+
+var _createClass = function () { function defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ("value" in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } } return function (Constructor, protoProps, staticProps) { if (protoProps) defineProperties(Constructor.prototype, protoProps); if (staticProps) defineProperties(Constructor, staticProps); return Constructor; }; }(); /*
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                      * Copyright (C) 2016 Bilibili. All Rights Reserved.
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                      *
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                      * @author zheng qian <xqq@xqq.im>
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                      *
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                      * Licensed under the Apache License, Version 2.0 (the "License");
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                      * you may not use this file except in compliance with the License.
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                      * You may obtain a copy of the License at
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                      *
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                      *     http://www.apache.org/licenses/LICENSE-2.0
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                      *
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                      * Unless required by applicable law or agreed to in writing, software
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                      * distributed under the License is distributed on an "AS IS" BASIS,
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                      * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                      * See the License for the specific language governing permissions and
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                      * limitations under the License.
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                      */
+
+var _events = __webpack_require__(2);
+
+var _events2 = _interopRequireDefault(_events);
+
+var _logger = __webpack_require__(0);
+
+var _logger2 = _interopRequireDefault(_logger);
+
+function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
+
+function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } }
+
+var LoggingControl = function () {
+    function LoggingControl() {
+        _classCallCheck(this, LoggingControl);
+    }
+
+    _createClass(LoggingControl, null, [{
+        key: 'getConfig',
+        value: function getConfig() {
+            return {
+                globalTag: _logger2.default.GLOBAL_TAG,
+                forceGlobalTag: _logger2.default.FORCE_GLOBAL_TAG,
+                enableVerbose: _logger2.default.ENABLE_VERBOSE,
+                enableDebug: _logger2.default.ENABLE_DEBUG,
+                enableInfo: _logger2.default.ENABLE_INFO,
+                enableWarn: _logger2.default.ENABLE_WARN,
+                enableError: _logger2.default.ENABLE_ERROR,
+                enableCallback: _logger2.default.ENABLE_CALLBACK
+            };
+        }
+    }, {
+        key: 'applyConfig',
+        value: function applyConfig(config) {
+            _logger2.default.GLOBAL_TAG = config.globalTag;
+            _logger2.default.FORCE_GLOBAL_TAG = config.forceGlobalTag;
+            _logger2.default.ENABLE_VERBOSE = config.enableVerbose;
+            _logger2.default.ENABLE_DEBUG = config.enableDebug;
+            _logger2.default.ENABLE_INFO = config.enableInfo;
+            _logger2.default.ENABLE_WARN = config.enableWarn;
+            _logger2.default.ENABLE_ERROR = config.enableError;
+            _logger2.default.ENABLE_CALLBACK = config.enableCallback;
+        }
+    }, {
+        key: '_notifyChange',
+        value: function _notifyChange() {
+            var emitter = LoggingControl.emitter;
+
+            if (emitter.listenerCount('change') > 0) {
+                var config = LoggingControl.getConfig();
+                emitter.emit('change', config);
+            }
+        }
+    }, {
+        key: 'registerListener',
+        value: function registerListener(listener) {
+            LoggingControl.emitter.addListener('change', listener);
+        }
+    }, {
+        key: 'removeListener',
+        value: function removeListener(listener) {
+            LoggingControl.emitter.removeListener('change', listener);
+        }
+    }, {
+        key: 'addLogListener',
+        value: function addLogListener(listener) {
+            _logger2.default.emitter.addListener('log', listener);
+            if (_logger2.default.emitter.listenerCount('log') > 0) {
+                _logger2.default.ENABLE_CALLBACK = true;
+                LoggingControl._notifyChange();
+            }
+        }
+    }, {
+        key: 'removeLogListener',
+        value: function removeLogListener(listener) {
+            _logger2.default.emitter.removeListener('log', listener);
+            if (_logger2.default.emitter.listenerCount('log') === 0) {
+                _logger2.default.ENABLE_CALLBACK = false;
+                LoggingControl._notifyChange();
+            }
+        }
+    }, {
+        key: 'forceGlobalTag',
+        get: function get() {
+            return _logger2.default.FORCE_GLOBAL_TAG;
+        },
+        set: function set(enable) {
+            _logger2.default.FORCE_GLOBAL_TAG = enable;
+            LoggingControl._notifyChange();
+        }
+    }, {
+        key: 'globalTag',
+        get: function get() {
+            return _logger2.default.GLOBAL_TAG;
+        },
+        set: function set(tag) {
+            _logger2.default.GLOBAL_TAG = tag;
+            LoggingControl._notifyChange();
+        }
+    }, {
+        key: 'enableAll',
+        get: function get() {
+            return _logger2.default.ENABLE_VERBOSE && _logger2.default.ENABLE_DEBUG && _logger2.default.ENABLE_INFO && _logger2.default.ENABLE_WARN && _logger2.default.ENABLE_ERROR;
+        },
+        set: function set(enable) {
+            _logger2.default.ENABLE_VERBOSE = enable;
+            _logger2.default.ENABLE_DEBUG = enable;
+            _logger2.default.ENABLE_INFO = enable;
+            _logger2.default.ENABLE_WARN = enable;
+            _logger2.default.ENABLE_ERROR = enable;
+            LoggingControl._notifyChange();
+        }
+    }, {
+        key: 'enableDebug',
+        get: function get() {
+            return _logger2.default.ENABLE_DEBUG;
+        },
+        set: function set(enable) {
+            _logger2.default.ENABLE_DEBUG = enable;
+            LoggingControl._notifyChange();
+        }
+    }, {
+        key: 'enableVerbose',
+        get: function get() {
+            return _logger2.default.ENABLE_VERBOSE;
+        },
+        set: function set(enable) {
+            _logger2.default.ENABLE_VERBOSE = enable;
+            LoggingControl._notifyChange();
+        }
+    }, {
+        key: 'enableInfo',
+        get: function get() {
+            return _logger2.default.ENABLE_INFO;
+        },
+        set: function set(enable) {
+            _logger2.default.ENABLE_INFO = enable;
+            LoggingControl._notifyChange();
+        }
+    }, {
+        key: 'enableWarn',
+        get: function get() {
+            return _logger2.default.ENABLE_WARN;
+        },
+        set: function set(enable) {
+            _logger2.default.ENABLE_WARN = enable;
+            LoggingControl._notifyChange();
+        }
+    }, {
+        key: 'enableError',
+        get: function get() {
+            return _logger2.default.ENABLE_ERROR;
+        },
+        set: function set(enable) {
+            _logger2.default.ENABLE_ERROR = enable;
+            LoggingControl._notifyChange();
+        }
+    }]);
+
+    return LoggingControl;
+}();
+
+LoggingControl.emitter = new _events2.default();
+
+exports.default = LoggingControl;
+module.exports = exports['default'];
+
+/***/ }),
+/* 9 */
+/***/ (function(module, exports, __webpack_require__) {
+
+"use strict";
+
+
+Object.defineProperty(exports, "__esModule", {
+    value: true
+});
+
+var _createClass = function () { function defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ("value" in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } } return function (Constructor, protoProps, staticProps) { if (protoProps) defineProperties(Constructor.prototype, protoProps); if (staticProps) defineProperties(Constructor, staticProps); return Constructor; }; }();
+
+function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } }
+
+/*
+ * Copyright (C) 2016 Bilibili. All Rights Reserved.
+ *
+ * @author zheng qian <xqq@xqq.im>
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+
+var MediaInfo = function () {
+    function MediaInfo() {
+        _classCallCheck(this, MediaInfo);
+
+        this.mimeType = null;
+        this.duration = null;
+
+        this.hasAudio = null;
+        this.hasVideo = null;
+        this.audioCodec = null;
+        this.videoCodec = null;
+        this.audioDataRate = null;
+        this.videoDataRate = null;
+
+        this.audioSampleRate = null;
+        this.audioChannelCount = null;
+
+        this.width = null;
+        this.height = null;
+        this.fps = null;
+        this.profile = null;
+        this.level = null;
+        this.refFrames = null;
+        this.chromaFormat = null;
+        this.sarNum = null;
+        this.sarDen = null;
+
+        this.metadata = null;
+        this.segments = null; // MediaInfo[]
+        this.segmentCount = null;
+        this.hasKeyframesIndex = null;
+        this.keyframesIndex = null;
+    }
+
+    _createClass(MediaInfo, [{
+        key: "isComplete",
+        value: function isComplete() {
+            var audioInfoComplete = this.hasAudio === false || this.hasAudio === true && this.audioCodec != null && this.audioSampleRate != null && this.audioChannelCount != null;
+
+            var videoInfoComplete = this.hasVideo === false || this.hasVideo === true && this.videoCodec != null && this.width != null && this.height != null && this.fps != null && this.profile != null && this.level != null && this.refFrames != null && this.chromaFormat != null && this.sarNum != null && this.sarDen != null;
+
+            // keyframesIndex may not be present
+            return this.mimeType != null && this.duration != null && this.metadata != null && this.hasKeyframesIndex != null && audioInfoComplete && videoInfoComplete;
+        }
+    }, {
+        key: "isSeekable",
+        value: function isSeekable() {
+            return this.hasKeyframesIndex === true;
+        }
+    }, {
+        key: "getNearestKeyframe",
+        value: function getNearestKeyframe(milliseconds) {
+            if (this.keyframesIndex == null) {
+                return null;
+            }
+
+            var table = this.keyframesIndex;
+            var keyframeIdx = this._search(table.times, milliseconds);
+
+            return {
+                index: keyframeIdx,
+                milliseconds: table.times[keyframeIdx],
+                fileposition: table.filepositions[keyframeIdx]
+            };
+        }
+    }, {
+        key: "_search",
+        value: function _search(list, value) {
+            var idx = 0;
+
+            var last = list.length - 1;
+            var mid = 0;
+            var lbound = 0;
+            var ubound = last;
+
+            if (value < list[0]) {
+                idx = 0;
+                lbound = ubound + 1; // skip search
+            }
+
+            while (lbound <= ubound) {
+                mid = lbound + Math.floor((ubound - lbound) / 2);
+                if (mid === last || value >= list[mid] && value < list[mid + 1]) {
+                    idx = mid;
+                    break;
+                } else if (list[mid] < value) {
+                    lbound = mid + 1;
+                } else {
+                    ubound = mid - 1;
+                }
+            }
+
+            return idx;
+        }
+    }]);
+
+    return MediaInfo;
+}();
+
+exports.default = MediaInfo;
+module.exports = exports["default"];
+
+/***/ }),
+/* 10 */
+/***/ (function(module, exports, __webpack_require__) {
+
+"use strict";
+
+
+Object.defineProperty(exports, "__esModule", {
+  value: true
+});
+/*
+ * Copyright (C) 2016 Bilibili. All Rights Reserved.
+ *
+ * @author zheng qian <xqq@xqq.im>
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+
+var DemuxErrors = {
+  OK: 'OK',
+  FORMAT_ERROR: 'FormatError',
+  FORMAT_UNSUPPORTED: 'FormatUnsupported',
+  CODEC_UNSUPPORTED: 'CodecUnsupported'
+};
+
+exports.default = DemuxErrors;
+module.exports = exports['default'];
+
+/***/ }),
+/* 11 */
+/***/ (function(module, exports, __webpack_require__) {
+
+"use strict";
+
+
+Object.defineProperty(exports, "__esModule", {
+    value: true
+});
+
+var _createClass = function () { function defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ("value" in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } } return function (Constructor, protoProps, staticProps) { if (protoProps) defineProperties(Constructor.prototype, protoProps); if (staticProps) defineProperties(Constructor, staticProps); return Constructor; }; }();
+
+function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } }
+
+/*
+ * Copyright (C) 2016 Bilibili. All Rights Reserved.
+ *
+ * @author zheng qian <xqq@xqq.im>
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+
+var Polyfill = function () {
+    function Polyfill() {
+        _classCallCheck(this, Polyfill);
+    }
+
+    _createClass(Polyfill, null, [{
+        key: 'install',
+        value: function install() {
+            // ES6 Object.setPrototypeOf
+            Object.setPrototypeOf = Object.setPrototypeOf || function (obj, proto) {
+                obj.__proto__ = proto;
+                return obj;
+            };
+
+            // ES6 Object.assign
+            Object.assign = Object.assign || function (target) {
+                if (target === undefined || target === null) {
+                    throw new TypeError('Cannot convert undefined or null to object');
+                }
+
+                var output = Object(target);
+                for (var i = 1; i < arguments.length; i++) {
+                    var source = arguments[i];
+                    if (source !== undefined && source !== null) {
+                        for (var key in source) {
+                            if (source.hasOwnProperty(key)) {
+                                output[key] = source[key];
+                            }
+                        }
+                    }
+                }
+                return output;
+            };
+
+            // ES6 Promise (missing support in IE11)
+            if (typeof self.Promise !== 'function') {
+                __webpack_require__(22).polyfill();
+            }
+        }
+    }]);
+
+    return Polyfill;
+}();
+
+Polyfill.install();
+
+exports.default = Polyfill;
+module.exports = exports['default'];
+
+/***/ }),
+/* 12 */
+/***/ (function(module, exports, __webpack_require__) {
+
+"use strict";
+
+
+Object.defineProperty(exports, "__esModule", {
+    value: true
+});
+
+var _createClass = function () { function defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ("value" in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } } return function (Constructor, protoProps, staticProps) { if (protoProps) defineProperties(Constructor.prototype, protoProps); if (staticProps) defineProperties(Constructor, staticProps); return Constructor; }; }(); /*
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                      * Copyright (C) 2016 Bilibili. All Rights Reserved.
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                      *
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                      * @author zheng qian <xqq@xqq.im>
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                      *
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                      * Licensed under the Apache License, Version 2.0 (the "License");
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                      * you may not use this file except in compliance with the License.
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                      * You may obtain a copy of the License at
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                      *
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                      *     http://www.apache.org/licenses/LICENSE-2.0
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                      *
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                      * Unless required by applicable law or agreed to in writing, software
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                      * distributed under the License is distributed on an "AS IS" BASIS,
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                      * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                      * See the License for the specific language governing permissions and
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                      * limitations under the License.
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                      */
+
+var _logger = __webpack_require__(0);
+
+var _logger2 = _interopRequireDefault(_logger);
+
+var _speedSampler = __webpack_require__(13);
+
+var _speedSampler2 = _interopRequireDefault(_speedSampler);
+
+var _loader = __webpack_require__(3);
+
+var _fetchStreamLoader = __webpack_require__(26);
+
+var _fetchStreamLoader2 = _interopRequireDefault(_fetchStreamLoader);
+
+var _xhrMozChunkedLoader = __webpack_require__(27);
+
+var _xhrMozChunkedLoader2 = _interopRequireDefault(_xhrMozChunkedLoader);
+
+var _xhrMsstreamLoader = __webpack_require__(28);
+
+var _xhrMsstreamLoader2 = _interopRequireDefault(_xhrMsstreamLoader);
+
+var _xhrRangeLoader = __webpack_require__(29);
+
+var _xhrRangeLoader2 = _interopRequireDefault(_xhrRangeLoader);
+
+var _websocketLoader = __webpack_require__(30);
+
+var _websocketLoader2 = _interopRequireDefault(_websocketLoader);
+
+var _rangeSeekHandler = __webpack_require__(31);
+
+var _rangeSeekHandler2 = _interopRequireDefault(_rangeSeekHandler);
+
+var _paramSeekHandler = __webpack_require__(32);
+
+var _paramSeekHandler2 = _interopRequireDefault(_paramSeekHandler);
+
+var _exception = __webpack_require__(1);
+
+function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
+
+function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } }
+
+/**
+ * DataSource: {
+ *     url: string,
+ *     filesize: number,
+ *     cors: boolean,
+ *     withCredentials: boolean
+ * }
+ * 
+ */
+
+// Manage IO Loaders
+var IOController = function () {
+    function IOController(dataSource, config, extraData) {
+        _classCallCheck(this, IOController);
+
+        this.TAG = 'IOController';
+
+        this._config = config;
+        this._extraData = extraData;
+
+        this._stashInitialSize = 1024 * 384; // default initial size: 384KB
+        if (config.stashInitialSize != undefined && config.stashInitialSize > 0) {
+            // apply from config
+            this._stashInitialSize = config.stashInitialSize;
+        }
+
+        this._stashUsed = 0;
+        this._stashSize = this._stashInitialSize;
+        this._bufferSize = 1024 * 1024 * 3; // initial size: 3MB
+        this._stashBuffer = new ArrayBuffer(this._bufferSize);
+        this._stashByteStart = 0;
+        this._enableStash = true;
+        if (config.enableStashBuffer === false) {
+            this._enableStash = false;
+        }
+
+        this._loader = null;
+        this._loaderClass = null;
+        this._seekHandler = null;
+
+        this._dataSource = dataSource;
+        this._isWebSocketURL = /wss?:\/\/(.+?)/.test(dataSource.url);
+        this._refTotalLength = dataSource.filesize ? dataSource.filesize : null;
+        this._totalLength = this._refTotalLength;
+        this._fullRequestFlag = false;
+        this._currentRange = null;
+        this._redirectedURL = null;
+
+        this._speedNormalized = 0;
+        this._speedSampler = new _speedSampler2.default();
+        this._speedNormalizeList = [64, 128, 256, 384, 512, 768, 1024, 1536, 2048, 3072, 4096];
+
+        this._isEarlyEofReconnecting = false;
+
+        this._paused = false;
+        this._resumeFrom = 0;
+
+        this._onDataArrival = null;
+        this._onSeeked = null;
+        this._onError = null;
+        this._onComplete = null;
+        this._onRedirect = null;
+        this._onRecoveredEarlyEof = null;
+
+        this._selectSeekHandler();
+        this._selectLoader();
+        this._createLoader();
+    }
+
+    _createClass(IOController, [{
+        key: 'destroy',
+        value: function destroy() {
+            if (this._loader.isWorking()) {
+                this._loader.abort();
+            }
+            this._loader.destroy();
+            this._loader = null;
+            this._loaderClass = null;
+            this._dataSource = null;
+            this._stashBuffer = null;
+            this._stashUsed = this._stashSize = this._bufferSize = this._stashByteStart = 0;
+            this._currentRange = null;
+            this._speedSampler = null;
+
+            this._isEarlyEofReconnecting = false;
+
+            this._onDataArrival = null;
+            this._onSeeked = null;
+            this._onError = null;
+            this._onComplete = null;
+            this._onRedirect = null;
+            this._onRecoveredEarlyEof = null;
+
+            this._extraData = null;
+        }
+    }, {
+        key: 'isWorking',
+        value: function isWorking() {
+            return this._loader && this._loader.isWorking() && !this._paused;
+        }
+    }, {
+        key: 'isPaused',
+        value: function isPaused() {
+            return this._paused;
+        }
+    }, {
+        key: '_selectSeekHandler',
+        value: function _selectSeekHandler() {
+            var config = this._config;
+
+            if (config.seekType === 'range') {
+                this._seekHandler = new _rangeSeekHandler2.default(this._config.rangeLoadZeroStart);
+            } else if (config.seekType === 'param') {
+                var paramStart = config.seekParamStart || 'bstart';
+                var paramEnd = config.seekParamEnd || 'bend';
+
+                this._seekHandler = new _paramSeekHandler2.default(paramStart, paramEnd);
+            } else if (config.seekType === 'custom') {
+                if (typeof config.customSeekHandler !== 'function') {
+                    throw new _exception.InvalidArgumentException('Custom seekType specified in config but invalid customSeekHandler!');
+                }
+                this._seekHandler = new config.customSeekHandler();
+            } else {
+                throw new _exception.InvalidArgumentException('Invalid seekType in config: ' + config.seekType);
+            }
+        }
+    }, {
+        key: '_selectLoader',
+        value: function _selectLoader() {
+            if (this._isWebSocketURL) {
+                this._loaderClass = _websocketLoader2.default;
+            } else if (_fetchStreamLoader2.default.isSupported()) {
+                this._loaderClass = _fetchStreamLoader2.default;
+            } else if (_xhrMozChunkedLoader2.default.isSupported()) {
+                this._loaderClass = _xhrMozChunkedLoader2.default;
+            } else if (_xhrRangeLoader2.default.isSupported()) {
+                this._loaderClass = _xhrRangeLoader2.default;
+            } else {
+                throw new _exception.RuntimeException('Your browser doesn\'t support xhr with arraybuffer responseType!');
+            }
+        }
+    }, {
+        key: '_createLoader',
+        value: function _createLoader() {
+            this._loader = new this._loaderClass(this._seekHandler, this._config);
+            if (this._loader.needStashBuffer === false) {
+                this._enableStash = false;
+            }
+            this._loader.onContentLengthKnown = this._onContentLengthKnown.bind(this);
+            this._loader.onURLRedirect = this._onURLRedirect.bind(this);
+            this._loader.onDataArrival = this._onLoaderChunkArrival.bind(this);
+            this._loader.onComplete = this._onLoaderComplete.bind(this);
+            this._loader.onError = this._onLoaderError.bind(this);
+        }
+    }, {
+        key: 'open',
+        value: function open(optionalFrom) {
+            this._currentRange = { from: 0, to: -1 };
+            if (optionalFrom) {
+                this._currentRange.from = optionalFrom;
+            }
+
+            this._speedSampler.reset();
+            if (!optionalFrom) {
+                this._fullRequestFlag = true;
+            }
+
+            this._loader.open(this._dataSource, Object.assign({}, this._currentRange));
+        }
+    }, {
+        key: 'abort',
+        value: function abort() {
+            this._loader.abort();
+
+            if (this._paused) {
+                this._paused = false;
+                this._resumeFrom = 0;
+            }
+        }
+    }, {
+        key: 'pause',
+        value: function pause() {
+            if (this.isWorking()) {
+                this._loader.abort();
+
+                if (this._stashUsed !== 0) {
+                    this._resumeFrom = this._stashByteStart;
+                    this._currentRange.to = this._stashByteStart - 1;
+                } else {
+                    this._resumeFrom = this._currentRange.to + 1;
+                }
+                this._stashUsed = 0;
+                this._stashByteStart = 0;
+                this._paused = true;
+            }
+        }
+    }, {
+        key: 'resume',
+        value: function resume() {
+            if (this._paused) {
+                this._paused = false;
+                var bytes = this._resumeFrom;
+                this._resumeFrom = 0;
+                this._internalSeek(bytes, true);
+            }
+        }
+    }, {
+        key: 'seek',
+        value: function seek(bytes) {
+            this._paused = false;
+            this._stashUsed = 0;
+            this._stashByteStart = 0;
+            this._internalSeek(bytes, true);
+        }
+
+        /**
+         * When seeking request is from media seeking, unconsumed stash data should be dropped
+         * However, stash data shouldn't be dropped if seeking requested from http reconnection
+         *
+         * @dropUnconsumed: Ignore and discard all unconsumed data in stash buffer
+         */
+
+    }, {
+        key: '_internalSeek',
+        value: function _internalSeek(bytes, dropUnconsumed) {
+            if (this._loader.isWorking()) {
+                this._loader.abort();
+            }
+
+            // dispatch & flush stash buffer before seek
+            this._flushStashBuffer(dropUnconsumed);
+
+            this._loader.destroy();
+            this._loader = null;
+
+            var requestRange = { from: bytes, to: -1 };
+            this._currentRange = { from: requestRange.from, to: -1 };
+
+            this._speedSampler.reset();
+            this._stashSize = this._stashInitialSize;
+            this._createLoader();
+            this._loader.open(this._dataSource, requestRange);
+
+            if (this._onSeeked) {
+                this._onSeeked();
+            }
+        }
+    }, {
+        key: 'updateUrl',
+        value: function updateUrl(url) {
+            if (!url || typeof url !== 'string' || url.length === 0) {
+                throw new _exception.InvalidArgumentException('Url must be a non-empty string!');
+            }
+
+            this._dataSource.url = url;
+
+            // TODO: replace with new url
+        }
+    }, {
+        key: '_expandBuffer',
+        value: function _expandBuffer(expectedBytes) {
+            var bufferNewSize = this._stashSize;
+            while (bufferNewSize + 1024 * 1024 * 1 < expectedBytes) {
+                bufferNewSize *= 2;
+            }
+
+            bufferNewSize += 1024 * 1024 * 1; // bufferSize = stashSize + 1MB
+            if (bufferNewSize === this._bufferSize) {
+                return;
+            }
+
+            var newBuffer = new ArrayBuffer(bufferNewSize);
+
+            if (this._stashUsed > 0) {
+                // copy existing data into new buffer
+                var stashOldArray = new Uint8Array(this._stashBuffer, 0, this._stashUsed);
+                var stashNewArray = new Uint8Array(newBuffer, 0, bufferNewSize);
+                stashNewArray.set(stashOldArray, 0);
+            }
+
+            this._stashBuffer = newBuffer;
+            this._bufferSize = bufferNewSize;
+        }
+    }, {
+        key: '_normalizeSpeed',
+        value: function _normalizeSpeed(input) {
+            var list = this._speedNormalizeList;
+            var last = list.length - 1;
+            var mid = 0;
+            var lbound = 0;
+            var ubound = last;
+
+            if (input < list[0]) {
+                return list[0];
+            }
+
+            // binary search
+            while (lbound <= ubound) {
+                mid = lbound + Math.floor((ubound - lbound) / 2);
+                if (mid === last || input >= list[mid] && input < list[mid + 1]) {
+                    return list[mid];
+                } else if (list[mid] < input) {
+                    lbound = mid + 1;
+                } else {
+                    ubound = mid - 1;
+                }
+            }
+        }
+    }, {
+        key: '_adjustStashSize',
+        value: function _adjustStashSize(normalized) {
+            var stashSizeKB = 0;
+
+            if (this._config.isLive) {
+                // live stream: always use single normalized speed for size of stashSizeKB
+                stashSizeKB = normalized;
+            } else {
+                if (normalized < 512) {
+                    stashSizeKB = normalized;
+                } else if (normalized >= 512 && normalized <= 1024) {
+                    stashSizeKB = Math.floor(normalized * 1.5);
+                } else {
+                    stashSizeKB = normalized * 2;
+                }
+            }
+
+            if (stashSizeKB > 8192) {
+                stashSizeKB = 8192;
+            }
+
+            var bufferSize = stashSizeKB * 1024 + 1024 * 1024 * 1; // stashSize + 1MB
+            if (this._bufferSize < bufferSize) {
+                this._expandBuffer(bufferSize);
+            }
+            this._stashSize = stashSizeKB * 1024;
+        }
+    }, {
+        key: '_dispatchChunks',
+        value: function _dispatchChunks(chunks, byteStart) {
+            this._currentRange.to = byteStart + chunks.byteLength - 1;
+            return this._onDataArrival(chunks, byteStart);
+        }
+    }, {
+        key: '_onURLRedirect',
+        value: function _onURLRedirect(redirectedURL) {
+            this._redirectedURL = redirectedURL;
+            if (this._onRedirect) {
+                this._onRedirect(redirectedURL);
+            }
+        }
+    }, {
+        key: '_onContentLengthKnown',
+        value: function _onContentLengthKnown(contentLength) {
+            if (contentLength && this._fullRequestFlag) {
+                this._totalLength = contentLength;
+                this._fullRequestFlag = false;
+            }
+        }
+    }, {
+        key: '_onLoaderChunkArrival',
+        value: function _onLoaderChunkArrival(chunk, byteStart, receivedLength) {
+            if (!this._onDataArrival) {
+                throw new _exception.IllegalStateException('IOController: No existing consumer (onDataArrival) callback!');
+            }
+            if (this._paused) {
+                return;
+            }
+            if (this._isEarlyEofReconnecting) {
+                // Auto-reconnect for EarlyEof succeed, notify to upper-layer by callback
+                this._isEarlyEofReconnecting = false;
+                if (this._onRecoveredEarlyEof) {
+                    this._onRecoveredEarlyEof();
+                }
+            }
+
+            this._speedSampler.addBytes(chunk.byteLength);
+
+            // adjust stash buffer size according to network speed dynamically
+            var KBps = this._speedSampler.lastSecondKBps;
+            if (KBps !== 0) {
+                var normalized = this._normalizeSpeed(KBps);
+                if (this._speedNormalized !== normalized) {
+                    this._speedNormalized = normalized;
+                    this._adjustStashSize(normalized);
+                }
+            }
+
+            if (!this._enableStash) {
+                // disable stash
+                if (this._stashUsed === 0) {
+                    // dispatch chunk directly to consumer;
+                    // check ret value (consumed bytes) and stash unconsumed to stashBuffer
+                    var consumed = this._dispatchChunks(chunk, byteStart);
+                    if (consumed < chunk.byteLength) {
+                        // unconsumed data remain.
+                        var remain = chunk.byteLength - consumed;
+                        if (remain > this._bufferSize) {
+                            this._expandBuffer(remain);
+                        }
+                        var stashArray = new Uint8Array(this._stashBuffer, 0, this._bufferSize);
+                        stashArray.set(new Uint8Array(chunk, consumed), 0);
+                        this._stashUsed += remain;
+                        this._stashByteStart = byteStart + consumed;
+                    }
+                } else {
+                    // else: Merge chunk into stashBuffer, and dispatch stashBuffer to consumer.
+                    if (this._stashUsed + chunk.byteLength > this._bufferSize) {
+                        this._expandBuffer(this._stashUsed + chunk.byteLength);
+                    }
+                    var _stashArray = new Uint8Array(this._stashBuffer, 0, this._bufferSize);
+                    _stashArray.set(new Uint8Array(chunk), this._stashUsed);
+                    this._stashUsed += chunk.byteLength;
+                    var _consumed = this._dispatchChunks(this._stashBuffer.slice(0, this._stashUsed), this._stashByteStart);
+                    if (_consumed < this._stashUsed && _consumed > 0) {
+                        // unconsumed data remain
+                        var remainArray = new Uint8Array(this._stashBuffer, _consumed);
+                        _stashArray.set(remainArray, 0);
+                    }
+                    this._stashUsed -= _consumed;
+                    this._stashByteStart += _consumed;
+                }
+            } else {
+                // enable stash
+                if (this._stashUsed === 0 && this._stashByteStart === 0) {
+                    // seeked? or init chunk?
+                    // This is the first chunk after seek action
+                    this._stashByteStart = byteStart;
+                }
+                if (this._stashUsed + chunk.byteLength <= this._stashSize) {
+                    // just stash
+                    var _stashArray2 = new Uint8Array(this._stashBuffer, 0, this._stashSize);
+                    _stashArray2.set(new Uint8Array(chunk), this._stashUsed);
+                    this._stashUsed += chunk.byteLength;
+                } else {
+                    // stashUsed + chunkSize > stashSize, size limit exceeded
+                    var _stashArray3 = new Uint8Array(this._stashBuffer, 0, this._bufferSize);
+                    if (this._stashUsed > 0) {
+                        // There're stash datas in buffer
+                        // dispatch the whole stashBuffer, and stash remain data
+                        // then append chunk to stashBuffer (stash)
+                        var buffer = this._stashBuffer.slice(0, this._stashUsed);
+                        var _consumed2 = this._dispatchChunks(buffer, this._stashByteStart);
+                        if (_consumed2 < buffer.byteLength) {
+                            if (_consumed2 > 0) {
+                                var _remainArray = new Uint8Array(buffer, _consumed2);
+                                _stashArray3.set(_remainArray, 0);
+                                this._stashUsed = _remainArray.byteLength;
+                                this._stashByteStart += _consumed2;
+                            }
+                        } else {
+                            this._stashUsed = 0;
+                            this._stashByteStart += _consumed2;
+                        }
+                        if (this._stashUsed + chunk.byteLength > this._bufferSize) {
+                            this._expandBuffer(this._stashUsed + chunk.byteLength);
+                            _stashArray3 = new Uint8Array(this._stashBuffer, 0, this._bufferSize);
+                        }
+                        _stashArray3.set(new Uint8Array(chunk), this._stashUsed);
+                        this._stashUsed += chunk.byteLength;
+                    } else {
+                        // stash buffer empty, but chunkSize > stashSize (oh, holy shit)
+                        // dispatch chunk directly and stash remain data
+                        var _consumed3 = this._dispatchChunks(chunk, byteStart);
+                        if (_consumed3 < chunk.byteLength) {
+                            var _remain = chunk.byteLength - _consumed3;
+                            if (_remain > this._bufferSize) {
+                                this._expandBuffer(_remain);
+                                _stashArray3 = new Uint8Array(this._stashBuffer, 0, this._bufferSize);
+                            }
+                            _stashArray3.set(new Uint8Array(chunk, _consumed3), 0);
+                            this._stashUsed += _remain;
+                            this._stashByteStart = byteStart + _consumed3;
+                        }
+                    }
+                }
+            }
+        }
+    }, {
+        key: '_flushStashBuffer',
+        value: function _flushStashBuffer(dropUnconsumed) {
+            if (this._stashUsed > 0) {
+                var buffer = this._stashBuffer.slice(0, this._stashUsed);
+                var consumed = this._dispatchChunks(buffer, this._stashByteStart);
+                var remain = buffer.byteLength - consumed;
+
+                if (consumed < buffer.byteLength) {
+                    if (dropUnconsumed) {
+                        _logger2.default.w(this.TAG, remain + ' bytes unconsumed data remain when flush buffer, dropped');
+                    } else {
+                        if (consumed > 0) {
+                            var stashArray = new Uint8Array(this._stashBuffer, 0, this._bufferSize);
+                            var remainArray = new Uint8Array(buffer, consumed);
+                            stashArray.set(remainArray, 0);
+                            this._stashUsed = remainArray.byteLength;
+                            this._stashByteStart += consumed;
+                        }
+                        return 0;
+                    }
+                }
+                this._stashUsed = 0;
+                this._stashByteStart = 0;
+                return remain;
+            }
+            return 0;
+        }
+    }, {
+        key: '_onLoaderComplete',
+        value: function _onLoaderComplete(from, to) {
+            // Force-flush stash buffer, and drop unconsumed data
+            this._flushStashBuffer(true);
+
+            if (this._onComplete) {
+                this._onComplete(this._extraData);
+            }
+        }
+    }, {
+        key: '_onLoaderError',
+        value: function _onLoaderError(type, data) {
+            _logger2.default.e(this.TAG, 'Loader error, code = ' + data.code + ', msg = ' + data.msg);
+
+            this._flushStashBuffer(false);
+
+            if (this._isEarlyEofReconnecting) {
+                // Auto-reconnect for EarlyEof failed, throw UnrecoverableEarlyEof error to upper-layer
+                this._isEarlyEofReconnecting = false;
+                type = _loader.LoaderErrors.UNRECOVERABLE_EARLY_EOF;
+            }
+
+            switch (type) {
+                case _loader.LoaderErrors.EARLY_EOF:
+                    {
+                        if (!this._config.isLive) {
+                            // Do internal http reconnect if not live stream
+                            if (this._totalLength) {
+                                var nextFrom = this._currentRange.to + 1;
+                                if (nextFrom < this._totalLength) {
+                                    _logger2.default.w(this.TAG, 'Connection lost, trying reconnect...');
+                                    this._isEarlyEofReconnecting = true;
+                                    this._internalSeek(nextFrom, false);
+                                }
+                                return;
+                            }
+                            // else: We don't know totalLength, throw UnrecoverableEarlyEof
+                        }
+                        // live stream: throw UnrecoverableEarlyEof error to upper-layer
+                        type = _loader.LoaderErrors.UNRECOVERABLE_EARLY_EOF;
+                        break;
+                    }
+                case _loader.LoaderErrors.UNRECOVERABLE_EARLY_EOF:
+                case _loader.LoaderErrors.CONNECTING_TIMEOUT:
+                case _loader.LoaderErrors.HTTP_STATUS_CODE_INVALID:
+                case _loader.LoaderErrors.EXCEPTION:
+                    break;
+            }
+
+            if (this._onError) {
+                this._onError(type, data);
+            } else {
+                throw new _exception.RuntimeException('IOException: ' + data.msg);
+            }
+        }
+    }, {
+        key: 'status',
+        get: function get() {
+            return this._loader.status;
+        }
+    }, {
+        key: 'extraData',
+        get: function get() {
+            return this._extraData;
+        },
+        set: function set(data) {
+            this._extraData = data;
+        }
+
+        // prototype: function onDataArrival(chunks: ArrayBuffer, byteStart: number): number
+
+    }, {
+        key: 'onDataArrival',
+        get: function get() {
+            return this._onDataArrival;
+        },
+        set: function set(callback) {
+            this._onDataArrival = callback;
+        }
+    }, {
+        key: 'onSeeked',
+        get: function get() {
+            return this._onSeeked;
+        },
+        set: function set(callback) {
+            this._onSeeked = callback;
+        }
+
+        // prototype: function onError(type: number, info: {code: number, msg: string}): void
+
+    }, {
+        key: 'onError',
+        get: function get() {
+            return this._onError;
+        },
+        set: function set(callback) {
+            this._onError = callback;
+        }
+    }, {
+        key: 'onComplete',
+        get: function get() {
+            return this._onComplete;
+        },
+        set: function set(callback) {
+            this._onComplete = callback;
+        }
+    }, {
+        key: 'onRedirect',
+        get: function get() {
+            return this._onRedirect;
+        },
+        set: function set(callback) {
+            this._onRedirect = callback;
+        }
+    }, {
+        key: 'onRecoveredEarlyEof',
+        get: function get() {
+            return this._onRecoveredEarlyEof;
+        },
+        set: function set(callback) {
+            this._onRecoveredEarlyEof = callback;
+        }
+    }, {
+        key: 'currentURL',
+        get: function get() {
+            return this._dataSource.url;
+        }
+    }, {
+        key: 'hasRedirect',
+        get: function get() {
+            return this._redirectedURL != null || this._dataSource.redirectedURL != undefined;
+        }
+    }, {
+        key: 'currentRedirectedURL',
+        get: function get() {
+            return this._redirectedURL || this._dataSource.redirectedURL;
+        }
+
+        // in KB/s
+
+    }, {
+        key: 'currentSpeed',
+        get: function get() {
+            if (this._loaderClass === _xhrRangeLoader2.default) {
+                // SpeedSampler is inaccuracy if loader is RangeLoader
+                return this._loader.currentSpeed;
+            }
+            return this._speedSampler.lastSecondKBps;
+        }
+    }, {
+        key: 'loaderType',
+        get: function get() {
+            return this._loader.type;
+        }
+    }]);
+
+    return IOController;
+}();
+
+exports.default = IOController;
+module.exports = exports['default'];
+
+/***/ }),
+/* 13 */
+/***/ (function(module, exports, __webpack_require__) {
+
+"use strict";
+
+
+Object.defineProperty(exports, "__esModule", {
+    value: true
+});
+
+var _createClass = function () { function defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ("value" in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } } return function (Constructor, protoProps, staticProps) { if (protoProps) defineProperties(Constructor.prototype, protoProps); if (staticProps) defineProperties(Constructor, staticProps); return Constructor; }; }();
+
+function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } }
+
+/*
+ * Copyright (C) 2016 Bilibili. All Rights Reserved.
+ *
+ * @author zheng qian <xqq@xqq.im>
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+
+// Utility class to calculate realtime network I/O speed
+var SpeedSampler = function () {
+    function SpeedSampler() {
+        _classCallCheck(this, SpeedSampler);
+
+        // milliseconds
+        this._firstCheckpoint = 0;
+        this._lastCheckpoint = 0;
+        this._intervalBytes = 0;
+        this._totalBytes = 0;
+        this._lastSecondBytes = 0;
+
+        // compatibility detection
+        if (self.performance && self.performance.now) {
+            this._now = self.performance.now.bind(self.performance);
+        } else {
+            this._now = Date.now;
+        }
+    }
+
+    _createClass(SpeedSampler, [{
+        key: "reset",
+        value: function reset() {
+            this._firstCheckpoint = this._lastCheckpoint = 0;
+            this._totalBytes = this._intervalBytes = 0;
+            this._lastSecondBytes = 0;
+        }
+    }, {
+        key: "addBytes",
+        value: function addBytes(bytes) {
+            if (this._firstCheckpoint === 0) {
+                this._firstCheckpoint = this._now();
+                this._lastCheckpoint = this._firstCheckpoint;
+                this._intervalBytes += bytes;
+                this._totalBytes += bytes;
+            } else if (this._now() - this._lastCheckpoint < 1000) {
+                this._intervalBytes += bytes;
+                this._totalBytes += bytes;
+            } else {
+                // duration >= 1000
+                this._lastSecondBytes = this._intervalBytes;
+                this._intervalBytes = bytes;
+                this._totalBytes += bytes;
+                this._lastCheckpoint = this._now();
+            }
+        }
+    }, {
+        key: "currentKBps",
+        get: function get() {
+            this.addBytes(0);
+
+            var durationSeconds = (this._now() - this._lastCheckpoint) / 1000;
+            if (durationSeconds == 0) durationSeconds = 1;
+            return this._intervalBytes / durationSeconds / 1024;
+        }
+    }, {
+        key: "lastSecondKBps",
+        get: function get() {
+            this.addBytes(0);
+
+            if (this._lastSecondBytes !== 0) {
+                return this._lastSecondBytes / 1024;
+            } else {
+                // lastSecondBytes === 0
+                if (this._now() - this._lastCheckpoint >= 500) {
+                    // if time interval since last checkpoint has exceeded 500ms
+                    // the speed is nearly accurate
+                    return this.currentKBps;
+                } else {
+                    // We don't know
+                    return 0;
+                }
+            }
+        }
+    }, {
+        key: "averageKBps",
+        get: function get() {
+            var durationSeconds = (this._now() - this._firstCheckpoint) / 1000;
+            return this._totalBytes / durationSeconds / 1024;
+        }
+    }]);
+
+    return SpeedSampler;
+}();
+
+exports.default = SpeedSampler;
+module.exports = exports["default"];
+
+/***/ }),
+/* 14 */
+/***/ (function(module, exports, __webpack_require__) {
+
+"use strict";
+
+
+Object.defineProperty(exports, "__esModule", {
+    value: true
+});
+
+var _createClass = function () { function defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ("value" in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } } return function (Constructor, protoProps, staticProps) { if (protoProps) defineProperties(Constructor.prototype, protoProps); if (staticProps) defineProperties(Constructor, staticProps); return Constructor; }; }(); /*
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                      * Copyright (C) 2016 Bilibili. All Rights Reserved.
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                      *
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                      * @author zheng qian <xqq@xqq.im>
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                      *
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                      * Licensed under the Apache License, Version 2.0 (the "License");
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                      * you may not use this file except in compliance with the License.
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                      * You may obtain a copy of the License at
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                      *
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                      *     http://www.apache.org/licenses/LICENSE-2.0
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                      *
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                      * Unless required by applicable law or agreed to in writing, software
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                      * distributed under the License is distributed on an "AS IS" BASIS,
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                      * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                      * See the License for the specific language governing permissions and
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                      * limitations under the License.
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                      */
+
+var _events = __webpack_require__(2);
+
+var _events2 = _interopRequireDefault(_events);
+
+var _logger = __webpack_require__(0);
+
+var _logger2 = _interopRequireDefault(_logger);
+
+var _browser = __webpack_require__(4);
+
+var _browser2 = _interopRequireDefault(_browser);
+
+var _mediaInfo = __webpack_require__(9);
+
+var _mediaInfo2 = _interopRequireDefault(_mediaInfo);
+
+var _flvDemuxer = __webpack_require__(35);
+
+var _flvDemuxer2 = _interopRequireDefault(_flvDemuxer);
+
+var _mp4Remuxer = __webpack_require__(40);
+
+var _mp4Remuxer2 = _interopRequireDefault(_mp4Remuxer);
+
+var _demuxErrors = __webpack_require__(10);
+
+var _demuxErrors2 = _interopRequireDefault(_demuxErrors);
+
+var _ioController = __webpack_require__(12);
+
+var _ioController2 = _interopRequireDefault(_ioController);
+
+var _transmuxingEvents = __webpack_require__(5);
+
+var _transmuxingEvents2 = _interopRequireDefault(_transmuxingEvents);
+
+var _loader = __webpack_require__(3);
+
+function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
+
+function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } }
+
+// Transmuxing (IO, Demuxing, Remuxing) controller, with multipart support
+var TransmuxingController = function () {
+    function TransmuxingController(mediaDataSource, config) {
+        _classCallCheck(this, TransmuxingController);
+
+        this.TAG = 'TransmuxingController';
+        this._emitter = new _events2.default();
+
+        this._config = config;
+
+        // treat single part media as multipart media, which has only one segment
+        if (!mediaDataSource.segments) {
+            mediaDataSource.segments = [{
+                duration: mediaDataSource.duration,
+                filesize: mediaDataSource.filesize,
+                url: mediaDataSource.url
+            }];
+        }
+
+        // fill in default IO params if not exists
+        if (typeof mediaDataSource.cors !== 'boolean') {
+            mediaDataSource.cors = true;
+        }
+        if (typeof mediaDataSource.withCredentials !== 'boolean') {
+            mediaDataSource.withCredentials = false;
+        }
+
+        this._mediaDataSource = mediaDataSource;
+        this._currentSegmentIndex = 0;
+        var totalDuration = 0;
+
+        this._mediaDataSource.segments.forEach(function (segment) {
+            // timestampBase for each segment, and calculate total duration
+            segment.timestampBase = totalDuration;
+            totalDuration += segment.duration;
+            // params needed by IOController
+            segment.cors = mediaDataSource.cors;
+            segment.withCredentials = mediaDataSource.withCredentials;
+            // referrer policy control, if exist
+            if (config.referrerPolicy) {
+                segment.referrerPolicy = config.referrerPolicy;
+            }
+        });
+
+        if (!isNaN(totalDuration) && this._mediaDataSource.duration !== totalDuration) {
+            this._mediaDataSource.duration = totalDuration;
+        }
+
+        this._mediaInfo = null;
+        this._demuxer = null;
+        this._remuxer = null;
+        this._ioctl = null;
+
+        this._pendingSeekTime = null;
+        this._pendingResolveSeekPoint = null;
+
+        this._statisticsReporter = null;
+    }
+
+    _createClass(TransmuxingController, [{
+        key: 'destroy',
+        value: function destroy() {
+            this._mediaInfo = null;
+            this._mediaDataSource = null;
+
+            if (this._statisticsReporter) {
+                this._disableStatisticsReporter();
+            }
+            if (this._ioctl) {
+                this._ioctl.destroy();
+                this._ioctl = null;
+            }
+            if (this._demuxer) {
+                this._demuxer.destroy();
+                this._demuxer = null;
+            }
+            if (this._remuxer) {
+                this._remuxer.destroy();
+                this._remuxer = null;
+            }
+
+            this._emitter.removeAllListeners();
+            this._emitter = null;
+        }
+    }, {
+        key: 'on',
+        value: function on(event, listener) {
+            this._emitter.addListener(event, listener);
+        }
+    }, {
+        key: 'off',
+        value: function off(event, listener) {
+            this._emitter.removeListener(event, listener);
+        }
+    }, {
+        key: 'start',
+        value: function start() {
+            this._loadSegment(0);
+            this._enableStatisticsReporter();
+        }
+    }, {
+        key: '_loadSegment',
+        value: function _loadSegment(segmentIndex, optionalFrom) {
+            this._currentSegmentIndex = segmentIndex;
+            var dataSource = this._mediaDataSource.segments[segmentIndex];
+
+            var ioctl = this._ioctl = new _ioController2.default(dataSource, this._config, segmentIndex);
+            ioctl.onError = this._onIOException.bind(this);
+            ioctl.onSeeked = this._onIOSeeked.bind(this);
+            ioctl.onComplete = this._onIOComplete.bind(this);
+            ioctl.onRedirect = this._onIORedirect.bind(this);
+            ioctl.onRecoveredEarlyEof = this._onIORecoveredEarlyEof.bind(this);
+
+            if (optionalFrom) {
+                this._demuxer.bindDataSource(this._ioctl);
+            } else {
+                ioctl.onDataArrival = this._onInitChunkArrival.bind(this);
+            }
+
+            ioctl.open(optionalFrom);
+        }
+    }, {
+        key: 'stop',
+        value: function stop() {
+            this._internalAbort();
+            this._disableStatisticsReporter();
+        }
+    }, {
+        key: '_internalAbort',
+        value: function _internalAbort() {
+            if (this._ioctl) {
+                this._ioctl.destroy();
+                this._ioctl = null;
+            }
+        }
+    }, {
+        key: 'pause',
+        value: function pause() {
+            // take a rest
+            if (this._ioctl && this._ioctl.isWorking()) {
+                this._ioctl.pause();
+                this._disableStatisticsReporter();
+            }
+        }
+    }, {
+        key: 'resume',
+        value: function resume() {
+            if (this._ioctl && this._ioctl.isPaused()) {
+                this._ioctl.resume();
+                this._enableStatisticsReporter();
+            }
+        }
+    }, {
+        key: 'seek',
+        value: function seek(milliseconds) {
+            if (this._mediaInfo == null || !this._mediaInfo.isSeekable()) {
+                return;
+            }
+
+            var targetSegmentIndex = this._searchSegmentIndexContains(milliseconds);
+
+            if (targetSegmentIndex === this._currentSegmentIndex) {
+                // intra-segment seeking
+                var segmentInfo = this._mediaInfo.segments[targetSegmentIndex];
+
+                if (segmentInfo == undefined) {
+                    // current segment loading started, but mediainfo hasn't received yet
+                    // wait for the metadata loaded, then seek to expected position
+                    this._pendingSeekTime = milliseconds;
+                } else {
+                    var keyframe = segmentInfo.getNearestKeyframe(milliseconds);
+                    this._remuxer.seek(keyframe.milliseconds);
+                    this._ioctl.seek(keyframe.fileposition);
+                    // Will be resolved in _onRemuxerMediaSegmentArrival()
+                    this._pendingResolveSeekPoint = keyframe.milliseconds;
+                }
+            } else {
+                // cross-segment seeking
+                var targetSegmentInfo = this._mediaInfo.segments[targetSegmentIndex];
+
+                if (targetSegmentInfo == undefined) {
+                    // target segment hasn't been loaded. We need metadata then seek to expected time
+                    this._pendingSeekTime = milliseconds;
+                    this._internalAbort();
+                    this._remuxer.seek();
+                    this._remuxer.insertDiscontinuity();
+                    this._loadSegment(targetSegmentIndex);
+                    // Here we wait for the metadata loaded, then seek to expected position
+                } else {
+                    // We have target segment's metadata, direct seek to target position
+                    var _keyframe = targetSegmentInfo.getNearestKeyframe(milliseconds);
+                    this._internalAbort();
+                    this._remuxer.seek(milliseconds);
+                    this._remuxer.insertDiscontinuity();
+                    this._demuxer.resetMediaInfo();
+                    this._demuxer.timestampBase = this._mediaDataSource.segments[targetSegmentIndex].timestampBase;
+                    this._loadSegment(targetSegmentIndex, _keyframe.fileposition);
+                    this._pendingResolveSeekPoint = _keyframe.milliseconds;
+                    this._reportSegmentMediaInfo(targetSegmentIndex);
+                }
+            }
+
+            this._enableStatisticsReporter();
+        }
+    }, {
+        key: '_searchSegmentIndexContains',
+        value: function _searchSegmentIndexContains(milliseconds) {
+            var segments = this._mediaDataSource.segments;
+            var idx = segments.length - 1;
+
+            for (var i = 0; i < segments.length; i++) {
+                if (milliseconds < segments[i].timestampBase) {
+                    idx = i - 1;
+                    break;
+                }
+            }
+            return idx;
+        }
+    }, {
+        key: '_onInitChunkArrival',
+        value: function _onInitChunkArrival(data, byteStart) {
+            var _this = this;
+
+            var probeData = null;
+            var consumed = 0;
+
+            if (byteStart > 0) {
+                // IOController seeked immediately after opened, byteStart > 0 callback may received
+                this._demuxer.bindDataSource(this._ioctl);
+                this._demuxer.timestampBase = this._mediaDataSource.segments[this._currentSegmentIndex].timestampBase;
+
+                consumed = this._demuxer.parseChunks(data, byteStart);
+            } else if ((probeData = _flvDemuxer2.default.probe(data)).match) {
+                // Always create new FLVDemuxer
+                this._demuxer = new _flvDemuxer2.default(probeData, this._config);
+
+                if (!this._remuxer) {
+                    this._remuxer = new _mp4Remuxer2.default(this._config);
+                }
+
+                var mds = this._mediaDataSource;
+                if (mds.duration != undefined && !isNaN(mds.duration)) {
+                    this._demuxer.overridedDuration = mds.duration;
+                }
+                if (typeof mds.hasAudio === 'boolean') {
+                    this._demuxer.overridedHasAudio = mds.hasAudio;
+                }
+                if (typeof mds.hasVideo === 'boolean') {
+                    this._demuxer.overridedHasVideo = mds.hasVideo;
+                }
+
+                this._demuxer.timestampBase = mds.segments[this._currentSegmentIndex].timestampBase;
+
+                this._demuxer.onError = this._onDemuxException.bind(this);
+                this._demuxer.onMediaInfo = this._onMediaInfo.bind(this);
+
+                this._demuxer.onLoadedSei = this._onLoadedSei.bind(this);
+
+                this._remuxer.bindDataSource(this._demuxer.bindDataSource(this._ioctl));
+
+                this._remuxer.onInitSegment = this._onRemuxerInitSegmentArrival.bind(this);
+                this._remuxer.onMediaSegment = this._onRemuxerMediaSegmentArrival.bind(this);
+
+                consumed = this._demuxer.parseChunks(data, byteStart);
+            } else {
+                probeData = null;
+                _logger2.default.e(this.TAG, 'Non-FLV, Unsupported media type!');
+                Promise.resolve().then(function () {
+                    _this._internalAbort();
+                });
+                this._emitter.emit(_transmuxingEvents2.default.DEMUX_ERROR, _demuxErrors2.default.FORMAT_UNSUPPORTED, 'Non-FLV, Unsupported media type');
+
+                consumed = 0;
+            }
+
+            return consumed;
+        }
+    }, {
+        key: '_onMediaInfo',
+        value: function _onMediaInfo(mediaInfo) {
+            var _this2 = this;
+
+            if (this._mediaInfo == null) {
+                // Store first segment's mediainfo as global mediaInfo
+                this._mediaInfo = Object.assign({}, mediaInfo);
+                this._mediaInfo.keyframesIndex = null;
+                this._mediaInfo.segments = [];
+                this._mediaInfo.segmentCount = this._mediaDataSource.segments.length;
+                Object.setPrototypeOf(this._mediaInfo, _mediaInfo2.default.prototype);
+            }
+
+            var segmentInfo = Object.assign({}, mediaInfo);
+            Object.setPrototypeOf(segmentInfo, _mediaInfo2.default.prototype);
+            this._mediaInfo.segments[this._currentSegmentIndex] = segmentInfo;
+
+            // notify mediaInfo update
+            this._reportSegmentMediaInfo(this._currentSegmentIndex);
+
+            if (this._pendingSeekTime != null) {
+                Promise.resolve().then(function () {
+                    var target = _this2._pendingSeekTime;
+                    _this2._pendingSeekTime = null;
+                    _this2.seek(target);
+                });
+            }
+        }
+    }, {
+        key: '_onLoadedSei',
+        value: function _onLoadedSei(timestamp, data) {
+            this._emitter.emit(_transmuxingEvents2.default.LOADED_SEI, timestamp, data);
+        }
+    }, {
+        key: '_onIOSeeked',
+        value: function _onIOSeeked() {
+            this._remuxer.insertDiscontinuity();
+        }
+    }, {
+        key: '_onIOComplete',
+        value: function _onIOComplete(extraData) {
+            var segmentIndex = extraData;
+            var nextSegmentIndex = segmentIndex + 1;
+
+            if (nextSegmentIndex < this._mediaDataSource.segments.length) {
+                this._internalAbort();
+                this._remuxer.flushStashedSamples();
+                this._loadSegment(nextSegmentIndex);
+            } else {
+                this._remuxer.flushStashedSamples();
+                this._emitter.emit(_transmuxingEvents2.default.LOADING_COMPLETE);
+                this._disableStatisticsReporter();
+            }
+        }
+    }, {
+        key: '_onIORedirect',
+        value: function _onIORedirect(redirectedURL) {
+            var segmentIndex = this._ioctl.extraData;
+            this._mediaDataSource.segments[segmentIndex].redirectedURL = redirectedURL;
+        }
+    }, {
+        key: '_onIORecoveredEarlyEof',
+        value: function _onIORecoveredEarlyEof() {
+            this._emitter.emit(_transmuxingEvents2.default.RECOVERED_EARLY_EOF);
+        }
+    }, {
+        key: '_onIOException',
+        value: function _onIOException(type, info) {
+            _logger2.default.e(this.TAG, 'IOException: type = ' + type + ', code = ' + info.code + ', msg = ' + info.msg);
+            this._emitter.emit(_transmuxingEvents2.default.IO_ERROR, type, info);
+            this._disableStatisticsReporter();
+        }
+    }, {
+        key: '_onDemuxException',
+        value: function _onDemuxException(type, info) {
+            _logger2.default.e(this.TAG, 'DemuxException: type = ' + type + ', info = ' + info);
+            this._emitter.emit(_transmuxingEvents2.default.DEMUX_ERROR, type, info);
+        }
+    }, {
+        key: '_onRemuxerInitSegmentArrival',
+        value: function _onRemuxerInitSegmentArrival(type, initSegment) {
+            this._emitter.emit(_transmuxingEvents2.default.INIT_SEGMENT, type, initSegment);
+        }
+    }, {
+        key: '_onRemuxerMediaSegmentArrival',
+        value: function _onRemuxerMediaSegmentArrival(type, mediaSegment) {
+            if (this._pendingSeekTime != null) {
+                // Media segments after new-segment cross-seeking should be dropped.
+                return;
+            }
+            this._emitter.emit(_transmuxingEvents2.default.MEDIA_SEGMENT, type, mediaSegment);
+
+            // Resolve pending seekPoint
+            if (this._pendingResolveSeekPoint != null && type === 'video') {
+                var syncPoints = mediaSegment.info.syncPoints;
+                var seekpoint = this._pendingResolveSeekPoint;
+                this._pendingResolveSeekPoint = null;
+
+                // Safari: Pass PTS for recommend_seekpoint
+                if (_browser2.default.safari && syncPoints.length > 0 && syncPoints[0].originalDts === seekpoint) {
+                    seekpoint = syncPoints[0].pts;
+                }
+                // else: use original DTS (keyframe.milliseconds)
+
+                this._emitter.emit(_transmuxingEvents2.default.RECOMMEND_SEEKPOINT, seekpoint);
+            }
+        }
+    }, {
+        key: '_enableStatisticsReporter',
+        value: function _enableStatisticsReporter() {
+            if (this._statisticsReporter == null) {
+                this._statisticsReporter = self.setInterval(this._reportStatisticsInfo.bind(this), this._config.statisticsInfoReportInterval);
+            }
+        }
+    }, {
+        key: '_disableStatisticsReporter',
+        value: function _disableStatisticsReporter() {
+            if (this._statisticsReporter) {
+                self.clearInterval(this._statisticsReporter);
+                this._statisticsReporter = null;
+            }
+        }
+    }, {
+        key: '_reportSegmentMediaInfo',
+        value: function _reportSegmentMediaInfo(segmentIndex) {
+            var segmentInfo = this._mediaInfo.segments[segmentIndex];
+            var exportInfo = Object.assign({}, segmentInfo);
+
+            exportInfo.duration = this._mediaInfo.duration;
+            exportInfo.segmentCount = this._mediaInfo.segmentCount;
+            delete exportInfo.segments;
+            delete exportInfo.keyframesIndex;
+
+            this._emitter.emit(_transmuxingEvents2.default.MEDIA_INFO, exportInfo);
+        }
+    }, {
+        key: '_reportStatisticsInfo',
+        value: function _reportStatisticsInfo() {
+            var info = {};
+
+            info.url = this._ioctl.currentURL;
+            info.hasRedirect = this._ioctl.hasRedirect;
+            if (info.hasRedirect) {
+                info.redirectedURL = this._ioctl.currentRedirectedURL;
+            }
+
+            info.speed = this._ioctl.currentSpeed;
+            info.loaderType = this._ioctl.loaderType;
+            info.currentSegmentIndex = this._currentSegmentIndex;
+            info.totalSegmentCount = this._mediaDataSource.segments.length;
+
+            this._emitter.emit(_transmuxingEvents2.default.STATISTICS_INFO, info);
+        }
+    }]);
+
+    return TransmuxingController;
+}();
+
+exports.default = TransmuxingController;
+module.exports = exports['default'];
+
+/***/ }),
+/* 15 */
+/***/ (function(module, exports, __webpack_require__) {
+
+"use strict";
+
+
+Object.defineProperty(exports, "__esModule", {
+    value: true
+});
+
+var _createClass = function () { function defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ("value" in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } } return function (Constructor, protoProps, staticProps) { if (protoProps) defineProperties(Constructor.prototype, protoProps); if (staticProps) defineProperties(Constructor, staticProps); return Constructor; }; }();
+
+function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } }
+
+/*
+ * Copyright (C) 2016 Bilibili. All Rights Reserved.
+ *
+ * @author zheng qian <xqq@xqq.im>
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+
+// Represents an media sample (audio / video)
+var SampleInfo = exports.SampleInfo = function SampleInfo(dts, pts, duration, originalDts, isSync) {
+    _classCallCheck(this, SampleInfo);
+
+    this.dts = dts;
+    this.pts = pts;
+    this.duration = duration;
+    this.originalDts = originalDts;
+    this.isSyncPoint = isSync;
+    this.fileposition = null;
+};
+
+// Media Segment concept is defined in Media Source Extensions spec.
+// Particularly in ISO BMFF format, an Media Segment contains a moof box followed by a mdat box.
+
+
+var MediaSegmentInfo = exports.MediaSegmentInfo = function () {
+    function MediaSegmentInfo() {
+        _classCallCheck(this, MediaSegmentInfo);
+
+        this.beginDts = 0;
+        this.endDts = 0;
+        this.beginPts = 0;
+        this.endPts = 0;
+        this.originalBeginDts = 0;
+        this.originalEndDts = 0;
+        this.syncPoints = []; // SampleInfo[n], for video IDR frames only
+        this.firstSample = null; // SampleInfo
+        this.lastSample = null; // SampleInfo
+    }
+
+    _createClass(MediaSegmentInfo, [{
+        key: "appendSyncPoint",
+        value: function appendSyncPoint(sampleInfo) {
+            // also called Random Access Point
+            sampleInfo.isSyncPoint = true;
+            this.syncPoints.push(sampleInfo);
+        }
+    }]);
+
+    return MediaSegmentInfo;
+}();
+
+// Ordered list for recording video IDR frames, sorted by originalDts
+
+
+var IDRSampleList = exports.IDRSampleList = function () {
+    function IDRSampleList() {
+        _classCallCheck(this, IDRSampleList);
+
+        this._list = [];
+    }
+
+    _createClass(IDRSampleList, [{
+        key: "clear",
+        value: function clear() {
+            this._list = [];
+        }
+    }, {
+        key: "appendArray",
+        value: function appendArray(syncPoints) {
+            var list = this._list;
+
+            if (syncPoints.length === 0) {
+                return;
+            }
+
+            if (list.length > 0 && syncPoints[0].originalDts < list[list.length - 1].originalDts) {
+                this.clear();
+            }
+
+            Array.prototype.push.apply(list, syncPoints);
+        }
+    }, {
+        key: "getLastSyncPointBeforeDts",
+        value: function getLastSyncPointBeforeDts(dts) {
+            if (this._list.length == 0) {
+                return null;
+            }
+
+            var list = this._list;
+            var idx = 0;
+            var last = list.length - 1;
+            var mid = 0;
+            var lbound = 0;
+            var ubound = last;
+
+            if (dts < list[0].dts) {
+                idx = 0;
+                lbound = ubound + 1;
+            }
+
+            while (lbound <= ubound) {
+                mid = lbound + Math.floor((ubound - lbound) / 2);
+                if (mid === last || dts >= list[mid].dts && dts < list[mid + 1].dts) {
+                    idx = mid;
+                    break;
+                } else if (list[mid].dts < dts) {
+                    lbound = mid + 1;
+                } else {
+                    ubound = mid - 1;
+                }
+            }
+            return this._list[idx];
+        }
+    }]);
+
+    return IDRSampleList;
+}();
+
+// Data structure for recording information of media segments in single track.
+
+
+var MediaSegmentInfoList = exports.MediaSegmentInfoList = function () {
+    function MediaSegmentInfoList(type) {
+        _classCallCheck(this, MediaSegmentInfoList);
+
+        this._type = type;
+        this._list = [];
+        this._lastAppendLocation = -1; // cached last insert location
+    }
+
+    _createClass(MediaSegmentInfoList, [{
+        key: "isEmpty",
+        value: function isEmpty() {
+            return this._list.length === 0;
+        }
+    }, {
+        key: "clear",
+        value: function clear() {
+            this._list = [];
+            this._lastAppendLocation = -1;
+        }
+    }, {
+        key: "_searchNearestSegmentBefore",
+        value: function _searchNearestSegmentBefore(originalBeginDts) {
+            var list = this._list;
+            if (list.length === 0) {
+                return -2;
+            }
+            var last = list.length - 1;
+            var mid = 0;
+            var lbound = 0;
+            var ubound = last;
+
+            var idx = 0;
+
+            if (originalBeginDts < list[0].originalBeginDts) {
+                idx = -1;
+                return idx;
+            }
+
+            while (lbound <= ubound) {
+                mid = lbound + Math.floor((ubound - lbound) / 2);
+                if (mid === last || originalBeginDts > list[mid].lastSample.originalDts && originalBeginDts < list[mid + 1].originalBeginDts) {
+                    idx = mid;
+                    break;
+                } else if (list[mid].originalBeginDts < originalBeginDts) {
+                    lbound = mid + 1;
+                } else {
+                    ubound = mid - 1;
+                }
+            }
+            return idx;
+        }
+    }, {
+        key: "_searchNearestSegmentAfter",
+        value: function _searchNearestSegmentAfter(originalBeginDts) {
+            return this._searchNearestSegmentBefore(originalBeginDts) + 1;
+        }
+    }, {
+        key: "append",
+        value: function append(mediaSegmentInfo) {
+            var list = this._list;
+            var msi = mediaSegmentInfo;
+            var lastAppendIdx = this._lastAppendLocation;
+            var insertIdx = 0;
+
+            if (lastAppendIdx !== -1 && lastAppendIdx < list.length && msi.originalBeginDts >= list[lastAppendIdx].lastSample.originalDts && (lastAppendIdx === list.length - 1 || lastAppendIdx < list.length - 1 && msi.originalBeginDts < list[lastAppendIdx + 1].originalBeginDts)) {
+                insertIdx = lastAppendIdx + 1; // use cached location idx
+            } else {
+                if (list.length > 0) {
+                    insertIdx = this._searchNearestSegmentBefore(msi.originalBeginDts) + 1;
+                }
+            }
+
+            this._lastAppendLocation = insertIdx;
+            this._list.splice(insertIdx, 0, msi);
+        }
+    }, {
+        key: "getLastSegmentBefore",
+        value: function getLastSegmentBefore(originalBeginDts) {
+            var idx = this._searchNearestSegmentBefore(originalBeginDts);
+            if (idx >= 0) {
+                return this._list[idx];
+            } else {
+                // -1
+                return null;
+            }
+        }
+    }, {
+        key: "getLastSampleBefore",
+        value: function getLastSampleBefore(originalBeginDts) {
+            var segment = this.getLastSegmentBefore(originalBeginDts);
+            if (segment != null) {
+                return segment.lastSample;
+            } else {
+                return null;
+            }
+        }
+    }, {
+        key: "getLastSyncPointBefore",
+        value: function getLastSyncPointBefore(originalBeginDts) {
+            var segmentIdx = this._searchNearestSegmentBefore(originalBeginDts);
+            var syncPoints = this._list[segmentIdx].syncPoints;
+            while (syncPoints.length === 0 && segmentIdx > 0) {
+                segmentIdx--;
+                syncPoints = this._list[segmentIdx].syncPoints;
+            }
+            if (syncPoints.length > 0) {
+                return syncPoints[syncPoints.length - 1];
+            } else {
+                return null;
+            }
+        }
+    }, {
+        key: "type",
+        get: function get() {
+            return this._type;
+        }
+    }, {
+        key: "length",
+        get: function get() {
+            return this._list.length;
+        }
+    }]);
+
+    return MediaSegmentInfoList;
+}();
+
+/***/ }),
+/* 16 */
+/***/ (function(module, exports, __webpack_require__) {
+
+"use strict";
+
+
+Object.defineProperty(exports, "__esModule", {
+  value: true
+});
+/*
+ * Copyright (C) 2016 Bilibili. All Rights Reserved.
+ *
+ * @author zheng qian <xqq@xqq.im>
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+
+var MSEEvents = {
+  ERROR: 'error',
+  SOURCE_OPEN: 'source_open',
+  UPDATE_END: 'update_end',
+  BUFFER_FULL: 'buffer_full'
+};
+
+exports.default = MSEEvents;
+module.exports = exports['default'];
+
+/***/ }),
+/* 17 */
+/***/ (function(module, exports, __webpack_require__) {
+
+"use strict";
+
+
+Object.defineProperty(exports, "__esModule", {
+    value: true
+});
+exports.ErrorDetails = exports.ErrorTypes = undefined;
+
+var _loader = __webpack_require__(3);
+
+var _demuxErrors = __webpack_require__(10);
+
+var _demuxErrors2 = _interopRequireDefault(_demuxErrors);
+
+function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
+
+/*
+ * Copyright (C) 2016 Bilibili. All Rights Reserved.
+ *
+ * @author zheng qian <xqq@xqq.im>
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+
+var ErrorTypes = exports.ErrorTypes = {
+    NETWORK_ERROR: 'NetworkError',
+    MEDIA_ERROR: 'MediaError',
+    OTHER_ERROR: 'OtherError'
+};
+
+var ErrorDetails = exports.ErrorDetails = {
+    NETWORK_EXCEPTION: _loader.LoaderErrors.EXCEPTION,
+    NETWORK_STATUS_CODE_INVALID: _loader.LoaderErrors.HTTP_STATUS_CODE_INVALID,
+    NETWORK_TIMEOUT: _loader.LoaderErrors.CONNECTING_TIMEOUT,
+    NETWORK_UNRECOVERABLE_EARLY_EOF: _loader.LoaderErrors.UNRECOVERABLE_EARLY_EOF,
+
+    MEDIA_MSE_ERROR: 'MediaMSEError',
+
+    MEDIA_FORMAT_ERROR: _demuxErrors2.default.FORMAT_ERROR,
+    MEDIA_FORMAT_UNSUPPORTED: _demuxErrors2.default.FORMAT_UNSUPPORTED,
+    MEDIA_CODEC_UNSUPPORTED: _demuxErrors2.default.CODEC_UNSUPPORTED
+};
+
+/***/ }),
+/* 18 */
+/***/ (function(module, exports, __webpack_require__) {
+
+module.exports = __webpack_require__(19);
+
+
+/***/ }),
+/* 19 */
+/***/ (function(module, exports, __webpack_require__) {
+
+"use strict";
+
+
+Object.defineProperty(exports, "__esModule", {
+  value: true
+});
+
+var _createClass = function () { function defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ("value" in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } } return function (Constructor, protoProps, staticProps) { if (protoProps) defineProperties(Constructor.prototype, protoProps); if (staticProps) defineProperties(Constructor, staticProps); return Constructor; }; }();
+
+var _xgplayer = __webpack_require__(20);
+
+var _xgplayer2 = _interopRequireDefault(_xgplayer);
+
+var _flv = __webpack_require__(21);
+
+var _flv2 = _interopRequireDefault(_flv);
+
+function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
+
+function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } }
+
+function _possibleConstructorReturn(self, call) { if (!self) { throw new ReferenceError("this hasn't been initialised - super() hasn't been called"); } return call && (typeof call === "object" || typeof call === "function") ? call : self; }
+
+function _inherits(subClass, superClass) { if (typeof superClass !== "function" && superClass !== null) { throw new TypeError("Super expression must either be null or a function, not " + typeof superClass); } subClass.prototype = Object.create(superClass && superClass.prototype, { constructor: { value: subClass, enumerable: false, writable: true, configurable: true } }); if (superClass) Object.setPrototypeOf ? Object.setPrototypeOf(subClass, superClass) : subClass.__proto__ = superClass; }
+
+var FlvJsPlayer = function (_Player) {
+  _inherits(FlvJsPlayer, _Player);
+
+  function FlvJsPlayer(options) {
+    _classCallCheck(this, FlvJsPlayer);
+
+    var _this = _possibleConstructorReturn(this, (FlvJsPlayer.__proto__ || Object.getPrototypeOf(FlvJsPlayer)).call(this, options));
+
+    _this.flvOpts = { type: 'flv' };
+    _this.optionalConfig = {};
+    _xgplayer2.default.util.deepCopy(_this.flvOpts, options);
+    _xgplayer2.default.util.deepCopy(_this.optionalConfig, options.flvOptionalConfig);
+    var player = _this;
+
+    Object.defineProperty(player, 'src', {
+      get: function get() {
+        return player.currentSrc;
+      },
+      set: function set(url) {
+        player.flv_load(url);
+        var oldVol = player.volume;
+        player.video.muted = true;
+        _xgplayer2.default.util.addClass(player.root, 'xgplayer-is-enter');
+        player.once('playing', function () {
+          _xgplayer2.default.util.removeClass(player.root, 'xgplayer-is-enter');
+          player.video.muted = false;
+        });
+        player.once('canplay', function () {
+          player.play();
+        });
+      },
+
+      configurable: true
+    });
+
+    player.once('complete', function () {
+      player.__flv__ = _flv2.default.createPlayer(_this.flvOpts, _this.optionalConfig);
+      player.createInstance(player.__flv__);
+      if (player.config.isLive) {
+        _xgplayer2.default.util.addClass(player.root, 'xgplayer-is-live');
+        var live = _xgplayer2.default.util.createDom('xg-live', '正在直播', {}, 'xgplayer-live');
+        player.controls.appendChild(live);
+      }
+    });
+    return _this;
+  }
+
+  _createClass(FlvJsPlayer, [{
+    key: 'createInstance',
+    value: function createInstance(flv) {
+      var player = this;
+      player.video.addEventListener('contextmenu', function (e) {
+        e.preventDefault();
+      });
+      flv.attachMediaElement(player.video);
+      flv.load();
+      flv.play();
+
+      flv.on(_flv2.default.Events.ERROR, function (e) {
+        player.emit('error', new _xgplayer2.default.Errors('other', player.config.url));
+      });
+      flv.on(_flv2.default.Events.LOADED_SEI, function (timestamp, data) {
+        player.emit('loaded_sei', timestamp, data);
+      });
+      flv.on(_flv2.default.Events.STATISTICS_INFO, function (data) {
+        player.emit("statistics_info", data);
+      });
+      flv.on(_flv2.default.Events.MEDIA_INFO, function (data) {
+        player.mediainfo = data;
+        player.emit("MEDIA_INFO", data);
+      });
+      player.once('destroy', function () {
+        flv.destroy();
+        player.__flv__ = null;
+      });
+    }
+  }, {
+    key: 'flv_load',
+    value: function flv_load(newUrl) {
+      var mediaDataSource = this.flvOpts;
+      mediaDataSource.segments = [{
+        cors: true,
+        duration: undefined,
+        filesize: undefined,
+        timestampBase: 0,
+        url: newUrl,
+        withCredentials: false
+      }];
+      // mediaDataSource.cors = true
+      // mediaDataSource.hasAudio = true
+      // mediaDataSource.hasVideo = true
+      // mediaDataSource.isLive = true
+      mediaDataSource.url = newUrl;
+      // mediaDataSource.withCredentials = false
+      this.flv_load_mds(mediaDataSource);
+    }
+  }, {
+    key: 'flv_load_mds',
+    value: function flv_load_mds(mediaDataSource) {
+      var player = this;
+      if (typeof player.__flv__ !== 'undefined') {
+        if (player.__flv__ != null) {
+          player.__flv__.unload();
+          player.__flv__.detachMediaElement();
+          player.__flv__.destroy();
+          player.__flv__ = null;
+        }
+      }
+      player.__flv__ = _flv2.default.createPlayer(mediaDataSource, this.optionalConfig);
+
+      player.__flv__.attachMediaElement(player.video);
+      player.__flv__.load();
+    }
+  }, {
+    key: 'switchURL',
+    value: function switchURL(url) {
+      var player = this;
+      var curTime = 0;
+      if (!player.config.isLive) {
+        curTime = player.currentTime;
+      }
+      player.flv_load(url);
+      var oldVol = player.volume;
+      player.video.muted = true;
+      _xgplayer2.default.util.addClass(player.root, 'xgplayer-is-enter');
+      player.once('playing', function () {
+        _xgplayer2.default.util.removeClass(player.root, 'xgplayer-is-enter');
+        player.video.muted = false;
+      });
+      player.once('canplay', function () {
+        if (!player.config.isLive) {
+          player.currentTime = curTime;
+        }
+        player.play();
+      });
+    }
+  }]);
+
+  return FlvJsPlayer;
+}(_xgplayer2.default);
+
+FlvJsPlayer.isSupported = _flv2.default.isSupported;
+exports.default = FlvJsPlayer;
+module.exports = exports['default'];
+
+/***/ }),
+/* 20 */
+/***/ (function(module, exports) {
+
+module.exports = __WEBPACK_EXTERNAL_MODULE__20__;
+
+/***/ }),
+/* 21 */
+/***/ (function(module, exports, __webpack_require__) {
+
+"use strict";
+
+
+Object.defineProperty(exports, "__esModule", {
+    value: true
+});
+
+var _typeof = typeof Symbol === "function" && typeof Symbol.iterator === "symbol" ? function (obj) { return typeof obj; } : function (obj) { return obj && typeof Symbol === "function" && obj.constructor === Symbol && obj !== Symbol.prototype ? "symbol" : typeof obj; }; /*
+                                                                                                                                                                                                                                                                               * Copyright (C) 2016 Bilibili. All Rights Reserved.
+                                                                                                                                                                                                                                                                               *
+                                                                                                                                                                                                                                                                               * @author zheng qian <xqq@xqq.im>
+                                                                                                                                                                                                                                                                               *
+                                                                                                                                                                                                                                                                               * Licensed under the Apache License, Version 2.0 (the "License");
+                                                                                                                                                                                                                                                                               * you may not use this file except in compliance with the License.
+                                                                                                                                                                                                                                                                               * You may obtain a copy of the License at
+                                                                                                                                                                                                                                                                               *
+                                                                                                                                                                                                                                                                               *     http://www.apache.org/licenses/LICENSE-2.0
+                                                                                                                                                                                                                                                                               *
+                                                                                                                                                                                                                                                                               * Unless required by applicable law or agreed to in writing, software
+                                                                                                                                                                                                                                                                               * distributed under the License is distributed on an "AS IS" BASIS,
+                                                                                                                                                                                                                                                                               * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+                                                                                                                                                                                                                                                                               * See the License for the specific language governing permissions and
+                                                                                                                                                                                                                                                                               * limitations under the License.
+                                                                                                                                                                                                                                                                               */
+
+var _polyfill = __webpack_require__(11);
+
+var _polyfill2 = _interopRequireDefault(_polyfill);
+
+var _features = __webpack_require__(25);
+
+var _features2 = _interopRequireDefault(_features);
+
+var _flvPlayer = __webpack_require__(33);
+
+var _flvPlayer2 = _interopRequireDefault(_flvPlayer);
+
+var _nativePlayer = __webpack_require__(46);
+
+var _nativePlayer2 = _interopRequireDefault(_nativePlayer);
+
+var _playerEvents = __webpack_require__(7);
+
+var _playerEvents2 = _interopRequireDefault(_playerEvents);
+
+var _playerErrors = __webpack_require__(17);
+
+var _loggingControl = __webpack_require__(8);
+
+var _loggingControl2 = _interopRequireDefault(_loggingControl);
+
+var _exception = __webpack_require__(1);
+
+function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
+
+// here are all the interfaces
+
+// install polyfills
+_polyfill2.default.install();
+
+// factory method
+function createPlayer(mediaDataSource, optionalConfig) {
+    var mds = mediaDataSource;
+    if (mds == null || (typeof mds === 'undefined' ? 'undefined' : _typeof(mds)) !== 'object') {
+        throw new _exception.InvalidArgumentException('MediaDataSource must be an javascript object!');
+    }
+
+    if (!mds.hasOwnProperty('type')) {
+        throw new _exception.InvalidArgumentException('MediaDataSource must has type field to indicate video file type!');
+    }
+
+    switch (mds.type) {
+        case 'flv':
+            return new _flvPlayer2.default(mds, optionalConfig);
+        default:
+            return new _nativePlayer2.default(mds, optionalConfig);
+    }
+}
+
+// feature detection
+function isSupported() {
+    return _features2.default.supportMSEH264Playback();
+}
+
+function getFeatureList() {
+    return _features2.default.getFeatureList();
+}
+
+// interfaces
+var flvjs = {};
+
+flvjs.createPlayer = createPlayer;
+flvjs.isSupported = isSupported;
+flvjs.getFeatureList = getFeatureList;
+
+flvjs.Events = _playerEvents2.default;
+flvjs.ErrorTypes = _playerErrors.ErrorTypes;
+flvjs.ErrorDetails = _playerErrors.ErrorDetails;
+
+flvjs.FlvPlayer = _flvPlayer2.default;
+flvjs.NativePlayer = _nativePlayer2.default;
+flvjs.LoggingControl = _loggingControl2.default;
+
+Object.defineProperty(flvjs, 'version', {
+    enumerable: true,
+    get: function get() {
+        // replaced by browserify-versionify transform
+        return '__VERSION__';
+    }
+});
+
+exports.default = flvjs;
+module.exports = exports['default'];
+
+/***/ }),
+/* 22 */
+/***/ (function(module, exports, __webpack_require__) {
+
+/* WEBPACK VAR INJECTION */(function(process, global) {/*!
  * @overview es6-promise - a tiny implementation of Promises/A+.
  * @copyright Copyright (c) 2014 Yehuda Katz, Tom Dale, Stefan Penner and contributors (Conversion to ES6 API by Jake Archibald)
  * @license   Licensed under MIT license
  *            See https://raw.githubusercontent.com/stefanpenner/es6-promise/master/LICENSE
- * @version   v4.2.6+9869a4bc
- */var i;i=function(){"use strict";function e(e){return"function"==typeof e}var i=Array.isArray?Array.isArray:function(e){return"[object Array]"===Object.prototype.toString.call(e)},r=0,a=void 0,s=void 0,o=function(e,t){_[r]=e,_[r+1]=t,2===(r+=2)&&(s?s(m):E())},u="undefined"!=typeof window?window:void 0,l=u||{},d=l.MutationObserver||l.WebKitMutationObserver,h="undefined"==typeof self&&void 0!==t&&"[object process]"==={}.toString.call(t),f="undefined"!=typeof Uint8ClampedArray&&"undefined"!=typeof importScripts&&"undefined"!=typeof MessageChannel;function c(){var e=setTimeout;return function(){return e(m,1)}}var _=new Array(1e3);function m(){for(var e=0;e<r;e+=2){(0,_[e])(_[e+1]),_[e]=void 0,_[e+1]=void 0}r=0}var p,v,g,y,E=void 0;function b(e,t){var n=this,i=new this.constructor(L);void 0===i[k]&&F(i);var r=n._state;if(r){var a=arguments[r-1];o(function(){return U(r,i,a,n._result)})}else B(n,i,e,t);return i}function S(e){if(e&&"object"==typeof e&&e.constructor===this)return e;var t=new this(L);return I(t,e),t}h?E=function(){return t.nextTick(m)}:d?(v=0,g=new d(m),y=document.createTextNode(""),g.observe(y,{characterData:!0}),E=function(){y.data=v=++v%2}):f?((p=new MessageChannel).port1.onmessage=m,E=function(){return p.port2.postMessage(0)}):E=void 0===u?function(){try{var e=Function("return this")().require("vertx");return void 0!==(a=e.runOnLoop||e.runOnContext)?function(){a(m)}:c()}catch(e){return c()}}():c();var k=Math.random().toString(36).substring(2);function L(){}var w=void 0,R=1,A=2,O={error:null};function T(e){try{return e.then}catch(e){return O.error=e,O}}function C(t,n,i){n.constructor===t.constructor&&i===b&&n.constructor.resolve===S?function(e,t){t._state===R?M(e,t._result):t._state===A?D(e,t._result):B(t,void 0,function(t){return I(e,t)},function(t){return D(e,t)})}(t,n):i===O?(D(t,O.error),O.error=null):void 0===i?M(t,n):e(i)?function(e,t,n){o(function(e){var i=!1,r=function(e,t,n,i){try{e.call(t,n,i)}catch(e){return e}}(n,t,function(n){i||(i=!0,t!==n?I(e,n):M(e,n))},function(t){i||(i=!0,D(e,t))},e._label);!i&&r&&(i=!0,D(e,r))},e)}(t,n,i):M(t,n)}function I(e,t){var n,i;e===t?D(e,new TypeError("You cannot resolve a promise with itself")):(i=typeof(n=t),null===n||"object"!==i&&"function"!==i?M(e,t):C(e,t,T(t)))}function x(e){e._onerror&&e._onerror(e._result),P(e)}function M(e,t){e._state===w&&(e._result=t,e._state=R,0!==e._subscribers.length&&o(P,e))}function D(e,t){e._state===w&&(e._state=A,e._result=t,o(x,e))}function B(e,t,n,i){var r=e._subscribers,a=r.length;e._onerror=null,r[a]=t,r[a+R]=n,r[a+A]=i,0===a&&e._state&&o(P,e)}function P(e){var t=e._subscribers,n=e._state;if(0!==t.length){for(var i=void 0,r=void 0,a=e._result,s=0;s<t.length;s+=3)i=t[s],r=t[s+n],i?U(n,i,r,a):r(a);e._subscribers.length=0}}function U(t,n,i,r){var a=e(i),s=void 0,o=void 0,u=void 0,l=void 0;if(a){if((s=function(e,t){try{return e(t)}catch(e){return O.error=e,O}}(i,r))===O?(l=!0,o=s.error,s.error=null):u=!0,n===s)return void D(n,new TypeError("A promises callback cannot return that same promise."))}else s=r,u=!0;n._state!==w||(a&&u?I(n,s):l?D(n,o):t===R?M(n,s):t===A&&D(n,s))}var N=0;function F(e){e[k]=N++,e._state=void 0,e._result=void 0,e._subscribers=[]}var j=function(){function e(e,t){this._instanceConstructor=e,this.promise=new e(L),this.promise[k]||F(this.promise),i(t)?(this.length=t.length,this._remaining=t.length,this._result=new Array(this.length),0===this.length?M(this.promise,this._result):(this.length=this.length||0,this._enumerate(t),0===this._remaining&&M(this.promise,this._result))):D(this.promise,new Error("Array Methods must be provided an Array"))}return e.prototype._enumerate=function(e){for(var t=0;this._state===w&&t<e.length;t++)this._eachEntry(e[t],t)},e.prototype._eachEntry=function(e,t){var n=this._instanceConstructor,i=n.resolve;if(i===S){var r=T(e);if(r===b&&e._state!==w)this._settledAt(e._state,t,e._result);else if("function"!=typeof r)this._remaining--,this._result[t]=e;else if(n===G){var a=new n(L);C(a,e,r),this._willSettleAt(a,t)}else this._willSettleAt(new n(function(t){return t(e)}),t)}else this._willSettleAt(i(e),t)},e.prototype._settledAt=function(e,t,n){var i=this.promise;i._state===w&&(this._remaining--,e===A?D(i,n):this._result[t]=n),0===this._remaining&&M(i,this._result)},e.prototype._willSettleAt=function(e,t){var n=this;B(e,void 0,function(e){return n._settledAt(R,t,e)},function(e){return n._settledAt(A,t,e)})},e}(),G=function(){function t(e){this[k]=N++,this._result=this._state=void 0,this._subscribers=[],L!==e&&("function"!=typeof e&&function(){throw new TypeError("You must pass a resolver function as the first argument to the promise constructor")}(),this instanceof t?function(e,t){try{t(function(t){I(e,t)},function(t){D(e,t)})}catch(t){D(e,t)}}(this,e):function(){throw new TypeError("Failed to construct 'Promise': Please use the 'new' operator, this object constructor cannot be called as a function.")}())}return t.prototype.catch=function(e){return this.then(null,e)},t.prototype.finally=function(t){var n=this.constructor;return e(t)?this.then(function(e){return n.resolve(t()).then(function(){return e})},function(e){return n.resolve(t()).then(function(){throw e})}):this.then(t,t)},t}();return G.prototype.then=b,G.all=function(e){return new j(this,e).promise},G.race=function(e){var t=this;return i(e)?new t(function(n,i){for(var r=e.length,a=0;a<r;a++)t.resolve(e[a]).then(n,i)}):new t(function(e,t){return t(new TypeError("You must pass an array to race."))})},G.resolve=S,G.reject=function(e){var t=new this(L);return D(t,e),t},G._setScheduler=function(e){s=e},G._setAsap=function(e){o=e},G._asap=o,G.polyfill=function(){var e=void 0;if(void 0!==n)e=n;else if("undefined"!=typeof self)e=self;else try{e=Function("return this")()}catch(e){throw new Error("polyfill failed because global object is unavailable in this environment")}var t=e.Promise;if(t){var i=null;try{i=Object.prototype.toString.call(t.resolve())}catch(e){}if("[object Promise]"===i&&!t.cast)return}e.Promise=G},G.Promise=G,G},e.exports=i()}).call(this,n(23),n(24))},function(e,t){var n,i,r=e.exports={};function a(){throw new Error("setTimeout has not been defined")}function s(){throw new Error("clearTimeout has not been defined")}function o(e){if(n===setTimeout)return setTimeout(e,0);if((n===a||!n)&&setTimeout)return n=setTimeout,setTimeout(e,0);try{return n(e,0)}catch(t){try{return n.call(null,e,0)}catch(t){return n.call(this,e,0)}}}!function(){try{n="function"==typeof setTimeout?setTimeout:a}catch(e){n=a}try{i="function"==typeof clearTimeout?clearTimeout:s}catch(e){i=s}}();var u,l=[],d=!1,h=-1;function f(){d&&u&&(d=!1,u.length?l=u.concat(l):h=-1,l.length&&c())}function c(){if(!d){var e=o(f);d=!0;for(var t=l.length;t;){for(u=l,l=[];++h<t;)u&&u[h].run();h=-1,t=l.length}u=null,d=!1,function(e){if(i===clearTimeout)return clearTimeout(e);if((i===s||!i)&&clearTimeout)return i=clearTimeout,clearTimeout(e);try{i(e)}catch(t){try{return i.call(null,e)}catch(t){return i.call(this,e)}}}(e)}}function _(e,t){this.fun=e,this.array=t}function m(){}r.nextTick=function(e){var t=new Array(arguments.length-1);if(arguments.length>1)for(var n=1;n<arguments.length;n++)t[n-1]=arguments[n];l.push(new _(e,t)),1!==l.length||d||o(c)},_.prototype.run=function(){this.fun.apply(null,this.array)},r.title="browser",r.browser=!0,r.env={},r.argv=[],r.version="",r.versions={},r.on=m,r.addListener=m,r.once=m,r.off=m,r.removeListener=m,r.removeAllListeners=m,r.emit=m,r.prependListener=m,r.prependOnceListener=m,r.listeners=function(e){return[]},r.binding=function(e){throw new Error("process.binding is not supported")},r.cwd=function(){return"/"},r.chdir=function(e){throw new Error("process.chdir is not supported")},r.umask=function(){return 0}},function(e,t){var n;n=function(){return this}();try{n=n||new Function("return this")()}catch(e){"object"==typeof window&&(n=window)}e.exports=n},function(e,t,n){"use strict";Object.defineProperty(t,"__esModule",{value:!0});var i,r=function(){function e(e,t){for(var n=0;n<t.length;n++){var i=t[n];i.enumerable=i.enumerable||!1,i.configurable=!0,"value"in i&&(i.writable=!0),Object.defineProperty(e,i.key,i)}}return function(t,n,i){return n&&e(t.prototype,n),i&&e(t,i),t}}(),a=n(12),s=(i=a)&&i.__esModule?i:{default:i},o=n(6);var u=function(){function e(){!function(e,t){if(!(e instanceof t))throw new TypeError("Cannot call a class as a function")}(this,e)}return r(e,null,[{key:"supportMSEH264Playback",value:function(){return window.MediaSource&&window.MediaSource.isTypeSupported('video/mp4; codecs="avc1.42E01E,mp4a.40.2"')}},{key:"supportNetworkStreamIO",value:function(){var e=new s.default({},(0,o.createDefaultConfig)()),t=e.loaderType;return e.destroy(),"fetch-stream-loader"==t||"xhr-moz-chunked-loader"==t}},{key:"getNetworkLoaderTypeName",value:function(){var e=new s.default({},(0,o.createDefaultConfig)()),t=e.loaderType;return e.destroy(),t}},{key:"supportNativeMediaPlayback",value:function(t){null==e.videoElement&&(e.videoElement=window.document.createElement("video"));var n=e.videoElement.canPlayType(t);return"probably"===n||"maybe"==n}},{key:"getFeatureList",value:function(){var t={mseFlvPlayback:!1,mseLiveFlvPlayback:!1,networkStreamIO:!1,networkLoaderName:"",nativeMP4H264Playback:!1,nativeWebmVP8Playback:!1,nativeWebmVP9Playback:!1};return t.mseFlvPlayback=e.supportMSEH264Playback(),t.networkStreamIO=e.supportNetworkStreamIO(),t.networkLoaderName=e.getNetworkLoaderTypeName(),t.mseLiveFlvPlayback=t.mseFlvPlayback&&t.networkStreamIO,t.nativeMP4H264Playback=e.supportNativeMediaPlayback('video/mp4; codecs="avc1.42001E, mp4a.40.2"'),t.nativeWebmVP8Playback=e.supportNativeMediaPlayback('video/webm; codecs="vp8.0, vorbis"'),t.nativeWebmVP9Playback=e.supportNativeMediaPlayback('video/webm; codecs="vp9"'),t}}]),e}();t.default=u,e.exports=t.default},function(e,t,n){"use strict";Object.defineProperty(t,"__esModule",{value:!0});var i="function"==typeof Symbol&&"symbol"==typeof Symbol.iterator?function(e){return typeof e}:function(e){return e&&"function"==typeof Symbol&&e.constructor===Symbol&&e!==Symbol.prototype?"symbol":typeof e},r=function(){function e(e,t){for(var n=0;n<t.length;n++){var i=t[n];i.enumerable=i.enumerable||!1,i.configurable=!0,"value"in i&&(i.writable=!0),Object.defineProperty(e,i.key,i)}}return function(t,n,i){return n&&e(t.prototype,n),i&&e(t,i),t}}(),a=(u(n(0)),u(n(4))),s=n(3),o=n(1);function u(e){return e&&e.__esModule?e:{default:e}}var l=function(e){function t(e,n){!function(e,t){if(!(e instanceof t))throw new TypeError("Cannot call a class as a function")}(this,t);var i=function(e,t){if(!e)throw new ReferenceError("this hasn't been initialised - super() hasn't been called");return!t||"object"!=typeof t&&"function"!=typeof t?e:t}(this,(t.__proto__||Object.getPrototypeOf(t)).call(this,"fetch-stream-loader"));return i.TAG="FetchStreamLoader",i._seekHandler=e,i._config=n,i._needStash=!0,i._requestAbort=!1,i._contentLength=null,i._receivedLength=0,i}return function(e,t){if("function"!=typeof t&&null!==t)throw new TypeError("Super expression must either be null or a function, not "+typeof t);e.prototype=Object.create(t&&t.prototype,{constructor:{value:e,enumerable:!1,writable:!0,configurable:!0}}),t&&(Object.setPrototypeOf?Object.setPrototypeOf(e,t):e.__proto__=t)}(t,s.BaseLoader),r(t,null,[{key:"isSupported",value:function(){try{var e=a.default.msedge&&a.default.version.minor>=15048,t=!a.default.msedge||e;return self.fetch&&self.ReadableStream&&t}catch(e){return!1}}}]),r(t,[{key:"destroy",value:function(){this.isWorking()&&this.abort(),function e(t,n,i){null===t&&(t=Function.prototype);var r=Object.getOwnPropertyDescriptor(t,n);if(void 0===r){var a=Object.getPrototypeOf(t);return null===a?void 0:e(a,n,i)}if("value"in r)return r.value;var s=r.get;return void 0!==s?s.call(i):void 0}(t.prototype.__proto__||Object.getPrototypeOf(t.prototype),"destroy",this).call(this)}},{key:"open",value:function(e,t){var n=this;this._dataSource=e,this._range=t;var r=e.url;this._config.reuseRedirectedURL&&null!=e.redirectedURL&&(r=e.redirectedURL);var a=this._seekHandler.getConfig(r,t),u=new self.Headers;if("object"===i(a.headers)){var l=a.headers;for(var d in l)l.hasOwnProperty(d)&&u.append(d,l[d])}var h={method:"GET",headers:u,mode:"cors",cache:"default",referrerPolicy:"no-referrer-when-downgrade"};!1===e.cors&&(h.mode="same-origin"),e.withCredentials&&(h.credentials="include"),e.referrerPolicy&&(h.referrerPolicy=e.referrerPolicy),this._status=s.LoaderStatus.kConnecting,self.fetch(a.url,h).then(function(e){if(n._requestAbort)return n._requestAbort=!1,void(n._status=s.LoaderStatus.kIdle);if(e.ok&&e.status>=200&&e.status<=299){if(e.url!==a.url&&n._onURLRedirect){var t=n._seekHandler.removeURLParameters(e.url);n._onURLRedirect(t)}var i=e.headers.get("Content-Length");return null!=i&&(n._contentLength=parseInt(i),0!==n._contentLength&&n._onContentLengthKnown&&n._onContentLengthKnown(n._contentLength)),n._pump.call(n,e.body.getReader())}if(n._status=s.LoaderStatus.kError,!n._onError)throw new o.RuntimeException("FetchStreamLoader: Http code invalid, "+e.status+" "+e.statusText);n._onError(s.LoaderErrors.HTTP_STATUS_CODE_INVALID,{code:e.status,msg:e.statusText})}).catch(function(e){if(n._status=s.LoaderStatus.kError,!n._onError)throw e;n._onError(s.LoaderErrors.EXCEPTION,{code:-1,msg:e.message})})}},{key:"abort",value:function(){this._requestAbort=!0}},{key:"_pump",value:function(e){var t=this;return e.read().then(function(n){if(n.done)t._status=s.LoaderStatus.kComplete,t._onComplete&&t._onComplete(t._range.from,t._range.from+t._receivedLength-1);else{if(!0===t._requestAbort)return t._requestAbort=!1,t._status=s.LoaderStatus.kComplete,e.cancel();t._status=s.LoaderStatus.kBuffering;var i=n.value.buffer,r=t._range.from+t._receivedLength;t._receivedLength+=i.byteLength,t._onDataArrival&&t._onDataArrival(i,r,t._receivedLength),t._pump(e)}}).catch(function(e){if(11!==e.code||!a.default.msedge){t._status=s.LoaderStatus.kError;var n=0,i=null;if(19!==e.code&&"network error"!==e.message||!(null===t._contentLength||null!==t._contentLength&&t._receivedLength<t._contentLength)?(n=s.LoaderErrors.EXCEPTION,i={code:e.code,msg:e.message}):(n=s.LoaderErrors.EARLY_EOF,i={code:e.code,msg:"Fetch stream meet Early-EOF"}),!t._onError)throw new o.RuntimeException(i.msg);t._onError(n,i)}})}}]),t}();t.default=l,e.exports=t.default},function(e,t,n){"use strict";Object.defineProperty(t,"__esModule",{value:!0});var i,r="function"==typeof Symbol&&"symbol"==typeof Symbol.iterator?function(e){return typeof e}:function(e){return e&&"function"==typeof Symbol&&e.constructor===Symbol&&e!==Symbol.prototype?"symbol":typeof e},a=function(){function e(e,t){for(var n=0;n<t.length;n++){var i=t[n];i.enumerable=i.enumerable||!1,i.configurable=!0,"value"in i&&(i.writable=!0),Object.defineProperty(e,i.key,i)}}return function(t,n,i){return n&&e(t.prototype,n),i&&e(t,i),t}}(),s=n(0),o=(i=s)&&i.__esModule?i:{default:i},u=n(3),l=n(1);var d=function(e){function t(e,n){!function(e,t){if(!(e instanceof t))throw new TypeError("Cannot call a class as a function")}(this,t);var i=function(e,t){if(!e)throw new ReferenceError("this hasn't been initialised - super() hasn't been called");return!t||"object"!=typeof t&&"function"!=typeof t?e:t}(this,(t.__proto__||Object.getPrototypeOf(t)).call(this,"xhr-moz-chunked-loader"));return i.TAG="MozChunkedLoader",i._seekHandler=e,i._config=n,i._needStash=!0,i._xhr=null,i._requestAbort=!1,i._contentLength=null,i._receivedLength=0,i}return function(e,t){if("function"!=typeof t&&null!==t)throw new TypeError("Super expression must either be null or a function, not "+typeof t);e.prototype=Object.create(t&&t.prototype,{constructor:{value:e,enumerable:!1,writable:!0,configurable:!0}}),t&&(Object.setPrototypeOf?Object.setPrototypeOf(e,t):e.__proto__=t)}(t,u.BaseLoader),a(t,null,[{key:"isSupported",value:function(){try{var e=new XMLHttpRequest;return e.open("GET","https://example.com",!0),e.responseType="moz-chunked-arraybuffer","moz-chunked-arraybuffer"===e.responseType}catch(e){return o.default.w("MozChunkedLoader",e.message),!1}}}]),a(t,[{key:"destroy",value:function(){this.isWorking()&&this.abort(),this._xhr&&(this._xhr.onreadystatechange=null,this._xhr.onprogress=null,this._xhr.onloadend=null,this._xhr.onerror=null,this._xhr=null),function e(t,n,i){null===t&&(t=Function.prototype);var r=Object.getOwnPropertyDescriptor(t,n);if(void 0===r){var a=Object.getPrototypeOf(t);return null===a?void 0:e(a,n,i)}if("value"in r)return r.value;var s=r.get;return void 0!==s?s.call(i):void 0}(t.prototype.__proto__||Object.getPrototypeOf(t.prototype),"destroy",this).call(this)}},{key:"open",value:function(e,t){this._dataSource=e,this._range=t;var n=e.url;this._config.reuseRedirectedURL&&null!=e.redirectedURL&&(n=e.redirectedURL);var i=this._seekHandler.getConfig(n,t);this._requestURL=i.url;var a=this._xhr=new XMLHttpRequest;if(a.open("GET",i.url,!0),a.responseType="moz-chunked-arraybuffer",a.onreadystatechange=this._onReadyStateChange.bind(this),a.onprogress=this._onProgress.bind(this),a.onloadend=this._onLoadEnd.bind(this),a.onerror=this._onXhrError.bind(this),e.withCredentials&&(a.withCredentials=!0),"object"===r(i.headers)){var s=i.headers;for(var o in s)s.hasOwnProperty(o)&&a.setRequestHeader(o,s[o])}this._status=u.LoaderStatus.kConnecting,a.send()}},{key:"abort",value:function(){this._requestAbort=!0,this._xhr&&this._xhr.abort(),this._status=u.LoaderStatus.kComplete}},{key:"_onReadyStateChange",value:function(e){var t=e.target;if(2===t.readyState){if(null!=t.responseURL&&t.responseURL!==this._requestURL&&this._onURLRedirect){var n=this._seekHandler.removeURLParameters(t.responseURL);this._onURLRedirect(n)}if(0!==t.status&&(t.status<200||t.status>299)){if(this._status=u.LoaderStatus.kError,!this._onError)throw new l.RuntimeException("MozChunkedLoader: Http code invalid, "+t.status+" "+t.statusText);this._onError(u.LoaderErrors.HTTP_STATUS_CODE_INVALID,{code:t.status,msg:t.statusText})}else this._status=u.LoaderStatus.kBuffering}}},{key:"_onProgress",value:function(e){if(this._status!==u.LoaderStatus.kError){null===this._contentLength&&null!==e.total&&0!==e.total&&(this._contentLength=e.total,this._onContentLengthKnown&&this._onContentLengthKnown(this._contentLength));var t=e.target.response,n=this._range.from+this._receivedLength;this._receivedLength+=t.byteLength,this._onDataArrival&&this._onDataArrival(t,n,this._receivedLength)}}},{key:"_onLoadEnd",value:function(e){!0!==this._requestAbort?this._status!==u.LoaderStatus.kError&&(this._status=u.LoaderStatus.kComplete,this._onComplete&&this._onComplete(this._range.from,this._range.from+this._receivedLength-1)):this._requestAbort=!1}},{key:"_onXhrError",value:function(e){this._status=u.LoaderStatus.kError;var t=0,n=null;if(this._contentLength&&e.loaded<this._contentLength?(t=u.LoaderErrors.EARLY_EOF,n={code:-1,msg:"Moz-Chunked stream meet Early-Eof"}):(t=u.LoaderErrors.EXCEPTION,n={code:-1,msg:e.constructor.name+" "+e.type}),!this._onError)throw new l.RuntimeException(n.msg);this._onError(t,n)}}]),t}();t.default=d,e.exports=t.default},function(e,t,n){"use strict";Object.defineProperty(t,"__esModule",{value:!0});var i,r="function"==typeof Symbol&&"symbol"==typeof Symbol.iterator?function(e){return typeof e}:function(e){return e&&"function"==typeof Symbol&&e.constructor===Symbol&&e!==Symbol.prototype?"symbol":typeof e},a=function(){function e(e,t){for(var n=0;n<t.length;n++){var i=t[n];i.enumerable=i.enumerable||!1,i.configurable=!0,"value"in i&&(i.writable=!0),Object.defineProperty(e,i.key,i)}}return function(t,n,i){return n&&e(t.prototype,n),i&&e(t,i),t}}(),s=n(0),o=(i=s)&&i.__esModule?i:{default:i},u=n(3),l=n(1);var d=function(e){function t(e,n){!function(e,t){if(!(e instanceof t))throw new TypeError("Cannot call a class as a function")}(this,t);var i=function(e,t){if(!e)throw new ReferenceError("this hasn't been initialised - super() hasn't been called");return!t||"object"!=typeof t&&"function"!=typeof t?e:t}(this,(t.__proto__||Object.getPrototypeOf(t)).call(this,"xhr-msstream-loader"));return i.TAG="MSStreamLoader",i._seekHandler=e,i._config=n,i._needStash=!0,i._xhr=null,i._reader=null,i._totalRange=null,i._currentRange=null,i._currentRequestURL=null,i._currentRedirectedURL=null,i._contentLength=null,i._receivedLength=0,i._bufferLimit=16777216,i._lastTimeBufferSize=0,i._isReconnecting=!1,i}return function(e,t){if("function"!=typeof t&&null!==t)throw new TypeError("Super expression must either be null or a function, not "+typeof t);e.prototype=Object.create(t&&t.prototype,{constructor:{value:e,enumerable:!1,writable:!0,configurable:!0}}),t&&(Object.setPrototypeOf?Object.setPrototypeOf(e,t):e.__proto__=t)}(t,u.BaseLoader),a(t,null,[{key:"isSupported",value:function(){try{if(void 0===self.MSStream||void 0===self.MSStreamReader)return!1;var e=new XMLHttpRequest;return e.open("GET","https://example.com",!0),e.responseType="ms-stream","ms-stream"===e.responseType}catch(e){return o.default.w("MSStreamLoader",e.message),!1}}}]),a(t,[{key:"destroy",value:function(){this.isWorking()&&this.abort(),this._reader&&(this._reader.onprogress=null,this._reader.onload=null,this._reader.onerror=null,this._reader=null),this._xhr&&(this._xhr.onreadystatechange=null,this._xhr=null),function e(t,n,i){null===t&&(t=Function.prototype);var r=Object.getOwnPropertyDescriptor(t,n);if(void 0===r){var a=Object.getPrototypeOf(t);return null===a?void 0:e(a,n,i)}if("value"in r)return r.value;var s=r.get;return void 0!==s?s.call(i):void 0}(t.prototype.__proto__||Object.getPrototypeOf(t.prototype),"destroy",this).call(this)}},{key:"open",value:function(e,t){this._internalOpen(e,t,!1)}},{key:"_internalOpen",value:function(e,t,n){this._dataSource=e,n?this._currentRange=t:this._totalRange=t;var i=e.url;this._config.reuseRedirectedURL&&(null!=this._currentRedirectedURL?i=this._currentRedirectedURL:null!=e.redirectedURL&&(i=e.redirectedURL));var a=this._seekHandler.getConfig(i,t);this._currentRequestURL=a.url;var s=this._reader=new self.MSStreamReader;s.onprogress=this._msrOnProgress.bind(this),s.onload=this._msrOnLoad.bind(this),s.onerror=this._msrOnError.bind(this);var o=this._xhr=new XMLHttpRequest;if(o.open("GET",a.url,!0),o.responseType="ms-stream",o.onreadystatechange=this._xhrOnReadyStateChange.bind(this),o.onerror=this._xhrOnError.bind(this),e.withCredentials&&(o.withCredentials=!0),"object"===r(a.headers)){var l=a.headers;for(var d in l)l.hasOwnProperty(d)&&o.setRequestHeader(d,l[d])}this._isReconnecting?this._isReconnecting=!1:this._status=u.LoaderStatus.kConnecting,o.send()}},{key:"abort",value:function(){this._internalAbort(),this._status=u.LoaderStatus.kComplete}},{key:"_internalAbort",value:function(){this._reader&&(1===this._reader.readyState&&this._reader.abort(),this._reader.onprogress=null,this._reader.onload=null,this._reader.onerror=null,this._reader=null),this._xhr&&(this._xhr.abort(),this._xhr.onreadystatechange=null,this._xhr=null)}},{key:"_xhrOnReadyStateChange",value:function(e){var t=e.target;if(2===t.readyState)if(t.status>=200&&t.status<=299){if(this._status=u.LoaderStatus.kBuffering,null!=t.responseURL){var n=this._seekHandler.removeURLParameters(t.responseURL);t.responseURL!==this._currentRequestURL&&n!==this._currentRedirectedURL&&(this._currentRedirectedURL=n,this._onURLRedirect&&this._onURLRedirect(n))}var i=t.getResponseHeader("Content-Length");if(null!=i&&null==this._contentLength){var r=parseInt(i);r>0&&(this._contentLength=r,this._onContentLengthKnown&&this._onContentLengthKnown(this._contentLength))}}else{if(this._status=u.LoaderStatus.kError,!this._onError)throw new l.RuntimeException("MSStreamLoader: Http code invalid, "+t.status+" "+t.statusText);this._onError(u.LoaderErrors.HTTP_STATUS_CODE_INVALID,{code:t.status,msg:t.statusText})}else if(3===t.readyState&&t.status>=200&&t.status<=299){this._status=u.LoaderStatus.kBuffering;var a=t.response;this._reader.readAsArrayBuffer(a)}}},{key:"_xhrOnError",value:function(e){this._status=u.LoaderStatus.kError;var t=u.LoaderErrors.EXCEPTION,n={code:-1,msg:e.constructor.name+" "+e.type};if(!this._onError)throw new l.RuntimeException(n.msg);this._onError(t,n)}},{key:"_msrOnProgress",value:function(e){var t=e.target.result;if(null!=t){var n=t.slice(this._lastTimeBufferSize);this._lastTimeBufferSize=t.byteLength;var i=this._totalRange.from+this._receivedLength;this._receivedLength+=n.byteLength,this._onDataArrival&&this._onDataArrival(n,i,this._receivedLength),t.byteLength>=this._bufferLimit&&(o.default.v(this.TAG,"MSStream buffer exceeded max size near "+(i+n.byteLength)+", reconnecting..."),this._doReconnectIfNeeded())}else this._doReconnectIfNeeded()}},{key:"_doReconnectIfNeeded",value:function(){if(null==this._contentLength||this._receivedLength<this._contentLength){this._isReconnecting=!0,this._lastTimeBufferSize=0,this._internalAbort();var e={from:this._totalRange.from+this._receivedLength,to:-1};this._internalOpen(this._dataSource,e,!0)}}},{key:"_msrOnLoad",value:function(e){this._status=u.LoaderStatus.kComplete,this._onComplete&&this._onComplete(this._totalRange.from,this._totalRange.from+this._receivedLength-1)}},{key:"_msrOnError",value:function(e){this._status=u.LoaderStatus.kError;var t=0,n=null;if(this._contentLength&&this._receivedLength<this._contentLength?(t=u.LoaderErrors.EARLY_EOF,n={code:-1,msg:"MSStream meet Early-Eof"}):(t=u.LoaderErrors.EARLY_EOF,n={code:-1,msg:e.constructor.name+" "+e.type}),!this._onError)throw new l.RuntimeException(n.msg);this._onError(t,n)}}]),t}();t.default=d,e.exports=t.default},function(e,t,n){"use strict";Object.defineProperty(t,"__esModule",{value:!0});var i="function"==typeof Symbol&&"symbol"==typeof Symbol.iterator?function(e){return typeof e}:function(e){return e&&"function"==typeof Symbol&&e.constructor===Symbol&&e!==Symbol.prototype?"symbol":typeof e},r=function(){function e(e,t){for(var n=0;n<t.length;n++){var i=t[n];i.enumerable=i.enumerable||!1,i.configurable=!0,"value"in i&&(i.writable=!0),Object.defineProperty(e,i.key,i)}}return function(t,n,i){return n&&e(t.prototype,n),i&&e(t,i),t}}(),a=l(n(0)),s=l(n(13)),o=n(3),u=n(1);function l(e){return e&&e.__esModule?e:{default:e}}var d=function(e){function t(e,n){!function(e,t){if(!(e instanceof t))throw new TypeError("Cannot call a class as a function")}(this,t);var i=function(e,t){if(!e)throw new ReferenceError("this hasn't been initialised - super() hasn't been called");return!t||"object"!=typeof t&&"function"!=typeof t?e:t}(this,(t.__proto__||Object.getPrototypeOf(t)).call(this,"xhr-range-loader"));return i.TAG="RangeLoader",i._seekHandler=e,i._config=n,i._needStash=!1,i._chunkSizeKBList=[128,256,384,512,768,1024,1536,2048,3072,4096,5120,6144,7168,8192],i._currentChunkSizeKB=384,i._currentSpeedNormalized=0,i._zeroSpeedChunkCount=0,i._xhr=null,i._speedSampler=new s.default,i._requestAbort=!1,i._waitForTotalLength=!1,i._totalLengthReceived=!1,i._currentRequestURL=null,i._currentRedirectedURL=null,i._currentRequestRange=null,i._totalLength=null,i._contentLength=null,i._receivedLength=0,i._lastTimeLoaded=0,i}return function(e,t){if("function"!=typeof t&&null!==t)throw new TypeError("Super expression must either be null or a function, not "+typeof t);e.prototype=Object.create(t&&t.prototype,{constructor:{value:e,enumerable:!1,writable:!0,configurable:!0}}),t&&(Object.setPrototypeOf?Object.setPrototypeOf(e,t):e.__proto__=t)}(t,o.BaseLoader),r(t,null,[{key:"isSupported",value:function(){try{var e=new XMLHttpRequest;return e.open("GET","https://example.com",!0),e.responseType="arraybuffer","arraybuffer"===e.responseType}catch(e){return a.default.w("RangeLoader",e.message),!1}}}]),r(t,[{key:"destroy",value:function(){this.isWorking()&&this.abort(),this._xhr&&(this._xhr.onreadystatechange=null,this._xhr.onprogress=null,this._xhr.onload=null,this._xhr.onerror=null,this._xhr=null),function e(t,n,i){null===t&&(t=Function.prototype);var r=Object.getOwnPropertyDescriptor(t,n);if(void 0===r){var a=Object.getPrototypeOf(t);return null===a?void 0:e(a,n,i)}if("value"in r)return r.value;var s=r.get;return void 0!==s?s.call(i):void 0}(t.prototype.__proto__||Object.getPrototypeOf(t.prototype),"destroy",this).call(this)}},{key:"open",value:function(e,t){this._dataSource=e,this._range=t,this._status=o.LoaderStatus.kConnecting;var n=!1;null!=this._dataSource.filesize&&0!==this._dataSource.filesize&&(n=!0,this._totalLength=this._dataSource.filesize),this._totalLengthReceived||n?this._openSubRange():(this._waitForTotalLength=!0,this._internalOpen(this._dataSource,{from:0,to:-1}))}},{key:"_openSubRange",value:function(){var e=1024*this._currentChunkSizeKB,t=this._range.from+this._receivedLength,n=t+e;null!=this._contentLength&&n-this._range.from>=this._contentLength&&(n=this._range.from+this._contentLength-1),this._currentRequestRange={from:t,to:n},this._internalOpen(this._dataSource,this._currentRequestRange)}},{key:"_internalOpen",value:function(e,t){this._lastTimeLoaded=0;var n=e.url;this._config.reuseRedirectedURL&&(null!=this._currentRedirectedURL?n=this._currentRedirectedURL:null!=e.redirectedURL&&(n=e.redirectedURL));var r=this._seekHandler.getConfig(n,t);this._currentRequestURL=r.url;var a=this._xhr=new XMLHttpRequest;if(a.open("GET",r.url,!0),a.responseType="arraybuffer",a.onreadystatechange=this._onReadyStateChange.bind(this),a.onprogress=this._onProgress.bind(this),a.onload=this._onLoad.bind(this),a.onerror=this._onXhrError.bind(this),e.withCredentials&&(a.withCredentials=!0),"object"===i(r.headers)){var s=r.headers;for(var o in s)s.hasOwnProperty(o)&&a.setRequestHeader(o,s[o])}a.send()}},{key:"abort",value:function(){this._requestAbort=!0,this._internalAbort(),this._status=o.LoaderStatus.kComplete}},{key:"_internalAbort",value:function(){this._xhr&&(this._xhr.onreadystatechange=null,this._xhr.onprogress=null,this._xhr.onload=null,this._xhr.onerror=null,this._xhr.abort(),this._xhr=null)}},{key:"_onReadyStateChange",value:function(e){var t=e.target;if(2===t.readyState){if(null!=t.responseURL){var n=this._seekHandler.removeURLParameters(t.responseURL);t.responseURL!==this._currentRequestURL&&n!==this._currentRedirectedURL&&(this._currentRedirectedURL=n,this._onURLRedirect&&this._onURLRedirect(n))}if(t.status>=200&&t.status<=299){if(this._waitForTotalLength)return;this._status=o.LoaderStatus.kBuffering}else{if(this._status=o.LoaderStatus.kError,!this._onError)throw new u.RuntimeException("RangeLoader: Http code invalid, "+t.status+" "+t.statusText);this._onError(o.LoaderErrors.HTTP_STATUS_CODE_INVALID,{code:t.status,msg:t.statusText})}}}},{key:"_onProgress",value:function(e){if(this._status!==o.LoaderStatus.kError){if(null===this._contentLength){var t=!1;if(this._waitForTotalLength){this._waitForTotalLength=!1,this._totalLengthReceived=!0,t=!0;var n=e.total;this._internalAbort(),null!=n&0!==n&&(this._totalLength=n)}if(-1===this._range.to?this._contentLength=this._totalLength-this._range.from:this._contentLength=this._range.to-this._range.from+1,t)return void this._openSubRange();this._onContentLengthKnown&&this._onContentLengthKnown(this._contentLength)}var i=e.loaded-this._lastTimeLoaded;this._lastTimeLoaded=e.loaded,this._speedSampler.addBytes(i)}}},{key:"_normalizeSpeed",value:function(e){var t=this._chunkSizeKBList,n=t.length-1,i=0,r=0,a=n;if(e<t[0])return t[0];for(;r<=a;){if((i=r+Math.floor((a-r)/2))===n||e>=t[i]&&e<t[i+1])return t[i];t[i]<e?r=i+1:a=i-1}}},{key:"_onLoad",value:function(e){if(this._status!==o.LoaderStatus.kError)if(this._waitForTotalLength)this._waitForTotalLength=!1;else{this._lastTimeLoaded=0;var t=this._speedSampler.lastSecondKBps;if(0===t&&(this._zeroSpeedChunkCount++,this._zeroSpeedChunkCount>=3&&(t=this._speedSampler.currentKBps)),0!==t){var n=this._normalizeSpeed(t);this._currentSpeedNormalized!==n&&(this._currentSpeedNormalized=n,this._currentChunkSizeKB=n)}var i=e.target.response,r=this._range.from+this._receivedLength;this._receivedLength+=i.byteLength;var a=!1;null!=this._contentLength&&this._receivedLength<this._contentLength?this._openSubRange():a=!0,this._onDataArrival&&this._onDataArrival(i,r,this._receivedLength),a&&(this._status=o.LoaderStatus.kComplete,this._onComplete&&this._onComplete(this._range.from,this._range.from+this._receivedLength-1))}}},{key:"_onXhrError",value:function(e){this._status=o.LoaderStatus.kError;var t=0,n=null;if(this._contentLength&&this._receivedLength>0&&this._receivedLength<this._contentLength?(t=o.LoaderErrors.EARLY_EOF,n={code:-1,msg:"RangeLoader meet Early-Eof"}):(t=o.LoaderErrors.EXCEPTION,n={code:-1,msg:e.constructor.name+" "+e.type}),!this._onError)throw new u.RuntimeException(n.msg);this._onError(t,n)}},{key:"currentSpeed",get:function(){return this._speedSampler.lastSecondKBps}}]),t}();t.default=d,e.exports=t.default},function(e,t,n){"use strict";Object.defineProperty(t,"__esModule",{value:!0});var i,r=function(){function e(e,t){for(var n=0;n<t.length;n++){var i=t[n];i.enumerable=i.enumerable||!1,i.configurable=!0,"value"in i&&(i.writable=!0),Object.defineProperty(e,i.key,i)}}return function(t,n,i){return n&&e(t.prototype,n),i&&e(t,i),t}}(),a=n(0),s=((i=a)&&i.__esModule,n(3)),o=n(1);var u=function(e){function t(){!function(e,t){if(!(e instanceof t))throw new TypeError("Cannot call a class as a function")}(this,t);var e=function(e,t){if(!e)throw new ReferenceError("this hasn't been initialised - super() hasn't been called");return!t||"object"!=typeof t&&"function"!=typeof t?e:t}(this,(t.__proto__||Object.getPrototypeOf(t)).call(this,"websocket-loader"));return e.TAG="WebSocketLoader",e._needStash=!0,e._ws=null,e._requestAbort=!1,e._receivedLength=0,e}return function(e,t){if("function"!=typeof t&&null!==t)throw new TypeError("Super expression must either be null or a function, not "+typeof t);e.prototype=Object.create(t&&t.prototype,{constructor:{value:e,enumerable:!1,writable:!0,configurable:!0}}),t&&(Object.setPrototypeOf?Object.setPrototypeOf(e,t):e.__proto__=t)}(t,s.BaseLoader),r(t,null,[{key:"isSupported",value:function(){try{return void 0!==self.WebSocket}catch(e){return!1}}}]),r(t,[{key:"destroy",value:function(){this._ws&&this.abort(),function e(t,n,i){null===t&&(t=Function.prototype);var r=Object.getOwnPropertyDescriptor(t,n);if(void 0===r){var a=Object.getPrototypeOf(t);return null===a?void 0:e(a,n,i)}if("value"in r)return r.value;var s=r.get;return void 0!==s?s.call(i):void 0}(t.prototype.__proto__||Object.getPrototypeOf(t.prototype),"destroy",this).call(this)}},{key:"open",value:function(e){try{var t=this._ws=new self.WebSocket(e.url);t.binaryType="arraybuffer",t.onopen=this._onWebSocketOpen.bind(this),t.onclose=this._onWebSocketClose.bind(this),t.onmessage=this._onWebSocketMessage.bind(this),t.onerror=this._onWebSocketError.bind(this),this._status=s.LoaderStatus.kConnecting}catch(e){this._status=s.LoaderStatus.kError;var n={code:e.code,msg:e.message};if(!this._onError)throw new o.RuntimeException(n.msg);this._onError(s.LoaderErrors.EXCEPTION,n)}}},{key:"abort",value:function(){var e=this._ws;!e||0!==e.readyState&&1!==e.readyState||(this._requestAbort=!0,e.close()),this._ws=null,this._status=s.LoaderStatus.kComplete}},{key:"_onWebSocketOpen",value:function(e){this._status=s.LoaderStatus.kBuffering}},{key:"_onWebSocketClose",value:function(e){!0!==this._requestAbort?(this._status=s.LoaderStatus.kComplete,this._onComplete&&this._onComplete(0,this._receivedLength-1)):this._requestAbort=!1}},{key:"_onWebSocketMessage",value:function(e){var t=this;if(e.data instanceof ArrayBuffer)this._dispatchArrayBuffer(e.data);else if(e.data instanceof Blob){var n=new FileReader;n.onload=function(){t._dispatchArrayBuffer(n.result)},n.readAsArrayBuffer(e.data)}else{this._status=s.LoaderStatus.kError;var i={code:-1,msg:"Unsupported WebSocket message type: "+e.data.constructor.name};if(!this._onError)throw new o.RuntimeException(i.msg);this._onError(s.LoaderErrors.EXCEPTION,i)}}},{key:"_dispatchArrayBuffer",value:function(e){var t=e,n=this._receivedLength;this._receivedLength+=t.byteLength,this._onDataArrival&&this._onDataArrival(t,n,this._receivedLength)}},{key:"_onWebSocketError",value:function(e){this._status=s.LoaderStatus.kError;var t={code:e.code,msg:e.message};if(!this._onError)throw new o.RuntimeException(t.msg);this._onError(s.LoaderErrors.EXCEPTION,t)}}]),t}();t.default=u,e.exports=t.default},function(e,t,n){"use strict";Object.defineProperty(t,"__esModule",{value:!0});var i=function(){function e(e,t){for(var n=0;n<t.length;n++){var i=t[n];i.enumerable=i.enumerable||!1,i.configurable=!0,"value"in i&&(i.writable=!0),Object.defineProperty(e,i.key,i)}}return function(t,n,i){return n&&e(t.prototype,n),i&&e(t,i),t}}();var r=function(){function e(t){!function(e,t){if(!(e instanceof t))throw new TypeError("Cannot call a class as a function")}(this,e),this._zeroStart=t||!1}return i(e,[{key:"getConfig",value:function(e,t){var n={};if(0!==t.from||-1!==t.to){var i=void 0;i=-1!==t.to?"bytes="+t.from.toString()+"-"+t.to.toString():"bytes="+t.from.toString()+"-",n.Range=i}else this._zeroStart&&(n.Range="bytes=0-");return{url:e,headers:n}}},{key:"removeURLParameters",value:function(e){return e}}]),e}();t.default=r,e.exports=t.default},function(e,t,n){"use strict";Object.defineProperty(t,"__esModule",{value:!0});var i=function(){function e(e,t){for(var n=0;n<t.length;n++){var i=t[n];i.enumerable=i.enumerable||!1,i.configurable=!0,"value"in i&&(i.writable=!0),Object.defineProperty(e,i.key,i)}}return function(t,n,i){return n&&e(t.prototype,n),i&&e(t,i),t}}();var r=function(){function e(t,n){!function(e,t){if(!(e instanceof t))throw new TypeError("Cannot call a class as a function")}(this,e),this._startName=t,this._endName=n}return i(e,[{key:"getConfig",value:function(e,t){var n=e;if(0!==t.from||-1!==t.to){var i=!0;-1===n.indexOf("?")&&(n+="?",i=!1),i&&(n+="&"),n+=this._startName+"="+t.from.toString(),-1!==t.to&&(n+="&"+this._endName+"="+t.to.toString())}return{url:n,headers:{}}}},{key:"removeURLParameters",value:function(e){var t=e.split("?")[0],n=void 0,i=e.indexOf("?");-1!==i&&(n=e.substring(i+1));var r="";if(null!=n&&n.length>0)for(var a=n.split("&"),s=0;s<a.length;s++){var o=a[s].split("="),u=s>0;o[0]!==this._startName&&o[0]!==this._endName&&(u&&(r+="&"),r+=a[s])}return 0===r.length?t:t+"?"+r}}]),e}();t.default=r,e.exports=t.default},function(e,t,n){"use strict";Object.defineProperty(t,"__esModule",{value:!0});var i="function"==typeof Symbol&&"symbol"==typeof Symbol.iterator?function(e){return typeof e}:function(e){return e&&"function"==typeof Symbol&&e.constructor===Symbol&&e!==Symbol.prototype?"symbol":typeof e},r=function(){function e(e,t){for(var n=0;n<t.length;n++){var i=t[n];i.enumerable=i.enumerable||!1,i.configurable=!0,"value"in i&&(i.writable=!0),Object.defineProperty(e,i.key,i)}}return function(t,n,i){return n&&e(t.prototype,n),i&&e(t,i),t}}(),a=p(n(2)),s=p(n(0)),o=p(n(4)),u=p(n(7)),l=p(n(34)),d=p(n(5)),h=p(n(45)),f=p(n(16)),c=n(17),_=n(6),m=n(1);function p(e){return e&&e.__esModule?e:{default:e}}var v=function(){function e(t,n){if(function(e,t){if(!(e instanceof t))throw new TypeError("Cannot call a class as a function")}(this,e),this.TAG="FlvPlayer",this._type="FlvPlayer",this._emitter=new a.default,this._config=(0,_.createDefaultConfig)(),"object"===(void 0===n?"undefined":i(n))&&Object.assign(this._config,n),"flv"!==t.type.toLowerCase())throw new m.InvalidArgumentException("FlvPlayer requires an flv MediaDataSource input!");!0===t.isLive&&(this._config.isLive=!0),this.e={onvLoadedMetadata:this._onvLoadedMetadata.bind(this),onvSeeking:this._onvSeeking.bind(this),onvCanPlay:this._onvCanPlay.bind(this),onvStalled:this._onvStalled.bind(this),onvProgress:this._onvProgress.bind(this)},window.performance&&window.performance.now?this._now=window.performance.now.bind(window.performance):this._now=Date.now,this._pendingSeekTime=null,this._requestSetTime=!1,this._seekpointRecord=null,this._progressChecker=null,this._mediaDataSource=t,this._mediaElement=null,this._msectl=null,this._transmuxer=null,this._mseSourceOpened=!1,this._hasPendingLoad=!1,this._receivedCanPlay=!1,this._mediaInfo=null,this._statisticsInfo=null;var r=o.default.chrome&&(o.default.version.major<50||50===o.default.version.major&&o.default.version.build<2661);this._alwaysSeekKeyframe=!!(r||o.default.msedge||o.default.msie),this._alwaysSeekKeyframe&&(this._config.accurateSeek=!1),this._tempPendingSegments={audio:[],video:[]},this._definitionRetryTimes=0}return r(e,[{key:"destroy",value:function(){null!=this._progressChecker&&(window.clearInterval(this._progressChecker),this._progressChecker=null),this._transmuxer&&this.unload(),this._mediaElement&&this.detachMediaElement(),this.e=null,this._mediaDataSource=null,this._emitter.removeAllListeners(),this._emitter=null}},{key:"on",value:function(e,t){var n=this;e===u.default.MEDIA_INFO?null!=this._mediaInfo&&Promise.resolve().then(function(){n._emitter.emit(u.default.MEDIA_INFO,n.mediaInfo)}):e===u.default.STATISTICS_INFO&&null!=this._statisticsInfo&&Promise.resolve().then(function(){n._emitter.emit(u.default.STATISTICS_INFO,n.statisticsInfo)}),this._emitter.addListener(e,t)}},{key:"off",value:function(e,t){this._emitter.removeListener(e,t)}},{key:"attachMediaElement",value:function(e){var t=this;if(this._mediaElement=e,e.addEventListener("loadedmetadata",this.e.onvLoadedMetadata),e.addEventListener("seeking",this.e.onvSeeking),e.addEventListener("canplay",this.e.onvCanPlay),e.addEventListener("stalled",this.e.onvStalled),e.addEventListener("progress",this.e.onvProgress),this._msectl=new h.default(this._config),this._msectl.on(f.default.UPDATE_END,this._onmseUpdateEnd.bind(this)),this._msectl.on(f.default.BUFFER_FULL,this._onmseBufferFull.bind(this)),this._msectl.on(f.default.SOURCE_OPEN,function(){t._mseSourceOpened=!0,t._hasPendingLoad&&(t._hasPendingLoad=!1,t.load())}),this._msectl.on(f.default.ERROR,function(e){t._emitter.emit(u.default.ERROR,c.ErrorTypes.MEDIA_ERROR,c.ErrorDetails.MEDIA_MSE_ERROR,e)}),this._msectl.attachMediaElement(e),null!=this._pendingSeekTime)try{e.currentTime=this._pendingSeekTime,this._pendingSeekTime=null}catch(e){}}},{key:"detachMediaElement",value:function(){this._mediaElement&&(this._msectl.detachMediaElement(),this._mediaElement.removeEventListener("loadedmetadata",this.e.onvLoadedMetadata),this._mediaElement.removeEventListener("seeking",this.e.onvSeeking),this._mediaElement.removeEventListener("canplay",this.e.onvCanPlay),this._mediaElement.removeEventListener("stalled",this.e.onvStalled),this._mediaElement.removeEventListener("progress",this.e.onvProgress),this._mediaElement=null),this._msectl&&(this._msectl.destroy(),this._msectl=null)}},{key:"onDefinitionChange",value:function(e){var t=this,n=arguments.length>1&&void 0!==arguments[1]?arguments[1]:3;this._mediaDataSource.segments[0].url=e,this._tempMds=Object.assign({},this._mediaDataSource,{url:e}),this._tempTransmuxer=new l.default(this._tempMds,this._config),this._tempTransmuxer._emitter.on("metadata_arrived",function(e){t._emitter.emit("metadata_arrived",e)}),this._tempTransmuxer.on(d.default.INIT_SEGMENT,function(e,n){if(t._config.isLive)t._msectl.doClearSourceBuffer(),t._msectl.appendInitSegment(n),t._transmuxer!==t._tempTransmuxer&&t._transmuxer.destroy(),t._transmuxer=t._tempTransmuxer;else if(t._tempPendingSegments[e]=[n],t._transmuxer!==t._tempTransmuxer&&t._tempTransmuxer){var i=t._mediaElement.currentTime;t._tempTransmuxer.seek(1e3*i)}}),this._tempTransmuxer.on(d.default.MEDIA_SEGMENT,function(e,n){if(t._config.isLive?t._msectl.appendMediaSegment(n):t._tempTransmuxer?(t._tempPendingSegments[e]&&t._tempPendingSegments[e].push(n),t.isDefinitionDataReady&&(Object.keys(t._tempPendingSegments).forEach(function(e){t._msectl._pendingSegments[e]=t._tempPendingSegments[e]}),t._tempPendingSegments={audio:[],video:[]},t._transmuxer.destroy(),t._transmuxer=t._tempTransmuxer,delete t._tempTransmuxer)):t._msectl.appendMediaSegment(n),t._config.lazyLoad&&!t._config.isLive){var i=t._mediaElement.currentTime;n.info.endDts>=1e3*(i+t._config.lazyLoadMaxDuration)&&null==t._progressChecker&&(s.default.v(t.TAG,"Maximum buffering duration exceeded, suspend transmuxing task"),t._suspendTransmuxer())}}),this._tempTransmuxer.on(d.default.LOADING_COMPLETE,function(){t._msectl.endOfStream(),t._emitter.emit(u.default.LOADING_COMPLETE)}),this._tempTransmuxer.on(d.default.RECOVERED_EARLY_EOF,function(){t._emitter.emit(u.default.RECOVERED_EARLY_EOF)}),this._tempTransmuxer.on(d.default.IO_ERROR,function(e,n){t._emitter.emit(u.default.ERROR,c.ErrorTypes.NETWORK_ERROR,e,n)}),this._tempTransmuxer.on(d.default.DEMUX_ERROR,function(e,n){t._emitter.emit(u.default.ERROR,c.ErrorTypes.MEDIA_ERROR,e,{code:-1,msg:n})}),this._tempTransmuxer.on(d.default.MEDIA_INFO,function(e){t._mediaInfo=e,t._tempTransmuxer.seek(1e3*(t._mediaElement.currentTime+n)),t._emitter.emit(u.default.MEDIA_INFO,Object.assign({},e))}),this._tempTransmuxer.on(d.default.STATISTICS_INFO,function(e){t._statisticsInfo=t._fillStatisticsInfo(e),t._emitter.emit(u.default.STATISTICS_INFO,Object.assign({},t._statisticsInfo))}),this._tempTransmuxer.on(d.default.RECOMMEND_SEEKPOINT,function(e){t._transmuxer===t._tempTransmuxer&&t._mediaElement&&!t._config.accurateSeek&&(t._requestSetTime=!0,t._mediaElement.currentTime=e/1e3)}),this._tempTransmuxer.open()}},{key:"load",value:function(){var e=this;if(!this._mediaElement)throw new m.IllegalStateException("HTMLMediaElement must be attached before load()!");if(this._transmuxer)throw new m.IllegalStateException("FlvPlayer.load() has been called, please call unload() first!");this._hasPendingLoad||(this._config.deferLoadAfterSourceOpen&&!1===this._mseSourceOpened?this._hasPendingLoad=!0:(this._mediaElement.readyState>0&&(this._requestSetTime=!0,this._mediaElement.currentTime=0),this._transmuxer=new l.default(this._mediaDataSource,this._config),this._transmuxer._emitter.on("metadata_arrived",function(t){e._emitter.emit("metadata_arrived",t)}),this._transmuxer.on(d.default.INIT_SEGMENT,function(t,n){e._msectl.appendInitSegment(n)}),this._transmuxer.on(d.default.MEDIA_SEGMENT,function(t,n){if(e._msectl.appendMediaSegment(n),e._config.lazyLoad&&!e._config.isLive){var i=e._mediaElement.currentTime;n.info.endDts>=1e3*(i+e._config.lazyLoadMaxDuration)&&null==e._progressChecker&&(s.default.v(e.TAG,"Maximum buffering duration exceeded, suspend transmuxing task"),e._suspendTransmuxer())}}),this._transmuxer.on(d.default.LOADING_COMPLETE,function(){e._msectl.endOfStream(),e._emitter.emit(u.default.LOADING_COMPLETE)}),this._transmuxer.on(d.default.RECOVERED_EARLY_EOF,function(){e._emitter.emit(u.default.RECOVERED_EARLY_EOF)}),this._transmuxer.on(d.default.IO_ERROR,function(t,n){e._emitter.emit(u.default.ERROR,c.ErrorTypes.NETWORK_ERROR,t,n)}),this._transmuxer.on(d.default.DEMUX_ERROR,function(t,n){e._emitter.emit(u.default.ERROR,c.ErrorTypes.MEDIA_ERROR,t,{code:-1,msg:n})}),this._transmuxer.on(d.default.MEDIA_INFO,function(t){e._mediaInfo=t,e._emitter.emit(u.default.MEDIA_INFO,Object.assign({},t))}),this._transmuxer.on(d.default.STATISTICS_INFO,function(t){e._statisticsInfo=e._fillStatisticsInfo(t),e._emitter.emit(u.default.STATISTICS_INFO,Object.assign({},e._statisticsInfo))}),this._transmuxer.on(d.default.RECOMMEND_SEEKPOINT,function(t){e._mediaElement&&!e._config.accurateSeek&&(e._requestSetTime=!0,e._mediaElement.currentTime=t/1e3)}),this._transmuxer.open()))}},{key:"unload",value:function(){this._mediaElement&&this._mediaElement.pause(),this._msectl&&this._msectl.seek(0),this._transmuxer&&(this._transmuxer.close(),this._transmuxer.destroy(),this._transmuxer=null)}},{key:"play",value:function(){return this._mediaElement.play()}},{key:"pause",value:function(){this._mediaElement.pause()}},{key:"_fillStatisticsInfo",value:function(e){if(e.playerType=this._type,!(this._mediaElement instanceof window.HTMLVideoElement))return e;var t=!0,n=0,i=0;if(this._mediaElement.getVideoPlaybackQuality){var r=this._mediaElement.getVideoPlaybackQuality();n=r.totalVideoFrames,i=r.droppedVideoFrames}else null!=this._mediaElement.webkitDecodedFrameCount?(n=this._mediaElement.webkitDecodedFrameCount,i=this._mediaElement.webkitDroppedFrameCount):t=!1;return t&&(e.decodedFrames=n,e.droppedFrames=i),e}},{key:"_onmseUpdateEnd",value:function(){if(this._config.lazyLoad&&!this._config.isLive){for(var e=this._mediaElement.buffered,t=this._mediaElement.currentTime,n=0,i=0;i<e.length;i++){var r=e.start(i),a=e.end(i);if(r<=t&&t<a){r,n=a;break}}n>=t+this._config.lazyLoadMaxDuration&&null==this._progressChecker&&(s.default.v(this.TAG,"Maximum buffering duration exceeded, suspend transmuxing task"),this._suspendTransmuxer())}}},{key:"_onmseBufferFull",value:function(){s.default.v(this.TAG,"MSE SourceBuffer is full, suspend transmuxing task"),null==this._progressChecker&&this._suspendTransmuxer()}},{key:"_suspendTransmuxer",value:function(){this._transmuxer&&(this._transmuxer.pause(),null==this._progressChecker&&(this._progressChecker=window.setInterval(this._checkProgressAndResume.bind(this),1e3)))}},{key:"_checkProgressAndResume",value:function(){for(var e=this._mediaElement.currentTime,t=this._mediaElement.buffered,n=!1,i=0;i<t.length;i++){var r=t.start(i),a=t.end(i);if(e>=r&&e<a){e>=a-this._config.lazyLoadRecoverDuration&&(n=!0);break}}n&&(window.clearInterval(this._progressChecker),this._progressChecker=null,n&&(s.default.v(this.TAG,"Continue loading from paused position"),this._transmuxer.resume()))}},{key:"_isTimepointBuffered",value:function(e){for(var t=this._mediaElement.buffered,n=0;n<t.length;n++){var i=t.start(n),r=t.end(n);if(e>=i&&e<r)return!0}return!1}},{key:"_internalSeek",value:function(e){var t=this._isTimepointBuffered(e),n=!1,i=0;if(e<1&&this._mediaElement.buffered.length>0){var r=this._mediaElement.buffered.start(0);(r<1&&e<r||o.default.safari)&&(n=!0,i=o.default.safari?.1:r)}if(n)this._requestSetTime=!0,this._mediaElement.currentTime=i;else if(t){if(this._alwaysSeekKeyframe){var a=this._msectl.getNearestKeyframe(Math.floor(1e3*e));this._requestSetTime=!0,this._mediaElement.currentTime=null!=a?a.dts/1e3:e}else this._requestSetTime=!0,this._mediaElement.currentTime=e;null!=this._progressChecker&&this._checkProgressAndResume()}else null!=this._progressChecker&&(window.clearInterval(this._progressChecker),this._progressChecker=null),this._msectl.seek(e),this._transmuxer.seek(Math.floor(1e3*e)),this._config.accurateSeek&&(this._requestSetTime=!0,this._mediaElement.currentTime=e)}},{key:"_checkAndApplyUnbufferedSeekpoint",value:function(){if(this._seekpointRecord)if(this._seekpointRecord.recordTime<=this._now()-100){var e=this._mediaElement.currentTime;this._seekpointRecord=null,this._isTimepointBuffered(e)||(null!=this._progressChecker&&(window.clearTimeout(this._progressChecker),this._progressChecker=null),this._msectl.seek(e),this._transmuxer.seek(Math.floor(1e3*e)),this._config.accurateSeek&&(this._requestSetTime=!0,this._mediaElement.currentTime=e))}else window.setTimeout(this._checkAndApplyUnbufferedSeekpoint.bind(this),50)}},{key:"_checkAndResumeStuckPlayback",value:function(e){var t=this._mediaElement;if(e||!this._receivedCanPlay||t.readyState<2){var n=t.buffered;n.length>0&&t.currentTime<n.start(0)&&(s.default.w(this.TAG,"Playback seems stuck at "+t.currentTime+", seek to "+n.start(0)),this._requestSetTime=!0,this._mediaElement.currentTime=n.start(0),this._mediaElement.removeEventListener("progress",this.e.onvProgress))}else this._mediaElement.removeEventListener("progress",this.e.onvProgress)}},{key:"_onvLoadedMetadata",value:function(e){null!=this._pendingSeekTime&&(this._mediaElement.currentTime=this._pendingSeekTime,this._pendingSeekTime=null)}},{key:"_onvSeeking",value:function(e){var t=this._mediaElement.currentTime,n=this._mediaElement.buffered;if(this._requestSetTime)this._requestSetTime=!1;else{if(t<1&&n.length>0){var i=n.start(0);if(i<1&&t<i||o.default.safari)return this._requestSetTime=!0,void(this._mediaElement.currentTime=o.default.safari?.1:i)}if(this._isTimepointBuffered(t)){if(this._alwaysSeekKeyframe){var r=this._msectl.getNearestKeyframe(Math.floor(1e3*t));null!=r&&(this._requestSetTime=!0,this._mediaElement.currentTime=r.dts/1e3)}null!=this._progressChecker&&this._checkProgressAndResume()}else this._seekpointRecord={seekPoint:t,recordTime:this._now()},window.setTimeout(this._checkAndApplyUnbufferedSeekpoint.bind(this),50)}}},{key:"_onvCanPlay",value:function(e){this._receivedCanPlay=!0,this._mediaElement.removeEventListener("canplay",this.e.onvCanPlay)}},{key:"_onvStalled",value:function(e){this._checkAndResumeStuckPlayback(!0)}},{key:"_onvProgress",value:function(e){this._checkAndResumeStuckPlayback()}},{key:"type",get:function(){return this._type}},{key:"buffered",get:function(){return this._mediaElement.buffered}},{key:"duration",get:function(){return this._mediaElement.duration}},{key:"volume",get:function(){return this._mediaElement.volume},set:function(e){this._mediaElement.volume=e}},{key:"muted",get:function(){return this._mediaElement.muted},set:function(e){this._mediaElement.muted=e}},{key:"currentTime",get:function(){return this._mediaElement?this._mediaElement.currentTime:0},set:function(e){this._mediaElement?this._internalSeek(e):this._pendingSeekTime=e}},{key:"mediaInfo",get:function(){return Object.assign({},this._mediaInfo)}},{key:"statisticsInfo",get:function(){return null==this._statisticsInfo&&(this._statisticsInfo={}),this._statisticsInfo=this._fillStatisticsInfo(this._statisticsInfo),Object.assign({},this._statisticsInfo)}},{key:"isDefinitionDataReady",get:function(){var e=this;return Object.keys(this._tempPendingSegments).every(function(t){return e._tempPendingSegments[t].length>=10})}}]),e}();t.default=v,e.exports=t.default},function(e,t,n){"use strict";Object.defineProperty(t,"__esModule",{value:!0});var i=function(){function e(e,t){for(var n=0;n<t.length;n++){var i=t[n];i.enumerable=i.enumerable||!1,i.configurable=!0,"value"in i&&(i.writable=!0),Object.defineProperty(e,i.key,i)}}return function(t,n,i){return n&&e(t.prototype,n),i&&e(t,i),t}}(),r=h(n(2)),a=h(n(0)),s=h(n(8)),o=h(n(14)),u=h(n(5)),l=h(n(43)),d=h(n(9));function h(e){return e&&e.__esModule?e:{default:e}}var f=function(){function e(t,i){var d=this;if(function(e,t){if(!(e instanceof t))throw new TypeError("Cannot call a class as a function")}(this,e),this.TAG="Transmuxer",this._emitter=new r.default,this.isDefinitionChanging=!1,i.enableWorker&&"undefined"!=typeof Worker)try{var h=n(44);this._worker=h(l.default),this._workerDestroying=!1,this._worker.addEventListener("message",this._onWorkerMessage.bind(this)),this._worker.postMessage({cmd:"init",param:[t,i]}),this.e={onLoggingConfigChanged:this._onLoggingConfigChanged.bind(this)},s.default.registerListener(this.e.onLoggingConfigChanged),this._worker.postMessage({cmd:"logging_config",param:s.default.getConfig()})}catch(e){a.default.e(this.TAG,"Error while initialize transmuxing worker, fallback to inline transmuxing"),this._worker=null,this._controller=new o.default(t,i)}else this._controller=new o.default(t,i);if(this._controller._emitter.on("metadata_arrived",function(e){d._emitter.emit("metadata_arrived",e)}),this._controller){var f=this._controller;f.on(u.default.IO_ERROR,this._onIOError.bind(this)),f.on(u.default.DEMUX_ERROR,this._onDemuxError.bind(this)),f.on(u.default.INIT_SEGMENT,this._onInitSegment.bind(this)),f.on(u.default.MEDIA_SEGMENT,this._onMediaSegment.bind(this)),f.on(u.default.LOADING_COMPLETE,this._onLoadingComplete.bind(this)),f.on(u.default.RECOVERED_EARLY_EOF,this._onRecoveredEarlyEof.bind(this)),f.on(u.default.MEDIA_INFO,this._onMediaInfo.bind(this)),f.on(u.default.STATISTICS_INFO,this._onStatisticsInfo.bind(this)),f.on(u.default.RECOMMEND_SEEKPOINT,this._onRecommendSeekpoint.bind(this))}}return i(e,[{key:"destroy",value:function(){this._worker?this._workerDestroying||(this._workerDestroying=!0,this._worker.postMessage({cmd:"destroy"}),s.default.removeListener(this.e.onLoggingConfigChanged),this.e=null):(this._controller.destroy(),this._controller=null),this._emitter.removeAllListeners(),this._emitter=null}},{key:"on",value:function(e,t){this._emitter&&this._emitter.addListener(e,t)}},{key:"off",value:function(e,t){this._emitter&&this._emitter.removeListener(e,t)}},{key:"hasWorker",value:function(){return null!=this._worker}},{key:"open",value:function(){this._worker?this._worker.postMessage({cmd:"start"}):this._controller.start()}},{key:"close",value:function(){this._worker?this._worker.postMessage({cmd:"stop"}):this._controller.stop()}},{key:"seek",value:function(e){this._worker?this._worker.postMessage({cmd:"seek",param:e}):this._controller.seek(e)}},{key:"pause",value:function(){this._worker?this._worker.postMessage({cmd:"pause"}):this._controller.pause()}},{key:"resume",value:function(){this._worker?this._worker.postMessage({cmd:"resume"}):this._controller.resume()}},{key:"_onInitSegment",value:function(e,t){var n=this;Promise.resolve().then(function(){n._emitter&&n._emitter.emit(u.default.INIT_SEGMENT,e,t)})}},{key:"_onMediaSegment",value:function(e,t){var n=this;Promise.resolve().then(function(){n._emitter&&n._emitter.emit(u.default.MEDIA_SEGMENT,e,t)})}},{key:"_onLoadingComplete",value:function(){var e=this;Promise.resolve().then(function(){e._emitter&&e._emitter.emit(u.default.LOADING_COMPLETE)})}},{key:"_onRecoveredEarlyEof",value:function(){var e=this;Promise.resolve().then(function(){e._emitter&&e._emitter.emit(u.default.RECOVERED_EARLY_EOF)})}},{key:"_onMediaInfo",value:function(e){var t=this;Promise.resolve().then(function(){t._emitter&&t._emitter.emit(u.default.MEDIA_INFO,e)})}},{key:"_onStatisticsInfo",value:function(e){var t=this;Promise.resolve().then(function(){t._emitter&&t._emitter.emit(u.default.STATISTICS_INFO,e)})}},{key:"_onIOError",value:function(e,t){var n=this;Promise.resolve().then(function(){n._emitter&&n._emitter.emit(u.default.IO_ERROR,e,t)})}},{key:"_onDemuxError",value:function(e,t){var n=this;Promise.resolve().then(function(){n._emitter&&n._emitter.emit(u.default.DEMUX_ERROR,e,t)})}},{key:"_onRecommendSeekpoint",value:function(e){var t=this;Promise.resolve().then(function(){t._emitter&&t._emitter.emit(u.default.RECOMMEND_SEEKPOINT,e)})}},{key:"_onLoggingConfigChanged",value:function(e){this._worker&&this._worker.postMessage({cmd:"logging_config",param:e})}},{key:"_onWorkerMessage",value:function(e){var t=e.data,n=t.data;if("destroyed"===t.msg||this._workerDestroying)return this._workerDestroying=!1,this._worker.terminate(),void(this._worker=null);switch(t.msg){case u.default.INIT_SEGMENT:case u.default.MEDIA_SEGMENT:this._emitter.emit(t.msg,n.type,n.data);break;case u.default.LOADING_COMPLETE:case u.default.RECOVERED_EARLY_EOF:this._emitter.emit(t.msg);break;case u.default.MEDIA_INFO:Object.setPrototypeOf(n,d.default.prototype),this._emitter.emit(t.msg,n);break;case u.default.STATISTICS_INFO:this._emitter.emit(t.msg,n);break;case u.default.IO_ERROR:case u.default.DEMUX_ERROR:this._emitter.emit(t.msg,n.type,n.info);break;case u.default.RECOMMEND_SEEKPOINT:this._emitter.emit(t.msg,n);break;case"logcat_callback":a.default.emitter.emit("log",n.type,n.logcat)}}}]),e}();t.default=f,e.exports=t.default},function(e,t,n){"use strict";Object.defineProperty(t,"__esModule",{value:!0});var i="function"==typeof Symbol&&"symbol"==typeof Symbol.iterator?function(e){return typeof e}:function(e){return e&&"function"==typeof Symbol&&e.constructor===Symbol&&e!==Symbol.prototype?"symbol":typeof e},r=function(){function e(e,t){for(var n=0;n<t.length;n++){var i=t[n];i.enumerable=i.enumerable||!1,i.configurable=!0,"value"in i&&(i.writable=!0),Object.defineProperty(e,i.key,i)}}return function(t,n,i){return n&&e(t.prototype,n),i&&e(t,i),t}}(),a=f(n(0)),s=f(n(36)),o=f(n(38)),u=f(n(10)),l=f(n(9)),d=n(1),h=f(n(2));function f(e){return e&&e.__esModule?e:{default:e}}var c=function(){function e(t,n){var i;!function(e,t){if(!(e instanceof t))throw new TypeError("Cannot call a class as a function")}(this,e),this.TAG="FLVDemuxer",this._emitter=new h.default,this._config=n,this._onError=null,this._onMediaInfo=null,this._onTrackMetadata=null,this._onDataAvailable=null,this._dataOffset=t.dataOffset,this._firstParse=!0,this._dispatch=!1,this._hasAudio=t.hasAudioTrack,this._hasVideo=t.hasVideoTrack,this._hasAudioFlagOverrided=!1,this._hasVideoFlagOverrided=!1,this._audioInitialMetadataDispatched=!1,this._videoInitialMetadataDispatched=!1,this._mediaInfo=new l.default,this._mediaInfo.hasAudio=this._hasAudio,this._mediaInfo.hasVideo=this._hasVideo,this._metadata=null,this._audioMetadata=null,this._videoMetadata=null,this._naluLengthSize=4,this._timestampBase=0,this._timescale=1e3,this._duration=0,this._durationOverrided=!1,this._referenceFrameRate={fixed:!0,fps:23.976,fps_num:23976,fps_den:1e3},this._flvSoundRateTable=[5500,11025,22050,44100,48e3],this._mpegSamplingRates=[96e3,88200,64e3,48e3,44100,32e3,24e3,22050,16e3,12e3,11025,8e3,7350],this._mpegAudioV10SampleRateTable=[44100,48e3,32e3,0],this._mpegAudioV20SampleRateTable=[22050,24e3,16e3,0],this._mpegAudioV25SampleRateTable=[11025,12e3,8e3,0],this._mpegAudioL1BitRateTable=[0,32,64,96,128,160,192,224,256,288,320,352,384,416,448,-1],this._mpegAudioL2BitRateTable=[0,32,48,56,64,80,96,112,128,160,192,224,256,320,384,-1],this._mpegAudioL3BitRateTable=[0,32,40,48,56,64,80,96,112,128,160,192,224,256,320,-1],this._videoTrack={type:"video",id:1,sequenceNumber:0,samples:[],length:0},this._audioTrack={type:"audio",id:2,sequenceNumber:0,samples:[],length:0},this._littleEndian=(i=new ArrayBuffer(2),new DataView(i).setInt16(0,256,!0),256===new Int16Array(i)[0])}return r(e,[{key:"destroy",value:function(){this._mediaInfo=null,this._metadata=null,this._audioMetadata=null,this._videoMetadata=null,this._videoTrack=null,this._audioTrack=null,this._onError=null,this._onMediaInfo=null,this._onTrackMetadata=null,this._onDataAvailable=null,this._emitter.removeAllListeners(),this._emitter=null}},{key:"bindDataSource",value:function(e){return e.onDataArrival=this.parseChunks.bind(this),this}},{key:"resetMediaInfo",value:function(){this._mediaInfo=new l.default}},{key:"_isInitialMetadataDispatched",value:function(){return this._hasAudio&&this._hasVideo?this._audioInitialMetadataDispatched&&this._videoInitialMetadataDispatched:this._hasAudio&&!this._hasVideo?this._audioInitialMetadataDispatched:!(this._hasAudio||!this._hasVideo)&&this._videoInitialMetadataDispatched}},{key:"parseChunks",value:function(t,n){if(!(this._onError&&this._onMediaInfo&&this._onTrackMetadata&&this._onDataAvailable))throw new d.IllegalStateException("Flv: onError & onMediaInfo & onTrackMetadata & onDataAvailable callback must be specified");var i=0,r=this._littleEndian;if(0===n){if(!(t.byteLength>13))return 0;i=e.probe(t).dataOffset}this._firstParse&&(this._firstParse=!1,n+i!==this._dataOffset&&a.default.w(this.TAG,"First time parsing but chunk byteStart invalid!"),0!==new DataView(t,i).getUint32(0,!r)&&a.default.w(this.TAG,"PrevTagSize0 !== 0 !!!"),i+=4);for(;i<t.byteLength;){this._dispatch=!0;var s=new DataView(t,i);if(i+11+4>t.byteLength)break;var o=s.getUint8(0),u=16777215&s.getUint32(0,!r);if(i+11+u+4>t.byteLength)break;if(8===o||9===o||18===o){var l=s.getUint8(4),h=s.getUint8(5),f=s.getUint8(6)|h<<8|l<<16|s.getUint8(7)<<24;0!==(16777215&s.getUint32(7,!r))&&a.default.w(this.TAG,"Meet tag which has StreamID != 0!");var c=i+11;switch(o){case 8:this._parseAudioData(t,c,u,f);break;case 9:this._parseVideoData(t,c,u,f,n+i);break;case 18:this._parseScriptData(t,c,u)}var _=s.getUint32(11+u,!r);_!==11+u&&a.default.w(this.TAG,"Invalid PrevTagSize "+_),i+=11+u+4}else a.default.w(this.TAG,"Unsupported tag type "+o+", skipped"),i+=11+u+4}return this._isInitialMetadataDispatched()&&this._dispatch&&(this._audioTrack.length||this._videoTrack.length)&&this._onDataAvailable(this._audioTrack,this._videoTrack),i}},{key:"_parseScriptData",value:function(e,t,n){var r=s.default.parseScriptData(e,t,n);if(r.hasOwnProperty("onMetaData")){if(null==r.onMetaData||"object"!==i(r.onMetaData))return void a.default.w(this.TAG,"Invalid onMetaData structure!");this._metadata&&a.default.w(this.TAG,"Found another onMetaData tag!"),this._metadata=r;var o=this._metadata.onMetaData;if(this._emitter.emit("metadata_arrived",o),"boolean"==typeof o.hasAudio&&!1===this._hasAudioFlagOverrided&&(this._hasAudio=o.hasAudio,this._mediaInfo.hasAudio=this._hasAudio),"boolean"==typeof o.hasVideo&&!1===this._hasVideoFlagOverrided&&(this._hasVideo=o.hasVideo,this._mediaInfo.hasVideo=this._hasVideo),"number"==typeof o.audiodatarate&&(this._mediaInfo.audioDataRate=o.audiodatarate),"number"==typeof o.videodatarate&&(this._mediaInfo.videoDataRate=o.videodatarate),"number"==typeof o.width&&(this._mediaInfo.width=o.width),"number"==typeof o.height&&(this._mediaInfo.height=o.height),"number"==typeof o.duration){if(!this._durationOverrided){var u=Math.floor(o.duration*this._timescale);this._duration=u,this._mediaInfo.duration=u}}else this._mediaInfo.duration=0;if("number"==typeof o.framerate){var l=Math.floor(1e3*o.framerate);if(l>0){var d=l/1e3;this._referenceFrameRate.fixed=!0,this._referenceFrameRate.fps=d,this._referenceFrameRate.fps_num=l,this._referenceFrameRate.fps_den=1e3,this._mediaInfo.fps=d}}if("object"===i(o.keyframes)){this._mediaInfo.hasKeyframesIndex=!0;var h=o.keyframes;this._mediaInfo.keyframesIndex=this._parseKeyframesIndex(h),o.keyframes=null}else this._mediaInfo.hasKeyframesIndex=!1;this._dispatch=!1,this._mediaInfo.metadata=o,a.default.v(this.TAG,"Parsed onMetaData"),this._mediaInfo.isComplete()&&this._onMediaInfo(this._mediaInfo)}}},{key:"_parseKeyframesIndex",value:function(e){for(var t=[],n=[],i=1;i<e.times.length;i++){var r=this._timestampBase+Math.floor(1e3*e.times[i]);t.push(r),n.push(e.filepositions[i])}return{times:t,filepositions:n}}},{key:"_parseAudioData",value:function(e,t,n,i){if(n<=1)a.default.w(this.TAG,"Flv: Invalid audio packet, missing SoundData payload!");else if(!0!==this._hasAudioFlagOverrided||!1!==this._hasAudio){this._littleEndian;var r=new DataView(e,t,n).getUint8(0),s=r>>>4;if(2===s||10===s){var o=0,l=(12&r)>>>2;if(l>=0&&l<=4){o=this._flvSoundRateTable[l];var d=1&r,h=this._audioMetadata,f=this._audioTrack;if(h||(!1===this._hasAudio&&!1===this._hasAudioFlagOverrided&&(this._hasAudio=!0,this._mediaInfo.hasAudio=!0),(h=this._audioMetadata={}).type="audio",h.id=f.id,h.timescale=this._timescale,h.duration=this._duration,h.audioSampleRate=o,h.channelCount=0===d?1:2),10===s){var c=this._parseAACAudioData(e,t+1,n-1);if(null==c)return;if(0===c.packetType){h.config&&a.default.w(this.TAG,"Found another AudioSpecificConfig!");var _=c.data;h.audioSampleRate=_.samplingRate,h.channelCount=_.channelCount,h.codec=_.codec,h.originalCodec=_.originalCodec,h.config=_.config,h.refSampleDuration=1024/h.audioSampleRate*h.timescale,a.default.v(this.TAG,"Parsed AudioSpecificConfig"),this._isInitialMetadataDispatched()?this._dispatch&&(this._audioTrack.length||this._videoTrack.length)&&this._onDataAvailable(this._audioTrack,this._videoTrack):this._audioInitialMetadataDispatched=!0,this._dispatch=!1,this._onTrackMetadata("audio",h);var m=this._mediaInfo;m.audioCodec=h.originalCodec,m.audioSampleRate=h.audioSampleRate,m.audioChannelCount=h.channelCount,m.hasVideo?null!=m.videoCodec&&(m.mimeType='video/x-flv; codecs="'+m.videoCodec+","+m.audioCodec+'"'):m.mimeType='video/x-flv; codecs="'+m.audioCodec+'"',m.isComplete()&&this._onMediaInfo(m)}else if(1===c.packetType){var p=this._timestampBase+i,v={unit:c.data,length:c.data.byteLength,dts:p,pts:p};f.samples.push(v),f.length+=c.data.length}else a.default.e(this.TAG,"Flv: Unsupported AAC data type "+c.packetType)}else if(2===s){if(!h.codec){var g=this._parseMP3AudioData(e,t+1,n-1,!0);if(null==g)return;h.audioSampleRate=g.samplingRate,h.channelCount=g.channelCount,h.codec=g.codec,h.originalCodec=g.originalCodec,h.refSampleDuration=1152/h.audioSampleRate*h.timescale,a.default.v(this.TAG,"Parsed MPEG Audio Frame Header"),this._audioInitialMetadataDispatched=!0,this._onTrackMetadata("audio",h);var y=this._mediaInfo;y.audioCodec=h.codec,y.audioSampleRate=h.audioSampleRate,y.audioChannelCount=h.channelCount,y.audioDataRate=g.bitRate,y.hasVideo?null!=y.videoCodec&&(y.mimeType='video/x-flv; codecs="'+y.videoCodec+","+y.audioCodec+'"'):y.mimeType='video/x-flv; codecs="'+y.audioCodec+'"',y.isComplete()&&this._onMediaInfo(y)}var E=this._parseMP3AudioData(e,t+1,n-1,!1);if(null==E)return;var b=this._timestampBase+i,S={unit:E,length:E.byteLength,dts:b,pts:b};f.samples.push(S),f.length+=E.length}}else this._onError(u.default.FORMAT_ERROR,"Flv: Invalid audio sample rate idx: "+l)}else this._onError(u.default.CODEC_UNSUPPORTED,"Flv: Unsupported audio codec idx: "+s)}}},{key:"_parseAACAudioData",value:function(e,t,n){if(!(n<=1)){var i={},r=new Uint8Array(e,t,n);return i.packetType=r[0],0===r[0]?i.data=this._parseAACAudioSpecificConfig(e,t+1,n-1):i.data=r.subarray(1),i}a.default.w(this.TAG,"Flv: Invalid AAC packet, missing AACPacketType or/and Data!")}},{key:"_parseAACAudioSpecificConfig",value:function(e,t,n){var i,r,a=new Uint8Array(e,t,n),s=null,o=0,l=null;if(o=i=a[0]>>>3,(r=(7&a[0])<<1|a[1]>>>7)<0||r>=this._mpegSamplingRates.length)this._onError(u.default.FORMAT_ERROR,"Flv: AAC invalid sampling frequency index!");else{var d=this._mpegSamplingRates[r],h=(120&a[1])>>>3;if(!(h<0||h>=8)){5===o&&(l=(7&a[1])<<1|a[2]>>>7,(124&a[2])>>>2);var f=self.navigator.userAgent.toLowerCase();return-1!==f.indexOf("firefox")?r>=6?(o=5,s=new Array(4),l=r-3):(o=2,s=new Array(2),l=r):-1!==f.indexOf("android")?(o=2,s=new Array(2),l=r):(o=5,l=r,s=new Array(4),r>=6?l=r-3:1===h&&(o=2,s=new Array(2),l=r)),s[0]=o<<3,s[0]|=(15&r)>>>1,s[1]=(15&r)<<7,s[1]|=(15&h)<<3,5===o&&(s[1]|=(15&l)>>>1,s[2]=(1&l)<<7,s[2]|=8,s[3]=0),{config:s,samplingRate:d,channelCount:h,codec:"mp4a.40."+o,originalCodec:"mp4a.40."+i}}this._onError(u.default.FORMAT_ERROR,"Flv: AAC invalid channel configuration")}}},{key:"_parseMP3AudioData",value:function(e,t,n,i){if(!(n<4)){this._littleEndian;var r=new Uint8Array(e,t,n),s=null;if(i){if(255!==r[0])return;var o=r[1]>>>3&3,u=(6&r[1])>>1,l=(240&r[2])>>>4,d=(12&r[2])>>>2,h=3!==(r[3]>>>6&3)?2:1,f=0,c=0;switch(o){case 0:f=this._mpegAudioV25SampleRateTable[d];break;case 2:f=this._mpegAudioV20SampleRateTable[d];break;case 3:f=this._mpegAudioV10SampleRateTable[d]}switch(u){case 1:34,l<this._mpegAudioL3BitRateTable.length&&(c=this._mpegAudioL3BitRateTable[l]);break;case 2:33,l<this._mpegAudioL2BitRateTable.length&&(c=this._mpegAudioL2BitRateTable[l]);break;case 3:32,l<this._mpegAudioL1BitRateTable.length&&(c=this._mpegAudioL1BitRateTable[l])}s={bitRate:c,samplingRate:f,channelCount:h,codec:"mp3",originalCodec:"mp3"}}else s=r;return s}a.default.w(this.TAG,"Flv: Invalid MP3 packet, header missing!")}},{key:"_parseVideoData",value:function(e,t,n,i,r){if(n<=1)a.default.w(this.TAG,"Flv: Invalid video packet, missing VideoData payload!");else if(!0!==this._hasVideoFlagOverrided||!1!==this._hasVideo){var s=new Uint8Array(e,t,n)[0],o=(240&s)>>>4,l=15&s;7===l?this._parseAVCVideoPacket(e,t+1,n-1,i,r,o):this._onError(u.default.CODEC_UNSUPPORTED,"Flv: Unsupported codec in video frame: "+l)}}},{key:"_parseAVCVideoPacket",value:function(e,t,n,i,r,s){if(n<4)a.default.w(this.TAG,"Flv: Invalid AVC packet, missing AVCPacketType or/and CompositionTime");else{var o=this._littleEndian,l=new DataView(e,t,n),d=l.getUint8(0),h=(16777215&l.getUint32(0,!o))<<8>>8;if(0===d)this._parseAVCDecoderConfigurationRecord(e,t+4,n-4);else if(1===d)this._parseAVCVideoData(e,t+4,n-4,i,r,s,h);else if(2!==d)return void this._onError(u.default.FORMAT_ERROR,"Flv: Invalid video packet type "+d)}}},{key:"_parseAVCDecoderConfigurationRecord",value:function(e,t,n){if(n<7)a.default.w(this.TAG,"Flv: Invalid AVCDecoderConfigurationRecord, lack of data!");else{var i=this._videoMetadata,r=this._videoTrack,s=this._littleEndian,l=new DataView(e,t,n);i?void 0!==i.avcc&&a.default.w(this.TAG,"Found another AVCDecoderConfigurationRecord!"):(!1===this._hasVideo&&!1===this._hasVideoFlagOverrided&&(this._hasVideo=!0,this._mediaInfo.hasVideo=!0),(i=this._videoMetadata={}).type="video",i.id=r.id,i.timescale=this._timescale,i.duration=this._duration);var d=l.getUint8(0),h=l.getUint8(1);l.getUint8(2),l.getUint8(3);if(1===d&&0!==h)if(this._naluLengthSize=1+(3&l.getUint8(4)),3===this._naluLengthSize||4===this._naluLengthSize){var f=31&l.getUint8(5);if(0!==f){f>1&&a.default.w(this.TAG,"Flv: Strange AVCDecoderConfigurationRecord: SPS Count = "+f);for(var c=6,_=0;_<f;_++){var m=l.getUint16(c,!s);if(c+=2,0!==m){var p=new Uint8Array(e,t+c,m);c+=m;var v=o.default.parseSPS(p);if(0===_){i.codecWidth=v.codec_size.width,i.codecHeight=v.codec_size.height,i.presentWidth=v.present_size.width,i.presentHeight=v.present_size.height,i.profile=v.profile_string,i.level=v.level_string,i.bitDepth=v.bit_depth,i.chromaFormat=v.chroma_format,i.sarRatio=v.sar_ratio,i.frameRate=v.frame_rate,!1!==v.frame_rate.fixed&&0!==v.frame_rate.fps_num&&0!==v.frame_rate.fps_den||(i.frameRate=this._referenceFrameRate);var g=i.frameRate.fps_den,y=i.frameRate.fps_num;i.refSampleDuration=i.timescale*(g/y);for(var E=p.subarray(1,4),b="avc1.",S=0;S<3;S++){var k=E[S].toString(16);k.length<2&&(k="0"+k),b+=k}i.codec=b;var L=this._mediaInfo;L.width=i.codecWidth,L.height=i.codecHeight,L.fps=i.frameRate.fps,L.profile=i.profile,L.level=i.level,L.refFrames=v.ref_frames,L.chromaFormat=v.chroma_format_string,L.sarNum=i.sarRatio.width,L.sarDen=i.sarRatio.height,L.videoCodec=b,L.hasAudio?null!=L.audioCodec&&(L.mimeType='video/x-flv; codecs="'+L.videoCodec+","+L.audioCodec+'"'):L.mimeType='video/x-flv; codecs="'+L.videoCodec+'"',L.isComplete()&&this._onMediaInfo(L)}}}var w=l.getUint8(c);if(0!==w){w>1&&a.default.w(this.TAG,"Flv: Strange AVCDecoderConfigurationRecord: PPS Count = "+w),c++;for(var R=0;R<w;R++){var A=l.getUint16(c,!s);c+=2,0!==A&&(c+=A)}i.avcc=new Uint8Array(n),i.avcc.set(new Uint8Array(e,t,n),0),a.default.v(this.TAG,"Parsed AVCDecoderConfigurationRecord"),this._isInitialMetadataDispatched()?this._dispatch&&(this._audioTrack.length||this._videoTrack.length)&&this._onDataAvailable(this._audioTrack,this._videoTrack):this._videoInitialMetadataDispatched=!0,this._dispatch=!1,this._onTrackMetadata("video",i)}else this._onError(u.default.FORMAT_ERROR,"Flv: Invalid AVCDecoderConfigurationRecord: No PPS")}else this._onError(u.default.FORMAT_ERROR,"Flv: Invalid AVCDecoderConfigurationRecord: No SPS")}else this._onError(u.default.FORMAT_ERROR,"Flv: Strange NaluLengthSizeMinusOne: "+(this._naluLengthSize-1));else this._onError(u.default.FORMAT_ERROR,"Flv: Invalid AVCDecoderConfigurationRecord")}}},{key:"_parseAVCVideoData",value:function(e,t,n,i,r,s,o){for(var u=this._littleEndian,l=new DataView(e,t,n),d=[],h=0,f=0,c=this._naluLengthSize,_=this._timestampBase+i,m=1===s;f<n;){if(f+4>=n){a.default.w(this.TAG,"Malformed Nalu near timestamp "+_+", offset = "+f+", dataSize = "+n);break}var p=l.getUint32(f,!u);if(3===c&&(p>>>=8),p>n-c)return void a.default.w(this.TAG,"Malformed Nalus near timestamp "+_+", NaluSize > DataSize!");var v=31&l.getUint8(f+c);5===v&&(m=!0);var g=new Uint8Array(e,t+f,c+p),y={type:v,data:g};d.push(y),h+=g.byteLength,f+=c+p}if(d.length){var E=this._videoTrack,b={units:d,length:h,isKeyframe:m,dts:_,cts:o,pts:_+o};m&&(b.fileposition=r),E.samples.push(b),E.length+=h}}},{key:"onTrackMetadata",get:function(){return this._onTrackMetadata},set:function(e){this._onTrackMetadata=e}},{key:"onMediaInfo",get:function(){return this._onMediaInfo},set:function(e){this._onMediaInfo=e}},{key:"onError",get:function(){return this._onError},set:function(e){this._onError=e}},{key:"onDataAvailable",get:function(){return this._onDataAvailable},set:function(e){this._onDataAvailable=e}},{key:"timestampBase",get:function(){return this._timestampBase},set:function(e){this._timestampBase=e}},{key:"overridedDuration",get:function(){return this._duration},set:function(e){this._durationOverrided=!0,this._duration=e,this._mediaInfo.duration=e}},{key:"overridedHasAudio",set:function(e){this._hasAudioFlagOverrided=!0,this._hasAudio=e,this._mediaInfo.hasAudio=e}},{key:"overridedHasVideo",set:function(e){this._hasVideoFlagOverrided=!0,this._hasVideo=e,this._mediaInfo.hasVideo=e}}],[{key:"probe",value:function(e){var t=new Uint8Array(e),n={match:!1};if(70!==t[0]||76!==t[1]||86!==t[2]||1!==t[3])return n;var i,r,a=(4&t[4])>>>2!=0,s=0!=(1&t[4]),o=(i=t)[r=5]<<24|i[r+1]<<16|i[r+2]<<8|i[r+3];return o<9?n:{match:!0,consumed:o,dataOffset:o,hasAudioTrack:a,hasVideoTrack:s}}}]),e}();t.default=c,e.exports=t.default},function(e,t,n){"use strict";Object.defineProperty(t,"__esModule",{value:!0});var i=function(){function e(e,t){for(var n=0;n<t.length;n++){var i=t[n];i.enumerable=i.enumerable||!1,i.configurable=!0,"value"in i&&(i.writable=!0),Object.defineProperty(e,i.key,i)}}return function(t,n,i){return n&&e(t.prototype,n),i&&e(t,i),t}}(),r=o(n(0)),a=o(n(37)),s=n(1);function o(e){return e&&e.__esModule?e:{default:e}}var u,l=(u=new ArrayBuffer(2),new DataView(u).setInt16(0,256,!0),256===new Int16Array(u)[0]),d=function(){function e(){!function(e,t){if(!(e instanceof t))throw new TypeError("Cannot call a class as a function")}(this,e)}return i(e,null,[{key:"parseScriptData",value:function(t,n,i){var a={};try{var s=e.parseValue(t,n,i),o=e.parseValue(t,n+s.size,i-s.size);a[s.data]=o.data}catch(e){r.default.e("AMF",e.toString())}return a}},{key:"parseObject",value:function(t,n,i){if(i<3)throw new s.IllegalStateException("Data not enough when parse ScriptDataObject");var r=e.parseString(t,n,i),a=e.parseValue(t,n+r.size,i-r.size),o=a.objectEnd;return{data:{name:r.data,value:a.data},size:r.size+a.size,objectEnd:o}}},{key:"parseVariable",value:function(t,n,i){return e.parseObject(t,n,i)}},{key:"parseString",value:function(e,t,n){if(n<2)throw new s.IllegalStateException("Data not enough when parse String");var i=new DataView(e,t,n).getUint16(0,!l);return{data:i>0?(0,a.default)(new Uint8Array(e,t+2,i)):"",size:2+i}}},{key:"parseLongString",value:function(e,t,n){if(n<4)throw new s.IllegalStateException("Data not enough when parse LongString");var i=new DataView(e,t,n).getUint32(0,!l);return{data:i>0?(0,a.default)(new Uint8Array(e,t+4,i)):"",size:4+i}}},{key:"parseDate",value:function(e,t,n){if(n<10)throw new s.IllegalStateException("Data size invalid when parse Date");var i=new DataView(e,t,n),r=i.getFloat64(0,!l),a=i.getInt16(8,!l);return{data:new Date(r+=60*a*1e3),size:10}}},{key:"parseValue",value:function(t,n,i){if(i<1)throw new s.IllegalStateException("Data not enough when parse Value");var a=new DataView(t,n,i),o=1,u=a.getUint8(0),d=void 0,h=!1;try{switch(u){case 0:d=a.getFloat64(1,!l),o+=8;break;case 1:d=!!a.getUint8(1),o+=1;break;case 2:var f=e.parseString(t,n+1,i-1);d=f.data,o+=f.size;break;case 3:d={};var c=0;for(9==(16777215&a.getUint32(i-4,!l))&&(c=3);o<i-4;){var _=e.parseObject(t,n+o,i-o-c);if(_.objectEnd)break;d[_.data.name]=_.data.value,o+=_.size}if(o<=i-3)9===(16777215&a.getUint32(o-1,!l))&&(o+=3);break;case 8:d={},o+=4;var m=0;for(9==(16777215&a.getUint32(i-4,!l))&&(m=3);o<i-8;){var p=e.parseVariable(t,n+o,i-o-m);if(p.objectEnd)break;d[p.data.name]=p.data.value,o+=p.size}if(o<=i-3)9===(16777215&a.getUint32(o-1,!l))&&(o+=3);break;case 9:d=void 0,o=1,h=!0;break;case 10:d=[];var v=a.getUint32(1,!l);o+=4;for(var g=0;g<v;g++){var y=e.parseValue(t,n+o,i-o);d.push(y.data),o+=y.size}break;case 11:var E=e.parseDate(t,n+1,i-1);d=E.data,o+=E.size;break;case 12:var b=e.parseString(t,n+1,i-1);d=b.data,o+=b.size;break;default:o=i,r.default.w("AMF","Unsupported AMF value type "+u)}}catch(e){r.default.e("AMF",e.toString())}return{data:d,size:o,objectEnd:h}}}]),e}();t.default=d,e.exports=t.default},function(e,t,n){"use strict";function i(e,t,n){var i=e;if(t+n<i.length){for(;n--;)if(128!=(192&i[++t]))return!1;return!0}return!1}Object.defineProperty(t,"__esModule",{value:!0}),t.default=function(e){for(var t=[],n=e,r=0,a=e.length;r<a;)if(n[r]<128)t.push(String.fromCharCode(n[r])),++r;else{if(n[r]<192);else if(n[r]<224){if(i(n,r,1)){var s=(31&n[r])<<6|63&n[r+1];if(s>=128){t.push(String.fromCharCode(65535&s)),r+=2;continue}}}else if(n[r]<240){if(i(n,r,2)){var o=(15&n[r])<<12|(63&n[r+1])<<6|63&n[r+2];if(o>=2048&&55296!=(63488&o)){t.push(String.fromCharCode(65535&o)),r+=3;continue}}}else if(n[r]<248&&i(n,r,3)){var u=(7&n[r])<<18|(63&n[r+1])<<12|(63&n[r+2])<<6|63&n[r+3];if(u>65536&&u<1114112){u-=65536,t.push(String.fromCharCode(u>>>10|55296)),t.push(String.fromCharCode(1023&u|56320)),r+=4;continue}}t.push(String.fromCharCode(65533)),++r}return t.join("")},e.exports=t.default},function(e,t,n){"use strict";Object.defineProperty(t,"__esModule",{value:!0});var i,r=function(){function e(e,t){for(var n=0;n<t.length;n++){var i=t[n];i.enumerable=i.enumerable||!1,i.configurable=!0,"value"in i&&(i.writable=!0),Object.defineProperty(e,i.key,i)}}return function(t,n,i){return n&&e(t.prototype,n),i&&e(t,i),t}}(),a=n(39),s=(i=a)&&i.__esModule?i:{default:i};var o=function(){function e(){!function(e,t){if(!(e instanceof t))throw new TypeError("Cannot call a class as a function")}(this,e)}return r(e,null,[{key:"_ebsp2rbsp",value:function(e){for(var t=e,n=t.byteLength,i=new Uint8Array(n),r=0,a=0;a<n;a++)a>=2&&3===t[a]&&0===t[a-1]&&0===t[a-2]||(i[r]=t[a],r++);return new Uint8Array(i.buffer,0,r)}},{key:"parseSPS",value:function(t){var n=e._ebsp2rbsp(t),i=new s.default(n);i.readByte();var r=i.readByte();i.readByte();var a=i.readByte();i.readUEG();var o=e.getProfileString(r),u=e.getLevelString(a),l=1,d=420,h=8;if((100===r||110===r||122===r||244===r||44===r||83===r||86===r||118===r||128===r||138===r||144===r)&&(3===(l=i.readUEG())&&i.readBits(1),l<=3&&(d=[0,420,422,444][l]),h=i.readUEG()+8,i.readUEG(),i.readBits(1),i.readBool()))for(var f=3!==l?8:12,c=0;c<f;c++)i.readBool()&&(c<6?e._skipScalingList(i,16):e._skipScalingList(i,64));i.readUEG();var _=i.readUEG();if(0===_)i.readUEG();else if(1===_){i.readBits(1),i.readSEG(),i.readSEG();for(var m=i.readUEG(),p=0;p<m;p++)i.readSEG()}var v=i.readUEG();i.readBits(1);var g=i.readUEG(),y=i.readUEG(),E=i.readBits(1);0===E&&i.readBits(1),i.readBits(1);var b=0,S=0,k=0,L=0;i.readBool()&&(b=i.readUEG(),S=i.readUEG(),k=i.readUEG(),L=i.readUEG());var w=1,R=1,A=0,O=!0,T=0,C=0;if(i.readBool()){if(i.readBool()){var I=i.readByte();I>0&&I<16?(w=[1,12,10,16,40,24,20,32,80,18,15,64,160,4,3,2][I-1],R=[1,11,11,11,33,11,11,11,33,11,11,33,99,3,2,1][I-1]):255===I&&(w=i.readByte()<<8|i.readByte(),R=i.readByte()<<8|i.readByte())}if(i.readBool()&&i.readBool(),i.readBool()&&(i.readBits(4),i.readBool()&&i.readBits(24)),i.readBool()&&(i.readUEG(),i.readUEG()),i.readBool()){var x=i.readBits(32),M=i.readBits(32);O=i.readBool(),A=(T=M)/(C=2*x)}}var D=1;1===w&&1===R||(D=w/R);var B=0,P=0;0===l?(B=1,P=2-E):(B=3===l?1:2,P=(1===l?2:1)*(2-E));var U=16*(g+1),N=16*(y+1)*(2-E);U-=(b+S)*B,N-=(k+L)*P;var F=Math.ceil(U*D);return i.destroy(),i=null,{profile_string:o,level_string:u,bit_depth:h,ref_frames:v,chroma_format:d,chroma_format_string:e.getChromaFormatString(d),frame_rate:{fixed:O,fps:A,fps_den:C,fps_num:T},sar_ratio:{width:w,height:R},codec_size:{width:U,height:N},present_size:{width:F,height:N}}}},{key:"_skipScalingList",value:function(e,t){for(var n=8,i=8,r=0;r<t;r++)0!==i&&(i=(n+e.readSEG()+256)%256),n=0===i?n:i}},{key:"getProfileString",value:function(e){switch(e){case 66:return"Baseline";case 77:return"Main";case 88:return"Extended";case 100:return"High";case 110:return"High10";case 122:return"High422";case 244:return"High444";default:return"Unknown"}}},{key:"getLevelString",value:function(e){return(e/10).toFixed(1)}},{key:"getChromaFormatString",value:function(e){switch(e){case 420:return"4:2:0";case 422:return"4:2:2";case 444:return"4:4:4";default:return"Unknown"}}}]),e}();t.default=o,e.exports=t.default},function(e,t,n){"use strict";Object.defineProperty(t,"__esModule",{value:!0});var i=function(){function e(e,t){for(var n=0;n<t.length;n++){var i=t[n];i.enumerable=i.enumerable||!1,i.configurable=!0,"value"in i&&(i.writable=!0),Object.defineProperty(e,i.key,i)}}return function(t,n,i){return n&&e(t.prototype,n),i&&e(t,i),t}}(),r=n(1);var a=function(){function e(t){!function(e,t){if(!(e instanceof t))throw new TypeError("Cannot call a class as a function")}(this,e),this.TAG="ExpGolomb",this._buffer=t,this._buffer_index=0,this._total_bytes=t.byteLength,this._total_bits=8*t.byteLength,this._current_word=0,this._current_word_bits_left=0}return i(e,[{key:"destroy",value:function(){this._buffer=null}},{key:"_fillCurrentWord",value:function(){var e=this._total_bytes-this._buffer_index;if(e<=0)throw new r.IllegalStateException("ExpGolomb: _fillCurrentWord() but no bytes available");var t=Math.min(4,e),n=new Uint8Array(4);n.set(this._buffer.subarray(this._buffer_index,this._buffer_index+t)),this._current_word=new DataView(n.buffer).getUint32(0,!1),this._buffer_index+=t,this._current_word_bits_left=8*t}},{key:"readBits",value:function(e){if(e>32)throw new r.InvalidArgumentException("ExpGolomb: readBits() bits exceeded max 32bits!");if(e<=this._current_word_bits_left){var t=this._current_word>>>32-e;return this._current_word<<=e,this._current_word_bits_left-=e,t}var n=this._current_word_bits_left?this._current_word:0;n>>>=32-this._current_word_bits_left;var i=e-this._current_word_bits_left;this._fillCurrentWord();var a=Math.min(i,this._current_word_bits_left),s=this._current_word>>>32-a;return this._current_word<<=a,this._current_word_bits_left-=a,n=n<<a|s}},{key:"readBool",value:function(){return 1===this.readBits(1)}},{key:"readByte",value:function(){return this.readBits(8)}},{key:"_skipLeadingZero",value:function(){var e=void 0;for(e=0;e<this._current_word_bits_left;e++)if(0!=(this._current_word&2147483648>>>e))return this._current_word<<=e,this._current_word_bits_left-=e,e;return this._fillCurrentWord(),e+this._skipLeadingZero()}},{key:"readUEG",value:function(){var e=this._skipLeadingZero();return this.readBits(e+1)-1}},{key:"readSEG",value:function(){var e=this.readUEG();return 1&e?e+1>>>1:-1*(e>>>1)}}]),e}();t.default=a,e.exports=t.default},function(e,t,n){"use strict";Object.defineProperty(t,"__esModule",{value:!0});var i=function(){function e(e,t){for(var n=0;n<t.length;n++){var i=t[n];i.enumerable=i.enumerable||!1,i.configurable=!0,"value"in i&&(i.writable=!0),Object.defineProperty(e,i.key,i)}}return function(t,n,i){return n&&e(t.prototype,n),i&&e(t,i),t}}(),r=d(n(0)),a=d(n(41)),s=d(n(42)),o=d(n(4)),u=n(15),l=n(1);function d(e){return e&&e.__esModule?e:{default:e}}var h=function(){function e(t){!function(e,t){if(!(e instanceof t))throw new TypeError("Cannot call a class as a function")}(this,e),this.TAG="MP4Remuxer",this._config=t,this._isLive=!0===t.isLive,this._dtsBase=-1,this._dtsBaseInited=!1,this._audioDtsBase=1/0,this._videoDtsBase=1/0,this._audioNextDts=void 0,this._videoNextDts=void 0,this._audioStashedLastSample=null,this._videoStashedLastSample=null,this._audioMeta=null,this._videoMeta=null,this._audioSegmentInfoList=new u.MediaSegmentInfoList("audio"),this._videoSegmentInfoList=new u.MediaSegmentInfoList("video"),this._onInitSegment=null,this._onMediaSegment=null,this._forceFirstIDR=!(!o.default.chrome||!(o.default.version.major<50||50===o.default.version.major&&o.default.version.build<2661)),this._fillSilentAfterSeek=o.default.msedge||o.default.msie,this._mp3UseMpegAudio=!o.default.firefox,this._fillAudioTimestampGap=this._config.fixAudioTimestampGap}return i(e,[{key:"destroy",value:function(){this._dtsBase=-1,this._dtsBaseInited=!1,this._audioMeta=null,this._videoMeta=null,this._audioSegmentInfoList.clear(),this._audioSegmentInfoList=null,this._videoSegmentInfoList.clear(),this._videoSegmentInfoList=null,this._onInitSegment=null,this._onMediaSegment=null}},{key:"bindDataSource",value:function(e){return e.onDataAvailable=this.remux.bind(this),e.onTrackMetadata=this._onTrackMetadataReceived.bind(this),this}},{key:"insertDiscontinuity",value:function(){this._audioNextDts=this._videoNextDts=void 0}},{key:"seek",value:function(e){this._audioStashedLastSample=null,this._videoStashedLastSample=null,this._videoSegmentInfoList.clear(),this._audioSegmentInfoList.clear()}},{key:"remux",value:function(e,t){if(!this._onMediaSegment)throw new l.IllegalStateException("MP4Remuxer: onMediaSegment callback must be specificed!");this._dtsBaseInited||this._calculateDtsBase(e,t),this._remuxVideo(t),this._remuxAudio(e)}},{key:"_onTrackMetadataReceived",value:function(e,t){var n=null,i="mp4",r=t.codec;if("audio"===e)this._audioMeta=t,"mp3"===t.codec&&this._mp3UseMpegAudio?(i="mpeg",r="",n=new Uint8Array):n=a.default.generateInitSegment(t);else{if("video"!==e)return;this._videoMeta=t,n=a.default.generateInitSegment(t)}if(!this._onInitSegment)throw new l.IllegalStateException("MP4Remuxer: onInitSegment callback must be specified!");this._onInitSegment(e,{type:e,data:n.buffer,codec:r,container:e+"/"+i,mediaDuration:t.duration})}},{key:"_calculateDtsBase",value:function(e,t){this._dtsBaseInited||(e.samples&&e.samples.length&&(this._audioDtsBase=e.samples[0].dts),t.samples&&t.samples.length&&(this._videoDtsBase=t.samples[0].dts),this._dtsBase=Math.min(this._audioDtsBase,this._videoDtsBase),this._dtsBaseInited=!0)}},{key:"flushStashedSamples",value:function(){var e=this._videoStashedLastSample,t=this._audioStashedLastSample,n={type:"video",id:1,sequenceNumber:0,samples:[],length:0};null!=e&&(n.samples.push(e),n.length=e.length);var i={type:"audio",id:2,sequenceNumber:0,samples:[],length:0};null!=t&&(i.samples.push(t),i.length=t.length),this._videoStashedLastSample=null,this._audioStashedLastSample=null,this._remuxVideo(n,!0),this._remuxAudio(i,!0)}},{key:"_remuxAudio",value:function(e,t){if(null!=this._audioMeta){var n,i=e,l=i.samples,d=void 0,h=-1,f=this._audioMeta.refSampleDuration,c="mp3"===this._audioMeta.codec&&this._mp3UseMpegAudio,_=this._dtsBaseInited&&void 0===this._audioNextDts,m=!1;if(l&&0!==l.length&&(1!==l.length||t)){var p=0,v=null,g=0;c?(p=0,g=i.length):(p=8,g=8+i.length);var y=null;if(l.length>1&&(g-=(y=l.pop()).length),null!=this._audioStashedLastSample){var E=this._audioStashedLastSample;this._audioStashedLastSample=null,l.unshift(E),g+=E.length}null!=y&&(this._audioStashedLastSample=y);var b=l[0].dts-this._dtsBase;if(this._audioNextDts)d=b-this._audioNextDts;else if(this._audioSegmentInfoList.isEmpty())d=0,this._fillSilentAfterSeek&&!this._videoSegmentInfoList.isEmpty()&&"mp3"!==this._audioMeta.originalCodec&&(m=!0);else{var S=this._audioSegmentInfoList.getLastSampleBefore(b);if(null!=S){var k=b-(S.originalDts+S.duration);k<=3&&(k=0),d=b-(S.dts+S.duration+k)}else d=0}if(m){var L=b-d,w=this._videoSegmentInfoList.getLastSegmentBefore(b);if(null!=w&&w.beginDts<L){var R=s.default.getSilentFrame(this._audioMeta.originalCodec,this._audioMeta.channelCount);if(R){var A=w.beginDts,O=L-w.beginDts;r.default.v(this.TAG,"InsertPrefixSilentAudio: dts: "+A+", duration: "+O),l.unshift({unit:R,dts:A,pts:A}),g+=R.byteLength}}else m=!1}for(var T=[],C=0;C<l.length;C++){var I=l[C],x=I.unit,M=I.dts-this._dtsBase,D=M-d;-1===h&&(h=D);var B=0;if(C!==l.length-1)B=l[C+1].dts-this._dtsBase-d-D;else if(null!=y)B=y.dts-this._dtsBase-d-D;else B=T.length>=1?T[T.length-1].duration:Math.floor(f);var P=!1,U=null;if(B>1.5*f&&"mp3"!==this._audioMeta.codec&&this._fillAudioTimestampGap&&!o.default.safari){P=!0;var N=Math.abs(B-f),F=Math.ceil(N/f),j=D+f;r.default.w(this.TAG,"Large audio timestamp gap detected, may cause AV sync to drift. Silent frames will be generated to avoid unsync.\ndts: "+(D+B)+" ms, expected: "+(D+Math.round(f))+" ms, delta: "+Math.round(N)+" ms, generate: "+F+" frames");var G=s.default.getSilentFrame(this._audioMeta.originalCodec,this._audioMeta.channelCount);null==G&&(r.default.w(this.TAG,"Unable to generate silent frame for "+this._audioMeta.originalCodec+" with "+this._audioMeta.channelCount+" channels, repeat last frame"),G=x),U=[];for(var V=0;V<F;V++){var z=Math.round(j);if(U.length>0){var K=U[U.length-1];K.duration=z-K.dts}var H={dts:z,pts:z,cts:0,unit:G,size:G.byteLength,duration:0,originalDts:M,flags:{isLeading:0,dependsOn:1,isDependedOn:0,hasRedundancy:0}};U.push(H),g+=x.byteLength,j+=f}var q=U[U.length-1];q.duration=D+B-q.dts,B=Math.round(f)}T.push({dts:D,pts:D,cts:0,unit:I.unit,size:I.unit.byteLength,duration:B,originalDts:M,flags:{isLeading:0,dependsOn:1,isDependedOn:0,hasRedundancy:0}}),P&&T.push.apply(T,U)}c?v=new Uint8Array(g):((v=new Uint8Array(g))[0]=g>>>24&255,v[1]=g>>>16&255,v[2]=g>>>8&255,v[3]=255&g,v.set(a.default.types.mdat,4));for(var W=0;W<T.length;W++){var X=T[W].unit;v.set(X,p),p+=X.byteLength}var Y=T[T.length-1];n=Y.dts+Y.duration,this._audioNextDts=n;var Z=new u.MediaSegmentInfo;Z.beginDts=h,Z.endDts=n,Z.beginPts=h,Z.endPts=n,Z.originalBeginDts=T[0].originalDts,Z.originalEndDts=Y.originalDts+Y.duration,Z.firstSample=new u.SampleInfo(T[0].dts,T[0].pts,T[0].duration,T[0].originalDts,!1),Z.lastSample=new u.SampleInfo(Y.dts,Y.pts,Y.duration,Y.originalDts,!1),this._isLive||this._audioSegmentInfoList.append(Z),i.samples=T,i.sequenceNumber++;var Q=null;Q=c?new Uint8Array:a.default.moof(i,h),i.samples=[],i.length=0;var J={type:"audio",data:this._mergeBoxes(Q,v).buffer,sampleCount:T.length,info:Z};c&&_&&(J.timestampOffset=h),this._onMediaSegment("audio",J)}}}},{key:"_remuxVideo",value:function(e,t){if(null!=this._videoMeta){var n,i,r=e,s=r.samples,o=void 0,l=-1,d=-1;if(s&&0!==s.length&&(1!==s.length||t)){var h=8,f=null,c=8+e.length,_=null;if(s.length>1&&(c-=(_=s.pop()).length),null!=this._videoStashedLastSample){var m=this._videoStashedLastSample;this._videoStashedLastSample=null,s.unshift(m),c+=m.length}null!=_&&(this._videoStashedLastSample=_);var p=s[0].dts-this._dtsBase;if(this._videoNextDts)o=p-this._videoNextDts;else if(this._videoSegmentInfoList.isEmpty())o=0;else{var v=this._videoSegmentInfoList.getLastSampleBefore(p);if(null!=v){var g=p-(v.originalDts+v.duration);g<=3&&(g=0),o=p-(v.dts+v.duration+g)}else o=0}for(var y=new u.MediaSegmentInfo,E=[],b=0;b<s.length;b++){var S=s[b],k=S.dts-this._dtsBase,L=S.isKeyframe,w=k-o,R=S.cts,A=w+R;-1===l&&(l=w,d=A);var O=0;if(b!==s.length-1)O=s[b+1].dts-this._dtsBase-o-w;else if(null!=_)O=_.dts-this._dtsBase-o-w;else O=E.length>=1?E[E.length-1].duration:Math.floor(this._videoMeta.refSampleDuration);if(L){var T=new u.SampleInfo(w,A,O,S.dts,!0);T.fileposition=S.fileposition,y.appendSyncPoint(T)}E.push({dts:w,pts:A,cts:R,units:S.units,size:S.length,isKeyframe:L,duration:O,originalDts:k,flags:{isLeading:0,dependsOn:L?2:1,isDependedOn:L?1:0,hasRedundancy:0,isNonSync:L?0:1}})}(f=new Uint8Array(c))[0]=c>>>24&255,f[1]=c>>>16&255,f[2]=c>>>8&255,f[3]=255&c,f.set(a.default.types.mdat,4);for(var C=0;C<E.length;C++)for(var I=E[C].units;I.length;){var x=I.shift().data;f.set(x,h),h+=x.byteLength}var M=E[E.length-1];if(n=M.dts+M.duration,i=M.pts+M.duration,this._videoNextDts=n,y.beginDts=l,y.endDts=n,y.beginPts=d,y.endPts=i,y.originalBeginDts=E[0].originalDts,y.originalEndDts=M.originalDts+M.duration,y.firstSample=new u.SampleInfo(E[0].dts,E[0].pts,E[0].duration,E[0].originalDts,E[0].isKeyframe),y.lastSample=new u.SampleInfo(M.dts,M.pts,M.duration,M.originalDts,M.isKeyframe),this._isLive||this._videoSegmentInfoList.append(y),r.samples=E,r.sequenceNumber++,this._forceFirstIDR){var D=E[0].flags;D.dependsOn=2,D.isNonSync=0}var B=a.default.moof(r,l);r.samples=[],r.length=0,this._onMediaSegment("video",{type:"video",data:this._mergeBoxes(B,f).buffer,sampleCount:E.length,info:y})}}}},{key:"_mergeBoxes",value:function(e,t){var n=new Uint8Array(e.byteLength+t.byteLength);return n.set(e,0),n.set(t,e.byteLength),n}},{key:"onInitSegment",get:function(){return this._onInitSegment},set:function(e){this._onInitSegment=e}},{key:"onMediaSegment",get:function(){return this._onMediaSegment},set:function(e){this._onMediaSegment=e}}]),e}();t.default=h,e.exports=t.default},function(e,t,n){"use strict";Object.defineProperty(t,"__esModule",{value:!0});var i=function(){function e(e,t){for(var n=0;n<t.length;n++){var i=t[n];i.enumerable=i.enumerable||!1,i.configurable=!0,"value"in i&&(i.writable=!0),Object.defineProperty(e,i.key,i)}}return function(t,n,i){return n&&e(t.prototype,n),i&&e(t,i),t}}();var r=function(){function e(){!function(e,t){if(!(e instanceof t))throw new TypeError("Cannot call a class as a function")}(this,e)}return i(e,null,[{key:"init",value:function(){for(var t in e.types={avc1:[],avcC:[],btrt:[],dinf:[],dref:[],esds:[],ftyp:[],hdlr:[],mdat:[],mdhd:[],mdia:[],mfhd:[],minf:[],moof:[],moov:[],mp4a:[],mvex:[],mvhd:[],sdtp:[],stbl:[],stco:[],stsc:[],stsd:[],stsz:[],stts:[],tfdt:[],tfhd:[],traf:[],trak:[],trun:[],trex:[],tkhd:[],vmhd:[],smhd:[],".mp3":[]},e.types)e.types.hasOwnProperty(t)&&(e.types[t]=[t.charCodeAt(0),t.charCodeAt(1),t.charCodeAt(2),t.charCodeAt(3)]);var n=e.constants={};n.FTYP=new Uint8Array([105,115,111,109,0,0,0,1,105,115,111,109,97,118,99,49]),n.STSD_PREFIX=new Uint8Array([0,0,0,0,0,0,0,1]),n.STTS=new Uint8Array([0,0,0,0,0,0,0,0]),n.STSC=n.STCO=n.STTS,n.STSZ=new Uint8Array([0,0,0,0,0,0,0,0,0,0,0,0]),n.HDLR_VIDEO=new Uint8Array([0,0,0,0,0,0,0,0,118,105,100,101,0,0,0,0,0,0,0,0,0,0,0,0,86,105,100,101,111,72,97,110,100,108,101,114,0]),n.HDLR_AUDIO=new Uint8Array([0,0,0,0,0,0,0,0,115,111,117,110,0,0,0,0,0,0,0,0,0,0,0,0,83,111,117,110,100,72,97,110,100,108,101,114,0]),n.DREF=new Uint8Array([0,0,0,0,0,0,0,1,0,0,0,12,117,114,108,32,0,0,0,1]),n.SMHD=new Uint8Array([0,0,0,0,0,0,0,0]),n.VMHD=new Uint8Array([0,0,0,1,0,0,0,0,0,0,0,0])}},{key:"box",value:function(e){for(var t=8,n=null,i=Array.prototype.slice.call(arguments,1),r=i.length,a=0;a<r;a++)t+=i[a].byteLength;(n=new Uint8Array(t))[0]=t>>>24&255,n[1]=t>>>16&255,n[2]=t>>>8&255,n[3]=255&t,n.set(e,4);for(var s=8,o=0;o<r;o++)n.set(i[o],s),s+=i[o].byteLength;return n}},{key:"generateInitSegment",value:function(t){var n=e.box(e.types.ftyp,e.constants.FTYP),i=e.moov(t),r=new Uint8Array(n.byteLength+i.byteLength);return r.set(n,0),r.set(i,n.byteLength),r}},{key:"moov",value:function(t){var n=e.mvhd(t.timescale,t.duration),i=e.trak(t),r=e.mvex(t);return e.box(e.types.moov,n,i,r)}},{key:"mvhd",value:function(t,n){return e.box(e.types.mvhd,new Uint8Array([0,0,0,0,0,0,0,0,0,0,0,0,t>>>24&255,t>>>16&255,t>>>8&255,255&t,n>>>24&255,n>>>16&255,n>>>8&255,255&n,0,1,0,0,1,0,0,0,0,0,0,0,0,0,0,0,0,1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,64,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,255,255,255,255]))}},{key:"trak",value:function(t){return e.box(e.types.trak,e.tkhd(t),e.mdia(t))}},{key:"tkhd",value:function(t){var n=t.id,i=t.duration,r=t.presentWidth,a=t.presentHeight;return e.box(e.types.tkhd,new Uint8Array([0,0,0,7,0,0,0,0,0,0,0,0,n>>>24&255,n>>>16&255,n>>>8&255,255&n,0,0,0,0,i>>>24&255,i>>>16&255,i>>>8&255,255&i,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,64,0,0,0,r>>>8&255,255&r,0,0,a>>>8&255,255&a,0,0]))}},{key:"mdia",value:function(t){return e.box(e.types.mdia,e.mdhd(t),e.hdlr(t),e.minf(t))}},{key:"mdhd",value:function(t){var n=t.timescale,i=t.duration;return e.box(e.types.mdhd,new Uint8Array([0,0,0,0,0,0,0,0,0,0,0,0,n>>>24&255,n>>>16&255,n>>>8&255,255&n,i>>>24&255,i>>>16&255,i>>>8&255,255&i,85,196,0,0]))}},{key:"hdlr",value:function(t){var n=null;return n="audio"===t.type?e.constants.HDLR_AUDIO:e.constants.HDLR_VIDEO,e.box(e.types.hdlr,n)}},{key:"minf",value:function(t){var n=null;return n="audio"===t.type?e.box(e.types.smhd,e.constants.SMHD):e.box(e.types.vmhd,e.constants.VMHD),e.box(e.types.minf,n,e.dinf(),e.stbl(t))}},{key:"dinf",value:function(){return e.box(e.types.dinf,e.box(e.types.dref,e.constants.DREF))}},{key:"stbl",value:function(t){return e.box(e.types.stbl,e.stsd(t),e.box(e.types.stts,e.constants.STTS),e.box(e.types.stsc,e.constants.STSC),e.box(e.types.stsz,e.constants.STSZ),e.box(e.types.stco,e.constants.STCO))}},{key:"stsd",value:function(t){return"audio"===t.type?"mp3"===t.codec?e.box(e.types.stsd,e.constants.STSD_PREFIX,e.mp3(t)):e.box(e.types.stsd,e.constants.STSD_PREFIX,e.mp4a(t)):e.box(e.types.stsd,e.constants.STSD_PREFIX,e.avc1(t))}},{key:"mp3",value:function(t){var n=t.channelCount,i=t.audioSampleRate,r=new Uint8Array([0,0,0,0,0,0,0,1,0,0,0,0,0,0,0,0,0,n,0,16,0,0,0,0,i>>>8&255,255&i,0,0]);return e.box(e.types[".mp3"],r)}},{key:"mp4a",value:function(t){var n=t.channelCount,i=t.audioSampleRate,r=new Uint8Array([0,0,0,0,0,0,0,1,0,0,0,0,0,0,0,0,0,n,0,16,0,0,0,0,i>>>8&255,255&i,0,0]);return e.box(e.types.mp4a,r,e.esds(t))}},{key:"esds",value:function(t){var n=t.config||[],i=n.length,r=new Uint8Array([0,0,0,0,3,23+i,0,1,0,4,15+i,64,21,0,0,0,0,0,0,0,0,0,0,0,5].concat([i]).concat(n).concat([6,1,2]));return e.box(e.types.esds,r)}},{key:"avc1",value:function(t){var n=t.avcc,i=t.codecWidth,r=t.codecHeight,a=new Uint8Array([0,0,0,0,0,0,0,1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,i>>>8&255,255&i,r>>>8&255,255&r,0,72,0,0,0,72,0,0,0,0,0,0,0,1,10,120,113,113,47,102,108,118,46,106,115,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,24,255,255]);return e.box(e.types.avc1,a,e.box(e.types.avcC,n))}},{key:"mvex",value:function(t){return e.box(e.types.mvex,e.trex(t))}},{key:"trex",value:function(t){var n=t.id,i=new Uint8Array([0,0,0,0,n>>>24&255,n>>>16&255,n>>>8&255,255&n,0,0,0,1,0,0,0,0,0,0,0,0,0,1,0,1]);return e.box(e.types.trex,i)}},{key:"moof",value:function(t,n){return e.box(e.types.moof,e.mfhd(t.sequenceNumber),e.traf(t,n))}},{key:"mfhd",value:function(t){var n=new Uint8Array([0,0,0,0,t>>>24&255,t>>>16&255,t>>>8&255,255&t]);return e.box(e.types.mfhd,n)}},{key:"traf",value:function(t,n){var i=t.id,r=e.box(e.types.tfhd,new Uint8Array([0,0,0,0,i>>>24&255,i>>>16&255,i>>>8&255,255&i])),a=e.box(e.types.tfdt,new Uint8Array([0,0,0,0,n>>>24&255,n>>>16&255,n>>>8&255,255&n])),s=e.sdtp(t),o=e.trun(t,s.byteLength+16+16+8+16+8+8);return e.box(e.types.traf,r,a,o,s)}},{key:"sdtp",value:function(t){for(var n=t.samples||[],i=n.length,r=new Uint8Array(4+i),a=0;a<i;a++){var s=n[a].flags;r[a+4]=s.isLeading<<6|s.dependsOn<<4|s.isDependedOn<<2|s.hasRedundancy}return e.box(e.types.sdtp,r)}},{key:"trun",value:function(t,n){var i=t.samples||[],r=i.length,a=12+16*r,s=new Uint8Array(a);n+=8+a,s.set([0,0,15,1,r>>>24&255,r>>>16&255,r>>>8&255,255&r,n>>>24&255,n>>>16&255,n>>>8&255,255&n],0);for(var o=0;o<r;o++){var u=i[o].duration,l=i[o].size,d=i[o].flags,h=i[o].cts;s.set([u>>>24&255,u>>>16&255,u>>>8&255,255&u,l>>>24&255,l>>>16&255,l>>>8&255,255&l,d.isLeading<<2|d.dependsOn,d.isDependedOn<<6|d.hasRedundancy<<4|d.isNonSync,0,0,h>>>24&255,h>>>16&255,h>>>8&255,255&h],12+16*o)}return e.box(e.types.trun,s)}},{key:"mdat",value:function(t){return e.box(e.types.mdat,t)}}]),e}();r.init(),t.default=r,e.exports=t.default},function(e,t,n){"use strict";Object.defineProperty(t,"__esModule",{value:!0});var i=function(){function e(e,t){for(var n=0;n<t.length;n++){var i=t[n];i.enumerable=i.enumerable||!1,i.configurable=!0,"value"in i&&(i.writable=!0),Object.defineProperty(e,i.key,i)}}return function(t,n,i){return n&&e(t.prototype,n),i&&e(t,i),t}}();var r=function(){function e(){!function(e,t){if(!(e instanceof t))throw new TypeError("Cannot call a class as a function")}(this,e)}return i(e,null,[{key:"getSilentFrame",value:function(e,t){if("mp4a.40.2"===e){if(1===t)return new Uint8Array([0,200,0,128,35,128]);if(2===t)return new Uint8Array([33,0,73,144,2,25,0,35,128]);if(3===t)return new Uint8Array([0,200,0,128,32,132,1,38,64,8,100,0,142]);if(4===t)return new Uint8Array([0,200,0,128,32,132,1,38,64,8,100,0,128,44,128,8,2,56]);if(5===t)return new Uint8Array([0,200,0,128,32,132,1,38,64,8,100,0,130,48,4,153,0,33,144,2,56]);if(6===t)return new Uint8Array([0,200,0,128,32,132,1,38,64,8,100,0,130,48,4,153,0,33,144,2,0,178,0,32,8,224])}else{if(1===t)return new Uint8Array([1,64,34,128,163,78,230,128,186,8,0,0,0,28,6,241,193,10,90,90,90,90,90,90,90,90,90,90,90,90,90,90,90,90,90,90,90,90,90,90,90,90,90,90,90,90,90,90,90,90,90,90,90,90,90,90,90,90,94]);if(2===t)return new Uint8Array([1,64,34,128,163,94,230,128,186,8,0,0,0,0,149,0,6,241,161,10,90,90,90,90,90,90,90,90,90,90,90,90,90,90,90,90,90,90,90,90,90,90,90,90,90,90,90,90,90,90,90,90,90,90,90,90,90,90,94]);if(3===t)return new Uint8Array([1,64,34,128,163,94,230,128,186,8,0,0,0,0,149,0,6,241,161,10,90,90,90,90,90,90,90,90,90,90,90,90,90,90,90,90,90,90,90,90,90,90,90,90,90,90,90,90,90,90,90,90,90,90,90,90,90,90,94])}return null}}]),e}();t.default=r,e.exports=t.default},function(e,t,n){"use strict";Object.defineProperty(t,"__esModule",{value:!0});o(n(0));var i=o(n(8)),r=o(n(11)),a=o(n(14)),s=o(n(5));function o(e){return e&&e.__esModule?e:{default:e}}t.default=function(e){var t=null,n=function(t,n){e.postMessage({msg:"logcat_callback",data:{type:t,logcat:n}})}.bind(this);r.default.install(),e.addEventListener("message",function(r){switch(r.data.cmd){case"init":(t=new a.default(r.data.param[0],r.data.param[1])).on(s.default.IO_ERROR,function(t,n){e.postMessage({msg:s.default.IO_ERROR,data:{type:t,info:n}})}.bind(this)),t.on(s.default.DEMUX_ERROR,function(t,n){e.postMessage({msg:s.default.DEMUX_ERROR,data:{type:t,info:n}})}.bind(this)),t.on(s.default.INIT_SEGMENT,function(t,n){var i={msg:s.default.INIT_SEGMENT,data:{type:t,data:n}};e.postMessage(i,[n.data])}.bind(this)),t.on(s.default.MEDIA_SEGMENT,function(t,n){var i={msg:s.default.MEDIA_SEGMENT,data:{type:t,data:n}};e.postMessage(i,[n.data])}.bind(this)),t.on(s.default.LOADING_COMPLETE,function(){var t={msg:s.default.LOADING_COMPLETE};e.postMessage(t)}.bind(this)),t.on(s.default.RECOVERED_EARLY_EOF,function(){var t={msg:s.default.RECOVERED_EARLY_EOF};e.postMessage(t)}.bind(this)),t.on(s.default.MEDIA_INFO,function(t){var n={msg:s.default.MEDIA_INFO,data:t};e.postMessage(n)}.bind(this)),t.on(s.default.STATISTICS_INFO,function(t){var n={msg:s.default.STATISTICS_INFO,data:t};e.postMessage(n)}.bind(this)),t.on(s.default.RECOMMEND_SEEKPOINT,function(t){e.postMessage({msg:s.default.RECOMMEND_SEEKPOINT,data:t})}.bind(this));break;case"destroy":t&&(t.destroy(),t=null),e.postMessage({msg:"destroyed"});break;case"start":t.start();break;case"stop":t.stop();break;case"seek":t.seek(r.data.param);break;case"pause":t.pause();break;case"resume":t.resume();break;case"logging_config":var o=r.data.param;i.default.applyConfig(o),!0===o.enableCallback?i.default.addLogListener(n):i.default.removeLogListener(n)}})},e.exports=t.default},function(e,t){var n=arguments[3],i=arguments[4],r=arguments[5],a=JSON.stringify;e.exports=function(e,t){for(var s,o=Object.keys(r),u=0,l=o.length;u<l;u++){var d=o[u],h=r[d].exports;if(h===e||h&&h.default===e){s=d;break}}if(!s){s=Math.floor(Math.pow(16,8)*Math.random()).toString(16);var f={};for(u=0,l=o.length;u<l;u++){f[d=o[u]]=d}i[s]=["function(require,module,exports){"+e+"(self); }",f]}var c=Math.floor(Math.pow(16,8)*Math.random()).toString(16),_={};_[s]=s,i[c]=["function(require,module,exports){var f = require("+a(s)+");(f.default ? f.default : f)(self);}",_];var m={};!function e(t){m[t]=!0;for(var n in i[t][1]){var r=i[t][1][n];m[r]||e(r)}}(c);var p="("+n+")({"+Object.keys(m).map(function(e){return a(e)+":["+i[e][0]+","+a(i[e][1])+"]"}).join(",")+"},{},["+a(c)+"])",v=window.URL||window.webkitURL||window.mozURL||window.msURL,g=new Blob([p],{type:"text/javascript"});if(t&&t.bare)return g;var y=v.createObjectURL(g),E=new Worker(y);return E.objectURL=y,E}},function(e,t,n){"use strict";Object.defineProperty(t,"__esModule",{value:!0});var i=function(){function e(e,t){for(var n=0;n<t.length;n++){var i=t[n];i.enumerable=i.enumerable||!1,i.configurable=!0,"value"in i&&(i.writable=!0),Object.defineProperty(e,i.key,i)}}return function(t,n,i){return n&&e(t.prototype,n),i&&e(t,i),t}}(),r=d(n(2)),a=d(n(0)),s=d(n(4)),o=d(n(16)),u=n(15),l=n(1);function d(e){return e&&e.__esModule?e:{default:e}}var h=function(){function e(t){!function(e,t){if(!(e instanceof t))throw new TypeError("Cannot call a class as a function")}(this,e),this.TAG="MSEController",this._config=t,this._emitter=new r.default,this._config.isLive&&null==this._config.autoCleanupSourceBuffer&&(this._config.autoCleanupSourceBuffer=!0),this.definitionChange=!1,this.e={onSourceOpen:this._onSourceOpen.bind(this),onSourceEnded:this._onSourceEnded.bind(this),onSourceClose:this._onSourceClose.bind(this),onSourceBufferError:this._onSourceBufferError.bind(this),onSourceBufferUpdateEnd:this._onSourceBufferUpdateEnd.bind(this)},this._mediaSource=null,this._mediaSourceObjectURL=null,this._mediaElement=null,this._isBufferFull=!1,this._hasPendingEos=!1,this._requireSetMediaDuration=!1,this._pendingMediaDuration=0,this._pendingSourceBufferInit=[],this._mimeTypes={video:null,audio:null},this._sourceBuffers={video:null,audio:null},this._lastInitSegments={video:null,audio:null},this._pendingSegments={video:[],audio:[]},this._pendingRemoveRanges={video:[],audio:[]},this._idrList=new u.IDRSampleList}return i(e,[{key:"destroy",value:function(){(this._mediaElement||this._mediaSource)&&this.detachMediaElement(),this.e=null,this._emitter.removeAllListeners(),this._emitter=null}},{key:"on",value:function(e,t){this._emitter.addListener(e,t)}},{key:"off",value:function(e,t){this._emitter.removeListener(e,t)}},{key:"attachMediaElement",value:function(e){if(this._mediaSource)throw new l.IllegalStateException("MediaSource has been attached to an HTMLMediaElement!");var t=this._mediaSource=new window.MediaSource;t.addEventListener("sourceopen",this.e.onSourceOpen),t.addEventListener("sourceended",this.e.onSourceEnded),t.addEventListener("sourceclose",this.e.onSourceClose),this._mediaElement=e,this._mediaSourceObjectURL=window.URL.createObjectURL(this._mediaSource),e.src=this._mediaSourceObjectURL}},{key:"detachMediaElement",value:function(){if(this._mediaSource){var e=this._mediaSource;for(var t in this._sourceBuffers){var n=this._pendingSegments[t];n.splice(0,n.length),this._pendingSegments[t]=null,this._pendingRemoveRanges[t]=null,this._lastInitSegments[t]=null;var i=this._sourceBuffers[t];i&&("closed"!==e.readyState&&(e.removeSourceBuffer(i),i.removeEventListener("error",this.e.onSourceBufferError),i.removeEventListener("updateend",this.e.onSourceBufferUpdateEnd)),this._mimeTypes[t]=null,this._sourceBuffers[t]=null)}if("open"===e.readyState)try{e.endOfStream()}catch(e){a.default.e(this.TAG,e.message)}e.removeEventListener("sourceopen",this.e.onSourceOpen),e.removeEventListener("sourceended",this.e.onSourceEnded),e.removeEventListener("sourceclose",this.e.onSourceClose),this._pendingSourceBufferInit=[],this._isBufferFull=!1,this._idrList.clear(),this._mediaSource=null}this._mediaElement&&(this._mediaElement.src="",this._mediaElement.removeAttribute("src"),this._mediaElement=null),this._mediaSourceObjectURL&&(window.URL.revokeObjectURL(this._mediaSourceObjectURL),this._mediaSourceObjectURL=null)}},{key:"newSourceInitSegment",value:function(e){var t=e,n=""+t.container;t.codec&&t.codec.length>0&&(n+=";codecs="+t.codec);var i=this._pendingSegments[t.type];i.splice(0,i.length),this._pendingSegments[t.type]=[],this._pendingRemoveRanges[t.type]=[],this._lastInitSegments[t.type]=[];var r=this._mediaSource;if(this.definitionChange=!0,this._sourceBuffers[t.type]){r.removeSourceBuffer(this._sourceBuffers[t.type]);var a=this._sourceBuffers[t.type]=this._mediaSource.addSourceBuffer(n);a.addEventListener("error",this.e.onSourceBufferError),a.addEventListener("updateend",this.e.onSourceBufferUpdateEnd)}}},{key:"appendInitSegment",value:function(e,t){if(!this._mediaSource||"open"!==this._mediaSource.readyState)return this._pendingSourceBufferInit.push(e),void this._pendingSegments[e.type].push(e);var n=e,i=""+n.container;n.codec&&n.codec.length>0&&(i+=";codecs="+n.codec);var r=!1;if(a.default.v(this.TAG,"Received Initialization Segment, mimeType: "+i),this._lastInitSegments[n.type]=n,i!==this._mimeTypes[n.type]){if(this._mimeTypes[n.type])a.default.v(this.TAG,"Notice: "+n.type+" mimeType changed, origin: "+this._mimeTypes[n.type]+", target: "+i);else{r=!0;try{var u=this._sourceBuffers[n.type]=this._mediaSource.addSourceBuffer(i);u.addEventListener("error",this.e.onSourceBufferError),u.addEventListener("updateend",this.e.onSourceBufferUpdateEnd)}catch(e){return a.default.e(this.TAG,e.message),void this._emitter.emit(o.default.ERROR,{code:e.code,msg:e.message})}}this._mimeTypes[n.type]=i}t||this._pendingSegments[n.type].push(n),r||this._sourceBuffers[n.type]&&!this._sourceBuffers[n.type].updating&&this._doAppendSegments(),s.default.safari&&"audio/mpeg"===n.container&&n.mediaDuration>0&&(this._requireSetMediaDuration=!0,this._pendingMediaDuration=n.mediaDuration/1e3,this._updateMediaSourceDuration())}},{key:"appendMediaSegment",value:function(e){var t=e;this._pendingSegments[t.type].push(t),this._config.autoCleanupSourceBuffer&&this._needCleanupSourceBuffer()&&this._doCleanupSourceBuffer();var n=this._sourceBuffers[t.type];!n||n.updating||this._hasPendingRemoveRanges()||!1!==this.definitionChange||this._doAppendSegments()}},{key:"seek",value:function(e){for(var t in this._sourceBuffers)if(this._sourceBuffers[t]){var n=this._sourceBuffers[t];if("open"===this._mediaSource.readyState)try{n.abort()}catch(e){a.default.e(this.TAG,e.message)}this._idrList.clear();var i=this._pendingSegments[t];if(i.splice(0,i.length),"closed"!==this._mediaSource.readyState){for(var r=0;r<n.buffered.length;r++){var o=n.buffered.start(r),u=n.buffered.end(r);this._pendingRemoveRanges[t].push({start:o,end:u})}if(n.updating||this._doRemoveRanges(),s.default.safari){var l=this._lastInitSegments[t];l&&(this._pendingSegments[t].push(l),n.updating||this._doAppendSegments())}}}}},{key:"endOfStream",value:function(){var e=this._mediaSource,t=this._sourceBuffers;e&&"open"===e.readyState?t.video&&t.video.updating||t.audio&&t.audio.updating?this._hasPendingEos=!0:(this._hasPendingEos=!1,e.endOfStream()):e&&"closed"===e.readyState&&this._hasPendingSegments()&&(this._hasPendingEos=!0)}},{key:"getNearestKeyframe",value:function(e){return this._idrList.getLastSyncPointBeforeDts(e)}},{key:"_needCleanupSourceBuffer",value:function(){if(!this._config.autoCleanupSourceBuffer)return!1;var e=this._mediaElement.currentTime;for(var t in this._sourceBuffers){var n=this._sourceBuffers[t];if(n){var i=n.buffered;if(i.length>=1&&e-i.start(0)>=this._config.autoCleanupMaxBackwardDuration)return!0}}return!1}},{key:"_doCleanupSourceBuffer",value:function(){var e=this._mediaElement.currentTime;for(var t in this._sourceBuffers){var n=this._sourceBuffers[t];if(n){for(var i=n.buffered,r=!1,a=0;a<i.length;a++){var s=i.start(a),o=i.end(a);if(s<=e&&e<o+3){if(e-s>=this._config.autoCleanupMaxBackwardDuration){r=!0;var u=e-this._config.autoCleanupMinBackwardDuration;this._pendingRemoveRanges[t].push({start:s,end:u})}}else o<e&&(r=!0,this._pendingRemoveRanges[t].push({start:s,end:o}))}r&&!n.updating&&this._doRemoveRanges()}}}},{key:"_updateMediaSourceDuration",value:function(){var e=this._sourceBuffers;if(0!==this._mediaElement.readyState&&"open"===this._mediaSource.readyState&&!(e.video&&e.video.updating||e.audio&&e.audio.updating)){var t=this._mediaSource.duration,n=this._pendingMediaDuration;n>0&&(isNaN(t)||n>t)&&(a.default.v(this.TAG,"Update MediaSource duration from "+t+" to "+n),this._mediaSource.duration=n),this._requireSetMediaDuration=!1,this._pendingMediaDuration=0}}},{key:"_doRemoveRanges",value:function(){for(var e in this._pendingRemoveRanges)if(this._sourceBuffers[e]&&!this._sourceBuffers[e].updating)for(var t=this._sourceBuffers[e],n=this._pendingRemoveRanges[e];n.length&&!t.updating;){var i=n.shift();t.remove(i.start,i.end)}}},{key:"_doAppendSegments",value:function(){var e=this._pendingSegments;for(var t in e)if(this._sourceBuffers[t]&&!this._sourceBuffers[t].updating&&e[t].length>0){var n=e[t].shift();if(n.timestampOffset){var i=this._sourceBuffers[t].timestampOffset,r=n.timestampOffset/1e3;Math.abs(i-r)>.1&&(a.default.v(this.TAG,"Update MPEG audio timestampOffset from "+i+" to "+r),this._sourceBuffers[t].timestampOffset=r),delete n.timestampOffset}if(!n.data||0===n.data.byteLength)continue;try{this._sourceBuffers[t].appendBuffer(n.data),this._isBufferFull=!1,"video"===t&&n.hasOwnProperty("info")&&this._idrList.appendArray(n.info.syncPoints)}catch(e){this._pendingSegments[t].unshift(n),22===e.code?(this._isBufferFull||this._emitter.emit(o.default.BUFFER_FULL),this._isBufferFull=!0):(a.default.e(this.TAG,e.message),this._emitter.emit(o.default.ERROR,{code:e.code,msg:e.message}))}}}},{key:"_onSourceOpen",value:function(){if(a.default.v(this.TAG,"MediaSource onSourceOpen"),this._mediaSource.removeEventListener("sourceopen",this.e.onSourceOpen),this._pendingSourceBufferInit.length>0)for(var e=this._pendingSourceBufferInit;e.length;){var t=e.shift();this.appendInitSegment(t,!0)}this._hasPendingSegments()&&this._doAppendSegments(),this._emitter.emit(o.default.SOURCE_OPEN)}},{key:"_onSourceEnded",value:function(){a.default.v(this.TAG,"MediaSource onSourceEnded")}},{key:"_onSourceClose",value:function(){a.default.v(this.TAG,"MediaSource onSourceClose"),this._mediaSource&&null!=this.e&&(this._mediaSource.removeEventListener("sourceopen",this.e.onSourceOpen),this._mediaSource.removeEventListener("sourceended",this.e.onSourceEnded),this._mediaSource.removeEventListener("sourceclose",this.e.onSourceClose))}},{key:"_hasPendingSegments",value:function(){var e=this._pendingSegments;return e.video.length>0||e.audio.length>0}},{key:"_hasPendingRemoveRanges",value:function(){var e=this._pendingRemoveRanges;return e.video.length>0||e.audio.length>0}},{key:"_onSourceBufferUpdateEnd",value:function(){this._requireSetMediaDuration?this._updateMediaSourceDuration():this._hasPendingRemoveRanges()?this._doRemoveRanges():this._hasPendingSegments()?this._doAppendSegments():this._hasPendingEos&&this.endOfStream(),this._emitter.emit(o.default.UPDATE_END)}},{key:"_onSourceBufferError",value:function(e){a.default.e(this.TAG,"SourceBuffer Error: "+e)}}]),e}();t.default=h,e.exports=t.default},function(e,t,n){"use strict";Object.defineProperty(t,"__esModule",{value:!0});var i="function"==typeof Symbol&&"symbol"==typeof Symbol.iterator?function(e){return typeof e}:function(e){return e&&"function"==typeof Symbol&&e.constructor===Symbol&&e!==Symbol.prototype?"symbol":typeof e},r=function(){function e(e,t){for(var n=0;n<t.length;n++){var i=t[n];i.enumerable=i.enumerable||!1,i.configurable=!0,"value"in i&&(i.writable=!0),Object.defineProperty(e,i.key,i)}}return function(t,n,i){return n&&e(t.prototype,n),i&&e(t,i),t}}(),a=l(n(2)),s=l(n(7)),o=n(6),u=n(1);function l(e){return e&&e.__esModule?e:{default:e}}var d=function(){function e(t,n){if(function(e,t){if(!(e instanceof t))throw new TypeError("Cannot call a class as a function")}(this,e),this.TAG="NativePlayer",this._type="NativePlayer",this._emitter=new a.default,this._config=(0,o.createDefaultConfig)(),"object"===(void 0===n?"undefined":i(n))&&Object.assign(this._config,n),"flv"===t.type.toLowerCase())throw new u.InvalidArgumentException("NativePlayer does't support flv MediaDataSource input!");if(t.hasOwnProperty("segments"))throw new u.InvalidArgumentException("NativePlayer("+t.type+") doesn't support multipart playback!");this.e={onvLoadedMetadata:this._onvLoadedMetadata.bind(this)},this._pendingSeekTime=null,this._statisticsReporter=null,this._mediaDataSource=t,this._mediaElement=null}return r(e,[{key:"destroy",value:function(){this._mediaElement&&(this.unload(),this.detachMediaElement()),this.e=null,this._mediaDataSource=null,this._emitter.removeAllListeners(),this._emitter=null}},{key:"on",value:function(e,t){var n=this;e===s.default.MEDIA_INFO?null!=this._mediaElement&&0!==this._mediaElement.readyState&&Promise.resolve().then(function(){n._emitter.emit(s.default.MEDIA_INFO,n.mediaInfo)}):e===s.default.STATISTICS_INFO&&null!=this._mediaElement&&0!==this._mediaElement.readyState&&Promise.resolve().then(function(){n._emitter.emit(s.default.STATISTICS_INFO,n.statisticsInfo)}),this._emitter.addListener(e,t)}},{key:"off",value:function(e,t){this._emitter.removeListener(e,t)}},{key:"attachMediaElement",value:function(e){if(this._mediaElement=e,e.addEventListener("loadedmetadata",this.e.onvLoadedMetadata),null!=this._pendingSeekTime)try{e.currentTime=this._pendingSeekTime,this._pendingSeekTime=null}catch(e){}}},{key:"detachMediaElement",value:function(){this._mediaElement&&(this._mediaElement.src="",this._mediaElement.removeAttribute("src"),this._mediaElement.removeEventListener("loadedmetadata",this.e.onvLoadedMetadata),this._mediaElement=null),null!=this._statisticsReporter&&(window.clearInterval(this._statisticsReporter),this._statisticsReporter=null)}},{key:"load",value:function(){if(!this._mediaElement)throw new u.IllegalStateException("HTMLMediaElement must be attached before load()!");this._mediaElement.src=this._mediaDataSource.url,this._mediaElement.readyState>0&&(this._mediaElement.currentTime=0),this._mediaElement.preload="auto",this._mediaElement.load(),this._statisticsReporter=window.setInterval(this._reportStatisticsInfo.bind(this),this._config.statisticsInfoReportInterval)}},{key:"unload",value:function(){this._mediaElement&&(this._mediaElement.src="",this._mediaElement.removeAttribute("src")),null!=this._statisticsReporter&&(window.clearInterval(this._statisticsReporter),this._statisticsReporter=null)}},{key:"play",value:function(){return this._mediaElement.play()}},{key:"pause",value:function(){this._mediaElement.pause()}},{key:"_onvLoadedMetadata",value:function(e){null!=this._pendingSeekTime&&(this._mediaElement.currentTime=this._pendingSeekTime,this._pendingSeekTime=null),this._emitter.emit(s.default.MEDIA_INFO,this.mediaInfo)}},{key:"_reportStatisticsInfo",value:function(){this._emitter.emit(s.default.STATISTICS_INFO,this.statisticsInfo)}},{key:"type",get:function(){return this._type}},{key:"buffered",get:function(){return this._mediaElement.buffered}},{key:"duration",get:function(){return this._mediaElement.duration}},{key:"volume",get:function(){return this._mediaElement.volume},set:function(e){this._mediaElement.volume=e}},{key:"muted",get:function(){return this._mediaElement.muted},set:function(e){this._mediaElement.muted=e}},{key:"currentTime",get:function(){return this._mediaElement?this._mediaElement.currentTime:0},set:function(e){this._mediaElement?this._mediaElement.currentTime=e:this._pendingSeekTime=e}},{key:"mediaInfo",get:function(){var e={mimeType:(this._mediaElement instanceof HTMLAudioElement?"audio/":"video/")+this._mediaDataSource.type};return this._mediaElement&&(e.duration=Math.floor(1e3*this._mediaElement.duration),this._mediaElement instanceof HTMLVideoElement&&(e.width=this._mediaElement.videoWidth,e.height=this._mediaElement.videoHeight)),e}},{key:"statisticsInfo",get:function(){var e={playerType:this._type,url:this._mediaDataSource.url};if(!(this._mediaElement instanceof HTMLVideoElement))return e;var t=!0,n=0,i=0;if(this._mediaElement.getVideoPlaybackQuality){var r=this._mediaElement.getVideoPlaybackQuality();n=r.totalVideoFrames,i=r.droppedVideoFrames}else null!=this._mediaElement.webkitDecodedFrameCount?(n=this._mediaElement.webkitDecodedFrameCount,i=this._mediaElement.webkitDroppedFrameCount):t=!1;return t&&(e.decodedFrames=n,e.droppedFrames=i),e}}]),e}();t.default=d,e.exports=t.default}])});
+ * @version   v4.2.8+1e68dce6
+ */
+
+(function (global, factory) {
+	 true ? module.exports = factory() :
+	undefined;
+}(this, (function () { 'use strict';
+
+function objectOrFunction(x) {
+  var type = typeof x;
+  return x !== null && (type === 'object' || type === 'function');
+}
+
+function isFunction(x) {
+  return typeof x === 'function';
+}
+
+
+
+var _isArray = void 0;
+if (Array.isArray) {
+  _isArray = Array.isArray;
+} else {
+  _isArray = function (x) {
+    return Object.prototype.toString.call(x) === '[object Array]';
+  };
+}
+
+var isArray = _isArray;
+
+var len = 0;
+var vertxNext = void 0;
+var customSchedulerFn = void 0;
+
+var asap = function asap(callback, arg) {
+  queue[len] = callback;
+  queue[len + 1] = arg;
+  len += 2;
+  if (len === 2) {
+    // If len is 2, that means that we need to schedule an async flush.
+    // If additional callbacks are queued before the queue is flushed, they
+    // will be processed by this flush that we are scheduling.
+    if (customSchedulerFn) {
+      customSchedulerFn(flush);
+    } else {
+      scheduleFlush();
+    }
+  }
+};
+
+function setScheduler(scheduleFn) {
+  customSchedulerFn = scheduleFn;
+}
+
+function setAsap(asapFn) {
+  asap = asapFn;
+}
+
+var browserWindow = typeof window !== 'undefined' ? window : undefined;
+var browserGlobal = browserWindow || {};
+var BrowserMutationObserver = browserGlobal.MutationObserver || browserGlobal.WebKitMutationObserver;
+var isNode = typeof self === 'undefined' && typeof process !== 'undefined' && {}.toString.call(process) === '[object process]';
+
+// test for web worker but not in IE10
+var isWorker = typeof Uint8ClampedArray !== 'undefined' && typeof importScripts !== 'undefined' && typeof MessageChannel !== 'undefined';
+
+// node
+function useNextTick() {
+  // node version 0.10.x displays a deprecation warning when nextTick is used recursively
+  // see https://github.com/cujojs/when/issues/410 for details
+  return function () {
+    return process.nextTick(flush);
+  };
+}
+
+// vertx
+function useVertxTimer() {
+  if (typeof vertxNext !== 'undefined') {
+    return function () {
+      vertxNext(flush);
+    };
+  }
+
+  return useSetTimeout();
+}
+
+function useMutationObserver() {
+  var iterations = 0;
+  var observer = new BrowserMutationObserver(flush);
+  var node = document.createTextNode('');
+  observer.observe(node, { characterData: true });
+
+  return function () {
+    node.data = iterations = ++iterations % 2;
+  };
+}
+
+// web worker
+function useMessageChannel() {
+  var channel = new MessageChannel();
+  channel.port1.onmessage = flush;
+  return function () {
+    return channel.port2.postMessage(0);
+  };
+}
+
+function useSetTimeout() {
+  // Store setTimeout reference so es6-promise will be unaffected by
+  // other code modifying setTimeout (like sinon.useFakeTimers())
+  var globalSetTimeout = setTimeout;
+  return function () {
+    return globalSetTimeout(flush, 1);
+  };
+}
+
+var queue = new Array(1000);
+function flush() {
+  for (var i = 0; i < len; i += 2) {
+    var callback = queue[i];
+    var arg = queue[i + 1];
+
+    callback(arg);
+
+    queue[i] = undefined;
+    queue[i + 1] = undefined;
+  }
+
+  len = 0;
+}
+
+function attemptVertx() {
+  try {
+    var vertx = Function('return this')().require('vertx');
+    vertxNext = vertx.runOnLoop || vertx.runOnContext;
+    return useVertxTimer();
+  } catch (e) {
+    return useSetTimeout();
+  }
+}
+
+var scheduleFlush = void 0;
+// Decide what async method to use to triggering processing of queued callbacks:
+if (isNode) {
+  scheduleFlush = useNextTick();
+} else if (BrowserMutationObserver) {
+  scheduleFlush = useMutationObserver();
+} else if (isWorker) {
+  scheduleFlush = useMessageChannel();
+} else if (browserWindow === undefined && "function" === 'function') {
+  scheduleFlush = attemptVertx();
+} else {
+  scheduleFlush = useSetTimeout();
+}
+
+function then(onFulfillment, onRejection) {
+  var parent = this;
+
+  var child = new this.constructor(noop);
+
+  if (child[PROMISE_ID] === undefined) {
+    makePromise(child);
+  }
+
+  var _state = parent._state;
+
+
+  if (_state) {
+    var callback = arguments[_state - 1];
+    asap(function () {
+      return invokeCallback(_state, child, callback, parent._result);
+    });
+  } else {
+    subscribe(parent, child, onFulfillment, onRejection);
+  }
+
+  return child;
+}
+
+/**
+  `Promise.resolve` returns a promise that will become resolved with the
+  passed `value`. It is shorthand for the following:
+
+  ```javascript
+  let promise = new Promise(function(resolve, reject){
+    resolve(1);
+  });
+
+  promise.then(function(value){
+    // value === 1
+  });
+  ```
+
+  Instead of writing the above, your code now simply becomes the following:
+
+  ```javascript
+  let promise = Promise.resolve(1);
+
+  promise.then(function(value){
+    // value === 1
+  });
+  ```
+
+  @method resolve
+  @static
+  @param {Any} value value that the returned promise will be resolved with
+  Useful for tooling.
+  @return {Promise} a promise that will become fulfilled with the given
+  `value`
+*/
+function resolve$1(object) {
+  /*jshint validthis:true */
+  var Constructor = this;
+
+  if (object && typeof object === 'object' && object.constructor === Constructor) {
+    return object;
+  }
+
+  var promise = new Constructor(noop);
+  resolve(promise, object);
+  return promise;
+}
+
+var PROMISE_ID = Math.random().toString(36).substring(2);
+
+function noop() {}
+
+var PENDING = void 0;
+var FULFILLED = 1;
+var REJECTED = 2;
+
+function selfFulfillment() {
+  return new TypeError("You cannot resolve a promise with itself");
+}
+
+function cannotReturnOwn() {
+  return new TypeError('A promises callback cannot return that same promise.');
+}
+
+function tryThen(then$$1, value, fulfillmentHandler, rejectionHandler) {
+  try {
+    then$$1.call(value, fulfillmentHandler, rejectionHandler);
+  } catch (e) {
+    return e;
+  }
+}
+
+function handleForeignThenable(promise, thenable, then$$1) {
+  asap(function (promise) {
+    var sealed = false;
+    var error = tryThen(then$$1, thenable, function (value) {
+      if (sealed) {
+        return;
+      }
+      sealed = true;
+      if (thenable !== value) {
+        resolve(promise, value);
+      } else {
+        fulfill(promise, value);
+      }
+    }, function (reason) {
+      if (sealed) {
+        return;
+      }
+      sealed = true;
+
+      reject(promise, reason);
+    }, 'Settle: ' + (promise._label || ' unknown promise'));
+
+    if (!sealed && error) {
+      sealed = true;
+      reject(promise, error);
+    }
+  }, promise);
+}
+
+function handleOwnThenable(promise, thenable) {
+  if (thenable._state === FULFILLED) {
+    fulfill(promise, thenable._result);
+  } else if (thenable._state === REJECTED) {
+    reject(promise, thenable._result);
+  } else {
+    subscribe(thenable, undefined, function (value) {
+      return resolve(promise, value);
+    }, function (reason) {
+      return reject(promise, reason);
+    });
+  }
+}
+
+function handleMaybeThenable(promise, maybeThenable, then$$1) {
+  if (maybeThenable.constructor === promise.constructor && then$$1 === then && maybeThenable.constructor.resolve === resolve$1) {
+    handleOwnThenable(promise, maybeThenable);
+  } else {
+    if (then$$1 === undefined) {
+      fulfill(promise, maybeThenable);
+    } else if (isFunction(then$$1)) {
+      handleForeignThenable(promise, maybeThenable, then$$1);
+    } else {
+      fulfill(promise, maybeThenable);
+    }
+  }
+}
+
+function resolve(promise, value) {
+  if (promise === value) {
+    reject(promise, selfFulfillment());
+  } else if (objectOrFunction(value)) {
+    var then$$1 = void 0;
+    try {
+      then$$1 = value.then;
+    } catch (error) {
+      reject(promise, error);
+      return;
+    }
+    handleMaybeThenable(promise, value, then$$1);
+  } else {
+    fulfill(promise, value);
+  }
+}
+
+function publishRejection(promise) {
+  if (promise._onerror) {
+    promise._onerror(promise._result);
+  }
+
+  publish(promise);
+}
+
+function fulfill(promise, value) {
+  if (promise._state !== PENDING) {
+    return;
+  }
+
+  promise._result = value;
+  promise._state = FULFILLED;
+
+  if (promise._subscribers.length !== 0) {
+    asap(publish, promise);
+  }
+}
+
+function reject(promise, reason) {
+  if (promise._state !== PENDING) {
+    return;
+  }
+  promise._state = REJECTED;
+  promise._result = reason;
+
+  asap(publishRejection, promise);
+}
+
+function subscribe(parent, child, onFulfillment, onRejection) {
+  var _subscribers = parent._subscribers;
+  var length = _subscribers.length;
+
+
+  parent._onerror = null;
+
+  _subscribers[length] = child;
+  _subscribers[length + FULFILLED] = onFulfillment;
+  _subscribers[length + REJECTED] = onRejection;
+
+  if (length === 0 && parent._state) {
+    asap(publish, parent);
+  }
+}
+
+function publish(promise) {
+  var subscribers = promise._subscribers;
+  var settled = promise._state;
+
+  if (subscribers.length === 0) {
+    return;
+  }
+
+  var child = void 0,
+      callback = void 0,
+      detail = promise._result;
+
+  for (var i = 0; i < subscribers.length; i += 3) {
+    child = subscribers[i];
+    callback = subscribers[i + settled];
+
+    if (child) {
+      invokeCallback(settled, child, callback, detail);
+    } else {
+      callback(detail);
+    }
+  }
+
+  promise._subscribers.length = 0;
+}
+
+function invokeCallback(settled, promise, callback, detail) {
+  var hasCallback = isFunction(callback),
+      value = void 0,
+      error = void 0,
+      succeeded = true;
+
+  if (hasCallback) {
+    try {
+      value = callback(detail);
+    } catch (e) {
+      succeeded = false;
+      error = e;
+    }
+
+    if (promise === value) {
+      reject(promise, cannotReturnOwn());
+      return;
+    }
+  } else {
+    value = detail;
+  }
+
+  if (promise._state !== PENDING) {
+    // noop
+  } else if (hasCallback && succeeded) {
+    resolve(promise, value);
+  } else if (succeeded === false) {
+    reject(promise, error);
+  } else if (settled === FULFILLED) {
+    fulfill(promise, value);
+  } else if (settled === REJECTED) {
+    reject(promise, value);
+  }
+}
+
+function initializePromise(promise, resolver) {
+  try {
+    resolver(function resolvePromise(value) {
+      resolve(promise, value);
+    }, function rejectPromise(reason) {
+      reject(promise, reason);
+    });
+  } catch (e) {
+    reject(promise, e);
+  }
+}
+
+var id = 0;
+function nextId() {
+  return id++;
+}
+
+function makePromise(promise) {
+  promise[PROMISE_ID] = id++;
+  promise._state = undefined;
+  promise._result = undefined;
+  promise._subscribers = [];
+}
+
+function validationError() {
+  return new Error('Array Methods must be provided an Array');
+}
+
+var Enumerator = function () {
+  function Enumerator(Constructor, input) {
+    this._instanceConstructor = Constructor;
+    this.promise = new Constructor(noop);
+
+    if (!this.promise[PROMISE_ID]) {
+      makePromise(this.promise);
+    }
+
+    if (isArray(input)) {
+      this.length = input.length;
+      this._remaining = input.length;
+
+      this._result = new Array(this.length);
+
+      if (this.length === 0) {
+        fulfill(this.promise, this._result);
+      } else {
+        this.length = this.length || 0;
+        this._enumerate(input);
+        if (this._remaining === 0) {
+          fulfill(this.promise, this._result);
+        }
+      }
+    } else {
+      reject(this.promise, validationError());
+    }
+  }
+
+  Enumerator.prototype._enumerate = function _enumerate(input) {
+    for (var i = 0; this._state === PENDING && i < input.length; i++) {
+      this._eachEntry(input[i], i);
+    }
+  };
+
+  Enumerator.prototype._eachEntry = function _eachEntry(entry, i) {
+    var c = this._instanceConstructor;
+    var resolve$$1 = c.resolve;
+
+
+    if (resolve$$1 === resolve$1) {
+      var _then = void 0;
+      var error = void 0;
+      var didError = false;
+      try {
+        _then = entry.then;
+      } catch (e) {
+        didError = true;
+        error = e;
+      }
+
+      if (_then === then && entry._state !== PENDING) {
+        this._settledAt(entry._state, i, entry._result);
+      } else if (typeof _then !== 'function') {
+        this._remaining--;
+        this._result[i] = entry;
+      } else if (c === Promise$1) {
+        var promise = new c(noop);
+        if (didError) {
+          reject(promise, error);
+        } else {
+          handleMaybeThenable(promise, entry, _then);
+        }
+        this._willSettleAt(promise, i);
+      } else {
+        this._willSettleAt(new c(function (resolve$$1) {
+          return resolve$$1(entry);
+        }), i);
+      }
+    } else {
+      this._willSettleAt(resolve$$1(entry), i);
+    }
+  };
+
+  Enumerator.prototype._settledAt = function _settledAt(state, i, value) {
+    var promise = this.promise;
+
+
+    if (promise._state === PENDING) {
+      this._remaining--;
+
+      if (state === REJECTED) {
+        reject(promise, value);
+      } else {
+        this._result[i] = value;
+      }
+    }
+
+    if (this._remaining === 0) {
+      fulfill(promise, this._result);
+    }
+  };
+
+  Enumerator.prototype._willSettleAt = function _willSettleAt(promise, i) {
+    var enumerator = this;
+
+    subscribe(promise, undefined, function (value) {
+      return enumerator._settledAt(FULFILLED, i, value);
+    }, function (reason) {
+      return enumerator._settledAt(REJECTED, i, reason);
+    });
+  };
+
+  return Enumerator;
+}();
+
+/**
+  `Promise.all` accepts an array of promises, and returns a new promise which
+  is fulfilled with an array of fulfillment values for the passed promises, or
+  rejected with the reason of the first passed promise to be rejected. It casts all
+  elements of the passed iterable to promises as it runs this algorithm.
+
+  Example:
+
+  ```javascript
+  let promise1 = resolve(1);
+  let promise2 = resolve(2);
+  let promise3 = resolve(3);
+  let promises = [ promise1, promise2, promise3 ];
+
+  Promise.all(promises).then(function(array){
+    // The array here would be [ 1, 2, 3 ];
+  });
+  ```
+
+  If any of the `promises` given to `all` are rejected, the first promise
+  that is rejected will be given as an argument to the returned promises's
+  rejection handler. For example:
+
+  Example:
+
+  ```javascript
+  let promise1 = resolve(1);
+  let promise2 = reject(new Error("2"));
+  let promise3 = reject(new Error("3"));
+  let promises = [ promise1, promise2, promise3 ];
+
+  Promise.all(promises).then(function(array){
+    // Code here never runs because there are rejected promises!
+  }, function(error) {
+    // error.message === "2"
+  });
+  ```
+
+  @method all
+  @static
+  @param {Array} entries array of promises
+  @param {String} label optional string for labeling the promise.
+  Useful for tooling.
+  @return {Promise} promise that is fulfilled when all `promises` have been
+  fulfilled, or rejected if any of them become rejected.
+  @static
+*/
+function all(entries) {
+  return new Enumerator(this, entries).promise;
+}
+
+/**
+  `Promise.race` returns a new promise which is settled in the same way as the
+  first passed promise to settle.
+
+  Example:
+
+  ```javascript
+  let promise1 = new Promise(function(resolve, reject){
+    setTimeout(function(){
+      resolve('promise 1');
+    }, 200);
+  });
+
+  let promise2 = new Promise(function(resolve, reject){
+    setTimeout(function(){
+      resolve('promise 2');
+    }, 100);
+  });
+
+  Promise.race([promise1, promise2]).then(function(result){
+    // result === 'promise 2' because it was resolved before promise1
+    // was resolved.
+  });
+  ```
+
+  `Promise.race` is deterministic in that only the state of the first
+  settled promise matters. For example, even if other promises given to the
+  `promises` array argument are resolved, but the first settled promise has
+  become rejected before the other promises became fulfilled, the returned
+  promise will become rejected:
+
+  ```javascript
+  let promise1 = new Promise(function(resolve, reject){
+    setTimeout(function(){
+      resolve('promise 1');
+    }, 200);
+  });
+
+  let promise2 = new Promise(function(resolve, reject){
+    setTimeout(function(){
+      reject(new Error('promise 2'));
+    }, 100);
+  });
+
+  Promise.race([promise1, promise2]).then(function(result){
+    // Code here never runs
+  }, function(reason){
+    // reason.message === 'promise 2' because promise 2 became rejected before
+    // promise 1 became fulfilled
+  });
+  ```
+
+  An example real-world use case is implementing timeouts:
+
+  ```javascript
+  Promise.race([ajax('foo.json'), timeout(5000)])
+  ```
+
+  @method race
+  @static
+  @param {Array} promises array of promises to observe
+  Useful for tooling.
+  @return {Promise} a promise which settles in the same way as the first passed
+  promise to settle.
+*/
+function race(entries) {
+  /*jshint validthis:true */
+  var Constructor = this;
+
+  if (!isArray(entries)) {
+    return new Constructor(function (_, reject) {
+      return reject(new TypeError('You must pass an array to race.'));
+    });
+  } else {
+    return new Constructor(function (resolve, reject) {
+      var length = entries.length;
+      for (var i = 0; i < length; i++) {
+        Constructor.resolve(entries[i]).then(resolve, reject);
+      }
+    });
+  }
+}
+
+/**
+  `Promise.reject` returns a promise rejected with the passed `reason`.
+  It is shorthand for the following:
+
+  ```javascript
+  let promise = new Promise(function(resolve, reject){
+    reject(new Error('WHOOPS'));
+  });
+
+  promise.then(function(value){
+    // Code here doesn't run because the promise is rejected!
+  }, function(reason){
+    // reason.message === 'WHOOPS'
+  });
+  ```
+
+  Instead of writing the above, your code now simply becomes the following:
+
+  ```javascript
+  let promise = Promise.reject(new Error('WHOOPS'));
+
+  promise.then(function(value){
+    // Code here doesn't run because the promise is rejected!
+  }, function(reason){
+    // reason.message === 'WHOOPS'
+  });
+  ```
+
+  @method reject
+  @static
+  @param {Any} reason value that the returned promise will be rejected with.
+  Useful for tooling.
+  @return {Promise} a promise rejected with the given `reason`.
+*/
+function reject$1(reason) {
+  /*jshint validthis:true */
+  var Constructor = this;
+  var promise = new Constructor(noop);
+  reject(promise, reason);
+  return promise;
+}
+
+function needsResolver() {
+  throw new TypeError('You must pass a resolver function as the first argument to the promise constructor');
+}
+
+function needsNew() {
+  throw new TypeError("Failed to construct 'Promise': Please use the 'new' operator, this object constructor cannot be called as a function.");
+}
+
+/**
+  Promise objects represent the eventual result of an asynchronous operation. The
+  primary way of interacting with a promise is through its `then` method, which
+  registers callbacks to receive either a promise's eventual value or the reason
+  why the promise cannot be fulfilled.
+
+  Terminology
+  -----------
+
+  - `promise` is an object or function with a `then` method whose behavior conforms to this specification.
+  - `thenable` is an object or function that defines a `then` method.
+  - `value` is any legal JavaScript value (including undefined, a thenable, or a promise).
+  - `exception` is a value that is thrown using the throw statement.
+  - `reason` is a value that indicates why a promise was rejected.
+  - `settled` the final resting state of a promise, fulfilled or rejected.
+
+  A promise can be in one of three states: pending, fulfilled, or rejected.
+
+  Promises that are fulfilled have a fulfillment value and are in the fulfilled
+  state.  Promises that are rejected have a rejection reason and are in the
+  rejected state.  A fulfillment value is never a thenable.
+
+  Promises can also be said to *resolve* a value.  If this value is also a
+  promise, then the original promise's settled state will match the value's
+  settled state.  So a promise that *resolves* a promise that rejects will
+  itself reject, and a promise that *resolves* a promise that fulfills will
+  itself fulfill.
+
+
+  Basic Usage:
+  ------------
+
+  ```js
+  let promise = new Promise(function(resolve, reject) {
+    // on success
+    resolve(value);
+
+    // on failure
+    reject(reason);
+  });
+
+  promise.then(function(value) {
+    // on fulfillment
+  }, function(reason) {
+    // on rejection
+  });
+  ```
+
+  Advanced Usage:
+  ---------------
+
+  Promises shine when abstracting away asynchronous interactions such as
+  `XMLHttpRequest`s.
+
+  ```js
+  function getJSON(url) {
+    return new Promise(function(resolve, reject){
+      let xhr = new XMLHttpRequest();
+
+      xhr.open('GET', url);
+      xhr.onreadystatechange = handler;
+      xhr.responseType = 'json';
+      xhr.setRequestHeader('Accept', 'application/json');
+      xhr.send();
+
+      function handler() {
+        if (this.readyState === this.DONE) {
+          if (this.status === 200) {
+            resolve(this.response);
+          } else {
+            reject(new Error('getJSON: `' + url + '` failed with status: [' + this.status + ']'));
+          }
+        }
+      };
+    });
+  }
+
+  getJSON('/posts.json').then(function(json) {
+    // on fulfillment
+  }, function(reason) {
+    // on rejection
+  });
+  ```
+
+  Unlike callbacks, promises are great composable primitives.
+
+  ```js
+  Promise.all([
+    getJSON('/posts'),
+    getJSON('/comments')
+  ]).then(function(values){
+    values[0] // => postsJSON
+    values[1] // => commentsJSON
+
+    return values;
+  });
+  ```
+
+  @class Promise
+  @param {Function} resolver
+  Useful for tooling.
+  @constructor
+*/
+
+var Promise$1 = function () {
+  function Promise(resolver) {
+    this[PROMISE_ID] = nextId();
+    this._result = this._state = undefined;
+    this._subscribers = [];
+
+    if (noop !== resolver) {
+      typeof resolver !== 'function' && needsResolver();
+      this instanceof Promise ? initializePromise(this, resolver) : needsNew();
+    }
+  }
+
+  /**
+  The primary way of interacting with a promise is through its `then` method,
+  which registers callbacks to receive either a promise's eventual value or the
+  reason why the promise cannot be fulfilled.
+   ```js
+  findUser().then(function(user){
+    // user is available
+  }, function(reason){
+    // user is unavailable, and you are given the reason why
+  });
+  ```
+   Chaining
+  --------
+   The return value of `then` is itself a promise.  This second, 'downstream'
+  promise is resolved with the return value of the first promise's fulfillment
+  or rejection handler, or rejected if the handler throws an exception.
+   ```js
+  findUser().then(function (user) {
+    return user.name;
+  }, function (reason) {
+    return 'default name';
+  }).then(function (userName) {
+    // If `findUser` fulfilled, `userName` will be the user's name, otherwise it
+    // will be `'default name'`
+  });
+   findUser().then(function (user) {
+    throw new Error('Found user, but still unhappy');
+  }, function (reason) {
+    throw new Error('`findUser` rejected and we're unhappy');
+  }).then(function (value) {
+    // never reached
+  }, function (reason) {
+    // if `findUser` fulfilled, `reason` will be 'Found user, but still unhappy'.
+    // If `findUser` rejected, `reason` will be '`findUser` rejected and we're unhappy'.
+  });
+  ```
+  If the downstream promise does not specify a rejection handler, rejection reasons will be propagated further downstream.
+   ```js
+  findUser().then(function (user) {
+    throw new PedagogicalException('Upstream error');
+  }).then(function (value) {
+    // never reached
+  }).then(function (value) {
+    // never reached
+  }, function (reason) {
+    // The `PedgagocialException` is propagated all the way down to here
+  });
+  ```
+   Assimilation
+  ------------
+   Sometimes the value you want to propagate to a downstream promise can only be
+  retrieved asynchronously. This can be achieved by returning a promise in the
+  fulfillment or rejection handler. The downstream promise will then be pending
+  until the returned promise is settled. This is called *assimilation*.
+   ```js
+  findUser().then(function (user) {
+    return findCommentsByAuthor(user);
+  }).then(function (comments) {
+    // The user's comments are now available
+  });
+  ```
+   If the assimliated promise rejects, then the downstream promise will also reject.
+   ```js
+  findUser().then(function (user) {
+    return findCommentsByAuthor(user);
+  }).then(function (comments) {
+    // If `findCommentsByAuthor` fulfills, we'll have the value here
+  }, function (reason) {
+    // If `findCommentsByAuthor` rejects, we'll have the reason here
+  });
+  ```
+   Simple Example
+  --------------
+   Synchronous Example
+   ```javascript
+  let result;
+   try {
+    result = findResult();
+    // success
+  } catch(reason) {
+    // failure
+  }
+  ```
+   Errback Example
+   ```js
+  findResult(function(result, err){
+    if (err) {
+      // failure
+    } else {
+      // success
+    }
+  });
+  ```
+   Promise Example;
+   ```javascript
+  findResult().then(function(result){
+    // success
+  }, function(reason){
+    // failure
+  });
+  ```
+   Advanced Example
+  --------------
+   Synchronous Example
+   ```javascript
+  let author, books;
+   try {
+    author = findAuthor();
+    books  = findBooksByAuthor(author);
+    // success
+  } catch(reason) {
+    // failure
+  }
+  ```
+   Errback Example
+   ```js
+   function foundBooks(books) {
+   }
+   function failure(reason) {
+   }
+   findAuthor(function(author, err){
+    if (err) {
+      failure(err);
+      // failure
+    } else {
+      try {
+        findBoooksByAuthor(author, function(books, err) {
+          if (err) {
+            failure(err);
+          } else {
+            try {
+              foundBooks(books);
+            } catch(reason) {
+              failure(reason);
+            }
+          }
+        });
+      } catch(error) {
+        failure(err);
+      }
+      // success
+    }
+  });
+  ```
+   Promise Example;
+   ```javascript
+  findAuthor().
+    then(findBooksByAuthor).
+    then(function(books){
+      // found books
+  }).catch(function(reason){
+    // something went wrong
+  });
+  ```
+   @method then
+  @param {Function} onFulfilled
+  @param {Function} onRejected
+  Useful for tooling.
+  @return {Promise}
+  */
+
+  /**
+  `catch` is simply sugar for `then(undefined, onRejection)` which makes it the same
+  as the catch block of a try/catch statement.
+  ```js
+  function findAuthor(){
+  throw new Error('couldn't find that author');
+  }
+  // synchronous
+  try {
+  findAuthor();
+  } catch(reason) {
+  // something went wrong
+  }
+  // async with promises
+  findAuthor().catch(function(reason){
+  // something went wrong
+  });
+  ```
+  @method catch
+  @param {Function} onRejection
+  Useful for tooling.
+  @return {Promise}
+  */
+
+
+  Promise.prototype.catch = function _catch(onRejection) {
+    return this.then(null, onRejection);
+  };
+
+  /**
+    `finally` will be invoked regardless of the promise's fate just as native
+    try/catch/finally behaves
+  
+    Synchronous example:
+  
+    ```js
+    findAuthor() {
+      if (Math.random() > 0.5) {
+        throw new Error();
+      }
+      return new Author();
+    }
+  
+    try {
+      return findAuthor(); // succeed or fail
+    } catch(error) {
+      return findOtherAuther();
+    } finally {
+      // always runs
+      // doesn't affect the return value
+    }
+    ```
+  
+    Asynchronous example:
+  
+    ```js
+    findAuthor().catch(function(reason){
+      return findOtherAuther();
+    }).finally(function(){
+      // author was either found, or not
+    });
+    ```
+  
+    @method finally
+    @param {Function} callback
+    @return {Promise}
+  */
+
+
+  Promise.prototype.finally = function _finally(callback) {
+    var promise = this;
+    var constructor = promise.constructor;
+
+    if (isFunction(callback)) {
+      return promise.then(function (value) {
+        return constructor.resolve(callback()).then(function () {
+          return value;
+        });
+      }, function (reason) {
+        return constructor.resolve(callback()).then(function () {
+          throw reason;
+        });
+      });
+    }
+
+    return promise.then(callback, callback);
+  };
+
+  return Promise;
+}();
+
+Promise$1.prototype.then = then;
+Promise$1.all = all;
+Promise$1.race = race;
+Promise$1.resolve = resolve$1;
+Promise$1.reject = reject$1;
+Promise$1._setScheduler = setScheduler;
+Promise$1._setAsap = setAsap;
+Promise$1._asap = asap;
+
+/*global self*/
+function polyfill() {
+  var local = void 0;
+
+  if (typeof global !== 'undefined') {
+    local = global;
+  } else if (typeof self !== 'undefined') {
+    local = self;
+  } else {
+    try {
+      local = Function('return this')();
+    } catch (e) {
+      throw new Error('polyfill failed because global object is unavailable in this environment');
+    }
+  }
+
+  var P = local.Promise;
+
+  if (P) {
+    var promiseToString = null;
+    try {
+      promiseToString = Object.prototype.toString.call(P.resolve());
+    } catch (e) {
+      // silently ignored
+    }
+
+    if (promiseToString === '[object Promise]' && !P.cast) {
+      return;
+    }
+  }
+
+  local.Promise = Promise$1;
+}
+
+// Strange compat..
+Promise$1.polyfill = polyfill;
+Promise$1.Promise = Promise$1;
+
+return Promise$1;
+
+})));
+
+
+
+//# sourceMappingURL=es6-promise.map
+
+/* WEBPACK VAR INJECTION */}.call(this, __webpack_require__(23), __webpack_require__(24)))
+
+/***/ }),
+/* 23 */
+/***/ (function(module, exports) {
+
+// shim for using process in browser
+var process = module.exports = {};
+
+// cached from whatever global is present so that test runners that stub it
+// don't break things.  But we need to wrap it in a try catch in case it is
+// wrapped in strict mode code which doesn't define any globals.  It's inside a
+// function because try/catches deoptimize in certain engines.
+
+var cachedSetTimeout;
+var cachedClearTimeout;
+
+function defaultSetTimout() {
+    throw new Error('setTimeout has not been defined');
+}
+function defaultClearTimeout () {
+    throw new Error('clearTimeout has not been defined');
+}
+(function () {
+    try {
+        if (typeof setTimeout === 'function') {
+            cachedSetTimeout = setTimeout;
+        } else {
+            cachedSetTimeout = defaultSetTimout;
+        }
+    } catch (e) {
+        cachedSetTimeout = defaultSetTimout;
+    }
+    try {
+        if (typeof clearTimeout === 'function') {
+            cachedClearTimeout = clearTimeout;
+        } else {
+            cachedClearTimeout = defaultClearTimeout;
+        }
+    } catch (e) {
+        cachedClearTimeout = defaultClearTimeout;
+    }
+} ())
+function runTimeout(fun) {
+    if (cachedSetTimeout === setTimeout) {
+        //normal enviroments in sane situations
+        return setTimeout(fun, 0);
+    }
+    // if setTimeout wasn't available but was latter defined
+    if ((cachedSetTimeout === defaultSetTimout || !cachedSetTimeout) && setTimeout) {
+        cachedSetTimeout = setTimeout;
+        return setTimeout(fun, 0);
+    }
+    try {
+        // when when somebody has screwed with setTimeout but no I.E. maddness
+        return cachedSetTimeout(fun, 0);
+    } catch(e){
+        try {
+            // When we are in I.E. but the script has been evaled so I.E. doesn't trust the global object when called normally
+            return cachedSetTimeout.call(null, fun, 0);
+        } catch(e){
+            // same as above but when it's a version of I.E. that must have the global object for 'this', hopfully our context correct otherwise it will throw a global error
+            return cachedSetTimeout.call(this, fun, 0);
+        }
+    }
+
+
+}
+function runClearTimeout(marker) {
+    if (cachedClearTimeout === clearTimeout) {
+        //normal enviroments in sane situations
+        return clearTimeout(marker);
+    }
+    // if clearTimeout wasn't available but was latter defined
+    if ((cachedClearTimeout === defaultClearTimeout || !cachedClearTimeout) && clearTimeout) {
+        cachedClearTimeout = clearTimeout;
+        return clearTimeout(marker);
+    }
+    try {
+        // when when somebody has screwed with setTimeout but no I.E. maddness
+        return cachedClearTimeout(marker);
+    } catch (e){
+        try {
+            // When we are in I.E. but the script has been evaled so I.E. doesn't  trust the global object when called normally
+            return cachedClearTimeout.call(null, marker);
+        } catch (e){
+            // same as above but when it's a version of I.E. that must have the global object for 'this', hopfully our context correct otherwise it will throw a global error.
+            // Some versions of I.E. have different rules for clearTimeout vs setTimeout
+            return cachedClearTimeout.call(this, marker);
+        }
+    }
+
+
+
+}
+var queue = [];
+var draining = false;
+var currentQueue;
+var queueIndex = -1;
+
+function cleanUpNextTick() {
+    if (!draining || !currentQueue) {
+        return;
+    }
+    draining = false;
+    if (currentQueue.length) {
+        queue = currentQueue.concat(queue);
+    } else {
+        queueIndex = -1;
+    }
+    if (queue.length) {
+        drainQueue();
+    }
+}
+
+function drainQueue() {
+    if (draining) {
+        return;
+    }
+    var timeout = runTimeout(cleanUpNextTick);
+    draining = true;
+
+    var len = queue.length;
+    while(len) {
+        currentQueue = queue;
+        queue = [];
+        while (++queueIndex < len) {
+            if (currentQueue) {
+                currentQueue[queueIndex].run();
+            }
+        }
+        queueIndex = -1;
+        len = queue.length;
+    }
+    currentQueue = null;
+    draining = false;
+    runClearTimeout(timeout);
+}
+
+process.nextTick = function (fun) {
+    var args = new Array(arguments.length - 1);
+    if (arguments.length > 1) {
+        for (var i = 1; i < arguments.length; i++) {
+            args[i - 1] = arguments[i];
+        }
+    }
+    queue.push(new Item(fun, args));
+    if (queue.length === 1 && !draining) {
+        runTimeout(drainQueue);
+    }
+};
+
+// v8 likes predictible objects
+function Item(fun, array) {
+    this.fun = fun;
+    this.array = array;
+}
+Item.prototype.run = function () {
+    this.fun.apply(null, this.array);
+};
+process.title = 'browser';
+process.browser = true;
+process.env = {};
+process.argv = [];
+process.version = ''; // empty string to avoid regexp issues
+process.versions = {};
+
+function noop() {}
+
+process.on = noop;
+process.addListener = noop;
+process.once = noop;
+process.off = noop;
+process.removeListener = noop;
+process.removeAllListeners = noop;
+process.emit = noop;
+process.prependListener = noop;
+process.prependOnceListener = noop;
+
+process.listeners = function (name) { return [] }
+
+process.binding = function (name) {
+    throw new Error('process.binding is not supported');
+};
+
+process.cwd = function () { return '/' };
+process.chdir = function (dir) {
+    throw new Error('process.chdir is not supported');
+};
+process.umask = function() { return 0; };
+
+
+/***/ }),
+/* 24 */
+/***/ (function(module, exports) {
+
+var g;
+
+// This works in non-strict mode
+g = (function() {
+	return this;
+})();
+
+try {
+	// This works if eval is allowed (see CSP)
+	g = g || new Function("return this")();
+} catch (e) {
+	// This works if the window reference is available
+	if (typeof window === "object") g = window;
+}
+
+// g can still be undefined, but nothing to do about it...
+// We return undefined, instead of nothing here, so it's
+// easier to handle this case. if(!global) { ...}
+
+module.exports = g;
+
+
+/***/ }),
+/* 25 */
+/***/ (function(module, exports, __webpack_require__) {
+
+"use strict";
+
+
+Object.defineProperty(exports, "__esModule", {
+    value: true
+});
+
+var _createClass = function () { function defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ("value" in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } } return function (Constructor, protoProps, staticProps) { if (protoProps) defineProperties(Constructor.prototype, protoProps); if (staticProps) defineProperties(Constructor, staticProps); return Constructor; }; }(); /*
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                      * Copyright (C) 2016 Bilibili. All Rights Reserved.
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                      *
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                      * @author zheng qian <xqq@xqq.im>
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                      *
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                      * Licensed under the Apache License, Version 2.0 (the "License");
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                      * you may not use this file except in compliance with the License.
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                      * You may obtain a copy of the License at
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                      *
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                      *     http://www.apache.org/licenses/LICENSE-2.0
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                      *
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                      * Unless required by applicable law or agreed to in writing, software
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                      * distributed under the License is distributed on an "AS IS" BASIS,
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                      * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                      * See the License for the specific language governing permissions and
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                      * limitations under the License.
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                      */
+
+var _ioController = __webpack_require__(12);
+
+var _ioController2 = _interopRequireDefault(_ioController);
+
+var _config = __webpack_require__(6);
+
+function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
+
+function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } }
+
+var Features = function () {
+    function Features() {
+        _classCallCheck(this, Features);
+    }
+
+    _createClass(Features, null, [{
+        key: 'supportMSEH264Playback',
+        value: function supportMSEH264Playback() {
+            return window.MediaSource && window.MediaSource.isTypeSupported('video/mp4; codecs="avc1.42E01E,mp4a.40.2"');
+        }
+    }, {
+        key: 'supportNetworkStreamIO',
+        value: function supportNetworkStreamIO() {
+            var ioctl = new _ioController2.default({}, (0, _config.createDefaultConfig)());
+            var loaderType = ioctl.loaderType;
+            ioctl.destroy();
+            return loaderType == 'fetch-stream-loader' || loaderType == 'xhr-moz-chunked-loader';
+        }
+    }, {
+        key: 'getNetworkLoaderTypeName',
+        value: function getNetworkLoaderTypeName() {
+            var ioctl = new _ioController2.default({}, (0, _config.createDefaultConfig)());
+            var loaderType = ioctl.loaderType;
+            ioctl.destroy();
+            return loaderType;
+        }
+    }, {
+        key: 'supportNativeMediaPlayback',
+        value: function supportNativeMediaPlayback(mimeType) {
+            if (Features.videoElement == undefined) {
+                Features.videoElement = window.document.createElement('video');
+            }
+            var canPlay = Features.videoElement.canPlayType(mimeType);
+            return canPlay === 'probably' || canPlay == 'maybe';
+        }
+    }, {
+        key: 'getFeatureList',
+        value: function getFeatureList() {
+            var features = {
+                mseFlvPlayback: false,
+                mseLiveFlvPlayback: false,
+                networkStreamIO: false,
+                networkLoaderName: '',
+                nativeMP4H264Playback: false,
+                nativeWebmVP8Playback: false,
+                nativeWebmVP9Playback: false
+            };
+
+            features.mseFlvPlayback = Features.supportMSEH264Playback();
+            features.networkStreamIO = Features.supportNetworkStreamIO();
+            features.networkLoaderName = Features.getNetworkLoaderTypeName();
+            features.mseLiveFlvPlayback = features.mseFlvPlayback && features.networkStreamIO;
+            features.nativeMP4H264Playback = Features.supportNativeMediaPlayback('video/mp4; codecs="avc1.42001E, mp4a.40.2"');
+            features.nativeWebmVP8Playback = Features.supportNativeMediaPlayback('video/webm; codecs="vp8.0, vorbis"');
+            features.nativeWebmVP9Playback = Features.supportNativeMediaPlayback('video/webm; codecs="vp9"');
+
+            return features;
+        }
+    }]);
+
+    return Features;
+}();
+
+exports.default = Features;
+module.exports = exports['default'];
+
+/***/ }),
+/* 26 */
+/***/ (function(module, exports, __webpack_require__) {
+
+"use strict";
+
+
+Object.defineProperty(exports, "__esModule", {
+    value: true
+});
+
+var _typeof = typeof Symbol === "function" && typeof Symbol.iterator === "symbol" ? function (obj) { return typeof obj; } : function (obj) { return obj && typeof Symbol === "function" && obj.constructor === Symbol && obj !== Symbol.prototype ? "symbol" : typeof obj; };
+
+var _get = function get(object, property, receiver) { if (object === null) object = Function.prototype; var desc = Object.getOwnPropertyDescriptor(object, property); if (desc === undefined) { var parent = Object.getPrototypeOf(object); if (parent === null) { return undefined; } else { return get(parent, property, receiver); } } else if ("value" in desc) { return desc.value; } else { var getter = desc.get; if (getter === undefined) { return undefined; } return getter.call(receiver); } };
+
+var _createClass = function () { function defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ("value" in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } } return function (Constructor, protoProps, staticProps) { if (protoProps) defineProperties(Constructor.prototype, protoProps); if (staticProps) defineProperties(Constructor, staticProps); return Constructor; }; }();
+
+var _logger = __webpack_require__(0);
+
+var _logger2 = _interopRequireDefault(_logger);
+
+var _browser = __webpack_require__(4);
+
+var _browser2 = _interopRequireDefault(_browser);
+
+var _loader = __webpack_require__(3);
+
+var _exception = __webpack_require__(1);
+
+function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
+
+function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } }
+
+function _possibleConstructorReturn(self, call) { if (!self) { throw new ReferenceError("this hasn't been initialised - super() hasn't been called"); } return call && (typeof call === "object" || typeof call === "function") ? call : self; }
+
+function _inherits(subClass, superClass) { if (typeof superClass !== "function" && superClass !== null) { throw new TypeError("Super expression must either be null or a function, not " + typeof superClass); } subClass.prototype = Object.create(superClass && superClass.prototype, { constructor: { value: subClass, enumerable: false, writable: true, configurable: true } }); if (superClass) Object.setPrototypeOf ? Object.setPrototypeOf(subClass, superClass) : subClass.__proto__ = superClass; } /*
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                * Copyright (C) 2016 Bilibili. All Rights Reserved.
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                *
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                * @author zheng qian <xqq@xqq.im>
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                *
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                * Licensed under the Apache License, Version 2.0 (the "License");
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                * you may not use this file except in compliance with the License.
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                * You may obtain a copy of the License at
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                *
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                *     http://www.apache.org/licenses/LICENSE-2.0
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                *
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                * Unless required by applicable law or agreed to in writing, software
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                * distributed under the License is distributed on an "AS IS" BASIS,
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                * See the License for the specific language governing permissions and
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                * limitations under the License.
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                */
+
+/* fetch + stream IO loader. Currently working on chrome 43+.
+ * fetch provides a better alternative http API to XMLHttpRequest
+ *
+ * fetch spec   https://fetch.spec.whatwg.org/
+ * stream spec  https://streams.spec.whatwg.org/
+ */
+var FetchStreamLoader = function (_BaseLoader) {
+    _inherits(FetchStreamLoader, _BaseLoader);
+
+    _createClass(FetchStreamLoader, null, [{
+        key: 'isSupported',
+        value: function isSupported() {
+            try {
+                // fetch + stream is broken on Microsoft Edge. Disable before build 15048.
+                // see https://developer.microsoft.com/en-us/microsoft-edge/platform/issues/8196907/
+                // Fixed in Jan 10, 2017. Build 15048+ removed from blacklist.
+                var isWorkWellEdge = _browser2.default.msedge && _browser2.default.version.minor >= 15048;
+                var browserNotBlacklisted = _browser2.default.msedge ? isWorkWellEdge : true;
+                return self.fetch && self.ReadableStream && browserNotBlacklisted;
+            } catch (e) {
+                return false;
+            }
+        }
+    }]);
+
+    function FetchStreamLoader(seekHandler, config) {
+        _classCallCheck(this, FetchStreamLoader);
+
+        var _this = _possibleConstructorReturn(this, (FetchStreamLoader.__proto__ || Object.getPrototypeOf(FetchStreamLoader)).call(this, 'fetch-stream-loader'));
+
+        _this.TAG = 'FetchStreamLoader';
+
+        _this._seekHandler = seekHandler;
+        _this._config = config;
+        _this._needStash = true;
+
+        _this._requestAbort = false;
+        _this._contentLength = null;
+        _this._receivedLength = 0;
+        return _this;
+    }
+
+    _createClass(FetchStreamLoader, [{
+        key: 'destroy',
+        value: function destroy() {
+            if (this.isWorking()) {
+                this.abort();
+            }
+            _get(FetchStreamLoader.prototype.__proto__ || Object.getPrototypeOf(FetchStreamLoader.prototype), 'destroy', this).call(this);
+        }
+    }, {
+        key: 'open',
+        value: function open(dataSource, range) {
+            var _this2 = this;
+
+            this._dataSource = dataSource;
+            this._range = range;
+
+            var sourceURL = dataSource.url;
+            if (this._config.reuseRedirectedURL && dataSource.redirectedURL != undefined) {
+                sourceURL = dataSource.redirectedURL;
+            }
+
+            var seekConfig = this._seekHandler.getConfig(sourceURL, range);
+
+            var headers = new self.Headers();
+
+            if (_typeof(seekConfig.headers) === 'object') {
+                var configHeaders = seekConfig.headers;
+                for (var key in configHeaders) {
+                    if (configHeaders.hasOwnProperty(key)) {
+                        headers.append(key, configHeaders[key]);
+                    }
+                }
+            }
+
+            var params = {
+                method: 'GET',
+                headers: headers,
+                mode: 'cors',
+                cache: 'default',
+                // The default policy of Fetch API in the whatwg standard
+                // Safari incorrectly indicates 'no-referrer' as default policy, fuck it
+                referrerPolicy: 'no-referrer-when-downgrade'
+            };
+
+            // cors is enabled by default
+            if (dataSource.cors === false) {
+                // no-cors means 'disregard cors policy', which can only be used in ServiceWorker
+                params.mode = 'same-origin';
+            }
+
+            // withCredentials is disabled by default
+            if (dataSource.withCredentials) {
+                params.credentials = 'include';
+            }
+
+            // referrerPolicy from config
+            if (dataSource.referrerPolicy) {
+                params.referrerPolicy = dataSource.referrerPolicy;
+            }
+
+            this._status = _loader.LoaderStatus.kConnecting;
+            self.fetch(seekConfig.url, params).then(function (res) {
+                if (_this2._requestAbort) {
+                    _this2._requestAbort = false;
+                    _this2._status = _loader.LoaderStatus.kIdle;
+                    return;
+                }
+                if (res.ok && res.status >= 200 && res.status <= 299) {
+                    if (res.url !== seekConfig.url) {
+                        if (_this2._onURLRedirect) {
+                            var redirectedURL = _this2._seekHandler.removeURLParameters(res.url);
+                            _this2._onURLRedirect(redirectedURL);
+                        }
+                    }
+
+                    var lengthHeader = res.headers.get('Content-Length');
+                    if (lengthHeader != null) {
+                        _this2._contentLength = parseInt(lengthHeader);
+                        if (_this2._contentLength !== 0) {
+                            if (_this2._onContentLengthKnown) {
+                                _this2._onContentLengthKnown(_this2._contentLength);
+                            }
+                        }
+                    }
+
+                    return _this2._pump.call(_this2, res.body.getReader());
+                } else {
+                    _this2._status = _loader.LoaderStatus.kError;
+                    if (_this2._onError) {
+                        _this2._onError(_loader.LoaderErrors.HTTP_STATUS_CODE_INVALID, { code: res.status, msg: res.statusText });
+                    } else {
+                        throw new _exception.RuntimeException('FetchStreamLoader: Http code invalid, ' + res.status + ' ' + res.statusText);
+                    }
+                }
+            }).catch(function (e) {
+                _this2._status = _loader.LoaderStatus.kError;
+                if (_this2._onError) {
+                    _this2._onError(_loader.LoaderErrors.EXCEPTION, { code: -1, msg: e.message });
+                } else {
+                    throw e;
+                }
+            });
+        }
+    }, {
+        key: 'abort',
+        value: function abort() {
+            this._requestAbort = true;
+        }
+    }, {
+        key: '_pump',
+        value: function _pump(reader) {
+            var _this3 = this;
+
+            // ReadableStreamReader
+            return reader.read().then(function (result) {
+                if (result.done) {
+                    // First check received length
+                    if (_this3._contentLength !== null && _this3._receivedLength < _this3._contentLength) {
+                        // Report Early-EOF
+                        _this3._status = _loader.LoaderStatus.kError;
+                        var type = _loader.LoaderErrors.EARLY_EOF;
+                        var info = { code: -1, msg: 'Fetch stream meet Early-EOF' };
+                        if (_this3._onError) {
+                            _this3._onError(type, info);
+                        } else {
+                            throw new _exception.RuntimeException(info.msg);
+                        }
+                    } else {
+                        // OK. Download complete
+                        _this3._status = _loader.LoaderStatus.kComplete;
+                        if (_this3._onComplete) {
+                            _this3._onComplete(_this3._range.from, _this3._range.from + _this3._receivedLength - 1);
+                        }
+                    }
+                } else {
+                    if (_this3._requestAbort === true) {
+                        _this3._requestAbort = false;
+                        _this3._status = _loader.LoaderStatus.kComplete;
+                        return reader.cancel();
+                    }
+
+                    _this3._status = _loader.LoaderStatus.kBuffering;
+
+                    var chunk = result.value.buffer;
+                    var byteStart = _this3._range.from + _this3._receivedLength;
+                    _this3._receivedLength += chunk.byteLength;
+
+                    if (_this3._onDataArrival) {
+                        _this3._onDataArrival(chunk, byteStart, _this3._receivedLength);
+                    }
+
+                    _this3._pump(reader);
+                }
+            }).catch(function (e) {
+                if (e.code === 11 && _browser2.default.msedge) {
+                    // InvalidStateError on Microsoft Edge
+                    // Workaround: Edge may throw InvalidStateError after ReadableStreamReader.cancel() call
+                    // Ignore the unknown exception.
+                    // Related issue: https://developer.microsoft.com/en-us/microsoft-edge/platform/issues/11265202/
+                    return;
+                }
+
+                _this3._status = _loader.LoaderStatus.kError;
+                var type = 0;
+                var info = null;
+
+                if ((e.code === 19 || e.message === 'network error') && ( // NETWORK_ERR
+                _this3._contentLength === null || _this3._contentLength !== null && _this3._receivedLength < _this3._contentLength)) {
+                    type = _loader.LoaderErrors.EARLY_EOF;
+                    info = { code: e.code, msg: 'Fetch stream meet Early-EOF' };
+                } else {
+                    type = _loader.LoaderErrors.EXCEPTION;
+                    info = { code: e.code, msg: e.message };
+                }
+
+                if (_this3._onError) {
+                    _this3._onError(type, info);
+                } else {
+                    throw new _exception.RuntimeException(info.msg);
+                }
+            });
+        }
+    }]);
+
+    return FetchStreamLoader;
+}(_loader.BaseLoader);
+
+exports.default = FetchStreamLoader;
+module.exports = exports['default'];
+
+/***/ }),
+/* 27 */
+/***/ (function(module, exports, __webpack_require__) {
+
+"use strict";
+
+
+Object.defineProperty(exports, "__esModule", {
+    value: true
+});
+
+var _typeof = typeof Symbol === "function" && typeof Symbol.iterator === "symbol" ? function (obj) { return typeof obj; } : function (obj) { return obj && typeof Symbol === "function" && obj.constructor === Symbol && obj !== Symbol.prototype ? "symbol" : typeof obj; };
+
+var _get = function get(object, property, receiver) { if (object === null) object = Function.prototype; var desc = Object.getOwnPropertyDescriptor(object, property); if (desc === undefined) { var parent = Object.getPrototypeOf(object); if (parent === null) { return undefined; } else { return get(parent, property, receiver); } } else if ("value" in desc) { return desc.value; } else { var getter = desc.get; if (getter === undefined) { return undefined; } return getter.call(receiver); } };
+
+var _createClass = function () { function defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ("value" in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } } return function (Constructor, protoProps, staticProps) { if (protoProps) defineProperties(Constructor.prototype, protoProps); if (staticProps) defineProperties(Constructor, staticProps); return Constructor; }; }();
+
+var _logger = __webpack_require__(0);
+
+var _logger2 = _interopRequireDefault(_logger);
+
+var _loader = __webpack_require__(3);
+
+var _exception = __webpack_require__(1);
+
+function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
+
+function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } }
+
+function _possibleConstructorReturn(self, call) { if (!self) { throw new ReferenceError("this hasn't been initialised - super() hasn't been called"); } return call && (typeof call === "object" || typeof call === "function") ? call : self; }
+
+function _inherits(subClass, superClass) { if (typeof superClass !== "function" && superClass !== null) { throw new TypeError("Super expression must either be null or a function, not " + typeof superClass); } subClass.prototype = Object.create(superClass && superClass.prototype, { constructor: { value: subClass, enumerable: false, writable: true, configurable: true } }); if (superClass) Object.setPrototypeOf ? Object.setPrototypeOf(subClass, superClass) : subClass.__proto__ = superClass; } /*
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                * Copyright (C) 2016 Bilibili. All Rights Reserved.
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                *
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                * @author zheng qian <xqq@xqq.im>
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                *
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                * Licensed under the Apache License, Version 2.0 (the "License");
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                * you may not use this file except in compliance with the License.
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                * You may obtain a copy of the License at
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                *
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                *     http://www.apache.org/licenses/LICENSE-2.0
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                *
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                * Unless required by applicable law or agreed to in writing, software
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                * distributed under the License is distributed on an "AS IS" BASIS,
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                * See the License for the specific language governing permissions and
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                * limitations under the License.
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                */
+
+// For FireFox browser which supports `xhr.responseType = 'moz-chunked-arraybuffer'`
+var MozChunkedLoader = function (_BaseLoader) {
+    _inherits(MozChunkedLoader, _BaseLoader);
+
+    _createClass(MozChunkedLoader, null, [{
+        key: 'isSupported',
+        value: function isSupported() {
+            try {
+                var xhr = new XMLHttpRequest();
+                // Firefox 37- requires .open() to be called before setting responseType
+                xhr.open('GET', 'https://example.com', true);
+                xhr.responseType = 'moz-chunked-arraybuffer';
+                return xhr.responseType === 'moz-chunked-arraybuffer';
+            } catch (e) {
+                _logger2.default.w('MozChunkedLoader', e.message);
+                return false;
+            }
+        }
+    }]);
+
+    function MozChunkedLoader(seekHandler, config) {
+        _classCallCheck(this, MozChunkedLoader);
+
+        var _this = _possibleConstructorReturn(this, (MozChunkedLoader.__proto__ || Object.getPrototypeOf(MozChunkedLoader)).call(this, 'xhr-moz-chunked-loader'));
+
+        _this.TAG = 'MozChunkedLoader';
+
+        _this._seekHandler = seekHandler;
+        _this._config = config;
+        _this._needStash = true;
+
+        _this._xhr = null;
+        _this._requestAbort = false;
+        _this._contentLength = null;
+        _this._receivedLength = 0;
+        return _this;
+    }
+
+    _createClass(MozChunkedLoader, [{
+        key: 'destroy',
+        value: function destroy() {
+            if (this.isWorking()) {
+                this.abort();
+            }
+            if (this._xhr) {
+                this._xhr.onreadystatechange = null;
+                this._xhr.onprogress = null;
+                this._xhr.onloadend = null;
+                this._xhr.onerror = null;
+                this._xhr = null;
+            }
+            _get(MozChunkedLoader.prototype.__proto__ || Object.getPrototypeOf(MozChunkedLoader.prototype), 'destroy', this).call(this);
+        }
+    }, {
+        key: 'open',
+        value: function open(dataSource, range) {
+            this._dataSource = dataSource;
+            this._range = range;
+
+            var sourceURL = dataSource.url;
+            if (this._config.reuseRedirectedURL && dataSource.redirectedURL != undefined) {
+                sourceURL = dataSource.redirectedURL;
+            }
+
+            var seekConfig = this._seekHandler.getConfig(sourceURL, range);
+            this._requestURL = seekConfig.url;
+
+            var xhr = this._xhr = new XMLHttpRequest();
+            xhr.open('GET', seekConfig.url, true);
+            xhr.responseType = 'moz-chunked-arraybuffer';
+            xhr.onreadystatechange = this._onReadyStateChange.bind(this);
+            xhr.onprogress = this._onProgress.bind(this);
+            xhr.onloadend = this._onLoadEnd.bind(this);
+            xhr.onerror = this._onXhrError.bind(this);
+
+            // cors is auto detected and enabled by xhr
+
+            // withCredentials is disabled by default
+            if (dataSource.withCredentials) {
+                xhr.withCredentials = true;
+            }
+
+            if (_typeof(seekConfig.headers) === 'object') {
+                var headers = seekConfig.headers;
+
+                for (var key in headers) {
+                    if (headers.hasOwnProperty(key)) {
+                        xhr.setRequestHeader(key, headers[key]);
+                    }
+                }
+            }
+
+            this._status = _loader.LoaderStatus.kConnecting;
+            xhr.send();
+        }
+    }, {
+        key: 'abort',
+        value: function abort() {
+            this._requestAbort = true;
+            if (this._xhr) {
+                this._xhr.abort();
+            }
+            this._status = _loader.LoaderStatus.kComplete;
+        }
+    }, {
+        key: '_onReadyStateChange',
+        value: function _onReadyStateChange(e) {
+            var xhr = e.target;
+
+            if (xhr.readyState === 2) {
+                // HEADERS_RECEIVED
+                if (xhr.responseURL != undefined && xhr.responseURL !== this._requestURL) {
+                    if (this._onURLRedirect) {
+                        var redirectedURL = this._seekHandler.removeURLParameters(xhr.responseURL);
+                        this._onURLRedirect(redirectedURL);
+                    }
+                }
+
+                if (xhr.status !== 0 && (xhr.status < 200 || xhr.status > 299)) {
+                    this._status = _loader.LoaderStatus.kError;
+                    if (this._onError) {
+                        this._onError(_loader.LoaderErrors.HTTP_STATUS_CODE_INVALID, { code: xhr.status, msg: xhr.statusText });
+                    } else {
+                        throw new _exception.RuntimeException('MozChunkedLoader: Http code invalid, ' + xhr.status + ' ' + xhr.statusText);
+                    }
+                } else {
+                    this._status = _loader.LoaderStatus.kBuffering;
+                }
+            }
+        }
+    }, {
+        key: '_onProgress',
+        value: function _onProgress(e) {
+            if (this._status === _loader.LoaderStatus.kError) {
+                // Ignore error response
+                return;
+            }
+
+            if (this._contentLength === null) {
+                if (e.total !== null && e.total !== 0) {
+                    this._contentLength = e.total;
+                    if (this._onContentLengthKnown) {
+                        this._onContentLengthKnown(this._contentLength);
+                    }
+                }
+            }
+
+            var chunk = e.target.response;
+            var byteStart = this._range.from + this._receivedLength;
+            this._receivedLength += chunk.byteLength;
+
+            if (this._onDataArrival) {
+                this._onDataArrival(chunk, byteStart, this._receivedLength);
+            }
+        }
+    }, {
+        key: '_onLoadEnd',
+        value: function _onLoadEnd(e) {
+            if (this._requestAbort === true) {
+                this._requestAbort = false;
+                return;
+            } else if (this._status === _loader.LoaderStatus.kError) {
+                return;
+            }
+
+            this._status = _loader.LoaderStatus.kComplete;
+            if (this._onComplete) {
+                this._onComplete(this._range.from, this._range.from + this._receivedLength - 1);
+            }
+        }
+    }, {
+        key: '_onXhrError',
+        value: function _onXhrError(e) {
+            this._status = _loader.LoaderStatus.kError;
+            var type = 0;
+            var info = null;
+
+            if (this._contentLength && e.loaded < this._contentLength) {
+                type = _loader.LoaderErrors.EARLY_EOF;
+                info = { code: -1, msg: 'Moz-Chunked stream meet Early-Eof' };
+            } else {
+                type = _loader.LoaderErrors.EXCEPTION;
+                info = { code: -1, msg: e.constructor.name + ' ' + e.type };
+            }
+
+            if (this._onError) {
+                this._onError(type, info);
+            } else {
+                throw new _exception.RuntimeException(info.msg);
+            }
+        }
+    }]);
+
+    return MozChunkedLoader;
+}(_loader.BaseLoader);
+
+exports.default = MozChunkedLoader;
+module.exports = exports['default'];
+
+/***/ }),
+/* 28 */
+/***/ (function(module, exports, __webpack_require__) {
+
+"use strict";
+
+
+Object.defineProperty(exports, "__esModule", {
+    value: true
+});
+
+var _typeof = typeof Symbol === "function" && typeof Symbol.iterator === "symbol" ? function (obj) { return typeof obj; } : function (obj) { return obj && typeof Symbol === "function" && obj.constructor === Symbol && obj !== Symbol.prototype ? "symbol" : typeof obj; };
+
+var _get = function get(object, property, receiver) { if (object === null) object = Function.prototype; var desc = Object.getOwnPropertyDescriptor(object, property); if (desc === undefined) { var parent = Object.getPrototypeOf(object); if (parent === null) { return undefined; } else { return get(parent, property, receiver); } } else if ("value" in desc) { return desc.value; } else { var getter = desc.get; if (getter === undefined) { return undefined; } return getter.call(receiver); } };
+
+var _createClass = function () { function defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ("value" in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } } return function (Constructor, protoProps, staticProps) { if (protoProps) defineProperties(Constructor.prototype, protoProps); if (staticProps) defineProperties(Constructor, staticProps); return Constructor; }; }();
+
+var _logger = __webpack_require__(0);
+
+var _logger2 = _interopRequireDefault(_logger);
+
+var _loader = __webpack_require__(3);
+
+var _exception = __webpack_require__(1);
+
+function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
+
+function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } }
+
+function _possibleConstructorReturn(self, call) { if (!self) { throw new ReferenceError("this hasn't been initialised - super() hasn't been called"); } return call && (typeof call === "object" || typeof call === "function") ? call : self; }
+
+function _inherits(subClass, superClass) { if (typeof superClass !== "function" && superClass !== null) { throw new TypeError("Super expression must either be null or a function, not " + typeof superClass); } subClass.prototype = Object.create(superClass && superClass.prototype, { constructor: { value: subClass, enumerable: false, writable: true, configurable: true } }); if (superClass) Object.setPrototypeOf ? Object.setPrototypeOf(subClass, superClass) : subClass.__proto__ = superClass; } /*
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                * Copyright (C) 2016 Bilibili. All Rights Reserved.
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                *
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                * @author zheng qian <xqq@xqq.im>
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                *
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                * Licensed under the Apache License, Version 2.0 (the "License");
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                * you may not use this file except in compliance with the License.
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                * You may obtain a copy of the License at
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                *
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                *     http://www.apache.org/licenses/LICENSE-2.0
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                *
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                * Unless required by applicable law or agreed to in writing, software
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                * distributed under the License is distributed on an "AS IS" BASIS,
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                * See the License for the specific language governing permissions and
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                * limitations under the License.
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                */
+
+/* Notice: ms-stream may cause IE/Edge browser crash if seek too frequently!!!
+ * The browser may crash in wininet.dll. Disable for now.
+ *
+ * For IE11/Edge browser by microsoft which supports `xhr.responseType = 'ms-stream'`
+ * Notice that ms-stream API sucks. The buffer is always expanding along with downloading.
+ *
+ * We need to abort the xhr if buffer size exceeded limit size (e.g. 16 MiB), then do reconnect.
+ * in order to release previous ArrayBuffer to avoid memory leak
+ *
+ * Otherwise, the ArrayBuffer will increase to a terrible size that equals final file size.
+ */
+var MSStreamLoader = function (_BaseLoader) {
+    _inherits(MSStreamLoader, _BaseLoader);
+
+    _createClass(MSStreamLoader, null, [{
+        key: 'isSupported',
+        value: function isSupported() {
+            try {
+                if (typeof self.MSStream === 'undefined' || typeof self.MSStreamReader === 'undefined') {
+                    return false;
+                }
+
+                var xhr = new XMLHttpRequest();
+                xhr.open('GET', 'https://example.com', true);
+                xhr.responseType = 'ms-stream';
+                return xhr.responseType === 'ms-stream';
+            } catch (e) {
+                _logger2.default.w('MSStreamLoader', e.message);
+                return false;
+            }
+        }
+    }]);
+
+    function MSStreamLoader(seekHandler, config) {
+        _classCallCheck(this, MSStreamLoader);
+
+        var _this = _possibleConstructorReturn(this, (MSStreamLoader.__proto__ || Object.getPrototypeOf(MSStreamLoader)).call(this, 'xhr-msstream-loader'));
+
+        _this.TAG = 'MSStreamLoader';
+
+        _this._seekHandler = seekHandler;
+        _this._config = config;
+        _this._needStash = true;
+
+        _this._xhr = null;
+        _this._reader = null; // MSStreamReader
+
+        _this._totalRange = null;
+        _this._currentRange = null;
+
+        _this._currentRequestURL = null;
+        _this._currentRedirectedURL = null;
+
+        _this._contentLength = null;
+        _this._receivedLength = 0;
+
+        _this._bufferLimit = 16 * 1024 * 1024; // 16MB
+        _this._lastTimeBufferSize = 0;
+        _this._isReconnecting = false;
+        return _this;
+    }
+
+    _createClass(MSStreamLoader, [{
+        key: 'destroy',
+        value: function destroy() {
+            if (this.isWorking()) {
+                this.abort();
+            }
+            if (this._reader) {
+                this._reader.onprogress = null;
+                this._reader.onload = null;
+                this._reader.onerror = null;
+                this._reader = null;
+            }
+            if (this._xhr) {
+                this._xhr.onreadystatechange = null;
+                this._xhr = null;
+            }
+            _get(MSStreamLoader.prototype.__proto__ || Object.getPrototypeOf(MSStreamLoader.prototype), 'destroy', this).call(this);
+        }
+    }, {
+        key: 'open',
+        value: function open(dataSource, range) {
+            this._internalOpen(dataSource, range, false);
+        }
+    }, {
+        key: '_internalOpen',
+        value: function _internalOpen(dataSource, range, isSubrange) {
+            this._dataSource = dataSource;
+
+            if (!isSubrange) {
+                this._totalRange = range;
+            } else {
+                this._currentRange = range;
+            }
+
+            var sourceURL = dataSource.url;
+            if (this._config.reuseRedirectedURL) {
+                if (this._currentRedirectedURL != undefined) {
+                    sourceURL = this._currentRedirectedURL;
+                } else if (dataSource.redirectedURL != undefined) {
+                    sourceURL = dataSource.redirectedURL;
+                }
+            }
+
+            var seekConfig = this._seekHandler.getConfig(sourceURL, range);
+            this._currentRequestURL = seekConfig.url;
+
+            var reader = this._reader = new self.MSStreamReader();
+            reader.onprogress = this._msrOnProgress.bind(this);
+            reader.onload = this._msrOnLoad.bind(this);
+            reader.onerror = this._msrOnError.bind(this);
+
+            var xhr = this._xhr = new XMLHttpRequest();
+            xhr.open('GET', seekConfig.url, true);
+            xhr.responseType = 'ms-stream';
+            xhr.onreadystatechange = this._xhrOnReadyStateChange.bind(this);
+            xhr.onerror = this._xhrOnError.bind(this);
+
+            if (dataSource.withCredentials) {
+                xhr.withCredentials = true;
+            }
+
+            if (_typeof(seekConfig.headers) === 'object') {
+                var headers = seekConfig.headers;
+
+                for (var key in headers) {
+                    if (headers.hasOwnProperty(key)) {
+                        xhr.setRequestHeader(key, headers[key]);
+                    }
+                }
+            }
+
+            if (this._isReconnecting) {
+                this._isReconnecting = false;
+            } else {
+                this._status = _loader.LoaderStatus.kConnecting;
+            }
+            xhr.send();
+        }
+    }, {
+        key: 'abort',
+        value: function abort() {
+            this._internalAbort();
+            this._status = _loader.LoaderStatus.kComplete;
+        }
+    }, {
+        key: '_internalAbort',
+        value: function _internalAbort() {
+            if (this._reader) {
+                if (this._reader.readyState === 1) {
+                    // LOADING
+                    this._reader.abort();
+                }
+                this._reader.onprogress = null;
+                this._reader.onload = null;
+                this._reader.onerror = null;
+                this._reader = null;
+            }
+            if (this._xhr) {
+                this._xhr.abort();
+                this._xhr.onreadystatechange = null;
+                this._xhr = null;
+            }
+        }
+    }, {
+        key: '_xhrOnReadyStateChange',
+        value: function _xhrOnReadyStateChange(e) {
+            var xhr = e.target;
+
+            if (xhr.readyState === 2) {
+                // HEADERS_RECEIVED
+                if (xhr.status >= 200 && xhr.status <= 299) {
+                    this._status = _loader.LoaderStatus.kBuffering;
+
+                    if (xhr.responseURL != undefined) {
+                        var redirectedURL = this._seekHandler.removeURLParameters(xhr.responseURL);
+                        if (xhr.responseURL !== this._currentRequestURL && redirectedURL !== this._currentRedirectedURL) {
+                            this._currentRedirectedURL = redirectedURL;
+                            if (this._onURLRedirect) {
+                                this._onURLRedirect(redirectedURL);
+                            }
+                        }
+                    }
+
+                    var lengthHeader = xhr.getResponseHeader('Content-Length');
+                    if (lengthHeader != null && this._contentLength == null) {
+                        var length = parseInt(lengthHeader);
+                        if (length > 0) {
+                            this._contentLength = length;
+                            if (this._onContentLengthKnown) {
+                                this._onContentLengthKnown(this._contentLength);
+                            }
+                        }
+                    }
+                } else {
+                    this._status = _loader.LoaderStatus.kError;
+                    if (this._onError) {
+                        this._onError(_loader.LoaderErrors.HTTP_STATUS_CODE_INVALID, { code: xhr.status, msg: xhr.statusText });
+                    } else {
+                        throw new _exception.RuntimeException('MSStreamLoader: Http code invalid, ' + xhr.status + ' ' + xhr.statusText);
+                    }
+                }
+            } else if (xhr.readyState === 3) {
+                // LOADING
+                if (xhr.status >= 200 && xhr.status <= 299) {
+                    this._status = _loader.LoaderStatus.kBuffering;
+
+                    var msstream = xhr.response;
+                    this._reader.readAsArrayBuffer(msstream);
+                }
+            }
+        }
+    }, {
+        key: '_xhrOnError',
+        value: function _xhrOnError(e) {
+            this._status = _loader.LoaderStatus.kError;
+            var type = _loader.LoaderErrors.EXCEPTION;
+            var info = { code: -1, msg: e.constructor.name + ' ' + e.type };
+
+            if (this._onError) {
+                this._onError(type, info);
+            } else {
+                throw new _exception.RuntimeException(info.msg);
+            }
+        }
+    }, {
+        key: '_msrOnProgress',
+        value: function _msrOnProgress(e) {
+            var reader = e.target;
+            var bigbuffer = reader.result;
+            if (bigbuffer == null) {
+                // result may be null, workaround for buggy M$
+                this._doReconnectIfNeeded();
+                return;
+            }
+
+            var slice = bigbuffer.slice(this._lastTimeBufferSize);
+            this._lastTimeBufferSize = bigbuffer.byteLength;
+            var byteStart = this._totalRange.from + this._receivedLength;
+            this._receivedLength += slice.byteLength;
+
+            if (this._onDataArrival) {
+                this._onDataArrival(slice, byteStart, this._receivedLength);
+            }
+
+            if (bigbuffer.byteLength >= this._bufferLimit) {
+                _logger2.default.v(this.TAG, 'MSStream buffer exceeded max size near ' + (byteStart + slice.byteLength) + ', reconnecting...');
+                this._doReconnectIfNeeded();
+            }
+        }
+    }, {
+        key: '_doReconnectIfNeeded',
+        value: function _doReconnectIfNeeded() {
+            if (this._contentLength == null || this._receivedLength < this._contentLength) {
+                this._isReconnecting = true;
+                this._lastTimeBufferSize = 0;
+                this._internalAbort();
+
+                var range = {
+                    from: this._totalRange.from + this._receivedLength,
+                    to: -1
+                };
+                this._internalOpen(this._dataSource, range, true);
+            }
+        }
+    }, {
+        key: '_msrOnLoad',
+        value: function _msrOnLoad(e) {
+            // actually it is onComplete event
+            this._status = _loader.LoaderStatus.kComplete;
+            if (this._onComplete) {
+                this._onComplete(this._totalRange.from, this._totalRange.from + this._receivedLength - 1);
+            }
+        }
+    }, {
+        key: '_msrOnError',
+        value: function _msrOnError(e) {
+            this._status = _loader.LoaderStatus.kError;
+            var type = 0;
+            var info = null;
+
+            if (this._contentLength && this._receivedLength < this._contentLength) {
+                type = _loader.LoaderErrors.EARLY_EOF;
+                info = { code: -1, msg: 'MSStream meet Early-Eof' };
+            } else {
+                type = _loader.LoaderErrors.EARLY_EOF;
+                info = { code: -1, msg: e.constructor.name + ' ' + e.type };
+            }
+
+            if (this._onError) {
+                this._onError(type, info);
+            } else {
+                throw new _exception.RuntimeException(info.msg);
+            }
+        }
+    }]);
+
+    return MSStreamLoader;
+}(_loader.BaseLoader);
+
+exports.default = MSStreamLoader;
+module.exports = exports['default'];
+
+/***/ }),
+/* 29 */
+/***/ (function(module, exports, __webpack_require__) {
+
+"use strict";
+
+
+Object.defineProperty(exports, "__esModule", {
+    value: true
+});
+
+var _typeof = typeof Symbol === "function" && typeof Symbol.iterator === "symbol" ? function (obj) { return typeof obj; } : function (obj) { return obj && typeof Symbol === "function" && obj.constructor === Symbol && obj !== Symbol.prototype ? "symbol" : typeof obj; };
+
+var _get = function get(object, property, receiver) { if (object === null) object = Function.prototype; var desc = Object.getOwnPropertyDescriptor(object, property); if (desc === undefined) { var parent = Object.getPrototypeOf(object); if (parent === null) { return undefined; } else { return get(parent, property, receiver); } } else if ("value" in desc) { return desc.value; } else { var getter = desc.get; if (getter === undefined) { return undefined; } return getter.call(receiver); } };
+
+var _createClass = function () { function defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ("value" in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } } return function (Constructor, protoProps, staticProps) { if (protoProps) defineProperties(Constructor.prototype, protoProps); if (staticProps) defineProperties(Constructor, staticProps); return Constructor; }; }();
+
+var _logger = __webpack_require__(0);
+
+var _logger2 = _interopRequireDefault(_logger);
+
+var _speedSampler = __webpack_require__(13);
+
+var _speedSampler2 = _interopRequireDefault(_speedSampler);
+
+var _loader = __webpack_require__(3);
+
+var _exception = __webpack_require__(1);
+
+function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
+
+function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } }
+
+function _possibleConstructorReturn(self, call) { if (!self) { throw new ReferenceError("this hasn't been initialised - super() hasn't been called"); } return call && (typeof call === "object" || typeof call === "function") ? call : self; }
+
+function _inherits(subClass, superClass) { if (typeof superClass !== "function" && superClass !== null) { throw new TypeError("Super expression must either be null or a function, not " + typeof superClass); } subClass.prototype = Object.create(superClass && superClass.prototype, { constructor: { value: subClass, enumerable: false, writable: true, configurable: true } }); if (superClass) Object.setPrototypeOf ? Object.setPrototypeOf(subClass, superClass) : subClass.__proto__ = superClass; } /*
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                * Copyright (C) 2016 Bilibili. All Rights Reserved.
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                *
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                * @author zheng qian <xqq@xqq.im>
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                *
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                * Licensed under the Apache License, Version 2.0 (the "License");
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                * you may not use this file except in compliance with the License.
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                * You may obtain a copy of the License at
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                *
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                *     http://www.apache.org/licenses/LICENSE-2.0
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                *
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                * Unless required by applicable law or agreed to in writing, software
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                * distributed under the License is distributed on an "AS IS" BASIS,
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                * See the License for the specific language governing permissions and
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                * limitations under the License.
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                */
+
+// Universal IO Loader, implemented by adding Range header in xhr's request header
+var RangeLoader = function (_BaseLoader) {
+    _inherits(RangeLoader, _BaseLoader);
+
+    _createClass(RangeLoader, null, [{
+        key: 'isSupported',
+        value: function isSupported() {
+            try {
+                var xhr = new XMLHttpRequest();
+                xhr.open('GET', 'https://example.com', true);
+                xhr.responseType = 'arraybuffer';
+                return xhr.responseType === 'arraybuffer';
+            } catch (e) {
+                _logger2.default.w('RangeLoader', e.message);
+                return false;
+            }
+        }
+    }]);
+
+    function RangeLoader(seekHandler, config) {
+        _classCallCheck(this, RangeLoader);
+
+        var _this = _possibleConstructorReturn(this, (RangeLoader.__proto__ || Object.getPrototypeOf(RangeLoader)).call(this, 'xhr-range-loader'));
+
+        _this.TAG = 'RangeLoader';
+
+        _this._seekHandler = seekHandler;
+        _this._config = config;
+        _this._needStash = false;
+
+        _this._chunkSizeKBList = [128, 256, 384, 512, 768, 1024, 1536, 2048, 3072, 4096, 5120, 6144, 7168, 8192];
+        _this._currentChunkSizeKB = 384;
+        _this._currentSpeedNormalized = 0;
+        _this._zeroSpeedChunkCount = 0;
+
+        _this._xhr = null;
+        _this._speedSampler = new _speedSampler2.default();
+
+        _this._requestAbort = false;
+        _this._waitForTotalLength = false;
+        _this._totalLengthReceived = false;
+
+        _this._currentRequestURL = null;
+        _this._currentRedirectedURL = null;
+        _this._currentRequestRange = null;
+        _this._totalLength = null; // size of the entire file
+        _this._contentLength = null; // Content-Length of entire request range
+        _this._receivedLength = 0; // total received bytes
+        _this._lastTimeLoaded = 0; // received bytes of current request sub-range
+        return _this;
+    }
+
+    _createClass(RangeLoader, [{
+        key: 'destroy',
+        value: function destroy() {
+            if (this.isWorking()) {
+                this.abort();
+            }
+            if (this._xhr) {
+                this._xhr.onreadystatechange = null;
+                this._xhr.onprogress = null;
+                this._xhr.onload = null;
+                this._xhr.onerror = null;
+                this._xhr = null;
+            }
+            _get(RangeLoader.prototype.__proto__ || Object.getPrototypeOf(RangeLoader.prototype), 'destroy', this).call(this);
+        }
+    }, {
+        key: 'open',
+        value: function open(dataSource, range) {
+            this._dataSource = dataSource;
+            this._range = range;
+            this._status = _loader.LoaderStatus.kConnecting;
+
+            var useRefTotalLength = false;
+            if (this._dataSource.filesize != undefined && this._dataSource.filesize !== 0) {
+                useRefTotalLength = true;
+                this._totalLength = this._dataSource.filesize;
+            }
+
+            if (!this._totalLengthReceived && !useRefTotalLength) {
+                // We need total filesize
+                this._waitForTotalLength = true;
+                this._internalOpen(this._dataSource, { from: 0, to: -1 });
+            } else {
+                // We have filesize, start loading
+                this._openSubRange();
+            }
+        }
+    }, {
+        key: '_openSubRange',
+        value: function _openSubRange() {
+            var chunkSize = this._currentChunkSizeKB * 1024;
+
+            var from = this._range.from + this._receivedLength;
+            var to = from + chunkSize;
+
+            if (this._contentLength != null) {
+                if (to - this._range.from >= this._contentLength) {
+                    to = this._range.from + this._contentLength - 1;
+                }
+            }
+
+            this._currentRequestRange = { from: from, to: to };
+            this._internalOpen(this._dataSource, this._currentRequestRange);
+        }
+    }, {
+        key: '_internalOpen',
+        value: function _internalOpen(dataSource, range) {
+            this._lastTimeLoaded = 0;
+
+            var sourceURL = dataSource.url;
+            if (this._config.reuseRedirectedURL) {
+                if (this._currentRedirectedURL != undefined) {
+                    sourceURL = this._currentRedirectedURL;
+                } else if (dataSource.redirectedURL != undefined) {
+                    sourceURL = dataSource.redirectedURL;
+                }
+            }
+
+            var seekConfig = this._seekHandler.getConfig(sourceURL, range);
+            this._currentRequestURL = seekConfig.url;
+
+            var xhr = this._xhr = new XMLHttpRequest();
+            xhr.open('GET', seekConfig.url, true);
+            xhr.responseType = 'arraybuffer';
+            xhr.onreadystatechange = this._onReadyStateChange.bind(this);
+            xhr.onprogress = this._onProgress.bind(this);
+            xhr.onload = this._onLoad.bind(this);
+            xhr.onerror = this._onXhrError.bind(this);
+
+            if (dataSource.withCredentials) {
+                xhr.withCredentials = true;
+            }
+
+            if (_typeof(seekConfig.headers) === 'object') {
+                var headers = seekConfig.headers;
+
+                for (var key in headers) {
+                    if (headers.hasOwnProperty(key)) {
+                        xhr.setRequestHeader(key, headers[key]);
+                    }
+                }
+            }
+
+            xhr.send();
+        }
+    }, {
+        key: 'abort',
+        value: function abort() {
+            this._requestAbort = true;
+            this._internalAbort();
+            this._status = _loader.LoaderStatus.kComplete;
+        }
+    }, {
+        key: '_internalAbort',
+        value: function _internalAbort() {
+            if (this._xhr) {
+                this._xhr.onreadystatechange = null;
+                this._xhr.onprogress = null;
+                this._xhr.onload = null;
+                this._xhr.onerror = null;
+                this._xhr.abort();
+                this._xhr = null;
+            }
+        }
+    }, {
+        key: '_onReadyStateChange',
+        value: function _onReadyStateChange(e) {
+            var xhr = e.target;
+
+            if (xhr.readyState === 2) {
+                // HEADERS_RECEIVED
+                if (xhr.responseURL != undefined) {
+                    // if the browser support this property
+                    var redirectedURL = this._seekHandler.removeURLParameters(xhr.responseURL);
+                    if (xhr.responseURL !== this._currentRequestURL && redirectedURL !== this._currentRedirectedURL) {
+                        this._currentRedirectedURL = redirectedURL;
+                        if (this._onURLRedirect) {
+                            this._onURLRedirect(redirectedURL);
+                        }
+                    }
+                }
+
+                if (xhr.status >= 200 && xhr.status <= 299) {
+                    if (this._waitForTotalLength) {
+                        return;
+                    }
+                    this._status = _loader.LoaderStatus.kBuffering;
+                } else {
+                    this._status = _loader.LoaderStatus.kError;
+                    if (this._onError) {
+                        this._onError(_loader.LoaderErrors.HTTP_STATUS_CODE_INVALID, { code: xhr.status, msg: xhr.statusText });
+                    } else {
+                        throw new _exception.RuntimeException('RangeLoader: Http code invalid, ' + xhr.status + ' ' + xhr.statusText);
+                    }
+                }
+            }
+        }
+    }, {
+        key: '_onProgress',
+        value: function _onProgress(e) {
+            if (this._status === _loader.LoaderStatus.kError) {
+                // Ignore error response
+                return;
+            }
+
+            if (this._contentLength === null) {
+                var openNextRange = false;
+
+                if (this._waitForTotalLength) {
+                    this._waitForTotalLength = false;
+                    this._totalLengthReceived = true;
+                    openNextRange = true;
+
+                    var total = e.total;
+                    this._internalAbort();
+                    if (total != null & total !== 0) {
+                        this._totalLength = total;
+                    }
+                }
+
+                // calculate currrent request range's contentLength
+                if (this._range.to === -1) {
+                    this._contentLength = this._totalLength - this._range.from;
+                } else {
+                    // to !== -1
+                    this._contentLength = this._range.to - this._range.from + 1;
+                }
+
+                if (openNextRange) {
+                    this._openSubRange();
+                    return;
+                }
+                if (this._onContentLengthKnown) {
+                    this._onContentLengthKnown(this._contentLength);
+                }
+            }
+
+            var delta = e.loaded - this._lastTimeLoaded;
+            this._lastTimeLoaded = e.loaded;
+            this._speedSampler.addBytes(delta);
+        }
+    }, {
+        key: '_normalizeSpeed',
+        value: function _normalizeSpeed(input) {
+            var list = this._chunkSizeKBList;
+            var last = list.length - 1;
+            var mid = 0;
+            var lbound = 0;
+            var ubound = last;
+
+            if (input < list[0]) {
+                return list[0];
+            }
+
+            while (lbound <= ubound) {
+                mid = lbound + Math.floor((ubound - lbound) / 2);
+                if (mid === last || input >= list[mid] && input < list[mid + 1]) {
+                    return list[mid];
+                } else if (list[mid] < input) {
+                    lbound = mid + 1;
+                } else {
+                    ubound = mid - 1;
+                }
+            }
+        }
+    }, {
+        key: '_onLoad',
+        value: function _onLoad(e) {
+            if (this._status === _loader.LoaderStatus.kError) {
+                // Ignore error response
+                return;
+            }
+
+            if (this._waitForTotalLength) {
+                this._waitForTotalLength = false;
+                return;
+            }
+
+            this._lastTimeLoaded = 0;
+            var KBps = this._speedSampler.lastSecondKBps;
+            if (KBps === 0) {
+                this._zeroSpeedChunkCount++;
+                if (this._zeroSpeedChunkCount >= 3) {
+                    // Try get currentKBps after 3 chunks
+                    KBps = this._speedSampler.currentKBps;
+                }
+            }
+
+            if (KBps !== 0) {
+                var normalized = this._normalizeSpeed(KBps);
+                if (this._currentSpeedNormalized !== normalized) {
+                    this._currentSpeedNormalized = normalized;
+                    this._currentChunkSizeKB = normalized;
+                }
+            }
+
+            var chunk = e.target.response;
+            var byteStart = this._range.from + this._receivedLength;
+            this._receivedLength += chunk.byteLength;
+
+            var reportComplete = false;
+
+            if (this._contentLength != null && this._receivedLength < this._contentLength) {
+                // continue load next chunk
+                this._openSubRange();
+            } else {
+                reportComplete = true;
+            }
+
+            // dispatch received chunk
+            if (this._onDataArrival) {
+                this._onDataArrival(chunk, byteStart, this._receivedLength);
+            }
+
+            if (reportComplete) {
+                this._status = _loader.LoaderStatus.kComplete;
+                if (this._onComplete) {
+                    this._onComplete(this._range.from, this._range.from + this._receivedLength - 1);
+                }
+            }
+        }
+    }, {
+        key: '_onXhrError',
+        value: function _onXhrError(e) {
+            this._status = _loader.LoaderStatus.kError;
+            var type = 0;
+            var info = null;
+
+            if (this._contentLength && this._receivedLength > 0 && this._receivedLength < this._contentLength) {
+                type = _loader.LoaderErrors.EARLY_EOF;
+                info = { code: -1, msg: 'RangeLoader meet Early-Eof' };
+            } else {
+                type = _loader.LoaderErrors.EXCEPTION;
+                info = { code: -1, msg: e.constructor.name + ' ' + e.type };
+            }
+
+            if (this._onError) {
+                this._onError(type, info);
+            } else {
+                throw new _exception.RuntimeException(info.msg);
+            }
+        }
+    }, {
+        key: 'currentSpeed',
+        get: function get() {
+            return this._speedSampler.lastSecondKBps;
+        }
+    }]);
+
+    return RangeLoader;
+}(_loader.BaseLoader);
+
+exports.default = RangeLoader;
+module.exports = exports['default'];
+
+/***/ }),
+/* 30 */
+/***/ (function(module, exports, __webpack_require__) {
+
+"use strict";
+
+
+Object.defineProperty(exports, "__esModule", {
+    value: true
+});
+
+var _get = function get(object, property, receiver) { if (object === null) object = Function.prototype; var desc = Object.getOwnPropertyDescriptor(object, property); if (desc === undefined) { var parent = Object.getPrototypeOf(object); if (parent === null) { return undefined; } else { return get(parent, property, receiver); } } else if ("value" in desc) { return desc.value; } else { var getter = desc.get; if (getter === undefined) { return undefined; } return getter.call(receiver); } };
+
+var _createClass = function () { function defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ("value" in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } } return function (Constructor, protoProps, staticProps) { if (protoProps) defineProperties(Constructor.prototype, protoProps); if (staticProps) defineProperties(Constructor, staticProps); return Constructor; }; }();
+
+var _logger = __webpack_require__(0);
+
+var _logger2 = _interopRequireDefault(_logger);
+
+var _loader = __webpack_require__(3);
+
+var _exception = __webpack_require__(1);
+
+function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
+
+function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } }
+
+function _possibleConstructorReturn(self, call) { if (!self) { throw new ReferenceError("this hasn't been initialised - super() hasn't been called"); } return call && (typeof call === "object" || typeof call === "function") ? call : self; }
+
+function _inherits(subClass, superClass) { if (typeof superClass !== "function" && superClass !== null) { throw new TypeError("Super expression must either be null or a function, not " + typeof superClass); } subClass.prototype = Object.create(superClass && superClass.prototype, { constructor: { value: subClass, enumerable: false, writable: true, configurable: true } }); if (superClass) Object.setPrototypeOf ? Object.setPrototypeOf(subClass, superClass) : subClass.__proto__ = superClass; } /*
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                * Copyright (C) 2016 Bilibili. All Rights Reserved.
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                *
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                * @author zheng qian <xqq@xqq.im>
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                *
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                * Licensed under the Apache License, Version 2.0 (the "License");
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                * you may not use this file except in compliance with the License.
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                * You may obtain a copy of the License at
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                *
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                *     http://www.apache.org/licenses/LICENSE-2.0
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                *
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                * Unless required by applicable law or agreed to in writing, software
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                * distributed under the License is distributed on an "AS IS" BASIS,
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                * See the License for the specific language governing permissions and
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                * limitations under the License.
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                */
+
+// For FLV over WebSocket live stream
+var WebSocketLoader = function (_BaseLoader) {
+    _inherits(WebSocketLoader, _BaseLoader);
+
+    _createClass(WebSocketLoader, null, [{
+        key: 'isSupported',
+        value: function isSupported() {
+            try {
+                return typeof self.WebSocket !== 'undefined';
+            } catch (e) {
+                return false;
+            }
+        }
+    }]);
+
+    function WebSocketLoader() {
+        _classCallCheck(this, WebSocketLoader);
+
+        var _this = _possibleConstructorReturn(this, (WebSocketLoader.__proto__ || Object.getPrototypeOf(WebSocketLoader)).call(this, 'websocket-loader'));
+
+        _this.TAG = 'WebSocketLoader';
+
+        _this._needStash = true;
+
+        _this._ws = null;
+        _this._requestAbort = false;
+        _this._receivedLength = 0;
+        return _this;
+    }
+
+    _createClass(WebSocketLoader, [{
+        key: 'destroy',
+        value: function destroy() {
+            if (this._ws) {
+                this.abort();
+            }
+            _get(WebSocketLoader.prototype.__proto__ || Object.getPrototypeOf(WebSocketLoader.prototype), 'destroy', this).call(this);
+        }
+    }, {
+        key: 'open',
+        value: function open(dataSource) {
+            try {
+                var ws = this._ws = new self.WebSocket(dataSource.url);
+                ws.binaryType = 'arraybuffer';
+                ws.onopen = this._onWebSocketOpen.bind(this);
+                ws.onclose = this._onWebSocketClose.bind(this);
+                ws.onmessage = this._onWebSocketMessage.bind(this);
+                ws.onerror = this._onWebSocketError.bind(this);
+
+                this._status = _loader.LoaderStatus.kConnecting;
+            } catch (e) {
+                this._status = _loader.LoaderStatus.kError;
+
+                var info = { code: e.code, msg: e.message };
+
+                if (this._onError) {
+                    this._onError(_loader.LoaderErrors.EXCEPTION, info);
+                } else {
+                    throw new _exception.RuntimeException(info.msg);
+                }
+            }
+        }
+    }, {
+        key: 'abort',
+        value: function abort() {
+            var ws = this._ws;
+            if (ws && (ws.readyState === 0 || ws.readyState === 1)) {
+                // CONNECTING || OPEN
+                this._requestAbort = true;
+                ws.close();
+            }
+
+            this._ws = null;
+            this._status = _loader.LoaderStatus.kComplete;
+        }
+    }, {
+        key: '_onWebSocketOpen',
+        value: function _onWebSocketOpen(e) {
+            this._status = _loader.LoaderStatus.kBuffering;
+        }
+    }, {
+        key: '_onWebSocketClose',
+        value: function _onWebSocketClose(e) {
+            if (this._requestAbort === true) {
+                this._requestAbort = false;
+                return;
+            }
+
+            this._status = _loader.LoaderStatus.kComplete;
+
+            if (this._onComplete) {
+                this._onComplete(0, this._receivedLength - 1);
+            }
+        }
+    }, {
+        key: '_onWebSocketMessage',
+        value: function _onWebSocketMessage(e) {
+            var _this2 = this;
+
+            if (e.data instanceof ArrayBuffer) {
+                this._dispatchArrayBuffer(e.data);
+            } else if (e.data instanceof Blob) {
+                var reader = new FileReader();
+                reader.onload = function () {
+                    _this2._dispatchArrayBuffer(reader.result);
+                };
+                reader.readAsArrayBuffer(e.data);
+            } else {
+                this._status = _loader.LoaderStatus.kError;
+                var info = { code: -1, msg: 'Unsupported WebSocket message type: ' + e.data.constructor.name };
+
+                if (this._onError) {
+                    this._onError(_loader.LoaderErrors.EXCEPTION, info);
+                } else {
+                    throw new _exception.RuntimeException(info.msg);
+                }
+            }
+        }
+    }, {
+        key: '_dispatchArrayBuffer',
+        value: function _dispatchArrayBuffer(arraybuffer) {
+            var chunk = arraybuffer;
+            var byteStart = this._receivedLength;
+            this._receivedLength += chunk.byteLength;
+
+            if (this._onDataArrival) {
+                this._onDataArrival(chunk, byteStart, this._receivedLength);
+            }
+        }
+    }, {
+        key: '_onWebSocketError',
+        value: function _onWebSocketError(e) {
+            this._status = _loader.LoaderStatus.kError;
+
+            var info = {
+                code: e.code,
+                msg: e.message
+            };
+
+            if (this._onError) {
+                this._onError(_loader.LoaderErrors.EXCEPTION, info);
+            } else {
+                throw new _exception.RuntimeException(info.msg);
+            }
+        }
+    }]);
+
+    return WebSocketLoader;
+}(_loader.BaseLoader);
+
+exports.default = WebSocketLoader;
+module.exports = exports['default'];
+
+/***/ }),
+/* 31 */
+/***/ (function(module, exports, __webpack_require__) {
+
+"use strict";
+
+
+Object.defineProperty(exports, "__esModule", {
+    value: true
+});
+
+var _createClass = function () { function defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ("value" in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } } return function (Constructor, protoProps, staticProps) { if (protoProps) defineProperties(Constructor.prototype, protoProps); if (staticProps) defineProperties(Constructor, staticProps); return Constructor; }; }();
+
+function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } }
+
+/*
+ * Copyright (C) 2016 Bilibili. All Rights Reserved.
+ *
+ * @author zheng qian <xqq@xqq.im>
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+
+var RangeSeekHandler = function () {
+    function RangeSeekHandler(zeroStart) {
+        _classCallCheck(this, RangeSeekHandler);
+
+        this._zeroStart = zeroStart || false;
+    }
+
+    _createClass(RangeSeekHandler, [{
+        key: 'getConfig',
+        value: function getConfig(url, range) {
+            var headers = {};
+
+            if (range.from !== 0 || range.to !== -1) {
+                var param = void 0;
+                if (range.to !== -1) {
+                    param = 'bytes=' + range.from.toString() + '-' + range.to.toString();
+                } else {
+                    param = 'bytes=' + range.from.toString() + '-';
+                }
+                headers['Range'] = param;
+            } else if (this._zeroStart) {
+                headers['Range'] = 'bytes=0-';
+            }
+
+            return {
+                url: url,
+                headers: headers
+            };
+        }
+    }, {
+        key: 'removeURLParameters',
+        value: function removeURLParameters(seekedURL) {
+            return seekedURL;
+        }
+    }]);
+
+    return RangeSeekHandler;
+}();
+
+exports.default = RangeSeekHandler;
+module.exports = exports['default'];
+
+/***/ }),
+/* 32 */
+/***/ (function(module, exports, __webpack_require__) {
+
+"use strict";
+
+
+Object.defineProperty(exports, "__esModule", {
+    value: true
+});
+
+var _createClass = function () { function defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ("value" in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } } return function (Constructor, protoProps, staticProps) { if (protoProps) defineProperties(Constructor.prototype, protoProps); if (staticProps) defineProperties(Constructor, staticProps); return Constructor; }; }();
+
+function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } }
+
+/*
+ * Copyright (C) 2016 Bilibili. All Rights Reserved.
+ *
+ * @author zheng qian <xqq@xqq.im>
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+
+var ParamSeekHandler = function () {
+    function ParamSeekHandler(paramStart, paramEnd) {
+        _classCallCheck(this, ParamSeekHandler);
+
+        this._startName = paramStart;
+        this._endName = paramEnd;
+    }
+
+    _createClass(ParamSeekHandler, [{
+        key: 'getConfig',
+        value: function getConfig(baseUrl, range) {
+            var url = baseUrl;
+
+            if (range.from !== 0 || range.to !== -1) {
+                var needAnd = true;
+                if (url.indexOf('?') === -1) {
+                    url += '?';
+                    needAnd = false;
+                }
+
+                if (needAnd) {
+                    url += '&';
+                }
+
+                url += this._startName + '=' + range.from.toString();
+
+                if (range.to !== -1) {
+                    url += '&' + this._endName + '=' + range.to.toString();
+                }
+            }
+
+            return {
+                url: url,
+                headers: {}
+            };
+        }
+    }, {
+        key: 'removeURLParameters',
+        value: function removeURLParameters(seekedURL) {
+            var baseURL = seekedURL.split('?')[0];
+            var params = undefined;
+
+            var queryIndex = seekedURL.indexOf('?');
+            if (queryIndex !== -1) {
+                params = seekedURL.substring(queryIndex + 1);
+            }
+
+            var resultParams = '';
+
+            if (params != undefined && params.length > 0) {
+                var pairs = params.split('&');
+
+                for (var i = 0; i < pairs.length; i++) {
+                    var pair = pairs[i].split('=');
+                    var requireAnd = i > 0;
+
+                    if (pair[0] !== this._startName && pair[0] !== this._endName) {
+                        if (requireAnd) {
+                            resultParams += '&';
+                        }
+                        resultParams += pairs[i];
+                    }
+                }
+            }
+
+            return resultParams.length === 0 ? baseURL : baseURL + '?' + resultParams;
+        }
+    }]);
+
+    return ParamSeekHandler;
+}();
+
+exports.default = ParamSeekHandler;
+module.exports = exports['default'];
+
+/***/ }),
+/* 33 */
+/***/ (function(module, exports, __webpack_require__) {
+
+"use strict";
+
+
+Object.defineProperty(exports, "__esModule", {
+    value: true
+});
+
+var _typeof = typeof Symbol === "function" && typeof Symbol.iterator === "symbol" ? function (obj) { return typeof obj; } : function (obj) { return obj && typeof Symbol === "function" && obj.constructor === Symbol && obj !== Symbol.prototype ? "symbol" : typeof obj; };
+
+var _createClass = function () { function defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ("value" in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } } return function (Constructor, protoProps, staticProps) { if (protoProps) defineProperties(Constructor.prototype, protoProps); if (staticProps) defineProperties(Constructor, staticProps); return Constructor; }; }(); /*
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                      * Copyright (C) 2016 Bilibili. All Rights Reserved.
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                      *
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                      * @author zheng qian <xqq@xqq.im>
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                      *
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                      * Licensed under the Apache License, Version 2.0 (the "License");
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                      * you may not use this file except in compliance with the License.
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                      * You may obtain a copy of the License at
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                      *
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                      *     http://www.apache.org/licenses/LICENSE-2.0
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                      *
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                      * Unless required by applicable law or agreed to in writing, software
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                      * distributed under the License is distributed on an "AS IS" BASIS,
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                      * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                      * See the License for the specific language governing permissions and
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                      * limitations under the License.
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                      */
+
+var _events = __webpack_require__(2);
+
+var _events2 = _interopRequireDefault(_events);
+
+var _logger = __webpack_require__(0);
+
+var _logger2 = _interopRequireDefault(_logger);
+
+var _browser = __webpack_require__(4);
+
+var _browser2 = _interopRequireDefault(_browser);
+
+var _playerEvents = __webpack_require__(7);
+
+var _playerEvents2 = _interopRequireDefault(_playerEvents);
+
+var _transmuxer = __webpack_require__(34);
+
+var _transmuxer2 = _interopRequireDefault(_transmuxer);
+
+var _transmuxingEvents = __webpack_require__(5);
+
+var _transmuxingEvents2 = _interopRequireDefault(_transmuxingEvents);
+
+var _mseController = __webpack_require__(45);
+
+var _mseController2 = _interopRequireDefault(_mseController);
+
+var _mseEvents = __webpack_require__(16);
+
+var _mseEvents2 = _interopRequireDefault(_mseEvents);
+
+var _playerErrors = __webpack_require__(17);
+
+var _config = __webpack_require__(6);
+
+var _exception = __webpack_require__(1);
+
+function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
+
+function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } }
+
+var FlvPlayer = function () {
+    function FlvPlayer(mediaDataSource, config) {
+        _classCallCheck(this, FlvPlayer);
+
+        this.TAG = 'FlvPlayer';
+        this._type = 'FlvPlayer';
+        this._emitter = new _events2.default();
+
+        this._config = (0, _config.createDefaultConfig)();
+        if ((typeof config === 'undefined' ? 'undefined' : _typeof(config)) === 'object') {
+            Object.assign(this._config, config);
+        }
+
+        if (mediaDataSource.type.toLowerCase() !== 'flv') {
+            throw new _exception.InvalidArgumentException('FlvPlayer requires an flv MediaDataSource input!');
+        }
+
+        if (mediaDataSource.isLive === true) {
+            this._config.isLive = true;
+        }
+
+        this.e = {
+            onvLoadedMetadata: this._onvLoadedMetadata.bind(this),
+            onvSeeking: this._onvSeeking.bind(this),
+            onvCanPlay: this._onvCanPlay.bind(this),
+            onvStalled: this._onvStalled.bind(this),
+            onvProgress: this._onvProgress.bind(this)
+        };
+
+        if (self.performance && self.performance.now) {
+            this._now = self.performance.now.bind(self.performance);
+        } else {
+            this._now = Date.now;
+        }
+
+        this._pendingSeekTime = null; // in seconds
+        this._requestSetTime = false;
+        this._seekpointRecord = null;
+        this._progressChecker = null;
+
+        this._mediaDataSource = mediaDataSource;
+        this._mediaElement = null;
+        this._msectl = null;
+        this._transmuxer = null;
+
+        this._mseSourceOpened = false;
+        this._hasPendingLoad = false;
+        this._receivedCanPlay = false;
+
+        this._mediaInfo = null;
+        this._statisticsInfo = null;
+
+        var chromeNeedIDRFix = _browser2.default.chrome && (_browser2.default.version.major < 50 || _browser2.default.version.major === 50 && _browser2.default.version.build < 2661);
+        this._alwaysSeekKeyframe = chromeNeedIDRFix || _browser2.default.msedge || _browser2.default.msie ? true : false;
+
+        if (this._alwaysSeekKeyframe) {
+            this._config.accurateSeek = false;
+        }
+    }
+
+    _createClass(FlvPlayer, [{
+        key: 'destroy',
+        value: function destroy() {
+            if (this._progressChecker != null) {
+                window.clearInterval(this._progressChecker);
+                this._progressChecker = null;
+            }
+            if (this._transmuxer) {
+                this.unload();
+            }
+            if (this._mediaElement) {
+                this.detachMediaElement();
+            }
+            this.e = null;
+            this._mediaDataSource = null;
+
+            this._emitter.removeAllListeners();
+            this._emitter = null;
+        }
+    }, {
+        key: 'on',
+        value: function on(event, listener) {
+            var _this = this;
+
+            if (event === _playerEvents2.default.MEDIA_INFO) {
+                if (this._mediaInfo != null) {
+                    Promise.resolve().then(function () {
+                        _this._emitter.emit(_playerEvents2.default.MEDIA_INFO, _this.mediaInfo);
+                    });
+                }
+            } else if (event === _playerEvents2.default.STATISTICS_INFO) {
+                if (this._statisticsInfo != null) {
+                    Promise.resolve().then(function () {
+                        _this._emitter.emit(_playerEvents2.default.STATISTICS_INFO, _this.statisticsInfo);
+                    });
+                }
+            }
+            this._emitter.addListener(event, listener);
+        }
+    }, {
+        key: 'off',
+        value: function off(event, listener) {
+            this._emitter.removeListener(event, listener);
+        }
+    }, {
+        key: 'attachMediaElement',
+        value: function attachMediaElement(mediaElement) {
+            var _this2 = this;
+
+            this._mediaElement = mediaElement;
+            mediaElement.addEventListener('loadedmetadata', this.e.onvLoadedMetadata);
+            mediaElement.addEventListener('seeking', this.e.onvSeeking);
+            mediaElement.addEventListener('canplay', this.e.onvCanPlay);
+            mediaElement.addEventListener('stalled', this.e.onvStalled);
+            mediaElement.addEventListener('progress', this.e.onvProgress);
+
+            this._msectl = new _mseController2.default(this._config);
+
+            this._msectl.on(_mseEvents2.default.UPDATE_END, this._onmseUpdateEnd.bind(this));
+            this._msectl.on(_mseEvents2.default.BUFFER_FULL, this._onmseBufferFull.bind(this));
+            this._msectl.on(_mseEvents2.default.SOURCE_OPEN, function () {
+                _this2._mseSourceOpened = true;
+                if (_this2._hasPendingLoad) {
+                    _this2._hasPendingLoad = false;
+                    _this2.load();
+                }
+            });
+            this._msectl.on(_mseEvents2.default.ERROR, function (info) {
+                _this2._emitter.emit(_playerEvents2.default.ERROR, _playerErrors.ErrorTypes.MEDIA_ERROR, _playerErrors.ErrorDetails.MEDIA_MSE_ERROR, info);
+            });
+
+            this._msectl.attachMediaElement(mediaElement);
+
+            if (this._pendingSeekTime != null) {
+                try {
+                    mediaElement.currentTime = this._pendingSeekTime;
+                    this._pendingSeekTime = null;
+                } catch (e) {
+                    // IE11 may throw InvalidStateError if readyState === 0
+                    // We can defer set currentTime operation after loadedmetadata
+                }
+            }
+        }
+    }, {
+        key: 'detachMediaElement',
+        value: function detachMediaElement() {
+            if (this._mediaElement) {
+                this._msectl.detachMediaElement();
+                this._mediaElement.removeEventListener('loadedmetadata', this.e.onvLoadedMetadata);
+                this._mediaElement.removeEventListener('seeking', this.e.onvSeeking);
+                this._mediaElement.removeEventListener('canplay', this.e.onvCanPlay);
+                this._mediaElement.removeEventListener('stalled', this.e.onvStalled);
+                this._mediaElement.removeEventListener('progress', this.e.onvProgress);
+                this._mediaElement = null;
+            }
+            if (this._msectl) {
+                this._msectl.destroy();
+                this._msectl = null;
+            }
+        }
+    }, {
+        key: 'load',
+        value: function load() {
+            var _this3 = this;
+
+            if (!this._mediaElement) {
+                throw new _exception.IllegalStateException('HTMLMediaElement must be attached before load()!');
+            }
+            if (this._transmuxer) {
+                throw new _exception.IllegalStateException('FlvPlayer.load() has been called, please call unload() first!');
+            }
+            if (this._hasPendingLoad) {
+                return;
+            }
+
+            if (this._config.deferLoadAfterSourceOpen && this._mseSourceOpened === false) {
+                this._hasPendingLoad = true;
+                return;
+            }
+
+            if (this._mediaElement.readyState > 0) {
+                this._requestSetTime = true;
+                // IE11 may throw InvalidStateError if readyState === 0
+                this._mediaElement.currentTime = 0;
+            }
+
+            this._transmuxer = new _transmuxer2.default(this._mediaDataSource, this._config);
+
+            this._transmuxer.on(_transmuxingEvents2.default.INIT_SEGMENT, function (type, is) {
+                _this3._msectl.appendInitSegment(is);
+            });
+            this._transmuxer.on(_transmuxingEvents2.default.MEDIA_SEGMENT, function (type, ms) {
+                _this3._msectl.appendMediaSegment(ms);
+
+                // lazyLoad check
+                if (_this3._config.lazyLoad && !_this3._config.isLive) {
+                    var currentTime = _this3._mediaElement.currentTime;
+                    if (ms.info.endDts >= (currentTime + _this3._config.lazyLoadMaxDuration) * 1000) {
+                        if (_this3._progressChecker == null) {
+                            _logger2.default.v(_this3.TAG, 'Maximum buffering duration exceeded, suspend transmuxing task');
+                            _this3._suspendTransmuxer();
+                        }
+                    }
+                }
+            });
+            this._transmuxer.on(_transmuxingEvents2.default.LOADING_COMPLETE, function () {
+                _this3._msectl.endOfStream();
+                _this3._emitter.emit(_playerEvents2.default.LOADING_COMPLETE);
+            });
+            this._transmuxer.on(_transmuxingEvents2.default.RECOVERED_EARLY_EOF, function () {
+                _this3._emitter.emit(_playerEvents2.default.RECOVERED_EARLY_EOF);
+            });
+            this._transmuxer.on(_transmuxingEvents2.default.IO_ERROR, function (detail, info) {
+                _this3._emitter.emit(_playerEvents2.default.ERROR, _playerErrors.ErrorTypes.NETWORK_ERROR, detail, info);
+            });
+            this._transmuxer.on(_transmuxingEvents2.default.DEMUX_ERROR, function (detail, info) {
+                _this3._emitter.emit(_playerEvents2.default.ERROR, _playerErrors.ErrorTypes.MEDIA_ERROR, detail, { code: -1, msg: info });
+            });
+            this._transmuxer.on(_transmuxingEvents2.default.MEDIA_INFO, function (mediaInfo) {
+                _this3._mediaInfo = mediaInfo;
+                _this3._emitter.emit(_playerEvents2.default.MEDIA_INFO, Object.assign({}, mediaInfo));
+            });
+            this._transmuxer.on(_transmuxingEvents2.default.STATISTICS_INFO, function (statInfo) {
+                _this3._statisticsInfo = _this3._fillStatisticsInfo(statInfo);
+                _this3._emitter.emit(_playerEvents2.default.STATISTICS_INFO, Object.assign({}, _this3._statisticsInfo));
+            });
+            this._transmuxer.on(_transmuxingEvents2.default.RECOMMEND_SEEKPOINT, function (milliseconds) {
+                if (_this3._mediaElement && !_this3._config.accurateSeek) {
+                    _this3._requestSetTime = true;
+                    _this3._mediaElement.currentTime = milliseconds / 1000;
+                }
+            });
+
+            this._transmuxer.on(_transmuxingEvents2.default.LOADED_SEI, function (timestamp, data) {
+                _this3._emitter.emit(_playerEvents2.default.LOADED_SEI, timestamp, data);
+            });
+
+            this._transmuxer.open();
+        }
+    }, {
+        key: 'unload',
+        value: function unload() {
+            if (this._mediaElement) {
+                this._mediaElement.pause();
+            }
+            if (this._msectl) {
+                this._msectl.seek(0);
+            }
+            if (this._transmuxer) {
+                this._transmuxer.close();
+                this._transmuxer.destroy();
+                this._transmuxer = null;
+            }
+        }
+    }, {
+        key: 'play',
+        value: function play() {
+            var playPromise = this._mediaElement.play();
+            if (playPromise !== undefined && playPromise) {
+                return playPromise.catch(function () {});
+            } else return undefined;
+        }
+    }, {
+        key: 'pause',
+        value: function pause() {
+            this._mediaElement.pause();
+        }
+    }, {
+        key: '_fillStatisticsInfo',
+        value: function _fillStatisticsInfo(statInfo) {
+            statInfo.playerType = this._type;
+
+            if (!(this._mediaElement instanceof HTMLVideoElement)) {
+                return statInfo;
+            }
+
+            var hasQualityInfo = true;
+            var decoded = 0;
+            var dropped = 0;
+
+            if (this._mediaElement.getVideoPlaybackQuality) {
+                var quality = this._mediaElement.getVideoPlaybackQuality();
+                decoded = quality.totalVideoFrames;
+                dropped = quality.droppedVideoFrames;
+            } else if (this._mediaElement.webkitDecodedFrameCount != undefined) {
+                decoded = this._mediaElement.webkitDecodedFrameCount;
+                dropped = this._mediaElement.webkitDroppedFrameCount;
+            } else {
+                hasQualityInfo = false;
+            }
+
+            if (hasQualityInfo) {
+                statInfo.decodedFrames = decoded;
+                statInfo.droppedFrames = dropped;
+            }
+
+            return statInfo;
+        }
+    }, {
+        key: '_onmseUpdateEnd',
+        value: function _onmseUpdateEnd() {
+            if (!this._config.lazyLoad || this._config.isLive) {
+                return;
+            }
+
+            var buffered = this._mediaElement.buffered;
+            var currentTime = this._mediaElement.currentTime;
+            var currentRangeStart = 0;
+            var currentRangeEnd = 0;
+
+            for (var i = 0; i < buffered.length; i++) {
+                var start = buffered.start(i);
+                var end = buffered.end(i);
+                if (start <= currentTime && currentTime < end) {
+                    currentRangeStart = start;
+                    currentRangeEnd = end;
+                    break;
+                }
+            }
+
+            if (currentRangeEnd >= currentTime + this._config.lazyLoadMaxDuration && this._progressChecker == null) {
+                _logger2.default.v(this.TAG, 'Maximum buffering duration exceeded, suspend transmuxing task');
+                this._suspendTransmuxer();
+            }
+        }
+    }, {
+        key: '_onmseBufferFull',
+        value: function _onmseBufferFull() {
+            _logger2.default.v(this.TAG, 'MSE SourceBuffer is full, suspend transmuxing task');
+            if (this._progressChecker == null) {
+                this._suspendTransmuxer();
+            }
+        }
+    }, {
+        key: '_suspendTransmuxer',
+        value: function _suspendTransmuxer() {
+            if (this._transmuxer) {
+                this._transmuxer.pause();
+
+                if (this._progressChecker == null) {
+                    this._progressChecker = window.setInterval(this._checkProgressAndResume.bind(this), 1000);
+                }
+            }
+        }
+    }, {
+        key: '_checkProgressAndResume',
+        value: function _checkProgressAndResume() {
+            var currentTime = this._mediaElement.currentTime;
+            var buffered = this._mediaElement.buffered;
+
+            var needResume = false;
+
+            for (var i = 0; i < buffered.length; i++) {
+                var from = buffered.start(i);
+                var to = buffered.end(i);
+                if (currentTime >= from && currentTime < to) {
+                    if (currentTime >= to - this._config.lazyLoadRecoverDuration) {
+                        needResume = true;
+                    }
+                    break;
+                }
+            }
+
+            if (needResume) {
+                window.clearInterval(this._progressChecker);
+                this._progressChecker = null;
+                if (needResume) {
+                    _logger2.default.v(this.TAG, 'Continue loading from paused position');
+                    this._transmuxer.resume();
+                }
+            }
+        }
+    }, {
+        key: '_isTimepointBuffered',
+        value: function _isTimepointBuffered(seconds) {
+            var buffered = this._mediaElement.buffered;
+
+            for (var i = 0; i < buffered.length; i++) {
+                var from = buffered.start(i);
+                var to = buffered.end(i);
+                if (seconds >= from && seconds < to) {
+                    return true;
+                }
+            }
+            return false;
+        }
+    }, {
+        key: '_internalSeek',
+        value: function _internalSeek(seconds) {
+            var directSeek = this._isTimepointBuffered(seconds);
+
+            var directSeekBegin = false;
+            var directSeekBeginTime = 0;
+
+            if (seconds < 1.0 && this._mediaElement.buffered.length > 0) {
+                var videoBeginTime = this._mediaElement.buffered.start(0);
+                if (videoBeginTime < 1.0 && seconds < videoBeginTime || _browser2.default.safari) {
+                    directSeekBegin = true;
+                    // also workaround for Safari: Seek to 0 may cause video stuck, use 0.1 to avoid
+                    directSeekBeginTime = _browser2.default.safari ? 0.1 : videoBeginTime;
+                }
+            }
+
+            if (directSeekBegin) {
+                // seek to video begin, set currentTime directly if beginPTS buffered
+                this._requestSetTime = true;
+                this._mediaElement.currentTime = directSeekBeginTime;
+            } else if (directSeek) {
+                // buffered position
+                if (!this._alwaysSeekKeyframe) {
+                    this._requestSetTime = true;
+                    this._mediaElement.currentTime = seconds;
+                } else {
+                    var idr = this._msectl.getNearestKeyframe(Math.floor(seconds * 1000));
+                    this._requestSetTime = true;
+                    if (idr != null) {
+                        this._mediaElement.currentTime = idr.dts / 1000;
+                    } else {
+                        this._mediaElement.currentTime = seconds;
+                    }
+                }
+                if (this._progressChecker != null) {
+                    this._checkProgressAndResume();
+                }
+            } else {
+                if (this._progressChecker != null) {
+                    window.clearInterval(this._progressChecker);
+                    this._progressChecker = null;
+                }
+                this._msectl.seek(seconds);
+                this._transmuxer.seek(Math.floor(seconds * 1000)); // in milliseconds
+                // no need to set mediaElement.currentTime if non-accurateSeek,
+                // just wait for the recommend_seekpoint callback
+                if (this._config.accurateSeek) {
+                    this._requestSetTime = true;
+                    this._mediaElement.currentTime = seconds;
+                }
+            }
+        }
+    }, {
+        key: '_checkAndApplyUnbufferedSeekpoint',
+        value: function _checkAndApplyUnbufferedSeekpoint() {
+            if (this._seekpointRecord) {
+                if (this._seekpointRecord.recordTime <= this._now() - 100) {
+                    var target = this._mediaElement.currentTime;
+                    this._seekpointRecord = null;
+                    if (!this._isTimepointBuffered(target)) {
+                        if (this._progressChecker != null) {
+                            window.clearTimeout(this._progressChecker);
+                            this._progressChecker = null;
+                        }
+                        // .currentTime is consists with .buffered timestamp
+                        // Chrome/Edge use DTS, while FireFox/Safari use PTS
+                        this._msectl.seek(target);
+                        this._transmuxer.seek(Math.floor(target * 1000));
+                        // set currentTime if accurateSeek, or wait for recommend_seekpoint callback
+                        if (this._config.accurateSeek) {
+                            this._requestSetTime = true;
+                            this._mediaElement.currentTime = target;
+                        }
+                    }
+                } else {
+                    window.setTimeout(this._checkAndApplyUnbufferedSeekpoint.bind(this), 50);
+                }
+            }
+        }
+    }, {
+        key: '_checkAndResumeStuckPlayback',
+        value: function _checkAndResumeStuckPlayback(stalled) {
+            var media = this._mediaElement;
+            if (stalled || !this._receivedCanPlay || media.readyState < 2) {
+                // HAVE_CURRENT_DATA
+                var buffered = media.buffered;
+                if (buffered.length > 0 && media.currentTime < buffered.start(0)) {
+                    _logger2.default.w(this.TAG, 'Playback seems stuck at ' + media.currentTime + ', seek to ' + buffered.start(0));
+                    this._requestSetTime = true;
+                    this._mediaElement.currentTime = buffered.start(0);
+                    this._mediaElement.removeEventListener('progress', this.e.onvProgress);
+                }
+            } else {
+                // Playback didn't stuck, remove progress event listener
+                this._mediaElement.removeEventListener('progress', this.e.onvProgress);
+            }
+        }
+    }, {
+        key: '_onvLoadedMetadata',
+        value: function _onvLoadedMetadata(e) {
+            if (this._pendingSeekTime != null) {
+                this._mediaElement.currentTime = this._pendingSeekTime;
+                this._pendingSeekTime = null;
+            }
+        }
+    }, {
+        key: '_onvSeeking',
+        value: function _onvSeeking(e) {
+            // handle seeking request from browser's progress bar
+            var target = this._mediaElement.currentTime;
+            var buffered = this._mediaElement.buffered;
+
+            if (this._requestSetTime) {
+                this._requestSetTime = false;
+                return;
+            }
+
+            if (target < 1.0 && buffered.length > 0) {
+                // seek to video begin, set currentTime directly if beginPTS buffered
+                var videoBeginTime = buffered.start(0);
+                if (videoBeginTime < 1.0 && target < videoBeginTime || _browser2.default.safari) {
+                    this._requestSetTime = true;
+                    // also workaround for Safari: Seek to 0 may cause video stuck, use 0.1 to avoid
+                    this._mediaElement.currentTime = _browser2.default.safari ? 0.1 : videoBeginTime;
+                    return;
+                }
+            }
+
+            if (this._isTimepointBuffered(target)) {
+                if (this._alwaysSeekKeyframe) {
+                    var idr = this._msectl.getNearestKeyframe(Math.floor(target * 1000));
+                    if (idr != null) {
+                        this._requestSetTime = true;
+                        this._mediaElement.currentTime = idr.dts / 1000;
+                    }
+                }
+                if (this._progressChecker != null) {
+                    this._checkProgressAndResume();
+                }
+                return;
+            }
+
+            this._seekpointRecord = {
+                seekPoint: target,
+                recordTime: this._now()
+            };
+            window.setTimeout(this._checkAndApplyUnbufferedSeekpoint.bind(this), 50);
+        }
+    }, {
+        key: '_onvCanPlay',
+        value: function _onvCanPlay(e) {
+            this._receivedCanPlay = true;
+            this._mediaElement.removeEventListener('canplay', this.e.onvCanPlay);
+        }
+    }, {
+        key: '_onvStalled',
+        value: function _onvStalled(e) {
+            this._checkAndResumeStuckPlayback(true);
+        }
+    }, {
+        key: '_onvProgress',
+        value: function _onvProgress(e) {
+            this._checkAndResumeStuckPlayback();
+        }
+    }, {
+        key: 'type',
+        get: function get() {
+            return this._type;
+        }
+    }, {
+        key: 'buffered',
+        get: function get() {
+            return this._mediaElement.buffered;
+        }
+    }, {
+        key: 'duration',
+        get: function get() {
+            return this._mediaElement.duration;
+        }
+    }, {
+        key: 'volume',
+        get: function get() {
+            return this._mediaElement.volume;
+        },
+        set: function set(value) {
+            this._mediaElement.volume = value;
+        }
+    }, {
+        key: 'muted',
+        get: function get() {
+            return this._mediaElement.muted;
+        },
+        set: function set(muted) {
+            this._mediaElement.muted = muted;
+        }
+    }, {
+        key: 'currentTime',
+        get: function get() {
+            if (this._mediaElement) {
+                return this._mediaElement.currentTime;
+            }
+            return 0;
+        },
+        set: function set(seconds) {
+            if (this._mediaElement) {
+                this._internalSeek(seconds);
+            } else {
+                this._pendingSeekTime = seconds;
+            }
+        }
+    }, {
+        key: 'mediaInfo',
+        get: function get() {
+            return Object.assign({}, this._mediaInfo);
+        }
+    }, {
+        key: 'statisticsInfo',
+        get: function get() {
+            if (this._statisticsInfo == null) {
+                this._statisticsInfo = {};
+            }
+            this._statisticsInfo = this._fillStatisticsInfo(this._statisticsInfo);
+            return Object.assign({}, this._statisticsInfo);
+        }
+    }]);
+
+    return FlvPlayer;
+}();
+
+exports.default = FlvPlayer;
+module.exports = exports['default'];
+
+/***/ }),
+/* 34 */
+/***/ (function(module, exports, __webpack_require__) {
+
+"use strict";
+
+
+Object.defineProperty(exports, "__esModule", {
+    value: true
+});
+
+var _createClass = function () { function defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ("value" in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } } return function (Constructor, protoProps, staticProps) { if (protoProps) defineProperties(Constructor.prototype, protoProps); if (staticProps) defineProperties(Constructor, staticProps); return Constructor; }; }(); /*
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                      * Copyright (C) 2016 Bilibili. All Rights Reserved.
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                      *
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                      * @author zheng qian <xqq@xqq.im>
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                      *
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                      * Licensed under the Apache License, Version 2.0 (the "License");
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                      * you may not use this file except in compliance with the License.
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                      * You may obtain a copy of the License at
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                      *
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                      *     http://www.apache.org/licenses/LICENSE-2.0
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                      *
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                      * Unless required by applicable law or agreed to in writing, software
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                      * distributed under the License is distributed on an "AS IS" BASIS,
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                      * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                      * See the License for the specific language governing permissions and
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                      * limitations under the License.
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                      */
+
+var _events = __webpack_require__(2);
+
+var _events2 = _interopRequireDefault(_events);
+
+var _logger = __webpack_require__(0);
+
+var _logger2 = _interopRequireDefault(_logger);
+
+var _loggingControl = __webpack_require__(8);
+
+var _loggingControl2 = _interopRequireDefault(_loggingControl);
+
+var _transmuxingController = __webpack_require__(14);
+
+var _transmuxingController2 = _interopRequireDefault(_transmuxingController);
+
+var _transmuxingEvents = __webpack_require__(5);
+
+var _transmuxingEvents2 = _interopRequireDefault(_transmuxingEvents);
+
+var _transmuxingWorker = __webpack_require__(43);
+
+var _transmuxingWorker2 = _interopRequireDefault(_transmuxingWorker);
+
+var _mediaInfo = __webpack_require__(9);
+
+var _mediaInfo2 = _interopRequireDefault(_mediaInfo);
+
+function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
+
+function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } }
+
+var Transmuxer = function () {
+    function Transmuxer(mediaDataSource, config) {
+        _classCallCheck(this, Transmuxer);
+
+        this.TAG = 'Transmuxer';
+        this._emitter = new _events2.default();
+
+        if (config.enableWorker && typeof Worker !== 'undefined') {
+            try {
+                var work = __webpack_require__(44);
+                this._worker = work(_transmuxingWorker2.default);
+                this._workerDestroying = false;
+                this._worker.addEventListener('message', this._onWorkerMessage.bind(this));
+                this._worker.postMessage({ cmd: 'init', param: [mediaDataSource, config] });
+                this.e = {
+                    onLoggingConfigChanged: this._onLoggingConfigChanged.bind(this)
+                };
+                _loggingControl2.default.registerListener(this.e.onLoggingConfigChanged);
+                this._worker.postMessage({ cmd: 'logging_config', param: _loggingControl2.default.getConfig() });
+            } catch (error) {
+                _logger2.default.e(this.TAG, 'Error while initialize transmuxing worker, fallback to inline transmuxing');
+                this._worker = null;
+                this._controller = new _transmuxingController2.default(mediaDataSource, config);
+            }
+        } else {
+            this._controller = new _transmuxingController2.default(mediaDataSource, config);
+        }
+
+        if (this._controller) {
+            var ctl = this._controller;
+            ctl.on(_transmuxingEvents2.default.IO_ERROR, this._onIOError.bind(this));
+            ctl.on(_transmuxingEvents2.default.DEMUX_ERROR, this._onDemuxError.bind(this));
+            ctl.on(_transmuxingEvents2.default.INIT_SEGMENT, this._onInitSegment.bind(this));
+            ctl.on(_transmuxingEvents2.default.MEDIA_SEGMENT, this._onMediaSegment.bind(this));
+            ctl.on(_transmuxingEvents2.default.LOADING_COMPLETE, this._onLoadingComplete.bind(this));
+            ctl.on(_transmuxingEvents2.default.RECOVERED_EARLY_EOF, this._onRecoveredEarlyEof.bind(this));
+            ctl.on(_transmuxingEvents2.default.MEDIA_INFO, this._onMediaInfo.bind(this));
+            ctl.on(_transmuxingEvents2.default.STATISTICS_INFO, this._onStatisticsInfo.bind(this));
+            ctl.on(_transmuxingEvents2.default.RECOMMEND_SEEKPOINT, this._onRecommendSeekpoint.bind(this));
+            ctl.on(_transmuxingEvents2.default.LOADED_SEI, this._onLoadedSei.bind(this));
+        }
+    }
+
+    _createClass(Transmuxer, [{
+        key: 'destroy',
+        value: function destroy() {
+            if (this._worker) {
+                if (!this._workerDestroying) {
+                    this._workerDestroying = true;
+                    this._worker.postMessage({ cmd: 'destroy' });
+                    _loggingControl2.default.removeListener(this.e.onLoggingConfigChanged);
+                    this.e = null;
+                }
+            } else {
+                this._controller.destroy();
+                this._controller = null;
+            }
+            this._emitter.removeAllListeners();
+            this._emitter = null;
+        }
+    }, {
+        key: 'on',
+        value: function on(event, listener) {
+            this._emitter.addListener(event, listener);
+        }
+    }, {
+        key: 'off',
+        value: function off(event, listener) {
+            this._emitter.removeListener(event, listener);
+        }
+    }, {
+        key: 'hasWorker',
+        value: function hasWorker() {
+            return this._worker != null;
+        }
+    }, {
+        key: 'open',
+        value: function open() {
+            if (this._worker) {
+                this._worker.postMessage({ cmd: 'start' });
+            } else {
+                this._controller.start();
+            }
+        }
+    }, {
+        key: 'close',
+        value: function close() {
+            if (this._worker) {
+                this._worker.postMessage({ cmd: 'stop' });
+            } else {
+                this._controller.stop();
+            }
+        }
+    }, {
+        key: 'seek',
+        value: function seek(milliseconds) {
+            if (this._worker) {
+                this._worker.postMessage({ cmd: 'seek', param: milliseconds });
+            } else {
+                this._controller.seek(milliseconds);
+            }
+        }
+    }, {
+        key: 'pause',
+        value: function pause() {
+            if (this._worker) {
+                this._worker.postMessage({ cmd: 'pause' });
+            } else {
+                this._controller.pause();
+            }
+        }
+    }, {
+        key: 'resume',
+        value: function resume() {
+            if (this._worker) {
+                this._worker.postMessage({ cmd: 'resume' });
+            } else {
+                this._controller.resume();
+            }
+        }
+    }, {
+        key: '_onInitSegment',
+        value: function _onInitSegment(type, initSegment) {
+            var _this = this;
+
+            // do async invoke
+            Promise.resolve().then(function () {
+                _this._emitter.emit(_transmuxingEvents2.default.INIT_SEGMENT, type, initSegment);
+            });
+        }
+    }, {
+        key: '_onMediaSegment',
+        value: function _onMediaSegment(type, mediaSegment) {
+            var _this2 = this;
+
+            Promise.resolve().then(function () {
+                _this2._emitter.emit(_transmuxingEvents2.default.MEDIA_SEGMENT, type, mediaSegment);
+            });
+        }
+    }, {
+        key: '_onLoadingComplete',
+        value: function _onLoadingComplete() {
+            var _this3 = this;
+
+            Promise.resolve().then(function () {
+                _this3._emitter.emit(_transmuxingEvents2.default.LOADING_COMPLETE);
+            });
+        }
+    }, {
+        key: '_onRecoveredEarlyEof',
+        value: function _onRecoveredEarlyEof() {
+            var _this4 = this;
+
+            Promise.resolve().then(function () {
+                _this4._emitter.emit(_transmuxingEvents2.default.RECOVERED_EARLY_EOF);
+            });
+        }
+    }, {
+        key: '_onMediaInfo',
+        value: function _onMediaInfo(mediaInfo) {
+            var _this5 = this;
+
+            Promise.resolve().then(function () {
+                _this5._emitter.emit(_transmuxingEvents2.default.MEDIA_INFO, mediaInfo);
+            });
+        }
+    }, {
+        key: '_onStatisticsInfo',
+        value: function _onStatisticsInfo(statisticsInfo) {
+            var _this6 = this;
+
+            Promise.resolve().then(function () {
+                _this6._emitter.emit(_transmuxingEvents2.default.STATISTICS_INFO, statisticsInfo);
+            });
+        }
+    }, {
+        key: '_onIOError',
+        value: function _onIOError(type, info) {
+            var _this7 = this;
+
+            Promise.resolve().then(function () {
+                _this7._emitter.emit(_transmuxingEvents2.default.IO_ERROR, type, info);
+            });
+        }
+    }, {
+        key: '_onDemuxError',
+        value: function _onDemuxError(type, info) {
+            var _this8 = this;
+
+            Promise.resolve().then(function () {
+                _this8._emitter.emit(_transmuxingEvents2.default.DEMUX_ERROR, type, info);
+            });
+        }
+    }, {
+        key: '_onRecommendSeekpoint',
+        value: function _onRecommendSeekpoint(milliseconds) {
+            var _this9 = this;
+
+            Promise.resolve().then(function () {
+                _this9._emitter.emit(_transmuxingEvents2.default.RECOMMEND_SEEKPOINT, milliseconds);
+            });
+        }
+    }, {
+        key: '_onLoadedSei',
+        value: function _onLoadedSei(timestamp, data) {
+            var _this10 = this;
+
+            Promise.resolve().then(function () {
+                _this10._emitter.emit(_transmuxingEvents2.default.LOADED_SEI, timestamp, data);
+            });
+        }
+    }, {
+        key: '_onLoggingConfigChanged',
+        value: function _onLoggingConfigChanged(config) {
+            if (this._worker) {
+                this._worker.postMessage({ cmd: 'logging_config', param: config });
+            }
+        }
+    }, {
+        key: '_onWorkerMessage',
+        value: function _onWorkerMessage(e) {
+            var message = e.data;
+            var data = message.data;
+
+            if (message.msg === 'destroyed' || this._workerDestroying) {
+                this._workerDestroying = false;
+                this._worker.terminate();
+                this._worker = null;
+                return;
+            }
+
+            switch (message.msg) {
+                case _transmuxingEvents2.default.INIT_SEGMENT:
+                case _transmuxingEvents2.default.MEDIA_SEGMENT:
+                    this._emitter.emit(message.msg, data.type, data.data);
+                    break;
+                case _transmuxingEvents2.default.LOADING_COMPLETE:
+                case _transmuxingEvents2.default.RECOVERED_EARLY_EOF:
+                    this._emitter.emit(message.msg);
+                    break;
+                case _transmuxingEvents2.default.MEDIA_INFO:
+                    Object.setPrototypeOf(data, _mediaInfo2.default.prototype);
+                    this._emitter.emit(message.msg, data);
+                    break;
+                case _transmuxingEvents2.default.STATISTICS_INFO:
+                    this._emitter.emit(message.msg, data);
+                    break;
+                case _transmuxingEvents2.default.IO_ERROR:
+                case _transmuxingEvents2.default.DEMUX_ERROR:
+                    this._emitter.emit(message.msg, data.type, data.info);
+                    break;
+                case _transmuxingEvents2.default.RECOMMEND_SEEKPOINT:
+                    this._emitter.emit(message.msg, data);
+                    break;
+                case 'logcat_callback':
+                    _logger2.default.emitter.emit('log', data.type, data.logcat);
+                    break;
+                default:
+                    break;
+            }
+        }
+    }]);
+
+    return Transmuxer;
+}();
+
+exports.default = Transmuxer;
+module.exports = exports['default'];
+
+/***/ }),
+/* 35 */
+/***/ (function(module, exports, __webpack_require__) {
+
+"use strict";
+
+
+Object.defineProperty(exports, "__esModule", {
+  value: true
+});
+
+var _typeof = typeof Symbol === "function" && typeof Symbol.iterator === "symbol" ? function (obj) { return typeof obj; } : function (obj) { return obj && typeof Symbol === "function" && obj.constructor === Symbol && obj !== Symbol.prototype ? "symbol" : typeof obj; };
+
+var _createClass = function () { function defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ("value" in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } } return function (Constructor, protoProps, staticProps) { if (protoProps) defineProperties(Constructor.prototype, protoProps); if (staticProps) defineProperties(Constructor, staticProps); return Constructor; }; }(); /*
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                      * Copyright (C) 2016 Bilibili. All Rights Reserved.
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                      *
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                      * @author zheng qian <xqq@xqq.im>
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                      *
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                      * Licensed under the Apache License, Version 2.0 (the "License");
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                      * you may not use this file except in compliance with the License.
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                      * You may obtain a copy of the License at
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                      *
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                      *     http://www.apache.org/licenses/LICENSE-2.0
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                      *
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                      * Unless required by applicable law or agreed to in writing, software
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                      * distributed under the License is distributed on an "AS IS" BASIS,
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                      * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                      * See the License for the specific language governing permissions and
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                      * limitations under the License.
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                      */
+
+var _logger = __webpack_require__(0);
+
+var _logger2 = _interopRequireDefault(_logger);
+
+var _amfParser = __webpack_require__(36);
+
+var _amfParser2 = _interopRequireDefault(_amfParser);
+
+var _spsParser = __webpack_require__(38);
+
+var _spsParser2 = _interopRequireDefault(_spsParser);
+
+var _demuxErrors = __webpack_require__(10);
+
+var _demuxErrors2 = _interopRequireDefault(_demuxErrors);
+
+var _mediaInfo = __webpack_require__(9);
+
+var _mediaInfo2 = _interopRequireDefault(_mediaInfo);
+
+var _exception = __webpack_require__(1);
+
+var _events = __webpack_require__(2);
+
+var _events2 = _interopRequireDefault(_events);
+
+function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
+
+function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } }
+
+function Swap16(src) {
+  return src >>> 8 & 0xFF | (src & 0xFF) << 8;
+}
+
+function Swap32(src) {
+  return (src & 0xFF000000) >>> 24 | (src & 0x00FF0000) >>> 8 | (src & 0x0000FF00) << 8 | (src & 0x000000FF) << 24;
+}
+
+function ReadBig32(array, index) {
+  return array[index] << 24 | array[index + 1] << 16 | array[index + 2] << 8 | array[index + 3];
+}
+
+var FLVDemuxer = function () {
+  function FLVDemuxer(probeData, config) {
+    _classCallCheck(this, FLVDemuxer);
+
+    this.TAG = 'FLVDemuxer';
+
+    this._emitter = new _events2.default();
+
+    this._config = config;
+
+    this._onError = null;
+    this._onMediaInfo = null;
+    this._onTrackMetadata = null;
+    this._onDataAvailable = null;
+
+    this._dataOffset = probeData.dataOffset;
+    this._firstParse = true;
+    this._dispatch = false;
+
+    this._hasAudio = probeData.hasAudioTrack;
+    this._hasVideo = probeData.hasVideoTrack;
+
+    this._hasAudioFlagOverrided = false;
+    this._hasVideoFlagOverrided = false;
+
+    this._audioInitialMetadataDispatched = false;
+    this._videoInitialMetadataDispatched = false;
+
+    this._mediaInfo = new _mediaInfo2.default();
+    this._mediaInfo.hasAudio = this._hasAudio;
+    this._mediaInfo.hasVideo = this._hasVideo;
+    this._metadata = null;
+    this._audioMetadata = null;
+    this._videoMetadata = null;
+
+    this._naluLengthSize = 4;
+    this._timestampBase = 0; // int32, in milliseconds
+    this._timescale = 1000;
+    this._duration = 0; // int32, in milliseconds
+    this._durationOverrided = false;
+    this._referenceFrameRate = {
+      fixed: true,
+      fps: 23.976,
+      fps_num: 23976,
+      fps_den: 1000
+    };
+
+    this._flvSoundRateTable = [5500, 11025, 22050, 44100, 48000];
+
+    this._mpegSamplingRates = [96000, 88200, 64000, 48000, 44100, 32000, 24000, 22050, 16000, 12000, 11025, 8000, 7350];
+
+    this._mpegAudioV10SampleRateTable = [44100, 48000, 32000, 0];
+    this._mpegAudioV20SampleRateTable = [22050, 24000, 16000, 0];
+    this._mpegAudioV25SampleRateTable = [11025, 12000, 8000, 0];
+
+    this._mpegAudioL1BitRateTable = [0, 32, 64, 96, 128, 160, 192, 224, 256, 288, 320, 352, 384, 416, 448, -1];
+    this._mpegAudioL2BitRateTable = [0, 32, 48, 56, 64, 80, 96, 112, 128, 160, 192, 224, 256, 320, 384, -1];
+    this._mpegAudioL3BitRateTable = [0, 32, 40, 48, 56, 64, 80, 96, 112, 128, 160, 192, 224, 256, 320, -1];
+
+    this._videoTrack = { type: 'video', id: 1, sequenceNumber: 0, samples: [], length: 0 };
+    this._audioTrack = { type: 'audio', id: 2, sequenceNumber: 0, samples: [], length: 0 };
+
+    this._littleEndian = function () {
+      var buf = new ArrayBuffer(2);
+      new DataView(buf).setInt16(0, 256, true); // little-endian write
+      return new Int16Array(buf)[0] === 256; // platform-spec read, if equal then LE
+    }();
+  }
+
+  _createClass(FLVDemuxer, [{
+    key: 'destroy',
+    value: function destroy() {
+      this._mediaInfo = null;
+      this._metadata = null;
+      this._audioMetadata = null;
+      this._videoMetadata = null;
+      this._videoTrack = null;
+      this._audioTrack = null;
+
+      this._onError = null;
+      this._onMediaInfo = null;
+      this._onTrackMetadata = null;
+      this._onDataAvailable = null;
+
+      this._emitter.removeAllListeners();
+      this._emitter = null;
+    }
+  }, {
+    key: 'bindDataSource',
+    value: function bindDataSource(loader) {
+      loader.onDataArrival = this.parseChunks.bind(this);
+      return this;
+    }
+
+    // prototype: function(type: string, metadata: any): void
+
+  }, {
+    key: 'resetMediaInfo',
+    value: function resetMediaInfo() {
+      this._mediaInfo = new _mediaInfo2.default();
+    }
+  }, {
+    key: '_isInitialMetadataDispatched',
+    value: function _isInitialMetadataDispatched() {
+      if (this._hasAudio && this._hasVideo) {
+        // both audio & video
+        return this._audioInitialMetadataDispatched && this._videoInitialMetadataDispatched;
+      }
+      if (this._hasAudio && !this._hasVideo) {
+        // audio only
+        return this._audioInitialMetadataDispatched;
+      }
+      if (!this._hasAudio && this._hasVideo) {
+        // video only
+        return this._videoInitialMetadataDispatched;
+      }
+      return false;
+    }
+
+    // function parseChunks(chunk: ArrayBuffer, byteStart: number): number;
+
+  }, {
+    key: 'parseChunks',
+    value: function parseChunks(chunk, byteStart) {
+      if (!this._onError || !this._onMediaInfo || !this._onTrackMetadata || !this._onDataAvailable) {
+        throw new _exception.IllegalStateException('Flv: onError & onMediaInfo & onTrackMetadata & onDataAvailable callback must be specified');
+      }
+
+      var offset = 0;
+      var le = this._littleEndian;
+
+      if (byteStart === 0) {
+        // buffer with FLV header
+        if (chunk.byteLength > 13) {
+          var probeData = FLVDemuxer.probe(chunk);
+          offset = probeData.dataOffset;
+        } else {
+          return 0;
+        }
+      }
+
+      if (this._firstParse) {
+        // handle PreviousTagSize0 before Tag1
+        this._firstParse = false;
+        if (byteStart + offset !== this._dataOffset) {
+          _logger2.default.w(this.TAG, 'First time parsing but chunk byteStart invalid!');
+        }
+
+        var v = new DataView(chunk, offset);
+        var prevTagSize0 = v.getUint32(0, !le);
+        if (prevTagSize0 !== 0) {
+          _logger2.default.w(this.TAG, 'PrevTagSize0 !== 0 !!!');
+        }
+        offset += 4;
+      }
+
+      while (offset < chunk.byteLength) {
+        this._dispatch = true;
+
+        var _v = new DataView(chunk, offset);
+
+        if (offset + 11 + 4 > chunk.byteLength) {
+          // data not enough for parsing an flv tag
+          break;
+        }
+
+        var tagType = _v.getUint8(0);
+        var dataSize = _v.getUint32(0, !le) & 0x00FFFFFF;
+
+        if (offset + 11 + dataSize + 4 > chunk.byteLength) {
+          // data not enough for parsing actual data body
+          break;
+        }
+
+        if (tagType !== 8 && tagType !== 9 && tagType !== 18) {
+          _logger2.default.w(this.TAG, 'Unsupported tag type ' + tagType + ', skipped');
+          // consume the whole tag (skip it)
+          offset += 11 + dataSize + 4;
+          continue;
+        }
+
+        var ts2 = _v.getUint8(4);
+        var ts1 = _v.getUint8(5);
+        var ts0 = _v.getUint8(6);
+        var ts3 = _v.getUint8(7);
+
+        var timestamp = ts0 | ts1 << 8 | ts2 << 16 | ts3 << 24;
+
+        var streamId = _v.getUint32(7, !le) & 0x00FFFFFF;
+        if (streamId !== 0) {
+          _logger2.default.w(this.TAG, 'Meet tag which has StreamID != 0!');
+        }
+
+        var dataOffset = offset + 11;
+
+        switch (tagType) {
+          case 8:
+            // Audio
+            this._parseAudioData(chunk, dataOffset, dataSize, timestamp);
+            break;
+          case 9:
+            // Video
+            this._parseVideoData(chunk, dataOffset, dataSize, timestamp, byteStart + offset);
+            break;
+          case 18:
+            // ScriptDataObject
+            this._parseScriptData(chunk, dataOffset, dataSize);
+            break;
+        }
+
+        var prevTagSize = _v.getUint32(11 + dataSize, !le);
+        if (prevTagSize !== 11 + dataSize) {
+          _logger2.default.w(this.TAG, 'Invalid PrevTagSize ' + prevTagSize);
+        }
+
+        offset += 11 + dataSize + 4; // tagBody + dataSize + prevTagSize
+      }
+
+      // dispatch parsed frames to consumer (typically, the remuxer)
+      if (this._isInitialMetadataDispatched()) {
+        if (this._dispatch && (this._audioTrack.length || this._videoTrack.length)) {
+          this._onDataAvailable(this._audioTrack, this._videoTrack);
+        }
+      }
+
+      return offset; // consumed bytes, just equals latest offset index
+    }
+  }, {
+    key: '_parseScriptData',
+    value: function _parseScriptData(arrayBuffer, dataOffset, dataSize) {
+      var scriptData = _amfParser2.default.parseScriptData(arrayBuffer, dataOffset, dataSize);
+
+      if (scriptData.hasOwnProperty('onMetaData')) {
+        if (scriptData.onMetaData == null || _typeof(scriptData.onMetaData) !== 'object') {
+          _logger2.default.w(this.TAG, 'Invalid onMetaData structure!');
+          return;
+        }
+        if (this._metadata) {
+          _logger2.default.w(this.TAG, 'Found another onMetaData tag!');
+        }
+        this._metadata = scriptData;
+        var onMetaData = this._metadata.onMetaData;
+        this._emitter.emit('metadata_arrived', onMetaData);
+
+        if (typeof onMetaData.hasAudio === 'boolean') {
+          // hasAudio
+          if (this._hasAudioFlagOverrided === false) {
+            this._hasAudio = onMetaData.hasAudio;
+            this._mediaInfo.hasAudio = this._hasAudio;
+          }
+        }
+        if (typeof onMetaData.hasVideo === 'boolean') {
+          // hasVideo
+          if (this._hasVideoFlagOverrided === false) {
+            this._hasVideo = onMetaData.hasVideo;
+            this._mediaInfo.hasVideo = this._hasVideo;
+          }
+        }
+        if (typeof onMetaData.audiodatarate === 'number') {
+          // audiodatarate
+          this._mediaInfo.audioDataRate = onMetaData.audiodatarate;
+        }
+        if (typeof onMetaData.videodatarate === 'number') {
+          // videodatarate
+          this._mediaInfo.videoDataRate = onMetaData.videodatarate;
+        }
+        if (typeof onMetaData.width === 'number') {
+          // width
+          this._mediaInfo.width = onMetaData.width;
+        }
+        if (typeof onMetaData.height === 'number') {
+          // height
+          this._mediaInfo.height = onMetaData.height;
+        }
+        if (typeof onMetaData.duration === 'number') {
+          // duration
+          if (!this._durationOverrided) {
+            var duration = Math.floor(onMetaData.duration * this._timescale);
+            this._duration = duration;
+            this._mediaInfo.duration = duration;
+          }
+        } else {
+          this._mediaInfo.duration = 0;
+        }
+        if (typeof onMetaData.framerate === 'number') {
+          // framerate
+          var fps_num = Math.floor(onMetaData.framerate * 1000);
+          if (fps_num > 0) {
+            var fps = fps_num / 1000;
+            this._referenceFrameRate.fixed = true;
+            this._referenceFrameRate.fps = fps;
+            this._referenceFrameRate.fps_num = fps_num;
+            this._referenceFrameRate.fps_den = 1000;
+            this._mediaInfo.fps = fps;
+          }
+        }
+        if (_typeof(onMetaData.keyframes) === 'object') {
+          // keyframes
+          this._mediaInfo.hasKeyframesIndex = true;
+          var keyframes = onMetaData.keyframes;
+          this._mediaInfo.keyframesIndex = this._parseKeyframesIndex(keyframes);
+          onMetaData.keyframes = null; // keyframes has been extracted, remove it
+        } else {
+          this._mediaInfo.hasKeyframesIndex = false;
+        }
+        this._dispatch = false;
+        this._mediaInfo.metadata = onMetaData;
+        _logger2.default.v(this.TAG, 'Parsed onMetaData');
+        if (this._mediaInfo.isComplete()) {
+          this._onMediaInfo(this._mediaInfo);
+        }
+      }
+    }
+  }, {
+    key: '_parseKeyframesIndex',
+    value: function _parseKeyframesIndex(keyframes) {
+      var times = [];
+      var filepositions = [];
+
+      // ignore first keyframe which is actually AVC Sequence Header (AVCDecoderConfigurationRecord)
+      for (var i = 1; i < keyframes.times.length; i++) {
+        var time = this._timestampBase + Math.floor(keyframes.times[i] * 1000);
+        times.push(time);
+        filepositions.push(keyframes.filepositions[i]);
+      }
+
+      return {
+        times: times,
+        filepositions: filepositions
+      };
+    }
+  }, {
+    key: '_parseAudioData',
+    value: function _parseAudioData(arrayBuffer, dataOffset, dataSize, tagTimestamp) {
+      if (dataSize <= 1) {
+        _logger2.default.w(this.TAG, 'Flv: Invalid audio packet, missing SoundData payload!');
+        return;
+      }
+
+      if (this._hasAudioFlagOverrided === true && this._hasAudio === false) {
+        // If hasAudio: false indicated explicitly in MediaDataSource,
+        // Ignore all the audio packets
+        return;
+      }
+
+      var le = this._littleEndian;
+      var v = new DataView(arrayBuffer, dataOffset, dataSize);
+
+      var soundSpec = v.getUint8(0);
+
+      var soundFormat = soundSpec >>> 4;
+      if (soundFormat !== 2 && soundFormat !== 10) {
+        // MP3 or AAC
+        this._onError(_demuxErrors2.default.CODEC_UNSUPPORTED, 'Flv: Unsupported audio codec idx: ' + soundFormat);
+        return;
+      }
+
+      var soundRate = 0;
+      var soundRateIndex = (soundSpec & 12) >>> 2;
+      if (soundRateIndex >= 0 && soundRateIndex <= 4) {
+        soundRate = this._flvSoundRateTable[soundRateIndex];
+      } else {
+        this._onError(_demuxErrors2.default.FORMAT_ERROR, 'Flv: Invalid audio sample rate idx: ' + soundRateIndex);
+        return;
+      }
+
+      var soundSize = (soundSpec & 2) >>> 1; // unused
+      var soundType = soundSpec & 1;
+
+      var meta = this._audioMetadata;
+      var track = this._audioTrack;
+
+      if (!meta) {
+        if (this._hasAudio === false && this._hasAudioFlagOverrided === false) {
+          this._hasAudio = true;
+          this._mediaInfo.hasAudio = true;
+        }
+
+        // initial metadata
+        meta = this._audioMetadata = {};
+        meta.type = 'audio';
+        meta.id = track.id;
+        meta.timescale = this._timescale;
+        meta.duration = this._duration;
+        meta.audioSampleRate = soundRate;
+        meta.channelCount = soundType === 0 ? 1 : 2;
+      }
+
+      if (soundFormat === 10) {
+        // AAC
+        var aacData = this._parseAACAudioData(arrayBuffer, dataOffset + 1, dataSize - 1);
+        if (aacData == undefined) {
+          return;
+        }
+
+        if (aacData.packetType === 0) {
+          // AAC sequence header (AudioSpecificConfig)
+          if (meta.config) {
+            _logger2.default.w(this.TAG, 'Found another AudioSpecificConfig!');
+          }
+          var misc = aacData.data;
+          meta.audioSampleRate = misc.samplingRate;
+          meta.channelCount = misc.channelCount;
+          meta.codec = misc.codec;
+          meta.originalCodec = misc.originalCodec;
+          meta.config = misc.config;
+          // The decode result of an aac sample is 1024 PCM samples
+          meta.refSampleDuration = 1024 / meta.audioSampleRate * meta.timescale;
+          _logger2.default.v(this.TAG, 'Parsed AudioSpecificConfig');
+
+          if (this._isInitialMetadataDispatched()) {
+            // Non-initial metadata, force dispatch (or flush) parsed frames to remuxer
+            if (this._dispatch && (this._audioTrack.length || this._videoTrack.length)) {
+              this._onDataAvailable(this._audioTrack, this._videoTrack);
+            }
+          } else {
+            this._audioInitialMetadataDispatched = true;
+          }
+          // then notify new metadata
+          this._dispatch = false;
+          this._onTrackMetadata('audio', meta);
+
+          var mi = this._mediaInfo;
+          mi.audioCodec = meta.originalCodec;
+          mi.audioSampleRate = meta.audioSampleRate;
+          mi.audioChannelCount = meta.channelCount;
+          if (mi.hasVideo) {
+            if (mi.videoCodec != null) {
+              mi.mimeType = 'video/x-flv; codecs="' + mi.videoCodec + ',' + mi.audioCodec + '"';
+            }
+          } else {
+            mi.mimeType = 'video/x-flv; codecs="' + mi.audioCodec + '"';
+          }
+          if (mi.isComplete()) {
+            this._onMediaInfo(mi);
+          }
+        } else if (aacData.packetType === 1) {
+          // AAC raw frame data
+          var dts = this._timestampBase + tagTimestamp;
+          var aacSample = { unit: aacData.data, length: aacData.data.byteLength, dts: dts, pts: dts };
+          track.samples.push(aacSample);
+          track.length += aacData.data.length;
+        } else {
+          _logger2.default.e(this.TAG, 'Flv: Unsupported AAC data type ' + aacData.packetType);
+        }
+      } else if (soundFormat === 2) {
+        // MP3
+        if (!meta.codec) {
+          // We need metadata for mp3 audio track, extract info from frame header
+          var _misc = this._parseMP3AudioData(arrayBuffer, dataOffset + 1, dataSize - 1, true);
+          if (_misc == undefined) {
+            return;
+          }
+          meta.audioSampleRate = _misc.samplingRate;
+          meta.channelCount = _misc.channelCount;
+          meta.codec = _misc.codec;
+          meta.originalCodec = _misc.originalCodec;
+          // The decode result of an mp3 sample is 1152 PCM samples
+          meta.refSampleDuration = 1152 / meta.audioSampleRate * meta.timescale;
+          _logger2.default.v(this.TAG, 'Parsed MPEG Audio Frame Header');
+
+          this._audioInitialMetadataDispatched = true;
+          this._onTrackMetadata('audio', meta);
+
+          var _mi = this._mediaInfo;
+          _mi.audioCodec = meta.codec;
+          _mi.audioSampleRate = meta.audioSampleRate;
+          _mi.audioChannelCount = meta.channelCount;
+          _mi.audioDataRate = _misc.bitRate;
+          if (_mi.hasVideo) {
+            if (_mi.videoCodec != null) {
+              _mi.mimeType = 'video/x-flv; codecs="' + _mi.videoCodec + ',' + _mi.audioCodec + '"';
+            }
+          } else {
+            _mi.mimeType = 'video/x-flv; codecs="' + _mi.audioCodec + '"';
+          }
+          if (_mi.isComplete()) {
+            this._onMediaInfo(_mi);
+          }
+        }
+
+        // This packet is always a valid audio packet, extract it
+        var data = this._parseMP3AudioData(arrayBuffer, dataOffset + 1, dataSize - 1, false);
+        if (data == undefined) {
+          return;
+        }
+        var _dts = this._timestampBase + tagTimestamp;
+        var mp3Sample = { unit: data, length: data.byteLength, dts: _dts, pts: _dts };
+        track.samples.push(mp3Sample);
+        track.length += data.length;
+      }
+    }
+  }, {
+    key: '_parseAACAudioData',
+    value: function _parseAACAudioData(arrayBuffer, dataOffset, dataSize) {
+      if (dataSize <= 1) {
+        _logger2.default.w(this.TAG, 'Flv: Invalid AAC packet, missing AACPacketType or/and Data!');
+        return;
+      }
+
+      var result = {};
+      var array = new Uint8Array(arrayBuffer, dataOffset, dataSize);
+
+      result.packetType = array[0];
+
+      if (array[0] === 0) {
+        result.data = this._parseAACAudioSpecificConfig(arrayBuffer, dataOffset + 1, dataSize - 1);
+      } else {
+        result.data = array.subarray(1);
+      }
+
+      return result;
+    }
+  }, {
+    key: '_parseAACAudioSpecificConfig',
+    value: function _parseAACAudioSpecificConfig(arrayBuffer, dataOffset, dataSize) {
+      var array = new Uint8Array(arrayBuffer, dataOffset, dataSize);
+      var config = null;
+
+      /* Audio Object Type:
+         0: Null
+         1: AAC Main
+         2: AAC LC
+         3: AAC SSR (Scalable Sample Rate)
+         4: AAC LTP (Long Term Prediction)
+         5: HE-AAC / SBR (Spectral Band Replication)
+         6: AAC Scalable
+      */
+
+      var audioObjectType = 0;
+      var originalAudioObjectType = 0;
+      var audioExtensionObjectType = null;
+      var samplingIndex = 0;
+      var extensionSamplingIndex = null;
+
+      // 5 bits
+      audioObjectType = originalAudioObjectType = array[0] >>> 3;
+      // 4 bits
+      samplingIndex = (array[0] & 0x07) << 1 | array[1] >>> 7;
+      if (samplingIndex < 0 || samplingIndex >= this._mpegSamplingRates.length) {
+        this._onError(_demuxErrors2.default.FORMAT_ERROR, 'Flv: AAC invalid sampling frequency index!');
+        return;
+      }
+
+      var samplingFrequence = this._mpegSamplingRates[samplingIndex];
+
+      // 4 bits
+      var channelConfig = (array[1] & 0x78) >>> 3;
+      if (channelConfig < 0 || channelConfig >= 8) {
+        this._onError(_demuxErrors2.default.FORMAT_ERROR, 'Flv: AAC invalid channel configuration');
+        return;
+      }
+
+      if (audioObjectType === 5) {
+        // HE-AAC?
+        // 4 bits
+        extensionSamplingIndex = (array[1] & 0x07) << 1 | array[2] >>> 7;
+        // 5 bits
+        audioExtensionObjectType = (array[2] & 0x7C) >>> 2;
+      }
+
+      // workarounds for various browsers
+      var userAgent = self.navigator.userAgent.toLowerCase();
+
+      if (userAgent.indexOf('firefox') !== -1) {
+        // firefox: use SBR (HE-AAC) if freq less than 24kHz
+        if (samplingIndex >= 6) {
+          audioObjectType = 5;
+          config = new Array(4);
+          extensionSamplingIndex = samplingIndex - 3;
+        } else {
+          // use LC-AAC
+          audioObjectType = 2;
+          config = new Array(2);
+          extensionSamplingIndex = samplingIndex;
+        }
+      } else if (userAgent.indexOf('android') !== -1) {
+        // android: always use LC-AAC
+        audioObjectType = 2;
+        config = new Array(2);
+        extensionSamplingIndex = samplingIndex;
+      } else {
+        // for other browsers, e.g. chrome...
+        // Always use HE-AAC to make it easier to switch aac codec profile
+        audioObjectType = 5;
+        extensionSamplingIndex = samplingIndex;
+        config = new Array(4);
+
+        if (samplingIndex >= 6) {
+          extensionSamplingIndex = samplingIndex - 3;
+        } else if (channelConfig === 1) {
+          // Mono channel
+          audioObjectType = 2;
+          config = new Array(2);
+          extensionSamplingIndex = samplingIndex;
+        }
+      }
+
+      config[0] = audioObjectType << 3;
+      config[0] |= (samplingIndex & 0x0F) >>> 1;
+      config[1] = (samplingIndex & 0x0F) << 7;
+      config[1] |= (channelConfig & 0x0F) << 3;
+      if (audioObjectType === 5) {
+        config[1] |= (extensionSamplingIndex & 0x0F) >>> 1;
+        config[2] = (extensionSamplingIndex & 0x01) << 7;
+        // extended audio object type: force to 2 (LC-AAC)
+        config[2] |= 2 << 2;
+        config[3] = 0;
+      }
+
+      return {
+        config: config,
+        samplingRate: samplingFrequence,
+        channelCount: channelConfig,
+        codec: 'mp4a.40.' + audioObjectType,
+        originalCodec: 'mp4a.40.' + originalAudioObjectType
+      };
+    }
+  }, {
+    key: '_parseMP3AudioData',
+    value: function _parseMP3AudioData(arrayBuffer, dataOffset, dataSize, requestHeader) {
+      if (dataSize < 4) {
+        _logger2.default.w(this.TAG, 'Flv: Invalid MP3 packet, header missing!');
+        return;
+      }
+
+      var le = this._littleEndian;
+      var array = new Uint8Array(arrayBuffer, dataOffset, dataSize);
+      var result = null;
+
+      if (requestHeader) {
+        if (array[0] !== 0xFF) {
+          return;
+        }
+        var ver = array[1] >>> 3 & 0x03;
+        var layer = (array[1] & 0x06) >> 1;
+
+        var bitrate_index = (array[2] & 0xF0) >>> 4;
+        var sampling_freq_index = (array[2] & 0x0C) >>> 2;
+
+        var channel_mode = array[3] >>> 6 & 0x03;
+        var channel_count = channel_mode !== 3 ? 2 : 1;
+
+        var sample_rate = 0;
+        var bit_rate = 0;
+        var object_type = 34; // Layer-3, listed in MPEG-4 Audio Object Types
+
+        var codec = 'mp3';
+
+        switch (ver) {
+          case 0:
+            // MPEG 2.5
+            sample_rate = this._mpegAudioV25SampleRateTable[sampling_freq_index];
+            break;
+          case 2:
+            // MPEG 2
+            sample_rate = this._mpegAudioV20SampleRateTable[sampling_freq_index];
+            break;
+          case 3:
+            // MPEG 1
+            sample_rate = this._mpegAudioV10SampleRateTable[sampling_freq_index];
+            break;
+        }
+
+        switch (layer) {
+          case 1:
+            // Layer 3
+            object_type = 34;
+            if (bitrate_index < this._mpegAudioL3BitRateTable.length) {
+              bit_rate = this._mpegAudioL3BitRateTable[bitrate_index];
+            }
+            break;
+          case 2:
+            // Layer 2
+            object_type = 33;
+            if (bitrate_index < this._mpegAudioL2BitRateTable.length) {
+              bit_rate = this._mpegAudioL2BitRateTable[bitrate_index];
+            }
+            break;
+          case 3:
+            // Layer 1
+            object_type = 32;
+            if (bitrate_index < this._mpegAudioL1BitRateTable.length) {
+              bit_rate = this._mpegAudioL1BitRateTable[bitrate_index];
+            }
+            break;
+        }
+
+        result = {
+          bitRate: bit_rate,
+          samplingRate: sample_rate,
+          channelCount: channel_count,
+          codec: codec,
+          originalCodec: codec
+        };
+      } else {
+        result = array;
+      }
+
+      return result;
+    }
+  }, {
+    key: '_parseVideoData',
+    value: function _parseVideoData(arrayBuffer, dataOffset, dataSize, tagTimestamp, tagPosition) {
+      if (dataSize <= 1) {
+        _logger2.default.w(this.TAG, 'Flv: Invalid video packet, missing VideoData payload!');
+        return;
+      }
+
+      if (this._hasVideoFlagOverrided === true && this._hasVideo === false) {
+        // If hasVideo: false indicated explicitly in MediaDataSource,
+        // Ignore all the video packets
+        return;
+      }
+
+      var spec = new Uint8Array(arrayBuffer, dataOffset, dataSize)[0];
+
+      var frameType = (spec & 240) >>> 4;
+      var codecId = spec & 15;
+
+      if (codecId !== 7) {
+        this._onError(_demuxErrors2.default.CODEC_UNSUPPORTED, 'Flv: Unsupported codec in video frame: ' + codecId);
+        return;
+      }
+
+      this._parseAVCVideoPacket(arrayBuffer, dataOffset + 1, dataSize - 1, tagTimestamp, tagPosition, frameType);
+    }
+  }, {
+    key: '_parseAVCVideoPacket',
+    value: function _parseAVCVideoPacket(arrayBuffer, dataOffset, dataSize, tagTimestamp, tagPosition, frameType) {
+      if (dataSize < 4) {
+        _logger2.default.w(this.TAG, 'Flv: Invalid AVC packet, missing AVCPacketType or/and CompositionTime');
+        return;
+      }
+
+      var le = this._littleEndian;
+      var v = new DataView(arrayBuffer, dataOffset, dataSize);
+
+      var packetType = v.getUint8(0);
+      var cts_unsigned = v.getUint32(0, !le) & 0x00FFFFFF;
+      var cts = cts_unsigned << 8 >> 8; // convert to 24-bit signed int
+
+      if (packetType === 0) {
+        // AVCDecoderConfigurationRecord
+        this._parseAVCDecoderConfigurationRecord(arrayBuffer, dataOffset + 4, dataSize - 4);
+      } else if (packetType === 1) {
+        // One or more Nalus
+        this._parseAVCVideoData(arrayBuffer, dataOffset + 4, dataSize - 4, tagTimestamp, tagPosition, frameType, cts);
+      } else if (packetType === 2) {
+        // empty, AVC end of sequence
+      } else {
+        this._onError(_demuxErrors2.default.FORMAT_ERROR, 'Flv: Invalid video packet type ' + packetType);
+        return;
+      }
+    }
+  }, {
+    key: '_parseAVCDecoderConfigurationRecord',
+    value: function _parseAVCDecoderConfigurationRecord(arrayBuffer, dataOffset, dataSize) {
+      if (dataSize < 7) {
+        _logger2.default.w(this.TAG, 'Flv: Invalid AVCDecoderConfigurationRecord, lack of data!');
+        return;
+      }
+
+      var meta = this._videoMetadata;
+      var track = this._videoTrack;
+      var le = this._littleEndian;
+      var v = new DataView(arrayBuffer, dataOffset, dataSize);
+
+      if (!meta) {
+        if (this._hasVideo === false && this._hasVideoFlagOverrided === false) {
+          this._hasVideo = true;
+          this._mediaInfo.hasVideo = true;
+        }
+
+        meta = this._videoMetadata = {};
+        meta.type = 'video';
+        meta.id = track.id;
+        meta.timescale = this._timescale;
+        meta.duration = this._duration;
+      } else {
+        if (typeof meta.avcc !== 'undefined') {
+          _logger2.default.w(this.TAG, 'Found another AVCDecoderConfigurationRecord!');
+        }
+      }
+
+      var version = v.getUint8(0); // configurationVersion
+      var avcProfile = v.getUint8(1); // avcProfileIndication
+      var profileCompatibility = v.getUint8(2); // profile_compatibility
+      var avcLevel = v.getUint8(3); // AVCLevelIndication
+
+      if (version !== 1 || avcProfile === 0) {
+        this._onError(_demuxErrors2.default.FORMAT_ERROR, 'Flv: Invalid AVCDecoderConfigurationRecord');
+        return;
+      }
+
+      this._naluLengthSize = (v.getUint8(4) & 3) + 1; // lengthSizeMinusOne
+      if (this._naluLengthSize !== 3 && this._naluLengthSize !== 4) {
+        // holy shit!!!
+        this._onError(_demuxErrors2.default.FORMAT_ERROR, 'Flv: Strange NaluLengthSizeMinusOne: ' + (this._naluLengthSize - 1));
+        return;
+      }
+
+      var spsCount = v.getUint8(5) & 31; // numOfSequenceParameterSets
+      if (spsCount === 0) {
+        this._onError(_demuxErrors2.default.FORMAT_ERROR, 'Flv: Invalid AVCDecoderConfigurationRecord: No SPS');
+        return;
+      } else if (spsCount > 1) {
+        _logger2.default.w(this.TAG, 'Flv: Strange AVCDecoderConfigurationRecord: SPS Count = ' + spsCount);
+      }
+
+      var offset = 6;
+
+      for (var i = 0; i < spsCount; i++) {
+        var len = v.getUint16(offset, !le); // sequenceParameterSetLength
+        offset += 2;
+
+        if (len === 0) {
+          continue;
+        }
+
+        // Notice: Nalu without startcode header (00 00 00 01)
+        var sps = new Uint8Array(arrayBuffer, dataOffset + offset, len);
+        offset += len;
+
+        var config = _spsParser2.default.parseSPS(sps);
+        if (i !== 0) {
+          // ignore other sps's config
+          continue;
+        }
+
+        meta.codecWidth = config.codec_size.width;
+        meta.codecHeight = config.codec_size.height;
+        meta.presentWidth = config.present_size.width;
+        meta.presentHeight = config.present_size.height;
+
+        meta.profile = config.profile_string;
+        meta.level = config.level_string;
+        meta.bitDepth = config.bit_depth;
+        meta.chromaFormat = config.chroma_format;
+        meta.sarRatio = config.par_ratio;
+        meta.frameRate = config.frame_rate;
+
+        if (config.frame_rate.fixed === false || config.frame_rate.fps_num === 0 || config.frame_rate.fps_den === 0) {
+          meta.frameRate = this._referenceFrameRate;
+        }
+
+        var fps_den = meta.frameRate.fps_den;
+        var fps_num = meta.frameRate.fps_num;
+        meta.refSampleDuration = meta.timescale * (fps_den / fps_num);
+
+        var codecArray = sps.subarray(1, 4);
+        var codecString = 'avc1.';
+        for (var j = 0; j < 3; j++) {
+          var h = codecArray[j].toString(16);
+          if (h.length < 2) {
+            h = '0' + h;
+          }
+          codecString += h;
+        }
+        meta.codec = codecString;
+
+        var mi = this._mediaInfo;
+        mi.width = meta.codecWidth;
+        mi.height = meta.codecHeight;
+        mi.fps = meta.frameRate.fps;
+        mi.profile = meta.profile;
+        mi.level = meta.level;
+        mi.refFrames = config.ref_frames;
+        mi.chromaFormat = config.chroma_format_string;
+        mi.sarNum = meta.sarRatio.width;
+        mi.sarDen = meta.sarRatio.height;
+        mi.videoCodec = codecString;
+
+        if (mi.hasAudio) {
+          if (mi.audioCodec != null) {
+            mi.mimeType = 'video/x-flv; codecs="' + mi.videoCodec + ',' + mi.audioCodec + '"';
+          }
+        } else {
+          mi.mimeType = 'video/x-flv; codecs="' + mi.videoCodec + '"';
+        }
+        if (mi.isComplete()) {
+          this._onMediaInfo(mi);
+        }
+      }
+
+      var ppsCount = v.getUint8(offset); // numOfPictureParameterSets
+      if (ppsCount === 0) {
+        this._onError(_demuxErrors2.default.FORMAT_ERROR, 'Flv: Invalid AVCDecoderConfigurationRecord: No PPS');
+        return;
+      } else if (ppsCount > 1) {
+        _logger2.default.w(this.TAG, 'Flv: Strange AVCDecoderConfigurationRecord: PPS Count = ' + ppsCount);
+      }
+
+      offset++;
+
+      for (var _i = 0; _i < ppsCount; _i++) {
+        var _len = v.getUint16(offset, !le); // pictureParameterSetLength
+        offset += 2;
+
+        if (_len === 0) {
+          continue;
+        }
+
+        // pps is useless for extracting video information
+        offset += _len;
+      }
+
+      meta.avcc = new Uint8Array(dataSize);
+      meta.avcc.set(new Uint8Array(arrayBuffer, dataOffset, dataSize), 0);
+      _logger2.default.v(this.TAG, 'Parsed AVCDecoderConfigurationRecord');
+
+      if (this._isInitialMetadataDispatched()) {
+        // flush parsed frames
+        if (this._dispatch && (this._audioTrack.length || this._videoTrack.length)) {
+          this._onDataAvailable(this._audioTrack, this._videoTrack);
+        }
+      } else {
+        this._videoInitialMetadataDispatched = true;
+      }
+      // notify new metadata
+      this._dispatch = false;
+      this._onTrackMetadata('video', meta);
+    }
+  }, {
+    key: '_parseAVCVideoData',
+    value: function _parseAVCVideoData(arrayBuffer, dataOffset, dataSize, tagTimestamp, tagPosition, frameType, cts) {
+      var le = this._littleEndian;
+      var v = new DataView(arrayBuffer, dataOffset, dataSize);
+
+      var units = [],
+          length = 0;
+
+      var offset = 0;
+      var lengthSize = this._naluLengthSize;
+      var dts = this._timestampBase + tagTimestamp;
+      var keyframe = frameType === 1; // from FLV Frame Type constants
+
+      while (offset < dataSize) {
+        if (offset + 4 >= dataSize) {
+          _logger2.default.w(this.TAG, 'Malformed Nalu near timestamp ' + dts + ', offset = ' + offset + ', dataSize = ' + dataSize);
+          break; // data not enough for next Nalu
+        }
+        // Nalu with length-header (AVC1)
+        var naluSize = v.getUint32(offset, !le); // Big-Endian read
+        if (lengthSize === 3) {
+          naluSize >>>= 8;
+        }
+        if (naluSize > dataSize - lengthSize) {
+          _logger2.default.w(this.TAG, 'Malformed Nalus near timestamp ' + dts + ', NaluSize > DataSize!');
+          return;
+        }
+
+        var unitType = v.getUint8(offset + lengthSize) & 0x1F;
+
+        if (unitType === 5) {
+          // IDR
+          keyframe = true;
+        }
+
+        var data = new Uint8Array(arrayBuffer, dataOffset + offset, lengthSize + naluSize);
+        var unit = { type: unitType, data: data };
+        units.push(unit);
+        length += data.byteLength;
+
+        offset += lengthSize + naluSize;
+      }
+
+      if (units.length) {
+        var track = this._videoTrack;
+        var avcSample = {
+          units: units,
+          length: length,
+          isKeyframe: keyframe,
+          dts: dts,
+          cts: cts,
+          pts: dts + cts
+        };
+        if (keyframe) {
+          avcSample.fileposition = tagPosition;
+        }
+        track.samples.push(avcSample);
+        track.length += length;
+      }
+    }
+  }, {
+    key: 'onTrackMetadata',
+    get: function get() {
+      return this._onTrackMetadata;
+    },
+    set: function set(callback) {
+      this._onTrackMetadata = callback;
+    }
+
+    // prototype: function(mediaInfo: MediaInfo): void
+
+  }, {
+    key: 'onMediaInfo',
+    get: function get() {
+      return this._onMediaInfo;
+    },
+    set: function set(callback) {
+      this._onMediaInfo = callback;
+    }
+
+    // prototype: function(type: number, info: string): void
+
+  }, {
+    key: 'onError',
+    get: function get() {
+      return this._onError;
+    },
+    set: function set(callback) {
+      this._onError = callback;
+    }
+
+    // prototype: function(videoTrack: any, audioTrack: any): void
+
+  }, {
+    key: 'onDataAvailable',
+    get: function get() {
+      return this._onDataAvailable;
+    },
+    set: function set(callback) {
+      this._onDataAvailable = callback;
+    }
+
+    // timestamp base for output samples, must be in milliseconds
+
+  }, {
+    key: 'timestampBase',
+    get: function get() {
+      return this._timestampBase;
+    },
+    set: function set(base) {
+      this._timestampBase = base;
+    }
+  }, {
+    key: 'overridedDuration',
+    get: function get() {
+      return this._duration;
+    }
+
+    // Force-override media duration. Must be in milliseconds, int32
+    ,
+    set: function set(duration) {
+      this._durationOverrided = true;
+      this._duration = duration;
+      this._mediaInfo.duration = duration;
+    }
+
+    // Force-override audio track present flag, boolean
+
+  }, {
+    key: 'overridedHasAudio',
+    set: function set(hasAudio) {
+      this._hasAudioFlagOverrided = true;
+      this._hasAudio = hasAudio;
+      this._mediaInfo.hasAudio = hasAudio;
+    }
+
+    // Force-override video track present flag, boolean
+
+  }, {
+    key: 'overridedHasVideo',
+    set: function set(hasVideo) {
+      this._hasVideoFlagOverrided = true;
+      this._hasVideo = hasVideo;
+      this._mediaInfo.hasVideo = hasVideo;
+    }
+  }], [{
+    key: 'probe',
+    value: function probe(buffer) {
+      var data = new Uint8Array(buffer);
+      var mismatch = { match: false };
+
+      if (data[0] !== 0x46 || data[1] !== 0x4C || data[2] !== 0x56 || data[3] !== 0x01) {
+        return mismatch;
+      }
+
+      var hasAudio = (data[4] & 4) >>> 2 !== 0;
+      var hasVideo = (data[4] & 1) !== 0;
+
+      var offset = ReadBig32(data, 5);
+
+      if (offset < 9) {
+        return mismatch;
+      }
+
+      return {
+        match: true,
+        consumed: offset,
+        dataOffset: offset,
+        hasAudioTrack: hasAudio,
+        hasVideoTrack: hasVideo
+      };
+    }
+  }]);
+
+  return FLVDemuxer;
+}();
+
+exports.default = FLVDemuxer;
+module.exports = exports['default'];
+
+/***/ }),
+/* 36 */
+/***/ (function(module, exports, __webpack_require__) {
+
+"use strict";
+
+
+Object.defineProperty(exports, "__esModule", {
+    value: true
+});
+
+var _createClass = function () { function defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ("value" in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } } return function (Constructor, protoProps, staticProps) { if (protoProps) defineProperties(Constructor.prototype, protoProps); if (staticProps) defineProperties(Constructor, staticProps); return Constructor; }; }(); /*
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                      * Copyright (C) 2016 Bilibili. All Rights Reserved.
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                      *
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                      * @author zheng qian <xqq@xqq.im>
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                      *
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                      * Licensed under the Apache License, Version 2.0 (the "License");
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                      * you may not use this file except in compliance with the License.
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                      * You may obtain a copy of the License at
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                      *
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                      *     http://www.apache.org/licenses/LICENSE-2.0
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                      *
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                      * Unless required by applicable law or agreed to in writing, software
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                      * distributed under the License is distributed on an "AS IS" BASIS,
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                      * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                      * See the License for the specific language governing permissions and
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                      * limitations under the License.
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                      */
+
+var _logger = __webpack_require__(0);
+
+var _logger2 = _interopRequireDefault(_logger);
+
+var _utf8Conv = __webpack_require__(37);
+
+var _utf8Conv2 = _interopRequireDefault(_utf8Conv);
+
+var _exception = __webpack_require__(1);
+
+function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
+
+function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } }
+
+var le = function () {
+    var buf = new ArrayBuffer(2);
+    new DataView(buf).setInt16(0, 256, true); // little-endian write
+    return new Int16Array(buf)[0] === 256; // platform-spec read, if equal then LE
+}();
+
+var AMF = function () {
+    function AMF() {
+        _classCallCheck(this, AMF);
+    }
+
+    _createClass(AMF, null, [{
+        key: 'parseScriptData',
+        value: function parseScriptData(arrayBuffer, dataOffset, dataSize) {
+            var data = {};
+
+            try {
+                var name = AMF.parseValue(arrayBuffer, dataOffset, dataSize);
+                var value = AMF.parseValue(arrayBuffer, dataOffset + name.size, dataSize - name.size);
+
+                data[name.data] = value.data;
+            } catch (e) {
+                _logger2.default.e('AMF', e.toString());
+            }
+
+            return data;
+        }
+    }, {
+        key: 'parseObject',
+        value: function parseObject(arrayBuffer, dataOffset, dataSize) {
+            if (dataSize < 3) {
+                throw new _exception.IllegalStateException('Data not enough when parse ScriptDataObject');
+            }
+            var name = AMF.parseString(arrayBuffer, dataOffset, dataSize);
+            var value = AMF.parseValue(arrayBuffer, dataOffset + name.size, dataSize - name.size);
+            var isObjectEnd = value.objectEnd;
+
+            return {
+                data: {
+                    name: name.data,
+                    value: value.data
+                },
+                size: name.size + value.size,
+                objectEnd: isObjectEnd
+            };
+        }
+    }, {
+        key: 'parseVariable',
+        value: function parseVariable(arrayBuffer, dataOffset, dataSize) {
+            return AMF.parseObject(arrayBuffer, dataOffset, dataSize);
+        }
+    }, {
+        key: 'parseString',
+        value: function parseString(arrayBuffer, dataOffset, dataSize) {
+            if (dataSize < 2) {
+                throw new _exception.IllegalStateException('Data not enough when parse String');
+            }
+            var v = new DataView(arrayBuffer, dataOffset, dataSize);
+            var length = v.getUint16(0, !le);
+
+            var str = void 0;
+            if (length > 0) {
+                str = (0, _utf8Conv2.default)(new Uint8Array(arrayBuffer, dataOffset + 2, length));
+            } else {
+                str = '';
+            }
+
+            return {
+                data: str,
+                size: 2 + length
+            };
+        }
+    }, {
+        key: 'parseLongString',
+        value: function parseLongString(arrayBuffer, dataOffset, dataSize) {
+            if (dataSize < 4) {
+                throw new _exception.IllegalStateException('Data not enough when parse LongString');
+            }
+            var v = new DataView(arrayBuffer, dataOffset, dataSize);
+            var length = v.getUint32(0, !le);
+
+            var str = void 0;
+            if (length > 0) {
+                str = (0, _utf8Conv2.default)(new Uint8Array(arrayBuffer, dataOffset + 4, length));
+            } else {
+                str = '';
+            }
+
+            return {
+                data: str,
+                size: 4 + length
+            };
+        }
+    }, {
+        key: 'parseDate',
+        value: function parseDate(arrayBuffer, dataOffset, dataSize) {
+            if (dataSize < 10) {
+                throw new _exception.IllegalStateException('Data size invalid when parse Date');
+            }
+            var v = new DataView(arrayBuffer, dataOffset, dataSize);
+            var timestamp = v.getFloat64(0, !le);
+            var localTimeOffset = v.getInt16(8, !le);
+            timestamp += localTimeOffset * 60 * 1000; // get UTC time
+
+            return {
+                data: new Date(timestamp),
+                size: 8 + 2
+            };
+        }
+    }, {
+        key: 'parseValue',
+        value: function parseValue(arrayBuffer, dataOffset, dataSize) {
+            if (dataSize < 1) {
+                throw new _exception.IllegalStateException('Data not enough when parse Value');
+            }
+
+            var v = new DataView(arrayBuffer, dataOffset, dataSize);
+
+            var offset = 1;
+            var type = v.getUint8(0);
+            var value = void 0;
+            var objectEnd = false;
+
+            try {
+                switch (type) {
+                    case 0:
+                        // Number(Double) type
+                        value = v.getFloat64(1, !le);
+                        offset += 8;
+                        break;
+                    case 1:
+                        {
+                            // Boolean type
+                            var b = v.getUint8(1);
+                            value = b ? true : false;
+                            offset += 1;
+                            break;
+                        }
+                    case 2:
+                        {
+                            // String type
+                            var amfstr = AMF.parseString(arrayBuffer, dataOffset + 1, dataSize - 1);
+                            value = amfstr.data;
+                            offset += amfstr.size;
+                            break;
+                        }
+                    case 3:
+                        {
+                            // Object(s) type
+                            value = {};
+                            var terminal = 0; // workaround for malformed Objects which has missing ScriptDataObjectEnd
+                            if ((v.getUint32(dataSize - 4, !le) & 0x00FFFFFF) === 9) {
+                                terminal = 3;
+                            }
+                            var maxLoop = 10000;
+                            while (offset < dataSize - 4 && maxLoop-- > 0) {
+                                // 4 === type(UI8) + ScriptDataObjectEnd(UI24)
+                                var amfobj = AMF.parseObject(arrayBuffer, dataOffset + offset, dataSize - offset - terminal);
+                                if (amfobj.objectEnd) break;
+                                value[amfobj.data.name] = amfobj.data.value;
+                                offset += amfobj.size;
+                            }
+                            if (offset <= dataSize - 3) {
+                                var marker = v.getUint32(offset - 1, !le) & 0x00FFFFFF;
+                                if (marker === 9) {
+                                    offset += 3;
+                                }
+                            }
+                            break;
+                        }
+                    case 8:
+                        {
+                            // ECMA array type (Mixed array)
+                            value = {};
+                            offset += 4; // ECMAArrayLength(UI32)
+                            var _terminal = 0; // workaround for malformed MixedArrays which has missing ScriptDataObjectEnd
+                            if ((v.getUint32(dataSize - 4, !le) & 0x00FFFFFF) === 9) {
+                                _terminal = 3;
+                            }
+
+                            var _maxLoop = 10000;
+                            while (offset < dataSize - 8 && _maxLoop-- > 0) {
+                                // 8 === type(UI8) + ECMAArrayLength(UI32) + ScriptDataVariableEnd(UI24)
+                                var amfvar = AMF.parseVariable(arrayBuffer, dataOffset + offset, dataSize - offset - _terminal);
+                                if (amfvar.objectEnd) break;
+                                value[amfvar.data.name] = amfvar.data.value;
+                                offset += amfvar.size;
+                            }
+                            if (offset <= dataSize - 3) {
+                                var _marker = v.getUint32(offset - 1, !le) & 0x00FFFFFF;
+                                if (_marker === 9) {
+                                    offset += 3;
+                                }
+                            }
+                            break;
+                        }
+                    case 9:
+                        // ScriptDataObjectEnd
+                        value = undefined;
+                        offset = 1;
+                        objectEnd = true;
+                        break;
+                    case 10:
+                        {
+                            // Strict array type
+                            // ScriptDataValue[n]. NOTE: according to video_file_format_spec_v10_1.pdf
+                            value = [];
+                            var strictArrayLength = v.getUint32(1, !le);
+                            offset += 4;
+                            for (var i = 0; i < strictArrayLength; i++) {
+                                var val = AMF.parseValue(arrayBuffer, dataOffset + offset, dataSize - offset);
+                                value.push(val.data);
+                                offset += val.size;
+                            }
+                            break;
+                        }
+                    case 11:
+                        {
+                            // Date type
+                            var date = AMF.parseDate(arrayBuffer, dataOffset + 1, dataSize - 1);
+                            value = date.data;
+                            offset += date.size;
+                            break;
+                        }
+                    case 12:
+                        {
+                            // Long string type
+                            var amfLongStr = AMF.parseString(arrayBuffer, dataOffset + 1, dataSize - 1);
+                            value = amfLongStr.data;
+                            offset += amfLongStr.size;
+                            break;
+                        }
+                    default:
+                        // ignore and skip
+                        offset = dataSize;
+                        _logger2.default.w('AMF', 'Unsupported AMF value type ' + type);
+                }
+            } catch (e) {
+                _logger2.default.e('AMF', e.toString());
+            }
+
+            return {
+                data: value,
+                size: offset,
+                objectEnd: objectEnd
+            };
+        }
+    }]);
+
+    return AMF;
+}();
+
+exports.default = AMF;
+module.exports = exports['default'];
+
+/***/ }),
+/* 37 */
+/***/ (function(module, exports, __webpack_require__) {
+
+"use strict";
+
+
+Object.defineProperty(exports, "__esModule", {
+    value: true
+});
+/*
+ * Copyright (C) 2016 Bilibili. All Rights Reserved.
+ *
+ * This file is derived from C++ project libWinTF8 (https://github.com/m13253/libWinTF8)
+ * @author zheng qian <xqq@xqq.im>
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+
+function checkContinuation(uint8array, start, checkLength) {
+    var array = uint8array;
+    if (start + checkLength < array.length) {
+        while (checkLength--) {
+            if ((array[++start] & 0xC0) !== 0x80) return false;
+        }
+        return true;
+    } else {
+        return false;
+    }
+}
+
+function decodeUTF8(uint8array) {
+    var out = [];
+    var input = uint8array;
+    var i = 0;
+    var length = uint8array.length;
+
+    while (i < length) {
+        if (input[i] < 0x80) {
+            out.push(String.fromCharCode(input[i]));
+            ++i;
+            continue;
+        } else if (input[i] < 0xC0) {
+            // fallthrough
+        } else if (input[i] < 0xE0) {
+            if (checkContinuation(input, i, 1)) {
+                var ucs4 = (input[i] & 0x1F) << 6 | input[i + 1] & 0x3F;
+                if (ucs4 >= 0x80) {
+                    out.push(String.fromCharCode(ucs4 & 0xFFFF));
+                    i += 2;
+                    continue;
+                }
+            }
+        } else if (input[i] < 0xF0) {
+            if (checkContinuation(input, i, 2)) {
+                var _ucs = (input[i] & 0xF) << 12 | (input[i + 1] & 0x3F) << 6 | input[i + 2] & 0x3F;
+                if (_ucs >= 0x800 && (_ucs & 0xF800) !== 0xD800) {
+                    out.push(String.fromCharCode(_ucs & 0xFFFF));
+                    i += 3;
+                    continue;
+                }
+            }
+        } else if (input[i] < 0xF8) {
+            if (checkContinuation(input, i, 3)) {
+                var _ucs2 = (input[i] & 0x7) << 18 | (input[i + 1] & 0x3F) << 12 | (input[i + 2] & 0x3F) << 6 | input[i + 3] & 0x3F;
+                if (_ucs2 > 0x10000 && _ucs2 < 0x110000) {
+                    _ucs2 -= 0x10000;
+                    out.push(String.fromCharCode(_ucs2 >>> 10 | 0xD800));
+                    out.push(String.fromCharCode(_ucs2 & 0x3FF | 0xDC00));
+                    i += 4;
+                    continue;
+                }
+            }
+        }
+        out.push(String.fromCharCode(0xFFFD));
+        ++i;
+    }
+
+    return out.join('');
+}
+
+exports.default = decodeUTF8;
+module.exports = exports['default'];
+
+/***/ }),
+/* 38 */
+/***/ (function(module, exports, __webpack_require__) {
+
+"use strict";
+
+
+Object.defineProperty(exports, "__esModule", {
+    value: true
+});
+
+var _createClass = function () { function defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ("value" in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } } return function (Constructor, protoProps, staticProps) { if (protoProps) defineProperties(Constructor.prototype, protoProps); if (staticProps) defineProperties(Constructor, staticProps); return Constructor; }; }(); /*
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                      * Copyright (C) 2016 Bilibili. All Rights Reserved.
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                      *
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                      * @author zheng qian <xqq@xqq.im>
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                      *
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                      * Licensed under the Apache License, Version 2.0 (the "License");
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                      * you may not use this file except in compliance with the License.
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                      * You may obtain a copy of the License at
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                      *
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                      *     http://www.apache.org/licenses/LICENSE-2.0
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                      *
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                      * Unless required by applicable law or agreed to in writing, software
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                      * distributed under the License is distributed on an "AS IS" BASIS,
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                      * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                      * See the License for the specific language governing permissions and
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                      * limitations under the License.
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                      */
+
+var _expGolomb = __webpack_require__(39);
+
+var _expGolomb2 = _interopRequireDefault(_expGolomb);
+
+function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
+
+function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } }
+
+var SPSParser = function () {
+    function SPSParser() {
+        _classCallCheck(this, SPSParser);
+    }
+
+    _createClass(SPSParser, null, [{
+        key: '_ebsp2rbsp',
+        value: function _ebsp2rbsp(uint8array) {
+            var src = uint8array;
+            var src_length = src.byteLength;
+            var dst = new Uint8Array(src_length);
+            var dst_idx = 0;
+
+            for (var i = 0; i < src_length; i++) {
+                if (i >= 2) {
+                    // Unescape: Skip 0x03 after 00 00
+                    if (src[i] === 0x03 && src[i - 1] === 0x00 && src[i - 2] === 0x00) {
+                        continue;
+                    }
+                }
+                dst[dst_idx] = src[i];
+                dst_idx++;
+            }
+
+            return new Uint8Array(dst.buffer, 0, dst_idx);
+        }
+    }, {
+        key: 'parseSPS',
+        value: function parseSPS(uint8array) {
+            var rbsp = SPSParser._ebsp2rbsp(uint8array);
+            var gb = new _expGolomb2.default(rbsp);
+
+            gb.readByte();
+            var profile_idc = gb.readByte(); // profile_idc
+            gb.readByte(); // constraint_set_flags[5] + reserved_zero[3]
+            var level_idc = gb.readByte(); // level_idc
+            gb.readUEG(); // seq_parameter_set_id
+
+            var profile_string = SPSParser.getProfileString(profile_idc);
+            var level_string = SPSParser.getLevelString(level_idc);
+            var chroma_format_idc = 1;
+            var chroma_format = 420;
+            var chroma_format_table = [0, 420, 422, 444];
+            var bit_depth = 8;
+
+            if (profile_idc === 100 || profile_idc === 110 || profile_idc === 122 || profile_idc === 244 || profile_idc === 44 || profile_idc === 83 || profile_idc === 86 || profile_idc === 118 || profile_idc === 128 || profile_idc === 138 || profile_idc === 144) {
+
+                chroma_format_idc = gb.readUEG();
+                if (chroma_format_idc === 3) {
+                    gb.readBits(1); // separate_colour_plane_flag
+                }
+                if (chroma_format_idc <= 3) {
+                    chroma_format = chroma_format_table[chroma_format_idc];
+                }
+
+                bit_depth = gb.readUEG() + 8; // bit_depth_luma_minus8
+                gb.readUEG(); // bit_depth_chroma_minus8
+                gb.readBits(1); // qpprime_y_zero_transform_bypass_flag
+                if (gb.readBool()) {
+                    // seq_scaling_matrix_present_flag
+                    var scaling_list_count = chroma_format_idc !== 3 ? 8 : 12;
+                    for (var i = 0; i < scaling_list_count; i++) {
+                        if (gb.readBool()) {
+                            // seq_scaling_list_present_flag
+                            if (i < 6) {
+                                SPSParser._skipScalingList(gb, 16);
+                            } else {
+                                SPSParser._skipScalingList(gb, 64);
+                            }
+                        }
+                    }
+                }
+            }
+            gb.readUEG(); // log2_max_frame_num_minus4
+            var pic_order_cnt_type = gb.readUEG();
+            if (pic_order_cnt_type === 0) {
+                gb.readUEG(); // log2_max_pic_order_cnt_lsb_minus_4
+            } else if (pic_order_cnt_type === 1) {
+                gb.readBits(1); // delta_pic_order_always_zero_flag
+                gb.readSEG(); // offset_for_non_ref_pic
+                gb.readSEG(); // offset_for_top_to_bottom_field
+                var num_ref_frames_in_pic_order_cnt_cycle = gb.readUEG();
+                for (var _i = 0; _i < num_ref_frames_in_pic_order_cnt_cycle; _i++) {
+                    gb.readSEG(); // offset_for_ref_frame
+                }
+            }
+            var ref_frames = gb.readUEG(); // max_num_ref_frames
+            gb.readBits(1); // gaps_in_frame_num_value_allowed_flag
+
+            var pic_width_in_mbs_minus1 = gb.readUEG();
+            var pic_height_in_map_units_minus1 = gb.readUEG();
+
+            var frame_mbs_only_flag = gb.readBits(1);
+            if (frame_mbs_only_flag === 0) {
+                gb.readBits(1); // mb_adaptive_frame_field_flag
+            }
+            gb.readBits(1); // direct_8x8_inference_flag
+
+            var frame_crop_left_offset = 0;
+            var frame_crop_right_offset = 0;
+            var frame_crop_top_offset = 0;
+            var frame_crop_bottom_offset = 0;
+
+            var frame_cropping_flag = gb.readBool();
+            if (frame_cropping_flag) {
+                frame_crop_left_offset = gb.readUEG();
+                frame_crop_right_offset = gb.readUEG();
+                frame_crop_top_offset = gb.readUEG();
+                frame_crop_bottom_offset = gb.readUEG();
+            }
+
+            var sar_width = 1,
+                sar_height = 1;
+            var fps = 0,
+                fps_fixed = true,
+                fps_num = 0,
+                fps_den = 0;
+
+            var vui_parameters_present_flag = gb.readBool();
+            if (vui_parameters_present_flag) {
+                if (gb.readBool()) {
+                    // aspect_ratio_info_present_flag
+                    var aspect_ratio_idc = gb.readByte();
+                    var sar_w_table = [1, 12, 10, 16, 40, 24, 20, 32, 80, 18, 15, 64, 160, 4, 3, 2];
+                    var sar_h_table = [1, 11, 11, 11, 33, 11, 11, 11, 33, 11, 11, 33, 99, 3, 2, 1];
+
+                    if (aspect_ratio_idc > 0 && aspect_ratio_idc < 16) {
+                        sar_width = sar_w_table[aspect_ratio_idc - 1];
+                        sar_height = sar_h_table[aspect_ratio_idc - 1];
+                    } else if (aspect_ratio_idc === 255) {
+                        sar_width = gb.readByte() << 8 | gb.readByte();
+                        sar_height = gb.readByte() << 8 | gb.readByte();
+                    }
+                }
+
+                if (gb.readBool()) {
+                    // overscan_info_present_flag
+                    gb.readBool(); // overscan_appropriate_flag
+                }
+                if (gb.readBool()) {
+                    // video_signal_type_present_flag
+                    gb.readBits(4); // video_format & video_full_range_flag
+                    if (gb.readBool()) {
+                        // colour_description_present_flag
+                        gb.readBits(24); // colour_primaries & transfer_characteristics & matrix_coefficients
+                    }
+                }
+                if (gb.readBool()) {
+                    // chroma_loc_info_present_flag
+                    gb.readUEG(); // chroma_sample_loc_type_top_field
+                    gb.readUEG(); // chroma_sample_loc_type_bottom_field
+                }
+                if (gb.readBool()) {
+                    // timing_info_present_flag
+                    var num_units_in_tick = gb.readBits(32);
+                    var time_scale = gb.readBits(32);
+                    fps_fixed = gb.readBool(); // fixed_frame_rate_flag
+
+                    fps_num = time_scale;
+                    fps_den = num_units_in_tick * 2;
+                    fps = fps_num / fps_den;
+                }
+            }
+
+            var sarScale = 1;
+            if (sar_width !== 1 || sar_height !== 1) {
+                sarScale = sar_width / sar_height;
+            }
+
+            var crop_unit_x = 0,
+                crop_unit_y = 0;
+            if (chroma_format_idc === 0) {
+                crop_unit_x = 1;
+                crop_unit_y = 2 - frame_mbs_only_flag;
+            } else {
+                var sub_wc = chroma_format_idc === 3 ? 1 : 2;
+                var sub_hc = chroma_format_idc === 1 ? 2 : 1;
+                crop_unit_x = sub_wc;
+                crop_unit_y = sub_hc * (2 - frame_mbs_only_flag);
+            }
+
+            var codec_width = (pic_width_in_mbs_minus1 + 1) * 16;
+            var codec_height = (2 - frame_mbs_only_flag) * ((pic_height_in_map_units_minus1 + 1) * 16);
+
+            codec_width -= (frame_crop_left_offset + frame_crop_right_offset) * crop_unit_x;
+            codec_height -= (frame_crop_top_offset + frame_crop_bottom_offset) * crop_unit_y;
+
+            var present_width = Math.ceil(codec_width * sarScale);
+
+            gb.destroy();
+            gb = null;
+
+            return {
+                profile_string: profile_string, // baseline, high, high10, ...
+                level_string: level_string, // 3, 3.1, 4, 4.1, 5, 5.1, ...
+                bit_depth: bit_depth, // 8bit, 10bit, ...
+                ref_frames: ref_frames,
+                chroma_format: chroma_format, // 4:2:0, 4:2:2, ...
+                chroma_format_string: SPSParser.getChromaFormatString(chroma_format),
+
+                frame_rate: {
+                    fixed: fps_fixed,
+                    fps: fps,
+                    fps_den: fps_den,
+                    fps_num: fps_num
+                },
+
+                par_ratio: {
+                    width: sar_width,
+                    height: sar_height
+                },
+
+                codec_size: {
+                    width: codec_width,
+                    height: codec_height
+                },
+
+                present_size: {
+                    width: present_width,
+                    height: codec_height
+                }
+            };
+        }
+    }, {
+        key: '_skipScalingList',
+        value: function _skipScalingList(gb, count) {
+            var last_scale = 8,
+                next_scale = 8;
+            var delta_scale = 0;
+            for (var i = 0; i < count; i++) {
+                if (next_scale !== 0) {
+                    delta_scale = gb.readSEG();
+                    next_scale = (last_scale + delta_scale + 256) % 256;
+                }
+                last_scale = next_scale === 0 ? last_scale : next_scale;
+            }
+        }
+    }, {
+        key: 'getProfileString',
+        value: function getProfileString(profile_idc) {
+            switch (profile_idc) {
+                case 66:
+                    return 'Baseline';
+                case 77:
+                    return 'Main';
+                case 88:
+                    return 'Extended';
+                case 100:
+                    return 'High';
+                case 110:
+                    return 'High10';
+                case 122:
+                    return 'High422';
+                case 244:
+                    return 'High444';
+                default:
+                    return 'Unknown';
+            }
+        }
+    }, {
+        key: 'getLevelString',
+        value: function getLevelString(level_idc) {
+            return (level_idc / 10).toFixed(1);
+        }
+    }, {
+        key: 'getChromaFormatString',
+        value: function getChromaFormatString(chroma) {
+            switch (chroma) {
+                case 420:
+                    return '4:2:0';
+                case 422:
+                    return '4:2:2';
+                case 444:
+                    return '4:4:4';
+                default:
+                    return 'Unknown';
+            }
+        }
+    }]);
+
+    return SPSParser;
+}();
+
+exports.default = SPSParser;
+module.exports = exports['default'];
+
+/***/ }),
+/* 39 */
+/***/ (function(module, exports, __webpack_require__) {
+
+"use strict";
+
+
+Object.defineProperty(exports, "__esModule", {
+    value: true
+});
+
+var _createClass = function () { function defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ("value" in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } } return function (Constructor, protoProps, staticProps) { if (protoProps) defineProperties(Constructor.prototype, protoProps); if (staticProps) defineProperties(Constructor, staticProps); return Constructor; }; }(); /*
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                      * Copyright (C) 2016 Bilibili. All Rights Reserved.
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                      *
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                      * @author zheng qian <xqq@xqq.im>
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                      *
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                      * Licensed under the Apache License, Version 2.0 (the "License");
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                      * you may not use this file except in compliance with the License.
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                      * You may obtain a copy of the License at
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                      *
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                      *     http://www.apache.org/licenses/LICENSE-2.0
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                      *
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                      * Unless required by applicable law or agreed to in writing, software
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                      * distributed under the License is distributed on an "AS IS" BASIS,
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                      * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                      * See the License for the specific language governing permissions and
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                      * limitations under the License.
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                      */
+
+var _exception = __webpack_require__(1);
+
+function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } }
+
+// Exponential-Golomb buffer decoder
+var ExpGolomb = function () {
+    function ExpGolomb(uint8array) {
+        _classCallCheck(this, ExpGolomb);
+
+        this.TAG = 'ExpGolomb';
+
+        this._buffer = uint8array;
+        this._buffer_index = 0;
+        this._total_bytes = uint8array.byteLength;
+        this._total_bits = uint8array.byteLength * 8;
+        this._current_word = 0;
+        this._current_word_bits_left = 0;
+    }
+
+    _createClass(ExpGolomb, [{
+        key: 'destroy',
+        value: function destroy() {
+            this._buffer = null;
+        }
+    }, {
+        key: '_fillCurrentWord',
+        value: function _fillCurrentWord() {
+            var buffer_bytes_left = this._total_bytes - this._buffer_index;
+            if (buffer_bytes_left <= 0) throw new _exception.IllegalStateException('ExpGolomb: _fillCurrentWord() but no bytes available');
+
+            var bytes_read = Math.min(4, buffer_bytes_left);
+            var word = new Uint8Array(4);
+            word.set(this._buffer.subarray(this._buffer_index, this._buffer_index + bytes_read));
+            this._current_word = new DataView(word.buffer).getUint32(0, false);
+
+            this._buffer_index += bytes_read;
+            this._current_word_bits_left = bytes_read * 8;
+        }
+    }, {
+        key: 'readBits',
+        value: function readBits(bits) {
+            if (bits > 32) throw new _exception.InvalidArgumentException('ExpGolomb: readBits() bits exceeded max 32bits!');
+
+            if (bits <= this._current_word_bits_left) {
+                var _result = this._current_word >>> 32 - bits;
+                this._current_word <<= bits;
+                this._current_word_bits_left -= bits;
+                return _result;
+            }
+
+            var result = this._current_word_bits_left ? this._current_word : 0;
+            result = result >>> 32 - this._current_word_bits_left;
+            var bits_need_left = bits - this._current_word_bits_left;
+
+            this._fillCurrentWord();
+            var bits_read_next = Math.min(bits_need_left, this._current_word_bits_left);
+
+            var result2 = this._current_word >>> 32 - bits_read_next;
+            this._current_word <<= bits_read_next;
+            this._current_word_bits_left -= bits_read_next;
+
+            result = result << bits_read_next | result2;
+            return result;
+        }
+    }, {
+        key: 'readBool',
+        value: function readBool() {
+            return this.readBits(1) === 1;
+        }
+    }, {
+        key: 'readByte',
+        value: function readByte() {
+            return this.readBits(8);
+        }
+    }, {
+        key: '_skipLeadingZero',
+        value: function _skipLeadingZero() {
+            var zero_count = void 0;
+            for (zero_count = 0; zero_count < this._current_word_bits_left; zero_count++) {
+                if (0 !== (this._current_word & 0x80000000 >>> zero_count)) {
+                    this._current_word <<= zero_count;
+                    this._current_word_bits_left -= zero_count;
+                    return zero_count;
+                }
+            }
+            this._fillCurrentWord();
+            return zero_count + this._skipLeadingZero();
+        }
+    }, {
+        key: 'readUEG',
+        value: function readUEG() {
+            // unsigned exponential golomb
+            var leading_zeros = this._skipLeadingZero();
+            return this.readBits(leading_zeros + 1) - 1;
+        }
+    }, {
+        key: 'readSEG',
+        value: function readSEG() {
+            // signed exponential golomb
+            var value = this.readUEG();
+            if (value & 0x01) {
+                return value + 1 >>> 1;
+            } else {
+                return -1 * (value >>> 1);
+            }
+        }
+    }]);
+
+    return ExpGolomb;
+}();
+
+exports.default = ExpGolomb;
+module.exports = exports['default'];
+
+/***/ }),
+/* 40 */
+/***/ (function(module, exports, __webpack_require__) {
+
+"use strict";
+
+
+Object.defineProperty(exports, "__esModule", {
+    value: true
+});
+
+var _createClass = function () { function defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ("value" in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } } return function (Constructor, protoProps, staticProps) { if (protoProps) defineProperties(Constructor.prototype, protoProps); if (staticProps) defineProperties(Constructor, staticProps); return Constructor; }; }(); /*
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                      * Copyright (C) 2016 Bilibili. All Rights Reserved.
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                      *
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                      * @author zheng qian <xqq@xqq.im>
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                      *
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                      * Licensed under the Apache License, Version 2.0 (the "License");
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                      * you may not use this file except in compliance with the License.
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                      * You may obtain a copy of the License at
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                      *
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                      *     http://www.apache.org/licenses/LICENSE-2.0
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                      *
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                      * Unless required by applicable law or agreed to in writing, software
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                      * distributed under the License is distributed on an "AS IS" BASIS,
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                      * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                      * See the License for the specific language governing permissions and
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                      * limitations under the License.
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                      */
+
+var _logger = __webpack_require__(0);
+
+var _logger2 = _interopRequireDefault(_logger);
+
+var _mp4Generator = __webpack_require__(41);
+
+var _mp4Generator2 = _interopRequireDefault(_mp4Generator);
+
+var _aacSilent = __webpack_require__(42);
+
+var _aacSilent2 = _interopRequireDefault(_aacSilent);
+
+var _browser = __webpack_require__(4);
+
+var _browser2 = _interopRequireDefault(_browser);
+
+var _mediaSegmentInfo = __webpack_require__(15);
+
+var _exception = __webpack_require__(1);
+
+function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
+
+function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } }
+
+// Fragmented mp4 remuxer
+var MP4Remuxer = function () {
+    function MP4Remuxer(config) {
+        _classCallCheck(this, MP4Remuxer);
+
+        this.TAG = 'MP4Remuxer';
+
+        this._config = config;
+        this._isLive = config.isLive === true ? true : false;
+
+        this._dtsBase = -1;
+        this._dtsBaseInited = false;
+        this._audioDtsBase = Infinity;
+        this._videoDtsBase = Infinity;
+        this._audioNextDts = undefined;
+        this._videoNextDts = undefined;
+        this._audioStashedLastSample = null;
+        this._videoStashedLastSample = null;
+
+        this._audioMeta = null;
+        this._videoMeta = null;
+
+        this._audioSegmentInfoList = new _mediaSegmentInfo.MediaSegmentInfoList('audio');
+        this._videoSegmentInfoList = new _mediaSegmentInfo.MediaSegmentInfoList('video');
+
+        this._onInitSegment = null;
+        this._onMediaSegment = null;
+
+        // Workaround for chrome < 50: Always force first sample as a Random Access Point in media segment
+        // see https://bugs.chromium.org/p/chromium/issues/detail?id=229412
+        this._forceFirstIDR = _browser2.default.chrome && (_browser2.default.version.major < 50 || _browser2.default.version.major === 50 && _browser2.default.version.build < 2661) ? true : false;
+
+        // Workaround for IE11/Edge: Fill silent aac frame after keyframe-seeking
+        // Make audio beginDts equals with video beginDts, in order to fix seek freeze
+        this._fillSilentAfterSeek = _browser2.default.msedge || _browser2.default.msie;
+
+        // While only FireFox supports 'audio/mp4, codecs="mp3"', use 'audio/mpeg' for chrome, safari, ...
+        this._mp3UseMpegAudio = !_browser2.default.firefox;
+
+        this._fillAudioTimestampGap = this._config.fixAudioTimestampGap;
+    }
+
+    _createClass(MP4Remuxer, [{
+        key: 'destroy',
+        value: function destroy() {
+            this._dtsBase = -1;
+            this._dtsBaseInited = false;
+            this._audioMeta = null;
+            this._videoMeta = null;
+            this._audioSegmentInfoList.clear();
+            this._audioSegmentInfoList = null;
+            this._videoSegmentInfoList.clear();
+            this._videoSegmentInfoList = null;
+            this._onInitSegment = null;
+            this._onMediaSegment = null;
+        }
+    }, {
+        key: 'bindDataSource',
+        value: function bindDataSource(producer) {
+            producer.onDataAvailable = this.remux.bind(this);
+            producer.onTrackMetadata = this._onTrackMetadataReceived.bind(this);
+            return this;
+        }
+
+        /* prototype: function onInitSegment(type: string, initSegment: ArrayBuffer): void
+           InitSegment: {
+               type: string,
+               data: ArrayBuffer,
+               codec: string,
+               container: string
+           }
+        */
+
+    }, {
+        key: 'insertDiscontinuity',
+        value: function insertDiscontinuity() {
+            this._audioNextDts = this._videoNextDts = undefined;
+        }
+    }, {
+        key: 'seek',
+        value: function seek(originalDts) {
+            this._audioStashedLastSample = null;
+            this._videoStashedLastSample = null;
+            this._videoSegmentInfoList.clear();
+            this._audioSegmentInfoList.clear();
+        }
+    }, {
+        key: 'remux',
+        value: function remux(audioTrack, videoTrack) {
+            if (!this._onMediaSegment) {
+                throw new _exception.IllegalStateException('MP4Remuxer: onMediaSegment callback must be specificed!');
+            }
+            if (!this._dtsBaseInited) {
+                this._calculateDtsBase(audioTrack, videoTrack);
+            }
+            this._remuxVideo(videoTrack);
+            this._remuxAudio(audioTrack);
+        }
+    }, {
+        key: '_onTrackMetadataReceived',
+        value: function _onTrackMetadataReceived(type, metadata) {
+            var metabox = null;
+
+            var container = 'mp4';
+            var codec = metadata.codec;
+
+            if (type === 'audio') {
+                this._audioMeta = metadata;
+                if (metadata.codec === 'mp3' && this._mp3UseMpegAudio) {
+                    // 'audio/mpeg' for MP3 audio track
+                    container = 'mpeg';
+                    codec = '';
+                    metabox = new Uint8Array();
+                } else {
+                    // 'audio/mp4, codecs="codec"'
+                    metabox = _mp4Generator2.default.generateInitSegment(metadata);
+                }
+            } else if (type === 'video') {
+                this._videoMeta = metadata;
+                metabox = _mp4Generator2.default.generateInitSegment(metadata);
+            } else {
+                return;
+            }
+
+            // dispatch metabox (Initialization Segment)
+            if (!this._onInitSegment) {
+                throw new _exception.IllegalStateException('MP4Remuxer: onInitSegment callback must be specified!');
+            }
+            this._onInitSegment(type, {
+                type: type,
+                data: metabox.buffer,
+                codec: codec,
+                container: type + '/' + container,
+                mediaDuration: metadata.duration // in timescale 1000 (milliseconds)
+            });
+        }
+    }, {
+        key: '_calculateDtsBase',
+        value: function _calculateDtsBase(audioTrack, videoTrack) {
+            if (this._dtsBaseInited) {
+                return;
+            }
+
+            if (audioTrack.samples && audioTrack.samples.length) {
+                this._audioDtsBase = audioTrack.samples[0].dts;
+            }
+            if (videoTrack.samples && videoTrack.samples.length) {
+                this._videoDtsBase = videoTrack.samples[0].dts;
+            }
+
+            this._dtsBase = Math.min(this._audioDtsBase, this._videoDtsBase);
+            this._dtsBaseInited = true;
+        }
+    }, {
+        key: 'flushStashedSamples',
+        value: function flushStashedSamples() {
+            var videoSample = this._videoStashedLastSample;
+            var audioSample = this._audioStashedLastSample;
+
+            var videoTrack = {
+                type: 'video',
+                id: 1,
+                sequenceNumber: 0,
+                samples: [],
+                length: 0
+            };
+
+            if (videoSample != null) {
+                videoTrack.samples.push(videoSample);
+                videoTrack.length = videoSample.length;
+            }
+
+            var audioTrack = {
+                type: 'audio',
+                id: 2,
+                sequenceNumber: 0,
+                samples: [],
+                length: 0
+            };
+
+            if (audioSample != null) {
+                audioTrack.samples.push(audioSample);
+                audioTrack.length = audioSample.length;
+            }
+
+            this._videoStashedLastSample = null;
+            this._audioStashedLastSample = null;
+
+            this._remuxVideo(videoTrack, true);
+            this._remuxAudio(audioTrack, true);
+        }
+    }, {
+        key: '_remuxAudio',
+        value: function _remuxAudio(audioTrack, force) {
+            if (this._audioMeta == null) {
+                return;
+            }
+
+            var track = audioTrack;
+            var samples = track.samples;
+            var dtsCorrection = undefined;
+            var firstDts = -1,
+                lastDts = -1,
+                lastPts = -1;
+            var refSampleDuration = this._audioMeta.refSampleDuration;
+
+            var mpegRawTrack = this._audioMeta.codec === 'mp3' && this._mp3UseMpegAudio;
+            var firstSegmentAfterSeek = this._dtsBaseInited && this._audioNextDts === undefined;
+
+            var insertPrefixSilentFrame = false;
+
+            if (!samples || samples.length === 0) {
+                return;
+            }
+            if (samples.length === 1 && !force) {
+                // If [sample count in current batch] === 1 && (force != true)
+                // Ignore and keep in demuxer's queue
+                return;
+            } // else if (force === true) do remux
+
+            var offset = 0;
+            var mdatbox = null;
+            var mdatBytes = 0;
+
+            // calculate initial mdat size
+            if (mpegRawTrack) {
+                // for raw mpeg buffer
+                offset = 0;
+                mdatBytes = track.length;
+            } else {
+                // for fmp4 mdat box
+                offset = 8; // size + type
+                mdatBytes = 8 + track.length;
+            }
+
+            var lastSample = null;
+
+            // Pop the lastSample and waiting for stash
+            if (samples.length > 1) {
+                lastSample = samples.pop();
+                mdatBytes -= lastSample.length;
+            }
+
+            // Insert [stashed lastSample in the previous batch] to the front
+            if (this._audioStashedLastSample != null) {
+                var sample = this._audioStashedLastSample;
+                this._audioStashedLastSample = null;
+                samples.unshift(sample);
+                mdatBytes += sample.length;
+            }
+
+            // Stash the lastSample of current batch, waiting for next batch
+            if (lastSample != null) {
+                this._audioStashedLastSample = lastSample;
+            }
+
+            var firstSampleOriginalDts = samples[0].dts - this._dtsBase;
+
+            // calculate dtsCorrection
+            if (this._audioNextDts) {
+                dtsCorrection = firstSampleOriginalDts - this._audioNextDts;
+            } else {
+                // this._audioNextDts == undefined
+                if (this._audioSegmentInfoList.isEmpty()) {
+                    dtsCorrection = 0;
+                    if (this._fillSilentAfterSeek && !this._videoSegmentInfoList.isEmpty()) {
+                        if (this._audioMeta.originalCodec !== 'mp3') {
+                            insertPrefixSilentFrame = true;
+                        }
+                    }
+                } else {
+                    var _lastSample = this._audioSegmentInfoList.getLastSampleBefore(firstSampleOriginalDts);
+                    if (_lastSample != null) {
+                        var distance = firstSampleOriginalDts - (_lastSample.originalDts + _lastSample.duration);
+                        if (distance <= 3) {
+                            distance = 0;
+                        }
+                        var expectedDts = _lastSample.dts + _lastSample.duration + distance;
+                        dtsCorrection = firstSampleOriginalDts - expectedDts;
+                    } else {
+                        // lastSample == null, cannot found
+                        dtsCorrection = 0;
+                    }
+                }
+            }
+
+            if (insertPrefixSilentFrame) {
+                // align audio segment beginDts to match with current video segment's beginDts
+                var firstSampleDts = firstSampleOriginalDts - dtsCorrection;
+                var videoSegment = this._videoSegmentInfoList.getLastSegmentBefore(firstSampleOriginalDts);
+                if (videoSegment != null && videoSegment.beginDts < firstSampleDts) {
+                    var silentUnit = _aacSilent2.default.getSilentFrame(this._audioMeta.originalCodec, this._audioMeta.channelCount);
+                    if (silentUnit) {
+                        var dts = videoSegment.beginDts;
+                        var silentFrameDuration = firstSampleDts - videoSegment.beginDts;
+                        _logger2.default.v(this.TAG, 'InsertPrefixSilentAudio: dts: ' + dts + ', duration: ' + silentFrameDuration);
+                        samples.unshift({ unit: silentUnit, dts: dts, pts: dts });
+                        mdatBytes += silentUnit.byteLength;
+                    } // silentUnit == null: Cannot generate, skip
+                } else {
+                    insertPrefixSilentFrame = false;
+                }
+            }
+
+            var mp4Samples = [];
+
+            // Correct dts for each sample, and calculate sample duration. Then output to mp4Samples
+            for (var i = 0; i < samples.length; i++) {
+                var _sample = samples[i];
+                var unit = _sample.unit;
+                var originalDts = _sample.dts - this._dtsBase;
+                var _dts = originalDts;
+                var needFillSilentFrames = false;
+                var silentFrames = null;
+                var sampleDuration = 0;
+
+                if (originalDts < -0.001) {
+                    continue; //pass the first sample with the invalid dts
+                }
+
+                if (this._audioMeta.codec !== 'mp3') {
+                    // for AAC codec, we need to keep dts increase based on refSampleDuration
+                    var curRefDts = originalDts;
+                    var maxAudioFramesDrift = 3;
+                    if (this._audioNextDts) {
+                        curRefDts = this._audioNextDts;
+                    }
+
+                    dtsCorrection = originalDts - curRefDts;
+                    if (dtsCorrection <= -maxAudioFramesDrift * refSampleDuration) {
+                        // If we're overlapping by more than maxAudioFramesDrift number of frame, drop this sample
+                        _logger2.default.w(this.TAG, 'Dropping 1 audio frame (originalDts: ' + originalDts + ' ms ,curRefDts: ' + curRefDts + ' ms)  due to dtsCorrection: ' + dtsCorrection + ' ms overlap.');
+                        continue;
+                    } else if (dtsCorrection >= maxAudioFramesDrift * refSampleDuration && this._fillAudioTimestampGap && !_browser2.default.safari) {
+                        // Silent frame generation, if large timestamp gap detected && config.fixAudioTimestampGap
+                        needFillSilentFrames = true;
+                        // We need to insert silent frames to fill timestamp gap
+                        var frameCount = Math.floor(dtsCorrection / refSampleDuration);
+                        _logger2.default.w(this.TAG, 'Large audio timestamp gap detected, may cause AV sync to drift. ' + 'Silent frames will be generated to avoid unsync.\n' + ('originalDts: ' + originalDts + ' ms, curRefDts: ' + curRefDts + ' ms, ') + ('dtsCorrection: ' + Math.round(dtsCorrection) + ' ms, generate: ' + frameCount + ' frames'));
+
+                        _dts = Math.floor(curRefDts);
+                        sampleDuration = Math.floor(curRefDts + refSampleDuration) - _dts;
+
+                        var _silentUnit = _aacSilent2.default.getSilentFrame(this._audioMeta.originalCodec, this._audioMeta.channelCount);
+                        if (_silentUnit == null) {
+                            _logger2.default.w(this.TAG, 'Unable to generate silent frame for ' + (this._audioMeta.originalCodec + ' with ' + this._audioMeta.channelCount + ' channels, repeat last frame'));
+                            // Repeat last frame
+                            _silentUnit = unit;
+                        }
+                        silentFrames = [];
+
+                        for (var j = 0; j < frameCount; j++) {
+                            curRefDts = curRefDts + refSampleDuration;
+                            var intDts = Math.floor(curRefDts); // change to integer
+                            var intDuration = Math.floor(curRefDts + refSampleDuration) - intDts;
+                            var frame = {
+                                dts: intDts,
+                                pts: intDts,
+                                cts: 0,
+                                unit: _silentUnit,
+                                size: _silentUnit.byteLength,
+                                duration: intDuration, // wait for next sample
+                                originalDts: originalDts,
+                                flags: {
+                                    isLeading: 0,
+                                    dependsOn: 1,
+                                    isDependedOn: 0,
+                                    hasRedundancy: 0
+                                }
+                            };
+                            silentFrames.push(frame);
+                            mdatBytes += unit.byteLength;
+                        }
+
+                        this._audioNextDts = curRefDts + refSampleDuration;
+                    } else {
+
+                        _dts = Math.floor(curRefDts);
+                        sampleDuration = Math.floor(curRefDts + refSampleDuration) - _dts;
+                        this._audioNextDts = curRefDts + refSampleDuration;
+                    }
+                } else {
+                    // keep the original dts calculate algorithm for mp3
+                    _dts = originalDts - dtsCorrection;
+
+                    if (i !== samples.length - 1) {
+                        var nextDts = samples[i + 1].dts - this._dtsBase - dtsCorrection;
+                        sampleDuration = nextDts - _dts;
+                    } else {
+                        // the last sample
+                        if (lastSample != null) {
+                            // use stashed sample's dts to calculate sample duration
+                            var _nextDts = lastSample.dts - this._dtsBase - dtsCorrection;
+                            sampleDuration = _nextDts - _dts;
+                        } else if (mp4Samples.length >= 1) {
+                            // use second last sample duration
+                            sampleDuration = mp4Samples[mp4Samples.length - 1].duration;
+                        } else {
+                            // the only one sample, use reference sample duration
+                            sampleDuration = Math.floor(refSampleDuration);
+                        }
+                    }
+                    this._audioNextDts = _dts + sampleDuration;
+                }
+
+                if (firstDts === -1) {
+                    firstDts = _dts;
+                }
+                mp4Samples.push({
+                    dts: _dts,
+                    pts: _dts,
+                    cts: 0,
+                    unit: _sample.unit,
+                    size: _sample.unit.byteLength,
+                    duration: sampleDuration,
+                    originalDts: originalDts,
+                    flags: {
+                        isLeading: 0,
+                        dependsOn: 1,
+                        isDependedOn: 0,
+                        hasRedundancy: 0
+                    }
+                });
+
+                if (needFillSilentFrames) {
+                    // Silent frames should be inserted after wrong-duration frame
+                    mp4Samples.push.apply(mp4Samples, silentFrames);
+                }
+            }
+
+            if (mp4Samples.length === 0) {
+                //no samples need to remux
+                track.samples = [];
+                track.length = 0;
+                return;
+            }
+
+            // allocate mdatbox
+            if (mpegRawTrack) {
+                // allocate for raw mpeg buffer
+                mdatbox = new Uint8Array(mdatBytes);
+            } else {
+                // allocate for fmp4 mdat box
+                mdatbox = new Uint8Array(mdatBytes);
+                // size field
+                mdatbox[0] = mdatBytes >>> 24 & 0xFF;
+                mdatbox[1] = mdatBytes >>> 16 & 0xFF;
+                mdatbox[2] = mdatBytes >>> 8 & 0xFF;
+                mdatbox[3] = mdatBytes & 0xFF;
+                // type field (fourCC)
+                mdatbox.set(_mp4Generator2.default.types.mdat, 4);
+            }
+
+            // Write samples into mdatbox
+            for (var _i = 0; _i < mp4Samples.length; _i++) {
+                var _unit = mp4Samples[_i].unit;
+                mdatbox.set(_unit, offset);
+                offset += _unit.byteLength;
+            }
+
+            var latest = mp4Samples[mp4Samples.length - 1];
+            lastDts = latest.dts + latest.duration;
+            //this._audioNextDts = lastDts;
+
+            // fill media segment info & add to info list
+            var info = new _mediaSegmentInfo.MediaSegmentInfo();
+            info.beginDts = firstDts;
+            info.endDts = lastDts;
+            info.beginPts = firstDts;
+            info.endPts = lastDts;
+            info.originalBeginDts = mp4Samples[0].originalDts;
+            info.originalEndDts = latest.originalDts + latest.duration;
+            info.firstSample = new _mediaSegmentInfo.SampleInfo(mp4Samples[0].dts, mp4Samples[0].pts, mp4Samples[0].duration, mp4Samples[0].originalDts, false);
+            info.lastSample = new _mediaSegmentInfo.SampleInfo(latest.dts, latest.pts, latest.duration, latest.originalDts, false);
+            if (!this._isLive) {
+                this._audioSegmentInfoList.append(info);
+            }
+
+            track.samples = mp4Samples;
+            track.sequenceNumber++;
+
+            var moofbox = null;
+
+            if (mpegRawTrack) {
+                // Generate empty buffer, because useless for raw mpeg
+                moofbox = new Uint8Array();
+            } else {
+                // Generate moof for fmp4 segment
+                moofbox = _mp4Generator2.default.moof(track, firstDts);
+            }
+
+            track.samples = [];
+            track.length = 0;
+
+            var segment = {
+                type: 'audio',
+                data: this._mergeBoxes(moofbox, mdatbox).buffer,
+                sampleCount: mp4Samples.length,
+                info: info
+            };
+
+            if (mpegRawTrack && firstSegmentAfterSeek) {
+                // For MPEG audio stream in MSE, if seeking occurred, before appending new buffer
+                // We need explicitly set timestampOffset to the desired point in timeline for mpeg SourceBuffer.
+                segment.timestampOffset = firstDts;
+            }
+
+            this._onMediaSegment('audio', segment);
+        }
+    }, {
+        key: '_remuxVideo',
+        value: function _remuxVideo(videoTrack, force) {
+            if (this._videoMeta == null) {
+                return;
+            }
+
+            var track = videoTrack;
+            var samples = track.samples;
+            var dtsCorrection = undefined;
+            var firstDts = -1,
+                lastDts = -1;
+            var firstPts = -1,
+                lastPts = -1;
+
+            if (!samples || samples.length === 0) {
+                return;
+            }
+            if (samples.length === 1 && !force) {
+                // If [sample count in current batch] === 1 && (force != true)
+                // Ignore and keep in demuxer's queue
+                return;
+            } // else if (force === true) do remux
+
+            var offset = 8;
+            var mdatbox = null;
+            var mdatBytes = 8 + videoTrack.length;
+
+            var lastSample = null;
+
+            // Pop the lastSample and waiting for stash
+            if (samples.length > 1) {
+                lastSample = samples.pop();
+                mdatBytes -= lastSample.length;
+            }
+
+            // Insert [stashed lastSample in the previous batch] to the front
+            if (this._videoStashedLastSample != null) {
+                var sample = this._videoStashedLastSample;
+                this._videoStashedLastSample = null;
+                samples.unshift(sample);
+                mdatBytes += sample.length;
+            }
+
+            // Stash the lastSample of current batch, waiting for next batch
+            if (lastSample != null) {
+                this._videoStashedLastSample = lastSample;
+            }
+
+            var firstSampleOriginalDts = samples[0].dts - this._dtsBase;
+
+            // calculate dtsCorrection
+            if (this._videoNextDts) {
+                dtsCorrection = firstSampleOriginalDts - this._videoNextDts;
+            } else {
+                // this._videoNextDts == undefined
+                if (this._videoSegmentInfoList.isEmpty()) {
+                    dtsCorrection = 0;
+                } else {
+                    var _lastSample2 = this._videoSegmentInfoList.getLastSampleBefore(firstSampleOriginalDts);
+                    if (_lastSample2 != null) {
+                        var distance = firstSampleOriginalDts - (_lastSample2.originalDts + _lastSample2.duration);
+                        if (distance <= 3) {
+                            distance = 0;
+                        }
+                        var expectedDts = _lastSample2.dts + _lastSample2.duration + distance;
+                        dtsCorrection = firstSampleOriginalDts - expectedDts;
+                    } else {
+                        // lastSample == null, cannot found
+                        dtsCorrection = 0;
+                    }
+                }
+            }
+
+            var info = new _mediaSegmentInfo.MediaSegmentInfo();
+            var mp4Samples = [];
+
+            // Correct dts for each sample, and calculate sample duration. Then output to mp4Samples
+            for (var i = 0; i < samples.length; i++) {
+                var _sample2 = samples[i];
+                var originalDts = _sample2.dts - this._dtsBase;
+                var isKeyframe = _sample2.isKeyframe;
+                var dts = originalDts - dtsCorrection;
+                var cts = _sample2.cts;
+                var pts = dts + cts;
+
+                if (firstDts === -1) {
+                    firstDts = dts;
+                    firstPts = pts;
+                }
+
+                var sampleDuration = 0;
+
+                if (i !== samples.length - 1) {
+                    var nextDts = samples[i + 1].dts - this._dtsBase - dtsCorrection;
+                    sampleDuration = nextDts - dts;
+                } else {
+                    // the last sample
+                    if (lastSample != null) {
+                        // use stashed sample's dts to calculate sample duration
+                        var _nextDts2 = lastSample.dts - this._dtsBase - dtsCorrection;
+                        sampleDuration = _nextDts2 - dts;
+                    } else if (mp4Samples.length >= 1) {
+                        // use second last sample duration
+                        sampleDuration = mp4Samples[mp4Samples.length - 1].duration;
+                    } else {
+                        // the only one sample, use reference sample duration
+                        sampleDuration = Math.floor(this._videoMeta.refSampleDuration);
+                    }
+                }
+
+                if (isKeyframe) {
+                    var syncPoint = new _mediaSegmentInfo.SampleInfo(dts, pts, sampleDuration, _sample2.dts, true);
+                    syncPoint.fileposition = _sample2.fileposition;
+                    info.appendSyncPoint(syncPoint);
+                }
+
+                mp4Samples.push({
+                    dts: dts,
+                    pts: pts,
+                    cts: cts,
+                    units: _sample2.units,
+                    size: _sample2.length,
+                    isKeyframe: isKeyframe,
+                    duration: sampleDuration,
+                    originalDts: originalDts,
+                    flags: {
+                        isLeading: 0,
+                        dependsOn: isKeyframe ? 2 : 1,
+                        isDependedOn: isKeyframe ? 1 : 0,
+                        hasRedundancy: 0,
+                        isNonSync: isKeyframe ? 0 : 1
+                    }
+                });
+            }
+
+            // allocate mdatbox
+            mdatbox = new Uint8Array(mdatBytes);
+            mdatbox[0] = mdatBytes >>> 24 & 0xFF;
+            mdatbox[1] = mdatBytes >>> 16 & 0xFF;
+            mdatbox[2] = mdatBytes >>> 8 & 0xFF;
+            mdatbox[3] = mdatBytes & 0xFF;
+            mdatbox.set(_mp4Generator2.default.types.mdat, 4);
+
+            // Write samples into mdatbox
+            for (var _i2 = 0; _i2 < mp4Samples.length; _i2++) {
+                var units = mp4Samples[_i2].units;
+                while (units.length) {
+                    var unit = units.shift();
+                    var data = unit.data;
+                    mdatbox.set(data, offset);
+                    offset += data.byteLength;
+                }
+            }
+
+            var latest = mp4Samples[mp4Samples.length - 1];
+            lastDts = latest.dts + latest.duration;
+            lastPts = latest.pts + latest.duration;
+            this._videoNextDts = lastDts;
+
+            // fill media segment info & add to info list
+            info.beginDts = firstDts;
+            info.endDts = lastDts;
+            info.beginPts = firstPts;
+            info.endPts = lastPts;
+            info.originalBeginDts = mp4Samples[0].originalDts;
+            info.originalEndDts = latest.originalDts + latest.duration;
+            info.firstSample = new _mediaSegmentInfo.SampleInfo(mp4Samples[0].dts, mp4Samples[0].pts, mp4Samples[0].duration, mp4Samples[0].originalDts, mp4Samples[0].isKeyframe);
+            info.lastSample = new _mediaSegmentInfo.SampleInfo(latest.dts, latest.pts, latest.duration, latest.originalDts, latest.isKeyframe);
+            if (!this._isLive) {
+                this._videoSegmentInfoList.append(info);
+            }
+
+            track.samples = mp4Samples;
+            track.sequenceNumber++;
+
+            // workaround for chrome < 50: force first sample as a random access point
+            // see https://bugs.chromium.org/p/chromium/issues/detail?id=229412
+            if (this._forceFirstIDR) {
+                var flags = mp4Samples[0].flags;
+                flags.dependsOn = 2;
+                flags.isNonSync = 0;
+            }
+
+            var moofbox = _mp4Generator2.default.moof(track, firstDts);
+            track.samples = [];
+            track.length = 0;
+
+            this._onMediaSegment('video', {
+                type: 'video',
+                data: this._mergeBoxes(moofbox, mdatbox).buffer,
+                sampleCount: mp4Samples.length,
+                info: info
+            });
+        }
+    }, {
+        key: '_mergeBoxes',
+        value: function _mergeBoxes(moof, mdat) {
+            var result = new Uint8Array(moof.byteLength + mdat.byteLength);
+            result.set(moof, 0);
+            result.set(mdat, moof.byteLength);
+            return result;
+        }
+    }, {
+        key: 'onInitSegment',
+        get: function get() {
+            return this._onInitSegment;
+        },
+        set: function set(callback) {
+            this._onInitSegment = callback;
+        }
+
+        /* prototype: function onMediaSegment(type: string, mediaSegment: MediaSegment): void
+           MediaSegment: {
+               type: string,
+               data: ArrayBuffer,
+               sampleCount: int32
+               info: MediaSegmentInfo
+           }
+        */
+
+    }, {
+        key: 'onMediaSegment',
+        get: function get() {
+            return this._onMediaSegment;
+        },
+        set: function set(callback) {
+            this._onMediaSegment = callback;
+        }
+    }]);
+
+    return MP4Remuxer;
+}();
+
+exports.default = MP4Remuxer;
+module.exports = exports['default'];
+
+/***/ }),
+/* 41 */
+/***/ (function(module, exports, __webpack_require__) {
+
+"use strict";
+
+
+Object.defineProperty(exports, "__esModule", {
+  value: true
+});
+
+var _createClass = function () { function defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ("value" in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } } return function (Constructor, protoProps, staticProps) { if (protoProps) defineProperties(Constructor.prototype, protoProps); if (staticProps) defineProperties(Constructor, staticProps); return Constructor; }; }();
+
+function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } }
+
+/*
+ * Copyright (C) 2016 Bilibili. All Rights Reserved.
+ *
+ * This file is derived from dailymotion's hls.js library (hls.js/src/remux/mp4-generator.js)
+ * @author zheng qian <xqq@xqq.im>
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+
+//  MP4 boxes generator for ISO BMFF (ISO Base Media File Format, defined in ISO/IEC 14496-12)
+var MP4 = function () {
+  function MP4() {
+    _classCallCheck(this, MP4);
+  }
+
+  _createClass(MP4, null, [{
+    key: 'init',
+    value: function init() {
+      MP4.types = {
+        avc1: [],
+        avcC: [],
+        btrt: [],
+        dinf: [],
+        dref: [],
+        esds: [],
+        ftyp: [],
+        hdlr: [],
+        mdat: [],
+        mdhd: [],
+        mdia: [],
+        mfhd: [],
+        minf: [],
+        moof: [],
+        moov: [],
+        mp4a: [],
+        mvex: [],
+        mvhd: [],
+        sdtp: [],
+        stbl: [],
+        stco: [],
+        stsc: [],
+        stsd: [],
+        stsz: [],
+        stts: [],
+        tfdt: [],
+        tfhd: [],
+        traf: [],
+        trak: [],
+        trun: [],
+        trex: [],
+        tkhd: [],
+        vmhd: [],
+        smhd: [],
+        '.mp3': []
+      };
+
+      for (var name in MP4.types) {
+        if (MP4.types.hasOwnProperty(name)) {
+          MP4.types[name] = [name.charCodeAt(0), name.charCodeAt(1), name.charCodeAt(2), name.charCodeAt(3)];
+        }
+      }
+
+      var constants = MP4.constants = {};
+
+      constants.FTYP = new Uint8Array([0x69, 0x73, 0x6F, 0x6D, // major_brand: isom
+      0x0, 0x0, 0x0, 0x1, // minor_version: 0x01
+      0x69, 0x73, 0x6F, 0x6D, // isom
+      0x61, 0x76, 0x63, 0x31 // avc1
+      ]);
+
+      constants.STSD_PREFIX = new Uint8Array([0x00, 0x00, 0x00, 0x00, // version(0) + flags
+      0x00, 0x00, 0x00, 0x01 // entry_count
+      ]);
+
+      constants.STTS = new Uint8Array([0x00, 0x00, 0x00, 0x00, // version(0) + flags
+      0x00, 0x00, 0x00, 0x00 // entry_count
+      ]);
+
+      constants.STSC = constants.STCO = constants.STTS;
+
+      constants.STSZ = new Uint8Array([0x00, 0x00, 0x00, 0x00, // version(0) + flags
+      0x00, 0x00, 0x00, 0x00, // sample_size
+      0x00, 0x00, 0x00, 0x00 // sample_count
+      ]);
+
+      constants.HDLR_VIDEO = new Uint8Array([0x00, 0x00, 0x00, 0x00, // version(0) + flags
+      0x00, 0x00, 0x00, 0x00, // pre_defined
+      0x76, 0x69, 0x64, 0x65, // handler_type: 'vide'
+      0x00, 0x00, 0x00, 0x00, // reserved: 3 * 4 bytes
+      0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x56, 0x69, 0x64, 0x65, 0x6F, 0x48, 0x61, 0x6E, 0x64, 0x6C, 0x65, 0x72, 0x00 // name: VideoHandler
+      ]);
+
+      constants.HDLR_AUDIO = new Uint8Array([0x00, 0x00, 0x00, 0x00, // version(0) + flags
+      0x00, 0x00, 0x00, 0x00, // pre_defined
+      0x73, 0x6F, 0x75, 0x6E, // handler_type: 'soun'
+      0x00, 0x00, 0x00, 0x00, // reserved: 3 * 4 bytes
+      0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x53, 0x6F, 0x75, 0x6E, 0x64, 0x48, 0x61, 0x6E, 0x64, 0x6C, 0x65, 0x72, 0x00 // name: SoundHandler
+      ]);
+
+      constants.DREF = new Uint8Array([0x00, 0x00, 0x00, 0x00, // version(0) + flags
+      0x00, 0x00, 0x00, 0x01, // entry_count
+      0x00, 0x00, 0x00, 0x0C, // entry_size
+      0x75, 0x72, 0x6C, 0x20, // type 'url '
+      0x00, 0x00, 0x00, 0x01 // version(0) + flags
+      ]);
+
+      // Sound media header
+      constants.SMHD = new Uint8Array([0x00, 0x00, 0x00, 0x00, // version(0) + flags
+      0x00, 0x00, 0x00, 0x00 // balance(2) + reserved(2)
+      ]);
+
+      // video media header
+      constants.VMHD = new Uint8Array([0x00, 0x00, 0x00, 0x01, // version(0) + flags
+      0x00, 0x00, // graphicsmode: 2 bytes
+      0x00, 0x00, 0x00, 0x00, // opcolor: 3 * 2 bytes
+      0x00, 0x00]);
+    }
+
+    // Generate a box
+
+  }, {
+    key: 'box',
+    value: function box(type) {
+      var size = 8;
+      var result = null;
+      var datas = Array.prototype.slice.call(arguments, 1);
+      var arrayCount = datas.length;
+
+      for (var i = 0; i < arrayCount; i++) {
+        size += datas[i].byteLength;
+      }
+
+      result = new Uint8Array(size);
+      result[0] = size >>> 24 & 0xFF; // size
+      result[1] = size >>> 16 & 0xFF;
+      result[2] = size >>> 8 & 0xFF;
+      result[3] = size & 0xFF;
+
+      result.set(type, 4); // type
+
+      var offset = 8;
+      for (var _i = 0; _i < arrayCount; _i++) {
+        // data body
+        result.set(datas[_i], offset);
+        offset += datas[_i].byteLength;
+      }
+
+      return result;
+    }
+
+    // emit ftyp & moov
+
+  }, {
+    key: 'generateInitSegment',
+    value: function generateInitSegment(meta) {
+      var ftyp = MP4.box(MP4.types.ftyp, MP4.constants.FTYP);
+      var moov = MP4.moov(meta);
+
+      var result = new Uint8Array(ftyp.byteLength + moov.byteLength);
+      result.set(ftyp, 0);
+      result.set(moov, ftyp.byteLength);
+      return result;
+    }
+
+    // Movie metadata box
+
+  }, {
+    key: 'moov',
+    value: function moov(meta) {
+      var mvhd = MP4.mvhd(meta.timescale, meta.duration);
+      var trak = MP4.trak(meta);
+      var mvex = MP4.mvex(meta);
+      return MP4.box(MP4.types.moov, mvhd, trak, mvex);
+    }
+
+    // Movie header box
+
+  }, {
+    key: 'mvhd',
+    value: function mvhd(timescale, duration) {
+      return MP4.box(MP4.types.mvhd, new Uint8Array([0x00, 0x00, 0x00, 0x00, // version(0) + flags
+      0x00, 0x00, 0x00, 0x00, // creation_time
+      0x00, 0x00, 0x00, 0x00, // modification_time
+      timescale >>> 24 & 0xFF, // timescale: 4 bytes
+      timescale >>> 16 & 0xFF, timescale >>> 8 & 0xFF, timescale & 0xFF, duration >>> 24 & 0xFF, // duration: 4 bytes
+      duration >>> 16 & 0xFF, duration >>> 8 & 0xFF, duration & 0xFF, 0x00, 0x01, 0x00, 0x00, // Preferred rate: 1.0
+      0x01, 0x00, 0x00, 0x00, // PreferredVolume(1.0, 2bytes) + reserved(2bytes)
+      0x00, 0x00, 0x00, 0x00, // reserved: 4 + 4 bytes
+      0x00, 0x00, 0x00, 0x00, 0x00, 0x01, 0x00, 0x00, // ----begin composition matrix----
+      0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x01, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x40, 0x00, 0x00, 0x00, // ----end composition matrix----
+      0x00, 0x00, 0x00, 0x00, // ----begin pre_defined 6 * 4 bytes----
+      0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, // ----end pre_defined 6 * 4 bytes----
+      0xFF, 0xFF, 0xFF, 0xFF // next_track_ID
+      ]));
+    }
+
+    // Track box
+
+  }, {
+    key: 'trak',
+    value: function trak(meta) {
+      return MP4.box(MP4.types.trak, MP4.tkhd(meta), MP4.mdia(meta));
+    }
+
+    // Track header box
+
+  }, {
+    key: 'tkhd',
+    value: function tkhd(meta) {
+      var trackId = meta.id,
+          duration = meta.duration;
+      var width = meta.presentWidth,
+          height = meta.presentHeight;
+
+      return MP4.box(MP4.types.tkhd, new Uint8Array([0x00, 0x00, 0x00, 0x07, // version(0) + flags
+      0x00, 0x00, 0x00, 0x00, // creation_time
+      0x00, 0x00, 0x00, 0x00, // modification_time
+      trackId >>> 24 & 0xFF, // track_ID: 4 bytes
+      trackId >>> 16 & 0xFF, trackId >>> 8 & 0xFF, trackId & 0xFF, 0x00, 0x00, 0x00, 0x00, // reserved: 4 bytes
+      duration >>> 24 & 0xFF, // duration: 4 bytes
+      duration >>> 16 & 0xFF, duration >>> 8 & 0xFF, duration & 0xFF, 0x00, 0x00, 0x00, 0x00, // reserved: 2 * 4 bytes
+      0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, // layer(2bytes) + alternate_group(2bytes)
+      0x00, 0x00, 0x00, 0x00, // volume(2bytes) + reserved(2bytes)
+      0x00, 0x01, 0x00, 0x00, // ----begin composition matrix----
+      0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x01, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x40, 0x00, 0x00, 0x00, // ----end composition matrix----
+      width >>> 8 & 0xFF, // width and height
+      width & 0xFF, 0x00, 0x00, height >>> 8 & 0xFF, height & 0xFF, 0x00, 0x00]));
+    }
+
+    // Media Box
+
+  }, {
+    key: 'mdia',
+    value: function mdia(meta) {
+      return MP4.box(MP4.types.mdia, MP4.mdhd(meta), MP4.hdlr(meta), MP4.minf(meta));
+    }
+
+    // Media header box
+
+  }, {
+    key: 'mdhd',
+    value: function mdhd(meta) {
+      var timescale = meta.timescale;
+      var duration = meta.duration;
+      return MP4.box(MP4.types.mdhd, new Uint8Array([0x00, 0x00, 0x00, 0x00, // version(0) + flags
+      0x00, 0x00, 0x00, 0x00, // creation_time
+      0x00, 0x00, 0x00, 0x00, // modification_time
+      timescale >>> 24 & 0xFF, // timescale: 4 bytes
+      timescale >>> 16 & 0xFF, timescale >>> 8 & 0xFF, timescale & 0xFF, duration >>> 24 & 0xFF, // duration: 4 bytes
+      duration >>> 16 & 0xFF, duration >>> 8 & 0xFF, duration & 0xFF, 0x55, 0xC4, // language: und (undetermined)
+      0x00, 0x00 // pre_defined = 0
+      ]));
+    }
+
+    // Media handler reference box
+
+  }, {
+    key: 'hdlr',
+    value: function hdlr(meta) {
+      var data = null;
+      if (meta.type === 'audio') {
+        data = MP4.constants.HDLR_AUDIO;
+      } else {
+        data = MP4.constants.HDLR_VIDEO;
+      }
+      return MP4.box(MP4.types.hdlr, data);
+    }
+
+    // Media infomation box
+
+  }, {
+    key: 'minf',
+    value: function minf(meta) {
+      var xmhd = null;
+      if (meta.type === 'audio') {
+        xmhd = MP4.box(MP4.types.smhd, MP4.constants.SMHD);
+      } else {
+        xmhd = MP4.box(MP4.types.vmhd, MP4.constants.VMHD);
+      }
+      return MP4.box(MP4.types.minf, xmhd, MP4.dinf(), MP4.stbl(meta));
+    }
+
+    // Data infomation box
+
+  }, {
+    key: 'dinf',
+    value: function dinf() {
+      var result = MP4.box(MP4.types.dinf, MP4.box(MP4.types.dref, MP4.constants.DREF));
+      return result;
+    }
+
+    // Sample table box
+
+  }, {
+    key: 'stbl',
+    value: function stbl(meta) {
+      var result = MP4.box(MP4.types.stbl, // type: stbl
+      MP4.stsd(meta), // Sample Description Table
+      MP4.box(MP4.types.stts, MP4.constants.STTS), // Time-To-Sample
+      MP4.box(MP4.types.stsc, MP4.constants.STSC), // Sample-To-Chunk
+      MP4.box(MP4.types.stsz, MP4.constants.STSZ), // Sample size
+      MP4.box(MP4.types.stco, MP4.constants.STCO) // Chunk offset
+      );
+      return result;
+    }
+
+    // Sample description box
+
+  }, {
+    key: 'stsd',
+    value: function stsd(meta) {
+      if (meta.type === 'audio') {
+        if (meta.codec === 'mp3') {
+          return MP4.box(MP4.types.stsd, MP4.constants.STSD_PREFIX, MP4.mp3(meta));
+        }
+        // else: aac -> mp4a
+        return MP4.box(MP4.types.stsd, MP4.constants.STSD_PREFIX, MP4.mp4a(meta));
+      } else {
+        return MP4.box(MP4.types.stsd, MP4.constants.STSD_PREFIX, MP4.avc1(meta));
+      }
+    }
+  }, {
+    key: 'mp3',
+    value: function mp3(meta) {
+      var channelCount = meta.channelCount;
+      var sampleRate = meta.audioSampleRate;
+
+      var data = new Uint8Array([0x00, 0x00, 0x00, 0x00, // reserved(4)
+      0x00, 0x00, 0x00, 0x01, // reserved(2) + data_reference_index(2)
+      0x00, 0x00, 0x00, 0x00, // reserved: 2 * 4 bytes
+      0x00, 0x00, 0x00, 0x00, 0x00, channelCount, // channelCount(2)
+      0x00, 0x10, // sampleSize(2)
+      0x00, 0x00, 0x00, 0x00, // reserved(4)
+      sampleRate >>> 8 & 0xFF, // Audio sample rate
+      sampleRate & 0xFF, 0x00, 0x00]);
+
+      return MP4.box(MP4.types['.mp3'], data);
+    }
+  }, {
+    key: 'mp4a',
+    value: function mp4a(meta) {
+      var channelCount = meta.channelCount;
+      var sampleRate = meta.audioSampleRate;
+
+      var data = new Uint8Array([0x00, 0x00, 0x00, 0x00, // reserved(4)
+      0x00, 0x00, 0x00, 0x01, // reserved(2) + data_reference_index(2)
+      0x00, 0x00, 0x00, 0x00, // reserved: 2 * 4 bytes
+      0x00, 0x00, 0x00, 0x00, 0x00, channelCount, // channelCount(2)
+      0x00, 0x10, // sampleSize(2)
+      0x00, 0x00, 0x00, 0x00, // reserved(4)
+      sampleRate >>> 8 & 0xFF, // Audio sample rate
+      sampleRate & 0xFF, 0x00, 0x00]);
+
+      return MP4.box(MP4.types.mp4a, data, MP4.esds(meta));
+    }
+  }, {
+    key: 'esds',
+    value: function esds(meta) {
+      var config = meta.config || [];
+      var configSize = config.length;
+      var data = new Uint8Array([0x00, 0x00, 0x00, 0x00, // version 0 + flags
+
+      0x03, // descriptor_type
+      0x17 + configSize, // length3
+      0x00, 0x01, // es_id
+      0x00, // stream_priority
+
+      0x04, // descriptor_type
+      0x0F + configSize, // length
+      0x40, // codec: mpeg4_audio
+      0x15, // stream_type: Audio
+      0x00, 0x00, 0x00, // buffer_size
+      0x00, 0x00, 0x00, 0x00, // maxBitrate
+      0x00, 0x00, 0x00, 0x00, // avgBitrate
+
+      0x05 // descriptor_type
+      ].concat([configSize]).concat(config).concat([0x06, 0x01, 0x02 // GASpecificConfig
+      ]));
+      return MP4.box(MP4.types.esds, data);
+    }
+  }, {
+    key: 'avc1',
+    value: function avc1(meta) {
+      var avcc = meta.avcc;
+      var width = meta.codecWidth,
+          height = meta.codecHeight;
+
+      var data = new Uint8Array([0x00, 0x00, 0x00, 0x00, // reserved(4)
+      0x00, 0x00, 0x00, 0x01, // reserved(2) + data_reference_index(2)
+      0x00, 0x00, 0x00, 0x00, // pre_defined(2) + reserved(2)
+      0x00, 0x00, 0x00, 0x00, // pre_defined: 3 * 4 bytes
+      0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, width >>> 8 & 0xFF, // width: 2 bytes
+      width & 0xFF, height >>> 8 & 0xFF, // height: 2 bytes
+      height & 0xFF, 0x00, 0x48, 0x00, 0x00, // horizresolution: 4 bytes
+      0x00, 0x48, 0x00, 0x00, // vertresolution: 4 bytes
+      0x00, 0x00, 0x00, 0x00, // reserved: 4 bytes
+      0x00, 0x01, // frame_count
+      0x0A, // strlen
+      0x78, 0x71, 0x71, 0x2F, // compressorname: 32 bytes
+      0x66, 0x6C, 0x76, 0x2E, 0x6A, 0x73, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x18, // depth
+      0xFF, 0xFF // pre_defined = -1
+      ]);
+      return MP4.box(MP4.types.avc1, data, MP4.box(MP4.types.avcC, avcc));
+    }
+
+    // Movie Extends box
+
+  }, {
+    key: 'mvex',
+    value: function mvex(meta) {
+      return MP4.box(MP4.types.mvex, MP4.trex(meta));
+    }
+
+    // Track Extends box
+
+  }, {
+    key: 'trex',
+    value: function trex(meta) {
+      var trackId = meta.id;
+      var data = new Uint8Array([0x00, 0x00, 0x00, 0x00, // version(0) + flags
+      trackId >>> 24 & 0xFF, // track_ID
+      trackId >>> 16 & 0xFF, trackId >>> 8 & 0xFF, trackId & 0xFF, 0x00, 0x00, 0x00, 0x01, // default_sample_description_index
+      0x00, 0x00, 0x00, 0x00, // default_sample_duration
+      0x00, 0x00, 0x00, 0x00, // default_sample_size
+      0x00, 0x01, 0x00, 0x01 // default_sample_flags
+      ]);
+      return MP4.box(MP4.types.trex, data);
+    }
+
+    // Movie fragment box
+
+  }, {
+    key: 'moof',
+    value: function moof(track, baseMediaDecodeTime) {
+      return MP4.box(MP4.types.moof, MP4.mfhd(track.sequenceNumber), MP4.traf(track, baseMediaDecodeTime));
+    }
+  }, {
+    key: 'mfhd',
+    value: function mfhd(sequenceNumber) {
+      var data = new Uint8Array([0x00, 0x00, 0x00, 0x00, sequenceNumber >>> 24 & 0xFF, // sequence_number: int32
+      sequenceNumber >>> 16 & 0xFF, sequenceNumber >>> 8 & 0xFF, sequenceNumber & 0xFF]);
+      return MP4.box(MP4.types.mfhd, data);
+    }
+
+    // Track fragment box
+
+  }, {
+    key: 'traf',
+    value: function traf(track, baseMediaDecodeTime) {
+      var trackId = track.id;
+
+      // Track fragment header box
+      var tfhd = MP4.box(MP4.types.tfhd, new Uint8Array([0x00, 0x00, 0x00, 0x00, // version(0) & flags
+      trackId >>> 24 & 0xFF, // track_ID
+      trackId >>> 16 & 0xFF, trackId >>> 8 & 0xFF, trackId & 0xFF]));
+      // Track Fragment Decode Time
+      var tfdt = MP4.box(MP4.types.tfdt, new Uint8Array([0x00, 0x00, 0x00, 0x00, // version(0) & flags
+      baseMediaDecodeTime >>> 24 & 0xFF, // baseMediaDecodeTime: int32
+      baseMediaDecodeTime >>> 16 & 0xFF, baseMediaDecodeTime >>> 8 & 0xFF, baseMediaDecodeTime & 0xFF]));
+      var sdtp = MP4.sdtp(track);
+      var trun = MP4.trun(track, sdtp.byteLength + 16 + 16 + 8 + 16 + 8 + 8);
+      if (trackId === 1) {
+        // console.log(trun)
+      }
+      return MP4.box(MP4.types.traf, tfhd, tfdt, trun, sdtp);
+    }
+
+    // Sample Dependency Type box
+
+  }, {
+    key: 'sdtp',
+    value: function sdtp(track) {
+      var samples = track.samples || [];
+      var sampleCount = samples.length;
+      var data = new Uint8Array(4 + sampleCount);
+      // 0~4 bytes: version(0) & flags
+      for (var i = 0; i < sampleCount; i++) {
+        var flags = samples[i].flags;
+        data[i + 4] = flags.isLeading << 6 | // is_leading: 2 (bit)
+        flags.dependsOn << 4 | // sample_depends_on
+        flags.isDependedOn << 2 | // sample_is_depended_on
+        flags.hasRedundancy; // sample_has_redundancy
+      }
+      return MP4.box(MP4.types.sdtp, data);
+    }
+
+    // Track fragment run box
+
+  }, {
+    key: 'trun',
+    value: function trun(track, offset) {
+      var samples = track.samples || [];
+      var sampleCount = samples.length;
+      var dataSize = 12 + 16 * sampleCount;
+      var data = new Uint8Array(dataSize);
+      offset += 8 + dataSize;
+
+      data.set([0x00, 0x00, 0x0F, 0x01, // version(0) & flags
+      sampleCount >>> 24 & 0xFF, // sample_count
+      sampleCount >>> 16 & 0xFF, sampleCount >>> 8 & 0xFF, sampleCount & 0xFF, offset >>> 24 & 0xFF, // data_offset
+      offset >>> 16 & 0xFF, offset >>> 8 & 0xFF, offset & 0xFF], 0);
+
+      for (var i = 0; i < sampleCount; i++) {
+        // console.log(samples[i].duration)
+        var duration = samples[i].duration;
+        var size = samples[i].size;
+        var flags = samples[i].flags;
+        var cts = samples[i].cts;
+        data.set([duration >>> 24 & 0xFF, // sample_duration
+        duration >>> 16 & 0xFF, duration >>> 8 & 0xFF, duration & 0xFF, size >>> 24 & 0xFF, // sample_size
+        size >>> 16 & 0xFF, size >>> 8 & 0xFF, size & 0xFF, flags.isLeading << 2 | flags.dependsOn, // sample_flags
+        flags.isDependedOn << 6 | flags.hasRedundancy << 4 | flags.isNonSync, 0x00, 0x00, // sample_degradation_priority
+        cts >>> 24 & 0xFF, // sample_composition_time_offset
+        cts >>> 16 & 0xFF, cts >>> 8 & 0xFF, cts & 0xFF], 12 + 16 * i);
+      }
+      return MP4.box(MP4.types.trun, data);
+    }
+  }, {
+    key: 'mdat',
+    value: function mdat(data) {
+      return MP4.box(MP4.types.mdat, data);
+    }
+  }]);
+
+  return MP4;
+}();
+
+MP4.init();
+
+exports.default = MP4;
+module.exports = exports['default'];
+
+/***/ }),
+/* 42 */
+/***/ (function(module, exports, __webpack_require__) {
+
+"use strict";
+
+
+Object.defineProperty(exports, "__esModule", {
+    value: true
+});
+
+var _createClass = function () { function defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ("value" in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } } return function (Constructor, protoProps, staticProps) { if (protoProps) defineProperties(Constructor.prototype, protoProps); if (staticProps) defineProperties(Constructor, staticProps); return Constructor; }; }();
+
+function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } }
+
+/*
+ * Copyright (C) 2016 Bilibili. All Rights Reserved.
+ *
+ * This file is modified from dailymotion's hls.js library (hls.js/src/helper/aac.js)
+ * @author zheng qian <xqq@xqq.im>
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+
+var AAC = function () {
+    function AAC() {
+        _classCallCheck(this, AAC);
+    }
+
+    _createClass(AAC, null, [{
+        key: 'getSilentFrame',
+        value: function getSilentFrame(codec, channelCount) {
+            if (codec === 'mp4a.40.2') {
+                // handle LC-AAC
+                if (channelCount === 1) {
+                    return new Uint8Array([0x00, 0xc8, 0x00, 0x80, 0x23, 0x80]);
+                } else if (channelCount === 2) {
+                    return new Uint8Array([0x21, 0x00, 0x49, 0x90, 0x02, 0x19, 0x00, 0x23, 0x80]);
+                } else if (channelCount === 3) {
+                    return new Uint8Array([0x00, 0xc8, 0x00, 0x80, 0x20, 0x84, 0x01, 0x26, 0x40, 0x08, 0x64, 0x00, 0x8e]);
+                } else if (channelCount === 4) {
+                    return new Uint8Array([0x00, 0xc8, 0x00, 0x80, 0x20, 0x84, 0x01, 0x26, 0x40, 0x08, 0x64, 0x00, 0x80, 0x2c, 0x80, 0x08, 0x02, 0x38]);
+                } else if (channelCount === 5) {
+                    return new Uint8Array([0x00, 0xc8, 0x00, 0x80, 0x20, 0x84, 0x01, 0x26, 0x40, 0x08, 0x64, 0x00, 0x82, 0x30, 0x04, 0x99, 0x00, 0x21, 0x90, 0x02, 0x38]);
+                } else if (channelCount === 6) {
+                    return new Uint8Array([0x00, 0xc8, 0x00, 0x80, 0x20, 0x84, 0x01, 0x26, 0x40, 0x08, 0x64, 0x00, 0x82, 0x30, 0x04, 0x99, 0x00, 0x21, 0x90, 0x02, 0x00, 0xb2, 0x00, 0x20, 0x08, 0xe0]);
+                }
+            } else {
+                // handle HE-AAC (mp4a.40.5 / mp4a.40.29)
+                if (channelCount === 1) {
+                    // ffmpeg -y -f lavfi -i "aevalsrc=0:d=0.05" -c:a libfdk_aac -profile:a aac_he -b:a 4k output.aac && hexdump -v -e '16/1 "0x%x," "\n"' -v output.aac
+                    return new Uint8Array([0x1, 0x40, 0x22, 0x80, 0xa3, 0x4e, 0xe6, 0x80, 0xba, 0x8, 0x0, 0x0, 0x0, 0x1c, 0x6, 0xf1, 0xc1, 0xa, 0x5a, 0x5a, 0x5a, 0x5a, 0x5a, 0x5a, 0x5a, 0x5a, 0x5a, 0x5a, 0x5a, 0x5a, 0x5a, 0x5a, 0x5a, 0x5a, 0x5a, 0x5a, 0x5a, 0x5a, 0x5a, 0x5a, 0x5a, 0x5a, 0x5a, 0x5a, 0x5a, 0x5a, 0x5a, 0x5a, 0x5a, 0x5a, 0x5a, 0x5a, 0x5a, 0x5a, 0x5a, 0x5a, 0x5a, 0x5a, 0x5e]);
+                } else if (channelCount === 2) {
+                    // ffmpeg -y -f lavfi -i "aevalsrc=0|0:d=0.05" -c:a libfdk_aac -profile:a aac_he_v2 -b:a 4k output.aac && hexdump -v -e '16/1 "0x%x," "\n"' -v output.aac
+                    return new Uint8Array([0x1, 0x40, 0x22, 0x80, 0xa3, 0x5e, 0xe6, 0x80, 0xba, 0x8, 0x0, 0x0, 0x0, 0x0, 0x95, 0x0, 0x6, 0xf1, 0xa1, 0xa, 0x5a, 0x5a, 0x5a, 0x5a, 0x5a, 0x5a, 0x5a, 0x5a, 0x5a, 0x5a, 0x5a, 0x5a, 0x5a, 0x5a, 0x5a, 0x5a, 0x5a, 0x5a, 0x5a, 0x5a, 0x5a, 0x5a, 0x5a, 0x5a, 0x5a, 0x5a, 0x5a, 0x5a, 0x5a, 0x5a, 0x5a, 0x5a, 0x5a, 0x5a, 0x5a, 0x5a, 0x5a, 0x5a, 0x5e]);
+                } else if (channelCount === 3) {
+                    // ffmpeg -y -f lavfi -i "aevalsrc=0|0|0:d=0.05" -c:a libfdk_aac -profile:a aac_he_v2 -b:a 4k output.aac && hexdump -v -e '16/1 "0x%x," "\n"' -v output.aac
+                    return new Uint8Array([0x1, 0x40, 0x22, 0x80, 0xa3, 0x5e, 0xe6, 0x80, 0xba, 0x8, 0x0, 0x0, 0x0, 0x0, 0x95, 0x0, 0x6, 0xf1, 0xa1, 0xa, 0x5a, 0x5a, 0x5a, 0x5a, 0x5a, 0x5a, 0x5a, 0x5a, 0x5a, 0x5a, 0x5a, 0x5a, 0x5a, 0x5a, 0x5a, 0x5a, 0x5a, 0x5a, 0x5a, 0x5a, 0x5a, 0x5a, 0x5a, 0x5a, 0x5a, 0x5a, 0x5a, 0x5a, 0x5a, 0x5a, 0x5a, 0x5a, 0x5a, 0x5a, 0x5a, 0x5a, 0x5a, 0x5a, 0x5e]);
+                }
+            }
+            return null;
+        }
+    }]);
+
+    return AAC;
+}();
+
+exports.default = AAC;
+module.exports = exports['default'];
+
+/***/ }),
+/* 43 */
+/***/ (function(module, exports, __webpack_require__) {
+
+"use strict";
+
+
+Object.defineProperty(exports, "__esModule", {
+    value: true
+});
+
+var _logger = __webpack_require__(0);
+
+var _logger2 = _interopRequireDefault(_logger);
+
+var _loggingControl = __webpack_require__(8);
+
+var _loggingControl2 = _interopRequireDefault(_loggingControl);
+
+var _polyfill = __webpack_require__(11);
+
+var _polyfill2 = _interopRequireDefault(_polyfill);
+
+var _transmuxingController = __webpack_require__(14);
+
+var _transmuxingController2 = _interopRequireDefault(_transmuxingController);
+
+var _transmuxingEvents = __webpack_require__(5);
+
+var _transmuxingEvents2 = _interopRequireDefault(_transmuxingEvents);
+
+function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
+
+/* post message to worker:
+   data: {
+       cmd: string
+       param: any
+   }
+
+   receive message from worker:
+   data: {
+       msg: string,
+       data: any
+   }
+ */
+
+var TransmuxingWorker = function TransmuxingWorker(self) {
+
+    var TAG = 'TransmuxingWorker';
+    var controller = null;
+    var logcatListener = onLogcatCallback.bind(this);
+
+    _polyfill2.default.install();
+
+    self.addEventListener('message', function (e) {
+        switch (e.data.cmd) {
+            case 'init':
+                controller = new _transmuxingController2.default(e.data.param[0], e.data.param[1]);
+                controller.on(_transmuxingEvents2.default.IO_ERROR, onIOError.bind(this));
+                controller.on(_transmuxingEvents2.default.DEMUX_ERROR, onDemuxError.bind(this));
+                controller.on(_transmuxingEvents2.default.INIT_SEGMENT, onInitSegment.bind(this));
+                controller.on(_transmuxingEvents2.default.MEDIA_SEGMENT, onMediaSegment.bind(this));
+                controller.on(_transmuxingEvents2.default.LOADING_COMPLETE, onLoadingComplete.bind(this));
+                controller.on(_transmuxingEvents2.default.RECOVERED_EARLY_EOF, onRecoveredEarlyEof.bind(this));
+                controller.on(_transmuxingEvents2.default.MEDIA_INFO, onMediaInfo.bind(this));
+                controller.on(_transmuxingEvents2.default.STATISTICS_INFO, onStatisticsInfo.bind(this));
+                controller.on(_transmuxingEvents2.default.RECOMMEND_SEEKPOINT, onRecommendSeekpoint.bind(this));
+                break;
+            case 'destroy':
+                if (controller) {
+                    controller.destroy();
+                    controller = null;
+                }
+                self.postMessage({ msg: 'destroyed' });
+                break;
+            case 'start':
+                controller.start();
+                break;
+            case 'stop':
+                controller.stop();
+                break;
+            case 'seek':
+                controller.seek(e.data.param);
+                break;
+            case 'pause':
+                controller.pause();
+                break;
+            case 'resume':
+                controller.resume();
+                break;
+            case 'logging_config':
+                {
+                    var config = e.data.param;
+                    _loggingControl2.default.applyConfig(config);
+
+                    if (config.enableCallback === true) {
+                        _loggingControl2.default.addLogListener(logcatListener);
+                    } else {
+                        _loggingControl2.default.removeLogListener(logcatListener);
+                    }
+                    break;
+                }
+        }
+    });
+
+    function onInitSegment(type, initSegment) {
+        var obj = {
+            msg: _transmuxingEvents2.default.INIT_SEGMENT,
+            data: {
+                type: type,
+                data: initSegment
+            }
+        };
+        self.postMessage(obj, [initSegment.data]); // data: ArrayBuffer
+    }
+
+    function onMediaSegment(type, mediaSegment) {
+        var obj = {
+            msg: _transmuxingEvents2.default.MEDIA_SEGMENT,
+            data: {
+                type: type,
+                data: mediaSegment
+            }
+        };
+        self.postMessage(obj, [mediaSegment.data]); // data: ArrayBuffer
+    }
+
+    function onLoadingComplete() {
+        var obj = {
+            msg: _transmuxingEvents2.default.LOADING_COMPLETE
+        };
+        self.postMessage(obj);
+    }
+
+    function onRecoveredEarlyEof() {
+        var obj = {
+            msg: _transmuxingEvents2.default.RECOVERED_EARLY_EOF
+        };
+        self.postMessage(obj);
+    }
+
+    function onMediaInfo(mediaInfo) {
+        var obj = {
+            msg: _transmuxingEvents2.default.MEDIA_INFO,
+            data: mediaInfo
+        };
+        self.postMessage(obj);
+    }
+
+    function onStatisticsInfo(statInfo) {
+        var obj = {
+            msg: _transmuxingEvents2.default.STATISTICS_INFO,
+            data: statInfo
+        };
+        self.postMessage(obj);
+    }
+
+    function onIOError(type, info) {
+        self.postMessage({
+            msg: _transmuxingEvents2.default.IO_ERROR,
+            data: {
+                type: type,
+                info: info
+            }
+        });
+    }
+
+    function onDemuxError(type, info) {
+        self.postMessage({
+            msg: _transmuxingEvents2.default.DEMUX_ERROR,
+            data: {
+                type: type,
+                info: info
+            }
+        });
+    }
+
+    function onRecommendSeekpoint(milliseconds) {
+        self.postMessage({
+            msg: _transmuxingEvents2.default.RECOMMEND_SEEKPOINT,
+            data: milliseconds
+        });
+    }
+
+    function onLogcatCallback(type, str) {
+        self.postMessage({
+            msg: 'logcat_callback',
+            data: {
+                type: type,
+                logcat: str
+            }
+        });
+    }
+}; /*
+    * Copyright (C) 2016 Bilibili. All Rights Reserved.
+    *
+    * @author zheng qian <xqq@xqq.im>
+    *
+    * Licensed under the Apache License, Version 2.0 (the "License");
+    * you may not use this file except in compliance with the License.
+    * You may obtain a copy of the License at
+    *
+    *     http://www.apache.org/licenses/LICENSE-2.0
+    *
+    * Unless required by applicable law or agreed to in writing, software
+    * distributed under the License is distributed on an "AS IS" BASIS,
+    * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+    * See the License for the specific language governing permissions and
+    * limitations under the License.
+    */
+
+exports.default = TransmuxingWorker;
+module.exports = exports['default'];
+
+/***/ }),
+/* 44 */
+/***/ (function(module, exports) {
+
+var bundleFn = arguments[3];
+var sources = arguments[4];
+var cache = arguments[5];
+
+var stringify = JSON.stringify;
+
+module.exports = function (fn, options) {
+    var wkey;
+    var cacheKeys = Object.keys(cache);
+
+    for (var i = 0, l = cacheKeys.length; i < l; i++) {
+        var key = cacheKeys[i];
+        var exp = cache[key].exports;
+        // Using babel as a transpiler to use esmodule, the export will always
+        // be an object with the default export as a property of it. To ensure
+        // the existing api and babel esmodule exports are both supported we
+        // check for both
+        if (exp === fn || exp && exp.default === fn) {
+            wkey = key;
+            break;
+        }
+    }
+
+    if (!wkey) {
+        wkey = Math.floor(Math.pow(16, 8) * Math.random()).toString(16);
+        var wcache = {};
+        for (var i = 0, l = cacheKeys.length; i < l; i++) {
+            var key = cacheKeys[i];
+            wcache[key] = key;
+        }
+        sources[wkey] = [
+            'function(require,module,exports){' + fn + '(self); }',
+            wcache
+        ];
+    }
+    var skey = Math.floor(Math.pow(16, 8) * Math.random()).toString(16);
+
+    var scache = {}; scache[wkey] = wkey;
+    sources[skey] = [
+        'function(require,module,exports){' +
+            // try to call default if defined to also support babel esmodule exports
+            'var f = require(' + stringify(wkey) + ');' +
+            '(f.default ? f.default : f)(self);' +
+        '}',
+        scache
+    ];
+
+    var workerSources = {};
+    resolveSources(skey);
+
+    function resolveSources(key) {
+        workerSources[key] = true;
+
+        for (var depPath in sources[key][1]) {
+            var depKey = sources[key][1][depPath];
+            if (!workerSources[depKey]) {
+                resolveSources(depKey);
+            }
+        }
+    }
+
+    var src = '(' + bundleFn + ')({'
+        + Object.keys(workerSources).map(function (key) {
+            return stringify(key) + ':['
+                + sources[key][0]
+                + ',' + stringify(sources[key][1]) + ']'
+            ;
+        }).join(',')
+        + '},{},[' + stringify(skey) + '])'
+    ;
+
+    var URL = window.URL || window.webkitURL || window.mozURL || window.msURL;
+
+    var blob = new Blob([src], { type: 'text/javascript' });
+    if (options && options.bare) { return blob; }
+    var workerUrl = URL.createObjectURL(blob);
+    var worker = new Worker(workerUrl);
+    worker.objectURL = workerUrl;
+    return worker;
+};
+
+
+/***/ }),
+/* 45 */
+/***/ (function(module, exports, __webpack_require__) {
+
+"use strict";
+
+
+Object.defineProperty(exports, "__esModule", {
+    value: true
+});
+
+var _createClass = function () { function defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ("value" in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } } return function (Constructor, protoProps, staticProps) { if (protoProps) defineProperties(Constructor.prototype, protoProps); if (staticProps) defineProperties(Constructor, staticProps); return Constructor; }; }(); /*
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                      * Copyright (C) 2016 Bilibili. All Rights Reserved.
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                      *
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                      * @author zheng qian <xqq@xqq.im>
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                      *
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                      * Licensed under the Apache License, Version 2.0 (the "License");
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                      * you may not use this file except in compliance with the License.
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                      * You may obtain a copy of the License at
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                      *
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                      *     http://www.apache.org/licenses/LICENSE-2.0
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                      *
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                      * Unless required by applicable law or agreed to in writing, software
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                      * distributed under the License is distributed on an "AS IS" BASIS,
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                      * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                      * See the License for the specific language governing permissions and
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                      * limitations under the License.
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                      */
+
+var _events = __webpack_require__(2);
+
+var _events2 = _interopRequireDefault(_events);
+
+var _logger = __webpack_require__(0);
+
+var _logger2 = _interopRequireDefault(_logger);
+
+var _browser = __webpack_require__(4);
+
+var _browser2 = _interopRequireDefault(_browser);
+
+var _mseEvents = __webpack_require__(16);
+
+var _mseEvents2 = _interopRequireDefault(_mseEvents);
+
+var _mediaSegmentInfo = __webpack_require__(15);
+
+var _exception = __webpack_require__(1);
+
+function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
+
+function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } }
+
+// Media Source Extensions controller
+var MSEController = function () {
+    function MSEController(config) {
+        _classCallCheck(this, MSEController);
+
+        this.TAG = 'MSEController';
+
+        this._config = config;
+        this._emitter = new _events2.default();
+
+        if (this._config.isLive && this._config.autoCleanupSourceBuffer == undefined) {
+            // For live stream, do auto cleanup by default
+            this._config.autoCleanupSourceBuffer = true;
+        }
+
+        this.e = {
+            onSourceOpen: this._onSourceOpen.bind(this),
+            onSourceEnded: this._onSourceEnded.bind(this),
+            onSourceClose: this._onSourceClose.bind(this),
+            onSourceBufferError: this._onSourceBufferError.bind(this),
+            onSourceBufferUpdateEnd: this._onSourceBufferUpdateEnd.bind(this)
+        };
+
+        this._mediaSource = null;
+        this._mediaSourceObjectURL = null;
+        this._mediaElement = null;
+
+        this._isBufferFull = false;
+        this._hasPendingEos = false;
+
+        this._requireSetMediaDuration = false;
+        this._pendingMediaDuration = 0;
+
+        this._pendingSourceBufferInit = [];
+        this._mimeTypes = {
+            video: null,
+            audio: null
+        };
+        this._sourceBuffers = {
+            video: null,
+            audio: null
+        };
+        this._lastInitSegments = {
+            video: null,
+            audio: null
+        };
+        this._pendingSegments = {
+            video: [],
+            audio: []
+        };
+        this._pendingRemoveRanges = {
+            video: [],
+            audio: []
+        };
+        this._idrList = new _mediaSegmentInfo.IDRSampleList();
+    }
+
+    _createClass(MSEController, [{
+        key: 'destroy',
+        value: function destroy() {
+            if (this._mediaElement || this._mediaSource) {
+                this.detachMediaElement();
+            }
+            this.e = null;
+            this._emitter.removeAllListeners();
+            this._emitter = null;
+        }
+    }, {
+        key: 'on',
+        value: function on(event, listener) {
+            this._emitter.addListener(event, listener);
+        }
+    }, {
+        key: 'off',
+        value: function off(event, listener) {
+            this._emitter.removeListener(event, listener);
+        }
+    }, {
+        key: 'attachMediaElement',
+        value: function attachMediaElement(mediaElement) {
+            if (this._mediaSource) {
+                throw new _exception.IllegalStateException('MediaSource has been attached to an HTMLMediaElement!');
+            }
+            var ms = this._mediaSource = new window.MediaSource();
+            ms.addEventListener('sourceopen', this.e.onSourceOpen);
+            ms.addEventListener('sourceended', this.e.onSourceEnded);
+            ms.addEventListener('sourceclose', this.e.onSourceClose);
+
+            this._mediaElement = mediaElement;
+            this._mediaSourceObjectURL = window.URL.createObjectURL(this._mediaSource);
+            mediaElement.src = this._mediaSourceObjectURL;
+        }
+    }, {
+        key: 'detachMediaElement',
+        value: function detachMediaElement() {
+            if (this._mediaSource) {
+                var ms = this._mediaSource;
+                for (var type in this._sourceBuffers) {
+                    // pending segments should be discard
+                    var ps = this._pendingSegments[type];
+                    ps.splice(0, ps.length);
+                    this._pendingSegments[type] = null;
+                    this._pendingRemoveRanges[type] = null;
+                    this._lastInitSegments[type] = null;
+
+                    // remove all sourcebuffers
+                    var sb = this._sourceBuffers[type];
+                    if (sb) {
+                        if (ms.readyState !== 'closed') {
+                            ms.removeSourceBuffer(sb);
+                            sb.removeEventListener('error', this.e.onSourceBufferError);
+                            sb.removeEventListener('updateend', this.e.onSourceBufferUpdateEnd);
+                        }
+                        this._mimeTypes[type] = null;
+                        this._sourceBuffers[type] = null;
+                    }
+                }
+                if (ms.readyState === 'open') {
+                    try {
+                        ms.endOfStream();
+                    } catch (error) {
+                        _logger2.default.e(this.TAG, error.message);
+                    }
+                }
+                ms.removeEventListener('sourceopen', this.e.onSourceOpen);
+                ms.removeEventListener('sourceended', this.e.onSourceEnded);
+                ms.removeEventListener('sourceclose', this.e.onSourceClose);
+                this._pendingSourceBufferInit = [];
+                this._isBufferFull = false;
+                this._idrList.clear();
+                this._mediaSource = null;
+            }
+
+            if (this._mediaElement) {
+                this._mediaElement.src = '';
+                this._mediaElement.removeAttribute('src');
+                this._mediaElement = null;
+            }
+            if (this._mediaSourceObjectURL) {
+                window.URL.revokeObjectURL(this._mediaSourceObjectURL);
+                this._mediaSourceObjectURL = null;
+            }
+        }
+    }, {
+        key: 'appendInitSegment',
+        value: function appendInitSegment(initSegment, deferred) {
+            if (!this._mediaSource || this._mediaSource.readyState !== 'open') {
+                // sourcebuffer creation requires mediaSource.readyState === 'open'
+                // so we defer the sourcebuffer creation, until sourceopen event triggered
+                this._pendingSourceBufferInit.push(initSegment);
+                // make sure that this InitSegment is in the front of pending segments queue
+                this._pendingSegments[initSegment.type].push(initSegment);
+                // console.log(`${initSegment.type}`, initSegment)
+                return;
+            }
+
+            var is = initSegment;
+            var mimeType = '' + is.container;
+            if (is.codec && is.codec.length > 0) {
+                mimeType += ';codecs=' + is.codec;
+            }
+
+            var firstInitSegment = false;
+
+            _logger2.default.v(this.TAG, 'Received Initialization Segment, mimeType: ' + mimeType);
+            this._lastInitSegments[is.type] = is;
+
+            if (mimeType !== this._mimeTypes[is.type]) {
+                if (!this._mimeTypes[is.type]) {
+                    // empty, first chance create sourcebuffer
+                    firstInitSegment = true;
+                    try {
+                        var sb = this._sourceBuffers[is.type] = this._mediaSource.addSourceBuffer(mimeType);
+                        sb.addEventListener('error', this.e.onSourceBufferError);
+                        sb.addEventListener('updateend', this.e.onSourceBufferUpdateEnd);
+                    } catch (error) {
+                        _logger2.default.e(this.TAG, error.message);
+                        this._emitter.emit(_mseEvents2.default.ERROR, { code: error.code, msg: error.message });
+                        return;
+                    }
+                } else {
+                    _logger2.default.v(this.TAG, 'Notice: ' + is.type + ' mimeType changed, origin: ' + this._mimeTypes[is.type] + ', target: ' + mimeType);
+                }
+                this._mimeTypes[is.type] = mimeType;
+            }
+
+            if (!deferred) {
+                // deferred means this InitSegment has been pushed to pendingSegments queue
+                this._pendingSegments[is.type].push(is);
+            }
+            if (!firstInitSegment) {
+                // append immediately only if init segment in subsequence
+                if (this._sourceBuffers[is.type] && !this._sourceBuffers[is.type].updating) {
+                    this._doAppendSegments();
+                }
+            }
+            if (_browser2.default.safari && is.container === 'audio/mpeg' && is.mediaDuration > 0) {
+                // 'audio/mpeg' track under Safari may cause MediaElement's duration to be NaN
+                // Manually correct MediaSource.duration to make progress bar seekable, and report right duration
+                this._requireSetMediaDuration = true;
+                this._pendingMediaDuration = is.mediaDuration / 1000; // in seconds
+                this._updateMediaSourceDuration();
+            }
+        }
+    }, {
+        key: 'appendMediaSegment',
+        value: function appendMediaSegment(mediaSegment) {
+            var ms = mediaSegment;
+            this._pendingSegments[ms.type].push(ms);
+
+            if (this._config.autoCleanupSourceBuffer && this._needCleanupSourceBuffer()) {
+                this._doCleanupSourceBuffer();
+            }
+
+            var sb = this._sourceBuffers[ms.type];
+            if (sb && !sb.updating && !this._hasPendingRemoveRanges()) {
+                this._doAppendSegments();
+            }
+        }
+    }, {
+        key: 'seek',
+        value: function seek(seconds) {
+            // remove all appended buffers
+            for (var type in this._sourceBuffers) {
+                if (!this._sourceBuffers[type]) {
+                    continue;
+                }
+
+                // abort current buffer append algorithm
+                var sb = this._sourceBuffers[type];
+                if (this._mediaSource.readyState === 'open') {
+                    try {
+                        // If range removal algorithm is running, InvalidStateError will be throwed
+                        // Ignore it.
+                        sb.abort();
+                    } catch (error) {
+                        _logger2.default.e(this.TAG, error.message);
+                    }
+                }
+
+                // IDRList should be clear
+                this._idrList.clear();
+
+                // pending segments should be discard
+                var ps = this._pendingSegments[type];
+                ps.splice(0, ps.length);
+
+                if (this._mediaSource.readyState === 'closed') {
+                    // Parent MediaSource object has been detached from HTMLMediaElement
+                    continue;
+                }
+
+                // record ranges to be remove from SourceBuffer
+                for (var i = 0; i < sb.buffered.length; i++) {
+                    var start = sb.buffered.start(i);
+                    var end = sb.buffered.end(i);
+                    this._pendingRemoveRanges[type].push({ start: start, end: end });
+                }
+
+                // if sb is not updating, let's remove ranges now!
+                if (!sb.updating) {
+                    this._doRemoveRanges();
+                }
+
+                // Safari 10 may get InvalidStateError in the later appendBuffer() after SourceBuffer.remove() call
+                // Internal parser's state may be invalid at this time. Re-append last InitSegment to workaround.
+                // Related issue: https://bugs.webkit.org/show_bug.cgi?id=159230
+                if (_browser2.default.safari) {
+                    var lastInitSegment = this._lastInitSegments[type];
+                    if (lastInitSegment) {
+                        this._pendingSegments[type].push(lastInitSegment);
+                        if (!sb.updating) {
+                            this._doAppendSegments();
+                        }
+                    }
+                }
+            }
+        }
+    }, {
+        key: 'endOfStream',
+        value: function endOfStream() {
+            var ms = this._mediaSource;
+            var sb = this._sourceBuffers;
+            if (!ms || ms.readyState !== 'open') {
+                if (ms && ms.readyState === 'closed' && this._hasPendingSegments()) {
+                    // If MediaSource hasn't turned into open state, and there're pending segments
+                    // Mark pending endOfStream, defer call until all pending segments appended complete
+                    this._hasPendingEos = true;
+                }
+                return;
+            }
+            if (sb.video && sb.video.updating || sb.audio && sb.audio.updating) {
+                // If any sourcebuffer is updating, defer endOfStream operation
+                // See _onSourceBufferUpdateEnd()
+                this._hasPendingEos = true;
+            } else {
+                this._hasPendingEos = false;
+                // Notify media data loading complete
+                // This is helpful for correcting total duration to match last media segment
+                // Otherwise MediaElement's ended event may not be triggered
+                ms.endOfStream();
+            }
+        }
+    }, {
+        key: 'getNearestKeyframe',
+        value: function getNearestKeyframe(dts) {
+            return this._idrList.getLastSyncPointBeforeDts(dts);
+        }
+    }, {
+        key: '_needCleanupSourceBuffer',
+        value: function _needCleanupSourceBuffer() {
+            if (!this._config.autoCleanupSourceBuffer) {
+                return false;
+            }
+
+            var currentTime = this._mediaElement.currentTime;
+
+            for (var type in this._sourceBuffers) {
+                var sb = this._sourceBuffers[type];
+                if (sb) {
+                    var buffered = sb.buffered;
+                    if (buffered.length >= 1) {
+                        if (currentTime - buffered.start(0) >= this._config.autoCleanupMaxBackwardDuration) {
+                            return true;
+                        }
+                    }
+                }
+            }
+
+            return false;
+        }
+    }, {
+        key: '_doCleanupSourceBuffer',
+        value: function _doCleanupSourceBuffer() {
+            var currentTime = this._mediaElement.currentTime;
+
+            for (var type in this._sourceBuffers) {
+                var sb = this._sourceBuffers[type];
+                if (sb) {
+                    var buffered = sb.buffered;
+                    var doRemove = false;
+
+                    for (var i = 0; i < buffered.length; i++) {
+                        var start = buffered.start(i);
+                        var end = buffered.end(i);
+
+                        if (start <= currentTime && currentTime < end + 3) {
+                            // padding 3 seconds
+                            if (currentTime - start >= this._config.autoCleanupMaxBackwardDuration) {
+                                doRemove = true;
+                                var removeEnd = currentTime - this._config.autoCleanupMinBackwardDuration;
+                                this._pendingRemoveRanges[type].push({ start: start, end: removeEnd });
+                            }
+                        } else if (end < currentTime) {
+                            doRemove = true;
+                            this._pendingRemoveRanges[type].push({ start: start, end: end });
+                        }
+                    }
+
+                    if (doRemove && !sb.updating) {
+                        this._doRemoveRanges();
+                    }
+                }
+            }
+        }
+    }, {
+        key: '_updateMediaSourceDuration',
+        value: function _updateMediaSourceDuration() {
+            var sb = this._sourceBuffers;
+            if (this._mediaElement.readyState === 0 || this._mediaSource.readyState !== 'open') {
+                return;
+            }
+            if (sb.video && sb.video.updating || sb.audio && sb.audio.updating) {
+                return;
+            }
+
+            var current = this._mediaSource.duration;
+            var target = this._pendingMediaDuration;
+
+            if (target > 0 && (isNaN(current) || target > current)) {
+                _logger2.default.v(this.TAG, 'Update MediaSource duration from ' + current + ' to ' + target);
+                this._mediaSource.duration = target;
+            }
+
+            this._requireSetMediaDuration = false;
+            this._pendingMediaDuration = 0;
+        }
+    }, {
+        key: '_doRemoveRanges',
+        value: function _doRemoveRanges() {
+            for (var type in this._pendingRemoveRanges) {
+                if (!this._sourceBuffers[type] || this._sourceBuffers[type].updating) {
+                    continue;
+                }
+                var sb = this._sourceBuffers[type];
+                var ranges = this._pendingRemoveRanges[type];
+                while (ranges.length && !sb.updating) {
+                    var range = ranges.shift();
+                    sb.remove(range.start, range.end);
+                }
+            }
+        }
+    }, {
+        key: '_doAppendSegments',
+        value: function _doAppendSegments() {
+            var pendingSegments = this._pendingSegments;
+
+            for (var type in pendingSegments) {
+                if (!this._sourceBuffers[type] || this._sourceBuffers[type].updating) {
+                    continue;
+                }
+
+                if (pendingSegments[type].length > 0) {
+                    var segment = pendingSegments[type].shift();
+
+                    if (segment.timestampOffset) {
+                        // For MPEG audio stream in MSE, if unbuffered-seeking occurred
+                        // We need explicitly set timestampOffset to the desired point in timeline for mpeg SourceBuffer.
+                        var currentOffset = this._sourceBuffers[type].timestampOffset;
+                        var targetOffset = segment.timestampOffset / 1000; // in seconds
+
+                        var delta = Math.abs(currentOffset - targetOffset);
+                        if (delta > 0.1) {
+                            // If time delta > 100ms
+                            _logger2.default.v(this.TAG, 'Update MPEG audio timestampOffset from ' + currentOffset + ' to ' + targetOffset);
+                            this._sourceBuffers[type].timestampOffset = targetOffset;
+                        }
+                        delete segment.timestampOffset;
+                    }
+
+                    if (!segment.data || segment.data.byteLength === 0) {
+                        // Ignore empty buffer
+                        continue;
+                    }
+
+                    try {
+                        this._sourceBuffers[type].appendBuffer(segment.data);
+                        this._isBufferFull = false;
+                        if (type === 'video' && segment.hasOwnProperty('info')) {
+                            this._idrList.appendArray(segment.info.syncPoints);
+                        }
+                    } catch (error) {
+                        this._pendingSegments[type].unshift(segment);
+                        if (error.code === 22) {
+                            // QuotaExceededError
+                            /* Notice that FireFox may not throw QuotaExceededError if SourceBuffer is full
+                             * Currently we can only do lazy-load to avoid SourceBuffer become scattered.
+                             * SourceBuffer eviction policy may be changed in future version of FireFox.
+                             *
+                             * Related issues:
+                             * https://bugzilla.mozilla.org/show_bug.cgi?id=1279885
+                             * https://bugzilla.mozilla.org/show_bug.cgi?id=1280023
+                             */
+
+                            // report buffer full, abort network IO
+                            if (!this._isBufferFull) {
+                                this._emitter.emit(_mseEvents2.default.BUFFER_FULL);
+                            }
+                            this._isBufferFull = true;
+                        } else {
+                            _logger2.default.e(this.TAG, error.message);
+                            this._emitter.emit(_mseEvents2.default.ERROR, { code: error.code, msg: error.message });
+                        }
+                    }
+                }
+            }
+        }
+    }, {
+        key: '_onSourceOpen',
+        value: function _onSourceOpen() {
+            _logger2.default.v(this.TAG, 'MediaSource onSourceOpen');
+            this._mediaSource.removeEventListener('sourceopen', this.e.onSourceOpen);
+            // deferred sourcebuffer creation / initialization
+            if (this._pendingSourceBufferInit.length > 0) {
+                var pendings = this._pendingSourceBufferInit;
+                while (pendings.length) {
+                    var segment = pendings.shift();
+                    this.appendInitSegment(segment, true);
+                }
+            }
+            // there may be some pending media segments, append them
+            if (this._hasPendingSegments()) {
+                this._doAppendSegments();
+            }
+            this._emitter.emit(_mseEvents2.default.SOURCE_OPEN);
+        }
+    }, {
+        key: '_onSourceEnded',
+        value: function _onSourceEnded() {
+            // fired on endOfStream
+            _logger2.default.v(this.TAG, 'MediaSource onSourceEnded');
+        }
+    }, {
+        key: '_onSourceClose',
+        value: function _onSourceClose() {
+            // fired on detaching from media element
+            _logger2.default.v(this.TAG, 'MediaSource onSourceClose');
+            if (this._mediaSource && this.e != null) {
+                this._mediaSource.removeEventListener('sourceopen', this.e.onSourceOpen);
+                this._mediaSource.removeEventListener('sourceended', this.e.onSourceEnded);
+                this._mediaSource.removeEventListener('sourceclose', this.e.onSourceClose);
+            }
+        }
+    }, {
+        key: '_hasPendingSegments',
+        value: function _hasPendingSegments() {
+            var ps = this._pendingSegments;
+            return ps.video.length > 0 || ps.audio.length > 0;
+        }
+    }, {
+        key: '_hasPendingRemoveRanges',
+        value: function _hasPendingRemoveRanges() {
+            var prr = this._pendingRemoveRanges;
+            return prr.video.length > 0 || prr.audio.length > 0;
+        }
+    }, {
+        key: '_onSourceBufferUpdateEnd',
+        value: function _onSourceBufferUpdateEnd() {
+            if (this._requireSetMediaDuration) {
+                this._updateMediaSourceDuration();
+            } else if (this._hasPendingRemoveRanges()) {
+                this._doRemoveRanges();
+            } else if (this._hasPendingSegments()) {
+                this._doAppendSegments();
+            } else if (this._hasPendingEos) {
+                this.endOfStream();
+            }
+            this._emitter.emit(_mseEvents2.default.UPDATE_END);
+        }
+    }, {
+        key: '_onSourceBufferError',
+        value: function _onSourceBufferError(e) {
+            _logger2.default.e(this.TAG, 'SourceBuffer Error: ' + e);
+            // this error might not always be fatal, just ignore it
+        }
+    }]);
+
+    return MSEController;
+}();
+
+exports.default = MSEController;
+module.exports = exports['default'];
+
+/***/ }),
+/* 46 */
+/***/ (function(module, exports, __webpack_require__) {
+
+"use strict";
+
+
+Object.defineProperty(exports, "__esModule", {
+    value: true
+});
+
+var _typeof = typeof Symbol === "function" && typeof Symbol.iterator === "symbol" ? function (obj) { return typeof obj; } : function (obj) { return obj && typeof Symbol === "function" && obj.constructor === Symbol && obj !== Symbol.prototype ? "symbol" : typeof obj; };
+
+var _createClass = function () { function defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ("value" in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } } return function (Constructor, protoProps, staticProps) { if (protoProps) defineProperties(Constructor.prototype, protoProps); if (staticProps) defineProperties(Constructor, staticProps); return Constructor; }; }(); /*
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                      * Copyright (C) 2016 Bilibili. All Rights Reserved.
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                      *
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                      * @author zheng qian <xqq@xqq.im>
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                      *
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                      * Licensed under the Apache License, Version 2.0 (the "License");
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                      * you may not use this file except in compliance with the License.
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                      * You may obtain a copy of the License at
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                      *
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                      *     http://www.apache.org/licenses/LICENSE-2.0
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                      *
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                      * Unless required by applicable law or agreed to in writing, software
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                      * distributed under the License is distributed on an "AS IS" BASIS,
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                      * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                      * See the License for the specific language governing permissions and
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                      * limitations under the License.
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                      */
+
+var _events = __webpack_require__(2);
+
+var _events2 = _interopRequireDefault(_events);
+
+var _playerEvents = __webpack_require__(7);
+
+var _playerEvents2 = _interopRequireDefault(_playerEvents);
+
+var _config = __webpack_require__(6);
+
+var _exception = __webpack_require__(1);
+
+function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
+
+function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } }
+
+// Player wrapper for browser's native player (HTMLVideoElement) without MediaSource src.
+var NativePlayer = function () {
+    function NativePlayer(mediaDataSource, config) {
+        _classCallCheck(this, NativePlayer);
+
+        this.TAG = 'NativePlayer';
+        this._type = 'NativePlayer';
+        this._emitter = new _events2.default();
+
+        this._config = (0, _config.createDefaultConfig)();
+        if ((typeof config === 'undefined' ? 'undefined' : _typeof(config)) === 'object') {
+            Object.assign(this._config, config);
+        }
+
+        if (mediaDataSource.type.toLowerCase() === 'flv') {
+            throw new _exception.InvalidArgumentException('NativePlayer does\'t support flv MediaDataSource input!');
+        }
+        if (mediaDataSource.hasOwnProperty('segments')) {
+            throw new _exception.InvalidArgumentException('NativePlayer(' + mediaDataSource.type + ') doesn\'t support multipart playback!');
+        }
+
+        this.e = {
+            onvLoadedMetadata: this._onvLoadedMetadata.bind(this)
+        };
+
+        this._pendingSeekTime = null;
+        this._statisticsReporter = null;
+
+        this._mediaDataSource = mediaDataSource;
+        this._mediaElement = null;
+    }
+
+    _createClass(NativePlayer, [{
+        key: 'destroy',
+        value: function destroy() {
+            if (this._mediaElement) {
+                this.unload();
+                this.detachMediaElement();
+            }
+            this.e = null;
+            this._mediaDataSource = null;
+            this._emitter.removeAllListeners();
+            this._emitter = null;
+        }
+    }, {
+        key: 'on',
+        value: function on(event, listener) {
+            var _this = this;
+
+            if (event === _playerEvents2.default.MEDIA_INFO) {
+                if (this._mediaElement != null && this._mediaElement.readyState !== 0) {
+                    // HAVE_NOTHING
+                    Promise.resolve().then(function () {
+                        _this._emitter.emit(_playerEvents2.default.MEDIA_INFO, _this.mediaInfo);
+                    });
+                }
+            } else if (event === _playerEvents2.default.STATISTICS_INFO) {
+                if (this._mediaElement != null && this._mediaElement.readyState !== 0) {
+                    Promise.resolve().then(function () {
+                        _this._emitter.emit(_playerEvents2.default.STATISTICS_INFO, _this.statisticsInfo);
+                    });
+                }
+            }
+            this._emitter.addListener(event, listener);
+        }
+    }, {
+        key: 'off',
+        value: function off(event, listener) {
+            this._emitter.removeListener(event, listener);
+        }
+    }, {
+        key: 'attachMediaElement',
+        value: function attachMediaElement(mediaElement) {
+            this._mediaElement = mediaElement;
+            mediaElement.addEventListener('loadedmetadata', this.e.onvLoadedMetadata);
+
+            if (this._pendingSeekTime != null) {
+                try {
+                    mediaElement.currentTime = this._pendingSeekTime;
+                    this._pendingSeekTime = null;
+                } catch (e) {
+                    // IE11 may throw InvalidStateError if readyState === 0
+                    // Defer set currentTime operation after loadedmetadata
+                }
+            }
+        }
+    }, {
+        key: 'detachMediaElement',
+        value: function detachMediaElement() {
+            if (this._mediaElement) {
+                this._mediaElement.src = '';
+                this._mediaElement.removeAttribute('src');
+                this._mediaElement.removeEventListener('loadedmetadata', this.e.onvLoadedMetadata);
+                this._mediaElement = null;
+            }
+            if (this._statisticsReporter != null) {
+                window.clearInterval(this._statisticsReporter);
+                this._statisticsReporter = null;
+            }
+        }
+    }, {
+        key: 'load',
+        value: function load() {
+            if (!this._mediaElement) {
+                throw new _exception.IllegalStateException('HTMLMediaElement must be attached before load()!');
+            }
+            this._mediaElement.src = this._mediaDataSource.url;
+
+            if (this._mediaElement.readyState > 0) {
+                this._mediaElement.currentTime = 0;
+            }
+
+            this._mediaElement.preload = 'auto';
+            this._mediaElement.load();
+            this._statisticsReporter = window.setInterval(this._reportStatisticsInfo.bind(this), this._config.statisticsInfoReportInterval);
+        }
+    }, {
+        key: 'unload',
+        value: function unload() {
+            if (this._mediaElement) {
+                this._mediaElement.src = '';
+                this._mediaElement.removeAttribute('src');
+            }
+            if (this._statisticsReporter != null) {
+                window.clearInterval(this._statisticsReporter);
+                this._statisticsReporter = null;
+            }
+        }
+    }, {
+        key: 'play',
+        value: function play() {
+            var playPromise = this._mediaElement.play();
+            if (playPromise !== undefined && playPromise) {
+                return playPromise.catch(function () {});
+            } else return undefined;
+        }
+    }, {
+        key: 'pause',
+        value: function pause() {
+            this._mediaElement.pause();
+        }
+    }, {
+        key: '_onvLoadedMetadata',
+        value: function _onvLoadedMetadata(e) {
+            if (this._pendingSeekTime != null) {
+                this._mediaElement.currentTime = this._pendingSeekTime;
+                this._pendingSeekTime = null;
+            }
+            this._emitter.emit(_playerEvents2.default.MEDIA_INFO, this.mediaInfo);
+        }
+    }, {
+        key: '_reportStatisticsInfo',
+        value: function _reportStatisticsInfo() {
+            this._emitter.emit(_playerEvents2.default.STATISTICS_INFO, this.statisticsInfo);
+        }
+    }, {
+        key: 'type',
+        get: function get() {
+            return this._type;
+        }
+    }, {
+        key: 'buffered',
+        get: function get() {
+            return this._mediaElement.buffered;
+        }
+    }, {
+        key: 'duration',
+        get: function get() {
+            return this._mediaElement.duration;
+        }
+    }, {
+        key: 'volume',
+        get: function get() {
+            return this._mediaElement.volume;
+        },
+        set: function set(value) {
+            this._mediaElement.volume = value;
+        }
+    }, {
+        key: 'muted',
+        get: function get() {
+            return this._mediaElement.muted;
+        },
+        set: function set(muted) {
+            this._mediaElement.muted = muted;
+        }
+    }, {
+        key: 'currentTime',
+        get: function get() {
+            if (this._mediaElement) {
+                return this._mediaElement.currentTime;
+            }
+            return 0;
+        },
+        set: function set(seconds) {
+            if (this._mediaElement) {
+                this._mediaElement.currentTime = seconds;
+            } else {
+                this._pendingSeekTime = seconds;
+            }
+        }
+    }, {
+        key: 'mediaInfo',
+        get: function get() {
+            var mediaPrefix = this._mediaElement instanceof HTMLAudioElement ? 'audio/' : 'video/';
+            var info = {
+                mimeType: mediaPrefix + this._mediaDataSource.type
+            };
+            if (this._mediaElement) {
+                info.duration = Math.floor(this._mediaElement.duration * 1000);
+                if (this._mediaElement instanceof HTMLVideoElement) {
+                    info.width = this._mediaElement.videoWidth;
+                    info.height = this._mediaElement.videoHeight;
+                }
+            }
+            return info;
+        }
+    }, {
+        key: 'statisticsInfo',
+        get: function get() {
+            var info = {
+                playerType: this._type,
+                url: this._mediaDataSource.url
+            };
+
+            if (!(this._mediaElement instanceof HTMLVideoElement)) {
+                return info;
+            }
+
+            var hasQualityInfo = true;
+            var decoded = 0;
+            var dropped = 0;
+
+            if (this._mediaElement.getVideoPlaybackQuality) {
+                var quality = this._mediaElement.getVideoPlaybackQuality();
+                decoded = quality.totalVideoFrames;
+                dropped = quality.droppedVideoFrames;
+            } else if (this._mediaElement.webkitDecodedFrameCount != undefined) {
+                decoded = this._mediaElement.webkitDecodedFrameCount;
+                dropped = this._mediaElement.webkitDroppedFrameCount;
+            } else {
+                hasQualityInfo = false;
+            }
+
+            if (hasQualityInfo) {
+                info.decodedFrames = decoded;
+                info.droppedFrames = dropped;
+            }
+
+            return info;
+        }
+    }]);
+
+    return NativePlayer;
+}();
+
+exports.default = NativePlayer;
+module.exports = exports['default'];
+
+/***/ })
+/******/ ]);
+});

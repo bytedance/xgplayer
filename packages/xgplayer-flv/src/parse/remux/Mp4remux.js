@@ -1,14 +1,15 @@
-import MediaSegmentList from '../../models/MediaSegmentList'
-import MediaSegment from '../../models/MediaSegment'
-import MediaSample from '../../models/MediaSample'
-import sniffer from '../../utils/sniffer'
-import Buffer from '../../write/Buffer'
-import FMP4 from './Fmp4'
-import Remuxer from './Remuxer'
+import {
+  EVENTS,
+  sniffer,
+  MediaSegmentList,
+  Buffer
+} from 'xgplayer-utils';
+import Fmp4 from './fmp4'
 
-export default class Mp4Remuxer extends Remuxer {
-  constructor (store) {
-    super(store)
+const REMUX_EVENTS = EVENTS.REMUX_EVENTS
+
+export default class Mp4Remuxer {
+  constructor () {
     this._dtsBase = 0
     this._isDtsBaseInited = false
     this._videoMeta = null
@@ -19,7 +20,18 @@ export default class Mp4Remuxer extends Remuxer {
     this._audioSegmentList = new MediaSegmentList('audio')
     const {browser} = sniffer
     this._fillSilenceFrame = browser === 'ie'
-    this.handleMediaFragment = () => {}
+
+    this.isFirstVideo = true
+    this.isFirstAudio = true
+
+    this.videoAllDuration = 0
+    this.audioAllDuration = 0
+  }
+
+  init () {
+    this.on(REMUX_EVENTS.REMUX_MEDIA, this.remux.bind(this))
+    this.on(REMUX_EVENTS.REMUX_METADATA, this.onMetaDataReady.bind(this))
+    // this.on(REMUX_EVENTS.DETECT_CHANGE_STREAM, this.resetDtsBase.bind(this))
   }
 
   destroy () {
@@ -42,6 +54,12 @@ export default class Mp4Remuxer extends Remuxer {
     this._remuxAudio(audioTrack)
   }
 
+  resetDtsBase () {
+    // for hls 中途切换 meta后seek
+    this._dtsBase = 0
+    this._dtsBaseInited = false
+  }
+
   seek () {
     this._videoNextDts = null
     this._audioNextDts = null
@@ -49,21 +67,52 @@ export default class Mp4Remuxer extends Remuxer {
     this._audioSegmentList.clear()
   }
 
-  onMetaDataReady (type, meta) {
-    this[`_${type}Meta`] = meta
+  onMetaDataReady (type) {
+    let track
+
+    if (type === 'audio') {
+      const { audioTrack } = this._context.getInstance('TRACKS')
+      track = audioTrack;
+    } else {
+      const { videoTrack } = this._context.getInstance('TRACKS')
+      track = videoTrack;
+    }
+
+    let presourcebuffer = this._context.getInstance('PRE_SOURCE_BUFFER');
+    let source = presourcebuffer.getSource(type);
+    if (!source) {
+      source = presourcebuffer.createSource(type);
+    }
+
+    source.mimetype = track.meta.codec;
+    source.init = this.remuxInitSegment(type, track.meta);
+    // source.inited = false;
+
+    // this.resetDtsBase()
+    this.emit(REMUX_EVENTS.INIT_SEGMENT, type)
   }
 
-  onMediaInfoReady (mediaInfo) {
-    let ftypMoov = new Buffer()
-    let ftyp = FMP4.ftyp()
-    let moov = FMP4.moov(mediaInfo)
-    ftypMoov.write(ftyp, moov)
-    return ftypMoov.buffer
+  remuxInitSegment (type, meta) {
+    let initSegment = new Buffer()
+    let ftyp = Fmp4.ftyp()
+    let moov = Fmp4.moov({ type, meta: meta })
+
+    initSegment.write(ftyp, moov)
+    return initSegment;
   }
 
   calcDtsBase (audioTrack, videoTrack) {
+    if (!audioTrack && videoTrack.samples.length) {
+      return videoTrack.samples[0].dts
+    }
+
+    if (!audioTrack.samples.length && !videoTrack.samples.length) {
+      return;
+    }
+
     let audioBase = Infinity
     let videoBase = Infinity
+
     if (audioTrack.samples && audioTrack.samples.length) {
       audioBase = audioTrack.samples[0].dts
     }
@@ -76,75 +125,64 @@ export default class Mp4Remuxer extends Remuxer {
   }
 
   _remuxVideo (videoTrack) {
-    if (!this._videoMeta) {
-      return
-    }
-    const track = videoTrack
+    const track = videoTrack || {}
+
     if (!videoTrack.samples || !videoTrack.samples.length) {
       return
     }
-    let {samples} = track
-    let dtsCorrection
-    let firstDts = -1
-    let lastDts = -1
-    let firstPts = -1
-    let lastPts = -1
 
+    let {samples} = track
+    let firstDts = -1
+
+    let initSegment = null
     const mp4Samples = []
     const mdatBox = {
       samples: []
     }
-    const videoSegment = new MediaSegment()
-    while (samples.length) {
-      const avcSample = samples.shift()
-      const {isKeyframe, cps} = avcSample
-      let dts = avcSample.dts - this._dtsBase
 
-      if (dtsCorrection === undefined) {
-        if (!this._videoNextDts) {
-          if (this._videoSegmentList.isEmpty()) {
-            dtsCorrection = 0
-          } else {
-            const lastSegment = this._videoSegmentList.getLastSegmentBefore(dts)
-            if (lastSegment) {
-              let gap
-              const {lastDts, gap: lastGap} = lastSegment
-              gap = dts - (lastDts + lastGap) > 3 ? dts - (lastDts + lastGap) : 0
-              dtsCorrection = dts - (lastDts + gap)
-            } else {
-              dtsCorrection = 0
-            }
-          }
-        } else {
-          dtsCorrection = dts - this._videoNextDts >= 1000 ? 0 : dts - this._videoNextDts
-        }
+    let maxLoop = 10000
+    while (samples.length && maxLoop-- > 0) {
+      // console.log('mark2')
+      const avcSample = samples.shift()
+
+      const { isKeyframe, options } = avcSample
+      if (!this.isFirstAudio && options && options.meta) {
+        initSegment = this.remuxInitSegment('video', options.meta)
+        options.meta = null
+        samples.unshift(avcSample)
+        break;
       }
-      const originDts = dts
-      dts -= dtsCorrection
-      const pts = dts + cps
+
+      let dts = avcSample.dts - this._dtsBase
 
       if (firstDts === -1) {
         firstDts = dts
-        firstPts = pts
       }
-      let _units = []
-      while (avcSample.units.length) {
-        let mdatSample = {
-          buffer: [],
-          size: 0
-        }
-        const unit = avcSample.units.shift()
-        _units.push(unit)
-        mdatSample.buffer.push(unit)
-        mdatSample.size += unit.data.byteLength
 
-        mdatBox.samples.push(mdatSample)
+      let cts
+      let pts
+      if (avcSample.pts !== undefined) {
+        pts = avcSample.pts - this._dtsBase
+        cts = pts - dts
       }
+      if (avcSample.cts !== undefined) {
+        pts = avcSample.cts + dts
+        cts = avcSample.cts
+      }
+
+      let mdatSample = {
+        buffer: [],
+        size: 0
+      }
+      mdatBox.samples.push(mdatSample)
+      mdatSample.buffer.push(avcSample.data)
+      mdatSample.size += avcSample.data.byteLength
 
       let sampleDuration = 0
-
-      if (samples.length >= 1) {
-        const nextDts = samples[0].dts - this._dtsBase - dtsCorrection
+      if (avcSample.duration) {
+        sampleDuration = avcSample.duration;
+      } else if (samples.length >= 1) {
+        const nextDts = samples[0].dts - this._dtsBase
         sampleDuration = nextDts - dts
       } else {
         if (mp4Samples.length >= 1) { // lastest sample, use second last duration
@@ -154,169 +192,108 @@ export default class Mp4Remuxer extends Remuxer {
         }
       }
 
-      if (isKeyframe) {
-        const rap = new MediaSample({
-          dts,
-          pts,
-          duration: sampleDuration,
-          originDts: avcSample.dts,
-          position: avcSample.position,
-          isRAP: true
-        })
-        videoSegment.addRAP(rap)
+      if (sampleDuration < 0) {
+        continue;
       }
 
+      this.videoAllDuration += sampleDuration
+      // console.log(`video dts ${dts}`, `originDts ${avcSample.originDts}`, `pts ${pts}`, isKeyframe, `duration ${sampleDuration}`)
       mp4Samples.push({
         dts,
         cps,
         pts,
-        units: _units,
-        size: avcSample.length,
+        data: avcSample.data,
+        size: avcSample.data.byteLength,
         isKeyframe,
         duration: sampleDuration,
-        originDts
+        flags: {
+          isLeading: 0,
+          dependsOn: isKeyframe ? 2 : 1,
+          isDependedOn: isKeyframe ? 1 : 0,
+          hasRedundancy: 0,
+          isNonSync: isKeyframe ? 0 : 1
+        },
+        originDts: dts,
+        type: 'video'
       })
+
+      if (isKeyframe) {
+        this.emit(REMUX_EVENTS.RANDOM_ACCESS_POINT, pts)
+      }
     }
-    const first = mp4Samples[0]
-    const last = mp4Samples[mp4Samples.length - 1]
-    lastDts = last.dts + last.duration
-    lastPts = last.pts + last.duration
 
-    this._videoNextDts = lastDts
-
-    videoSegment.startDts = firstDts
-    videoSegment.endDts = lastDts
-    videoSegment.startPts = firstPts
-    videoSegment.endPts = lastPts
-    videoSegment.originStartDts = first.originDts
-    videoSegment.originEndDts = last.originDts + last.duration
-    videoSegment.gap = dtsCorrection
-    const firstSample = new MediaSample({
-      dts: first.dts,
-      pts: first.pts,
-      duration: first.duration,
-      isKeyframe: first.isKeyframe,
-      originDts: first.originDts
-    })
-    const lastSample = new MediaSample({
-      dts: last.dts,
-      pts: last.pts,
-      duration: last.duration,
-      isKeyframe: last.isKeyframe,
-      originDts: last.originDts
-    })
-    videoSegment.firstSample = firstSample
-    videoSegment.lastSample = lastSample
     let moofMdat = new Buffer()
+    if (mp4Samples.length) {
+      const moof = Fmp4.moof({
+        id: track.meta.id,
+        time: firstDts,
+        samples: mp4Samples
+      })
+      const mdat = Fmp4.mdat(mdatBox)
+      moofMdat.write(moof, mdat)
 
-    track.samples = mp4Samples
-    track.time = firstDts
-    const moof = FMP4.moof(track)
-    const mdat = FMP4.mdat(mdatBox)
-    moofMdat.write(moof, mdat)
-
-    if (!this._store.isLive) {
-      this._videoSegmentList.append(videoSegment)
+      this.writeToSource('video', moofMdat)
     }
 
+    if (initSegment) {
+      this.writeToSource('video', initSegment)
+
+      if (samples.length) {
+        // second part of stream change
+        track.samples = samples;
+        return this._remuxVideo(track)
+      }
+    }
+
+    this.isFirstVideo = false
+    this.emit(REMUX_EVENTS.MEDIA_SEGMENT, 'video')
+
+    const lastSample = mp4Samples[mp4Samples.length - 1]
+    this._videoNextDts = lastSample.dts + lastSample.duration;
     track.samples = []
     track.length = 0
-
-    this.handleMediaFragment({
-      type: 'video',
-      data: moofMdat.buffer.buffer,
-      sampleCount: mp4Samples.length,
-      fragment: videoSegment
-    })
   }
 
   _remuxAudio (track) {
-    if (!this._audioMeta) {
-      return
-    }
-    const {samples} = track
-    let dtsCorrection
+    const {samples} = (track || {})
     let firstDts = -1
-    let lastDts = -1
-    // let firstPts = -1
-    // let lastPts = -1
-    let silentDuration
     let mp4Samples = []
 
+    let initSegment = null
     const mdatBox = {
       samples: []
     }
     if (!samples || !samples.length) {
       return
     }
+
+    let maxLoop = 10000
     let isFirstDtsInited = false
-    while (samples.length) {
+    while (samples.length && maxLoop-- > 0) {
+      // console.log('mark3')
       let sample = samples.shift()
-      const {unit} = sample
+      const { data, options } = sample
+      if (!this.isFirstAudio && options && options.meta) {
+        initSegment = this.remuxInitSegment('audio', options.meta)
+        options.meta = null;
+        samples.unshift(sample)
+        break;
+      }
+
       let dts = sample.dts - this._dtsBase
-
-      let needSilentFrame = false
-      if (dtsCorrection === undefined) {
-        if (!this._audioNextDts) {
-          if (this._audioSegmentList.isEmpty()) {
-            dtsCorrection = 0
-          } else {
-            const lastSegment = this._audioSegmentList.getLastSegmentBefore(dts)
-            if (lastSegment) {
-              let gap
-              const {lastDts, gap: lastGap} = lastSegment
-              gap = dts - (lastDts + lastGap) > 3 ? dts - (lastDts + lastGap) : 0
-              dtsCorrection = dts - (lastDts + gap)
-            } else {
-              needSilentFrame = this._fillSilenceFrame && !this._videoSegmentList.isEmpty()
-              dtsCorrection = 0
-            }
-          }
-        } else {
-          dtsCorrection = dts - this._audioNextDts >= 1000 ? 0 : dts - this._audioNextDts
-        }
-      }
       const originDts = dts
-      dts -= dtsCorrection
-
-      if (needSilentFrame) {
-        const videoSegment = this._videoSegmentList.getLastSampleBefore(originDts)
-
-        if (videoSegment && videoSegment.startDts < dts) {
-          silentDuration = dts - videoSegment.startDts
-          dts = videoSegment.startDts
-        } else {
-          needSilentFrame = false
-        }
-      }
-
       if (!isFirstDtsInited) {
         firstDts = dts
         isFirstDtsInited = true
       }
 
-      if (needSilentFrame) {
-        samples.unshift(sample)
-        const silentFrame = this.initSilentAudio(dts, silentDuration)
-        mp4Samples.push(silentFrame)
-
-        let mdatSample = {
-          buffer: [],
-          size: 0
-        }
-        mdatSample.buffer.push({
-          data: silentFrame.unit
-        })
-        mdatSample.size += silentFrame.unit.byteLength
-
-        mdatBox.samples.push(mdatSample)
-        continue
-      }
-
       let sampleDuration = 0
-
-      if (samples.length >= 1) {
-        const nextDts = samples[0].dts - this._dtsBase - dtsCorrection
+      if (sample.duration) {
+        sampleDuration = sample.duration;
+      } else if (this.audioMeta.refSampleDurationFixed) {
+        sampleDuration = this.audioMeta.refSampleDurationFixed
+      } else if (samples.length >= 1) {
+        const nextDts = samples[0].dts - this._dtsBase;
         sampleDuration = nextDts - dts
       } else {
         if (mp4Samples.length >= 1) { // use second last sample duration
@@ -326,13 +303,28 @@ export default class Mp4Remuxer extends Remuxer {
         }
       }
 
+      if (sampleDuration < 0) {
+        continue;
+      }
+
+      // console.log(`audio dts ${dts}`, `pts ${dts}`, `originDts ${sample.originDts}`, `duration ${sampleDuration}`)
+      this.audioAllDuration += sampleDuration
       const mp4Sample = {
         dts,
         pts: dts,
         cts: 0,
-        size: unit.byteLength,
-        duration: sampleDuration,
-        originDts
+        size: data.byteLength,
+        duration: sample.duration ? sample.duration : sampleDuration,
+        flags: {
+          isLeading: 0,
+          dependsOn: 2,
+          isDependedOn: 1,
+          hasRedundancy: 0,
+          isNonSync: 0
+        },
+        isKeyframe: true,
+        originDts,
+        type: 'audio'
       }
 
       let mdatSample = {
@@ -349,50 +341,46 @@ export default class Mp4Remuxer extends Remuxer {
       mp4Samples.push(mp4Sample)
     }
 
-    const last = mp4Samples[mp4Samples.length - 1]
-    lastDts = last.dts + last.duration
-
-    this._audioNextDts = lastDts
-
-    const audioSegment = new MediaSegment()
-    audioSegment.startDts = firstDts
-    audioSegment.endDts = lastDts
-    audioSegment.startPts = firstDts
-    audioSegment.endPts = lastDts
-    audioSegment.originStartDts = mp4Samples[0].originDts
-    audioSegment.originEndDts = last.originDts + last.duration
-    audioSegment.gap = dtsCorrection
-    audioSegment.firstSample = new MediaSample({
-      dts: mp4Samples[0].dts,
-      pts: mp4Samples[0].pts,
-      duration: mp4Samples[0].duration,
-      originDts: mp4Samples[0].originDts
-    })
-    audioSegment.lastSample = new MediaSample({
-      dts: last.dts,
-      pts: last.pts,
-      duration: last.duration,
-      originDts: last.originDts
-    })
-
-    track.samples = mp4Samples
     const moofMdat = new Buffer()
-    track.time = firstDts
-    const moof = FMP4.moof(track, firstDts)
-    const mdat = FMP4.mdat(mdatBox)
-    moofMdat.write(moof, mdat)
 
-    if (!this._store.isLive) {
-      this._audioSegmentList.append(audioSegment)
+    if (mp4Samples.length) {
+      const moof = Fmp4.moof({
+        id: track.meta.id,
+        time: firstDts,
+        samples: mp4Samples
+      })
+      const mdat = Fmp4.mdat(mdatBox)
+      moofMdat.write(moof, mdat)
+
+      this.writeToSource('audio', moofMdat)
     }
+
+    if (initSegment) {
+      this.writeToSource('audio', initSegment)
+      if (samples.length) {
+        // second part of stream change
+        track.samples = samples;
+        return this._remuxAudio(track)
+      }
+    }
+
+    this.isFirstAudio = false
+    this.emit(REMUX_EVENTS.MEDIA_SEGMENT, 'audio', moofMdat)
+
+    const lastSample = mp4Samples[mp4Samples.length - 1]
+    this._videoNextDts = lastSample.dts + lastSample.duration;
     track.samples = []
     track.length = 0
-    this.handleMediaFragment({
-      type: 'audio',
-      data: moofMdat.buffer.buffer,
-      sampleCount: mp4Samples.length,
-      fragment: audioSegment
-    })
+  }
+
+  writeToSource (type, buffer) {
+    let presourcebuffer = this._context.getInstance('PRE_SOURCE_BUFFER');
+    let source = presourcebuffer.getSource(type);
+    if (!source) {
+      source = presourcebuffer.createSource(type);
+    }
+
+    source.data.push(buffer)
   }
 
   initSilentAudio (dts, duration) {
@@ -404,7 +392,8 @@ export default class Mp4Remuxer extends Remuxer {
       duration,
       unit,
       size: unit.byteLength,
-      originDts: dts
+      originDts: dts,
+      type: 'video'
     }
   }
 

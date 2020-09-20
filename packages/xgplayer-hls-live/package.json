@@ -1,0 +1,30 @@
+{
+  "name": "xgplayer-hls-live",
+  "version": "2.2.0-alpha.0",
+  "description": "",
+  "main": "index.js",
+  "scripts": {
+    "build": "webpack",
+    "development": "webpack --config webpack.config.dev.js",
+    "watch": "webpack --config webpack.config.dev.js --watch",
+    "dev": "webpack --config webpack.config.dev.js"
+  },
+  "author": "",
+  "license": "ISC",
+  "dependencies": {
+    "xgplayer-demux": "^2.2.0-alpha.0",
+    "xgplayer-loader": "^2.2.0-alpha.0",
+    "xgplayer-buffer": "^2.2.0-alpha.0",
+    "xgplayer-codec": "^2.2.0-alpha.0",
+    "xgplayer-remux": "^2.2.0-alpha.0",
+    "xgplayer-utils": "^2.2.0-alpha.0"
+  },
+  "devDependencies": {
+    "babel-core": "^6.26.3",
+    "babel-loader": "^7.1.5",
+    "babel-plugin-add-module-exports": "^0.2.1",
+    "babel-preset-es2015": "^6.24.1",
+    "webpack": "^4.10.2",
+    "webpack-merge": "^4.2.2"
+  }
+}

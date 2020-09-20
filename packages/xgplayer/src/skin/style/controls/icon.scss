@@ -1,0 +1,12 @@
+.xgplayer-skin-default {
+  .xgplayer-icon {
+      display: block;
+      width: 40px;
+      height: 40px;
+      overflow: hidden;
+      fill:$playerIconColor;
+      svg {
+        position: absolute;
+      }
+  }
+}

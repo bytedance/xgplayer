@@ -2,6 +2,13 @@ import Player from 'xgplayer'
 import Lyric from './lyric'
 import Analyze from './analyze'
 import Xhr from './xhr'
+import Backward from './controls/backward.js'
+import Cover from './controls/cover.js'
+import Forward from './controls/forward.js'
+import Meta from './controls/meta.js'
+import Next from './controls/next.js'
+import Prev from './controls/prev.js'
+
 let mode
 let timeScale = 15
 
@@ -19,6 +26,26 @@ class Music extends Player {
     }
     super(opts)
     let player = this
+
+    if(player.config.ignores.indexOf('backward') < 0) {
+      new Backward(player)
+    }
+    if(player.config.ignores.indexOf('cover') < 0) {
+      new Cover(player)
+    }
+    if(player.config.ignores.indexOf('forward') < 0) {
+      new Forward(player)
+    }
+    if(player.config.ignores.indexOf('meta') < 0) {
+      new Meta(player)
+    }
+    if(player.config.ignores.indexOf('next') < 0) {
+      new Next(player)
+    }
+    if(player.config.ignores.indexOf('prev') < 0) {
+      new Prev(player)
+    }
+
     this.rawConfig = options
     this.list = util.typeOf(opts.url) === 'Array' ? opts.url : [{
       src: opts.url,
@@ -62,21 +89,54 @@ class Music extends Player {
     if (this.config.autoplayMuted) {
       this.config.volume = this.config.autoplay ? 0 : this.config.volume
     }
+    this.once('ready', () => {
+      util.addClass(player.root, 'xgplayer-skin-default')
+      if(this.config.lang && this.config.lang === 'en') {
+        util.addClass(this.root, 'lang-is-en')
+      } else if(this.config.lang === 'jp') {
+        util.addClass(this.root, 'lang-is-jp')
+      }
+    })
     this.once('canplay', function () {
       if (this.config.autoplay && this.config.autoplayMuted) {
         this.volume = 0
       } else {
         this.volume = this.config.volume
       }
+      if(this.config.abCycle) {
+        if(typeof this.addProgressDot === 'function') {
+          this.addProgressDot(this.config.abCycle.start || 0)
+          this.addProgressDot(this.config.abCycle.end || this.duration)
+        }
+      }
     })
     this.on('timeupdate', () => {
       if (!this.halfPass && this.currentTime > this.duration / 2) {
         this.confirmOrder()
       }
+      if(this.config.abCycle) {
+        if(this.currentTime >= (this.config.abCycle.end || this.duration)) {
+          if(!this.config.abCycle.loop) {
+            this.pause()
+            this.emit('abCycle ended')
+          }
+          this.currentTime = this.config.abCycle.start || 0
+        } else if(this.currentTime < (this.config.abCycle.start || 0)) {
+          this.currentTime = this.config.abCycle.start || 0
+        }
+      }
     })
     this.on('ended', () => {
+      if(this.config.abCycle) {
+        if(this.config.abCycle.loop) {
+          this.change()
+        }
+        return
+      }
       if (this.mode === 'order' && this.index + 1 >= this.list.length) {
-        this.pause()
+        this.once('playing', () => {
+          this.pause()
+        })
         this.currentTime = 0
         return
       }
@@ -105,7 +165,7 @@ class Music extends Player {
     if (Player.util.typeOf(lyricTxts) !== 'Array') {
       lyricTxts = [].concat(lyricTxts)
     }
-    this.__lyric__ = new Lyric(lyricTxts, Dom)
+    this.__lyric__ = new Lyric(lyricTxts, Dom, this.config.lyricOpts || {})
     this.__lyric__.bind(this)
     return this.__lyric__
   }
@@ -206,6 +266,15 @@ class Music extends Player {
       this.list.splice(idx, 1)
     }
   }
+  updateList (list = []) {
+    this.removeAbCycle()
+    this.pause()
+    this.currentTime = 0
+    this.list = list
+    this.nextIndex = 0
+    this.index = 0
+    this.change()
+  }
   change () {
     let self = this
     let offlineVid = self.list[self.index].vid || self.list[self.index].name
@@ -219,7 +288,14 @@ class Music extends Player {
         self.emit('change', {src: url, name: self.name, vid: self.vid, poster: self.poster})
       } else {
         self.video.pause()
-        self.currentTime = 0
+        if(this.config.switchKeepProgress && !this.ended) {
+          let currentTime = self.currentTime
+          this.once('playing', () => {
+            self.currentTime = currentTime
+          })
+        } else {
+          self.currentTime = 0
+        }
         self.src = url
         self.name = self.list[self.index].name
         self.vid = self.list[self.index].vid
@@ -268,6 +344,11 @@ class Music extends Player {
     this.index = this.prevIndex
     this.change()
   }
+  setIndex (index = 0) {
+    this.nextIndex = index
+    this.index = index
+    this.change()
+  }
   forward () {
     // console.log(`music go forward ${timeScale}s`)
     this.currentTime = this.currentTime + timeScale < this.duration ? this.currentTime + timeScale : this.duration - 0.1
@@ -278,6 +359,26 @@ class Music extends Player {
   }
   analyze (canvas) {
     return new Analyze(this, canvas)
+  }
+  setAbCycle(start, end, loop) {
+    this.config.abCycle = {
+      start: start || 0,
+      end: end || this.duration,
+      loop
+    }
+    if(typeof this.removeAllProgressDot === 'function') {
+      this.removeAllProgressDot()
+    }
+    if(typeof this.addProgressDot === 'function') {
+      this.addProgressDot(this.config.abCycle.start)
+      this.addProgressDot(this.config.abCycle.end)
+    }
+  }
+  removeAbCycle() {
+    this.config.abCycle = null
+    if(typeof this.removeAllProgressDot === 'function') {
+      this.removeAllProgressDot()
+    }
   }
   static get AudioCtx () {
     return window.AudioContext || window.webkitAudioContext

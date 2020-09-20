@@ -102,7 +102,7 @@ util.seekSampleOffset = function (stsc, stco, stsz, order, mdatStart) {
   return result
 }
 
-util.seekSampleTime = function (stts, ctts, order) {
+util.seekSampleTime = function (stts, ctts, order, time_offset=0) {
   let time; let duration; let count = 0; let startTime = 0; let offset = 0
   stts.entry.every(item => {
     duration = item.sampleDuration
@@ -130,6 +130,7 @@ util.seekSampleTime = function (stts, ctts, order) {
   if (!time) {
     time = startTime + (order - count) * duration
   }
+  time -= time_offset
   return {time, duration, offset}
 }
 

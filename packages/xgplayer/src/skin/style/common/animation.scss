@@ -1,0 +1,16 @@
+@keyframes loadingRotate {
+  0% {
+    transform: rotate(0);
+  }
+  100% {
+    transform: rotate(360deg);
+  }
+}
+@keyframes loadingDashOffset {
+  0% {
+    stroke-dashoffset: 236;
+  }
+  100% {
+    stroke-dashoffset: 0;
+  }
+}

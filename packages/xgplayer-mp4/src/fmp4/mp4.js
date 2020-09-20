@@ -29,12 +29,20 @@ class FMP4 {
     let buffer = new Buffer(); let size = 8
     let mvhd = FMP4.mvhd(data.duration, data.timeScale)
     let trak1 = FMP4.videoTrak(data)
-    let trak2 = FMP4.audioTrak(data)
+    let trak2
+    if(!FMP4.videoOnly) {
+      trak2 = FMP4.audioTrak(data)
+    }
     let mvex = FMP4.mvex(data.duration, data.timeScale);
-    [mvhd, trak1, trak2, mvex].forEach(item => {
+    let moovBoxes = FMP4.videoOnly ? [mvhd, trak1, mvex] : [mvhd, trak1, trak2, mvex];
+    moovBoxes.forEach(item => {
       size += item.byteLength
     })
-    buffer.write(FMP4.size(size), FMP4.type('moov'), mvhd, trak1, trak2, mvex)
+    if(FMP4.videoOnly) {
+      buffer.write(FMP4.size(size), FMP4.type('moov'), mvhd, trak1, mvex)
+    } else {
+      buffer.write(FMP4.size(size), FMP4.type('moov'), mvhd, trak1, trak2, mvex)
+    }
     return buffer.buffer
   }
   static mvhd (duration, timescale) {
@@ -207,7 +215,7 @@ class FMP4 {
   }
   static mdia (data) {
     let buffer = new Buffer(); let size = 8
-    let mdhd = FMP4.mdhd(data.timescale)
+    let mdhd = FMP4.mdhd(data.timescale, data.duration)
     let hdlr = FMP4.hdlr(data.type)
     let minf = FMP4.minf(data);
     [mdhd, hdlr, minf].forEach(item => {

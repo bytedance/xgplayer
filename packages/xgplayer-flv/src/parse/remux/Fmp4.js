@@ -1,4 +1,5 @@
-import Buffer from '../../write/Buffer'
+import { Buffer } from 'xgplayer-utils';
+
 // const UINT32_MAX = Math.pow(2, 32) - 1;
 import { cacheWrapper } from '../../utils/funcUtils'
 class FMP4 {
@@ -28,17 +29,22 @@ class FMP4 {
   }
   static moov (data) {
     let size = 8
-    let mvhd = FMP4.mvhd(data.duration, data.timescale)
-    let trak1 = FMP4.videoTrak(data)
-    let trak2 = FMP4.audioTrak(data)
-    let mvex = FMP4.mvex(data.duration, data.timescale);
-    [mvhd, trak1, trak2, mvex].forEach(item => {
+    let mvhd = Fmp4.mvhd(meta.duration, meta.timescale)
+    let trak
+
+    if (type === 'video') {
+      trak = Fmp4.videoTrak(meta)
+    } else {
+      trak = Fmp4.audioTrak(meta)
+    }
+
+    let mvex = Fmp4.mvex(meta.duration, meta.timescale || 1000, meta.id);
+    [mvhd, trak, mvex].forEach(item => {
       size += item.byteLength
     })
-    return FMP4.initBox(size, 'moov', mvhd, trak1, trak2, mvex)
+    return Fmp4.initBox(size, 'moov', mvhd, trak, mvex)
   }
-  static mvhd (duration, timeScale) {
-    let timescale = timeScale || 1000
+  static mvhd (duration, timescale = 1000) {
     // duration *= timescale;
     let bytes = new Uint8Array([
       0x00, 0x00, 0x00, 0x00, // version(0) + flags     1位的box版本+3位flags   box版本，0或1，一般为0。（以下字节数均按version=0）
@@ -93,14 +99,14 @@ class FMP4 {
     let tkhd = FMP4.tkhd({
       id: 1,
       duration: data.duration,
-      timescale: data.timescale,
-      width: data.width,
-      height: data.height,
+      timescale: data.timescale || 1000,
+      width: data.presentWidth,
+      height: data.presentHeight,
       type: 'video'
     })
     let mdia = FMP4.mdia({
       type: 'video',
-      timescale: data.timescale,
+      timescale: data.timescale || 1000,
       duration: data.duration,
       sps: data.sps,
       pps: data.pps,
@@ -118,14 +124,14 @@ class FMP4 {
     let tkhd = FMP4.tkhd({
       id: 2,
       duration: data.duration,
-      timescale: data.timescale,
+      timescale: data.timescale || 1000,
       width: 0,
       height: 0,
       type: 'audio'
     })
     let mdia = FMP4.mdia({
       type: 'audio',
-      timescale: data.timescale,
+      timescale: data.timescale || 1000,
       duration: data.duration,
       channelCount: data.audioChannelCount,
       samplerate: data.audioSampleRate,
@@ -206,7 +212,7 @@ class FMP4 {
     })
     return FMP4.initBox(size, 'mdia', mdhd, hdlr, minf)
   }
-  static mdhd (timescale, duration) {
+  static mdhd (timescale = 1000, duration) {
     let content = new Uint8Array([
       0x00, 0x00, 0x00, 0x00, // creation_time    创建时间
       0x00, 0x00, 0x00, 0x00, // modification_time修改时间
@@ -459,10 +465,10 @@ class FMP4 {
     ])
     return FMP4.initBox(20, 'stsz', content)
   }
-  static mvex (duration) {
+  static mvex (duration, timescale = 1000, trackID) {
     let buffer = new Buffer()
     let mehd = Buffer.writeUint32(duration)
-    buffer.write(FMP4.size(88), FMP4.type('mvex'), FMP4.size(16), FMP4.type('mehd'), FMP4.extension(0, 0), mehd, FMP4.trex(1), FMP4.trex(2))
+    buffer.write(Fmp4.size(56), Fmp4.type('mvex'), Fmp4.size(16), Fmp4.type('mehd'), Fmp4.extension(0, 0), mehd, Fmp4.trex(trackID))
     return buffer.buffer
   }
   static trex (id) {
@@ -496,14 +502,15 @@ class FMP4 {
   }
   static traf (data) {
     let size = 8
-    let tfhd = FMP4.tfhd(data.id)
-    let tfdt = FMP4.tfdt(data.time)
-    let sdtp = FMP4.sdtp(data)
-    let trun = FMP4.trun(data, sdtp.byteLength);
-    [tfhd, tfdt, sdtp, trun].forEach(item => {
+    let tfhd = Fmp4.tfhd(data.id)
+    let tfdt = Fmp4.tfdt(data.time)
+    let sdtp = Fmp4.sdtp(data)
+    let trun = Fmp4.trun(data, sdtp.byteLength);
+
+    [tfhd, tfdt, trun, sdtp].forEach(item => {
       size += item.byteLength
     })
-    return FMP4.initBox(size, 'traf', tfhd, tfdt, sdtp, trun)
+    return Fmp4.initBox(size, 'traf', tfhd, tfdt, trun, sdtp)
   }
   static tfhd (id) {
     let content = Buffer.writeUint32(id)
@@ -532,43 +539,53 @@ class FMP4 {
     let offset = Buffer.writeUint32(8 + 8 + 16 + 8 + 16 + 16 + 12 + 4 + 4 + 16 * data.samples.length + sdtpLength)
     buffer.write(FMP4.size(20 + 16 * data.samples.length), FMP4.type('trun'), new Uint8Array([0x00, 0x00, 0x0F, 0x01]), sampleCount, offset)
 
-    let size = buffer.buffer.byteLength
-    let writeOffset = 0
-    data.samples.forEach(() => {
-      size += 16
-    })
+    // let size = buffer.buffer.byteLength
+    // let writeOffset = 0
+    // data.samples.forEach(() => {
+    //   size += 16
+    // })
+    //
+    // let trunBox = new Uint8Array(size)
 
-    let trunBox = new Uint8Array(size)
+    // trunBox.set(buffer.buffer, 0)
 
-    trunBox.set(buffer.buffer, 0)
-    writeOffset += buffer.buffer.byteLength
     data.samples.forEach((item) => {
-      trunBox.set(Buffer.writeUint32(item.duration), writeOffset)
-      writeOffset += 4
-      trunBox.set(Buffer.writeUint32(item.size), writeOffset)
-      writeOffset += 4
+      const flags = item.flags
+      // console.log(item.type, item.dts, item.duration)
 
-      if (data.id === 1) {
-        trunBox.set(Buffer.writeUint32(item.isKeyframe ? 0x02000000 : 0x01010000), writeOffset)
-        writeOffset += 4
-        trunBox.set(Buffer.writeUint32(item.cps), writeOffset)
-        writeOffset += 4
-      } else {
-        trunBox.set(Buffer.writeUint32(0x01000000), writeOffset)
-        writeOffset += 4
-        trunBox.set(Buffer.writeUint32(0), writeOffset)
-        writeOffset += 4
-      }
-
+      buffer.write(new Uint8Array([
+        (item.duration >>> 24) & 0xFF, // sample_duration
+        (item.duration >>> 16) & 0xFF,
+        (item.duration >>> 8) & 0xFF,
+        (item.duration) & 0xFF,
+        (item.size >>> 24) & 0xFF, // sample_size
+        (item.size >>> 16) & 0xFF,
+        (item.size >>> 8) & 0xFF,
+        (item.size) & 0xFF,
+        (flags.isLeading << 2) | flags.dependsOn, // sample_flags
+        (flags.isDependedOn << 6) | (flags.hasRedundancy << 4) | flags.isNonSync,
+        0x00, 0x00, // sample_degradation_priority
+        (item.cts >>> 24) & 0xFF, // sample_composition_time_offset
+        (item.cts >>> 16) & 0xFF,
+        (item.cts >>> 8) & 0xFF,
+        (item.cts) & 0xFF
+      ]))
+      // writeOffset += 16
       // buffer.write(Buffer.writeUint32(0));
     })
-    return trunBox
+    return buffer.buffer
   }
   static sdtp (data) {
     let buffer = new Buffer()
     buffer.write(FMP4.size(12 + data.samples.length), FMP4.type('sdtp'), FMP4.extension(0, 0))
     data.samples.forEach(item => {
-      buffer.write(new Uint8Array(data.id === 1 ? [item.key ? 32 : 16] : [16]))
+      const flags = item.flags
+      const num = (flags.isLeading << 6) | // is_leading: 2 (bit)
+        (flags.dependsOn << 4) | // sample_depends_on
+        (flags.isDependedOn << 2) | // sample_is_depended_on
+        (flags.hasRedundancy)// sample_has_redundancy
+
+      buffer.write(new Uint8Array([num]))
     })
     return buffer.buffer
   }

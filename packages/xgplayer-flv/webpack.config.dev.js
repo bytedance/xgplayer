@@ -4,7 +4,7 @@ const umd = {
   entry: polyfill.concat(['./src/index.js']),
   output: {
     path: `${__dirname}/dist`,
-    filename: 'index.dev.js',
+    filename: 'index.js',
     library: 'xgplayer-flv',
     libraryTarget: 'umd'
   },
@@ -39,9 +39,10 @@ const client = {
   entry: polyfill.concat(['./src/index.js']),
   output: {
     path: `${__dirname}/browser`,
-    filename: 'index.dev.js',
+    filename: 'index.js',
     library: 'FlvPlayer',
     libraryTarget: 'window'
+
   },
   devtool: 'inline-source-map',
   module: {
@@ -70,4 +71,4 @@ const client = {
   mode: 'development'
 }
 
-module.exports = [umd, client]
+module.exports = [developUMD, developClient]
