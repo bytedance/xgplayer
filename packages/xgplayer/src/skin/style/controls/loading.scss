@@ -1,0 +1,44 @@
+.xgplayer-skin-default {
+  .xgplayer-loading {
+    display: none;
+    width: 100px;
+    height: 100px;
+    overflow: hidden;
+    transform: scale(0.7);
+    position: absolute;
+    left: 50%;
+    top: 50%;
+    margin: -50px auto auto -50px;
+    svg{
+      border-radius: 50%;
+      transform-origin: center;
+      animation: loadingRotate 1s linear infinite;
+      path{
+        stroke: #ddd;
+        stroke-dasharray: 236;
+        animation: loadingDashOffset 2s linear infinite;
+        animation-direction: alternate-reverse;
+        fill: none;
+        stroke-width: 12px;
+      }
+    }
+  }
+}
+
+.xgplayer-skin-default.xgplayer-nostart {
+  .xgplayer-loading{
+    display: none;
+  }
+}
+
+.xgplayer-skin-default.xgplayer-pause {
+  .xgplayer-loading{
+    display: none !important;
+  }
+}
+
+.xgplayer-skin-default.xgplayer-isloading {
+  .xgplayer-loading{
+    display: block;
+  }
+}

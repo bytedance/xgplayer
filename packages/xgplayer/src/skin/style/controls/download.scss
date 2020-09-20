@@ -1,0 +1,45 @@
+.xgplayer-skin-default {
+  .xgplayer-download {
+    position: relative;
+    order: 9;
+    display: block;
+    cursor: pointer;
+    .xgplayer-icon {
+      margin-top: 3px;
+      div {
+        position: absolute;
+      }
+      svg {
+        position: relative;
+        top: 5px;
+        left: 5px;
+      }
+    }
+    .xgplayer-tips {
+      margin-left: -20px;
+      .xgplayer-tip-download {
+        display: block;
+      }
+    }
+    &:hover {
+      opacity: 0.85;
+      .xgplayer-tips {
+        display: block;
+      }
+    }
+  }
+}
+.lang-is-en {
+  .xgplayer-download {
+    .xgplayer-tips {
+      margin-left: -32px;
+    }
+  }
+}
+.lang-is-jp {
+  .xgplayer-download {
+    .xgplayer-tips {
+      margin-left: -40px;
+    }
+  }
+}

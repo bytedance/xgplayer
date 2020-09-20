@@ -1,0 +1,34 @@
+.xgplayer-skin-default {
+  .xgplayer-error {
+    background: $errorBgColor;
+    display: none;
+    position: absolute;
+    left: 0;
+    top: 0;
+    width:100%;
+    height: 100%;
+    z-index: 125;
+    font-family: PingFangSC-Regular;
+    font-size: 14px;
+    color: $errorColor;
+    text-align: center;
+    line-height: 100%;
+    justify-content: center;
+    align-items: center;
+    .xgplayer-error-refresh {
+      color: $errorRefreshColor;
+      padding: 0 3px;
+      cursor: pointer;
+    }
+    .xgplayer-error-text {
+      line-height: 18px;
+      margin: auto 6px;
+    }
+  }
+}
+
+.xgplayer-skin-default.xgplayer-is-error {
+  .xgplayer-error {
+    display: flex;
+  }
+}

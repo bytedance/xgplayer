@@ -5,7 +5,11 @@ const Range = require('koa-range');
 
 const app = new Koa()
 app.use(Range)
-app.use(Cors())
+app.use(Cors({
+    origin: '*',
+    allowHeaders: ['range'],
+    allowMethods: ['GET','HEAD','POST','OPTIONS'],
+}))
 
 app.use(Serve('.'))
 app.listen(9090)

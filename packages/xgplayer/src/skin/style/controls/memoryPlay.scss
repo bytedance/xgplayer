@@ -1,0 +1,28 @@
+.xgplayer-skin-default {
+    .xgplayer-memoryplay-spot{
+        position: absolute;
+        height: 32px;
+        left:10px;
+        bottom: 46px;
+        background: rgba(0,0,0,.5);
+        border-radius: 32px;
+        line-height: 32px;
+        color: #ddd;
+        z-index: 15;
+        padding: 0 32px 0 16px;
+        .xgplayer-lasttime{
+            color:red;
+            font-weight: bold;
+        }
+        .btn-close{
+            position: absolute;
+            width: 16px;
+            height: 16px;
+            right: 10px;
+            top: 2px;
+            cursor: pointer;
+            color: #fff;
+            font-size: 16px;
+        }
+    }
+}

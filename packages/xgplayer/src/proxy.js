@@ -1,7 +1,6 @@
 import EventEmitter from 'event-emitter'
 import util from './utils/util'
 import Errors from './error'
-// import allOff from 'event-emitter/all-off'
 
 class Proxy {
   constructor (options) {
@@ -12,24 +11,32 @@ class Proxy {
     }
     this._hasStart = false
     this.videoConfig = {
-      controls: false,
+      controls: !!options.isShowControl,
       autoplay: options.autoplay,
       playsinline: options.playsinline,
       'webkit-playsinline': options.playsinline,
       'x5-playsinline': options.playsinline,
-      'x5-video-player-type': options['x5-video-player-type'],
-      'x5-video-player-fullscreen': options['x5-video-player-fullscreen'],
-      'x5-video-orientation': options['x5-video-orientation'],
+      'x5-video-player-type': options['x5-video-player-type'] || options['x5VideoPlayerType'],
+      'x5-video-player-fullscreen': options['x5-video-player-fullscreen'] || options['x5VideoPlayerFullscreen'],
+      'x5-video-orientation': options['x5-video-orientation'] || options['x5VideoOrientation'],
       airplay: options['airplay'],
       'webkit-airplay': options['airplay'],
       tabindex: 2,
       mediaType: options.mediaType || 'video'
     }
+    if (options.muted) {
+      this.videoConfig.muted = 'muted'
+    }
     if (options.loop) {
       this.videoConfig.loop = 'loop'
     }
     let textTrackDom = ''
-    if (options.textTrack && Array.isArray(options.textTrack) && (navigator.userAgent.indexOf('Chrome') > -1 || navigator.userAgent.indexOf('Firefox') > -1)) {
+    this.textTrackShowDefault = true
+    if (options.textTrack && Array.isArray(options.textTrack)) {
+      if (options.textTrack.length > 0 && !options.textTrack.some(track => { return track.default })) {
+        options.textTrack[0].default = true
+        this.textTrackShowDefault = false
+      }
       options.textTrack.some(track => {
         if (track.src && track.label && track.default) {
           textTrackDom += `<track src="${track.src}" `
@@ -62,6 +69,10 @@ class Proxy {
       }
     }
     this.video = util.createDom(this.videoConfig.mediaType, textTrackDom, this.videoConfig, '')
+    if (!this.textTrackShowDefault && textTrackDom) {
+      let trackDoms = this.video.getElementsByTagName('Track')
+      trackDoms[0].track.mode = 'hidden'
+    }
     if (options.autoplay) {
       this.video.autoplay = true
       if (options.autoplayMuted) {
@@ -69,7 +80,7 @@ class Proxy {
       }
     }
     this.ev = ['play', 'playing', 'pause', 'ended', 'error', 'seeking', 'seeked',
-      'timeupdate', 'waiting', 'canplay', 'canplaythrough', 'durationchange', 'volumechange', 'loadeddata'
+      'timeupdate', 'waiting', 'canplay', 'canplaythrough', 'durationchange', 'volumechange', 'loadeddata', 'loadstart'
     ].map((item) => {
       return {
         [item]: `on${item.charAt(0).toUpperCase()}${item.slice(1)}`
@@ -86,15 +97,18 @@ class Proxy {
       let name = Object.keys(item)[0]
       self.video.addEventListener(Object.keys(item)[0], function () {
         // fix when video destroy called and video reload
-        if (!self.logParams) {
+        if (!self || !self.logParams) {
           return
         }
         if (name === 'play') {
           self.hasStart = true
+        } else if (name === 'canplay') {
+          util.removeClass(self.root, 'xgplayer-is-enter')
         } else if (name === 'waiting') {
           self.logParams.bc++
           self.inWaitingStart = new Date().getTime()
         } else if (name === 'playing') {
+          util.removeClass(self.root, 'xgplayer-is-enter')
           if (self.inWaitingStart) {
             self.logParams.bu_acu_t += new Date().getTime() - self.inWaitingStart
             self.inWaitingStart = undefined
@@ -119,14 +133,8 @@ class Proxy {
           self.logParams.played[self.logParams.played.length - 1].end = self.video.currentTime
         }
         if (name === 'error') {
-          if (self.video.error) {
-            self.emit(name, new Errors('other', self.currentTime, self.duration, self.networkState, self.readyState, self.currentSrc, self.src,
-              self.ended, {
-                line: 41,
-                msg: self.error,
-                handle: 'Constructor'
-              }))
-          }
+          // process the error
+          self._onError(name)
         } else {
           self.emit(name, self)
         }
@@ -135,13 +143,15 @@ class Proxy {
           if (['ended', 'error', 'timeupdate'].indexOf(name) < 0) {
             clearInterval(self._interval['bufferedChange'])
             util.setInterval(self, 'bufferedChange', function () {
-              let curBuffer = []
-              for (let i = 0, len = self.video.buffered.length; i < len; i++) {
-                curBuffer.push([self.video.buffered.start(i), self.video.buffered.end(i)])
-              }
-              if (curBuffer.toString() !== lastBuffer) {
-                lastBuffer = curBuffer.toString()
-                self.emit('bufferedChange', curBuffer)
+              if (self.video && self.video.buffered) {
+                let curBuffer = []
+                for (let i = 0, len = self.video.buffered.length; i < len; i++) {
+                  curBuffer.push([self.video.buffered.start(i), self.video.buffered.end(i)])
+                }
+                if (curBuffer.toString() !== lastBuffer) {
+                  lastBuffer = curBuffer.toString()
+                  self.emit('bufferedChange', curBuffer)
+                }
               }
             }, 200)
           } else {
@@ -152,6 +162,19 @@ class Proxy {
         }
       }, false)
     })
+  }
+  /**
+   * 错误监听处理逻辑抽离
+   */
+  _onError (name) {
+    if (this.video && this.video.error) {
+      this.emit(name, new Errors('other', this.currentTime, this.duration, this.networkState, this.readyState, this.currentSrc, this.src,
+        this.ended, {
+          line: 162,
+          msg: this.error,
+          handle: 'Constructor'
+        }, this.video.error.code, this.video.error))
+    }
   }
 
   get hasStart () {
@@ -164,7 +187,6 @@ class Proxy {
     }
   }
   destroy () {
-    // allOff(this)
     if (this.textTrackStyle) {
       this.textTrackStyle.parentNode.removeChild(this.textTrackStyle)
     }
@@ -217,10 +239,21 @@ class Proxy {
     return this.video.currentSrc
   }
   get currentTime () {
-    return this.video.currentTime
+    if(this.video) {
+      return this.video.currentTime || 0
+    } else {
+      return 0
+    }
   }
   set currentTime (time) {
-    this.video.currentTime = time
+    if (typeof isFinite === 'function' && !isFinite(time)) return
+    if (util.hasClass(this.root, 'xgplayer-ended')) {
+      this.once('playing', () => { this.video.currentTime = time })
+      this.replay()
+    } else {
+      this.video.currentTime = time
+    }
+    this.emit('currentTimeChange')
   }
   get defaultMuted () {
     return this.video.defaultMuted
@@ -343,6 +376,7 @@ class Proxy {
     }
     this.video.pause()
     this.video.src = url
+    this.emit('srcChange')
     this.logParams.playSrc = url
     this.logParams.pt = new Date().getTime()
     this.logParams.vt = this.logParams.pt
@@ -356,6 +390,12 @@ class Proxy {
     }
     this.once('loadeddata', ldFunc)
   }
+  set poster (posterUrl) {
+    let poster = util.findDom(this.root, '.xgplayer-poster')
+    if (poster) {
+      poster.style.backgroundImage = `url(${posterUrl})`
+    }
+  }
   get volume () {
     return this.video.volume
   }
@@ -366,7 +406,7 @@ class Proxy {
     return util.hasClass(this.root, 'xgplayer-is-fullscreen') || util.hasClass(this.root, 'xgplayer-fullscreen-active')
   }
   get bullet () {
-    return util.findDom(this.root, 'xg-bullet') ? util.hasClass(util.findDom(this.root, 'xg-bullet'), 'xgplayer-has-bullet') : false
+    return util.findDom(this.root, 'xg-danmu') ? util.hasClass(util.findDom(this.root, 'xg-danmu'), 'xgplayer-has-danmu') : false
   }
   get textTrack () {
     return util.hasClass(this.root, 'xgplayer-is-textTrack')

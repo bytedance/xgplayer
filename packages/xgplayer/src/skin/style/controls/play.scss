@@ -1,0 +1,79 @@
+.xgplayer-skin-default {
+  .xgplayer-play, .xgplayer-play-img {
+    width: 40px;
+    position: relative;
+    order: 0;
+    display: block;
+    cursor: pointer;
+    margin-left: 3px;
+    .xgplayer-icon {
+      margin-top: 3px;
+      width: 32px;
+      div {
+        position: absolute;
+      }
+      .xgplayer-icon-play {
+        display: block;
+      }
+      .xgplayer-icon-pause {
+        display: none;
+      }
+    }
+    .xgplayer-tips {
+      .xgplayer-tip-play {
+        display: block;
+      }
+      .xgplayer-tip-pause {
+        display: none;
+      }
+    }
+    &:hover {
+      opacity: 0.85;
+      .xgplayer-tips {
+        display: block;
+      }
+    }
+  }
+}
+
+.xgplayer-skin-default.xgplayer-playing {
+  .xgplayer-play, .xgplayer-play-img {
+    .xgplayer-icon {
+      .xgplayer-icon-play {
+        display: none;
+      }
+      .xgplayer-icon-pause {
+        display: block;
+      }
+    }
+    .xgplayer-tips {
+      .xgplayer-tip-play {
+        display: none;
+      }
+      .xgplayer-tip-pause {
+        display: block;
+      }
+    }
+  }
+}
+
+.xgplayer-skin-default.xgplayer-pause {
+  .xgplayer-play, .xgplayer-play-img {
+    .xgplayer-icon {
+      .xgplayer-icon-play {
+        display: block;
+      }
+      .xgplayer-icon-pause {
+        display: none;
+      }
+    }
+    .xgplayer-tips {
+      .xgplayer-tip-play {
+        display: block;
+      }
+      .xgplayer-tip-pause {
+        display: none;
+      }
+    }
+  }
+}

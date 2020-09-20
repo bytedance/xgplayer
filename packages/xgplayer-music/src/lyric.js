@@ -14,11 +14,11 @@ class LyricTime {
 export {LyricTime}
 
 class Lyric {
-  constructor (txts, dom) {
+  constructor (txts, dom, options) {
     this.rawTxts = txts
     this.txts = txts.map((item) => { return item.replace(/^[\r\n]|[\r\n]$/g, '').match(/(\[.*\])[^[]+/g) })
     this.isDynamics = txts.map((item, idx) => {
-      return [].concat(item.match(/\[\d{2}:\d{2}\.\d{2,3}\]/g)).length === this.txts[idx].length && this.txts[idx].length === this.txts[0].length && this.txts[idx].length > 1
+      return [].concat(item.match(/\[\d{2}:\d{2}\.\d{2,3}\]/g)).length > 0 && this.txts[idx].length === this.txts[0].length && this.txts[idx].length > 1
     })
     this.isDynamic = this.isDynamics.some((item) => {
       return item
@@ -52,7 +52,11 @@ class Lyric {
           idx
         }
       })
+    }).filter(item => {
+      if(options.removeBlankLine) return item.lyric !== '\r\n' && item.lyric !== '\n' && item.lyric !== ''
+      else return true
     })
+
     this.line = 0
   }
   set interval (val) {
@@ -96,7 +100,7 @@ class Lyric {
     curTime = curTime + offset > 0 ? curTime + offset : 0
     return list.filter(({time}, idx) => {
       let idxy = idx + 1
-      return curTime >= time && list[idxy] && curTime * 1 + interval * 1 <= list[idxy].time
+      return curTime >= time && ((list[idxy] && curTime * 1 + interval * 1 <= list[idxy].time) || (idxy >= list.length))
     })
   }
   bind (player) {
@@ -111,6 +115,16 @@ class Lyric {
         }
       }).bind(self, player)
       player.on('timeupdate', self.__handle__)
+
+      self.__startHandle__ = (() => {
+        player.emit('lyricUpdate', self.list[0])
+      }).bind(self, player)
+      player.once('playing', self.__startHandle__)
+      //
+      // self.__endHandle__ = (() => {
+      //   player.emit('lyricUpdate', self.list[self.list.length - 1])
+      // }).bind(self, player)
+      // player.on('ended', self.__endHandle__)
       return true
     } else {
       return false

@@ -1,0 +1,35 @@
+.xgplayer-skin-default {
+  .xgplayer-airplay {
+    position: relative;
+    order: 11;
+    display: block;
+    cursor: pointer;
+    margin-left: 5px;
+    margin-right: 3px;
+    .xgplayer-icon {
+      margin-top: 6px;
+      margin-left: 6px;
+      div {
+        position: absolute;
+      }
+      .xgplayer-icon-airplay {
+        display: block;
+      }
+    }
+    .xgplayer-tips {
+      position: absolute;
+      right: 0;
+      left: auto;
+      .xgplayer-tip-airplay {
+        display: block;
+      }
+    }
+    &:hover {
+      opacity: 0.85;
+      .xgplayer-tips {
+        display: block;
+      }
+    }
+  }
+}
+

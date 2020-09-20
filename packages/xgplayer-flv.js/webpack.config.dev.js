@@ -9,6 +9,7 @@ const umd = {
     libraryTarget: 'umd'
   },
   mode: 'development',
+  devtool: 'inline-source-map',
   module: {
     rules: [{
       test: /\.js$/,
@@ -42,6 +43,7 @@ const client = {
     library: 'FlvJsPlayer',
     libraryTarget: 'window'
   },
+  devtool: 'inline-source-map',
   module: {
     rules: [{
       test: /\.js$/,

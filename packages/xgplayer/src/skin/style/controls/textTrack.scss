@@ -1,0 +1,80 @@
+.xgplayer-skin-default {
+  .xgplayer-texttrack {
+    order: 7;
+    width: 60px;
+    height: 150px;
+    z-index: 18;
+    position: relative;
+    outline: none;
+    display: none;
+    cursor: default;
+    // margin-left: 10px;
+    margin-top: -119px;
+    // margin-bottom: 11px;
+    ul {
+      display: none;
+      list-style: none;
+      min-width: 78px;
+      background: $definitionUlBgColor;
+      border-radius: 1px;
+      position: absolute;
+      bottom: 30px;
+      text-align: center;
+      white-space: nowrap;
+      left: 50%;
+      transform: translateX(-50%);
+      width: fit-content;
+      z-index: 26;
+      cursor: pointer;
+      li {
+        opacity: 0.7;
+        font-family: PingFangSC-Regular;
+        font-size: 11px;
+        color: $definitionLiColor;
+        width: fit-content;
+        margin: auto;
+        padding: 6px 13px;
+        &.selected {
+          color: $definitionLiActiveColor;
+          opacity: 1;
+        }
+        &:hover {
+          color: $definitionLiActiveColor;
+          opacity: 1;
+        }
+      }
+    }
+    .name {
+      text-align: center;
+      font-family: PingFangSC-Regular;
+      font-size: 13px;
+      line-height: 20px;
+      height: 20px;
+      cursor: pointer;
+      color: $definitionNameColor;
+      position: absolute;
+      bottom: 0;
+      width: 60px;
+      height: 20px;
+      line-height: 20px;
+      background: $definitionNameBgColor;
+      border-radius: 10px;
+      display:inline-block;
+      vertical-align:middle;
+    }
+  }
+}
+
+.xgplayer-skin-default.xgplayer-texttrack-active {
+  .xgplayer-texttrack {
+    ul {
+      display: block;
+    }
+  }
+}
+
+.xgplayer-skin-default.xgplayer-is-texttrack {
+  .xgplayer-texttrack {
+    display: block;
+  }
+}
