@@ -1,7 +1,5 @@
-import { EVENTS, PageVisibility, FetchLoader } from 'xgplayer-helper-utils'
+import { EVENTS } from 'xgplayer-helper-utils'
 import { avc } from 'xgplayer-helper-codec';
-import { FlvDemuxer } from 'xgplayer-helper-transmuxers'
-import { Buffer as XgBuffer, Tracks, Stream } from 'xgplayer-helper-models';
 import Player from 'xgplayer'
 const { NalUnit } = avc;
 
@@ -11,14 +9,10 @@ const BROWSER_EVENTS = EVENTS.BROWSER_EVENTS
 
 const Tag = 'FLVController'
 
-class Logger {
-  warn () {}
-}
-
 const FLV_ERROR = 'FLV_ERROR'
 
 export default class FlvController {
-  constructor (player) {
+  constructor (player, config) {
     this.TAG = Tag
     this._player = player
     this.state = {
@@ -27,6 +21,7 @@ export default class FlvController {
     }
 
     this.bufferClearTimer = null;
+    this.config = config
   }
 
   init () {
@@ -35,6 +30,7 @@ export default class FlvController {
   }
 
   initComponents () {
+    const { FetchLoader, XgBuffer, FlvDemuxer, Tracks, Logger, PageVisibility } = this.config
     this._context.registry('FETCH_LOADER', FetchLoader)
     this._context.registry('LOADER_BUFFER', XgBuffer)
 

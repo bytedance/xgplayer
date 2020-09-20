@@ -1,10 +1,4 @@
-import { FlvDemuxer, Mp4Remuxer as Remuxer } from 'xgplayer-helper-transmuxers'
-import { EVENTS, FetchLoader, Mse } from 'xgplayer-helper-utils'
-
-import { Tracks, PreSource, Buffer as XgBuffer } from 'xgplayer-helper-models'
-import { Compat as Compatibility } from 'xgplayer-helper-codec';
-
-import Player from 'xgplayer'
+import { EVENTS } from 'xgplayer-helper-utils'
 
 const REMUX_EVENTS = EVENTS.REMUX_EVENTS;
 const DEMUX_EVENTS = EVENTS.DEMUX_EVENTS;
@@ -13,14 +7,10 @@ const MSE_EVENTS = EVENTS.MSE_EVENTS
 
 const Tag = 'FLVController'
 
-class Logger {
-  warn () {}
-}
-
 const FLV_ERROR = 'FLV_ERROR'
 
 export default class FlvController {
-  constructor (player, mse) {
+  constructor (player, mse, config) {
     this.TAG = Tag
     this._player = player
     this.state = {
@@ -33,10 +23,12 @@ export default class FlvController {
     this.bufferClearTimer = null;
 
     this._handleTimeUpdate = this._handleTimeUpdate.bind(this)
+    this.config = config
   }
 
   init () {
     if (!this.mse) {
+      const { Mse } = this.config
       this.mse = new Mse({ container: this._player.video }, this._context);
       this.mse.init();
     }
@@ -46,6 +38,7 @@ export default class FlvController {
   }
 
   initComponents () {
+    const { FetchLoader, XgBuffer, FlvDemuxer, Tracks, Remuxer, PreSource, Compatibility, Logger } = this.config
     this._context.registry('FETCH_LOADER', FetchLoader)
     this._context.registry('LOADER_BUFFER', XgBuffer)
 
