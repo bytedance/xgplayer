@@ -52,6 +52,11 @@ class Player extends Proxy {
     this.fullscreen = false
     this._fullscreenEl = null
     this._originCssText = ''
+    this._played = {
+      begin: -1,
+      end: -1,
+      acc: 0
+    }
 
     this.database = new Database()
 
@@ -680,6 +685,12 @@ class Player extends Proxy {
   }
 
   onSeeking () {
+    if (!this.isSeeking) {
+      const {_played} = this
+      _played.acc += _played.begin < _played.end && _played.end > -1 ? _played.end - _played.begin : 0
+      _played.begin = parseInt(this.video.currentTime * 1000, 10);
+      _played.end = -1
+    }
     this.isSeeking = true
     this.addClass(STATE_CLASS.SEEKING)
   }
@@ -722,6 +733,11 @@ class Player extends Proxy {
       clearTimeout(this.waitTimer)
       this.waitTimer = null
     }
+
+    if (this._played.begin < 0) {
+      this._played.begin = parseInt(this.video.currentTime * 1000, 10)
+    }
+    this._played.end = parseInt(this.video.currentTime * 1000, 10)
   }
 
   getVideoSize () {
@@ -835,6 +851,11 @@ class Player extends Proxy {
   get networkState () {
     const key = super.networkState
     return this.i18n[key] || key
+  }
+
+  get cumulateTime () {
+    const {acc, end, begin} = this._played
+    return begin > -1 && end > begin ? (acc + end - begin) / 1000 : acc / 1000
   }
 
   /***
