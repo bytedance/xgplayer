@@ -1,9 +1,9 @@
-import Plugin from '../../plugin'
+import Plugin, {hooksDescriptor} from '../../plugin'
 import volumeLargeSvg from '../assets/volumeLarge.svg'
 import volumeSmallSvg from '../assets/volumeSmall.svg'
 import volumeMutedSvg from '../assets/volumeMuted.svg'
 
-const {Util, Events, POSITIONS} = Plugin
+const {Util, Events, Sniffer, POSITIONS} = Plugin
 
 class Volume extends Plugin {
   static get pluginName () {
@@ -28,6 +28,7 @@ class Volume extends Plugin {
   }
 
   afterCreate () {
+    hooksDescriptor(this)
     if (this.config.disable) {
       return
     }
@@ -38,7 +39,14 @@ class Volume extends Plugin {
     if (commonStyle.volumeColor) {
       this.find('.xgplayer-drag').style.backgroundColor = commonStyle.volumeColor
     }
-    this.changeMuted = this.changeMuted.bind(this)
+    this.changeMutedHandler = this.hook('muted_change', () => {
+      const {player} = this
+      player.muted = !player.muted
+    }, {
+      pre: (e) => {
+        e.stopPropagation()
+      }
+    })
     this.onBarMousedown = this.onBarMousedown.bind(this)
     this.onMouseenter = this.onMouseenter.bind(this)
     this.onMouseleave = this.onMouseleave.bind(this)
@@ -49,7 +57,7 @@ class Volume extends Plugin {
 
     this.bind('.xgplayer-bar', 'mousedown', this.onBarMousedown)
 
-    this.bind('.xgplayer-icon', ['click', 'touchend'], this.changeMuted)
+    this.bind('.xgplayer-icon', Sniffer.device === 'mobile' ? 'touchend' : 'click', this.changeMutedHandler)
 
     this.on(Events.VOLUME_CHANGE, this.onVolumeChange.bind(this))
 
@@ -122,7 +130,7 @@ class Volume extends Plugin {
   }
 
   changeMuted (e) {
-    e.preventDefault()
+    // e.preventDefault()
     e.stopPropagation()
     const {player} = this
     player.muted = !player.muted
@@ -160,7 +168,7 @@ class Volume extends Plugin {
 
     this.unbind('.xgplayer-bar', 'mousedown', this.onBarMousedown)
 
-    this.unbind('.xgplayer-icon', ['click', 'touchend'], this.changeMuted)
+    this.unbind('.xgplayer-icon', Sniffer.device === 'mobile' ? 'touchend' : 'click', this.changeMutedHandler)
   }
 
   render () {
