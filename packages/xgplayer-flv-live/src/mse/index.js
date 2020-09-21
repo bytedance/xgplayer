@@ -13,7 +13,7 @@ class FlvPlayer extends BasePlugin {
 
   constructor (config) {
     super(config);
-    this.config = Object.assign({}, defaultConfig, config)
+    this.options = Object.assign({}, defaultConfig, this.config)
     this.context = new Context(flvAllowedEvents);
     this.loaderCompleteTimer = null;
     this.play = this.play.bind(this);
@@ -130,7 +130,7 @@ class FlvPlayer extends BasePlugin {
   }
 
   initFlv () {
-    const flv = this.context.registry('FLV_CONTROLLER', FLV)(this.player, undefined, this.config)
+    const flv = this.context.registry('FLV_CONTROLLER', FLV)(this.player, undefined, this.options)
     this.initFlvEvents(flv)
     this.player.flv = flv
     this.flv = flv
@@ -203,7 +203,7 @@ class FlvPlayer extends BasePlugin {
     this.player.currentTime = 0;
     this.player.config.url = url;
     const context = new Context(flvAllowedEvents);
-    const flv = context.registry('FLV_CONTROLLER', FLV)(this.player, this.mse, this.config)
+    const flv = context.registry('FLV_CONTROLLER', FLV)(this.player, this.mse, this.options)
     context.init()
     this.initFlvBackupEvents(flv, context);
     flv.loadData(url);

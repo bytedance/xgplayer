@@ -46,7 +46,7 @@ class FlvPlayer extends BasePlugin {
 
   constructor (options) {
     super(options);
-    this.config = Object.assign({}, defaultConfig, options)
+    this.options = Object.assign({}, defaultConfig, this.config)
     this.play = this.play.bind(this)
     this.pause = this.pause.bind(this)
     this.seeking = this.seeking.bind(this);
@@ -109,7 +109,7 @@ class FlvPlayer extends BasePlugin {
 
   initFlv () {
     const { player } = this;
-    const flv = this.context.registry('FLV_CONTROLLER', FLV)(player, this.config)
+    const flv = this.context.registry('FLV_CONTROLLER', FLV)(player, this.options)
     this.initFlvEvents(flv)
     this.flv = flv
   }

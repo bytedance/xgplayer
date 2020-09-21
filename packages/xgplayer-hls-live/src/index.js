@@ -7,7 +7,7 @@ export default class HlsLivePlayer {
   }
 
   constructor (config) {
-    if (HlsLiveMobilePlayer.isSupported() && config.useWASM) {
+    if (HlsLiveMobilePlayer.isSupported() && config.player.config.mediaType === 'mobile-video') {
       return new HlsLiveMobilePlayer(config)
     }
     return new HlsLiveMsePlayer(config)
