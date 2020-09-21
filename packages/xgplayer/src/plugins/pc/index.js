@@ -5,6 +5,12 @@ export default class PCPlugin extends BasePlugin {
     return 'pc'
   }
 
+  static get defaultConfig () {
+    return {
+      disableContextmenu: true
+    }
+  }
+
   afterCreate () {
     const eventHandlers = ['onVideoClick', 'onVideoDblClick', 'onContextmenu']
     eventHandlers.map(key => {
@@ -20,7 +26,7 @@ export default class PCPlugin extends BasePlugin {
 
     player.root.addEventListener('click', this.onVideoClick, false)
     player.video.addEventListener('dblclick', this.onVideoDblClick, false)
-    player.video.addEventListener('contextmenu', this.onContextmenu, false)
+    this.config.disableContextmenu && player.video.addEventListener('contextmenu', this.onContextmenu, false)
   }
 
   onContextmenu (e) {
