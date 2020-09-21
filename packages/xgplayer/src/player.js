@@ -216,7 +216,7 @@ class Player extends Proxy {
     }
     this.canPlayFunc = () => {
       const {autoplay, startTime, volume} = this.config
-      this.logInfo('player', 'canPlayFunc')
+      this.logInfo('player', 'canPlayFunc', startTime)
       this.volume = typeof volume === 'number' ? volume : 0.6
       if (startTime) {
         this.currentTime = startTime > this.duration ? this.duration : startTime
@@ -476,12 +476,20 @@ class Player extends Proxy {
     }
     time = time < 0 ? 0 : time > this.duration ? parseInt(this.duration, 10) : time
     this.once(Events.CANPLAY, () => {
+      this.removeClass(STATE_CLASS.ENTER)
       this.isSeeking = false
       if (this.paused) {
         this.play()
       }
     })
-    this.currentTime = time
+    if (!this.isPlaying) {
+      this.removeClass(STATE_CLASS.NO_START)
+      this.addClass(STATE_CLASS.ENTER)
+      this.currentTime = time
+      this.play()
+    } else {
+      this.currentTime = time
+    }
   }
 
   reload () {

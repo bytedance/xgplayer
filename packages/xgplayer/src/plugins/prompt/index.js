@@ -1,6 +1,6 @@
 import Plugin, {STATE_CLASS} from '../../plugin'
 const {Util} = Plugin
-console.log('STATE_CLASS', STATE_CLASS)
+
 /**
  * 消息组件
  */
@@ -69,7 +69,7 @@ class Prompt extends Plugin {
     }
 
     config.style && this.setStyle(config.style)
-    console.log("config", config)
+
     const autoHide = typeof config.autoHide === 'boolean' ? config.autoHide : this.config.autoHide
     if (autoHide) {
       const hideinterval = config.interval || interval
