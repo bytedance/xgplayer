@@ -1,8 +1,4 @@
-import { EVENTS, FetchLoader, Crypto, Mse } from 'xgplayer-helper-utils'
-import { TsDemuxer, Mp4Remuxer, M3U8Parser } from 'xgplayer-helper-transmuxers';
-import { Compat as Compatibility } from 'xgplayer-helper-codec'
-import { Playlist, Buffer as XgBuffer, Tracks, PreSource } from 'xgplayer-helper-models';
-import Player from 'xgplayer'
+import { EVENTS } from 'xgplayer-helper-utils'
 
 const LOADER_EVENTS = EVENTS.LOADER_EVENTS;
 const REMUX_EVENTS = EVENTS.REMUX_EVENTS;
@@ -30,6 +26,7 @@ class HlsLiveController {
   }
 
   init () {
+    const { XgBuffer, Tracks, Playlist, PreSource, Compatibility, FetchLoader, TsDemuxer, Mp4Remuxer, Mse } = this.configs
     // 初始化Buffer （M3U8/TS/Playlist);
     this._context.registry('M3U8_BUFFER', XgBuffer);
     this._context.registry('TS_BUFFER', XgBuffer);
@@ -117,7 +114,7 @@ class HlsLiveController {
     this._player.emit('error', {
       code: '31',
       errorType: 'parse',
-      ex: `[${tag}]: ${err ? err.message : ''}`,
+      ex: `[${mod}]: ${error ? error.message : ''}`,
       errd: {}
     });
     this._onError(DEMUX_EVENTS.DEMUX_ERROR, mod, error, fatal);
@@ -148,6 +145,7 @@ class HlsLiveController {
   }
 
   _onLoadComplete (buffer) {
+    const { M3U8Parser, XgBuffer, FetchLoader, Crypto } = this.configs
     if (buffer.TAG === 'M3U8_BUFFER') {
       let mdata;
       try {
@@ -295,7 +293,7 @@ class HlsLiveController {
   }
 
   load (url) {
-    this.baseurl = M3U8Parser.parseURL(url);
+    this.baseurl = this.configs.M3U8Parser.parseURL(url);
     this.url = url;
     this._preload();
   }

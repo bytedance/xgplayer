@@ -2,6 +2,7 @@ import Player from 'xgplayer'
 import { EVENTS, Context } from 'xgplayer-helper-utils'
 
 import HLS from './hls-live-mobile'
+import defaultConfig from './config'
 const hlsAllowedEvents = EVENTS.HlsAllowedEvents;
 const { BasePlugin, Events } = Player;
 
@@ -113,7 +114,8 @@ class HlsPlayer extends BasePlugin {
 
   initHls () {
     const { player, config } = this;
-    this.hls = this.context.registry('HLS_CONTROLLER', HLS)({ player, preloadTime: config.preloadTime, retryTimes: config.retryTimes })
+    const options = Object.assign({}, defaultConfig, config, { player })
+    this.hls = this.context.registry('HLS_CONTROLLER', HLS)(options)
   }
 
   play () {
