@@ -3,18 +3,16 @@
     display: block;
     position: absolute;
     z-index: 101;
-    padding: 6px 12px;
+    padding: 6px 12px 5px;
     opacity: 0;
     left: 10px;
-    // bottom: 70px;
+    font-family: PingFang SC;
     background: rgba(0, 0, 0, 0.5);
     border-radius: 50px;
     font-size: 12px;
     line-height: 17px;
     text-align: center;
     color: #FFF;
-    // transform: translate(-50%, -50%);
-    // transition: bottom .3s ease;
     &.show {
       display: block;
       opacity: 1;
@@ -29,9 +27,9 @@
         bottom: 0;
         width: 0;
         height: 0;
-        border-left: 10px solid transparent;
-        border-right: 10px solid transparent;
-        border-top: 10px solid rgba(0, 0, 0, 0.5);
+        border-left: 6px solid transparent;
+        border-right: 6px solid transparent;
+        border-top: 8px solid rgba(0, 0, 0, 0.5);
         transform: translate(-50%, 100%);
       }
     }
@@ -49,5 +47,9 @@
       display: none;
       opacity: 1;
     }
+  }
+
+  &.xgplayer-pc {
+    font-size: 14px;
   }
 }

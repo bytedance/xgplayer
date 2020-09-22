@@ -100,6 +100,7 @@
     position: absolute;
     z-index: 16;
     transform: translate(-50%, -50%);
+    box-sizing: border-box;
     &:before {
       content: ' ';
       display: block;
@@ -220,6 +221,25 @@
           }
         }
       }
+    }
+  }
+}
+@media (prefers-color-scheme: darker) {
+  .xgplayer {
+    .xgplayer-progress-btn {
+      background: rgba(255, 94, 94, 0.304093);
+      border: 0.5px solid rgba(255, 94, 94, 0.056545);
+      box-shadow: 0px 0px 1px rgba(255, 0, 0, 0.382897);
+      &:before {
+        background-color: #fff;
+      }
+    }
+    .xgplayer-progress-played {
+      background: $progressPlayedBgImage
+    }
+  
+    .xgplayer-progress-cache {
+      background: $progressCacheBgColor
     }
   }
 }

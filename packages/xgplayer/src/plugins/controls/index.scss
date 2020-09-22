@@ -4,7 +4,7 @@ $controlHeight: 48px;
 //icon
 $iconMargin: 16px;
 //
-$miniMargin: 12px;
+$miniMargin: 10px;
 // tips
 $tipsColor: #fff;
 $tipsBgColor: rgba(0, 0, 0, 0.8);
@@ -225,6 +225,10 @@ $tipsFontsize: 12px;
 
     .xg-top-bar {
       padding: 0 $miniMargin;
+    }
+
+    .inner-controls {
+      bottom: 0;
     }
 
     .right-grid {

@@ -27,8 +27,14 @@ $timeDurationColor: rgba(255, 255, 255, 0.50);
   }
   &.xgplayer-mobile {
     .xgplayer-time {
-      min-width: 36px;
-      font-size: 13px;
+      min-width: 30px;
+      font-size: 12px;
+      &.left {
+        margin-right: 8px;
+      }
+      &.right {
+        margin-left: 8px;
+      }
     }
   }
 }
