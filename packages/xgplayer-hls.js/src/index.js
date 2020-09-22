@@ -46,27 +46,21 @@ class HlsJsPlayer extends Player {
           liveDom.parentNode.removeChild(liveDom)
         }
         // player.config.url = url
+        player.autoplay = true
         const paused = player.paused
+        if (!paused) {
+          player.pause()
+        }
         player.hls.stopLoad()
         player.hls.detachMedia()
         player.hls.destroy()
         player.hls = new Hls(player.hlsOpts)
         player.register(url)
-        if (!paused) {
-          player.pause()
-          player.once('pause', () => {
-            player.hls.loadSource(url)
-          })
-          player.once('canplay', () => {
-            player.play().catch(err => {})
-          })
-        } else {
-          player.hls.loadSource(url)
-        }
-        player.hls.attachMedia(player.video)
         player.once('canplay', () => {
-          player.currentTime = 0
+          player.play().catch(err => {})
         })
+        player.hls.loadSource(url)
+        player.hls.attachMedia(player.video)
       },
       configurable: true
     })
