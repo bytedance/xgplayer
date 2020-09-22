@@ -31,7 +31,7 @@ class Keyboard extends BasePlugin {
   afterCreate () {
     this.config.disable = !this.playerConfig.keyShortcut
     const seekStep = typeof this.config.seekStep === 'function' ? this.config.seekStep(this.player) : this.config.seekStep
-    if (!seekStep || typeof seekStep !== 'number') {
+    if (!(!seekStep || typeof seekStep !== 'number')) {
       this.seekStep = seekStep
     }
     this.keyCodeMap = {
