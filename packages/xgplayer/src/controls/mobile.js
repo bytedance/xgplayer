@@ -5,7 +5,9 @@ let mobile = function () {
   let util = Player.util; let controls = player.controls; let root = player.root
 
   player.onElementTouchend = function (e, element) {
-    e.preventDefault()
+    if(!this.config.closeVideoPreventDefault) {
+      e.preventDefault()
+    }
     if(!this.config.closeVideoStopPropagation) {
       e.stopPropagation()
     }

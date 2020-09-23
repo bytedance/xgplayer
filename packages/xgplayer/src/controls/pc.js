@@ -6,7 +6,9 @@ let pc = function () {
   let clk = 0; let _click_
 
   player.onElementClick = function (e, element) {
-    e.preventDefault()
+    if(!this.config.closeVideoPreventDefault) {
+      e.preventDefault()
+    }
     if(!this.config.closeVideoStopPropagation) {
       e.stopPropagation()
     }
