@@ -123,3 +123,20 @@
     }
   }
 }
+
+@media (prefers-color-scheme: dark) {
+  .xgplayer-mobile {
+    xg-trigger .time-preview  {
+      color: #fff;
+      span.cur {
+        color: #FF0000;
+      }
+      .bar {
+        background-color: rgba(255, 255, 255, 0.3);
+        &.curbar {
+          background-color: #FF0000;
+        }
+      }
+    }
+  }
+}

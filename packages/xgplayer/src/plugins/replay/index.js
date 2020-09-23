@@ -30,8 +30,8 @@ class Replay extends Plugin {
       }
     })
 
-    this.bind('svg', 'click', this.__handleReplay)
-    this.bind('.xgplayer-replay-txt', 'click', this.__handleReplay)
+    this.bind('svg', ['click', 'touchend'], this.__handleReplay)
+    this.bind('.xgplayer-replay-txt', ['click', 'touchend'], this.__handleReplay)
 
     this.on(Plugin.Events.ENDED, () => {
       if (!this.playerConfig.loop) {
@@ -81,8 +81,8 @@ class Replay extends Plugin {
   }
 
   destroy () {
-    this.unbind('svg', 'click', this.handleReplay)
-    this.unbind('.xgplayer-replay-txt', 'click', this.handleReplay)
+    this.unbind('svg', ['click', 'touchend'], this.handleReplay)
+    this.unbind('.xgplayer-replay-txt', ['click', 'touchend'], this.handleReplay)
   }
 
   render () {
