@@ -360,6 +360,14 @@ class Compatibility {
     // 对audioSamples按照dts做排序
     if (this._audioLargeGap !== 0) {
       Compatibility.doFixLargeGap(audioSamples, this._audioLargeGap)
+      if (this._videoLargeGap === 0 || (this._audioLargeGap !== this.preAudioGap && (this._videoLargeGap === this.preVideoGap))) {
+        this.emit(REMUX_EVENTS.DETECT_CHANGE_STREAM_DISCONTINUE, 'audio')
+        this.preVideoGap = undefined
+        this.preAudioGap = undefined
+      } else {
+        this.preVideoGap = this._videoLargeGap
+        this.preAudioGap = this._audioLargeGap
+      }
     } else if (!first && (streamChangeStart !== undefined || Compatibility.detectAudioLargeGap(this.nextAudioDts, _firstSample.dts))) {
       if (streamChangeStart !== undefined) {
         this.nextAudioDts = streamChangeStart // FIX: Hls中途切codec，在如果直接seek到后面的点会导致largeGap计算失败
