@@ -12,7 +12,7 @@ function getHandler (eventName, player) {
     let eventKey = eventName
     const funName = `on${eventName.charAt(0).toUpperCase()}${eventName.slice(1)}`
     e.player = player
-    
+
     if (eventKey === 'timeupdate') {
       player._currentTime = player.video && player.video.currentTime
     }

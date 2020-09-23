@@ -19,6 +19,7 @@ class M3U8Parser {
     }
     ref = refs.shift();
     let nextDiscontinue = false;
+    let nextId = 0;
     while (ref) {
       let refm = ref.match(/#(.[A-Z|-]*):(.*)/);
       let refd = ref.match(/#(.[A-Z|-]*)/);
@@ -34,7 +35,7 @@ class M3U8Parser {
             ret.targetduration = parseFloat(refm[2]);
             break;
           case 'EXTINF':
-            M3U8Parser.parseFrag(refm, refs, ret, baseurl, nextDiscontinue);
+            nextId = M3U8Parser.parseFrag(refm, refs, ret, baseurl, nextDiscontinue, nextId);
             nextDiscontinue = false;
             break;
           case 'EXT-X-KEY':
@@ -52,25 +53,24 @@ class M3U8Parser {
             break;
         }
       }
-      ref = refs.shift()
+      ref = refs[nextId++];
     }
     return ret;
   }
 
-  static parseFrag (refm, refs, ret, baseurl, discontinue) {
+  static parseFrag (refm, refs, ret, baseurl, discontinue, nextId) {
     if (!ret.frags) {
       ret.frags = []
     }
 
     let freg = {
       start: ret.duration,
-      duration: parseFloat(refm[2]) * 1000
+      duration: parseInt(parseFloat(refm[2]) * 1000)
     }
-
     ret.duration += freg.duration;
-    let nextline = refs.shift();
+    let nextline = refs[nextId++];
     if (nextline.match(/#(.*):(.*)/) || nextline.match(/^#/)) {
-      nextline = refs.shift();
+      nextline = refs[nextId++];
     }
     if (nextline.length > 0 && nextline.charAt(0) === '/' && baseurl.match(/.*\/\/.*\.\w+/g)) {
       baseurl = baseurl.match(/.*\/\/.*\.\w+/g)[0];
@@ -87,13 +87,14 @@ class M3U8Parser {
     freg.discontinue = discontinue;
 
     // add id
-    if(ret.frags.length){
-      let last = ret.frags[ret.frags.length-1];
-      freg.id  = last.id + 1;
-    }else{
+    if (ret.frags.length) {
+      let last = ret.frags[ret.frags.length - 1];
+      freg.id = last.id + 1;
+    } else {
       freg.id = ret.sequence || 1;
     }
     ret.frags.push(freg);
+    return nextId;
   }
 
   static parseURL (url) {
