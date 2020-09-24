@@ -14,9 +14,12 @@ export default {
   FULLSCREEN: 'xgplayer-is-fullscreen',
   CSS_FULLSCREEN: 'xgplayer-is-cssfullscreen',
   NO_CONTROLS: 'no-controls',
+  FLEX_CONTROLS: 'flex-controls',
+  CONTROLS_FOLLOW: 'controls-follow',
+  AUTOHIDE: 'xgplayer_autohide',
   NOT_ALLOW_AUTOPLAY: 'not-allow-autoplay',
   SEEKING: 'seeking',
   PC: 'xgplayer-pc',
   MOBILE: 'xgplayer-mobile',
-  MINI: 'xgplayer-mini'
+  MINI: 'xgplayer-mini' // 小窗播放状态
 };

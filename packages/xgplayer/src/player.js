@@ -52,6 +52,11 @@ class Player extends Proxy {
     this.fullscreen = false
     this._fullscreenEl = null
     this._originCssText = ''
+    this._played = {
+      begin: -1,
+      end: -1,
+      acc: 0
+    }
 
     this.database = new Database()
 
@@ -216,7 +221,7 @@ class Player extends Proxy {
     }
     this.canPlayFunc = () => {
       const {autoplay, startTime, volume} = this.config
-      this.logInfo('player', 'canPlayFunc')
+      this.logInfo('player', 'canPlayFunc', startTime)
       this.volume = typeof volume === 'number' ? volume : 0.6
       if (startTime) {
         this.currentTime = startTime > this.duration ? this.duration : startTime
@@ -476,12 +481,20 @@ class Player extends Proxy {
     }
     time = time < 0 ? 0 : time > this.duration ? parseInt(this.duration, 10) : time
     this.once(Events.CANPLAY, () => {
+      this.removeClass(STATE_CLASS.ENTER)
       this.isSeeking = false
       if (this.paused) {
         this.play()
       }
     })
-    this.currentTime = time
+    if (!this.isPlaying) {
+      this.removeClass(STATE_CLASS.NO_START)
+      this.addClass(STATE_CLASS.ENTER)
+      this.currentTime = time
+      this.play()
+    } else {
+      this.currentTime = time
+    }
   }
 
   reload () {
@@ -672,6 +685,12 @@ class Player extends Proxy {
   }
 
   onSeeking () {
+    if (!this.isSeeking) {
+      const {_played} = this
+      _played.acc += _played.begin < _played.end && _played.end > -1 ? _played.end - _played.begin : 0
+      _played.begin = parseInt(this.video.currentTime * 1000, 10);
+      _played.end = -1
+    }
     this.isSeeking = true
     this.addClass(STATE_CLASS.SEEKING)
   }
@@ -714,6 +733,11 @@ class Player extends Proxy {
       clearTimeout(this.waitTimer)
       this.waitTimer = null
     }
+
+    if (this._played.begin < 0) {
+      this._played.begin = parseInt(this.video.currentTime * 1000, 10)
+    }
+    this._played.end = parseInt(this.video.currentTime * 1000, 10)
   }
 
   getVideoSize () {
@@ -827,6 +851,11 @@ class Player extends Proxy {
   get networkState () {
     const key = super.networkState
     return this.i18n[key] || key
+  }
+
+  get cumulateTime () {
+    const {acc, end, begin} = this._played
+    return begin > -1 && end > begin ? (acc + end - begin) / 1000 : acc / 1000
   }
 
   /***

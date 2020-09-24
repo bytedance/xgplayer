@@ -3,7 +3,7 @@ $timeDurationColor: rgba(255, 255, 255, 0.50);
 
 .xgplayer {
   .xgplayer-time {
-    width: auto;
+    min-width: 40px;
     font-size: 14px;
     font-family: PingFangSC-Semibold;
     color: $timeColor;
@@ -27,7 +27,14 @@ $timeDurationColor: rgba(255, 255, 255, 0.50);
   }
   &.xgplayer-mobile {
     .xgplayer-time {
-      font-size: 13px;
+      min-width: 30px;
+      font-size: 12px;
+      &.left {
+        margin-right: 8px;
+      }
+      &.right {
+        margin-left: 8px;
+      }
     }
   }
 }

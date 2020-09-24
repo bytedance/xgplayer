@@ -1,4 +1,4 @@
-import Plugin from '../../plugin'
+import Plugin, {hooksDescriptor} from '../../plugin'
 import TopBackIcon from './backicon'
 import FullScreenSvg from '../assets/requestFull.svg'
 import ExitFullScreenSvg from '../assets/exitFull.svg'
@@ -29,13 +29,17 @@ export default class Fullscreen extends Plugin {
   }
 
   afterCreate () {
+    hooksDescriptor(this)
     if (this.config.disable) {
       return
     }
     this.isFullScreen = this.player.isFullScreen
     this.initIcons()
-    this.btnClick = this.btnClick.bind(this)
-    this.bind(['click', 'touchend'], this.btnClick)
+
+    this.fullSreenHandler = this.hook('fullsreen_change', this.changeFullScreen)
+
+    this.bind('.xgplayer-fullscreen', Sniffer.device === 'mobile' ? 'touchend' : 'click', this.fullSreenHandler)
+
     this.on(Events.FULLSCREEN_CHANGE, (isFullScreen) => {
       this.changeLangTextKey(this.find('.xg-tips'), isFullScreen ? this.i18nKeys.EXITFULLSCREEN_TIPS : this.i18nKeys.FULLSCREEN_TIPS)
       this.animate(isFullScreen)
@@ -63,7 +67,7 @@ export default class Fullscreen extends Plugin {
   }
 
   destroy () {
-    this.unbind(['click', 'touchend'], this.btnClick)
+    this.unbind('.xgplayer-icon', Sniffer.device === 'mobile' ? 'touchend' : 'click', this.fullSreenHandler)
   }
 
   initIcons () {
@@ -72,7 +76,9 @@ export default class Fullscreen extends Plugin {
     this.appendChild('.xgplayer-icon', icons.exitFullscreen)
   }
 
-  btnClick (e) {
+  changeFullScreen (e) {
+    // e.preventDefault();
+    e.stopPropagation();
     const {player, config} = this;
     let useCssFullscreen = false
     if (config.useCssFullscreen === true || (typeof config.useCssFullscreen === 'function' && config.useCssFullscreen())) {

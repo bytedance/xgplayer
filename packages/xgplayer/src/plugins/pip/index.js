@@ -2,6 +2,10 @@ import Plugin from '../../plugin'
 
 const {Events, POSITIONS} = Plugin
 
+/**
+ * @description picture-in-picture plugin
+ * @doc https://www.w3.org/TR/picture-in-picture/
+ */
 class PIP extends Plugin {
   static get pluginName () {
     return 'pip'
@@ -23,6 +27,8 @@ class PIP extends Plugin {
 
   afterCreate () {
     this.btnClick = (e) => {
+      e.preventDefault();
+      e.stopPropagation();
       this.switchPIP(e)
     }
     // video初始化之后再做判断是否显示

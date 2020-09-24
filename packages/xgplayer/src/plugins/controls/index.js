@@ -1,5 +1,6 @@
 import Plugin from '../../plugin'
 import util from '../../utils/util'
+import STATE_CLASS from '../../stateClassMap'
 
 const {Events, Util, POSITIONS, Sniffer} = Plugin
 
@@ -26,10 +27,13 @@ class Controls extends Plugin {
   }
 
   afterCreate () {
-    if (this.config.disable) {
+    const {disable, height, mode, autoHide} = this.config
+    if (disable) {
       return
     }
-    const {height} = this.config
+
+    mode === 'flex' && this.player.addClass(STATE_CLASS.FLEX_CONTROLS)
+    autoHide && this.player.addClass(STATE_CLASS.AUTOHIDE)
     const style = {
       height: `${height}px`
     }
@@ -40,6 +44,8 @@ class Controls extends Plugin {
     this.center = this.find('center')
     this.right = this.find('right-grid')
     this.innerRoot = this.find('inner-controls')
+
+    // 切换为小窗状态的时候进度条同步切换
     this.on(Events.MINI_STATE_CHANGE, (isMini) => {
       isMini ? Util.addClass(this.root, 'mini-controls') : Util.removeClass(this.root, 'mini-controls')
     })
@@ -60,7 +66,11 @@ class Controls extends Plugin {
   }
 
   show () {
-    this.root && (this.root.style.display = 'inline-block')
+    Util.addClass(this.root, 'show')
+  }
+
+  hide () {
+    Util.removeClass(this.root, 'show')
   }
 
   registerPlugin (plugin, options = {}, name) {

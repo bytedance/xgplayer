@@ -1,0 +1,55 @@
+.xgplayer {
+  .xgplayer-prompt {
+    display: block;
+    position: absolute;
+    z-index: 101;
+    padding: 6px 12px 5px;
+    opacity: 0;
+    left: 10px;
+    font-family: PingFang SC;
+    background: rgba(0, 0, 0, 0.5);
+    border-radius: 50px;
+    font-size: 12px;
+    line-height: 17px;
+    text-align: center;
+    color: #FFF;
+    &.show {
+      display: block;
+      opacity: 1;
+    }
+    &.arrow {
+      transform: translateX(-50%);
+      &:after {
+        content: '';
+        display: block;
+        position: absolute;
+        left: 50%;
+        bottom: 0;
+        width: 0;
+        height: 0;
+        border-left: 6px solid transparent;
+        border-right: 6px solid transparent;
+        border-top: 8px solid rgba(0, 0, 0, 0.5);
+        transform: translate(-50%, 100%);
+      }
+    }
+    .highlight {
+      display: inline-block;
+      margin-left: 6px;
+      color: #FF0000;
+      cursor: pointer;
+     }
+  }
+
+  // &.xgplayer-ended,
+  &.xgplayer-is-error {
+    .xgplayer-prompt.show {
+      display: none;
+      opacity: 1;
+    }
+  }
+
+  &.xgplayer-pc {
+    font-size: 14px;
+  }
+}
