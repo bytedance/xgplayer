@@ -1,6 +1,6 @@
 {
   "name": "xgplayer-raw264",
-  "version": "2.3.35",
+  "version": "2.3.36",
   "description": "",
   "main": "lib/index.js",
   "module": "es/index.js",
@@ -31,9 +31,9 @@
     ]
   },
   "dependencies": {
-    "xgplayer-helper-codec": "2.3.35",
-    "xgplayer-helper-models": "2.3.35",
-    "xgplayer-helper-utils": "2.3.35",
-    "xgplayer-mobilevideo": "2.3.35"
+    "xgplayer-helper-codec": "2.3.36",
+    "xgplayer-helper-models": "2.3.36",
+    "xgplayer-helper-utils": "2.3.36",
+    "xgplayer-mobilevideo": "2.3.36"
   }
 }
