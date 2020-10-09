@@ -27,6 +27,10 @@ let s_definition = function () {
               a.href = player[item]._mediaDataSource.url
             }
           }
+          if(item === 'hls') {
+            a.href = player[item].originUrl || player[item].url
+            src = a.href
+          }
           src = a.href
           return false
         } else {
@@ -35,10 +39,6 @@ let s_definition = function () {
       })
     } else {
       src = player.currentSrc || player.src
-    }
-    if(player['hls']) {
-      a.href = player['hls'].url
-      src = a.href
     }
     list.forEach(item => {
       a.href = item.url
@@ -87,7 +87,7 @@ let s_definition = function () {
     player.definitionList = list
     if (list && list instanceof Array && list.length > 1) {
       util.addClass(root, 'xgplayer-is-definition')
-      player.on('canplay', onCanplayResourceReady)
+      player.once('canplay', onCanplayResourceReady)
     }
   }
   player.on('resourceReady', onResourceReady)
@@ -108,12 +108,12 @@ let s_definition = function () {
       let list = player.definitionList
       let li = e.target || e.srcElement, a = document.createElement('a')
       if (li && li.tagName.toLocaleLowerCase() === 'li') {
-        player.emit('beforeDefinitionChange', a.href)
         let from, to
         Array.prototype.forEach.call(li.parentNode.childNodes, item => {
           if(util.hasClass(item, 'selected')) {
             from = item.getAttribute('cname')
             util.removeClass(item, 'selected')
+            player.emit('beforeDefinitionChange', item.getAttribute('url'))
           }
         })
         if (player.dash) {
@@ -142,6 +142,9 @@ let s_definition = function () {
                 } else {
                   curRUL.href = player[item]._mediaDataSource.url
                 }
+              }
+              if(item === 'hls') {
+                curRUL.href = player[item].originUrl || player[item].url
               }
               return false
             } else {
