@@ -354,7 +354,8 @@ class Compatibility {
 
     if (!first && streamChangeStart === undefined && this.nextAudioDts && Compatibility.detectAudioLargeGap(this.nextAudioDts || 0, _firstSample.dts + this._audioLargeGap)) {
       // large gap 不准确，出现了非换流场景的时间戳跳变
-      this._audioLargeGap = this.nextAudioDts + meta.refSampleDuration - _firstSample.dts;
+      const _audioLargeGap = this.nextAudioDts - _firstSample.dts;
+      this._audioLargeGap = Math.abs(_audioLargeGap - this._videoLargeGap) < 200 ? this._videoLargeGap : _audioLargeGap
     }
 
     // 对audioSamples按照dts做排序
