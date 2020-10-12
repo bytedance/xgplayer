@@ -18,3 +18,8 @@ export default class FlvLivePlayer {
     return FlvLiveMsePlayer.isSupported() || FlvLiveMobilePlayer.isSupported()
   }
 }
+
+export {
+  FlvLiveMsePlayer,
+  FlvLiveMobilePlayer
+}

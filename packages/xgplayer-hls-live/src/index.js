@@ -13,3 +13,8 @@ export default class HlsLivePlayer {
     return new HlsLiveMsePlayer(config)
   }
 }
+
+export {
+  HlsLiveMsePlayer,
+  HlsLiveMobilePlayer
+}
