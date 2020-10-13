@@ -23,7 +23,9 @@ let s_play = function () {
                                         <span class="xgplayer-tip-pause">${tipsText.pause}</span>`, {}, 'xgplayer-tips')
   btn.appendChild(tips)
   player.once('ready', () => {
-    player.controls.appendChild(btn)
+    if(player.controls) {
+      player.controls.appendChild(btn)
+    }
   });
 
   ['click', 'touchend'].forEach(item => {

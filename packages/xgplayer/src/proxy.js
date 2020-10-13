@@ -268,7 +268,11 @@ class Proxy {
     return this.video.duration
   }
   get ended () {
-    return this.video.ended
+    if(this.video) {
+      return this.video.ended || false
+    } else {
+      return true
+    }
   }
   get error () {
     let err = this.video.error

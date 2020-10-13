@@ -21,6 +21,7 @@ let volume = function () {
   player.once('canplay', onCanplay)
 
   function onVolumeBarClick (e) {
+    if(!slider) return
     player.video.muted = false
     slider.focus()
     util.event(e)
@@ -84,6 +85,7 @@ let volume = function () {
         player.volume = 0
       }
     } else {
+      if(!slider) return
       player.video.muted = false
       if (player.volume < 0.1) {
         if (slider.volume < 0.1) {
