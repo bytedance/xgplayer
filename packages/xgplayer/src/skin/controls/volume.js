@@ -17,7 +17,9 @@ let s_volume = function () {
                                          </xg-bar>
                                        </xg-slider>`, {}, 'xgplayer-volume')
   player.once('ready', () => {
-    player.controls.appendChild(container)
+    if(player.controls) {
+      player.controls.appendChild(container)
+    }
   })
   let slider = container.querySelector('.xgplayer-slider')
   let bar = container.querySelector('.xgplayer-bar')
