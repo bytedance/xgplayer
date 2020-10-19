@@ -282,7 +282,7 @@ class MSE {
   }
 
   destroy () {
-    if (!this.container) return
+    if (!this.container) return Promise.resolve()
     this.container.removeEventListener('timeupdate', this.onTimeUpdate);
     this.container.removeEventListener('waiting', this.onWaiting);
     this.mediaSource.removeEventListener('sourceopen', this.onSourceOpen);

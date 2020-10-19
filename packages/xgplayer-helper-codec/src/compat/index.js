@@ -1,7 +1,5 @@
-import { EVENTS, Sniffer, common, logger } from 'xgplayer-helper-utils'
+import { EVENTS, common, logger } from 'xgplayer-helper-utils'
 import AAC from '../aac'
-
-const isSafari = Sniffer.browser === 'safari'
 
 const { REMUX_EVENTS } = EVENTS
 const { caculate } = common;
@@ -677,7 +675,7 @@ class Compatibility {
     if (!meta) {
       return;
     }
-    meta.refSampleDuration = caculate.fixedFloat(meta.timescale * 1024 / meta.sampleRate, isSafari ? 0 : 2);
+    meta.refSampleDuration = meta.timescale * 1024 / meta.sampleRate;
   }
 
   /**
