@@ -113,6 +113,7 @@ class MSE {
   }
 
   doAppend () {
+    this._doCleanupSourceBuffer()
     let sources = this._context.getInstance('PRE_SOURCE_BUFFER');
     if (!sources) return;
     if (Object.keys(this.sourceBuffers).length < this.sourceBufferLen) {
@@ -138,6 +139,7 @@ class MSE {
     for (let i = 0; i < Object.keys(this.sourceBuffers).length; i++) {
       let type = Object.keys(this.sourceBuffers)[i]
       let sourceBuffer = this.sourceBuffers[type];
+      if (sourceBuffer.updating) continue
       let source = sources.sources[type];
       if (this[`no${type}`]) {
         source.data = []
@@ -182,6 +184,52 @@ class MSE {
       if (!buffer.updating) {
         // console.log('remove', start, end)
         buffer.remove(start, end);
+      }
+    }
+  }
+
+  _doCleanupSourceBuffer () {
+    let currentTime = this.container.currentTime;
+    let autoCleanupMinBackwardDuration = 60 * 3
+    let _pendingRemoveRanges = {
+      video: [],
+      audio: []
+    };
+    for (let i = 0; i < Object.keys(this.sourceBuffers).length; i++) {
+      let type = Object.keys(this.sourceBuffers)[i]
+      let sourceBuffer = this.sourceBuffers[type];
+      let buffered = sourceBuffer.buffered;
+      let doRemove = false;
+      for (let j = 0; j < buffered.length; j++) {
+        let start = buffered.start(j);
+        let end = buffered.end(j);
+        if (start <= currentTime && currentTime < end + 3) {
+          if (currentTime - start >= autoCleanupMinBackwardDuration) {
+            doRemove = true;
+            let removeEnd = currentTime - autoCleanupMinBackwardDuration;
+            _pendingRemoveRanges[type].push({start: start, end: removeEnd});
+          }
+        } else if (end < currentTime) {
+          doRemove = true;
+          _pendingRemoveRanges[type].push({start: start, end: end});
+        }
+      }
+      if (doRemove && !sourceBuffer.updating) {
+        this._doRemoveRanges(_pendingRemoveRanges);
+      }
+    }
+  }
+
+  _doRemoveRanges (_pendingRemoveRanges) {
+    for (let type in _pendingRemoveRanges) {
+      if (!this.sourceBuffers[type] || this.sourceBuffers[type].updating) {
+        continue;
+      }
+      let sb = this.sourceBuffers[type];
+      let ranges = _pendingRemoveRanges[type];
+      while (ranges.length && !sb.updating) {
+        let range = ranges.shift();
+        sb.remove(range.start, range.end);
       }
     }
   }
