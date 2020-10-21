@@ -3,6 +3,7 @@ class Presource {
     this.mimetype = '';
     this.init = null;
     this.data = []
+    this.bufferDuration = 0;
   }
 }
 

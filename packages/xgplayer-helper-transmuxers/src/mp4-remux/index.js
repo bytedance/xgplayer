@@ -407,7 +407,7 @@ export default class Mp4Remuxer {
     }
     source.data.push(buffer)
     if (bufferDuration) {
-      source.bufferDuration += bufferDuration
+      source.bufferDuration = bufferDuration + (source.bufferDuration || 0)
     }
   }
 

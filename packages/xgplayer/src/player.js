@@ -11,6 +11,7 @@ import { usePreset } from './plugin/preset';
 import hooksDescriptor from './plugin/hooksDescriptor'
 import Controls from './plugins/controls'
 import {bindDebug} from './utils/debug'
+
 import {
   version
 } from '../package.json'
