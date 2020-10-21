@@ -183,10 +183,12 @@ class FlvPlayer extends BasePlugin {
   }
 
   _destroy () {
+    if (!this.context) return Promise.resolve()
     return this.flv.mse.destroy().then(() => {
       this.context.destroy()
       this.flv = null
       this.context = null
+      this.played = false
       if (this.loaderCompleteTimer) {
         window.clearInterval(this.loaderCompleteTimer)
       }
