@@ -47,7 +47,25 @@ export default class DefinitionIcon extends OptionsIcon {
   renderItemList () {
     const { player } = this
     const {list} = this.config
-    const currentSrc = player.currentSrc || player.src
+    let currentSrc = player.currentSrc || player.src
+    if (player.switchURL) {
+      let curRUL = document.createElement('a');
+      ['hlsjs'].every(item => {
+        if (player[item]) {
+          if (player[item].url) {
+            curRUL.href = player[item].url
+          }
+          if (item === 'hlsjs') {
+            curRUL.href = player[item].originUrl || player[item].url
+          }
+          currentSrc = curRUL.href
+          return false
+        } else {
+          return true
+        }
+      })
+      curRUL = null
+    }
     let curIndex = 0
     const items = list.map((item, index) => {
       const showItem = {
@@ -82,7 +100,7 @@ export default class DefinitionIcon extends OptionsIcon {
   switchUrl (lastATag) {
     const {player} = this
     let curRUL = document.createElement('a');
-    ['mp4', 'hls', '__flv__', 'dash'].every(item => {
+    ['mp4', 'hls', '__flv__', 'dash', 'hlsjs'].every(item => {
       if (player[item]) {
         if (player[item].url) {
           curRUL.href = player[item].url
@@ -94,13 +112,18 @@ export default class DefinitionIcon extends OptionsIcon {
             curRUL.href = player[item]._mediaDataSource.url
           }
         }
+        if (item === 'hlsjs') {
+          curRUL.href = player[item].originUrl || player[item].url
+        }
+        curRUL = null
         return false
       } else {
+        curRUL = null
         return true
       }
     })
-    if (lastATag && curRUL.href !== lastATag.href && !player.ended) {
-      player.switchURL(lastATag.href)
+    if (lastATag && curRUL.href !== lastATag.url && !player.ended) {
+      player.switchURL(lastATag.url)
     }
   }
 
