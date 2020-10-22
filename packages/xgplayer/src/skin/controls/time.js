@@ -7,7 +7,9 @@ let s_time = function () {
   let container = util.createDom('xg-time', `<span class="xgplayer-time-current">${player.currentTime || util.format(0)}</span>
                                            <span>${player.duration || util.format(0)}</span>`, {}, 'xgplayer-time')
   player.once('ready', () => {
-    player.controls.appendChild(container)
+    if(player.controls) {
+      player.controls.appendChild(container)
+    }
   })
   let onTimeChange = function () {
     // let liveText = player.lang.LIVE
