@@ -6098,27 +6098,21 @@ var HlsJsPlayer = function (_Player) {
           liveDom.parentNode.removeChild(liveDom);
         }
         // player.config.url = url
+        player.autoplay = true;
         var paused = player.paused;
+        if (!paused) {
+          player.pause();
+        }
         player.hls.stopLoad();
         player.hls.detachMedia();
         player.hls.destroy();
         player.hls = new _hls2.default(player.hlsOpts);
         player.register(url);
-        if (!paused) {
-          player.pause();
-          player.once('pause', function () {
-            player.hls.loadSource(url);
-          });
-          player.once('canplay', function () {
-            player.play().catch(function (err) {});
-          });
-        } else {
-          player.hls.loadSource(url);
-        }
-        player.hls.attachMedia(player.video);
         player.once('canplay', function () {
-          player.currentTime = 0;
+          player.play().catch(function (err) {});
         });
+        player.hls.loadSource(url);
+        player.hls.attachMedia(player.video);
       },
 
       configurable: true

@@ -688,14 +688,14 @@ class Player extends Proxy {
     // util.addClass(this.root, 'seeking');
   }
 
-  onTimeupdate () {
-    // for ie,playing fired before waiting
-    if (this.waitTimer) {
-      clearTimeout(this.waitTimer)
-    }
-    util.removeClass(this.root, 'xgplayer-isloading')
+  // onTimeupdate () {
+  //   // for ie,playing fired before waiting
+  //   if (this.waitTimer) {
+  //     clearTimeout(this.waitTimer)
+  //   }
+  //   util.removeClass(this.root, 'xgplayer-isloading')
 
-  }
+  // }
 
   onSeeked () {
     // for ie,playing fired before waiting
