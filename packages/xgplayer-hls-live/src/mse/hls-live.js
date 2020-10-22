@@ -191,7 +191,7 @@ class HlsLiveController {
     } else if (buffer.TAG === 'TS_BUFFER') {
       this.retrytimes = this.configs.retrytimes || 3;
       this._playlist.downloaded(this._tsloader.url, true);
-      this.emit(DEMUX_EVENTS.DEMUX_START);
+      this.emit(DEMUX_EVENTS.DEMUX_START, Object.assign({url: this._tsloader.url}, this._playlist._ts[this._tsloader.url]));
     } else if (buffer.TAG === 'DECRYPT_BUFFER') {
       this.retrytimes = this.configs.retrytimes || 3;
       this._playlist.downloaded(this._tsloader.url, true);
@@ -295,6 +295,7 @@ class HlsLiveController {
   load (url) {
     this.baseurl = this.configs.M3U8Parser.parseURL(url);
     this.url = url;
+    this._playlist.resetSequence();
     this._preload();
   }
 
