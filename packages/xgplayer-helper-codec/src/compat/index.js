@@ -203,7 +203,7 @@ class Compatibility {
 
     const firstSample = videoSamples[0]
 
-    logger.log(this.TAG, `doFixVideo:: _videoLargeGap: ${this._videoLargeGap} ,streamChangeStart:${streamChangeStart}, lastVideoSample:[dts=${this.videoLastSample && this.videoLastSample.dts} , pts=${this.videoLastSample && this.videoLastSample.pts}] ,  firstDTS:${firstSample.dts} ,firstPTS:${firstSample.pts} ,lastDTS:${videoSamples[len - 1].dts} , lastPTS: ${videoSamples[len - 1].pts}`);
+    logger.log(this.TAG, `doFixVideo:: lastVideoDts: ${this.lastVideoDts} ,  _videoLargeGap: ${this._videoLargeGap} ,streamChangeStart:${streamChangeStart}, lastVideoSample:[dts=${this.videoLastSample && this.videoLastSample.dts} , pts=${this.videoLastSample && this.videoLastSample.pts}] ,  firstDTS:${firstSample.dts} ,firstPTS:${firstSample.pts} ,lastDTS:${videoSamples[len - 1].dts} , lastPTS: ${videoSamples[len - 1].pts}`);
 
     // !first: 非首次加载的分片
     if (!first && (this.videoLastSample === null && firstSample.options && firstSample.options.start)) {
@@ -342,7 +342,7 @@ class Compatibility {
 
     let _firstSample = audioSamples[0];
 
-    logger.log(this.TAG, `doFixAudio::  _audioLargeGap: ${this._audioLargeGap}, streamChangeStart:${streamChangeStart} ,  nextAudioDts:${this.nextAudioDts},  audio: firstDTS:${_firstSample.dts} ,firstPTS:${_firstSample.pts} ,lastDTS:${audioSamples[samplesLen - 1].dts} , lastPTS: ${audioSamples[samplesLen - 1].pts}`);
+    logger.log(this.TAG, `doFixAudio:: audioDtsBase:${this.audioDtsBase} ,  _audioLargeGap: ${this._audioLargeGap}, streamChangeStart:${streamChangeStart} ,  nextAudioDts:${this.nextAudioDts},  audio: firstDTS:${_firstSample.dts} ,firstPTS:${_firstSample.pts} ,lastDTS:${audioSamples[samplesLen - 1].dts} , lastPTS: ${audioSamples[samplesLen - 1].pts}`);
 
     if (!first && (this.nextAudioDts === null && _firstSample.options && _firstSample.options.start)) {
       if (streamChangeStart !== undefined) {
@@ -514,6 +514,7 @@ class Compatibility {
   }
 
   fixChangeStreamVideo (changeIdx) {
+    logger.log(this.TAG, 'fixChangeStreamVideo(), changeIdx=', changeIdx);
     const { samples } = this.videoTrack;
     const prevDts = changeIdx === 0 ? this.lastVideoDts ? this.lastVideoDts : this.getStreamChangeStart(samples[0]) : samples[changeIdx - 1].dts;
     const curDts = samples[changeIdx].dts;
@@ -561,6 +562,7 @@ class Compatibility {
   }
 
   fixChangeStreamAudio (changeIdx) {
+    logger.log(this.TAG, 'fixChangeStreamAudio(), changeIdx=', changeIdx);
     const { samples } = this.audioTrack;
 
     const prevDts = changeIdx === 0 ? this.lastAudioDts : samples[changeIdx - 1].dts;
