@@ -8,6 +8,7 @@ class FlvPlayer{
     } else {
       return new FlvVodPlayer(config)
     }
+    flv.load()
   }
 }
 

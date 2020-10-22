@@ -219,7 +219,7 @@ util.Hex2RGBA = function (hex, alpha) {
   }
   if (/^#[0-9A-F]{6}$/i.test(hex)) {
     hex.replace(/[0-9A-F]{2}/ig, function (kw) {
-      rgb.push(eval('0x' + kw))
+      rgb.push(parseInt(kw, 16))
     })
     return `rgba(${rgb.join(',')}, ${alpha})`
   } else {

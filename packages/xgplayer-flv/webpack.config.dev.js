@@ -1,7 +1,7 @@
-const webpackMerge = require('webpack-merge')
-const { umd, client } = require('../../webpack.config')
+const polyfill = []
 
-const developUMD = webpackMerge(umd, {
+const umd = {
+  entry: polyfill.concat(['./src/index.js']),
   output: {
     path: `${__dirname}/dist`,
     filename: 'index.js',
@@ -10,9 +10,33 @@ const developUMD = webpackMerge(umd, {
   },
   devtool: 'inline-source-map',
   mode: 'development',
-})
+  module: {
+    rules: [{
+      test: /\.js$/,
+      loader: 'babel-loader'
+    }, {
+      test: /\.scss$/,
+      use: [
+        'style-loader',
+        {
+          loader: 'css-loader',
+          options: {
+            importLoaders: 1,
+            minimize: true
+          }
+        },
+        'postcss-loader',
+        'sass-loader'
+      ]
+    }]
+  },
+  externals: {
+    xgplayer: 'xgplayer'
+  }
+}
 
-const developClient = webpackMerge(client, {
+const client = {
+  entry: polyfill.concat(['./src/index.js']),
   output: {
     path: `${__dirname}/browser`,
     filename: 'index.js',
@@ -21,7 +45,30 @@ const developClient = webpackMerge(client, {
 
   },
   devtool: 'inline-source-map',
+  module: {
+    rules: [{
+      test: /\.js$/,
+      loader: 'babel-loader'
+    }, {
+      test: /\.scss$/,
+      use: [
+        'style-loader',
+        {
+          loader: 'css-loader',
+          options: {
+            importLoaders: 1,
+            minimize: true
+          }
+        },
+        'postcss-loader',
+        'sass-loader'
+      ]
+    }]
+  },
+  externals: {
+    xgplayer: 'Player'
+  },
   mode: 'development'
-})
+}
 
 module.exports = [developUMD, developClient]

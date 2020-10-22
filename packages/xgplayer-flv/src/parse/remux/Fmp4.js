@@ -1,13 +1,14 @@
 import { Buffer } from 'xgplayer-utils';
 
 // const UINT32_MAX = Math.pow(2, 32) - 1;
-class Fmp4 {
+import { cacheWrapper } from '../../utils/funcUtils'
+class FMP4 {
   static size (value) {
     return Buffer.writeUint32(value)
   }
   static initBox (size, name, ...content) {
     const buffer = new Buffer()
-    buffer.write(Fmp4.size(size), Fmp4.type(name), ...content)
+    buffer.write(FMP4.size(size), FMP4.type(name), ...content)
     return buffer.buffer
   }
   static extension (version, flag) {
@@ -19,14 +20,14 @@ class Fmp4 {
     ])
   }
   static ftyp () {
-    return Fmp4.initBox(24, 'ftyp', new Uint8Array([
+    return FMP4.initBox(24, 'ftyp', new Uint8Array([
       0x69, 0x73, 0x6F, 0x6D, // isom,
       0x0, 0x0, 0x00, 0x01, // minor_version: 0x01
       0x69, 0x73, 0x6F, 0x6D, // isom
       0x61, 0x76, 0x63, 0x31 // avc1
     ]))
   }
-  static moov ({ type, meta }) {
+  static moov (data) {
     let size = 8
     let mvhd = Fmp4.mvhd(meta.duration, meta.timescale)
     let trak
@@ -91,12 +92,11 @@ class Fmp4 {
       0x00, 0x00, 0x00, 0x00, // ----end pre_defined 6 * 4 bytes----
       0xFF, 0xFF, 0xFF, 0xFF // next_track_ID 下一个track使用的id号
     ])
-    return Fmp4.initBox(8 + bytes.length, 'mvhd', new Uint8Array(bytes))
+    return FMP4.initBox(8 + bytes.length, 'mvhd', new Uint8Array(bytes))
   }
   static videoTrak (data) {
     let size = 8
-
-    let tkhd = Fmp4.tkhd({
+    let tkhd = FMP4.tkhd({
       id: 1,
       duration: data.duration,
       timescale: data.timescale || 1000,
@@ -104,23 +104,24 @@ class Fmp4 {
       height: data.presentHeight,
       type: 'video'
     })
-    let mdia = Fmp4.mdia({
+    let mdia = FMP4.mdia({
       type: 'video',
       timescale: data.timescale || 1000,
       duration: data.duration,
-      avcc: data.avcc,
-      parRatio: data.parRatio,
-      width: data.presentWidth,
-      height: data.presentHeight
+      sps: data.sps,
+      pps: data.pps,
+      pixelRatio: data.pixelRatio,
+      width: data.width,
+      height: data.height
     });
     [tkhd, mdia].forEach(item => {
       size += item.byteLength
     })
-    return Fmp4.initBox(size, 'trak', tkhd, mdia)
+    return FMP4.initBox(size, 'trak', tkhd, mdia)
   }
   static audioTrak (data) {
     let size = 8
-    let tkhd = Fmp4.tkhd({
+    let tkhd = FMP4.tkhd({
       id: 2,
       duration: data.duration,
       timescale: data.timescale || 1000,
@@ -128,18 +129,18 @@ class Fmp4 {
       height: 0,
       type: 'audio'
     })
-    let mdia = Fmp4.mdia({
+    let mdia = FMP4.mdia({
       type: 'audio',
       timescale: data.timescale || 1000,
       duration: data.duration,
-      channelCount: data.channelCount,
-      samplerate: data.sampleRate,
-      config: data.config
+      channelCount: data.audioChannelCount,
+      samplerate: data.audioSampleRate,
+      config: data.audioConfig
     });
     [tkhd, mdia].forEach(item => {
       size += item.byteLength
     })
-    return Fmp4.initBox(size, 'trak', tkhd, mdia)
+    return FMP4.initBox(size, 'trak', tkhd, mdia)
   }
   static tkhd (data) {
     let id = data.id
@@ -184,15 +185,15 @@ class Fmp4 {
       (height) & 0xFF,
       0x00, 0x00
     ])
-    return Fmp4.initBox(8 + content.byteLength, 'tkhd', content)
+    return FMP4.initBox(8 + content.byteLength, 'tkhd', content)
   }
   static edts (data) {
     let buffer = new Buffer()
     let duration = data.duration
     let mediaTime = data.mediaTime
-    buffer.write(Fmp4.size(36), Fmp4.type('edts'))
+    buffer.write(FMP4.size(36), FMP4.type('edts'))
     // elst
-    buffer.write(Fmp4.size(28), Fmp4.type('elst'))
+    buffer.write(FMP4.size(28), FMP4.type('elst'))
     buffer.write(new Uint8Array([
       0x00, 0x00, 0x00, 0x01, // entry count
       (duration >> 24) & 0xff, (duration >> 16) & 0xff, (duration >> 8) & 0xff, duration & 0xff,
@@ -203,13 +204,13 @@ class Fmp4 {
   }
   static mdia (data) {
     let size = 8
-    let mdhd = Fmp4.mdhd(data.timescale, data.duration)
-    let hdlr = Fmp4.hdlr(data.type)
-    let minf = Fmp4.minf(data);
+    let mdhd = FMP4.mdhd(data.timescale, data.duration)
+    let hdlr = FMP4.hdlr(data.type)
+    let minf = FMP4.minf(data);
     [mdhd, hdlr, minf].forEach(item => {
       size += item.byteLength
     })
-    return Fmp4.initBox(size, 'mdia', mdhd, hdlr, minf)
+    return FMP4.initBox(size, 'mdia', mdhd, hdlr, minf)
   }
   static mdhd (timescale = 1000, duration) {
     let content = new Uint8Array([
@@ -226,7 +227,7 @@ class Fmp4 {
       0x55, 0xC4, // language: und (undetermined) 媒体语言码。最高位为0，后面15位为3个字符（见ISO 639-2/T标准中定义）
       0x00, 0x00 // pre_defined = 0
     ])
-    return Fmp4.initBox(12 + content.byteLength, 'mdhd', Fmp4.extension(0, 0), content)
+    return FMP4.initBox(12 + content.byteLength, 'mdhd', FMP4.extension(0, 0), content)
   }
   static hdlr (type) {
     let value = [0x00, // version 0
@@ -246,20 +247,20 @@ class Fmp4 {
         0x64, 0x48, 0x61, 0x6e,
         0x64, 0x6c, 0x65, 0x72, 0x00])
     }
-    return Fmp4.initBox(8 + value.length, 'hdlr', new Uint8Array(value))
+    return FMP4.initBox(8 + value.length, 'hdlr', new Uint8Array(value))
   }
   static minf (data) {
     let size = 8
-    let vmhd = data.type === 'video' ? Fmp4.vmhd() : Fmp4.smhd()
-    let dinf = Fmp4.dinf()
-    let stbl = Fmp4.stbl(data);
+    let vmhd = data.type === 'video' ? FMP4.vmhd() : FMP4.smhd()
+    let dinf = FMP4.dinf()
+    let stbl = FMP4.stbl(data);
     [vmhd, dinf, stbl].forEach(item => {
       size += item.byteLength
     })
-    return Fmp4.initBox(size, 'minf', vmhd, dinf, stbl)
+    return FMP4.initBox(size, 'minf', vmhd, dinf, stbl)
   }
   static vmhd () {
-    return Fmp4.initBox(20, 'vmhd', new Uint8Array([
+    return FMP4.initBox(20, 'vmhd', new Uint8Array([
       0x00, // version
       0x00, 0x00, 0x01, // flags
       0x00, 0x00, // graphicsmode
@@ -269,7 +270,7 @@ class Fmp4 {
     ]))
   }
   static smhd () {
-    return Fmp4.initBox(16, 'smhd', new Uint8Array([
+    return FMP4.initBox(16, 'smhd', new Uint8Array([
       0x00, // version
       0x00, 0x00, 0x00, // flags
       0x00, 0x00, // balance
@@ -286,20 +287,20 @@ class Fmp4 {
       0x00, // version 0
       0x00, 0x00, 0x01 // entry_flags
     ]
-    buffer.write(Fmp4.size(36), Fmp4.type('dinf'), Fmp4.size(28), Fmp4.type('dref'), new Uint8Array(dref))
+    buffer.write(FMP4.size(36), FMP4.type('dinf'), FMP4.size(28), FMP4.type('dref'), new Uint8Array(dref))
     return buffer.buffer
   }
   static stbl (data) {
     let size = 8
-    let stsd = Fmp4.stsd(data)
-    let stts = Fmp4.stts()
-    let stsc = Fmp4.stsc()
-    let stsz = Fmp4.stsz()
-    let stco = Fmp4.stco();
+    let stsd = FMP4.stsd(data)
+    let stts = FMP4.stts()
+    let stsc = FMP4.stsc()
+    let stsz = FMP4.stsz()
+    let stco = FMP4.stco();
     [stsd, stts, stsc, stsz, stco].forEach(item => {
       size += item.byteLength
     })
-    return Fmp4.initBox(size, 'stbl', stsd, stts, stsc, stsz, stco)
+    return FMP4.initBox(size, 'stbl', stsd, stts, stsc, stsz, stco)
   }
   static stsd (data) {
     let content
@@ -310,11 +311,11 @@ class Fmp4 {
       //
       // }
       // 支持mp4a
-      content = Fmp4.mp4a(data)
+      content = FMP4.mp4a(data)
     } else {
-      content = Fmp4.avc1(data)
+      content = FMP4.avc1(data)
     }
-    return Fmp4.initBox(16 + content.byteLength, 'stsd', Fmp4.extension(0, 0), new Uint8Array([0x00, 0x00, 0x00, 0x01]), content)
+    return FMP4.initBox(16 + content.byteLength, 'stsd', FMP4.extension(0, 0), new Uint8Array([0x00, 0x00, 0x00, 0x01]), content)
   }
   static mp4a (data) {
     let content = new Uint8Array([
@@ -330,8 +331,8 @@ class Fmp4 {
       data.samplerate & 0xff, //
       0x00, 0x00
     ])
-    let esds = Fmp4.esds(data.config)
-    return Fmp4.initBox(8 + content.byteLength + esds.byteLength, 'mp4a', content, esds)
+    let esds = FMP4.esds(data.config)
+    return FMP4.initBox(8 + content.byteLength + esds.byteLength, 'mp4a', content, esds)
   }
   static esds (config = [43, 146, 8, 0]) {
     const configlen = config.length
@@ -355,30 +356,30 @@ class Fmp4 {
 
       0x05 // descriptor_type
     ].concat([configlen]).concat(config).concat([0x06, 0x01, 0x02]))
-    buffer.write(Fmp4.size(8 + content.byteLength), Fmp4.type('esds'), content)
+    buffer.write(FMP4.size(8 + content.byteLength), FMP4.type('esds'), content)
     return buffer.buffer
   }
   static avc1 (data) {
     let buffer = new Buffer()
     let size = 40// 8(avc1)+8(avcc)+8(btrt)+16(pasp)
-    // let sps = data.sps
-    // let pps = data.pps
+    let sps = data.sps
+    let pps = data.pps
     let width = data.width
     let height = data.height
-    let hSpacing = data.parRatio.height
-    let vSpacing = data.parRatio.width
-    // let avccBuffer = new Buffer()
-    // avccBuffer.write(new Uint8Array([
-    //   0x01, // version
-    //   sps[1], // profile
-    //   sps[2], // profile compatible
-    //   sps[3], // level
-    //   0xfc | 3,
-    //   0xE0 | 1 // 目前只处理一个sps
-    // ].concat([sps.length >>> 8 & 0xff, sps.length & 0xff])))
-    // avccBuffer.write(sps, new Uint8Array([1, pps.length >>> 8 & 0xff, pps.length & 0xff]), pps)
+    let hSpacing = data.pixelRatio[0]
+    let vSpacing = data.pixelRatio[1]
+    let avccBuffer = new Buffer()
+    avccBuffer.write(new Uint8Array([
+      0x01, // version
+      sps[1], // profile
+      sps[2], // profile compatible
+      sps[3], // level
+      0xfc | 3,
+      0xE0 | 1 // 目前只处理一个sps
+    ].concat([sps.length >>> 8 & 0xff, sps.length & 0xff])))
+    avccBuffer.write(sps, new Uint8Array([1, pps.length >>> 8 & 0xff, pps.length & 0xff]), pps)
 
-    let avcc = data.avcc
+    let avcc = avccBuffer.buffer
     let avc1 = new Uint8Array([
       0x00, 0x00, 0x00, // reserved
       0x00, 0x00, 0x00, // reserved
@@ -424,10 +425,10 @@ class Fmp4 {
     ])
 
     buffer.write(
-      Fmp4.size(size + avc1.byteLength + avcc.byteLength + btrt.byteLength), Fmp4.type('avc1'), avc1,
-      Fmp4.size(8 + avcc.byteLength), Fmp4.type('avcC'), avcc,
-      Fmp4.size(20), Fmp4.type('btrt'), btrt,
-      Fmp4.size(16), Fmp4.type('pasp'), pasp
+      FMP4.size(size + avc1.byteLength + avcc.byteLength + btrt.byteLength), FMP4.type('avc1'), avc1,
+      FMP4.size(8 + avcc.byteLength), FMP4.type('avcC'), avcc,
+      FMP4.size(20), FMP4.type('btrt'), btrt,
+      FMP4.size(16), FMP4.type('pasp'), pasp
     )
     return buffer.buffer
   }
@@ -437,7 +438,7 @@ class Fmp4 {
       0x00, 0x00, 0x00, // flags
       0x00, 0x00, 0x00, 0x00 // entry_count
     ])
-    return Fmp4.initBox(16, 'stts', content)
+    return FMP4.initBox(16, 'stts', content)
   }
   static stsc () {
     let content = new Uint8Array([
@@ -445,7 +446,7 @@ class Fmp4 {
       0x00, 0x00, 0x00, // flags
       0x00, 0x00, 0x00, 0x00 // entry_count
     ])
-    return Fmp4.initBox(16, 'stsc', content)
+    return FMP4.initBox(16, 'stsc', content)
   }
   static stco () {
     let content = new Uint8Array([
@@ -453,7 +454,7 @@ class Fmp4 {
       0x00, 0x00, 0x00, // flags
       0x00, 0x00, 0x00, 0x00 // entry_count
     ])
-    return Fmp4.initBox(16, 'stco', content)
+    return FMP4.initBox(16, 'stco', content)
   }
   static stsz () {
     let content = new Uint8Array([
@@ -462,7 +463,7 @@ class Fmp4 {
       0x00, 0x00, 0x00, 0x00, // sample_size
       0x00, 0x00, 0x00, 0x00 // sample_count
     ])
-    return Fmp4.initBox(20, 'stsz', content)
+    return FMP4.initBox(20, 'stsz', content)
   }
   static mvex (duration, timescale = 1000, trackID) {
     let buffer = new Buffer()
@@ -483,21 +484,21 @@ class Fmp4 {
       0x00, 0x00, 0x00, 0x00, // default_sample_size
       0x00, 0x01, 0x00, 0x01 // default_sample_flags
     ])
-    return Fmp4.initBox(8 + content.byteLength, 'trex', content)
+    return FMP4.initBox(8 + content.byteLength, 'trex', content)
   }
   static moof (data) {
     let size = 8
-    let mfhd = Fmp4.mfhd()
-    let traf = Fmp4.traf(data);
+    let mfhd = FMP4.mfhd()
+    let traf = FMP4.traf(data);
     [mfhd, traf].forEach(item => {
       size += item.byteLength
     })
-    return Fmp4.initBox(size, 'moof', mfhd, traf)
+    return FMP4.initBox(size, 'moof', mfhd, traf)
   }
   static mfhd () {
-    let content = Buffer.writeUint32(Fmp4.sequence)
-    Fmp4.sequence += 1
-    return Fmp4.initBox(16, 'mfhd', Fmp4.extension(0, 0), content)
+    let content = Buffer.writeUint32(FMP4.sequence)
+    FMP4.sequence += 1
+    return FMP4.initBox(16, 'mfhd', FMP4.extension(0, 0), content)
   }
   static traf (data) {
     let size = 8
@@ -513,12 +514,12 @@ class Fmp4 {
   }
   static tfhd (id) {
     let content = Buffer.writeUint32(id)
-    return Fmp4.initBox(16, 'tfhd', Fmp4.extension(0, 0), content)
+    return FMP4.initBox(16, 'tfhd', FMP4.extension(0, 0), content)
   }
   static tfdt (time) {
     // let upper = Math.floor(time / (UINT32_MAX + 1)),
     //     lower = Math.floor(time % (UINT32_MAX + 1));
-    return Fmp4.initBox(16, 'tfdt', Fmp4.extension(0, 0), Buffer.writeUint32(time))
+    return FMP4.initBox(16, 'tfdt', FMP4.extension(0, 0), Buffer.writeUint32(time))
   }
   static trun (data, sdtpLength) {
     // let id = data.id;
@@ -536,7 +537,7 @@ class Fmp4 {
     // data-offset 4
     // samples.length
     let offset = Buffer.writeUint32(8 + 8 + 16 + 8 + 16 + 16 + 12 + 4 + 4 + 16 * data.samples.length + sdtpLength)
-    buffer.write(Fmp4.size(20 + 16 * data.samples.length), Fmp4.type('trun'), new Uint8Array([0x00, 0x00, 0x0F, 0x01]), sampleCount, offset)
+    buffer.write(FMP4.size(20 + 16 * data.samples.length), FMP4.type('trun'), new Uint8Array([0x00, 0x00, 0x0F, 0x01]), sampleCount, offset)
 
     // let size = buffer.buffer.byteLength
     // let writeOffset = 0
@@ -576,7 +577,7 @@ class Fmp4 {
   }
   static sdtp (data) {
     let buffer = new Buffer()
-    buffer.write(Fmp4.size(12 + data.samples.length), Fmp4.type('sdtp'), Fmp4.extension(0, 0))
+    buffer.write(FMP4.size(12 + data.samples.length), FMP4.type('sdtp'), FMP4.extension(0, 0))
     data.samples.forEach(item => {
       const flags = item.flags
       const num = (flags.isLeading << 6) | // is_leading: 2 (bit)
@@ -594,24 +595,24 @@ class Fmp4 {
     data.samples.forEach(item => {
       size += item.size
     })
-    buffer.write(Fmp4.size(size), Fmp4.type('mdat'))
+    buffer.write(FMP4.size(size), FMP4.type('mdat'))
     let mdatBox = new Uint8Array(size)
     let offset = 0
     mdatBox.set(buffer.buffer, offset)
     offset += 8
     data.samples.forEach(item => {
       item.buffer.forEach((unit) => {
-        mdatBox.set(unit, offset)
-        offset += unit.byteLength
+        mdatBox.set(unit.data, offset)
+        offset += unit.data.byteLength
         // buffer.write(unit.data);
       })
     })
     return mdatBox
   }
 }
-Fmp4.type = (name) => {
+FMP4.type = cacheWrapper((name) => {
   return new Uint8Array([name.charCodeAt(0), name.charCodeAt(1), name.charCodeAt(2), name.charCodeAt(3)])
-}
-Fmp4.sequence = 1
+})
+FMP4.sequence = 1
 
-export default Fmp4
+export default FMP4

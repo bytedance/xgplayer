@@ -1,7 +1,7 @@
-import Koa from 'koa'
-import Serve from 'koa-static'
-import Cors from '@koa/cors'
-import Range from 'koa-range'
+const Koa = require('koa');
+const Serve = require('koa-static');
+const Cors = require('@koa/cors');
+const Range = require('koa-range');
 
 const app = new Koa()
 app.use(Range)

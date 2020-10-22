@@ -12,12 +12,17 @@
         <img src="https://img.shields.io/badge/commitizen-friendly-brightgreen.svg" alt="commitizen">
     </a>
 </div>
+<br>
 
+English | [简体中文](README.zh-CN.md)
 
 ### Introduction
 
-xgplayer is a web video player library. It has designed a separate, detachable UI component based on the principle that everything is componentized. More importantly, it is not only flexible in the UI layer, but also bold in its functionality: it gets rid of video loading, buffering, and format support for video dependence. Especially on mp4
-it can be staged loading for that does not support streaming mp4. This means seamless switching with clarity, load control, and video savings. It also integrates on-demand and live support for FLV, HLS, and dash. [Document](http://h5player.bytedance.com/en/)
+xgplayer is a web video and audio player library, designed with separate, detachable UI components.  Since everything is componentized. the UI layer is very flexable.  
+xgplayer is bold in its functionality: it gets rid of video loading, buffering, and format support for video dependence.
+For mp4 that does not support streaming, you can use staged loading. This means load control, seamless switching without artifacts, and video bandwidth savings. It also integrates on-demand and live support for FLV, HLS, and dash.
+
+For more details, please read the  [Documentation](http://h5player.bytedance.com/en/).
 
 ### Start
 
@@ -45,7 +50,7 @@ it can be staged loading for that does not support streaming mp4. This means sea
     })
     ```
 
-    This is the easiest way to configure the player, then it runs with video. For more advanced content, see the plug-in section or documentation. [more config](http://h5player.bytedance.com/en/config/)
+    This is the easiest way to configure the video player. For more advanced content, see the plug-in section or documentation. [more config](http://h5player.bytedance.com/en/config/)
 
 
 
@@ -72,13 +77,13 @@ const player = new Player({
 
 ### Mobile Support
 
-xgplayer supports mobile terminal, but android device brand and system are numerous, there are much compatibility problems, the player provides whitelist mechanism to ensure the perfect operation in mobile terminal. [whitelist](http://h5player.bytedance.com/en/config/#whitelist)
+xgplayer supports mobile devices, but android brands and system customizations are numerous. Since there may be compatibility problems, the player provides a whitelist mechanism to ensure perfect operation in mobile devices. [whitelist configuration](http://h5player.bytedance.com/en/config/#whitelist)
 
 
 
 ### Dev
 
-For debugging, we provide the example video resource which size is large in github. You can clone the whole git repository which includes codes and example videos with 'git clone --recurse-submodules -j8'. With 'git clone' you will pull only codes of xgplayer and its plugins.
+For debugging, we provide example video files in github. You can clone the whole git repository, which includes both code and example videos with 'git clone --recurse-submodules -j8'. With 'git clone' you will pull only xgplayer code and its plugins.
 
 ```
 $ git clone --recurse-submodules -j8 git@github.com:bytedance/xgplayer.git # OR git clone git@github.com:bytedance/xgplayer.git
@@ -87,7 +92,7 @@ $ npm install
 $ npm run dev
 ```
 
-please visit [http://localhost:9090/examples/index.html](http://localhost:9090/examples/index.html)
+Then visit [http://localhost:9090/examples/index.html](http://localhost:9090/examples/index.html)
 
 
 ### Agreement
@@ -96,3 +101,7 @@ Welcome to use xgplayer! Please read the following terms carefully. Using xgplay
 1. Xgplayer is licensed under the [MIT](http://opensource.org/licenses/MIT) License. You comply with its obligations by default.
 2. By default, you authorize us to place your logo in xgplayer website, which using xgplayer.
 If you have any problem, please let us know.
+
+
+### Join Us
+We welcome anyone with an interest in web media technology to join! Please contact us at  yinguohui@bytedance.com

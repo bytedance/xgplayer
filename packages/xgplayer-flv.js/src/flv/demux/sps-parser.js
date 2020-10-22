@@ -209,7 +209,7 @@ class SPSParser {
                 fps_num: fps_num
             },
 
-            par_ratio: {
+            sar_ratio: {
                 width: sar_width,
                 height: sar_height
             },

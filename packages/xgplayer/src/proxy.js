@@ -238,9 +238,6 @@ class Proxy {
   get currentSrc () {
     return this.video.currentSrc
   }
-  set currentSrc (src) {
-    this.video.currentSrc = src
-  }
   get currentTime () {
     if(this.video) {
       return this.video.currentTime || 0

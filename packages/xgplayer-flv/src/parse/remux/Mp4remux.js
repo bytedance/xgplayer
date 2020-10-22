@@ -12,6 +12,8 @@ export default class Mp4Remuxer {
   constructor () {
     this._dtsBase = 0
     this._isDtsBaseInited = false
+    this._videoMeta = null
+    this._audioMeta = null
     this._audioNextDts = null
     this._videoNextDts = null
     this._videoSegmentList = new MediaSegmentList('video')
@@ -35,6 +37,8 @@ export default class Mp4Remuxer {
   destroy () {
     this._dtsBase = -1
     this._dtsBaseInited = false
+    this._audioMeta = null
+    this._videoMeta = null
     this._videoNextDts = null
     this._audioNextDts = null
     this._videoSegmentList.clear()
@@ -43,8 +47,7 @@ export default class Mp4Remuxer {
     this._audioSegmentList = null
   }
 
-  remux () {
-    const { audioTrack, videoTrack } = this._context.getInstance('TRACKS')
+  remux (audioTrack, videoTrack) {
     !this._isDtsBaseInited && this.calcDtsBase(audioTrack, videoTrack)
 
     this._remuxVideo(videoTrack)
@@ -185,7 +188,7 @@ export default class Mp4Remuxer {
         if (mp4Samples.length >= 1) { // lastest sample, use second last duration
           sampleDuration = mp4Samples[mp4Samples.length - 1].duration
         } else { // the only one sample, use reference duration
-          sampleDuration = this.videoMeta.refSampleDuration
+          sampleDuration = this._videoMeta.refSampleDuration
         }
       }
 
@@ -197,7 +200,7 @@ export default class Mp4Remuxer {
       // console.log(`video dts ${dts}`, `originDts ${avcSample.originDts}`, `pts ${pts}`, isKeyframe, `duration ${sampleDuration}`)
       mp4Samples.push({
         dts,
-        cts,
+        cps,
         pts,
         data: avcSample.data,
         size: avcSample.data.byteLength,
@@ -296,7 +299,7 @@ export default class Mp4Remuxer {
         if (mp4Samples.length >= 1) { // use second last sample duration
           sampleDuration = mp4Samples[mp4Samples.length - 1].duration
         } else { // the only one sample, use reference sample duration
-          sampleDuration = this.audioMeta.refSampleDuration
+          sampleDuration = this._audioMeta.refSampleDuration
         }
       }
 
@@ -328,8 +331,10 @@ export default class Mp4Remuxer {
         buffer: [],
         size: 0
       }
-      mdatSample.buffer.push(data)
-      mdatSample.size += data.byteLength
+      mdatSample.buffer.push({
+        data: unit
+      })
+      mdatSample.size += unit.byteLength
 
       mdatBox.samples.push(mdatSample)
 
@@ -383,20 +388,13 @@ export default class Mp4Remuxer {
     return {
       dts,
       pts: dts,
-      cts: 0,
+      cps: 0,
       duration,
       unit,
       size: unit.byteLength,
       originDts: dts,
       type: 'video'
     }
-  }
-
-  get videoMeta () {
-    return this._context.getInstance('TRACKS').videoTrack.meta
-  }
-  get audioMeta () {
-    return this._context.getInstance('TRACKS').audioTrack.meta
   }
 
   static getSilentFrame (channelCount) {

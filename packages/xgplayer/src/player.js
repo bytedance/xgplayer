@@ -6,6 +6,7 @@ import Errors from './error'
 import Draggabilly from 'draggabilly'
 import {getAbsoluteURL} from './utils/url'
 import downloadUtil from 'downloadjs'
+import allOff from 'event-emitter/all-off'
 
 import {
   version
@@ -326,7 +327,7 @@ class Player extends Proxy {
         delete this[k]
         // }
       }
-      this.off('pause', destroyFunc)
+      allOff(this)
     }
 
     if (!this.paused) {
@@ -459,6 +460,8 @@ class Player extends Proxy {
           if (['pc', 'tablet', 'mobile'].some(type => type === name)) {
             if (name === sniffer.device) {
               setTimeout(() => {
+                // if destroyed, skip
+                if (!self.video) return;
                 descriptor.call(self, self)
               }, 0)
             }
