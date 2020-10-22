@@ -224,6 +224,10 @@ class Playlist {
     this._lastget = undefined;
     this._audoclear = false;
   }
+
+  resetSequence () {
+    this.sequence = -1
+  }
 }
 
 export default Playlist;
