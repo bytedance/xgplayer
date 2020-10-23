@@ -124,6 +124,11 @@ const pluginsManager = {
     }
   },
 
+  /**
+   * Unregister a plugin from player instance
+   * @param {String} cgid
+   * @param {String} name
+   */
   unRegister (cgid, name) {
     try {
       this.pluginGroup[cgid]._plugins[name].__destroy()
@@ -131,6 +136,16 @@ const pluginsManager = {
     } catch (e) {
       this.pluginGroup[cgid]._plugins[name] = null
     }
+  },
+
+  /**
+   * remove a plugin instance from the player plugin list
+   * @param {Object} player
+   * @param {String} name
+   */
+  deletePlugin (player, name) {
+    const cgid = player._pluginInfoId
+    cgid && this.pluginGroup[cgid] && (this.pluginGroup[cgid]._plugins[name] = null)
   },
 
   /**

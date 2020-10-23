@@ -76,7 +76,7 @@ class MiniScreen extends Plugin {
           }
         }
       }
-      this.miniIcon = player.controls.registerPlugin(MiniScreenIcon, options, MiniScreenIcon.pluginName)
+      player.controls.registerPlugin(MiniScreenIcon, options, MiniScreenIcon.pluginName)
     }
     this.bind('.mini-cancel-btn', 'click', this.onCancelClick)
     this.bind('.play-icon', 'click', this.onCenterClick)

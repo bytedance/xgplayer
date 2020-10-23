@@ -6,6 +6,10 @@ import pluginsManager from './pluginsManager'
 import BasePlugin, {Util, DEBUG} from './basePlugin'
 import * as delegate from 'delegate-events'
 
+/**
+ * Check if the url is a link address
+ * @param {String} str
+ */
 function isUrl (str) {
   if (!str) {
     return false;
@@ -258,8 +262,7 @@ export default class Plugin extends BasePlugin {
           options.config = config
           config.index !== undefined && (options.index = config.index)
           config.root && (options.root = config.root)
-          const c = this.registerPlugin(Plugin, options, name)
-          this._children.push(c)
+          this.registerPlugin(Plugin, options, name)
         }
       }
     }
@@ -466,7 +469,13 @@ export default class Plugin extends BasePlugin {
   }
 
   __destroy () {
-    super.__destroy();
+    // destroy the sub-plugin instance
+    if (this._children instanceof Array) {
+      this._children.map(item => {
+        item.__destroy()
+      })
+      this._children = null
+    }
     if (this.root) {
       if (this.root.hasOwnProperty('remove')) {
         this.root.remove()
@@ -474,11 +483,14 @@ export default class Plugin extends BasePlugin {
         this.root.parentNode.removeChild(this.root)
       }
     }
+
     ['root', 'parent'].map(item => {
       Object.defineProperty(this, item, {
         writable: true
       });
     })
+
+    super.__destroy();
   }
 }
 
