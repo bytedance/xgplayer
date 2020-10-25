@@ -208,12 +208,14 @@ export default class Plugin extends BasePlugin {
       'root': {
         get: () => {
           return _el
-        }
+        },
+        configurable: true
       },
       'parent': {
         get: () => {
           return _parent
-        }
+        },
+        configurable: true
       }
     })
 
