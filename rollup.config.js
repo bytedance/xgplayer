@@ -14,6 +14,7 @@ const defaultRollup = {
   name: 'Player',
   sourcemap: true,
   production: false,
+  exports: undefined,
   external: [],
   plugins: [],
   globals: {},
@@ -34,7 +35,7 @@ const commonRollup = function (config = {}) {
         format: 'umd',
         sourcemap: rollupConfig.sourcemap,
         globals: rollupConfig.globals,
-        exports: 'named'
+        exports: rollupConfig.exports || undefined
       }
     ],
     external: rollupConfig.external,
