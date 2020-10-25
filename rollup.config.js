@@ -33,7 +33,8 @@ const commonRollup = function (config = {}) {
         name: rollupConfig.name,
         format: 'umd',
         sourcemap: rollupConfig.sourcemap,
-        globals: rollupConfig.globals
+        globals: rollupConfig.globals,
+        exports: 'named'
       }
     ],
     external: rollupConfig.external,
