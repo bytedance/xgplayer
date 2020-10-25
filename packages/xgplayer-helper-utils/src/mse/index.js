@@ -116,26 +116,6 @@ class MSE {
     this._doCleanupSourceBuffer()
     let sources = this._context.getInstance('PRE_SOURCE_BUFFER');
     if (!sources) return;
-    if (Object.keys(this.sourceBuffers).length < this.sourceBufferLen) {
-      if (this.sourceBufferLen < 2) return;
-      if (sources.sources.video && (sources.sources.video.bufferDuration > 2000)) {
-        this._context.mediaInfo.hasAudio = false;
-        this.noaudio = true
-        if (this.sourceBuffers.audio) {
-          this.mediaSource.removeSourceBuffer(this.sourceBuffers.audio)
-          delete this.sourceBuffers.audio
-        }
-      } else if (sources.sources.audio && (sources.sources.audio.bufferDuration > 2000)) {
-        this._context.mediaInfo.hasVideo = false;
-        this.novideo = true
-        if (this.sourceBuffers.video) {
-          this.mediaSource.removeSourceBuffer(this.sourceBuffers.video)
-          delete this.sourceBuffers.video
-        }
-      } else {
-        return;
-      }
-    }
     for (let i = 0; i < Object.keys(this.sourceBuffers).length; i++) {
       let type = Object.keys(this.sourceBuffers)[i]
       let sourceBuffer = this.sourceBuffers[type];
