@@ -184,7 +184,12 @@ class FlvPlayer extends BasePlugin {
 
   _destroy () {
     if (!this.context) return Promise.resolve()
+    if (this.flv && this.flv._context) {
+      const loader = this.flv._context.getInstance('FETCH_LOADER')
+      loader && loader.cancel()
+    }
     return this.flv.mse.destroy().then(() => {
+      if (!this.context) return
       this.context.destroy()
       this.flv = null
       this.context = null
@@ -202,6 +207,7 @@ class FlvPlayer extends BasePlugin {
   }
 
   switchURL (url) {
+    this.played = false
     this.player.currentTime = 0;
     this.player.config.url = url;
     const context = new Context(flvAllowedEvents);
