@@ -51,7 +51,7 @@ export default class OptionsIcon extends Plugin {
       if (!this.isActive) {
         return
       }
-      this.optionsPlugin && this.optionsPlugin.hide()
+      this.optionsList && this.optionsList.hide()
       this.isActive = false
     })
     this.activeEvent = IS_MOBILE ? 'touchend' : 'mouseenter'
@@ -107,10 +107,10 @@ export default class OptionsIcon extends Plugin {
     const {listType} = this.config
     if (isActive) {
       listType === 'rightSide' ? controls.blur() : controls.focus()
-      this.optionsPlugin && this.optionsPlugin.show()
+      this.optionsList && this.optionsList.show()
     } else {
       listType === 'rightSide' ? controls.focus() : controls.unFocus()
-      this.optionsPlugin && this.optionsPlugin.hide()
+      this.optionsList && this.optionsList.hide()
     }
     this.isActive = isActive
   }
@@ -135,14 +135,14 @@ export default class OptionsIcon extends Plugin {
   }
 
   renderItemList (itemList, curIndex) {
-    const {config, optionsPlugin, player} = this
+    const {config, optionsList, player} = this
     if (typeof curIndex === 'number') {
       this.curIndex = curIndex
       this.curItem = config.list[curIndex]
     }
 
-    if (optionsPlugin) {
-      optionsPlugin.renderItemList(itemList)
+    if (optionsList) {
+      optionsList.renderItemList(itemList)
       this.changeCurrentText()
       return
     }
@@ -158,7 +158,7 @@ export default class OptionsIcon extends Plugin {
       root: config.listType === 'rightSide' ? player.root : this.root
     }
 
-    this.optionsPlugin = new OptionList(options)
+    this.optionsList = new OptionList(options)
     this.changeCurrentText()
     this.show()
   }
@@ -166,7 +166,10 @@ export default class OptionsIcon extends Plugin {
   destroy () {
     this.unbind(this.activeEvent, this.onToggle)
     this.unbind('mouseleave', this.onToggle)
-    this.optionsPlugin && this.optionsPlugin.destroy()
+    if (this.optionsList) {
+      this.optionsList.destroy()
+      this.optionsList = null
+    }
   }
 
   render () {

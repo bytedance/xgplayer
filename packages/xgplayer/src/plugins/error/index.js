@@ -40,7 +40,7 @@ export default class ErrorPlugin extends Plugin {
   }
 
   destroy () {
-    this.unbind('.xgplayer-error-refresh', 'click', this.errorRetry)
+    this.unbind('.xgplayer-error-refresh', 'click', this.clickHandler)
   }
 
   render () {

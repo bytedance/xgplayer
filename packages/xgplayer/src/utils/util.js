@@ -142,6 +142,7 @@ util.format = function (time) {
   if (window.isNaN(time)) {
     return ''
   }
+  time = Math.round(time)
   let hour = util.padStart(Math.floor(time / 3600), 2, 0)
   let minute = util.padStart(Math.floor((time - hour * 3600) / 60), 2, 0)
   let second = util.padStart(Math.floor((time - hour * 3600 - minute * 60)), 2, 0)

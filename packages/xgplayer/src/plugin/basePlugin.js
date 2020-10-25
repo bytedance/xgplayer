@@ -3,6 +3,7 @@ import Sniffer from '../utils/sniffer'
 import Errors from '../error'
 import * as Events from '../events'
 import DEBUG from '../utils/debug'
+import pluginsManager from './pluginsManager'
 
 class BasePlugin {
   static defineGetterOrSetter (Obj, map) {
@@ -40,9 +41,9 @@ class BasePlugin {
       'pluginName': {
         get: () => {
           if (args.pluginName) {
-            return args.pluginName
+            return args.pluginName.toLowerCase()
           } else {
-            return this.constructor.pluginName
+            return this.constructor.pluginName.toLowerCase()
           }
         },
         configurable: true
@@ -119,6 +120,9 @@ class BasePlugin {
     if (Util.checkIsFunction(this.destroy)) {
       this.destroy();
     }
+
+    pluginsManager.deletePlugin(this.player, this.pluginName);
+
     ['player', 'playerConfig', 'pluginName', 'logger'].map(item => {
       Object.defineProperty(this, item, {
         writable: true
