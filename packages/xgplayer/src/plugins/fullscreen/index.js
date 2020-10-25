@@ -51,7 +51,7 @@ export default class Fullscreen extends Plugin {
           config: {
             onClick: (e) => {
               this.show()
-              this.btnClick(e)
+              this.fullSreenHandler(e)
             }
           }
         }

@@ -4,6 +4,7 @@ import Sniffer from './utils/sniffer'
 import Database from './utils/database'
 import Errors from './error'
 import * as Events from './events'
+import {FULLSCREEN_EVENTS, GET_FULLSCREEN_API, EXIT_FULLSCREEN_API} from './constant'
 import Plugin, {pluginsManager, BasePlugin} from './plugin'
 import STATE_CLASS from './stateClassMap'
 import getDefaultConfig from './defaultConfig'
@@ -15,8 +16,6 @@ import {
   version
 } from '../package.json'
 import I18N from './lang'
-
-const FULLSCREEN_EVENTS = ['fullscreenchange', 'webkitfullscreenchange', 'mozfullscreenchange', 'MSFullscreenChange']
 
 class Player extends Proxy {
   static get I18N () {
@@ -571,37 +570,45 @@ class Player extends Proxy {
       root.removeAttribute('style')
     }
     this._fullscreenEl = el
-    if (el.requestFullscreen) {
-      el.requestFullscreen()
-    } else if (el.mozRequestFullScreen) {
-      el.mozRequestFullScreen()
-    } else if (el.webkitRequestFullscreen) {
-      el.webkitRequestFullscreen(window.Element.ALLOW_KEYBOARD_INPUT)
-    } else if (video.webkitSupportsFullscreen) {
-      video.webkitEnterFullscreen()
-    } else if (el.msRequestFullscreen) {
-      el.msRequestFullscreen()
-    } else {
-      this.addClass(STATE_CLASS.CSS_FULLSCREEN)
+    for (let i = 0; i < GET_FULLSCREEN_API.length; i++) {
+      const key = GET_FULLSCREEN_API[i]
+      if (el[key]) {
+        const ret = key === 'webkitRequestFullscreen' ? el.webkitRequestFullscreen(window.Element.ALLOW_KEYBOARD_INPUT) : el[key]()
+        if (ret && ret.then) {
+          return ret
+        } else {
+          return Promise.resolve()
+        }
+      }
     }
+    if (video.fullscreenEnabled || video.webkitSupportsFullscreen) {
+      video.webkitEnterFullscreen()
+      return Promise.resolve()
+    }
+    return Promise.reject(new Error('call getFullscreen fail'))
   }
 
   exitFullscreen (el) {
-    const {root} = this
+    const {root, video} = this
     if (el) {
       el = root
     }
-    if (document.exitFullscreen) {
-      document.exitFullscreen()
-    } else if (document.webkitExitFullscreen) {
-      document.webkitExitFullscreen()
-    } else if (document.mozCancelFullScreen) {
-      document.mozCancelFullScreen()
-    } else if (document.msExitFullscreen) {
-      document.msExitFullscreen()
-    } else {
-      this.removeClass(STATE_CLASS.CSS_FULLSCREEN)
+    for (let i = 0; i < EXIT_FULLSCREEN_API.length; i++) {
+      const key = EXIT_FULLSCREEN_API[i]
+      if (document[key]) {
+        const ret = document[key]()
+        if (ret && ret.then) {
+          return ret
+        } else {
+          return Promise.resolve()
+        }
+      }
     }
+    if (video && video.webkitSupportsFullscreen) {
+      video.webkitExitFullScreen()
+      return Promise.resolve()
+    }
+    return Promise.reject(new Error('call exitFullscreen fail'))
   }
 
   getCssFullscreen () {
