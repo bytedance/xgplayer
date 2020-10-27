@@ -1,4 +1,5 @@
-import Plugin from '../../plugin'
+import Plugin, {Util, Events} from '../../plugin'
+
 const defaultDot = {
   time: 10, // 出现的时间点
   text: '', // hover显示的文案
@@ -7,7 +8,6 @@ const defaultDot = {
   color: '#fff' // 颜色
 }
 
-const {Util, Events} = Plugin
 export default class ProgressDot extends Plugin {
   static get pluginName () {
     return 'progressDots'

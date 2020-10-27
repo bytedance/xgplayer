@@ -1,9 +1,7 @@
-import Plugin, {hooksDescriptor} from '../../plugin'
+import Plugin, {hooksDescriptor, Events, POSITIONS, Sniffer} from '../../plugin'
 import TopBackIcon from './backicon'
 import FullScreenSvg from '../assets/requestFull.svg'
 import ExitFullScreenSvg from '../assets/exitFull.svg'
-
-const {Events, POSITIONS, Sniffer} = Plugin
 
 export default class Fullscreen extends Plugin {
   static get pluginName () {

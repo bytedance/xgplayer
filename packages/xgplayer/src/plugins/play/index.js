@@ -1,8 +1,6 @@
-import Plugin from '../../plugin'
+import Plugin, {Events, POSITIONS} from '../../plugin'
 import PlaySvg from '../assets/play.svg'
 import PauseSvg from '../assets/pause.svg'
-
-const {Events, POSITIONS} = Plugin
 
 class Play extends Plugin {
   static get pluginName () {

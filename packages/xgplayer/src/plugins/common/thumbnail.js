@@ -1,7 +1,5 @@
 /* eslint-disable camelcase */
-import Plugin from '../../plugin'
-
-const {Util} = Plugin
+import Plugin, {Util} from '../../plugin'
 
 export default class Thumbnail extends Plugin {
   static get pluginName () {

@@ -1,9 +1,7 @@
-import Plugin from '../../plugin'
+import Plugin, {Events, Util, POSITIONS, Sniffer} from '../../plugin'
 import ProgressDots from './progressdots'
 import Thumbnail from '../common/thumbnail'
 import InnerList from './innerList'
-
-const {Events, Util, POSITIONS, Sniffer} = Plugin
 
 /**
  * 进度条组件

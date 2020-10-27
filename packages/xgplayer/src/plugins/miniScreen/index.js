@@ -1,9 +1,7 @@
-import Plugin from '../../plugin'
+import Plugin, {Util, Events} from '../../plugin'
 import PlayIcon from '../assets/play.svg'
 import PauseIcon from '../assets/pause.svg'
 import MiniScreenIcon from './miniScreenIcon'
-
-const {Util, Events} = Plugin
 
 class MiniScreen extends Plugin {
   static get pluginName () {

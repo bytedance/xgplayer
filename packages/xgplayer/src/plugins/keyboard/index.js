@@ -1,4 +1,4 @@
-import BasePlugin from '../../plugin/basePlugin'
+import {BasePlugin} from '../../plugin'
 
 class Keyboard extends BasePlugin {
   static get pluginName () {

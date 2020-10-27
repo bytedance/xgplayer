@@ -1,6 +1,4 @@
-import Plugin from '../../plugin'
-
-const {POSITIONS} = Plugin
+import Plugin, {POSITIONS} from '../../plugin'
 
 const DANMU_OPEN = `<dk-switch class="danmu-switch">
 <span class="txt">弹</span>

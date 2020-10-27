@@ -1,7 +1,6 @@
-import Plugin from '../../plugin'
+import Plugin, {Events, Util} from '../../plugin'
 import Thumbnail from '../common/thumbnail'
 
-const {Events, Util} = Plugin
 const ACTIONS = {AUTO: 'auto', SEEKING: 'seeking'}
 
 class MobilePlugin extends Plugin {

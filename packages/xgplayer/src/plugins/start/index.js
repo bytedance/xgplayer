@@ -1,7 +1,6 @@
-import Plugin, {hooksDescriptor} from '../../plugin'
+import Plugin, {hooksDescriptor, Util, Events} from '../../plugin'
 import PlaySvg from '../assets/play.svg'
 import PauseSvg from '../assets/pause.svg'
-const { Util, Events } = Plugin
 
 const AnimateMap = {}
 function addAnimate (key, seconds, callback = {start: null, end: null}) {

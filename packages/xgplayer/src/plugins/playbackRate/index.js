@@ -1,8 +1,5 @@
-import Plugin from '../../plugin'
+import {Events, POSITIONS} from '../../plugin'
 import OptionsIcon from '../common/optionsIcon'
-import { Events } from '../../plugin/basePlugin'
-
-const {POSITIONS} = Plugin
 
 export default class PlaybackRate extends OptionsIcon {
   static get pluginName () {

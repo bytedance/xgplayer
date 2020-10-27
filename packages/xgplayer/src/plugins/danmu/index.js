@@ -1,9 +1,8 @@
 import DanmuJs from 'danmu.js'
-import Plugin from '../../plugin'
+import Plugin, {Events} from '../../plugin'
 import DanmuPanel from './danmuPanel'
 import DanmuIcon from './danmuIcon'
 
-const {Events} = Plugin
 const MIN_INTERVAL = 300
 
 class Danmu extends Plugin {

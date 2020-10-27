@@ -1,5 +1,5 @@
-import BasePlugin from '../../plugin/basePlugin';
-const {Util} = BasePlugin
+import {BasePlugin, Util} from '../../plugin';
+
 export default class PCPlugin extends BasePlugin {
   static get pluginName () {
     return 'pc'

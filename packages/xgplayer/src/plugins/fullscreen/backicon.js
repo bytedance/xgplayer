@@ -1,7 +1,5 @@
-import Plugin from '../../plugin'
+import Plugin, {POSITIONS, Util} from '../../plugin'
 import BackSVG from '../assets/back.svg'
-
-const {POSITIONS, Util} = Plugin
 
 export default class TopBackIcon extends Plugin {
   static get pluginName () {

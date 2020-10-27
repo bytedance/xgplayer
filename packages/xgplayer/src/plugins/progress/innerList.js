@@ -1,5 +1,4 @@
-import Plugin from '../../plugin'
-const {Util} = Plugin
+import {Util} from '../../plugin'
 
 const TPL = [
   {tag: 'xg-cache', className: 'xgplayer-progress-cache', styleKey: 'cachedColor'},

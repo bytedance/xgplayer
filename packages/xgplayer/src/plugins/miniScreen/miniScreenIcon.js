@@ -1,6 +1,4 @@
-import Plugin from '../../plugin'
-
-const {POSITIONS} = Plugin
+import Plugin, {POSITIONS} from '../../plugin'
 
 class MiniScreenIcon extends Plugin {
   static get pluginName () {

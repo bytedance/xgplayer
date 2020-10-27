@@ -1,7 +1,6 @@
-import Plugin from '../../plugin'
+import Plugin, {Sniffer, Util, POSITIONS} from '../../plugin'
 import PanelIcon from '../assets/panel.svg'
 
-const {Sniffer, Util, POSITIONS} = Plugin
 class DanmuPanel extends Plugin {
   static get pluginName () {
     return 'danmuPanel'

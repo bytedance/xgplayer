@@ -1,7 +1,6 @@
 import downloadUtil from 'downloadjs'
-import Plugin from '../../plugin'
+import Plugin, {POSITIONS} from '../../plugin'
 import DownloadSvg from '../assets/download.svg'
-const {POSITIONS} = Plugin
 
 export default class Download extends Plugin {
   static get pluginName () {

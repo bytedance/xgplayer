@@ -1,7 +1,5 @@
-import Plugin from '../../plugin'
+import Plugin, {POSITIONS} from '../../plugin'
 import RotateSvg from '../assets/rotate.svg'
-
-const {POSITIONS} = Plugin
 
 export default class Rotate extends Plugin {
   static get pluginName () {

@@ -1,6 +1,5 @@
+import Plugin, {POSITIONS} from '../../plugin/plugin';
 import loadingIcon from '../assets/loading.svg';
-import Plugin from '../../plugin/plugin';
-const {POSITIONS} = Plugin;
 
 class Loading extends Plugin {
   static get pluginName () {
