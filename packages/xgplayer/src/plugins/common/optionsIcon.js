@@ -1,8 +1,7 @@
 
-import Plugin from '../../plugin'
+import Plugin, {Events, Util, Sniffer, POSITIONS} from '../../plugin'
 import OptionList from './optionList'
 
-const {Events, Util, Sniffer, POSITIONS} = Plugin
 const IS_MOBILE = Sniffer.device === 'mobile'
 export default class OptionsIcon extends Plugin {
   static get pluginName () {

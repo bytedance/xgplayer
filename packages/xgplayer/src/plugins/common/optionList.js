@@ -1,6 +1,4 @@
-import Plugin from '../../plugin'
-
-const { Util, Sniffer } = Plugin
+import Plugin, { Util, Sniffer } from '../../plugin'
 
 export default class OptionList {
   constructor (args) {

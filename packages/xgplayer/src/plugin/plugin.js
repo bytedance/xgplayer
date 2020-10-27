@@ -105,7 +105,7 @@ function registerTextObj (textConfig, plugin) {
   })
 }
 
-export default class Plugin extends BasePlugin {
+class Plugin extends BasePlugin {
   /**
     * 插入dom结构
     * @param {String | Element} html html字符串或者dom
@@ -256,7 +256,7 @@ export default class Plugin extends BasePlugin {
             config = this.config[name] || {}
             Plugin = _plugin
           } else if (typeof _plugin === 'object' && typeof _plugin.plugin === 'function') {
-            config = _plugin.options ? BasePlugin.Util.deepCopy((this.config[name] || {}), _plugin.options) : (this.config[name] || {})
+            config = _plugin.options ? Util.deepCopy((this.config[name] || {}), _plugin.options) : (this.config[name] || {})
             Plugin = _plugin.plugin
           }
           options.config = config
@@ -494,12 +494,12 @@ export default class Plugin extends BasePlugin {
   }
 }
 
-Plugin.ROOT_TYPES = {
+const ROOT_TYPES = {
   CONTROLS: 'controls',
   ROOT: 'root'
 }
 
-Plugin.POSITIONS = {
+const POSITIONS = {
   ROOT: 'root',
   ROOT_LEFT: 'rootLeft',
   ROOT_RIGHT: 'rootRight',
@@ -508,4 +508,13 @@ Plugin.POSITIONS = {
   CONTROLS_RIGTH: 'controlsRight',
   CONTROLS_CENTER: 'controlsCenter',
   CONTROLS: 'controls'
+}
+
+Plugin.POSITIONS = POSITIONS
+Plugin.ROOT_TYPES = ROOT_TYPES
+
+export {
+  Plugin as default,
+  ROOT_TYPES,
+  POSITIONS
 }

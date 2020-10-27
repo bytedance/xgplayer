@@ -1,6 +1,5 @@
-import Plugin from '../../plugin'
+import Plugin, { POSITIONS } from '../../plugin'
 
-const { POSITIONS } = Plugin
 export default class ScreenShot extends Plugin {
   static get pluginName () {
     return 'screenShot'

@@ -1,10 +1,9 @@
 /**
  * 下一个按钮组件
  */
-import Plugin from '../../plugin'
+import Plugin, {POSITIONS, Sniffer} from '../../plugin'
 import Next from '../assets/playNext.svg'
 
-const {POSITIONS, Sniffer} = Plugin
 export default class PlayNextIcon extends Plugin {
   static get pluginName () {
     return 'playNext'

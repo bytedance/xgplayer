@@ -1,6 +1,6 @@
+import { Events, POSITIONS, Util } from '../../plugin'
 import OptionsIcon from '../common/optionsIcon'
 
-const { Events, POSITIONS, Util } = OptionsIcon
 export default class DefinitionIcon extends OptionsIcon {
   static get pluginName () {
     return 'definition'

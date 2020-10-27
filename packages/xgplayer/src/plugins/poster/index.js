@@ -1,5 +1,4 @@
-import Plugin from '../../plugin'
-const {Events, Util} = Plugin
+import Plugin, {Events, Util} from '../../plugin'
 
 class Poster extends Plugin {
   static get pluginName () {

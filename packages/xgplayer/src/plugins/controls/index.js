@@ -1,8 +1,4 @@
-import Plugin from '../../plugin'
-import util from '../../utils/util'
-import STATE_CLASS from '../../stateClassMap'
-
-const {Events, Util, POSITIONS, Sniffer} = Plugin
+import Plugin, {Events, Util, POSITIONS, Sniffer, STATE_CLASS} from '../../plugin'
 
 class Controls extends Plugin {
   static get pluginName () {
@@ -50,7 +46,7 @@ class Controls extends Plugin {
       isMini ? Util.addClass(this.root, 'mini-controls') : Util.removeClass(this.root, 'mini-controls')
     })
 
-    this.bind(['click', 'touchend'], util.stopPropagation)
+    this.bind(['click', 'touchend'], Util.stopPropagation)
   }
 
   focus () {
@@ -101,7 +97,7 @@ class Controls extends Plugin {
   }
 
   destroy () {
-    this.unbind(['click', 'touchend'], util.stopPropagation)
+    this.unbind(['click', 'touchend'], Util.stopPropagation)
   }
 
   render () {

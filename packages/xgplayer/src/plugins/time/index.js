@@ -1,6 +1,4 @@
-import Plugin from '../../plugin'
-
-const { Util, Events, POSITIONS } = Plugin
+import Plugin, { Util, Events, POSITIONS } from '../../plugin'
 
 class Time extends Plugin {
   static get pluginName () {

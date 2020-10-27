@@ -1,6 +1,4 @@
-import Plugin from '../../plugin'
-
-const {Events, POSITIONS} = Plugin
+import Plugin, {Events, POSITIONS} from '../../plugin'
 
 /**
  * @description picture-in-picture plugin

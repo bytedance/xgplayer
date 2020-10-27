@@ -1,8 +1,6 @@
-import Plugin from '../../plugin'
+import Plugin, {Events, POSITIONS} from '../../plugin'
 import CssFullSceenSvg from '../assets/requestCssFull.svg'
 import ExitCssFullSceenSvg from '../assets/exitCssFull.svg'
-
-const {Events, POSITIONS} = Plugin
 
 export default class CssFullScreen extends Plugin {
   static get pluginName () {

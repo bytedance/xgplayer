@@ -1,6 +1,5 @@
-import Plugin from '../../plugin';
+import Plugin, {Util} from '../../plugin';
 
-const {Util} = Plugin
 class Enter extends Plugin {
   static get pluginName () {
     return 'enter';

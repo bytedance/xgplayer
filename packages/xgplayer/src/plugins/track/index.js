@@ -1,4 +1,4 @@
-import BasePlugin from '../../plugin/basePlugin';
+import { BasePlugin } from '../../plugin';
 
 export default class TextTrackPlugin extends BasePlugin {
   static get pluginName () {

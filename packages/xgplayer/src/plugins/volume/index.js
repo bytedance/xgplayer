@@ -1,9 +1,7 @@
-import Plugin, {hooksDescriptor} from '../../plugin'
+import Plugin, {hooksDescriptor, Util, Events, Sniffer, POSITIONS} from '../../plugin'
 import volumeLargeSvg from '../assets/volumeLarge.svg'
 import volumeSmallSvg from '../assets/volumeSmall.svg'
 import volumeMutedSvg from '../assets/volumeMuted.svg'
-
-const {Util, Events, Sniffer, POSITIONS} = Plugin
 
 class Volume extends Plugin {
   static get pluginName () {

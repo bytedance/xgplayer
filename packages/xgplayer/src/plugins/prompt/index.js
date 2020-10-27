@@ -1,5 +1,4 @@
-import Plugin, {STATE_CLASS} from '../../plugin'
-const {Util} = Plugin
+import Plugin, {STATE_CLASS, Util} from '../../plugin'
 
 /**
  * 消息组件
