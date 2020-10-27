@@ -35,7 +35,7 @@ const commonRollup = function (config = {}) {
         format: 'umd',
         sourcemap: rollupConfig.sourcemap,
         globals: rollupConfig.globals,
-        exports: rollupConfig.exports || undefined
+        exports: rollupConfig.exports || 'auto'
       }
     ],
     external: rollupConfig.external,
