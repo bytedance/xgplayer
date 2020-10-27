@@ -19,10 +19,6 @@ import {
 import I18N from './lang'
 
 class Player extends Proxy {
-  static get I18N () {
-    return I18N
-  }
-
   constructor (options) {
     super(options)
     hooksDescriptor(this)
@@ -897,6 +893,8 @@ Player.Errors = Errors
 Player.Events = Events
 Player.Plugin = Plugin
 Player.BasePlugin = BasePlugin
+Player.I18N = I18N
+
 export {
   Player as default,
   BasePlugin,
