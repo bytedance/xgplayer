@@ -904,5 +904,7 @@ export {
   Events,
   Errors,
   Sniffer,
-  Util
+  Util,
+  STATE_CLASS,
+  I18N
 }
