@@ -5,6 +5,7 @@ const svg = require('rollup-plugin-svg-import');
 module.exports = commonRollup({
   name: 'Player',
   uglify: uglify,
+  input: 'src/index-umd.js',
   babel: {
     runtimeHelpers: true,
     plugins: [
