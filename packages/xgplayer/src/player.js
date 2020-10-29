@@ -475,11 +475,12 @@ class Player extends Proxy {
     if (!this.video || isNaN(Number(time))) {
       return
     }
+    const {isSeekedPlay} = this.config
     time = time < 0 ? 0 : time > this.duration ? parseInt(this.duration, 10) : time
     this.once(Events.CANPLAY, () => {
       this.removeClass(STATE_CLASS.ENTER)
       this.isSeeking = false
-      if (this.paused) {
+      if (isSeekedPlay && this.paused) {
         this.play()
       }
     })
@@ -487,7 +488,7 @@ class Player extends Proxy {
       this.removeClass(STATE_CLASS.NO_START)
       this.addClass(STATE_CLASS.ENTER)
       this.currentTime = time
-      this.play()
+      isSeekedPlay && this.play()
     } else {
       this.currentTime = time
     }
