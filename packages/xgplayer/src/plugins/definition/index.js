@@ -115,16 +115,15 @@ export default class DefinitionIcon extends OptionsIcon {
         if (item === 'hlsjs') {
           curRUL.href = player[item].originUrl || player[item].url
         }
-        curRUL = null
         return false
       } else {
-        curRUL = null
         return true
       }
     })
     if (lastATag && curRUL.href !== lastATag.url && !player.ended) {
       player.switchURL(lastATag.url)
     }
+    curRUL = null
   }
 
   // 对外暴露 切换清晰度
