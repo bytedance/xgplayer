@@ -21,12 +21,11 @@ function getHandler (eventName, player) {
       player._duration = player.video.duration
     }
 
+    player[funName] && typeof player[funName] === 'function' && player[funName](e)
     if (eventKey === 'error') {
       player.errorHandler(eventKey)
-      player[funName] && typeof player[funName] === 'function' && player[funName](e)
     } else {
       player.emit(eventKey, e)
-      player[funName] && typeof player[funName] === 'function' && player[funName](e)
     }
   }
 }
