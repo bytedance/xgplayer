@@ -468,6 +468,8 @@ class Plugin extends BasePlugin {
     return ''
   }
 
+  destroy () {}
+
   __destroy () {
     // destroy the sub-plugin instance
     if (this._children instanceof Array) {
@@ -484,13 +486,13 @@ class Plugin extends BasePlugin {
       }
     }
 
+    super.__destroy();
+
     ['root', 'parent'].map(item => {
       Object.defineProperty(this, item, {
         writable: true
       });
     })
-
-    super.__destroy();
   }
 }
 
