@@ -3,36 +3,27 @@
 }
 .xgplayer {
   .xgplayer-replay {
-    position: absolute;
-    left: 0;
-    top: 0;
-    width: 100%;
-    height: 100%;
-    z-index: 89;
     display: none;
-    justify-content: center;
-    align-items: center;
-    background: rgba(0, 0, 0, 0.54);
-    flex-direction: column;
-    svg{
-      background: rgba(0,0,0,0.58);
-      border-radius: 100%;
-      cursor: pointer;
-      path{
-        fill: #ddd;
-      }
-      &:hover{
-        background: rgba(0, 0, 0, .38);
-        path {
-          fill: #fff;
-        }
-      }
+    position: absolute;
+    left: 50%;
+    top: 50%;
+    transform: translate(-50%, -50%);
+    z-index: 89;
+    background: rgba(0,0,0,0.38);
+    border-radius: 100%;
+    cursor: pointer;
+    &:hover{
+      background: rgba(0, 0, 0, .58);
     }
     .xgplayer-replay-txt{
       display: inline-block;
+      width: 100%;
+      position: absolute;
+      top: 100%;
       font-size: 14px;
       color: #fff;
       line-height: 34px;
+      text-align: center;
     }
   }
   &.xgplayer-mobile {
