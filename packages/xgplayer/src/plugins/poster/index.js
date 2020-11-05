@@ -37,7 +37,7 @@ class Poster extends Plugin {
       }
     })
 
-    this.on(Events.Play, () => {
+    this.on(Events.PLAY, () => {
       Util.removeClass(this.root, 'hide')
     })
   }

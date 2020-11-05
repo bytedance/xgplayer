@@ -5,6 +5,10 @@ import * as Events from '../events'
 import DEBUG from '../utils/debug'
 import pluginsManager from './pluginsManager'
 
+function showErrorMsg (pluginName, msg) {
+  console.error(`[${pluginName}] event or callback cant be undefined or null when call ${msg}`)
+}
+
 class BasePlugin {
   static defineGetterOrSetter (Obj, map) {
     for (const key in map) {
@@ -76,6 +80,10 @@ class BasePlugin {
   }
 
   on (event, callback) {
+    if (!event || !callback) {
+      showErrorMsg(this.pluginName, 'plugin.on(event, callback)')
+      return
+    }
     if (typeof event === 'string') {
       this.__events[event] = callback
       this.player.on(event, callback)
@@ -88,10 +96,18 @@ class BasePlugin {
   }
 
   once (event, callback) {
+    if (!event || !callback) {
+      showErrorMsg(this.pluginName, 'plugin.once(event, callback)')
+      return
+    }
     this.player.once(event, callback)
   }
 
   off (event, callback) {
+    if (!event || !callback) {
+      showErrorMsg(this.pluginName, 'plugin.off(event, callback)')
+      return
+    }
     if (typeof event === 'string') {
       delete this.__events[event]
       this.player.off(event, callback)
@@ -104,10 +120,10 @@ class BasePlugin {
   }
 
   offAll () {
-    for (const item of Object.keys(this.__events)) {
+    Object.keys(this.__events).map(item => {
       this.__events[item] && this.off(item, this.__events[item])
-      delete this.__events[item]
-    }
+      item && delete this.__events[item]
+    })
     this.__events = {}
   }
 

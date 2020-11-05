@@ -474,7 +474,7 @@ class Plugin extends BasePlugin {
     // destroy the sub-plugin instance
     if (this._children instanceof Array) {
       this._children.map(item => {
-        item.__destroy()
+        item.pluginName && item.__destroy()
       })
       this._children = null
     }
