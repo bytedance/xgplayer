@@ -174,9 +174,9 @@ export default class TimeLine extends EventEmitter {
       this.emit(Events.TIMELINE.SYNC_DTS, 0);
     }
     logger.log(this.TAG, 'startRender: time=', this.currentTime);
-    this.emit(Events.TIMELINE.PLAY_EVENT, Events.VIDEO_EVENTS.CANPLAY);
     this.emit(Events.TIMELINE.START_RENDER);
-    this.emit(Events.TIMELINE.READY)
+    this.emit(Events.TIMELINE.READY);
+    this.emit(Events.TIMELINE.PLAY_EVENT, Events.VIDEO_EVENTS.CANPLAY);
   }
 
   resetReadyStatus () {

@@ -30,5 +30,4 @@ export default class AudioTimeRange {
   shift () {
     return this._buffers.shift();
   }
-
 }

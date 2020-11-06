@@ -624,7 +624,9 @@ export default class VideoRender extends BaseRender {
     this._destroyWorker();
     this._tickTimer.destroy();
     this._frameQueue.destroy();
-    this._frameRender.destroy();
+    if (this._frameRender) {
+      this._frameRender.destroy();
+    }
     this._canvas = null;
     this._timeRange = null;
     this._decodeEstimate = null;

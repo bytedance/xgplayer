@@ -50,10 +50,10 @@ class MVideo extends HTMLElement {
       this.glCtxOptions = this._glCtxOptions;
     }
     setTimeout(() => {
+      if (!this.timeline) return;
       if (this.innerDegrade) {
         this.timeline.emit(Events.TIMELINE.INNER_DEGRADE);
       }
-      if (!this.timeline) return;
       if (this.noAudio) {
         this.setNoAudio();
       }
@@ -117,7 +117,12 @@ class MVideo extends HTMLElement {
     }
     this._degradeVideo.src = url;
     this.destroy();
-    this._degradeVideo.play().catch(e => {});
+    this._degradeVideo.muted = false;
+    this._degradeVideo.play().then(() => {
+      console.log('降级自动播放');
+    }).catch(e => {
+      console.log('degrade video play:', e.message, document.querySelector('video').muted);
+    });
 
     // 销毁MVideo上的事件
     this._eventsBackup.forEach(([eName, eHandler]) => {
@@ -143,19 +148,35 @@ class MVideo extends HTMLElement {
     this._logFirstFrame = false;
   }
 
+  _interceptAction () {
+    if (this._degradeVideo) {
+      this._degradeVideo.muted = true;
+      this._degradeVideo.play().then(() => {
+        this._degradeVideo.pause();
+      }).catch(e => {
+        console.log('interceptAction: ', e.message);
+      })
+    }
+  }
+
   play (destroy) {
     logger.log(
       this.TAG,
-      `mvideo called play(),ready:${this.timeline.ready} , paused:${this.timeline.paused}`
+      `mvideo called play(),ready:${this.timeline.ready},reset:${this.timeline.reset} , paused:${this.timeline.paused}`
     );
+
+    this._interceptAction();
 
     // 暂停后起播
     // 初始化后不能自动播放,手动播放
     if ((this.timeline.ready && this.timeline.reset) || destroy) {
       this.destroy();
       this._init();
-      this.timeline.resetReadyStatus();
       this._playRequest = null;
+    }
+
+    if (!this._playRequest && this.timeline.ready && !this.timeline.paused) {
+      return Promise.resolve();
     }
 
     this._playRequest =
@@ -236,11 +257,13 @@ class MVideo extends HTMLElement {
   }
 
   destroy () {
-    logger.log(this.TAG, 'call destroy');
-    this.timeline.emit(Events.TIMELINE.DESTROY);
-    this.timeline = null;
-    this._err = null;
-    this._noSleep = null;
+    if (this.timeline) {
+      logger.log(this.TAG, 'call destroy');
+      this.timeline.emit(Events.TIMELINE.DESTROY);
+      this.timeline = null;
+      this._err = null;
+      this._noSleep = null;
+    }
   }
 
   get firstWebAudio () {
@@ -313,6 +336,7 @@ class MVideo extends HTMLElement {
 
   set muted (v) {
     this.setAttribute('muted', v);
+    this._interceptAction();
     this.timeline.emit(Events.TIMELINE.UPDATE_VOLUME, v ? 0 : this.volume);
   }
 
@@ -372,11 +396,11 @@ class MVideo extends HTMLElement {
   }
 
   set src (val) {
-    this.setAttribute('src', val);
-    if (this.timeline.ready) {
+    if (this.src) {
       this._vMeta = null;
       this.play('destroy');
     }
+    this.setAttribute('src', val);
   }
 
   set playbackRate (v) {}
