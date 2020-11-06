@@ -128,27 +128,44 @@ class HlsLiveController {
   }
 
   _onLoadError (loader, error) {
-    if (loader !== 'M3U8_LOADER') {
-      this.retryTimes = 3;
-      return
-    }
-    if (!this._tsloader.loading && !this._m3u8loader.loading && this.retryTimes > 1) {
-      this.retryTimes--;
-      this._onError(LOADER_EVENTS.LOADER_ERROR, loader, error, false);
-    } else if (this.retryTimes <= 1) {
-      this.retryTimes--;
-      this._onError(LOADER_EVENTS.LOADER_ERROR, loader, error, true);
-      this.emit(HLS_EVENTS.RETRY_TIME_EXCEEDED);
-      if (this._player.video) {
-        this._player.video.handleEnded()
+    let err;
+    if (loader === 'M3U8_LOADER') {
+      let player = this._player;
+      // 绕过mobileVideo.error为空，xgplayer errorHandler()中不组装Errors
+      err = new Player.Errors(
+        'other',
+        player.currentTime,
+        player.duration, player.networkState, player.readyState, player.currentSrc, player.src,
+        player.ended, {
+          line: 162,
+          msg: player.error,
+          handle: 'Constructor'
+        }, 4, player.video.error)
+    } else {
+      err = {
+        code: error.code,
+        errorType: 'network',
+        ex: `[${loader}]: ${error.message}`,
+        errd: {}
       }
     }
+    this._player.emit('error', err)
+
+    this._onError(LOADER_EVENTS.LOADER_ERROR, loader, error, true);
+    this.emit(HLS_EVENTS.RETRY_TIME_EXCEEDED);
+    this.destroy();
   }
 
   _onDemuxError (mod, error, fatal) {
     if (fatal === undefined) {
       fatal = true;
     }
+    this._player.emit('error', {
+      code: '31',
+      errorType: 'parse',
+      ex: `[${mod}]: ${error ? error.message : ''}`,
+      errd: {}
+    });
     this._onError(LOADER_EVENTS.LOADER_ERROR, mod, error, fatal);
   }
 

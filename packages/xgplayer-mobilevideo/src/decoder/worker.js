@@ -1,7 +1,6 @@
 // const H264_DECODER_URL =
 //   "https://sf1-vcloudcdn.pstatp.com/obj/ttfe/media/decoder/h264/decoder_1583333072684.js";
 
-
 function shimImportScripts (src) {
   return fetch(src)
     .then((res) => res.text())
@@ -94,7 +93,6 @@ Decoder.prototype.broadwayOnBroadwayInited = function () {
 };
 
 Decoder.prototype.decode = function (data, info) {
-
   this.infolist.push(info);
   if (info && info.isGop) {
     this.infolist = [info];
