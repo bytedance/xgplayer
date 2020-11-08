@@ -1,7 +1,6 @@
-import { EVENTS, Mse, Crypto, FetchLoader } from 'xgplayer-helper-utils'
-import { PreSource, Tracks, Buffer as XgBuffer, Playlist } from 'xgplayer-helper-models'
-import { Compat as Compatibility } from 'xgplayer-helper-codec';
-import { Mp4Remuxer, M3U8Parser, TsDemuxer } from 'xgplayer-helper-transmuxers'
+import { EVENTS, Crypto, FetchLoader } from 'xgplayer-helper-utils'
+import { Tracks, Buffer as XgBuffer, Playlist } from 'xgplayer-helper-models'
+import { M3U8Parser, TsDemuxer } from 'xgplayer-helper-transmuxers'
 
 const LOADER_EVENTS = EVENTS.LOADER_EVENTS;
 const REMUX_EVENTS = EVENTS.REMUX_EVENTS;
@@ -9,7 +8,8 @@ const DEMUX_EVENTS = EVENTS.DEMUX_EVENTS;
 const HLS_EVENTS = EVENTS.HLS_EVENTS;
 const CRYTO_EVENTS = EVENTS.CRYTO_EVENTS;
 const HLS_ERROR = 'HLS_ERROR';
-class HlsVodController {
+
+class HlsVodMobileController {
   constructor (configs) {
     this.configs = Object.assign({}, configs);
     this.url = '';
@@ -18,7 +18,6 @@ class HlsVodController {
     this._playlist = null;
     this.retrytimes = this.configs.retrytimes || 3;
     this.preloadTime = this.configs.preloadTime || 5;
-    this.mse = this.configs.mse;
     this._lastSeekTime = 0;
     this._player = this.configs.player;
     this.m3u8Text = null
@@ -31,9 +30,8 @@ class HlsVodController {
     this._tracks = this._context.registry('TRACKS', Tracks)();
 
     this._playlist = this._context.registry('PLAYLIST', Playlist)({autoclear: true});
-    this._presource = this._context.registry('PRE_SOURCE_BUFFER', PreSource)();
 
-    this._compat = this._context.registry('COMPATIBILITY', Compatibility)();
+    // this._compat = this._context.registry('COMPATIBILITY', Compatibility)();
 
     // 初始化M3U8Loader;
     this._context.registry('M3U8_LOADER', FetchLoader)({ buffer: 'M3U8_BUFFER', readtype: 1 });
@@ -42,14 +40,6 @@ class HlsVodController {
     // 初始化TS Demuxer
     this._demuxer = this._context.registry('TS_DEMUXER', TsDemuxer)({ inputbuffer: 'TS_BUFFER' });
 
-    // 初始化MP4 Remuxer
-    this._context.registry('MP4_REMUXER', Mp4Remuxer)(this._player.currentTime);
-
-    // 初始化MSE
-    if (!this.mse) {
-      this.mse = new Mse({ preloadTime: this.preloadTime, container: this._player.video }, this._context);
-      this.mse.init();
-    }
     this.initEvents();
   }
 
@@ -58,11 +48,7 @@ class HlsVodController {
 
     this.on(LOADER_EVENTS.LOADER_ERROR, this._onLoadError.bind(this))
 
-    this.on(REMUX_EVENTS.INIT_SEGMENT, this._onInitSegment.bind(this));
-
     this.on(DEMUX_EVENTS.SEI_PARSED, this._handleSEIParsed.bind(this))
-
-    this.on(REMUX_EVENTS.MEDIA_SEGMENT, this._onMediaSegment.bind(this));
 
     this.on(DEMUX_EVENTS.METADATA_PARSED, this._onMetadataParsed.bind(this));
 
@@ -87,12 +73,6 @@ class HlsVodController {
   }
 
   _onLoadError (mod, error) {
-    this._player.emit('error', {
-      code: error.code,
-      errorType: 'network',
-      ex: `[${mod}]: ${error.message}`,
-      errd: {}
-    })
     this._onError(LOADER_EVENTS.LOADER_ERROR, mod, error, true);
     this.emit(HLS_EVENTS.RETRY_TIME_EXCEEDED)
   }
@@ -101,12 +81,6 @@ class HlsVodController {
     if (fatal === undefined) {
       fatal = true;
     }
-    this._player.emit('error', {
-      code: '31',
-      errorType: 'parse',
-      ex: `[${mod}]: ${error ? error.message : ''}`,
-      errd: {}
-    });
     this._onError(LOADER_EVENTS.LOADER_ERROR, mod, error, fatal);
   }
 
@@ -118,32 +92,7 @@ class HlsVodController {
   }
 
   _onWaiting () {
-    let end = true;
-
-    this._seekToBufferStart();
-    const playList = Object.keys(this._playlist.list)
-    const playListLen = playList.length
-    if (!playListLen) {
-      return;
-    }
-
-    for (let i = 0; i < playListLen; i++) {
-      if (this._player.currentTime * 1000 < parseInt(playList[i])) {
-        end = false;
-      }
-    }
-    if (end) {
-      let ts = this._playlist.getTs(this._player.currentTime * 1000);
-      if (!ts) {
-        this._player.emit('ended')
-        this.mse.endOfStream();
-      } else {
-        if (ts.downloaded) {
-          this._player.emit('ended')
-          this.mse.endOfStream();
-        }
-      }
-    }
+    console.log('............waiting..............');
   }
 
   _seekToBufferStart () {
@@ -168,11 +117,34 @@ class HlsVodController {
     }
   }
   _onTimeUpdate () {
-    this._seekToBufferStart();
     this._preload(this._player.currentTime);
   }
   _onDemuxComplete () {
-    this.emit(REMUX_EVENTS.REMUX_MEDIA, 'ts')
+    if (this._player.video) {
+      const { videoTrack, audioTrack } = this._context.getInstance('TRACKS');
+      videoTrack.samples.forEach((sample) => {
+        if (sample.analyzed) {
+          return;
+        }
+        sample.analyzed = true;
+        let nals = sample.nals;
+        const nalsLength = nals.reduce((len, current) => {
+          return len + 4 + current.body.byteLength;
+        }, 0);
+        const newData = new Uint8Array(nalsLength);
+        let offset = 0;
+        nals.forEach((nal) => {
+          newData.set([0, 0, 0, 1], offset)
+          offset += 4;
+          newData.set(new Uint8Array(nal.body), offset);
+          offset += nal.body.byteLength;
+        })
+        sample.nals = null;
+        sample.data = newData;
+      })
+
+      this._player.video.onDemuxComplete(videoTrack, audioTrack);
+    }
   }
 
   _handleSEIParsed (sei) {
@@ -180,25 +152,30 @@ class HlsVodController {
   }
 
   _onMetadataParsed (type) {
-    let duration = parseInt(this._playlist.duration);
-    if (type === 'video') {
-      this._tracks.videoTrack.meta.duration = duration;
-    } else if (type === 'audio') {
-      this._tracks.audioTrack.meta.duration = duration;
+    if (type === 'audio') {
+      // 将音频meta信息交给audioContext，不走remux封装
+      const { audioTrack } = this._context.getInstance('TRACKS')
+      if (audioTrack && audioTrack.meta) {
+        this._setMetaToAudio(audioTrack.meta)
+      }
+    } else {
+      const { videoTrack } = this._context.getInstance('TRACKS')
+      if (videoTrack && videoTrack.meta) {
+        this._setMetaToVideo(videoTrack.meta)
+      }
     }
-    this.emit(REMUX_EVENTS.REMUX_METADATA, type)
   }
 
-  _onMediaSegment () {
-    if (Object.keys(this.mse.sourceBuffers).length < 1) {
-      this.mse.addSourceBuffers();
+  _setMetaToAudio (audioMeta) {
+    if (this._player.video) {
+      this._player.video.setAudioMeta(audioMeta);
     }
-
-    this.mse.doAppend();
   }
 
-  _onInitSegment () {
-    this.mse.addSourceBuffers();
+  _setMetaToVideo (videoMeta) {
+    if (this._player.video) {
+      this._player.video.setVideoMeta(videoMeta);
+    }
   }
 
   _onLoaderCompete (buffer) {
@@ -207,6 +184,7 @@ class HlsVodController {
       try {
         let mdata = M3U8Parser.parse(this.m3u8Text, this.baseurl);
         this._playlist.pushM3U8(mdata);
+        this._player.video.duration = mdata.duration / 1000;
       } catch (error) {
         this._onError('M3U8_PARSER_ERROR', 'PLAYLIST', error, true);
       }
@@ -220,10 +198,8 @@ class HlsVodController {
         if (!this.preloadTime) {
           if (this._playlist.targetduration) {
             this.preloadTime = this._playlist.targetduration;
-            this.mse.preloadTime = this._playlist.targetduration;
           } else {
             this.preloadTime = 5;
-            this.mse.preloadTime = 5;
           }
         }
 
@@ -277,11 +253,11 @@ class HlsVodController {
     this.emit(DEMUX_EVENTS.DEMUX_START);
   }
 
+  // todo: ajust time
   seek (time) {
     const { video } = this._player;
     for (let i = 0; i < video.buffered.length; i++) {
       if (time >= video.buffered.start(i) && time < video.buffered.end(i)) {
-        // this._playlist.clearDownloaded();
         return;
       }
     }
@@ -289,12 +265,7 @@ class HlsVodController {
     this._lastSeekTime = time;
     this._tsloader.destroy();
     this._tsloader = this._context.registry('TS_LOADER', FetchLoader)({ buffer: 'TS_BUFFER', readtype: 3 });
-    if (this._presource.sources.video) {
-      this._presource.sources.video.data = [];
-    }
-    if (this._presource.sources.audio) {
-      this._presource.sources.audio.data = []
-    }
+
     if (this._tracks.audioTrack) {
       this._tracks.audioTrack.samples = [];
     }
@@ -343,9 +314,6 @@ class HlsVodController {
 
     if (currentbufferend < 0) {
       let frag = this._playlist.getTs((time + 0.5) * 1000); // FIXME: Last frame buffer shortens duration
-      if (frag && frag.downloaded) {
-        frag = this._playlist.getTs(frag.time + frag.duration);
-      }
       if (frag && !frag.downloading && !frag.downloaded) {
         this._playlist.downloading(frag.url, true);
         this.emitTo('TS_LOADER', LOADER_EVENTS.LADER_START, frag.url)
@@ -391,17 +359,12 @@ class HlsVodController {
     this._demuxer = null;
     this._lastSeekTime = 0
     this.m3u8Text = null;
-    this.mse = null
 
     this.off(LOADER_EVENTS.LOADER_COMPLETE, this._onLoaderCompete);
-
-    this.off(REMUX_EVENTS.INIT_SEGMENT, this._onInitSegment);
-
-    this.off(REMUX_EVENTS.MEDIA_SEGMENT, this._onMediaSegment);
 
     this.off(DEMUX_EVENTS.METADATA_PARSED, this._onMetadataParsed);
 
     this.off(DEMUX_EVENTS.DEMUX_COMPLETE, this._onDemuxComplete)
   }
 }
-export default HlsVodController;
+export default HlsVodMobileController;

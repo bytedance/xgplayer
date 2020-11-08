@@ -1,6 +1,6 @@
 import Player from 'xgplayer'
 import { EVENTS, Context, common } from 'xgplayer-helper-utils'
-import HlsVodController from './hls-vod';
+import HlsVodMobileController from './hls-vod-mobile';
 
 const { debounce } = common;
 const { Events, BasePlugin } = Player;
@@ -9,7 +9,7 @@ const HlsAllowedEvents = EVENTS.HlsAllowedEvents;
 const HLS_EVENTS = EVENTS.HLS_EVENTS;
 const MSE_EVENTS = EVENTS.MSE_EVENTS;
 
-class HlsVodPlayer extends BasePlugin {
+class HlsVodMobilePlayer extends BasePlugin {
   static get pluginName () {
     return 'hlsVod'
   }
@@ -19,41 +19,27 @@ class HlsVodPlayer extends BasePlugin {
     this.destroy = this.destroy.bind(this)
     this.handleDefinitionChange = this.handleDefinitionChange.bind(this)
     this.handleUrlChange = this.handleUrlChange.bind(this)
-    this.replay = this.replay.bind(this);
   }
 
   beforePlayerInit () {
+    const { player } = this;
+
+    if (player.video) {
+      player.video.setPlayMode('VOD');
+      player.video.setAttribute('innerdegrade', player.config.innerDegrade);
+    }
+
     if (!this._context) {
       this._context = new Context(HlsAllowedEvents)
     }
-    this.hls = this._context.registry('HLS_VOD_CONTROLLER', HlsVodController)({player: this.player, preloadTime: this.player.config.preloadTime});
+    this.hls = this._context.registry('HLS_VOD_CONTROLLER', HlsVodMobileController)({player: this.player, preloadTime: this.player.config.preloadTime});
     this._context.init();
     this.hls.load(this.player.config.url);
-    this.__initEvents();
-
-    try {
-      BasePlugin.defineGetterOrSetter(this.player, {
-        '__url': {
-          get: () => {
-            return this.hls.mse.url
-          }
-        }
-      })
-    } catch (e) {
-      // NOOP
-    }
+    this._initEvents();
   }
 
   handleUrlChange (url) {
-    this.hls.mse.destroy().then(() => {
-      this.player.config.url = url
-      this._context.destroy();
-      this._context = null;
-      this.player.video.src = '';
-      this.player.video.load();
-      this.player.hasStart = false;
-      this.player.start()
-    })
+    this._switch(url);
   }
 
   handleDefinitionChange (change) {
@@ -78,7 +64,9 @@ class HlsVodPlayer extends BasePlugin {
     })
   }
 
-  __initEvents () {
+  _initEvents () {
+    const {player} = this;
+
     this.hls.once(HLS_EVENTS.RETRY_TIME_EXCEEDED, () => {
       this.emit('error', new Player.Errors('network', this.config.url))
     })
@@ -93,42 +81,26 @@ class HlsVodPlayer extends BasePlugin {
       }
     });
 
+    this.lowdecode = () => {
+      this.emit('lowdecode', player.video.degradeInfo);
+      if (player.config.innerDegrade) {
+        let currentTime = player.currentTime;
+        let mVideo = player.video;
+        let newVideo = player.video.degradeVideo;
+        this.destroy();
+        this._context = null;
+        player.video = newVideo;
+        mVideo.degrade();
+        player.once('canplay', () => {
+          player.currentTime = currentTime;
+        })
+      }
+    }
+
     this.on(Events.SEEKING, this._handleSetCurrentTime)
     this.on(Events.URL_CHANGE, this.handleUrlChange)
     this.on(Events.DESTROY, this.destroy)
-    this.on(Events.REPLAY, this.replay);
-  }
-
-  replay () {
-    this.hls.mse.cleanBuffers().then(() => {
-      this.player.pause();
-      this.hls._compat.reset();
-      this.hls._playlist.clearDownloaded();
-      this.hls.seek(0);
-    })
-  }
-
-  initHlsBackupEvents (hls, ctx) {
-    hls.once(EVENTS.REMUX_EVENTS.INIT_SEGMENT, () => {
-      if (!this.player.video.src) {
-        console.log('挂载 src blob');
-        const mse = hls.mse;
-        this.player.start(mse.url);
-      }
-    });
-    hls.once(EVENTS.REMUX_EVENTS.MEDIA_SEGMENT, () => {
-      this.hls = hls;
-      this.hls.mse.cleanBuffers().then(() => {
-        this.hls.mse.resetContext(ctx);
-        this.hls.mse.doAppend()
-        this._context.destroy();
-        this._context = ctx;
-      })
-    })
-
-    hls.once(EVENTS.LOADER_EVENTS.LOADER_ERROR, () => {
-      ctx.destroy()
-    })
+    player.video.addEventListener('lowdecode', this.lowdecode);
   }
 
   _onSourceUpdateEnd () {
@@ -144,41 +116,36 @@ class HlsVodPlayer extends BasePlugin {
     }
   }
 
-  switchURL (url) {
+  _switch (url) {
     this.config.url = url;
+    this._context.destroy();
+    this._context = null;
+    this.hls = null;
     const context = new Context(HlsAllowedEvents);
-    const hls = context.registry('HLS_VOD_CONTROLLER', HlsVodController)({
+    const hls = context.registry('HLS_VOD_CONTROLLER', HlsVodMobileController)({
       player: this.player,
-      container: this.video,
-      mse: this.hls.mse,
       preloadTime: this.config.preloadTime
     })
+    this._context = context;
+    this.hls = hls;
     context.init()
-    this.initHlsBackupEvents(hls, context);
-    this.hls.mse.cleanBuffers().then(() => {
-      hls.load(url);
+    hls.load(url);
+  }
+
+  switchURL (url) {
+    let cTime = this.player.currentTime;
+    // reset MVideo timeline
+    this.player.video.src = url;
+    this._switch(url);
+    this.once(Events.PLAYING, () => {
+      this.player.currentTime = cTime;
     })
   }
 
   destroy () {
-    return new Promise((resolve) => {
-      if (this.hls.mse) {
-        this.hls.mse.destroy().then(() => {
-          if (this._context) {
-            this._context.destroy();
-          }
-          super.destroy();
-          setTimeout(() => {
-            resolve()
-          }, 50)
-        })
-      } else {
-        super.destroy();
-        setTimeout(() => {
-          resolve()
-        }, 50)
-      }
-    })
+    if (this._context) {
+      this._context.destroy();
+    }
   }
 
   detectBufferGap () {
@@ -220,4 +187,4 @@ class HlsVodPlayer extends BasePlugin {
   }
 }
 
-export default HlsVodPlayer;
+export default HlsVodMobilePlayer;
