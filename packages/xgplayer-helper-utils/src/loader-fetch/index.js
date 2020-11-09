@@ -1,5 +1,4 @@
 import EVENTS from '../events';
-import Speed from './speed'
 
 const LOADER_EVENTS = EVENTS.LOADER_EVENTS;
 const READ_STREAM = 0;
@@ -18,7 +17,6 @@ class FetchLoader {
     this.readtype = this.configs.readtype;
     this.buffer = this.configs.buffer || 'LOADER_BUFFER';
     this._loaderTaskNo = 0;
-    this._speed = new Speed()
   }
 
   init () {
@@ -150,7 +148,6 @@ class FetchLoader {
             if (!_this._canceled && !_this._destroyed) {
               if (buffer) {
                 buffer.push(new Uint8Array(data));
-                this._speed.addBytes(data.byteLength)
                 _this.emit(LOADER_EVENTS.LOADER_COMPLETE, buffer);
               } else {
                 _this.emit(LOADER_EVENTS.LOADER_COMPLETE, data);
@@ -203,7 +200,6 @@ class FetchLoader {
       }
 
       buffer.push(val.value)
-      this._speed.addBytes(val.value.byteLength)
       Promise.resolve().then(() => {
         this.emit(LOADER_EVENTS.LOADER_DATALOADED, buffer)
       })
@@ -260,11 +256,6 @@ class FetchLoader {
     return params;
   }
 
-  // in KB/s
-  get currentSpeed () {
-    return this._speed.lastSecondKBps;
-  }
-
   cancel () {
     if (this._reader) {
       try {
@@ -282,7 +273,6 @@ class FetchLoader {
     this._destroyed = true
     clearTimeout(this._retryTimer);
     this.cancel();
-    this._speed.reset()
   }
 }
 

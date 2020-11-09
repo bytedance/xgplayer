@@ -24,7 +24,7 @@ class MSE {
 
   init () {
     // eslint-disable-next-line no-undef
-    this.mediaSource = new MediaSource();
+    this.mediaSource = new self.MediaSource();
     this.mediaSource.addEventListener('sourceopen', this.onSourceOpen);
     this._url = null;
     this.container.addEventListener('timeupdate', this.onTimeUpdate);

@@ -62,6 +62,7 @@ export default class Mp4Remuxer {
   }
 
   seek (time) {
+    logger.log(this.TAG, 'set dtsBase for seek(),time=', time);
     if (!this._isDtsBaseInited) {
       this._dtsBase = time * 1000
     } else {

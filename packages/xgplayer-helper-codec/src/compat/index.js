@@ -275,6 +275,7 @@ class Compatibility {
     // 分片 < 4帧,不能起播的
     if (this.isTs && segLen < 4) {
       let sample = videoSamples[videoSamples.length - 1];
+      sample = sample || curLastSample;
       let duration = sample.options && sample.options.duration;
       let refDuration = meta.refSampleDuration;
       if (duration && refDuration && duration / refDuration > 5) {
@@ -788,6 +789,10 @@ class Compatibility {
       if (sample.pts) {
         sample.pts += gap
       }
+    }
+    let first = samples[0];
+    if (first && first.dts === 0) {
+      first.dts = first.pts = 1;
     }
   }
 
