@@ -42,6 +42,7 @@ class Player extends Proxy {
     this.isPlaying = false
     // 是否处于seeking进行状态
     this.isSeeking = false
+    this.isCanplay = false
     // 当前是否处于焦点状态
     this.isActive = true
     this.isCssfullScreen = false
@@ -428,6 +429,10 @@ class Player extends Proxy {
       })
       return
     }
+    if (!this.isPlaying) {
+      this.removeClass(STATE_CLASS.NO_START)
+      !this.isCanplay && this.addClass(STATE_CLASS.ENTER)
+    }
 
     const playPromise = super.play()
     if (playPromise !== undefined && playPromise && playPromise.then) {
@@ -659,6 +664,7 @@ class Player extends Proxy {
 
   onCanplay () {
     this.logInfo('onCanplay')
+    this.isCanplay = true
   }
 
   onPlay () {
