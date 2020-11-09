@@ -74,11 +74,6 @@ let player = new Player({
 <code>xgplayer-mp4</code>插件就是自启动的，它会自己加载 mp4 视频、解析 mp4 格式，实现自定义加载、缓冲、无缝切换等[详情]((http://h5player.bytedance.com/plugins/#xgplayer-mp4))。对于不支持 [MSE](https://www.w3.org/TR/media-source/) 的设备自动降级。
 
 
-### Mobile Support
-
-西瓜播放器支持移动端，不过安卓设备品牌和系统众多，兼容性问题很多，播放器提供白名单机制保证在移动端完美的运行。[白名单机制](http://h5player.bytedance.com/config/#%E7%99%BD%E5%90%8D%E5%8D%95)
-
-
 ### Dev
 
 为了方便开发者调试，我们提供了示例视频资源。示例文件较大，可使用 git clone --recurse-submodules -j8 命令完整拉取源码和示例文件；如果你只对源码感兴趣可以使用 git clone 命令仅拉取源码部分。
