@@ -200,15 +200,15 @@ class Player extends Proxy {
       }
     }
     this.once('play', this.playFunc)
-    const player = this
-    function onDestroy () {
-      player.root.removeEventListener('mousemove', player.mousemoveFunc);
-      FULLSCREEN_EVENTS.forEach(item => {
-        document.removeEventListener(item, this.onFullscreenChange)
-      });
-      player.off('destroy', onDestroy)
-    }
-    player.once('destroy', onDestroy)
+  }
+
+  _unbindEvents () {
+    this.root.removeEventListener('mousemove', this.mousemoveFunc);
+    FULLSCREEN_EVENTS.forEach(item => {
+      document.removeEventListener(item, this.onFullscreenChange)
+    });
+    this.playFunc && this.off('play', this.playFunc)
+    this.canPlayFunc && this.off('canplay', this.canPlayFunc)
   }
 
   _startInit (url) {
@@ -217,6 +217,9 @@ class Player extends Proxy {
       this.emit(Events.URL_NULL)
     }
     this.canPlayFunc = () => {
+      if (!this.config) {
+        return
+      }
       const {autoplay, startTime, volume} = this.config
       this.logInfo('player', 'canPlayFunc', startTime)
       this.volume = typeof volume === 'number' ? volume : 0.6
@@ -450,6 +453,7 @@ class Player extends Proxy {
         if (this.video.error) {
           this.onError()
           this.errorHandler('error')
+          this.removeClass(STATE_CLASS.ENTER)
           return
         }
         // 避免AUTOPLAY_PREVENTED先于playing和play触发
@@ -514,6 +518,7 @@ class Player extends Proxy {
     ['click', 'touchend'].forEach((k) => {
       this.topBar.removeEventListener(k, Util.stopPropagation)
     });
+    this._unbindEvents()
     pluginsManager.destroy(this)
     this.root.removeChild(this.topBar)
     this.root.removeChild(this.leftBar)
