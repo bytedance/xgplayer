@@ -87,6 +87,12 @@ class HlsVodController {
   }
 
   _onLoadError (mod, error) {
+    this._player.emit('error', {
+      code: error.code,
+      errorType: 'network',
+      ex: `[${mod}]: ${error.message}`,
+      errd: {}
+    })
     this._onError(LOADER_EVENTS.LOADER_ERROR, mod, error, true);
     this.emit(HLS_EVENTS.RETRY_TIME_EXCEEDED)
   }
@@ -98,7 +104,7 @@ class HlsVodController {
     this._player.emit('error', {
       code: '31',
       errorType: 'parse',
-      ex: `[${tag}]: ${err ? err.message : ''}`,
+      ex: `[${mod}]: ${error ? error.message : ''}`,
       errd: {}
     });
     this._onError(LOADER_EVENTS.LOADER_ERROR, mod, error, fatal);
@@ -166,7 +172,7 @@ class HlsVodController {
     this._preload(this._player.currentTime);
   }
   _onDemuxComplete () {
-    this.emit(REMUX_EVENTS.REMUX_MEDIA)
+    this.emit(REMUX_EVENTS.REMUX_MEDIA, 'ts')
   }
 
   _handleSEIParsed (sei) {
@@ -233,9 +239,9 @@ class HlsVodController {
         }
       }
     } else if (buffer.TAG === 'TS_BUFFER') {
-      this._preload(this._player.currentTime);
       this._playlist.downloaded(this._tsloader.url, true);
       this._demuxer.demux(Object.assign({url: this._tsloader.url}, this._playlist._ts[this._tsloader.url]))
+      this._preload(this._player.currentTime);
       // this.emit(DEMUX_EVENTS.DEMUX_START, Object.assign({url: this._tsloader.url}, this._playlist._ts[this._tsloader.url]));
     } else if (buffer.TAG === 'DECRYPT_BUFFER') {
       this.retrytimes = this.configs.retrytimes || 3;
@@ -337,11 +343,14 @@ class HlsVodController {
 
     if (currentbufferend < 0) {
       let frag = this._playlist.getTs((time + 0.5) * 1000); // FIXME: Last frame buffer shortens duration
+      if (frag && frag.downloaded) {
+        frag = this._playlist.getTs(frag.time + frag.duration);
+      }
       if (frag && !frag.downloading && !frag.downloaded) {
         this._playlist.downloading(frag.url, true);
         this.emitTo('TS_LOADER', LOADER_EVENTS.LADER_START, frag.url)
       }
-    } else if (currentbufferend < time + this.preloadTime) {
+    } else if (currentbufferend < video.currentTime + this.preloadTime) {
       let frag = this._playlist.getLastDownloadedTs() || this._playlist.getTs(currentbufferend * 1000);
 
       if (!frag) {
