@@ -19,6 +19,7 @@ class HlsVodPlayer extends BasePlugin {
     this.destroy = this.destroy.bind(this)
     this.handleDefinitionChange = this.handleDefinitionChange.bind(this)
     this.handleUrlChange = this.handleUrlChange.bind(this)
+    this.replay = this.replay.bind(this);
   }
 
   beforePlayerInit () {
@@ -48,17 +49,9 @@ class HlsVodPlayer extends BasePlugin {
       this.player.config.url = url
       this._context.destroy();
       this._context = null;
-      this.player.started = false;
-      this.video.currentTime = 0;
-
-      if (!this.paused) {
-        this.pause()
-        this.once('canplay', () => {
-          this.play()
-        })
-      } else {
-        this.play()
-      }
+      this.player.video.src = '';
+      this.player.video.load();
+      this.player.hasStart = false;
       this.player.start()
     })
   }
@@ -74,6 +67,7 @@ class HlsVodPlayer extends BasePlugin {
       this.hls.seek(time);
     }
   }
+
   play () {
     return this.player.play().catch((e) => {
       if (e && e.code === 20) { // fix: chrome The play() request was interrupted by a new load request.
@@ -102,9 +96,26 @@ class HlsVodPlayer extends BasePlugin {
     this.on(Events.SEEKING, this._handleSetCurrentTime)
     this.on(Events.URL_CHANGE, this.handleUrlChange)
     this.on(Events.DESTROY, this.destroy)
+    this.on(Events.REPLAY, this.replay);
+  }
+
+  replay () {
+    this.hls.mse.cleanBuffers().then(() => {
+      this.player.pause();
+      this.hls._compat.reset();
+      this.hls._playlist.clearDownloaded();
+      this.hls.seek(0);
+    })
   }
 
   initHlsBackupEvents (hls, ctx) {
+    hls.once(EVENTS.REMUX_EVENTS.INIT_SEGMENT, () => {
+      if (!this.player.video.src) {
+        console.log('挂载 src blob');
+        const mse = hls.mse;
+        this.player.start(mse.url);
+      }
+    });
     hls.once(EVENTS.REMUX_EVENTS.MEDIA_SEGMENT, () => {
       this.hls = hls;
       this.hls.mse.cleanBuffers().then(() => {
@@ -133,18 +144,20 @@ class HlsVodPlayer extends BasePlugin {
     }
   }
 
-  swithURL (url) {
+  switchURL (url) {
     this.config.url = url;
     const context = new Context(HlsAllowedEvents);
     const hls = context.registry('HLS_VOD_CONTROLLER', HlsVodController)({
-      player: this,
+      player: this.player,
       container: this.video,
       mse: this.hls.mse,
       preloadTime: this.config.preloadTime
     })
     context.init()
-    this.initHlsBackupEvents(hls, context)
-    hls.load(url);
+    this.initHlsBackupEvents(hls, context);
+    this.hls.mse.cleanBuffers().then(() => {
+      hls.load(url);
+    })
   }
 
   destroy () {
