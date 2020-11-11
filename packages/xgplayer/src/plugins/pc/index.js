@@ -101,6 +101,5 @@ export default class PCPlugin extends BasePlugin {
     player.root.removeEventListener('click', this.onVideoClick, false)
     player.video.removeEventListener('dblclick', this.onVideoDblClick, false)
     player.video.removeEventListener('contextmenu', this.onContextmenu, false)
-    player.off('ready', this.onReady)
   }
 }
