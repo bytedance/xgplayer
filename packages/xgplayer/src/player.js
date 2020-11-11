@@ -349,7 +349,13 @@ class Player extends Proxy {
     return pluginsManager.register(this, PLUFGIN, options)
   }
 
-  unRegistePlugin () {}
+  unRegistePlugin (plugin) {
+    if (typeof plugin === 'string') {
+      pluginsManager.unRegister(this, plugin)
+    } else if (plugin instanceof BasePlugin) {
+      pluginsManager.unRegister(this, plugin.pluginName)
+    }
+  }
 
   /**
    * 当前播放器挂在的插件实例代码
