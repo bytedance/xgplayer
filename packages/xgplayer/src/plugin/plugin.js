@@ -2,7 +2,6 @@
 * an ui Plugin class
 *
 **/
-import pluginsManager from './pluginsManager'
 import BasePlugin, {Util, DEBUG} from './basePlugin'
 import * as delegate from 'delegate-events'
 
@@ -320,8 +319,7 @@ class Plugin extends BasePlugin {
 
   registerPlugin (plugin, options = {}, name = '') {
     options.root = options.root || this.root
-    name && (options.pluginName = name)
-    const _c = pluginsManager.register(this.player, plugin, options)
+    const _c = super.registerPlugin(plugin, options, name)
     this._children.push(_c)
     return _c
   }
@@ -332,10 +330,6 @@ class Plugin extends BasePlugin {
 
   registerLangauageTexts () {
     return {}
-  }
-
-  getPlugin (name) {
-    return pluginsManager.findPlugin(this.player, name)
   }
 
   find (qs) {
@@ -471,10 +465,11 @@ class Plugin extends BasePlugin {
   destroy () {}
 
   __destroy () {
+    const {player} = this
     // destroy the sub-plugin instance
     if (this._children instanceof Array) {
       this._children.map(item => {
-        item.pluginName && item.__destroy()
+        player.unRegistePlugin(item.pluginName)
       })
       this._children = null
     }

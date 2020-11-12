@@ -3,7 +3,6 @@ import Sniffer from '../utils/sniffer'
 import Errors from '../error'
 import * as Events from '../events'
 import DEBUG from '../utils/debug'
-import pluginsManager from './pluginsManager'
 
 function showErrorMsg (pluginName, msg) {
   console.error(`[${pluginName}] event or callback cant be undefined or null when call ${msg}`)
@@ -131,13 +130,20 @@ class BasePlugin {
     this.player.emit(event, res)
   }
 
+  registerPlugin (plugin, options = {}, name = '') {
+    name && (options.pluginName = name)
+    return this.player.registerPlugin({plugin, options})
+  }
+
+  getPlugin (name) {
+    return this.player.getPlugin(name)
+  }
+
   __destroy () {
     this.offAll()
     if (Util.checkIsFunction(this.destroy)) {
       this.destroy();
     }
-
-    pluginsManager.deletePlugin(this.player, this.pluginName);
 
     ['player', 'playerConfig', 'pluginName', 'logger'].map(item => {
       Object.defineProperty(this, item, {

@@ -106,8 +106,7 @@ const pluginsManager = {
     try {
       // 如果已经存在 则将其销毁
       if (plugins[pluginName.toLowerCase()]) {
-        plugins[pluginName.toLowerCase()].__destroy && plugins[pluginName.toLowerCase()].__destroy()
-        plugins[pluginName.toLowerCase()] = null
+        this.unRegister(cgid, pluginName.toLowerCase())
         console.warn(`the is one plugin with same pluginName [${pluginName}] exist, destroy the old instance`)
       }
       // eslint-disable-next-line new-cap
@@ -130,11 +129,17 @@ const pluginsManager = {
    * @param {String} name
    */
   unRegister (cgid, name) {
+    if (cgid._pluginInfoId) {
+      cgid = cgid._pluginInfoId
+    }
     try {
-      this.pluginGroup[cgid]._plugins[name].__destroy()
-      this.pluginGroup[cgid]._plugins[name] = null
+      const plugin = this.pluginGroup[cgid]._plugins[name]
+      if (plugin) {
+        plugin.pluginName && plugin.__destroy()
+        delete this.pluginGroup[cgid]._plugins[name]
+      }
     } catch (e) {
-      this.pluginGroup[cgid]._plugins[name] = null
+      console.error(`[unRegister:${name}] cgid:[${cgid}] error`, e)
     }
   },
 
@@ -145,7 +150,10 @@ const pluginsManager = {
    */
   deletePlugin (player, name) {
     const cgid = player._pluginInfoId
-    cgid && this.pluginGroup[cgid] && (this.pluginGroup[cgid]._plugins[name] = null)
+    if (cgid && this.pluginGroup && this.pluginGroup[cgid] && this.pluginGroup[cgid]._plugins) {
+      const _plugins = this.pluginGroup[cgid]._plugins
+      delete _plugins[name]
+    }
   },
 
   /**
