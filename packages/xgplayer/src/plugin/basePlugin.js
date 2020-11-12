@@ -2,7 +2,7 @@ import Util from '../utils/util'
 import Sniffer from '../utils/sniffer'
 import Errors from '../error'
 import * as Events from '../events'
-import DEBUG from '../utils/debug'
+import XG_DEBUG from '../utils/debug'
 
 function showErrorMsg (pluginName, msg) {
   console.error(`[${pluginName}] event or callback cant be undefined or null when call ${msg}`)
@@ -161,12 +161,12 @@ BasePlugin.Util = Util
 BasePlugin.Sniffer = Sniffer
 BasePlugin.Errors = Errors
 BasePlugin.Events = Events
-BasePlugin.DEBUG = DEBUG
+BasePlugin.XG_DEBUG = XG_DEBUG
 export {
   BasePlugin as default,
   Util,
   Sniffer,
   Errors,
   Events,
-  DEBUG
+  XG_DEBUG
 }

@@ -1,4 +1,4 @@
-import DEBUG from './debug'
+import XG_DEBUG from './debug'
 let util = {}
 
 util.createDom = function (el = 'div', tpl = '', attrs = {}, cname = '') {
@@ -37,7 +37,7 @@ util.createDomFromHtml = function (html, attrs = {}, classname = '') {
     }
     return null
   } catch (err) {
-    DEBUG.logError('util.createDomFromHtml', err)
+    XG_DEBUG.logError('util.createDomFromHtml', err)
     return null
   }
 }
@@ -114,7 +114,7 @@ util.findDom = function (el = document, sel) {
   try {
     dom = el.querySelector(sel)
   } catch (e) {
-    DEBUG.logError('util.findDom', e)
+    XG_DEBUG.logError('util.findDom', e)
     if (sel.indexOf('#') === 0) {
       dom = el.getElementById(sel.slice(1))
     }

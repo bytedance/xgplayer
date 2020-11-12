@@ -2,7 +2,7 @@
 * an ui Plugin class
 *
 **/
-import BasePlugin, {Util, DEBUG} from './basePlugin'
+import BasePlugin, {Util, XG_DEBUG} from './basePlugin'
 import * as delegate from 'delegate-events'
 
 /**
@@ -58,11 +58,11 @@ function createIcon (icon, key, classname = '', attr = {}) {
         })
         return newIcon;
       } else {
-        DEBUG.logWarn(`warn>>config of icons.${key} is a function mast return an Element Object`)
+        XG_DEBUG.logWarn(`warn>>config of icons.${key} is a function mast return an Element Object`)
       }
       return null;
     } catch (e) {
-      DEBUG.logError('Plugin:createIcon', e)
+      XG_DEBUG.logError('Plugin:createIcon', e)
       return null;
     }
   }
@@ -70,7 +70,7 @@ function createIcon (icon, key, classname = '', attr = {}) {
   if (typeof icon === 'string') {
     return Util.createDomFromHtml(icon, attr, classname);
   }
-  DEBUG.logWarn(`warn>>config of icons.${key} is invalid`)
+  XG_DEBUG.logWarn(`warn>>config of icons.${key} is invalid`)
   return null;
 }
 
@@ -195,7 +195,7 @@ class Plugin extends BasePlugin {
     try {
       renderStr = this.render()
     } catch (e) {
-      DEBUG.logError(`Plugin:${this.pluginName}:render`, e)
+      XG_DEBUG.logError(`Plugin:${this.pluginName}:render`, e)
       throw (new Error(`Plugin:${this.pluginName}:render:${e.message}`))
     }
     if (renderStr) {
@@ -453,7 +453,7 @@ class Plugin extends BasePlugin {
         return pdom.appendChild(child)
       }
     } catch (err) {
-      DEBUG.logError('Plugin:appendChild', err)
+      XG_DEBUG.logError('Plugin:appendChild', err)
       return null
     }
   }
