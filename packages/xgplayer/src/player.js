@@ -750,9 +750,12 @@ class Player extends Proxy {
   }
 
   onPlaying () {
+<<<<<<< HEAD
     // if (this.waitTimer) {
     //   clearTimeout(this.waitTimer)
     // }
+=======
+>>>>>>> chore: (xgplayer) unpkgFiles增加dist目录
     const { NO_START, PAUSED, ENDED, ERROR, REPLAY } = STATE_CLASS
     const clsList = [NO_START, PAUSED, ENDED, ERROR, REPLAY];
     clsList.forEach((cls) => {
@@ -761,7 +764,11 @@ class Player extends Proxy {
   }
 
   onTimeupdate () {
+<<<<<<< HEAD
     if (this.waitTimer || this.hasClass(STATE_CLASS.LOADING)) {
+=======
+    if ((this.waitTimer || this.hasClass(STATE_CLASS.LOADING))) {
+>>>>>>> chore: (xgplayer) unpkgFiles增加dist目录
       if (this.checkBuffer()) {
         this.removeClass(STATE_CLASS.LOADING)
         clearTimeout(this.waitTimer)
