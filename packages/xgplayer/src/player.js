@@ -675,6 +675,7 @@ class Player extends Proxy {
 
   onCanplay () {
     this.logInfo('onCanplay')
+    this.removeClass(STATE_CLASS.ENTER)
     this.isCanplay = true
   }
 
