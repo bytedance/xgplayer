@@ -24,6 +24,8 @@ import PlaybackRateIcon from '../plugins/playbackRate'
 import CssFullScreen from '../plugins/cssFullScreen'
 import Error from '../plugins/error'
 import Prompt from '../plugins/prompt'
+import ProgressPreview from '../plugins/progressPreview'
+import Thumbnail from '../plugins/common/thumbnail'
 
 export default class DefaultPreset {
   constructor () {
@@ -37,7 +39,7 @@ export default class DefaultPreset {
         position: PIPIcon.POSITIONS.ROOT_TOP
       }}]
 
-    const layers = [Replay, Poster, Start, Loading, Enter, Error, Prompt]
+    const layers = [Replay, Poster, Start, Loading, Enter, Error, Prompt, Thumbnail, ProgressPreview]
 
     this.plugins = [...contolsIcons, ...layers]
     switch (sniffer.device) {
