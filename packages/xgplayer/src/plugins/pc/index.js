@@ -24,7 +24,7 @@ export default class PCPlugin extends BasePlugin {
   initEvents () {
     const { player } = this;
 
-    player.root.addEventListener('click', this.onVideoClick, false)
+    player.video.addEventListener('click', this.onVideoClick, false)
     player.video.addEventListener('dblclick', this.onVideoDblClick, false)
     this.config.disableContextmenu && player.video.addEventListener('contextmenu', this.onContextmenu, false)
   }

@@ -1,24 +1,27 @@
+
 .xgplayer {
   xg-thumbnail {
-    display: none;
-    position: relative;
-    box-sizing: border-box;
-    border-radius: 4px;
-    margin: 0 auto 10px;
-    width: 160px;
-    height: 90px;
-    &.show {
-      display: block;
-    }
-  }
-
-  @media only screen and (max-width: 480px) {
-    .xgplayer-mobile xg-thumbnail {
-      width: 120px;
-      height: 67px;
-      &.portrait {
-        display: none;
-      }
-    }
+    display: block;
   }
 }
+// .xgplayer {
+//   xg-thumbnail {
+//     display: none;
+//     position: relative;
+//     width: 160px;
+//     height: 90px;
+//     &.show {
+//       display: block;
+//     }
+//   }
+
+//   @media only screen and (max-width: 480px) {
+//     .xgplayer-mobile xg-thumbnail {
+//       width: 120px;
+//       height: 67px;
+//       &.portrait {
+//         display: none;
+//       }
+//     }
+//   }
+// }

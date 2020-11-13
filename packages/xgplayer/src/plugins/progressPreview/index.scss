@@ -1,0 +1,220 @@
+$thumbnailWidth: 160px;  // 缩略图显示宽度
+$thumbnailBg: rgba(17, 16, 16, 1);
+$spotHeight: 6px; // 故事点高度
+$spotWidth: 6px; // 故事点高度
+$spotColor: #fff;
+$bottom: 7px;
+$textHeight: 40px;
+
+.xgplayer {
+  .xgplayer-progress-point {
+    opacity: 0;
+  }
+  .xgplayer-spot {
+    opacity: 0;
+    position: absolute;
+    z-index: 10;
+    top: 0;
+    left: 0;
+    height: 6px;
+    // min-width: 6px;
+    background: #fff;
+    border-radius: 12px;
+    &.mini {
+      min-width: 6px;
+      transform: translate(-50%, 0);
+    }
+  }
+  @at-root.xgplayer-mobile {
+    .xgplayer-spot {
+      height: 3px;
+      min-width: 3px;
+      top: 50%;
+      opacity: 1;
+      transform: translate(0, -50%);
+      &.mini {
+        min-width: 3px;
+        transform: translate(-50%, -50%);
+      }
+    }
+  }
+
+  .xg-spot-info {
+    position: absolute;
+    left: 0;
+    bottom: 10px;
+    visibility: hidden;
+    opacity: 0;
+    &.short-line {
+      .xg-spot-line{
+        height: 6px;
+      }
+      .xg-spot-content {
+        padding-bottom: 0;
+        bottom: 10px;
+      }
+    }
+  }
+
+  .xg-spot-line {
+    position: relative;
+    top: 2px;
+    display: block;
+    width: 1px;
+    height: 41px;
+    background-color: #FFF;
+  }
+
+  .xg-spot-content {
+    position: relative;
+    top: 2px;
+    color: #fff;
+    border-radius: 2px 2px 0px 0px;
+    .xg-spot-thumbnail {
+      position: relative;
+      width: 160px;
+      background-color: rgba(17, 16, 16, 1);
+      pointer-events: none;
+      border-radius: 2px 2px 0 0;
+    }
+    .progress-thumbnail {
+      margin: 0;
+      display: block;
+    }
+    .xg-spot-text {
+      display: none;
+      width: 160px;
+      padding: 4px 8px 9px 8px;
+      background: rgba(0, 0, 0, 0.8);
+      border-radius: 0px 0px 2px 2px;
+      pointer-events: none;
+      box-sizing: border-box;
+    }
+    .spot-inner-text {
+      overflow: hidden;
+      text-overflow: ellipsis;
+      display: -webkit-box;
+      -webkit-line-clamp: 2;
+      -webkit-box-orient: vertical;
+      line-height: 20px;
+      font-size: 12px;
+      max-height: 40px;
+    }
+    .xg-spot-time {
+      position: absolute;
+      left: 50%;
+      bottom: 2px;
+      font-size: 12px;
+      line-height: 16.8px;
+      left: 50%;
+      transform: translateX(-50%);
+      pointer-events: none;
+    }
+    &.show-text {
+      .xg-spot-text {
+        display: block;
+      }
+    }
+    &.no-thumbnail {
+      .xg-spot-thumbnail{
+        width: 160px;
+        height: auto;
+      }
+      .xg-spot-time {
+        background:rgba(0, 0, 0, 0.54);
+        padding: 4px 6px;
+        border-radius: 4px;
+        text-align: center;
+        opacity: 0.85;
+        white-space: nowrap;
+        border-radius: 1px;
+      }
+    }
+  }
+
+  .product {
+    .xg-spot-text {
+      background: #3370FF;
+    }
+    .xg-spot-line {
+      border-left: 10px solid transparent;
+      border-right: 10px solid transparent;
+      border-top: 7px solid #3370FF;
+      width: 0;
+      height: 19px;
+      background: none;
+    }
+    .xg-spot-content {
+      bottom: 0;
+      margin-top: 2px;
+    }
+  }
+
+  .xgplayer-progress.active {
+    .xg-spot-info {
+      opacity: 1;
+      visibility: visible;
+      transition: opacity .3s;
+    }
+    .xgplayer-spot {
+      opacity: 1;
+      transition: opacity .3s;
+      visibility: visible;
+    }
+  }
+
+  .xgvideo-preview {
+    position: absolute;
+    width: 100%;
+    height: 100%;
+    top: 0;
+    left: 0;
+    opacity: 0;
+    visibility: hidden;
+    transition: visibility .3s, opacity .3s;
+    background-color: #000;
+    .xgvideo-thumbnail {
+      position: relative;
+      top: 50%;
+      left: 50%;
+      transform: translate(-50%, -50%);
+      border-radius: 0;
+    }
+    &.show {
+      opacity: 1;
+      visibility: visible;
+    }
+  }
+}
+
+// controls
+.xgplayer-pc {
+  .xgplayer-controls {
+    opacity: 1;
+    transition: opacity .5s ease,visibility .5s ease;
+  }
+
+  &.not-allow-autoplay,
+  &.xgplayer-nostart,
+  &.xgplayer-is-error,
+  &.xgplayer-ended,
+  &.xgplayer-is-enter {
+    .xgplayer-controls, .flex-controls {
+      display: block;
+      pointer-events: none;
+      visibility: hidden;
+      cursor: default;
+      opacity: 0;
+    }
+  }
+
+  &.xgplayer-inactive {
+    .control_autohide {
+      display: block;
+      pointer-events: none;
+      visibility: hidden;
+      cursor: default;
+      opacity: 0;
+    }
+  }
+}

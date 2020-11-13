@@ -1,6 +1,4 @@
 import Plugin, {Events, Util, POSITIONS, Sniffer} from '../../plugin'
-import ProgressDots from './progressdots'
-import Thumbnail from '../common/thumbnail'
 import InnerList from './innerList'
 
 /**
@@ -15,11 +13,10 @@ class Progress extends Plugin {
     return {
       position: POSITIONS.CONTROLS_CENTER,
       index: 0,
-      progressDot: [],
-      thumbnail: null,
       disable: false,
-      isDragingSeek: true, // 是否在拖拽的过程中更新currentTime
+      isDragingSeek: false, // 是否在拖拽的过程中更新currentTime
       closeMoveSeek: false, // 是否关闭滑块seek能力
+      isPauseMoving: false, // 是否在move的时候暂停视频内容
       fragments: [{percent: 1}],
       onMoveStart: () => {
       }, // 手势开始移动回调
@@ -54,12 +51,11 @@ class Progress extends Plugin {
    *
    */
   createInner () {
-    const outer = this.find('xg-outer')
     this.innerList = new InnerList({
       fragments: this.config.fragments,
       style: this.playerConfig.commonStyle || {}
     })
-    outer.insertBefore(this.innerList.render(), outer.children[0]);
+    this.outer.insertBefore(this.innerList.render(), this.outer.children[0]);
     ['findHightLight', 'unHightLight', 'setHightLight', 'findFragment'].map(item => {
       this[item] = this.innerList[item].bind(this.innerList)
     })
@@ -69,14 +65,21 @@ class Progress extends Plugin {
     if (this.config.disable) {
       return;
     }
+    this.pos = {
+      x: 0, // 水平方向位移
+      y: 0, // 垂直方向位移
+      moving: false, // 是否正在移动
+      isDown: false, // 是否mouseDown
+      isEnter: false // 是否触发了mouseEnter
+    }
+    this.outer = this.find('xg-outer')
     this.createInner()
     if (Sniffer.device === 'mobile') {
       this.config.isDragingSeek = false
+      this.isMobile = true
     }
-    this.pointTip = this.find('.xgplayer-progress-point')
-    this.progressBtn = this.find('.xgplayer-progress-btn')
 
-    this.registerThumbnail()
+    this.progressBtn = this.find('.xgplayer-progress-btn')
 
     this.on(Events.TIME_UPDATE, () => {
       this.onTimeupdate()
@@ -92,18 +95,6 @@ class Progress extends Plugin {
     })
 
     this.bindDomEvents()
-  }
-
-  children () {
-    return {
-      ProgressDots: {
-        plugin: ProgressDots,
-        options: {
-          root: this.find('xg-outer'),
-          dots: this.playerConfig.progressDot || this.config.progressDot
-        }
-      }
-    }
   }
 
   initCustomStyle () {
@@ -129,7 +120,7 @@ class Progress extends Plugin {
   triggerCallbacks (type, data) {
     if (this.__dragCallBacks.length > 0) {
       this.__dragCallBacks.map(item => {
-        item.type === type && item.handler(data)
+        item && item.handler && item.type === type && item.handler(data)
       })
     }
   }
@@ -139,141 +130,194 @@ class Progress extends Plugin {
    * @param {String} type 类型 drag/dragend
    * @param {Function} event 回调函数句柄
    */
-  addDragCallBack (type, event) {
+  addCallBack (type, event) {
     if (event && typeof event === 'function') {
       this.__dragCallBacks.push({type: type, handler: event})
     }
   }
 
-  registerThumbnail () {
-    const {thumbnail} = this.playerConfig
-    // 移动端缩略图预览不在进度条上
-    if (!thumbnail || Sniffer.device === 'mobile') {
-      return;
-    }
-    thumbnail.className = 'progress-thumbnail xg-tips'
-    this.thumbnailPlugin = this.registerPlugin(Thumbnail, {
-      root: this.find('.xgplayer-progress-played')
+  /**
+   * 供外部插件移除回调
+   * @param {String} type 类型 drag/dragend
+   * @param {Function} event 回调函数句柄
+   */
+  removeCallBack (type, event) {
+    const {__dragCallBacks} = this
+    let _index = -1
+    __dragCallBacks.map((item, index) => {
+      if (item && item.type === type && item.handler === event) {
+        _index = index
+      }
     })
+    if (_index > -1) {
+      __dragCallBacks.splice(_index, 1)
+    }
   }
 
   bindDomEvents () {
-    this.mouseDown = this.mouseDown.bind(this)
-    this.mouseMove = this.mouseMove.bind(this)
-    this.mouseEnter = this.mouseEnter.bind(this)
-    this.mouseLeave = this.mouseLeave.bind(this)
-    if (Sniffer.device === 'mobile') {
-      this.root.addEventListener('touchstart', this.mouseDown, false)
+    ['onMoveOnly', 'onMouseDown', 'onMouseUp', 'onMouseMove', 'onMouseEnter', 'onMouseLeave', 'onBodyClick'].map(item => {
+      this[item] = this[item].bind(this)
+    })
+
+    if (this.isMobile) {
+      this.root.addEventListener('touchstart', this.onMouseDown, false)
     } else {
-      this.root.addEventListener('mousedown', this.mouseDown, false)
-      this.root.addEventListener('mouseenter', this.mouseEnter, false)
+      this.root.addEventListener('mousedown', this.onMouseDown, false)
+      this.root.addEventListener('mouseenter', this.onMouseEnter, false)
     }
   }
 
-  mouseDown (e) {
-    const {player, config, playerConfig, pointTip} = this
-    if (player.isMini || config.closeMoveSeek) {
+  focus () {
+    this.player.controls.pauseAutoHide()
+    Util.addClass(this.root, 'active')
+  }
+
+  blur () {
+    this.player.controls.recoverAutoHide()
+    Util.removeClass(this.root, 'active')
+  }
+
+  onMoveOnly (e) {
+    const {root, pos} = this
+    Util.event(e)
+    if (pos.moving && Math.abs(pos.x - e.clientX) < 2) {
       return
     }
+    pos.moving = true
+    pos.x = e.clientX
+    const { left, width } = root.getBoundingClientRect()
+    this.triggerCallbacks('dragmove', {offset: e.clientX - left, left, width, e})
+  }
+
+  onBodyClick (e) {
     e.preventDefault()
     e.stopPropagation()
-    Util.checkIsFunction(playerConfig.disableSwipeHandler) && playerConfig.disableSwipeHandler()
-    Util.event(e)
-    // this.pointTip为tip信息 不做seek操作
-    if (e.target === pointTip || (!playerConfig.allowSeekAfterEnded && player.ended)) {
-      return true
-    }
+  }
 
+  onMouseDown (e) {
+    const {player, pos, config, playerConfig, root} = this
+    if (player.isMini || config.closeMoveSeek || (!playerConfig.allowSeekAfterEnded && player.ended)) {
+      return
+    }
+    e.stopPropagation()
+    e.preventDefault()
+    this.focus()
+    Util.checkIsFunction(playerConfig.disableSwipeHandler) && playerConfig.disableSwipeHandler()
     Util.checkIsFunction(config.onMoveStart) && config.onMoveStart()
+    Util.event(e)
+    pos.x = e.clientX
+    pos.y = e.clientY
+    pos.isDown = true
+    pos.moving = false
+
     // 交互开始 禁止控制栏的自动隐藏功能
     player.emit(Events.PLAYER_FOCUS, {autoHide: false})
     this.isProgressMoving = true
-    Util.addClass(this.progressBtn, 'moving')
+    Util.addClass(this.progressBtn, 'active')
 
     this.computeWidth(e, false)
 
-    const move = (e) => {
-      e.preventDefault()
-      e.stopPropagation()
-      Util.event(e)
-      this.isProgressMoving = true
-      this.computeWidth(e, true)
-    }
-
-    const up = (e) => {
-      const {player, config} = this
-      e.preventDefault()
-      e.stopPropagation()
-      Util.checkIsFunction(playerConfig.enableSwipeHandler) && playerConfig.enableSwipeHandler()
-      Util.event(e)
-      Util.removeClass(this.progressBtn, 'moving')
-      if (Sniffer.device === 'mobile') {
-        this.root.removeEventListener('touchmove', move)
-        this.root.removeEventListener('touchend', up)
-      } else {
-        this.root.removeEventListener('mousemove', move)
-        this.root.removeEventListener('mouseup', up)
-        this.root.removeEventListener('mouseleave', up)
-      }
-      Util.checkIsFunction(config.onMoveEnd) && config.onMoveEnd()
-      this.computeWidth(e, false)
-      // 延迟复位，状态复位要在dom相关时间回调执行之后
-      setTimeout(() => {
-        this.resetSeekState()
-      }, 10)
-      this.triggerCallbacks('dragend', {})
-      // 交互结束 恢复控制栏的隐藏流程
-      player.emit(Events.PLAYER_FOCUS)
-    }
-
     if (Sniffer.device === 'mobile') {
-      this.root.addEventListener('touchmove', move, false)
-      this.root.addEventListener('touchend', up, false)
+      root.addEventListener('touchmove', this.onMouseMove, false)
+      root.addEventListener('touchend', this.onMouseUp, false)
     } else {
-      this.root.addEventListener('mousemove', move)
-      this.root.addEventListener('mouseup', up)
-      this.root.addEventListener('mouseleave', up)
+      root.removeEventListener('mousemove', this.onMoveOnly, false)
+
+      document.addEventListener('mousemove', this.onMouseMove, false)
+      document.addEventListener('mouseup', this.onMouseUp, false)
+      // 避免触发videoClick 暂停/播放切换
+      player.root.addEventListener('click', this.onBodyClick, false)
+      // root.addEventListener('mouseup', this.onMouseUp, false)
     }
     return true
   }
 
-  mouseEnter (e) {
-    const {player} = this
-    if (player.isMini || (!player.config.allowSeekAfterEnded && player.ended)) {
-      return
+  onMouseUp (e) {
+    const {player, config, pos, playerConfig, root} = this
+    // e.stopPropagation()
+    // e.preventDefault()
+    Util.checkIsFunction(playerConfig.enableSwipeHandler) && playerConfig.enableSwipeHandler()
+    Util.checkIsFunction(config.onMoveEnd) && config.onMoveEnd()
+    Util.event(e)
+    Util.removeClass(this.progressBtn, 'active')
+
+    if (pos.moving) {
+      this.computeWidth(e, false)
     }
-    this.root.addEventListener('mousemove', this.mouseMove, false)
-    this.root.addEventListener('mouseleave', this.mouseLeave, false)
+
+    pos.moving = false
+    pos.isDown = false
+    pos.x = 0
+    pos.y = 0
+
+    if (this.isMobile) {
+      root.removeEventListener('touchmove', this.onMouseMove, false)
+      root.removeEventListener('touchend', this.onMouseUp, false)
+      // 交互结束 恢复控制栏的隐藏流程
+      this.blur()
+    } else {
+      document.removeEventListener('mousemove', this.onMouseMove, false)
+      document.removeEventListener('mouseup', this.onMouseUp, false)
+      player.root.removeEventListener('click', this.onBodyClick, false)
+      if (!pos.isEnter) {
+        this.onMouseLeave(e)
+      } else {
+        root.addEventListener('mousemove', this.onMoveOnly, false)
+      }
+    }
+    // 延迟复位，状态复位要在dom相关时间回调执行之后
+    setTimeout(() => {
+      this.resetSeekState()
+    }, 10)
+    this.triggerCallbacks('dragend', {})
+    // // 交互结束 恢复控制栏的隐藏流程
+    // player.emit(Events.PLAYER_FOCUS)
   }
 
-  mouseLeave (e) {
-    const {player, root, pointTip, thumbnailPlugin} = this
+  onMouseMove (e) {
+    const {root, pos, player, config} = this
+    if (this.isMobile) {
+      e.stopPropagation()
+      e.preventDefault()
+    }
+    Util.event(e)
+    if (pos.moving && Math.abs(pos.x - e.clientX) < 2) {
+      return
+    }
+    pos.x = e.clientX
+    if (pos.isDown && !pos.moving) {
+      pos.moving = true
+      config.isPauseMoving && player.pause()
+      this.triggerCallbacks('dragstart', {})
+    }
+    this.computeWidth(e, true)
+    const { left, width } = root.getBoundingClientRect()
+    this.triggerCallbacks('dragmove', {offset: e.clientX - left, width, left, e})
+  }
+
+  onMouseEnter (e) {
+    const {player, pos, root} = this
+    pos.isEnter = true
+    if (pos.isDown || player.isMini || (!player.config.allowSeekAfterEnded && player.ended)) {
+      return
+    }
+    root.addEventListener('mousemove', this.onMoveOnly, false)
+    root.addEventListener('mouseleave', this.onMouseLeave, false)
+    this.focus()
+  }
+
+  onMouseLeave (e) {
+    const {player, root, pos} = this
+    pos.isEnter = false
     if (player.isMini) {
       return
     }
-    pointTip.style.display = 'none'
-    thumbnailPlugin && thumbnailPlugin.hide()
-    root.removeEventListener('mousemove', this.mouseMove, false)
-    root.removeEventListener('mouseleave', this.mouseLeave, false)
-  }
-
-  mouseMove (e) {
-    const {player, thumbnailPlugin, root} = this
-    const { left, width } = root.getBoundingClientRect()
-    let now = (e.clientX - left) / width * player.duration
-    now = now < 0 ? 0 : now
-    this.pointTip.textContent = Util.format(now)
-    let pointWidth = this.pointTip.getBoundingClientRect().width
-    let pleft = e.clientX - left - pointWidth / 2
-    pleft = pleft > 0 ? pleft : 0
-    pleft = pleft > width - pointWidth ? width - pointWidth : pleft
-    this.pointTip.style.left = `${pleft}px`
-    if (e.target && e.target.className === 'xgplayer-progress-dot') {
-      this.pointTip.style.display = 'none'
-    } else {
-      this.pointTip.style.display = 'block'
+    root.removeEventListener('mousemove', this.onMoveOnly, false)
+    if (pos.isDown) {
+      root.removeEventListener('mouseleave', this.onMouseLeave, false)
+      return
     }
-    thumbnailPlugin && thumbnailPlugin.update(now, e.clientX, width)
+    this.blur()
   }
 
   /**
@@ -346,16 +390,6 @@ class Progress extends Plugin {
     this.innerList.update({played: percent * this.player.duration}, this.player.duration)
   }
 
-  // compute (e) {
-  //   const containerLeft = this.root.getBoundingClientRect().left
-  //   const containerWidth = this.root.getBoundingClientRect().width
-  //   const pointWidth = this.pointTip.getBoundingClientRect().width
-  //   let left = e.clientX - containerLeft - pointWidth / 2
-  //   left = left > 0 ? left : 0
-  //   left = left > containerWidth - pointWidth ? containerWidth - pointWidth : left
-  //   this.pointTip.style.left = `${left}px`
-  // }
-
   /**
    * @description 播放进度更新
    */
@@ -386,14 +420,21 @@ class Progress extends Plugin {
   }
 
   destroy () {
+    const {root, player} = this
     this.thumbnailPlugin = null
     this.innerList.destroy()
     this.innerList = null
     if (Sniffer.device === 'mobile') {
-      this.root.removeEventListener('touchstart', this.mouseDown, false)
+      root.removeEventListener('touchstart', this.mouseDown, false)
+      root.removeEventListener('touchmove', this.onMouseMove, false)
+      root.removeEventListener('touchend', this.onMouseUp, false)
     } else {
-      this.root.removeEventListener('mousedown', this.mouseDown, false)
-      this.root.removeEventListener('mouseenter', this.mouseEnter, false)
+      root.removeEventListener('mousedown', this.mouseDown, false)
+      root.removeEventListener('mouseenter', this.mouseEnter, false)
+      root.removeEventListener('mousemove', this.onMoveOnly, false)
+      document.removeEventListener('mousemove', this.onMouseMove, false)
+      document.removeEventListener('mouseup', this.onMouseUp, false)
+      player.root.removeEventListener('click', this.onBodyClick, false)
     }
   }
 
