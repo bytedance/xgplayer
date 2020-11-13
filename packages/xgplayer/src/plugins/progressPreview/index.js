@@ -52,19 +52,9 @@ export default class ProgressPreview extends Plugin {
     this.previewLine = this.find('.xg-spot-line')
     this.timeText = this.find('.xg-spot-time')
     this.tipText = this.find('.spot-inner-text')
-    // 绑定dots操作API
-    // Object.keys(dotsAPI).map(item => {
-    //   this[item] = dotsAPI[item].bind(this)
-    // })
 
-    // const ispots = player.config.progressDot || config.ispots || []
     this.registerThumbnail()
     initDotsAPI(this)
-    // player.once(Events.DURATION_CHANGE, () => {
-    //   ispots.map(spot => {
-    //     this.createDot(spot)
-    //   })
-    // })
 
     this.bindEvents()
   }

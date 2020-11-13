@@ -101,6 +101,7 @@
     z-index: 16;
     transform: translate(-50%, -50%);
     box-sizing: border-box;
+    pointer-events: none;
     &:before {
       content: ' ';
       display: block;
