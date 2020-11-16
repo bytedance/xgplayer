@@ -167,21 +167,22 @@ export default class AudioRender extends BaseRender {
   }
 
   _doSeek (time) {
-    let volume = this._gainNode.gain.value;
-
-    // destroy
-    this._audioCtx.close();
-    this._audioCtx.removeEventListener('statechange', this._onStateChange);
-    this._audioCtx = null;
-    if (this._source) {
-      this._source.removeEventListener('ended', this._onSourceBufferEnded);
-    }
-    this._source = null;
     this._lastTimeLineTime = time;
 
-    // reinit
-    this._initAudioCtx(volume);
-    this._bindAudioCtxEvent();
+    // reinit,连续seek时,新建的audioCtx还没使用过的话,不再新建
+    if (this._ready && this._audioCtx.currentTime) {
+      let volume = this._gainNode.gain.value;
+      // destroy
+      this._audioCtx.close();
+      this._audioCtx.removeEventListener('statechange', this._onStateChange);
+      this._audioCtx = null;
+      if (this._source) {
+        this._source.removeEventListener('ended', this._onSourceBufferEnded);
+      }
+      this._source = null;
+      this._initAudioCtx(volume);
+      this._bindAudioCtxEvent();
+    }
     this._getAudioBuffer(true);
   }
 
@@ -214,8 +215,11 @@ export default class AudioRender extends BaseRender {
 
         if (!this._ready) {
           // init background Audio ele
-          this._ready = true;
-          this.emit(Events.AUDIO.AUDIO_READY, start);
+          let canEmit = this.isLive || Math.abs(start - this.currentTime) <= 10;
+          if (canEmit) {
+            this._ready = true;
+            this.emit(Events.AUDIO.AUDIO_READY, start);
+          }
         }
 
         this._emitTimelineEvents(Events.TIMELINE.PLAY_EVENT, Events.VIDEO_EVENTS.PROGRESS);
@@ -265,9 +269,14 @@ export default class AudioRender extends BaseRender {
       this._audioCtx.suspend();
       this.emit(Events.AUDIO.AUDIO_WAITING);
       if (inSeeking) {
-        this.once(Events.AUDIO.AUDIO_READY, time => {
-          this._ajustSeekTime(time)
-        })
+        if (!this._onAudioReady) {
+          this._onAudioReady = (time) => {
+            console.log(time, this.currentTime);
+            this._ajustSeekTime(time)
+          };
+        }
+        this.removeListener(Events.AUDIO.AUDIO_READY, this._onAudioReady)
+        this.once(Events.AUDIO.AUDIO_READY, this._onAudioReady)
       }
       return;
     }

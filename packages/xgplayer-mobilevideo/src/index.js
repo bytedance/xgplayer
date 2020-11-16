@@ -1,9 +1,12 @@
 import NoSleep from './helper/nosleep';
 import './polyfills/custom-elements.min';
 import './polyfills/native-element';
-import { logger } from 'xgplayer-helper-utils';
+// eslint-disable-next-line standard/object-curly-even-spacing
+import { logger, common} from 'xgplayer-helper-utils';
 import TimeLine from './TimeLine';
 import Events from './events';
+
+const { debounce } = common;
 
 class MVideo extends HTMLElement {
   constructor () {
@@ -15,6 +18,7 @@ class MVideo extends HTMLElement {
     this._eventsBackup = [];
     this._init();
     this._firstWebAudio = true;
+    this._debounceSeek = debounce(this._seek.bind(this), 600);
   }
 
   addEventListener (eventName, handler, capture) {
@@ -368,7 +372,6 @@ class MVideo extends HTMLElement {
   }
 
   set muted (v) {
-    console.log('oopopop', v);
     this.setAttribute('muted', v);
     this._interceptAction();
     this.timeline.emit(Events.TIMELINE.UPDATE_VOLUME, v ? 0 : this.volume);
@@ -382,6 +385,10 @@ class MVideo extends HTMLElement {
   }
 
   set currentTime (v) {
+    this._debounceSeek(v);
+  }
+
+  _seek (v) {
     this.timeline.seek(Number(v));
   }
 

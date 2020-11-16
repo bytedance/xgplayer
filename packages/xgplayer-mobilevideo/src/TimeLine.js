@@ -20,6 +20,7 @@ export default class TimeLine extends EventEmitter {
     this._paused = false;
     this._noAudio = false;
     this._switchToMultiWorker = false;
+    this._lastSeekTime = 0;
     this._bindEvent();
   }
 
@@ -196,6 +197,9 @@ export default class TimeLine extends EventEmitter {
     this.emit(Events.TIMELINE.START_RENDER);
     this.emit(Events.TIMELINE.READY);
     if (this._seeking) {
+      if (!this.audioRender.audioCanAutoPlay) {
+        this.pause();
+      }
       this._seeking = false;
       this.emit(Events.TIMELINE.PLAY_EVENT, Events.VIDEO_EVENTS.SEEKED);
       logger.groupEnd();
@@ -274,7 +278,7 @@ export default class TimeLine extends EventEmitter {
   }
 
   pause () {
-    if (this._paused || !this.ready) return;
+    if (this._paused || (!this.ready && !this._seeking)) return;
     this.emit(Events.TIMELINE.DO_PAUSE);
     setTimeout(() => {
       this._paused = true;
@@ -283,7 +287,9 @@ export default class TimeLine extends EventEmitter {
   }
 
   seek (time) {
-    if (this._seeking) return;
+    if (this._seeking) {
+      logger.groupEnd();
+    };
 
     if (this._noAudio) {
       this.emit(Events.TIMELINE.SYNC_DTS, this.videoRender.getDtsOfTime(time));
@@ -291,6 +297,15 @@ export default class TimeLine extends EventEmitter {
     }
 
     if (this._parent.live) return;
+
+    if (this._lastSeekTime === time) return;
+
+    this._lastSeekTime = time;
+
+    // 调整为最后一个分片
+    if (time >= this.duration) {
+      time = this.duration - 1;
+    }
 
     logger.group(this.TAG, 'start seek to:', time);
 

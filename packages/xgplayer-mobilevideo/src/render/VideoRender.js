@@ -272,7 +272,7 @@ export default class VideoRender extends BaseRender {
         if (nextDecodeFrame) {
           let position = (nextDecodeFrame.dts - nextDecodeFrame.baseDts) / 1000;
           if (this._parent.currentTime - position > 1) {
-            // 音频播完了,视频还有> 1s没解码,直接切到新分片
+            // 音频播完了,视频还有> 1s没解码的话,直接切到新分片
             this.ajustSeekTime(this._parent.currentTime);
           }
         }
@@ -517,8 +517,8 @@ export default class VideoRender extends BaseRender {
   _appendChunk (videoTrack) {
     this._timeRange.append(videoTrack.samples, this._noAudio);
     videoTrack.samples = [];
-    if (!this.isLive && this.currentTime === 0) {
-      this._switchVideoBuffer(0);
+    if (!this.isLive && !this._timeRange.frameLength) {
+      this._switchVideoBuffer(this._parent.currentTime);
     }
     if (!this._ready && this._wasmReady && this._noAudio) {
       this._startDecode();
