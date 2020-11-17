@@ -32,6 +32,10 @@ class Progress extends Plugin {
     this.useable = false
     this.isProgressMoving = false
     this.__dragCallBacks = []
+    this._state = {
+      now: -1,
+      direc: 0
+    }
   }
 
   changeState (useable = true) {
@@ -286,7 +290,7 @@ class Progress extends Plugin {
       w = containerWidth
     }
     const percent = w / containerWidth
-    const currentTime = percent * this.player.duration
+    const currentTime = percent * player.duration
     const now = percent * player.duration
     isMove && this.triggerCallbacks('drag', {percent, currentTime})
     this.updatePercent(w / containerWidth)
@@ -295,6 +299,8 @@ class Progress extends Plugin {
     if (isMove && (!config.isDragingSeek || player.videoConfig.mediaType === 'audio')) {
       return
     }
+    this._state.now = now
+    this._state.direc = now > player.currentTime ? 0 : 1
     player.seek(Number(now).toFixed(1))
   }
 
@@ -354,9 +360,17 @@ class Progress extends Plugin {
    * @description 播放进度更新
    */
   onTimeupdate () {
-    const {player} = this
+    const {player, _state} = this
     if (player.isSeeking || this.isProgressMoving) {
       return;
+    }
+    if (_state.now > -1) {
+      const abs = parseInt(_state.now * 1000, 10) - parseInt(player.currentTime * 1000, 10)
+      if ((_state.direc === 0 && abs > 300) || (_state.direc === 1 && abs > -300)) {
+        return
+      } else {
+        _state.now = -1
+      }
     }
     this.innerList.update({played: player.currentTime}, player.duration)
     this.progressBtn.style.left = `${player.currentTime / player.duration * 100}%`

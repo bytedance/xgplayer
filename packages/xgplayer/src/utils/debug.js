@@ -1,5 +1,5 @@
 
-const DEBUG_OPEN = typeof (window) !== 'undefined' && window.location && window.location.href.indexOf('xgplayerdebug=1') > -1
+const XG_DEBUG_OPEN = typeof (window) !== 'undefined' && window.location && window.location.href.indexOf('xgplayerdebug=1') > -1
 
 const STYLE = {
   info: 'color: #525252; background-color: #90ee90;',
@@ -9,30 +9,30 @@ const STYLE = {
 
 const XGTAG = '%c[xgplayer]》》'
 
-const DEBUG = {
+const XG_DEBUG = {
   config: {
     debug: typeof (window) !== 'undefined' && window.location && window.location.href.indexOf('playerdebug') > -1
   },
   logInfo: function (message, ...optionalParams) {
-    (DEBUG_OPEN || this.config.debug) && console.log(XGTAG, STYLE.info, message, ...optionalParams)
+    (XG_DEBUG_OPEN || this.config.debug) && console.log(XGTAG, STYLE.info, message, ...optionalParams)
   },
 
   logWarn: function (message, ...optionalParams) {
-    (DEBUG_OPEN || this.config.debug) && console.warn(XGTAG, STYLE.warn, message, ...optionalParams)
+    (XG_DEBUG_OPEN || this.config.debug) && console.warn(XGTAG, STYLE.warn, message, ...optionalParams)
   },
 
   logError: function (message, ...optionalParams) {
-    (DEBUG_OPEN || this.config.debug) && console.error(XGTAG, STYLE.error, message, ...optionalParams)
+    (XG_DEBUG_OPEN || this.config.debug) && console.error(XGTAG, STYLE.error, message, ...optionalParams)
   }
 }
 
 function bindDebug (player) {
-  player.logInfo = DEBUG.logInfo.bind(player)
-  player.logWarn = DEBUG.logWarn.bind(player)
-  player.logError = DEBUG.logError.bind(player)
+  player.logInfo = XG_DEBUG.logInfo.bind(player)
+  player.logWarn = XG_DEBUG.logWarn.bind(player)
+  player.logError = XG_DEBUG.logError.bind(player)
 }
 
 export {
-  DEBUG as default,
+  XG_DEBUG as default,
   bindDebug
 }

@@ -2,8 +2,7 @@
 * an ui Plugin class
 *
 **/
-import pluginsManager from './pluginsManager'
-import BasePlugin, {Util, DEBUG} from './basePlugin'
+import BasePlugin, {Util, XG_DEBUG} from './basePlugin'
 import * as delegate from 'delegate-events'
 
 /**
@@ -59,11 +58,11 @@ function createIcon (icon, key, classname = '', attr = {}) {
         })
         return newIcon;
       } else {
-        DEBUG.logWarn(`warn>>config of icons.${key} is a function mast return an Element Object`)
+        XG_DEBUG.logWarn(`warn>>config of icons.${key} is a function mast return an Element Object`)
       }
       return null;
     } catch (e) {
-      DEBUG.logError('Plugin:createIcon', e)
+      XG_DEBUG.logError('Plugin:createIcon', e)
       return null;
     }
   }
@@ -71,7 +70,7 @@ function createIcon (icon, key, classname = '', attr = {}) {
   if (typeof icon === 'string') {
     return Util.createDomFromHtml(icon, attr, classname);
   }
-  DEBUG.logWarn(`warn>>config of icons.${key} is invalid`)
+  XG_DEBUG.logWarn(`warn>>config of icons.${key} is invalid`)
   return null;
 }
 
@@ -196,7 +195,7 @@ class Plugin extends BasePlugin {
     try {
       renderStr = this.render()
     } catch (e) {
-      DEBUG.logError(`Plugin:${this.pluginName}:render`, e)
+      XG_DEBUG.logError(`Plugin:${this.pluginName}:render`, e)
       throw (new Error(`Plugin:${this.pluginName}:render:${e.message}`))
     }
     if (renderStr) {
@@ -320,8 +319,7 @@ class Plugin extends BasePlugin {
 
   registerPlugin (plugin, options = {}, name = '') {
     options.root = options.root || this.root
-    name && (options.pluginName = name)
-    const _c = pluginsManager.register(this.player, plugin, options)
+    const _c = super.registerPlugin(plugin, options, name)
     this._children.push(_c)
     return _c
   }
@@ -332,10 +330,6 @@ class Plugin extends BasePlugin {
 
   registerLangauageTexts () {
     return {}
-  }
-
-  getPlugin (name) {
-    return pluginsManager.findPlugin(this.player, name)
   }
 
   find (qs) {
@@ -459,7 +453,7 @@ class Plugin extends BasePlugin {
         return pdom.appendChild(child)
       }
     } catch (err) {
-      DEBUG.logError('Plugin:appendChild', err)
+      XG_DEBUG.logError('Plugin:appendChild', err)
       return null
     }
   }
@@ -471,10 +465,11 @@ class Plugin extends BasePlugin {
   destroy () {}
 
   __destroy () {
+    const {player} = this
     // destroy the sub-plugin instance
     if (this._children instanceof Array) {
       this._children.map(item => {
-        item.__destroy()
+        player.unRegistePlugin(item.pluginName)
       })
       this._children = null
     }

@@ -2,8 +2,11 @@ import Util from '../utils/util'
 import Sniffer from '../utils/sniffer'
 import Errors from '../error'
 import * as Events from '../events'
-import DEBUG from '../utils/debug'
-import pluginsManager from './pluginsManager'
+import XG_DEBUG from '../utils/debug'
+
+function showErrorMsg (pluginName, msg) {
+  console.error(`[${pluginName}] event or callback cant be undefined or null when call ${msg}`)
+}
 
 class BasePlugin {
   static defineGetterOrSetter (Obj, map) {
@@ -76,6 +79,10 @@ class BasePlugin {
   }
 
   on (event, callback) {
+    if (!event || !callback) {
+      showErrorMsg(this.pluginName, 'plugin.on(event, callback)')
+      return
+    }
     if (typeof event === 'string') {
       this.__events[event] = callback
       this.player.on(event, callback)
@@ -88,10 +95,18 @@ class BasePlugin {
   }
 
   once (event, callback) {
+    if (!event || !callback) {
+      showErrorMsg(this.pluginName, 'plugin.once(event, callback)')
+      return
+    }
     this.player.once(event, callback)
   }
 
   off (event, callback) {
+    if (!event || !callback) {
+      showErrorMsg(this.pluginName, 'plugin.off(event, callback)')
+      return
+    }
     if (typeof event === 'string') {
       delete this.__events[event]
       this.player.off(event, callback)
@@ -104,10 +119,10 @@ class BasePlugin {
   }
 
   offAll () {
-    for (const item of Object.keys(this.__events)) {
+    Object.keys(this.__events).map(item => {
       this.__events[item] && this.off(item, this.__events[item])
-      delete this.__events[item]
-    }
+      item && delete this.__events[item]
+    })
     this.__events = {}
   }
 
@@ -115,13 +130,20 @@ class BasePlugin {
     this.player.emit(event, res)
   }
 
+  registerPlugin (plugin, options = {}, name = '') {
+    name && (options.pluginName = name)
+    return this.player.registerPlugin({plugin, options})
+  }
+
+  getPlugin (name) {
+    return this.player.getPlugin(name)
+  }
+
   __destroy () {
     this.offAll()
     if (Util.checkIsFunction(this.destroy)) {
       this.destroy();
     }
-
-    pluginsManager.deletePlugin(this.player, this.pluginName);
 
     ['player', 'playerConfig', 'pluginName', 'logger'].map(item => {
       Object.defineProperty(this, item, {
@@ -139,12 +161,12 @@ BasePlugin.Util = Util
 BasePlugin.Sniffer = Sniffer
 BasePlugin.Errors = Errors
 BasePlugin.Events = Events
-BasePlugin.DEBUG = DEBUG
+BasePlugin.XG_DEBUG = XG_DEBUG
 export {
   BasePlugin as default,
   Util,
   Sniffer,
   Errors,
   Events,
-  DEBUG
+  XG_DEBUG
 }

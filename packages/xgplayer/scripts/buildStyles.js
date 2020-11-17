@@ -86,7 +86,7 @@ const buildDistStyle = async (entry) => {
       console.warn(warn.toString());
     });
 
-    return cssnano.process(result.css, { from: 'undefined' }, { preset: 'default' });
+    return cssnano.process(result.css, { from: 'undefined', autoprefixer: false }, { preset: 'default' });
   });
 
   const files = [distCss, compressCss];

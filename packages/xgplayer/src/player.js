@@ -42,6 +42,7 @@ class Player extends Proxy {
     this.isPlaying = false
     // 是否处于seeking进行状态
     this.isSeeking = false
+    this.isCanplay = false
     // 当前是否处于焦点状态
     this.isActive = true
     this.isCssfullScreen = false
@@ -199,15 +200,15 @@ class Player extends Proxy {
       }
     }
     this.once('play', this.playFunc)
-    const player = this
-    function onDestroy () {
-      player.root.removeEventListener('mousemove', player.mousemoveFunc);
-      FULLSCREEN_EVENTS.forEach(item => {
-        document.removeEventListener(item, this.onFullscreenChange)
-      });
-      player.off('destroy', onDestroy)
-    }
-    player.once('destroy', onDestroy)
+  }
+
+  _unbindEvents () {
+    this.root.removeEventListener('mousemove', this.mousemoveFunc);
+    FULLSCREEN_EVENTS.forEach(item => {
+      document.removeEventListener(item, this.onFullscreenChange)
+    });
+    this.playFunc && this.off('play', this.playFunc)
+    this.canPlayFunc && this.off('canplay', this.canPlayFunc)
   }
 
   _startInit (url) {
@@ -216,6 +217,9 @@ class Player extends Proxy {
       this.emit(Events.URL_NULL)
     }
     this.canPlayFunc = () => {
+      if (!this.config) {
+        return
+      }
       const {autoplay, startTime, volume} = this.config
       this.logInfo('player', 'canPlayFunc', startTime)
       this.volume = typeof volume === 'number' ? volume : 0.6
@@ -345,7 +349,13 @@ class Player extends Proxy {
     return pluginsManager.register(this, PLUFGIN, options)
   }
 
-  unRegistePlugin () {}
+  unRegistePlugin (plugin) {
+    if (typeof plugin === 'string') {
+      pluginsManager.unRegister(this, plugin)
+    } else if (plugin instanceof BasePlugin) {
+      pluginsManager.unRegister(this, plugin.pluginName)
+    }
+  }
 
   /**
    * 当前播放器挂在的插件实例代码
@@ -428,6 +438,10 @@ class Player extends Proxy {
       })
       return
     }
+    if (!this.isPlaying) {
+      this.removeClass(STATE_CLASS.NO_START)
+      !this.isCanplay && this.addClass(STATE_CLASS.ENTER)
+    }
 
     const playPromise = super.play()
     if (playPromise !== undefined && playPromise && playPromise.then) {
@@ -445,6 +459,7 @@ class Player extends Proxy {
         if (this.video.error) {
           this.onError()
           this.errorHandler('error')
+          this.removeClass(STATE_CLASS.ENTER)
           return
         }
         // 避免AUTOPLAY_PREVENTED先于playing和play触发
@@ -509,6 +524,7 @@ class Player extends Proxy {
     ['click', 'touchend'].forEach((k) => {
       this.topBar.removeEventListener(k, Util.stopPropagation)
     });
+    this._unbindEvents()
     pluginsManager.destroy(this)
     this.root.removeChild(this.topBar)
     this.root.removeChild(this.leftBar)
@@ -659,6 +675,8 @@ class Player extends Proxy {
 
   onCanplay () {
     this.logInfo('onCanplay')
+    this.removeClass(STATE_CLASS.ENTER)
+    this.isCanplay = true
   }
 
   onPlay () {
