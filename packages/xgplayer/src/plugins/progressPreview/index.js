@@ -173,7 +173,7 @@ export default class ProgressPreview extends Plugin {
     }
     const {player, config} = this
     const thumbnail = this.player.getPlugin('thumbnail')
-    if (!thumbnail || !thumbnail.usable) {
+    if (!thumbnail || !thumbnail.usable || !this.config.isShowThumbnail) {
       Util.addClass(this.find('.xg-spot-content'), 'no-thumbnail')
       Util.addClass(this.root, 'short-line')
       return;

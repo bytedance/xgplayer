@@ -11,7 +11,6 @@ $textHeight: 40px;
     opacity: 0;
   }
   .xgplayer-spot {
-    opacity: 0;
     position: absolute;
     z-index: 10;
     top: 0;
@@ -20,11 +19,13 @@ $textHeight: 40px;
     // min-width: 6px;
     background: #fff;
     border-radius: 12px;
+    opacity: 0;
     &.mini {
       min-width: 6px;
       transform: translate(-50%, 0);
     }
   }
+
   @at-root.xgplayer-mobile {
     .xgplayer-spot {
       height: 3px;
@@ -39,6 +40,15 @@ $textHeight: 40px;
     }
   }
 
+  .xgplayer-progress.active {
+    .xgplayer-spot {
+      opacity: 1;
+      transition: opacity .3s;
+      visibility: visible;
+    }
+  }
+  
+  /**  xg-spot-info start**/
   .xg-spot-info {
     position: absolute;
     left: 0;
@@ -156,12 +166,8 @@ $textHeight: 40px;
       visibility: visible;
       transition: opacity .3s;
     }
-    .xgplayer-spot {
-      opacity: 1;
-      transition: opacity .3s;
-      visibility: visible;
-    }
   }
+  /**  xg-spot-info end**/
 
   .xgvideo-preview {
     position: absolute;
