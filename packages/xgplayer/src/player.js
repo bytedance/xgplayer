@@ -156,9 +156,9 @@ class Player extends Proxy {
     });
 
     // deal with the fullscreen state change callback
-    this.onFullscreenChange = () => {
+    this.onFullscreenChange = (e, isEnter) => {
       const fullEl = Util.getFullScreenEl()
-      if (fullEl && (fullEl === this._fullscreenEl || fullEl.tagName === 'VIDEO')) {
+      if (isEnter || (fullEl && (fullEl === this._fullscreenEl || fullEl.tagName === 'VIDEO'))) {
         this.fullscreen = true
         this.addClass(STATE_CLASS.FULLSCREEN)
         this.emit(Events.FULLSCREEN_CHANGE, true)
@@ -182,6 +182,17 @@ class Player extends Proxy {
     FULLSCREEN_EVENTS.forEach(item => {
       document && document.addEventListener(item, this.onFullscreenChange)
     })
+
+    this.__webkitbeginfullscreen = (e) => {
+      this._fullscreenEl = this.video
+      this.onFullscreenChange(e, true)
+    }
+    this.__webkitendfullscreen = (e) => {
+      this.onFullscreenChange(e, false)
+    }
+
+    this.video.addEventListener('webkitbeginfullscreen', this.__webkitbeginfullscreen)
+    this.video.addEventListener('webkitendfullscreen', this.__webkitendfullscreen)
 
     this.once('loadeddata', this.getVideoSize)
 
@@ -209,6 +220,8 @@ class Player extends Proxy {
     });
     this.playFunc && this.off('play', this.playFunc)
     this.canPlayFunc && this.off('canplay', this.canPlayFunc)
+    this.video.removeEventListener('webkitbeginfullscreen', this.__webkitbeginfullscreen)
+    this.video.removeEventListener('webkitendfullscreen', this.__webkitendfullscreen)
   }
 
   _startInit (url) {
