@@ -646,6 +646,9 @@ class Player extends Proxy {
 
   onFocus () {
     let player = this
+    if(util.hasClass(this.root, 'xgplayer-inactive')) {
+      player.emit('controlShow')
+    }
     util.removeClass(this.root, 'xgplayer-inactive')
     if (player.userTimer) {
       clearTimeout(player.userTimer)
@@ -658,6 +661,9 @@ class Player extends Proxy {
   onBlur () {
     // this.video.blur()
     if ((this.config.enablePausedInactive || !this.paused) && !this.ended && !this.config.closeInactive) {
+      if(!util.hasClass(this.root, 'xgplayer-inactive')) {
+        this.emit('controlHide')
+      }
       util.addClass(this.root, 'xgplayer-inactive')
     }
   }
