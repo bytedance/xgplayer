@@ -50,6 +50,7 @@ export default class ProgressPreview extends Plugin {
       return
     }
     this.previewLine = this.find('.xg-spot-line')
+    this.timePoint = this.find('.xgplayer-progress-point')
     this.timeText = this.find('.xg-spot-time')
     this.tipText = this.find('.spot-inner-text')
 
@@ -114,24 +115,29 @@ export default class ProgressPreview extends Plugin {
   }
 
   updateLinePos (offset, cwidth) {
-    const {root, previewLine} = this
+    const {root, previewLine, timePoint} = this
     const lwidth = root.getBoundingClientRect().width
+    const tWidth = timePoint.getBoundingClientRect().width
     let x = offset - lwidth / 2
     if (x < 0) {
       x = 0
-      previewLine.style.transform = `translateX(${offset - lwidth / 2}px)`
+      previewLine.style.transform = `translateX(${offset - lwidth / 2}px)`;
+      !this.thumbnail && (timePoint.style.transform = `translateX(${offset - lwidth / 2 - tWidth / 2}px)`)
     } else if (x > cwidth - lwidth) {
       previewLine.style.transform = `translateX(${x - (cwidth - lwidth)}px)`
+      !this.thumbnail && (timePoint.style.transform = `translateX(${x - (cwidth - lwidth) - tWidth / 2}px)`)
       x = cwidth - lwidth
     } else {
       previewLine.style.transform = `translateX(${0}px)`
+      !this.thumbnail && (timePoint.style.transform = `translateX(${-tWidth / 2}px)`)
     }
     root.style.transform = `translateX(${x}px)`
   }
 
   updateTimeText (time) {
-    const {timeText} = this
+    const {timeText, timePoint} = this
     timeText.textContent = Util.format(time)
+    !this.thumbnail && (timePoint.textContent = Util.format(time))
   }
 
   updatePosition (offset, cwidth, e) {
@@ -174,14 +180,12 @@ export default class ProgressPreview extends Plugin {
     const {player, config} = this
     const thumbnail = this.player.getPlugin('thumbnail')
     if (!thumbnail || !thumbnail.usable || !this.config.isShowThumbnail) {
-      Util.addClass(this.find('.xg-spot-content'), 'no-thumbnail')
-      Util.addClass(this.root, 'short-line')
+      // Util.addClass(this.find('.xg-spot-content'), 'no-thumbnail')
+      Util.addClass(this.root, 'short-line no-thumbnail')
       return;
     }
-    if (config.isShowThumbnail) {
-      const tRoot = this.find('.xg-spot-thumbnail')
-      this.thumbnail = thumbnail.createThumbnail(tRoot, 'progress-thumbnail')
-    }
+    const tRoot = this.find('.xg-spot-thumbnail')
+    this.thumbnail = thumbnail.createThumbnail(tRoot, 'progress-thumbnail')
     if (config.isShowCoverPreview) {
       this.videoPreview = Util.createDom('xg-video-preview', '', {}, 'xgvideo-preview')
       player.root.appendChild(this.videoPreview)
@@ -254,6 +258,7 @@ export default class ProgressPreview extends Plugin {
         </div>
           <div class="xg-spot-text"><span class="spot-inner-text"></span></div>
       </div>
+      <div class="xgplayer-progress-point">00:00</div>
       <div class="xg-spot-line"></div>
     </div>`
   }

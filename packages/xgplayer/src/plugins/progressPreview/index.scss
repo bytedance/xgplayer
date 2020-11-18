@@ -7,9 +7,9 @@ $bottom: 7px;
 $textHeight: 40px;
 
 .xgplayer {
-  .xgplayer-progress-point {
-    opacity: 0;
-  }
+  // .xgplayer-progress-point {
+  //   opacity: 0;
+  // }
   .xgplayer-spot {
     position: absolute;
     z-index: 10;
@@ -64,6 +64,14 @@ $textHeight: 40px;
         bottom: 10px;
       }
     }
+    &.no-thumbnail {
+      .xg-spot-thumbnail {
+        display: none;
+      }
+      .xgplayer-progress-point {
+        display: block;
+      }
+    }
   }
 
   .xg-spot-line {
@@ -75,73 +83,76 @@ $textHeight: 40px;
     background-color: #FFF;
   }
 
+  /* 进度条内层样式 */
+  .xgplayer-progress-point {
+    display: none;
+    position: absolute;
+    bottom: 6px;
+    left: 50%;
+    background:rgba(0, 0, 0, 0.54);
+    font-size: 11px;
+    color: #fff;
+    padding: 4px 6px;
+    border-radius: 4px;
+    text-align: center;
+    opacity: 0.85;
+    white-space: nowrap;
+  }
+
+
   .xg-spot-content {
     position: relative;
+    width: 160px;
     top: 2px;
     color: #fff;
     border-radius: 2px 2px 0px 0px;
-    .xg-spot-thumbnail {
-      position: relative;
-      width: 160px;
-      background-color: rgba(17, 16, 16, 1);
-      pointer-events: none;
-      border-radius: 2px 2px 0 0;
-    }
-    .progress-thumbnail {
-      margin: 0;
+  }
+  .xg-spot-thumbnail {
+    position: relative;
+    width: 160px;
+    background-color: rgba(17, 16, 16, 1);
+    pointer-events: none;
+    border-radius: 2px 2px 0 0;
+  }
+  .progress-thumbnail {
+    margin: 0;
+    display: block;
+  }
+  .xg-spot-text {
+    display: none;
+    width: 160px;
+    padding: 4px 8px 9px 8px;
+    background: rgba(0, 0, 0, 0.8);
+    border-radius: 0px 0px 2px 2px;
+    pointer-events: none;
+    box-sizing: border-box;
+  }
+  .spot-inner-text {
+    overflow: hidden;
+    text-overflow: ellipsis;
+    display: -webkit-box;
+    -webkit-line-clamp: 2;
+    -webkit-box-orient: vertical;
+    line-height: 20px;
+    font-size: 12px;
+    max-height: 40px;
+  }
+  .xg-spot-time {
+    position: absolute;
+    left: 50%;
+    bottom: 2px;
+    font-size: 12px;
+    line-height: 16.8px;
+    left: 50%;
+    transform: translateX(-50%);
+    pointer-events: none;
+  }
+  .xg-spot-content.show-text {
+    .xg-spot-text {
       display: block;
     }
-    .xg-spot-text {
-      display: none;
-      width: 160px;
-      padding: 4px 8px 9px 8px;
-      background: rgba(0, 0, 0, 0.8);
-      border-radius: 0px 0px 2px 2px;
-      pointer-events: none;
-      box-sizing: border-box;
-    }
-    .spot-inner-text {
-      overflow: hidden;
-      text-overflow: ellipsis;
-      display: -webkit-box;
-      -webkit-line-clamp: 2;
-      -webkit-box-orient: vertical;
-      line-height: 20px;
-      font-size: 12px;
-      max-height: 40px;
-    }
-    .xg-spot-time {
-      position: absolute;
-      left: 50%;
-      bottom: 2px;
-      font-size: 12px;
-      line-height: 16.8px;
-      left: 50%;
-      transform: translateX(-50%);
-      pointer-events: none;
-    }
-    &.show-text {
-      .xg-spot-text {
-        display: block;
-      }
-    }
-    &.no-thumbnail {
-      .xg-spot-thumbnail{
-        width: 160px;
-        height: auto;
-      }
-      .xg-spot-time {
-        background:rgba(0, 0, 0, 0.54);
-        padding: 4px 6px;
-        border-radius: 4px;
-        text-align: center;
-        opacity: 0.85;
-        white-space: nowrap;
-        border-radius: 1px;
-      }
-    }
   }
-
+  
   .product {
     .xg-spot-text {
       background: #3370FF;

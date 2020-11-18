@@ -121,23 +121,6 @@
       }
     }
   }
-
-  /* 进度条内层样式 */
-  .xgplayer-progress-point {
-    display: none;
-    position: absolute;
-    bottom: 20px;
-    left: 0;
-    background:rgba(0, 0, 0, 0.54);
-    border-radius: 1px;
-    font-size: 11px;
-    color: #fff;
-    padding: 4px 6px;
-    border-radius: 4px;
-    text-align: center;
-    opacity: 0.85;
-    white-space: nowrap;
-  }
   
   /* 进度条打点*/
   .xgplayer-progress-dot {
@@ -200,9 +183,9 @@
         .xgplayer-progress-outer {
           height: 6px;
           transition: height .5s ease;
-          .xgplayer-progress-point {
-            display: block;
-          }
+          // .xgplayer-progress-point {
+          //   display: block;
+          // }
         }
         .xgplayer-progress-btn {
           transform: translate(-50%, -50%) scale(1);
