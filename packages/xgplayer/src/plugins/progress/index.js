@@ -17,7 +17,7 @@ class Progress extends Plugin {
       isDragingSeek: false, // 是否在拖拽的过程中更新currentTime
       closeMoveSeek: false, // 是否关闭滑块seek能力
       isPauseMoving: false, // 是否在move的时候暂停视频内容
-      isCloseClickSeek: true, // 是否关闭点击的时候seek
+      isCloseClickSeek: false, // 是否关闭点击进度条的时候seek
       fragments: [{percent: 1}],
       onMoveStart: () => {
       }, // 手势开始移动回调
@@ -121,7 +121,13 @@ class Progress extends Plugin {
   triggerCallbacks (type, data) {
     if (this.__dragCallBacks.length > 0) {
       this.__dragCallBacks.map(item => {
-        item && item.handler && item.type === type && item.handler(data)
+        if (item && item.handler && item.type === type) {
+          try {
+            item.handler(data)
+          } catch (error) {
+            console.error(`[triggerCallbacks] ${item} error`, error)
+          }
+        }
       })
     }
   }
@@ -187,7 +193,11 @@ class Progress extends Plugin {
     pos.moving = true
     pos.x = e.clientX
     const { left, width } = root.getBoundingClientRect()
-    this.triggerCallbacks('dragmove', {offset: e.clientX - left, left, width, e})
+    const ret = this.computeTime(e.clientX, 2)
+    ret.offset = e.clientX - left
+    ret.width = width
+    ret.e = e
+    this.triggerCallbacks('dragmove', ret)
   }
 
   onBodyClick (e) {
@@ -216,7 +226,8 @@ class Progress extends Plugin {
     this.isProgressMoving = true
     Util.addClass(this.progressBtn, 'active')
 
-    this.computeWidth(e.clientX, false)
+    const ret = this.computeTime(e.clientX)
+    this.updateWidth(ret.currentTime, ret.percent, 0)
 
     if (Sniffer.device === 'mobile') {
       root.addEventListener('touchmove', this.onMouseMove, false)
@@ -242,15 +253,6 @@ class Progress extends Plugin {
     Util.event(e)
     Util.removeClass(this.progressBtn, 'active')
 
-    if (pos.moving) {
-      this.computeWidth(e.clientX, false)
-    }
-
-    pos.moving = false
-    pos.isDown = false
-    pos.x = 0
-    pos.y = 0
-
     if (this.isMobile) {
       root.removeEventListener('touchmove', this.onMouseMove, false)
       root.removeEventListener('touchend', this.onMouseUp, false)
@@ -266,11 +268,23 @@ class Progress extends Plugin {
         root.addEventListener('mousemove', this.onMoveOnly, false)
       }
     }
+    const ret = this.computeTime(e.clientX)
+    ret.e = e
+    if (pos.moving) {
+      this.updateWidth(ret.currentTime, ret.percent, 2)
+      this.triggerCallbacks('dragend', ret)
+    } else {
+      this.triggerCallbacks('click', ret)
+    }
+
+    pos.moving = false
+    pos.isDown = false
+    pos.x = 0
+    pos.y = 0
     // 延迟复位，状态复位要在dom相关时间回调执行之后
     setTimeout(() => {
       this.resetSeekState()
     }, 10)
-    this.triggerCallbacks('dragend', {})
     // // 交互结束 恢复控制栏的隐藏流程
     // player.emit(Events.PLAYER_FOCUS)
   }
@@ -286,14 +300,25 @@ class Progress extends Plugin {
       return
     }
     pos.x = e.clientX
+    const ret = this.computeTime(e.clientX)
+    const { left, width } = root.getBoundingClientRect()
+
+    const data = {
+      offset: e.clientX - left,
+      width,
+      left,
+      e,
+      currentTime: ret.currentTime,
+      percent: ret.percent
+    }
+
     if (pos.isDown && !pos.moving) {
       pos.moving = true
       config.isPauseMoving && player.pause()
-      this.triggerCallbacks('dragstart', {})
+      this.triggerCallbacks('dragstart', data)
     }
-    this.computeWidth(e.clientX, true)
-    const { left, width } = root.getBoundingClientRect()
-    this.triggerCallbacks('dragmove', {offset: e.clientX - left, width, left, e})
+    this.updateWidth(ret.currentTime, ret.percent, 1)
+    this.triggerCallbacks('dragmove', data)
   }
 
   onMouseEnter (e) {
@@ -322,35 +347,39 @@ class Progress extends Plugin {
   }
 
   /**
-   * @description 根据事件回调计算位置
-   * @param {Number} clientX
-   * @param {Boolean} isMove
+   * @description 根据currenTime和占用百分比更新进度条
+   * @param {Number} currentTime 需要更新到的时间
+   * @param {Number} percent 更新时间占比
+   * @param {Int} type 触发类型 0-down 1-move 2-up
    */
-  computeWidth (clientX, isMove) {
-    const containerWidth = this.root.getBoundingClientRect().width
-    const {player, config} = this
-    let {left} = this.root.getBoundingClientRect()
+  updateWidth (currentTime, percent, type) {
+    const {config, player} = this
+    if (config.isCloseClickSeek && type === 0) {
+      return
+    }
+    this.updatePercent(percent)
+    this.updateTime(currentTime)
+    if (type === 1 && (!config.isDragingSeek || player.videoConfig.mediaType === 'audio')) {
+      return
+    }
+    this._state.now = currentTime
+    this._state.direc = currentTime > player.currentTime ? 0 : 1
+    player.seek(Number(currentTime).toFixed(1))
+  }
+
+  computeTime (clientX) {
+    const {player} = this
+    const {width, left} = this.root.getBoundingClientRect()
     let w = clientX - left
-    if (w > containerWidth) {
-      w = containerWidth
+    w = w > width ? width : (w < 0 ? 0 : w)
+
+    let percent = w / width
+    percent = percent < 0 ? 0 : (percent > 1 ? 1 : percent)
+    const currentTime = parseInt(percent * player.duration * 1000, 10) / 1000
+    return {
+      percent,
+      currentTime
     }
-    const percent = w / containerWidth
-    const currentTime = percent * player.duration
-    const now = percent * player.duration
-    isMove && this.triggerCallbacks('drag', {percent, currentTime})
-    if (config.isCloseClickSeek && !isMove) {
-      console.log('isCloseClickSeek', config.isCloseClickSeek)
-      return
-    }
-    this.updatePercent(w / containerWidth)
-    this.updateTime(now)
-    // 音频在移动move的时候不做seek
-    if (isMove && (!config.isDragingSeek || player.videoConfig.mediaType === 'audio')) {
-      return
-    }
-    this._state.now = now
-    this._state.direc = now > player.currentTime ? 0 : 1
-    player.seek(Number(now).toFixed(1))
   }
 
   /**

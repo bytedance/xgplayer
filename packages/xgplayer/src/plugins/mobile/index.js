@@ -72,7 +72,7 @@ class MobilePlugin extends Plugin {
       // 添加进度条拖拽事件回调
       const progressPlugin = player.plugins.progress
       if (progressPlugin) {
-        progressPlugin.addCallBack('drag', (data) => {
+        progressPlugin.addCallBack('dragmove', (data) => {
           this.activeSeekNote(data.currentTime)
         })
         progressPlugin.addCallBack('dragend', () => {
