@@ -17,6 +17,7 @@ class Progress extends Plugin {
       isDragingSeek: false, // 是否在拖拽的过程中更新currentTime
       closeMoveSeek: false, // 是否关闭滑块seek能力
       isPauseMoving: false, // 是否在move的时候暂停视频内容
+      isCloseClickSeek: true, // 是否关闭点击的时候seek
       fragments: [{percent: 1}],
       onMoveStart: () => {
       }, // 手势开始移动回调
@@ -215,7 +216,7 @@ class Progress extends Plugin {
     this.isProgressMoving = true
     Util.addClass(this.progressBtn, 'active')
 
-    this.computeWidth(e, false)
+    this.computeWidth(e.clientX, false)
 
     if (Sniffer.device === 'mobile') {
       root.addEventListener('touchmove', this.onMouseMove, false)
@@ -242,7 +243,7 @@ class Progress extends Plugin {
     Util.removeClass(this.progressBtn, 'active')
 
     if (pos.moving) {
-      this.computeWidth(e, false)
+      this.computeWidth(e.clientX, false)
     }
 
     pos.moving = false
@@ -290,7 +291,7 @@ class Progress extends Plugin {
       config.isPauseMoving && player.pause()
       this.triggerCallbacks('dragstart', {})
     }
-    this.computeWidth(e, true)
+    this.computeWidth(e.clientX, true)
     const { left, width } = root.getBoundingClientRect()
     this.triggerCallbacks('dragmove', {offset: e.clientX - left, width, left, e})
   }
@@ -322,14 +323,14 @@ class Progress extends Plugin {
 
   /**
    * @description 根据事件回调计算位置
-   * @param {Event} e
+   * @param {Number} clientX
    * @param {Boolean} isMove
    */
-  computeWidth (e, isMove) {
+  computeWidth (clientX, isMove) {
     const containerWidth = this.root.getBoundingClientRect().width
     const {player, config} = this
     let {left} = this.root.getBoundingClientRect()
-    let w = e.clientX - left
+    let w = clientX - left
     if (w > containerWidth) {
       w = containerWidth
     }
@@ -337,6 +338,10 @@ class Progress extends Plugin {
     const currentTime = percent * player.duration
     const now = percent * player.duration
     isMove && this.triggerCallbacks('drag', {percent, currentTime})
+    if (config.isCloseClickSeek && !isMove) {
+      console.log('isCloseClickSeek', config.isCloseClickSeek)
+      return
+    }
     this.updatePercent(w / containerWidth)
     this.updateTime(now)
     // 音频在移动move的时候不做seek
@@ -446,7 +451,7 @@ class Progress extends Plugin {
     <xg-progress class="xgplayer-progress">
       <xg-outer class="xgplayer-progress-outer">
         <xg-progress-btn class="xgplayer-progress-btn"></xg-progress-btn>
-        <xg-point class="xgplayer-progress-point">00:00</xg-point>
+        <!--<xg-point class="xgplayer-progress-point">00:00</xg-point>-->
       </xg-outer>
     </xg-progress>
     `
