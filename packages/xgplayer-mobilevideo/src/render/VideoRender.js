@@ -408,7 +408,7 @@ export default class VideoRender extends BaseRender {
     this._decodeEstimate.addDecodeInfo(info);
 
     if (!this._isLive) {
-      let t = info && info.baseDts && (info.dts - info.baseDts) / 1000;
+      let t = info && (info.baseDts !== undefined) && (info.dts - info.baseDts) / 1000;
       if (t !== undefined && this._parent) {
         if (Math.abs(t - this._parent.currentTime) >= 4) return;
       }
@@ -447,7 +447,8 @@ export default class VideoRender extends BaseRender {
     }
   }
 
-  _resetDts (dts) {
+  _resetDts (dts, type) {
+    if (type === 'audio') return;
     this._timeRange.resetDts(dts);
   }
 

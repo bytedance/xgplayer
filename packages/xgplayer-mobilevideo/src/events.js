@@ -30,7 +30,7 @@ export default {
     SET_PLAY_MODE: 'set_play_mode', // vod、live
     UPDATE_CAPABILITY_LEVEL: 'update_capability_level',
     INNER_DEGRADE: 'inner_degrade',
-    AJUST_SEEK_TIME: 'ajustSeekTime'
+    ADJUST_SEEK_TIME: 'adjustSeekTime'
   },
   VIDEO_EVENTS: {
     WAITING: 'waiting',

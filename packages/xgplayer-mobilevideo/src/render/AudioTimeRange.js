@@ -6,7 +6,7 @@ export default class AudioTimeRange {
     this._parent = parent;
     this._buffers = [];
     this._duration = 0;
-    this._baseDts = 0;
+    this._baseDts = -1;
   }
 
   get isLive () {
@@ -60,7 +60,7 @@ export default class AudioTimeRange {
   }
 
   append (source, duration, startDts) {
-    if (!this._baseDts) {
+    if (this._baseDts === -1) {
       this._baseDts = startDts;
     }
 

@@ -69,7 +69,6 @@ class MVideo extends HTMLElement {
 
   _bindEvents () {
     this.timeline.on(Events.TIMELINE.PLAY_EVENT, (status, data) => {
-      // console.log(status,'////////////');
       if (status === 'canplay') {
         if (!this.querySelector('canvas')) {
           this.appendChild(this.canvas);
@@ -229,11 +228,12 @@ class MVideo extends HTMLElement {
   load () {}
 
   /** *************** 外部数据交互主要接口 */
+
   onDemuxComplete (videoTrack, audioTrack) {
     if (this.error || !this.timeline) return;
     if (!this._logFirstFrame) {
-      let vSam0 = videoTrack.samples[0];
-      let aSam0 = this.noAudio ? null : audioTrack.samples[0];
+      let vSam0 = videoTrack && videoTrack.samples[0];
+      let aSam0 = this.noAudio ? null : audioTrack && audioTrack.samples[0];
       if ((vSam0 && aSam0) || (vSam0 && this.noAudio)) {
         logger.log(
           this.TAG,
@@ -477,7 +477,7 @@ class MVideo extends HTMLElement {
 
   // 移动端软解 启用内部降级
   get innerDegrade () {
-    return this.getAttribute('innerdegrade');
+    return this.getAttribute('innerdegrade') === 'true';
   }
 
   set glCtxOptions (v) {

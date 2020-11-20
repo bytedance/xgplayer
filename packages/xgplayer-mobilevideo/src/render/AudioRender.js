@@ -148,7 +148,8 @@ export default class AudioRender extends BaseRender {
     }
   }
 
-  _resetDts (dts) {
+  _resetDts (dts, type) {
+    if (type === 'video') return;
     this._timeRange.resetDts(dts);
   }
 
@@ -215,7 +216,7 @@ export default class AudioRender extends BaseRender {
 
         if (!this._ready) {
           // init background Audio ele
-          let canEmit = this.isLive || Math.abs(start - this.currentTime) <= 10;
+          let canEmit = this.isLive || Math.abs(start - this.currentTime) <= uncompress.duration;
           if (canEmit) {
             this._ready = true;
             this.emit(Events.AUDIO.AUDIO_READY, start);
@@ -253,7 +254,7 @@ export default class AudioRender extends BaseRender {
     if (buffer) {
       logger.log(this.TAG, `ajust seek time to:`, buffer.start);
       this._lastTimeLineTime = buffer.start;
-      this._parent.emit(Events.TIMELINE.AJUST_SEEK_TIME, buffer.start)
+      this._parent.emit(Events.TIMELINE.ADJUST_SEEK_TIME, buffer.start)
     }
   }
 
@@ -261,7 +262,7 @@ export default class AudioRender extends BaseRender {
     let buffer = this._timeRange.getBuffer(this.currentTime, 0);
     if (!buffer) {
       // check end  for vod
-      if (!this.isLive && Math.abs(this.currentTime - this.duration) < 1) {
+      if (!this.isLive && (this.currentTime - this.duration > -1)) {
         this._emitTimelineEvents(Events.TIMELINE.PLAY_EVENT, Events.VIDEO_EVENTS.ENDED)
         return;
       }

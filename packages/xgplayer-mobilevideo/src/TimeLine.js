@@ -167,7 +167,7 @@ export default class TimeLine extends EventEmitter {
       this.emit(Events.TIMELINE.PLAY_EVENT, Events.VIDEO_EVENTS.LOW_DECODE);
     })
 
-    this.on(Events.TIMELINE.AJUST_SEEK_TIME, time => {
+    this.on(Events.TIMELINE.ADJUST_SEEK_TIME, time => {
       this.videoRender.ajustSeekTime(time);
     })
 
@@ -207,10 +207,17 @@ export default class TimeLine extends EventEmitter {
   }
 
   // 对点播、分片不连续时resetDts
-  _checkResetBaseDts (vTrack) {
-    const samp0 = vTrack.samples[0];
-    if (!samp0) return;
-    const frag = samp0.options;
+  _checkResetBaseDts (vTrack, aTrack) {
+    const vSamp0 = vTrack && vTrack.samples[0];
+    const aSamp0 = aTrack && aTrack.samples[0];
+    if (!vSamp0 || !aSamp0) {
+      if (!this.buffered.length) {
+        // 暂不支持只有单track
+        this.emit(Events.TIMELINE.PLAY_EVENT, 'error', new Error('lack video or audio sample'));
+      }
+      return;
+    };
+    const frag = vSamp0.options;
     if (!frag) return;
     let breakedFrag;
     if (!this._lastSegment) {
@@ -221,16 +228,20 @@ export default class TimeLine extends EventEmitter {
       breakedFrag = frag
     }
     if (breakedFrag) {
-      const baseDts = samp0.dts - frag.start;
-      console.log(`segment discontinue, id:${frag.id} reset baseDts=${baseDts}`);
-      this.emit(Events.TIMELINE.RESET_BASE_DTS, baseDts);
+      const vBaseDts = vSamp0.dts - frag.start;
+      const aBaseDts = aSamp0.dts - frag.start;
+      logger.warn(this.TAG, `segment discontinue, id:${frag.id} reset vBaseDts=${vBaseDts} , aBaseDts=${aBaseDts}`);
+      this.emit(Events.TIMELINE.RESET_BASE_DTS, aBaseDts, 'audio');
+      this.emit(Events.TIMELINE.RESET_BASE_DTS, vBaseDts, 'video');
     }
 
     this._lastSegment = frag;
   }
 
   appendBuffer (videoTrack, audioTrack) {
-    this._checkResetBaseDts(videoTrack);
+    if (!this._parent.live) {
+      this._checkResetBaseDts(videoTrack, audioTrack);
+    }
     this.emit(Events.TIMELINE.APPEND_CHUNKS, videoTrack, audioTrack);
   }
 
@@ -305,6 +316,10 @@ export default class TimeLine extends EventEmitter {
     // 调整为最后一个分片
     if (time >= this.duration) {
       time = this.duration - 1;
+    }
+
+    if (time < 0) {
+      time = 0;
     }
 
     logger.group(this.TAG, 'start seek to:', time);
