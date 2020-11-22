@@ -155,6 +155,9 @@ class Proxy {
   }
 
   getBufferedRange () {
+    if (!this.video) {
+      return [0, 0]
+    }
     let range = [0, 0]
     if (!this.video) {
       return range
