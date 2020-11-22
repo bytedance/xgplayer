@@ -1,7 +1,7 @@
 import {logger} from 'xgplayer-helper-utils';
 import Events from '../events';
-import AudioTimeRange from './AudioTimeRange';
 import BaseRender from './BaseRender';
+import AudioTimeRange from './AudioTimeRange';
 import {initBgSilenceAudio, playSlienceAudio} from '../helper/audio-helper';
 
 const AudioContext = window.AudioContext || window.webkitAudioContext;
@@ -17,7 +17,8 @@ export default class AudioRender extends BaseRender {
   constructor (config, parent) {
     super(config, parent);
     this.TAG = 'AudioRender';
-    this._timeRange = new AudioTimeRange();
+    this._timeRange = new AudioTimeRange(this);
+    this._lastTimeLineTime = 0; // 用于seek时记录seek位置,audioCtx重新实例化，audioCtx.currentTime从0开始
     this._sampleQueue = [];
     this._source = null;
     this._audioCanAutoPlay = false;
@@ -28,7 +29,7 @@ export default class AudioRender extends BaseRender {
 
   get currentTime () {
     if (!this._audioCtx) return 0;
-    return this._audioCtx.currentTime;
+    return this._lastTimeLineTime + this._audioCtx.currentTime;
   }
 
   get duration () {
@@ -36,7 +37,7 @@ export default class AudioRender extends BaseRender {
   }
 
   get preloadTime () {
-    return 2;
+    return this.isLive ? 2 : 0;
   }
 
   get timescale () {
@@ -58,7 +59,13 @@ export default class AudioRender extends BaseRender {
   }
 
   resume () {
-    return this._audioCtx.resume();
+    if (this._audioCtx) {
+      return this._audioCtx.resume();
+    }
+  }
+
+  dump () {
+    return this._timeRange.dump();
   }
 
   _assembleErr (msg) {
@@ -68,6 +75,7 @@ export default class AudioRender extends BaseRender {
   }
 
   _initAudioCtx (volume) {
+    logger.log(this.TAG, 'init audioCtx')
     this._audioCtx = new AudioContext();
     if (!this._audioCtx) {
       logger.warn(this.TAG, 'create webaudio error!');
@@ -96,19 +104,28 @@ export default class AudioRender extends BaseRender {
 
   _bindEvents () {
     super._bindEvents();
-
-    this._audioCtx.addEventListener('statechange', () => {
-      if (!this._audioCtx) return;
-      if (this._audioCtx.state === 'running' && this._ready) {
-        this._emitTimelineEvents(Events.TIMELINE.PLAY_EVENT, Events.VIDEO_EVENTS.PLAYING);
-      }
-    });
+    this._bindAudioCtxEvent()
 
     this._parent.on(Events.TIMELINE.UPDATE_VOLUME, (v) => {
       if (!this._gainNode) return;
       this._gainNode.gain.value = v;
       this._emitTimelineEvents(Events.TIMELINE.PLAY_EVENT, Events.VIDEO_EVENTS.VOLUME_CHANGE);
     });
+
+    // 点播设置duration
+    this._parent.on(Events.TIMELINE.SET_VIDEO_DURATION, v => {
+      this._timeRange.duration = v;
+    })
+  }
+
+  _bindAudioCtxEvent () {
+    this._onStateChange = () => {
+      if (!this._audioCtx) return;
+      if (this._audioCtx.state === 'running' && this._ready) {
+        this._emitTimelineEvents(Events.TIMELINE.PLAY_EVENT, Events.VIDEO_EVENTS.PLAYING);
+      }
+    };
+    this._audioCtx.addEventListener('statechange', this._onStateChange);
   }
 
   _setMetadata (type, meta) {
@@ -131,11 +148,43 @@ export default class AudioRender extends BaseRender {
     }
   }
 
+  _resetDts (dts, type) {
+    if (type === 'video') return;
+    this._timeRange.resetDts(dts);
+  }
+
+  _doPlay () {
+    if (this._noAudio || this._parent.seeking) {
+      return;
+    }
+    this.resume();
+  }
+
   _doPause () {
     if (this._noAudio) {
       return;
     }
     this._audioCtx.suspend();
+  }
+
+  _doSeek (time) {
+    this._lastTimeLineTime = time;
+
+    // reinit,连续seek时,新建的audioCtx还没使用过的话,不再新建
+    if (this._ready && this._audioCtx.currentTime) {
+      let volume = this._gainNode.gain.value;
+      // destroy
+      this._audioCtx.close();
+      this._audioCtx.removeEventListener('statechange', this._onStateChange);
+      this._audioCtx = null;
+      if (this._source) {
+        this._source.removeEventListener('ended', this._onSourceBufferEnded);
+      }
+      this._source = null;
+      this._initAudioCtx(volume);
+      this._bindAudioCtxEvent();
+    }
+    this._getAudioBuffer(true);
   }
 
   _assembleAAC () {
@@ -159,20 +208,22 @@ export default class AudioRender extends BaseRender {
     this._audioCtx.decodeAudioData(
       chunkBuffer.buffer,
       (uncompress) => {
-        let _source = this._audioCtx.createBufferSource();
-        _source.buffer = uncompress;
-        _source.loop = false;
-        this._timeRange.append(
-          _source,
+        const start = this._timeRange.append(
+          uncompress,
           uncompress.duration,
           samp0.dts
         );
 
         if (!this._ready) {
           // init background Audio ele
-          this._ready = true;
-          this.emit(Events.AUDIO.AUDIO_READY);
+          let canEmit = this.isLive || Math.abs(start - this.currentTime) <= uncompress.duration;
+          if (canEmit) {
+            this._ready = true;
+            this.emit(Events.AUDIO.AUDIO_READY, start);
+          }
         }
+
+        this._emitTimelineEvents(Events.TIMELINE.PLAY_EVENT, Events.VIDEO_EVENTS.PROGRESS);
         this._emitTimelineEvents(Events.TIMELINE.PLAY_EVENT, Events.VIDEO_EVENTS.DURATION_CHANGE);
       },
       () => {
@@ -195,24 +246,66 @@ export default class AudioRender extends BaseRender {
     this._startRender();
   }
 
+  // 不精准seek,调整seek点到当前buffer开始位置
+  // 两个来源: 1. seek的位置存在buffer,_getAudioBuffer中直接执行
+  //          2. seek位置无buffer，等待下载,decodeAudioData()执行完后 监听 AUDIO_READY
+  _ajustSeekTime (time) {
+    let buffer = this._timeRange.getBuffer(time, 0);
+    if (buffer) {
+      logger.log(this.TAG, `ajust seek time to:`, buffer.start);
+      this._lastTimeLineTime = buffer.start;
+      this._parent.emit(Events.TIMELINE.ADJUST_SEEK_TIME, buffer.start)
+    }
+  }
+
+  _getAudioBuffer (inSeeking) {
+    let buffer = this._timeRange.getBuffer(this.currentTime, 0);
+    if (!buffer) {
+      // check end  for vod
+      if (!this.isLive && (this.currentTime - this.duration > -1)) {
+        this._emitTimelineEvents(Events.TIMELINE.PLAY_EVENT, Events.VIDEO_EVENTS.ENDED)
+        return;
+      }
+      this._ready = false;
+      this._audioCtx.suspend();
+      this.emit(Events.AUDIO.AUDIO_WAITING);
+      if (inSeeking) {
+        if (!this._onAudioReady) {
+          this._onAudioReady = (time) => {
+            console.log(time, this.currentTime);
+            this._ajustSeekTime(time)
+          };
+        }
+        this.removeListener(Events.AUDIO.AUDIO_READY, this._onAudioReady)
+        this.once(Events.AUDIO.AUDIO_READY, this._onAudioReady)
+      }
+      return;
+    }
+    if (inSeeking) {
+      this._ajustSeekTime(buffer.start)
+      this.emit(Events.AUDIO.AUDIO_READY);
+      return;
+    }
+    return buffer;
+  }
+
   _startRender () {
     if (this._noAudio) return;
+
+    let buffer = this._getAudioBuffer();
+
+    if (!buffer) return;
 
     if (this._audioCtx.state === 'suspended') {
       this._audioCtx.resume();
       playSlienceAudio();
     }
-    let buffer = this._timeRange.shift();
-    if (!buffer) {
-      this._ready = false;
-      this._audioCtx.suspend();
-      this.emit(Events.AUDIO.AUDIO_WAITING);
-      return;
-    }
 
     this._source = null;
 
-    let _source = buffer.source;
+    let _source = this._audioCtx.createBufferSource();
+    _source.buffer = buffer.source;
+    _source.loop = false;
     // 保存引用,移动浏览器下,对source的回收机制有差异，不保存引用会提前回收,导致ended事件不触发
     this._source = _source;
     _source.addEventListener('ended', this._onSourceBufferEnded);

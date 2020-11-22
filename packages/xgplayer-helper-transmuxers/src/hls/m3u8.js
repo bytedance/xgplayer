@@ -85,13 +85,14 @@ class M3U8Parser {
       freg.url = baseurl + nextline;
     }
     freg.discontinue = discontinue;
-
     // add id
     if (ret.frags.length) {
       let last = ret.frags[ret.frags.length - 1];
       freg.id = last.id + 1;
+      freg.cc = discontinue ? last.cc + 1 : last.cc;
     } else {
       freg.id = ret.sequence || 1;
+      freg.cc = 0;
     }
     ret.frags.push(freg);
     return nextId;

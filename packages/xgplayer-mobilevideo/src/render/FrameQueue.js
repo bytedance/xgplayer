@@ -33,6 +33,10 @@ export default class FrameQueue {
     this._frames.sort((a, b) => a.info.dts > b.info.dts ? 1 : -1);
   }
 
+  appendVodFrame (frame) {
+    this._frames.push(frame);
+  }
+
   nextFrame () {
     return this._frames[0];
   }

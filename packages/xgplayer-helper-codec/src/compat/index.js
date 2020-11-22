@@ -217,12 +217,12 @@ class Compatibility {
     }
     // step0.修复hls流出现巨大gap，需要强制重定位的问题。
     if (this._videoLargeGap !== 0) {
-      Compatibility.doFixLargeGap(videoSamples, this._videoLargeGap)
+      Compatibility.doFixLargeGap(videoSamples, this._videoLargeGap, this.isTs)
     }
 
     if (!first && streamChangeStart !== undefined) {
       this._videoLargeGap = streamChangeStart - firstSample.dts
-      Compatibility.doFixLargeGap(videoSamples, this._videoLargeGap)
+      Compatibility.doFixLargeGap(videoSamples, this._videoLargeGap, this.isTs)
     }
 
     // step1. 修复与audio首帧差距太大的问题
@@ -249,7 +249,7 @@ class Compatibility {
         this._firstVideoSample = this.filledVideoSamples[0] || this._firstVideoSample
       } else if (Math.abs(gap) > (2 * meta.refSampleDuration) && !this._videoLargeGap) {
         this._videoLargeGap = -1 * gap
-        Compatibility.doFixLargeGap(videoSamples, -1 * gap)
+        Compatibility.doFixLargeGap(videoSamples, -1 * gap, this.isTs)
       }
     }
 
@@ -781,7 +781,7 @@ class Compatibility {
     return nextDts - firstSampleDts >= 1000 || firstSampleDts - nextDts >= 1000 // fix hls流出现大量流dts间距问题
   }
 
-  static doFixLargeGap (samples, gap) {
+  static doFixLargeGap (samples, gap, isTs) {
     // console.log('fix large gap...... ', gap)
     for (let i = 0, len = samples.length; i < len; i++) {
       const sample = samples[i];
@@ -790,6 +790,7 @@ class Compatibility {
         sample.pts += gap
       }
     }
+    if (!isTs) return;
     let first = samples[0];
     if (first && first.dts === 0) {
       first.dts = first.pts = 1;

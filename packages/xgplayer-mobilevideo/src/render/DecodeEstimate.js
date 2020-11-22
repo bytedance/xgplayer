@@ -136,42 +136,4 @@ export default class DecodeEstimate {
       this._parent.emit(Events.VIDEO.DECODE_LOW_FPS);
     }
   }
-
-  // 播放能力
-  // 1: 发生过降级或出错
-  // 2: 能播放 < 720p
-  // 3: 评估能播放720p
-  // type: 1=出错 2=降级
-  _estimateCapabilityLevel (type) {
-    if (!this._parent.innerDegrade) return;
-
-    if (type === 1) {
-      // decoder error
-      ls.setItem('cl', 1);
-      return;
-    }
-
-    if (type === 2 && this._parent.bitrate < 1200000) { // 1.2Mbps
-      // 540p 发生降级
-      ls.setItem('cl', 1);
-      return;
-    }
-
-    if (this._parent.is540p) {
-      if (this._decodeFps / this._fps >= 3) {
-        ls.setItem('cl', 3);
-      } else if (this._decodeFps > this._fps) {
-        ls.setItem('cl', 2);
-      } else {
-        ls.setItem('cl', 1);
-      }
-      return;
-    }
-
-    if (this._decodeFps > this._fps) {
-      ls.setItem('cl', 3);
-    } else {
-      ls.setItem('cl', 2);
-    }
-  }
 }

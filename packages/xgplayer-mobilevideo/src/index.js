@@ -1,19 +1,24 @@
 import NoSleep from './helper/nosleep';
 import './polyfills/custom-elements.min';
 import './polyfills/native-element';
-import { logger } from 'xgplayer-helper-utils';
+// eslint-disable-next-line standard/object-curly-even-spacing
+import { logger, common} from 'xgplayer-helper-utils';
 import TimeLine from './TimeLine';
 import Events from './events';
+
+const { debounce } = common;
 
 class MVideo extends HTMLElement {
   constructor () {
     super();
     this.TAG = 'MVideo';
+    this._isLive = true;
     this._vMeta = null;
     this._degradeVideo = document.createElement('video');
     this._eventsBackup = [];
     this._init();
     this._firstWebAudio = true;
+    this._debounceSeek = debounce(this._seek.bind(this), 600);
   }
 
   addEventListener (eventName, handler, capture) {
@@ -54,6 +59,7 @@ class MVideo extends HTMLElement {
       if (this.innerDegrade) {
         this.timeline.emit(Events.TIMELINE.INNER_DEGRADE);
       }
+      this.setPlayMode(this._isLive && 'LIVE');
       if (this.noAudio) {
         this.setNoAudio();
       }
@@ -159,22 +165,30 @@ class MVideo extends HTMLElement {
     }
   }
 
-  play (destroy) {
+  play (forceDestroy) {
     logger.log(
       this.TAG,
-      `mvideo called play(),ready:${this.timeline.ready},reset:${this.timeline.reset} , paused:${this.timeline.paused}`
+      `mvideo called play(),ready:${this.timeline.ready}, paused:${this.timeline.paused}`
     );
 
     this._interceptAction();
 
-    // 暂停后起播
-    // 初始化后不能自动播放,手动播放
-    if ((this.timeline.ready && this.timeline.reset) || destroy) {
-      this.destroy();
-      this._init();
+    // 直播: paused后 reset timeline
+    // 点播: paused后 起播
+    if ((this.timeline.ready && this.timeline.paused) || forceDestroy) {
+      forceDestroy = forceDestroy || this._isLive;
       this._playRequest = null;
+      if (forceDestroy) {
+        this.destroy();
+        this._init();
+      } else {
+        this.timeline.emit(Events.TIMELINE.DO_PLAY);
+        this._innerDispatchEvent('play');
+        return Promise.resolve();
+      }
     }
 
+    // 正在播放中 调play()
     if (!this._playRequest && this.timeline.ready && !this.timeline.paused) {
       return Promise.resolve();
     }
@@ -190,8 +204,13 @@ class MVideo extends HTMLElement {
           this._noSleep.enable();
         } catch (e) {}
         this.timeline.once('ready', () => {
-          this._playRequest = null;
-          this.timeline.play().then(resolve).catch(reject);
+          logger.log(this.TAG, 'timeline emit ready');
+          this.timeline.play()
+            .then(resolve)
+            .catch(reject)
+            .then(() => {
+              this._playRequest = null;
+            });
         });
       });
 
@@ -208,11 +227,13 @@ class MVideo extends HTMLElement {
 
   load () {}
 
+  /** *************** 外部数据交互主要接口 */
+
   onDemuxComplete (videoTrack, audioTrack) {
     if (this.error || !this.timeline) return;
     if (!this._logFirstFrame) {
-      let vSam0 = videoTrack.samples[0];
-      let aSam0 = this.noAudio ? null : audioTrack.samples[0];
+      let vSam0 = videoTrack && videoTrack.samples[0];
+      let aSam0 = this.noAudio ? null : audioTrack && audioTrack.samples[0];
       if ((vSam0 && aSam0) || (vSam0 && this.noAudio)) {
         logger.log(
           this.TAG,
@@ -223,7 +244,7 @@ class MVideo extends HTMLElement {
         this._logFirstFrame = true;
       }
     }
-    this.timeline.emit(Events.TIMELINE.APPEND_CHUNKS, videoTrack, audioTrack);
+    this.timeline.appendBuffer(videoTrack, audioTrack)
   }
 
   setNoAudio () {
@@ -236,10 +257,18 @@ class MVideo extends HTMLElement {
     this.timeline.emit(Events.TIMELINE.SET_METADATA, 'audio', meta);
   }
 
+  // warn: 对点播,flush decoder应该放在分片被真实解码之前
   setVideoMeta (meta) {
-    this._vMeta = meta;
+    if (!this._isLive && this._vMeta) return;
     this.timeline.emit(Events.TIMELINE.SET_METADATA, 'video', meta);
+    this._vMeta = meta;
   }
+
+  setPlayMode (v) {
+    this.timeline.emit(Events.TIMELINE.SET_PLAY_MODE, v);
+    this._isLive = v === 'LIVE';
+  }
+  /** *************** 外部数据交互主要接口 end */
 
   handleEnded () {
     this.timeline.emit(Events.TIMELINE.PLAY_EVENT, 'ended');
@@ -264,6 +293,14 @@ class MVideo extends HTMLElement {
       this._err = null;
       this._noSleep = null;
     }
+  }
+
+  dump () {
+    return this.timeline.dump();
+  }
+
+  get live () {
+    return this._isLive;
   }
 
   get firstWebAudio () {
@@ -348,15 +385,23 @@ class MVideo extends HTMLElement {
   }
 
   set currentTime (v) {
-    this.timeline.seek(v);
+    this._debounceSeek(v);
+  }
+
+  _seek (v) {
+    this.timeline.seek(Number(v));
   }
 
   get duration () {
     return this.timeline.duration;
   }
 
+  set duration (v) {
+    this.timeline.emit(Events.TIMELINE.SET_VIDEO_DURATION, v);
+  }
+
   get seeking () {
-    return false;
+    return this.timeline.seeking;
   }
 
   get paused () {
@@ -432,7 +477,7 @@ class MVideo extends HTMLElement {
 
   // 移动端软解 启用内部降级
   get innerDegrade () {
-    return this.getAttribute('innerdegrade');
+    return this.getAttribute('innerdegrade') === 'true';
   }
 
   set glCtxOptions (v) {

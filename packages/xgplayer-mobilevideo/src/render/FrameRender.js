@@ -293,7 +293,17 @@ class YUVCanvas {
 
   }
 
+  _resize (width, height) {
+    if (this.width !== width || this.height !== height) {
+      this.width = width;
+      this.height = height;
+      this.canvas.width = width;
+      this.canvas.height = height;
+    }
+  }
+
   render (data, width, height, yLinesize, uvLinesize) {
+    this._resize(width, height);
     var gl = this.contextGL;
     // console.log(data, width, height, yLinesize, uvLinesize)
     if (gl) {
