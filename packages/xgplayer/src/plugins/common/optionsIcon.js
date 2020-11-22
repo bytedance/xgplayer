@@ -26,8 +26,7 @@ export default class OptionsIcon extends Plugin {
     this.curIndex = 0
   }
 
-  set lang (value) {
-    super.lang = value
+  updateLang (value) {
     this.renderItemList(this.config.list, this.curIndex)
   }
 

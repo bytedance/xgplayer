@@ -143,11 +143,11 @@ class Proxy {
   }
 
   play () {
-    return this.video.play()
+    return this.video ? this.video.play() : null
   }
 
   pause () {
-    this.video.pause()
+    this.video && this.video.pause()
   }
 
   canPlayType (type) {
@@ -156,6 +156,9 @@ class Proxy {
 
   getBufferedRange () {
     let range = [0, 0]
+    if (!this.video) {
+      return range
+    }
     let video = this.video
     let buffered = video.buffered
     let currentTime = video.currentTime

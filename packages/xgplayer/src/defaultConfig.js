@@ -3,6 +3,7 @@ export default function getDefaultConfig () {
     id: '', // 播放器容器id
     el: null, // 播放器容器dom
     url: '', // 播放url
+    nullUrlStart: false, // 空url起播
     width: 600, // 播放器宽度,单位px
     height: 337.5, // 播放器高度,单位px
     fluid: false, // 是否启用流式布局

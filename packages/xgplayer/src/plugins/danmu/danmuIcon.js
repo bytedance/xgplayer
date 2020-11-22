@@ -47,7 +47,7 @@ class DanmuIcon extends Plugin {
   }
 
   switchTips (isOpen) {
-    this.changeLangTextKey(this.find('.xg-tips'), isOpen ? 'OPEN' : 'OFF')
+    this.changeLangTextKey(this.find('.xg-tips'), isOpen ? 'OFF' : 'OPEN')
   }
 
   onStateChange (e) {
