@@ -113,6 +113,7 @@ class MSE {
   }
 
   doAppend () {
+    if (this.mediaSource.readyState === 'closed') return
     this._doCleanupSourceBuffer()
     let sources = this._context.getInstance('PRE_SOURCE_BUFFER');
     if (!sources) return;

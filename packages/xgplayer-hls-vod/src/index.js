@@ -88,7 +88,7 @@ class HlsVodPlayer extends BasePlugin {
     })
 
     this.once('canplay', () => {
-      if (this.config.autoplay) {
+      if (this.config && this.config.autoplay) {
         this.play()
       }
     });
@@ -167,13 +167,13 @@ class HlsVodPlayer extends BasePlugin {
           if (this._context) {
             this._context.destroy();
           }
-          super.destroy();
+          super.destroy && super.destroy();
           setTimeout(() => {
             resolve()
           }, 50)
         })
       } else {
-        super.destroy();
+        super.destroy && super.destroy();
         setTimeout(() => {
           resolve()
         }, 50)
