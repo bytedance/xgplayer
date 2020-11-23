@@ -1,3 +1,4 @@
+/* eslint-disable no-undef */
 import NoSleep from './helper/nosleep';
 import './polyfills/custom-elements.min';
 import './polyfills/native-element';
@@ -19,6 +20,26 @@ class MVideo extends HTMLElement {
     this._init();
     this._firstWebAudio = true;
     this._debounceSeek = debounce(this._seek.bind(this), 600);
+  }
+
+  static isSupported () {
+    let v = localStorage.getItem('dis265');
+    if (!v) return true;
+
+    if (v === '1') return false;
+
+    if (v === '2') {
+      let disTime = localStorage.getItem('disTime') || 0;
+      disTime = Number(disTime);
+      let disDuration = (new Date().getTime() - disTime) / 1000;
+
+      if (disDuration < 3600 * 24) {
+        return false;
+      }
+      localStorage.removeItem('disTime');
+      localStorage.removeItem('dis265');
+    }
+    return true;
   }
 
   addEventListener (eventName, handler, capture) {
@@ -112,8 +133,20 @@ class MVideo extends HTMLElement {
     });
   }
 
+  _disabled () {
+    // 永久禁用
+    if (this.decodeFps / this.fps <= 0.8 && this.bitrate < 2000000) {
+      localStorage.setItem('dis265', 1);
+      return
+    }
+    // 禁用2h
+    localStorage.setItem('dis265', 2);
+    localStorage.setItem('disTime', new Date().getTime())
+  }
+
   // 降级到video播放
   degrade () {
+    this._disabled();
     let url = this.src;
     let canvasAppended = !!this.querySelector('canvas');
     if (canvasAppended) {
@@ -441,7 +474,7 @@ class MVideo extends HTMLElement {
   }
 
   set src (val) {
-    if (this.src) {
+    if (this.src && this.buffered.length) {
       this._vMeta = null;
       this.play('destroy');
     }
