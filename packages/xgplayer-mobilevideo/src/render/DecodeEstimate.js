@@ -4,7 +4,6 @@ import Events from '../events';
 const MAX_QUEUE_LENGTH = 10;
 const MAX_LOW_FPS_RECORD = 30;
 
-const ls = localStorage;
 export default class DecodeEstimate {
   constructor (parent) {
     this.TAG = 'DecodeEstimate';
@@ -79,7 +78,7 @@ export default class DecodeEstimate {
     if (len < MAX_QUEUE_LENGTH) return;
 
     this._fps = Math.ceil(1000 / this._avg(this._dtsDeltas, len));
-    logger.log(this.TAG, 'estimate fps:', this._fps);
+    console.log(this.TAG, 'estimate fps:', this._fps);
     this._needEstimate = false;
   }
 

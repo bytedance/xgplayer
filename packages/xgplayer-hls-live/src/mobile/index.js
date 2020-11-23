@@ -46,7 +46,8 @@ class HlsPlayer extends BasePlugin {
     const WebComponentSupported = 'customElements' in window && window.customElements.define;
     let isComponentDefined;
     if (WebComponentSupported) {
-      isComponentDefined = window.customElements.get('mobile-video');
+      let mVideo = window.customElements.get('mobile-video');
+      isComponentDefined = mVideo && mVideo.isSupported();
     }
 
     return webAudioEnable && webglEnable && isComponentDefined;
