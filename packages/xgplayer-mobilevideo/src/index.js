@@ -23,21 +23,21 @@ class MVideo extends HTMLElement {
   }
 
   static isSupported () {
-    let v = localStorage.getItem('dis265');
+    let v = localStorage.getItem('mvideo_dis265');
     if (!v) return true;
 
     if (v === '1') return false;
 
     if (v === '2') {
-      let disTime = localStorage.getItem('disTime') || 0;
+      let disTime = localStorage.getItem('mvideo_disTime') || 0;
       disTime = Number(disTime);
       let disDuration = (new Date().getTime() - disTime) / 1000;
 
       if (disDuration < 3600 * 24) {
         return false;
       }
-      localStorage.removeItem('disTime');
-      localStorage.removeItem('dis265');
+      localStorage.removeItem('mvideo_disTime');
+      localStorage.removeItem('mvideo_dis265');
     }
     return true;
   }
@@ -136,12 +136,12 @@ class MVideo extends HTMLElement {
   _disabled () {
     // 永久禁用
     if (this.decodeFps / this.fps <= 0.8 && this.bitrate < 2000000) {
-      localStorage.setItem('dis265', 1);
+      localStorage.setItem('mvideo_dis265', 1);
       return
     }
-    // 禁用2h
-    localStorage.setItem('dis265', 2);
-    localStorage.setItem('disTime', new Date().getTime())
+    // 禁用24h
+    localStorage.setItem('mvideo_dis265', 2);
+    localStorage.setItem('mvideo_disTime', new Date().getTime())
   }
 
   // 降级到video播放
