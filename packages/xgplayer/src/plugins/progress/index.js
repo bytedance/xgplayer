@@ -19,6 +19,8 @@ class Progress extends Plugin {
       isPauseMoving: false, // 是否在move的时候暂停视频内容
       isCloseClickSeek: false, // 是否关闭点击进度条的时候seek
       fragments: [{percent: 1}],
+      miniMoveStep: 2,
+      miniStartStep: 1,
       onMoveStart: () => {
       }, // 手势开始移动回调
       onMoveEnd: () => {} // 手势移动结束回调
@@ -125,7 +127,7 @@ class Progress extends Plugin {
           try {
             item.handler(data)
           } catch (error) {
-            console.error(`[triggerCallbacks] ${item} error`, error)
+            console.error(`[XGPLAYER][triggerCallbacks] ${item} error`, error)
           }
         }
       })
@@ -296,7 +298,8 @@ class Progress extends Plugin {
       e.preventDefault()
     }
     Util.event(e)
-    if (pos.moving && Math.abs(pos.x - e.clientX) < 2) {
+    const diff = Math.abs(pos.x - e.clientX)
+    if ((pos.moving && diff < config.miniMoveStep) || (!pos.moving && diff < config.miniStartStep)) {
       return
     }
     pos.x = e.clientX

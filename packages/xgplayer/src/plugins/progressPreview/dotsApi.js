@@ -54,8 +54,7 @@ const APIS = {
     const dotDom = Util.createDom('xg-spot', '', {
       'data-text': iSpot.text,
       'data-time': iSpot.time,
-      'data-id': iSpot.id,
-      'id': `xgspot_${iSpot.id}`
+      'data-id': iSpot.id
     }, className)
     Object.keys(style).map(key => {
       dotDom.style[key] = style[key]
@@ -97,7 +96,9 @@ const APIS = {
       return
     }
     const dotDom = progress.find(`xg-spot[data-id="${iSpot.id}"]`)
-
+    if (!dotDom) {
+      return
+    }
     const ret = this.calcuPosition(iSpot.time, iSpot.duration)
     const style = iSpot.style || {}
     style.left = `${ret.left}%`
@@ -122,21 +123,24 @@ const APIS = {
    * @param {String} id
    */
   deleteDot (id) {
-    const {ispots} = this
+    const {_ispots} = this
     const {progress} = this.player.plugins
     if (!progress) {
       return
     }
-    let index = -1
-    for (let i = 0; i < ispots.length; i++) {
-      if (ispots[i].id === id) {
-        index = i
+    let del = []
+    for (let i = 0; i < _ispots.length; i++) {
+      if (_ispots[i].id === id) {
+        del.push(i)
       }
     }
-    index > -1 && ispots.splice(index, 1)
-    if (index > -1 && this._ispotsInit) {
-      const dotDom = progress.find(`#xgspot_${id}`)
-      dotDom && progress.outer && progress.outer.removeChild(dotDom)
+    const len = del.length
+    for (let i = len - 1; i >= 0; i--) {
+      _ispots.splice(del[i], 1)
+      if (this._ispotsInit) {
+        const dotDom = progress.find(`xg-spot[data-id="${id}"]`)
+        dotDom && dotDom.parentElement.removeChild(dotDom)
+      }
     }
   },
 
