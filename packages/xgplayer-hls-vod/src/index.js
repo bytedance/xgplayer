@@ -91,6 +91,10 @@ class HlsVodPlayer extends BasePlugin {
       if (this.config && this.config.autoplay) {
         this.play()
       }
+      const {config} = this.player;
+      if (config && config.startTime) {
+        this.player.currentTime = config.startTime;
+      }
     });
 
     this.on(Events.SEEKING, this._handleSetCurrentTime)

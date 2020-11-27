@@ -76,8 +76,11 @@ class HlsVodMobilePlayer extends BasePlugin {
     })
 
     this.once('canplay', () => {
-      if (this.config.autoplay) {
-        this.play()
+      this.play()
+      if (!player.config.autoplay) {
+        setTimeout(() => {
+          this.player.pause();
+        })
       }
     });
 

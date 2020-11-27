@@ -11,8 +11,9 @@ class Nalunit {
 
     let buf = buffer.dataview;
     let position = buffer.position;
+    // 0x001 || 0x0001
     if (buf.getInt32(position) === 1 ||
-    (buf.getInt16(position) === 0 && buf.getInt8(position + 3) === 1)) {
+    (buf.getInt16(position) === 0 && buf.getInt8(position + 2) === 1)) {
       return Nalunit.getAnnexbNals(buffer);
     } else {
       return Nalunit.getAvccNals(buffer);
