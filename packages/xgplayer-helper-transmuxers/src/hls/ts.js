@@ -114,13 +114,6 @@ class TsDemuxer {
           }
         }
       }
-
-      // 缺少 sps,pps信息场景,当无视频流播放
-      let videoTrack = this._tracks.videoTrack;
-      if (videoTrack && !videoTrack.meta) {
-        videoTrack.samples = [];
-        logger.warn(this.TAG, 'no sps detected');
-      }
     });
     setTimeout(() => {
       this.emit(DEMUX_EVENTS.DEMUX_COMPLETE);
@@ -326,6 +319,7 @@ class TsDemuxer {
 
   pushVideoSampleHEVC (pes, options) {
     let nals = NalUnitHEVC.getNalunits(pes.ES.buffer);
+    nals = nals.filter(x => x.body && x.body.length);
     let track;
     let meta = new VideoTrackMeta();
     meta.streamType = 0x24;
@@ -566,7 +560,7 @@ class TsDemuxer {
         return true;
       }
 
-      if ((itema === undefined && itemb) || (itema && itemb === undefined)) {
+      if (((itema === undefined || itema === null) && itemb) || (itema && itemb === undefined)) {
         return false;
       }
 
