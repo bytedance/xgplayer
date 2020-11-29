@@ -2,7 +2,7 @@ import Player from 'xgplayer'
 import { EVENTS, Context, common } from 'xgplayer-helper-utils'
 import HlsVodMobileController from './hls-vod-mobile';
 
-const { debounce } = common;
+const { debounce, softSolutionProbe } = common;
 const { Events, BasePlugin } = Player;
 
 const HlsAllowedEvents = EVENTS.HlsAllowedEvents;
@@ -19,6 +19,10 @@ class HlsVodMobilePlayer extends BasePlugin {
     this.destroy = this.destroy.bind(this)
     this.handleDefinitionChange = this.handleDefinitionChange.bind(this)
     this.handleUrlChange = this.handleUrlChange.bind(this)
+  }
+
+  static isSupported () {
+    return softSolutionProbe();
   }
 
   beforePlayerInit () {
@@ -76,12 +80,11 @@ class HlsVodMobilePlayer extends BasePlugin {
     })
 
     this.once('canplay', () => {
-      this.play()
-      if (!player.config.autoplay) {
-        setTimeout(() => {
+      this.play().then(() => {
+        if (!player.config.autoplay) {
           this.player.pause();
-        })
-      }
+        }
+      })
     });
 
     this.lowdecode = () => {

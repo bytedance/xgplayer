@@ -20,6 +20,7 @@ export default class TimeLine extends EventEmitter {
     this._paused = false;
     this._noAudio = false;
     this._switchToMultiWorker = false;
+    this._lowdecodeEmited = false;
     this._lastSeekTime = 0;
     this._bindEvent();
   }
@@ -164,6 +165,9 @@ export default class TimeLine extends EventEmitter {
         this.videoRender.switchToMultiWorker(this._parent.preloadTime);
         return;
       }
+      // 对外只触发一次
+      if (this._lowdecodeEmited) return;
+      this._lowdecodeEmited = true;
       this.emit(Events.TIMELINE.PLAY_EVENT, Events.VIDEO_EVENTS.LOW_DECODE);
     })
 
