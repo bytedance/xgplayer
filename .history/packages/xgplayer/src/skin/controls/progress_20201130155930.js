@@ -174,20 +174,16 @@ let s_progress = function () {
           w = containerWidth
         }
         let now = w / containerWidth * player.duration
-        if(player.config.allowSeekPlayed && (Number(now).toFixed(1) > player.maxPlayedTime)) {}
-        else {
-          progress.style.width = `${w * 100 / containerWidth}%`
+        progress.style.width = `${w * 100 / containerWidth}%`
 
-          if (player.videoConfig.mediaType === 'video' && !player.dash && !player.config.closeMoveSeek) {
-            player.currentTime = Number(now).toFixed(1)
-          } else {
-            let time = util.findDom(player.controls, '.xgplayer-time')
-            if (time) {
-              time.innerHTML = `<span class="xgplayer-time-current">${util.format(now || 0)}</span><span>${util.format(player.duration)}</span>`
-            }
+        if (player.videoConfig.mediaType === 'video' && !player.dash && !player.config.closeMoveSeek) {
+          player.currentTime = Number(now).toFixed(1)
+        } else {
+          let time = util.findDom(player.controls, '.xgplayer-time')
+          if (time) {
+            time.innerHTML = `<span class="xgplayer-time-current">${util.format(now || 0)}</span><span>${util.format(player.duration)}</span>`
           }
         }
-        
         player.emit('focus')
       }
       let up = function (e) {
@@ -205,11 +201,8 @@ let s_progress = function () {
             w = containerWidth
           }
           let now = w / containerWidth * player.duration
-          if(player.config.allowSeekPlayed && (Number(now).toFixed(1) > player.maxPlayedTime)) {}
-          else {
-            progress.style.width = `${w * 100 / containerWidth}%`
-            player.currentTime = Number(now).toFixed(1)
-          }
+          progress.style.width = `${w * 100 / containerWidth}%`
+          player.currentTime = Number(now).toFixed(1)
         }
         player.emit('focus')
         player.isProgressMoving = false
@@ -279,8 +272,7 @@ let s_progress = function () {
 
   // let lastBtnLeft = false
   let onTimeupdate = function () {
-    if(player.maxPlayedTime === undefined) player.maxPlayedTime = 0
-    if(player.maxPlayedTime < player.currentTime) player.maxPlayedTime = player.currentTime
+    player.maxPlayedTime = player.currentTime;
     if (!containerWidth && container) {
       containerWidth = container.getBoundingClientRect().width
     }

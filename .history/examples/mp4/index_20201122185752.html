@@ -1,0 +1,85 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,minimum-scale=1,user-scalable=no,minimal-ui">
+    <meta name="referrer" content="no-referrer">
+    <meta name="renderer" content="webkit">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1" />
+    <title>西瓜播放器-MP4视频</title>
+    <link rel="stylesheet" href="../layout.css">
+</head>
+<body>
+    <section id="wrapper">
+        <div id="vs"></div>
+    </section>
+    <!-- <script src="//sf1-ttcdn-tos.pstatp.com/obj/unpkg/xgplayer/2.9.6/browser/index.js" charset="utf-8"></script> -->
+    <script src="../../packages/xgplayer/browser/index.js" charset="utf-8"></script>
+    <!-- <script src="../../packages/xgplayer/browser/simple_player.js" charset="utf-8"></script> -->
+    <!-- <script src="../../packages/xgplayer-mp4/browser/index.js" charset="utf-8"></script> -->
+    <script type="text/javascript">
+        let player = new Player({
+          id: 'vs',
+          url: './xgplayer-demo.mp4',
+        //   url: 'https://pull-hls-l6.ixigua.com/game/stream-107778726579666973_uhd/index.m3u8',
+          poster: './poster.png',
+          height: 300,
+          autoplay: true,
+          // playbackRate: [0.5, 0.75, 1, 1.5, 2],
+          // thumbnail: {
+          //   pic_num: 44,
+          //   width: 160,
+          //   height: 90,
+          //   col: 10,
+          //   row: 10,
+          //   urls: ['./xgplayer-demo-thumbnail.jpg']
+          // },
+          // textTrack: [
+          //   {
+          //     src: './textTrack-1.vtt',
+          //     kind: 'subtitles',
+          //     label: '字幕1',
+          //     srclang: 'zh',
+          //     default: true
+          //   },
+          //   {
+          //     src: './textTrack-2.vtt',
+          //     kind: 'subtitles',
+          //     label: '字幕2',
+          //     srclang: 'en',
+          //     default: false
+          //   }
+          // ],
+          // textTrackStyle: {
+          //   'background-color': '#ff0',
+          //   'color': '#000',
+          //   'font-size': '26px'
+          // },
+          whitelist: [''],
+          playsinline: true
+
+        })
+        // player.on('error', function (err) {
+        //     console.log(JSON.stringify(err))
+        // })
+        player.on('controlHide', function () {
+            console.log('controlHide')
+        })
+        player.on('controlShow', function (err) {
+            console.log('controlShow')
+        })
+        // setTimeout(() => {
+        //     player.exitFullscreen(player.root)
+        // }, 10000)
+// player.on('blur', function () {
+//           console.log('blur')
+// })
+// player.on('focus', function (err) {
+//           console.log('focus')
+// })
+    </script>
+
+
+</body>
+
+</html>

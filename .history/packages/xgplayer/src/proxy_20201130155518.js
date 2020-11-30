@@ -378,7 +378,6 @@ class Proxy {
       vt: new Date().getTime(),
       vd: 0
     }
-    this.autoplay = true
     this.video.pause()
     this.video.src = url
     this.emit('srcChange')

@@ -147,14 +147,11 @@ class Keyboard {
         player.currentTime = 0
       }
     } else {
-      if(player.maxPlayedTime && player.config.allowSeekPlayed && (player.currentTime + 10 > player.maxPlayedTime)) {
-        player.currentTime = player.maxPlayedTime
+      if(player.config.allowSeekPlayed && (player.currentTime + 10 > player.maxPlayedTime)) {}
+      if (player.currentTime + 10 <= player.duration) {
+        player.currentTime += 10
       } else {
-        if (player.currentTime + 10 <= player.duration) {
-          player.currentTime += 10
-        } else {
-          player.currentTime = player.duration - 1
-        }
+        player.currentTime = player.duration - 1
       }
     }
   }

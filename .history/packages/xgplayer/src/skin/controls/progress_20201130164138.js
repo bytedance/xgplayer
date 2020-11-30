@@ -280,7 +280,7 @@ let s_progress = function () {
   // let lastBtnLeft = false
   let onTimeupdate = function () {
     if(player.maxPlayedTime === undefined) player.maxPlayedTime = 0
-    if(player.maxPlayedTime < player.currentTime) player.maxPlayedTime = player.currentTime
+    if(player.maxPlayedTime < player.currentTime) player.maxPlayedTime = player.maxPlayedTime
     if (!containerWidth && container) {
       containerWidth = container.getBoundingClientRect().width
     }
