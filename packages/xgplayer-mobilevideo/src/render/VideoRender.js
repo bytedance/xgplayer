@@ -211,6 +211,11 @@ export default class VideoRender extends BaseRender {
   // 链路: audioRender中选择好要播放的buffer后,调整seek时间,通知 videoRender开始切换buffer、解码
   ajustSeekTime (time) {
     logger.log(this.TAG, 'ajust seek time: ', time);
+    this._wasmWorkers.forEach(worker => {
+      worker.postMessage({
+        msg: 'flush'
+      })
+    })
     this._switchVideoBuffer(time);
   }
 
@@ -257,7 +262,7 @@ export default class VideoRender extends BaseRender {
         'currentTime:',
         this._parent.currentTime,
         'next video frame dts:',
-        nextFrame && nextFrame.info.dts
+        nextFrame && nextFrame.info && nextFrame.info.dts
       );
 
       let unSync = this._frameQueue.avSync(dts);
@@ -273,6 +278,7 @@ export default class VideoRender extends BaseRender {
           let position = (nextDecodeFrame.dts - nextDecodeFrame.baseDts) / 1000;
           if (this._parent.currentTime - position > 1) {
             // 音频播完了,视频还有> 1s没解码的话,直接切到新分片
+            logger.warn(this.TAG, '视频解码太慢,丢帧!');
             this.ajustSeekTime(this._parent.currentTime);
           }
         }

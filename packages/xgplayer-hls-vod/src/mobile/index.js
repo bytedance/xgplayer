@@ -79,14 +79,6 @@ class HlsVodMobilePlayer extends BasePlugin {
       this._onSourceUpdateEnd();
     })
 
-    this.once('canplay', () => {
-      this.play().then(() => {
-        if (!player.config.autoplay) {
-          this.player.pause();
-        }
-      })
-    });
-
     this.lowdecode = () => {
       this.emit('lowdecode', player.video.degradeInfo);
       if (player.config.innerDegrade) {

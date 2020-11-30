@@ -111,6 +111,10 @@ Decoder.prototype.decode = function (data, info) {
   Module._broadwayPlayStream(data.length, this.infoId);
 };
 
+Decoder.prototype.flush = function () {
+  Module._broadwayFlushStream();
+}
+
 Decoder.prototype.destroy = function () {
   Module._broadwayExit();
 };
@@ -212,6 +216,9 @@ self.onmessage = function (e) {
         break;
       case 'decode':
         decoder.decode(data.data, data.info);
+        break;
+      case 'flush':
+        decoder.flush();
         break;
       case 'finish_flag':
         self.postMessage({
