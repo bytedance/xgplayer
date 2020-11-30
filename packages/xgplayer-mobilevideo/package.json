@@ -1,6 +1,6 @@
 {
   "name": "xgplayer-mobilevideo",
-  "version": "2.3.46",
+  "version": "2.3.47",
   "description": "",
   "main": "lib/index.js",
   "module": "es/index.js",
@@ -38,6 +38,6 @@
     ]
   },
   "dependencies": {
-    "xgplayer-helper-utils": "2.3.45"
+    "xgplayer-helper-utils": "2.3.47"
   }
 }
