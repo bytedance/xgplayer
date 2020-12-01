@@ -19,6 +19,7 @@ class MVideo extends HTMLElement {
     this._eventsBackup = [];
     this._init();
     this._firstWebAudio = true;
+    this._startPlayed = false;
     this._debounceSeek = debounce(this._seek.bind(this), 600);
   }
 
@@ -332,6 +333,14 @@ class MVideo extends HTMLElement {
     return this.timeline.dump();
   }
 
+  get startPlayed () {
+    return this._startPlayed;
+  }
+
+  set startPlayed (v) {
+    this._startPlayed = v;
+  }
+
   get live () {
     return this._isLive;
   }
@@ -346,6 +355,14 @@ class MVideo extends HTMLElement {
 
   set noAudio (val) {
     this.setAttribute('noaudio', val);
+  }
+
+  get autoplay () {
+    return this.getAttribute('autoplay') === 'true';
+  }
+
+  set autoplay (v) {
+    this.setAttribute('autoplay', v);
   }
 
   get canvas () {

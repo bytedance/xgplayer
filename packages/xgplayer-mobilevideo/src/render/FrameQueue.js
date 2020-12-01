@@ -57,8 +57,8 @@ export default class FrameQueue {
     let nextFrame = this.nextFrame();
     let count = 0;
     while (nextFrame) {
-      let delta = nextFrame.info.dts - preciseDts;
-      if (delta > 10000 || delta < DISCARD_THRESHOLD) {
+      let delta = nextFrame.info ? nextFrame.info.dts - preciseDts : 0;
+      if (!delta || delta > 10000 || delta < DISCARD_THRESHOLD) {
         this._frames.shift();
         nextFrame = this.nextFrame();
         count++;
@@ -75,5 +75,6 @@ export default class FrameQueue {
 
   destroy () {
     this._frames = [];
+    this._lastGopId = 0;
   }
 }

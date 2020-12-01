@@ -1,9 +1,10 @@
 import Player from 'xgplayer'
-import { EVENTS, Context } from 'xgplayer-helper-utils'
+import { EVENTS, Context, common } from 'xgplayer-helper-utils'
 import FLV from './flv-live-mobile'
 import defaultConfig from './config'
 const flvAllowedEvents = EVENTS.FlvAllowedEvents;
 const { BasePlugin, Events } = Player;
+const {softSolutionProbe} = common
 
 class FlvPlayer extends BasePlugin {
   static get pluginName () {
@@ -11,37 +12,7 @@ class FlvPlayer extends BasePlugin {
   }
 
   static isSupported () {
-    let webAudioEnable = false;
-    let webglEnable = false;
-
-    try {
-      const AudioContext = window.AudioContext || window.webkitAudioContext;
-      let ctx = new AudioContext();
-      ctx.close();
-      ctx = null;
-      webAudioEnable = true;
-    } catch (e) {}
-
-    try {
-      let cvs = document.createElement('canvas');
-      var validContextNames = ['webgl', 'experimental-webgl', 'moz-webgl', 'webkit-3d'];
-      for (let i = 0; i < validContextNames.length; i++) {
-        let glCtx = cvs.getContext(validContextNames[i]);
-        if (glCtx) {
-          glCtx = null;
-          cvs = null;
-          webglEnable = true;
-          break;
-        }
-      }
-    } catch (e) {}
-
-    const WebComponentSupported = 'customElements' in window && window.customElements.define;
-    let isComponentDefined;
-    if (WebComponentSupported) {
-      isComponentDefined = window.customElements.get('mobile-video');
-    }
-    return webAudioEnable && webglEnable && isComponentDefined;
+    return softSolutionProbe();
   }
 
   constructor (options) {

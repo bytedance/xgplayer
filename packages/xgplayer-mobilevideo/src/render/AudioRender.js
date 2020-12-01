@@ -216,7 +216,7 @@ export default class AudioRender extends BaseRender {
 
         if (!this._ready) {
           // init background Audio ele
-          let canEmit = this.isLive || Math.abs(start - this.currentTime) <= uncompress.duration;
+          let canEmit = this.isLive || Math.floor(Math.abs(start - this.currentTime)) <= Math.ceil(uncompress.duration);
           if (canEmit) {
             this._ready = true;
             this.emit(Events.AUDIO.AUDIO_READY, start);
@@ -272,7 +272,6 @@ export default class AudioRender extends BaseRender {
       if (inSeeking) {
         if (!this._onAudioReady) {
           this._onAudioReady = (time) => {
-            console.log(time, this.currentTime);
             this._ajustSeekTime(time)
           };
         }

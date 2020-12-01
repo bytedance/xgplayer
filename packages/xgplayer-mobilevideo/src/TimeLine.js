@@ -17,9 +17,10 @@ export default class TimeLine extends EventEmitter {
       audio: false,
       video: false
     };
-    this._paused = false;
+    this._paused = true;
     this._noAudio = false;
     this._switchToMultiWorker = false;
+    this._lowdecodeEmited = false;
     this._lastSeekTime = 0;
     this._bindEvent();
   }
@@ -164,6 +165,9 @@ export default class TimeLine extends EventEmitter {
         this.videoRender.switchToMultiWorker(this._parent.preloadTime);
         return;
       }
+      // 对外只触发一次
+      if (this._lowdecodeEmited) return;
+      this._lowdecodeEmited = true;
       this.emit(Events.TIMELINE.PLAY_EVENT, Events.VIDEO_EVENTS.LOW_DECODE);
     })
 
@@ -183,6 +187,10 @@ export default class TimeLine extends EventEmitter {
     })
 
     this.on(Events.TIMELINE.DO_PLAY, e => {
+      if (!this._parent.startPlayed) {
+        this._parent.startPlayed = true;
+        this.emit(Events.TIMELINE.START_RENDER);
+      }
       this._paused = false;
     })
   }
@@ -194,7 +202,12 @@ export default class TimeLine extends EventEmitter {
     }
     logger.log(this.TAG, 'startRender: time=', this.currentTime, 'seeking:', this.seeking);
     this.emit(Events.TIMELINE.PLAY_EVENT, Events.VIDEO_EVENTS.CANPLAY);
-    this.emit(Events.TIMELINE.START_RENDER);
+
+    // 对autoplay:false 起播阶段不执行这个,在外面调用play()时分发 START_RENDER
+    if (this._parent.autoplay || this._parent.startPlayed) {
+      this._parent.startPlayed = true;
+      this.emit(Events.TIMELINE.START_RENDER);
+    }
     this.emit(Events.TIMELINE.READY);
     if (this._seeking) {
       if (!this.audioRender.audioCanAutoPlay) {
@@ -221,12 +234,23 @@ export default class TimeLine extends EventEmitter {
     if (!frag) return;
     let breakedFrag;
     if (!this._lastSegment) {
-      breakedFrag = frag;
+      breakedFrag = true;
     }
     // discontinue
     if (this._lastSegment && this._lastSegment.cc !== frag.cc) {
-      breakedFrag = frag
+      breakedFrag = true
     }
+    // 考虑不存在不连续标记、但流时间戳变化了
+    let fStart = frag.start / 1000
+    let fEnd = fStart + frag.duration / 1000;
+    let isSeekingFrag = fStart < this.currentTime && fEnd > this.currentTime
+    if (!breakedFrag && isSeekingFrag) {
+      let expectDts = this.videoRender.getDtsOfTime(fStart)
+      if (Math.abs(vSamp0.dts - expectDts) > 5000) { // 5s
+        breakedFrag = true;
+      }
+    }
+
     if (breakedFrag) {
       const vBaseDts = vSamp0.dts - frag.start;
       const aBaseDts = aSamp0.dts - frag.start;
@@ -248,6 +272,11 @@ export default class TimeLine extends EventEmitter {
   play () {
     return new Promise((resolve, reject) => {
       let resumed = this.audioRender.audioCanAutoPlay;
+
+      if (!this._parent.startPlayed) {
+        this.emit(Events.TIMELINE.START_RENDER);
+        this._parent.startPlayed = true;
+      }
 
       if (this._noAudio) {
         resumed = true;
