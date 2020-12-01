@@ -196,7 +196,8 @@ class Progress extends Plugin {
     pos.x = e.clientX
     const { left, width } = root.getBoundingClientRect()
     const ret = this.computeTime(e.clientX, 2)
-    ret.offset = e.clientX - left
+    const offset = e.clientX - left 
+    ret.offset = offset < 0 ? 0 : (offset > width ? width : offset),
     ret.width = width
     ret.e = e
     this.triggerCallbacks('dragmove', ret)
@@ -305,9 +306,9 @@ class Progress extends Plugin {
     pos.x = e.clientX
     const ret = this.computeTime(e.clientX)
     const { left, width } = root.getBoundingClientRect()
-
+    const offset = e.clientX - left 
     const data = {
-      offset: e.clientX - left,
+      offset: offset < 0 ? 0 : (offset > width ? width : offset),
       width,
       left,
       e,
