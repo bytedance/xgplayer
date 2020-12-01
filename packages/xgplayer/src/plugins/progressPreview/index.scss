@@ -5,6 +5,7 @@ $spotWidth: 6px; // 故事点高度
 $spotColor: #fff;
 $bottom: 7px;
 $textHeight: 40px;
+$top: 8px;
 
 .xgplayer {
   // .xgplayer-progress-point {
@@ -52,9 +53,10 @@ $textHeight: 40px;
   .xg-spot-info {
     position: absolute;
     left: 0;
-    bottom: 10px;
-    visibility: hidden;
-    opacity: 0;
+    bottom: 15px;
+    // visibility: hidden;
+    // opacity: 0;
+    display: none;
     &.short-line {
       .xg-spot-line{
         height: 6px;
@@ -74,20 +76,30 @@ $textHeight: 40px;
     }
   }
 
+  .xgplayer-progress.active {
+    .xg-spot-info {
+      // opacity: 1;
+      // visibility: visible;
+      // transition: opacity .3s;
+      display: block;
+    }
+  }
+
   .xg-spot-line {
     position: relative;
-    top: 2px;
+    top: $top;
     display: block;
     width: 1px;
     height: 41px;
     background-color: #FFF;
+    pointer-events: none;
   }
 
-  /* 进度条内层样式 */
+  /* 时间预览样式 */
   .xgplayer-progress-point {
     display: none;
     position: absolute;
-    bottom: 6px;
+    bottom: 0;
     left: 50%;
     background:rgba(0, 0, 0, 0.54);
     font-size: 11px;
@@ -99,14 +111,14 @@ $textHeight: 40px;
     white-space: nowrap;
   }
 
-
   .xg-spot-content {
     position: relative;
     width: 160px;
-    top: 2px;
+    top: $top;
     color: #fff;
     border-radius: 2px 2px 0px 0px;
   }
+  
   .xg-spot-thumbnail {
     position: relative;
     width: 160px;
@@ -114,29 +126,7 @@ $textHeight: 40px;
     pointer-events: none;
     border-radius: 2px 2px 0 0;
   }
-  .progress-thumbnail {
-    margin: 0;
-    display: block;
-  }
-  .xg-spot-text {
-    display: none;
-    width: 160px;
-    padding: 4px 8px 9px 8px;
-    background: rgba(0, 0, 0, 0.8);
-    border-radius: 0px 0px 2px 2px;
-    pointer-events: none;
-    box-sizing: border-box;
-  }
-  .spot-inner-text {
-    overflow: hidden;
-    text-overflow: ellipsis;
-    display: -webkit-box;
-    -webkit-line-clamp: 2;
-    -webkit-box-orient: vertical;
-    line-height: 20px;
-    font-size: 12px;
-    max-height: 40px;
-  }
+
   .xg-spot-time {
     position: absolute;
     left: 50%;
@@ -147,6 +137,33 @@ $textHeight: 40px;
     transform: translateX(-50%);
     pointer-events: none;
   }
+
+  .progress-thumbnail {
+    margin: 0;
+    display: block;
+  }
+
+  .xg-spot-text {
+    display: none;
+    width: 160px;
+    padding: 4px 8px 9px 8px;
+    background: rgba(0, 0, 0, 0.8);
+    border-radius: 0px 0px 2px 2px;
+    pointer-events: none;
+    box-sizing: border-box;
+  }
+
+  .spot-inner-text {
+    overflow: hidden;
+    text-overflow: ellipsis;
+    display: -webkit-box;
+    -webkit-line-clamp: 2;
+    -webkit-box-orient: vertical;
+    line-height: 20px;
+    font-size: 12px;
+    max-height: 40px;
+  }
+
   .xg-spot-content.show-text {
     .xg-spot-text {
       display: block;
@@ -162,22 +179,11 @@ $textHeight: 40px;
       border-right: 10px solid transparent;
       border-top: 7px solid #3370FF;
       width: 0;
-      height: 19px;
+      height: 15px;
       background: none;
-    }
-    .xg-spot-content {
-      bottom: 0;
-      margin-top: 2px;
     }
   }
 
-  .xgplayer-progress.active {
-    .xg-spot-info {
-      opacity: 1;
-      visibility: visible;
-      transition: opacity .3s;
-    }
-  }
   /**  xg-spot-info end**/
 
   .xgvideo-preview {

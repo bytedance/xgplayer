@@ -76,6 +76,10 @@ class Controls extends Plugin {
   hide () {
     Util.removeClass(this.root, 'show')
   }
+  
+  get mode () {
+    return this.config.mode
+  }
 
   registerPlugin (plugin, options = {}, name) {
     if (!this.root) {
