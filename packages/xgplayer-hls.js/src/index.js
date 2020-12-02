@@ -75,6 +75,26 @@ class HlsJsPlayer extends Player {
       hls.stopLoad()
     })
   }
+  switchURL (url) {
+    const player = this
+    player.url = url
+    player.config.url = url
+    let curTime = player.currentTime
+    // player.video.muted = true
+    Player.util.addClass(player.root, 'xgplayer-is-enter')
+    player.once('playing', function(){
+      Player.util.removeClass(player.root, 'xgplayer-is-enter')
+      // player.video.muted = false
+    })
+    player.once('canplay', function () {
+      player.currentTime = curTime
+      player.play()
+    })
+    if(typeof player.hls === 'object') {
+      player.hls.originUrl = url
+    }
+    player.src = url
+  }
   register (url) {
     let hls = this.hls
     let util = Player.util
