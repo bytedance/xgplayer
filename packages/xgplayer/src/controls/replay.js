@@ -6,14 +6,14 @@ let replay = function () {
   let root = player.root
 
   function onReplayBtnClick () {
-    util.removeClass(root, 'replay')
+    util.removeClass(root, 'xgplayer-is-replay')
     player.replay()
   }
   player.on('replayBtnClick', onReplayBtnClick)
 
   function onEnded () {
     if (!player.config.loop) {
-      util.addClass(root, 'replay')
+      util.addClass(root, 'xgplayer-is-replay')
     }
   }
   player.on('ended', onEnded)
