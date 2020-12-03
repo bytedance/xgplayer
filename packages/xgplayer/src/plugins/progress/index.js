@@ -190,13 +190,7 @@ class Progress extends Plugin {
     }
     pos.moving = true
     pos.x = e.clientX
-    const { left, width } = root.getBoundingClientRect()
-    const ret = this.computeTime(e.clientX, 2)
-    const offset = e.clientX - left 
-    ret.offset = offset < 0 ? 0 : (offset > width ? width : offset),
-    ret.width = width
-    ret.left = left
-    ret.e = e
+    const ret = this.computeTime(e)
     this.triggerCallbacks('dragmove', ret)
   }
 
@@ -226,7 +220,7 @@ class Progress extends Plugin {
     this.isProgressMoving = true
     Util.addClass(this.progressBtn, 'active')
 
-    const ret = this.computeTime(e.clientX)
+    const ret = this.computeTime(e)
     this.updateWidth(ret.currentTime, ret.percent, 0)
 
     if (Sniffer.device === 'mobile') {
@@ -253,6 +247,19 @@ class Progress extends Plugin {
     Util.event(e)
     Util.removeClass(this.progressBtn, 'active')
 
+    const ret = this.computeTime(e)
+    if (pos.moving) {
+      this.updateWidth(ret.currentTime, ret.percent, 2)
+      this.triggerCallbacks('dragend', ret)
+    } else {
+      this.triggerCallbacks('click', ret)
+    }
+
+    pos.moving = false
+    pos.isDown = false
+    pos.x = 0
+    pos.y = 0
+
     if (this.isMobile) {
       this.unbind('touchmove', this.onMouseMove)
       this.unbind('touchend', this.onMouseUp)
@@ -268,19 +275,6 @@ class Progress extends Plugin {
         this.bind('mousemove', this.onMoveOnly)
       }
     }
-    const ret = this.computeTime(e.clientX)
-    ret.e = e
-    if (pos.moving) {
-      this.updateWidth(ret.currentTime, ret.percent, 2)
-      this.triggerCallbacks('dragend', ret)
-    } else {
-      this.triggerCallbacks('click', ret)
-    }
-
-    pos.moving = false
-    pos.isDown = false
-    pos.x = 0
-    pos.y = 0
     // 延迟复位，状态复位要在dom相关时间回调执行之后
     setTimeout(() => {
       this.resetSeekState()
@@ -301,29 +295,18 @@ class Progress extends Plugin {
       return
     }
     pos.x = e.clientX
-    const ret = this.computeTime(e.clientX)
-    const { left, width } = root.getBoundingClientRect()
-    const offset = e.clientX - left 
-    const data = {
-      offset: offset < 0 ? 0 : (offset > width ? width : offset),
-      width,
-      left,
-      e,
-      currentTime: ret.currentTime,
-      percent: ret.percent
-    }
-
+    const ret = this.computeTime(e)
     if (pos.isDown && !pos.moving) {
       pos.moving = true
       config.isPauseMoving && player.pause()
-      this.triggerCallbacks('dragstart', data)
+      this.triggerCallbacks('dragstart', ret)
     }
     this.updateWidth(ret.currentTime, ret.percent, 1)
-    this.triggerCallbacks('dragmove', data)
+    this.triggerCallbacks('dragmove', ret)
   }
 
   onMouseEnter = (e) => {
-    const {player, pos, root} = this
+    const {player, pos} = this
     pos.isEnter = true
     if (pos.isDown || player.isMini || (!player.config.allowSeekAfterEnded && player.ended)) {
       return
@@ -368,18 +351,23 @@ class Progress extends Plugin {
     player.seek(Number(currentTime).toFixed(1))
   }
 
-  computeTime (clientX) {
+  computeTime (e) {
     const {player} = this
     const {width, left} = this.root.getBoundingClientRect()
-    let w = clientX - left
-    w = w > width ? width : (w < 0 ? 0 : w)
+    const clientX = e.clientX
+    let offset = clientX - left
+    offset = offset > width ? width : (offset < 0 ? 0 : offset)
 
-    let percent = w / width
+    let percent = offset / width
     percent = percent < 0 ? 0 : (percent > 1 ? 1 : percent)
     const currentTime = parseInt(percent * player.duration * 1000, 10) / 1000
     return {
       percent,
-      currentTime
+      currentTime,
+      offset,
+      width,
+      left,
+      e
     }
   }
 
@@ -460,11 +448,11 @@ class Progress extends Plugin {
     this.innerList.destroy()
     this.innerList = null
     if (Sniffer.device === 'mobile') {
-      this.unbind('touchstart', this.mouseDown)
+      this.unbind('touchstart', this.onMouseDown)
       this.unbind('touchmove', this.onMouseMove)
       this.unbind('touchend', this.onMouseUp)
     } else {
-      this.unbind('mousedown', this.mouseDown)
+      this.unbind('mousedown', this.onMouseDown)
       this.unbind('mouseenter', this.mouseEnter)
       this.unbind('mousemove', this.onMoveOnly)
       document.removeEventListener('mousemove', this.onMouseMove, false)
