@@ -17,7 +17,7 @@ export default class ProgressPreview extends Plugin {
     this.thumbnail = null
     this._state = {
       now: 0,
-      isFocusDot: false
+      f: false
     }
   }
 
@@ -31,6 +31,7 @@ export default class ProgressPreview extends Plugin {
       miniWidth: 6,
       ispots: [],
       defaultText: '',
+      isFocusDots: true,
       isShowThumbnail: true,
       isShowCoverPreview: false, // 进度条拖动时是否显示播放区域预览图
       mode: '' // short // production
@@ -65,7 +66,7 @@ export default class ProgressPreview extends Plugin {
   }
 
   bindEvents () {
-    const progress = this.player.plugins.progress
+    const {progress} = this.player.plugins
     if (Sniffer.device === 'mobile' || !progress) {
       return
     }
@@ -74,19 +75,9 @@ export default class ProgressPreview extends Plugin {
       progress.addCallBack(key, this[CALLBACK_MAP[key]])
     })
 
-    this.bind('.xg-spot-info', ['mousemove'], (e) => {
-      if (this._state.isFocusDot || Util.hasClass(e.target, 'xg-spot-content')) {
-        Util.event(e)
-        e.stopPropagation()
-      }
-    })
+    this.bind('.xg-spot-info', 'mousemove', this.onMousemove)
 
-    this.bind('.xg-spot-info', 'mousedown', (e) => {
-      if (this._state.isFocusDot || Util.hasClass(e.target, 'xg-spot-content')) {
-        Util.event(e)
-        e.stopPropagation()
-      }
-    });
+    this.bind('.xg-spot-info', 'mousedown', this.onMousedown)
 
     const fun = this.hook('previewClick', (...args) => {
       // console.log('args', args)
@@ -99,6 +90,21 @@ export default class ProgressPreview extends Plugin {
 
     this.bind('.xg-spot-content', 'mouseup', this.handlerPreviewClick)
   }
+
+  onMousemove = (e) => {
+    if (this._state.f || Util.hasClass(e.target, 'xg-spot-content')) {
+      Util.event(e)
+      e.stopPropagation()
+    }
+  }
+
+  onMousedown = (e) => {
+    if (this._state.f || Util.hasClass(e.target, 'xg-spot-content')) {
+      Util.event(e)
+      e.stopPropagation()
+    }
+  }
+  
 
   onProgressMove (data) {
     this.updatePosition(data.offset, data.width, data.e)
@@ -121,18 +127,21 @@ export default class ProgressPreview extends Plugin {
     const lwidth = root.getBoundingClientRect().width
     const tWidth = timePoint.getBoundingClientRect().width
     let x = offset - lwidth / 2
+    let _t, _tt
     if (x < 0 && !isflex) {
       x = 0
-      previewLine.style.transform = `translateX(${offset - lwidth / 2}px)`;
-      !this.thumbnail && (timePoint.style.transform = `translateX(${offset - lwidth / 2 - tWidth / 2}px)`)
+      _t = offset - lwidth / 2;
+      !this.thumbnail && (_tt = offset - lwidth / 2 - tWidth / 2)
     } else if (x > cwidth - lwidth && !isflex) {
-      previewLine.style.transform = `translateX(${x - (cwidth - lwidth)}px)`
-      !this.thumbnail && (timePoint.style.transform = `translateX(${x - (cwidth - lwidth) - tWidth / 2}px)`)
+      _t = x - (cwidth - lwidth)
+      !this.thumbnail && (_tt = x - (cwidth - lwidth) - tWidth / 2)
       x = cwidth - lwidth
     } else {
-      previewLine.style.transform = `translateX(${0}px)`
-      !this.thumbnail && (timePoint.style.transform = `translateX(${-tWidth / 2}px)`)
+      _t = 0
+      !this.thumbnail && (_tt = -tWidth / 2)
     }
+    _t !== undefined && (previewLine.style.transform = `translateX(${_t}px)`)
+    _tt !== undefined && (timePoint.style.transform  = `translateX(${_tt}px)`)
     root.style.transform = `translateX(${x}px)`
   }
 
@@ -147,22 +156,25 @@ export default class ProgressPreview extends Plugin {
     if (!root) {
       return
     }
+
     this.updateLinePos(offset, cwidth)
     let now = offset / cwidth * player.duration
     now = now < 0 ? 0 : (now > player.duration ? player.duration : now)
     _state.now = now
-    this.updateTimeText(now)
     if (e && e.target && Util.hasClass(e.target, 'xgplayer-spot')) {
+      const rec = e.target.getBoundingClientRect()
       this.showTips(e.target.getAttribute('data-text'))
-      this._state.isFocusDot = true
+      _state.f = true
+      config.isFocusDots && _state.f && (_state.now = parseInt(e.target.getAttribute('data-time'), 10))
     } else if (config.defaultText) {
-      this._state.isFocusDot = false
+      _state.f = false
       this.showTips(config.defaultText, true)
     } else {
-      this._state.isFocusDot = false
+      _state.f = false
       this.hideTips('')
     }
-    this.updateThumbnails(now)
+    this.updateTimeText(_state.now)
+    this.updateThumbnails(_state.now)
   }
 
   updateThumbnails (time) {
@@ -180,9 +192,8 @@ export default class ProgressPreview extends Plugin {
       return
     }
     const {player, config} = this
-    const thumbnail = this.player.getPlugin('thumbnail')
-    if (!thumbnail || !thumbnail.usable || !this.config.isShowThumbnail) {
-      // Util.addClass(this.find('.xg-spot-content'), 'no-thumbnail')
+    const thumbnail = player.getPlugin('thumbnail')
+    if (!thumbnail || !thumbnail.usable || !config.isShowThumbnail) {
       Util.addClass(this.root, 'short-line no-thumbnail')
       return;
     }
@@ -193,7 +204,6 @@ export default class ProgressPreview extends Plugin {
       player.root.appendChild(this.videoPreview)
       this.videothumbnail = thumbnail.createThumbnail(this.videoPreview, 'xgvideo-thumbnail')
     }
-    window.thumbnail = thumbnail
   }
 
   calcuPosition (time, duration) {
@@ -246,6 +256,9 @@ export default class ProgressPreview extends Plugin {
     this.videothumbnail = null
     this.thumbnail = null
     this.videoPreview && this.player.root.removeChild(this.videoPreview)
+    this.unbind('.xg-spot-info', 'mousemove', this.onMousemove)
+    this.unbind('.xg-spot-info', 'mousedown', this.onMousedown)
+    this.unbind('.xg-spot-content', 'mouseup', this.handlerPreviewClick)
   }
 
   render () {

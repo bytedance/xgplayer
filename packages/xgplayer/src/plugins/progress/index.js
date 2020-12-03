@@ -164,15 +164,11 @@ class Progress extends Plugin {
   }
 
   bindDomEvents () {
-    ['onMoveOnly', 'onMouseDown', 'onMouseUp', 'onMouseMove', 'onMouseEnter', 'onMouseLeave', 'onBodyClick'].map(item => {
-      this[item] = this[item].bind(this)
-    })
-
     if (this.isMobile) {
-      this.root.addEventListener('touchstart', this.onMouseDown, false)
+      this.bind('touchstart', this.onMouseDown)
     } else {
-      this.root.addEventListener('mousedown', this.onMouseDown, false)
-      this.root.addEventListener('mouseenter', this.onMouseEnter, false)
+      this.bind('mousedown', this.onMouseDown)
+      this.bind('mouseenter', this.onMouseEnter)
     }
   }
 
@@ -186,7 +182,7 @@ class Progress extends Plugin {
     Util.removeClass(this.root, 'active')
   }
 
-  onMoveOnly (e) {
+  onMoveOnly = (e) => {
     const {root, pos} = this
     Util.event(e)
     if (pos.moving && Math.abs(pos.x - e.clientX) < 2) {
@@ -199,17 +195,18 @@ class Progress extends Plugin {
     const offset = e.clientX - left 
     ret.offset = offset < 0 ? 0 : (offset > width ? width : offset),
     ret.width = width
+    ret.left = left
     ret.e = e
     this.triggerCallbacks('dragmove', ret)
   }
 
-  onBodyClick (e) {
+  onBodyClick = (e) => {
     e.preventDefault()
     e.stopPropagation()
   }
 
-  onMouseDown (e) {
-    const {player, pos, config, playerConfig, root} = this
+  onMouseDown = (e) => {
+    const {player, pos, config, playerConfig} = this
     if (player.isMini || config.closeMoveSeek || (!playerConfig.allowSeekAfterEnded && player.ended)) {
       return
     }
@@ -233,22 +230,22 @@ class Progress extends Plugin {
     this.updateWidth(ret.currentTime, ret.percent, 0)
 
     if (Sniffer.device === 'mobile') {
-      root.addEventListener('touchmove', this.onMouseMove, false)
-      root.addEventListener('touchend', this.onMouseUp, false)
+      this.bind('touchmove', this.onMouseMove)
+      this.bind('touchend', this.onMouseUp)
     } else {
-      root.removeEventListener('mousemove', this.onMoveOnly, false)
+      this.unbind('mousemove', this.onMoveOnly)
 
       document.addEventListener('mousemove', this.onMouseMove, false)
       document.addEventListener('mouseup', this.onMouseUp, false)
       // 避免触发videoClick 暂停/播放切换
       player.root.addEventListener('click', this.onBodyClick, false)
-      // root.addEventListener('mouseup', this.onMouseUp, false)
+      // this.bind('mouseup', this.onMouseUp, false)
     }
     return true
   }
 
-  onMouseUp (e) {
-    const {player, config, pos, playerConfig, root} = this
+  onMouseUp = (e) => {
+    const {player, config, pos, playerConfig} = this
     // e.stopPropagation()
     // e.preventDefault()
     Util.checkIsFunction(playerConfig.enableSwipeHandler) && playerConfig.enableSwipeHandler()
@@ -257,8 +254,8 @@ class Progress extends Plugin {
     Util.removeClass(this.progressBtn, 'active')
 
     if (this.isMobile) {
-      root.removeEventListener('touchmove', this.onMouseMove, false)
-      root.removeEventListener('touchend', this.onMouseUp, false)
+      this.unbind('touchmove', this.onMouseMove)
+      this.unbind('touchend', this.onMouseUp)
       // 交互结束 恢复控制栏的隐藏流程
       this.blur()
     } else {
@@ -268,7 +265,7 @@ class Progress extends Plugin {
       if (!pos.isEnter) {
         this.onMouseLeave(e)
       } else {
-        root.addEventListener('mousemove', this.onMoveOnly, false)
+        this.bind('mousemove', this.onMoveOnly)
       }
     }
     const ret = this.computeTime(e.clientX)
@@ -292,7 +289,7 @@ class Progress extends Plugin {
     // player.emit(Events.PLAYER_FOCUS)
   }
 
-  onMouseMove (e) {
+  onMouseMove = (e) => {
     const {root, pos, player, config} = this
     if (this.isMobile) {
       e.stopPropagation()
@@ -325,26 +322,26 @@ class Progress extends Plugin {
     this.triggerCallbacks('dragmove', data)
   }
 
-  onMouseEnter (e) {
+  onMouseEnter = (e) => {
     const {player, pos, root} = this
     pos.isEnter = true
     if (pos.isDown || player.isMini || (!player.config.allowSeekAfterEnded && player.ended)) {
       return
     }
-    root.addEventListener('mousemove', this.onMoveOnly, false)
-    root.addEventListener('mouseleave', this.onMouseLeave, false)
+    this.bind('mousemove', this.onMoveOnly)
+    this.bind('mouseleave', this.onMouseLeave)
     this.focus()
   }
 
-  onMouseLeave (e) {
-    const {player, root, pos} = this
+  onMouseLeave  = (e) => {
+    const {player, pos} = this
     pos.isEnter = false
     if (player.isMini) {
       return
     }
-    root.removeEventListener('mousemove', this.onMoveOnly, false)
+    this.unbind('mousemove', this.onMoveOnly)
     if (pos.isDown) {
-      root.removeEventListener('mouseleave', this.onMouseLeave, false)
+      this.unbind('mouseleave', this.onMouseLeave)
       return
     }
     this.blur()
@@ -458,18 +455,18 @@ class Progress extends Plugin {
   }
 
   destroy () {
-    const {root, player} = this
+    const {player} = this
     this.thumbnailPlugin = null
     this.innerList.destroy()
     this.innerList = null
     if (Sniffer.device === 'mobile') {
-      root.removeEventListener('touchstart', this.mouseDown, false)
-      root.removeEventListener('touchmove', this.onMouseMove, false)
-      root.removeEventListener('touchend', this.onMouseUp, false)
+      this.unbind('touchstart', this.mouseDown)
+      this.unbind('touchmove', this.onMouseMove)
+      this.unbind('touchend', this.onMouseUp)
     } else {
-      root.removeEventListener('mousedown', this.mouseDown, false)
-      root.removeEventListener('mouseenter', this.mouseEnter, false)
-      root.removeEventListener('mousemove', this.onMoveOnly, false)
+      this.unbind('mousedown', this.mouseDown)
+      this.unbind('mouseenter', this.mouseEnter)
+      this.unbind('mousemove', this.onMoveOnly)
       document.removeEventListener('mousemove', this.onMouseMove, false)
       document.removeEventListener('mouseup', this.onMouseUp, false)
       player.root.removeEventListener('click', this.onBodyClick, false)
