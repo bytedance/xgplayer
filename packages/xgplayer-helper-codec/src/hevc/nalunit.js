@@ -191,7 +191,9 @@ class Nalunit {
       case 39:
         // PREFIX_SEI
         // unit.prefix_sei = true;
-        unit.sei = SEIParser.parse(unit.body.slice(1));
+        try {
+          unit.sei = SEIParser.parse(unit.body.slice(1));
+        } catch (e) {}
         break;
       case 40:
         // SUFFIX_SEI
