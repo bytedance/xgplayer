@@ -259,7 +259,6 @@ class Progress extends Plugin {
     pos.isDown = false
     pos.x = 0
     pos.y = 0
-
     if (this.isMobile) {
       this.unbind('touchmove', this.onMouseMove)
       this.unbind('touchend', this.onMouseUp)
@@ -307,10 +306,10 @@ class Progress extends Plugin {
 
   onMouseEnter = (e) => {
     const {player, pos} = this
-    pos.isEnter = true
-    if (pos.isDown || player.isMini || (!player.config.allowSeekAfterEnded && player.ended)) {
+    if (pos.isEnter || player.isMini || (!player.config.allowSeekAfterEnded && player.ended)) {
       return
     }
+    pos.isEnter = true
     this.bind('mousemove', this.onMoveOnly)
     this.bind('mouseleave', this.onMouseLeave)
     this.focus()
