@@ -2,7 +2,7 @@
   .xgplayer-prompt {
     display: block;
     position: absolute;
-    z-index: 101;
+    z-index: 1;
     padding: 6px 12px 5px;
     opacity: 0;
     left: 10px;
@@ -16,6 +16,7 @@
     &.show {
       display: block;
       opacity: 1;
+      z-index: 101;
     }
     &.arrow {
       transform: translateX(-50%);
