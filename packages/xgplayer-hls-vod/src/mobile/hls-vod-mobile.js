@@ -44,6 +44,14 @@ class HlsVodMobileController {
   }
 
   initEvents () {
+    this._onLoaderCompete = this._onLoaderCompete.bind(this);
+    this._onLoadError = this._onLoadError.bind(this);
+    this._handleSEIParsed = this._handleSEIParsed.bind(this);
+    this._onMetadataParsed = this._onMetadataParsed.bind(this);
+    this._onDemuxComplete = this._onDemuxComplete.bind(this);
+    this._onDemuxError = this._onDemuxError.bind(this);
+    this._onTimeUpdate = this._onTimeUpdate.bind(this);
+
     this.on(LOADER_EVENTS.LOADER_COMPLETE, this._onLoaderCompete.bind(this));
 
     this.on(LOADER_EVENTS.LOADER_ERROR, this._onLoadError.bind(this))
@@ -56,11 +64,7 @@ class HlsVodMobileController {
 
     this.on(DEMUX_EVENTS.DEMUX_ERROR, this._onDemuxError.bind(this));
 
-    this.on(REMUX_EVENTS.REMUX_ERROR, this._onRemuxError.bind(this));
-
     this._player.on('timeupdate', this._onTimeUpdate.bind(this));
-
-    this._player.on('waiting', this._onWaiting.bind(this));
   }
 
   _onError (type, mod, err, fatal) {
@@ -82,17 +86,6 @@ class HlsVodMobileController {
       fatal = true;
     }
     this._onError(LOADER_EVENTS.LOADER_ERROR, mod, error, fatal);
-  }
-
-  _onRemuxError (mod, error, fatal) {
-    if (fatal === undefined) {
-      fatal = true;
-    }
-    this._onError(REMUX_EVENTS.REMUX_ERROR, mod, error, fatal);
-  }
-
-  _onWaiting () {
-    console.log('............waiting..............');
   }
 
   _seekToBufferStart () {
@@ -302,9 +295,6 @@ class HlsVodMobileController {
     let video = this._player.video;
     // Get current time range
     let currentbufferend = -1;
-    if (!time && video.buffered.length) {
-      time = video.buffered.end(0);
-    }
 
     for (let i = 0; i < video.buffered.length; i++) {
       if (time >= video.buffered.start(i) && time < video.buffered.end(i)) {
@@ -362,9 +352,17 @@ class HlsVodMobileController {
 
     this.off(LOADER_EVENTS.LOADER_COMPLETE, this._onLoaderCompete);
 
+    this.off(LOADER_EVENTS.LOADER_ERROR, this._onLoadError)
+
+    this.off(DEMUX_EVENTS.SEI_PARSED, this._handleSEIParsed)
+
     this.off(DEMUX_EVENTS.METADATA_PARSED, this._onMetadataParsed);
 
-    this.off(DEMUX_EVENTS.DEMUX_COMPLETE, this._onDemuxComplete)
+    this.off(DEMUX_EVENTS.DEMUX_COMPLETE, this._onDemuxComplete);
+
+    this.off(DEMUX_EVENTS.DEMUX_ERROR, this._onDemuxError);
+
+    this._player.off('timeupdate', this._onTimeUpdate);
   }
 }
 export default HlsVodMobileController;

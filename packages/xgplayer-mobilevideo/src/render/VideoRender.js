@@ -265,12 +265,6 @@ export default class VideoRender extends BaseRender {
         nextFrame && nextFrame.info && nextFrame.info.dts
       );
 
-      let unSync = this._frameQueue.avSync(dts);
-      if (this._noAudio && unSync) {
-        let len = this._timeRange.deletePassed(dts);
-        console.warn(`delete ${len} compressed frame`);
-      }
-
       // 点播考虑当前分片音频播放完成，视频解码太慢,要自动切到新buffer
       if (!this._isLive) {
         let nextDecodeFrame = this._timeRange.nextFrame();
@@ -308,6 +302,10 @@ export default class VideoRender extends BaseRender {
     });
 
     this._parent.on(Events.TIMELINE.START_RENDER, () => {
+      clearInterval(waitingTimer);
+    });
+
+    this._parent.on(Events.TIMELINE.DESTROY, () => {
       clearInterval(waitingTimer);
     });
   }

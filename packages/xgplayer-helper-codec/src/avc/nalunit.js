@@ -86,7 +86,9 @@ class Nalunit {
         break;
       case 6:
         // SEI
-        unit.sei = SEIParser.parse(unit.body)
+        try {
+          unit.sei = SEIParser.parse(unit.body)
+        } catch (e) {}
         break;
       case 7:
         // SPS

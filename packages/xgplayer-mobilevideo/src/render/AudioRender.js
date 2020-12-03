@@ -22,6 +22,7 @@ export default class AudioRender extends BaseRender {
     this._sampleQueue = [];
     this._source = null;
     this._audioCanAutoPlay = false;
+    this._lastBuffer = null;
     this._onSourceBufferEnded = this._onSourceBufferEnded.bind(this);
     this._initAudioCtx(config.volume || 0.6);
     this._bindEvents();
@@ -169,6 +170,7 @@ export default class AudioRender extends BaseRender {
 
   _doSeek (time) {
     this._lastTimeLineTime = time;
+    this._lastBuffer = null;
 
     // reinit,连续seek时,新建的audioCtx还没使用过的话,不再新建
     if (this._ready && this._audioCtx.currentTime) {
@@ -208,6 +210,7 @@ export default class AudioRender extends BaseRender {
     this._audioCtx.decodeAudioData(
       chunkBuffer.buffer,
       (uncompress) => {
+        if (!this._timeRange) return;
         const start = this._timeRange.append(
           uncompress,
           uncompress.duration,
@@ -259,7 +262,7 @@ export default class AudioRender extends BaseRender {
   }
 
   _getAudioBuffer (inSeeking) {
-    let buffer = this._timeRange.getBuffer(this.currentTime, 0);
+    let buffer = this._timeRange.getBuffer(this._lastBuffer ? this._lastBuffer.end : this.currentTime, 0);
     if (!buffer) {
       // check end  for vod
       if (!this.isLive && (this.currentTime - this.duration > -1)) {
@@ -299,7 +302,7 @@ export default class AudioRender extends BaseRender {
       this._audioCtx.resume();
       playSlienceAudio();
     }
-
+    this._lastBuffer = buffer;
     this._source = null;
 
     let _source = this._audioCtx.createBufferSource();

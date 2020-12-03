@@ -38,6 +38,10 @@ export default class FrameQueue {
   }
 
   nextFrame () {
+    // 低延迟 删掉多余的帧
+    if (this._parent._noAudio && this._frames.length > 5) {
+      this._frames.splice(0, 5);
+    }
     return this._frames[0];
   }
 

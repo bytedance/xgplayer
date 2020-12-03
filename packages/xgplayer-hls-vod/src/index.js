@@ -166,11 +166,11 @@ class HlsVodPlayer extends BasePlugin {
 
   destroy () {
     return new Promise((resolve) => {
+      if (this._context) {
+        this._context.destroy();
+      }
       if (this.hls.mse) {
         this.hls.mse.destroy().then(() => {
-          if (this._context) {
-            this._context.destroy();
-          }
           super.destroy && super.destroy();
           setTimeout(() => {
             resolve()

@@ -54,27 +54,39 @@ class HlsVodController {
   }
 
   initEvents () {
-    this.on(LOADER_EVENTS.LOADER_COMPLETE, this._onLoaderCompete.bind(this));
+    this._onLoaderCompete = this._onLoaderCompete.bind(this);
+    this._onLoadError = this._onLoadError.bind(this);
+    this._onInitSegment = this._onInitSegment.bind(this);
+    this._handleSEIParsed = this._handleSEIParsed.bind(this);
+    this._onMediaSegment = this._onMediaSegment.bind(this);
+    this._onMetadataParsed = this._onMetadataParsed.bind(this);
+    this._onDemuxComplete = this._onDemuxComplete.bind(this);
+    this._onDemuxError = this._onDemuxError.bind(this);
+    this._onRemuxError = this._onRemuxError.bind(this);
+    this._onTimeUpdate = this._onTimeUpdate.bind(this);
+    this._onWaiting = this._onWaiting.bind(this)
 
-    this.on(LOADER_EVENTS.LOADER_ERROR, this._onLoadError.bind(this))
+    this.on(LOADER_EVENTS.LOADER_COMPLETE, this._onLoaderCompete);
 
-    this.on(REMUX_EVENTS.INIT_SEGMENT, this._onInitSegment.bind(this));
+    this.on(LOADER_EVENTS.LOADER_ERROR, this._onLoadError)
 
-    this.on(DEMUX_EVENTS.SEI_PARSED, this._handleSEIParsed.bind(this))
+    this.on(REMUX_EVENTS.INIT_SEGMENT, this._onInitSegment);
 
-    this.on(REMUX_EVENTS.MEDIA_SEGMENT, this._onMediaSegment.bind(this));
+    this.on(DEMUX_EVENTS.SEI_PARSED, this._handleSEIParsed)
 
-    this.on(DEMUX_EVENTS.METADATA_PARSED, this._onMetadataParsed.bind(this));
+    this.on(REMUX_EVENTS.MEDIA_SEGMENT, this._onMediaSegment);
 
-    this.on(DEMUX_EVENTS.DEMUX_COMPLETE, this._onDemuxComplete.bind(this));
+    this.on(DEMUX_EVENTS.METADATA_PARSED, this._onMetadataParsed);
 
-    this.on(DEMUX_EVENTS.DEMUX_ERROR, this._onDemuxError.bind(this));
+    this.on(DEMUX_EVENTS.DEMUX_COMPLETE, this._onDemuxComplete);
 
-    this.on(REMUX_EVENTS.REMUX_ERROR, this._onRemuxError.bind(this));
+    this.on(DEMUX_EVENTS.DEMUX_ERROR, this._onDemuxError);
 
-    this._player.on('timeupdate', this._onTimeUpdate.bind(this));
+    this.on(REMUX_EVENTS.REMUX_ERROR, this._onRemuxError);
 
-    this._player.on('waiting', this._onWaiting.bind(this));
+    this._player.on('timeupdate', this._onTimeUpdate);
+
+    this._player.on('waiting', this._onWaiting);
   }
 
   _onError (type, mod, err, fatal) {
@@ -329,11 +341,9 @@ class HlsVodController {
       return;
     }
     let video = this._player.video;
+
     // Get current time range
     let currentbufferend = -1;
-    if (!time && video.buffered.length) {
-      time = video.buffered.end(0);
-    }
 
     for (let i = 0; i < video.buffered.length; i++) {
       if (time >= video.buffered.start(i) && time < video.buffered.end(i)) {
@@ -395,13 +405,25 @@ class HlsVodController {
 
     this.off(LOADER_EVENTS.LOADER_COMPLETE, this._onLoaderCompete);
 
+    this.off(LOADER_EVENTS.LOADER_ERROR, this._onLoadError)
+
     this.off(REMUX_EVENTS.INIT_SEGMENT, this._onInitSegment);
+
+    this.off(DEMUX_EVENTS.SEI_PARSED, this._handleSEIParsed)
 
     this.off(REMUX_EVENTS.MEDIA_SEGMENT, this._onMediaSegment);
 
     this.off(DEMUX_EVENTS.METADATA_PARSED, this._onMetadataParsed);
 
-    this.off(DEMUX_EVENTS.DEMUX_COMPLETE, this._onDemuxComplete)
+    this.off(DEMUX_EVENTS.DEMUX_COMPLETE, this._onDemuxComplete);
+
+    this.off(DEMUX_EVENTS.DEMUX_ERROR, this._onDemuxError);
+
+    this.off(REMUX_EVENTS.REMUX_ERROR, this._onRemuxError);
+
+    this._player.off('timeupdate', this._onTimeUpdate);
+
+    this._player.off('waiting', this._onWaiting);
   }
 }
 export default HlsVodController;
