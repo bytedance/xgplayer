@@ -30,7 +30,8 @@
         "watch": "cross-env NODE_ENV=development rollup -c rollup.config.js --watch"
     },
     "unpkgFiles": [
-        "browser"
+        "browser",
+        "dist"
     ],
     "keywords": [
         "video",
