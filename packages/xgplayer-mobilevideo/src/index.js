@@ -189,7 +189,7 @@ class MVideo extends HTMLElement {
   }
 
   _interceptAction () {
-    if (this._degradeVideo) {
+    if (this._degradeVideo && this.innerDegrade) {
       this._degradeVideo.muted = true;
       this._degradeVideo.play().then(() => {
         this._degradeVideo.pause();
@@ -374,10 +374,8 @@ class MVideo extends HTMLElement {
   }
 
   set width (val) {
-    this.style.display = 'inline-block';
     const pxVal = typeof val === 'number' ? `${val}px` : val;
     this.setAttribute('width', pxVal);
-    this.style.width = pxVal;
     this.canvas.width = val;
   }
 
@@ -386,10 +384,8 @@ class MVideo extends HTMLElement {
   }
 
   set height (val) {
-    this.style.display = 'inline-block';
     const pxVal = typeof val === 'number' ? `${val}px` : val;
     this.setAttribute('height', pxVal);
-    this.style.height = pxVal;
     this.canvas.height = val;
   }
 
