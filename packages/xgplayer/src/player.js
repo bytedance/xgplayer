@@ -757,27 +757,41 @@ class Player extends Proxy {
   }
 
   onPlaying () {
-    if (this.waitTimer) {
-      clearTimeout(this.waitTimer)
-    }
-    const { NO_START, PAUSED, ENDED, ERROR, REPLAY, LOADING } = STATE_CLASS
-    const clsList = [NO_START, PAUSED, ENDED, ERROR, REPLAY, LOADING];
+    // if (this.waitTimer) {
+    //   clearTimeout(this.waitTimer)
+    // }
+    const { NO_START, PAUSED, ENDED, ERROR, REPLAY } = STATE_CLASS
+    const clsList = [NO_START, PAUSED, ENDED, ERROR, REPLAY];
     clsList.forEach((cls) => {
       this.removeClass(cls)
     })
   }
 
   onTimeupdate () {
-    this.removeClass(STATE_CLASS.LOADING)
-    if (this.waitTimer) {
-      clearTimeout(this.waitTimer)
-      this.waitTimer = null
+    if (this.waitTimer || this.hasClass(STATE_CLASS.LOADING)) {
+      if (this.checkBuffer()) {
+        this.removeClass(STATE_CLASS.LOADING)
+        clearTimeout(this.waitTimer)
+        this.waitTimer = null
+      }
     }
 
     if (this._played.begin < 0) {
       this._played.begin = parseInt(this.video.currentTime * 1000, 10)
     }
     this._played.end = parseInt(this.video.currentTime * 1000, 10)
+  }
+
+  checkBuffer (time) {
+    const buffered = this.video.buffered
+    const currentTime = time || (this.video.currentTime + 0.2)
+    const len = buffered.length
+    for (let i = 0; i < len; i++) {
+      if (buffered.start(i) <= currentTime && buffered.end(i) > currentTime) {
+        return true
+      }
+    }
+    return false
   }
 
   getVideoSize () {
