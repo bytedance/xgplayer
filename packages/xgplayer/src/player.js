@@ -382,7 +382,8 @@ class Player extends Proxy {
   }
 
   getPlugin (pluginName) {
-    return pluginsManager.findPlugin(this, pluginName)
+    const plugin = pluginsManager.findPlugin(this, pluginName)
+    return plugin && plugin.pluginName ? plugin : null
   }
 
   addClass (className) {
@@ -558,10 +559,9 @@ class Player extends Proxy {
       this.removeAttribute('data-xgfill')
     }
     for (let k in this) {
-      // if (k !== 'config') {
       delete this[k]
-      // }
     }
+    Object.setPrototypeOf && Object.setPrototypeOf(this, null)
   }
 
   replay () {

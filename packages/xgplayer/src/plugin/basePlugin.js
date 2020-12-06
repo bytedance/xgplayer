@@ -140,6 +140,8 @@ class BasePlugin {
   }
 
   __destroy () {
+    const player = this.player
+    const pluginName = this.pluginName
     this.offAll()
     if (Util.checkIsFunction(this.destroy)) {
       this.destroy();
@@ -154,6 +156,8 @@ class BasePlugin {
       this[key] = null
       delete this[key]
     })
+    Object.setPrototypeOf && Object.setPrototypeOf(this, null)
+    player.unRegistePlugin(pluginName)
   }
 }
 
