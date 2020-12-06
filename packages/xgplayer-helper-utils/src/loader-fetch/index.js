@@ -107,9 +107,6 @@ class FetchLoader {
 
     // TODO: Add Ranges
     let params = this.getParams(opts)
-    this.noDataFn = () => {
-      this.internalLoad(url, params, retryTimes, retryTimes, delayTime)
-    }
 
     return this.internalLoad(url, params, retryTimes, retryTimes, delayTime)
   }
@@ -185,12 +182,12 @@ class FetchLoader {
 
     // reader read function returns a Promise. get data when callback and has value.done when disconnected.
     // read方法返回一个Promise. 回调中可以获取到数据。当value.done存在时，说明链接断开。
-    const noDataTimer = setTimeout(() => {
-      if (this.loading === false || !this.noDataFn) return
-      this.noDataFn()
+    this._noDataTimer = setTimeout(() => {
+      if (this.loading === false) return
+      this.emit(LOADER_EVENTS.NO_DATA_RECEVIE)
     }, 3000)
     this._reader && this._reader.read().then((val) => {
-      clearTimeout(noDataTimer)
+      clearTimeout(this._noDataTimer)
       if (this._canceled || this._destroyed) {
         if (this._reader) {
           try {
@@ -217,7 +214,7 @@ class FetchLoader {
       })
       return this._onReader(reader, taskno)
     }).catch((error) => {
-      clearTimeout(noDataTimer)
+      clearTimeout(this._noDataTimer)
       this.loading = false;
       this.emit(LOADER_EVENTS.LOADER_ERROR, this.TAG, error);
       throw error;
@@ -284,12 +281,14 @@ class FetchLoader {
       this._reader = null
       this.loading = false
     }
+    clearTimeout(this._noDataTimer)
     this._canceled = true;
   }
 
   destroy () {
     this._destroyed = true
     clearTimeout(this._retryTimer);
+    clearTimeout(this._noDataTimer)
     this.cancel();
     this._speed.reset()
   }
