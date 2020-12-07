@@ -9,9 +9,16 @@ let start = function () {
     if (util.hasClass(root, 'xgplayer-nostart')) {
       util.removeClass(root, 'xgplayer-nostart') // for ie quick switch
       util.addClass(root, 'xgplayer-is-enter')
-      if (!root.querySelector('video')) {
-        player.start()
+      if(typeof root.contains === 'function') {
+        if(!root.contains(player.video)) {
+          player.start()
+        }
+      } else {
+        if (!root.querySelector(this.videoConfig.mediaType)) {
+          player.start()
+        }
       }
+      
       let playPromise = player.play()
       if (playPromise !== undefined && playPromise) {
         playPromise.catch(err => {})
