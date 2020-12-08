@@ -3,7 +3,7 @@
     "version": "3.0.0-alpha.57",
     "description": "video player",
     "main": "./dist/index.min.js",
-    "module": "./es/es.js",
+    "module": "./es/index.js",
     "typings": "./types/index.d.ts",
     "bin": {
         "xgplayer": "bin/xgplayer.js"
