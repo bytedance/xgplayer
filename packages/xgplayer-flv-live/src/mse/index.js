@@ -165,8 +165,9 @@ class FlvPlayer extends BasePlugin {
     return this._destroy().then(() => {
       this.initEvents();
       this.context = new Context(flvAllowedEvents)
-      this.player.hasStart = false;
       setTimeout(() => {
+        if (!this.player) return
+        this.player.hasStart = false;
         this.player.start()
       })
       this.player.onWaiting();
@@ -196,7 +197,7 @@ class FlvPlayer extends BasePlugin {
     if (!this.context) return Promise.resolve()
     if (this.flv && this.flv._context) {
       const loader = this.flv._context.getInstance('FETCH_LOADER')
-      loader && loader.cancel()
+      loader && loader.destroy()
     }
     const clear = () => {
       if (!this.context) return
@@ -209,7 +210,7 @@ class FlvPlayer extends BasePlugin {
       }
       super.offAll();
     }
-    return this.flv.mse ? this.flv.mse.destroy().then(clear) : Promise.resolve(clear())
+    return this.flv && this.flv.mse ? this.flv.mse.destroy().then(clear) : Promise.resolve(clear())
   }
 
   handleDefinitionChange (change) {
