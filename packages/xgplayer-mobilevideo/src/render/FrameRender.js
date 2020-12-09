@@ -189,6 +189,10 @@ class YUVCanvas {
     var vSamplerRef = gl.getUniformLocation(program, 'vSampler');
     gl.uniform1i(vSamplerRef, 2);
     this.vTextureRef = vTextureRef;
+
+    // fix WebGL: INVALID_OPERATION: texImage2D: ArrayBufferView not big enough for request
+    //  texture bound to texture unit 1 is not renderable. It might be non-power-of-2 or have incompatible texture filtering (maybe)
+    gl.pixelStorei(gl.UNPACK_ALIGNMENT, 2);
   }
 
   _initTexture () {
@@ -305,7 +309,6 @@ class YUVCanvas {
   render (data, width, height, yLinesize, uvLinesize) {
     this._resize(width, height);
     var gl = this.contextGL;
-    // console.log(data, width, height, yLinesize, uvLinesize)
     if (gl) {
       this._drawPictureGL(data, width, height, yLinesize, uvLinesize);
     } else {

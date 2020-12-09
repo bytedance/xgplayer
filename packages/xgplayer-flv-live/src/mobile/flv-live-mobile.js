@@ -163,6 +163,15 @@ export default class FlvController {
   }
 
   loadData (url = this._player.config.url) {
+    if (!url) {
+      this._player.emit('error', {
+        code: '0',
+        errorType: 'network',
+        ex: `empty url`,
+        errd: {}
+      });
+      return;
+    }
     this.emit(LOADER_EVENTS.LADER_START, url)
   }
 

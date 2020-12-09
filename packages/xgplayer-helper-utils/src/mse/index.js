@@ -160,13 +160,16 @@ class MSE {
   }
 
   remove (end, start = 0) {
-    for (let i = 0; i < Object.keys(this.sourceBuffers).length; i++) {
-      let buffer = this.sourceBuffers[Object.keys(this.sourceBuffers)[i]];
-      if (!buffer.updating) {
-        // console.log('remove', start, end)
-        buffer.remove(start, end);
+    try {
+      for (let i = 0; i < Object.keys(this.sourceBuffers).length; i++) {
+        let buffer = this.sourceBuffers[Object.keys(this.sourceBuffers)[i]];
+        if (!buffer.updating) {
+          if (end > start) {
+            buffer.remove(start, end);
+          }
+        }
       }
-    }
+    } catch (e) {}
   }
 
   _doCleanupSourceBuffer () {
@@ -210,7 +213,11 @@ class MSE {
       let ranges = _pendingRemoveRanges[type];
       while (ranges.length && !sb.updating) {
         let range = ranges.shift();
-        sb.remove(range.start, range.end);
+        try {
+          if (range && range.end > range.start) {
+            sb.remove(range.start, range.end);
+          }
+        } catch (e) {}
       }
     }
   }
