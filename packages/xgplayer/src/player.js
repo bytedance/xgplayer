@@ -366,7 +366,7 @@ class Player extends Proxy {
     return pluginsManager.register(this, PLUFGIN, options)
   }
 
-  unRegistePlugin (plugin) {
+  unRegisterPlugin (plugin) {
     if (typeof plugin === 'string') {
       pluginsManager.unRegister(this, plugin)
     } else if (plugin instanceof BasePlugin) {
