@@ -1,4 +1,4 @@
-import { EVENTS, Mse, Crypto, FetchLoader } from 'xgplayer-helper-utils'
+import { EVENTS, Mse, Crypto, FetchLoader,logger } from 'xgplayer-helper-utils'
 import { PreSource, Tracks, Buffer as XgBuffer, Playlist } from 'xgplayer-helper-models'
 import { Compat as Compatibility } from 'xgplayer-helper-codec';
 import { Mp4Remuxer, M3U8Parser, TsDemuxer } from 'xgplayer-helper-transmuxers'
@@ -11,6 +11,7 @@ const CRYTO_EVENTS = EVENTS.CRYTO_EVENTS;
 const HLS_ERROR = 'HLS_ERROR';
 class HlsVodController {
   constructor (configs) {
+    this.TAG = 'HlsVodController';
     this.configs = Object.assign({}, configs);
     this.url = '';
     this.baseurl = '';
@@ -241,6 +242,7 @@ class HlsVodController {
 
         let frag = this._playlist.getTs(this._player.currentTime * 1000);
         if (frag) {
+          this._logDownSegment(frag);
           this._playlist.downloading(frag.url, true);
           this.emitTo('TS_LOADER', LOADER_EVENTS.LADER_START, frag.url)
         } else {
@@ -357,6 +359,7 @@ class HlsVodController {
         frag = this._playlist.getTs(frag.time + frag.duration);
       }
       if (frag && !frag.downloading && !frag.downloaded) {
+        this._logDownSegment(frag);
         this._playlist.downloading(frag.url, true);
         this.emitTo('TS_LOADER', LOADER_EVENTS.LADER_START, frag.url)
       }
@@ -384,10 +387,17 @@ class HlsVodController {
       }
 
       if (frag && !frag.downloading && !frag.downloaded) {
+        this._logDownSegment(frag);
         this._playlist.downloading(frag.url, true);
         this.emitTo('TS_LOADER', LOADER_EVENTS.LADER_START, frag.url)
       }
     }
+  }
+
+  _logDownSegment (frag) {
+    if (!frag) return;
+    logger.groupEnd();
+    logger.group(this.TAG, `load ${frag.id}: [${frag.time / 1000} , ${(frag.time + frag.duration) / 1000}], downloading: ${frag.downloading} , donwloaded: ${frag.downloaded}`);
   }
 
   destory () {

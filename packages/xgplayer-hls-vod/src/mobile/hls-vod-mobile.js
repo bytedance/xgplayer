@@ -1,9 +1,8 @@
-import { EVENTS, Crypto, FetchLoader } from 'xgplayer-helper-utils'
+import { EVENTS, Crypto, FetchLoader, logger} from 'xgplayer-helper-utils'
 import { Tracks, Buffer as XgBuffer, Playlist } from 'xgplayer-helper-models'
 import { M3U8Parser, TsDemuxer } from 'xgplayer-helper-transmuxers'
 
 const LOADER_EVENTS = EVENTS.LOADER_EVENTS;
-const REMUX_EVENTS = EVENTS.REMUX_EVENTS;
 const DEMUX_EVENTS = EVENTS.DEMUX_EVENTS;
 const HLS_EVENTS = EVENTS.HLS_EVENTS;
 const CRYTO_EVENTS = EVENTS.CRYTO_EVENTS;
@@ -11,6 +10,7 @@ const HLS_ERROR = 'HLS_ERROR';
 
 class HlsVodMobileController {
   constructor (configs) {
+    this.TAG = 'HlsVodController';
     this.configs = Object.assign({}, configs);
     this.url = '';
     this.baseurl = '';
@@ -198,6 +198,7 @@ class HlsVodMobileController {
 
         let frag = this._playlist.getTs(this._player.currentTime * 1000);
         if (frag) {
+          this._logDownSegment(frag);
           this._playlist.downloading(frag.url, true);
           this.emitTo('TS_LOADER', LOADER_EVENTS.LADER_START, frag.url)
         } else {
@@ -305,6 +306,7 @@ class HlsVodMobileController {
     if (currentbufferend < 0) {
       let frag = this._playlist.getTs((time + 0.5) * 1000); // FIXME: Last frame buffer shortens duration
       if (frag && !frag.downloading && !frag.downloaded) {
+        this._logDownSegment(frag);
         this._playlist.downloading(frag.url, true);
         this.emitTo('TS_LOADER', LOADER_EVENTS.LADER_START, frag.url)
       }
@@ -316,7 +318,6 @@ class HlsVodMobileController {
       }
 
       // let fragend = frag ? (frag.time + frag.duration) / 1000 : 0;
-
       let curTime = frag.time + frag.duration;
       const curFragTime = frag.time;
 
@@ -332,10 +333,17 @@ class HlsVodMobileController {
       }
 
       if (frag && !frag.downloading && !frag.downloaded) {
+        this._logDownSegment(frag);
         this._playlist.downloading(frag.url, true);
         this.emitTo('TS_LOADER', LOADER_EVENTS.LADER_START, frag.url)
       }
     }
+  }
+
+  _logDownSegment (frag) {
+    if (!frag) return;
+    logger.groupEnd();
+    logger.group(this.TAG, `load ${frag.id}: [${frag.time / 1000} , ${(frag.time + frag.duration) / 1000}], downloading: ${frag.downloading} , donwloaded: ${frag.downloaded}`);
   }
 
   destory () {
