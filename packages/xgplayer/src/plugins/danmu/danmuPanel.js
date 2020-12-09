@@ -40,6 +40,7 @@ class DanmuPanel extends Plugin {
     this.onToggle = this.onToggle.bind(this)
     this.bind(this.activeEvent, this.onToggle)
     this.bind('mouseleave', this.onToggle)
+    this.appendChild('.xgplayer-panel-icon', PanelIcon())
     // this.bind(['click', 'touchend'], this.onStateChange)
   }
 
@@ -61,7 +62,6 @@ class DanmuPanel extends Plugin {
     return `
       <xg-icon class="xgplayer-panel">
           <xg-panel-icon class="xgplayer-panel-icon">
-            ${PanelIcon}
           </xg-panel-icon>
           <xg-panel-slider class="xgplayer-panel-slider">
             <xg-hidemode class="xgplayer-hidemode">

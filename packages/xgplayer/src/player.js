@@ -228,6 +228,10 @@ class Player extends Proxy {
     let root = this.root
     if (!url || url === '') {
       this.emit(Events.URL_NULL)
+      this.logWarn('config.url is null, please get url and run player._startInit(url)')
+      if (this.config.nullUrlStart) {
+        return
+      }
     }
     this.canPlayFunc = () => {
       if (!this.config) {
@@ -461,8 +465,8 @@ class Player extends Proxy {
       playPromise.then(() => {
         this.removeClass(STATE_CLASS.NOT_ALLOW_AUTOPLAY)
         this.addClass(STATE_CLASS.PLAYING)
-        this.config.closePlayVideoFocus && this.emit(Events.PLAYER_BLUR)
         if (!this.isPlaying) {
+          this.config.closePlayVideoFocus && this.emit(Events.PLAYER_BLUR)
           this.logInfo('>>>>playPromise.then')
           this.isPlaying = true
           this.emit(Events.AUTOPLAY_STARTED)
