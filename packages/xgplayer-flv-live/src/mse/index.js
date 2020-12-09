@@ -55,6 +55,7 @@ class FlvPlayer extends BasePlugin {
       // 直播完成，待播放器播完缓存后发送关闭事件
       if (!player.paused) {
         this.loaderCompleteTimer = setInterval(() => {
+          if (!player) return window.clearInterval(this.loaderCompleteTimer)
           const end = player.getBufferedRange()[1]
           if (Math.abs(player.currentTime - end) < 0.5) {
             player.emit('ended')
@@ -68,6 +69,10 @@ class FlvPlayer extends BasePlugin {
 
     flv.on(EVENTS.REMUX_EVENTS.DETECT_CHANGE_STREAM_DISCONTINUE, () => {
       this.player.emit(EVENTS.REMUX_EVENTS.DETECT_CHANGE_STREAM_DISCONTINUE)
+    })
+
+    flv.on(EVENTS.LOADER_EVENTS.NO_DATA_RECEVIE, () => {
+      this.reload()
     })
   }
 
@@ -89,6 +94,7 @@ class FlvPlayer extends BasePlugin {
       // 直播完成，待播放器播完缓存后发送关闭事件
       if (!this.paused) {
         this.loaderCompleteTimer = setInterval(() => {
+          if (!this.player) return window.clearInterval(this.loaderCompleteTimer)
           const end = this.player.getBufferedRange()[1]
           if (Math.abs(this.player.currentTime - end) < 0.5) {
             this.emit('ended')
@@ -106,6 +112,10 @@ class FlvPlayer extends BasePlugin {
 
     flv.on(EVENTS.REMUX_EVENTS.DETECT_CHANGE_STREAM_DISCONTINUE, () => {
       this.player.emit(EVENTS.REMUX_EVENTS.DETECT_CHANGE_STREAM_DISCONTINUE)
+    })
+
+    flv.on(EVENTS.LOADER_EVENTS.NO_DATA_RECEVIE, () => {
+      this.reload()
     })
   }
 
@@ -155,8 +165,9 @@ class FlvPlayer extends BasePlugin {
     return this._destroy().then(() => {
       this.initEvents();
       this.context = new Context(flvAllowedEvents)
-      this.player.hasStart = false;
       setTimeout(() => {
+        if (!this.player) return
+        this.player.hasStart = false;
         this.player.start()
       })
       this.player.onWaiting();
@@ -186,9 +197,9 @@ class FlvPlayer extends BasePlugin {
     if (!this.context) return Promise.resolve()
     if (this.flv && this.flv._context) {
       const loader = this.flv._context.getInstance('FETCH_LOADER')
-      loader && loader.cancel()
+      loader && loader.destroy()
     }
-    return this.flv.mse.destroy().then(() => {
+    const clear = () => {
       if (!this.context) return
       this.context.destroy()
       this.flv = null
@@ -198,7 +209,8 @@ class FlvPlayer extends BasePlugin {
         window.clearInterval(this.loaderCompleteTimer)
       }
       super.offAll();
-    })
+    }
+    return this.flv && this.flv.mse ? this.flv.mse.destroy().then(clear) : Promise.resolve(clear())
   }
 
   handleDefinitionChange (change) {
