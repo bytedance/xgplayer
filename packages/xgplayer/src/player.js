@@ -141,10 +141,6 @@ class Player extends Proxy {
     this.leftBar = Util.createDom('xg-bar', '', {}, 'xg-left-bar');
     this.rightBar = Util.createDom('xg-bar', '', {}, 'xg-right-bar');
 
-    ['click', 'touchend'].forEach((k) => {
-      this.topBar.addEventListener(k, Util.stopPropagation)
-    });
-
     this.root.appendChild(this.topBar);
     this.root.appendChild(this.leftBar);
     this.root.appendChild(this.rightBar);
@@ -539,9 +535,6 @@ class Player extends Proxy {
     if (!this.root) {
       return
     }
-    ['click', 'touchend'].forEach((k) => {
-      this.topBar.removeEventListener(k, Util.stopPropagation)
-    });
     this._unbindEvents()
     pluginsManager.destroy(this)
     this.root.removeChild(this.topBar)
