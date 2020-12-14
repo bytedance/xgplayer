@@ -547,6 +547,9 @@ class FlvDemuxer {
         }
         chunk.gopId = this.gopId
         chunk.nals = nals;
+        if (chunk.isKeyframe) {
+          this.emit('isKeyframe', chunk.dts + chunk.cts)
+        }
         this.tracks.videoTrack.samples.push(chunk)
         // this.emit(DEMUX_EVENTS.DEMUX_COMPLETE)
       }

@@ -31,13 +31,15 @@ class MSE {
     this.container.addEventListener('waiting', this.onWaiting);
   }
 
-  resetContext (newCtx) {
+  resetContext (newCtx, keepBuffer) {
     this._context = newCtx;
     this.emit = newCtx._emitter.emit.bind(newCtx._emitter);
-    for (let i = 0; i < Object.keys(this.sourceBuffers).length; i++) {
-      let buffer = this.sourceBuffers[Object.keys(this.sourceBuffers)[i]];
-      if (!buffer.updating) {
-        MSE.clearBuffer(buffer)
+    if (!keepBuffer) {
+      for (let i = 0; i < Object.keys(this.sourceBuffers).length; i++) {
+        let buffer = this.sourceBuffers[Object.keys(this.sourceBuffers)[i]];
+        if (!buffer.updating) {
+          MSE.clearBuffer(buffer)
+        }
       }
     }
   }

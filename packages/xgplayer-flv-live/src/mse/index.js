@@ -76,7 +76,7 @@ class FlvPlayer extends BasePlugin {
     })
   }
 
-  initFlvBackupEvents (flv, ctx) {
+  initFlvBackupEvents (flv, ctx, keepBuffer) {
     let mediaLength = 3;
     flv.on(EVENTS.REMUX_EVENTS.MEDIA_SEGMENT, () => {
       mediaLength -= 1;
@@ -84,7 +84,7 @@ class FlvPlayer extends BasePlugin {
         // ensure switch smoothly
         this.flv = flv;
         this.player.flv = flv
-        this.mse.resetContext(ctx);
+        this.mse.resetContext(ctx, keepBuffer);
         this.context.destroy();
         this.context = ctx;
       }
@@ -218,14 +218,26 @@ class FlvPlayer extends BasePlugin {
     this.switchURL(to);
   }
 
-  switchURL (url) {
+  switchURL (url, abr) {
     this.played = false
-    this.player.currentTime = 0;
+    if (!abr) {
+      this.player.currentTime = 0;
+    }
     this.player.config.url = url;
     const context = new Context(flvAllowedEvents);
-    const flv = context.registry('FLV_CONTROLLER', FLV)(this.player, this.mse, this.options)
+    let flv
+    if (abr) {
+      const { _dtsBase, _videoDtsBase, _audioDtsBase, _isDtsBaseInited } = this.context.getInstance('MP4_REMUXER')
+      flv = context.registry('FLV_CONTROLLER', FLV)(this.player, this.mse, Object.assign({}, this.options, {
+        remux: {
+          _dtsBase, _videoDtsBase, _audioDtsBase, _isDtsBaseInited
+        }
+      }))
+    } else {
+      flv = context.registry('FLV_CONTROLLER', FLV)(this.player, this.mse, this.options)
+    }
     context.init()
-    this.initFlvBackupEvents(flv, context);
+    this.initFlvBackupEvents(flv, context, !!abr);
     flv.loadData(url);
   }
 
