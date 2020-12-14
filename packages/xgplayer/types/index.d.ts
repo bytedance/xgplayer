@@ -263,6 +263,7 @@ declare module 'xgplayer' {
     type XGI18nTextKeys = {
         [k: string]: string;
     };
+
     type XGI18nLangKeys = string[];
 
     type XGI18nLang = {
@@ -534,8 +535,16 @@ declare module 'xgplayer' {
          * @param time
          */
         public seek (time:  number): void
+
+        /**
+         * 启用某个插件定义的hook
+         * @param pluginName 插件名称/key
+         * @param hookName 
+         * @param handler
+         */
+        public usePluginHooks(pluginName: string, hookName: string, handler: (data?: any) => any): void;
     }
 
-    export default Player;
+    export default Player
 
 }
