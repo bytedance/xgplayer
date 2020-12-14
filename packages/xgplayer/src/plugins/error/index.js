@@ -13,13 +13,16 @@ export default class ErrorPlugin extends Plugin {
         e.preventDefault()
         e.stopPropagation()
       }})
+    
+    this.onError = this.hook('errorHandler', this.handleError)
 
     this.bind('.xgplayer-error-refresh', 'click', this.clickHandler)
     this.on(Events.CANPLAY, () => {
       this.handleCanPlay()
     })
-    this.on(Events.ERROR, () => {
-      this.handleError()
+
+    this.on(Events.ERROR, (error) => {
+      this.onError(error)
     })
   }
 
@@ -31,9 +34,9 @@ export default class ErrorPlugin extends Plugin {
     Plugin.Util.removeClass(this.player.root, 'xgplayer-is-error')
   }
 
-  handleError () {
+  handleError (error = {}) {
     const { player } = this;
-    const errorNote = player.error
+    const errorNote = error && error.message ? error.message : player.error
     this.find('.xgplayer-error-text').innerHTML = errorNote
     this.find('.xgplayer-error-tips').innerHTML = `${this.i18n.REFRESH_TIPS}<span class="xgplayer-error-refresh">${this.i18n.REFRESH}</span>`
   }

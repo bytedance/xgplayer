@@ -8,9 +8,12 @@ const VIDEO_EVENTS = ['play', 'playing', 'pause', 'ended', 'error', 'seeking', '
   'loadeddata', 'loadstart', 'emptied', 'ratechange', 'progress', 'stalled', 'suspend', 'abort']
 
 function getHandler (eventName, player) {
+  const funName = `on${eventName.charAt(0).toUpperCase()}${eventName.slice(1)}`
+  if (player[funName] && typeof player[funName] === 'function') {
+    player.on(eventName, player[funName])
+  }
   return (e) => {
     let eventKey = eventName
-    const funName = `on${eventName.charAt(0).toUpperCase()}${eventName.slice(1)}`
     e.player = player
 
     if (eventKey === 'timeupdate') {
@@ -21,7 +24,6 @@ function getHandler (eventName, player) {
       player._duration = player.video.duration
     }
 
-    player[funName] && typeof player[funName] === 'function' && player[funName](e)
     if (eventKey === 'error') {
       player.errorHandler(eventKey)
     } else {
@@ -95,8 +97,8 @@ class Proxy {
       video = this.video
     }
     this._evHandlers.map(item => {
-      const eventName = Object.keys(item)[0]
-      video.removeEventListener(Object.keys(item)[0], item[eventName], false)
+      const eventKey = Object.keys(item)[0]
+      video.removeEventListener(Object.keys(item)[0], item[eventKey], false)
     })
   }
 
@@ -139,6 +141,13 @@ class Proxy {
     }
     this.emit(DESTROY)
     this.detachVideoEvents()
+    this._evHandlers.map(item => {
+      const eventKey = Object.keys(item)[0]
+      const funName = `on${eventKey.charAt(0).toUpperCase()}${eventKey.slice(1)}`
+      if (typeof this[funName] === 'function') {
+        this.off(eventKey, this[funName])
+      }
+    })
     allOff(this)
   }
 
