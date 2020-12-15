@@ -3,7 +3,7 @@ import Player from '../../player'
 let s_screenShot = function () {
   let player = this
   let util = Player.util
-  if (!player.config.screenShot) {
+  if (!player.config.screenShot || player.config.screenShot.hideButton) {
     return
   }
   let screenShotText = player.lang.SCREENSHOT
