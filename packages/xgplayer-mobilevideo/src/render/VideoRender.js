@@ -23,7 +23,7 @@ const HAVE_ENOUGH_DATA = 4;
 
 const MEDIA_ERR_DECODE = 3;
 
-const MAX_DECODE_ONCE_DEFAULT = 16;
+const MAX_DECODE_ONCE_DEFAULT = 30;
 const CONTINUE_DECODE_THRESHOLD_DEFAULT = MAX_DECODE_ONCE_DEFAULT / 2;
 
 const MAX_DECODE_ONCE_FAST = 80;
@@ -621,7 +621,7 @@ export default class VideoRender extends BaseRender {
       return;
     }
 
-    this._frameQueue.shift();
+    this._frameQueue.shift(this.preciseVideoDts);
 
     if (Math.abs(this._lastTimeupdate - info.dts) > 250) {
       this._emitTimelineEvents(

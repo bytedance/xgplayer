@@ -7,6 +7,7 @@ export default class AudioTimeRange {
     this._buffers = [];
     this._duration = 0;
     this._baseDts = -1;
+    this._lastBuffer = null;
   }
 
   get isLive () {
@@ -84,6 +85,13 @@ export default class AudioTimeRange {
       this._duration += duration;
     }
     return start;
+  }
+
+  filter (time) {
+    if (this._buffers.length >= 2) {
+      this._buffers = this._buffers.filter(x => x.end > time);
+      return this._buffers[0];
+    }
   }
 
   _mergeBufferRanges () {
