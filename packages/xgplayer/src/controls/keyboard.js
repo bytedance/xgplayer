@@ -137,21 +137,23 @@ class Keyboard {
 
   seek (isBack, isLongPress) {
     const {player} = this
+    const keyShortcutStep = player.config.keyShortcutStep || {}
+    const currentTimeStep = keyShortcutStep.currentTime || 10
     if (player.isLoading || player.isSeeking || (isLongPress && this.state.repeat % 8 > 0)) {
       return
     }
     if (isBack) {
-      if (player.currentTime - 10 >= 0) {
-        player.currentTime -= 10
+      if (player.currentTime - currentTimeStep >= 0) {
+        player.currentTime -= currentTimeStep
       } else {
         player.currentTime = 0
       }
     } else {
-      if(player.maxPlayedTime && player.config.allowSeekPlayed && (player.currentTime + 10 > player.maxPlayedTime)) {
+      if(player.maxPlayedTime && player.config.allowSeekPlayed && (player.currentTime + currentTimeStep > player.maxPlayedTime)) {
         player.currentTime = player.maxPlayedTime
       } else {
-        if (player.currentTime + 10 <= player.duration) {
-          player.currentTime += 10
+        if (player.currentTime + currentTimeStep <= player.duration) {
+          player.currentTime += currentTimeStep
         } else {
           player.currentTime = player.duration - 1
         }
@@ -184,12 +186,14 @@ class Keyboard {
 
   changeVolume (isup) {
     const {player} = this
+    const keyShortcutStep = player.config.keyShortcutStep || {}
+    const volumeStep = keyShortcutStep.volume || 0.1
     this.changeVolumeSlide(true)
     const volume = player.volume
-    if (isup && volume + 0.1 <= 1) {
-      player.volume = volume + 0.1
-    } else if (!isup && volume - 0.1 >= 0) {
-      player.volume = volume - 0.1
+    if (isup && volume + volumeStep <= 1) {
+      player.volume = volume + volumeStep
+    } else if (!isup && volume - volumeStep >= 0) {
+      player.volume = volume - volumeStep
     }
   }
 }

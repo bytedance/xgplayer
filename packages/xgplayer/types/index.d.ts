@@ -31,6 +31,11 @@ declare module 'xgplayer' {
         mode?: DanmuModelType;
     }
 
+    interface keyShortcutStepOptions {
+        currentTime?: number;
+        volume?: number;
+    }
+
     interface Util {
         createDom: (el: string, tpl?: string, attrs?: object, cname?: string) => HTMLElement;
         hasClass: (el: HTMLElement, cname: string) => boolean;
@@ -279,6 +284,8 @@ declare module 'xgplayer' {
 
         //播放错误提示
         errorTips?: string;
+
+        keyShortcutStep?: keyShortcutStepOptions;
     }
 
     class Proxy extends EventEmitter {
@@ -315,6 +322,12 @@ declare module 'xgplayer' {
 
         // 是否开启了循环播放
         public loop: boolean;
+
+        // 设置/返回当前倍速
+        public playbackRate: number;
+
+        // 返回当前播放是否处于暂停状态
+        public readonly paused: number;
 
         // 静音
         public muted: boolean;
