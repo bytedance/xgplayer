@@ -150,26 +150,32 @@ function init (url) {
       .then(() => {
         if (isDegrade) {
           console.log('auto instance Decoder!');
-          setTimeout(() => {
-            onPostRun.call(self);
-          })
-        } else {
           return new Promise((resolve, reject) => {
-            addOnPostRun(onPostRun.bind(self));
-
-            Module.onRuntimeInitialized = () => {
-              resolve();
-            }
-
-            Module.onAbort = (e) => {
-              reject(e && e.message ? e : new Error('wasm init error'));
-            }
-
             setTimeout(() => {
-              reject(new Error('wasm load timeout'))
-            }, 6000)
-          })
+              try {
+                onPostRun.call(self);
+                resolve();
+              } catch (e) {
+                reject(e);
+              }
+            });
+          });
         }
+        return new Promise((resolve, reject) => {
+          addOnPostRun(onPostRun.bind(self));
+
+          Module.onRuntimeInitialized = () => {
+            resolve();
+          }
+
+          Module.onAbort = (e) => {
+            reject(e && e.message ? e : new Error('wasm init error'));
+          }
+
+          setTimeout(() => {
+            reject(new Error('wasm load timeout'))
+          }, 6000)
+        })
       })
       .catch((e) => {
         self.postMessage({
@@ -187,6 +193,7 @@ self.onmessage = function (e) {
       msg: 'ERROR:invalid message'
     });
   } else {
+    if(data.msg !== 'init' && !decoder) return;
     switch (data.msg) {
       case 'init':
         self.meta = data.meta;

@@ -38,7 +38,7 @@ export default class AudioRender extends BaseRender {
   }
 
   get preloadTime () {
-    return this.isLive ? 2 : 0;
+    return this.isLive ? 1 : 0;
   }
 
   get timescale () {
@@ -60,7 +60,7 @@ export default class AudioRender extends BaseRender {
   }
 
   resume () {
-    if (this._audioCtx) {
+    if (this._audioCtx && this._audioCtx.state === 'suspended') {
       return this._audioCtx.resume();
     }
   }
@@ -109,7 +109,7 @@ export default class AudioRender extends BaseRender {
 
     this._parent.on(Events.TIMELINE.UPDATE_VOLUME, (v) => {
       if (!this._gainNode) return;
-      this._gainNode.gain.value = v;
+      this._gainNode.gain.value = isFinite(v) ? v : 1;
       this._emitTimelineEvents(Events.TIMELINE.PLAY_EVENT, Events.VIDEO_EVENTS.VOLUME_CHANGE);
     });
 
@@ -117,6 +117,8 @@ export default class AudioRender extends BaseRender {
     this._parent.on(Events.TIMELINE.SET_VIDEO_DURATION, v => {
       this._timeRange.duration = v;
     })
+
+    this._parent.on(Events.TIMELINE.CHASE_FRAME, this._doChaseFrame.bind(this));
   }
 
   _bindAudioCtxEvent () {
@@ -145,7 +147,15 @@ export default class AudioRender extends BaseRender {
     if (meta && samples.length) {
       this._sampleQueue = this._sampleQueue.concat(samples);
       audioTrack.samples = [];
-      this._assembleAAC();
+      try {
+        this._assembleAAC();
+      } catch (e) {
+        this._emitTimelineEvents(
+          Events.TIMELINE.PLAY_EVENT,
+          'error',
+          this._assembleErr(ERROR_MSG.DECODE_ERR)
+        )
+      }
     }
   }
 
@@ -168,7 +178,7 @@ export default class AudioRender extends BaseRender {
     this._audioCtx.suspend();
   }
 
-  _doSeek (time) {
+  _reInitAudioCtx (time) {
     this._lastTimeLineTime = time;
     this._lastBuffer = null;
 
@@ -186,7 +196,25 @@ export default class AudioRender extends BaseRender {
       this._initAudioCtx(volume);
       this._bindAudioCtxEvent();
     }
+  }
+
+  _doSeek (time) {
+    this._reInitAudioCtx(time);
     this._getAudioBuffer(true);
+  }
+
+  _doChaseFrame (time) {
+    if (this._lastBuffer && this._lastBuffer.start < time && this._lastBuffer.end > time) return;
+    let next = this._timeRange.filter(time);
+    if (!next) return;
+    time = next.start;
+    logger.warn(this.TAG, 'chase frame to time: ', time);
+    this._reInitAudioCtx(time);
+    this._startRender();
+    this._emitTimelineEvents(
+      Events.TIMELINE.PLAY_EVENT,
+      Events.VIDEO_EVENTS.TIMEUPDATE
+    );
   }
 
   _assembleAAC () {
@@ -321,6 +349,9 @@ export default class AudioRender extends BaseRender {
 
   _destroy () {
     logger.log(this.TAG, 'destroy audio...');
+    if (this._source) {
+      this._source.removeEventListener('ended', this._onSourceBufferEnded);
+    }
     this._audioCtx.close();
     this._audioCtx = null;
     this._sampleQueue = null;

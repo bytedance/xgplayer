@@ -45,7 +45,7 @@ export default class FrameQueue {
     return this._frames[0];
   }
 
-  shift () {
+  shift (preciseVideoDts) {
     let next = this.nextFrame();
 
     if (next && next.gopId && this._lastGopId && next.gopId < this._lastGopId) {
@@ -53,7 +53,9 @@ export default class FrameQueue {
       this._frames = this._frames.filter(x => x.gopId >= this._lastGopId);
       return;
     }
-    return this._frames.shift();
+    next = this._frames.shift();
+    this.deletePassed(preciseVideoDts)
+    return next;
   }
 
   avSync (preciseDts) {
@@ -75,6 +77,10 @@ export default class FrameQueue {
       logger.warn(this.TAG, `detect a-v sync problem,delete ${count} frame`);
     }
     return unSync;
+  }
+
+  deletePassed (dts) {
+    this._frames = this._frames.filter(x => x.info && x.info.dts > dts);
   }
 
   destroy () {

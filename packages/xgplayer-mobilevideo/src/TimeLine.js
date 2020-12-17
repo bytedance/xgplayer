@@ -336,7 +336,11 @@ export default class TimeLine extends EventEmitter {
       return;
     }
 
-    if (this._parent.live) return;
+    if (this._parent.live) {
+      if (!this.currentTime) return;
+      this.emit(Events.TIMELINE.CHASE_FRAME, time);
+      return
+    };
 
     if (this._lastSeekTime === time) return;
 
