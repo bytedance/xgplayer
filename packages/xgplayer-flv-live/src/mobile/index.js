@@ -20,8 +20,8 @@ class FlvPlayer extends BasePlugin {
     this.options = Object.assign({}, defaultConfig, this.config)
     this.play = this.play.bind(this)
     this.pause = this.pause.bind(this)
-    this.seeking = this.seeking.bind(this);
     this.switchURL = this.switchURL.bind(this);
+    this.progress = this.progress.bind(this);
     this.handleDefinitionChange = this.handleDefinitionChange.bind(this);
   }
 
@@ -61,19 +61,19 @@ class FlvPlayer extends BasePlugin {
     this.lowdecode = () => {
       this.emit('lowdecode', this.player.video.degradeInfo);
     }
-    this.on(Events.SEEKING, this.seeking);
     this.on(Events.PLAY, this.play);
     this.on(Events.PAUSE, this.pause);
     this.on(Events.URL_CHANGE, this.switchURL);
     this.on(Events.DEFINITION_CHANGE, this.handleDefinitionChange);
+    this.on(Events.PROGRESS, this.progress)
     this.player.video.addEventListener('lowdecode', this.lowdecode)
   }
 
   offEvents () {
-    this.off(Events.SEEKING, this.seeking);
     this.off(Events.PLAY, this.play);
     this.off(Events.PAUSE, this.pause);
     this.off(Events.URL_CHANGE, this.switchURL);
+    this.off(Events.PROGRESS, this.progress);
     this.off(Events.DEFINITION_CHANGE, this.handleDefinitionChange);
     this.player.video.removeEventListener('lowdecode', this.lowdecode)
   }
@@ -83,14 +83,6 @@ class FlvPlayer extends BasePlugin {
     const flv = this.context.registry('FLV_CONTROLLER', FLV)(player, this.options)
     this.initFlvEvents(flv)
     this.flv = flv
-  }
-
-  seeking () {
-    const time = this.currentTime
-    const range = this.getBufferedRange()
-    if (time > range[1] || time < range[0]) {
-      this.flv.seek(this.currentTime)
-    }
   }
 
   play () {
@@ -128,6 +120,19 @@ class FlvPlayer extends BasePlugin {
   handleDefinitionChange (change) {
     const { to } = change;
     this.switchURL(to);
+  }
+
+  progress () {
+    if (!this.player || !this.player.video) return;
+    const {buffered, currentTime, config} = this.player;
+    let bufferEnd = buffered.end(0);
+    let waterLevel = bufferEnd - currentTime;
+    let preloadTime = config.preloadTime;
+    if (waterLevel > preloadTime * 2) {
+      if (bufferEnd - preloadTime > currentTime) {
+        this.player.video.currentTime = bufferEnd - preloadTime;
+      }
+    }
   }
 
   destroy () {

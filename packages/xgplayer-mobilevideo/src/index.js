@@ -13,6 +13,7 @@ class MVideo extends HTMLElement {
   constructor () {
     super();
     this.TAG = 'MVideo';
+    this._proxyProps();
     this._isLive = true;
     this._vMeta = null;
     this._degradeVideo = document.createElement('video');
@@ -21,6 +22,27 @@ class MVideo extends HTMLElement {
     this._firstWebAudio = true;
     this._startPlayed = false;
     this._debounceSeek = debounce(this._seek.bind(this), 600);
+  }
+
+  // 代理外部常用属性,容错处理
+  _proxyProps () {
+    Object.getOwnPropertyNames(MVideo.prototype).forEach(prop => {
+      if (!/^__/.test(prop)) return;
+      const p = prop.replace('__', '');
+      Object.defineProperty(this, p, {
+        get: function () {
+          try {
+            return this[prop];
+          } catch (e) {}
+          return 0;
+        },
+        set: function (v) {
+          try {
+            this[prop] = v;
+          } catch (e) {}
+        }
+      })
+    })
   }
 
   static isSupported () {
@@ -101,7 +123,7 @@ class MVideo extends HTMLElement {
         logger.warn(this.TAG, 'detect error:', data.message);
         this.pause();
         if (this.innerDegrade) {
-          // 内部降级的话,不对外emit error,改成lowdecode
+          // 内部降级的话,不对外emit error,改成lowdecode,同时degrade()中控制禁用
           this.degradeInfo = {
             decodeFps: this.decodeFps,
             bitrate: this.bitrate,
@@ -112,6 +134,8 @@ class MVideo extends HTMLElement {
           this._innerDispatchEvent('lowdecode');
           return;
         }
+        // 发生错误时 禁用
+        this._disabled(true);
         this._err = data;
       }
 
@@ -134,9 +158,10 @@ class MVideo extends HTMLElement {
     });
   }
 
-  _disabled () {
+  // 禁用逻辑
+  _disabled (force) {
     // 永久禁用
-    if (this.decodeFps / this.fps <= 0.8 && this.bitrate < 2000000) {
+    if (force || (this.decodeFps / this.fps <= 0.8 && this.bitrate < 2000000)) {
       localStorage.setItem('mvideo_dis265', 1);
       return
     }
@@ -189,6 +214,7 @@ class MVideo extends HTMLElement {
   }
 
   _interceptAction () {
+    // Note
     if (this._degradeVideo && this.innerDegrade) {
       this._degradeVideo.muted = true;
       this._degradeVideo.play().then(() => {
@@ -365,43 +391,43 @@ class MVideo extends HTMLElement {
     this.setAttribute('autoplay', v);
   }
 
-  get canvas () {
+  get __canvas () {
     return this.timeline.canvas;
   }
 
-  get width () {
+  get __width () {
     return this.getAttribute('width') || this.videoWidth;
   }
 
-  set width (val) {
+  set __width (val) {
     const pxVal = typeof val === 'number' ? `${val}px` : val;
     this.setAttribute('width', pxVal);
     this.canvas.width = val;
   }
 
-  get height () {
+  get __height () {
     return this.getAttribute('height');
   }
 
-  set height (val) {
+  set __height (val) {
     const pxVal = typeof val === 'number' ? `${val}px` : val;
     this.setAttribute('height', pxVal);
     this.canvas.height = val;
   }
 
-  get videoWidth () {
+  get __videoWidth () {
     return this.canvas.width;
   }
 
-  get videoHeight () {
+  get __videoHeight () {
     return this.canvas.height;
   }
 
-  get volume () {
+  get __volume () {
     return Number(this.getAttribute('volume'));
   }
 
-  set volume (v) {
+  set __volume (v) {
     if (v <= 0) {
       v = 0;
     }
@@ -413,72 +439,73 @@ class MVideo extends HTMLElement {
     this.timeline.emit(Events.TIMELINE.UPDATE_VOLUME, v);
   }
 
-  get muted () {
+  get __muted () {
     return this.getAttribute('muted') === 'true';
   }
 
-  set muted (v) {
+  set __muted (v) {
     this.setAttribute('muted', v);
     this._interceptAction();
     this.timeline.emit(Events.TIMELINE.UPDATE_VOLUME, v ? 0 : this.volume);
   }
 
-  get currentTime () {
+  get __currentTime () {
     if (!this.timeline) return 0;
     let c = this.timeline.currentTime;
     let d = this.timeline.duration;
     return Math.min(c, d);
   }
 
-  set currentTime (v) {
+  set __currentTime (v) {
     this._debounceSeek(v);
   }
 
   _seek (v) {
+    if (!this.timeline) return;
     this.timeline.seek(Number(v));
   }
 
-  get duration () {
+  get __duration () {
     return this.timeline.duration;
   }
 
-  set duration (v) {
+  set __duration (v) {
     this.timeline.emit(Events.TIMELINE.SET_VIDEO_DURATION, v);
   }
 
-  get seeking () {
+  get __seeking () {
     return this.timeline.seeking;
   }
 
-  get paused () {
+  get __paused () {
     return this.timeline.paused;
   }
 
-  get fps () {
+  get __fps () {
     return this.timeline.fps;
   }
 
-  get decodeFps () {
+  get __decodeFps () {
     return this.timeline.decodeFps;
   }
 
-  get decodeCost () {
+  get __decodeCost () {
     return parseInt(this.timeline.decodeCost);
   }
 
-  get bitrate () {
+  get __bitrate () {
     return this.timeline.bitrate;
   }
 
-  get gopLength () {
+  get __gopLength () {
     return this.timeline.gopLength;
   }
 
-  get readyState () {
+  get __readyState () {
     return this.timeline.readyState;
   }
 
-  get buffered () {
+  get __buffered () {
     return this.timeline.buffered;
   }
 
@@ -526,16 +553,16 @@ class MVideo extends HTMLElement {
     return this.getAttribute('innerdegrade') === 'true';
   }
 
-  set glCtxOptions (v) {
+  set __glCtxOptions (v) {
     this._glCtxOptions = v;
     this.timeline.emit(Events.TIMELINE.UPDATE_GL_OPTIONS, v);
   }
 
-  get error () {
+  get __error () {
     return this._err;
   }
 
-  set error (v) {
+  set __error (v) {
     this.timeline.emit(Events.TIMELINE.PLAY_EVENT, 'error', v);
   }
 

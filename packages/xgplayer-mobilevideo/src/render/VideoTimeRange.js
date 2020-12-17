@@ -1,6 +1,6 @@
 import {logger} from 'xgplayer-helper-utils';
 
-const TOLERANCE = 0.5;
+const TOLERANCE = 1;
 
 export default class VideoTimeRange {
   constructor (parent) {

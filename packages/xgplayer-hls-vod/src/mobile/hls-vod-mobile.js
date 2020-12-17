@@ -196,7 +196,7 @@ class HlsVodMobileController {
           }
         }
 
-        let frag = this._playlist.getTs(this._player.currentTime * 1000);
+        let frag = this._playlist.getTs((this._player.currentTime + 0.5) * 1000);
         if (frag) {
           this._logDownSegment(frag);
           this._playlist.downloading(frag.url, true);
@@ -302,7 +302,6 @@ class HlsVodMobileController {
         currentbufferend = video.buffered.end(i)
       }
     }
-
     if (currentbufferend < 0) {
       let frag = this._playlist.getTs((time + 0.5) * 1000); // FIXME: Last frame buffer shortens duration
       if (frag && !frag.downloading && !frag.downloaded) {

@@ -1,16 +1,19 @@
 # 264源流直播播放器
 
 ## 介绍
-264源流播放器可以实现
+264源流播放器可以实现播放264裸流
 
 ## 基本使用
 ```javascript
+
+import H264Player from "xgplayer-raw264";
 
 const player = new H264Player({
   ignores: ['replay', 'fullscreen', 'play', 'loading'],
   id: 'player', // 容器的dom ID
   width: 300, //  播放器宽度
   height: 500,//  播放器宽度
+  url:[], // 必传
   isLive: true, // 必传
   autoplay: true, // 必传
   stretch: true, // 画面拉伸，适应容器比例
