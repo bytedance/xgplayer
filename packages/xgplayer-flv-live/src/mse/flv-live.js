@@ -38,14 +38,19 @@ export default class FlvController {
   }
 
   initComponents () {
-    const { FetchLoader, XgBuffer, FlvDemuxer, Tracks, Remuxer, PreSource, Compatibility, Logger } = this.config
+    const { FetchLoader, XgBuffer, FlvDemuxer, Tracks, Remuxer, PreSource, Compatibility, Logger, remux } = this.config
     this._context.registry('FETCH_LOADER', FetchLoader)
     this._context.registry('LOADER_BUFFER', XgBuffer)
 
     this._context.registry('FLV_DEMUXER', FlvDemuxer)
     this._context.registry('TRACKS', Tracks)
 
-    this._context.registry('MP4_REMUXER', Remuxer)(this._player.currentTime)
+    const remuxer = this._context.registry('MP4_REMUXER', Remuxer)(this._player.currentTime)
+    if (remux) {
+      Object.keys(remux).forEach(key => {
+        remuxer[key] = remux[key]
+      })
+    }
     this._context.registry('PRE_SOURCE_BUFFER', PreSource)
 
     if (this._player.config.compatibility !== false) {
@@ -72,6 +77,7 @@ export default class FlvController {
 
     this.on(MSE_EVENTS.SOURCE_UPDATE_END, this._handleSourceUpdateEnd.bind(this))
     this.on(MSE_EVENTS.MSE_ERROR, this._handleMseError.bind(this))
+    this.on('isKeyframe', this._handleKeyFrame.bind(this))
 
     this._player.on('timeupdate', this._handleTimeUpdate)
   }
@@ -80,6 +86,10 @@ export default class FlvController {
     if (!this._context.mediaInfo) {
       this.emit(DEMUX_EVENTS.DEMUX_ERROR, new Error('failed to get mediainfo'))
     }
+  }
+
+  _handleKeyFrame (pts) {
+    this._player && this._player.emit('isKeyframe', pts)
   }
 
   _handleLoaderDataLoaded () {

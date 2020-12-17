@@ -52,9 +52,10 @@ class FetchLoader {
   }
 
   internalLoad (url, params, retryTimes, totalRetry, delayTime = 0) {
+    if (this._destroyed) return
     this.loading = true;
     return this.fetch(this.url, params, !retryTimes && 1e5).then((response) => {
-      this.emit(LOADER_EVENTS.LOADER_RESPONSE_HEADERS, this.TAG, response.headers)
+      !this._destroyed && this.emit(LOADER_EVENTS.LOADER_RESPONSE_HEADERS, this.TAG, response.headers)
 
       if (response.ok) {
         this.status = response.status
@@ -182,7 +183,12 @@ class FetchLoader {
 
     // reader read function returns a Promise. get data when callback and has value.done when disconnected.
     // read方法返回一个Promise. 回调中可以获取到数据。当value.done存在时，说明链接断开。
+    this._noDataTimer = setTimeout(() => {
+      if (this.loading === false) return
+      this.emit(LOADER_EVENTS.NO_DATA_RECEVIE)
+    }, 3000)
     this._reader && this._reader.read().then((val) => {
+      clearTimeout(this._noDataTimer)
       if (this._canceled || this._destroyed) {
         if (this._reader) {
           try {
@@ -209,6 +215,7 @@ class FetchLoader {
       })
       return this._onReader(reader, taskno)
     }).catch((error) => {
+      clearTimeout(this._noDataTimer)
       this.loading = false;
       this.emit(LOADER_EVENTS.LOADER_ERROR, this.TAG, error);
       throw error;
@@ -275,12 +282,14 @@ class FetchLoader {
       this._reader = null
       this.loading = false
     }
+    clearTimeout(this._noDataTimer)
     this._canceled = true;
   }
 
   destroy () {
     this._destroyed = true
     clearTimeout(this._retryTimer);
+    clearTimeout(this._noDataTimer)
     this.cancel();
     this._speed.reset()
   }

@@ -1,9 +1,9 @@
 {
     "name": "xgplayer",
-    "version": "3.0.0-alpha.57",
+    "version": "3.0.0-alpha.59",
     "description": "video player",
     "main": "./dist/index.min.js",
-    "module": "./es/es.js",
+    "module": "./es/index.js",
     "typings": "./types/index.d.ts",
     "bin": {
         "xgplayer": "bin/xgplayer.js"
@@ -30,7 +30,8 @@
         "watch": "cross-env NODE_ENV=development rollup -c rollup.config.js --watch"
     },
     "unpkgFiles": [
-        "browser"
+        "browser",
+        "dist"
     ],
     "keywords": [
         "video",

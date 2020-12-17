@@ -141,10 +141,6 @@ class Player extends Proxy {
     this.leftBar = Util.createDom('xg-bar', '', {}, 'xg-left-bar');
     this.rightBar = Util.createDom('xg-bar', '', {}, 'xg-right-bar');
 
-    ['click', 'touchend'].forEach((k) => {
-      this.topBar.addEventListener(k, Util.stopPropagation)
-    });
-
     this.root.appendChild(this.topBar);
     this.root.appendChild(this.leftBar);
     this.root.appendChild(this.rightBar);
@@ -366,7 +362,7 @@ class Player extends Proxy {
     return pluginsManager.register(this, PLUFGIN, options)
   }
 
-  unRegistePlugin (plugin) {
+  unRegisterPlugin (plugin) {
     if (typeof plugin === 'string') {
       pluginsManager.unRegister(this, plugin)
     } else if (plugin instanceof BasePlugin) {
@@ -382,7 +378,8 @@ class Player extends Proxy {
   }
 
   getPlugin (pluginName) {
-    return pluginsManager.findPlugin(this, pluginName)
+    const plugin = pluginsManager.findPlugin(this, pluginName)
+    return plugin && plugin.pluginName ? plugin : null
   }
 
   addClass (className) {
@@ -538,9 +535,6 @@ class Player extends Proxy {
     if (!this.root) {
       return
     }
-    ['click', 'touchend'].forEach((k) => {
-      this.topBar.removeEventListener(k, Util.stopPropagation)
-    });
     this._unbindEvents()
     pluginsManager.destroy(this)
     this.root.removeChild(this.topBar)
@@ -558,10 +552,9 @@ class Player extends Proxy {
       this.removeAttribute('data-xgfill')
     }
     for (let k in this) {
-      // if (k !== 'config') {
       delete this[k]
-      // }
     }
+    Object.setPrototypeOf && Object.setPrototypeOf(this, null)
   }
 
   replay () {
@@ -757,27 +750,41 @@ class Player extends Proxy {
   }
 
   onPlaying () {
-    if (this.waitTimer) {
-      clearTimeout(this.waitTimer)
-    }
-    const { NO_START, PAUSED, ENDED, ERROR, REPLAY, LOADING } = STATE_CLASS
-    const clsList = [NO_START, PAUSED, ENDED, ERROR, REPLAY, LOADING];
+    // if (this.waitTimer) {
+    //   clearTimeout(this.waitTimer)
+    // }
+    const { NO_START, PAUSED, ENDED, ERROR, REPLAY } = STATE_CLASS
+    const clsList = [NO_START, PAUSED, ENDED, ERROR, REPLAY];
     clsList.forEach((cls) => {
       this.removeClass(cls)
     })
   }
 
   onTimeupdate () {
-    this.removeClass(STATE_CLASS.LOADING)
-    if (this.waitTimer) {
-      clearTimeout(this.waitTimer)
-      this.waitTimer = null
+    if (this.waitTimer || this.hasClass(STATE_CLASS.LOADING)) {
+      if (this.checkBuffer()) {
+        this.removeClass(STATE_CLASS.LOADING)
+        clearTimeout(this.waitTimer)
+        this.waitTimer = null
+      }
     }
 
     if (this._played.begin < 0) {
       this._played.begin = parseInt(this.video.currentTime * 1000, 10)
     }
     this._played.end = parseInt(this.video.currentTime * 1000, 10)
+  }
+
+  checkBuffer (time) {
+    const buffered = this.video.buffered
+    const currentTime = time || (this.video.currentTime + 0.2)
+    const len = buffered.length
+    for (let i = 0; i < len; i++) {
+      if (buffered.start(i) <= currentTime && buffered.end(i) > currentTime) {
+        return true
+      }
+    }
+    return false
   }
 
   getVideoSize () {

@@ -55,6 +55,7 @@ class FlvPlayer extends BasePlugin {
       // 直播完成，待播放器播完缓存后发送关闭事件
       if (!player.paused) {
         this.loaderCompleteTimer = setInterval(() => {
+          if (!player) return window.clearInterval(this.loaderCompleteTimer)
           const end = player.getBufferedRange()[1]
           if (Math.abs(player.currentTime - end) < 0.5) {
             player.emit('ended')
@@ -69,9 +70,13 @@ class FlvPlayer extends BasePlugin {
     flv.on(EVENTS.REMUX_EVENTS.DETECT_CHANGE_STREAM_DISCONTINUE, () => {
       this.player.emit(EVENTS.REMUX_EVENTS.DETECT_CHANGE_STREAM_DISCONTINUE)
     })
+
+    flv.on(EVENTS.LOADER_EVENTS.NO_DATA_RECEVIE, () => {
+      this.reload()
+    })
   }
 
-  initFlvBackupEvents (flv, ctx) {
+  initFlvBackupEvents (flv, ctx, keepBuffer) {
     let mediaLength = 3;
     flv.on(EVENTS.REMUX_EVENTS.MEDIA_SEGMENT, () => {
       mediaLength -= 1;
@@ -79,7 +84,7 @@ class FlvPlayer extends BasePlugin {
         // ensure switch smoothly
         this.flv = flv;
         this.player.flv = flv
-        this.mse.resetContext(ctx);
+        this.mse.resetContext(ctx, keepBuffer);
         this.context.destroy();
         this.context = ctx;
       }
@@ -89,6 +94,7 @@ class FlvPlayer extends BasePlugin {
       // 直播完成，待播放器播完缓存后发送关闭事件
       if (!this.paused) {
         this.loaderCompleteTimer = setInterval(() => {
+          if (!this.player) return window.clearInterval(this.loaderCompleteTimer)
           const end = this.player.getBufferedRange()[1]
           if (Math.abs(this.player.currentTime - end) < 0.5) {
             this.emit('ended')
@@ -106,6 +112,10 @@ class FlvPlayer extends BasePlugin {
 
     flv.on(EVENTS.REMUX_EVENTS.DETECT_CHANGE_STREAM_DISCONTINUE, () => {
       this.player.emit(EVENTS.REMUX_EVENTS.DETECT_CHANGE_STREAM_DISCONTINUE)
+    })
+
+    flv.on(EVENTS.LOADER_EVENTS.NO_DATA_RECEVIE, () => {
+      this.reload()
     })
   }
 
@@ -155,8 +165,9 @@ class FlvPlayer extends BasePlugin {
     return this._destroy().then(() => {
       this.initEvents();
       this.context = new Context(flvAllowedEvents)
-      this.player.hasStart = false;
       setTimeout(() => {
+        if (!this.player) return
+        this.player.hasStart = false;
         this.player.start()
       })
       this.player.onWaiting();
@@ -186,9 +197,9 @@ class FlvPlayer extends BasePlugin {
     if (!this.context) return Promise.resolve()
     if (this.flv && this.flv._context) {
       const loader = this.flv._context.getInstance('FETCH_LOADER')
-      loader && loader.cancel()
+      loader && loader.destroy()
     }
-    return this.flv.mse.destroy().then(() => {
+    const clear = () => {
       if (!this.context) return
       this.context.destroy()
       this.flv = null
@@ -198,7 +209,8 @@ class FlvPlayer extends BasePlugin {
         window.clearInterval(this.loaderCompleteTimer)
       }
       super.offAll();
-    })
+    }
+    return this.flv && this.flv.mse ? this.flv.mse.destroy().then(clear) : Promise.resolve(clear())
   }
 
   handleDefinitionChange (change) {
@@ -206,14 +218,26 @@ class FlvPlayer extends BasePlugin {
     this.switchURL(to);
   }
 
-  switchURL (url) {
+  switchURL (url, abr) {
     this.played = false
-    this.player.currentTime = 0;
+    if (!abr) {
+      this.player.currentTime = 0;
+    }
     this.player.config.url = url;
     const context = new Context(flvAllowedEvents);
-    const flv = context.registry('FLV_CONTROLLER', FLV)(this.player, this.mse, this.options)
+    let flv
+    if (abr) {
+      const { _dtsBase, _videoDtsBase, _audioDtsBase, _isDtsBaseInited } = this.context.getInstance('MP4_REMUXER')
+      flv = context.registry('FLV_CONTROLLER', FLV)(this.player, this.mse, Object.assign({}, this.options, {
+        remux: {
+          _dtsBase, _videoDtsBase, _audioDtsBase, _isDtsBaseInited
+        }
+      }))
+    } else {
+      flv = context.registry('FLV_CONTROLLER', FLV)(this.player, this.mse, this.options)
+    }
     context.init()
-    this.initFlvBackupEvents(flv, context);
+    this.initFlvBackupEvents(flv, context, !!abr);
     flv.loadData(url);
   }
 

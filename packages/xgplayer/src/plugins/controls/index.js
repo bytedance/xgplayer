@@ -45,8 +45,6 @@ class Controls extends Plugin {
     this.on(Events.MINI_STATE_CHANGE, (isMini) => {
       isMini ? Util.addClass(this.root, 'mini-controls') : Util.removeClass(this.root, 'mini-controls')
     })
-
-    this.bind(['click', 'touchend'], Util.stopPropagation)
   }
 
   focus () {
@@ -97,7 +95,6 @@ class Controls extends Plugin {
   }
 
   destroy () {
-    this.unbind(['click', 'touchend'], Util.stopPropagation)
   }
 
   render () {
