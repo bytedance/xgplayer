@@ -286,6 +286,9 @@ declare module 'xgplayer' {
         errorTips?: string;
 
         keyShortcutStep?: keyShortcutStepOptions;
+
+        //关闭长按增加倍速功能
+        disableLongPress?: boolean;
     }
 
     class Proxy extends EventEmitter {

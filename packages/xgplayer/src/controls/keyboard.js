@@ -95,7 +95,9 @@ class Keyboard {
     state.keyCode = e.keyCode
     state.isRepeat = e.repeat
     if (e.repeat) {
-      if (state.repeat % 2 === 0 && !player.config.disableLongPress) {
+      if (player.config.disableLongPress) {
+        this.handlerKeyCode(state.keyCode, false)
+      } else if(state.repeat % 2 === 0) {
         this.handlerKeyCode(state.keyCode, true)
       }
       state.repeat++

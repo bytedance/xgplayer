@@ -5,23 +5,33 @@ let start = function () {
   let root = player.root
   let util = Player.util
 
+  function onCanPlay () {
+    player.off('canplay', onCanPlay)
+    let playPromise = player.play()
+    if (playPromise !== undefined && playPromise) {
+      playPromise.catch(err => {})
+    }
+  }
+
   function onStartBtnClick () {
     if (util.hasClass(root, 'xgplayer-nostart')) {
       util.removeClass(root, 'xgplayer-nostart') // for ie quick switch
       util.addClass(root, 'xgplayer-is-enter')
+
       if(typeof root.contains === 'function') {
         if(!root.contains(player.video)) {
+          player.once('canplay', onCanPlay)
           player.start()
+        } else {
+          onCanPlay()
         }
       } else {
         if (!root.querySelector(this.videoConfig.mediaType)) {
+          player.once('canplay', onCanPlay)
           player.start()
+        } else {
+          onCanPlay()
         }
-      }
-      
-      let playPromise = player.play()
-      if (playPromise !== undefined && playPromise) {
-        playPromise.catch(err => {})
       }
     } else {
       if (player.paused) {
@@ -39,6 +49,7 @@ let start = function () {
 
   function onDestroy () {
     player.off('startBtnClick', onStartBtnClick)
+    player.off('canplay', onCanPlay)
     player.off('destroy', onDestroy)
   }
   player.once('destroy', onDestroy)
