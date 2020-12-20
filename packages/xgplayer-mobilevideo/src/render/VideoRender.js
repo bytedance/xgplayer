@@ -186,26 +186,26 @@ export default class VideoRender extends BaseRender {
       }
 
       this._decodeEstimate.reset();
+
+      // 大约 [80,120] 帧
+      let maxDecodeOnce = Math.max(
+        Math.min(
+          // 防止gop过大、preloadTime过大
+          this._decodeEstimate.gopLength * 2,
+          (preloadTime || 2) * this.fps
+        ),
+        MAX_DECODE_ONCE_FAST
+      );
+      this._maxDecodeOnce = maxDecodeOnce;
+      this._continueDecodeThreshold = parseInt(maxDecodeOnce / 2);
+
+      logger.log(this.TAG, `maxDecodeOnce = ${maxDecodeOnce}`);
     });
 
     logger.log(
       this.TAG,
       `fps:${this.fps} , gopLength:${this._decodeEstimate.gopLength}`
     );
-
-    // 大约 [80,120] 帧
-    let maxDecodeOnce = Math.max(
-      Math.min(
-        // 防止gop过大、preloadTime过大
-        this._decodeEstimate.gopLength * 2,
-        (preloadTime || 2) * this.fps
-      ),
-      MAX_DECODE_ONCE_FAST
-    );
-    this._maxDecodeOnce = maxDecodeOnce;
-    this._continueDecodeThreshold = parseInt(maxDecodeOnce / 2);
-
-    logger.log(this.TAG, `maxDecodeOnce = ${maxDecodeOnce}`);
   }
 
   // 链路: audioRender中选择好要播放的buffer后,调整seek时间,通知 videoRender开始切换buffer、解码
@@ -617,7 +617,7 @@ export default class VideoRender extends BaseRender {
     let _renderDelay = info.dts - this.preciseVideoDts;
     // console.log('_renderDelay: ', info.dts, _renderDelay);
 
-    if (_renderDelay > 0) {
+    if (_renderDelay > 0 && _renderDelay < 1000) {
       return;
     }
 

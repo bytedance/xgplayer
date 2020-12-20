@@ -40,7 +40,7 @@ class Raw264Player extends Player {
       }
     }
     super(props);
-    this.video.setAttribute('noaudio', true);
+    this.video.setAttribute('lowlatency', true);
     this.handleTimeupdate = this.handleTimeupdate.bind(this);
     this.hasPlayed = false;
     this.hasStart = false;

@@ -14,7 +14,7 @@ class HlsPlayer extends BasePlugin {
 
   static get defaultConfig () {
     return {
-      preloadTime: 4
+      preloadTime: 10
     }
   }
 
@@ -36,14 +36,18 @@ class HlsPlayer extends BasePlugin {
       player.video.setAttribute('innerdegrade', player.config.innerDegrade);
     }
     this._initProcess();
-    this.initEvents()
+    this.initEvents();
   }
 
   _initProcess () {
+    const { player } = this;
     this.context = new Context(hlsAllowedEvents)
     this.initHls()
     this.context.init()
     this.loadData()
+    if (!player.forceDegradeToVideo) {
+      player.forceDegradeToVideo = this.forceDegradeToVideo.bind(this);
+    }
   }
 
   afterCreate () {
@@ -56,35 +60,39 @@ class HlsPlayer extends BasePlugin {
   initEvents () {
     const {player} = this;
 
-    this.seeking = () => {
-      const time = this.currentTime
-      const range = player.getBufferedRange()
-      if (time > range[1] || time < range[0]) {
-        this.hls.seek(this.currentTime)
-      }
-    }
-
+    // 内部低解码自动降级
     this.lowdecode = () => {
       this.emit('lowdecode', player.video.degradeInfo);
       if (player.config.innerDegrade) {
-        let mVideo = player.video;
-        let newVideo = player.video.degradeVideo;
-        this.destroy();
-        player.video = newVideo;
-        mVideo.degrade();
+        this._degrade();
       }
     }
 
     this.on(Events.PLAY, this.play);
-    this.on(Events.SEEKING, this.seeking);
     this.on(Events.URL_CHANGE, this.switchURL);
     this.on(Events.DEFINITION_CHANGE, this.handleDefinitionChange);
     player.video.addEventListener('lowdecode', this.lowdecode);
   }
 
+  _degrade (url) {
+    const {player} = this;
+    let mVideo = player.video;
+    if (mVideo && mVideo.TAG === 'MVideo') {
+      let newVideo = player.video.degradeVideo;
+      this.destroy();
+      player.video = newVideo;
+      mVideo.degrade(url);
+    }
+  }
+
+  // 外部强制降级到video
+  forceDegradeToVideo (url) {
+    this._degrade(url);
+  }
+
   initHls () {
-    const { player, config } = this;
-    const options = Object.assign({}, defaultConfig, config, { player })
+    const { player } = this;
+    const options = Object.assign({}, defaultConfig, player.config, { player, preloadTime: player.config.preloadTime })
     this.hls = this.context.registry('HLS_CONTROLLER', HLS)(options)
   }
 
@@ -127,7 +135,9 @@ class HlsPlayer extends BasePlugin {
   }
 
   _destroy () {
-    this.context.destroy()
+    if (this.context) {
+      this.context.destroy()
+    }
     this.hls = null
     this.context = null
   }

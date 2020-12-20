@@ -104,9 +104,6 @@ class MVideo extends HTMLElement {
         this.timeline.emit(Events.TIMELINE.INNER_DEGRADE);
       }
       this.setPlayMode(this._isLive && 'LIVE');
-      if (this.noAudio) {
-        this.setNoAudio();
-      }
       this.muted = this.muted;
     });
   }
@@ -122,6 +119,10 @@ class MVideo extends HTMLElement {
       if (status === 'error') {
         logger.warn(this.TAG, 'detect error:', data.message);
         this.pause();
+
+        // 发生错误时 禁用
+        this._disabled(true);
+
         if (this.innerDegrade) {
           // 内部降级的话,不对外emit error,改成lowdecode,同时degrade()中控制禁用
           this.degradeInfo = {
@@ -134,12 +135,11 @@ class MVideo extends HTMLElement {
           this._innerDispatchEvent('lowdecode');
           return;
         }
-        // 发生错误时 禁用
-        this._disabled(true);
         this._err = data;
       }
 
       if (status === 'lowdecode') {
+        this._disabled();
         this.degradeInfo = {
           decodeFps: this.decodeFps,
           bitrate: this.bitrate,
@@ -165,15 +165,15 @@ class MVideo extends HTMLElement {
       localStorage.setItem('mvideo_dis265', 1);
       return
     }
+    if (localStorage.getItem('mvideo_dis265')) return;
     // 禁用24h
     localStorage.setItem('mvideo_dis265', 2);
     localStorage.setItem('mvideo_disTime', new Date().getTime())
   }
 
   // 降级到video播放
-  degrade () {
-    this._disabled();
-    let url = this.src;
+  degrade (url) {
+    url = url || this.src;
     let canvasAppended = !!this.querySelector('canvas');
     if (canvasAppended) {
       this.replaceChild(this._degradeVideo, this.canvas);
@@ -241,6 +241,7 @@ class MVideo extends HTMLElement {
       if (forceDestroy) {
         this.destroy();
         this._init();
+        this._innerDispatchEvent('waiting');
       } else {
         this.timeline.emit(Events.TIMELINE.DO_PLAY);
         this._innerDispatchEvent('play');
@@ -259,7 +260,6 @@ class MVideo extends HTMLElement {
         this.timeline._paused = false;
         this._innerDispatchEvent('timeupdate');
         this._innerDispatchEvent('play');
-        this._innerDispatchEvent('waiting');
         try {
           this._noSleep.enable();
         } catch (e) {}
@@ -293,24 +293,22 @@ class MVideo extends HTMLElement {
     if (this.error || !this.timeline) return;
     if (!this._logFirstFrame) {
       let vSam0 = videoTrack && videoTrack.samples[0];
-      let aSam0 = this.noAudio ? null : audioTrack && audioTrack.samples[0];
-      if ((vSam0 && aSam0) || (vSam0 && this.noAudio)) {
-        logger.log(
+      let aSam0 = audioTrack && audioTrack.samples[0];
+      if (!vSam0 && !aSam0) return;
+      if (vSam0 || aSam0) {
+        logger.warn(
           this.TAG,
-          `video firstDts:${vSam0.dts} , audio firstDts:${
-            this.noAudio ? 0 : aSam0.dts
-          }`
+          `video firstDts:${vSam0 && vSam0.dts} , audio firstDts:${aSam0 && aSam0.dts}`
         );
         this._logFirstFrame = true;
       }
+      if (this.lowlatency || !aSam0) {
+        let type = this.lowlatency ? 1 : 2;
+        logger.log(this.TAG, 'video set noAudio! type=', type);
+        this.timeline.emit(Events.TIMELINE.NO_AUDIO, type);
+      }
     }
     this.timeline.appendBuffer(videoTrack, audioTrack)
-  }
-
-  setNoAudio () {
-    logger.log(this.TAG, 'video set noAudio!');
-    this.timeline.emit(Events.TIMELINE.NO_AUDIO);
-    this.noAudio = true;
   }
 
   setAudioMeta (meta) {
@@ -375,12 +373,12 @@ class MVideo extends HTMLElement {
     return this._firstWebAudio;
   }
 
-  get noAudio () {
-    return this.getAttribute('noaudio') === 'true';
+  get lowlatency () {
+    return this.getAttribute('lowlatency') === 'true';
   }
 
-  set noAudio (val) {
-    this.setAttribute('noaudio', val);
+  set lowlatency (val) {
+    this.setAttribute('lowlatency', val);
   }
 
   get autoplay () {

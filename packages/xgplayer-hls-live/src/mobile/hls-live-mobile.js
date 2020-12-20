@@ -1,4 +1,4 @@
-import { EVENTS } from 'xgplayer-helper-utils'
+import { EVENTS, logger } from 'xgplayer-helper-utils'
 // import { hevc, avc } from 'xgplayer-helper-codec'
 
 // const { NalUnitHEVC } = hevc;
@@ -26,8 +26,9 @@ class HlsLiveController {
     this._timmer = setInterval(this._checkStatus.bind(this), 50);
     this._lastCheck = 0;
     this._player = this.configs.player;
-    this.m3u8Text = null
-
+    this.m3u8Text = null;
+    this.inWaiting = false;
+    this._downloadedFragmentQueue = [];
     this.setDataInterval = null;
   }
 
@@ -62,6 +63,23 @@ class HlsLiveController {
     this.on(LOADER_EVENTS.LOADER_ERROR, this._onLoadError.bind(this));
 
     this.on(DEMUX_EVENTS.DEMUX_ERROR, this._onDemuxError.bind(this));
+
+    this._onWaiting = this._onWaiting.bind(this);
+    this._onPlaying = this._onPlaying.bind(this);
+
+    if (this._player) {
+      this._player.on('waiting', this._onWaiting)
+      this._player.on('playing', this._onPlaying)
+    }
+  }
+
+  _onWaiting () {
+    if (!this._player.video || !this._player.video.currentTime) return;
+    this.inWaiting = true;
+  }
+
+  _onPlaying () {
+    this.inWaiting = false;
   }
 
   _onError (type, mod, err, fatal) {
@@ -99,6 +117,7 @@ class HlsLiveController {
       })
       this._player.video.onDemuxComplete(videoTrack, audioTrack);
     }
+    this._consumeFragment();
   }
   _onMetadataParsed (type) {
     if (type === 'audio') {
@@ -221,7 +240,8 @@ class HlsLiveController {
     } else if (buffer.TAG === 'TS_BUFFER') {
       this.retryTimes = this.configs.retryTimes || 3;
       this._playlist.downloaded(this._tsloader.url, true);
-      this.emit(DEMUX_EVENTS.DEMUX_START);
+      this._downloadedFragmentQueue.push(Object.assign({url: this._tsloader.url}, this._playlist._ts[this._tsloader.url]))
+      this._consumeFragment();
     } else if (buffer.TAG === 'DECRYPT_BUFFER') {
       this.retryTimes = this.configs.retryTimes || 3;
       this._playlist.downloaded(this._tsloader.url, true);
@@ -237,6 +257,16 @@ class HlsLiveController {
         outputbuffer: 'TS_BUFFER'
       });
       this._crypto.on(CRYTO_EVENTS.DECRYPTED, this._onDcripted.bind(this));
+    }
+  }
+
+  // 触发waiting时候,攒两个分片再播放
+  _consumeFragment (force) {
+    if (!force && this.inWaiting && this._downloadedFragmentQueue.length < 2) return;
+    let ts = this._downloadedFragmentQueue.shift();
+    if (ts) {
+      this.emit(DEMUX_EVENTS.DEMUX_START, ts);
+      this.inWaiting = false;
     }
   }
 
@@ -288,9 +318,11 @@ class HlsLiveController {
     }
     let frag = this._playlist.getTs();
     if (frag && !frag.downloaded && !frag.downloading) {
+      this._logDownSegment(frag);
       this._playlist.downloading(frag.url, true);
       this.emitTo('TS_LOADER', LOADER_EVENTS.LADER_START, frag.url)
     } else {
+      this._consumeFragment(true);
       let preloadTime = this.preloadTime ? this.preloadTime : 0;
       let current = new Date().getTime();
       if ((!frag || frag.downloaded) &&
@@ -299,6 +331,12 @@ class HlsLiveController {
         this.emitTo('M3U8_LOADER', LOADER_EVENTS.LADER_START, this.url);
       }
     }
+  }
+
+  _logDownSegment (frag) {
+    if (!frag) return;
+    logger.groupEnd();
+    logger.group(this.TAG, `load ${frag.id}: [${frag.time / 1000} , ${(frag.time + frag.duration) / 1000}], downloading: ${frag.downloading} , donwloaded: ${frag.downloaded}`);
   }
 
   _isHEVC (meta) {
@@ -326,7 +364,8 @@ class HlsLiveController {
     // this.off(REMUX_EVENTS.REMUX_ERROR);
     this.off(DEMUX_EVENTS.METADATA_PARSED, this._onMetadataParsed);
     this.off(DEMUX_EVENTS.DEMUX_COMPLETE, this._onDemuxComplete);
-
+    this._player.off('waiting', this._onWaiting)
+    this._player.off('playing', this._onPlaying)
     this.m3u8Text = null
   }
 }
