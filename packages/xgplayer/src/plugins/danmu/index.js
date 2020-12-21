@@ -60,7 +60,6 @@ class Danmu extends Plugin {
       if (!this.danmujs || !this.isOpen) {
         return
       }
-      console.log('this.seekCost:' + parseInt(window.performance.now() - this.seekCost, 10))
       if (this.intervalId) {
         clearTimeout(this.intervalId)
         this.intervalId = null

@@ -17,12 +17,13 @@ import PlaybackRateIcon from '../plugins/playbackRate'
 import Volume from '../plugins/volume'
 import Error from '../plugins/error'
 import Prompt from '../plugins/prompt'
+import Thumbnail from '../plugins/common/thumbnail'
 
 export default class DefaultPreset {
   constructor () {
     const contolsIcons = [Mobile, Progress, PlayIcon, FullScreen, TimeIcon,
       RotateIcon, PlayNextIcon, DefinitionIcon, PlaybackRateIcon, DownLoadIcon, ScreenShotIcon, Volume]
-    const layers = [Replay, Poster, Start, Loading, Enter, Error, Prompt]
+    const layers = [Replay, Poster, Start, Loading, Enter, Error, Prompt, Thumbnail]
 
     this.plugins = [...contolsIcons, ...layers]
     this.ignores = []

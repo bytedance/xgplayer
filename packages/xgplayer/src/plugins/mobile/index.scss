@@ -45,6 +45,12 @@
         }
       }
     }
+
+    .mobile-thumbnail {
+      border-radius: 2px;
+      margin: 0 auto 10px;
+    }
+
     &[data-xg-action=seeking] {
       .time-preview {
         display: block;
