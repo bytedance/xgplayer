@@ -1,6 +1,4 @@
 import Plugin, {Events, Util, POSITIONS, Sniffer} from '../../plugin'
-import ProgressDots from './progressdots'
-import Thumbnail from '../common/thumbnail'
 import InnerList from './innerList'
 
 /**
@@ -15,12 +13,14 @@ class Progress extends Plugin {
     return {
       position: POSITIONS.CONTROLS_CENTER,
       index: 0,
-      progressDot: [],
-      thumbnail: null,
       disable: false,
-      isDragingSeek: true, // 是否在拖拽的过程中更新currentTime
+      isDragingSeek: false, // 是否在拖拽的过程中更新currentTime
       closeMoveSeek: false, // 是否关闭滑块seek能力
+      isPauseMoving: false, // 是否在move的时候暂停视频内容
+      isCloseClickSeek: false, // 是否关闭点击进度条的时候seek
       fragments: [{percent: 1}],
+      miniMoveStep: 5,
+      miniStartStep: 2,
       onMoveStart: () => {
       }, // 手势开始移动回调
       onMoveEnd: () => {} // 手势移动结束回调
@@ -54,12 +54,11 @@ class Progress extends Plugin {
    *
    */
   createInner () {
-    const outer = this.find('xg-outer')
     this.innerList = new InnerList({
       fragments: this.config.fragments,
       style: this.playerConfig.commonStyle || {}
     })
-    outer.insertBefore(this.innerList.render(), outer.children[0]);
+    this.outer.insertBefore(this.innerList.render(), this.outer.children[0]);
     ['findHightLight', 'unHightLight', 'setHightLight', 'findFragment'].map(item => {
       this[item] = this.innerList[item].bind(this.innerList)
     })
@@ -69,14 +68,21 @@ class Progress extends Plugin {
     if (this.config.disable) {
       return;
     }
+    this.pos = {
+      x: 0, // 水平方向位移
+      y: 0, // 垂直方向位移
+      moving: false, // 是否正在移动
+      isDown: false, // 是否mouseDown
+      isEnter: false // 是否触发了mouseEnter
+    }
+    this.outer = this.find('xg-outer')
     this.createInner()
     if (Sniffer.device === 'mobile') {
       this.config.isDragingSeek = false
+      this.isMobile = true
     }
-    this.pointTip = this.find('.xgplayer-progress-point')
-    this.progressBtn = this.find('.xgplayer-progress-btn')
 
-    this.registerThumbnail()
+    this.progressBtn = this.find('.xgplayer-progress-btn')
 
     this.on(Events.TIME_UPDATE, () => {
       this.onTimeupdate()
@@ -92,18 +98,6 @@ class Progress extends Plugin {
     })
 
     this.bindDomEvents()
-  }
-
-  children () {
-    return {
-      ProgressDots: {
-        plugin: ProgressDots,
-        options: {
-          root: this.find('xg-outer'),
-          dots: this.playerConfig.progressDot || this.config.progressDot
-        }
-      }
-    }
   }
 
   initCustomStyle () {
@@ -129,7 +123,13 @@ class Progress extends Plugin {
   triggerCallbacks (type, data) {
     if (this.__dragCallBacks.length > 0) {
       this.__dragCallBacks.map(item => {
-        item.type === type && item.handler(data)
+        if (item && item.handler && item.type === type) {
+          try {
+            item.handler(data)
+          } catch (error) {
+            console.error(`[XGPLAYER][triggerCallbacks] ${item} error`, error)
+          }
+        }
       })
     }
   }
@@ -139,169 +139,235 @@ class Progress extends Plugin {
    * @param {String} type 类型 drag/dragend
    * @param {Function} event 回调函数句柄
    */
-  addDragCallBack (type, event) {
+  addCallBack (type, event) {
     if (event && typeof event === 'function') {
       this.__dragCallBacks.push({type: type, handler: event})
     }
   }
 
-  registerThumbnail () {
-    const {thumbnail} = this.playerConfig
-    // 移动端缩略图预览不在进度条上
-    if (!thumbnail || Sniffer.device === 'mobile') {
-      return;
-    }
-    thumbnail.className = 'progress-thumbnail xg-tips'
-    this.thumbnailPlugin = this.registerPlugin(Thumbnail, {
-      root: this.find('.xgplayer-progress-played')
+  /**
+   * 供外部插件移除回调
+   * @param {String} type 类型 drag/dragend
+   * @param {Function} event 回调函数句柄
+   */
+  removeCallBack (type, event) {
+    const {__dragCallBacks} = this
+    let _index = -1
+    __dragCallBacks.map((item, index) => {
+      if (item && item.type === type && item.handler === event) {
+        _index = index
+      }
     })
+    if (_index > -1) {
+      __dragCallBacks.splice(_index, 1)
+    }
   }
 
   bindDomEvents () {
-    this.mouseDown = this.mouseDown.bind(this)
-    this.mouseMove = this.mouseMove.bind(this)
-    this.mouseEnter = this.mouseEnter.bind(this)
-    this.mouseLeave = this.mouseLeave.bind(this)
-    if (Sniffer.device === 'mobile') {
-      this.root.addEventListener('touchstart', this.mouseDown, false)
+    if (this.isMobile) {
+      this.bind('touchstart', this.onMouseDown)
     } else {
-      this.root.addEventListener('mousedown', this.mouseDown, false)
-      this.root.addEventListener('mouseenter', this.mouseEnter, false)
+      this.bind('mousedown', this.onMouseDown)
+      this.bind('mouseenter', this.onMouseEnter)
     }
   }
 
-  mouseDown (e) {
-    const {player, config, playerConfig, pointTip} = this
-    if (player.isMini || config.closeMoveSeek) {
+  focus () {
+    this.player.controls.pauseAutoHide()
+    Util.addClass(this.root, 'active')
+  }
+
+  blur () {
+    this.player.controls.recoverAutoHide()
+    Util.removeClass(this.root, 'active')
+  }
+
+  onMoveOnly = (e) => {
+    const {pos, config} = this
+    Util.event(e)
+    if (pos.moving && Math.abs(pos.x - e.clientX) < config.miniMoveStep) {
       return
     }
+    pos.moving = true
+    pos.x = e.clientX
+    const ret = this.computeTime(e)
+    this.triggerCallbacks('dragmove', ret)
+  }
+
+  onBodyClick = (e) => {
     e.preventDefault()
     e.stopPropagation()
-    Util.checkIsFunction(playerConfig.disableSwipeHandler) && playerConfig.disableSwipeHandler()
-    Util.event(e)
-    // this.pointTip为tip信息 不做seek操作
-    if (e.target === pointTip || (!playerConfig.allowSeekAfterEnded && player.ended)) {
-      return true
-    }
+  }
 
+  onMouseDown = (e) => {
+    const {player, pos, config, playerConfig} = this
+    if (player.isMini || config.closeMoveSeek || (!playerConfig.allowSeekAfterEnded && player.ended)) {
+      return
+    }
+    e.stopPropagation()
+    e.preventDefault()
+    this.focus()
+    Util.checkIsFunction(playerConfig.disableSwipeHandler) && playerConfig.disableSwipeHandler()
     Util.checkIsFunction(config.onMoveStart) && config.onMoveStart()
+    Util.event(e)
+    pos.x = e.clientX
+    pos.y = e.clientY
+    pos.isDown = true
+    pos.moving = false
+
     // 交互开始 禁止控制栏的自动隐藏功能
     player.emit(Events.PLAYER_FOCUS, {autoHide: false})
     this.isProgressMoving = true
-    Util.addClass(this.progressBtn, 'moving')
+    Util.addClass(this.progressBtn, 'active')
 
-    this.computeWidth(e, false)
-
-    const move = (e) => {
-      e.preventDefault()
-      e.stopPropagation()
-      Util.event(e)
-      this.isProgressMoving = true
-      this.computeWidth(e, true)
-    }
-
-    const up = (e) => {
-      const {player, config} = this
-      e.preventDefault()
-      e.stopPropagation()
-      Util.checkIsFunction(playerConfig.enableSwipeHandler) && playerConfig.enableSwipeHandler()
-      Util.event(e)
-      Util.removeClass(this.progressBtn, 'moving')
-      if (Sniffer.device === 'mobile') {
-        this.root.removeEventListener('touchmove', move)
-        this.root.removeEventListener('touchend', up)
-      } else {
-        this.root.removeEventListener('mousemove', move)
-        this.root.removeEventListener('mouseup', up)
-        this.root.removeEventListener('mouseleave', up)
-      }
-      Util.checkIsFunction(config.onMoveEnd) && config.onMoveEnd()
-      this.computeWidth(e, false)
-      // 延迟复位，状态复位要在dom相关时间回调执行之后
-      setTimeout(() => {
-        this.resetSeekState()
-      }, 10)
-      this.triggerCallbacks('dragend', {})
-      // 交互结束 恢复控制栏的隐藏流程
-      player.emit(Events.PLAYER_FOCUS)
-    }
+    const ret = this.computeTime(e)
+    this.updateWidth(ret.currentTime, ret.percent, 0)
 
     if (Sniffer.device === 'mobile') {
-      this.root.addEventListener('touchmove', move, false)
-      this.root.addEventListener('touchend', up, false)
+      this.bind('touchmove', this.onMouseMove)
+      this.bind('touchend', this.onMouseUp)
     } else {
-      this.root.addEventListener('mousemove', move)
-      this.root.addEventListener('mouseup', up)
-      this.root.addEventListener('mouseleave', up)
+      this.unbind('mousemove', this.onMoveOnly)
+
+      document.addEventListener('mousemove', this.onMouseMove, false)
+      document.addEventListener('mouseup', this.onMouseUp, false)
+      // 避免触发videoClick 暂停/播放切换
+      player.root.addEventListener('click', this.onBodyClick, false)
+      // this.bind('mouseup', this.onMouseUp, false)
     }
     return true
   }
 
-  mouseEnter (e) {
-    const {player} = this
-    if (player.isMini || (!player.config.allowSeekAfterEnded && player.ended)) {
-      return
+  onMouseUp = (e) => {
+    const {player, config, pos, playerConfig} = this
+    // e.stopPropagation()
+    // e.preventDefault()
+    Util.checkIsFunction(playerConfig.enableSwipeHandler) && playerConfig.enableSwipeHandler()
+    Util.checkIsFunction(config.onMoveEnd) && config.onMoveEnd()
+    Util.event(e)
+    Util.removeClass(this.progressBtn, 'active')
+
+    const ret = this.computeTime(e)
+    if (pos.moving) {
+      this.updateWidth(ret.currentTime, ret.percent, 2)
+      this.triggerCallbacks('dragend', ret)
+    } else {
+      this.triggerCallbacks('click', ret)
     }
-    this.root.addEventListener('mousemove', this.mouseMove, false)
-    this.root.addEventListener('mouseleave', this.mouseLeave, false)
+
+    pos.moving = false
+    pos.isDown = false
+    pos.x = 0
+    pos.y = 0
+    if (this.isMobile) {
+      this.unbind('touchmove', this.onMouseMove)
+      this.unbind('touchend', this.onMouseUp)
+      // 交互结束 恢复控制栏的隐藏流程
+      this.blur()
+    } else {
+      document.removeEventListener('mousemove', this.onMouseMove, false)
+      document.removeEventListener('mouseup', this.onMouseUp, false)
+      player.root.removeEventListener('click', this.onBodyClick, false)
+      if (!pos.isEnter) {
+        this.onMouseLeave(e)
+      } else {
+        this.bind('mousemove', this.onMoveOnly)
+      }
+    }
+    // 延迟复位，状态复位要在dom相关时间回调执行之后
+    setTimeout(() => {
+      this.resetSeekState()
+    }, 10)
+    // // 交互结束 恢复控制栏的隐藏流程
+    // player.emit(Events.PLAYER_FOCUS)
   }
 
-  mouseLeave (e) {
-    const {player, root, pointTip, thumbnailPlugin} = this
+  onMouseMove = (e) => {
+    const {pos, player, config} = this
+    if (this.isMobile) {
+      e.stopPropagation()
+      e.preventDefault()
+    }
+    Util.event(e)
+    const diff = Math.abs(pos.x - e.clientX)
+    if ((pos.moving && diff < config.miniMoveStep) || (!pos.moving && diff < config.miniStartStep)) {
+      return
+    }
+    pos.x = e.clientX
+    const ret = this.computeTime(e)
+    if (pos.isDown && !pos.moving) {
+      pos.moving = true
+      config.isPauseMoving && player.pause()
+      this.triggerCallbacks('dragstart', ret)
+    }
+    this.updateWidth(ret.currentTime, ret.percent, 1)
+    this.triggerCallbacks('dragmove', ret)
+  }
+
+  onMouseEnter = (e) => {
+    const {player, pos} = this
+    if (pos.isEnter || player.isMini || (!player.config.allowSeekAfterEnded && player.ended)) {
+      return
+    }
+    pos.isEnter = true
+    this.bind('mousemove', this.onMoveOnly)
+    this.bind('mouseleave', this.onMouseLeave)
+    this.focus()
+  }
+
+  onMouseLeave = (e) => {
+    const {player, pos} = this
+    pos.isEnter = false
     if (player.isMini) {
       return
     }
-    pointTip.style.display = 'none'
-    thumbnailPlugin && thumbnailPlugin.hide()
-    root.removeEventListener('mousemove', this.mouseMove, false)
-    root.removeEventListener('mouseleave', this.mouseLeave, false)
-  }
-
-  mouseMove (e) {
-    const {player, thumbnailPlugin, root} = this
-    const { left, width } = root.getBoundingClientRect()
-    let now = (e.clientX - left) / width * player.duration
-    now = now < 0 ? 0 : now
-    this.pointTip.textContent = Util.format(now)
-    let pointWidth = this.pointTip.getBoundingClientRect().width
-    let pleft = e.clientX - left - pointWidth / 2
-    pleft = pleft > 0 ? pleft : 0
-    pleft = pleft > width - pointWidth ? width - pointWidth : pleft
-    this.pointTip.style.left = `${pleft}px`
-    if (e.target && e.target.className === 'xgplayer-progress-dot') {
-      this.pointTip.style.display = 'none'
-    } else {
-      this.pointTip.style.display = 'block'
+    this.unbind('mousemove', this.onMoveOnly)
+    if (pos.isDown) {
+      this.unbind('mouseleave', this.onMouseLeave)
+      return
     }
-    thumbnailPlugin && thumbnailPlugin.update(now, e.clientX, width)
+    this.blur()
   }
 
   /**
-   * @description 根据事件回调计算位置
-   * @param {Event} e
-   * @param {Boolean} isMove
+   * @description 根据currenTime和占用百分比更新进度条
+   * @param {Number} currentTime 需要更新到的时间
+   * @param {Number} percent 更新时间占比
+   * @param {Int} type 触发类型 0-down 1-move 2-up
    */
-  computeWidth (e, isMove) {
-    const containerWidth = this.root.getBoundingClientRect().width
-    const {player, config} = this
-    let {left} = this.root.getBoundingClientRect()
-    let w = e.clientX - left
-    if (w > containerWidth) {
-      w = containerWidth
-    }
-    const percent = w / containerWidth
-    const currentTime = percent * player.duration
-    const now = percent * player.duration
-    isMove && this.triggerCallbacks('drag', {percent, currentTime})
-    this.updatePercent(w / containerWidth)
-    this.updateTime(now)
-    // 音频在移动move的时候不做seek
-    if (isMove && (!config.isDragingSeek || player.videoConfig.mediaType === 'audio')) {
+  updateWidth (currentTime, percent, type) {
+    const {config, player} = this
+    if (config.isCloseClickSeek && type === 0) {
       return
     }
-    this._state.now = now
-    this._state.direc = now > player.currentTime ? 0 : 1
-    player.seek(Number(now).toFixed(1))
+    this.updatePercent(percent)
+    this.updateTime(currentTime)
+    if (type === 1 && (!config.isDragingSeek || player.videoConfig.mediaType === 'audio')) {
+      return
+    }
+    this._state.now = currentTime
+    this._state.direc = currentTime > player.currentTime ? 0 : 1
+    player.seek(Number(currentTime).toFixed(1))
+  }
+
+  computeTime (e) {
+    const {player} = this
+    const {width, left} = this.root.getBoundingClientRect()
+    const clientX = e.clientX
+    let offset = clientX - left
+    offset = offset > width ? width : (offset < 0 ? 0 : offset)
+
+    let percent = offset / width
+    percent = percent < 0 ? 0 : (percent > 1 ? 1 : percent)
+    const currentTime = parseInt(percent * player.duration * 1000, 10) / 1000
+    return {
+      percent,
+      currentTime,
+      offset,
+      width,
+      left,
+      e
+    }
   }
 
   /**
@@ -346,16 +412,6 @@ class Progress extends Plugin {
     this.innerList.update({played: percent * this.player.duration}, this.player.duration)
   }
 
-  // compute (e) {
-  //   const containerLeft = this.root.getBoundingClientRect().left
-  //   const containerWidth = this.root.getBoundingClientRect().width
-  //   const pointWidth = this.pointTip.getBoundingClientRect().width
-  //   let left = e.clientX - containerLeft - pointWidth / 2
-  //   left = left > 0 ? left : 0
-  //   left = left > containerWidth - pointWidth ? containerWidth - pointWidth : left
-  //   this.pointTip.style.left = `${left}px`
-  // }
-
   /**
    * @description 播放进度更新
    */
@@ -386,14 +442,21 @@ class Progress extends Plugin {
   }
 
   destroy () {
+    const {player} = this
     this.thumbnailPlugin = null
     this.innerList.destroy()
     this.innerList = null
     if (Sniffer.device === 'mobile') {
-      this.root.removeEventListener('touchstart', this.mouseDown, false)
+      this.unbind('touchstart', this.onMouseDown)
+      this.unbind('touchmove', this.onMouseMove)
+      this.unbind('touchend', this.onMouseUp)
     } else {
-      this.root.removeEventListener('mousedown', this.mouseDown, false)
-      this.root.removeEventListener('mouseenter', this.mouseEnter, false)
+      this.unbind('mousedown', this.onMouseDown)
+      this.unbind('mouseenter', this.mouseEnter)
+      this.unbind('mousemove', this.onMoveOnly)
+      document.removeEventListener('mousemove', this.onMouseMove, false)
+      document.removeEventListener('mouseup', this.onMouseUp, false)
+      player.root.removeEventListener('click', this.onBodyClick, false)
     }
   }
 
@@ -405,7 +468,7 @@ class Progress extends Plugin {
     <xg-progress class="xgplayer-progress">
       <xg-outer class="xgplayer-progress-outer">
         <xg-progress-btn class="xgplayer-progress-btn"></xg-progress-btn>
-        <xg-point class="xgplayer-progress-point">00:00</xg-point>
+        <!--<xg-point class="xgplayer-progress-point">00:00</xg-point>-->
       </xg-outer>
     </xg-progress>
     `

@@ -101,6 +101,7 @@
     z-index: 16;
     transform: translate(-50%, -50%);
     box-sizing: border-box;
+    pointer-events: none;
     &:before {
       content: ' ';
       display: block;
@@ -113,29 +114,12 @@
       border-radius: 30px;
       background: #FFFFFF;
     }
-    &.moving {
+    &.active {
       border: 4px solid rgba(255, 94, 94, 0.064057);
       &:before{
         box-shadow: 0px 0px 3px rgba(248, 89, 89, 0.689);
       }
     }
-  }
-
-  /* 进度条内层样式 */
-  .xgplayer-progress-point {
-    display: none;
-    position: absolute;
-    bottom: 20px;
-    left: 0;
-    background:rgba(0, 0, 0, 0.54);
-    border-radius: 1px;
-    font-size: 11px;
-    color: #fff;
-    padding: 4px 6px;
-    border-radius: 4px;
-    text-align: center;
-    opacity: 0.85;
-    white-space: nowrap;
   }
   
   /* 进度条打点*/
@@ -170,15 +154,6 @@
     }
   }
 
-  /* 进度条内缩略图 */
-  .progress-thumbnail {
-    position: absolute;
-    box-sizing: border-box;
-    top: -10px;
-    transform: translateY(-100%);
-    opacity: 1;
-  }
-
   .flex-controls {
     .xgplayer-progress {
       transform: translateY(0);
@@ -204,13 +179,13 @@
       }
     }
     .xgplayer-progress {
-      &:hover, &:focus {
+      &.active {
         .xgplayer-progress-outer {
           height: 6px;
           transition: height .5s ease;
-          .xgplayer-progress-point {
-            display: block;
-          }
+          // .xgplayer-progress-point {
+          //   display: block;
+          // }
         }
         .xgplayer-progress-btn {
           transform: translate(-50%, -50%) scale(1);

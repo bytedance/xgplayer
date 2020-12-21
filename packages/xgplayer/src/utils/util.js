@@ -318,6 +318,27 @@ util.setStyleFromCsstext = function (dom, text) {
   })
 }
 
+util.preloadImg = (url, onload = () => {}, onerror = () => {}) => {
+  let img = new window.Image();
+  if (img.complete) {
+    // 图片已经加载过了，可以使用图片
+    // do something here
+    // img = null
+    onload && onload()
+  } else {
+    img.onload = (e) => {
+      img = null
+      onload && onload(e)
+    }
+    img.onerror = (e) => {
+      console.log('img.onerror')
+      img = null
+      onerror && onerror(e)
+    }
+  }
+  img.src = url;
+}
+
 util.stopPropagation = (e) => {
   if (e) {
     e.stopPropagation()

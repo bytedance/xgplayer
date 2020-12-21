@@ -1,5 +1,5 @@
 import Plugin, {Events, Util} from '../../plugin'
-import Thumbnail from '../common/thumbnail'
+// import Thumbnail from '../common/thumbnail'
 
 const ACTIONS = {AUTO: 'auto', SEEKING: 'seeking'}
 
@@ -72,10 +72,10 @@ class MobilePlugin extends Plugin {
       // 添加进度条拖拽事件回调
       const progressPlugin = player.plugins.progress
       if (progressPlugin) {
-        progressPlugin.addDragCallBack('drag', (data) => {
+        progressPlugin.addCallBack('dragmove', (data) => {
           this.activeSeekNote(data.currentTime)
         })
-        progressPlugin.addDragCallBack('dragend', () => {
+        progressPlugin.addCallBack('dragend', () => {
           this.changeAction(ACTIONS.AUTO)
         })
       }
@@ -83,12 +83,13 @@ class MobilePlugin extends Plugin {
   }
 
   registerThumbnail () {
-    if (!this.playerConfig.thumbnail) {
-      return;
+    const {player} = this
+    const {thumbnail} = player.plugins
+    if (thumbnail && thumbnail.usable) {
+      this.thumbnailPlugin = thumbnail.createThumbnail(null, 'mobile-thumbnail')
+      const timePreview = this.find('.time-preview')
+      timePreview.insertBefore(this.thumbnailPlugin, timePreview.children[0])
     }
-    this.thumbnailPlugin = this.registerPlugin(Thumbnail, {
-      root: this.find('.time-preview')
-    })
   }
 
   initCustomStyle () {
@@ -272,7 +273,8 @@ class MobilePlugin extends Plugin {
     this.find('.dur').innerHTML = Util.format(player.duration)
     this.find('.cur').innerHTML = Util.format(time)
     this.find('.curbar').style.width = `${time / player.duration * 100}%`
-    this.thumbnailPlugin && this.thumbnailPlugin.update(time)
+    const {thumbnail} = player.plugins
+    thumbnail && thumbnail.usable && this.thumbnailPlugin && thumbnail.update(this.thumbnailPlugin, time, 160, 90)
   }
 
   switchPlayPause () {

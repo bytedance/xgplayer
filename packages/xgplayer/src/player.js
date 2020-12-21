@@ -684,7 +684,6 @@ class Player extends Proxy {
   }
 
   onCanplay () {
-    this.logInfo('onCanplay')
     this.removeClass(STATE_CLASS.ENTER)
     this.isCanplay = true
   }
@@ -750,9 +749,6 @@ class Player extends Proxy {
   }
 
   onPlaying () {
-    // if (this.waitTimer) {
-    //   clearTimeout(this.waitTimer)
-    // }
     const { NO_START, PAUSED, ENDED, ERROR, REPLAY } = STATE_CLASS
     const clsList = [NO_START, PAUSED, ENDED, ERROR, REPLAY];
     clsList.forEach((cls) => {

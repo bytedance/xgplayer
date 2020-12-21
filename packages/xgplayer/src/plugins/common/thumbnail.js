@@ -1,7 +1,7 @@
 /* eslint-disable camelcase */
-import Plugin, {Util} from '../../plugin'
+import BasePlugin, {Util} from '../../plugin'
 
-export default class Thumbnail extends Plugin {
+export default class Thumbnail extends BasePlugin {
   static get pluginName () {
     return 'thumbnail'
   }
@@ -13,9 +13,9 @@ export default class Thumbnail extends Plugin {
       pic_num: 0, // 每张图含有几个雪碧图
       col: 0, // 截图列数
       row: 0, // 截图行数
-      height: 0,
-      width: 0,
-      scale: 1,
+      height: 90, // 缩略图高度
+      width: 160, // 缩略图宽度
+      scale: 1, // 缩放
       className: '', // 额外添加在dom上的class
       hidePortrait: false // 是否在竖屏的时候隐藏
     }
@@ -23,74 +23,116 @@ export default class Thumbnail extends Plugin {
 
   constructor (args) {
     super(args)
+    this.ratio = 1
     this.interval = null
-    this.rowIndex = 0
-    this.colIndex = 0
+    this.preloadMark = {}
   }
 
   afterCreate () {
-    this.initThumbnail()
+    if (this.usable) {
+      this.initThumbnail()
+    }
+  }
+
+  get usable () {
+    const {urls, pic_num} = this.config
+    return urls && urls.length > 0 && pic_num > 0
   }
 
   initThumbnail () {
-    const {width, height, scale, className, hidePortrait} = this.config
-    className && Util.addClass(this.root, className)
-    hidePortrait && Util.addClass(this.root, 'portrait')
-    width && (this.root.style.width = `${width * scale}px`)
-    height && (this.root.style.height = `${height * scale}px`)
+    const {width, height, pic_num, interval} = this.config
+    this.ratio = width / height * 100
+    this.interval = interval || Math.round(this.player.duration / pic_num)
+    this.preload(0)
+    // this.preIndex = new Array(urls.length)
+    // this.interval = interval || Math.round(this.player.duration / pic_num)
+    // this.ratio = width / height * 100
+    // className && Util.addClass(this.root, className)
+    // hidePortrait && Util.addClass(this.root, 'portrait')
+    // width && (this.root.style.width = `${width}px`)
+    // height && (this.root.style.height = `${height}px`)
+    // this.root.style.backgroundSize = `${width * col}px auto`
   }
 
-  update (now, clientX = null, containerWidth = 0, customStyle = '') {
-    if (!this.playerConfig.thumbnail) {
-      return;
+  getUrlByIndex (index) {
+    return index >= 0 && index < this.config.urls.length ? this.config.urls[index] : ''
+  }
+
+  preload (index) {
+    const {urls} = this.config
+    const len = urls.length
+    const arr = [index - 1, index, index + 1, index + 2]
+    arr.map(item => {
+      if (!this.preloadMark[item] && item >= 0 && item < len) {
+        Util.preloadImg(urls[item])
+        this.preloadMark[item] = true
+      }
+    })
+  }
+
+  getPosition (now, containerWidth = 0, containerHeight = 0) {
+    const {pic_num, row, col, width, height} = this.config
+    this.interval = Math.round(this.player.duration / pic_num)
+    let index = Math.ceil(now / this.interval) // 当前时间对应的图像索引
+    index = index > pic_num ? pic_num : index
+    const urlIndex = index < row * col ? 0 : (Math.ceil(index / (row * col)) - 1)// 当前图像所在的url索引
+    const indexInPage = index - urlIndex * (col * row) // 当前图像在当前url中的索引
+    const rowIndex = indexInPage > 0 ? Math.ceil(indexInPage / col) - 1 : 0// 当前图像在当前url中的行索引
+    const colIndex = indexInPage > 0 ? indexInPage - rowIndex * col - 1 : 0 // 当前图像在当前url中的列索引
+    let swidth = 0 // containerWidth || width
+    let sHeight = 0 // swidth * height / width
+
+    // 根据入参的宽高适配样式
+    if (containerWidth && containerHeight) {
+      let per = containerWidth / containerHeight
+      if (per < width / height) {
+        swidth = containerWidth
+        sHeight = swidth / (width / height)
+      } else {
+        sHeight = containerHeight
+        swidth = sHeight * (width / height)
+      }
+    } else {
+      swidth = containerWidth || width
+      sHeight = swidth / (width / height)
     }
-    const {width, height} = this.root.getBoundingClientRect()
-    const {pic_num, urls, row, col, scale} = this.config
+    const url = this.getUrlByIndex(urlIndex)
+    return {
+      urlIndex,
+      rowIndex,
+      colIndex,
+      url,
+      height: sHeight,
+      width: swidth,
+      style: {
+        backgroundImage: `url(${url})`,
+        backgroundSize: `${swidth * col}px auto`,
+        backgroundPosition: `-${colIndex * swidth}px -${rowIndex * sHeight}px`,
+        width: `${swidth}px`,
+        height: `${sHeight}px`
+      }
+    }
+  }
+
+  update (dom, now, containerWidth = 0, containerHeight = 0, customStyle = '') {
+    const {pic_num, urls} = this.config
     if (pic_num <= 0 || !urls || urls.length === 0) {
       return
     }
-    this.interval = this.player.duration / pic_num
+    const pos = this.getPosition(now, containerWidth, containerHeight)
+    this.preload(pos.urlIndex)
 
-    const index = Math.floor(now / this.interval)
-    const indexInPage = index + 1 - (col * row) * (Math.ceil((index + 1) / (col * row)) - 1)
-    const rowIndex = Math.ceil(indexInPage / row) - 1
-    const colIndex = indexInPage - rowIndex * row - 1
-    let left = null
-    if (clientX && containerWidth) {
-      left = clientX - width * scale / 2
-      left = left > 0 ? left : 0
-      left = left < containerWidth - width * scale ? left : containerWidth - width * scale
-    }
-
-    const style = {
-      backgroundImage: `url(${urls[Math.ceil((index + 1) / (col * row)) - 1]})`,
-      'background-position': `-${colIndex * width}px -${rowIndex * height}px`
-    }
-    if (left !== null) {
-      style.left = `${left}px`
-    }
-
-    Object.keys(style).map((key) => {
-      this.root.style[key] = style[key]
+    Object.keys(pos.style).map((key) => {
+      dom.style[key] = pos.style[key]
     })
-
     Object.keys(customStyle).map(key => {
-      this.root.style[key] = customStyle[key]
+      dom.style[key] = customStyle[key]
     })
-
-    this.show()
   }
 
-  show () {
-    Util.addClass(this.root, 'show')
-  }
-
-  hide () {
-    Util.removeClass(this.root, 'show')
-  }
-
-  render () {
-    return `<xg-thumbnail class="thumbnail">
-    </div>`
+  createThumbnail (root, className) {
+    const dom = Util.createDom('xg-thumbnail', '', {}, `thumbnail ${className}`)
+    root && root.appendChild(dom)
+    return dom
   }
 }
