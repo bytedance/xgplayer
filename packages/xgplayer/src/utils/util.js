@@ -25,8 +25,10 @@ util.hasClass = function (el, className) {
 
   if (el.classList) {
     return Array.prototype.some.call(el.classList, item => item === className)
-  } else {
+  } else if (el.className) {
     return !!el.className.match(new RegExp('(\\s|^)' + className + '(\\s|$)'))
+  } else {
+    return false;
   }
 }
 
