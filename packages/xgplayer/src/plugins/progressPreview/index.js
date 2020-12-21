@@ -104,10 +104,9 @@ export default class ProgressPreview extends Plugin {
       e.stopPropagation()
     }
   }
-  
 
   onProgressMove (data) {
-    this.updatePosition(data.offset, data.width, data.e)
+    this.updatePosition(data.offset, data.width, data.currentTime, data.e)
   }
 
   onProgressDragStart (data) {
@@ -141,7 +140,7 @@ export default class ProgressPreview extends Plugin {
       !this.thumbnail && (_tt = -tWidth / 2)
     }
     _t !== undefined && (previewLine.style.transform = `translateX(${_t}px)`)
-    _tt !== undefined && (timePoint.style.transform  = `translateX(${_tt}px)`)
+    _tt !== undefined && (timePoint.style.transform = `translateX(${_tt}px)`)
     root.style.transform = `translateX(${x}px)`
   }
 
@@ -151,18 +150,17 @@ export default class ProgressPreview extends Plugin {
     !this.thumbnail && (timePoint.textContent = Util.format(time))
   }
 
-  updatePosition (offset, cwidth, e) {
-    const {root, config, player, _state} = this
+  updatePosition (offset, cwidth, time, e) {
+    const {root, config, _state} = this
     if (!root) {
       return
     }
 
     this.updateLinePos(offset, cwidth)
-    let now = offset / cwidth * player.duration
-    now = now < 0 ? 0 : (now > player.duration ? player.duration : now)
-    _state.now = now
+    // let now = offset / cwidth * player.duration
+    // now = now < 0 ? 0 : (now > player.duration ? player.duration : now)
+    _state.now = time
     if (e && e.target && Util.hasClass(e.target, 'xgplayer-spot')) {
-      const rec = e.target.getBoundingClientRect()
       this.showTips(e.target.getAttribute('data-text'))
       _state.f = true
       config.isFocusDots && _state.f && (_state.now = parseInt(e.target.getAttribute('data-time'), 10))
@@ -228,11 +226,14 @@ export default class ProgressPreview extends Plugin {
       const rect = this.root.getBoundingClientRect()
       const {width} = rect
       const offset = dot.time / this.player.duration * width
-      this.updatePosition(offset, width)
+      this.updatePosition(offset, width, dot.time)
     }
   }
 
   showTips (text, isDefault) {
+    if (!text) {
+      return
+    }
     this.tipText.textContent = text
     Util.addClass(this.find('.xg-spot-content'), 'show-text')
     if (isDefault && this.config.mode === 'production') {

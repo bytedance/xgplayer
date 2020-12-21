@@ -19,8 +19,8 @@ class Progress extends Plugin {
       isPauseMoving: false, // 是否在move的时候暂停视频内容
       isCloseClickSeek: false, // 是否关闭点击进度条的时候seek
       fragments: [{percent: 1}],
-      miniMoveStep: 2,
-      miniStartStep: 1,
+      miniMoveStep: 5,
+      miniStartStep: 2,
       onMoveStart: () => {
       }, // 手势开始移动回调
       onMoveEnd: () => {} // 手势移动结束回调
@@ -183,9 +183,9 @@ class Progress extends Plugin {
   }
 
   onMoveOnly = (e) => {
-    const {root, pos} = this
+    const {pos, config} = this
     Util.event(e)
-    if (pos.moving && Math.abs(pos.x - e.clientX) < 2) {
+    if (pos.moving && Math.abs(pos.x - e.clientX) < config.miniMoveStep) {
       return
     }
     pos.moving = true
@@ -283,7 +283,7 @@ class Progress extends Plugin {
   }
 
   onMouseMove = (e) => {
-    const {root, pos, player, config} = this
+    const {pos, player, config} = this
     if (this.isMobile) {
       e.stopPropagation()
       e.preventDefault()
@@ -315,7 +315,7 @@ class Progress extends Plugin {
     this.focus()
   }
 
-  onMouseLeave  = (e) => {
+  onMouseLeave = (e) => {
     const {player, pos} = this
     pos.isEnter = false
     if (player.isMini) {
