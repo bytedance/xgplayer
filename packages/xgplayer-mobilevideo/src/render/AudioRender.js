@@ -21,7 +21,7 @@ export default class AudioRender extends BaseRender {
     this._lastTimeLineTime = 0; // 用于seek时记录seek位置,audioCtx重新实例化，audioCtx.currentTime从0开始
     this._sampleQueue = [];
     this._source = null;
-    this._audioCanAutoPlay = false;
+    this._audioCanAutoplay = true;
     this._lastBuffer = null;
     this._onSourceBufferEnded = this._onSourceBufferEnded.bind(this);
     this._initAudioCtx(config.volume || 0.6);
@@ -54,9 +54,8 @@ export default class AudioRender extends BaseRender {
     return this._audioCtx.state;
   }
 
-  // 实例化 webAudio 后可以确定是否允许自动播放
-  get audioCanAutoPlay () {
-    return this._audioCanAutoPlay;
+  get audioCanAutoplay () {
+    return this._audioCanAutoplay;
   }
 
   resume () {
@@ -73,6 +72,10 @@ export default class AudioRender extends BaseRender {
     let err = new Error(msg);
     err.code = MEDIA_ERR_DECODE;
     return err;
+  }
+
+  _emitTimelineEvents (e, v, d) {
+    this._parent.emit(e, v, d);
   }
 
   _initAudioCtx (volume) {
@@ -93,19 +96,15 @@ export default class AudioRender extends BaseRender {
     this._gainNode = this._audioCtx.createGain();
     this._gainNode.gain.value = volume;
     this._gainNode.connect(this._audioCtx.destination);
-    this._audioCanAutoPlay = this._audioCtx.state === 'running';
+    this._audioCanAutoplay = this._audioCtx.state === 'running';
     logger.log(this.TAG, 'webAudio state:', this._audioCtx.state);
-    this._audioCtx.suspend();
     initBgSilenceAudio();
-  }
-
-  _emitTimelineEvents (e, v, d) {
-    this._parent.emit(e, v, d);
+    this._bindAudioCtxEvent()
+    return this._audioCtx.suspend();
   }
 
   _bindEvents () {
     super._bindEvents();
-    this._bindAudioCtxEvent()
 
     this._parent.on(Events.TIMELINE.UPDATE_VOLUME, (v) => {
       if (!this._gainNode) return;
@@ -185,22 +184,23 @@ export default class AudioRender extends BaseRender {
     // reinit,连续seek时,新建的audioCtx还没使用过的话,不再新建
     if (this._ready && this._audioCtx.currentTime) {
       let volume = this._gainNode.gain.value;
-      // destroy
-      this._audioCtx.close();
-      this._audioCtx.removeEventListener('statechange', this._onStateChange);
-      this._audioCtx = null;
-      if (this._source) {
-        this._source.removeEventListener('ended', this._onSourceBufferEnded);
-      }
-      this._source = null;
-      this._initAudioCtx(volume);
-      this._bindAudioCtxEvent();
+      return this._audioCtx.close().then(() => {
+        this._audioCtx.removeEventListener('statechange', this._onStateChange);
+        this._audioCtx = null;
+        if (this._source) {
+          this._source.removeEventListener('ended', this._onSourceBufferEnded);
+        }
+        this._source = null;
+        return this._initAudioCtx(volume);
+      })
     }
+    return Promise.resolve();
   }
 
   _doSeek (time) {
-    this._reInitAudioCtx(time);
-    this._getAudioBuffer(true);
+    this._reInitAudioCtx(time).then(() => {
+      this._getAudioBuffer(true);
+    });
   }
 
   _doChaseFrame (time) {
@@ -209,12 +209,13 @@ export default class AudioRender extends BaseRender {
     if (!next) return;
     time = next.start;
     logger.warn(this.TAG, 'chase frame to time: ', time);
-    this._reInitAudioCtx(time);
-    this._startRender();
-    this._emitTimelineEvents(
-      Events.TIMELINE.PLAY_EVENT,
-      Events.VIDEO_EVENTS.TIMEUPDATE
-    );
+    this._reInitAudioCtx(time).then(() => {
+      this._startRender();
+      this._emitTimelineEvents(
+        Events.TIMELINE.PLAY_EVENT,
+        Events.VIDEO_EVENTS.TIMEUPDATE
+      );
+    });
   }
 
   _assembleAAC () {
@@ -325,7 +326,6 @@ export default class AudioRender extends BaseRender {
     let buffer = this._getAudioBuffer();
 
     if (!buffer) return;
-
     if (this._audioCtx.state === 'suspended') {
       this._audioCtx.resume();
       playSlienceAudio();

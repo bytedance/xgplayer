@@ -1,4 +1,4 @@
-import { EVENTS } from 'xgplayer-helper-utils'
+import { EVENTS, logger } from 'xgplayer-helper-utils'
 
 const LOADER_EVENTS = EVENTS.LOADER_EVENTS;
 const REMUX_EVENTS = EVENTS.REMUX_EVENTS;
@@ -17,6 +17,7 @@ class HlsLiveController {
     this.sequence = 0;
     this._playlist = null;
     this.preloadTime = this.configs.preloadTime;
+    this.m3u8FlushDuration = 4;
     this._m3u8lasttime = 0;
     this._timmer = setInterval(this._checkStatus.bind(this), 300);
     this._lastCheck = 0;
@@ -32,7 +33,7 @@ class HlsLiveController {
     this._context.registry('TS_BUFFER', XgBuffer);
     this._context.registry('TRACKS', Tracks);
 
-    this._playlist = this._context.registry('PLAYLIST', Playlist)({autoclear: true});
+    this._playlist = this._context.registry('PLAYLIST', Playlist)({autoclear: true, logger});
     this._context.registry('PRE_SOURCE_BUFFER', PreSource);
 
     this._context.registry('COMPATIBILITY', Compatibility);
@@ -221,6 +222,7 @@ class HlsLiveController {
   }
 
   _m3u8Loaded (mdata) {
+    this.m3u8FlushDuration = this._playlist.targetduration || this.m3u8FlushDuration;
     if (!this.preloadTime) {
       this.preloadTime = this._playlist.targetduration ? this._playlist.targetduration : 5;
     }
@@ -279,17 +281,23 @@ class HlsLiveController {
     let frag = this._playlist.getTs();
     const { count: times, delay: delayTime } = this._player.config.retry || {};
     if (frag && !frag.downloaded && !frag.downloading) {
+      this._logDownSegment(frag);
       this._playlist.downloading(frag.url, true);
       this.emitTo('TS_LOADER', LOADER_EVENTS.LADER_START, frag.url, {}, times, delayTime)
     } else {
-      let preloadTime = this.preloadTime ? this.preloadTime : 0;
       let current = new Date().getTime();
       if ((!frag || frag.downloaded) &&
-        (current - this._m3u8lasttime) / 1000 > preloadTime) {
+        (current - this._m3u8lasttime) / 1000 > this.m3u8FlushDuration) {
         this._m3u8lasttime = current
         this.emitTo('M3U8_LOADER', LOADER_EVENTS.LADER_START, this.url, {}, times, delayTime);
       }
     }
+  }
+
+  _logDownSegment (frag) {
+    if (!frag) return;
+    logger.groupEnd();
+    logger.group(this.TAG, `load ${frag.id}: [${frag.time / 1000} , ${(frag.time + frag.duration) / 1000}], downloading: ${frag.downloading} , donwloaded: ${frag.downloaded}`);
   }
 
   load (url) {

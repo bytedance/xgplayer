@@ -33,7 +33,9 @@ class HlsPlayer extends BasePlugin {
     const { player } = this;
     if (player.video) {
       player.video.setAttribute('preloadtime', this.config.preloadTime);
-      player.video.setAttribute('innerdegrade', player.config.innerDegrade);
+      if (player.config.innerDegrade) {
+        player.video.setAttribute('innerdegrade', player.config.innerDegrade);
+      }
     }
     this._initProcess();
     this.initEvents();
@@ -63,7 +65,26 @@ class HlsPlayer extends BasePlugin {
     // 内部低解码自动降级
     this.lowdecode = () => {
       this.emit('lowdecode', player.video.degradeInfo);
-      if (player.config.innerDegrade) {
+
+      // 降级到mse
+      if (player.config.innerDegrade === 2) {
+        this._degrade(null, true);
+        const {HlsLivePlayer} = window;
+        if (HlsLivePlayer && HlsLivePlayer.HlsLiveMsePlayer) {
+          player.config.url = player.config.backupURL;
+          let hlsMsePlayer = player.registerPlugin(HlsLivePlayer.HlsLiveMsePlayer)
+          hlsMsePlayer.beforePlayerInit();
+          Promise.resolve().then(() => {
+            player.video.src = player.url;
+            const mobilePluginName = HlsPlayer.pluginName.toLowerCase();
+            player.plugins[mobilePluginName] = null;
+          })
+        }
+        return;
+      }
+
+      // 降级到video直接播放hls
+      if (player.config.innerDegrade === 1) {
         this._degrade();
       }
     }
@@ -74,14 +95,14 @@ class HlsPlayer extends BasePlugin {
     player.video.addEventListener('lowdecode', this.lowdecode);
   }
 
-  _degrade (url) {
+  _degrade (url, useMse) {
     const {player} = this;
     let mVideo = player.video;
     if (mVideo && mVideo.TAG === 'MVideo') {
       let newVideo = player.video.degradeVideo;
       this.destroy();
       player.video = newVideo;
-      mVideo.degrade(url);
+      mVideo.degrade(url, useMse);
     }
   }
 

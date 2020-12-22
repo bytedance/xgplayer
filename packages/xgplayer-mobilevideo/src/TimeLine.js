@@ -23,6 +23,7 @@ export default class TimeLine extends EventEmitter {
     this._lowdecodeEmited = false;
     this._lastSeekTime = 0;
     this._bindEvent();
+    this._parent.updateCanplayStatus(this.currentAudioCanAutoplay)
   }
 
   get ready () {
@@ -97,6 +98,15 @@ export default class TimeLine extends EventEmitter {
     this._paused = v;
   }
 
+  // 播放器初始化时第一个WebAudio能否自动播放的状态,后续重新创建的不算
+  get audioCanAutoplay () {
+    return this._parent._audioCanAutoplay
+  }
+
+  get currentAudioCanAutoplay () {
+    return this.audioRender.audioCanAutoplay;
+  }
+
   _resetReadyStatus () {
     this._readyStatus.audio = false;
     this._readyStatus.video = false;
@@ -152,8 +162,6 @@ export default class TimeLine extends EventEmitter {
     this.videoRender.on(Events.VIDEO.VIDEO_READY, this.onVideoReady);
 
     this.videoRender.on(Events.VIDEO.DECODE_LOW_FPS, () => {
-      if (this.currentTime < 10) return;
-
       let canSwitchToMultiWorker = this._parent.live &&
         !this._switchToMultiWorker &&
         !this._noAudio &&
@@ -165,6 +173,7 @@ export default class TimeLine extends EventEmitter {
         this.videoRender.switchToMultiWorker(this._parent.preloadTime);
         return;
       }
+      if (this.currentTime < 5) return;
       // 对外只触发一次
       if (this._lowdecodeEmited) return;
       this._lowdecodeEmited = true;
@@ -210,7 +219,7 @@ export default class TimeLine extends EventEmitter {
     }
     this.emit(Events.TIMELINE.READY);
     if (this._seeking) {
-      if (!this.audioRender.audioCanAutoPlay) {
+      if (!this.currentAudioCanAutoplay) {
         this.pause();
       }
       this._seeking = false;
@@ -271,7 +280,7 @@ export default class TimeLine extends EventEmitter {
 
   play () {
     return new Promise((resolve, reject) => {
-      let resumed = this.audioRender.audioCanAutoPlay;
+      let resumed = this.currentAudioCanAutoplay;
 
       if (!this._parent.startPlayed) {
         this.emit(Events.TIMELINE.START_RENDER);
@@ -337,7 +346,7 @@ export default class TimeLine extends EventEmitter {
     }
 
     if (this._parent.live) {
-      if (!this.currentTime) return;
+      if (this.currentTime < 0.1 || !this.audioCanAutoplay) return;
       this.emit(Events.TIMELINE.CHASE_FRAME, time);
       return
     };
