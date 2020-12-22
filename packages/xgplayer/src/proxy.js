@@ -141,7 +141,7 @@ class Proxy {
 
         if (self.hasOwnProperty('_interval')) {
           if (['ended', 'error', 'timeupdate'].indexOf(name) < 0) {
-            clearInterval(self._interval['bufferedChange'])
+            util.clearInterval(self, 'bufferedChange')
             util.setInterval(self, 'bufferedChange', function () {
               if (self.video && self.video.buffered) {
                 let curBuffer = []
