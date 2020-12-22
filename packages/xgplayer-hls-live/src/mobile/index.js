@@ -92,7 +92,8 @@ class HlsPlayer extends BasePlugin {
 
   initHls () {
     const { player } = this;
-    const options = Object.assign({}, defaultConfig, player.config, { player, preloadTime: player.config.preloadTime })
+    const preloadTime = player.config.preloadTime || HlsPlayer.defaultConfig.preloadTime;
+    const options = Object.assign({}, defaultConfig, player.config, { player, preloadTime })
     this.hls = this.context.registry('HLS_CONTROLLER', HLS)(options)
   }
 
