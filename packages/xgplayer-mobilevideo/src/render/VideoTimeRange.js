@@ -177,12 +177,6 @@ export default class VideoTimeRange {
     this._appendVodBuffer(frames)
   }
 
-  deletePassed (dts) {
-    let len = this._currentFrameQueue.length;
-    this._currentFrameQueue = this._currentFrameQueue.filter((x) => x.dts > dts);
-    return len - this._currentFrameQueue.length;
-  }
-
   getFrame () {
     let f;
     if (this.isLive) {

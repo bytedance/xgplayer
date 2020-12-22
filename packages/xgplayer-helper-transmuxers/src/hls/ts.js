@@ -981,6 +981,9 @@ class TsDemuxer {
         if (N1 > 0) {
           buffer.skip(N1);
         }
+        if (ret.dts > ret.pts) {
+          ret.dts = ret.pts;
+        }
         ret.ES = TsDemuxer.ES(buffer, ret.type, ts.header.streamType);
       } else {
         throw new Error('format is not supported');

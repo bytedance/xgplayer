@@ -21,6 +21,10 @@ export default class BaseRender extends EventEmitter {
     return this._innerDegrade;
   }
 
+  get noAudio () {
+    return this._noAudio;
+  }
+
   _bindEvents () {
     this._parent.on(Events.TIMELINE.SET_METADATA, this._setMetadata.bind(this));
 
@@ -38,8 +42,8 @@ export default class BaseRender extends EventEmitter {
 
     this._parent.on(Events.TIMELINE.DESTROY, this._destroy.bind(this));
 
-    this._parent.on(Events.TIMELINE.NO_AUDIO, () => {
-      this._noAudio = true;
+    this._parent.on(Events.TIMELINE.NO_AUDIO, (type) => {
+      this._noAudio = type;
     });
 
     this._parent.on(Events.TIMELINE.SET_PLAY_MODE, v => {

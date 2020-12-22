@@ -10,6 +10,7 @@ class Playlist {
     this.fragLength = 0;
     this._lastget = undefined;
     this._audoclear = configs.autoclear || false;
+    this.logger = configs.logger;
     this.downloadedUrls = [];
   }
 
@@ -79,9 +80,13 @@ class Playlist {
 
     // 新分片信息
     if (data.sequence > this.sequence) {
+      let len = data.frags.length;
+      if (this.logger) {
+        this.logger.log('PLAYLIST', `new playlist [${data.sequence}, ${data.sequence + len}]`)
+      }
       this.sequence = data.sequence;
       let newfraglist = []
-      for (let i = 0; i < data.frags.length; i++) {
+      for (let i = 0; i < len; i++) {
         let frag = data.frags[i];
         if (!this._ts[frag.url] && this.downloadedUrls.indexOf(frag.url) < 0) {
           newfraglist.push(frag.url)
