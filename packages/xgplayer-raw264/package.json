@@ -31,9 +31,9 @@
     ]
   },
   "dependencies": {
-    "xgplayer-helper-codec": "2.3.54",
-    "xgplayer-helper-models": "2.3.54",
-    "xgplayer-helper-utils": "2.3.54",
-    "xgplayer-mobilevideo": "2.3.54"
+    "xgplayer-helper-codec": "2.3.55",
+    "xgplayer-helper-models": "2.3.55",
+    "xgplayer-helper-utils": "2.3.55",
+    "xgplayer-mobilevideo": "2.3.55"
   }
 }
