@@ -26,6 +26,10 @@ class FlvPlayer extends BasePlugin {
   }
 
   beforePlayerInit () {
+    const { player } = this;
+    if (player.video && player.config.innerDegrade) {
+      player.video.setAttribute('innerdegrade', player.config.innerDegrade);
+    }
     this.context = new Context(flvAllowedEvents)
     this.initFlv()
     this.context.init()
@@ -60,6 +64,29 @@ class FlvPlayer extends BasePlugin {
   initEvents () {
     this.lowdecode = () => {
       this.emit('lowdecode', this.player.video.degradeInfo);
+
+      // 内部降级到mse
+      if (this.player.config.innerDegrade === 2) {
+        const {player} = this;
+        let mVideo = player.video;
+        if (mVideo && mVideo.TAG === 'MVideo') {
+          let newVideo = player.video.degradeVideo;
+          this.destroy();
+          player.video = newVideo;
+          mVideo.degrade(null, true);
+        }
+        const {backupConstructor, backupURL} = player.config;
+        if (backupConstructor) {
+          player.config.url = backupURL;
+          let flvMsePlayer = player.registerPlugin(backupConstructor)
+          flvMsePlayer.beforePlayerInit();
+          Promise.resolve().then(() => {
+            player.video.src = player.url;
+            const mobilePluginName = FlvPlayer.pluginName.toLowerCase();
+            player.plugins[mobilePluginName] = null;
+          })
+        }
+      }
     }
     this.on(Events.PLAY, this.play);
     this.on(Events.PAUSE, this.pause);

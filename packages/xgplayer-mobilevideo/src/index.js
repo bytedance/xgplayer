@@ -16,8 +16,10 @@ class MVideo extends HTMLElement {
     this._proxyProps();
     this._isLive = true;
     this._vMeta = null;
+    this._aMeta = null;
     this._degradeVideo = document.createElement('video');
     this._eventsBackup = [];
+    this._audioCanAutoplay = true;
     this._init();
     this._firstWebAudio = true;
     this._startPlayed = false;
@@ -119,7 +121,6 @@ class MVideo extends HTMLElement {
       if (status === 'error') {
         logger.warn(this.TAG, 'detect error:', data.message);
         this.pause();
-
         // 发生错误时 禁用
         this._disabled(true);
 
@@ -161,7 +162,7 @@ class MVideo extends HTMLElement {
   // 禁用逻辑
   _disabled (force) {
     // 永久禁用
-    if (force || (this.decodeFps / this.fps <= 0.8 && this.bitrate < 2000000)) {
+    if (force || !this.decodeFps || (this.decodeFps / this.fps <= 0.8 && this.bitrate < 2000000)) {
       localStorage.setItem('mvideo_dis265', 1);
       return
     }
@@ -171,8 +172,14 @@ class MVideo extends HTMLElement {
     localStorage.setItem('mvideo_disTime', new Date().getTime())
   }
 
-  // 降级到video播放
-  degrade (url) {
+  /**
+   *  内部降级
+   *  innerDegrade==1 : 降级到video直接播放hls
+   *  innerDegrade==2 : 降级到mse
+   *  @param {string} url  强制切换到url地址并且使用video直接播放
+   *  @param {boolean} useMse 降级到mse来播放时 不用设置degradeVideo.src
+   */
+  degrade (url, useMse) {
     url = url || this.src;
     let canvasAppended = !!this.querySelector('canvas');
     if (canvasAppended) {
@@ -180,20 +187,23 @@ class MVideo extends HTMLElement {
     } else {
       this.appendChild(this._degradeVideo);
     }
-    this._degradeVideo.src = url;
     this.destroy();
-    this._degradeVideo.muted = false;
-    this._degradeVideo.play().then(() => {
-      console.log('降级自动播放');
-    }).catch(e => {
-      console.log('degrade video play:', e.message, document.querySelector('video').muted);
-    });
-
     // 销毁MVideo上的事件
     this._eventsBackup.forEach(([eName, eHandler]) => {
       super.removeEventListener.call(this, eName, eHandler)
     })
     this._eventsBackup = [];
+
+    this._degradeVideo.muted = false;
+
+    if (!useMse) {
+      this._degradeVideo.src = url;
+      this._degradeVideo.play().then(() => {
+        console.log('降级自动播放');
+      }).catch(e => {
+        console.log('degrade video play:', e.message, document.querySelector('video').muted);
+      });
+    }
     this._degradeVideo = null;
   }
 
@@ -215,7 +225,7 @@ class MVideo extends HTMLElement {
 
   _interceptAction () {
     // Note
-    if (this._degradeVideo && this.innerDegrade) {
+    if (this._degradeVideo && this.innerDegrade === 1) {
       this._degradeVideo.muted = true;
       this._degradeVideo.play().then(() => {
         this._degradeVideo.pause();
@@ -302,9 +312,9 @@ class MVideo extends HTMLElement {
         );
         this._logFirstFrame = true;
       }
-      if (this.lowlatency || !aSam0) {
+      if (this.lowlatency || (!aSam0 && !this._aMeta)) {
         let type = this.lowlatency ? 1 : 2;
-        logger.log(this.TAG, 'video set noAudio! type=', type);
+        logger.warn(this.TAG, 'video set noAudio! type=', type);
         this.timeline.emit(Events.TIMELINE.NO_AUDIO, type);
       }
     }
@@ -312,6 +322,7 @@ class MVideo extends HTMLElement {
   }
 
   setAudioMeta (meta) {
+    this._aMeta = meta;
     this.timeline.emit(Events.TIMELINE.SET_METADATA, 'audio', meta);
   }
 
@@ -351,6 +362,12 @@ class MVideo extends HTMLElement {
       this._err = null;
       this._noSleep = null;
     }
+  }
+
+  // 只初始化播放器时记录一次
+  updateCanplayStatus (canplay) {
+    if (canplay) return;
+    this._audioCanAutoplay = canplay;
   }
 
   dump () {
@@ -546,9 +563,9 @@ class MVideo extends HTMLElement {
     }
   }
 
-  // 移动端软解 启用内部降级
   get innerDegrade () {
-    return this.getAttribute('innerdegrade') === 'true';
+    let v = this.getAttribute('innerdegrade');
+    return v === 'true' || isFinite(parseInt(v));
   }
 
   set __glCtxOptions (v) {

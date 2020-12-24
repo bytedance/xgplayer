@@ -1,11 +1,8 @@
 import { EVENTS } from 'xgplayer-helper-utils'
-import { avc } from 'xgplayer-helper-codec';
 import Player from 'xgplayer'
-const { NalUnit } = avc;
 
 const DEMUX_EVENTS = EVENTS.DEMUX_EVENTS;
 const LOADER_EVENTS = EVENTS.LOADER_EVENTS;
-const BROWSER_EVENTS = EVENTS.BROWSER_EVENTS
 
 const Tag = 'FLVController'
 
