@@ -75,10 +75,10 @@ class FlvPlayer extends BasePlugin {
           player.video = newVideo;
           mVideo.degrade(null, true);
         }
-        const {FlvLivePlayer} = window;
-        if (FlvLivePlayer && FlvLivePlayer.FlvLiveMsePlayer) {
-          player.config.url = player.config.backupURL;
-          let flvMsePlayer = player.registerPlugin(FlvLivePlayer.FlvLiveMsePlayer)
+        const {backupConstructor, backupURL} = player.config;
+        if (backupConstructor) {
+          player.config.url = backupURL;
+          let flvMsePlayer = player.registerPlugin(backupConstructor)
           flvMsePlayer.beforePlayerInit();
           Promise.resolve().then(() => {
             player.video.src = player.url;

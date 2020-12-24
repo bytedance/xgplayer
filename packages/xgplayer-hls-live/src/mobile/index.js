@@ -69,10 +69,10 @@ class HlsPlayer extends BasePlugin {
       // 降级到mse
       if (player.config.innerDegrade === 2) {
         this._degrade(null, true);
-        const {HlsLivePlayer} = window;
-        if (HlsLivePlayer && HlsLivePlayer.HlsLiveMsePlayer) {
-          player.config.url = player.config.backupURL;
-          let hlsMsePlayer = player.registerPlugin(HlsLivePlayer.HlsLiveMsePlayer)
+        const {backupConstructor, backupURL} = player.config;
+        if (backupConstructor) {
+          player.config.url = backupURL;
+          let hlsMsePlayer = player.registerPlugin(backupConstructor)
           hlsMsePlayer.beforePlayerInit();
           Promise.resolve().then(() => {
             player.video.src = player.url;
