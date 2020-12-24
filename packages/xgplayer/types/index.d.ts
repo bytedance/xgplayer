@@ -407,6 +407,10 @@ declare module 'xgplayer' {
          *
          */
         public replay(): void;
+
+        public proxyOn (event: string, fn: VoidFunction): void;
+          
+        public proxyOnce (event: string, fn: VoidFunction): void;
     }
 
     class Danmu {

@@ -220,6 +220,12 @@ class Proxy {
       return [0, 0]
     }
   }
+  proxyOn (event, fn) {
+    util.on(this, event, fn, 'destroy')
+  }
+  proxyOnce (event, fn) {
+    util.once(this, event, fn, 'destroy')
+  }
   set autoplay (isTrue) {
     this.video.autoplay = isTrue
   }
