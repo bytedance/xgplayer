@@ -155,6 +155,10 @@ class MVideo extends HTMLElement {
         this.pause();
       }
 
+      if (status === 'progress') {
+        this._noSleep.toPlay();
+      }
+
       this._innerDispatchEvent(status);
     });
   }
@@ -198,6 +202,7 @@ class MVideo extends HTMLElement {
 
     if (!useMse) {
       this._degradeVideo.src = url;
+      this._degradeVideo.load();
       this._degradeVideo.play().then(() => {
         console.log('降级自动播放');
       }).catch(e => {
@@ -270,9 +275,7 @@ class MVideo extends HTMLElement {
         this.timeline._paused = false;
         this._innerDispatchEvent('timeupdate');
         this._innerDispatchEvent('play');
-        try {
-          this._noSleep.enable();
-        } catch (e) {}
+        this._noSleep.enable();
         this.timeline.once('ready', () => {
           logger.log(this.TAG, 'timeline emit ready');
           this.timeline.play()
@@ -355,6 +358,7 @@ class MVideo extends HTMLElement {
   }
 
   destroy () {
+    this._noSleep.destroy();
     if (this.timeline) {
       logger.log(this.TAG, 'call destroy');
       this.timeline.emit(Events.TIMELINE.DESTROY);
@@ -461,6 +465,7 @@ class MVideo extends HTMLElement {
   set __muted (v) {
     this.setAttribute('muted', v);
     this._interceptAction();
+    this._noSleep.enable();
     this.timeline.emit(Events.TIMELINE.UPDATE_VOLUME, v ? 0 : this.volume);
   }
 

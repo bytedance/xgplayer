@@ -43,8 +43,8 @@ class HlsLiveController {
     this._playlist = this._context.registry('PLAYLIST', Playlist)({autoclear: true, logger});
 
     // 初始化M3U8Loader;
-    this._m3u8loader = this._context.registry('M3U8_LOADER', FetchLoader)({ buffer: 'M3U8_BUFFER', readtype: 1, retryTime: 0 });
-    this._tsloader = this._context.registry('TS_LOADER', FetchLoader)({ buffer: 'TS_BUFFER', readtype: 3, retryTime: 1 });
+    this._m3u8loader = this._context.registry('M3U8_LOADER', FetchLoader)({ buffer: 'M3U8_BUFFER', readtype: 1 });
+    this._tsloader = this._context.registry('TS_LOADER', FetchLoader)({ buffer: 'TS_BUFFER', readtype: 3 });
 
     // 初始化TS Demuxer
     this._context.registry('TS_DEMUXER', TsDemuxer)({ inputbuffer: 'TS_BUFFER' });
@@ -234,7 +234,8 @@ class HlsLiveController {
         this._context.registry('KEY_BUFFER', XgBuffer)();
         this._tsloader.buffer = 'DECRYPT_BUFFER';
         this._keyLoader = this._context.registry('KEY_LOADER', FetchLoader)({buffer: 'KEY_BUFFER', readtype: 3});
-        this.emitTo('KEY_LOADER', LOADER_EVENTS.LADER_START, this._playlist.encrypt.uri);
+        const { count: times, delay: delayTime } = this._player.config.retry || {};
+        this.emitTo('KEY_LOADER', LOADER_EVENTS.LADER_START, this._playlist.encrypt.uri, {}, times, delayTime);
       } else {
         this._m3u8Loaded(mdata);
       }
@@ -316,17 +317,18 @@ class HlsLiveController {
       return;
     }
     let frag = this._playlist.getTs();
+    const { count: times, delay: delayTime } = this._player.config.retry || {};
     if (frag && !frag.downloaded && !frag.downloading) {
       this._logDownSegment(frag);
       this._playlist.downloading(frag.url, true);
-      this.emitTo('TS_LOADER', LOADER_EVENTS.LADER_START, frag.url)
+      this.emitTo('TS_LOADER', LOADER_EVENTS.LADER_START, frag.url, {}, times, delayTime);
     } else {
       this._consumeFragment(true);
       let current = new Date().getTime();
       if ((!frag || frag.downloaded) &&
         (current - this._m3u8lasttime) / 1000 > this.m3u8FlushDuration) {
-        this._m3u8lasttime = current
-        this.emitTo('M3U8_LOADER', LOADER_EVENTS.LADER_START, this.url);
+        this._m3u8lasttime = current;
+        this.emitTo('M3U8_LOADER', LOADER_EVENTS.LADER_START, this.url, {}, times, delayTime);
       }
     }
   }
