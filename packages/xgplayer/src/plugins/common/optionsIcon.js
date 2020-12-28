@@ -10,7 +10,7 @@ export default class OptionsIcon extends Plugin {
 
   static get defaultConfig () {
     return {
-      position: POSITIONS.CONTROLS_RIGTH,
+      position: POSITIONS.CONTROLS_RIGHT,
       index: 100,
       list: [],
       listType: 'middle', // 模式 rightSide-右侧边栏  middle-中间显示

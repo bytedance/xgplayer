@@ -236,7 +236,7 @@ class Proxy {
   }
 
   get currentTime () {
-    return this._currentTime
+    return this.video.currentTime || this._currentTime
   }
 
   set currentTime (time) {

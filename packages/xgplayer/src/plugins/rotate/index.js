@@ -8,7 +8,7 @@ export default class Rotate extends Plugin {
 
   static get defaultConfig () {
     return {
-      position: POSITIONS.CONTROLS_RIGTH,
+      position: POSITIONS.CONTROLS_RIGHT,
       index: 6,
       innerRotate: false, // true为只有画面旋转，false为整个播放器旋转
       clockwise: false,

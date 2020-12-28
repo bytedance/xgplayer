@@ -11,7 +11,7 @@ class DanmuIcon extends Plugin {
 
   static get defaultConfig () {
     return {
-      position: POSITIONS.CONTROLS_RIGTH,
+      position: POSITIONS.CONTROLS_RIGHT,
       index: 11,
       onSwitch: (state) => {
       }

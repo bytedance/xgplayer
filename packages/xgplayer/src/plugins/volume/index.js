@@ -10,7 +10,7 @@ class Volume extends Plugin {
 
   static get defaultConfig () {
     return {
-      position: POSITIONS.CONTROLS_RIGTH,
+      position: POSITIONS.CONTROLS_RIGHT,
       index: 1,
       disable: false,
       default: 0.6

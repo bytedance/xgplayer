@@ -503,6 +503,7 @@ const POSITIONS = {
   ROOT_TOP: 'rootTop',
   CONTROLS_LEFT: 'controlsLeft',
   CONTROLS_RIGTH: 'controlsRight',
+  CONTROLS_RIGHT: 'controlsRight',
   CONTROLS_CENTER: 'controlsCenter',
   CONTROLS: 'controls'
 }

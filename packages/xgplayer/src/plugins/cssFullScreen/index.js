@@ -9,7 +9,7 @@ export default class CssFullScreen extends Plugin {
 
   static get defaultConfig () {
     return {
-      position: POSITIONS.CONTROLS_RIGTH,
+      position: POSITIONS.CONTROLS_RIGHT,
       index: 1,
       disable: false
     }
