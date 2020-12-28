@@ -27,6 +27,12 @@ let s_replay = function () {
   }
   player.on('ended', onEnded)
 
+  function onBtnClick (e) {
+    e.preventDefault()
+    e.stopPropagation()
+  }
+  btn.addEventListener('click', onBtnClick)
+
   let svg = btn.querySelector('svg');
 
   ['click', 'touchend'].forEach(item => {

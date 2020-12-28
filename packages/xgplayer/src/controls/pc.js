@@ -82,14 +82,20 @@ let pc = function () {
       clearTimeout(player.userTimer)
     }
   }
-  controls.addEventListener('mouseenter', onControlMouseEnter, false)
+  controls.addEventListener('mouseenter', onControlMouseEnter)
 
   function onControlMouseLeave (e) {
     if(!player.config.closeControlsBlur) {
       player.emit('focus', player)
     }
   }
-  controls.addEventListener('mouseleave', onControlMouseLeave, false)
+  controls.addEventListener('mouseleave', onControlMouseLeave)
+
+  function onControlClick (e) {
+    e.preventDefault()
+    e.stopPropagation()
+  }
+  controls.addEventListener('click', onControlClick)
 
   function onReady (e) {
     if (player.config.autoplay) {
