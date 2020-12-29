@@ -58,9 +58,23 @@ export default class HlsLivePlayer extends BasePlugin {
     this.on(Events.PLAY, this.play)
   }
 
+  _offEvents () {
+    this.off(Events.URL_CHANGE, this.handleUrlChange)
+    this.off(Events.DEFINITION_CHANGE, this.handleDefinitionChange)
+    this.off(Events.DESTROY, this.destroy)
+    this.off(Events.PLAY, this.play)
+  }
+
   handleUrlChange (url) {
-    this.hls.mse.destroy().then(() => {
+    let request;
+    if (this.hls.mse) {
+      request = this.hls.mse.destroy();
+    } else {
+      request = Promise.resolve();
+    }
+    request.then(() => {
       this.player.config.url = url
+      this._offEvents();
       this._context.destroy();
       this._context = null;
       this.player.video.currentTime = 0;
