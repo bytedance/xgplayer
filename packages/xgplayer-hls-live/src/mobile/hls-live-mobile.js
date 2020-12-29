@@ -75,7 +75,7 @@ class HlsLiveController {
   }
 
   _onWaiting () {
-    if (!this._player.video || !this._player.video.currentTime) return;
+    if (!this._player.video || this._player.video.currentTime < 1) return;
     this.inWaiting = true;
   }
 
