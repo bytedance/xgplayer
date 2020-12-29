@@ -169,7 +169,8 @@ export default class FlvController {
       });
       return;
     }
-    this.emit(LOADER_EVENTS.LADER_START, url)
+    const { count: times, delay: delayTime } = this._player.config.retry || {};
+    this.emit(LOADER_EVENTS.LADER_START, url, {}, times, delayTime)
   }
 
   pause () {

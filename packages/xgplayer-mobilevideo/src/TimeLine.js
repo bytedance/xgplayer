@@ -170,7 +170,7 @@ export default class TimeLine extends EventEmitter {
       if (canSwitchToMultiWorker) {
         logger.warn(this.TAG, `switch to multi worker , decodeFps:${this.decodeFps} , fps:${this.fps}`)
         this._switchToMultiWorker = true;
-        this.videoRender.switchToMultiWorker(this._parent.preloadTime);
+        this.videoRender.switchToMultiWorker();
         return;
       }
       if (this.currentTime < 5) return;

@@ -166,10 +166,11 @@ export default class VideoRender extends BaseRender {
     this._whenReady();
   }
 
-  switchToMultiWorker (preloadTime) {
+  switchToMultiWorker () {
     // 新建worker
     this._initDecodeWorker(true);
     this.once(Events.VIDEO.VIDEO_DECODER_INIT, (decoder) => {
+      console.log('多worker 开始!');
       // ready 之后才可用
       if (this._wasmWorkers.length >= 2) return;
 
@@ -192,7 +193,7 @@ export default class VideoRender extends BaseRender {
         Math.min(
           // 防止gop过大、preloadTime过大
           this._decodeEstimate.gopLength * 2,
-          (preloadTime || 2) * this.fps
+          3 * this.fps
         ),
         MAX_DECODE_ONCE_FAST
       );
@@ -617,7 +618,7 @@ export default class VideoRender extends BaseRender {
     let _renderDelay = info.dts - this.preciseVideoDts;
     // console.log('_renderDelay: ', info.dts, _renderDelay);
 
-    if (_renderDelay > 0 && _renderDelay < 1000) {
+    if (_renderDelay > 0 && _renderDelay < 60000) { // 60s
       return;
     }
 

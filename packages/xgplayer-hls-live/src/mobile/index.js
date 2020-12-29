@@ -33,6 +33,10 @@ class HlsPlayer extends BasePlugin {
     const { player } = this;
     if (player.video) {
       player.video.setAttribute('preloadtime', this.config.preloadTime);
+      // 先兼容传递 innerDegrade = true
+      if (player.config.innerDegrade === true) {
+        player.config.innerDegrade = 1;
+      }
       if (player.config.innerDegrade) {
         player.video.setAttribute('innerdegrade', player.config.innerDegrade);
       }
