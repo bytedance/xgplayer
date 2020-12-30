@@ -1,8 +1,10 @@
 import EventEmitter from 'event-emitter'
 import allOff from 'event-emitter/all-off'
-import util from './utils/util'
+import Util from './utils/util'
+import Sniffer from './utils/sniffer'
 import Errors from './error'
 import {URL_CHANGE, DESTROY} from './events'
+
 const VIDEO_EVENTS = ['play', 'playing', 'pause', 'ended', 'error', 'seeking', 'seeked',
   'timeupdate', 'waiting', 'canplay', 'canplaythrough', 'durationchange', 'volumechange',
   'loadeddata', 'loadstart', 'emptied', 'ratechange', 'progress', 'stalled', 'suspend', 'abort']
@@ -41,16 +43,28 @@ class Proxy {
       controls: false,
       autoplay: options.autoplay,
       playsinline: options.playsinline,
-      'webkit-playsinline': options.playsinline,
       'x5-playsinline': options.playsinline,
-      'x5-video-player-type': options['x5-video-player-type'] || options['x5VideoPlayerType'],
+      'webkit-playsinline': options.playsinline,
       'x5-video-player-fullscreen': options['x5-video-player-fullscreen'] || options['x5VideoPlayerFullscreen'],
       'x5-video-orientation': options['x5-video-orientation'] || options['x5VideoOrientation'],
       airplay: options['airplay'],
       'webkit-airplay': options['airplay'],
+      muted: true,
       tabindex: 2,
       mediaType: options.mediaType || 'video'
     }, options.videoConfig, options.videoAttrbutes);
+    /**
+     * @description 微信内部同层播放兼容
+     * x5-playsinline和x5-video-player-type互斥，只需要存在一个即可
+     * @doc https://x5.tencent.com/docs/video.html
+     */
+    const playerType = options['x5-video-player-type'] || options['x5VideoPlayerType']
+    if (Sniffer.isWeixin && Sniffer.os.isAndroid && playerType) {
+      this.videoConfig['x5-video-player-type'] = playerType
+      delete this.videoConfig['playsinline']
+      delete this.videoConfig['webkit-playsinline']
+      delete this.videoConfig['x5-playsinline']
+    }
 
     if (options.loop) {
       this.videoConfig.loop = 'loop'
@@ -59,7 +73,7 @@ class Proxy {
       this.videoConfig.defaultPlaybackRate = options.defaultPlaybackRate
     }
 
-    this.video = util.createDom(this.videoConfig.mediaType, '', this.videoConfig, '')
+    this.video = Util.createDom(this.videoConfig.mediaType, '', this.videoConfig, '')
     if (options.autoplayMuted) {
       this.video.muted = true
     }
@@ -236,7 +250,7 @@ class Proxy {
   }
 
   get currentTime () {
-    return this._currentTime
+    return this.video.currentTime || this._currentTime
   }
 
   set currentTime (time) {

@@ -10,7 +10,7 @@ export default class Fullscreen extends Plugin {
 
   static get defaultConfig () {
     return {
-      position: POSITIONS.CONTROLS_RIGTH,
+      position: POSITIONS.CONTROLS_RIGHT,
       index: 0,
       useCssFullscreen: false,
       switchCallback: null,
