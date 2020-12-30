@@ -68,7 +68,12 @@ class Proxy {
         style.sheet.addRule(`${wrap} video::cue`, styleStr)
       }
     }
-    this.video = util.createDom(this.videoConfig.mediaType, textTrackDom, this.videoConfig, '')
+    let el = options.el ? options.el : util.findDom(document, `#${options.id}`)
+    if(window.XgVideoProxy && el.hasAttribute('data-xgmse')) {
+      this.video = new window.XgVideoProxy(el, options)
+    } else {
+      this.video = util.createDom(this.videoConfig.mediaType, textTrackDom, this.videoConfig, '')
+    }
     if (!this.textTrackShowDefault && textTrackDom) {
       let trackDoms = this.video.getElementsByTagName('Track')
       trackDoms[0].track.mode = 'hidden'

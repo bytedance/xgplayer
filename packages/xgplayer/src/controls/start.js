@@ -19,14 +19,14 @@ let start = function () {
       util.addClass(root, 'xgplayer-is-enter')
 
       if(typeof root.contains === 'function') {
-        if(!root.contains(player.video)) {
+        if((player.video && player.video.nodeType === 1 && !root.contains(player.video)) && !root.querySelector('canvas')) {
           player.once('canplay', onCanPlay)
           player.start()
         } else {
           onCanPlay()
         }
       } else {
-        if (!root.querySelector(this.videoConfig.mediaType)) {
+        if (!root.querySelector(this.videoConfig.mediaType) && !root.querySelector('canvas')) {
           player.once('canplay', onCanPlay)
           player.start()
         } else {

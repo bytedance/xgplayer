@@ -202,8 +202,8 @@ class Player extends Proxy {
         })
       }
     }
-    if (util.typeOf(url) === 'String') {
-      if (url.indexOf('blob:') > -1 && url === this.video.src) {
+    if (util.typeOf(url) !== 'Array') {
+      if (util.typeOf(url) === 'String' && url.indexOf('blob:') > -1 && url === this.video.src) {
         // 在Chromium环境下用mse url给video二次赋值会导致错误
       } else {
         this.video.src = url
@@ -236,7 +236,9 @@ class Player extends Proxy {
     if(!this.config.disableStartLoad) {
       this.video.load()
     }
-    root.insertBefore(this.video, root.firstChild)
+    if(!window.XgVideoProxy) {
+      root.insertBefore(this.video, root.firstChild)
+    }
     setTimeout(() => {
       this.emit('complete')
       if(this.danmu && typeof this.danmu.resize === 'function') {
