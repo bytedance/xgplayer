@@ -122,13 +122,6 @@ $color: #FF0000;
   }
 }
 .xgplayer-mobile {
-  font-family: PingFangSC-Regular;
-  -webkit-tap-highlight-color: rgba(0,0,0,0);
-  * {
-    text-decoration: none;
-    -webkit-tap-highlight-color: rgba(0,0,0,0);
-  }
-
   .xgplayer-controls {
     background-image: initial;
   }
@@ -138,7 +131,7 @@ $color: #FF0000;
       display: block;
     }
   }
-  
+
   &.xgplayer-inactive {
     .gradient {
       background-image: initial;

@@ -1,6 +1,6 @@
 @import "variable";
 /** xgplayer base style begain**/
-.xgplayer{
+.xgplayer {
   font-family: PingFangSC-Regular;
   background: $playerBgColor;
   width: 100%;
@@ -87,7 +87,7 @@
       display:inline-block;
     }
   }
-  
+
   /** xgplayer cssFullscreen style  begain**/
   &.xgplayer-is-cssfullscreen {
     position: fixed;
@@ -98,12 +98,43 @@
     z-index: 9999;
   }
   /** xgplayer cssFullscreen style  end**/
-}
-/** xgplayer base style ended **/
-/** root bar style begain **/
-$barWidth: 50px;
-$barBottom: 50px;
-.xgplayer {
+
+  /** icon style begain **/
+  xg-icon {
+    position: relative;
+    height: 40px;
+    margin-left: $iconMargin;
+    cursor: pointer;
+    box-sizing: border-box;
+    .xg-tips {
+      top: -30px;
+      left: 50%;
+      transform: translateX(-50%);
+    }
+    &:hover {
+      .xg-tips {
+        display: block;
+      }
+    }
+    .xgplayer-icon {
+      position: relative;
+      top: 50%;
+      transform: translateY(-50%);
+      cursor: pointer;
+      fill: #fff;
+    }
+
+    .xg-img {
+      width: 100%;
+    }
+
+    svg {
+      height: 100%;
+    }
+  }
+  /** icon style ended **/
+
+  /** root bar style begain **/
   xg-bar {
     display: block;
   }
@@ -116,17 +147,24 @@ $barBottom: 50px;
     position: absolute;
     z-index: 83;
     top: 0;
-    left: 0;
-    width: 100%;
+    left: $iconMargin;
+    right: $iconMargin;
     height: $barWidth;
     display: flex;
+    xg-icon {
+        position: relative;
+        width: 34px;
+        margin-top: 0;
+        // margin-left: $iconMargin;
+        top: 10px;
+        left: 0;
+    }
   }
   .xg-left-bar, .xg-right-bar {
     position: absolute;
     z-index: 81;
-    top: 0;
+    top: $barWidth;
     bottom: $barWidth;
-    margin-top: $barWidth;
     width: $barWidth;
   }
   .xg-left-bar {
@@ -135,5 +173,63 @@ $barBottom: 50px;
   .xg-right-bar {
     right: 0;
   }
+  /*  root bar style ended */
+
+  .xg-tips {
+    display: none;
+    position: absolute;
+    background:$tipsBgColor;
+    border-radius: 1px;
+    font-size: $tipsFontsize;
+    color: $tipsColor;
+    padding: 4px 6px;
+    border-radius: 4px;
+    text-align: center;
+    opacity: 0.85;
+    white-space: nowrap;
+  }
 }
-/*  root bar style ended */
+
+// 移动端适配
+.xgplayer-mobile {
+  font-family: PingFangSC-Regular;
+  -webkit-tap-highlight-color: rgba(0,0,0,0);
+  * {
+    text-decoration: none;
+    -webkit-tap-highlight-color: rgba(0,0,0,0);
+  }
+  xg-icon {
+    &:hover {
+      .xg-tips {
+        display: none;
+      }
+    }
+  }
+  // 移动端小屏幕
+  @media only screen and (max-width: 480px) {
+    @at-root {
+      xg-icon {
+        margin-left: $miniMargin;
+      }
+
+      .xg-top-bar {
+        left: $miniMargin;
+        right: $miniMargin;
+      }
+    }
+  }
+  @media only screen and (min-width: 480px) {
+    @at-root {
+      .xgplayer-is-fullscreen {
+        .xg-top-bar {
+          padding: 0 6%;
+        }
+  
+        .inner-controls {
+          margin: 0 6%;
+          bottom: 15px;
+        }
+      }
+    }
+  }
+}
