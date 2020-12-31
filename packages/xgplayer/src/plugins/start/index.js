@@ -102,6 +102,14 @@ class Start extends Plugin {
     Util.removeClass(this.root, 'hide')
   }
 
+  focusHide () {
+    Util.addClass(this.root, 'focus-hide')
+  }
+
+  recover () {
+    Util.removeClass(this.root, 'focus-hide')
+  }
+
   switchStatus (isAnimate) {
     if (isAnimate) {
       this.setAttr('data-state', !this.player.paused ? 'play' : 'pause')

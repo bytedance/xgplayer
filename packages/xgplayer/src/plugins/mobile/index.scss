@@ -1,6 +1,13 @@
 @import '../common/thumbnail.scss';
+$color: #FF0000;
+
 .xgplayer {
   xg-trigger {
+    -webkit-user-select:none;
+    -moz-user-select:none;
+    -ms-user-select:none;
+    -khtml-user-select:none;
+    user-select:none;
     position: absolute;
     top: 0;
     left: 0;
@@ -27,6 +34,14 @@
           color: #FF0000;
         }
       }
+      .seek-show {
+        transform: translateX(-10px);
+        &.back {
+          .xg-seek-pre {
+            transform: rotate(180deg) translateX(-5px);
+          }
+        }
+      }
       .bar {
         width: 96px;
         height: 2px;
@@ -46,13 +61,39 @@
       }
     }
 
-    .mobile-thumbnail {
-      border-radius: 2px;
-      margin: 0 auto 10px;
+    .xg-top-note {
+      position: absolute;
+      height: 32px;
+      width: 135px;
+      top: 26px;
+      left: 50%;
+      margin-left: -78px;
+      background: rgba(0, 0, 0, 0.7);
+      border-radius: 100px;
+      color: #fff;
+      span {
+        display: block;
+        font-size: 13px;
+        line-height: 32px;
+        height: 32px;
+        font-size: 13px;
+        text-align: center;
+      }
+      i {
+        color: $color;
+        margin: 0 5px
+      }
     }
-
+    .xg-playbackrate {
+      display: none;
+    }
     &[data-xg-action=seeking] {
       .time-preview {
+        display: block;
+      }
+    }
+    &[data-xg-action=playbackrate] {
+      .xg-playbackrate {
         display: block;
       }
     }

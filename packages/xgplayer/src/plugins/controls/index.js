@@ -59,24 +59,12 @@ class Controls extends Plugin {
     this.player.emit(Events.PLAYER_BLUR, {ignoreStatus: true})
   }
 
-  recoverAutoHide () {
-    this.config.autoHide && Util.addClass(this.root, 'control_autohide')
-  }
-
-  pauseAutoHide () {
-    Util.removeClass(this.root, 'control_autohide')
-  }
-
   show () {
     Util.addClass(this.root, 'show')
   }
 
   hide () {
     Util.removeClass(this.root, 'show')
-  }
-
-  get mode () {
-    return this.config.mode
   }
 
   registerPlugin (plugin, options = {}, name) {

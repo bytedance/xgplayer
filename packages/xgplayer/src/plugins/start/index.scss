@@ -35,6 +35,10 @@
     }
     &.hide {
       display: none;
+      pointer-events: none;
+    }
+    &.focus-hide {
+      display: none;
     }
     &:hover{
       opacity: 0.85;
