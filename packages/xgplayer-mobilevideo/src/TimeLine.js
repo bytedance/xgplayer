@@ -144,6 +144,7 @@ export default class TimeLine extends EventEmitter {
     this.videoRender.on(Events.VIDEO.VIDEO_DECODER_INIT, () => {
       logger.log(this.TAG, 'video decoder init!');
       setTimeout(() => {
+        if (!this.videoRender) return;
         if (!this._readyStatus.video) {
           logger.warn(this.TAG, 'video 首次解码无解码帧返回! auto ready!');
           this.videoRender.updateReady();

@@ -168,7 +168,12 @@ class FlvPlayer extends BasePlugin {
       setTimeout(() => {
         if (!this.player) return
         this.player.hasStart = false;
-        this.player.start()
+        this.player.start();
+        // used for autoplay:false
+        this.player.once('canplay', () => {
+          if (!this.player || this.player.config.autoplay) return;
+          this.player.play();
+        })
       })
       this.player.onWaiting();
     })
@@ -184,7 +189,7 @@ class FlvPlayer extends BasePlugin {
   }
 
   loadData (time = this.player.currentTime) {
-    if (this.player.flv) {
+    if (this.player.flv && this.player) {
       this.player.flv.seek(time)
     }
   }
