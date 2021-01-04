@@ -157,7 +157,7 @@ class BasePlugin {
       delete this[key]
     })
     Object.setPrototypeOf && Object.setPrototypeOf(this, null)
-    player.unRegistePlugin(pluginName)
+    player.unRegisterPlugin(pluginName)
   }
 }
 

@@ -9,7 +9,7 @@ export default class DefinitionIcon extends OptionsIcon {
   // 默认配置信息
   static get defaultConfig () {
     return {
-      position: POSITIONS.CONTROLS_RIGTH,
+      position: POSITIONS.CONTROLS_RIGHT,
       index: 3,
       list: [],
       disable: false,

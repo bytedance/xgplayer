@@ -7,7 +7,7 @@ export default class ScreenShot extends Plugin {
 
   static get defaultConfig () {
     return {
-      position: POSITIONS.CONTROLS_RIGTH,
+      position: POSITIONS.CONTROLS_RIGHT,
       index: 5,
       quality: 0.92,
       type: 'image/png',

@@ -90,7 +90,7 @@ class Controls extends Plugin {
         case POSITIONS.CONTROLS_LEFT:
           options.root = this.left
           break
-        case POSITIONS.CONTROLS_RIGTH:
+        case POSITIONS.CONTROLS_RIGHT:
           options.root = this.right;
           break;
         case POSITIONS.CONTROLS_CENTER:

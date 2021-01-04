@@ -469,7 +469,7 @@ class Plugin extends BasePlugin {
     // destroy the sub-plugin instance
     if (this._children instanceof Array) {
       this._children.map(item => {
-        player.unRegistePlugin(item.pluginName)
+        player.unRegisterPlugin(item.pluginName)
       })
       this._children = null
     }
@@ -503,6 +503,7 @@ const POSITIONS = {
   ROOT_TOP: 'rootTop',
   CONTROLS_LEFT: 'controlsLeft',
   CONTROLS_RIGTH: 'controlsRight',
+  CONTROLS_RIGHT: 'controlsRight',
   CONTROLS_CENTER: 'controlsCenter',
   CONTROLS: 'controls'
 }
