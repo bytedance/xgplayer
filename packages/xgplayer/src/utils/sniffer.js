@@ -38,7 +38,6 @@ let sniffer = {
   get isWeixin () {
     const reg = /(micromessenger)\/([\d.]+)/
     const match = reg.exec(navigator.userAgent.toLocaleLowerCase())
-    console.log('match', match)
     if (match) {
       return true
     }

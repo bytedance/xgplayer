@@ -46,6 +46,7 @@ $sliderDragAfterShadow: 0 0 5px 0 rgba(0, 0, 0, 0.26);
     right: 0;
     height: 100%;
     overflow: hidden;
+    pointer-events: none;
     // z-index: 9;
     outline: none;
     > * {

@@ -706,7 +706,7 @@ class Player extends Proxy {
 
   onEnded () {
     this.addClass(STATE_CLASS.ENDED)
-    this.removeClass(STATE_CLASS.PLAYING)
+    // this.removeClass(STATE_CLASS.PLAYING)
   }
 
   onError () {
