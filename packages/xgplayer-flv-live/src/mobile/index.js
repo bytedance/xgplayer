@@ -20,6 +20,7 @@ class FlvPlayer extends BasePlugin {
     this.options = Object.assign({}, defaultConfig, this.config)
     this.play = this.play.bind(this)
     this.pause = this.pause.bind(this)
+    this.canplay = this.canplay.bind(this)
     this.switchURL = this.switchURL.bind(this);
     this.progress = this.progress.bind(this);
     this.handleDefinitionChange = this.handleDefinitionChange.bind(this);
@@ -90,6 +91,7 @@ class FlvPlayer extends BasePlugin {
     }
     this.on(Events.PLAY, this.play);
     this.on(Events.PAUSE, this.pause);
+    this.on(Events.CANPLAY, this.canplay);
     this.on(Events.URL_CHANGE, this.switchURL);
     this.on(Events.DEFINITION_CHANGE, this.handleDefinitionChange);
     this.on(Events.PROGRESS, this.progress)
@@ -99,6 +101,7 @@ class FlvPlayer extends BasePlugin {
   offEvents () {
     this.off(Events.PLAY, this.play);
     this.off(Events.PAUSE, this.pause);
+    this.off(Events.CANPLAY, this.canplay);
     this.off(Events.URL_CHANGE, this.switchURL);
     this.off(Events.PROGRESS, this.progress);
     this.off(Events.DEFINITION_CHANGE, this.handleDefinitionChange);
@@ -110,6 +113,14 @@ class FlvPlayer extends BasePlugin {
     const flv = this.context.registry('FLV_CONTROLLER', FLV)(player, this.options)
     this.initFlvEvents(flv)
     this.flv = flv
+  }
+
+  canplay () {
+    if (!this.player.video) return;
+    if (this.player.config.autoplay) return;
+    if (this.player.video.buffered.length) {
+      this.played = true;
+    }
   }
 
   play () {
