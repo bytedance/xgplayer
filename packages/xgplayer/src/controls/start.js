@@ -19,14 +19,14 @@ let start = function () {
       util.addClass(root, 'xgplayer-is-enter')
 
       if(typeof root.contains === 'function') {
-        if((player.video && player.video.nodeType === 1 && !root.contains(player.video)) || (player.video && player.video.nodeType !== 1 && !root.querySelector('canvas'))) {
+        if((player.video && player.video.nodeType === 1 && !root.contains(player.video)) || (player.video && player.video.nodeType !== 1 && (!root.querySelector('canvas') && player.video.audioPlayer.status !== 'ready'))) {
           player.once('canplay', onCanPlay)
           player.start()
         } else {
           onCanPlay()
         }
       } else {
-        if((player.video && player.video.nodeType === 1 && !root.querySelector(this.videoConfig.mediaType)) || (player.video && player.video.nodeType !== 1 && !root.querySelector('canvas'))) {
+        if((player.video && player.video.nodeType === 1 && !root.querySelector(this.videoConfig.mediaType)) || (player.video && player.video.nodeType !== 1 && (!root.querySelector('canvas') && player.video.audioPlayer.status !== 'ready'))) {
           player.once('canplay', onCanPlay)
           player.start()
         } else {
