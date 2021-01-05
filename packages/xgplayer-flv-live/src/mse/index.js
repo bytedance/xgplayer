@@ -72,11 +72,12 @@ class FlvPlayer extends BasePlugin {
     })
 
     flv.on(EVENTS.LOADER_EVENTS.NO_DATA_RECEVIE, () => {
-      this.player.emit(EVENTS.LOADER_EVENTS.NO_DATA_RECEVIE)
+      this.player.emit('ended')
     })
   }
 
   initFlvBackupEvents (flv, ctx, keepBuffer) {
+    flv.off(EVENTS.DEMUX_EVENTS.ISKEYFRAME, flv._handleKeyFrame)
     let mediaLength = 3;
     flv.on(EVENTS.REMUX_EVENTS.MEDIA_SEGMENT, () => {
       mediaLength -= 1;
@@ -87,6 +88,8 @@ class FlvPlayer extends BasePlugin {
         this.mse.resetContext(ctx, keepBuffer);
         this.context.destroy();
         this.context = ctx;
+        this.emit('switch_completed')
+        flv.on(EVENTS.DEMUX_EVENTS.ISKEYFRAME, flv._handleKeyFrame)
       }
     })
 
@@ -108,6 +111,7 @@ class FlvPlayer extends BasePlugin {
 
     flv.once(EVENTS.LOADER_EVENTS.LOADER_ERROR, () => {
       ctx.destroy()
+      this.emit('switch_completed')
     })
 
     flv.on(EVENTS.REMUX_EVENTS.DETECT_CHANGE_STREAM_DISCONTINUE, () => {
@@ -115,7 +119,7 @@ class FlvPlayer extends BasePlugin {
     })
 
     flv.on(EVENTS.LOADER_EVENTS.NO_DATA_RECEVIE, () => {
-      this.player.emit(EVENTS.LOADER_EVENTS.NO_DATA_RECEVIE)
+      this.player.emit('ended')
     })
   }
 
