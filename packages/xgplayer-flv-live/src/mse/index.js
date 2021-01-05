@@ -72,7 +72,7 @@ class FlvPlayer extends BasePlugin {
     })
 
     flv.on(EVENTS.LOADER_EVENTS.NO_DATA_RECEVIE, () => {
-      this.reload()
+      this.player.emit(EVENTS.LOADER_EVENTS.NO_DATA_RECEVIE)
     })
   }
 
@@ -115,7 +115,7 @@ class FlvPlayer extends BasePlugin {
     })
 
     flv.on(EVENTS.LOADER_EVENTS.NO_DATA_RECEVIE, () => {
-      this.reload()
+      this.player.emit(EVENTS.LOADER_EVENTS.NO_DATA_RECEVIE)
     })
   }
 

@@ -23,6 +23,7 @@ export default class FlvController {
     this.bufferClearTimer = null;
 
     this._handleTimeUpdate = this._handleTimeUpdate.bind(this)
+    this._handleKeyFrame = this._handleKeyFrame.bind(this)
     this.config = config
   }
 
@@ -77,7 +78,7 @@ export default class FlvController {
 
     this.on(MSE_EVENTS.SOURCE_UPDATE_END, this._handleSourceUpdateEnd.bind(this))
     this.on(MSE_EVENTS.MSE_ERROR, this._handleMseError.bind(this))
-    this.on('isKeyframe', this._handleKeyFrame.bind(this))
+    this.on('isKeyframe', this._handleKeyFrame)
 
     this._player.on('timeupdate', this._handleTimeUpdate)
   }
