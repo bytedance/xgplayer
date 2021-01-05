@@ -70,10 +70,6 @@ class FlvPlayer extends BasePlugin {
     flv.on(EVENTS.REMUX_EVENTS.DETECT_CHANGE_STREAM_DISCONTINUE, () => {
       this.player.emit(EVENTS.REMUX_EVENTS.DETECT_CHANGE_STREAM_DISCONTINUE)
     })
-
-    flv.on(EVENTS.LOADER_EVENTS.NO_DATA_RECEVIE, () => {
-      this.player.emit('ended')
-    })
   }
 
   initFlvBackupEvents (flv, ctx, keepBuffer) {
@@ -116,10 +112,6 @@ class FlvPlayer extends BasePlugin {
 
     flv.on(EVENTS.REMUX_EVENTS.DETECT_CHANGE_STREAM_DISCONTINUE, () => {
       this.player.emit(EVENTS.REMUX_EVENTS.DETECT_CHANGE_STREAM_DISCONTINUE)
-    })
-
-    flv.on(EVENTS.LOADER_EVENTS.NO_DATA_RECEVIE, () => {
-      this.player.emit('ended')
     })
   }
 
