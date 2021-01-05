@@ -78,7 +78,7 @@ export default class FlvController {
 
     this.on(MSE_EVENTS.SOURCE_UPDATE_END, this._handleSourceUpdateEnd.bind(this))
     this.on(MSE_EVENTS.MSE_ERROR, this._handleMseError.bind(this))
-    this.on('isKeyframe', this._handleKeyFrame)
+    this.on(DEMUX_EVENTS.ISKEYFRAME, this._handleKeyFrame)
 
     this._player.on('timeupdate', this._handleTimeUpdate)
   }
