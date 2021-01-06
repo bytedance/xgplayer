@@ -13,6 +13,7 @@ export default {
   ACTIVE: 'xgplayer-inactive',
   FULLSCREEN: 'xgplayer-is-fullscreen',
   CSS_FULLSCREEN: 'xgplayer-is-cssfullscreen',
+  ROTATE_FULLSCREEN: 'xgplayer-rotate-fullscreen',
   NO_CONTROLS: 'no-controls',
   FLEX_CONTROLS: 'flex-controls',
   CONTROLS_FOLLOW: 'controls-follow',

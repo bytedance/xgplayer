@@ -58,7 +58,7 @@ $tipsFontsize: 12px;
     position: absolute;
     left: 0;
     right: 0;
-    bottom: 5px;
+    bottom: 8px;
     height: 40px;
   }
   .left-grid,  .right-grid {
@@ -227,10 +227,6 @@ $tipsFontsize: 12px;
       padding: 0 $miniMargin;
     }
 
-    .inner-controls {
-      bottom: 0;
-    }
-
     .right-grid {
       xg-icon {
         margin-right: $miniMargin;
@@ -242,7 +238,7 @@ $tipsFontsize: 12px;
         margin-right: $miniMargin;
       }
     }
-  
+
     &.xgplayer-is-fullscreen, &.xgplayer-is-cssfullscreen{
       .flex-controls {
         /* bottom: 34px; */

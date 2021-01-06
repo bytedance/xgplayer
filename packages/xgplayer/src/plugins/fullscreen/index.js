@@ -1,4 +1,4 @@
-import Plugin, {hooksDescriptor, Events, POSITIONS, Sniffer} from '../../plugin'
+import Plugin, {hooksDescriptor, Events, POSITIONS, Sniffer, STATE_CLASS} from '../../plugin'
 import TopBackIcon from './backicon'
 import FullScreenSvg from '../assets/requestFull.svg'
 import ExitFullScreenSvg from '../assets/exitFull.svg'
@@ -13,6 +13,7 @@ export default class Fullscreen extends Plugin {
       position: POSITIONS.CONTROLS_RIGHT,
       index: 0,
       useCssFullscreen: false,
+      rotateFullscreen: false,
       switchCallback: null,
       target: null,
       disable: false,
@@ -90,6 +91,17 @@ export default class Fullscreen extends Plugin {
       } else {
         player.getCssFullscreen()
         player.fullscreen = true
+        this.emit(Events.FULLSCREEN_CHANGE, true)
+      }
+      this.animate(player.fullscreen)
+    } else if (config.rotateFullscreen) {
+      if (player.fullscreen) {
+        player.romoveClass(STATE_CLASS.ROTATE_FULLSCREEN)
+        player.fullscreen = false
+        this.emit(Events.FULLSCREEN_CHANGE, false)
+      } else {
+        player.addClass(STATE_CLASS.ROTATE_FULLSCREEN)
+        player.fullscreen = false
         this.emit(Events.FULLSCREEN_CHANGE, true)
       }
       this.animate(player.fullscreen)

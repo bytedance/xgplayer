@@ -30,14 +30,25 @@
     cursor: none;
   }
   &.xgplayer-is-fullscreen{
-      width: 100%;
-      height: 100%;
-      position: fixed;
-      top:0;
-      left: 0;
-      padding: 0;
-      margin: 0;
-      z-index: 9999;
+    width: 100%;
+    height: 100%;
+    position: fixed;
+    top:0;
+    left: 0;
+    padding: 0;
+    margin: 0;
+    z-index: 9999;
+  }
+  &.xgplayer-rotate-fullscreen {
+    position: absolute;
+    top: 0;
+    left: 100%;
+    bottom: 0;
+    right: 0;
+    height: 100vw!important;
+    width: 100vh!important;
+    transform-origin: top left;
+    transform: rotate(90deg);
   }
   video {
     width:100%;
@@ -45,7 +56,8 @@
     outline: none;
     position: absolute;
     top: 0;
-    left: 0;  
+    left: 0;
+    z-index: -1;
   }
   &[data-xgfill=cover] {
     video {
