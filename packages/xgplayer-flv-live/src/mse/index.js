@@ -55,7 +55,7 @@ class FlvPlayer extends BasePlugin {
       // 直播完成，待播放器播完缓存后发送关闭事件
       if (flv && flv._context) {
         const loader = flv._context.getInstance('FETCH_LOADER')
-        loader && loader.destroy()
+        loader && loader.cancel()
       }
       if (!player.paused) {
         this.loaderCompleteTimer = setInterval(() => {
@@ -97,7 +97,7 @@ class FlvPlayer extends BasePlugin {
       // 直播完成，待播放器播完缓存后发送关闭事件
       if (flv && flv._context) {
         const loader = flv._context.getInstance('FETCH_LOADER')
-        loader && loader.destroy()
+        loader && loader.cancel()
       }
       if (!this.paused) {
         this.loaderCompleteTimer = setInterval(() => {
