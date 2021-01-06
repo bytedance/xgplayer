@@ -53,6 +53,10 @@ class FlvPlayer extends BasePlugin {
 
     flv.once(EVENTS.LOADER_EVENTS.LOADER_COMPLETE, () => {
       // 直播完成，待播放器播完缓存后发送关闭事件
+      if (flv && flv._context) {
+        const loader = flv._context.getInstance('FETCH_LOADER')
+        loader && loader.cancel()
+      }
       if (!player.paused) {
         this.loaderCompleteTimer = setInterval(() => {
           if (!player) return window.clearInterval(this.loaderCompleteTimer)
@@ -69,10 +73,6 @@ class FlvPlayer extends BasePlugin {
 
     flv.on(EVENTS.REMUX_EVENTS.DETECT_CHANGE_STREAM_DISCONTINUE, () => {
       this.player.emit(EVENTS.REMUX_EVENTS.DETECT_CHANGE_STREAM_DISCONTINUE)
-    })
-
-    flv.on(EVENTS.LOADER_EVENTS.NO_DATA_RECEVIE, () => {
-      this.player.emit('ended')
     })
   }
 
@@ -95,6 +95,10 @@ class FlvPlayer extends BasePlugin {
 
     flv.once(EVENTS.LOADER_EVENTS.LOADER_COMPLETE, () => {
       // 直播完成，待播放器播完缓存后发送关闭事件
+      if (flv && flv._context) {
+        const loader = flv._context.getInstance('FETCH_LOADER')
+        loader && loader.cancel()
+      }
       if (!this.paused) {
         this.loaderCompleteTimer = setInterval(() => {
           if (!this.player) return window.clearInterval(this.loaderCompleteTimer)
@@ -116,10 +120,6 @@ class FlvPlayer extends BasePlugin {
 
     flv.on(EVENTS.REMUX_EVENTS.DETECT_CHANGE_STREAM_DISCONTINUE, () => {
       this.player.emit(EVENTS.REMUX_EVENTS.DETECT_CHANGE_STREAM_DISCONTINUE)
-    })
-
-    flv.on(EVENTS.LOADER_EVENTS.NO_DATA_RECEVIE, () => {
-      this.player.emit('ended')
     })
   }
 
