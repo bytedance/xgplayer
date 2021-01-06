@@ -96,12 +96,12 @@ export default class Fullscreen extends Plugin {
       this.animate(player.fullscreen)
     } else if (config.rotateFullscreen) {
       if (player.fullscreen) {
-        player.romoveClass(STATE_CLASS.ROTATE_FULLSCREEN)
+        player.removeClass(STATE_CLASS.ROTATE_FULLSCREEN)
         player.fullscreen = false
         this.emit(Events.FULLSCREEN_CHANGE, false)
       } else {
         player.addClass(STATE_CLASS.ROTATE_FULLSCREEN)
-        player.fullscreen = false
+        player.fullscreen = true
         this.emit(Events.FULLSCREEN_CHANGE, true)
       }
       this.animate(player.fullscreen)

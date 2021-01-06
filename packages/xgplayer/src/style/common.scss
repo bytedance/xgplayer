@@ -29,6 +29,7 @@
   &.xgplayer-inactive{
     cursor: none;
   }
+
   &.xgplayer-is-fullscreen{
     width: 100%;
     height: 100%;
@@ -39,6 +40,7 @@
     margin: 0;
     z-index: 9999;
   }
+
   &.xgplayer-rotate-fullscreen {
     position: absolute;
     top: 0;
@@ -49,7 +51,23 @@
     width: 100vh!important;
     transform-origin: top left;
     transform: rotate(90deg);
+    video {
+      z-index: -1;
+    }
   }
+
+  /** xgplayer cssFullscreen style  begain**/
+  &.xgplayer-is-cssfullscreen {
+    position: fixed;
+    left: 0;
+    top: 0;
+    width: 100%;
+    height: 100%;
+    z-index: 99999;
+  }
+  /** xgplayer cssFullscreen style  end**/
+
+
   video {
     width:100%;
     height: 100%;
@@ -57,8 +75,8 @@
     position: absolute;
     top: 0;
     left: 0;
-    z-index: -1;
   }
+
   &[data-xgfill=cover] {
     video {
       object-fit: cover;
@@ -70,6 +88,17 @@
       object-fit: fill;
     }
   }
+  /** position start **/
+  .xg-pos{
+    left: $iconMargin;
+    right: $iconMargin;
+  }
+
+  .xg-margin {
+    margin-left: $iconMargin;
+    margin-right: $iconMargin;
+  }
+  /** position ended **/
 
   .btn-text {
     top: 50%;
@@ -87,23 +116,12 @@
       display:inline-block;
     }
   }
-
-  /** xgplayer cssFullscreen style  begain**/
-  &.xgplayer-is-cssfullscreen {
-    position: fixed;
-    left: 0;
-    top: 0;
-    width: 100%;
-    height: 100%;
-    z-index: 9999;
-  }
-  /** xgplayer cssFullscreen style  end**/
-
   /** icon style begain **/
   xg-icon {
     position: relative;
     height: 40px;
     margin-left: $iconMargin;
+    margin-right: $iconMargin;
     cursor: pointer;
     box-sizing: border-box;
     .xg-tips {
@@ -138,6 +156,7 @@
   xg-bar {
     display: block;
   }
+
   &.xgplayer-inactive, &.xgplayer-mini, &.xgplayer-ended {
     xg-bar {
       display: none;
@@ -188,6 +207,10 @@
     opacity: 0.85;
     white-space: nowrap;
   }
+  .xg-margin {
+    left: 0px;
+    right: 0px;
+  }
 }
 
 // 移动端适配
@@ -198,6 +221,7 @@
     text-decoration: none;
     -webkit-tap-highlight-color: rgba(0,0,0,0);
   }
+
   xg-icon {
     &:hover {
       .xg-tips {
@@ -205,10 +229,21 @@
       }
     }
   }
+
+  &.xgplayer-rotate-fullscreen  {
+    .xg-pos {
+      left: constant(safe-area-inset-bottom, 20px);
+      left: env(Safe-area-inset-bottom, 20px);
+      right: constant(safe-area-inset-bottom, 20px);
+      right: env(Safe-area-inset-bottom, 20px);
+    }
+  }
+
   // 移动端小屏幕
   @media only screen and (max-width: 480px) {
     @at-root {
       xg-icon {
+        margin-right: $miniMargin;
         margin-left: $miniMargin;
       }
 
@@ -218,13 +253,14 @@
       }
     }
   }
+
   @media only screen and (min-width: 480px) {
     @at-root {
       .xgplayer-is-fullscreen {
         .xg-top-bar {
           padding: 0 6%;
         }
-  
+
         .inner-controls {
           margin: 0 6%;
           bottom: 15px;

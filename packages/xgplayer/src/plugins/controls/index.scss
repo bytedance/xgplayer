@@ -56,11 +56,12 @@ $miniMargin: 10px;
 
   .inner-controls {
     position: absolute;
-    left: 0;
-    right: 0;
+    // left: 0;
+    // right: 0;
     bottom: 8px;
     height: 40px;
   }
+
   .left-grid,  .right-grid {
     position: relative;
     float: left;
@@ -68,10 +69,27 @@ $miniMargin: 10px;
     height: 100%;
     z-index: 36;
   }
+
   .right-grid {
     float: right;
     flex-direction: row-reverse;
+    xg-icon {
+      margin-left: 0;
+      &:first-child {
+        margin-right: 0;
+      }
+    }
   }
+
+  .left-grid {
+    xg-icon {
+      margin-right: 0;
+      &:first-child {
+        margin-left: 0;
+      }
+    }
+  }
+
   .center {
     display: block;
     position: absolute;
@@ -97,10 +115,6 @@ $miniMargin: 10px;
       align-items: center;
       left: 0;
       right: 0;
-      xg-icon {
-        margin-left: $iconMargin;
-        margin-right: $iconMargin;
-      }
     }
   }
 
@@ -119,14 +133,6 @@ $miniMargin: 10px;
     }
   }
 
-  .right-grid {
-    xg-icon {
-      margin-right: $iconMargin;
-      margin-left: 0;
-    }
-  }
-
-  // }
   // class witch position follow controls start
   .controls-follow {
     bottom: 70px;
@@ -147,30 +153,10 @@ $miniMargin: 10px;
   // class witch position follow controls end
 
 }
-// mobile
-.xgplayer-mobile {
-  .center {
-    left: $iconMargin;
-    right: $iconMargin;
-  }
-}
-
 
 @media only screen and (max-width: 480px) {
   .xgplayer-mobile {
-    .right-grid {
-      xg-icon {
-        margin-right: $miniMargin;
-      }
-    }
-    .flex-controls .center {
-      xg-icon {
-        margin-left: $miniMargin;
-        margin-right: $miniMargin;
-      }
-    }
-
-    &.xgplayer-is-fullscreen, &.xgplayer-is-cssfullscreen{
+    &.xgplayer-is-fullscreen, &.xgplayer-is-cssfullscreen, &.xgplayer-rotate-fullscreen {
       .flex-controls {
         /* bottom: 34px; */
         /* iOS 11.0 */
