@@ -75,6 +75,15 @@ export default class Fullscreen extends Plugin {
     this.appendChild('.xgplayer-icon', icons.exitFullscreen)
   }
 
+  setRotateDeg (deg) {
+    const {player} = this
+    if (window.orientation === 90 || window.orientation === -90) {
+      player.rotateDeg = 0
+    } else {
+      player.rotateDeg = deg
+    }
+  }
+
   changeFullScreen (e) {
     // e.preventDefault();
     e.stopPropagation();
@@ -85,12 +94,12 @@ export default class Fullscreen extends Plugin {
     }
     if (useCssFullscreen) {
       if (player.fullscreen) {
-        player.exitCssFullscreen()
         player.fullscreen = false
+        player.exitCssFullscreen()
         this.emit(Events.FULLSCREEN_CHANGE, false)
       } else {
-        player.getCssFullscreen()
         player.fullscreen = true
+        player.getCssFullscreen()
         this.emit(Events.FULLSCREEN_CHANGE, true)
       }
       this.animate(player.fullscreen)
@@ -98,10 +107,13 @@ export default class Fullscreen extends Plugin {
       if (player.fullscreen) {
         player.removeClass(STATE_CLASS.ROTATE_FULLSCREEN)
         player.fullscreen = false
+        this.setRotateDeg(0)
         this.emit(Events.FULLSCREEN_CHANGE, false)
       } else {
         player.addClass(STATE_CLASS.ROTATE_FULLSCREEN)
         player.fullscreen = true
+        this.setRotateDeg(90)
+        console.log('window.orientation', window.orientation)
         this.emit(Events.FULLSCREEN_CHANGE, true)
       }
       this.animate(player.fullscreen)

@@ -1,10 +1,6 @@
 @import "../../style/variable";
 //controls
 $controlHeight: 48px;
-//icon
-$iconMargin: 16px;
-//
-$miniMargin: 10px;
 // tips
 // $tipsColor: #fff;
 // $tipsBgColor: rgba(0, 0, 0, 0.8);
@@ -75,18 +71,12 @@ $miniMargin: 10px;
     flex-direction: row-reverse;
     xg-icon {
       margin-left: 0;
-      &:first-child {
-        margin-right: 0;
-      }
     }
   }
 
   .left-grid {
     xg-icon {
       margin-right: 0;
-      &:first-child {
-        margin-left: 0;
-      }
     }
   }
 
@@ -97,7 +87,9 @@ $miniMargin: 10px;
     right: 0;
     outline: none;
     // top: -5px;
-    z-index: 35;
+    z-index: 40;
+    top: -20px;
+    padding: 5px 0;
   }
 
   .flex-controls {
@@ -122,9 +114,11 @@ $miniMargin: 10px;
     background-image: none;
     .inner-controls {
       bottom: 0;
+      left: 0;
+      right: 0;
     }
     .center {
-      bottom: -17px;
+      bottom: -28px;
       top: auto;
       padding: 0;
     }
@@ -151,21 +145,6 @@ $miniMargin: 10px;
     }
   }
   // class witch position follow controls end
-
-}
-
-@media only screen and (max-width: 480px) {
-  .xgplayer-mobile {
-    &.xgplayer-is-fullscreen, &.xgplayer-is-cssfullscreen, &.xgplayer-rotate-fullscreen {
-      .flex-controls {
-        /* bottom: 34px; */
-        /* iOS 11.0 */
-        bottom: constant(safe-area-inset-bottom);
-        /* 11.2+ */
-        bottom: env(Safe-area-inset-bottom, 20px);
-      }
-    }
-  }
 }
 
 // @supports (bottom: constant(safe-area-inset-bottom)) or (bottom: env(safe-area-inset-bottom)) {

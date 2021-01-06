@@ -183,13 +183,14 @@ class Progress extends Plugin {
   }
 
   onMoveOnly = (e) => {
-    const {pos, config} = this
+    const {pos, config, player} = this
     Util.event(e)
-    if (pos.moving && Math.abs(pos.x - e.clientX) < config.miniMoveStep) {
+    const x = player.rotateDeg === 90 ? e.clientY : e.clientX
+    if (pos.moving && Math.abs(pos.x - x) < config.miniMoveStep) {
       return
     }
     pos.moving = true
-    pos.x = e.clientX
+    pos.x = x
     const ret = this.computeTime(e)
     this.triggerCallbacks('dragmove', ret)
   }
@@ -201,6 +202,7 @@ class Progress extends Plugin {
 
   onMouseDown = (e) => {
     const {player, pos, config, playerConfig} = this
+    const x = player.rotateDeg === 90 ? e.clientY : e.clientX
     if (player.isMini || config.closeMoveSeek || (!playerConfig.allowSeekAfterEnded && player.ended)) {
       return
     }
@@ -210,8 +212,7 @@ class Progress extends Plugin {
     Util.checkIsFunction(playerConfig.disableSwipeHandler) && playerConfig.disableSwipeHandler()
     Util.checkIsFunction(config.onMoveStart) && config.onMoveStart()
     Util.event(e)
-    pos.x = e.clientX
-    pos.y = e.clientY
+    pos.x = x
     pos.isDown = true
     pos.moving = false
 
@@ -240,8 +241,8 @@ class Progress extends Plugin {
 
   onMouseUp = (e) => {
     const {player, config, pos, playerConfig} = this
-    // e.stopPropagation()
-    // e.preventDefault()
+    e.stopPropagation()
+    e.preventDefault()
     Util.checkIsFunction(playerConfig.enableSwipeHandler) && playerConfig.enableSwipeHandler()
     Util.checkIsFunction(config.onMoveEnd) && config.onMoveEnd()
     Util.event(e)
@@ -289,11 +290,12 @@ class Progress extends Plugin {
       e.preventDefault()
     }
     Util.event(e)
-    const diff = Math.abs(pos.x - e.clientX)
+    const x = player.rotateDeg === 90 ? e.clientY : e.clientX
+    const diff = Math.abs(pos.x - x)
     if ((pos.moving && diff < config.miniMoveStep) || (!pos.moving && diff < config.miniStartStep)) {
       return
     }
-    pos.x = e.clientX
+    pos.x = x
     const ret = this.computeTime(e)
     if (pos.isDown && !pos.moving) {
       pos.moving = true
@@ -306,7 +308,7 @@ class Progress extends Plugin {
 
   onMouseEnter = (e) => {
     const {player, pos} = this
-    if (pos.isEnter || player.isMini || (!player.config.allowSeekAfterEnded && player.ended)) {
+    if (pos.isDown || pos.isEnter || player.isMini || (!player.config.allowSeekAfterEnded && player.ended)) {
       return
     }
     pos.isEnter = true
@@ -352,20 +354,29 @@ class Progress extends Plugin {
 
   computeTime (e) {
     const {player} = this
-    const {width, left} = this.root.getBoundingClientRect()
-    const clientX = e.clientX
-    let offset = clientX - left
-    offset = offset > width ? width : (offset < 0 ? 0 : offset)
+    const {width, height, top, left} = this.root.getBoundingClientRect()
+    let rWidth, rLeft, clientX
+    if (player.rotateDeg === 90) {
+      rWidth = height
+      rLeft = top
+      clientX = e.clientY
+    } else {
+      rWidth = width
+      rLeft = left
+      clientX = e.clientX
+    }
+    let offset = clientX - rLeft
+    offset = offset > rWidth ? rWidth : (offset < 0 ? 0 : offset)
 
-    let percent = offset / width
+    let percent = offset / rWidth
     percent = percent < 0 ? 0 : (percent > 1 ? 1 : percent)
     const currentTime = parseInt(percent * player.duration * 1000, 10) / 1000
     return {
       percent,
       currentTime,
       offset,
-      width,
-      left,
+      width: rWidth,
+      left: rLeft,
       e
     }
   }
@@ -452,7 +463,7 @@ class Progress extends Plugin {
       this.unbind('touchend', this.onMouseUp)
     } else {
       this.unbind('mousedown', this.onMouseDown)
-      this.unbind('mouseenter', this.mouseEnter)
+      this.unbind('mouseenter', this.onMouseEnter)
       this.unbind('mousemove', this.onMoveOnly)
       document.removeEventListener('mousemove', this.onMouseMove, false)
       document.removeEventListener('mouseup', this.onMouseUp, false)

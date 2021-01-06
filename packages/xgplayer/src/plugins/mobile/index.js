@@ -31,15 +31,16 @@ class MobilePlugin extends Plugin {
       scopeL: 0.25, // 左侧手势范围比例
       scopeR: 0.25, // 右侧手势范围比例
       scopeM: 0.9, // 中间手势范围比例
+      pressRate: 2, // 长按快进倍速
       darkness: true, // 是否启用右侧调暗功能
       maxDarkness: 0.8, // 调暗最大暗度，即蒙层最大透明度
       disableActive: false, // 是否禁用时间面板
       disableTimeProgress: false, // 是否禁用时间进度条
       hideControlsActive: false, // 手势拖动的时候是否隐控制栏
-      hideControlsEnd: false, // 手势结束的时候隐控制栏
+      hideControlsEnd: true, // 手势结束的时候隐控制栏
       moveDuration: 60 * 6 * 1000, // 视频区对应的时长
       closedbClick: false, // 是否关闭双击手势
-      disablePress: false // 是否关闭长按手势
+      disablePress: true // 是否关闭长按手势
     }
   }
 
@@ -139,9 +140,9 @@ class MobilePlugin extends Plugin {
     const {player} = this
     const {thumbnail} = player.plugins
     if (thumbnail && thumbnail.usable) {
-      this.thumbnailPlugin = thumbnail.createThumbnail(null, 'mobile-thumbnail')
+      this.thumbnail = thumbnail.createThumbnail(null, 'mobile-thumbnail')
       const timePreview = this.find('.time-preview')
-      timePreview.insertBefore(this.thumbnailPlugin, timePreview.children[0])
+      timePreview.insertBefore(this.thumbnail, timePreview.children[0])
     }
   }
 
@@ -194,8 +195,20 @@ class MobilePlugin extends Plugin {
   }
 
   getTouche (touches) {
+    const rotateDeg = this.player.rotateDeg
     if (touches && touches.length > 0) {
-      return touches[touches.length - 1]
+      const touche = touches[touches.length - 1]
+      if (rotateDeg === 0) {
+        return {
+          pageX: touche.pageX,
+          pageY: touche.pageY
+        }
+      } else {
+        return {
+          pageX: touche.pageY,
+          pageY: touche.pageX
+        }
+      }
     } else {
       return null
     }
@@ -252,7 +265,7 @@ class MobilePlugin extends Plugin {
           const time = pos.time / 1000
           player.seek(Number(time).toFixed(1))
           this.changeAction(ACTIONS.AUTO)
-          !config.hideControlsEnd && player.emit(Events.PLAYER_FOCUS)
+          config.hideControlsEnd ? player.emit(Events.PLAYER_BLUR) : player.emit(Events.PLAYER_FOCUS)
           break
         case 1:
         case 2:
@@ -274,8 +287,8 @@ class MobilePlugin extends Plugin {
       !pos.time && (pos.time = player.currentTime * 1000)
       pos.volume = player.volume * 100
       const rect = this.root.getBoundingClientRect()
-      pos.width = rect.width
-      pos.height = rect.height
+      pos.width = player.rotateDeg === 90 ? rect.height : rect.width
+      pos.height = player.rotateDeg === 90 ? rect.width : rect.height
       pos.scopeL = config.scopeL * pos.width
       pos.scopeR = (1 - config.scopeR) * pos.width
       pos.scopeM1 = pos.width * (1 - config.scopeM) / 2
@@ -326,7 +339,7 @@ class MobilePlugin extends Plugin {
     const time = pos.time / 1000
     if (pos.scope === 0) {
       player.seek(Number(time).toFixed(1))
-      !config.hideControlsEnd && player.emit(Events.PLAYER_FOCUS)
+      config.hideControlsEnd ? player.emit(Events.PLAYER_BLUR) : player.emit(Events.PLAYER_FOCUS)
     }
     setTimeout(() => {
       player.getPlugin('progress') && player.getPlugin('progress').resetSeekState()
@@ -379,17 +392,23 @@ class MobilePlugin extends Plugin {
   }
 
   onPress (e) {
-    // const {pos} = this
-    // pos.rate = this.player.playbackRate
-    // this.player.playbackRate = 2
-    // this.changeAction(ACTIONS.PLAYBACK)
+    const {pos, config, player} = this
+    if (config.disablePress) {
+      return
+    }
+    pos.rate = this.player.playbackRate
+    player.playbackRate = config.pressRate
+    this.changeAction(ACTIONS.PLAYBACK)
   }
 
   onPressEnd (e) {
-    // const {pos} = this
-    // this.player.playbackRate = pos.rate
-    // pos.rate = 1
-    // this.changeAction(ACTIONS.AUTO)
+    const {pos, config, player} = this
+    if (config.disablePress) {
+      return
+    }
+    player.playbackRate = pos.rate
+    pos.rate = 1
+    this.changeAction(ACTIONS.AUTO)
   }
 
   updateTime (percent) {
@@ -454,7 +473,18 @@ class MobilePlugin extends Plugin {
     } else {
       Util.addClass(this.find('.seek-show'), 'back')
     }
-    this.thumbnailPlugin && this.thumbnailPlugin.update(time)
+    this.updateThumbnails(time)
+    // const {thumbnail} = player.plugins
+    // this.thumbnailPlugin && thumbnail.update(time)
+  }
+
+  updateThumbnails (time) {
+    const {player} = this
+    const {thumbnail} = player.plugins
+    if (thumbnail && thumbnail.usable) {
+      this.thumbnail && thumbnail.update(this.thumbnail, time, 160, 90)
+      // this.videothumbnail && thumbnail.update(this.videothumbnail, time, rect.width, rect.height)
+    }
   }
 
   switchPlayPause () {
@@ -472,7 +502,7 @@ class MobilePlugin extends Plugin {
 
   destroy () {
     const {player} = this
-    this.thumbnailPlugin = null
+    this.thumbnail = null
     player.root.removeChild(this.xgMask)
     this.xgMask = null
     this.touch && this.touch.destroy()
@@ -498,7 +528,7 @@ class MobilePlugin extends Plugin {
               </div>
         </div>
         <div class="xg-playbackrate xg-top-note">
-            <span><i>3X</i>快进中</span>
+            <span><i>${this.config.pressRate}X</i>快进中</span>
         </div>
      </xg-trigger>
     `

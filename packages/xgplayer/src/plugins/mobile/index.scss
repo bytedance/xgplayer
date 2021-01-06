@@ -61,6 +61,12 @@ $color: #FF0000;
       }
     }
 
+    .mobile-thumbnail {
+      position: relative;
+      left: 50%;
+      transform: translateX(-50%);
+    }
+
     .xg-top-note {
       position: absolute;
       height: 32px;
@@ -68,7 +74,7 @@ $color: #FF0000;
       top: 26px;
       left: 50%;
       margin-left: -78px;
-      background: rgba(0, 0, 0, 0.7);
+      background: rgba(0, 0, 0, 0.3);
       border-radius: 100px;
       color: #fff;
       span {
@@ -107,11 +113,11 @@ $color: #FF0000;
     width: 100%;
     pointer-events: none;
     background-image: linear-gradient(rgba(0,0,0,.6),rgba(0,0,0,.36) 20%,rgba(0,0,0,0) 36%,rgba(0,0,0,0) 70%,rgba(0,0,0,0.24) 77%,rgba(0,0,0,0.36) 83%,rgba(0,0,0,.6));
-    
+
     &.top {
       background-image: linear-gradient(rgba(0,0,0,.6),rgba(0,0,0,.36) 20%,rgba(0,0,0,0) 36%,rgba(0,0,0,0) 70%);
     }
-    
+
     &.bottom {
       background-image: linear-gradient(rgba(0,0,0,0) 70%,rgba(0,0,0,0.24) 77%,rgba(0,0,0,0.36) 83%,rgba(0,0,0,.6));
     }
@@ -149,19 +155,6 @@ $color: #FF0000;
     background-color: rgba(0,0,0,0);
   }
   /**/
-}
-
-@media only screen and (min-width: 480px) {
-  .xgplayer-mobile.xgplayer-is-fullscreen {
-    .xg-top-bar {
-      padding: 0 6%;
-    }
-
-    .inner-controls {
-      margin: 0 6%;
-      bottom: 15px;
-    }
-  }
 }
 
 @media (prefers-color-scheme: dark) {

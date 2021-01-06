@@ -42,7 +42,7 @@
   }
 
   &.xgplayer-rotate-fullscreen {
-    position: absolute;
+    position: fixed;
     top: 0;
     left: 100%;
     bottom: 0;
@@ -51,6 +51,7 @@
     width: 100vh!important;
     transform-origin: top left;
     transform: rotate(90deg);
+    z-index: 9999;
     video {
       z-index: -1;
     }
@@ -89,14 +90,18 @@
     }
   }
   /** position start **/
-  .xg-pos{
-    left: $iconMargin;
-    right: $iconMargin;
+  .xg-pos {
+    left: $miniMargin; //$iconMargin;
+    right: $miniMargin; //$iconMargin;
   }
 
   .xg-margin {
     margin-left: $iconMargin;
     margin-right: $iconMargin;
+  }
+
+  .xg-bottom {
+    bottom: 0;
   }
   /** position ended **/
 
@@ -171,12 +176,14 @@
     height: $barWidth;
     display: flex;
     xg-icon {
-        position: relative;
-        width: 34px;
-        margin-top: 0;
-        // margin-left: $iconMargin;
-        top: 10px;
-        left: 0;
+      position: relative;
+      width: 34px;
+      margin-top: 0;
+      top: 10px;
+      left: 0;
+      &:first-child{
+        margin-left: 0;
+      }
     }
   }
   .xg-left-bar, .xg-right-bar {
@@ -222,6 +229,16 @@
     -webkit-tap-highlight-color: rgba(0,0,0,0);
   }
 
+  &.xgplayer-rotate-fullscreen {
+    .xg-top-bar, .xg-pos {
+      left: 6%;
+      right: 6%;
+    }
+    .xgplayer-controls {
+      bottom: 10px;
+    }
+  }
+
   xg-icon {
     &:hover {
       .xg-tips {
@@ -229,43 +246,79 @@
       }
     }
   }
+}
 
-  &.xgplayer-rotate-fullscreen  {
-    .xg-pos {
-      left: constant(safe-area-inset-bottom, 20px);
-      left: env(Safe-area-inset-bottom, 20px);
-      right: constant(safe-area-inset-bottom, 20px);
-      right: env(Safe-area-inset-bottom, 20px);
+// 移动端小屏幕
+@media only screen and (max-width: 480px) {
+  .xgplayer-mobile {
+    xg-icon {
+      margin-right: $miniMargin;
+      margin-left: $miniMargin;
+    }
+
+    .xg-top-bar {
+      left: $miniMargin;
+      right: $miniMargin;
     }
   }
+}
 
-  // 移动端小屏幕
-  @media only screen and (max-width: 480px) {
-    @at-root {
-      xg-icon {
-        margin-right: $miniMargin;
-        margin-left: $miniMargin;
+// @media only screen and (min-width: 480px) {
+//   .xgplayer-mobile {
+//     &.xgplayer-is-fullscreen {
+//       .xg-top-bar, .xg-pos{
+//         left: 6%;
+//         right: 6%;
+//       }
+//     }
+//   }
+// }
+
+@supports ((height: constant(safe-area-inset-top)) or (height: env(safe-area-inset-top))) and (-webkit-overflow-scrolling: touch) {
+  // .xgplayer-mobile {
+  //   &.xgplayer-rotate-fullscreen {
+  //     .xg-pos {
+  //       left: constant(safe-area-inset-top, 30px);
+  //       left: env(safe-area-inset-top, 30px);
+  //       right: constant(safe-area-inset-bottom, 30px);
+  //       right: env(safe-area-inset-bottom, 30px);
+  //     }
+  //   }
+  // }
+}
+
+// 竖屏兼容
+@media screen and (orientation:portrait) {
+  .xgplayer-mobile {
+    &.xgplayer-is-fullscreen, &.xgplayer-is-cssfullscreen {
+      //.flex-controls {
+      .xgplayer-controls {
+        /* bottom: 34px; */
+        /* iOS 11.0 */
+        bottom: 34px;
+        /* 11.2+ */
       }
-
       .xg-top-bar {
-        left: $miniMargin;
-        right: $miniMargin;
+        top: 34px;
       }
     }
   }
+}
 
-  @media only screen and (min-width: 480px) {
-    @at-root {
-      .xgplayer-is-fullscreen {
-        .xg-top-bar {
-          padding: 0 6%;
-        }
-
-        .inner-controls {
-          margin: 0 6%;
-          bottom: 15px;
-        }
+// 横屏兼容
+@media only screen and (orientation:landscape) {
+  .xgplayer-mobile{
+    &.xgplayer-is-fullscreen {
+      .xg-pos, .xg-top-bar {
+        left: 6%;
+        right: 6%;
       }
+    }
+    &.xgplayer-rotate-fullscreen {
+      transform: rotate(0deg);
+      left: 0;
+      height: 100vh !important;
+      width: 100vw !important;
     }
   }
 }

@@ -48,6 +48,7 @@ class Player extends Proxy {
     this.isSeeking = false
     this.isCanplay = false
     this._runPending = false
+    this.rotateDeg = 0
     // 当前是否处于焦点状态
     this.isActive = true
     this.isCssfullScreen = false
