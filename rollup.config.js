@@ -1,4 +1,4 @@
-const uglify = require('rollup-plugin-uglify-es')
+const {uglify} = require('rollup-plugin-uglify')
 const json = require('rollup-plugin-json');
 const postcss = require('rollup-plugin-postcss')
 const babel = require('rollup-plugin-babel')

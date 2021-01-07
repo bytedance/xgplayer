@@ -25,6 +25,7 @@ class MiniScreen extends Plugin {
   constructor (args) {
     super(args)
     this.isMini = false
+    this.isClose = false
     const {config} = this
     this.pos = {
       left: config.left < 0 ? window.innerWidth - config.width - 20 : config.left,
@@ -100,7 +101,10 @@ class MiniScreen extends Plugin {
   }
 
   onCancelClick (e) {
+    e.preventDefault()
+    e.stopPropagation()
     this.exitMini()
+    this.isClose = true
   }
 
   onCenterClick (e) {
@@ -115,10 +119,11 @@ class MiniScreen extends Plugin {
     let scrollHeight = parseInt(Util.getCss(this.player.root, 'height'))
     scrollHeight += this.config.scrollTop
     this.coordinate.scrollY = window.scrollY
-    if (window.scrollY > scrollHeight + 5 && !this.isMini) {
-      this.getMini()
-    } else if (window.scrollY <= scrollHeight && this.isMini) {
-      this.exitMini()
+    if (window.scrollY > scrollHeight + 5) {
+      !this.isMini && !this.isClose && this.getMini()
+    } else if (window.scrollY <= scrollHeight) {
+      this.isMini && this.exitMini()
+      this.isClose = false
     }
   }
 

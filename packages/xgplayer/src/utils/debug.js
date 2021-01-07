@@ -22,7 +22,7 @@ const XG_DEBUG = {
   },
 
   logError: function (message, ...optionalParams) {
-    (XG_DEBUG_OPEN || this.config.debug) && console.error(XGTAG, STYLE.error, message, ...optionalParams)
+    console.error(XGTAG, STYLE.error, message, ...optionalParams)
   }
 }
 

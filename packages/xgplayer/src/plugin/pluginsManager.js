@@ -249,6 +249,7 @@ const pluginsManager = {
       try {
         plugins[item].lang = lang
       } catch (error) {
+        console.warn(error)
         //
       }
     }
