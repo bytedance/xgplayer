@@ -137,7 +137,8 @@ export default class FlvController {
       }
     }
     this.mse.doAppend();
-    if (this._player.paused) {
+    if (this._player.paused || this.urlSwitching) {
+      this.urlSwitching = false
       this._handleTimeUpdate();
     }
   }

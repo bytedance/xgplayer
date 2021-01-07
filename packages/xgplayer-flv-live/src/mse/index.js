@@ -90,6 +90,7 @@ class FlvPlayer extends BasePlugin {
         this.context = ctx;
         this.emit('switch_completed')
         flv.on(EVENTS.DEMUX_EVENTS.ISKEYFRAME, flv._handleKeyFrame)
+        flv.urlSwitching = true
       }
     })
 
