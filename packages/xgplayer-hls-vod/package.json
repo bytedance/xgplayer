@@ -1,6 +1,6 @@
 {
   "name": "xgplayer-hls-vod",
-  "version": "3.0.0-alpha.74",
+  "version": "3.0.0-alpha.78",
   "description": "",
   "main": "lib/index.js",
   "module": "es/index.js",
@@ -31,9 +31,9 @@
   },
   "license": "ISC",
   "dependencies": {
-    "xgplayer-helper-codec": "2.3.56",
-    "xgplayer-helper-models": "2.3.56",
-    "xgplayer-helper-transmuxers": "2.3.56",
-    "xgplayer-helper-utils": "2.3.56"
+    "xgplayer-helper-codec": "2.3.59",
+    "xgplayer-helper-models": "2.3.59",
+    "xgplayer-helper-transmuxers": "2.3.59",
+    "xgplayer-helper-utils": "2.3.59"
   }
 }

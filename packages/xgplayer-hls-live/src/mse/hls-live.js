@@ -233,7 +233,7 @@ class HlsLiveController {
         this.retrytimes--;
         this._preload();
       } else {
-        this.emit(HLS_EVENTS.RETRY_TIME_EXCEEDED);
+        this._player && this._player.emit('ended')
         // this.mse.endOfStream();
       }
     }

@@ -185,7 +185,7 @@ class FetchLoader {
     // read方法返回一个Promise. 回调中可以获取到数据。当value.done存在时，说明链接断开。
     this._noDataTimer = setTimeout(() => {
       if (this.loading === false) return
-      this.emit(LOADER_EVENTS.NO_DATA_RECEVIE)
+      this.emit(LOADER_EVENTS.LOADER_COMPLETE)
     }, 3000)
     this._reader && this._reader.read().then((val) => {
       clearTimeout(this._noDataTimer)

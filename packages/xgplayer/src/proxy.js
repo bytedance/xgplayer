@@ -49,7 +49,6 @@ class Proxy {
       'x5-video-orientation': options['x5-video-orientation'] || options['x5VideoOrientation'],
       airplay: options['airplay'],
       'webkit-airplay': options['airplay'],
-      muted: true,
       tabindex: 2,
       mediaType: options.mediaType || 'video'
     }, options.videoConfig, options.videoAttrbutes);
