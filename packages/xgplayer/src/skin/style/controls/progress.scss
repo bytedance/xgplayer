@@ -99,6 +99,35 @@
       z-index: 99;
     }
   }
+  .xgplayer-coverpreview {
+    position: absolute;
+    width: 100%;
+    height: 100%;
+    top: 0%;
+    left: 0%;
+    display: none;
+    .xgplayer-coverpreview-outer {
+      position: absolute;
+      display: block;
+      top: 50%;
+      left: 50%;
+      transform: translate(-50%, -50%);
+      .xgplayer-coverpreview-thumbnail {
+        display: block;
+      }
+      .xgplayer-coverpreview-point {
+        display: block;
+        text-align: center;
+        font-family: PingFangSC-Regular;
+        font-size: 11px;
+        color: #ccc;
+        padding: 2px 4px;
+        span {
+          color: #fff;
+        }
+      }
+    }
+  }
   .xgplayer-progress:hover,.xgplayer-progress:focus {
     .xgplayer-progress-outer {
       height: 6px;

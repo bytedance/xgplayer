@@ -110,7 +110,19 @@ let s_progress = function () {
   let tnailRow = 0
   let interval = 0
   let tnailUrls = []
+  let coverPreviewContainer, coverPreviewPoint, coverPreviewOuter
   if (player.config.thumbnail) {
+    if(player.config.thumbnail.isShowCoverPreview) {
+      progress.removeChild(thumbnail)
+      coverPreviewContainer = util.createDom('xg-coverpreview', `<xg-outer class="xgplayer-coverpreview-outer">
+          <xg-thumbnail class="xgplayer-coverpreview-thumbnail"></xg-thumbnail>
+          <xg-point class="xgplayer-coverpreview-point"></xg-point>
+        </xg-outer>`, {tabindex: 1}, 'xgplayer-coverpreview')
+      coverPreviewOuter = coverPreviewContainer.querySelector('.xgplayer-coverpreview-outer')
+      coverPreviewPoint = coverPreviewContainer.querySelector('.xgplayer-coverpreview-point')
+      thumbnail = coverPreviewContainer.querySelector('.xgplayer-coverpreview-thumbnail')
+      player.root.appendChild(coverPreviewContainer)
+    }
     tnailPicNum = player.config.thumbnail.pic_num
     tnailWidth = player.config.thumbnail.width
     tnailHeight = player.config.thumbnail.height
@@ -187,6 +199,19 @@ let s_progress = function () {
             }
           }
         }
+
+        if(player.config.thumbnail && player.config.thumbnail.isShowCoverPreview) {
+          coverPreviewPoint.innerHTML = `<span>${util.format(now)}</span> / ${util.format(player.duration || 0)}`
+
+          interval = player.duration / tnailPicNum
+          let index = Math.floor(now / interval)
+          thumbnail.style.backgroundImage = `url(${tnailUrls[Math.ceil((index + 1) / (tnailCol * tnailRow)) - 1]})`
+          let indexInPage = index + 1 - (tnailCol * tnailRow) * (Math.ceil((index + 1) / (tnailCol * tnailRow)) - 1)
+          let tnaiRowIndex = Math.ceil(indexInPage / tnailRow) - 1
+          let tnaiColIndex = indexInPage - tnaiRowIndex * tnailRow - 1
+          thumbnail.style['background-position'] = `-${tnaiColIndex * tnailWidth}px -${tnaiRowIndex * tnailHeight}px`
+          coverPreviewContainer.style.display = 'block'
+        }
         
         player.emit('focus')
       }
@@ -210,6 +235,9 @@ let s_progress = function () {
             progress.style.width = `${w * 100 / containerWidth}%`
             player.currentTime = Number(now).toFixed(1)
           }
+        }
+        if(player.config.thumbnail && player.config.thumbnail.isShowCoverPreview) {
+          coverPreviewContainer.style.display = 'none'
         }
         player.emit('focus')
         player.isProgressMoving = false
@@ -235,7 +263,7 @@ let s_progress = function () {
       now = now < 0 ? 0 : now
       point.textContent = util.format(now)
       let pointWidth = point.getBoundingClientRect().width
-      if (player.config.thumbnail) {
+      if (player.config.thumbnail && !player.config.thumbnail.isShowCoverPreview) {
         interval = player.duration / tnailPicNum
         let index = Math.floor(now / interval)
         thumbnail.style.backgroundImage = `url(${tnailUrls[Math.ceil((index + 1) / (tnailCol * tnailRow)) - 1]})`
@@ -270,7 +298,9 @@ let s_progress = function () {
       container.removeEventListener('mouseleave', leave, false)
       compute(e)
       point.style.display = 'none'
-      thumbnail.style.display = 'none'
+      if (player.config.thumbnail && !player.config.thumbnail.isShowCoverPreview) {
+        thumbnail.style.display = 'none'
+      }
     }
     container.addEventListener('mousemove', move, false)
     container.addEventListener('mouseleave', leave, false)
