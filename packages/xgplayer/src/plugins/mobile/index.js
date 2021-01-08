@@ -119,9 +119,6 @@ class MobilePlugin extends Plugin {
       })
     })
 
-    player.root.addEventListener('touchmove', this.onRootTouchMove, true)
-    player.root.addEventListener('touchend', this.onRootTouchEnd, true)
-
     if (!config.disableActive) {
       // 添加进度条拖拽事件回调
       const progressPlugin = player.plugins.progress
@@ -293,6 +290,8 @@ class MobilePlugin extends Plugin {
       pos.scopeR = (1 - config.scopeR) * pos.width
       pos.scopeM1 = pos.width * (1 - config.scopeM) / 2
       pos.scopeM2 = pos.width - pos.scopeM1
+      player.root.addEventListener('touchmove', this.onRootTouchMove, true)
+      player.root.addEventListener('touchend', this.onRootTouchEnd, true)
     }
   }
 
@@ -348,6 +347,8 @@ class MobilePlugin extends Plugin {
     this.resetPos()
     Util.checkIsFunction(playerConfig.enableSwipeHandler) && playerConfig.enableSwipeHandler()
     this.changeAction(ACTIONS.AUTO)
+    player.root.removeEventListener('touchmove', this.onRootTouchMove, true)
+    player.root.removeEventListener('touchend', this.onRootTouchEnd, true)
   }
 
   onRootTouchMove = (e) => {
