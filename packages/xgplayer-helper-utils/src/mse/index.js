@@ -105,6 +105,9 @@ class MSE {
           this.sourceBuffers[type] = sourceBuffer;
           sourceBuffer.addEventListener('updateend', this.onUpdateEnd);
         } catch (e) {
+          if ((e.code === 22) && (Object.keys(this.sourceBuffers).length > 0)) {
+            return this.emit(MSE_EVENTS.MSE_WRONG_TRACK_ADD, type)
+          }
           this.emit(MSE_EVENTS.MSE_ERROR, this.TAG, new Error(e.message));
         }
       }
