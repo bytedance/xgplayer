@@ -152,7 +152,7 @@ export default class AudioRender extends BaseRender {
         this._emitTimelineEvents(
           Events.TIMELINE.PLAY_EVENT,
           'error',
-          this._assembleErr(ERROR_MSG.DECODE_ERR)
+          this._assembleErr(`ERROR_MSG.DECODE_ERR:${e && e.message}`)
         )
       }
     }
@@ -258,11 +258,11 @@ export default class AudioRender extends BaseRender {
         this._emitTimelineEvents(Events.TIMELINE.PLAY_EVENT, Events.VIDEO_EVENTS.PROGRESS);
         this._emitTimelineEvents(Events.TIMELINE.PLAY_EVENT, Events.VIDEO_EVENTS.DURATION_CHANGE);
       },
-      () => {
+      (e) => {
         this._emitTimelineEvents(
           Events.TIMELINE.PLAY_EVENT,
           'error',
-          this._assembleErr(ERROR_MSG.DECODE_ERR)
+          this._assembleErr(`ERROR_MSG.DECODE_ERR:${e && e.message}`)
         );
       }
     );

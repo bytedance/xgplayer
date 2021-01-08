@@ -98,7 +98,6 @@ class NoSleep {
         .catch((err) => {
           this.enabled = false;
           console.error(`${err.name}, ${err.message}`);
-          throw err;
         });
     } else if (oldIOS()) {
       this.disable();
