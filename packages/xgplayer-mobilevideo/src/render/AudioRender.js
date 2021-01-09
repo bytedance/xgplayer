@@ -103,6 +103,16 @@ export default class AudioRender extends BaseRender {
     return this._audioCtx.suspend();
   }
 
+  _bindAudioCtxEvent () {
+    this._onStateChange = () => {
+      if (!this._audioCtx) return;
+      if (this._audioCtx.state === 'running' && this._ready) {
+        this._emitTimelineEvents(Events.TIMELINE.PLAY_EVENT, Events.VIDEO_EVENTS.PLAYING);
+      }
+    };
+    this._audioCtx.addEventListener('statechange', this._onStateChange);
+  }
+
   _bindEvents () {
     super._bindEvents();
 
@@ -116,18 +126,6 @@ export default class AudioRender extends BaseRender {
     this._parent.on(Events.TIMELINE.SET_VIDEO_DURATION, v => {
       this._timeRange.duration = v;
     })
-
-    this._parent.on(Events.TIMELINE.CHASE_FRAME, this._doChaseFrame.bind(this));
-  }
-
-  _bindAudioCtxEvent () {
-    this._onStateChange = () => {
-      if (!this._audioCtx) return;
-      if (this._audioCtx.state === 'running' && this._ready) {
-        this._emitTimelineEvents(Events.TIMELINE.PLAY_EVENT, Events.VIDEO_EVENTS.PLAYING);
-      }
-    };
-    this._audioCtx.addEventListener('statechange', this._onStateChange);
   }
 
   _setMetadata (type, meta) {
@@ -197,19 +195,18 @@ export default class AudioRender extends BaseRender {
     return Promise.resolve();
   }
 
+  // 点播seek
   _doSeek (time) {
     this._reInitAudioCtx(time).then(() => {
       this._getAudioBuffer(true);
     });
   }
 
-  _doChaseFrame (time) {
-    if (this._lastBuffer && this._lastBuffer.start < time && this._lastBuffer.end > time) return;
-    let next = this._timeRange.filter(time);
+  // 直播追帧
+  _doChaseFrame ({position}) {
+    let next = this._timeRange.filter(position);
     if (!next) return;
-    time = next.start;
-    logger.warn(this.TAG, 'chase frame to time: ', time);
-    this._reInitAudioCtx(time).then(() => {
+    this._reInitAudioCtx(next.start).then(() => {
       this._startRender();
       this._emitTimelineEvents(
         Events.TIMELINE.PLAY_EVENT,

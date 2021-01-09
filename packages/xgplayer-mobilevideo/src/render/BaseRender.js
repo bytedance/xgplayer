@@ -42,6 +42,8 @@ export default class BaseRender extends EventEmitter {
 
     this._parent.on(Events.TIMELINE.DESTROY, this._destroy.bind(this));
 
+    this._parent.on(Events.TIMELINE.CHASE_FRAME, this._doChaseFrame.bind(this));
+
     this._parent.on(Events.TIMELINE.NO_AUDIO, (type) => {
       this._noAudio = type;
     });

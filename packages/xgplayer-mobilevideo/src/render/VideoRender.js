@@ -220,6 +220,10 @@ export default class VideoRender extends BaseRender {
     this._switchVideoBuffer(time);
   }
 
+  getChaseFrameStartPosition (time, preloadTime) {
+    return this._timeRange.getChaseFrameStartPosition(time, preloadTime);
+  }
+
   _assembleErr (msg) {
     let err = new Error(msg);
     err.code = MEDIA_ERR_DECODE;
@@ -470,6 +474,15 @@ export default class VideoRender extends BaseRender {
     this._tickTimer.stop();
     this._ready = false;
     this._frameQueue.destroy();
+  }
+
+  _doChaseFrame ({frame}) {
+    this._wasmWorkers.forEach(worker => {
+      worker.postMessage({
+        msg: 'flush'
+      })
+    })
+    this._timeRange.deletePassed(frame.dts);
   }
 
   _switchVideoBuffer (time) {

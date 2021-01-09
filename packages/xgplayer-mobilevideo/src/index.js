@@ -358,14 +358,13 @@ class MVideo extends HTMLElement {
   }
 
   destroy () {
+    if (!this.timeline) return;
     this._noSleep.destroy();
-    if (this.timeline) {
-      logger.log(this.TAG, 'call destroy');
-      this.timeline.emit(Events.TIMELINE.DESTROY);
-      this.timeline = null;
-      this._err = null;
-      this._noSleep = null;
-    }
+    logger.log(this.TAG, 'call destroy');
+    this.timeline.emit(Events.TIMELINE.DESTROY);
+    this.timeline = null;
+    this._err = null;
+    this._noSleep = null;
   }
 
   // 只初始化播放器时记录一次

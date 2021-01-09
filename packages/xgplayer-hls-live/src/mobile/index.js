@@ -107,6 +107,11 @@ class HlsPlayer extends BasePlugin {
       this.destroy();
       player.video = newVideo;
       mVideo.degrade(url, useMse);
+      // 替换下dom元素
+      let firstChild = player.root.firstChild;
+      if (firstChild.TAG === 'MVideo') {
+        player.root.replaceChild(newVideo, firstChild)
+      }
     }
   }
 
