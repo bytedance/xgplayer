@@ -58,8 +58,8 @@ let mobile = function () {
               // 双击
               onTouch()
             } else {
-              clickedTime.first = ''
-              clk = 0
+              clickedTime.first = new Date()
+              clk = 1
             }
           } else {
             clk = 0
