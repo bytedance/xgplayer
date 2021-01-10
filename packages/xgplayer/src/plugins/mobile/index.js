@@ -28,6 +28,7 @@ class MobilePlugin extends Plugin {
       gradient: 'normal', // 是否启用阴影
       isTouchingSeek: false, // 是否在touchMove的同时更新currentTime
       miniMoveStep: 5, // 最小差异，用于move节流
+      miniYPer: 5, // y方向最小位移百分比
       scopeL: 0.25, // 左侧手势范围比例
       scopeR: 0.25, // 右侧手势范围比例
       scopeM: 0.9, // 中间手势范围比例
@@ -213,19 +214,22 @@ class MobilePlugin extends Plugin {
   /**
    * 校验具体的操作范围
    * @param {number} x 方向位移
-   * @param {number} width 当前操作区域宽度
-   * @param {number} mold 位移绝对值
+   * @param {number} y 方向位移
+   * @param {number} diffx 方向位移差
+   * @param {number} diffy 方向位移差
+   * @param {Object} pos 当前操作区域位置信息 包含{width, height}
    * @return {number} scope 区域 0=>中间x方向滑动  1=>左侧上下滑动 2=>右侧上下滑动
    */
-  checkScope (x, width, mold) {
-    const {pos} = this
+  checkScope (x, y, diffx, diffy, pos) {
+    const {width, height} = pos
     let scope = -1
     if (x < 0 || x > width) {
       return scope
     }
-    if (mold >= 1 && x > pos.scopeM1 && x < pos.scopeM2) {
+    const mold = diffy === 0 ? Math.abs(diffx) : Math.abs(diffx / diffy)
+    if (Math.abs(diffx) > 0 && (diffy === 0 || mold >= 1) && x > pos.scopeM1 && x < pos.scopeM2) {
       scope = 0
-    } else if (mold < 1) {
+    } else if ((Math.abs(diffx) === 0 || mold < 1) && Math.abs(diffy) >= height / this.config.miniYPer) {
       scope = x < pos.scopeL ? 1 : (x > pos.scopeR ? 2 : scope)
     }
     return scope
@@ -233,8 +237,8 @@ class MobilePlugin extends Plugin {
 
   /**
    * 根据位移和操作类型进行对应处理
-   * @param {number} x x方向位移
-   * @param {number} y y方向位移
+   * @param {number} diffx x方向位移差
+   * @param {number} diffy y方向位移差
    * @param {number} scope scope 区域 0=>中间x方向滑动  1=>左侧上下滑动 2=>右侧上下滑动
    * @param {number} width 总体宽度
    * @param {number} height 总高度
@@ -254,6 +258,11 @@ class MobilePlugin extends Plugin {
     }
   }
 
+  /**
+   * 结束手势操作
+   * @param {number} scope 当前手势类型 区域 0=>中间x方向滑动  1=>左侧上下滑动 2=>右侧上下滑动
+   * @param {number} lastScope 上一次手势类型
+   */
   endLastMove (scope, lastScope) {
     const {pos, player, config} = this
     if (scope !== lastScope) {
@@ -279,13 +288,22 @@ class MobilePlugin extends Plugin {
       pos.isStart = true
       Util.checkIsFunction(playerConfig.disableSwipeHandler) && playerConfig.disableSwipeHandler()
       this.find('.dur').innerHTML = Util.format(player.duration)
-      pos.x = parseInt(touche.pageX, 10)
-      pos.y = parseInt(touche.pageY, 10)
       !pos.time && (pos.time = player.currentTime * 1000)
       pos.volume = player.volume * 100
       const rect = this.root.getBoundingClientRect()
-      pos.width = player.rotateDeg === 90 ? rect.height : rect.width
-      pos.height = player.rotateDeg === 90 ? rect.width : rect.height
+      if (player.rotateDeg === 90) {
+        pos.top = rect.left
+        pos.left = rect.top
+        pos.width = rect.height
+        pos.height = rect.width
+      } else {
+        pos.top = rect.top
+        pos.left = rect.left
+        pos.width = rect.width
+        pos.height = rect.height
+      }
+      pos.x = parseInt(touche.pageX - pos.left, 10)
+      pos.y = parseInt(touche.pageY - pos.top, 10)
       pos.scopeL = config.scopeL * pos.width
       pos.scopeR = (1 - config.scopeR) * pos.width
       pos.scopeM1 = pos.width * (1 - config.scopeM) / 2
@@ -303,17 +321,13 @@ class MobilePlugin extends Plugin {
       return
     }
     const {miniMoveStep, hideControlsActive} = config
-    if (Math.abs(touche.pageX - pos.x) > miniMoveStep || Math.abs(touche.pageY - pos.y) > miniMoveStep) {
-      const x = parseInt(touche.pageX, 10)
-      const y = parseInt(touche.pageY, 10)
+    const x = parseInt(touche.pageX - pos.left, 10)
+    const y = parseInt(touche.pageY - pos.top, 10)
+    if (Math.abs(x - pos.x) > miniMoveStep || Math.abs(y - pos.y) > miniMoveStep) {
       const diffx = x - pos.x
       const diffy = y - pos.y
-      // console.log(`y:${y} diffy:${diffy} pos.y:${pos.y}`)
-      const scope = this.checkScope(x, pos.width, Math.abs(diffx / diffy))
-      if (scope > 0 && !config.gestureY) {
-        return
-      }
-      if (scope === 0 && !config.gestureX) {
+      const scope = this.checkScope(x, y, diffx, diffy, pos)
+      if (scope === -1 || (scope > 0 && !config.gestureY) || (scope === 0 && !config.gestureX)) {
         return
       }
       if (scope === 0 && scope !== pos.scope) {
@@ -431,13 +445,11 @@ class MobilePlugin extends Plugin {
   }
 
   updateVolume (percent) {
-    const {pos, player} = this
+    const {player} = this
     percent = parseInt(percent * 100, 10)
-    const volume = pos.volume - percent
-    pos.volume = volume < 1 ? 0 : (volume > 100 ? 100 : volume)
-    if (Math.abs(pos.volume - player.volume * 100) >= 10) {
-      player.volume = pos.volume / 100
-    }
+    let volume = player.volume * 100 - percent
+    volume = volume > 100 ? 100 : (volume < 1 ? 0 : volume)
+    player.volume = volume / 100
   }
 
   updateBrightness (percent) {

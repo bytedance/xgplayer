@@ -28,6 +28,7 @@ $color: #FF0000;
       text-shadow: 0 0 1px rgba(0,0,0,0.54);
       font-size: 17px;
       text-align: center;
+      pointer-events: none;
       span {
         line-height: 24px;
         &.cur {
