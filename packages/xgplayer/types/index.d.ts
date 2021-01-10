@@ -289,6 +289,15 @@ declare module 'xgplayer' {
 
         //关闭长按增加倍速功能
         disableLongPress?: boolean;
+
+        //移动端支持双击暂停/播放
+        enableVideoDbltouch?: boolean;
+
+        //使播放器控制栏常驻不隐藏
+        closeInactive?: boolean;
+
+        //触发全屏时实现样式全屏横屏
+        rotateFullscreen?: boolean;
     }
 
     class Proxy extends EventEmitter {

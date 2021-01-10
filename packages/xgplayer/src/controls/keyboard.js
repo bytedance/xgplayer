@@ -56,7 +56,7 @@ class Keyboard {
   onKeydown (event) {
     let e = event || window.event
     const keyCode = e.keyCode
-    if (this.checkTarget(e) && (keyCode === 37 || keyCode === 38 || keyCode === 39 || keyCode === 40 || keyCode === 32)) {
+    if (this.checkTarget(e) && (keyCode === 37 || keyCode === 38 || keyCode === 39 || keyCode === 40 || keyCode === 32 || keyCode === 27)) {
       e.preventDefault()
       e.cancelBubble = true
       e.returnValue = false
@@ -130,6 +130,11 @@ class Keyboard {
       case 32:
         if (!isLonePress) {
           player.paused ? player.play() : player.pause()
+        }
+        break
+      case 27:
+        if (Player.util.hasClass(player.root, 'xgplayer-is-cssfullscreen')) {
+          player.exitCssFullscreen()
         }
         break
       default:

@@ -43,8 +43,12 @@ let pc = function () {
   player.video.addEventListener('click', function (e) { player.onElementClick(e, player.video) }, false)
 
   player.onElementDblclick = function (e, element) {
-    e.preventDefault()
-    e.stopPropagation()
+    if(!this.config.closeVideoPreventDefault) {
+      e.preventDefault()
+    }
+    if(!this.config.closeVideoStopPropagation) {
+      e.stopPropagation()
+    }
     let player = this
     if (!player.config.closeVideoDblclick) {
       let fullscreen = controls.querySelector('.xgplayer-fullscreen')

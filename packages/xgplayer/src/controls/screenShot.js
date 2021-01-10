@@ -7,6 +7,8 @@ let screenShot = function () {
     return
   }
 
+  player.video.setAttribute('crossOrigin', 'anonymous')
+
   let encoderOptions = 0.92
   if(screenShotOptions.quality || screenShotOptions.quality === 0) {
     encoderOptions = screenShotOptions.quality
@@ -34,7 +36,6 @@ let screenShot = function () {
     canvas.height = player.video.videoHeight || 337.5
     img.onload = (function () {
       canvasCtx.drawImage(player.video, 0, 0, canvas.width, canvas.height)
-      img.setAttribute('crossOrigin', 'anonymous')
       img.src = canvas.toDataURL(type, encoderOptions).replace(type, 'image/octet-stream')
       let screenShotImg = img.src.replace(/^data:image\/[^;]+/, 'data:application/octet-stream')
       player.emit('screenShot', screenShotImg)
