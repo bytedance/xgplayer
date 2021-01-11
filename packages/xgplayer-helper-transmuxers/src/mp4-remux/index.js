@@ -253,7 +253,7 @@ export default class Mp4Remuxer {
     }
 
     let moofMdat = new Buffer()
-    if (mp4Samples.length) {
+    if (mp4Samples.length && track.meta) {
       const moof = Fmp4.moof({
         id: track.meta.id,
         time: firstDts,
@@ -371,7 +371,7 @@ export default class Mp4Remuxer {
 
     const moofMdat = new Buffer()
 
-    if (mp4Samples.length) {
+    if (mp4Samples.length && track.meta) {
       logger.log(this.TAG, 'remux to mp4 audio:', [firstDts / 1000, mp4Samples[mp4Samples.length - 1].dts / 1000]);
       const moof = Fmp4.moof({
         id: track.meta.id,

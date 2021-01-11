@@ -121,6 +121,7 @@
     "rollup-plugin-require-context": "^1.0.0",
     "rollup-plugin-string": "^3.0.0",
     "rollup-plugin-uglify": "^6.0.3",
+    "rollup-plugin-uglify-es": "0.0.1",
     "rollup-plugin-url": "^3.0.0",
     "rollup-plugin-visualizer": "^3.3.2",
     "rollup-plugin-web-worker-loader": "^0.9.1",

@@ -9,6 +9,7 @@ class Playlist {
     this.duration = 0;
     this.fragLength = 0;
     this._lastget = undefined;
+    this.end = false; // 判断live | vod , 对点播或直播结束时存在 EXT-X-ENDLIST
     this._audoclear = configs.autoclear || false;
     this.logger = configs.logger;
     this.downloadedUrls = [];
@@ -73,6 +74,8 @@ class Playlist {
     if (data.encrypt && !this.encrypt) {
       this.encrypt = data.encrypt;
     }
+
+    this.end = data.end || false;
 
     if (!data.sequence) {
       data.sequence = 0;

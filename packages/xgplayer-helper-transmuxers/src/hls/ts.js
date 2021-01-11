@@ -43,7 +43,7 @@ class TsDemuxer {
     this.on(DEMUX_EVENTS.DEMUX_START, this.demux.bind(this));
   }
 
-  demux (frag) {
+  demux (frag, isVod) {
     if (frag) {
       logger.log(this.TAG, `do demux: id=${frag.id},demuxing=${this.demuxing}`);
     }
@@ -87,7 +87,7 @@ class TsDemuxer {
       let AudioOptions = Object.assign({}, frag);
       let VideoOptions = Object.assign({}, frag);
 
-      let noAudio = this._hasVideoMeta && !this._hasAudioMeta;
+      let noAudio = isVod && this._hasVideoMeta && !this._hasAudioMeta;
       let noVideo = this._hasAudioMeta && !this._hasVideoMeta;
 
       // Get Frames data
@@ -99,7 +99,8 @@ class TsDemuxer {
 
           // 1. !noAudio 首片无音频,后续分片当无音频处理
           // 2. cPes.streamType === 0x0f || cPes.streamType === 0x11 只处理aac,其他音频格式当无音频
-          if (cPes.type === 'audio' && !noAudio && (cPes.streamType === 0x0f || cPes.streamType === 0x11)) {
+          let isAAC = cPes.streamType === 0x0f || cPes.streamType === 0x11;
+          if (cPes.type === 'audio' && !noAudio && isAAC) {
             cPes.ES.buffer = TsDemuxer.mergeAudioES(cPes.ES.buffer);
             this.pushAudioSample(cPes, AudioOptions);
             AudioOptions = {};
@@ -116,7 +117,13 @@ class TsDemuxer {
       }
     });
     setTimeout(() => {
-      this.emit(DEMUX_EVENTS.DEMUX_COMPLETE);
+      let hasVideo = 0;
+      let hasAudio = 0;
+      try {
+        hasVideo = this._tracks.videoTrack && this._tracks.videoTrack.samples.length ? 1 : 0;
+        hasAudio = this._tracks.audioTrack && this._tracks.audioTrack.samples.length ? 1 : 0;
+      } catch (e) {}
+      this.emit(DEMUX_EVENTS.DEMUX_COMPLETE, hasVideo, hasAudio);
       // return;
       // if (this._hasAudioMeta) {
       //   this.emit(DEMUX_EVENTS.DEMUX_COMPLETE, 'audio');
