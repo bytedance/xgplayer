@@ -51,9 +51,6 @@ export default class HlsLivePlayer extends BasePlugin {
     this.hls.once(REMUX_EVENTS.INIT_SEGMENT, () => {
       BasePlugin.Util.addClass(this.root, 'xgplayer-is-live');
     });
-    this.hls.on(EVENTS.MSE_EVENTS.MSE_WRONG_TRACK_ADD, () => {
-      this.reload()
-    })
 
     this.on(Events.URL_CHANGE, this.handleUrlChange)
     this.on(Events.DEFINITION_CHANGE, this.handleDefinitionChange)

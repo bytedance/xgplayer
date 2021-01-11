@@ -12,6 +12,7 @@ class MSE {
 
     this.configs = Object.assign({}, configs);
     this.container = this.configs.container;
+    this.format = this.configs.format // hls | flv
     this.mediaSource = null;
     this.sourceBuffers = {};
     this.preloadTime = this.configs.preloadTime || 1;
@@ -101,6 +102,7 @@ class MSE {
         let mime = (type === 'video') ? 'video/mp4;codecs=' + source.mimetype : 'audio/mp4;codecs=' + source.mimetype
 
         try {
+          // console.log('add sourcebuffer', mime);
           let sourceBuffer = this.mediaSource.addSourceBuffer(mime);
           this.sourceBuffers[type] = sourceBuffer;
           sourceBuffer.addEventListener('updateend', this.onUpdateEnd);
@@ -124,10 +126,10 @@ class MSE {
     if (!sources) return;
     if (Object.keys(this.sourceBuffers).length < this.sourceBufferLen) {
       if (this.sourceBufferLen < 2) return;
-      if (sources.sources.video && (sources.sources.video.bufferDuration > 5000)) {
+      if (this.format !== 'hls' && sources.sources.video && (sources.sources.video.bufferDuration > 5000)) {
         this._context.mediaInfo.hasAudio = false;
         this.noaudio = true
-      } else if (sources.sources.audio && (sources.sources.audio.bufferDuration > 5000)) {
+      } else if (this.format !== 'hls' && sources.sources.audio && (sources.sources.audio.bufferDuration > 5000)) {
         this._context.mediaInfo.hasVideo = false;
         this.novideo = true
       } else {
@@ -146,7 +148,7 @@ class MSE {
       }
       if (source && !source.inited) {
         try {
-          // console.log('append buffser init: ', type, source.init)
+          // console.log('append init buffer: ', type)
           sourceBuffer.appendBuffer(source.init.buffer.buffer);
           source.inited = true;
         } catch (e) {
@@ -156,6 +158,7 @@ class MSE {
         let data = source.data.shift();
         if (data) {
           try {
+            // console.log('append buffer: ', type);
             sourceBuffer.appendBuffer(data.buffer.buffer);
           } catch (e) {
             source.data.unshift(data);
