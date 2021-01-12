@@ -34,7 +34,6 @@ export default class HlsLivePlayer extends BasePlugin {
     this._context.init();
     this.hls.load(url);
     this._initEvents();
-    this.player.useHooks('play', this.play.bind(this))
     try {
       BasePlugin.defineGetterOrSetter(this.player, {
         '__url': {
@@ -56,12 +55,17 @@ export default class HlsLivePlayer extends BasePlugin {
     this.on(Events.URL_CHANGE, this.handleUrlChange)
     this.on(Events.DEFINITION_CHANGE, this.handleDefinitionChange)
     this.on(Events.DESTROY, this.destroy)
+    let canUse = this.player.useHooks('play', this.playForHooks.bind(this))
+    if (!canUse) {
+      this.on(Events.PLAY, this.play)
+    }
   }
 
   _offEvents () {
     this.off(Events.URL_CHANGE, this.handleUrlChange)
     this.off(Events.DEFINITION_CHANGE, this.handleDefinitionChange)
     this.off(Events.DESTROY, this.destroy)
+    this.off(Events.PLAY, this.play)
   }
 
   handleUrlChange (url) {
@@ -95,9 +99,18 @@ export default class HlsLivePlayer extends BasePlugin {
     })
   }
 
-  play () {
+  playForHooks () {
     this._offEvents();
     this.reload();
+  }
+
+  play () {
+    if (this.played && this.player.played.length) {
+      this.played = false;
+      this._offEvents();
+      return this.reload();
+    }
+    this.played = true
   }
 
   reload () {
