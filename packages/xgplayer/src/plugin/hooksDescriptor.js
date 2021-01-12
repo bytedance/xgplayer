@@ -73,10 +73,11 @@ function hook (hookName, handler, preset = {pre: null, next: null}) {
 function useHooks (hookName, handler) {
   const {__hooks} = this
   if (!__hooks.hasOwnProperty(hookName)) {
-    console.warn(`plugin:${this.pluginName} has no supported hook which name [${hookName}]`)
-    return
+    console.warn(`has no supported hook which name [${hookName}]`)
+    return false
   }
-  __hooks[hookName] = handler
+  __hooks && (__hooks[hookName] = handler)
+  return true
 }
 
 /**
