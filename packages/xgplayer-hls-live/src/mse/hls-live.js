@@ -23,7 +23,10 @@ class HlsLiveController {
     this._lastCheck = 0;
     this._player = this.configs.player;
     this.retrytimes = this.configs.retrytimes || 3;
-    this.m3u8Text = null
+    this.m3u8Text = null;
+    this._downloadedFragmentQueue = [];
+    this._onWaiting = this._onWaiting.bind(this);
+    this._onPlaying = this._onPlaying.bind(this);
   }
 
   init () {
@@ -31,25 +34,25 @@ class HlsLiveController {
     // 初始化Buffer （M3U8/TS/Playlist);
     this._context.registry('M3U8_BUFFER', XgBuffer);
     this._context.registry('TS_BUFFER', XgBuffer);
-    this._context.registry('TRACKS', Tracks);
+    this._track = this._context.registry('TRACKS', Tracks)();
 
     this._playlist = this._context.registry('PLAYLIST', Playlist)({autoclear: true, logger});
     this._context.registry('PRE_SOURCE_BUFFER', PreSource);
 
-    this._context.registry('COMPATIBILITY', Compatibility);
+    this._compat = this._context.registry('COMPATIBILITY', Compatibility)();
 
     // 初始化M3U8Loader;
     this._m3u8loader = this._context.registry('M3U8_LOADER', FetchLoader)({ buffer: 'M3U8_BUFFER', readtype: 1 });
     this._tsloader = this._context.registry('TS_LOADER', FetchLoader)({ buffer: 'TS_BUFFER', readtype: 3 });
 
     // 初始化TS Demuxer
-    this._context.registry('TS_DEMUXER', TsDemuxer)({ inputbuffer: 'TS_BUFFER' });
+    this._tsDemuxer = this._context.registry('TS_DEMUXER', TsDemuxer)({ inputbuffer: 'TS_BUFFER' });
 
     // 初始化MP4 Remuxer
     this._context.registry('MP4_REMUXER', Mp4Remuxer);
 
     // 初始化MSE
-    this.mse = this._context.registry('MSE', Mse)({container: this._player.video});
+    this.mse = this._context.registry('MSE', Mse)({container: this._player.video, format: 'hls'});
     this.initEvents();
   }
 
@@ -57,7 +60,9 @@ class HlsLiveController {
     this.on(LOADER_EVENTS.LOADER_COMPLETE, this._onLoadComplete.bind(this));
     this.on(LOADER_EVENTS.LOADER_RETRY, this._handleFetchRetry.bind(this))
 
-    this.on(REMUX_EVENTS.INIT_SEGMENT, this.mse.addSourceBuffers.bind(this.mse));
+    this._addSourceBuffers = this.mse.addSourceBuffers.bind(this.mse);
+
+    this.on(REMUX_EVENTS.INIT_SEGMENT, this._addSourceBuffers);
 
     this.on(REMUX_EVENTS.MEDIA_SEGMENT, this._onMediaSegment.bind(this));
 
@@ -72,6 +77,10 @@ class HlsLiveController {
     this.on(DEMUX_EVENTS.DEMUX_ERROR, this._onDemuxError.bind(this));
 
     this.on(REMUX_EVENTS.REMUX_ERROR, this._onRemuxError.bind(this));
+
+    this._player.on('waiting', this._onWaiting);
+
+    this._player.on('playing', this._onPlaying);
   }
 
   _onError (type, mod, err, fatal) {
@@ -84,10 +93,85 @@ class HlsLiveController {
     this._player.emit(HLS_ERROR, error);
   }
 
-  _onDemuxComplete () {
-    this.emit(REMUX_EVENTS.REMUX_MEDIA, 'ts')
+  _onDemuxComplete (track1, track2) {
+    logger.log(this.TAG, 'track:', track1, track2);
+    let sourceBufferLen = 0;
+    try {
+      sourceBufferLen = this.mse.mediaSource.activeSourceBuffers.length;
+    } catch (e) {}
+
+    if (!this._needRecreateMs && sourceBufferLen && sourceBufferLen !== (track1 + track2)) {
+      logger.warn(this.TAG, 'track 数量发生变化，需要新建 ms');
+      this._needRecreateMs = true;
+    } else {
+      // 正常消费
+      this.emit(REMUX_EVENTS.REMUX_MEDIA, 'ts');
+      this._downloadedFragmentQueue.shift();
+      let next = this._downloadedFragmentQueue[0];
+      if (next) {
+        this.emit(DEMUX_EVENTS.DEMUX_START, next, this._playlist.end);
+      }
+    }
   }
+
+  _onWaiting () {
+    if (!this._needRecreateMs) return;
+    this._recreateMs();
+  }
+
+  _onPlaying () {
+    if (this._player.currentTime < 1) return;
+    this._needRecreateMs = false;
+  }
+
+  /**
+   * 重建ms流程
+   * 1. 下一个分片demux后检测到 track数量变化
+   * 2. 停止 remux、appendBuffer流程
+   * 3. 等待waiting触发,重建ms
+   * 4. 重建完后 重新下载下一个分片 demux、remux、appendBuffer
+   * 5. playing事件中重置 _needRecreateMs 状态
+   */
+  _recreateMs () {
+    const { Mse, PreSource, Tracks, TsDemuxer } = this.configs;
+    this.mse.destroy().then(() => {
+      // 清除局部实例
+      this.mse = null;
+      let preSource = this._context.getInstance('PRE_SOURCE_BUFFER');
+      preSource.destroy();
+      this._tsDemuxer.destroy();
+      this._track.destroy();
+      this.off(REMUX_EVENTS.INIT_SEGMENT, this._addSourceBuffers);
+      this._context.mediaInfo.hasVideo = false;
+      this._context.mediaInfo.hasAudio = false;
+
+      // 新建局部实例
+      this._track = this._context.registry('TRACKS', Tracks)();
+      this._tsDemuxer = this._context.registry('TS_DEMUXER', TsDemuxer)({ inputbuffer: 'TS_BUFFER' });
+      this._context.registry('PRE_SOURCE_BUFFER', PreSource)();
+      this.mse = this._context.registry('MSE', Mse)({container: this._player.video, format: 'hls'}, this._context);
+      this._addSourceBuffers = this.mse.addSourceBuffers.bind(this.mse);
+      this.on(REMUX_EVENTS.INIT_SEGMENT, this._addSourceBuffers);
+
+      this._player.video.load();
+      this._player.video.src = this.mse.url; // 新 blob
+      this._compat.reset();
+      let current = this._downloadedFragmentQueue[0];
+      if (current) {
+        this._context.seek(current.start);
+        this._downloadedFragmentQueue.shift();
+        this.emitTo('TS_LOADER', LOADER_EVENTS.LADER_START, current.url, {})
+      }
+    })
+  }
+
   _onMetadataParsed (type) {
+    logger.warn(this.TAG, 'meta detect or changed , ', type);
+    if (type === 'video') {
+      this._context.mediaInfo.hasVideo = true;
+    } else if (type === 'audio') {
+      this._context.mediaInfo.hasAudio = true;
+    }
     this.emit(REMUX_EVENTS.REMUX_METADATA, type)
   }
 
@@ -192,7 +276,11 @@ class HlsLiveController {
     } else if (buffer.TAG === 'TS_BUFFER') {
       this.retrytimes = this.configs.retrytimes || 3;
       this._playlist.downloaded(this._tsloader.url, true);
-      this.emit(DEMUX_EVENTS.DEMUX_START, Object.assign({url: this._tsloader.url}, this._playlist._ts[this._tsloader.url]));
+      let seg = Object.assign({url: this._tsloader.url}, this._playlist._ts[this._tsloader.url]);
+      this._downloadedFragmentQueue.push(seg)
+      if (this._player.buffered.length === 0 || this._downloadedFragmentQueue.length === 1) {
+        this.emit(DEMUX_EVENTS.DEMUX_START, seg, this._playlist.end);
+      }
     } else if (buffer.TAG === 'DECRYPT_BUFFER') {
       this.retrytimes = this.configs.retrytimes || 3;
       this._playlist.downloaded(this._tsloader.url, true);
@@ -238,6 +326,7 @@ class HlsLiveController {
       }
     }
   }
+
   _checkStatus () {
     const container = this._player.video
     if (!container) {
@@ -275,7 +364,7 @@ class HlsLiveController {
   }
 
   _preload () {
-    if (this._tsloader.loading || this._m3u8loader.loading) {
+    if (this._tsloader.loading || this._m3u8loader.loading || this._needRecreateMs) {
       return;
     }
     let frag = this._playlist.getTs();
@@ -311,7 +400,10 @@ class HlsLiveController {
     if (this._timmer) {
       clearInterval(this._timmer);
     }
-
+    if (this._player) {
+      this._player.off('waiting', this._onWaiting);
+      this._player.off('playing', this._onPlaying);
+    }
     this.mse = null
     this.m3u8Text = null
   }

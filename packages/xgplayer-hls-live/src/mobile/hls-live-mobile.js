@@ -121,6 +121,7 @@ class HlsLiveController {
     this._consumeFragment();
   }
   _onMetadataParsed (type) {
+    logger.warn(this.TAG, 'meta detect or changed , ', type);
     if (type === 'audio') {
       // 将音频meta信息交给audioContext，不走remux封装
       const { audioTrack } = this._context.getInstance('TRACKS')
@@ -267,7 +268,7 @@ class HlsLiveController {
     if (!force && this.inWaiting && this._downloadedFragmentQueue.length < 2) return;
     let ts = this._downloadedFragmentQueue.shift();
     if (ts) {
-      this.emit(DEMUX_EVENTS.DEMUX_START, ts);
+      this.emit(DEMUX_EVENTS.DEMUX_START, ts, this._playlist.end);
       this.inWaiting = false;
     }
   }

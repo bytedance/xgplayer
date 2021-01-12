@@ -49,6 +49,9 @@ class M3U8Parser {
           case 'EXT-X-DISCONTINUITY':
             nextDiscontinue = true;
             break;
+          case 'EXT-X-ENDLIST':
+            ret.end = true
+            break;
           default:
             break;
         }
