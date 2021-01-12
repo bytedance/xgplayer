@@ -88,10 +88,8 @@ export default class AudioTimeRange {
   }
 
   filter (time) {
-    if (this._buffers.length >= 2) {
-      this._buffers = this._buffers.filter(x => x.end > time);
-      return this._buffers[0];
-    }
+    this._buffers = this._buffers.filter(x => x.start > time);
+    return this._buffers[0];
   }
 
   _mergeBufferRanges () {

@@ -35,6 +35,11 @@ export default class VideoTimeRange {
      */
     this._frameIndexInQueue = 0;
     this._delayEstimateList = [];
+
+    /**
+     * 对直播 seek是追帧需要参考的关键帧队列
+     */
+    this._keyframeQueue = [];
   }
 
   get isLive () {
@@ -160,6 +165,21 @@ export default class VideoTimeRange {
     this._buffers.sort((a, b) => a.start > b.start ? 1 : -1)
   }
 
+  _recordKeyframes (frames) {
+    frames.forEach(f => {
+      if (f.isKeyframe) {
+        let position = (f.dts - this._baseDts) / 1000;
+        this._keyframeQueue.push({
+          position,
+          frame: f
+        })
+        if (this._keyframeQueue.length > 40) {
+          this._keyframeQueue.splice(0, 20)
+        }
+      }
+    })
+  }
+
   append (frames, updateDuration) {
     this._caclBaseDts(frames[0]);
 
@@ -170,6 +190,7 @@ export default class VideoTimeRange {
     this._estimateBitRate(frames);
 
     if (this.isLive) {
+      this._recordKeyframes(frames)
       this._currentFrameQueue = this._currentFrameQueue.concat(frames);
       return;
     }
@@ -215,8 +236,22 @@ export default class VideoTimeRange {
     this._frameIndexInQueue = 0;
   }
 
+  getChaseFrameStartPosition (time, preloadTime = 2) {
+    let last;
+    this._keyframeQueue.forEach(keyframe => {
+      if (keyframe.position < time) {
+        last = keyframe
+      }
+    })
+    if (time - last.position < preloadTime) return last;
+  }
+
   nextFrame () {
     return this._currentFrameQueue[0];
+  }
+
+  deletePassed (dts) {
+    this._currentFrameQueue = this._currentFrameQueue.filter(x => x.dts >= dts)
   }
 
   getDtsOfTime (time) {

@@ -31,6 +31,9 @@ class FlvPlayer extends BasePlugin {
     if (player.video && player.config.innerDegrade) {
       player.video.setAttribute('innerdegrade', player.config.innerDegrade);
     }
+    if (player.video && player.config.preloadTime) {
+      player.video.setAttribute('preloadtime', player.config.preloadTime);
+    }
     this.context = new Context(flvAllowedEvents)
     this.initFlv()
     this.context.init()

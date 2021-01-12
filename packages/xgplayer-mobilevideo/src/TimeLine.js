@@ -98,7 +98,7 @@ export default class TimeLine extends EventEmitter {
     this._paused = v;
   }
 
-  // 播放器初始化时第一个WebAudio能否自动播放的状态,后续重新创建的不算
+  // 播放器初始化时第一个WebAudio能否自动播放的状态,后续重新创建的不算,用于safari下非用户交互创建的 webaudio 不能自动播放
   get audioCanAutoplay () {
     return this._parent._audioCanAutoplay
   }
@@ -348,7 +348,20 @@ export default class TimeLine extends EventEmitter {
 
     if (this._parent.live) {
       if (this.currentTime < 0.1 || !this.audioCanAutoplay) return;
-      this.emit(Events.TIMELINE.CHASE_FRAME, time);
+
+      /**
+       * 追帧流程
+       * 1. 从 time 位置往前找最近的关键帧, time - keyframePosition < preloadTime
+       * 2. 对 audio._timeRange, 从keyframePosition 往后找最近的buffer块 A
+       * 3. videoRender刷新解码器,清空解码帧、删除keyframePosition之间的压缩帧
+       * 4. audioRender 删除 A 之前的buffer块,重建 audioCtx
+       * 5. 音频播放，视频解码 (视频位置 < 音频块位置)会短暂追帧
+       */
+      let keyframe = this.videoRender.getChaseFrameStartPosition(time, this._parent.preloadTime);
+      if (keyframe) {
+        logger.warn(this.TAG, 'chase frame to time: ', keyframe.position, this.duration);
+        this.emit(Events.TIMELINE.CHASE_FRAME, keyframe);
+      }
       return
     };
 
