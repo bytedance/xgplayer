@@ -143,7 +143,15 @@ class FlvPlayer extends BasePlugin {
     if (!this.canUseHooks) {
       this.on(Events.PLAY, this.play)
     }
-    this.on(Events.PAUSE, this.pause)
+    if (!this.canUseHooks) {
+      this.on(Events.PAUSE, this.pause)
+    } else if (!this.player._originPause){
+      this.player._originPause = this.player.pause.bind(this.player)
+      this.player.pause = () => {
+        this.player._originPause();
+        this.pause();
+      }
+    }
     this.on(Events.DESTROY, this.destroy)
     this.on(Events.URL_CHANGE, this.switchURL)
     this.on(Events.DEFINITION_CHANGE, this.switchURL)
