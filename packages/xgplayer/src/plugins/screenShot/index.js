@@ -14,7 +14,8 @@ export default class ScreenShot extends Plugin {
       format: '.png',
       width: 600,
       height: 337,
-      disable: false
+      disable: false,
+      name: '截图'
     }
   }
 
@@ -43,33 +44,39 @@ export default class ScreenShot extends Plugin {
     saveLink.dispatchEvent(event)
   }
 
-  createCanvans () {
+  createCanvans (width, height) {
     const canvas = document.createElement('canvas')
     this.canvasCtx = canvas.getContext('2d')
     this.canvas = canvas
-    canvas.width = this.config.width || 600
-    canvas.height = this.config.height || 337.5
+    canvas.width = width || this.config.width
+    canvas.height = height || this.config.height
   }
 
   onClickBtn (e) {
     e.preventDefault()
     e.stopPropagation()
-    if (!this.canvas) {
-      this.createCanvans();
-    }
-    let img = new window.Image();
-    this.canvasCtx.drawImage(this.player.video, 0, 0, this.canvas.width, this.canvas.height)
-    const encoderOptions = this.config.quality
-    const type = this.config.type
-    const format = this.config.format
-    img.setAttribute('crossOrigin', 'anonymous')
-    img.src = this.canvas.toDataURL(type, encoderOptions).replace(type, 'image/octet-stream')
-    const screenShotImg = img.src.replace(/^data:image\/[^;]+/, 'data:application/octet-stream')
-    this.emit('screenShot', screenShotImg)
-    this.saveScreenShot(screenShotImg, '截图' + format)
-    img.onload = () => {
-      img = null;
-    }
+    this.shot().then((data) => {
+      this.emit('screenShot', data)
+      this.saveScreenShot(data, this.config.name + this.config.format)
+    })
+  }
+
+  shot (width, height, option = {quality: 0.92, type: 'image/png'}) {
+    const {config, player} = this
+    const quality = option.quality || config.quality
+    const type = option.type || config.type
+    return new Promise((resolve, reject) => {
+      if (!this.canvas) {
+        this.createCanvans(width, height);
+      } else {
+        this.canvas.width = width || config.width
+        this.canvas.height = height || config.height
+      }
+      this.canvasCtx.drawImage(player.video, 0, 0, width || config.width, height || config.height)
+      let src = this.canvas.toDataURL(type, quality).replace(type, 'image/octet-stream')
+      src = src.replace(/^data:image\/[^;]+/, 'data:application/octet-stream')
+      resolve(src)
+    })
   }
 
   registerIcons () {

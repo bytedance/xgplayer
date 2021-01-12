@@ -17,11 +17,15 @@ import {
   version
 } from '../package.json'
 import I18N from './lang'
+const PlAYER_HOOKS = ['play']
 
 class Player extends Proxy {
   constructor (options) {
     super(options)
     hooksDescriptor(this)
+    PlAYER_HOOKS.map(item => {
+      this.__hooks[item] = null
+    })
     this.config = Util.deepMerge(getDefaultConfig(), options)
     bindDebug(this)
     // resolve default preset
@@ -239,7 +243,7 @@ class Player extends Proxy {
       if (startTime) {
         this.currentTime = startTime > this.duration ? this.duration : startTime
       }
-      autoplay && this.play()
+      autoplay && this.videoPlay()
       this.off(Events.CANPLAY, this.canPlayFunc)
       this.removeClass(STATE_CLASS.ENTER)
     }
@@ -266,7 +270,7 @@ class Player extends Proxy {
     if (this.config.autoplay) {
       this.load()
       // ios端无法自动播放的场景下，不调用play不会触发canplay loadeddata等事件
-      Sniffer.os.isPhone && this.play()
+      Sniffer.os.isPhone && this.videoPlay()
     }
 
     setTimeout(() => {
@@ -443,12 +447,12 @@ class Player extends Proxy {
     this.video && this.video.load()
   }
 
-  play () {
+  videoPlay () {
     if (!this.hasStart) {
       this.removeClass(STATE_CLASS.NO_START)
       this.addClass(STATE_CLASS.ENTER)
       this.start().then(resolve => {
-        this.play()
+        !this.config.autoplay && this.videoPlay()
       })
       return
     }
@@ -456,7 +460,6 @@ class Player extends Proxy {
       this.removeClass(STATE_CLASS.NO_START)
       !this.isCanplay && this.addClass(STATE_CLASS.ENTER)
     }
-
     const playPromise = super.play()
     if (playPromise !== undefined && playPromise && playPromise.then) {
       playPromise.then(() => {
@@ -498,6 +501,22 @@ class Player extends Proxy {
       }
     }
     return playPromise
+  }
+
+  play () {
+    const {__hooks} = this
+    if (__hooks && __hooks.play) {
+      const ret = __hooks.play.call(this)
+      if (ret && ret.then) {
+        ret.then(() => {
+          return this.videoPlay()
+        })
+      } else {
+        return this.videoPlay()
+      }
+    } else {
+      return this.videoPlay()
+    }
   }
 
   seek (time) {
