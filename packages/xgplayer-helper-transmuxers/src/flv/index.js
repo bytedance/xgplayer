@@ -522,6 +522,7 @@ class FlvDemuxer {
           return;
         }
         const nals = hevc ? NalUnitHEVC.getHvccNals(new Stream(chunk.data.buffer)) : NalUnit.getAvccNals(new Stream(chunk.data.buffer))
+        const keyTypes = hevc ? [19, 20] : [5]
         for (let i = 0; i < nals.length; i++) {
           const unit = nals[i]
           hevc ? NalUnitHEVC.analyseNal(unit) : NalUnit.analyseNal(unit)
@@ -531,11 +532,9 @@ class FlvDemuxer {
               dts: chunk.dts
             }))
           }
-          if (hevc) {
-            if ([19, 20].indexOf(unit.type) > -1) {
-              chunk.isGop = true
-              this.gopId++
-            }
+          if (keyTypes.indexOf(unit.type) > -1) {
+            chunk.isGop = true
+            this.gopId++
           }
         }
         codecID === 12 ? this.tracks.videoTrack.meta.streamType = 0x24 : this.tracks.videoTrack.meta.streamType = 0x1b
