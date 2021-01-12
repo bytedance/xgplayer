@@ -24,14 +24,15 @@ class FlvPlayer extends BasePlugin {
 
     this.autoPlayStarted = false;
     this.played = false;
+
+    this.canUseHooks = this.player.useHooks('play', this.playHook.bind(this))
+    this.initEvents()
   }
 
   beforePlayerInit () {
     this.initFlv()
     this.context.init()
     this.loadData()
-    this.canUseHooks = this.player.useHooks('play', this.playHook.bind(this))
-    this.initEvents()
     this.player.swithURL = this.swithURL;
     try {
       BasePlugin.defineGetterOrSetter(this.player, {
