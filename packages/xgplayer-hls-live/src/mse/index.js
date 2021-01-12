@@ -101,7 +101,11 @@ export default class HlsLivePlayer extends BasePlugin {
 
   playForHooks () {
     this._offEvents();
-    this.reload();
+    return this._destroy().then(() => {
+      this._context = new Context(HlsAllowedEvents)
+      this.player.hasStart = false;
+      this.player.onWaiting();
+    })
   }
 
   play () {
