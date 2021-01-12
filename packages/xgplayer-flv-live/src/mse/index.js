@@ -24,13 +24,14 @@ class FlvPlayer extends BasePlugin {
 
     this.autoPlayStarted = false;
     this.played = false;
-    this.initEvents()
   }
 
   beforePlayerInit () {
     this.initFlv()
     this.context.init()
     this.loadData()
+    this.canUseHooks = this.player.useHooks('play', this.playHook.bind(this))
+    this.initEvents()
     this.player.swithURL = this.swithURL;
     try {
       BasePlugin.defineGetterOrSetter(this.player, {
@@ -138,7 +139,9 @@ class FlvPlayer extends BasePlugin {
         this.flv.seek(this.player.currentTime)
       }
     })
-    this.on(Events.PLAY, this.play)
+    if (!this.canUseHooks) {
+      this.on(Events.PLAY, this.play)
+    }
     this.on(Events.PAUSE, this.pause)
     this.on(Events.DESTROY, this.destroy)
     this.on(Events.URL_CHANGE, this.switchURL)
@@ -157,6 +160,15 @@ class FlvPlayer extends BasePlugin {
     this.flv = flv
     this.mse = flv.mse;
     return flv;
+  }
+
+  playHook () {
+    return this._destroy().then(() => {
+      this.initEvents()
+      this.context = new Context(flvAllowedEvents)
+      this.player.onWaiting();
+      this.player.hasStart = false;
+    })
   }
 
   play () {

@@ -55,7 +55,10 @@ export default class HlsLivePlayer extends BasePlugin {
     this.on(Events.URL_CHANGE, this.handleUrlChange)
     this.on(Events.DEFINITION_CHANGE, this.handleDefinitionChange)
     this.on(Events.DESTROY, this.destroy)
-    this.on(Events.PLAY, this.play)
+    let canUse = this.player.useHooks('play', this.playForHooks.bind(this))
+    if (!canUse) {
+      this.on(Events.PLAY, this.play)
+    }
   }
 
   _offEvents () {
@@ -83,10 +86,10 @@ export default class HlsLivePlayer extends BasePlugin {
       if (!this.player.paused) {
         this.player.pause()
         this.once('canplay', () => {
-          this.player.play()
+          this.player.video.play()
         })
       } else {
-        this.player.play()
+        this.player.video.play()
       }
 
       this.player.started = false;
@@ -96,9 +99,19 @@ export default class HlsLivePlayer extends BasePlugin {
     })
   }
 
+  playForHooks () {
+    this._offEvents();
+    return this._destroy().then(() => {
+      this._context = new Context(HlsAllowedEvents)
+      this.player.hasStart = false;
+      this.player.onWaiting();
+    })
+  }
+
   play () {
     if (this.played && this.player.played.length) {
       this.played = false;
+      this._offEvents();
       return this.reload();
     }
     this.played = true
@@ -111,7 +124,7 @@ export default class HlsLivePlayer extends BasePlugin {
       this.player.start()
       this.player.onWaiting();
       this.player.once('canplay', () => {
-        this.player.play();
+        this.player.video.play();
       })
     })
   }
