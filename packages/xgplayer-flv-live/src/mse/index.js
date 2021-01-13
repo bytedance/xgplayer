@@ -172,12 +172,14 @@ class FlvPlayer extends BasePlugin {
   }
 
   playHook () {
-    return this._destroy().then(() => {
-      this.initEvents()
-      this.context = new Context(flvAllowedEvents)
-      this.player.onWaiting();
-      this.player.hasStart = false;
-    })
+    if (this.playerConfig.autoplay && this.autoPlayStarted === false) {
+      // autoplay not started
+      return;
+    }
+    if (this.playerConfig.videoInit && this.player.played.length === 0) {
+      return;
+    }
+    return this.reload()
   }
 
   play () {
@@ -204,7 +206,7 @@ class FlvPlayer extends BasePlugin {
         // used for autoplay:false
         this.player.once('canplay', () => {
           if (!this.player || this.player.config.autoplay) return;
-          this.player.play();
+          this.player.video.play();
         })
       })
       this.player.onWaiting();

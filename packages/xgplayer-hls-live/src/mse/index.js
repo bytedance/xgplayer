@@ -100,12 +100,15 @@ export default class HlsLivePlayer extends BasePlugin {
   }
 
   playForHooks () {
+    if (this.playerConfig.autoplay && this.autoPlayStarted === false) {
+      // autoplay not started
+      return;
+    }
+    if (this.playerConfig.videoInit && this.player.played.length === 0) {
+      return;
+    }
     this._offEvents();
-    return this._destroy().then(() => {
-      this._context = new Context(HlsAllowedEvents)
-      this.player.hasStart = false;
-      this.player.onWaiting();
-    })
+    return this.reload();
   }
 
   play () {
