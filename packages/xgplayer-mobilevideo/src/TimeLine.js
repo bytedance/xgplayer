@@ -352,13 +352,15 @@ export default class TimeLine extends EventEmitter {
       /**
        * 追帧流程
        * 1. 从 time 位置往前找最近的关键帧, time - keyframePosition < preloadTime
-       * 2. 对 audio._timeRange, 从keyframePosition 往后找最近的buffer块 A
+       * 2. 对 audio._timeRange, 从keyframePosition 往后找最近的buffer块 A, 可能找不到。
        * 3. videoRender刷新解码器,清空解码帧、删除keyframePosition之间的压缩帧
        * 4. audioRender 删除 A 之前的buffer块,重建 audioCtx
        * 5. 音频播放，视频解码 (视频位置 < 音频块位置)会短暂追帧
        */
-      let keyframe = this.videoRender.getChaseFrameStartPosition(time, this._parent.preloadTime);
+      let keyframe = this.videoRender.getChaseFrameStartPosition(time, this._parent.preloadTime + 1);
       if (keyframe) {
+        let canSeek = this.audioRender.canSeek(keyframe.position);
+        if (!canSeek) return;
         logger.warn(this.TAG, 'chase frame to time: ', keyframe.position, this.duration);
         this.emit(Events.TIMELINE.CHASE_FRAME, keyframe);
       }

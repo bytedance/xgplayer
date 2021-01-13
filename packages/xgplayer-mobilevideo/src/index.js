@@ -370,6 +370,9 @@ class MVideo extends HTMLElement {
   // 只初始化播放器时记录一次
   updateCanplayStatus (canplay) {
     if (canplay) return;
+    let ua = navigator.userAgent;
+    // chrome下首个webaudio不能自动播放，但手势交互后后续新建的webaudio可自动播放
+    if (/Chrome/.test(ua)) return;
     this._audioCanAutoplay = canplay;
   }
 
