@@ -71,6 +71,7 @@ export default class FlvController {
         // const buffer = new Stream(sample.data.buffer)
         // const nals = NalUnit.getNalunits(buffer);
         const nals = sample.nals;
+        if (!nals) return;
         const nalsLength = nals.reduce((len, current) => {
           return len + 4 + current.body.byteLength;
         }, 0);

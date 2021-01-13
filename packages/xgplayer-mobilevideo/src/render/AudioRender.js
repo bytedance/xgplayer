@@ -68,6 +68,10 @@ export default class AudioRender extends BaseRender {
     return this._timeRange.dump();
   }
 
+  canSeek (time) {
+    return this._timeRange.canSeek(time)
+  }
+
   _assembleErr (msg) {
     let err = new Error(msg);
     err.code = MEDIA_ERR_DECODE;
@@ -204,7 +208,7 @@ export default class AudioRender extends BaseRender {
 
   // 直播追帧
   _doChaseFrame ({position}) {
-    let next = this._timeRange.filter(position);
+    let next = this._timeRange.deletePassed(position);
     if (!next) return;
     this._reInitAudioCtx(next.start).then(() => {
       this._startRender();

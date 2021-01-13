@@ -87,9 +87,16 @@ export default class AudioTimeRange {
     return start;
   }
 
-  filter (time) {
+  deletePassed (time) {
     this._buffers = this._buffers.filter(x => x.start > time);
     return this._buffers[0];
+  }
+
+  canSeek (time) {
+    let last = this._buffers[this._buffers.length - 1];
+    if (!last) return false;
+    if (last.start < time) return false;
+    return true;
   }
 
   _mergeBufferRanges () {
