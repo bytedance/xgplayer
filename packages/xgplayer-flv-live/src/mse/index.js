@@ -143,7 +143,15 @@ class FlvPlayer extends BasePlugin {
     if (!this.canUseHooks) {
       this.on(Events.PLAY, this.play)
     }
-    this.on(Events.PAUSE, this.pause)
+    if (!this.canUseHooks) {
+      this.on(Events.PAUSE, this.pause)
+    } else if (!this.player._originPause){
+      this.player._originPause = this.player.pause.bind(this.player)
+      this.player.pause = () => {
+        this.player._originPause();
+        this.pause();
+      }
+    }
     this.on(Events.DESTROY, this.destroy)
     this.on(Events.URL_CHANGE, this.switchURL)
     this.on(Events.DEFINITION_CHANGE, this.switchURL)
@@ -164,12 +172,14 @@ class FlvPlayer extends BasePlugin {
   }
 
   playHook () {
-    return this._destroy().then(() => {
-      this.initEvents()
-      this.context = new Context(flvAllowedEvents)
-      this.player.onWaiting();
-      this.player.hasStart = false;
-    })
+    if (this.playerConfig.autoplay && this.autoPlayStarted === false) {
+      // autoplay not started
+      return;
+    }
+    if (this.playerConfig.videoInit && this.player.played.length === 0) {
+      return;
+    }
+    return this.reload()
   }
 
   play () {
@@ -196,7 +206,7 @@ class FlvPlayer extends BasePlugin {
         // used for autoplay:false
         this.player.once('canplay', () => {
           if (!this.player || this.player.config.autoplay) return;
-          this.player.play();
+          this.player.video.play();
         })
       })
       this.player.onWaiting();
