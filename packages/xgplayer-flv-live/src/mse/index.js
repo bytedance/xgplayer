@@ -25,7 +25,7 @@ class FlvPlayer extends BasePlugin {
     this.autoPlayStarted = false;
     this.played = false;
 
-    this.canUseHooks = this.player.useHooks('play', this.playHook.bind(this))
+    this.canUseHooks = this.player.useHooks && this.player.useHooks('play', this.playHook.bind(this))
     this.initEvents()
   }
 

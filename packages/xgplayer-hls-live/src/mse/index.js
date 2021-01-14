@@ -25,6 +25,7 @@ export default class HlsLivePlayer extends BasePlugin {
     this.play = this.play.bind(this);
     this.handleDefinitionChange = this.handleDefinitionChange.bind(this);
     this._context = new Context(HlsAllowedEvents);
+    this.autoPlayStarted = false;
   }
 
   beforePlayerInit () {
@@ -55,7 +56,12 @@ export default class HlsLivePlayer extends BasePlugin {
     this.on(Events.URL_CHANGE, this.handleUrlChange)
     this.on(Events.DEFINITION_CHANGE, this.handleDefinitionChange)
     this.on(Events.DESTROY, this.destroy)
-    let canUse = this.player.useHooks('play', this.playForHooks.bind(this))
+    let canUse = this.player.useHooks && this.player.useHooks('play', this.playForHooks.bind(this))
+    if (this.playerConfig.autoplay) {
+      this.on(Events.AUTOPLAY_STARTED, () => {
+        this.autoPlayStarted = true;
+      })
+    }
     if (!canUse) {
       this.on(Events.PLAY, this.play)
     }
