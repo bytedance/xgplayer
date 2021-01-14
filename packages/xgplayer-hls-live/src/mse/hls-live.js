@@ -20,7 +20,6 @@ class HlsLiveController {
     this.m3u8FlushDuration = 4;
     this._m3u8lasttime = 0;
     this._timmer = setInterval(this._checkStatus.bind(this), 300);
-    this._lastCheck = 0;
     this._player = this.configs.player;
     this.retrytimes = this.configs.retrytimes || 3;
     this.m3u8Text = null;
@@ -71,6 +70,8 @@ class HlsLiveController {
     this.on(DEMUX_EVENTS.SEI_PARSED, this._handleSEIParsed.bind(this))
 
     this.on(DEMUX_EVENTS.DEMUX_COMPLETE, this._onDemuxComplete.bind(this));
+
+    this.on(MSE_EVENTS.SOURCE_UPDATE_END, this._handleSourceUpdateEnd.bind(this))
 
     this.on(LOADER_EVENTS.LOADER_ERROR, this._onLoadError.bind(this));
 
@@ -309,21 +310,10 @@ class HlsLiveController {
     this.emit(DEMUX_EVENTS.DEMUX_START);
   }
 
-  _m3u8Loaded (mdata) {
+  _m3u8Loaded () {
     this.m3u8FlushDuration = this._playlist.targetduration || this.m3u8FlushDuration;
     if (!this.preloadTime) {
       this.preloadTime = this._playlist.targetduration ? this._playlist.targetduration : 5;
-    }
-    if (this._playlist.fragLength > 0 && this._playlist.sequence < mdata.sequence) {
-      this.retrytimes = this.configs.retrytimes || 3;
-    } else {
-      if (this.retrytimes > 0) {
-        this.retrytimes--;
-        this._preload();
-      } else {
-        this._player && this._player.emit('ended')
-        // this.mse.endOfStream();
-      }
     }
   }
 
@@ -333,12 +323,6 @@ class HlsLiveController {
       clearInterval(this._timmer)
       return
     }
-    if (this.retrytimes < 1 && (new Date().getTime() - this._lastCheck < 4000)) {
-      return;
-    } else if (this.retrytimes < 1) {
-      clearInterval(this._timmer)
-    }
-    this._lastCheck = new Date().getTime();
     if (container.buffered.length < 1) {
       this._preload()
     } else {
@@ -379,6 +363,21 @@ class HlsLiveController {
         (current - this._m3u8lasttime) / 1000 > this.m3u8FlushDuration) {
         this._m3u8lasttime = current
         this.emitTo('M3U8_LOADER', LOADER_EVENTS.LADER_START, this.url, {}, times, delayTime);
+      }
+    }
+  }
+
+  _handleSourceUpdateEnd () {
+    // 判断最后一个分片下载完了
+    if (this._playlist.end) {
+      let list = this._playlist.list;
+      let keys = Object.keys(list).map(x => Number(x)).sort((a, b) => a > b ? 1 : -1);
+      let lastKey = keys.pop();
+      let url = list[lastKey];
+      let lastSeg = this._playlist._ts[url]
+      if (lastSeg && lastSeg.downloaded) {
+        logger.warn(this.TAG, '直播结束,断流');
+        this.mse.endOfStream();
       }
     }
   }
