@@ -47,6 +47,7 @@ class Player extends Proxy {
     // 是否处于seeking进行状态
     this.isSeeking = false
     this.isCanplay = false
+    this._runPending = false
     // 当前是否处于焦点状态
     this.isActive = true
     this.isCssfullScreen = false
@@ -90,7 +91,7 @@ class Player extends Proxy {
    * @private
    */
   _initDOM () {
-    this.root = Util.findDom(document, `#${this.config.id}`)
+    this.root = this.config.id ? Util.findDom(document, `#${this.config.id}`) : null
     if (!this.root) {
       let el = this.config.el
       if (el && el.nodeType === 1) {
@@ -101,6 +102,7 @@ class Player extends Proxy {
           handle: 'Constructor',
           msg: 'container id can\'t be empty'
         }))
+        console.error('this.confg.id or this.config.el can\'t be empty')
         return false
       }
     }
@@ -504,11 +506,14 @@ class Player extends Proxy {
   }
 
   play () {
+    this.removeClass(STATE_CLASS.PAUSED)
     const {__hooks} = this
     if (__hooks && __hooks.play) {
       const ret = __hooks.play.call(this)
       if (ret && ret.then) {
         ret.then(() => {
+          return this.videoPlay()
+        }).catch(e => {
           return this.videoPlay()
         })
       } else {
