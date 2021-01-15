@@ -115,14 +115,14 @@ class HlsLiveController {
   }
 
   _onWaiting () {
-    if (!this._needRecreateMs) return;
-
-    this._needRecreateMs = false;
-    this._recreateMs();
+    this._throwTrackChangeError();
   }
 
   _onEnded () {
-    // 当前不是重建状态略过
+    this._throwTrackChangeError();
+  }
+
+  _throwTrackChangeError () {
     if (!this._needRecreateMs) return;
 
     this._needRecreateMs = false;
