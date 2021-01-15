@@ -25,7 +25,7 @@ class HlsLiveController {
     this.m3u8Text = null;
     this._downloadedFragmentQueue = [];
     this._onWaiting = this._onWaiting.bind(this);
-    this._onPlaying = this._onPlaying.bind(this);
+    this._onEnded = this._onEnded.bind(this);
   }
 
   init () {
@@ -80,8 +80,7 @@ class HlsLiveController {
     this.on(REMUX_EVENTS.REMUX_ERROR, this._onRemuxError.bind(this));
 
     this._player.on('waiting', this._onWaiting);
-
-    this._player.on('playing', this._onPlaying);
+    this._player.on('ended', this._onEnded);
   }
 
   _onError (type, mod, err, fatal) {
@@ -117,12 +116,23 @@ class HlsLiveController {
 
   _onWaiting () {
     if (!this._needRecreateMs) return;
+
+    this._needRecreateMs = false;
     this._recreateMs();
   }
 
-  _onPlaying () {
-    if (this._player.currentTime < 1) return;
+  _onEnded () {
+    // 当前不是重建状态略过
+    if (!this._needRecreateMs) return;
+
     this._needRecreateMs = false;
+    this._player.emit('error', {
+      code: 3,
+      errorType: 'parse',
+      ex: `decode error`,
+      errd: {}
+    })
+    this.destroy();
   }
 
   /**
@@ -401,7 +411,7 @@ class HlsLiveController {
     }
     if (this._player) {
       this._player.off('waiting', this._onWaiting);
-      this._player.off('playing', this._onPlaying);
+      this._player.off('ended', this._onEnded);
     }
     this.mse = null
     this.m3u8Text = null
