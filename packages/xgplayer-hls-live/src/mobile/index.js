@@ -27,6 +27,7 @@ class HlsPlayer extends BasePlugin {
     this.play = this.play.bind(this)
     this.switchURL = this.switchURL.bind(this);
     this.handleDefinitionChange = this.handleDefinitionChange.bind(this);
+    this.lowdecode = this.lowdecode.bind(this);
   }
 
   beforePlayerInit () {
@@ -65,40 +66,34 @@ class HlsPlayer extends BasePlugin {
 
   initEvents () {
     const {player} = this;
-
-    // 内部低解码自动降级
-    this.lowdecode = () => {
-      this.emit('lowdecode', player.video.degradeInfo);
-
-      // 降级到mse
-      if (player.config.innerDegrade === 2) {
-        this._degrade(null, true);
-        const {backupConstructor, backupURL} = player.config;
-        if (backupConstructor) {
-          player.config.url = backupURL;
-          let hlsMsePlayer = player.registerPlugin(backupConstructor)
-          hlsMsePlayer.beforePlayerInit();
-          Promise.resolve().then(() => {
-            player.video.src = player.url;
-            const mobilePluginName = HlsPlayer.pluginName.toLowerCase();
-            player.plugins[mobilePluginName] = null;
-          })
-        }
-        return;
-      }
-
-      // 降级到video直接播放hls
-      if (player.config.innerDegrade === 1) {
-        this._degrade();
-      }
-    }
-
     this.on(Events.PLAY, this.play);
     this.on(Events.URL_CHANGE, this.switchURL);
     this.on(Events.DEFINITION_CHANGE, this.handleDefinitionChange);
     player.video.addEventListener('lowdecode', this.lowdecode);
   }
 
+  lowdecode () {
+    const { player } = this;
+
+    this.emit('lowdecode', player.video.degradeInfo);
+
+    // 降级到mse
+    if (player.config.innerDegrade === 2) {
+      this._degrade(null, true);
+      this._toUseMse();
+      return;
+    }
+
+    // 降级到video直接播放hls
+    if (player.config.innerDegrade === 1) {
+      this._degrade();
+    }
+  }
+
+  /**
+   * @param {string} url  降级到的地址
+   * @param {boolean} useMse 是否是降级到mse,true的话软解内部处理不用给video设置src
+   */
   _degrade (url, useMse) {
     const {player} = this;
     let mVideo = player.video;
@@ -112,6 +107,21 @@ class HlsPlayer extends BasePlugin {
       if (firstChild.TAG === 'MVideo') {
         player.root.replaceChild(newVideo, firstChild)
       }
+    }
+  }
+
+  _toUseMse () {
+    const { player } = this;
+    const {backupConstructor, backupURL} = player.config;
+    if (backupConstructor) {
+      player.config.url = backupURL;
+      let hlsMsePlayer = player.registerPlugin(backupConstructor)
+      hlsMsePlayer.beforePlayerInit();
+      Promise.resolve().then(() => {
+        player.video.src = player.url;
+        const mobilePluginName = HlsPlayer.pluginName.toLowerCase();
+        player.plugins[mobilePluginName] = null;
+      })
     }
   }
 

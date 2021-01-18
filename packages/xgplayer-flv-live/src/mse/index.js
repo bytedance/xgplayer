@@ -137,7 +137,7 @@ class FlvPlayer extends BasePlugin {
       const time = this.player.currentTime
       const range = this.player.getBufferedRange()
       if (time > range[1] || time < range[0]) {
-        this.flv.seek(this.player.currentTime)
+        this.flv && this.flv.seek(this.player.currentTime)
       }
     })
     if (!this.canUseHooks) {
@@ -145,7 +145,7 @@ class FlvPlayer extends BasePlugin {
     }
     if (!this.canUseHooks) {
       this.on(Events.PAUSE, this.pause)
-    } else if (!this.player._originPause){
+    } else if (!this.player._originPause) {
       this.player._originPause = this.player.pause.bind(this.player)
       this.player.pause = () => {
         this.player._originPause();
