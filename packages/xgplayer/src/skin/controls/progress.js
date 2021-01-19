@@ -62,6 +62,11 @@ let s_progress = function () {
           if (item.duration >= 0) {
             dot.style.width = (Math.min(item.duration, player.duration - item.time) / player.duration) * 100 + '%'
           }
+          if(item.style) {
+            for(let k in item.style) {
+              dot.style[k] = item.style[k]
+            }
+          }
           outer.appendChild(dot)
           player.dotArr[item.time] = dot
           dotEvent(dot, item.text)
@@ -70,7 +75,7 @@ let s_progress = function () {
     }
   }
   player.once('canplay', onCanplay)
-  player.addProgressDot = function (time, text, duration) {
+  player.addProgressDot = function (time, text, duration, style) {
     if (player.dotArr[time]) {
       return
     }
@@ -79,6 +84,11 @@ let s_progress = function () {
       dot.style.left = (time / player.duration) * 100 + '%'
       if (duration >= 0) {
         dot.style.width = (Math.min(duration, player.duration - time) / player.duration) * 100 + '%'
+      }
+      if(style) {
+        for(let k in style) {
+          dot.style[k] = style[k]
+        }
       }
       outer.appendChild(dot)
       player.dotArr[time] = dot

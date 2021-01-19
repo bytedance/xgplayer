@@ -177,7 +177,7 @@ declare module 'xgplayer' {
         preview?: {uploadEl?: HTMLElement};
 
         // 进度条特殊点标记
-        progressDot?: Array<{time: number; text?: string; duration?: number}>;
+        progressDot?: Array<{time: number; text?: string; duration?: number, style?: object}>;
 
         // 键盘快捷键 默认值：'on'
         keyShortcut?: 'on' | 'off';
@@ -549,7 +549,7 @@ declare module 'xgplayer' {
          *
          * @param time 标记时间
          */
-        public addProgressDot(time: number, text?: string, duration?: number): void;
+        public addProgressDot(time: number, text?: string, duration?: number, style?: object): void;
 
         /**
          * 删除标记
