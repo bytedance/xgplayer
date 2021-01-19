@@ -87,9 +87,15 @@ $controlHeight: 48px;
     right: 0;
     outline: none;
     // top: -5px;
-    z-index: 40;
+    z-index: 35;
     top: -20px;
     padding: 5px 0;
+  }
+
+  &.xgplayer-mobile {
+    .center {
+      z-index: 37;
+    }
   }
 
   .flex-controls {

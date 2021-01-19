@@ -164,8 +164,13 @@ class Progress extends Plugin {
   }
 
   bindDomEvents () {
+    const {controls} = this.player
     if (this.isMobile) {
       this.bind('touchstart', this.onMouseDown)
+      if (controls) {
+        controls.root && controls.root.addEventListener('touchmove', Util.stopPropagation)
+        controls.center && controls.center.addEventListener('touchend', Util.stopPropagation)
+      }
     } else {
       this.bind('mousedown', this.onMouseDown)
       this.bind('mouseenter', this.onMouseEnter)
@@ -454,6 +459,7 @@ class Progress extends Plugin {
 
   destroy () {
     const {player} = this
+    const {controls} = player
     this.thumbnailPlugin = null
     this.innerList.destroy()
     this.innerList = null
@@ -461,6 +467,10 @@ class Progress extends Plugin {
       this.unbind('touchstart', this.onMouseDown)
       this.unbind('touchmove', this.onMouseMove)
       this.unbind('touchend', this.onMouseUp)
+      if (controls) {
+        controls.root && controls.root.removeEventListener('touchmove', Util.stopPropagation)
+        controls.center && controls.center.removeEventListener('touchend', Util.stopPropagation)
+      }
     } else {
       this.unbind('mousedown', this.onMouseDown)
       this.unbind('mouseenter', this.onMouseEnter)
