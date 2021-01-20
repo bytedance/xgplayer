@@ -1,11 +1,11 @@
 {
   "name": "xgplayer-dash",
-  "version": "1.1.7",
+  "version": "1.1.8",
   "description": "xgplayer plugin for MPEG-DASH",
   "main": "./dist/index.js",
   "scripts": {
     "prepare": "npm run build",
-    "build": "webpack --progress --display-chunks -p",
+    "build": "node ./src/version.js && webpack --progress --display-chunks -p",
     "watch": "webpack --progress --display-chunks -p --watch"
   },
   "repository": {

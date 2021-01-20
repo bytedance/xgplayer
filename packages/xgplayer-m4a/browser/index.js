@@ -426,7 +426,7 @@ var _xgplayer = __webpack_require__(13);
 
 var _xgplayer2 = _interopRequireDefault(_xgplayer);
 
-var _package = __webpack_require__(85);
+var _version = __webpack_require__(85);
 
 function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
 
@@ -445,7 +445,7 @@ var _Errors = function (_Player$Errors) {
 
     _classCallCheck(this, _Errors);
 
-    errd.version = _package.version;
+    errd.version = _version.version;
 
     var _this = _possibleConstructorReturn(this, (_Errors.__proto__ || Object.getPrototypeOf(_Errors)).call(this, type, vid, errd));
 
@@ -4510,7 +4510,7 @@ module.exports = exports['default'];
 /* 85 */
 /***/ (function(module) {
 
-module.exports = JSON.parse("{\"name\":\"xgplayer-m4a\",\"version\":\"1.1.5\",\"description\":\"xgplayer plugin for m4a transform to fmp4\",\"main\":\"./dist/index.js\",\"scripts\":{\"prepare\":\"npm run build\",\"build\":\"webpack --progress --display-chunks -p\",\"watch\":\"webpack --progress --display-chunks -p --watch\"},\"repository\":{\"type\":\"git\",\"url\":\"git@github.com:bytedance/xgplayer.git\"},\"babel\":{\"presets\":[\"es2015\"],\"plugins\":[\"add-module-exports\",\"babel-plugin-bulk-import\"]},\"keywords\":[\"mp4\",\"fmp4\",\"player\",\"audio\"],\"author\":\"yinguohui@bytedance.com\",\"license\":\"MIT\",\"dependencies\":{\"concat-typed-array\":\"^1.0.2\",\"deepmerge\":\"^2.0.1\",\"event-emitter\":\"^0.3.5\"},\"peerDependency\":{\"xgplayer\":\"^0.1.0\"},\"devDependencies\":{\"babel-core\":\"^6.26.3\",\"babel-loader\":\"^7.1.4\",\"babel-plugin-add-module-exports\":\"^0.2.1\",\"babel-plugin-bulk-import\":\"^1.0.2\",\"babel-preset-es2015\":\"^6.24.1\",\"json-loader\":\"^0.5.7\",\"webpack\":\"^4.11.0\"}}");
+module.exports = JSON.parse("{\"version\":\"1.1.6\"}");
 
 /***/ }),
 /* 86 */
