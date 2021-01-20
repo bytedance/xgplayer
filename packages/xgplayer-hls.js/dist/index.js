@@ -6081,6 +6081,18 @@ var HlsJsPlayer = function (_Player) {
     } else if (!player.config.useHls) {
       return _possibleConstructorReturn(_this);
     }
+    _this._start = _this.start;
+    _this.start = function () {
+      if (!window.XgVideoProxy) {
+        _this.root.insertBefore(_this.video, _this.root.firstChild);
+      }
+      setTimeout(function () {
+        _this.emit('complete');
+        if (_this.danmu && typeof _this.danmu.resize === 'function') {
+          _this.danmu.resize();
+        }
+      }, 1);
+    };
     Number.isFinite = Number.isFinite || function (value) {
       return typeof value === "number" && isFinite(value);
     };

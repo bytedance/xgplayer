@@ -1,5 +1,5 @@
 import Player from 'xgplayer'
-import {version} from '../package.json'
+import { version } from '../version.json'
 
 class _Errors extends Player.Errors {
   constructor (type, vid, errd = {}, url = '') {

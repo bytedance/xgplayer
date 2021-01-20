@@ -27,6 +27,18 @@ class HlsJsPlayer extends Player {
     } else if(!player.config.useHls) {
       return
     }
+    this._start = this.start
+    this.start = () => {
+      if(!window.XgVideoProxy) {
+        this.root.insertBefore(this.video, this.root.firstChild)
+      }
+      setTimeout(() => {
+        this.emit('complete')
+        if(this.danmu && typeof this.danmu.resize === 'function') {
+          this.danmu.resize()
+        }
+      }, 1)
+    }
     Number.isFinite = Number.isFinite || function(value) {
       return typeof value === "number" && isFinite(value);
     }

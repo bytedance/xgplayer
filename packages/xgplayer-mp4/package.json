@@ -1,11 +1,11 @@
 {
   "name": "xgplayer-mp4",
-  "version": "1.2.0",
+  "version": "1.2.1",
   "description": "xgplayer plugin for mp4 transform to fmp4",
   "main": "./dist/index.js",
   "scripts": {
     "prepare": "npm run build",
-    "build": "webpack --progress --display-chunks -p",
+    "build": "node ./src/version.js && webpack --progress --display-chunks -p",
     "watch": "webpack --progress --display-chunks -p --watch",
     "test": "karma start --single-run",
     "test:watch": "karma start"
