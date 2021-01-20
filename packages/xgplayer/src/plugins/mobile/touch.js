@@ -50,6 +50,7 @@ class Touche {
     this.onTouchStart = this.onTouchStart.bind(this)
     this.onTouchMove = this.onTouchMove.bind(this)
     this.onTouchEnd = this.onTouchEnd.bind(this)
+    this.onTouchCancel = this.onTouchCancel.bind(this)
     this.root.addEventListener('touchstart', this.onTouchStart)
   }
 
@@ -121,6 +122,10 @@ class Touche {
     }
   }
 
+  offAll () {
+
+  }
+
   trigger (event, e) {
     if (!this.__handlers[event]) {
       return
@@ -135,27 +140,29 @@ class Touche {
   }
 
   onTouchStart (e) {
-    // this.__stopPropagation(e)
-    e.stopPropagation()
-    const {_pos} = this
+    const {_pos, root} = this
     const touch = getTouch(e.touches)
     _pos.x = parseInt(touch.pageX, 10)
     _pos.y = parseInt(touch.pageY, 10)
     _pos.start = true
     this.__setPress(e)
+    root.addEventListener('touchend', this.onTouchEnd)
+    root.addEventListener('touchcancel', this.onTouchCancel)
+    root.addEventListener('touchmove', this.onTouchMove)
     this.trigger(EVENTS.TOUCH_START, e)
-    this.root.addEventListener('touchend', this.onTouchEnd)
-    this.root.addEventListener('touchmove', this.onTouchMove)
+  }
+
+  onTouchCancel (e) {
+    console.log('onTouchCancel')
+    this.onTouchEnd(e)
   }
 
   onTouchEnd (e) {
-    // this.__stopPropagation(e)
-    // console.log('onTouchEnd>>>e.cancelable', e.cancelable)
-    e.stopPropagation()
-    const {_pos} = this
+    const {_pos, root} = this
     this.__clearPress()
-    this.root.removeEventListener('touchend', this.onTouchEnd)
-    this.root.removeEventListener('touchmove', this.onTouchMove)
+    root.removeEventListener('touchend', this.onTouchEnd)
+    root.removeEventListener('touchmove', this.onTouchMove)
+    root.removeEventListener('touchcancel', this.onTouchCancel)
     e.moving = _pos.moving
     e.press = _pos.press
     _pos.press && this.trigger(EVENTS.PRESS_END, e)
@@ -168,7 +175,6 @@ class Touche {
 
   onTouchMove (e) {
     const {_pos, config} = this
-    // this.__stopPropagation(e)
     const touch = getTouch(e.touches)
     const diffx = parseInt(touch.pageX, 10) - _pos.x
     const diffy = parseInt(touch.pageY, 10) - _pos.y
@@ -176,7 +182,6 @@ class Touche {
     if (Math.abs(diffy) < config.miniStep && Math.abs(diffx) < config.miniStep) {
       return
     }
-    e.stopPropagation()
     this.__clearPress()
     _pos.press && this.trigger(EVENTS.PRESS_END, e)
     _pos.press = false

@@ -198,6 +198,7 @@ class Player extends Proxy {
     this.video.addEventListener('webkitendfullscreen', this.__webkitendfullscreen)
 
     this.once('loadeddata', this.getVideoSize)
+    this.once('canplaythrough', this.getVideoSize)
 
     this.mousemoveFunc = () => {
       if (!this.config.closeFocusVideoFocus) {

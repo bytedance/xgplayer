@@ -1,6 +1,6 @@
-import Plugin, {Events, Util} from '../../plugin'
+import Plugin, {Events, Util, Sniffer} from '../../plugin'
 import Touche from './touch'
-import SeekTipIcon from './seekicon.svg'
+import SeekTipIcon from '../assets/seekicon.svg'
 // import BackSvg from './back.svg'
 
 const ACTIONS = {
@@ -48,6 +48,7 @@ class MobilePlugin extends Plugin {
   constructor (options) {
     super(options)
     this.pos = {
+      isStart: false,
       x: 0,
       y: 0,
       time: 0,
@@ -221,15 +222,15 @@ class MobilePlugin extends Plugin {
    * @return {number} scope 区域 0=>中间x方向滑动  1=>左侧上下滑动 2=>右侧上下滑动
    */
   checkScope (x, y, diffx, diffy, pos) {
-    const {width, height} = pos
+    const {width} = pos
     let scope = -1
     if (x < 0 || x > width) {
       return scope
     }
     const mold = diffy === 0 ? Math.abs(diffx) : Math.abs(diffx / diffy)
-    if (Math.abs(diffx) > 0 && (diffy === 0 || mold >= 1) && x > pos.scopeM1 && x < pos.scopeM2) {
+    if (Math.abs(diffx) > 0 && mold >= 1.73 && x > pos.scopeM1 && x < pos.scopeM2) {
       scope = 0
-    } else if ((Math.abs(diffx) === 0 || mold < 1) && Math.abs(diffy) >= height / this.config.miniYPer) {
+    } else if (Math.abs(diffx) === 0 || mold <= 0.57) {
       scope = x < pos.scopeL ? 1 : (x > pos.scopeR ? 2 : scope)
     }
     return scope
@@ -252,7 +253,10 @@ class MobilePlugin extends Plugin {
         this.updateBrightness(diffy / height)
         break
       case 2:
-        this.updateVolume(diffy / height)
+        // ios系统不支持音量调节
+        if (!Sniffer.os.isIos) {
+          this.updateVolume(diffy / height)
+        }
         break
       default:
     }
@@ -270,7 +274,6 @@ class MobilePlugin extends Plugin {
         case 0:
           const time = pos.time / 1000
           player.seek(Number(time).toFixed(1))
-          this.changeAction(ACTIONS.AUTO)
           config.hideControlsEnd ? player.emit(Events.PLAYER_BLUR) : player.emit(Events.PLAYER_FOCUS)
           break
         case 1:
@@ -278,18 +281,19 @@ class MobilePlugin extends Plugin {
         default:
       }
     }
+    this.changeAction(ACTIONS.AUTO)
   }
 
   onTouchStart = (e) => {
-    e.cancelable && e.preventDefault()
     const {player, config, pos, playerConfig} = this
     const touche = this.getTouche(e.touches)
     if (touche && !config.disableGesture && player.duration > 0 && !player.ended) {
       pos.isStart = true
+      e.cancelable && e.preventDefault()
       Util.checkIsFunction(playerConfig.disableSwipeHandler) && playerConfig.disableSwipeHandler()
       this.find('.dur').innerHTML = Util.format(player.duration)
       !pos.time && (pos.time = player.currentTime * 1000)
-      pos.volume = player.volume * 100
+      // pos.volume = player.volume * 100
       const rect = this.root.getBoundingClientRect()
       if (player.rotateDeg === 90) {
         pos.top = rect.left
@@ -314,10 +318,9 @@ class MobilePlugin extends Plugin {
   }
 
   onTouchMove = (e) => {
-    e.preventDefault()
     const touche = this.getTouche(e.touches)
     const {pos, config, player} = this
-    if (!touche || config.disableGesture || !player.duration) {
+    if (!touche || config.disableGesture || !player.duration || !pos.isStart) {
       return
     }
     const {miniMoveStep, hideControlsActive} = config
@@ -326,16 +329,22 @@ class MobilePlugin extends Plugin {
     if (Math.abs(x - pos.x) > miniMoveStep || Math.abs(y - pos.y) > miniMoveStep) {
       const diffx = x - pos.x
       const diffy = y - pos.y
-      const scope = this.checkScope(x, y, diffx, diffy, pos)
+      let scope = pos.scope
+      if (scope === -1) {
+        scope = this.checkScope(x, y, diffx, diffy, pos)
+        pos.scope = scope
+      }
+
       if (scope === -1 || (scope > 0 && !config.gestureY) || (scope === 0 && !config.gestureX)) {
         return
       }
+
+      e.cancelable && e.preventDefault()
       if (scope === 0 && scope !== pos.scope) {
         !hideControlsActive ? player.emit(Events.PLAYER_FOCUS, {autoHide: false}) : player.emit(Events.PLAYER_BLUR)
       }
-      this.endLastMove(scope, pos.scope)
+      // this.endLastMove(scope, pos.scope)
       this.executeMove(diffx, diffy, scope, pos.width, pos.height)
-      pos.scope = scope
       pos.x = x
       pos.y = y
     } else {
@@ -344,11 +353,14 @@ class MobilePlugin extends Plugin {
   }
 
   onTouchEnd = (e) => {
-    e.preventDefault()
     const {player, pos, config, playerConfig} = this
     if (!pos.isStart) {
       return
     }
+    if (pos.scope > -1) {
+      e.cancelable && e.preventDefault()
+    }
+    // e.cancelable && e.preventDefault()
     const time = pos.time / 1000
     if (pos.scope === 0) {
       player.seek(Number(time).toFixed(1))
@@ -367,7 +379,7 @@ class MobilePlugin extends Plugin {
 
   onRootTouchMove = (e) => {
     const {plugins} = this.player
-    if (plugins && plugins.start.root.contains(e.target)) {
+    if (this.pos.isStart && plugins && (plugins.start.root.contains(e.target) || plugins.controls.root.contains(e.target))) {
       e.stopPropagation()
       if (!this.pos.isStart) {
         this.onTouchStart(e)
@@ -379,7 +391,7 @@ class MobilePlugin extends Plugin {
 
   onRootTouchEnd = (e) => {
     const {plugins} = this.player
-    if (this.pos.isStart && plugins.start && plugins.start.root.contains(e.target)) {
+    if (this.pos.isStart && plugins.start && (plugins.start.root.contains(e.target) || plugins.controls.root.contains(e.target))) {
       e.stopPropagation()
       this.onTouchEnd(e)
     }
@@ -445,11 +457,16 @@ class MobilePlugin extends Plugin {
   }
 
   updateVolume (percent) {
-    const {player} = this
+    const {player, pos} = this
     percent = parseInt(percent * 100, 10)
-    let volume = player.volume * 100 - percent
-    volume = volume > 100 ? 100 : (volume < 1 ? 0 : volume)
-    player.volume = volume / 100
+    pos.volume += percent
+    if (Math.abs(pos.volume) < 10) {
+      return
+    }
+    let volume = parseInt(player.volume * 10, 10) - parseInt(pos.volume / 10, 10)
+    volume = volume > 10 ? 10 : (volume < 1 ? 0 : volume)
+    player.volume = volume / 10
+    pos.volume = 0
   }
 
   updateBrightness (percent) {
@@ -511,6 +528,16 @@ class MobilePlugin extends Plugin {
         player.pause()
       }
     }
+  }
+
+  // 动态禁用手势
+  disableGesture () {
+    this.config.disableGesture = false
+  }
+
+  // 动态启用手势
+  enableGesture () {
+    this.config.disableGesture = true
   }
 
   destroy () {
