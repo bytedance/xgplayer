@@ -88,7 +88,7 @@ class TsDemuxer {
       let VideoOptions = Object.assign({}, frag);
 
       let noAudio = isVod && this._hasVideoMeta && !this._hasAudioMeta;
-      let noVideo = this._hasAudioMeta && !this._hasVideoMeta;
+      let noVideo = isVod && this._hasAudioMeta && !this._hasVideoMeta;
 
       // Get Frames data
       for (let i = 0; i < Object.keys(peses).length; i++) {
@@ -266,7 +266,6 @@ class TsDemuxer {
     if (sps && pps) {
       meta.avcc = NalUnit.getAvcc(sps.body, pps.body);
       let metaEqual = TsDemuxer.compaireMeta(track.meta, meta, true);
-
       if (!this._hasVideoMeta || !metaEqual) {
         if (options) {
           options.meta = Object.assign({}, meta);

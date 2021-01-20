@@ -81,6 +81,10 @@ export default class FrameQueue {
     this._frames = this._frames.filter(x => x.info && x.info.dts > dts);
   }
 
+  empty () {
+    this._frames = [];
+  }
+
   destroy () {
     this._frames = [];
     this._lastGopId = 0;

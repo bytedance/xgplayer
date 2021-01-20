@@ -24,6 +24,7 @@ class FlvPlayer extends BasePlugin {
     this.switchURL = this.switchURL.bind(this);
     this.progress = this.progress.bind(this);
     this.handleDefinitionChange = this.handleDefinitionChange.bind(this);
+    this.lowdecode = this.lowdecode.bind(this);
   }
 
   beforePlayerInit () {
@@ -39,6 +40,9 @@ class FlvPlayer extends BasePlugin {
     this.context.init()
     this.loadData()
     this.initEvents()
+    if (!player.forceDegradeToVideo) {
+      player.forceDegradeToVideo = this.forceDegradeToVideo.bind(this);
+    }
   }
 
   afterCreate () {
@@ -66,32 +70,6 @@ class FlvPlayer extends BasePlugin {
   }
 
   initEvents () {
-    this.lowdecode = () => {
-      this.emit('lowdecode', this.player.video.degradeInfo);
-
-      // 内部降级到mse
-      if (this.player.config.innerDegrade === 2) {
-        const {player} = this;
-        let mVideo = player.video;
-        if (mVideo && mVideo.TAG === 'MVideo') {
-          let newVideo = player.video.degradeVideo;
-          this.destroy();
-          player.video = newVideo;
-          mVideo.degrade(null, true);
-        }
-        const {backupConstructor, backupURL} = player.config;
-        if (backupConstructor) {
-          player.config.url = backupURL;
-          let flvMsePlayer = player.registerPlugin(backupConstructor)
-          flvMsePlayer.beforePlayerInit();
-          Promise.resolve().then(() => {
-            player.video.src = player.url;
-            const mobilePluginName = FlvPlayer.pluginName.toLowerCase();
-            player.plugins[mobilePluginName] = null;
-          })
-        }
-      }
-    }
     this.on(Events.PLAY, this.play);
     this.on(Events.PAUSE, this.pause);
     this.on(Events.CANPLAY, this.canplay);
@@ -99,6 +77,74 @@ class FlvPlayer extends BasePlugin {
     this.on(Events.DEFINITION_CHANGE, this.handleDefinitionChange);
     this.on(Events.PROGRESS, this.progress)
     this.player.video.addEventListener('lowdecode', this.lowdecode)
+  }
+
+  // 降级时到不同的播放方式
+  lowdecode () {
+    const {player} = this;
+    const {backupURL, innerDegrade} = player.config;
+
+    this.emit('lowdecode', this.player.video.degradeInfo);
+
+    // 内部降级到mse
+    if (innerDegrade === 2) {
+      this._degrade(null, true);
+      this._toUseMse(backupURL);
+    }
+
+    // h5下内部降级到video播放m3u8
+    if (innerDegrade === 3) {
+      this._degrade(backupURL);
+    }
+  }
+
+  /**
+   * @param {string} url  降级到的地址
+   * @param {boolean} useMse 是否是降级到mse,true的话软解内部处理不用给video设置src
+   */
+  _degrade (url, useMse) {
+    const {player} = this;
+    let mVideo = player.video;
+    if (mVideo && mVideo.TAG === 'MVideo') {
+      let newVideo = player.video.degradeVideo;
+      this.destroy();
+      player.video = newVideo;
+      mVideo.degrade(url, useMse);
+      // 替换下dom元素
+      let firstChild = player.root.firstChild;
+      if (firstChild.TAG === 'MVideo') {
+        player.root.replaceChild(newVideo, firstChild)
+      }
+    }
+  }
+
+  _toUseMse (url) {
+    const { player } = this;
+    const { backupConstructor } = player.config;
+    if (!backupConstructor || !url) {
+      throw new Error(`need backupConstructor and backupURL`);
+    }
+    if (backupConstructor) {
+      player.config.url = url;
+      let flvMsePlayer = player.registerPlugin(backupConstructor)
+      flvMsePlayer.beforePlayerInit();
+      Promise.resolve().then(() => {
+        player.video.src = player.url;
+        const mobilePluginName = FlvPlayer.pluginName.toLowerCase();
+        player.plugins[mobilePluginName] = null;
+      })
+    }
+  }
+
+  // 外部强制降级
+  forceDegradeToVideo (url) {
+    let isHls = /\.m3u8?/.test(url);
+    if (isHls) {
+      this._degrade(url);
+      return;
+    }
+    this._degrade(null, true);
+    this._toUseMse(url);
   }
 
   offEvents () {
