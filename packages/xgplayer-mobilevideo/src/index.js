@@ -1,5 +1,6 @@
 /* eslint-disable no-undef */
 import NoSleep from './helper/nosleep';
+import { playSlienceAudio } from './helper/audio-helper'
 import './polyfills/custom-elements.min';
 import './polyfills/native-element';
 // eslint-disable-next-line standard/object-curly-even-spacing
@@ -24,6 +25,7 @@ class MVideo extends HTMLElement {
     this._firstWebAudio = true;
     this._startPlayed = false;
     this._debounceSeek = debounce(this._seek.bind(this), 600);
+    this._onTouchEnd = this._onTouchEnd.bind(this);
   }
 
   // 代理外部常用属性,容错处理
@@ -69,13 +71,12 @@ class MVideo extends HTMLElement {
 
   addEventListener (eventName, handler, capture) {
     super.addEventListener(eventName, handler, capture);
-    this._eventsBackup.push([eventName, handler]);
-    this._degradeVideo.addEventListener(eventName, handler, capture);
+    this._eventsBackup.push([eventName, handler, capture]);
   }
 
   removeEventListener (eventName, handler, capture) {
     super.removeEventListener(eventName, handler, capture)
-    this._degradeVideo.removeEventListener(eventName, handler, capture);
+    this._eventsBackup = this._eventsBackup.filter(x => x.eventName !== eventName && x.handler !== handler && x.capture !== capture)
   }
 
   setAttribute (k, v) {
@@ -93,6 +94,7 @@ class MVideo extends HTMLElement {
     this._noSleep = new NoSleep();
     this._logFirstFrame = false;
     this._playRequest = null;
+    this._degradeVideoUserGestured = false;
     this._bindEvents();
     if (this._vMeta) {
       this.setVideoMeta(this._vMeta);
@@ -192,10 +194,14 @@ class MVideo extends HTMLElement {
       this.appendChild(this._degradeVideo);
     }
     this.destroy();
+
     // 销毁MVideo上的事件
-    this._eventsBackup.forEach(([eName, eHandler]) => {
-      super.removeEventListener.call(this, eName, eHandler)
+    this._eventsBackup.forEach(([eName, eHandler, capture]) => {
+      super.removeEventListener.call(this, eName, eHandler, capture)
+      // 给degradeVideo 绑定事件
+      this._degradeVideo.addEventListener(eName, eHandler, capture)
     })
+
     this._eventsBackup = [];
 
     this._degradeVideo.muted = false;
@@ -206,7 +212,7 @@ class MVideo extends HTMLElement {
       this._degradeVideo.play().then(() => {
         console.log('降级自动播放');
       }).catch(e => {
-        console.log('degrade video play:', e.message, document.querySelector('video').muted);
+        console.log('degrade video:', e.message);
       });
     }
     this._degradeVideo = null;
@@ -214,6 +220,7 @@ class MVideo extends HTMLElement {
 
   disconnectedCallback () {
     logger.log(this.TAG, 'video disconnected');
+    document.removeEventListener('touchend', this._onTouchEnd, true)
     this.destroy();
   }
 
@@ -222,20 +229,32 @@ class MVideo extends HTMLElement {
     if (!this.timeline) {
       this._init();
     }
+    document.addEventListener('touchend', this._onTouchEnd, true)
+  }
+
+  // 监听手势交互,对防息屏video、背景audio、降级用到video来调用play
+  _onTouchEnd () {
+    playSlienceAudio();
+    this._degradeVideoInteract();
+    if (this._noSleep) {
+      this._noSleep.enable();
+    }
   }
 
   handleMediaInfo () {
     this._logFirstFrame = false;
   }
 
-  _interceptAction () {
+  _degradeVideoInteract () {
     // Note
     if (this._degradeVideo && this.innerDegrade === 1) {
+      if (this._degradeVideoUserGestured) return;
       this._degradeVideo.muted = true;
       this._degradeVideo.play().then(() => {
         this._degradeVideo.pause();
+        this._degradeVideoUserGestured = true;
       }).catch(e => {
-        console.log('interceptAction: ', e.message);
+        console.log('degrade video: ', e.message);
       })
     }
   }
@@ -246,7 +265,7 @@ class MVideo extends HTMLElement {
       `mvideo called play(),ready:${this.timeline.ready}, paused:${this.timeline.paused}`
     );
 
-    this._interceptAction();
+    this._degradeVideoInteract();
 
     // 直播: paused后 reset timeline
     // 点播: paused后 起播
@@ -466,7 +485,7 @@ class MVideo extends HTMLElement {
 
   set __muted (v) {
     this.setAttribute('muted', v);
-    this._interceptAction();
+    this._degradeVideoInteract();
     this._noSleep.enable();
     this.timeline.emit(Events.TIMELINE.UPDATE_VOLUME, v ? 0 : this.volume);
   }
@@ -572,7 +591,7 @@ class MVideo extends HTMLElement {
 
   get innerDegrade () {
     let v = this.getAttribute('innerdegrade');
-    return v === 'true' || isFinite(parseInt(v));
+    return parseInt(v);
   }
 
   set __glCtxOptions (v) {

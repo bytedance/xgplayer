@@ -483,6 +483,7 @@ export default class VideoRender extends BaseRender {
       })
     })
     this._timeRange.deletePassed(frame.dts);
+    this._frameQueue.empty();
   }
 
   _switchVideoBuffer (time) {

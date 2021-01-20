@@ -15,8 +15,7 @@ function initBgSilenceAudio () {
   let audio = tmp.children.item(0);
   audio.controls = false;
   audio.preload = 'auto';
-  audio.src = silenceMp3;
-  // audio.src = 'http://10.1.9.110:8887/_media/1.mp3';
+  audio.innerHTML = `<source src=${silenceMp3} type="audio/mpeg"></source>`
   audio.muted = true;
   audio.loop = true;
   audio.load();
@@ -30,12 +29,12 @@ function playSlienceAudio () {
   let audio = ele || (ele = document.querySelector('#hackAudioPP'));
   if (!audio) {
     initBgSilenceAudio();
-    return;
   }
-  if (audio.muted) {
-    audio.muted = false;
-    audio.play().catch(e => {});
-  }
+  if (audio.paused === false && audio.muted === false) return;
+  audio.muted = false;
+  audio.play().catch(e => {
+    console.log('bgAudio: ', e.message);
+  });
 }
 
 export {
