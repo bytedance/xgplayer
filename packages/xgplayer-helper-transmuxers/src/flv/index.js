@@ -314,7 +314,7 @@ class FlvDemuxer {
         config = new Array(2);
         extensionSamplingIndex = samplingIndex;
       }
-    } else if (userAgent.indexOf('android') !== -1 || userAgent.indexOf('safari') !== -1) {
+    } else if (userAgent.indexOf('android') !== -1 || userAgent.indexOf('safari') !== -1 || userAgent.indexOf('iphone') !== -1) {
       // android: always use LC-AAC
       ret.objectType = 2;
       config = new Array(2);

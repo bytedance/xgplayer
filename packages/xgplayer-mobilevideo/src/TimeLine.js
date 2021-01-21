@@ -141,17 +141,6 @@ export default class TimeLine extends EventEmitter {
       this._readyStatus.video = false;
     });
 
-    this.videoRender.on(Events.VIDEO.VIDEO_DECODER_INIT, () => {
-      logger.log(this.TAG, 'video decoder init!');
-      setTimeout(() => {
-        if (!this.videoRender) return;
-        if (!this._readyStatus.video) {
-          logger.warn(this.TAG, 'video 首次解码无解码帧返回! auto ready!');
-          this.videoRender.updateReady();
-        }
-      }, 1000);
-    });
-
     this.onVideoReady = () => {
       logger.log(this.TAG, 'video ready!');
       if (this._readyStatus.audio) {
@@ -216,6 +205,7 @@ export default class TimeLine extends EventEmitter {
     // 对autoplay:false 起播阶段不执行这个,在外面调用play()时分发 START_RENDER
     if (this._parent.autoplay || this._parent.startPlayed) {
       this._parent.startPlayed = true;
+      this.videoRender.forceRender();
       this.emit(Events.TIMELINE.START_RENDER);
     }
     this.emit(Events.TIMELINE.READY);

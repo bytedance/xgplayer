@@ -76,7 +76,7 @@ class MVideo extends HTMLElement {
 
   removeEventListener (eventName, handler, capture) {
     super.removeEventListener(eventName, handler, capture)
-    this._eventsBackup = this._eventsBackup.filter(x => x.eventName !== eventName && x.handler !== handler && x.capture !== capture)
+    this._eventsBackup = this._eventsBackup.filter(x => !(x.eventName === eventName && x.handler === handler && x.capture === capture))
   }
 
   setAttribute (k, v) {
@@ -118,6 +118,12 @@ class MVideo extends HTMLElement {
         if (!this.querySelector('canvas')) {
           this.appendChild(this.canvas);
         }
+      }
+
+      if (status === 'loadeddata') {
+        Promise.resolve().then(() => {
+          this.timeline.emit(Events.VIDEO.UPDATE_VIDEO_FILLTYPE, this.xgfillType, this.containerLayout)
+        })
       }
 
       if (status === 'error') {
@@ -247,7 +253,7 @@ class MVideo extends HTMLElement {
 
   _degradeVideoInteract () {
     // Note
-    if (this._degradeVideo && this.innerDegrade === 1) {
+    if (this._degradeVideo && (this.innerDegrade === 1 || this.innerDegrade === 3)) {
       if (this._degradeVideoUserGestured) return;
       this._degradeVideo.muted = true;
       this._degradeVideo.play().then(() => {
@@ -393,6 +399,13 @@ class MVideo extends HTMLElement {
     // chrome下首个webaudio不能自动播放，但手势交互后后续新建的webaudio可自动播放
     if (/Chrome/.test(ua)) return;
     this._audioCanAutoplay = canplay;
+  }
+
+  updateObjectPosition (left, top) {
+    this.timeline.emit(Events.VIDEO.UPDATE_VIDEO_COVER_POSITION, this.containerLayout, left, top);
+    if (this._degradeVideo) {
+      this._degradeVideo.style.objectPosition = `${left * 100}% ${top * 100}%`;
+    }
   }
 
   dump () {
@@ -617,6 +630,18 @@ class MVideo extends HTMLElement {
 
   get degradeInfo () {
     return this._deradeInfo;
+  }
+
+  get xgfillType () {
+    return this.parentNode.getAttribute('data-xgfill');
+  }
+
+  get containerLayout () {
+    let p = this.parentNode;
+    return {
+      width: p.clientWidth,
+      height: p.clientHeight
+    }
   }
 }
 

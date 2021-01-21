@@ -9,7 +9,9 @@ export default {
     VIDEO_READY: 'video_ready',
     VIDEO_WAITING: 'video_waiting',
     AUTO_RUN: 'auto_run',
-    DECODE_LOW_FPS: 'decode_low_fps'
+    DECODE_LOW_FPS: 'decode_low_fps',
+    UPDATE_VIDEO_FILLTYPE: 'updateVideoFillType',
+    UPDATE_VIDEO_COVER_POSITION: 'updateVideoCoverPosition'
   },
   TIMELINE: {
     PLAY_EVENT: 'play_event',

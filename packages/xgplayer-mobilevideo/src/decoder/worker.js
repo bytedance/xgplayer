@@ -32,7 +32,6 @@ Decoder.prototype.toU8Array = function (ptr, length) {
 
 Decoder.prototype.init = function () {
   Module._broadwayInit();
-  this.broadwayOnBroadwayInited();
   this.streamBuffer = this.toU8Array(
     Module._broadwayCreateStream(MAX_STREAM_BUFFER_LENGTH),
     MAX_STREAM_BUFFER_LENGTH
@@ -93,7 +92,9 @@ Decoder.prototype.broadwayOnBroadwayInited = function () {
 };
 
 Decoder.prototype.decode = function (data, info) {
-  this.infolist.push(info);
+  if (info) {
+    this.infolist.push(info);
+  }
   if (info && info.isGop) {
     this.infolist = [info];
   }
@@ -193,7 +194,7 @@ self.onmessage = function (e) {
       msg: 'ERROR:invalid message'
     });
   } else {
-    if(data.msg !== 'init' && !decoder) return;
+    if (data.msg !== 'init' && !decoder) return;
     switch (data.msg) {
       case 'init':
         self.meta = data.meta;

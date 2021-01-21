@@ -192,6 +192,7 @@ class HlsLiveController {
   }
 
   _onLoadError (loader, error) {
+    this._player.pause();
     this._player.emit('error', {
       code: error.code,
       errorType: 'network',
