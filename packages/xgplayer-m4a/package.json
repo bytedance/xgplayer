@@ -1,11 +1,11 @@
 {
   "name": "xgplayer-m4a",
-  "version": "1.1.5",
+  "version": "1.1.6",
   "description": "xgplayer plugin for m4a transform to fmp4",
   "main": "./dist/index.js",
   "scripts": {
     "prepare": "npm run build",
-    "build": "webpack --progress --display-chunks -p",
+    "build": "node ./src/version.js && webpack --progress --display-chunks -p",
     "watch": "webpack --progress --display-chunks -p --watch"
   },
   "repository": {

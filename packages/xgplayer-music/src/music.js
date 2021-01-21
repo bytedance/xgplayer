@@ -92,9 +92,9 @@ class Music extends Player {
     this.once('ready', () => {
       util.addClass(player.root, 'xgplayer-skin-default')
       if(this.config.lang && this.config.lang === 'en') {
-        util.addClass(this.root, 'lang-is-en')
+        util.addClass(this.root, 'xgplayer-lang-is-en')
       } else if(this.config.lang === 'jp') {
-        util.addClass(this.root, 'lang-is-jp')
+        util.addClass(this.root, 'xgplayer-lang-is-jp')
       }
     })
     this.once('canplay', function () {

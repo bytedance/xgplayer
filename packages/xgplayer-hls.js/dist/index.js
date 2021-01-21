@@ -6025,6 +6025,8 @@ Object.defineProperty(exports, "__esModule", {
   value: true
 });
 
+var _typeof = typeof Symbol === "function" && typeof Symbol.iterator === "symbol" ? function (obj) { return typeof obj; } : function (obj) { return obj && typeof Symbol === "function" && obj.constructor === Symbol && obj !== Symbol.prototype ? "symbol" : typeof obj; };
+
 var _createClass = function () { function defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ("value" in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } } return function (Constructor, protoProps, staticProps) { if (protoProps) defineProperties(Constructor.prototype, protoProps); if (staticProps) defineProperties(Constructor, staticProps); return Constructor; }; }();
 
 var _get = function get(object, property, receiver) { if (object === null) object = Function.prototype; var desc = Object.getOwnPropertyDescriptor(object, property); if (desc === undefined) { var parent = Object.getPrototypeOf(object); if (parent === null) { return undefined; } else { return get(parent, property, receiver); } } else if ("value" in desc) { return desc.value; } else { var getter = desc.get; if (getter === undefined) { return undefined; } return getter.call(receiver); } };
@@ -6079,6 +6081,18 @@ var HlsJsPlayer = function (_Player) {
     } else if (!player.config.useHls) {
       return _possibleConstructorReturn(_this);
     }
+    _this._start = _this.start;
+    _this.start = function () {
+      if (!window.XgVideoProxy) {
+        _this.root.insertBefore(_this.video, _this.root.firstChild);
+      }
+      setTimeout(function () {
+        _this.emit('complete');
+        if (_this.danmu && typeof _this.danmu.resize === 'function') {
+          _this.danmu.resize();
+        }
+      }, 1);
+    };
     Number.isFinite = Number.isFinite || function (value) {
       return typeof value === "number" && isFinite(value);
     };
@@ -6131,6 +6145,28 @@ var HlsJsPlayer = function (_Player) {
   }
 
   _createClass(HlsJsPlayer, [{
+    key: 'switchURL',
+    value: function switchURL(url) {
+      var player = this;
+      player.url = url;
+      player.config.url = url;
+      var curTime = player.currentTime;
+      // player.video.muted = true
+      _xgplayer2.default.util.addClass(player.root, 'xgplayer-is-enter');
+      player.once('playing', function () {
+        _xgplayer2.default.util.removeClass(player.root, 'xgplayer-is-enter');
+        // player.video.muted = false
+      });
+      player.once('canplay', function () {
+        player.currentTime = curTime;
+        player.play();
+      });
+      if (_typeof(player.hls) === 'object') {
+        player.hls.originUrl = url;
+      }
+      player.src = url;
+    }
+  }, {
     key: 'register',
     value: function register(url) {
       var hls = this.hls;

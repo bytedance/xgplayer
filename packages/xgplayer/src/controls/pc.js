@@ -43,8 +43,12 @@ let pc = function () {
   player.video.addEventListener('click', function (e) { player.onElementClick(e, player.video) }, false)
 
   player.onElementDblclick = function (e, element) {
-    e.preventDefault()
-    e.stopPropagation()
+    if(!this.config.closeVideoPreventDefault) {
+      e.preventDefault()
+    }
+    if(!this.config.closeVideoStopPropagation) {
+      e.stopPropagation()
+    }
     let player = this
     if (!player.config.closeVideoDblclick) {
       let fullscreen = controls.querySelector('.xgplayer-fullscreen')
@@ -82,14 +86,20 @@ let pc = function () {
       clearTimeout(player.userTimer)
     }
   }
-  controls.addEventListener('mouseenter', onControlMouseEnter, false)
+  controls.addEventListener('mouseenter', onControlMouseEnter)
 
   function onControlMouseLeave (e) {
     if(!player.config.closeControlsBlur) {
       player.emit('focus', player)
     }
   }
-  controls.addEventListener('mouseleave', onControlMouseLeave, false)
+  controls.addEventListener('mouseleave', onControlMouseLeave)
+
+  function onControlClick (e) {
+    e.preventDefault()
+    e.stopPropagation()
+  }
+  controls.addEventListener('click', onControlClick)
 
   function onReady (e) {
     if (player.config.autoplay) {

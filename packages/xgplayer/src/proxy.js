@@ -68,7 +68,12 @@ class Proxy {
         style.sheet.addRule(`${wrap} video::cue`, styleStr)
       }
     }
-    this.video = util.createDom(this.videoConfig.mediaType, textTrackDom, this.videoConfig, '')
+    let el = options.el ? options.el : util.findDom(document, `#${options.id}`)
+    if(window.XgVideoProxy && el.hasAttribute('data-xgmse')) {
+      this.video = new window.XgVideoProxy(el, options)
+    } else {
+      this.video = util.createDom(this.videoConfig.mediaType, textTrackDom, this.videoConfig, '')
+    }
     if (!this.textTrackShowDefault && textTrackDom) {
       let trackDoms = this.video.getElementsByTagName('Track')
       trackDoms[0].track.mode = 'hidden'
@@ -141,7 +146,7 @@ class Proxy {
 
         if (self.hasOwnProperty('_interval')) {
           if (['ended', 'error', 'timeupdate'].indexOf(name) < 0) {
-            clearInterval(self._interval['bufferedChange'])
+            util.clearInterval(self, 'bufferedChange')
             util.setInterval(self, 'bufferedChange', function () {
               if (self.video && self.video.buffered) {
                 let curBuffer = []
@@ -219,6 +224,12 @@ class Proxy {
     } else {
       return [0, 0]
     }
+  }
+  proxyOn (event, fn) {
+    util.on(this, event, fn, 'destroy')
+  }
+  proxyOnce (event, fn) {
+    util.once(this, event, fn, 'destroy')
   }
   set autoplay (isTrue) {
     this.video.autoplay = isTrue
@@ -378,6 +389,7 @@ class Proxy {
       vt: new Date().getTime(),
       vd: 0
     }
+    this.autoplay = true
     this.video.pause()
     this.video.src = url
     this.emit('srcChange')

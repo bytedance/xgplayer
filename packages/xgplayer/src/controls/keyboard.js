@@ -56,7 +56,7 @@ class Keyboard {
   onKeydown (event) {
     let e = event || window.event
     const keyCode = e.keyCode
-    if (this.checkTarget(e) && (keyCode === 37 || keyCode === 38 || keyCode === 39 || keyCode === 40 || keyCode === 32)) {
+    if (this.checkTarget(e) && (keyCode === 37 || keyCode === 38 || keyCode === 39 || keyCode === 40 || keyCode === 32 || keyCode === 27)) {
       e.preventDefault()
       e.cancelBubble = true
       e.returnValue = false
@@ -95,7 +95,9 @@ class Keyboard {
     state.keyCode = e.keyCode
     state.isRepeat = e.repeat
     if (e.repeat) {
-      if (state.repeat % 2 === 0 && !player.config.disableLongPress) {
+      if (player.config.disableLongPress) {
+        this.handlerKeyCode(state.keyCode, false)
+      } else if(state.repeat % 2 === 0) {
         this.handlerKeyCode(state.keyCode, true)
       }
       state.repeat++
@@ -130,6 +132,11 @@ class Keyboard {
           player.paused ? player.play() : player.pause()
         }
         break
+      case 27:
+        if (Player.util.hasClass(player.root, 'xgplayer-is-cssfullscreen')) {
+          player.exitCssFullscreen()
+        }
+        break
       default:
         //
     }
@@ -137,20 +144,26 @@ class Keyboard {
 
   seek (isBack, isLongPress) {
     const {player} = this
+    const keyShortcutStep = player.config.keyShortcutStep || {}
+    const currentTimeStep = keyShortcutStep.currentTime || 10
     if (player.isLoading || player.isSeeking || (isLongPress && this.state.repeat % 8 > 0)) {
       return
     }
     if (isBack) {
-      if (player.currentTime - 10 >= 0) {
-        player.currentTime -= 10
+      if (player.currentTime - currentTimeStep >= 0) {
+        player.currentTime -= currentTimeStep
       } else {
         player.currentTime = 0
       }
     } else {
-      if (player.currentTime + 10 <= player.duration) {
-        player.currentTime += 10
+      if(player.maxPlayedTime && player.config.allowSeekPlayed && (player.currentTime + currentTimeStep > player.maxPlayedTime)) {
+        player.currentTime = player.maxPlayedTime
       } else {
-        player.currentTime = player.duration - 1
+        if (player.currentTime + currentTimeStep <= player.duration) {
+          player.currentTime += currentTimeStep
+        } else {
+          player.currentTime = player.duration - 1
+        }
       }
     }
   }
@@ -180,12 +193,14 @@ class Keyboard {
 
   changeVolume (isup) {
     const {player} = this
+    const keyShortcutStep = player.config.keyShortcutStep || {}
+    const volumeStep = keyShortcutStep.volume || 0.1
     this.changeVolumeSlide(true)
     const volume = player.volume
-    if (isup && volume + 0.1 <= 1) {
-      player.volume = volume + 0.1
-    } else if (!isup && volume - 0.1 >= 0) {
-      player.volume = volume - 0.1
+    if (isup && volume + volumeStep <= 1) {
+      player.volume = volume + volumeStep
+    } else if (!isup && volume - volumeStep >= 0) {
+      player.volume = volume - volumeStep
     }
   }
 }

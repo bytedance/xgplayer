@@ -2,7 +2,12 @@ import Player from '../player'
 
 let mobile = function () {
   let player = this
-  let util = Player.util; let controls = player.controls; let root = player.root
+  let util = Player.util; let root = player.root
+  let clk = 0; let _click_
+  let clickedTime = {
+    first: '',
+    second: ''
+  }
 
   player.onElementTouchend = function (e, element) {
     if(!this.config.closeVideoPreventDefault) {
@@ -18,16 +23,49 @@ let mobile = function () {
       player.emit('blur')
     }
     if (!player.config.closeVideoTouch && !player.isTouchMove) {
-      if (util.hasClass(player.root, 'xgplayer-nostart')) {
-        return false
-      } else if (!player.ended) {
-        if (player.paused) {
-          let playPromise = player.play()
-          if (playPromise !== undefined && playPromise) {
-            playPromise.catch(err => {})
+      function onTouch() {
+        _click_ = setTimeout(function () {
+          if (util.hasClass(player.root, 'xgplayer-nostart')) {
+            return false
+          } else if (!player.ended) {
+            if (player.paused) {
+              let playPromise = player.play()
+              if (playPromise !== undefined && playPromise) {
+                playPromise.catch(err => {})
+              }
+            } else {
+              player.pause()
+            }
+          }
+          clk = 0
+        }, 200)
+      }
+      if (!player.config.closeVideoClick) {
+        clk++
+        if (_click_) {
+          clearTimeout(_click_)
+        }
+        if (clk === 1) {
+          if(player.config.enableVideoDbltouch) {
+            clickedTime.first = new Date()
+          } else {
+            onTouch()
+          }
+        } else if (clk === 2) {
+          if(player.config.enableVideoDbltouch) {
+            clickedTime.second = new Date()
+            if (Math.abs(clickedTime.first - clickedTime.second) < 400) {
+              // 双击
+              onTouch()
+            } else {
+              clickedTime.first = new Date()
+              clk = 1
+            }
+          } else {
+            clk = 0
           }
         } else {
-          player.pause()
+          clk = 0
         }
       }
     }

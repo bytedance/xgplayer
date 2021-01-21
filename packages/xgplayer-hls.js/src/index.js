@@ -27,6 +27,18 @@ class HlsJsPlayer extends Player {
     } else if(!player.config.useHls) {
       return
     }
+    this._start = this.start
+    this.start = () => {
+      if(!window.XgVideoProxy) {
+        this.root.insertBefore(this.video, this.root.firstChild)
+      }
+      setTimeout(() => {
+        this.emit('complete')
+        if(this.danmu && typeof this.danmu.resize === 'function') {
+          this.danmu.resize()
+        }
+      }, 1)
+    }
     Number.isFinite = Number.isFinite || function(value) {
       return typeof value === "number" && isFinite(value);
     }
@@ -74,6 +86,26 @@ class HlsJsPlayer extends Player {
     this.once('destroy', () => {
       hls.stopLoad()
     })
+  }
+  switchURL (url) {
+    const player = this
+    player.url = url
+    player.config.url = url
+    let curTime = player.currentTime
+    // player.video.muted = true
+    Player.util.addClass(player.root, 'xgplayer-is-enter')
+    player.once('playing', function(){
+      Player.util.removeClass(player.root, 'xgplayer-is-enter')
+      // player.video.muted = false
+    })
+    player.once('canplay', function () {
+      player.currentTime = curTime
+      player.play()
+    })
+    if(typeof player.hls === 'object') {
+      player.hls.originUrl = url
+    }
+    player.src = url
   }
   register (url) {
     let hls = this.hls

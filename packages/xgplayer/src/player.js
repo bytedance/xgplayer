@@ -58,7 +58,7 @@ class Player extends Proxy {
       }
     }
     // this.rootBackup = util.copyDom(this.root)
-    util.addClass(this.root, `xgplayer xgplayer-${sniffer.device} xgplayer-nostart ${this.config.controls ? '' : 'no-controls'}`)
+    util.addClass(this.root, `xgplayer xgplayer-${sniffer.device} xgplayer-nostart ${this.config.controls ? '' : 'xgplayer-no-controls'}`)
     this.root.appendChild(this.controls)
     if (this.config.fluid) {
       this.root.style['max-width'] = '100%'
@@ -202,8 +202,8 @@ class Player extends Proxy {
         })
       }
     }
-    if (util.typeOf(url) === 'String') {
-      if (url.indexOf('blob:') > -1 && url === this.video.src) {
+    if (util.typeOf(url) !== 'Array') {
+      if (util.typeOf(url) === 'String' && url.indexOf('blob:') > -1 && url === this.video.src) {
         // 在Chromium环境下用mse url给video二次赋值会导致错误
       } else {
         this.video.src = url
@@ -236,7 +236,9 @@ class Player extends Proxy {
     if(!this.config.disableStartLoad) {
       this.video.load()
     }
-    root.insertBefore(this.video, root.firstChild)
+    if(!window.XgVideoProxy) {
+      root.insertBefore(this.video, root.firstChild)
+    }
     setTimeout(() => {
       this.emit('complete')
       if(this.danmu && typeof this.danmu.resize === 'function') {
@@ -646,6 +648,9 @@ class Player extends Proxy {
 
   onFocus () {
     let player = this
+    if(util.hasClass(this.root, 'xgplayer-inactive')) {
+      player.emit('controlShow')
+    }
     util.removeClass(this.root, 'xgplayer-inactive')
     if (player.userTimer) {
       clearTimeout(player.userTimer)
@@ -658,6 +663,9 @@ class Player extends Proxy {
   onBlur () {
     // this.video.blur()
     if ((this.config.enablePausedInactive || !this.paused) && !this.ended && !this.config.closeInactive) {
+      if(!util.hasClass(this.root, 'xgplayer-inactive')) {
+        this.emit('controlHide')
+      }
       util.addClass(this.root, 'xgplayer-inactive')
     }
   }

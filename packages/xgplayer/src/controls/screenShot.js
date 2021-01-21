@@ -2,11 +2,12 @@ import Player from '../player'
 
 let screenShot = function () {
   let player = this
-  let root = player.root
   let screenShotOptions = player.config.screenShot
   if (!screenShotOptions) {
     return
   }
+
+  player.video.setAttribute('crossOrigin', 'anonymous')
 
   let encoderOptions = 0.92
   if(screenShotOptions.quality || screenShotOptions.quality === 0) {
@@ -30,22 +31,21 @@ let screenShot = function () {
     saveLink.dispatchEvent(event)
   }
 
-  function onScreenShotBtnClick (save = true) {
+  player.screenShot = function (save = true) {
     canvas.width = player.video.videoWidth || 600
     canvas.height = player.video.videoHeight || 337.5
     img.onload = (function () {
       canvasCtx.drawImage(player.video, 0, 0, canvas.width, canvas.height)
-      img.setAttribute('crossOrigin', 'anonymous')
       img.src = canvas.toDataURL(type, encoderOptions).replace(type, 'image/octet-stream')
       let screenShotImg = img.src.replace(/^data:image\/[^;]+/, 'data:application/octet-stream')
       player.emit('screenShot', screenShotImg)
       save && saveScreenShot(screenShotImg, '截图' + format)
     })()
   }
-  player.on('screenShotBtnClick', onScreenShotBtnClick)
+  player.on('screenShotBtnClick', player.screenShot)
 
   function onDestroy () {
-    player.off('screenShotBtnClick', onScreenShotBtnClick)
+    player.off('screenShotBtnClick', player.screenShot)
     player.off('destroy', onDestroy)
   }
   player.once('destroy', onDestroy)

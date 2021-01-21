@@ -31,6 +31,11 @@ declare module 'xgplayer' {
         mode?: DanmuModelType;
     }
 
+    interface keyShortcutStepOptions {
+        currentTime?: number;
+        volume?: number;
+    }
+
     interface Util {
         createDom: (el: string, tpl?: string, attrs?: object, cname?: string) => HTMLElement;
         hasClass: (el: HTMLElement, cname: string) => boolean;
@@ -172,7 +177,7 @@ declare module 'xgplayer' {
         preview?: {uploadEl?: HTMLElement};
 
         // 进度条特殊点标记
-        progressDot?: Array<{time: number; text?: string; duration?: number}>;
+        progressDot?: Array<{time: number; text?: string; duration?: number, style?: object}>;
 
         // 键盘快捷键 默认值：'on'
         keyShortcut?: 'on' | 'off';
@@ -279,6 +284,20 @@ declare module 'xgplayer' {
 
         //播放错误提示
         errorTips?: string;
+
+        keyShortcutStep?: keyShortcutStepOptions;
+
+        //关闭长按增加倍速功能
+        disableLongPress?: boolean;
+
+        //移动端支持双击暂停/播放
+        enableVideoDbltouch?: boolean;
+
+        //使播放器控制栏常驻不隐藏
+        closeInactive?: boolean;
+
+        //触发全屏时实现样式全屏横屏
+        rotateFullscreen?: boolean;
     }
 
     class Proxy extends EventEmitter {
@@ -315,6 +334,12 @@ declare module 'xgplayer' {
 
         // 是否开启了循环播放
         public loop: boolean;
+
+        // 设置/返回当前倍速
+        public playbackRate: number;
+
+        // 返回当前播放是否处于暂停状态
+        public readonly paused: number;
 
         // 静音
         public muted: boolean;
@@ -391,6 +416,10 @@ declare module 'xgplayer' {
          *
          */
         public replay(): void;
+
+        public proxyOn (event: string, fn: VoidFunction): void;
+          
+        public proxyOnce (event: string, fn: VoidFunction): void;
     }
 
     class Danmu {
@@ -520,7 +549,7 @@ declare module 'xgplayer' {
          *
          * @param time 标记时间
          */
-        public addProgressDot(time: number, text?: string, duration?: number): void;
+        public addProgressDot(time: number, text?: string, duration?: number, style?: object): void;
 
         /**
          * 删除标记

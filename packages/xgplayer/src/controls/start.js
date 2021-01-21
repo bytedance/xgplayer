@@ -5,16 +5,33 @@ let start = function () {
   let root = player.root
   let util = Player.util
 
+  function onCanPlay () {
+    player.off('canplay', onCanPlay)
+    let playPromise = player.play()
+    if (playPromise !== undefined && playPromise) {
+      playPromise.catch(err => {})
+    }
+  }
+
   function onStartBtnClick () {
     if (util.hasClass(root, 'xgplayer-nostart')) {
       util.removeClass(root, 'xgplayer-nostart') // for ie quick switch
       util.addClass(root, 'xgplayer-is-enter')
-      if (!root.querySelector('video')) {
-        player.start()
-      }
-      let playPromise = player.play()
-      if (playPromise !== undefined && playPromise) {
-        playPromise.catch(err => {})
+
+      if(typeof root.contains === 'function') {
+        if((player.video && player.video.nodeType === 1 && !root.contains(player.video)) || (player.video && player.video.nodeType !== 1 && player.video.audioPlayer.status !== 'ready')) {
+          player.once('canplay', onCanPlay)
+          player.start()
+        } else {
+          onCanPlay()
+        }
+      } else {
+        if((player.video && player.video.nodeType === 1 && !root.querySelector(this.videoConfig.mediaType)) || (player.video && player.video.nodeType !== 1 && (!root.querySelector('canvas') && player.video.audioPlayer.status !== 'ready'))) {
+          player.once('canplay', onCanPlay)
+          player.start()
+        } else {
+          onCanPlay()
+        }
       }
     } else {
       if (player.paused) {
@@ -32,6 +49,7 @@ let start = function () {
 
   function onDestroy () {
     player.off('startBtnClick', onStartBtnClick)
+    player.off('canplay', onCanPlay)
     player.off('destroy', onDestroy)
   }
   player.once('destroy', onDestroy)
