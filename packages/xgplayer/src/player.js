@@ -58,7 +58,7 @@ class Player extends Proxy {
       }
     }
     // this.rootBackup = util.copyDom(this.root)
-    util.addClass(this.root, `xgplayer xgplayer-${sniffer.device} xgplayer-nostart ${this.config.controls ? '' : 'no-controls'}`)
+    util.addClass(this.root, `xgplayer xgplayer-${sniffer.device} xgplayer-nostart ${this.config.controls ? '' : 'xgplayer-no-controls'}`)
     this.root.appendChild(this.controls)
     if (this.config.fluid) {
       this.root.style['max-width'] = '100%'

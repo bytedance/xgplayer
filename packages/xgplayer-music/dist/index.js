@@ -246,9 +246,9 @@ var Music = function (_Player) {
     _this.once('ready', function () {
       util.addClass(player.root, 'xgplayer-skin-default');
       if (_this.config.lang && _this.config.lang === 'en') {
-        util.addClass(_this.root, 'lang-is-en');
+        util.addClass(_this.root, 'xgplayer-lang-is-en');
       } else if (_this.config.lang === 'jp') {
-        util.addClass(_this.root, 'lang-is-jp');
+        util.addClass(_this.root, 'xgplayer-lang-is-jp');
       }
     });
     _this.once('canplay', function () {

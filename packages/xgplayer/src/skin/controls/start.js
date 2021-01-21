@@ -13,9 +13,9 @@ let s_start = function () {
     if (player.config) {
       player.config.autoplay && !util.isWeiXin() && !util.isUc() && util.addClass(player.root, 'xgplayer-is-enter')
       if (player.config.lang && player.config.lang === 'en') {
-        util.addClass(player.root, 'lang-is-en')
+        util.addClass(player.root, 'xgplayer-lang-is-en')
       } else if (player.config.lang === 'jp') {
-        util.addClass(player.root, 'lang-is-jp')
+        util.addClass(player.root, 'xgplayer-lang-is-jp')
       }
       if(!player.config.enableContextmenu) {
         player.video.addEventListener('contextmenu', e => {
