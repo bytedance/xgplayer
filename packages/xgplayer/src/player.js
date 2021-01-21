@@ -893,18 +893,6 @@ class Player extends Proxy {
     this._isFullScreen = val
   }
 
-  get bullet () {
-    return Util.findDom(this.root, 'xg-bullet') ? Util.hasClass(Util.findDom(this.root, 'xg-bullet'), 'xgplayer-has-bullet') : false
-  }
-
-  get textTrack () {
-    return Util.hasClass(this.root, 'xgplayer-is-textTrack')
-  }
-
-  get pip () {
-    return Util.hasClass(this.root, 'xgplayer-pip-active')
-  }
-
   get readyState () {
     const key = super.readyState
     return this.i18n[key] || key
