@@ -46,8 +46,10 @@ class Play extends Plugin {
     const {player} = this
     if (player.paused) {
       player.play();
+      this.animate(false)
     } else {
       player.pause();
+      this.animate(true)
     }
     return false
   }
