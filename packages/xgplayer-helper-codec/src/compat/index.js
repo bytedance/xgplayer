@@ -361,7 +361,7 @@ class Compatibility {
     if (this._audioLargeGap !== 0) {
       Compatibility.doFixLargeGap(audioSamples, this._audioLargeGap)
       if (this._videoLargeGap === 0 || (this._audioLargeGap !== this.preAudioGap && (this._videoLargeGap === this.preVideoGap))) {
-        this.emit(REMUX_EVENTS.DETECT_CHANGE_STREAM_DISCONTINUE, 'audio')
+        this.emit(REMUX_EVENTS.DETECT_CHANGE_STREAM_DISCONTINUE, 'audio', { curDts: _firstSample.originDts, gap: this._audioLargeGap })
         this.preVideoGap = undefined
         this.preAudioGap = undefined
       } else {
