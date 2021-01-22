@@ -361,7 +361,7 @@ class Compatibility {
     if (this._audioLargeGap !== 0) {
       Compatibility.doFixLargeGap(audioSamples, this._audioLargeGap)
       if (this._videoLargeGap === 0 || (this._audioLargeGap !== this.preAudioGap && (this._videoLargeGap === this.preVideoGap))) {
-        this.emit(REMUX_EVENTS.DETECT_CHANGE_STREAM_DISCONTINUE, 'audio')
+        this.emit(REMUX_EVENTS.DETECT_CHANGE_STREAM_DISCONTINUE, 'audio', { prevDts: this.lastAudioOriginDts, curDts: _firstSample.originDts })
         this.preVideoGap = undefined
         this.preAudioGap = undefined
       } else {
@@ -504,12 +504,13 @@ class Compatibility {
     });
 
     const lastSample = audioSamples[audioSamples.length - 1];
-    const lastDts = lastSample.dts;
+    this.lastAudioDts = lastSample.dts;
     const lastDuration = lastSample.duration;
     // const lastSampleDuration = audioSamples.length >= 2 ? lastOriginDts - audioSamples[audioSamples.length - 2].originDts : meta.refSampleDuration
 
     this.lastAudioSamplesLen = samplesLen;
-    this.nextAudioDts = lastDts + (lastDuration || iRefSampleDuration)
+    this.nextAudioDts = this.lastAudioDts + (lastDuration || iRefSampleDuration)
+    this.lastAudioOriginDts = lastSample.originDts
 
     this.audioTrack.samples = Compatibility.sortAudioSamples(audioSamples)
   }
