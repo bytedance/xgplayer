@@ -39,7 +39,7 @@ $controlHeight: 48px;
     right: 0;
     bottom: 0;
     opacity: 1;
-    z-index: 100;
+    z-index: 10;
     background-image: linear-gradient(180deg,transparent,rgba(0,0,0,.37),rgba(0,0,0,.75),rgba(0,0,0,.75));
     transition: opacity .5s ease,visibility .5s ease;
     &.show {
@@ -63,7 +63,7 @@ $controlHeight: 48px;
     float: left;
     display: flex;
     height: 100%;
-    z-index: 36;
+    z-index: 1;
   }
 
   .right-grid {
@@ -87,14 +87,13 @@ $controlHeight: 48px;
     right: 0;
     outline: none;
     // top: -5px;
-    z-index: 35;
     top: -20px;
     padding: 5px 0;
   }
 
   &.xgplayer-mobile {
     .center {
-      z-index: 37;
+      z-index: 2;
     }
   }
 

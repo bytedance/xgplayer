@@ -10,11 +10,10 @@
     right: 0;
     top: 0;
     outline: none;
-    z-index: 40;
     flex: 1;
     cursor: pointer;
   }
-  
+
   .xgplayer-progress-outer {
     position: relative;
     width: 100%;
@@ -97,7 +96,7 @@
     left: 0;
     top: 50%;
     position: absolute;
-    z-index: 16;
+    z-index: 1;
     transform: translate(-50%, -50%);
     box-sizing: border-box;
     pointer-events: none;

@@ -64,7 +64,7 @@
     top: 0;
     width: 100%;
     height: 100%;
-    z-index: 99999;
+    z-index: 9999;
   }
   /** xgplayer cssFullscreen style  end**/
 
@@ -169,7 +169,7 @@
   }
   .xg-top-bar {
     position: absolute;
-    z-index: 83;
+    z-index: 10;
     top: 0;
     left: $iconMargin;
     right: $iconMargin;
@@ -188,7 +188,7 @@
   }
   .xg-left-bar, .xg-right-bar {
     position: absolute;
-    z-index: 81;
+    z-index: 9;
     top: $barWidth;
     bottom: $barWidth;
     width: $barWidth;
