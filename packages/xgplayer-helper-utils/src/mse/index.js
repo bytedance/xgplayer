@@ -125,16 +125,7 @@ class MSE {
     let sources = this._context.getInstance('PRE_SOURCE_BUFFER');
     if (!sources) return;
     if (Object.keys(this.sourceBuffers).length < this.sourceBufferLen) {
-      if (this.sourceBufferLen < 2) return;
-      if (this.format !== 'hls' && sources.sources.video && (sources.sources.video.bufferDuration > 5000)) {
-        this._context.mediaInfo.hasAudio = false;
-        this.noaudio = true
-      } else if (this.format !== 'hls' && sources.sources.audio && (sources.sources.audio.bufferDuration > 5000)) {
-        this._context.mediaInfo.hasVideo = false;
-        this.novideo = true
-      } else {
-        return;
-      }
+      return
     }
     for (let i = 0; i < Object.keys(this.sourceBuffers).length; i++) {
       let type = Object.keys(this.sourceBuffers)[i]
