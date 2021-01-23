@@ -1,6 +1,6 @@
 {
   "name": "xgplayer-helper-codec",
-  "version": "2.3.67",
+  "version": "2.3.68",
   "description": "",
   "main": "lib/index.js",
   "module": "es/index.js",
@@ -24,6 +24,6 @@
     ]
   },
   "dependencies": {
-    "xgplayer-helper-utils": "2.3.67"
+    "xgplayer-helper-utils": "2.3.68"
   }
 }
