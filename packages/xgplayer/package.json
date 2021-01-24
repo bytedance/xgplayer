@@ -51,7 +51,7 @@
     ],
     "dependencies": {
         "babel-runtime": "^6.26.0",
-        "danmu.js": "0.2.15",
+        "danmu.js": "0.3.0",
         "deepmerge": "^1.5.0",
         "delegate-events": "^1.1.1",
         "downloadjs": "1.4.7",

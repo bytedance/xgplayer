@@ -1,14 +1,10 @@
 @import "../../style/variable";
 //controls
 $controlHeight: 48px;
-//icon
-$iconMargin: 16px;
-//
-$miniMargin: 10px;
 // tips
-$tipsColor: #fff;
-$tipsBgColor: rgba(0, 0, 0, 0.8);
-$tipsFontsize: 12px;
+// $tipsColor: #fff;
+// $tipsBgColor: rgba(0, 0, 0, 0.8);
+// $tipsFontsize: 12px;
 
 .xgplayer {
   &.not-allow-autoplay,
@@ -33,7 +29,7 @@ $tipsFontsize: 12px;
       opacity: 0;
     }
   }
-  
+
   .xgplayer-controls {
     display: block;
     position: absolute;
@@ -43,7 +39,7 @@ $tipsFontsize: 12px;
     right: 0;
     bottom: 0;
     opacity: 1;
-    z-index: 100;
+    z-index: 10;
     background-image: linear-gradient(180deg,transparent,rgba(0,0,0,.37),rgba(0,0,0,.75),rgba(0,0,0,.75));
     transition: opacity .5s ease,visibility .5s ease;
     &.show {
@@ -56,22 +52,34 @@ $tipsFontsize: 12px;
 
   .inner-controls {
     position: absolute;
-    left: 0;
-    right: 0;
-    bottom: 5px;
+    // left: 0;
+    // right: 0;
+    bottom: 8px;
     height: 40px;
   }
+
   .left-grid,  .right-grid {
     position: relative;
     float: left;
     display: flex;
     height: 100%;
-    z-index: 36;
+    z-index: 1;
   }
+
   .right-grid {
     float: right;
     flex-direction: row-reverse;
+    xg-icon {
+      margin-left: 0;
+    }
   }
+
+  .left-grid {
+    xg-icon {
+      margin-right: 0;
+    }
+  }
+
   .center {
     display: block;
     position: absolute;
@@ -79,7 +87,14 @@ $tipsFontsize: 12px;
     right: 0;
     outline: none;
     // top: -5px;
-    z-index: 35;
+    top: -20px;
+    padding: 5px 0;
+  }
+
+  &.xgplayer-mobile {
+    .center {
+      z-index: 2;
+    }
   }
 
   .flex-controls {
@@ -97,10 +112,7 @@ $tipsFontsize: 12px;
       align-items: center;
       left: 0;
       right: 0;
-      xg-icon {
-        margin-left: $iconMargin;
-        margin-right: $iconMargin;
-      }
+      padding: 0;
     }
   }
 
@@ -108,9 +120,11 @@ $tipsFontsize: 12px;
     background-image: none;
     .inner-controls {
       bottom: 0;
+      left: 0;
+      right: 0;
     }
     .center {
-      bottom: -17px;
+      bottom: -28px;
       top: auto;
       padding: 0;
     }
@@ -118,69 +132,7 @@ $tipsFontsize: 12px;
       display: none;
     }
   }
-  
-  .xg-tips {
-    display: none;
-    position: absolute;
-    background:$tipsBgColor;
-    border-radius: 1px;
-    font-size: $tipsFontsize;
-    color: $tipsColor;
-    padding: 4px 6px;
-    border-radius: 4px;
-    text-align: center;
-    opacity: 0.85;
-    white-space: nowrap;
-  }
-  xg-icon {
-    position: relative;
-    height: 40px;
-    margin-left: $iconMargin;
-    cursor: pointer;
-    box-sizing: border-box;
-    .xg-tips {
-      top: -30px;
-      left: 50%;
-      transform: translateX(-50%);
-    }
-    &:hover {
-      .xg-tips {
-        display: block;
-      }
-    }
-    .xgplayer-icon {
-      position: relative;
-      top: 50%;
-      transform: translateY(-50%);
-      cursor: pointer;
-      fill: #fff;
-      .xg-img {
-        width: 100%;
-      }
-    }
-    svg {
-      height: 100%;
-    }
-  }
 
-  .right-grid {
-    xg-icon {
-      margin-right: $iconMargin;
-      margin-left: 0;
-    }
-  }
-
-  .xg-top-bar {
-    padding: 0 $iconMargin;
-    xg-icon {
-        position: relative;
-        width: 34px;
-        margin-top: 0;
-        // margin-left: $iconMargin;
-        top: 10px;
-        left: 0;
-    }
-  }
   // class witch position follow controls start
   .controls-follow {
     bottom: 70px;
@@ -199,48 +151,18 @@ $tipsFontsize: 12px;
     }
   }
   // class witch position follow controls end
-
-}
-// mobile
-.xgplayer-mobile {
-  xg-icon {
-    &:hover {
-      .xg-tips {
-        display: none;
-      }
-    }
-  }
-  .center {
-    left: $iconMargin;
-    right: $iconMargin;
-  }
 }
 
-
-@media only screen and (max-width: 480px) {
-  .xgplayer-mobile {
-    xg-icon {
-      margin-left: $miniMargin;
-    }
-
-    .xg-top-bar {
-      padding: 0 $miniMargin;
-    }
-
-    .inner-controls {
-      bottom: 0;
-    }
-
-    .right-grid {
-      xg-icon {
-        margin-right: $miniMargin;
-      }
-    }
-    .flex-controls .center {
-      xg-icon {
-        margin-left: $miniMargin;
-        margin-right: $miniMargin;
-      }
-    }
-  }
-}
+// @supports (bottom: constant(safe-area-inset-bottom)) or (bottom: env(safe-area-inset-bottom)) {
+//   .xgplayer-mobile {
+//     &.xgplayer-is-fullscreen, &.xgplayer-is-cssfullscreen{
+//       .flex-controls {
+//         /* bottom: 34px; */
+//         /* iOS 11.0 */
+//         bottom: constant(safe-area-inset-bottom);
+//         /* 11.2+ */
+//         bottom: env(Safe-area-inset-bottom, 20px);
+//       }
+//     }
+//   }
+// }

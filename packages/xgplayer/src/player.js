@@ -48,12 +48,15 @@ class Player extends Proxy {
     this.isSeeking = false
     this.isCanplay = false
     this._runPending = false
+    this.rotateDeg = 0
     // 当前是否处于焦点状态
     this.isActive = true
     this.isCssfullScreen = false
     this.fullscreen = false
     this._fullscreenEl = null
     this._originCssText = ''
+    this._videoHeight = 0
+    this._videoWidth = 0
     this._played = {
       begin: -1,
       end: -1,
@@ -781,6 +784,7 @@ class Player extends Proxy {
   }
 
   onTimeupdate () {
+    !this._videoHeight && this.getVideoSize()
     if (this.waitTimer || this.hasClass(STATE_CLASS.LOADING)) {
       if (this.checkBuffer()) {
         this.removeClass(STATE_CLASS.LOADING)
@@ -811,12 +815,16 @@ class Player extends Proxy {
     const videoWidth = this.video.videoWidth
     const videoHeight = this.video.videoHeight
     const {fitVideoSize, videoFillMode} = this.config
+
+    if (videoFillMode === 'fill' || videoFillMode === 'cover') {
+      this.setAttribute('data-xgfill', videoFillMode)
+    }
+
     if (!videoHeight || !videoWidth) {
       return
     }
-    // if (!fitVideoSize || fitVideoSize === 'fixed') {
-    //   return
-    // }
+    this._videoHeight = videoHeight
+    this._videoWidth = videoWidth
     let containerSize = this.root.getBoundingClientRect()
     const width = containerSize.width
     const height = containerSize.height
@@ -834,12 +842,8 @@ class Player extends Proxy {
       this.root.style.width = `${videoFit * height / 1000}px`
     }
     // video填充模式
-    if (videoFillMode === 'fill') {
-      this.setAttribute('data-xgfill', 'fill')
-    } else if ((videoFillMode === 'fillHeight' && fit < videoFit) || (videoFillMode === 'fillWidth' && fit > videoFit) || videoFillMode === 'cover') {
+    if ((videoFillMode === 'fillHeight' && fit < videoFit) || (videoFillMode === 'fillWidth' && fit > videoFit)) {
       this.setAttribute('data-xgfill', 'cover')
-    } else {
-      this.removeAttribute('data-xgfill')
     }
   }
 

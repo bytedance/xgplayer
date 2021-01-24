@@ -27,6 +27,7 @@ let sniffer = {
     return {
       isTablet,
       isPhone,
+      isIos: isPhone,
       isAndroid,
       isPc,
       isSymbian,

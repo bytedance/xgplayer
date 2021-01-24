@@ -24,7 +24,7 @@
     position: absolute;
     left: 50%;
     top: 50%;
-    z-index: 89;
+    z-index: 5;
     margin-left: -35px;
     margin-top: -35px;
     cursor: pointer;
@@ -34,6 +34,10 @@
       height: 70px;
     }
     &.hide {
+      display: none;
+      pointer-events: none;
+    }
+    &.focus-hide {
       display: none;
     }
     &:hover{

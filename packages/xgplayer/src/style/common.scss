@@ -1,6 +1,6 @@
 @import "variable";
 /** xgplayer base style begain**/
-.xgplayer{
+.xgplayer {
   font-family: PingFangSC-Regular;
   background: $playerBgColor;
   width: 100%;
@@ -29,24 +29,55 @@
   &.xgplayer-inactive{
     cursor: none;
   }
+
   &.xgplayer-is-fullscreen{
-      width: 100%;
-      height: 100%;
-      position: fixed;
-      top:0;
-      left: 0;
-      padding: 0;
-      margin: 0;
-      z-index: 9999;
+    width: 100%;
+    height: 100%;
+    position: fixed;
+    top:0;
+    left: 0;
+    padding: 0;
+    margin: 0;
+    z-index: 9999;
   }
+
+  &.xgplayer-rotate-fullscreen {
+    position: fixed;
+    top: 0;
+    left: 100%;
+    bottom: 0;
+    right: 0;
+    height: 100vw!important;
+    width: 100vh!important;
+    transform-origin: top left;
+    transform: rotate(90deg);
+    z-index: 9999;
+    video {
+      z-index: -1;
+    }
+  }
+
+  /** xgplayer cssFullscreen style  begain**/
+  &.xgplayer-is-cssfullscreen {
+    position: fixed;
+    left: 0;
+    top: 0;
+    width: 100%;
+    height: 100%;
+    z-index: 9999;
+  }
+  /** xgplayer cssFullscreen style  end**/
+
+
   video {
     width:100%;
     height: 100%;
     outline: none;
     position: absolute;
     top: 0;
-    left: 0;  
+    left: 0;
   }
+
   &[data-xgfill=cover] {
     video {
       object-fit: cover;
@@ -58,6 +89,21 @@
       object-fit: fill;
     }
   }
+  /** position start **/
+  .xg-pos {
+    left: $miniMargin; //$iconMargin;
+    right: $miniMargin; //$iconMargin;
+  }
+
+  .xg-margin {
+    margin-left: $iconMargin;
+    margin-right: $iconMargin;
+  }
+
+  .xg-bottom {
+    bottom: 0;
+  }
+  /** position ended **/
 
   .btn-text {
     top: 50%;
@@ -75,26 +121,47 @@
       display:inline-block;
     }
   }
-  
-  /** xgplayer cssFullscreen style  begain**/
-  &.xgplayer-is-cssfullscreen {
-    position: fixed;
-    left: 0;
-    top: 0;
-    width: 100%;
-    height: 100%;
-    z-index: 9999;
+  /** icon style begain **/
+  xg-icon {
+    position: relative;
+    height: 40px;
+    margin-left: $iconMargin;
+    margin-right: $iconMargin;
+    cursor: pointer;
+    box-sizing: border-box;
+    .xg-tips {
+      top: -30px;
+      left: 50%;
+      transform: translateX(-50%);
+    }
+    &:hover {
+      .xg-tips {
+        display: block;
+      }
+    }
+    .xgplayer-icon {
+      position: relative;
+      top: 50%;
+      transform: translateY(-50%);
+      cursor: pointer;
+      fill: #fff;
+    }
+
+    .xg-img {
+      width: 100%;
+    }
+
+    svg {
+      height: 100%;
+    }
   }
-  /** xgplayer cssFullscreen style  end**/
-}
-/** xgplayer base style ended **/
-/** root bar style begain **/
-$barWidth: 50px;
-$barBottom: 50px;
-.xgplayer {
+  /** icon style ended **/
+
+  /** root bar style begain **/
   xg-bar {
     display: block;
   }
+
   &.xgplayer-inactive, &.xgplayer-mini, &.xgplayer-ended {
     xg-bar {
       display: none;
@@ -102,19 +169,28 @@ $barBottom: 50px;
   }
   .xg-top-bar {
     position: absolute;
-    z-index: 83;
+    z-index: 10;
     top: 0;
-    left: 0;
-    width: 100%;
+    left: $iconMargin;
+    right: $iconMargin;
     height: $barWidth;
     display: flex;
+    xg-icon {
+      position: relative;
+      width: 34px;
+      margin-top: 0;
+      top: 10px;
+      left: 0;
+      &:first-child{
+        margin-left: 0;
+      }
+    }
   }
   .xg-left-bar, .xg-right-bar {
     position: absolute;
-    z-index: 81;
-    top: 0;
+    z-index: 9;
+    top: $barWidth;
     bottom: $barWidth;
-    margin-top: $barWidth;
     width: $barWidth;
   }
   .xg-left-bar {
@@ -123,5 +199,126 @@ $barBottom: 50px;
   .xg-right-bar {
     right: 0;
   }
+  /*  root bar style ended */
+
+  .xg-tips {
+    display: none;
+    position: absolute;
+    background:$tipsBgColor;
+    border-radius: 1px;
+    font-size: $tipsFontsize;
+    color: $tipsColor;
+    padding: 4px 6px;
+    border-radius: 4px;
+    text-align: center;
+    opacity: 0.85;
+    white-space: nowrap;
+  }
+  .xg-margin {
+    left: 0px;
+    right: 0px;
+  }
 }
-/*  root bar style ended */
+
+// 移动端适配
+.xgplayer-mobile {
+  font-family: PingFangSC-Regular;
+  -webkit-tap-highlight-color: rgba(0,0,0,0);
+  * {
+    text-decoration: none;
+    -webkit-tap-highlight-color: rgba(0,0,0,0);
+  }
+
+  &.xgplayer-rotate-fullscreen {
+    .xg-top-bar, .xg-pos {
+      left: 6%;
+      right: 6%;
+    }
+    .xgplayer-controls {
+      bottom: 10px;
+    }
+  }
+
+  xg-icon {
+    &:hover {
+      .xg-tips {
+        display: none;
+      }
+    }
+  }
+}
+
+// 移动端小屏幕
+@media only screen and (max-width: 480px) {
+  .xgplayer-mobile {
+    xg-icon {
+      margin-right: $miniMargin;
+      margin-left: $miniMargin;
+    }
+
+    .xg-top-bar {
+      left: $miniMargin;
+      right: $miniMargin;
+    }
+  }
+}
+
+// @media only screen and (min-width: 480px) {
+//   .xgplayer-mobile {
+//     &.xgplayer-is-fullscreen {
+//       .xg-top-bar, .xg-pos{
+//         left: 6%;
+//         right: 6%;
+//       }
+//     }
+//   }
+// }
+
+@supports ((height: constant(safe-area-inset-top)) or (height: env(safe-area-inset-top))) and (-webkit-overflow-scrolling: touch) {
+  // .xgplayer-mobile {
+  //   &.xgplayer-rotate-fullscreen {
+  //     .xg-pos {
+  //       left: constant(safe-area-inset-top, 30px);
+  //       left: env(safe-area-inset-top, 30px);
+  //       right: constant(safe-area-inset-bottom, 30px);
+  //       right: env(safe-area-inset-bottom, 30px);
+  //     }
+  //   }
+  // }
+}
+
+// 竖屏兼容
+@media screen and (orientation:portrait) {
+  .xgplayer-mobile {
+    &.xgplayer-is-fullscreen, &.xgplayer-is-cssfullscreen {
+      //.flex-controls {
+      .xgplayer-controls {
+        /* bottom: 34px; */
+        /* iOS 11.0 */
+        bottom: 34px;
+        /* 11.2+ */
+      }
+      .xg-top-bar {
+        top: 34px;
+      }
+    }
+  }
+}
+
+// 横屏兼容
+@media only screen and (orientation:landscape) {
+  .xgplayer-mobile{
+    &.xgplayer-is-fullscreen {
+      .xg-pos, .xg-top-bar {
+        left: 6%;
+        right: 6%;
+      }
+    }
+    &.xgplayer-rotate-fullscreen {
+      transform: rotate(0deg);
+      left: 0;
+      height: 100vh !important;
+      width: 100vw !important;
+    }
+  }
+}
