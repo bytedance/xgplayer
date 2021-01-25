@@ -218,6 +218,10 @@ class Compatibility {
     // step0.修复hls流出现巨大gap，需要强制重定位的问题。
     if (this._videoLargeGap !== 0) {
       Compatibility.doFixLargeGap(videoSamples, this._videoLargeGap, this.isTs)
+      if (this._videoLargeGap !== this.preVideoGap) {
+        this.preVideoGap = this._videoLargeGap
+        this.emit(REMUX_EVENTS.DETECT_CHANGE_STREAM_DISCONTINUE, 'video', { prevDts: this.videoLastSample.originDts, curDts: firstSample.originDts })
+      }
     }
 
     if (!first && streamChangeStart !== undefined) {
@@ -360,11 +364,10 @@ class Compatibility {
     // 对audioSamples按照dts做排序
     if (this._audioLargeGap !== 0) {
       Compatibility.doFixLargeGap(audioSamples, this._audioLargeGap)
-      if (((this._videoLargeGap !== this.preVideoGap) && this._videoLargeGap === 0) || (this._audioLargeGap !== this.preAudioGap && (this._videoLargeGap === this.preVideoGap))) {
+      if (this._audioLargeGap !== this.preAudioGap) {
+        this.preAudioGap = this._audioLargeGap
         this.emit(REMUX_EVENTS.DETECT_CHANGE_STREAM_DISCONTINUE, 'audio', { prevDts: this.lastAudioOriginDts, curDts: _firstSample.originDts })
       }
-      this.preVideoGap = this._videoLargeGap
-      this.preAudioGap = this._audioLargeGap
     } else if (!first && (streamChangeStart !== undefined || Compatibility.detectAudioLargeGap(this.nextAudioDts, _firstSample.dts))) {
       if (streamChangeStart !== undefined) {
         this.nextAudioDts = streamChangeStart // FIX: Hls中途切codec，在如果直接seek到后面的点会导致largeGap计算失败
