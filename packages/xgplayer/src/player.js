@@ -21,12 +21,13 @@ const PlAYER_HOOKS = ['play']
 
 class Player extends Proxy {
   constructor (options) {
-    super(options)
+    const config = Util.deepMerge(getDefaultConfig(), options)
+    super(config)
     hooksDescriptor(this)
     PlAYER_HOOKS.map(item => {
       this.__hooks[item] = null
     })
-    this.config = Util.deepMerge(getDefaultConfig(), options)
+    this.config = config
     bindDebug(this)
     // resolve default preset
     if (this.config.presets.length) {
@@ -55,6 +56,7 @@ class Player extends Proxy {
     this.fullscreen = false
     this._fullscreenEl = null
     this._originCssText = ''
+    this._fullscreenOffsetY = null
     this._videoHeight = 0
     this._videoWidth = 0
     this._played = {
@@ -159,22 +161,39 @@ class Player extends Proxy {
     ['focus', 'blur'].forEach(item => {
       this.on(item, this['on' + item.charAt(0).toUpperCase() + item.slice(1)])
     });
+    const resetFullState = () => {
+      this.fullscreen = false
+      this._fullscreenOffsetY = null
+      this._fullscreenEl = null
+    }
 
-    // deal with the fullscreen state change callback
-    this.onFullscreenChange = (e, isEnter) => {
+    this.onFullscreenChange = () => {
       const fullEl = Util.getFullScreenEl()
-      if (isEnter || (fullEl && (fullEl === this._fullscreenEl || fullEl.tagName === 'VIDEO'))) {
+      if (fullEl && (fullEl === this._fullscreenEl || fullEl.tagName === 'VIDEO')) {
         this.fullscreen = true
         this.addClass(STATE_CLASS.FULLSCREEN)
-        this.emit(Events.FULLSCREEN_CHANGE, true)
+        this.emit(Events.FULLSCREEN_CHANGE, true, this._fullscreenOffsetY)
         if (this.isCssfullScreen) {
           this.exitCssFullscreen()
         }
-      } else {
-        this.fullscreen = false
-        // 保证页面scroll的情况下退出全屏 页面定位在播放器位置
-        this.video.focus()
-        this._fullscreenEl = null
+      } else if (this.fullscreen) {
+        const {_fullscreenOffsetY, config} = this
+        if (config.needFullsreenScroll) {
+          try {
+            window.scrollTo(window.pageOffsetX, _fullscreenOffsetY)
+            setTimeout(() => {
+              resetFullState()
+            }, 100)
+          } catch (e) {
+            this.logError(e)
+            resetFullState()
+          }
+        } else {
+          // _fullscreenOffsetY > 0 && _fullscreenOffsetY !== window.pageYOffset
+          // 保证页面scroll的情况下退出全屏 页面定位在播放器位置
+          this.video.focus()
+          resetFullState()
+        }
         if (this._originCssText && !this.isCssfullScreen) {
           Util.setStyleFromCsstext(this.root, this._originCssText)
           this._originCssText = ''
@@ -616,6 +635,7 @@ class Player extends Proxy {
     if (!el) {
       el = root
     }
+    this._fullscreenOffsetY = window.pageYOffset
     if (!Sniffer.os.isPhone && root.getAttribute('style')) {
       this._originCssText = root.style.cssText
       root.removeAttribute('style')
@@ -910,6 +930,10 @@ class Player extends Proxy {
   get networkState () {
     const key = super.networkState
     return this.i18n[key] || key
+  }
+
+  get fullscreenChanging () {
+    return !(this._fullscreenOffsetY === null)
   }
 
   get cumulateTime () {

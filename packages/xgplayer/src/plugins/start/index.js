@@ -79,6 +79,12 @@ class Start extends Plugin {
       }})
 
     this.bind(['click', 'touchend'], this.clickHandler)
+    this.bind('touchmove', Util.stopPropagation)
+    this.bind('touchstart', Util.stopPropagation)
+  }
+
+  preventDefault (e) {
+
   }
 
   registerIcons () {
@@ -188,7 +194,9 @@ class Start extends Plugin {
   }
 
   destroy () {
-    this.unbind(['click', 'touchend'], this.onClick)
+    this.unbind(['click', 'touchend'], this.clickHandler)
+    this.unbind('touchmove', Util.stopPropagation)
+    this.unbind('touchstart', Util.stopPropagation)
   }
 
   render () {
