@@ -38,6 +38,6 @@
     ]
   },
   "dependencies": {
-    "xgplayer-helper-utils": "2.3.68"
+    "xgplayer-helper-utils": "2.4.0"
   }
 }
