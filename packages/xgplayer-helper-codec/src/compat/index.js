@@ -218,6 +218,10 @@ class Compatibility {
     // step0.修复hls流出现巨大gap，需要强制重定位的问题。
     if (this._videoLargeGap !== 0) {
       Compatibility.doFixLargeGap(videoSamples, this._videoLargeGap, this.isTs)
+      if (this._videoLargeGap !== this.preVideoGap) {
+        this.preVideoGap = this._videoLargeGap
+        this.emit(REMUX_EVENTS.DETECT_CHANGE_STREAM_DISCONTINUE, 'video', { prevDts: this.videoLastSample.originDts, curDts: firstSample.originDts })
+      }
     }
 
     if (!first && streamChangeStart !== undefined) {
@@ -360,13 +364,9 @@ class Compatibility {
     // 对audioSamples按照dts做排序
     if (this._audioLargeGap !== 0) {
       Compatibility.doFixLargeGap(audioSamples, this._audioLargeGap)
-      if (this._videoLargeGap === 0 || (this._audioLargeGap !== this.preAudioGap && (this._videoLargeGap === this.preVideoGap))) {
-        this.emit(REMUX_EVENTS.DETECT_CHANGE_STREAM_DISCONTINUE, 'audio', { prevDts: this.lastAudioOriginDts, curDts: _firstSample.originDts })
-        this.preVideoGap = undefined
-        this.preAudioGap = undefined
-      } else {
-        this.preVideoGap = this._videoLargeGap
+      if (this._audioLargeGap !== this.preAudioGap) {
         this.preAudioGap = this._audioLargeGap
+        this.emit(REMUX_EVENTS.DETECT_CHANGE_STREAM_DISCONTINUE, 'audio', { prevDts: this.lastAudioOriginDts, curDts: _firstSample.originDts })
       }
     } else if (!first && (streamChangeStart !== undefined || Compatibility.detectAudioLargeGap(this.nextAudioDts, _firstSample.dts))) {
       if (streamChangeStart !== undefined) {
