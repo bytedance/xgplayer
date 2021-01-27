@@ -183,8 +183,19 @@ class Player extends Proxy {
     player.once('destroy', onDestroy)
   }
 
+  attachVideo () {
+    if(!window.XgVideoProxy) {
+      this.root.insertBefore(this.video, this.root.firstChild)
+    }
+    setTimeout(() => {
+      this.emit('complete')
+      if(this.danmu && typeof this.danmu.resize === 'function') {
+        this.danmu.resize()
+      }
+    }, 1)
+  }
+
   start (url = this.config.url) {
-    let root = this.root
     let player = this
     if (!url || url === '') {
       this.emit('urlNull')
@@ -236,15 +247,7 @@ class Player extends Proxy {
     if(!this.config.disableStartLoad) {
       this.video.load()
     }
-    if(!window.XgVideoProxy) {
-      root.insertBefore(this.video, root.firstChild)
-    }
-    setTimeout(() => {
-      this.emit('complete')
-      if(this.danmu && typeof this.danmu.resize === 'function') {
-        this.danmu.resize()
-      }
-    }, 1)
+    this.attachVideo()
   }
 
   reload () {
