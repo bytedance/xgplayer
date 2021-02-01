@@ -28,66 +28,8 @@
       }
     }
   }
-
-  .xgplayer-pip-lay{
-    position: absolute;
-    top: 26px;
-    left: 0;
-    width: 100%;
-    height: 100%;
-    z-index: 130;
-    cursor: pointer;
-    background-color: transparent;
-    display: none;
-    div{
-      width: 100%;
-      height: 100%;
-    }
-  }
-
-  .xgplayer-pip-drag{
-    cursor: move;
-    position: absolute;
-    top: 0;
-    left: 0;
-    width: 100%;
-    height: 26px;
-    line-height: 26px;
-    background-image: linear-gradient(rgba(0, 0, 0, 0.3), rgba(0, 0, 0, 0));
-    z-index: 130;
-    display: none;
-  }
 }
 
-.xgplayer-skin-default.xgplayer-pip-active {
-  position: fixed;
-  right: 0;
-  bottom: 200px;
-  width: 320px;
-  height: 180px;
-  z-index: 110;
-  .xgplayer-controls {
-    display: none;
-  }
-  .xgplayer-danmu {
-    display: none;
-  }
-  .xgplayer-pip-lay{
-    display: block;
-  }
-}
-
-.xgplayer-skin-default.xgplayer-pip-active {
-  .xgplayer-pip-drag {
-    display: flex;
-  }
-}
-
-.xgplayer-skin-default.xgplayer-inactive {
-  .xgplayer-pip-drag {
-    display: none;
-  }
-}
 .lang-is-jp {
   .xgplayer-pip {
     .name {

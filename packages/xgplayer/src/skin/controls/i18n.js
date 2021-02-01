@@ -30,10 +30,11 @@ let s_i18n = function () {
     EXITCSSFULLSCREEN_TIPS: 'Exit cssfullscreen',
     TEXTTRACK: 'Caption',
     PIP: 'Pip',
+    MINIPLAYER: 'Miniplayer',
     SCREENSHOT: 'Screenshot',
     LIVE: 'LIVE',
     OFF: 'Off',
-    PIP_DRAG: 'Click and hold to drag',
+    MINIPLAYER_DRAG: 'Click and hold to drag',
     AIRPLAY_TIPS: 'Airplay',
   }
   lang['zh-cn'] = {
@@ -64,10 +65,11 @@ let s_i18n = function () {
     EXITCSSFULLSCREEN_TIPS: '退出样式全屏',
     TEXTTRACK: '字幕',
     PIP: '画中画',
+    MINIPLAYER: '迷你播放器',
     SCREENSHOT: '截图',
     LIVE: '正在直播',
     OFF: '关闭',
-    PIP_DRAG: '点击按住可拖动视频',
+    MINIPLAYER_DRAG: '点击按住可拖动视频',
     AIRPLAY_TIPS: '隔空播放',
   }
   lang['zh-hk'] = {
@@ -98,10 +100,11 @@ let s_i18n = function () {
     EXITCSSFULLSCREEN_TIPS: '退出樣式全屏',
     TEXTTRACK: '字幕',
     PIP: '畫中畫',
+    MINIPLAYER: '迷妳播放器',
     SCREENSHOT: '截圖',
     LIVE: '正在直播',
     OFF: '關閉',
-    PIP_DRAG: '點擊按住可拖動視頻',
+    MINIPLAYER_DRAG: '點擊按住可拖動視頻',
     AIRPLAY_TIPS: '隔空播放',
   }
   lang['jp'] = {
@@ -132,10 +135,11 @@ let s_i18n = function () {
     EXITCSSFULLSCREEN_TIPS: 'シアターモードを終了',
     TEXTTRACK: '字幕',
     PIP: 'ミニプレーヤー',
+    MINIPLAYER: 'ミニプレーヤー',
     SCREENSHOT: 'スクリーンショット',
     LIVE: '生放送',
     OFF: 'オフ',
-    PIP_DRAG: 'ボタンを押して働画をドラッグする',
+    MINIPLAYER_DRAG: 'ボタンを押して働画をドラッグする',
     AIRPLAY_TIPS: '隔空放送',
   }
 

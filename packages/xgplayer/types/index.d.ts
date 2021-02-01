@@ -167,8 +167,11 @@ declare module 'xgplayer' {
         // 画中画
         pip?: boolean;
 
-        // 画中画配置
-        pipConfig?: object;
+        // 迷你播放器
+        miniplayer?: boolean;
+
+        // 迷你播放器
+        miniplayerConfig?: object;
 
         // 网页样式全屏
         cssFullscreen?: boolean;
@@ -572,6 +575,17 @@ declare module 'xgplayer' {
          * 播放器还原画中画，可自定义触发还原画中画功能的条件，不局限于播放器控件中使用
          */
         public exitPIP(): void;
+
+        /**
+         * 进入迷你播放器模式
+         *
+         */
+        public getMiniplayer(): void;
+
+        /**
+         * 退出迷你播放器模式
+         */
+        public exitMiniplayer(): void;
 
         /**
          * 更新旋转角度

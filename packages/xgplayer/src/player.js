@@ -478,45 +478,45 @@ class Player extends Proxy {
     }
   }
 
-  getPIP () {
+  getMiniplayer () {
     // let ro = this.root.getBoundingClientRect()
     // let Top = ro.top
     // let Left = ro.left
-    let dragLay = util.createDom('xg-pip-lay', '<div></div>', {}, 'xgplayer-pip-lay')
+    let dragLay = util.createDom('xg-miniplayer-lay', '<div></div>', {}, 'xgplayer-miniplayer-lay')
     this.root.appendChild(dragLay)
-    let dragHandle = util.createDom('xg-pip-drag', `<div class="drag-handle"><span>${this.lang.PIP_DRAG}</span></div>`, {tabindex: 9}, 'xgplayer-pip-drag')
+    let dragHandle = util.createDom('xg-miniplayer-drag', `<div class="drag-handle"><span>${this.lang.MINIPLAYER_DRAG}</span></div>`, {tabindex: 9}, 'xgplayer-miniplayer-drag')
     this.root.appendChild(dragHandle)
     // eslint-disable-next-line no-unused-vars
     let draggie = new Draggabilly('.xgplayer', {
       handle: '.drag-handle'
     })
-    util.addClass(this.root, 'xgplayer-pip-active')
+    util.addClass(this.root, 'xgplayer-miniplayer-active')
     this.root.style.right = 0
     this.root.style.bottom = '200px'
     this.root.style.top = ''
     this.root.style.left = ''
     this.root.style.width = '320px'
     this.root.style.height = '180px'
-    if (this.config.pipConfig) {
-      if (this.config.pipConfig.top !== undefined) {
-        this.root.style.top = this.config.pipConfig.top + 'px'
+    if (this.config.miniplayerConfig) {
+      if (this.config.miniplayerConfig.top !== undefined) {
+        this.root.style.top = this.config.miniplayerConfig.top + 'px'
         this.root.style.bottom = ''
       }
-      if (this.config.pipConfig.bottom !== undefined) {
-        this.root.style.bottom = this.config.pipConfig.bottom + 'px'
+      if (this.config.miniplayerConfig.bottom !== undefined) {
+        this.root.style.bottom = this.config.miniplayerConfig.bottom + 'px'
       }
-      if (this.config.pipConfig.left !== undefined) {
-        this.root.style.left = this.config.pipConfig.left + 'px'
+      if (this.config.miniplayerConfig.left !== undefined) {
+        this.root.style.left = this.config.miniplayerConfig.left + 'px'
         this.root.style.right = ''
       }
-      if (this.config.pipConfig.right !== undefined) {
-        this.root.style.right = this.config.pipConfig.right + 'px'
+      if (this.config.miniplayerConfig.right !== undefined) {
+        this.root.style.right = this.config.miniplayerConfig.right + 'px'
       }
-      if (this.config.pipConfig.width !== undefined) {
-        this.root.style.width = this.config.pipConfig.width + 'px'
+      if (this.config.miniplayerConfig.width !== undefined) {
+        this.root.style.width = this.config.miniplayerConfig.width + 'px'
       }
-      if (this.config.pipConfig.height !== undefined) {
-        this.root.style.height = this.config.pipConfig.height + 'px'
+      if (this.config.miniplayerConfig.height !== undefined) {
+        this.root.style.height = this.config.miniplayerConfig.height + 'px'
       }
     }
     if (this.config.fluid) {
@@ -527,15 +527,15 @@ class Player extends Proxy {
       dragLay.addEventListener(item, function (e) {
         e.preventDefault()
         e.stopPropagation()
-        player.exitPIP()
+        player.exitMiniplayer()
         // player.root.style.top = `${Top}px`
         // player.root.style.left = `${Left}px`
       })
     })
   }
 
-  exitPIP () {
-    util.removeClass(this.root, 'xgplayer-pip-active')
+  exitMiniplayer () {
+    util.removeClass(this.root, 'xgplayer-miniplayer-active')
     this.root.style.right = ''
     this.root.style.bottom = ''
     this.root.style.top = ''
@@ -561,11 +561,11 @@ class Player extends Proxy {
       }
     }
 
-    let dragLay = util.findDom(this.root, '.xgplayer-pip-lay')
+    let dragLay = util.findDom(this.root, '.xgplayer-miniplayer-lay')
     if (dragLay && dragLay.parentNode) {
       dragLay.parentNode.removeChild(dragLay)
     }
-    let dragHandle = util.findDom(this.root, '.xgplayer-pip-drag')
+    let dragHandle = util.findDom(this.root, '.xgplayer-miniplayer-drag')
     if (dragHandle && dragHandle.parentNode) {
       dragHandle.parentNode.removeChild(dragHandle)
     }
