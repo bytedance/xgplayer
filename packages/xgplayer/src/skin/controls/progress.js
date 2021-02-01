@@ -1,4 +1,5 @@
 import Player from '../../player'
+import sniffer from '../../utils/sniffer'
 
 const isRotateFullscreen = (player) => {
   return Player.util.hasClass(player.root, 'xgplayer-rotate-fullscreen')
@@ -233,7 +234,9 @@ let s_progress = function () {
         window.removeEventListener('touchmove', move, { passive: false })
         window.removeEventListener('mouseup', up)
         window.removeEventListener('touchend', up)
-        container.blur()
+        if(sniffer.browser.indexOf('ie') < 0) {
+          container.blur()
+        }
         if (!player.isProgressMoving || (player.videoConfig && player.videoConfig.mediaType === 'audio') || player.dash || player.config.closeMoveSeek) {
           let w = (isRotate ? e.clientY : e.clientX) - left
           if (w > containerWidth) {

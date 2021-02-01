@@ -349,6 +349,10 @@ class Player extends Proxy {
     let _replay = this._replay
     // ie9 bugfix
     util.removeClass(this.root, 'xgplayer-ended')
+    if(sniffer.browser.indexOf('ie') > -1) {
+      this.emit('play')
+      this.emit('playing')
+    }
     this.logParams = {
       bc: 0,
       bu_acu_t: 0,
