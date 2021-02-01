@@ -6067,7 +6067,7 @@ var HlsJsPlayer = function (_Player) {
       if (player.config.isLive) {
         util.addClass(player.root, 'xgplayer-is-live');
         if (!util.findDom(player.controls, '.xgplayer-live')) {
-          var live = util.createDom('xg-live', '正在直播', {}, 'xgplayer-live');
+          var live = util.createDom('xg-live', player.lang.LIVE || '正在直播', {}, 'xgplayer-live');
           player.controls.appendChild(live);
         }
       }
