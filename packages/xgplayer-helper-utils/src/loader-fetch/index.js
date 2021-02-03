@@ -19,6 +19,9 @@ class FetchLoader {
     this.buffer = this.configs.buffer || 'LOADER_BUFFER';
     this._loaderTaskNo = 0;
     this._speed = new Speed()
+    if (window.AbortController) {
+      this.abortController = new window.AbortController();
+    }
   }
 
   init () {
@@ -31,10 +34,14 @@ class FetchLoader {
 
   fetch (url, params, timeout) {
     let timer = null
+    Object.assign(params, {signal: this.abortController ? this.abortController.signal : undefined})
     return Promise.race([
       fetch(url, params),
       new Promise((resolve, reject) => {
         timer = setTimeout(() => {
+          if (this.abortController) {
+            this.abortController.abort();
+          }
           /* eslint-disable-next-line */
           reject({
             code: 999,
@@ -84,6 +91,9 @@ class FetchLoader {
       }
     }).catch((error) => {
       this.loading = false;
+      if (this._destroyed) {
+        return;
+      }
       if (retryTimes-- > 0) {
         this._retryTimer = setTimeout(() => {
           this.emit(LOADER_EVENTS.LOADER_RETRY, this.TAG, {
@@ -103,7 +113,9 @@ class FetchLoader {
   load (url, opts = {}, retryTimes, delayTime) {
     retryTimes = retryTimes === undefined ? 3 : retryTimes
     this.url = url;
-
+    if (this.abortController) {
+      this.abortController = new window.AbortController();
+    }
     this._canceled = false;
 
     // TODO: Add Ranges
@@ -284,6 +296,9 @@ class FetchLoader {
     }
     clearTimeout(this._noDataTimer)
     this._canceled = true;
+    if (this.abortController) {
+      this.abortController.abort();
+    }
   }
 
   destroy () {
