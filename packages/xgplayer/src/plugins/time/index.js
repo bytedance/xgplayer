@@ -18,6 +18,14 @@ class Time extends Plugin {
     this.isActiving = false
   }
 
+  get duration () {
+    return this.playerConfig.customDuration || this.player.duration
+  }
+
+  get timeOffset () {
+    return this.playerConfig.timeOffset || 0
+  }
+
   afterCreate () {
     const constrolsMode = this.player.controls.config.mode
     this.mode = constrolsMode === 'flex' ? 'flex' : 'normal'
@@ -50,16 +58,16 @@ class Time extends Plugin {
     if (config.disable || this.isActiving) {
       return
     }
-    const current = player.currentTime
+    const current = player.currentTime + this.timeOffset
     if (this.mode === 'flex') {
       this.centerCurDom.innerHTML = Util.format(current)
-      if (player.duration !== Infinity) {
-        this.centerDurDom.innerHTML = Util.format(player.duration)
+      if (this.duration !== Infinity && this.duration > 0) {
+        this.centerDurDom.innerHTML = Util.format(this.duration)
       }
     } else {
       this.timeDom.innerHTML = Util.format(current)
-      if (player.duration !== Infinity) {
-        this.durationDom.innerHTML = Util.format(player.duration)
+      if (this.duration !== Infinity && this.duration > 0) {
+        this.durationDom.innerHTML = Util.format(this.duration)
       }
     }
   }
@@ -77,8 +85,8 @@ class Time extends Plugin {
   }
 
   afterPlayerInit () {
-    const {player, config} = this
-    if (player.duration === Infinity || this.playerConfig.isLive) {
+    const {config} = this
+    if (this.duration === Infinity || this.playerConfig.isLive) {
       Util.hide(this.durationDom)
       Util.hide(this.timeDom)
       Util.hide(this.find('.time-separator'))
@@ -109,8 +117,7 @@ class Time extends Plugin {
 
   updateTime (time) {
     this.isActiving = true
-    const { player } = this
-    if ((!time && time !== 0) || time > player.duration) {
+    if ((!time && time !== 0) || time > this.duration) {
       return
     }
     if (this.mode === 'flex') {

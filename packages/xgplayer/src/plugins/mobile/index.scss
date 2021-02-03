@@ -30,19 +30,19 @@ $color: #FF0000;
       pointer-events: none;
       span {
         line-height: 24px;
-        &.cur {
+        &.xg-cur {
           color: #FF0000;
         }
       }
-      .seek-show {
+      .xg-seek-show {
         transform: translateX(-10px);
-        &.back {
+        &.xg-back {
           .xg-seek-pre {
             transform: rotate(180deg) translateX(-5px);
           }
         }
       }
-      .bar {
+      .xg-bar {
         width: 96px;
         height: 2px;
         margin: 0 auto;
@@ -50,7 +50,7 @@ $color: #FF0000;
         border-radius: 10px;
         box-sizing: content-box;
         background: rgba(255,255,255,0.3);
-        .curbar {
+        .xg-curbar {
           width: 0;
           height: 100%;
           background-color: #FF0000;
@@ -161,12 +161,12 @@ $color: #FF0000;
   .xgplayer-mobile {
     xg-trigger .time-preview  {
       color: #fff;
-      span.cur {
+      span.xg-cur {
         color: #FF0000;
       }
-      .bar {
+      .xg-bar {
         background-color: rgba(255, 255, 255, 0.3);
-        &.curbar {
+        &.xg-curbar {
           background-color: #FF0000;
         }
       }

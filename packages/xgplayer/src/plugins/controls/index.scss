@@ -54,7 +54,7 @@ $controlHeight: 48px;
     position: absolute;
     // left: 0;
     // right: 0;
-    bottom: 8px;
+    bottom: 0;
     height: 40px;
   }
 
@@ -101,6 +101,7 @@ $controlHeight: 48px;
     .inner-controls {
       justify-content: space-around;
       display: flex;
+      bottom: 8px;
     }
     .center {
       display: flex;

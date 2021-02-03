@@ -38,6 +38,14 @@ class Progress extends Plugin {
     }
   }
 
+  get duration () {
+    return this.playerConfig.customDuration || this.player.duration
+  }
+
+  get timeOffset () {
+    return this.playerConfig.timeOffset || 0
+  }
+
   changeState (useable = true) {
     this.useable = useable
   }
@@ -93,8 +101,13 @@ class Progress extends Plugin {
       this.onCacheUpdate()
     });
 
-    this.on([Events.PROGRESS, Events.ENDED], () => {
+    this.on(Events.PROGRESS, () => {
       this.onCacheUpdate()
+    })
+
+    this.on(Events.ENDED, () => {
+      this.onCacheUpdate()
+      this._state.now = 0
     })
 
     this.bindDomEvents()
@@ -347,14 +360,16 @@ class Progress extends Plugin {
     if (config.isCloseClickSeek && type === 0) {
       return
     }
+    const realTime = currentTime > player.duration ? player.duration - 0.2 : Number(currentTime).toFixed(1)
+    // currentTime = currentTime > player.duration ? player.duration - 0.2 : Number(currentTime).toFixed(1)
     this.updatePercent(percent)
     this.updateTime(currentTime)
     if (type === 1 && (!config.isDragingSeek || player.videoConfig.mediaType === 'audio')) {
       return
     }
-    this._state.now = currentTime
-    this._state.direc = currentTime > player.currentTime ? 0 : 1
-    player.seek(Number(currentTime).toFixed(1))
+    this._state.now = realTime
+    this._state.direc = realTime > player.currentTime ? 0 : 1
+    player.seek(realTime)
   }
 
   computeTime (e) {
@@ -375,7 +390,7 @@ class Progress extends Plugin {
 
     let percent = offset / rWidth
     percent = percent < 0 ? 0 : (percent > 1 ? 1 : percent)
-    const currentTime = parseInt(percent * player.duration * 1000, 10) / 1000
+    const currentTime = parseInt(percent * this.duration * 1000, 10) / 1000
     return {
       percent,
       currentTime,
@@ -392,9 +407,9 @@ class Progress extends Plugin {
    * @param {number} time 根据拖拽距离计算出的时间
    */
   updateTime (time) {
-    const {player} = this
-    if (time > player.duration) {
-      time = player.duration
+    const {player, duration} = this
+    if (time > duration) {
+      time = duration
     } else if (time < 0) {
       time = 0
     }
@@ -425,14 +440,14 @@ class Progress extends Plugin {
     }
     percent = percent > 1 ? 1 : (percent < 0 ? 0 : percent)
     this.progressBtn.style.left = `${percent * 100}%`
-    this.innerList.update({played: percent * this.player.duration}, this.player.duration)
+    this.innerList.update({played: percent * this.duration}, this.duration)
   }
 
   /**
    * @description 播放进度更新
    */
   onTimeupdate () {
-    const {player, _state} = this
+    const {player, _state, duration} = this
     if (player.isSeeking || this.isProgressMoving) {
       return;
     }
@@ -444,17 +459,18 @@ class Progress extends Plugin {
         _state.now = -1
       }
     }
-    this.innerList.update({played: player.currentTime}, player.duration)
-    this.progressBtn.style.left = `${player.currentTime / player.duration * 100}%`
+    const time = this.timeOffset + player.currentTime
+    this.innerList.update({played: time}, duration)
+    this.progressBtn.style.left = `${time / duration * 100}%`
   }
 
   /**
    * @description 缓存进度更新
    */
   onCacheUpdate () {
-    const {player} = this
+    const {player, duration} = this
     const point = player.bufferedPoint
-    this.innerList.update({cached: point.end}, player.duration)
+    this.innerList.update({cached: point.end}, duration)
   }
 
   destroy () {

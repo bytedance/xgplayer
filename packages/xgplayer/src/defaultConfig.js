@@ -50,6 +50,8 @@ export default function getDefaultConfig () {
     presets: [],
     playbackRate: [0.5, 0.75, 1, 1.5, 2],
     playsinline: true,
+    customDuration: 0, // 用户自定义时长
+    timeOffset: 0, // 当前时长偏移
     icons: {},
     commonStyle: { // 用于配置一些通用样式结构
       progressColor: '', // 进度条底色

@@ -119,7 +119,7 @@ export default class Fullscreen extends Plugin {
       this.animate(player.fullscreen)
     } else {
       if (config.switchCallback && typeof config.switchCallback === 'function') {
-        config.switchFullScreen(this.isFullScreen)
+        config.switchCallback(this.isFullScreen)
         this.isFullScreen = !this.isFullScreen
         return
       }

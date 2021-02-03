@@ -63,6 +63,15 @@ class MobilePlugin extends Plugin {
       scopeM2: 0,
       scope: -1
     }
+    this.timer = null
+  }
+
+  get duration () {
+    return this.playerConfig.customDuration || this.player.duration
+  }
+
+  get timeOffset () {
+    return this.playerConfig.timeOffset || 0
   }
 
   registerIcons () {
@@ -149,11 +158,11 @@ class MobilePlugin extends Plugin {
     const {commonStyle} = this.playerConfig || {}
     const {playedColor, progressColor} = commonStyle
     if (playedColor) {
-      this.find('.curbar').style.backgroundColor = playedColor
-      this.find('.cur').style.color = playedColor
+      this.find('.xg-curbar').style.backgroundColor = playedColor
+      this.find('.xg-cur').style.color = playedColor
     }
     if (progressColor) {
-      this.find('.bar').style.backgroundColor = progressColor
+      this.find('.xg-bar').style.backgroundColor = progressColor
       this.find('.time-preview').style.color = progressColor
     }
     this.config.disableTimeProgress && Util.addClass(this.find('.bar'), 'hide')
@@ -181,7 +190,7 @@ class MobilePlugin extends Plugin {
         scopeM1: 0,
         scopeM2: 0,
         scope: -1,
-        time: time
+        time: 0
       }
     }
   }
@@ -227,11 +236,12 @@ class MobilePlugin extends Plugin {
     if (x < 0 || x > width) {
       return scope
     }
+
     const mold = diffy === 0 ? Math.abs(diffx) : Math.abs(diffx / diffy)
     if (Math.abs(diffx) > 0 && mold >= 1.73 && x > pos.scopeM1 && x < pos.scopeM2) {
       scope = 0
     } else if (Math.abs(diffx) === 0 || mold <= 0.57) {
-      scope = x < pos.scopeL ? 1 : (x > pos.scopeR ? 2 : scope)
+      scope = x < pos.scopeL ? 1 : (x > pos.scopeR ? 2 : 3)
     }
     return scope
   }
@@ -267,19 +277,20 @@ class MobilePlugin extends Plugin {
    * @param {number} scope 当前手势类型 区域 0=>中间x方向滑动  1=>左侧上下滑动 2=>右侧上下滑动
    * @param {number} lastScope 上一次手势类型
    */
-  endLastMove (scope, lastScope) {
+  endLastMove (lastScope) {
     const {pos, player, config} = this
-    if (scope !== lastScope) {
-      switch (lastScope) {
-        case 0:
-          const time = pos.time / 1000
-          player.seek(Number(time).toFixed(1))
-          config.hideControlsEnd ? player.emit(Events.PLAYER_BLUR) : player.emit(Events.PLAYER_FOCUS)
-          break
-        case 1:
-        case 2:
-        default:
-      }
+    switch (lastScope) {
+      case 0:
+        const time = (pos.time - this.timeOffset) / 1000
+        player.seek(Number(time).toFixed(1))
+        config.hideControlsEnd ? player.emit(Events.PLAYER_BLUR) : player.emit(Events.PLAYER_FOCUS)
+        this.timer = setTimeout(() => {
+          this.pos.time = 0
+        }, 500)
+        break
+      case 1:
+      case 2:
+      default:
     }
     this.changeAction(ACTIONS.AUTO)
   }
@@ -287,12 +298,11 @@ class MobilePlugin extends Plugin {
   onTouchStart = (e) => {
     const {player, config, pos, playerConfig} = this
     const touche = this.getTouche(e.touches)
-    if (touche && !config.disableGesture && player.duration > 0 && !player.ended) {
+    if (touche && !config.disableGesture && this.duration > 0 && !player.ended) {
       pos.isStart = true
-      e.cancelable && e.preventDefault()
+      // e.cancelable && e.preventDefault()
       Util.checkIsFunction(playerConfig.disableSwipeHandler) && playerConfig.disableSwipeHandler()
-      this.find('.dur').innerHTML = Util.format(player.duration)
-      !pos.time && (pos.time = player.currentTime * 1000)
+      this.find('.xg-dur').innerHTML = Util.format(this.duration)
       // pos.volume = player.volume * 100
       const rect = this.root.getBoundingClientRect()
       if (player.rotateDeg === 90) {
@@ -320,7 +330,7 @@ class MobilePlugin extends Plugin {
   onTouchMove = (e) => {
     const touche = this.getTouche(e.touches)
     const {pos, config, player} = this
-    if (!touche || config.disableGesture || !player.duration || !pos.isStart) {
+    if (!touche || config.disableGesture || !this.duration || !pos.isStart) {
       return
     }
     const {miniMoveStep, hideControlsActive} = config
@@ -332,18 +342,17 @@ class MobilePlugin extends Plugin {
       let scope = pos.scope
       if (scope === -1) {
         scope = this.checkScope(x, y, diffx, diffy, pos)
+        // 手势为快进快退记录起始操作时间
+        if (scope === 0) {
+          !hideControlsActive ? player.emit(Events.PLAYER_FOCUS, {autoHide: false}) : player.emit(Events.PLAYER_BLUR)
+          !pos.time && (pos.time = parseInt(player.currentTime * 1000, 10) + this.timeOffset * 1000)
+        }
         pos.scope = scope
       }
-
       if (scope === -1 || (scope > 0 && !config.gestureY) || (scope === 0 && !config.gestureX)) {
         return
       }
-
       e.cancelable && e.preventDefault()
-      if (scope === 0 && scope !== pos.scope) {
-        !hideControlsActive ? player.emit(Events.PLAYER_FOCUS, {autoHide: false}) : player.emit(Events.PLAYER_BLUR)
-      }
-      // this.endLastMove(scope, pos.scope)
       this.executeMove(diffx, diffy, scope, pos.width, pos.height)
       pos.x = x
       pos.y = y
@@ -353,19 +362,14 @@ class MobilePlugin extends Plugin {
   }
 
   onTouchEnd = (e) => {
-    const {player, pos, config, playerConfig} = this
+    const {player, pos, playerConfig} = this
     if (!pos.isStart) {
       return
     }
     if (pos.scope > -1) {
       e.cancelable && e.preventDefault()
     }
-    // e.cancelable && e.preventDefault()
-    const time = pos.time / 1000
-    if (pos.scope === 0) {
-      player.seek(Number(time).toFixed(1))
-      config.hideControlsEnd ? player.emit(Events.PLAYER_BLUR) : player.emit(Events.PLAYER_FOCUS)
-    }
+    this.endLastMove(pos.scope)
     setTimeout(() => {
       player.getPlugin('progress') && player.getPlugin('progress').resetSeekState()
     }, 10)
@@ -378,6 +382,7 @@ class MobilePlugin extends Plugin {
   }
 
   onRootTouchMove = (e) => {
+    console.group('onRootTouchMove', e.target)
     const {plugins} = this.player
     if (this.pos.isStart && plugins && (plugins.start.root.contains(e.target) || plugins.controls.root.contains(e.target))) {
       e.stopPropagation()
@@ -390,6 +395,7 @@ class MobilePlugin extends Plugin {
   }
 
   onRootTouchEnd = (e) => {
+    console.group('onRootTouchEnd', e.target)
     const {plugins} = this.player
     if (this.pos.isStart && plugins.start && (plugins.start.root.contains(e.target) || plugins.controls.root.contains(e.target))) {
       e.stopPropagation()
@@ -442,16 +448,16 @@ class MobilePlugin extends Plugin {
     const {player, config} = this
     const {duration} = this.player
     percent = Number(percent.toFixed(4))
-    let time = parseInt(percent * config.moveDuration, 10)
+    let time = parseInt(percent * config.moveDuration, 10) + this.timeOffset
     time += this.pos.time
-    time = time < 0 ? 0 : (time > duration * 1000 ? duration * 1000 : time)
+    time = time < 0 ? 0 : (time > duration * 1000 ? duration * 1000 - 200 : time)
     player.getPlugin('time') && player.getPlugin('time').updateTime(time / 1000)
-    player.getPlugin('progress') && player.getPlugin('progress').updatePercent(time / 1000 / duration, true)
+    player.getPlugin('progress') && player.getPlugin('progress').updatePercent(time / 1000 / this.duration, true)
     this.activeSeekNote(time / 1000, percent > 0)
     // 在滑动的同时实时seek
-    if (this.config.isTouchingSeek) {
+    if (config.isTouchingSeek) {
       // player.currentTime = time / 1000
-      player.seek(Number(time / 1000).toFixed(1))
+      player.seek(Number((time - this.timeOffset) / 1000).toFixed(1))
     }
     this.pos.time = time
   }
@@ -481,27 +487,27 @@ class MobilePlugin extends Plugin {
 
   activeSeekNote (time, isForward = true) {
     const {player, config} = this
-    const isLive = !(player.duration !== Infinity && player.duration > 0)
+    const isLive = !(this.duration !== Infinity && this.duration > 0)
     if (!time || typeof time !== 'number' || isLive || config.disableActive) {
       return
     }
     if (time < 0) {
       time = 0
-    } else if (time > this.player.duration) {
-      time = this.player.duration
+    } else if (time > player.duration) {
+      time = player.duration - 0.2
     }
     this.changeAction(ACTIONS.SEEKING)
 
     const startPlugin = player.plugins.start
     startPlugin && startPlugin.focusHide()
 
-    this.find('.dur').innerHTML = Util.format(player.duration)
-    this.find('.cur').innerHTML = Util.format(time)
-    this.find('.curbar').style.width = `${time / player.duration * 100}%`
+    this.find('.xg-dur').innerHTML = Util.format(this.duration)
+    this.find('.xg-cur').innerHTML = Util.format(time)
+    this.find('.xg-curbar').style.width = `${time / this.duration * 100}%`
     if (isForward) {
-      Util.removeClass(this.find('.seek-show'), 'back')
+      Util.removeClass(this.find('.xg-seek-show'), 'xg-back')
     } else {
-      Util.addClass(this.find('.seek-show'), 'back')
+      Util.addClass(this.find('.xg-seek-show'), 'xg-back')
     }
     this.updateThumbnails(time)
     // const {thumbnail} = player.plugins
@@ -542,6 +548,7 @@ class MobilePlugin extends Plugin {
 
   destroy () {
     const {player} = this
+    this.timer && clearTimeout(this.timer)
     this.thumbnail = null
     player.root.removeChild(this.xgMask)
     this.xgMask = null
@@ -557,14 +564,14 @@ class MobilePlugin extends Plugin {
      <xg-trigger class="trigger">
      <div class="${className}"></div>
         <div class="time-preview">
-            <div class="seek-show">
+            <div class="xg-seek-show">
               <i class="xg-seek-icon"></i>
-              <span class="cur">00:00</span>
+              <span class="xg-cur">00:00</span>
               <span>/</span>
-              <span class="dur">00:00</span>
+              <span class="xg-dur">00:00</span>
             </div>
-              <div class="bar timebar">
-                <div class="curbar"></div>
+              <div class="xg-bar xg-timebar">
+                <div class="xg-curbar"></div>
               </div>
         </div>
         <div class="xg-playbackrate xg-top-note">
