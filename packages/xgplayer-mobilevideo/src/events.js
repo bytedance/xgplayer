@@ -10,8 +10,8 @@ export default {
     VIDEO_WAITING: 'video_waiting',
     AUTO_RUN: 'auto_run',
     DECODE_LOW_FPS: 'decode_low_fps',
-    UPDATE_VIDEO_FILLTYPE: 'updateVideoFillType',
-    UPDATE_VIDEO_COVER_POSITION: 'updateVideoCoverPosition'
+    UPDATE_VIDEO_FILLTYPE: 'update_video_filltype',
+    UPDATE_VIDEO_COVER_POSITION: 'update_video_cover_position'
   },
   TIMELINE: {
     PLAY_EVENT: 'play_event',
@@ -32,8 +32,8 @@ export default {
     SET_PLAY_MODE: 'set_play_mode', // vod、live
     UPDATE_CAPABILITY_LEVEL: 'update_capability_level',
     INNER_DEGRADE: 'inner_degrade',
-    ADJUST_SEEK_TIME: 'adjustSeekTime',
-    CHASE_FRAME: 'chaseFrame'
+    ADJUST_SEEK_TIME: 'adjust_seek_time',
+    CHASE_FRAME: 'chase_frame'
   },
   VIDEO_EVENTS: {
     WAITING: 'waiting',
