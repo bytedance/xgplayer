@@ -224,6 +224,10 @@ export default class VideoRender extends BaseRender {
     return this._timeRange.getChaseFrameStartPosition(time, preloadTime);
   }
 
+  forceRender () {
+    this._render(true);
+  }
+
   _assembleErr (msg) {
     let err = new Error(msg);
     err.code = MEDIA_ERR_DECODE;
@@ -235,12 +239,6 @@ export default class VideoRender extends BaseRender {
   }
 
   _initCanvas () {
-    this._canvas.style.maxWidth = '100%';
-    this._canvas.style.maxHeight = '100%';
-    this._canvas.style.top = 0;
-    this._canvas.style.bottom = 0;
-    this._canvas.style.left = 0;
-    this._canvas.style.right = 0;
     this._canvas.style.margin = 'auto';
     this._canvas.style.position = 'absolute';
   }
@@ -249,6 +247,48 @@ export default class VideoRender extends BaseRender {
     super._bindEvents();
 
     let waitingTimer;
+
+    this._parent.on(Events.VIDEO.UPDATE_VIDEO_FILLTYPE, (type, {width, height}) => {
+      const {width: cvsWidth, height: cvsHeight} = this._canvas;
+      let isGapX = (width / height) > (cvsWidth / cvsHeight); // 左右有黑边
+      if (type === 'cover') {
+        if (isGapX) {
+          this._canvas.style.width = '100%';
+          return;
+        }
+        this.canvas.style.height = '100%';
+        return;
+      }
+
+      if (type === 'fill') {
+        this._canvas.style.width = '100%';
+        this._canvas.style.height = '100%';
+        return;
+      }
+
+      this._canvas.style.top = 0;
+      this._canvas.style.bottom = 0;
+      this._canvas.style.left = 0;
+      this._canvas.style.right = 0;
+      this._canvas.style.maxWidth = '100%';
+      this._canvas.style.maxHeight = '100%';
+    })
+
+    // 容器宽高比 > 视频宽高比， 应该左右移动
+    // 容器宽高比 < 视宽高比，应该上下移动
+    this._parent.on(Events.VIDEO.UPDATE_VIDEO_COVER_POSITION, ({width, height}, left = 0, top = 0) => {
+      const {width: cvsWidth, height: cvsHeight} = this._canvas;
+      let scaleCvsWidth = height * cvsWidth / cvsHeight;
+      let scaleCvsHeight = width * cvsHeight / cvsWidth;
+      let deltaX = width - scaleCvsWidth;
+      let deltaY = height - scaleCvsHeight
+      let pX = deltaX * left + 'px';
+      let pY = deltaY * top + 'px'
+      this._canvas.style.left = pX;
+      this._canvas.style.top = pY;
+      console.warn(`cvsWidth=${cvsWidth}, cvsHeight=${cvsHeight}, scaleCvsWidth=${scaleCvsWidth}, scaleCvsHeight=${scaleCvsHeight}`);
+      console.warn(`cover position: deltaX=${deltaX}, deltaY=${deltaY}, width=${width}, height=${height}, pX=${pX}, pY=${pY}`);
+    })
 
     // 同步时机
     // 1. 音频一小段buffer起播时
@@ -549,6 +589,9 @@ export default class VideoRender extends BaseRender {
         Events.VIDEO_EVENTS.DURATION_CHANGE
       );
     }
+    if (!this._frameQueue.length && !this._inDecoding) {
+      this._startDecode();
+    }
   }
 
   // 1. decoder初始化预解码几帧
@@ -609,8 +652,9 @@ export default class VideoRender extends BaseRender {
     this._tickTimer.start(this.interval);
   }
 
-  _render () {
+  _render (force) {
     let frame = this._frameQueue.nextFrame();
+
     if (!frame || !this._timeRange) {
       logger.log(this.TAG, 'lack frame', this._inDecoding);
       this._checkToDecode();
@@ -632,7 +676,7 @@ export default class VideoRender extends BaseRender {
     let _renderDelay = info.dts - this.preciseVideoDts;
     // console.log('_renderDelay: ', info.dts, _renderDelay);
 
-    if (_renderDelay > 0 && _renderDelay < 60000) { // 60s
+    if (!force && _renderDelay > 0 && _renderDelay < 60000) { // 60s
       return;
     }
 

@@ -497,7 +497,7 @@ class Player extends Proxy {
         }
       }).catch((e) => {
         this.logWarn('>>>>playPromise.catch', e.name)
-        if (this.video.error) {
+        if (this.video && this.video.error) {
           this.onError()
           this.errorHandler('error')
           this.removeClass(STATE_CLASS.ENTER)
@@ -865,6 +865,14 @@ class Player extends Proxy {
     if ((videoFillMode === 'fillHeight' && fit < videoFit) || (videoFillMode === 'fillWidth' && fit > videoFit)) {
       this.setAttribute('data-xgfill', 'cover')
     }
+  }
+
+  updateObjectPosition (left = 0, top = 0) {
+    if (this.video.updateObjectPosition) {
+      this.video.updateObjectPosition(left, top);
+      return;
+    }
+    this.video.style.objectPosition = `${left * 100}% ${top * 100}%`;
   }
 
   set lang (lang) {

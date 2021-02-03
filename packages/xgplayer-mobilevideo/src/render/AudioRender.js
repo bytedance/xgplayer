@@ -228,7 +228,6 @@ export default class AudioRender extends BaseRender {
     if (len < 500 && less) {
       return;
     }
-
     let adtss = this._sampleQueue.map((sample) => {
       return AudioRender.getAACData(this._meta, sample);
     });
@@ -399,7 +398,7 @@ export default class AudioRender extends BaseRender {
     adts[1] = adts[1] | 0x01;
 
     // profile 2bit
-    adts[2] = 0xc0 & ((meta.originObjectType - 1) << 6);
+    adts[2] = 0xc0 & (((meta.objectType || meta.originObjectType) - 1) << 6);
 
     // sampleFrequencyIndex
     adts[2] = adts[2] | (0x3c & (meta.sampleRateIndex << 2));
