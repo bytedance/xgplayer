@@ -387,7 +387,12 @@ class Player extends Proxy {
   getFullscreen (el) {
     let player = this
     if (el.requestFullscreen) {
-      el.requestFullscreen()
+      let fullscreenPromise = el.requestFullscreen()
+      if (fullscreenPromise) {
+        fullscreenPromise.catch(function () {
+          player.emit('fullscreen error')
+        })
+      }
     } else if (el.mozRequestFullScreen) {
       el.mozRequestFullScreen()
     } else if (el.webkitRequestFullscreen) {
