@@ -7,8 +7,6 @@ let s_textTrack = function () {
   let player = this
   let root = player.root
   let util = Player.util
-  let sniffer = Player.sniffer
-  let controls = player.controls
   let container = util.createDom('xg-texttrack', '', {tabindex: 7}, 'xgplayer-texttrack')
   let list = player.config.textTrack
   if (list && Array.isArray(list) && list.length > 0) {
