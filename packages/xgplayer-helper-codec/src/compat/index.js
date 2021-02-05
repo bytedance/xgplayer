@@ -363,7 +363,9 @@ class Compatibility {
 
     // 对audioSamples按照dts做排序
     if (this._audioLargeGap !== 0) {
-      Compatibility.doFixLargeGap(audioSamples, this._audioLargeGap)
+      if (this._audioLargeGap > 0) {
+        Compatibility.doFixLargeGap(audioSamples, this._audioLargeGap)
+      }
       if (this._audioLargeGap !== this.preAudioGap) {
         this.preAudioGap = this._audioLargeGap
         this.emit(REMUX_EVENTS.DETECT_CHANGE_STREAM_DISCONTINUE, 'audio', { prevDts: this.lastAudioOriginDts, curDts: _firstSample.originDts })
