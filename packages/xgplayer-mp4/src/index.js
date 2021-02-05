@@ -135,12 +135,14 @@ let mp4player = function () {
 
     player.start = function (url = mainURL) {
       init(url).then((result) => {
+        player.once('canplay', () => {
+          player.play()
+        })
         let mp4 = result[0]; let mse = result[1]
         player._start(mse.url)
         player.logParams.pluginSrc = url
         player.mp4 = mp4
         player.mse = mse
-        player.play()
         mp4.on('error', err => {
           errorHandle(player, err)
         })
