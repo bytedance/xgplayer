@@ -220,7 +220,7 @@ class Compatibility {
       Compatibility.doFixLargeGap(videoSamples, this._videoLargeGap, this.isTs)
       if (this._videoLargeGap !== this.preVideoGap) {
         this.preVideoGap = this._videoLargeGap
-        this.emit(REMUX_EVENTS.DETECT_CHANGE_STREAM_DISCONTINUE, 'video', { prevDts: this.videoLastSample.originDts, curDts: firstSample.originDts })
+        this.emit(REMUX_EVENTS.DETECT_CHANGE_STREAM_DISCONTINUE, 'video', { prevDts: this.videoLastSample && this.videoLastSample.originDts, curDts: firstSample.originDts })
       }
     }
 

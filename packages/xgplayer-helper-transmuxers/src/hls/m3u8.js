@@ -70,6 +70,11 @@ class M3U8Parser {
       start: ret.duration,
       duration: parseInt(parseFloat(refm[2]) * 1000)
     }
+
+    if (freg.duration < 200) {
+      return nextId;
+    }
+
     ret.duration += freg.duration;
     let nextline = refs[nextId++];
     if (nextline.match(/#(.*):(.*)/) || nextline.match(/^#/)) {

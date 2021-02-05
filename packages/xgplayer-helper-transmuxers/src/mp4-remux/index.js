@@ -159,7 +159,10 @@ export default class Mp4Remuxer {
       return
     }
 
-    let {samples} = track
+    let {samples, meta} = track
+
+    if (!meta) return;
+
     let firstDts = -1
 
     let initSegment = null

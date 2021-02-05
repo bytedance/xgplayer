@@ -204,7 +204,7 @@ class MSE {
             let removeEnd = currentTime - autoCleanupMinBackwardDuration;
             _pendingRemoveRanges[type].push({start: start, end: removeEnd});
           }
-        } else if (end < currentTime) {
+        } else if (end < currentTime && (currentTime - start >= autoCleanupMinBackwardDuration)) {
           doRemove = true;
           _pendingRemoveRanges[type].push({start: start, end: end});
         }
