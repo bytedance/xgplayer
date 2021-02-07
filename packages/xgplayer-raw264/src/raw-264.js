@@ -86,13 +86,25 @@ class H264Demuxer {
       sample.dts = sample.pts = ts;
       if (sample.sps) {
         this.sps = true;
-        this.videoMeta.sps = sample.data.slice(4)
+        let spsD = sample.data;
+        // 0x001
+        if (spsD[2] === 1) {
+          this.videoMeta.sps = sample.data.slice(3);
+        } else {
+          this.videoMeta.sps = sample.data.slice(4);
+        }
         this.videoMeta.presentHeight = sample.sps.present_size.height;
         this.videoMeta.presentWidth = sample.sps.present_size.width;
       }
       if (sample.pps) {
         this.pps = true;
-        this.videoMeta.pps = sample.data.slice(4)
+        let ppsD = sample.data;
+        // 0x001
+        if (ppsD[2] === 1) {
+          this.videoMeta.pps = sample.data.slice(3);
+        } else {
+          this.videoMeta.pps = sample.data.slice(4);
+        }
       }
       if (sample.sps || sample.pps) {
         sample.options = {

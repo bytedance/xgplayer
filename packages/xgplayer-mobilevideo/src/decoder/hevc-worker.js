@@ -1,8 +1,5 @@
 // 目前仅支持yuv420
 
-// const H265_DECODER_URL =
-//   "https://sf1-vcloudcdn.pstatp.com/obj/media-fe/decoder/h265/decoder_1592202936266.js";
-
 function shimImportScripts (src) {
   return fetch(src)
     .then((res) => res.text())
@@ -220,6 +217,9 @@ self.onmessage = function (e) {
       case 'updatemeta':
         self.meta = data.meta;
         decoder.updateMeta(data.meta);
+        break;
+      case 'initDecoder':
+        decoder.decode(data.data);
         break;
       case 'decode':
         decoder.decode(data.data, data.info);

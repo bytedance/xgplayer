@@ -69,7 +69,7 @@ export default class DecodeEstimate {
     let delta = frameInfo.dts - this._lastFrameDts;
     this._lastFrameDts = frameInfo.dts;
 
-    if (Math.abs(delta) > 100) return;
+    if (Math.abs(delta) > 200) return;
 
     this._dtsDeltas.push(delta);
 

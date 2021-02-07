@@ -37,7 +37,15 @@ function playSlienceAudio () {
   });
 }
 
+function pauseSlienceAudio () {
+  let audio = ele || (ele = document.querySelector('#hackAudioPP'));
+  if (audio) {
+    audio.pause();
+  }
+}
+
 export {
   initBgSilenceAudio,
-  playSlienceAudio
+  playSlienceAudio,
+  pauseSlienceAudio
 };

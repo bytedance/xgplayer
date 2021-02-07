@@ -53,6 +53,7 @@ class NoSleep {
       this._addSourceToVideo(this.noSleepVideo, 'webm', webm);
 
       this.noSleepVideo.addEventListener('loadedmetadata', () => {
+        if (!this.noSleepVideo) return;
         if (this.noSleepVideo.duration <= 1) {
           // webm source
           this.noSleepVideo.setAttribute('loop', '');

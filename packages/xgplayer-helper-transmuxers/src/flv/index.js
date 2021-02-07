@@ -66,10 +66,12 @@ class FlvDemuxer {
       let chunk;
 
       let loopMax = 10000 // 防止死循环产生
-      do {
-        // console.log('mark4')
-        chunk = this._parseFlvTag()
-      } while (chunk && loopMax-- > 0)
+      try {
+        do {
+          // console.log('mark4')
+          chunk = this._parseFlvTag()
+        } while (chunk && loopMax-- > 0)
+      } catch (e) {}
 
       this.emit(DEMUX_EVENTS.DEMUX_COMPLETE)
     }

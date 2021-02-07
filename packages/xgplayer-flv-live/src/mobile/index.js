@@ -115,6 +115,8 @@ class FlvPlayer extends BasePlugin {
       if (firstChild.TAG === 'MVideo') {
         player.root.replaceChild(newVideo, firstChild)
       }
+      const mobilePluginName = FlvPlayer.pluginName.toLowerCase();
+      player.plugins[mobilePluginName] = null;
     }
   }
 
