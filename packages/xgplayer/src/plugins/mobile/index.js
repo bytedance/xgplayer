@@ -462,6 +462,9 @@ class MobilePlugin extends Plugin {
   }
 
   updateVolume (percent) {
+    if (this.player.rotateDeg) {
+      percent = -percent
+    }
     const {player, pos} = this
     percent = parseInt(percent * 100, 10)
     pos.volume += percent
@@ -475,6 +478,9 @@ class MobilePlugin extends Plugin {
   }
 
   updateBrightness (percent) {
+    if (this.player.rotateDeg) {
+      percent = -percent
+    }
     const {pos, config, xgMask} = this
     let light = pos.light + (0.8 * percent)
     light = light > config.maxDarkness ? config.maxDarkness : (light < 0 ? 0 : light)
