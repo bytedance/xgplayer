@@ -70,9 +70,6 @@ let mp4player = function () {
           mse.appendBuffer(mp4.packMeta())
           mse.once('updateend', loadData.bind(player))
         })
-        mse.on('error', function (e) {
-          reject(e)
-        })
         resolve([mp4, mse])
       })
       mp4.on('error', (e) => {
