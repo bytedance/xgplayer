@@ -81,7 +81,7 @@ let s_progress = function () {
       return
     }
     if (time >= 0 && time <= player.duration) {
-      let dot = util.createDom('xg-progress-dot', '', {}, 'xgplayer-progress-dot')
+      let dot = util.createDom('xg-progress-dot', text ? `<span class="xgplayer-progress-tip">${text}</span>` : '', {}, 'xgplayer-progress-dot')
       dot.style.left = (time / player.duration) * 100 + '%'
       if (duration >= 0) {
         dot.style.width = (Math.min(duration, player.duration - time) / player.duration) * 100 + '%'

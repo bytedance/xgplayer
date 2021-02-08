@@ -50,6 +50,7 @@
     box-shadow: $progressPlayedShadow;
     left: 100%;
     transform: translate(-50%, 0);
+    z-index: 36;
   }
   .xgplayer-progress-point {
     position: absolute;
