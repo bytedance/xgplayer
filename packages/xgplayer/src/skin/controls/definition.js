@@ -92,7 +92,7 @@ let s_definition = function () {
   }
   player.on('resourceReady', onResourceReady)
 
-  function onCanplayChangeDefinition () {
+  function onPlayingChangeDefinition () {
     player.currentTime = player.curTime
     if (!paused) {
       let playPromise = player.play()
@@ -100,6 +100,9 @@ let s_definition = function () {
         playPromise.catch(err => {})
       }
     }
+  };
+  function onTimeupdateChangeDefinition () {
+    player.once('timeupdate', onPlayingChangeDefinition)
   };
   ['touchend', 'click'].forEach(item => {
     container.addEventListener(item, function (e) {
@@ -163,7 +166,11 @@ let s_definition = function () {
             player.curTime = player.currentTime, paused = player.paused
             if (!player.ended) {
               player.src = a.href
-              player.once('canplay', onCanplayChangeDefinition)
+              if(navigator.userAgent.toLowerCase().indexOf('android') > -1) {
+                player.once('timeupdate', onTimeupdateChangeDefinition)
+              } else {
+                player.once('playing', onPlayingChangeDefinition)
+              }
             }
           }
         }
@@ -197,7 +204,12 @@ let s_definition = function () {
   function onDestroy () {
     player.off('resourceReady', onResourceReady)
     player.off('canplay', onCanplayResourceReady)
-    player.off('canplay', onCanplayChangeDefinition)
+    if(navigator.userAgent.toLowerCase().indexOf('android') > -1) {
+      player.off('timeupdate', onTimeupdateChangeDefinition)
+      player.off('timeupdate', onPlayingChangeDefinition)
+    } else {
+      player.off('playing', onPlayingChangeDefinition)
+    }
     player.off('blur', onBlur)
     player.off('destroy', onDestroy)
   }
