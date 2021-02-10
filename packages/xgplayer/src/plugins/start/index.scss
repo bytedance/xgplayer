@@ -96,4 +96,9 @@
       }
     }
   }
+  &.xgplayer-isloading.xgplayer-playing {
+    .xgplayer-start {
+      display: none;
+    }
+  }
 }
