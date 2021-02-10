@@ -48,7 +48,7 @@ export default function getDefaultConfig () {
     cssFullscreen: true, // 页面全屏
     keyShortcut: true, // 是否开启快捷键
     presets: [],
-    playbackRate: [0.5, 0.75, 1, 1.5, 2],
+    playbackRate: [2, 1.5, 1, 0.75, 0.5],
     playsinline: true,
     customDuration: 0, // 用户自定义时长
     timeOffset: 0, // 当前时长偏移
