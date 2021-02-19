@@ -8,6 +8,7 @@ import Forward from './controls/forward.js'
 import Meta from './controls/meta.js'
 import Next from './controls/next.js'
 import Prev from './controls/prev.js'
+import Database from './database'
 
 let mode
 let timeScale = 15
@@ -26,6 +27,7 @@ class Music extends Player {
     }
     super(opts)
     let player = this
+    player.database = new Database()
 
     if(player.config.ignores.indexOf('backward') < 0) {
       new Backward(player)

@@ -1,5 +1,6 @@
 import Player from '../../player'
 import ReplayIcon from '../assets/replay.svg'
+import '../style/controls/replay.scss'
 
 let s_replay = function () {
   let player = this
@@ -50,4 +51,7 @@ let s_replay = function () {
   player.once('destroy', destroyFunc)
 }
 
-Player.install('s_replay', s_replay)
+export default {
+  name: 's_replay',
+  method: s_replay
+}

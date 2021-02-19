@@ -1,5 +1,3 @@
-import Player from '../../player'
-
 let s_i18n = function () {
   let player = this; let lang = {}; let util = player.constructor.util
   lang.en = {
@@ -162,4 +160,7 @@ let s_i18n = function () {
 
 }
 
-Player.install('s_i18n', s_i18n)
+export default {
+  name: 's_i18n',
+  method: s_i18n
+}

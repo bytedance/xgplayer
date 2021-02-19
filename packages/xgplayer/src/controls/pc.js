@@ -117,4 +117,7 @@ let pc = function () {
   player.once('destroy', onDestroy)
 }
 
-Player.install('pc', pc)
+export default {
+  name: 'pc',
+  method: pc
+}

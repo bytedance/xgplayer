@@ -1,4 +1,5 @@
 import Player from '../../player'
+import '../style/controls/pip.scss'
 
 let s_pip = function () {
   let player = this
@@ -20,4 +21,7 @@ let s_pip = function () {
   })
 }
 
-Player.install('s_pip', s_pip)
+export default {
+  name: 's_pip',
+  method: s_pip
+}

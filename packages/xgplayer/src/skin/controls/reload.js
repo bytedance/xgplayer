@@ -1,5 +1,6 @@
 import Player from '../../player'
 import ReloadIcon from '../assets/reload.svg'
+import '../style/controls/reload.scss'
 
 let s_reload = function () {
   let player = this
@@ -23,4 +24,7 @@ let s_reload = function () {
   })
 }
 
-Player.install('s_reload', s_reload)
+export default {
+  name: 's_reload',
+  method: s_reload
+}

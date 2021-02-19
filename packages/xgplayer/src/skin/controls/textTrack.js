@@ -1,4 +1,5 @@
 import Player from '../../player'
+import '../style/controls/textTrack.scss'
 
 let s_textTrack = function () {
   if (!this.config.textTrack) {
@@ -146,4 +147,7 @@ let s_textTrack = function () {
   })
 }
 
-Player.install('s_textTrack', s_textTrack)
+export default {
+  name: 's_textTrack',
+  method: s_textTrack
+}

@@ -36,6 +36,11 @@ declare module 'xgplayer' {
         volume?: number;
     }
 
+    interface controlPluginOptions {
+        method: VoidFunction;
+        name?: string;
+    }
+
     interface Util {
         createDom: (el: string, tpl?: string, attrs?: object, cname?: string) => HTMLElement;
         hasClass: (el: HTMLElement, cname: string) => boolean;
@@ -47,7 +52,6 @@ declare module 'xgplayer' {
         format: (f: number) => string;
         deepCopy: (src: object, dist: object) => object;
         getBgImage: (el: HTMLElement) => string;
-        Hex2RGBA: (hex: string, alpha: number) => string;
         isWeiXin: () => boolean;
     }
 
@@ -310,6 +314,12 @@ declare module 'xgplayer' {
 
         //支持进度条只能拖动到已播过部分
         allowSeekPlayed?: boolean;
+
+        //引用插件
+        controlPlugins?: Array<controlPluginOptions>;
+
+        //不自动引用多语言插件
+        closeI18n?: boolean;
     }
 
     class Proxy extends EventEmitter {

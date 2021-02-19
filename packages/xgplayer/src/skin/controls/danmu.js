@@ -1,6 +1,7 @@
 import Player from '../../player'
 import DanmuJs from 'danmu.js'
 import PanelIcon from '../assets/panel.svg'
+import '../style/controls/danmu.scss'
 
 let s_danmu = function () {
   let player = this
@@ -208,4 +209,7 @@ let s_danmu = function () {
   })
 }
 
-Player.install('s_danmu', s_danmu)
+export default {
+  name: 's_danmu',
+  method: s_danmu
+}

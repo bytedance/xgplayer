@@ -1,4 +1,5 @@
 import Player from '../../player'
+import '../style/controls/playbackRate.scss'
 
 let s_playbackRate = function () {
   let player = this
@@ -121,4 +122,7 @@ let s_playbackRate = function () {
   })
 }
 
-Player.install('s_playbackRate', s_playbackRate)
+export default {
+  name: 's_playbackRate',
+  method: s_playbackRate
+}

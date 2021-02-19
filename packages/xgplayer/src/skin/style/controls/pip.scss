@@ -9,19 +9,19 @@
     // margin-top: 9px;
     // margin-bottom: 11px;
     height: 20px;
-    top: 8px;
+    top: 10px;
     .name {
       text-align: center;
       font-family: PingFangSC-Regular;
       font-size: 13px;
       line-height: 20px;
       height: 20px;
-      color: $definitionNameColor;
+      color: rgba(255, 255, 255, 0.80);
       span{
         width: 60px;
         height: 20px;
         line-height: 20px;
-        background: $definitionNameBgColor;
+        background: rgba(0, 0, 0, 0.38);
         border-radius: 10px;
         display:inline-block;
         vertical-align:middle;

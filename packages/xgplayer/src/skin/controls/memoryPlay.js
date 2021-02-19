@@ -1,6 +1,7 @@
 import Player from '../../player'
+import '../style/controls/memoryPlay.scss'
 
-let smemoryPlay = function () {
+let s_memoryPlay = function () {
   let player = this
   let util = Player.util
   let lastPlayTime = player.config.lastPlayTime || 0
@@ -31,4 +32,7 @@ let smemoryPlay = function () {
   player.once('ended', removeFunc)
 }
 
-Player.install('s_memoryPlay', smemoryPlay)
+export default {
+  name: 's_memoryPlay',
+  method: s_memoryPlay
+}

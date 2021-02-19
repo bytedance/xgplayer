@@ -2,7 +2,6 @@ import Player from '../player'
 
 let danmu = function () {
   let player = this
-  let root = player.root
   let util = Player.util
 
   function onInitDanmu(danmujs) {
@@ -71,4 +70,7 @@ let danmu = function () {
 
 }
 
-Player.install('danmu', danmu)
+export default {
+  name: 'danmu',
+  method: danmu
+}

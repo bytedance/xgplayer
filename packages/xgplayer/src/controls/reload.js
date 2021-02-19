@@ -18,4 +18,7 @@ let reload = function () {
   player.once('destroy', onDestroy)
 }
 
-Player.install('reload', reload)
+export default {
+  name: 'reload',
+  method: reload
+}

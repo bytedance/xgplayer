@@ -1,6 +1,7 @@
 import Player from '../../player'
 import RequestCssFullIcon from '../assets/requestCssFull.svg'
 import ExitCssFullIcon from '../assets/exitCssFull.svg'
+import '../style/controls/cssfullscreen.scss'
 
 let s_cssFullscreen = function () {
   let player = this
@@ -30,4 +31,7 @@ let s_cssFullscreen = function () {
   })
 }
 
-Player.install('s_cssFullscreen', s_cssFullscreen)
+export default {
+  name: 's_cssFullscreen',
+  method: s_cssFullscreen
+}

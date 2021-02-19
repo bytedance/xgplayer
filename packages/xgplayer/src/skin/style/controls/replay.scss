@@ -9,20 +9,20 @@
     display: none;
     justify-content: center;
     align-items: center;
-    background: $replayBgColor;
+    background: rgba(0, 0, 0, 0.54);
     flex-direction: column;
     svg{
-      background: $replaySvgBgColor;
+      background: rgba(0,0,0,0.58);
       border-radius: 100%;
       cursor: pointer;
       path{
         transform: translate(20px, 21px);
-        fill: $replaySvgPathFillColor;
+        fill: #ddd;
       }
       &:hover{
-        background: $replaySvgHoverBgColor;
+        background: rgba(0, 0, 0, .38);
         path {
-          fill: $replaySvgHoverFillColor;
+          fill: #fff;
         }
       }
     }
@@ -30,7 +30,7 @@
       display: inline-block;
       font-family: PingFangSC-Regular;
       font-size: 14px;
-      color: $replayTxtColor;
+      color: #fff;
       line-height: 34px;
     }
   }

@@ -2,6 +2,7 @@ import Player from '../../player'
 import MutedIcon from '../assets/volumeMuted.svg'
 import SmallIcon from '../assets/volumeSmall.svg'
 import LargeIcon from '../assets/volumeLarge.svg'
+import '../style/controls/volume.scss'
 
 let s_volume = function () {
   let player = this
@@ -57,4 +58,7 @@ let s_volume = function () {
   })
 }
 
-Player.install('s_volume', s_volume)
+export default {
+  name: 's_volume',
+  method: s_volume
+}

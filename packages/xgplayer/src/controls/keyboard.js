@@ -205,7 +205,12 @@ class Keyboard {
   }
 }
 
-Player.install('keyboard', function () {
+let keyboard = function () {
   let player = this
   player.keyboard = new Keyboard(player)
-})
+}
+
+export default {
+  name: 'keyboard',
+  method: keyboard
+}

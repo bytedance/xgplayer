@@ -15,7 +15,7 @@
       display: none;
       list-style: none;
       min-width: 78px;
-      background: $definitionUlBgColor;
+      background: rgba(0, 0, 0, 0.54);
       border-radius: 1px;
       position: absolute;
       bottom: 30px;
@@ -30,16 +30,16 @@
         opacity: 0.7;
         font-family: PingFangSC-Regular;
         font-size: 11px;
-        color: $definitionLiColor;
+        color: rgba(255, 255, 255, 0.80);
         width: fit-content;
         margin: auto;
         padding: 6px 13px;
         &.selected {
-          color: $definitionLiActiveColor;
+          color: #fff;
           opacity: 1;
         }
         &:hover {
-          color: $definitionLiActiveColor;
+          color: #fff;
           opacity: 1;
         }
       }
@@ -51,13 +51,13 @@
       line-height: 20px;
       height: 20px;
       cursor: pointer;
-      color: $definitionNameColor;
+      color: rgba(255, 255, 255, 0.80);
       position: absolute;
       bottom: 0;
       width: 60px;
       height: 20px;
       line-height: 20px;
-      background: $definitionNameBgColor;
+      background: rgba(0, 0, 0, 0.38);
       border-radius: 10px;
       display:inline-block;
       vertical-align:middle;

@@ -19,6 +19,8 @@ module.exports = async (dir, name) => {
 
   await replaceStr('../src/skin/controls/', '.js', [{old: /Player.install/, new: 'Player.use'}, {old: /..\/..\/player/, new: 'xgplayer'}])
 
+  await replaceStr('../src/skin/', 'index.js', [{old: /Player.installAll/, new: 'Player.useAll'}, {old: /..\/player/, new: 'xgplayer'}])
+
   await replaceStr('../src/skin/style/', '.scss', [{old: /xgplayer-skin-default/g, new: `xgplayer-skin-${name}`}])
 
   async function replaceStr(filePath, fileType, replaceList) {

@@ -129,7 +129,7 @@
       family: PingFangSC-Regular;
       size: 13px;
     }
-    color: $definitionNameColor;
+    color: rgba(255, 255, 255, 0.80);
     z-index: 36;
     .xgplayer-panel-icon{
       // margin-top: 14px;
@@ -152,7 +152,7 @@
     position: absolute;
     width: 230px;
     height: 230px;
-    background: $sliderBgColor;
+    background: rgba(0, 0, 0, 0.54);
     border-radius: 1px;
     padding: 10px 20px;
     outline: none;

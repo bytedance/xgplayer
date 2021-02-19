@@ -4,7 +4,7 @@
     display: inline-block;
     width: 70px;
     height: 70px;
-    background: $startBgColor;
+    background: rgba(0, 0, 0, 0.38);
     overflow: hidden;
     text-align: center;
     line-height: 70px;
@@ -18,7 +18,7 @@
     div{
       position: absolute;
       svg{
-        fill: $startSvgFill;
+        fill: rgba(255, 255, 255, 0.7);
       }
     }
     .xgplayer-icon-play{

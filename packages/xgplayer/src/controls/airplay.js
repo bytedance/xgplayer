@@ -16,4 +16,7 @@ let airplay = function () {
   player.once('destroy', onDestroy)
 }
 
-Player.install('airplay', airplay)
+export default {
+  name: 'airplay',
+  method: airplay
+}

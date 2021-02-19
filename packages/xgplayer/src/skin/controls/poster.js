@@ -1,4 +1,5 @@
 import Player from '../../player'
+import '../style/controls/poster.scss'
 
 let s_poster = function () {
   let player = this
@@ -12,4 +13,7 @@ let s_poster = function () {
   root.appendChild(poster)
 }
 
-Player.install('s_poster', s_poster)
+export default {
+  name: 's_poster',
+  method: s_poster
+}

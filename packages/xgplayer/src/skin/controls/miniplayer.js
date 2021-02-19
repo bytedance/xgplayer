@@ -1,4 +1,5 @@
 import Player from '../../player'
+import '../style/controls/miniplayer.scss'
 
 let s_miniplayer = function () {
   let player = this
@@ -20,4 +21,7 @@ let s_miniplayer = function () {
   })
 }
 
-Player.install('s_miniplayer', s_miniplayer)
+export default {
+  name: 's_miniplayer',
+  method: s_miniplayer
+}

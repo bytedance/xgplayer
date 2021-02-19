@@ -18,4 +18,7 @@ let pip = function () {
   player.once('destroy', onDestroy)
 }
 
-Player.install('pip', pip)
+export default {
+  name: 'pip',
+  method: pip
+}

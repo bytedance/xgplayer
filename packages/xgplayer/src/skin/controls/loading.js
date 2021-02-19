@@ -1,5 +1,6 @@
 import Player from '../../player'
 import Loading from '../assets/loading.svg'
+import '../style/controls/loading.scss'
 
 let s_loading = function () {
   let player = this
@@ -11,4 +12,7 @@ let s_loading = function () {
   })
 }
 
-Player.install('s_loading', s_loading)
+export default {
+  name: 's_loading',
+  method: s_loading
+}

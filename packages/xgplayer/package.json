@@ -1,6 +1,6 @@
 {
     "name": "xgplayer",
-    "version": "2.17.13",
+    "version": "2.18.0",
     "description": "video player",
     "main": "./dist/index.js",
     "typings": "./types/index.d.ts",
@@ -39,14 +39,10 @@
         "chalk": "^2.3.2",
         "commander": "^2.15.1",
         "danmu.js": "^0.3.3",
-        "deepmerge": "^1.5.0",
         "downloadjs": "1.4.7",
         "draggabilly": "^2.2.0",
         "event-emitter": "^0.3.5",
-        "fs-extra": "^5.0.0",
-        "install": "^0.13.0",
-        "pasition": "^1.0.1",
-        "request-frame": "^1.5.3"
+        "fs-extra": "^5.0.0"
     },
     "browserslist": [
         "> 5%",

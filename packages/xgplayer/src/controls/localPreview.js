@@ -26,4 +26,7 @@ let localPreview = function () {
   player.once('destroy', onDestroy)
 }
 
-Player.install('localPreview', localPreview)
+export default {
+  name: 'localPreview',
+  method: localPreview
+}

@@ -1,5 +1,6 @@
 import Player from '../../player'
 import sniffer from '../../utils/sniffer'
+import '../style/controls/progress.scss'
 
 const isRotateFullscreen = (player) => {
   return Player.util.hasClass(player.root, 'xgplayer-rotate-fullscreen')
@@ -19,7 +20,6 @@ let s_progress = function () {
   let containerWidth
   player.controls.appendChild(container)
   let progress = container.querySelector('.xgplayer-progress-played')
-  let btn = container.querySelector('.xgplayer-progress-btn')
   let outer = container.querySelector('.xgplayer-progress-outer')
   let cache = container.querySelector('.xgplayer-progress-cache')
   let point = container.querySelector('.xgplayer-progress-point')
@@ -385,4 +385,7 @@ let s_progress = function () {
   player.once('destroy', destroyFunc)
 }
 
-Player.install('s_progress', s_progress)
+export default {
+  name: 's_progress',
+  method: s_progress
+}

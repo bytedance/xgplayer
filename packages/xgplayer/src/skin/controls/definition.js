@@ -1,4 +1,5 @@
 import Player from '../../player'
+import '../style/controls/definition.scss'
 
 let s_definition = function () {
   let player = this
@@ -216,4 +217,7 @@ let s_definition = function () {
   player.once('destroy', onDestroy)
 }
 
-Player.install('s_definition', s_definition)
+export default {
+  name: 's_definition',
+  method: s_definition
+}

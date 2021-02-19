@@ -25,4 +25,7 @@ let play = function () {
   player.once('destroy', onDestroy)
 }
 
-Player.install('play', play)
+export default {
+  name: 'play',
+  method: play
+}

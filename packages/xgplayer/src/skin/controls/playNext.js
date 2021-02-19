@@ -1,5 +1,6 @@
 import Player from '../../player'
 import PlayNextIcon from '../assets/playNext.svg'
+import '../style/controls/playNext.scss'
 
 let s_playNext = function () {
   let player = this
@@ -35,4 +36,7 @@ let s_playNext = function () {
   player.once('destroy', onDestroy)
 }
 
-Player.install('s_playNext', s_playNext)
+export default {
+  name: 's_playNext',
+  method: s_playNext
+}
