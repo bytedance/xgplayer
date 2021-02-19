@@ -1,5 +1,4 @@
 import Player from '../../player'
-import sniffer from '../../utils/sniffer'
 import '../style/controls/progress.scss'
 
 const isRotateFullscreen = (player) => {
@@ -234,7 +233,7 @@ let s_progress = function () {
         window.removeEventListener('touchmove', move, { passive: false })
         window.removeEventListener('mouseup', up)
         window.removeEventListener('touchend', up)
-        if(sniffer.browser.indexOf('ie') < 0) {
+        if(Player.sniffer.browser.indexOf('ie') < 0) {
           container.blur()
         }
         if (!player.isProgressMoving || (player.videoConfig && player.videoConfig.mediaType === 'audio') || player.dash || player.config.closeMoveSeek) {
