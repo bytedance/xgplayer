@@ -320,6 +320,12 @@ declare module 'xgplayer' {
 
         //不自动引用多语言插件
         closeI18n?: boolean;
+
+        //视频起播时间（单位：秒）
+        lastPlayTime?: number;
+
+        //提示文字展示时长（单位：秒）
+        lastPlayTimeHideDelay?: number;
     }
 
     class Proxy extends EventEmitter {
