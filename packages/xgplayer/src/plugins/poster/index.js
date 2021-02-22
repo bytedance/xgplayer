@@ -20,6 +20,14 @@ class Poster extends Plugin {
     return this.config.isEndedShow
   }
 
+  hide () {
+    Util.addClass(this.root, 'hide')
+  }
+
+  show () {
+    Util.removeClass(this.root, 'hide')
+  }
+
   beforeCreate (args) {
     if (typeof args.player.config.poster === 'object') {
       args.config = args.player.config.poster
@@ -38,7 +46,7 @@ class Poster extends Plugin {
     })
 
     this.on(Events.PLAY, () => {
-      Util.removeClass(this.root, 'hide')
+      Util.addClass(this.root, 'hide')
     })
   }
 

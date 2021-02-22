@@ -184,6 +184,26 @@ util.deepCopy = function (dst, src) {
   }
 }
 
+util.ObjectAssign = function(target) {
+  if(target === undefined || target === null) {
+    // console.error('Cannot convert undefined or null to object');
+    return {};
+  }
+
+  let output = Object(target);
+  for(let index = 1; index < arguments.length; index++) {
+    let source = arguments[index];
+      if(source !== undefined && source !== null) {
+          for(let nextKey in source) {
+              if(source.hasOwnProperty(nextKey)) {
+                  output[nextKey] = source[nextKey];
+              }
+          }
+      }
+  }
+  return output;
+};
+
 util.deepMerge = function (dst, src) {
   Object.keys(src).map(key => {
     if (util.typeOf(dst[key]) === util.typeOf(src[key]) && dst[key] !== null && util.typeOf(dst[key]) === 'object' && !(src[key] instanceof window.Node)) {

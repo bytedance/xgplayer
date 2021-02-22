@@ -1,4 +1,4 @@
-import Plugin, {hooksDescriptor, Events, POSITIONS, Sniffer, STATE_CLASS} from '../../plugin'
+import Plugin, {hooksDescriptor, Events, POSITIONS, Sniffer, STATE_CLASS, Util} from '../../plugin'
 import TopBackIcon from './backicon'
 import FullScreenSvg from '../assets/requestFull.svg'
 import ExitFullScreenSvg from '../assets/exitFull.svg'
@@ -56,6 +56,17 @@ export default class Fullscreen extends Plugin {
         }
       })
     }
+    if (Sniffer.device === 'mobile') {
+      window.addEventListener('orientationchange', () => {
+        if (this.player.fullscreen && this.config.rotateFullscreen) {
+          if (window.orientation === 90 || window.orientation === -90) {
+            this.setRotateDeg(0)
+          } else {
+            this.setRotateDeg(90)
+          }
+        }
+      })
+    }
   }
 
   registerIcons () {
@@ -84,6 +95,31 @@ export default class Fullscreen extends Plugin {
     }
   }
 
+  getRotateFullscreen () {
+    const {player} = this
+    if (player.isCssfullScreen) {
+      player.exitCssFullscreen()
+    }
+    if (player.root.getAttribute('style')) {
+      this._originCssText = player.root.style.cssText
+      player.root.removeAttribute('style')
+    }
+    player.addClass(STATE_CLASS.ROTATE_FULLSCREEN)
+    player.fullscreen = true
+    this.setRotateDeg(90)
+    this.emit(Events.FULLSCREEN_CHANGE, true)
+  }
+
+  exitRotateFullscreen () {
+    const {player} = this
+    player.removeClass(STATE_CLASS.ROTATE_FULLSCREEN)
+    player.fullscreen = false
+    this._originCssText && Util.setStyleFromCsstext(player.root, this._originCssText)
+    this._originCssText = ''
+    this.setRotateDeg(0)
+    this.emit(Events.FULLSCREEN_CHANGE, false)
+  }
+
   changeFullScreen (e) {
     // e.preventDefault();
     e.stopPropagation();
@@ -105,16 +141,9 @@ export default class Fullscreen extends Plugin {
       this.animate(player.fullscreen)
     } else if (config.rotateFullscreen) {
       if (player.fullscreen) {
-        player.removeClass(STATE_CLASS.ROTATE_FULLSCREEN)
-        player.fullscreen = false
-        this.setRotateDeg(0)
-        this.emit(Events.FULLSCREEN_CHANGE, false)
+        this.exitRotateFullscreen()
       } else {
-        player.addClass(STATE_CLASS.ROTATE_FULLSCREEN)
-        player.fullscreen = true
-        this.setRotateDeg(90)
-        console.log('window.orientation', window.orientation)
-        this.emit(Events.FULLSCREEN_CHANGE, true)
+        this.getRotateFullscreen()
       }
       this.animate(player.fullscreen)
     } else {

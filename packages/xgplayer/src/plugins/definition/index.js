@@ -97,6 +97,12 @@ export default class DefinitionIcon extends OptionsIcon {
     player.emit(Events.AFTER_DEFINITION_CHANGE)
   }
 
+  onTimeupdateChangeDefinition () {
+    this.once('timeupdate', () => {
+      this.onCanplayChangeDefinition()
+    })
+  };
+
   switchUrl (lastATag) {
     const {player} = this
     let curRUL = document.createElement('a');
@@ -153,9 +159,15 @@ export default class DefinitionIcon extends OptionsIcon {
         if (!player.ended) {
           player.video.src = to.url
           player.play()
-          this.once('canplay', () => {
-            this.onCanplayChangeDefinition()
-          })
+          if(navigator.userAgent.toLowerCase().indexOf('android') > -1) {
+            this.once('timeupdate', () => {
+              this.onTimeupdateChangeDefinition()
+            })
+          } else {
+            this.once('canplay', () => {
+              this.onCanplayChangeDefinition()
+            })
+          }
         }
       }
     }
