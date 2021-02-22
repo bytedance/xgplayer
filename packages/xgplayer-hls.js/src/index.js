@@ -210,5 +210,6 @@ class HlsJsPlayer extends Player {
 }
 
 HlsJsPlayer.isSupported = Hls.isSupported
+HlsJsPlayer.HlsJs = Hls
 
 export default HlsJsPlayer

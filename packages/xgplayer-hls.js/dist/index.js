@@ -6276,6 +6276,7 @@ var HlsJsPlayer = function (_Player) {
 }(_xgplayer2.default);
 
 HlsJsPlayer.isSupported = _hls2.default.isSupported;
+HlsJsPlayer.HlsJs = _hls2.default;
 
 exports.default = HlsJsPlayer;
 module.exports = exports['default'];
