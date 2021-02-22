@@ -10,7 +10,7 @@ export default class Rotate extends Plugin {
     return {
       position: POSITIONS.CONTROLS_RIGHT,
       index: 6,
-      innerRotate: false, // true为只有画面旋转，false为整个播放器旋转
+      innerRotate: true, // true为只有画面旋转，false为整个播放器旋转
       clockwise: false,
       rotateDeg: 0, // 初始旋转角度
       disable: false
@@ -42,6 +42,8 @@ export default class Rotate extends Plugin {
   }
 
   onBtnClick (e) {
+    e.preventDefault()
+    e.stopPropagation()
     this.rotate(this.config.clockwise, this.config.innerRotate, 1)
   }
 

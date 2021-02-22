@@ -1,4 +1,4 @@
-import {BasePlugin, Util} from '../../plugin';
+import {BasePlugin} from '../../plugin';
 
 export default class PCPlugin extends BasePlugin {
   static get pluginName () {
@@ -43,49 +43,42 @@ export default class PCPlugin extends BasePlugin {
   }
 
   onVideoClick (e) {
-    const { player } = this
-    if (!e.target || e.target !== player.video) {
+    const { player, playerConfig } = this
+    if (!e.target || e.target !== player.video || playerConfig.closeVideoClick) {
       return
     }
     e.preventDefault()
-    if (!this.config.closeVideoStopPropagation) {
+    if (!playerConfig.closeVideoStopPropagation) {
       e.stopPropagation()
     }
-    let clk = 0; let timer;
-    if (!player.config.closeVideoClick) {
-      clk++
-      if (timer) {
-        clearTimeout(timer)
-      }
-      if (clk === 1) {
-        timer = setTimeout(function () {
-          if (Util.hasClass(player.root, 'xgplayer-nostart')) {
-            return false
-          } else if (!player.ended) {
-            if (player.paused) {
-              player.play()
-            } else {
-              player.pause()
-            }
-          }
-          clk = 0
-        }, 200)
-      } else {
-        clk = 0
-      }
+    if (this.clickTimer) {
+      clearTimeout(this.clickTimer)
+      this.clickTimer = null
     }
+    console.log('onVideoClick')
+
+    this.clickTimer = setTimeout(() => {
+      console.log('onVideoClick clickTimer', player.paused)
+      if (!player.ended) {
+        player.paused ? player.play() : player.pause()
+      }
+      clearTimeout(this.clickTimer)
+      this.clickTimer = null
+    }, 200)
   }
 
   onVideoDblClick (e) {
-    const { player } = this
-    if (!e.target || e.target !== player.video) {
+    const { player, playerConfig } = this
+    if (!e.target || e.target !== player.video || playerConfig.closeVideoDblclick) {
       return
+    }
+    if (this.clickTimer) {
+      clearTimeout(this.clickTimer)
+      this.clickTimer = null
     }
     e.preventDefault()
     e.stopPropagation()
-    if (!player.config.closeVideoDblclick) {
-      player.fullscreen ? player.exitFullscreen() : player.getFullscreen()
-    }
+    player.fullscreen ? player.exitFullscreen() : player.getFullscreen()
   }
 
   onControlMouseEnter () {
