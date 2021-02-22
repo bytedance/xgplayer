@@ -3540,6 +3540,7 @@ var FlvJsPlayer = function (_Player) {
 
     player.once('complete', function () {
       player.__flv__ = _flv2.default.createPlayer(_this.flvOpts, _this.optionalConfig);
+      player.emit('flv_complete');
       player.createInstance(player.__flv__);
       if (player.config.isLive) {
         _xgplayer2.default.util.addClass(player.root, 'xgplayer-is-live');
@@ -3645,6 +3646,7 @@ var FlvJsPlayer = function (_Player) {
 }(_xgplayer2.default);
 
 FlvJsPlayer.isSupported = _flv2.default.isSupported;
+FlvJsPlayer.FlvJs = _flv2.default;
 exports.default = FlvJsPlayer;
 module.exports = exports['default'];
 
