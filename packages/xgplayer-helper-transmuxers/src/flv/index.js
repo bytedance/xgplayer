@@ -72,7 +72,6 @@ class FlvDemuxer {
           chunk = this._parseFlvTag()
         } while (chunk && loopMax-- > 0)
       } catch (e) {}
-
       this.emit(DEMUX_EVENTS.DEMUX_COMPLETE)
     }
   }
@@ -128,8 +127,10 @@ class FlvDemuxer {
    * }
    */
   _parseFlvTag () {
-    if (this.loaderBuffer.length < 11) {
-      return null
+    const tagSize = this.loaderBuffer.toInt(1, 3);
+    if (this.loaderBuffer.length < 11 + tagSize + 4) {
+      // no enough data for tag parsing
+      return null;
     }
     let chunk = this._parseFlvTagHeader()
     if (chunk) {
@@ -186,7 +187,7 @@ class FlvDemuxer {
     // streamId
     this.loaderBuffer.shift(3)
 
-    // 4 + 3 + 3 = 11 字节 TagHeader
+    // 4 + 3 + 3 + 1 = 11 字节 TagHeader
     return chunk
   }
 

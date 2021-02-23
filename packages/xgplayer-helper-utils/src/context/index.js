@@ -236,6 +236,7 @@ class Context {
    * 编解码流程无需关注事件的解绑
    */
   destroy () {
+    this._emitter.removeAllListeners();
     this._emitter = null
     this.allowedEvents = []
     this._clsMap = null

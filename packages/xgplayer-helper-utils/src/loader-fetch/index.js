@@ -94,6 +94,9 @@ class FetchLoader {
       if (this._destroyed) {
         return;
       }
+      if (error && error.name === 'AbortError') {
+        return;
+      }
       if (retryTimes-- > 0) {
         this._retryTimer = setTimeout(() => {
           this.emit(LOADER_EVENTS.LOADER_RETRY, this.TAG, {

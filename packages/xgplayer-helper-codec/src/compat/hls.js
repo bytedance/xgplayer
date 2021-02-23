@@ -25,6 +25,8 @@ class Compatibility {
     this.filledAudioSamples = [] // 补充音频帧（）
     this.filledVideoSamples = [] // 补充视频帧（）
 
+    this._lastSegmentId = 0;
+    this._currentSegmentId = 0;
     this.videoLastSample = null
     this.audioLastSample = null // stash last sample for duration compat
 
@@ -88,7 +90,35 @@ class Compatibility {
     this.audioUnsyncTime = 0;
   }
 
+  _isSegmentsContinuous () {
+    return this._currentSegmentId - this._lastSegmentId === 1
+  }
+
   doFix () {
+    let ops;
+    let vSamp0;
+    let aSamp0;
+
+    if (this.videoTrack.samples.length) {
+      vSamp0 = this.videoTrack.samples[0];
+      ops = vSamp0.options;
+      if (logger.long) {
+        logger.log(this.TAG, this.videoTrack.samples.slice());
+      }
+    }
+
+    if (this.audioTrack.samples.length) {
+      aSamp0 = this.audioTrack.samples[0];
+      if (logger.long) {
+        logger.log(this.TAG, this.audioTrack.samples.slice());
+      }
+    }
+
+    // eslint-disable-next-line no-mixed-operators
+    this._currentSegmentId = ops && ops.id || this._currentSegmentId + 1;
+
+    logger.log(this.TAG, `lastSeg:${this._lastSegmentId} , currentSeg:${this._currentSegmentId}, discontinue:${ops && ops.discontinue} vSamp0:${vSamp0 && vSamp0.dts} aSamp0:${aSamp0 && aSamp0.dts}`);
+
     const { isFirstAudioSamples, isFirstVideoSamples } = this.getFirstSample()
 
     this.recordSamplesCount()
@@ -110,7 +140,14 @@ class Compatibility {
         this.doFixVideo(isFirstVideoSamples)
       }
     } else {
-      this.doFixVideo(isFirstVideoSamples)
+      if (!this._isSegmentsContinuous() && ops && ops.start !== undefined) {
+        logger.log(this.TAG, 'fix video for _isSegmentsContinuous()');
+        this.videoLastSample = null;
+        this.doFixVideo(isFirstVideoSamples, ops.start)
+        this.emit(REMUX_EVENTS.DETECT_FRAG_ID_DISCONTINUE, ops.start / 1000);
+      } else {
+        this.doFixVideo(isFirstVideoSamples)
+      }
     }
 
     const { changed: audioChanged, changedIdxes: audioChangedIdxes } = Compatibility.detectChangeStream(this.audioTrack.samples, isFirstAudioSamples)
@@ -127,10 +164,19 @@ class Compatibility {
         return;
       }
     } else {
-      this.doFixAudio(isFirstAudioSamples)
+      if (!this._isSegmentsContinuous() && ops && ops.start !== undefined) {
+        logger.log(this.TAG, 'fix audio for _isSegmentsContinuous()');
+        this.nextAudioDts = null;
+        this.doFixAudio(isFirstAudioSamples, ops.start)
+        this.emit(REMUX_EVENTS.DETECT_FRAG_ID_DISCONTINUE, ops.start / 1000);
+      } else {
+        this.doFixAudio(isFirstAudioSamples)
+      }
     }
 
     this.removeInvalidSamples()
+
+    this._lastSegmentId = this._currentSegmentId;
   }
 
   doFixVideo (first, streamChangeStart) {
@@ -203,9 +249,46 @@ class Compatibility {
       }
     }
 
+    // 分片中间时间戳跳变
+    let segLen = videoSamples.length;
+    for (let i = 1; i < segLen; i++) {
+      let c = videoSamples[i];
+      let pre = videoSamples[i - 1];
+      let cts = c.dts - c.pts;
+      if (Math.abs(cts) < 2000) { // 单帧 dts、pts差距不大
+        if (Math.abs(c.dts - pre.dts) > 10000) {
+          c.dts = pre.dts + meta.refSampleDuration;
+          c.pts = pre.pts + meta.refSampleDuration;
+        }
+      }
+    }
+
     let curLastSample = videoSamples.pop();
     if (videoSamples.length) {
       videoSamples[videoSamples.length - 1].duration = curLastSample.dts - videoSamples[videoSamples.length - 1].dts
+    }
+
+    // 分片 < 4帧,不能起播的
+    if (segLen < 4) {
+      let sample = videoSamples[videoSamples.length - 1];
+      sample = sample || curLastSample;
+      let duration = sample.options && sample.options.duration;
+      let refDuration = meta.refSampleDuration;
+      if (duration && refDuration && duration / refDuration > 5) {
+        let pts = sample.pts;
+        let dts = sample.dts;
+        for (let i = 0; i < 3; i++) {
+          dts += refDuration;
+          pts += refDuration;
+          let sam = Object.assign({}, sample, {dts: dts, pts: pts});
+          if (i === 2) {
+            // 最后一帧拉长duration
+            sam.duration = duration;
+          }
+          videoSamples.push(sam)
+        }
+      }
+      curLastSample = null;
     }
 
     if (this.videoLastSample) {
@@ -272,9 +355,7 @@ class Compatibility {
 
     // 对audioSamples按照dts做排序
     if (this._audioLargeGap !== 0) {
-      if (this._audioLargeGap > 0) {
-        Compatibility.doFixLargeGap(audioSamples, this._audioLargeGap)
-      }
+      Compatibility.doFixLargeGap(audioSamples, this._audioLargeGap)
       if (this._audioLargeGap !== this.preAudioGap) {
         this.preAudioGap = this._audioLargeGap
         this.emit(REMUX_EVENTS.DETECT_CHANGE_STREAM_DISCONTINUE, 'audio', { prevDts: this.lastAudioOriginDts, curDts: _firstSample.originDts })
@@ -682,7 +763,7 @@ class Compatibility {
     if (nextDts === null) {
       return;
     }
-    let delta = 10000;
+    let delta = 1000;
     return nextDts - firstSampleDts >= delta || firstSampleDts - nextDts >= delta // fix hls流出现大量流dts间距问题
   }
 
@@ -701,6 +782,10 @@ class Compatibility {
       if (sample.pts) {
         sample.pts += gap
       }
+    }
+    let first = samples[0];
+    if (first && first.dts === 0) {
+      first.dts = first.pts = 1;
     }
   }
 

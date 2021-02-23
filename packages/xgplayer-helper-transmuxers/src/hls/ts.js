@@ -685,7 +685,6 @@ class TsDemuxer {
           } else {
             ts.unknownPIDs = true;
           }
-          ;
         }
     }
   }
