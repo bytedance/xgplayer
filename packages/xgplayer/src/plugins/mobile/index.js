@@ -41,7 +41,8 @@ class MobilePlugin extends Plugin {
       hideControlsEnd: true, // 手势结束的时候隐控制栏
       moveDuration: 60 * 6 * 1000, // 视频区对应的时长
       closedbClick: false, // 是否关闭双击手势
-      disablePress: true // 是否关闭长按手势
+      disablePress: true, // 是否关闭长按手势
+      disableSeekIcon: false // 禁用seek按钮
     }
   }
 
@@ -165,7 +166,7 @@ class MobilePlugin extends Plugin {
       this.find('.xg-bar').style.backgroundColor = progressColor
       this.find('.time-preview').style.color = progressColor
     }
-    this.config.disableTimeProgress && Util.addClass(this.find('.bar'), 'hide')
+    this.config.disableTimeProgress && Util.addClass(this.find('.xg-timebar'), 'hide')
   }
 
   resetPos (time = 0) {
@@ -322,8 +323,8 @@ class MobilePlugin extends Plugin {
       pos.scopeR = (1 - config.scopeR) * pos.width
       pos.scopeM1 = pos.width * (1 - config.scopeM) / 2
       pos.scopeM2 = pos.width - pos.scopeM1
-      player.root.addEventListener('touchmove', this.onRootTouchMove, true)
-      player.root.addEventListener('touchend', this.onRootTouchEnd, true)
+      // player.root.addEventListener('touchmove', this.onRootTouchMove, true)
+      // player.root.addEventListener('touchend', this.onRootTouchEnd, true)
     }
   }
 
@@ -377,12 +378,11 @@ class MobilePlugin extends Plugin {
     this.resetPos()
     Util.checkIsFunction(playerConfig.enableSwipeHandler) && playerConfig.enableSwipeHandler()
     this.changeAction(ACTIONS.AUTO)
-    player.root.removeEventListener('touchmove', this.onRootTouchMove, true)
-    player.root.removeEventListener('touchend', this.onRootTouchEnd, true)
+    // player.root.removeEventListener('touchmove', this.onRootTouchMove, true)
+    // player.root.removeEventListener('touchend', this.onRootTouchEnd, true)
   }
 
   onRootTouchMove = (e) => {
-    console.group('onRootTouchMove', e.target)
     const {plugins} = this.player
     if (this.pos.isStart && plugins && (plugins.start.root.contains(e.target) || plugins.controls.root.contains(e.target))) {
       e.stopPropagation()
@@ -395,7 +395,6 @@ class MobilePlugin extends Plugin {
   }
 
   onRootTouchEnd = (e) => {
-    console.group('onRootTouchEnd', e.target)
     const {plugins} = this.player
     if (this.pos.isStart && plugins.start && (plugins.start.root.contains(e.target) || plugins.controls.root.contains(e.target))) {
       e.stopPropagation()
@@ -463,6 +462,9 @@ class MobilePlugin extends Plugin {
   }
 
   updateVolume (percent) {
+    if (this.player.rotateDeg) {
+      percent = -percent
+    }
     const {player, pos} = this
     percent = parseInt(percent * 100, 10)
     pos.volume += percent
@@ -476,6 +478,9 @@ class MobilePlugin extends Plugin {
   }
 
   updateBrightness (percent) {
+    if (this.player.rotateDeg) {
+      percent = -percent
+    }
     const {pos, config, xgMask} = this
     let light = pos.light + (0.8 * percent)
     light = light > config.maxDarkness ? config.maxDarkness : (light < 0 ? 0 : light)
@@ -554,8 +559,6 @@ class MobilePlugin extends Plugin {
     this.xgMask = null
     this.touch && this.touch.destroy()
     this.touch = null
-    player.root.removeEventListener('touchmove', this.onRootTouchMove, true)
-    player.root.removeEventListener('touchend', this.onRootTouchEnd, true)
   }
 
   render () {
@@ -564,7 +567,7 @@ class MobilePlugin extends Plugin {
      <xg-trigger class="trigger">
      <div class="${className}"></div>
         <div class="time-preview">
-            <div class="xg-seek-show">
+            <div class="xg-seek-show ${this.config.disableSeekIcon ? ' hide-seek-icon' : ''}">
               <i class="xg-seek-icon"></i>
               <span class="xg-cur">00:00</span>
               <span>/</span>

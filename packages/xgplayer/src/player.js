@@ -96,7 +96,7 @@ class Player extends Proxy {
    * @private
    */
   _initDOM () {
-    this.root = this.config.id ? Util.findDom(document, `#${this.config.id}`) : null
+    this.root = this.config.id ? document.getElementById(this.config.id) : null
     if (!this.root) {
       let el = this.config.el
       if (el && el.nodeType === 1) {
@@ -582,6 +582,7 @@ class Player extends Proxy {
       return
     }
     this._unbindEvents()
+    clearTimeout(this.waitTimer)
     pluginsManager.destroy(this)
     this.root.removeChild(this.topBar)
     this.root.removeChild(this.leftBar)
@@ -821,6 +822,9 @@ class Player extends Proxy {
 
   checkBuffer (time) {
     const buffered = this.video.buffered
+    if (!buffered || buffered.length === 0) {
+      return true
+    }
     const currentTime = time || (this.video.currentTime + 0.2)
     const len = buffered.length
     for (let i = 0; i < len; i++) {

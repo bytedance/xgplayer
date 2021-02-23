@@ -79,6 +79,9 @@
         height: 50px;
         width: 50px;
       }
+      &:hover{
+        opacity: 1;
+      }
     }
   }
   &.xgplayer-ended {
@@ -91,6 +94,11 @@
       &.auto-hide {
         display: none;
       }
+    }
+  }
+  &.xgplayer-isloading.xgplayer-playing {
+    .xgplayer-start {
+      display: none;
     }
   }
 }

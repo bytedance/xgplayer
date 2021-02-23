@@ -41,6 +41,11 @@ $color: #FF0000;
             transform: rotate(180deg) translateX(-5px);
           }
         }
+        &.hide-seek-icon {
+          .xg-seek-icon {
+            display: none;
+          }
+        }
       }
       .xg-bar {
         width: 96px;

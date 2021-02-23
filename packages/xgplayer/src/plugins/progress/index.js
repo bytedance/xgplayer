@@ -34,7 +34,8 @@ class Progress extends Plugin {
     this.__dragCallBacks = []
     this._state = {
       now: -1,
-      direc: 0
+      direc: 0,
+      time: 0
     }
   }
 
@@ -111,6 +112,7 @@ class Progress extends Plugin {
     })
 
     this.bindDomEvents()
+    this.initCustomStyle()
   }
 
   initCustomStyle () {
@@ -240,6 +242,7 @@ class Progress extends Plugin {
     Util.addClass(this.progressBtn, 'active')
 
     const ret = this.computeTime(e)
+    this._state.time = ret.currentTime
     this.updateWidth(ret.currentTime, ret.percent, 0)
 
     if (Sniffer.device === 'mobile') {
@@ -258,7 +261,7 @@ class Progress extends Plugin {
   }
 
   onMouseUp = (e) => {
-    const {player, config, pos, playerConfig} = this
+    const {player, config, pos, playerConfig, _state} = this
     e.stopPropagation()
     e.preventDefault()
     Util.checkIsFunction(playerConfig.enableSwipeHandler) && playerConfig.enableSwipeHandler()
@@ -278,6 +281,7 @@ class Progress extends Plugin {
     pos.isDown = false
     pos.x = 0
     pos.y = 0
+    _state.time = 0
     if (this.isMobile) {
       this.unbind('touchmove', this.onMouseMove)
       this.unbind('touchend', this.onMouseUp)
@@ -302,7 +306,7 @@ class Progress extends Plugin {
   }
 
   onMouseMove = (e) => {
-    const {pos, player, config} = this
+    const {pos, player, config, _state} = this
     if (this.isMobile) {
       e.stopPropagation()
       e.preventDefault()
@@ -315,6 +319,12 @@ class Progress extends Plugin {
     }
     pos.x = x
     const ret = this.computeTime(e)
+    if (_state.time < ret.currentTime) {
+      ret.forward = true
+    } else {
+      ret.forward = false
+    }
+    _state.time = ret.currentTime
     if (pos.isDown && !pos.moving) {
       pos.moving = true
       config.isPauseMoving && player.pause()

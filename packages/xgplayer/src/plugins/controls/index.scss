@@ -12,7 +12,8 @@ $controlHeight: 48px;
   &.xgplayer-is-error,
   &.xgplayer-ended,
   &.xgplayer-is-enter {
-    .xgplayer-controls, .flex-controls {
+    // .xgplayer-controls, .flex-controls {
+    .xgplayer-controls {
       pointer-events: none;
       visibility: hidden;
       cursor: default;
@@ -27,6 +28,11 @@ $controlHeight: 48px;
       visibility: hidden;
       cursor: default;
       opacity: 0;
+    }
+    .controls_permanent {
+      pointer-events: auto;
+      visibility: visible;
+      opacity: 1;
     }
   }
 
