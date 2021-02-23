@@ -1,4 +1,5 @@
 import HevcWorker from 'worker!../decoder/hevc-worker.js';
+import HevcThreadWorker from 'worker!../decoder/hevc-worker-thread.js';
 import AvcWorker from 'worker!../decoder/worker.js';
 import { logger } from 'xgplayer-helper-utils';
 import BaseRender from './BaseRender';
@@ -11,6 +12,7 @@ import Events from '../events';
 import {
   H264_DECODER_URL,
   H265_DECODER_URL,
+  H265_THREAD_DECODER_URL,
   ASM_H264_DECODER_URL,
   ASM_H265_DECODER_URL
 } from '../config';
@@ -22,7 +24,7 @@ const HAVE_FUTURE_DATA = 3;
 const HAVE_ENOUGH_DATA = 4;
 
 const MEDIA_ERR_DECODE = 3;
-
+const CAN_USE_HEVC_THREAD_DECODE = true && !!window.SharedArrayBuffer;
 const MAX_DECODE_ONCE_DEFAULT = 30;
 const CONTINUE_DECODE_THRESHOLD_DEFAULT = MAX_DECODE_ONCE_DEFAULT / 2;
 
@@ -39,7 +41,12 @@ export default class VideoRender extends BaseRender {
     this._wasmWorkers = []; //  decoder worker instance
     this._frameRender = null; // FrameRender instance
     this._wasmReady = false;
-    this._degrade = !window.WebAssembly;
+    /**
+     * 1: hevc decode with thread
+     * 2: hevc | 264 decode
+     * 3: hevc | 264 decode with asm.js
+     */
+    this._decoderMode = window.WebAssembly ? 2 : 3;
     this._avccpushed = false;
     this._inDecoding = false;
     this._lastTimeupdate = 0;
@@ -156,6 +163,10 @@ export default class VideoRender extends BaseRender {
     if (len >= 4) return HAVE_FUTURE_DATA;
     if (len >= 2) return HAVE_CURRENT_DATA;
     return HAVE_METADATA;
+  }
+
+  get hevcThread () {
+    return this._decoderMode === 1;
   }
 
   getDtsOfTime (time) {
@@ -355,30 +366,30 @@ export default class VideoRender extends BaseRender {
     });
   }
 
-  _selectWorker () {
+  _selectDecoder () {
     logger.log(
       this.TAG,
       'start init worker:',
       performance.now(),
       'hevc:',
       this.isHevc,
-      'degrade:',
-      this._degrade
+      'decoderMode:',
+      this._decoderMode
     );
     if (this.isHevc) {
       return {
-        decoder: new HevcWorker(),
-        url: this._degrade ? ASM_H265_DECODER_URL : H265_DECODER_URL
+        decoder: this._decoderMode === 1 ? new HevcThreadWorker() : new HevcWorker(),
+        url: this._decoderMode === 3 ? ASM_H265_DECODER_URL : this._decoderMode === 1 ? H265_THREAD_DECODER_URL : H265_DECODER_URL
       };
     }
     return {
       decoder: new AvcWorker(),
-      url: this._degrade ? ASM_H264_DECODER_URL : H264_DECODER_URL
+      url: this._decoderMode === 3 ? ASM_H264_DECODER_URL : H264_DECODER_URL
     };
   }
 
   _initDecodeWorker (delay) {
-    const { decoder, url } = this._selectWorker();
+    const { decoder, url } = this._selectDecoder();
     this._avccpushed = false;
     this._bindWorkerEvent(decoder);
     decoder.postMessage({
@@ -393,7 +404,7 @@ export default class VideoRender extends BaseRender {
 
   _bindWorkerEvent (decoder) {
     const _whenFail = (msg, from) => {
-      if (this._degrade) {
+      if (this._decoderMode === 3) {
         this._emitTimelineEvents(
           Events.TIMELINE.PLAY_EVENT,
           'error',
@@ -401,7 +412,7 @@ export default class VideoRender extends BaseRender {
         );
       } else {
         logger.log(this.TAG, 'use asm: ', msg, from);
-        this._degrade = true;
+        this._decoderMode = this._decoderMode === 1 ? 2 : 3; // 使用 asm
         this._destroyWorker(decoder);
         this._initDecodeWorker();
       }
@@ -427,6 +438,10 @@ export default class VideoRender extends BaseRender {
           decoder.using = 0;
           this._inDecoding = false;
           this._decodeEstimate.resetDecodeDot();
+          if (this._inChaseFrame) {
+            this._inChaseFrame = false;
+            this._frameQueue.empty();
+          }
           break;
         case 'LOG':
           // console.log('video decoder worker: LOG:',msg,e.data.log, performance.now());
@@ -479,8 +494,10 @@ export default class VideoRender extends BaseRender {
   _setMetadata (type, meta) {
     if (type === 'audio') return;
     logger.warn(this.TAG, 'video set metadata');
-
     this._meta = meta;
+    if (CAN_USE_HEVC_THREAD_DECODE && this.isHevc) {
+      this._decoderMode = 1;
+    }
     let fps = meta && meta.frameRate && meta.frameRate.fps;
     if (fps) {
       logger.log(this.TAG, 'detect fps:', fps);
@@ -517,6 +534,7 @@ export default class VideoRender extends BaseRender {
   }
 
   _doChaseFrame ({frame}) {
+    this._inChaseFrame = true;
     this._wasmWorkers.forEach(worker => {
       worker.postMessage({
         msg: 'flush'
@@ -547,7 +565,7 @@ export default class VideoRender extends BaseRender {
       data.set([0, 0, 0, 1]);
       data.set(vps, 4);
       worker.postMessage({
-        msg: 'decode',
+        msg: 'initDecoder',
         data: data
       });
     }
@@ -556,7 +574,7 @@ export default class VideoRender extends BaseRender {
     data.set([0, 0, 0, 1]);
     data.set(sps, 4);
     worker.postMessage({
-      msg: 'decode',
+      msg: 'initDecoder',
       data: data
     });
 
@@ -564,13 +582,21 @@ export default class VideoRender extends BaseRender {
     data.set([0, 0, 0, 1]);
     data.set(pps, 4);
     worker.postMessage({
-      msg: 'decode',
+      msg: 'initDecoder',
       data: data
     });
 
     if (!this._frameRender) {
       let config = Object.assign(this._config, { meta, canvas: this._canvas });
-      this._frameRender = new FrameRender(config);
+      try {
+        this._frameRender = new FrameRender(config);
+      } catch (e) {
+        this._emitTimelineEvents(
+          Events.TIMELINE.PLAY_EVENT,
+          'error',
+          this._assembleErr(e && e.message)
+        );
+      }
     }
   }
 
@@ -601,7 +627,6 @@ export default class VideoRender extends BaseRender {
     let len = this._maxDecodeOnce;
     let rest = this._timeRange.frameLength;
     let onlyOne = rest === 1;
-
     while (len >= 0) {
       let sample = this._timeRange && this._timeRange.getFrame();
       if (!sample) break;

@@ -1,3 +1,5 @@
+/* eslint-disable no-undef */
+// 目前仅支持yuv420
 
 function shimImportScripts (src) {
   return fetch(src)
@@ -9,12 +11,15 @@ function shimImportScripts (src) {
     });
 }
 
-const MAX_STREAM_BUFFER_LENGTH = 1024 * 1024;
+const MAX_STREAM_BUFFER_LENGTH = 1024 * 1024 * 5; // 分配 5M 空间存储帧数据
+const BATCH_DECODE_SIZE = 10; // 一次处理的帧数量
 
 var Decoder = function (self) {
   this.inited = false;
+  this.infoId = 0;
   this.self = self;
   this.meta = this.self.meta;
+  this.ts = 0;
   this.infolist = [];
   self.par_broadwayOnBroadwayInited = this.broadwayOnBroadwayInited.bind(
     this
@@ -30,28 +35,31 @@ Decoder.prototype.toU8Array = function (ptr, length) {
 
 Decoder.prototype.init = function () {
   Module._broadwayInit();
+
+  // 存储帧数据的buffer开始位置
+  this.streamBufferPtr = Module._broadwayCreateStream(MAX_STREAM_BUFFER_LENGTH);
   this.streamBuffer = this.toU8Array(
-    Module._broadwayCreateStream(MAX_STREAM_BUFFER_LENGTH),
+    this.streamBufferPtr,
     MAX_STREAM_BUFFER_LENGTH
   );
+  // 用来存储每帧size的数据的开始位置
+  this.bufferSizesPtr = Module._malloc(4 * BATCH_DECODE_SIZE);
+  this.bufferSizes = this.toU8Array(this.bufferSizesPtr, 4 * BATCH_DECODE_SIZE)
+  this.streamBufferOffset = 0;
+  this.frameLensOffset = 0;
+  this.frameLensBuffer = new Uint32Array(BATCH_DECODE_SIZE);
 };
 
 Decoder.prototype.broadwayOnPictureDecoded = function (
   offset,
   width,
-  height,
-  yLinesize,
-  uvLinesize,
-  infoid,
-  keyFrame
+  height
 ) {
-  let firstFrame = this.infolist[0];
-
-  if (firstFrame && firstFrame.isGop && !keyFrame) return;
-
-  let info = Object.assign({}, this.infolist.shift());
+  let info = this.infolist.shift();
   let yRowcount = height;
   let uvRowcount = height / 2;
+  let yLinesize = width;
+  let uvLinesize = width / 2;
   if (
     this.meta &&
     (this.meta.chromaFormat === 444 || this.meta.chromaFormat === 422)
@@ -62,6 +70,7 @@ Decoder.prototype.broadwayOnPictureDecoded = function (
     offset,
     yLinesize * yRowcount + 2 * (uvLinesize * uvRowcount)
   );
+  // this.infolist[infoid] = null;
   let datetemp = new Uint8Array(data.length);
   datetemp.set(data);
   let buffer = datetemp.buffer;
@@ -81,6 +90,9 @@ Decoder.prototype.broadwayOnPictureDecoded = function (
 };
 
 Decoder.prototype.broadwayOnBroadwayInited = function () {
+  if (this.inited) {
+    return;
+  }
   this.inited = true;
   this.self.postMessage({
     msg: 'LOG',
@@ -89,16 +101,35 @@ Decoder.prototype.broadwayOnBroadwayInited = function () {
   this.self.postMessage({ msg: 'DECODER_READY' });
 };
 
-Decoder.prototype.decode = function (data, info) {
-  if (info) {
-    this.infolist.push(info);
+Decoder.prototype.storeBuffer = function (data, fInfo) {
+  this.infolist.push(fInfo);
+  this.streamBuffer.set(data, this.streamBufferOffset);
+  this.frameLensBuffer[this.frameLensOffset] = data.length;
+  this.streamBufferOffset += data.length;
+  this.frameLensOffset += 1;
+  this.batchDecode();
+}
+
+Decoder.prototype.batchDecode = function (flush) {
+  // 攒10帧处理一次 或者 强制解码
+  let todo = this.frameLensOffset >= 10 || (flush && this.frameLensOffset)
+  if (todo) {
+    this.bufferSizes.set(new Uint8Array(this.frameLensBuffer.buffer), 0);
+    Module._broadwayPlayStream1(this.bufferSizesPtr, this.frameLensOffset)
+    this.frameLensOffset = 0;
+    this.streamBufferOffset = 0;
   }
-  if (info && info.isGop) {
-    this.infolist = [info];
-  }
+}
+
+Decoder.prototype.decode = function (data) {
   this.streamBuffer.set(data);
   Module._broadwayPlayStream(data.length, 0);
 };
+
+Decoder.prototype.flush = function () {
+  this.batchDecode(true);
+  Module._broadwayFlushStream();
+}
 
 Decoder.prototype.destroy = function () {
   Module._broadwayExit();
@@ -115,15 +146,17 @@ function onPostRun () {
     msg: 'LOG',
     log: 'do post run'
   });
-
   decoder = new Decoder(this);
   decoder.init();
 }
 
+let WASM_CDN_PATH_PREFIX = '';
+
 function init (url) {
-  let isDegrade = /asm/.test(url);
+  WASM_CDN_PATH_PREFIX = url.split('/').slice(0, -1).join('/')
   if (!decoder) {
     let task;
+
     if (!self.importScripts) {
       task = shimImportScripts(url);
     } else {
@@ -147,34 +180,28 @@ function init (url) {
 
     task
       .then(() => {
-        if (isDegrade) {
-          console.log('auto instance Decoder!');
-          return new Promise((resolve, reject) => {
-            setTimeout(() => {
-              try {
-                onPostRun.call(self);
-                resolve();
-              } catch (e) {
-                reject(e);
-              }
-            });
-          });
-        }
-        return new Promise((resolve, reject) => {
-          addOnPostRun(onPostRun.bind(self));
-
-          Module.onRuntimeInitialized = () => {
-            resolve();
-          }
-
-          Module.onAbort = (e) => {
-            reject(e && e.message ? e : new Error('wasm init error'));
-          }
-
-          setTimeout(() => {
-            reject(new Error('wasm load timeout'))
-          }, 6000)
-        })
+        return fetch(`${WASM_CDN_PATH_PREFIX}/decoder.worker.js`)
+          .then(res => res.blob())
+          .then(blob => {
+            return self.m({
+              locateFile: (suffix) => {
+                if (/\.worker\.js$/.test(suffix)) {
+                  return URL.createObjectURL(blob);
+                }
+                if (/\.wasm$/.test(suffix)) {
+                  return `${WASM_CDN_PATH_PREFIX}/decoder.wasm`;
+                }
+                if (/\.mem$/.test(suffix)) {
+                  return `${WASM_CDN_PATH_PREFIX}/decoder.js.mem`;
+                }
+              },
+              'mainScriptUrlOrBlob': `${WASM_CDN_PATH_PREFIX}/decoder.js`
+            })
+          })
+          .then(Mod => {
+            self.Module = Mod;
+            onPostRun();
+          })
       })
       .catch((e) => {
         self.postMessage({
@@ -207,10 +234,16 @@ self.onmessage = function (e) {
         decoder.updateMeta(data.meta);
         break;
       case 'initDecoder':
+        if (decoder.frameLensOffset) {
+          decoder.batchDecode(true)
+        };
         decoder.decode(data.data);
         break;
       case 'decode':
-        decoder.decode(data.data, data.info);
+        decoder.storeBuffer(data.data, data.info);
+        break;
+      case 'flush':
+        // decoder.flush();
         break;
       case 'finish_flag':
         self.postMessage({

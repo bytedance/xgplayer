@@ -1,6 +1,6 @@
 /* eslint-disable no-undef */
 import NoSleep from './helper/nosleep';
-import { playSlienceAudio } from './helper/audio-helper'
+import { playSlienceAudio, pauseSlienceAudio } from './helper/audio-helper'
 import './polyfills/custom-elements.min';
 import './polyfills/native-element';
 // eslint-disable-next-line standard/object-curly-even-spacing
@@ -320,6 +320,7 @@ class MVideo extends HTMLElement {
     this.timeline.pause();
     try {
       this._noSleep.disable();
+      pauseSlienceAudio();
     } catch (e) {}
   }
 

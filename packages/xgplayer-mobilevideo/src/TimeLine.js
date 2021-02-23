@@ -153,6 +153,7 @@ export default class TimeLine extends EventEmitter {
 
     this.videoRender.on(Events.VIDEO.DECODE_LOW_FPS, () => {
       let canSwitchToMultiWorker = this._parent.live &&
+        !this.videoRender.hevcThread &&
         !this._switchToMultiWorker &&
         !this._noAudio &&
         (this.fps / this.decodeFps < 2)
@@ -195,7 +196,7 @@ export default class TimeLine extends EventEmitter {
   }
 
   _startRender () {
-    if (this._parent.error) return;
+    if (this._parent.error || !this.videoRender) return;
     if (this._noAudio) {
       this.emit(Events.TIMELINE.SYNC_DTS, 0);
     }

@@ -127,16 +127,26 @@ export default class FlvController {
   }
 
   _handleNetworkError (tag, err) {
-    this._player.emit('error', new Player.Errors('network', this._player.config.url))
     this._onError(LOADER_EVENTS.LOADER_ERROR, tag, err, true)
+    this._player.emit('error', {
+      code: err.code,
+      errorType: 'network',
+      ex: `[${tag}]: ${err.message}`,
+      errd: {}
+    })
   }
 
   _handleDemuxError (tag, err, fatal) {
     if (fatal === undefined) {
       fatal = false;
     }
-    this._player.emit('error', new Player.Errors('parse', this._player.config.url))
     this._onError(DEMUX_EVENTS.DEMUX_ERROR, tag, err, fatal)
+    this._player.emit('error', {
+      code: '31',
+      errorType: 'parse',
+      ex: `[${tag}]: ${err ? err.message : ''}`,
+      errd: {}
+    })
   }
 
   _handleAddRAP (rap) {
