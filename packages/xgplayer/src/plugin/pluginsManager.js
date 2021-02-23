@@ -1,5 +1,3 @@
-import Util from '../utils/util'
-
 /**
 * a plugins manager to register and search
 **/
@@ -92,7 +90,7 @@ const pluginsManager = {
 
     for (const item of Object.keys(originalOptions)) {
       if (pluginName.toLowerCase() === item.toLowerCase()) {
-        options.config = Util.ObjectAssign({}, options.config, originalOptions[item])
+        options.config = Object.assign({}, options.config, originalOptions[item])
         break;
       }
     }
