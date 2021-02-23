@@ -359,12 +359,12 @@ class Player extends Proxy {
       options = {}
     }
 
-    for (const item of Object.keys(this.config)) {
-      if (PLUFGIN.pluginName.toLowerCase() === item.toLowerCase()) {
-        options.config = Object.assign({}, options.config, this.config[item])
-        break;
-      }
-    }
+    // for (const item of Object.keys(this.config)) {
+    //   if (PLUFGIN.pluginName.toLowerCase() === item.toLowerCase()) {
+    //     options.config = Object.assign({}, options.config, this.config[item])
+    //     break;
+    //   }
+    // }
 
     const position = options.position ? options.position : (options.config && options.config.position) || (PLUFGIN.defaultConfig && PLUFGIN.defaultConfig.position)
     const {POSITIONS} = Plugin
@@ -575,6 +575,14 @@ class Player extends Proxy {
       this.play().catch(err => { console.log(err) })
     }
     this.once('loadeddata', this.reloadFunc)
+  }
+
+  reset () {
+    const { NOT_ALLOW_AUTOPLAY, PLAYING, NO_START, PAUSED, REPLAY, ENTER, ENDED, ERROR } = STATE_CLASS
+    const clsList = [NOT_ALLOW_AUTOPLAY, PLAYING, NO_START, PAUSED, REPLAY, ENTER, ENDED, ERROR];
+    clsList.forEach((cls) => {
+      this.removeClass(cls)
+    })
   }
 
   destroy (isDelDom = true) {
@@ -915,10 +923,7 @@ class Player extends Proxy {
   }
 
   set poster (posterUrl) {
-    let poster = Util.findDom(this.root, '.xgplayer-poster')
-    if (poster) {
-      poster.style.backgroundImage = `url(${posterUrl})`
-    }
+    this.plugins.poster && this.plugins.poster.update(posterUrl)
   }
 
   get fullscreen () {

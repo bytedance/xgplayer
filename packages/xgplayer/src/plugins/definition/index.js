@@ -159,7 +159,7 @@ export default class DefinitionIcon extends OptionsIcon {
         if (!player.ended) {
           player.video.src = to.url
           player.play()
-          if(navigator.userAgent.toLowerCase().indexOf('android') > -1) {
+          if (navigator.userAgent.toLowerCase().indexOf('android') > -1) {
             this.once('timeupdate', () => {
               this.onTimeupdateChangeDefinition()
             })

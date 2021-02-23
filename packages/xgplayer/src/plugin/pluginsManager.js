@@ -79,6 +79,17 @@ const pluginsManager = {
       options.config = {}
     }
 
+    // 读取播放器整体配置上的配置数据
+    for (const item of Object.keys(originalOptions)) {
+      if (pluginName.toLowerCase() === item.toLowerCase()) {
+        const config = originalOptions[item]
+        if (config && typeof config === 'object' && !(config instanceof Array)) {
+          options.config = Object.assign({}, options.config, originalOptions[item])
+        }
+        break;
+      }
+    }
+
     // 复制插件的默认配置项
     if (plugin.defaultConfig) {
       Object.keys(plugin.defaultConfig).map(key => {
@@ -86,13 +97,6 @@ const pluginsManager = {
           options.config[key] = plugin.defaultConfig[key]
         }
       })
-    }
-
-    for (const item of Object.keys(originalOptions)) {
-      if (pluginName.toLowerCase() === item.toLowerCase()) {
-        options.config = Object.assign({}, options.config, originalOptions[item])
-        break;
-      }
     }
 
     // 获取插件添加的父节点

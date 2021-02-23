@@ -22,10 +22,19 @@
 }
 
 .xgplayer.xgplayer-playing {
-  .xgplayer-poster{
+  .xgplayer-poster {
     // display: none;
     opacity: 0;
     visibility: hidden;
+  }
+}
+
+.xgplayer {
+  &.xgplayer-is-enter, &.xgplayer-playing {
+    .xgplayer-poster.xg-showplay {
+      opacity: 1;
+      visibility: visible;
+    }
   }
 }
 
