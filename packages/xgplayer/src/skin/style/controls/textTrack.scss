@@ -65,6 +65,10 @@
   }
 }
 
+xg-text-track {
+  transition: bottom .3s ease;
+}
+
 .xgplayer-skin-default.xgplayer-texttrack-active {
   .xgplayer-texttrack {
     ul {
