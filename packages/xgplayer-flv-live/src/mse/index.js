@@ -61,7 +61,7 @@ class FlvPlayer extends BasePlugin {
       }
       if (!player.paused) {
         this.loaderCompleteTimer = setInterval(() => {
-          if (!player) return window.clearInterval(this.loaderCompleteTimer)
+          if (!player || !player.video) return window.clearInterval(this.loaderCompleteTimer)
           const end = player.getBufferedRange()[1]
           if (Math.abs(player.currentTime - end) < 0.5) {
             player.emit('ended')
@@ -86,7 +86,7 @@ class FlvPlayer extends BasePlugin {
     let mediaLength = 3;
     flv.on(EVENTS.REMUX_EVENTS.MEDIA_SEGMENT, () => {
       mediaLength -= 1;
-      if (mediaLength === 0) {
+      if (mediaLength === 0 && this.player) {
         // ensure switch smoothly
         this.flv = flv;
         this.player.flv = flv
@@ -107,7 +107,7 @@ class FlvPlayer extends BasePlugin {
       }
       if (!this.paused) {
         this.loaderCompleteTimer = setInterval(() => {
-          if (!this.player) return window.clearInterval(this.loaderCompleteTimer)
+          if (!this.player || !this.player.video) return window.clearInterval(this.loaderCompleteTimer)
           const end = this.player.getBufferedRange()[1]
           if (Math.abs(this.player.currentTime - end) < 0.5) {
             this.emit('ended')
