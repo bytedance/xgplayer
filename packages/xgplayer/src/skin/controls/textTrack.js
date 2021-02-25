@@ -2,7 +2,6 @@ import Player from '../../player'
 import SubTitles from 'xgplayer-subtitles'
 import '../style/controls/textTrack.scss'
 
-
 const defaultStyle = {
   follow: true,
   mode: 'st',
@@ -28,6 +27,8 @@ function createSubTitle (textTrack, style = {}, defaultOpen = true) {
   })
   return new SubTitles(config)
 }
+
+// eslint-disable-next-line camelcase
 let s_textTrack = function () {
   let player = this
   let root = player.root
@@ -139,12 +140,11 @@ let s_textTrack = function () {
     subtitle && (subtitle.root.style.bottom = `${bottom}px`)
   }
 
-  function onBlur() {
+  function onBlur () {
     isActive = false
     const bottom = positionData.vBottom + positionData.marginBottom
     subtitle && (subtitle.root.style.bottom = `${bottom}px`)
   }
-
 
   function onSubtitleResize (data) {
     positionData.vBottom = data.vBottom
