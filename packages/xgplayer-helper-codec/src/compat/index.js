@@ -68,6 +68,7 @@ class Compatibility {
 
     this.lastVideoDts = undefined // 上一段音频数据的dts
     this.lastAudioDts = undefined // 上一段视频数据的dts
+    this.lastVideoDuration = undefined
 
     // this.allAudioSamplesCount = 0 // 音频总数据量(原始帧)
     // this.allVideoSamplesCount = 0 // 视频总数据量(原始帧)
@@ -166,7 +167,7 @@ class Compatibility {
       Compatibility.doFixLargeGap(videoSamples, this._videoLargeGap)
       if (this._videoLargeGap !== this.preVideoGap) {
         this.preVideoGap = this._videoLargeGap
-        this.emit(REMUX_EVENTS.DETECT_CHANGE_STREAM_DISCONTINUE, 'video', { prevDts: this.videoLastSample && this.videoLastSample.originDts, curDts: firstSample.originDts })
+        this.emit(REMUX_EVENTS.DETECT_CHANGE_STREAM_DISCONTINUE, 'video', { prevDts: this.videoLastSample && this.videoLastSample.originDts, curDts: firstSample.originDts, duration: meta.refSampleDuration })
       }
     }
 
@@ -227,6 +228,7 @@ class Compatibility {
 
     this.videoLastSample = curLastSample;
     if (videoSamples[videoSamples.length - 1]) {
+      this.lastVideoDuration = videoSamples[videoSamples.length - 1].duration
       this.lastVideoDts = videoSamples[videoSamples.length - 1].dts;
     }
     this.videoTrack.samples = videoSamples;
@@ -277,7 +279,7 @@ class Compatibility {
       }
       if (this._audioLargeGap !== this.preAudioGap) {
         this.preAudioGap = this._audioLargeGap
-        this.emit(REMUX_EVENTS.DETECT_CHANGE_STREAM_DISCONTINUE, 'audio', { prevDts: this.lastAudioOriginDts, curDts: _firstSample.originDts })
+        this.emit(REMUX_EVENTS.DETECT_CHANGE_STREAM_DISCONTINUE, 'audio', { prevDts: this.lastAudioOriginDts, curDts: _firstSample.originDts, duration: iRefSampleDuration })
       }
     } else if (!first && (streamChangeStart !== undefined || Compatibility.detectAudioLargeGap(this.nextAudioDts, _firstSample.dts))) {
       if (streamChangeStart !== undefined) {
@@ -428,7 +430,8 @@ class Compatibility {
 
   fixChangeStreamVideo (changeIdx) {
     logger.log(this.TAG, 'fixChangeStreamVideo(), changeIdx=', changeIdx);
-    const { samples } = this.videoTrack;
+    const { samples, meta } = this.videoTrack;
+    const preDuration = changeIdx === 0 ? (this.lastVideoDuration ? this.lastVideoDuration : meta.refSampleDuration) : meta.refSampleDuration;
     const prevDts = changeIdx === 0 ? this.lastVideoDts ? this.lastVideoDts : this.getStreamChangeStart(samples[0]) : samples[changeIdx - 1].dts;
     const curDts = samples[changeIdx].dts;
     const isContinue = Math.abs(prevDts - curDts) <= 10000
@@ -444,7 +447,7 @@ class Compatibility {
       return false
     }
 
-    this.emit(REMUX_EVENTS.DETECT_CHANGE_STREAM_DISCONTINUE, 'video', {prevDts, curDts})
+    this.emit(REMUX_EVENTS.DETECT_CHANGE_STREAM_DISCONTINUE, 'video', {prevDts, curDts, duration: preDuration})
 
     const firstPartSamples = samples.slice(0, changeIdx);
     const secondPartSamples = samples.slice(changeIdx);
@@ -455,6 +458,7 @@ class Compatibility {
     this._videoLargeGap = 0;
     this.videoLastSample = null;
     this.lastVideoDts = null;
+    this.lastVideoDuration = null;
     if (changeSample.options && changeSample.options.start !== undefined) {
       streamChangeStart = changeSample.options.start;
     } else {
@@ -476,7 +480,7 @@ class Compatibility {
 
   fixChangeStreamAudio (changeIdx) {
     logger.log(this.TAG, 'fixChangeStreamAudio(), changeIdx=', changeIdx);
-    const { samples } = this.audioTrack;
+    const { samples, meta } = this.audioTrack;
 
     const prevDts = changeIdx === 0 ? this.lastAudioDts : samples[changeIdx - 1].dts;
     const curDts = samples[changeIdx].dts;
@@ -492,7 +496,7 @@ class Compatibility {
       }
       return false
     }
-    this.emit(REMUX_EVENTS.DETECT_CHANGE_STREAM_DISCONTINUE, 'audio', {prevDts, curDts})
+    this.emit(REMUX_EVENTS.DETECT_CHANGE_STREAM_DISCONTINUE, 'audio', {prevDts, curDts, duration: meta.refSampleDuration})
     this._audioLargeGap = 0;
     const cacheNextAudioDts = this.nextAudioDts
     this.nextAudioDts = null;
