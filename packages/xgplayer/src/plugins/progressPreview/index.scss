@@ -209,35 +209,3 @@ $top: 8px;
     }
   }
 }
-
-// controls
-.xgplayer-pc {
-  .xgplayer-controls {
-    opacity: 1;
-    transition: opacity .5s ease,visibility .5s ease;
-  }
-
-  &.not-allow-autoplay,
-  &.xgplayer-nostart,
-  &.xgplayer-is-error,
-  &.xgplayer-ended,
-  &.xgplayer-is-enter {
-    .xgplayer-controls, .flex-controls {
-      display: block;
-      pointer-events: none;
-      visibility: hidden;
-      cursor: default;
-      opacity: 0;
-    }
-  }
-
-  &.xgplayer-inactive {
-    .control_autohide {
-      display: block;
-      pointer-events: none;
-      visibility: hidden;
-      cursor: default;
-      opacity: 0;
-    }
-  }
-}

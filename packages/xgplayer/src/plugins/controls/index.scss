@@ -7,11 +7,11 @@ $controlHeight: 48px;
 // $tipsFontsize: 12px;
 
 .xgplayer {
+  &.no-overflow-hide {
+    overflow: initial;
+  }
   &.not-allow-autoplay,
-  &.xgplayer-nostart,
-  &.xgplayer-is-error,
-  &.xgplayer-ended,
-  &.xgplayer-is-enter {
+  &.xgplayer-nostart {
     // .xgplayer-controls, .flex-controls {
     .xgplayer-controls {
       pointer-events: none;
@@ -54,6 +54,11 @@ $controlHeight: 48px;
       visibility: visible;
       pointer-events: auto;
     }
+  }
+
+  .bottom-controls {
+    bottom: -48px;
+    background-color: #000;
   }
 
   .inner-controls {

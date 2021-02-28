@@ -9,7 +9,8 @@ class Controls extends Plugin {
     return {
       disable: false,
       autoHide: true,
-      mode: ''
+      mode: '',
+      marginBottom: false
     }
   }
 
@@ -20,12 +21,17 @@ class Controls extends Plugin {
     if (!args.config.mode && Sniffer.device === 'mobile') {
       args.config.mode = 'flex'
     }
+    console.log('args.config', args.config)
   }
 
   afterCreate () {
-    const {disable, height, mode, autoHide} = this.config
+    const {disable, height, mode, autoHide, marginBottom} = this.config
     if (disable) {
       return
+    }
+
+    if (marginBottom) {
+      Util.addClass(this.player.root, 'no-overflow-hide')
     }
 
     mode === 'flex' && this.player.addClass(STATE_CLASS.FLEX_CONTROLS)
@@ -115,6 +121,7 @@ class Controls extends Plugin {
     }
     let className = this.config.mode === 'flex' ? 'flex-controls ' : ''
     className += this.config.autoHide ? 'control_autohide' : 'controls_permanent'
+    className += this.config.marginBottom ? ' bottom-controls' : ''
     return `<xg-controls class="xgplayer-controls ${className}" unselectable="on" onselectstart="return false">
     <inner-controls class="inner-controls xg-pos">
       <left-grid class="left-grid">

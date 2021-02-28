@@ -162,7 +162,7 @@
     display: block;
   }
 
-  &.xgplayer-inactive, &.xgplayer-mini, &.xgplayer-ended {
+  &.xgplayer-inactive, &.xgplayer-mini {
     xg-bar {
       display: none;
     }
