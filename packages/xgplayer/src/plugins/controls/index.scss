@@ -21,6 +21,15 @@ $controlHeight: 48px;
     }
   }
 
+  &.not-allow-autoplay,
+  &.xgplayer-nostart {
+    .xgplayer-controls-initshow {
+      pointer-events: auto;
+      visibility: visible;
+      opacity: 1;
+    }
+  }
+
   &.xgplayer-inactive {
     .control_autohide {
       // display: none;

@@ -47,7 +47,6 @@ class Poster extends Plugin {
         this.onTimeUpdate()
       })
       this.on(Events.URL_CHANGE, () => {
-        console.log('Events.URL_CHANGE')
         Util.removeClass(this.root, 'hide')
         Util.addClass(this.root, 'xg-showplay')
         this.once(Events.TIME_UPDATE, () => {
