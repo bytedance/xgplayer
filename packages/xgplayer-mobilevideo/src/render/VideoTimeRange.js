@@ -10,6 +10,7 @@ export default class VideoTimeRange {
     this._lastDuration = 0;
     this._duration = 0;
     this._bitrate = 0;
+    this._totalSize = 0;
     /**
      * buffers说明
      * type buffer = {
@@ -64,6 +65,10 @@ export default class VideoTimeRange {
 
   get frameLength () {
     return this._currentFrameQueue.length;
+  }
+
+  get totalSize () {
+    return this._totalSize;
   }
 
   get bitrate () {
@@ -136,6 +141,7 @@ export default class VideoTimeRange {
     for (let i = 0; i < len; i++) {
       sum += frames[i].data.length;
     }
+    this._totalSize += sum;
     let delta = frames[len - 1].dts - frames[0].dts;
 
     let bitrate = sum / delta // KB/s

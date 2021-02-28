@@ -130,6 +130,7 @@ export default class FlvController {
     this._onError(LOADER_EVENTS.LOADER_ERROR, tag, err, true)
     this._player.emit('error', {
       code: err.code,
+      codeName: err.name,
       errorType: 'network',
       ex: `[${tag}]: ${err.message}`,
       errd: {}

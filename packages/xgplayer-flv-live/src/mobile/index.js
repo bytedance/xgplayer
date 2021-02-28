@@ -110,6 +110,9 @@ class FlvPlayer extends BasePlugin {
       this.destroy();
       player.video = newVideo;
       mVideo.degrade(url, useMse);
+      if (url) {
+        player.config.url = url;
+      }
       // 替换下dom元素
       let firstChild = player.root.firstChild;
       if (firstChild.TAG === 'MVideo') {

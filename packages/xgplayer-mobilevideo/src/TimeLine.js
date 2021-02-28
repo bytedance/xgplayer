@@ -54,6 +54,10 @@ export default class TimeLine extends EventEmitter {
     return this.videoRender.fps;
   }
 
+  get totalSize () {
+    return this.videoRender.totalSize;
+  }
+
   get bitrate () {
     return this.videoRender.bitrate;
   }

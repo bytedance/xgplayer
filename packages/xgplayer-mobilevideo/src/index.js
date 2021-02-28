@@ -109,6 +109,9 @@ class MVideo extends HTMLElement {
       }
       this.setPlayMode(this._isLive && 'LIVE');
       this.muted = this.muted;
+      if (this.xgfillType) {
+        this.timeline.emit(Events.VIDEO.UPDATE_VIDEO_FILLTYPE, this.xgfillType, this.containerLayout)
+      }
     });
   }
 
@@ -546,6 +549,10 @@ class MVideo extends HTMLElement {
 
   get __decodeCost () {
     return parseInt(this.timeline.decodeCost);
+  }
+
+  get __totalSize () {
+    return this.timeline.totalSize;
   }
 
   get __bitrate () {
