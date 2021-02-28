@@ -72,12 +72,12 @@
     z-index: 16;
     .xgplayer-progress-tip {
       position: absolute;
-      left: 0;
-      top: -40px;
+      bottom: 200%;
+      right: 50%;
+      transform: translateX(50%);
       height: auto;
       line-height: 30px;
       width: auto;
-      transform: scale(0.8);
       background: rgba(0, 0, 0, .3);
       border-radius: 6px;
       border: 1px solid rgba(0, 0, 0, .8);
