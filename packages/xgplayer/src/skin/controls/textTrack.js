@@ -1,22 +1,70 @@
 import Player from '../../player'
+import SubTitles from 'xgplayer-subtitles'
 import '../style/controls/textTrack.scss'
 
-let s_textTrack = function () {
-  if (!this.config.textTrack) {
-    return
+const defaultStyle = {
+  follow: true,
+  mode: 'st',
+  followBottom: 50,
+  fitVideo: true,
+  offsetBottom: 2,
+  baseSizeX: 49,
+  baseSizeY: 28,
+  minSize: 16,
+  minMobileSize: 13,
+  line: 'double'
+}
+
+function createSubTitle (textTrack, style = {}, defaultOpen = true) {
+  console.log('textTrack', textTrack)
+  const config = {
+    subTitles: textTrack,
+    defaultOpen: defaultOpen
   }
+
+  Object.keys(style).map(key => {
+    config[key] = style[key]
+  })
+  return new SubTitles(config)
+}
+
+// eslint-disable-next-line camelcase
+let s_textTrack = function () {
   let player = this
   let root = player.root
   let util = Player.util
+  if (!this.config.textTrack) {
+    return
+  }
+  const {textTrack} = this.config
+  let textTrackStyle = this.config.textTrackStyle || {}
+  Object.keys(defaultStyle).map(key => {
+    if (textTrackStyle[key] === undefined) {
+      textTrackStyle[key] = defaultStyle[key]
+    }
+  })
+
+  player.textTrackShowDefault = false
+  textTrack.map((item, index) => {
+    if (!item.id && !item.language) {
+      item.id = index
+    }
+    !item.url && (item.url = item.src)
+    !item.language && (item.language = item.srclang)
+    item.isDefault === undefined && (item.isDefault = item.default)
+    !player.textTrackShowDefault && (player.textTrackShowDefault = item.isDefault || item.default)
+  })
+  let subtitle = createSubTitle(textTrack, textTrackStyle, player.textTrackShowDefault)
+  subtitle.attachPlayer(player)
+  let positionData = {}
   let container = util.createDom('xg-texttrack', '', {tabindex: 7}, 'xgplayer-texttrack')
-  let list = player.config.textTrack
-  if (list && Array.isArray(list) && list.length > 0) {
+  if (textTrack && Array.isArray(textTrack) && textTrack.length > 0) {
     util.addClass(player.root, 'xgplayer-is-texttrack')
     player.once('canplay', function () {
       let tmp = ['<ul>']
-      tmp.push(`<li class='${this.textTrackShowDefault ? '' : 'selected'}'}'>${player.lang.OFF}</li>`)
-      list.forEach(item => {
-        tmp.push(`<li class='${item.default && this.textTrackShowDefault ? 'selected' : ''}'>${item.label}</li>`)
+      tmp.push(`<li data-type="off" class="${player.textTrackShowDefault ? '' : 'selected'}">${player.lang.OFF}</li>`)
+      textTrack.forEach(item => {
+        tmp.push(`<li data-id=${item.id} data-language=${item.language} class="${item.isDefault && player.textTrackShowDefault ? 'selected' : ''}">${item.label}</li>`)
       })
       let controlText = player.lang.TEXTTRACK
       tmp.push(`</ul><p class="name">${controlText}</p>`)
@@ -55,33 +103,19 @@ let s_textTrack = function () {
       e.stopPropagation()
       let li = e.target || e.srcElement
       if (li && li.tagName.toLocaleLowerCase() === 'li') {
+        const id = li.getAttribute('data-id')
+        const type = li.getAttribute('data-type')
+        const language = li.getAttribute('data-language')
         Array.prototype.forEach.call(li.parentNode.childNodes, item => {
           util.removeClass(item, 'selected')
         })
         util.addClass(li, 'selected')
-        let trackDoms = player.root.getElementsByTagName('Track')
-        if (li.innerHTML === player.lang.OFF) {
-          trackDoms[0].track.mode = 'hidden'
-          trackDoms[0].src = ''
+        if (type === 'off') {
+          subtitle.switchOff()
           util.removeClass(player.root, 'xgplayer-texttrack-active')
         } else {
-          trackDoms[0].style.display = 'block'
+          subtitle.switch({id, language})
           util.addClass(player.root, 'xgplayer-texttrack-active')
-          trackDoms[0].track.mode = 'showing'
-
-          list.some(item => {
-            if (item.label === li.innerHTML) {
-              trackDoms[0].src = item.src
-              if (item.kind) {
-                trackDoms[0].kind = item.kind
-              }
-              trackDoms[0].label = item.label
-              if (item.srclang) {
-                trackDoms[0].srclang = item.srclang
-              }
-              return true
-            }
-          })
           player.emit('textTrackChange', li.innerHTML)
         }
       } else if (player.config.textTrackActive === 'click' && li && (li.tagName.toLocaleLowerCase() === 'p' || li.tagName.toLocaleLowerCase() === 'em')) {
@@ -91,53 +125,44 @@ let s_textTrack = function () {
     }, false)
   })
 
-  player.on('play', () => {
-    let ul = root.querySelector('.xgplayer-texttrack ul')
-    let trackDoms = root.getElementsByTagName('Track')
-    if (!player['hls'] || !ul || !trackDoms) return
-    trackDoms[0].src = ''
-    Array.prototype.forEach.call(ul.childNodes, li => {
-      if (util.hasClass(li, 'selected')) {
-        if (li.innerHTML === player.lang.OFF) {
-          trackDoms[0].track.mode = 'hidden'
-          trackDoms[0].src = ''
-        } else {
-          trackDoms[0].track.mode = 'hidden'
+  let isActive = false
+  let followBottom = textTrackStyle.followBottom
+  function onFocus () {
+    const {marginBottom, vBottom} = positionData
+    if (isActive || !marginBottom) {
+      return
+    }
+    isActive = true
+    let bottom = marginBottom + vBottom
+    if (followBottom > bottom) {
+      bottom = followBottom
+    }
+    subtitle && (subtitle.root.style.bottom = `${bottom}px`)
+  }
 
-          list.some(item => {
-            if (item.label !== li.innerHTML) {
-              trackDoms[0].src = item.src
-              if (item.kind) {
-                trackDoms[0].kind = item.kind
-              }
-              trackDoms[0].label = item.label
-              if (item.srclang) {
-                trackDoms[0].srclang = item.srclang
-              }
-              return true
-            }
-          })
+  function onBlur () {
+    isActive = false
+    const bottom = positionData.vBottom + positionData.marginBottom
+    subtitle && (subtitle.root.style.bottom = `${bottom}px`)
+  }
 
-          list.some(item => {
-            if (item.label === li.innerHTML) {
-              setTimeout(() => {
-                trackDoms[0].src = item.src
-                if (item.kind) {
-                  trackDoms[0].kind = item.kind
-                }
-                trackDoms[0].label = item.label
-                if (item.srclang) {
-                  trackDoms[0].srclang = item.srclang
-                }
-                trackDoms[0].track.mode = 'showing'
-              })
-              return true
-            }
-          })
-        }
-      }
-    })
-    util.removeClass(player.root, 'xgplayer-texttrack-active')
+  function onSubtitleResize (data) {
+    positionData.vBottom = data.vBottom
+    positionData.marginBottom = data.marginBottom
+  }
+
+  if (player.controls && textTrackStyle.follow) {
+    subtitle.on('resize', onSubtitleResize)
+    player.on('focus', onFocus)
+    player.on('blur', onBlur)
+  }
+
+  player.once('destroy', () => {
+    subtitle.off('resize', onSubtitleResize)
+    player.off('focus', onFocus)
+    player.off('blur', onBlur)
+    subtitle.destroy()
+    subtitle = null
   })
 
   container.addEventListener('mouseleave', e => {
