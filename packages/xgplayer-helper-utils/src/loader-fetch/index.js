@@ -20,7 +20,7 @@ class FetchLoader {
     this._loaderTaskNo = 0;
     this._speed = new Speed()
     if (window.AbortController) {
-      this.abortController = new window.AbortController();
+      this.abortControllerEnabled = true;
     }
   }
 
@@ -34,19 +34,22 @@ class FetchLoader {
 
   fetch (url, params, timeout) {
     let timer = null
+    if (this.abortControllerEnabled) {
+      this.abortController = new window.AbortController();
+    }
     Object.assign(params, {signal: this.abortController ? this.abortController.signal : undefined})
     return Promise.race([
       fetch(url, params),
       new Promise((resolve, reject) => {
         timer = setTimeout(() => {
-          if (this.abortController) {
-            this.abortController.abort();
-          }
           /* eslint-disable-next-line */
           reject({
             code: 999,
             message: 'fetch timeout'
           })
+          if (this.abortController) {
+            this.abortController.abort();
+          }
         }, timeout || 1e4) // 10s
       })
     ]).then((response) => {
@@ -61,7 +64,7 @@ class FetchLoader {
   internalLoad (url, params, retryTimes, totalRetry, delayTime = 0) {
     if (this._destroyed) return
     this.loading = true;
-    return this.fetch(this.url, params, !retryTimes && 1e5).then((response) => {
+    return this.fetch(this.url, params).then((response) => {
       !this._destroyed && this.emit(LOADER_EVENTS.LOADER_RESPONSE_HEADERS, this.TAG, response.headers)
 
       if (response.ok) {
@@ -94,9 +97,7 @@ class FetchLoader {
       if (this._destroyed) {
         return;
       }
-      if (error && error.name === 'AbortError') {
-        return;
-      }
+
       if (retryTimes-- > 0) {
         this._retryTimer = setTimeout(() => {
           this.emit(LOADER_EVENTS.LOADER_RETRY, this.TAG, {
@@ -105,8 +106,11 @@ class FetchLoader {
             retryTime: totalRetry - retryTimes
           })
           return this.internalLoad(url, params, retryTimes, totalRetry, delayTime)
-        }, delayTime)
+        }, delayTime);
       } else {
+        if (error && error.name === 'AbortError') {
+          return;
+        }
         this.emit(LOADER_EVENTS.LOADER_ERROR, this.TAG, error);
         throw error;
       }
@@ -116,9 +120,6 @@ class FetchLoader {
   load (url, opts = {}, retryTimes, delayTime) {
     retryTimes = retryTimes === undefined ? 3 : retryTimes
     this.url = url;
-    if (this.abortController) {
-      this.abortController = new window.AbortController();
-    }
     this._canceled = false;
 
     // TODO: Add Ranges
