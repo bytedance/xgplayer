@@ -87,6 +87,10 @@ export default class VideoRender extends BaseRender {
     return this._decodeEstimate.decodeCost;
   }
 
+  get totalSize () {
+    return this._timeRange.totalSize;
+  }
+
   get bitrate () {
     return this._timeRange.bitrate;
   }
@@ -623,7 +627,7 @@ export default class VideoRender extends BaseRender {
   // 1. decoder初始化预解码几帧
   // 2. render 过程,帧数过少时解码新帧
   _startDecode () {
-    if (!this._wasmReady) return;
+    if (!this._wasmReady || !this._timeRange) return;
     let len = this._maxDecodeOnce;
     let rest = this._timeRange.frameLength;
     let onlyOne = rest === 1;

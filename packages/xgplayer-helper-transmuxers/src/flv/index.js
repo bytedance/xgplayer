@@ -78,7 +78,7 @@ class FlvDemuxer {
 
   parseFlvHeader (header) {
     if (!FlvDemuxer.isFlvFile(header)) {
-      this.emit(DEMUX_EVENTS.DEMUX_ERROR, this.TAG, new Error('invalid flv file'))
+      this.emit(DEMUX_EVENTS.DEMUX_ERROR, this.TAG, new Error(`invalid flv file,${header.join(',')}`))
       this.doParseFlv()
     } else {
       this._firstFragmentLoaded = true
@@ -525,7 +525,7 @@ class FlvDemuxer {
           return;
         }
         const nals = hevc ? NalUnitHEVC.getHvccNals(new Stream(chunk.data.buffer)) : NalUnit.getAvccNals(new Stream(chunk.data.buffer))
-        const keyTypes = hevc ? [19, 20] : [5]
+        const keyTypes = hevc ? [19, 20, 21] : [5]
         for (let i = 0; i < nals.length; i++) {
           const unit = nals[i]
           hevc ? NalUnitHEVC.analyseNal(unit) : NalUnit.analyseNal(unit)

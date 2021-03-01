@@ -60,7 +60,7 @@ export default class AudioRender extends BaseRender {
 
   resume () {
     if (this._audioCtx && this._audioCtx.state === 'suspended') {
-      return this._audioCtx.resume();
+      return this._audioCtx.resume().catch(e => {});
     }
   }
 
@@ -203,7 +203,8 @@ export default class AudioRender extends BaseRender {
   _doSeek (time) {
     this._reInitAudioCtx(time).then(() => {
       this._getAudioBuffer(true);
-    });
+    })
+      .catch(e => {})
   }
 
   // 直播追帧
@@ -216,7 +217,8 @@ export default class AudioRender extends BaseRender {
         Events.TIMELINE.PLAY_EVENT,
         Events.VIDEO_EVENTS.TIMEUPDATE
       );
-    });
+    })
+      .catch(e => {})
   }
 
   _assembleAAC () {
@@ -291,6 +293,7 @@ export default class AudioRender extends BaseRender {
   }
 
   _getAudioBuffer (inSeeking) {
+    if (!this._timeRange) return;
     let buffer = this._timeRange.getBuffer(this._lastBuffer ? this._lastBuffer.end : this.currentTime, 0);
     if (!buffer) {
       // check end  for vod
@@ -327,7 +330,7 @@ export default class AudioRender extends BaseRender {
 
     if (!buffer) return;
     if (this._audioCtx.state === 'suspended') {
-      this._audioCtx.resume();
+      this._audioCtx.resume().catch(e => {});
       playSlienceAudio();
     }
     this._lastBuffer = buffer;
@@ -340,7 +343,9 @@ export default class AudioRender extends BaseRender {
     this._source = _source;
     _source.addEventListener('ended', this._onSourceBufferEnded);
     _source.connect(this._gainNode);
-    _source.start();
+    try {
+      _source.start();
+    } catch (e) {}
 
     if (buffer.startDts) {
       this._emitTimelineEvents(Events.TIMELINE.SYNC_DTS, buffer.startDts);
@@ -352,7 +357,9 @@ export default class AudioRender extends BaseRender {
     if (this._source) {
       this._source.removeEventListener('ended', this._onSourceBufferEnded);
     }
-    this._audioCtx.close();
+    if (this._audioCtx) {
+      this._audioCtx.close();
+    }
     this._audioCtx = null;
     this._sampleQueue = null;
     this._timeRange = null;
