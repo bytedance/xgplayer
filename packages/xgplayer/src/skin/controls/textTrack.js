@@ -4,7 +4,7 @@ import '../style/controls/textTrack.scss'
 
 const defaultStyle = {
   follow: true,
-  mode: 'st',
+  mode: 'stroke',
   followBottom: 50,
   fitVideo: true,
   offsetBottom: 2,
