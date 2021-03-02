@@ -3,20 +3,19 @@ import SubTitles from 'xgplayer-subtitles'
 import '../style/controls/textTrack.scss'
 
 const defaultStyle = {
-  follow: true,
-  mode: 'stroke',
-  followBottom: 50,
-  fitVideo: true,
-  offsetBottom: 2,
-  baseSizeX: 49,
-  baseSizeY: 28,
-  minSize: 16,
-  minMobileSize: 13,
-  line: 'double'
+  follow: true,    // 是否跟随控制栏调整位置
+  mode: 'stroke',  // 字体显示模式，默认是描边
+  followBottom: 50,  // 跟随底部控制栏的高度
+  fitVideo: true,    //是否跟随视频自动调整字号
+  offsetBottom: 2,   //字幕距离画面底部百分比，默认2%
+  baseSizeX: 49,     //横屏视频适配基准字号
+  baseSizeY: 28,     //竖屏视频适配基准字号
+  minSize: 16,       //pc端最小字号
+  minMobileSize: 13, //移动端最小字号
+  line: 'double'     //最大显示行数 single/double/three
 }
 
 function createSubTitle (textTrack, style = {}, defaultOpen = true) {
-  console.log('textTrack', textTrack)
   const config = {
     subTitles: textTrack,
     defaultOpen: defaultOpen
