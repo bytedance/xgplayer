@@ -109,9 +109,6 @@ class MVideo extends HTMLElement {
       }
       this.setPlayMode(this._isLive && 'LIVE');
       this.muted = this.muted;
-      if (this.xgfillType) {
-        this.timeline.emit(Events.VIDEO.UPDATE_VIDEO_FILLTYPE, this.xgfillType, this.containerLayout)
-      }
     });
   }
 
@@ -224,12 +221,10 @@ class MVideo extends HTMLElement {
         console.log('degrade video:', e.message);
       });
     }
-    this._degradeVideo = null;
   }
 
   disconnectedCallback () {
     logger.log(this.TAG, 'video disconnected');
-    document.removeEventListener('touchend', this._onTouchEnd, true)
     this.destroy();
   }
 
@@ -258,7 +253,6 @@ class MVideo extends HTMLElement {
     // Note
     if (this._degradeVideo && (this.innerDegrade === 1 || this.innerDegrade === 3)) {
       if (this._degradeVideoUserGestured) return;
-      this._degradeVideo.muted = true;
       this._degradeVideo.play().then(() => {
         this._degradeVideo.pause();
         this._degradeVideoUserGestured = true;

@@ -102,6 +102,9 @@ Decoder.prototype.broadwayOnBroadwayInited = function () {
 };
 
 Decoder.prototype.storeBuffer = function (data, fInfo) {
+  if (fInfo && fInfo.isGop) {
+    this.flush();
+  }
   this.infolist.push(fInfo);
   this.streamBuffer.set(data, this.streamBufferOffset);
   this.frameLensBuffer[this.frameLensOffset] = data.length;
@@ -241,9 +244,6 @@ self.onmessage = function (e) {
         break;
       case 'decode':
         decoder.storeBuffer(data.data, data.info);
-        break;
-      case 'flush':
-        // decoder.flush();
         break;
       case 'finish_flag':
         self.postMessage({

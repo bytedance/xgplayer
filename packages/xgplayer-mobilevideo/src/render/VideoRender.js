@@ -266,6 +266,7 @@ export default class VideoRender extends BaseRender {
     this._parent.on(Events.VIDEO.UPDATE_VIDEO_FILLTYPE, (type, {width, height}) => {
       const {width: cvsWidth, height: cvsHeight} = this._canvas;
       let isGapX = (width / height) > (cvsWidth / cvsHeight); // 左右有黑边
+      console.warn('isGapX: ', isGapX, cvsWidth, cvsHeight, width, height);
       if (type === 'cover') {
         if (isGapX) {
           this._canvas.style.width = '100%';
@@ -436,6 +437,7 @@ export default class VideoRender extends BaseRender {
           break;
         case 'DECODED':
           this._inDecoding = true;
+          if (this._inChaseFrame) return;
           this._receiveFrame(e.data);
           break;
         case 'BATCH_FINISH_FLAG':
@@ -472,7 +474,6 @@ export default class VideoRender extends BaseRender {
       return
     };
     let info = frame.info;
-
     this._decodeEstimate.addDecodeInfo(info);
 
     if (!this._isLive) {
@@ -539,11 +540,6 @@ export default class VideoRender extends BaseRender {
 
   _doChaseFrame ({frame}) {
     this._inChaseFrame = true;
-    this._wasmWorkers.forEach(worker => {
-      worker.postMessage({
-        msg: 'flush'
-      })
-    })
     this._timeRange.deletePassed(frame.dts);
     this._frameQueue.empty();
   }
