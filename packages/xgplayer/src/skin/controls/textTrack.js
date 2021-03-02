@@ -12,7 +12,8 @@ const defaultStyle = {
   baseSizeY: 28,     //竖屏视频适配基准字号
   minSize: 16,       //pc端最小字号
   minMobileSize: 13, //移动端最小字号
-  line: 'double'     //最大显示行数 single/double/three
+  line: 'double',    //最大显示行数 single/double/three
+  fontColor: '#fff' // 字体颜色
 }
 
 function createSubTitle (textTrack, style = {}, defaultOpen = true) {
