@@ -42,7 +42,7 @@
         "downloadjs": "1.4.7",
         "draggabilly": "^2.2.0",
         "event-emitter": "^0.3.5",
-        "xgplayer-subtitles": "^1.0.7"
+        "xgplayer-subtitles": "^1.0.8"
     },
     "browserslist": [
         "> 5%",
