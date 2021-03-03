@@ -88,7 +88,7 @@ class FlvPlayer extends BasePlugin {
 
     // 内部降级到mse
     if (innerDegrade === 2) {
-      this._degrade(null, true);
+      this._degrade();
       this._toUseMse(backupURL);
     }
 
@@ -99,20 +99,20 @@ class FlvPlayer extends BasePlugin {
   }
 
   /**
-   * @param {string} url  降级到的地址
-   * @param {boolean} useMse 是否是降级到mse,true的话软解内部处理不用给video设置src
+   * @param {string | undefined} url  降级到的地址
    */
-  _degrade (url, useMse) {
+  _degrade (url) {
     const {player} = this;
     let mVideo = player.video;
     if (mVideo && mVideo.TAG === 'MVideo') {
       let newVideo = player.video.degradeVideo;
       this.destroy();
       player.video = newVideo;
-      mVideo.degrade(url, useMse);
+      mVideo.degrade(url);
       if (url) {
         player.config.url = url;
       }
+
       // 替换下dom元素
       let firstChild = player.root.firstChild;
       if (firstChild.TAG === 'MVideo') {
@@ -120,6 +120,11 @@ class FlvPlayer extends BasePlugin {
       }
       const mobilePluginName = FlvPlayer.pluginName.toLowerCase();
       player.plugins[mobilePluginName] = null;
+
+      // play
+      player.once('canplay', () => {
+        player.play();
+      })
     }
   }
 
@@ -142,13 +147,17 @@ class FlvPlayer extends BasePlugin {
   }
 
   // 外部强制降级
+  // flv -> h5 m3u8
+  // flv -> web mse
   forceDegradeToVideo (url) {
+    this.player.removeClass('xgplayer-is-error')
     let isHls = /\.m3u8?/.test(url);
+    // flv -> h5 hls
     if (isHls) {
       this._degrade(url);
       return;
     }
-    this._degrade(null, true);
+    this._degrade();
     this._toUseMse(url);
   }
 

@@ -79,14 +79,14 @@ class HlsPlayer extends BasePlugin {
 
     // 降级到mse
     if (player.config.innerDegrade === 2) {
-      this._degrade(null, true);
+      this._degrade();
       this._toUseMse();
       return;
     }
 
     // 降级到video直接播放hls
     if (player.config.innerDegrade === 1) {
-      this._degrade();
+      this._degrade(player.video.src);
     }
   }
 
@@ -94,19 +94,28 @@ class HlsPlayer extends BasePlugin {
    * @param {string} url  降级到的地址
    * @param {boolean} useMse 是否是降级到mse,true的话软解内部处理不用给video设置src
    */
-  _degrade (url, useMse) {
+  _degrade (url) {
     const {player} = this;
     let mVideo = player.video;
     if (mVideo && mVideo.TAG === 'MVideo') {
       let newVideo = player.video.degradeVideo;
       this.destroy();
       player.video = newVideo;
-      mVideo.degrade(url, useMse);
+      mVideo.degrade(url);
+      if (url) {
+        player.config.url = url;
+      }
+
       // 替换下dom元素
       let firstChild = player.root.firstChild;
       if (firstChild.TAG === 'MVideo') {
         player.root.replaceChild(newVideo, firstChild)
       }
+
+      // play
+      player.once('canplay', () => {
+        player.play();
+      })
     }
   }
 
@@ -125,9 +134,25 @@ class HlsPlayer extends BasePlugin {
     }
   }
 
-  // 外部强制降级到video
+  // 外部强制降级
+  // m3u8 -> h5 m3u8
+  // m3u8 -> web mse
   forceDegradeToVideo (url) {
-    this._degrade(url);
+    this.player.removeClass('xgplayer-is-error')
+    const { player } = this;
+
+    // 降级到mse
+    if (player.config.innerDegrade === 2) {
+      player.config.backupURL = url;
+      this._degrade();
+      this._toUseMse();
+      return;
+    }
+
+    // 降级到video直接播放hls
+    if (player.config.innerDegrade === 1) {
+      this._degrade(url);
+    }
   }
 
   initHls () {

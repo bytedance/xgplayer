@@ -189,10 +189,8 @@ class MVideo extends HTMLElement {
    *  innerDegrade==1 : 降级到video直接播放hls
    *  innerDegrade==2 : 降级到mse
    *  @param {string} url  强制切换到url地址并且使用video直接播放
-   *  @param {boolean} useMse 降级到mse来播放时 不用设置degradeVideo.src
    */
-  degrade (url, useMse) {
-    url = url || this.src;
+  degrade (url) {
     let canvasAppended = !!this.querySelector('canvas');
     if (canvasAppended) {
       this.replaceChild(this._degradeVideo, this.canvas);
@@ -210,21 +208,16 @@ class MVideo extends HTMLElement {
 
     this._eventsBackup = [];
 
-    this._degradeVideo.muted = false;
-
-    if (!useMse) {
+    if (url) {
+      this._degradeVideo.muted = false;
       this._degradeVideo.src = url;
       this._degradeVideo.load();
-      this._degradeVideo.play().then(() => {
-        console.log('降级自动播放');
-      }).catch(e => {
-        console.log('degrade video:', e.message);
-      });
     }
   }
 
   disconnectedCallback () {
     logger.log(this.TAG, 'video disconnected');
+    document.removeEventListener('touchend', this._onTouchEnd, true)
     this.destroy();
   }
 
@@ -518,6 +511,7 @@ class MVideo extends HTMLElement {
   }
 
   get __duration () {
+    if (this._isLive) return Infinity;
     return this.timeline.duration;
   }
 
