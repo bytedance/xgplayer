@@ -24,11 +24,11 @@ export default class HlsLivePlayer extends BasePlugin {
     this.destroy = this.destroy.bind(this);
     this.play = this.play.bind(this);
     this.handleDefinitionChange = this.handleDefinitionChange.bind(this);
-    this._context = new Context(HlsAllowedEvents);
     this.autoPlayStarted = false;
   }
 
   beforePlayerInit () {
+    this._context = new Context(HlsAllowedEvents);
     const { url } = this.player.config
     const config = Object.assign({}, defaultConfig, this.config, {player: this.player, preloadTime: this.player.config.preloadTime, limitCache: this.config.limitCache})
     this.hls = this._context.registry('HLS_LIVE_CONTROLLER', HlsLiveController)(config);
