@@ -1,6 +1,11 @@
+function typeIsObject (obj) {
+  return Object.prototype.toString.call(obj).match(/([^\s.*]+)(?=]$)/g)[0] === 'Object'
+}
+
 /**
 * a plugins manager to register and search
 **/
+
 const pluginsManager = {
   init (player) {
     // 标记每一个播放器实例
@@ -80,11 +85,12 @@ const pluginsManager = {
     }
 
     // 读取播放器整体配置上的配置数据
-    for (const item of Object.keys(originalOptions)) {
-      if (pluginName.toLowerCase() === item.toLowerCase()) {
-        const config = originalOptions[item]
-        if (config && typeof config === 'object' && !(config instanceof Array)) {
-          options.config = Object.assign({}, options.config, originalOptions[item])
+    const keys = Object.keys(originalOptions)
+    for (let i = 0; i < keys.length; i++) {
+      if (pluginName.toLowerCase() === keys[i].toLowerCase()) {
+        const config = originalOptions[keys[i]]
+        if (typeIsObject(config)) {
+          options.config = Object.assign({}, options.config, originalOptions[keys[i]])
         }
         break;
       }

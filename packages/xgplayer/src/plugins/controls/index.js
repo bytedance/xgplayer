@@ -22,7 +22,6 @@ class Controls extends Plugin {
     if (!args.config.mode && Sniffer.device === 'mobile') {
       args.config.mode = 'flex'
     }
-    console.log('args.config', args.config)
   }
 
   afterCreate () {
