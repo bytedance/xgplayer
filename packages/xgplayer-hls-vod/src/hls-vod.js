@@ -1,6 +1,6 @@
 import { EVENTS, Mse, Crypto, FetchLoader,logger } from 'xgplayer-helper-utils'
 import { PreSource, Tracks, Buffer as XgBuffer, Playlist } from 'xgplayer-helper-models'
-import { Compat as Compatibility } from 'xgplayer-helper-codec';
+import { CompatHls as Compatibility } from 'xgplayer-helper-codec';
 import { Mp4Remuxer, M3U8Parser, TsDemuxer } from 'xgplayer-helper-transmuxers'
 
 const LOADER_EVENTS = EVENTS.LOADER_EVENTS;

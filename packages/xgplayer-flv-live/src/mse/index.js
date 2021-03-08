@@ -39,7 +39,8 @@ class FlvPlayer extends BasePlugin {
         '__url': {
           get: () => {
             return this.mse.url
-          }
+          },
+          configurable: true
         }
       })
     } catch (e) {
