@@ -8,10 +8,10 @@ class Controls extends Plugin {
   static get defaultConfig () {
     return {
       disable: false,
-      autoHide: true,
-      mode: '',
-      marginBottom: false,
-      initShow: false
+      autoHide: true, // 是否自动隐藏
+      mode: '', // 显示模式， flex和normal
+      marginBottom: false, // 控制条是否显示在播放器底部
+      initShow: false // 是否初始化的时候就显示
     }
   }
 
@@ -21,6 +21,9 @@ class Controls extends Plugin {
     }
     if (!args.config.mode && Sniffer.device === 'mobile') {
       args.config.mode = 'flex'
+    }
+    if (args.config.marginBottom) {
+      args.config.autoHide = false
     }
   }
 

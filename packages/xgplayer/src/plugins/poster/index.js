@@ -7,9 +7,9 @@ class Poster extends Plugin {
 
   static get defaultConfig () {
     return {
-      isEndedShow: true,
-      hideCanplay: false, // cnaplay的时候才隐藏
-      poster: ''
+      isEndedShow: true, // 是否在播放结束之后显示
+      hideCanplay: false, // cnaplay 时间大于1的时候才隐藏
+      poster: '' // 封面图地址
     }
   }
 
@@ -61,7 +61,6 @@ class Poster extends Plugin {
   }
 
   onTimeUpdate () {
-    console.log('onTimeUpdate', this.player.currentTime)
     if (!this.player.currentTime) {
       this.once(Events.TIME_UPDATE, () => {
         this.onTimeUpdate()
