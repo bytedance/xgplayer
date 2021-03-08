@@ -40,7 +40,8 @@ export default class HlsLivePlayer extends BasePlugin {
         '__url': {
           get: () => {
             return this.hls.mse.url
-          }
+          },
+          configurable: true
         }
       })
     } catch (e) {
