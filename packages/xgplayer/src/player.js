@@ -17,6 +17,7 @@ import {
   version
 } from '../package.json'
 import I18N from './lang'
+
 const PlAYER_HOOKS = ['play']
 
 class Player extends Proxy {
@@ -359,13 +360,6 @@ class Player extends Proxy {
       options = {}
     }
 
-    for (const item of Object.keys(this.config)) {
-      if (PLUFGIN.pluginName.toLowerCase() === item.toLowerCase()) {
-        options.config = Object.assign({}, options.config, this.config[item])
-        break;
-      }
-    }
-
     const position = options.position ? options.position : (options.config && options.config.position) || (PLUFGIN.defaultConfig && PLUFGIN.defaultConfig.position)
     const {POSITIONS} = Plugin
     if (!options.root && typeof position === 'string' && position.indexOf('controls') > -1) {
@@ -577,6 +571,14 @@ class Player extends Proxy {
     this.once('loadeddata', this.reloadFunc)
   }
 
+  resetClasses () {
+    const { NOT_ALLOW_AUTOPLAY, PLAYING, NO_START, PAUSED, REPLAY, ENTER, ENDED, ERROR } = STATE_CLASS
+    const clsList = [NOT_ALLOW_AUTOPLAY, PLAYING, NO_START, PAUSED, REPLAY, ENTER, ENDED, ERROR];
+    clsList.forEach((cls) => {
+      this.removeClass(cls)
+    })
+  }
+
   destroy (isDelDom = true) {
     if (!this.root) {
       return
@@ -661,6 +663,9 @@ class Player extends Proxy {
   }
 
   exitFullscreen (el) {
+    if (!this._fullscreenEl) {
+      return
+    }
     const {root, video} = this
     if (el) {
       el = root
@@ -915,10 +920,7 @@ class Player extends Proxy {
   }
 
   set poster (posterUrl) {
-    let poster = Util.findDom(this.root, '.xgplayer-poster')
-    if (poster) {
-      poster.style.backgroundImage = `url(${posterUrl})`
-    }
+    this.plugins.poster && this.plugins.poster.update(posterUrl)
   }
 
   get fullscreen () {

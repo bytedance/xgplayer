@@ -1,8 +1,11 @@
-import Util from '../utils/util'
+function typeIsObject (obj) {
+  return Object.prototype.toString.call(obj).match(/([^\s.*]+)(?=]$)/g)[0] === 'Object'
+}
 
 /**
 * a plugins manager to register and search
 **/
+
 const pluginsManager = {
   init (player) {
     // 标记每一个播放器实例
@@ -81,6 +84,18 @@ const pluginsManager = {
       options.config = {}
     }
 
+    // 读取播放器整体配置上的配置数据
+    const keys = Object.keys(originalOptions)
+    for (let i = 0; i < keys.length; i++) {
+      if (pluginName.toLowerCase() === keys[i].toLowerCase()) {
+        const config = originalOptions[keys[i]]
+        if (typeIsObject(config)) {
+          options.config = Object.assign({}, options.config, originalOptions[keys[i]])
+        }
+        break;
+      }
+    }
+
     // 复制插件的默认配置项
     if (plugin.defaultConfig) {
       Object.keys(plugin.defaultConfig).map(key => {
@@ -88,13 +103,6 @@ const pluginsManager = {
           options.config[key] = plugin.defaultConfig[key]
         }
       })
-    }
-
-    for (const item of Object.keys(originalOptions)) {
-      if (pluginName.toLowerCase() === item.toLowerCase()) {
-        options.config = Util.ObjectAssign({}, options.config, originalOptions[item])
-        break;
-      }
     }
 
     // 获取插件添加的父节点

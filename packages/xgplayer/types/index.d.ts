@@ -358,6 +358,12 @@ declare module 'xgplayer' {
         public reload(): void;
 
         /**
+         * 重置播放器dom上的类名
+         *
+         */
+        public resetClasses(): void;
+
+        /**
          * 检测您的浏览器是否能播放不同类型的视频
          *
          * @param type 可播放类型，'video/mp4; codecs="avc1.64001E, mp4a.40.5"'
@@ -499,17 +505,6 @@ declare module 'xgplayer' {
         public exitCssFullscreen(): void;
 
         /**
-         * 播放器获取画中画，可自定义触发画中画功能的条件，不局限于播放器控件中使用
-         *
-         */
-        public getPIP(): void;
-
-        /**
-         * 播放器还原画中画，可自定义触发还原画中画功能的条件，不局限于播放器控件中使用
-         */
-        public exitPIP(): void;
-
-        /**
          * 播放器旋转
          *
          * @param clockwise 是否顺时针旋转，默认false
@@ -523,6 +518,12 @@ declare module 'xgplayer' {
          * @param 插件配置
          */
         public registerPlugin(plugin: any) : any
+
+        /**
+         * 注销插件
+         * @param 插件配置
+         */
+        public unRegisterPlugin(plugin: any) : any
 
         /**
          * 根据插件名称获取插件对象
@@ -539,7 +540,7 @@ declare module 'xgplayer' {
         /**
          * 启用某个插件定义的hook
          * @param pluginName 插件名称/key
-         * @param hookName 
+         * @param hookName
          * @param handler
          */
         public usePluginHooks(pluginName: string, hookName: string, handler: (data?: any) => any): void;

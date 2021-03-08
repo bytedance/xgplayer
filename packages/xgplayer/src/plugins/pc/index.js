@@ -55,13 +55,17 @@ export default class PCPlugin extends BasePlugin {
       clearTimeout(this.clickTimer)
       this.clickTimer = null
     }
-    console.log('onVideoClick')
-
+    let fun = null
+    if (!player.ended) {
+      fun = player.paused ? player.play : player.pause
+    } else {
+      fun = player.duration !== Infinity && player.duration > 0 ? player.replay : null
+    }
+    if (!fun) {
+      return
+    }
     this.clickTimer = setTimeout(() => {
-      console.log('onVideoClick clickTimer', player.paused)
-      if (!player.ended) {
-        player.paused ? player.play() : player.pause()
-      }
+      fun.call(player)
       clearTimeout(this.clickTimer)
       this.clickTimer = null
     }, 200)
