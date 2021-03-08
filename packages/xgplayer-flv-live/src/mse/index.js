@@ -14,6 +14,7 @@ class FlvPlayer extends BasePlugin {
   constructor (config) {
     super(config);
     this.options = Object.assign({}, defaultConfig, this.config)
+    this.context = new Context(flvAllowedEvents);
     this.loaderCompleteTimer = null;
     this.play = this.play.bind(this);
     this.pause = this.pause.bind(this);
@@ -25,11 +26,10 @@ class FlvPlayer extends BasePlugin {
     this.played = false;
 
     this.canUseHooks = this.player.useHooks && this.player.useHooks('play', this.playHook.bind(this))
+    this.initEvents()
   }
 
   beforePlayerInit () {
-    this.context = new Context(flvAllowedEvents);
-    this.initEvents()
     this.initFlv()
     this.context.init()
     this.loadData()
@@ -39,7 +39,8 @@ class FlvPlayer extends BasePlugin {
         '__url': {
           get: () => {
             return this.mse.url
-          }
+          },
+          configurable: true
         }
       })
     } catch (e) {
