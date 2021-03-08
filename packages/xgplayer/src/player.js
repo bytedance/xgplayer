@@ -663,6 +663,9 @@ class Player extends Proxy {
   }
 
   exitFullscreen (el) {
+    if (!this._fullscreenEl) {
+      return
+    }
     const {root, video} = this
     if (el) {
       el = root
