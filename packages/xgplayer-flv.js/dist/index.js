@@ -3474,6 +3474,8 @@ Object.defineProperty(exports, "__esModule", {
 
 var _createClass = function () { function defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ("value" in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } } return function (Constructor, protoProps, staticProps) { if (protoProps) defineProperties(Constructor.prototype, protoProps); if (staticProps) defineProperties(Constructor, staticProps); return Constructor; }; }();
 
+var _get = function get(object, property, receiver) { if (object === null) object = Function.prototype; var desc = Object.getOwnPropertyDescriptor(object, property); if (desc === undefined) { var parent = Object.getPrototypeOf(object); if (parent === null) { return undefined; } else { return get(parent, property, receiver); } } else if ("value" in desc) { return desc.value; } else { var getter = desc.get; if (getter === undefined) { return undefined; } return getter.call(receiver); } };
+
 var _xgplayer = __webpack_require__(20);
 
 var _xgplayer2 = _interopRequireDefault(_xgplayer);
@@ -3639,6 +3641,26 @@ var FlvJsPlayer = function (_Player) {
         }
         player.play();
       });
+    }
+  }, {
+    key: 'destroy',
+    value: function destroy() {
+      var isDelDom = arguments.length > 0 && arguments[0] !== undefined ? arguments[0] : true;
+
+      var player = this;
+      if (player.__flv__) {
+        if (player.__flv__.unload) {
+          player.__flv__.unload();
+        }
+        if (player.__flv__.detachMediaElement) {
+          player.__flv__.detachMediaElement();
+        }
+        if (player.__flv__.destroy) {
+          player.__flv__.destroy();
+        }
+      }
+      player.__flv__ = null;
+      _get(FlvJsPlayer.prototype.__proto__ || Object.getPrototypeOf(FlvJsPlayer.prototype), 'destroy', this).call(this, isDelDom);
     }
   }]);
 
@@ -7103,7 +7125,9 @@ var FlvPlayer = function () {
             this.e = null;
             this._mediaDataSource = null;
 
-            this._emitter.removeAllListeners();
+            if (this._emitter) {
+                this._emitter.removeAllListeners();
+            }
             this._emitter = null;
         }
     }, {

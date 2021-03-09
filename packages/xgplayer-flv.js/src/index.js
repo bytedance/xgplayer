@@ -139,6 +139,23 @@ class FlvJsPlayer extends Player {
       player.play()
     })
   }
+
+  destroy (isDelDom = true) {
+    let player = this
+    if (player.__flv__) {
+      if (player.__flv__.unload) {
+        player.__flv__.unload()
+      }
+      if (player.__flv__.detachMediaElement) {
+        player.__flv__.detachMediaElement()
+      }
+      if (player.__flv__.destroy) {
+        player.__flv__.destroy()
+      }
+    }
+    player.__flv__ = null
+    super.destroy(isDelDom)  
+  }
 }
 FlvJsPlayer.isSupported = Flv.isSupported
 FlvJsPlayer.FlvJs = Flv
