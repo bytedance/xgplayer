@@ -26,11 +26,11 @@ import Error from '../plugins/error'
 import Prompt from '../plugins/prompt'
 import ProgressPreview from '../plugins/progressPreview'
 import Thumbnail from '../plugins/common/thumbnail'
-
+import TextTrack from '../plugins/track'
 export default class DefaultPreset {
   constructor () {
     const contolsIcons = [Progress, PlayIcon, FullScreen, TimeIcon,
-      RotateIcon, PlayNextIcon, DefinitionIcon, PlaybackRateIcon, DownLoadIcon, ScreenShotIcon, Volume]
+      RotateIcon, PlayNextIcon, DefinitionIcon, PlaybackRateIcon, DownLoadIcon, ScreenShotIcon, Volume, TextTrack]
 
     const barIcons = [{
       plugin: PIPIcon,
