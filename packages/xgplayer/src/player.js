@@ -1,6 +1,7 @@
 import Proxy from './proxy'
 import util from './utils/util'
 import sniffer from './utils/sniffer'
+import XgplayerTimeRange from './utils/xgplayerTimeRange'
 import Errors from './error'
 import allOff from 'event-emitter/all-off'
 import s_i18n from './skin/controls/i18n.js'
@@ -562,5 +563,6 @@ class Player extends Proxy {
 Player.util = util
 Player.sniffer = sniffer
 Player.Errors = Errors
+Player.XgplayerTimeRange = XgplayerTimeRange
 
 export default Player

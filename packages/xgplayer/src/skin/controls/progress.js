@@ -196,6 +196,7 @@ let s_progress = function () {
           w = containerWidth
         }
         let now = w / containerWidth * player.duration
+        if(now < 0) now = 0
         if(player.config.allowSeekPlayed && (Number(now).toFixed(1) > player.maxPlayedTime)) {}
         else {
           progress.style.width = `${w * 100 / containerWidth}%`
@@ -242,6 +243,7 @@ let s_progress = function () {
             w = containerWidth
           }
           let now = w / containerWidth * player.duration
+          if(now < 0) now = 0
           if(player.config.allowSeekPlayed && (Number(now).toFixed(1) > player.maxPlayedTime)) {}
           else {
             progress.style.width = `${w * 100 / containerWidth}%`
