@@ -103,7 +103,9 @@ class FlvPlayer {
         this.e = null;
         this._mediaDataSource = null;
 
-        this._emitter.removeAllListeners();
+        if(this._emitter) {
+            this._emitter.removeAllListeners();
+        }
         this._emitter = null;
     }
 
