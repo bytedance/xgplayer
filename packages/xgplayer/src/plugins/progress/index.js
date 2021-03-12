@@ -14,7 +14,7 @@ class Progress extends Plugin {
       position: POSITIONS.CONTROLS_CENTER,
       index: 0,
       disable: false,
-      isDragingSeek: false, // 是否在拖拽的过程中更新currentTime
+      isDragingSeek: true, // 是否在拖拽的过程中更新currentTime
       closeMoveSeek: false, // 是否关闭滑块seek能力
       isPauseMoving: false, // 是否在move的时候暂停视频内容
       isCloseClickSeek: false, // 是否关闭点击进度条的时候seek
@@ -245,7 +245,7 @@ class Progress extends Plugin {
     this._state.time = ret.currentTime
     this.updateWidth(ret.currentTime, ret.percent, 0)
 
-    if (Sniffer.device === 'mobile') {
+    if (this.isMobile) {
       this.bind('touchmove', this.onMouseMove)
       this.bind('touchend', this.onMouseUp)
     } else {
@@ -274,6 +274,7 @@ class Progress extends Plugin {
       this.updateWidth(ret.currentTime, ret.percent, 2)
       this.triggerCallbacks('dragend', ret)
     } else {
+      this.updateWidth(ret.currentTime, ret.percent, 2)
       this.triggerCallbacks('click', ret)
     }
 
@@ -489,7 +490,7 @@ class Progress extends Plugin {
     this.thumbnailPlugin = null
     this.innerList.destroy()
     this.innerList = null
-    if (Sniffer.device === 'mobile') {
+    if (this.isMobile) {
       this.unbind('touchstart', this.onMouseDown)
       this.unbind('touchmove', this.onMouseMove)
       this.unbind('touchend', this.onMouseUp)
