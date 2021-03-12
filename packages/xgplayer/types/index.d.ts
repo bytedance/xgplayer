@@ -36,6 +36,11 @@ declare module 'xgplayer' {
         volume?: number;
     }
 
+    interface controlPluginOptions {
+        method: VoidFunction;
+        name?: string;
+    }
+
     interface Util {
         createDom: (el: string, tpl?: string, attrs?: object, cname?: string) => HTMLElement;
         hasClass: (el: HTMLElement, cname: string) => boolean;
@@ -47,7 +52,6 @@ declare module 'xgplayer' {
         format: (f: number) => string;
         deepCopy: (src: object, dist: object) => object;
         getBgImage: (el: HTMLElement) => string;
-        Hex2RGBA: (hex: string, alpha: number) => string;
         isWeiXin: () => boolean;
     }
 
@@ -166,6 +170,12 @@ declare module 'xgplayer' {
 
         // 画中画
         pip?: boolean;
+
+        // 迷你播放器
+        miniplayer?: boolean;
+
+        // 迷你播放器
+        miniplayerConfig?: object;
 
         // 网页样式全屏
         cssFullscreen?: boolean;
@@ -298,6 +308,24 @@ declare module 'xgplayer' {
 
         //触发全屏时实现样式全屏横屏
         rotateFullscreen?: boolean;
+
+        //关闭点击播放器video元素的阻止默认动作行为
+        closeVideoPreventDefault?: boolean;
+
+        //支持进度条只能拖动到已播过部分
+        allowSeekPlayed?: boolean;
+
+        //引用插件
+        controlPlugins?: Array<controlPluginOptions>;
+
+        //不自动引用多语言插件
+        closeI18n?: boolean;
+
+        //视频起播时间（单位：秒）
+        lastPlayTime?: number;
+
+        //提示文字展示时长（单位：秒）
+        lastPlayTimeHideDelay?: number;
     }
 
     class Proxy extends EventEmitter {
@@ -472,6 +500,12 @@ declare module 'xgplayer' {
         constructor(options: IPlayerOptions);
 
         /**
+         * 向容器添加video元素
+         *
+         */
+        public attachVideo(): void;
+
+        /**
          * 启动播放器，start一般都是播放器内部隐式调用，主要功能是将video添加到DOM
          *
          * @param url 视频地址
@@ -524,6 +558,30 @@ declare module 'xgplayer' {
         public exitCssFullscreen(): void;
 
         /**
+         * 进入横屏样式全屏
+         *
+         */
+        public getRotateFullscreen(): void;
+
+        /**
+         * 退出横屏样式全屏
+         *
+         */
+        public exitRotateFullscreen(): void;
+
+        /**
+         * 下载
+         *
+         */
+        public download(): void;
+
+        /**
+         * 插件执行
+         *
+         */
+        public pluginsCall(): void;
+
+        /**
          * 播放器获取画中画，可自定义触发画中画功能的条件，不局限于播放器控件中使用
          *
          */
@@ -535,6 +593,23 @@ declare module 'xgplayer' {
         public exitPIP(): void;
 
         /**
+         * 进入迷你播放器模式
+         *
+         */
+        public getMiniplayer(): void;
+
+        /**
+         * 退出迷你播放器模式
+         */
+        public exitMiniplayer(): void;
+
+        /**
+         * 更新旋转角度
+         *
+         */
+        public updateRotateDeg(): void;
+
+        /**
          * 播放器旋转
          *
          * @param clockwise 是否顺时针旋转，默认false
@@ -543,6 +618,62 @@ declare module 'xgplayer' {
          */
         public rotate(clockwise?: boolean, innerRotate?: boolean, times?: number): void;
 
+        /**
+         * focus事件回调方法
+         *
+         */
+        public onFocus(): void;
+
+        /**
+         * blur事件回调方法
+         *
+         */
+        public onBlur(): void;
+
+        /**
+         * play事件回调方法
+         *
+         */
+        public onPlay(): void;
+
+        /**
+         * pause事件回调方法
+         *
+         */
+        public onPause(): void;
+
+        /**
+         * ended事件回调方法
+         *
+         */
+        public onEnded(): void;
+
+        /**
+         * seeking事件回调方法
+         *
+         */
+        public onSeeking(): void;
+
+        /**
+         * seeked事件回调方法
+         *
+         */
+        public onSeeked(): void;
+
+        /**
+         * waiting事件回调方法
+         *
+         */
+        public onWaiting(): void;
+
+        /**
+         * play事件回调方法
+         *
+         */
+        public onPlaying(): void;
+
+        // 返回累计播放时间
+        public cumulateTime: number;
 
         /**
          * 添加标记

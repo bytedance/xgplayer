@@ -1,12 +1,13 @@
 import Player from '../../player'
 import PlayIcon from '../assets/play.svg'
 import PauseIcon from '../assets/pause.svg'
+import '../style/controls/play.scss'
 
 let s_play = function () {
   let player = this
   let util = Player.util
   let playBtn = player.config.playBtn ? player.config.playBtn : {}
-  let btn, iconPlay, iconPause
+  let btn
   if (playBtn.type === 'img') {
     btn = util.createImgBtn('play', playBtn.url.play, playBtn.width, playBtn.height)
   } else {
@@ -37,4 +38,7 @@ let s_play = function () {
   })
 }
 
-Player.install('s_play', s_play)
+export default {
+  name: 's_play',
+  method: s_play
+}

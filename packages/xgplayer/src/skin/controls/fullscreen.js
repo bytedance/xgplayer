@@ -1,12 +1,13 @@
 import Player from '../../player'
 import RequestFullIcon from '../assets/requestFull.svg'
 import ExitFullIcon from '../assets/exitFull.svg'
+import '../style/controls/fullscreen.scss'
 
 let s_fullscreen = function () {
   let player = this
   let util = Player.util
   let fullscreenBtn = player.config.fullscreenBtn ? player.config.fullscreenBtn : {}
-  let btn, iconRequestFull, iconExitFull
+  let btn
   if (fullscreenBtn.type === 'img') {
     btn = util.createImgBtn('fullscreen', fullscreenBtn.url.request, fullscreenBtn.width, fullscreenBtn.height)
   } else {
@@ -37,4 +38,7 @@ let s_fullscreen = function () {
   })
 }
 
-Player.install('s_fullscreen', s_fullscreen)
+export default {
+  name: 's_fullscreen',
+  method: s_fullscreen
+}

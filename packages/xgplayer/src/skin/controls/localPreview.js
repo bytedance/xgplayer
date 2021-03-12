@@ -2,7 +2,6 @@ import Player from '../../player'
 
 let s_localPreview = function () {
   let player = this
-  let root = player.root
   let util = Player.util
   if (player.config.preview && player.config.preview.uploadEl) {
     let preview = util.createDom('xg-preview', '<input type="file">', {}, 'xgplayer-preview')
@@ -14,4 +13,7 @@ let s_localPreview = function () {
   }
 }
 
-Player.install('s_localPreview', s_localPreview)
+export default {
+  name: 's_localPreview',
+  method: s_localPreview
+}

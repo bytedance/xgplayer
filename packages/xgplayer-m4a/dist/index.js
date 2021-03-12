@@ -2433,12 +2433,14 @@ var m4aplayer = function m4aplayer() {
           m4aCache.write(new Uint8Array(player.mp4.ftypBuffer), new Uint8Array(player.mp4.moovBuffer), mdatCache.buffer);
         }
         var offlineVid = vid || name;
-        player.database.openDB(function () {
-          player.database.addData(player.database.myDB.ojstore.name, [{ vid: offlineVid, blob: new Blob([m4aCache.buffer], { type: 'audio/mp4; codecs="mp4a.40.5"' }) }]);
-          setTimeout(function () {
-            player.database.closeDB();
-          }, 5000);
-        });
+        if (player.database) {
+          player.database.openDB(function () {
+            player.database.addData(player.database.myDB.ojstore.name, [{ vid: offlineVid, blob: new Blob([m4aCache.buffer], { type: 'audio/mp4; codecs="mp4a.40.5"' }) }]);
+            setTimeout(function () {
+              player.database.closeDB();
+            }, 5000);
+          });
+        }
       }
     });
   }
@@ -4520,7 +4522,7 @@ module.exports = exports['default'];
 /* 85 */
 /***/ (function(module) {
 
-module.exports = JSON.parse("{\"version\":\"1.1.6\"}");
+module.exports = JSON.parse("{\"version\":\"1.2.0\"}");
 
 /***/ }),
 /* 86 */

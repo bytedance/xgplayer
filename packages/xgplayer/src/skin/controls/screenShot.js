@@ -1,4 +1,5 @@
 import Player from '../../player'
+import '../style/controls/screenShot.scss'
 
 let s_screenShot = function () {
   let player = this
@@ -21,4 +22,7 @@ let s_screenShot = function () {
   })
 }
 
-Player.install('s_screenShot', s_screenShot)
+export default {
+  name: 's_screenShot',
+  method: s_screenShot
+}

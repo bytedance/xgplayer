@@ -2,13 +2,11 @@ import Player from '../player'
 
 let pip = function () {
   let player = this
-  let util = Player.util
-  let root = player.root
   function onPipBtnClick () {
-    if (util.hasClass(root, 'xgplayer-pip-active')) {
-      player.exitPIP()
+    if (player.video !== document.pictureInPictureElement) {
+      player.video.requestPictureInPicture();
     } else {
-      player.getPIP()
+      document.exitPictureInPicture();
     }
   }
   player.on('pipBtnClick', onPipBtnClick)
@@ -20,4 +18,7 @@ let pip = function () {
   player.once('destroy', onDestroy)
 }
 
-Player.install('pip', pip)
+export default {
+  name: 'pip',
+  method: pip
+}

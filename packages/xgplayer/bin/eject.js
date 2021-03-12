@@ -9,7 +9,7 @@ module.exports = async (dir, name) => {
 
   const skinIndex = path.resolve(target, './index.js')
   const skinIndexContent = await fs.readFile(skinIndex, 'utf-8')
-  const skinIndexTransformed = [skinIndexContent, 'import Player from "xgplayer"', `Player.install("xgplayer-skin-${name}", () => {})`].join('\n')
+  const skinIndexTransformed = [skinIndexContent, 'import "./style/index.scss"', `Player.install("xgplayer-skin-${name}", () => {})`].join('\n')
   await fs.writeFile(skinIndex, skinIndexTransformed)
 
   let startJs = path.resolve(target, `controls/start.js`)
@@ -19,9 +19,12 @@ module.exports = async (dir, name) => {
 
   await replaceStr('../src/skin/controls/', '.js', [{old: /Player.install/, new: 'Player.use'}, {old: /..\/..\/player/, new: 'xgplayer'}])
 
+  await replaceStr('../src/skin/', 'index.js', [{old: /Player.installAll/, new: 'Player.useAll'}, {old: /..\/player/, new: 'xgplayer'}])
+
   await replaceStr('../src/skin/style/', '.scss', [{old: /xgplayer-skin-default/g, new: `xgplayer-skin-${name}`}])
 
   async function replaceStr(filePath, fileType, replaceList) {
+    if(!fs.statSync(path.resolve(__dirname, filePath)).isDirectory()) return
     let styles = fs.readdirSync(path.resolve(__dirname, filePath))
     await styles.forEach(async item => {
       if(item.endsWith(fileType)) {

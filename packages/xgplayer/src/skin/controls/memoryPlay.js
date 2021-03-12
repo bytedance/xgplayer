@@ -1,10 +1,11 @@
 import Player from '../../player'
+import '../style/controls/memoryPlay.scss'
 
-let smemoryPlay = function () {
+let s_memoryPlay = function () {
   let player = this
   let util = Player.util
   let lastPlayTime = player.config.lastPlayTime || 0
-  let lastPlayTimeHideDelay = player.config.lastPlayTimeHideDelay || 3
+  let lastPlayTimeHideDelay = player.config.lastPlayTimeHideDelay || 0
   let dom = null
   if (lastPlayTime <= 0) {
     return
@@ -19,7 +20,9 @@ let smemoryPlay = function () {
   }
   dom.querySelector('.xgplayer-progress-tip .btn-close').addEventListener('click', removeFunc)
   const handlePlay = () => {
-    player.root.appendChild(dom);
+    if(lastPlayTimeHideDelay > 0) {
+      player.root.appendChild(dom);
+    }
     player.emit('memoryPlayStart', lastPlayTime);
     if (lastPlayTimeHideDelay > 0) {
       setTimeout(() => {
@@ -31,4 +34,7 @@ let smemoryPlay = function () {
   player.once('ended', removeFunc)
 }
 
-Player.install('s_memoryPlay', smemoryPlay)
+export default {
+  name: 's_memoryPlay',
+  method: s_memoryPlay
+}

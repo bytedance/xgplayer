@@ -1,3 +1,5 @@
+import XgplayerTimeRange from './xgplayerTimeRange'
+
 let util = {}
 
 util.createDom = function (el = 'div', tpl = '', attrs = {}, cname = '') {
@@ -210,25 +212,6 @@ util.createImgBtn = function (name, imgUrl, width, height) {
   return btn
 }
 
-util.Hex2RGBA = function (hex, alpha) {
-  let rgb = [] // 定义rgb数组
-  if (/^\#[0-9A-F]{3}$/i.test(hex)) {
-    let sixHex = '#'
-    hex.replace(/[0-9A-F]/ig, function (kw) {
-      sixHex += kw + kw
-    })
-    hex = sixHex
-  }
-  if (/^#[0-9A-F]{6}$/i.test(hex)) {
-    hex.replace(/[0-9A-F]{2}/ig, function (kw) {
-      rgb.push(parseInt(kw, 16))
-    })
-    return `rgba(${rgb.join(',')}, ${alpha})`
-  } else {
-    return 'rgba(255, 255, 255, 0.1)'
-  }
-}
-
 util.isWeiXin = function () {
     let ua = window.navigator.userAgent.toLowerCase()
     return ua.indexOf('micromessenger') > -1
@@ -240,8 +223,6 @@ util.isUc = function () {
 }
 
 util.computeWatchDur = function (played = []) {
-  let minBegin = 0
-  let end = 0
   let arr = []
   for (let i = 0; i < played.length; i++) {
     if(!played[i].end || played[i].begin < 0 || played[i].end < 0 || played[i].end < played[i].begin) {
@@ -278,53 +259,6 @@ util.computeWatchDur = function (played = []) {
   return watch_dur
 }
 
-util.downloadFile = function (url) {
-  let me = this
-  return new Promise((resolve, reject) => {
-    var xhr = new XMLHttpRequest();
-    xhr.open("get", url);
-    xhr.responseType = "arraybuffer";
-    xhr.onload = function() {
-      let blob
-      let ctx = xhr.response
-      try {
-        blob = new Blob([ctx], {type: 'application/x-mpegURL'});
-      } catch (e) { // Backwards-compatibility
-        window.BlobBuilder = window.BlobBuilder || window.WebKitBlobBuilder || window.MozBlobBuilder;
-        blob = new BlobBuilder();
-        blob.append(ctx);
-        blob = blob.getBlob();
-      }
-      let blobUrl = URL.createObjectURL(blob)
-      me.cacheBuffer[ url ] = {
-        blobUrl,
-        blob
-      }
-      if (me.options.backupUrls && me.options.backupUrls.length && !me.backup_download_success) {
-        if (me.options.backupUrls.every(url => me.cacheBuffer[url] && !isPromise(me.cacheBuffer[url]))) {
-          me.emit('backup_download_success')
-          me.backup_download_success = true
-        }
-      }
-      resolve({
-        blobUrl,
-        blob
-      })
-    };
-    xhr.onerror = function (e) {
-      delete me.cacheBuffer[ url ]
-      resolve(url)
-    }
-    xhr.onprogress = function (e) {
-      if (me.cacheBuffer[ url ] == -1 && xhr) {
-        xhr.abort()
-        delete me.cacheBuffer[ url ]
-      }
-    }
-    xhr.send();
-  })
-}
-
 util.offInDestroy = (object, event, fn, offEvent) => {
   function onDestroy () {
     object.off(event, fn)
@@ -357,6 +291,42 @@ util.once = (object, event, fn, offEvent) => {
     }
     object.once(event, _fn)
   }
+}
+
+util.getBuffered2 = (vbuffered, maxHoleDuration = 0.5) => { //ref: hls.js
+  let buffered = []
+  for (let i = 0; i < vbuffered.length; i++) {
+    buffered.push({ start: vbuffered.start(i) < 0.5 ? 0 : vbuffered.start(i), end: vbuffered.end(i) });
+  }
+  buffered.sort(function (a, b) {
+    let diff = a.start - b.start;
+    if (diff) {
+      return diff;
+    } else {
+      return b.end - a.end;
+    }
+  });
+  let buffered_2 = []
+  if (maxHoleDuration) {
+    for (let i = 0; i < buffered.length; i++) {
+      let buf2len = buffered_2.length
+      if (buf2len) {
+        let buf2end = buffered_2[buf2len - 1].end
+        if ((buffered[i].start - buf2end) < maxHoleDuration) {
+          if (buffered[i].end > buf2end) {
+            buffered_2[buf2len - 1].end = buffered[i].end
+          }
+        } else {
+          buffered_2.push(buffered[i])
+        }
+      } else {
+        buffered_2.push(buffered[i])
+      }
+    }
+  } else {
+    buffered_2 = buffered
+  }
+  return new XgplayerTimeRange(buffered_2)
 }
 
 export default util

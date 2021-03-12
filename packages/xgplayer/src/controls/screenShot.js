@@ -51,4 +51,7 @@ let screenShot = function () {
   player.once('destroy', onDestroy)
 }
 
-Player.install('screenShot', screenShot)
+export default {
+  name: 'screenShot',
+  method: screenShot
+}

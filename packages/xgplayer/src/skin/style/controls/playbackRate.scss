@@ -2,19 +2,20 @@
   .xgplayer-playbackrate {
     order: 8;
     width: 60px;
-    height: 20px;
+    height: 150px;
     z-index: 18;
     position: relative;
     display: inline-block;
     cursor: default;
+    margin-top: -119px;
     ul {
       display: none;
       list-style: none;
       width: 78px;
-      background: $definitionUlBgColor;
+      background: rgba(0, 0, 0, 0.54);
       border-radius: 1px;
       position: absolute;
-      bottom: 20px;
+      bottom: 30px;
       left: 50%;
       transform: translateX(-50%);
       text-align: left;
@@ -25,16 +26,16 @@
         opacity: 0.7;
         font-family: PingFangSC-Regular;
         font-size: 11px;
-        color: $definitionLiColor;
+        color: rgba(255, 255, 255, 0.80);
         position: relative;
         padding: 4px 0 4px 0px;
         text-align: center;
         &.selected{
-          color: $definitionLiActiveColor;
+          color: #fff;
           opacity: 1;
         }
         &:hover{
-          color: $definitionLiActiveColor;
+          color: #fff;
           opacity: 1;
         }
       }
@@ -48,10 +49,13 @@
       }
     }
     .name {
+      width: 60px;
       height: 20px;
-      position: relative;
-      top: 11px;
+      position: absolute;
+      bottom: 0px;
       text-align: center;
+      font-family: PingFangSC-Regular;
+      font-size: 13px;
       background: rgba(0, 0, 0, .38);
       color: hsla(0, 0%, 100%, .8);
       border-radius: 10px;

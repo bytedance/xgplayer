@@ -7,4 +7,7 @@ let memoryPlay = function () {
   })
 }
 
-Player.install('memoryPlay', memoryPlay)
+export default {
+  name: 'memoryPlay',
+  method: memoryPlay
+}

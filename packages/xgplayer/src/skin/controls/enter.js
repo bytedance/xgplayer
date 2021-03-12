@@ -1,4 +1,5 @@
 import Player from '../../player'
+import '../style/controls/enter.scss'
 
 let s_enter = function () {
   let player = this
@@ -15,4 +16,7 @@ let s_enter = function () {
   root.appendChild(enter)
 }
 
-Player.install('s_enter', s_enter)
+export default {
+  name: 's_enter',
+  method: s_enter
+}

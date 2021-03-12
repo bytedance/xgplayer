@@ -94,4 +94,7 @@ let mobile = function () {
   player.once('destroy', onDestroy)
 }
 
-Player.install('mobile', mobile)
+export default {
+  name: 'mobile',
+  method: mobile
+}

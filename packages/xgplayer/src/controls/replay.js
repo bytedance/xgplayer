@@ -25,4 +25,7 @@ let replay = function () {
   player.once('destroy', onDestroy)
 }
 
-Player.install('replay', replay)
+export default {
+  name: 'replay',
+  method: replay
+}

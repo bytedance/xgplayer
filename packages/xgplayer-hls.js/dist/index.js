@@ -6067,7 +6067,7 @@ var HlsJsPlayer = function (_Player) {
       if (player.config.isLive) {
         util.addClass(player.root, 'xgplayer-is-live');
         if (!util.findDom(player.controls, '.xgplayer-live')) {
-          var live = util.createDom('xg-live', '正在直播', {}, 'xgplayer-live');
+          var live = util.createDom('xg-live', player.lang.LIVE || '正在直播', {}, 'xgplayer-live');
           player.controls.appendChild(live);
         }
       }
@@ -6276,6 +6276,7 @@ var HlsJsPlayer = function (_Player) {
 }(_xgplayer2.default);
 
 HlsJsPlayer.isSupported = _hls2.default.isSupported;
+HlsJsPlayer.HlsJs = _hls2.default;
 
 exports.default = HlsJsPlayer;
 module.exports = exports['default'];

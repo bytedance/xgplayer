@@ -1,4 +1,5 @@
 import Player from '../../player'
+import '../style/controls/error.scss'
 
 let s_error = function () {
   let player = this
@@ -48,4 +49,7 @@ let s_error = function () {
   player.once('destroy', onDestroy)
 }
 
-Player.install('s_error', s_error)
+export default {
+  name: 's_error',
+  method: s_error
+}

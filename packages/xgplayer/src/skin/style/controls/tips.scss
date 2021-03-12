@@ -1,12 +1,12 @@
 .xgplayer-skin-default {
     .xgplayer-tips{
-      background: $tipsBgColor;
+      background: rgba(0, 0, 0, 0.54);
       border-radius: 1px;
       display: none;
       position: absolute;
       font-family: PingFangSC-Regular;
-      font-size: $tipsFontsize;
-      color: $tipsColor;
+      font-size: 11px;
+      color: #fff;
       padding: 2px 4px;
       text-align: center;
       top: -30px;

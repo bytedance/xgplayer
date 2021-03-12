@@ -55,4 +55,7 @@ let start = function () {
   player.once('destroy', onDestroy)
 }
 
-Player.install('start', start)
+export default {
+  name: 'start',
+  method: start
+}

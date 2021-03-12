@@ -1,6 +1,7 @@
 import Player from '../../player'
 import StartPlayIcon from '../assets/startPlay.svg'
 import StartPauseIcon from '../assets/startPause.svg'
+import '../style/controls/start.scss'
 
 let s_start = function () {
   let player = this
@@ -52,4 +53,7 @@ let s_start = function () {
   }
 }
 
-Player.install('s_start', s_start)
+export default {
+  name: 's_start',
+  method: s_start
+}

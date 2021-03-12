@@ -1,8 +1,8 @@
 import Player from '../../player'
+import '../style/controls/time.scss'
 
 let s_time = function () {
   let player = this
-  let root = player.root
   let util = Player.util
   let container = util.createDom('xg-time', `<span class="xgplayer-time-current">${player.currentTime || util.format(0)}</span>
                                            <span>${player.duration || util.format(0)}</span>`, {}, 'xgplayer-time')
@@ -35,4 +35,7 @@ let s_time = function () {
   player.once('destroy', onDestroy)
 }
 
-Player.install('s_time', s_time)
+export default {
+  name: 's_time',
+  method: s_time
+}

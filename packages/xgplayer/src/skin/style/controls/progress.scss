@@ -11,7 +11,7 @@
     z-index: 35;
   }
   .xgplayer-progress-outer {
-    background: $progressOuterBgColor;
+    background: rgba(255, 255, 255, 0.30);
     display: block;
     height: 3px;
     line-height: 3px;
@@ -30,12 +30,12 @@
   }
   .xgplayer-progress-cache {
     width: 0;
-    background: $progressCacheBgColor;
+    background: rgba(255, 255, 255, 0.50);
   }
   .xgplayer-progress-played {
     display: block;
     width: 0;
-    background-image: $progressPlayedBgImage;
+    background-image: linear-gradient(-90deg, #FA1F41 0%, #E31106 100%);
     border-radius: 0 1.5px 1.5px 0;
   }
   .xgplayer-progress-btn {
@@ -47,9 +47,10 @@
     height: 13px;
     border-radius: 30px;
     background: #FFFFFF;
-    box-shadow: $progressPlayedShadow;
+    box-shadow: 0 0 2px 0 rgba(0, 0, 0, 0.26);
     left: 100%;
     transform: translate(-50%, 0);
+    z-index: 36;
   }
   .xgplayer-progress-point {
     position: absolute;
@@ -71,12 +72,12 @@
     z-index: 16;
     .xgplayer-progress-tip {
       position: absolute;
-      left: 0;
-      top: -40px;
+      bottom: 200%;
+      right: 50%;
+      transform: translateX(50%);
       height: auto;
       line-height: 30px;
       width: auto;
-      transform: scale(0.8);
       background: rgba(0, 0, 0, .3);
       border-radius: 6px;
       border: 1px solid rgba(0, 0, 0, .8);

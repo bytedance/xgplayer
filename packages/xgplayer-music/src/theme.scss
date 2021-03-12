@@ -128,42 +128,40 @@
         display: flex;
     }
 }
-.xgplayer-skin-default{
-  .xgplayer-lyric-item {
-      display: block;
-      line-height: 22px;
-      font-size: 14px;
-      color: black;
-      &.xgplayer-lyric-item-active {
-          color: aquamarine;
-      }
-  }
-  .xgplayer-lrcWrap {
-      overflow: auto;
-      height:300px;
-      border: 1px solid #ddd;
-      padding: 20px;
-  }
-  .xgplayer-lrcForward {
-      position: absolute;
-      top: 20%;
-      left: 300px;
-      cursor: pointer;
-      width:0;
-      height:0;
-      border-width:0 10px 10px;
-      border-style:solid;
-      border-color:transparent transparent #333;/*透明 透明  灰*/
-  }
-  .xgplayer-lrcBack {
-      position: absolute;
-      top: 80%;
-      left: 300px;
-      cursor: pointer;
-      width:0;
-      height:0;
-      border-width:10px 10px 0;
-      border-style:solid;
-      border-color:#333 transparent transparent;/*透明 透明  灰*/
-  }
+.xgplayer-lyric-item {
+    display: block;
+    line-height: 22px;
+    font-size: 14px;
+    color: black;
+    &.xgplayer-lyric-item-active {
+        color: aquamarine;
+    }
+}
+.xgplayer-lrcWrap {
+    overflow: auto;
+    height:300px;
+    border: 1px solid #ddd;
+    padding: 20px;
+}
+.xgplayer-lrcForward {
+    position: absolute;
+    top: 20%;
+    left: 300px;
+    cursor: pointer;
+    width:0;
+    height:0;
+    border-width:0 10px 10px;
+    border-style:solid;
+    border-color:transparent transparent #333;/*透明 透明  灰*/
+}
+.xgplayer-lrcBack {
+    position: absolute;
+    top: 80%;
+    left: 300px;
+    cursor: pointer;
+    width:0;
+    height:0;
+    border-width:10px 10px 0;
+    border-style:solid;
+    border-color:#333 transparent transparent;/*透明 透明  灰*/
 }

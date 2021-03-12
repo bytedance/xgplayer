@@ -414,12 +414,14 @@ let m4aplayer = function () {
           m4aCache.write(new Uint8Array(player.mp4.ftypBuffer), new Uint8Array(player.mp4.moovBuffer), mdatCache.buffer)
         }
         let offlineVid = vid || name
-        player.database.openDB(() => {
-          player.database.addData(player.database.myDB.ojstore.name, [{vid: offlineVid, blob: new Blob([m4aCache.buffer], {type: 'audio/mp4; codecs="mp4a.40.5"'})}])
-          setTimeout(() => {
-            player.database.closeDB()
-          }, 5000)
-        })
+        if(player.database) {
+          player.database.openDB(() => {
+            player.database.addData(player.database.myDB.ojstore.name, [{vid: offlineVid, blob: new Blob([m4aCache.buffer], {type: 'audio/mp4; codecs="mp4a.40.5"'})}])
+            setTimeout(() => {
+              player.database.closeDB()
+            }, 5000)
+          })
+        }
       }
     })
   }

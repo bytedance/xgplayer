@@ -32,7 +32,7 @@
     position: absolute;
     width: 28px;
     height: 92px;
-    background: $sliderBgColor;
+    background: rgba(0, 0, 0, 0.54);
     border-radius: 1px;
     bottom: 42px;
     outline: none;
@@ -53,7 +53,7 @@
     position: absolute;
     bottom: 6px;
     left: 12px;
-    background: $sliderBarBgColor;
+    background: rgba(255, 255, 255, 0.30);
     border-radius: 100px;
     width: 4px;
     height: 76px;
@@ -63,15 +63,15 @@
   .xgplayer-drag{
     bottom: 0;
     left: 0;
-    background: $sliderDragBgColor;
+    background: #FA1F41;
     max-height: 76px;
     &:after{
       content: " ";
       display: inline-block;
       width: 8px;
       height: 8px;
-      background: $sliderDragAfterBgColor;
-      box-shadow: $sliderDragAfterShadow;
+      background: #fff;
+      box-shadow: 0 0 5px 0 rgba(0, 0, 0, 0.26);
       position: absolute;
       border-radius: 50%;
       left: -2px;

@@ -3,17 +3,17 @@
     order: 2;
     font-family: ArialMT;
     font-size: 13px;
-    color: $timeColor;
+    color: #fff;
     line-height: 40px;
     height: 40px;
     text-align: center;
     display: inline-block;
     margin: auto 8px;
     span {
-      color: $timeDurationColor;
+      color: rgba(255, 255, 255, 0.50);
     }
     .xgplayer-time-current {
-      color: $timeColor;
+      color: #fff;
     }
     .xgplayer-time-current::after {
       content: "/";

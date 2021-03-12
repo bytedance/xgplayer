@@ -1,11 +1,14 @@
 import Player from '../../player'
+import '../style/controls/playbackRate.scss'
 
 let s_playbackRate = function () {
   let player = this
   let sniffer = Player.sniffer
   let util = Player.util
+  let playbackRateList = []
   if (player.config.playbackRate) {
-    player.config.playbackRate.sort((a, b) => b - a)
+    playbackRateList = [].concat(player.config.playbackRate)
+    playbackRateList.sort((a, b) => b - a)
   } else {
     return false
   }
@@ -15,7 +18,7 @@ let s_playbackRate = function () {
   }
 
   let list = []
-  player.config.playbackRate.forEach(item => {
+  playbackRateList.forEach(item => {
     list.push({name: `${item}`, rate: `${item}x`, selected: false})
   })
   let selectedSpeed = 1
@@ -119,4 +122,7 @@ let s_playbackRate = function () {
   })
 }
 
-Player.install('s_playbackRate', s_playbackRate)
+export default {
+  name: 's_playbackRate',
+  method: s_playbackRate
+}

@@ -1,4 +1,6 @@
 import Player from '../player'
+import downloadUtil from 'downloadjs'
+import {getAbsoluteURL} from '../utils/url'
 
 let download = function () {
   let player = this
@@ -14,6 +16,14 @@ let download = function () {
     player.off('destroy', onDestroy)
   }
   player.once('destroy', onDestroy)
+
+  player.download = function () {
+    const url = getAbsoluteURL(this.config.url)
+    downloadUtil(url)
+  }
 }
 
-Player.install('download', download)
+export default {
+  name: 'download',
+  method: download
+}

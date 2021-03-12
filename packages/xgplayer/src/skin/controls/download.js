@@ -1,5 +1,6 @@
 import Player from '../../player'
 import DownloadIcon from '../assets/download.svg'
+import '../style/controls/download.scss'
 
 let s_download = function () {
   let player = this
@@ -23,4 +24,7 @@ let s_download = function () {
   })
 }
 
-Player.install('s_download', s_download)
+export default {
+  name: 's_download',
+  method: s_download
+}

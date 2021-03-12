@@ -126,4 +126,7 @@ function errorRetry () {
   }
 }
 
-Player.install('errorretry', errorRetry)
+export default {
+  name: 'errorretry',
+  method: errorRetry
+}

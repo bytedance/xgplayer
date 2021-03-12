@@ -1,5 +1,6 @@
 import Player from '../../player'
 import RotateIcon from '../assets/rotate.svg'
+import '../style/controls/rotate.scss'
 
 let s_rotate = function () {
   let player = this
@@ -23,4 +24,7 @@ let s_rotate = function () {
   })
 }
 
-Player.install('s_rotate', s_rotate)
+export default {
+  name: 's_rotate',
+  method: s_rotate
+}

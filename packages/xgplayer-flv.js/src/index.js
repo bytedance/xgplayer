@@ -45,6 +45,7 @@ class FlvJsPlayer extends Player {
 
     player.once('complete', () => {
       player.__flv__ = Flv.createPlayer(this.flvOpts, this.optionalConfig)
+      player.emit('flv_complete')
       player.createInstance(player.__flv__)
       if(player.config.isLive) {
         Player.util.addClass(player.root, 'xgplayer-is-live')
@@ -138,6 +139,24 @@ class FlvJsPlayer extends Player {
       player.play()
     })
   }
+
+  destroy (isDelDom = true) {
+    let player = this
+    if (player.__flv__) {
+      if (player.__flv__.unload) {
+        player.__flv__.unload()
+      }
+      if (player.__flv__.detachMediaElement) {
+        player.__flv__.detachMediaElement()
+      }
+      if (player.__flv__.destroy) {
+        player.__flv__.destroy()
+      }
+    }
+    player.__flv__ = null
+    super.destroy(isDelDom)  
+  }
 }
 FlvJsPlayer.isSupported = Flv.isSupported
+FlvJsPlayer.FlvJs = Flv
 export default FlvJsPlayer

@@ -13,7 +13,7 @@ class HlsJsPlayer extends Player {
       if(player.config.isLive) {
         util.addClass(player.root, 'xgplayer-is-live')
         if(!util.findDom(player.controls, '.xgplayer-live')) {
-          const live = util.createDom('xg-live', '正在直播', {}, 'xgplayer-live')
+          const live = util.createDom('xg-live', player.lang.LIVE || '正在直播', {}, 'xgplayer-live')
           player.controls.appendChild(live)
         }
       }
@@ -210,5 +210,6 @@ class HlsJsPlayer extends Player {
 }
 
 HlsJsPlayer.isSupported = Hls.isSupported
+HlsJsPlayer.HlsJs = Hls
 
 export default HlsJsPlayer

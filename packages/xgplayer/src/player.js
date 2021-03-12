@@ -1,12 +1,11 @@
 import Proxy from './proxy'
 import util from './utils/util'
-import Database from './utils/database'
 import sniffer from './utils/sniffer'
+import XgplayerTimeRange from './utils/xgplayerTimeRange'
 import Errors from './error'
-import Draggabilly from 'draggabilly'
-import {getAbsoluteURL} from './utils/url'
-import downloadUtil from 'downloadjs'
 import allOff from 'event-emitter/all-off'
+import s_i18n from './skin/controls/i18n.js'
+import './skin/style/index.scss'
 
 import {
   version
@@ -28,7 +27,6 @@ class Player extends Proxy {
     this.version = version
     this.userTimer = null
     this.waitTimer = null
-    this.database = new Database()
     this.history = []
     this.isProgressMoving = false
     this.root = util.findDom(document, `#${this.config.id}`)
@@ -92,6 +90,9 @@ class Player extends Proxy {
         item.call(this, this)
       })
     }
+    if(!this.config.closeI18n) {
+      Player.install(s_i18n.name, s_i18n.method)
+    }
     if (this.config.controlStyle && util.typeOf(this.config.controlStyle) === 'String') {
       let self = this
       fetch(self.config.controlStyle, {
@@ -115,6 +116,9 @@ class Player extends Proxy {
       })
     } else {
       this.pluginsCall()
+    }
+    if(this.config.controlPlugins) {
+      Player.controlsRun(this.config.controlPlugins, this)
     }
     this.ev.forEach((item) => {
       let evName = Object.keys(item)[0]
@@ -183,8 +187,19 @@ class Player extends Proxy {
     player.once('destroy', onDestroy)
   }
 
+  attachVideo () {
+    if(!window.XgVideoProxy) {
+      this.root.insertBefore(this.video, this.root.firstChild)
+    }
+    setTimeout(() => {
+      this.emit('complete')
+      if(this.danmu && typeof this.danmu.resize === 'function') {
+        this.danmu.resize()
+      }
+    }, 1)
+  }
+
   start (url = this.config.url) {
-    let root = this.root
     let player = this
     if (!url || url === '') {
       this.emit('urlNull')
@@ -236,15 +251,7 @@ class Player extends Proxy {
     if(!this.config.disableStartLoad) {
       this.video.load()
     }
-    if(!window.XgVideoProxy) {
-      root.insertBefore(this.video, root.firstChild)
-    }
-    setTimeout(() => {
-      this.emit('complete')
-      if(this.danmu && typeof this.danmu.resize === 'function') {
-        this.danmu.resize()
-      }
-    }, 1)
+    this.attachVideo()
   }
 
   reload () {
@@ -346,6 +353,10 @@ class Player extends Proxy {
     let _replay = this._replay
     // ie9 bugfix
     util.removeClass(this.root, 'xgplayer-ended')
+    if(sniffer.browser.indexOf('ie') > -1) {
+      this.emit('play')
+      this.emit('playing')
+    }
     this.logParams = {
       bc: 0,
       bu_acu_t: 0,
@@ -377,88 +388,16 @@ class Player extends Proxy {
     }
   }
 
-  getFullscreen (el) {
-    let player = this
-    if (el.requestFullscreen) {
-      el.requestFullscreen()
-    } else if (el.mozRequestFullScreen) {
-      el.mozRequestFullScreen()
-    } else if (el.webkitRequestFullscreen) {
-      el.webkitRequestFullscreen(window.Element.ALLOW_KEYBOARD_INPUT)
-    } else if (player.video.webkitSupportsFullscreen) {
-      player.video.webkitEnterFullscreen()
-    } else if (el.msRequestFullscreen) {
-      el.msRequestFullscreen()
-    } else {
-      util.addClass(el, 'xgplayer-is-cssfullscreen')
-    }
-  }
-
-  exitFullscreen (el) {
-    if (document.exitFullscreen) {
-      document.exitFullscreen()
-    } else if (document.webkitExitFullscreen) {
-      document.webkitExitFullscreen()
-    } else if (document.mozCancelFullScreen) {
-      document.mozCancelFullScreen()
-    } else if (document.msExitFullscreen) {
-      document.msExitFullscreen()
-    }
-    util.removeClass(el, 'xgplayer-is-cssfullscreen')
-  }
-
-  getCssFullscreen () {
-    let player = this
-    if (player.config.fluid) {
-      player.root.style['padding-top'] = ''
-    }
-    util.addClass(player.root, 'xgplayer-is-cssfullscreen')
-    player.emit('requestCssFullscreen')
-  }
-
-  exitCssFullscreen () {
-    let player = this
-    if (player.config.fluid) {
-      player.root.style['width'] = '100%'
-      player.root.style['height'] = '0'
-      player.root.style['padding-top'] = `${player.config.height * 100 / player.config.width}%`
-    }
-    util.removeClass(player.root, 'xgplayer-is-cssfullscreen')
-    player.emit('exitCssFullscreen')
-  }
-
-  getRotateFullscreen () {
-    let player = this
-    document.documentElement.style.width = '100%'
-    document.documentElement.style.height = '100%'
-    if (player.root && !Player.util.hasClass(player.root, 'xgplayer-rotate-fullscreen')) {
-      Player.util.addClass(player.root, 'xgplayer-rotate-fullscreen')
-    }
-    player.emit('getRotateFullscreen')
-  }
-
-  exitRotateFullscreen () {
-    let player = this
-    document.documentElement.style.width = 'unset'
-    document.documentElement.style.height = 'unset'
-    if (player.root && Player.util.hasClass(player.root, 'xgplayer-rotate-fullscreen')) {
-      Player.util.removeClass(player.root, 'xgplayer-rotate-fullscreen')
-    }
-    player.emit('exitRotateFullscreen')
-  }
-
-  download () {
-    const url = getAbsoluteURL(this.config.url)
-    downloadUtil(url)
-  }
-
   pluginsCall () {
+    if(Player.plugins['s_i18n']) {
+      Player.plugins['s_i18n'].call(this, this)
+    }
     let self = this
     if (Player.plugins) {
       let ignores = this.config.ignores
       Object.keys(Player.plugins).forEach(name => {
         let descriptor = Player.plugins[name]
-        if (!ignores.some(item => name === item || name === 's_' + item)) {
+        if (!ignores.some(item => name === item || name === 's_' + item) && name !== 's_i18n') {
           if (['pc', 'tablet', 'mobile'].some(type => type === name)) {
             if (name === sniffer.device) {
               setTimeout(() => {
@@ -473,177 +412,6 @@ class Player extends Proxy {
         }
       })
     }
-  }
-
-  getPIP () {
-    // let ro = this.root.getBoundingClientRect()
-    // let Top = ro.top
-    // let Left = ro.left
-    let dragLay = util.createDom('xg-pip-lay', '<div></div>', {}, 'xgplayer-pip-lay')
-    this.root.appendChild(dragLay)
-    let dragHandle = util.createDom('xg-pip-drag', `<div class="drag-handle"><span>${this.lang.PIP_DRAG}</span></div>`, {tabindex: 9}, 'xgplayer-pip-drag')
-    this.root.appendChild(dragHandle)
-    // eslint-disable-next-line no-unused-vars
-    let draggie = new Draggabilly('.xgplayer', {
-      handle: '.drag-handle'
-    })
-    util.addClass(this.root, 'xgplayer-pip-active')
-    this.root.style.right = 0
-    this.root.style.bottom = '200px'
-    this.root.style.top = ''
-    this.root.style.left = ''
-    this.root.style.width = '320px'
-    this.root.style.height = '180px'
-    if (this.config.pipConfig) {
-      if (this.config.pipConfig.top !== undefined) {
-        this.root.style.top = this.config.pipConfig.top + 'px'
-        this.root.style.bottom = ''
-      }
-      if (this.config.pipConfig.bottom !== undefined) {
-        this.root.style.bottom = this.config.pipConfig.bottom + 'px'
-      }
-      if (this.config.pipConfig.left !== undefined) {
-        this.root.style.left = this.config.pipConfig.left + 'px'
-        this.root.style.right = ''
-      }
-      if (this.config.pipConfig.right !== undefined) {
-        this.root.style.right = this.config.pipConfig.right + 'px'
-      }
-      if (this.config.pipConfig.width !== undefined) {
-        this.root.style.width = this.config.pipConfig.width + 'px'
-      }
-      if (this.config.pipConfig.height !== undefined) {
-        this.root.style.height = this.config.pipConfig.height + 'px'
-      }
-    }
-    if (this.config.fluid) {
-      this.root.style['padding-top'] = ''
-    }
-    let player = this;
-    ['click', 'touchend'].forEach(item => {
-      dragLay.addEventListener(item, function (e) {
-        e.preventDefault()
-        e.stopPropagation()
-        player.exitPIP()
-        // player.root.style.top = `${Top}px`
-        // player.root.style.left = `${Left}px`
-      })
-    })
-  }
-
-  exitPIP () {
-    util.removeClass(this.root, 'xgplayer-pip-active')
-    this.root.style.right = ''
-    this.root.style.bottom = ''
-    this.root.style.top = ''
-    this.root.style.left = ''
-    if (this.config.fluid) {
-      this.root.style['width'] = '100%'
-      this.root.style['height'] = '0'
-      this.root.style['padding-top'] = `${this.config.height * 100 / this.config.width}%`
-    } else {
-      if (this.config.width) {
-        if (typeof this.config.width !== 'number') {
-          this.root.style.width = this.config.width
-        } else {
-          this.root.style.width = `${this.config.width}px`
-        }
-      }
-      if (this.config.height) {
-        if (typeof this.config.height !== 'number') {
-          this.root.style.height = this.config.height
-        } else {
-          this.root.style.height = `${this.config.height}px`
-        }
-      }
-    }
-
-    let dragLay = util.findDom(this.root, '.xgplayer-pip-lay')
-    if (dragLay && dragLay.parentNode) {
-      dragLay.parentNode.removeChild(dragLay)
-    }
-    let dragHandle = util.findDom(this.root, '.xgplayer-pip-drag')
-    if (dragHandle && dragHandle.parentNode) {
-      dragHandle.parentNode.removeChild(dragHandle)
-    }
-  }
-
-  updateRotateDeg () {
-    let player = this;
-    if (!player.rotateDeg) {
-      player.rotateDeg = 0
-    }
-
-    let width = player.root.offsetWidth
-    let height = player.root.offsetHeight
-    let targetWidth = player.video.videoWidth
-    let targetHeight = player.video.videoHeight
-
-    if (!player.config.rotate.innerRotate && player.config.rotate.controlsFix) {
-      player.root.style.width = height + 'px'
-      player.root.style.height = width + 'px'
-    }
-
-    let scale
-    if (player.rotateDeg === 0.25 || player.rotateDeg === 0.75) {
-      if (player.config.rotate.innerRotate) {
-        if ((targetWidth / targetHeight) > (height / width)) { // 旋转后纵向撑满
-          let videoWidth = 0
-          if ((targetHeight / targetWidth) > (height / width)) { // 旋转前是纵向撑满
-            videoWidth = height * targetWidth / targetHeight
-          } else { // 旋转前是横向撑满
-            videoWidth = width
-          }
-          scale = height / videoWidth
-        } else { // 旋转后横向撑满
-          let videoHeight = 0
-          if ((targetHeight / targetWidth) > (height / width)) { // 旋转前是纵向撑满
-            videoHeight = height
-          } else { // 旋转前是横向撑满
-            videoHeight = width * targetHeight / targetWidth
-          }
-          scale = width / videoHeight
-        }
-      } else {
-        if (width >= height) {
-          scale = width / height
-        } else {
-          scale = height / width
-        }
-      }
-      scale = Number(scale.toFixed(5))
-    } else {
-      scale = 1
-    }
-
-    if (player.config.rotate.innerRotate) {
-      player.video.style.transformOrigin = 'center center'
-      player.video.style.transform = `rotate(${player.rotateDeg}turn) scale(${scale})`
-      player.video.style.webKitTransform = `rotate(${player.rotateDeg}turn) scale(${scale})`
-    } else {
-      if (player.config.rotate.controlsFix) {
-        player.video.style.transformOrigin = 'center center'
-        player.video.style.transform = `rotate(${player.rotateDeg}turn) scale(${scale})`
-        player.video.style.webKitTransform = `rotate(${player.rotateDeg}turn) scale(${scale})`
-      } else {
-        player.root.style.transformOrigin = 'center center'
-        player.root.style.transform = `rotate(${player.rotateDeg}turn) scale(${1})`
-        player.root.style.webKitTransform = `rotate(${player.rotateDeg}turn) scale(${1})`
-      }
-    }
-  }
-
-  rotate (clockwise = false, innerRotate = true, times = 1) {
-    let player = this;
-    if (!player.rotateDeg) {
-      player.rotateDeg = 0
-    }
-    let factor = clockwise ? 1 : -1
-
-    player.rotateDeg = (player.rotateDeg + 1 + factor * 0.25 * times) % 1
-    this.updateRotateDeg()
-
-    player.emit('rotate', player.rotateDeg * 360)
   }
 
   onFocus () {
@@ -766,16 +534,35 @@ class Player extends Proxy {
     }
   }
 
+  static installAll (list) {
+    for (let k in list) {
+      Player.install(list[k].name, list[k].method)
+    }
+  }
+
   static use (name, descriptor) {
     if (!Player.plugins) {
       Player.plugins = {}
     }
     Player.plugins[name] = descriptor
   }
+
+  static useAll (list) {
+    for (let k in list) {
+      Player.use(list[k].name, list[k].method)
+    }
+  }
+
+  static controlsRun (controlLst, context) {
+    controlLst.forEach(function(control) {
+      control.method.call(context)
+    })
+  }
 }
 
 Player.util = util
 Player.sniffer = sniffer
 Player.Errors = Errors
+Player.XgplayerTimeRange = XgplayerTimeRange
 
 export default Player

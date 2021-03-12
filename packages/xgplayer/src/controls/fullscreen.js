@@ -57,6 +57,64 @@ let fullscreen = function () {
     player.off('destroy', onDestroy)
   }
   player.once('destroy', onDestroy)
+
+  player.getFullscreen = function (el) {
+    let player = this
+    if (el.requestFullscreen) {
+      let fullscreenPromise = el.requestFullscreen()
+      if (fullscreenPromise) {
+        fullscreenPromise.catch(function () {
+          player.emit('fullscreen error')
+        })
+      }
+    } else if (el.mozRequestFullScreen) {
+      el.mozRequestFullScreen()
+    } else if (el.webkitRequestFullscreen) {
+      el.webkitRequestFullscreen(window.Element.ALLOW_KEYBOARD_INPUT)
+    } else if (player.video.webkitSupportsFullscreen) {
+      player.video.webkitEnterFullscreen()
+    } else if (el.msRequestFullscreen) {
+      el.msRequestFullscreen()
+    } else {
+      util.addClass(el, 'xgplayer-is-cssfullscreen')
+    }
+  }
+
+  player.exitFullscreen = function (el) {
+    if (document.exitFullscreen) {
+      document.exitFullscreen()
+    } else if (document.webkitExitFullscreen) {
+      document.webkitExitFullscreen()
+    } else if (document.mozCancelFullScreen) {
+      document.mozCancelFullScreen()
+    } else if (document.msExitFullscreen) {
+      document.msExitFullscreen()
+    }
+    util.removeClass(el, 'xgplayer-is-cssfullscreen')
+  }
+
+  player.getRotateFullscreen = function () {
+    let player = this
+    document.documentElement.style.width = '100%'
+    document.documentElement.style.height = '100%'
+    if (player.root && !Player.util.hasClass(player.root, 'xgplayer-rotate-fullscreen')) {
+      Player.util.addClass(player.root, 'xgplayer-rotate-fullscreen')
+    }
+    player.emit('getRotateFullscreen')
+  }
+
+  player.exitRotateFullscreen = function () {
+    let player = this
+    document.documentElement.style.width = 'unset'
+    document.documentElement.style.height = 'unset'
+    if (player.root && Player.util.hasClass(player.root, 'xgplayer-rotate-fullscreen')) {
+      Player.util.removeClass(player.root, 'xgplayer-rotate-fullscreen')
+    }
+    player.emit('exitRotateFullscreen')
+  }
 }
 
-Player.install('fullscreen', fullscreen)
+export default {
+  name: 'fullscreen',
+  method: fullscreen
+}

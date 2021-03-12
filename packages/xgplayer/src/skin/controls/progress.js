@@ -1,4 +1,5 @@
 import Player from '../../player'
+import '../style/controls/progress.scss'
 
 const isRotateFullscreen = (player) => {
   return Player.util.hasClass(player.root, 'xgplayer-rotate-fullscreen')
@@ -18,7 +19,6 @@ let s_progress = function () {
   let containerWidth
   player.controls.appendChild(container)
   let progress = container.querySelector('.xgplayer-progress-played')
-  let btn = container.querySelector('.xgplayer-progress-btn')
   let outer = container.querySelector('.xgplayer-progress-outer')
   let cache = container.querySelector('.xgplayer-progress-cache')
   let point = container.querySelector('.xgplayer-progress-point')
@@ -80,7 +80,7 @@ let s_progress = function () {
       return
     }
     if (time >= 0 && time <= player.duration) {
-      let dot = util.createDom('xg-progress-dot', '', {}, 'xgplayer-progress-dot')
+      let dot = util.createDom('xg-progress-dot', text ? `<span class="xgplayer-progress-tip">${text}</span>` : '', {}, 'xgplayer-progress-dot')
       dot.style.left = (time / player.duration) * 100 + '%'
       if (duration >= 0) {
         dot.style.width = (Math.min(duration, player.duration - time) / player.duration) * 100 + '%'
@@ -196,6 +196,7 @@ let s_progress = function () {
           w = containerWidth
         }
         let now = w / containerWidth * player.duration
+        if(now < 0) now = 0
         if(player.config.allowSeekPlayed && (Number(now).toFixed(1) > player.maxPlayedTime)) {}
         else {
           progress.style.width = `${w * 100 / containerWidth}%`
@@ -233,13 +234,16 @@ let s_progress = function () {
         window.removeEventListener('touchmove', move, { passive: false })
         window.removeEventListener('mouseup', up)
         window.removeEventListener('touchend', up)
-        container.blur()
+        if(Player.sniffer.browser.indexOf('ie') < 0) {
+          container.blur()
+        }
         if (!player.isProgressMoving || (player.videoConfig && player.videoConfig.mediaType === 'audio') || player.dash || player.config.closeMoveSeek) {
           let w = (isRotate ? e.clientY : e.clientX) - left
           if (w > containerWidth) {
             w = containerWidth
           }
           let now = w / containerWidth * player.duration
+          if(now < 0) now = 0
           if(player.config.allowSeekPlayed && (Number(now).toFixed(1) > player.maxPlayedTime)) {}
           else {
             progress.style.width = `${w * 100 / containerWidth}%`
@@ -382,4 +386,7 @@ let s_progress = function () {
   player.once('destroy', destroyFunc)
 }
 
-Player.install('s_progress', s_progress)
+export default {
+  name: 's_progress',
+  method: s_progress
+}

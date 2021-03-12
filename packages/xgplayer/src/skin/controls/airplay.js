@@ -1,5 +1,6 @@
 import Player from '../../player'
 import AirplayIcon from '../assets/airplay.svg'
+import '../style/controls/airplay.scss'
 
 let s_airplay = function () {
   let player = this
@@ -38,4 +39,7 @@ let s_airplay = function () {
   })
 }
 
-Player.install('s_airplay', s_airplay)
+export default {
+  name: 's_airplay',
+  method: s_airplay
+}

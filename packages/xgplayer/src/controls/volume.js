@@ -169,4 +169,7 @@ let volume = function () {
   player.once('destroy', onDestroy)
 }
 
-Player.install('volume', volume)
+export default {
+  name: 'volume',
+  method: volume
+}

@@ -1,28 +1,61 @@
-import './style/index.scss'
-import './controls/i18n.js'
-import './controls/enter.js'
-import './controls/play.js'
-import './controls/start.js'
-import './controls/poster.js'
-import './controls/flex.js'
-import './controls/fullscreen.js'
-import './controls/cssFullscreen.js'
-import './controls/volume.js'
-import './controls/definition.js'
-import './controls/loading.js'
-import './controls/progress.js'
-import './controls/time.js'
-import './controls/replay.js'
-import './controls/playbackRate.js'
-import './controls/localPreview.js'
-import './controls/download.js'
-import './controls/danmu.js'
-import './controls/pip.js'
-import './controls/playNext.js'
-import './controls/rotate.js'
-import './controls/reload.js'
-import './controls/screenShot.js'
-import './controls/textTrack.js'
-import './controls/error.js'
-import './controls/memoryPlay.js'
-import './controls/airplay.js'
+import Player from '../player'
+
+import I18n from './controls/i18n.js'
+import Enter from './controls/enter.js'
+import Play from './controls/play.js'
+import Start from './controls/start.js'
+import Poster from './controls/poster.js'
+import Flex from './controls/flex.js'
+import Fullscreen from './controls/fullscreen.js'
+import CssFullscreen from './controls/cssFullscreen.js'
+import Volume from './controls/volume.js'
+import Definition from './controls/definition.js'
+import Loading from './controls/loading.js'
+import Progress from './controls/progress.js'
+import Time from './controls/time.js'
+import Replay from './controls/replay.js'
+import PlaybackRate from './controls/playbackRate.js'
+import LocalPreview from './controls/localPreview.js'
+import Download from './controls/download.js'
+import Danmu from './controls/danmu.js'
+import Pip from './controls/pip.js'
+import Miniplayer from './controls/miniplayer.js'
+import PlayNext from './controls/playNext.js'
+import Rotate from './controls/rotate.js'
+import Reload from './controls/reload.js'
+import ScreenShot from './controls/screenShot.js'
+import TextTrack from './controls/textTrack.js'
+import ErrorControl from './controls/error.js'
+import MemoryPlay from './controls/memoryPlay.js'
+import Airplay from './controls/airplay.js'
+
+Player.installAll([
+    I18n,
+    Enter,
+    Play,
+    Start,
+    Poster,
+    Flex,
+    Fullscreen,
+    CssFullscreen,
+    Volume,
+    Definition,
+    Loading,
+    Progress,
+    Time,
+    Replay,
+    PlaybackRate,
+    LocalPreview,
+    Download,
+    Danmu,
+    Pip,
+    Miniplayer,
+    PlayNext,
+    Rotate,
+    Reload,
+    ScreenShot,
+    TextTrack,
+    ErrorControl,
+    MemoryPlay,
+    Airplay
+])
