@@ -10,10 +10,10 @@ class Volume extends Plugin {
 
   static get defaultConfig () {
     return {
-      position: POSITIONS.CONTROLS_RIGHT,
-      index: 1,
-      disable: false,
-      default: 0.6
+      position: POSITIONS.CONTROLS_RIGHT, // [可选]插件挂载的dom
+      index: 1, // [可选]插件在播放器中挂载的位置
+      disable: false, // [可选]是否禁用插件交互行为
+      default: 0.6 // [可选]默认音量
     }
   }
 
