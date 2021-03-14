@@ -7,9 +7,6 @@ $controlHeight: 48px;
 // $tipsFontsize: 12px;
 
 .xgplayer {
-  &.no-overflow-hide {
-    overflow: initial;
-  }
   &.not-allow-autoplay,
   &.xgplayer-nostart {
     // .xgplayer-controls, .flex-controls {
@@ -65,17 +62,12 @@ $controlHeight: 48px;
     }
   }
 
-  .bottom-controls {
-    bottom: -48px;
-    background-color: #000;
-  }
-
   .inner-controls {
     position: absolute;
     // left: 0;
     // right: 0;
     bottom: 0;
-    height: 40px;
+    // height: 40px;
   }
 
   .left-grid,  .right-grid {
@@ -89,12 +81,18 @@ $controlHeight: 48px;
   .right-grid {
     float: right;
     flex-direction: row-reverse;
+    :first-child {
+      margin-right: 0;
+    }
     xg-icon {
       margin-left: 0;
     }
   }
 
   .left-grid {
+    :first-child {
+      margin-left: 0;
+    }
     xg-icon {
       margin-right: 0;
     }

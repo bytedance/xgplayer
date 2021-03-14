@@ -47,7 +47,7 @@ export default class DefaultPreset {
         this.plugins.push(...[Keyboard, PC, CssFullScreen], ...barIcons, Miniscreen);
         break;
       case 'mobile':
-        this.plugins.push(Mobile);
+        this.plugins.push(...[Mobile, ...barIcons]);
         break;
       default:
         this.plugins.push(...[Keyboard, PC])

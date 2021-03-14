@@ -18,11 +18,12 @@ import Volume from '../plugins/volume'
 import Error from '../plugins/error'
 import Prompt from '../plugins/prompt'
 import Thumbnail from '../plugins/common/thumbnail'
+import PIPIcon from '../plugins/pip'
 
 export default class DefaultPreset {
   constructor () {
     const contolsIcons = [Mobile, Progress, PlayIcon, FullScreen, TimeIcon,
-      RotateIcon, PlayNextIcon, DefinitionIcon, PlaybackRateIcon, DownLoadIcon, ScreenShotIcon, Volume]
+      RotateIcon, PlayNextIcon, DefinitionIcon, PlaybackRateIcon, DownLoadIcon, ScreenShotIcon, Volume, PIPIcon]
     const layers = [Replay, Poster, Start, Loading, Enter, Error, Prompt, Thumbnail]
 
     this.plugins = [...contolsIcons, ...layers]

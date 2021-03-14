@@ -39,6 +39,7 @@ export default function getDefaultConfig () {
     inactive: 3000, // 进度条自动消失延时
     lang: (document.documentElement.getAttribute('lang') || navigator.language || 'zh-cn').toLocaleLowerCase(),
     controls: true,
+    marginControls: false, // 控制栏是否位于画面底部，不与画面重合
     controlsList: [],
     // 内置插件相关配置
     screenShot: false, // 截图插件

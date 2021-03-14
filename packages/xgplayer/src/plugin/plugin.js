@@ -198,10 +198,13 @@ class Plugin extends BasePlugin {
       XG_DEBUG.logError(`Plugin:${this.pluginName}:render`, e)
       throw (new Error(`Plugin:${this.pluginName}:render:${e.message}`))
     }
+
     if (renderStr) {
       _el = Plugin.insert(renderStr, _parent, args.index)
+      _el.setAttribute('data-index', args.index)
     } else if (args.tag) {
       _el = Util.createDom(args.tag, '', args.attr, args.name)
+      _el.setAttribute('data-index', args.index)
       _parent.appendChild(_el)
     } else {
       return
@@ -243,7 +246,7 @@ class Plugin extends BasePlugin {
         this._children = []
       }
       if (Object.keys(children).length > 0) {
-        for (const item of Object.keys(children)) {
+        Object.keys(children).map(item => {
           const name = item
           let _plugin = children[name]
           const options = {
@@ -262,7 +265,7 @@ class Plugin extends BasePlugin {
           config.index !== undefined && (options.index = config.index)
           config.root && (options.root = config.root)
           this.registerPlugin(Plugin, options, name)
-        }
+        })
       }
     }
   }
@@ -371,13 +374,12 @@ class Plugin extends BasePlugin {
     if (!this.root) {
       return
     }
-    if (typeof name === 'string') {
+    if (Util.typeOf(name) === 'String') {
       return (this.root.style[name] = value)
-    } else if (typeof name === 'object') {
-      const obj = name
-      for (const item of Object.keys(obj)) {
-        this.root.style[item] = obj[item]
-      }
+    } else if (Util.typeOf(name) === 'Object') {
+      Object.keys(name).map(key => {
+        this.root.style[key] = name[key]
+      })
     }
   }
 
@@ -385,13 +387,12 @@ class Plugin extends BasePlugin {
     if (!this.root) {
       return
     }
-    if (typeof name === 'string') {
+    if (Util.typeOf(name) === 'String') {
       return this.root.setAttribute(name, value)
-    } else if (typeof name === 'object') {
-      const obj = name
-      for (const item of Object.keys(obj)) {
-        this.root.setAttribute(item, obj[item])
-      }
+    } else if (Util.typeOf(name) === 'Object') {
+      Object.keys(name).map(key => {
+        this.root.setAttribute(key, name[key])
+      })
     }
   }
 

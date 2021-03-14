@@ -63,7 +63,7 @@ export default class Rotate extends Plugin {
       // player.root.style.height = width + 'px'
     }
 
-    let scale
+    let scale = 1
     if (this.rotateDeg === 0.25 || this.rotateDeg === 0.75) {
       if (this.config.innerRotate) {
         if ((targetWidth / targetHeight) > (height / width)) { // 旋转后纵向撑满
@@ -85,26 +85,29 @@ export default class Rotate extends Plugin {
           scale = width / videoHeight
         }
       } else {
-        if (width >= height) {
-          scale = width / height
-        } else {
-          scale = height / width
-        }
+        // if (width >= height) {
+        //   scale = width / height
+        // } else {
+        //   scale = height / width
+        // }
       }
       scale = parseFloat(scale.toFixed(5))
     } else {
       scale = 1
     }
 
-    if (this.config.innerRotate) {
-      player.video.style.transformOrigin = 'center center'
-      player.video.style.transform = `rotate(${this.rotateDeg}turn) scale(${scale})`
-      player.video.style.webKitTransform = `rotate(${this.rotateDeg}turn) scale(${scale})`
-    } else {
-      player.root.style.transformOrigin = 'center center'
-      player.root.style.transform = `rotate(${this.rotateDeg}turn) scale(${1})`
-      player.root.style.webKitTransform = `rotate(${this.rotateDeg}turn) scale(${1})`
+    const _styles = {
+      transformOrigin: 'center center',
+      transform: `rotate(${this.rotateDeg}turn) scale(${scale})`,
+      webKitTransform: `rotate(${this.rotateDeg}turn) scale(${scale})`
     }
+
+    const _target = this.config.innerRotate ? player.video : player.root
+    let poster = this.config.innerRotate ? player.getPlugin('poster') : null
+    Object.keys(_styles).map(key => {
+      _target.style[key] = _styles[key]
+      poster && poster.root && (poster.root.style[key] = _styles[key])
+    })
   }
 
   rotate (clockwise = false, innerRotate = true, times = 1) {
