@@ -1,4 +1,4 @@
-import Plugin, { POSITIONS } from '../../plugin'
+import Plugin, { POSITIONS, Events } from '../../plugin'
 
 export default class ScreenShot extends Plugin {
   static get pluginName () {
@@ -14,6 +14,7 @@ export default class ScreenShot extends Plugin {
       format: '.png',
       width: 600,
       height: 337,
+      fitVideo: true,
       disable: false,
       name: '截图'
     }
@@ -27,6 +28,14 @@ export default class ScreenShot extends Plugin {
 
   afterCreate () {
     this.appendChild('xgplayer-icon', this.icons.screenshotIcon)
+    const {config} = this
+    this.initSize = (data) => {
+      if (config.fitVideo) {
+        config.width = data.vWidth
+        config.height = data.vHeight
+      }
+    }
+    this.once(Events.VIDEO_RESIZE, this.initSize)
   }
 
   onPluginsReady () {
@@ -87,6 +96,7 @@ export default class ScreenShot extends Plugin {
 
   destroy () {
     this.unbind(['click', 'touchend'], this.onClickBtn)
+    this.off(Events.VIDEO_RESIZE, this.initSize)
   }
 
   render () {

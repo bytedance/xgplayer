@@ -57,7 +57,7 @@ class Player extends Proxy {
     this.fullscreen = false
     this._fullscreenEl = null
     this._originCssText = ''
-    this._fullscreenOffsetY = null
+    this._fullScreenOffset = null
     this._videoHeight = 0
     this._videoWidth = 0
     this._played = {
@@ -112,7 +112,7 @@ class Player extends Proxy {
         return false
       }
     }
-    this._initBars();
+    this._initBaseDoms();
     const controls = pluginsManager.register(this, Controls)
     this.controls = controls
     this.addClass(`${STATE_CLASS.DEFAULT} xgplayer-${Sniffer.device} ${this.config.controls ? '' : STATE_CLASS.NO_CONTROLS}`);
@@ -148,11 +148,14 @@ class Player extends Proxy {
     return true
   }
 
-  _initBars () {
-    this.topBar = Util.createDom('xg-bar', '', {}, 'xg-top-bar');
-    this.leftBar = Util.createDom('xg-bar', '', {}, 'xg-left-bar');
-    this.rightBar = Util.createDom('xg-bar', '', {}, 'xg-right-bar');
-
+  _initBaseDoms () {
+    this.topBar = Util.createDom('xg-bar', '', {'data-index': -1}, 'xg-top-bar');
+    this.leftBar = Util.createDom('xg-bar', '', {'data-index': -1}, 'xg-left-bar');
+    this.rightBar = Util.createDom('xg-bar', '', {'data-index': -1}, 'xg-right-bar');
+    if (this.config.marginControls) {
+      this.innerContainer = Util.createDom('xg-video-container', '', {'data-index': -1}, 'xg-video-container');
+      this.root.appendChild(this.innerContainer);
+    }
     this.root.appendChild(this.topBar);
     this.root.appendChild(this.leftBar);
     this.root.appendChild(this.rightBar);
@@ -164,7 +167,7 @@ class Player extends Proxy {
     });
     const resetFullState = () => {
       this.fullscreen = false
-      this._fullscreenOffsetY = null
+      this._fullScreenOffset = null
       this._fullscreenEl = null
     }
 
@@ -173,15 +176,15 @@ class Player extends Proxy {
       if (fullEl && (fullEl === this._fullscreenEl || fullEl.tagName === 'VIDEO')) {
         this.fullscreen = true
         this.addClass(STATE_CLASS.FULLSCREEN)
-        this.emit(Events.FULLSCREEN_CHANGE, true, this._fullscreenOffsetY)
+        this.emit(Events.FULLSCREEN_CHANGE, true, this._fullScreenOffset)
         if (this.isCssfullScreen) {
           this.exitCssFullscreen()
         }
       } else if (this.fullscreen) {
-        const {_fullscreenOffsetY, config} = this
+        const {_fullScreenOffset, config} = this
         if (config.needFullsreenScroll) {
           try {
-            window.scrollTo(window.pageOffsetX, _fullscreenOffsetY)
+            window.scrollTo(_fullScreenOffset.left, _fullScreenOffset.top)
             setTimeout(() => {
               resetFullState()
             }, 100)
@@ -190,7 +193,6 @@ class Player extends Proxy {
             resetFullState()
           }
         } else {
-          // _fullscreenOffsetY > 0 && _fullscreenOffsetY !== window.pageYOffset
           // 保证页面scroll的情况下退出全屏 页面定位在播放器位置
           this.video.focus()
           resetFullState()
@@ -250,7 +252,7 @@ class Player extends Proxy {
   }
 
   _startInit (url) {
-    let root = this.root
+    const {root, innerContainer} = this
     if (!url || url === '') {
       this.emit(Events.URL_NULL)
       this.logWarn('config.url is null, please get url and run player._startInit(url)')
@@ -286,8 +288,10 @@ class Player extends Proxy {
 
     this.loadeddataFunc && this.once('loadeddata', this.loadeddataFunc)
 
-    if (root.firstChild !== this.video) {
-      root.insertBefore(this.video, root.firstChild)
+    if (innerContainer) {
+      innerContainer.firstChild !== this.video && this.innerContainer.insertBefore(this.video, this.innerContainer.firstChild)
+    } else {
+      root.firstChild !== this.video && root.insertBefore(this.video, root.firstChild)
     }
 
     this.once(Events.CANPLAY, this.canPlayFunc)
@@ -377,7 +381,7 @@ class Player extends Proxy {
           options.root = this.topBar
           break;
         default:
-          options.root = this.root
+          options.root = this.innerContainer || this.root
           break;
       }
     }
@@ -638,8 +642,11 @@ class Player extends Proxy {
     if (!el) {
       el = root
     }
-    this._fullscreenOffsetY = window.pageYOffset
-    if (!Sniffer.os.isPhone && root.getAttribute('style')) {
+    this._fullScreenOffset = {
+      top: Util.scrollTop(),
+      left: Util.scrollLeft()
+    }
+    if (root.getAttribute('style')) {
       this._originCssText = root.style.cssText
       root.removeAttribute('style')
     }
@@ -855,25 +862,25 @@ class Player extends Proxy {
     this._videoHeight = videoHeight
     this._videoWidth = videoWidth
     let containerSize = this.root.getBoundingClientRect()
+    const controlsHeight = this.controls && this.innerContainer ? this.controls.root.getBoundingClientRect().height : 0
     const width = containerSize.width
-    const height = containerSize.height
+    const height = containerSize.height - controlsHeight
     const videoFit = parseInt(videoWidth / videoHeight * 1000, 10)
     const fit = parseInt(width / height * 1000, 10)
-    if (fitVideoSize === 'auto') {
-      if (fit > videoFit) {
-        this.root.style.height = `${width / videoFit * 1000}px`
-      } else {
-        this.root.style.width = `${videoFit * height / 1000}px`
-      }
-    } else if (fitVideoSize === 'fixWidth') {
-      this.root.style.height = `${width / videoFit * 1000}px`
-    } else if (fitVideoSize === 'fixHeight') {
-      this.root.style.width = `${videoFit * height / 1000}px`
+    let rWidth = width;
+    let rHeight = height;
+    if ((fitVideoSize === 'auto' && fit > videoFit) || fitVideoSize === 'fixWidth') {
+      rHeight = width / videoFit * 1000
+    } else if ((fitVideoSize === 'auto' && fit < videoFit) || fitVideoSize === 'fixHeight') {
+      rWidth = videoFit * height / 1000
     }
+    this.root.style.width = `${rWidth}px`
+    this.root.style.height = `${rHeight + controlsHeight}px`
     // video填充模式
     if ((videoFillMode === 'fillHeight' && fit < videoFit) || (videoFillMode === 'fillWidth' && fit > videoFit)) {
       this.setAttribute('data-xgfill', 'cover')
     }
+    this.emit(Events.VIDEO_RESIZE, {videoScale: videoFit, vWidth: rWidth, vHeight: rHeight, cWidth: rWidth, cHeight: rHeight + controlsHeight})
   }
 
   updateObjectPosition (left = 0, top = 0) {
@@ -947,7 +954,7 @@ class Player extends Proxy {
   }
 
   get fullscreenChanging () {
-    return !(this._fullscreenOffsetY === null)
+    return !(this._fullScreenOffset === null)
   }
 
   get cumulateTime () {

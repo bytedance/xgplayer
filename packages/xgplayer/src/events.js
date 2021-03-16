@@ -46,3 +46,6 @@ export const AFTER_DEFINITION_CHANGE = 'after_definition_change';
 export const SEI_PARSED = 'SEI_PARSED';
 
 export const RETRY = 'retry';
+
+// 容器宽高变化
+export const VIDEO_RESIZE = 'video_resize'

@@ -10,7 +10,6 @@ class Controls extends Plugin {
       disable: false,
       autoHide: true, // 是否自动隐藏
       mode: '', // 显示模式， flex和normal
-      marginBottom: false, // 控制条是否显示在播放器底部
       initShow: false // 是否初始化的时候就显示
     }
   }
@@ -22,19 +21,15 @@ class Controls extends Plugin {
     if (!args.config.mode && Sniffer.device === 'mobile') {
       args.config.mode = 'flex'
     }
-    if (args.config.marginBottom) {
+    if (args.player.config.marginControls) {
       args.config.autoHide = false
     }
   }
 
   afterCreate () {
-    const {disable, height, mode, autoHide, marginBottom} = this.config
+    const {disable, height, mode, autoHide} = this.config
     if (disable) {
       return
-    }
-
-    if (marginBottom) {
-      Util.addClass(this.player.root, 'no-overflow-hide')
     }
 
     mode === 'flex' && this.player.addClass(STATE_CLASS.FLEX_CONTROLS)
@@ -124,7 +119,6 @@ class Controls extends Plugin {
     }
     let className = this.config.mode === 'flex' ? 'flex-controls ' : ''
     className += this.config.autoHide ? 'control_autohide' : 'controls_permanent'
-    className += this.config.marginBottom ? ' bottom-controls' : ''
     className += this.config.initShow ? ' xgplayer-controls-initshow' : ''
     return `<xg-controls class="xgplayer-controls ${className}" unselectable="on" onselectstart="return false">
     <inner-controls class="inner-controls xg-pos">

@@ -1,8 +1,9 @@
-import Plugin, {Events, POSITIONS} from '../../plugin'
+import Plugin, {Events, Util, POSITIONS} from '../../plugin'
 
 /**
  * @description picture-in-picture plugin
  * @doc https://www.w3.org/TR/picture-in-picture/
+ * @doc https://developer.apple.com/documentation/webkitjs/adding_picture_in_picture_to_your_safari_media_controls
  */
 class PIP extends Plugin {
   static get pluginName () {
@@ -15,6 +16,10 @@ class PIP extends Plugin {
       index: 6,
       showIcon: false
     }
+  }
+
+  static checkWebkitSetPresentationMode (video) {
+    return typeof video.webkitSetPresentationMode === 'function'
   }
 
   beforeCreate (args) {
@@ -62,43 +67,65 @@ class PIP extends Plugin {
   }
 
   switchPIP () {
-    const {player, playerConfig} = this
     if (!this.isPIPAvailable()) {
       return false
     }
+    this.isPip ? this.exitPIP() : this.requestPIP()
+  }
+
+  /*
+   * 进入画中画
+  */
+  requestPIP () {
+    const {player, playerConfig} = this
+    if (!this.isPIPAvailable() || this.isPip) {
+      return
+    }
     try {
-      if (document.pictureInPictureElement && document.pictureInPictureElement === player.video) {
-        document.exitPictureInPicture();
-      } else {
-        if (!player.video) {
-          return
-        }
-        if (playerConfig.poster) {
-          player.video.poster = playerConfig.poster
-        }
-        player.video.requestPictureInPicture()
+      if (playerConfig.poster) {
+        player.video.poster = playerConfig.poster
+      }
+      PIP.checkWebkitSetPresentationMode(player.video) ? player.video.webkitSetPresentationMode('picture-in-picture') : player.video.requestPictureInPicture()
+      return true
+    } catch (reason) {
+      console.error('requestPiP', reason);
+      return false
+    }
+  }
+
+  /**
+   * 退出画中画
+   */
+  exitPIP () {
+    const {player} = this
+    try {
+      if (this.isPIPAvailable() && this.isPip) {
+        PIP.checkWebkitSetPresentationMode(player.video) ? player.video.webkitSetPresentationMode('inline') : document.exitPictureInPicture();
       }
       return true
     } catch (reason) {
-      console.error('switchPIP', reason);
+      console.error('exitPip', reason);
       return false
     }
   }
 
   get isPip () {
     const {player} = this
-    return document.pictureInPictureElement === player.video
+    return (document.pictureInPictureElement && document.pictureInPictureElement === player.video) || player.video.webkitPresentationMode === 'picture-in-picture'
   }
 
   isPIPAvailable () {
-    const {player} = this
-    return document.pictureInPictureEnabled || !(player.video && player.video.disablePictureInPicture);
+    const {video} = this.player
+    return document.pictureInPictureEnabled &&
+    ((Util.typeOf(video.disablePictureInPicture) === 'Boolean' && !video.disablePictureInPicture) ||
+     (video.webkitSupportsPresentationMode && Util.typeOf(video.webkitSetPresentationMode) === 'Function'));
   }
 
   destroy () {
     const {player} = this
     player.video.removeEventListener('enterpictureinpicture', this.enterPIPCallback)
     player.video.removeEventListener('leavepictureinpicture', this.leavePIPCallback)
+    this.exitPip()
     this.unbind('click', this.btnClick)
   }
 

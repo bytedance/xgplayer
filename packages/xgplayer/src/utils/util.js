@@ -344,4 +344,18 @@ util.stopPropagation = (e) => {
     e.cancelable && e.preventDefault()
   }
 }
+
+util.scrollTop = function () {
+  return window.pageYOffset ||
+  document.documentElement.scrollTop ||
+  document.body.scrollTop ||
+  0;
+}
+
+util.scrollLeft = function () {
+  return window.pageXOffset ||
+  document.documentElement.scrollLeft ||
+  document.body.scrollLeft ||
+  0;
+}
 export default util
