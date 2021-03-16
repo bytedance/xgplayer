@@ -171,9 +171,9 @@ class Player extends Proxy {
       this._fullscreenEl = null
     }
 
-    this.onFullscreenChange = () => {
+    this.onFullscreenChange = (event, isFullScreen) => {
       const fullEl = Util.getFullScreenEl()
-      if (fullEl && (fullEl === this._fullscreenEl || fullEl.tagName === 'VIDEO')) {
+      if (isFullScreen || (fullEl && (fullEl === this._fullscreenEl || fullEl.tagName === 'VIDEO'))) {
         this.fullscreen = true
         this.addClass(STATE_CLASS.FULLSCREEN)
         this.emit(Events.FULLSCREEN_CHANGE, true, this._fullScreenOffset)

@@ -3,12 +3,9 @@
     position: relative;
     display: none;
     cursor: pointer;
-    .xgplayer-icon {
-      width: 24px;
-      svg {
-        transform: translate(-10px, -1px);
-      }
-    }
+    // .xgplayer-icon {
+    //   width: 24px;
+    // }
     .xgplayer-tips {
       .xgplayer-tip-playnext {
         display: block;

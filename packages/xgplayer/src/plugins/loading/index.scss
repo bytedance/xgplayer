@@ -2,10 +2,10 @@
 
 @keyframes loadingRotate {
   0% {
-    transform: rotate(0);
+    transform: translate(-50%, -50%) rotate(0);
   }
   100% {
-    transform: rotate(360deg);
+    transform: translate(-50%, -50%) rotate(360deg);
   }
 }
 @keyframes loadingDashOffset {
@@ -18,37 +18,28 @@
 }
 .xgplayer-loading {
   display: none;
-  width: 100px;
-  height: 100px;
+  width: 70px;
+  height:  70px;
   overflow: hidden;
-  transform: scale(0.7);
+  // transform: scale(0.7);
   position: absolute;
   z-index: 10;
   left: 50%;
   top: 50%;
-  margin: -50px auto auto -50px;
-  position: none;
+  transform: translate(-50%, -50%);
   pointer-events: none;
-  svg{
+  transform-origin: center;
+  animation: loadingRotate 1s linear infinite;
+  svg {
     width: 100%;
     height: 100%;
-    border-radius: 50%;
-    transform-origin: center;
-    animation: loadingRotate 1s linear infinite;
-    path{
-      stroke: #ddd;
-      stroke-dasharray: 236;
-      animation: loadingDashOffset 2s linear infinite;
-      animation-direction: alternate-reverse;
-      fill: none;
-      stroke-width: 12px;
-    }
   }
 }
 
 .xgplayer-mobile {
   .xgplayer-loading {
-    transform:scale(0.5);
+    width: 50px;
+    height:  50px;
   }
 }
 

@@ -5,6 +5,13 @@ import Plugin, {Events, Util, POSITIONS} from '../../plugin'
  * @doc https://www.w3.org/TR/picture-in-picture/
  * @doc https://developer.apple.com/documentation/webkitjs/adding_picture_in_picture_to_your_safari_media_controls
  */
+
+const PresentationMode = {
+  PIP: 'picture-in-picture',
+  INLINE: 'inline',
+  FULLSCREEN: 'fullscreen'
+}
+
 class PIP extends Plugin {
   static get pluginName () {
     return 'pip'
@@ -29,6 +36,7 @@ class PIP extends Plugin {
   }
 
   afterCreate () {
+    this.pMode = PresentationMode.INLINE
     this.btnClick = (e) => {
       e.preventDefault();
       e.stopPropagation();
@@ -59,10 +67,24 @@ class PIP extends Plugin {
       player.emit('pip_change', true)
     }
 
+    this.onWebkitpresentationmodechanged = () => {
+      const mode = player.video.webkitPresentationMode
+      // 如果在全屏下进入了该逻辑,调用退出全屏处理
+      if (this.pMode === PresentationMode.FULLSCREEN && mode !== PresentationMode.FULLSCREEN) {
+        player.onFullscreenChange(null, false)
+      }
+      this.pMode = mode
+      if (mode === PresentationMode.PIP) {
+        this.enterPIPCallback()
+      } else if (mode === PresentationMode.INLINE) {
+        this.leavePIPCallback()
+      }
+    }
+
     if (player.video) {
       player.video.addEventListener('enterpictureinpicture', this.enterPIPCallback)
-      // Video left Picture-in-Picture mode.
       player.video.addEventListener('leavepictureinpicture', this.leavePIPCallback)
+      PIP.checkWebkitSetPresentationMode(player.video) && player.video.addEventListener('webkitpresentationmodechanged', this.onWebkitpresentationmodechanged)
     }
   }
 
@@ -111,7 +133,7 @@ class PIP extends Plugin {
 
   get isPip () {
     const {player} = this
-    return (document.pictureInPictureElement && document.pictureInPictureElement === player.video) || player.video.webkitPresentationMode === 'picture-in-picture'
+    return (document.pictureInPictureElement && document.pictureInPictureElement === player.video) || player.video.webkitPresentationMode === PresentationMode.PIP
   }
 
   isPIPAvailable () {
