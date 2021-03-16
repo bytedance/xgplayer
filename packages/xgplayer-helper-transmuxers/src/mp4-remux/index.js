@@ -24,6 +24,9 @@ export default class Mp4Remuxer {
 
     this.audioRemuxed = 0;
     this.videoRemuxed = 0;
+    this.mp4Durations = {
+      keys: []
+    }
   }
 
   init () {
@@ -37,6 +40,9 @@ export default class Mp4Remuxer {
   destroy () {
     this._dtsBase = -1
     this._isDtsBaseInited = false
+    this.mp4Durations = {
+      keys: []
+    }
   }
 
   remux () {
@@ -227,6 +233,11 @@ export default class Mp4Remuxer {
         mdatBox.samples.push(mdatSample)
         mdatSample.buffer.push(avcSample.data)
         mdatSample.size += avcSample.data.byteLength
+        //  manage same pts sample
+        if (this.mp4Durations[pts]) {
+          pts += this.mp4Durations[pts]
+          cts = pts - dts
+        }
         mp4Samples.push({
           dts,
           cts: Math.abs(cts) > 2000 ? sampleDuration : cts,
@@ -245,11 +256,22 @@ export default class Mp4Remuxer {
           originDts: dts,
           type: 'video'
         })
+        this.mp4Durations[pts] = sampleDuration
+        this.mp4Durations.keys.push(pts)
       }
 
       if (isKeyframe) {
         this.emit(REMUX_EVENTS.RANDOM_ACCESS_POINT, pts)
       }
+    }
+    // delete too much data
+    if (this.mp4Durations.keys.length > 1e4) {
+      const tmp = this.mp4Durations
+      this.mp4Durations = {}
+      this.mp4Durations.keys = tmp.keys.slice(-100)
+      this.mp4Durations.keys.forEach(key => {
+        this.mp4Durations[key] = tmp[key]
+      })
     }
     if (mp4Samples.length) {
       logger.log(this.TAG, 'remux to mp4 video:', [firstDts / 1000, mp4Samples[mp4Samples.length - 1].dts / 1000]);
