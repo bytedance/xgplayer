@@ -264,7 +264,7 @@ export default class Mp4Remuxer {
         this.emit(REMUX_EVENTS.RANDOM_ACCESS_POINT, pts)
       }
     }
-    // delete too many data
+    // delete too much data
     if (this.mp4Durations.keys.length > 1e4) {
       const tmp = this.mp4Durations
       this.mp4Durations = {}
