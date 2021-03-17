@@ -21,7 +21,7 @@ export default class TopBackIcon extends Plugin {
       this.config.onClick(e)
     }
 
-    this.bind('touchend', this.onClick)
+    this.bind(['click', 'touchend'], this.onClick)
   }
 
   registerIcons () {

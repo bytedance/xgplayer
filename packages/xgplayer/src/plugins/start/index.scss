@@ -3,15 +3,15 @@
 .xgplayer {
   @keyframes playPause {
     0%{
-      transform:scale(1);
+      transform:translate(-50%, -50%) scale(1);
       opacity:1;
     }
     99%{
-      transform:scale(1.3);
+      transform:translate(-50%, -50%) scale(1.3);
       opacity:0;
     }
     to {
-      transform:scale(1);
+      transform:translate(-50%, -50%) scale(1);
       opacity:0;
     }
   }
@@ -25,13 +25,11 @@
     left: 50%;
     top: 50%;
     z-index: 5;
-    margin-left: -35px;
-    margin-top: -35px;
+    transform: translate(-50%, -50%);
     cursor: pointer;
     svg {
-      fill: rgb(255, 255, 255);
-      width: 70px;
-      height: 70px;
+      width: 100%;
+      height: 100%;
     }
     &.hide {
       display: none;
@@ -72,13 +70,7 @@
     .xgplayer-start {
       height: 50px;
       width: 50px;
-      margin-top: -25px;
-      margin-left: -25px;
       background: initial;
-      svg {
-        height: 50px;
-        width: 50px;
-      }
       &:hover{
         opacity: 1;
       }
@@ -89,7 +81,7 @@
       display: none;
     }
   }
-  &.xgplayer-inactive {
+  &.xgplayer-inactive, &.xgplayer-is-enter {
     .xgplayer-start {
       &.auto-hide {
         display: none;

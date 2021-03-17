@@ -412,7 +412,8 @@ class MobilePlugin extends Plugin {
     if (!config.closedbClick || playerConfig.closeVideoClick) {
       player.isActive ? player.emit(Events.PLAYER_BLUR) : player.emit(Events.PLAYER_FOCUS)
     } else if (!playerConfig.closeVideoClick) {
-      player.isActive ? this.switchPlayPause() : player.emit(Events.PLAYER_FOCUS)
+      player.isActive && this.switchPlayPause()
+      player.emit(Events.PLAYER_FOCUS)
     }
   }
 

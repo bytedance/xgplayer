@@ -96,8 +96,8 @@ class Start extends Plugin {
 
   initIcons () {
     const {icons} = this
-    this.appendChild('.icon', icons.startPlay)
-    this.appendChild('.icon', icons.startPause)
+    this.appendChild(icons.startPlay)
+    this.appendChild(icons.startPause)
   }
 
   hide () {
@@ -203,8 +203,6 @@ class Start extends Plugin {
     const className = this.config.mode === 'auto' ? 'auto-hide' : 'hide'
     return `
     <xg-start class="xgplayer-start ${className}">
-      <div class="icon">
-      </div>
     </xg-start>`
   }
 }

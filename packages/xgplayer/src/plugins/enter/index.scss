@@ -35,7 +35,7 @@
 
   @for $i from 1 to 12 {
     .xgplayer-enter-spinner div.xgplayer-enter-bar#{$i} {
-      transform: rotate(#{($i - 1) * 30 }deg) translate(0, -142%);
+      transform: rotate(#{($i - 1) * 30 }deg) translate(0, -140%);
       animation-delay: -#{(13 - $i)%12 * 0.0833}s;
     }
   }
@@ -49,16 +49,24 @@
   }
 }
 
-.xgplayer.xgplayer-is-enter {
-  .xgplayer-enter {
-    display: block;
-    opacity: 1;
-    transition: opacity 0.3s
+.xgplayer {
+  &.xgplayer-is-enter {
+    .xgplayer-enter {
+      display: block;
+      opacity: 1;
+      transition: opacity 0.3s
+    }
   }
-}
-.xgplayer.xgplayer-nostart {
-  .xgplayer-enter {
-    display: none;
+  &.xgplayer-nostart {
+    .xgplayer-enter {
+      display: none;
+    }
+  }
+  &.xgplayer-mobile {
+    .xgplayer-enter .xgplayer-enter-spinner {
+      width: 70px;
+      height: 70px;
+    }
   }
 }
 

@@ -43,7 +43,7 @@ export default class Fullscreen extends Plugin {
       this.changeLangTextKey(this.find('.xg-tips'), isFullScreen ? this.i18nKeys.EXITFULLSCREEN_TIPS : this.i18nKeys.FULLSCREEN_TIPS)
       this.animate(isFullScreen)
     })
-    if (Sniffer.device === 'mobile' && this.config.needBackIcon) {
+    if (this.config.needBackIcon) {
       this.topBackIcon = this.player.registerPlugin({
         plugin: TopBackIcon,
         options: {
