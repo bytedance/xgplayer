@@ -293,10 +293,12 @@ var Music = function (_Player) {
         return;
       }
       if (_this.mode === 'order' && _this.index + 1 >= _this.list.length) {
-        _this.once('playing', function () {
-          _this.pause();
-        });
-        _this.currentTime = 0;
+        if (!_this.config.musicOrderEnd) {
+          _this.once('playing', function () {
+            _this.pause();
+          });
+          _this.currentTime = 0;
+        }
         return;
       }
       switch (_this.mode) {
