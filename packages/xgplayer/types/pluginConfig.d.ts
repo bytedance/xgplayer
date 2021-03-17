@@ -19,7 +19,6 @@ export interface ControlsConfig {
     disable?: Boolean; // [可选]是否禁用插件交互行为
     autoHide?: Boolean; // 是否自动隐藏, 默认true
     mode?: String; // 显示模式， flex和normal, 默认normal
-    marginBottom?: Boolean; // 控制条是否显示在播放器底部, 默认false
     initShow?: Boolean // 是否初始化的时候就显示, 默认false
 }
 
@@ -297,5 +296,6 @@ export interface ScreenShotConfig {
     format?: '.png'; // [可选] 截图存储后缀，默认.png
     width?: Number; // [可选]截图宽度,默认600
     height?: Number; // [可选]截图宽度,默认337
+    fitVideo?: Boolean; // [可选]截取图片是否适配视频宽高,默认true,
     name?: String; // [可选]截图存储命名,默认'截图'
 }

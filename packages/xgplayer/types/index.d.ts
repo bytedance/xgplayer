@@ -198,6 +198,9 @@ declare module 'xgplayer' {
         // 关闭控制条， 默认true
         controls?: Boolean | ControlsConfig;
 
+        // 控制栏是否位于画面底部，不与画面重合
+        marginControls?: Boolean;
+
         // 需要安装的插件列表
         plugins?: any[];
 
