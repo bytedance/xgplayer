@@ -28,11 +28,11 @@ export default class ProgressPreview extends Plugin {
   static get defaultConfig () {
     return {
       index: 1,
-      miniWidth: 6,
-      ispots: [],
-      defaultText: '',
-      isFocusDots: true,
-      isShowThumbnail: true,
+      miniWidth: 6, // 故事点显示最小宽度
+      ispots: [], // 故事点列表
+      defaultText: '', // 故事点hover默认文案
+      isFocusDots: true, //
+      isShowThumbnail: true, // 是否显示预览图
       isShowCoverPreview: false, // 进度条拖动时是否显示播放区域预览图
       mode: '' // short // production
     }

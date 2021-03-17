@@ -1,9 +1,34 @@
 /**
  * @file index.d.ts
+ * @author AppleMonkey2019(am_fe@qq.com)
  */
+import {
+    BasePluginConfig,
+    ControlsConfig,
+    PCConfig,
+    MobileConfig,
+    ProgressConfig,
+    IsPot,
+    ProgressPreviewConfig,
+    ThumbnailConfig,
+    DefinitionConfig,
+    PlayBackRateConfig,
+    PIPConfig,
+    PosterConfig,
+    EnterConfig,
+    FullscreenConfig,
+    KeyboardConfig,
+    MiniScreenConfig,
+    VolumeConfig,
+    Texttrack,
+    TexttrackStyle,
+    TextTrackConfig,
+    StartConfig,
+    RotateConfig,
+    ScreenShotConfig
+} from './pluginConfig'
 
 declare module 'xgplayer' {
-
     import {EventEmitter} from 'events';
 
     type DanmuModelType = 'top' | 'bottom' | 'scroll' | string;
@@ -30,138 +55,15 @@ declare module 'xgplayer' {
         mode?: DanmuModelType;
     }
 
-    export interface Util {
-        createDom(el: string, tpl:string, attrs:object, cname:string): HTMLElement | null;
-        createDomFromHtml (html: string, attrs:object , classname:string): HTMLElement | null;
-        hasClass (el: HTMLElement, className: string): boolean;
-        addClass(el: HTMLElement, className: string): void;
-        removeClass(el: HTMLElement, className: string): void;
-        toggleClass(el: HTMLElement, className: string): void;
-        findDom(el: HTMLElement, sel: string): HTMLElement | null;
-        getCss(dom: HTMLElement, key: string): string;
-        padStart(str: string | number, length: number, pad: number): string;
-        format(time: number): string;
-        event(e: Event): void;
-        typeOf (obj: any): string;
-        deepCopy(dst: object, src: object): object;
-        deepMerge(dst: object, src: object): object;
-        getBgImage(el: HTMLElement): string;
-        copyDom(dom: HTMLElement): HTMLElement | '';
-        setInterval(context: any, eventName: string, intervalFunc: any, frequency: number): void;
-        clearInterval(context: any, eventName: string): void;
-        createImgBtn(name: string, imgUrl: string, width: number | string, height: number | string): HTMLElement;
-        Hex2RGBA(hex: string, alpha: string): string;
-        getFullScreenEl(): HTMLElement | null;
-        checkIsFunction(fun: any): boolean;
-        checkIsObject(obj: any): boolean;
-        hide(dom: HTMLElement): void;
-        show(dom: HTMLElement, display?: string): void;
-        isUndefined(val: any): boolean;
-        setStyleFromCsstext(dom: HTMLElement, text: string): void;
-        preloadImg(url: string, onload?: any, onerror?: any): void;
-        stopPropagation(e: Event): void;
-    }
+    // export interface TextTrack {
+    //     src: string;
+    //     kind: string;
+    //     label: string;
+    //     srclang: string;
+    //     default: boolean;
+    // }
 
-    interface OS_TYPE {
-        isTablet: boolean;
-        isPhone: boolean;
-        isIos: boolean;
-        isAndroid: boolean;
-        isPc: boolean;
-        isSymbian: boolean;
-        isWindowsPhone: boolean;
-        isFireFox: boolean
-    }
-
-    export interface Sniffer{
-        device: string;
-        browser: string;
-        os: OS_TYPE;
-        isWeixin: boolean;
-    }
-
-    export interface Events {
-        PLAY: string;
-        PLAYING: string;
-        ENDED: string;
-        PAUSE: string;
-        ERROR: string;
-        SEEKING: string;
-        SEEKED: string;
-        TIME_UPDATE: string;
-        WAITING: string;
-        CANPLAY: string;
-        CANPLAY_THROUGH: string;
-        DURATION_CHANGE: string;
-        VOLUME_CHANGE: string;
-        LOADED_DATA: string;
-        RATE_CHANGE: string;
-        PROGRESS: string;
-        LOAD_START: string;
-        EMPTIED: string;
-        STALLED: string;
-        SUSPEND: string;
-        ABORT: string;
-      // player events
-        BUFFER_CHANGE: string;
-        PLAYER_FOCUS: string;
-        PLAYER_BLUR: string;
-        READY: string;
-        URL_NULL: string;
-        AUTOPLAY_STARTED: string;
-        AUTOPLAY_PREVENTED: string;
-        COMPLETE: string;
-        REPLAY: string;
-        DESTROY: string;
-        URL_CHANGE: string;
-      // screen change evnets
-        FULLSCREEN_CHANGE: string;
-        CSS_FULLSCREEN_CHANGE: string;
-        MINI_STATE_CHANGE: string;
-        DEFINITION_CHANGE: string;
-        BEFORE_DEFINITION_CHANGE: string;
-        AFTER_DEFINITION_CHANGE: string;
-      // transmuxer events
-        SEI_PARSED: string;
-        RETRY: string;
-      }
-
-      export interface STATE_CLASS {
-        DEFAULT: string;
-        DEFAULT_SKIN: string;
-        ENTER: string;
-        PAUSED: string;
-        PLAYING: string;
-        ENDED: string;
-        CANPLAY: string;
-        LOADING: string;
-        ERROR: string;
-        REPLAY: string;
-        NO_START: string;
-        ACTIVE: string;
-        FULLSCREEN: string;
-        CSS_FULLSCREEN: string;
-        ROTATE_FULLSCREEN: string;
-        NO_CONTROLS: string;
-        FLEX_CONTROLS: string;
-        CONTROLS_FOLLOW: string;
-        AUTOHIDE: string;
-        NOT_ALLOW_AUTOPLAY: string;
-        SEEKING: string;
-        PC: string;
-        MOBILE: string;
-        MINI: string // 小窗播放状态
-    }
-
-    export interface TextTrack {
-        src: string;
-        kind: string;
-        label: string;
-        srclang: string;
-        default: boolean;
-    }
-
-    interface IPlayerOptions {
+    export interface IPlayerOptions {
 
         // 选择器
         id?: string;
@@ -196,12 +98,7 @@ declare module 'xgplayer' {
          * 音量配置
          * 可以是音量值/音量插件的配置对象/是否显示音量插件
          */
-        volume?: number | boolean | {
-           position?: string,
-           index?: number,
-           disable?: boolean,
-           default?: number
-        };
+        volume?: number | VolumeConfig;
 
         // 自动播放（默认false）
         autoplay?: boolean;
@@ -216,63 +113,20 @@ declare module 'xgplayer' {
         videoInit?: boolean;
 
         // 封面图 或者是封面图的配置对象
-        poster?: string | {
-            position?: string,
-            index?: number,
-            isEndedShow?: boolean,
-            poster?: string
-        };
+        poster?: string | PosterConfig;
 
         // 倍速播放
         // 播放器支持设置视频的当前播放速度。可通过defaultPlaybackRate设置初始速度。
-        playbackRate?: any;
+        playbackRate?: Boolean | Array<Number> | PlayBackRateConfig;
 
         // 默认播放速度
         defaultPlaybackRate?: number;
-
-        // 清晰度切换插件配置
-        definition?: any;
-
-        // 视频旋转按钮配置项
-        rotate?: any;
-
-        // 预览
-        thumbnail?: any;
-
-        // 下一集
-        playNext?: {
-            urlList: string[];
-        };
-
-        // 视频下载(默认false)
-        download?: boolean;
-
-        // 弹幕（具体用法参考https://github.com/bytedance/danmu.js）
-        danmu?: DanmuOptions;
-
-        // 外挂字幕（参考https://developer.mozilla.org/en-US/docs/Web/API/WebVTT_API）
-        textTrack?: TextTrack[];
-
-        // 外挂字幕样式
-        textTrackStyle?: Record<string, string | number>;
-
-        // 配置项修改外挂字幕控件的触发方式
-        textTrackActive?: 'hover' | 'click';
-
-        // 画中画
-        pip?: boolean;
-
-        // 网页样式全屏
-        cssFullscreen?: boolean;
-
-        // 截图
-        screenShot?: boolean;
 
         // 预览本地视频
         preview?: {uploadEl?: HTMLElement};
 
         // 进度条特殊点标记
-        progressDot?: Array<{time: number; text?: string; duration?: number}>;
+        progressDot?: Array<IsPot>;
 
         // 键盘快捷键 默认值：'on'
         keyShortcut?: boolean;
@@ -314,9 +168,6 @@ declare module 'xgplayer' {
         // eslint-disable-next-line max-len
         ignores?: Array<'cssfullscreen' | 'screenshot' | 'pip' | 'miniscreen' | 'keyboard' | 'download' | 'playbackrate' | 'time' | 'definition' | 'error' | 'fullscreen' | 'loading' | 'mobile' | 'pc' | 'play' | 'poster' | 'progress' | 'replay' | 'start' | 'volume' | string>;
 
-        // 关闭控制条， 默认true
-        controls?: any;
-
         // 播放镜像 https://support.apple.com/en-us/HT204289
         airplay?: boolean;
 
@@ -344,6 +195,12 @@ declare module 'xgplayer' {
         // 自定义配置
         customConfig?: Record<string, unknown>;
 
+        // 关闭控制条， 默认true
+        controls?: Boolean | ControlsConfig;
+
+        // 控制栏是否位于画面底部，不与画面重合
+        marginControls?: Boolean;
+
         // 需要安装的插件列表
         plugins?: any[];
 
@@ -368,7 +225,7 @@ declare module 'xgplayer' {
             sliderBtnStyle?: any,
             // 进度条滑块样式
             volumeColor?: string
-        };
+          };
 
         // 进度条自动消失延时
         inactive?: number;
@@ -377,6 +234,71 @@ declare module 'xgplayer' {
         disableSwipeHandler?: () => void;
 
         enableSwipeHandler?: () => void;
+
+        // 清晰度切换插件配置
+        definition?: Boolean | DefinitionConfig | any;
+
+        // 预览
+        thumbnail?: ThumbnailConfig;
+
+        // 下一集
+        playNext?: {
+            urlList: string[];
+        };
+
+        // 视频旋转按钮配置项
+        rotate?: boolean | RotateConfig;
+
+        // 视频下载(默认false)
+        download?: boolean | BasePluginConfig;
+
+        // 弹幕（具体用法参考https://github.com/bytedance/danmu.js）
+        danmu?: DanmuOptions;
+
+        // 外挂字幕（参考https://developer.mozilla.org/en-US/docs/Web/API/WebVTT_API）
+        textTrack?: boolean | TextTrackConfig;
+
+        // 外挂字幕样式
+        textTrackStyle?: TexttrackStyle |  Record<string, string | number>;
+
+        // 配置项修改外挂字幕控件的触发方式
+        textTrackActive?: 'hover' | 'click';
+
+        // 画中画
+        pip?: boolean | PIPConfig;
+
+        // 网页样式全屏
+        cssFullscreen?: boolean | any;
+
+        // 全屏插件配置
+        fullscreen?: boolean | FullscreenConfig;
+
+        // 截图
+        screenShot?: boolean | ScreenShotConfig;
+
+        //移动端手势插件配置
+        mobile?: MobileConfig;
+
+        // 迷你小屏播放插件配置
+        mini?: boolean | MiniScreenConfig;
+
+        // pc端快捷键配置
+        keyboard?: Boolean | KeyboardConfig;
+
+        enter?: boolean | EnterConfig;
+
+        // 进度条预览插件
+        progressPreview?: ProgressPreviewConfig;
+
+        // 进度条插件配置
+        progress?: boolean | ProgressConfig;
+
+        // 中间播放按钮插件配置
+        start?: boolean | StartConfig;
+
+        //pc相关插件配置
+        pc?: PCConfig;
+
 
         //扩展定义
         [propName: string]: any;
@@ -391,184 +313,6 @@ declare module 'xgplayer' {
     type XGI18nLang = {
         LANG: string;
         TEXT: XGI18nTextKeys
-    }
-
-    export class BasePlugin {
-        static defineGetterOrSetter (Obj: object, map: object): void;
-        constructor (args: object);
-        /**
-         * 播放器实例
-         */
-        player: any;
-
-        /**
-         * 播放器配置
-         */
-        playerConfig: any;
-
-        /**
-         * 插件名
-         */
-        pluginName: string;
-
-        /**
-         * 日志对象
-         */
-        logger: any;
-
-        /**
-         * 更新语言
-         * @param lang
-         */
-        updateLang (lang: string): void;
-
-        /**
-         * 当前语言
-         * @param lang
-         */
-        lang: string;
-
-        i18n: any;
-
-        i18nKeys: any;
-
-        /**
-         * 添加事件监听
-         * @param event
-         * @param callback
-         */
-        on (event: string, callback: Function): void;
-
-        /**
-         * 添加事件监听
-         * @param event
-         * @param callback
-         */
-        once (event: string, callback: Function): void;
-
-        /**
-         * 解除事件监听
-         * @param event
-         * @param callback
-         */
-        off (event: string, callback: Function): void;
-
-        /**
-         * 解除所有事件监听
-         */
-        offAll (): void;
-
-        /**
-         * 触发某个事件
-         * @param event
-         * @param data
-         */
-        emit (event: string, data: any): void;
-
-        /**
-         * 注册一个插件
-         * @param plugin 插件构造器
-         * @param options 插件配置
-         * @param name 插件名称
-         */
-        registerPlugin (plugin: object, options?: object, name?: string): BasePlugin | null;
-
-        /**
-         * 根据插件名称获取插件实例
-         * @param name
-         */
-        getPlugin (name:string): BasePlugin;
-
-        /**
-         * 播放器销毁回调
-         */
-        destroy (): void;
-
-        /**
-         * 销毁播放器
-         */
-        __destroy (): void;
-    }
-
-    interface ROOT_TYPES {
-        CONTROLS: string;
-        ROOT: string;
-    }
-
-    interface POSITIONS {
-        ROOT: string;
-        ROOT_LEFT: string;
-        ROOT_RIGHT: string;
-        ROOT_TOP: string;
-        CONTROLS_LEFT: string;
-        CONTROLS_RIGHT: string;
-        CONTROLS_CENTER: string;
-        CONTROLS: string;
-    }
-
-    export class Plugin extends BasePlugin {
-
-        static ROOT_TYPES: ROOT_TYPES;
-
-        static POSITIONS: POSITIONS;
-        /**
-          * 插入dom结构
-          * @param {String | Element} html html字符串或者dom
-          * @param {Element} parent
-          * @param {*} index
-          */
-        static insert (html: string, parent: HTMLElement, index:number): HTMLElement;
-
-        /**
-         * 默认配置信息
-         */
-        static defaultConfig: object;
-
-        static delegate (root: HTMLElement, querySelector?: string, eventType?:string | Array<string>, callback?: Function, capture?:boolean): void;
-
-        static removeDelegate (root: HTMLElement, eventType?:string | Array<string>, callback?: Function, capture?:boolean): void;
-
-        /**
-         * 插件根节点
-         */
-        root: HTMLElement;
-
-        /**
-         * 插件父节点
-         */
-        parent: HTMLElement;
-        /**
-         * 获取子插件列表
-         */
-        children (): object;
-        /**
-         * 在当前插件根节点查找dom
-         * @param selector 选择器
-         */
-        find (selector: string): HTMLElement;
-        /**
-         * 给当前插件设置行间样式
-         * @param name css属性名
-         * @param value css属性值
-         */
-        setStyle (name: string, value: string): void;
-        setStyle (styles: object): void;
-        setAttr (name: string | object, value?: string): void;
-
-        setHtml (htmlStr: string, callback?:Function): void;
-
-        show (value?:string): void;
-
-        hide (): void;
-
-        appendChild (pdom: HTMLElement | string, child?: HTMLElement): HTMLElement | null;
-        render (): string;
-    }
-
-    class DefaultPreset {
-        constructor();
-        plugins: Array<Plugin | BasePlugin>;
-        ignores: Array<string>
     }
 
     class Proxy extends EventEmitter {
@@ -709,7 +453,7 @@ declare module 'xgplayer' {
          * @param name 插件的名字
          * @param descriptor 插件函数
          */
-        public static install(name: string, descriptor: (this: any, player: any) => void): void;
+        public static install(name: string, descriptor: (this: Player, player: Player) => void): void;
 
         /**
          * 多语言包
@@ -730,13 +474,6 @@ declare module 'xgplayer' {
             use: (data: XGI18nLang) => void;
         };
 
-        public static Util: Util;
-
-        public static Sniffer: Sniffer;
-
-        public static Events: Events;
-
-        public static defaultPreset: DefaultPreset;
         /**
          * 插件存储对象
          */
@@ -852,5 +589,6 @@ declare module 'xgplayer' {
          */
         public usePluginHooks(pluginName: string, hookName: string, handler: (data?: any) => any): void;
     }
+
     export default Player
 }
