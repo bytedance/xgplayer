@@ -66,7 +66,7 @@ class MSE {
     if (!this.mediaSource || this.mediaSource.readyState !== 'open' || !this.opened) {
       return;
     }
-    let sources = this._context.getInstance('PRE_SOURCE_BUFFER');
+    let sources = this._context.getInstance(this.configs.dataSource || 'PRE_SOURCE_BUFFER');
     let tracks = this._context.getInstance('TRACKS');
     let track;
     if (!sources || !tracks) {

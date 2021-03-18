@@ -22,5 +22,8 @@
         }
       ]
     ]
+  },
+  "dependencies": {
+    "xgplayer-helper-utils": "2.4.13"
   }
 }

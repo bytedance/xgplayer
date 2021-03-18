@@ -42,7 +42,6 @@ export default class FlvController {
     const { FetchLoader, XgBuffer, FlvDemuxer, Tracks, Remuxer, PreSource, Compatibility, Logger, remux } = this.config
     this._context.registry('FETCH_LOADER', FetchLoader)
     this._context.registry('LOADER_BUFFER', XgBuffer)
-
     this._context.registry('FLV_DEMUXER', FlvDemuxer)
     this._context.registry('TRACKS', Tracks)
 
@@ -59,6 +58,15 @@ export default class FlvController {
     }
 
     this._context.registry('LOGGER', Logger)
+  }
+
+  initBackup() {
+    const { PreSource, Mse } = this.config;
+    this._context.registry('PRE_SOURCE_BUFFER', PreSource);
+    this.backupVideo = document.createElement('video');
+    this.backupVideo.muted = true;
+    this.backupMSE = new Mse({ container: this.backupVideo, dataSource: 'BACKUP_SOURCE_BUFFER' }, this._context);
+    this.backupMSE.init();
   }
 
   initListeners () {
@@ -112,11 +120,18 @@ export default class FlvController {
   _handleAppendInitSegment () {
     this.state.initSegmentArrived = true
     this.mse.addSourceBuffers()
+    if (this.backupMSE) {
+      this.backupMSE.addSourceBuffers()
+    }
   }
 
   _handleMediaSegment () {
     this.mse.addSourceBuffers()
     this.mse.doAppend();
+    if (this.backupMSE) {
+      this.backupMSE.addSourceBuffers()
+      this.backupMSE.doAppend();
+    }
   }
 
   _handleSourceUpdateEnd () {
@@ -135,6 +150,10 @@ export default class FlvController {
       if (bufferEnd - preloadTime > this._player.currentTime) {
         this._player.currentTime = bufferEnd - preloadTime
       }
+    }
+
+    if (this.backupMSE) {
+      this.backupMSE.doAppend();
     }
     this.mse.doAppend();
     if (this._player.paused || this.urlSwitching) {
