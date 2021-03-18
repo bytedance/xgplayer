@@ -646,10 +646,10 @@ class Player extends Proxy {
     this.removeClass(STATE_CLASS.ERROR)
     this.addClass(STATE_CLASS.LOADING)
     const cur = this.currentTime
-    this.video.pause()
+    this.pause()
     this.src = this.config.url
     this.currentTime = cur
-    this.video.play()
+    this.play()
   }
 
   getFullscreen (el) {
