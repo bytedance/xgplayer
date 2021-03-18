@@ -126,7 +126,7 @@ class PIP extends Plugin {
       }
       return true
     } catch (reason) {
-      console.error('exitPip', reason);
+      console.error('exitPIP', reason);
       return false
     }
   }
@@ -147,7 +147,7 @@ class PIP extends Plugin {
     const {player} = this
     player.video.removeEventListener('enterpictureinpicture', this.enterPIPCallback)
     player.video.removeEventListener('leavepictureinpicture', this.leavePIPCallback)
-    this.exitPip()
+    this.exitPIP()
     this.unbind('click', this.btnClick)
   }
 

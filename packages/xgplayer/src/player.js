@@ -364,6 +364,21 @@ class Player extends Proxy {
       options = {}
     }
 
+    // 获取配置的position或者root
+    if (!options.root && !options.position) {
+      const keys = Object.keys(this.config)
+      for (let i = 0; i < keys.length; i++) {
+        if (PLUFGIN.pluginName.toLowerCase() === keys[i].toLowerCase()) {
+          const itemKey = keys[i]
+          if (Util.typeOf(this.config[itemKey]) === 'Object') {
+            options.root = this.config[itemKey].root || null
+            options.position = this.config[itemKey].position || null
+          }
+          break;
+        }
+      }
+    }
+
     const position = options.position ? options.position : (options.config && options.config.position) || (PLUFGIN.defaultConfig && PLUFGIN.defaultConfig.position)
     const {POSITIONS} = Plugin
     if (!options.root && typeof position === 'string' && position.indexOf('controls') > -1) {
@@ -631,10 +646,10 @@ class Player extends Proxy {
     this.removeClass(STATE_CLASS.ERROR)
     this.addClass(STATE_CLASS.LOADING)
     const cur = this.currentTime
-    this.video.pause()
+    this.pause()
     this.src = this.config.url
     this.currentTime = cur
-    this.video.play()
+    this.play()
   }
 
   getFullscreen (el) {
