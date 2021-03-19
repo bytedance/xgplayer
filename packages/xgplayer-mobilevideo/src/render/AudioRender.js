@@ -23,6 +23,7 @@ export default class AudioRender extends BaseRender {
     this._source = null;
     this._audioCanAutoplay = true;
     this._lastBuffer = null;
+    this._inDecoding = false;
     this._onSourceBufferEnded = this._onSourceBufferEnded.bind(this);
     this._initAudioCtx(config.volume || 0.6);
     this._bindEvents();
@@ -141,13 +142,18 @@ export default class AudioRender extends BaseRender {
 
   // receive new compressed samples
   _appendChunk (_, audioTrack) {
-    if (this._noAudio || !this._meta) return;
+    if (this._noAudio) return;
 
-    let {samples, meta} = audioTrack;
+    if (!this._meta) {
+      this._meta = audioTrack.meta;
+    }
 
-    if (meta && samples.length) {
+    let {samples} = audioTrack;
+
+    if (samples.length) {
       this._sampleQueue = this._sampleQueue.concat(samples);
       audioTrack.samples = [];
+      if (this._inDecoding) return;
       try {
         this._assembleAAC();
       } catch (e) {
@@ -238,6 +244,8 @@ export default class AudioRender extends BaseRender {
 
     let chunkBuffer = AudioRender.combileData(adtss);
 
+    // 存在第二块buffer先于第一块解码完成的情况
+    this._inDecoding = true;
     this._audioCtx.decodeAudioData(
       chunkBuffer.buffer,
       (uncompress) => {
@@ -247,7 +255,7 @@ export default class AudioRender extends BaseRender {
           uncompress.duration,
           samp0.dts
         );
-
+        this._inDecoding = false;
         if (!this._ready) {
           // init background Audio ele
           let canEmit = this.isLive || Math.floor(Math.abs(start - this.currentTime)) <= Math.ceil(uncompress.duration);
@@ -256,11 +264,11 @@ export default class AudioRender extends BaseRender {
             this.emit(Events.AUDIO.AUDIO_READY, start);
           }
         }
-
         this._emitTimelineEvents(Events.TIMELINE.PLAY_EVENT, Events.VIDEO_EVENTS.PROGRESS);
         this._emitTimelineEvents(Events.TIMELINE.PLAY_EVENT, Events.VIDEO_EVENTS.DURATION_CHANGE);
       },
       (e) => {
+        this._inDecoding = false;
         this._emitTimelineEvents(
           Events.TIMELINE.PLAY_EVENT,
           'error',
