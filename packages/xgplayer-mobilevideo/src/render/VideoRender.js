@@ -25,7 +25,7 @@ const HAVE_ENOUGH_DATA = 4;
 
 const MEDIA_ERR_DECODE = 3;
 const CAN_USE_HEVC_THREAD_DECODE = true && !!window.SharedArrayBuffer;
-const MAX_DECODE_ONCE_DEFAULT = 30;
+const MAX_DECODE_ONCE_DEFAULT = 16;
 const CONTINUE_DECODE_THRESHOLD_DEFAULT = MAX_DECODE_ONCE_DEFAULT / 2;
 
 const MAX_DECODE_ONCE_FAST = 80;
@@ -256,6 +256,7 @@ export default class VideoRender extends BaseRender {
   _initCanvas () {
     this._canvas.style.margin = 'auto';
     this._canvas.style.position = 'absolute';
+    this._canvas.style.pointerEvents = 'none';
   }
 
   _bindEvents () {

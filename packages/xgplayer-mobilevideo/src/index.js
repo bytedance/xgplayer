@@ -226,6 +226,11 @@ class MVideo extends HTMLElement {
     if (!this.timeline) {
       this._init();
     }
+    this.style.width = '100%';
+    this.style.height = '100%';
+    this.style.position = 'absolute';
+    this.style.left = '0px';
+    this.style.top = '0px';
     document.addEventListener('touchend', this._onTouchEnd, true)
   }
 
@@ -437,6 +442,11 @@ class MVideo extends HTMLElement {
 
   get __canvas () {
     return this.timeline.canvas;
+  }
+
+  get __ended () {
+    if (this._isLive) return false;
+    return Math.abs(this.currentTime - this.duration) > 0.5;
   }
 
   get __width () {

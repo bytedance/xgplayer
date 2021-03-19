@@ -18,8 +18,9 @@ function initBgSilenceAudio () {
   audio.innerHTML = `<source src=${silenceMp3} type="audio/mpeg"></source>`
   audio.muted = true;
   audio.loop = true;
-  audio.load();
-  audio.play().catch(e => {
+  // fix ios下大部分webview存在页面进度条一直不消失问题
+  // audio.load();
+  audio.play().catch(() => {
   });
 }
 
