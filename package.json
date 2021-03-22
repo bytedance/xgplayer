@@ -124,7 +124,6 @@
     "rollup-plugin-uglify-es": "0.0.1",
     "rollup-plugin-url": "^3.0.0",
     "rollup-plugin-visualizer": "^3.3.2",
-    "rollup-plugin-web-worker-loader": "^0.9.1",
     "sass-loader": "^7.1.0",
     "style-loader": "^0.21.0",
     "sugarss": "^1.0.1",
@@ -138,6 +137,7 @@
     "zlib": "^1.0.5"
   },
   "dependencies": {
+    "rollup-plugin-web-worker-loader": "^1.6.1",
     "xgplayer": "file:packages/xgplayer",
     "xgplayer-dash": "file:packages/xgplayer-dash",
     "xgplayer-flv": "file:packages/xgplayer-flv",

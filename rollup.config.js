@@ -6,7 +6,7 @@ const resolve = require('rollup-plugin-node-resolve')
 const commonjs = require('rollup-plugin-commonjs')
 const context = require('rollup-plugin-require-context')
 const builtins = require('rollup-plugin-node-builtins')
-const bundleWorker = require('rollup-plugin-bundle-worker');
+const webWorkerLoader = require('rollup-plugin-web-worker-loader');
 const analyzer = require('rollup-plugin-visualizer');
 
 const defaultRollup = {
@@ -41,7 +41,6 @@ const commonRollup = function (config = {}) {
     external: rollupConfig.external,
     plugins: [
       ...rollupConfig.plugins,
-      bundleWorker(),
       rollupConfig.uglify ? uglify(rollupConfig.uglify) : undefined,
       json({
         compact: true
@@ -61,6 +60,9 @@ const commonRollup = function (config = {}) {
         // }]],
         // runtimeHelpers: true,
         ...rollupConfig.babel
+      }),
+      webWorkerLoader({
+        sourcemap: false
       }),
       resolve({
         preferBuiltins: true,

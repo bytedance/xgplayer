@@ -1,6 +1,6 @@
 
 let shell = `
-    let timer;
+    var timer;
 
     function initTimer (interval) {
       destroy()
@@ -15,7 +15,7 @@ let shell = `
     }
 
     self.onmessage = function (e) {
-      const {type,interval} = e.data;
+      var {type,interval} = e.data;
       switch (type) {
           case 'START':
             initTimer(interval);
