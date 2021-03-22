@@ -1,6 +1,6 @@
-import HevcWorker from 'worker!../decoder/hevc-worker.js';
-import HevcThreadWorker from 'worker!../decoder/hevc-worker-thread.js';
-import AvcWorker from 'worker!../decoder/worker.js';
+import HevcWorker from 'web-worker:../decoder/hevc-worker.js';
+import HevcThreadWorker from 'web-worker:../decoder/hevc-worker-thread.js';
+import AvcWorker from 'web-worker:../decoder/worker.js';
 import { logger } from 'xgplayer-helper-utils';
 import BaseRender from './BaseRender';
 import VideoTimeRange from './VideoTimeRange';
