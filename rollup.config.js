@@ -62,6 +62,7 @@ const commonRollup = function (config = {}) {
         ...rollupConfig.babel
       }),
       webWorkerLoader({
+        targetPlatform: 'browser',
         sourcemap: false
       }),
       resolve({
