@@ -131,6 +131,8 @@ class Nalunit {
         if (buffer.dataview.getInt16(pos + 2) === 1) {
           // 0x000001
           headerLength = 4;
+        } else {
+          pos = bufferLen;
         }
       } else {
         pos++;

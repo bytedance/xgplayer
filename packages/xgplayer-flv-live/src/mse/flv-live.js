@@ -168,7 +168,8 @@ export default class FlvController {
     const bufferStart = range[0]
     const bufferEnd = range[1]
 
-    if (currentTime > bufferEnd || currentTime < bufferStart) {
+    if (currentTime < bufferStart) {
+      // 跳过播放过程中的小洞
       // 兼容Safari bufferStart时间不准确，导致seek失败
       video.currentTime = bufferStart + 0.1;
       return;
