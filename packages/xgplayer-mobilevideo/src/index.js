@@ -446,7 +446,7 @@ class MVideo extends HTMLElement {
 
   get __ended () {
     if (this._isLive) return false;
-    return Math.abs(this.currentTime - this.duration) > 0.5;
+    return Math.abs(this.currentTime - this.duration) < 0.5;
   }
 
   get __width () {

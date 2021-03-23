@@ -18,7 +18,7 @@ var Decoder = function (self) {
   this.inited = false;
   this.infoId = 0;
   this.self = self;
-  this.meta = this.self.meta;
+  this.meta = self.meta;
   this.ts = 0;
   this.infolist = [];
   self.par_broadwayOnBroadwayInited = this.broadwayOnBroadwayInited.bind(
@@ -203,7 +203,7 @@ function init (url) {
           })
           .then(Mod => {
             self.Module = Mod;
-            onPostRun();
+            onPostRun.call(self);
           })
       })
       .catch((e) => {
