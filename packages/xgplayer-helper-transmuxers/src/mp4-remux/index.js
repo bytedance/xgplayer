@@ -90,8 +90,17 @@ export default class Mp4Remuxer {
       track = videoTrack;
     }
 
-    this.emit(REMUX_EVENTS.REMUX_WRITE_META, type, track.meta.codec, this.remuxInitSegment(type, track.meta))
+    let presourcebuffer = this._context.getInstance('PRE_SOURCE_BUFFER');
+    let source = presourcebuffer.getSource(type);
+    if (!source) {
+      source = presourcebuffer.createSource(type);
+    }
 
+    source.mimetype = track.meta.codec;
+    source.init = this.remuxInitSegment(type, track.meta);
+    // source.inited = false;
+
+    // this.resetDtsBase()
     this.emit(REMUX_EVENTS.INIT_SEGMENT, type)
   }
 
@@ -417,7 +426,15 @@ export default class Mp4Remuxer {
   }
 
   writeToSource (type, buffer, bufferDuration) {
-    this.emit(REMUX_EVENTS.REMUX_WRITE_BUFFER, type, buffer, bufferDuration)
+    let presourcebuffer = this._context.getInstance('PRE_SOURCE_BUFFER');
+    let source = presourcebuffer.getSource(type);
+    if (!source) {
+      source = presourcebuffer.createSource(type);
+    }
+    source.data.push(buffer)
+    if (bufferDuration) {
+      source.bufferDuration = bufferDuration + (source.bufferDuration || 0)
+    }
   }
 
   initSilentAudio (dts, duration) {
