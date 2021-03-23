@@ -15,7 +15,7 @@ let s_memoryPlay = function () {
     e.stopPropagation();
   });
   const removeFunc = () => {
-    dom && dom.parentNode.removeChild(dom)
+    dom && dom.parentNode && dom.parentNode.removeChild(dom)
     dom = null
   }
   dom.querySelector('.xgplayer-progress-tip .btn-close').addEventListener('click', removeFunc)
