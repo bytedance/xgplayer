@@ -112,7 +112,6 @@ class FetchLoader {
           return;
         }
         this.emit(LOADER_EVENTS.LOADER_ERROR, this.TAG, error);
-        throw error;
       }
     })
   }
