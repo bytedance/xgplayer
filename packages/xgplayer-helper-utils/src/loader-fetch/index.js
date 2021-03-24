@@ -284,7 +284,7 @@ class FetchLoader {
 
   // in KB/s
   get currentSpeed () {
-    return this._speed.lastSecondKBps;
+    return this._speed.lastSamplingKBps;
   }
 
   cancel () {
