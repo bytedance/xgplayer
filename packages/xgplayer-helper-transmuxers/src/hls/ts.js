@@ -226,7 +226,7 @@ class TsDemuxer {
     let sampleLength = 0;
     let sps = false;
     let pps = false;
-    let sei = null;
+    let seiList = [];
     for (let i = 0; i < nals.length; i++) {
       let nal = nals[i];
       if (nal.sps) {
@@ -257,7 +257,7 @@ class TsDemuxer {
         meta.pps = nal.body;
         pps = nal;
       } else if (nal.sei) {
-        sei = nal.sei;
+        seiList.push(nal.sei);
       } else if (nal.type < 9) {
         sampleLength += (4 + nal.body.byteLength);
       }
@@ -306,9 +306,11 @@ class TsDemuxer {
     const dts = parseInt(pes.dts / 90);
     const pts = parseInt(pes.pts / 90);
 
-    if (sei) {
-      sei.dts = dts;
-      this.emit(DEMUX_EVENTS.SEI_PARSED, sei);
+    if (seiList.length) {
+      seiList.forEach((sei) => {
+        sei.dts = dts;
+        this.emit(DEMUX_EVENTS.SEI_PARSED, sei);
+      });
     }
     let sample = new VideoTrackSample({
       dts: dts,
@@ -343,7 +345,7 @@ class TsDemuxer {
     let vps = false;
     let sps = false;
     let pps = false;
-    let sei = null;
+    let seiList = [];
     let hasVPS = false;
     let hasSPS = false;
     let hasPPS = false;
@@ -424,7 +426,7 @@ class TsDemuxer {
         meta.vps = nal.body;
         vps = nal;
       } else if (nal.sei) {
-        sei = nal.sei;
+        seiList.push(nal.sei);
       }
       if (nal.type <= 40) {
         sampleLength += (4 + nal.body.byteLength);
@@ -505,9 +507,11 @@ class TsDemuxer {
     const dts = parseInt(pes.dts / 90);
     const pts = parseInt(pes.pts / 90);
 
-    if (sei) {
-      sei.dts = dts;
-      this.emit(DEMUX_EVENTS.SEI_PARSED, sei);
+    if (seiList) {
+      seiList.forEach((sei) => {
+        sei.dts = dts;
+        this.emit(DEMUX_EVENTS.SEI_PARSED, sei);
+      })
     }
 
     let sample = new VideoTrackSample({

@@ -88,7 +88,7 @@ class FetchLoader {
       } else {
         this.loading = false;
         this.emit(LOADER_EVENTS.LOADER_ERROR, this.TAG, {
-          code: response.status,
+          code: response.status || 21,
           message: `${response.status} (${response.statusText})`
         });
       }
@@ -111,7 +111,7 @@ class FetchLoader {
         if (error && error.name === 'AbortError') {
           return;
         }
-        this.emit(LOADER_EVENTS.LOADER_ERROR, this.TAG, error);
+        this.emit(LOADER_EVENTS.LOADER_ERROR, this.TAG, Object.assign({code: 21}, error));
       }
     })
   }

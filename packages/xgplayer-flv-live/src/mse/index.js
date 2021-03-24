@@ -121,8 +121,8 @@ class FlvPlayer extends BasePlugin {
     })
 
     flv.once(EVENTS.LOADER_EVENTS.LOADER_ERROR, () => {
-      ctx.destroy()
       this.emit('switch_error')
+      ctx.destroy()
     })
 
     flv.on(EVENTS.REMUX_EVENTS.DETECT_CHANGE_STREAM_DISCONTINUE, (type, dtses) => {
