@@ -27,10 +27,12 @@ import Prompt from '../plugins/prompt'
 import ProgressPreview from '../plugins/progressPreview'
 import Thumbnail from '../plugins/common/thumbnail'
 import TextTrack from '../plugins/track'
+import MiniProgress from '../plugins/progress/miniProgress'
 export default class DefaultPreset {
-  constructor () {
+  constructor (options, playerConfig) {
+    const simulateMode = playerConfig && playerConfig.isMobileSimulateMode
     const contolsIcons = [Progress, PlayIcon, FullScreen, TimeIcon,
-      RotateIcon, PlayNextIcon, DefinitionIcon, PlaybackRateIcon, DownLoadIcon, ScreenShotIcon, Volume, TextTrack]
+      RotateIcon, PlayNextIcon, DefinitionIcon, PlaybackRateIcon, DownLoadIcon, ScreenShotIcon, Volume, TextTrack, MiniProgress]
 
     const barIcons = [{
       plugin: PIPIcon,
@@ -42,7 +44,8 @@ export default class DefaultPreset {
     const layers = [Replay, Poster, Start, Loading, Enter, Error, Prompt, Thumbnail, ProgressPreview]
 
     this.plugins = [...contolsIcons, ...layers]
-    switch (sniffer.device) {
+    const mode = simulateMode ? 'mobile' : sniffer.device
+    switch (mode) {
       case 'pc':
         this.plugins.push(...[Keyboard, PC, CssFullScreen], ...barIcons, Miniscreen);
         break;
@@ -50,7 +53,7 @@ export default class DefaultPreset {
         this.plugins.push(...[Mobile, ...barIcons]);
         break;
       default:
-        this.plugins.push(...[Keyboard, PC])
+        this.plugins.push(...[Keyboard, PC, CssFullScreen], ...barIcons, Miniscreen);
     }
     this.ignores = []
   }

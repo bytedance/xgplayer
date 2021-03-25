@@ -16,6 +16,13 @@ function addAnimate (key, seconds, callback = {start: null, end: null}) {
   }, seconds);
 }
 
+function clearAnimation () {
+  Object.keys(AnimateMap).map(key => {
+    window.clearTimeout(AnimateMap[key].id)
+    delete AnimateMap[key]
+  })
+}
+
 class Start extends Plugin {
   static get pluginName () {
     return 'start'
@@ -79,8 +86,6 @@ class Start extends Plugin {
       }})
 
     this.bind(['click', 'touchend'], this.clickHandler)
-    this.bind('touchmove', Util.stopPropagation)
-    this.bind('touchstart', Util.stopPropagation)
   }
 
   preventDefault (e) {
@@ -195,8 +200,7 @@ class Start extends Plugin {
 
   destroy () {
     this.unbind(['click', 'touchend'], this.clickHandler)
-    this.unbind('touchmove', Util.stopPropagation)
-    this.unbind('touchstart', Util.stopPropagation)
+    clearAnimation()
   }
 
   render () {

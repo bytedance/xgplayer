@@ -122,7 +122,7 @@
     height: 24px;
     color: $definitionNameColor;
     span {
-      min-width: 60px;
+      min-width: 52px;
       height: 24px;
       line-height: 24px;
       background: $definitionNameBgColor;
@@ -162,6 +162,7 @@
 
     svg {
       height: 100%;
+      display: block;
     }
   }
   /** icon style ended **/

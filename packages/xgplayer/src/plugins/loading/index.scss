@@ -4,6 +4,15 @@
   0% {
     transform: translate(-50%, -50%) rotate(0);
   }
+  25% {
+    transform: translate(-50%, -50%) rotate(90deg);
+  }
+  50% {
+    transform: translate(-50%, -50%) rotate(180deg);
+  }
+  75% {
+    transform: translate(-50%, -50%) rotate(270deg);
+  }
   100% {
     transform: translate(-50%, -50%) rotate(360deg);
   }

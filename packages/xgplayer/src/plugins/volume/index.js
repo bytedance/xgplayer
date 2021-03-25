@@ -49,11 +49,13 @@ class Volume extends Plugin {
     this.onMouseenter = this.onMouseenter.bind(this)
     this.onMouseleave = this.onMouseleave.bind(this)
 
-    this.bind('mouseenter', this.onMouseenter)
+    if (!(Sniffer.device === 'mobile') && !this.playerConfig.isMobileSimulateMode) {
+      this.bind('mouseenter', this.onMouseenter)
 
-    this.bind(['blur', 'mouseleave'], this.onMouseleave)
+      this.bind(['blur', 'mouseleave'], this.onMouseleave)
 
-    this.bind('.xgplayer-bar', 'mousedown', this.onBarMousedown)
+      this.bind('.xgplayer-bar', 'mousedown', this.onBarMousedown)
+    }
 
     this.bind('.xgplayer-icon', Sniffer.device === 'mobile' ? 'touchend' : 'click', this.changeMutedHandler)
 
