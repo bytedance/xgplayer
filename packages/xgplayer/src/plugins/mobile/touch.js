@@ -9,6 +9,20 @@ const EVENTS = {
   TOUCH_END: 'touchend'
 }
 
+const TOUCHS = {
+  start: 'touchstart',
+  end: 'touchend',
+  move: 'touchmove',
+  cancel: 'touchcancel'
+}
+
+const MOUSES = {
+  start: 'mousedown',
+  end: 'mouseup',
+  move: 'mousemove',
+  cancel: 'mouseleave'
+}
+
 function getTouch (touches) {
   if (touches && touches.length > 0) {
     return touches[touches.length - 1]
@@ -28,7 +42,7 @@ function getDefaultConfig () {
 }
 
 class Touche {
-  constructor (dom, config = {}) {
+  constructor (dom, config = {eventType: 'touch'}) {
     this._pos = {
       moving: false,
       start: false,
@@ -40,6 +54,7 @@ class Touche {
       this.config[key] = config[key]
     })
     this.root = dom
+    this.events = config.eventType === 'mouse' ? MOUSES : TOUCHS
     this.pressIntrvalId = null
     this.dbIntrvalId = null
     this.__handlers = {}
@@ -51,7 +66,8 @@ class Touche {
     this.onTouchMove = this.onTouchMove.bind(this)
     this.onTouchEnd = this.onTouchEnd.bind(this)
     this.onTouchCancel = this.onTouchCancel.bind(this)
-    this.root.addEventListener('touchstart', this.onTouchStart)
+    // this.root.addEventListener('touchstart', this.onTouchStart)
+    this.root.addEventListener(this.events.start, this.onTouchStart)
   }
 
   __stopPropagation (e) {
@@ -142,27 +158,31 @@ class Touche {
   onTouchStart (e) {
     const {_pos, root} = this
     const touch = getTouch(e.touches)
-    _pos.x = parseInt(touch.pageX, 10)
-    _pos.y = parseInt(touch.pageY, 10)
+    _pos.x = touch ? parseInt(touch.pageX, 10) : e.pageX
+    _pos.y = touch ? parseInt(touch.pageX, 10) : e.pageX
     _pos.start = true
     this.__setPress(e)
-    root.addEventListener('touchend', this.onTouchEnd)
-    root.addEventListener('touchcancel', this.onTouchCancel)
-    root.addEventListener('touchmove', this.onTouchMove)
+    // root.addEventListener('touchend', this.onTouchEnd)
+    // root.addEventListener('touchcancel', this.onTouchCancel)
+    // root.addEventListener('touchmove', this.onTouchMove)
+    root.addEventListener(this.events.end, this.onTouchEnd)
+    root.addEventListener(this.events.cancel, this.onTouchCancel)
+    root.addEventListener(this.events.move, this.onTouchMove)
     this.trigger(EVENTS.TOUCH_START, e)
   }
 
   onTouchCancel (e) {
-    console.log('onTouchCancel')
     this.onTouchEnd(e)
   }
 
   onTouchEnd (e) {
     const {_pos, root} = this
     this.__clearPress()
-    root.removeEventListener('touchend', this.onTouchEnd)
-    root.removeEventListener('touchmove', this.onTouchMove)
-    root.removeEventListener('touchcancel', this.onTouchCancel)
+    // root.removeEventListener('touchend', this.onTouchEnd)
+    // root.removeEventListener('touchmove', this.onTouchMove)
+    root.removeEventListener(this.events.cancel, this.onTouchCancel)
+    root.removeEventListener(this.events.end, this.onTouchEnd)
+    root.removeEventListener(this.events.move, this.onTouchMove)
     e.moving = _pos.moving
     e.press = _pos.press
     _pos.press && this.trigger(EVENTS.PRESS_END, e)
@@ -176,8 +196,10 @@ class Touche {
   onTouchMove (e) {
     const {_pos, config} = this
     const touch = getTouch(e.touches)
-    const diffx = parseInt(touch.pageX, 10) - _pos.x
-    const diffy = parseInt(touch.pageY, 10) - _pos.y
+    const x = touch ? parseInt(touch.pageX, 10) : e.pageX
+    const y = touch ? parseInt(touch.pageY, 10) : e.pageX
+    const diffx = x - _pos.x
+    const diffy = y - _pos.y
     // console.log(`diffx: ${diffx} diffy:${diffy}`)
     if (Math.abs(diffy) < config.miniStep && Math.abs(diffx) < config.miniStep) {
       return

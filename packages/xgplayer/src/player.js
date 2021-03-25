@@ -17,7 +17,7 @@ import {
   version
 } from '../package.json'
 import I18N from './lang'
-
+/* eslint-disable camelcase */
 const PlAYER_HOOKS = ['play']
 
 class Player extends Proxy {
@@ -115,7 +115,8 @@ class Player extends Proxy {
     this._initBaseDoms();
     const controls = pluginsManager.register(this, Controls)
     this.controls = controls
-    this.addClass(`${STATE_CLASS.DEFAULT} xgplayer-${Sniffer.device} ${this.config.controls ? '' : STATE_CLASS.NO_CONTROLS}`);
+    const device = this.config.isMobileSimulateMode ? 'mobile' : Sniffer.device;
+    this.addClass(`${STATE_CLASS.DEFAULT} xgplayer-${device} ${this.config.controls ? '' : STATE_CLASS.NO_CONTROLS}`);
     if (this.config.autoplay) {
       this.addClass(STATE_CLASS.ENTER)
     } else {
@@ -886,11 +887,11 @@ class Player extends Proxy {
     let rHeight = height;
     if ((fitVideoSize === 'auto' && fit > videoFit) || fitVideoSize === 'fixWidth') {
       rHeight = width / videoFit * 1000
+      this.root.style.height = `${rHeight + controlsHeight}px`
     } else if ((fitVideoSize === 'auto' && fit < videoFit) || fitVideoSize === 'fixHeight') {
       rWidth = videoFit * height / 1000
+      this.root.style.width = `${rWidth}px`
     }
-    this.root.style.width = `${rWidth}px`
-    this.root.style.height = `${rHeight + controlsHeight}px`
     // video填充模式
     if ((videoFillMode === 'fillHeight' && fit < videoFit) || (videoFillMode === 'fillWidth' && fit > videoFit)) {
       this.setAttribute('data-xgfill', 'cover')

@@ -263,7 +263,7 @@ export default class ProgressPreview extends Plugin {
   }
 
   render () {
-    if (Sniffer.device === 'mobile') {
+    if (Sniffer.device === 'mobile' || this.playerConfig.isMobileSimulateMode) {
       return ''
     }
 

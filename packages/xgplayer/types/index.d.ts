@@ -55,6 +55,129 @@ declare module 'xgplayer' {
         mode?: DanmuModelType;
     }
 
+    export interface Util {
+        createDom(el: string, tpl?:string, attrs?:object, cname?:string): HTMLElement | null;
+        createDomFromHtml (html: string, attrs?:object , classname?:string): HTMLElement | null;
+        hasClass (el: HTMLElement, className: string): boolean;
+        addClass(el: HTMLElement, className: string): void;
+        removeClass(el: HTMLElement, className: string): void;
+        toggleClass(el: HTMLElement, className: string): void;
+        findDom(el: HTMLElement, sel: string): HTMLElement | null;
+        getCss(dom: HTMLElement, key: string): string;
+        padStart(str: string | number, length: number, pad: number): string;
+        format(time: number): string;
+        event(e: Event): void;
+        typeOf (obj: any): string;
+        deepCopy(dst: object, src: object): object;
+        deepMerge(dst: object, src: object): object;
+        getBgImage(el: HTMLElement): string;
+        copyDom(dom: HTMLElement): HTMLElement | '';
+        setInterval(context: any, eventName: string, intervalFunc: any, frequency: number): void;
+        clearInterval(context: any, eventName: string): void;
+        createImgBtn(name: string, imgUrl: string, width: number | string, height: number | string): HTMLElement;
+        Hex2RGBA(hex: string, alpha: string): string;
+        getFullScreenEl(): HTMLElement | null;
+        checkIsFunction(fun: any): boolean;
+        checkIsObject(obj: any): boolean;
+        hide(dom: HTMLElement): void;
+        show(dom: HTMLElement, display?: string): void;
+        isUndefined(val: any): boolean;
+        setStyleFromCsstext(dom: HTMLElement, text: string): void;
+        preloadImg(url: string, onload?: any, onerror?: any): void;
+        stopPropagation(e: Event): void;
+    }
+
+    interface OS_TYPE {
+        isTablet: boolean;
+        isPhone: boolean;
+        isIos: boolean;
+        isAndroid: boolean;
+        isPc: boolean;
+        isSymbian: boolean;
+        isWindowsPhone: boolean;
+        isFireFox: boolean
+    }
+
+    export interface Sniffer{
+        device: string;
+        browser: string;
+        os: OS_TYPE;
+        isWeixin: boolean;
+    }
+
+    export interface Events {
+        PLAY: string;
+        PLAYING: string;
+        ENDED: string;
+        PAUSE: string;
+        ERROR: string;
+        SEEKING: string;
+        SEEKED: string;
+        TIME_UPDATE: string;
+        WAITING: string;
+        CANPLAY: string;
+        CANPLAY_THROUGH: string;
+        DURATION_CHANGE: string;
+        VOLUME_CHANGE: string;
+        LOADED_DATA: string;
+        RATE_CHANGE: string;
+        PROGRESS: string;
+        LOAD_START: string;
+        EMPTIED: string;
+        STALLED: string;
+        SUSPEND: string;
+        ABORT: string;
+      // player events
+        BUFFER_CHANGE: string;
+        PLAYER_FOCUS: string;
+        PLAYER_BLUR: string;
+        READY: string;
+        URL_NULL: string;
+        AUTOPLAY_STARTED: string;
+        AUTOPLAY_PREVENTED: string;
+        COMPLETE: string;
+        REPLAY: string;
+        DESTROY: string;
+        URL_CHANGE: string;
+      // screen change evnets
+        FULLSCREEN_CHANGE: string;
+        CSS_FULLSCREEN_CHANGE: string;
+        MINI_STATE_CHANGE: string;
+        DEFINITION_CHANGE: string;
+        BEFORE_DEFINITION_CHANGE: string;
+        AFTER_DEFINITION_CHANGE: string;
+      // transmuxer events
+        SEI_PARSED: string;
+        RETRY: string;
+      }
+
+      export interface STATE_CLASS {
+        DEFAULT: string;
+        DEFAULT_SKIN: string;
+        ENTER: string;
+        PAUSED: string;
+        PLAYING: string;
+        ENDED: string;
+        CANPLAY: string;
+        LOADING: string;
+        ERROR: string;
+        REPLAY: string;
+        NO_START: string;
+        ACTIVE: string;
+        FULLSCREEN: string;
+        CSS_FULLSCREEN: string;
+        ROTATE_FULLSCREEN: string;
+        NO_CONTROLS: string;
+        FLEX_CONTROLS: string;
+        CONTROLS_FOLLOW: string;
+        AUTOHIDE: string;
+        NOT_ALLOW_AUTOPLAY: string;
+        SEEKING: string;
+        PC: string;
+        MOBILE: string;
+        MINI: string // 小窗播放状态
+    }
+
     // export interface TextTrack {
     //     src: string;
     //     kind: string;
@@ -114,6 +237,9 @@ declare module 'xgplayer' {
 
         // 封面图 或者是封面图的配置对象
         poster?: string | PosterConfig;
+
+        // 是否启用移动端模拟状态，该状态为true则展示的是移动端效果
+        isMobileSimulateMode?: boolean
 
         // 倍速播放
         // 播放器支持设置视频的当前播放速度。可通过defaultPlaybackRate设置初始速度。
@@ -230,6 +356,15 @@ declare module 'xgplayer' {
         // 进度条自动消失延时
         inactive?: number;
 
+        // 自动播放起始时间点
+        startTime?: number;
+
+        // seek结束之后是否默认播放
+        isSeekedPlay?: boolean;
+
+        // 是否隐藏迷你控制栏
+        miniprogress?: boolean;
+
         // 移动端滑动进行快进/快退开始时回调
         disableSwipeHandler?: () => void;
 
@@ -313,6 +448,184 @@ declare module 'xgplayer' {
     type XGI18nLang = {
         LANG: string;
         TEXT: XGI18nTextKeys
+    }
+
+    export class BasePlugin {
+        static defineGetterOrSetter (Obj: object, map: object): void;
+        constructor (args: object);
+        /**
+         * 播放器实例
+         */
+        player: any;
+
+        /**
+         * 播放器配置
+         */
+        playerConfig: any;
+
+        /**
+         * 插件名
+         */
+        pluginName: string;
+
+        /**
+         * 日志对象
+         */
+        logger: any;
+
+        /**
+         * 更新语言
+         * @param lang
+         */
+        updateLang (lang: string): void;
+
+        /**
+         * 当前语言
+         * @param lang
+         */
+        lang: string;
+
+        i18n: any;
+
+        i18nKeys: any;
+
+        /**
+         * 添加事件监听
+         * @param event
+         * @param callback
+         */
+        on (event: string, callback: Function): void;
+
+        /**
+         * 添加事件监听
+         * @param event
+         * @param callback
+         */
+        once (event: string, callback: Function): void;
+
+        /**
+         * 解除事件监听
+         * @param event
+         * @param callback
+         */
+        off (event: string, callback: Function): void;
+
+        /**
+         * 解除所有事件监听
+         */
+        offAll (): void;
+
+        /**
+         * 触发某个事件
+         * @param event
+         * @param data
+         */
+        emit (event: string, data: any): void;
+
+        /**
+         * 注册一个插件
+         * @param plugin 插件构造器
+         * @param options 插件配置
+         * @param name 插件名称
+         */
+        registerPlugin (plugin: object, options?: object, name?: string): BasePlugin | null;
+
+        /**
+         * 根据插件名称获取插件实例
+         * @param name
+         */
+        getPlugin (name:string): BasePlugin;
+
+        /**
+         * 播放器销毁回调
+         */
+        destroy (): void;
+
+        /**
+         * 销毁播放器
+         */
+        __destroy (): void;
+    }
+
+    interface ROOT_TYPES {
+        CONTROLS: string;
+        ROOT: string;
+    }
+
+    interface POSITIONS {
+        ROOT: string;
+        ROOT_LEFT: string;
+        ROOT_RIGHT: string;
+        ROOT_TOP: string;
+        CONTROLS_LEFT: string;
+        CONTROLS_RIGHT: string;
+        CONTROLS_CENTER: string;
+        CONTROLS: string;
+    }
+
+    export class Plugin extends BasePlugin {
+
+        static ROOT_TYPES: ROOT_TYPES;
+
+        static POSITIONS: POSITIONS;
+        /**
+          * 插入dom结构
+          * @param {String | Element} html html字符串或者dom
+          * @param {Element} parent
+          * @param {*} index
+          */
+        static insert (html: string, parent: HTMLElement, index:number): HTMLElement;
+
+        /**
+         * 默认配置信息
+         */
+        static defaultConfig: object;
+
+        static delegate (root: HTMLElement, querySelector?: string, eventType?:string | Array<string>, callback?: Function, capture?:boolean): void;
+
+        static removeDelegate (root: HTMLElement, eventType?:string | Array<string>, callback?: Function, capture?:boolean): void;
+
+        /**
+         * 插件根节点
+         */
+        root: HTMLElement;
+
+        /**
+         * 插件父节点
+         */
+        parent: HTMLElement;
+        /**
+         * 获取子插件列表
+         */
+        children (): object;
+        /**
+         * 在当前插件根节点查找dom
+         * @param selector 选择器
+         */
+        find (selector: string): HTMLElement;
+        /**
+         * 给当前插件设置行间样式
+         * @param name css属性名
+         * @param value css属性值
+         */
+        setStyle (name: string, value: string): void;
+        setStyle (styles: object): void;
+        setAttr (name: string | object, value?: string): void;
+
+        setHtml (htmlStr: string, callback?:Function): void;
+
+        show (value?:string): void;
+
+        hide (): void;
+
+        appendChild (pdom: HTMLElement | string, child?: HTMLElement): HTMLElement | null;
+        render (): string;
+    }
+
+    class DefaultPreset {
+        constructor();
+        plugins: Array<Plugin | BasePlugin>;
+        ignores: Array<string>
     }
 
     class Proxy extends EventEmitter {
@@ -474,6 +787,14 @@ declare module 'xgplayer' {
             use: (data: XGI18nLang) => void;
         };
 
+        public static Util: Util;
+
+        public static Sniffer: Sniffer;
+
+        public static Events: Events;
+
+        public static defaultPreset: DefaultPreset;
+        
         /**
          * 插件存储对象
          */
