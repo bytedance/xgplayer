@@ -1,5 +1,4 @@
 import { EVENTS } from 'xgplayer-helper-utils'
-import Player from 'xgplayer'
 
 const DEMUX_EVENTS = EVENTS.DEMUX_EVENTS;
 const LOADER_EVENTS = EVENTS.LOADER_EVENTS;

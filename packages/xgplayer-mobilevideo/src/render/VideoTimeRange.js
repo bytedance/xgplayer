@@ -51,7 +51,7 @@ export default class VideoTimeRange {
     return this._baseDts;
   }
 
-  get duartion () {
+  get duration () {
     return this._duration;
   }
 

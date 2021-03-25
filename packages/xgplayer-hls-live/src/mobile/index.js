@@ -28,6 +28,7 @@ class HlsPlayer extends BasePlugin {
     this.switchURL = this.switchURL.bind(this);
     this.handleDefinitionChange = this.handleDefinitionChange.bind(this);
     this.lowdecode = this.lowdecode.bind(this);
+    this.largeavgap = this.largeavgap.bind(this);
   }
 
   beforePlayerInit () {
@@ -70,6 +71,11 @@ class HlsPlayer extends BasePlugin {
     this.on(Events.URL_CHANGE, this.switchURL);
     this.on(Events.DEFINITION_CHANGE, this.handleDefinitionChange);
     player.video.addEventListener('lowdecode', this.lowdecode);
+    player.video.addEventListener('largeavgap', this.largeavgap);
+  }
+
+  largeavgap () {
+    this.emit('largeavgap', this.player.video.unsyncInfo)
   }
 
   lowdecode () {

@@ -207,10 +207,12 @@ export default class TimeLine extends EventEmitter {
     logger.log(this.TAG, 'startRender: time=', this.currentTime, 'seeking:', this.seeking);
     this.emit(Events.TIMELINE.PLAY_EVENT, Events.VIDEO_EVENTS.CANPLAY);
 
+    // 首帧画面显示
+    this.videoRender.forceRender();
+
     // 对autoplay:false 起播阶段不执行这个,在外面调用play()时分发 START_RENDER
     if (this._parent.autoplay || this._parent.startPlayed) {
       this._parent.startPlayed = true;
-      this.videoRender.forceRender();
       this.emit(Events.TIMELINE.START_RENDER);
     }
     this.emit(Events.TIMELINE.READY);

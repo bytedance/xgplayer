@@ -76,6 +76,11 @@ class FlvPlayer extends BasePlugin {
     this.on(Events.URL_CHANGE, this.switchURL);
     this.on(Events.DEFINITION_CHANGE, this.handleDefinitionChange);
     this.on(Events.PROGRESS, this.progress)
+
+    // autoplay:true 不能自动播放的, 停止拉流
+    this.on(Events.AUTOPLAY_PREVENTED, () => {
+      this.flv.pause();
+    })
     this.player.video.addEventListener('lowdecode', this.lowdecode)
   }
 
@@ -181,6 +186,12 @@ class FlvPlayer extends BasePlugin {
   canplay () {
     if (!this.player.video) return;
     if (this.player.config.autoplay) return;
+
+    // autoplay:false 初始化后停止拉流
+    if (!this.played) {
+      this.flv.pause();
+    }
+
     if (this.player.video.buffered.length) {
       this.played = true;
     }
