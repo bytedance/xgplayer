@@ -159,6 +159,10 @@ class MVideo extends HTMLElement {
         return;
       }
 
+      if (status === 'largeavgap') {
+        this.unsyncInfo = data;
+      }
+
       if (status === 'ended') {
         this.pause();
       }
@@ -636,6 +640,14 @@ class MVideo extends HTMLElement {
 
   get degradeInfo () {
     return this._deradeInfo;
+  }
+
+  set unsyncInfo (v) {
+    this._unsyncInfo = v;
+  }
+
+  get unsyncInfo () {
+    return this._unsyncInfo;
   }
 
   get xgfillType () {

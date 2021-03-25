@@ -108,7 +108,7 @@ export default class VideoRender extends BaseRender {
   }
 
   get duration () {
-    return this._timeRange.duartion;
+    return this._timeRange.duration;
   }
 
   get buffered () {
@@ -317,6 +317,24 @@ export default class VideoRender extends BaseRender {
         dts = dts || (nextFrame && nextFrame.info.dts) || 0;
       }
       this.audioSyncDts = dts;
+
+      let nextFrameDts = nextFrame && nextFrame.info && nextFrame.info.dts;
+
+      // 下一帧视频和音频时间差距较大,对外通知
+      if (nextFrameDts && nextFrameDts - dts > 500) {
+        this._emitTimelineEvents(
+          Events.TIMELINE.PLAY_EVENT,
+          Events.VIDEO_EVENTS.LARGE_AV_GAP,
+          {
+            aDts: dts,
+            vDts: nextFrameDts,
+            frameLength: this._frameQueue.length,
+            currentTime: this._parent.currentTime,
+            duration: this._parent.duration
+          }
+        );
+      }
+
       logger.log(
         this.TAG,
         'audio current buffer play finish, next buffer dts=',
@@ -324,7 +342,9 @@ export default class VideoRender extends BaseRender {
         'currentTime:',
         this._parent.currentTime,
         'next video frame dts:',
-        nextFrame && nextFrame.info && nextFrame.info.dts
+        nextFrameDts,
+        'frame length:',
+        this._frameQueue.length
       );
 
       // 点播考虑当前分片音频播放完成，视频解码太慢,要自动切到新buffer
