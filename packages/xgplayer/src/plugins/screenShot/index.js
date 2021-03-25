@@ -27,7 +27,7 @@ export default class ScreenShot extends Plugin {
   }
 
   afterCreate () {
-    this.appendChild('xgplayer-icon', this.icons.screenshotIcon)
+    this.appendChild('.xgplayer-icon', this.icons.screenshotIcon)
     const {config} = this
     this.initSize = (data) => {
       if (config.fitVideo) {
