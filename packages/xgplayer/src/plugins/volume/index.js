@@ -49,7 +49,7 @@ class Volume extends Plugin {
     this.onMouseenter = this.onMouseenter.bind(this)
     this.onMouseleave = this.onMouseleave.bind(this)
 
-    if (!Sniffer.device === 'mobile' && !this.playerConfig.isMobileSimulateMode) {
+    if (!(Sniffer.device === 'mobile') && !this.playerConfig.isMobileSimulateMode) {
       this.bind('mouseenter', this.onMouseenter)
 
       this.bind(['blur', 'mouseleave'], this.onMouseleave)
