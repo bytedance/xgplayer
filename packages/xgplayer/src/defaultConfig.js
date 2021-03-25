@@ -15,6 +15,7 @@ export default function getDefaultConfig () {
     loop: false, // 是否循环播放
     videoInit: true, // 是否优先显示视频首帧
     poster: '', // 封面图地址
+    isMobileSimulateMode: false, // 模拟状态,取值mobile/pc
     defaultPlaybackRate: 1, // 默认播放倍数
     execBeforePluginsCall: null, // 默认插件组装前回调
     allowSeekAfterEnded: true, // 播放结束之后是否允许seek
@@ -29,6 +30,7 @@ export default function getDefaultConfig () {
     videoAttrbutes: {}, // video扩展属性
     startTime: 0, // 自动播放起始时间点
     isSeekedPlay: true, // seek结束之后是否默认播放
+    miniprogress: false, // 是否隐藏迷你控制栏
     disableSwipeHandler: () => {
     },
     enableSwipeHandler: () => {

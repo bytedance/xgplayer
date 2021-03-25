@@ -179,7 +179,7 @@ class Progress extends Plugin {
   }
 
   bindDomEvents () {
-    const {controls} = this.player
+    const {controls, config} = this.player
     if (this.isMobile) {
       this.bind('touchstart', this.onMouseDown)
       if (controls) {
@@ -188,7 +188,7 @@ class Progress extends Plugin {
       }
     } else {
       this.bind('mousedown', this.onMouseDown)
-      this.bind('mouseenter', this.onMouseEnter)
+      !config.isMobileSimulateMode && this.bind('mouseenter', this.onMouseEnter)
     }
   }
 
@@ -295,7 +295,7 @@ class Progress extends Plugin {
       if (!pos.isEnter) {
         this.onMouseLeave(e)
       } else {
-        this.bind('mousemove', this.onMoveOnly)
+        !playerConfig.isMobileSimulateMode && this.bind('mousemove', this.onMoveOnly)
       }
     }
     // 延迟复位，状态复位要在dom相关时间回调执行之后
@@ -452,6 +452,8 @@ class Progress extends Plugin {
     percent = percent > 1 ? 1 : (percent < 0 ? 0 : percent)
     this.progressBtn.style.left = `${percent * 100}%`
     this.innerList.update({played: percent * this.duration}, this.duration)
+    const {miniprogress} = this.player.plugins
+    miniprogress && miniprogress.update({played: percent * this.duration}, this.duration)
   }
 
   /**
@@ -473,6 +475,8 @@ class Progress extends Plugin {
     const time = this.timeOffset + player.currentTime
     this.innerList.update({played: time}, duration)
     this.progressBtn.style.left = `${time / duration * 100}%`
+    const {miniprogress} = this.player.plugins
+    miniprogress && miniprogress.update({played: time}, duration)
   }
 
   /**
@@ -482,6 +486,8 @@ class Progress extends Plugin {
     const {player, duration} = this
     const point = player.bufferedPoint
     this.innerList.update({cached: point.end}, duration)
+    const {miniprogress} = this.player.plugins
+    miniprogress && miniprogress.update({cached: point.end}, duration)
   }
 
   destroy () {

@@ -64,22 +64,25 @@ $controlHeight: 48px;
 
   .inner-controls {
     position: absolute;
-    // left: 0;
-    // right: 0;
+    height: 40px;
     bottom: 0;
-    // height: 40px;
+    justify-content: space-between;
+    display: flex;
   }
 
   .left-grid,  .right-grid {
     position: relative;
-    float: left;
+    // float: left;
     display: flex;
+    flex-wrap: wrap;
+    flex-shrink: 0;
     height: 100%;
     z-index: 1;
   }
 
   .right-grid {
-    float: right;
+    // float: right;
+    flex-shrink: 1;
     flex-direction: row-reverse;
     :first-child {
       margin-right: 0;

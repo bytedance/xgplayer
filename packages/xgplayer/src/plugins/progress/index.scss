@@ -5,6 +5,7 @@
     display: flex;
     align-items: center;
     position: relative;
+    min-width: 100px;
     height: 20px;
     left: 0;
     right: 0;
@@ -157,6 +158,38 @@
       transform: translateY(0);
     }
   }
+
+  .xg-mini-progress {
+    display: none;
+    position: absolute;
+    height: 2px;
+    left: 0;
+    right: 0;
+    bottom: 0px;
+    // background-color: red;
+    pointer-events: none;
+    xg-mini-progress-played,  xg-mini-progress-cache{
+      height: 100%;
+      width: 0;
+      position:absolute;
+      top: 0;
+      left: 0;
+      border-radius: inherit;
+    }
+    xg-mini-progress-played {
+      background: $progressPlayedBgImage
+    }
+    xg-mini-progress-cache {
+      background: $progressCacheBgColor
+    }
+  }
+
+  &.xgplayer-inactive {
+    .xg-mini-progress {
+      display: block;
+    }
+  }
+
 
   &.xgplayer-pc {
     .xgplayer-progress-btn {

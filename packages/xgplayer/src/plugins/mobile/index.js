@@ -95,11 +95,16 @@ class MobilePlugin extends Plugin {
     this.initCustomStyle()
 
     this.registerThumbnail()
-    this.touch = new Touche(this.root)
+
+    const eventType = Sniffer.device !== 'mobile' ? 'mouse' : 'touch'
+    this.touch = new Touche(this.root, {eventType})
 
     this.root.addEventListener('contextmenu', e => {
       e.preventDefault()
     });
+
+    player.root.addEventListener('touchmove', this.onRootTouchMove, true)
+    player.root.addEventListener('touchend', this.onRootTouchEnd, true)
 
     this.on(Events.DURATION_CHANGE, () => {
       const {player, config} = this
@@ -203,23 +208,30 @@ class MobilePlugin extends Plugin {
     startPlugin && startPlugin.recover()
   }
 
-  getTouche (touches) {
+  getTouche (e) {
     const rotateDeg = this.player.rotateDeg
-    if (touches && touches.length > 0) {
-      const touche = touches[touches.length - 1]
-      if (rotateDeg === 0) {
-        return {
-          pageX: touche.pageX,
-          pageY: touche.pageY
-        }
-      } else {
-        return {
-          pageX: touche.pageY,
-          pageY: touche.pageX
-        }
-      }
-    } else {
-      return null
+    const touche = e.touches && e.touches.length > 0 ? e.touches[e.touches.length - 1] : e
+    // if (touches && touches.length > 0) {
+    //   const touche = touches[touches.length - 1]
+    //   if (rotateDeg === 0) {
+    //     return {
+    //       pageX: touche.pageX,
+    //       pageY: touche.pageY
+    //     }
+    //   } else {
+    //     return {
+    //       pageX: touche.pageY,
+    //       pageY: touche.pageX
+    //     }
+    //   }
+    // } else {
+    // }
+    return rotateDeg === 0 ? {
+      pageX: touche.pageX,
+      pageY: touche.pageY
+    } : {
+      pageX: touche.pageX,
+      pageY: touche.pageY
     }
   }
   /**
@@ -298,7 +310,7 @@ class MobilePlugin extends Plugin {
 
   onTouchStart = (e) => {
     const {player, config, pos, playerConfig} = this
-    const touche = this.getTouche(e.touches)
+    const touche = this.getTouche(e)
     if (touche && !config.disableGesture && this.duration > 0 && !player.ended) {
       pos.isStart = true
       // e.cancelable && e.preventDefault()
@@ -323,13 +335,11 @@ class MobilePlugin extends Plugin {
       pos.scopeR = (1 - config.scopeR) * pos.width
       pos.scopeM1 = pos.width * (1 - config.scopeM) / 2
       pos.scopeM2 = pos.width - pos.scopeM1
-      // player.root.addEventListener('touchmove', this.onRootTouchMove, true)
-      // player.root.addEventListener('touchend', this.onRootTouchEnd, true)
     }
   }
 
   onTouchMove = (e) => {
-    const touche = this.getTouche(e.touches)
+    const touche = this.getTouche(e)
     const {pos, config, player} = this
     if (!touche || config.disableGesture || !this.duration || !pos.isStart) {
       return
@@ -378,13 +388,15 @@ class MobilePlugin extends Plugin {
     this.resetPos()
     Util.checkIsFunction(playerConfig.enableSwipeHandler) && playerConfig.enableSwipeHandler()
     this.changeAction(ACTIONS.AUTO)
-    // player.root.removeEventListener('touchmove', this.onRootTouchMove, true)
-    // player.root.removeEventListener('touchend', this.onRootTouchEnd, true)
+  }
+
+  checkIsRootTarget (e) {
+    const {plugins} = this.player
+    return plugins && ((plugins.start && plugins.start.root.contains(e.target)) || (plugins.controls && plugins.controls.root.contains(e.target)))
   }
 
   onRootTouchMove = (e) => {
-    const {plugins} = this.player
-    if (this.pos.isStart && plugins && (plugins.start.root.contains(e.target) || plugins.controls.root.contains(e.target))) {
+    if (this.checkIsRootTarget(e)) {
       e.stopPropagation()
       if (!this.pos.isStart) {
         this.onTouchStart(e)
@@ -395,10 +407,11 @@ class MobilePlugin extends Plugin {
   }
 
   onRootTouchEnd = (e) => {
-    const {plugins} = this.player
-    if (this.pos.isStart && plugins.start && (plugins.start.root.contains(e.target) || plugins.controls.root.contains(e.target))) {
+    if (this.pos.isStart && this.checkIsRootTarget(e)) {
       e.stopPropagation()
       this.onTouchEnd(e)
+      const {controls} = this.player
+      controls && controls.recoverAutoHide()
     }
   }
 
@@ -560,6 +573,8 @@ class MobilePlugin extends Plugin {
     this.xgMask = null
     this.touch && this.touch.destroy()
     this.touch = null
+    player.root.removeEventListener('touchmove', this.onRootTouchMove, true)
+    player.root.removeEventListener('touchend', this.onRootTouchEnd, true)
   }
 
   render () {

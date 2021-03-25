@@ -174,8 +174,10 @@ export default class TextTrack extends OptionsIcon {
   }
 
   destroy () {
-    this.subTitles.destroy()
-    this.subTitles = null
+    if (this.subTitles) {
+      this.subTitles.destroy()
+      this.subTitles = null
+    }
     super.destroy()
   }
 }
