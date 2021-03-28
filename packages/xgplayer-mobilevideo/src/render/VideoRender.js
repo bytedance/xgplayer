@@ -169,8 +169,8 @@ export default class VideoRender extends BaseRender {
     return HAVE_METADATA;
   }
 
-  get hevcThread () {
-    return this._decoderMode === 1;
+  get decodeMode () {
+    return this._decoderMode;
   }
 
   getDtsOfTime (time) {

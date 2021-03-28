@@ -60,11 +60,31 @@ export default class AudioTimeRange {
     console.log(ret)
   }
 
+  _transitionSamples (audioBufferSource) {
+    const {numberOfChannels, length} = audioBufferSource;
+
+    const transitionCount = 50;
+
+    for (let channel = 0; channel < numberOfChannels; channel++) {
+      let audioData = audioBufferSource.getChannelData(channel);
+
+      for (let i = 0; i < transitionCount; i++) {
+        /* fadein */
+        audioData[i] = (audioData[i] * i) / transitionCount;
+      }
+
+      for (let i = length - transitionCount; i < length; i++) {
+        /* fadeout */
+        audioData[i] = (audioData[i] * (length - i)) / transitionCount;
+      }
+    }
+  }
+
   append (source, duration, startDts) {
     if (this._baseDts === -1) {
       this._baseDts = startDts;
     }
-
+    this._transitionSamples(source);
     let start = (startDts - this._baseDts) / 1000;
     let end = start + duration;
     let buffer = {
