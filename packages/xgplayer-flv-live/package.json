@@ -1,6 +1,6 @@
 {
   "name": "xgplayer-flv-live",
-  "version": "3.0.0-alpha.105",
+  "version": "3.0.0-alpha.106",
   "description": "",
   "main": "lib/index.js",
   "module": "es/index.js",
