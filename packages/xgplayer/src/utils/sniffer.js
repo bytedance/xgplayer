@@ -5,6 +5,9 @@ let sniffer = {
     // return r.isPc ? 'pc' : r.isTablet ? 'tablet' : 'mobile'
   },
   get browser () {
+    if (typeof navigator === 'undefined') {
+      return ''
+    }
     let ua = navigator.userAgent.toLowerCase()
     let reg = {
       ie: /rv:([\d.]+)\) like gecko/,
@@ -16,6 +19,9 @@ let sniffer = {
     return [].concat(Object.keys(reg).filter(key => reg[key].test(ua)))[0]
   },
   get os () {
+    if (typeof navigator === 'undefined') {
+      return {}
+    }
     let ua = navigator.userAgent
     let isWindowsPhone = /(?:Windows Phone)/.test(ua)
     let isSymbian = /(?:SymbianOS)/.test(ua) || isWindowsPhone
@@ -37,6 +43,9 @@ let sniffer = {
   },
 
   get isWeixin () {
+    if (typeof navigator === 'undefined') {
+      return false
+    }
     const reg = /(micromessenger)\/([\d.]+)/
     const match = reg.exec(navigator.userAgent.toLocaleLowerCase())
     if (match) {
