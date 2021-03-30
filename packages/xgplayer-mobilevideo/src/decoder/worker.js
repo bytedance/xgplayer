@@ -1,3 +1,4 @@
+/* eslint-disable no-undef */
 
 function shimImportScripts (src) {
   return fetch(src)
@@ -14,7 +15,7 @@ const MAX_STREAM_BUFFER_LENGTH = 1024 * 1024;
 var Decoder = function (self) {
   this.inited = false;
   this.self = self;
-  this.meta = this.self.meta;
+  this.meta = self.meta;
   this.infolist = [];
   self.par_broadwayOnBroadwayInited = this.broadwayOnBroadwayInited.bind(
     this
@@ -31,7 +32,7 @@ Decoder.prototype.toU8Array = function (ptr, length) {
 Decoder.prototype.init = function () {
   Module._broadwayInit();
   this.streamBuffer = this.toU8Array(
-    Module._broadwayCreateStream(MAX_STREAM_BUFFER_LENGTH),
+    Module._broadwayCreateStream(MAX_STREAM_BUFFER_LENGTH, 0), // 0: 关闭 ffmpeg log,
     MAX_STREAM_BUFFER_LENGTH
   );
 };
@@ -46,7 +47,6 @@ Decoder.prototype.broadwayOnPictureDecoded = function (
   keyFrame
 ) {
   let firstFrame = this.infolist[0];
-
   if (firstFrame && firstFrame.isGop && !keyFrame) return;
 
   let info = Object.assign({}, this.infolist.shift());
@@ -120,7 +120,10 @@ function onPostRun () {
   decoder.init();
 }
 
+let WASM_CDN_PATH_PREFIX = '';
+
 function init (url) {
+  WASM_CDN_PATH_PREFIX = url.split('/').slice(0, -1).join('/')
   let isDegrade = /asm/.test(url);
   if (!decoder) {
     let task;
@@ -160,21 +163,18 @@ function init (url) {
             });
           });
         }
-        return new Promise((resolve, reject) => {
-          addOnPostRun(onPostRun.bind(self));
 
-          Module.onRuntimeInitialized = () => {
-            resolve();
+        return self.m({
+          locateFile: (suffix) => {
+            if (/\.wasm$/.test(suffix)) {
+              return `${WASM_CDN_PATH_PREFIX}/decoder.wasm`;
+            }
           }
-
-          Module.onAbort = (e) => {
-            reject(e && e.message ? e : new Error('wasm init error'));
-          }
-
-          setTimeout(() => {
-            reject(new Error('wasm load timeout'))
-          }, 6000)
         })
+          .then(Mod => {
+            self.Module = Mod;
+            onPostRun.call(self);
+          })
       })
       .catch((e) => {
         self.postMessage({
