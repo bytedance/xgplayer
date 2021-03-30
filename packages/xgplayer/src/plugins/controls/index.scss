@@ -62,7 +62,7 @@ $controlHeight: 48px;
     }
   }
 
-  .inner-controls {
+  .xg-inner-controls {
     position: absolute;
     height: 40px;
     bottom: 0;
@@ -70,7 +70,7 @@ $controlHeight: 48px;
     display: flex;
   }
 
-  .left-grid,  .right-grid {
+  .xg-left-grid,  .xg-right-grid {
     position: relative;
     // float: left;
     display: flex;
@@ -80,7 +80,7 @@ $controlHeight: 48px;
     z-index: 1;
   }
 
-  .right-grid {
+  .xg-right-grid {
     // float: right;
     flex-shrink: 1;
     flex-direction: row-reverse;
@@ -92,7 +92,7 @@ $controlHeight: 48px;
     }
   }
 
-  .left-grid {
+  .xg-left-grid {
     :first-child {
       margin-left: 0;
     }
@@ -101,7 +101,7 @@ $controlHeight: 48px;
     }
   }
 
-  .center {
+  .xg-center-grid {
     display: block;
     position: absolute;
     left: 0;
@@ -113,18 +113,18 @@ $controlHeight: 48px;
   }
 
   &.xgplayer-mobile {
-    .center {
+    .xg-center-grid {
       z-index: 2;
     }
   }
 
   .flex-controls {
-    .inner-controls {
+    .xg-inner-controls {
       justify-content: space-around;
       display: flex;
       bottom: 8px;
     }
-    .center {
+    .xg-center-grid {
       display: flex;
       flex: 1;
       position: relative;
@@ -140,17 +140,17 @@ $controlHeight: 48px;
 
   .mini-controls {
     background-image: none;
-    .inner-controls {
+    .xg-inner-controls {
       bottom: 0;
       left: 0;
       right: 0;
     }
-    .center {
+    .xg-center-grid {
       bottom: -28px;
       top: auto;
       padding: 0;
     }
-    .left-grid,  .right-grid {
+    .xg-left-grid,  .xg-right-grid {
       display: none;
     }
   }
