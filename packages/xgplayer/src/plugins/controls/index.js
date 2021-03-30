@@ -40,10 +40,10 @@ class Controls extends Plugin {
     Object.keys(style).map(key => {
       this.root.style[key] = style[key]
     })
-    this.left = this.find('left-grid')
-    this.center = this.find('center')
-    this.right = this.find('right-grid')
-    this.innerRoot = this.find('inner-controls')
+    this.left = this.find('xg-left-grid')
+    this.center = this.find('xg-center-grid')
+    this.right = this.find('xg-right-grid')
+    this.innerRoot = this.find('xg-inner-controls')
 
     // 切换为小窗状态的时候进度条同步切换
     this.on(Events.MINI_STATE_CHANGE, (isMini) => {
@@ -121,13 +121,13 @@ class Controls extends Plugin {
     className += this.config.autoHide ? 'control_autohide' : 'controls_permanent'
     className += this.config.initShow ? ' xgplayer-controls-initshow' : ''
     return `<xg-controls class="xgplayer-controls ${className}" unselectable="on" onselectstart="return false">
-    <inner-controls class="inner-controls xg-pos">
-      <left-grid class="left-grid">
-      </Left-grid>
-      <center class="center"></center>
-      <right-grid class="right-grid">
-      </right-grid>
-    </inner-controls>
+    <xg-inner-controls class="xg-inner-controls xg-pos">
+      <xg-left-grid class="xg-left-grid">
+      </xg-left-grid>
+      <xg-center-grid class="xg-center-grid"></xg-center-grid>
+      <xg-right-grid class="xg-right-grid">
+      </xg-right-grid>
+    </xg-inner-controls>
     </xg-controls>`
   }
 }

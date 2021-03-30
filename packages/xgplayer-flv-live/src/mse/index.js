@@ -204,13 +204,13 @@ class FlvPlayer extends BasePlugin {
         if (!this.player) return
         this.player.hasStart = false;
         this.player.start();
+        this.player.addClass('xgplayer-is-enter')
         // used for autoplay:false
         this.player.once('canplay', () => {
           if (!this.player || this.player.config.autoplay) return;
           this.player.video.play();
         })
       })
-      this.player.onWaiting();
     })
   }
 
@@ -260,10 +260,14 @@ class FlvPlayer extends BasePlugin {
 
   switchURL (url, abr) {
     this.played = false
+    this.player.config.url = url;
     if (!abr) {
       this.player.currentTime = 0;
+      // clean buffer to avoid play repeatedly
+      this.reload();
+      return;
     }
-    this.player.config.url = url;
+
     const context = new Context(flvAllowedEvents);
     let flv
     if (abr) {
