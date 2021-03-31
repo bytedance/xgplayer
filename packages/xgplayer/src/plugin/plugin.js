@@ -157,7 +157,7 @@ class Plugin extends BasePlugin {
     if (root instanceof window.Node && typeof callback === 'function') {
       if (Array.isArray(eventType)) {
         eventType.forEach((item) => {
-          const ret = delegate(root, querySelector, eventType, callback, capture)
+          const ret = delegate(root, querySelector, item, callback, capture)
           ret.key = `${querySelector}_${item}`
           dels.push(ret)
         })
