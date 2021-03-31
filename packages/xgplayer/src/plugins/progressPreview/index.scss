@@ -88,6 +88,7 @@ $top: 8px;
   .xg-spot-line {
     position: relative;
     top: $top;
+    margin-left: 50%;
     display: block;
     width: 1px;
     height: 41px;
@@ -180,6 +181,7 @@ $top: 8px;
       border-top: 7px solid #3370FF;
       width: 0;
       height: 15px;
+      left: -10px;
       background: none;
     }
   }

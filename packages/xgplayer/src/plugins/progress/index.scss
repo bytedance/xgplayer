@@ -107,9 +107,9 @@
       position: relative;
       width: 12px;
       height: 12px;
-      left: 0;
+      left: 50%;
       top: 50%;
-      transform: translate(0, -50%);
+      transform: translate(-50%, -50%);
       border-radius: 30px;
       background: #FFFFFF;
     }
