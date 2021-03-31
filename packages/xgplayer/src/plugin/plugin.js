@@ -3,7 +3,7 @@
 *
 **/
 import BasePlugin, {Util, XG_DEBUG} from './basePlugin'
-import * as delegate from 'delegate-events'
+import delegate from 'delegate'
 
 /**
  * Check if the url is a link address
@@ -153,31 +153,26 @@ class Plugin extends BasePlugin {
   }
 
   static delegate (root, querySelector, eventType, callback, capture = false) {
+    const dels = []
     if (root instanceof window.Node && typeof callback === 'function') {
       if (Array.isArray(eventType)) {
         eventType.forEach((item) => {
-          delegate.bind(root, querySelector, item, callback, capture)
+          const ret = delegate(root, querySelector, eventType, callback, capture)
+          ret.key = `${querySelector}_${item}`
+          dels.push(ret)
         })
       } else {
-        delegate.bind(root, querySelector, eventType, callback, capture)
+        const ret = delegate(root, querySelector, eventType, callback, capture)
+        ret.key = `${querySelector}_${eventType}`
+        dels.push(ret)
       }
     }
-  }
-
-  static removeDelegate (root, eventType, callback, capture = false) {
-    if (root instanceof window.Node && typeof callback === 'function') {
-      if (Array.isArray(eventType)) {
-        eventType.forEach((item) => {
-          delegate.unbind(root, item, callback, capture)
-        })
-      } else {
-        delegate.unbind(root, eventType, callback, capture)
-      }
-    }
+    return dels
   }
 
   constructor (args = {}) {
     super(args)
+    this.__delegates = []
   }
 
   __init (args) {
@@ -352,7 +347,8 @@ class Plugin extends BasePlugin {
         this.bindEL(querySelector, eventType)
       }
     } else {
-      Plugin.delegate.call(this, this.root, querySelector, eventType, callback)
+      const ret = Plugin.delegate.call(this, this.root, querySelector, eventType, callback)
+      this.__delegates = this.__delegates.concat(ret)
     }
   }
 
@@ -366,7 +362,14 @@ class Plugin extends BasePlugin {
         this.unbindEL(querySelector, eventType)
       }
     } else {
-      Plugin.removeDelegate.call(this, this.root, eventType, callback)
+      const key = `${querySelector}_${eventType}`
+      for (let i = 0; i < this.__delegates.length; i++) {
+        if (this.__delegates[i].key === key) {
+          this.__delegates[i].destroy()
+          this.__delegates.splice(i, 1)
+          break
+        }
+      }
     }
   }
 
@@ -467,6 +470,10 @@ class Plugin extends BasePlugin {
 
   __destroy () {
     const {player} = this
+    this.__delegates.map(item => {
+      item.destroy()
+    })
+    this.__delegates = []
     // destroy the sub-plugin instance
     if (this._children instanceof Array) {
       this._children.map(item => {

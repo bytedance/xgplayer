@@ -53,10 +53,10 @@
         "babel-runtime": "^6.26.0",
         "danmu.js": "0.3.0",
         "deepmerge": "^1.5.0",
-        "delegate-events": "^1.1.1",
+        "delegate": "^3.2.0",
         "downloadjs": "1.4.7",
         "event-emitter": "^0.3.5",
-        "xgplayer-subtitles": "^1.0.8"
+        "xgplayer-subtitles": "^1.0.9-alpha.0"
     },
     "devDependencies": {
         "babel-plugin-inline-svg": "^1.1.0",
