@@ -76,6 +76,16 @@ class Keyboard extends BasePlugin {
     document.addEventListener('keydown', this.onBodyKeyDown)
   }
 
+  checkIsVisible () {
+    const rec = this.player.root.getBoundingClientRect()
+    const {height, top, bottom} = rec
+    const h = window.innerHeight
+    if ((top < 0 && top < 0 - height / 10) || (bottom > 0 && bottom - h > height / 100)) {
+      return false
+    }
+    return true
+  }
+
   checkCode (code, isBodyTarget) {
     let flag = false
     Object.keys(this.keyCodeMap).map(key => {
@@ -144,7 +154,7 @@ class Keyboard extends BasePlugin {
 
   // TODO: 多播放器实例存在的情况下，body下的快捷键会触发所有实例的逻辑，需改进
   onBodyKeyDown (event) {
-    if (this.config.disable) {
+    if (this.config.disable || !this.checkIsVisible()) {
       return
     }
     let e = event || window.event

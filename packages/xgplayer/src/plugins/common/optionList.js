@@ -9,7 +9,7 @@ export default class OptionList {
     this.onItemClick = this.onItemClick.bind(this)
     this.renderItemList()
     const eventName = Sniffer.device === 'mobile' ? 'touchend' : 'click'
-    Plugin.delegate.call(this, this.root, 'li', eventName, this.onItemClick)
+    this._delegates = Plugin.delegate.call(this, this.root, 'li', eventName, this.onItemClick)
   }
 
   renderItemList (data) {
@@ -83,7 +83,12 @@ export default class OptionList {
   }
 
   destroy () {
-    Plugin.removeDelegate.call(this, this.root, ['touchend', 'click'], this.onItemClick)
+    if (this._delegates) {
+      this._delegates.map(item => {
+        item.destroy && item.destroy()
+      })
+      this._delegates = null
+    }
     this.root.innerHTML = null
     this.parent.removeChild(this.root)
     this.root = null

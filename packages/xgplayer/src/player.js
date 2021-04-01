@@ -224,17 +224,8 @@ class Player extends Proxy {
 
     this.once('loadeddata', this.getVideoSize)
 
-    this.mousemoveFunc = () => {
-      if (!this.config.closeFocusVideoFocus) {
-        this.emit(Events.PLAYER_FOCUS)
-      }
-    }
-
-    Sniffer.device !== 'mobile' && this.root.addEventListener('mousemove', this.mousemoveFunc)
-
     this.playFunc = () => {
-      if (!this.config.closePlayVideoFocus) {
-        this.emit(Events.PLAYER_FOCUS)
+      if (!this.config.closeFocusVideoFocus) {
         this.video.focus()
       }
     }
@@ -564,20 +555,28 @@ class Player extends Proxy {
     if (!this.video || isNaN(Number(time))) {
       return
     }
-    const {isSeekedPlay} = this.config
+    const {isSeekedPlay, seekedStatus} = this.config
+    let _status = isSeekedPlay ? 'play' : seekedStatus
     time = time < 0 ? 0 : time > this.duration ? parseInt(this.duration, 10) : time
     this.once(Events.CANPLAY, () => {
       this.removeClass(STATE_CLASS.ENTER)
       this.isSeeking = false
-      if (isSeekedPlay && this.paused) {
-        this.play()
+      switch (_status) {
+        case 'play':
+          this.play()
+          break
+        case 'pause':
+          this.pause()
+          break
+        default:
+          !this.paused && this.play()
       }
     })
     if (!this.isPlaying) {
       this.removeClass(STATE_CLASS.NO_START)
       this.addClass(STATE_CLASS.ENTER)
-      this.currentTime = time
-      isSeekedPlay && this.play()
+      this.currentTime = time;
+      _status === 'play' && this.play()
     } else {
       this.currentTime = time
     }
@@ -734,18 +733,18 @@ class Player extends Proxy {
     this.emit(Events.CSS_FULLSCREEN_CHANGE, false)
   }
 
-  onFocus (data = {autoHide: true}) {
+  onFocus (data = {autoHide: true, delay: 0}) {
     this.isActive = true
     this.removeClass(STATE_CLASS.ACTIVE)
     if (this.userTimer) {
       clearTimeout(this.userTimer)
     }
-    if (!data.autoHide) {
+    if (data.autoHide === false) {
       return;
     }
     this.userTimer = setTimeout(() => {
       this.emit(Events.PLAYER_BLUR)
-    }, this.config.inactive)
+    }, data && data.delay ? data.delay : this.config.inactive)
   }
 
   onBlur (data = {ignoreStatus: false}) {

@@ -74,6 +74,11 @@ $top: 8px;
         display: block;
       }
     }
+    &.no-timepoint {
+      .xgplayer-progress-point {
+        display: none;
+      }
+    }
   }
 
   .xgplayer-progress.active {
@@ -140,7 +145,7 @@ $top: 8px;
   }
 
   .progress-thumbnail {
-    margin: 0;
+    margin: 0 auto;
     display: block;
   }
 

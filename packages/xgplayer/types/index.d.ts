@@ -274,6 +274,9 @@ declare module 'xgplayer' {
 
         // 延迟触发blur事件的时间
         leavePlayerTime?: number;
+        
+        // 是否关闭自动隐藏控制条
+        closeDelayBlur?: boolean;
 
         // 关闭鼠标移出播放器控制条范围时触发focus事件
         closeControlsBlur?: boolean;
@@ -359,10 +362,13 @@ declare module 'xgplayer' {
         // 自动播放起始时间点
         startTime?: number;
 
-        // seek结束之后是否默认播放
+        // 【即将废弃，后续使用seekedStatus】seek结束之后是否默认播放
         isSeekedPlay?: boolean;
 
-        // 是否隐藏迷你控制栏
+        // 快进/快退之后播放器状态 play: 强制播放; pause: 强制暂停; auto: 保持状态
+        seekedStatus?: 'play' | 'pause' | 'auto';
+
+        // 是否添加迷你控制栏
         miniprogress?: boolean;
 
         // 移动端滑动进行快进/快退开始时回调
@@ -434,7 +440,9 @@ declare module 'xgplayer' {
         //pc相关插件配置
         pc?: PCConfig;
 
-
+        // video属性，该配置会直接添加到video上
+        videoConfig?: any;
+ 
         //扩展定义
         [propName: string]: any;
     }

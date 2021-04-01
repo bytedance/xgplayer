@@ -83,6 +83,9 @@ class MobilePlugin extends Plugin {
 
   afterCreate () {
     const {playerConfig, config, player} = this
+    if (playerConfig.closeVideoDblclick === true) {
+      config.closedbClick = true
+    }
     this.resetPos()
     if (!Util.isUndefined(playerConfig.disableGesture)) {
       config.disableGesture = !!playerConfig.disableGesture

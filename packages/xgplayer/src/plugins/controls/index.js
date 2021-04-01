@@ -49,6 +49,24 @@ class Controls extends Plugin {
     this.on(Events.MINI_STATE_CHANGE, (isMini) => {
       isMini ? Util.addClass(this.root, 'mini-controls') : Util.removeClass(this.root, 'mini-controls')
     })
+    if (Sniffer.device !== 'mobile') {
+      this.bind('mouseenter', this.onMouseEnter)
+      this.bind('mouseleave', this.onMouseLeave)
+    }
+  }
+
+  onMouseEnter = (e) => {
+    const { player } = this;
+    if (player.userTimer) {
+      clearTimeout(player.userTimer)
+    }
+  }
+
+  onMouseLeave = () => {
+    const { player, playerConfig } = this;
+    if (!playerConfig.closeControlsBlur) {
+      player.emit(Events.PLAYER_FOCUS, player)
+    }
   }
 
   focus () {
@@ -111,6 +129,10 @@ class Controls extends Plugin {
   }
 
   destroy () {
+    if (Sniffer.device === 'mobile') {
+      this.unbind('mouseenter', this.onMouseEnter)
+      this.unbind('mouseleave', this.onMouseLeave)
+    }
   }
 
   render () {
