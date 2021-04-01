@@ -1,9 +1,11 @@
-import _FlvDemuxer from './flv';
-import _TsDemuxer from './hls/ts';
-import _M3U8Parser from './hls/m3u8';
-import _Mp4Remuxer from './mp4-remux';
+import FlvDemuxer from './flv';
+import TsDemuxer from './hls/ts';
+import M3U8Parser from './hls/m3u8';
+import Mp4Remuxer from './mp4-remux';
 
-export const FlvDemuxer = _FlvDemuxer;
-export const TsDemuxer = _TsDemuxer;
-export const M3U8Parser = _M3U8Parser;
-export const Mp4Remuxer = _Mp4Remuxer;
+export {
+  FlvDemuxer,
+  TsDemuxer,
+  M3U8Parser,
+  Mp4Remuxer
+}

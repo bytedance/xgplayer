@@ -4,8 +4,8 @@
 // const ASM_H264_DECODER_URL = 'https://sf1-vcloudcdn.pstatp.com/obj/media-fe/decoder/1.1.0/h264/decoder_asm_1599450196791.js';
 
 // ffmpeg v4.3
-const H264_DECODER_URL = 'https://sf1-vcloudcdn.pstatp.com/obj/media-fe/decoder/1.1.0/h264/decoder.js';
-const ASM_H264_DECODER_URL = 'https://sf1-vcloudcdn.pstatp.com/obj/media-fe/decoder/1.1.0/h264/decoder_asm.js';
+const H264_DECODER_URL = 'https://sf1-vcloudcdn.pstatp.com/obj/media-fe/decoder/1.1.1/h264/decoder.js';
+const ASM_H264_DECODER_URL = 'https://sf1-vcloudcdn.pstatp.com/obj/media-fe/decoder/1.1.1/h264/decoder_asm.js';
 
 const H265_DECODER_URL = 'https://sf1-vcloudcdn.pstatp.com/obj/media-fe/decoder/1.1.0/h265/decoder_1596185762157.js'
 

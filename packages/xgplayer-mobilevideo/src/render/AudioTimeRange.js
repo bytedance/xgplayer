@@ -80,7 +80,7 @@ export default class AudioTimeRange {
     }
   }
 
-  append (source, duration, startDts) {
+  append (source, duration, startDts, segmentStart) {
     if (this._baseDts === -1) {
       this._baseDts = startDts;
     }
@@ -94,7 +94,12 @@ export default class AudioTimeRange {
       source
     };
 
-    logger.log(this.TAG, `add new buffer range, [${start} , ${end}]`)
+    if (!this.isLive && segmentStart) {
+      buffer.start = segmentStart / 1000;
+      buffer.end = (buffer.start - start) + end;
+    }
+
+    logger.log(this.TAG, `add new buffer range, [${buffer.start} , ${buffer.end}]`)
 
     // todo: 去重,排序
     if (!this._buffers.filter(x => x.start === start).length) {
@@ -104,7 +109,7 @@ export default class AudioTimeRange {
     if (this.isLive) {
       this._duration += duration;
     }
-    return start;
+    return buffer.start;
   }
 
   deletePassed (time) {

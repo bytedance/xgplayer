@@ -37,8 +37,9 @@ export default class FrameQueue {
 
   nextFrame () {
     // 低延迟 删掉多余的帧
-    if (this._parent.noAudio === 1 && this._frames.length > 5) {
-      this._frames.splice(0, 5);
+    let len = this._frames.length;
+    if (this._parent.noAudio === 1 && len > 3) {
+      this._frames = this._frames.slice(len - 2);
     }
     return this._frames[0];
   }

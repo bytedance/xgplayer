@@ -211,6 +211,12 @@ class Context {
         return this._context._player;
       }
 
+      set _player (v) {
+        if (this._context) {
+          this._context._player = v;
+        }
+      }
+
       get _pluginConfig () {
         if (!this._context) {
           return null;

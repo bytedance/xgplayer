@@ -1,4 +1,7 @@
-import _SpsParser from './sps';
-import _NalUnit from './nalunit';
-export const SpsParserHEVC = _SpsParser;
-export const NalUnitHEVC = _NalUnit;
+import SpsParserHEVC from './sps';
+import NalUnitHEVC from './nalunit';
+
+export {
+  SpsParserHEVC,
+  NalUnitHEVC
+}

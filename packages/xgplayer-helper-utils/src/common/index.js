@@ -1,8 +1,10 @@
 // import './func/buffer-dump'
-import _debounce from './func/debounce';
-import _caculate from './func/caculate';
-import _softSolutionProbe from './func/softSolution-probe';
+import debounce from './func/debounce';
+import caculate from './func/caculate';
+import softSolutionProbe from './func/softSolution-probe';
 
-export const debounce = _debounce;
-export const caculate = _caculate;
-export const softSolutionProbe = _softSolutionProbe
+export {
+  debounce,
+  caculate,
+  softSolutionProbe
+}

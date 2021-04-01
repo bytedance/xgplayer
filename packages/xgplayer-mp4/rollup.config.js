@@ -10,10 +10,10 @@ const config = {
   },
   babel: {
     runtimeHelpers: true
-  },
-  commonjs: {
-    include: ['node_modules/**']
   }
+  // commonjs: {
+  //   include: ['node_modules/**']
+  // }
 }
 
 module.exports = commonRollup(config)

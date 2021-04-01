@@ -177,6 +177,8 @@ class MVideo extends HTMLElement {
 
   // 禁用逻辑
   _disabled (force) {
+    if (!this.innerDegrade) return;
+
     // 永久禁用
     if (force || !this.decodeFps || (this.decodeFps / this.fps <= 0.8 && this.bitrate < 2000000)) {
       localStorage.setItem('mvideo_dis265', 1);
@@ -278,7 +280,7 @@ class MVideo extends HTMLElement {
       forceDestroy = forceDestroy || this._isLive;
       this._playRequest = null;
       if (forceDestroy) {
-        this.destroy();
+        this.destroy(true);
         this._init();
         this._innerDispatchEvent('waiting');
       } else {
@@ -382,11 +384,11 @@ class MVideo extends HTMLElement {
     this.dispatchEvent(new Event(type));
   }
 
-  destroy () {
+  destroy (reuseWorker) {
     if (!this.timeline) return;
     this._noSleep.destroy();
     logger.log(this.TAG, 'call destroy');
-    this.timeline.emit(Events.TIMELINE.DESTROY);
+    this.timeline.emit(Events.TIMELINE.DESTROY, reuseWorker);
     this.timeline = null;
     this._err = null;
     this._noSleep = null;
@@ -553,6 +555,10 @@ class MVideo extends HTMLElement {
     return parseInt(this.timeline.decodeCost);
   }
 
+  get __renderCost () {
+    return this.timeline.renderCost;
+  }
+
   get __totalSize () {
     return this.timeline.totalSize;
   }
@@ -580,6 +586,8 @@ class MVideo extends HTMLElement {
   set src (val) {
     if (this.src && this.buffered.length) {
       this._vMeta = null;
+      this.startPlayed = false;
+      // 切流，考虑重用解码worker
       this.play('destroy');
     }
     this.setAttribute('src', val);

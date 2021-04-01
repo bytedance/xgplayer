@@ -150,6 +150,8 @@ export default class VideoTimeRange {
 
   _appendVodBuffer (frames) {
     if (!frames.length) return;
+    let options = frames[0].options;
+    let segmentStart = options && (options.start / 1000);
     // record baseDts for pre frame
     frames.forEach(item => {
       item.baseDts = this._baseDts;
@@ -158,7 +160,14 @@ export default class VideoTimeRange {
     let frameN = frames[frames.length - 1];
     let start = (frame0.dts - this._baseDts) / 1000;
     let end = (frameN.dts - this._baseDts) / 1000;
-    logger.log(this.TAG, `add new buffer range [${start} , ${end}]`)
+    let duration = end - start;
+
+    if (segmentStart) {
+      start = segmentStart;
+      end = start + duration;
+    }
+
+    logger.log(this.TAG, `add new buffer range [${start} , ${end}]`, (options && options.start) / 1000)
     if (!this._buffers.filter(x => x.start === start).length) {
       this._buffers.push({
         start,

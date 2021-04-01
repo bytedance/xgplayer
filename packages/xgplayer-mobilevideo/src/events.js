@@ -53,6 +53,7 @@ export default {
     // 自定义
     DECODE_FPS: 'decodefps',
     LOW_DECODE: 'lowdecode',
-    LARGE_AV_GAP: 'largeavgap'
+    LARGE_AV_GAP: 'largeavgap',
+    FIRST_FRAME: 'firstframe'
   }
 }

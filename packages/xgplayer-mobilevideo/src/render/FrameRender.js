@@ -5,8 +5,6 @@ class YUVCanvas {
     this.canvas = this.configs.canvas;
     this.meta = Object.assign({}, this.configs.meta);
     this._initMeta()
-    // this.canvas.style.width = configs.style.width;
-    // this.canvas.style.height = configs.style.height;
     this._initContextGL();
     if (this.contextGL) {
       this._initProgram();
