@@ -118,14 +118,10 @@ class Volume extends Plugin {
   }
 
   onMouseenter (e) {
-    e.preventDefault()
-    e.stopPropagation()
     Util.addClass(this.root, 'slide-show')
   }
 
   onMouseleave (e) {
-    e.preventDefault()
-    e.stopPropagation()
     Util.removeClass(this.root, 'slide-show')
   }
 

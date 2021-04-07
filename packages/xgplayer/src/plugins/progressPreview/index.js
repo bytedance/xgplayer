@@ -55,6 +55,8 @@ export default class ProgressPreview extends Plugin {
     this.timeText = this.find('.xg-spot-time')
     this.tipText = this.find('.spot-inner-text')
 
+    this._hasThumnail = false
+
     this.registerThumbnail()
     initDotsAPI(this)
 
@@ -144,10 +146,10 @@ export default class ProgressPreview extends Plugin {
     root.style.transform = `translateX(${x}px)`
   }
 
-  updateTimeText (time) {
+  updateTimeText (timeStr) {
     const {timeText, timePoint} = this
-    timeText.textContent = Util.format(time)
-    !this.thumbnail && (timePoint.textContent = Util.format(time))
+    timeText.textContent = timeStr
+    !this.thumbnail && (timePoint.textContent = timeStr)
   }
 
   updatePosition (offset, cwidth, time, e) {
@@ -160,18 +162,19 @@ export default class ProgressPreview extends Plugin {
     // let now = offset / cwidth * player.duration
     // now = now < 0 ? 0 : (now > player.duration ? player.duration : now)
     _state.now = time
+    const timeStr = Util.format(time)
     if (e && e.target && Util.hasClass(e.target, 'xgplayer-spot')) {
-      this.showTips(e.target.getAttribute('data-text'))
+      this.showTips(e.target.getAttribute('data-text'), false, timeStr)
       _state.f = true
       config.isFocusDots && _state.f && (_state.now = parseInt(e.target.getAttribute('data-time'), 10))
     } else if (config.defaultText) {
       _state.f = false
-      this.showTips(config.defaultText, true)
+      this.showTips(config.defaultText, true, timeStr)
     } else {
       _state.f = false
       this.hideTips('')
     }
-    this.updateTimeText(_state.now)
+    this.updateTimeText(timeStr)
     this.updateThumbnails(_state.now)
   }
 
@@ -195,6 +198,7 @@ export default class ProgressPreview extends Plugin {
       Util.addClass(this.root, 'short-line no-thumbnail')
       return;
     }
+    this._hasThumnail = true
     const tRoot = this.find('.xg-spot-thumbnail')
     this.thumbnail = thumbnail.createThumbnail(tRoot, 'progress-thumbnail')
     if (config.isShowCoverPreview) {
@@ -230,20 +234,23 @@ export default class ProgressPreview extends Plugin {
     }
   }
 
-  showTips (text, isDefault) {
+  showTips (text, isDefault, timeStr = '') {
     if (!text) {
       return
     }
-    this.tipText.textContent = text
+    Util.addClass(this.root, 'no-timepoint')
     Util.addClass(this.find('.xg-spot-content'), 'show-text')
     if (isDefault && this.config.mode === 'production') {
       Util.addClass(this.root, 'product')
+      this.tipText.textContent = text
     } else {
       Util.removeClass(this.root, 'product')
+      this.tipText.textContent = this._hasThumnail ? text : `${timeStr} ${text}`
     }
   }
 
   hideTips () {
+    Util.removeClass(this.root, 'no-timepoint')
     this.tipText.textContent = ''
     Util.removeClass(this.find('.xg-spot-content'), 'show-text')
     Util.removeClass(this.root, 'product')
@@ -269,10 +276,10 @@ export default class ProgressPreview extends Plugin {
 
     return `<div class="xg-spot-info ${this.config.mode === 'short' ? 'short-line' : ''}">
       <div class="xg-spot-content">
-      <div class="xg-spot-thumbnail">
-        <span class="xg-spot-time"></span>
+        <div class="xg-spot-thumbnail">
+          <span class="xg-spot-time"></span>
         </div>
-          <div class="xg-spot-text"><span class="spot-inner-text"></span></div>
+        <div class="xg-spot-text"><span class="spot-inner-text"></span></div>
       </div>
       <div class="xgplayer-progress-point">00:00</div>
       <div class="xg-spot-line"></div>

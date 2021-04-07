@@ -1,5 +1,9 @@
-import {BasePlugin} from '../../plugin';
-
+import {BasePlugin, Events, Sniffer} from '../../plugin';
+const MOUSE_EVENTS = {
+  mouseenter: 'onMouseEnter',
+  mouseleave: 'onMouseLeave',
+  mousemove: 'onMouseMove'
+}
 export default class PCPlugin extends BasePlugin {
   static get pluginName () {
     return 'pc'
@@ -12,21 +16,50 @@ export default class PCPlugin extends BasePlugin {
   }
 
   afterCreate () {
-    const eventHandlers = ['onVideoClick', 'onVideoDblClick', 'onContextmenu']
-    eventHandlers.map(key => {
-      if (this[key]) {
-        this[key] = this[key].bind(this)
-      }
-    })
+    const {enableContextmenu, isMobileSimulateMode} = this.playerConfig
+    if (isMobileSimulateMode || Sniffer.device === 'mobile') {
+      return
+    }
+    this.config.disableContextmenu = !enableContextmenu
     this.initEvents();
   }
 
   initEvents () {
-    const { player } = this;
+    const { video, root } = this.player;
 
-    player.video.addEventListener('click', this.onVideoClick, false)
-    player.video.addEventListener('dblclick', this.onVideoDblClick, false)
-    this.config.disableContextmenu && player.video.addEventListener('contextmenu', this.onContextmenu, false)
+    video.addEventListener('click', this.onVideoClick, false)
+    video.addEventListener('dblclick', this.onVideoDblClick, false)
+    Object.keys(MOUSE_EVENTS).map(item => {
+      root.addEventListener(item, this[MOUSE_EVENTS[item]], false)
+    })
+    this.config.disableContextmenu && video.addEventListener('contextmenu', this.onContextmenu, false)
+  }
+
+  onMouseMove = (e) => {
+    const {player, playerConfig} = this
+    if (!player.isActive) {
+      this.emit(Events.PLAYER_FOCUS)
+      !playerConfig.closeFocusVideoFocus && player.video.focus()
+    }
+  }
+
+  onMouseEnter = (e) => {
+    if (this.playerConfig.closeDelayBlur) {
+      this.emit(Events.PLAYER_FOCUS, {autoHide: false})
+    } else {
+      this.emit(Events.PLAYER_FOCUS)
+    }
+  }
+
+  onMouseLeave = (e) => {
+    const {closePlayerBlur, leavePlayerTime} = this.playerConfig
+    if (!closePlayerBlur) {
+      if (leavePlayerTime) {
+        this.emit(Events.PLAYER_FOCUS, {autoHide: true, delay: leavePlayerTime})
+      } else {
+        this.emit(Events.PLAYER_BLUR)
+      }
+    }
   }
 
   onContextmenu (e) {
@@ -42,7 +75,7 @@ export default class PCPlugin extends BasePlugin {
     }
   }
 
-  onVideoClick (e) {
+  onVideoClick = (e) => {
     const { player, playerConfig } = this
     if (!e.target || e.target !== player.video || playerConfig.closeVideoClick) {
       return
@@ -71,7 +104,7 @@ export default class PCPlugin extends BasePlugin {
     }, 200)
   }
 
-  onVideoDblClick (e) {
+  onVideoDblClick = (e) => {
     const { player, playerConfig } = this
     if (!e.target || e.target !== player.video || playerConfig.closeVideoDblclick) {
       return
@@ -85,24 +118,14 @@ export default class PCPlugin extends BasePlugin {
     player.fullscreen ? player.exitFullscreen() : player.getFullscreen()
   }
 
-  onControlMouseEnter () {
-    const { player } = this;
-    if (player.userTimer) {
-      clearTimeout(player.userTimer)
-    }
-  }
-
-  onControlMouseLeave () {
-    const { player } = this;
-    if (!player.config.closeControlsBlur) {
-      player.emit('focus', player)
-    }
-  }
-
   destroy () {
-    const { player } = this;
-    player.video.removeEventListener('click', this.onVideoClick, false)
-    player.video.removeEventListener('dblclick', this.onVideoDblClick, false)
-    player.video.removeEventListener('contextmenu', this.onContextmenu, false)
+    const { video, root } = this.player;
+    this.clickTimer && clearTimeout(this.clickTimer)
+    video.removeEventListener('click', this.onVideoClick, false)
+    video.removeEventListener('dblclick', this.onVideoDblClick, false)
+    video.removeEventListener('contextmenu', this.onContextmenu, false)
+    Object.keys(MOUSE_EVENTS).map(item => {
+      root.removeEventListener(item, this[MOUSE_EVENTS[item]], false)
+    })
   }
 }

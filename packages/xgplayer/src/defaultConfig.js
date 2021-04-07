@@ -19,18 +19,21 @@ export default function getDefaultConfig () {
     defaultPlaybackRate: 1, // 默认播放倍数
     execBeforePluginsCall: null, // 默认插件组装前回调
     allowSeekAfterEnded: true, // 播放结束之后是否允许seek
+    enableContextmenu: false, // 启用右键菜单
     closeVideoClick: false, // 是否通过video的click/touchend行为切换播放暂停
     closeVideoDblclick: false, // 是否通过双击行为触发全屏切换
-    closePlayerBlur: false, // 是个否启用鼠标移动激活行为
+    closePlayerBlur: false, // 是否关闭鼠标移出播放器范围触发blur操作
     leavePlayerTime: 0, // 延迟触发时间
     closePlayVideoFocus: false, // 是否关闭play时触发focus
     closePauseVideoFocus: false, // 是否关闭pause时触发focus
     closeFocusVideoFocus: false, // 是否关闭播放器移动鼠标时触发focus
+    closeDelayBlur: false, // 是否关闭自动隐藏控制条
     closeControlsBlur: false, // 鼠标移出播放器控制条范围时触发focus事件
     videoAttrbutes: {}, // video扩展属性
     startTime: 0, // 自动播放起始时间点
-    isSeekedPlay: true, // seek结束之后是否默认播放
-    miniprogress: false, // 是否隐藏迷你控制栏
+    // isSeekedPlay: true, // seek结束之后是否默认播放
+    seekedStatus: 'play', // seek结束之后播放状态 play/pause/auto
+    miniprogress: false, // 是否启用迷你控制栏
     disableSwipeHandler: () => {
     },
     enableSwipeHandler: () => {
