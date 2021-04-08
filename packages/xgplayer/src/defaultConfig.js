@@ -23,7 +23,7 @@ export default function getDefaultConfig () {
     closeVideoClick: false, // 是否通过video的click/touchend行为切换播放暂停
     closeVideoDblclick: false, // 是否通过双击行为触发全屏切换
     closePlayerBlur: false, // 是否关闭鼠标移出播放器范围触发blur操作
-    leavePlayerTime: 0, // 延迟触发时间
+    leavePlayerTime: 3000, // 延迟触发时间
     closePlayVideoFocus: false, // 是否关闭play时触发focus
     closePauseVideoFocus: false, // 是否关闭pause时触发focus
     closeFocusVideoFocus: false, // 是否关闭播放器移动鼠标时触发focus

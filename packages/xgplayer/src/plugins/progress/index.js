@@ -522,7 +522,6 @@ class Progress extends Plugin {
     <xg-progress class="xgplayer-progress">
       <xg-outer class="xgplayer-progress-outer">
         <xg-progress-btn class="xgplayer-progress-btn"></xg-progress-btn>
-        <!--<xg-point class="xgplayer-progress-point">00:00</xg-point>-->
       </xg-outer>
     </xg-progress>
     `

@@ -599,23 +599,32 @@ class Player extends Proxy {
   }
 
   destroy (isDelDom = true) {
-    if (!this.root) {
+    const {innerContainer, root, video} = this
+    if (!root) {
       return
     }
     this._unbindEvents()
     clearTimeout(this.waitTimer)
     pluginsManager.destroy(this)
-    this.root.removeChild(this.topBar)
-    this.root.removeChild(this.leftBar)
-    this.root.removeChild(this.rightBar)
+    root.removeChild(this.topBar)
+    root.removeChild(this.leftBar)
+    root.removeChild(this.rightBar)
     super.destroy()
-    this.hasStart && this.root.removeChild(this.video)
+    if (innerContainer) {
+      const _c = innerContainer.children
+      for (let i = 0; i < _c.length; i++) {
+        innerContainer.removeChild(_c[i])
+      }
+      root.removeChild(innerContainer)
+    } else {
+      this.hasStart && root.removeChild(video)
+    }
     if (isDelDom) {
       let classNameList = this.root.className.split(' ')
       if (classNameList.length > 0) {
-        this.root.className = classNameList.filter(name => name.indexOf('xgplayer') < 0).join(' ')
+        root.className = classNameList.filter(name => name.indexOf('xgplayer') < 0).join(' ')
       } else {
-        this.root.className = ''
+        root.className = ''
       }
       this.removeAttribute('data-xgfill')
     }

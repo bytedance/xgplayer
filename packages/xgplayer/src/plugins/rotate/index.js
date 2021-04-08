@@ -1,4 +1,5 @@
 import Plugin, {POSITIONS} from '../../plugin'
+import { Events } from '../../plugin/basePlugin'
 import RotateSvg from '../assets/rotate.svg'
 
 export default class Rotate extends Plugin {
@@ -35,6 +36,17 @@ export default class Rotate extends Plugin {
     this.appendChild('.xgplayer-icon', this.icons.rotate)
     this.onBtnClick = this.onBtnClick.bind(this);
     this.bind('.xgplayer-icon', ['click', 'touchend'], this.onBtnClick)
+    // 全屏/css全屏/容器宽高发生变化 需要重新计算
+    this.on([Events.FULLSCREEN_CHANGE, Events.CSS_FULLSCREEN_CHANGE], () => {
+      if (this.rotateDeg) {
+        setTimeout(() => {
+          this.updateRotateDeg(this.rotateDeg, this.config.innerRotate)
+        }, 100)
+      }
+    })
+    if (this.rotateDeg) {
+      this.updateRotateDeg(this.rotateDeg, this.config.innerRotate)
+    }
   }
 
   destroy () {
@@ -47,63 +59,36 @@ export default class Rotate extends Plugin {
     this.rotate(this.config.clockwise, this.config.innerRotate, 1)
   }
 
-  updateRotateDeg () {
+  updateRotateDeg (rotateDeg, innerRotate) {
     let player = this.player;
-    if (!this.rotateDeg) {
-      this.rotateDeg = 0
+    if (!rotateDeg) {
+      rotateDeg = 0
     }
-
-    let width = player.root.offsetWidth
-    let height = player.root.offsetHeight
-    let targetWidth = player.video.videoWidth
-    let targetHeight = player.video.videoHeight
-
-    if (!this.config.innerRotate) {
-      // player.root.style.width = height + 'px'
-      // player.root.style.height = width + 'px'
+    const {root, innerContainer, video} = this.player
+    let width = root.offsetWidth
+    let height = innerContainer && innerRotate ? innerContainer.offsetHeight : root.offsetHeight
+    let rWidth = '100%'
+    let rHeight = '100%'
+    let x = 0
+    let y = 0
+    if (rotateDeg === 0.75 || rotateDeg === 0.25) {
+      rWidth = `${height}px`
+      rHeight = `${width}px`
+      x = -(height - width) / 2
+      y = -(width - height) / 2
     }
-
-    let scale = 1
-    if (this.rotateDeg === 0.25 || this.rotateDeg === 0.75) {
-      if (this.config.innerRotate) {
-        if ((targetWidth / targetHeight) > (height / width)) { // 旋转后纵向撑满
-          let videoWidth = 0
-          if ((targetHeight / targetWidth) > (height / width)) { // 旋转前是纵向撑满
-            videoWidth = height * targetWidth / targetHeight
-          } else {
-            // 旋转前是横向撑满
-            videoWidth = width
-          }
-          scale = height / videoWidth
-        } else { // 旋转后横向撑满
-          let videoHeight = 0
-          if ((targetHeight / targetWidth) > (height / width)) { // 旋转前是纵向撑满
-            videoHeight = height
-          } else { // 旋转前是横向撑满
-            videoHeight = width * targetHeight / targetWidth
-          }
-          scale = width / videoHeight
-        }
-      } else {
-        // if (width >= height) {
-        //   scale = width / height
-        // } else {
-        //   scale = height / width
-        // }
-      }
-      scale = parseFloat(scale.toFixed(5))
-    } else {
-      scale = 1
-    }
-
+    console.log(`rWidth:${rWidth} rHeight:${rHeight} x:${x} y:${y}`)
+    const _transform = `translate(${x}px,${y}px) rotate(${rotateDeg}turn)`
     const _styles = {
       transformOrigin: 'center center',
-      transform: `rotate(${this.rotateDeg}turn) scale(${scale})`,
-      webKitTransform: `rotate(${this.rotateDeg}turn) scale(${scale})`
+      transform: _transform,
+      webKitTransform: _transform,
+      height: rHeight,
+      width: rWidth
     }
 
-    const _target = this.config.innerRotate ? player.video : player.root
-    let poster = this.config.innerRotate ? player.getPlugin('poster') : null
+    const _target = innerRotate ? video : root
+    let poster = innerRotate ? player.getPlugin('poster') : null
     Object.keys(_styles).map(key => {
       _target.style[key] = _styles[key]
       poster && poster.root && (poster.root.style[key] = _styles[key])
@@ -118,7 +103,8 @@ export default class Rotate extends Plugin {
     let factor = clockwise ? 1 : -1
 
     this.rotateDeg = (this.rotateDeg + 1 + factor * 0.25 * times) % 1
-    this.updateRotateDeg()
+    console.log('this.rotateDeg', this.rotateDeg)
+    this.updateRotateDeg(this.rotateDeg, innerRotate)
     player.emit('rotate', this.rotateDeg * 360)
   }
 
