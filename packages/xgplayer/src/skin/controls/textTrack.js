@@ -114,7 +114,6 @@ let s_textTrack = function () {
           subtitle.switchOff()
           util.removeClass(player.root, 'xgplayer-texttrack-active')
         } else {
-          console.log({id, language})
           subtitle.switch({id, language})
           util.addClass(player.root, 'xgplayer-texttrack-active')
           player.emit('textTrackChange', li.innerHTML)
