@@ -143,6 +143,9 @@ class FlvVodPlayer extends BasePlugin {
     return this.context.getInstance('MP4_REMUXER');
   }
 
+  get core () {
+    return this.flv
+  }
 }
 
 export default FlvVodPlayer

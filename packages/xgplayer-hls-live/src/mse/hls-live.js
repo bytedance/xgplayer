@@ -135,47 +135,6 @@ class HlsLiveController {
     this.destroy();
   }
 
-  /**
-   * 重建ms流程
-   * 1. 下一个分片demux后检测到 track数量变化
-   * 2. 停止 remux、appendBuffer流程
-   * 3. 等待waiting触发,重建ms
-   * 4. 重建完后 重新下载下一个分片 demux、remux、appendBuffer
-   * 5. playing事件中重置 _needRecreateMs 状态
-   */
-  _recreateMs () {
-    const { Mse, PreSource, Tracks, TsDemuxer } = this.configs;
-    this.mse.destroy().then(() => {
-      // 清除局部实例
-      this.mse = null;
-      let preSource = this._context.getInstance('PRE_SOURCE_BUFFER');
-      preSource.destroy();
-      this._tsDemuxer.destroy();
-      this._track.destroy();
-      this.off(REMUX_EVENTS.INIT_SEGMENT, this._addSourceBuffers);
-      this._context.mediaInfo.hasVideo = false;
-      this._context.mediaInfo.hasAudio = false;
-
-      // 新建局部实例
-      this._track = this._context.registry('TRACKS', Tracks)();
-      this._tsDemuxer = this._context.registry('TS_DEMUXER', TsDemuxer)({ inputbuffer: 'TS_BUFFER' });
-      this._context.registry('PRE_SOURCE_BUFFER', PreSource)();
-      this.mse = this._context.registry('MSE', Mse)({container: this._player.video, format: 'hls'}, this._context);
-      this._addSourceBuffers = this.mse.addSourceBuffers.bind(this.mse);
-      this.on(REMUX_EVENTS.INIT_SEGMENT, this._addSourceBuffers);
-
-      this._player.video.load();
-      this._player.video.src = this.mse.url; // 新 blob
-      this._compat.reset();
-      let current = this._downloadedFragmentQueue[0];
-      if (current) {
-        this._context.seek(current.start);
-        this._downloadedFragmentQueue.shift();
-        this.emitTo('TS_LOADER', LOADER_EVENTS.LADER_START, current.url, {})
-      }
-    })
-  }
-
   _onMetadataParsed (type) {
     logger.warn(this.TAG, 'meta detect or changed , ', type);
     if (type === 'video') {
@@ -349,7 +308,7 @@ class HlsLiveController {
         }
       }
       let bufferend = container.buffered.end(container.buffered.length - 1);
-      if (currentTime < bufferend - (this.preloadTime * 2) && this.configs.limitCache) {
+      if (currentTime < bufferend - (this.preloadTime * 2)) {
         container.currentTime = bufferend - this.preloadTime;
       }
       if (currentTime > bufferend - this.preloadTime) {

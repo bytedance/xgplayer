@@ -222,6 +222,10 @@ class HlsVodPlayer extends BasePlugin {
 
     return result;
   }
+
+  get core () {
+    return this.hls;
+  }
 }
 
 export default HlsVodPlayer;

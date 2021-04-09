@@ -169,6 +169,7 @@ class FlvPlayer extends BasePlugin {
     this.player.flv = flv
     this.flv = flv
     this.mse = flv.mse;
+    this.emit('core_inited', flv);
     return flv;
   }
 
@@ -283,6 +284,11 @@ class FlvPlayer extends BasePlugin {
     context.init()
     this.initFlvBackupEvents(flv, context, !!abr);
     flv.loadData(url);
+    this.emit('core_inited', flv);
+  }
+
+  get core () {
+    return this.flv;
   }
 
   static isSupported () {
