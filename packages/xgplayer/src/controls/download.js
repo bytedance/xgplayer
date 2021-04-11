@@ -1,4 +1,3 @@
-import Player from '../player'
 import downloadUtil from 'downloadjs'
 import {getAbsoluteURL} from '../utils/url'
 

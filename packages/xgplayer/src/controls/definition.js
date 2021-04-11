@@ -1,5 +1,3 @@
-import Player from '../player'
-
 let definition = function () {
   let player = this
 

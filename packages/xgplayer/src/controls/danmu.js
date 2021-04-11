@@ -1,14 +1,13 @@
-import Player from '../player'
+import { addClass, toggleClass, copyDom } from '../utils/util'
 
 let danmu = function () {
   let player = this
-  let util = Player.util
 
   function onInitDanmu(danmujs) {
     let container = player.root.querySelector('xg-danmu')
-    util.addClass(container, 'xgplayer-has-danmu')
+    addClass(container, 'xgplayer-has-danmu')
     if (!player.config.danmu.closeDefaultBtn) {
-      player.danmuBtn = util.copyDom(danmujs.bulletBtn.createSwitch(true))
+      player.danmuBtn = copyDom(danmujs.bulletBtn.createSwitch(true))
       player.controls.appendChild(player.danmuBtn)
 
       function onTimeupdate () {
@@ -18,14 +17,14 @@ let danmu = function () {
         player.danmuBtn.addEventListener(item, e => {
           e.preventDefault()
           e.stopPropagation()
-          util.toggleClass(player.danmuBtn, 'danmu-switch-active')
-          if (util.hasClass(player.danmuBtn, 'danmu-switch-active')) {
+          toggleClass(player.danmuBtn, 'danmu-switch-active')
+          if (hasClass(player.danmuBtn, 'danmu-switch-active')) {
             player.emit('danmuBtnOn')
-            util.addClass(container, 'xgplayer-has-danmu')
+            addClass(container, 'xgplayer-has-danmu')
             player.once('timeupdate', onTimeupdate)
           } else {
             player.emit('danmuBtnOff')
-            util.removeClass(container, 'xgplayer-has-danmu')
+            removeClass(container, 'xgplayer-has-danmu')
             danmujs.stop()
           }
         })
@@ -35,21 +34,21 @@ let danmu = function () {
       player.onElementDblclick && container.addEventListener('dblclick', function (e) { player.onElementDblclick(e, container) }, false)
 
       function onPause () {
-        if (util.hasClass(player.danmuBtn, 'danmu-switch-active')) {
+        if (hasClass(player.danmuBtn, 'danmu-switch-active')) {
           danmujs.pause()
         }
       }
       player.on('pause', onPause)
 
       function onPlay () {
-        if (util.hasClass(player.danmuBtn, 'danmu-switch-active')) {
+        if (hasClass(player.danmuBtn, 'danmu-switch-active')) {
           danmujs.play()
         }
       }
       player.on('play', onPlay)
 
       function onSeeked () {
-        if (util.hasClass(player.danmuBtn, 'danmu-switch-active')) {
+        if (hasClass(player.danmuBtn, 'danmu-switch-active')) {
           danmujs.stop()
           danmujs.start()
         }

@@ -1,12 +1,11 @@
-import Player from '../../player'
+import { addClass, removeClass, createDom } from '../../utils/util'
 import '../style/controls/error.scss'
 
 let s_error = function () {
   let player = this
   let root = player.root
-  let util = Player.util
 
-  let error = util.createDom('xg-error', '<span class="xgplayer-error-text">请<span class="xgplayer-error-refresh">刷新</span>试试</span>', {}, 'xgplayer-error')
+  let error = createDom('xg-error', '<span class="xgplayer-error-text">请<span class="xgplayer-error-refresh">刷新</span>试试</span>', {}, 'xgplayer-error')
   player.once('ready', () => {
     root.appendChild(error)
   });
@@ -25,7 +24,7 @@ let s_error = function () {
       text.innerHTML = player.config.errorTips || `please try to <span class="xgplayer-error-refresh">refresh</span>`
     }
     // }
-    util.addClass(player.root, 'xgplayer-is-error')
+    addClass(player.root, 'xgplayer-is-error')
     refresh = error.querySelector('.xgplayer-error-refresh')
     if (refresh) {
       ['touchend', 'click'].forEach(item => {
@@ -34,7 +33,7 @@ let s_error = function () {
           e.stopPropagation()
           player.autoplay = true
           player.once('playing', () => {
-            util.removeClass(player.root, 'xgplayer-is-error')
+            removeClass(player.root, 'xgplayer-is-error')
           })
           player.src = player.config.url
         })

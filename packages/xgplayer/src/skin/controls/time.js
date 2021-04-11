@@ -1,11 +1,10 @@
-import Player from '../../player'
+import { createDom, format } from '../../utils/util'
 import '../style/controls/time.scss'
 
 let s_time = function () {
   let player = this
-  let util = Player.util
-  let container = util.createDom('xg-time', `<span class="xgplayer-time-current">${player.currentTime || util.format(0)}</span>
-                                           <span>${player.duration || util.format(0)}</span>`, {}, 'xgplayer-time')
+  let container = createDom('xg-time', `<span class="xgplayer-time-current">${player.currentTime || format(0)}</span>
+                                           <span>${player.duration || format(0)}</span>`, {}, 'xgplayer-time')
   player.once('ready', () => {
     if(player.controls) {
       player.controls.appendChild(container)
@@ -14,14 +13,14 @@ let s_time = function () {
   let onTimeChange = function () {
     // let liveText = player.lang.LIVE
     // if(player.duration === Infinity) {
-    //   util.addClass(player.root, 'xgplayer-is-live')
-    //   if(!util.findDom(player.root, '.xgplayer-live')) {
-    //     const live = util.createDom('xg-live', liveText, {}, 'xgplayer-live')
+    //   addClass(player.root, 'xgplayer-is-live')
+    //   if(!findDom(player.root, '.xgplayer-live')) {
+    //     const live = createDom('xg-live', liveText, {}, 'xgplayer-live')
     //     player.controls.appendChild(live)
     //   }
     // }
     if (player.videoConfig.mediaType !== 'audio' || !player.isProgressMoving || !player.dash) {
-      container.innerHTML = `<span class="xgplayer-time-current">${util.format(player.currentTime || 0)}</span>` + `<span>${util.format(player.duration)}</span>`
+      container.innerHTML = `<span class="xgplayer-time-current">${format(player.currentTime || 0)}</span>` + `<span>${format(player.duration)}</span>`
     }
   }
   player.on('durationchange', onTimeChange)

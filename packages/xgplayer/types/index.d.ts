@@ -672,9 +672,6 @@ declare module 'xgplayer' {
          */
         public onPlaying(): void;
 
-        // 返回累计播放时间
-        public cumulateTime: number;
-
         /**
          * 添加标记
          *

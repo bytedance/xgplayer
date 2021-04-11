@@ -1,4 +1,4 @@
-import Player from '../../player'
+import { createDom, deepCopy, addClass, removeClass } from '../../utils/util'
 import DanmuJs from 'danmu.js'
 import PanelIcon from '../assets/panel.svg'
 import '../style/controls/danmu.scss'
@@ -6,13 +6,12 @@ import '../style/controls/danmu.scss'
 let s_danmu = function () {
   let player = this
   let root = player.root
-  let util = Player.util
   if(!player.config.danmu) { return }
-  let container = util.createDom('xg-danmu', '', {}, 'xgplayer-danmu')
+  let container = createDom('xg-danmu', '', {}, 'xgplayer-danmu')
   player.once('ready', () => {
     root.appendChild(container)
   })
-  let config = util.deepCopy({
+  let config = deepCopy({
     container,
     player: player.video,
     comments: [],
@@ -23,7 +22,7 @@ let s_danmu = function () {
   }, player.config.danmu)
   let panelBtn
   if (player.config.danmu.panel) {
-    panelBtn = Player.util.createDom('xg-panel', `<xg-panel-icon class="xgplayer-panel-icon">
+    panelBtn = createDom('xg-panel', `<xg-panel-icon class="xgplayer-panel-icon">
                                                 ${PanelIcon}
                                               </xg-panel-icon>
                                               <xg-panel-slider class="xgplayer-panel-slider">
@@ -114,7 +113,7 @@ let s_danmu = function () {
       panelBtn.addEventListener(item, function (e) {
         e.preventDefault()
         e.stopPropagation()
-        Player.util.addClass(slider, 'xgplayer-panel-active')
+        addClass(slider, 'xgplayer-panel-active')
         panelBtn.focus()
         focusStatus = true
       })
@@ -122,14 +121,14 @@ let s_danmu = function () {
     panelBtn.addEventListener('mouseleave', function (e) {
       e.preventDefault()
       e.stopPropagation()
-      Player.util.removeClass(slider, 'xgplayer-panel-active')
+      removeClass(slider, 'xgplayer-panel-active')
       focusStatus = false
     })
     slider.addEventListener('mouseleave', function (e) {
       e.preventDefault()
       e.stopPropagation()
       if (focusStatus === false) {
-        Player.util.removeClass(slider, 'xgplayer-panel-active')
+        removeClass(slider, 'xgplayer-panel-active')
       }
     })
 

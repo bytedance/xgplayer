@@ -1,5 +1,3 @@
-import Player from '../player'
-
 let pip = function () {
   let player = this
   function onPipBtnClick () {

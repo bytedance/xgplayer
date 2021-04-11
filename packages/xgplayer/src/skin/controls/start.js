@@ -1,4 +1,4 @@
-import Player from '../../player'
+import { createDom, addClass, removeClass, isWeiXin, isUc } from '../../utils/util'
 import StartPlayIcon from '../assets/startPlay.svg'
 import StartPauseIcon from '../assets/startPause.svg'
 import '../style/controls/start.scss'
@@ -6,17 +6,16 @@ import '../style/controls/start.scss'
 let s_start = function () {
   let player = this
   let root = player.root
-  let util = Player.util
-  let btn = util.createDom('xg-start', `<div class="xgplayer-icon-play">${StartPlayIcon}</div>
+  let btn = createDom('xg-start', `<div class="xgplayer-icon-play">${StartPlayIcon}</div>
                                       <div class="xgplayer-icon-pause">${StartPauseIcon}</div>`, {}, 'xgplayer-start')
   function onPlayerReady(player) {
-    util.addClass(player.root, 'xgplayer-skin-default')
+    addClass(player.root, 'xgplayer-skin-default')
     if (player.config) {
-      player.config.autoplay && !util.isWeiXin() && !util.isUc() && util.addClass(player.root, 'xgplayer-is-enter')
+      player.config.autoplay && !isWeiXin() && !isUc() && addClass(player.root, 'xgplayer-is-enter')
       if (player.config.lang && player.config.lang === 'en') {
-        util.addClass(player.root, 'xgplayer-lang-is-en')
+        addClass(player.root, 'xgplayer-lang-is-en')
       } else if (player.config.lang === 'jp') {
-        util.addClass(player.root, 'xgplayer-lang-is-jp')
+        addClass(player.root, 'xgplayer-lang-is-jp')
       }
       if(!player.config.enableContextmenu) {
         player.video.addEventListener('contextmenu', e => {
@@ -38,12 +37,12 @@ let s_start = function () {
   }
 
   player.once('autoplay was prevented', () => {
-    util.removeClass(player.root, 'xgplayer-is-enter')
-    util.addClass(player.root, 'xgplayer-nostart')
+    removeClass(player.root, 'xgplayer-is-enter')
+    addClass(player.root, 'xgplayer-nostart')
   })
 
   player.once('canplay', () => {
-    util.removeClass(player.root, 'xgplayer-is-enter')
+    removeClass(player.root, 'xgplayer-is-enter')
   })
 
   btn.onclick = e => {

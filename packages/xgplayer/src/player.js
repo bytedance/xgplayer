@@ -1,5 +1,5 @@
 import Proxy from './proxy'
-import util from './utils/util'
+import { util, deepCopy, findDom, createDom, addClass, typeOf, hasClass, removeClass } from './utils/util'
 import sniffer from './utils/sniffer'
 import XgplayerTimeRange from './utils/xgplayerTimeRange'
 import Errors from './error'
@@ -13,7 +13,7 @@ import {
 class Player extends Proxy {
   constructor (options) {
     super(options)
-    this.config = util.deepCopy({
+    this.config = deepCopy({
       width: 600,
       height: 337.5,
       ignores: [],
@@ -29,8 +29,8 @@ class Player extends Proxy {
     this.waitTimer = null
     this.history = []
     this.isProgressMoving = false
-    this.root = util.findDom(document, `#${this.config.id}`)
-    this.controls = util.createDom('xg-controls', '', {
+    this.root = findDom(document, `#${this.config.id}`)
+    this.controls = createDom('xg-controls', '', {
       unselectable: 'on',
       onselectstart: 'return false'
     }, 'xgplayer-controls')
@@ -55,8 +55,8 @@ class Player extends Proxy {
         return false
       }
     }
-    // this.rootBackup = util.copyDom(this.root)
-    util.addClass(this.root, `xgplayer xgplayer-${sniffer.device} xgplayer-nostart ${this.config.controls ? '' : 'xgplayer-no-controls'}`)
+    // this.rootBackup = copyDom(this.root)
+    addClass(this.root, `xgplayer xgplayer-${sniffer.device} xgplayer-nostart ${this.config.controls ? '' : 'xgplayer-no-controls'}`)
     this.root.appendChild(this.controls)
     if (this.config.fluid) {
       this.root.style['max-width'] = '100%'
@@ -93,7 +93,7 @@ class Player extends Proxy {
     if(!this.config.closeI18n) {
       Player.install(s_i18n.name, s_i18n.method)
     }
-    if (this.config.controlStyle && util.typeOf(this.config.controlStyle) === 'String') {
+    if (this.config.controlStyle && typeOf(this.config.controlStyle) === 'String') {
       let self = this
       fetch(self.config.controlStyle, {
         method: 'GET',
@@ -171,7 +171,7 @@ class Player extends Proxy {
     }, 0)
 
     if (this.config.videoInit) {
-      if (util.hasClass(this.root, 'xgplayer-nostart')) {
+      if (hasClass(this.root, 'xgplayer-nostart')) {
         this.start()
       }
     }
@@ -213,19 +213,19 @@ class Player extends Proxy {
           player.emit('autoplay started')
         }).catch(function () {
           player.emit('autoplay was prevented')
-          Player.util.addClass(player.root, 'xgplayer-is-autoplay')
+          addClass(player.root, 'xgplayer-is-autoplay')
         })
       }
     }
-    if (util.typeOf(url) !== 'Array') {
-      if (util.typeOf(url) === 'String' && url.indexOf('blob:') > -1 && url === this.video.src) {
+    if (typeOf(url) !== 'Array') {
+      if (typeOf(url) === 'String' && url.indexOf('blob:') > -1 && url === this.video.src) {
         // 在Chromium环境下用mse url给video二次赋值会导致错误
       } else {
         this.video.src = url
       }
     } else {
       url.forEach(item => {
-        this.video.appendChild(util.createDom('source', '', {
+        this.video.appendChild(createDom('source', '', {
           src: `${item.src}`,
           type: `${item.type || ''}`
         }))
@@ -352,7 +352,7 @@ class Player extends Proxy {
     let self = this
     let _replay = this._replay
     // ie9 bugfix
-    util.removeClass(this.root, 'xgplayer-ended')
+    removeClass(this.root, 'xgplayer-ended')
     if(sniffer.browser.indexOf('ie') > -1) {
       this.emit('play')
       this.emit('playing')
@@ -416,10 +416,10 @@ class Player extends Proxy {
 
   onFocus () {
     let player = this
-    if(util.hasClass(this.root, 'xgplayer-inactive')) {
+    if(hasClass(this.root, 'xgplayer-inactive')) {
       player.emit('controlShow')
     }
-    util.removeClass(this.root, 'xgplayer-inactive')
+    removeClass(this.root, 'xgplayer-inactive')
     if (player.userTimer) {
       clearTimeout(player.userTimer)
     }
@@ -431,21 +431,21 @@ class Player extends Proxy {
   onBlur () {
     // this.video.blur()
     if ((this.config.enablePausedInactive || !this.paused) && !this.ended && !this.config.closeInactive) {
-      if(!util.hasClass(this.root, 'xgplayer-inactive')) {
+      if(!hasClass(this.root, 'xgplayer-inactive')) {
         this.emit('controlHide')
       }
-      util.addClass(this.root, 'xgplayer-inactive')
+      addClass(this.root, 'xgplayer-inactive')
     }
   }
 
   onPlay () {
-    util.addClass(this.root, 'xgplayer-isloading')
-    util.addClass(this.root, 'xgplayer-playing')
-    util.removeClass(this.root, 'xgplayer-pause')
+    addClass(this.root, 'xgplayer-isloading')
+    addClass(this.root, 'xgplayer-playing')
+    removeClass(this.root, 'xgplayer-pause')
   }
 
   onPause () {
-    util.addClass(this.root, 'xgplayer-pause')
+    addClass(this.root, 'xgplayer-pause')
     if (this.userTimer) {
       clearTimeout(this.userTimer)
     }
@@ -453,15 +453,15 @@ class Player extends Proxy {
   }
 
   onEnded () {
-    util.addClass(this.root, 'xgplayer-ended')
-    util.removeClass(this.root, 'xgplayer-playing')
+    addClass(this.root, 'xgplayer-ended')
+    removeClass(this.root, 'xgplayer-playing')
   }
 
   onSeeking () {
     this.isSeeking = true
     // 兼容IE下无法触发waiting事件的问题 seeking的时候直接出发waiting
     this.onWaiting()
-    // util.addClass(this.root, 'seeking');
+    // addClass(this.root, 'seeking');
   }
 
   // onTimeupdate () {
@@ -469,7 +469,7 @@ class Player extends Proxy {
   //   if (this.waitTimer) {
   //     clearTimeout(this.waitTimer)
   //   }
-  //   util.removeClass(this.root, 'xgplayer-isloading')
+  //   removeClass(this.root, 'xgplayer-isloading')
 
   // }
 
@@ -479,7 +479,7 @@ class Player extends Proxy {
     if (this.waitTimer) {
       clearTimeout(this.waitTimer)
     }
-    util.removeClass(this.root, 'xgplayer-isloading')
+    removeClass(this.root, 'xgplayer-isloading')
   }
 
   onWaiting () {
@@ -493,10 +493,10 @@ class Player extends Proxy {
     }
     let time = self.currentTime
     self.waitTimer = setTimeout(function () {
-      util.addClass(self.root, 'xgplayer-isloading')
+      addClass(self.root, 'xgplayer-isloading')
       self.checkTimer = setInterval(function () {
         if (self.currentTime !== time) {
-          util.removeClass(this.root, 'xgplayer-isloading')
+          removeClass(this.root, 'xgplayer-isloading')
           clearInterval(self.checkTimer)
           self.checkTimer = null
         }
@@ -513,16 +513,8 @@ class Player extends Proxy {
     if (this.waitTimer) {
       clearTimeout(this.waitTimer)
     }
-    util.removeClass(this.root, 'xgplayer-isloading xgplayer-nostart xgplayer-pause xgplayer-ended xgplayer-is-error xgplayer-replay')
-    util.addClass(this.root, 'xgplayer-playing')
-  }
-
-  get cumulateTime () {
-    if (this.logParams && this.logParams.played instanceof Array) {
-      const accTime  = util.computeWatchDur(this.logParams.played) || 0
-      return Number(accTime.toFixed(3))
-    }
-    return 0
+    removeClass(this.root, 'xgplayer-isloading xgplayer-nostart xgplayer-pause xgplayer-ended xgplayer-is-error xgplayer-replay')
+    addClass(this.root, 'xgplayer-playing')
   }
 
   static install (name, descriptor) {

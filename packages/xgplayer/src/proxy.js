@@ -1,5 +1,5 @@
 import EventEmitter from 'event-emitter'
-import util from './utils/util'
+import { findDom, createDom, hasClass, removeClass, _clearInterval, _setInterval, on, once, getBuffered2,  } from './utils/util'
 import Errors from './error'
 
 class Proxy {
@@ -30,11 +30,11 @@ class Proxy {
     if (options.loop) {
       this.videoConfig.loop = 'loop'
     }
-    let el = options.el ? options.el : util.findDom(document, `#${options.id}`)
+    let el = options.el ? options.el : findDom(document, `#${options.id}`)
     if(window.XgVideoProxy && el.hasAttribute('data-xgmse')) {
       this.video = new window.XgVideoProxy(el, options)
     } else {
-      this.video = util.createDom(this.videoConfig.mediaType, '', this.videoConfig, '')
+      this.video = createDom(this.videoConfig.mediaType, '', this.videoConfig, '')
     }
     if (options.autoplay) {
       this.video.autoplay = true
@@ -43,7 +43,7 @@ class Proxy {
       }
     }
     this.ev = ['play', 'playing', 'pause', 'ended', 'error', 'seeking', 'seeked',
-      'timeupdate', 'waiting', 'canplay', 'canplaythrough', 'durationchange', 'volumechange', 'loadeddata', 'loadstart'
+      'timeupdate', 'waiting', 'canplay', 'canplaythrough', 'durationchange', 'volumechange', 'loadedmetadata', 'loadeddata', 'loadstart'
     ].map((item) => {
       return {
         [item]: `on${item.charAt(0).toUpperCase()}${item.slice(1)}`
@@ -66,12 +66,12 @@ class Proxy {
         if (name === 'play') {
           self.hasStart = true
         } else if (name === 'canplay') {
-          util.removeClass(self.root, 'xgplayer-is-enter')
+          removeClass(self.root, 'xgplayer-is-enter')
         } else if (name === 'waiting') {
           self.logParams.bc++
           self.inWaitingStart = new Date().getTime()
         } else if (name === 'playing') {
-          util.removeClass(self.root, 'xgplayer-is-enter')
+          removeClass(self.root, 'xgplayer-is-enter')
           if (self.inWaitingStart) {
             self.logParams.bu_acu_t += new Date().getTime() - self.inWaitingStart
             self.inWaitingStart = undefined
@@ -104,8 +104,8 @@ class Proxy {
 
         if (self.hasOwnProperty('_interval')) {
           if (['ended', 'error', 'timeupdate'].indexOf(name) < 0) {
-            util.clearInterval(self, 'bufferedChange')
-            util.setInterval(self, 'bufferedChange', function () {
+            _clearInterval(self, 'bufferedChange')
+            _setInterval(self, 'bufferedChange', function () {
               if (self.video && self.video.buffered) {
                 let curBuffer = []
                 for (let i = 0, len = self.video.buffered.length; i < len; i++) {
@@ -119,7 +119,7 @@ class Proxy {
             }, 200)
           } else {
             if (name !== 'timeupdate') {
-              util.clearInterval(self, 'bufferedChange')
+              _clearInterval(self, 'bufferedChange')
             }
           }
         }
@@ -184,10 +184,10 @@ class Proxy {
     }
   }
   proxyOn (event, fn) {
-    util.on(this, event, fn, 'destroy')
+    on(this, event, fn, 'destroy')
   }
   proxyOnce (event, fn) {
-    util.once(this, event, fn, 'destroy')
+    once(this, event, fn, 'destroy')
   }
   set autoplay (isTrue) {
     this.video.autoplay = isTrue
@@ -199,7 +199,7 @@ class Proxy {
     return this.video.buffered
   }
   get buffered2 () {
-    return util.getBuffered2(this.video.buffered)
+    return getBuffered2(this.video.buffered)
   }
   get crossOrigin () {
     return this.video.crossOrigin
@@ -219,7 +219,7 @@ class Proxy {
   }
   set currentTime (time) {
     if (typeof isFinite === 'function' && !isFinite(time)) return
-    if (util.hasClass(this.root, 'xgplayer-ended')) {
+    if (hasClass(this.root, 'xgplayer-ended')) {
       this.once('playing', () => { this.video.currentTime = time })
       this.replay()
     } else {
@@ -339,7 +339,7 @@ class Proxy {
   }
   set src (url) {
     let self = this
-    if (!util.hasClass(this.root, 'xgplayer-ended')) {
+    if (!hasClass(this.root, 'xgplayer-ended')) {
       this.emit('urlchange', JSON.parse(JSON.stringify(self.logParams)))
     }
     this.logParams = {
@@ -368,7 +368,7 @@ class Proxy {
     this.once('loadeddata', ldFunc)
   }
   set poster (posterUrl) {
-    let poster = util.findDom(this.root, '.xgplayer-poster')
+    let poster = findDom(this.root, '.xgplayer-poster')
     if (poster) {
       poster.style.backgroundImage = `url(${posterUrl})`
     }
@@ -380,16 +380,16 @@ class Proxy {
     this.video.volume = vol
   }
   get fullscreen () {
-    return util.hasClass(this.root, 'xgplayer-is-fullscreen') || util.hasClass(this.root, 'xgplayer-fullscreen-active')
+    return hasClass(this.root, 'xgplayer-is-fullscreen') || hasClass(this.root, 'xgplayer-fullscreen-active')
   }
   get bullet () {
-    return util.findDom(this.root, 'xg-danmu') ? util.hasClass(util.findDom(this.root, 'xg-danmu'), 'xgplayer-has-danmu') : false
+    return findDom(this.root, 'xg-danmu') ? hasClass(findDom(this.root, 'xg-danmu'), 'xgplayer-has-danmu') : false
   }
   get textTrack () {
-    return util.hasClass(this.root, 'xgplayer-is-textTrack')
+    return hasClass(this.root, 'xgplayer-is-textTrack')
   }
   get pip () {
-    return util.hasClass(this.root, 'xgplayer-pip-active')
+    return hasClass(this.root, 'xgplayer-pip-active')
   }
 }
 

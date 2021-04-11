@@ -1,12 +1,12 @@
-import Player from '../player'
+import { addClass, removeClass, event } from '../utils/util'
+import sniffer from '../utils/sniffer'
 
 let volume = function () {
   let player = this
   let root = player.root
-  let util = Player.util
   let container, slider, bar, selected
   function onCanplay () {
-    // player.volume = Player.sniffer.device === 'mobile' ? 1 : player.config.volume
+    // player.volume = sniffer.device === 'mobile' ? 1 : player.config.volume
     if(!player.controls) return
     player.volume = player.config.volume
     container = player.controls.querySelector('.xgplayer-volume')
@@ -14,7 +14,7 @@ let volume = function () {
     slider = container.querySelector('.xgplayer-slider')
     bar = container.querySelector('.xgplayer-bar')
     selected = container.querySelector('.xgplayer-drag')
-    if (Player.sniffer.device === 'mobile') {
+    if (sniffer.device === 'mobile') {
       onVolumeChange()
     }
   }
@@ -24,7 +24,7 @@ let volume = function () {
     if(!slider) return
     player.video.muted = false
     slider.focus()
-    util.event(e)
+    event(e)
 
     let barRect = bar.getBoundingClientRect()
     let pos = {x: e.clientX, y: e.clientY}
@@ -33,7 +33,7 @@ let volume = function () {
     let onMove = function (e) {
       e.preventDefault()
       e.stopPropagation()
-      util.event(e)
+      event(e)
       isMove = true
       let w = height - e.clientY + pos.y
       let now = w / barRect.height
@@ -43,7 +43,7 @@ let volume = function () {
     let onUp = function (e) {
       e.preventDefault()
       e.stopPropagation()
-      util.event(e)
+      event(e)
       window.removeEventListener('mousemove', onMove)
       window.removeEventListener('touchmove', onMove)
       window.removeEventListener('mouseup', onUp)
@@ -74,7 +74,7 @@ let volume = function () {
   player.on('volumeBarClick', onVolumeBarClick)
 
   function onVolumeIconClick () {
-    if (Player.sniffer.device === 'mobile') {
+    if (sniffer.device === 'mobile') {
       if (player.video.muted) {
         player.video.muted = false
         player.emit('unmute')
@@ -104,7 +104,7 @@ let volume = function () {
   player.on('volumeIconClick', onVolumeIconClick)
 
   function onVolumeIconEnter () {
-    util.addClass(root, 'xgplayer-volume-active')
+    addClass(root, 'xgplayer-volume-active')
     if (container) {
       container.focus()
     }
@@ -112,7 +112,7 @@ let volume = function () {
   player.on('volumeIconEnter', onVolumeIconEnter)
 
   function onVolumeIconLeave () {
-    util.removeClass(root, 'xgplayer-volume-active')
+    removeClass(root, 'xgplayer-volume-active')
   }
   player.on('volumeIconLeave', onVolumeIconLeave)
 
@@ -122,28 +122,28 @@ let volume = function () {
       clearTimeout(_changeTimer)
     }
     _changeTimer = setTimeout(() => {
-      if (Player.sniffer.device === 'mobile') {
-        util.removeClass(root, 'xgplayer-volume-muted')
-        util.removeClass(root, 'xgplayer-volume-large')
+      if (sniffer.device === 'mobile') {
+        removeClass(root, 'xgplayer-volume-muted')
+        removeClass(root, 'xgplayer-volume-large')
         if (player.video.muted || player.video.defaultMuted) {
           if (!player.video.muted) {
             player.video.muted = true
           }
           player.video.defaultMuted = false
-          util.addClass(root, 'xgplayer-volume-muted')
+          addClass(root, 'xgplayer-volume-muted')
         } else {
-          util.addClass(root, 'xgplayer-volume-large')
+          addClass(root, 'xgplayer-volume-large')
         }
       } else {
-        util.removeClass(root, 'xgplayer-volume-muted')
-        util.removeClass(root, 'xgplayer-volume-small')
-        util.removeClass(root, 'xgplayer-volume-large')
+        removeClass(root, 'xgplayer-volume-muted')
+        removeClass(root, 'xgplayer-volume-small')
+        removeClass(root, 'xgplayer-volume-large')
         if (player.volume === 0) {
-          util.addClass(root, 'xgplayer-volume-muted')
+          addClass(root, 'xgplayer-volume-muted')
         } else if (player.volume < 0.5) {
-          util.addClass(root, 'xgplayer-volume-small')
+          addClass(root, 'xgplayer-volume-small')
         } else {
-          util.addClass(root, 'xgplayer-volume-large')
+          addClass(root, 'xgplayer-volume-large')
         }
         if (!bar) return
         let containerHeight = bar.getBoundingClientRect().height || 76

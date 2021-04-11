@@ -1,5 +1,3 @@
-import Player from '../player'
-
 let airplay = function () {
   let player = this
   if(!player.config.airplay || !window.WebKitPlaybackTargetAvailabilityEvent) return

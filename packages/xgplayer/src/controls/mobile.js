@@ -1,8 +1,8 @@
-import Player from '../player'
+import { hasClass } from '../utils/util'
 
 let mobile = function () {
   let player = this
-  let util = Player.util; let root = player.root
+  let root = player.root
   let clk = 0; let _click_
   let clickedTime = {
     first: '',
@@ -17,7 +17,7 @@ let mobile = function () {
       e.stopPropagation()
     }
     let player = this
-    if (util.hasClass(root, 'xgplayer-inactive')) {
+    if (hasClass(root, 'xgplayer-inactive')) {
       player.emit('focus')
     } else {
       player.emit('blur')
@@ -25,7 +25,7 @@ let mobile = function () {
     if (!player.config.closeVideoTouch && !player.isTouchMove) {
       function onTouch() {
         _click_ = setTimeout(function () {
-          if (util.hasClass(player.root, 'xgplayer-nostart')) {
+          if (hasClass(player.root, 'xgplayer-nostart')) {
             return false
           } else if (!player.ended) {
             if (player.paused) {

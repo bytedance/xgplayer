@@ -1,4 +1,4 @@
-import Player from '../player'
+import { removeClass } from '../utils/util'
 
 let reload = function () {
   let player = this
@@ -6,7 +6,7 @@ let reload = function () {
   if (!reloadConfig) { return }
 
   function onReloadBtnClick () {
-    Player.util.removeClass(player.root, 'xgplayer-is-error')
+    removeClass(player.root, 'xgplayer-is-error')
     player.src = player.config.url
   }
   player.on('reloadBtnClick', onReloadBtnClick)

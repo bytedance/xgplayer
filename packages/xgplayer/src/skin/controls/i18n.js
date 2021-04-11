@@ -1,5 +1,7 @@
+import { typeOf } from '../../utils/util'
+
 let s_i18n = function () {
-  let player = this; let lang = {}; let util = player.constructor.util
+  let player = this; let lang = {};
   lang.en = {
     HAVE_NOTHING: 'There is no information on whether audio/video is ready',
     HAVE_METADATA: 'Audio/video metadata is ready ',
@@ -150,7 +152,7 @@ let s_i18n = function () {
       }
     },
     set: function (value) {
-      if (util.typeOf(value) === 'Object') {
+      if (typeOf(value) === 'Object') {
         Object.keys(value).forEach(key => {
           lang[key] = value[key]
         })

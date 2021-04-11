@@ -1,5 +1,3 @@
-import Player from '../player'
-
 let screenShot = function () {
   let player = this
   let screenShotOptions = player.config.screenShot

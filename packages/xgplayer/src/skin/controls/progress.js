@@ -1,14 +1,14 @@
-import Player from '../../player'
+import { createDom, addClass, removeClass, hasClass, toggleClass, typeOf, event, format, findDom } from '../../utils/util'
+import sniffer from '../../utils/sniffer'
 import '../style/controls/progress.scss'
 
 const isRotateFullscreen = (player) => {
-  return Player.util.hasClass(player.root, 'xgplayer-rotate-fullscreen')
+  return hasClass(player.root, 'xgplayer-rotate-fullscreen')
 }
 
 let s_progress = function () {
   let player = this
-  let util = Player.util
-  let container = util.createDom('xg-progress', `<xg-outer class="xgplayer-progress-outer">
+  let container = createDom('xg-progress', `<xg-outer class="xgplayer-progress-outer">
                                                    <xg-cache class="xgplayer-progress-cache"></xg-cache>
                                                    <xg-played class="xgplayer-progress-played">
                                                      <xg-progress-btn class="xgplayer-progress-btn"></xg-progress-btn>
@@ -27,37 +27,37 @@ let s_progress = function () {
   function dotEvent (dotItem, text) {
     dotItem.addEventListener('mouseenter', function (e) {
       if (text) {
-        util.addClass(dotItem, 'xgplayer-progress-dot-show')
-        util.addClass(container, 'xgplayer-progress-dot-active')
+        addClass(dotItem, 'xgplayer-progress-dot-show')
+        addClass(container, 'xgplayer-progress-dot-active')
       }
     })
     dotItem.addEventListener('mouseleave', function (e) {
       if (text) {
-        util.removeClass(dotItem, 'xgplayer-progress-dot-show')
-        util.removeClass(container, 'xgplayer-progress-dot-active')
+        removeClass(dotItem, 'xgplayer-progress-dot-show')
+        removeClass(container, 'xgplayer-progress-dot-active')
       }
     })
     dotItem.addEventListener('touchend', function (e) {
       // e.preventDefault()
       e.stopPropagation()
       if (text) {
-        if (!util.hasClass(dotItem, 'xgplayer-progress-dot-show')) {
+        if (!hasClass(dotItem, 'xgplayer-progress-dot-show')) {
           Object.keys(player.dotArr).forEach(function (key) {
             if (player.dotArr[key]) {
-              util.removeClass(player.dotArr[key], 'xgplayer-progress-dot-show')
+              removeClass(player.dotArr[key], 'xgplayer-progress-dot-show')
             }
           })
         }
-        util.toggleClass(dotItem, 'xgplayer-progress-dot-show')
-        util.toggleClass(container, 'xgplayer-progress-dot-active')
+        toggleClass(dotItem, 'xgplayer-progress-dot-show')
+        toggleClass(container, 'xgplayer-progress-dot-active')
       }
     })
   }
   function onCanplay () {
-    if (player.config.progressDot && util.typeOf(player.config.progressDot) === 'Array') {
+    if (player.config.progressDot && typeOf(player.config.progressDot) === 'Array') {
       player.config.progressDot.forEach(item => {
         if (item.time >= 0 && item.time <= player.duration) {
-          let dot = util.createDom('xg-progress-dot', item.text ? `<span class="xgplayer-progress-tip">${item.text}</span>` : '', {}, 'xgplayer-progress-dot')
+          let dot = createDom('xg-progress-dot', item.text ? `<span class="xgplayer-progress-tip">${item.text}</span>` : '', {}, 'xgplayer-progress-dot')
           dot.style.left = (item.time / player.duration) * 100 + '%'
           if (item.duration >= 0) {
             dot.style.width = (Math.min(item.duration, player.duration - item.time) / player.duration) * 100 + '%'
@@ -80,7 +80,7 @@ let s_progress = function () {
       return
     }
     if (time >= 0 && time <= player.duration) {
-      let dot = util.createDom('xg-progress-dot', text ? `<span class="xgplayer-progress-tip">${text}</span>` : '', {}, 'xgplayer-progress-dot')
+      let dot = createDom('xg-progress-dot', text ? `<span class="xgplayer-progress-tip">${text}</span>` : '', {}, 'xgplayer-progress-dot')
       dot.style.left = (time / player.duration) * 100 + '%'
       if (duration >= 0) {
         dot.style.width = (Math.min(duration, player.duration - time) / player.duration) * 100 + '%'
@@ -124,7 +124,7 @@ let s_progress = function () {
   if (player.config.thumbnail) {
     if(player.config.thumbnail.isShowCoverPreview) {
       progress.removeChild(thumbnail)
-      coverPreviewContainer = util.createDom('xg-coverpreview', `<xg-outer class="xgplayer-coverpreview-outer">
+      coverPreviewContainer = createDom('xg-coverpreview', `<xg-outer class="xgplayer-coverpreview-outer">
           <xg-thumbnail class="xgplayer-coverpreview-thumbnail"></xg-thumbnail>
           <xg-point class="xgplayer-coverpreview-point"></xg-point>
         </xg-outer>`, {tabindex: 1}, 'xgplayer-coverpreview')
@@ -169,7 +169,7 @@ let s_progress = function () {
       if (player.config.disableProgress) return;
       // e.preventDefault()
       e.stopPropagation()
-      util.event(e)
+      event(e)
       if (e._target === point || (!player.config.allowSeekAfterEnded && player.ended)) {
         return true
       }
@@ -189,7 +189,7 @@ let s_progress = function () {
       let move = function (e) {
         // e.preventDefault()
         e.stopPropagation()
-        util.event(e)
+        event(e)
         player.isProgressMoving = true
         let w = (isRotate ? e.clientY : e.clientX) - left
         if (w > containerWidth) {
@@ -204,15 +204,15 @@ let s_progress = function () {
           if (player.videoConfig.mediaType === 'video' && !player.dash && !player.config.closeMoveSeek) {
             player.currentTime = Number(now).toFixed(1)
           } else {
-            let time = util.findDom(player.controls, '.xgplayer-time')
+            let time = findDom(player.controls, '.xgplayer-time')
             if (time) {
-              time.innerHTML = `<span class="xgplayer-time-current">${util.format(now || 0)}</span><span>${util.format(player.duration)}</span>`
+              time.innerHTML = `<span class="xgplayer-time-current">${format(now || 0)}</span><span>${format(player.duration)}</span>`
             }
           }
         }
 
         if(player.config.thumbnail && player.config.thumbnail.isShowCoverPreview) {
-          coverPreviewPoint.innerHTML = `<span>${util.format(now)}</span> / ${util.format(player.duration || 0)}`
+          coverPreviewPoint.innerHTML = `<span>${format(now)}</span> / ${format(player.duration || 0)}`
 
           interval = player.duration / tnailPicNum
           let index = Math.floor(now / interval)
@@ -229,12 +229,12 @@ let s_progress = function () {
       let up = function (e) {
         // e.preventDefault()
         e.stopPropagation()
-        util.event(e)
+        event(e)
         window.removeEventListener('mousemove', move)
         window.removeEventListener('touchmove', move, { passive: false })
         window.removeEventListener('mouseup', up)
         window.removeEventListener('touchend', up)
-        if(Player.sniffer.browser.indexOf('ie') < 0) {
+        if(sniffer.browser.indexOf('ie') < 0) {
           container.blur()
         }
         if (!player.isProgressMoving || (player.videoConfig && player.videoConfig.mediaType === 'audio') || player.dash || player.config.closeMoveSeek) {
@@ -275,7 +275,7 @@ let s_progress = function () {
     let compute = function (e) {
       let now = ((isRotate ? e.clientY : e.clientX) - containerLeft) / containerWidth * player.duration
       now = now < 0 ? 0 : now
-      point.textContent = util.format(now)
+      point.textContent = format(now)
       let pointWidth = point.getBoundingClientRect().width
       if (player.config.thumbnail && !player.config.thumbnail.isShowCoverPreview) {
         interval = player.duration / tnailPicNum
@@ -298,7 +298,7 @@ let s_progress = function () {
         left = left > containerWidth - pointWidth ? containerWidth - pointWidth : left
         point.style.left = `${left}px`
       }
-      if (util.hasClass(container, 'xgplayer-progress-dot-active')) {
+      if (hasClass(container, 'xgplayer-progress-dot-active')) {
         point.style.display = 'none'
       } else {
         point.style.display = 'block'
