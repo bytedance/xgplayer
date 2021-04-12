@@ -34,12 +34,7 @@ export default class DefaultPreset {
     const contolsIcons = [Progress, PlayIcon, FullScreen, TimeIcon,
       RotateIcon, PlayNextIcon, DefinitionIcon, PlaybackRateIcon, DownLoadIcon, ScreenShotIcon, Volume, TextTrack, MiniProgress]
 
-    const barIcons = [{
-      plugin: PIPIcon,
-      options: {
-        index: 0,
-        position: PIPIcon.POSITIONS.ROOT_TOP
-      }}]
+    const barIcons = [PIPIcon]
 
     const layers = [Replay, Poster, Start, Loading, Enter, Error, Prompt, Thumbnail, ProgressPreview]
 
