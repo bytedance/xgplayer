@@ -329,6 +329,6 @@ export function getBuffered2(vbuffered, maxHoleDuration = 0.5) { //ref: hls.js
 
 export const util = {
   createDom, hasClass, addClass, removeClass, toggleClass, findDom, padStart, format, event, typeOf, 
-  deepCopy, getBgImage, copyDom, _setInterval, _clearInterval, createImgBtn, isWeiXin, isUc, computeWatchDur,
+  deepCopy, getBgImage, copyDom, setInterval: _setInterval, clearInterval: _clearInterval, createImgBtn, isWeiXin, isUc, computeWatchDur,
   offInDestroy, on, once, getBuffered2
 }
