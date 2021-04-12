@@ -357,17 +357,15 @@ class Player extends Proxy {
     }
 
     // 获取配置的position或者root
-    if (!options.root && !options.position) {
-      const keys = Object.keys(this.config)
-      for (let i = 0; i < keys.length; i++) {
-        if (PLUFGIN.pluginName.toLowerCase() === keys[i].toLowerCase()) {
-          const itemKey = keys[i]
-          if (Util.typeOf(this.config[itemKey]) === 'Object') {
-            options.root = this.config[itemKey].root || null
-            options.position = this.config[itemKey].position || null
-          }
-          break;
+    const keys = Object.keys(this.config)
+    for (let i = 0; i < keys.length; i++) {
+      if (PLUFGIN.pluginName.toLowerCase() === keys[i].toLowerCase()) {
+        const _pConfig = this.config[keys[i]]
+        if (Util.typeOf(_pConfig) === 'Object') {
+          _pConfig.root && (options.root = _pConfig.root)
+          _pConfig.position && (options.position = _pConfig.position)
         }
+        break;
       }
     }
 
