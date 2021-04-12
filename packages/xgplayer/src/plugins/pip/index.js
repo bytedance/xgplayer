@@ -37,6 +37,7 @@ class PIP extends Plugin {
 
   afterCreate () {
     this.pMode = PresentationMode.INLINE
+    this.icons.pipIcon && this.appendChild('.xgplayer-icon', this.icons.pipIcon)
     this.btnClick = (e) => {
       e.preventDefault();
       e.stopPropagation();
@@ -50,6 +51,12 @@ class PIP extends Plugin {
       }
       this.initPipEvents()
     })
+  }
+
+  registerIcons () {
+    return {
+      'pipIcon': null
+    }
   }
 
   initPipEvents () {
@@ -155,11 +162,12 @@ class PIP extends Plugin {
     if (!this.config.showIcon && this.isPIPAvailable()) {
       return
     }
+    const className = this.icons.pipIcon ? 'xgplayer-icon' : 'xgplayer-icon btn-text'
     return `<xg-icon class="xgplayer-pip">
-      <div class="xgplayer-icon btn-text">
-      ${`<span class="icon-text" lang-key="pip">${this.i18n.PIP}</span>`}
+      <div class="${className}">
+      ${this.icons.pipIcon ? `` : `<span lang-key="${this.i18nKeys.PIP}">${this.i18n.PIP}</span>`} 
       </div>
-      ${`<div class="xg-tips" lang-key="pip">${this.i18n.PIP}</div>`}
+      ${`<div class="xg-tips" lang-key="${this.i18nKeys.PIP}">${this.i18n.PIP}</div>`}
     </xg-icon>`
   }
 }
