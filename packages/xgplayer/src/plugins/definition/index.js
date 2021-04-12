@@ -157,7 +157,7 @@ export default class DefinitionIcon extends OptionsIcon {
         this.curTime = player.currentTime
         this.isPaused = player.paused
         if (!player.ended) {
-          player.video.src = to.url
+          player.src = to.url
           player.play()
           if (navigator.userAgent.toLowerCase().indexOf('android') > -1) {
             this.once('timeupdate', () => {

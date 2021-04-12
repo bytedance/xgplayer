@@ -357,17 +357,15 @@ class Player extends Proxy {
     }
 
     // 获取配置的position或者root
-    if (!options.root && !options.position) {
-      const keys = Object.keys(this.config)
-      for (let i = 0; i < keys.length; i++) {
-        if (PLUFGIN.pluginName.toLowerCase() === keys[i].toLowerCase()) {
-          const itemKey = keys[i]
-          if (Util.typeOf(this.config[itemKey]) === 'Object') {
-            options.root = this.config[itemKey].root || null
-            options.position = this.config[itemKey].position || null
-          }
-          break;
+    const keys = Object.keys(this.config)
+    for (let i = 0; i < keys.length; i++) {
+      if (PLUFGIN.pluginName.toLowerCase() === keys[i].toLowerCase()) {
+        const _pConfig = this.config[keys[i]]
+        if (Util.typeOf(_pConfig) === 'Object') {
+          _pConfig.root && (options.root = _pConfig.root)
+          _pConfig.position && (options.position = _pConfig.position)
         }
+        break;
       }
     }
 
@@ -599,23 +597,32 @@ class Player extends Proxy {
   }
 
   destroy (isDelDom = true) {
-    if (!this.root) {
+    const {innerContainer, root, video} = this
+    if (!root) {
       return
     }
     this._unbindEvents()
     clearTimeout(this.waitTimer)
     pluginsManager.destroy(this)
-    this.root.removeChild(this.topBar)
-    this.root.removeChild(this.leftBar)
-    this.root.removeChild(this.rightBar)
+    root.removeChild(this.topBar)
+    root.removeChild(this.leftBar)
+    root.removeChild(this.rightBar)
     super.destroy()
-    this.hasStart && this.root.removeChild(this.video)
+    if (innerContainer) {
+      const _c = innerContainer.children
+      for (let i = 0; i < _c.length; i++) {
+        innerContainer.removeChild(_c[i])
+      }
+      root.removeChild(innerContainer)
+    } else {
+      this.hasStart && root.removeChild(video)
+    }
     if (isDelDom) {
       let classNameList = this.root.className.split(' ')
       if (classNameList.length > 0) {
-        this.root.className = classNameList.filter(name => name.indexOf('xgplayer') < 0).join(' ')
+        root.className = classNameList.filter(name => name.indexOf('xgplayer') < 0).join(' ')
       } else {
-        this.root.className = ''
+        root.className = ''
       }
       this.removeAttribute('data-xgfill')
     }

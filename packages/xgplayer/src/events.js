@@ -49,3 +49,6 @@ export const RETRY = 'retry';
 
 // 容器宽高变化
 export const VIDEO_RESIZE = 'video_resize'
+
+// picture-in-picture状态变化
+export const PIP_CHANGE = 'pip_change'

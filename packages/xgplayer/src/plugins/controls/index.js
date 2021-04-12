@@ -140,7 +140,7 @@ class Controls extends Plugin {
       return;
     }
     let className = this.config.mode === 'flex' ? 'flex-controls ' : ''
-    className += this.config.autoHide ? 'control_autohide' : 'controls_permanent'
+    className += this.config.autoHide ? 'control_autohide' : 'controls_permanent xgplayer-controls-initshow'
     className += this.config.initShow ? ' xgplayer-controls-initshow' : ''
     return `<xg-controls class="xgplayer-controls ${className}" unselectable="on" onselectstart="return false">
     <xg-inner-controls class="xg-inner-controls xg-pos">
