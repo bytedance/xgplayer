@@ -30,7 +30,7 @@ class HlsVodPlayer extends BasePlugin {
     this._context.init();
     this.hls.load(this.player.config.url);
     this.__initEvents();
-
+    this.emit('core_inited', this.hls)
     try {
       BasePlugin.defineGetterOrSetter(this.player, {
         '__url': {
@@ -115,18 +115,19 @@ class HlsVodPlayer extends BasePlugin {
   initHlsBackupEvents (hls, ctx) {
     hls.once(EVENTS.REMUX_EVENTS.INIT_SEGMENT, () => {
       if (!this.player.video.src) {
-        console.log('挂载 src blob');
         const mse = hls.mse;
         this.player.start(mse.url);
       }
     });
     hls.once(EVENTS.REMUX_EVENTS.MEDIA_SEGMENT, () => {
       this.hls = hls;
+
       this.hls.mse.cleanBuffers().then(() => {
         this.hls.mse.resetContext(ctx);
         this.hls.mse.doAppend()
         this._context.destroy();
         this._context = ctx;
+        this.emit('core_inited', hls)
       })
     })
 
@@ -225,6 +226,15 @@ class HlsVodPlayer extends BasePlugin {
 
   get core () {
     return this.hls;
+  }
+
+  get context () {
+    return this._context;
+  }
+
+  static isSupported () {
+    return window.MediaSource &&
+      window.MediaSource.isTypeSupported('video/mp4; codecs="avc1.42E01E,mp4a.40.2"');
   }
 }
 

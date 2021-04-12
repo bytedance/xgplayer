@@ -27,10 +27,10 @@ export default class HlsLivePlayer extends BasePlugin {
     const { url } = this.player.config
     const config = Object.assign({}, defaultConfig, this.config, {player: this.player, preloadTime: this.player.config.preloadTime})
     this.hls = this._context.registry('HLS_LIVE_CONTROLLER', HlsLiveController)(config);
-    this.emit('livecore_ready')
     this._context.init();
     this.hls.load(url);
     this._initEvents();
+    this.emit('core_inited')
     try {
       BasePlugin.defineGetterOrSetter(this.player, {
         '__url': {
@@ -72,6 +72,7 @@ export default class HlsLivePlayer extends BasePlugin {
   }
 
   handleUrlChange (url) {
+    this.player.config.url = url
     let request;
     if (this.hls.mse) {
       request = this.hls.mse.destroy();
@@ -79,7 +80,6 @@ export default class HlsLivePlayer extends BasePlugin {
       request = Promise.resolve();
     }
     request.then(() => {
-      this.player.config.url = url
       this._offEvents();
       this._context.destroy();
       this._context = null;
@@ -161,5 +161,14 @@ export default class HlsLivePlayer extends BasePlugin {
 
   get core () {
     return this.hls;
+  }
+
+  get context () {
+    return this._context;
+  }
+
+  static isSupported () {
+    return window.MediaSource &&
+      window.MediaSource.isTypeSupported('video/mp4; codecs="avc1.42E01E,mp4a.40.2"');
   }
 }

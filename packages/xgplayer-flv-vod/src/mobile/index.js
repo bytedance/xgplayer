@@ -106,7 +106,7 @@ class FlvVodPlayer extends Player {
     }
   }
 
-  swithURL (url) {
+  switchURL (url) {
     this.config.url = url;
     const context = new Context(flvAllowedEvents);
     const flv = context.registry('FLV_CONTROLLER', FLV)(this, this.mse)
@@ -126,7 +126,7 @@ class FlvVodPlayer extends Player {
   }
 
   set src (url) {
-    return this.swithURL(url)
+    return this.switchURL(url)
   }
 
   static isSupported () {
