@@ -8,16 +8,15 @@ const Tag = 'FLVController'
 const FLV_ERROR = 'FLV_ERROR'
 
 export default class FlvController {
-  constructor (player, config) {
+  constructor () {
     this.TAG = Tag
-    this._player = player
+
     this.state = {
       initSegmentArrived: false,
       randomAccessPoints: []
     }
 
     this.bufferClearTimer = null;
-    this.config = config
   }
 
   init () {
@@ -26,7 +25,7 @@ export default class FlvController {
   }
 
   initComponents () {
-    const { FetchLoader, XgBuffer, FlvDemuxer, Tracks, Logger, PageVisibility } = this.config
+    const { FetchLoader, XgBuffer, FlvDemuxer, Tracks, Logger, PageVisibility } = this._pluginConfig
     this._context.registry('FETCH_LOADER', FetchLoader)
     this._context.registry('LOADER_BUFFER', XgBuffer)
 
@@ -181,7 +180,10 @@ export default class FlvController {
       return;
     }
     const { count: times, delay: delayTime } = this._player.config.retry || {};
-    this.emit(LOADER_EVENTS.LADER_START, url, {}, times, delayTime)
+    // 兼容player.config上传入retry参数的逻辑
+    const retryCount = times || this._pluginConfig.retryCount ;
+    const retryDelay = delayTime || this._pluginConfig.retryDelay;
+    this.emit(LOADER_EVENTS.LADER_START, url, {}, retryCount, retryDelay)
   }
 
   pause () {
@@ -193,7 +195,6 @@ export default class FlvController {
   }
 
   destroy () {
-    this._player = null
     this.state.randomAccessPoints = []
   }
 }

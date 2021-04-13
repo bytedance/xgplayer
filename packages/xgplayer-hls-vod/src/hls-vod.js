@@ -10,18 +10,14 @@ const HLS_EVENTS = EVENTS.HLS_EVENTS;
 const CRYTO_EVENTS = EVENTS.CRYTO_EVENTS;
 const HLS_ERROR = 'HLS_ERROR';
 class HlsVodController {
-  constructor (configs) {
+  constructor (mse) {
     this.TAG = 'HlsVodController';
-    this.configs = Object.assign({}, configs);
     this.url = '';
     this.baseurl = '';
     this.sequence = 0;
     this._playlist = null;
-    this.retrytimes = this.configs.retrytimes || 3;
-    this.preloadTime = this.configs.preloadTime || 5;
-    this.mse = this.configs.mse;
+    this.mse = mse;
     this._lastSeekTime = 0;
-    this._player = this.configs.player;
     this.m3u8Text = null
   }
 
@@ -45,6 +41,9 @@ class HlsVodController {
 
     // 初始化MP4 Remuxer
     this._context.registry('MP4_REMUXER', Mp4Remuxer)(this._player.currentTime);
+
+    this.retrytimes = this._pluginConfig.retryTimes;
+    this.preloadTime = this._player.config.preloadTime || this._pluginConfig.preloadTime;
 
     // 初始化MSE
     if (!this.mse) {
@@ -258,11 +257,11 @@ class HlsVodController {
       this._preload(this._player.currentTime);
       // this.emit(DEMUX_EVENTS.DEMUX_START, Object.assign({url: this._tsloader.url}, this._playlist._ts[this._tsloader.url]));
     } else if (buffer.TAG === 'DECRYPT_BUFFER') {
-      this.retrytimes = this.configs.retrytimes || 3;
+      this.retrytimes = this._pluginConfig.retrytimes || 3;
       this._playlist.downloaded(this._tsloader.url, true);
       this.emitTo('CRYPTO', CRYTO_EVENTS.START_DECRYPT, Object.assign({url: this._tsloader.url}, this._playlist._ts[this._tsloader.url]));
     } else if (buffer.TAG === 'KEY_BUFFER') {
-      this.retrytimes = this.configs.retrytimes || 3;
+      this.retrytimes = this._pluginConfig.retrytimes || 3;
       this._playlist.encrypt.key = buffer.shift();
       this._crypto = this._context.registry('CRYPTO', Crypto)({
         key: this._playlist.encrypt.key,
@@ -400,8 +399,7 @@ class HlsVodController {
     logger.group(this.TAG, `load ${frag.id}: [${frag.time / 1000} , ${(frag.time + frag.duration) / 1000}], downloading: ${frag.downloading} , donwloaded: ${frag.downloaded}`);
   }
 
-  destory () {
-    this.configs = {};
+  destroy () {
     this.url = '';
     this.baseurl = '';
     this.sequence = 0;

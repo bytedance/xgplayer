@@ -13,6 +13,14 @@ class HlsVodPlayer extends BasePlugin {
   static get pluginName () {
     return 'hlsVod'
   }
+
+  static get defaultConfig () {
+    return {
+      preloadTime: 5,
+      retryTimes: 3
+    }
+  }
+
   constructor (options) {
     super(options)
     this._handleSetCurrentTime = debounce(this._handleSetCurrentTime.bind(this), 200)
@@ -24,9 +32,9 @@ class HlsVodPlayer extends BasePlugin {
 
   beforePlayerInit () {
     if (!this._context) {
-      this._context = new Context(HlsAllowedEvents)
+      this._context = new Context(this.player, this.config, HlsAllowedEvents)
     }
-    this.hls = this._context.registry('HLS_VOD_CONTROLLER', HlsVodController)({player: this.player, preloadTime: this.player.config.preloadTime});
+    this.hls = this._context.registry('HLS_VOD_CONTROLLER', HlsVodController)();
     this._context.init();
     this.hls.load(this.player.config.url);
     this.__initEvents();
@@ -152,12 +160,7 @@ class HlsVodPlayer extends BasePlugin {
   switchURL (url) {
     this.config.url = url;
     const context = new Context(HlsAllowedEvents);
-    const hls = context.registry('HLS_VOD_CONTROLLER', HlsVodController)({
-      player: this.player,
-      container: this.video,
-      mse: this.hls.mse,
-      preloadTime: this.config.preloadTime
-    })
+    const hls = context.registry('HLS_VOD_CONTROLLER', HlsVodController)()
     context.init()
     this.initHlsBackupEvents(hls, context);
     this.hls.mse.cleanBuffers().then(() => {

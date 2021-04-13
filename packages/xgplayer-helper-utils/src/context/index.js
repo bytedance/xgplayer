@@ -5,7 +5,7 @@ import { EventEmitter } from 'events'
 const DIRECT_EMIT_FLAG = '__TO__'
 
 class Context {
-  constructor (allowedEvents = []) {
+  constructor (player, configs, allowedEvents = []) {
     this._emitter = new EventEmitter()
     if (!this._emitter.off) {
       this._emitter.off = this._emitter.removeListener;
@@ -16,6 +16,8 @@ class Context {
     this._clsMap = {} // 构造函数的map
     this._inited = false
     this.allowedEvents = allowedEvents
+    this._configs = configs;
+    this._player = player;
     this._hooks = {} // 注册在事件前/后的钩子，例如 before('DEMUX_COMPLETE')
   }
 
@@ -194,12 +196,26 @@ class Context {
         // step1 unlisten events
         this.removeListeners()
         this.listeners = {}
-
         // step2 release from context
         delete self._instanceMap[tag]
         if (super.destroy) {
           return super.destroy()
         }
+        this._context = null;
+      }
+
+      get _player () {
+        if (!this._context) {
+          return null;
+        }
+        return this._context._player;
+      }
+
+      get _pluginConfig () {
+        if (!this._context) {
+          return null;
+        }
+        return this._context._configs;
       }
     }
     this._clsMap[tag] = enhanced
@@ -236,13 +252,14 @@ class Context {
    * 编解码流程无需关注事件的解绑
    */
   destroy () {
+    this.destroyInstances()
     this._emitter.removeAllListeners();
     this._emitter = null
     this.allowedEvents = []
     this._clsMap = null
-    this._context = null
     this._hooks = null
-    this.destroyInstances()
+    this._player = null
+    this._configs = null
   }
 
   /**

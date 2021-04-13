@@ -6,6 +6,10 @@ export default class HlsLivePlayer {
     return HlsLiveMsePlayer.pluginName;
   }
 
+  static get defaultConfig () {
+    return HlsLiveMsePlayer.defaultConfig;
+  }
+
   constructor (config) {
     if (HlsLiveMobilePlayer.isSupported() && config.player.config.mediaType === 'mobile-video') {
       return new HlsLiveMobilePlayer(config)

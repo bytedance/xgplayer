@@ -10,18 +10,14 @@ const HLS_ERROR = 'HLS_ERROR';
 
 const MASTER_PLAYLIST_REGEX = /#EXT-X-STREAM-INF:([^\n\r]*)[\r\n]+([^\r\n]+)/g;
 class HlsLiveController {
-  constructor (configs) {
-    this.configs = Object.assign({}, configs);
+  constructor () {
     this.url = '';
     this.baseurl = '';
     this.sequence = 0;
     this._playlist = null;
-    this.preloadTime = this.configs.preloadTime;
     this.m3u8FlushDuration = 4;
     this._m3u8lasttime = 0;
     this._timmer = setInterval(this._checkStatus.bind(this), 300);
-    this._player = this.configs.player;
-    this.retrytimes = this.configs.retrytimes || 3;
     this.m3u8Text = null;
     this._downloadedFragmentQueue = [];
     this._onWaiting = this._onWaiting.bind(this);
@@ -29,7 +25,7 @@ class HlsLiveController {
   }
 
   init () {
-    const { XgBuffer, Tracks, Playlist, PreSource, Compatibility, FetchLoader, TsDemuxer, Mp4Remuxer, Mse } = this.configs
+    const { XgBuffer, Tracks, Playlist, PreSource, Compatibility, FetchLoader, TsDemuxer, Mp4Remuxer, Mse } = this._pluginConfig
     // 初始化Buffer （M3U8/TS/Playlist);
     this._context.registry('M3U8_BUFFER', XgBuffer);
     this._context.registry('TS_BUFFER', XgBuffer);
@@ -52,6 +48,9 @@ class HlsLiveController {
 
     // 初始化MSE
     this.mse = this._context.registry('MSE', Mse)({container: this._player.video, format: 'hls'});
+
+    this.preloadTime = this._player.config.preloadTime || this._pluginConfig.preloadTime;
+    this.retrytimes = this._pluginConfig.retrytimes;
     this.initEvents();
   }
 
@@ -201,7 +200,7 @@ class HlsLiveController {
   }
 
   _onLoadComplete (buffer) {
-    const { M3U8Parser, XgBuffer, FetchLoader, Crypto } = this.configs
+    const { M3U8Parser, XgBuffer, FetchLoader, Crypto } = this._pluginConfig
     if (buffer.TAG === 'M3U8_BUFFER') {
       let mdata;
       try {
@@ -240,12 +239,15 @@ class HlsLiveController {
         this._tsloader.buffer = 'DECRYPT_BUFFER';
         this._keyLoader = this._context.registry('KEY_LOADER', FetchLoader)({buffer: 'KEY_BUFFER', readtype: 3});
         const { count: times, delay: delayTime } = this._player.config.retry || {};
-        this.emitTo('KEY_LOADER', LOADER_EVENTS.LADER_START, this._playlist.encrypt.uri, {}, times, delayTime);
+        // 兼容player.config上传入retry参数的逻辑
+        const retryCount = times || this._pluginConfig.retryCount ;
+        const retryDelay = delayTime || this._pluginConfig.retryDelay;
+        this.emitTo('KEY_LOADER', LOADER_EVENTS.LADER_START, this._playlist.encrypt.uri, {}, retryCount, retryDelay);
       } else {
         this._m3u8Loaded(mdata);
       }
     } else if (buffer.TAG === 'TS_BUFFER') {
-      this.retrytimes = this.configs.retrytimes || 3;
+      this.retrytimes = this._pluginConfig.retrytimes || 3;
       this._playlist.downloaded(this._tsloader.url, true);
       let seg = Object.assign({url: this._tsloader.url}, this._playlist._ts[this._tsloader.url]);
       this._downloadedFragmentQueue.push(seg)
@@ -253,11 +255,11 @@ class HlsLiveController {
         this.emit(DEMUX_EVENTS.DEMUX_START, seg, this._playlist.end);
       }
     } else if (buffer.TAG === 'DECRYPT_BUFFER') {
-      this.retrytimes = this.configs.retrytimes || 3;
+      this.retrytimes = this._pluginConfig.retrytimes || 3;
       this._playlist.downloaded(this._tsloader.url, true);
       this.emitTo('CRYPTO', CRYTO_EVENTS.START_DECRYPT);
     } else if (buffer.TAG === 'KEY_BUFFER') {
-      this.retrytimes = this.configs.retrytimes || 3;
+      this.retrytimes = this._pluginConfig.retrytimes || 3;
       this._playlist.encrypt.key = buffer.shift();
       this._crypto = this._context.registry('CRYPTO', Crypto)({
         key: this._playlist.encrypt.key,
@@ -323,16 +325,19 @@ class HlsLiveController {
     }
     let frag = this._playlist.getTs();
     const { count: times, delay: delayTime } = this._player.config.retry || {};
+    // 兼容player.config上传入retry参数的逻辑
+    const retryCount = times || this._pluginConfig.retryCount ;
+    const retryDelay = delayTime || this._pluginConfig.retryDelay;
     if (frag && !frag.downloaded && !frag.downloading) {
       this._logDownSegment(frag);
       this._playlist.downloading(frag.url, true);
-      this.emitTo('TS_LOADER', LOADER_EVENTS.LADER_START, frag.url, {}, times, delayTime)
+      this.emitTo('TS_LOADER', LOADER_EVENTS.LADER_START, frag.url, {}, retryCount, retryDelay)
     } else {
       let current = new Date().getTime();
       if ((!frag || frag.downloaded) &&
         (current - this._m3u8lasttime) / 1000 > this.m3u8FlushDuration) {
         this._m3u8lasttime = current
-        this.emitTo('M3U8_LOADER', LOADER_EVENTS.LADER_START, this.url, {}, times, delayTime);
+        this.emitTo('M3U8_LOADER', LOADER_EVENTS.LADER_START, this.url, {}, retryCount, retryDelay);
       }
     }
   }
@@ -359,7 +364,7 @@ class HlsLiveController {
   }
 
   load (url) {
-    this.baseurl = this.configs.M3U8Parser.parseURL(url);
+    this.baseurl = this._pluginConfig.M3U8Parser.parseURL(url);
     this.url = url;
     this._playlist.resetSequence();
     this._preload();

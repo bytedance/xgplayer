@@ -10,26 +10,25 @@ const Tag = 'FLVController'
 const FLV_ERROR = 'FLV_ERROR'
 
 export default class FlvController {
-  constructor (player, mse, config) {
+  constructor (mse, configs) {
     this.TAG = Tag
-    this._player = player
     this.state = {
       initSegmentArrived: false,
       randomAccessPoints: []
     }
 
-    this.mse = mse;
-
     this.bufferClearTimer = null;
 
     this._handleTimeUpdate = this._handleTimeUpdate.bind(this)
     this._handleKeyFrame = this._handleKeyFrame.bind(this)
-    this.config = config
+
+    this.mse = mse;
+    this.configs = configs || {}
   }
 
   init () {
     if (!this.mse) {
-      const { Mse } = this.config
+      const { Mse } = this._pluginConfig
       this.mse = new Mse({ container: this._player.video }, this._context);
       this.mse.init();
     }
@@ -39,7 +38,9 @@ export default class FlvController {
   }
 
   initComponents () {
-    const { FetchLoader, XgBuffer, FlvDemuxer, Tracks, Remuxer, PreSource, Compatibility, Logger, remux } = this.config
+    const { FetchLoader, XgBuffer, FlvDemuxer, Tracks, Remuxer, PreSource, Compatibility, Logger } = this._pluginConfig
+    const { remux } = this.configs;
+
     this._context.registry('FETCH_LOADER', FetchLoader)
     this._context.registry('LOADER_BUFFER', XgBuffer)
 
@@ -54,9 +55,7 @@ export default class FlvController {
     }
     this._context.registry('PRE_SOURCE_BUFFER', PreSource)
 
-    if (this._player.config.compatibility !== false) {
-      this._context.registry('COMPATIBILITY', Compatibility)
-    }
+    this._context.registry('COMPATIBILITY', Compatibility)
 
     this._context.registry('LOGGER', Logger)
   }
@@ -122,7 +121,7 @@ export default class FlvController {
   _handleSourceUpdateEnd () {
     const time = this._player.currentTime;
     const video = this._player.video;
-    const preloadTime = this._player.config.preloadTime || 5
+    const preloadTime = this._player.config.preloadTime || this._pluginConfig.preloadTime // 兼容老版本从config传入preloadTime的写法
 
     const { length } = video.buffered;
 
@@ -274,7 +273,11 @@ export default class FlvController {
       return;
     }
     const { count: times, delay: delayTime } = this._player.config.retry || {};
-    this.emit(LOADER_EVENTS.LADER_START, url, {}, times, delayTime)
+    // 兼容player.config上传入retry参数的逻辑
+    const retryCount = times || this._pluginConfig.retryCount ;
+    const retryDelay = delayTime || this._pluginConfig.retryDelay;
+
+    this.emit(LOADER_EVENTS.LADER_START, url, {}, retryCount, retryDelay)
   }
 
   pause () {
@@ -287,7 +290,6 @@ export default class FlvController {
 
   destroy () {
     this._player.off('timeupdate', this._handleTimeUpdate)
-    this._player = null
     this.mse = null
     this.state.randomAccessPoints = []
     if (this._timer) clearInterval(this._timer)

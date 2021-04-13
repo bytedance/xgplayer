@@ -11,8 +11,17 @@ const MSE_EVENTS = EVENTS.MSE_EVENTS;
 
 class HlsVodMobilePlayer extends BasePlugin {
   static get pluginName () {
-    return 'hlsVod'
+    return 'hlsVodMobile'
   }
+
+  static get defaultConfig () {
+    return {
+      preloadTime: 5,
+      retryTimes: 3,
+      innerDegrade: null
+    }
+  }
+
   constructor (options) {
     super(options)
     this._handleSetCurrentTime = debounce(this._handleSetCurrentTime.bind(this), 200)
@@ -27,19 +36,20 @@ class HlsVodMobilePlayer extends BasePlugin {
 
   beforePlayerInit () {
     const { player } = this;
-
+    const innerDegrade = player.config.innerDegrade || this.config.innerDegrade;
     if (player.video) {
       player.video.setPlayMode('VOD');
-      player.video.setAttribute('innerdegrade', player.config.innerDegrade);
+      player.video.setAttribute('innerdegrade', innerDegrade);
     }
 
     if (!this._context) {
-      this._context = new Context(HlsAllowedEvents)
+      this._context = new Context(this.player, this.config, HlsAllowedEvents)
     }
-    this.hls = this._context.registry('HLS_VOD_CONTROLLER', HlsVodMobileController)({player: this.player, preloadTime: this.player.config.preloadTime});
+    this.hls = this._context.registry('HLS_VOD_CONTROLLER', HlsVodMobileController)();
     this._context.init();
     this.hls.load(this.player.config.url);
     this._initEvents();
+    this.emit('core_inited', this.hls);
   }
 
   handleUrlChange (url) {
@@ -119,15 +129,13 @@ class HlsVodMobilePlayer extends BasePlugin {
     this._context.destroy();
     this._context = null;
     this.hls = null;
-    const context = new Context(HlsAllowedEvents);
-    const hls = context.registry('HLS_VOD_CONTROLLER', HlsVodMobileController)({
-      player: this.player,
-      preloadTime: this.config.preloadTime
-    })
+    const context = new Context(this.player, this.config, HlsAllowedEvents);
+    const hls = context.registry('HLS_VOD_CONTROLLER', HlsVodMobileController)()
     this._context = context;
     this.hls = hls;
     context.init()
     hls.load(url);
+    this.emit('core_inited', hls);
   }
 
   switchURL (url) {
@@ -182,6 +190,14 @@ class HlsVodMobilePlayer extends BasePlugin {
     }
 
     return result;
+  }
+
+  get core () {
+    return this.hls;
+  }
+
+  get context () {
+    return this._context;
   }
 }
 

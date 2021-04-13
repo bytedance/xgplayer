@@ -6,6 +6,10 @@ export default class FlvLivePlayer {
     return FlvLiveMsePlayer.pluginName;
   }
 
+  static get defaultConfig () {
+    return FlvLiveMsePlayer.defaultConfig
+  }
+
   constructor (config) {
     if (FlvLiveMobilePlayer.isSupported() && config.player.config.mediaType === 'mobile-video') {
       return new FlvLiveMobilePlayer(config)

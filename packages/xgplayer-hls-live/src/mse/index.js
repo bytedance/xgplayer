@@ -12,6 +12,15 @@ export default class HlsLivePlayer extends BasePlugin {
     return 'hlsLive';
   }
 
+  static get defaultConfig () {
+    return Object.assign({}, defaultConfig, {
+      preloadTime: 5,
+      retryTimes: 3,
+      retryCount: 3,
+      retryDelay: 0
+    });
+  }
+
   constructor (options) {
     super(options)
     this.played = false;
@@ -19,18 +28,17 @@ export default class HlsLivePlayer extends BasePlugin {
     this.destroy = this.destroy.bind(this);
     this.play = this.play.bind(this);
     this.handleDefinitionChange = this.handleDefinitionChange.bind(this);
-    this._context = new Context(HlsAllowedEvents);
+    this._context = new Context(this.player, this.config, HlsAllowedEvents);
     this.autoPlayStarted = false;
   }
 
   beforePlayerInit () {
     const { url } = this.player.config
-    const config = Object.assign({}, defaultConfig, this.config, {player: this.player, preloadTime: this.player.config.preloadTime})
-    this.hls = this._context.registry('HLS_LIVE_CONTROLLER', HlsLiveController)(config);
+    this.hls = this._context.registry('HLS_LIVE_CONTROLLER', HlsLiveController)();
     this._context.init();
     this.hls.load(url);
     this._initEvents();
-    this.emit('core_inited')
+    this.emit('core_inited', this.hls)
     try {
       BasePlugin.defineGetterOrSetter(this.player, {
         '__url': {
@@ -97,7 +105,7 @@ export default class HlsLivePlayer extends BasePlugin {
 
       this.player.started = false;
       this.player.hasStart = false;
-      this._context = new Context(HlsAllowedEvents);
+      this._context = new Context(this.player, this.config, HlsAllowedEvents);
       this.player.start()
     })
   }
@@ -125,7 +133,7 @@ export default class HlsLivePlayer extends BasePlugin {
 
   reload () {
     return this._destroy().then(() => {
-      this._context = new Context(HlsAllowedEvents)
+      this._context = new Context(this.player, this.config, HlsAllowedEvents)
       this.player.hasStart = false;
       this.player.start()
       this.player.onWaiting();

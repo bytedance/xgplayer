@@ -11,10 +11,17 @@ class FlvPlayer extends BasePlugin {
     return 'flvLive'
   }
 
+  static get defaultConfig () {
+    return Object.assign({}, defaultConfig, {
+      preloadTime: 5,
+      retryCount: 3,
+      retryDelay: 0
+    })
+  }
+
   constructor (config) {
     super(config);
-    this.options = Object.assign({}, defaultConfig, this.config)
-    this._context = new Context(flvAllowedEvents);
+    this._context = new Context(this.player, this.config, flvAllowedEvents);
     this.loaderCompleteTimer = null;
     this.play = this.play.bind(this);
     this.pause = this.pause.bind(this);
@@ -163,7 +170,7 @@ class FlvPlayer extends BasePlugin {
   }
 
   initFlv () {
-    const flv = this.context.registry('FLV_CONTROLLER', FLV)(this.player, undefined, this.options)
+    const flv = this.context.registry('FLV_CONTROLLER', FLV)()
     this.initFlvEvents(flv)
     this.flv = flv
     this.mse = flv.mse;
@@ -198,7 +205,7 @@ class FlvPlayer extends BasePlugin {
   reload () {
     return this._destroy().then(() => {
       this.initEvents();
-      this._context = new Context(flvAllowedEvents)
+      this._context = new Context(this.player, this.config, flvAllowedEvents)
       setTimeout(() => {
         if (!this.player) return
         this.player.hasStart = false;
@@ -267,17 +274,17 @@ class FlvPlayer extends BasePlugin {
       return;
     }
 
-    const context = new Context(flvAllowedEvents);
+    const context = new Context(this.player, this.config, flvAllowedEvents);
     let flv
     if (abr) {
       const { _dtsBase, _videoDtsBase, _audioDtsBase, _isDtsBaseInited } = this.context.getInstance('MP4_REMUXER')
-      flv = context.registry('FLV_CONTROLLER', FLV)(this.player, this.mse, Object.assign({}, this.options, {
+      flv = context.registry('FLV_CONTROLLER', FLV)(this.mse, {
         remux: {
           _dtsBase, _videoDtsBase, _audioDtsBase, _isDtsBaseInited
         }
-      }))
+      })
     } else {
-      flv = context.registry('FLV_CONTROLLER', FLV)(this.player, this.mse, this.options)
+      flv = context.registry('FLV_CONTROLLER', FLV)(this.mse)
     }
     context.init()
     this.initFlvBackupEvents(flv, context, !!abr);
