@@ -22,6 +22,25 @@ const pluginsManager = {
       '_originalOptions': player.config || {}
     }
   },
+
+  /**
+     * 检测当前dom中是否已经有初始化播放器
+     * @param {Element} root
+     */
+  checkPlayerRoot (root) {
+    if (this.pluginGroup) {
+      const _keys = Object.keys(this.pluginGroup)
+      for (let i = 0; i < _keys.length; i++) {
+        const _p = this.pluginGroup[_keys[i]]._player
+        if (_p.root === root) {
+          return _p
+        }
+      }
+      return null
+    }
+    return null
+  },
+
   /**
    * register a lazy plugin
    * @param { object } player instance
@@ -208,6 +227,10 @@ const pluginsManager = {
 
       return prevTask.then(() => {
         const cgid = player._pluginInfoId
+        if (!this.pluginGroup[cgid]) {
+          resolve()
+          return
+        }
         const plugins = this.pluginGroup[cgid]._plugins
         const pluginsRet = []
         for (const item of Object.keys(plugins)) {

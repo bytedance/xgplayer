@@ -164,8 +164,6 @@ util.typeOf = function (obj) {
   return Object.prototype.toString.call(obj).match(/([^\s.*]+)(?=]$)/g)[0]
 }
 
-util.isNull = function (obj) {}
-
 util.deepCopy = function (dst, src) {
   if (util.typeOf(src) === 'Object' && util.typeOf(dst) === 'Object') {
     Object.keys(src).forEach(key => {
@@ -191,9 +189,7 @@ util.deepMerge = function (dst, src) {
     if (util.typeOf(src[key]) === 'Array') {
       !dst[key] && (dst[key] = [])
       if (util.typeOf(dst[key]) === 'Array') {
-        src[key].map(item => {
-          dst[key].push(item)
-        })
+        dst[key].push(...src[key])
       }
     } else if (util.typeOf(dst[key]) === util.typeOf(src[key]) && dst[key] !== null && util.typeOf(dst[key]) === 'Object' && !(src[key] instanceof window.Node)) {
       util.deepMerge(dst[key], src[key])

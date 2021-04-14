@@ -32,7 +32,7 @@ function mergeIconAttr (icon, attr) {
   return attr
 }
 
-function createIcon (icon, key, classname = '', attr = {}) {
+function createIcon (icon, key, classname = '', attr = {}, pluginName = '') {
   let newIcon = null;
   if (icon instanceof window.Element) {
     Util.addClass(icon, classname);
@@ -58,11 +58,11 @@ function createIcon (icon, key, classname = '', attr = {}) {
         })
         return newIcon;
       } else {
-        XG_DEBUG.logWarn(`warn>>config of icons.${key} is a function mast return an Element Object`)
+        XG_DEBUG.logWarn(`warn>>icons.${key} in config of plugin named [${pluginName}] is a function mast return an Element Object`)
       }
       return null;
     } catch (e) {
-      XG_DEBUG.logError('Plugin:createIcon', e)
+      XG_DEBUG.logError(`Plugin named [${pluginName}]:createIcon`, e)
       return null;
     }
   }
@@ -70,24 +70,24 @@ function createIcon (icon, key, classname = '', attr = {}) {
   if (typeof icon === 'string') {
     return Util.createDomFromHtml(icon, attr, classname);
   }
-  XG_DEBUG.logWarn(`warn>>config of icons.${key} is invalid`)
+  XG_DEBUG.logWarn(`warn>>icons.${key} in config of plugin named [${pluginName}] is invalid`)
   return null;
 }
 
 function registerIconsObj (iconsConfig, plugin) {
   const _icons = plugin.config.icons || plugin.playerConfig.icons
   Object.keys(iconsConfig).map(key => {
-    const orgIcon = iconsConfig[key] || {};
-    let classname = orgIcon.class || '';
-    let attr = orgIcon.attr || {};
+    const orgIcon = iconsConfig[key];
+    let classname = orgIcon && orgIcon.class ? orgIcon.class : '';
+    let attr = orgIcon && orgIcon.attr ? orgIcon.attr : {};
     let newIcon = null;
     if (_icons && _icons[key]) {
       classname = mergeIconClass(_icons[key], classname);
       attr = mergeIconAttr(_icons[key], attr);
-      newIcon = createIcon(_icons[key], key, classname, attr)
+      newIcon = createIcon(_icons[key], key, classname, attr, plugin.pluginName)
     }
-    if (!newIcon) {
-      newIcon = createIcon((orgIcon.icon ? orgIcon.icon : orgIcon), attr, classname)
+    if (!newIcon && orgIcon) {
+      newIcon = createIcon((orgIcon.icon ? orgIcon.icon : orgIcon), attr, classname, {}, plugin.pluginName)
     }
     plugin.icons[key] = newIcon
   })
