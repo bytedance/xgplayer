@@ -16,7 +16,7 @@ let s_screenShot = function () {
     btn.addEventListener(item, e => {
       e.preventDefault()
       e.stopPropagation()
-      player.emit('screenShotBtnClick')
+      player.userGestureTrigEvent('screenShotBtnClick')
     })
   })
 }

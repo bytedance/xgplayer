@@ -31,28 +31,28 @@ let s_volume = function () {
   bar.addEventListener('mousedown', e => {
     e.preventDefault()
     e.stopPropagation()
-    player.emit('volumeBarClick', e)
+    player.userGestureTrigEvent('volumeBarClick', e)
   });
 
   ['click', 'touchend'].forEach(item => {
     icon.addEventListener(item, e => {
       e.preventDefault()
       e.stopPropagation()
-      player.emit('volumeIconClick')
+      player.userGestureTrigEvent('volumeIconClick')
     })
   })
 
   icon.addEventListener('mouseenter', e => {
     e.preventDefault()
     e.stopPropagation()
-    player.emit('volumeIconEnter')
+    player.userGestureTrigEvent('volumeIconEnter')
   });
 
   ['blur', 'mouseleave'].forEach(item => {
     container.addEventListener(item, e => {
       e.preventDefault()
       e.stopPropagation()
-      player.emit('volumeIconLeave')
+      player.userGestureTrigEvent('volumeIconLeave')
     })
   })
 }

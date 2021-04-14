@@ -39,7 +39,7 @@ let s_replay = function () {
     svg.addEventListener(item, function (e) {
       e.preventDefault()
       e.stopPropagation()
-      player.emit('replayBtnClick')
+      player.userGestureTrigEvent('replayBtnClick')
     })
   })
 

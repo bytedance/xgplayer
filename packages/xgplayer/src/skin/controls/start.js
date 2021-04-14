@@ -48,7 +48,7 @@ let s_start = function () {
   btn.onclick = e => {
     e.preventDefault()
     e.stopPropagation()
-    player.emit('startBtnClick')
+    player.userGestureTrigEvent('startBtnClick')
   }
 }
 

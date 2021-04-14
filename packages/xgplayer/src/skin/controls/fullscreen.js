@@ -32,7 +32,7 @@ let s_fullscreen = function () {
     btn.addEventListener(item, function (e) {
       e.preventDefault()
       e.stopPropagation()
-      player.emit('fullscreenBtnClick')
+      player.userGestureTrigEvent('fullscreenBtnClick')
     })
   })
 }

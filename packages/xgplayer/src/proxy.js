@@ -1,14 +1,9 @@
 import EventEmitter from 'event-emitter'
-import { findDom, createDom, hasClass, removeClass, _clearInterval, _setInterval, on, once, getBuffered2,  } from './utils/util'
+import { findDom, createDom, hasClass, removeClass, _clearInterval, _setInterval, on, once, getBuffered2 } from './utils/util'
 import Errors from './error'
 
 class Proxy {
   constructor (options) {
-    this.logParams = {
-      bc: 0,
-      bu_acu_t: 0,
-      played: []
-    }
     this._hasStart = false
     this.videoConfig = {
       controls: !!options.isShowControl,
@@ -42,7 +37,8 @@ class Proxy {
         this.video.muted = true
       }
     }
-    this.ev = ['play', 'playing', 'pause', 'ended', 'error', 'seeking', 'seeked',
+
+    this.ev = ['play', 'playing', 'pause', 'ended', 'error', 'seeking', 'seeked', 'progress', 
       'timeupdate', 'waiting', 'canplay', 'canplaythrough', 'durationchange', 'volumechange', 'loadedmetadata', 'loadeddata', 'loadstart'
     ].map((item) => {
       return {
@@ -55,75 +51,65 @@ class Proxy {
     let lastBuffer = '0,0'
     let self = this
 
+    const defaultVideoEventHandler = name => {
+      // fix when video destroy called and video reload
+      if (!this) {
+        return
+      }
+      if (name === 'play') {
+        this.hasStart = true
+      } else if (name === 'canplay') {
+        removeClass(this.root, 'xgplayer-is-enter')
+      } else if (name === 'waiting') {
+        this.inWaitingStart = new Date().getTime()
+      } else if (name === 'playing') {
+        removeClass(this.root, 'xgplayer-is-enter')
+        if (this.inWaitingStart) {
+          this.inWaitingStart = undefined
+        }
+      }
+      if (name === 'error') {
+        // process the error
+        this._onError(name)
+      } else {
+        this.emit(name, this)
+      }
+
+      if (this.hasOwnProperty('_interval')) {
+        if (['ended', 'error', 'timeupdate'].indexOf(name) < 0) {
+          _clearInterval(this, 'bufferedChange')
+          _setInterval(this, 'bufferedChange', function () {
+            if (this.video && this.video.buffered) {
+              let curBuffer = []
+              for (let i = 0, len = this.video.buffered.length; i < len; i++) {
+                curBuffer.push([this.video.buffered.start(i), this.video.buffered.end(i)])
+              }
+              if (curBuffer.toString() !== lastBuffer) {
+                lastBuffer = curBuffer.toString()
+                this.emit('bufferedChange', curBuffer)
+              }
+            }
+          }, 200)
+        } else {
+          if (name !== 'timeupdate') {
+            _clearInterval(this, 'bufferedChange')
+          }
+        }
+      }
+    }
+
+    const videoEventHandler = name => {
+      if(options.videoEventMiddleware && typeof options.videoEventMiddleware[name] === 'function') {
+        options.videoEventMiddleware[name].call(this, this, name, defaultVideoEventHandler)
+      } else {
+        defaultVideoEventHandler.call(this, name);
+      }
+    }
+
     this.ev.forEach(item => {
       self.evItem = Object.keys(item)[0]
       let name = Object.keys(item)[0]
-      self.video.addEventListener(Object.keys(item)[0], function () {
-        // fix when video destroy called and video reload
-        if (!self || !self.logParams) {
-          return
-        }
-        if (name === 'play') {
-          self.hasStart = true
-        } else if (name === 'canplay') {
-          removeClass(self.root, 'xgplayer-is-enter')
-        } else if (name === 'waiting') {
-          self.logParams.bc++
-          self.inWaitingStart = new Date().getTime()
-        } else if (name === 'playing') {
-          removeClass(self.root, 'xgplayer-is-enter')
-          if (self.inWaitingStart) {
-            self.logParams.bu_acu_t += new Date().getTime() - self.inWaitingStart
-            self.inWaitingStart = undefined
-          }
-        } else if (name === 'loadeddata') {
-          self.logParams.played.push({
-            begin: 0,
-            end: -1
-          })
-        } else if (name === 'seeking') {
-          self.logParams.played.push({
-            begin: self.video.currentTime,
-            end: -1
-          })
-        } else if (self && self.logParams && self.logParams.played && name === 'timeupdate') {
-          if (self.logParams.played.length < 1) {
-            self.logParams.played.push({
-              begin: self.video.currentTime,
-              end: -1
-            })
-          }
-          self.logParams.played[self.logParams.played.length - 1].end = self.video.currentTime
-        }
-        if (name === 'error') {
-          // process the error
-          self._onError(name)
-        } else {
-          self.emit(name, self)
-        }
-
-        if (self.hasOwnProperty('_interval')) {
-          if (['ended', 'error', 'timeupdate'].indexOf(name) < 0) {
-            _clearInterval(self, 'bufferedChange')
-            _setInterval(self, 'bufferedChange', function () {
-              if (self.video && self.video.buffered) {
-                let curBuffer = []
-                for (let i = 0, len = self.video.buffered.length; i < len; i++) {
-                  curBuffer.push([self.video.buffered.start(i), self.video.buffered.end(i)])
-                }
-                if (curBuffer.toString() !== lastBuffer) {
-                  lastBuffer = curBuffer.toString()
-                  self.emit('bufferedChange', curBuffer)
-                }
-              }
-            }, 200)
-          } else {
-            if (name !== 'timeupdate') {
-              _clearInterval(self, 'bufferedChange')
-            }
-          }
-        }
-      }, false)
+      self.video.addEventListener(Object.keys(item)[0], videoEventHandler.bind(self, name))
     })
   }
   /**
@@ -340,32 +326,12 @@ class Proxy {
   set src (url) {
     let self = this
     if (!hasClass(this.root, 'xgplayer-ended')) {
-      this.emit('urlchange', JSON.parse(JSON.stringify(self.logParams)))
-    }
-    this.logParams = {
-      bc: 0,
-      bu_acu_t: 0,
-      played: [],
-      pt: new Date().getTime(),
-      vt: new Date().getTime(),
-      vd: 0
+      this.emit('urlchange', player.src)
     }
     this.autoplay = true
     this.video.pause()
     this.video.src = url
     this.emit('srcChange')
-    this.logParams.playSrc = url
-    this.logParams.pt = new Date().getTime()
-    this.logParams.vt = this.logParams.pt
-    function ldFunc () {
-      self.logParams.vt = new Date().getTime()
-      if (self.logParams.pt > self.logParams.vt) {
-        self.logParams.pt = self.logParams.vt
-      }
-      self.logParams.vd = self.video.duration
-      self.off('loadeddata', ldFunc)
-    }
-    this.once('loadeddata', ldFunc)
   }
   set poster (posterUrl) {
     let poster = findDom(this.root, '.xgplayer-poster')
