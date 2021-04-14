@@ -16,7 +16,7 @@ let s_pip = function () {
     btn.addEventListener(item, e => {
       e.preventDefault()
       e.stopPropagation()
-      player.emit('pipBtnClick')
+      player.userGestureTrigEvent('pipBtnClick')
     })
   })
 }

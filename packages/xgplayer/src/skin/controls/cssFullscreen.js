@@ -26,7 +26,7 @@ let s_cssFullscreen = function () {
     btn.addEventListener(item, function (e) {
       e.preventDefault()
       e.stopPropagation()
-      player.emit('cssFullscreenBtnClick')
+      player.userGestureTrigEvent('cssFullscreenBtnClick')
     })
   })
 }

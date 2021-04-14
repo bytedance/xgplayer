@@ -20,7 +20,7 @@ let s_playNext = function () {
       e.preventDefault()
       e.stopPropagation()
       Player.util.addClass(player.root, 'xgplayer-is-enter')
-      player.emit('playNextBtnClick')
+      player.userGestureTrigEvent('playNextBtnClick')
     })
   })
 

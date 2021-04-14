@@ -19,7 +19,7 @@ let s_rotate = function () {
     btn.addEventListener(item, function (e) {
       e.preventDefault()
       e.stopPropagation()
-      player.emit('rotateBtnClick')
+      player.userGestureTrigEvent('rotateBtnClick')
     })
   })
 }

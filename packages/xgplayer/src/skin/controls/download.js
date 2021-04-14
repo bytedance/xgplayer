@@ -19,7 +19,7 @@ let s_download = function () {
     btn.addEventListener(item, function (e) {
       e.preventDefault()
       e.stopPropagation()
-      player.emit('downloadBtnClick')
+      player.userGestureTrigEvent('downloadBtnClick')
     })
   })
 }

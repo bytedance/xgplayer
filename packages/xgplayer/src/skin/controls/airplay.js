@@ -34,7 +34,7 @@ let s_airplay = function () {
     btn.addEventListener(item, function (e) {
       e.preventDefault()
       e.stopPropagation()
-      player.emit('airplayBtnClick')
+      player.userGestureTrigEvent('airplayBtnClick')
     })
   })
 }

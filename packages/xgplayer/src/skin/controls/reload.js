@@ -19,7 +19,7 @@ let s_reload = function () {
     btn.addEventListener(item, function (e) {
       e.preventDefault()
       e.stopPropagation()
-      player.emit('reloadBtnClick')
+      player.userGestureTrigEvent('reloadBtnClick')
     })
   })
 }

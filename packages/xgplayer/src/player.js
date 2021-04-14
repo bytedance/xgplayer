@@ -204,7 +204,6 @@ class Player extends Proxy {
     if (!url || url === '') {
       this.emit('urlNull')
     }
-    this.logParams.playSrc = url
     this.canPlayFunc = function () {
       player.off('canplay', player.canPlayFunc)
       let playPromise = player.video.play()
@@ -231,16 +230,6 @@ class Player extends Proxy {
         }))
       })
     }
-    this.logParams.pt = new Date().getTime()
-    this.logParams.vt = this.logParams.pt
-    this.loadeddataFunc = function () {
-      player.logParams.vt = new Date().getTime()
-      if (player.logParams.pt > player.logParams.vt) {
-        player.logParams.pt = player.logParams.vt
-      }
-      player.logParams.vd = player.video.duration
-    }
-    this.once('loadeddata', this.loadeddataFunc)
     if (this.config.autoplay) {
       if (sniffer.os.isPhone) {
         this.canPlayFunc()
@@ -357,25 +346,7 @@ class Player extends Proxy {
       this.emit('play')
       this.emit('playing')
     }
-    this.logParams = {
-      bc: 0,
-      bu_acu_t: 0,
-      played: [],
-      pt: new Date().getTime(),
-      vt: new Date().getTime(),
-      vd: 0
-    }
-    this.logParams.pt = new Date().getTime()
-    this.logParams.vt = this.logParams.pt
-    this.replayFunc = function () {
-      self.logParams.vt = new Date().getTime()
-      if (self.logParams.pt > self.logParams.vt) {
-        self.logParams.pt = self.logParams.vt
-      }
-      self.logParams.vd = self.video.duration
-    }
-    this.once('play', this.replayFunc)
-    this.logParams.playSrc = this.video.currentSrc
+    
     if (_replay && _replay instanceof Function) {
       _replay()
     } else {
@@ -385,6 +356,17 @@ class Player extends Proxy {
       if (playPromise !== undefined && playPromise) {
         playPromise.catch(err => {})
       }
+    }
+  }
+
+  userGestureTrigEvent (name, param) {
+    const defaultUserGestureEventHandler = (name, param) => {
+      this.emit(name, param)
+    }
+    if(this.config.userGestureEventMiddleware && typeof this.config.userGestureEventMiddleware[name] === 'function') {
+      this.config.userGestureEventMiddleware[name].call(this, this, name, param, defaultUserGestureEventHandler)
+    } else {
+      defaultUserGestureEventHandler.call(this, name, param);
     }
   }
 
@@ -515,14 +497,6 @@ class Player extends Proxy {
     }
     util.removeClass(this.root, 'xgplayer-isloading xgplayer-nostart xgplayer-pause xgplayer-ended xgplayer-is-error xgplayer-replay')
     util.addClass(this.root, 'xgplayer-playing')
-  }
-
-  get cumulateTime () {
-    if (this.logParams && this.logParams.played instanceof Array) {
-      const accTime  = util.computeWatchDur(this.logParams.played) || 0
-      return Number(accTime.toFixed(3))
-    }
-    return 0
   }
 
   static install (name, descriptor) {

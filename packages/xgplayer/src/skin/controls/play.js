@@ -33,7 +33,7 @@ let s_play = function () {
     btn.addEventListener(item, function (e) {
       e.preventDefault()
       e.stopPropagation()
-      player.emit('playBtnClick')
+      player.userGestureTrigEvent('playBtnClick')
     })
   })
 }

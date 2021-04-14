@@ -16,7 +16,7 @@ let s_miniplayer = function () {
     btn.addEventListener(item, e => {
       e.preventDefault()
       e.stopPropagation()
-      player.emit('miniplayerBtnClick')
+      player.userGestureTrigEvent('miniplayerBtnClick')
     })
   })
 }
