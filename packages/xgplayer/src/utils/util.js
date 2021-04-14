@@ -164,8 +164,6 @@ util.typeOf = function (obj) {
   return Object.prototype.toString.call(obj).match(/([^\s.*]+)(?=]$)/g)[0]
 }
 
-util.isNull = function (obj) {}
-
 util.deepCopy = function (dst, src) {
   if (util.typeOf(src) === 'Object' && util.typeOf(dst) === 'Object') {
     Object.keys(src).forEach(key => {
