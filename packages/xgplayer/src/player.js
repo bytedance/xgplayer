@@ -11,7 +11,7 @@ import getDefaultConfig from './defaultConfig'
 import { usePreset } from './plugin/preset';
 import hooksDescriptor from './plugin/hooksDescriptor'
 import Controls from './plugins/controls'
-import {bindDebug} from './utils/debug'
+import XG_DEBUG, {bindDebug} from './utils/debug'
 
 import {
   version
@@ -112,6 +112,11 @@ class Player extends Proxy {
         return false
       }
     }
+    const ret = pluginsManager.checkPlayerRoot(this.root)
+    if (ret) {
+      XG_DEBUG.logWarn('The is an Player instance already exists in this.root, destroy it and reinitialize')
+      ret.destroy()
+    }
     this._initBaseDoms();
     const controls = pluginsManager.register(this, Controls)
     this.controls = controls
@@ -190,7 +195,7 @@ class Player extends Proxy {
               resetFullState()
             }, 100)
           } catch (e) {
-            this.logError(e)
+            XG_DEBUG.logError(e)
             resetFullState()
           }
         } else {
@@ -247,7 +252,7 @@ class Player extends Proxy {
     const {root, innerContainer} = this
     if (!url || url === '') {
       this.emit(Events.URL_NULL)
-      this.logWarn('config.url is null, please get url and run player._startInit(url)')
+      XG_DEBUG.logWarn('config.url is null, please get url and run player._startInit(url)')
       if (this.config.nullUrlStart) {
         return
       }
@@ -257,7 +262,7 @@ class Player extends Proxy {
         return
       }
       const {autoplay, startTime, volume} = this.config
-      this.logInfo('player', 'canPlayFunc', startTime)
+      XG_DEBUG.logInfo('player', 'canPlayFunc', startTime)
       this.volume = typeof volume === 'number' ? volume : 0.6
       if (startTime) {
         this.currentTime = startTime > this.duration ? this.duration : startTime
@@ -287,7 +292,7 @@ class Player extends Proxy {
     }
 
     this.once(Events.CANPLAY, this.canPlayFunc)
-    this.logInfo('_startInit')
+    XG_DEBUG.logInfo('_startInit')
     if (this.config.autoplay) {
       this.load()
       // ios端无法自动播放的场景下，不调用play不会触发canplay loadeddata等事件
@@ -323,7 +328,7 @@ class Player extends Proxy {
             loadingPlugin.then(() => {
               this._loadingPlugins.splice(this._loadingPlugins.indexOf(loadingPlugin), 1);
             }).catch((e) => {
-              this.logError('_registerPlugins:loadingPlugin', e)
+              XG_DEBUG.logError('_registerPlugins:loadingPlugin', e)
               this._loadingPlugins.splice(this._loadingPlugins.indexOf(loadingPlugin), 1);
             })
             this._loadingPlugins.push(loadingPlugin)
@@ -333,7 +338,7 @@ class Player extends Proxy {
         }
         return this.registerPlugin(plugin)
       } catch (err) {
-        this.logError('_registerPlugins:', err)
+        XG_DEBUG.logError('_registerPlugins:', err)
         return null
       }
     })
@@ -465,7 +470,7 @@ class Player extends Proxy {
     }).catch((e) => {
       e.fileName = 'player'
       e.lineNumber = '236'
-      this.logError('start:beforeInit:', e)
+      XG_DEBUG.logError('start:beforeInit:', e)
       throw e
     })
   }
@@ -494,12 +499,12 @@ class Player extends Proxy {
         this.addClass(STATE_CLASS.PLAYING)
         if (!this.isPlaying) {
           this.config.closePlayVideoFocus && this.emit(Events.PLAYER_BLUR)
-          this.logInfo('>>>>playPromise.then')
+          XG_DEBUG.logInfo('>>>>playPromise.then')
           this.isPlaying = true
           this.emit(Events.AUTOPLAY_STARTED)
         }
       }).catch((e) => {
-        this.logWarn('>>>>playPromise.catch', e.name)
+        XG_DEBUG.logWarn('>>>>playPromise.catch', e.name)
         if (this.video && this.video.error) {
           this.onError()
           this.errorHandler('error')
@@ -517,7 +522,7 @@ class Player extends Proxy {
         }
       })
     } else {
-      this.logWarn('video.play not return promise')
+      XG_DEBUG.logWarn('video.play not return promise')
       if (!this.isPlaying) {
         this.isPlaying = true
         this.removeClass(STATE_CLASS.NOT_ALLOW_AUTOPLAY)
@@ -615,7 +620,7 @@ class Player extends Proxy {
       }
       root.removeChild(innerContainer)
     } else {
-      this.hasStart && root.removeChild(video)
+      root.contains(video) && root.removeChild(video)
     }
     if (isDelDom) {
       let classNameList = this.root.className.split(' ')

@@ -3,8 +3,8 @@ const XG_DEBUG_OPEN = typeof (window) !== 'undefined' && window.location && wind
 
 const STYLE = {
   info: 'color: #525252; background-color: #90ee90;',
-  error: 'color: #525252; background-color: #90ee90;',
-  warn: 'color: #525252; background-color: red; '
+  error: 'color: #525252; background-color: red;',
+  warn: 'color: #525252; background-color: yellow; '
 }
 
 const XGTAG = '%c[xgplayer]》》'
@@ -18,7 +18,7 @@ const XG_DEBUG = {
   },
 
   logWarn: function (message, ...optionalParams) {
-    (XG_DEBUG_OPEN || this.config.debug) && console.warn(XGTAG, STYLE.warn, message, ...optionalParams)
+    console.warn(XGTAG, STYLE.warn, message, ...optionalParams)
   },
 
   logError: function (message, ...optionalParams) {
