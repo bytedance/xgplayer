@@ -9,17 +9,14 @@ const CRYTO_EVENTS = EVENTS.CRYTO_EVENTS;
 const HLS_ERROR = 'HLS_ERROR';
 
 class HlsVodMobileController {
-  constructor (configs) {
+  constructor () {
     this.TAG = 'HlsVodController';
-    this.configs = Object.assign({}, configs);
+    this.configs = Object.assign({}, this._pluginConfig);
     this.url = '';
     this.baseurl = '';
     this.sequence = 0;
     this._playlist = null;
-    this.retrytimes = this.configs.retrytimes || 3;
-    this.preloadTime = this.configs.preloadTime || 5;
     this._lastSeekTime = 0;
-    this._player = this.configs.player;
     this.m3u8Text = null
   }
 
@@ -40,6 +37,8 @@ class HlsVodMobileController {
     // 初始化TS Demuxer
     this._demuxer = this._context.registry('TS_DEMUXER', TsDemuxer)({ inputbuffer: 'TS_BUFFER' });
 
+    this.retrytimes = this._pluginConfig.retrytimes;
+    this.preloadTime = this._player.config.preloadTime || this._pluginConfig.preloadTime;
     this.initEvents();
   }
 
@@ -64,7 +63,7 @@ class HlsVodMobileController {
 
     this.on(DEMUX_EVENTS.DEMUX_ERROR, this._onDemuxError.bind(this));
 
-    this._player.on('timeupdate', this._onTimeUpdate.bind(this));
+    this._player.on('timeupdate', this._onTimeUpdate);
   }
 
   _onError (type, mod, err, fatal) {
@@ -345,7 +344,7 @@ class HlsVodMobileController {
     logger.group(this.TAG, `load ${frag.id}: [${frag.time / 1000} , ${(frag.time + frag.duration) / 1000}], downloading: ${frag.downloading} , donwloaded: ${frag.downloaded}`);
   }
 
-  destory () {
+  destroy () {
     this.configs = {};
     this.url = '';
     this.baseurl = '';

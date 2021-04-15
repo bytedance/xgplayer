@@ -15,9 +15,17 @@ class FlvPlayer extends BasePlugin {
     return softSolutionProbe();
   }
 
+  static get defaultConfig () {
+    return Object.assign({}, defaultConfig, {
+      preloadTime: 5,
+      innerDegrade: null,
+      retryCount: 3,
+      retryDelay: 0
+    })
+  }
+
   constructor (options) {
     super(options);
-    this.options = Object.assign({}, defaultConfig, this.config)
     this.play = this.play.bind(this)
     this.pause = this.pause.bind(this)
     this.canplay = this.canplay.bind(this)
@@ -29,15 +37,17 @@ class FlvPlayer extends BasePlugin {
 
   beforePlayerInit () {
     const { player } = this;
-    if (player.video && player.config.innerDegrade) {
-      player.video.setAttribute('innerdegrade', player.config.innerDegrade);
+    const preloadTime = player.config.preloadTime || this.config.preloadTime
+    const innerDegrade = this.config.innerDegrade || player.config.innerDegrade
+    if (player.video && innerDegrade) {
+      player.video.setAttribute('innerdegrade', innerDegrade);
     }
-    if (player.video && player.config.preloadTime) {
-      player.video.setAttribute('preloadtime', player.config.preloadTime);
+    if (player.video && preloadTime) {
+      player.video.setAttribute('preloadtime', preloadTime);
     }
-    this.context = new Context(flvAllowedEvents)
+    this._context = new Context(this.player, this.config, flvAllowedEvents)
     this.initFlv()
-    this.context.init()
+    this._context.init()
     this.loadData()
     this.initEvents()
     if (!player.forceDegradeToVideo) {
@@ -86,8 +96,12 @@ class FlvPlayer extends BasePlugin {
 
   // 降级时到不同的播放方式
   lowdecode () {
-    const {player} = this;
-    const {backupURL, innerDegrade} = player.config;
+    const { player } = this;
+    const { backupURL: playerBackupURL, innerDegrade: playerInnerDegrade } = player.config;
+    const { backupURL: pluginBackupURL, innerDegrade: pluginInnerDegrade } = this.config;
+
+    const innerDegrade = playerInnerDegrade || pluginInnerDegrade;
+    const backupURL = playerBackupURL || pluginBackupURL;
 
     this.emit('lowdecode', this.player.video.degradeInfo);
 
@@ -135,7 +149,7 @@ class FlvPlayer extends BasePlugin {
 
   _toUseMse (url) {
     const { player } = this;
-    const { backupConstructor } = player.config;
+    const backupConstructor = player.config.backupConstructor || this.config.backupConstructor;
     if (!backupConstructor || !url) {
       throw new Error(`need backupConstructor and backupURL`);
     }
@@ -177,10 +191,10 @@ class FlvPlayer extends BasePlugin {
   }
 
   initFlv () {
-    const { player } = this;
-    const flv = this.context.registry('FLV_CONTROLLER', FLV)(player, this.options)
+    const flv = this._context.registry('FLV_CONTROLLER', FLV)()
     this.initFlvEvents(flv)
     this.flv = flv
+    this.emit('core_inited', flv);
   }
 
   canplay () {
@@ -237,9 +251,9 @@ class FlvPlayer extends BasePlugin {
   progress () {
     if (!this.player || !this.player.video) return;
     const {buffered, currentTime, config} = this.player;
+    const preloadTime = config.preloadTime || this.config.preloadTime;
     let bufferEnd = buffered.end(0);
     let waterLevel = bufferEnd - currentTime;
-    let preloadTime = config.preloadTime;
     if (waterLevel > preloadTime * 2) {
       if (bufferEnd - preloadTime > currentTime) {
         this.player.video.currentTime = bufferEnd - preloadTime;
@@ -257,11 +271,19 @@ class FlvPlayer extends BasePlugin {
   }
 
   _destroy () {
-    if (!this.context) return;
+    if (!this._context ) return;
     this.offEvents();
-    this.context.destroy()
+    this._context.destroy()
     this.flv = null
-    this.context = null
+    this._context = null
+  }
+
+  get core () {
+    return this.flv;
+  }
+
+  get context () {
+    return this._context;
   }
 }
 

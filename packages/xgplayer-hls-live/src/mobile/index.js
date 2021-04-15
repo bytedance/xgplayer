@@ -13,9 +13,12 @@ class HlsPlayer extends BasePlugin {
   }
 
   static get defaultConfig () {
-    return {
-      preloadTime: 10
-    }
+    return Object.assign({}, defaultConfig, {
+      preloadTime: 10,
+      retryTimes: 3,
+      retryCount: 3,
+      retryDelay: 0
+    })
   }
 
   static isSupported () {
@@ -34,7 +37,7 @@ class HlsPlayer extends BasePlugin {
   beforePlayerInit () {
     const { player } = this;
     if (player.video) {
-      player.video.setAttribute('preloadtime', this.config.preloadTime);
+      player.video.setAttribute('preloadtime', this.player.config.preloadTime || this.config.preloadTime);
       // 先兼容传递 innerDegrade = true
       if (player.config.innerDegrade === true) {
         player.config.innerDegrade = 1;
@@ -49,9 +52,9 @@ class HlsPlayer extends BasePlugin {
 
   _initProcess () {
     const { player } = this;
-    this.context = new Context(hlsAllowedEvents)
+    this._context = new Context(this.player, this.config, hlsAllowedEvents)
     this.initHls()
-    this.context.init()
+    this._context.init()
     this.loadData()
     if (!player.forceDegradeToVideo) {
       player.forceDegradeToVideo = this.forceDegradeToVideo.bind(this);
@@ -162,10 +165,8 @@ class HlsPlayer extends BasePlugin {
   }
 
   initHls () {
-    const { player } = this;
-    const preloadTime = player.config.preloadTime || HlsPlayer.defaultConfig.preloadTime;
-    const options = Object.assign({}, defaultConfig, player.config, { player, preloadTime })
-    this.hls = this.context.registry('HLS_CONTROLLER', HLS)(options)
+    this.hls = this._context.registry('HLS_CONTROLLER', HLS)()
+    this.emit('core_inited', this.hls);
   }
 
   play () {
@@ -193,6 +194,7 @@ class HlsPlayer extends BasePlugin {
   switchURL (url) {
     this.player.config.url = url
     this._destroy();
+    this.played = false;
     this._initProcess();
   }
 
@@ -207,11 +209,19 @@ class HlsPlayer extends BasePlugin {
   }
 
   _destroy () {
-    if (this.context) {
-      this.context.destroy()
+    if (this._context) {
+      this._context.destroy()
     }
     this.hls = null
-    this.context = null
+    this._context = null
+  }
+
+  get core () {
+    return this.hls;
+  }
+
+  get context () {
+    return this._context;
   }
 }
 

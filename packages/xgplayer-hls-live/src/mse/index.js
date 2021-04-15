@@ -13,10 +13,14 @@ export default class HlsLivePlayer extends BasePlugin {
   }
 
   static get defaultConfig () {
-    return {
-      limitCache: true
-    }
+    return Object.assign({}, defaultConfig, {
+      preloadTime: 5,
+      retryTimes: 3,
+      retryCount: 3,
+      retryDelay: 0
+    });
   }
+
   constructor (options) {
     super(options)
     this.played = false;
@@ -24,17 +28,17 @@ export default class HlsLivePlayer extends BasePlugin {
     this.destroy = this.destroy.bind(this);
     this.play = this.play.bind(this);
     this.handleDefinitionChange = this.handleDefinitionChange.bind(this);
-    this._context = new Context(HlsAllowedEvents);
+    this._context = new Context(this.player, this.config, HlsAllowedEvents);
     this.autoPlayStarted = false;
   }
 
   beforePlayerInit () {
     const { url } = this.player.config
-    const config = Object.assign({}, defaultConfig, this.config, {player: this.player, preloadTime: this.player.config.preloadTime, limitCache: this.config.limitCache})
-    this.hls = this._context.registry('HLS_LIVE_CONTROLLER', HlsLiveController)(config);
+    this.hls = this._context.registry('HLS_LIVE_CONTROLLER', HlsLiveController)();
     this._context.init();
     this.hls.load(url);
     this._initEvents();
+    this.emit('core_inited', this.hls)
     try {
       BasePlugin.defineGetterOrSetter(this.player, {
         '__url': {
@@ -76,6 +80,7 @@ export default class HlsLivePlayer extends BasePlugin {
   }
 
   handleUrlChange (url) {
+    this.player.config.url = url
     let request;
     if (this.hls.mse) {
       request = this.hls.mse.destroy();
@@ -83,7 +88,6 @@ export default class HlsLivePlayer extends BasePlugin {
       request = Promise.resolve();
     }
     request.then(() => {
-      this.player.config.url = url
       this._offEvents();
       this._context.destroy();
       this._context = null;
@@ -101,7 +105,7 @@ export default class HlsLivePlayer extends BasePlugin {
 
       this.player.started = false;
       this.player.hasStart = false;
-      this._context = new Context(HlsAllowedEvents);
+      this._context = new Context(this.player, this.config, HlsAllowedEvents);
       this.player.start()
     })
   }
@@ -129,7 +133,7 @@ export default class HlsLivePlayer extends BasePlugin {
 
   reload () {
     return this._destroy().then(() => {
-      this._context = new Context(HlsAllowedEvents)
+      this._context = new Context(this.player, this.config, HlsAllowedEvents)
       this.player.hasStart = false;
       this.player.start()
       this.player.onWaiting();
@@ -157,5 +161,22 @@ export default class HlsLivePlayer extends BasePlugin {
   destroy () {
     super.offAll();
     this._destroy();
+  }
+
+  switchURL (url) {
+    return this.handleUrlChange(url);
+  }
+
+  get core () {
+    return this.hls;
+  }
+
+  get context () {
+    return this._context;
+  }
+
+  static isSupported () {
+    return window.MediaSource &&
+      window.MediaSource.isTypeSupported('video/mp4; codecs="avc1.42E01E,mp4a.40.2"');
   }
 }

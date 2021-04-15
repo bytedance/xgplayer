@@ -37,7 +37,7 @@ class FlvVodPlayer extends BasePlugin {
     const remuxer = this.remuxer;
     remuxer._dtsBase = 0;
     flv.loadMeta()
-    this.player.swithURL = this.swithURL;
+    this.player.switchURL = this.switchURL;
     try {
       BasePlugin.defineGetterOrSetter(this.player, {
         '__url': {
@@ -83,7 +83,7 @@ class FlvVodPlayer extends BasePlugin {
   initEvents () {
     this.on(Events.TIME_UPDATE, this.handleTimeUpdate.bind(this))
     this.on(Events.SEEKING, this.handleSeek.bind(this))
-    this.on(Events.URL_CHANGE, this.swithURL.bind(this))
+    this.on(Events.URL_CHANGE, this.switchURL.bind(this))
     this.on(Events.DEFINITION_CHANGE, this.handleDefinitionChange.bind(this));
     this.once(Events.DESTROY, this._destroy.bind(this))
   }
@@ -119,7 +119,7 @@ class FlvVodPlayer extends BasePlugin {
     this.switchURL(to);
   }
 
-  swithURL (url) {
+  switchURL (url) {
     const {player} = this;
     player.config.url = url;
     player.hasStart = false;
@@ -143,6 +143,9 @@ class FlvVodPlayer extends BasePlugin {
     return this.context.getInstance('MP4_REMUXER');
   }
 
+  get core () {
+    return this.flv
+  }
 }
 
 export default FlvVodPlayer

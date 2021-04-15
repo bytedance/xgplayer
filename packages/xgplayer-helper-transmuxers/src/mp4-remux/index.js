@@ -489,7 +489,4 @@ export default class Mp4Remuxer {
     return null
   }
 
-  destroy () {
-    this._player = null;
-  }
 }

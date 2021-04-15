@@ -13,6 +13,14 @@ class HlsVodPlayer extends BasePlugin {
   static get pluginName () {
     return 'hlsVod'
   }
+
+  static get defaultConfig () {
+    return {
+      preloadTime: 5,
+      retryTimes: 3
+    }
+  }
+
   constructor (options) {
     super(options)
     this._handleSetCurrentTime = debounce(this._handleSetCurrentTime.bind(this), 200)
@@ -24,13 +32,13 @@ class HlsVodPlayer extends BasePlugin {
 
   beforePlayerInit () {
     if (!this._context) {
-      this._context = new Context(HlsAllowedEvents)
+      this._context = new Context(this.player, this.config, HlsAllowedEvents)
     }
-    this.hls = this._context.registry('HLS_VOD_CONTROLLER', HlsVodController)({player: this.player, preloadTime: this.player.config.preloadTime});
+    this.hls = this._context.registry('HLS_VOD_CONTROLLER', HlsVodController)();
     this._context.init();
     this.hls.load(this.player.config.url);
     this.__initEvents();
-
+    this.emit('core_inited', this.hls)
     try {
       BasePlugin.defineGetterOrSetter(this.player, {
         '__url': {
@@ -115,18 +123,19 @@ class HlsVodPlayer extends BasePlugin {
   initHlsBackupEvents (hls, ctx) {
     hls.once(EVENTS.REMUX_EVENTS.INIT_SEGMENT, () => {
       if (!this.player.video.src) {
-        console.log('挂载 src blob');
         const mse = hls.mse;
         this.player.start(mse.url);
       }
     });
     hls.once(EVENTS.REMUX_EVENTS.MEDIA_SEGMENT, () => {
       this.hls = hls;
+
       this.hls.mse.cleanBuffers().then(() => {
         this.hls.mse.resetContext(ctx);
         this.hls.mse.doAppend()
         this._context.destroy();
         this._context = ctx;
+        this.emit('core_inited', hls)
       })
     })
 
@@ -151,12 +160,7 @@ class HlsVodPlayer extends BasePlugin {
   switchURL (url) {
     this.config.url = url;
     const context = new Context(HlsAllowedEvents);
-    const hls = context.registry('HLS_VOD_CONTROLLER', HlsVodController)({
-      player: this.player,
-      container: this.video,
-      mse: this.hls.mse,
-      preloadTime: this.config.preloadTime
-    })
+    const hls = context.registry('HLS_VOD_CONTROLLER', HlsVodController)()
     context.init()
     this.initHlsBackupEvents(hls, context);
     this.hls.mse.cleanBuffers().then(() => {
@@ -221,6 +225,19 @@ class HlsVodPlayer extends BasePlugin {
     }
 
     return result;
+  }
+
+  get core () {
+    return this.hls;
+  }
+
+  get context () {
+    return this._context;
+  }
+
+  static isSupported () {
+    return window.MediaSource &&
+      window.MediaSource.isTypeSupported('video/mp4; codecs="avc1.42E01E,mp4a.40.2"');
   }
 }
 
