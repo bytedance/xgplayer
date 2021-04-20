@@ -1,5 +1,5 @@
 declare module 'xgplayer-flv-live' {
-  import { BasePlugin } from 'xgplayer';
+  import type { BasePlugin } from 'xgplayer';
   class FlvLiveMobilePlayer extends BasePlugin {
     public static get pluginName(): string;
     constructor(options: any);

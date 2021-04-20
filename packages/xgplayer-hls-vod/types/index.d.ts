@@ -1,6 +1,6 @@
-declare module 'xgplayer-hls-live' {
+declare module 'xgplayer-hls-vod' {
   import type { BasePlugin } from 'xgplayer';
-  class HlsLiveMsePlayer extends BasePlugin {
+  class HlsVodMsePlayer extends BasePlugin {
     public static get pluginName(): string;
     public static get defaultConfig(): object;
     constructor(options: any);
@@ -16,7 +16,7 @@ declare module 'xgplayer-hls-live' {
     public destroy(): void;
   }
 
-  class HlsLiveMobilePlayer extends BasePlugin {
+  class HlsVodMobilePlayer extends BasePlugin {
     public static get pluginName(): string;
     public static get defaultConfig(): object;
     constructor(options: any);
@@ -33,20 +33,20 @@ declare module 'xgplayer-hls-live' {
     public loadData(): void;
     public handleDefinitionChange(change: any): void;
     public switchURL(url: string): void;
-    public addLiveFlag(): void;
+    public addVodFlag(): void;
     public destroy(): void;
     private _destroy(): void;
   }
 
-  class HlsLivePlayer {
+  class HlsVodPlayer {
     public static get pluginName(): string;
-    constructor(config: any): HlsLiveMsePlayer | HlsLiveMobilePlayer;
+    constructor(config: any): HlsVodMsePlayer | HlsVodMobilePlayer;
   }
 
-  export default HlsLivePlayer;
+  export default HlsVodPlayer;
 
   export {
-    HlsLiveMsePlayer,
-    HlsLiveMobilePlayer
+    HlsVodMsePlayer,
+    HlsVodMobilePlayer
   }
 }
