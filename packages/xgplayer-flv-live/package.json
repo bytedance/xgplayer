@@ -11,7 +11,7 @@
     "build": "npm run build:umd && npm run build:es && npm run build:lib",
     "analyze": "cross-env NODE_ENV=production ANALYZE=1 npm run build:umd && npm run build:es && npm run build:lib",
     "build:umd": "cross-env NODE_ENV=production rollup -c rollup.config.js && cross-env NODE_ENV=production rollup -c rollup.config.mobile.js ",
-    "build:es": "rm -rf es && babel src --out-dir es",
+    "build:es": "rm -rf es && babel src --out-dir es && cp types/es.d.ts es/index.d.ts",
     "build:lib": "rm -rf lib && babel src --out-dir lib --presets=es2015",
     "watch": "cross-env NODE_ENV=development rollup -c ./rollup.config.js --watch",
     "watch:mobile": "cross-env NODE_ENV=development rollup -c ./rollup.config.mobile.js --watch"
