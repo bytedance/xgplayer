@@ -1,4 +1,4 @@
-import LightPlayer, {
+import {
   BasePlugin,
   Plugin,
   Events,
@@ -7,11 +7,10 @@ import LightPlayer, {
   Util,
   STATE_CLASS,
   I18N } from './player'
-import Player from './vodPlayer'
+import Player from './index-umd'
 
 export {
   Player as default,
-  LightPlayer,
   BasePlugin,
   Plugin,
   Events,
