@@ -55,7 +55,7 @@ export default function getDefaultConfig () {
     keyShortcut: true, // 是否开启快捷键
     presets: [],
     plugins: [],
-    playbackRate: [2, 1.5, 1, 0.75, 0.5],
+    playbackRate: 1,
     playsinline: true,
     customDuration: 0, // 用户自定义时长
     timeOffset: 0, // 当前时长偏移

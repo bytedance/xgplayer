@@ -186,8 +186,7 @@ util.deepCopy = function (dst, src) {
 
 util.deepMerge = function (dst, src) {
   Object.keys(src).map(key => {
-    if (util.typeOf(src[key]) === 'Array') {
-      !dst[key] && (dst[key] = [])
+    if (util.typeOf(src[key]) === 'Array' && util.typeOf(dst[key]) === 'Array') {
       if (util.typeOf(dst[key]) === 'Array') {
         dst[key].push(...src[key])
       }
