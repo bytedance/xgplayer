@@ -1,4 +1,4 @@
-import Player, {
+import LightPlayer, {
   BasePlugin,
   Plugin,
   Events,
@@ -7,13 +7,11 @@ import Player, {
   Util,
   STATE_CLASS,
   I18N } from './player'
-
-import defaultPreset from './presets/default'
-
-Player.defaultPreset = defaultPreset
+import Player from './vodPlayer'
 
 export {
   Player as default,
+  LightPlayer,
   BasePlugin,
   Plugin,
   Events,

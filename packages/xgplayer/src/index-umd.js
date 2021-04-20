@@ -1,4 +1,4 @@
-import Player from './player'
+import Player from './vodPlayer'
 
 import defaultPreset from './presets/default'
 

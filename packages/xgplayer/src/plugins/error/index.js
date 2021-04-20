@@ -1,4 +1,4 @@
-import Plugin, {hooksDescriptor, Events} from '../../plugin'
+import Plugin, {hooksDescriptor, Events, Util} from '../../plugin'
 
 export default class ErrorPlugin extends Plugin {
   static get pluginName () {
@@ -31,7 +31,7 @@ export default class ErrorPlugin extends Plugin {
   }
 
   handleCanPlay () {
-    Plugin.Util.removeClass(this.player.root, 'xgplayer-is-error')
+    Util.removeClass(this.player.root, 'xgplayer-is-error')
   }
 
   handleError (error = {}) {

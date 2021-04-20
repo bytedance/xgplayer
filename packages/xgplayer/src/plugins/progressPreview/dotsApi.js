@@ -1,6 +1,4 @@
-import Plugin from '../../plugin'
-
-const {Util, Events} = Plugin
+import {Util, Events} from '../../plugin'
 
 const ISPOT = {
   time: 0, // 进度条在此时间戳打点 单位为s
