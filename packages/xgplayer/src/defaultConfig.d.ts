@@ -1,9 +1,9 @@
+/* eslint-disable no-undef */
 /* global HTMLElement */
-
 /**
  * 插件基础配置
  */
- interface BasePluginConfig {
+interface BasePluginConfig {
   root?: HTMLElement; // 【可选】插件挂载的dom
   position?: String; // [可选]插件挂载的dom
   index?: Number; // [可选]插件在播放器中挂载的位置
@@ -12,10 +12,7 @@
 /**
  * 底部控制栏配置
  */
-interface ControlsConfig {
-  root?: HTMLElement; // 【可选】插件挂载的dom
-  position?: String; // [可选]插件挂载的dom
-  index?: Number; // [可选]插件在播放器中挂载的位置
+type ControlsConfig = BasePluginConfig & {
   disable?: Boolean; // [可选]是否禁用插件交互行为
   autoHide?: Boolean; // 是否自动隐藏, 默认true
   mode?: String; // 显示模式， flex和normal, 默认normal
@@ -25,17 +22,14 @@ interface ControlsConfig {
 /**
  * pc插件配置
  */
-interface PCConfig {
-  root?: HTMLElement; // 【可选】插件挂载的dom
-  position?: String; // [可选]插件挂载的dom
-  index?: Number; // [可选]插件在播放器中挂载的位置
+type PCConfig = BasePluginConfig & {
   disableContextmenu?: Boolean; // [可选]是否禁用右键功能
 }
 
 /**
  * mobile插件配置
  */
-interface MobileConfig {
+type MobileConfig = {
   disableGesture?: Boolean; // 是否禁用手势, 默认false
   gestureX?: Boolean; // 是否启用水平手势,默认为true
   gestureY?: Boolean; // 是否启用垂直手势, 默认为true
@@ -62,10 +56,7 @@ interface MobileConfig {
 /**
  * 进度条插件配置
  */
-interface ProgressConfig {
-  root?: HTMLElement; // 【可选】插件挂载的dom
-  position?: String; // [可选]插件挂载的dom
-  index?: Number; // [可选]插件在播放器中挂载的位置
+type ProgressConfig = BasePluginConfig & {
   isDragingSeek?: Boolean; // 是否在拖拽的过程中更新currentTime, 默认true
   closeMoveSeek?: Boolean; // 是否关闭滑块seek能力, 默认false
   isPauseMoving?: Boolean; // 是否在move的时候暂停视频内容,默认false
@@ -80,7 +71,7 @@ interface ProgressConfig {
 /**
  * 进度条预览插件配置
  */
-interface IsPot {
+type IsPot = {
   time: Number; // 进度条在此时间戳打点 单位为s
   text?: String | Number; // 打点处的自定义文案
   id: Number; // 标记唯一标识，用于删除的时候索引
@@ -91,7 +82,7 @@ interface IsPot {
   height?: Number;
 }
 
-interface ProgressPreviewConfig {
+type ProgressPreviewConfig = {
   miniWidth?: Number; // 故事点显示最小宽度
   ispots: Array<IsPot>; // 故事点列表
   defaultText?: String; // 故事点hover默认文案
@@ -104,7 +95,7 @@ interface ProgressPreviewConfig {
 /**
  * 剧情预览缩略图配置
  */
-interface ThumbnailConfig {
+type ThumbnailConfig = {
   urls: Array<String>; // 有多张大图就多个url就好
   pic_num: Number; // 每张图含有几个雪碧图
   col: Number; // 截图列数
@@ -116,16 +107,13 @@ interface ThumbnailConfig {
 /**
  * 清晰度切换插件配置
  */
-interface DefinitionItem {
+type DefinitionItem = {
   definition: String | Number; // 每个清晰度对应的标记
   url?: String; // 清晰度播放地址
   text: String | {};
   iconText?: String | {}; // 每个清晰度对应切换之后在切换按钮的显示文案
 }
-interface DefinitionConfig {
-  root?: HTMLElement; // 【可选】插件挂载的dom
-  position?: String; // [可选]插件挂载的dom
-  index?: Number; // [可选]插件在播放器中挂载的位置
+type DefinitionConfig = BasePluginConfig & {
   disable?: Boolean; // [可选]是否禁用插件交互行为
   list: Array<DefinitionItem>
 }
@@ -133,15 +121,12 @@ interface DefinitionConfig {
 /**
  * 倍速插件切换插件配置
  */
-interface PlayBackRateItem {
+type PlayBackRateItem = {
   rate?: Number; // 每个清晰度对应的标记
   text: String | {};
   iconText?: String | {}; // 每个清晰度对应切换之后在切换按钮的显示文案
 }
-interface PlayBackRateConfig {
-  root?: HTMLElement; // 【可选】插件挂载的dom
-  position?: String; // [可选]插件挂载的dom
-  index?: Number; // [可选]插件在播放器中挂载的位置
+type PlayBackRateConfig = BasePluginConfig & {
   disable?: Boolean; // [可选]是否禁用插件交互行为
   list: Array<PlayBackRateItem> | Array<Number>
 }
@@ -149,17 +134,14 @@ interface PlayBackRateConfig {
 /**
  * PIP插件配置
  */
-interface PIPConfig {
-  root?: HTMLElement; // 【可选】插件挂载的dom
-  position?: String; // [可选]插件挂载的dom
-  index?: Number; // [可选]插件在播放器中挂载的位置
+type PIPConfig = BasePluginConfig & {
   showIcon?: Boolean; // [可选]是否显示切换按钮
 }
 
 /**
  * Poster插件配置
  */
-interface PosterConfig {
+type PosterConfig = {
   isEndedShow?: Boolean; // [可选]播放结束的时候是否显示，默认true
   hideCanplay?: Boolean; // [可选]cnaplay 时间大于1的时候才隐藏,默认false
   poster: String; // 封面图地址
@@ -168,20 +150,14 @@ interface PosterConfig {
 /**
  * enter插件配置
  */
-interface EnterConfig {
-  root?: HTMLElement; // 【可选】插件挂载的dom
-  position?: String; // [可选]插件挂载的dom
-  index?: Number; // [可选]插件在播放器中挂载的位置
+type EnterConfig = BasePluginConfig & {
   innerHtml?: String; // [可选]html字符串
 }
 
 /**
  * 全屏插件配置
  */
-interface FullscreenConfig {
-  root?: HTMLElement; // 【可选】插件挂载的dom
-  position?: String; // [可选]插件挂载的dom
-  index?: Number; // [可选]插件在播放器中挂载的位置
+type FullscreenConfig = BasePluginConfig & {
   useCssFullscreen?: Boolean; // [可选]是否启用css全屏
   rotateFullscreen?: Boolean; // [可选]是否启用旋转全屏
   switchCallback?: Function; // [可选]状态切换回调
@@ -193,14 +169,14 @@ interface FullscreenConfig {
 /**
  * 快捷键插件配置
  */
-interface KeyCodeItem {
+type KeyCodeItem = {
   [propName: string]: {
     keyCode: Number; // 【必选】要定义的快捷键按键数字
     action: String | Function; // 【必选】按键对应的
     disable?: Boolean; // 是否禁用
   }
 }
-interface KeyboardConfig {
+type KeyboardConfig = {
   seekStep?: Number; // [可选]快捷键快进/快退每次操作时长，默认10s
   keyCodeMap?: KeyCodeItem; // [可选]是否启用旋转全屏
   disable?: Boolean; // [可选]是否禁用插件交互行为
@@ -209,7 +185,7 @@ interface KeyboardConfig {
 /**
  * 迷你小窗配置
  */
-interface MiniScreenConfig {
+type MiniScreenConfig = {
   disable?: Boolean; // 是否禁用
   width?: Number; // 小窗宽度，默认320
   height?: Number; // 小窗高度，默认180
@@ -224,10 +200,7 @@ interface MiniScreenConfig {
 /**
  * 音量插件配置
  */
-interface VolumeConfig {
-  root?: HTMLElement; // 【可选】插件挂载的dom
-  position?: String; // [可选]插件挂载的dom
-  index?: Number; // [可选]插件在播放器中挂载的位置
+type VolumeConfig = BasePluginConfig & {
   disable?: Boolean; // [可选]是否禁用插件交互行为
   default?: Number // [可选]默认音量
 }
@@ -236,7 +209,7 @@ interface VolumeConfig {
  * 外挂字幕插件配置
  */
 
-interface Texttrack {
+type Texttrack = {
   src: String; // 外挂字幕地址
   text?: String | Object; // 外挂字幕地址
   language?: String; // 外挂字幕地址
@@ -244,7 +217,7 @@ interface Texttrack {
   id?: Number | String
 }
 
-interface TexttrackStyle {
+type TexttrackStyle = {
   follow?: Boolean; // 是否跟随控制栏调整位置;默认true
   mode?: String; // 字体显示模式，默认stroke(描边)
   followBottom?: Number; // 跟随底部控制栏的高度
@@ -255,13 +228,10 @@ interface TexttrackStyle {
   minSize?: Number; // pc端最小字号; 默认16
   minMobileSize?: Number; // 移动端最小字号; 默认13
   line?: String; // 最大显示行数 single/double/three; 默认double
-  fontColor?: String // 字体颜色; 默认#fff,
+  fontColor?: String // 字体颜色; 默认#fff
 }
 
-interface TextTrackConfig {
-  root?: HTMLElement; // 【可选】插件挂载的dom
-  position?: String; // [可选]插件挂载的dom
-  index?: Number; // [可选]插件在播放器中挂载的位置
+type TextTrackConfig = BasePluginConfig & {
   list: Array<Texttrack>; // [必选]字幕列表
   isDefaultOpen?: Boolean; // [可选] 是否默认开启字幕
   style: TexttrackStyle;
@@ -271,26 +241,20 @@ interface TextTrackConfig {
   };
 }
 
-interface StartConfig {
+type StartConfig = {
   isShowPause?: Boolean; // 暂停是否常驻, 默认false
   isShowEnd?: Boolean; // 播放结束常驻, 默认false
   disableAnimate?: Boolean; // 禁用点击动画， 默认false
   mode?: 'hide' | 'show' | 'auto'// 控制模式: hide 常驻: show 跟随：auto, 默认hide
 }
 
-interface RotateConfig {
-  root?: HTMLElement; // 【可选】插件挂载的dom
-  position?: String; // [可选]插件挂载的dom
-  index?: Number; // [可选]插件在播放器中挂载的位置
+type RotateConfig = BasePluginConfig & {
   innerRotate?: Boolean; // true为只有画面旋转，false为整个播放器旋转, 默认true
   clockwise?: Boolean; // true: 顺时针旋转 false:逆时针旋转； 默认false
   rotateDeg?: Number; // 初始旋转角度, 默认0
 }
 
-interface ScreenShotConfig {
-  root?: HTMLElement; // 【可选】插件挂载的dom
-  position?: String; // [可选]插件挂载的dom
-  index?: Number; // [可选]插件在播放器中挂载的位置
+type ScreenShotConfig = BasePluginConfig & {
   quality?: Number;// [可选] 截图质量配置，默认0.92
   type?: String; // [可选] 截图格式配置，默认image/png
   format?: '.png'; // [可选] 截图存储后缀，默认.png
@@ -299,17 +263,15 @@ interface ScreenShotConfig {
   fitVideo?: Boolean; // [可选]截取图片是否适配视频宽高,默认true,
   name?: String; // [可选]截图存储命名,默认'截图'
 }
-
 type DanmuModelType = 'top' | 'bottom' | 'scroll' | string;
 
 interface DanmuCommentOptions {
   duration: number;
   id: any;
-  start: number;
+  start?: number;
   prior?: boolean;
   color?: boolean;
   txt: string;
-  // eslint-disable-next-line no-undef
   style?: Record<string, string | number>;
   mode?: DanmuModelType;
 }
@@ -318,8 +280,8 @@ interface DanmuOptions {
   comments: DanmuCommentOptions[];
   panel?: boolean;
   area?: {
-      start: number;
-      end: number;
+    start: number;
+    end: number;
   };
   closeDefaultBtn?: boolean;
   defaultOff?: boolean;
@@ -335,7 +297,7 @@ interface IPlayerConfigs {
   el?: HTMLElement;
 
   // 视频源
-  url: string | Array<{src: string; type?: string}>;
+  url: string | Array<{ src: string; type?: string }>;
 
   // 宽度(默认600)
   width?: number | string;
@@ -390,7 +352,7 @@ interface IPlayerConfigs {
 
   // 预览本地视频
   // eslint-disable-next-line no-undef
-  preview?: {uploadEl?: HTMLElement};
+  preview?: { uploadEl?: HTMLElement };
 
   // 进度条特殊点标记
   progressDot?: Array<IsPot>;
@@ -450,7 +412,7 @@ interface IPlayerConfigs {
 
   // 手机调试
   // 要使用该功能，请先在开发者电脑安装 weinre
-  debug?: {host: string; port: number};
+  debug?: { host: string; port: number };
 
   // 微信同层播放
   'x5-video-player-type'?: 'h5';
@@ -486,17 +448,17 @@ interface IPlayerConfigs {
 
   // 用于配置一些通用样式结构
   commonStyle?: {
-      // 进度条底色
-      progressColor?: string,
-      // 播放完成部分进度条底色
-      playedColor?: string,
-      // 播放完成部分进度条底色
-      cachedColor?: string,
-      // 进度条滑块样式
-      sliderBtnStyle?: any,
-      // 进度条滑块样式
-      volumeColor?: string
-    };
+    // 进度条底色
+    progressColor?: string,
+    // 播放完成部分进度条底色
+    playedColor?: string,
+    // 播放完成部分进度条底色
+    cachedColor?: string,
+    // 进度条滑块样式
+    sliderBtnStyle?: any,
+    // 进度条滑块样式
+    volumeColor?: string
+  };
 
   // 进度条自动消失延时
   inactive?: number;
@@ -526,7 +488,7 @@ interface IPlayerConfigs {
 
   // 下一集
   playNext?: {
-      urlList: string[];
+    urlList: string[];
   };
 
   // 视频旋转按钮配置项

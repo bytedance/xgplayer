@@ -1,8 +1,10 @@
 import Proxy from './proxy'
 import I18N from './lang'
-import Events from './events'
+import IEvents from './events'
 import IPlayerOptions from './defaultConfig'
 import STATE_CLASS from './stateClassMap'
+import Util from './utils/util'
+import Sniffer from './utils/sniffer'
 
 declare class Player extends Proxy {
 
@@ -235,6 +237,11 @@ declare class Player extends Proxy {
    */
   get cumulateTime (): number;
 }
+declare const STATE_CLASS: STATE_CLASS
+declare const Events: IEvents
+declare const Util: Util
+declare const Sniffer: Sniffer
+declare const I18N: I18N
 
 export {
   Player as default,

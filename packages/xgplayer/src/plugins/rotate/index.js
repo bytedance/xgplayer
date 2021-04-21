@@ -37,7 +37,7 @@ export default class Rotate extends Plugin {
     this.onBtnClick = this.onBtnClick.bind(this);
     this.bind('.xgplayer-icon', ['click', 'touchend'], this.onBtnClick)
     // 全屏/css全屏/容器宽高发生变化 需要重新计算
-    this.on([Events.FULLSCREEN_CHANGE, Events.CSS_FULLSCREEN_CHANGE], () => {
+    this.on([Events.FULLSCREEN_CHANGE, Events.CSS_FULLSCREEN_CHANGE, Events.VIDEO_RESIZE], () => {
       if (this.rotateDeg) {
         setTimeout(() => {
           this.updateRotateDeg(this.rotateDeg, this.config.innerRotate)

@@ -70,11 +70,14 @@ class PIP extends Plugin {
       player.emit('pip_change', false)
     }
 
-    this.enterPIPCallback = () => {
+    this.enterPIPCallback = (e) => {
       player.emit('pip_change', true)
+      this.pipWindow = e.pictureInPictureWindow;
+      console.log(this.pipWindow, e)
     }
 
-    this.onWebkitpresentationmodechanged = () => {
+    this.onWebkitpresentationmodechanged = (e) => {
+      console.log('onWebkitpresentationmodechanged', e)
       const mode = player.video.webkitPresentationMode
       // 如果在全屏下进入了该逻辑,调用退出全屏处理
       if (this.pMode === PresentationMode.FULLSCREEN && mode !== PresentationMode.FULLSCREEN) {
