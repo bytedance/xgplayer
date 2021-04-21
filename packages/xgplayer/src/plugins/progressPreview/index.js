@@ -1,6 +1,5 @@
-import Plugin, {hooksDescriptor} from '../../plugin'
+import Plugin, {hooksDescriptor, Util, Sniffer} from '../../plugin'
 import initDotsAPI from './dotsApi'
-const {Util, Sniffer} = Plugin
 
 const CALLBACK_MAP = {
   'dragmove': 'onProgressMove',

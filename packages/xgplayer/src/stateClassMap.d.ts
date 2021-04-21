@@ -1,4 +1,4 @@
-interface STATE_CLASS {
+declare const STATE_CLASS = {
   DEFAULT: 'xgplayer',
   DEFAULT_SKIN: 'xgplayer-skin-default',
   ENTER: 'xgplayer-is-enter',

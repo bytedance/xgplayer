@@ -1,25 +1,10 @@
 import Proxy from './proxy'
 import I18N from './lang'
-import Util from './utils/util'
-import Sniffer from './utils/sniffer'
 import Events from './events'
-import DefaultPreset from './preset/index'
 import IPlayerOptions from './defaultConfig'
 import STATE_CLASS from './stateClassMap'
 
 declare class Player extends Proxy {
-  /**
-   * 多语言包
-   */
-  static I18N: I18N;
-
-  static Util: Util;
-
-  static Sniffer: Sniffer;
-
-  static Events: Events;
-
-  static defaultPreset: DefaultPreset;
 
   constructor(options: IPlayerOptions);
 

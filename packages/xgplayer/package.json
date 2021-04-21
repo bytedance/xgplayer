@@ -5,6 +5,7 @@
     "main": "./dist/index.min.js",
     "module": "./es/index.js",
     "typings": "./types/index.d.ts",
+    "sideEffects": false,
     "bin": {
         "xgplayer": "bin/xgplayer.js"
     },

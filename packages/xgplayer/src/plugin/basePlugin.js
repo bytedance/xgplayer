@@ -161,11 +161,11 @@ class BasePlugin {
   }
 }
 
-BasePlugin.Util = Util
-BasePlugin.Sniffer = Sniffer
-BasePlugin.Errors = Errors
-BasePlugin.Events = Events
-BasePlugin.XG_DEBUG = XG_DEBUG
+// BasePlugin.Util = Util
+// BasePlugin.Sniffer = Sniffer
+// BasePlugin.Errors = Errors
+// BasePlugin.Events = Events
+// BasePlugin.XG_DEBUG = XG_DEBUG
 export {
   BasePlugin as default,
   Util,
