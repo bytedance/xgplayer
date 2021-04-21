@@ -1,4 +1,4 @@
-import Player, {
+import {
   BasePlugin,
   Plugin,
   Events,
@@ -7,10 +7,7 @@ import Player, {
   Util,
   STATE_CLASS,
   I18N } from './player'
-
-import defaultPreset from './presets/default'
-
-Player.defaultPreset = defaultPreset
+import Player from './index-umd'
 
 export {
   Player as default,

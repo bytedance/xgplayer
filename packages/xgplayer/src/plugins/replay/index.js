@@ -1,4 +1,4 @@
-import Plugin, {hooksDescriptor} from '../../plugin'
+import Plugin, {hooksDescriptor, Events, Util} from '../../plugin'
 import ReplaySvg from '../assets/replay.svg'
 
 class Replay extends Plugin {
@@ -34,9 +34,9 @@ class Replay extends Plugin {
     this.bind('svg', ['click', 'touchend'], this.__handleReplay)
     this.bind('.xgplayer-replay-txt', ['click', 'touchend'], this.__handleReplay)
 
-    this.on(Plugin.Events.ENDED, () => {
+    this.on(Events.ENDED, () => {
       if (!this.playerConfig.loop) {
-        Plugin.Util.addClass(this.player.root, 'replay')
+        Util.addClass(this.player.root, 'replay')
       }
       if (this.config.disable) {
         return
@@ -53,7 +53,7 @@ class Replay extends Plugin {
       }
     })
 
-    this.on(Plugin.Events.PLAY, () => {
+    this.on(Events.PLAY, () => {
       this.hide()
     })
   }
@@ -62,7 +62,7 @@ class Replay extends Plugin {
     e.preventDefault()
     e.stopPropagation()
     this.player.replay()
-    Plugin.Util.removeClass(this.player.root, 'replay')
+    Util.removeClass(this.player.root, 'replay')
   }
 
   show () {

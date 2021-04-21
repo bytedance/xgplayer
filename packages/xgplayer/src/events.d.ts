@@ -1,4 +1,4 @@
-interface Events {
+declare const Events = {
   PLAY: 'play',
   PLAYING: 'playing',
   ENDED: 'ended',
