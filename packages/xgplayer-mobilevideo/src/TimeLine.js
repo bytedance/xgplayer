@@ -50,6 +50,10 @@ export default class TimeLine extends EventEmitter {
     return this.videoRender.decodeCost;
   }
 
+  get renderCost () {
+    return this.videoRender.renderCost;
+  }
+
   get fps () {
     return this.videoRender.fps;
   }
@@ -190,6 +194,7 @@ export default class TimeLine extends EventEmitter {
       this.audioRender = null;
     })
 
+    // 点播暂停后重新起播
     this.on(Events.TIMELINE.DO_PLAY, e => {
       if (!this._parent.startPlayed) {
         this._parent.startPlayed = true;
@@ -209,6 +214,10 @@ export default class TimeLine extends EventEmitter {
 
     // 首帧画面显示
     this.videoRender.forceRender();
+
+    if (!this._parent.startPlayed) {
+      this.emit(Events.TIMELINE.PLAY_EVENT, Events.VIDEO_EVENTS.FIRST_FRAME);
+    }
 
     // 对autoplay:false 起播阶段不执行这个,在外面调用play()时分发 START_RENDER
     if (this._parent.autoplay || this._parent.startPlayed) {

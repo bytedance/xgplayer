@@ -149,13 +149,13 @@ export default class AudioRender extends BaseRender {
     }
 
     let {samples} = audioTrack;
-
+    let options = samples[0] && samples[0].options;
     if (samples.length) {
       this._sampleQueue = this._sampleQueue.concat(samples);
       audioTrack.samples = [];
       if (this._inDecoding) return;
       try {
-        this._assembleAAC();
+        this._assembleAAC(options && options.start);
       } catch (e) {
         this._emitTimelineEvents(
           Events.TIMELINE.PLAY_EVENT,
@@ -227,7 +227,7 @@ export default class AudioRender extends BaseRender {
       .catch(e => {})
   }
 
-  _assembleAAC () {
+  _assembleAAC (segmentStart) {
     let len = this._sampleQueue.length;
     let samp0 = this._sampleQueue[0];
     let sampLast = this._sampleQueue[len - 1];
@@ -253,7 +253,8 @@ export default class AudioRender extends BaseRender {
         const start = this._timeRange.append(
           uncompress,
           uncompress.duration,
-          samp0.dts
+          samp0.dts,
+          segmentStart
         );
         this._inDecoding = false;
         if (!this._ready) {

@@ -52,7 +52,7 @@ class Raw264Player extends Player {
     } else {
       this.hasStart = true;
     }
-    this.context = new Context(Events.HlsAllowedEvents);
+    this.context = new Context(this, this.config, Events.HlsAllowedEvents);
     this.context.registry('LOADER_BUFFER', LoaderBuffer);
     this.core = this.context.registry('RAW_264_CONTROLLER', Core)({player: this, fps: this.config.fps});
     this.context.registry('FETCH_LOADER', FetchLoader);
