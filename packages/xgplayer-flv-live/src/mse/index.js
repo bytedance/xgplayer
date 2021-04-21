@@ -1,10 +1,9 @@
-import Player from 'xgplayer'
+import { BasePlugin, Events } from 'xgplayer'
 import { EVENTS, Context } from 'xgplayer-helper-utils'
 import FLV from './flv-live'
 import defaultConfig from './config'
 
 const flvAllowedEvents = EVENTS.FlvAllowedEvents;
-const { BasePlugin, Events } = Player;
 
 class FlvPlayer extends BasePlugin {
   static get pluginName () {

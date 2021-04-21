@@ -1,11 +1,9 @@
-import Player from 'xgplayer'
+import { BasePlugin, Events } from 'xgplayer'
 import { Context, EVENTS } from 'xgplayer-helper-utils'
 import HlsLiveController from './hls-live';
 import defaultConfig from './config'
 const HlsAllowedEvents = EVENTS.HlsAllowedEvents;
 const REMUX_EVENTS = EVENTS.REMUX_EVENTS;
-
-const { BasePlugin, Events } = Player
 
 export default class HlsLivePlayer extends BasePlugin {
   static get pluginName () {

@@ -1,9 +1,8 @@
-import Player from 'xgplayer'
+import { BasePlugin, Events } from 'xgplayer'
 import { EVENTS, Context, common } from 'xgplayer-helper-utils'
 import FLV from './flv-live-mobile'
 import defaultConfig from './config'
 const flvAllowedEvents = EVENTS.FlvAllowedEvents;
-const { BasePlugin, Events } = Player;
 const {softSolutionProbe} = common
 
 class FlvPlayer extends BasePlugin {
@@ -271,7 +270,7 @@ class FlvPlayer extends BasePlugin {
   }
 
   _destroy () {
-    if (!this._context ) return;
+    if (!this._context) return;
     this.offEvents();
     this._context.destroy()
     this.flv = null

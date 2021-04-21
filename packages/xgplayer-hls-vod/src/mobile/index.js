@@ -1,9 +1,8 @@
-import Player from 'xgplayer'
+import { Events, BasePlugin } from 'xgplayer'
 import { EVENTS, Context, common } from 'xgplayer-helper-utils'
 import HlsVodMobileController from './hls-vod-mobile';
 
 const { debounce, softSolutionProbe } = common;
-const { Events, BasePlugin } = Player;
 
 const HlsAllowedEvents = EVENTS.HlsAllowedEvents;
 const HLS_EVENTS = EVENTS.HLS_EVENTS;
