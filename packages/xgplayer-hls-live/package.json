@@ -6,6 +6,7 @@
   "module": "es/index.js",
   "browser": "dist/index.min.js",
   "typings": "types/index.d.ts",
+  "sideEffects": false,
   "scripts": {
     "prepare": "npm run build",
     "build": "npm run build:umd && npm run build:es && npm run build:lib",

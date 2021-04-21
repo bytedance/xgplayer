@@ -1,10 +1,9 @@
-import Player from 'xgplayer'
+import { BasePlugin, Events } from 'xgplayer'
 import { EVENTS, Context, common } from 'xgplayer-helper-utils'
 
 import HLS from './hls-live-mobile'
 import defaultConfig from './config'
 const hlsAllowedEvents = EVENTS.HlsAllowedEvents;
-const { BasePlugin, Events } = Player;
 const {softSolutionProbe} = common
 
 class HlsPlayer extends BasePlugin {
