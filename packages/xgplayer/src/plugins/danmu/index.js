@@ -44,11 +44,11 @@ class Danmu extends Plugin {
     })
 
     this.on(Events.PAUSE, () => {
-      this.danmujs && this.danmujs.pause()
+      this.isOpen && this.danmujs && this.danmujs.pause()
     })
 
     this.on(Events.PLAY, () => {
-      this.danmujs && this.danmujs.play()
+      this.isOpen && this.danmujs && this.danmujs.play()
     })
 
     this.on(Events.SEEKING, () => {
