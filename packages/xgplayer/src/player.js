@@ -52,7 +52,7 @@ class Player extends Proxy {
     this._runPending = false
     this.rotateDeg = 0
     // 当前是否处于焦点状态
-    this.isActive = true
+    this.isActive = false
     this.isCssfullScreen = false
     this.fullscreen = false
     this._fullscreenEl = null
@@ -121,7 +121,7 @@ class Player extends Proxy {
     const controls = pluginsManager.register(this, Controls)
     this.controls = controls
     const device = this.config.isMobileSimulateMode ? 'mobile' : Sniffer.device;
-    this.addClass(`${STATE_CLASS.DEFAULT} xgplayer-${device} ${this.config.controls ? '' : STATE_CLASS.NO_CONTROLS}`);
+    this.addClass(`${STATE_CLASS.DEFAULT} ${STATE_CLASS.ACTIVE} xgplayer-${device} ${this.config.controls ? '' : STATE_CLASS.NO_CONTROLS}`);
     if (this.config.autoplay) {
       this.addClass(STATE_CLASS.ENTER)
     } else {
@@ -498,7 +498,6 @@ class Player extends Proxy {
         this.removeClass(STATE_CLASS.NOT_ALLOW_AUTOPLAY)
         this.addClass(STATE_CLASS.PLAYING)
         if (!this.isPlaying) {
-          this.config.closePlayVideoFocus && this.emit(Events.PLAYER_BLUR)
           XG_DEBUG.logInfo('>>>>playPromise.then')
           this.isPlaying = true
           this.emit(Events.AUTOPLAY_STARTED)
@@ -513,7 +512,9 @@ class Player extends Proxy {
         }
         // 避免AUTOPLAY_PREVENTED先于playing和play触发
         if (e.name === 'NotAllowedError') {
-          setTimeout(() => {
+          this._errorTimer = setTimeout(() => {
+            this._errorTimer = null
+            clearTimeout(this._errorTimer)
             this.emit(Events.AUTOPLAY_PREVENTED)
             this.addClass(STATE_CLASS.NOT_ALLOW_AUTOPLAY)
             this.removeClass(STATE_CLASS.ENTER)
@@ -608,6 +609,7 @@ class Player extends Proxy {
     }
     this._unbindEvents()
     clearTimeout(this.waitTimer)
+    clearTimeout(this._errorTimer)
     pluginsManager.destroy(this)
     root.removeChild(this.topBar)
     root.removeChild(this.leftBar)
@@ -754,9 +756,10 @@ class Player extends Proxy {
     if (data.autoHide === false) {
       return;
     }
+    const time = data && data.delay ? data.delay : this.config.inactive
     this.userTimer = setTimeout(() => {
       this.emit(Events.PLAYER_BLUR)
-    }, data && data.delay ? data.delay : this.config.inactive)
+    }, time)
   }
 
   onBlur (data = {ignoreStatus: false}) {
@@ -785,10 +788,12 @@ class Player extends Proxy {
 
   onPause () {
     this.addClass(STATE_CLASS.PAUSED)
-    if (this.userTimer) {
-      clearTimeout(this.userTimer)
+    if (this.config.closePauseVideoFocus) {
+      if (this.userTimer) {
+        clearTimeout(this.userTimer)
+      }
+      this.emit(Events.PLAYER_FOCUS)
     }
-    !this.config.closePauseVideoFocus && this.emit(Events.PLAYER_FOCUS)
   }
 
   onEnded () {

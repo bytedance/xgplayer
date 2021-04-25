@@ -65,7 +65,7 @@ class Controls extends Plugin {
   onMouseLeave = () => {
     const { player, playerConfig } = this;
     if (!playerConfig.closeControlsBlur) {
-      player.emit(Events.PLAYER_FOCUS, player)
+      player.emit(Events.PLAYER_FOCUS)
     }
   }
 

@@ -302,8 +302,8 @@ class Progress extends Plugin {
     setTimeout(() => {
       this.resetSeekState()
     }, 10)
-    // // 交互结束 恢复控制栏的隐藏流程
-    // player.emit(Events.PLAYER_FOCUS)
+    // 交互结束 恢复控制栏的隐藏流程
+    player.emit(Events.PLAYER_FOCUS)
   }
 
   onMouseMove = (e) => {

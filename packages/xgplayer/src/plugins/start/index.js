@@ -58,6 +58,8 @@ class Start extends Plugin {
     })
 
     this.on(Events.AUTOPLAY_STARTED, () => {
+      const className = this.config.mode === 'auto' ? 'auto-hide' : 'hide'
+      Util.addClass(this.root, className)
       this.autoPlayStart = true
       this.onPlayPause('play')
     })
@@ -67,7 +69,9 @@ class Start extends Plugin {
     }
 
     this.on(Events.AUTOPLAY_PREVENTED, () => {
+      const className = this.config.mode === 'auto' ? 'auto-hide' : 'hide'
       this.setAttr('data-state', 'play')
+      Util.removeClass(this.root, className)
       this.show();
     })
 
@@ -204,7 +208,7 @@ class Start extends Plugin {
   }
 
   render () {
-    const className = this.config.mode === 'auto' ? 'auto-hide' : 'hide'
+    const className = this.playerConfig.autoplay ? (this.config.mode === 'auto' ? 'auto-hide' : 'hide') : ''
     return `
     <xg-start class="xgplayer-start ${className}">
     </xg-start>`
