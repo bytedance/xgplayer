@@ -1,7 +1,5 @@
 import SpsParser from './sps';
 import SEIParser from './sei';
-import Golomb from './golomb'
-import RBSP from './rbsp'
 class Nalunit {
   // https://en.wikipedia.org/wiki/Network_Abstraction_Layer
   static getNalunits (buffer) {

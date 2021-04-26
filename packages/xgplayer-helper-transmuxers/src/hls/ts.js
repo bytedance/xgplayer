@@ -178,7 +178,7 @@ class TsDemuxer {
     let streamChanged = false;
     while (pes.ES.buffer.position < pes.ES.buffer.length) {
       if (ADTS.isHeader(new Uint8Array(pes.ES.buffer.buffer), pes.ES.buffer.position) && (pes.ES.buffer.position + 5) < pes.ES.buffer.length) {
-        let frame = ADTS.appendFrame(track, new Uint8Array(pes.ES.buffer.buffer), pes.ES.buffer.position, pes.pts, frameIndex);
+        let frame = ADTS.appendFrame(track.meta.sampleRate, new Uint8Array(pes.ES.buffer.buffer), pes.ES.buffer.position, pes.pts, frameIndex);
         if (frame && frame.sample) {
           // logger.log(`${Math.round(frame.sample.pts)} : AAC`);
           pes.ES.buffer.skip(frame.length);
