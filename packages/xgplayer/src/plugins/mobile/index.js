@@ -402,6 +402,9 @@ class MobilePlugin extends Plugin {
   }
 
   onRootTouchMove = (e) => {
+    if (this.config.disableGesture || !this.config.gestureX) {
+      return
+    }
     if (this.checkIsRootTarget(e)) {
       e.stopPropagation()
       if (!this.pos.isStart) {

@@ -118,8 +118,10 @@ class Player extends Proxy {
       ret.destroy()
     }
     this._initBaseDoms();
-    const controls = pluginsManager.register(this, Controls)
-    this.controls = controls
+    if (this.config.controls) {
+      const controls = pluginsManager.register(this, Controls)
+      this.controls = controls
+    }
     const device = this.config.isMobileSimulateMode ? 'mobile' : Sniffer.device;
     this.addClass(`${STATE_CLASS.DEFAULT} ${STATE_CLASS.ACTIVE} xgplayer-${device} ${this.config.controls ? '' : STATE_CLASS.NO_CONTROLS}`);
     if (this.config.autoplay) {
@@ -377,7 +379,7 @@ class Player extends Proxy {
     const position = options.position ? options.position : (options.config && options.config.position) || (PLUFGIN.defaultConfig && PLUFGIN.defaultConfig.position)
     const {POSITIONS} = Plugin
     if (!options.root && typeof position === 'string' && position.indexOf('controls') > -1) {
-      return this.controls.registerPlugin(PLUFGIN, options, PLUFGIN.pluginName)
+      return this.controls && this.controls.registerPlugin(PLUFGIN, options, PLUFGIN.pluginName)
     }
     if (!options.root) {
       switch (position) {
