@@ -1,10 +1,15 @@
-let sniffer = {
-  get device () {
+let sniffer = {}
+
+Object.defineProperty(sniffer, 'device', {
+  get: function () {
     let r = sniffer.os
     return r.isPc ? 'pc' : 'mobile'
     // return r.isPc ? 'pc' : r.isTablet ? 'tablet' : 'mobile'
-  },
-  get browser () {
+  }
+})
+
+Object.defineProperty(sniffer, 'browser', {
+  get: function () {
     let ua = navigator.userAgent.toLowerCase()
     let reg = {
       ie: /rv:([\d.]+)\) like gecko/,
@@ -13,9 +18,12 @@ let sniffer = {
       opera: /opera.([\d.]+)/,
       safari: /version\/([\d.]+).*safari/
     }
-    return [].concat(Object.keys(reg).filter(key => reg[key].test(ua)))[0]
-  },
-  get os () {
+    return [].concat(Object.keys(reg).filter(key => reg[key].test(ua)))[0] || ''
+  }
+})
+
+Object.defineProperty(sniffer, 'os', {
+  get: function () {
     let ua = navigator.userAgent
     let isWindowsPhone = /(?:Windows Phone)/.test(ua)
     let isSymbian = /(?:SymbianOS)/.test(ua) || isWindowsPhone
@@ -34,6 +42,6 @@ let sniffer = {
       isFireFox
     }
   }
-}
+})
 
 export default sniffer
