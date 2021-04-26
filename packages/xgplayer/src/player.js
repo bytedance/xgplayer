@@ -225,10 +225,10 @@ class Player extends Proxy {
     this.__webkitendfullscreen = (e) => {
       this.onFullscreenChange(e, false)
     }
-
-    this.video.addEventListener('webkitbeginfullscreen', this.__webkitbeginfullscreen)
-    this.video.addEventListener('webkitendfullscreen', this.__webkitendfullscreen)
-
+    if (Sniffer.os.isIos) {
+      this.video.addEventListener('webkitbeginfullscreen', this.__webkitbeginfullscreen)
+      this.video.addEventListener('webkitendfullscreen', this.__webkitendfullscreen)
+    }
     this.once('loadeddata', this.getVideoSize)
 
     this.playFunc = () => {
