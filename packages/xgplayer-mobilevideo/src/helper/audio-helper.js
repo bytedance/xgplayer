@@ -1,3 +1,4 @@
+/* eslint-disable no-undef */
 /**
  *
  * ios  WebAudio 在系统静音下 播放没有声音
@@ -27,6 +28,8 @@ function initBgSilenceAudio () {
 let ele;
 
 function playSlienceAudio () {
+  let MVideo = customElements.get('mobile-video');
+  if (MVideo.nobgAudio) return;
   let audio = ele || (ele = document.querySelector('#hackAudioPP'));
   if (!audio) {
     initBgSilenceAudio();

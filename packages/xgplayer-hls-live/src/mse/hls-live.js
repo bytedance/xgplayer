@@ -26,6 +26,7 @@ class HlsLiveController {
 
   init () {
     const { XgBuffer, Tracks, Playlist, PreSource, Compatibility, FetchLoader, TsDemuxer, Mp4Remuxer, Mse } = this._pluginConfig
+
     // 初始化Buffer （M3U8/TS/Playlist);
     this._context.registry('M3U8_BUFFER', XgBuffer);
     this._context.registry('TS_BUFFER', XgBuffer);
@@ -328,16 +329,17 @@ class HlsLiveController {
     // 兼容player.config上传入retry参数的逻辑
     const retryCount = times || this._pluginConfig.retryCount ;
     const retryDelay = delayTime || this._pluginConfig.retryDelay;
+    const {fetchOptions = {}} = this._pluginConfig;
     if (frag && !frag.downloaded && !frag.downloading) {
       this._logDownSegment(frag);
       this._playlist.downloading(frag.url, true);
-      this.emitTo('TS_LOADER', LOADER_EVENTS.LADER_START, frag.url, {}, retryCount, retryDelay)
+      this.emitTo('TS_LOADER', LOADER_EVENTS.LADER_START, frag.url, fetchOptions, retryCount, retryDelay)
     } else {
       let current = new Date().getTime();
       if ((!frag || frag.downloaded) &&
         (current - this._m3u8lasttime) / 1000 > this.m3u8FlushDuration) {
         this._m3u8lasttime = current
-        this.emitTo('M3U8_LOADER', LOADER_EVENTS.LADER_START, this.url, {}, retryCount, retryDelay);
+        this.emitTo('M3U8_LOADER', LOADER_EVENTS.LADER_START, this.url, fetchOptions, retryCount, retryDelay);
       }
     }
   }
