@@ -1,4 +1,4 @@
-import { addClass, toggleClass, copyDom } from '../utils/util'
+import { addClass, toggleClass, copyDom, hasClass, removeClass } from '../utils/util'
 
 let danmu = function () {
   let player = this

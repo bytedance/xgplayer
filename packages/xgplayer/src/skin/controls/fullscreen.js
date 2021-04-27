@@ -1,4 +1,4 @@
-import { createDom } from '../../utils/util'
+import { createDom, createImgBtn } from '../../utils/util'
 import RequestFullIcon from '../assets/requestFull.svg'
 import ExitFullIcon from '../assets/exitFull.svg'
 import '../style/controls/fullscreen.scss'
