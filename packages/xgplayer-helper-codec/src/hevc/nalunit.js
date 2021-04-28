@@ -1,6 +1,10 @@
 import SpsParser from './sps';
 import SEIParser from './sei';
 class Nalunit {
+  /**
+   * @param {any} buffer
+   * @return {[]|*[]}
+   */
   static getNalunits (buffer) {
     if (buffer.length - buffer.position < 4) {
       return [];
@@ -22,6 +26,10 @@ class Nalunit {
     }
   }
 
+  /**
+   * @param {any} buffer
+   * @return {[]}
+   */
   static getAnnexbNals (buffer) {
     // console.log('getAnnexbNals')
     // console.log('buffer: ', buffer)
@@ -49,6 +57,10 @@ class Nalunit {
   }
 
   // |四字节 nalSize| nalUnit |
+  /**
+   * @param {any} buffer
+   * @return {[]}
+   */
   static getHvccNals (buffer) {
     // console.log('getHvccNals')
     let nals = [];
@@ -81,6 +93,9 @@ class Nalunit {
     return nals;
   }
 
+  /**
+   * @param {any} unit
+   */
   static analyseNal (unit) {
     // console.log('analyseNal')
     // console.log('unit: ', unit)

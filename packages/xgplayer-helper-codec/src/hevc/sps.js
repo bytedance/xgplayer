@@ -1,6 +1,11 @@
 import Golomb from './golomb'
 
 class SPSParser {
+  /**
+   *
+   * @param {Uint8Array} uint8array
+   * @return {Uint8Array}
+   */
   static _ebsp2rbsp (uint8array) {
     let src = uint8array
     let srcLength = src.byteLength
@@ -20,6 +25,10 @@ class SPSParser {
     return new Uint8Array(dst.buffer, 0, dstIdx)
   }
 
+  /**
+   * @param {Uint8Array} uint8array
+   * @return {{width: *, general_profile_idc: number, chromaFormatIdc: *, general_level_idc: number, general_tier_flag: number, bitDepthLumaMinus8: (*|number), bitDepthChromaMinus8: (*|number), general_profile_space: number, height: *}}
+   */
   static parseSPS (uint8array) {
     let rbsp = SPSParser._ebsp2rbsp(uint8array)
     let gb = new Golomb(rbsp)
@@ -276,7 +285,11 @@ class SPSParser {
   //     }
   //   }
   // }
-
+  /**
+   * @param gb
+   * @param maxSubLayersMinus1
+   * @return {{general_profile_idc: (*|number), general_level_idc: (*|number), general_tier_flag: (*|number), general_profile_space: (*|number)}}
+   */
   static _readProfileTierLevel(gb, maxSubLayersMinus1) {
     let general_profile_space = 0
     let general_tier_flag = 0
@@ -340,6 +353,11 @@ class SPSParser {
     }
   }
 
+  /**
+   *
+   *  @param {any} gb
+   * @param {number}count
+   */
   static _skipScalingList (gb, count) {
     let lastScale = 8;
     let nextScale = 8
@@ -353,6 +371,11 @@ class SPSParser {
     }
   }
 
+  /**
+   *
+   * @param {number} profileIdc
+   * @return {string}
+   */
   static getProfileString (profileIdc) {
     switch (profileIdc) {
       case 66:
@@ -374,10 +397,18 @@ class SPSParser {
     }
   }
 
+  /**
+   * @param {number} levelIdc
+   * @return {string}
+   */
   static getLevelString (levelIdc) {
     return (levelIdc / 10).toFixed(1)
   }
 
+  /**
+   * @param {number} chroma
+   * @return {string}
+   */
   static getChromaFormatString (chroma) {
     switch (chroma) {
       case 420:
@@ -391,6 +422,10 @@ class SPSParser {
     }
   }
 
+  /**
+   * @param {any} spsConfig
+   * @return {any}
+   */
   static toVideoMeta (spsConfig) {
     let meta = {}
     if (spsConfig && spsConfig.codec_size) {

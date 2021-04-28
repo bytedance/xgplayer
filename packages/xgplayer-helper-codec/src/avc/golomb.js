@@ -1,4 +1,7 @@
 class Golomb {
+  /**
+   * @param {Uint8Array} uint8array
+   */
   constructor (uint8array) {
     this.TAG = 'Golomb'
     this._buffer = uint8array
@@ -28,6 +31,10 @@ class Golomb {
     this._currentWordBitsLeft = bytesRead * 8
   }
 
+  /**
+   * @param size
+   * @return {number|*|number}
+   */
   readBits (size) {
     let bits = Math.min(this._currentWordBitsLeft, size);// :uint
     let valu = this._currentWord >>> (32 - bits);
@@ -49,10 +56,16 @@ class Golomb {
     }
   }
 
+  /**
+   * @return {boolean}
+   */
   readBool () {
     return this.readBits(1) === 1
   }
 
+  /**
+   * @return {*|number}
+   */
   readByte () {
     return this.readBits(8)
   }
@@ -70,11 +83,17 @@ class Golomb {
     return zeroCount + this._skipLeadingZero()
   }
 
+  /**
+   * @return {number}
+   */
   readUEG () { // unsigned exponential golomb
     let leadingZeros = this._skipLeadingZero()
     return this.readBits(leadingZeros + 1) - 1
   }
 
+  /**
+   * @return {number}
+   */
   readSEG () { // signed exponential golomb
     let value = this.readUEG()
     if (value & 0x01) {

@@ -1,4 +1,4 @@
-class Stream {
+class XGDataView {
   constructor (buffer) {
     if (buffer instanceof ArrayBuffer) {
       this.buffer = buffer;
@@ -29,10 +29,10 @@ class Stream {
     let loop = Math.floor(count / 4);
     let last = count % 4;
     for (let i = 0; i < loop; i++) {
-      Stream.readByte(this.dataview, 4);
+      XGDataView.readByte(this.dataview, 4);
     }
     if (last > 0) {
-      Stream.readByte(this.dataview, last);
+      XGDataView.readByte(this.dataview, last);
     }
   }
 
@@ -91,34 +91,34 @@ class Stream {
   }
 
   readUint8 () {
-    return Stream.readByte(this.dataview, 1);
+    return XGDataView.readByte(this.dataview, 1);
   }
 
   readUint16 () {
-    return Stream.readByte(this.dataview, 2);
+    return XGDataView.readByte(this.dataview, 2);
   }
 
   readUint24 () {
-    return Stream.readByte(this.dataview, 3);
+    return XGDataView.readByte(this.dataview, 3);
   }
 
   readUint32 () {
-    return Stream.readByte(this.dataview, 4);
+    return XGDataView.readByte(this.dataview, 4);
   }
 
   readUint64 () {
-    return Stream.readByte(this.dataview, 8);
+    return XGDataView.readByte(this.dataview, 8);
   }
 
   readInt8 () {
-    return Stream.readByte(this.dataview, 1, true);
+    return XGDataView.readByte(this.dataview, 1, true);
   }
   readInt16 () {
-    return Stream.readByte(this.dataview, 2, true);
+    return XGDataView.readByte(this.dataview, 2, true);
   }
 
   readInt32 () {
-    return Stream.readByte(this.dataview, 4, true);
+    return XGDataView.readByte(this.dataview, 4, true);
   }
 
   writeUint32 (value) {
@@ -131,4 +131,4 @@ class Stream {
   }
 }
 
-export default Stream;
+export default XGDataView;
