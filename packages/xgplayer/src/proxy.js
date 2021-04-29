@@ -25,11 +25,53 @@ class Proxy {
     if (options.loop) {
       this.videoConfig.loop = 'loop'
     }
+    let textTrackDom = ''
+    this.textTrackShowDefault = true
+    if (options.nativeTextTrack && Array.isArray(options.nativeTextTrack)) {
+      if (options.nativeTextTrack.length > 0 && !options.nativeTextTrack.some(track => { return track.default })) {
+        options.nativeTextTrack[0].default = true
+        this.textTrackShowDefault = false
+      }
+      options.nativeTextTrack.some(track => {
+        if (track.src && track.label && track.default) {
+          textTrackDom += `<track src="${track.src}" `
+          if (track.kind) {
+            textTrackDom += `kind="${track.kind}" `
+          }
+          textTrackDom += `label="${track.label}" `
+          if (track.srclang) {
+            textTrackDom += `srclang="${track.srclang}" `
+          }
+          textTrackDom += `${track.default ? 'default' : ''}>`
+          return true
+        }
+      })
+      this.videoConfig.crossorigin = 'anonymous'
+    }
+    if (options.textTrackStyle) {
+      let style = document.createElement('style')
+      this.textTrackStyle = style
+      document.head.appendChild(style)
+      let styleStr = ''
+      for (let index in options.textTrackStyle) {
+        styleStr += `${index}: ${options.textTrackStyle[index]};`
+      }
+      let wrap = options.id ? `#${options.id}` : (options.el.id ? `#${options.el.id}` : `.${options.el.className}`)
+      if (style.sheet.insertRule) {
+        style.sheet.insertRule(`${wrap} video::cue { ${styleStr} }`, 0)
+      } else if (style.sheet.addRule) {
+        style.sheet.addRule(`${wrap} video::cue`, styleStr)
+      }
+    }
     let el = options.el ? options.el : findDom(document, `#${options.id}`)
     if(window.XgVideoProxy && el.hasAttribute('data-xgmse')) {
       this.video = new window.XgVideoProxy(el, options)
     } else {
-      this.video = createDom(this.videoConfig.mediaType, '', this.videoConfig, '')
+      this.video = createDom(this.videoConfig.mediaType, textTrackDom, this.videoConfig, '')
+    }
+    if (!this.textTrackShowDefault && textTrackDom) {
+      let trackDoms = this.video.getElementsByTagName('Track')
+      trackDoms[0].track.mode = 'hidden'
     }
     if (options.autoplay) {
       this.video.autoplay = true

@@ -159,8 +159,11 @@ declare module 'xgplayer' {
         // 弹幕（具体用法参考https://github.com/bytedance/danmu.js）
         danmu?: DanmuOptions;
 
-        // 外挂字幕（参考https://developer.mozilla.org/en-US/docs/Web/API/WebVTT_API）
+        // 自研外挂字幕
         textTrack?: TextTrack[];
+
+        // 原生外挂字幕（参考https://developer.mozilla.org/en-US/docs/Web/API/WebVTT_API）
+        nativeTextTrack?: TextTrack[];
 
         // 外挂字幕样式
         textTrackStyle?: Record<string, string | number>;
