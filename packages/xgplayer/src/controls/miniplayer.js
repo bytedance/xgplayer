@@ -20,6 +20,15 @@ let miniplayer = function () {
   player.once('destroy', onDestroy)
 
   player.getMiniplayer = function () {
+    if (hasClass(root, 'xgplayer-is-fullscreen')) {
+      this.exitFullscreen(root)
+    }
+    if (hasClass(root, 'xgplayer-is-cssfullscreen')) {
+      this.exitCssFullscreen()
+    }
+    if (hasClass(root, 'xgplayer-rotate-fullscreen')) {
+      this.exitRotateFullscreen()
+    }
     // let ro = this.root.getBoundingClientRect()
     // let Top = ro.top
     // let Left = ro.left
