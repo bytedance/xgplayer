@@ -1,5 +1,5 @@
 import { EVENTS, logger } from 'xgplayer-helper-utils';
-import { XGDataView, AudioTrack, VideoTrack, AudioTrackMeta, VideoTrackMeta, AudioTrackSample, VideoTrackSample } from 'xgplayer-helper-models'
+import { XGDataView, AudioTrack, VideoTrack, AudioTrackMeta, VideoTrackMeta, AudioSample, VideoSample } from 'xgplayer-helper-models'
 import { ADTS, avc, hevc } from 'xgplayer-helper-codec';
 
 const DEMUX_EVENTS = EVENTS.DEMUX_EVENTS;
@@ -182,7 +182,7 @@ class TsDemuxer {
         if (frame && frame.sample) {
           // logger.log(`${Math.round(frame.sample.pts)} : AAC`);
           pes.ES.buffer.skip(frame.length);
-          const sample = new AudioTrackSample({
+          const sample = new AudioSample({
             dts: frame.sample.dts,
             pts: frame.sample.pts,
             data: frame.sample.unit,
@@ -208,7 +208,7 @@ class TsDemuxer {
     }
 
     // let data = new Uint8Array(pes.ES.buffer.buffer.slice(pes.ES.buffer.position, pes.ES.buffer.length));
-    // let sample = new AudioTrackSample({dts, pts, data, options});
+    // let sample = new AudioSample({dts, pts, data, options});
     track.samples.push(...samples);
   }
 
@@ -312,7 +312,7 @@ class TsDemuxer {
         this.emit(DEMUX_EVENTS.SEI_PARSED, sei);
       });
     }
-    let sample = new VideoTrackSample({
+    let sample = new VideoSample({
       dts: dts,
       pts: pts,
       cts: pts - dts,
@@ -321,7 +321,7 @@ class TsDemuxer {
       data,
       nals,
       options,
-      isGop: isKeyframe,
+      firstInGop: isKeyframe,
       gopId: isKeyframe ? ++this.gopId : this.gopId
     });
     track.samples.push(sample);
@@ -349,7 +349,7 @@ class TsDemuxer {
     let hasVPS = false;
     let hasSPS = false;
     let hasPPS = false;
-    let isGop = false;
+    let firstInGop = false;
     for (let i = 0; i < nals.length; i++) {
       let nal = nals[i];
 
@@ -373,7 +373,7 @@ class TsDemuxer {
         }
       } else if (nal.key) {
         if (nal.type === 20 || nal.type === 19) {
-          isGop = true;
+          firstInGop = true;
         }
       } else if (nal.type === 0) {
         // if (!hasKeyframe) {
@@ -514,7 +514,7 @@ class TsDemuxer {
       })
     }
 
-    let sample = new VideoTrackSample({
+    let sample = new VideoSample({
       dts,
       pts,
       cts: pts - dts,
@@ -523,8 +523,8 @@ class TsDemuxer {
       data,
       nals,
       options,
-      isGop: isGop,
-      gopId: isGop ? ++this.gopId : this.gopId
+      firstInGop: firstInGop,
+      gopId: firstInGop ? ++this.gopId : this.gopId
     });
     track.samples.push(sample);
   }

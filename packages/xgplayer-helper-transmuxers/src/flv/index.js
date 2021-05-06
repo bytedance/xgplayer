@@ -11,7 +11,7 @@ class FlvDemuxer {
     this._hasScript = false
     this._videoMetaChange = false
     this._audioMetaChange = false
-    this.gopId = 0
+
     this.demuxer = new Demuxer();
   }
 
@@ -47,10 +47,10 @@ class FlvDemuxer {
    * init default video track configs
    */
   initVideoTrack () {
-    this._trackNum++
+    this.trackNum++
     let videoTrack = new VideoTrack()
     videoTrack.meta = new VideoTrackMeta()
-    videoTrack.id = videoTrack.meta.id = this._trackNum
+    videoTrack.id = videoTrack.meta.id = this.trackNum
 
     this.tracks.videoTrack = videoTrack
   }
@@ -59,10 +59,10 @@ class FlvDemuxer {
    * init default audio track configs
    */
   initAudioTrack () {
-    this._trackNum++
+    this.trackNum++
     let audioTrack = new AudioTrack()
     audioTrack.meta = new AudioTrackMeta()
-    audioTrack.id = audioTrack.meta.id = this._trackNum
+    audioTrack.id = audioTrack.meta.id = this.trackNum
 
     this.tracks.audioTrack = audioTrack
   }

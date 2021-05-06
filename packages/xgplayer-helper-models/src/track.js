@@ -1,12 +1,15 @@
 export default class Track {
-  /**
-   * The constructor.
-   */
+
   constructor () {
+    /** @type {number} */
     this.id = -1
+    /** @type {number} */
     this.sequenceNumber = 0
+    /** @type {*} */
     this.samples = []
+    /** @type {*} */
     this.droppedSamples = []
+    /** @type {number} */
     this.length = 0
   }
 

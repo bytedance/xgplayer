@@ -1,5 +1,5 @@
 import { EVENTS, Mse, Crypto, FetchLoader,logger } from 'xgplayer-helper-utils'
-import { PreSource, Tracks, Buffer as XgBuffer, Playlist } from 'xgplayer-helper-models'
+import { ProcessedBufferManager, Tracks, Buffer as XgBuffer, Playlist } from 'xgplayer-helper-models'
 import { CompatHls as Compatibility } from 'xgplayer-helper-codec';
 import { Mp4Remuxer, M3U8Parser, TsDemuxer } from 'xgplayer-helper-transmuxers'
 
@@ -28,7 +28,7 @@ class HlsVodController {
     this._tracks = this._context.registry('TRACKS', Tracks)();
 
     this._playlist = this._context.registry('PLAYLIST', Playlist)({autoclear: true});
-    this._presource = this._context.registry('PRE_SOURCE_BUFFER', PreSource)();
+    this._presource = this._context.registry('PRE_SOURCE_BUFFER', ProcessedBufferManager)();
 
     this._compat = this._context.registry('COMPATIBILITY', Compatibility)();
 

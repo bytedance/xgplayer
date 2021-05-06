@@ -1,20 +1,33 @@
-import { AudioTrackMeta, VideoTrackMeta, XGDataView, VideoTrack, AudioTrack } from 'xgplayer-helper-models';
+import { VideoTrackMeta, XGDataView } from 'xgplayer-helper-models';
 import { avc, hevc } from 'xgplayer-helper-codec';
 import { EVENTS } from 'xgplayer-helper-utils';
 import AMFParser from './amf-parser'
-
+import EventEmitter from 'eventemitter3';
+import {AudioTrackMeta, FlvTag, VideoSample} from 'xgplayer-helper-models/src';
 const { SpsParser, NalUnit } = avc;
 const { SpsParserHEVC, NalUnitHEVC } = hevc;
 const DEMUX_EVENTS = EVENTS.DEMUX_EVENTS;
 
-class FlvDemuxer {
+class FlvDemuxer extends EventEmitter {
   constructor () {
-    this._firstFragmentLoaded = false
-    this._trackNum = 0
-    this._hasScript = false
+    super();
+    this.headerParsed = false
+    this.trackNum = 0
+    this.hasScript = false
     this._videoMetaChange = false
     this._audioMetaChange = false
     this.gopId = 0
+  }
+
+  static get EVENTS () {
+    return {
+      FILE_HEADER_PARSED: 'FILE_HEADER_PARSED',
+      SCRIPT_TAG_PARSED: 'SCRIPT_TAG_PARSED',
+      AUDIO_META_PARSED: 'AUDIO_META_PARSED',
+      VIDEO_META_PARSED: 'VIDEO_META_PARSED',
+      VIDEO_SAMPLE_PARSED: 'VIDEO_SAMPLE_PARSED',
+      VIDEO_SEI_PARSED: 'VIDEO_SEI_PARSED'
+    }
   }
 
   /**
@@ -48,69 +61,41 @@ class FlvDemuxer {
   }
 
   doParseFlv (buffer) {
-    if (!this._firstFragmentLoaded) {
+    if (!this.headerParsed) {
       if (buffer.length < 13) {
         return
       }
       const header = buffer.shift(13)
-      this.parseFlvHeader(header, buffer)
+      this.parseFlvHeader(header)
       this.doParseFlv(buffer) // 递归调用，继续解析flv流
     } else {
       if (buffer.length < 11) {
         return
       }
-      let chunk;
+      let flvTag;
 
       let loopMax = 10000 // 防止死循环产生
       try {
         do {
-          // console.log('mark4')
-          chunk = this._parseFlvTag(buffer)
-        } while (chunk && loopMax-- > 0)
+          flvTag = this._parseFlvTag(buffer)
+        } while (flvTag && loopMax-- > 0)
       } catch (e) {}
-      this.emit(DEMUX_EVENTS.DEMUX_COMPLETE)
     }
   }
 
-  parseFlvHeader (header, buffer) {
+  parseFlvHeader (header) {
     if (!FlvDemuxer.isFlvFile(header)) {
-      this.emit(DEMUX_EVENTS.DEMUX_ERROR, this.TAG, new Error(`invalid flv file,${header.join(',')}`))
-      this.doParseFlv(buffer)
+      throw new Error(`invalid flv file,${header.join(',')}`);
     } else {
-      this._firstFragmentLoaded = true
-      // const playType = FlvDemuxer.getPlayType(header[4])
+      this.headerParsed = true
 
-      this._context.mediaInfo.hasAudio = (header[4] >>> 2) === 1
-      this._context.mediaInfo.hasVideo = (header[4] & 1) === 1
-
-      this.initVideoTrack()
-      this.initAudioTrack()
+      const hasAudio = (header[4] >>> 2) === 1
+      const hasVideo = (header[4] & 1) === 1
+      this.emit(FlvDemuxer.EVENTS.FILE_HEADER_PARSED, {
+        hasVideo,
+        hasAudio
+      });
     }
-    this.doParseFlv(buffer)
-  }
-
-  /**
-   * init default video track configs
-   */
-  initVideoTrack () {
-    this._trackNum++
-    let videoTrack = new VideoTrack()
-    videoTrack.meta = new VideoTrackMeta()
-    videoTrack.id = videoTrack.meta.id = this._trackNum
-
-    this.tracks.videoTrack = videoTrack
-  }
-
-  /**
-   * init default audio track configs
-   */
-  initAudioTrack () {
-    this._trackNum++
-    let audioTrack = new AudioTrack()
-    audioTrack.meta = new AudioTrackMeta()
-    audioTrack.id = audioTrack.meta.id = this._trackNum
-
-    this.tracks.audioTrack = audioTrack
   }
 
   /**
@@ -128,11 +113,11 @@ class FlvDemuxer {
       // no enough data for tag parsing
       return null;
     }
-    let chunk = this._parseFlvTagHeader(buffer)
-    if (chunk) {
-      this._processChunk(chunk, buffer)
+    let flvTag = this._parseFlvTagHeader(buffer)
+    if (flvTag) {
+      this._processTagData(flvTag, buffer)
     }
-    return chunk
+    return flvTag
   }
 
   /**
@@ -140,28 +125,27 @@ class FlvDemuxer {
    */
   _parseFlvTagHeader (buffer) {
     let offset = 0
-    let chunk = {}
+    let flvTag = new FlvTag();
 
     let tagType = buffer.toInt(offset, 1)
     offset += 1
 
     // 2 bit FMS reserved, 1 bit filtered, 5 bit tag type
-    chunk.filtered = (tagType & 32) >>> 5
-    chunk.tagType = tagType & 31
+    flvTag.filtered = (tagType & 32) >>> 5
+    flvTag.tagType = tagType & 31
 
     // 3 Byte datasize
-    chunk.datasize = buffer.toInt(offset, 3)
+    flvTag.datasize = buffer.toInt(offset, 3)
     offset += 3
 
-    if (chunk.tagType !== 8 && chunk.tagType !== 9 && chunk.tagType !== 11 && chunk.tagType !== 18) {
+    if (flvTag.tagType !== 8 && flvTag.tagType !== 9 && flvTag.tagType !== 11 && flvTag.tagType !== 18) {
       if (buffer && buffer.length > 0) {
         buffer.shift(1)
       }
-      this.emit(DEMUX_EVENTS.DEMUX_ERROR, this.TAG, new Error('tagType ' + chunk.tagType), false)
-      return null
+      throw new Error('tagType ' + flvTag.tagType)
     }
 
-    if (buffer.length < chunk.datasize + 15) {
+    if (buffer.length < flvTag.datasize + 15) {
       return null
     }
 
@@ -178,25 +162,25 @@ class FlvDemuxer {
       timestamp += timestampExt * 0x1000000
     }
 
-    chunk.dts = timestamp
+    flvTag.dts = timestamp
 
     // streamId
     buffer.shift(3)
 
     // 4 + 3 + 3 + 1 = 11 字节 TagHeader
-    return chunk
+    return flvTag
   }
 
-  _processChunk (chunk, buffer) {
-    switch (chunk.tagType) {
+  _processTagData (flvTag, buffer) {
+    switch (flvTag.tagType) {
       case 18:
-        this._parseScriptData(chunk, buffer)
+        this._parseScriptData(flvTag, buffer)
         break
       case 8:
-        this._parseAACData(chunk, buffer)
+        this._parseAudioData(flvTag, buffer)
         break
       case 9:
-        this._parseHevcData(chunk, buffer)
+        this._parseVideoData(flvTag, buffer)
         break
       case 11:
         // for some CDN that did not process the currect RTMP messages
@@ -209,73 +193,16 @@ class FlvDemuxer {
 
   /**
    * parse flv script data
-   * @param chunk
+   * @param flvTag
    * @private
    */
-  _parseScriptData (chunk, buffer) {
-    let audioTrack = this.tracks.audioTrack
-    let videoTrack = this.tracks.videoTrack
-
-    let data = buffer.shift(chunk.datasize)
+  _parseScriptData (flvTag, buffer) {
+    let data = buffer.shift(flvTag.datasize)
 
     const info = new AMFParser().resolve(data, data.length)
 
-    const onMetaData = this._context.onMetaData = info ? info.onMetaData : undefined
-
-    // fill mediaInfo
-    this._context.mediaInfo.duration = onMetaData.duration
-    if (typeof onMetaData.hasAudio === 'boolean') {
-      this._context.mediaInfo.hsaAudio = onMetaData.hasAudio
-    }
-    if (typeof onMetaData.hasVideo === 'boolean') {
-      this._context.mediaInfo.hasVideo = onMetaData.hasVideo
-    }
-
-    let validate = this._datasizeValidator(chunk.datasize)
-    if (validate) {
-      this.emit(DEMUX_EVENTS.MEDIA_INFO)
-      this._hasScript = true
-    }
-
-    // Edit default meta.
-    if (audioTrack && !audioTrack.hasSpecificConfig) {
-      let meta = audioTrack.meta
-      if (onMetaData.audiosamplerate) {
-        meta.sampleRate = onMetaData.audiosamplerate
-      }
-
-      if (onMetaData.audiochannels) {
-        meta.channelCount = onMetaData.audiochannels
-      }
-
-      switch (onMetaData.audiosamplerate) {
-        case 44100:
-          meta.sampleRateIndex = 4
-          break
-        case 22050:
-          meta.sampleRateIndex = 7
-          break
-        case 11025:
-          meta.sampleRateIndex = 10
-          break
-      }
-    }
-    if (videoTrack && !videoTrack.hasSpecificConfig) {
-      let meta = videoTrack.meta
-      if (typeof onMetaData.framerate === 'number') {
-        let fpsNum = Math.floor(onMetaData.framerate * 1000)
-        if (fpsNum > 0) {
-          let fps = fpsNum / 1000
-          if (!meta.frameRate) {
-            meta.frameRate = {}
-          }
-          meta.frameRate.fixed = true
-          meta.frameRate.fps = fps
-          meta.frameRate.fps_num = fpsNum
-          meta.frameRate.fps_den = 1000
-        }
-      }
-    }
+    const onMetaData = info ? info.onMetaData : undefined
+    this.emit(FlvDemuxer.EVENTS.SCRIPT_TAG_PARSED, onMetaData);
   }
 
   // ISO中定义的AudioSpecificConfig
@@ -360,31 +287,16 @@ class FlvDemuxer {
   //  * SoundType : 声道类型 0=单声道 1=立体声
   //  * AACPacketType : 1字节 如果soundFormat==10 及aac编码格式,则存在这个字节
   //  *                      0=aac 序列header , 1=aac元数据
-  _parseAACData (chunk, buffer) {
-    let track = this.tracks.audioTrack
-    if (!track) {
-      return
-    }
+  _parseAudioData (chunk) {
+    const meta = new AudioTrackMeta()
+    let info = this.loaderBuffer.shift(1)[0]
 
-    let meta = track.meta
-
-    if (!meta) {
-      track.meta = new AudioTrackMeta()
-      meta = track.meta;
-      this._context.mediaInfo.hasAudio = true;
-    }
-
-    let info = buffer.shift(1)[0]
-
-    chunk.data = buffer.shift(chunk.datasize - 1)
+    chunk.data = this.loaderBuffer.shift(chunk.datasize - 1)
 
     let format = (info & 240) >>> 4
 
-    track.format = format
-
     if (format !== 10) {
-      this.emit(DEMUX_EVENTS.DEMUX_ERROR, this.TAG, new Error(`invalid audio format: ${format}`))
-      return;
+      throw new Error(`invalid audio format: ${format}`)
     }
 
     if (format === 10 && !this._hasAudioSequence) {
@@ -418,36 +330,14 @@ class FlvDemuxer {
       meta.objectType = aacHeader.objectType
       meta.originObjectType = aacHeader.originObjectType;
 
-      const audioMedia = this._context.mediaInfo.audio
-
-      // fill audio media info
-      audioMedia.codec = aacHeader.codec
-      audioMedia.channelCount = aacHeader.channelCount
-      audioMedia.sampleRate = audioSampleRate
-      audioMedia.sampleRateIndex = aacHeader.audioSampleRateIndex
-
-      if (!this._hasAudioSequence) {
-        this.emit(DEMUX_EVENTS.METADATA_PARSED, 'audio')
-      } else {
-        this.emit(DEMUX_EVENTS.AUDIO_METADATA_CHANGE)
-        // this.emit(DEMUX_EVENTS.METADATA_PARSED, 'audio')
-      }
-      this._hasAudioSequence = true
-
-      this._audioMetaChange = true
+      this.emit(FlvDemuxer.EVENTS.AUDIO_META_PARSED, meta);
     } else {
-      if (this._audioMetaChange) {
-        chunk.options = {
-          meta: track.meta
-        };
-        this._audioMetaChange = false
-      }
-
       chunk.data = chunk.data.slice(1, chunk.data.length)
-      track.samples.push(chunk)
+      this.emit(FlvDemuxer.EVENTS.VIDEO_SAMPLE_PARSED, chunk)
     }
     if (!validate) {
-      this.emit(DEMUX_EVENTS.DEMUX_ERROR, this.TAG, new Error('TAG length error at ' + chunk.datasize), false)
+      throw new Error('TAG length error at ' + chunk.datasize);
+      // this.logger.warn(this.TAG, error.message)
     }
   }
 
@@ -461,25 +351,25 @@ class FlvDemuxer {
   // * CodecId : bit 5-8  编码器信息  7=AVC
   // * AvcPacketType :  1字节  codecId==7时存在   0=avc序列header 1=avc nalU 2=avc end of sequence
   // * CompositionTime  : 3字节 codecId==7时存在  取值 0 或者 具体值 单位ms
-  _parseHevcData (chunk, buffer) {
+  _parseVideoData (flvTag, buffer) {
     // header
-    let info = buffer.shift(1)[0]
-    chunk.frameType = (info & 0xf0) >>> 4
-    chunk.isKeyframe = chunk.frameType === 1
+    let header = buffer.shift(1)[0]
+    const vSample = new VideoSample(flvTag);
+    const frameType = (header & 0xf0) >>> 4
+    vSample.isKeyframe = frameType === 1
     // let tempCodecID = this.tracks.videoTrack.codecID
-    let codecID = info & 0x0f
-    this.tracks.videoTrack.codecID = codecID
+    let codecID = header & 0x0f
 
     // hevc和avc的header解析方式一样
-    chunk.avcPacketType = buffer.shift(1)[0]
-    chunk.cts = buffer.toInt(0, 3)
-    chunk.cts = (chunk.cts << 8) >> 8
+    flvTag.avcPacketType = buffer.shift(1)[0]
+    vSample.cts = buffer.toInt(0, 3)
+    vSample.cts = (flvTag.cts << 8) >> 8
     buffer.shift(3)
 
     // 12 for hevc, 7 for avc
     if (codecID === 7 || codecID === 12) {
       let hevc = codecID === 12;
-      let data = buffer.shift(chunk.datasize - 5) // 减5字节header信息
+      let data = buffer.shift(flvTag.datasize - 5) // 减5字节header信息
       if (data[4] === 0 && data[5] === 0 && data[6] === 0 && data[7] === 1) {
         let avcclength = 0
         for (let i = 0; i < 4; i++) {
@@ -495,72 +385,50 @@ class FlvDemuxer {
         data[0] = (avcclength - data[1]) / 256
       }
 
-      chunk.data = data
+      vSample.data = data
       // If it is AVC sequece Header.
-      if (chunk.avcPacketType === 0) {
+      let validate = this._datasizeValidator(flvTag.datasize, data)
+      if (!validate) {
+        throw new Error(`invalid video tag datasize: ${flvTag.datasize}`);
+      }
+
+      let videoMeta;
+      if (flvTag.avcPacketType === 0) {
         if (hevc) {
-          this._hevcSequenceHeaderParser(chunk.data)
+          videoMeta = this._hevcSequenceHeaderParser(data)
         } else {
-          this._avcSequenceHeaderParser(chunk.data)
+          videoMeta = this._avcSequenceHeaderParser(data)
         }
-        let validate = this._datasizeValidator(chunk.datasize)
-        if (validate) {
-          if (!this._hasVideoSequence) {
-            this.emit(DEMUX_EVENTS.METADATA_PARSED, 'video')
-          } else {
-            this.emit(DEMUX_EVENTS.VIDEO_METADATA_CHANGE)
-            // this.emit(DEMUX_EVENTS.METADATA_PARSED, 'video')
-          }
-          this._hasVideoSequence = true
-        }
-        this._videoMetaChange = true
+        videoMeta.codecID = codecID;
+        this.emit(FlvDemuxer.EVENTS.VIDEO_META_PARSED, videoMeta)
       } else {
-        if (!this._datasizeValidator(chunk.datasize)) {
-          this.emit(DEMUX_EVENTS.DEMUX_ERROR, this.TAG, new Error(`invalid video tag datasize: ${chunk.datasize}`), false)
-          return;
-        }
-        const nals = hevc ? NalUnitHEVC.getHvccNals(new XGDataView(chunk.data.buffer)) : NalUnit.getAvccNals(new XGDataView(chunk.data.buffer))
+        const dv = new XGDataView(flvTag.data.buffer)
+        const nals = hevc ? NalUnitHEVC.getHvccNals(dv) : NalUnit.getAvccNals(dv);
         const keyTypes = hevc ? [19, 20, 21] : [5]
         for (let i = 0; i < nals.length; i++) {
           const unit = nals[i]
           hevc ? NalUnitHEVC.analyseNal(unit) : NalUnit.analyseNal(unit)
 
           if (unit.sei) {
-            this.emit(DEMUX_EVENTS.SEI_PARSED, Object.assign(unit.sei, {
-              dts: chunk.dts
+            this.emit(FlvDemuxer.EVENTS.VIDEO_SEI_PARSED, Object.assign(unit.sei, {
+              dts: flvTag.dts
             }))
           }
           if (keyTypes.indexOf(unit.type) > -1) {
-            chunk.isGop = true
+            vSample.firstInGop = true
             this.gopId++
           }
         }
-        codecID === 12 ? this.tracks.videoTrack.meta.streamType = 0x24 : this.tracks.videoTrack.meta.streamType = 0x1b
-        if (this._videoMetaChange) {
-          chunk.options = {
-            meta: Object.assign({}, this.tracks.videoTrack.meta)
-          }
-          this._videoMetaChange = false
-        }
-        chunk.gopId = this.gopId
-        chunk.nals = nals;
-        if (chunk.isKeyframe) {
-          this.emit(DEMUX_EVENTS.ISKEYFRAME, chunk.dts + chunk.cts)
-        }
-        this.tracks.videoTrack.samples.push(chunk)
-        // this.emit(DEMUX_EVENTS.DEMUX_COMPLETE)
+
+        vSample.gopId = this.gopId
+        vSample.nals = nals;
+
+        this.emit(FlvDemuxer.EVENTS.VIDEO_SAMPLE_PARSED, vSample)
       }
     } else {
-      this.emit(DEMUX_EVENTS.DEMUX_ERROR, this.TAG, new Error(`video codeid is ${codecID}`), false)
-      chunk.data = buffer.shift(chunk.datasize - 1)
-      if (!this._datasizeValidator(chunk.datasize)) {
-        this.emit(DEMUX_EVENTS.DEMUX_ERROR, this.TAG, new Error(`invalid video tag datasize: ${chunk.datasize}`), false)
-      }
-
-      this.tracks.videoTrack.samples.push(chunk)
-      this.emit(DEMUX_EVENTS.DEMUX_COMPLETE)
+      throw new Error(`video codeid is ${codecID}`);
     }
-    delete chunk.tagType
+
   }
 
   /**
@@ -582,19 +450,9 @@ class FlvDemuxer {
    *     ppsNALUnit             ppsLength个字节
    */
   _avcSequenceHeaderParser (data) {
-    let track = this.tracks.videoTrack
-
-    if (!track) {
-      return
-    }
-
     let offset = 0
 
-    if (!track.meta) {
-      track.meta = new VideoTrackMeta()
-      this._context.mediaInfo.hasVideo = true;
-    }
-    let meta = track.meta
+    let meta = new VideoTrackMeta();
 
     meta.configurationVersion = data[0]
     meta.avcProfileIndication = data[1]
@@ -629,7 +487,7 @@ class FlvDemuxer {
       meta.codec = codecString
 
       offset += size
-      this.tracks.videoTrack.meta.sps = sps
+      meta.sps = sps
       config = SpsParser.parseSPS(sps)
     }
 
@@ -650,24 +508,12 @@ class FlvDemuxer {
 
     Object.assign(meta, SpsParser.toVideoMeta(config))
 
-    // fill video media info
-    const videoMedia = this._context.mediaInfo.video
-
-    videoMedia.codec = meta.codec
-    videoMedia.profile = meta.profile
-    videoMedia.level = meta.level
-    videoMedia.chromaFormat = meta.chromaFormat
-    videoMedia.frameRate = meta.frameRate
-    videoMedia.parRatio = meta.parRatio
-    videoMedia.width = videoMedia.width === meta.presentWidth ? videoMedia.width : meta.presentWidth
-    videoMedia.height = videoMedia.height === meta.presentHeight ? videoMedia.width : meta.presentHeight
-
     meta.duration = this._context.mediaInfo.duration * meta.timescale
     meta.avcc = new Uint8Array(data.length)
     meta.avcc.set(data)
     meta.streamType = 0x1b
 
-    track.meta = meta
+    return meta;
   }
 
   /**
@@ -706,19 +552,9 @@ class FlvDemuxer {
    *       nalUint              bit(8 * nalUintLength)
    */
   _hevcSequenceHeaderParser (data) {
-    let track = this.tracks.videoTrack
-
-    if (!track) {
-      return
-    }
+    const meta = new VideoTrackMeta();
 
     let offset = 0
-
-    if (!track.meta) {
-      track.meta = new VideoTrackMeta()
-      this._context.mediaInfo.hasVideo = true;
-    }
-    let meta = track.meta
 
     meta.configurationVersion = data[0]
     meta.hevcProfileSpace = (data[1] & 0xc0) >>> 6
@@ -808,23 +644,9 @@ class FlvDemuxer {
 
     Object.assign(meta, SpsParserHEVC.toVideoMeta(config))
 
-    // fill video media info
-    const videoMedia = this._context.mediaInfo.video
-
-    videoMedia.codec = meta.codec
-    videoMedia.profile = meta.profile
-    videoMedia.level = meta.level
-    videoMedia.chromaFormat = meta.chromaFormat
-    videoMedia.frameRate = meta.frameRate
-    videoMedia.parRatio = meta.parRatio
-    videoMedia.width = videoMedia.width === meta.presentWidth ? videoMedia.width : meta.presentWidth
-    videoMedia.height = videoMedia.height === meta.presentHeight ? videoMedia.width : meta.presentHeight
-
-    meta.duration = this._context.mediaInfo.duration * meta.timescale
-
     meta.streamType = 0x24
 
-    track.meta = meta
+    return meta;
   }
 
   /**

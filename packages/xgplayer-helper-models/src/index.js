@@ -4,10 +4,12 @@ import XGDataView from './data-view';
 import Tracks, { AudioTrack, VideoTrack} from './track';
 import Buffer from './u8a-buffer';
 import { AudioTrackMeta, VideoTrackMeta } from './track-meta';
-import { AudioTrackSample, VideoTrackSample } from './track-sample';
+import { AudioSample, VideoSample } from './track-sample';
 import MediaInfo from './media-info';
+import FlvTag from './flv-tag';
 
 export {
+  FlvTag,
   Playlist,
   ProcessedBufferManager,
   XGDataView,
@@ -17,7 +19,7 @@ export {
   Buffer,
   AudioTrackMeta,
   VideoTrackMeta,
-  AudioTrackSample,
-  VideoTrackSample,
+  AudioSample,
+  VideoSample,
   MediaInfo
 }
