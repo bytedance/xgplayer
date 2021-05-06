@@ -496,7 +496,7 @@ class Player extends Proxy {
       util.addClass(self.root, 'xgplayer-isloading')
       self.checkTimer = setInterval(function () {
         if (self.currentTime !== time) {
-          util.removeClass(this.root, 'xgplayer-isloading')
+          util.removeClass(self.root, 'xgplayer-isloading')
           clearInterval(self.checkTimer)
           self.checkTimer = null
         }
