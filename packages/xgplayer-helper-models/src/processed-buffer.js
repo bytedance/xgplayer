@@ -1,13 +1,17 @@
-class Presource {
+export class ProcessedBuffer {
   constructor () {
+    /** @type{string} */
     this.mimetype = '';
+    /** @type{Uint8Array|null} */
     this.init = null;
+    /** @type{Uint8Array[]} */
     this.data = []
+    /** @type{number} */
     this.bufferDuration = 0;
   }
 }
 
-class PreSource {
+class ProcessedBufferManager {
   constructor () {
     this.sources = {};
   }
@@ -17,7 +21,7 @@ class PreSource {
   }
 
   createSource (name) {
-    this.sources[name] = new Presource();
+    this.sources[name] = new ProcessedBuffer();
     return this.sources[name];
   }
 
@@ -30,4 +34,4 @@ class PreSource {
   }
 }
 
-export default PreSource;
+export default ProcessedBufferManager;

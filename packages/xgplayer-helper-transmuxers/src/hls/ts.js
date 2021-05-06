@@ -1,5 +1,5 @@
 import { EVENTS, logger } from 'xgplayer-helper-utils';
-import { Stream, AudioTrack, VideoTrack, AudioTrackMeta, VideoTrackMeta, AudioTrackSample, VideoTrackSample } from 'xgplayer-helper-models'
+import { XGDataView, AudioTrack, VideoTrack, AudioTrackMeta, VideoTrackMeta, AudioTrackSample, VideoTrackSample } from 'xgplayer-helper-models'
 import { ADTS, avc, hevc } from 'xgplayer-helper-codec';
 
 const DEMUX_EVENTS = EVENTS.DEMUX_EVENTS;
@@ -66,7 +66,7 @@ class TsDemuxer {
       }
       let buf = buffer.shift(188);
       // console.log(buf);
-      let tsStream = new Stream(buf.buffer);
+      let tsStream = new XGDataView(buf.buffer);
       let ts = {};
       TsDemuxer.read(tsStream, ts, frags);
       let pes = peses[ts.header.pid];
@@ -618,7 +618,7 @@ class TsDemuxer {
       data.set(new Uint8Array(buffer.buffer, buffer.position), offset);
       offset += buffer.length - buffer.position;
     }
-    return new Stream(data.buffer);
+    return new XGDataView(data.buffer);
   }
 
   static mergeAudioES (buffers) {
@@ -636,7 +636,7 @@ class TsDemuxer {
       offset += buffer.length;
     }
 
-    return new Stream(data.buffer);
+    return new XGDataView(data.buffer);
   }
 
   static read (stream, ts, frags) {
@@ -869,7 +869,7 @@ class TsDemuxer {
         stream.skip(lastStuffing);
       }
     }
-    payload.stream = new Stream(stream.buffer.slice(stream.position));
+    payload.stream = new XGDataView(stream.buffer.slice(stream.position));
     ts.payload = payload;
   }
 

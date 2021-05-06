@@ -1,4 +1,4 @@
-import { AudioTrackMeta, VideoTrackMeta, Stream, VideoTrack, AudioTrack } from 'xgplayer-helper-models';
+import { AudioTrackMeta, VideoTrackMeta, XGDataView, VideoTrack, AudioTrack } from 'xgplayer-helper-models';
 import { avc, hevc } from 'xgplayer-helper-codec';
 import { EVENTS } from 'xgplayer-helper-utils';
 import AMFParser from './amf-parser'
@@ -519,7 +519,7 @@ class FlvDemuxer {
           this.emit(DEMUX_EVENTS.DEMUX_ERROR, this.TAG, new Error(`invalid video tag datasize: ${chunk.datasize}`), false)
           return;
         }
-        const nals = hevc ? NalUnitHEVC.getHvccNals(new Stream(chunk.data.buffer)) : NalUnit.getAvccNals(new Stream(chunk.data.buffer))
+        const nals = hevc ? NalUnitHEVC.getHvccNals(new XGDataView(chunk.data.buffer)) : NalUnit.getAvccNals(new XGDataView(chunk.data.buffer))
         const keyTypes = hevc ? [19, 20, 21] : [5]
         for (let i = 0; i < nals.length; i++) {
           const unit = nals[i]

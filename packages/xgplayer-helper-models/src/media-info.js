@@ -1,3 +1,26 @@
+/**
+ * @typedef {Object} VideoMediaInfo
+ * @property {string|null} codec
+ * @property {number|null} width
+ * @property {number|null} height
+ * @property {string|null} profile
+ * @property {{fixed: boolean,fps: number,fps_num: number,fps_den: number}} frameRate
+ * @property {string|null} chromaFormat
+ * @property {{width:number,height:number}} parRatio
+ */
+
+/**
+ * @typedef {Object} AudioMediaInfo
+ * @property {string|null} codec
+ * @property {number|null} sampleRate
+ * @property {number|null} sampleRateIndex
+ * @property {number|null} channelCount
+ */
+
+/**
+ * @param {Object} obj
+ * @return {boolean}
+ */
 const isObjectFilled = (obj) => {
   for (let key in obj) {
     if (obj.hasOwnProperty(key)) {
@@ -14,7 +37,12 @@ export default class MediaInfo {
     this.mimeType = null
     this.duration = null
 
-    this.hasVideo = null
+    /** @type {boolean} */
+    this.hasVideo = false
+    /**
+     * video media info
+     * @type {VideoMediaInfo}
+     */
     this.video = {
       codec: null,
       width: null,
@@ -33,9 +61,13 @@ export default class MediaInfo {
         height: 1
       }
     }
+    /** @type {boolean} */
+    this.hasAudio = false
 
-    this.hasAudio = null
-
+    /**
+     * video media info
+     * @type {AudioMediaInfo}
+     */
     this.audio = {
       codec: null,
       sampleRate: null,

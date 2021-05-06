@@ -1,5 +1,5 @@
 import Playlist from './playlist'
-import PreSource from './presource';
+import ProcessedBufferManager from './processed-buffer';
 import XGDataView from './data-view';
 import Tracks, { AudioTrack, VideoTrack} from './track';
 import Buffer from './u8a-buffer';
@@ -9,7 +9,7 @@ import MediaInfo from './media-info';
 
 export {
   Playlist,
-  PreSource,
+  ProcessedBufferManager,
   XGDataView,
   Tracks,
   AudioTrack,

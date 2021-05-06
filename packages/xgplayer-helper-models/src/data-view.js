@@ -9,22 +9,42 @@ class XGDataView {
     }
   }
 
+  /**
+   * byffer length
+   * @return {number}
+   */
   get length () {
     return this.buffer.byteLength;
   }
 
+  /**
+   * set current read position of data-view
+   * @param value
+   */
   set position (value) {
     this.dataview.position = value;
   }
 
+  /**
+   * set current read position of data-view
+   * @param value
+   */
   get position () {
     return this.dataview.position;
   }
 
+  /**
+   * move read position backward
+   * @param count
+   */
   back (count) {
     this.position -= count;
   }
 
+  /**
+   * move read position forward
+   * @param count
+   */
   skip (count) {
     let loop = Math.floor(count / 4);
     let last = count % 4;
@@ -90,37 +110,65 @@ class XGDataView {
     return res;
   }
 
+  /**
+   * @return {Number}
+   */
   readUint8 () {
     return XGDataView.readByte(this.dataview, 1);
   }
 
+  /**
+   * @return {Number}
+   */
   readUint16 () {
     return XGDataView.readByte(this.dataview, 2);
   }
 
+  /**
+   * @return {Number}
+   */
   readUint24 () {
     return XGDataView.readByte(this.dataview, 3);
   }
 
+  /**
+   * @return {Number}
+   */
   readUint32 () {
     return XGDataView.readByte(this.dataview, 4);
   }
 
+  /**
+   * @return {Number}
+   */
   readUint64 () {
     return XGDataView.readByte(this.dataview, 8);
   }
 
+  /**
+   * @return {Number}
+   */
   readInt8 () {
     return XGDataView.readByte(this.dataview, 1, true);
   }
+
+  /**
+   * @return {Number}
+   */
   readInt16 () {
     return XGDataView.readByte(this.dataview, 2, true);
   }
 
+  /**
+   * @return {Number}
+   */
   readInt32 () {
     return XGDataView.readByte(this.dataview, 4, true);
   }
 
+  /**
+   * @return {Uint8Array}
+   */
   writeUint32 (value) {
     return new Uint8Array([
       value >>> 24 & 0xff,
