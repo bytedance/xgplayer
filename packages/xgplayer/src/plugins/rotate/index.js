@@ -1,4 +1,4 @@
-import Plugin, {POSITIONS} from '../../plugin'
+import Plugin, { POSITIONS, Util } from '../../plugin'
 import { Events } from '../../plugin/basePlugin'
 import RotateSvg from '../assets/rotate.svg'
 
@@ -39,7 +39,7 @@ export default class Rotate extends Plugin {
     // 全屏/css全屏/容器宽高发生变化 需要重新计算
     this.on([Events.FULLSCREEN_CHANGE, Events.CSS_FULLSCREEN_CHANGE, Events.VIDEO_RESIZE], () => {
       if (this.rotateDeg) {
-        setTimeout(() => {
+        Util.setTimeout(this, () => {
           this.updateRotateDeg(this.rotateDeg, this.config.innerRotate)
         }, 100)
       }

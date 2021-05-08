@@ -52,7 +52,7 @@ class Player extends Proxy {
     this._runPending = false
     this.rotateDeg = 0
     // 当前是否处于焦点状态
-    this.isActive = true
+    this.isActive = false
     this.isCssfullScreen = false
     this.fullscreen = false
     this._fullscreenEl = null
@@ -79,7 +79,7 @@ class Player extends Proxy {
     this._registerPlugins()
     pluginsManager.onPluginsReady(this)
 
-    setTimeout(() => {
+    Util.setTimeout(this, () => {
       this.emit(Events.READY)
       this.onReady && this.onReady()
       this.isReady = true
@@ -118,10 +118,12 @@ class Player extends Proxy {
       ret.destroy()
     }
     this._initBaseDoms();
-    const controls = pluginsManager.register(this, Controls)
-    this.controls = controls
+    if (this.config.controls) {
+      const controls = pluginsManager.register(this, Controls)
+      this.controls = controls
+    }
     const device = this.config.isMobileSimulateMode ? 'mobile' : Sniffer.device;
-    this.addClass(`${STATE_CLASS.DEFAULT} xgplayer-${device} ${this.config.controls ? '' : STATE_CLASS.NO_CONTROLS}`);
+    this.addClass(`${STATE_CLASS.DEFAULT} ${STATE_CLASS.ACTIVE} xgplayer-${device} ${this.config.controls ? '' : STATE_CLASS.NO_CONTROLS}`);
     if (this.config.autoplay) {
       this.addClass(STATE_CLASS.ENTER)
     } else {
@@ -191,7 +193,7 @@ class Player extends Proxy {
         if (config.needFullsreenScroll) {
           try {
             window.scrollTo(_fullScreenOffset.left, _fullScreenOffset.top)
-            setTimeout(() => {
+            Util.setTimeout(this, () => {
               resetFullState()
             }, 100)
           } catch (e) {
@@ -223,10 +225,10 @@ class Player extends Proxy {
     this.__webkitendfullscreen = (e) => {
       this.onFullscreenChange(e, false)
     }
-
-    this.video.addEventListener('webkitbeginfullscreen', this.__webkitbeginfullscreen)
-    this.video.addEventListener('webkitendfullscreen', this.__webkitendfullscreen)
-
+    if (Sniffer.os.isIos) {
+      this.video.addEventListener('webkitbeginfullscreen', this.__webkitbeginfullscreen)
+      this.video.addEventListener('webkitendfullscreen', this.__webkitendfullscreen)
+    }
     this.once('loadeddata', this.getVideoSize)
 
     this.playFunc = () => {
@@ -299,7 +301,7 @@ class Player extends Proxy {
       Sniffer.os.isPhone && this.videoPlay()
     }
 
-    setTimeout(() => {
+    Util.setTimeout(this, () => {
       this.emit(Events.COMPLETE)
     }, 1)
     if (!this.hasStart) {
@@ -377,7 +379,7 @@ class Player extends Proxy {
     const position = options.position ? options.position : (options.config && options.config.position) || (PLUFGIN.defaultConfig && PLUFGIN.defaultConfig.position)
     const {POSITIONS} = Plugin
     if (!options.root && typeof position === 'string' && position.indexOf('controls') > -1) {
-      return this.controls.registerPlugin(PLUFGIN, options, PLUFGIN.pluginName)
+      return this.controls && this.controls.registerPlugin(PLUFGIN, options, PLUFGIN.pluginName)
     }
     if (!options.root) {
       switch (position) {
@@ -462,6 +464,10 @@ class Player extends Proxy {
     }
     this.hasStart = true
     return pluginsManager.beforeInit(this).then(() => {
+      // this.config为空即已经销毁，不再执行后面的异步流程
+      if (!this.config) {
+        return
+      }
       if (!url) {
         url = this.url || this.config.url;
       }
@@ -498,7 +504,6 @@ class Player extends Proxy {
         this.removeClass(STATE_CLASS.NOT_ALLOW_AUTOPLAY)
         this.addClass(STATE_CLASS.PLAYING)
         if (!this.isPlaying) {
-          this.config.closePlayVideoFocus && this.emit(Events.PLAYER_BLUR)
           XG_DEBUG.logInfo('>>>>playPromise.then')
           this.isPlaying = true
           this.emit(Events.AUTOPLAY_STARTED)
@@ -513,7 +518,8 @@ class Player extends Proxy {
         }
         // 避免AUTOPLAY_PREVENTED先于playing和play触发
         if (e.name === 'NotAllowedError') {
-          setTimeout(() => {
+          this._errorTimer = Util.setTimeout(this, () => {
+            this._errorTimer = null
             this.emit(Events.AUTOPLAY_PREVENTED)
             this.addClass(STATE_CLASS.NOT_ALLOW_AUTOPLAY)
             this.removeClass(STATE_CLASS.ENTER)
@@ -607,7 +613,9 @@ class Player extends Proxy {
       return
     }
     this._unbindEvents()
-    clearTimeout(this.waitTimer)
+    // clearTimeout(this.waitTimer)
+    // clearTimeout(this._errorTimer)
+    Util.clearAllTimers(this)
     pluginsManager.destroy(this)
     root.removeChild(this.topBar)
     root.removeChild(this.leftBar)
@@ -749,14 +757,15 @@ class Player extends Proxy {
     this.isActive = true
     this.removeClass(STATE_CLASS.ACTIVE)
     if (this.userTimer) {
-      clearTimeout(this.userTimer)
+      Util.clearTimeout(this, this.userTimer)
     }
     if (data.autoHide === false) {
       return;
     }
-    this.userTimer = setTimeout(() => {
+    const time = data && data.delay ? data.delay : this.config.inactive
+    this.userTimer = Util.setTimeout(this, () => {
       this.emit(Events.PLAYER_BLUR)
-    }, data && data.delay ? data.delay : this.config.inactive)
+    }, time)
   }
 
   onBlur (data = {ignoreStatus: false}) {
@@ -785,10 +794,12 @@ class Player extends Proxy {
 
   onPause () {
     this.addClass(STATE_CLASS.PAUSED)
-    if (this.userTimer) {
-      clearTimeout(this.userTimer)
+    if (this.config.closePauseVideoFocus) {
+      if (this.userTimer) {
+        Util.clearTimeout(this, this.userTimer)
+      }
+      this.emit(Events.PLAYER_FOCUS)
     }
-    !this.config.closePauseVideoFocus && this.emit(Events.PLAYER_FOCUS)
   }
 
   onEnded () {
@@ -818,7 +829,7 @@ class Player extends Proxy {
     this.isSeeking = false
     // for ie,playing fired before waiting
     if (this.waitTimer) {
-      clearTimeout(this.waitTimer)
+      Util.clearTimeout(this, this.waitTimer)
     }
     this.removeClass(STATE_CLASS.LOADING)
     this.removeClass(STATE_CLASS.SEEKING)
@@ -826,11 +837,11 @@ class Player extends Proxy {
 
   onWaiting () {
     if (this.waitTimer) {
-      clearTimeout(this.waitTimer)
+      Util.clearTimeout(this, this.waitTimer)
     }
-    this.waitTimer = setTimeout(() => {
+    this.waitTimer = Util.setTimeout(this, () => {
       this.addClass(STATE_CLASS.LOADING)
-      clearTimeout(this.waitTimer)
+      Util.clearTimeout(this, this.waitTimer)
       this.waitTimer = null
     }, 500)
   }
@@ -848,7 +859,7 @@ class Player extends Proxy {
     if (this.waitTimer || this.hasClass(STATE_CLASS.LOADING)) {
       if (this.checkBuffer()) {
         this.removeClass(STATE_CLASS.LOADING)
-        clearTimeout(this.waitTimer)
+        Util.clearTimeout(this, this.waitTimer)
         this.waitTimer = null
       }
     }

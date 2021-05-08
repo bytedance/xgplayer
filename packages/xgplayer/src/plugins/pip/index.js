@@ -64,20 +64,19 @@ class PIP extends Plugin {
     this.leavePIPCallback = () => {
       // 处理点击x关闭画中画的时候暂停问题
       const paused = player.paused
-      setTimeout(() => {
+      Util.setTimeout(this, () => {
         !paused && player.play()
       }, 0)
+      !paused && player.play()
       player.emit('pip_change', false)
     }
 
     this.enterPIPCallback = (e) => {
       player.emit('pip_change', true)
       this.pipWindow = e.pictureInPictureWindow;
-      console.log(this.pipWindow, e)
     }
 
     this.onWebkitpresentationmodechanged = (e) => {
-      console.log('onWebkitpresentationmodechanged', e)
       const mode = player.video.webkitPresentationMode
       // 如果在全屏下进入了该逻辑,调用退出全屏处理
       if (this.pMode === PresentationMode.FULLSCREEN && mode !== PresentationMode.FULLSCREEN) {

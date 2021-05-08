@@ -38,7 +38,7 @@ class MobilePlugin extends Plugin {
       disableActive: false, // 是否禁用时间面板
       disableTimeProgress: false, // 是否禁用时间进度条
       hideControlsActive: false, // 手势拖动的时候是否隐控制栏
-      hideControlsEnd: true, // 手势结束的时候隐控制栏
+      hideControlsEnd: false, // 手势结束的时候隐控制栏
       moveDuration: 60 * 6 * 1000, // 视频区对应的时长
       closedbClick: false, // 是否关闭双击手势
       disablePress: true, // 是否关闭长按手势
@@ -394,11 +394,17 @@ class MobilePlugin extends Plugin {
   }
 
   checkIsRootTarget (e) {
-    const {plugins} = this.player
-    return plugins && ((plugins.start && plugins.start.root.contains(e.target)) || (plugins.controls && plugins.controls.root.contains(e.target)))
+    const plugins = this.player.plugins || {}
+    if (plugins.progress && plugins.progress.root.contains(e.target)) {
+      return false
+    }
+    return (plugins.start && plugins.start.root.contains(e.target)) || (plugins.controls && plugins.controls.root.contains(e.target))
   }
 
   onRootTouchMove = (e) => {
+    if (this.config.disableGesture || !this.config.gestureX) {
+      return
+    }
     if (this.checkIsRootTarget(e)) {
       e.stopPropagation()
       if (!this.pos.isStart) {

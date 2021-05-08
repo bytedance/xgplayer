@@ -94,4 +94,12 @@
       display: none;
     }
   }
+  &.xgplayer-is-enter {
+    .xgplayer-start {
+      display: none;
+      &.show {
+        display: none;
+      }
+    }
+  }
 }

@@ -363,8 +363,8 @@ class Proxy {
     // this.video.pause()
     this._currentTime = 0;
     this._duration = 0;
-
-    if (/^blob/.test(this.video.currentSrc)) { // has transmuxer core
+    // firefox有些版本无法识别blob类型的currentSrc
+    if (/^blob/.test(this.video.currentSrc) || /^blob/.test(this.video.src)) { // has transmuxer core
       this.onWaiting();
       return;
     }
