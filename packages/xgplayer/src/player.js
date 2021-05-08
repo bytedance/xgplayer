@@ -464,6 +464,10 @@ class Player extends Proxy {
     }
     this.hasStart = true
     return pluginsManager.beforeInit(this).then(() => {
+      // this.config为空即已经销毁，不再执行后面的异步流程
+      if (!this.config) {
+        return
+      }
       if (!url) {
         url = this.url || this.config.url;
       }
