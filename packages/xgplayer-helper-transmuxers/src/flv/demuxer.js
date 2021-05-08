@@ -607,16 +607,16 @@ class FlvDemuxer extends EventEmitter {
             if (!hasVPS) {
               hasVPS = true
               vps = data.slice(offset + 2, offset + 2 + nalUnitSize)
-              this.tracks.videoTrack.meta.vps = SpsParserHEVC._ebsp2rbsp(vps)
-              this.tracks.videoTrack.meta.rawVps = vps
+              meta.vps = SpsParserHEVC._ebsp2rbsp(vps)
+              meta.rawVps = vps
             }
             break;
           case 33:
             if (!hasSPS) {
               hasSPS = true
               sps = data.slice(offset + 2, offset + 2 + nalUnitSize)
-              this.tracks.videoTrack.meta.sps = SpsParserHEVC._ebsp2rbsp(sps)
-              this.tracks.videoTrack.meta.rawSps = sps
+              meta.sps = SpsParserHEVC._ebsp2rbsp(sps)
+              meta.rawSps = sps
               meta.codec = 'hev1.1.6.L93.B0'
               config = SpsParserHEVC.parseSPS(sps)
             }
@@ -625,8 +625,8 @@ class FlvDemuxer extends EventEmitter {
             if (!hasPPS) {
               hasPPS = true
               pps = data.slice(offset + 2, offset + 2 + nalUnitSize)
-              this.tracks.videoTrack.meta.pps = SpsParserHEVC._ebsp2rbsp(pps)
-              this.tracks.videoTrack.meta.rawPps = pps
+              meta.pps = SpsParserHEVC._ebsp2rbsp(pps)
+              meta.rawPps = pps
             }
             break;
           case 39:
