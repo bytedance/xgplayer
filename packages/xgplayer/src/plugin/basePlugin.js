@@ -143,6 +143,7 @@ class BasePlugin {
     const player = this.player
     const pluginName = this.pluginName
     this.offAll()
+    Util.clearAllTimers(this)
     if (Util.checkIsFunction(this.destroy)) {
       this.destroy();
     }

@@ -19,6 +19,9 @@ interface Util {
   setInterval(context: any, eventName: string, intervalFunc: any, frequency: number): void;
   clearInterval(context: any, eventName: string): void;
   createImgBtn(name: string, imgUrl: string, width: number | string, height: number | string): HTMLElement;
+  setTimeout(context: any, fun: any, time: number): number;
+  clearTimeout(context: any, timerId: number): void;
+  clearAllTimers(context: any): void;
   Hex2RGBA(hex: string, alpha: string): string;
   getFullScreenEl(): HTMLElement | null;
   checkIsFunction(fun: any): boolean;

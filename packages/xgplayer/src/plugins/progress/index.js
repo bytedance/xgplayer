@@ -299,7 +299,8 @@ class Progress extends Plugin {
       }
     }
     // 延迟复位，状态复位要在dom相关时间回调执行之后
-    setTimeout(() => {
+    Util.setTimeout(this, () => {
+      console.log('this.resetSeekState')
       this.resetSeekState()
     }, 10)
     // 交互结束 恢复控制栏的隐藏流程
