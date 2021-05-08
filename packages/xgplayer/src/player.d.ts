@@ -18,7 +18,7 @@ declare class Player extends Proxy {
   /**
    * 当前播放器根节点
    */
-  readonly root?: HTMLElement;
+  readonly root: HTMLElement;
 
   /**
    * 控制栏和video不同布局的时候内部容器
@@ -199,7 +199,7 @@ declare class Player extends Proxy {
   /**
    * 获取当前播放器注册的插件实例列表
    */
-  get plugins(): Array<any>;
+  get plugins(): any;
 
   /**
     * 当前语言

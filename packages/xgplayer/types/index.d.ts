@@ -310,6 +310,9 @@ declare module 'xgplayer' {
     copyDom(dom: HTMLElement): HTMLElement | '';
     setInterval(context: any, eventName: string, intervalFunc: any, frequency: number): void;
     clearInterval(context: any, eventName: string): void;
+    setTimeout(context: any, fun: any, time: number): number;
+    clearTimeout(context: any, timerId: number): void;
+    clearAllTimers(context: any): void;
     createImgBtn(name: string, imgUrl: string, width: number | string, height: number | string): HTMLElement;
     Hex2RGBA(hex: string, alpha: string): string;
     getFullScreenEl(): HTMLElement | null;
@@ -1265,7 +1268,7 @@ declare module 'xgplayer' {
     /**
      * 获取当前播放器注册的插件实例列表
      */
-    get plugins(): Array<any>;
+    get plugins(): any;
 
     /**
       * 当前语言
