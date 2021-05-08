@@ -507,7 +507,7 @@ class Player extends Proxy {
         XG_DEBUG.logWarn('>>>>playPromise.catch', e.name)
         if (this.video && this.video.error) {
           this.onError()
-          this.errorHandler('error')
+          // this.errorHandler('error')
           this.removeClass(STATE_CLASS.ENTER)
           return
         }

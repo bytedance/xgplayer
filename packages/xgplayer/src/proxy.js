@@ -9,6 +9,17 @@ const VIDEO_EVENTS = ['play', 'playing', 'pause', 'ended', 'error', 'seeking', '
   'timeupdate', 'waiting', 'canplay', 'canplaythrough', 'durationchange', 'volumechange',
   'loadeddata', 'loadstart', 'emptied', 'ratechange', 'progress', 'stalled', 'suspend', 'abort']
 
+function emitEvents (eventKey, e) {
+  if (!this || !this.emit) {
+    return
+  }
+  if (eventKey === 'error') {
+    this.errorHandler(eventKey)
+  } else {
+    this.emit(eventKey, e)
+  }
+}
+
 function getHandler (eventName, player) {
   const funName = `on${eventName.charAt(0).toUpperCase()}${eventName.slice(1)}`
   if (player[funName] && typeof player[funName] === 'function') {
@@ -17,6 +28,7 @@ function getHandler (eventName, player) {
   return (e) => {
     let eventKey = eventName
     e.player = player
+    e.eventName = eventName
 
     if (eventKey === 'timeupdate') {
       player._currentTime = player.video && player.video.currentTime
@@ -26,10 +38,17 @@ function getHandler (eventName, player) {
       player._duration = player.video.duration
     }
 
-    if (eventKey === 'error') {
-      player.errorHandler(eventKey)
+    // 执行video相关事件中间件能力
+    if (player.videoEventMiddleware[eventName]) {
+      const callback = emitEvents.bind(player)
+      try {
+        player.videoEventMiddleware[eventName].call(player, e, callback)
+      } catch (e) {
+        emitEvents.call(player, eventKey, e)
+        throw e
+      }
     } else {
-      player.emit(eventKey, e)
+      emitEvents.call(player, eventKey, e)
     }
   }
 }
@@ -84,7 +103,20 @@ class Proxy {
 
     EventEmitter(this)
     this._interval = {}
+    this.videoEventMiddleware = {}
     this.attachVideoEvents()
+  }
+
+  setEventsMiddleware (middlewares) {
+    Object.keys(middlewares).map(key => {
+      this.videoEventMiddleware[key] = middlewares[key]
+    })
+  }
+
+  removeEventsMiddleware (middlewares) {
+    Object.keys(middlewares).map(key => {
+      delete this.videoEventMiddleware[key]
+    })
   }
 
   attachVideoEvents (video) {
