@@ -1,4 +1,4 @@
-import EventEmitter from 'events';
+import EventEmitter from 'eventemitter3';
 import { logger } from 'xgplayer-helper-utils';
 import AudioRender from './render/AudioRender';
 import VideoRender from './render/VideoRender';
@@ -52,6 +52,10 @@ export default class TimeLine extends EventEmitter {
 
   get renderCost () {
     return this.videoRender.renderCost;
+  }
+
+  get wasmInitCost () {
+    return this.videoRender.wasmInitCost;
   }
 
   get fps () {
@@ -296,7 +300,7 @@ export default class TimeLine extends EventEmitter {
 
       if (this._noAudio) {
         resumed = true;
-      } else {
+      } else if (this.audioRender) {
         this.audioRender.resume().then(() => {
           logger.log(this.TAG, 'audioCtx 开始播放');
           if (this._paused) {

@@ -4,7 +4,7 @@
   "description": "",
   "main": "lib/index.js",
   "module": "es/index.js",
-  "sideEffects":false,
+  "sideEffects": false,
   "scripts": {
     "prepare": "npm run build",
     "watch": "babel src --out-dir es --watch & babel src --out-dir lib --presets=es2015 --watch",
@@ -25,6 +25,7 @@
     ]
   },
   "dependencies": {
+    "eventemitter3": "^4.0.7",
     "xgplayer-helper-models": "2.4.22"
   }
 }

@@ -1,3 +1,4 @@
+/* eslint-disable no-undef */
 // 目前仅支持yuv420
 
 function shimImportScripts (src) {
@@ -11,6 +12,8 @@ function shimImportScripts (src) {
 }
 
 const MAX_STREAM_BUFFER_LENGTH = 1024 * 1024;
+let initTs = 0;
+
 var Decoder = function (self) {
   this.inited = false;
   this.infoId = 0;
@@ -93,7 +96,11 @@ Decoder.prototype.broadwayOnBroadwayInited = function () {
     msg: 'LOG',
     log: 'decoder inited'
   });
-  this.self.postMessage({ msg: 'DECODER_READY' });
+  let cost = 0;
+  if (initTs) {
+    cost = performance.now() - initTs;
+  }
+  this.self.postMessage({ msg: 'DECODER_READY', cost });
 };
 
 Decoder.prototype.decode = function (data, info) {
@@ -132,6 +139,7 @@ function onPostRun () {
 }
 
 function init (url) {
+  initTs = performance.now();
   let isDegrade = /asm/.test(url);
   if (!decoder) {
     let task;
@@ -171,7 +179,8 @@ function init (url) {
               }
             });
           });
-        } 
+        }
+
         return new Promise((resolve, reject) => {
           addOnPostRun(onPostRun.bind(self));
 

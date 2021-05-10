@@ -13,6 +13,7 @@ function shimImportScripts (src) {
 
 const MAX_STREAM_BUFFER_LENGTH = 1024 * 1024 * 5; // 分配 5M 空间存储帧数据
 const BATCH_DECODE_SIZE = 10; // 一次处理的帧数量
+let initTs = 0;
 
 var Decoder = function (self) {
   this.inited = false;
@@ -98,7 +99,11 @@ Decoder.prototype.broadwayOnBroadwayInited = function () {
     msg: 'LOG',
     log: 'decoder inited'
   });
-  this.self.postMessage({ msg: 'DECODER_READY' });
+  let cost = 0;
+  if (initTs) {
+    cost = performance.now() - initTs;
+  }
+  this.self.postMessage({ msg: 'DECODER_READY', cost });
 };
 
 Decoder.prototype.storeBuffer = function (data, fInfo) {
@@ -156,7 +161,8 @@ function onPostRun () {
 let WASM_CDN_PATH_PREFIX = '';
 
 function init (url) {
-  WASM_CDN_PATH_PREFIX = url.split('/').slice(0, -1).join('/')
+  WASM_CDN_PATH_PREFIX = url.split('/').slice(0, -1).join('/');
+  initTs = performance.now();
   if (!decoder) {
     let task;
 
