@@ -1,12 +1,10 @@
 import { VideoTrackMeta, XGDataView } from 'xgplayer-helper-models';
 import { avc, hevc } from 'xgplayer-helper-codec';
-import { EVENTS } from 'xgplayer-helper-utils';
 import AMFParser from './amf-parser'
 import EventEmitter from 'eventemitter3';
 import {AudioTrackMeta, FlvTag, VideoSample} from 'xgplayer-helper-models/src';
 const { SpsParser, NalUnit } = avc;
 const { SpsParserHEVC, NalUnitHEVC } = hevc;
-const DEMUX_EVENTS = EVENTS.DEMUX_EVENTS;
 
 class FlvDemuxer extends EventEmitter {
   constructor () {
@@ -428,7 +426,6 @@ class FlvDemuxer extends EventEmitter {
     } else {
       throw new Error(`video codeid is ${codecID}`);
     }
-
   }
 
   /**
@@ -696,6 +693,9 @@ class FlvDemuxer extends EventEmitter {
     return datasizeConfirm === datasize + 11
   }
 
+  destroy () {
+    super.removeAllListeners();
+  }
 }
 
 export default FlvDemuxer
