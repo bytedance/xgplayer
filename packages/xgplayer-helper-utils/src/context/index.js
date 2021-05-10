@@ -1,6 +1,6 @@
 import EVENTS from '../events'
 import { MediaInfo } from 'xgplayer-helper-models'
-import { EventEmitter } from 'events'
+import EventEmitter from 'eventemitter3'
 
 const DIRECT_EMIT_FLAG = '__TO__'
 

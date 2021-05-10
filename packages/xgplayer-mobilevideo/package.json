@@ -38,6 +38,7 @@
     ]
   },
   "dependencies": {
+    "eventemitter3": "^4.0.7",
     "xgplayer-helper-utils": "2.4.13"
   }
 }

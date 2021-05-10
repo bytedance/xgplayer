@@ -62,6 +62,10 @@ export default class VideoRender extends BaseRender {
     return this._decodeEstimate.decodeCost;
   }
 
+  get wasmInitCost () {
+    return this._decoderWorkerMananger.wasmInitCost;
+  }
+
   get renderCost () {
     return this._renderCost;
   }
@@ -215,7 +219,7 @@ export default class VideoRender extends BaseRender {
 
     this._parent.on(Events.VIDEO.UPDATE_VIDEO_FILLTYPE, (type, {width, height}) => {
       const {width: cvsWidth, height: cvsHeight} = this._canvas;
-      let isGapX = (width / height) > (cvsWidth / cvsHeight); // 左右有黑边
+      let isGapX = !width || (width / height) > (cvsWidth / cvsHeight); // 左右有黑边
       console.warn('isGapX: ', isGapX, type, cvsWidth, cvsHeight, width, height);
       if (type === 'cover') {
         if (isGapX) {

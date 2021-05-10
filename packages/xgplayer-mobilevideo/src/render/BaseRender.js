@@ -1,4 +1,4 @@
-import EventEmitter from 'events';
+import EventEmitter from 'eventemitter3';
 import Events from '../events';
 
 export default class BaseRender extends EventEmitter {
