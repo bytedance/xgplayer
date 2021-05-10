@@ -109,7 +109,7 @@ const client = {
 const controls = ['airplay', 'cssFullscreen', 'danmu', 'definition', 'download', 'enter', 'error', 'errorRetry', 
   'flex', 'fullscreen', 'i18n', 'keyboard', 'loading', 'localPreview', 'memoryPlay', 'miniplayer', 'mobile', 'pc', 
   'pip', 'play', 'playbackRate', 'playNext', 'poster', 'progress', 'reload', 'replay', 'rotate', 'screenShot', 
-  'start', 'textTrack', 'time', 'volume'];
+  'start', 'textTrack', 'nativeTextTrack', 'time', 'volume'];
 
 const umd_es6_controls = controls.map(key => {
   return {
