@@ -1,4 +1,4 @@
-import { BasePlugin, Events } from 'xgplayer'
+import { BasePlugin, Events, Util } from 'xgplayer'
 import { Context, EVENTS } from 'xgplayer-helper-utils'
 import HlsLiveController from './hls-live';
 import defaultConfig from './config'
@@ -53,7 +53,7 @@ export default class HlsLivePlayer extends BasePlugin {
 
   _initEvents () {
     this.hls.once(REMUX_EVENTS.INIT_SEGMENT, () => {
-      BasePlugin.Util.addClass(this.root, 'xgplayer-is-live');
+      Util.addClass(this.root, 'xgplayer-is-live');
     });
 
     this.on(Events.URL_CHANGE, this.handleUrlChange)

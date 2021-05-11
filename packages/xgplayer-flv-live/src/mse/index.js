@@ -1,4 +1,4 @@
-import { BasePlugin, Events } from 'xgplayer'
+import { BasePlugin, Events, Util } from 'xgplayer'
 import { EVENTS, Context } from 'xgplayer-helper-utils'
 import FLV from './flv-live'
 import defaultConfig from './config'
@@ -57,7 +57,7 @@ class FlvPlayer extends BasePlugin {
   initFlvEvents (flv) {
     const player = this.player;
     flv.once(EVENTS.REMUX_EVENTS.INIT_SEGMENT, () => {
-      BasePlugin.Util.addClass(player.root, 'xgplayer-is-live')
+      Util.addClass(player.root, 'xgplayer-is-live')
     })
 
     flv.once(EVENTS.LOADER_EVENTS.LOADER_COMPLETE, () => {
