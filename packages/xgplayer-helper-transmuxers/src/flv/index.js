@@ -6,12 +6,14 @@ const DEMUX_EVENTS = EVENTS.DEMUX_EVENTS;
 const INTERNAL_EVENTS = Demuxer.EVENTS;
 class FlvDemuxer {
   constructor () {
+    this.TAG = 'FLV_DEMUXER'
     this._firstFragmentLoaded = false
     this._trackNum = 0
     this._hasScript = false
     this._videoMetaChange = false
     this._audioMetaChange = false
-
+    this._hasVideoSequence = false
+    this._hasAudioSequence = false
     this.demuxer = new Demuxer();
   }
 
@@ -20,10 +22,54 @@ class FlvDemuxer {
     this.demuxer.on(INTERNAL_EVENTS.FILE_HEADER_PARSED, this.handleFileHeaderParsed.bind(this));
     this.demuxer.on(INTERNAL_EVENTS.SCRIPT_TAG_PARSED, this.handleScriptTagParsed.bind(this));
     this.demuxer.on(INTERNAL_EVENTS.AUDIO_META_PARSED, this.handleAudioMetaParsed.bind(this));
+    this.demuxer.on(INTERNAL_EVENTS.VIDEO_META_PARSED, this.handleVideoMetaParsed.bind(this));
+    this.demuxer.on(INTERNAL_EVENTS.VIDEO_SAMPLE_PARSED, this.handleVideoSampleParsed.bind(this));
+    this.demuxer.on(INTERNAL_EVENTS.AUDIO_SAMPLE_PARSED, this.handleAudioSampleParsed.bind(this));
+    this.demuxer.on(INTERNAL_EVENTS.VIDEO_SEI_PARSED, this.handleSeiParsed.bind(this));
   }
 
   handleAudioMetaParsed (meta) {
+    if (!this.tracks || !this.tracks.audioTrack) {
+      return;
+    }
+    this._context.mediaInfo.hasAudio = true;
+    this.tracks.audioTrack.meta = meta;
+    if (!this._hasAudioSequence) {
+      this.emit(DEMUX_EVENTS.METADATA_PARSED, 'audio');
+    } else {
+      this.emit(DEMUX_EVENTS.AUDIO_METADATA_CHANGE);
+    }
+  }
 
+  handleVideoMetaParsed (meta) {
+    if (!this.tracks || !this.tracks.videoTrack) {
+      return;
+    }
+    this._context.mediaInfo.hasVideo = true;
+    this.tracks.videoTrack.meta = meta;
+    if (!this._hasVideoSequence) {
+      this.emit(DEMUX_EVENTS.METADATA_PARSED, 'video');
+    } else {
+      this.emit(DEMUX_EVENTS.VIDEO_METADATA_CHANGE);
+    }
+  }
+
+  handleSeiParsed (seiObj) {
+    this.emit(DEMUX_EVENTS.SEI_PARSED, seiObj);
+  }
+
+  handleVideoSampleParsed (sample) {
+    if (!this.tracks || !this.tracks.videoTrack) {
+      return;
+    }
+    this.tracks.videoTrack.samples.push(sample)
+  }
+
+  handleAudioSampleParsed (sample) {
+    if (!this.tracks || !this.tracks.videoTrack) {
+      return;
+    }
+    this.tracks.audioTrack.samples.push(sample)
   }
 
   handleScriptTagParsed (onMetaData) {
@@ -36,7 +82,6 @@ class FlvDemuxer {
     if (typeof onMetaData.hasVideo === 'boolean') {
       this._context.mediaInfo.hasVideo = onMetaData.hasVideo
     }
-
     this.emit(DEMUX_EVENTS.MEDIA_INFO)
     this._hasScript = true
 
@@ -84,11 +129,18 @@ class FlvDemuxer {
   handleFileHeaderParsed ({ hasVideo, hasAudio }) {
     this._context.mediaInfo.hasVideo = hasVideo
     this._context.mediaInfo.hasAudio = hasAudio
+
+    this.initVideoTrack()
+    this.initAudioTrack()
   }
 
   demux () {
     if (this.loaderBuffer) {
-      this.demuxer.doParseFlv(this.loaderBuffer)
+      try {
+        this.demuxer.doParseFlv(this.loaderBuffer)
+      } catch (e) {
+        this.emit(DEMUX_EVENTS.DEMUX_ERROR, this.TAG, e)
+      }
       this.emit(DEMUX_EVENTS.DEMUX_COMPLETE)
     }
   }
@@ -117,10 +169,10 @@ class FlvDemuxer {
    * init default video track configs
    */
   initVideoTrack () {
-    this.trackNum++
+    this._trackNum++
     let videoTrack = new VideoTrack()
     videoTrack.meta = new VideoTrackMeta()
-    videoTrack.id = videoTrack.meta.id = this.trackNum
+    videoTrack.id = videoTrack.meta.id = this._trackNum
 
     this.tracks.videoTrack = videoTrack
   }
@@ -129,10 +181,10 @@ class FlvDemuxer {
    * init default audio track configs
    */
   initAudioTrack () {
-    this.trackNum++
+    this._trackNum++
     let audioTrack = new AudioTrack()
     audioTrack.meta = new AudioTrackMeta()
-    audioTrack.id = audioTrack.meta.id = this.trackNum
+    audioTrack.id = audioTrack.meta.id = this._trackNum
 
     this.tracks.audioTrack = audioTrack
   }

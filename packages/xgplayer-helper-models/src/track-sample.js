@@ -63,7 +63,7 @@ export class VideoSample {
   static getDefault () {
     return {
       dts: -1,
-      pts: -1,
+      pts: undefined,
       isKeyframe: false, // is Random access point
       originDts: -1,
       data: new Uint8Array(),

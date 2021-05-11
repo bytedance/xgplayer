@@ -1,22 +1,34 @@
-import { VideoTrackMeta, XGDataView } from 'xgplayer-helper-models';
+import { VideoTrackMeta, AudioTrackMeta, XGDataView, FlvTag, VideoSample } from 'xgplayer-helper-models';
 import { avc, hevc } from 'xgplayer-helper-codec';
 import AMFParser from './amf-parser'
 import EventEmitter from 'eventemitter3';
-import {AudioTrackMeta, FlvTag, VideoSample} from 'xgplayer-helper-models/src';
 const { SpsParser, NalUnit } = avc;
 const { SpsParserHEVC, NalUnitHEVC } = hevc;
 
 class FlvDemuxer extends EventEmitter {
   constructor () {
     super();
+    /** @type {boolean} */
     this.headerParsed = false
+    /** @type {number} */
     this.trackNum = 0
+    /** @type {boolean} */
     this.hasScript = false
+    /** @type {boolean} */
     this._videoMetaChange = false
+    /** @type {boolean} */
     this._audioMetaChange = false
+    /** @type {number} */
     this.gopId = 0
+    /** @type {*}  */
+    this.onMetaData = null;
   }
 
+  /**
+   *
+   * @return {{FILE_HEADER_PARSED: string, AUDIO_META_PARSED: string, SCRIPT_TAG_PARSED: string, AUDIO_SAMPLE_PARSED: string, VIDEO_META_PARSED: string, VIDEO_SAMPLE_PARSED: string, VIDEO_SEI_PARSED: string}}
+   * @constructor
+   */
   static get EVENTS () {
     return {
       FILE_HEADER_PARSED: 'FILE_HEADER_PARSED',
@@ -24,6 +36,7 @@ class FlvDemuxer extends EventEmitter {
       AUDIO_META_PARSED: 'AUDIO_META_PARSED',
       VIDEO_META_PARSED: 'VIDEO_META_PARSED',
       VIDEO_SAMPLE_PARSED: 'VIDEO_SAMPLE_PARSED',
+      AUDIO_SAMPLE_PARSED: 'AUDIO_SAMPLE_PARSED',
       VIDEO_SEI_PARSED: 'VIDEO_SEI_PARSED'
     }
   }
@@ -65,19 +78,17 @@ class FlvDemuxer extends EventEmitter {
       }
       const header = buffer.shift(13)
       this.parseFlvHeader(header)
-      this.doParseFlv(buffer) // 递归调用，继续解析flv流
+      this.doParseFlv(buffer) // recursive invoke
     } else {
       if (buffer.length < 11) {
         return
       }
       let flvTag;
 
-      let loopMax = 10000 // 防止死循环产生
-      try {
-        do {
-          flvTag = this._parseFlvTag(buffer)
-        } while (flvTag && loopMax-- > 0)
-      } catch (e) {}
+      let loopMax = 10000 // avoid Infinite loop
+      do {
+        flvTag = this._parseFlvTag(buffer)
+      } while (flvTag && loopMax-- > 0)
     }
   }
 
@@ -114,6 +125,9 @@ class FlvDemuxer extends EventEmitter {
     let flvTag = this._parseFlvTagHeader(buffer)
     if (flvTag) {
       this._processTagData(flvTag, buffer)
+      if (!this._datasizeValidator(flvTag.datasize, buffer)) {
+        throw new Error('TAG length error at ' + flvTag.datasize);
+      }
     }
     return flvTag
   }
@@ -175,7 +189,7 @@ class FlvDemuxer extends EventEmitter {
         this._parseScriptData(flvTag, buffer)
         break
       case 8:
-        this._parseAudioData(flvTag, buffer)
+        this._parseAudioTag(flvTag, buffer)
         break
       case 9:
         this._parseVideoData(flvTag, buffer)
@@ -195,12 +209,11 @@ class FlvDemuxer extends EventEmitter {
    * @private
    */
   _parseScriptData (flvTag, buffer) {
-    let data = buffer.shift(flvTag.datasize)
+    flvTag.data = buffer.shift(flvTag.datasize);
+    const info = new AMFParser().resolve(flvTag.data, flvTag.data.length)
 
-    const info = new AMFParser().resolve(data, data.length)
-
-    const onMetaData = info ? info.onMetaData : undefined
-    this.emit(FlvDemuxer.EVENTS.SCRIPT_TAG_PARSED, onMetaData);
+    this.onMetaData = info ? info.onMetaData : undefined
+    this.emit(FlvDemuxer.EVENTS.SCRIPT_TAG_PARSED, this.onMetaData);
   }
 
   // ISO中定义的AudioSpecificConfig
@@ -285,11 +298,11 @@ class FlvDemuxer extends EventEmitter {
   //  * SoundType : 声道类型 0=单声道 1=立体声
   //  * AACPacketType : 1字节 如果soundFormat==10 及aac编码格式,则存在这个字节
   //  *                      0=aac 序列header , 1=aac元数据
-  _parseAudioData (chunk) {
+  _parseAudioTag (tag, buffer) {
     const meta = new AudioTrackMeta()
-    let info = this.loaderBuffer.shift(1)[0]
+    let info = buffer.shift(1)[0]
 
-    chunk.data = this.loaderBuffer.shift(chunk.datasize - 1)
+    tag.data = buffer.shift(tag.datasize - 1)
 
     let format = (info & 240) >>> 4
 
@@ -297,7 +310,7 @@ class FlvDemuxer extends EventEmitter {
       throw new Error(`invalid audio format: ${format}`)
     }
 
-    if (format === 10 && !this._hasAudioSequence) {
+    if (format === 10) {
       meta.sampleRate = this._switchAudioSamplingFrequency(info)
       meta.sampleRateIndex = (info & 12) >>> 2
       meta.frameLenth = (info & 2) >>> 1
@@ -309,12 +322,9 @@ class FlvDemuxer extends EventEmitter {
     let audioSampleRateIndex = meta.sampleRateIndex
     let refSampleDuration = meta.refSampleDuration
 
-    delete chunk.tagType
-    let validate = this._datasizeValidator(chunk.datasize)
-
     // AACPacketType
-    if (chunk.data[0] === 0) { // AAC Sequence Header
-      let aacHeader = this._aacSequenceHeaderParser(chunk.data)
+    if (tag.data[0] === 0) { // AAC Sequence Header
+      let aacHeader = this._aacSequenceHeaderParser(tag.data)
       audioSampleRate = aacHeader.audiosamplerate || meta.audioSampleRate
       audioSampleRateIndex = aacHeader.sampleRateIndex || meta.sampleRateIndex
       refSampleDuration = Math.floor(1024 / audioSampleRate * meta.timescale)
@@ -323,19 +333,15 @@ class FlvDemuxer extends EventEmitter {
       meta.sampleRate = audioSampleRate
       meta.sampleRateIndex = audioSampleRateIndex
       meta.refSampleDuration = refSampleDuration
-      meta.duration = this._context.mediaInfo.duration * meta.timescale
+      meta.duration = this.onMetaData.duration * meta.timescale
       meta.config = aacHeader.config
       meta.objectType = aacHeader.objectType
       meta.originObjectType = aacHeader.originObjectType;
 
       this.emit(FlvDemuxer.EVENTS.AUDIO_META_PARSED, meta);
     } else {
-      chunk.data = chunk.data.slice(1, chunk.data.length)
-      this.emit(FlvDemuxer.EVENTS.VIDEO_SAMPLE_PARSED, chunk)
-    }
-    if (!validate) {
-      throw new Error('TAG length error at ' + chunk.datasize);
-      // this.logger.warn(this.TAG, error.message)
+      tag.data = tag.data.slice(1, tag.data.length)
+      this.emit(FlvDemuxer.EVENTS.AUDIO_SAMPLE_PARSED, tag)
     }
   }
 
@@ -384,11 +390,6 @@ class FlvDemuxer extends EventEmitter {
       }
 
       vSample.data = data
-      // If it is AVC sequece Header.
-      let validate = this._datasizeValidator(flvTag.datasize, data)
-      if (!validate) {
-        throw new Error(`invalid video tag datasize: ${flvTag.datasize}`);
-      }
 
       let videoMeta;
       if (flvTag.avcPacketType === 0) {
@@ -400,7 +401,7 @@ class FlvDemuxer extends EventEmitter {
         videoMeta.codecID = codecID;
         this.emit(FlvDemuxer.EVENTS.VIDEO_META_PARSED, videoMeta)
       } else {
-        const dv = new XGDataView(flvTag.data.buffer)
+        const dv = new XGDataView(data.buffer)
         const nals = hevc ? NalUnitHEVC.getHvccNals(dv) : NalUnit.getAvccNals(dv);
         const keyTypes = hevc ? [19, 20, 21] : [5]
         for (let i = 0; i < nals.length; i++) {
@@ -500,12 +501,12 @@ class FlvDemuxer extends EventEmitter {
         pps[j] = data[offset + j]
       }
       offset += size
-      this.tracks.videoTrack.meta.pps = pps
+      meta.pps = pps
     }
 
     Object.assign(meta, SpsParser.toVideoMeta(config))
 
-    meta.duration = this._context.mediaInfo.duration * meta.timescale
+    meta.duration = this.onMetaData.duration * meta.timescale
     meta.avcc = new Uint8Array(data.length)
     meta.avcc.set(data)
     meta.streamType = 0x1b
