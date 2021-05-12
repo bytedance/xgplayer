@@ -171,6 +171,7 @@ q
     this.unbind('.play-icon', eventName, this.onCenterClick)
     this._draggabilly && this._draggabilly.destroy()
     this._draggabilly = null
+    this.exitMini()
   }
 
   render () {

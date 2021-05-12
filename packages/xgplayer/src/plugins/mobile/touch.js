@@ -59,6 +59,7 @@ class Touche {
     this.dbIntrvalId = null
     this.__handlers = {}
     this._initEvent()
+    this.timstamp = parseInt(window.performance.now(), 10)
   }
 
   _initEvent () {
@@ -97,11 +98,13 @@ class Touche {
   __setDb (e) {
     const {config} = this
     if (this.dbIntrvalId) {
+      // console.log('__clearDb0')
       this.__clearDb()
       this.trigger(EVENTS.DOUBlE_CLICK, e)
       return
     }
     this.dbIntrvalId = setTimeout(() => {
+      // console.log('__clearDb1')
       this.__clearDb()
       if (!this._pos.start && !this._pos.press && !this._pos.moving) {
         this.trigger(EVENTS.CLICK, e)
@@ -110,6 +113,7 @@ class Touche {
   }
 
   __clearDb () {
+    // console.log('__clearDb', this.dbIntrvalId)
     clearTimeout(this.dbIntrvalId)
     this.dbIntrvalId = null
   }
@@ -156,6 +160,9 @@ class Touche {
   }
 
   onTouchStart (e) {
+    const time = parseInt(window.performance.now(), 10)
+    console.log('onTouchStart', time - this.timstamp)
+    this.timstamp = time
     const {_pos, root} = this
     const touch = getTouch(e.touches)
     _pos.x = touch ? parseInt(touch.pageX, 10) : e.pageX
@@ -172,6 +179,9 @@ class Touche {
   }
 
   onTouchCancel (e) {
+    const time = parseInt(window.performance.now(), 10)
+    console.log('onTouchCancel', time - this.timstamp)
+    this.timstamp = time
     this.onTouchEnd(e)
   }
 
@@ -187,13 +197,18 @@ class Touche {
     e.press = _pos.press
     _pos.press && this.trigger(EVENTS.PRESS_END, e)
     this.trigger(EVENTS.TOUCH_END, e)
-    !_pos.press && !_pos.moving && this.__setDb()
+    // console.log('onTouchEnd', `press:${_pos.press} moving:${_pos.moving}`)
+    const time = parseInt(window.performance.now(), 10)
+    console.log('onTouchEnd', time - this.timstamp)
+    this.timstamp = time
+    !_pos.press && !_pos.moving && this.__setDb() && console.log('__setDb')
     _pos.press = false
     _pos.start = false
     _pos.moving = false
   }
 
   onTouchMove (e) {
+    console.log('onTouchMove')
     const {_pos, config} = this
     const touch = getTouch(e.touches)
     const x = touch ? parseInt(touch.pageX, 10) : e.pageX

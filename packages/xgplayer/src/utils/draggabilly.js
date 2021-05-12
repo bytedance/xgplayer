@@ -202,7 +202,6 @@ export default class Draggabilly {
   }
 
   _unbindPostStartEvents () {
-    console.log('_unbindPostStartEvents', this._boundPointerEvents)
     if (!this._boundPointerEvents) {
       return;
     }

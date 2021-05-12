@@ -84,9 +84,9 @@ class PIP extends Plugin {
       }
       this.pMode = mode
       if (mode === PresentationMode.PIP) {
-        this.enterPIPCallback()
+        this.enterPIPCallback(e)
       } else if (mode === PresentationMode.INLINE) {
-        this.leavePIPCallback()
+        this.leavePIPCallback(e)
       }
     }
 

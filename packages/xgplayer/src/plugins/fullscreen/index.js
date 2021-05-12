@@ -121,7 +121,7 @@ export default class Fullscreen extends Plugin {
   }
 
   changeFullScreen (e) {
-    // e.preventDefault();
+    e.preventDefault();
     e.stopPropagation();
     const {player, config} = this;
     let useCssFullscreen = false

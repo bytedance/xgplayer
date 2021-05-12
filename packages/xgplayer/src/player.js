@@ -265,7 +265,9 @@ class Player extends Proxy {
       }
       const {autoplay, startTime, volume} = this.config
       XG_DEBUG.logInfo('player', 'canPlayFunc', startTime)
-      this.volume = typeof volume === 'number' ? volume : 0.6
+      if (Util.typeOf(volume) === 'Number') {
+        this.volume = volume
+      }
       if (startTime) {
         this.currentTime = startTime > this.duration ? this.duration : startTime
       }
