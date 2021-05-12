@@ -13,8 +13,8 @@ class MiniScreen extends Plugin {
     return {
       index: 10,
       disable: false,
-      width: 300,
-      height: 168.75,
+      width: 320,
+      height: 180,
       left: -1, // 默认左下角
       top: -1, // 默认左下角
       isShowIcon: false, // 是否显示icon
