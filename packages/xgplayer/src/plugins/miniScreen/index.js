@@ -1,4 +1,4 @@
-import Plugin, {Util, Events} from '../../plugin'
+import Plugin, { Util, Events } from '../../plugin'
 import PlayIcon from '../assets/play.svg'
 import PauseIcon from '../assets/pause.svg'
 import MiniScreenIcon from './miniScreenIcon'
@@ -70,8 +70,9 @@ class MiniScreen extends Plugin {
       }
       player.controls.registerPlugin(MiniScreenIcon, options, MiniScreenIcon.pluginName)
     }
-    this.bind('.mini-cancel-btn', 'click', this.onCancelClick)
-    this.bind('.play-icon', 'click', this.onCenterClick)
+    const eventName = Util.checkTouchSupport() ? 'touchend' : 'click'
+    this.bind('.mini-cancel-btn', eventName, this.onCancelClick)
+    this.bind('.play-icon', eventName, this.onCenterClick)
     if (!this.config.disableDrag) {
       this._draggabilly = new Draggabilly(this.player.root, {
         handle: this.root
@@ -96,8 +97,8 @@ class MiniScreen extends Plugin {
   }
 
   onCancelClick = (e) => {
-    e.preventDefault()
-    e.stopPropagation()
+    // e.preventDefault()
+    // e.stopPropagation()
     this.exitMini()
     this.isClose = true
   }
@@ -106,7 +107,7 @@ class MiniScreen extends Plugin {
     const {player} = this
     player.paused ? player.play() : player.pause()
   }
-
+q
   onScroll = (e) => {
     if ((!window.scrollY && window.scrollY !== 0) || Math.abs(window.scrollY - this.pos.scrollY) < 50) {
       return;
@@ -165,8 +166,9 @@ class MiniScreen extends Plugin {
 
   destroy () {
     window.removeEventListener('scroll', this.onScroll)
-    this.unbind('.mini-cancel-btn', 'click', this.onCancelClick)
-    this.unbind('.play-icon', 'click', this.onCenterClick)
+    const eventName = Util.checkTouchSupport() ? 'touchend' : 'click'
+    this.unbind('.mini-cancel-btn', eventName, this.onCancelClick)
+    this.unbind('.play-icon', eventName, this.onCenterClick)
     this._draggabilly && this._draggabilly.destroy()
     this._draggabilly = null
   }
