@@ -1,5 +1,4 @@
 export default class Track {
-
   constructor () {
     /** @type {number} */
     this.id = -1
@@ -13,47 +12,41 @@ export default class Track {
     this.length = 0
   }
 
-  /**
-   * Reset the track.
-   */
   reset () {
     this.sequenceNumber = 0
     this.samples = []
     this.length = 0
   }
-  /**
-   * destroy the track.
-   */
-  distroy () {
+
+  destroy () {
     this.reset()
     this.id = -1
   }
 }
 
 export class AudioTrack extends Track {
-  /**
-   * The constructor for audio track.
-   */
   constructor () {
     super()
+    /** @type {string} */
     this.TAG = 'AudioTrack'
+    /** @type {string} */
     this.type = 'audio'
   }
 }
 
 export class VideoTrack extends Track {
-  /**
-   * The constructor for video track.
-   */
   constructor () {
     super()
+    /** @type {string} */
     this.TAG = 'VideoTrack'
+    /** @type {string} */
     this.type = 'video'
+    /** @type {number} */
     this.dropped = 0
+    /** @type {number} */
+    this.sequenceNumber = 0
   }
-  /**
-   * reset the video track.
-   */
+
   reset () {
     this.sequenceNumber = 0
     this.samples = []

@@ -7,7 +7,7 @@ import { EVENTS, logger } from 'xgplayer-helper-utils'
 const LOADER_EVENTS = EVENTS.LOADER_EVENTS;
 const DEMUX_EVENTS = EVENTS.DEMUX_EVENTS;
 const HLS_EVENTS = EVENTS.HLS_EVENTS;
-const CRYTO_EVENTS = EVENTS.CRYTO_EVENTS;
+const CRYPTO_EVENTS = EVENTS.CRYPTO_EVENTS;
 const HLS_ERROR = 'HLS_ERROR';
 
 const MASTER_PLAYLIST_REGEX = /#EXT-X-STREAM-INF:([^\n\r]*)[\r\n]+([^\r\n]+)/g;
@@ -220,7 +220,7 @@ class HlsLiveController {
         this._keyLoader = this._context.registry('KEY_LOADER', FetchLoader)({buffer: 'KEY_BUFFER', readtype: 3});
         const { count: times, delay: delayTime } = this._player.config.retry || {};
         // 兼容player.config上传入retry参数的逻辑
-        const retryCount = times || this._pluginConfig.retryCount ;
+        const retryCount = times || this._pluginConfig.retryCount;
         const retryDelay = delayTime || this._pluginConfig.retryDelay;
 
         this.emitTo('KEY_LOADER', LOADER_EVENTS.LADER_START, this._playlist.encrypt.uri, {}, retryCount, retryDelay);
@@ -235,7 +235,7 @@ class HlsLiveController {
     } else if (buffer.TAG === 'DECRYPT_BUFFER') {
       this.retryTimes = this._pluginConfig.retryTimes;
       this._playlist.downloaded(this._tsloader.url, true);
-      this.emitTo('CRYPTO', CRYTO_EVENTS.START_DECRYPT);
+      this.emitTo('CRYPTO', CRYPTO_EVENTS.START_DECRYPTO);
     } else if (buffer.TAG === 'KEY_BUFFER') {
       this.retryTimes = this._pluginConfig.retryTimes;
       this._playlist.encrypt.key = buffer.shift();
@@ -246,7 +246,7 @@ class HlsLiveController {
         inputbuffer: 'DECRYPT_BUFFER',
         outputbuffer: 'TS_BUFFER'
       });
-      this._crypto.on(CRYTO_EVENTS.DECRYPTED, this._onDcripted.bind(this));
+      this._crypto.on(CRYPTO_EVENTS.DECRYPTED, this._onDcripted.bind(this));
     }
   }
 
@@ -307,7 +307,7 @@ class HlsLiveController {
     let frag = this._playlist.getTs();
     const { count: times, delay: delayTime } = this._player.config.retry || {};
     // 兼容player.config上传入retry参数的逻辑
-    const retryCount = times || this._pluginConfig.retryCount ;
+    const retryCount = times || this._pluginConfig.retryCount;
     const retryDelay = delayTime || this._pluginConfig.retryDelay;
 
     if (frag && !frag.downloaded && !frag.downloading) {

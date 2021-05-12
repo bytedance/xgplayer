@@ -5,6 +5,12 @@ import { EventEmitter } from 'events'
 const DIRECT_EMIT_FLAG = '__TO__'
 
 class Context {
+  /**
+   *
+   * @param {*} player
+   * @param {*} configs
+   * @param {string[]}allowedEvents
+   */
   constructor (player, configs, allowedEvents = []) {
     this._emitter = new EventEmitter()
     if (!this._emitter.off) {
@@ -23,8 +29,7 @@ class Context {
 
   /**
    * 从上下文中获取解码流程实例，如果没有实例，构造一个
-   * @param tag
-   * @param args
+   * @param {string} tag
    * @returns {*}
    */
   getInstance (tag) {
@@ -39,8 +44,8 @@ class Context {
 
   /**
    * 初始化具体实例
-   * @param tag
-   * @param args
+   * @param {string} tag
+   * @param {any[]}args
    */
   initInstance (tag, ...args) {
     const [a, b, c, d] = args;
@@ -58,7 +63,7 @@ class Context {
 
   /**
    * 避免大量的initInstance调用，初始化所有的组件
-   * @param config
+   * @param {*} config
    */
   init (config) {
     if (this._inited) {
@@ -75,8 +80,8 @@ class Context {
 
   /**
    * 注册一个上下文流程，提供安全的事件发送机制
-   * @param tag
-   * @param cls
+   * @param {string} tag
+   * @param {*} cls
    */
   registry (tag, cls) {
     const emitter = this._emitter
@@ -90,7 +95,10 @@ class Context {
         this.TAG = tag
         this._context = self
       }
-
+      /**
+       * @param {string} messageName
+       * @param {function} callback
+       */
       on (messageName, callback) {
         checkMessageName(messageName)
 
@@ -105,9 +113,8 @@ class Context {
       }
 
       /**
-       * 在某个事件触发前执行
-       * @param messageName
-       * @param callback
+       * @param {string} messageName
+       * @param {function} callback
        */
       before (messageName, callback) {
         checkMessageName(messageName)
@@ -118,6 +125,10 @@ class Context {
         }
       }
 
+      /**
+       * @param {string} messageName
+       * @param {function} callback
+       */
       once (messageName, callback) {
         checkMessageName(messageName)
 
@@ -130,7 +141,10 @@ class Context {
         emitter.once(`${messageName}${DIRECT_EMIT_FLAG}${tag}`, callback)
         return emitter.once(messageName, callback)
       }
-
+      /**
+       * @param {string} messageName
+       * @param {any[]} args
+       */
       emit (messageName, ...args) {
         checkMessageName(messageName)
         // console.log('emit ', messageName);
@@ -149,8 +163,8 @@ class Context {
 
       /**
        * 定向发送给某个组件单例的消息
-       * @param messageName
-       * @param args
+       * @param {string} messageName
+       * @param {any[]} args
        */
       emitTo (tag, messageName, ...args) {
         checkMessageName(messageName)
@@ -158,6 +172,11 @@ class Context {
         return emitter.emit(`${messageName}${DIRECT_EMIT_FLAG}${tag}`, ...args)
       }
 
+      /**
+       * 定向发送给某个组件单例的消息
+       * @param {string} messageName
+       * @param {function} callback
+       */
       off (messageName, callback) {
         checkMessageName(messageName)
         return emitter.off(messageName, callback)
@@ -237,7 +256,7 @@ class Context {
 
   /**
    * 各个模块处理seek
-   * @param time
+   * @param {number} time
    */
   seek (time) {
     this._emitter.emit(EVENTS.PLAYER_EVENTS.SEEK, time)
@@ -270,7 +289,7 @@ class Context {
 
   /**
    * 对信道进行收拢
-   * @param messageName
+   * @param {string} messageName
    * @private
    */
   _isMessageNameValid (messageName) {

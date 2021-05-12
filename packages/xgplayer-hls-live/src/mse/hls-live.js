@@ -4,7 +4,7 @@ const LOADER_EVENTS = EVENTS.LOADER_EVENTS;
 const REMUX_EVENTS = EVENTS.REMUX_EVENTS;
 const DEMUX_EVENTS = EVENTS.DEMUX_EVENTS;
 const HLS_EVENTS = EVENTS.HLS_EVENTS;
-const CRYTO_EVENTS = EVENTS.CRYTO_EVENTS;
+const CRYPTO_EVENTS = EVENTS.CRYPTO_EVENTS;
 const MSE_EVENTS = EVENTS.MSE_EVENTS;
 const HLS_ERROR = 'HLS_ERROR';
 
@@ -257,7 +257,7 @@ class HlsLiveController {
     } else if (buffer.TAG === 'DECRYPT_BUFFER') {
       this.retrytimes = this._pluginConfig.retrytimes || 3;
       this._playlist.downloaded(this._tsloader.url, true);
-      this.emitTo('CRYPTO', CRYTO_EVENTS.START_DECRYPT);
+      this.emitTo('CRYPTO', CRYPTO_EVENTS.START_DECRYPTO);
     } else if (buffer.TAG === 'KEY_BUFFER') {
       this.retrytimes = this._pluginConfig.retrytimes || 3;
       this._playlist.encrypt.key = buffer.shift();
@@ -268,7 +268,7 @@ class HlsLiveController {
         inputbuffer: 'DECRYPT_BUFFER',
         outputbuffer: 'TS_BUFFER'
       });
-      this._crypto.on(CRYTO_EVENTS.DECRYPTED, this._onDcripted.bind(this));
+      this._crypto.on(CRYPTO_EVENTS.DECRYPTED, this._onDcripted.bind(this));
     }
   }
 

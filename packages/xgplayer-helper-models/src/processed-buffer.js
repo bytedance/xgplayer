@@ -13,13 +13,23 @@ export class ProcessedBuffer {
 
 class ProcessedBufferManager {
   constructor () {
+    /** @type{Object.<string, ProcessedBuffer>} */
     this.sources = {};
   }
 
-  getSource (source) {
-    return this.sources[source];
+  /**
+   *
+   * @param {string} name
+   * @return {ProcessedBuffer}
+   */
+  getSource (name) {
+    return this.sources[name];
   }
 
+  /**
+   * @param {string} name
+   * @return {ProcessedBuffer}
+   */
   createSource (name) {
     this.sources[name] = new ProcessedBuffer();
     return this.sources[name];
@@ -30,7 +40,7 @@ class ProcessedBufferManager {
   }
 
   destroy () {
-    this.sources = {};
+    this.clear()
   }
 }
 

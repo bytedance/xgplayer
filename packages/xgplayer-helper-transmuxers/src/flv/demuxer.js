@@ -71,14 +71,14 @@ class FlvDemuxer extends EventEmitter {
     return result
   }
 
-  doParseFlv (buffer) {
+  parse (buffer) {
     if (!this.headerParsed) {
       if (buffer.length < 13) {
         return
       }
       const header = buffer.shift(13)
       this.parseFlvHeader(header)
-      this.doParseFlv(buffer) // recursive invoke
+      this.parse(buffer) // recursive invoke
     } else {
       if (buffer.length < 11) {
         return

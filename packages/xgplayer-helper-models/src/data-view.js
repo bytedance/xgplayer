@@ -1,8 +1,11 @@
 class XGDataView {
   constructor (buffer) {
     if (buffer instanceof ArrayBuffer) {
+      /** @type {ArrayBuffer} */
       this.buffer = buffer;
+      /** @type {DataView} */
       this.dataview = new DataView(buffer);
+      /** @type {number} */
       this.dataview.position = 0;
     } else {
       throw new Error('data is invalid');
