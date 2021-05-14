@@ -31,6 +31,11 @@ function getTouch (touches) {
   }
 }
 
+function preventDefault (e) {
+  const ua = navigator.userAgent;
+  /(?:iPhone|iPad)/.test(ua) && e.cancelable && e.preventDefault()
+}
+
 function getDefaultConfig () {
   return {
     pressDelay: 600,
@@ -67,13 +72,6 @@ class Touche {
     this.onTouchEnd = this.onTouchEnd.bind(this)
     this.onTouchCancel = this.onTouchCancel.bind(this)
     this.root.addEventListener(this.events.start, this.onTouchStart)
-  }
-
-  __stopPropagation (e) {
-    if (e) {
-      e.stopPropagation()
-      e.cancelable && e.preventDefault()
-    }
   }
 
   __setPress (e) {
@@ -155,8 +153,9 @@ class Touche {
   }
 
   onTouchStart (e) {
+    console.log('')
     const {_pos, root} = this
-    e.preventDefault();
+    preventDefault(e);
     const touch = getTouch(e.touches)
     _pos.x = touch ? parseInt(touch.pageX, 10) : e.pageX
     _pos.y = touch ? parseInt(touch.pageX, 10) : e.pageX
@@ -174,7 +173,7 @@ class Touche {
 
   onTouchEnd (e) {
     const {_pos, root} = this
-    e.preventDefault();
+    preventDefault(e);
     this.__clearPress()
     root.removeEventListener(this.events.cancel, this.onTouchCancel)
     root.removeEventListener(this.events.end, this.onTouchEnd)
