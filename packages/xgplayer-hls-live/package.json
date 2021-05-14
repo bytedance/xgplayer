@@ -1,6 +1,6 @@
 {
   "name": "xgplayer-hls-live",
-  "version": "3.0.0-alpha.112",
+  "version": "3.0.0-alpha.113",
   "description": "",
   "main": "lib/index.js",
   "module": "es/index.js",

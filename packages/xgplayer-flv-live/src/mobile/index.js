@@ -1,4 +1,4 @@
-import { BasePlugin, Events } from 'xgplayer'
+import { BasePlugin, Events, Util } from 'xgplayer'
 import { EVENTS, Context, common } from 'xgplayer-helper-utils'
 import FLV from './flv-live-mobile'
 import defaultConfig from './config'
@@ -266,7 +266,7 @@ class FlvPlayer extends BasePlugin {
 
   addLiveFlag () {
     const { player } = this;
-    BasePlugin.Util.addClass(player.root, 'xgplayer-is-live')
+    Util.addClass(player.root, 'xgplayer-is-live')
   }
 
   _destroy () {
