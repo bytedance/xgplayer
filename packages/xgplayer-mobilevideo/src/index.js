@@ -259,7 +259,8 @@ class MVideo extends HTMLElement {
     // Note
     if (this._degradeVideo && (this.innerDegrade === 1 || this.innerDegrade === 3)) {
       if (this._degradeVideoUserGestured) return;
-      this._degradeVideo.play().then(() => {
+      let req = this._degradeVideo.play();
+      req && req.then(() => {
         this._degradeVideo.pause();
         this._degradeVideoUserGestured = true;
       }).catch(e => {
