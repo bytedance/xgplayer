@@ -17,7 +17,7 @@ module.exports = async (dir, name) => {
   let startJsTransformed = startJsContent.replace(/xgplayer-skin-default/, `xgplayer-skin-${name}`)
   await fs.writeFile(startJs, startJsTransformed)
 
-  await replaceStr('../src/skin/controls/', '.js', [{old: /Player.install/, new: 'Player.use'}, {old: /..\/..\/player/, new: 'xgplayer'}])
+  await replaceStr('../src/skin/controls/', '.js', [{old: /Player.install/, new: 'Player.use'}, {old: /..\/..\/player/, new: 'xgplayer'}, {old: /..\/..\/utils/g, new: 'xgplayer/src/utils'}])
 
   await replaceStr('../src/skin/', 'index.js', [{old: /Player.installAll/, new: 'Player.useAll'}, {old: /..\/player/, new: 'xgplayer'}])
 
