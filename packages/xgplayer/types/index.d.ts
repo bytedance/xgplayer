@@ -496,6 +496,14 @@ declare module 'xgplayer' {
          */
         public static install(name: string, descriptor: (this: Player, player: Player) => void): void;
 
+        public static use(name: string, descriptor: (this: Player, player: Player) => void): void;
+
+        public static installAll(list: Array<{name: string; method: (this: Player, player: Player) => void}>): void;
+
+        public static useAll(list: Array<{name: string; method: (this: Player, player: Player) => void}>): void;
+
+        public static controlsRun(list: Array<{name?: string; method: (this: Player, player: Player) => void}>, context: Player): void;
+
         public static util: Util;
 
         public danmu: Danmu;

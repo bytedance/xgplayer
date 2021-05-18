@@ -262,6 +262,11 @@ class Proxy {
     this.video.defaultMuted = isTrue
   }
   get duration () {
+    if(this.config.duration) {
+      if(this.video) return Math.min(this.config.duration, this.video.duration)
+      else return this.config.duration
+    }
+    if (!this.video) return null
     return this.video.duration
   }
   get ended () {
