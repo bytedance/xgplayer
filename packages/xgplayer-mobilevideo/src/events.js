@@ -1,4 +1,3 @@
-
 export default {
   AUDIO: {
     AUDIO_READY: 'audio_ready',
