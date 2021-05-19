@@ -1,4 +1,6 @@
 import Plugin, {Events, Util, POSITIONS} from '../../plugin'
+import PipIcon from '../assets/pipIcon.svg'
+import PipIconExit from '../assets/pipIconExit.svg'
 
 /**
  * @description picture-in-picture plugin
@@ -37,7 +39,8 @@ class PIP extends Plugin {
 
   afterCreate () {
     this.pMode = PresentationMode.INLINE
-    this.icons.pipIcon && this.appendChild('.xgplayer-icon', this.icons.pipIcon)
+    this.initIcons();
+
     this.btnClick = (e) => {
       e.preventDefault();
       e.stopPropagation();
@@ -55,8 +58,15 @@ class PIP extends Plugin {
 
   registerIcons () {
     return {
-      'pipIcon': null
+      pipIcon: {icon: PipIcon, class: 'xg-get-pip'},
+      pipIconExit: {icon: PipIconExit, class: 'xg-exit-pip'}
     }
+  }
+
+  initIcons () {
+    const {icons} = this;
+    this.appendChild('.xgplayer-icon', icons.pipIcon)
+    this.appendChild('.xgplayer-icon', icons.pipIconExit)
   }
 
   initPipEvents () {
@@ -68,12 +78,14 @@ class PIP extends Plugin {
         !paused && player.play()
       }, 0)
       !paused && player.play()
+      this.setAttr('data-state', 'normal')
       player.emit('pip_change', false)
     }
 
     this.enterPIPCallback = (e) => {
       player.emit('pip_change', true)
       this.pipWindow = e.pictureInPictureWindow;
+      this.setAttr('data-state', 'pip')
     }
 
     this.onWebkitpresentationmodechanged = (e) => {
@@ -101,7 +113,14 @@ class PIP extends Plugin {
     if (!this.isPIPAvailable()) {
       return false
     }
-    this.isPip ? this.exitPIP() : this.requestPIP()
+
+    if (this.isPip) {
+      this.exitPIP()
+      this.setAttr('data-state', 'normal')
+    } else {
+      this.requestPIP()
+      this.setAttr('data-state', 'pip')
+    }
   }
 
   /*
@@ -164,12 +183,10 @@ class PIP extends Plugin {
     if (!this.config.showIcon && this.isPIPAvailable()) {
       return
     }
-    const className = this.icons.pipIcon ? 'xgplayer-icon' : 'xgplayer-icon btn-text'
     return `<xg-icon class="xgplayer-pip">
-      <div class="${className}">
-      ${this.icons.pipIcon ? `` : `<span lang-key="${this.i18nKeys.PIP}">${this.i18n.PIP}</span>`} 
+      <div class="xgplayer-icon">
       </div>
-      ${`<div class="xg-tips" lang-key="${this.i18nKeys.PIP}">${this.i18n.PIP}</div>`}
+      <div class="xg-tips" lang-key="${this.i18nKeys.PIP}">${this.i18n.PIP}</div>
     </xg-icon>`
   }
 }
