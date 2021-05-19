@@ -383,13 +383,13 @@ var Music = function (_Player) {
         case 'order':
         case 'loop':
           if (this.index - 1 >= 0) {
-            this.prevIndev = this.index - 1;
+            this.prevIndex = this.index - 1;
           } else {
-            this.prevIndev = this.list.length - 1;
+            this.prevIndex = this.list.length - 1;
           }
           break;
         default:
-          this.prevIndev = Math.ceil(Math.random() * this.list.length);
+          this.prevIndex = Math.ceil(Math.random() * this.list.length);
           break;
       }
     }
