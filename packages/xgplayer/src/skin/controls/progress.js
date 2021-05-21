@@ -121,27 +121,30 @@ let s_progress = function () {
   let interval = 0
   let tnailUrls = []
   let coverPreviewContainer, coverPreviewPoint, coverPreviewOuter
-  if (player.config.thumbnail) {
-    if(player.config.thumbnail.isShowCoverPreview) {
-      progress.removeChild(thumbnail)
-      coverPreviewContainer = createDom('xg-coverpreview', `<xg-outer class="xgplayer-coverpreview-outer">
-          <xg-thumbnail class="xgplayer-coverpreview-thumbnail"></xg-thumbnail>
-          <xg-point class="xgplayer-coverpreview-point"></xg-point>
-        </xg-outer>`, {tabindex: 1}, 'xgplayer-coverpreview')
-      coverPreviewOuter = coverPreviewContainer.querySelector('.xgplayer-coverpreview-outer')
-      coverPreviewPoint = coverPreviewContainer.querySelector('.xgplayer-coverpreview-point')
-      thumbnail = coverPreviewContainer.querySelector('.xgplayer-coverpreview-thumbnail')
-      player.root.appendChild(coverPreviewContainer)
-    }
-    tnailPicNum = player.config.thumbnail.pic_num
-    tnailWidth = player.config.thumbnail.width
-    tnailHeight = player.config.thumbnail.height
-    tnailCol = player.config.thumbnail.col
-    tnailRow = player.config.thumbnail.row
-    tnailUrls = player.config.thumbnail.urls
-    thumbnail.style.width = `${tnailWidth}px`
-    thumbnail.style.height = `${tnailHeight}px`
+  let onLoadedmetadata = function() {
+    if (player.config.thumbnail) {
+      if(player.config.thumbnail.isShowCoverPreview && !coverPreviewContainer) {
+        progress.removeChild(thumbnail)
+        coverPreviewContainer = createDom('xg-coverpreview', `<xg-outer class="xgplayer-coverpreview-outer">
+            <xg-thumbnail class="xgplayer-coverpreview-thumbnail"></xg-thumbnail>
+            <xg-point class="xgplayer-coverpreview-point"></xg-point>
+          </xg-outer>`, {tabindex: 1}, 'xgplayer-coverpreview')
+        coverPreviewOuter = coverPreviewContainer.querySelector('.xgplayer-coverpreview-outer')
+        coverPreviewPoint = coverPreviewContainer.querySelector('.xgplayer-coverpreview-point')
+        thumbnail = coverPreviewContainer.querySelector('.xgplayer-coverpreview-thumbnail')
+        player.root.appendChild(coverPreviewContainer)
+      }
+      tnailPicNum = player.config.thumbnail.pic_num
+      tnailWidth = player.config.thumbnail.width
+      tnailHeight = player.config.thumbnail.height
+      tnailCol = player.config.thumbnail.col
+      tnailRow = player.config.thumbnail.row
+      tnailUrls = player.config.thumbnail.urls
+      thumbnail.style.width = `${tnailWidth}px`
+      thumbnail.style.height = `${tnailHeight}px`
+    };
   };
+  player.on('loadedmetadata', onLoadedmetadata);
 
   if (typeof player.config.disableSwipeHandler === 'function' && typeof player.config.enableSwipeHandler === 'function') {
     player.root.addEventListener('touchmove', e => {
@@ -378,6 +381,7 @@ let s_progress = function () {
     player.off('timeupdate', onTimeupdate)
     player.off('currentTimeChange', onCurrentTimeChange)
     player.off('srcChange', onSrcChange)
+    player.off('loadedmetadata', onLoadedmetadata);
     cacheUpdateEvents.forEach(item => {
       player.off(item, onCacheUpdate)
     })
