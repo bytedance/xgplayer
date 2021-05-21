@@ -4,14 +4,10 @@ import { playSlienceAudio, pauseSlienceAudio } from './helper/audio-helper'
 import './polyfills/custom-elements.min'
 import './polyfills/native-element'
 // eslint-disable-next-line standard/object-curly-even-spacing
-import { logger, common, EVENTS } from 'xgplayer-helper-utils'
+import { logger, common } from 'xgplayer-helper-utils'
 import TimeLine from './TimeLine'
 import Events from './events'
 
-const REMUX_EVENTS = EVENTS.REMUX_EVENTS
-const DEMUX_EVENTS = EVENTS.DEMUX_EVENTS
-const LOADER_EVENTS = EVENTS.LOADER_EVENTS
-const MSE_EVENTS = EVENTS.MSE_EVENTS
 // flv直播流硬解对应的decodeMode的值
 const VIDEO_DECODE_MODE_VALUE = '7'
 
