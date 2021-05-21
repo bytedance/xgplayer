@@ -391,12 +391,10 @@ export default class VideoBaseRender extends BaseRender {
   }
 
   _doPlay () {
-    console.log(this.TAG, 'doPlay')
     this._tickTimer.start()
   }
 
   _doPause () {
-    console.log(this.TAG, '>>>>>>>>doPause')
     this._tickTimer.stop()
   }
 

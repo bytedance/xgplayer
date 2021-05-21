@@ -92,7 +92,6 @@ class MVideo extends HTMLElement {
   }
 
   _init () {
-    console.log('preloadTime:.....', this.preloadTime);
     this.timeline = new TimeLine(
       {
         volume: this.volume,
@@ -131,7 +130,7 @@ class MVideo extends HTMLElement {
     this.timeline.on(Events.TIMELINE.PLAY_EVENT, (status, data) => {
       if (status === 'canplay') {
         if (!this.querySelector('canvas')) {
-          console.log(this.TAG, '_bindEvents, appendChild canvas')
+          logger.log(this.TAG, '_bindEvents, appendChild canvas')
           this.appendChild(this.canvas)
         }
       }
@@ -451,7 +450,7 @@ class MVideo extends HTMLElement {
   }
 
   setVideoDecode () {
-    console.log(this.TAG, 'set videoDecode', this.videoDecode)
+    logger.log(this.TAG, 'set videoDecode', this.videoDecode)
     if (this.videoDecode && this.timeline && this.timeline.videoRender) {
       this.timeline.videoRender.videoDecode = this.videoDecode
     }

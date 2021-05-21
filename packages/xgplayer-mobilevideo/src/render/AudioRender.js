@@ -214,7 +214,7 @@ export default class AudioRender extends BaseRender {
   _doChaseFrame ({ position }) {
     let next = this._timeRange.deletePassed(position)
     if (!next) return
-    console.log(this.TAG, '_doChaseFrame', 'startTime:', next.start, 'buffeLength:', this.buffered.end(0) - next.start)
+    logger.log(this.TAG, '_doChaseFrame', 'startTime:', next.start, 'buffeLength:', this.buffered.end(0) - next.start)
     this._reInitAudioCtx(next.start)
       .then(() => {
         this._startRender()
@@ -323,7 +323,7 @@ export default class AudioRender extends BaseRender {
     if (this._noAudio) return
     // from为video,表示由videoRender触发waiting后，又继续播放
     if (from === 'video' && this._ready && !this._isSourceBufferEnd) {
-      console.warn(this.TAG, '_startRender, audio currentTime', this.currentTime, 'from:', from, '_isSourceBufferEnd:', this._isSourceBufferEnd, 'ready:', this._ready)
+      logger.warn(this.TAG, '_startRender, audio currentTime', this.currentTime, 'from:', from, '_isSourceBufferEnd:', this._isSourceBufferEnd, 'ready:', this._ready)
       this._doPlay()
       return
     }

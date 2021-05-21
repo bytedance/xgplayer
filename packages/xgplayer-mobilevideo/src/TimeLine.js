@@ -13,7 +13,6 @@ export default class TimeLine extends EventEmitter {
     this._lastSegment = null
     this._seeking = false
     this.audioRender = new AudioRender(config, this)
-    console.log('软硬解? ', parent.videoDecode);
     this.videoRender = this._getController(parent.videoDecode, config)
     this._readyStatus = {
       audio: false,
@@ -329,7 +328,7 @@ export default class TimeLine extends EventEmitter {
       }
 
       setTimeout(() => {
-        console.log(
+        logger.log(
           this.TAG,
           'emit play event',
           'videoRender canAutoPlay:',
@@ -405,7 +404,7 @@ export default class TimeLine extends EventEmitter {
         let audioCanSeek = this.audioRender.canSeek(keyframe.position)
         let videoCanSeek = this.videoRender.canSeek(keyframe)
         if (!audioCanSeek || !videoCanSeek) {
-          console.log(this.TAG, 'seek, !!!!!!!!!can not seek, audioCanSeek:', audioCanSeek, 'videoCanSeek:', videoCanSeek)
+          logger.log(this.TAG, 'seek, !!!!!!!!!can not seek, audioCanSeek:', audioCanSeek, 'videoCanSeek:', videoCanSeek)
           return
         }
         logger.warn(this.TAG, 'seek, chase frame to time: ', keyframe.position, this.duration)
