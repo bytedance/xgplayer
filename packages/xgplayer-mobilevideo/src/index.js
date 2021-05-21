@@ -13,7 +13,7 @@ const DEMUX_EVENTS = EVENTS.DEMUX_EVENTS
 const LOADER_EVENTS = EVENTS.LOADER_EVENTS
 const MSE_EVENTS = EVENTS.MSE_EVENTS
 // flv直播流硬解对应的decodeMode的值
-const VIDEO_DECODE_MODE_VALUE = 7
+const VIDEO_DECODE_MODE_VALUE = '7'
 
 const { debounce } = common
 

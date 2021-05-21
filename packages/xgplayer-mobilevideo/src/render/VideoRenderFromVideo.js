@@ -104,7 +104,7 @@ export default class VideoRenderFromVideo extends VideoBaseRender {
   }
   _onFirstFrame (frame) {
     this._inDecoding = true
-    console.log(this.TAG, 'onFirstFrame')
+    logger.log(this.TAG, 'onFirstFrame')
     this._receiveFrame(frame)
     this._firstFrame = true
     this.forceRender(true)
@@ -154,7 +154,7 @@ export default class VideoRenderFromVideo extends VideoBaseRender {
     if (this._isInit) {
       return
     }
-    console.log(this.TAG, '_initDecoder')
+    logger.log(this.TAG, '_initDecoder')
     if (!this._videoDecodeController.remux) {
       this._initRemux()
     }
@@ -196,7 +196,6 @@ export default class VideoRenderFromVideo extends VideoBaseRender {
     // 把Samples全部清空
     this._timeRange._currentFrameQueue = []
     this._timeRange._buffers = []
-    return
   }
 
   // 1. decoder初始化预解码几帧
@@ -226,15 +225,15 @@ export default class VideoRenderFromVideo extends VideoBaseRender {
 
       if (this._parent._paused) {
         this._doPause()
-        console.log(this.TAG, '_render', 'pused return')
+        logger.log(this.TAG, '_render', 'pused return')
         return
       }
       if (!this._firstFrame) {
-        console.log(this.TAG, '_render', 'not first frame return')
+        logger.log(this.TAG, '_render', 'not first frame return')
         return
       }
       let _videoDecodeController = this._videoDecodeController
-      console.log(this.TAG, ',lack frame, _inDecoding:', this._inDecoding, ',_frameQueue.length:', this._frameQueue.length)
+      logger.log(this.TAG, ',lack frame, _inDecoding:', this._inDecoding, ',_frameQueue.length:', this._frameQueue.length)
       // 在当前page隐藏时，不触发wait操作
       if (!this._frameQueue.length && _videoDecodeController.isIDLE) {
         this._ready = false
@@ -297,11 +296,10 @@ export default class VideoRenderFromVideo extends VideoBaseRender {
   _destroy (reuseWorker) {
     super.destroy(reuseWorker)
     this._videoDecodeController.destroy()
-
   }
 
   _doPause () {
-    console.log(this.TAG, '>>>>>>>>doPause')
+    logger.log(this.TAG, '>>>>>>>>doPause')
     this._tickTimer.stop()
   }
 }
