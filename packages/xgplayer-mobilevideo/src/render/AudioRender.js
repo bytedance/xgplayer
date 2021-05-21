@@ -119,7 +119,6 @@ export default class AudioRender extends BaseRender {
 
   _bindEvents () {
     super._bindEvents()
-
     this._parent.on(Events.DECODE_EVENTS.CHASE_AUDIO_FRAME, this._doChaseFrame.bind(this))
 
     this._parent.on(Events.TIMELINE.UPDATE_VOLUME, (v) => {
@@ -172,7 +171,6 @@ export default class AudioRender extends BaseRender {
     if (this._noAudio || this._parent.seeking) {
       return
     }
-    console.log(this.TAG, '_doPlay', 'audioRender currentTime:', this.currentTime)
     this.resume()
   }
 
@@ -180,7 +178,6 @@ export default class AudioRender extends BaseRender {
     if (this._noAudio) {
       return
     }
-    console.log(this.TAG, '_doPause', 'audioRender currentTime:', this.currentTime)
     this._audioCtx.suspend()
   }
 
@@ -293,7 +290,6 @@ export default class AudioRender extends BaseRender {
 
   _getAudioBuffer (inSeeking) {
     if (!this._timeRange) return
-    // console.error('getAudioBuffer:', this._timeRange._buffers.length, this.currentTime)
     let buffer = this._timeRange.getBuffer(this._lastBuffer ? this._lastBuffer.end : this.currentTime, 0)
     if (!buffer) {
       // check end  for vod
@@ -302,7 +298,6 @@ export default class AudioRender extends BaseRender {
         return
       }
       this._ready = false
-      // console.error('set ready false', this.currentTime, this._timeRange.shiftTime, this._timeRange.pushTime)
       this._audioCtx.suspend()
       this.emit(Events.AUDIO.AUDIO_WAITING)
       if (inSeeking) {

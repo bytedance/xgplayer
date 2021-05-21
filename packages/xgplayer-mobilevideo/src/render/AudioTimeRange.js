@@ -112,7 +112,6 @@ export default class AudioTimeRange {
 
     if (this.isLive) {
       this._duration += duration
-      // this._duration = end
     }
     return buffer.start
   }
@@ -169,8 +168,7 @@ export default class AudioTimeRange {
 
   getBuffer (time, tolerance) {
     if (this.isLive) {
-      let buffer = this._buffers.shift()
-      return buffer
+      return this._buffers.shift()
     }
     let buffer = this._buffers.filter((x) => x.start < time + TOLERANCE && x.end > time + TOLERANCE)[0]
     logger.log(this.TAG, `get audio buffer , currentTime:${time} ,buffer:[${buffer && buffer.start} , ${buffer && buffer.end}]`)

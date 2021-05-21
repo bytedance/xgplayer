@@ -158,6 +158,7 @@ export default class TimeLine extends EventEmitter {
       this.emit(Events.TIMELINE.DO_PAUSE)
       this._readyStatus.audio = false
     })
+
     // only used for no audio exist
     this.videoRender.on(Events.VIDEO.VIDEO_WAITING, () => {
       logger.warn(this.TAG, 'lack data, video waiting')
@@ -221,6 +222,7 @@ export default class TimeLine extends EventEmitter {
       this._paused = false
     })
   }
+
   _startRender (from) {
     if (this._parent.error || !this.videoRender) return
     if (this._noAudio) {
@@ -308,7 +310,6 @@ export default class TimeLine extends EventEmitter {
       let resumed = this.currentAudioCanAutoplay
 
       if (!this._parent.startPlayed) {
-        console.error(this.TAG, 'play', 'startRender')
         this.emit(Events.TIMELINE.START_RENDER)
         this._parent.startPlayed = true
       }
@@ -389,7 +390,6 @@ export default class TimeLine extends EventEmitter {
     }
 
     if (this._parent.live) {
-      // if (this.currentTime < 0.1) return;
       if (this.currentTime < 0.1 || !this.audioCanAutoplay) return
 
       /**

@@ -110,7 +110,6 @@ class MVideo extends HTMLElement {
     this._playRequest = null
     this._degradeVideoUserGestured = false
     this._bindEvents()
-
     if (this._vMeta && !this.videoDecode) {
       this.setVideoMeta(this._vMeta)
     }
@@ -144,7 +143,7 @@ class MVideo extends HTMLElement {
       }
 
       if (status === 'error') {
-        console.warn(this.TAG, 'detect error:', data.message)
+        logger.warn(this.TAG, 'detect error:', data.message)
         this.pause()
         // 发生错误时 禁用
         this._disabled(true)
@@ -253,7 +252,6 @@ class MVideo extends HTMLElement {
       this._init();
       this._firstWebAudio = true
     }
-
     this.style.width = '100%'
     this.style.height = '100%'
     this.style.position = 'absolute'
@@ -381,7 +379,6 @@ class MVideo extends HTMLElement {
   // warn: 对点播,flush decoder应该放在分片被真实解码之前
   setVideoMeta (meta) {
     if (!this._isLive && this._vMeta) return
-
     this.timeline.emit(Events.TIMELINE.SET_METADATA, 'video', meta)
     this._vMeta = meta
   }
@@ -719,7 +716,7 @@ class MVideo extends HTMLElement {
     }
   }
   get videoDecode () {
-    return this.getAttribute('decodeMode') == VIDEO_DECODE_MODE_VALUE
+    return this.getAttribute('decodeMode') === VIDEO_DECODE_MODE_VALUE
   }
 }
 

@@ -17,9 +17,11 @@ export default class FrameQueue {
   get length () {
     return this._frames.length
   }
+
   get frames () {
     return this._frames
   }
+
   append (frame) {
     if (!frame.info) return
     const { dts, isGop, gopId } = frame.info

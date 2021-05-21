@@ -47,6 +47,8 @@ export default class TickTimer {
     }
     if (interval > 60) {
       interval = 60
+    } else if (interval > 25) {
+      interval = 25
     }
     this._worker.postMessage({ type: 'START', interval })
   }
