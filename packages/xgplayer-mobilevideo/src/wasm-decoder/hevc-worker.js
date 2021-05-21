@@ -213,7 +213,7 @@ self.onmessage = function (e) {
       msg: 'ERROR:invalid message'
     });
   } else {
-    if(data.msg !== 'init' && !decoder) return;
+    if (data.msg !== 'init' && !decoder) return;
     switch (data.msg) {
       case 'init':
         self.meta = data.meta;

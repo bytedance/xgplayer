@@ -1,6 +1,6 @@
 import { PageVisibility, FetchLoader } from 'xgplayer-helper-utils'
-import { FlvDemuxer } from 'xgplayer-helper-transmuxers'
-import { Buffer as XgBuffer, Tracks, Stream } from 'xgplayer-helper-models';
+import { FlvDemuxer, Mp4Remuxer as Remuxer } from 'xgplayer-helper-transmuxers'
+import { Buffer as XgBuffer, Tracks, Stream, PreSource } from 'xgplayer-helper-models';
 
 class Logger {
   warn () {}
@@ -13,5 +13,7 @@ export default {
   Tracks,
   XgBuffer,
   Logger,
-  Stream
+  Stream,
+  Remuxer,
+  PreSource
 };

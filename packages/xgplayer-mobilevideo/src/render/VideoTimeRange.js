@@ -67,6 +67,9 @@ export default class VideoTimeRange {
     return this._currentFrameQueue.length;
   }
 
+  get keyFrameLength () {
+    return this._keyframeQueue.length
+  }
   get totalSize () {
     return this._totalSize;
   }
@@ -194,8 +197,30 @@ export default class VideoTimeRange {
       }
     })
   }
-
-  append (frames, updateDuration) {
+  toAnnexBNalu (frames) {
+    frames.forEach((sample) => {
+      const nals = sample.nals;
+      if (!nals) return;
+      const nalsLength = nals.reduce((len, current) => {
+        return len + 4 + current.body.byteLength;
+      }, 0);
+      const newData = new Uint8Array(nalsLength);
+      let offset = 0;
+      nals.forEach((nal) => {
+        newData.set([0, 0, 0, 1], offset)
+        offset += 4;
+        newData.set(new Uint8Array(nal.body), offset);
+        offset += nal.body.byteLength;
+      })
+      sample.nals = null;
+      sample.data = newData;
+    })
+    // return frames
+  }
+  append (frames, updateDuration, isFormat) {
+    if (isFormat) {
+      this.toAnnexBNalu(frames)
+    }
     this._caclBaseDts(frames[0]);
 
     if (updateDuration) {
@@ -258,6 +283,9 @@ export default class VideoTimeRange {
         last = keyframe
       }
     })
+    if (!last) {
+      return
+    }
     if (time - last.position < preloadTime) return last;
   }
 

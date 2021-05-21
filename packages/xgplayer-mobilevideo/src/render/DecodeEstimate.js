@@ -78,6 +78,8 @@ export default class DecodeEstimate {
     if (len < MAX_QUEUE_LENGTH) return;
 
     this._fps = Math.ceil(1000 / this._avg(this._dtsDeltas, len));
+    //
+    // this._dtsDeltas = []
     console.log(this.TAG, 'estimate fps:', this._fps);
     this._needEstimate = false;
   }
