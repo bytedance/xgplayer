@@ -135,11 +135,7 @@ export default class TimeLine extends EventEmitter {
 
     this.audioRender.on(Events.AUDIO.AUDIO_WAITING, () => {
       if (this._noAudio) return
-      logger.warn(
-        this.TAG,
-        'lack data, audio waiting,currentTime:',
-        this.currentTime
-      )
+      logger.warn(this.TAG, 'lack data, audio waiting,currentTime:', this.currentTime)
       this.emit(Events.TIMELINE.PLAY_EVENT, Events.VIDEO_EVENTS.TIMEUPDATE)
       this.emit(Events.TIMELINE.PLAY_EVENT, Events.VIDEO_EVENTS.WAITING)
       this.emit(Events.TIMELINE.DO_PAUSE)
@@ -165,18 +161,10 @@ export default class TimeLine extends EventEmitter {
     this.videoRender.on(Events.VIDEO.VIDEO_READY, this.onVideoReady)
 
     this.videoRender.on(Events.VIDEO.DECODE_LOW_FPS, () => {
-      let canSwitchToMultiWorker =
-        this._parent.live &&
-        this.videoRender.decodeMode === 2 &&
-        !this._switchToMultiWorker &&
-        !this._noAudio &&
-        this.fps / this.decodeFps < 2
+      let canSwitchToMultiWorker = this._parent.live && this.videoRender.decodeMode === 2 && !this._switchToMultiWorker && !this._noAudio && this.fps / this.decodeFps < 2
 
       if (canSwitchToMultiWorker) {
-        logger.warn(
-          this.TAG,
-          `switch to multi worker , decodeFps:${this.decodeFps} , fps:${this.fps}`
-        )
+        logger.warn(this.TAG, `switch to multi worker , decodeFps:${this.decodeFps} , fps:${this.fps}`)
         this._switchToMultiWorker = true
         this.videoRender.switchToMultiWorker()
         return
@@ -218,13 +206,7 @@ export default class TimeLine extends EventEmitter {
     if (this._noAudio) {
       this.emit(Events.TIMELINE.SYNC_DTS, 0)
     }
-    logger.log(
-      this.TAG,
-      'startRender: time=',
-      this.currentTime,
-      'seeking:',
-      this.seeking
-    )
+    logger.log(this.TAG, 'startRender: time=', this.currentTime, 'seeking:', this.seeking)
     this.emit(Events.TIMELINE.PLAY_EVENT, Events.VIDEO_EVENTS.CANPLAY)
 
     // 首帧画面显示
@@ -257,11 +239,7 @@ export default class TimeLine extends EventEmitter {
     if (!vSamp0 || !aSamp0) {
       if (!this.buffered.length) {
         // 暂不支持只有单track
-        this.emit(
-          Events.TIMELINE.PLAY_EVENT,
-          'error',
-          new Error('lack video or audio sample')
-        )
+        this.emit(Events.TIMELINE.PLAY_EVENT, 'error', new Error('lack video or audio sample'))
       }
       return
     }
@@ -290,10 +268,7 @@ export default class TimeLine extends EventEmitter {
     if (breakedFrag) {
       const vBaseDts = vSamp0.dts - frag.start
       const aBaseDts = aSamp0.dts - frag.start
-      logger.warn(
-        this.TAG,
-        `segment discontinue, id:${frag.id} reset vBaseDts=${vBaseDts} , aBaseDts=${aBaseDts}`
-      )
+      logger.warn(this.TAG, `segment discontinue, id:${frag.id} reset vBaseDts=${vBaseDts} , aBaseDts=${aBaseDts}`)
       this.emit(Events.TIMELINE.RESET_BASE_DTS, aBaseDts, 'audio')
       this.emit(Events.TIMELINE.RESET_BASE_DTS, vBaseDts, 'video')
     }
@@ -383,19 +358,11 @@ export default class TimeLine extends EventEmitter {
        * 4. audioRender 删除 A 之前的buffer块,重建 audioCtx
        * 5. 音频播放，视频解码 (视频位置 < 音频块位置)会短暂追帧
        */
-      let keyframe = this.videoRender.getChaseFrameStartPosition(
-        time,
-        this._parent.preloadTime + 1
-      )
+      let keyframe = this.videoRender.getChaseFrameStartPosition(time, this._parent.preloadTime + 1)
       if (keyframe) {
         let canSeek = this.audioRender.canSeek(keyframe.position)
         if (!canSeek) return
-        logger.warn(
-          this.TAG,
-          'chase frame to time: ',
-          keyframe.position,
-          this.duration
-        )
+        logger.warn(this.TAG, 'chase frame to time: ', keyframe.position, this.duration)
         this.emit(Events.TIMELINE.CHASE_FRAME, keyframe)
       }
       return

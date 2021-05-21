@@ -90,11 +90,7 @@ export default class AudioRender extends BaseRender {
       logger.warn(this.TAG, 'create webaudio error!')
       // AudioRender在Timeline constructor中实例化,timeline error handler还未绑定,异步触发
       setTimeout(() => {
-        this._emitTimelineEvents(
-          Events.TIMELINE.PLAY_EVENT,
-          'error',
-          this._assembleErr(ERROR_MSG.INIT_AUDIO_ERR)
-        )
+        this._emitTimelineEvents(Events.TIMELINE.PLAY_EVENT, 'error', this._assembleErr(ERROR_MSG.INIT_AUDIO_ERR))
       })
       return
     }
@@ -112,10 +108,7 @@ export default class AudioRender extends BaseRender {
     this._onStateChange = () => {
       if (!this._audioCtx) return
       if (this._audioCtx.state === 'running' && this._ready) {
-        this._emitTimelineEvents(
-          Events.TIMELINE.PLAY_EVENT,
-          Events.VIDEO_EVENTS.PLAYING
-        )
+        this._emitTimelineEvents(Events.TIMELINE.PLAY_EVENT, Events.VIDEO_EVENTS.PLAYING)
       }
     }
     this._audioCtx.addEventListener('statechange', this._onStateChange)
@@ -127,10 +120,7 @@ export default class AudioRender extends BaseRender {
     this._parent.on(Events.TIMELINE.UPDATE_VOLUME, (v) => {
       if (!this._gainNode) return
       this._gainNode.gain.value = isFinite(v) ? v : 1
-      this._emitTimelineEvents(
-        Events.TIMELINE.PLAY_EVENT,
-        Events.VIDEO_EVENTS.VOLUME_CHANGE
-      )
+      this._emitTimelineEvents(Events.TIMELINE.PLAY_EVENT, Events.VIDEO_EVENTS.VOLUME_CHANGE)
     })
 
     // 点播设置duration
@@ -163,11 +153,7 @@ export default class AudioRender extends BaseRender {
       try {
         this._assembleAAC(options && options.start)
       } catch (e) {
-        this._emitTimelineEvents(
-          Events.TIMELINE.PLAY_EVENT,
-          'error',
-          this._assembleErr(`ERROR_MSG.DECODE_ERR:${e && e.message}`)
-        )
+        this._emitTimelineEvents(Events.TIMELINE.PLAY_EVENT, 'error', this._assembleErr(`ERROR_MSG.DECODE_ERR:${e && e.message}`))
       }
     }
   }
@@ -227,10 +213,7 @@ export default class AudioRender extends BaseRender {
     this._reInitAudioCtx(next.start)
       .then(() => {
         this._startRender()
-        this._emitTimelineEvents(
-          Events.TIMELINE.PLAY_EVENT,
-          Events.VIDEO_EVENTS.TIMEUPDATE
-        )
+        this._emitTimelineEvents(Events.TIMELINE.PLAY_EVENT, Events.VIDEO_EVENTS.TIMEUPDATE)
       })
       .catch((e) => {})
   }
@@ -258,50 +241,29 @@ export default class AudioRender extends BaseRender {
       chunkBuffer.buffer,
       (uncompress) => {
         if (!this._timeRange) return
-        const start = this._timeRange.append(
-          uncompress,
-          uncompress.duration,
-          samp0.dts,
-          segmentStart
-        )
+        const start = this._timeRange.append(uncompress, uncompress.duration, samp0.dts, segmentStart)
         this._inDecoding = false
         if (!this._ready) {
           // init background Audio ele
-          let canEmit =
-            this.isLive ||
-            Math.floor(Math.abs(start - this.currentTime)) <=
-              Math.ceil(uncompress.duration)
+          let canEmit = this.isLive || Math.floor(Math.abs(start - this.currentTime)) <= Math.ceil(uncompress.duration)
           if (canEmit) {
             this._ready = true
             this.emit(Events.AUDIO.AUDIO_READY, start)
           }
         }
-        this._emitTimelineEvents(
-          Events.TIMELINE.PLAY_EVENT,
-          Events.VIDEO_EVENTS.PROGRESS
-        )
-        this._emitTimelineEvents(
-          Events.TIMELINE.PLAY_EVENT,
-          Events.VIDEO_EVENTS.DURATION_CHANGE
-        )
+        this._emitTimelineEvents(Events.TIMELINE.PLAY_EVENT, Events.VIDEO_EVENTS.PROGRESS)
+        this._emitTimelineEvents(Events.TIMELINE.PLAY_EVENT, Events.VIDEO_EVENTS.DURATION_CHANGE)
       },
       (e) => {
         this._inDecoding = false
-        this._emitTimelineEvents(
-          Events.TIMELINE.PLAY_EVENT,
-          'error',
-          this._assembleErr(`ERROR_MSG.DECODE_ERR:${e && e.message}`)
-        )
+        this._emitTimelineEvents(Events.TIMELINE.PLAY_EVENT, 'error', this._assembleErr(`ERROR_MSG.DECODE_ERR:${e && e.message}`))
       }
     )
   }
 
   _onSourceBufferEnded () {
     if (logger.long) {
-      logger.log(
-        this.TAG,
-        `source play end! currentTime:${this.currentTime} , duration:${this.duration}`
-      )
+      logger.log(this.TAG, `source play end! currentTime:${this.currentTime} , duration:${this.duration}`)
     }
     this._startRender()
   }
@@ -320,17 +282,11 @@ export default class AudioRender extends BaseRender {
 
   _getAudioBuffer (inSeeking) {
     if (!this._timeRange) return
-    let buffer = this._timeRange.getBuffer(
-      this._lastBuffer ? this._lastBuffer.end : this.currentTime,
-      0
-    )
+    let buffer = this._timeRange.getBuffer(this._lastBuffer ? this._lastBuffer.end : this.currentTime, 0)
     if (!buffer) {
       // check end  for vod
       if (!this.isLive && this.currentTime - this.duration > -1) {
-        this._emitTimelineEvents(
-          Events.TIMELINE.PLAY_EVENT,
-          Events.VIDEO_EVENTS.ENDED
-        )
+        this._emitTimelineEvents(Events.TIMELINE.PLAY_EVENT, Events.VIDEO_EVENTS.ENDED)
         return
       }
       this._ready = false

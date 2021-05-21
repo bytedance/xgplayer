@@ -47,11 +47,7 @@ export default class VideoRender extends BaseRender {
   }
 
   get fps () {
-    return (
-      this._decodeEstimate.fps ||
-      (this._meta && this._meta.frameRate && this._meta.frameRate.fps) ||
-      24
-    )
+    return this._decodeEstimate.fps || (this._meta && this._meta.frameRate && this._meta.frameRate.fps) || 24
   }
 
   get decodeFps () {
@@ -137,10 +133,7 @@ export default class VideoRender extends BaseRender {
 
   // the precise video dts sync to timeline time
   get preciseVideoDts () {
-    return (
-      this.audioSyncDts +
-      (this.timelinePosition - this.lastTimelinePosition) * 1000
-    )
+    return this.audioSyncDts + (this.timelinePosition - this.lastTimelinePosition) * 1000
   }
 
   get readyState () {
@@ -216,68 +209,50 @@ export default class VideoRender extends BaseRender {
 
     let waitingTimer
 
-    this._parent.on(
-      Events.VIDEO.UPDATE_VIDEO_FILLTYPE,
-      (type, { width, height }) => {
-        const { width: cvsWidth, height: cvsHeight } = this._canvas
-        let isGapX = !width || width / height > cvsWidth / cvsHeight // 左右有黑边
-        console.warn(
-          'isGapX: ',
-          isGapX,
-          type,
-          cvsWidth,
-          cvsHeight,
-          width,
-          height
-        )
-        if (type === 'cover') {
-          if (isGapX) {
-            this._canvas.style.height = 'auto'
-            this._canvas.style.width = '100%'
-            return
-          }
-          this._canvas.style.width = 'auto'
-          this.canvas.style.height = '100%'
-          return
-        }
-
-        if (type === 'fill') {
+    this._parent.on(Events.VIDEO.UPDATE_VIDEO_FILLTYPE, (type, { width, height }) => {
+      const { width: cvsWidth, height: cvsHeight } = this._canvas
+      let isGapX = !width || width / height > cvsWidth / cvsHeight // 左右有黑边
+      console.warn('isGapX: ', isGapX, type, cvsWidth, cvsHeight, width, height)
+      if (type === 'cover') {
+        if (isGapX) {
+          this._canvas.style.height = 'auto'
           this._canvas.style.width = '100%'
-          this._canvas.style.height = '100%'
           return
         }
-
-        this._canvas.style.top = 0
-        this._canvas.style.bottom = 0
-        this._canvas.style.left = 0
-        this._canvas.style.right = 0
-        this._canvas.style.maxWidth = '100%'
-        this._canvas.style.maxHeight = '100%'
+        this._canvas.style.width = 'auto'
+        this.canvas.style.height = '100%'
+        return
       }
-    )
+
+      if (type === 'fill') {
+        this._canvas.style.width = '100%'
+        this._canvas.style.height = '100%'
+        return
+      }
+
+      this._canvas.style.top = 0
+      this._canvas.style.bottom = 0
+      this._canvas.style.left = 0
+      this._canvas.style.right = 0
+      this._canvas.style.maxWidth = '100%'
+      this._canvas.style.maxHeight = '100%'
+    })
 
     // 容器宽高比 > 视频宽高比， 应该左右移动
     // 容器宽高比 < 视宽高比，应该上下移动
-    this._parent.on(
-      Events.VIDEO.UPDATE_VIDEO_COVER_POSITION,
-      ({ width, height }, left = 0, top = 0) => {
-        const { width: cvsWidth, height: cvsHeight } = this._canvas
-        let scaleCvsWidth = (height * cvsWidth) / cvsHeight
-        let scaleCvsHeight = (width * cvsHeight) / cvsWidth
-        let deltaX = width - scaleCvsWidth
-        let deltaY = height - scaleCvsHeight
-        let pX = deltaX * left + 'px'
-        let pY = deltaY * top + 'px'
-        this._canvas.style.left = pX
-        this._canvas.style.top = pY
-        console.warn(
-          `cvsWidth=${cvsWidth}, cvsHeight=${cvsHeight}, scaleCvsWidth=${scaleCvsWidth}, scaleCvsHeight=${scaleCvsHeight}`
-        )
-        console.warn(
-          `cover position: deltaX=${deltaX}, deltaY=${deltaY}, width=${width}, height=${height}, pX=${pX}, pY=${pY}`
-        )
-      }
-    )
+    this._parent.on(Events.VIDEO.UPDATE_VIDEO_COVER_POSITION, ({ width, height }, left = 0, top = 0) => {
+      const { width: cvsWidth, height: cvsHeight } = this._canvas
+      let scaleCvsWidth = (height * cvsWidth) / cvsHeight
+      let scaleCvsHeight = (width * cvsHeight) / cvsWidth
+      let deltaX = width - scaleCvsWidth
+      let deltaY = height - scaleCvsHeight
+      let pX = deltaX * left + 'px'
+      let pY = deltaY * top + 'px'
+      this._canvas.style.left = pX
+      this._canvas.style.top = pY
+      console.warn(`cvsWidth=${cvsWidth}, cvsHeight=${cvsHeight}, scaleCvsWidth=${scaleCvsWidth}, scaleCvsHeight=${scaleCvsHeight}`)
+      console.warn(`cover position: deltaX=${deltaX}, deltaY=${deltaY}, width=${width}, height=${height}, pX=${pX}, pY=${pY}`)
+    })
 
     // 同步时机
     // 1. 音频一小段buffer起播时
@@ -294,17 +269,13 @@ export default class VideoRender extends BaseRender {
 
       // 下一帧视频和音频时间差距较大,对外通知
       if (nextFrameDts && nextFrameDts - dts > 500) {
-        this._emitTimelineEvents(
-          Events.TIMELINE.PLAY_EVENT,
-          Events.VIDEO_EVENTS.LARGE_AV_GAP,
-          {
-            aDts: dts,
-            vDts: nextFrameDts,
-            frameLength: this._frameQueue.length,
-            currentTime: this._parent.currentTime,
-            duration: this._parent.duration
-          }
-        )
+        this._emitTimelineEvents(Events.TIMELINE.PLAY_EVENT, Events.VIDEO_EVENTS.LARGE_AV_GAP, {
+          aDts: dts,
+          vDts: nextFrameDts,
+          frameLength: this._frameQueue.length,
+          currentTime: this._parent.currentTime,
+          duration: this._parent.duration
+        })
       }
 
       logger.log(
@@ -365,11 +336,7 @@ export default class VideoRender extends BaseRender {
   }
 
   _workerErrorCallback (msg) {
-    this._emitTimelineEvents(
-      Events.TIMELINE.PLAY_EVENT,
-      'error',
-      this._assembleErr(msg)
-    )
+    this._emitTimelineEvents(Events.TIMELINE.PLAY_EVENT, 'error', this._assembleErr(msg))
   }
 
   _workerMessageCallback ({ type, data }) {
@@ -383,11 +350,7 @@ export default class VideoRender extends BaseRender {
           try {
             this._frameRender = new FrameRender(config)
           } catch (e) {
-            this._emitTimelineEvents(
-              Events.TIMELINE.PLAY_EVENT,
-              'error',
-              this._assembleErr(e && e.message)
-            )
+            this._emitTimelineEvents(Events.TIMELINE.PLAY_EVENT, 'error', this._assembleErr(e && e.message))
           }
         }
         this._startDecode()
@@ -408,11 +371,7 @@ export default class VideoRender extends BaseRender {
   }
 
   _initDecodeWorker () {
-    this._decoderWorkerMananger.initDecodeWorker(
-      this._workerMessageCallback,
-      this._workerErrorCallback,
-      this._meta
-    )
+    this._decoderWorkerMananger.initDecodeWorker(this._workerMessageCallback, this._workerErrorCallback, this._meta)
   }
 
   _receiveFrame (frame) {
@@ -423,8 +382,7 @@ export default class VideoRender extends BaseRender {
     this._decodeEstimate.addDecodeInfo(info)
 
     if (!this._isLive) {
-      let t =
-        info && info.baseDts !== undefined && (info.dts - info.baseDts) / 1000
+      let t = info && info.baseDts !== undefined && (info.dts - info.baseDts) / 1000
       if (t !== undefined && this._parent) {
         if (Math.abs(t - this._parent.currentTime) >= 4) return
       }
@@ -494,18 +452,11 @@ export default class VideoRender extends BaseRender {
     if (!this.isLive && !this._timeRange.frameLength) {
       this._switchVideoBuffer(this._parent.currentTime)
     }
-    if (
-      !this._ready &&
-      this._decoderWorkerMananger.wasmReady &&
-      this._noAudio
-    ) {
+    if (!this._ready && this._decoderWorkerMananger.wasmReady && this._noAudio) {
       this._startDecode()
     }
     if (this._noAudio) {
-      this._emitTimelineEvents(
-        Events.TIMELINE.PLAY_EVENT,
-        Events.VIDEO_EVENTS.DURATION_CHANGE
-      )
+      this._emitTimelineEvents(Events.TIMELINE.PLAY_EVENT, Events.VIDEO_EVENTS.DURATION_CHANGE)
     }
     if (!this._frameQueue.length && !this._decoderWorkerMananger.inDecoding) {
       this._startDecode()
@@ -546,17 +497,11 @@ export default class VideoRender extends BaseRender {
     this.emit(Events.VIDEO.VIDEO_READY)
 
     if (this.currentTime < 10) {
-      this._emitTimelineEvents(
-        Events.TIMELINE.PLAY_EVENT,
-        Events.VIDEO_EVENTS.LOADEDDATA
-      )
+      this._emitTimelineEvents(Events.TIMELINE.PLAY_EVENT, Events.VIDEO_EVENTS.LOADEDDATA)
     }
 
     if (this._noAudio) {
-      this._emitTimelineEvents(
-        Events.TIMELINE.PLAY_EVENT,
-        Events.VIDEO_EVENTS.PLAYING
-      )
+      this._emitTimelineEvents(Events.TIMELINE.PLAY_EVENT, Events.VIDEO_EVENTS.PLAYING)
     }
   }
 
@@ -605,10 +550,7 @@ export default class VideoRender extends BaseRender {
     this._frameQueue.shift(this.preciseVideoDts)
 
     if (Math.abs(this._lastTimeupdate - info.dts) > 250) {
-      this._emitTimelineEvents(
-        Events.TIMELINE.PLAY_EVENT,
-        Events.VIDEO_EVENTS.TIMEUPDATE
-      )
+      this._emitTimelineEvents(Events.TIMELINE.PLAY_EVENT, Events.VIDEO_EVENTS.TIMEUPDATE)
       this._lastTimeupdate = info.dts
     }
 
@@ -619,13 +561,7 @@ export default class VideoRender extends BaseRender {
       )
     }
     let ts = performance.now()
-    this._frameRender.render(
-      frame.buffer,
-      frame.width,
-      frame.height,
-      frame.yLinesize,
-      frame.uvLinesize
-    )
+    this._frameRender.render(frame.buffer, frame.width, frame.height, frame.yLinesize, frame.uvLinesize)
     this._renderCost = performance.now() - ts
     this._checkToDecode()
   }

@@ -4,13 +4,7 @@ import AvcWorker from 'web-worker:../decoder/worker.js'
 import { logger } from 'xgplayer-helper-utils'
 import EventEmitter from 'eventemitter3'
 import Events from '../events'
-import {
-  H264_DECODER_URL,
-  H265_DECODER_URL,
-  H265_THREAD_DECODER_URL,
-  ASM_H264_DECODER_URL,
-  ASM_H265_DECODER_URL
-} from '../config'
+import { H264_DECODER_URL, H265_DECODER_URL, H265_THREAD_DECODER_URL, ASM_H264_DECODER_URL, ASM_H265_DECODER_URL } from '../config'
 
 const CAN_USE_HEVC_THREAD_DECODE = true && !!window.SharedArrayBuffer
 const MAX_DECODE_ONCE_DEFAULT = 16
@@ -82,25 +76,11 @@ export default class DecodeWorkerManager extends EventEmitter {
   }
 
   _selectDecodeWorker () {
-    logger.log(
-      this.TAG,
-      'start init worker:',
-      performance.now(),
-      'hevc:',
-      this.isHevc,
-      'decoderMode:',
-      this._decoderMode
-    )
+    logger.log(this.TAG, 'start init worker:', performance.now(), 'hevc:', this.isHevc, 'decoderMode:', this._decoderMode)
     if (this.isHevc) {
       return {
-        decoder:
-          this._decoderMode === 1 ? new HevcThreadWorker() : new HevcWorker(),
-        url:
-          this._decoderMode === 3
-            ? ASM_H265_DECODER_URL
-            : this._decoderMode === 1
-              ? H265_THREAD_DECODER_URL
-              : H265_DECODER_URL
+        decoder: this._decoderMode === 1 ? new HevcThreadWorker() : new HevcWorker(),
+        url: this._decoderMode === 3 ? ASM_H265_DECODER_URL : this._decoderMode === 1 ? H265_THREAD_DECODER_URL : H265_DECODER_URL
       }
     }
     return {
@@ -131,13 +111,7 @@ export default class DecodeWorkerManager extends EventEmitter {
       const { msg } = e.data
       switch (msg) {
         case 'DECODER_READY':
-          logger.log(
-            this.TAG,
-            'wasm worker ready ',
-            performance.now(),
-            'cost:',
-            e.data.cost
-          )
+          logger.log(this.TAG, 'wasm worker ready ', performance.now(), 'cost:', e.data.cost)
           this._wasmReady = true
           // 加到decoder上面
           decoder._wasmInitCost = parseInt(e.data.cost)
@@ -400,11 +374,7 @@ export default class DecodeWorkerManager extends EventEmitter {
   destroy (reuseWorker) {
     if (reuseWorker) {
       // 只在单worker时使用
-      if (
-        !workerCached.length &&
-        !this.isHevc &&
-        this._wasmWorkers.length === 1
-      ) {
+      if (!workerCached.length && !this.isHevc && this._wasmWorkers.length === 1) {
         let worker = this._wasmWorkers.pop()
         worker.removeEventListener('message', worker.onMessage)
         worker.removeEventListener('error', worker.onError)

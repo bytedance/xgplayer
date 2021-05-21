@@ -25,12 +25,7 @@ class YUVCanvas {
     var canvas = this.canvas
     var gl = null
 
-    var validContextNames = [
-      'webgl',
-      'experimental-webgl',
-      'moz-webgl',
-      'webkit-3d'
-    ]
+    var validContextNames = ['webgl', 'experimental-webgl', 'moz-webgl', 'webkit-3d']
     var nameIndex = 0
 
     while (!gl && nameIndex < validContextNames.length) {
@@ -96,41 +91,19 @@ class YUVCanvas {
       '}'
     ].join('\n')
 
-    var YUV2RGB = [
-      1.16438,
-      0.0,
-      1.59603,
-      -0.87079,
-      1.16438,
-      -0.39176,
-      -0.81297,
-      0.52959,
-      1.16438,
-      2.01723,
-      0.0,
-      -1.08139,
-      0,
-      0,
-      0,
-      1
-    ]
+    var YUV2RGB = [1.16438, 0.0, 1.59603, -0.87079, 1.16438, -0.39176, -0.81297, 0.52959, 1.16438, 2.01723, 0.0, -1.08139, 0, 0, 0, 1]
     var vertexShader = gl.createShader(gl.VERTEX_SHADER)
     gl.shaderSource(vertexShader, vertexShaderScript)
     gl.compileShader(vertexShader)
     if (!gl.getShaderParameter(vertexShader, gl.COMPILE_STATUS)) {
-      console.log(
-        'Vertex shader failed to compile: ' + gl.getShaderInfoLog(vertexShader)
-      )
+      console.log('Vertex shader failed to compile: ' + gl.getShaderInfoLog(vertexShader))
     }
 
     var fragmentShader = gl.createShader(gl.FRAGMENT_SHADER)
     gl.shaderSource(fragmentShader, fragmentShaderScript)
     gl.compileShader(fragmentShader)
     if (!gl.getShaderParameter(fragmentShader, gl.COMPILE_STATUS)) {
-      console.log(
-        'Fragment shader failed to compile: ' +
-          gl.getShaderInfoLog(fragmentShader)
-      )
+      console.log('Fragment shader failed to compile: ' + gl.getShaderInfoLog(fragmentShader))
     }
 
     var program = gl.createProgram()
@@ -155,11 +128,7 @@ class YUVCanvas {
 
     var vertexPosBuffer = gl.createBuffer()
     gl.bindBuffer(gl.ARRAY_BUFFER, vertexPosBuffer)
-    gl.bufferData(
-      gl.ARRAY_BUFFER,
-      new Float32Array([1, 1, -1, 1, 1, -1, -1, -1]),
-      gl.STATIC_DRAW
-    )
+    gl.bufferData(gl.ARRAY_BUFFER, new Float32Array([1, 1, -1, 1, 1, -1, -1, -1]), gl.STATIC_DRAW)
 
     var vertexPosRef = gl.getAttribLocation(program, 'vertexPos')
     gl.enableVertexAttribArray(vertexPosRef)
@@ -167,11 +136,7 @@ class YUVCanvas {
 
     var texturePosBuffer = gl.createBuffer()
     gl.bindBuffer(gl.ARRAY_BUFFER, texturePosBuffer)
-    gl.bufferData(
-      gl.ARRAY_BUFFER,
-      new Float32Array([1, 0, 0, 0, 1, 1, 0, 1]),
-      gl.STATIC_DRAW
-    )
+    gl.bufferData(gl.ARRAY_BUFFER, new Float32Array([1, 0, 0, 0, 1, 1, 0, 1]), gl.STATIC_DRAW)
 
     var texturePosRef = gl.getAttribLocation(program, 'texturePos')
     gl.enableVertexAttribArray(texturePosRef)
@@ -181,11 +146,7 @@ class YUVCanvas {
 
     var uTexturePosBuffer = gl.createBuffer()
     gl.bindBuffer(gl.ARRAY_BUFFER, uTexturePosBuffer)
-    gl.bufferData(
-      gl.ARRAY_BUFFER,
-      new Float32Array([1, 0, 0, 0, 1, 1, 0, 1]),
-      gl.STATIC_DRAW
-    )
+    gl.bufferData(gl.ARRAY_BUFFER, new Float32Array([1, 0, 0, 0, 1, 1, 0, 1]), gl.STATIC_DRAW)
 
     var uTexturePosRef = gl.getAttribLocation(program, 'uTexturePos')
     gl.enableVertexAttribArray(uTexturePosRef)
@@ -195,11 +156,7 @@ class YUVCanvas {
 
     var vTexturePosBuffer = gl.createBuffer()
     gl.bindBuffer(gl.ARRAY_BUFFER, vTexturePosBuffer)
-    gl.bufferData(
-      gl.ARRAY_BUFFER,
-      new Float32Array([1, 0, 0, 0, 1, 1, 0, 1]),
-      gl.STATIC_DRAW
-    )
+    gl.bufferData(gl.ARRAY_BUFFER, new Float32Array([1, 0, 0, 0, 1, 1, 0, 1]), gl.STATIC_DRAW)
 
     var vTexturePosRef = gl.getAttribLocation(program, 'vTexturePos')
     gl.enableVertexAttribArray(vTexturePosRef)
@@ -295,16 +252,10 @@ class YUVCanvas {
     let h = this.canvas.height
     if (ratiow < ratioh) {
       h = (this.height * this.canvas.width) / this.width
-      top = parseInt(
-        (this.canvas.height - (this.height * this.canvas.width) / this.width) /
-          2
-      )
+      top = parseInt((this.canvas.height - (this.height * this.canvas.width) / this.width) / 2)
     } else {
       w = (this.width * this.canvas.height) / this.height
-      left = parseInt(
-        (this.canvas.width - (this.width * this.canvas.height) / this.height) /
-          2
-      )
+      left = parseInt((this.canvas.width - (this.width * this.canvas.height) / this.height) / 2)
     }
     gl.viewport(left, top, w, h)
 
@@ -322,45 +273,15 @@ class YUVCanvas {
 
     gl.activeTexture(gl.TEXTURE0)
     gl.bindTexture(gl.TEXTURE_2D, yTextureRef)
-    gl.texImage2D(
-      gl.TEXTURE_2D,
-      0,
-      gl.LUMINANCE,
-      yDataPerRow,
-      yRowCnt,
-      0,
-      gl.LUMINANCE,
-      gl.UNSIGNED_BYTE,
-      yData
-    )
+    gl.texImage2D(gl.TEXTURE_2D, 0, gl.LUMINANCE, yDataPerRow, yRowCnt, 0, gl.LUMINANCE, gl.UNSIGNED_BYTE, yData)
 
     gl.activeTexture(gl.TEXTURE1)
     gl.bindTexture(gl.TEXTURE_2D, uTextureRef)
-    gl.texImage2D(
-      gl.TEXTURE_2D,
-      0,
-      gl.LUMINANCE,
-      uDataPerRow,
-      uRowCnt,
-      0,
-      gl.LUMINANCE,
-      gl.UNSIGNED_BYTE,
-      uData
-    )
+    gl.texImage2D(gl.TEXTURE_2D, 0, gl.LUMINANCE, uDataPerRow, uRowCnt, 0, gl.LUMINANCE, gl.UNSIGNED_BYTE, uData)
 
     gl.activeTexture(gl.TEXTURE2)
     gl.bindTexture(gl.TEXTURE_2D, vTextureRef)
-    gl.texImage2D(
-      gl.TEXTURE_2D,
-      0,
-      gl.LUMINANCE,
-      vDataPerRow,
-      vRowCnt,
-      0,
-      gl.LUMINANCE,
-      gl.UNSIGNED_BYTE,
-      vData
-    )
+    gl.texImage2D(gl.TEXTURE_2D, 0, gl.LUMINANCE, vDataPerRow, vRowCnt, 0, gl.LUMINANCE, gl.UNSIGNED_BYTE, vData)
 
     gl.drawArrays(gl.TRIANGLE_STRIP, 0, 4)
   }

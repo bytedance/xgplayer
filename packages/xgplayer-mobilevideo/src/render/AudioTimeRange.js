@@ -99,10 +99,7 @@ export default class AudioTimeRange {
       buffer.end = buffer.start - start + end
     }
 
-    logger.log(
-      this.TAG,
-      `add new buffer range, [${buffer.start} , ${buffer.end}]`
-    )
+    logger.log(this.TAG, `add new buffer range, [${buffer.start} , ${buffer.end}]`)
 
     // todo: 去重,排序
     if (!this._buffers.filter((x) => x.start === start).length) {
@@ -158,15 +155,8 @@ export default class AudioTimeRange {
     if (this.isLive) {
       return this._buffers.shift()
     }
-    let buffer = this._buffers.filter(
-      (x) => x.start < time + TOLERANCE && x.end > time + TOLERANCE
-    )[0]
-    logger.log(
-      this.TAG,
-      `get audio buffer , currentTime:${time} ,buffer:[${
-        buffer && buffer.start
-      } , ${buffer && buffer.end}]`
-    )
+    let buffer = this._buffers.filter((x) => x.start < time + TOLERANCE && x.end > time + TOLERANCE)[0]
+    logger.log(this.TAG, `get audio buffer , currentTime:${time} ,buffer:[${buffer && buffer.start} , ${buffer && buffer.end}]`)
     return buffer
   }
 }

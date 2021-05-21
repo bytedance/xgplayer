@@ -96,13 +96,7 @@ export default class VideoTimeRange {
     if (this._baseDts !== -1) return
     if (!frame) return
     this._baseDts = frame.dts
-    logger.log(
-      this.TAG,
-      'set baseDts: ',
-      this._baseDts,
-      'frame len:',
-      this._currentFrameQueue.length
-    )
+    logger.log(this.TAG, 'set baseDts: ', this._baseDts, 'frame len:', this._currentFrameQueue.length)
   }
 
   // for live + no audio
@@ -113,19 +107,13 @@ export default class VideoTimeRange {
     for (let i = 0; i < len; i++) {
       let f = frames[i]
       if (f && f.options && f.options.meta) {
-        let pre =
-          frames[i - 1] ||
-          this._currentFrameQueue[this._currentFrameQueue.length - 1]
+        let pre = frames[i - 1] || this._currentFrameQueue[this._currentFrameQueue.length - 1]
         if (pre) {
           this._lastDuration += (pre.dts - this._baseDts) / 1000
         } else {
           this._lastDuration = this._duration
         }
-        logger.log(
-          this.TAG,
-          'updateBaseDts,record lastDuration:',
-          this._lastDuration
-        )
+        logger.log(this.TAG, 'updateBaseDts,record lastDuration:', this._lastDuration)
         this._baseDts = f.dts
         break
       }
@@ -175,11 +163,7 @@ export default class VideoTimeRange {
       end = start + duration
     }
 
-    logger.log(
-      this.TAG,
-      `add new buffer range [${start} , ${end}]`,
-      (options && options.start) / 1000
-    )
+    logger.log(this.TAG, `add new buffer range [${start} , ${end}]`, (options && options.start) / 1000)
     if (!this._buffers.filter((x) => x.start === start).length) {
       this._buffers.push({
         start,
@@ -252,15 +236,10 @@ export default class VideoTimeRange {
 
   // swith to new buffer range for vod
   switchBuffer (time) {
-    let buffer = this._buffers.filter(
-      (x) => x.start < time + TOLERANCE && x.end > time + TOLERANCE
-    )[0]
+    let buffer = this._buffers.filter((x) => x.start < time + TOLERANCE && x.end > time + TOLERANCE)[0]
 
     if (buffer) {
-      logger.log(
-        this.TAG,
-        `switch video buffer, time:${time} , buffer:[${buffer.start} , ${buffer.end}]`
-      )
+      logger.log(this.TAG, `switch video buffer, time:${time} , buffer:[${buffer.start} , ${buffer.end}]`)
       this._currentFrameQueue = buffer.frames.slice()
     } else {
       this._currentFrameQueue = []
@@ -283,9 +262,7 @@ export default class VideoTimeRange {
   }
 
   deletePassed (dts) {
-    this._currentFrameQueue = this._currentFrameQueue.filter(
-      (x) => x.dts >= dts
-    )
+    this._currentFrameQueue = this._currentFrameQueue.filter((x) => x.dts >= dts)
   }
 
   getDtsOfTime (time) {

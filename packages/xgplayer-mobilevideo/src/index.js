@@ -76,14 +76,7 @@ class MVideo extends HTMLElement {
 
   removeEventListener (eventName, handler, capture) {
     super.removeEventListener(eventName, handler, capture)
-    this._eventsBackup = this._eventsBackup.filter(
-      (x) =>
-        !(
-          x.eventName === eventName &&
-          x.handler === handler &&
-          x.capture === capture
-        )
-    )
+    this._eventsBackup = this._eventsBackup.filter((x) => !(x.eventName === eventName && x.handler === handler && x.capture === capture))
   }
 
   setAttribute (k, v) {
@@ -132,11 +125,7 @@ class MVideo extends HTMLElement {
 
       if (status === 'loadeddata') {
         Promise.resolve().then(() => {
-          this.timeline.emit(
-            Events.VIDEO.UPDATE_VIDEO_FILLTYPE,
-            this.xgfillType,
-            this.containerLayout
-          )
+          this.timeline.emit(Events.VIDEO.UPDATE_VIDEO_FILLTYPE, this.xgfillType, this.containerLayout)
         })
       }
 
@@ -196,11 +185,7 @@ class MVideo extends HTMLElement {
     if (!this.innerDegrade) return
 
     // 永久禁用
-    if (
-      force ||
-      !this.decodeFps ||
-      (this.decodeFps / this.fps <= 0.8 && this.bitrate < 2000000)
-    ) {
+    if (force || !this.decodeFps || (this.decodeFps / this.fps <= 0.8 && this.bitrate < 2000000)) {
       localStorage.setItem('mvideo_dis265', 1)
       return
     }
@@ -275,10 +260,7 @@ class MVideo extends HTMLElement {
 
   _degradeVideoInteract () {
     // Note
-    if (
-      this._degradeVideo &&
-      (this.innerDegrade === 1 || this.innerDegrade === 3)
-    ) {
+    if (this._degradeVideo && (this.innerDegrade === 1 || this.innerDegrade === 3)) {
       if (this._degradeVideoUserGestured) return
       let req = this._degradeVideo.play()
       req &&
@@ -294,10 +276,7 @@ class MVideo extends HTMLElement {
   }
 
   play (forceDestroy) {
-    logger.log(
-      this.TAG,
-      `mvideo called play(),ready:${this.timeline.ready}, paused:${this.timeline.paused}`
-    )
+    logger.log(this.TAG, `mvideo called play(),ready:${this.timeline.ready}, paused:${this.timeline.paused}`)
 
     this._degradeVideoInteract()
 
@@ -364,12 +343,7 @@ class MVideo extends HTMLElement {
       let aSam0 = audioTrack && audioTrack.samples[0]
       if (!vSam0 && !aSam0) return
       if (vSam0 || aSam0) {
-        logger.warn(
-          this.TAG,
-          `video firstDts:${vSam0 && vSam0.dts} , audio firstDts:${
-            aSam0 && aSam0.dts
-          }`
-        )
+        logger.warn(this.TAG, `video firstDts:${vSam0 && vSam0.dts} , audio firstDts:${aSam0 && aSam0.dts}`)
         this._logFirstFrame = true
       }
       if (this.lowlatency || (!aSam0 && !this._aMeta)) {
@@ -434,12 +408,7 @@ class MVideo extends HTMLElement {
   }
 
   updateObjectPosition (left, top) {
-    this.timeline.emit(
-      Events.VIDEO.UPDATE_VIDEO_COVER_POSITION,
-      this.containerLayout,
-      left,
-      top
-    )
+    this.timeline.emit(Events.VIDEO.UPDATE_VIDEO_COVER_POSITION, this.containerLayout, left, top)
     if (this._degradeVideo) {
       this._degradeVideo.style.objectPosition = `${left * 100}% ${top * 100}%`
     }
@@ -710,5 +679,4 @@ class MVideo extends HTMLElement {
   }
 }
 
-customElements.get('mobile-video') ||
-  customElements.define('mobile-video', MVideo)
+customElements.get('mobile-video') || customElements.define('mobile-video', MVideo)
