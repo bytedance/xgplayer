@@ -31,7 +31,7 @@ function getTouch (touches) {
   }
 }
 
-function preventDefault (e) {
+function preventToucheDefault (e) {
   const ua = navigator.userAgent;
   /(?:iPhone|iPad)/.test(ua) && e.cancelable && e.preventDefault()
 }
@@ -153,9 +153,8 @@ class Touche {
   }
 
   onTouchStart (e) {
-    console.log('')
     const {_pos, root} = this
-    preventDefault(e);
+    preventToucheDefault(e);
     const touch = getTouch(e.touches)
     _pos.x = touch ? parseInt(touch.pageX, 10) : e.pageX
     _pos.y = touch ? parseInt(touch.pageX, 10) : e.pageX
@@ -173,7 +172,7 @@ class Touche {
 
   onTouchEnd (e) {
     const {_pos, root} = this
-    preventDefault(e);
+    preventToucheDefault(e);
     this.__clearPress()
     root.removeEventListener(this.events.cancel, this.onTouchCancel)
     root.removeEventListener(this.events.end, this.onTouchEnd)

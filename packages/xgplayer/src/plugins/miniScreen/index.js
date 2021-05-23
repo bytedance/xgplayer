@@ -107,7 +107,7 @@ class MiniScreen extends Plugin {
     const {player} = this
     player.paused ? player.play() : player.pause()
   }
-q
+
   onScroll = (e) => {
     if ((!window.scrollY && window.scrollY !== 0) || Math.abs(window.scrollY - this.pos.scrollY) < 50) {
       return;

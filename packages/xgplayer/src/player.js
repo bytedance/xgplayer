@@ -17,6 +17,7 @@ import {
   version
 } from '../package.json'
 import I18N from './lang'
+
 /* eslint-disable camelcase */
 const PlAYER_HOOKS = ['play']
 
@@ -911,7 +912,11 @@ class Player extends Proxy {
     let rHeight = height;
     if ((fitVideoSize === 'auto' && fit > videoFit) || fitVideoSize === 'fixWidth') {
       rHeight = width / videoFit * 1000
-      this.root.style.height = `${rHeight + controlsHeight}px`
+      if (config.fluid) {
+        this.root.style.paddingTop = `${rHeight * 100 / rWidth}%`
+      } else {
+        this.root.style.height = `${rHeight + controlsHeight}px`
+      }
     } else if ((fitVideoSize === 'auto' && fit < videoFit) || fitVideoSize === 'fixHeight') {
       rWidth = videoFit * height / 1000
       this.root.style.width = `${rWidth}px`
