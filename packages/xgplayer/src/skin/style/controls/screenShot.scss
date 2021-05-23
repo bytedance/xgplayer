@@ -18,7 +18,8 @@
       height: 20px;
       color: rgba(255, 255, 255, 0.80);
       span{
-        width: 60px;
+        width: fit-content;
+        padding: 0 10px;
         height: 20px;
         line-height: 20px;
         background: rgba(0, 0, 0, 0.38);
