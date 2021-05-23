@@ -33,6 +33,7 @@
   },
   "license": "ISC",
   "dependencies": {
+    "babel-polyfill": "^6.26.0",
     "xgplayer-helper-codec": "2.4.22",
     "xgplayer-helper-models": "2.4.22",
     "xgplayer-helper-transmuxers": "2.4.22",

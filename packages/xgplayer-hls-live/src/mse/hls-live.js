@@ -25,7 +25,7 @@ class HlsLiveController {
   }
 
   init () {
-    const { XgBuffer, Tracks, Playlist, PreSource, Compatibility, FetchLoader, TsDemuxer, Mp4Remuxer, Mse } = this._pluginConfig
+    const { XgBuffer, Tracks, Playlist, PreSource, Compatibility, Loader, TsDemuxer, Mp4Remuxer, Mse } = this._pluginConfig
 
     // 初始化Buffer （M3U8/TS/Playlist);
     this._context.registry('M3U8_BUFFER', XgBuffer);
@@ -38,8 +38,8 @@ class HlsLiveController {
     this._compat = this._context.registry('COMPATIBILITY', Compatibility)();
 
     // 初始化M3U8Loader;
-    this._m3u8loader = this._context.registry('M3U8_LOADER', FetchLoader)({ buffer: 'M3U8_BUFFER', readtype: 1 });
-    this._tsloader = this._context.registry('TS_LOADER', FetchLoader)({ buffer: 'TS_BUFFER', readtype: 3 });
+    this._m3u8loader = this._context.registry('M3U8_LOADER', Loader)({ buffer: 'M3U8_BUFFER', readtype: 1 });
+    this._tsloader = this._context.registry('TS_LOADER', Loader)({ buffer: 'TS_BUFFER', readtype: 3 });
 
     // 初始化TS Demuxer
     this._tsDemuxer = this._context.registry('TS_DEMUXER', TsDemuxer)({ inputbuffer: 'TS_BUFFER' });
@@ -94,23 +94,11 @@ class HlsLiveController {
   }
 
   _onDemuxComplete (track1, track2) {
-    logger.log(this.TAG, 'track:', track1, track2);
-    let sourceBufferLen = 0;
-    try {
-      sourceBufferLen = this.mse.mediaSource.activeSourceBuffers.length;
-    } catch (e) {}
-
-    if (!this._needRecreateMs && sourceBufferLen && sourceBufferLen !== (track1 + track2)) {
-      logger.warn(this.TAG, 'track 数量发生变化，需要新建 ms');
-      this._needRecreateMs = true;
-    } else {
-      // 正常消费
-      this.emit(REMUX_EVENTS.REMUX_MEDIA, 'ts');
-      this._downloadedFragmentQueue.shift();
-      let next = this._downloadedFragmentQueue[0];
-      if (next) {
-        this.emit(DEMUX_EVENTS.DEMUX_START, next, this._playlist.end);
-      }
+    this.emit(REMUX_EVENTS.REMUX_MEDIA, 'ts');
+    this._downloadedFragmentQueue.shift();
+    let next = this._downloadedFragmentQueue[0];
+    if (next) {
+      this.emit(DEMUX_EVENTS.DEMUX_START, next, this._playlist.end);
     }
   }
 
@@ -201,7 +189,7 @@ class HlsLiveController {
   }
 
   _onLoadComplete (buffer) {
-    const { M3U8Parser, XgBuffer, FetchLoader, Crypto } = this._pluginConfig
+    const { M3U8Parser, XgBuffer, Loader, Crypto } = this._pluginConfig
     if (buffer.TAG === 'M3U8_BUFFER') {
       let mdata;
       try {
@@ -238,10 +226,10 @@ class HlsLiveController {
         this._context.registry('DECRYPT_BUFFER', XgBuffer)();
         this._context.registry('KEY_BUFFER', XgBuffer)();
         this._tsloader.buffer = 'DECRYPT_BUFFER';
-        this._keyLoader = this._context.registry('KEY_LOADER', FetchLoader)({buffer: 'KEY_BUFFER', readtype: 3});
+        this._keyLoader = this._context.registry('KEY_LOADER', Loader)({buffer: 'KEY_BUFFER', readtype: 3});
         const { count: times, delay: delayTime } = this._player.config.retry || {};
         // 兼容player.config上传入retry参数的逻辑
-        const retryCount = times || this._pluginConfig.retryCount ;
+        const retryCount = times || this._pluginConfig.retryCount;
         const retryDelay = delayTime || this._pluginConfig.retryDelay;
         this.emitTo('KEY_LOADER', LOADER_EVENTS.LADER_START, this._playlist.encrypt.uri, {}, retryCount, retryDelay);
       } else {
@@ -327,7 +315,7 @@ class HlsLiveController {
     let frag = this._playlist.getTs();
     const { count: times, delay: delayTime } = this._player.config.retry || {};
     // 兼容player.config上传入retry参数的逻辑
-    const retryCount = times || this._pluginConfig.retryCount ;
+    const retryCount = times || this._pluginConfig.retryCount;
     const retryDelay = delayTime || this._pluginConfig.retryDelay;
     const {fetchOptions = {}} = this._pluginConfig;
     if (frag && !frag.downloaded && !frag.downloading) {

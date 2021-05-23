@@ -7,6 +7,22 @@ const config = {
   external: ['xgplayer'],
   globals: {
     'xgplayer': 'Player'
+  },
+  babel: {
+    runtimeHelpers: true,
+    babelrc: false,
+    'presets': [
+      [
+        'env',
+        {
+          'targets': ['IE 10', 'chrome > 57'],
+          'modules': false,
+          'useBuiltIns': 'usage',
+          'corejs': 3
+        }
+      ]
+    ]
+    // externalHelpers: false
   }
 }
 

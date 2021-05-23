@@ -153,7 +153,7 @@ export default class HlsLivePlayer extends BasePlugin {
       this._context.destroy()
       this.hls = null
       this._context = null
-    })
+    }).catch(e => {})
   }
 
   destroy () {

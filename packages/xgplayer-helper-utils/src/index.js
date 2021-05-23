@@ -6,7 +6,8 @@ import Mse from './mse';
 import Sniffer from './sniffer';
 import PageVisibility from './sniffer/page-visibility';
 import EVENTS from './events';
-import FetchLoader from './loader-fetch';
+import FetchLoader from './loader-fetch/fetch-loader';
+import XhrLoader from './loader-fetch/xhr-loader'
 import logger from './common/dev-logger';
 
 export {
@@ -19,5 +20,6 @@ export {
   PageVisibility,
   EVENTS,
   FetchLoader,
+  XhrLoader,
   logger
 }
