@@ -379,6 +379,10 @@ class Player extends Proxy {
       let ignores = this.config.ignores
       Object.keys(Player.plugins).forEach(name => {
         let descriptor = Player.plugins[name]
+        if(!descriptor || typeof descriptor !== 'function'){
+          console.warn('plugin name', name , 'is invalid')
+          continue;
+        }
         if (!ignores.some(item => name === item || name === 's_' + item) && name !== 's_i18n') {
           if (['pc', 'tablet', 'mobile'].some(type => type === name)) {
             if (name === sniffer.device) {
@@ -509,7 +513,7 @@ class Player extends Proxy {
   }
 
   static installAll (list) {
-    for (let k in list) {
+    for(let k = 0; k < list.length; k++){
       Player.install(list[k].name, list[k].method)
     }
   }
