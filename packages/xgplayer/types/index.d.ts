@@ -184,7 +184,10 @@ declare module 'xgplayer' {
         cssFullscreen?: boolean;
 
         // 截图
-        screenShot?: boolean;
+        screenShot?: {
+            hideButton?: boolean;
+            iconText?: string;
+        };
 
         // 预览本地视频
         preview?: {uploadEl?: HTMLElement};
