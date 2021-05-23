@@ -381,19 +381,19 @@ class Player extends Proxy {
         let descriptor = Player.plugins[name]
         if(!descriptor || typeof descriptor !== 'function'){
           console.warn('plugin name', name , 'is invalid')
-          continue;
-        }
-        if (!ignores.some(item => name === item || name === 's_' + item) && name !== 's_i18n') {
-          if (['pc', 'tablet', 'mobile'].some(type => type === name)) {
-            if (name === sniffer.device) {
-              setTimeout(() => {
-                // if destroyed, skip
-                if (!self.video) return;
-                descriptor.call(self, self)
-              }, 0)
+        } else {
+          if (!ignores.some(item => name === item || name === 's_' + item) && name !== 's_i18n') {
+            if (['pc', 'tablet', 'mobile'].some(type => type === name)) {
+              if (name === sniffer.device) {
+                setTimeout(() => {
+                  // if destroyed, skip
+                  if (!self.video) return;
+                  descriptor.call(self, self)
+                }, 0)
+              }
+            } else {
+              descriptor.call(this, this)
             }
-          } else {
-            descriptor.call(this, this)
           }
         }
       })
