@@ -18,17 +18,17 @@ declare class Player extends Proxy {
   /**
    * 当前播放器根节点
    */
-  root?: HTMLElement;
+  readonly root: HTMLElement;
 
   /**
    * 控制栏和video不同布局的时候内部容器
    */
-  innerContainer?: HTMLElement;
+  readonly innerContainer?: HTMLElement;
 
   // 控制栏插件
-  controls?: any;
+  readonly controls?: any;
 
-  isReady: boolean;
+  readonly isReady: boolean;
 
   // 是否进入正常播放流程
   isPlaying: boolean;
@@ -40,7 +40,7 @@ declare class Player extends Proxy {
   isCanplay: boolean;
 
   // 当前是否处于焦点状态
-  isActive: boolean;
+  readonly isActive: boolean;
 
   // 当前是否处于css全屏状态
   isCssfullScreen: boolean;
@@ -113,56 +113,62 @@ declare class Player extends Proxy {
    * 注册插件
    * @param 插件配置
    */
-  registerPlugin(plugin: any) : any;
+  registerPlugin(plugin: any): any;
 
   /**
    * 注销插件
    * @param 插件配置
    */
-  unRegisterPlugin(plugin: any) : any;
+  unRegisterPlugin(plugin: any): any;
 
   /**
    * 根据插件名称获取插件对象
    * @param pluginName
    */
-  getPlugin(pluginName: string) : any;
+  getPlugin(pluginName: string): any;
 
   /**
    * 给播放器根节点添加className
    * @param className
    */
-  addClass (className: string): void;
+  addClass(className: string): void;
 
   /**
    * 给播放器根节点移除className
    * @param className
    */
-  removeClass (className: string): void;
+  removeClass(className: string): void;
 
   /**
    * 验证当前播放器根节点是否有某个className
    * @param className
    */
-  hasClass (className: string): boolean;
+  hasClass(className: string): boolean;
+
+  /**
+   * 重置播放器dom上的类名
+   *
+   */
+  public resetClasses(): void;
 
   /**
    * 给播放器根节点添加某个属性
    * @param key
    * @param value
    */
-  setAttribute (key: string, value: string): void;
+  setAttribute(key: string, value: string): void;
 
   /**
    * 给播放器根节点移除某个属性
-   * @param key 
+   * @param key
    */
-  removeAttribute (key: string): void;
+  removeAttribute(key: string): void;
 
   /**
    * 快进/快退
    * @param time
    */
-  seek (time:  number): void;
+  seek(time: number): void;
 
   /**
    * 检测某个事件是否在缓冲区域内
@@ -180,7 +186,7 @@ declare class Player extends Proxy {
    * @param left
    * @param top
    */
-  updateObjectPosition (left: number, top: number): void;
+  updateObjectPosition(left: number, top: number): void;
 
   /**
    * 启用某个插件定义的hook
@@ -193,7 +199,7 @@ declare class Player extends Proxy {
   /**
    * 获取当前播放器注册的插件实例列表
    */
-  get plugins(): Array<any>;
+  get plugins(): any;
 
   /**
     * 当前语言
@@ -235,7 +241,7 @@ declare class Player extends Proxy {
   /**
    * 获取累计播放时长
    */
-  get cumulateTime (): number;
+  get cumulateTime(): number;
 }
 declare const STATE_CLASS: STATE_CLASS
 declare const Events: IEvents
@@ -245,6 +251,7 @@ declare const I18N: I18N
 
 export {
   Player as default,
+  IPlayerOptions as IPlayerOptions,
   Events,
   Util,
   Sniffer,

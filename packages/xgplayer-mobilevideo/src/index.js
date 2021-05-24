@@ -137,6 +137,7 @@ class MVideo extends HTMLElement {
           this.degradeInfo = {
             decodeFps: this.decodeFps,
             bitrate: this.bitrate,
+            wasmInitCost: this.wasmInitCost,
             fps: this.fps,
             url: this.src,
             msg: data.message
@@ -152,6 +153,7 @@ class MVideo extends HTMLElement {
         this.degradeInfo = {
           decodeFps: this.decodeFps,
           bitrate: this.bitrate,
+          wasmInitCost: this.wasmInitCost,
           fps: this.fps,
           url: this.src
         };
@@ -228,7 +230,7 @@ class MVideo extends HTMLElement {
   }
 
   connectedCallback () {
-    logger.log(this.TAG, 'video connected to document');
+    logger.log(this.TAG, 'video connected to document', performance.now());
     if (!this.timeline) {
       this._init();
     }
@@ -559,6 +561,10 @@ class MVideo extends HTMLElement {
     return this.timeline.renderCost;
   }
 
+  get __wasmInitCost () {
+    return this.timeline.wasmInitCost;
+  }
+
   get __totalSize () {
     return this.timeline.totalSize;
   }
@@ -671,4 +677,4 @@ class MVideo extends HTMLElement {
   }
 }
 
-customElements.define('mobile-video', MVideo);
+customElements.get('mobile-video') || customElements.define('mobile-video', MVideo);

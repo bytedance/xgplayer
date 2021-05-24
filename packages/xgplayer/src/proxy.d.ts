@@ -1,4 +1,5 @@
-declare class Proxy {
+import { EventEmitter } from 'events';
+declare class Proxy extends EventEmitter {
   video?: HTMLElement;
 
   // 初始化时添加在video上的属性集合
@@ -24,7 +25,7 @@ declare class Proxy {
 
   // 设置/返回是否跨域
   get crossOrigin(): string | null;
-  // set crossOrigin(value: string | null): ;
+  set crossOrigin(value: string | null);
 
   // 设置/返回视频播放地址
   get currentSrc(): any;
@@ -36,24 +37,24 @@ declare class Proxy {
 
   // 设置/返回视频默认静音
   get defaultMuted(): boolean;
-  // set defaultMuted(value: boolean): void;
+  set defaultMuted(value: boolean);
 
   // 返回视频时长，单位：秒
-  get duration(): string;
+  get duration(): number;
 
   // 返回视频是否播放结束
-  get ended(): string;
+  get ended(): boolean;
 
   // 视频错误信息，该错误会返回当前语言的文本
   get error(): string;
 
   // 是否开启了循环播放
   get loop(): boolean;
-  // set loop(value: boolean): void;
+  set loop(value: boolean);
 
   // 静音
   get muted(): boolean;
-  // set muted(value: boolean): void;
+  set muted(value: boolean);
 
   // 返回视频的当前网络状态
   get networkState() : string | undefined;
@@ -64,7 +65,7 @@ declare class Proxy {
   get played (): any;
 
   get preload(): boolean;
-  // set preload(value: boolean): void;
+  set preload(value: boolean);
 
   // 返回视频的就绪状态
   get readyState(): string;
@@ -145,38 +146,38 @@ declare class Proxy {
    */
   detachVideoEvents(el: HTMLElement): void;
 
-  /**
-   * 添加事件监听
-   * @param event
-   * @param callback
-   */
-  on (event: string, callback: Function): void;
+  // /**
+  //  * 添加事件监听
+  //  * @param event
+  //  * @param callback
+  //  */
+  // on (event: string, callback: Function): void;
 
-   /**
-    * 添加事件监听
-    * @param event
-    * @param callback
-    */
-   once (event: string, callback: Function): void;
+  //  /**
+  //   * 添加事件监听
+  //   * @param event
+  //   * @param callback
+  //   */
+  //  once (event: string, callback: Function): void;
 
-   /**
-    * 解除事件监听
-    * @param event
-    * @param callback
-    */
-   off (event: string, callback: Function): void;
+  //  /**
+  //   * 解除事件监听
+  //   * @param event
+  //   * @param callback
+  //   */
+  //  off (event: string, callback: Function): void;
 
    /**
     * 解除所有事件监听
     */
    offAll (): void;
 
-   /**
-    * 触发某个事件
-    * @param event
-    * @param data
-    */
-   emit (event: string, data: any): void;
+  //  /**
+  //   * 触发某个事件
+  //   * @param event
+  //   * @param data
+  //   */
+  //  emit (event: string, data: any): void;
 }
 
 export default Proxy

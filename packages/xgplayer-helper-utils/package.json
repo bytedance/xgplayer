@@ -1,10 +1,10 @@
 {
   "name": "xgplayer-helper-utils",
-  "version": "2.4.20",
+  "version": "2.4.22",
   "description": "",
   "main": "lib/index.js",
   "module": "es/index.js",
-  "sideEffects":false,
+  "sideEffects": false,
   "scripts": {
     "prepare": "npm run build",
     "watch": "npm run watch:es & npm run watch:lib",
@@ -27,6 +27,7 @@
     ]
   },
   "dependencies": {
-    "xgplayer-helper-models": "2.4.20"
+    "eventemitter3": "^4.0.7",
+    "xgplayer-helper-models": "2.4.22"
   }
 }

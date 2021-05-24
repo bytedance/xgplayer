@@ -214,6 +214,7 @@ class HlsVodController {
   }
 
   _onLoaderCompete (buffer) {
+    const {fetchOptions = {}} = this._pluginConfig;
     if (buffer.TAG === 'M3U8_BUFFER') {
       this.m3u8Text = buffer.shift()
       try {
@@ -227,7 +228,7 @@ class HlsVodController {
         this._context.registry('KEY_BUFFER', XgBuffer)();
         this._tsloader.buffer = 'DECRYPT_BUFFER';
         this._keyLoader = this._context.registry('KEY_LOADER', FetchLoader)({buffer: 'KEY_BUFFER', readtype: 3});
-        this.emitTo('KEY_LOADER', LOADER_EVENTS.LADER_START, this._playlist.encrypt.uri);
+        this.emitTo('KEY_LOADER', LOADER_EVENTS.LADER_START, this._playlist.encrypt.uri, fetchOptions);
       } else {
         if (!this.preloadTime) {
           if (this._playlist.targetduration) {
@@ -243,11 +244,11 @@ class HlsVodController {
         if (frag) {
           this._logDownSegment(frag);
           this._playlist.downloading(frag.url, true);
-          this.emitTo('TS_LOADER', LOADER_EVENTS.LADER_START, frag.url)
+          this.emitTo('TS_LOADER', LOADER_EVENTS.LADER_START, frag.url, fetchOptions)
         } else {
           if (this.retrytimes > 0) {
             this.retrytimes--;
-            this.emitTo('M3U8_LOADER', LOADER_EVENTS.LADER_START, this.url)
+            this.emitTo('M3U8_LOADER', LOADER_EVENTS.LADER_START, this.url, fetchOptions)
           }
         }
       }
@@ -276,11 +277,11 @@ class HlsVodController {
       let frag = this._playlist.getTs();
       if (frag) {
         this._playlist.downloading(frag.url, true);
-        this.emitTo('TS_LOADER', LOADER_EVENTS.LADER_START, frag.url)
+        this.emitTo('TS_LOADER', LOADER_EVENTS.LADER_START, frag.url, fetchOptions)
       } else {
         if (this.retrytimes > 0) {
           this.retrytimes--;
-          this.emitTo('M3U8_LOADER', LOADER_EVENTS.LADER_START, this.url)
+          this.emitTo('M3U8_LOADER', LOADER_EVENTS.LADER_START, this.url, fetchOptions)
         }
       }
     }
@@ -331,9 +332,10 @@ class HlsVodController {
   }
 
   load (url) {
+    const {fetchOptions = {}} = this._pluginConfig;
     this.baseurl = M3U8Parser.parseURL(url);
     this.url = url;
-    this.emitTo('M3U8_LOADER', LOADER_EVENTS.LADER_START, url)
+    this.emitTo('M3U8_LOADER', LOADER_EVENTS.LADER_START, url, fetchOptions)
   }
 
   _preload (time) {
@@ -342,6 +344,7 @@ class HlsVodController {
       return;
     }
     let video = this._player.video;
+    const {fetchOptions = {}} = this._pluginConfig;
 
     // Get current time range
     let currentbufferend = -1;
@@ -360,7 +363,7 @@ class HlsVodController {
       if (frag && !frag.downloading && !frag.downloaded) {
         this._logDownSegment(frag);
         this._playlist.downloading(frag.url, true);
-        this.emitTo('TS_LOADER', LOADER_EVENTS.LADER_START, frag.url)
+        this.emitTo('TS_LOADER', LOADER_EVENTS.LADER_START, frag.url, fetchOptions)
       }
     } else if (currentbufferend < video.currentTime + this.preloadTime) {
       let frag = this._playlist.getLastDownloadedTs() || this._playlist.getTs(currentbufferend * 1000);
@@ -388,7 +391,7 @@ class HlsVodController {
       if (frag && !frag.downloading && !frag.downloaded) {
         this._logDownSegment(frag);
         this._playlist.downloading(frag.url, true);
-        this.emitTo('TS_LOADER', LOADER_EVENTS.LADER_START, frag.url)
+        this.emitTo('TS_LOADER', LOADER_EVENTS.LADER_START, frag.url, fetchOptions)
       }
     }
   }

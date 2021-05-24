@@ -310,6 +310,9 @@ declare module 'xgplayer' {
     copyDom(dom: HTMLElement): HTMLElement | '';
     setInterval(context: any, eventName: string, intervalFunc: any, frequency: number): void;
     clearInterval(context: any, eventName: string): void;
+    setTimeout(context: any, fun: any, time: number): number;
+    clearTimeout(context: any, timerId: number): void;
+    clearAllTimers(context: any): void;
     createImgBtn(name: string, imgUrl: string, width: number | string, height: number | string): HTMLElement;
     Hex2RGBA(hex: string, alpha: string): string;
     getFullScreenEl(): HTMLElement | null;
@@ -899,243 +902,278 @@ declare module 'xgplayer' {
   }
 
   class Proxy extends EventEmitter {
+    video?: HTMLElement;
+
+    // 初始化时添加在video上的属性集合
+    videoConfig?: {
+      [propName: string]: any;
+    };
 
     // 是否开始播放
-    public hasStart: boolean;
+    get hasStart(): boolean;
+    set hasStart(value: boolean);
 
     // 设置/返回 自动播放属性
-    public autoplay: boolean;
+    get autoplay(): boolean;
+    set autoplay(value: boolean);
 
     // 返回当前缓冲的TimeRange对象集合
-    public buffered: TimeRanges;
+    get buffered(): TimeRanges;
+
+    get bufferedPoint(): Array<{
+      start: number;
+      end: number;
+    }>;
 
     // 设置/返回是否跨域
-    public crossOrigin: string | null;
+    get crossOrigin(): string | null;
+    set crossOrigin(value: string | null);
 
     // 设置/返回视频播放地址
-    public currentSrc: string;
+    get currentSrc(): any;
+    set currentSrc(value: any);
 
     // 设置/返回视频当前播放时间
-    public currentTime: number;
+    get currentTime(): number;
+    set currentTime(value: number);
 
     // 设置/返回视频默认静音
-    public defaultMuted: boolean;
+    get defaultMuted(): boolean;
+    set defaultMuted(value: boolean);
 
     // 返回视频时长，单位：秒
-    public duration: number;
+    get duration(): number;
 
     // 返回视频是否播放结束
-    public ended: boolean;
+    get ended(): boolean;
 
     // 视频错误信息，该错误会返回当前语言的文本
-    public error: string | null;
+    get error(): string;
 
     // 是否开启了循环播放
-    public loop: boolean;
+    get loop(): boolean;
+    set loop(value: boolean);
 
     // 静音
-    public muted: boolean;
+    get muted(): boolean;
+    set muted(value: boolean);
 
     // 返回视频的当前网络状态
-    public networkState: number;
+    get networkState(): string | undefined;
+
+    // 返回当前视频是否是暂停状态
+    get paused(): boolean;
+
+    get played(): any;
+
+    get preload(): boolean;
+    // set preload(value: boolean): void;
 
     // 返回视频的就绪状态
-    public readyState: string;
+    get readyState(): string;
+
+    // 当前视频是否可以seek
+    get seekable(): boolean;
+
+    // 当前视频是否处于seeking状态下
+    get seeking(): boolean;
 
     // 设置/返回当前视频的地址
-    public src: string;
+    get src(): any;
+    set src(value: any);
 
     // 设置/返回视频的音量
-    public volume: number;
+    get volume(): number;
+    set volume(value: number);
 
-    // 播放器外层容器 DOM
-    public root: HTMLElement;
+    // // 播放器外层容器 DOM
+    // root: HTMLElement;
 
-    // 播放器控制条外层容器 DOM
-    public controls: HTMLElement;
+    // // 播放器控制条外层容器 DOM
+    // controls: HTMLElement;
 
-    // 播放器是否处于全屏状态
-    public readonly fullscreen: boolean;
+    // // 播放器是否处于全屏状态
+    // readonly fullscreen: boolean;
 
-    // 播放器弹幕是否开启
-    public readonly bullet: boolean;
+    // // 播放器弹幕是否开启
+    // readonly bullet: boolean;
 
-    // 播放器外挂字幕是否开启
-    public readonly textTrack: boolean;
+    // // 播放器外挂字幕是否开启
+    // readonly textTrack: boolean;
 
-    // 播放器画中画是否开启
-    public readonly pip: boolean;
-
-    /**
-     * 播放
-     *
-     */
-    public play(): Promise<void>;
+    // // 播放器画中画是否开启
+    // readonly pip: boolean;
 
     /**
      * 播放
      *
      */
-    public pause(): void;
+    play(): Promise<void> | null;
 
     /**
-     * 重新加载视频
+     * 播放
      *
      */
-    public reload(): void;
-
-    /**
-     * 重置播放器dom上的类名
-     *
-     */
-    public resetClasses(): void;
+    pause(): void;
 
     /**
      * 检测您的浏览器是否能播放不同类型的视频
      *
      * @param type 可播放类型，'video/mp4; codecs="avc1.64001E, mp4a.40.5"'
      */
-    public canPlayType(type: string): CanPlayTypeResult;
+    canPlayType(type: string): CanPlayTypeResult;
 
     /**
      *  返回当前的缓冲片段时间范围，start表示缓冲起始时间，end表示缓存截止时间
      *
      */
-    public getBufferedRange(): [number, number];
+    getBufferedRange(): Array<{
+      start: number;
+      end: number;
+    }>;
 
     /**
      * 播放器销毁
      *
      */
-    public destroy(): void;
-
-    /**
-     *  播放器重播，重播的组件就调用了这个方法
-     *
-     */
-    public replay(): void;
+    destroy(): void;
 
     /**
      * 绑定video对象
      */
-    public attachVideoEvents(el: HTMLElement): void;
+    attachVideoEvents(el: HTMLElement): void;
 
     /**
      * 解除绑定video元素
      */
+    detachVideoEvents(el: HTMLElement): void;
 
-    public detachVideoEvents(el: HTMLElement): void;
+    // /**
+    //  * 添加事件监听
+    //  * @param event
+    //  * @param callback
+    //  */
+    // on(event: string, callback: Function): void;
 
+    // /**
+    //  * 添加事件监听
+    //  * @param event
+    //  * @param callback
+    //  */
+    // once(event: string, callback: Function): void;
+
+    // /**
+    //  * 解除事件监听
+    //  * @param event
+    //  * @param callback
+    //  */
+    // off(event: string, callback: Function): void;
+
+    /**
+     * 解除所有事件监听
+     */
+    offAll(): void;
+
+    // /**
+    //  * 触发某个事件
+    //  * @param event
+    //  * @param data
+    //  */
+    // emit(event: string, data: any): void;
   }
 
   export default class Player extends Proxy {
-
-    /**
-     * 插件的安装方法
-     *
-     * @param name 插件的名字
-     * @param descriptor 插件函数
-     */
-    public static install(name: string, descriptor: (this: Player, player: Player) => void): void;
-
-    /**
-     * 多语言包
-     */
-    public static I18N: I18N;
-
-    /**
-     * 工具包
-     */
-    public static Util: Util;
-
-    /**
-     * 环境监测包
-     */
-    public static Sniffer: Sniffer;
-
-    /**
-     * 事件列表
-     */
-    public static Events: Events;
-
-    /**
-     * 默认preset
-     */
-    public static defaultPreset: DefaultPreset;
-
-    /**
-     * 插件存储对象
-     */
-    public plugins: any;
-
-    /**
-     * 当前语言包
-     */
-    public i18n: object;
-
-    /**
-     * 当前语言包包含的信息
-     */
-    public i18nKeys: object;
-
-    /**
-     * 当前语言
-     */
-    public lang: string;
-
     constructor(options: IPlayerOptions);
+
+    /**
+     * 当前播放器的配置信息
+     */
+    config?: IPlayerOptions;
+
+    /**
+     * 当前播放器根节点
+     */
+    readonly root?: HTMLElement;
+
+    /**
+     * 控制栏和video不同布局的时候内部容器
+     */
+    readonly innerContainer?: HTMLElement;
+
+    // 控制栏插件
+    readonly controls?: any;
+
+    readonly isReady: boolean;
+
+    // 是否进入正常播放流程
+    isPlaying: boolean;
+
+    // 是否处于seeking进行状态
+    isSeeking: boolean;
+
+    // 是否处于可播放状态
+    isCanplay: boolean;
+
+    // 当前是否处于焦点状态
+    isActive: boolean;
+
+    // 当前是否处于css全屏状态
+    readonly isCssfullScreen: boolean;
+
+    // 当前是否处于全屏状态
+    readonly fullscreen: boolean;
 
     /**
      * 启动播放器，start一般都是播放器内部隐式调用，主要功能是将video添加到DOM
      *
      * @param url 视频地址
      */
-    public start(url?: string): void;
+    start(url?: string): void;
 
     /**
      * 重新加载视频
      *
      */
-    public reload(): void;
+    reload(): void;
 
     /**
      * 播放器销毁
      *
      * @param isDelDom 是否删除Dom
      */
-    public destroy(isDelDom?: boolean): void;
+    destroy(isDelDom?: boolean): void;
 
     /**
      *  播放器重播，重播的组件就调用了这个方法
      *
      */
-    public replay(): void;
+    replay(): void;
 
     /**
      * 播放器进入全屏
      *
      * @param el 要进入的元素，通常传递`player.root`
      */
-    public getFullscreen(el: HTMLElement): void;
+    getFullscreen(el: HTMLElement): void;
 
     /**
      * 播放器退出全屏
      *
      * @param el 要进入的元素，通常传递`player.root`
      */
-    public exitFullscreen(el: HTMLElement): void;
+    exitFullscreen(el: HTMLElement): void;
 
     /**
      * 播放器进入样式全屏
      *
      */
-    public getCssFullscreen(): void;
+    getCssFullscreen(): void;
 
     /**
      * 播放器退出样式全屏
      *
      */
-    public exitCssFullscreen(): void;
+    exitCssFullscreen(): void;
 
     /**
      * 播放器旋转
@@ -1144,31 +1182,80 @@ declare module 'xgplayer' {
      * @param innerRotate 是否内部旋转，默认true
      * @param times 旋转次数（一次旋转90度），默认1
      */
-    public rotate(clockwise?: boolean, innerRotate?: boolean, times?: number): void;
+    rotate(clockwise?: boolean, innerRotate?: boolean, times?: number): void;
 
     /**
      * 注册插件
      * @param 插件配置
      */
-    public registerPlugin(plugin: any): any
+    registerPlugin(plugin: any): any;
 
     /**
      * 注销插件
      * @param 插件配置
      */
-    public unRegisterPlugin(plugin: any): any
+    unRegisterPlugin(plugin: any): any;
 
     /**
      * 根据插件名称获取插件对象
      * @param pluginName
      */
-    public getPlugin(pluginName: string): any
+    getPlugin(pluginName: string): any;
+
+    /**
+     * 给播放器根节点添加className
+     * @param className
+     */
+    addClass(className: string): void;
+
+    /**
+     * 给播放器根节点移除className
+     * @param className
+     */
+    removeClass(className: string): void;
+
+    /**
+     * 验证当前播放器根节点是否有某个className
+     * @param className
+     */
+    hasClass(className: string): boolean;
+
+    /**
+     * 给播放器根节点添加某个属性
+     * @param key
+     * @param value
+     */
+    setAttribute(key: string, value: string): void;
+
+    /**
+     * 给播放器根节点移除某个属性
+     * @param key 
+     */
+    removeAttribute(key: string): void;
 
     /**
      * 快进/快退
      * @param time
      */
-    public seek(time: number): void
+    seek(time: number): void;
+
+    /**
+     * 检测某个事件是否在缓冲区域内
+     * @param time
+     */
+    checkBuffer(time: number): boolean;
+
+    /**
+     * 根据视频尺寸和容器尺寸调整宽高
+     */
+    getVideoSize(): void;
+
+    /**
+     * 调整video对象显示的偏移情况
+     * @param left
+     * @param top
+     */
+    updateObjectPosition(left: number, top: number): void;
 
     /**
      * 启用某个插件定义的hook
@@ -1176,7 +1263,54 @@ declare module 'xgplayer' {
      * @param hookName
      * @param handler
      */
-    public usePluginHooks(pluginName: string, hookName: string, handler: (data?: any) => any): void;
+    usePluginHooks(pluginName: string, hookName: string, handler: (data?: any) => any): void;
+
+    /**
+     * 获取当前播放器注册的插件实例列表
+     */
+    get plugins(): any;
+
+    /**
+      * 当前语言
+      */
+    set lang(lang: string);
+    get lang(): string;
+
+    /**
+      * 当前语言包
+      */
+    get i18n(): Object;
+
+    /**
+      * 当前语言包包含的信息
+      */
+    get i18nKeys(): Object;
+
+    /**
+     * 当前sdk版本号
+     */
+    get version(): string;
+
+    /**
+     * 设置config中的url
+     */
+    // set url(url: any);
+    // get url(): any;
+
+    /**
+     * 设置当前封面图
+     */
+    set poster(posterUrl: string);
+
+    /**
+     * 获取当前是否是全屏切换进行中状态
+     */
+    get fullscreenChanging(): boolean;
+
+    /**
+     * 获取累计播放时长
+     */
+    get cumulateTime(): number;
   }
 
   export const STATE_CLASS: STATE_CLASS

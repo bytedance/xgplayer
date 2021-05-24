@@ -2,7 +2,7 @@ import HevcWorker from 'web-worker:../decoder/hevc-worker.js';
 import HevcThreadWorker from 'web-worker:../decoder/hevc-worker-thread.js';
 import AvcWorker from 'web-worker:../decoder/worker.js';
 import { logger } from 'xgplayer-helper-utils';
-import EventEmitter from 'events';
+import EventEmitter from 'eventemitter3';
 import Events from '../events';
 import {
   H264_DECODER_URL,
@@ -37,6 +37,7 @@ export default class DecodeWorkerManager extends EventEmitter {
      * 2: hevc | 264 decode
      * 3: hevc | 264 decode with asm.js
      */
+    this._wasmInitCost = 0;
     this._decoderMode = window.WebAssembly ? 2 : 3;
     this._maxDecodeOnce = MAX_DECODE_ONCE_DEFAULT;
     this._continueDecodeThreshold = CONTINUE_DECODE_THRESHOLD_DEFAULT;
@@ -60,6 +61,11 @@ export default class DecodeWorkerManager extends EventEmitter {
 
   get wasmReady () {
     return this._wasmReady;
+  }
+
+  get wasmInitCost () {
+    if (!this._wasmWorkers.length) return 0;
+    return this._wasmWorkers[0]._wasmInitCost;
   }
 
   get needToDecode () {
@@ -119,8 +125,10 @@ export default class DecodeWorkerManager extends EventEmitter {
       const { msg } = e.data;
       switch (msg) {
         case 'DECODER_READY':
-          logger.log(this.TAG, 'wasm worker ready ', performance.now());
+          logger.log(this.TAG, 'wasm worker ready ', performance.now(), 'cost:', e.data.cost);
           this._wasmReady = true;
+          // 加到decoder上面
+          decoder._wasmInitCost = parseInt(e.data.cost);
           if (!this._avccpushed) {
             this._initDecoderInternal(decoder, this._meta);
           }

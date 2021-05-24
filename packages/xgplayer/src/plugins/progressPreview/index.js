@@ -187,15 +187,22 @@ export default class ProgressPreview extends Plugin {
     }
   }
 
-  registerThumbnail () {
+  registerThumbnail (thumbnailConfig = {}) {
     if (Sniffer.device === 'mobile') {
       return
     }
     const {player, config} = this
     const thumbnail = player.getPlugin('thumbnail')
+    if (thumbnail) {
+      Object.keys(thumbnailConfig).map(key => {
+        thumbnail.config[key] = thumbnailConfig[key]
+      })
+    }
     if (!thumbnail || !thumbnail.usable || !config.isShowThumbnail) {
       Util.addClass(this.root, 'short-line no-thumbnail')
       return;
+    } else {
+      Util.removeClass(this.root, 'short-line no-thumbnail')
     }
     this._hasThumnail = true
     const tRoot = this.find('.xg-spot-thumbnail')

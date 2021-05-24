@@ -236,6 +236,43 @@ util.clearInterval = function (context, eventName) {
   context._interval[eventName] = null
 }
 
+util.setTimeout = function (context, fun, time) {
+  if (!context._timers) {
+    context._timers = []
+  }
+  let id = setTimeout(() => {
+    fun()
+    util.clearTimeout(context, id)
+  }, time)
+  context._timers.push(id)
+  return id
+}
+
+util.clearTimeout = function (context, id) {
+  const {_timers} = context
+  if (util.typeOf(_timers) === 'Array') {
+    for (let i = 0; i < _timers.length; i++) {
+      if (_timers[i] === id) {
+        _timers.splice(i, 1)
+        clearTimeout(id)
+        break
+      }
+    }
+  } else {
+    clearTimeout(id)
+  }
+}
+
+util.clearAllTimers = function (context) {
+  const {_timers} = context
+  if (util.typeOf(_timers) === 'Array') {
+    _timers.map(item => {
+      clearTimeout(item)
+    })
+    context._timerIds = []
+  }
+}
+
 util.createImgBtn = function (name, imgUrl, width, height) {
   let btn = util.createDom(`xg-${name}`, '', {}, `xgplayer-${name}-img`)
   btn.style.backgroundImage = `url("${imgUrl}")`
@@ -362,4 +399,5 @@ util.scrollLeft = function () {
   document.body.scrollLeft ||
   0;
 }
+
 export default util
