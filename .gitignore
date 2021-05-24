@@ -83,3 +83,5 @@ dist/
 examples/
 .DS_Store
 
+#https
+*.pem
