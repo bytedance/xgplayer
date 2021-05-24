@@ -1,5 +1,5 @@
 import Playlist from './playlist'
-import ProcessedBufferManager from './processed-buffer';
+import RemuxedBufferManager from './remuxed-buffer';
 import XGDataView from './data-view';
 import Tracks, { AudioTrack, VideoTrack} from './track';
 import Buffer from './u8a-buffer';
@@ -11,7 +11,7 @@ import TsFrag from './ts-frag';
 export {
   FlvTag,
   Playlist,
-  ProcessedBufferManager,
+  RemuxedBufferManager,
   XGDataView,
   Tracks,
   AudioTrack,

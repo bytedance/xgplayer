@@ -21,7 +21,7 @@ class TsDemuxer {
   initDemuxer () {
     this.demuxer.on(Demuxer.EVENTS.METADATA_PARSED, this.onMetaDataParsed.bind(this));
     this.demuxer.on(Demuxer.EVENTS.VIDEO_SAMPLE_PARSED, this.onVideoSampleParsed.bind(this));
-    this.demuxer.on(Demuxer.EVENTS.AUDIO_SAMPLES_PARSED, this.onAudioSamplesParsed.bind(this));
+    this.demuxer.on(Demuxer.EVENTS.AUDIO_SAMPLE_PARSED, this.onAudioSampleParsed.bind(this));
     this.demuxer.on(Demuxer.EVENTS.SEI_PARSED, this.emit.bind(this, DEMUX_EVENTS.SEI_PARSED));
   }
 
@@ -82,9 +82,8 @@ class TsDemuxer {
     this._tracks.videoTrack.samples.push(sample);
   }
 
-  onAudioSamplesParsed (samples) {
-    const { audioTrack } = this._tracks;
-    audioTrack.samples.push.apply(audioTrack.samples, samples);
+  onAudioSampleParsed (sample) {
+    this._tracks.audioTrack.samples.push(sample);
   }
 
   destroy () {

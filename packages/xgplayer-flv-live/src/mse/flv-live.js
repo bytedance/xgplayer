@@ -38,7 +38,7 @@ export default class FlvController {
   }
 
   initComponents () {
-    const { FetchLoader, XgBuffer, FlvDemuxer, Tracks, Remuxer, ProcessedBufferManager, Compatibility, Logger } = this._pluginConfig
+    const { FetchLoader, XgBuffer, FlvDemuxer, Tracks, Remuxer, RemuxedBufferManager, Compatibility, Logger } = this._pluginConfig
     const { remux } = this.configs;
 
     this._context.registry('FETCH_LOADER', FetchLoader)
@@ -53,7 +53,7 @@ export default class FlvController {
         remuxer[key] = remux[key]
       })
     }
-    this._context.registry('PRE_SOURCE_BUFFER', ProcessedBufferManager)
+    this._context.registry('PRE_SOURCE_BUFFER', RemuxedBufferManager)
 
     this._context.registry('COMPATIBILITY', Compatibility)
 

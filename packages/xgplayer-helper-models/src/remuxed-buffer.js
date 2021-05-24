@@ -1,4 +1,4 @@
-export class ProcessedBuffer {
+export class RemuxedBuffer {
   constructor () {
     /** @type{string} */
     this.mimetype = '';
@@ -11,16 +11,16 @@ export class ProcessedBuffer {
   }
 }
 
-class ProcessedBufferManager {
+class RemuxedBufferManager {
   constructor () {
-    /** @type{Object.<string, ProcessedBuffer>} */
+    /** @type{Object.<string, RemuxedBuffer>} */
     this.sources = {};
   }
 
   /**
    *
    * @param {string} name
-   * @return {ProcessedBuffer}
+   * @return {RemuxedBuffer}
    */
   getSource (name) {
     return this.sources[name];
@@ -28,10 +28,10 @@ class ProcessedBufferManager {
 
   /**
    * @param {string} name
-   * @return {ProcessedBuffer}
+   * @return {RemuxedBuffer}
    */
   createSource (name) {
-    this.sources[name] = new ProcessedBuffer();
+    this.sources[name] = new RemuxedBuffer();
     return this.sources[name];
   }
 
@@ -44,4 +44,4 @@ class ProcessedBufferManager {
   }
 }
 
-export default ProcessedBufferManager;
+export default RemuxedBufferManager;

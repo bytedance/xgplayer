@@ -25,19 +25,14 @@ class HlsLiveController {
   }
 
   init () {
-<<<<<<< packages/xgplayer-hls-live/src/mse/hls-live.js
-    const { XgBuffer, Tracks, Playlist, ProcessedBufferManager, Compatibility, FetchLoader, TsDemuxer, Mp4Remuxer, Mse } = this._pluginConfig
-=======
-    const { XgBuffer, Tracks, Playlist, PreSource, Compatibility, FetchLoader, TsDemuxer, Mp4Remuxer, Mse } = this._pluginConfig
-
->>>>>>> packages/xgplayer-hls-live/src/mse/hls-live.js
+    const { XgBuffer, Tracks, Playlist, RemuxedBufferManager, Compatibility, FetchLoader, TsDemuxer, Mp4Remuxer, Mse } = this._pluginConfig
     // 初始化Buffer （M3U8/TS/Playlist);
     this._context.registry('M3U8_BUFFER', XgBuffer);
     this._context.registry('TS_BUFFER', XgBuffer);
     this._track = this._context.registry('TRACKS', Tracks)();
 
     this._playlist = this._context.registry('PLAYLIST', Playlist)({autoclear: true, logger});
-    this._context.registry('PRE_SOURCE_BUFFER', ProcessedBufferManager);
+    this._context.registry('PRE_SOURCE_BUFFER', RemuxedBufferManager);
 
     this._compat = this._context.registry('COMPATIBILITY', Compatibility)();
 

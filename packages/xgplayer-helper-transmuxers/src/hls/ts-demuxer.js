@@ -39,7 +39,7 @@ class TsDemuxer extends EventEmitter {
       DEMUX_COMPLETE: 'DEMUX_COMPLETE',
       METADATA_PARSED: 'METADATA_PARSED',
       VIDEO_SAMPLE_PARSED: 'VIDEO_SAMPLE_PARSED',
-      AUDIO_SAMPLES_PARSED: 'AUDIO_SAMPLES_PARSED',
+      AUDIO_SAMPLE_PARSED: 'AUDIO_SAMPLES_PARSED',
       SEI_PARSED: 'SEI_PARSED'
     }
   }
@@ -167,8 +167,6 @@ class TsDemuxer extends EventEmitter {
     }
 
     let frameIndex = 0;
-    let samples = [];
-
     pes.ES.buffer.skip(pes.pesHeaderLength + 9);
     let streamChanged = false;
     while (pes.ES.buffer.position < pes.ES.buffer.length) {
@@ -186,7 +184,8 @@ class TsDemuxer extends EventEmitter {
           if (options.meta) {
             streamChanged = true;
           }
-          samples.push(sample);
+          sample.dts = sample.pts = Math.ceil(sample.pts / 90);
+          this.emit(TsDemuxer.EVENTS.AUDIO_SAMPLE_PARSED, sample);
           frameIndex++;
         } else {
           // logger.log('Unable to parse AAC frame');
@@ -197,12 +196,6 @@ class TsDemuxer extends EventEmitter {
         pes.ES.buffer.skip(1);
       }
     }
-    for (let i = 0; i < samples.length; i++) {
-      const sample = samples[i];
-      sample.dts = sample.pts = Math.ceil(sample.pts / 90);
-    }
-
-    this.emit(TsDemuxer.EVENTS.AUDIO_SAMPLES_PARSED, samples);
   }
 
   pushVideoSample (pes, options) {

@@ -71,14 +71,14 @@ class FlvDemuxer extends EventEmitter {
     return result
   }
 
-  parse (buffer) {
+  demux (buffer) {
     if (!this.headerParsed) {
       if (buffer.length < 13) {
         return
       }
       const header = buffer.shift(13)
       this.parseFlvHeader(header)
-      this.parse(buffer) // recursive invoke
+      this.demux(buffer) // recursive invoke
     } else {
       if (buffer.length < 11) {
         return
@@ -361,7 +361,6 @@ class FlvDemuxer extends EventEmitter {
     const vSample = new VideoSample(flvTag);
     const frameType = (header & 0xf0) >>> 4
     vSample.isKeyframe = frameType === 1
-    // let tempCodecID = this.tracks.videoTrack.codecID
     let codecID = header & 0x0f
 
     // hevc和avc的header解析方式一样

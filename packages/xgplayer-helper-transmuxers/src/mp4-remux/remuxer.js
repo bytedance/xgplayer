@@ -268,7 +268,7 @@ export default class Mp4Remuxer extends EventEmitter {
       logger.log(this.TAG, 'remux to mp4 video:', [firstDts / 1000, mp4Samples[mp4Samples.length - 1].dts / 1000]);
     }
 
-    let moofMdat = new Buffer()
+    const moofMdat = new Buffer()
     if (mp4Samples.length && track.meta) {
       const moof = Fmp4.moof({
         id: track.meta.id,
@@ -292,7 +292,7 @@ export default class Mp4Remuxer extends EventEmitter {
     }
 
     this.isFirstVideo = false
-    this.emit(Mp4Remuxer.EVENTS.TRACK_REMUXED, 'video')
+    this.emit(Mp4Remuxer.EVENTS.TRACK_REMUXED, 'video', moofMdat);
 
     track.samples = []
     track.length = 0
