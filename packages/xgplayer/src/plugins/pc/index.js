@@ -27,7 +27,7 @@ export default class PCPlugin extends BasePlugin {
   initEvents () {
     const { video, root } = this.player;
 
-    video.addEventListener('click', this.onVideoClick, false)
+    root.addEventListener('click', this.onVideoClick, false)
     video.addEventListener('dblclick', this.onVideoDblClick, false)
     Object.keys(MOUSE_EVENTS).map(item => {
       root.addEventListener(item, this[MOUSE_EVENTS[item]], false)
@@ -77,31 +77,33 @@ export default class PCPlugin extends BasePlugin {
 
   onVideoClick = (e) => {
     const { player, playerConfig } = this
-    if (!e.target || e.target !== player.video || playerConfig.closeVideoClick) {
+    if (e.target && playerConfig.closeVideoClick) {
       return
     }
-    e.preventDefault()
-    if (!playerConfig.closeVideoStopPropagation) {
-      e.stopPropagation()
+    if (e.target === player.root || e.target === player.video || e.target === player.innerContainer) {
+      e.preventDefault()
+      if (!playerConfig.closeVideoStopPropagation) {
+        e.stopPropagation()
+      }
+      if (this.clickTimer) {
+        clearTimeout(this.clickTimer)
+        this.clickTimer = null
+      }
+      let fun = null
+      if (!player.ended) {
+        fun = player.paused ? player.play : player.pause
+      } else {
+        fun = player.duration !== Infinity && player.duration > 0 ? player.replay : null
+      }
+      if (!fun) {
+        return
+      }
+      this.clickTimer = setTimeout(() => {
+        fun.call(player)
+        clearTimeout(this.clickTimer)
+        this.clickTimer = null
+      }, 200)
     }
-    if (this.clickTimer) {
-      clearTimeout(this.clickTimer)
-      this.clickTimer = null
-    }
-    let fun = null
-    if (!player.ended) {
-      fun = player.paused ? player.play : player.pause
-    } else {
-      fun = player.duration !== Infinity && player.duration > 0 ? player.replay : null
-    }
-    if (!fun) {
-      return
-    }
-    this.clickTimer = setTimeout(() => {
-      fun.call(player)
-      clearTimeout(this.clickTimer)
-      this.clickTimer = null
-    }, 200)
   }
 
   onVideoDblClick = (e) => {
