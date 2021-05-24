@@ -139,7 +139,7 @@ class FlvDemuxer {
       try {
         this.demuxer.parse(this.loaderBuffer)
       } catch (e) {
-        this.emit(DEMUX_EVENTS.DEMUX_ERROR, this.TAG, e)
+        // this.emit(DEMUX_EVENTS.DEMUX_ERROR, this.TAG, e)
       }
       this.emit(DEMUX_EVENTS.DEMUX_COMPLETE)
     }

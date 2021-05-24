@@ -242,7 +242,7 @@ class Playlist {
           id: this._ts[url].id,
           cc: this._ts[url].cc
         };
-        if (this.autoclear) {
+        if (this.autoclear && this._lastget) {
           delete this._ts[this._lastget.url];
           delete this._list[this._lastget.time];
         }

@@ -240,8 +240,8 @@ class HlsLiveController {
         this._keyLoader = this._context.registry('KEY_LOADER', FetchLoader)({buffer: 'KEY_BUFFER', readtype: 3});
         const { count: times, delay: delayTime } = this._player.config.retry || {};
         // 兼容player.config上传入retry参数的逻辑
-        const retryCount = times || this._pluginConfig.retryCount;
-        const retryDelay = delayTime || this._pluginConfig.retryDelay;
+        const retryCount = typeof times === 'undefined' ? this._pluginConfig.retryCount : times;
+        const retryDelay = typeof delayTime === 'undefined' ? this._pluginConfig.retryDelay : delayTime;
         this.emitTo('KEY_LOADER', LOADER_EVENTS.LADER_START, this._playlist.encrypt.uri, {}, retryCount, retryDelay);
       } else {
         this._m3u8Loaded(mdata);
@@ -326,8 +326,8 @@ class HlsLiveController {
     let frag = this._playlist.getTs();
     const { count: times, delay: delayTime } = this._player.config.retry || {};
     // 兼容player.config上传入retry参数的逻辑
-    const retryCount = times || this._pluginConfig.retryCount;
-    const retryDelay = delayTime || this._pluginConfig.retryDelay;
+    const retryCount = typeof times === 'undefined' ? this._pluginConfig.retryCount : times;
+    const retryDelay = typeof delayTime === 'undefined' ? this._pluginConfig.retryDelay : delayTime;
     if (frag && !frag.downloaded && !frag.downloading) {
       this._logDownSegment(frag);
       this._playlist.downloading(frag.url, true);

@@ -7,7 +7,7 @@ import { AudioTrackMeta, VideoTrackMeta } from './track-meta';
 import { AudioSample, VideoSample } from './track-sample';
 import MediaInfo from './media-info';
 import FlvTag from './flv-tag';
-
+import TsFrag from './ts-frag';
 export {
   FlvTag,
   Playlist,
@@ -21,5 +21,6 @@ export {
   VideoTrackMeta,
   AudioSample,
   VideoSample,
-  MediaInfo
+  MediaInfo,
+  TsFrag
 }

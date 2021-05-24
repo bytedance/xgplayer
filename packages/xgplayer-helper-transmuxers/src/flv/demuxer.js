@@ -367,7 +367,7 @@ class FlvDemuxer extends EventEmitter {
     // hevc和avc的header解析方式一样
     flvTag.avcPacketType = buffer.shift(1)[0]
     vSample.cts = buffer.toInt(0, 3)
-    vSample.cts = (flvTag.cts << 8) >> 8
+    vSample.cts = (vSample.cts << 8) >> 8
     buffer.shift(3)
 
     // 12 for hevc, 7 for avc
