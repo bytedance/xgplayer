@@ -17,6 +17,7 @@ import {
   version
 } from '../package.json'
 import I18N from './lang'
+
 /* eslint-disable camelcase */
 const PlAYER_HOOKS = ['play']
 
@@ -265,7 +266,9 @@ class Player extends Proxy {
       }
       const {autoplay, startTime, volume} = this.config
       XG_DEBUG.logInfo('player', 'canPlayFunc', startTime)
-      this.volume = typeof volume === 'number' ? volume : 0.6
+      if (Util.typeOf(volume) === 'Number') {
+        this.volume = volume
+      }
       if (startTime) {
         this.currentTime = startTime > this.duration ? this.duration : startTime
       }
@@ -909,7 +912,11 @@ class Player extends Proxy {
     let rHeight = height;
     if ((fitVideoSize === 'auto' && fit > videoFit) || fitVideoSize === 'fixWidth') {
       rHeight = width / videoFit * 1000
-      this.root.style.height = `${rHeight + controlsHeight}px`
+      if (config.fluid) {
+        this.root.style.paddingTop = `${rHeight * 100 / rWidth}%`
+      } else {
+        this.root.style.height = `${rHeight + controlsHeight}px`
+      }
     } else if ((fitVideoSize === 'auto' && fit < videoFit) || fitVideoSize === 'fixHeight') {
       rWidth = videoFit * height / 1000
       this.root.style.width = `${rWidth}px`
