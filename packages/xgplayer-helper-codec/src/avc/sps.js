@@ -117,8 +117,8 @@ class SPSParser {
     if (vui_parameters_present_flag) {
       if (gb.readBool()) { // aspect_ratio_info_present_flag
         let aspect_ratio_idc = gb.readByte()
-        let par_w_table = [1, 12, 10, 16, 40, 24, 20, 32, 80, 18, 15, 64, 160, 4, 3, 2]
-        let par_h_table = [1, 11, 11, 11, 33, 11, 11, 11, 33, 11, 11, 33, 99, 3, 2, 1]
+        let par_h_table = [1, 12, 10, 16, 40, 24, 20, 32, 80, 18, 15, 64, 160, 4, 3, 2]
+        let par_w_table = [1, 11, 11, 11, 33, 11, 11, 11, 33, 11, 11, 33, 99, 3, 2, 1]
 
         if (aspect_ratio_idc > 0 && aspect_ratio_idc < 16) {
           par_width = par_w_table[aspect_ratio_idc - 1]

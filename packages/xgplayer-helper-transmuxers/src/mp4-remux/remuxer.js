@@ -231,7 +231,7 @@ export default class Mp4Remuxer extends EventEmitter {
         }
         mp4Samples.push({
           dts,
-          cts: Math.abs(cts) > 2000 ? sampleDuration : cts,
+          cts,
           pts,
           data: avcSample.data,
           size: avcSample.data.byteLength,
