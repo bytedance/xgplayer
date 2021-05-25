@@ -50,7 +50,7 @@ export default class Mp4Remuxer extends EventEmitter {
       keys: []
     }
 
-    this.removeEventListeners();
+    this.removeAllListeners();
   }
 
   /**
