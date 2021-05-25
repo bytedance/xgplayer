@@ -1,5 +1,21 @@
 .xgplayer {
   .xgplayer-pip {
-    display: none;
+    .xg-exit-pip {
+      display: none;
+    }
+
+    .xg-get-pip {
+      display: block;
+    }
+
+    &[data-state='pip'] {
+      .xg-exit-pip {
+        display: block;
+      }
+
+      .xg-get-pip {
+        display: none;
+      }
+    }
   }
 }

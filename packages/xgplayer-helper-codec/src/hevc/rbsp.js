@@ -1,7 +1,7 @@
 class RBSP {
   /**
    * convert EBSP to RBSP
-   * @param data {Uint8Array}
+   * @param {Uint8Array} data
    * @returns {Uint8Array}
    * @constructor
    */
@@ -16,7 +16,7 @@ class RBSP {
   }
 
   /**
-   * @param data {Uint8Array}
+   * @param {Uint8Array} data
    * @constructor
    */
   static EBSP2SODB (data) {

@@ -31,6 +31,11 @@ function getTouch (touches) {
   }
 }
 
+function preventToucheDefault (e) {
+  const ua = navigator.userAgent;
+  /(?:iPhone|iPad)/.test(ua) && e.cancelable && e.preventDefault()
+}
+
 function getDefaultConfig () {
   return {
     pressDelay: 600,
@@ -66,15 +71,7 @@ class Touche {
     this.onTouchMove = this.onTouchMove.bind(this)
     this.onTouchEnd = this.onTouchEnd.bind(this)
     this.onTouchCancel = this.onTouchCancel.bind(this)
-    // this.root.addEventListener('touchstart', this.onTouchStart)
     this.root.addEventListener(this.events.start, this.onTouchStart)
-  }
-
-  __stopPropagation (e) {
-    if (e) {
-      e.stopPropagation()
-      e.cancelable && e.preventDefault()
-    }
   }
 
   __setPress (e) {
@@ -157,14 +154,12 @@ class Touche {
 
   onTouchStart (e) {
     const {_pos, root} = this
+    preventToucheDefault(e);
     const touch = getTouch(e.touches)
     _pos.x = touch ? parseInt(touch.pageX, 10) : e.pageX
     _pos.y = touch ? parseInt(touch.pageX, 10) : e.pageX
     _pos.start = true
     this.__setPress(e)
-    // root.addEventListener('touchend', this.onTouchEnd)
-    // root.addEventListener('touchcancel', this.onTouchCancel)
-    // root.addEventListener('touchmove', this.onTouchMove)
     root.addEventListener(this.events.end, this.onTouchEnd)
     root.addEventListener(this.events.cancel, this.onTouchCancel)
     root.addEventListener(this.events.move, this.onTouchMove)
@@ -177,9 +172,8 @@ class Touche {
 
   onTouchEnd (e) {
     const {_pos, root} = this
+    preventToucheDefault(e);
     this.__clearPress()
-    // root.removeEventListener('touchend', this.onTouchEnd)
-    // root.removeEventListener('touchmove', this.onTouchMove)
     root.removeEventListener(this.events.cancel, this.onTouchCancel)
     root.removeEventListener(this.events.end, this.onTouchEnd)
     root.removeEventListener(this.events.move, this.onTouchMove)
@@ -200,7 +194,6 @@ class Touche {
     const y = touch ? parseInt(touch.pageY, 10) : e.pageX
     const diffx = x - _pos.x
     const diffy = y - _pos.y
-    // console.log(`diffx: ${diffx} diffy:${diffy}`)
     if (Math.abs(diffy) < config.miniStep && Math.abs(diffx) < config.miniStep) {
       return
     }

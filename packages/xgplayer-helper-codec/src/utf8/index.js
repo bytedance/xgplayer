@@ -1,4 +1,9 @@
 class UTF8 {
+  /**
+   *
+   * @param {Uint8Array} uint8array
+   * @return {string}
+   */
   static decode (uint8array) {
     const out = [];
     const input = uint8array;

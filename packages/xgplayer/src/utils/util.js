@@ -400,4 +400,8 @@ util.scrollLeft = function () {
   0;
 }
 
+util.checkTouchSupport = function () {
+  return 'ontouchstart' in window
+}
+
 export default util

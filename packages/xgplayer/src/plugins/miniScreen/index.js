@@ -1,7 +1,8 @@
-import Plugin, {Util, Events} from '../../plugin'
+import Plugin, { Util, Events } from '../../plugin'
 import PlayIcon from '../assets/play.svg'
 import PauseIcon from '../assets/pause.svg'
 import MiniScreenIcon from './miniScreenIcon'
+import Draggabilly from '../../utils/draggabilly'
 
 class MiniScreen extends Plugin {
   static get pluginName () {
@@ -10,6 +11,7 @@ class MiniScreen extends Plugin {
 
   static get defaultConfig () {
     return {
+      index: 10,
       disable: false,
       width: 320,
       height: 180,
@@ -31,15 +33,10 @@ class MiniScreen extends Plugin {
       left: config.left < 0 ? window.innerWidth - config.width - 20 : config.left,
       top: config.top < 0 ? window.innerHeight - config.height - 20 : config.top,
       height: this.config.height,
-      width: this.config.width
-    }
-    this.coordinate = {
-      currentX: 0,
-      currentY: 0,
+      width: this.config.width,
       scrollY: window.scrollY || 0
     }
     this.lastStyle = null
-    this.isMoveing = false
   }
 
   beforeCreate (args) {
@@ -49,10 +46,6 @@ class MiniScreen extends Plugin {
   }
 
   afterCreate () {
-    const bindFunKeys = ['onMousemove', 'onMousedown', 'onMouseup', 'onCancelClick', 'onCenterClick', 'onScroll']
-    bindFunKeys.map(key => {
-      this[key] = this[key].bind(this)
-    })
     this.initIcons()
     this.on(Events.PAUSE, () => {
       this.setAttr('data-state', 'pause')
@@ -77,10 +70,13 @@ class MiniScreen extends Plugin {
       }
       player.controls.registerPlugin(MiniScreenIcon, options, MiniScreenIcon.pluginName)
     }
-    this.bind('.mini-cancel-btn', 'click', this.onCancelClick)
-    this.bind('.play-icon', 'click', this.onCenterClick)
+    const eventName = Util.checkTouchSupport() ? 'touchend' : 'click'
+    this.bind('.mini-cancel-btn', eventName, this.onCancelClick)
+    this.bind('.play-icon', eventName, this.onCenterClick)
     if (!this.config.disableDrag) {
-      this.bind('mousedown', this.onMousedown)
+      this._draggabilly = new Draggabilly(this.player.root, {
+        handle: this.root
+      })
     }
     if (this.config.isScrollSwitch) {
       window.addEventListener('scroll', this.onScroll)
@@ -100,90 +96,30 @@ class MiniScreen extends Plugin {
     this.appendChild('.play-icon', icons.pause)
   }
 
-  onCancelClick (e) {
-    e.preventDefault()
-    e.stopPropagation()
+  onCancelClick = (e) => {
+    // e.preventDefault()
+    // e.stopPropagation()
     this.exitMini()
     this.isClose = true
   }
 
-  onCenterClick (e) {
+  onCenterClick = (e) => {
     const {player} = this
     player.paused ? player.play() : player.pause()
   }
 
-  onScroll (e) {
-    if ((!window.scrollY && window.scrollY !== 0) || Math.abs(window.scrollY - this.coordinate.scrollY) < 50) {
+  onScroll = (e) => {
+    if ((!window.scrollY && window.scrollY !== 0) || Math.abs(window.scrollY - this.pos.scrollY) < 50) {
       return;
     }
     let scrollHeight = parseInt(Util.getCss(this.player.root, 'height'))
     scrollHeight += this.config.scrollTop
-    this.coordinate.scrollY = window.scrollY
+    this.pos.scrollY = window.scrollY
     if (window.scrollY > scrollHeight + 5) {
       !this.isMini && !this.isClose && this.getMini()
     } else if (window.scrollY <= scrollHeight) {
       this.isMini && this.exitMini()
       this.isClose = false
-    }
-  }
-
-  onMousedown (e) {
-    if (e.target !== this.root || this.isMoveing) {
-      return;
-    }
-    this.isMoveing = true
-    this.coordinate.currentX = e.clientX
-    this.coordinate.currentY = e.clientY
-    this.bind('mouseup', this.onMouseup)
-    this.bind('mousemove', this.onMousemove)
-  }
-
-  onMouseup (e) {
-    if (e.target !== this.root || !this.isMoveing) {
-      return;
-    }
-    this.isMoveing = false
-    this.clientWidth = window.innerWidth
-    const target = this.config.target || this.player.root
-    this.pos.top = parseInt(Util.getCss(target, 'top'))
-    this.pos.left = parseInt(Util.getCss(target, 'left'))
-    this.unbind('mousemove', this.onMousemove)
-    this.unbind('mouseup', this.onMouseup)
-  }
-
-  onMousemove (e, callback) {
-    e = e || window.event
-    const target = this.config.target || this.player.root
-    const maxTop = window.innerHeight - parseInt(Util.getCss(target, 'height'))
-    const maxLeft = window.innerWidth - parseInt(Util.getCss(target, 'width'))
-    if (this.isMoveing) {
-      const nowX = e.clientX
-      const nowY = e.clientY
-      const disX = nowX - this.coordinate.currentX
-      const disY = nowY - this.coordinate.currentY
-      let top = parseInt(this.pos.top) + disY
-      let left = parseInt(this.pos.left) + disX
-      if (left < 0) {
-        left = 0;
-      } else if (left > maxLeft) {
-        left = maxLeft
-      }
-
-      if (top < 0) {
-        top = 0;
-      } else if (top > maxTop) {
-        top = maxTop
-      }
-      target.style.left = `${left}px`
-      target.style.top = `${top}px`
-      if (typeof callback === 'function') {
-        callback(left, top)
-      }
-
-      if (e.preventDefault) {
-        e.preventDefault()
-      }
-      return false
     }
   }
 
@@ -193,10 +129,9 @@ class MiniScreen extends Plugin {
     }
     const {player, playerConfig} = this;
     const target = this.config.target || this.player.root
-    // this.draggie.enable()
     this.lastStyle = {}
-    Util.addClass(player.root, 'xgplayer-mini')
-    Object.keys(this.pos).map(key => {
+    Util.addClass(player.root, 'xgplayer-mini');
+    ['width', 'height', 'top', 'left'].map(key => {
       this.lastStyle[key] = target.style[key]
       target.style[key] = `${this.pos[key]}px`
     })
@@ -231,9 +166,12 @@ class MiniScreen extends Plugin {
 
   destroy () {
     window.removeEventListener('scroll', this.onScroll)
-    this.unbind('.mini-cancel-btn', 'click', this.onCancelClick)
-    this.unbind('.play-icon', 'click', this.onCenterClick)
-    this.unbind('mousedown', this.onMousedown)
+    const eventName = Util.checkTouchSupport() ? 'touchend' : 'click'
+    this.unbind('.mini-cancel-btn', eventName, this.onCancelClick)
+    this.unbind('.play-icon', eventName, this.onCenterClick)
+    this._draggabilly && this._draggabilly.destroy()
+    this._draggabilly = null
+    this.exitMini()
   }
 
   render () {
@@ -242,11 +180,14 @@ class MiniScreen extends Plugin {
     }
     return `
       <xg-mini-layer class="xg-mini-layer">
-      <div class="mask"></div>
       <xg-mini-header class="xgplayer-mini-header">
       <div lang-key="${this.i18nKeys.MINI_DRAG}">${this.i18n.MINI_DRAG}</div>
       </xg-mini-header>
-      <div class="mini-cancel-btn">X</div>
+      <div class="mini-cancel-btn">
+        <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 20 20">
+          <path fill="#fff" fill-rule="evenodd" d="M3.99 3.49a1 1 0 0 1 1.414 0L10 8.085l4.596-4.595a1 1 0 1 1 1.414 1.414L11.414 9.5l4.596 4.596a1 1 0 0 1 .084 1.32l-.084.094a1 1 0 0 1-1.414 0L10 10.914 5.404 15.51a1 1 0 0 1-1.414-1.414L8.585 9.5 3.99 4.904a1 1 0 0 1-.084-1.32z"></path>
+        </svg>
+      </div>
       <div class="play-icon">
       </div>
       </xg-mini-layer>`

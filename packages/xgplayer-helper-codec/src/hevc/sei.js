@@ -1,5 +1,9 @@
 import RBSP from './rbsp'
 
+/**
+ * @param {Uint8Array} data
+ * @return {string}
+ */
 const u8aToString = (data) => {
   let result = ''
   for (let i = 0; i < data.byteLength; i++) {
@@ -9,16 +13,16 @@ const u8aToString = (data) => {
 }
 
 class SEIParser {
-
   static _resolveNalu (data) {
     if (data.length >= 1) {
       return RBSP.EBSP2SODB(RBSP.EBSP2RBSP(data.slice(1)))
     }
     return null;
   }
+
   /**
-   *
-   * @param data {Uint8Array}
+   * @param {Uint8Array} data
+   * @return {{uuid: string, content: null}|{code: number, uuid: string, content: string}|{code: number, content: Uint8Array}}
    */
   static parse (data) {
     const sodb = SEIParser._resolveNalu(data);
@@ -42,7 +46,7 @@ class SEIParser {
 
   /**
    *
-   * @param data
+   * @param {Uint8Array} data
    * @returns {{payloadType: number, offset: number}}
    */
   static switchPayloadType (data) {
@@ -63,7 +67,7 @@ class SEIParser {
 
   /**
    *
-   * @param data {Uint8Array}
+   * @param {Uint8Array} data
    * @return {{ payloadLength: number, offset: number }}
    */
   static getPayloadLength (data) {
@@ -85,7 +89,7 @@ class SEIParser {
 
   /**
    * resolve 0x05 user data unregistered
-   * @param data {Uint8Array}
+   * @param {Uint8Array} data
    */
   // eslint-disable-next-line camelcase
   static user_data_unregistered (data) {

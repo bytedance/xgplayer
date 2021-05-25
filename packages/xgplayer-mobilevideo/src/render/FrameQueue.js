@@ -20,11 +20,11 @@ export default class FrameQueue {
 
   append (frame) {
     if (!frame.info) return;
-    const {dts, isGop, gopId} = frame.info;
+    const {dts, firstInGop, gopId} = frame.info;
     if (gopId && gopId < this._lastGopId && dts < this.currentTimeDts) {
       return;
     };
-    if (isGop) {
+    if (firstInGop) {
       this._lastGopId = gopId;
     }
     this._frames.push(frame);
