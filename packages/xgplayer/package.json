@@ -54,8 +54,6 @@
         "Firefox > 20"
     ],
     "dependencies": {
-        "@rollup/plugin-replace": "^2.4.2",
-        "babel-runtime": "^6.26.0",
         "danmu.js": "0.3.0",
         "deepmerge": "^1.5.0",
         "delegate": "^3.2.0",
@@ -64,12 +62,5 @@
         "xgplayer-subtitles": "^1.0.9-alpha.0"
     },
     "devDependencies": {
-        "babel-plugin-inline-svg": "^1.1.0",
-        "babel-plugin-transform-class-properties": "^6.24.1",
-        "babel-plugin-transform-object-assign": "^6.22.0",
-        "babel-plugin-transform-proto-to-assign": "^6.26.0",
-        "babel-plugin-transform-runtime": "^6.23.0",
-        "rollup-plugin-svg-import": "^1.5.1",
-        "typescript": "^4.2.4"
     }
 }
