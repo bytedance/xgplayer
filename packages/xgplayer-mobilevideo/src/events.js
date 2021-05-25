@@ -55,4 +55,4 @@ export default {
     LARGE_AV_GAP: 'largeavgap',
     FIRST_FRAME: 'firstframe'
   }
-}
+};
