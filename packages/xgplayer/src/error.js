@@ -1,4 +1,5 @@
-import {version} from '../package.json'
+// eslint-disable-next-line no-undef
+const version = XGPLAYER_VERSION
 const ErrorTypes = {
   network: {
     code: 1,

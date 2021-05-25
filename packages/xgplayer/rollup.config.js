@@ -1,6 +1,8 @@
 const commonRollup = require('../../rollup.config');
 const uglify = process.env.NODE_ENV === 'production';
 const svg = require('rollup-plugin-svg-import');
+const replace = require('@rollup/plugin-replace')
+const pkg = require('./package.json')
 
 module.exports = commonRollup({
   name: 'Player',
@@ -27,12 +29,16 @@ module.exports = commonRollup({
         }
       ]
     ]
+    // exclude: ['../../node_modules/*', '**/*.svg', './node_modules/*']
     // externalHelpers: false
   },
   plugins: [
     svg({
       // process SVG to DOM Node or String. Default: false
       stringify: false
+    }),
+    replace({
+      XGPLAYER_VERSION: () => JSON.stringify(pkg.version)
     })
   ]
 })

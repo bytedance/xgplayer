@@ -54,6 +54,7 @@
         "Firefox > 20"
     ],
     "dependencies": {
+        "@rollup/plugin-replace": "^2.4.2",
         "babel-runtime": "^6.26.0",
         "danmu.js": "0.3.0",
         "deepmerge": "^1.5.0",

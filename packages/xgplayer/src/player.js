@@ -13,9 +13,6 @@ import hooksDescriptor from './plugin/hooksDescriptor'
 import Controls from './plugins/controls'
 import XG_DEBUG, {bindDebug} from './utils/debug'
 
-import {
-  version
-} from '../package.json'
 import I18N from './lang'
 
 /* eslint-disable camelcase */
@@ -960,7 +957,8 @@ class Player extends Proxy {
   }
 
   get version () {
-    return version
+    // eslint-disable-next-line no-undef
+    return XGPLAYER_VERSION
   }
 
   set url (url) {
