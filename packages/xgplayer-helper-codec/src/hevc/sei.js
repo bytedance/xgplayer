@@ -13,7 +13,6 @@ const u8aToString = (data) => {
 }
 
 class SEIParser {
-
   static _resolveNalu (data) {
     if (data.length >= 1) {
       return RBSP.EBSP2SODB(RBSP.EBSP2RBSP(data.slice(1)))
