@@ -7,6 +7,7 @@
   "scripts": {
     "bootstrap": "npm install & lerna bootstrap",
     "watch": "http-server --cors='Access-Control-Allow-Origin: *' & lerna run --parallel watch",
+    "watch:live": "http-server -S -C cert.pem --cors='Access-Control-Allow-Origin: *' & lerna run --scope xgplayer-flv-live --scope xgplayer-hls-live --scope xgplayer-helper-* --parallel watch",
     "test": "node_modules/.bin/lerna-changelog",
     "dev": "npm run watch",
     "publish": "lerna publish",

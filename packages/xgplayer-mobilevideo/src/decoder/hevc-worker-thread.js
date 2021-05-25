@@ -107,7 +107,7 @@ Decoder.prototype.broadwayOnBroadwayInited = function () {
 };
 
 Decoder.prototype.storeBuffer = function (data, fInfo) {
-  if (fInfo && fInfo.isGop) {
+  if (fInfo && fInfo.firstInGop) {
     this.flush();
   }
   this.infolist.push(fInfo);

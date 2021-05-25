@@ -1,3 +1,4 @@
+// eslint-disable-next-line standard/object-curly-even-spacing
 import { EVENTS, Crypto, FetchLoader, logger} from 'xgplayer-helper-utils'
 import { Tracks, Buffer as XgBuffer, Playlist } from 'xgplayer-helper-models'
 import { M3U8Parser, TsDemuxer } from 'xgplayer-helper-transmuxers'
@@ -5,7 +6,7 @@ import { M3U8Parser, TsDemuxer } from 'xgplayer-helper-transmuxers'
 const LOADER_EVENTS = EVENTS.LOADER_EVENTS;
 const DEMUX_EVENTS = EVENTS.DEMUX_EVENTS;
 const HLS_EVENTS = EVENTS.HLS_EVENTS;
-const CRYTO_EVENTS = EVENTS.CRYTO_EVENTS;
+const CRYPTO_EVENTS = EVENTS.CRYPTO_EVENTS;
 const HLS_ERROR = 'HLS_ERROR';
 
 class HlsVodMobileController {
@@ -215,7 +216,7 @@ class HlsVodMobileController {
     } else if (buffer.TAG === 'DECRYPT_BUFFER') {
       this.retrytimes = this.configs.retrytimes || 3;
       this._playlist.downloaded(this._tsloader.url, true);
-      this.emitTo('CRYPTO', CRYTO_EVENTS.START_DECRYPT, Object.assign({url: this._tsloader.url}, this._playlist._ts[this._tsloader.url]));
+      this.emitTo('CRYPTO', CRYPTO_EVENTS.START_DECRYPTO, Object.assign({url: this._tsloader.url}, this._playlist._ts[this._tsloader.url]));
     } else if (buffer.TAG === 'KEY_BUFFER') {
       this.retrytimes = this.configs.retrytimes || 3;
       this._playlist.encrypt.key = buffer.shift();
@@ -227,7 +228,7 @@ class HlsVodMobileController {
         outputbuffer: 'TS_BUFFER'
       });
 
-      this._crypto.on(CRYTO_EVENTS.DECRYPTED, this._onDcripted.bind(this));
+      this._crypto.on(CRYPTO_EVENTS.DECRYPTED, this._onDcripted.bind(this));
 
       let frag = this._playlist.getTs();
       if (frag) {

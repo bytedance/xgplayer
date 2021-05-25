@@ -134,7 +134,7 @@ export default class HlsLivePlayer extends BasePlugin {
       this._context = new Context(this.player, this.config, HlsAllowedEvents)
       this.player.hasStart = false;
       this.player.start()
-      this.player.onWaiting();
+      this.player.addClass('xgplayer-is-enter')
       this.player.once('canplay', () => {
         this.player.video.play();
       })

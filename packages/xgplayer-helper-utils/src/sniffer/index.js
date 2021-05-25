@@ -7,10 +7,15 @@ const le = (function () {
 })()
 
 const sniffer = {
+  /**
+   * get device type
+   * @return {'pc'|'mobile'|'tablet'}
+   */
   get device () {
     let r = sniffer.os;
     return r.isPc ? 'pc' : r.isTablet ? 'tablet' : 'mobile';
   },
+
   get browser () {
     let ua = navigator.userAgent.toLowerCase();
     let reg = {

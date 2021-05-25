@@ -56,7 +56,7 @@ class Player extends Proxy {
     this.isActive = false
     this.isCssfullScreen = false
     this.fullscreen = false
-    this._fullscreenEl = null
+    this._fpullscreenEl = null
     this._originCssText = ''
     this._fullScreenOffset = null
     this._videoHeight = 0
