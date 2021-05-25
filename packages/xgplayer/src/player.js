@@ -14,6 +14,7 @@ import Controls from './plugins/controls'
 import XG_DEBUG, {bindDebug} from './utils/debug'
 
 import I18N from './lang'
+import version from './version'
 
 /* eslint-disable camelcase */
 const PlAYER_HOOKS = ['play']
@@ -957,8 +958,7 @@ class Player extends Proxy {
   }
 
   get version () {
-    // eslint-disable-next-line no-undef
-    return XGPLAYER_VERSION
+    return version
   }
 
   set url (url) {
