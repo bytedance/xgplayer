@@ -38,21 +38,22 @@ class PIP extends Plugin {
   }
 
   afterCreate () {
+    // 非可用状态不做初始化
+    if (!this.isPIPAvailable()) {
+      return
+    }
     this.pMode = PresentationMode.INLINE
-    this.initIcons();
-
-    this.btnClick = (e) => {
-      e.preventDefault();
-      e.stopPropagation();
-      this.switchPIP(e)
+    this.initPipEvents()
+    // 确认开启按钮的情况下才初始化按钮
+    if (this.config.showIcon) {
+      this.initIcons();
+      this.bind('click', this.switchPIP)
     }
     // video初始化之后再做判断是否显示
     this.once(Events.COMPLETE, () => {
       if (this.config.showIcon && this.isPIPAvailable()) {
         this.show()
-        this.bind('click', this.btnClick)
       }
-      this.initPipEvents()
     })
   }
 
@@ -109,11 +110,11 @@ class PIP extends Plugin {
     }
   }
 
-  switchPIP () {
+  switchPIP = (e) => {
     if (!this.isPIPAvailable()) {
       return false
     }
-
+    e.stopPropagation();
     if (this.isPip) {
       this.exitPIP()
       this.setAttr('data-state', 'normal')

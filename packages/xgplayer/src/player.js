@@ -912,7 +912,7 @@ class Player extends Proxy {
     let rHeight = height;
     if ((fitVideoSize === 'auto' && fit > videoFit) || fitVideoSize === 'fixWidth') {
       rHeight = width / videoFit * 1000
-      if (config.fluid) {
+      if (this.config.fluid) {
         this.root.style.paddingTop = `${rHeight * 100 / rWidth}%`
       } else {
         this.root.style.height = `${rHeight + controlsHeight}px`

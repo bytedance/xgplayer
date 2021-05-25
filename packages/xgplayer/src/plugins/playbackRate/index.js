@@ -47,6 +47,7 @@ export default class PlaybackRate extends OptionsIcon {
       }
       this.renderItemList()
     })
+    this.renderItemList()
   }
 
   show () {
