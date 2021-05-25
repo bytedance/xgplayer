@@ -47,12 +47,12 @@ class PIP extends Plugin {
     // 确认开启按钮的情况下才初始化按钮
     if (this.config.showIcon) {
       this.initIcons();
-      this.bind('click', this.switchPIP)
     }
     // video初始化之后再做判断是否显示
     this.once(Events.COMPLETE, () => {
-      if (this.config.showIcon && this.isPIPAvailable()) {
-        this.show()
+      if (this.config.showIcon) {
+        Util.removeClass(this.find('.xgplayer-icon'), 'xg-icon-disable')
+        this.bind('click', this.switchPIP)
       }
     })
   }
@@ -185,7 +185,7 @@ class PIP extends Plugin {
       return
     }
     return `<xg-icon class="xgplayer-pip">
-      <div class="xgplayer-icon">
+      <div class="xgplayer-icon xg-icon-disable">
       </div>
       <div class="xg-tips" lang-key="${this.i18nKeys.PIP}">${this.i18n.PIP}</div>
     </xg-icon>`
