@@ -28,8 +28,8 @@ module.exports = commonRollup({
           'corejs': 3
         }
       ]
-    ]
-    // exclude: ['../../node_modules/*', '**/*.svg', './node_modules/*']
+    ],
+    exclude: ['../../node_modules/**', '**/*.svg']
     // externalHelpers: false
   },
   plugins: [
