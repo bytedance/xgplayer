@@ -15,25 +15,6 @@
     "type": "git",
     "url": "git@github.com:bytedance/xgplayer.git"
   },
-  "babel": {
-    "presets": [
-      [
-        "env",
-        {
-          "targets": {
-            "chrome": 58,
-            "ie": 10
-          },
-          "modules": false,
-          "useBuiltIns": "usage",
-          "corejs": 3
-        }
-      ]
-    ],
-    "plugins": [
-      "external-helpers"
-    ]
-  },
   "keywords": [
     "mp4",
     "fmp4",

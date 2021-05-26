@@ -6,25 +6,12 @@ const config = {
   uglify: uglify,
   external: ['xgplayer'],
   globals: {
-    'xgplayer': 'Player'
+    xgplayer: 'Player'
   },
-  babel: {
-    runtimeHelpers: true,
-    babelrc: false,
-    'presets': [
-      [
-        'env',
-        {
-          'targets': ['IE 10', 'chrome > 57'],
-          'modules': false,
-          'useBuiltIns': 'usage',
-          'corejs': 3
-        }
-      ]
-    ]
-    // externalHelpers: false
+  targets: {
+    ie: '11'
   }
-}
+};
 
 const mobileConfig = {
   input: 'src/mobile/index.js',
@@ -35,7 +22,7 @@ const mobileConfig = {
       format: 'umd',
       sourcemap: false,
       globals: {
-        'xgplayer': 'Player'
+        xgplayer: 'Player'
       }
     }
   ],
@@ -43,8 +30,8 @@ const mobileConfig = {
   uglify: uglify,
   external: ['xgplayer'],
   globals: {
-    'xgplayer': 'Player'
+    xgplayer: 'Player'
   }
-}
+};
 
-module.exports = [commonRollup(config), commonRollup(mobileConfig)]
+module.exports = [commonRollup(config), commonRollup(mobileConfig)];

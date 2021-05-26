@@ -7,23 +7,13 @@
   "sideEffects":false,
   "scripts": {
     "prepare": "npm run build",
-    "watch": "babel src --out-dir es --watch & babel src --out-dir lib --presets=es2015 --watch",
+    "watch": "babel src --out-dir es --watch & babel src --out-dir es --watch",
     "build": "npm run build:es && npm run build:lib",
     "build:es": "babel src --out-dir es",
-    "build:lib": "babel src --out-dir lib --presets=es2015"
+    "build:lib": "babel src --out-dir lib"
   },
   "author": "",
   "license": "ISC",
-  "babel": {
-    "presets": [
-      [
-        "es2015",
-        {
-          "modules": false
-        }
-      ]
-    ]
-  },
   "dependencies": {
     "xgplayer-helper-utils": "2.4.22"
   }

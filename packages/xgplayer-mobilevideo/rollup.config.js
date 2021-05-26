@@ -8,9 +8,6 @@ const config = {
   globals: {
     'xgplayer': 'Player'
   },
-  babel: {
-    runtimeHelpers: true
-  }
 }
 
 module.exports = commonRollup(config)

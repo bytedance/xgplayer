@@ -1,4 +1,3 @@
-import 'babel-polyfill'
 import HlsLiveMsePlayer from './mse'
 import HlsLiveMobilePlayer from './mobile'
 

@@ -11,15 +11,6 @@
     "build": "webpack --progress --display-chunks -p",
     "watch": "webpack --progress --display-chunks -p --watch"
   },
-  "babel": {
-    "presets": [
-      "es2015"
-    ],
-    "plugins": [
-      "add-module-exports",
-      "babel-plugin-bulk-import"
-    ]
-  },
   "repository": {
     "type": "git",
     "url": "git+https://github.com/bytedance/xgplayer.git"

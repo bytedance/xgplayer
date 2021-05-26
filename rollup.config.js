@@ -1,17 +1,24 @@
-const uglify = require('rollup-plugin-uglify-es')
-const json = require('rollup-plugin-json');
-const postcss = require('rollup-plugin-postcss')
-const babel = require('rollup-plugin-babel')
-const resolve = require('rollup-plugin-node-resolve')
-const commonjs = require('rollup-plugin-commonjs')
-const context = require('rollup-plugin-require-context')
-const builtins = require('rollup-plugin-node-builtins')
-const webWorkerLoader = require('rollup-plugin-web-worker-loader');
-const analyzer = require('rollup-plugin-visualizer');
+// https://github.com/rollup/plugins/tree/master/packages/babel
+// https://github.com/TrySound/rollup-plugin-terser
+// https://github.com/rollup/plugins/tree/master/packages/json
+// https://github.com/egoist/rollup-plugin-postcss
+// https://github.com/rollup/plugins/tree/master/packages/node-resolve
+// https://github.com/rollup/plugins/tree/master/packages/commonjs
+// https://github.com/darionco/rollup-plugin-web-worker-loader
+// https://github.com/btd/rollup-plugin-visualizer
+
+const { babel } = require("@rollup/plugin-babel");
+const webWorkerLoader = require("rollup-plugin-web-worker-loader");
+const { nodeResolve } = require("@rollup/plugin-node-resolve");
+const commonjs = require("@rollup/plugin-commonjs");
+const json = require("@rollup/plugin-json");
+const { terser } = require("rollup-plugin-terser");
+const postcss = require("rollup-plugin-postcss");
+const { visualizer } = require("rollup-plugin-visualizer");
 
 const defaultRollup = {
-  input: 'src/index.js',
-  name: 'Player',
+  input: "src/index.js",
+  name: "Player",
   sourcemap: true,
   production: false,
   exports: undefined,
@@ -22,7 +29,7 @@ const defaultRollup = {
   resolve: {},
   babel: {},
   watch: {}
-}
+};
 
 const commonRollup = function (config = {}) {
   const rollupConfig = Object.assign({}, defaultRollup, config);
@@ -30,57 +37,62 @@ const commonRollup = function (config = {}) {
     input: rollupConfig.input,
     output: config.output || [
       {
-        file: rollupConfig.uglify ? 'dist/index.min.js' : 'dist/index.js',
+        file: rollupConfig.uglify ? "dist/index.min.js" : "dist/index.js",
         name: rollupConfig.name,
-        format: 'umd',
+        format: "umd",
         sourcemap: rollupConfig.sourcemap,
         globals: rollupConfig.globals,
-        exports: rollupConfig.exports || 'auto'
+        exports: rollupConfig.exports || "auto"
       }
     ],
     external: rollupConfig.external,
     plugins: [
       ...rollupConfig.plugins,
-      rollupConfig.uglify ? uglify(rollupConfig.uglify) : undefined,
+      rollupConfig.uglify ? terser() : undefined,
       json({
         compact: true
       }),
       postcss({
-        extensions: ['.css', '.scss', '.sass'],
-        'postcss-cssnext': {
-          browserslist: ['cover 99.5%']
+        extensions: [".css", ".scss", ".sass"],
+        "postcss-cssnext": {
+          browserslist: ["cover 99.5%"]
         }
       }),
+      nodeResolve(),
+      commonjs(),
       babel({
-        exclude: ['node_modules/**', '**/*.svg'],
-        // plugins: [['transform-runtime', {
-        //   helpers: true,
-        //   polyfill: true,
-        //   regenerator: false
-        // }]],
-        // runtimeHelpers: true,
-        ...rollupConfig.babel
+        exclude: [/core-js/],
+        babelHelpers: "runtime",
+        presets: [
+          [
+            "@babel/env",
+            {
+              targets: rollupConfig.targets || { chrome: '58'},
+              "useBuiltIns": "usage",
+              "corejs": "3.12"
+            }
+          ]
+        ],
+        plugins: [
+          [
+            "@babel/plugin-transform-runtime",
+            {
+              corejs: false,
+              helpers: true,
+              regenerator: true,
+            }
+          ]
+        ]
       }),
       webWorkerLoader({
-        targetPlatform: 'browser',
+        targetPlatform: "browser",
         sourcemap: false
       }),
-      resolve({
-        preferBuiltins: true,
-        extensions: [ '.mjs', '.js', '.jsx', '.json' ],
-        ...rollupConfig.resolve
-      }),
-      commonjs({
-        include: [/node_modules/],
-        ...rollupConfig.commonjs
-      }),
-      builtins(),
-      context(),
-      process.env.ANALYZE ? analyzer() : undefined
+      process.env.ANALYZE ? visualizer() : undefined
     ],
     watch: {
       ...config.watch
     }
-  }
-}
+  };
+};
 module.exports = commonRollup;
