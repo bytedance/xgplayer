@@ -13,10 +13,8 @@ import hooksDescriptor from './plugin/hooksDescriptor'
 import Controls from './plugins/controls'
 import XG_DEBUG, {bindDebug} from './utils/debug'
 
-import {
-  version
-} from '../package.json'
 import I18N from './lang'
+import version from './version'
 
 /* eslint-disable camelcase */
 const PlAYER_HOOKS = ['play']

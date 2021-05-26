@@ -24,14 +24,15 @@
         "release:alpha-test": "npm publish --tag alpha-test --registry=http://registry.npmjs.org",
         "release:3.0": "npm version patch && npm publish --tag 3.0 --registry=http://registry.npmjs.org",
         "prepare": "npm run build",
-        "build": "npm run build:es && npm run build:lib && npm run build:main && npm run build:style && npm run build:dts && npm run build:browser",
+        "build": "npm run version && npm run build:es && npm run build:lib && npm run build:main && npm run build:style && npm run build:dts && npm run build:browser",
         "build:main": "rm -rf ./dist && cross-env NODE_ENV=production rollup -c rollup.config.js",
         "build:browser": "rm -rf ./browser && node scripts/buildBrowser.js",
         "build:es": "rm -rf ./es && ../../node_modules/.bin/babel src --out-dir es",
         "build:lib": "rm -rf ./lib && ../../node_modules/.bin/babel src --out-dir lib --presets=es2015 --plugins=transform-class-properties",
         "build:style": "node scripts/buildStyles.js",
         "build:dts": "node scripts/tsCopy.js",
-        "watch": "cross-env NODE_ENV=development rollup -c rollup.config.js --watch"
+        "watch": "cross-env NODE_ENV=development rollup -c rollup.config.js --watch",
+        "version": "node scripts/version.js"
     },
     "unpkgFiles": [
         "browser",
@@ -54,7 +55,6 @@
         "Firefox > 20"
     ],
     "dependencies": {
-        "babel-runtime": "^6.26.0",
         "danmu.js": "0.3.0",
         "deepmerge": "^1.5.0",
         "delegate": "^3.2.0",
@@ -62,13 +62,5 @@
         "event-emitter": "^0.3.5",
         "xgplayer-subtitles": "^1.0.9-alpha.0"
     },
-    "devDependencies": {
-        "babel-plugin-inline-svg": "^1.1.0",
-        "babel-plugin-transform-class-properties": "^6.24.1",
-        "babel-plugin-transform-object-assign": "^6.22.0",
-        "babel-plugin-transform-proto-to-assign": "^6.26.0",
-        "babel-plugin-transform-runtime": "^6.23.0",
-        "rollup-plugin-svg-import": "^1.5.1",
-        "typescript": "^4.2.4"
-    }
+    "devDependencies": {}
 }

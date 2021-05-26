@@ -1,4 +1,5 @@
-import {version} from '../package.json'
+// eslint-disable-next-line no-undef
+import version from './version'
 const ErrorTypes = {
   network: {
     code: 1,
