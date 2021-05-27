@@ -34,8 +34,14 @@ Decoder.prototype.init = function () {
   this.offset = Module._broadwayCreateStream(MAX_STREAM_BUFFER_LENGTH);
 };
 
-Decoder.prototype.broadwayOnPictureDecoded = function (offset, width, height, infoid, sliceType) {
-  if (this.infolist[0] && this.infolist[0].isGop && sliceType !== 2) {
+Decoder.prototype.broadwayOnPictureDecoded = function (
+  offset,
+  width,
+  height,
+  infoid,
+  sliceType
+) {
+  if (this.infolist[0] && this.infolist[0].firstInGop && sliceType !== 2) {
     this.self.postMessage({
       msg: 'LOG',
       log: `drop sample`
@@ -91,7 +97,7 @@ Decoder.prototype.decode = function (data, info) {
   let time = parseInt(new Date().getTime());
   let infoid = time - Math.floor(time / 10e8) * 10e8;
   this.infolist.push(info);
-  if (info && info.isGop) {
+  if (info && info.firstInGop) {
     this.infolist = [info];
     Module._broadwayFlushStream(infoid);
   }
@@ -164,7 +170,6 @@ function init (url) {
             });
           });
         }
-
         return new Promise((resolve, reject) => {
           addOnPostRun(onPostRun.bind(self));
 

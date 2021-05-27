@@ -1,6 +1,5 @@
 import SpsParser from './sps';
 import SEIParser from './sei';
-
 class Nalunit {
   // https://en.wikipedia.org/wiki/Network_Abstraction_Layer
   static getNalunits (buffer) {

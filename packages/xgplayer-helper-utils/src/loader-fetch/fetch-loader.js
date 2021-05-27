@@ -36,6 +36,12 @@ class FetchLoader {
     return 'loader'
   }
 
+  /**
+   * @param {string}      url
+   * @param {RequestInit} params
+   * @param {number}      timeout
+   * @return {Promise<unknown>}
+   */
   fetch (url, params, timeout) {
     let timer = null
     if (this.abortControllerEnabled) {
@@ -65,6 +71,14 @@ class FetchLoader {
     })
   }
 
+  /**
+   * @param {string}      url
+   * @param {RequestInit} params
+   * @param {number}      retryTimes
+   * @param {number}      totalRetry
+   * @param {number}      delayTime
+   * @return {Promise<{ok} | minimist.Opts.unknown>}
+   */
   internalLoad (url, params, retryTimes, totalRetry, delayTime = 0) {
     if (this._destroyed) return
     this.loading = true;
@@ -120,6 +134,13 @@ class FetchLoader {
     })
   }
 
+  /**
+   * @param {string}      url
+   * @param {RequestInit} opts
+   * @param {number}      retryTimes
+   * @param {number}      delayTime
+   * @return {Promise<{ok} | minimist.Opts.unknown>}
+   */
   load (url, opts = {}, retryTimes, delayTime) {
     retryTimes = retryTimes === undefined ? 3 : retryTimes
     this.url = url;
@@ -240,6 +261,11 @@ class FetchLoader {
     })
   }
 
+  /**
+   *
+   * @param {RequestInit} opts
+   * @return {{mode: string, headers: Headers, cache: string, method: string}}
+   */
   getParams (opts) {
     let options = Object.assign({}, opts)
     let headers = new Headers()

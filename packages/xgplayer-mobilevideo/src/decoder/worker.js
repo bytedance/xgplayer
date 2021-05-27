@@ -36,7 +36,7 @@ Decoder.prototype.init = function () {
 
 Decoder.prototype.broadwayOnPictureDecoded = function (offset, width, height, yLinesize, uvLinesize, infoid, keyFrame) {
   let firstFrame = this.infolist[0];
-  if (firstFrame && firstFrame.isGop && !keyFrame) return;
+  if (firstFrame && firstFrame.firstInGop && !keyFrame) return;
 
   let info = Object.assign({}, this.infolist.shift());
   let yRowcount = height;
@@ -80,7 +80,7 @@ Decoder.prototype.decode = function (data, info) {
   if (info) {
     this.infolist.push(info);
   }
-  if (info && info.isGop) {
+  if (info && info.firstInGop) {
     this.infolist = [info];
   }
   this.streamBuffer.set(data);

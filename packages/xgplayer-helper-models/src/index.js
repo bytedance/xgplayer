@@ -1,23 +1,26 @@
 import Playlist from './playlist'
-import PreSource from './presource';
-import Stream from './stream';
+import RemuxedBufferManager from './remuxed-buffer';
+import XGDataView from './data-view';
 import Tracks, { AudioTrack, VideoTrack} from './track';
 import Buffer from './u8a-buffer';
 import { AudioTrackMeta, VideoTrackMeta } from './track-meta';
-import { AudioTrackSample, VideoTrackSample } from './track-sample';
+import { AudioSample, VideoSample } from './track-sample';
 import MediaInfo from './media-info';
-
+import FlvTag from './flv-tag';
+import TsFrag from './ts-frag';
 export {
+  FlvTag,
   Playlist,
-  PreSource,
-  Stream,
+  RemuxedBufferManager,
+  XGDataView,
   Tracks,
   AudioTrack,
   VideoTrack,
   Buffer,
   AudioTrackMeta,
   VideoTrackMeta,
-  AudioTrackSample,
-  VideoTrackSample,
-  MediaInfo
+  AudioSample,
+  VideoSample,
+  MediaInfo,
+  TsFrag
 }

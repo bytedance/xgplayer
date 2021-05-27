@@ -1,6 +1,6 @@
 import EVENTS from '../events';
 
-const CRYTO_EVENTS = EVENTS.CRYTO_EVENTS
+const CRYPTO_EVENTS = EVENTS.CRYPTO_EVENTS
 class Crypto {
   constructor (config) {
     this.inputBuffer = config.inputbuffer;
@@ -13,30 +13,30 @@ class Crypto {
   }
 
   init () {
-    this.on(CRYTO_EVENTS.START_DECRYPT, this.decript.bind(this));
+    this.on(CRYPTO_EVENTS.START_DECRYPTO, this.decrypto.bind(this));
   }
 
-  decript () {
+  decrypto () {
     if (!this.aeskey) {
       let sbkey = this.crypto.subtle.importKey('raw', this.key.buffer, { name: 'AES-CBC' }, false, ['encrypt', 'decrypt']);
       sbkey.then(key => {
         this.aeskey = key;
-        this.decriptData();
+        this.decryptoData();
       })
     } else {
-      this.decriptData();
+      this.decryptoData();
     }
   }
 
-  decriptData () {
+  decryptoData () {
     let inputbuffer = this._context.getInstance(this.inputBuffer);
     let outputbuffer = this._context.getInstance(this.outputBuffer);
     let data = inputbuffer.shift();
     if (data) {
       this.crypto.subtle.decrypt({ name: 'AES-CBC', iv: this.iv.buffer }, this.aeskey, data).then(res => {
         outputbuffer.push(new Uint8Array(res));
-        this.emit(CRYTO_EVENTS.DECRYPTED);
-        this.decriptData(data);
+        this.emit(CRYPTO_EVENTS.DECRYPTED);
+        this.decryptoData(data);
       });
     }
   }

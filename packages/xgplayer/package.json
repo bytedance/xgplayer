@@ -1,6 +1,6 @@
 {
     "name": "xgplayer",
-    "version": "3.0.0-alpha.85",
+    "version": "3.0.0-alpha.87-2",
     "description": "video player",
     "main": "./dist/index.min.js",
     "module": "./es/index.js",
@@ -68,6 +68,7 @@
         "babel-plugin-transform-object-assign": "^6.22.0",
         "babel-plugin-transform-proto-to-assign": "^6.26.0",
         "babel-plugin-transform-runtime": "^6.23.0",
-        "rollup-plugin-svg-import": "^1.5.1"
+        "rollup-plugin-svg-import": "^1.5.1",
+        "typescript": "^4.2.4"
     }
 }
