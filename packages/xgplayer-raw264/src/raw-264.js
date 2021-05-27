@@ -1,5 +1,5 @@
 import { avc } from 'xgplayer-helper-codec';
-import { Stream as XgStream, VideoTrackMeta } from 'xgplayer-helper-models'
+import { XGDataView as XgStream, VideoTrackMeta } from 'xgplayer-helper-models'
 import { EVENTS as Events } from 'xgplayer-helper-utils'
 
 const { NalUnit, Golomb } = avc;

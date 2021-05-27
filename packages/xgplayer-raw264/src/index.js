@@ -1,5 +1,6 @@
 import Player from 'xgplayer';
 import Core from './raw-264';
+import CoreH265 from './raw-265';
 import { Buffer as LoaderBuffer } from 'xgplayer-helper-models';
 import { FetchLoader, Context, EVENTS as Events } from 'xgplayer-helper-utils';
 import 'xgplayer-mobilevideo';
@@ -54,7 +55,11 @@ class Raw264Player extends Player {
     }
     this.context = new Context(this, this.config, Events.HlsAllowedEvents);
     this.context.registry('LOADER_BUFFER', LoaderBuffer);
-    this.core = this.context.registry('RAW_264_CONTROLLER', Core)({player: this, fps: this.config.fps});
+    if (this.config.isH265) {
+      this.core = this.context.registry('RAW_264_CONTROLLER', CoreH265)({player: this, fps: this.config.fps});
+    } else {
+      this.core = this.context.registry('RAW_264_CONTROLLER', Core)({player: this, fps: this.config.fps});
+    }
     this.context.registry('FETCH_LOADER', FetchLoader);
     this.context.init();
     if (!this.config.isLive) {

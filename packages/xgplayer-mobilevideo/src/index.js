@@ -71,7 +71,7 @@ class MVideo extends HTMLElement {
 
   addEventListener (eventName, handler, capture) {
     super.addEventListener(eventName, handler, capture);
-    this._eventsBackup.push([eventName, handler, capture]);
+    this._eventsBackup.push([ eventName, handler, capture ]);
   }
 
   removeEventListener (eventName, handler, capture) {
@@ -211,7 +211,7 @@ class MVideo extends HTMLElement {
     this.destroy();
 
     // 销毁MVideo上的事件
-    this._eventsBackup.forEach(([eName, eHandler, capture]) => {
+    this._eventsBackup.forEach(([ eName, eHandler, capture ]) => {
       super.removeEventListener.call(this, eName, eHandler, capture);
       // 给degradeVideo 绑定事件
       this._degradeVideo.addEventListener(eName, eHandler, capture);
@@ -310,13 +310,9 @@ class MVideo extends HTMLElement {
         this._noSleep.enable();
         this.timeline.once('ready', () => {
           logger.log(this.TAG, 'timeline emit ready');
-          this.timeline
-            .play()
-            .then(resolve)
-            .catch(reject)
-            .then(() => {
-              this._playRequest = null;
-            });
+          this.timeline.play().then(resolve).catch(reject).then(() => {
+            this._playRequest = null;
+          });
         });
       });
 

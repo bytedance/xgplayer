@@ -61,7 +61,7 @@ const commonRollup = function (config = {}) {
       nodeResolve(),
       commonjs(),
       babel({
-        exclude: [/core-js/],
+        exclude: [/core-js/,/worker.js/,/hevc-worker.js/,/hevc-worker-thread.js/],
         babelHelpers: 'runtime',
         presets: [
           [
@@ -70,8 +70,8 @@ const commonRollup = function (config = {}) {
               // eslint-disable-next-line standard/object-curly-even-spacing
               targets: rollupConfig.targets || { chrome: '58'},
               'useBuiltIns': 'usage',
-              'corejs': 3
-            }
+              'corejs': 3,
+            },
           ]
         ],
         plugins: [

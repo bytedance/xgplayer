@@ -2,16 +2,18 @@
 
 function shimImportScripts (src) {
   return fetch(src)
-    .then((res) => res.text())
-    .then((text) => {
+    .then(function(res){
+      return res.text()
+    })
+    .then(function(text) {
       eval(text);
       self.Module = Module;
       self.addOnPostRun = addOnPostRun;
     });
 }
 
-const MAX_STREAM_BUFFER_LENGTH = 1024 * 1024;
-let initTs = 0;
+var MAX_STREAM_BUFFER_LENGTH = 1024 * 1024;
+var initTs = 0;
 
 var Decoder = function (self) {
   this.inited = false;
@@ -35,19 +37,19 @@ Decoder.prototype.init = function () {
 };
 
 Decoder.prototype.broadwayOnPictureDecoded = function (offset, width, height, yLinesize, uvLinesize, infoid, keyFrame) {
-  let firstFrame = this.infolist[0];
+  var firstFrame = this.infolist[0];
   if (firstFrame && firstFrame.firstInGop && !keyFrame) return;
 
-  let info = Object.assign({}, this.infolist.shift());
-  let yRowcount = height;
-  let uvRowcount = height / 2;
+  var info = Object.assign({}, this.infolist.shift());
+  var yRowcount = height;
+  var uvRowcount = height / 2;
   if (this.meta && (this.meta.chromaFormat === 444 || this.meta.chromaFormat === 422)) {
     uvRowcount = height;
   }
-  let data = this.toU8Array(offset, yLinesize * yRowcount + 2 * (uvLinesize * uvRowcount));
-  let datetemp = new Uint8Array(data.length);
+  var data = this.toU8Array(offset, yLinesize * yRowcount + 2 * (uvLinesize * uvRowcount));
+  var datetemp = new Uint8Array(data.length);
   datetemp.set(data);
-  let buffer = datetemp.buffer;
+  var buffer = datetemp.buffer;
 
   this.self.postMessage(
     {
@@ -69,7 +71,7 @@ Decoder.prototype.broadwayOnBroadwayInited = function () {
     msg: 'LOG',
     log: 'decoder inited'
   });
-  let cost = 0;
+  var cost = 0;
   if (initTs) {
     cost = performance.now() - initTs;
   }
@@ -107,18 +109,18 @@ function onPostRun () {
   decoder.init();
 }
 
-let WASM_CDN_PATH_PREFIX = '';
+var WASM_CDN_PATH_PREFIX = '';
 
 function init (url) {
   WASM_CDN_PATH_PREFIX = url.split('/').slice(0, -1).join('/');
   initTs = performance.now();
-  let isDegrade = /asm/.test(url);
+  var isDegrade = /asm/.test(url);
   if (!decoder) {
-    let task;
+    var task;
     if (!self.importScripts) {
       task = shimImportScripts(url);
     } else {
-      task = new Promise((resolve, reject) => {
+      task = new Promise(function(resolve, reject) {
         if (!self.console) {
           self.console = {
             log: function () {},
@@ -137,11 +139,11 @@ function init (url) {
     }
 
     task
-      .then(() => {
+      .then(function () {
         if (isDegrade) {
           console.log('auto instance Decoder!');
-          return new Promise((resolve, reject) => {
-            setTimeout(() => {
+          return new Promise(function(resolve, reject) {
+            setTimeout(function() {
               try {
                 onPostRun.call(self);
                 resolve();
@@ -154,18 +156,18 @@ function init (url) {
 
         return self
           .m({
-            locateFile: (suffix) => {
+            locateFile: function (suffix) {
               if (/\.wasm$/.test(suffix)) {
                 return `${WASM_CDN_PATH_PREFIX}/decoder.wasm`;
               }
             }
           })
-          .then((Mod) => {
+          .then(function (Mod) {
             self.Module = Mod;
             onPostRun.call(self);
           });
       })
-      .catch((e) => {
+      .catch(function (e) {
         self.postMessage({
           msg: 'INIT_FAILED',
           log: e.message
