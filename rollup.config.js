@@ -7,18 +7,18 @@
 // https://github.com/darionco/rollup-plugin-web-worker-loader
 // https://github.com/btd/rollup-plugin-visualizer
 
-const { babel } = require("@rollup/plugin-babel");
-const webWorkerLoader = require("rollup-plugin-web-worker-loader");
-const { nodeResolve } = require("@rollup/plugin-node-resolve");
-const commonjs = require("@rollup/plugin-commonjs");
-const json = require("@rollup/plugin-json");
-const { terser } = require("rollup-plugin-terser");
-const postcss = require("rollup-plugin-postcss");
-const { visualizer } = require("rollup-plugin-visualizer");
+const { babel } = require('@rollup/plugin-babel');
+const webWorkerLoader = require('rollup-plugin-web-worker-loader');
+const { nodeResolve } = require('@rollup/plugin-node-resolve');
+const commonjs = require('@rollup/plugin-commonjs');
+const json = require('@rollup/plugin-json');
+const { terser } = require('rollup-plugin-terser');
+const postcss = require('rollup-plugin-postcss');
+const { visualizer } = require('rollup-plugin-visualizer');
 
 const defaultRollup = {
-  input: "src/index.js",
-  name: "Player",
+  input: 'src/index.js',
+  name: 'Player',
   sourcemap: true,
   production: false,
   exports: undefined,
@@ -37,12 +37,12 @@ const commonRollup = function (config = {}) {
     input: rollupConfig.input,
     output: config.output || [
       {
-        file: rollupConfig.uglify ? "dist/index.min.js" : "dist/index.js",
+        file: rollupConfig.uglify ? 'dist/index.min.js' : 'dist/index.js',
         name: rollupConfig.name,
-        format: "umd",
+        format: 'umd',
         sourcemap: rollupConfig.sourcemap,
         globals: rollupConfig.globals,
-        exports: rollupConfig.exports || "auto"
+        exports: rollupConfig.exports || 'auto'
       }
     ],
     external: rollupConfig.external,
@@ -53,39 +53,41 @@ const commonRollup = function (config = {}) {
         compact: true
       }),
       postcss({
-        extensions: [".css", ".scss", ".sass"],
-        "postcss-cssnext": {
-          browserslist: ["cover 99.5%"]
+        extensions: ['.css', '.scss', '.sass'],
+        'postcss-cssnext': {
+          browserslist: ['cover 99.5%']
         }
       }),
       nodeResolve(),
       commonjs(),
       babel({
         exclude: [/core-js/],
-        babelHelpers: "runtime",
+        babelHelpers: 'runtime',
         presets: [
           [
-            "@babel/env",
+            '@babel/env',
             {
+              // eslint-disable-next-line standard/object-curly-even-spacing
               targets: rollupConfig.targets || { chrome: '58'},
-              "useBuiltIns": "usage",
-              "corejs": "3.12"
+              'useBuiltIns': 'usage',
+              'corejs': 3
             }
           ]
         ],
         plugins: [
           [
-            "@babel/plugin-transform-runtime",
+            '@babel/plugin-transform-runtime',
             {
               corejs: false,
               helpers: true,
-              regenerator: true,
+              regenerator: true
             }
           ]
-        ]
+        ],
+        ...config.babel
       }),
       webWorkerLoader({
-        targetPlatform: "browser",
+        targetPlatform: 'browser',
         sourcemap: false
       }),
       process.env.ANALYZE ? visualizer() : undefined

@@ -20,7 +20,7 @@
                 "svgo": {
                     "plugins": [
                         {
-                            "removeViewBox": false, //保留viewbox属性
+                            "removeViewBox": false,
                             "removeDimensions": true
                         }
                     ]

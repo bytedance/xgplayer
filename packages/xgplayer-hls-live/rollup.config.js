@@ -8,8 +8,10 @@ const config = {
   globals: {
     xgplayer: 'Player'
   },
+  // babel
   targets: {
-    ie: '11'
+    'chrome': '58',
+    'ie': '11'
   }
 };
 
