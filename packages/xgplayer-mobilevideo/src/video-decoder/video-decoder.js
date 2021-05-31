@@ -1,13 +1,13 @@
 /**
  * @description with video element to play fmp4 videostream, and get the video RGB frame with requestAnimationFrame api.
  */
-import { logger } from 'xgplayer-helper-utils'
+import { logger, Sniffer } from 'xgplayer-helper-utils'
 import EventEmitter from 'events'
 import Events from '../events'
 
 const DEFAULT_PLAYBACKRATE = 2
 const CANVAS_COUNT = 45
-const FRAME_DURATION = 38
+const FRAME_DURATION = 35
 const MAX_VIDEO_HEIGHT = 720
 
 export default class VideoDecoder extends EventEmitter {
@@ -36,12 +36,19 @@ export default class VideoDecoder extends EventEmitter {
     this._minFPSTime = 0
     this._maxFPSTime = 0
     this._playFailed = false
+    // this._isPhoneSafari = (Sniffer.os.isPhone && Sniffer.browser === 'safari')
+    this._isPhoneSafari = false
+    // console.error(this.TAG, '_isPhoneSafari', this._isPhoneSafari)
     this._createCanvasList()
     this._bindEvents()
   }
+
   _createCanvasList () {
     this._canvas = document.createElement('canvas')
-    this._ctx = this._canvas.getContext('2d')
+    this._ctx = this._canvas.getContext('2d', { alpha: false })
+    // if (this._isPhoneSafari) {
+    //   return
+    // }
     for (let i = 0; i < CANVAS_COUNT; i++) {
       let { dom, ctx } = this._createCanvas()
       this._canvasList.push({ dom, ctx })
@@ -49,7 +56,7 @@ export default class VideoDecoder extends EventEmitter {
   }
   _createCanvas () {
     let dom = document.createElement('canvas')
-    let ctx = dom.getContext('2d')
+    let ctx = dom.getContext('2d', { alpha: false })
     return { dom, ctx }
   }
 
@@ -63,8 +70,6 @@ export default class VideoDecoder extends EventEmitter {
     video.setAttribute('x5-video-player-type', 'h5')
     video.setAttribute('x5-video-player-type', 'h5-page')
     video.style.position = 'absolute'
-    // video.id = Date.now()
-    // video.style.zIndex = -100
     return video
   }
   _initVideo (info, time) {
@@ -75,12 +80,13 @@ export default class VideoDecoder extends EventEmitter {
     let blob = info.blobUrl
     this._currentBlob = blob
     this._basePTS = info.dts
+    this._currentDuration = info.duration
     try {
-      logger.log(this.TAG, '_initVideo, basePTS:', info.dts)
+      console.log(this.TAG, '_initVideo, basePTS:', info.dts)
       this._setVideoSrc(blob, time)
 
       if (this._video.paused) {
-        this._videoPlay()
+        this._videoPlay('_initVideo')
       }
     } catch (e) {
       console.error(this.TAG, '_initVideo, load error', e)
@@ -98,7 +104,7 @@ export default class VideoDecoder extends EventEmitter {
   }
   _videoPlay (from) {
     let video = this._video
-    logger.log(this.TAG, '_videoPlay, video is pause:', video.paused)
+    console.log(this.TAG, '_videoPlay, video is pause:', video.paused, from)
 
     if (video && video.paused) {
       let playPromise = video.play()
@@ -106,7 +112,7 @@ export default class VideoDecoder extends EventEmitter {
         playPromise
           .then(() => {
             this._playFailed = false
-            logger.log(this.TAG, '_videoPlay success')
+            console.log(this.TAG, '_videoPlay success')
           })
           .catch((error) => {
             // setTimeout(() => {
@@ -135,19 +141,26 @@ export default class VideoDecoder extends EventEmitter {
       console.error(this.TAG, '_bindEvents')
       return
     }
-    // logger.log(this.TAG, '_bindEvents', 'add video events')
+    // console.log(this.TAG, '_bindEvents', 'add video events')
     document.addEventListener('visibilitychange', this._onVisibilityChange.bind(this))
     video.addEventListener('playing', this._onPlaying.bind(this))
     video.addEventListener('ended', this._onEnded.bind(this))
     video.addEventListener('error', this._onError.bind(this))
     video.addEventListener('loadeddata', this._onLoadeddata.bind(this))
     video.addEventListener('timeupdate', this._onTimeUpdate.bind(this))
-    // video.addEventListener('seeked', () => {
-    // 	console.error('seeked', this._vCurrentTime, this._basePTS)
-    // })
+    video.addEventListener('pause', () => {
+      // console.log('pause')
+      console.log('on pause, currentTime, duration:', this._vCurrentTime, this._vDuration)
+    })
     this.on('outputresolutionchange', this._onChange.bind(this))
+    this.on('fpsreduce', (fps) => {
+      // this._adaptFrameDuration(fps)
+    })
   }
-  _onTimeUpdate () {}
+  _onTimeUpdate () {
+    // console.log('currentTime:', this._vCurrentTime)
+    this._lastCurrentTime = this._vCurrentTime
+  }
 
   _onVisibilityChange () {
     this._isVideoONRun = document.visibilityState === 'visible'
@@ -161,14 +174,19 @@ export default class VideoDecoder extends EventEmitter {
     // 上一个video没有正确结束
     if (this._IsInDecoding) {
       console.warn(this.TAG, '_onPlaying', 'last video not correct end')
+      if (this._framId) {
+        window.cancelAnimationFrame(this._framId)
+        this._framId = null
+      }
     }
-    logger.log(this.TAG, '_onPlaying, video duration:', this._vDuration)
+    console.log(this.TAG, '_onPlaying, video duration:', this._vDuration, this._vCurrentTime, this._lastPts,)
     this._isInDecoding = true
+    this._lastCurrentTime = this._vCurrentTime
     this.ptsArray = []
     this._getFrame()
   }
-  _onEnded (event, manual) {
-    logger.log(
+  _onEnded (e, from) {
+    console.log(
       this.TAG,
       '_onEnded',
       'current fmp4 duration is:',
@@ -178,13 +196,19 @@ export default class VideoDecoder extends EventEmitter {
       '_lastPts:',
       this._lastPts,
       '_realFrameDuration:',
-      this._realFrameDuration
+      this._realFrameDuration,
+      'from:', from
     )
+    // 如果在_getFrame里执行了_onEnded方法，则ended事件则不在执行
+    if (!this._isInDecoding) {
+      return
+    }
+
     this._isInDecoding = false
     this._lastMp4Duration = Math.min(this._vDuration, this._vCurrentTime)
 
     if (this._framId) {
-      this.console('log', '_onEnded', 'cancelAnimationFrame')
+      console.log(this.TAG, '_onEnded', 'cancelAnimationFrame')
       window.cancelAnimationFrame(this._framId)
       this._framId = null
     }
@@ -192,12 +216,9 @@ export default class VideoDecoder extends EventEmitter {
     // 计算每一秒视频解码出来图片数量
     this._decodeFPS = parseInt(this._screenShotNum / (this._vDuration / 1000))
 
-    // this._adaptFrameDuration()
-
     this.emit('fps', this._screenShotNum, this._totleTime, this._vDuration, this._metaFPS, {
       height: this._currentCanvasHeight,
       relHeight: this._video.videoHeight
-      // height: this._video.videoHeight > 720 ? 720 : this._video.videoHeight
     })
 
     this._screenShotNum = 0
@@ -209,7 +230,7 @@ export default class VideoDecoder extends EventEmitter {
       this._currentBlob = null
       this._basePTS = 0
     }
-    this.emit(Events.DECODE_EVENTS.FRAGMENT_END, this._decodeFPS)
+    this.emit(Events.DECODE_EVENTS.FRAGMENT_END, this._decodeFPS, this._video.duration)
   }
   _onError () {
     this._isInDecoding = false
@@ -221,6 +242,8 @@ export default class VideoDecoder extends EventEmitter {
 
   _onLoadeddata () {
     let video = this._video
+    // 解决safari浏览器下，ended事件不触发问题（目前未得到验证）
+    video.currentTime = 0.001
     // 首帧图片
     if (!this.firstEmit) {
       // 播放失败
@@ -229,11 +252,11 @@ export default class VideoDecoder extends EventEmitter {
         video.style.visibility = 'hidden'
         this.emit(Events.DECODE_EVENTS.APPEND_VIDEO, video)
         setTimeout(() => {
-          logger.log(this.TAG, 'onloadeddata, setTimeout firstEmit:', this.firstEmit)
+          console.log(this.TAG, 'onloadeddata, setTimeout firstEmit:', this.firstEmit)
           this._getFirstFrame()
         }, 40)
       } else {
-        logger.log(this.TAG, 'onloadeddata, firstEmit:', this.firstEmit)
+        console.log(this.TAG, 'onloadeddata, firstEmit:', this.firstEmit)
         this._getFirstFrame()
       }
     }
@@ -259,10 +282,14 @@ export default class VideoDecoder extends EventEmitter {
     }
 
     if (videoWidth || videoHeight) {
-      let sTime = Date.now()
       let currentTime = this._vCurrentTime
       let pts = this._basePTS + currentTime
       this.ptsArray.push(pts)
+      // ended事件和该处代码只能执行一个，如果ended事件不触发，则进行兜底（safari下有时不触发ended事件）
+      if (this._lastCurrentTime && (this._lastCurrentTime == this._vDuration)) {
+        console.log(this.TAG, '_getFrame, video ended, lastCurrentTime', this._lastCurrentTime, 'duration:', this._vDuration, 'isInDecoding:', this._isInDecoding)
+        this._onEnded(null, 'getFrame')
+      }
 
       if (this._lastPts) {
         if (pts <= this._lastPts) {
@@ -271,13 +298,15 @@ export default class VideoDecoder extends EventEmitter {
         }
       }
 
-      if (this._lastPts && pts - this._lastPts < parseInt(this._realFrameDuration)) {
+      if (this._lastPts && (pts - this._lastPts < this._realFrameDuration)) {
+        // if (this._lastPts && pts - this._lastPts < parseInt(60)) {
         this._framId = window.requestAnimationFrame(this._getFrame.bind(this))
         return
       }
       this._screenShotNum++
       let imageData = null
       let res
+      let sTime = Date.now()
       try {
         res = this._getImageData(pts)
         imageData = res.imageData
@@ -286,12 +315,11 @@ export default class VideoDecoder extends EventEmitter {
       }
 
       this._lastPts = pts
-
+      // this._lastCurrentTime = this._vCurrentTime
       let eTime = Date.now()
       let cTime = eTime - sTime
       this._totleTime += cTime
       this.emit(Events.DECODE_EVENTS.DECODED, imageData, pts)
-      // }
       this._framId = window.requestAnimationFrame(this._getFrame.bind(this))
       return
     }
@@ -317,7 +345,10 @@ export default class VideoDecoder extends EventEmitter {
       height = this._maxVideoHeight
       width = parseInt(height * (videoWidth / videoHeight))
     }
-
+    // if (this._isPhoneSafari) {
+    //   canvas = this._canvas
+    //   ctx = this._ctx
+    // } else {
     imageData = this._canvasList.shift()
     if (!imageData) {
       console.warn(this.TAG, '_getImageData, _canvansList length is 0')
@@ -328,6 +359,7 @@ export default class VideoDecoder extends EventEmitter {
 
     canvas = imageData.dom
     ctx = imageData.ctx
+    // }
 
     this._currentCanvasHeight = height
 
@@ -336,7 +368,13 @@ export default class VideoDecoder extends EventEmitter {
       canvas.height = height
     }
     try {
-      ctx.drawImage(video, 0, 0, videoWidth, videoHeight, 0, 0, width, height)
+      // console.log(this.TAG, '_getImageData', width, height, videoWidth, videoHeight)
+      if (videoHeight && videoWidth && width && height) {
+        ctx.drawImage(video, 0, 0, videoWidth, videoHeight, 0, 0, width, height)
+      }
+      // if (this._isPhoneSafari) {
+      //   imageData = ctx.getImageData(0, 0, width, height)
+      // }
     } catch (e) {
       console.error(this.TAG, '_getImageData, drawImage:', e)
     }
@@ -344,29 +382,32 @@ export default class VideoDecoder extends EventEmitter {
     return { imageData }
   }
 
-  _adaptFrameDuration () {
-    if (this._decodeFPS < 15) {
+  _adaptFrameDuration (decodeFPS) {
+    if (decodeFPS < 15) {
       this._minFPSTime++
     } else {
       this._minFPSTime = 0
     }
 
-    if (this._decodeFPS > 17) {
+    if (decodeFPS > 17) {
       this._maxFPSTime++
     } else {
       this._maxFPSTime = 0
     }
 
-    // 连续4次每秒截图次数<15，就尝试减少截图间隔，增加_decodeFPS
-    if (this._minFPSTime > 3 && this._decodeFPS < 15) {
-      this._realFrameDuration = this._realFrameDuration - 3
+    if (this._minFPSTime > 0 && this._decodeFPS < 15) {
+      this._realFrameDuration -= 2
+      if (this._realFrameDuration < 0) {
+        this._realFrameDuration = 0
+      }
       this._minFPSTime = 0
     }
-    // 连续4次每秒截图次数>17，就尝试增加截图间隔，减少_decodeFPS
-    if (this._maxFPSTime > 3 && this._decodeFPS > 17) {
-      this._realFrameDuration = this._realFrameDuration + 3
+
+    if (this._maxFPSTime > 0 && this._decodeFPS > 17) {
+      this._realFrameDuration += 2
       this._maxFPSTime = 0
     }
+    console.error('_realFrameDuration', this._realFrameDuration)
   }
   get _vDuration () {
     return parseInt(this._video.duration * 1000)
@@ -407,11 +448,13 @@ export default class VideoDecoder extends EventEmitter {
   }
   pause () {
     if (this._isInDecoding) {
+      // console.error('doPause')
       this._video.pause()
     }
   }
   play () {
     if (this._isInDecoding && this._video.paused) {
+      console.log('video play', this._vCurrentTime)
       return this._video.play()
     }
   }
@@ -428,9 +471,7 @@ export default class VideoDecoder extends EventEmitter {
   canPlayType (codec) {
     return this._video.canPlayType(codec)
   }
-  console (method, name, ...args) {
-    console[method](this.TAG + '->', name, ...args)
-  }
+
   destroy () {
     this._removeEvents()
   }

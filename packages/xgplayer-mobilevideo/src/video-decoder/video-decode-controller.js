@@ -7,7 +7,7 @@ import VideoDecoder from './video-decoder'
 const REMUX_EVENTS = EVENTS.REMUX_EVENTS
 const DEMUX_EVENTS = EVENTS.DEMUX_EVENTS
 const MAX_FRAMESIZE = 40
-const MIN_FRAMESIZE = 20
+const MIN_FRAMESIZE = 30
 const DEFAULT_FPS = 15
 const LEVELS = [
   { base: 720, level: 0 },
@@ -36,6 +36,11 @@ export default class VideoDecoderController extends EventEmitter {
     this._startDts = 0
     this._fDuration = 0
     this._minFPSTime = 0
+    this._lastPts = 0
+    this._frameLengthPerFragment = 0
+    this._gopBufferLength = 0
+    this._maxGopDuration = 0
+    this._minGopDuration = 0
     // -1表示使用的是原始分辨率
     this._currentLevel = -1
     this._handleInitSegment = this._handleInitSegment.bind(this)
@@ -64,7 +69,7 @@ export default class VideoDecoderController extends EventEmitter {
     this._decoder.on(Events.DECODE_EVENTS.FRAGMENT_END, this._onFragmentEnd.bind(this))
     this._decoder.on('fps', (...args) => {
       // console.log('dtime')
-      let pars = [this._metaFPS, ...args]
+      let pars = [this._metaFPS, ...args, this._frameLengthPerFragment]
       this.emit('fps', ...pars)
     })
   }
@@ -81,35 +86,36 @@ export default class VideoDecoderController extends EventEmitter {
     // console.warn('page _onVisibilityChange', this._isVideoOnRun)
   }
   _onDecoded (imageData, pts) {
+    this._frameLengthPerFragment++
     let frameInfo = this._buildFrameInfo(imageData, pts)
     this._parent.emit(Events.DECODE_EVENTS.DECODED, frameInfo)
+    this._lastPts = pts
   }
   _onFirstFrame (frame, pts) {
     let frameInfo = this._buildFrameInfo(frame, pts)
     this._parent.emit(Events.DECODE_EVENTS.FIRST_FRAME, frameInfo)
   }
 
-  _onFragmentEnd (decodeFPS) {
-    this._lastFragmentEndTime = Date.now()
-    logger.log(this.TAG, '_onFragmentEnd ,_isDecodePause:', this._isDecodePause, 'decodeFPS:', decodeFPS)
+  _onFragmentEnd (decodeFPS, duration) {
+    console.log(this.TAG, '_onFragmentEnd ,_isDecodePause:', this._isDecodePause, 'decodeFPS:', decodeFPS)
     if (decodeFPS) {
       this._reduceResolution(decodeFPS)
     }
     this._isInDecoding = false
-    this._hasDoSeek = false
     this._inDecodeId = -1
     this._currentInfo = null
-    logger.log(this.TAG, '_onFragmentEnd _blobURLList length:', this._blobURLList.length, '_isDecodePause:', this._isDecodePause)
-    if (this._blobURLList.length && !this._isDecodePause) {
+    this._frameLengthPerFragment = 0
+    // console.log(this.TAG, '_onFragmentEnd _blobURLList length:', this._getBlobLength(), '_isDecodePause:', this._isDecodePause, 'inVideoOnRun:', this._isVideoOnRun)
+    if (this._getBlobLength() && !this._isDecodePause) {
       this.startDecode()
     } else {
       this.loadNextHandle = setInterval(() => {
-        if (this._blobURLList.length && !this._isDecodePause && this._isVideoOnRun && !this._isInDecoding) {
-          logger.log(this.TAG, '_onFragmentEnd, setInterval start next mp4 decode')
+        if (this._getBlobLength() && !this._isDecodePause && this._isVideoOnRun && !this._isInDecoding) {
+          console.log(this.TAG, '_onFragmentEnd, setInterval start next mp4 decode')
           this.startDecode()
           clearInterval(this.loadNextHandle)
         }
-      }, 50)
+      })
     }
   }
   _onError (error, firstEmit) {
@@ -126,7 +132,7 @@ export default class VideoDecoderController extends EventEmitter {
     if (this._isDataReady && this._isInit) {
       // 解码器准备完毕
       this.ready = true
-      logger.log(this.TAG, 'checkReady trigger ready')
+      console.log(this.TAG, 'checkReady trigger ready')
       this._parent.emit(Events.DECODE_EVENTS.READY)
     }
   }
@@ -145,11 +151,12 @@ export default class VideoDecoderController extends EventEmitter {
   _reduceResolution (decodeFPS) {
     if (decodeFPS && decodeFPS < DEFAULT_FPS) {
       this._minFPSTime++
+      this._decoder.emit('fpsreduce', decodeFPS)
     } else {
       this._minFPSTime = 0
     }
-    // 连续3次fps小于DEFAULT_FPS
-    if (this._minFPSTime > 3) {
+    // 连续10次fps小于DEFAULT_FPS
+    if (this._minFPSTime > 10) {
       let videoWidth = this._videoWidth
       let videoHeight = this._videoHeight
       let levelInfo = null
@@ -162,19 +169,6 @@ export default class VideoDecoderController extends EventEmitter {
       }
       this._minFPSTime = 0
     }
-    // if (decodeFPS && decodeFPS < DEFAULT_FPS) {
-    //   let videoWidth = this._videoWidth
-    //   let videoHeight = this._videoHeight
-    //   let levelInfo = null
-    //   levelInfo = this._findLevel(videoHeight, this._currentLevel)
-
-    //   if (levelInfo) {
-    //     this._currentLevel = levelInfo.level
-    //     this.width = levelInfo.base * (videoWidth / videoHeight)
-    //     this.height = levelInfo.base
-    //     this._decoder.emit('outputresolutionchange', this.width, this.height)
-    //   }
-    // }
   }
 
   _findLevel (pix, currentLevel) {
@@ -192,7 +186,7 @@ export default class VideoDecoderController extends EventEmitter {
 
   _remuxMetaData () {
     if (this.remux) {
-      logger.log(this.TAG, '_remuxMetaData, start REMUX_METADATA')
+      console.log(this.TAG, '_remuxMetaData, start REMUX_METADATA')
       this.remux.emit(REMUX_EVENTS.REMUX_METADATA, 'video')
     }
   }
@@ -225,16 +219,51 @@ export default class VideoDecoderController extends EventEmitter {
         type
       }
     } catch (e) {
-      logger.log(this.TAG, e)
+      console.log(this.TAG, e)
     }
   }
 
   _pushBlob (info) {
+    console.log('push blob', info.dts, info.duration)
+    if (info && info.duration) {
+      // 记录生成的fmp4的时长，有些视频gop时长不稳定，需要fmp4的时长大于maxGopDuration.才能开始播放
+      this._gopBufferLength += info.duration
+    }
     this._blobURLList.push(info)
   }
 
+  _shiftBlob () {
+    let blobInfo = this._blobURLList.shift()
+    if (blobInfo && blobInfo.duration) {
+      this._gopBufferLength -= blobInfo.duration
+    }
+    return blobInfo
+  }
+
+  _filterBlob (audioDTS) {
+    this._blobURLList = this._blobURLList.filter((item) => {
+      if (item.dts < audioDTS) {
+        URL.revokeObjectURL(item.blobUrl)
+        if (item.duration) {
+          this._gopBufferLength -= item.duration
+        }
+      }
+      return item.dts >= audioDTS
+    })
+  }
+
+  _emptyBlobList () {
+    this._blobURLList = []
+    this._gopBufferLength = 0
+  }
+
+  _getBlobLength () {
+    return this._blobURLList.length
+  }
+
+
   _removeRemuxLinstener () {
-    logger.log(this.TAG, '_removeRemuxLinstener, remove event listener')
+    console.log(this.TAG, '_removeRemuxLinstener, remove event listener')
     let remux = this.remux
     remux.off(REMUX_EVENTS.INIT_SEGMENT, this._handleInitSegment)
     remux.off(DEMUX_EVENTS.ISKEYFRAME, this._handleKeyFrameVideo)
@@ -242,7 +271,7 @@ export default class VideoDecoderController extends EventEmitter {
   }
 
   _bindRemuxEvents (remux) {
-    logger.log(this.TAG, '_bindRemuxEvents, remux add event listener')
+    console.log(this.TAG, '_bindRemuxEvents, remux add event listener')
     remux.on(REMUX_EVENTS.INIT_SEGMENT, this._handleInitSegment)
     remux.on(DEMUX_EVENTS.ISKEYFRAME, this._handleKeyFrameVideo)
     remux.on(REMUX_EVENTS.MEDIA_SEGMENT, this._handleMediaSegmentVideo)
@@ -251,11 +280,14 @@ export default class VideoDecoderController extends EventEmitter {
   _handleKeyFrameVideo (pts) {
     try {
       const { videoTrack } = this._remux._context.getInstance('TRACKS')
-      logger.log(this.TAG, '_handleKeyFrame, keyFrame dts:', videoTrack.samples[0].dts, 'sample length:', videoTrack.samples.length)
       let samples = videoTrack.samples || []
       let startDts = samples[0].dts
       let endDts = samples[samples.length - 1].dts
-
+      let delay = startDts - this.endDts
+      if (this.endDts && delay > Math.floor(1000 / this._metaFPS) + 1) {
+        console.log(this.TAG, '_handleKeyFrame, keyFrame dts:', startDts, 'sample length:', videoTrack.samples.length, 'endDts:', endDts, 'delay:', delay)
+        console.error(this.TAG, 'error:', startDts, this.endDts)
+      }
       let timeScale = (videoTrack && videoTrack.meta.timeScale) || 1000
       // 每个gop小于2s，则不remuxe
       let gopDuration = (endDts - startDts) / timeScale
@@ -264,7 +296,7 @@ export default class VideoDecoderController extends EventEmitter {
         this._fDuration = gopDuration
       }
       if (gopDuration < 2) {
-        logger.log(
+        console.log(
           this.TAG,
           '_handleKeyFrame gopDuration :',
           gopDuration,
@@ -281,13 +313,16 @@ export default class VideoDecoderController extends EventEmitter {
       if (!this.firstDts) {
         this.firstDts = samples[0].dts
       }
-      this.currentFramentDts = samples[0].dts
-      this.currentFragmentDuration = endDts - startDts
+      this.currentFragmentDts = samples[0].dts
+      this.currentFragmentDuration = (endDts - startDts) + Math.floor(1000 / this._metaFPS)
+      this.endDts = endDts
 
-      if (this.currentFramentDts < this._startDts) {
+
+      if (this.currentFragmentDts < this._startDts) {
         videoTrack.samples = []
         return
       }
+
       // 更新remux的_videoDtsBase，保证每个gop生成的fragment时间戳从0开始
       this._remux._videoDtsBase = samples[0].dts
       // 开始remux fmp4的mdat
@@ -297,7 +332,7 @@ export default class VideoDecoderController extends EventEmitter {
   }
 
   _handleInitSegment (type) {
-    logger.log(this.TAG, `remux INIT_SEGMENT has been emited`, 'type:', type)
+    console.log(this.TAG, `remux INIT_SEGMENT has been emited`, 'type:', type)
     if (type === 'video') {
       let source = this._getVideoSource()
       this.initSegmentVideoData = source.init
@@ -309,10 +344,10 @@ export default class VideoDecoderController extends EventEmitter {
   _handleMediaSegmentVideo (type) {
     if (type === 'video') {
       try {
-        logger.log(this.TAG, `remux MediaSegment has been emited`)
+        console.log(this.TAG, `remux MediaSegment has been emited`)
         if (!this._videoDtsBase) {
           this._videoDtsBase = this._remux._videoDtsBase
-          logger.log(this.TAG, '_handleMediaSegment, videoDtsBase:', this._videoDtsBase, 'firstDts:', this.firstDts)
+          console.log(this.TAG, '_handleMediaSegment, videoDtsBase:', this._videoDtsBase, 'firstDts:', this.firstDts)
         }
 
         let videoSource = this._getVideoSource()
@@ -325,12 +360,14 @@ export default class VideoDecoderController extends EventEmitter {
         let blobUrl = this._createBlobURL(fmp4)
         let info = {
           blobUrl,
-          dts: this.currentFramentDts,
-          duration: this.currentFragmentDuration
+          dts: this.currentFragmentDts,
+          duration: this.currentFragmentDuration,
+          frameDuration: Math.floor(1000 / this._metaFPS)
         }
+        this._recordGopDuration(this.currentFragmentDuration)
         this._pushBlob(info)
 
-        if (!this._isDataReady) {
+        if (!this._isDataReady && this._gopBufferLength >= this._maxGopDuration) {
           // this.emit(Events.DECODE_EVENTS.MEDIA_SEGMENT)
           this._checkDataReady()
         }
@@ -383,6 +420,23 @@ export default class VideoDecoderController extends EventEmitter {
     return data
   }
 
+  _recordGopDuration (gopDuration) {
+    let duration = gopDuration
+
+    if (!this._minGopDuration) {
+      this._minGopDuration = duration
+    }
+
+    if (duration > this._maxGopDuration) {
+      this._maxGopDuration = duration
+    }
+
+    if (duration < this._minGopDuration) {
+      this._minGopDuration = duration
+    }
+
+  }
+
   checkMaxFrames (num) {
     if (typeof num === 'number') {
       // 根据解码出来的图片帧数量，来决定是否暂停解码
@@ -419,6 +473,12 @@ export default class VideoDecoderController extends EventEmitter {
       // console.error(this.TAG, 'frameRendend', this._decoder._canvasList.length)
       // 重新设置canvas大小，可以清空画布，减少GPU内存占用。如果设置值<videoWidth，有可能会增加cpu利用率
       imageObj.dom.width = 0
+      imageObj.dom.height = 0
+      let canvasList = this._decoder._canvasList
+      let length = canvasList.length
+      if (length > MAX_FRAMESIZE) {
+        return
+      }
       this._decoder._canvasList.push(imageObj)
     } else {
       logger.error(this.TAG, '_onRendend', 'imageObj. is error', imageObj)
@@ -426,29 +486,28 @@ export default class VideoDecoderController extends EventEmitter {
   }
 
   checkValidBlob (audioDTS) {
-    // if (!this._isVideoOnRun) {
-    this._blobURLList = this._blobURLList.filter((item) => {
-      if (item.dts < audioDTS) {
-        URL.revokeObjectURL(item.blobUrl)
-      }
-      return item.dts >= audioDTS
-    })
-    logger.error(this.TAG, 'checkValidBlob', this._blobURLList.length)
-    // }
+    // this._blobURLList = this._blobURLList.filter((item) => {
+    //   if (item.dts < audioDTS) {
+    //     URL.revokeObjectURL(item.blobUrl)
+    //   }
+    //   return item.dts >= audioDTS
+    // })
+    this._filterBlob(audioDTS)
+    logger.error(this.TAG, 'checkValidBlob', this._getBlobLength())
   }
 
   chaseVideoFrame (keyFrame) {
-    logger.log(this.TAG, keyFrame, keyFrame.frame.dts, this.currentFramentDts)
+    console.log(this.TAG, keyFrame, keyFrame.frame.dts, this.currentFragmentDts)
     let frame = keyFrame.frame
     let startDts = frame.dts
     this._startDts = startDts
-    // currentFramentDts 最新gop的起始pts
-    if (startDts === this.currentFramentDts) {
-      logger.log(this.TAG, '_onChaseFrame', '_inDecodeId:', this._inDecodeId, 'currentFramentDts:', this.currentFramentDts)
+    // currentFragmentDts 最新gop的起始pts
+    if (startDts === this.currentFragmentDts) {
+      console.log(this.TAG, '_onChaseFrame', '_inDecodeId:', this._inDecodeId, 'currentFragmentDts:', this.currentFragmentDts)
       // 当前正在解码的gop不是chase需要的
       if (this._inDecodeId > 0 && this._inDecodeId < startDts) {
         // todo 停止解码，开始下一个gop的解码
-        logger.log(
+        console.log(
           this.TAG,
           '_onChaseFrame, _inDecodeId > 0 && _inDecodeId < startDts, _inDecodeId:',
           this._inDecodeId,
@@ -456,42 +515,43 @@ export default class VideoDecoderController extends EventEmitter {
           startDts
         )
         this.stopDecode()
-        this._blobURLList = this._blobURLList.filter((item) => {
-          return item.dts >= startDts
-        })
+        // this._blobURLList = this._blobURLList.filter((item) => {
+        //   return item.dts >= startDts
+        // })
+        this._filterBlob(startDts)
         this.startDecode()
         return
       }
       // 正在解码的就是chase到的gop
       if (this._inDecodeId === startDts) {
-        logger.log(this.TAG, '_onChaseFrame, _inDecodeId === startDts, startDts:', startDts)
+        console.log(this.TAG, '_onChaseFrame, _inDecodeId === startDts, startDts:', startDts)
         this.stopDecode()
         this.reStrartDecode(this._currentInfo)
         return
       }
       if (this._inDecodeId === -1) {
-        logger.log(this.TAG, '_onChaseFrame', '_inDecodeId==-1')
+        console.log(this.TAG, '_onChaseFrame', '_inDecodeId==-1')
         this.startDecode()
       }
       //  this.emit('chaseframeend', true)
     }
     // 当前gop还没有完成
-    if (startDts > this.currentFramentDts) {
-      logger.log(
+    if (startDts > this.currentFragmentDts) {
+      console.log(
         this.TAG,
-        '_onChaseFrame, startDts > currentFramentDts, startDts:',
+        '_onChaseFrame, startDts > currentFragmentDts, startDts:',
         startDts,
-        'currentFramentDts:',
-        this.currentFramentDts
+        'currentFragmentDts:',
+        this.currentFragmentDts
       )
       this.stopDecode()
-      this._blobURLList = []
+      this._emptyBlobList()
     }
     // 触发waiting后，在触发追帧操作，会出现这种情况
-    if (startDts < this.currentFramentDts) {
-      logger.log(
+    if (startDts < this.currentFragmentDts) {
+      console.log(
         this.TAG,
-        '_onChaseFrame, startDts < currentFramentDts, startDts:',
+        '_onChaseFrame, startDts < currentFragmentDts, startDts:',
         startDts,
         'currentFragmentDts:',
         this.currentFragmentDts
@@ -499,9 +559,10 @@ export default class VideoDecoderController extends EventEmitter {
 
       if (startDts > this._inDecodeId) {
         // 过滤掉比startDts小的blob
-        this._blobURLList = this._blobURLList.filter((item) => {
-          return item.dts >= startDts
-        })
+        // this._blobURLList = this._blobURLList.filter((item) => {
+        //   return item.dts >= startDts
+        // })
+        this._filterBlob(startDts)
         this.stopDecode()
         this.startDecode()
       }
@@ -521,7 +582,7 @@ export default class VideoDecoderController extends EventEmitter {
     this._videoHeight = meta.presentHeight
     this._frameDuration = parseInt(1000 / this._metaFPS)
     this._isInit = true
-    logger.log(`${this.TAG} has inited`)
+    console.log(`${this.TAG} has inited`)
     this._isInit = true
     this._checkReady()
   }
@@ -529,13 +590,12 @@ export default class VideoDecoderController extends EventEmitter {
   reStrartDecode (info) {
     if (info) {
       try {
-        logger.log(this.TAG, 'reStrartDecode')
+        console.log(this.TAG, 'reStrartDecode')
         this._isInDecoding = true
         this._inDecodeId = info.dts
         this._currentInfo = info
         this._decoder.startDecode(info, this._metaFPS, this._startTime)
         this._startTime = 0
-        this._hasDoSeek = false
       } catch (e) {
         console.error('load error', e)
       }
@@ -546,34 +606,35 @@ export default class VideoDecoderController extends EventEmitter {
     this._isInDecoding = false
     this._inDecodeId = -1
     this._currentInfo = null
+    this._frameLengthPerFragment = 0
     this._decoder.stopDecode()
   }
 
   startDecode () {
     if (this._isInDecoding) {
-      logger.warn(this.TAG, 'startDecode', 'this decoder is in decoding')
+      console.warn(this.TAG, 'startDecode', 'this decoder is in decoding')
       return
     }
-    let blobURLLength = this._blobURLList.length
+    let blobURLLength = this._getBlobLength()
     if (this._decoder && blobURLLength) {
-      logger.log(this.TAG, 'startDecode', 'blob url length:', blobURLLength)
-      let info = this._blobURLList.shift() || {}
+      console.log(this.TAG, 'startDecode', 'blob url length:', blobURLLength)
+      let info = this._shiftBlob() || {}
       try {
-        logger.log(this.TAG, 'startDecode')
+        console.log(this.TAG, 'startDecode', info.dts, info.duration)
         this._isInDecoding = true
         this._inDecodeId = info.dts
         this._currentInfo = info
         this._decoder.startDecode(info, this._metaFPS)
       } catch (e) {
-        console.error('load error', e)
+        console.error(this.TAG, 'startDecode', 'load error', e)
       }
     }
   }
 
   canSeek (keyFrame) {
     let dts = keyFrame.frame.dts
-    // console.log('can seek video decoceer:', dts, this._inDecodeId, this.currentFramentDts)
-    if (this.currentFramentDts >= dts && this._isInDecoding) {
+    // console.log('can seek video decoceer:', dts, this._inDecodeId, this.currentFragmentDts)
+    if (this.currentFragmentDts >= dts && this._isInDecoding) {
       if (this._inDecodeId === dts) {
         // console.error('in decodeing')
         return false
@@ -606,6 +667,23 @@ export default class VideoDecoderController extends EventEmitter {
     // this._removeRemuxLinstener()
     // this._mediaSegmentReady = false
   }
+
+  empty () {
+    console.log('empty')
+    if (this._decoder) {
+      let list = this._decoder._canvasList
+      console.log(this.TAG, 'empty >>>>>>>>>>>>>>>>>>length:', list.length)
+      list.forEach((item) => {
+        if (item.dom) {
+          console.log('clear >>>>>>>>>>>>>>>>>>')
+          item.dom.width = 0
+          item.dom.height = 0
+          item.dom = null
+        }
+      })
+      return list.length
+    }
+  }
   /**
    * 解码器是否空闲
    * 1、待解码的blob为0
@@ -613,8 +691,8 @@ export default class VideoDecoderController extends EventEmitter {
    * 3、页面不处于隐藏状态（隐藏状态是可以不解码）
    */
   get isIDLE () {
-    logger.log(this.TAG, 'isIDEL', 'blob length:', this._blobURLList.length, '_isInDecoding:', this._isInDecoding, 'isVideoOnRun:', this._isVideoOnRun)
-    return !this._blobURLList.length && !this._isInDecoding && this._isVideoOnRun
+    console.log(this.TAG, 'isIDEL', 'blob length:', this._getBlobLength(), '_isInDecoding:', this._isInDecoding, 'isVideoOnRun:', this._isVideoOnRun, '_isDecodePause', this._isDecodePause)
+    return !this._getBlobLength() && !this._isInDecoding && this._isVideoOnRun
   }
 
   get ready () {

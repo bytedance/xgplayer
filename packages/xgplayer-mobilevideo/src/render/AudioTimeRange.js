@@ -80,7 +80,7 @@ export default class AudioTimeRange {
     }
   }
 
-  append (source, duration, startDts, segmentStart) {
+  append (source, duration, startDts, segmentStart, delay) {
     if (this._baseDts === -1) {
       this._baseDts = startDts
     }
@@ -92,7 +92,8 @@ export default class AudioTimeRange {
       end,
       startDts,
       source,
-      duration
+      duration,
+      delay
     }
 
     if (!this.isLive && segmentStart) {

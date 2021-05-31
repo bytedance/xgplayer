@@ -37,6 +37,9 @@ export default class VideoRenderFromVideo extends VideoBaseRender {
     this.on(Events.DECODE_EVENTS.FIRST_FRAME, this._onFirstFrame.bind(this))
     this._parent.on(Events.DECODE_EVENTS.CHASE_VIDEO_FRAME, this._onChaseVideoFrame.bind(this))
     this._parent.on(Events.TIMELINE.SYNC_DTS, this._onTimeLineSyncDTS.bind(this))
+    window.addEventListener('unload', () => {
+      this._empty()
+    })
   }
 
   _onTimeLineSyncDTS (dts) {
@@ -103,8 +106,7 @@ export default class VideoRenderFromVideo extends VideoBaseRender {
     this._startDecode()
   }
   _onFirstFrame (frame) {
-    this._inDecoding = true
-    logger.log(this.TAG, 'onFirstFrame')
+    console.log(this.TAG, 'onFirstFrame')
     this._receiveFrame(frame)
     this._firstFrame = true
     this.forceRender(true)
@@ -132,7 +134,6 @@ export default class VideoRenderFromVideo extends VideoBaseRender {
     } else {
       this.chaseFrameAfter = 0
     }
-    this._inDecoding = true
     this._receiveFrame(frame)
   }
 
@@ -154,7 +155,7 @@ export default class VideoRenderFromVideo extends VideoBaseRender {
     if (this._isInit) {
       return
     }
-    logger.log(this.TAG, '_initDecoder')
+    console.log(this.TAG, '_initDecoder')
     if (!this._videoDecodeController.remux) {
       this._initRemux()
     }
@@ -176,7 +177,7 @@ export default class VideoRenderFromVideo extends VideoBaseRender {
     this._meta = meta
     let fps = meta && meta.frameRate && meta.frameRate.fps
     if (fps) {
-      logger.log(this.TAG, 'detect fps:', fps)
+      console.log(this.TAG, 'detect fps:', fps)
     } else {
       logger.warn(this.TAG, 'no detect fps,start estimate')
     }
@@ -208,38 +209,47 @@ export default class VideoRenderFromVideo extends VideoBaseRender {
   // 1. 解码worker初始化完成,提前解几帧
   // 2. 渲染ticker中
   _checkToDecode () {
-    // if (this._frameQueue.length < this._wasmDecodeController.needToDecode) {
-    //   this._startDecode()
-    // }
+    this._startDecode()
   }
 
   _startRender () {
+    console.log(this.TAG, '_startRender interval', this.interval)
     this._tickTimer.start(this.interval)
   }
 
   _render (force) {
     let frame = this._frameQueue.nextFrame()
+
+    // let audioRender = this._parent.audioRender
+    // let preciseVideoDts1 = Math.floor(audioRender.currentTime * 1000) + audioRender._timeRange._baseDts
+    // let presiceDelay = Math.abs(preciseVideoDts1 - this.preciseVideoDts)
+    // if (presiceDelay > 100) {
+    //   console.error('auido dts error:', preciseVideoDts1, this.preciseVideoDts, presiceDelay)
+    // }
+    let preciseVideoDts = this.preciseVideoDts
     if (!frame || !this._timeRange) {
       this._videoDecodeController.checkMinFrames(this._frameQueue._frames.length)
-      logger.log(this.TAG, 'lack frame')
+      // console.log(this.TAG, 'lack frame')
 
       if (this._parent._paused) {
-        this._doPause()
-        logger.log(this.TAG, '_render', 'pused return')
+        // this._doPause()
+        // console.log(this.TAG, '_render', 'pused return')
         return
       }
       if (!this._firstFrame) {
-        logger.log(this.TAG, '_render', 'not first frame return')
+        console.log(this.TAG, '_render', 'not first frame return')
         return
       }
       let _videoDecodeController = this._videoDecodeController
-      logger.log(this.TAG, ',lack frame, _inDecoding:', this._inDecoding, ',_frameQueue.length:', this._frameQueue.length)
+      console.log(this.TAG, ',lack frame, _inDecoding:', this._videoDecodeController._isInDecoding, this._videoDecodeController._isDecodePause, ',_frameQueue.length:', this._frameQueue.length)
       // 在当前page隐藏时，不触发wait操作
       if (!this._frameQueue.length && _videoDecodeController.isIDLE) {
         this._ready = false
-        console.warn(this.TAG, 'trigger video waiting vdecode, preciseVideoDts:', this.preciseVideoDts)
+        let audioRender = this._parent.audioRender
+        console.warn(this.TAG, 'trigger video waiting vdecode, preciseVideoDts:', preciseVideoDts, audioRender.currentTime, audioRender.duration, audioRender.buffered.end(0), audioRender.baseDts)
         this.emit(Events.VIDEO.VIDEO_WAITING)
       }
+      this._checkToDecode()
       return
     }
 
@@ -252,25 +262,39 @@ export default class VideoRenderFromVideo extends VideoBaseRender {
     }
 
     this._renderDts = info.dts
-    let _renderDelay = info.dts - this.preciseVideoDts
-
+    let _renderDelay = info.dts - preciseVideoDts
+    // console.error('renderDelay')
     // 解决解码滞后积压，图片快速渲染问题，过时的图片就不渲染了
 
     if (_renderDelay < -150) {
-      console.warn(this.TAG, '_render _renderDelay < 150ms, _renderDelay:', _renderDelay, 'frame length:', this._frameQueue.length)
-      this._frameQueue.shift(this.preciseVideoDts)
-      this._videoDecodeController.frameRendend(frame.buffer)
+      if (preciseVideoDts - this.lastPrecise > 500) {
+        // console.error(this.TAG, 'preciseVideoDts error:', preciseVideoDts, this.lastPrecise, this.audioSyncDts, this.timelinePosition * 1000, this.lastTimelinePosition * 1000, Date.now())
+      }
+      // console.error('renderDelay:', info.dts, this.lastFrameinfo, preciseVideoDts, this.lastPrecise, "systeme:", Date.now() - this.lastTime, 'audioCurrentTime:', this.lastAudioTime, this._parent.audioRender.currentTime)
+      // console.warn(this.TAG, '_render _renderDelay < 150ms, _renderDelay:', _renderDelay, 'frame length:', this._frameQueue.length, info.dts, this.preciseVideoDts, 'audioCurrentTime:', this.lastAudioTime, this._parent.audioRender.currentTime)
+
+      let frames = this._frameQueue.frames
+      let { deleteFrames, useFrames } = this._getDeleteFrames(frames, preciseVideoDts)
+
+      frames.splice(0)
+
+      useFrames.forEach((item) => {
+        frames.push(item)
+      })
+
+      deleteFrames.forEach((item) => {
+        this._videoDecodeController.frameRendend(item.buffer)
+      })
+
+      this._videoDecodeController.emit('renderDelay', _renderDelay, this._frameQueue._frames.length)
       this._videoDecodeController.checkMinFrames(this._frameQueue.length)
       return
     }
-    if (!force && _renderDelay > 0 && _renderDelay < 60000) {
+    if (!force && _renderDelay > 30 && _renderDelay < 60000) {
       // 60s
+      // console.error('renderDelay> 50', info.dts, this.preciseVideoDts, _renderDelay)
       return
     }
-
-    // if (!this.videoDecode) {
-    // this._frameQueue.shift(this.preciseVideoDts)
-    // }
 
     if (Math.abs(this._lastTimeupdate - info.dts) > 250) {
       this._emitTimelineEvents(Events.TIMELINE.PLAY_EVENT, Events.VIDEO_EVENTS.TIMEUPDATE)
@@ -278,11 +302,12 @@ export default class VideoRenderFromVideo extends VideoBaseRender {
     }
 
     if (logger.long) {
-      logger.log(
+      console.log(
         this.TAG,
-        `render delay:${_renderDelay} , timelinePosition:${this.preciseVideoDts} , dts:${info.dts} , cost:${info.cost} , gopID:${info.gopId} , rest:${this._frameQueue.length}, buffer frame:${this._timeRange.frameLength}`
+        `render delay:${_renderDelay} , timelinePosition:${preciseVideoDts} , dts:${info.dts} , cost:${info.cost} , gopID:${info.gopId} , rest:${this._frameQueue.length}, buffer frame:${this._timeRange.frameLength}`
       )
     }
+    // console.log(this.TAG, '_render preciseVideoDts:', preciseVideoDts, Date.now())
     let ts = performance.now()
     this._frameRender.render(frame.buffer, frame.width, frame.height, frame.yLinesize, frame.uvLinesize)
     this._videoDecodeController.frameRendend(frame.buffer)
@@ -290,7 +315,20 @@ export default class VideoRenderFromVideo extends VideoBaseRender {
     this._videoDecodeController.checkMinFrames(this._frameQueue.length)
     this._videoDecodeController.emit('renderDelay', _renderDelay, this._frameQueue._frames.length)
     this._renderCost = performance.now() - ts
-    this._checkToDecode()
+    // this._checkToDecode()
+    if (!force) {
+      if (this.lastTime) {
+        let delay = preciseVideoDts - this.lastPrecise
+        let sDelay = Date.now() - this.lastTime
+        if (Math.abs(sDelay - delay) > 100) {
+          // console.error('audio delay > 20', delay, sDelay, this.lastPrecise, preciseVideoDts)
+        }
+      }
+      this.lastFrameinfo = info.dts
+      this.lastPrecise = preciseVideoDts
+      this.lastTime = Date.now()
+      this.lastAudioTime = this._parent.audioRender.currentTime
+    }
   }
 
   _destroy (reuseWorker) {
@@ -299,7 +337,37 @@ export default class VideoRenderFromVideo extends VideoBaseRender {
   }
 
   _doPause () {
-    logger.log(this.TAG, '>>>>>>>>doPause')
+    console.log(this.TAG, '>>>>>>>>doPause')
     this._tickTimer.stop()
+  }
+
+  _getDeleteFrames (frames, preciseVideoDts) {
+    let deleteFrames = []
+    let useFrames = []
+    frames.forEach((item) => {
+      if (item.info && item.info.dts > preciseVideoDts) {
+        useFrames.push(item)
+      } else if (item.info && item.info.dts <= preciseVideoDts) {
+        deleteFrames.push(item)
+      }
+    })
+    return { deleteFrames, useFrames }
+  }
+
+  _empty () {
+    if (this._videoDecodeController) {
+      let num = this._videoDecodeController.empty() || 0
+      this._frameQueue.frames.forEach((item) => {
+        if (item.buffer && item.buffer.dom) {
+          num++
+          console.log('render clear canvas')
+          item.buffer.dom.width = 0
+          item.buffer.dom.height = 0
+          item.buffer.dom = null
+        }
+      })
+      // let myStorage = window.localStorage
+      // myStorage.setItem('remove', new Date() + num)
+    }
   }
 }

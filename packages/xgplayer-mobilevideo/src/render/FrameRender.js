@@ -1,6 +1,7 @@
 import { logger } from 'xgplayer-helper-utils'
 class YUVCanvas {
   constructor (configs) {
+    this.TAG = 'YUVCanvas'
     this.configs = Object.assign({}, configs)
     this.canvas = this.configs.canvas
     this.meta = Object.assign({}, this.configs.meta)
@@ -304,7 +305,16 @@ class YUVCanvas {
         this.canvas.height = height
         this.canvas.width = width
       }
-      this.ctx.drawImage(data.dom, 0, 0, data.width, data.height)
+      try {
+        if (data.dom && data.width && data.height) {
+          this.ctx.drawImage(data.dom, 0, 0, data.width, data.height)
+        } else {
+          console.error(this.TAG, '_drawPicture2d', 'width:', data.width, 'height:', data.height)
+        }
+      } catch (error) {
+        console.log(this.ctx, this.ctx.drawImage)
+        console.error(this.TAG, '_drawPicture2d', data, data.dom, error, error.message)
+      }
     }
   }
 

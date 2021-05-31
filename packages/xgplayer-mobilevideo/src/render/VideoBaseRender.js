@@ -128,7 +128,7 @@ export default class VideoBaseRender extends BaseRender {
 
   // the precise video dts sync to timeline time
   get preciseVideoDts () {
-    return this.audioSyncDts + (this.timelinePosition - this.lastTimelinePosition) * 1000
+    return this.audioSyncDts + Math.floor((this.timelinePosition - this.lastTimelinePosition) * 1000)
   }
 
   get readyState () {
@@ -378,6 +378,7 @@ export default class VideoBaseRender extends BaseRender {
 
   /** ************** 播放行为 ***********************/
   _whenReady () {
+    console.log('whenready')
     this._ready = true
     this.emit(Events.VIDEO.VIDEO_READY)
 
