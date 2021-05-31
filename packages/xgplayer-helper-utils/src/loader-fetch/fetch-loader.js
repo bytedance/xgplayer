@@ -257,6 +257,7 @@ class FetchLoader {
     }).catch((error) => {
       clearTimeout(this._noDataTimer)
       this.loading = false;
+      if(error && error.name === 'AbortError') return;
       this.emit(LOADER_EVENTS.LOADER_ERROR, this.TAG, error);
     })
   }
