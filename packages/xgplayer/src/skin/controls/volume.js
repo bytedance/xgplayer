@@ -1,4 +1,4 @@
-import Player from '../../player'
+import { createDom } from '../../utils/util'
 import MutedIcon from '../assets/volumeMuted.svg'
 import SmallIcon from '../assets/volumeSmall.svg'
 import LargeIcon from '../assets/volumeLarge.svg'
@@ -6,8 +6,7 @@ import '../style/controls/volume.scss'
 
 let s_volume = function () {
   let player = this
-  let util = Player.util
-  let container = util.createDom('xg-volume', `<xg-icon class="xgplayer-icon">
+  let container = createDom('xg-volume', `<xg-icon class="xgplayer-icon">
                                          <div class="xgplayer-icon-large">${LargeIcon}</div>
                                          <div class="xgplayer-icon-small">${SmallIcon}</div>
                                          <div class="xgplayer-icon-muted">${MutedIcon}</div>
@@ -32,28 +31,28 @@ let s_volume = function () {
   bar.addEventListener('mousedown', e => {
     e.preventDefault()
     e.stopPropagation()
-    player.emit('volumeBarClick', e)
+    player.userGestureTrigEvent('volumeBarClick', e)
   });
 
   ['click', 'touchend'].forEach(item => {
     icon.addEventListener(item, e => {
       e.preventDefault()
       e.stopPropagation()
-      player.emit('volumeIconClick')
+      player.userGestureTrigEvent('volumeIconClick')
     })
   })
 
   icon.addEventListener('mouseenter', e => {
     e.preventDefault()
     e.stopPropagation()
-    player.emit('volumeIconEnter')
+    player.userGestureTrigEvent('volumeIconEnter')
   });
 
   ['blur', 'mouseleave'].forEach(item => {
     container.addEventListener(item, e => {
       e.preventDefault()
       e.stopPropagation()
-      player.emit('volumeIconLeave')
+      player.userGestureTrigEvent('volumeIconLeave')
     })
   })
 }

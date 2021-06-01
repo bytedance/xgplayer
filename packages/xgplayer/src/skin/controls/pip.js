@@ -1,12 +1,11 @@
-import Player from '../../player'
+import { createDom } from '../../utils/util'
 import '../style/controls/pip.scss'
 
 let s_pip = function () {
   let player = this
-  let util = Player.util
   if (!player.config.pip) { return }
   let pip = player.lang.PIP
-  let btn = util.createDom('xg-pip', `<p class="name"><span>${pip}</span></p>`, {tabindex: 9}, 'xgplayer-pip')
+  let btn = createDom('xg-pip', `<p class="name"><span>${pip}</span></p>`, {tabindex: 9}, 'xgplayer-pip')
 
   player.once('ready', () => {
     player.controls.appendChild(btn);
@@ -16,7 +15,7 @@ let s_pip = function () {
     btn.addEventListener(item, e => {
       e.preventDefault()
       e.stopPropagation()
-      player.emit('pipBtnClick')
+      player.userGestureTrigEvent('pipBtnClick')
     })
   })
 }

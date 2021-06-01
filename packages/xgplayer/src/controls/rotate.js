@@ -1,5 +1,3 @@
-import Player from '../player'
-
 let rotate = function () {
   let player = this
   let rotateConfig = player.config.rotate

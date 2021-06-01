@@ -1,4 +1,4 @@
-import Player from '../player'
+import { hasClass } from '../utils/util'
 
 let localPreview = function () {
   let player = this
@@ -6,7 +6,7 @@ let localPreview = function () {
   function onUpload (upload) {
     player.uploadFile = upload.files[0]
     let url = URL.createObjectURL(player.uploadFile)
-    if (Player.util.hasClass(root, 'xgplayer-nostart')) {
+    if (hasClass(root, 'xgplayer-nostart')) {
       player.config.url = url
       player.start()
     } else {

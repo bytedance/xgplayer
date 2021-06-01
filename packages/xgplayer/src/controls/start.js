@@ -1,9 +1,8 @@
-import Player from '../player'
+import { addClass, hasClass, removeClass } from '../utils/util'
 
 let start = function () {
   let player = this
   let root = player.root
-  let util = Player.util
 
   function onCanPlay () {
     player.off('canplay', onCanPlay)
@@ -14,9 +13,9 @@ let start = function () {
   }
 
   function onStartBtnClick () {
-    if (util.hasClass(root, 'xgplayer-nostart')) {
-      util.removeClass(root, 'xgplayer-nostart') // for ie quick switch
-      util.addClass(root, 'xgplayer-is-enter')
+    if (hasClass(root, 'xgplayer-nostart')) {
+      removeClass(root, 'xgplayer-nostart') // for ie quick switch
+      addClass(root, 'xgplayer-is-enter')
 
       if(typeof root.contains === 'function') {
         if((player.video && player.video.nodeType === 1 && !root.contains(player.video)) || (player.video && player.video.nodeType !== 1 && player.video.audioPlayer.status !== 'ready')) {
@@ -35,7 +34,7 @@ let start = function () {
       }
     } else {
       if (player.paused) {
-        util.removeClass(root, 'xgplayer-nostart xgplayer-isloading')
+        removeClass(root, 'xgplayer-nostart xgplayer-isloading')
         setTimeout(() => {
           let playPromise = player.play()
           if (playPromise !== undefined && playPromise) {

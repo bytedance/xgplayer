@@ -159,8 +159,11 @@ declare module 'xgplayer' {
         // 弹幕（具体用法参考https://github.com/bytedance/danmu.js）
         danmu?: DanmuOptions;
 
-        // 外挂字幕（参考https://developer.mozilla.org/en-US/docs/Web/API/WebVTT_API）
+        // 自研外挂字幕
         textTrack?: TextTrack[];
+
+        // 原生外挂字幕（参考https://developer.mozilla.org/en-US/docs/Web/API/WebVTT_API）
+        nativeTextTrack?: TextTrack[];
 
         // 外挂字幕样式
         textTrackStyle?: Record<string, string | number>;
@@ -181,7 +184,11 @@ declare module 'xgplayer' {
         cssFullscreen?: boolean;
 
         // 截图
-        screenShot?: boolean;
+        screenShot?: {
+            hideButton?: boolean;
+            iconText?: string;
+            saveImg?: boolean;
+        };
 
         // 预览本地视频
         preview?: {uploadEl?: HTMLElement};
@@ -493,6 +500,14 @@ declare module 'xgplayer' {
          */
         public static install(name: string, descriptor: (this: Player, player: Player) => void): void;
 
+        public static use(name: string, descriptor: (this: Player, player: Player) => void): void;
+
+        public static installAll(list: Array<{name: string; method: (this: Player, player: Player) => void}>): void;
+
+        public static useAll(list: Array<{name: string; method: (this: Player, player: Player) => void}>): void;
+
+        public static controlsRun(list: Array<{name?: string; method: (this: Player, player: Player) => void}>, context: Player): void;
+
         public static util: Util;
 
         public danmu: Danmu;
@@ -671,9 +686,6 @@ declare module 'xgplayer' {
          *
          */
         public onPlaying(): void;
-
-        // 返回累计播放时间
-        public cumulateTime: number;
 
         /**
          * 添加标记

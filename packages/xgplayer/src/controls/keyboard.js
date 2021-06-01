@@ -1,6 +1,4 @@
-import Player from '../player'
-
-const util = Player.util
+import { on, hasClass, removeClass, addClass } from '../utils/util'
 class Keyboard {
   constructor (player) {
     this.player = player
@@ -29,7 +27,7 @@ class Keyboard {
         clearTimeout(this.timer)
         this.timer = null
       }
-      util.on(this.player, 'destroy', destroyFunc)
+      on(this.player, 'destroy', destroyFunc)
     }
   }
 
@@ -133,7 +131,7 @@ class Keyboard {
         }
         break
       case 27:
-        if (Player.util.hasClass(player.root, 'xgplayer-is-cssfullscreen')) {
+        if (hasClass(player.root, 'xgplayer-is-cssfullscreen')) {
           player.exitCssFullscreen()
         }
         break
@@ -180,13 +178,13 @@ class Keyboard {
     }
     if (show) {
       player.emit('focus')
-      if (!util.hasClass(player.root, 'xgplayer-volume-active')) {
-        util.addClass(player.root, 'xgplayer-volume-active')
+      if (!hasClass(player.root, 'xgplayer-volume-active')) {
+        addClass(player.root, 'xgplayer-volume-active')
       }
     } else {
       clearTimeout(this.timer)
       this.timer = setTimeout(() => {
-        util.removeClass(player.root, 'xgplayer-volume-active')
+        removeClass(player.root, 'xgplayer-volume-active')
       }, 1000)
     }
   }

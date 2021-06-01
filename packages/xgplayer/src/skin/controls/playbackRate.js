@@ -1,10 +1,9 @@
-import Player from '../../player'
+import { createDom, addClass, removeClass, hasClass, toggleClass } from '../../utils/util'
+import sniffer from '../../utils/sniffer'
 import '../style/controls/playbackRate.scss'
 
 let s_playbackRate = function () {
   let player = this
-  let sniffer = Player.sniffer
-  let util = Player.util
   let playbackRateList = []
   if (player.config.playbackRate) {
     playbackRateList = [].concat(player.config.playbackRate)
@@ -12,7 +11,7 @@ let s_playbackRate = function () {
   } else {
     return false
   }
-  let container = util.createDom('xg-playbackrate', " ", {}, 'xgplayer-playbackrate')
+  let container = createDom('xg-playbackrate', " ", {}, 'xgplayer-playbackrate')
   if (sniffer.device === 'mobile') {
     player.config.playbackRateActive = 'click'
   }
@@ -44,7 +43,7 @@ let s_playbackRate = function () {
       cur.addEventListener('mouseenter', (e) => {
         e.preventDefault()
         e.stopPropagation()
-        util.addClass(player.root, 'xgplayer-playbackrate-active')
+        addClass(player.root, 'xgplayer-playbackrate-active')
         playbackDom.focus()
       })
     }
@@ -55,7 +54,7 @@ let s_playbackRate = function () {
       cur.addEventListener('mouseenter', (e) => {
         e.preventDefault()
         e.stopPropagation()
-        util.addClass(player.root, 'xgplayer-playbackrate-active')
+        addClass(player.root, 'xgplayer-playbackrate-active')
         container.focus()
       })
     }
@@ -76,9 +75,9 @@ let s_playbackRate = function () {
           item.selected = false
           if (li.textContent.replace(/\s+/g,"") === item.rate) {
             Array.prototype.forEach.call(li.parentNode.childNodes, item => {
-              if(util.hasClass(item, 'selected')) {
+              if(hasClass(item, 'selected')) {
                 from = Number(item.getAttribute('cname'))
-                util.removeClass(item, 'selected')
+                removeClass(item, 'selected')
               }
             })
             item.selected = true
@@ -86,18 +85,18 @@ let s_playbackRate = function () {
             selectedSpeed = item.name * 1
           }
         })
-        util.addClass(li, 'selected')
+        addClass(li, 'selected')
         to = Number(li.getAttribute('cname'))
         li.parentNode.nextSibling.innerHTML = `${li.getAttribute('cname')}x`
         player.emit('playbackrateChange', {from, to})
         if (sniffer.device === 'mobile') {
-          util.removeClass(player.root, 'xgplayer-playbackrate-active')
+          removeClass(player.root, 'xgplayer-playbackrate-active')
         }
       } else if (player.config.playbackRateActive === 'click' && li && (li.tagName.toLocaleLowerCase() === 'p' || li.tagName.toLocaleLowerCase() === 'span')) {
         if(sniffer.device === 'mobile') {
-          util.toggleClass(player.root, 'xgplayer-playbackrate-active')
+          toggleClass(player.root, 'xgplayer-playbackrate-active')
         } else {
-          util.addClass(player.root, 'xgplayer-playbackrate-active')
+          addClass(player.root, 'xgplayer-playbackrate-active')
         }
         container.focus()
       }
@@ -107,11 +106,11 @@ let s_playbackRate = function () {
   container.addEventListener('mouseleave', (e) => {
     e.preventDefault()
     e.stopPropagation()
-    util.removeClass(player.root, 'xgplayer-playbackrate-active')
+    removeClass(player.root, 'xgplayer-playbackrate-active')
   })
 
   function onBlur () {
-    util.removeClass(player.root, 'xgplayer-playbackrate-active')
+    removeClass(player.root, 'xgplayer-playbackrate-active')
   }
   player.on('blur', onBlur)
 

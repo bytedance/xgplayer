@@ -1,5 +1,3 @@
-import Player from '../player'
-
 let play = function () {
   let player = this
 

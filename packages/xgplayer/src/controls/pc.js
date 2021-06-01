@@ -1,9 +1,9 @@
-import Player from '../player'
+import { hasClass } from '../utils/util'
 
 let pc = function () {
   let player = this
   if(!player.controls || !player.video) return
-  let util = Player.util; let controls = player.controls; let root = player.root
+  let controls = player.controls; let root = player.root
   let clk = 0; let _click_
 
   player.onElementClick = function (e, element) {
@@ -21,7 +21,7 @@ let pc = function () {
       }
       if (clk === 1) {
         _click_ = setTimeout(function () {
-          if (util.hasClass(player.root, 'xgplayer-nostart')) {
+          if (hasClass(player.root, 'xgplayer-nostart')) {
             return false
           } else if (!player.ended) {
             if (player.paused) {

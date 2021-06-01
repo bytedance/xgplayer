@@ -1,14 +1,13 @@
-import Player from '../../player'
+import { createDom } from '../../utils/util'
 import ReplayIcon from '../assets/replay.svg'
 import '../style/controls/replay.scss'
 
 let s_replay = function () {
   let player = this
-  let util = Player.util
   let root = player.root
 
   let replayText = player.lang.REPLAY
-  let btn = util.createDom('xg-replay', `${ReplayIcon}
+  let btn = createDom('xg-replay', `${ReplayIcon}
                                          <xg-replay-txt class="xgplayer-replay-txt">${replayText}</xg-replay-txt>
                                         `, {}, 'xgplayer-replay')
   player.once('ready', () => {
@@ -40,7 +39,7 @@ let s_replay = function () {
     svg.addEventListener(item, function (e) {
       e.preventDefault()
       e.stopPropagation()
-      player.emit('replayBtnClick')
+      player.userGestureTrigEvent('replayBtnClick')
     })
   })
 

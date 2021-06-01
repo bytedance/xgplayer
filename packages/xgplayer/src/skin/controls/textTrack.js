@@ -1,4 +1,4 @@
-import Player from '../../player'
+import { createDom, addClass, removeClass } from '../../utils/util'
 import SubTitles from 'xgplayer-subtitles'
 import '../style/controls/textTrack.scss'
 
@@ -32,7 +32,6 @@ function createSubTitle (textTrack, style = {}, defaultOpen = true) {
 let s_textTrack = function () {
   let player = this
   let root = player.root
-  let util = Player.util
   if (!this.config.textTrack) {
     return
   }
@@ -57,9 +56,9 @@ let s_textTrack = function () {
   let subtitle = createSubTitle(textTrack, textTrackStyle, player.textTrackShowDefault)
   subtitle.attachPlayer(player)
   let positionData = {}
-  let container = util.createDom('xg-texttrack', '', {tabindex: 7}, 'xgplayer-texttrack')
+  let container = createDom('xg-texttrack', '', {tabindex: 7}, 'xgplayer-texttrack')
   if (textTrack && Array.isArray(textTrack) && textTrack.length > 0) {
-    util.addClass(player.root, 'xgplayer-is-texttrack')
+    addClass(player.root, 'xgplayer-is-texttrack')
     player.once('canplay', function () {
       let tmp = ['<ul>']
       tmp.push(`<li data-type="off" class="${player.textTrackShowDefault ? '' : 'selected'}">${player.lang.OFF}</li>`)
@@ -77,7 +76,7 @@ let s_textTrack = function () {
           cur.addEventListener('mouseenter', e => {
             e.preventDefault()
             e.stopPropagation()
-            util.addClass(root, 'xgplayer-texttrack-active')
+            addClass(root, 'xgplayer-texttrack-active')
             urlInRoot.focus()
           })
         }
@@ -88,7 +87,7 @@ let s_textTrack = function () {
           cur.addEventListener('mouseenter', e => {
             e.preventDefault()
             e.stopPropagation()
-            util.addClass(player.root, 'xgplayer-texttrack-active')
+            addClass(player.root, 'xgplayer-texttrack-active')
             container.focus()
           })
         }
@@ -107,20 +106,19 @@ let s_textTrack = function () {
         const type = li.getAttribute('data-type')
         const language = li.getAttribute('data-language')
         Array.prototype.forEach.call(li.parentNode.childNodes, item => {
-          util.removeClass(item, 'selected')
+          removeClass(item, 'selected')
         })
-        util.addClass(li, 'selected')
+        addClass(li, 'selected')
         if (type === 'off') {
           subtitle.switchOff()
-          util.removeClass(player.root, 'xgplayer-texttrack-active')
+          removeClass(player.root, 'xgplayer-texttrack-active')
         } else {
-          console.log({id, language})
           subtitle.switch({id, language})
-          util.addClass(player.root, 'xgplayer-texttrack-active')
+          addClass(player.root, 'xgplayer-texttrack-active')
           player.emit('textTrackChange', li.innerHTML)
         }
       } else if (player.config.textTrackActive === 'click' && li && (li.tagName.toLocaleLowerCase() === 'p' || li.tagName.toLocaleLowerCase() === 'em')) {
-        util.addClass(player.root, 'xgplayer-texttrack-active')
+        addClass(player.root, 'xgplayer-texttrack-active')
         container.focus()
       }
     }, false)
@@ -169,7 +167,7 @@ let s_textTrack = function () {
   container.addEventListener('mouseleave', e => {
     e.preventDefault()
     e.stopPropagation()
-    util.removeClass(player.root, 'xgplayer-texttrack-active')
+    removeClass(player.root, 'xgplayer-texttrack-active')
   })
 }
 

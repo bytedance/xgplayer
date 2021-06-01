@@ -1,17 +1,16 @@
-import Player from '../../player'
+import { createDom } from '../../utils/util'
 import AirplayIcon from '../assets/airplay.svg'
 import '../style/controls/airplay.scss'
 
 let s_airplay = function () {
   let player = this
-  let util = Player.util
   if(!player.config.airplay || !window.WebKitPlaybackTargetAvailabilityEvent) return
 
-  let btn = util.createDom('xg-airplay', `<xg-icon class="xgplayer-icon">
+  let btn = createDom('xg-airplay', `<xg-icon class="xgplayer-icon">
     <div class="xgplayer-icon-airplay">${AirplayIcon}</div>
   </xg-icon>`, {}, 'xgplayer-airplay')
 
-  let tips = util.createDom('xg-tips', `<span class="xgplayer-tip-airplay">${player.lang.AIRPLAY_TIPS}</span>`, {}, 'xgplayer-tips')
+  let tips = createDom('xg-tips', `<span class="xgplayer-tip-airplay">${player.lang.AIRPLAY_TIPS}</span>`, {}, 'xgplayer-tips')
   btn.appendChild(tips)
   player.once('ready', () => {
     player.controls.appendChild(btn)
@@ -34,7 +33,7 @@ let s_airplay = function () {
     btn.addEventListener(item, function (e) {
       e.preventDefault()
       e.stopPropagation()
-      player.emit('airplayBtnClick')
+      player.userGestureTrigEvent('airplayBtnClick')
     })
   })
 }

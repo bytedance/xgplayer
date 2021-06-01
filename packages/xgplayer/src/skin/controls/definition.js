@@ -1,13 +1,12 @@
-import Player from '../../player'
+import { createDom, addClass, removeClass, hasClass, toggleClass } from '../../utils/util'
+import sniffer from '../../utils/sniffer'
 import '../style/controls/definition.scss'
 
 let s_definition = function () {
   let player = this
   let root = player.root
-  let util = Player.util
-  let sniffer = Player.sniffer
   let paused
-  let container = util.createDom('xg-definition', '', {tabindex: 3}, 'xgplayer-definition')
+  let container = createDom('xg-definition', '', {tabindex: 3}, 'xgplayer-definition')
   if (sniffer.device === 'mobile') {
     player.config.definitionActive = 'click'
   }
@@ -66,7 +65,7 @@ let s_definition = function () {
         cur.addEventListener('mouseenter', (e) => {
           e.preventDefault()
           e.stopPropagation()
-          util.addClass(player.root, 'xgplayer-definition-active')
+          addClass(player.root, 'xgplayer-definition-active')
           urlInRoot.focus()
         })
       }
@@ -77,7 +76,7 @@ let s_definition = function () {
         cur.addEventListener('mouseenter', (e) => {
           e.preventDefault()
           e.stopPropagation()
-          util.addClass(player.root, 'xgplayer-definition-active')
+          addClass(player.root, 'xgplayer-definition-active')
           container.focus()
         })
       }
@@ -87,7 +86,7 @@ let s_definition = function () {
   function onResourceReady (list) {
     player.definitionList = list
     if (list && list instanceof Array && list.length > 1) {
-      util.addClass(root, 'xgplayer-is-definition')
+      addClass(root, 'xgplayer-is-definition')
       player.once('canplay', onCanplayResourceReady)
     }
   }
@@ -114,9 +113,9 @@ let s_definition = function () {
       if (li && li.tagName.toLocaleLowerCase() === 'li') {
         let from, to
         Array.prototype.forEach.call(li.parentNode.childNodes, item => {
-          if(util.hasClass(item, 'selected')) {
+          if(hasClass(item, 'selected')) {
             from = item.getAttribute('cname')
-            util.removeClass(item, 'selected')
+            removeClass(item, 'selected')
             player.emit('beforeDefinitionChange', item.getAttribute('url'))
           }
         })
@@ -129,7 +128,7 @@ let s_definition = function () {
           })
         }
 
-        util.addClass(li, 'selected')
+        addClass(li, 'selected')
         to = li.getAttribute('cname')
         li.parentNode.nextSibling.innerHTML = `${li.getAttribute('cname')}`
         a.href = li.getAttribute('url')
@@ -177,13 +176,13 @@ let s_definition = function () {
         }
         player.emit('definitionChange', {from, to})
         if (sniffer.device === 'mobile') {
-          util.removeClass(player.root, 'xgplayer-definition-active')
+          removeClass(player.root, 'xgplayer-definition-active')
         }
       } else if (player.config.definitionActive === 'click' && li && (li.tagName.toLocaleLowerCase() === 'p' || li.tagName.toLocaleLowerCase() === 'em')) {
         if(sniffer.device === 'mobile') {
-          util.toggleClass(player.root, 'xgplayer-definition-active')
+          toggleClass(player.root, 'xgplayer-definition-active')
         } else {
-          util.addClass(player.root, 'xgplayer-definition-active')
+          addClass(player.root, 'xgplayer-definition-active')
         }
         container.focus()
       }
@@ -194,11 +193,11 @@ let s_definition = function () {
   container.addEventListener('mouseleave', e => {
     e.preventDefault()
     e.stopPropagation()
-    util.removeClass(root, 'xgplayer-definition-active')
+    removeClass(root, 'xgplayer-definition-active')
   })
 
   function onBlur () {
-    util.removeClass(root, 'xgplayer-definition-active')
+    removeClass(root, 'xgplayer-definition-active')
   }
   player.on('blur', onBlur)
 

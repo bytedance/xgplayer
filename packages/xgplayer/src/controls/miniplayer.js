@@ -1,12 +1,11 @@
-import Player from '../player'
+import { findDom, hasClass, createDom, addClass, removeClass } from '../utils/util'
 import Draggabilly from 'draggabilly'
 
 let miniplayer = function () {
   let player = this
-  let util = Player.util
   let root = player.root
   function onMiniplayerBtnClick () {
-    if (util.hasClass(root, 'xgplayer-miniplayer-active')) {
+    if (hasClass(root, 'xgplayer-miniplayer-active')) {
       player.exitMiniplayer()
     } else {
       player.getMiniplayer()
@@ -21,18 +20,27 @@ let miniplayer = function () {
   player.once('destroy', onDestroy)
 
   player.getMiniplayer = function () {
+    if (hasClass(root, 'xgplayer-is-fullscreen')) {
+      this.exitFullscreen(root)
+    }
+    if (hasClass(root, 'xgplayer-is-cssfullscreen')) {
+      this.exitCssFullscreen()
+    }
+    if (hasClass(root, 'xgplayer-rotate-fullscreen')) {
+      this.exitRotateFullscreen()
+    }
     // let ro = this.root.getBoundingClientRect()
     // let Top = ro.top
     // let Left = ro.left
-    let dragLay = util.createDom('xg-miniplayer-lay', '<div></div>', {}, 'xgplayer-miniplayer-lay')
+    let dragLay = createDom('xg-miniplayer-lay', '<div></div>', {}, 'xgplayer-miniplayer-lay')
     this.root.appendChild(dragLay)
-    let dragHandle = util.createDom('xg-miniplayer-drag', `<div class="drag-handle"><span>${this.lang.MINIPLAYER_DRAG}</span></div>`, {tabindex: 9}, 'xgplayer-miniplayer-drag')
+    let dragHandle = createDom('xg-miniplayer-drag', `<div class="drag-handle"><span>${this.lang.MINIPLAYER_DRAG}</span></div>`, {tabindex: 9}, 'xgplayer-miniplayer-drag')
     this.root.appendChild(dragHandle)
     // eslint-disable-next-line no-unused-vars
     let draggie = new Draggabilly('.xgplayer', {
       handle: '.drag-handle'
     })
-    util.addClass(this.root, 'xgplayer-miniplayer-active')
+    addClass(this.root, 'xgplayer-miniplayer-active')
     this.root.style.right = 0
     this.root.style.bottom = '200px'
     this.root.style.top = ''
@@ -77,7 +85,7 @@ let miniplayer = function () {
   }
 
   player.exitMiniplayer = function () {
-    util.removeClass(this.root, 'xgplayer-miniplayer-active')
+    removeClass(this.root, 'xgplayer-miniplayer-active')
     this.root.style.right = ''
     this.root.style.bottom = ''
     this.root.style.top = ''
@@ -103,11 +111,11 @@ let miniplayer = function () {
       }
     }
 
-    let dragLay = util.findDom(this.root, '.xgplayer-miniplayer-lay')
+    let dragLay = findDom(this.root, '.xgplayer-miniplayer-lay')
     if (dragLay && dragLay.parentNode) {
       dragLay.parentNode.removeChild(dragLay)
     }
-    let dragHandle = util.findDom(this.root, '.xgplayer-miniplayer-drag')
+    let dragHandle = findDom(this.root, '.xgplayer-miniplayer-drag')
     if (dragHandle && dragHandle.parentNode) {
       dragHandle.parentNode.removeChild(dragHandle)
     }

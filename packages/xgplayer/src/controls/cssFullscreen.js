@@ -1,12 +1,11 @@
-import Player from '../player'
+import { hasClass, removeClass, addClass } from '../utils/util'
 
 let cssFullscreen = function () {
   let player = this
   let root = player.root
-  let util = Player.util
 
   function onCssFullscreenBtnClick () {
-    if (util.hasClass(root, 'xgplayer-is-cssfullscreen')) {
+    if (hasClass(root, 'xgplayer-is-cssfullscreen')) {
       player.exitCssFullscreen()
     } else {
       player.getCssFullscreen()
@@ -14,7 +13,7 @@ let cssFullscreen = function () {
   }
   player.on('cssFullscreenBtnClick', onCssFullscreenBtnClick)
   player.on('exitFullscreen', () => {
-    util.removeClass(root, 'xgplayer-is-cssfullscreen')
+    removeClass(root, 'xgplayer-is-cssfullscreen')
   })
 
   function onDestroy () {
@@ -28,7 +27,7 @@ let cssFullscreen = function () {
     if (player.config.fluid) {
       player.root.style['padding-top'] = ''
     }
-    util.addClass(player.root, 'xgplayer-is-cssfullscreen')
+    addClass(player.root, 'xgplayer-is-cssfullscreen')
     player.emit('requestCssFullscreen')
   }
 
@@ -39,7 +38,7 @@ let cssFullscreen = function () {
       player.root.style['height'] = '0'
       player.root.style['padding-top'] = `${player.config.height * 100 / player.config.width}%`
     }
-    util.removeClass(player.root, 'xgplayer-is-cssfullscreen')
+    removeClass(player.root, 'xgplayer-is-cssfullscreen')
     player.emit('exitCssFullscreen')
   }
 }

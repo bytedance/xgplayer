@@ -1,5 +1,3 @@
-import Player from '../player'
-
 let playNext = function () {
   let player = this
   let nextBtn = player.config.playNext

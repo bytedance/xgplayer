@@ -1,5 +1,3 @@
-import Player from '../player'
-
 let pip = function () {
   let player = this
   function onPipBtnClick () {
@@ -10,6 +8,14 @@ let pip = function () {
     }
   }
   player.on('pipBtnClick', onPipBtnClick)
+
+  player.video.addEventListener("enterpictureinpicture", function(pipWindow){
+    player.emit('requestPictureInPicture', pipWindow)
+  })
+
+  player.video.addEventListener("leavepictureinpicture", function(){
+    player.emit('exitPictureInPicture')
+  })
 
   function onDestroy () {
     player.off('pipBtnClick', onPipBtnClick)

@@ -24,6 +24,7 @@ import PlayNext from './controls/playNext.js'
 import Rotate from './controls/rotate.js'
 import Reload from './controls/reload.js'
 import ScreenShot from './controls/screenShot.js'
+import NativeTextTrack from './controls/nativeTextTrack.js'
 import TextTrack from './controls/textTrack.js'
 import ErrorControl from './controls/error.js'
 import MemoryPlay from './controls/memoryPlay.js'
@@ -54,6 +55,7 @@ Player.installAll([
     Rotate,
     Reload,
     ScreenShot,
+    NativeTextTrack,
     TextTrack,
     ErrorControl,
     MemoryPlay,

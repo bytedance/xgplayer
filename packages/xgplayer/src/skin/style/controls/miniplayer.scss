@@ -56,6 +56,9 @@
       background-image: linear-gradient(rgba(0, 0, 0, 0.3), rgba(0, 0, 0, 0));
       z-index: 130;
       display: none;
+      .drag-handle {
+        width: 100%;
+      }
     }
   }
   

@@ -1,10 +1,9 @@
-import Player from '../../player'
+import { createDom } from '../../utils/util'
 import '../style/controls/placeholder.scss'
 
 let s_flex = function () {
   let player = this
-  let util = Player.util
-  let playceholder = util.createDom('xg-placeholder', '', {}, 'xgplayer-placeholder')
+  let playceholder = createDom('xg-placeholder', '', {}, 'xgplayer-placeholder')
   player.controls.appendChild(playceholder)
 }
 

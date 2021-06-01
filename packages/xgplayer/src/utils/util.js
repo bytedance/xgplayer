@@ -1,8 +1,6 @@
 import XgplayerTimeRange from './xgplayerTimeRange'
 
-let util = {}
-
-util.createDom = function (el = 'div', tpl = '', attrs = {}, cname = '') {
+export function createDom(el = 'div', tpl = '', attrs = {}, cname = '') {
   let dom = document.createElement(el)
   dom.className = cname
   dom.innerHTML = tpl
@@ -20,7 +18,7 @@ util.createDom = function (el = 'div', tpl = '', attrs = {}, cname = '') {
   return dom
 }
 
-util.hasClass = function (el, className) {
+export function hasClass(el, className) {
   if (!el) {
     return false;
   }
@@ -34,7 +32,7 @@ util.hasClass = function (el, className) {
   }
 }
 
-util.addClass = function (el, className) {
+export function addClass(el, className) {
   if (!el) {
     return;
   }
@@ -43,12 +41,12 @@ util.addClass = function (el, className) {
     className.replace(/(^\s+|\s+$)/g, '').split(/\s+/g).forEach(item => {
       item && el.classList.add(item)
     })
-  } else if (!util.hasClass(el, className)) {
+  } else if (!hasClass(el, className)) {
     el.className += ' ' + className
   }
 }
 
-util.removeClass = function (el, className) {
+export function removeClass(el, className) {
   if (!el) {
     return;
   }
@@ -57,7 +55,7 @@ util.removeClass = function (el, className) {
     className.split(/\s+/g).forEach(item => {
       el.classList.remove(item)
     })
-  } else if (util.hasClass(el, className)) {
+  } else if (hasClass(el, className)) {
     className.split(/\s+/g).forEach(item => {
       let reg = new RegExp('(\\s|^)' + item + '(\\s|$)')
       el.className = el.className.replace(reg, ' ')
@@ -65,21 +63,21 @@ util.removeClass = function (el, className) {
   }
 }
 
-util.toggleClass = function (el, className) {
+export function toggleClass(el, className) {
   if (!el) {
     return;
   }
 
   className.split(/\s+/g).forEach(item => {
-    if (util.hasClass(el, item)) {
-      util.removeClass(el, item)
+    if (hasClass(el, item)) {
+      removeClass(el, item)
     } else {
-      util.addClass(el, item)
+      addClass(el, item)
     }
   })
 }
 
-util.findDom = function (el = document, sel) {
+export function findDom(el = document, sel) {
   let dom
   // fix querySelector IDs that start with a digit
   // https://stackoverflow.com/questions/37270787/uncaught-syntaxerror-failed-to-execute-queryselector-on-document
@@ -93,7 +91,7 @@ util.findDom = function (el = document, sel) {
   return dom
 }
 
-util.padStart = function (str, length, pad) {
+export function padStart(str, length, pad) {
   let charstr = String(pad)
   let len = length >> 0
   let maxlen = Math.ceil(len / charstr.length)
@@ -105,17 +103,17 @@ util.padStart = function (str, length, pad) {
   return chars.join('').substring(0, len - r.length) + r
 }
 
-util.format = function (time) {
+export function format(time) {
   if (window.isNaN(time)) {
     return ''
   }
-  let hour = util.padStart(Math.floor(time / 3600), 2, 0)
-  let minute = util.padStart(Math.floor((time - hour * 3600) / 60), 2, 0)
-  let second = util.padStart(Math.floor((time - hour * 3600 - minute * 60)), 2, 0)
+  let hour = padStart(Math.floor(time / 3600), 2, 0)
+  let minute = padStart(Math.floor((time - hour * 3600) / 60), 2, 0)
+  let second = padStart(Math.floor((time - hour * 3600 - minute * 60)), 2, 0)
   return (hour === '00' ? [minute, second] : [hour, minute, second]).join(':')
 }
 
-util.event = function (e) {
+export function event(e) {
   if (e.touches) {
     let touch = e.touches[0] || e.changedTouches[0]
     e.clientX = touch.clientX || 0
@@ -126,21 +124,21 @@ util.event = function (e) {
   e._target = e.target || e.srcElement
 }
 
-util.typeOf = function (obj) {
+export function typeOf(obj) {
   return Object.prototype.toString.call(obj).match(/([^\s.*]+)(?=]$)/g)[0]
 }
 
-util.deepCopy = function (dst, src) {
-  if (util.typeOf(src) === 'Object' && util.typeOf(dst) === 'Object') {
+export function deepCopy(dst, src) {
+  if (typeOf(src) === 'Object' && typeOf(dst) === 'Object') {
     Object.keys(src).forEach(key => {
-      if (util.typeOf(src[key]) === 'Object' && !(src[key] instanceof Node)) {
+      if (typeOf(src[key]) === 'Object' && !(src[key] instanceof Node)) {
         if (!dst[key]) {
           dst[key] = src[key]
         } else {
-          util.deepCopy(dst[key], src[key])
+          deepCopy(dst[key], src[key])
         }
-      } else if (util.typeOf(src[key]) === 'Array') {
-        dst[key] = util.typeOf(dst[key]) === 'Array' ? dst[key].concat(src[key]) : src[key]
+      } else if (typeOf(src[key]) === 'Array') {
+        dst[key] = typeOf(dst[key]) === 'Array' ? dst[key].concat(src[key]) : src[key]
       } else {
         dst[key] = src[key]
       }
@@ -148,7 +146,7 @@ util.deepCopy = function (dst, src) {
     return dst
   }
 }
-util.getBgImage = function (el) {
+export function getBgImage(el) {
   // fix: return current page url when url is none
   let url = (el.currentStyle || window.getComputedStyle(el, null)).backgroundImage
   if (!url || url === 'none') {
@@ -159,7 +157,7 @@ util.getBgImage = function (el) {
   return a.href
 }
 
-util.copyDom = function (dom) {
+export function copyDom(dom) {
   if (dom && dom.nodeType === 1) {
     let back = document.createElement(dom.tagName)
     Array.prototype.forEach.call(dom.attributes, (node) => {
@@ -174,19 +172,19 @@ util.copyDom = function (dom) {
   }
 }
 
-util.setInterval = function (context, eventName, intervalFunc, frequency) {
+export function _setInterval(context, eventName, intervalFunc, frequency) {
   if (!context._interval[eventName]) {
     context._interval[eventName] = setInterval(intervalFunc.bind(context), frequency)
   }
 }
 
-util.clearInterval = function (context, eventName) {
+export function _clearInterval(context, eventName) {
   clearInterval(context._interval[eventName])
   context._interval[eventName] = null
 }
 
-util.createImgBtn = function (name, imgUrl, width, height) {
-  let btn = util.createDom(`xg-${name}`, '', {}, `xgplayer-${name}-img`)
+export function createImgBtn(name, imgUrl, width, height) {
+  let btn = createDom(`xg-${name}`, '', {}, `xgplayer-${name}-img`)
   btn.style.backgroundImage = `url("${imgUrl}")`
   if (width && height) {
     let w, h, unit
@@ -212,17 +210,17 @@ util.createImgBtn = function (name, imgUrl, width, height) {
   return btn
 }
 
-util.isWeiXin = function () {
+export function isWeiXin() {
     let ua = window.navigator.userAgent.toLowerCase()
     return ua.indexOf('micromessenger') > -1
 }
 
-util.isUc = function () {
+export function isUc() {
   let ua = window.navigator.userAgent.toLowerCase()
   return ua.indexOf('ucbrowser') > -1
 }
 
-util.computeWatchDur = function (played = []) {
+export function computeWatchDur(played = []) {
   let arr = []
   for (let i = 0; i < played.length; i++) {
     if(!played[i].end || played[i].begin < 0 || played[i].end < 0 || played[i].end < played[i].begin) {
@@ -259,7 +257,7 @@ util.computeWatchDur = function (played = []) {
   return watch_dur
 }
 
-util.offInDestroy = (object, event, fn, offEvent) => {
+export function offInDestroy(object, event, fn, offEvent) {
   function onDestroy () {
     object.off(event, fn)
     object.off(offEvent, onDestroy)
@@ -267,10 +265,10 @@ util.offInDestroy = (object, event, fn, offEvent) => {
   object.once(offEvent, onDestroy)
 }
 
-util.on = (object, event, fn, offEvent) => {
+export function on(object, event, fn, offEvent) {
   if (offEvent) {
     object.on(event, fn)
-    util.offInDestroy(object, event, fn, offEvent)
+    offInDestroy(object, event, fn, offEvent)
   } else {
     let _fn = data => {
       fn(data)
@@ -280,10 +278,10 @@ util.on = (object, event, fn, offEvent) => {
   }
 }
 
-util.once = (object, event, fn, offEvent) => {
+export function once(object, event, fn, offEvent) {
   if (offEvent) {
     object.once(event, fn)
-    util.offInDestroy(object, event, fn, offEvent)
+    offInDestroy(object, event, fn, offEvent)
   } else {
     let _fn = data => {
       fn(data)
@@ -293,7 +291,7 @@ util.once = (object, event, fn, offEvent) => {
   }
 }
 
-util.getBuffered2 = (vbuffered, maxHoleDuration = 0.5) => { //ref: hls.js
+export function getBuffered2(vbuffered, maxHoleDuration = 0.5) { //ref: hls.js
   let buffered = []
   for (let i = 0; i < vbuffered.length; i++) {
     buffered.push({ start: vbuffered.start(i) < 0.5 ? 0 : vbuffered.start(i), end: vbuffered.end(i) });
@@ -329,4 +327,8 @@ util.getBuffered2 = (vbuffered, maxHoleDuration = 0.5) => { //ref: hls.js
   return new XgplayerTimeRange(buffered_2)
 }
 
-export default util
+export const util = {
+  createDom, hasClass, addClass, removeClass, toggleClass, findDom, padStart, format, event, typeOf, 
+  deepCopy, getBgImage, copyDom, setInterval: _setInterval, clearInterval: _clearInterval, createImgBtn, isWeiXin, isUc, computeWatchDur,
+  offInDestroy, on, once, getBuffered2
+}

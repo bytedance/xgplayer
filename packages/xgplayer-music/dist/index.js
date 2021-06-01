@@ -293,10 +293,12 @@ var Music = function (_Player) {
         return;
       }
       if (_this.mode === 'order' && _this.index + 1 >= _this.list.length) {
-        _this.once('playing', function () {
-          _this.pause();
-        });
-        _this.currentTime = 0;
+        if (!_this.config.musicOrderEnd) {
+          _this.once('playing', function () {
+            _this.pause();
+          });
+          _this.currentTime = 0;
+        }
         return;
       }
       switch (_this.mode) {
@@ -381,13 +383,13 @@ var Music = function (_Player) {
         case 'order':
         case 'loop':
           if (this.index - 1 >= 0) {
-            this.prevIndev = this.index - 1;
+            this.prevIndex = this.index - 1;
           } else {
-            this.prevIndev = this.list.length - 1;
+            this.prevIndex = this.list.length - 1;
           }
           break;
         default:
-          this.prevIndev = Math.ceil(Math.random() * this.list.length);
+          this.prevIndex = Math.ceil(Math.random() * this.list.length);
           break;
       }
     }

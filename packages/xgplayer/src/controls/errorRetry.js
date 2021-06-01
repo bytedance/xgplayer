@@ -1,4 +1,4 @@
-import Player from '../player'
+import Errors from '../error'
 /**
  * Error retry plugin
  * get config from player.config.errorConfig
@@ -85,7 +85,7 @@ function errorRetry () {
     if (errorCount > errorConfig.maxCount) {
       if (errorConfig.isFetch) {
         errorfetch(this, this.currentSrc, errorConfig.fetchTimeout).then((data) => {
-          this.emit('error', new Player.Errors({
+          this.emit('error', new Errors({
             type: 'network',
             currentTime: this.currentTime,
             duration: this.duration || 0,
