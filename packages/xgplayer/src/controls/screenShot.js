@@ -30,6 +30,7 @@ let screenShot = function () {
   }
 
   player.screenShot = function (save = true) {
+    save = screenShotOptions.saveImg === undefined ? save : screenShotOptions.saveImg
     canvas.width = player.video.videoWidth || 600
     canvas.height = player.video.videoHeight || 337.5
     img.onload = (function () {

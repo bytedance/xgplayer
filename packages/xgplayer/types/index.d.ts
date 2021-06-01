@@ -187,6 +187,7 @@ declare module 'xgplayer' {
         screenShot?: {
             hideButton?: boolean;
             iconText?: string;
+            saveImg?: boolean;
         };
 
         // 预览本地视频
