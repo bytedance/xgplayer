@@ -75,12 +75,6 @@ const player = new Player({
 
 
 
-### Mobile Support
-
-xgplayer supports mobile devices, but android brands and system customizations are numerous. Since there may be compatibility problems, the player provides a whitelist mechanism to ensure perfect operation in mobile devices. [whitelist configuration](http://h5player.bytedance.com/en/config/#whitelist)
-
-
-
 ### Dev
 
 For debugging, we provide example video files in github. You can clone the whole git repository, which includes both code and example videos with 'git clone --recurse-submodules -j8'. With 'git clone' you will pull only xgplayer code and its plugins.
