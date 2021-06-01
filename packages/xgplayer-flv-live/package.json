@@ -17,6 +17,16 @@
     "watch": "cross-env NODE_ENV=development rollup -c ./rollup.config.js --watch",
     "watch:mobile": "cross-env NODE_ENV=development rollup -c ./rollup.config.mobile.js --watch"
   },
+  "babel": {
+    "presets": [
+      [
+        "@babel/preset-env",
+        {
+          "modules": false
+        }
+      ]
+    ]
+  },
   "author": "",
   "license": "ISC",
   "dependencies": {
