@@ -27,5 +27,15 @@
     "xgplayer-transmuxer-loader-fetch": "3.0.0-alpha.16",
     "xgplayer-transmuxer-remux-mp4": "3.0.0-alpha.16",
     "xgplayer-utils-mse": "3.0.0-alpha.16"
+  },
+  "babel": {
+    "presets": [
+      [
+        "@babel/preset-env",
+        {
+          "modules": false
+        }
+      ]
+    ]
   }
 }

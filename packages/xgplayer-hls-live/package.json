@@ -23,5 +23,15 @@
     "xgplayer-helper-models": "2.4.25",
     "xgplayer-helper-transmuxers": "2.4.25",
     "xgplayer-helper-utils": "2.4.25"
+  },
+  "babel": {
+    "presets": [
+      [
+        "@babel/preset-env",
+        {
+          "modules": false
+        }
+      ]
+    ]
   }
 }
