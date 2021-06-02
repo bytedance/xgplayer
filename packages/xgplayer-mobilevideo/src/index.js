@@ -348,6 +348,7 @@ class MVideo extends HTMLElement {
         this.timeline.emit(Events.TIMELINE.NO_AUDIO, type);
       }
     }
+
     this.timeline.appendBuffer(videoTrack, audioTrack);
   }
 
@@ -673,6 +674,7 @@ class MVideo extends HTMLElement {
       height: p.clientHeight
     };
   }
+
 }
 
 customElements.get('mobile-video') || customElements.define('mobile-video', MVideo);

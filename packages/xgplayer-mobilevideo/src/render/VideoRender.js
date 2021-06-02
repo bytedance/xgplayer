@@ -153,6 +153,10 @@ export default class VideoRender extends BaseRender {
     return this._decoderWorkerMananger.isHevc;
   }
 
+  get lowlatency () {
+    return this._parent.lowlatency;
+  }
+
   getDtsOfTime (time) {
     return this._timeRange.getDtsOfTime(time);
   }

@@ -110,6 +110,10 @@ export default class TimeLine extends EventEmitter {
     this._paused = v;
   }
 
+  get lowlatency () {
+    return this._parent.lowlatency;
+  }
+
   // 播放器初始化时第一个WebAudio能否自动播放的状态,后续重新创建的不算,用于safari下非用户交互创建的 webaudio 不能自动播放
   get audioCanAutoplay () {
     return this._parent._audioCanAutoplay;
