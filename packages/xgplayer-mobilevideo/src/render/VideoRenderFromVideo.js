@@ -38,6 +38,7 @@ export default class VideoRenderFromVideo extends VideoBaseRender {
     this._parent.on(Events.DECODE_EVENTS.CHASE_VIDEO_FRAME, this._onChaseVideoFrame.bind(this))
     this._parent.on(Events.TIMELINE.SYNC_DTS, this._onTimeLineSyncDTS.bind(this))
     window.addEventListener('unload', () => {
+      // 解决safari页面刷新不释放canvas占用内存问题
       this._empty()
     })
   }
@@ -106,10 +107,10 @@ export default class VideoRenderFromVideo extends VideoBaseRender {
     this._startDecode()
   }
   _onFirstFrame (frame) {
-    console.log(this.TAG, 'onFirstFrame')
+    logger.log(this.TAG, 'onFirstFrame')
     this._receiveFrame(frame)
     this._firstFrame = true
-    this.forceRender(true)
+    // this.forceRender(true)
   }
 
   _onDecoded (frame) {
@@ -155,7 +156,7 @@ export default class VideoRenderFromVideo extends VideoBaseRender {
     if (this._isInit) {
       return
     }
-    console.log(this.TAG, '_initDecoder')
+    logger.log(this.TAG, '_initDecoder')
     if (!this._videoDecodeController.remux) {
       this._initRemux()
     }
@@ -177,7 +178,7 @@ export default class VideoRenderFromVideo extends VideoBaseRender {
     this._meta = meta
     let fps = meta && meta.frameRate && meta.frameRate.fps
     if (fps) {
-      console.log(this.TAG, 'detect fps:', fps)
+      logger.log(this.TAG, 'detect fps:', fps)
     } else {
       logger.warn(this.TAG, 'no detect fps,start estimate')
     }
@@ -213,7 +214,7 @@ export default class VideoRenderFromVideo extends VideoBaseRender {
   }
 
   _startRender () {
-    console.log(this.TAG, '_startRender interval', this.interval)
+    logger.log(this.TAG, '_startRender interval', this.interval)
     this._tickTimer.start(this.interval)
   }
 
@@ -229,19 +230,19 @@ export default class VideoRenderFromVideo extends VideoBaseRender {
     let preciseVideoDts = this.preciseVideoDts
     if (!frame || !this._timeRange) {
       this._videoDecodeController.checkMinFrames(this._frameQueue._frames.length)
-      // console.log(this.TAG, 'lack frame')
+      // logger.log(this.TAG, 'lack frame')
 
       if (this._parent._paused) {
         // this._doPause()
-        // console.log(this.TAG, '_render', 'pused return')
+        // logger.log(this.TAG, '_render', 'pused return')
         return
       }
       if (!this._firstFrame) {
-        console.log(this.TAG, '_render', 'not first frame return')
+        logger.log(this.TAG, '_render', 'not first frame return')
         return
       }
       let _videoDecodeController = this._videoDecodeController
-      console.log(this.TAG, ',lack frame, _inDecoding:', this._videoDecodeController._isInDecoding, this._videoDecodeController._isDecodePause, ',_frameQueue.length:', this._frameQueue.length)
+      logger.log(this.TAG, ',lack frame, _inDecoding:', this._videoDecodeController._isInDecoding, this._videoDecodeController._isDecodePause, ',_frameQueue.length:', this._frameQueue.length)
       // 在当前page隐藏时，不触发wait操作
       if (!this._frameQueue.length && _videoDecodeController.isIDLE) {
         this._ready = false
@@ -302,12 +303,12 @@ export default class VideoRenderFromVideo extends VideoBaseRender {
     }
 
     if (logger.long) {
-      console.log(
+      logger.log(
         this.TAG,
         `render delay:${_renderDelay} , timelinePosition:${preciseVideoDts} , dts:${info.dts} , cost:${info.cost} , gopID:${info.gopId} , rest:${this._frameQueue.length}, buffer frame:${this._timeRange.frameLength}`
       )
     }
-    // console.log(this.TAG, '_render preciseVideoDts:', preciseVideoDts, Date.now())
+    // logger.log(this.TAG, '_render preciseVideoDts:', preciseVideoDts, Date.now())
     let ts = performance.now()
     this._frameRender.render(frame.buffer, frame.width, frame.height, frame.yLinesize, frame.uvLinesize)
     this._videoDecodeController.frameRendend(frame.buffer)
@@ -337,7 +338,7 @@ export default class VideoRenderFromVideo extends VideoBaseRender {
   }
 
   _doPause () {
-    console.log(this.TAG, '>>>>>>>>doPause')
+    logger.log(this.TAG, '>>>>>>>>doPause')
     this._tickTimer.stop()
   }
 
@@ -356,18 +357,14 @@ export default class VideoRenderFromVideo extends VideoBaseRender {
 
   _empty () {
     if (this._videoDecodeController) {
-      let num = this._videoDecodeController.empty() || 0
+      this._videoDecodeController.empty()
       this._frameQueue.frames.forEach((item) => {
         if (item.buffer && item.buffer.dom) {
-          num++
-          console.log('render clear canvas')
           item.buffer.dom.width = 0
           item.buffer.dom.height = 0
           item.buffer.dom = null
         }
       })
-      // let myStorage = window.localStorage
-      // myStorage.setItem('remove', new Date() + num)
     }
   }
 }

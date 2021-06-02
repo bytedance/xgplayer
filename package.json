@@ -6,7 +6,7 @@
   "private": true,
   "scripts": {
     "bootstrap": "npm install & lerna bootstrap",
-    "watch": "http-server -p 80 --cors='Access-Control-Allow-Origin: *' & lerna run --parallel watch",
+    "watch": "http-server --cors='Access-Control-Allow-Origin: *' & lerna run --parallel watch",
     "test": "node_modules/.bin/lerna-changelog",
     "dev": "npm run watch",
     "publish": "lerna publish",

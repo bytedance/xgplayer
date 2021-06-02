@@ -82,7 +82,7 @@ export default class VideoDecoder extends EventEmitter {
     this._basePTS = info.dts
     this._currentDuration = info.duration
     try {
-      console.log(this.TAG, '_initVideo, basePTS:', info.dts)
+      logger.log(this.TAG, '_initVideo, basePTS:', info.dts)
       this._setVideoSrc(blob, time)
 
       if (this._video.paused) {
@@ -104,7 +104,7 @@ export default class VideoDecoder extends EventEmitter {
   }
   _videoPlay (from) {
     let video = this._video
-    console.log(this.TAG, '_videoPlay, video is pause:', video.paused, from)
+    logger.log(this.TAG, '_videoPlay, video is pause:', video.paused, from)
 
     if (video && video.paused) {
       let playPromise = video.play()
@@ -112,7 +112,7 @@ export default class VideoDecoder extends EventEmitter {
         playPromise
           .then(() => {
             this._playFailed = false
-            console.log(this.TAG, '_videoPlay success')
+            logger.log(this.TAG, '_videoPlay success')
           })
           .catch((error) => {
             // setTimeout(() => {
@@ -141,7 +141,7 @@ export default class VideoDecoder extends EventEmitter {
       console.error(this.TAG, '_bindEvents')
       return
     }
-    // console.log(this.TAG, '_bindEvents', 'add video events')
+    // logger.log(this.TAG, '_bindEvents', 'add video events')
     document.addEventListener('visibilitychange', this._onVisibilityChange.bind(this))
     video.addEventListener('playing', this._onPlaying.bind(this))
     video.addEventListener('ended', this._onEnded.bind(this))
@@ -149,8 +149,8 @@ export default class VideoDecoder extends EventEmitter {
     video.addEventListener('loadeddata', this._onLoadeddata.bind(this))
     video.addEventListener('timeupdate', this._onTimeUpdate.bind(this))
     video.addEventListener('pause', () => {
-      // console.log('pause')
-      console.log('on pause, currentTime, duration:', this._vCurrentTime, this._vDuration)
+      // logger.log('pause')
+      logger.log('on pause, currentTime, duration:', this._vCurrentTime, this._vDuration)
     })
     this.on('outputresolutionchange', this._onChange.bind(this))
     this.on('fpsreduce', (fps) => {
@@ -158,7 +158,7 @@ export default class VideoDecoder extends EventEmitter {
     })
   }
   _onTimeUpdate () {
-    // console.log('currentTime:', this._vCurrentTime)
+    // logger.log('currentTime:', this._vCurrentTime)
     this._lastCurrentTime = this._vCurrentTime
   }
 
@@ -179,14 +179,14 @@ export default class VideoDecoder extends EventEmitter {
         this._framId = null
       }
     }
-    console.log(this.TAG, '_onPlaying, video duration:', this._vDuration, this._vCurrentTime, this._lastPts,)
+    logger.log(this.TAG, '_onPlaying, video duration:', this._vDuration, this._vCurrentTime, this._lastPts,)
     this._isInDecoding = true
     this._lastCurrentTime = this._vCurrentTime
     this.ptsArray = []
     this._getFrame()
   }
   _onEnded (e, from) {
-    console.log(
+    logger.log(
       this.TAG,
       '_onEnded',
       'current fmp4 duration is:',
@@ -208,7 +208,7 @@ export default class VideoDecoder extends EventEmitter {
     this._lastMp4Duration = Math.min(this._vDuration, this._vCurrentTime)
 
     if (this._framId) {
-      console.log(this.TAG, '_onEnded', 'cancelAnimationFrame')
+      logger.log(this.TAG, '_onEnded', 'cancelAnimationFrame')
       window.cancelAnimationFrame(this._framId)
       this._framId = null
     }
@@ -252,11 +252,11 @@ export default class VideoDecoder extends EventEmitter {
         video.style.visibility = 'hidden'
         this.emit(Events.DECODE_EVENTS.APPEND_VIDEO, video)
         setTimeout(() => {
-          console.log(this.TAG, 'onloadeddata, setTimeout firstEmit:', this.firstEmit)
+          logger.log(this.TAG, 'onloadeddata, setTimeout firstEmit:', this.firstEmit)
           this._getFirstFrame()
         }, 40)
       } else {
-        console.log(this.TAG, 'onloadeddata, firstEmit:', this.firstEmit)
+        logger.log(this.TAG, 'onloadeddata, firstEmit:', this.firstEmit)
         this._getFirstFrame()
       }
     }
@@ -287,7 +287,7 @@ export default class VideoDecoder extends EventEmitter {
       this.ptsArray.push(pts)
       // ended事件和该处代码只能执行一个，如果ended事件不触发，则进行兜底（safari下有时不触发ended事件）
       if (this._lastCurrentTime && (this._lastCurrentTime == this._vDuration)) {
-        console.log(this.TAG, '_getFrame, video ended, lastCurrentTime', this._lastCurrentTime, 'duration:', this._vDuration, 'isInDecoding:', this._isInDecoding)
+        logger.log(this.TAG, '_getFrame, video ended, lastCurrentTime', this._lastCurrentTime, 'duration:', this._vDuration, 'isInDecoding:', this._isInDecoding)
         this._onEnded(null, 'getFrame')
       }
 
@@ -368,7 +368,7 @@ export default class VideoDecoder extends EventEmitter {
       canvas.height = height
     }
     try {
-      // console.log(this.TAG, '_getImageData', width, height, videoWidth, videoHeight)
+      // logger.log(this.TAG, '_getImageData', width, height, videoWidth, videoHeight)
       if (videoHeight && videoWidth && width && height) {
         ctx.drawImage(video, 0, 0, videoWidth, videoHeight, 0, 0, width, height)
       }
@@ -454,7 +454,7 @@ export default class VideoDecoder extends EventEmitter {
   }
   play () {
     if (this._isInDecoding && this._video.paused) {
-      console.log('video play', this._vCurrentTime)
+      logger.log('video play', this._vCurrentTime)
       return this._video.play()
     }
   }

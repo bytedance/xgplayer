@@ -383,7 +383,6 @@ class MVideo extends HTMLElement {
     this.videoRemux = context.getInstance('MP4_REMUXER')
     // 解决自动播放失败，点击手动播放按钮时报错问题。是因为手动点击播放时，timeline的初始化在传入新的context之前
     if (this.timeline && this.timeline.videoRender) {
-      console.error(this.TAG, 'setVideoContext')
       this.timeline.videoRender.videoContext = context
     }
   }

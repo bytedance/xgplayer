@@ -41,8 +41,12 @@
       height: 720px;
       border: 1px solid red
     }
+
+    #mse {
+      border: 1px solid red
+    }
   </style>
-  <link rel="stylesheet" href="https://unpkg.byted-static.com/xgplayer/3.0.0-alpha.86/dist/xgplayer.min.css">
+  <link rel="stylesheet" href="https://unpkg.byted-static.com/xgplayer/3.0.0-alpha.87/dist/xgplayer.min.css">
 
 </head>
 
@@ -105,6 +109,7 @@
   </script>
   <script src="https://unpkg.byted-static.com/xgplayer-flv-live/3.0.0-livev.1/dist/index.min.js"
     charset="utf-8"></script> -->
+  <!-- <script src="https://unpkg.byted-static.com/xgplayer/3.0.0-alpha.87/dist/index.min.js"></script> -->
   <script src="http://10.1.15.145/packages/xgplayer/dist/index.js?t=2ccc2"></script>
   <script src="http://10.1.15.145/packages/xgplayer-mobilevideo/dist/index.js?t=ff"></script>
   <script src="http://10.1.15.145/packages/xgplayer-flv-live/dist/index.js?t=cccddd"></script>
@@ -132,10 +137,11 @@
       id: 'mse',
       url: 'https://pull-flv-l6.ixigua.com/game/stream-108561722603995566.flv',
       plugins: [FlvLivePlayer.FlvLiveMobilePlayer],
+      // plugins: [FlvLivePlayer.FlvLiveMsePlayer],
       autoplay: true,
       width: '100%',
       height: 270,
-      preloadTime: 10,
+      preloadTime: 40,
       mediaType: 'mobile-video',
       flvLiveMobile: {
         decodeMode: 7
