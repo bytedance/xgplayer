@@ -99,8 +99,8 @@ Decoder.prototype.broadwayOnBroadwayInited = function () {
 }
 
 Decoder.prototype.storeBuffer = function (data, fInfo) {
-  if (fInfo && fInfo.isGop) {
-    this.flush()
+  if (fInfo && fInfo.firstInGop) {
+    this.flush();
   }
   this.infolist.push(fInfo)
   this.streamBuffer.set(data, this.streamBufferOffset)

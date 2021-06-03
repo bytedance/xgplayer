@@ -322,7 +322,7 @@ export default class DecodeWorkerManager extends EventEmitter {
         pts: sample.pts || sample.dts + sample.cts,
         key: sample.isKeyframe,
         gopId,
-        isGop: sample.isGop
+        firstInGop: sample.firstInGop
       }
     })
   }

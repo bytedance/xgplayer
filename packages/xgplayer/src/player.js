@@ -13,10 +13,9 @@ import hooksDescriptor from './plugin/hooksDescriptor'
 import Controls from './plugins/controls'
 import XG_DEBUG, {bindDebug} from './utils/debug'
 
-import {
-  version
-} from '../package.json'
 import I18N from './lang'
+import version from './version'
+
 /* eslint-disable camelcase */
 const PlAYER_HOOKS = ['play']
 
@@ -55,7 +54,7 @@ class Player extends Proxy {
     this.isActive = false
     this.isCssfullScreen = false
     this.fullscreen = false
-    this._fullscreenEl = null
+    this._fpullscreenEl = null
     this._originCssText = ''
     this._fullScreenOffset = null
     this._videoHeight = 0
@@ -265,7 +264,9 @@ class Player extends Proxy {
       }
       const {autoplay, startTime, volume} = this.config
       XG_DEBUG.logInfo('player', 'canPlayFunc', startTime)
-      this.volume = typeof volume === 'number' ? volume : 0.6
+      if (Util.typeOf(volume) === 'Number') {
+        this.volume = volume
+      }
       if (startTime) {
         this.currentTime = startTime > this.duration ? this.duration : startTime
       }
@@ -909,7 +910,11 @@ class Player extends Proxy {
     let rHeight = height;
     if ((fitVideoSize === 'auto' && fit > videoFit) || fitVideoSize === 'fixWidth') {
       rHeight = width / videoFit * 1000
-      this.root.style.height = `${rHeight + controlsHeight}px`
+      if (this.config.fluid) {
+        this.root.style.paddingTop = `${rHeight * 100 / rWidth}%`
+      } else {
+        this.root.style.height = `${rHeight + controlsHeight}px`
+      }
     } else if ((fitVideoSize === 'auto' && fit < videoFit) || fitVideoSize === 'fixHeight') {
       rWidth = videoFit * height / 1000
       this.root.style.width = `${rWidth}px`

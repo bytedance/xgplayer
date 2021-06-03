@@ -38,7 +38,7 @@ export default class FlvController {
   }
 
   initComponents () {
-    const { FetchLoader, XgBuffer, FlvDemuxer, Tracks, Remuxer, PreSource, Compatibility, Logger } = this._pluginConfig
+    const { FetchLoader, XgBuffer, FlvDemuxer, Tracks, Remuxer, RemuxedBufferManager, Compatibility, Logger } = this._pluginConfig
     const { remux } = this.configs;
 
     this._context.registry('FETCH_LOADER', FetchLoader)
@@ -53,7 +53,7 @@ export default class FlvController {
         remuxer[key] = remux[key]
       })
     }
-    this._context.registry('PRE_SOURCE_BUFFER', PreSource)
+    this._context.registry('PRE_SOURCE_BUFFER', RemuxedBufferManager)
 
     this._context.registry('COMPATIBILITY', Compatibility)
 
@@ -274,8 +274,8 @@ export default class FlvController {
     }
     const { count: times, delay: delayTime } = this._player.config.retry || {};
     // 兼容player.config上传入retry参数的逻辑
-    const retryCount = times || this._pluginConfig.retryCount ;
-    const retryDelay = delayTime || this._pluginConfig.retryDelay;
+    const retryCount = typeof times === 'undefined' ? this._pluginConfig.retryCount : times;
+    const retryDelay = typeof delayTime === 'undefined' ? this._pluginConfig.retryDelay : delayTime;
 
     this.emit(LOADER_EVENTS.LADER_START, url, {}, retryCount, retryDelay)
   }

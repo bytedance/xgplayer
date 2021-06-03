@@ -7,7 +7,7 @@ import VideoDecoder from './video-decoder'
 const REMUX_EVENTS = EVENTS.REMUX_EVENTS
 const DEMUX_EVENTS = EVENTS.DEMUX_EVENTS
 const MAX_FRAMESIZE = 40
-const MIN_FRAMESIZE = 30
+const MIN_FRAMESIZE = 25
 const DEFAULT_FPS = 15
 const LEVELS = [
   { base: 720, level: 0 },
@@ -329,7 +329,7 @@ export default class VideoDecoderController extends EventEmitter {
       }
 
       // 更新remux的_videoDtsBase，保证每个gop生成的fragment时间戳从0开始
-      this._remux._videoDtsBase = samples[0].dts
+      this._remux.remuxer.videoDtsBase = samples[0].dts
       // 开始remux fmp4的mdat
       this.remux.emit(REMUX_EVENTS.REMUX_MEDIA)
       videoTrack.samples = []
@@ -483,7 +483,9 @@ export default class VideoDecoderController extends EventEmitter {
               this._playSuccess = false
             })
         } else {
-          this._playSuccess = true
+          setTimeout(() => {
+            this._playSuccess = true
+          }, 20)
         }
       }
     }

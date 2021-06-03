@@ -112,8 +112,8 @@
   <!-- <script src="https://unpkg.byted-static.com/xgplayer/3.0.0-alpha.87/dist/index.min.js"></script> -->
   <script src="http://10.1.15.145/packages/xgplayer/dist/index.js?t=2ccc2"></script>
   <script src="http://10.1.15.145/packages/xgplayer-mobilevideo/dist/index.js?t=ff"></script>
-  <script src="http://10.1.15.145/packages/xgplayer-flv-live/dist/index.js?t=cccddd"></script>
-  <script src="http://10.1.15.145/packages/xgplayer-mobilevideo/node_modules/vconsole/dist/vconsole.min.js"></script>
+  <script src="http://10.1.15.145/packages/xgplayer-flv-live/dist/mobile.js?t=cccddd"></script>
+  <script src="https://flv.web.bytedance.net/vconsole.min.js"></script>
   <script type="text/javascript">
     var vConsole
     // vConsole = new VConsole();
@@ -136,12 +136,12 @@
     let options = {
       id: 'mse',
       url: 'https://pull-flv-l6.ixigua.com/game/stream-108561722603995566.flv',
-      plugins: [FlvLivePlayer.FlvLiveMobilePlayer],
+      plugins: [FlvLiveMobilePlayer],
       // plugins: [FlvLivePlayer.FlvLiveMsePlayer],
       autoplay: true,
       width: '100%',
       height: 270,
-      preloadTime: 40,
+      preloadTime: 3,
       mediaType: 'mobile-video',
       flvLiveMobile: {
         decodeMode: 7

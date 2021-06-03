@@ -47,8 +47,8 @@ export default class ADTS {
     return undefined;
   }
 
-  static appendFrame (track, data, offset, pts, frameIndex) {
-    let frameDuration = ADTS.getFrameDuration(track.meta.sampleRate);
+  static appendFrame (sampleRate, data, offset, pts, frameIndex) {
+    let frameDuration = ADTS.getFrameDuration(sampleRate);
     let header = ADTS.parseFrameHeader(data, offset, pts, frameIndex, frameDuration);
     if (header) {
       let stamp = header.stamp;

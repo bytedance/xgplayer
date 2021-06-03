@@ -33,7 +33,7 @@ class Volume extends Plugin {
 
     this.initIcons()
 
-    const {commonStyle} = this.playerConfig
+    const {commonStyle, volume} = this.playerConfig
     if (commonStyle.volumeColor) {
       this.find('.xgplayer-drag').style.backgroundColor = commonStyle.volumeColor
     }
@@ -42,6 +42,7 @@ class Volume extends Plugin {
       player.muted = !player.muted
     }, {
       pre: (e) => {
+        e.preventDefault()
         e.stopPropagation()
       }
     })
@@ -61,7 +62,9 @@ class Volume extends Plugin {
 
     this.on(Events.VOLUME_CHANGE, this.onVolumeChange.bind(this))
 
-    this.player.volume = this.config.default
+    if (Util.typeOf(volume) !== 'Number') {
+      this.player.volume = this.config.default
+    }
 
     this.onVolumeChange()
   }

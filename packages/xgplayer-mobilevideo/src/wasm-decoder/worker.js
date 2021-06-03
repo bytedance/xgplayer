@@ -43,8 +43,8 @@ Decoder.prototype.broadwayOnPictureDecoded = function (
   infoid,
   keyFrame
 ) {
-  let firstFrame = this.infolist[0]
-  if (firstFrame && firstFrame.isGop && !keyFrame) return
+  let firstFrame = this.infolist[0];
+  if (firstFrame && firstFrame.firstInGop && !keyFrame) return;
 
   let info = Object.assign({}, this.infolist.shift())
   let yRowcount = height
@@ -94,8 +94,8 @@ Decoder.prototype.decode = function (data, info) {
   if (info) {
     this.infolist.push(info)
   }
-  if (info && info.isGop) {
-    this.infolist = [info]
+  if (info && info.firstInGop) {
+    this.infolist = [info];
   }
   this.streamBuffer.set(data)
   Module._broadwayPlayStream(data.length, 0)

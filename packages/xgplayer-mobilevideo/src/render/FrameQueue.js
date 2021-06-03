@@ -23,13 +23,13 @@ export default class FrameQueue {
   }
 
   append (frame) {
-    if (!frame.info) return
-    const { dts, isGop, gopId } = frame.info
+    if (!frame.info) return;
+    const { dts, firstInGop, gopId } = frame.info;
     if (gopId && gopId < this._lastGopId && dts < this.currentTimeDts) {
-      return
-    }
-    if (isGop) {
-      this._lastGopId = gopId
+      return;
+    };
+    if (firstInGop) {
+      this._lastGopId = gopId;
     }
     this._frames.push(frame)
     this._frames.sort((a, b) => (a.info.dts > b.info.dts ? 1 : -1))

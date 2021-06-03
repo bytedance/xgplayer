@@ -1,3 +1,8 @@
+/**
+ * @param {number} num
+ * @param {number} fixed
+ * @return {number}
+ */
 export default (fn, wait) => {
   let lastTime = Date.now();
   let timer = null

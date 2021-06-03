@@ -1,7 +1,13 @@
+import { TsFrag } from 'xgplayer-helper-models';
 /**
  * Reference: https://tools.ietf.org/html/rfc8216#section-4.3
  */
 class M3U8Parser {
+  /**
+   * @param {string} text
+   * @param {string} baseurl
+   * @return {{duration: number}}
+   */
   static parse (text, baseurl = '') {
     let ret = {
       duration: 0
@@ -61,21 +67,31 @@ class M3U8Parser {
     return ret;
   }
 
+  /**
+   *
+   * @param {string[]}refm
+   * @param {string[]}refs
+   * @param {*} ret
+   * @param {string} baseurl
+   * @param {boolean} discontinue
+   * @param {number} nextId
+   * @return {*}
+   */
   static parseFrag (refm, refs, ret, baseurl, discontinue, nextId) {
     if (!ret.frags) {
       ret.frags = []
     }
 
-    let freg = {
+    let frag = new TsFrag({
       start: ret.duration,
       duration: parseInt(parseFloat(refm[2]) * 1000)
-    }
+    })
 
-    if (freg.duration < 200) {
+    if (frag.duration < 200) {
       return nextId;
     }
 
-    ret.duration += freg.duration;
+    ret.duration += frag.duration;
     let nextline = refs[nextId++];
     if (nextline.match(/#(.*):(.*)/) || nextline.match(/^#/)) {
       nextline = refs[nextId++];
@@ -88,24 +104,28 @@ class M3U8Parser {
       if ((M3U8Parser.envisHttps || (M3U8Parser.envisHttps = isHTTPS(window.location.href))) && !isHTTPS(nextline)) {
         nextline = nextline.replace('http:', 'https:')
       }
-      freg.url = nextline;
+      frag.url = nextline;
     } else {
-      freg.url = baseurl + nextline;
+      frag.url = baseurl + nextline;
     }
-    freg.discontinue = discontinue;
+    frag.discontinue = discontinue;
     // add id
     if (ret.frags.length) {
       let last = ret.frags[ret.frags.length - 1];
-      freg.id = last.id + 1;
-      freg.cc = discontinue ? last.cc + 1 : last.cc;
+      frag.id = last.id + 1;
+      frag.cc = discontinue ? last.cc + 1 : last.cc;
     } else {
-      freg.id = ret.sequence || 1;
-      freg.cc = 0;
+      frag.id = ret.sequence || 1;
+      frag.cc = 0;
     }
-    ret.frags.push(freg);
+    ret.frags.push(frag);
     return nextId;
   }
 
+  /**
+   * @param {string} url
+   * @return {string}
+   */
   static parseURL (url) {
     let baseurl = '';
     let urls = url.match(/(.*\/).*\.m3u8/);
@@ -119,6 +139,10 @@ class M3U8Parser {
     return baseurl;
   }
 
+  /**
+   * @param {string[]}refm
+   * @param {*} ret
+   */
   static parseDecrypt (refm, ret) {
     ret.encrypt = {};
     let refs = refm.split(',');
@@ -144,6 +168,10 @@ class M3U8Parser {
     };
   }
 
+  /**
+   * @param {string} url
+   * @return {boolean}
+   */
   static isHTTPS (url) {
     const httpsUrlRegex = /^https:\/\//i;
     return httpsUrlRegex.test(url)

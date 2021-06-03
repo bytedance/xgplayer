@@ -261,13 +261,8 @@ export default class AudioRender extends BaseRender {
           if (delay > 1) {
             // 把丢掉音频帧的时长加上
             this._timeRange._duration += delay / 1000
-            let duration = this._timeRange.duration * 1000
-            let dts = samp0.dts - this._timeRange.baseDts
-            if (Math.abs(duration - dts)) {
-              console.error('duration error:', duration, dts)
-            }
 
-            console.warn(this.TAG, '_assembleAAC', 'audio data dts is not continue, last end dts:', endTime, ',now start Dts:', samp0.dts, 'delay:', delay)
+            logger.log(this.TAG, '_assembleAAC', 'audio data dts is not continue, last end dts:', endTime, ',now start Dts:', samp0.dts, 'delay:', delay)
           }
         }
 
@@ -277,7 +272,6 @@ export default class AudioRender extends BaseRender {
         }
 
         const start = this._timeRange.append(uncompress, uncompress.duration, samp0.dts, segmentStart, delay / 1000)
-
 
         this._inDecoding = false
         if (!this._ready) {
@@ -393,7 +387,7 @@ export default class AudioRender extends BaseRender {
     let delay = startDts - currentDTS
 
     if (delay > 1) {
-      console.error(this.TAG, 'error', startDts, currentDTS, this._delay * 1000, delay)
+      console.error(this.TAG, 'error', 'startDts:', startDts, 'currentDTS:', currentDTS, 'this._delay:', this._delay * 1000, 'delay:', delay)
     }
     this.startDts = buffer.startDts
     try {

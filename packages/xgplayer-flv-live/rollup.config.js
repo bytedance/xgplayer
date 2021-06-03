@@ -2,6 +2,7 @@ const commonRollup = require('../../rollup.config');
 const uglify = process.env.NODE_ENV === 'production';
 
 const config = {
+  input: 'src/mse/index.js',
   name: 'FlvLivePlayer',
   uglify: uglify,
   external: ['xgplayer'],
@@ -20,7 +21,7 @@ const mobileConfig = {
       file: uglify ? 'dist/mobile.min.js' : 'dist/mobile.js',
       name: 'FlvLiveMobilePlayer',
       format: 'umd',
-      sourcemap: false,
+      sourcemap: true,
       globals: {
         'xgplayer': 'Player'
       }

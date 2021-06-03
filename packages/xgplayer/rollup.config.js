@@ -26,7 +26,8 @@ module.exports = commonRollup({
           'corejs': 3
         }
       ]
-    ]
+    ],
+    exclude: ['../../node_modules/**', '**/*.svg']
     // externalHelpers: false
   },
   plugins: [

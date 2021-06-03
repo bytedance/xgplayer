@@ -4,7 +4,7 @@ const LOADER_EVENTS = EVENTS.LOADER_EVENTS;
 const REMUX_EVENTS = EVENTS.REMUX_EVENTS;
 const DEMUX_EVENTS = EVENTS.DEMUX_EVENTS;
 const HLS_EVENTS = EVENTS.HLS_EVENTS;
-const CRYTO_EVENTS = EVENTS.CRYTO_EVENTS;
+const CRYPTO_EVENTS = EVENTS.CRYPTO_EVENTS;
 const MSE_EVENTS = EVENTS.MSE_EVENTS;
 const HLS_ERROR = 'HLS_ERROR';
 
@@ -25,15 +25,14 @@ class HlsLiveController {
   }
 
   init () {
-    const { XgBuffer, Tracks, Playlist, PreSource, Compatibility, FetchLoader, TsDemuxer, Mp4Remuxer, Mse } = this._pluginConfig
-
+    const { XgBuffer, Tracks, Playlist, RemuxedBufferManager, Compatibility, FetchLoader, TsDemuxer, Mp4Remuxer, Mse } = this._pluginConfig
     // 初始化Buffer （M3U8/TS/Playlist);
     this._context.registry('M3U8_BUFFER', XgBuffer);
     this._context.registry('TS_BUFFER', XgBuffer);
     this._track = this._context.registry('TRACKS', Tracks)();
 
     this._playlist = this._context.registry('PLAYLIST', Playlist)({autoclear: true, logger});
-    this._context.registry('PRE_SOURCE_BUFFER', PreSource);
+    this._context.registry('PRE_SOURCE_BUFFER', RemuxedBufferManager);
 
     this._compat = this._context.registry('COMPATIBILITY', Compatibility)();
 
@@ -241,8 +240,8 @@ class HlsLiveController {
         this._keyLoader = this._context.registry('KEY_LOADER', FetchLoader)({buffer: 'KEY_BUFFER', readtype: 3});
         const { count: times, delay: delayTime } = this._player.config.retry || {};
         // 兼容player.config上传入retry参数的逻辑
-        const retryCount = times || this._pluginConfig.retryCount ;
-        const retryDelay = delayTime || this._pluginConfig.retryDelay;
+        const retryCount = typeof times === 'undefined' ? this._pluginConfig.retryCount : times;
+        const retryDelay = typeof delayTime === 'undefined' ? this._pluginConfig.retryDelay : delayTime;
         this.emitTo('KEY_LOADER', LOADER_EVENTS.LADER_START, this._playlist.encrypt.uri, {}, retryCount, retryDelay);
       } else {
         this._m3u8Loaded(mdata);
@@ -258,7 +257,7 @@ class HlsLiveController {
     } else if (buffer.TAG === 'DECRYPT_BUFFER') {
       this.retrytimes = this._pluginConfig.retrytimes || 3;
       this._playlist.downloaded(this._tsloader.url, true);
-      this.emitTo('CRYPTO', CRYTO_EVENTS.START_DECRYPT);
+      this.emitTo('CRYPTO', CRYPTO_EVENTS.START_DECRYPTO);
     } else if (buffer.TAG === 'KEY_BUFFER') {
       this.retrytimes = this._pluginConfig.retrytimes || 3;
       this._playlist.encrypt.key = buffer.shift();
@@ -269,7 +268,7 @@ class HlsLiveController {
         inputbuffer: 'DECRYPT_BUFFER',
         outputbuffer: 'TS_BUFFER'
       });
-      this._crypto.on(CRYTO_EVENTS.DECRYPTED, this._onDcripted.bind(this));
+      this._crypto.on(CRYPTO_EVENTS.DECRYPTED, this._onDcripted.bind(this));
     }
   }
 
@@ -327,8 +326,8 @@ class HlsLiveController {
     let frag = this._playlist.getTs();
     const { count: times, delay: delayTime } = this._player.config.retry || {};
     // 兼容player.config上传入retry参数的逻辑
-    const retryCount = times || this._pluginConfig.retryCount ;
-    const retryDelay = delayTime || this._pluginConfig.retryDelay;
+    const retryCount = typeof times === 'undefined' ? this._pluginConfig.retryCount : times;
+    const retryDelay = typeof delayTime === 'undefined' ? this._pluginConfig.retryDelay : delayTime;
     const {fetchOptions = {}} = this._pluginConfig;
     if (frag && !frag.downloaded && !frag.downloading) {
       this._logDownSegment(frag);

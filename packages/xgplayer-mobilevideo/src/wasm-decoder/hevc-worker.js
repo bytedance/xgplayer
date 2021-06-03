@@ -41,7 +41,7 @@ Decoder.prototype.broadwayOnPictureDecoded = function (
   infoid,
   sliceType
 ) {
-  if (this.infolist[0] && this.infolist[0].isGop && sliceType !== 2) {
+  if (this.infolist[0] && this.infolist[0].firstInGop && sliceType !== 2) {
     this.self.postMessage({
       msg: 'LOG',
       log: `drop sample`
@@ -100,12 +100,12 @@ Decoder.prototype.broadwayOnBroadwayInited = function () {
 }
 
 Decoder.prototype.decode = function (data, info) {
-  let time = parseInt(new Date().getTime())
-  let infoid = time - Math.floor(time / 10e8) * 10e8
-  this.infolist.push(info)
-  if (info && info.isGop) {
-    this.infolist = [info]
-    Module._broadwayFlushStream(infoid)
+  let time = parseInt(new Date().getTime());
+  let infoid = time - Math.floor(time / 10e8) * 10e8;
+  this.infolist.push(info);
+  if (info && info.firstInGop) {
+    this.infolist = [info];
+    Module._broadwayFlushStream(infoid);
   }
   Module.HEAPU8.set(data, this.offset)
   Module._broadwayPlayStream(data.length, this.infoId)
@@ -176,7 +176,6 @@ function init (url) {
             })
           })
         }
-
         return new Promise((resolve, reject) => {
           addOnPostRun(onPostRun.bind(self))
 

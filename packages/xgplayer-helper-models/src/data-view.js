@@ -1,38 +1,61 @@
-class Stream {
+class XGDataView {
   constructor (buffer) {
     if (buffer instanceof ArrayBuffer) {
+      /** @type {ArrayBuffer} */
       this.buffer = buffer;
+      /** @type {DataView} */
       this.dataview = new DataView(buffer);
+      /** @type {number} */
       this.dataview.position = 0;
     } else {
       throw new Error('data is invalid');
     }
   }
 
+  /**
+   * byffer length
+   * @return {number}
+   */
   get length () {
     return this.buffer.byteLength;
   }
 
+  /**
+   * set current read position of data-view
+   * @param value
+   */
   set position (value) {
     this.dataview.position = value;
   }
 
+  /**
+   * set current read position of data-view
+   * @param value
+   */
   get position () {
     return this.dataview.position;
   }
 
+  /**
+   * move read position backward
+   * @param count
+   */
   back (count) {
     this.position -= count;
   }
 
+  /**
+   * move read position forward
+   * @param count
+   */
   skip (count) {
     let loop = Math.floor(count / 4);
     let last = count % 4;
     for (let i = 0; i < loop; i++) {
-      Stream.readByte(this.dataview, 4);
+      XGDataView.readByte(this.dataview, 4);
     }
     if (last > 0) {
-      Stream.readByte(this.dataview, last);
+      XGDataView.readByte(this.dataview, last);
     }
   }
 
@@ -90,37 +113,65 @@ class Stream {
     return res;
   }
 
+  /**
+   * @return {Number}
+   */
   readUint8 () {
-    return Stream.readByte(this.dataview, 1);
+    return XGDataView.readByte(this.dataview, 1);
   }
 
+  /**
+   * @return {Number}
+   */
   readUint16 () {
-    return Stream.readByte(this.dataview, 2);
+    return XGDataView.readByte(this.dataview, 2);
   }
 
+  /**
+   * @return {Number}
+   */
   readUint24 () {
-    return Stream.readByte(this.dataview, 3);
+    return XGDataView.readByte(this.dataview, 3);
   }
 
+  /**
+   * @return {Number}
+   */
   readUint32 () {
-    return Stream.readByte(this.dataview, 4);
+    return XGDataView.readByte(this.dataview, 4);
   }
 
+  /**
+   * @return {Number}
+   */
   readUint64 () {
-    return Stream.readByte(this.dataview, 8);
+    return XGDataView.readByte(this.dataview, 8);
   }
 
+  /**
+   * @return {Number}
+   */
   readInt8 () {
-    return Stream.readByte(this.dataview, 1, true);
+    return XGDataView.readByte(this.dataview, 1, true);
   }
+
+  /**
+   * @return {Number}
+   */
   readInt16 () {
-    return Stream.readByte(this.dataview, 2, true);
+    return XGDataView.readByte(this.dataview, 2, true);
   }
 
+  /**
+   * @return {Number}
+   */
   readInt32 () {
-    return Stream.readByte(this.dataview, 4, true);
+    return XGDataView.readByte(this.dataview, 4, true);
   }
 
+  /**
+   * @return {Uint8Array}
+   */
   writeUint32 (value) {
     return new Uint8Array([
       value >>> 24 & 0xff,
@@ -131,4 +182,4 @@ class Stream {
   }
 }
 
-export default Stream;
+export default XGDataView;

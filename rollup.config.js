@@ -1,4 +1,4 @@
-const uglify = require('rollup-plugin-uglify-es')
+const { terser } = require('rollup-plugin-terser')
 const json = require('rollup-plugin-json');
 const postcss = require('rollup-plugin-postcss')
 const babel = require('rollup-plugin-babel')
@@ -41,7 +41,7 @@ const commonRollup = function (config = {}) {
     external: rollupConfig.external,
     plugins: [
       ...rollupConfig.plugins,
-      rollupConfig.uglify ? uglify(rollupConfig.uglify) : undefined,
+      rollupConfig.uglify ? terser(rollupConfig.uglify) : undefined,
       json({
         compact: true
       }),
@@ -67,7 +67,7 @@ const commonRollup = function (config = {}) {
       }),
       resolve({
         preferBuiltins: true,
-        extensions: [ '.mjs', '.js', '.jsx', '.json' ],
+        extensions: ['.mjs', '.js', '.jsx', '.json'],
         ...rollupConfig.resolve
       }),
       commonjs({

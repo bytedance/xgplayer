@@ -56,9 +56,8 @@ export default class InnerList {
       }
       this.updateDuration(duration)
     }
-
     const {playedIndex, cachedIndex} = this
-    if (data.played) {
+    if (Util.typeOf(data.played) !== 'Undefined') {
       const newPIndex = this.findIndex(data.played * 1000, playedIndex)
       this.updateProgress('played', {
         newIndex: newPIndex,
@@ -67,7 +66,7 @@ export default class InnerList {
       this.playedIndex = newPIndex
     }
 
-    if (data.cached) {
+    if (Util.typeOf(data.cached) !== 'Undefined') {
       const newCIndex = this.findIndex(data.cached * 1000, cachedIndex)
       this.updateProgress('cached', {
         newIndex: newCIndex,
