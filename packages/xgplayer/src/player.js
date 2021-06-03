@@ -1,5 +1,5 @@
 import Proxy from './proxy'
-import { util, deepCopy, findDom, createDom, addClass, typeOf, hasClass, removeClass } from './utils/util'
+import { util, deepCopy, findDom, createDom, addClass, typeOf, hasClass, removeClass, checkIsBrowser } from './utils/util'
 import sniffer from './utils/sniffer'
 import XgplayerTimeRange from './utils/xgplayerTimeRange'
 import Errors from './error'
@@ -504,6 +504,9 @@ class Player extends Proxy {
   }
 
   static install (name, descriptor) {
+    if (!checkIsBrowser()) {
+      return
+    }
     if (!Player.plugins) {
       Player.plugins = {}
     }

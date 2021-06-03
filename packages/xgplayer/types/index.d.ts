@@ -333,6 +333,9 @@ declare module 'xgplayer' {
 
         //提示文字展示时长（单位：秒）
         lastPlayTimeHideDelay?: number;
+
+        //隐藏中间按钮
+        hideStartBtn?: boolean;
     }
 
     class Proxy extends EventEmitter {
