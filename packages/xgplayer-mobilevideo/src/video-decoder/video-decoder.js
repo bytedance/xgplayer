@@ -1,7 +1,7 @@
 /**
  * @description with video element to play fmp4 videostream, and get the video RGB frame with requestAnimationFrame api.
  */
-import { logger, Sniffer } from 'xgplayer-helper-utils'
+import { logger } from 'xgplayer-helper-utils'
 import EventEmitter from 'events'
 import Events from '../events'
 
@@ -108,7 +108,7 @@ export default class VideoDecoder extends EventEmitter {
 
     if (video && video.paused) {
       let playPromise = video.play()
-      if (playPromise != undefined) {
+      if (playPromise !== undefined) {
         playPromise
           .then(() => {
             this._playFailed = false
@@ -132,7 +132,7 @@ export default class VideoDecoder extends EventEmitter {
     video.removeEventListener('loadeddata', this._onLoadeddata.bind(this))
     video.removeEventListener('timeupdate', this._onTimeUpdate.bind(this))
     // video.removeEventListener('seeked', () => {
-    // 	console.error('seeked', this._vCurrentTime, this._basePTS)
+    // console.error('seeked', this._vCurrentTime, this._basePTS)
     // })
   }
   _bindEvents () {
@@ -179,7 +179,7 @@ export default class VideoDecoder extends EventEmitter {
         this._framId = null
       }
     }
-    logger.log(this.TAG, '_onPlaying, video duration:', this._vDuration, this._vCurrentTime, this._lastPts,)
+    logger.log(this.TAG, '_onPlaying, video duration:', this._vDuration, 'currentTime:', this._vCurrentTime, '_lastPts:', this._lastPts)
     this._isInDecoding = true
     this._lastCurrentTime = this._vCurrentTime
     this.ptsArray = []
@@ -286,7 +286,7 @@ export default class VideoDecoder extends EventEmitter {
       let pts = this._basePTS + currentTime
       this.ptsArray.push(pts)
       // ended事件和该处代码只能执行一个，如果ended事件不触发，则进行兜底（safari下有时不触发ended事件）
-      if (this._lastCurrentTime && (this._lastCurrentTime == this._vDuration)) {
+      if (this._lastCurrentTime && (this._lastCurrentTime === this._vDuration)) {
         logger.log(this.TAG, '_getFrame, video ended, lastCurrentTime', this._lastCurrentTime, 'duration:', this._vDuration, 'isInDecoding:', this._isInDecoding)
         this._onEnded(null, 'getFrame')
       }
@@ -363,7 +363,7 @@ export default class VideoDecoder extends EventEmitter {
 
     this._currentCanvasHeight = height
 
-    if (canvas.width != width) {
+    if (canvas.width !== width) {
       canvas.width = width
       canvas.height = height
     }

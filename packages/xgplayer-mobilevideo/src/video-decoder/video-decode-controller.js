@@ -124,12 +124,7 @@ export default class VideoDecoderController extends EventEmitter {
     this._isInDecoding = false
     this._parent.emit('error', error, firstEmit)
   }
-  _handleDecodeControl (num) {
-    if (typeof num === 'number') {
-      // 根据解码出来的图片帧数量，来决定是否暂停解码
-      this._isDecodePause = num > MAX_DECODE_ONCE_FAST
-    }
-  }
+
   _checkReady () {
     if (this._isDataReady && this._isInit) {
       // 解码器准备完毕
@@ -263,7 +258,6 @@ export default class VideoDecoderController extends EventEmitter {
     return this._blobURLList.length
   }
 
-
   _removeRemuxLinstener () {
     logger.log(this.TAG, '_removeRemuxLinstener, remove event listener')
     let remux = this.remux
@@ -279,6 +273,7 @@ export default class VideoDecoderController extends EventEmitter {
     remux.on(REMUX_EVENTS.MEDIA_SEGMENT, this._handleMediaSegmentVideo)
   }
 
+  
   _handleKeyFrameVideo (pts) {
     try {
       const { videoTrack } = this._remux._context.getInstance('TRACKS')
@@ -321,7 +316,6 @@ export default class VideoDecoderController extends EventEmitter {
       this.currentFragmentDuration = this._getFragmentDuration(samples)
       this.endDts = endDts
 
-
       if (this.currentFragmentDts < this._startDts) {
         console.warn(this.TAG, '_handleKeyFrameVideo', 'currentFragmentDts < this._startDts', this.currentFragmentDts, this._startDts)
         videoTrack.samples = []
@@ -333,7 +327,7 @@ export default class VideoDecoderController extends EventEmitter {
       // 开始remux fmp4的mdat
       this.remux.emit(REMUX_EVENTS.REMUX_MEDIA)
       videoTrack.samples = []
-    } catch (e) {}
+    } catch (e) { }
   }
 
   _handleInitSegment (type) {
@@ -418,7 +412,7 @@ export default class VideoDecoderController extends EventEmitter {
     if (!buffer) {
       return
     }
-    let blob = new Blob([buffer.buffer], {
+    let blob = new window.Blob([buffer.buffer], {
       type: 'video/mp4'
     })
     return window.URL.createObjectURL(blob)
@@ -455,7 +449,6 @@ export default class VideoDecoderController extends EventEmitter {
     if (duration < this._minGopDuration) {
       this._minGopDuration = duration
     }
-
   }
 
   checkMaxFrames (num) {
@@ -474,7 +467,7 @@ export default class VideoDecoderController extends EventEmitter {
       this._isDecodePause = !(num < MIN_FRAMESIZE)
       if (!this._isDecodePause) {
         let playPromise = this._decoder.play()
-        if (playPromise != undefined) {
+        if (playPromise !== undefined) {
           playPromise
             .then(() => {
               this._playSuccess = true

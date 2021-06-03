@@ -1,6 +1,6 @@
 {
   "name": "xgplayer-mobilevideo",
-  "version": "2.4.25-alpha.1",
+  "version": "2.4.25",
   "description": "",
   "main": "lib/index.js",
   "module": "es/index.js",
