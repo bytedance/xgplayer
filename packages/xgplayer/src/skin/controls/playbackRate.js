@@ -11,6 +11,7 @@ let s_playbackRate = function () {
   } else {
     return false
   }
+  let unit = player.config.playbackRateUnit !== undefined ? player.config.playbackRateUnit : 'x'
   let container = createDom('xg-playbackrate', " ", {}, 'xgplayer-playbackrate')
   if (sniffer.device === 'mobile') {
     player.config.playbackRateActive = 'click'
@@ -18,7 +19,7 @@ let s_playbackRate = function () {
 
   let list = []
   playbackRateList.forEach(item => {
-    list.push({name: `${item}`, rate: `${item}x`, selected: false})
+    list.push({name: `${item}`, rate: `${item}${unit}`, selected: false})
   })
   let selectedSpeed = 1
   let tmp = ['<ul>']
@@ -34,7 +35,7 @@ let s_playbackRate = function () {
     }
     tmp.push(`<li cname='${item.name}' class='${item.selected ? 'selected' : ''}'>${item.rate}</li>`)
   })
-  tmp.push(`</ul><p class='name'>${selectedSpeed}x</p>`)
+  tmp.push(`</ul><p class='name'>${selectedSpeed}${unit}</p>`)
   let playbackDom = player.root.querySelector('.xgplayer-playbackrate')
   if (playbackDom) {
     playbackDom.innerHTML = tmp.join('')
@@ -87,7 +88,7 @@ let s_playbackRate = function () {
         })
         addClass(li, 'selected')
         to = Number(li.getAttribute('cname'))
-        li.parentNode.nextSibling.innerHTML = `${li.getAttribute('cname')}x`
+        li.parentNode.nextSibling.innerHTML = `${li.getAttribute('cname')}${unit}`
         player.emit('playbackrateChange', {from, to})
         if (sniffer.device === 'mobile') {
           removeClass(player.root, 'xgplayer-playbackrate-active')
