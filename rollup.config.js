@@ -61,7 +61,7 @@ const commonRollup = function (config = {}) {
       nodeResolve(),
       commonjs(),
       babel({
-        exclude: [/core-js/,/worker.js/,/hevc-worker.js/,/hevc-worker-thread.js/],
+        exclude: [/core-js/,/worker.js/,/hevc-worker.js/,/hevc-worker-thread.js/,/node_modules/],
         babelHelpers: 'runtime',
         presets: [
           [

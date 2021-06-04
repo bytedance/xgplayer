@@ -202,7 +202,7 @@ export default class DecodeWorkerManager extends EventEmitter {
     this._meta = meta;
 
     if (CAN_USE_HEVC_THREAD_DECODE && this.isHevc) {
-      this._decoderMode = this._parent.lowlatency ? (meta.multiSlice ? 1 : 2) : 1;
+      this._decoderMode = 1;
     }
 
     if (!this._wasmWorkers.length) {
