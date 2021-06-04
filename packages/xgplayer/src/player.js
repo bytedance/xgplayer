@@ -297,9 +297,9 @@ class Player extends Proxy {
     this.once(Events.CANPLAY, this.canPlayFunc)
     XG_DEBUG.logInfo('_startInit')
     if (this.config.autoplay) {
-      this.load()
+      this.load();
       // ios端无法自动播放的场景下，不调用play不会触发canplay loadeddata等事件
-      Sniffer.os.isPhone && this.videoPlay()
+      (Sniffer.os.isIpad || Sniffer.os.isPhone) && this.videoPlay()
     }
 
     Util.setTimeout(this, () => {

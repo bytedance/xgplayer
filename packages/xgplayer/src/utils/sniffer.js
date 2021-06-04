@@ -30,9 +30,11 @@ let sniffer = {
     let isTablet = /(?:iPad|PlayBook)/.test(ua) || (isAndroid && !/(?:Mobile)/.test(ua)) || (isFireFox && /(?:Tablet)/.test(ua))
     let isPhone = /(?:iPhone)/.test(ua) && !isTablet
     let isPc = !isPhone && !isAndroid && !isSymbian && !isTablet
+    const isIpad = /(?:iPad|PlayBook)/.test(ua)
     return {
       isTablet,
       isPhone,
+      isIpad,
       isIos: isPhone,
       isAndroid,
       isPc,
