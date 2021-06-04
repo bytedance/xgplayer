@@ -8,7 +8,7 @@ const umd = commonRollup({
   input: 'src/index-umd.js',
   targets: {
     'chrome': '58',
-    // 'ie': '11'
+    'ie': '11'
   },
   babel: {
     babelrc: false,
