@@ -1,8 +1,8 @@
 const commonRollup = require('../../rollup.config');
-const uglify = process.env.NODE_ENV === 'production';
+const uglify =  process.env.NODE_ENV === 'production';
 const svg = require('rollup-plugin-svg-import');
 
-module.exports = commonRollup({
+const umd = commonRollup({
   name: 'Player',
   uglify: uglify,
   input: 'src/index-umd.js',
@@ -10,9 +10,9 @@ module.exports = commonRollup({
     'chrome': '58',
     'ie': '11'
   },
-  // babel: {
-  //   babelrc: false,
-  // },
+  babel: {
+    babelrc: false,
+  },
   plugins: [
     svg({
       // process SVG to DOM Node or String. Default: false
@@ -20,3 +20,4 @@ module.exports = commonRollup({
     })
   ]
 })
+module.exports = [umd]
