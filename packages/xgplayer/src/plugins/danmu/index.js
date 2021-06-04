@@ -213,7 +213,7 @@ class Danmu extends Plugin {
     this.danmujs && this.danmujs.sendComment(comments)
   }
 
-  destoy () {
+  destroy () {
     this.danmujs.stop()
     this.danmujs.destroy()
     this.danmuButton && this.danmuButton.__destroy()
