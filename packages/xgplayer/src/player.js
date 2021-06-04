@@ -175,7 +175,6 @@ class Player extends Proxy {
     const resetFullState = () => {
       this.fullscreen = false
       this._fullScreenOffset = null
-      this._fullscreenEl = null
     }
 
     this.onFullscreenChange = (event, isFullScreen) => {
