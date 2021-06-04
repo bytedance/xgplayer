@@ -14,6 +14,7 @@ export default {
   FULLSCREEN: 'xgplayer-is-fullscreen',
   CSS_FULLSCREEN: 'xgplayer-is-cssfullscreen',
   ROTATE_FULLSCREEN: 'xgplayer-rotate-fullscreen',
+  PARENT_FULLSCREEN: 'xgplayer-fullscreen-parent',
   NO_CONTROLS: 'no-controls',
   FLEX_CONTROLS: 'flex-controls',
   CONTROLS_FOLLOW: 'controls-follow',

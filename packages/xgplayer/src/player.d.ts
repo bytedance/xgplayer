@@ -111,9 +111,10 @@ declare class Player extends Proxy {
 
   /**
    * 注册插件
-   * @param 插件配置
+   * @param plugin 插件构造函数以及插件位置信息 { plugin: PluginClass, options: {}}
+   * @param config 插件配置信息
    */
-  registerPlugin(plugin: any): any;
+  registerPlugin(plugin: any, config?: any): any;
 
   /**
    * 注销插件
