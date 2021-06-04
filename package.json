@@ -6,7 +6,7 @@
   "private": true,
   "scripts": {
     "bootstrap": "npm install & lerna bootstrap",
-    "watch": "http-server -p 80 --cors='Access-Control-Allow-Origin: *' & lerna run --parallel watch",
+    "watch": "http-server --cors='Access-Control-Allow-Origin: *' & lerna run --parallel watch",
     "watch:live": "http-server -S -C cert.pem --cors='Access-Control-Allow-Origin: *' & lerna run --scope xgplayer-flv-live --scope xgplayer-hls-live --scope xgplayer-helper-* --parallel watch",
     "test": "node_modules/.bin/lerna-changelog",
     "dev": "npm run watch",
@@ -52,6 +52,9 @@
   },
   "homepage": "https://github.com/bytedance/xgplayer#readme",
   "devDependencies": {
+    "@babel/parser": "^7.14.4",
+    "@babel/traverse": "^7.14.2",
+    "@babel/types": "^7.14.4",
     "@koa/cors": "^2.2.1",
     "@rollup/plugin-replace": "^2.4.2",
     "@types/events": "^3.0.0",
@@ -91,7 +94,6 @@
     "eslint-plugin-node": "^6.0.1",
     "eslint-plugin-promise": "^3.8.0",
     "eslint-plugin-standard": "^3.1.0",
-    "eslint-staged": "^1.0.1",
     "fs-extra": "^5.0.0",
     "generate-source-map": "0.0.5",
     "glob": "^7.1.2",
@@ -143,9 +145,6 @@
     "zlib": "^1.0.5"
   },
   "dependencies": {
-    "@babel/parser": "^7.14.4",
-    "@babel/traverse": "^7.14.2",
-    "@babel/types": "^7.14.4",
     "xgplayer": "file:packages/xgplayer",
     "xgplayer-dash": "file:packages/xgplayer-dash",
     "xgplayer-flv": "file:packages/xgplayer-flv",

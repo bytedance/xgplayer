@@ -8,12 +8,13 @@ const context = require('rollup-plugin-require-context')
 const builtins = require('rollup-plugin-node-builtins')
 const webWorkerLoader = require('rollup-plugin-web-worker-loader');
 const analyzer = require('rollup-plugin-visualizer');
+const sourcemap = process.env.NODE_ENV === 'production'
 
 const defaultRollup = {
   input: 'src/index.js',
   name: 'Player',
   sourcemap: true,
-  production: false,
+  production: !sourcemap,
   exports: undefined,
   external: [],
   plugins: [],

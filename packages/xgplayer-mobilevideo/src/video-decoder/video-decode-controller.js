@@ -273,7 +273,6 @@ export default class VideoDecoderController extends EventEmitter {
     remux.on(REMUX_EVENTS.MEDIA_SEGMENT, this._handleMediaSegmentVideo)
   }
 
-  
   _handleKeyFrameVideo (pts) {
     try {
       const { videoTrack } = this._remux._context.getInstance('TRACKS')
