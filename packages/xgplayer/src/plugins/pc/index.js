@@ -123,7 +123,7 @@ export default class PCPlugin extends BasePlugin {
   destroy () {
     const { video, root } = this.player;
     this.clickTimer && clearTimeout(this.clickTimer)
-    video.removeEventListener('click', this.onVideoClick, false)
+    root.removeEventListener('click', this.onVideoClick, false)
     video.removeEventListener('dblclick', this.onVideoDblClick, false)
     video.removeEventListener('contextmenu', this.onContextmenu, false)
     Object.keys(MOUSE_EVENTS).map(item => {
