@@ -206,10 +206,11 @@ class Player extends Proxy {
           resetFullState()
         }
         if (!this.isCssfullScreen) {
-          this.recoverFullStyle(this.root, fullEl, STATE_CLASS.FULLSCREEN)
+          this.recoverFullStyle(this.root, this._fullscreenEl, STATE_CLASS.FULLSCREEN)
         } else {
           this.removeClass(STATE_CLASS.FULLSCREEN)
         }
+        this._fullscreenEl = null
         // this.removeClass(STATE_CLASS.FULLSCREEN)
         this.emit(Events.FULLSCREEN_CHANGE, false)
       }
@@ -761,6 +762,7 @@ class Player extends Proxy {
   }
 
   getCssFullscreen (el) {
+    this._cssfullscreenEl = el
     this.changeFullStyle(this.root, el, STATE_CLASS.CSS_FULLSCREEN)
     this.isCssfullScreen = true
     this.emit(Events.CSS_FULLSCREEN_CHANGE, true)
