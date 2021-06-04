@@ -43,13 +43,13 @@ Decoder.prototype.broadwayOnPictureDecoded = function (
   infoid,
   sliceType
 ) {
-  if (this.infolist[0] && this.infolist[0].firstInGop && sliceType !== 2) {
-    this.self.postMessage({
-      msg: 'LOG',
-      log: `drop sample`
-    });
-    return;
-  }
+  // if (this.infolist[0] && this.infolist[0].firstInGop && sliceType !== 2) {
+  //   this.self.postMessage({
+  //     msg: 'LOG',
+  //     log: `drop sample`
+  //   });
+  //   return;
+  // }
 
   var info = this.infolist.shift();
   var yRowcount = height;

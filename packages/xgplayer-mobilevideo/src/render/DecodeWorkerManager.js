@@ -181,6 +181,7 @@ export default class DecodeWorkerManager extends EventEmitter {
       decoder.postMessage({
         msg: 'init',
         meta: this._meta,
+        batchDecodeCount: this._parent.lowlatency ? 2 : 10,
         url
       });
       if (!delay) {

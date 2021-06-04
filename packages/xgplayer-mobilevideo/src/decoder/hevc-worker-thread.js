@@ -105,7 +105,7 @@ Decoder.prototype.storeBuffer = function (data, fInfo) {
 
 Decoder.prototype.batchDecode = function (flush) {
   // 攒10帧处理一次 或者 强制解码
-  var todo = this.frameLensOffset >= 10 || (flush && this.frameLensOffset);
+  var todo = this.frameLensOffset >= BATCH_DECODE_SIZE || (flush && this.frameLensOffset);
   if (todo) {
     this.bufferSizes.set(new Uint8Array(this.frameLensBuffer.buffer), 0);
     Module._broadwayPlayStream1(this.bufferSizesPtr, this.frameLensOffset);
@@ -219,6 +219,7 @@ self.onmessage = function (e) {
     switch (data.msg) {
       case 'init':
         self.meta = data.meta;
+        BATCH_DECODE_SIZE = data.batchDecodeCount;
         self.postMessage({
           msg: 'LOG',
           log: 'worker inited'

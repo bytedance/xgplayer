@@ -113,6 +113,12 @@ class Raw264Player extends Player {
     this.context.destroy();
     this.core = null;
     this.context = null;
+    if(isDelDom && this.root){
+      const _c = this.root.children
+      for (let i = 0; i < _c.length; i++) {
+        this.root.removeChild(_c[i])
+      }
+    }
   }
 
   pushBuffer (arr) {
