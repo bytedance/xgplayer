@@ -519,8 +519,10 @@ class Progress extends Plugin {
     if (this.config.disable) {
       return
     }
+    const controlsMode = this.player.controls ? this.player.controls.config.mode : ''
+    const className = controlsMode === 'bottom' ? 'xgplayer-progress-bottom' : ''
     return `
-    <xg-progress class="xgplayer-progress">
+    <xg-progress class="xgplayer-progress ${className}">
       <xg-outer class="xgplayer-progress-outer">
         <xg-progress-btn class="xgplayer-progress-btn"></xg-progress-btn>
       </xg-outer>

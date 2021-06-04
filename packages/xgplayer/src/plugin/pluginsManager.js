@@ -274,18 +274,18 @@ const pluginsManager = {
     }
     const cgid = player._pluginInfoId
     const plugins = this.pluginGroup[cgid]._plugins
-    for (const item of Object.keys(plugins)) {
+    Object.keys(plugins).map(item => {
       if (plugins[item].updateLang) {
         plugins[item].updateLang(lang)
+      } else {
+        // 兼容旧版本通过set lang更新语言的问题
+        try {
+          plugins[item].lang = lang
+        } catch (error) {
+          console.warn(`${item} setLang`)
+        }
       }
-      // 兼容旧版本通过set lang更新语言的问题
-      try {
-        plugins[item].lang = lang
-      } catch (error) {
-        console.warn(error)
-        //
-      }
-    }
+    })
   },
 
   reRender (player) {

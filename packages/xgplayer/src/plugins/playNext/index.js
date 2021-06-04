@@ -1,7 +1,7 @@
 /**
  * 下一个按钮组件
  */
-import Plugin, {POSITIONS, Sniffer} from '../../plugin'
+import Plugin, { hooksDescriptor, POSITIONS, Sniffer, Events } from '../../plugin'
 import Next from '../assets/playNext.svg'
 
 export default class PlayNextIcon extends Plugin {
@@ -27,6 +27,7 @@ export default class PlayNextIcon extends Plugin {
     if (!this.config.urlList || this.config.urlList.length === 0) {
       return
     }
+    hooksDescriptor(this)
     this.appendChild('.xgplayer-icon', this.icons.playNext)
     this.initEvents()
   }
@@ -38,24 +39,35 @@ export default class PlayNextIcon extends Plugin {
   }
 
   initEvents () {
-    this.playNext = this.playNext.bind(this);
+    this.nextHandler = this.hook('playNext', this.changeSrc)
     const event = Sniffer.device === 'mobile' ? 'touchend' : 'click'
     this.bind(event, this.playNext)
     this.show()
   }
 
-  playNext () {
+  playNext = (e) => {
     const { player } = this;
+    e.preventDefault()
+    e.stopPropagation()
     if (this.idx + 1 < this.config.urlList.length) {
       this.idx++;
-      player.video.pause();
-      player.currentTime = 0;
-      player.video.autoplay = true;
-      player.src = this.config.urlList[this.idx];
-      player.emit('playerNext', this.idx + 1);
+      player.emit(Events.PLAYNEXT, this.idx + 1);
+      this.nextHandler(this.config.urlList[this.idx], this.idx)
     } else {
-      player.emit('urlList last');
+      this.nextHandler()
+      player.emit(Events.PLAYNEXT);
     }
+  }
+
+  changeSrc (url) {
+    const { player } = this;
+    if (!url) {
+      return
+    }
+    player.pause();
+    player.currentTime = 0;
+    player.autoplay = true;
+    player.src = url;
   }
 
   destroy () {

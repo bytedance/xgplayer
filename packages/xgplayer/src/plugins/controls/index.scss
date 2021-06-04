@@ -75,7 +75,7 @@ $controlHeight: 48px;
     // float: left;
     display: flex;
     flex-wrap: wrap;
-    flex-shrink: 0;
+    flex-shrink: 1;
     height: 100%;
     z-index: 1;
   }
@@ -136,6 +136,15 @@ $controlHeight: 48px;
       left: 0;
       right: 0;
       padding: 0;
+    }
+  }
+  .bottom-controls {
+    .xg-center-grid {
+      top: 20px;
+      padding:0;
+    }
+    .xg-left-grid, .xg-right-grid {
+      bottom: 10px;
     }
   }
 
