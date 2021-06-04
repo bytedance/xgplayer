@@ -103,9 +103,8 @@ export default class Rotate extends Plugin {
     let factor = clockwise ? 1 : -1
 
     this.rotateDeg = (this.rotateDeg + 1 + factor * 0.25 * times) % 1
-    console.log('this.rotateDeg', this.rotateDeg)
     this.updateRotateDeg(this.rotateDeg, innerRotate)
-    player.emit('rotate', this.rotateDeg * 360)
+    player.emit(Events.ROTATE, this.rotateDeg * 360)
   }
 
   registerIcons () {

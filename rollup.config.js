@@ -51,6 +51,10 @@ const commonRollup = function (config = {}) {
           browserslist: ['cover 99.5%']
         }
       }),
+      commonjs({
+        include: [/node_modules/],
+        ...rollupConfig.commonjs
+      }),
       babel({
         exclude: ['node_modules/**', '**/*.svg'],
         // plugins: [['transform-runtime', {
@@ -69,10 +73,6 @@ const commonRollup = function (config = {}) {
         preferBuiltins: true,
         extensions: [ '.mjs', '.js', '.jsx', '.json' ],
         ...rollupConfig.resolve
-      }),
-      commonjs({
-        include: [/node_modules/],
-        ...rollupConfig.commonjs
       }),
       builtins(),
       context(),

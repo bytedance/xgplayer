@@ -55,7 +55,7 @@ class Player extends Proxy {
     this.isCssfullScreen = false
     this.fullscreen = false
     this._fpullscreenEl = null
-    this._originCssText = ''
+    this._orgCss = ''
     this._fullScreenOffset = null
     this._videoHeight = 0
     this._videoWidth = 0
@@ -182,7 +182,8 @@ class Player extends Proxy {
       const fullEl = Util.getFullScreenEl()
       if (isFullScreen || (fullEl && (fullEl === this._fullscreenEl || fullEl.tagName === 'VIDEO'))) {
         this.fullscreen = true
-        this.addClass(STATE_CLASS.FULLSCREEN)
+        // this.addClass(STATE_CLASS.FULLSCREEN)
+        this.changeFullStyle(this.root, fullEl, STATE_CLASS.FULLSCREEN)
         this.emit(Events.FULLSCREEN_CHANGE, true, this._fullScreenOffset)
         if (this.isCssfullScreen) {
           this.exitCssFullscreen()
@@ -204,11 +205,12 @@ class Player extends Proxy {
           this.video.focus()
           resetFullState()
         }
-        if (this._originCssText && !this.isCssfullScreen) {
-          Util.setStyleFromCsstext(this.root, this._originCssText)
-          this._originCssText = ''
+        if (!this.isCssfullScreen) {
+          this.recoverFullStyle(this.root, fullEl, STATE_CLASS.FULLSCREEN)
+        } else {
+          this.removeClass(STATE_CLASS.FULLSCREEN)
         }
-        this.removeClass(STATE_CLASS.FULLSCREEN)
+        // this.removeClass(STATE_CLASS.FULLSCREEN)
         this.emit(Events.FULLSCREEN_CHANGE, false)
       }
     }
@@ -353,7 +355,7 @@ class Player extends Proxy {
     })
   }
 
-  registerPlugin (plugin) {
+  registerPlugin (plugin, config) {
     let PLUFGIN = null
     let options = null
     if (plugin.plugin && typeof plugin.plugin === 'function') {
@@ -362,6 +364,9 @@ class Player extends Proxy {
     } else {
       PLUFGIN = plugin
       options = {}
+    }
+    if (config) {
+      options.config = config
     }
 
     // 获取配置的position或者root
@@ -673,6 +678,30 @@ class Player extends Proxy {
     this.play()
   }
 
+  changeFullStyle (root, el, className) {
+    if (root && !this._orgCss) {
+      this._orgCss = Util.filterStyleFromText(root)
+      Util.addClass(root, className)
+    }
+    if (el && el !== root && !this._orgPCss) {
+      this._orgPCss = Util.filterStyleFromText(el)
+      Util.addClass(el, STATE_CLASS.PARENT_FULLSCREEN)
+    }
+  }
+
+  recoverFullStyle (root, el, className) {
+    if (root && this._orgCss) {
+      Util.setStyleFromCsstext(root, this._orgCss)
+      this._orgCss = ''
+      Util.removeClass(root, className)
+    }
+    if (el && el !== root && this._orgPCss) {
+      Util.setStyleFromCsstext(el, this._orgPCss)
+      this._orgPCss = ''
+      Util.removeClass(el, STATE_CLASS.PARENT_FULLSCREEN)
+    }
+  }
+
   getFullscreen (el) {
     const {root, video} = this
     if (!el) {
@@ -682,10 +711,10 @@ class Player extends Proxy {
       top: Util.scrollTop(),
       left: Util.scrollLeft()
     }
-    if (root.getAttribute('style')) {
-      this._originCssText = root.style.cssText
-      root.removeAttribute('style')
-    }
+    // if (root.getAttribute('style')) {
+    //   this._orgCss = root.style.cssText
+    //   root.removeAttribute('style')
+    // }
     this._fullscreenEl = el
     for (let i = 0; i < GET_FULLSCREEN_API.length; i++) {
       const key = GET_FULLSCREEN_API[i]
@@ -731,12 +760,8 @@ class Player extends Proxy {
     return Promise.reject(new Error('call exitFullscreen fail'))
   }
 
-  getCssFullscreen () {
-    this.addClass(STATE_CLASS.CSS_FULLSCREEN)
-    if (this.root.getAttribute('style')) {
-      this._originCssText = this.root.style.cssText
-      this.root.removeAttribute('style')
-    }
+  getCssFullscreen (el) {
+    this.changeFullStyle(this.root, el, STATE_CLASS.CSS_FULLSCREEN)
     this.isCssfullScreen = true
     this.emit(Events.CSS_FULLSCREEN_CHANGE, true)
     if (this.fullscreen) {
@@ -745,10 +770,8 @@ class Player extends Proxy {
   }
 
   exitCssFullscreen () {
-    this.removeClass(STATE_CLASS.CSS_FULLSCREEN)
     if (!this.fullscreen) {
-      this._originCssText && Util.setStyleFromCsstext(this.root, this._originCssText)
-      this._originCssText = ''
+      this.recoverFullStyle(this.root, this._cssfullscreenEl, STATE_CLASS.CSS_FULLSCREEN)
     }
     this.isCssfullScreen = false
     this.emit(Events.CSS_FULLSCREEN_CHANGE, false)
@@ -971,6 +994,10 @@ class Player extends Proxy {
 
   set poster (posterUrl) {
     this.plugins.poster && this.plugins.poster.update(posterUrl)
+  }
+
+  get poster () {
+    return this.plugins.poster ? this.plugins.poster.config.poster : this.config.poster
   }
 
   get fullscreen () {

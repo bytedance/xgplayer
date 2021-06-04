@@ -398,6 +398,12 @@ declare module 'xgplayer' {
     VIDEO_RESIZE: 'video_resize',
     // picture-in-picture状态变化,
     PIP_CHANGE: 'pip_change',
+    // rotate change
+    ROTATE: 'rotate',
+    // screenShot
+    SCREEN_SHOT: 'screenShot'
+    // play next
+    PLAYNEXT: 'playnext'
   }
 
   interface STATE_CLASS {
@@ -1186,9 +1192,10 @@ declare module 'xgplayer' {
 
     /**
      * 注册插件
-     * @param 插件配置
+     * @param plugin 插件构造函数以及插件位置信息
+     * @param config 插件配置信息
      */
-    registerPlugin(plugin: any): any;
+    registerPlugin(plugin: any, config?: any): any;
 
     /**
      * 注销插件

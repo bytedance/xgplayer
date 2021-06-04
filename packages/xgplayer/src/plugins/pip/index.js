@@ -1,4 +1,4 @@
-import Plugin, {Events, Util, POSITIONS} from '../../plugin'
+import Plugin, { Events, Util, POSITIONS } from '../../plugin'
 import PipIcon from '../assets/pipIcon.svg'
 import PipIconExit from '../assets/pipIconExit.svg'
 
@@ -76,15 +76,16 @@ class PIP extends Plugin {
       // 处理点击x关闭画中画的时候暂停问题
       const paused = player.paused
       Util.setTimeout(this, () => {
-        !paused && player.play()
+        // 使用videoPlay避免多次触发 playhooks
+        !paused && player.videoPlay()
       }, 0)
-      !paused && player.play()
+      !paused && player.videoPlay()
       this.setAttr('data-state', 'normal')
-      player.emit('pip_change', false)
+      player.emit(Events.PIP_CHANGE, false)
     }
 
     this.enterPIPCallback = (e) => {
-      player.emit('pip_change', true)
+      player.emit(Events.PIP_CHANGE, true)
       this.pipWindow = e.pictureInPictureWindow;
       this.setAttr('data-state', 'pip')
     }
@@ -118,7 +119,7 @@ class PIP extends Plugin {
     if (this.isPip) {
       this.exitPIP()
       this.setAttr('data-state', 'normal')
-    } else {
+    } else if(this.player.video.readyState === 4) {
       this.requestPIP()
       this.setAttr('data-state', 'pip')
     }
