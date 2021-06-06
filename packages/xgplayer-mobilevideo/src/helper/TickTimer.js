@@ -1,4 +1,3 @@
-
 let shell = `
     var timer;
 
@@ -25,12 +24,12 @@ let shell = `
             break;
       }
     }
-`
+`;
 
 export default class TickTimer {
   constructor (task) {
     this._task = task;
-    let blob = new Blob([shell], {type: 'application/javascript'});
+    let blob = new Blob([shell], { type: 'application/javascript' });
     this._worker = new Worker(URL.createObjectURL(blob));
     this._bindEvent();
   }
@@ -38,7 +37,7 @@ export default class TickTimer {
   _bindEvent () {
     this._worker.addEventListener('message', () => {
       this._task();
-    })
+    });
   }
 
   start (interval) {
@@ -46,14 +45,16 @@ export default class TickTimer {
     if (interval < 10) {
       interval = 10;
     }
-    if (interval > 25) {
-      interval = 25;
+    if (interval > 60) {
+      interval = 60
+    } else if (interval > 25) {
+      interval = 25
     }
-    this._worker.postMessage({type: 'START', interval});
+    this._worker.postMessage({ type: 'START', interval });
   }
 
   stop () {
-    this._worker.postMessage({type: 'DESTROY'});
+    this._worker.postMessage({ type: 'DESTROY' });
   }
 
   destroy () {

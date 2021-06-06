@@ -24,6 +24,10 @@ class FetchLoader {
     }
   }
 
+  static isSupported () {
+    return !!window.fetch
+  }
+
   init () {
     this.on(LOADER_EVENTS.LADER_START, this.load.bind(this))
   }
@@ -253,8 +257,8 @@ class FetchLoader {
     }).catch((error) => {
       clearTimeout(this._noDataTimer)
       this.loading = false;
+      if(error && error.name === 'AbortError') return;
       this.emit(LOADER_EVENTS.LOADER_ERROR, this.TAG, error);
-      throw error;
     })
   }
 

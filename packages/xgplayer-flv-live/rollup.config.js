@@ -8,9 +8,6 @@ const config = {
   external: ['xgplayer'],
   globals: {
     'xgplayer': 'Player'
-  },
-  babel: {
-    runtimeHelpers: true
   }
 }
 
@@ -21,7 +18,7 @@ const mobileConfig = {
       file: uglify ? 'dist/mobile.min.js' : 'dist/mobile.js',
       name: 'FlvLiveMobilePlayer',
       format: 'umd',
-      sourcemap: false,
+      sourcemap: !uglify,
       globals: {
         'xgplayer': 'Player'
       }

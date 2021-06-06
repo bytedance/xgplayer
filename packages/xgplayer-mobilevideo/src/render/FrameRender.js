@@ -1,16 +1,17 @@
-import {logger} from 'xgplayer-helper-utils'
+import { logger } from 'xgplayer-helper-utils';
 class YUVCanvas {
   constructor (configs) {
-    this.configs = Object.assign({}, configs);
-    this.canvas = this.configs.canvas;
-    this.meta = Object.assign({}, this.configs.meta);
+    this.TAG = 'YUVCanvas'
+    this.configs = Object.assign({}, configs)
+    this.canvas = this.configs.canvas
+    this.meta = Object.assign({}, this.configs.meta)
     this._initMeta()
-    this._initContextGL();
+    this._initContextGL()
     if (this.contextGL) {
       this._initProgram();
       this._initBuffers();
       this._initTextures();
-    };
+    }
   }
 
   _initMeta () {
@@ -22,8 +23,12 @@ class YUVCanvas {
   }
 
   _initContextGL () {
-    var canvas = this.canvas;
-    var gl = null;
+    if (this.configs.type === '2d') {
+      this.ctx = this.canvas.getContext('2d')
+      return
+    }
+    var canvas = this.canvas
+    var gl = null
 
     var validContextNames = ['webgl', 'experimental-webgl', 'moz-webgl', 'webkit-3d'];
     var nameIndex = 0;
@@ -44,10 +49,10 @@ class YUVCanvas {
       }
 
       ++nameIndex;
-    };
+    }
 
     this.contextGL = gl;
-  };
+  }
 
   _initProgram () {
     var gl = this.contextGL;
@@ -91,12 +96,7 @@ class YUVCanvas {
       '}'
     ].join('\n');
 
-    var YUV2RGB = [
-      1.16438, 0.00000, 1.59603, -0.87079,
-      1.16438, -0.39176, -0.81297, 0.52959,
-      1.16438, 2.01723, 0.00000, -1.08139,
-      0, 0, 0, 1
-    ];
+    var YUV2RGB = [1.16438, 0.0, 1.59603, -0.87079, 1.16438, -0.39176, -0.81297, 0.52959, 1.16438, 2.01723, 0.0, -1.08139, 0, 0, 0, 1];
     var vertexShader = gl.createShader(gl.VERTEX_SHADER);
     gl.shaderSource(vertexShader, vertexShaderScript);
     gl.compileShader(vertexShader);
@@ -168,7 +168,7 @@ class YUVCanvas {
     gl.vertexAttribPointer(vTexturePosRef, 2, gl.FLOAT, false, 0, 0);
 
     this.vTexturePosBuffer = vTexturePosBuffer;
-  };
+  }
 
   _initTextures () {
     var gl = this.contextGL;
@@ -209,7 +209,7 @@ class YUVCanvas {
 
   _drawPictureGL (data, width, height, yLinesize, uvLinesize) {
     var ylen = yLinesize * height;
-    var uvlen = uvLinesize * height / 2;
+    var uvlen = (uvLinesize * height) / 2;
     if (this.chroma === 444 || this.chroma === 422) {
       uvlen *= 2;
     }
@@ -218,7 +218,7 @@ class YUVCanvas {
       yData: data.subarray(0, ylen),
       uData: data.subarray(ylen, ylen + uvlen),
       vData: data.subarray(ylen + uvlen, ylen + uvlen + uvlen)
-    }
+    };
     this._drawPictureGL420(renderData, width, height, yLinesize, uvLinesize);
   }
 
@@ -256,11 +256,11 @@ class YUVCanvas {
     let w = this.canvas.width;
     let h = this.canvas.height;
     if (ratiow < ratioh) {
-      h = (this.height * this.canvas.width / this.width);
-      top = parseInt((this.canvas.height - (this.height * this.canvas.width / this.width)) / 2);
+      h = (this.height * this.canvas.width) / this.width;
+      top = parseInt((this.canvas.height - (this.height * this.canvas.width) / this.width) / 2);
     } else {
-      w = (this.width * this.canvas.height / this.height);
-      left = parseInt((this.canvas.width - (this.width * this.canvas.height / this.height)) / 2);
+      w = (this.width * this.canvas.height) / this.height;
+      left = parseInt((this.canvas.width - (this.width * this.canvas.height) / this.height) / 2);
     }
     gl.viewport(left, top, w, h);
 
@@ -291,8 +291,31 @@ class YUVCanvas {
     gl.drawArrays(gl.TRIANGLE_STRIP, 0, 4);
   }
 
-  _drawPictureRGB (data) {
-
+  _drawPicture2d (data) {
+    if (!data) {
+      return
+    }
+    if (this.canvas) {
+      if (!this.ctx) {
+        this.ctx = this.canvas.getContext('2d')
+      }
+      let width = data.width
+      let height = data.height
+      if (this.canvas.height != height || this.canvas.width != width) {
+        this.canvas.height = height
+        this.canvas.width = width
+      }
+      try {
+        if (data.dom && data.width && data.height) {
+          this.ctx.drawImage(data.dom, 0, 0, data.width, data.height)
+        } else {
+          console.error(this.TAG, '_drawPicture2d', 'width:', data.width, 'height:', data.height)
+        }
+      } catch (error) {
+        console.log(this.ctx, this.ctx.drawImage)
+        console.error(this.TAG, '_drawPicture2d', data, data.dom, error, error.message)
+      }
+    }
   }
 
   _resize (width, height) {
@@ -310,13 +333,12 @@ class YUVCanvas {
     if (gl) {
       this._drawPictureGL(data, width, height, yLinesize, uvLinesize);
     } else {
-      this._drawPictureRGB(data);
+      this._drawPicture2d(data)
     }
   }
-
   resetMeta (meta) {
     this.meta = Object.assign({}, meta);
-    this._initMeta()
+    this._initMeta();
   }
 
   destroy () {

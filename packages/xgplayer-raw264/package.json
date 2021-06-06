@@ -11,25 +11,11 @@
     "build": "npm run build:umd && npm run build:es && npm run build:lib",
     "build:umd": "cross-env NODE_ENV=production rollup -c rollup.config.js",
     "build:es": "rm -rf es && babel src --out-dir es",
-    "build:lib": "rm -rf lib && babel src --out-dir lib --presets=es2015",
+    "build:lib": "rm -rf lib && babel src --out-dir lib",
     "watch": "cross-env NODE_ENV=development rollup -c ./rollup.config.js --watch"
   },
   "author": "",
   "license": "ISC",
-  "babel": {
-    "presets": [
-      [
-        "env",
-        {
-          "targets": {
-            "chrome": 58,
-            "ie": 10
-          },
-          "modules": false
-        }
-      ]
-    ]
-  },
   "dependencies": {
     "xgplayer-helper-codec": "2.4.25",
     "xgplayer-helper-models": "2.4.25",

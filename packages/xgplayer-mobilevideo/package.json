@@ -11,34 +11,26 @@
     "build": "npm run build:umd && npm run build:es && npm run build:lib",
     "build:umd": "cross-env NODE_ENV=production rollup -c rollup.config.js",
     "build:es": "rm -rf ./es && babel src --out-dir es",
-    "build:lib": "rm -rf ./lib &&babel src --out-dir lib --presets=es2015",
+    "build:lib": "rm -rf ./lib &&babel src --out-dir lib",
     "dev": "rollup -c rollup.config.js",
     "analyze": "cross-env NODE_ENV=production ANALYZE=1 rollup -c rollup.config.js",
-    "watch": "babel src --out-dir es --watch & babel src --out-dir lib --presets=es2015 --watch & npm run watch:umd",
+    "watch": "babel src --out-dir es --watch & babel src --out-dir lib --watch & npm run watch:umd",
     "watch:umd": "rollup -c rollup.config.js --watch"
   },
   "author": "",
   "license": "ISC",
+  "dependencies": {
+    "eventemitter3": "^4.0.7",
+    "xgplayer-helper-utils": "2.4.25"
+  },
   "babel": {
     "presets": [
       [
-        "env",
+        "@babel/preset-env",
         {
-          "targets": {
-            "chrome": 58,
-            "ie": 10
-          },
           "modules": false
         }
       ]
-    ],
-    "plugins": [
-      "transform-custom-element-classes",
-      "transform-es2015-classes"
     ]
-  },
-  "dependencies": {
-    "eventemitter3": "^4.0.7",
-    "xgplayer-helper-utils": "2.4.13"
   }
 }

@@ -7,9 +7,6 @@ const config = {
   external: ['xgplayer'],
   globals: {
     'xgplayer': 'Player'
-  },
-  babel: {
-    runtimeHelpers: true
   }
 }
 

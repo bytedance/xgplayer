@@ -5,7 +5,7 @@
  * @return {number}
  */
 const fixedFloat = (num, fixed) => {
-  return Number.parseFloat(Number(num).toFixed(fixed))
+  return parseFloat(Number(num).toFixed(fixed))
 }
 export default {
   fixedFloat

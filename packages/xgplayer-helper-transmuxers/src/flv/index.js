@@ -62,6 +62,9 @@ class FlvDemuxer {
     if (!this.tracks || !this.tracks.videoTrack) {
       return;
     }
+    if (sample.isKeyframe) {
+      this.emit(DEMUX_EVENTS.ISKEYFRAME)
+    }
     this.tracks.videoTrack.samples.push(sample)
   }
 

@@ -1,4 +1,4 @@
-import {logger} from 'xgplayer-helper-utils';
+import { logger } from 'xgplayer-helper-utils';
 const TOLERANCE = 0.5;
 export default class AudioTimeRange {
   constructor (parent) {
@@ -56,12 +56,12 @@ export default class AudioTimeRange {
 
     for (let i = 0; i < len; i++) {
       ret += `${buffered.start(i)}~${buffered.end(i)} `;
-    };
-    console.log(ret)
+    }
+    console.log(ret);
   }
 
   _transitionSamples (audioBufferSource) {
-    const {numberOfChannels, length} = audioBufferSource;
+    const { numberOfChannels, length } = audioBufferSource;
 
     const transitionCount = 50;
 
@@ -80,7 +80,7 @@ export default class AudioTimeRange {
     }
   }
 
-  append (source, duration, startDts, segmentStart) {
+  append (source, duration, startDts, segmentStart, delay) {
     if (this._baseDts === -1) {
       this._baseDts = startDts;
     }
@@ -91,19 +91,24 @@ export default class AudioTimeRange {
       start,
       end,
       startDts,
-      source
-    };
+      source,
+      duration,
+      delay
+    }
 
     if (!this.isLive && segmentStart) {
       buffer.start = segmentStart / 1000;
-      buffer.end = (buffer.start - start) + end;
+      buffer.end = buffer.start - start + end;
     }
 
-    logger.log(this.TAG, `add new buffer range, [${buffer.start} , ${buffer.end}]`)
+    logger.log(this.TAG, `add new buffer range, [${buffer.start} , ${buffer.end}]`);
 
     // todo: 去重,排序
-    if (!this._buffers.filter(x => x.start === start).length) {
-      this._buffers.push(buffer);
+    if (!this._buffers.filter((x) => x.start === start).length) {
+      this._buffers.push(buffer)
+    } else {
+      console.error('音频重复')
+      return
     }
 
     if (this.isLive) {
@@ -113,8 +118,9 @@ export default class AudioTimeRange {
   }
 
   deletePassed (time) {
-    this._buffers = this._buffers.filter(x => x.start > time);
-    return this._buffers[0];
+    // 少删除一个音频buffer，缓解追帧时音视频差值过大
+    this._buffers = this._buffers.filter((x) => x.start >= time)
+    return this._buffers[0]
   }
 
   canSeek (time) {
@@ -125,7 +131,7 @@ export default class AudioTimeRange {
   }
 
   _mergeBufferRanges () {
-    let buffers = this._buffers.sort((a, b) => a.start > b.start ? 1 : -1);
+    let buffers = this._buffers.sort((a, b) => (a.start > b.start ? 1 : -1));
     let len = buffers.length;
     let ret = [];
     if (!len) return ret;
@@ -144,7 +150,7 @@ export default class AudioTimeRange {
         last = {
           start: c.start,
           end: c.end
-        }
+        };
       }
     }
     ret.push(last);
@@ -155,7 +161,7 @@ export default class AudioTimeRange {
     if (this.isLive) {
       return this._buffers.shift();
     }
-    let buffer = this._buffers.filter(x => (x.start < time + TOLERANCE) && (x.end > time + TOLERANCE))[0];
+    let buffer = this._buffers.filter((x) => x.start < time + TOLERANCE && x.end > time + TOLERANCE)[0];
     logger.log(this.TAG, `get audio buffer , currentTime:${time} ,buffer:[${buffer && buffer.start} , ${buffer && buffer.end}]`);
     return buffer;
   }

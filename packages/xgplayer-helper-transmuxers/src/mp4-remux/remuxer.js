@@ -11,7 +11,7 @@ import Fmp4 from './fmp4'
  */
 
 export default class Mp4Remuxer extends EventEmitter {
-  constructor ({videoMeta, audioMeta, curTime}) {
+  constructor ({ videoMeta, audioMeta, curTime }) {
     super();
     this._dtsBase = curTime * 1000
 
@@ -156,7 +156,7 @@ export default class Mp4Remuxer extends EventEmitter {
       return
     }
 
-    let {samples, meta} = track
+    let { samples, meta } = track
 
     if (!meta) return;
 
@@ -305,7 +305,7 @@ export default class Mp4Remuxer extends EventEmitter {
    * @private
    */
   remuxAudio (track) {
-    const {samples} = (track || {})
+    const { samples } = (track || {})
     let firstDts = -1
     let mp4Samples = []
 
@@ -431,6 +431,10 @@ export default class Mp4Remuxer extends EventEmitter {
       return this._videoDtsBase
     }
     return this._dtsBase
+  }
+
+  set videoDtsBase (value) {
+    this._videoDtsBase = value
   }
 
   get audioDtsBase () {

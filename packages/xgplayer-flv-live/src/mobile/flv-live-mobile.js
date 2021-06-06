@@ -1,7 +1,8 @@
 import { EVENTS } from 'xgplayer-helper-utils'
 
-const DEMUX_EVENTS = EVENTS.DEMUX_EVENTS;
-const LOADER_EVENTS = EVENTS.LOADER_EVENTS;
+const DEMUX_EVENTS = EVENTS.DEMUX_EVENTS
+const REMUX_EVENTS = EVENTS.REMUX_EVENTS
+const LOADER_EVENTS = EVENTS.LOADER_EVENTS
 
 const Tag = 'FLVController'
 
@@ -13,19 +14,20 @@ export default class FlvController {
 
     this.state = {
       initSegmentArrived: false,
-      randomAccessPoints: []
+      randomAccessPoints: [],
     }
 
-    this.bufferClearTimer = null;
+    this.bufferClearTimer = null
   }
 
   init () {
-    this.initComponents();
+    this.initComponents()
     this.initListeners()
   }
 
   initComponents () {
-    const { FetchLoader, XgBuffer, FlvDemuxer, Tracks, Logger, PageVisibility } = this._pluginConfig
+    const { FetchLoader, XgBuffer, FlvDemuxer, Tracks, Logger, PageVisibility, Remuxer, RemuxedBufferManager, decodeMode } = this._pluginConfig
+
     this._context.registry('FETCH_LOADER', FetchLoader)
     this._context.registry('LOADER_BUFFER', XgBuffer)
 
@@ -34,18 +36,20 @@ export default class FlvController {
 
     this._context.registry('LOGGER', Logger)
     this._context.registry('PAGE_VISIBILITY', PageVisibility)
+    if(decodeMode === 7){
+      this._context.registry('MP4_REMUXER', Remuxer)
+    }
+    this._context.registry('PRE_SOURCE_BUFFER', RemuxedBufferManager)
   }
 
   initListeners () {
     this.on(LOADER_EVENTS.LOADER_DATALOADED, this._handleLoaderDataLoaded.bind(this))
     this.on(LOADER_EVENTS.LOADER_ERROR, this._handleNetworkError.bind(this))
-
     this.on(DEMUX_EVENTS.MEDIA_INFO, this._handleMediaInfo.bind(this))
     this.on(DEMUX_EVENTS.METADATA_PARSED, this._handleMetadataParsed.bind(this))
     this.on(DEMUX_EVENTS.DEMUX_COMPLETE, this._handleDemuxComplete.bind(this))
     this.on(DEMUX_EVENTS.DEMUX_ERROR, this._handleDemuxError.bind(this))
     this.on(DEMUX_EVENTS.SEI_PARSED, this._handleSEIParsed.bind(this))
-    // this.on(BROWSER_EVENTS.VISIBILITY_CHANGE, this._handleVisibilityChange.bind(this))
   }
 
   _handleMediaInfo () {
@@ -64,27 +68,31 @@ export default class FlvController {
 
   _handleDemuxComplete () {
     if (this._player.video) {
-      const { videoTrack, audioTrack } = this._context.getInstance('TRACKS');
-      videoTrack.samples.forEach((sample) => {
-        // const buffer = new Stream(sample.data.buffer)
-        // const nals = NalUnit.getNalunits(buffer);
-        const nals = sample.nals;
-        if (!nals) return;
-        const nalsLength = nals.reduce((len, current) => {
-          return len + 4 + current.body.byteLength;
-        }, 0);
-        const newData = new Uint8Array(nalsLength);
-        let offset = 0;
-        nals.forEach((nal) => {
-          newData.set([0, 0, 0, 1], offset)
-          offset += 4;
-          newData.set(new Uint8Array(nal.body), offset);
-          offset += nal.body.byteLength;
-        })
-        sample.nals = null;
-        sample.data = newData;
-      })
-      this._player.video.onDemuxComplete(videoTrack, audioTrack);
+      const { videoTrack, audioTrack } = this._context.getInstance('TRACKS')
+
+      // if (!this.isVideoDecode()) {
+      // videoTrack.samples.forEach((sample) => {
+      //   // const buffer = new Stream(sample.data.buffer)
+      //   // const nals = NalUnit.getNalunits(buffer);
+      //   const nals = sample.nals;
+      //   if (!nals) return;
+      //   const nalsLength = nals.reduce((len, current) => {
+      //     return len + 4 + current.body.byteLength;
+      //   }, 0);
+      //   const newData = new Uint8Array(nalsLength);
+      //   let offset = 0;
+      //   nals.forEach((nal) => {
+      //     newData.set([0, 0, 0, 1], offset)
+      //     offset += 4;
+      //     newData.set(new Uint8Array(nal.body), offset);
+      //     offset += nal.body.byteLength;
+      //   })
+      //   sample.nals = null;
+      //   sample.data = newData;
+      // })
+      // }
+
+      this._player.video.onDemuxComplete(videoTrack, audioTrack)
     }
   }
   _handleVisibilityChange (visible) {
@@ -95,7 +103,6 @@ export default class FlvController {
 
   _handleMetadataParsed (type) {
     if (type === 'audio') {
-      // 将音频meta信息交给audioContext，不走remux封装
       const { audioTrack } = this._context.getInstance('TRACKS')
       if (audioTrack && audioTrack.meta) {
         this._setMetaToAudio(audioTrack.meta)
@@ -110,13 +117,13 @@ export default class FlvController {
 
   _setMetaToAudio (audioMeta) {
     if (this._player.video) {
-      this._player.video.setAudioMeta(audioMeta);
+      this._player.video.setAudioMeta(audioMeta)
     }
   }
 
   _setMetaToVideo (videoMeta) {
     if (this._player.video) {
-      this._player.video.setVideoMeta(videoMeta);
+      this._player.video.setVideoMeta(videoMeta)
     }
   }
 
@@ -131,20 +138,20 @@ export default class FlvController {
       codeName: err.name,
       errorType: 'network',
       ex: `[${tag}]: ${err.message}`,
-      errd: {}
+      errd: {},
     })
   }
 
   _handleDemuxError (tag, err, fatal) {
     if (fatal === undefined) {
-      fatal = false;
+      fatal = false
     }
     this._onError(DEMUX_EVENTS.DEMUX_ERROR, tag, err, fatal)
     this._player.emit('error', {
       code: '31',
       errorType: 'parse',
       ex: `[${tag}]: ${err ? err.message : ''}`,
-      errd: {}
+      errd: {},
     })
   }
 
@@ -158,9 +165,10 @@ export default class FlvController {
     let error = {
       errorType: type,
       errorDetails: `[${mod}]: ${err.message}`,
-      errorFatal: fatal || false
+      errorFatal: fatal || false,
     }
-    this._player.emit(FLV_ERROR, error);
+    console.error('flv onError')
+    this._player.emit(FLV_ERROR, error)
   }
 
   seek () {
@@ -175,11 +183,12 @@ export default class FlvController {
         code: '0',
         errorType: 'network',
         ex: `empty url`,
-        errd: {}
-      });
-      return;
+        errd: {},
+      })
+      return
     }
-    const { count: times, delay: delayTime } = this._player.config.retry || {};
+
+    const { count: times, delay: delayTime } = this._player.config.retry || {}
     // 兼容player.config上传入retry参数的逻辑
     const retryCount = typeof times === 'undefined' ? this._pluginConfig.retryCount : times;
     const retryDelay = typeof delayTime === 'undefined' ? this._pluginConfig.retryDelay : delayTime;
@@ -196,5 +205,9 @@ export default class FlvController {
 
   destroy () {
     this.state.randomAccessPoints = []
+  }
+
+  isVideoDecode () {
+    return this._player.video && this._player.video.getAttribute('videoDecode')
   }
 }

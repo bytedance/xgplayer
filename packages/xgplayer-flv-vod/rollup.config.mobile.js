@@ -16,9 +16,6 @@ const config = {
   ],
   name: 'FlvVodMobilePlayer',
   external: ['xgplayer'],
-  babel: {
-    runtimeHelpers: true
-  },
   uglify: uglify
 }
 

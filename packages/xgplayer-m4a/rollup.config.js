@@ -7,13 +7,7 @@ const config = {
   external: ['xgplayer'],
   globals: {
     'xgplayer': 'Player'
-  },
-  babel: {
-    runtimeHelpers: true
   }
-  // commonjs: {
-  //   include: ['node_modules/**']
-  // }
 }
 
 module.exports = commonRollup(config)

@@ -1,18 +1,5 @@
 {
-    "presets": [
-        [
-            "env",
-            {
-                "targets": {
-                    "chrome": 58,
-                    "ie": 10
-                },
-                "modules": false,
-                "useBuiltIns": "usage",
-                "corejs": 3
-            }
-        ]
-    ],
+    "presets": ["@babel/preset-env"],
     "plugins": [
         [
             "inline-svg",
@@ -20,13 +7,12 @@
                 "svgo": {
                     "plugins": [
                         {
-                            "removeViewBox": false, //保留viewbox属性
+                            "removeViewBox": false,
                             "removeDimensions": true
                         }
                     ]
                 }
             }
-        ],
-        "transform-class-properties"
+        ]
     ]
 }

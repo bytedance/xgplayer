@@ -1,4 +1,4 @@
-import Proxy from './proxy'
+import VideoProxy from './proxy'
 import Util from './utils/util'
 import Sniffer from './utils/sniffer'
 import Database from './utils/database'
@@ -19,7 +19,7 @@ import version from './version'
 /* eslint-disable camelcase */
 const PlAYER_HOOKS = ['play']
 
-class Player extends Proxy {
+class Player extends VideoProxy {
   constructor (options) {
     const config = Util.deepMerge(getDefaultConfig(), options)
     super(config)

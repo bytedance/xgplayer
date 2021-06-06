@@ -48,12 +48,12 @@ export default class BaseRender extends EventEmitter {
       this._noAudio = type;
     });
 
-    this._parent.on(Events.TIMELINE.SET_PLAY_MODE, v => {
+    this._parent.on(Events.TIMELINE.SET_PLAY_MODE, (v) => {
       this._isLive = v === 'LIVE';
-    })
+    });
 
     this._parent.on(Events.TIMELINE.INNER_DEGRADE, () => {
       this._innerDegrade = true;
-    })
+    });
   }
 }

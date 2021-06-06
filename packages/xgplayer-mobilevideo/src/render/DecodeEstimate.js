@@ -1,5 +1,7 @@
-import {logger} from 'xgplayer-helper-utils';
-import Events from '../events';
+
+/* eslint-disable no-undef */
+import { logger } from 'xgplayer-helper-utils'
+import Events from '../events'
 
 const MAX_QUEUE_LENGTH = 5;
 const MAX_LOW_FPS_RECORD = 30;
@@ -44,7 +46,7 @@ export default class DecodeEstimate {
     this._needEstimate = true;
   }
 
-  addDecodeInfo (frameInfo = {dts: 0}) {
+  addDecodeInfo (frameInfo = { dts: 0 }) {
     this._estimateDecodeFps(frameInfo);
     this._estimateFps(frameInfo);
   }
