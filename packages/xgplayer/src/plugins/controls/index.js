@@ -60,15 +60,15 @@ class Controls extends Plugin {
   onMouseEnter = (e) => {
     const { player } = this;
     if (player.userTimer) {
+      Util.clearTimeout(player, player.userTimer)
       clearTimeout(player.userTimer)
     }
   }
 
   onMouseLeave = () => {
     const { player, playerConfig } = this;
-    if (!playerConfig.closeControlsBlur) {
-      player.emit(Events.PLAYER_FOCUS)
-    }
+    const delay = !playerConfig.closeControlsBlur ? playerConfig.inactive : 200
+    player.emit(Events.PLAYER_FOCUS, {delay})
   }
 
   focus () {
