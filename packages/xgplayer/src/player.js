@@ -252,7 +252,6 @@ class Player extends Proxy {
   }
 
   _startInit (url) {
-    const {root, innerContainer} = this
     if (!url || url === '') {
       this.emit(Events.URL_NULL)
       XG_DEBUG.logWarn('config.url is null, please get url and run player._startInit(url)')
@@ -289,11 +288,9 @@ class Player extends Proxy {
     }
 
     this.loadeddataFunc && this.once('loadeddata', this.loadeddataFunc)
-
-    if (innerContainer) {
-      innerContainer.firstChild !== this.video && this.innerContainer.insertBefore(this.video, this.innerContainer.firstChild)
-    } else {
-      root.firstChild !== this.video && root.insertBefore(this.video, root.firstChild)
+    const _root = this.innerContainer ? this.innerContainer : this.root
+    if (!_root.contains(this.video)) {
+      _root.insertBefore(this.video, _root.firstChild)
     }
 
     this.once(Events.CANPLAY, this.canPlayFunc)
