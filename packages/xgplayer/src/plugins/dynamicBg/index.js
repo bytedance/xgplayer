@@ -66,13 +66,19 @@ class DynamicBg extends Plugin {
         this.stop()
       })
     }
+
+    // 首帧渲染
+    if (mode === MODES.FIRST_FRAME) {
+      this.once(Events.TIME_UPDATE, () => {
+        const { video } = this.player
+        video && video.videoWidth && this.update(video, video.videoWidth, video.videoHeight)
+      })
+    }
   }
 
   onLoadedData = () => {
     const { video } = this.player
     this.videoPI = parseInt(video.videoWidth / video.videoHeight * 100, 10)
-    // 渲染首帧
-    this.update(video)
   }
 
   init () {
@@ -93,7 +99,8 @@ class DynamicBg extends Plugin {
       this.mask = this.find('xgmask')
       config.addMask && (this.mask.style.background = config.maskBg)
       this.canvasCtx = this.canvas.getContext('2d')
-      const url = this.player.poster
+      const url = this.playerConfig.poster
+      console.log('poster', url, Util.typeOf(url) === 'String')
       if (Util.typeOf(url) === 'String') {
         this.updateImg(url)
       }
@@ -106,10 +113,10 @@ class DynamicBg extends Plugin {
     const { video } = this.player
     const _now = nowTime()
     if (this.config.mode === MODES.REAL_TIME) {
-      this.update(video)
+      video && video.videoWidth && this.update(video, video.videoWidth, video.videoHeight)
       this.preTime = _now
     } else if (_now - this.preTime >= this.interval) {
-      this.update(video)
+      video && video.videoWidth && this.update(video, video.videoWidth, video.videoHeight)
       this.preTime = _now
     }
     this.frameId = window.requestAnimationFrame(this.start)
@@ -123,22 +130,25 @@ class DynamicBg extends Plugin {
   }
 
   updateImg (url) {
+    // 使用首帧预览图渲染
     const { width, height } = this.canvas.getBoundingClientRect()
-    const image = new window.Image()
+    let image = new window.Image()
     image.onload = () => {
       this.canvas.height = height
       this.canvas.width = width
-      this.canvasCtx.drawImage(image, 0, 0, width, height)
+      this.update (image, image.width, image.height)
+      image = null
     }
     image.src = url;
   }
 
-  update (video) {
-    if (!this.canvas || !video || !video.videoWidth) {
+  update (video, videoWidth, videoHeight) {
+    if (!this.canvas) {
       return
     }
     const { _pos, config } = this
     const { width, height } = this.canvas.getBoundingClientRect()
+    this.videoPI = parseInt(videoWidth / videoHeight * 100, 10)
     if (width !== _pos.width || height !== _pos.height) {
       const pi = parseInt(width / height * 100, 10)
       _pos.width = this.canvas.height = height
@@ -155,7 +165,6 @@ class DynamicBg extends Plugin {
       } else if (pi > this.videoPI) {
         rheight = parseInt(width * 100 / this.videoPI, 10)
       }
-      _pos.vwidth = 
       _pos.rwidth = rwidth * 1.2
       _pos.rheight = rheight * 1.2
       _pos.x = (width - _pos.rwidth) / 2
