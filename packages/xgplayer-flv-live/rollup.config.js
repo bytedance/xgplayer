@@ -18,7 +18,7 @@ const mobileConfig = {
       file: uglify ? 'dist/mobile.min.js' : 'dist/mobile.js',
       name: 'FlvLiveMobilePlayer',
       format: 'umd',
-      // sourcemap: true,
+      sourcemap: !uglify,
       globals: {
         'xgplayer': 'Player'
       }

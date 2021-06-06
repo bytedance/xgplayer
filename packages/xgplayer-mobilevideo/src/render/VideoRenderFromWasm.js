@@ -30,6 +30,10 @@ export default class VideoRenderFromWasm extends VideoBaseRender {
     return this._wasmDecodeController.isHevc
   }
 
+  get lowlatency () {
+    return this._parent.lowlatency
+  }
+
   /** ************ video render 独有的需要在 timeline调用的方法 *************************/
 
   switchToMultiWorker () {
@@ -56,7 +60,6 @@ export default class VideoRenderFromWasm extends VideoBaseRender {
 
     // 低延迟卡顿码率递减计算
     this.on(Events.VIDEO.VIDEO_WAITING, () => {
-      console.log(this.TAG, 'videoRender waiting handler')
       if (this.bitrate === 0) return
       clearInterval(waitingTimer)
       let i = 1
@@ -170,7 +173,6 @@ export default class VideoRenderFromWasm extends VideoBaseRender {
       // waiting
       if (this._noAudio && !this._timeRange.frameLength) {
         this._ready = false
-        console.log(this.TAG, 'trigger video waiting')
         this.emit(Events.VIDEO.VIDEO_WAITING)
       }
       return

@@ -20,7 +20,7 @@ const sourcemap = process.env.NODE_ENV === 'production'
 const defaultRollup = {
   input: 'src/index.js',
   name: 'Player',
-  sourcemap: true,
+  sourcemap: !sourcemap,
   production: !sourcemap,
   exports: undefined,
   external: [],
@@ -41,7 +41,7 @@ const commonRollup = function (config = {}) {
         file: rollupConfig.uglify ? 'dist/index.min.js' : 'dist/index.js',
         name: rollupConfig.name,
         format: 'umd',
-        sourcemap: rollupConfig.sourcemap,
+        sourcemap: !rollupConfig.uglify,
         globals: rollupConfig.globals,
         exports: rollupConfig.exports || 'auto'
       }

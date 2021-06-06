@@ -196,7 +196,7 @@ export default class VideoBaseRender extends BaseRender {
     this._parent.on(Events.VIDEO.UPDATE_VIDEO_FILLTYPE, (type, { width, height }) => {
       const { width: cvsWidth, height: cvsHeight } = this._canvas;
       let isGapX = !width || width / height > cvsWidth / cvsHeight; // 左右有黑边
-      console.warn('isGapX: ', isGapX, type, cvsWidth, cvsHeight, width, height);
+      logger.warn('isGapX: ', isGapX, type, cvsWidth, cvsHeight, width, height);
       if (type === 'cover') {
         if (isGapX) {
           this._canvas.style.height = 'auto';
@@ -234,8 +234,8 @@ export default class VideoBaseRender extends BaseRender {
       let pY = deltaY * top + 'px';
       this._canvas.style.left = pX;
       this._canvas.style.top = pY;
-      console.warn(`cvsWidth=${cvsWidth}, cvsHeight=${cvsHeight}, scaleCvsWidth=${scaleCvsWidth}, scaleCvsHeight=${scaleCvsHeight}`);
-      console.warn(`cover position: deltaX=${deltaX}, deltaY=${deltaY}, width=${width}, height=${height}, pX=${pX}, pY=${pY}`);
+      logger.warn(`cvsWidth=${cvsWidth}, cvsHeight=${cvsHeight}, scaleCvsWidth=${scaleCvsWidth}, scaleCvsHeight=${scaleCvsHeight}`);
+      logger.warn(`cover position: deltaX=${deltaX}, deltaY=${deltaY}, width=${width}, height=${height}, pX=${pX}, pY=${pY}`);
     });
 
     // 同步时机
@@ -377,7 +377,6 @@ export default class VideoBaseRender extends BaseRender {
 
   /** ************** 播放行为 ***********************/
   _whenReady () {
-    console.log('whenready')
     this._ready = true
     this.emit(Events.VIDEO.VIDEO_READY)
 

@@ -19,7 +19,7 @@ const mobileConfig = {
       file: uglify ? 'dist/mobile.min.js' : 'dist/mobile.js',
       name: 'HlsVodMobilePlayer',
       format: 'umd',
-      sourcemap: false,
+      sourcemap: !uglify,
       globals: {
         'xgplayer': 'Player'
       }

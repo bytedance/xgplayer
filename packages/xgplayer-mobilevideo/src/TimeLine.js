@@ -332,14 +332,6 @@ export default class TimeLine extends EventEmitter {
       }
 
       setTimeout(() => {
-        logger.log(
-          this.TAG,
-          'emit play event',
-          'videoRender canAutoPlay:',
-          this.videoRender.canAutoPlay,
-          'audioRender canAutoPlay:',
-          resumed
-        )
         this.emit(Events.TIMELINE.PLAY_EVENT, Events.VIDEO_EVENTS.TIMEUPDATE)
 
         if (!resumed) {

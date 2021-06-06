@@ -19,10 +19,10 @@ const workerCached = []
 /**
  *  wasm解码器worker管理及数据交互
  */
-export default class DecodeWorkerManager extends EventEmitter {
+export default class WasmDecodeController extends EventEmitter {
   constructor (parent) {
     super()
-    this.TAG = 'DecodeWorkerManager'
+    this.TAG = 'WasmDecodeController'
     this._parent = parent
     this._avccpushed = false // 初始化解码器
     this._wasmReady = false // worker中wasm是否可用
@@ -182,6 +182,7 @@ export default class DecodeWorkerManager extends EventEmitter {
       decoder.postMessage({
         msg: 'init',
         meta: this._meta,
+        batchDecodeCount: this._parent.lowlatency ? 2 : 10,
         url
       })
       if (!delay) {

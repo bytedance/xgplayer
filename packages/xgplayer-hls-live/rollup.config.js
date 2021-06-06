@@ -1,8 +1,19 @@
 const commonRollup = require('../../rollup.config');
 const uglify = process.env.NODE_ENV === 'production';
 
-const config = {
+const configToIe11 = {
   input: 'src/mse/index.js',
+  output: [
+    {
+      file: uglify ? 'dist/index.all.min.js' : 'dist/index.all.js',
+      name: 'HlsLivePlayer',
+      format: 'umd',
+      sourcemap: !uglify,
+      globals: {
+        xgplayer: 'Player'
+      }
+    }
+  ],
   name: 'HlsLivePlayer',
   uglify: uglify,
   external: ['xgplayer'],
@@ -16,6 +27,16 @@ const config = {
   }
 };
 
+const config = {
+  input: 'src/mse/index.js',
+  name: 'HlsLivePlayer',
+  uglify: uglify,
+  external: ['xgplayer'],
+  globals: {
+    xgplayer: 'Player'
+  }
+};
+
 const mobileConfig = {
   input: 'src/mobile/index.js',
   output: [
@@ -23,7 +44,7 @@ const mobileConfig = {
       file: uglify ? 'dist/mobile.min.js' : 'dist/mobile.js',
       name: 'HlsLiveMobilePlayer',
       format: 'umd',
-      sourcemap: false,
+      sourcemap: !uglify,
       globals: {
         xgplayer: 'Player'
       }
@@ -37,4 +58,4 @@ const mobileConfig = {
   }
 };
 
-module.exports = [commonRollup(config), commonRollup(mobileConfig)];
+module.exports = [commonRollup(configToIe11),commonRollup(config), commonRollup(mobileConfig)];
