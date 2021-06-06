@@ -508,7 +508,6 @@ export default class VideoDecoderController extends EventEmitter {
     //   return item.dts >= audioDTS
     // })
     this._filterBlob(audioDTS)
-    logger.error(this.TAG, 'checkValidBlob', this._getBlobLength())
   }
 
   chaseVideoFrame (keyFrame) {
