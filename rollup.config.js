@@ -20,8 +20,8 @@ const sourcemap = process.env.NODE_ENV === 'production'
 const defaultRollup = {
   input: 'src/index.js',
   name: 'Player',
-  sourcemap: true,
-  production: !sourcemap,
+  sourcemap: !sourcemap,
+  production: false,
   exports: undefined,
   external: [],
   plugins: [],
