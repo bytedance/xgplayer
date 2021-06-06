@@ -100,7 +100,6 @@ class DynamicBg extends Plugin {
       config.addMask && (this.mask.style.background = config.maskBg)
       this.canvasCtx = this.canvas.getContext('2d')
       const url = this.playerConfig.poster
-      console.log('poster', url, Util.typeOf(url) === 'String')
       if (Util.typeOf(url) === 'String') {
         this.updateImg(url)
       }
