@@ -380,8 +380,8 @@ class Fmp4 {
     // let pps = data.pps
     let width = data.width
     let height = data.height
-    let hSpacing = data.parRatio.height
-    let vSpacing = data.parRatio.width
+    let hSpacing = data.parRatio.width
+    let vSpacing = data.parRatio.height
     // let avccBuffer = new Buffer()
     // avccBuffer.write(new Uint8Array([
     //   0x01, // version
