@@ -1,5 +1,5 @@
 import { logger, EVENTS } from 'xgplayer-helper-utils'
-import EventEmitter from 'events'
+import EventEmitter from 'eventemitter3'
 import Events from '../events'
 
 import VideoDecoder from './video-decoder'

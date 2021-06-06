@@ -2,7 +2,7 @@
  * @description with video element to play fmp4 videostream, and get the video RGB frame with requestAnimationFrame api.
  */
 import { logger } from 'xgplayer-helper-utils'
-import EventEmitter from 'events'
+import EventEmitter from 'eventemitter3'
 import Events from '../events'
 
 const DEFAULT_PLAYBACKRATE = 2

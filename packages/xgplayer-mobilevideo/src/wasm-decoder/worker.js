@@ -36,17 +36,7 @@ Decoder.prototype.init = function () {
   );
 };
 
-<<<<<<< HEAD:packages/xgplayer-mobilevideo/src/decoder/worker.js
-Decoder.prototype.broadwayOnPictureDecoded = function (offset, width, height, yLinesize, uvLinesize, infoid, keyFrame) {
-  var firstFrame = this.infolist[0];
-  if (firstFrame && firstFrame.firstInGop && !keyFrame) return;
 
-  var info = Object.assign({}, this.infolist.shift());
-  var yRowcount = height;
-  var uvRowcount = height / 2;
-  if (this.meta && (this.meta.chromaFormat === 444 || this.meta.chromaFormat === 422)) {
-    uvRowcount = height;
-=======
 Decoder.prototype.broadwayOnPictureDecoded = function (
   offset,
   width,
@@ -67,7 +57,6 @@ Decoder.prototype.broadwayOnPictureDecoded = function (
     (this.meta.chromaFormat === 444 || this.meta.chromaFormat === 422)
   ) {
     uvRowcount = height
->>>>>>> livevideo:packages/xgplayer-mobilevideo/src/wasm-decoder/worker.js
   }
   var data = this.toU8Array(offset, yLinesize * yRowcount + 2 * (uvLinesize * uvRowcount));
   var datetemp = new Uint8Array(data.length);

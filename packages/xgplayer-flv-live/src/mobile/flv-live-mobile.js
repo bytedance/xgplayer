@@ -36,7 +36,9 @@ export default class FlvController {
 
     this._context.registry('LOGGER', Logger)
     this._context.registry('PAGE_VISIBILITY', PageVisibility)
-    this._context.registry('MP4_REMUXER', Remuxer)
+    if(this._player.video.videoDecode){
+      this._context.registry('MP4_REMUXER', Remuxer)
+    }
     this._context.registry('PRE_SOURCE_BUFFER', RemuxedBufferManager)
   }
 
