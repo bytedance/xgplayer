@@ -103,18 +103,15 @@ class NoSleep {
     } else {
       if (!this.noSleepVideo.paused) return;
       let playPromise = this.noSleepVideo.play();
-      return (
-        playPromise &&
-        playPromise
-          .then((res) => {
-            this.enabled = true;
-            return res;
-          })
-          .catch((err) => {
-            console.log('noSleep: ', err.message);
-            this.enabled = false;
-          })
-      );
+      return playPromise && playPromise
+        .then((res) => {
+          this.enabled = true;
+          return res;
+        })
+        .catch((err) => {
+          console.log('noSleep: ', err.message);
+          this.enabled = false;
+        });
     }
   }
 

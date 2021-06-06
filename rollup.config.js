@@ -15,12 +15,13 @@ const json = require('@rollup/plugin-json');
 const { terser } = require('rollup-plugin-terser');
 const postcss = require('rollup-plugin-postcss');
 const { visualizer } = require('rollup-plugin-visualizer');
+const sourcemap = process.env.NODE_ENV === 'production'
 
 const defaultRollup = {
   input: 'src/index.js',
   name: 'Player',
   sourcemap: true,
-  production: false,
+  production: !sourcemap,
   exports: undefined,
   external: [],
   plugins: [],

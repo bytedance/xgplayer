@@ -1,5 +1,7 @@
-import { logger } from 'xgplayer-helper-utils';
-import Events from '../events';
+
+/* eslint-disable no-undef */
+import { logger } from 'xgplayer-helper-utils'
+import Events from '../events'
 
 const MAX_QUEUE_LENGTH = 5;
 const MAX_LOW_FPS_RECORD = 30;

@@ -8,24 +8,26 @@ import { logger, common } from 'xgplayer-helper-utils';
 import TimeLine from './TimeLine';
 import Events from './events';
 
-const { debounce } = common;
+// flv直播流硬解对应的decodeMode的值
+const VIDEO_DECODE_MODE_VALUE = '7'
+
+const { debounce } = common
 
 class MVideo extends HTMLElement {
   constructor () {
-    super();
-    this.TAG = 'MVideo';
-    this._proxyProps();
-    this._isLive = true;
-    this._vMeta = null;
-    this._aMeta = null;
-    this._degradeVideo = document.createElement('video');
-    this._eventsBackup = [];
-    this._audioCanAutoplay = true;
-    this._init();
-    this._firstWebAudio = true;
-    this._startPlayed = false;
-    this._debounceSeek = debounce(this._seek.bind(this), 600);
-    this._onTouchEnd = this._onTouchEnd.bind(this);
+    super()
+    this.TAG = 'MVideo'
+    this._proxyProps()
+    this._isLive = true
+    this._vMeta = null
+    this._aMeta = null
+    this._degradeVideo = document.createElement('video')
+    this._eventsBackup = []
+    this._audioCanAutoplay = true
+    // this._init()
+    this._startPlayed = false
+    this._debounceSeek = debounce(this._seek.bind(this), 600)
+    this._onTouchEnd = this._onTouchEnd.bind(this)
   }
 
   // 代理外部常用属性,容错处理
@@ -89,37 +91,43 @@ class MVideo extends HTMLElement {
     this.timeline = new TimeLine(
       {
         volume: this.volume,
-        canvas: this.querySelector('canvas')
+        canvas: this.querySelector('canvas'),
+        videoContext: this.videoContext,
+        videoDecode: this.videoDecode,
+        maxVideoHeight: this.getAttribute('maxVideoHeight')
+        // videoRemux: this.videoRemux
       },
       this
-    );
-    this._firstWebAudio = false;
-    this._noSleep = new NoSleep();
-    this._logFirstFrame = false;
-    this._playRequest = null;
-    this._degradeVideoUserGestured = false;
-    this._bindEvents();
-    if (this._vMeta) {
-      this.setVideoMeta(this._vMeta);
+    )
+    this._firstWebAudio = false
+    this._noSleep = new NoSleep()
+    this._logFirstFrame = false
+    this._playRequest = null
+    this._degradeVideoUserGestured = false
+    this._bindEvents()
+    if (this._vMeta && !this.videoDecode) {
+      this.setVideoMeta(this._vMeta)
     }
     if (this._glCtxOptions) {
       this.glCtxOptions = this._glCtxOptions;
     }
-    setTimeout(() => {
-      if (!this.timeline) return;
-      if (this.innerDegrade) {
-        this.timeline.emit(Events.TIMELINE.INNER_DEGRADE);
-      }
-      this.setPlayMode(this._isLive && 'LIVE');
-      this.muted = this.muted;
-    });
+
+    if (!this.timeline) return
+
+    if (this.innerDegrade) {
+      this.timeline.emit(Events.TIMELINE.INNER_DEGRADE)
+    }
+
+    this.setPlayMode(this._isLive && 'LIVE')
+    this.muted = this.muted
   }
 
   _bindEvents () {
     this.timeline.on(Events.TIMELINE.PLAY_EVENT, (status, data) => {
       if (status === 'canplay') {
         if (!this.querySelector('canvas')) {
-          this.appendChild(this.canvas);
+          logger.log(this.TAG, '_bindEvents, appendChild canvas')
+          this.appendChild(this.canvas)
         }
       }
 
@@ -182,8 +190,9 @@ class MVideo extends HTMLElement {
 
   // 禁用逻辑
   _disabled (force) {
-    if (!this.innerDegrade) return;
-
+    if (this.videoDecode || !this.innerDegrade) {
+      return
+    }
     // 永久禁用
     if (force || !this.decodeFps || (this.decodeFps / this.fps <= 0.8 && this.bitrate < 2000000)) {
       localStorage.setItem('mvideo_dis265', 1);
@@ -236,6 +245,7 @@ class MVideo extends HTMLElement {
     logger.log(this.TAG, 'video connected to document', performance.now());
     if (!this.timeline) {
       this._init();
+      this._firstWebAudio = true
     }
     this.style.width = '100%';
     this.style.height = '100%';
@@ -347,11 +357,11 @@ class MVideo extends HTMLElement {
         logger.warn(this.TAG, 'video set noAudio! type=', type);
         this.timeline.emit(Events.TIMELINE.NO_AUDIO, type);
       }
+      window.firstFrameTime = Date.now()
     }
 
-    this.timeline.appendBuffer(videoTrack, audioTrack);
+    this.timeline.appendBuffer(videoTrack, audioTrack)
   }
-
   setAudioMeta (meta) {
     this._aMeta = meta;
     this.timeline.emit(Events.TIMELINE.SET_METADATA, 'audio', meta);
@@ -362,6 +372,19 @@ class MVideo extends HTMLElement {
     if (!this._isLive && this._vMeta) return;
     this.timeline.emit(Events.TIMELINE.SET_METADATA, 'video', meta);
     this._vMeta = meta;
+  }
+  // 获取插件层context，用来获取remux实例，等remux模块剔除外部依赖后，可以废除
+  setVideoContext (context) {
+    this.videoContext = context
+    this.videoRemux = context.getInstance('MP4_REMUXER')
+    // 解决自动播放失败，点击手动播放按钮时报错问题。是因为手动点击播放时，timeline的初始化在传入新的context之前
+    if (this.timeline && this.timeline.videoRender) {
+      this.timeline.videoRender.videoContext = context
+    }
+  }
+
+  setDecodeMode (v) {
+    this.setAttribute('decodeMode', v)
   }
 
   setPlayMode (v) {
@@ -386,13 +409,16 @@ class MVideo extends HTMLElement {
   }
 
   destroy (reuseWorker) {
-    if (!this.timeline) return;
-    this._noSleep.destroy();
-    logger.log(this.TAG, 'call destroy');
-    this.timeline.emit(Events.TIMELINE.DESTROY, reuseWorker);
-    this.timeline = null;
-    this._err = null;
-    this._noSleep = null;
+    if (!this.timeline) return
+    this._noSleep.destroy()
+    logger.log(this.TAG, 'call destroy')
+    this.timeline.emit(Events.TIMELINE.DESTROY, reuseWorker)
+    if (this.querySelector('video')) {
+      this.removeChild(this.querySelector('video'))
+    }
+    this.timeline = null
+    this._err = null
+    this._noSleep = null
   }
 
   // 只初始化播放器时记录一次
@@ -413,6 +439,13 @@ class MVideo extends HTMLElement {
 
   dump () {
     return this.timeline.dump();
+  }
+
+  setVideoDecode () {
+    logger.log(this.TAG, 'set videoDecode', this.videoDecode)
+    if (this.videoDecode && this.timeline && this.timeline.videoRender) {
+      this.timeline.videoRender.videoDecode = this.videoDecode
+    }
   }
 
   get startPlayed () {
@@ -450,7 +483,6 @@ class MVideo extends HTMLElement {
   get __canvas () {
     return this.timeline.canvas;
   }
-
   get __ended () {
     if (this._isLive) return false;
     return Math.abs(this.currentTime - this.duration) < 0.5;
@@ -674,7 +706,9 @@ class MVideo extends HTMLElement {
       height: p.clientHeight
     };
   }
-
+  get videoDecode () {
+    return this.getAttribute('decodeMode') === VIDEO_DECODE_MODE_VALUE
+  }
 }
 
 customElements.get('mobile-video') || customElements.define('mobile-video', MVideo);

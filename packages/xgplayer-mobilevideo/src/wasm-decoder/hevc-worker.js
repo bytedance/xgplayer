@@ -96,8 +96,13 @@ Decoder.prototype.broadwayOnBroadwayInited = function () {
 };
 
 Decoder.prototype.decode = function (data, info) {
+<<<<<<< HEAD:packages/xgplayer-mobilevideo/src/decoder/hevc-worker.js
   var time = parseInt(new Date().getTime());
   var infoid = time - Math.floor(time / 10e8) * 10e8;
+=======
+  let time = parseInt(new Date().getTime());
+  let infoid = time - Math.floor(time / 10e8) * 10e8;
+>>>>>>> livevideo:packages/xgplayer-mobilevideo/src/wasm-decoder/hevc-worker.js
   this.infolist.push(info);
   if (info && info.firstInGop) {
     this.infolist = [info];

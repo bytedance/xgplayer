@@ -1,11 +1,12 @@
 import { logger } from 'xgplayer-helper-utils';
 class YUVCanvas {
   constructor (configs) {
-    this.configs = Object.assign({}, configs);
-    this.canvas = this.configs.canvas;
-    this.meta = Object.assign({}, this.configs.meta);
-    this._initMeta();
-    this._initContextGL();
+    this.TAG = 'YUVCanvas'
+    this.configs = Object.assign({}, configs)
+    this.canvas = this.configs.canvas
+    this.meta = Object.assign({}, this.configs.meta)
+    this._initMeta()
+    this._initContextGL()
     if (this.contextGL) {
       this._initProgram();
       this._initBuffers();
@@ -22,8 +23,12 @@ class YUVCanvas {
   }
 
   _initContextGL () {
-    var canvas = this.canvas;
-    var gl = null;
+    if (this.configs.type === '2d') {
+      this.ctx = this.canvas.getContext('2d')
+      return
+    }
+    var canvas = this.canvas
+    var gl = null
 
     var validContextNames = ['webgl', 'experimental-webgl', 'moz-webgl', 'webkit-3d'];
     var nameIndex = 0;
@@ -286,7 +291,32 @@ class YUVCanvas {
     gl.drawArrays(gl.TRIANGLE_STRIP, 0, 4);
   }
 
-  _drawPictureRGB (data) {}
+  _drawPicture2d (data) {
+    if (!data) {
+      return
+    }
+    if (this.canvas) {
+      if (!this.ctx) {
+        this.ctx = this.canvas.getContext('2d')
+      }
+      let width = data.width
+      let height = data.height
+      if (this.canvas.height != height || this.canvas.width != width) {
+        this.canvas.height = height
+        this.canvas.width = width
+      }
+      try {
+        if (data.dom && data.width && data.height) {
+          this.ctx.drawImage(data.dom, 0, 0, data.width, data.height)
+        } else {
+          console.error(this.TAG, '_drawPicture2d', 'width:', data.width, 'height:', data.height)
+        }
+      } catch (error) {
+        console.log(this.ctx, this.ctx.drawImage)
+        console.error(this.TAG, '_drawPicture2d', data, data.dom, error, error.message)
+      }
+    }
+  }
 
   _resize (width, height) {
     if (this.width !== width || this.height !== height) {
@@ -303,10 +333,9 @@ class YUVCanvas {
     if (gl) {
       this._drawPictureGL(data, width, height, yLinesize, uvLinesize);
     } else {
-      this._drawPictureRGB(data);
+      this._drawPicture2d(data)
     }
   }
-
   resetMeta (meta) {
     this.meta = Object.assign({}, meta);
     this._initMeta();

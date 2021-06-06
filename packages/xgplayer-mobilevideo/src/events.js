@@ -1,7 +1,8 @@
 export default {
   AUDIO: {
     AUDIO_READY: 'audio_ready',
-    AUDIO_WAITING: 'audio_waiting'
+    AUDIO_WAITING: 'audio_waiting',
+    AUDIO_SYNC_DTS: 'audio_sync_dts'
   },
   VIDEO: {
     VIDEO_DECODER_INIT: 'video_decode_init',
@@ -51,8 +52,28 @@ export default {
     ENDED: 'ended',
     // 自定义
     DECODE_FPS: 'decodefps',
-    LOW_DECODE: 'lowdecode',
-    LARGE_AV_GAP: 'largeavgap',
-    FIRST_FRAME: 'firstframe'
-  }
-};
+    LOW_DECODE: 'lowdecode'
+  },
+  DECODE_EVENTS: {
+    INIT: 'init',
+    READY: 'decoderready',
+    REMUX: 'remux',
+    INIT_FAILED: 'initfailed',
+    DATAREADY: 'dataReady',
+    PLAY_FAILED: 'playfailed',
+    FRAGMENT_END: 'fragmentEnd',
+    APPEND_VIDEO: 'appendVideo',
+    FIRST_FRAME: 'firstFrame',
+    DECODED: 'decoded',
+    RENDE_END: 'rendeEnd',
+    CHASE_VIDEO_FRAME: 'chaseVideoFrame',
+    CHASE_VIDEO_FRAME_END: 'chaseVideoFrameEnd',
+    CHASE_AUDIO_FRAME: 'chaseAudioFrame',
+    INIT_SEGMENT: 'initSegment',
+    MEDIA_SEGMENT: 'mediaSegment',
+    FRAME_MAX_COUNY: 'frameMaxCount',
+    FRAME_MIN_COUNY: 'frameMinCount'
+  },
+  LARGE_AV_GAP: 'largeavgap',
+  FIRST_FRAME: 'firstframe'
+}

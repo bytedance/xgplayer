@@ -80,7 +80,7 @@ export default class AudioTimeRange {
     }
   }
 
-  append (source, duration, startDts, segmentStart) {
+  append (source, duration, startDts, segmentStart, delay) {
     if (this._baseDts === -1) {
       this._baseDts = startDts;
     }
@@ -91,8 +91,10 @@ export default class AudioTimeRange {
       start,
       end,
       startDts,
-      source
-    };
+      source,
+      duration,
+      delay
+    }
 
     if (!this.isLive && segmentStart) {
       buffer.start = segmentStart / 1000;
@@ -103,7 +105,10 @@ export default class AudioTimeRange {
 
     // todo: 去重,排序
     if (!this._buffers.filter((x) => x.start === start).length) {
-      this._buffers.push(buffer);
+      this._buffers.push(buffer)
+    } else {
+      console.error('音频重复')
+      return
     }
 
     if (this.isLive) {
@@ -113,8 +118,9 @@ export default class AudioTimeRange {
   }
 
   deletePassed (time) {
-    this._buffers = this._buffers.filter((x) => x.start > time);
-    return this._buffers[0];
+    // 少删除一个音频buffer，缓解追帧时音视频差值过大
+    this._buffers = this._buffers.filter((x) => x.start >= time)
+    return this._buffers[0]
   }
 
   canSeek (time) {
