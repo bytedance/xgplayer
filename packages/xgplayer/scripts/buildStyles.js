@@ -81,14 +81,13 @@ const buildDistStyle = async (entry) => {
     console.error('distCss error', err)
   });
 
-  const compressCss = await postcss([autoprefixer]).process(rawCss, { from: 'undefined' }).then(async (result) => {
+  const compressCss = await postcss([autoprefixer, cssnano]).process(rawCss, { from: 'undefined' }).then(async (result) => {
     result.warnings().forEach(warn => {
       console.warn(warn.toString());
     });
 
-    return cssnano.process(result.css, { from: 'undefined', autoprefixer: false }, { preset: 'default' });
+    return result.css;
   });
-
   const files = [distCss, compressCss];
 
   for (let i = 0, len = files.length; i < len; i++) {

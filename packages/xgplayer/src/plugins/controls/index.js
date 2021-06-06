@@ -1,5 +1,7 @@
 import Plugin, {Events, Util, POSITIONS, Sniffer, STATE_CLASS} from '../../plugin'
+// import classNames from 'classnames/bind'
 
+// console.log('ClassName', classNames)
 class Controls extends Plugin {
   static get pluginName () {
     return 'controls'
@@ -9,7 +11,7 @@ class Controls extends Plugin {
     return {
       disable: false,
       autoHide: true, // 是否自动隐藏
-      mode: '', // 显示模式， flex和normal
+      mode: '', // 显示模式， flex/normal/bottom
       initShow: false // 是否初始化的时候就显示
     }
   }
@@ -136,12 +138,17 @@ class Controls extends Plugin {
   }
 
   render () {
-    if (this.config.disable) {
+    const { mode, autoHide, initShow, disable } = this.config
+    if (disable) {
       return;
     }
-    let className = this.config.mode === 'flex' ? 'flex-controls ' : ''
-    className += this.config.autoHide ? 'control_autohide' : 'controls_permanent xgplayer-controls-initshow'
-    className += this.config.initShow ? ' xgplayer-controls-initshow' : ''
+   const className =  Util.classNames(
+      {'flex-controls': mode === 'flex'},
+      {'bottom-controls': mode === 'bottom'},
+      {'control_autohide': autoHide},
+      {'controls_permanent': !autoHide},
+      {'xgplayer-controls-initshow': initShow || !autoHide})
+    console.log('className', className)
     return `<xg-controls class="xgplayer-controls ${className}" unselectable="on" onselectstart="return false">
     <xg-inner-controls class="xg-inner-controls xg-pos">
       <xg-left-grid class="xg-left-grid">

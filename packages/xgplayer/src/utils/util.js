@@ -107,6 +107,25 @@ util.toggleClass = function (el, className) {
   })
 }
 
+util.classNames = function() {
+  let classname = ''
+  for(let i = 0; i < arguments.length; i++) {
+    if (util.typeOf(arguments[i]) === 'String') {
+      classname += `${arguments[i]}`
+    } else if (util.typeOf(arguments[i]) === 'Object') {
+      Object.keys(arguments[i]).map(key => {
+        if (arguments[i][key]) {
+          classname += key
+        }
+      })
+    }
+    if (i < arguments.length - 1) {
+      classname += ' '
+    }
+  }
+  return classname
+}
+
 util.findDom = function (el = document, sel) {
   let dom
   // fix querySelector IDs that start with a digit
@@ -347,15 +366,101 @@ util.isUndefined = function (val) {
 }
 
 util.setStyleFromCsstext = function (dom, text) {
-  const styleArr = text.replace(/\s+/g, '').split(';')
+  // dom.setAttribute(style, text)
+  if (!text) {
+    return
+  }
+  if (util.typeOf(text) === 'String') {
+    const styleArr = text.replace(/\s+/g, '').split(';')
+    styleArr.map(item => {
+      if (item) {
+        const arr = item.split(':')
+        if (arr.length > 1) {
+          dom.style[arr[0]] = arr[1]
+        }
+      }
+    })
+  } else {
+    Object.keys(text).map(key => {
+      dom.style[key] = text[key]
+    })
+  }
+}
+
+function checkIsIn(key, list) {
+  for(let i = 0, len = list.length; i < len; i++) {
+    if (key.indexOf(list[i]) > -1) {
+      return true
+    }
+  }
+  return false
+}
+
+util.filterStyleFromText = function(dom, list = ['width', 'height', 'top', 'left', 'bottom','right','position', 'z-index', 'padding', 'margin', 'transform']) {
+  const _cssText = dom.style.cssText
+  if(!_cssText) {
+    return {}
+  }
+  const styleArr = _cssText.replace(/\s+/g, '').split(';')
+  const ret = {}
+  const remain = {}
   styleArr.map(item => {
     if (item) {
       const arr = item.split(':')
       if (arr.length > 1) {
-        dom.style[arr[0]] = arr[1]
+        if(checkIsIn(arr[0], list)) {
+          ret[arr[0]] = arr[1]
+          // dom.style[arr[0]] = 'initial'
+        } else {
+          remain[arr[0]] = arr[1]
+        }
       }
     }
   })
+  dom.setAttribute('style', '')
+  Object.keys(remain).map(key => {
+    // netStyle += `${key}: ${remain[key]};`
+    dom.style[key] = remain[key]
+  })
+  // dom.setAttribute('style', netStyle)
+  // Object.keys(remain).map(key => {
+  //   dom.style[key] = remain[key]
+  // })
+  // console.log('remain', remain, netStyle)
+  return ret
+}
+
+util.getStyleFromCsstext = function (dom){
+  const _cssText = dom.style.cssText
+  if (!_cssText) {
+    return {}
+  }
+  const styleArr = _cssText.replace(/\s+/g, '').split(';')
+  const ret = {}
+  styleArr.map(item => {
+    if (item) {
+      const arr = item.split(':')
+      if (arr.length > 1) {
+        ret[arr[0]] = arr[1]
+      }
+    }
+  })
+  return ret
+}
+
+util.getStyleFromCsstext = function (dom){
+  const _cssText = dom.style.cssText
+  const styleArr = _cssText.replace(/\s+/g, '').split(';')
+  const ret = {}
+  styleArr.map(item => {
+    if (item) {
+      const arr = item.split(':')
+      if (arr.length > 1) {
+        ret[arr[0]] = arr[1]
+      }
+    }
+  })
+  return ret
 }
 
 util.preloadImg = (url, onload = () => {}, onerror = () => {}) => {

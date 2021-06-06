@@ -159,38 +159,6 @@
     }
   }
 
-  .xg-mini-progress {
-    display: none;
-    position: absolute;
-    height: 2px;
-    left: 0;
-    right: 0;
-    bottom: 0px;
-    // background-color: red;
-    pointer-events: none;
-    xg-mini-progress-played,  xg-mini-progress-cache{
-      height: 100%;
-      width: 0;
-      position:absolute;
-      top: 0;
-      left: 0;
-      border-radius: inherit;
-    }
-    xg-mini-progress-played {
-      background: $progressPlayedBgImage
-    }
-    xg-mini-progress-cache {
-      background: $progressCacheBgColor
-    }
-  }
-
-  &.xgplayer-inactive {
-    .xg-mini-progress {
-      display: block;
-    }
-  }
-
-
   &.xgplayer-pc {
     .xgplayer-progress-btn {
       transform: translate(-50%, -50%) scale(0);
@@ -213,7 +181,8 @@
       &.active {
         .xgplayer-progress-outer {
           height: 6px;
-          transition: height .5s ease;
+          margin-bottom: 3px;
+          transition: height .3s ease, margin-bottom .3s ease;
           // .xgplayer-progress-point {
           //   display: block;
           // }
@@ -225,6 +194,18 @@
           &:before, &:after{
             width: 6px;
           }
+        }
+      }
+    }
+    // 进度条位于底部的时候
+    .xgplayer-progress-bottom {
+      .xgplayer-progress-outer {
+        top: 9px;
+      }
+      .xgplayer-progress-btn {
+        &:before {
+          height: 6px;
+          width: 6px;
         }
       }
     }
@@ -252,5 +233,36 @@
         background-color: $progressCacheBgColor
       }
     }
+  }
+}
+
+.xg-mini-progress {
+  display: none;
+  position: absolute;
+  height: 2px;
+  left: 0;
+  right: 0;
+  bottom: 0px;
+  // background-color: red;
+  pointer-events: none;
+  xg-mini-progress-played,  xg-mini-progress-cache{
+    height: 100%;
+    width: 0;
+    position:absolute;
+    top: 0;
+    left: 0;
+    border-radius: inherit;
+  }
+  xg-mini-progress-played {
+    background: $progressPlayedBgImage
+  }
+  xg-mini-progress-cache {
+    background: $progressCacheBgColor
+  }
+}
+
+.xgplayer-inactive, .xgplayer-mini {
+  .xg-mini-progress {
+    display: block;
   }
 }

@@ -52,3 +52,12 @@ export const VIDEO_RESIZE = 'video_resize'
 
 // picture-in-picture状态变化
 export const PIP_CHANGE = 'pip_change'
+
+// rotate change
+export const ROTATE = 'rotate'
+
+// screenShot
+export const SCREEN_SHOT = 'screenShot'
+
+// play next
+export const PLAYNEXT = 'playnext'

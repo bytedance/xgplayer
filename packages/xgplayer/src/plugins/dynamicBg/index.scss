@@ -1,0 +1,19 @@
+
+.xgplayer-dynamic-bg, .xgplayer-dynamic-bg canvas, .xgplayer-dynamic-bg xgmask{
+  display: block;
+  position: absolute;
+  top: 0;
+  left: 0;
+  height: 100%;
+  width: 100%;
+  // filter: blur(50px);
+  pointer-events: none;
+}
+.xgplayer-dynamic-bg {
+  // canvas {
+  //   // filter: blur(50px);
+  // }
+  xgmask {
+    background: rgba(0,0,0,0.7);
+  }
+}

@@ -28,6 +28,8 @@ import ProgressPreview from '../plugins/progressPreview'
 import Thumbnail from '../plugins/common/thumbnail'
 import TextTrack from '../plugins/track'
 import MiniProgress from '../plugins/progress/miniProgress'
+import DynamicBg from '../plugins/dynamicBg'
+
 export default class DefaultPreset {
   constructor (options, playerConfig) {
     const simulateMode = playerConfig && playerConfig.isMobileSimulateMode
@@ -36,7 +38,7 @@ export default class DefaultPreset {
 
     const barIcons = [PIPIcon]
 
-    const layers = [Replay, Poster, Start, Loading, Enter, Error, Prompt, Thumbnail, ProgressPreview]
+    const layers = [Replay, Poster, Start, Loading, Enter, Error, Prompt, Thumbnail, ProgressPreview, DynamicBg]
 
     this.plugins = [...contolsIcons, ...layers]
     const mode = simulateMode ? 'mobile' : sniffer.device

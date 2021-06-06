@@ -13,6 +13,7 @@ class Danmu extends Plugin {
     this.isOpen = false
     this.seekCost = 0
     this.intervalId = 0
+    this.isUseClose = false
   }
 
   static get pluginName () {
@@ -26,21 +27,26 @@ class Danmu extends Plugin {
         start: 0, // 区域顶部到播放器顶部所占播放器高度的比例
         end: 1 // 区域底部到播放器顶部所占播放器高度的比例
       },
-      closeDefaultBtn: true, // TODO: 开启此项后不使用默认提供的弹幕开关，默认使用西瓜播放器提供的开关
+      closeDefaultBtn: false, // TODO: 开启此项后不使用默认提供的弹幕开关，默认使用西瓜播放器提供的开关
       defaultOff: false, // TODO: 开启此项后弹幕不会初始化，默认初始化弹幕
       panel: false, // 是否安装配置面板
       panelConfig: {}, // 配置面板促使配置
       switchConfig: {}, // 开关按钮配置信息
-      defaultOpen: true // 是否默认开启弹幕
+      defaultOpen: true, // 是否默认开启弹幕
+      isLive: false, // 是否是直播
+      ext: {}
     }
   }
 
   afterCreate () {
+    if (this.playerConfig.isLive) {
+      this.config.isLive = true
+    }
     this.initDanmu()
     this.registerExtIcons()
 
     this.once(Events.TIME_UPDATE, () => {
-      this.config.defaultOpen && this.start()
+      this.config.defaultOpen && !this.isUseClose && this.start()
     })
 
     this.on(Events.PAUSE, () => {
@@ -93,7 +99,13 @@ class Danmu extends Plugin {
       player: player.video,
       comments: this.config.comments,
       area: config.area,
-      defaultOff: config.defaultOff
+      defaultOff: config.defaultOff,
+      live: config.isLive
+    }
+    if (config.ext) {
+      Object.keys(config.ext).map(key => {
+        danmuConfig[key] = config.ext[key]
+      })
     }
     const danmu = new DanmuJs(danmuConfig)
     this.danmujs = danmu
@@ -145,6 +157,7 @@ class Danmu extends Plugin {
     if (this.isOpen || !this.danmujs) {
       return
     }
+    this.isUseClose = false
     this.show()
     // 避免弹幕弹层还没展开 导致轨道计算异常
     Util.setTimeout(this, () => {
@@ -160,6 +173,8 @@ class Danmu extends Plugin {
     if (!this.isOpen || !this.danmujs) {
       return
     }
+    // 用户行为关闭弹幕
+    this.isUseClose = true
     this.danmujs.stop()
     this.isOpen = false
     this.hide()
@@ -213,11 +228,12 @@ class Danmu extends Plugin {
     this.danmujs && this.danmujs.sendComment(comments)
   }
 
-  destoy () {
+  destroy () {
     this.danmujs.stop()
     this.danmujs.destroy()
-    this.danmuButton && this.danmuButton.__destroy()
-    this.danmuPanel && this.danmuPanel.__destroy()
+    const { danmuButton, danmuPanel } = this
+    this.danmuButton && danmuButton.__destroy && danmuButton.__destroy()
+    this.danmuPanel && danmuPanel.__destroy && danmuPanel.__destroy()
     this.danmuButton = null
     this.danmuPanel = null
   }
