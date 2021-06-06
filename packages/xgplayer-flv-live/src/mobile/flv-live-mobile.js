@@ -26,7 +26,7 @@ export default class FlvController {
   }
 
   initComponents () {
-    const { FetchLoader, XgBuffer, FlvDemuxer, Tracks, Logger, PageVisibility, Remuxer, RemuxedBufferManager } = this._pluginConfig
+    const { FetchLoader, XgBuffer, FlvDemuxer, Tracks, Logger, PageVisibility, Remuxer, RemuxedBufferManager, decodeMode } = this._pluginConfig
 
     this._context.registry('FETCH_LOADER', FetchLoader)
     this._context.registry('LOADER_BUFFER', XgBuffer)
@@ -36,7 +36,7 @@ export default class FlvController {
 
     this._context.registry('LOGGER', Logger)
     this._context.registry('PAGE_VISIBILITY', PageVisibility)
-    if(this._player.video.videoDecode){
+    if(decodeMode === 7){
       this._context.registry('MP4_REMUXER', Remuxer)
     }
     this._context.registry('PRE_SOURCE_BUFFER', RemuxedBufferManager)

@@ -21,7 +21,7 @@ const defaultRollup = {
   input: 'src/index.js',
   name: 'Player',
   sourcemap: !sourcemap,
-  production: !sourcemap,
+  production: false,
   exports: undefined,
   external: [],
   plugins: [],
