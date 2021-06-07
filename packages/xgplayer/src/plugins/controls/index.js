@@ -148,7 +148,6 @@ class Controls extends Plugin {
       {'control_autohide': autoHide},
       {'controls_permanent': !autoHide},
       {'xgplayer-controls-initshow': initShow || !autoHide})
-    console.log('className', className)
     return `<xg-controls class="xgplayer-controls ${className}" unselectable="on" onselectstart="return false">
     <xg-inner-controls class="xg-inner-controls xg-pos">
       <xg-left-grid class="xg-left-grid">
