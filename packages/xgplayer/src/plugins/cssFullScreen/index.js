@@ -11,7 +11,8 @@ export default class CssFullScreen extends Plugin {
     return {
       position: POSITIONS.CONTROLS_RIGHT,
       index: 1,
-      disable: false
+      disable: false,
+      target: null
     }
   }
 
@@ -44,9 +45,9 @@ export default class CssFullScreen extends Plugin {
     e.preventDefault()
     e.stopPropagation()
     if (!this.player.isCssfullScreen) {
-      this.player.getCssFullscreen()
+      this.player.getCssFullscreen(this.config.target)
     } else {
-      this.player.exitCssFullscreen()
+      this.player.exitCssFullscreen(this.config.target)
     }
   }
 

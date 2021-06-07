@@ -13,6 +13,7 @@ class Volume extends Plugin {
       position: POSITIONS.CONTROLS_RIGHT, // [可选]插件挂载的dom
       index: 1, // [可选]插件在播放器中挂载的位置
       disable: false, // [可选]是否禁用插件交互行为
+      showValueLabel: false, // [可选]是否显示当前滑动的音量数值
       default: 0.6 // [可选]默认音量
     }
   }
@@ -118,6 +119,23 @@ class Volume extends Plugin {
     drag.style.height = `${height}px`
     player.volume = Math.max(Math.min(now, 1), 0)
     player.muted = false
+
+    if (this.config.showValueLabel) {
+      this.updateVolumeValue();
+    }
+  }
+
+  /**
+   * 修改音量数值标签
+   *
+   * @memberof Volume
+   */
+  updateVolumeValue () {
+    const {volume} = this.player;
+    const $labelValue = this.find('.xgplayer-value-label');
+    const vol = Math.max(Math.min(volume, 1), 0);
+
+    $labelValue.innerText = Math.ceil(vol * 100);
   }
 
   onMouseenter (e) {
@@ -174,12 +192,14 @@ class Volume extends Plugin {
     if (this.config.disable) {
       return
     }
-    const volume = this.config.default || this.player.volume
+    const volume = this.config.default || this.player.volume;
+    const isShowVolumeValue = this.config.showValueLabel;
     return `
     <xg-icon class="xgplayer-volume" data-state="normal">
       <div class="xgplayer-icon">
       </div>
       <xg-slider class="xgplayer-slider">
+        ${isShowVolumeValue ? `<div class="xgplayer-value-label">${volume * 100}</div>` : ''}
         <div class="xgplayer-bar">
           <xg-drag class="xgplayer-drag" style="height: ${volume * 100}%"></xg-drag>
         </div>

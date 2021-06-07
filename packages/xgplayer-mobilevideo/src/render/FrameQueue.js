@@ -1,13 +1,13 @@
-
 import { logger } from 'xgplayer-helper-utils';
 
-const DISCARD_THRESHOLD = -100
+const DISCARD_THRESHOLD = -100;
 export default class FrameQueue {
   constructor (parent) {
     this.TAG = 'FrameQueue'
-    this._parent = parent;
-    this._lastGopId = 0;
-    this._frames = [];
+    this._parent = parent
+    this._lastGopId = 0
+    this._frames = []
+    this._byteSize = 0
   }
 
   get currentTimeDts () {
@@ -18,17 +18,22 @@ export default class FrameQueue {
     return this._frames.length;
   }
 
+  get frames () {
+    return this._frames
+  }
+
   append (frame) {
     if (!frame.info) return;
-    const {dts, firstInGop, gopId} = frame.info;
+    const { dts, firstInGop, gopId } = frame.info;
     if (gopId && gopId < this._lastGopId && dts < this.currentTimeDts) {
       return;
     };
     if (firstInGop) {
       this._lastGopId = gopId;
     }
-    this._frames.push(frame);
-    this._frames.sort((a, b) => a.info.dts > b.info.dts ? 1 : -1);
+    this._frames.push(frame)
+    this._frames.sort((a, b) => (a.info.dts > b.info.dts ? 1 : -1))
+    this._byteSize += frame.buffer
   }
 
   appendVodFrame (frame) {
@@ -44,16 +49,16 @@ export default class FrameQueue {
     return this._frames[0];
   }
 
-  shift (preciseVideoDts) {
-    let next = this.nextFrame();
+  shift (preciseVideoDts = 0) {
+    let next = this.nextFrame()
 
     if (next && next.gopId && this._lastGopId && next.gopId < this._lastGopId) {
       // 过滤 上一个 gop的
-      this._frames = this._frames.filter(x => x.gopId >= this._lastGopId);
+      this._frames = this._frames.filter((x) => x.gopId >= this._lastGopId);
       return;
     }
     next = this._frames.shift();
-    this.deletePassed(preciseVideoDts)
+    this.deletePassed(preciseVideoDts);
     return next;
   }
 
@@ -79,7 +84,7 @@ export default class FrameQueue {
   }
 
   deletePassed (dts) {
-    this._frames = this._frames.filter(x => x.info && x.info.dts > dts);
+    this._frames = this._frames.filter((x) => x.info && x.info.dts > dts);
   }
 
   empty () {

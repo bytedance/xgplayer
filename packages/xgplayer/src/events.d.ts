@@ -51,5 +51,11 @@ interface Events {
 
   // picture-in-picture状态变化;
   PIP_CHANGE: 'pip_change';
+  // rotate change
+  ROTATE: 'rotate';
+  // screenShot
+  SCREEN_SHOT: 'screenShot';
+  // play next
+  PLAYNEXT: 'playnext'
 }
 export default Events

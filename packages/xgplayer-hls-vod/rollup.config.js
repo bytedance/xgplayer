@@ -3,7 +3,7 @@ const commonRollup = require('../../rollup.config');
 const uglify = process.env.NODE_ENV === 'production';
 
 const config = {
-  input: 'src/mse/index.js',
+  input: 'src/index.js',
   name: 'HlsVodPlayer',
   uglify: uglify,
   external: ['xgplayer'],
@@ -19,7 +19,7 @@ const mobileConfig = {
       file: uglify ? 'dist/mobile.min.js' : 'dist/mobile.js',
       name: 'HlsVodMobilePlayer',
       format: 'umd',
-      sourcemap: false,
+      sourcemap: !uglify,
       globals: {
         'xgplayer': 'Player'
       }

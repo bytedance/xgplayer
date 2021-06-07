@@ -1,6 +1,6 @@
 {
   "name": "xgplayer-helper-models",
-  "version": "2.4.25",
+  "version": "2.4.26",
   "description": "",
   "main": "lib/index.js",
   "module": "es/index.js",
@@ -8,22 +8,22 @@
   "scripts": {
     "prepare": "npm run build",
     "watch": "npm run watch:es & npm run watch:lib",
-    "watch:es": "babel src --out-dir es --watch",
-    "watch:lib": "babel src --out-dir lib --presets=es2015 --watch & tsc --module CommonJS --outDir lib --watch",
+    "watch:es": "babel src  --out-dir es --watch",
+    "watch:lib": "babel src  --out-dir lib --watch & tsc --module CommonJS --outDir lib --watch",
     "build": "npm run build:es && npm run build:lib & tsc --module CommonJS --outDir lib",
     "build:es": "babel src --out-dir es && tsc",
-    "build:lib": "babel src --out-dir lib --presets=es2015 && tsc --module CommonJS --outDir lib"
+    "build:lib": "babel src  --out-dir lib && tsc --module CommonJS --outDir lib"
   },
-  "author": "",
-  "license": "ISC",
   "babel": {
     "presets": [
       [
-        "es2015",
+        "@babel/preset-env",
         {
           "modules": false
         }
       ]
     ]
-  }
+  },
+  "author": "",
+  "license": "ISC"
 }

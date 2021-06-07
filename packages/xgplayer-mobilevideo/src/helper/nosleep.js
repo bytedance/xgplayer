@@ -7,17 +7,8 @@ const mp4 =
 // Detect iOS browsers < version 10
 const oldIOS = () =>
   typeof navigator !== 'undefined' &&
-  parseFloat(
-    (
-      '' +
-      (/CPU.*OS ([0-9_]{3,4})[0-9_]{0,1}|(CPU like).*AppleWebKit.*Mobile/i.exec(
-        navigator.userAgent
-      ) || [0, ''])[1]
-    )
-      .replace('undefined', '3_2')
-      .replace('_', '.')
-      .replace('_', '')
-  ) < 10 &&
+  parseFloat(('' + (/CPU.*OS ([0-9_]{3,4})[0-9_]{0,1}|(CPU like).*AppleWebKit.*Mobile/i.exec(navigator.userAgent) || [0, ''])[1]).replace('undefined', '3_2').replace('_', '.').replace('_', '')) <
+    10 &&
   !window.MSStream;
 
 // Detect native Wake Lock API support
@@ -33,14 +24,8 @@ class NoSleep {
           this.enable();
         }
       };
-      document.addEventListener(
-        'visibilitychange',
-        this.handleVisibilityChange
-      );
-      document.addEventListener(
-        'fullscreenchange',
-        this.handleVisibilityChange
-      );
+      document.addEventListener('visibilitychange', this.handleVisibilityChange);
+      document.addEventListener('fullscreenchange', this.handleVisibilityChange);
     } else if (oldIOS()) {
       this.noSleepTimer = null;
     } else {
@@ -118,7 +103,7 @@ class NoSleep {
     } else {
       if (!this.noSleepVideo.paused) return;
       let playPromise = this.noSleepVideo.play();
-      return playPromise
+      return playPromise && playPromise
         .then((res) => {
           this.enabled = true;
           return res;
@@ -167,14 +152,8 @@ class NoSleep {
   destroy () {
     this.disable();
     if (this.handleVisibilityChange) {
-      document.removeEventListener(
-        'visibilitychange',
-        this.handleVisibilityChange
-      );
-      document.removeEventListener(
-        'fullscreenchange',
-        this.handleVisibilityChange
-      );
+      document.removeEventListener('visibilitychange', this.handleVisibilityChange);
+      document.removeEventListener('fullscreenchange', this.handleVisibilityChange);
     }
     if (this.onTimeupdate) {
       this.noSleepVideo.removeEventListener('timeupdate', this.onTimeupdate);

@@ -16,9 +16,6 @@ const config = {
   ],
   name: 'FlvLiveMobilePlayer',
   external: ['xgplayer'],
-  babel: {
-    runtimeHelpers: true
-  },
   uglify: uglify
 }
 

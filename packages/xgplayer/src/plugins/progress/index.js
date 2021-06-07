@@ -300,7 +300,6 @@ class Progress extends Plugin {
     }
     // 延迟复位，状态复位要在dom相关时间回调执行之后
     Util.setTimeout(this, () => {
-      console.log('this.resetSeekState')
       this.resetSeekState()
     }, 10)
     // 交互结束 恢复控制栏的隐藏流程
@@ -519,8 +518,10 @@ class Progress extends Plugin {
     if (this.config.disable) {
       return
     }
+    const controlsMode = this.player.controls ? this.player.controls.config.mode : ''
+    const className = controlsMode === 'bottom' ? 'xgplayer-progress-bottom' : ''
     return `
-    <xg-progress class="xgplayer-progress">
+    <xg-progress class="xgplayer-progress ${className}">
       <xg-outer class="xgplayer-progress-outer">
         <xg-progress-btn class="xgplayer-progress-btn"></xg-progress-btn>
       </xg-outer>

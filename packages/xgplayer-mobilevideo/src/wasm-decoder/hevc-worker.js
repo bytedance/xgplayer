@@ -1,29 +1,30 @@
 /* eslint-disable no-undef */
+// 目前仅支持yuv420
 
 function shimImportScripts (src) {
   return fetch(src)
-    .then((res) => res.text())
-    .then((text) => {
+    .then(function (res) {
+      return res.text()
+    })
+    .then(function (text) {
       eval(text);
       self.Module = Module;
       self.addOnPostRun = addOnPostRun;
     });
 }
 
-const MAX_STREAM_BUFFER_LENGTH = 1024 * 1024;
-let initTs = 0;
+var MAX_STREAM_BUFFER_LENGTH = 1024 * 1024;
+var initTs = 0;
 
 var Decoder = function (self) {
   this.inited = false;
+  this.infoId = 0;
   this.self = self;
-  this.meta = self.meta;
+  this.meta = this.self.meta;
+  this.ts = 0;
   this.infolist = [];
-  self.par_broadwayOnBroadwayInited = this.broadwayOnBroadwayInited.bind(
-    this
-  );
-  self.par_broadwayOnPictureDecoded = this.broadwayOnPictureDecoded.bind(
-    this
-  );
+  self.par_broadwayOnBroadwayInited = this.broadwayOnBroadwayInited.bind(this);
+  self.par_broadwayOnPictureDecoded = this.broadwayOnPictureDecoded.bind(this);
 };
 
 Decoder.prototype.toU8Array = function (ptr, length) {
@@ -32,40 +33,37 @@ Decoder.prototype.toU8Array = function (ptr, length) {
 
 Decoder.prototype.init = function () {
   Module._broadwayInit();
-  this.streamBuffer = this.toU8Array(
-    Module._broadwayCreateStream(MAX_STREAM_BUFFER_LENGTH, 0), // 0: 关闭 ffmpeg log,
-    MAX_STREAM_BUFFER_LENGTH
-  );
+  this.offset = Module._broadwayCreateStream(MAX_STREAM_BUFFER_LENGTH);
 };
 
 Decoder.prototype.broadwayOnPictureDecoded = function (
   offset,
   width,
   height,
-  yLinesize,
-  uvLinesize,
   infoid,
-  keyFrame
+  sliceType
 ) {
-  let firstFrame = this.infolist[0];
-  if (firstFrame && firstFrame.firstInGop && !keyFrame) return;
+  // if (this.infolist[0] && this.infolist[0].firstInGop && sliceType !== 2) {
+  //   this.self.postMessage({
+  //     msg: 'LOG',
+  //     log: `drop sample`
+  //   });
+  //   return;
+  // }
 
-  let info = Object.assign({}, this.infolist.shift());
-  let yRowcount = height;
-  let uvRowcount = height / 2;
-  if (
-    this.meta &&
-    (this.meta.chromaFormat === 444 || this.meta.chromaFormat === 422)
-  ) {
+  var info = this.infolist.shift();
+  var yRowcount = height;
+  var uvRowcount = height / 2;
+  var yLinesize = width;
+  var uvLinesize = width / 2;
+  if (this.meta && (this.meta.chromaFormat === 444 || this.meta.chromaFormat === 422)) {
     uvRowcount = height;
   }
-  let data = this.toU8Array(
-    offset,
-    yLinesize * yRowcount + 2 * (uvLinesize * uvRowcount)
-  );
-  let datetemp = new Uint8Array(data.length);
+  var data = this.toU8Array(offset, yLinesize * yRowcount + 2 * (uvLinesize * uvRowcount));
+  // this.infolist[infoid] = null;
+  var datetemp = new Uint8Array(data.length);
   datetemp.set(data);
-  let buffer = datetemp.buffer;
+  var buffer = datetemp.buffer;
 
   this.self.postMessage(
     {
@@ -82,12 +80,15 @@ Decoder.prototype.broadwayOnPictureDecoded = function (
 };
 
 Decoder.prototype.broadwayOnBroadwayInited = function () {
+  if (this.inited) {
+    return;
+  }
   this.inited = true;
   this.self.postMessage({
     msg: 'LOG',
     log: 'decoder inited'
   });
-  let cost = 0;
+  var cost = 0;
   if (initTs) {
     cost = performance.now() - initTs;
   }
@@ -95,14 +96,19 @@ Decoder.prototype.broadwayOnBroadwayInited = function () {
 };
 
 Decoder.prototype.decode = function (data, info) {
-  if (info) {
-    this.infolist.push(info);
-  }
+  let time = parseInt(new Date().getTime());
+  let infoid = time - Math.floor(time / 10e8) * 10e8;
+  this.infolist.push(info);
   if (info && info.firstInGop) {
     this.infolist = [info];
+    Module._broadwayFlushStream(infoid);
   }
-  this.streamBuffer.set(data);
-  Module._broadwayPlayStream(data.length, 0);
+  Module.HEAPU8.set(data, this.offset);
+  Module._broadwayPlayStream(data.length, this.infoId);
+};
+
+Decoder.prototype.flush = function () {
+  Module._broadwayFlushStream();
 };
 
 Decoder.prototype.destroy = function () {
@@ -120,23 +126,20 @@ function onPostRun () {
     msg: 'LOG',
     log: 'do post run'
   });
-
   decoder = new Decoder(this);
   decoder.init();
 }
 
-let WASM_CDN_PATH_PREFIX = '';
-
 function init (url) {
-  WASM_CDN_PATH_PREFIX = url.split('/').slice(0, -1).join('/')
   initTs = performance.now();
-  let isDegrade = /asm/.test(url);
+  var isDegrade = /asm/.test(url);
   if (!decoder) {
-    let task;
+    var task;
+
     if (!self.importScripts) {
       task = shimImportScripts(url);
     } else {
-      task = new Promise((resolve, reject) => {
+      task = new Promise(function (resolve, reject) {
         if (!self.console) {
           self.console = {
             log: function () {},
@@ -155,11 +158,11 @@ function init (url) {
     }
 
     task
-      .then(() => {
+      .then(function () {
         if (isDegrade) {
           console.log('auto instance Decoder!');
-          return new Promise((resolve, reject) => {
-            setTimeout(() => {
+          return new Promise(function (resolve, reject) {
+            setTimeout(function () {
               try {
                 onPostRun.call(self);
                 resolve();
@@ -169,20 +172,23 @@ function init (url) {
             });
           });
         }
+        return new Promise(function (resolve, reject) {
+          addOnPostRun(onPostRun.bind(self));
 
-        return self.m({
-          locateFile: (suffix) => {
-            if (/\.wasm$/.test(suffix)) {
-              return `${WASM_CDN_PATH_PREFIX}/decoder.wasm`;
-            }
-          }
-        })
-          .then(Mod => {
-            self.Module = Mod;
-            onPostRun.call(self);
-          })
+          Module.onRuntimeInitialized = function () {
+            resolve();
+          };
+
+          Module.onAbort = function (e) {
+            reject(e && e.message ? e : new Error('wasm init error'));
+          };
+
+          setTimeout(function () {
+            reject(new Error('wasm load timeout'));
+          }, 6000);
+        });
       })
-      .catch((e) => {
+      .catch(function (e) {
         self.postMessage({
           msg: 'INIT_FAILED',
           log: e.message
@@ -218,10 +224,13 @@ self.onmessage = function (e) {
       case 'decode':
         decoder.decode(data.data, data.info);
         break;
+      case 'flush':
+        decoder.flush();
+        break;
       case 'finish_flag':
         self.postMessage({
           msg: 'BATCH_FINISH_FLAG'
-        })
+        });
         break;
       case 'destory':
         decoder.destroy();

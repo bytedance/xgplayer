@@ -10,26 +10,12 @@
     "build": "npm run build:umd && npm run build:es && npm run build:lib",
     "build:umd": "cross-env NODE_ENV=production rollup -c rollup.config.js && cross-env NODE_ENV=production rollup -c rollup.config.mobile.js ",
     "build:es": "babel src --out-dir es",
-    "build:lib": "babel src --out-dir lib --presets=es2015",
+    "build:lib": "babel src --out-dir lib",
     "watch": "cross-env NODE_ENV=development rollup -c rollup.config.js --watch",
     "watch:mobile": "cross-env NODE_ENV=development rollup -c rollup.config.mobile.js --watch"
   },
   "author": "",
   "license": "ISC",
-  "babel": {
-    "presets": [
-      [
-        "env",
-        {
-          "targets": {
-            "chrome": 58,
-            "ie": 10
-          },
-          "modules": false
-        }
-      ]
-    ]
-  },
   "dependencies": {
     "xgplayer-transmuxer-buffer-presource": "3.0.0-alpha.16",
     "xgplayer-transmuxer-buffer-track": "3.0.0-alpha.16",
@@ -41,5 +27,15 @@
     "xgplayer-transmuxer-loader-fetch": "3.0.0-alpha.16",
     "xgplayer-transmuxer-remux-mp4": "3.0.0-alpha.16",
     "xgplayer-utils-mse": "3.0.0-alpha.16"
+  },
+  "babel": {
+    "presets": [
+      [
+        "@babel/preset-env",
+        {
+          "modules": false
+        }
+      ]
+    ]
   }
 }

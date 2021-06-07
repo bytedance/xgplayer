@@ -1,7 +1,9 @@
-import { EVENTS, Mse, Crypto, FetchLoader, logger } from 'xgplayer-helper-utils'
+import { EVENTS, Mse, Crypto, FetchLoader, XhrLoader, logger } from 'xgplayer-helper-utils'
 import { RemuxedBufferManager, Tracks, Buffer as XgBuffer, Playlist } from 'xgplayer-helper-models'
 import { CompatHls as Compatibility } from 'xgplayer-helper-codec';
 import { Mp4Remuxer, M3U8Parser, TsDemuxer } from 'xgplayer-helper-transmuxers'
+
+const Loader = FetchLoader.isSupported() ? FetchLoader : XhrLoader;
 
 const LOADER_EVENTS = EVENTS.LOADER_EVENTS;
 const REMUX_EVENTS = EVENTS.REMUX_EVENTS;
@@ -33,8 +35,8 @@ class HlsVodController {
     this._compat = this._context.registry('COMPATIBILITY', Compatibility)();
 
     // 初始化M3U8Loader;
-    this._context.registry('M3U8_LOADER', FetchLoader)({ buffer: 'M3U8_BUFFER', readtype: 1 });
-    this._tsloader = this._context.registry('TS_LOADER', FetchLoader)({ buffer: 'TS_BUFFER', readtype: 3 });
+    this._context.registry('M3U8_LOADER', Loader)({ buffer: 'M3U8_BUFFER', readtype: 1 });
+    this._tsloader = this._context.registry('TS_LOADER', Loader)({ buffer: 'TS_BUFFER', readtype: 3 });
 
     // 初始化TS Demuxer
     this._demuxer = this._context.registry('TS_DEMUXER', TsDemuxer)({ inputbuffer: 'TS_BUFFER' });
@@ -227,7 +229,7 @@ class HlsVodController {
         this._context.registry('DECRYPT_BUFFER', XgBuffer)();
         this._context.registry('KEY_BUFFER', XgBuffer)();
         this._tsloader.buffer = 'DECRYPT_BUFFER';
-        this._keyLoader = this._context.registry('KEY_LOADER', FetchLoader)({buffer: 'KEY_BUFFER', readtype: 3});
+        this._keyLoader = this._context.registry('KEY_LOADER', Loader)({buffer: 'KEY_BUFFER', readtype: 3});
         this.emitTo('KEY_LOADER', LOADER_EVENTS.LADER_START, this._playlist.encrypt.uri, fetchOptions);
       } else {
         if (!this.preloadTime) {
@@ -302,7 +304,7 @@ class HlsVodController {
 
     this._lastSeekTime = time;
     this._tsloader.destroy();
-    this._tsloader = this._context.registry('TS_LOADER', FetchLoader)({ buffer: 'TS_BUFFER', readtype: 3 });
+    this._tsloader = this._context.registry('TS_LOADER', Loader)({ buffer: 'TS_BUFFER', readtype: 3 });
     if (this._presource.sources.video) {
       this._presource.sources.video.data = [];
     }

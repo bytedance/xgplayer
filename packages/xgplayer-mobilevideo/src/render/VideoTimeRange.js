@@ -1,4 +1,4 @@
-import {logger} from 'xgplayer-helper-utils';
+import { logger } from 'xgplayer-helper-utils';
 
 const TOLERANCE = 1;
 
@@ -67,6 +67,9 @@ export default class VideoTimeRange {
     return this._currentFrameQueue.length;
   }
 
+  get keyFrameLength () {
+    return this._keyframeQueue.length
+  }
   get totalSize () {
     return this._totalSize;
   }
@@ -113,11 +116,7 @@ export default class VideoTimeRange {
         } else {
           this._lastDuration = this._duration;
         }
-        logger.log(
-          this.TAG,
-          'updateBaseDts,record lastDuration:',
-          this._lastDuration
-        );
+        logger.log(this.TAG, 'updateBaseDts,record lastDuration:', this._lastDuration);
         this._baseDts = f.dts;
         break;
       }
@@ -136,7 +135,7 @@ export default class VideoTimeRange {
       if (len <= 30) return;
       frames = this._delayEstimateList;
       this._delayEstimateList = [];
-    };
+    }
     let sum = 0;
     for (let i = 0; i < len; i++) {
       sum += frames[i].data.length;
@@ -144,16 +143,16 @@ export default class VideoTimeRange {
     this._totalSize += sum;
     let delta = frames[len - 1].dts - frames[0].dts;
 
-    let bitrate = sum / delta // KB/s
+    let bitrate = sum / delta; // KB/s
     this._bitrate = parseInt(bitrate * 8000); // bps
   }
 
   _appendVodBuffer (frames) {
     if (!frames.length) return;
     let options = frames[0].options;
-    let segmentStart = options && (options.start / 1000);
+    let segmentStart = options && options.start / 1000;
     // record baseDts for pre frame
-    frames.forEach(item => {
+    frames.forEach((item) => {
       item.baseDts = this._baseDts;
     });
     let frame0 = frames[0];
@@ -167,35 +166,59 @@ export default class VideoTimeRange {
       end = start + duration;
     }
 
-    logger.log(this.TAG, `add new buffer range [${start} , ${end}]`, (options && options.start) / 1000)
-    if (!this._buffers.filter(x => x.start === start).length) {
+    logger.log(this.TAG, `add new buffer range [${start} , ${end}]`, (options && options.start) / 1000);
+    if (!this._buffers.filter((x) => x.start === start).length) {
       this._buffers.push({
         start,
         end,
         duartion: end - start,
         frames: frames.slice()
-      })
+      });
     }
 
-    this._buffers.sort((a, b) => a.start > b.start ? 1 : -1)
+    this._buffers.sort((a, b) => (a.start > b.start ? 1 : -1));
   }
 
   _recordKeyframes (frames) {
-    frames.forEach(f => {
+    frames.forEach((f) => {
       if (f.isKeyframe) {
         let position = (f.dts - this._baseDts) / 1000;
         this._keyframeQueue.push({
           position,
           frame: f
-        })
+        });
         if (this._keyframeQueue.length > 40) {
-          this._keyframeQueue.splice(0, 20)
+          this._keyframeQueue.splice(0, 20);
         }
       }
-    })
+    });
   }
 
-  append (frames, updateDuration) {
+  toAnnexBNalu (frames) {
+    frames.forEach((sample) => {
+      const nals = sample.nals;
+      if (!nals) return;
+      const nalsLength = nals.reduce((len, current) => {
+        return len + 4 + current.body.byteLength;
+      }, 0);
+      const newData = new Uint8Array(nalsLength);
+      let offset = 0;
+      nals.forEach((nal) => {
+        newData.set([0, 0, 0, 1], offset)
+        offset += 4;
+        newData.set(new Uint8Array(nal.body), offset);
+        offset += nal.body.byteLength;
+      })
+      sample.nals = null;
+      sample.data = newData;
+    })
+    // return frames
+  }
+
+  append (frames, updateDuration, isFormat) {
+    if (isFormat) {
+      this.toAnnexBNalu(frames)
+    }
     this._caclBaseDts(frames[0]);
 
     if (updateDuration) {
@@ -205,12 +228,12 @@ export default class VideoTimeRange {
     this._estimateBitRate(frames);
 
     if (this.isLive) {
-      this._recordKeyframes(frames)
+      this._recordKeyframes(frames);
       this._currentFrameQueue = this._currentFrameQueue.concat(frames);
       return;
     }
 
-    this._appendVodBuffer(frames)
+    this._appendVodBuffer(frames);
   }
 
   getFrame () {
@@ -240,10 +263,10 @@ export default class VideoTimeRange {
 
   // swith to new buffer range for vod
   switchBuffer (time) {
-    let buffer = this._buffers.filter(x => (x.start < time + TOLERANCE) && (x.end > time + TOLERANCE))[0];
+    let buffer = this._buffers.filter((x) => x.start < time + TOLERANCE && x.end > time + TOLERANCE)[0];
 
     if (buffer) {
-      logger.log(this.TAG, `switch video buffer, time:${time} , buffer:[${buffer.start} , ${buffer.end}]`)
+      logger.log(this.TAG, `switch video buffer, time:${time} , buffer:[${buffer.start} , ${buffer.end}]`);
       this._currentFrameQueue = buffer.frames.slice();
     } else {
       this._currentFrameQueue = [];
@@ -253,11 +276,14 @@ export default class VideoTimeRange {
 
   getChaseFrameStartPosition (time, preloadTime = 2) {
     let last;
-    this._keyframeQueue.forEach(keyframe => {
+    this._keyframeQueue.forEach((keyframe) => {
       if (keyframe.position < time) {
-        last = keyframe
+        last = keyframe;
       }
     })
+    if (!last) {
+      return
+    }
     if (time - last.position < preloadTime) return last;
   }
 
@@ -266,7 +292,7 @@ export default class VideoTimeRange {
   }
 
   deletePassed (dts) {
-    this._currentFrameQueue = this._currentFrameQueue.filter(x => x.dts >= dts)
+    this._currentFrameQueue = this._currentFrameQueue.filter((x) => x.dts >= dts);
   }
 
   getDtsOfTime (time) {
