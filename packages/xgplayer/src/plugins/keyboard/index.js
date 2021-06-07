@@ -7,7 +7,8 @@ class Keyboard extends BasePlugin {
 
   static get defaultConfig () {
     return {
-      seekStep: 10,
+      seekStep: 10, 
+      checkVisible: true,
       keyCodeMap: {},
       disable: false
     }
@@ -70,17 +71,18 @@ class Keyboard extends BasePlugin {
       }
     }
     this.mergekeyCodeMap()
-    this.onKeydown = this.onKeydown.bind(this)
-    this.onBodyKeyDown = this.onBodyKeyDown.bind(this)
     this.player.root.addEventListener('keydown', this.onKeydown)
     document.addEventListener('keydown', this.onBodyKeyDown)
   }
 
   checkIsVisible () {
+    if (!this.config.checkVisible) {
+      return true
+    }
     const rec = this.player.root.getBoundingClientRect()
     const {height, top, bottom} = rec
     const h = window.innerHeight
-    if ((top < 0 && top < 0 - height / 10) || (bottom > 0 && bottom - h > height / 100)) {
+    if ((top < 0 && top <  0 - height * 0.9) || (bottom > 0 && bottom - h > height * 0.9)) {
       return false
     }
     return true
@@ -152,8 +154,7 @@ class Keyboard extends BasePlugin {
     }
   }
 
-  // TODO: 多播放器实例存在的情况下，body下的快捷键会触发所有实例的逻辑，需改进
-  onBodyKeyDown (event) {
+  onBodyKeyDown = (event) => {
     if (this.config.disable || !this.checkIsVisible()) {
       return
     }
@@ -169,7 +170,7 @@ class Keyboard extends BasePlugin {
     return false
   }
 
-  onKeydown (event) {
+  onKeydown = (event) => {
     if (this.config.disable) {
       return
     }
