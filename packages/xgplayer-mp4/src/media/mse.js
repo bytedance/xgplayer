@@ -11,18 +11,20 @@ class MSE {
     this.queue = []
     this.updating = false
     this.mediaSource.addEventListener('sourceopen', function () {
-      self.sourceBuffer = self.mediaSource.addSourceBuffer(self.codecs)
-      self.sourceBuffer.addEventListener('error', function (e) {
-        self.emit('error', new Errors('mse', '', {line: 16, handle: '[MSE] constructor sourceopen', msg: e.message}))
-      })
-      self.sourceBuffer.addEventListener('updateend', function (e) {
-        self.emit('updateend')
-        let buffer = self.queue.shift()
-        if (buffer && self.sourceBuffer && !self.sourceBuffer.updating && self.state === 'open') {
-          self.sourceBuffer.appendBuffer(buffer)
-        }
-      })
-      self.emit('sourceopen')
+      if (self.mediaSource.sourceBuffers.length === 0) {
+        self.sourceBuffer = self.mediaSource.addSourceBuffer(self.codecs)
+        self.sourceBuffer.addEventListener('error', function (e) {
+          self.emit('error', new Errors('mse', '', {line: 16, handle: '[MSE] constructor sourceopen', msg: e.message}))
+        })
+        self.sourceBuffer.addEventListener('updateend', function (e) {
+          self.emit('updateend')
+          let buffer = self.queue.shift()
+          if (buffer && self.sourceBuffer && !self.sourceBuffer.updating && self.state === 'open') {
+            self.sourceBuffer.appendBuffer(buffer)
+          }
+        })
+        self.emit('sourceopen')
+      }
     })
     this.mediaSource.addEventListener('sourceclose', function () {
       self.emit('sourceclose')
@@ -54,6 +56,15 @@ class MSE {
 
   removeBuffer (start, end) {
     this.sourceBuffer.remove(start, end)
+  }
+
+  clearBuffer () {
+    if (this.sourceBuffer) {
+      const buffered = this.sourceBuffer.buffered
+      for (let i = 0; i < buffered.length; i++) {
+        this.sourceBuffer.remove(buffered.start(i), buffered.end(i))
+      }
+    }
   }
 
   endOfStream () {

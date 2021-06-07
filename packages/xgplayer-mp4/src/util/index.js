@@ -1,3 +1,4 @@
+/* eslint-disable camelcase */
 let util = {}
 
 /**
@@ -95,14 +96,14 @@ util.seekSampleOffset = function (stsc, stco, stsz, order, mdatStart) {
   let chunkOffset = util.stscOffset(stsc, order + 1)
   let result = stco.entries[chunkOffset.chunk_index - 1] + util.sum.apply(null, stsz.entries.slice(chunkOffset.samples_offset[0] - 1, chunkOffset.samples_offset[1] - 1)) - mdatStart
   if (result === undefined) {
-    throw `result=${result},stco.length=${stco.entries.length},sum=${util.sum.apply(null, stsz.entries.slice(0, order))}`
+    throw new Error(`result=${result},stco.length=${stco.entries.length},sum=${util.sum.apply(null, stsz.entries.slice(0, order))}`)
   } else if (result < 0) {
-    throw `result=${result},stco.length=${stco.entries.length},sum=${util.sum.apply(null, stsz.entries.slice(0, order))}`
+    throw new Error(`result=${result},stco.length=${stco.entries.length},sum=${util.sum.apply(null, stsz.entries.slice(0, order))}`)
   }
   return result
 }
 
-util.seekSampleTime = function (stts, ctts, order) {
+util.seekSampleTime = function (stts, ctts, order, timeOffset = 0) {
   let time; let duration; let count = 0; let startTime = 0; let offset = 0
   stts.entry.every(item => {
     duration = item.sampleDuration
@@ -130,6 +131,7 @@ util.seekSampleTime = function (stts, ctts, order) {
   if (!time) {
     time = startTime + (order - count) * duration
   }
+  time -= timeOffset
   return {time, duration, offset}
 }
 
@@ -150,12 +152,52 @@ util.seekOrderSampleByTime = function (stts, timeScale, time) {
   return {order, startTime}
 }
 
+util.sampleCount = function (stts) {
+  let count = 0
+  stts.forEach((item, idx) => {
+    count += item.sampleCount
+  })
+  return count
+}
+
 util.seekTrakDuration = function (trak, timeScale) {
   let stts = util.findBox(trak, 'stts'); let duration = 0
   stts.entry.forEach(item => {
     duration += item.sampleCount * item.sampleDuration
   })
   return Number(duration / timeScale).toFixed(4)
+}
+
+export function getResponseHeaders (xhr) {
+  const headerMap = {};
+  if (xhr instanceof window.XMLHttpRequest) {
+    try {
+      const headers = xhr.getAllResponseHeaders()
+      // Convert the header string into an array
+      // of individual headers
+      const arr = headers.trim().split(/[\r\n]+/)
+      arr.forEach(function (line) {
+        const parts = line.split(': ')
+        const header = parts.shift()
+        const value = parts.join(': ')
+        headerMap[header] = value
+      });
+    } catch (error) {
+    }
+  }
+  return headerMap
+}
+
+export function getTotalFromHeader(headers) {
+  const _range = headers['content-range']
+  if (!_range) {
+    return 0
+  }
+  const arr = _range.split('/')
+  if (arr.length > 1) {
+    return parseInt(arr[1], 10)
+  }
+  return 0
 }
 
 export default util
