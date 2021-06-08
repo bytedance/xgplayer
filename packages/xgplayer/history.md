@@ -12,6 +12,9 @@
 >* feat:(xgplayer) playNext插件添加hook;
 >* feat:(xgplayer) 内置插件内部触发的事件提取到总的事件枚举列表中, 小窗状态下mini进度条常驻
 >* feat:(xgplayer) 规范icon颜色设置,所有内置svg增加fill属性
+>* fix(xgplayer): 修复预览插件插入到video之前之后 start判断异常问题
+>* fix(xgplayer):修复播放器快捷键可见性校验异常问题并增加是否进行可见性校验的配置checkVisible
+
 
 ## 3.0.0-alpha.29
 >* 
