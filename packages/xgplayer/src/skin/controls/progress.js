@@ -331,7 +331,7 @@ let s_progress = function () {
     if (!containerWidth && container) {
       containerWidth = container.getBoundingClientRect().width
     }
-    if (player.videoConfig.mediaType !== 'audio' || !player.isProgressMoving || !player.dash) {
+    if (!player.isProgressMoving) {
       const precent = player.currentTime / player.duration
       const prevPrecent = Number(progress.style.width.replace('%', '') || '0') / Number(container.style.width || '100');
       if (Math.abs(precent - prevPrecent) <= 1) {
