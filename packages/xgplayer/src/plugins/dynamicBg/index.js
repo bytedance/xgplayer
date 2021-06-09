@@ -174,6 +174,10 @@ class DynamicBg extends Plugin {
     this.canvasCtx.drawImage(video, _pos.x, _pos.y, _pos.rwidth, _pos.rheight)
   }
 
+  destroy() {
+    this.stop()
+  }
+
   render () {
     return ''
   }
