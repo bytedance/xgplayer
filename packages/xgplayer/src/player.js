@@ -8,7 +8,7 @@ import {FULLSCREEN_EVENTS, GET_FULLSCREEN_API, EXIT_FULLSCREEN_API} from './cons
 import Plugin, {pluginsManager, BasePlugin} from './plugin'
 import STATE_CLASS from './stateClassMap'
 import getDefaultConfig from './defaultConfig'
-import { usePreset } from './plugin/preset';
+import { usePreset } from './plugin/preset'
 import hooksDescriptor from './plugin/hooksDescriptor'
 import Controls from './plugins/controls'
 import XG_DEBUG, {bindDebug} from './utils/debug'
@@ -33,7 +33,7 @@ class Player extends VideoProxy {
     if (this.config.presets.length) {
       const defaultIdx = this.config.presets.indexOf('default')
       if (defaultIdx >= 0 && Player.defaultPreset) {
-        this.config.presets[defaultIdx] = Player.defaultPreset;
+        this.config.presets[defaultIdx] = Player.defaultPreset
       }
     } else if (Player.defaultPreset) {
       this.config.presets.push(Player.defaultPreset)
@@ -116,13 +116,13 @@ class Player extends VideoProxy {
       XG_DEBUG.logWarn('The is an Player instance already exists in this.root, destroy it and reinitialize')
       ret.destroy()
     }
-    this._initBaseDoms();
+    this._initBaseDoms()
     if (this.config.controls) {
       const controls = pluginsManager.register(this, Controls)
       this.controls = controls
     }
-    const device = this.config.isMobileSimulateMode ? 'mobile' : Sniffer.device;
-    this.addClass(`${STATE_CLASS.DEFAULT} ${STATE_CLASS.ACTIVE} xgplayer-${device} ${this.config.controls ? '' : STATE_CLASS.NO_CONTROLS}`);
+    const device = this.config.isMobileSimulateMode ? 'mobile' : Sniffer.device
+    this.addClass(`${STATE_CLASS.DEFAULT} ${STATE_CLASS.ACTIVE} xgplayer-${device} ${this.config.controls ? '' : STATE_CLASS.NO_CONTROLS}`)
     if (this.config.autoplay) {
       this.addClass(STATE_CLASS.ENTER)
     } else {
@@ -137,7 +137,7 @@ class Player extends VideoProxy {
         'position': 'position',
         'top': '0',
         'left': '0'
-      };
+      }
       Object.keys(style).map(key => {
         this.root.style[key] = style[key]
       })
@@ -156,22 +156,22 @@ class Player extends VideoProxy {
   }
 
   _initBaseDoms () {
-    this.topBar = Util.createDom('xg-bar', '', {'data-index': -1}, 'xg-top-bar');
-    this.leftBar = Util.createDom('xg-bar', '', {'data-index': -1}, 'xg-left-bar');
-    this.rightBar = Util.createDom('xg-bar', '', {'data-index': -1}, 'xg-right-bar');
+    this.topBar = Util.createDom('xg-bar', '', {'data-index': -1}, 'xg-top-bar')
+    this.leftBar = Util.createDom('xg-bar', '', {'data-index': -1}, 'xg-left-bar')
+    this.rightBar = Util.createDom('xg-bar', '', {'data-index': -1}, 'xg-right-bar')
     if (this.config.marginControls) {
-      this.innerContainer = Util.createDom('xg-video-container', '', {'data-index': -1}, 'xg-video-container');
-      this.root.appendChild(this.innerContainer);
+      this.innerContainer = Util.createDom('xg-video-container', '', {'data-index': -1}, 'xg-video-container')
+      this.root.appendChild(this.innerContainer)
     }
-    this.root.appendChild(this.topBar);
-    this.root.appendChild(this.leftBar);
-    this.root.appendChild(this.rightBar);
+    this.root.appendChild(this.topBar)
+    this.root.appendChild(this.leftBar)
+    this.root.appendChild(this.rightBar)
   }
 
   _bindEvents () {
     ['focus', 'blur'].forEach(item => {
       this.on(item, this['on' + item.charAt(0).toUpperCase() + item.slice(1)])
-    });
+    })
     const resetFullState = () => {
       this.fullscreen = false
       this._fullScreenOffset = null
@@ -241,10 +241,10 @@ class Player extends VideoProxy {
   }
 
   _unbindEvents () {
-    this.root.removeEventListener('mousemove', this.mousemoveFunc);
+    this.root.removeEventListener('mousemove', this.mousemoveFunc)
     FULLSCREEN_EVENTS.forEach(item => {
       document.removeEventListener(item, this.onFullscreenChange)
-    });
+    })
     this.playFunc && this.off('play', this.playFunc)
     this.canPlayFunc && this.off('canplay', this.canPlayFunc)
     this.video.removeEventListener('webkitbeginfullscreen', this.__webkitbeginfullscreen)
@@ -316,7 +316,7 @@ class Player extends VideoProxy {
     this._loadingPlugins = []
     const ignores = this.config.ignores || []
     const plugins = this.config.plugins || []
-    const ignoresStr = ignores.join('||').toLowerCase().split('||');
+    const ignoresStr = ignores.join('||').toLowerCase().split('||')
     plugins.map(plugin => {
       try {
         const pluginName = plugin.plugin ? plugin.plugin.pluginName : plugin.pluginName
@@ -328,15 +328,15 @@ class Player extends VideoProxy {
           const loadingPlugin = pluginsManager.lazyRegister(this, plugin)
           if (plugin.forceBeforeInit) {
             loadingPlugin.then(() => {
-              this._loadingPlugins.splice(this._loadingPlugins.indexOf(loadingPlugin), 1);
+              this._loadingPlugins.splice(this._loadingPlugins.indexOf(loadingPlugin), 1)
             }).catch((e) => {
               XG_DEBUG.logError('_registerPlugins:loadingPlugin', e)
-              this._loadingPlugins.splice(this._loadingPlugins.indexOf(loadingPlugin), 1);
+              this._loadingPlugins.splice(this._loadingPlugins.indexOf(loadingPlugin), 1)
             })
             this._loadingPlugins.push(loadingPlugin)
           }
 
-          return;
+          return
         }
         return this.registerPlugin(plugin)
       } catch (err) {
@@ -375,7 +375,7 @@ class Player extends VideoProxy {
           _pConfig.root && (options.root = _pConfig.root)
           _pConfig.position && (options.position = _pConfig.position)
         }
-        break;
+        break
       }
     }
 
@@ -388,16 +388,16 @@ class Player extends VideoProxy {
       switch (position) {
         case POSITIONS.ROOT_RIGHT:
           options.root = this.rightBar
-          break;
+          break
         case POSITIONS.ROOT_LEFT:
           options.root = this.leftBar
-          break;
+          break
         case POSITIONS.ROOT_TOP:
           options.root = this.topBar
-          break;
+          break
         default:
           options.root = this.innerContainer || this.root
-          break;
+          break
       }
     }
     return pluginsManager.register(this, PLUFGIN, options)
@@ -425,7 +425,7 @@ class Player extends VideoProxy {
 
   addClass (className) {
     if (!this.root) {
-      return;
+      return
     }
     if (!Util.hasClass(this.root, className)) {
       Util.addClass(this.root, className)
@@ -434,28 +434,28 @@ class Player extends VideoProxy {
 
   removeClass (className) {
     if (!this.root) {
-      return;
+      return
     }
     Util.removeClass(this.root, className)
   }
 
   hasClass (className) {
     if (!this.root) {
-      return;
+      return
     }
     return Util.hasClass(this.root, className)
   }
 
   setAttribute (key, value) {
     if (!this.root) {
-      return;
+      return
     }
     this.root.setAttribute(key, value)
   }
 
   removeAttribute (key, value) {
     if (!this.root) {
-      return;
+      return
     }
     this.root.removeAttribute(key, value)
   }
@@ -472,7 +472,7 @@ class Player extends VideoProxy {
         return
       }
       if (!url) {
-        url = this.url || this.config.url;
+        url = this.url || this.config.url
       }
       const ret = this._startInit(url)
       return ret
@@ -587,7 +587,7 @@ class Player extends VideoProxy {
     if (!this.isPlaying) {
       this.removeClass(STATE_CLASS.NO_START)
       this.addClass(STATE_CLASS.ENTER)
-      this.currentTime = time;
+      this.currentTime = time
       _status === 'play' && this.play()
     } else {
       this.currentTime = time
@@ -604,7 +604,7 @@ class Player extends VideoProxy {
 
   resetClasses () {
     const { NOT_ALLOW_AUTOPLAY, PLAYING, NO_START, PAUSED, REPLAY, ENTER, ENDED, ERROR } = STATE_CLASS
-    const clsList = [NOT_ALLOW_AUTOPLAY, PLAYING, NO_START, PAUSED, REPLAY, ENTER, ENDED, ERROR];
+    const clsList = [NOT_ALLOW_AUTOPLAY, PLAYING, NO_START, PAUSED, REPLAY, ENTER, ENDED, ERROR]
     clsList.forEach((cls) => {
       this.removeClass(cls)
     })
@@ -782,7 +782,7 @@ class Player extends VideoProxy {
       Util.clearTimeout(this, this.userTimer)
     }
     if (data.autoHide === false) {
-      return;
+      return
     }
     const time = data && data.delay ? data.delay : this.config.inactive
     this.userTimer = Util.setTimeout(this, () => {
@@ -792,7 +792,7 @@ class Player extends VideoProxy {
 
   onBlur (data = {ignoreStatus: false}) {
     if (!this.isActive) {
-      return;
+      return
     }
     const {closePauseVideoFocus} = this.config
     this.isActive = false
@@ -840,7 +840,7 @@ class Player extends VideoProxy {
     if (!this.isSeeking) {
       const {_played} = this
       _played.acc += _played.begin < _played.end && _played.end > -1 ? _played.end - _played.begin : 0
-      _played.begin = parseInt(this.video.currentTime * 1000, 10);
+      _played.begin = parseInt(this.video.currentTime * 1000, 10)
       _played.end = -1
     }
     this.isSeeking = true
@@ -870,7 +870,7 @@ class Player extends VideoProxy {
 
   onPlaying () {
     const { NO_START, PAUSED, ENDED, ERROR, REPLAY } = STATE_CLASS
-    const clsList = [NO_START, PAUSED, ENDED, ERROR, REPLAY];
+    const clsList = [NO_START, PAUSED, ENDED, ERROR, REPLAY]
     clsList.forEach((cls) => {
       this.removeClass(cls)
     })
@@ -927,8 +927,8 @@ class Player extends VideoProxy {
     const height = containerSize.height - controlsHeight
     const videoFit = parseInt(videoWidth / videoHeight * 1000, 10)
     const fit = parseInt(width / height * 1000, 10)
-    let rWidth = width;
-    let rHeight = height;
+    let rWidth = width
+    let rHeight = height
     if ((fitVideoSize === 'auto' && fit > videoFit) || fitVideoSize === 'fixWidth') {
       rHeight = width / videoFit * 1000
       if (this.config.fluid) {
@@ -949,10 +949,10 @@ class Player extends VideoProxy {
 
   updateObjectPosition (left = 0, top = 0) {
     if (this.video.updateObjectPosition) {
-      this.video.updateObjectPosition(left, top);
-      return;
+      this.video.updateObjectPosition(left, top)
+      return
     }
-    this.video.style.objectPosition = `${left * 100}% ${top * 100}%`;
+    this.video.style.objectPosition = `${left * 100}% ${top * 100}%`
   }
 
   set lang (lang) {
@@ -999,7 +999,7 @@ class Player extends VideoProxy {
   }
 
   get fullscreen () {
-    return this._isFullScreen;
+    return this._isFullScreen
   }
 
   set fullscreen (val) {

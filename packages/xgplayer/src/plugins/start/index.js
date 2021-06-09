@@ -13,7 +13,7 @@ function addAnimate (key, seconds, callback = {start: null, end: null}) {
     callback.end && callback.end()
     window.clearTimeout(AnimateMap[key].id)
     delete AnimateMap[key]
-  }, seconds);
+  }, seconds)
 }
 
 function clearAnimation () {
@@ -65,14 +65,14 @@ class Start extends Plugin {
     })
 
     if (!playerConfig.autoplay) {
-      this.show();
+      this.show()
     }
 
     this.on(Events.AUTOPLAY_PREVENTED, () => {
       const className = this.config.mode === 'auto' ? 'auto-hide' : 'hide'
       this.setAttr('data-state', 'play')
       Util.removeClass(this.root, className)
-      this.show();
+      this.show()
     })
 
     this.on(Events.PLAY, () => {
@@ -141,7 +141,7 @@ class Start extends Plugin {
         this.switchStatus(true)
       },
       end: () => {
-        Util.removeClass(this.root, 'interact');
+        Util.removeClass(this.root, 'interact')
         !endShow && this.hide()
       }
     })
@@ -152,7 +152,7 @@ class Start extends Plugin {
     e.preventDefault()
     e.stopPropagation()
     if (!player.isReady) {
-      return;
+      return
     }
     const paused = this.player.paused
     if (!paused && player.isPlaying) {

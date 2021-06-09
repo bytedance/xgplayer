@@ -76,7 +76,7 @@ export default class ScreenShot extends Plugin {
     const type = option.type || config.type
     return new Promise((resolve, reject) => {
       if (!this.canvas) {
-        this.createCanvans(width, height);
+        this.createCanvans(width, height)
       } else {
         this.canvas.width = width || config.width
         this.canvas.height = height || config.height
@@ -101,7 +101,7 @@ export default class ScreenShot extends Plugin {
 
   render () {
     if (this.config.disable) {
-      return;
+      return
     }
     const className = this.icons.screenshotIcon ? 'xgplayer-icon' : 'xgplayer-icon btn-text'
     const langKey = 'SCREENSHOT'

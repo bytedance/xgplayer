@@ -70,7 +70,7 @@ class Proxy {
       'webkit-airplay': options['airplay'],
       tabindex: 2,
       mediaType: options.mediaType || 'video'
-    }, options.videoConfig, options.videoAttrbutes);
+    }, options.videoConfig, options.videoAttrbutes)
     /**
      * @description 微信内部同层播放兼容
      * x5-playsinline和x5-video-player-type互斥，只需要存在一个即可
@@ -180,8 +180,8 @@ class Proxy {
       this.video.removeAttribute('src') // empty source
       // this.video.load()
     }
-    this._currentTime = 0;
-    this._duration = 0;
+    this._currentTime = 0
+    this._duration = 0
     for (let k in this._interval) {
       clearInterval(this._interval[k])
       this._interval[k] = null
@@ -393,12 +393,12 @@ class Proxy {
   set src (url) {
     this.emit(URL_CHANGE, url)
     // this.video.pause()
-    this._currentTime = 0;
-    this._duration = 0;
+    this._currentTime = 0
+    this._duration = 0
     // firefox有些版本无法识别blob类型的currentSrc
     if (/^blob/.test(this.video.currentSrc) || /^blob/.test(this.video.src)) { // has transmuxer core
-      this.onWaiting();
-      return;
+      this.onWaiting()
+      return
     }
     this.video.src = url
   }

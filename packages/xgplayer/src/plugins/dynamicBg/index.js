@@ -6,10 +6,10 @@ const MODES = {
   FRAME_RATE: 'framerate'
 }
 
-function nowTime() {
+function nowTime () {
   try {
     return window.performance.now()
-  } catch(e) {
+  } catch (e) {
     return new Date().getTime()
   }
 }
@@ -34,7 +34,7 @@ class DynamicBg extends Plugin {
     if (this.playerConfig.dynamicBg === true) {
       this.config.disable = false
     }
-    const { disable, mode, frameRate } = this.config
+    const { disable, mode } = this.config
     if (disable) {
       return
     }
@@ -52,7 +52,7 @@ class DynamicBg extends Plugin {
     this.interval = parseInt(1000 / this.config.frameRate, 10)
     this.once(Events.COMPLETE, () => {
       this.init()
-    });
+    })
 
     this.once(Events.LOADED_DATA, this.onLoadedData)
     this.on(Events.URL_CHANGE, () => {
@@ -135,10 +135,10 @@ class DynamicBg extends Plugin {
     image.onload = () => {
       this.canvas.height = height
       this.canvas.width = width
-      this.update (image, image.width, image.height)
+      this.update(image, image.width, image.height)
       image = null
     }
-    image.src = url;
+    image.src = url
   }
 
   update (video, videoWidth, videoHeight) {
@@ -174,7 +174,7 @@ class DynamicBg extends Plugin {
     this.canvasCtx.drawImage(video, _pos.x, _pos.y, _pos.rwidth, _pos.rheight)
   }
 
-  destroy() {
+  destroy () {
     this.stop()
   }
 

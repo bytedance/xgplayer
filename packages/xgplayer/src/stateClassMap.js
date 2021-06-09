@@ -24,4 +24,4 @@ export default {
   PC: 'xgplayer-pc',
   MOBILE: 'xgplayer-mobile',
   MINI: 'xgplayer-mini' // 小窗播放状态
-};
+}

@@ -43,7 +43,7 @@ export default class PlaybackRate extends OptionsIcon {
     super.afterCreate()
     this.on(Events.RATE_CHANGE, () => {
       if (this.curValue === this.player.playbackRate) {
-        return;
+        return
       }
       this.renderItemList()
     })
@@ -52,7 +52,7 @@ export default class PlaybackRate extends OptionsIcon {
 
   show () {
     if (!this.config.list || this.config.list.length === 0) {
-      return;
+      return
     }
     super.show()
   }

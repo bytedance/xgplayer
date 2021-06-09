@@ -35,7 +35,7 @@ export default class ErrorPlugin extends Plugin {
   }
 
   handleError (error = {}) {
-    const { player } = this;
+    const { player } = this
     const errorNote = error && error.message ? error.message : player.error
     this.find('.xgplayer-error-text').innerHTML = errorNote
     this.find('.xgplayer-error-tips').innerHTML = `${this.i18n.REFRESH_TIPS}<span class="xgplayer-error-refresh">${this.i18n.REFRESH}</span>`

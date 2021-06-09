@@ -58,7 +58,7 @@ class Controls extends Plugin {
   }
 
   onMouseEnter = (e) => {
-    const { player } = this;
+    const { player } = this
     if (player.userTimer) {
       Util.clearTimeout(player, player.userTimer)
       clearTimeout(player.userTimer)
@@ -66,7 +66,7 @@ class Controls extends Plugin {
   }
 
   onMouseLeave = () => {
-    const { player, playerConfig } = this;
+    const { player, playerConfig } = this
     const delay = !playerConfig.closeControlsBlur ? playerConfig.inactive : 200
     player.emit(Events.PLAYER_FOCUS, {delay})
   }
@@ -105,7 +105,7 @@ class Controls extends Plugin {
 
   registerPlugin (plugin, options = {}, name) {
     if (!this.root) {
-      return;
+      return
     }
     const defaultConfig = plugin.defaultConfig || {}
     if (!options.root) {
@@ -115,14 +115,14 @@ class Controls extends Plugin {
           options.root = this.left
           break
         case POSITIONS.CONTROLS_RIGHT:
-          options.root = this.right;
-          break;
+          options.root = this.right
+          break
         case POSITIONS.CONTROLS_CENTER:
-          options.root = this.center;
-          break;
+          options.root = this.center
+          break
         case POSITIONS.CONTROLS:
-          options.root = this.root;
-          break;
+          options.root = this.root
+          break
         default:
           options.root = this.left
       }
@@ -140,9 +140,9 @@ class Controls extends Plugin {
   render () {
     const { mode, autoHide, initShow, disable } = this.config
     if (disable) {
-      return;
+      return
     }
-   const className =  Util.classNames(
+    const className = Util.classNames(
       {'flex-controls': mode === 'flex'},
       {'bottom-controls': mode === 'bottom'},
       {'control_autohide': autoHide},

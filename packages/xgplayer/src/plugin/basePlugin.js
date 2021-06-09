@@ -145,13 +145,13 @@ class BasePlugin {
     this.offAll()
     Util.clearAllTimers(this)
     if (Util.checkIsFunction(this.destroy)) {
-      this.destroy();
+      this.destroy()
     }
 
     ['player', 'playerConfig', 'pluginName', 'logger'].map(item => {
       Object.defineProperty(this, item, {
         writable: true
-      });
+      })
     })
     Object.keys(this).map(key => {
       this[key] = null

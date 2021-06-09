@@ -1,8 +1,8 @@
-import Plugin, {Util} from '../../plugin';
+import Plugin, {Util} from '../../plugin'
 
 class Enter extends Plugin {
   static get pluginName () {
-    return 'enter';
+    return 'enter'
   }
 
   static get defaultConfig () {
@@ -21,9 +21,9 @@ class Enter extends Plugin {
     } else if (innerHtml && typeof innerHtml === 'string') {
       root.innerHTML = innerHtml
     } else {
-      let barStr = '';
+      let barStr = ''
       for (let i = 1; i <= 12; i++) {
-        barStr += `<div class="xgplayer-enter-bar${i}"></div>`;
+        barStr += `<div class="xgplayer-enter-bar${i}"></div>`
       }
       root.innerHTML = `<div class="xgplayer-enter-spinner">${barStr}</div>`
     }
@@ -31,4 +31,4 @@ class Enter extends Plugin {
   }
 }
 
-export default Enter;
+export default Enter

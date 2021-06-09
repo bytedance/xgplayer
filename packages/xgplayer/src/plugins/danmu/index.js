@@ -8,7 +8,7 @@ const MIN_INTERVAL = 300
 class Danmu extends Plugin {
   constructor (args) {
     super(args)
-    this.danmujs = null;
+    this.danmujs = null
     this.danmuPanel = null
     this.isOpen = false
     this.seekCost = 0
@@ -104,7 +104,7 @@ class Danmu extends Plugin {
 
   initDanmu () {
     const {player, config} = this
-    const { channelSize, fontSize, opacity,  mouseControl, mouseControlPause, area, defaultOff } = this.config
+    const { channelSize, fontSize, opacity, mouseControl, mouseControlPause, area, defaultOff } = this.config
     const danmuConfig = {
       container: this.root,
       player: player.video,
@@ -122,9 +122,9 @@ class Danmu extends Plugin {
     }
     const danmu = new DanmuJs(danmuConfig)
     this.danmujs = danmu
-    player.danmu = danmu;
-    this.setFontSize(fontSize, channelSize);
-    this.setArea(area);
+    player.danmu = danmu
+    this.setFontSize(fontSize, channelSize)
+    this.setArea(area)
     this.resize()
     opacity !== 1 && this.setOpacity(opacity)
   }
@@ -248,7 +248,7 @@ class Danmu extends Plugin {
     this.danmujs && this.danmujs.setFontSize(size, channelSize)
   }
 
-  resize() {
+  resize () {
     this.danmujs && this.danmujs.resize()
   }
 

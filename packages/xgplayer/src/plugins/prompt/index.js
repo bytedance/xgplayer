@@ -24,8 +24,8 @@ class Prompt extends Plugin {
   }
 
   afterCreate () {
-    this.intervalId = 0;
-    this.customConfig = null;
+    this.intervalId = 0
+    this.customConfig = null
     this.bind('.highlight', ['click', 'touchend'], (e) => {
       if (this.config.onClick || this.customOnClick) {
         e.preventDefault()

@@ -19,8 +19,8 @@ export default class PlayNextIcon extends Plugin {
   }
 
   constructor (options) {
-    super(options);
-    this.idx = -1;
+    super(options)
+    this.idx = -1
   }
 
   afterCreate () {
@@ -46,28 +46,28 @@ export default class PlayNextIcon extends Plugin {
   }
 
   playNext = (e) => {
-    const { player } = this;
+    const { player } = this
     e.preventDefault()
     e.stopPropagation()
     if (this.idx + 1 < this.config.urlList.length) {
-      this.idx++;
-      player.emit(Events.PLAYNEXT, this.idx + 1);
+      this.idx++
+      player.emit(Events.PLAYNEXT, this.idx + 1)
       this.nextHandler(this.config.urlList[this.idx], this.idx)
     } else {
       this.nextHandler()
-      player.emit(Events.PLAYNEXT);
+      player.emit(Events.PLAYNEXT)
     }
   }
 
   changeSrc (url) {
-    const { player } = this;
+    const { player } = this
     if (!url) {
       return
     }
-    player.pause();
-    player.currentTime = 0;
-    player.autoplay = true;
-    player.src = url;
+    player.pause()
+    player.currentTime = 0
+    player.autoplay = true
+    player.src = url
   }
 
   destroy () {

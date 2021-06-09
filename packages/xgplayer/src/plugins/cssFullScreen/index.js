@@ -30,7 +30,7 @@ export default class CssFullScreen extends Plugin {
     this.on(Events.CSS_FULLSCREEN_CHANGE, (isCssfullScreen) => {
       this.animate(isCssfullScreen)
     })
-    this.btnClick = this.btnClick.bind(this);
+    this.btnClick = this.btnClick.bind(this)
     this.bind(['click', 'touchend'], this.btnClick)
   }
 
@@ -53,7 +53,7 @@ export default class CssFullScreen extends Plugin {
 
   animate (isFullScreen) {
     if (!this.root) {
-      return;
+      return
     }
     isFullScreen ? this.setAttr('data-state', 'full') : this.setAttr('data-state', 'normal')
     this.switchTips(isFullScreen)

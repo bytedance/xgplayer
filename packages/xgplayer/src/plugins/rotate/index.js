@@ -31,10 +31,10 @@ export default class Rotate extends Plugin {
 
   afterCreate () {
     if (this.config.disable) {
-      return;
+      return
     }
     this.appendChild('.xgplayer-icon', this.icons.rotate)
-    this.onBtnClick = this.onBtnClick.bind(this);
+    this.onBtnClick = this.onBtnClick.bind(this)
     this.bind('.xgplayer-icon', ['click', 'touchend'], this.onBtnClick)
     // 全屏/css全屏/容器宽高发生变化 需要重新计算
     this.on([Events.FULLSCREEN_CHANGE, Events.CSS_FULLSCREEN_CHANGE, Events.VIDEO_RESIZE], () => {
@@ -60,7 +60,7 @@ export default class Rotate extends Plugin {
   }
 
   updateRotateDeg (rotateDeg, innerRotate) {
-    let player = this.player;
+    let player = this.player
     if (!rotateDeg) {
       rotateDeg = 0
     }
@@ -96,7 +96,7 @@ export default class Rotate extends Plugin {
   }
 
   rotate (clockwise = false, innerRotate = true, times = 1) {
-    let player = this.player;
+    let player = this.player
     if (!this.rotateDeg) {
       this.rotateDeg = 0
     }
@@ -115,7 +115,7 @@ export default class Rotate extends Plugin {
 
   render () {
     if (this.config.disable) {
-      return;
+      return
     }
     return `
     <xg-icon class="xgplayer-rotate">

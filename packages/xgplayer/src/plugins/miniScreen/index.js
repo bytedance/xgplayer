@@ -110,7 +110,7 @@ class MiniScreen extends Plugin {
 
   onScroll = (e) => {
     if ((!window.scrollY && window.scrollY !== 0) || Math.abs(window.scrollY - this.pos.scrollY) < 50) {
-      return;
+      return
     }
     let scrollHeight = parseInt(Util.getCss(this.player.root, 'height'))
     scrollHeight += this.config.scrollTop
@@ -127,7 +127,7 @@ class MiniScreen extends Plugin {
     if (this.isMini) {
       return
     }
-    const {player, playerConfig} = this;
+    const {player, playerConfig} = this
     const target = this.config.target || this.player.root
     this.lastStyle = {}
     Util.addClass(player.root, 'xgplayer-mini');
@@ -146,7 +146,7 @@ class MiniScreen extends Plugin {
     if (!this.isMini) {
       return false
     }
-    const {player, playerConfig} = this;
+    const {player, playerConfig} = this
     const target = this.config.target || this.player.root
     Util.removeClass(player.root, 'xgplayer-mini')
     if (this.lastStyle) {
@@ -154,7 +154,7 @@ class MiniScreen extends Plugin {
         target.style[key] = this.lastStyle[key]
       })
     }
-    this.lastStyle = null;
+    this.lastStyle = null
     if (playerConfig.fluid) {
       player.root.style['width'] = '100%'
       player.root.style['height'] = '0'

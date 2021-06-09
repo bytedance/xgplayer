@@ -98,7 +98,7 @@ class Time extends Plugin {
       this.hide()
       return
     }
-    this.show();
+    this.show()
   }
 
   changeLiveState (isLive) {

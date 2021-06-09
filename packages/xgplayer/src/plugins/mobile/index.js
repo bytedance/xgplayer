@@ -104,7 +104,7 @@ class MobilePlugin extends Plugin {
 
     this.root.addEventListener('contextmenu', e => {
       e.preventDefault()
-    });
+    })
 
     player.root.addEventListener('touchmove', this.onRootTouchMove, true)
     player.root.addEventListener('touchend', this.onRootTouchEnd, true)

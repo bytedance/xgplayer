@@ -24,11 +24,11 @@ export default class InnerList {
     let start = 0
     const { fragments } = this
     this.fragments = fragments.map(item => {
-      item.start = start;
-      item.end = start + item.percent * this.duration;
-      item.duration = item.percent * this.duration;
-      start += item.percent * this.duration;
-      return item;
+      item.start = start
+      item.end = start + item.percent * this.duration
+      item.duration = item.percent * this.duration
+      start += item.percent * this.duration
+      return item
     })
   }
 
@@ -52,7 +52,7 @@ export default class InnerList {
   update (data = {cached: 0, played: 0}, duration) {
     if (!this.duration || parseInt(duration * 1000, 10) !== this.duration) {
       if (!duration) {
-        return;
+        return
       }
       this.updateDuration(duration)
     }
@@ -149,13 +149,13 @@ export default class InnerList {
           style: progressColor ? `background:${progressColor}; flex: ${item.percent}` : `flex: ${item.percent}`
         }, `${item.isFocus ? 'inner-focus' : ''} xgplayer-progress-inner`)
 
-        this.root.appendChild(inner);
+        this.root.appendChild(inner)
 
         TPL.map(item => {
           inner.appendChild(Util.createDom(item.tag, '', {
             style: item.styleKey ? `background: ${this.style[item.styleKey]}; width:0;` : 'width:0;'
           }, item.className))
-        });
+        })
 
         return {
           cached: inner.children[0],

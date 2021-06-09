@@ -89,7 +89,7 @@ export default class TextTrack extends OptionsIcon {
 
   show () {
     if (!this.config.list || this.config.list.length === 0) {
-      return;
+      return
     }
     super.show()
   }

@@ -154,7 +154,7 @@ class Touche {
 
   onTouchStart (e) {
     const {_pos, root} = this
-    preventToucheDefault(e);
+    preventToucheDefault(e)
     const touch = getTouch(e.touches)
     _pos.x = touch ? parseInt(touch.pageX, 10) : e.pageX
     _pos.y = touch ? parseInt(touch.pageX, 10) : e.pageX
@@ -172,7 +172,7 @@ class Touche {
 
   onTouchEnd (e) {
     const {_pos, root} = this
-    preventToucheDefault(e);
+    preventToucheDefault(e)
     this.__clearPress()
     root.removeEventListener(this.events.cancel, this.onTouchCancel)
     root.removeEventListener(this.events.end, this.onTouchEnd)

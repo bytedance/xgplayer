@@ -11,9 +11,9 @@ import delegate from 'delegate'
  */
 function isUrl (str) {
   if (!str) {
-    return false;
+    return false
   }
-  return str.indexOf && /^http/.test(str);
+  return str.indexOf && /^http/.test(str)
 }
 
 function mergeIconClass (icon, classname) {
@@ -33,57 +33,57 @@ function mergeIconAttr (icon, attr) {
 }
 
 function createIcon (icon, key, classname = '', attr = {}, pluginName = '') {
-  let newIcon = null;
+  let newIcon = null
   if (icon instanceof window.Element) {
-    Util.addClass(icon, classname);
+    Util.addClass(icon, classname)
     Object.keys(attr).map(key => {
-      icon.setAttribute(key, attr[key]);
+      icon.setAttribute(key, attr[key])
     })
-    return icon;
+    return icon
   }
 
   if (isUrl(icon) || isUrl(icon.url)) {
-    attr.src = isUrl(icon) ? icon : (icon.url || '');
-    newIcon = Util.createDom(icon.tag || 'img', '', attr, `xg-img ${classname}`);
-    return newIcon;
+    attr.src = isUrl(icon) ? icon : (icon.url || '')
+    newIcon = Util.createDom(icon.tag || 'img', '', attr, `xg-img ${classname}`)
+    return newIcon
   }
 
   if (typeof icon === 'function') {
     try {
-      newIcon = icon();
+      newIcon = icon()
       if (newIcon instanceof window.Element) {
-        Util.addClass(newIcon, classname);
+        Util.addClass(newIcon, classname)
         Object.keys(attr).map(key => {
-          newIcon.setAttribute(key, attr[key]);
+          newIcon.setAttribute(key, attr[key])
         })
-        return newIcon;
+        return newIcon
       } else {
         XG_DEBUG.logWarn(`warn>>icons.${key} in config of plugin named [${pluginName}] is a function mast return an Element Object`)
       }
-      return null;
+      return null
     } catch (e) {
       XG_DEBUG.logError(`Plugin named [${pluginName}]:createIcon`, e)
-      return null;
+      return null
     }
   }
 
   if (typeof icon === 'string') {
-    return Util.createDomFromHtml(icon, attr, classname);
+    return Util.createDomFromHtml(icon, attr, classname)
   }
   XG_DEBUG.logWarn(`warn>>icons.${key} in config of plugin named [${pluginName}] is invalid`)
-  return null;
+  return null
 }
 
 function registerIconsObj (iconsConfig, plugin) {
   const _icons = plugin.config.icons || plugin.playerConfig.icons
   Object.keys(iconsConfig).map(key => {
-    const orgIcon = iconsConfig[key];
-    let classname = orgIcon && orgIcon.class ? orgIcon.class : '';
-    let attr = orgIcon && orgIcon.attr ? orgIcon.attr : {};
-    let newIcon = null;
+    const orgIcon = iconsConfig[key]
+    let classname = orgIcon && orgIcon.class ? orgIcon.class : ''
+    let attr = orgIcon && orgIcon.attr ? orgIcon.attr : {}
+    let newIcon = null
     if (_icons && _icons[key]) {
-      classname = mergeIconClass(_icons[key], classname);
-      attr = mergeIconAttr(_icons[key], attr);
+      classname = mergeIconClass(_icons[key], classname)
+      attr = mergeIconAttr(_icons[key], attr)
       newIcon = createIcon(_icons[key], key, classname, attr, plugin.pluginName)
     }
     if (!newIcon && orgIcon) {
@@ -117,17 +117,17 @@ class Plugin extends BasePlugin {
     const isDomElement = html instanceof window.Node
 
     if (len) {
-      let i = 0;
-      let coordinate = null;
-      let mode = '';
+      let i = 0
+      let coordinate = null
+      let mode = ''
       for (;i < len; i++) {
-        coordinate = parent.children[i];
-        const curIdx = Number(coordinate.getAttribute('data-index'));
+        coordinate = parent.children[i]
+        const curIdx = Number(coordinate.getAttribute('data-index'))
         if (curIdx >= insertIdx) {
-          mode = 'beforebegin';
-          break;
+          mode = 'beforebegin'
+          break
         } else if (curIdx < insertIdx) {
-          mode = 'afterend';
+          mode = 'afterend'
         }
       }
 
@@ -141,10 +141,10 @@ class Plugin extends BasePlugin {
       } else {
         coordinate.insertAdjacentHTML(mode, html)
       }
-      return mode === 'afterend' ? parent.children[parent.children.length - 1] : parent.children[i];
+      return mode === 'afterend' ? parent.children[parent.children.length - 1] : parent.children[i]
     } else {
       isDomElement ? parent.appendChild(html) : parent.insertAdjacentHTML('beforeend', html)
-      return parent.children[parent.children.length - 1];
+      return parent.children[parent.children.length - 1]
     }
   }
 
@@ -429,7 +429,7 @@ class Plugin extends BasePlugin {
 
   show (value) {
     if (!this.root) {
-      return;
+      return
     }
     this.root.style.display = value !== undefined ? value : 'block'
     const cs = window.getComputedStyle(this.root, null)
@@ -494,7 +494,7 @@ class Plugin extends BasePlugin {
     ['root', 'parent'].map(item => {
       Object.defineProperty(this, item, {
         writable: true
-      });
+      })
     })
   }
 }

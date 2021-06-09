@@ -44,7 +44,7 @@ util.createDomFromHtml = function (html, attrs = {}, classname = '') {
 
 util.hasClass = function (el, className) {
   if (!el) {
-    return false;
+    return false
   }
   if (el.classList) {
     return Array.prototype.some.call(el.classList, item => item === className)
@@ -56,7 +56,7 @@ util.hasClass = function (el, className) {
 
 util.addClass = function (el, className) {
   if (!el) {
-    return;
+    return
   }
 
   if (el.classList) {
@@ -74,7 +74,7 @@ util.addClass = function (el, className) {
 
 util.removeClass = function (el, className) {
   if (!el) {
-    return;
+    return
   }
 
   if (el.classList) {
@@ -95,7 +95,7 @@ util.removeClass = function (el, className) {
 
 util.toggleClass = function (el, className) {
   if (!el) {
-    return;
+    return
   }
 
   className.split(/\s+/g).forEach(item => {
@@ -107,9 +107,9 @@ util.toggleClass = function (el, className) {
   })
 }
 
-util.classNames = function() {
+util.classNames = function () {
   let classname = ''
-  for(let i = 0; i < arguments.length; i++) {
+  for (let i = 0; i < arguments.length; i++) {
     if (util.typeOf(arguments[i]) === 'String') {
       classname += `${arguments[i]}`
     } else if (util.typeOf(arguments[i]) === 'Object') {
@@ -387,8 +387,8 @@ util.setStyleFromCsstext = function (dom, text) {
   }
 }
 
-function checkIsIn(key, list) {
-  for(let i = 0, len = list.length; i < len; i++) {
+function checkIsIn (key, list) {
+  for (let i = 0, len = list.length; i < len; i++) {
     if (key.indexOf(list[i]) > -1) {
       return true
     }
@@ -396,9 +396,9 @@ function checkIsIn(key, list) {
   return false
 }
 
-util.filterStyleFromText = function(dom, list = ['width', 'height', 'top', 'left', 'bottom','right','position', 'z-index', 'padding', 'margin', 'transform']) {
+util.filterStyleFromText = function (dom, list = ['width', 'height', 'top', 'left', 'bottom', 'right', 'position', 'z-index', 'padding', 'margin', 'transform']) {
   const _cssText = dom.style.cssText
-  if(!_cssText) {
+  if (!_cssText) {
     return {}
   }
   const styleArr = _cssText.replace(/\s+/g, '').split(';')
@@ -408,7 +408,7 @@ util.filterStyleFromText = function(dom, list = ['width', 'height', 'top', 'left
     if (item) {
       const arr = item.split(':')
       if (arr.length > 1) {
-        if(checkIsIn(arr[0], list)) {
+        if (checkIsIn(arr[0], list)) {
           ret[arr[0]] = arr[1]
           // dom.style[arr[0]] = 'initial'
         } else {
@@ -430,7 +430,7 @@ util.filterStyleFromText = function(dom, list = ['width', 'height', 'top', 'left
   return ret
 }
 
-util.getStyleFromCsstext = function (dom){
+util.getStyleFromCsstext = function (dom) {
   const _cssText = dom.style.cssText
   if (!_cssText) {
     return {}
@@ -448,7 +448,7 @@ util.getStyleFromCsstext = function (dom){
   return ret
 }
 
-util.getStyleFromCsstext = function (dom){
+util.getStyleFromCsstext = function (dom) {
   const _cssText = dom.style.cssText
   const styleArr = _cssText.replace(/\s+/g, '').split(';')
   const ret = {}
@@ -464,7 +464,7 @@ util.getStyleFromCsstext = function (dom){
 }
 
 util.preloadImg = (url, onload = () => {}, onerror = () => {}) => {
-  let img = new window.Image();
+  let img = new window.Image()
   if (img.complete) {
     // 图片已经加载过了，可以使用图片
     // do something here
@@ -481,7 +481,7 @@ util.preloadImg = (url, onload = () => {}, onerror = () => {}) => {
       onerror && onerror(e)
     }
   }
-  img.src = url;
+  img.src = url
 }
 
 util.stopPropagation = (e) => {
@@ -495,14 +495,14 @@ util.scrollTop = function () {
   return window.pageYOffset ||
   document.documentElement.scrollTop ||
   document.body.scrollTop ||
-  0;
+  0
 }
 
 util.scrollLeft = function () {
   return window.pageXOffset ||
   document.documentElement.scrollLeft ||
   document.body.scrollLeft ||
-  0;
+  0
 }
 
 util.checkTouchSupport = function () {

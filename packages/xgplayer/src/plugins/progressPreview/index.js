@@ -130,7 +130,7 @@ export default class ProgressPreview extends Plugin {
     let _t, _tt
     if (x < 0 && !isflex) {
       x = 0
-      _t = offset - lwidth / 2;
+      _t = offset - lwidth / 2
       !this.thumbnail && (_tt = offset - lwidth / 2 - tWidth / 2)
     } else if (x > cwidth - lwidth && !isflex) {
       _t = x - (cwidth - lwidth)
@@ -200,7 +200,7 @@ export default class ProgressPreview extends Plugin {
     }
     if (!thumbnail || !thumbnail.usable || !config.isShowThumbnail) {
       Util.addClass(this.root, 'short-line no-thumbnail')
-      return;
+      return
     } else {
       Util.removeClass(this.root, 'short-line no-thumbnail')
     }

@@ -61,7 +61,7 @@ export default class OptionsIcon extends Plugin {
 
   show () {
     if (!this.config.list || this.config.list.length === 0) {
-      return;
+      return
     }
     Util.addClass(this.root, 'show')
   }

@@ -7,8 +7,9 @@ class Keyboard extends BasePlugin {
 
   static get defaultConfig () {
     return {
-      seekStep: 10, 
+      seekStep: 10,
       checkVisible: true,
+      disableBodyTrigger: false,
       keyCodeMap: {},
       disable: false
     }
@@ -82,7 +83,7 @@ class Keyboard extends BasePlugin {
     const rec = this.player.root.getBoundingClientRect()
     const {height, top, bottom} = rec
     const h = window.innerHeight
-    if ((top < 0 && top <  0 - height * 0.9) || (bottom > 0 && bottom - h > height * 0.9)) {
+    if ((top < 0 && top < 0 - height * 0.9) || (bottom > 0 && bottom - h > height * 0.9)) {
       return false
     }
     return true
@@ -155,7 +156,7 @@ class Keyboard extends BasePlugin {
   }
 
   onBodyKeyDown = (event) => {
-    if (this.config.disable || !this.checkIsVisible()) {
+    if (this.config.disable || this.controls.disableBodyTrigger || !this.checkIsVisible()) {
       return
     }
     let e = event || window.event

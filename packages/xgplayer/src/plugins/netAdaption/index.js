@@ -1,5 +1,5 @@
 // This plugin only use in living, not vod
-import BasePlugin from '../../plugin/basePlugin';
+import BasePlugin from '../../plugin/basePlugin'
 
 export default class NetAdaption extends BasePlugin {
   static get pluginName () {
@@ -7,12 +7,12 @@ export default class NetAdaption extends BasePlugin {
   }
 
   afterCreate () {
-    this._timer = setInterval(this._checkStatus.bind(this), 300);
+    this._timer = setInterval(this._checkStatus.bind(this), 300)
   }
   _checkStatus () {
     const container = this.player.video
     if (container.currentTime < 1 || !container.buffered.length) return
-    const diff = container.buffered.end(container.buffered.length - 1) - container.currentTime;
+    const diff = container.buffered.end(container.buffered.length - 1) - container.currentTime
     if (diff > 15) {
       container.playbackRate = 1.2
     } else if (diff < 5) {

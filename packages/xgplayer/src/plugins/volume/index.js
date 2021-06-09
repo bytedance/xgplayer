@@ -121,7 +121,7 @@ class Volume extends Plugin {
     player.muted = false
 
     if (this.config.showValueLabel) {
-      this.updateVolumeValue();
+      this.updateVolumeValue()
     }
   }
 
@@ -131,11 +131,11 @@ class Volume extends Plugin {
    * @memberof Volume
    */
   updateVolumeValue () {
-    const {volume} = this.player;
-    const $labelValue = this.find('.xgplayer-value-label');
-    const vol = Math.max(Math.min(volume, 1), 0);
+    const {volume} = this.player
+    const $labelValue = this.find('.xgplayer-value-label')
+    const vol = Math.max(Math.min(volume, 1), 0)
 
-    $labelValue.innerText = Math.ceil(vol * 100);
+    $labelValue.innerText = Math.ceil(vol * 100)
   }
 
   onMouseenter (e) {
@@ -192,8 +192,8 @@ class Volume extends Plugin {
     if (this.config.disable) {
       return
     }
-    const volume = this.config.default || this.player.volume;
-    const isShowVolumeValue = this.config.showValueLabel;
+    const volume = this.config.default || this.player.volume
+    const isShowVolumeValue = this.config.showValueLabel
     return `
     <xg-icon class="xgplayer-volume" data-state="normal">
       <div class="xgplayer-icon">

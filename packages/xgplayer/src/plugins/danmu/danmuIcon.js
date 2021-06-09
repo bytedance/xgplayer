@@ -51,8 +51,8 @@ class DanmuIcon extends Plugin {
   }
 
   onStateChange (e) {
-    e.preventDefault();
-    e.stopPropagation();
+    e.preventDefault()
+    e.stopPropagation()
     const state = this.root.getAttribute('data-state')
     const isOpen = state === 'active'
     this.switchState(!isOpen)
