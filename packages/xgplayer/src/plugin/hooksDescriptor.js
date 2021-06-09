@@ -1,4 +1,3 @@
-
 function callHandler (obj, handler, next, ...args) {
   const ret = handler.call(obj, ...args)
   if (!next || typeof next !== 'function') {
@@ -39,11 +38,11 @@ function hook (hookName, handler, preset = {pre: null, next: null}) {
     }
     if (this.__hooks && this.__hooks[hookName]) {
       try {
-        const preRet = this.__hooks[hookName].call(this, ...arguments)
+        const preRet = this.__hooks[hookName].call(this, this, ...arguments)
         if (preRet) {
           if (preRet.then) {
             preRet.then((isContinue) => {
-              if (isContinue) {
+              if (isContinue !== false) {
                 callHandler(this, handler, preset.next, ...arguments)
                 // handler.call(this, ...arguments)
               }
@@ -54,6 +53,8 @@ function hook (hookName, handler, preset = {pre: null, next: null}) {
             callHandler(this, handler, preset.next, ...arguments)
             // handler.call(this, ...arguments)
           }
+        } else if (preRet === undefined) {
+          callHandler(this, handler, preset.next, ...arguments)
         }
       } catch (e) {
         e.message = `[pluginName: ${this.pluginName}:${hookName}] >> ${e.message}`
@@ -115,6 +116,24 @@ function hooksDescriptor (instance) {
   }
 }
 
+function runHooks(obj, hookName, handler, ...args) {
+  if (obj.__hooks && obj.__hooks[hookName]) {
+    const ret = obj.__hooks[hookName].call(obj, obj, ...args)
+    if (ret && ret.then) {
+      ret.then((data) => {
+        return data === false ? null : handler.call(obj, obj, ...args)
+      }).catch(e => {
+        console.warn(`[runHooks]${hookName} reject`, e.message)
+      })
+    } else if (ret !== false) {
+      return handler.call(obj, obj, ...args)
+    }
+  } else {
+    return handler.call(obj, obj, ...args)
+  }
+}
+
 export {
-  hooksDescriptor as default
+  hooksDescriptor as default,
+  runHooks
 }

@@ -210,13 +210,15 @@ class Proxy {
     return this.video.canPlayType(type)
   }
 
-  getBufferedRange () {
+  getBufferedRange (buffered) {
     let range = [0, 0]
     if (!this.video) {
       return range
     }
     let video = this.video
-    let buffered = video.buffered
+    if (!buffered) {
+      buffered = video.buffered
+    }
     let currentTime = video.currentTime
     if (buffered) {
       for (let i = 0, len = buffered.length; i < len; i++) {
