@@ -95,7 +95,9 @@ export default class Mp4Remuxer {
   }
 
   destroy () {
-    this.remuxer.destroy();
+    if(this.remuxer){
+      this.remuxer.destroy();
+    }
     this.remuxer = null;
   }
 }
