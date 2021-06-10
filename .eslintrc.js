@@ -4,7 +4,7 @@ module.exports = {
         sourceType: "module",
         allowImportExportEverywhere: false,
         babelOptions: {
-            configFile: ".babelrc",
+            configFile: "./.babelrc",
         },
     },
     "extends": "standard",
