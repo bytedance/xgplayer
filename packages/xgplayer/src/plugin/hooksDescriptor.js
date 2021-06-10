@@ -1,4 +1,3 @@
-
 function callHandler (obj, handler, next, ...args) {
   const ret = handler.call(obj, ...args)
   if (!next || typeof next !== 'function') {

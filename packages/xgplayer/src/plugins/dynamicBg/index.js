@@ -14,6 +14,14 @@ function nowTime () {
   }
 }
 
+function checkIsSupport (video) {
+  if (Sniffer.browser === 'safari' && (/^blob/.test(video.currentSrc) || /^blob/.test(video.src))) {
+    return false
+  }
+
+  return true
+}
+
 class DynamicBg extends Plugin {
   static get pluginName () {
     return 'dynamicBg'
@@ -71,7 +79,7 @@ class DynamicBg extends Plugin {
     if (mode === MODES.FIRST_FRAME) {
       this.once(Events.TIME_UPDATE, () => {
         const { video } = this.player
-        video && video.videoWidth && this.update(video, video.videoWidth, video.videoHeight)
+        video && checkIsSupport(video) && video.videoWidth && this.update(video, video.videoWidth, video.videoHeight)
       })
     }
   }
@@ -99,8 +107,9 @@ class DynamicBg extends Plugin {
       this.mask = this.find('xgmask')
       config.addMask && (this.mask.style.background = config.maskBg)
       this.canvasCtx = this.canvas.getContext('2d')
-      const url = this.playerConfig.poster
-      if (Util.typeOf(url) === 'String') {
+      const { poster } = this.playerConfig
+      if (poster) {
+        const url = Util.typeOf(poster) === 'String' ? poster : (Util.typeOf(poster.poster) === 'String' ? poster.poster : null)
         this.updateImg(url)
       }
     } catch (e) {
@@ -111,6 +120,9 @@ class DynamicBg extends Plugin {
   start = () => {
     const { video } = this.player
     const _now = nowTime()
+    if (!checkIsSupport(video)) {
+      return
+    }
     if (this.config.mode === MODES.REAL_TIME) {
       video && video.videoWidth && this.update(video, video.videoWidth, video.videoHeight)
       this.preTime = _now
@@ -129,6 +141,9 @@ class DynamicBg extends Plugin {
   }
 
   updateImg (url) {
+    if (!url) {
+      return
+    }
     // 使用首帧预览图渲染
     const { width, height } = this.canvas.getBoundingClientRect()
     let image = new window.Image()
@@ -150,8 +165,8 @@ class DynamicBg extends Plugin {
     this.videoPI = parseInt(videoWidth / videoHeight * 100, 10)
     if (width !== _pos.width || height !== _pos.height) {
       const pi = parseInt(width / height * 100, 10)
-      _pos.width = this.canvas.height = height
-      _pos.height = this.canvas.width = width
+      _pos.width = this.canvas.width = width
+      _pos.height = this.canvas.height = height
       let rheight = height
       let rwidth = width
       if (pi < this.videoPI) {
