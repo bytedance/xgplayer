@@ -13,7 +13,7 @@ function shimImportScripts (src) {
     });
 }
 
-var MAX_STREAM_BUFFER_LENGTH = 1024 * 1024;
+var MAX_STREAM_BUFFER_LENGTH = 1024 * 1024 * 2;
 var initTs = 0;
 
 var Decoder = function (self) {

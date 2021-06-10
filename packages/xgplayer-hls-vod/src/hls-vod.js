@@ -29,7 +29,7 @@ class HlsVodController {
     this._tsBuffer = this._context.registry('TS_BUFFER', XgBuffer)();
     this._tracks = this._context.registry('TRACKS', Tracks)();
 
-    this._playlist = this._context.registry('PLAYLIST', Playlist)({autoclear: true});
+    this._playlist = this._context.registry('PLAYLIST', Playlist)({autoclear: false});
     this._presource = this._context.registry('PRE_SOURCE_BUFFER', RemuxedBufferManager)();
 
     this._compat = this._context.registry('COMPATIBILITY', Compatibility)();
