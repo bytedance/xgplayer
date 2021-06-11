@@ -38,7 +38,7 @@ export default class M4APlayer extends BasePlugin {
   }
 
   constructor (options) {
-    super(options);
+    super(options)
     this.mp4 = null
     this.mse = null
     this.waiterTimer = null
@@ -56,13 +56,13 @@ export default class M4APlayer extends BasePlugin {
         '__url': {
           get: () => {
             try {
-              return this.mse ? this.mse.url : this.config.url;
+              return this.mse ? this.mse.url : this.config.url
             } catch (error) {
               return null
             }
           }
         }
-      });
+      })
     } catch (e) {
       // NOOP
     }
@@ -105,7 +105,7 @@ export default class M4APlayer extends BasePlugin {
     // }
 
     return this.initM4a(this.url).then(result => {
-      const mp4 = result[0];
+      const mp4 = result[0]
       const mse = result[1]
       player.mp4 = mp4
       player.mse = mse
@@ -247,7 +247,7 @@ export default class M4APlayer extends BasePlugin {
     // let mse = player.mse; let mp4 = player.mp4
     if (mse && !mse.updating && mp4.canDownload) {
       const timeRage = mp4.timeRage
-      const range = player.getBufferedRange();
+      const range = player.getBufferedRange()
       const cacheMaxTime = player.currentTime + config.preloadTime
       if (range[1] - cacheMaxTime > 0) {
         return
@@ -297,15 +297,15 @@ export default class M4APlayer extends BasePlugin {
     const { player } = this
     // safari decoder time offset
     if (Sniffer.browser === 'safari' && player.buffered.length) {
-      const start = player.buffered.start(0);
-      player.currentTime = start + 0.1;
+      const start = player.buffered.start(0)
+      player.currentTime = start + 0.1
     }
   }
 
   onSeeking = (e) => {
     const { player } = this
-    const buffered = player.buffered;
-    let hasBuffered = false;
+    const buffered = player.buffered
+    let hasBuffered = false
     const curTime = player.video.currentTime
     console.log('onSeeking', player.ended, curTime)
     Task.clear()
@@ -365,8 +365,8 @@ export default class M4APlayer extends BasePlugin {
 
   onWaiting = (e) => {
     const { player } = this
-    const buffered = player.buffered;
-    let hasBuffered = false;
+    const buffered = player.buffered
+    let hasBuffered = false
     const curTime = player.currentTime
     Task.clear()
     let timeRage = this.mp4.timeRage
@@ -441,18 +441,18 @@ export default class M4APlayer extends BasePlugin {
   }
 
   errorHandle (err) {
-    const { player } = this;
-    err.url = player.src;
+    const { player } = this
+    err.url = player.src
     if (err.errd && typeof err.errd === 'object') {
       if (this.mp4) {
-        err.errd.url = this.mp4.url;
-        err.url = this.mp4.url;
-        this.mp4.canDownload = false;
+        err.errd.url = this.mp4.url
+        err.url = this.mp4.url
+        this.mp4.canDownload = false
       }
     }
-    Task.clear();
+    Task.clear()
     if (this.mp4 && this.mp4.bufferCache) {
-      this.mp4.bufferCache.clear();
+      this.mp4.bufferCache.clear()
     }
     this.detachEvents()
   }

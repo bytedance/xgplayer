@@ -7,7 +7,7 @@ import Task from './media/task'
 import util from './util'
 import Errors from './error'
 import Concat from 'concat-typed-array'
-window.__Concat = Concat
+
 class MP4 {
   /**
      * [constructor 构造函数]
@@ -82,9 +82,9 @@ class MP4 {
         let elst = util.findBox(trak, 'elst')
         trak.empty_duration = 0
         if (elst.empty_duration) {
-          trak.empty_duration = elst.empty_duration * mdhd.timescale / mvhd.timeScale;
+          trak.empty_duration = elst.empty_duration * mdhd.timescale / mvhd.timeScale
         }
-        trak.time_offset = elst.start_time - trak.empty_duration;
+        trak.time_offset = elst.start_time - trak.empty_duration
       }
 
       let stsd = util.findBox(trak, 'stsd')
@@ -205,7 +205,7 @@ class MP4 {
 
   getMetaInfo (start = 0, ended = 0 + this.CHUNK_SIZE) {
     let nextStart = start
-    this.getData(start, ended).then(res=> {
+    this.getData(start, ended).then(res => {
       const buffer = res.response
       nextStart += buffer.byteLength
       let parsed = null

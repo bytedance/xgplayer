@@ -38,8 +38,8 @@ class FMP4 {
     if (!videoOnly) {
       trak2 = FMP4.audioTrak(data)
     }
-    let mvex = FMP4.mvex(data.duration, data.timeScale);
-    let moovBoxes = videoOnly ? [mvhd, trak1, mvex] : [mvhd, trak1, trak2, mvex];
+    let mvex = FMP4.mvex(data.duration, data.timeScale)
+    let moovBoxes = videoOnly ? [mvhd, trak1, mvex] : [mvhd, trak1, trak2, mvex]
     moovBoxes.forEach(item => {
       size += item.byteLength
     })

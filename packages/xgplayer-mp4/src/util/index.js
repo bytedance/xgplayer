@@ -169,7 +169,7 @@ util.seekTrakDuration = function (trak, timeScale) {
 }
 
 export function getResponseHeaders (xhr) {
-  const headerMap = {};
+  const headerMap = {}
   if (xhr instanceof window.XMLHttpRequest) {
     try {
       const headers = xhr.getAllResponseHeaders()
@@ -181,14 +181,14 @@ export function getResponseHeaders (xhr) {
         const header = parts.shift()
         const value = parts.join(': ')
         headerMap[header] = value
-      });
+      })
     } catch (error) {
     }
   }
   return headerMap
 }
 
-export function getTotalFromHeader(headers) {
+export function getTotalFromHeader (headers) {
   const _range = headers['content-range']
   if (!_range) {
     return 0
