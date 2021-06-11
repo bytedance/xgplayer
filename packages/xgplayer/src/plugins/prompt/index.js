@@ -1,4 +1,4 @@
-import Plugin, {STATE_CLASS, Util} from '../../plugin'
+import Plugin, { STATE_CLASS, Util } from '../../plugin'
 
 /**
  * 消息组件
@@ -24,8 +24,8 @@ class Prompt extends Plugin {
   }
 
   afterCreate () {
-    this.intervalId = 0;
-    this.customConfig = null;
+    this.intervalId = 0
+    this.customConfig = null
     this.bind('.highlight', ['click', 'touchend'], (e) => {
       if (this.config.onClick || this.customOnClick) {
         e.preventDefault()
@@ -54,7 +54,7 @@ class Prompt extends Plugin {
       return
     }
     this.customOnClick = onClick
-    const {interval} = this.config
+    const { interval } = this.config
     if (this.intervalId) {
       clearTimeout(this.intervalId)
       this.intervalId = null

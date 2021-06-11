@@ -1,4 +1,4 @@
-import Plugin, {POSITIONS, Util} from '../../plugin'
+import Plugin, { POSITIONS, Util } from '../../plugin'
 import BackSVG from '../assets/back.svg'
 
 export default class TopBackIcon extends Plugin {
@@ -16,8 +16,8 @@ export default class TopBackIcon extends Plugin {
   afterCreate () {
     this.initIcons()
     this.onClick = (e) => {
-      e.preventDefault();
-      e.stopPropagation();
+      e.preventDefault()
+      e.stopPropagation()
       this.config.onClick(e)
     }
 
@@ -26,12 +26,12 @@ export default class TopBackIcon extends Plugin {
 
   registerIcons () {
     return {
-      screenBack: {icon: BackSVG, class: 'xg-fullscreen-back'}
+      screenBack: { icon: BackSVG, class: 'xg-fullscreen-back' }
     }
   }
 
   initIcons () {
-    const {icons} = this
+    const { icons } = this
     this.appendChild(this.root, icons.screenBack)
   }
 

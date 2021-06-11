@@ -2,7 +2,7 @@ import Box from '../box'
 import Stream from '../stream'
 
 Box.MP4DecSpecificDescrTag = function (data, output) {
-  let stream = new Stream(new Uint8Array(data.size).buffer)
+  const stream = new Stream(new Uint8Array(data.size).buffer)
   stream.writeUint8(data.type)
   if (data.extend) {
     for (let i = 0; i < 3; i++) {

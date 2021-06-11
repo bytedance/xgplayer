@@ -1,5 +1,5 @@
 /* eslint-disable camelcase */
-import BasePlugin, {Util} from '../../plugin'
+import BasePlugin, { Util } from '../../plugin'
 
 export default class Thumbnail extends BasePlugin {
   static get pluginName () {
@@ -35,12 +35,12 @@ export default class Thumbnail extends BasePlugin {
   }
 
   get usable () {
-    const {urls, pic_num} = this.config
+    const { urls, pic_num } = this.config
     return urls && urls.length > 0 && pic_num > 0
   }
 
   initThumbnail () {
-    const {width, height, pic_num, interval} = this.config
+    const { width, height, pic_num, interval } = this.config
     this.ratio = width / height * 100
     this.interval = interval || Math.round(this.player.duration / pic_num)
     this.preload(0)
@@ -59,7 +59,7 @@ export default class Thumbnail extends BasePlugin {
   }
 
   preload (index) {
-    const {urls} = this.config
+    const { urls } = this.config
     const len = urls.length
     const arr = [index - 1, index, index + 1, index + 2]
     arr.map(item => {
@@ -71,7 +71,7 @@ export default class Thumbnail extends BasePlugin {
   }
 
   getPosition (now, containerWidth = 0, containerHeight = 0) {
-    const {pic_num, row, col, width, height} = this.config
+    const { pic_num, row, col, width, height } = this.config
     this.interval = Math.round(this.player.duration / pic_num)
     let index = Math.ceil(now / this.interval) // 当前时间对应的图像索引
     index = index > pic_num ? pic_num : index
@@ -84,7 +84,7 @@ export default class Thumbnail extends BasePlugin {
 
     // 根据入参的宽高适配样式
     if (containerWidth && containerHeight) {
-      let per = containerWidth / containerHeight
+      const per = containerWidth / containerHeight
       if (per < width / height) {
         swidth = containerWidth
         sHeight = swidth / (width / height)
@@ -115,7 +115,7 @@ export default class Thumbnail extends BasePlugin {
   }
 
   update (dom, now, containerWidth = 0, containerHeight = 0, customStyle = '') {
-    const {pic_num, urls} = this.config
+    const { pic_num, urls } = this.config
     if (pic_num <= 0 || !urls || urls.length === 0) {
       return
     }

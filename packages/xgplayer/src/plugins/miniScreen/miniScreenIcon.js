@@ -1,4 +1,4 @@
-import Plugin, {POSITIONS} from '../../plugin'
+import Plugin, { POSITIONS } from '../../plugin'
 
 class MiniScreenIcon extends Plugin {
   static get pluginName () {

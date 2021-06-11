@@ -46,7 +46,7 @@ class PIP extends Plugin {
     this.initPipEvents()
     // 确认开启按钮的情况下才初始化按钮
     if (this.config.showIcon) {
-      this.initIcons();
+      this.initIcons()
     }
     // video初始化之后再做判断是否显示
     this.once(Events.COMPLETE, () => {
@@ -59,19 +59,19 @@ class PIP extends Plugin {
 
   registerIcons () {
     return {
-      pipIcon: {icon: PipIcon, class: 'xg-get-pip'},
-      pipIconExit: {icon: PipIconExit, class: 'xg-exit-pip'}
+      pipIcon: { icon: PipIcon, class: 'xg-get-pip' },
+      pipIconExit: { icon: PipIconExit, class: 'xg-exit-pip' }
     }
   }
 
   initIcons () {
-    const {icons} = this;
+    const { icons } = this
     this.appendChild('.xgplayer-icon', icons.pipIcon)
     this.appendChild('.xgplayer-icon', icons.pipIconExit)
   }
 
   initPipEvents () {
-    const {player} = this
+    const { player } = this
     this.leavePIPCallback = () => {
       // 处理点击x关闭画中画的时候暂停问题
       const paused = player.paused
@@ -86,7 +86,7 @@ class PIP extends Plugin {
 
     this.enterPIPCallback = (e) => {
       player.emit(Events.PIP_CHANGE, true)
-      this.pipWindow = e.pictureInPictureWindow;
+      this.pipWindow = e.pictureInPictureWindow
       this.setAttr('data-state', 'pip')
     }
 
@@ -115,11 +115,11 @@ class PIP extends Plugin {
     if (!this.isPIPAvailable()) {
       return false
     }
-    e.stopPropagation();
+    e.stopPropagation()
     if (this.isPip) {
       this.exitPIP()
       this.setAttr('data-state', 'normal')
-    } else if(this.player.video.readyState === 4) {
+    } else if (this.player.video.readyState === 4) {
       this.requestPIP()
       this.setAttr('data-state', 'pip')
     }
@@ -129,7 +129,7 @@ class PIP extends Plugin {
    * 进入画中画
   */
   requestPIP () {
-    const {player, playerConfig} = this
+    const { player, playerConfig } = this
     if (!this.isPIPAvailable() || this.isPip) {
       return
     }
@@ -140,7 +140,7 @@ class PIP extends Plugin {
       PIP.checkWebkitSetPresentationMode(player.video) ? player.video.webkitSetPresentationMode('picture-in-picture') : player.video.requestPictureInPicture()
       return true
     } catch (reason) {
-      console.error('requestPiP', reason);
+      console.error('requestPiP', reason)
       return false
     }
   }
@@ -149,32 +149,32 @@ class PIP extends Plugin {
    * 退出画中画
    */
   exitPIP () {
-    const {player} = this
+    const { player } = this
     try {
       if (this.isPIPAvailable() && this.isPip) {
-        PIP.checkWebkitSetPresentationMode(player.video) ? player.video.webkitSetPresentationMode('inline') : document.exitPictureInPicture();
+        PIP.checkWebkitSetPresentationMode(player.video) ? player.video.webkitSetPresentationMode('inline') : document.exitPictureInPicture()
       }
       return true
     } catch (reason) {
-      console.error('exitPIP', reason);
+      console.error('exitPIP', reason)
       return false
     }
   }
 
   get isPip () {
-    const {player} = this
+    const { player } = this
     return (document.pictureInPictureElement && document.pictureInPictureElement === player.video) || player.video.webkitPresentationMode === PresentationMode.PIP
   }
 
   isPIPAvailable () {
-    const {video} = this.player
+    const { video } = this.player
     return document.pictureInPictureEnabled &&
     ((Util.typeOf(video.disablePictureInPicture) === 'Boolean' && !video.disablePictureInPicture) ||
-     (video.webkitSupportsPresentationMode && Util.typeOf(video.webkitSetPresentationMode) === 'Function'));
+     (video.webkitSupportsPresentationMode && Util.typeOf(video.webkitSetPresentationMode) === 'Function'))
   }
 
   destroy () {
-    const {player} = this
+    const { player } = this
     player.video.removeEventListener('enterpictureinpicture', this.enterPIPCallback)
     player.video.removeEventListener('leavepictureinpicture', this.leavePIPCallback)
     this.exitPIP()

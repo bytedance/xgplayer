@@ -1,6 +1,6 @@
-let sniffer = {
+const sniffer = {
   get device () {
-    let r = sniffer.os
+    const r = sniffer.os
     return r.isPc ? 'pc' : 'mobile'
     // return r.isPc ? 'pc' : r.isTablet ? 'tablet' : 'mobile'
   },
@@ -8,8 +8,8 @@ let sniffer = {
     if (typeof navigator === 'undefined') {
       return ''
     }
-    let ua = navigator.userAgent.toLowerCase()
-    let reg = {
+    const ua = navigator.userAgent.toLowerCase()
+    const reg = {
       ie: /rv:([\d.]+)\) like gecko/,
       firfox: /firefox\/([\d.]+)/,
       chrome: /chrome\/([\d.]+)/,
@@ -22,14 +22,14 @@ let sniffer = {
     if (typeof navigator === 'undefined') {
       return {}
     }
-    let ua = navigator.userAgent
-    let isWindowsPhone = /(?:Windows Phone)/.test(ua)
-    let isSymbian = /(?:SymbianOS)/.test(ua) || isWindowsPhone
-    let isAndroid = /(?:Android)/.test(ua)
-    let isFireFox = /(?:Firefox)/.test(ua)
-    let isTablet = /(?:iPad|PlayBook)/.test(ua) || (isAndroid && !/(?:Mobile)/.test(ua)) || (isFireFox && /(?:Tablet)/.test(ua))
-    let isPhone = /(?:iPhone)/.test(ua) && !isTablet
-    let isPc = !isPhone && !isAndroid && !isSymbian && !isTablet
+    const ua = navigator.userAgent
+    const isWindowsPhone = /(?:Windows Phone)/.test(ua)
+    const isSymbian = /(?:SymbianOS)/.test(ua) || isWindowsPhone
+    const isAndroid = /(?:Android)/.test(ua)
+    const isFireFox = /(?:Firefox)/.test(ua)
+    const isTablet = /(?:iPad|PlayBook)/.test(ua) || (isAndroid && !/(?:Mobile)/.test(ua)) || (isFireFox && /(?:Tablet)/.test(ua))
+    const isPhone = /(?:iPhone)/.test(ua) && !isTablet
+    const isPc = !isPhone && !isAndroid && !isSymbian && !isTablet
     const isIpad = /(?:iPad|PlayBook)/.test(ua)
     return {
       isTablet,
