@@ -13,7 +13,7 @@ export default class OptionList {
   }
 
   renderItemList (data) {
-    const {config, root} = this
+    const { config, root } = this
     if (data) {
       config.data = data
     } else {

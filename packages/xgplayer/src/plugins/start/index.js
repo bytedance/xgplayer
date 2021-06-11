@@ -1,9 +1,9 @@
-import Plugin, {hooksDescriptor, Util, Events} from '../../plugin'
+import Plugin, { hooksDescriptor, Util, Events } from '../../plugin'
 import PlaySvg from '../assets/play.svg'
 import PauseSvg from '../assets/pause.svg'
 
 const AnimateMap = {}
-function addAnimate (key, seconds, callback = {start: null, end: null}) {
+function addAnimate (key, seconds, callback = { start: null, end: null }) {
   if (AnimateMap[key]) {
     window.clearTimeout(AnimateMap[key].id)
   }
@@ -13,7 +13,7 @@ function addAnimate (key, seconds, callback = {start: null, end: null}) {
     callback.end && callback.end()
     window.clearTimeout(AnimateMap[key].id)
     delete AnimateMap[key]
-  }, seconds);
+  }, seconds)
 }
 
 function clearAnimation () {
@@ -43,7 +43,7 @@ class Start extends Plugin {
   }
 
   afterCreate () {
-    const {player, playerConfig} = this
+    const { player, playerConfig } = this
     hooksDescriptor(this)
 
     this.initIcons()
@@ -65,14 +65,14 @@ class Start extends Plugin {
     })
 
     if (!playerConfig.autoplay) {
-      this.show();
+      this.show()
     }
 
     this.on(Events.AUTOPLAY_PREVENTED, () => {
       const className = this.config.mode === 'auto' ? 'auto-hide' : 'hide'
       this.setAttr('data-state', 'play')
       Util.removeClass(this.root, className)
-      this.show();
+      this.show()
     })
 
     this.on(Events.PLAY, () => {
@@ -87,7 +87,8 @@ class Start extends Plugin {
       pre: (e) => {
         e.preventDefault()
         e.stopPropagation()
-      }})
+      }
+    })
 
     this.bind(['click', 'touchend'], this.clickHandler)
   }
@@ -98,13 +99,13 @@ class Start extends Plugin {
 
   registerIcons () {
     return {
-      startPlay: {icon: PlaySvg, class: 'xg-icon-play'},
-      startPause: {icon: PauseSvg, class: 'xg-icon-pause'}
+      startPlay: { icon: PlaySvg, class: 'xg-icon-play' },
+      startPause: { icon: PauseSvg, class: 'xg-icon-pause' }
     }
   }
 
   initIcons () {
-    const {icons} = this
+    const { icons } = this
     this.appendChild(icons.startPlay)
     this.appendChild(icons.startPause)
   }
@@ -141,18 +142,18 @@ class Start extends Plugin {
         this.switchStatus(true)
       },
       end: () => {
-        Util.removeClass(this.root, 'interact');
+        Util.removeClass(this.root, 'interact')
         !endShow && this.hide()
       }
     })
   }
 
   switchPausePlay (e) {
-    const {player} = this
+    const { player } = this
     e.preventDefault()
     e.stopPropagation()
     if (!player.isReady) {
-      return;
+      return
     }
     const paused = this.player.paused
     if (!paused && player.isPlaying) {
@@ -163,7 +164,7 @@ class Start extends Plugin {
   }
 
   onPlayPause (status) {
-    const {config, player} = this
+    const { config, player } = this
     if (!player.isPlaying || !this.autoPlayStart) {
       return
     }

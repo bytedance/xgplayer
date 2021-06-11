@@ -1,5 +1,5 @@
 import SubTitles from 'xgplayer-subtitles'
-import {Util, POSITIONS} from '../../plugin'
+import { Util, POSITIONS } from '../../plugin'
 import OptionsIcon from '../common/optionsIcon'
 
 const DEFAULT_CLOSE_TYPE = 'text-close'
@@ -25,6 +25,7 @@ export default class TextTrack extends OptionsIcon {
   static get pluginName () {
     return 'texttrack'
   }
+
   // 默认配置信息
   static get defaultConfig () {
     return {
@@ -45,7 +46,7 @@ export default class TextTrack extends OptionsIcon {
         line: 'double', // 最大显示行数 single/double/three
         fontColor: '#fff' // 字体颜色
       },
-      closeText: {text: '不开启', iconText: '字幕'},
+      closeText: { text: '不开启', iconText: '字幕' },
       className: 'xgplayer-texttrack',
       hidePortrait: false
     }
@@ -64,7 +65,7 @@ export default class TextTrack extends OptionsIcon {
   }
 
   afterCreate () {
-    const {list, style, isDefaultOpen} = this.config
+    const { list, style, isDefaultOpen } = this.config
     if (!list || list.length < 1) {
       return
     }
@@ -89,7 +90,7 @@ export default class TextTrack extends OptionsIcon {
 
   show () {
     if (!this.config.list || this.config.list.length === 0) {
-      return;
+      return
     }
     super.show()
   }
@@ -131,7 +132,7 @@ export default class TextTrack extends OptionsIcon {
       if (type === DEFAULT_CLOSE_TYPE) {
         this.subTitles.switchOff()
       } else {
-        this.subTitles.switch({language, id}).catch(error => {
+        this.subTitles.switch({ language, id }).catch(error => {
           console.log('onItemClick', error)
         })
       }
@@ -139,8 +140,8 @@ export default class TextTrack extends OptionsIcon {
   }
 
   changeCurrentText () {
-    const {list, closeText} = this.config
-    let index = this.curIndex
+    const { list, closeText } = this.config
+    const index = this.curIndex
     if (index - 1 < 0) {
       this.find('.icon-text').innerHTML = this.getTextByLang(closeText, 'iconText')
     } else if (index - 1 < list.length) {
@@ -151,7 +152,7 @@ export default class TextTrack extends OptionsIcon {
   }
 
   renderItemList () {
-    const {list, closeText} = this.config
+    const { list, closeText } = this.config
     let curIndex = 0
     const items = []
     items.push({

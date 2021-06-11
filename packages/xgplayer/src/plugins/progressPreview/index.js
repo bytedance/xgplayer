@@ -1,10 +1,10 @@
-import Plugin, {hooksDescriptor, Util, Sniffer} from '../../plugin'
+import Plugin, { hooksDescriptor, Util, Sniffer } from '../../plugin'
 import initDotsAPI from './dotsApi'
 
 const CALLBACK_MAP = {
-  'dragmove': 'onProgressMove',
-  'dragstart': 'onProgressDragStart',
-  'dragend': 'onProgressDragEnd'
+  dragmove: 'onProgressMove',
+  dragstart: 'onProgressDragStart',
+  dragend: 'onProgressDragEnd'
 }
 
 export default class ProgressPreview extends Plugin {
@@ -45,7 +45,7 @@ export default class ProgressPreview extends Plugin {
   }
 
   onPluginsReady () {
-    const {player} = this
+    const { player } = this
     if (!player.plugins.progress) {
       return
     }
@@ -67,7 +67,7 @@ export default class ProgressPreview extends Plugin {
   }
 
   bindEvents () {
-    const {progress} = this.player.plugins
+    const { progress } = this.player.plugins
     if (Sniffer.device === 'mobile' || !progress) {
       return
     }
@@ -121,8 +121,8 @@ export default class ProgressPreview extends Plugin {
   }
 
   updateLinePos (offset, cwidth) {
-    const {root, previewLine, timePoint, player} = this
-    const {mode} = player.controls
+    const { root, previewLine, timePoint, player } = this
+    const { mode } = player.controls
     const isflex = mode === 'flex'
     const lwidth = root.getBoundingClientRect().width
     const tWidth = timePoint.getBoundingClientRect().width
@@ -130,7 +130,7 @@ export default class ProgressPreview extends Plugin {
     let _t, _tt
     if (x < 0 && !isflex) {
       x = 0
-      _t = offset - lwidth / 2;
+      _t = offset - lwidth / 2
       !this.thumbnail && (_tt = offset - lwidth / 2 - tWidth / 2)
     } else if (x > cwidth - lwidth && !isflex) {
       _t = x - (cwidth - lwidth)
@@ -146,13 +146,13 @@ export default class ProgressPreview extends Plugin {
   }
 
   updateTimeText (timeStr) {
-    const {timeText, timePoint} = this
+    const { timeText, timePoint } = this
     timeText.textContent = timeStr
     !this.thumbnail && (timePoint.textContent = timeStr)
   }
 
   updatePosition (offset, cwidth, time, e) {
-    const {root, config, _state} = this
+    const { root, config, _state } = this
     if (!root) {
       return
     }
@@ -178,8 +178,8 @@ export default class ProgressPreview extends Plugin {
   }
 
   updateThumbnails (time) {
-    const {player, videoPreview} = this
-    const {thumbnail} = player.plugins
+    const { player, videoPreview } = this
+    const { thumbnail } = player.plugins
     if (thumbnail && thumbnail.usable) {
       this.thumbnail && thumbnail.update(this.thumbnail, time, 160, 90)
       const rect = videoPreview && videoPreview.getBoundingClientRect()
@@ -191,7 +191,7 @@ export default class ProgressPreview extends Plugin {
     if (Sniffer.device === 'mobile') {
       return
     }
-    const {player, config} = this
+    const { player, config } = this
     const thumbnail = player.getPlugin('thumbnail')
     if (thumbnail) {
       Object.keys(thumbnailConfig).map(key => {
@@ -200,7 +200,7 @@ export default class ProgressPreview extends Plugin {
     }
     if (!thumbnail || !thumbnail.usable || !config.isShowThumbnail) {
       Util.addClass(this.root, 'short-line no-thumbnail')
-      return;
+      return
     } else {
       Util.removeClass(this.root, 'short-line no-thumbnail')
     }
@@ -215,8 +215,8 @@ export default class ProgressPreview extends Plugin {
   }
 
   calcuPosition (time, duration) {
-    const {progress} = this.player.plugins
-    const {player} = this
+    const { progress } = this.player.plugins
+    const { player } = this
     const totalWidth = progress.root.getBoundingClientRect().width
     const widthPerSeconds = player.duration / totalWidth * 6
     const ret = {}
@@ -237,7 +237,7 @@ export default class ProgressPreview extends Plugin {
     const dot = this.findDot(id)
     if (dot) {
       const rect = this.root.getBoundingClientRect()
-      const {width} = rect
+      const { width } = rect
       const offset = dot.time / this.player.duration * width
       this.updatePosition(offset, width, dot.time)
     }
@@ -266,7 +266,7 @@ export default class ProgressPreview extends Plugin {
   }
 
   destroy () {
-    const {progress} = this.player.plugins
+    const { progress } = this.player.plugins
     progress && Object.keys(CALLBACK_MAP).map(key => {
       progress.removeCallBack(key, this[CALLBACK_MAP[key]])
     })

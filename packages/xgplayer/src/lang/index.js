@@ -27,8 +27,8 @@ function extend (XGI18nText) {
 }
 
 function use (data) {
-  let lang = data.LANG
-  let texts = data.TEXT || {}
+  const lang = data.LANG
+  const texts = data.TEXT || {}
   if (!XGI18nLang[lang]) {
     XGI18nLangKeys.push(lang)
   }
@@ -38,7 +38,7 @@ function use (data) {
     XGI18nLang[lang] = texts
   }
   if (lang === 'zh-cn') {
-    XGI18nLang['zh'] = XGI18nLang['zh-cn']
+    XGI18nLang.zh = XGI18nLang['zh-cn']
   }
   updateKeys()
 }
@@ -58,7 +58,7 @@ export default {
     XGI18nLangKeys.map(key => {
       ret[key] = XGI18nLang[key]
     })
-    ret['zh'] = XGI18nLang['zh-cn']
+    ret.zh = XGI18nLang['zh-cn']
     return ret
   },
   extend: extend,
