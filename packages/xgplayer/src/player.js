@@ -8,13 +8,8 @@ import { FULLSCREEN_EVENTS, GET_FULLSCREEN_API, EXIT_FULLSCREEN_API } from './co
 import Plugin, { pluginsManager, BasePlugin } from './plugin'
 import STATE_CLASS from './stateClassMap'
 import getDefaultConfig from './defaultConfig'
-<<<<<<< HEAD
-import { usePreset } from './plugin/preset';
-import hooksDescriptor, { runHooks } from './plugin/hooksDescriptor'
-=======
 import { usePreset } from './plugin/preset'
-import hooksDescriptor from './plugin/hooksDescriptor'
->>>>>>> feature_hqx2
+import hooksDescriptor, { runHooks } from './plugin/hooksDescriptor'
 import Controls from './plugins/controls'
 import XG_DEBUG, { bindDebug } from './utils/debug'
 
@@ -1041,7 +1036,6 @@ class Player extends VideoProxy {
   get buffered2 () {
     return Util.getBuffered2(this.video.buffered)
   }
-
 
   /***
    * TODO
