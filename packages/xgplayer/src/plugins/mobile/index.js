@@ -298,9 +298,9 @@ class MobilePlugin extends Plugin {
    */
   endLastMove (lastScope) {
     const { pos, player, config } = this
+    const time = (pos.time - this.timeOffset) / 1000
     switch (lastScope) {
       case 0:
-        const time = (pos.time - this.timeOffset) / 1000
         player.seek(Number(time).toFixed(1))
         config.hideControlsEnd ? player.emit(Events.PLAYER_BLUR) : player.emit(Events.PLAYER_FOCUS)
         this.timer = setTimeout(() => {

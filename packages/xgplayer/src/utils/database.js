@@ -26,6 +26,7 @@ class INDEXDB {
       let store
       if (!db.objectStoreNames.contains(self.myDB.ojstore.name)) {
         // 没有该对象空间时创建该对象空间
+        // eslint-disable-next-line no-unused-vars
         store = db.createObjectStore(self.myDB.ojstore.name, { keyPath: self.myDB.ojstore.keypath })
         // console.log('成功建立对象存储空间：' + this.myDB.ojstore.name)
       }

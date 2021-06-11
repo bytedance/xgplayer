@@ -71,7 +71,7 @@ function hook (hookName, handler, preset = { pre: null, next: null }) {
  */
 function useHooks (hookName, handler) {
   const { __hooks } = this
-  if (!__hooks.hasOwnProperty(hookName)) {
+  if (!__hooks[hookName]) {
     console.warn(`has no supported hook which name [${hookName}]`)
     return false
   }

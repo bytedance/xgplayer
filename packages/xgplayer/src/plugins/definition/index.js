@@ -89,7 +89,7 @@ export default class DefinitionIcon extends OptionsIcon {
       const playPromise = player.play()
       if (playPromise !== undefined && playPromise) {
         // eslint-disable-next-line handle-callback-err
-        playPromise.catch(err => {})
+        playPromise.catch(_err => {})
       }
     } else {
       player.pause()

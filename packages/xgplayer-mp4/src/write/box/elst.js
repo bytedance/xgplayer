@@ -1,11 +1,11 @@
 import Box from '../box'
 
 Box.elst = function (data, output) {
-  let stream = this.stream
+  const stream = this.stream
   stream.writeUint8(data.version)
   stream.writeUint24(data.flag)
   stream.writeUint32(data.entries.length)
-  let version = data.version
+  const version = data.version
   data.entries.forEach(item => {
     if (version === 1) {
       stream.writeUint64(item.segment_duration)

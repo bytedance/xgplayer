@@ -482,6 +482,7 @@ class Plugin extends BasePlugin {
       this._children = null
     }
     if (this.root) {
+      // eslint-disable-next-line no-prototype-builtins
       if (this.root.hasOwnProperty('remove')) {
         this.root.remove()
       } else if (this.root.parentNode) {

@@ -1,6 +1,6 @@
 import Box from '../box'
 Box['url '] = function (data, output) {
-  let stream = this.stream
+  const stream = this.stream
   stream.writeUint8(data.version)
   data.flag.forEach(item => {
     stream.writeUint8(item)

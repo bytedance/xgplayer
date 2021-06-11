@@ -127,6 +127,8 @@
     "zlib": "^1.0.5"
   },
   "dependencies": {
+    "@rollup/plugin-replace": "^2.4.2",
+    "babel-plugin-search-and-replace": "^1.1.0",
     "xgplayer": "file:packages/xgplayer",
     "xgplayer-dash": "file:packages/xgplayer-dash",
     "xgplayer-flv": "file:packages/xgplayer-flv",
