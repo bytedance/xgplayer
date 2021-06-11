@@ -1,6 +1,6 @@
 import Box from '../box'
 Box.avc1 = function (data, output) {
-  let stream = this.stream
+  const stream = this.stream
   stream.fill(6)
   stream.writeUint16(data.dataReferenceIndex)
   stream.fill(16)
@@ -14,9 +14,9 @@ Box.avc1 = function (data, output) {
   stream.writeUint16(data.depth)
   stream.fill(2)
   output.write(new Uint8Array(stream.buffer.slice(0, stream.position)))
-  let self = this
+  const self = this
   data.subBox.forEach(item => {
-    let box = new Box(item, self.output)
+    const box = new Box(item, self.output)
     self.subBox.push(box)
     box.writeBody()
   })

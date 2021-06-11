@@ -1,7 +1,7 @@
 import Box from '../box'
 Box.mp4a = function (data, output) {
-  let stream = this.stream
-  let self = this
+  const stream = this.stream
+  const self = this
   stream.fill(6)
   stream.writeUint16(data.dataReferenceIndex)
   stream.fill(8)
@@ -12,7 +12,7 @@ Box.mp4a = function (data, output) {
   output.write(new Uint8Array(stream.buffer.slice(0, stream.position)))
   let outputSize = stream.position
   data.subBox.forEach(item => {
-    let box = new Box(item, self.output)
+    const box = new Box(item, self.output)
     self.subBox.push(box)
     box.writeBody()
     outputSize += box.outputSize + 8

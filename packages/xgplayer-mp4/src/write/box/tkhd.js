@@ -1,6 +1,6 @@
 import Box from '../box'
 Box.tkhd = function (data, output) {
-  let stream = this.stream
+  const stream = this.stream
   stream.writeUint8(data.version)
   stream.writeUint24(data.flag)
   if (data.version === 1) {
@@ -23,13 +23,13 @@ Box.tkhd = function (data, output) {
   stream.fill(2)
 
   data.matrix.forEach(item => {
-    let matrix = item.split('.')
+    const matrix = item.split('.')
     stream.writeUint16(matrix[0])
     stream.writeUint16(matrix[1])
   })
 
-  let width = data.width.split('.')
-  let height = data.height.split('.')
+  const width = data.width.split('.')
+  const height = data.height.split('.')
   stream.writeUint16(width[0])
   stream.writeUint16(width[1])
   stream.writeUint16(height[0])
