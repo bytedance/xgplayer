@@ -1,4 +1,4 @@
-import Plugin, {Events, Util, POSITIONS, Sniffer} from '../../plugin'
+import Plugin, { Events, Util, POSITIONS, Sniffer } from '../../plugin'
 import InnerList from './innerList'
 
 /**
@@ -18,7 +18,7 @@ class Progress extends Plugin {
       closeMoveSeek: false, // 是否关闭滑块seek能力
       isPauseMoving: false, // 是否在move的时候暂停视频内容
       isCloseClickSeek: false, // 是否关闭点击进度条的时候seek
-      fragments: [{percent: 1}],
+      fragments: [{ percent: 1 }],
       miniMoveStep: 5,
       miniStartStep: 2,
       onMoveStart: () => {
@@ -75,7 +75,7 @@ class Progress extends Plugin {
 
   afterCreate () {
     if (this.config.disable) {
-      return;
+      return
     }
     this.pos = {
       x: 0, // 水平方向位移
@@ -95,12 +95,12 @@ class Progress extends Plugin {
 
     this.on(Events.TIME_UPDATE, () => {
       this.onTimeupdate()
-    });
+    })
 
     this.on(Events.SEEKED, () => {
       this.onTimeupdate()
       this.onCacheUpdate()
-    });
+    })
 
     this.on(Events.PROGRESS, () => {
       this.onCacheUpdate()
@@ -116,15 +116,15 @@ class Progress extends Plugin {
   }
 
   initCustomStyle () {
-    const {commonStyle} = this.playerConfig || {}
-    const {sliderBtnStyle} = commonStyle
-    const {progressBtn} = this
+    const { commonStyle } = this.playerConfig || {}
+    const { sliderBtnStyle } = commonStyle
+    const { progressBtn } = this
     if (sliderBtnStyle) {
       if (typeof sliderBtnStyle === 'string') {
-        progressBtn.style.boxShadow = sliderBtnStyle;
+        progressBtn.style.boxShadow = sliderBtnStyle
       } else if (typeof sliderBtnStyle === 'object') {
         Object.keys(sliderBtnStyle).map(key => {
-          progressBtn.style[key] = sliderBtnStyle[key];
+          progressBtn.style[key] = sliderBtnStyle[key]
         })
       }
     }
@@ -156,7 +156,7 @@ class Progress extends Plugin {
    */
   addCallBack (type, event) {
     if (event && typeof event === 'function') {
-      this.__dragCallBacks.push({type: type, handler: event})
+      this.__dragCallBacks.push({ type: type, handler: event })
     }
   }
 
@@ -166,7 +166,7 @@ class Progress extends Plugin {
    * @param {Function} event 回调函数句柄
    */
   removeCallBack (type, event) {
-    const {__dragCallBacks} = this
+    const { __dragCallBacks } = this
     let _index = -1
     __dragCallBacks.map((item, index) => {
       if (item && item.type === type && item.handler === event) {
@@ -179,7 +179,7 @@ class Progress extends Plugin {
   }
 
   bindDomEvents () {
-    const {controls, config} = this.player
+    const { controls, config } = this.player
     if (this.isMobile) {
       this.bind('touchstart', this.onMouseDown)
       if (controls) {
@@ -203,7 +203,7 @@ class Progress extends Plugin {
   }
 
   onMoveOnly = (e) => {
-    const {pos, config, player} = this
+    const { pos, config, player } = this
     Util.event(e)
     const x = player.rotateDeg === 90 ? e.clientY : e.clientX
     if (pos.moving && Math.abs(pos.x - x) < config.miniMoveStep) {
@@ -221,7 +221,7 @@ class Progress extends Plugin {
   }
 
   onMouseDown = (e) => {
-    const {player, pos, config, playerConfig} = this
+    const { player, pos, config, playerConfig } = this
     const x = player.rotateDeg === 90 ? e.clientY : e.clientX
     if (player.isMini || config.closeMoveSeek || (!playerConfig.allowSeekAfterEnded && player.ended)) {
       return
@@ -237,7 +237,7 @@ class Progress extends Plugin {
     pos.moving = false
 
     // 交互开始 禁止控制栏的自动隐藏功能
-    player.emit(Events.PLAYER_FOCUS, {autoHide: false})
+    player.emit(Events.PLAYER_FOCUS, { autoHide: false })
     this.isProgressMoving = true
     Util.addClass(this.progressBtn, 'active')
 
@@ -261,7 +261,7 @@ class Progress extends Plugin {
   }
 
   onMouseUp = (e) => {
-    const {player, config, pos, playerConfig, _state} = this
+    const { player, config, pos, playerConfig, _state } = this
     e.stopPropagation()
     e.preventDefault()
     Util.checkIsFunction(playerConfig.enableSwipeHandler) && playerConfig.enableSwipeHandler()
@@ -274,7 +274,7 @@ class Progress extends Plugin {
       this.updateWidth(ret.currentTime, ret.percent, 2)
       this.triggerCallbacks('dragend', ret)
     } else {
-      this.updateWidth(ret.currentTime, ret.percent, 2)
+      // this.updateWidth(ret.currentTime, ret.percent, 2)
       this.triggerCallbacks('click', ret)
     }
 
@@ -307,7 +307,7 @@ class Progress extends Plugin {
   }
 
   onMouseMove = (e) => {
-    const {pos, player, config, _state} = this
+    const { pos, player, config, _state } = this
     if (this.isMobile) {
       e.stopPropagation()
       e.preventDefault()
@@ -336,7 +336,7 @@ class Progress extends Plugin {
   }
 
   onMouseEnter = (e) => {
-    const {player, pos} = this
+    const { player, pos } = this
     if (pos.isDown || pos.isEnter || player.isMini || (!player.config.allowSeekAfterEnded && player.ended)) {
       return
     }
@@ -347,7 +347,7 @@ class Progress extends Plugin {
   }
 
   onMouseLeave = (e) => {
-    const {player, pos} = this
+    const { player, pos } = this
     pos.isEnter = false
     if (player.isMini) {
       return
@@ -367,7 +367,7 @@ class Progress extends Plugin {
    * @param {Int} type 触发类型 0-down 1-move 2-up
    */
   updateWidth (currentTime, percent, type) {
-    const {config, player} = this
+    const { config, player } = this
     if (config.isCloseClickSeek && type === 0) {
       return
     }
@@ -384,8 +384,8 @@ class Progress extends Plugin {
   }
 
   computeTime (e) {
-    const {player} = this
-    const {width, height, top, left} = this.root.getBoundingClientRect()
+    const { player } = this
+    const { width, height, top, left } = this.root.getBoundingClientRect()
     let rWidth, rLeft, clientX
     if (player.rotateDeg === 90) {
       rWidth = height
@@ -418,13 +418,13 @@ class Progress extends Plugin {
    * @param {number} time 根据拖拽距离计算出的时间
    */
   updateTime (time) {
-    const {player, duration} = this
+    const { player, duration } = this
     if (time > duration) {
       time = duration
     } else if (time < 0) {
       time = 0
     }
-    let timeIcon = player.plugins.time
+    const timeIcon = player.plugins.time
     if (timeIcon) {
       timeIcon.updateTime(time)
     }
@@ -435,7 +435,7 @@ class Progress extends Plugin {
    */
   resetSeekState () {
     this.isProgressMoving = false
-    let timeIcon = this.player.plugins.time
+    const timeIcon = this.player.plugins.time
     timeIcon && timeIcon.resetActive()
   }
 
@@ -447,22 +447,22 @@ class Progress extends Plugin {
   updatePercent (percent, notSeek) {
     this.isProgressMoving = true
     if (this.config.disable) {
-      return;
+      return
     }
     percent = percent > 1 ? 1 : (percent < 0 ? 0 : percent)
     this.progressBtn.style.left = `${percent * 100}%`
-    this.innerList.update({played: percent * this.duration}, this.duration)
-    const {miniprogress} = this.player.plugins
-    miniprogress && miniprogress.update({played: percent * this.duration}, this.duration)
+    this.innerList.update({ played: percent * this.duration }, this.duration)
+    const { miniprogress } = this.player.plugins
+    miniprogress && miniprogress.update({ played: percent * this.duration }, this.duration)
   }
 
   /**
    * @description 播放进度更新
    */
   onTimeupdate () {
-    const {player, _state, duration} = this
+    const { player, _state, duration } = this
     if (player.isSeeking || this.isProgressMoving) {
-      return;
+      return
     }
     if (_state.now > -1) {
       const abs = parseInt(_state.now * 1000, 10) - parseInt(player.currentTime * 1000, 10)
@@ -473,26 +473,26 @@ class Progress extends Plugin {
       }
     }
     const time = this.timeOffset + player.currentTime
-    this.innerList.update({played: time}, duration)
+    this.innerList.update({ played: time }, duration)
     this.progressBtn.style.left = `${time / duration * 100}%`
-    const {miniprogress} = this.player.plugins
-    miniprogress && miniprogress.update({played: time}, duration)
+    const { miniprogress } = this.player.plugins
+    miniprogress && miniprogress.update({ played: time }, duration)
   }
 
   /**
    * @description 缓存进度更新
    */
   onCacheUpdate () {
-    const {player, duration} = this
+    const { player, duration } = this
     const point = player.bufferedPoint
-    this.innerList.update({cached: point.end}, duration)
-    const {miniprogress} = this.player.plugins
-    miniprogress && miniprogress.update({cached: point.end}, duration)
+    this.innerList.update({ cached: point.end }, duration)
+    const { miniprogress } = this.player.plugins
+    miniprogress && miniprogress.update({ cached: point.end }, duration)
   }
 
   destroy () {
-    const {player} = this
-    const {controls} = player
+    const { player } = this
+    const { controls } = player
     this.thumbnailPlugin = null
     this.innerList.destroy()
     this.innerList = null

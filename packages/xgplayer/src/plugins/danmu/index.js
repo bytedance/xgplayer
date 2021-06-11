@@ -8,7 +8,7 @@ const MIN_INTERVAL = 300
 class Danmu extends Plugin {
   constructor (args) {
     super(args)
-    this.danmujs = null;
+    this.danmujs = null
     this.danmuPanel = null
     this.isOpen = false
     this.seekCost = 0
@@ -68,6 +68,10 @@ class Danmu extends Plugin {
       !this.config.isLive && this.danmujs && this.danmujs.stop()
     })
 
+    this.on([Events.FULLSCREEN_CHANGE, Events.CSS_FULLSCREEN_CHANGE, Events.MINI_STATE_CHANGE], () => {
+      this.resize()
+    })
+
     this.on(Events.SEEKED, () => {
       if (!this.danmujs || !this.isOpen) {
         return
@@ -99,8 +103,8 @@ class Danmu extends Plugin {
   }
 
   initDanmu () {
-    const {player, config} = this
-    const { channelSize, fontSize, opacity,  mouseControl, mouseControlPause, area, defaultOff } = this.config
+    const { player, config } = this
+    const { channelSize, fontSize, opacity, mouseControl, mouseControlPause, area, defaultOff } = this.config
     const danmuConfig = {
       container: this.root,
       player: player.video,
@@ -118,13 +122,15 @@ class Danmu extends Plugin {
     }
     const danmu = new DanmuJs(danmuConfig)
     this.danmujs = danmu
-    player.danmu = danmu;
-    this.setFontSize(fontSize, channelSize);
+    player.danmu = danmu
+    this.setFontSize(fontSize, channelSize)
+    this.setArea(area)
+    this.resize()
     opacity !== 1 && this.setOpacity(opacity)
   }
 
   registerExtIcons () {
-    const {player, config} = this
+    const { player, config } = this
     if (config.panel) {
       const panelOptions = {
         config: {
@@ -135,7 +141,7 @@ class Danmu extends Plugin {
       }
       this.danmuPanel = player.controls.registerPlugin(DanmuPanel, panelOptions, DanmuPanel.pluginName)
     }
-    const {switchConfig} = config
+    const { switchConfig } = config
     if (!config.closeDefaultBtn) {
       const buttonOptions = {
         config: {
@@ -170,6 +176,7 @@ class Danmu extends Plugin {
     }
     this.isUseClose = false
     this.show()
+    this.resize()
     // 避免弹幕弹层还没展开 导致轨道计算异常
     Util.setTimeout(this, () => {
       this.danmujs.start()
@@ -239,6 +246,10 @@ class Danmu extends Plugin {
   // 设置字体
   setFontSize (size, channelSize) {
     this.danmujs && this.danmujs.setFontSize(size, channelSize)
+  }
+
+  resize () {
+    this.danmujs && this.danmujs.resize()
   }
 
   sendComment (comments) {

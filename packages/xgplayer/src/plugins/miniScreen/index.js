@@ -28,7 +28,7 @@ class MiniScreen extends Plugin {
     super(args)
     this.isMini = false
     this.isClose = false
-    const {config} = this
+    const { config } = this
     this.pos = {
       left: config.left < 0 ? window.innerWidth - config.width - 20 : config.left,
       top: config.top < 0 ? window.innerHeight - config.height - 20 : config.top,
@@ -56,7 +56,7 @@ class MiniScreen extends Plugin {
   }
 
   onPluginsReady () {
-    const {player, config} = this
+    const { player, config } = this
     if (config.disable) {
       return
     }
@@ -85,13 +85,13 @@ class MiniScreen extends Plugin {
 
   registerIcons () {
     return {
-      play: {icon: PlayIcon, class: 'xg-icon-play'},
-      pause: {icon: PauseIcon, class: 'xg-icon-pause'}
+      play: { icon: PlayIcon, class: 'xg-icon-play' },
+      pause: { icon: PauseIcon, class: 'xg-icon-pause' }
     }
   }
 
   initIcons () {
-    const {icons} = this
+    const { icons } = this
     this.appendChild('.play-icon', icons.play)
     this.appendChild('.play-icon', icons.pause)
   }
@@ -104,13 +104,13 @@ class MiniScreen extends Plugin {
   }
 
   onCenterClick = (e) => {
-    const {player} = this
+    const { player } = this
     player.paused ? player.play() : player.pause()
   }
 
   onScroll = (e) => {
     if ((!window.scrollY && window.scrollY !== 0) || Math.abs(window.scrollY - this.pos.scrollY) < 50) {
-      return;
+      return
     }
     let scrollHeight = parseInt(Util.getCss(this.player.root, 'height'))
     scrollHeight += this.config.scrollTop
@@ -127,7 +127,7 @@ class MiniScreen extends Plugin {
     if (this.isMini) {
       return
     }
-    const {player, playerConfig} = this;
+    const { player, playerConfig } = this
     const target = this.config.target || this.player.root
     this.lastStyle = {}
     Util.addClass(player.root, 'xgplayer-mini');
@@ -146,7 +146,7 @@ class MiniScreen extends Plugin {
     if (!this.isMini) {
       return false
     }
-    const {player, playerConfig} = this;
+    const { player, playerConfig } = this
     const target = this.config.target || this.player.root
     Util.removeClass(player.root, 'xgplayer-mini')
     if (this.lastStyle) {
@@ -154,10 +154,10 @@ class MiniScreen extends Plugin {
         target.style[key] = this.lastStyle[key]
       })
     }
-    this.lastStyle = null;
+    this.lastStyle = null
     if (playerConfig.fluid) {
-      player.root.style['width'] = '100%'
-      player.root.style['height'] = '0'
+      player.root.style.width = '100%'
+      player.root.style.height = '0'
       player.root.style['padding-top'] = `${playerConfig.height * 100 / playerConfig.width}%`
     }
     this.emit(Events.MINI_STATE_CHANGE, false)

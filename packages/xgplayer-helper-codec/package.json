@@ -1,6 +1,6 @@
 {
   "name": "xgplayer-helper-codec",
-  "version": "2.4.26",
+  "version": "2.4.27",
   "description": "",
   "main": "lib/index.js",
   "module": "es/index.js",
@@ -28,6 +28,6 @@
   "author": "",
   "license": "ISC",
   "dependencies": {
-    "xgplayer-helper-utils": "2.4.26"
+    "xgplayer-helper-utils": "2.4.27"
   }
 }

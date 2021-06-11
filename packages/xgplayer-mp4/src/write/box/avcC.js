@@ -1,6 +1,6 @@
 import Box from '../box'
 Box.avcC = function (data, output) {
-  let stream = this.stream
+  const stream = this.stream
   stream.writeUint8(data.configVersion)
   stream.writeUint8(data.profile)
   stream.writeUint8(data.profileCompatibility)

@@ -1,9 +1,9 @@
 import Box from '../box'
 Box.mdhd = function (data, output) {
-  let stream = this.stream
+  const stream = this.stream
   stream.writeUint8(data.version)
   stream.writeUint24(data.flag)
-  let version = data.version
+  const version = data.version
   if (version === 1) {
     stream.writeUint64(data.create)
     stream.writeUint64(data.modify)

@@ -1,4 +1,4 @@
-import Plugin, {POSITIONS} from '../../plugin'
+import Plugin, { POSITIONS } from '../../plugin'
 
 const DANMU_OPEN = `<dk-switch class="danmu-switch">
 <span class="txt">弹</span>
@@ -30,6 +30,7 @@ class DanmuIcon extends Plugin {
       closeDanmu: { icon: DANMU_OPEN, class: 'danmu-switch-closed' }
     }
   }
+
   switchState (isOpen) {
     if (isOpen) {
       this.setAttr('data-state', 'active')
@@ -40,7 +41,7 @@ class DanmuIcon extends Plugin {
   }
 
   initIcons () {
-    const {icons} = this
+    const { icons } = this
     const contentIcon = this.find('.xgplayer-icon')
     contentIcon.appendChild(icons.openDanmu)
     contentIcon.appendChild(icons.closeDanmu)
@@ -51,8 +52,8 @@ class DanmuIcon extends Plugin {
   }
 
   onStateChange (e) {
-    e.preventDefault();
-    e.stopPropagation();
+    e.preventDefault()
+    e.stopPropagation()
     const state = this.root.getAttribute('data-state')
     const isOpen = state === 'active'
     this.switchState(!isOpen)

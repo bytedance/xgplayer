@@ -1,6 +1,6 @@
 import Box from '../box'
 Box.wide = function (data, output) {
-  let stream = this.stream
+  const stream = this.stream
   stream.fill(data.size - 8)
   output.write(new Uint8Array(stream.buffer.slice(0, stream.position)))
   if (stream.position !== data.size - 8) {

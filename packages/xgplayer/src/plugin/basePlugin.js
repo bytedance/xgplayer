@@ -29,19 +29,19 @@ class BasePlugin {
 
   __init (args) {
     BasePlugin.defineGetterOrSetter(this, {
-      'player': {
+      player: {
         get: () => {
           return args.player
         },
         configurable: true
       },
-      'playerConfig': {
+      playerConfig: {
         get: () => {
           return args.player && args.player.config
         },
         configurable: true
       },
-      'pluginName': {
+      pluginName: {
         get: () => {
           if (args.pluginName) {
             return args.pluginName.toLowerCase()
@@ -51,7 +51,7 @@ class BasePlugin {
         },
         configurable: true
       },
-      'logger': {
+      logger: {
         get: () => {
           return args.player.logger
         },
@@ -132,7 +132,7 @@ class BasePlugin {
 
   registerPlugin (plugin, options = {}, name = '') {
     name && (options.pluginName = name)
-    return this.player.registerPlugin({plugin, options})
+    return this.player.registerPlugin({ plugin, options })
   }
 
   getPlugin (name) {
@@ -145,13 +145,13 @@ class BasePlugin {
     this.offAll()
     Util.clearAllTimers(this)
     if (Util.checkIsFunction(this.destroy)) {
-      this.destroy();
+      this.destroy()
     }
 
     ['player', 'playerConfig', 'pluginName', 'logger'].map(item => {
       Object.defineProperty(this, item, {
         writable: true
-      });
+      })
     })
     Object.keys(this).map(key => {
       this[key] = null

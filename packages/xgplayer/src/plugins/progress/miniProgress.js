@@ -11,7 +11,7 @@ class MiniProgress extends Plugin {
   afterCreate () {
   }
 
-  update (data = {cached: 0, played: 0}, duration) {
+  update (data = { cached: 0, played: 0 }, duration) {
     if (!duration || !this.root) {
       return
     }

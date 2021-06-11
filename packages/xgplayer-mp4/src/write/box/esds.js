@@ -1,7 +1,7 @@
 import Box from '../box'
 
 Box.esds = function (data, output) {
-  let stream = this.stream
+  const stream = this.stream
   stream.writeUint8(data.version)
   stream.writeUint24(data.flag)
   output.write(new Uint8Array(stream.buffer.slice(0, stream.position)))

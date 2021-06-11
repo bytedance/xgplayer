@@ -1,10 +1,10 @@
 import EventEmitter from 'event-emitter'
 
 function getStyleSize (value) {
-  const num = parseFloat(value);
+  const num = parseFloat(value)
   // not a percent like '100%', and a number
-  const isValid = value.indexOf('%') === -1 && !isNaN(num);
-  return isValid && num;
+  const isValid = value.indexOf('%') === -1 && !isNaN(num)
+  return isValid && num
 }
 
 const measurements = [
@@ -20,9 +20,9 @@ const measurements = [
   'borderRightWidth',
   'borderTopWidth',
   'borderBottomWidth'
-];
+]
 
-const measurementsLength = measurements.length;
+const measurementsLength = measurements.length
 
 function getZeroSize () {
   const size = {
@@ -32,95 +32,95 @@ function getZeroSize () {
     innerHeight: 0,
     outerWidth: 0,
     outerHeight: 0
-  };
-  for (let i = 0; i < measurementsLength; i++) {
-    const measurement = measurements[i];
-    size[ measurement ] = 0;
   }
-  return size;
+  for (let i = 0; i < measurementsLength; i++) {
+    const measurement = measurements[i]
+    size[measurement] = 0
+  }
+  return size
 }
 
 function getStyle (elem) {
-  const style = window.getComputedStyle(elem);
+  const style = window.getComputedStyle(elem)
   // if ( !style ) {
   //   logError( 'Style returned ' + style +
   //     '. Are you running this code in a hidden iframe on Firefox? ' +
   //     'See http://bit.ly/getsizebug1' );
   // }
-  return style;
+  return style
 }
 
 function getSize (elem) {
   // use querySeletor if elem is string
   if (typeof elem === 'string') {
-    elem = document.querySelector(elem);
+    elem = document.querySelector(elem)
   }
 
   // do not proceed on non-objects
   if (!elem || typeof elem !== 'object' || !elem.nodeType) {
-    return;
+    return
   }
 
-  var style = getStyle(elem);
+  const style = getStyle(elem)
 
   // if hidden, everything is 0
   if (style.display === 'none') {
-    return getZeroSize();
+    return getZeroSize()
   }
 
-  var size = {};
-  size.width = elem.offsetWidth;
-  size.height = elem.offsetHeight;
+  const size = {}
+  size.width = elem.offsetWidth
+  size.height = elem.offsetHeight
 
-  var isBorderBox = size.isBorderBox = style.boxSizing === 'border-box';
+  const isBorderBox = size.isBorderBox = style.boxSizing === 'border-box'
 
   // get all measurements
-  for (var i = 0; i < measurementsLength; i++) {
-    var measurement = measurements[i];
-    var value = style[ measurement ];
-    var num = parseFloat(value);
+  for (let i = 0; i < measurementsLength; i++) {
+    const measurement = measurements[i]
+    const value = style[measurement]
+    const num = parseFloat(value)
     // any 'auto', 'medium' value will be 0
-    size[ measurement ] = !isNaN(num) ? num : 0;
+    size[measurement] = !isNaN(num) ? num : 0
   }
 
-  var paddingWidth = size.paddingLeft + size.paddingRight;
-  var paddingHeight = size.paddingTop + size.paddingBottom;
-  var marginWidth = size.marginLeft + size.marginRight;
-  var marginHeight = size.marginTop + size.marginBottom;
-  var borderWidth = size.borderLeftWidth + size.borderRightWidth;
-  var borderHeight = size.borderTopWidth + size.borderBottomWidth;
+  const paddingWidth = size.paddingLeft + size.paddingRight
+  const paddingHeight = size.paddingTop + size.paddingBottom
+  const marginWidth = size.marginLeft + size.marginRight
+  const marginHeight = size.marginTop + size.marginBottom
+  const borderWidth = size.borderLeftWidth + size.borderRightWidth
+  const borderHeight = size.borderTopWidth + size.borderBottomWidth
 
-  var isBorderBoxSizeOuter = isBorderBox// isBorderBox && isBoxSizeOuter;
+  const isBorderBoxSizeOuter = isBorderBox// isBorderBox && isBoxSizeOuter;
 
   // overwrite width and height if we can get it from style
-  var styleWidth = getStyleSize(style.width);
+  const styleWidth = getStyleSize(style.width)
   if (styleWidth !== false) {
     size.width = styleWidth +
       // add padding and border unless it's already including it
-      (isBorderBoxSizeOuter ? 0 : paddingWidth + borderWidth);
+      (isBorderBoxSizeOuter ? 0 : paddingWidth + borderWidth)
   }
 
-  var styleHeight = getStyleSize(style.height);
+  const styleHeight = getStyleSize(style.height)
   if (styleHeight !== false) {
     size.height = styleHeight +
       // add padding and border unless it's already including it
-      (isBorderBoxSizeOuter ? 0 : paddingHeight + borderHeight);
+      (isBorderBoxSizeOuter ? 0 : paddingHeight + borderHeight)
   }
 
-  size.innerWidth = size.width - (paddingWidth + borderWidth);
-  size.innerHeight = size.height - (paddingHeight + borderHeight);
+  size.innerWidth = size.width - (paddingWidth + borderWidth)
+  size.innerHeight = size.height - (paddingHeight + borderHeight)
 
-  size.outerWidth = size.width + marginWidth;
-  size.outerHeight = size.height + marginHeight;
+  size.outerWidth = size.width + marginWidth
+  size.outerHeight = size.height + marginHeight
 
-  return size;
+  return size
 }
 
 function getTouch (touches, dentifier) {
   for (let i = 0; i < touches.length; i++) {
-    const touch = touches[i];
+    const touch = touches[i]
     if (touch.identifier === dentifier) {
-      return touch;
+      return touch
     }
   }
 };
@@ -132,25 +132,25 @@ const EVENTS = {
 }
 
 const POST_START_EVENTS = {
-  mousedown: [ 'mousemove', 'mouseup' ],
-  touchstart: [ 'touchmove', 'touchend', 'touchcancel' ],
-  pointerdown: [ 'pointermove', 'pointerup', 'pointercancel' ]
-};
+  mousedown: ['mousemove', 'mouseup'],
+  touchstart: ['touchmove', 'touchend', 'touchcancel'],
+  pointerdown: ['pointermove', 'pointerup', 'pointercancel']
+}
 
 export default class Draggabilly {
   constructor (root, options = {}) {
     EventEmitter(this)
-    this.isEnabled = true;
+    this.isEnabled = true
     this.isDragging = false
     this.isDown = false
     this.position = {}
     this.downPoint = {}
-    this.dragPoint = {x: 0, y: 0}
-    this.startPos = {x: 0, y: 0}
+    this.dragPoint = { x: 0, y: 0 }
+    this.startPos = { x: 0, y: 0 }
     // eslint-disable-next-line no-undef
     this._root = root instanceof Element ? root : document.querySelector(root)
     // eslint-disable-next-line no-undef
-    this._handlerDom = options.handle instanceof Element ? options.handle : document.querySelector(options.handle);
+    this._handlerDom = options.handle instanceof Element ? options.handle : document.querySelector(options.handle)
     if (!this._root || !this._handlerDom) {
       return
     }
@@ -190,37 +190,37 @@ export default class Draggabilly {
 
   _bindPostStartEvents (event) {
     if (!event) {
-      return;
+      return
     }
-    const events = POST_START_EVENTS[ this._startKey ];
+    const events = POST_START_EVENTS[this._startKey]
     // bind events to node
     events.map(eventName => {
-      window.addEventListener(eventName, this[`on${eventName}`]);
-    });
+      window.addEventListener(eventName, this[`on${eventName}`])
+    })
     // save these arguments
-    this._boundPointerEvents = events;
+    this._boundPointerEvents = events
   }
 
   _unbindPostStartEvents () {
     if (!this._boundPointerEvents) {
-      return;
+      return
     }
     this._boundPointerEvents.map(eventName => {
       // console.log('eventName', eventName, this[`on${eventName}`])
-      window.removeEventListener(eventName, this[`on${eventName}`]);
-    });
+      window.removeEventListener(eventName, this[`on${eventName}`])
+    })
 
-    delete this._boundPointerEvents;
+    delete this._boundPointerEvents
   }
 
   enable () {
-    this.isEnabled = true;
+    this.isEnabled = true
   }
 
   disable () {
-    this.isEnabled = false;
+    this.isEnabled = false
     if (this.isDragging) {
-      this.onUp();
+      this.onUp()
     }
   }
 
@@ -231,14 +231,14 @@ export default class Draggabilly {
   animate () {
     // only render and animate if dragging
     if (!this.isDragging) {
-      return;
+      return
     }
 
-    this.positionDrag();
+    this.positionDrag()
 
     window.requestAnimationFrame(() => {
-      this.animate();
-    });
+      this.animate()
+    })
   }
 
   positionDrag () {
@@ -250,8 +250,8 @@ export default class Draggabilly {
   }
 
   setLeftTop () {
-    this._root.style.left = this.position.x + 'px';
-    this._root.style.top = this.position.y + 'px';
+    this._root.style.left = this.position.x + 'px'
+    this._root.style.top = this.position.y + 'px'
   }
 
   onmousedown (e) {
@@ -270,29 +270,30 @@ export default class Draggabilly {
     const touch = e.changedTouches[0]
     this.dragStart(e, touch)
     this.touchIdentifier = touch.pointerId !== undefined
-      ? touch.pointerId : touch.identifier;
-    e.preventDefault();
+      ? touch.pointerId
+      : touch.identifier
+    e.preventDefault()
   }
 
   ontouchmove (e) {
-    const touch = getTouch(e.changedTouches, this.touchIdentifier);
+    const touch = getTouch(e.changedTouches, this.touchIdentifier)
     if (touch) {
-      this.dragMove(e, touch);
+      this.dragMove(e, touch)
     }
   }
 
   ontouchend (e) {
-    const touch = getTouch(e.changedTouches, this.touchIdentifier);
+    const touch = getTouch(e.changedTouches, this.touchIdentifier)
     if (touch) {
-      this.dragEnd(e, touch);
+      this.dragEnd(e, touch)
     }
-    e.preventDefault();
+    e.preventDefault()
   }
 
   ontouchcancel (e) {
-    const touch = getTouch(e.changedTouches, this.touchIdentifier);
+    const touch = getTouch(e.changedTouches, this.touchIdentifier)
     if (touch) {
-      this.dragCancel(e, touch);
+      this.dragCancel(e, touch)
     }
   }
 
@@ -301,8 +302,8 @@ export default class Draggabilly {
       return
     }
     this.downPoint = pointer
-    this.dragPoint.x = 0;
-    this.dragPoint.y = 0;
+    this.dragPoint.x = 0
+    this.dragPoint.y = 0
 
     this._getPosition()
 
@@ -312,7 +313,7 @@ export default class Draggabilly {
     this.startPos.y = this.position.y
     this.startPos.maxY = window.innerHeight - size.height
     this.startPos.maxX = window.innerWidth - size.width
-    this.setLeftTop();
+    this.setLeftTop()
 
     this.isDown = true
     this._bindPostStartEvents(e)
@@ -330,7 +331,7 @@ export default class Draggabilly {
     }
     this._unbindPostStartEvents()
     if (this.isDragging) {
-      this._root.style.transform = '';
+      this._root.style.transform = ''
       this.setLeftTop()
       this.emit(EVENTS.ENDED)
     }
@@ -338,15 +339,15 @@ export default class Draggabilly {
   }
 
   _dragPointerMove (e, pointer) {
-    var moveVector = {
+    const moveVector = {
       x: pointer.pageX - this.downPoint.pageX,
       y: pointer.pageY - this.downPoint.pageY
-    };
+    }
     // 检测是否有移动
     if (!this.isDragging && this.hasDragStarted(moveVector)) {
-      this.dragRealStart(e, pointer);
+      this.dragRealStart(e, pointer)
     }
-    return moveVector;
+    return moveVector
   }
 
   dragMove (e, pointer) {
@@ -354,16 +355,16 @@ export default class Draggabilly {
     if (!this.isDown) {
       return
     }
-    const {x, y} = this.startPos
+    const { x, y } = this.startPos
     const moveVector = this._dragPointerMove(e, pointer)
-    let dragX = moveVector.x;
-    let dragY = moveVector.y;
+    let dragX = moveVector.x
+    let dragY = moveVector.y
     dragX = this.checkContain('x', dragX, x)
     dragY = this.checkContain('y', dragY, y)
-    this.position.x = x + dragX;
-    this.position.y = y + dragY;
-    this.dragPoint.x = dragX;
-    this.dragPoint.y = dragY;
+    this.position.x = x + dragX
+    this.position.y = y + dragY
+    this.dragPoint.x = dragX
+    this.dragPoint.y = dragY
     this.emit(EVENTS.MOVE, this.position)
   }
 
@@ -394,7 +395,7 @@ export default class Draggabilly {
   }
 
   hasDragStarted (moveVector) {
-    return Math.abs(moveVector.x) > 3 || Math.abs(moveVector.y) > 3;
+    return Math.abs(moveVector.x) > 3 || Math.abs(moveVector.y) > 3
   };
 
   checkContain (axis, drag, grid) {
@@ -412,41 +413,42 @@ export default class Draggabilly {
   }
 
   _getPosition () {
-    var style = window.getComputedStyle(this._root);
-    var x = this._getPositionCoord(style.left, 'width');
-    var y = this._getPositionCoord(style.top, 'height');
+    const style = window.getComputedStyle(this._root)
+    const x = this._getPositionCoord(style.left, 'width')
+    const y = this._getPositionCoord(style.top, 'height')
     // clean up 'auto' or other non-integer values
-    this.position.x = isNaN(x) ? 0 : x;
-    this.position.y = isNaN(y) ? 0 : y;
+    this.position.x = isNaN(x) ? 0 : x
+    this.position.y = isNaN(y) ? 0 : y
 
-    this._addTransformPosition(style);
+    this._addTransformPosition(style)
   }
 
   _addTransformPosition (style) {
-    const transform = style.transform;
+    const transform = style.transform
     // bail out if value is 'none'
     if (transform.indexOf('matrix') !== 0) {
-      return;
+      return
     }
     // split matrix(1, 0, 0, 1, x, y)
-    const matrixValues = transform.split(',');
+    const matrixValues = transform.split(',')
     // translate X value is in 12th or 4th position
-    const xIndex = transform.indexOf('matrix3d') === 0 ? 12 : 4;
-    const translateX = parseInt(matrixValues[ xIndex ], 10);
+    const xIndex = transform.indexOf('matrix3d') === 0 ? 12 : 4
+    const translateX = parseInt(matrixValues[xIndex], 10)
     // translate Y value is in 13th or 5th position
-    const translateY = parseInt(matrixValues[ xIndex + 1 ], 10);
-    this.position.x += translateX;
-    this.position.y += translateY;
+    const translateY = parseInt(matrixValues[xIndex + 1], 10)
+    this.position.x += translateX
+    this.position.y += translateY
   }
 
   _getPositionCoord (styleSide, measure) {
     if (styleSide.indexOf('%') !== -1) {
       // convert percent into pixel for Safari, #75
-      const parentSize = getSize(this._root.parentNode);
+      const parentSize = getSize(this._root.parentNode)
       // prevent not-in-DOM element throwing bug, #131
-      return !parentSize ? 0
-        : (parseFloat(styleSide) / 100) * parentSize[ measure ];
+      return !parentSize
+        ? 0
+        : (parseFloat(styleSide) / 100) * parentSize[measure]
     }
-    return parseInt(styleSide, 10);
+    return parseInt(styleSide, 10)
   }
 }

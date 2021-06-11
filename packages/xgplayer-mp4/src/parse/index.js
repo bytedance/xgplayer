@@ -1,7 +1,9 @@
 import Box from './box'
-import './box/index'
 import Concat from 'concat-typed-array'
 import Stream from './stream'
+import * as BoxParse from './boxParse'
+
+Box.boxParse = BoxParse
 
 class Parse {
   constructor (buffer) {

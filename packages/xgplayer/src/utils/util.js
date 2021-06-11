@@ -1,14 +1,14 @@
 import XG_DEBUG from './debug'
 import XgplayerTimeRange from './xgplayerTimeRange'
-let util = {}
+const util = {}
 
 util.createDom = function (el = 'div', tpl = '', attrs = {}, cname = '') {
-  let dom = document.createElement(el)
+  const dom = document.createElement(el)
   dom.className = cname
   dom.innerHTML = tpl
   Object.keys(attrs).forEach(item => {
-    let key = item
-    let value = attrs[item]
+    const key = item
+    const value = attrs[item]
     if (el === 'video' || el === 'audio' || el === 'mobile-video') {
       if (value) {
         dom.setAttribute(key, value)
@@ -45,7 +45,7 @@ util.createDomFromHtml = function (html, attrs = {}, classname = '') {
 
 util.hasClass = function (el, className) {
   if (!el) {
-    return false;
+    return false
   }
   if (el.classList) {
     return Array.prototype.some.call(el.classList, item => item === className)
@@ -57,7 +57,7 @@ util.hasClass = function (el, className) {
 
 util.addClass = function (el, className) {
   if (!el) {
-    return;
+    return
   }
 
   if (el.classList) {
@@ -75,7 +75,7 @@ util.addClass = function (el, className) {
 
 util.removeClass = function (el, className) {
   if (!el) {
-    return;
+    return
   }
 
   if (el.classList) {
@@ -84,7 +84,7 @@ util.removeClass = function (el, className) {
     })
   } else if (util.hasClass(el, className)) {
     className.split(/\s+/g).forEach(item => {
-      let reg = new RegExp('(\\s|^)' + item + '(\\s|$)')
+      const reg = new RegExp('(\\s|^)' + item + '(\\s|$)')
       if (el.className && typeof el.className === 'object') {
         el.setAttribute('class', el.getAttribute('class').replace(reg, ' '))
       } else {
@@ -96,7 +96,7 @@ util.removeClass = function (el, className) {
 
 util.toggleClass = function (el, className) {
   if (!el) {
-    return;
+    return
   }
 
   className.split(/\s+/g).forEach(item => {
@@ -108,9 +108,9 @@ util.toggleClass = function (el, className) {
   })
 }
 
-util.classNames = function() {
+util.classNames = function () {
   let classname = ''
-  for(let i = 0; i < arguments.length; i++) {
+  for (let i = 0; i < arguments.length; i++) {
     if (util.typeOf(arguments[i]) === 'String') {
       classname += `${arguments[i]}`
     } else if (util.typeOf(arguments[i]) === 'Object') {
@@ -147,11 +147,11 @@ util.getCss = function (dom, key) {
 }
 
 util.padStart = function (str, length, pad) {
-  let charstr = String(pad)
-  let len = length >> 0
+  const charstr = String(pad)
+  const len = length >> 0
   let maxlen = Math.ceil(len / charstr.length)
-  let chars = []
-  let r = String(str)
+  const chars = []
+  const r = String(str)
   while (maxlen--) {
     chars.push(charstr)
   }
@@ -163,15 +163,15 @@ util.format = function (time) {
     return ''
   }
   time = Math.round(time)
-  let hour = util.padStart(Math.floor(time / 3600), 2, 0)
-  let minute = util.padStart(Math.floor((time - hour * 3600) / 60), 2, 0)
-  let second = util.padStart(Math.floor((time - hour * 3600 - minute * 60)), 2, 0)
+  const hour = util.padStart(Math.floor(time / 3600), 2, 0)
+  const minute = util.padStart(Math.floor((time - hour * 3600) / 60), 2, 0)
+  const second = util.padStart(Math.floor((time - hour * 3600 - minute * 60)), 2, 0)
   return (hour === '00' ? [minute, second] : [hour, minute, second]).join(':')
 }
 
 util.event = function (e) {
   if (e.touches) {
-    let touch = e.touches[0] || e.changedTouches[0]
+    const touch = e.touches[0] || e.changedTouches[0]
     e.clientX = touch.clientX || 0
     e.clientY = touch.clientY || 0
     e.offsetX = touch.pageX - touch.target.offsetLeft
@@ -221,18 +221,18 @@ util.deepMerge = function (dst, src) {
 
 util.getBgImage = function (el) {
   // fix: return current page url when url is none
-  let url = (el.currentStyle || window.getComputedStyle(el, null)).backgroundImage
+  const url = (el.currentStyle || window.getComputedStyle(el, null)).backgroundImage
   if (!url || url === 'none') {
     return ''
   }
-  let a = document.createElement('a')
+  const a = document.createElement('a')
   a.href = url.replace(/url\("|"\)/g, '')
   return a.href
 }
 
 util.copyDom = function (dom) {
   if (dom && dom.nodeType === 1) {
-    let back = document.createElement(dom.tagName)
+    const back = document.createElement(dom.tagName)
     Array.prototype.forEach.call(dom.attributes, (node) => {
       back.setAttribute(node.name, node.value)
     })
@@ -260,7 +260,7 @@ util.setTimeout = function (context, fun, time) {
   if (!context._timers) {
     context._timers = []
   }
-  let id = setTimeout(() => {
+  const id = setTimeout(() => {
     fun()
     util.clearTimeout(context, id)
   }, time)
@@ -269,7 +269,7 @@ util.setTimeout = function (context, fun, time) {
 }
 
 util.clearTimeout = function (context, id) {
-  const {_timers} = context
+  const { _timers } = context
   if (util.typeOf(_timers) === 'Array') {
     for (let i = 0; i < _timers.length; i++) {
       if (_timers[i] === id) {
@@ -284,7 +284,7 @@ util.clearTimeout = function (context, id) {
 }
 
 util.clearAllTimers = function (context) {
-  const {_timers} = context
+  const { _timers } = context
   if (util.typeOf(_timers) === 'Array') {
     _timers.map(item => {
       clearTimeout(item)
@@ -294,7 +294,7 @@ util.clearAllTimers = function (context) {
 }
 
 util.createImgBtn = function (name, imgUrl, width, height) {
-  let btn = util.createDom(`xg-${name}`, '', {}, `xgplayer-${name}-img`)
+  const btn = util.createDom(`xg-${name}`, '', {}, `xgplayer-${name}-img`)
   btn.style.backgroundImage = `url("${imgUrl}")`
   if (width && height) {
     let w, h, unit
@@ -321,7 +321,7 @@ util.createImgBtn = function (name, imgUrl, width, height) {
 }
 
 util.Hex2RGBA = function (hex, alpha) {
-  let rgb = [] // 定义rgb数组
+  const rgb = [] // 定义rgb数组
   // eslint-disable-next-line no-useless-escape
   if (/^\#[0-9A-F]{3}$/i.test(hex)) {
     let sixHex = '#'
@@ -388,8 +388,8 @@ util.setStyleFromCsstext = function (dom, text) {
   }
 }
 
-function checkIsIn(key, list) {
-  for(let i = 0, len = list.length; i < len; i++) {
+function checkIsIn (key, list) {
+  for (let i = 0, len = list.length; i < len; i++) {
     if (key.indexOf(list[i]) > -1) {
       return true
     }
@@ -397,9 +397,9 @@ function checkIsIn(key, list) {
   return false
 }
 
-util.filterStyleFromText = function(dom, list = ['width', 'height', 'top', 'left', 'bottom','right','position', 'z-index', 'padding', 'margin', 'transform']) {
+util.filterStyleFromText = function (dom, list = ['width', 'height', 'top', 'left', 'bottom', 'right', 'position', 'z-index', 'padding', 'margin', 'transform']) {
   const _cssText = dom.style.cssText
-  if(!_cssText) {
+  if (!_cssText) {
     return {}
   }
   const styleArr = _cssText.replace(/\s+/g, '').split(';')
@@ -409,7 +409,7 @@ util.filterStyleFromText = function(dom, list = ['width', 'height', 'top', 'left
     if (item) {
       const arr = item.split(':')
       if (arr.length > 1) {
-        if(checkIsIn(arr[0], list)) {
+        if (checkIsIn(arr[0], list)) {
           ret[arr[0]] = arr[1]
           // dom.style[arr[0]] = 'initial'
         } else {
@@ -431,7 +431,7 @@ util.filterStyleFromText = function(dom, list = ['width', 'height', 'top', 'left
   return ret
 }
 
-util.getStyleFromCsstext = function (dom){
+util.getStyleFromCsstext = function (dom) {
   const _cssText = dom.style.cssText
   if (!_cssText) {
     return {}
@@ -449,7 +449,7 @@ util.getStyleFromCsstext = function (dom){
   return ret
 }
 
-util.getStyleFromCsstext = function (dom){
+util.getStyleFromCsstext = function (dom) {
   const _cssText = dom.style.cssText
   const styleArr = _cssText.replace(/\s+/g, '').split(';')
   const ret = {}
@@ -465,7 +465,7 @@ util.getStyleFromCsstext = function (dom){
 }
 
 util.preloadImg = (url, onload = () => {}, onerror = () => {}) => {
-  let img = new window.Image();
+  let img = new window.Image()
   if (img.complete) {
     // 图片已经加载过了，可以使用图片
     // do something here
@@ -482,7 +482,7 @@ util.preloadImg = (url, onload = () => {}, onerror = () => {}) => {
       onerror && onerror(e)
     }
   }
-  img.src = url;
+  img.src = url
 }
 
 util.stopPropagation = (e) => {
@@ -496,55 +496,54 @@ util.scrollTop = function () {
   return window.pageYOffset ||
   document.documentElement.scrollTop ||
   document.body.scrollTop ||
-  0;
+  0
 }
 
 util.scrollLeft = function () {
   return window.pageXOffset ||
   document.documentElement.scrollLeft ||
   document.body.scrollLeft ||
-  0;
+  0
 }
 
 util.checkTouchSupport = function () {
   return 'ontouchstart' in window
 }
 
-util.getBuffered2 = (vbuffered, maxHoleDuration = 0.5) => { //ref: hls.js
-  let buffered = []
+util.getBuffered2 = (vbuffered, maxHoleDuration = 0.5) => { // ref: hls.js
+  const buffered = []
   for (let i = 0; i < vbuffered.length; i++) {
-    buffered.push({ start: vbuffered.start(i) < 0.5 ? 0 : vbuffered.start(i), end: vbuffered.end(i) });
+    buffered.push({ start: vbuffered.start(i) < 0.5 ? 0 : vbuffered.start(i), end: vbuffered.end(i) })
   }
   buffered.sort(function (a, b) {
-    let diff = a.start - b.start;
+    const diff = a.start - b.start
     if (diff) {
-      return diff;
+      return diff
     } else {
-      return b.end - a.end;
+      return b.end - a.end
     }
-  });
-  let buffered_2 = []
+  })
+  let buffered2 = []
   if (maxHoleDuration) {
     for (let i = 0; i < buffered.length; i++) {
-      let buf2len = buffered_2.length
+      const buf2len = buffered2.length
       if (buf2len) {
-        let buf2end = buffered_2[buf2len - 1].end
+        const buf2end = buffered2[buf2len - 1].end
         if ((buffered[i].start - buf2end) < maxHoleDuration) {
           if (buffered[i].end > buf2end) {
-            buffered_2[buf2len - 1].end = buffered[i].end
+            buffered2[buf2len - 1].end = buffered[i].end
           }
         } else {
-          buffered_2.push(buffered[i])
+          buffered2.push(buffered[i])
         }
       } else {
-        buffered_2.push(buffered[i])
+        buffered2.push(buffered[i])
       }
     }
   } else {
-    buffered_2 = buffered
+    buffered2 = buffered
   }
-  return new XgplayerTimeRange(buffered_2)
+  return new XgplayerTimeRange(buffered2)
 }
-
 
 export default util

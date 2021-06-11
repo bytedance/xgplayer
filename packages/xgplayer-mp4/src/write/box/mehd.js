@@ -1,6 +1,6 @@
 import Box from '../box'
 Box.mehd = function (data, output) {
-  let stream = this.stream
+  const stream = this.stream
   stream.writeUint8(data.version)
   stream.writeUint24(data.flag)
   stream.writeUint32(data.duration)
