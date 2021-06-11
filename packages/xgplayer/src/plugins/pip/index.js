@@ -59,19 +59,19 @@ class PIP extends Plugin {
 
   registerIcons () {
     return {
-      pipIcon: {icon: PipIcon, class: 'xg-get-pip'},
-      pipIconExit: {icon: PipIconExit, class: 'xg-exit-pip'}
+      pipIcon: { icon: PipIcon, class: 'xg-get-pip' },
+      pipIconExit: { icon: PipIconExit, class: 'xg-exit-pip' }
     }
   }
 
   initIcons () {
-    const {icons} = this
+    const { icons } = this
     this.appendChild('.xgplayer-icon', icons.pipIcon)
     this.appendChild('.xgplayer-icon', icons.pipIconExit)
   }
 
   initPipEvents () {
-    const {player} = this
+    const { player } = this
     this.leavePIPCallback = () => {
       // 处理点击x关闭画中画的时候暂停问题
       const paused = player.paused
@@ -129,7 +129,7 @@ class PIP extends Plugin {
    * 进入画中画
   */
   requestPIP () {
-    const {player, playerConfig} = this
+    const { player, playerConfig } = this
     if (!this.isPIPAvailable() || this.isPip) {
       return
     }
@@ -149,7 +149,7 @@ class PIP extends Plugin {
    * 退出画中画
    */
   exitPIP () {
-    const {player} = this
+    const { player } = this
     try {
       if (this.isPIPAvailable() && this.isPip) {
         PIP.checkWebkitSetPresentationMode(player.video) ? player.video.webkitSetPresentationMode('inline') : document.exitPictureInPicture()
@@ -162,19 +162,19 @@ class PIP extends Plugin {
   }
 
   get isPip () {
-    const {player} = this
+    const { player } = this
     return (document.pictureInPictureElement && document.pictureInPictureElement === player.video) || player.video.webkitPresentationMode === PresentationMode.PIP
   }
 
   isPIPAvailable () {
-    const {video} = this.player
+    const { video } = this.player
     return document.pictureInPictureEnabled &&
     ((Util.typeOf(video.disablePictureInPicture) === 'Boolean' && !video.disablePictureInPicture) ||
      (video.webkitSupportsPresentationMode && Util.typeOf(video.webkitSetPresentationMode) === 'Function'))
   }
 
   destroy () {
-    const {player} = this
+    const { player } = this
     player.video.removeEventListener('enterpictureinpicture', this.enterPIPCallback)
     player.video.removeEventListener('leavepictureinpicture', this.leavePIPCallback)
     this.exitPIP()

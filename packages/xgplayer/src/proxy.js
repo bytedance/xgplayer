@@ -3,7 +3,7 @@ import allOff from 'event-emitter/all-off'
 import Util from './utils/util'
 import Sniffer from './utils/sniffer'
 import Errors from './error'
-import {URL_CHANGE, DESTROY} from './events'
+import { URL_CHANGE, DESTROY } from './events'
 
 const VIDEO_EVENTS = ['play', 'playing', 'pause', 'ended', 'error', 'seeking', 'seeked',
   'timeupdate', 'waiting', 'canplay', 'canplaythrough', 'durationchange', 'volumechange',
@@ -26,7 +26,7 @@ function getHandler (eventName, player) {
     player.on(eventName, player[funName])
   }
   return (e) => {
-    let eventKey = eventName
+    const eventKey = eventName
     e.player = player
     e.eventName = eventName
 
@@ -64,10 +64,10 @@ class Proxy {
       playsinline: options.playsinline,
       'x5-playsinline': options.playsinline,
       'webkit-playsinline': options.playsinline,
-      'x5-video-player-fullscreen': options['x5-video-player-fullscreen'] || options['x5VideoPlayerFullscreen'],
-      'x5-video-orientation': options['x5-video-orientation'] || options['x5VideoOrientation'],
-      airplay: options['airplay'],
-      'webkit-airplay': options['airplay'],
+      'x5-video-player-fullscreen': options['x5-video-player-fullscreen'] || options.x5VideoPlayerFullscreen,
+      'x5-video-orientation': options['x5-video-orientation'] || options.x5VideoOrientation,
+      airplay: options.airplay,
+      'webkit-airplay': options.airplay,
       tabindex: 2,
       mediaType: options.mediaType || 'video'
     }, options.videoConfig, options.videoAttrbutes)
@@ -76,10 +76,10 @@ class Proxy {
      * x5-playsinline和x5-video-player-type互斥，只需要存在一个即可
      * @doc https://x5.tencent.com/docs/video.html
      */
-    const playerType = options['x5-video-player-type'] || options['x5VideoPlayerType']
+    const playerType = options['x5-video-player-type'] || options.x5VideoPlayerType
     if (Sniffer.isWeixin && Sniffer.os.isAndroid && playerType) {
       this.videoConfig['x5-video-player-type'] = playerType
-      delete this.videoConfig['playsinline']
+      delete this.videoConfig.playsinline
       delete this.videoConfig['webkit-playsinline']
       delete this.videoConfig['x5-playsinline']
     }
@@ -182,7 +182,7 @@ class Proxy {
     }
     this._currentTime = 0
     this._duration = 0
-    for (let k in this._interval) {
+    for (const k in this._interval) {
       clearInterval(this._interval[k])
       this._interval[k] = null
     }
@@ -211,13 +211,13 @@ class Proxy {
   }
 
   getBufferedRange () {
-    let range = [0, 0]
+    const range = [0, 0]
     if (!this.video) {
       return range
     }
-    let video = this.video
-    let buffered = video.buffered
-    let currentTime = video.currentTime
+    const video = this.video
+    const buffered = video.buffered
+    const currentTime = video.currentTime
     if (buffered) {
       for (let i = 0, len = buffered.length; i < len; i++) {
         range[0] = buffered.start(i)
@@ -307,11 +307,11 @@ class Proxy {
   }
 
   get error () {
-    let err = this.video.error
+    const err = this.video.error
     if (!err) {
       return null
     }
-    let status = [
+    const status = [
       'MEDIA_ERR_ABORTED',
       'MEDIA_ERR_NETWORK',
       'MEDIA_ERR_DECODE',
@@ -327,14 +327,17 @@ class Proxy {
   set loop (isTrue) {
     this.video.loop = isTrue
   }
+
   get muted () {
     return this.video.muted
   }
+
   set muted (isTrue) {
     this.video.muted = isTrue
   }
+
   get networkState () {
-    let status = [
+    const status = [
       'NETWORK_EMPTY',
       'NETWORK_IDLE',
       'NETWORK_LOADING',
@@ -369,7 +372,7 @@ class Proxy {
   }
 
   get readyState () {
-    let status = [
+    const status = [
       'HAVE_NOTHING',
       'HAVE_METADATA',
       'HAVE_CURRENT_DATA',

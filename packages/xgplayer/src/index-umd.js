@@ -1,4 +1,4 @@
-import Player, {Util, Sniffer, Errors, Events, Plugin, BasePlugin, I18N} from './player'
+import Player, { Util, Sniffer, Errors, Events, Plugin, BasePlugin, I18N } from './player'
 
 import defaultPreset from './presets/default'
 

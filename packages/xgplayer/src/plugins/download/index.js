@@ -1,5 +1,5 @@
 import downloadUtil from 'downloadjs'
-import Plugin, {POSITIONS} from '../../plugin'
+import Plugin, { POSITIONS } from '../../plugin'
 import DownloadSvg from '../assets/download.svg'
 
 export default class Download extends Plugin {

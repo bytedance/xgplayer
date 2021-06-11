@@ -1,4 +1,4 @@
-import Plugin, {Events, POSITIONS} from '../../plugin'
+import Plugin, { Events, POSITIONS } from '../../plugin'
 import CssFullSceenSvg from '../assets/requestCssFull.svg'
 import ExitCssFullSceenSvg from '../assets/exitCssFull.svg'
 
@@ -35,7 +35,7 @@ export default class CssFullScreen extends Plugin {
   }
 
   initIcons () {
-    const {icons} = this
+    const { icons } = this
     const contentIcon = this.find('.xgplayer-icon')
     contentIcon.appendChild(icons.cssFullscreen)
     contentIcon.appendChild(icons.exitCssFullscreen)
@@ -60,7 +60,7 @@ export default class CssFullScreen extends Plugin {
   }
 
   switchTips (isFullScreen) {
-    const {i18nKeys} = this
+    const { i18nKeys } = this
     this.changeLangTextKey(this.find('.xg-tips'), isFullScreen ? i18nKeys.EXITCSSFULLSCREEN_TIPS : i18nKeys.CSSFULLSCREEN_TIPS)
   }
 

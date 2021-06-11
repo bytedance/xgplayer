@@ -1,4 +1,4 @@
-import Plugin, {POSITIONS} from '../../plugin/plugin'
+import Plugin, { POSITIONS } from '../../plugin/plugin'
 import loadingIcon from '../assets/loading.svg'
 
 class Loading extends Plugin {
@@ -14,7 +14,7 @@ class Loading extends Plugin {
 
   registerIcons () {
     return {
-      'loadingIcon': loadingIcon
+      loadingIcon: loadingIcon
     }
   }
 

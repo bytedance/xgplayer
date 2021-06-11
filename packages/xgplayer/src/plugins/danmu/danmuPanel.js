@@ -1,4 +1,4 @@
-import Plugin, {Sniffer, Util, POSITIONS} from '../../plugin'
+import Plugin, { Sniffer, Util, POSITIONS } from '../../plugin'
 import PanelIcon from '../assets/panel.svg'
 
 class DanmuPanel extends Plugin {

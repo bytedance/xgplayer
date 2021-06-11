@@ -1,10 +1,11 @@
-import {Events, POSITIONS} from '../../plugin'
+import { Events, POSITIONS } from '../../plugin'
 import OptionsIcon from '../common/optionsIcon'
 
 export default class PlaybackRate extends OptionsIcon {
   static get pluginName () {
     return 'playbackRate'
   }
+
   // 默认配置信息
   static get defaultConfig () {
     return {
@@ -22,8 +23,8 @@ export default class PlaybackRate extends OptionsIcon {
   }
 
   beforeCreate (args) {
-    const {playbackRate} = args.player.config
-    let list = !playbackRate ? [] : Array.isArray(playbackRate) ? playbackRate : args.config.list
+    const { playbackRate } = args.player.config
+    const list = !playbackRate ? [] : Array.isArray(playbackRate) ? playbackRate : args.config.list
     if (Array.isArray(list)) {
       args.config.list = list.map(item => {
         if (typeof item === 'number') {

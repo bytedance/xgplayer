@@ -2,7 +2,7 @@
 * an ui Plugin class
 *
 **/
-import BasePlugin, {Util, XG_DEBUG} from './basePlugin'
+import BasePlugin, { Util, XG_DEBUG } from './basePlugin'
 import delegate from 'delegate'
 
 /**
@@ -97,8 +97,8 @@ function registerTextObj (textConfig, plugin) {
   Object.keys(textConfig).map((key) => {
     Object.defineProperty(plugin.langText, key, {
       get: () => {
-        let lang = plugin.lang
-        return textConfig[key][lang] || textConfig[key]['zh']
+        const lang = plugin.lang
+        return textConfig[key][lang] || textConfig[key].zh
       }
     })
   })
@@ -177,7 +177,7 @@ class Plugin extends BasePlugin {
 
   __init (args) {
     super.__init(args)
-    let _parent = args.root
+    const _parent = args.root
     let _el = null
     this.icons = {}
     const _orgicons = this.registerIcons() || {}
@@ -206,13 +206,13 @@ class Plugin extends BasePlugin {
     }
 
     Plugin.defineGetterOrSetter(this, {
-      'root': {
+      root: {
         get: () => {
           return _el
         },
         configurable: true
       },
-      'parent': {
+      parent: {
         get: () => {
           return _parent
         },
@@ -243,7 +243,7 @@ class Plugin extends BasePlugin {
       if (Object.keys(children).length > 0) {
         Object.keys(children).map(item => {
           const name = item
-          let _plugin = children[name]
+          const _plugin = children[name]
           const options = {
             root: this.root
           }
@@ -278,7 +278,7 @@ class Plugin extends BasePlugin {
         }
       }
     }
-    const {root, i18n, langText} = this
+    const { root, i18n, langText } = this
     if (root) {
       checkChildren(root, (node) => {
         const langKey = node.getAttribute && node.getAttribute('lang-key')
@@ -469,7 +469,7 @@ class Plugin extends BasePlugin {
   destroy () {}
 
   __destroy () {
-    const {player} = this
+    const { player } = this
     this.__delegates.map(item => {
       item.destroy()
     })

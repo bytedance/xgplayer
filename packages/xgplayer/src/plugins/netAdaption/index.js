@@ -9,6 +9,7 @@ export default class NetAdaption extends BasePlugin {
   afterCreate () {
     this._timer = setInterval(this._checkStatus.bind(this), 300)
   }
+
   _checkStatus () {
     const container = this.player.video
     if (container.currentTime < 1 || !container.buffered.length) return

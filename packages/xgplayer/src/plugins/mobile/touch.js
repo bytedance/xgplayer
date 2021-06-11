@@ -47,7 +47,7 @@ function getDefaultConfig () {
 }
 
 class Touche {
-  constructor (dom, config = {eventType: 'touch'}) {
+  constructor (dom, config = { eventType: 'touch' }) {
     this._pos = {
       moving: false,
       start: false,
@@ -75,7 +75,7 @@ class Touche {
   }
 
   __setPress (e) {
-    const {config} = this
+    const { config } = this
     if (this.pressIntrvalId) {
       this.__clearPress()
     }
@@ -92,7 +92,7 @@ class Touche {
   }
 
   __setDb (e) {
-    const {config} = this
+    const { config } = this
     if (this.dbIntrvalId) {
       this.__clearDb()
       this.trigger(EVENTS.DOUBlE_CLICK, e)
@@ -153,7 +153,7 @@ class Touche {
   }
 
   onTouchStart (e) {
-    const {_pos, root} = this
+    const { _pos, root } = this
     preventToucheDefault(e)
     const touch = getTouch(e.touches)
     _pos.x = touch ? parseInt(touch.pageX, 10) : e.pageX
@@ -171,7 +171,7 @@ class Touche {
   }
 
   onTouchEnd (e) {
-    const {_pos, root} = this
+    const { _pos, root } = this
     preventToucheDefault(e)
     this.__clearPress()
     root.removeEventListener(this.events.cancel, this.onTouchCancel)
@@ -188,7 +188,7 @@ class Touche {
   }
 
   onTouchMove (e) {
-    const {_pos, config} = this
+    const { _pos, config } = this
     const touch = getTouch(e.touches)
     const x = touch ? parseInt(touch.pageX, 10) : e.pageX
     const y = touch ? parseInt(touch.pageY, 10) : e.pageX

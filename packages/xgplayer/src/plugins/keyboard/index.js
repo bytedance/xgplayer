@@ -1,4 +1,4 @@
-import {BasePlugin} from '../../plugin'
+import { BasePlugin } from '../../plugin'
 
 class Keyboard extends BasePlugin {
   static get pluginName () {
@@ -37,35 +37,35 @@ class Keyboard extends BasePlugin {
       this.seekStep = seekStep
     }
     this.keyCodeMap = {
-      'space': {
+      space: {
         keyCode: 32,
         action: 'playPause',
         disable: false,
         noBodyTarget: false // 默认在body上触发
       },
-      'up': {
+      up: {
         keyCode: 38,
         action: 'upVolume',
         disable: false,
         noBodyTarget: true // 默认不在body上触发
       },
-      'down': {
+      down: {
         keyCode: 40,
         action: 'downVolume',
         disable: false,
         noBodyTarget: true
       },
-      'left': {
+      left: {
         keyCode: 37,
         action: 'seekBack',
         disable: false
       },
-      'right': {
+      right: {
         keyCode: 39,
         action: 'seek',
         disable: false
       },
-      'esc': {
+      esc: {
         keyCode: 27,
         action: 'exitFullscreen',
         disable: false
@@ -81,7 +81,7 @@ class Keyboard extends BasePlugin {
       return true
     }
     const rec = this.player.root.getBoundingClientRect()
-    const {height, top, bottom} = rec
+    const { height, top, bottom } = rec
     const h = window.innerHeight
     if ((top < 0 && top < 0 - height * 0.9) || (bottom > 0 && bottom - h > height * 0.9)) {
       return false
@@ -100,7 +100,7 @@ class Keyboard extends BasePlugin {
   }
 
   downVolume () {
-    const {player} = this
+    const { player } = this
     if (player.volume - 0.1 >= 0) {
       player.volume = parseFloat((player.volume - 0.1).toFixed(1))
     } else {
@@ -109,7 +109,7 @@ class Keyboard extends BasePlugin {
   }
 
   upVolume () {
-    const {player} = this
+    const { player } = this
     if (player.volume + 0.1 <= 1) {
       player.volume = parseFloat((player.volume + 0.1).toFixed(1))
     } else {
@@ -118,7 +118,7 @@ class Keyboard extends BasePlugin {
   }
 
   seek () {
-    const {player} = this
+    const { player } = this
     if (player.currentTime + this.seekStep <= player.duration) {
       player.currentTime += this.seekStep
     } else {
@@ -127,7 +127,7 @@ class Keyboard extends BasePlugin {
   }
 
   seekBack () {
-    const {player} = this
+    const { player } = this
     if (player.currentTime - this.seekStep >= 0) {
       player.currentTime -= this.seekStep
     } else {
@@ -136,7 +136,7 @@ class Keyboard extends BasePlugin {
   }
 
   playPause () {
-    const {player} = this
+    const { player } = this
     if (player.paused) {
       // eslint-disable-next-line handle-callback-err
       player.play()
@@ -146,7 +146,7 @@ class Keyboard extends BasePlugin {
   }
 
   exitFullscreen () {
-    const {player} = this
+    const { player } = this
     if (player.fullscreen) {
       player.exitFullscreen()
     }
@@ -159,7 +159,7 @@ class Keyboard extends BasePlugin {
     if (this.config.disable || this.controls.disableBodyTrigger || !this.checkIsVisible()) {
       return
     }
-    let e = event || window.event
+    const e = event || window.event
     const keyCode = e.keyCode
     if (e.target === document.body && this.checkCode(keyCode, true)) {
       e.preventDefault()
@@ -176,7 +176,7 @@ class Keyboard extends BasePlugin {
       return
     }
     const player = this.player
-    let e = event || window.event
+    const e = event || window.event
     if (e && (e.keyCode === 37 || this.checkCode(e.keyCode)) && (e.target === this.player.root || e.target === this.player.video || e.target === this.player.controls.el)) {
       player.emit('focus')
       e.preventDefault()
@@ -189,7 +189,7 @@ class Keyboard extends BasePlugin {
   }
 
   handleKeyCode (keyCode) {
-    const {player} = this
+    const { player } = this
     if (keyCode === 40 || keyCode === 38) {
       if (player.controls) {
         // let volumeSlider = player.controls.querySelector('.xgplayer-slider')

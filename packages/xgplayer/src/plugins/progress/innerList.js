@@ -1,8 +1,8 @@
-import {Util} from '../../plugin'
+import { Util } from '../../plugin'
 
 const TPL = [
-  {tag: 'xg-cache', className: 'xgplayer-progress-cache', styleKey: 'cachedColor'},
-  {tag: 'xg-played', className: 'xgplayer-progress-played', styleKey: 'playedColor'}
+  { tag: 'xg-cache', className: 'xgplayer-progress-cache', styleKey: 'cachedColor' },
+  { tag: 'xg-played', className: 'xgplayer-progress-played', styleKey: 'playedColor' }
 ]
 
 export default class InnerList {
@@ -32,13 +32,13 @@ export default class InnerList {
     })
   }
 
-  updateProgress (type = 'played', data = {newIndex: 0, curIndex: 0, millisecond: 0}) {
-    const {progressList, fragments} = this
-    const {newIndex, curIndex, millisecond} = data
+  updateProgress (type = 'played', data = { newIndex: 0, curIndex: 0, millisecond: 0 }) {
+    const { progressList, fragments } = this
+    const { newIndex, curIndex, millisecond } = data
     if (newIndex !== curIndex) {
       progressList.map((item, index) => {
         if (index < newIndex) {
-          item[type].style.width = `100%`
+          item[type].style.width = '100%'
         } else if (index > newIndex) {
           item[type].style.width = 0
         }
@@ -49,20 +49,21 @@ export default class InnerList {
     progressList[newIndex][type].style.width = per < 0 ? 0 : `${per * 100}%`
   }
 
-  update (data = {cached: 0, played: 0}, duration) {
+  update (data = { cached: 0, played: 0 }, duration) {
     if (!this.duration || parseInt(duration * 1000, 10) !== this.duration) {
       if (!duration) {
         return
       }
       this.updateDuration(duration)
     }
-    const {playedIndex, cachedIndex} = this
+    const { playedIndex, cachedIndex } = this
     if (Util.typeOf(data.played) !== 'Undefined') {
       const newPIndex = this.findIndex(data.played * 1000, playedIndex)
       this.updateProgress('played', {
         newIndex: newPIndex,
         curIndex: playedIndex,
-        millisecond: parseInt(data.played * 1000, 10)})
+        millisecond: parseInt(data.played * 1000, 10)
+      })
       this.playedIndex = newPIndex
     }
 
@@ -71,13 +72,14 @@ export default class InnerList {
       this.updateProgress('cached', {
         newIndex: newCIndex,
         curIndex: cachedIndex,
-        millisecond: parseInt(data.cached * 1000, 10)})
+        millisecond: parseInt(data.cached * 1000, 10)
+      })
       this.cachedIndex = newCIndex
     }
   }
 
   findIndex (time, curIndex) {
-    const {fragments} = this
+    const { fragments } = this
     if (fragments.length === 1) {
       return 0
     }
@@ -141,7 +143,7 @@ export default class InnerList {
   }
 
   render () {
-    const {progressColor} = this.style
+    const { progressColor } = this.style
     this.root = Util.createDom('xg-inners', '', {}, 'progress-list')
     if (this.fragments) {
       this.progressList = this.fragments.map((item) => {

@@ -35,7 +35,7 @@ function getZeroSize () {
   }
   for (let i = 0; i < measurementsLength; i++) {
     const measurement = measurements[i]
-    size[ measurement ] = 0
+    size[measurement] = 0
   }
   return size
 }
@@ -61,46 +61,46 @@ function getSize (elem) {
     return
   }
 
-  var style = getStyle(elem)
+  const style = getStyle(elem)
 
   // if hidden, everything is 0
   if (style.display === 'none') {
     return getZeroSize()
   }
 
-  var size = {}
+  const size = {}
   size.width = elem.offsetWidth
   size.height = elem.offsetHeight
 
-  var isBorderBox = size.isBorderBox = style.boxSizing === 'border-box'
+  const isBorderBox = size.isBorderBox = style.boxSizing === 'border-box'
 
   // get all measurements
-  for (var i = 0; i < measurementsLength; i++) {
-    var measurement = measurements[i]
-    var value = style[ measurement ]
-    var num = parseFloat(value)
+  for (let i = 0; i < measurementsLength; i++) {
+    const measurement = measurements[i]
+    const value = style[measurement]
+    const num = parseFloat(value)
     // any 'auto', 'medium' value will be 0
-    size[ measurement ] = !isNaN(num) ? num : 0
+    size[measurement] = !isNaN(num) ? num : 0
   }
 
-  var paddingWidth = size.paddingLeft + size.paddingRight
-  var paddingHeight = size.paddingTop + size.paddingBottom
-  var marginWidth = size.marginLeft + size.marginRight
-  var marginHeight = size.marginTop + size.marginBottom
-  var borderWidth = size.borderLeftWidth + size.borderRightWidth
-  var borderHeight = size.borderTopWidth + size.borderBottomWidth
+  const paddingWidth = size.paddingLeft + size.paddingRight
+  const paddingHeight = size.paddingTop + size.paddingBottom
+  const marginWidth = size.marginLeft + size.marginRight
+  const marginHeight = size.marginTop + size.marginBottom
+  const borderWidth = size.borderLeftWidth + size.borderRightWidth
+  const borderHeight = size.borderTopWidth + size.borderBottomWidth
 
-  var isBorderBoxSizeOuter = isBorderBox// isBorderBox && isBoxSizeOuter;
+  const isBorderBoxSizeOuter = isBorderBox// isBorderBox && isBoxSizeOuter;
 
   // overwrite width and height if we can get it from style
-  var styleWidth = getStyleSize(style.width)
+  const styleWidth = getStyleSize(style.width)
   if (styleWidth !== false) {
     size.width = styleWidth +
       // add padding and border unless it's already including it
       (isBorderBoxSizeOuter ? 0 : paddingWidth + borderWidth)
   }
 
-  var styleHeight = getStyleSize(style.height)
+  const styleHeight = getStyleSize(style.height)
   if (styleHeight !== false) {
     size.height = styleHeight +
       // add padding and border unless it's already including it
@@ -132,9 +132,9 @@ const EVENTS = {
 }
 
 const POST_START_EVENTS = {
-  mousedown: [ 'mousemove', 'mouseup' ],
-  touchstart: [ 'touchmove', 'touchend', 'touchcancel' ],
-  pointerdown: [ 'pointermove', 'pointerup', 'pointercancel' ]
+  mousedown: ['mousemove', 'mouseup'],
+  touchstart: ['touchmove', 'touchend', 'touchcancel'],
+  pointerdown: ['pointermove', 'pointerup', 'pointercancel']
 }
 
 export default class Draggabilly {
@@ -145,8 +145,8 @@ export default class Draggabilly {
     this.isDown = false
     this.position = {}
     this.downPoint = {}
-    this.dragPoint = {x: 0, y: 0}
-    this.startPos = {x: 0, y: 0}
+    this.dragPoint = { x: 0, y: 0 }
+    this.startPos = { x: 0, y: 0 }
     // eslint-disable-next-line no-undef
     this._root = root instanceof Element ? root : document.querySelector(root)
     // eslint-disable-next-line no-undef
@@ -192,7 +192,7 @@ export default class Draggabilly {
     if (!event) {
       return
     }
-    const events = POST_START_EVENTS[ this._startKey ]
+    const events = POST_START_EVENTS[this._startKey]
     // bind events to node
     events.map(eventName => {
       window.addEventListener(eventName, this[`on${eventName}`])
@@ -270,7 +270,8 @@ export default class Draggabilly {
     const touch = e.changedTouches[0]
     this.dragStart(e, touch)
     this.touchIdentifier = touch.pointerId !== undefined
-      ? touch.pointerId : touch.identifier
+      ? touch.pointerId
+      : touch.identifier
     e.preventDefault()
   }
 
@@ -338,7 +339,7 @@ export default class Draggabilly {
   }
 
   _dragPointerMove (e, pointer) {
-    var moveVector = {
+    const moveVector = {
       x: pointer.pageX - this.downPoint.pageX,
       y: pointer.pageY - this.downPoint.pageY
     }
@@ -354,7 +355,7 @@ export default class Draggabilly {
     if (!this.isDown) {
       return
     }
-    const {x, y} = this.startPos
+    const { x, y } = this.startPos
     const moveVector = this._dragPointerMove(e, pointer)
     let dragX = moveVector.x
     let dragY = moveVector.y
@@ -412,9 +413,9 @@ export default class Draggabilly {
   }
 
   _getPosition () {
-    var style = window.getComputedStyle(this._root)
-    var x = this._getPositionCoord(style.left, 'width')
-    var y = this._getPositionCoord(style.top, 'height')
+    const style = window.getComputedStyle(this._root)
+    const x = this._getPositionCoord(style.left, 'width')
+    const y = this._getPositionCoord(style.top, 'height')
     // clean up 'auto' or other non-integer values
     this.position.x = isNaN(x) ? 0 : x
     this.position.y = isNaN(y) ? 0 : y
@@ -432,9 +433,9 @@ export default class Draggabilly {
     const matrixValues = transform.split(',')
     // translate X value is in 12th or 4th position
     const xIndex = transform.indexOf('matrix3d') === 0 ? 12 : 4
-    const translateX = parseInt(matrixValues[ xIndex ], 10)
+    const translateX = parseInt(matrixValues[xIndex], 10)
     // translate Y value is in 13th or 5th position
-    const translateY = parseInt(matrixValues[ xIndex + 1 ], 10)
+    const translateY = parseInt(matrixValues[xIndex + 1], 10)
     this.position.x += translateX
     this.position.y += translateY
   }
@@ -444,8 +445,9 @@ export default class Draggabilly {
       // convert percent into pixel for Safari, #75
       const parentSize = getSize(this._root.parentNode)
       // prevent not-in-DOM element throwing bug, #131
-      return !parentSize ? 0
-        : (parseFloat(styleSide) / 100) * parentSize[ measure ]
+      return !parentSize
+        ? 0
+        : (parseFloat(styleSide) / 100) * parentSize[measure]
     }
     return parseInt(styleSide, 10)
   }

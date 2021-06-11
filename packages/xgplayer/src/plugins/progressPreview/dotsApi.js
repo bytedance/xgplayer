@@ -1,4 +1,4 @@
-import {Util, Events} from '../../plugin'
+import { Util, Events } from '../../plugin'
 
 const ISPOT = {
   time: 0, // 进度条在此时间戳打点 单位为s
@@ -32,7 +32,7 @@ const APIS = {
    * @param {boolean} isNew
    */
   createDot (iSpot, isNew = true) {
-    const {progress} = this.player.plugins
+    const { progress } = this.player.plugins
     if (!progress) {
       return
     }
@@ -80,7 +80,7 @@ const APIS = {
    * @param {Boolean} needShow
    */
   updateDot (iSpot, needShow = false) {
-    const {progress} = this.player.plugins
+    const { progress } = this.player.plugins
     if (!progress) {
       return
     }
@@ -121,12 +121,12 @@ const APIS = {
    * @param {String} id
    */
   deleteDot (id) {
-    const {_ispots} = this
-    const {progress} = this.player.plugins
+    const { _ispots } = this
+    const { progress } = this.player.plugins
     if (!progress) {
       return
     }
-    let del = []
+    const del = []
     for (let i = 0; i < _ispots.length; i++) {
       if (_ispots[i].id === id) {
         del.push(i)
@@ -146,7 +146,7 @@ const APIS = {
    * 移除所有的故事点
    */
   deleteAllDots () {
-    const {progress} = this.player.plugins
+    const { progress } = this.player.plugins
     if (!progress) {
       return
     }
@@ -165,7 +165,7 @@ const APIS = {
    * @param {Array} iSpots
    */
   updateAllDots (iSpots = []) {
-    const {progress} = this.player.plugins
+    const { progress } = this.player.plugins
     if (!progress) {
       return
     }
@@ -194,7 +194,7 @@ const APIS = {
 }
 
 export default function initDotsAPI (plugin) {
-  const {config, player} = plugin
+  const { config, player } = plugin
   Object.keys(APIS).map(item => {
     plugin[item] = APIS[item].bind(plugin)
   })

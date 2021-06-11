@@ -1,4 +1,4 @@
-import Plugin, {Events, Util, POSITIONS, Sniffer, STATE_CLASS} from '../../plugin'
+import Plugin, { Events, Util, POSITIONS, Sniffer, STATE_CLASS } from '../../plugin'
 // import classNames from 'classnames/bind'
 
 // console.log('ClassName', classNames)
@@ -29,7 +29,7 @@ class Controls extends Plugin {
   }
 
   afterCreate () {
-    const {disable, height, mode, autoHide} = this.config
+    const { disable, height, mode, autoHide } = this.config
     if (disable) {
       return
     }
@@ -68,19 +68,19 @@ class Controls extends Plugin {
   onMouseLeave = () => {
     const { player, playerConfig } = this
     const delay = !playerConfig.closeControlsBlur ? playerConfig.inactive : 200
-    player.emit(Events.PLAYER_FOCUS, {delay})
+    player.emit(Events.PLAYER_FOCUS, { delay })
   }
 
   focus () {
-    this.player.emit(Events.PLAYER_FOCUS, {autoHide: false})
+    this.player.emit(Events.PLAYER_FOCUS, { autoHide: false })
   }
 
   unFocus () {
-    this.player.emit(Events.PLAYER_FOCUS, {autoHide: true})
+    this.player.emit(Events.PLAYER_FOCUS, { autoHide: true })
   }
 
   blur () {
-    this.player.emit(Events.PLAYER_BLUR, {ignoreStatus: true})
+    this.player.emit(Events.PLAYER_BLUR, { ignoreStatus: true })
   }
 
   recoverAutoHide () {
@@ -143,11 +143,11 @@ class Controls extends Plugin {
       return
     }
     const className = Util.classNames(
-      {'flex-controls': mode === 'flex'},
-      {'bottom-controls': mode === 'bottom'},
-      {'control_autohide': autoHide},
-      {'controls_permanent': !autoHide},
-      {'xgplayer-controls-initshow': initShow || !autoHide})
+      { 'flex-controls': mode === 'flex' },
+      { 'bottom-controls': mode === 'bottom' },
+      { control_autohide: autoHide },
+      { controls_permanent: !autoHide },
+      { 'xgplayer-controls-initshow': initShow || !autoHide })
     return `<xg-controls class="xgplayer-controls ${className}" unselectable="on" onselectstart="return false">
     <xg-inner-controls class="xg-inner-controls xg-pos">
       <xg-left-grid class="xg-left-grid">

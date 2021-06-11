@@ -1,4 +1,4 @@
-import Plugin, {Events, Util, Sniffer} from '../../plugin'
+import Plugin, { Events, Util, Sniffer } from '../../plugin'
 import Touche from './touch'
 import SeekTipIcon from '../assets/seekicon.svg'
 // import BackSvg from './back.svg'
@@ -77,12 +77,12 @@ class MobilePlugin extends Plugin {
 
   registerIcons () {
     return {
-      seekTipIcon: {icon: SeekTipIcon, class: 'xg-seek-pre'}
+      seekTipIcon: { icon: SeekTipIcon, class: 'xg-seek-pre' }
     }
   }
 
   afterCreate () {
-    const {playerConfig, config, player} = this
+    const { playerConfig, config, player } = this
     if (playerConfig.closeVideoDblclick === true) {
       config.closedbClick = true
     }
@@ -100,7 +100,7 @@ class MobilePlugin extends Plugin {
     this.registerThumbnail()
 
     const eventType = Sniffer.device !== 'mobile' ? 'mouse' : 'touch'
-    this.touch = new Touche(this.root, {eventType})
+    this.touch = new Touche(this.root, { eventType })
 
     this.root.addEventListener('contextmenu', e => {
       e.preventDefault()
@@ -110,27 +110,27 @@ class MobilePlugin extends Plugin {
     player.root.addEventListener('touchend', this.onRootTouchEnd, true)
 
     this.on(Events.DURATION_CHANGE, () => {
-      const {player, config} = this
+      const { player, config } = this
       if (player.duration * 1000 < config.moveDuration) {
         config.moveDuration = player.duration * 1000
       }
     })
 
     this.on([Events.CANPLAY, Events.ENDED], () => {
-      const {time, isStart} = this.pos
+      const { time, isStart } = this.pos
       if (!isStart && time > 0) {
         this.pos.time = 0
       }
     })
 
     const eventsMap = {
-      'touchstart': 'onTouchStart',
-      'touchmove': 'onTouchMove',
-      'touchend': 'onTouchEnd',
-      'press': 'onPress',
-      'pressend': 'onPressEnd',
-      'click': 'onClick',
-      'doubleclick': 'onDbClick'
+      touchstart: 'onTouchStart',
+      touchmove: 'onTouchMove',
+      touchend: 'onTouchEnd',
+      press: 'onPress',
+      pressend: 'onPressEnd',
+      click: 'onClick',
+      doubleclick: 'onDbClick'
     }
 
     Object.keys(eventsMap).map(key => {
@@ -154,8 +154,8 @@ class MobilePlugin extends Plugin {
   }
 
   registerThumbnail () {
-    const {player} = this
-    const {thumbnail} = player.plugins
+    const { player } = this
+    const { thumbnail } = player.plugins
     if (thumbnail && thumbnail.usable) {
       this.thumbnail = thumbnail.createThumbnail(null, 'mobile-thumbnail')
       const timePreview = this.find('.time-preview')
@@ -164,8 +164,8 @@ class MobilePlugin extends Plugin {
   }
 
   initCustomStyle () {
-    const {commonStyle} = this.playerConfig || {}
-    const {playedColor, progressColor} = commonStyle
+    const { commonStyle } = this.playerConfig || {}
+    const { playedColor, progressColor } = commonStyle
     if (playedColor) {
       this.find('.xg-curbar').style.backgroundColor = playedColor
       this.find('.xg-cur').style.color = playedColor
@@ -205,7 +205,7 @@ class MobilePlugin extends Plugin {
   }
 
   changeAction (action) {
-    const {player, root} = this
+    const { player, root } = this
     root.setAttribute('data-xg-action', action)
     const startPlugin = player.plugins.start
     startPlugin && startPlugin.recover()
@@ -229,14 +229,17 @@ class MobilePlugin extends Plugin {
     //   }
     // } else {
     // }
-    return rotateDeg === 0 ? {
-      pageX: touche.pageX,
-      pageY: touche.pageY
-    } : {
-      pageX: touche.pageX,
-      pageY: touche.pageY
-    }
+    return rotateDeg === 0
+      ? {
+          pageX: touche.pageX,
+          pageY: touche.pageY
+        }
+      : {
+          pageX: touche.pageX,
+          pageY: touche.pageY
+        }
   }
+
   /**
    * 校验具体的操作范围
    * @param {number} x 方向位移
@@ -247,7 +250,7 @@ class MobilePlugin extends Plugin {
    * @return {number} scope 区域 0=>中间x方向滑动  1=>左侧上下滑动 2=>右侧上下滑动
    */
   checkScope (x, y, diffx, diffy, pos) {
-    const {width} = pos
+    const { width } = pos
     let scope = -1
     if (x < 0 || x > width) {
       return scope
@@ -294,7 +297,7 @@ class MobilePlugin extends Plugin {
    * @param {number} lastScope 上一次手势类型
    */
   endLastMove (lastScope) {
-    const {pos, player, config} = this
+    const { pos, player, config } = this
     switch (lastScope) {
       case 0:
         const time = (pos.time - this.timeOffset) / 1000
@@ -312,7 +315,7 @@ class MobilePlugin extends Plugin {
   }
 
   onTouchStart = (e) => {
-    const {player, config, pos, playerConfig} = this
+    const { player, config, pos, playerConfig } = this
     const touche = this.getTouche(e)
     if (touche && !config.disableGesture && this.duration > 0 && !player.ended) {
       pos.isStart = true
@@ -343,11 +346,11 @@ class MobilePlugin extends Plugin {
 
   onTouchMove = (e) => {
     const touche = this.getTouche(e)
-    const {pos, config, player} = this
+    const { pos, config, player } = this
     if (!touche || config.disableGesture || !this.duration || !pos.isStart) {
       return
     }
-    const {miniMoveStep, hideControlsActive} = config
+    const { miniMoveStep, hideControlsActive } = config
     const x = parseInt(touche.pageX - pos.left, 10)
     const y = parseInt(touche.pageY - pos.top, 10)
     if (Math.abs(x - pos.x) > miniMoveStep || Math.abs(y - pos.y) > miniMoveStep) {
@@ -358,7 +361,7 @@ class MobilePlugin extends Plugin {
         scope = this.checkScope(x, y, diffx, diffy, pos)
         // 手势为快进快退记录起始操作时间
         if (scope === 0) {
-          !hideControlsActive ? player.emit(Events.PLAYER_FOCUS, {autoHide: false}) : player.emit(Events.PLAYER_BLUR)
+          !hideControlsActive ? player.emit(Events.PLAYER_FOCUS, { autoHide: false }) : player.emit(Events.PLAYER_BLUR)
           !pos.time && (pos.time = parseInt(player.currentTime * 1000, 10) + this.timeOffset * 1000)
         }
         pos.scope = scope
@@ -376,7 +379,7 @@ class MobilePlugin extends Plugin {
   }
 
   onTouchEnd = (e) => {
-    const {player, pos, playerConfig} = this
+    const { player, pos, playerConfig } = this
     if (!pos.isStart) {
       return
     }
@@ -419,13 +422,13 @@ class MobilePlugin extends Plugin {
     if (this.pos.isStart && this.checkIsRootTarget(e)) {
       e.stopPropagation()
       this.onTouchEnd(e)
-      const {controls} = this.player
+      const { controls } = this.player
       controls && controls.recoverAutoHide()
     }
   }
 
   onClick (e) {
-    const {player, config, playerConfig} = this
+    const { player, config, playerConfig } = this
     if (!player.isPlaying) {
       !playerConfig.closeVideoClick && player.play()
       return
@@ -440,14 +443,14 @@ class MobilePlugin extends Plugin {
   }
 
   onDbClick (e) {
-    const {config, player} = this
+    const { config, player } = this
     if (!config.closedbClick && player.isPlaying) {
       this.switchPlayPause()
     }
   }
 
   onPress (e) {
-    const {pos, config, player} = this
+    const { pos, config, player } = this
     if (config.disablePress) {
       return
     }
@@ -457,7 +460,7 @@ class MobilePlugin extends Plugin {
   }
 
   onPressEnd (e) {
-    const {pos, config, player} = this
+    const { pos, config, player } = this
     if (config.disablePress) {
       return
     }
@@ -467,8 +470,8 @@ class MobilePlugin extends Plugin {
   }
 
   updateTime (percent) {
-    const {player, config} = this
-    const {duration} = this.player
+    const { player, config } = this
+    const { duration } = this.player
     percent = Number(percent.toFixed(4))
     let time = parseInt(percent * config.moveDuration, 10) + this.timeOffset
     time += this.pos.time
@@ -488,7 +491,7 @@ class MobilePlugin extends Plugin {
     if (this.player.rotateDeg) {
       percent = -percent
     }
-    const {player, pos} = this
+    const { player, pos } = this
     percent = parseInt(percent * 100, 10)
     pos.volume += percent
     if (Math.abs(pos.volume) < 10) {
@@ -504,7 +507,7 @@ class MobilePlugin extends Plugin {
     if (this.player.rotateDeg) {
       percent = -percent
     }
-    const {pos, config, xgMask} = this
+    const { pos, config, xgMask } = this
     let light = pos.light + (0.8 * percent)
     light = light > config.maxDarkness ? config.maxDarkness : (light < 0 ? 0 : light)
     if (xgMask) {
@@ -514,7 +517,7 @@ class MobilePlugin extends Plugin {
   }
 
   activeSeekNote (time, isForward = true) {
-    const {player, config} = this
+    const { player, config } = this
     const isLive = !(this.duration !== Infinity && this.duration > 0)
     if (!time || typeof time !== 'number' || isLive || config.disableActive) {
       return
@@ -543,8 +546,8 @@ class MobilePlugin extends Plugin {
   }
 
   updateThumbnails (time) {
-    const {player} = this
-    const {thumbnail} = player.plugins
+    const { player } = this
+    const { thumbnail } = player.plugins
     if (thumbnail && thumbnail.usable) {
       this.thumbnail && thumbnail.update(this.thumbnail, time, 160, 90)
       // this.videothumbnail && thumbnail.update(this.videothumbnail, time, rect.width, rect.height)
@@ -552,7 +555,7 @@ class MobilePlugin extends Plugin {
   }
 
   switchPlayPause () {
-    const {player} = this
+    const { player } = this
     if (!player.hasStart) {
       return false
     } else if (!player.ended) {
@@ -575,7 +578,7 @@ class MobilePlugin extends Plugin {
   }
 
   destroy () {
-    const {player} = this
+    const { player } = this
     this.timer && clearTimeout(this.timer)
     this.thumbnail = null
     player.root.removeChild(this.xgMask)

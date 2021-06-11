@@ -1,4 +1,4 @@
-import Plugin, {Events, POSITIONS} from '../../plugin'
+import Plugin, { Events, POSITIONS } from '../../plugin'
 import PlaySvg from '../assets/play.svg'
 import PauseSvg from '../assets/pause.svg'
 
@@ -35,15 +35,15 @@ class Play extends Plugin {
 
   registerIcons () {
     return {
-      play: {icon: PlaySvg, class: 'xg-icon-play'},
-      pause: {icon: PauseSvg, class: 'xg-icon-pause'}
+      play: { icon: PlaySvg, class: 'xg-icon-play' },
+      pause: { icon: PauseSvg, class: 'xg-icon-pause' }
     }
   }
 
   btnClick (e) {
     e.preventDefault()
     e.stopPropagation()
-    const {player} = this
+    const { player } = this
     if (player.paused) {
       player.play()
       this.animate(false)
@@ -55,13 +55,13 @@ class Play extends Plugin {
   }
 
   initIcons () {
-    const {icons} = this
+    const { icons } = this
     this.appendChild('.xgplayer-icon', icons.play)
     this.appendChild('.xgplayer-icon', icons.pause)
   }
 
   animate (paused) {
-    const {i18nKeys} = this
+    const { i18nKeys } = this
     if (paused) {
       this.setAttr('data-state', 'pause')
       this.changeLangTextKey(this.find('.xg-tips'), i18nKeys.PLAY_TIPS)

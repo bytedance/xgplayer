@@ -22,7 +22,7 @@ function callHandler (obj, handler, next, ...args) {
  *   next: () => { // run after hook return}
  * }
  */
-function hook (hookName, handler, preset = {pre: null, next: null}) {
+function hook (hookName, handler, preset = { pre: null, next: null }) {
   if (!this.__hooks) {
     this.__hooks = {}
   }
@@ -70,7 +70,7 @@ function hook (hookName, handler, preset = {pre: null, next: null}) {
  * @param {Function} 具体的处理函数
  */
 function useHooks (hookName, handler) {
-  const {__hooks} = this
+  const { __hooks } = this
   if (!__hooks.hasOwnProperty(hookName)) {
     console.warn(`has no supported hook which name [${hookName}]`)
     return false

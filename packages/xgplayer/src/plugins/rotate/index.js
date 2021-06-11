@@ -60,13 +60,13 @@ export default class Rotate extends Plugin {
   }
 
   updateRotateDeg (rotateDeg, innerRotate) {
-    let player = this.player
+    const player = this.player
     if (!rotateDeg) {
       rotateDeg = 0
     }
-    const {root, innerContainer, video} = this.player
-    let width = root.offsetWidth
-    let height = innerContainer && innerRotate ? innerContainer.offsetHeight : root.offsetHeight
+    const { root, innerContainer, video } = this.player
+    const width = root.offsetWidth
+    const height = innerContainer && innerRotate ? innerContainer.offsetHeight : root.offsetHeight
     let rWidth = '100%'
     let rHeight = '100%'
     let x = 0
@@ -88,7 +88,7 @@ export default class Rotate extends Plugin {
     }
 
     const _target = innerRotate ? video : root
-    let poster = innerRotate ? player.getPlugin('poster') : null
+    const poster = innerRotate ? player.getPlugin('poster') : null
     Object.keys(_styles).map(key => {
       _target.style[key] = _styles[key]
       poster && poster.root && (poster.root.style[key] = _styles[key])
@@ -96,11 +96,11 @@ export default class Rotate extends Plugin {
   }
 
   rotate (clockwise = false, innerRotate = true, times = 1) {
-    let player = this.player
+    const player = this.player
     if (!this.rotateDeg) {
       this.rotateDeg = 0
     }
-    let factor = clockwise ? 1 : -1
+    const factor = clockwise ? 1 : -1
 
     this.rotateDeg = (this.rotateDeg + 1 + factor * 0.25 * times) % 1
     this.updateRotateDeg(this.rotateDeg, innerRotate)
@@ -109,7 +109,7 @@ export default class Rotate extends Plugin {
 
   registerIcons () {
     return {
-      'rotate': RotateSvg
+      rotate: RotateSvg
     }
   }
 

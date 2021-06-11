@@ -1,4 +1,4 @@
-import Plugin, {Util} from '../../plugin'
+import Plugin, { Util } from '../../plugin'
 
 class Enter extends Plugin {
   static get pluginName () {
@@ -13,7 +13,7 @@ class Enter extends Plugin {
   }
 
   render () {
-    const {innerHtml} = this.config
+    const { innerHtml } = this.config
     const root = Util.createDom('xg-enter', '', {}, 'xgplayer-enter')
 
     if (innerHtml && innerHtml instanceof window.HTMLElement) {

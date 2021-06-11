@@ -32,7 +32,7 @@ class DynamicBg extends Plugin {
       disable: true,
       mode: 'framerate', // realtime-实时渲染 firstframe - 仅仅渲染首帧 framerate-按帧渲染
       frameRate: 10, // 按帧的时候渲染帧率
-      filter: `blur(50px)`, // 滤镜设置
+      filter: 'blur(50px)', // 滤镜设置
       addMask: true, // 是否需要蒙层
       maskBg: 'rgba(0,0,0,0.7)' // 蒙层颜色
     }

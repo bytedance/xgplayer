@@ -1,4 +1,4 @@
-import Plugin, {hooksDescriptor, Events, Util} from '../../plugin'
+import Plugin, { hooksDescriptor, Events, Util } from '../../plugin'
 
 export default class ErrorPlugin extends Plugin {
   static get pluginName () {
@@ -12,7 +12,8 @@ export default class ErrorPlugin extends Plugin {
       pre: (e) => {
         e.preventDefault()
         e.stopPropagation()
-      }})
+      }
+    })
 
     this.onError = this.hook('errorHandler', this.handleError)
 

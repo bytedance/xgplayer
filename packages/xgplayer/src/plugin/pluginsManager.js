@@ -18,8 +18,8 @@ const pluginsManager = {
       this.pluginGroup = {}
     }
     this.pluginGroup[cgid] = {
-      '_player': player,
-      '_originalOptions': player.config || {}
+      _player: player,
+      _originalOptions: player.config || {}
     }
   },
 
@@ -236,7 +236,7 @@ const pluginsManager = {
         for (const item of Object.keys(plugins)) {
           if (plugins[item] && plugins[item].beforePlayerInit) {
             try {
-              let ret = plugins[item].beforePlayerInit()
+              const ret = plugins[item].beforePlayerInit()
               pluginsRet.push(retPromise(ret))
             } catch (e) {
               pluginsRet.push(retPromise(null))

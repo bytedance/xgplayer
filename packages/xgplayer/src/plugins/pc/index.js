@@ -1,4 +1,4 @@
-import {BasePlugin, Events, Sniffer} from '../../plugin'
+import { BasePlugin, Events, Sniffer } from '../../plugin'
 const MOUSE_EVENTS = {
   mouseenter: 'onMouseEnter',
   mouseleave: 'onMouseLeave',
@@ -16,7 +16,7 @@ export default class PCPlugin extends BasePlugin {
   }
 
   afterCreate () {
-    const {enableContextmenu, isMobileSimulateMode} = this.playerConfig
+    const { enableContextmenu, isMobileSimulateMode } = this.playerConfig
     if (isMobileSimulateMode || Sniffer.device === 'mobile') {
       return
     }
@@ -36,7 +36,7 @@ export default class PCPlugin extends BasePlugin {
   }
 
   onMouseMove = (e) => {
-    const {player, playerConfig} = this
+    const { player, playerConfig } = this
     if (!player.isActive) {
       this.emit(Events.PLAYER_FOCUS)
       !playerConfig.closeFocusVideoFocus && player.video.focus()
@@ -45,17 +45,17 @@ export default class PCPlugin extends BasePlugin {
 
   onMouseEnter = (e) => {
     if (this.playerConfig.closeDelayBlur) {
-      this.emit(Events.PLAYER_FOCUS, {autoHide: false})
+      this.emit(Events.PLAYER_FOCUS, { autoHide: false })
     } else {
       this.emit(Events.PLAYER_FOCUS)
     }
   }
 
   onMouseLeave = (e) => {
-    const {closePlayerBlur, leavePlayerTime} = this.playerConfig
+    const { closePlayerBlur, leavePlayerTime } = this.playerConfig
     if (!closePlayerBlur) {
       if (leavePlayerTime) {
-        this.emit(Events.PLAYER_FOCUS, {autoHide: true, delay: leavePlayerTime})
+        this.emit(Events.PLAYER_FOCUS, { autoHide: true, delay: leavePlayerTime })
       } else {
         this.emit(Events.PLAYER_BLUR)
       }
