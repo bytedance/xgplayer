@@ -54,7 +54,7 @@ class Time extends Plugin {
   }
 
   onTimeUpdate () {
-    const {player, config} = this
+    const { player, config } = this
     if (config.disable || this.isActiving) {
       return
     }
@@ -73,7 +73,7 @@ class Time extends Plugin {
   }
 
   createCenterTime () {
-    const {player} = this
+    const { player } = this
     if (!player.controls || !player.controls.center) {
       return
     }
@@ -85,7 +85,7 @@ class Time extends Plugin {
   }
 
   afterPlayerInit () {
-    const {config} = this
+    const { config } = this
     if (this.duration === Infinity || this.playerConfig.isLive) {
       Util.hide(this.durationDom)
       Util.hide(this.timeDom)
@@ -98,7 +98,7 @@ class Time extends Plugin {
       this.hide()
       return
     }
-    this.show();
+    this.show()
   }
 
   changeLiveState (isLive) {
@@ -128,7 +128,7 @@ class Time extends Plugin {
   }
 
   resetActive () {
-    const {player} = this
+    const { player } = this
     const updateState = () => {
       this.isActiving = false
     }
@@ -141,7 +141,7 @@ class Time extends Plugin {
   }
 
   destroy () {
-    const {center} = this.player.controls
+    const { center } = this.player.controls
     this.centerCurDom && center.removeChild(this.centerCurDom)
     this.centerCurDom = null
     this.centerDurDom && center.removeChild(this.centerDurDom)

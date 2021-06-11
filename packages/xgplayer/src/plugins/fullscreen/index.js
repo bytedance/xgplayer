@@ -1,4 +1,4 @@
-import Plugin, {hooksDescriptor, Events, POSITIONS, Sniffer, STATE_CLASS, Util} from '../../plugin'
+import Plugin, { hooksDescriptor, Events, POSITIONS, Sniffer, STATE_CLASS, Util } from '../../plugin'
 import TopBackIcon from './backicon'
 import FullScreenSvg from '../assets/requestFull.svg'
 import ExitFullScreenSvg from '../assets/exitFull.svg'
@@ -71,8 +71,8 @@ export default class Fullscreen extends Plugin {
 
   registerIcons () {
     return {
-      fullscreen: {icon: FullScreenSvg, class: 'xg-get-fullscreen'},
-      exitFullscreen: {icon: ExitFullScreenSvg, class: 'xg-exit-fullscreen'}
+      fullscreen: { icon: FullScreenSvg, class: 'xg-get-fullscreen' },
+      exitFullscreen: { icon: ExitFullScreenSvg, class: 'xg-exit-fullscreen' }
     }
   }
 
@@ -81,13 +81,13 @@ export default class Fullscreen extends Plugin {
   }
 
   initIcons () {
-    const {icons} = this
+    const { icons } = this
     this.appendChild('.xgplayer-icon', icons.fullscreen)
     this.appendChild('.xgplayer-icon', icons.exitFullscreen)
   }
 
   setRotateDeg (deg) {
-    const {player} = this
+    const { player } = this
     if (window.orientation === 90 || window.orientation === -90) {
       player.rotateDeg = 0
     } else {
@@ -96,7 +96,7 @@ export default class Fullscreen extends Plugin {
   }
 
   getRotateFullscreen () {
-    const {player} = this
+    const { player } = this
     if (player.isCssfullScreen) {
       player.exitCssFullscreen()
     }
@@ -111,7 +111,7 @@ export default class Fullscreen extends Plugin {
   }
 
   exitRotateFullscreen () {
-    const {player} = this
+    const { player } = this
     player.removeClass(STATE_CLASS.ROTATE_FULLSCREEN)
     player.fullscreen = false
     this._originCssText && Util.setStyleFromCsstext(player.root, this._originCssText)
@@ -121,12 +121,12 @@ export default class Fullscreen extends Plugin {
   }
 
   changeFullScreen (e) {
-    e.preventDefault();
-    e.stopPropagation();
-    const {player, config} = this;
+    e.preventDefault()
+    e.stopPropagation()
+    const { player, config } = this
     let useCssFullscreen = false
     if (config.useCssFullscreen === true || (typeof config.useCssFullscreen === 'function' && config.useCssFullscreen())) {
-      useCssFullscreen = true;
+      useCssFullscreen = true
     }
     if (useCssFullscreen) {
       if (player.fullscreen) {

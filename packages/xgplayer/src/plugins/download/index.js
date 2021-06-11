@@ -1,5 +1,5 @@
 import downloadUtil from 'downloadjs'
-import Plugin, {POSITIONS} from '../../plugin'
+import Plugin, { POSITIONS } from '../../plugin'
 import DownloadSvg from '../assets/download.svg'
 
 export default class Download extends Plugin {
@@ -29,7 +29,7 @@ export default class Download extends Plugin {
 
   afterCreate () {
     if (this.config.disable) {
-      return;
+      return
     }
     this.appendChild('.xgplayer-icon', this.icons.download)
     this.download = this.download.bind(this)
@@ -74,7 +74,7 @@ export default class Download extends Plugin {
 
   render () {
     if (this.config.disable) {
-      return;
+      return
     }
     return `<xg-icon class="xgplayer-download">
       <div class="xgplayer-icon">

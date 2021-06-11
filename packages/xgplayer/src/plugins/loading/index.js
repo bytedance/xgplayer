@@ -1,5 +1,5 @@
-import Plugin, {POSITIONS} from '../../plugin/plugin';
-import loadingIcon from '../assets/loading.svg';
+import Plugin, { POSITIONS } from '../../plugin/plugin'
+import loadingIcon from '../assets/loading.svg'
 
 class Loading extends Plugin {
   static get pluginName () {
@@ -14,7 +14,7 @@ class Loading extends Plugin {
 
   registerIcons () {
     return {
-      'loadingIcon': loadingIcon
+      loadingIcon: loadingIcon
     }
   }
 
@@ -29,4 +29,4 @@ class Loading extends Plugin {
   }
 }
 
-export default Loading;
+export default Loading

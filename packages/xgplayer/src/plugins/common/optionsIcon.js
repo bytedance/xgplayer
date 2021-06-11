@@ -1,5 +1,5 @@
 
-import Plugin, {Events, Util, Sniffer, POSITIONS} from '../../plugin'
+import Plugin, { Events, Util, Sniffer, POSITIONS } from '../../plugin'
 import OptionList from './optionList'
 
 const IS_MOBILE = Sniffer.device === 'mobile'
@@ -31,7 +31,7 @@ export default class OptionsIcon extends Plugin {
   }
 
   afterCreate () {
-    const {config} = this
+    const { config } = this
     if (IS_MOBILE && config.listType !== 'middle') {
       config.listType = 'rightSide'
     }
@@ -61,7 +61,7 @@ export default class OptionsIcon extends Plugin {
 
   show () {
     if (!this.config.list || this.config.list.length === 0) {
-      return;
+      return
     }
     Util.addClass(this.root, 'show')
   }
@@ -70,13 +70,13 @@ export default class OptionsIcon extends Plugin {
     if (item === undefined) {
       return ''
     }
-    const {list} = this.config
+    const { list } = this.config
     !lang && (lang = this.player.lang)
     key = (!key || Util.isUndefined(item[key])) ? 'text' : key
     typeof item === 'number' && (item = list[item])
     try {
       if (typeof item[key] === 'object') {
-        return item[key][lang] || item[key]['zh']
+        return item[key][lang] || item[key].zh
       } else {
         return item[key]
       }
@@ -101,8 +101,8 @@ export default class OptionsIcon extends Plugin {
   // 状态切换
   onToggle (isActive) {
     if (isActive === this.isActive) return
-    const {controls} = this.player
-    const {listType} = this.config
+    const { controls } = this.player
+    const { listType } = this.config
     if (isActive) {
       listType === 'rightSide' ? controls.blur() : controls.focus()
       this.optionsList && this.optionsList.show()
@@ -117,7 +117,7 @@ export default class OptionsIcon extends Plugin {
   onItemClick (e, data) {
     e.preventDefault()
     e.stopPropagation()
-    const {listType, list} = this.config;
+    const { listType, list } = this.config;
     (IS_MOBILE || listType === 'rightSide') && this.onToggle(false)
     this.curIndex = data.to.index
     this.curItem = list[this.curIndex]
@@ -125,15 +125,15 @@ export default class OptionsIcon extends Plugin {
   }
 
   changeCurrentText () {
-    const {list} = this.config
-    let index = this.curIndex < list.length ? this.curIndex : 0
+    const { list } = this.config
+    const index = this.curIndex < list.length ? this.curIndex : 0
     const curItem = list[index]
     if (!curItem) return
     this.find('.icon-text').innerHTML = this.getTextByLang(curItem, 'iconText')
   }
 
   renderItemList (itemList, curIndex) {
-    const {config, optionsList, player} = this
+    const { config, optionsList, player } = this
     if (typeof curIndex === 'number') {
       this.curIndex = curIndex
       this.curItem = config.list[curIndex]
