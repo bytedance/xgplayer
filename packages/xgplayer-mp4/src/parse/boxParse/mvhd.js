@@ -2,7 +2,7 @@ import Stream from '../stream'
 import UTC from '../date'
 
 export default function mvhd () {
-  let stream = new Stream(this.data)
+  const stream = new Stream(this.data)
 
   this.version = stream.readUint8()
   this.flag = Stream.readByte(stream.dataview, 3)
@@ -18,7 +18,7 @@ export default function mvhd () {
   Stream.readByte(stream.dataview, 8)
   Stream.readByte(stream.dataview, 2)
   // 视频转换矩阵
-  let matrix = []
+  const matrix = []
   for (let i = 0; i < 9; i++) {
     matrix.push(stream.readUint16() + '.' + stream.readUint16())
   }

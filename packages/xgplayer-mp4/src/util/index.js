@@ -1,5 +1,5 @@
 /* eslint-disable camelcase */
-let util = {}
+const util = {}
 
 /**
  * [使用递归查询指定type的box]
@@ -12,7 +12,7 @@ let util = {}
 util.findBox = function (root, type, result = []) {
   if (root.type !== type) {
     if (root && root.subBox) {
-      let box = root.subBox.filter(item => item.type === type)
+      const box = root.subBox.filter(item => item.type === type)
       if (box.length) {
         box.forEach(item => result.push(item))
       } else {
@@ -27,8 +27,8 @@ util.findBox = function (root, type, result = []) {
 }
 
 util.padStart = function (str, length, pad) {
-  let charstr = String(pad); let len = length >> 0; let maxlen = Math.ceil(len / charstr.length)
-  let chars = []; let r = String(str)
+  const charstr = String(pad); const len = length >> 0; let maxlen = Math.ceil(len / charstr.length)
+  const chars = []; const r = String(str)
   while (maxlen--) {
     chars.push(charstr)
   }
@@ -41,7 +41,7 @@ util.padStart = function (str, length, pad) {
  * @return {String}       [十六进制]
  */
 util.toHex = function (...value) {
-  let hex = []
+  const hex = []
   value.forEach(item => {
     hex.push(util.padStart(Number(item).toString(16), 2, 0))
   })
@@ -67,22 +67,22 @@ util.sum = function (...rst) {
  */
 util.stscOffset = function (stsc, sample_order) {
   let chunk_index; let samples_offset = ''
-  let chunk_start = stsc.entries.filter((item) => {
+  const chunk_start = stsc.entries.filter((item) => {
     return item.first_sample <= sample_order && sample_order < item.first_sample + item.chunk_count * item.samples_per_chunk
   })[0]
   if (!chunk_start) {
-    let last_chunk = stsc.entries.pop()
+    const last_chunk = stsc.entries.pop()
     stsc.entries.push(last_chunk)
-    let chunk_offset = Math.floor((sample_order - last_chunk.first_sample) / last_chunk.samples_per_chunk)
-    let last_chunk_index = last_chunk.first_chunk + chunk_offset
-    let last_chunk_first_sample = last_chunk.first_sample + last_chunk.samples_per_chunk * chunk_offset
+    const chunk_offset = Math.floor((sample_order - last_chunk.first_sample) / last_chunk.samples_per_chunk)
+    const last_chunk_index = last_chunk.first_chunk + chunk_offset
+    const last_chunk_first_sample = last_chunk.first_sample + last_chunk.samples_per_chunk * chunk_offset
     return {
       chunk_index: last_chunk_index,
       samples_offset: [last_chunk_first_sample, sample_order]
     }
   } else {
-    let chunk_offset = Math.floor((sample_order - chunk_start.first_sample) / chunk_start.samples_per_chunk)
-    let chunk_offset_sample = chunk_start.first_sample + chunk_offset * chunk_start.samples_per_chunk
+    const chunk_offset = Math.floor((sample_order - chunk_start.first_sample) / chunk_start.samples_per_chunk)
+    const chunk_offset_sample = chunk_start.first_sample + chunk_offset * chunk_start.samples_per_chunk
     chunk_index = chunk_start.first_chunk + chunk_offset
     samples_offset = [chunk_offset_sample, sample_order]
     return {
@@ -93,8 +93,8 @@ util.stscOffset = function (stsc, sample_order) {
 }
 
 util.seekSampleOffset = function (stsc, stco, stsz, order, mdatStart) {
-  let chunkOffset = util.stscOffset(stsc, order + 1)
-  let result = stco.entries[chunkOffset.chunk_index - 1] + util.sum.apply(null, stsz.entries.slice(chunkOffset.samples_offset[0] - 1, chunkOffset.samples_offset[1] - 1)) - mdatStart
+  const chunkOffset = util.stscOffset(stsc, order + 1)
+  const result = stco.entries[chunkOffset.chunk_index - 1] + util.sum.apply(null, stsz.entries.slice(chunkOffset.samples_offset[0] - 1, chunkOffset.samples_offset[1] - 1)) - mdatStart
   if (result === undefined) {
     throw new Error(`result=${result},stco.length=${stco.entries.length},sum=${util.sum.apply(null, stsz.entries.slice(0, order))}`)
   } else if (result < 0) {
@@ -132,7 +132,7 @@ util.seekSampleTime = function (stts, ctts, order, timeOffset = 0) {
     time = startTime + (order - count) * duration
   }
   time -= timeOffset
-  return {time, duration, offset}
+  return { time, duration, offset }
 }
 
 util.seekOrderSampleByTime = function (stts, timeScale, time) {
@@ -149,7 +149,7 @@ util.seekOrderSampleByTime = function (stts, timeScale, time) {
       return true
     }
   })
-  return {order, startTime}
+  return { order, startTime }
 }
 
 util.sampleCount = function (stts) {
@@ -161,7 +161,7 @@ util.sampleCount = function (stts) {
 }
 
 util.seekTrakDuration = function (trak, timeScale) {
-  let stts = util.findBox(trak, 'stts'); let duration = 0
+  const stts = util.findBox(trak, 'stts'); let duration = 0
   stts.entry.forEach(item => {
     duration += item.sampleCount * item.sampleDuration
   })

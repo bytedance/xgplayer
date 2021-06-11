@@ -6,7 +6,7 @@ export default function esds () {
   let stream = new Stream(this.data)
   this.version = stream.readUint8()
   this.flag = Stream.readByte(stream.dataview, 3)
-  let box = MP4ESDescrTag(stream)
+  const box = MP4ESDescrTag(stream)
   this.subBox.push(box)
   delete this.data
   stream = null

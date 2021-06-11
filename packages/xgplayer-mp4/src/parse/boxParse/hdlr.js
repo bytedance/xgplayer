@@ -7,7 +7,7 @@ export default function hdlr () {
   stream.skip(4)
   this.handleType = `${String.fromCharCode(stream.readUint8())}${String.fromCharCode(stream.readUint8())}${String.fromCharCode(stream.readUint8())}${String.fromCharCode(stream.readUint8())}`
   stream.skip(12)
-  let name = []
+  const name = []
   while (stream.position < this.size - 8) {
     name.push(String.fromCharCode(stream.readUint8()))
   }

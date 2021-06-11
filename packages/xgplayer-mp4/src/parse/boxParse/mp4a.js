@@ -10,7 +10,7 @@ export default function mp4a () {
   this.sampleSize = stream.readUint16()
   stream.skip(4)
   this.sampleRate = stream.readUint32() >> 16
-  let box = new Box()
+  const box = new Box()
   box.readHeader(stream)
   this.subBox.push(box)
   box.readBody(stream)

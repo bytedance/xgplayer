@@ -3,7 +3,7 @@ import MP4DecConfigDescrTag from './MP4DecConfigDescrTag'
 import SLConfigDescriptor from './SLConfigDescriptor'
 
 export default function MP4ESDescrTag (stream) {
-  let box = new Box()
+  const box = new Box()
   let size
   box.type = stream.readUint8()
   size = stream.readUint8()

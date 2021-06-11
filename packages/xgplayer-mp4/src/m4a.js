@@ -37,9 +37,9 @@ class MP4 {
      * @param  {Number} [end=start + this.CHUNK_SIZE] [截止字节]
      */
   getData (start = 0, end = start + this.CHUNK_SIZE) {
-    let self = this
+    const self = this
     return new Promise((resolve, reject) => {
-      let task = new Task(this.url, [
+      const task = new Task(this.url, [
         start, end
       ], this.options.headers || {}, this.withCredentials, resolve)
       task.once('error', err => {
@@ -53,9 +53,9 @@ class MP4 {
      * @return {[type]} [description]
      */
   moovParse () {
-    let self = this
-    let moov = this.moovBox
-    let mvhd = util.findBox(moov, 'mvhd')
+    const self = this
+    const moov = this.moovBox
+    const mvhd = util.findBox(moov, 'mvhd')
     let traks = util.findBox(moov, 'trak')
     let audioTrak
     let audioCodec
@@ -67,20 +67,20 @@ class MP4 {
       traks = [traks]
     }
     traks.forEach(trak => {
-      let hdlr = util.findBox(trak, 'hdlr')
-      let mdhd = util.findBox(trak, 'mdhd')
+      const hdlr = util.findBox(trak, 'hdlr')
+      const mdhd = util.findBox(trak, 'mdhd')
       if (!hdlr || !mdhd) {
         console.error('!hdlr || !mdhd')
-        self.emit('error', new Errors('parse', '', {line: 72, handle: '[MP4] moovParse', url: self.url}))
+        self.emit('error', new Errors('parse', '', { line: 72, handle: '[MP4] moovParse', url: self.url }))
         return
       }
-      let stsd = util.findBox(trak, 'stsd')
-      let codecBox = stsd.subBox[0]
+      const stsd = util.findBox(trak, 'stsd')
+      const codecBox = stsd.subBox[0]
       if (hdlr.handleType === 'soun') {
         audioTrak = trak
-        let esds = util.findBox(trak, 'esds')
-        let mp4a = util.findBox(trak, 'mp4a')
-        let ESDescriptor = util.findBox(trak, 5)
+        const esds = util.findBox(trak, 'esds')
+        const mp4a = util.findBox(trak, 'mp4a')
+        const ESDescriptor = util.findBox(trak, 5)
         audioTimeScale = mdhd.timescale
         if (esds) {
           audioCodec = `${codecBox.type}.` + util.toHex(esds.subBox[0].subBox[0].typeID) + `.${esds.subBox[0].subBox[0].subBox[0].type}`
@@ -97,25 +97,25 @@ class MP4 {
       }
     })
     this.audioTrak = Merge({}, audioTrak)
-    let mdat = this._boxes.find(item => item.type === 'mdat')
-    let audioDuration = parseFloat(util.seekTrakDuration(audioTrak, audioTimeScale))
+    const mdat = this._boxes.find(item => item.type === 'mdat')
+    const audioDuration = parseFloat(util.seekTrakDuration(audioTrak, audioTimeScale))
     this.mdatStart = mdat.start
     this.sampleCount = util.sampleCount(util.findBox(this.audioTrak, 'stts').entry)
 
     let audioFrame, audioNextFrame
-    let stts = util.findBox(this.audioTrak, 'stts').entry
+    const stts = util.findBox(this.audioTrak, 'stts').entry
     for (let i = 0; i < audioDuration; i += this.reqTimeLength) {
       audioFrame = util.seekOrderSampleByTime(stts, audioTimeScale, i)
       if (i + this.reqTimeLength < audioDuration) {
         audioNextFrame = util.seekOrderSampleByTime(stts, audioTimeScale, i + this.reqTimeLength)
         this.timeRage.push([
-          {time: audioFrame.startTime, order: audioFrame.order},
-          {time: audioNextFrame.startTime, order: audioNextFrame.order}
+          { time: audioFrame.startTime, order: audioFrame.order },
+          { time: audioNextFrame.startTime, order: audioNextFrame.order }
         ])
       } else {
         this.timeRage.push([
-          {time: audioFrame.startTime, order: audioFrame.order},
-          {time: audioDuration, order: this.sampleCount - 1}
+          { time: audioFrame.startTime, order: audioFrame.order },
+          { time: audioDuration, order: this.sampleCount - 1 }
         ])
       }
     }
@@ -140,7 +140,7 @@ class MP4 {
      * [init 实例的初始化，主要是获取视频的MOOV元信息]
      */
   init1 () {
-    let self = this
+    const self = this
     self.getData().then((resFir) => {
       let parsedFir
       let mdatStart = 0
@@ -152,7 +152,7 @@ class MP4 {
         parsedFir = new Parser(resFir)
       } catch (e) {
         console.error(e)
-        self.emit('error', e.type ? e : new Errors('parse', '', {line: 176, handle: '[MP4] init', msg: e.message}))
+        self.emit('error', e.type ? e : new Errors('parse', '', { line: 176, handle: '[MP4] init', msg: e.message }))
         return false
       }
       self._boxes = boxes = parsedFir.boxes
@@ -172,11 +172,11 @@ class MP4 {
         return true
       })
       if (!mdat) {
-        let nextBox = parsedFir.nextBox
+        const nextBox = parsedFir.nextBox
         if (nextBox) {
           if (nextBox.type === 'moov' || nextBox.type === 'free') {
             self.getData(mdatStart, mdatStart + nextBox.size + 1024).then(resSec => {
-              let parsedSec = new Parser(resSec)
+              const parsedSec = new Parser(resSec)
               self._boxes = self._boxes.concat(parsedSec.boxes)
               parsedSec.boxes.every(item => {
                 if (item.type === 'moov') {
@@ -198,11 +198,11 @@ class MP4 {
                 }
               })
               if (!mdat) {
-                let nextBoxSec = parsedSec.nextBox
+                const nextBoxSec = parsedSec.nextBox
                 if (nextBoxSec) {
                   if (nextBoxSec.type === 'free') {
                     self.getData(mdatStart, mdatStart + nextBoxSec.size + 1024).then(resThi => {
-                      let parsedThi = new Parser(resThi)
+                      const parsedThi = new Parser(resThi)
                       self._boxes = self._boxes.concat(parsedThi.boxes)
                       parsedThi.boxes.every(item => {
                         if (item.type === 'mdat') {
@@ -221,34 +221,34 @@ class MP4 {
                         }
                       })
                       if (!mdat) {
-                        self.emit('error', new Errors('parse', '', {line: 207, handle: '[MP4] init', msg: 'not find mdat box'}))
+                        self.emit('error', new Errors('parse', '', { line: 207, handle: '[MP4] init', msg: 'not find mdat box' }))
                       }
                     }).catch(() => {
-                      self.emit('error', new Errors('network', '', {line: 210, handle: '[MP4] getData', msg: 'getData failed'}))
+                      self.emit('error', new Errors('network', '', { line: 210, handle: '[MP4] getData', msg: 'getData failed' }))
                     })
                   } else {
-                    self.emit('error', new Errors('parse', '', {line: 213, handle: '[MP4] init', msg: 'not find mdat box'}))
+                    self.emit('error', new Errors('parse', '', { line: 213, handle: '[MP4] init', msg: 'not find mdat box' }))
                   }
                 } else {
-                  self.emit('error', new Errors('parse', '', {line: 216, handle: '[MP4] init', msg: 'not find mdat box'}))
+                  self.emit('error', new Errors('parse', '', { line: 216, handle: '[MP4] init', msg: 'not find mdat box' }))
                 }
               }
             }).catch((e) => {
-              self.emit('error', new Errors('network', '', {line: 220, handle: '[MP4] getData', msg: 'getData failed'}))
+              self.emit('error', new Errors('network', '', { line: 220, handle: '[MP4] getData', msg: 'getData failed' }))
             })
           } else {
-            self.emit('error', new Errors('parse', '', {line: 223, handle: '[MP4] init', msg: 'not find mdat box'}))
+            self.emit('error', new Errors('parse', '', { line: 223, handle: '[MP4] init', msg: 'not find mdat box' }))
           }
         } else {
-          self.emit('error', new Errors('parse', '', {line: 226, handle: '[MP4] init', msg: 'not find mdat box'}))
+          self.emit('error', new Errors('parse', '', { line: 226, handle: '[MP4] init', msg: 'not find mdat box' }))
         }
       } else {
-        let nextBox = parsedFir.nextBox
+        const nextBox = parsedFir.nextBox
         if (nextBox) {
-          self.emit('error', new Errors('parse', '', {line: 223, handle: '[MP4] init', msg: 'not find moov box'}))
+          self.emit('error', new Errors('parse', '', { line: 223, handle: '[MP4] init', msg: 'not find moov box' }))
         } else {
           self.getData(mdatStart, mdatStart + 1024).then(resSec => {
-            let parsedSec = new Parser(resSec)
+            const parsedSec = new Parser(resSec)
             self._boxes = self._boxes.concat(parsedSec.boxes)
             parsedSec.boxes.every(item => {
               if (item.type === 'moov') {
@@ -264,11 +264,11 @@ class MP4 {
               }
             })
             if (!moov) {
-              let nextBoxSec = parsedSec.nextBox
+              const nextBoxSec = parsedSec.nextBox
               if (nextBoxSec) {
                 if (nextBoxSec.type === 'moov') {
                   self.getData(mdatStart, mdatStart + nextBoxSec.size - 1).then(resThi => {
-                    let parsedThi = new Parser(resThi)
+                    const parsedThi = new Parser(resThi)
                     self._boxes = self._boxes.concat(parsedThi.boxes)
                     parsedThi.boxes.every(item => {
                       if (item.type === 'moov') {
@@ -284,30 +284,30 @@ class MP4 {
                       }
                     })
                     if (!moov) {
-                      self.emit('error', new Errors('parse', '', {line: 207, handle: '[MP4] init', msg: 'not find moov box'}))
+                      self.emit('error', new Errors('parse', '', { line: 207, handle: '[MP4] init', msg: 'not find moov box' }))
                     }
                   }).catch(() => {
-                    self.emit('error', new Errors('network', '', {line: 210, handle: '[MP4] getData', msg: 'getData failed'}))
+                    self.emit('error', new Errors('network', '', { line: 210, handle: '[MP4] getData', msg: 'getData failed' }))
                   })
                 } else {
-                  self.emit('error', new Errors('parse', '', {line: 213, handle: '[MP4] init', msg: 'not find moov box'}))
+                  self.emit('error', new Errors('parse', '', { line: 213, handle: '[MP4] init', msg: 'not find moov box' }))
                 }
               } else {
-                self.emit('error', new Errors('parse', '', {line: 216, handle: '[MP4] init', msg: 'not find moov box'}))
+                self.emit('error', new Errors('parse', '', { line: 216, handle: '[MP4] init', msg: 'not find moov box' }))
               }
             }
           }).catch(() => {
-            self.emit('error', new Errors('network', '', {line: 220, handle: '[MP4] getData', msg: 'getData failed'}))
+            self.emit('error', new Errors('network', '', { line: 220, handle: '[MP4] getData', msg: 'getData failed' }))
           })
         }
       }
     }).catch(() => {
-      self.emit('error', new Errors('network', '', {line: 230, handle: '[MP4] getData', msg: 'getData failed'}))
+      self.emit('error', new Errors('network', '', { line: 230, handle: '[MP4] getData', msg: 'getData failed' }))
     })
   }
 
   init () {
-    let self = this
+    const self = this
     self.getData().then((res) => {
       let parsed
 
@@ -319,7 +319,7 @@ class MP4 {
       try {
         parsed = new Parser(res)
       } catch (e) {
-        self.emit('error', e.type ? e : new Errors('parse', '', {line: 176, handle: '[MP4] init', msg: e.message}))
+        self.emit('error', e.type ? e : new Errors('parse', '', { line: 176, handle: '[MP4] init', msg: e.message }))
         return false
       }
       self._boxes = boxes = parsed.boxes
@@ -335,26 +335,26 @@ class MP4 {
         }
       })
       if (!moov) {
-        let nextBox = parsed.nextBox
+        const nextBox = parsed.nextBox
         if (nextBox) {
           if (nextBox.type === 'moov') {
             self.getData(moovStart, moovStart + nextBox.size + 28).then(res => {
-              let parsed = new Parser(res)
+              const parsed = new Parser(res)
               self._boxes = self._boxes.concat(parsed.boxes)
               moov = parsed.boxes.filter(box => box.type === 'moov')
               if (moov.length) {
                 self.moovBox = moov[0]
                 self.emit('moovReady', moov)
               } else {
-                self.emit('error', new Errors('parse', '', {line: 203, handle: '[MP4] init', msg: 'not find moov box'}))
+                self.emit('error', new Errors('parse', '', { line: 203, handle: '[MP4] init', msg: 'not find moov box' }))
               }
             })
           } else {
-            self.emit('error', new Errors('parse', '', {line: 207, handle: '[MP4] init', msg: 'not find moov box'}))
+            self.emit('error', new Errors('parse', '', { line: 207, handle: '[MP4] init', msg: 'not find moov box' }))
           }
         } else {
           self.getData(moovStart, '').then(res => {
-            let parsed = new Parser(res)
+            const parsed = new Parser(res)
             if (parsed) {
               self._boxes = self._boxes.concat(parsed.boxes)
               parsed.boxes.every(item => {
@@ -368,25 +368,25 @@ class MP4 {
                 }
               })
             } else {
-              self.emit('error', new Errors('parse', '', {line: 225, handle: '[MP4] init', msg: 'not find moov box'}))
+              self.emit('error', new Errors('parse', '', { line: 225, handle: '[MP4] init', msg: 'not find moov box' }))
             }
           })
         }
       }
     }).catch((e) => {
-      self.emit('error', new Errors('network', '', {line: 231, handle: '[MP4] getData', msg: 'getData failed'}))
+      self.emit('error', new Errors('network', '', { line: 231, handle: '[MP4] getData', msg: 'getData failed' }))
       throw e
     })
   }
 
   getSamplesByOrders (type = 'audio', start, end) {
-    let trak = this.audioTrak
-    let stsc = util.findBox(trak, 'stsc') // chunk~samples
-    let stsz = util.findBox(trak, 'stsz') // sample-size
-    let stts = util.findBox(trak, 'stts') // sample-time
-    let stco = util.findBox(trak, 'stco') // chunk-offset
-    let ctts = util.findBox(trak, 'ctts') // offset-compositime
-    let mdatStart = this.mdatStart
+    const trak = this.audioTrak
+    const stsc = util.findBox(trak, 'stsc') // chunk~samples
+    const stsz = util.findBox(trak, 'stsz') // sample-size
+    const stts = util.findBox(trak, 'stts') // sample-time
+    const stco = util.findBox(trak, 'stco') // chunk-offset
+    const ctts = util.findBox(trak, 'ctts') // offset-compositime
+    const mdatStart = this.mdatStart
     let samples = []
     end = end !== undefined
       ? end
@@ -424,7 +424,7 @@ class MP4 {
     if (!this.meta) {
       return
     }
-    let buffer = new Buffer()
+    const buffer = new Buffer()
     buffer.write(FMP4.ftyp())
     buffer.write(FMP4.moov(this.meta))
     this.cache.write(buffer.buffer)
@@ -432,7 +432,7 @@ class MP4 {
   }
 
   seek (time, audioIndexOrder = null, audioNextIndexOrder = null) {
-    let audioStts = util.findBox(this.audioTrak, 'stts').entry
+    const audioStts = util.findBox(this.audioTrak, 'stts').entry
     if (!audioIndexOrder) {
       audioIndexOrder = util.seekOrderSampleByTime(audioStts, this.meta.audioTimeScale, time).order
     }
@@ -449,11 +449,10 @@ class MP4 {
   }
 
   loadFragment (audioIndexOrder, audioNextIndexOrder) {
-    let start,
-      end
-    let self = this
-    let audioFrame = this.getSamplesByOrders('audio', audioIndexOrder, 0)
-    start = audioFrame.offset
+    let end
+    const self = this
+    const audioFrame = this.getSamplesByOrders('audio', audioIndexOrder, 0)
+    const start = audioFrame.offset
     let audioNextFrame
     if (audioNextIndexOrder) {
       audioNextFrame = this.getSamplesByOrders('audio', audioNextIndexOrder, 0)
@@ -488,19 +487,21 @@ class MP4 {
       return self.createFragment(new Uint8Array(dat), start, audioIndexOrder, audioNextIndexOrder)
     })
   }
+
   addFragment (data) {
-    let buffer = new Buffer()
+    const buffer = new Buffer()
     buffer.write(FMP4.moof(data))
     buffer.write(FMP4.mdat(data))
     this.cache.write(buffer.buffer)
     return buffer.buffer
   }
+
   createFragment (mdatData, start, audioIndexOrder, audioNextIndexOrder) {
-    let resBuffers = []
+    const resBuffers = []
     this.bufferCache.add(audioIndexOrder)
-    let _samples = this.getSamplesByOrders(
+    const _samples = this.getSamplesByOrders(
       'audio', audioIndexOrder, audioNextIndexOrder)
-    let samples = _samples.map((item, idx) => {
+    const samples = _samples.map((item, idx) => {
       return {
         size: item.size,
         duration: item.time.duration,
@@ -509,13 +510,13 @@ class MP4 {
         key: idx === 0
       }
     })
-    resBuffers.push(this.addFragment({id: 2, time: this.cut ? 0 : _samples[0].time.time, firstFlags: 0x00, flags: 0x701, samples: samples}))
+    resBuffers.push(this.addFragment({ id: 2, time: this.cut ? 0 : _samples[0].time.time, firstFlags: 0x00, flags: 0x701, samples: samples }))
     let bufferSize = 0
     resBuffers.every(item => {
       bufferSize += item.byteLength
       return true
     })
-    let buffer = new Uint8Array(bufferSize)
+    const buffer = new Uint8Array(bufferSize)
 
     let offset = 0
     resBuffers.every(item => {

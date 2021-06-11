@@ -8,22 +8,22 @@ export default function avcC () {
   this.AVCLevelIndication = stream.readUint8()
   this.lengthSizeMinusOne = (stream.readUint8() & 3) + 1
   this.numOfSequenceParameterSets = stream.readUint8() & 31
-  let sequenceLength = stream.readUint16()
+  const sequenceLength = stream.readUint16()
   this.sequenceLength = sequenceLength
-  let sequence = []
+  const sequence = []
   for (let i = 0; i < sequenceLength; i++) {
     sequence.push(Number(stream.readUint8()).toString(16))
   }
   this.ppsCount = stream.readUint8()
-  let ppsLength = stream.readUint16()
+  const ppsLength = stream.readUint16()
   this.ppsLength = ppsLength
-  let pps = []
+  const pps = []
   for (let i = 0; i < ppsLength; i++) {
     pps.push(Number(stream.readUint8()).toString(16))
   }
   this.pps = pps
   this.sequence = sequence
-  let last = []; let dataviewLength = stream.dataview.byteLength
+  const last = []; const dataviewLength = stream.dataview.byteLength
   while (stream.position < dataviewLength) {
     last.push(stream.readUint8())
   }

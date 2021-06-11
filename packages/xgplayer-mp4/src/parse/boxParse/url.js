@@ -5,7 +5,7 @@ export default function url () {
   let stream = new Stream(this.data)
   this.version = stream.readUint8()
   this.flag = [stream.readUint8(), stream.readUint8(), stream.readUint8()]
-  let location = []; let length = stream.buffer.byteLength
+  const location = []; const length = stream.buffer.byteLength
   while (stream.position < length) {
     location.push(stream.readUint8())
   }

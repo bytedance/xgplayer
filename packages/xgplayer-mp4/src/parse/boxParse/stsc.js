@@ -5,7 +5,7 @@ export default function stsc () {
   this.version = stream.readUint8()
   this.flag = Stream.readByte(stream.dataview, 3)
   this.count = stream.readUint32()
-  let entries = []
+  const entries = []
   this.entries = entries
   for (let i = 0, count = this.count; i < count; i++) {
     entries.push({
@@ -21,11 +21,11 @@ export default function stsc () {
     entry.first_sample = i === 0 ? 1 : preEntry.first_sample + preEntry.chunk_count * preEntry.samples_per_chunk
   }
   if (this.count === 1) {
-    let entry = entries[0]
+    const entry = entries[0]
     entry.first_sample = 1
     entry.chunk_count = 0
   } else if (this.count > 1) {
-    let last = entries[this.count - 1]; let pre = entries[this.count - 2]
+    const last = entries[this.count - 1]; const pre = entries[this.count - 2]
     last.first_sample = pre.first_sample + pre.chunk_count * pre.samples_per_chunk
     last.chunk_count = 0
   }

@@ -28,7 +28,7 @@ export default function tkhd () {
   this.volume = stream.readInt16() >> 8
   stream.readUint16()
   // 视频转换矩阵
-  let matrix = []
+  const matrix = []
   for (let i = 0; i < 9; i++) {
     matrix.push(stream.readUint16() + '.' + stream.readUint16())
   }

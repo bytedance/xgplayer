@@ -1,3 +1,4 @@
+/* eslint-disable array-callback-return */
 // import 'core-js/modules/es7.string.pad-start';
 import { BasePlugin, Events, Sniffer, Util } from 'xgplayer'
 import MP4 from './mp4'
@@ -30,6 +31,10 @@ export default class Mp4Player extends BasePlugin {
     }
   }
 
+  static get version () {
+    return '__XGPLAYER_MP4__'
+  }
+
   constructor (options) {
     super(options)
 
@@ -48,7 +53,7 @@ export default class Mp4Player extends BasePlugin {
     window.__mp4player = this
     try {
       BasePlugin.defineGetterOrSetter(this.player, {
-        '__url': {
+        __url: {
           get: () => {
             try {
               return this.mse ? this.mse.url : this.config.url
@@ -85,7 +90,7 @@ export default class Mp4Player extends BasePlugin {
   }
 
   initMp4 (url) {
-    const {player, config} = this
+    const { player, config } = this
     const mp4 = new MP4(url || player.config.url, this.config, this.config.chunkSize)
     mp4.reqTimeLength = config.reqTimeLength
     return new Promise((resolve, reject) => {
@@ -116,9 +121,9 @@ export default class Mp4Player extends BasePlugin {
   }
 
   cut (start = 0, end) {
-    const {player} = this
-    let segment = new Buffer()
-    let mp4 = new MP4(player.config.url, this.config, player.config.withCredentials)
+    const { player } = this
+    const segment = new Buffer()
+    const mp4 = new MP4(player.config.url, this.config, player.config.withCredentials)
     return new Promise((resolve, reject) => {
       mp4.once('moovReady', () => {
         if (!end || end <= start) {
@@ -130,7 +135,7 @@ export default class Mp4Player extends BasePlugin {
         }
         mp4.cut(start, end).then(buffer => {
           if (buffer) {
-            let meta = Util.deepCopy({
+            const meta = Util.deepCopy({
               duration: end - start,
               audioDuration: end - start,
               endTime: end - start
@@ -140,7 +145,7 @@ export default class Mp4Player extends BasePlugin {
             meta.audioDuration = end - start
             meta.endTime = end - start
             segment.write(mp4.packMeta(meta), buffer)
-            resolve(new window.Blob([segment.buffer], {type: 'video/mp4; codecs="avc1.64001E, mp4a.40.5"'}))
+            resolve(new window.Blob([segment.buffer], { type: 'video/mp4; codecs="avc1.64001E, mp4a.40.5"' }))
           }
         })
       })
@@ -175,7 +180,7 @@ export default class Mp4Player extends BasePlugin {
     this.timer = setTimeout(() => {
       this.mp4.seek(time + i * 0.1).then(buffer => {
         if (buffer) {
-          const {mse} = this
+          const { mse } = this
           mse.updating = true
           mse.appendBuffer(buffer)
           mse.once('updateend', () => {
@@ -231,21 +236,21 @@ export default class Mp4Player extends BasePlugin {
    **/
   onLoadBufferupdate () {
     const { player, config } = this
-    let mse = this.mse
-    let mp4 = this.mp4
+    const mse = this.mse
+    const mp4 = this.mp4
     if (mse && !mse.updating && mp4.canDownload) {
-      let timeRage = mp4.timeRage
-      let range = player.getBufferedRange()
-      let cacheMaxTime = player.currentTime + config.preloadTime / 2
+      const timeRage = mp4.timeRage
+      const range = player.getBufferedRange()
+      const cacheMaxTime = player.currentTime + config.preloadTime / 2
       // console.log('onLoadBufferupdate', range[1] - cacheMaxTime > 0)
       if (range[1] - cacheMaxTime > 0) {
         return
       }
       // console.log('[onLoadBufferupdate]loadData', range[1])
       timeRage.every((item, idx) => {
-        let start = item[0]
-        let end = item[1] !== -1 ? item[1] : player.duration
-        let center = (start + end) / 2
+        const start = item[0]
+        const end = item[1] !== -1 ? item[1] : player.duration
+        const center = (start + end) / 2
         if (range[1] === 0) {
           return false
         } else {
@@ -263,12 +268,12 @@ export default class Mp4Player extends BasePlugin {
 
   onWaiting = () => {
     const { player } = this
-    let mp4 = this.mp4
+    const mp4 = this.mp4
     if (!mp4 || !mp4.meta) {
       return
     }
-    let range = player.getBufferedRange()
-    let duration = mp4.meta.videoDuration
+    const range = player.getBufferedRange()
+    const duration = mp4.meta.videoDuration
     if (duration - player.currentTime < 0.5 && duration - range[1] < 0.5) {
       this.mse.endOfStream()
     } else {
@@ -302,10 +307,10 @@ export default class Mp4Player extends BasePlugin {
 
   onSeeking = () => {
     const { player } = this
-    let buffered = player.buffered
+    const buffered = player.buffered
     let hasBuffered = false
 
-    let curTime = player.video.currentTime
+    const curTime = player.video.currentTime
     Task.clear()
     if (player.ended) {
       this.mp4.clear()
@@ -337,7 +342,7 @@ export default class Mp4Player extends BasePlugin {
   }
 
   errorHandle (err) {
-    const {player} = this
+    const { player } = this
     err.url = player.src
     if (err.errd && typeof err.errd === 'object') {
       if (this.mp4) {
@@ -356,7 +361,7 @@ export default class Mp4Player extends BasePlugin {
   isEnded () {
     const { player, mp4, mse } = this
     if (mp4.meta.endTime - player.currentTime < 2) {
-      let range = player.getBufferedRange()
+      const range = player.getBufferedRange()
       if (player.currentTime - range[1] < 0.1) {
         mse.endOfStream()
       }

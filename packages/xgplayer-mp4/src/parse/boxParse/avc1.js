@@ -3,7 +3,7 @@ import Stream from '../stream'
 
 export default function avc1 () {
   let stream = new Stream(this.data)
-  let self = this
+  const self = this
   stream.skip(6)
   this.dataReferenceIndex = stream.readUint16()
   stream.skip(16)
@@ -20,7 +20,7 @@ export default function avc1 () {
   this.depth = stream.readUint16()
   stream.skip(2)
   while (stream.buffer.byteLength - stream.position >= 8) {
-    let box = new Box()
+    const box = new Box()
     box.readHeader(stream)
     self.subBox.push(box)
     box.readBody(stream)

@@ -3,7 +3,7 @@ import Stream from '../stream'
 import MP4DecSpecificDescrTag from './MP4DecSpecificDescrTag'
 
 export default function MP4DecConfigDescrTag (stream) {
-  let box = new Box()
+  const box = new Box()
   let size
   box.type = stream.readUint8()
   size = stream.readUint8()

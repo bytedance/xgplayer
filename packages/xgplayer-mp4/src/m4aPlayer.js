@@ -1,3 +1,4 @@
+/* eslint-disable array-callback-return */
 import { BasePlugin, Sniffer, Util, Events, Errors } from 'xgplayer'
 import MP4 from './m4a'
 import MSE from './media/mse'
@@ -6,7 +7,7 @@ import Buffer from './fmp4/buffer'
 // import FMP4 from './fmp4/mp4'
 // import { toISOString } from 'core-js/core/date'
 
-let MIME_TYPE = 'audio/mp4; codecs="mp4a.40.5"'
+const MIME_TYPE = 'audio/mp4; codecs="mp4a.40.5"'
 
 // const errorHandle = (player, err) => {
 //   console.log('errorHandle')
@@ -53,7 +54,7 @@ export default class M4APlayer extends BasePlugin {
     }
     try {
       BasePlugin.defineGetterOrSetter(this.player, {
-        '__url': {
+        __url: {
           get: () => {
             try {
               return this.mse ? this.mse.url : this.config.url
@@ -161,7 +162,7 @@ export default class M4APlayer extends BasePlugin {
     this.timer = setTimeout(() => {
       player.mp4.seek(time, order, nextOrder).then(buffer => {
         if (buffer) {
-          let mse = player.mse
+          const mse = player.mse
           mse.updating = true
           mse.appendBuffer(buffer)
           mse.once('updateend', () => {
@@ -208,9 +209,9 @@ export default class M4APlayer extends BasePlugin {
   }
 
   cut (url, start = 0, end) {
-    let segment = new Buffer()
+    const segment = new Buffer()
     return new Promise((resolve, reject) => {
-      let mp4 = new MP4(url, this.config, this.config.chunkSize)
+      const mp4 = new MP4(url, this.config, this.config.chunkSize)
       mp4.once('moovReady', () => {
         if (!end || end <= start) {
           end = start + 15
@@ -223,7 +224,7 @@ export default class M4APlayer extends BasePlugin {
         mp4.cut = true
         mp4.seek(start).then(buffer => {
           if (buffer) {
-            let meta = Util.deepCopy({
+            const meta = Util.deepCopy({
               duration: mp4.reqTimeLength,
               audioDuration: mp4.reqTimeLength,
               endTime: mp4.reqTimeLength
@@ -232,7 +233,7 @@ export default class M4APlayer extends BasePlugin {
             meta.audioDuration = mp4.reqTimeLength
             meta.endTime = mp4.reqTimeLength
             segment.write(mp4.packMeta(meta), buffer)
-            resolve(new window.Blob([segment.buffer], {type: MIME_TYPE}))
+            resolve(new window.Blob([segment.buffer], { type: MIME_TYPE }))
           }
         })
       })
@@ -309,7 +310,7 @@ export default class M4APlayer extends BasePlugin {
     const curTime = player.video.currentTime
     console.log('onSeeking', player.ended, curTime)
     Task.clear()
-    let timeRage = player.mp4.timeRage
+    const timeRage = player.mp4.timeRage
     if (!this.progressTimer) {
       this.startBuffer()
     }
@@ -369,7 +370,7 @@ export default class M4APlayer extends BasePlugin {
     let hasBuffered = false
     const curTime = player.currentTime
     Task.clear()
-    let timeRage = this.mp4.timeRage
+    const timeRage = this.mp4.timeRage
     if (buffered.length) {
       for (let i = 0, len = buffered.length; i < len; i++) {
         if (curTime >= buffered.start(i) && curTime <= buffered.end(i)) {

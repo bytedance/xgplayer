@@ -1,3 +1,4 @@
+/* eslint-disable array-callback-return */
 import EventEmitter from 'event-emitter'
 import Errors from '../error'
 import { getResponseHeaders } from '../util'
@@ -10,7 +11,7 @@ class Task {
     this.withCredentials = withCredentials
     this.id = range.join('-')
     this.on = false
-    let xhr = new window.XMLHttpRequest()
+    const xhr = new window.XMLHttpRequest()
     xhr.target = this
     xhr.responseType = 'arraybuffer'
     xhr.withCredentials = this.withCredentials || false
@@ -27,14 +28,15 @@ class Task {
           _callback({
             response: xhr.response,
             headers,
-            status: xhr.status })
+            status: xhr.status
+          })
         }
       } else {
-        xhr.target.emit('error', new Errors('network', '', {status: xhr.status, headers, line: 25, handle: '[Task] constructor', msg: xhr.status, url}))
+        xhr.target.emit('error', new Errors('network', '', { status: xhr.status, headers, line: 25, handle: '[Task] constructor', msg: xhr.status, url }))
       }
     }
     xhr.onerror = function (e) {
-      xhr.target.emit('error', new Errors('network', '', {line: 25, handle: '[Task] constructor', msg: e.message, url}))
+      xhr.target.emit('error', new Errors('network', '', { line: 25, handle: '[Task] constructor', msg: e.message, url }))
       xhr.target.remove()
     }
     xhr.onabort = function () {
@@ -44,6 +46,7 @@ class Task {
     Task.queue.push(this)
     this.update()
   }
+
   cancel () {
     this.xhr.abort()
   }
@@ -61,10 +64,10 @@ class Task {
   }
 
   update () {
-    let Queue = Task.queue
-    let sended = Queue.filter((item) => item.on)
-    let wait = Queue.filter(item => !item.on)
-    let max = Task.limit - sended.length
+    const Queue = Task.queue
+    const sended = Queue.filter((item) => item.on)
+    const wait = Queue.filter(item => !item.on)
+    const max = Task.limit - sended.length
     wait.forEach((item, idx) => {
       if (idx < max) {
         item.run()

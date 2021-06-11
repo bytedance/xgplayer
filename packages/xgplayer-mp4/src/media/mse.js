@@ -3,7 +3,7 @@ import Errors from '../error'
 
 class MSE {
   constructor (codecs = 'video/mp4; codecs="avc1.64001E, mp4a.40.5"') {
-    let self = this
+    const self = this
     EventEmitter(this)
     this.codecs = codecs
     this.mediaSource = new window.MediaSource()
@@ -14,11 +14,11 @@ class MSE {
       if (self.mediaSource.sourceBuffers.length === 0) {
         self.sourceBuffer = self.mediaSource.addSourceBuffer(self.codecs)
         self.sourceBuffer.addEventListener('error', function (e) {
-          self.emit('error', new Errors('mse', '', {line: 16, handle: '[MSE] constructor sourceopen', msg: e.message}))
+          self.emit('error', new Errors('mse', '', { line: 16, handle: '[MSE] constructor sourceopen', msg: e.message }))
         })
         self.sourceBuffer.addEventListener('updateend', function (e) {
           self.emit('updateend')
-          let buffer = self.queue.shift()
+          const buffer = self.queue.shift()
           if (buffer && self.sourceBuffer && !self.sourceBuffer.updating && self.state === 'open') {
             self.sourceBuffer.appendBuffer(buffer)
           }
@@ -44,7 +44,7 @@ class MSE {
   }
 
   appendBuffer (buffer) {
-    let sourceBuffer = this.sourceBuffer
+    const sourceBuffer = this.sourceBuffer
     if (sourceBuffer && !sourceBuffer.updating && this.state === 'open') {
       sourceBuffer.appendBuffer(buffer)
       return true

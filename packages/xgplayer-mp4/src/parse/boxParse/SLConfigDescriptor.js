@@ -1,7 +1,7 @@
 import Box from '../box'
 
 export default function SLConfigDescriptor (stream) {
-  let box = new Box()
+  const box = new Box()
   let size
   box.type = stream.readUint8()
   size = stream.readUint8()
