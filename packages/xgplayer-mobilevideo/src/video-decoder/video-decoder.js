@@ -9,6 +9,8 @@ const DEFAULT_PLAYBACKRATE = 2
 const CANVAS_COUNT = 45
 const FRAME_DURATION = 35
 const MAX_VIDEO_HEIGHT = 720
+const MAX_FPS = 17
+const MIN_FPS = 15
 
 export default class VideoDecoder extends EventEmitter {
   constructor (config) {
@@ -84,7 +86,6 @@ export default class VideoDecoder extends EventEmitter {
     try {
       logger.log(this.TAG, '_initVideo, basePTS:', info.dts)
       this._setVideoSrc(blob, time)
-
       if (this._video.paused) {
         this._videoPlay('_initVideo')
       }
@@ -154,7 +155,7 @@ export default class VideoDecoder extends EventEmitter {
     })
     this.on('outputresolutionchange', this._onChange.bind(this))
     this.on('fpsreduce', (fps) => {
-      // this._adaptFrameDuration(fps)
+      this._adaptFrameDuration(fps)
     })
   }
   _onTimeUpdate () {
@@ -220,6 +221,8 @@ export default class VideoDecoder extends EventEmitter {
       height: this._currentCanvasHeight,
       relHeight: this._video.videoHeight
     })
+    logger.log('_timePerFrame', this._totleTime / this._screenShotNum)
+    this._timePerFrame = this._totleTime / this._screenShotNum
 
     this._screenShotNum = 0
     this._allPicNum = 0
@@ -297,7 +300,6 @@ export default class VideoDecoder extends EventEmitter {
           return
         }
       }
-
       if (this._lastPts && (pts - this._lastPts < this._realFrameDuration)) {
         // if (this._lastPts && pts - this._lastPts < parseInt(60)) {
         this._framId = window.requestAnimationFrame(this._getFrame.bind(this))
@@ -383,31 +385,30 @@ export default class VideoDecoder extends EventEmitter {
   }
 
   _adaptFrameDuration (decodeFPS) {
-    if (decodeFPS < 15) {
+    if (decodeFPS < MIN_FPS) {
       this._minFPSTime++
     } else {
       this._minFPSTime = 0
     }
 
-    if (decodeFPS > 17) {
+    if (decodeFPS > MAX_FPS) {
       this._maxFPSTime++
     } else {
       this._maxFPSTime = 0
     }
 
-    if (this._minFPSTime > 0 && this._decodeFPS < 15) {
-      this._realFrameDuration -= 2
-      if (this._realFrameDuration < 0) {
-        this._realFrameDuration = 0
+    if (this._minFPSTime > 0 && this._decodeFPS < MIN_FPS) {
+      this._realFrameDuration -= this._timePerFrame
+      if (this._realFrameDuration < 15) {
+        this._realFrameDuration = 15
       }
       this._minFPSTime = 0
     }
 
-    if (this._maxFPSTime > 0 && this._decodeFPS > 17) {
-      this._realFrameDuration += 2
+    if (this._maxFPSTime > 0 && this._decodeFPS > MAX_FPS) {
+      this._realFrameDuration += this._timePerFrame
       this._maxFPSTime = 0
     }
-    console.error('_realFrameDuration', this._realFrameDuration)
   }
   get _vDuration () {
     return parseInt(this._video.duration * 1000)
@@ -473,6 +474,9 @@ export default class VideoDecoder extends EventEmitter {
   }
 
   destroy () {
+    this._isInDecoding = false
+    window.cancelAnimationFrame(this._framId)
+    this._video.pause()
     this._removeEvents()
   }
   get videoWidth () {

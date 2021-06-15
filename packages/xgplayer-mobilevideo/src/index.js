@@ -94,8 +94,8 @@ class MVideo extends HTMLElement {
         canvas: this.querySelector('canvas'),
         videoContext: this.videoContext,
         videoDecode: this.videoDecode,
-        maxVideoHeight: this.getAttribute('maxVideoHeight')
-        // videoRemux: this.videoRemux
+        maxVideoHeight: this.getAttribute('maxVideoHeight'),
+        endLevel: parseInt(this.getAttribute('endLevel'))
       },
       this
     )
