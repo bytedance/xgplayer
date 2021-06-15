@@ -54,7 +54,7 @@ class Stream {
         break
       case 3:
         if (sign) {
-          throw 'not supported for readByte 3'
+          throw new Error('not supported for readByte 3')
         } else {
           res = buffer.getUint8(buffer.position) << 16
           res |= buffer.getUint8(buffer.position + 1) << 8

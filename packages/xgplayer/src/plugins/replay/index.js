@@ -1,4 +1,4 @@
-import Plugin, {hooksDescriptor, Events, Util} from '../../plugin'
+import Plugin, { hooksDescriptor, Events, Util } from '../../plugin'
 import ReplaySvg from '../assets/replay.svg'
 
 class Replay extends Plugin {
@@ -14,7 +14,7 @@ class Replay extends Plugin {
 
   registerIcons () {
     return {
-      'replay': ReplaySvg
+      replay: ReplaySvg
     }
   }
 
@@ -42,9 +42,9 @@ class Replay extends Plugin {
         return
       }
       this.show()
-      let path = this.root.querySelector('path')
+      const path = this.root.querySelector('path')
       if (path) {
-        let transform = window.getComputedStyle(path).getPropertyValue('transform')
+        const transform = window.getComputedStyle(path).getPropertyValue('transform')
         if (typeof transform === 'string' && transform.indexOf('none') > -1) {
           return null
         } else {

@@ -1,4 +1,4 @@
-import Plugin, {Events, Util, POSITIONS, Sniffer, STATE_CLASS} from '../../plugin'
+import Plugin, { Events, Util, POSITIONS, Sniffer, STATE_CLASS } from '../../plugin'
 // import classNames from 'classnames/bind'
 
 // console.log('ClassName', classNames)
@@ -29,7 +29,7 @@ class Controls extends Plugin {
   }
 
   afterCreate () {
-    const {disable, height, mode, autoHide} = this.config
+    const { disable, height, mode, autoHide } = this.config
     if (disable) {
       return
     }
@@ -58,7 +58,7 @@ class Controls extends Plugin {
   }
 
   onMouseEnter = (e) => {
-    const { player } = this;
+    const { player } = this
     if (player.userTimer) {
       Util.clearTimeout(player, player.userTimer)
       clearTimeout(player.userTimer)
@@ -66,21 +66,21 @@ class Controls extends Plugin {
   }
 
   onMouseLeave = () => {
-    const { player, playerConfig } = this;
+    const { player, playerConfig } = this
     const delay = !playerConfig.closeControlsBlur ? playerConfig.inactive : 200
-    player.emit(Events.PLAYER_FOCUS, {delay})
+    player.emit(Events.PLAYER_FOCUS, { delay })
   }
 
   focus () {
-    this.player.emit(Events.PLAYER_FOCUS, {autoHide: false})
+    this.player.emit(Events.PLAYER_FOCUS, { autoHide: false })
   }
 
   unFocus () {
-    this.player.emit(Events.PLAYER_FOCUS, {autoHide: true})
+    this.player.emit(Events.PLAYER_FOCUS, { autoHide: true })
   }
 
   blur () {
-    this.player.emit(Events.PLAYER_BLUR, {ignoreStatus: true})
+    this.player.emit(Events.PLAYER_BLUR, { ignoreStatus: true })
   }
 
   recoverAutoHide () {
@@ -105,7 +105,7 @@ class Controls extends Plugin {
 
   registerPlugin (plugin, options = {}, name) {
     if (!this.root) {
-      return;
+      return
     }
     const defaultConfig = plugin.defaultConfig || {}
     if (!options.root) {
@@ -115,14 +115,14 @@ class Controls extends Plugin {
           options.root = this.left
           break
         case POSITIONS.CONTROLS_RIGHT:
-          options.root = this.right;
-          break;
+          options.root = this.right
+          break
         case POSITIONS.CONTROLS_CENTER:
-          options.root = this.center;
-          break;
+          options.root = this.center
+          break
         case POSITIONS.CONTROLS:
-          options.root = this.root;
-          break;
+          options.root = this.root
+          break
         default:
           options.root = this.left
       }
@@ -140,14 +140,14 @@ class Controls extends Plugin {
   render () {
     const { mode, autoHide, initShow, disable } = this.config
     if (disable) {
-      return;
+      return
     }
-   const className =  Util.classNames(
-      {'flex-controls': mode === 'flex'},
-      {'bottom-controls': mode === 'bottom'},
-      {'control_autohide': autoHide},
-      {'controls_permanent': !autoHide},
-      {'xgplayer-controls-initshow': initShow || !autoHide})
+    const className = Util.classNames(
+      { 'flex-controls': mode === 'flex' },
+      { 'bottom-controls': mode === 'bottom' },
+      { control_autohide: autoHide },
+      { controls_permanent: !autoHide },
+      { 'xgplayer-controls-initshow': initShow || !autoHide })
     return `<xg-controls class="xgplayer-controls ${className}" unselectable="on" onselectstart="return false">
     <xg-inner-controls class="xg-inner-controls xg-pos">
       <xg-left-grid class="xg-left-grid">

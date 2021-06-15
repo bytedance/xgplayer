@@ -19,7 +19,7 @@ export default class DefinitionIcon extends OptionsIcon {
   }
 
   beforeCreate (args) {
-    const {list} = args.config
+    const { list } = args.config
     if (Array.isArray(list) && list.length > 0) {
       args.config.list = list.map(item => {
         if (!item.text && item.name) {
@@ -46,7 +46,7 @@ export default class DefinitionIcon extends OptionsIcon {
 
   renderItemList () {
     const { player } = this
-    const {list} = this.config
+    const { list } = this.config
     let currentSrc = player.currentSrc || player.src
     if (player.switchURL) {
       let curRUL = document.createElement('a');
@@ -83,13 +83,13 @@ export default class DefinitionIcon extends OptionsIcon {
   }
 
   onCanplayChangeDefinition () {
-    const {player} = this
+    const { player } = this
     player.currentTime = this.curTime
     if (!this.isPaused) {
-      let playPromise = player.play()
+      const playPromise = player.play()
       if (playPromise !== undefined && playPromise) {
         // eslint-disable-next-line handle-callback-err
-        playPromise.catch(err => {})
+        playPromise.catch(_err => {})
       }
     } else {
       player.pause()
@@ -104,7 +104,7 @@ export default class DefinitionIcon extends OptionsIcon {
   };
 
   switchUrl (lastATag) {
-    const {player} = this
+    const { player } = this
     let curRUL = document.createElement('a');
     ['mp4', 'hls', '__flv__', 'dash', 'hlsjs'].every(item => {
       if (player[item]) {
@@ -148,7 +148,7 @@ export default class DefinitionIcon extends OptionsIcon {
   }
 
   changeDefinition (to) {
-    const {player} = this
+    const { player } = this
     if (player.switchURL) {
       this.switchUrl(to)
     } else {
@@ -175,11 +175,11 @@ export default class DefinitionIcon extends OptionsIcon {
 
   onItemClick (e, data) {
     super.onItemClick(...arguments)
-    const {player} = this
+    const { player } = this
     const target = e.delegateTarget
     const url = target.getAttribute('url')
     player.emit(Events.BEFORE_DEFINITION_CHANGE, url)
     this.changeDefinition(data.to)
-    player.emit(Events.DEFINITION_CHANGE, {from: data.from, to: data.to})
+    player.emit(Events.DEFINITION_CHANGE, { from: data.from, to: data.to })
   }
 }

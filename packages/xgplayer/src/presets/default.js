@@ -1,10 +1,10 @@
-import sniffer from '../utils/sniffer';
+import sniffer from '../utils/sniffer'
 // import Danmu from '../plugins/danmu'
-import Replay from '../plugins/replay';
-import Poster from '../plugins/poster';
-import Start from '../plugins/start';
-import Enter from '../plugins/enter';
-import Miniscreen from '../plugins/miniScreen';
+import Replay from '../plugins/replay'
+import Poster from '../plugins/poster'
+import Start from '../plugins/start'
+import Enter from '../plugins/enter'
+import Miniscreen from '../plugins/miniScreen'
 import PC from '../plugins/pc'
 import Mobile from '../plugins/mobile'
 import Keyboard from '../plugins/keyboard'
@@ -44,13 +44,13 @@ export default class DefaultPreset {
     const mode = simulateMode ? 'mobile' : sniffer.device
     switch (mode) {
       case 'pc':
-        this.plugins.push(...[Keyboard, PC, CssFullScreen], ...barIcons, Miniscreen);
-        break;
+        this.plugins.push(...[Keyboard, PC, CssFullScreen], ...barIcons, Miniscreen)
+        break
       case 'mobile':
-        this.plugins.push(...[Mobile, ...barIcons], Miniscreen);
-        break;
+        this.plugins.push(...[Mobile, ...barIcons], Miniscreen)
+        break
       default:
-        this.plugins.push(...[Keyboard, PC, CssFullScreen], ...barIcons, Miniscreen);
+        this.plugins.push(...[Keyboard, PC, CssFullScreen], ...barIcons, Miniscreen)
     }
     this.ignores = []
   }

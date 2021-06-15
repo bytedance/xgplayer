@@ -1,4 +1,4 @@
-import Plugin, {Events, Util} from '../../plugin'
+import Plugin, { Events, Util } from '../../plugin'
 
 class Poster extends Plugin {
   static get pluginName () {
@@ -79,7 +79,7 @@ class Poster extends Plugin {
   }
 
   render () {
-    const {poster, hideCanplay} = this.config
+    const { poster, hideCanplay } = this.config
     const style = poster ? `background-image:url(${poster});` : ''
     return `<xg-poster class="xgplayer-poster ${hideCanplay ? 'xg-showplay' : ''}" style="${style}">
     </xg-poster>`

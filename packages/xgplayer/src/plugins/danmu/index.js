@@ -8,7 +8,7 @@ const MIN_INTERVAL = 300
 class Danmu extends Plugin {
   constructor (args) {
     super(args)
-    this.danmujs = null;
+    this.danmujs = null
     this.danmuPanel = null
     this.isOpen = false
     this.seekCost = 0
@@ -93,7 +93,7 @@ class Danmu extends Plugin {
   }
 
   initDanmu () {
-    const {player, config} = this
+    const { player, config } = this
     const danmuConfig = {
       container: this.root,
       player: player.video,
@@ -113,7 +113,7 @@ class Danmu extends Plugin {
   }
 
   registerExtIcons () {
-    const {player, config} = this
+    const { player, config } = this
     if (config.panel) {
       const panelOptions = {
         config: {
@@ -124,7 +124,7 @@ class Danmu extends Plugin {
       }
       this.danmuPanel = player.controls.registerPlugin(DanmuPanel, panelOptions, DanmuPanel.pluginName)
     }
-    const {switchConfig} = config
+    const { switchConfig } = config
     if (!config.closeDefaultBtn) {
       const buttonOptions = {
         config: {

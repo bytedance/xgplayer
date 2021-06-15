@@ -1,14 +1,14 @@
 import Box from '../box'
 
 Box.dref = function (data, output) {
-  let stream = this.stream
+  const stream = this.stream
   stream.writeUint8(data.version)
   stream.writeUint24(data.flag)
   stream.writeUint32(data.entryCount)
   output.write(new Uint8Array(stream.buffer.slice(0, stream.position)))
-  let self = this
+  const self = this
   data.subBox.forEach(item => {
-    let box = new Box(item, self.output)
+    const box = new Box(item, self.output)
     self.subBox.push(box)
     box.writeBody()
   })

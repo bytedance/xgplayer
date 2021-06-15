@@ -1,6 +1,8 @@
 import Stream from './stream'
 import Errors from '../error'
+
 class Box {
+  static boxParse = {}
   constructor () {
     this.headSize = 8
     this.size = 0
@@ -8,6 +10,7 @@ class Box {
     this.subBox = []
     this.start = -1
   }
+
   readHeader (stream) {
     this.start = stream.position
     this.size = stream.readUint32()
@@ -35,12 +38,13 @@ class Box {
     if (Box.containerBox.find(item => item === type)) {
       parser = Box.containerParser
     } else {
-      parser = Box[type]
+      parser = Box.boxParse[type]
     }
     if (parser && parser instanceof Function) {
       parser.call(this)
     }
   }
+
   read (stream) {
     this.readHeader(stream)
     this.readBody(stream)

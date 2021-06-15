@@ -28,7 +28,7 @@ export default class ScreenShot extends Plugin {
 
   afterCreate () {
     this.appendChild('.xgplayer-icon', this.icons.screenshotIcon)
-    const {config} = this
+    const { config } = this
     this.initSize = (data) => {
       if (config.fitVideo) {
         config.width = data.vWidth
@@ -48,7 +48,7 @@ export default class ScreenShot extends Plugin {
     const saveLink = document.createElement('a')
     saveLink.href = data
     saveLink.download = filename
-    let event = document.createEvent('MouseEvents')
+    const event = document.createEvent('MouseEvents')
     event.initMouseEvent('click', true, false, window, 0, 0, 0, 0, 0, false, false, false, false, 0, null)
     saveLink.dispatchEvent(event)
   }
@@ -70,13 +70,13 @@ export default class ScreenShot extends Plugin {
     })
   }
 
-  shot (width, height, option = {quality: 0.92, type: 'image/png'}) {
-    const {config, player} = this
+  shot (width, height, option = { quality: 0.92, type: 'image/png' }) {
+    const { config, player } = this
     const quality = option.quality || config.quality
     const type = option.type || config.type
     return new Promise((resolve, reject) => {
       if (!this.canvas) {
-        this.createCanvans(width, height);
+        this.createCanvans(width, height)
       } else {
         this.canvas.width = width || config.width
         this.canvas.height = height || config.height
@@ -90,7 +90,7 @@ export default class ScreenShot extends Plugin {
 
   registerIcons () {
     return {
-      'screenshotIcon': null
+      screenshotIcon: null
     }
   }
 
@@ -101,14 +101,14 @@ export default class ScreenShot extends Plugin {
 
   render () {
     if (this.config.disable) {
-      return;
+      return
     }
     const className = this.icons.screenshotIcon ? 'xgplayer-icon' : 'xgplayer-icon btn-text'
     const langKey = 'SCREENSHOT'
     return `
       <xg-icon class="xgplayer-shot">
       <div class="${className}">
-      ${this.icons.screenshotIcon ? `` : `<span lang-key="${this.i18nKeys[langKey]}">${this.i18n[langKey]}</span>`} 
+      ${this.icons.screenshotIcon ? '' : `<span lang-key="${this.i18nKeys[langKey]}">${this.i18n[langKey]}</span>`} 
       </div>
     </xg-icon>`
   }

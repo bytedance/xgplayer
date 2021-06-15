@@ -45,8 +45,8 @@ const ErrorTypes = {
 
 class Errors {
   constructor (type, currentTime, duration, networkState, readyState, src, currentSrc,
-    ended, errd = {line: '', handle: '', msg: '', version: ''}, errorCode, mediaError) {
-    let r = {}
+    ended, errd = { line: '', handle: '', msg: '', version: '' }, errorCode, mediaError) {
+    const r = {}
     if (arguments.length > 1) {
       r.playerVersion = version // 播放器版本
       r.errorType = type
