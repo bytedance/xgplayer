@@ -50,6 +50,7 @@ class TsDemuxer extends EventEmitter {
    */
   constructor ({ videoTrack, audioTrack }) {
     super();
+    this.TAG = 'TsDemuxer';
     this.demuxing = false;
     this.videoTrack = videoTrack;
     this.audioTrack = audioTrack;
@@ -293,6 +294,7 @@ class TsDemuxer extends EventEmitter {
       pts: pts,
       cts: pts - dts,
       originDts: pes.dts,
+      purePts: pes.purePts,
       isKeyframe,
       data,
       nals,
@@ -465,6 +467,7 @@ class TsDemuxer extends EventEmitter {
       pts,
       cts: pts - dts,
       originDts: pes.dts,
+      purePts: pes.purePts,
       isKeyframe,
       data,
       nals,
@@ -865,30 +868,41 @@ class TsDemuxer extends EventEmitter {
         ret.pesHeaderLength = buffer.readUint8();
         let N1 = ret.pesHeaderLength;
 
-        if (ret.ptsDTSFlag === 2) {
-          let pts = [];
-          next = buffer.readUint8();
-          pts.push(next >>> 1 & 0x07);
-          next = buffer.readUint16();
-          pts.push(next >>> 1);
-          next = buffer.readUint16();
-          pts.push(next >>> 1);
-          ret.pts = (pts[0] << 30 | pts[1] << 15 | pts[2]);
-          N1 -= 5;
-          // 视频如果没有dts用pts
-          if (ret.type === 'video') {
-            ret.dts = ret.pts;
-          }
+
+         // 计算pts
+         let pts = [];
+
+         pts.push(buffer.readUint8())
+         pts.push(buffer.readUint8())
+         pts.push(buffer.readUint8())
+         pts.push(buffer.readUint8())
+         pts.push(buffer.readUint8())
+ 
+         let p = (pts[0] & 0x0e) * 536870912 + // 1 << 29
+         (pts[1] & 0xff) * 4194304 + // 1 << 22
+         (pts[2] & 0xfe) * 16384 + // 1 << 14
+         (pts[3] & 0xff) * 128 + // 1 << 7
+         (pts[4] & 0xfe) / 2;
+         // 不经过任何处理的原始的pts
+         ret.purePts = p;
+         buffer.dataview.position -= 5;
+         pts = [];
+ 
+         next = buffer.readUint8();
+         pts.push(next >>> 1 & 0x07);
+         next = buffer.readUint16();
+         pts.push(next >>> 1);
+         next = buffer.readUint16();
+         pts.push(next >>> 1);
+         ret.pts = (pts[0] << 30 | pts[1] << 15 | pts[2]);
+         N1 -= 5;
+
+        // 视频如果没有dts用pts
+        if (ret.type === 'video') {
+          ret.dts = ret.pts;
         }
+
         if (ret.ptsDTSFlag === 3) {
-          let pts = [];
-          next = buffer.readUint8();
-          pts.push(next >>> 1 & 0x07);
-          next = buffer.readUint16();
-          pts.push(next >>> 1);
-          next = buffer.readUint16();
-          pts.push(next >>> 1);
-          ret.pts = (pts[0] << 30 | pts[1] << 15 | pts[2]);
           let dts = [];
           next = buffer.readUint8();
           dts.push(next >>> 1 & 0x07);
@@ -897,8 +911,9 @@ class TsDemuxer extends EventEmitter {
           next = buffer.readUint16();
           dts.push(next >>> 1);
           ret.dts = (dts[0] << 30 | dts[1] << 15 | dts[2]);
-          N1 -= 10;
+          N1 -= 5;
         }
+
         if (ret.escrFlag === 1) {
           let escr = [];
           let ex = [];
